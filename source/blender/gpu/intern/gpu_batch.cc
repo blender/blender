@@ -230,7 +230,7 @@ bool GPU_batch_vertbuf_has(const Batch *batch, const VertBuf *vertex_buf)
   return false;
 }
 
-void GPU_batch_resource_id_buf_set(Batch *batch, GPUStorageBuf *resource_id_buf)
+void GPU_batch_resource_id_buf_set(Batch *batch, blender::gpu::StorageBuf *resource_id_buf)
 {
   BLI_assert(resource_id_buf);
   batch->flag |= GPU_BATCH_DIRTY;
@@ -508,7 +508,7 @@ void GPU_batch_draw_advanced(
   batch->draw(vertex_first, vertex_count, instance_first, instance_count);
 }
 
-void GPU_batch_draw_indirect(Batch *batch, GPUStorageBuf *indirect_buf, intptr_t offset)
+void GPU_batch_draw_indirect(Batch *batch, blender::gpu::StorageBuf *indirect_buf, intptr_t offset)
 {
   BLI_assert(batch != nullptr);
   BLI_assert(indirect_buf != nullptr);
@@ -518,8 +518,11 @@ void GPU_batch_draw_indirect(Batch *batch, GPUStorageBuf *indirect_buf, intptr_t
   batch->draw_indirect(indirect_buf, offset);
 }
 
-void GPU_batch_multi_draw_indirect(
-    Batch *batch, GPUStorageBuf *indirect_buf, int count, intptr_t offset, intptr_t stride)
+void GPU_batch_multi_draw_indirect(Batch *batch,
+                                   blender::gpu::StorageBuf *indirect_buf,
+                                   int count,
+                                   intptr_t offset,
+                                   intptr_t stride)
 {
   BLI_assert(batch != nullptr);
   BLI_assert(indirect_buf != nullptr);

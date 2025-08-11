@@ -27,8 +27,7 @@ static Vector<int32_t> test_data()
 
 static void test_storage_buffer_create_update_read()
 {
-  GPUStorageBuf *ssbo = GPU_storagebuf_create_ex(
-      SIZE_IN_BYTES, nullptr, GPU_USAGE_STATIC, __func__);
+  StorageBuf *ssbo = GPU_storagebuf_create_ex(SIZE_IN_BYTES, nullptr, GPU_USAGE_STATIC, __func__);
   EXPECT_NE(ssbo, nullptr);
 
   /* Upload some dummy data. */
@@ -52,8 +51,7 @@ GPU_TEST(storage_buffer_create_update_read);
 
 static void test_storage_buffer_clear_zero()
 {
-  GPUStorageBuf *ssbo = GPU_storagebuf_create_ex(
-      SIZE_IN_BYTES, nullptr, GPU_USAGE_STATIC, __func__);
+  StorageBuf *ssbo = GPU_storagebuf_create_ex(SIZE_IN_BYTES, nullptr, GPU_USAGE_STATIC, __func__);
   EXPECT_NE(ssbo, nullptr);
 
   /* Upload some dummy data. */
@@ -77,8 +75,7 @@ GPU_TEST(storage_buffer_clear_zero);
 
 static void test_storage_buffer_clear()
 {
-  GPUStorageBuf *ssbo = GPU_storagebuf_create_ex(
-      SIZE_IN_BYTES, nullptr, GPU_USAGE_STATIC, __func__);
+  StorageBuf *ssbo = GPU_storagebuf_create_ex(SIZE_IN_BYTES, nullptr, GPU_USAGE_STATIC, __func__);
   EXPECT_NE(ssbo, nullptr);
 
   GPU_storagebuf_clear(ssbo, 157255);
@@ -100,8 +97,7 @@ GPU_TEST(storage_buffer_clear);
 
 static void test_storage_buffer_clear_byte_pattern()
 {
-  GPUStorageBuf *ssbo = GPU_storagebuf_create_ex(
-      SIZE_IN_BYTES, nullptr, GPU_USAGE_STATIC, __func__);
+  StorageBuf *ssbo = GPU_storagebuf_create_ex(SIZE_IN_BYTES, nullptr, GPU_USAGE_STATIC, __func__);
   EXPECT_NE(ssbo, nullptr);
 
   /* Tests a different clear command on Metal. */
@@ -124,8 +120,7 @@ GPU_TEST(storage_buffer_clear_byte_pattern);
 
 static void test_storage_buffer_copy_from_vertex_buffer()
 {
-  GPUStorageBuf *ssbo = GPU_storagebuf_create_ex(
-      SIZE_IN_BYTES, nullptr, GPU_USAGE_STATIC, __func__);
+  StorageBuf *ssbo = GPU_storagebuf_create_ex(SIZE_IN_BYTES, nullptr, GPU_USAGE_STATIC, __func__);
   EXPECT_NE(ssbo, nullptr);
 
   /* Create vertex buffer. */

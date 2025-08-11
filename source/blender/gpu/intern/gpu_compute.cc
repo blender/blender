@@ -23,7 +23,7 @@ void GPU_compute_dispatch(blender::gpu::Shader *shader,
 
 void GPU_compute_dispatch_indirect(
     blender::gpu::Shader *shader,
-    GPUStorageBuf *indirect_buf_,
+    blender::gpu::StorageBuf *indirect_buf_,
     const blender::gpu::shader::SpecializationConstants *constants_state)
 {
   blender::gpu::GPUBackend &gpu_backend = *blender::gpu::GPUBackend::get();

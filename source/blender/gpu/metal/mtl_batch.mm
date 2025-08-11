@@ -37,7 +37,7 @@ void MTLBatch::draw(int v_first, int v_count, int i_first, int i_count)
   this->draw_advanced(v_first, v_count, i_first, i_count);
 }
 
-void MTLBatch::draw_indirect(GPUStorageBuf *indirect_buf, intptr_t offset)
+void MTLBatch::draw_indirect(StorageBuf *indirect_buf, intptr_t offset)
 {
   this->draw_advanced_indirect(indirect_buf, offset);
 }
@@ -649,7 +649,7 @@ void MTLBatch::draw_advanced(int v_first, int v_count, int i_first, int i_count)
   this->unbind(rec);
 }
 
-void MTLBatch::draw_advanced_indirect(GPUStorageBuf *indirect_buf, intptr_t offset)
+void MTLBatch::draw_advanced_indirect(StorageBuf *indirect_buf, intptr_t offset)
 {
   /* Setup RenderPipelineState for batch. */
   MTLContext *ctx = MTLContext::get();
@@ -663,7 +663,7 @@ void MTLBatch::draw_advanced_indirect(GPUStorageBuf *indirect_buf, intptr_t offs
   }
 
   /* Fetch indirect buffer Metal handle. */
-  MTLStorageBuf *mtlssbo = static_cast<MTLStorageBuf *>(unwrap(indirect_buf));
+  MTLStorageBuf *mtlssbo = static_cast<MTLStorageBuf *>(indirect_buf);
   id<MTLBuffer> mtl_indirect_buf = mtlssbo->get_metal_buffer();
   BLI_assert(mtl_indirect_buf != nil);
   if (mtl_indirect_buf == nil) {

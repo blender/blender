@@ -35,7 +35,7 @@ static void test_buffer_texture()
                               GPU_shader_get_sampler_binding(shader, "bufferTexture"));
 
   /* Construct SSBO. */
-  GPUStorageBuf *ssbo = GPU_storagebuf_create_ex(
+  StorageBuf *ssbo = GPU_storagebuf_create_ex(
       4 * sizeof(float), nullptr, GPU_USAGE_STATIC, __func__);
   GPU_storagebuf_bind(ssbo, GPU_shader_get_ssbo_binding(shader, "data_out"));
 

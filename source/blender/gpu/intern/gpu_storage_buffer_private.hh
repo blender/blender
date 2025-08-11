@@ -10,10 +10,9 @@
 
 #include "BLI_sys_types.h"
 
-struct GPUStorageBuf;
-
 namespace blender::gpu {
 
+class StorageBuf;
 class VertBuf;
 
 #ifndef NDEBUG
@@ -48,20 +47,6 @@ class StorageBuf {
   virtual void async_flush_to_host() = 0;
   virtual void sync_as_indirect_buffer() = 0;
 };
-
-/* Syntactic sugar. */
-static inline GPUStorageBuf *wrap(StorageBuf *storage_buf)
-{
-  return reinterpret_cast<GPUStorageBuf *>(storage_buf);
-}
-static inline StorageBuf *unwrap(GPUStorageBuf *storage_buf)
-{
-  return reinterpret_cast<StorageBuf *>(storage_buf);
-}
-static inline const StorageBuf *unwrap(const GPUStorageBuf *storage_buf)
-{
-  return reinterpret_cast<const StorageBuf *>(storage_buf);
-}
 
 #undef DEBUG_NAME_LEN
 

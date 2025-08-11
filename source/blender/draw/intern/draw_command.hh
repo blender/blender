@@ -55,7 +55,7 @@ struct RecordingState {
   DRWState pipeline_state = DRW_STATE_NO_DRAW;
   int clip_plane_count = 0;
   /** Used for gl_BaseInstance workaround. */
-  GPUStorageBuf *resource_id_buf = nullptr;
+  gpu::StorageBuf *resource_id_buf = nullptr;
   /** Used for pass simple resource ID. Starts at 1 as 0 is the identity handle. */
   int instance_offset = 1;
 
@@ -181,8 +181,8 @@ struct ResourceBind {
      * debug info. */
     gpu::UniformBuf *uniform_buf;
     gpu::UniformBuf **uniform_buf_ref;
-    GPUStorageBuf *storage_buf;
-    GPUStorageBuf **storage_buf_ref;
+    gpu::StorageBuf *storage_buf;
+    gpu::StorageBuf **storage_buf_ref;
     /** NOTE: Texture is used for both Sampler and Image binds. */
     gpu::Texture *texture;
     gpu::Texture **texture_ref;
@@ -198,9 +198,9 @@ struct ResourceBind {
       : slot(slot_), is_reference(false), type(Type::UniformBuf), uniform_buf(res){};
   ResourceBind(int slot_, gpu::UniformBuf **res)
       : slot(slot_), is_reference(true), type(Type::UniformBuf), uniform_buf_ref(res){};
-  ResourceBind(int slot_, GPUStorageBuf *res)
+  ResourceBind(int slot_, gpu::StorageBuf *res)
       : slot(slot_), is_reference(false), type(Type::StorageBuf), storage_buf(res){};
-  ResourceBind(int slot_, GPUStorageBuf **res)
+  ResourceBind(int slot_, gpu::StorageBuf **res)
       : slot(slot_), is_reference(true), type(Type::StorageBuf), storage_buf_ref(res){};
   ResourceBind(int slot_, gpu::UniformBuf *res, Type /*type*/)
       : slot(slot_), is_reference(false), type(Type::UniformAsStorageBuf), uniform_buf(res){};
@@ -412,7 +412,7 @@ struct DrawMulti {
 
 struct DrawIndirect {
   gpu::Batch *batch;
-  GPUStorageBuf **indirect_buf;
+  gpu::StorageBuf **indirect_buf;
   ResourceIndex res_index;
 
   void execute(RecordingState &state) const;
@@ -436,7 +436,7 @@ struct Dispatch {
 };
 
 struct DispatchIndirect {
-  GPUStorageBuf **indirect_buf;
+  gpu::StorageBuf **indirect_buf;
 
   void execute(RecordingState &state) const;
   std::string serialize() const;

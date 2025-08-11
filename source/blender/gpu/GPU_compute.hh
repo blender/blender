@@ -49,5 +49,5 @@ void GPU_compute_dispatch(
  */
 void GPU_compute_dispatch_indirect(
     blender::gpu::Shader *shader,
-    GPUStorageBuf *indirect_buf,
+    blender::gpu::StorageBuf *indirect_buf,
     const blender::gpu::shader::SpecializationConstants *constants_state = nullptr);

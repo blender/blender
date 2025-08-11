@@ -139,13 +139,13 @@ class EvalOutputAPI {
                    int *patches_are_triangular);
 
   // Copy the patch arrays buffer used by OpenSubDiv for the source data to the given buffer.
-  GPUStorageBuf *create_patch_arrays_buf();
+  gpu::StorageBuf *create_patch_arrays_buf();
 
   // Wrap the patch index buffer used by OpenSubDiv for the source data with the given buffer.
-  GPUStorageBuf *get_patch_index_buf();
+  gpu::StorageBuf *get_patch_index_buf();
 
   // Wrap the patch param buffer used by OpenSubDiv for the source data with the given buffer.
-  GPUStorageBuf *get_patch_param_buf();
+  gpu::StorageBuf *get_patch_param_buf();
 
   // Wrap the buffer used by OpenSubDiv for the source data with the given buffer.
   gpu::VertBuf *get_source_buf();
@@ -155,15 +155,15 @@ class EvalOutputAPI {
 
   // Copy the patch arrays buffer used by OpenSubDiv for the face varying channel with the given
   // buffer.
-  GPUStorageBuf *create_face_varying_patch_array_buf(const int face_varying_channel);
+  gpu::StorageBuf *create_face_varying_patch_array_buf(const int face_varying_channel);
 
   // Wrap the patch index buffer used by OpenSubDiv for the face varying channel with the given
   // buffer.
-  GPUStorageBuf *get_face_varying_patch_index_buf(const int face_varying_channel);
+  gpu::StorageBuf *get_face_varying_patch_index_buf(const int face_varying_channel);
 
   // Wrap the patch param buffer used by OpenSubDiv for the face varying channel with the given
   // buffer.
-  GPUStorageBuf *get_face_varying_patch_param_buf(const int face_varying_channel);
+  gpu::StorageBuf *get_face_varying_patch_param_buf(const int face_varying_channel);
 
   // Wrap thebuffer used by OpenSubDiv for the face varying channel with the given buffer.
   gpu::VertBuf *get_face_varying_source_buf(const int face_varying_channel);

@@ -48,14 +48,14 @@ using OpenSubdiv::Osd::PatchArrayVector;
 
 namespace blender::opensubdiv {
 
-template<class T> GPUStorageBuf *create_buffer(std::vector<T> const &src, const char *name)
+template<class T> gpu::StorageBuf *create_buffer(std::vector<T> const &src, const char *name)
 {
   if (src.empty()) {
     return nullptr;
   }
 
   const size_t buffer_size = src.size() * sizeof(T);
-  GPUStorageBuf *storage_buffer = GPU_storagebuf_create_ex(
+  gpu::StorageBuf *storage_buffer = GPU_storagebuf_create_ex(
       buffer_size, &src.at(0), GPU_USAGE_STATIC, name);
 
   return storage_buffer;
@@ -88,7 +88,7 @@ GPUStencilTableSSBO::GPUStencilTableSSBO(LimitStencilTable const *limitStencilTa
   }
 }
 
-static void storage_buffer_free(GPUStorageBuf **buffer)
+static void storage_buffer_free(gpu::StorageBuf **buffer)
 {
   if (*buffer) {
     GPU_storagebuf_free(*buffer);
@@ -195,12 +195,12 @@ bool GPUComputeEvaluator::EvalStencils(gpu::VertBuf *srcBuffer,
                                        BufferDescriptor const &duDesc,
                                        gpu::VertBuf *dvBuffer,
                                        BufferDescriptor const &dvDesc,
-                                       GPUStorageBuf *sizesBuffer,
-                                       GPUStorageBuf *offsetsBuffer,
-                                       GPUStorageBuf *indicesBuffer,
-                                       GPUStorageBuf *weightsBuffer,
-                                       GPUStorageBuf *duWeightsBuffer,
-                                       GPUStorageBuf *dvWeightsBuffer,
+                                       gpu::StorageBuf *sizesBuffer,
+                                       gpu::StorageBuf *offsetsBuffer,
+                                       gpu::StorageBuf *indicesBuffer,
+                                       gpu::StorageBuf *weightsBuffer,
+                                       gpu::StorageBuf *duWeightsBuffer,
+                                       gpu::StorageBuf *dvWeightsBuffer,
                                        int start,
                                        int end) const
 {
@@ -267,8 +267,8 @@ bool GPUComputeEvaluator::EvalPatches(gpu::VertBuf *srcBuffer,
                                       int numPatchCoords,
                                       gpu::VertBuf *patchCoordsBuffer,
                                       const PatchArrayVector &patchArrays,
-                                      GPUStorageBuf *patchIndexBuffer,
-                                      GPUStorageBuf *patchParamsBuffer)
+                                      gpu::StorageBuf *patchIndexBuffer,
+                                      gpu::StorageBuf *patchParamsBuffer)
 {
   if (_patchKernel.shader == nullptr) {
     return false;

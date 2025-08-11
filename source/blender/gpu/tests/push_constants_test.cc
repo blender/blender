@@ -18,7 +18,7 @@
 
 namespace blender::gpu::tests {
 struct CallData {
-  GPUStorageBuf *ssbo = nullptr;
+  StorageBuf *ssbo = nullptr;
   Vector<float> data;
 
   float float_in;

@@ -526,7 +526,7 @@ class VectorBlurOperation : public NodeOperation {
   void execute_gpu()
   {
     Result max_tile_velocity = this->compute_max_tile_velocity();
-    GPUStorageBuf *tile_indirection_buffer = this->dilate_max_velocity(max_tile_velocity);
+    gpu::StorageBuf *tile_indirection_buffer = this->dilate_max_velocity(max_tile_velocity);
     this->compute_motion_blur(max_tile_velocity, tile_indirection_buffer);
     max_tile_velocity.release();
     GPU_storagebuf_free(tile_indirection_buffer);
@@ -564,7 +564,7 @@ class VectorBlurOperation : public NodeOperation {
    * the output will be an indirection buffer that points to a particular tile in the original max
    * tile velocity image. This is done as a form of performance optimization, see the shader for
    * more information. */
-  GPUStorageBuf *dilate_max_velocity(Result &max_tile_velocity)
+  gpu::StorageBuf *dilate_max_velocity(Result &max_tile_velocity)
   {
     gpu::Shader *shader = context().get_shader("compositor_motion_blur_max_velocity_dilate");
     GPU_shader_bind(shader);
@@ -577,7 +577,7 @@ class VectorBlurOperation : public NodeOperation {
      * composed of blocks of 32, we get 16k / 32 = 512. So the table is 512x512, but we store two
      * tables for the previous and next velocities, so we double that. */
     const int size = sizeof(uint32_t) * 512 * 512 * 2;
-    GPUStorageBuf *tile_indirection_buffer = GPU_storagebuf_create_ex(
+    gpu::StorageBuf *tile_indirection_buffer = GPU_storagebuf_create_ex(
         size, nullptr, GPU_USAGE_DEVICE_ONLY, __func__);
     GPU_storagebuf_clear_to_zero(tile_indirection_buffer);
     const int slot = GPU_shader_get_ssbo_binding(shader, "tile_indirection_buf");
@@ -592,7 +592,7 @@ class VectorBlurOperation : public NodeOperation {
     return tile_indirection_buffer;
   }
 
-  void compute_motion_blur(Result &max_tile_velocity, GPUStorageBuf *tile_indirection_buffer)
+  void compute_motion_blur(Result &max_tile_velocity, gpu::StorageBuf *tile_indirection_buffer)
   {
     gpu::Shader *shader = context().get_shader("compositor_motion_blur");
     GPU_shader_bind(shader);

@@ -54,7 +54,7 @@ void DebugDraw::reset()
   gpu_draw_buf_used = false;
 }
 
-GPUStorageBuf *DebugDraw::gpu_draw_buf_get()
+gpu::StorageBuf *DebugDraw::gpu_draw_buf_get()
 {
 #ifdef WITH_DRAW_DEBUG
   gpu_draw_buf_used = true;

@@ -115,7 +115,7 @@ void GLVertArray::update_bindings(const GLuint vao,
       component_len = 2;
     }
     if (input) {
-      dynamic_cast<GLStorageBuf *>(unwrap(batch->resource_id_buf))->bind_as(GL_ARRAY_BUFFER);
+      dynamic_cast<GLStorageBuf *>(batch->resource_id_buf)->bind_as(GL_ARRAY_BUFFER);
       glEnableVertexAttribArray(input->location);
       glVertexAttribDivisor(input->location, 1);
       glVertexAttribIPointer(

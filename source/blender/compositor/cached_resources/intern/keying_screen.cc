@@ -172,18 +172,18 @@ void KeyingScreen::compute_gpu(Context &context,
     marker_positions.append(float2(0.0f));
   }
 
-  GPUStorageBuf *positions_ssbo = GPU_storagebuf_create_ex(marker_positions.size() *
-                                                               sizeof(float2),
-                                                           marker_positions.data(),
-                                                           GPU_USAGE_STATIC,
-                                                           "Marker Positions");
+  gpu::StorageBuf *positions_ssbo = GPU_storagebuf_create_ex(marker_positions.size() *
+                                                                 sizeof(float2),
+                                                             marker_positions.data(),
+                                                             GPU_USAGE_STATIC,
+                                                             "Marker Positions");
   const int positions_ssbo_location = GPU_shader_get_ssbo_binding(shader, "marker_positions");
   GPU_storagebuf_bind(positions_ssbo, positions_ssbo_location);
 
-  GPUStorageBuf *colors_ssbo = GPU_storagebuf_create_ex(marker_colors.size() * sizeof(float4),
-                                                        marker_colors.data(),
-                                                        GPU_USAGE_STATIC,
-                                                        "Marker Colors");
+  gpu::StorageBuf *colors_ssbo = GPU_storagebuf_create_ex(marker_colors.size() * sizeof(float4),
+                                                          marker_colors.data(),
+                                                          GPU_USAGE_STATIC,
+                                                          "Marker Colors");
   const int colors_ssbo_location = GPU_shader_get_ssbo_binding(shader, "marker_colors");
   GPU_storagebuf_bind(colors_ssbo, colors_ssbo_location);
 

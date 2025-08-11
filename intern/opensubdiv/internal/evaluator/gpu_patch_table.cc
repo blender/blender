@@ -21,7 +21,7 @@ GPUPatchTable *GPUPatchTable::Create(PatchTable const *far_patch_table, void * /
   return nullptr;
 }
 
-static void discard_buffer(GPUStorageBuf **buffer)
+static void discard_buffer(gpu::StorageBuf **buffer)
 {
   if (*buffer != nullptr) {
     GPU_storagebuf_free(*buffer);
@@ -29,10 +29,10 @@ static void discard_buffer(GPUStorageBuf **buffer)
   }
 }
 
-static void discard_list(std::vector<GPUStorageBuf *> &buffers)
+static void discard_list(std::vector<gpu::StorageBuf *> &buffers)
 {
   while (!buffers.empty()) {
-    GPUStorageBuf *buffer = buffers.back();
+    gpu::StorageBuf *buffer = buffers.back();
     buffers.pop_back();
     GPU_storagebuf_free(buffer);
   }

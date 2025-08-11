@@ -147,7 +147,7 @@ void Manager::end_sync()
 
 void Manager::debug_bind()
 {
-  GPUStorageBuf *gpu_buf = DebugDraw::get().gpu_draw_buf_get();
+  gpu::StorageBuf *gpu_buf = DebugDraw::get().gpu_draw_buf_get();
   if (gpu_buf == nullptr) {
     return;
   }

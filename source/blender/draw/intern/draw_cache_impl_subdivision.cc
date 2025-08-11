@@ -980,9 +980,9 @@ void draw_subdiv_extract_pos(const DRWSubdivCache &cache, gpu::VertBuf *pos, gpu
     src_extra_buffer = evaluator->eval_output->get_source_data_buf();
   }
 
-  GPUStorageBuf *patch_arrays_buffer = evaluator->eval_output->create_patch_arrays_buf();
-  GPUStorageBuf *patch_index_buffer = evaluator->eval_output->get_patch_index_buf();
-  GPUStorageBuf *patch_param_buffer = evaluator->eval_output->get_patch_param_buf();
+  gpu::StorageBuf *patch_arrays_buffer = evaluator->eval_output->create_patch_arrays_buf();
+  gpu::StorageBuf *patch_index_buffer = evaluator->eval_output->get_patch_index_buf();
+  gpu::StorageBuf *patch_param_buffer = evaluator->eval_output->get_patch_param_buf();
 
   gpu::Shader *shader = DRW_shader_subdiv_get(orco ? SubdivShaderType::PATCH_EVALUATION_ORCO :
                                                      SubdivShaderType::PATCH_EVALUATION);
@@ -1039,11 +1039,11 @@ void draw_subdiv_extract_uvs(const DRWSubdivCache &cache,
   int src_buffer_offset = evaluator->eval_output->get_face_varying_source_offset(
       face_varying_channel);
 
-  GPUStorageBuf *patch_arrays_buffer = evaluator->eval_output->create_face_varying_patch_array_buf(
+  gpu::StorageBuf *patch_arrays_buffer =
+      evaluator->eval_output->create_face_varying_patch_array_buf(face_varying_channel);
+  gpu::StorageBuf *patch_index_buffer = evaluator->eval_output->get_face_varying_patch_index_buf(
       face_varying_channel);
-  GPUStorageBuf *patch_index_buffer = evaluator->eval_output->get_face_varying_patch_index_buf(
-      face_varying_channel);
-  GPUStorageBuf *patch_param_buffer = evaluator->eval_output->get_face_varying_patch_param_buf(
+  gpu::StorageBuf *patch_param_buffer = evaluator->eval_output->get_face_varying_patch_param_buf(
       face_varying_channel);
 
   gpu::Shader *shader = DRW_shader_subdiv_get(SubdivShaderType::PATCH_EVALUATION_FVAR);
@@ -1246,9 +1246,9 @@ void draw_subdiv_build_fdots_buffers(const DRWSubdivCache &cache,
   OpenSubdiv_Evaluator *evaluator = subdiv->evaluator;
 
   gpu::VertBuf *src_buffer = evaluator->eval_output->get_source_buf();
-  GPUStorageBuf *patch_arrays_buffer = evaluator->eval_output->create_patch_arrays_buf();
-  GPUStorageBuf *patch_index_buffer = evaluator->eval_output->get_patch_index_buf();
-  GPUStorageBuf *patch_param_buffer = evaluator->eval_output->get_patch_param_buf();
+  gpu::StorageBuf *patch_arrays_buffer = evaluator->eval_output->create_patch_arrays_buf();
+  gpu::StorageBuf *patch_index_buffer = evaluator->eval_output->get_patch_index_buf();
+  gpu::StorageBuf *patch_param_buffer = evaluator->eval_output->get_patch_param_buf();
 
   gpu::Shader *shader = DRW_shader_subdiv_get(
       fdots_nor ? SubdivShaderType::PATCH_EVALUATION_FACE_DOTS_WITH_NORMALS :

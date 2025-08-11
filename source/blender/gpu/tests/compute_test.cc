@@ -83,7 +83,7 @@ static void test_compute_indirect()
   uint4 commands[1] = {
       {SIZE, SIZE, 1, 0},
   };
-  GPUStorageBuf *compute_commands = GPU_storagebuf_create_ex(
+  StorageBuf *compute_commands = GPU_storagebuf_create_ex(
       sizeof(commands), &commands, GPU_USAGE_STATIC, __func__);
 
   /* Dispatch compute task. */
