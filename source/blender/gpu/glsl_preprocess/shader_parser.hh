@@ -33,6 +33,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cassert>
 #include <cctype>
 #include <chrono>
@@ -46,6 +47,7 @@
 namespace blender::gpu::shader::parser {
 
 enum TokenType : char {
+  Invalid = 0,
   /* Use ascii chars to store them in string, and for easy debugging / testing. */
   Word = 'w',
   NewLine = '\n',
@@ -123,8 +125,8 @@ enum class ScopeType : char {
 
 /* Poor man's IndexRange. */
 struct IndexRange {
-  size_t start;
-  size_t size;
+  int64_t start;
+  int64_t size;
 
   IndexRange(size_t start, size_t size) : start(start), size(size) {}
 
@@ -134,7 +136,7 @@ struct IndexRange {
            ((other.start < start) && (start < (other.start + other.size)));
   }
 
-  size_t last()
+  int64_t last()
   {
     return start + size - 1;
   }
@@ -430,10 +432,10 @@ struct ParserData {
             enter_scope(ScopeType::Assignment, tok_id);
             break;
           case BracketOpen:
-            if (token_types[tok_id - 2] == Struct) {
+            if (tok_id >= 2 && token_types[tok_id - 2] == Struct) {
               enter_scope(ScopeType::Local, tok_id);
             }
-            else if (token_types[tok_id - 2] == Namespace) {
+            else if (tok_id >= 2 && token_types[tok_id - 2] == Namespace) {
               enter_scope(ScopeType::Namespace, tok_id);
             }
             else if (scopes.top().type == ScopeType::Global) {
@@ -461,7 +463,7 @@ struct ParserData {
             enter_scope(ScopeType::Subscript, tok_id);
             break;
           case AngleOpen:
-            if (token_types[tok_id - 1] == Template ||
+            if ((tok_id >= 1 && token_types[tok_id - 1] == Template) ||
                 /* Catch case of specialized declaration. */
                 ScopeType(scope_types.back()) == ScopeType::Template)
             {
@@ -608,7 +610,7 @@ struct ParserData {
 
 struct Token {
   const ParserData *data;
-  size_t index;
+  int64_t index;
 
   static Token invalid()
   {
@@ -617,12 +619,19 @@ struct Token {
 
   bool is_valid() const
   {
-    return data != nullptr;
+    return data != nullptr && index >= 0;
+  }
+  bool is_invalid() const
+  {
+    return !is_valid();
   }
 
   /* String index range. */
   IndexRange index_range() const
   {
+    if (is_invalid()) {
+      return {0, 0};
+    }
     return data->token_offsets[index];
   }
 
@@ -695,6 +704,9 @@ struct Token {
 
   operator TokenType() const
   {
+    if (is_invalid()) {
+      return Invalid;
+    }
     return TokenType(data->token_types[index]);
   }
   bool operator==(TokenType type) const
@@ -758,11 +770,11 @@ struct Scope {
 
     size_t pos = 0;
     while ((pos = scope_tokens.find(pattern, pos)) != std::string::npos) {
-      match[0] = {data, range().start + pos};
+      match[0] = {data, int64_t(range().start + pos)};
       /* Do not match preprocessor directive by default. */
       if (match[0].scope().type() != ScopeType::Preprocessor) {
         for (int i = 1; i < pattern.size(); i++) {
-          match[i] = Token{data, range().start + pos + i};
+          match[i] = Token{data, int64_t(range().start + pos + i)};
         }
         callback(match);
       }
