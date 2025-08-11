@@ -73,7 +73,7 @@
 #  include "RBI_api.h"
 #endif
 
-#ifdef WITH_LZO
+#if 0  // #ifdef WITH_LZO
 #  ifdef WITH_SYSTEM_LZO
 #    include <lzo/lzo1x.h>
 #  else
@@ -85,7 +85,7 @@
 
 #define LZO_OUT_LEN(size) ((size) + (size) / 16 + 64 + 3)
 
-#ifdef WITH_LZMA
+#if 0  // #ifdef WITH_LZMA
 #  include "LzmaLib.h"
 #endif
 
@@ -129,10 +129,13 @@ static int ptcache_extra_datasize[] = {
 
 /* forward declarations */
 static int ptcache_file_compressed_read(PTCacheFile *pf, uchar *result, uint len);
-static int ptcache_file_compressed_write(
-    PTCacheFile *pf, uchar *in, uint in_len, uchar *out, int mode);
-static int ptcache_file_write(PTCacheFile *pf, const void *f, uint tot, uint size);
-static int ptcache_file_read(PTCacheFile *pf, void *f, uint tot, uint size);
+static void ptcache_file_compressed_write(PTCacheFile *pf,
+                                          const void *data,
+                                          uint items_num,
+                                          uint item_size,
+                                          PointCacheCompression compression);
+static int ptcache_file_write(PTCacheFile *pf, const void *data, uint items_num, uint item_size);
+static bool ptcache_file_read(PTCacheFile *pf, void *f, uint items_num, uint item_size);
 
 /* Common functions */
 static int ptcache_basic_header_read(PTCacheFile *pf)
@@ -682,48 +685,32 @@ static void ptcache_dynamicpaint_error(const ID * /*owner_id*/,
 static int ptcache_dynamicpaint_write(PTCacheFile *pf, void *dp_v)
 {
   DynamicPaintSurface *surface = (DynamicPaintSurface *)dp_v;
-  int cache_compress = PTCACHE_COMPRESS_ZSTD_FAST;
 
   /* version header */
   ptcache_file_write(pf, DPAINT_CACHE_VERSION, 1, sizeof(char[4]));
 
   if (surface->format != MOD_DPAINT_SURFACE_F_IMAGESEQ && surface->data) {
-    int total_points = surface->data->total_points;
-    uint in_len;
-    uchar *out;
+    const int total_points = surface->data->total_points;
 
     /* cache type */
     ptcache_file_write(pf, &surface->type, 1, sizeof(int));
 
+    uint in_stride;
     if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
-      in_len = sizeof(PaintPoint) * total_points;
+      in_stride = sizeof(PaintPoint);
     }
     else if (ELEM(surface->type, MOD_DPAINT_SURFACE_T_DISPLACE, MOD_DPAINT_SURFACE_T_WEIGHT)) {
-      in_len = sizeof(float) * total_points;
+      in_stride = sizeof(float);
     }
     else if (surface->type == MOD_DPAINT_SURFACE_T_WAVE) {
-      in_len = sizeof(PaintWavePoint) * total_points;
+      in_stride = sizeof(PaintWavePoint);
     }
     else {
       return 0;
     }
 
-    if (cache_compress == PTCACHE_COMPRESS_ZSTD_FAST) {
-      const size_t out_len = ZSTD_compressBound(in_len);
-      blender::Array<uchar> out_data(out_len);
-      ptcache_file_compressed_write(pf,
-                                    static_cast<uchar *>(surface->data->type_data),
-                                    in_len,
-                                    out_data.data(),
-                                    cache_compress);
-    }
-    else {
-      out = (uchar *)MEM_callocN(LZO_OUT_LEN(in_len), "pointcache_lzo_buffer");
-
-      ptcache_file_compressed_write(
-          pf, (uchar *)surface->data->type_data, in_len, out, cache_compress);
-      MEM_freeN(out);
-    }
+    ptcache_file_compressed_write(
+        pf, surface->data->type_data, total_points, in_stride, PTCACHE_COMPRESS_ZSTD_FAST);
   }
   return 1;
 }
@@ -1524,13 +1511,13 @@ static void ptcache_file_close(PTCacheFile *pf)
 static int ptcache_file_compressed_read(PTCacheFile *pf, uchar *result, uint len)
 {
   int r = 0;
-  uchar compressed = 0;
   size_t in_len;
   uchar *in;
-  uchar *props = MEM_calloc_arrayN<uchar>(16, "tmp");
 
-  ptcache_file_read(pf, &compressed, 1, sizeof(uchar));
-  if (compressed) {
+  uchar compressed_val = 0;
+  ptcache_file_read(pf, &compressed_val, 1, sizeof(uchar));
+  const PointCacheCompression compressed = PointCacheCompression(compressed_val);
+  if (compressed != PTCACHE_COMPRESS_NO) {
     uint size;
     ptcache_file_read(pf, &size, 1, sizeof(uint));
     in_len = size_t(size);
@@ -1541,28 +1528,27 @@ static int ptcache_file_compressed_read(PTCacheFile *pf, uchar *result, uint len
       in = MEM_calloc_arrayN<uchar>(in_len, "pointcache_compressed_buffer");
       ptcache_file_read(pf, in, in_len, sizeof(uchar));
 #if 0  // #ifdef WITH_LZO
-      if (compressed == 1) {
+      if (compressed == PTCACHE_COMPRESS_LZO_DEPRECATED) {
         size_t out_len = len;
         r = lzo1x_decompress_safe(in, (lzo_uint)in_len, result, (lzo_uint *)&out_len, nullptr);
       }
 #endif
 #if 0  // #ifdef WITH_LZMA
-      if (compressed == 2) {
-        size_t sizeOfIt;
+      if (compressed == PTCACHE_COMPRESS_LZMA_DEPRECATED) {
         size_t leni = in_len, leno = len;
-        ptcache_file_read(pf, &size, 1, sizeof(uint));
-        sizeOfIt = size_t(size);
-        ptcache_file_read(pf, props, sizeOfIt, sizeof(uchar));
-        r = LzmaUncompress(result, &leno, in, &leni, props, sizeOfIt);
+        uchar lzma_props[16] = {};
+        uint lzma_props_size = 0;
+        ptcache_file_read(pf, &lzma_props_size, 1, sizeof(uint));
+        ptcache_file_read(pf, lzma_props, lzma_props_size, sizeof(uchar));
+        r = LzmaUncompress(result, &leno, in, &leni, lzma_props, lzma_props_size);
       }
 #endif
-      if (compressed & PTCACHE_COMPRESS_ZSTD) {
+      if (ELEM(compressed, PTCACHE_COMPRESS_ZSTD_FAST, PTCACHE_COMPRESS_ZSTD_SLOW)) {
         const size_t err = ZSTD_decompress(result, len, in, in_len);
         r = ZSTD_isError(err);
       }
       else {
         /* We are trying to read an unsupported compression format. */
-        BLI_assert_unreachable();
         r = 1;
       }
       MEM_freeN(in);
@@ -1572,43 +1558,53 @@ static int ptcache_file_compressed_read(PTCacheFile *pf, uchar *result, uint len
     ptcache_file_read(pf, result, len, sizeof(uchar));
   }
 
-  MEM_freeN(props);
-
   return r;
 }
-static int ptcache_file_compressed_write(
-    PTCacheFile *pf, uchar *in, uint in_len, uchar *out, int mode)
+static void ptcache_file_compressed_write(PTCacheFile *pf,
+                                          const void *data,
+                                          uint items_num,
+                                          uint item_size,
+                                          PointCacheCompression compression)
 {
-  int r = 0;
-  uchar compressed = 0;
+  /* Allocate space for compressed data. */
+  const uint data_size = items_num * item_size;
   size_t out_len = 0;
-  uchar *props = MEM_calloc_arrayN<uchar>(16, "tmp");
-  size_t sizeOfIt = 5;
+  if (ELEM(compression, PTCACHE_COMPRESS_ZSTD_FAST, PTCACHE_COMPRESS_ZSTD_SLOW)) {
+    out_len = ZSTD_compressBound(data_size);
+    if (ZSTD_isError(out_len)) {
+      compression = PTCACHE_COMPRESS_NO;
+    }
+  }
+  else if (compression != PTCACHE_COMPRESS_NO) {
+    out_len = LZO_OUT_LEN(data_size);
+  }
 
-  (void)mode; /* unused when building w/o compression */
+  blender::Array<uchar> out(out_len);
+
+  /* Do actual compression. */
+  int r = 0;
+  uchar lzma_props[16] = {};
+  size_t lzma_props_size = 5;
 
 #if 0  // #ifdef WITH_LZO
-  out_len = LZO_OUT_LEN(in_len);
-  if (mode == PTCACHE_COMPRESS_LZO) {
+  if (compression == PTCACHE_COMPRESS_LZO_DEPRECATED) {
     LZO_HEAP_ALLOC(wrkmem, LZO1X_MEM_COMPRESS);
 
-    r = lzo1x_1_compress(in, (lzo_uint)in_len, out, (lzo_uint *)&out_len, wrkmem);
-    if (!(r == LZO_E_OK) || (out_len >= in_len)) {
-      compressed = 0;
-    }
-    else {
-      compressed = 1;
+    r = lzo1x_1_compress(
+        (const uchar *)data, (lzo_uint)data_size, out.data(), (lzo_uint *)&out_len, wrkmem);
+    if (!(r == LZO_E_OK) || (out_len >= data_size)) {
+      compression = PTCACHE_COMPRESS_NO;
     }
   }
 #endif
 #if 0  // #ifdef WITH_LZMA
-  if (mode == PTCACHE_COMPRESS_LZMA) {
-    r = LzmaCompress(out,
+  if (compression == PTCACHE_COMPRESS_LZMA_DEPRECATED) {
+    r = LzmaCompress(out.data(),
                      &out_len,
-                     in,
-                     in_len, /* Assume `sizeof(char) == 1`. */
-                     props,
-                     &sizeOfIt,
+                     (const uchar *)data,
+                     data_size, /* Assume `sizeof(char) == 1`. */
+                     lzma_props,
+                     &lzma_props_size,
                      5,
                      1 << 24,
                      3,
@@ -1617,79 +1613,63 @@ static int ptcache_file_compressed_write(
                      32,
                      2);
 
-    if (!(r == SZ_OK) || (out_len >= in_len)) {
-      compressed = 0;
-    }
-    else {
-      compressed = 2;
+    if (!(r == SZ_OK) || (out_len >= data_size)) {
+      compression = PTCACHE_COMPRESS_NO;
     }
   }
 #endif
-  if (mode & PTCACHE_COMPRESS_ZSTD) {
-    /* TODO: Don't recaculate out_len here after lzo and lzma has been removed. */
-    out_len = ZSTD_compressBound(in_len);
-    if (ZSTD_isError(out_len)) {
-      compressed = 0;
+  if (ELEM(compression, PTCACHE_COMPRESS_ZSTD_FAST, PTCACHE_COMPRESS_ZSTD_SLOW)) {
+    /* Zstd level zero is "default" (currently 3). */
+    const int zstd_level = compression == PTCACHE_COMPRESS_ZSTD_SLOW ? 22 : 0;
+    r = ZSTD_compress(out.data(), out_len, data, data_size, zstd_level);
+    if (ZSTD_isError(r)) {
+      compression = PTCACHE_COMPRESS_NO;
     }
     else {
-      /* Zero means default compression. At the time of writing this is level 3. */
-      int compression_level = 0;
-      compressed = PTCACHE_COMPRESS_ZSTD_FAST;
-      if (mode == PTCACHE_COMPRESS_ZSTD_SLOW) {
-        compression_level = 22;
-        compressed = PTCACHE_COMPRESS_ZSTD_SLOW;
-      }
-      r = ZSTD_compress(out, out_len, in, in_len, compression_level);
-      if (ZSTD_isError(r)) {
-        compressed = 0;
-      }
-      else {
-        out_len = r;
-        r = 0;
-      }
+      out_len = r;
+      r = 0;
     }
   }
 
-  ptcache_file_write(pf, &compressed, 1, sizeof(uchar));
-  if (compressed) {
+  /* Write to file. */
+  const uchar compression_val = compression;
+  ptcache_file_write(pf, &compression_val, 1, sizeof(uchar));
+  if (compression != PTCACHE_COMPRESS_NO) {
     uint size = out_len;
     ptcache_file_write(pf, &size, 1, sizeof(uint));
-    ptcache_file_write(pf, out, out_len, sizeof(uchar));
+    ptcache_file_write(pf, out.data(), out_len, sizeof(uchar));
   }
   else {
-    ptcache_file_write(pf, in, in_len, sizeof(uchar));
+    ptcache_file_write(pf, data, data_size, sizeof(uchar));
   }
 
-  if (compressed == 2) {
-    uint size = sizeOfIt;
-    ptcache_file_write(pf, &sizeOfIt, 1, sizeof(uint));
-    ptcache_file_write(pf, props, size, sizeof(uchar));
+  if (compression == PTCACHE_COMPRESS_LZMA_DEPRECATED) {
+    uint size = lzma_props_size;
+    ptcache_file_write(pf, &lzma_props_size, 1, sizeof(uint));
+    ptcache_file_write(pf, lzma_props, size, sizeof(uchar));
   }
+}
 
-  MEM_freeN(props);
-
-  return r;
-}
-static int ptcache_file_read(PTCacheFile *pf, void *f, uint tot, uint size)
+static bool ptcache_file_read(PTCacheFile *pf, void *f, uint items_num, uint item_size)
 {
-  return (fread(f, size, tot, pf->fp) == tot);
+  return (fread(f, item_size, items_num, pf->fp) == items_num);
 }
-static int ptcache_file_write(PTCacheFile *pf, const void *f, uint tot, uint size)
+static int ptcache_file_write(PTCacheFile *pf, const void *data, uint items_num, uint item_size)
 {
-  return (fwrite(f, size, tot, pf->fp) == tot);
+  return (fwrite(data, item_size, items_num, pf->fp) == items_num);
 }
-static int ptcache_file_data_read(PTCacheFile *pf)
+static bool ptcache_file_data_read(PTCacheFile *pf)
 {
   int i;
 
   for (i = 0; i < BPHYS_TOT_DATA; i++) {
     if ((pf->data_types & (1 << i)) && !ptcache_file_read(pf, pf->cur[i], 1, ptcache_data_size[i]))
     {
-      return 0;
+      return false;
     }
   }
 
-  return 1;
+  return true;
 }
 static int ptcache_file_data_write(PTCacheFile *pf)
 {
@@ -2097,7 +2077,8 @@ static int ptcache_mem_frame_to_disk(PTCacheID *pid, PTCacheMem *pm)
     pf->flag |= PTCACHE_TYPEFLAG_EXTRADATA;
   }
 
-  if (pid->cache->compression) {
+  const PointCacheCompression compression = PointCacheCompression(pid->cache->compression);
+  if (compression != PTCACHE_COMPRESS_NO) {
     pf->flag |= PTCACHE_TYPEFLAG_COMPRESS;
   }
 
@@ -2106,25 +2087,11 @@ static int ptcache_mem_frame_to_disk(PTCacheID *pid, PTCacheMem *pm)
   }
 
   if (!error) {
-    if (pid->cache->compression) {
+    if (compression != PTCACHE_COMPRESS_NO) {
       for (i = 0; i < BPHYS_TOT_DATA; i++) {
         if (pm->data[i]) {
-          uint in_len = pm->totpoint * ptcache_data_size[i];
-          if (pid->cache->compression & PTCACHE_COMPRESS_ZSTD) {
-            const size_t out_len = ZSTD_compressBound(in_len);
-            blender::Array<uchar> out_data(out_len);
-            ptcache_file_compressed_write(pf,
-                                          static_cast<uchar *>(pm->data[i]),
-                                          in_len,
-                                          out_data.data(),
-                                          pid->cache->compression);
-          }
-          else {
-            uchar *out = (uchar *)MEM_callocN(LZO_OUT_LEN(in_len) * 4, "pointcache_lzo_buffer");
-            ptcache_file_compressed_write(
-                pf, (uchar *)(pm->data[i]), in_len, out, pid->cache->compression);
-            MEM_freeN(out);
-          }
+          ptcache_file_compressed_write(
+              pf, pm->data[i], pm->totpoint, ptcache_data_size[i], compression);
         }
       }
     }
@@ -2155,23 +2122,9 @@ static int ptcache_mem_frame_to_disk(PTCacheID *pid, PTCacheMem *pm)
       ptcache_file_write(pf, &extra->type, 1, sizeof(uint));
       ptcache_file_write(pf, &extra->totdata, 1, sizeof(uint));
 
-      if (pid->cache->compression) {
-        uint in_len = extra->totdata * ptcache_extra_datasize[extra->type];
-        if (pid->cache->compression & PTCACHE_COMPRESS_ZSTD) {
-          const size_t out_len = ZSTD_compressBound(in_len);
-          blender::Array<uchar> out_data(out_len);
-          ptcache_file_compressed_write(pf,
-                                        static_cast<uchar *>(extra->data),
-                                        in_len,
-                                        out_data.data(),
-                                        pid->cache->compression);
-        }
-        else {
-          uchar *out = (uchar *)MEM_callocN(LZO_OUT_LEN(in_len) * 4, "pointcache_lzo_buffer");
-          ptcache_file_compressed_write(
-              pf, (uchar *)(extra->data), in_len, out, pid->cache->compression);
-          MEM_freeN(out);
-        }
+      if (compression != PTCACHE_COMPRESS_NO) {
+        ptcache_file_compressed_write(
+            pf, extra->data, extra->totdata, ptcache_extra_datasize[extra->type], compression);
       }
       else {
         ptcache_file_write(pf, extra->data, extra->totdata, ptcache_extra_datasize[extra->type]);

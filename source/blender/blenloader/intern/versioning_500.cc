@@ -1244,19 +1244,17 @@ static void do_version_split_node_rotation(bNodeTree *node_tree, bNode *node)
 
 static void do_version_remove_lzo_and_lzma_compression(FileData *fd, Object *object)
 {
-  constexpr int PTCACHE_COMPRESS_LZO = 1;
-  constexpr int PTCACHE_COMPRESS_LZMA = 2;
   ListBase pidlist;
 
   BKE_ptcache_ids_from_object(&pidlist, object, nullptr, 0);
 
   LISTBASE_FOREACH (PTCacheID *, pid, &pidlist) {
     bool found_incompatible_cache = false;
-    if (pid->cache->compression == PTCACHE_COMPRESS_LZO) {
+    if (pid->cache->compression == PTCACHE_COMPRESS_LZO_DEPRECATED) {
       pid->cache->compression = PTCACHE_COMPRESS_ZSTD_FAST;
       found_incompatible_cache = true;
     }
-    else if (pid->cache->compression == PTCACHE_COMPRESS_LZMA) {
+    else if (pid->cache->compression == PTCACHE_COMPRESS_LZMA_DEPRECATED) {
       pid->cache->compression = PTCACHE_COMPRESS_ZSTD_SLOW;
       found_incompatible_cache = true;
     }
