@@ -1071,6 +1071,8 @@ static void rna_property_override_collection_subitem_name_index_lookup(
     const char *item_name,
     const std::optional<ID *> &item_id,
     const int item_index,
+    /* Never use index-only lookup to validate a match (unless no item name (+ id) was given). */
+    const bool ignore_index_only_lookup,
     PointerRNA *r_ptr_item_name,
     PointerRNA *r_ptr_item_index)
 {
@@ -1101,6 +1103,13 @@ static void rna_property_override_collection_subitem_name_index_lookup(
 
   if (!item_name) {
     return;
+  }
+
+  /* If index + name (+ id) lookup failed, do not keep result of index-only lookup. That means that
+   * if the name (+ id) only lookup fails, no matching item was found, even if index-only would
+   * have matched. */
+  if (ignore_index_only_lookup) {
+    r_ptr_item_index->invalidate();
   }
 
   /* Then, lookup by name (+ id) only. */
@@ -1152,6 +1161,16 @@ static void rna_property_override_collection_subitem_lookup(
     ptr_item_storage->invalidate();
   }
 
+  /* If there is an item ID, there should _always_ be a valid item name too. */
+  BLI_assert(opop->subitem_local_name || !subitem_local_id);
+  BLI_assert(opop->subitem_reference_name || !subitem_reference_id);
+  /* Do not match by index only, if there are valid item names and ID.
+   *
+   * Otherwise, it can end up 'matching by index' e.g. collection childrens, re-assigning
+   * completely wrong collections only based on indices. This is especially bad when some
+   * collections are _removed_ from the reference collection's children. */
+  const bool ignore_index_only_lookup = (subitem_local_id || subitem_reference_id);
+
   PointerRNA ptr_item_dst_name, ptr_item_dst_index;
   PointerRNA ptr_item_src_name, ptr_item_src_index;
   PointerRNA ptr_item_storage_name, ptr_item_storage_index;
@@ -1160,6 +1179,7 @@ static void rna_property_override_collection_subitem_lookup(
                                                              opop->subitem_local_name,
                                                              subitem_local_id,
                                                              opop->subitem_local_index,
+                                                             ignore_index_only_lookup,
                                                              &ptr_item_src_name,
                                                              &ptr_item_src_index);
   rna_property_override_collection_subitem_name_index_lookup(ptr_dst,
@@ -1167,6 +1187,7 @@ static void rna_property_override_collection_subitem_lookup(
                                                              opop->subitem_reference_name,
                                                              subitem_reference_id,
                                                              opop->subitem_reference_index,
+                                                             ignore_index_only_lookup,
                                                              &ptr_item_dst_name,
                                                              &ptr_item_dst_index);
   /* This is rather fragile, but the fact that local override IDs may have a different name
@@ -1188,6 +1209,7 @@ static void rna_property_override_collection_subitem_lookup(
         {},
         opop->subitem_reference_index != -1 ? opop->subitem_reference_index :
                                               opop->subitem_local_index,
+        ignore_index_only_lookup,
         &ptr_item_dst_name,
         &ptr_item_dst_index);
   }
@@ -1202,6 +1224,7 @@ static void rna_property_override_collection_subitem_lookup(
         {},
         opop->subitem_reference_index != -1 ? opop->subitem_reference_index :
                                               opop->subitem_local_index,
+        ignore_index_only_lookup,
         &ptr_item_dst_name,
         &ptr_item_dst_index);
   }
@@ -1213,6 +1236,7 @@ static void rna_property_override_collection_subitem_lookup(
                                                                opop->subitem_local_index != -1 ?
                                                                    opop->subitem_local_index :
                                                                    opop->subitem_reference_index,
+                                                               ignore_index_only_lookup,
                                                                &ptr_item_src_name,
                                                                &ptr_item_src_index);
   }
@@ -1222,6 +1246,7 @@ static void rna_property_override_collection_subitem_lookup(
                                                                nullptr,
                                                                {},
                                                                opop->subitem_local_index,
+                                                               ignore_index_only_lookup,
                                                                &ptr_item_dst_name,
                                                                &ptr_item_dst_index);
   }
@@ -1231,6 +1256,7 @@ static void rna_property_override_collection_subitem_lookup(
                                                                nullptr,
                                                                {},
                                                                opop->subitem_reference_index,
+                                                               ignore_index_only_lookup,
                                                                &ptr_item_src_name,
                                                                &ptr_item_src_index);
   }
@@ -1242,6 +1268,7 @@ static void rna_property_override_collection_subitem_lookup(
                                                                opop->subitem_local_name,
                                                                subitem_local_id,
                                                                opop->subitem_local_index,
+                                                               ignore_index_only_lookup,
                                                                &ptr_item_storage_name,
                                                                &ptr_item_storage_index);
     if (ptr_item_storage_name.data == nullptr) {
@@ -1250,6 +1277,7 @@ static void rna_property_override_collection_subitem_lookup(
                                                                  opop->subitem_reference_name,
                                                                  subitem_reference_id,
                                                                  opop->subitem_reference_index,
+                                                                 ignore_index_only_lookup,
                                                                  &ptr_item_storage_name,
                                                                  &ptr_item_storage_index);
     }
@@ -1259,20 +1287,25 @@ static void rna_property_override_collection_subitem_lookup(
                                                                  nullptr,
                                                                  {},
                                                                  opop->subitem_local_index,
+                                                                 ignore_index_only_lookup,
                                                                  &ptr_item_storage_name,
                                                                  &ptr_item_storage_index);
     }
   }
 
-  /* Final selection. both matches have to be based on names, or indices, but not a mix of both. */
-  if (ptr_item_src_name.type != nullptr && ptr_item_dst_name.type != nullptr) {
+  /* Final selection. Both matches have to be based on names, or indices, but not a mix of both.
+   * If we are missing either source or destination data based on names, and based on indices, then
+   * use partial data from names (allows to handle 'need resync' detection cases). */
+  if ((ptr_item_src_name.type || ptr_item_dst_name.type) &&
+      !(ptr_item_src_index.type && ptr_item_dst_index.type))
+  {
     *ptr_item_src = ptr_item_src_name;
     *ptr_item_dst = ptr_item_dst_name;
     if (prop_storage != nullptr) {
       *ptr_item_storage = ptr_item_storage_name;
     }
   }
-  else if (ptr_item_src_index.type != nullptr && ptr_item_dst_index.type != nullptr) {
+  else if (ptr_item_src_index.type != nullptr || ptr_item_dst_index.type != nullptr) {
     *ptr_item_src = ptr_item_src_index;
     *ptr_item_dst = ptr_item_dst_index;
     if (prop_storage != nullptr) {

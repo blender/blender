@@ -632,8 +632,8 @@ class TestLibraryOverridesComplex(TestHelper):
             # Sub-container 1 is moved from collection_container to sub-container 0.
             collection_subcontainer_0 = bpy.data.collections[self.__class__.DATA_NAME_SUBCONTAINER_0]
             collection_subcontainer_1 = bpy.data.collections[self.__class__.DATA_NAME_SUBCONTAINER_1]
-            # ~ collection_container.children.unlink(collection_subcontainer_1)
-            # ~ collection_subcontainer_0.children.link(collection_subcontainer_1)
+            collection_container.children.unlink(collection_subcontainer_1)
+            collection_subcontainer_0.children.link(collection_subcontainer_1)
 
         self.edit_lib_data(edit_lib_cb)
         self.reset()
