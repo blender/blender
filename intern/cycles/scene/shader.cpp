@@ -483,7 +483,7 @@ int ShaderManager::get_shader_id(Shader *shader, bool smooth)
 }
 
 void ShaderManager::device_update_pre(Device * /*device*/,
-                                      DeviceScene * /*dscene*/,
+                                      DeviceScene *dscene,
                                       Scene *scene,
                                       Progress & /*progress*/)
 {
@@ -505,18 +505,38 @@ void ShaderManager::device_update_pre(Device * /*device*/,
   assert(scene->default_background->reference_count() != 0);
   assert(scene->default_empty->reference_count() != 0);
 
+  /* Preprocess shader graph. */
+  bool has_volumes = false;
+
   for (Shader *shader : scene->shaders) {
     if (shader->is_modified()) {
       ShaderNode *output = shader->graph->output();
-
       shader->has_bump = (shader->get_displacement_method() != DISPLACE_TRUE) &&
                          output->input("Surface")->link && output->input("Displacement")->link;
       shader->has_bssrdf_bump = shader->has_bump;
 
       shader->graph->finalize(
           scene, shader->has_bump, shader->get_displacement_method() == DISPLACE_BOTH);
+
+      shader->has_surface = output->input("Surface")->link != nullptr;
+      shader->has_surface_transparent = false;
+      shader->has_surface_raytrace = false;
+      shader->has_surface_bssrdf = false;
+      shader->has_surface_spatial_varying = false;
+      shader->has_volume = output->input("Volume")->link != nullptr;
+      shader->has_volume_spatial_varying = false;
+      shader->has_volume_attribute_dependency = false;
+      shader->has_displacement = output->input("Displacement")->link != nullptr;
+    }
+
+    if (shader->reference_count()) {
+      has_volumes |= shader->has_volume;
     }
   }
+
+  /* Set this early as it is needed by volume rendering passes. */
+  KernelIntegrator *kintegrator = &dscene->data.integrator;
+  kintegrator->use_volumes = has_volumes;
 }
 
 void ShaderManager::device_update_post(Device *device,
@@ -543,7 +563,6 @@ void ShaderManager::device_update_common(Device * /*device*/,
   }
 
   KernelShader *kshader = dscene->shaders.alloc(scene->shaders.size());
-  bool has_volumes = false;
   bool has_transparent_shadow = false;
 
   for (Shader *shader : scene->shaders) {
@@ -570,8 +589,6 @@ void ShaderManager::device_update_common(Device * /*device*/,
     }
     if (shader->has_volume) {
       flag |= SD_HAS_VOLUME;
-      has_volumes = true;
-
       /* todo: this could check more fine grained, to skip useless volumes
        * enclosed inside an opaque bsdf.
        */
@@ -650,7 +667,6 @@ void ShaderManager::device_update_common(Device * /*device*/,
 
   /* integrator */
   KernelIntegrator *kintegrator = &dscene->data.integrator;
-  kintegrator->use_volumes = has_volumes;
   /* TODO(sergey): De-duplicate with flags set in integrator.cpp. */
   kintegrator->transparent_shadows = has_transparent_shadow;
 
