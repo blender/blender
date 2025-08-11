@@ -411,6 +411,9 @@ blender::Span<blender::float3> Mesh::face_normals() const
 {
   using namespace blender;
   using namespace blender::bke;
+  if (this->faces_num == 0) {
+    return {};
+  }
   this->runtime->face_normals_cache.ensure([&](NormalsCache &r_data) {
     if (const GAttributeReader custom = this->attributes().lookup("custom_normal")) {
       if (custom.varray.type().is<float3>()) {
@@ -463,6 +466,9 @@ blender::Span<blender::float3> Mesh::corner_normals() const
 {
   using namespace blender;
   using namespace blender::bke;
+  if (this->faces_num == 0) {
+    return {};
+  }
   this->runtime->corner_normals_cache.ensure([&](NormalsCache &r_data) {
     const OffsetIndices<int> faces = this->faces();
     switch (this->normals_domain()) {
