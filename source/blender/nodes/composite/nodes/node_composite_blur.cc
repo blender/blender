@@ -146,7 +146,7 @@ class BlurOperation : public NodeOperation {
 
   void execute_constant_size_gpu(const Result &input, Result &output)
   {
-    GPUShader *shader = context().get_shader("compositor_symmetric_blur");
+    gpu::Shader *shader = context().get_shader("compositor_symmetric_blur");
     GPU_shader_bind(shader);
 
     input.bind_as_texture(shader, "input_tx");
@@ -241,7 +241,7 @@ class BlurOperation : public NodeOperation {
     const Result &weights = context().cache_manager().symmetric_blur_weights.get(
         context(), node_storage(bnode()).filtertype, blur_radius);
 
-    GPUShader *shader = context().get_shader("compositor_symmetric_blur_variable_size");
+    gpu::Shader *shader = context().get_shader("compositor_symmetric_blur_variable_size");
     GPU_shader_bind(shader);
 
     input.bind_as_texture(shader, "input_tx");

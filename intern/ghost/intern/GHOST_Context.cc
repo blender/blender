@@ -142,3 +142,9 @@ void GHOST_Context::initClearGL()
   glClearColor(0.000, 0.000, 0.000, 0.000);
 }
 #endif
+
+const char *GHOST_Context::getEnvVarVsyncString()
+{
+  const char *ghost_vsync_string = getenv("GHOST_VSYNC");
+  return ghost_vsync_string;
+}

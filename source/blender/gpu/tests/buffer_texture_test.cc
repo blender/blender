@@ -19,7 +19,7 @@ namespace blender::gpu::tests {
 static void test_buffer_texture()
 {
   /* Build compute shader. */
-  GPUShader *shader = GPU_shader_create_from_info_name("gpu_buffer_texture_test");
+  gpu::Shader *shader = GPU_shader_create_from_info_name("gpu_buffer_texture_test");
   EXPECT_NE(shader, nullptr);
   GPU_shader_bind(shader);
 
@@ -35,7 +35,7 @@ static void test_buffer_texture()
                               GPU_shader_get_sampler_binding(shader, "bufferTexture"));
 
   /* Construct SSBO. */
-  GPUStorageBuf *ssbo = GPU_storagebuf_create_ex(
+  StorageBuf *ssbo = GPU_storagebuf_create_ex(
       4 * sizeof(float), nullptr, GPU_USAGE_STATIC, __func__);
   GPU_storagebuf_bind(ssbo, GPU_shader_get_ssbo_binding(shader, "data_out"));
 

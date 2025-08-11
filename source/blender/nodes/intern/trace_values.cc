@@ -197,12 +197,17 @@ static Vector<SocketInContext> find_target_sockets_through_contexts(
           if (!closure_input_node) {
             continue;
           }
-          const ComputeContext &closure_context = compute_context_cache.for_evaluate_closure(
-              node.context,
-              node->identifier,
-              &node->owner_tree(),
-              ClosureSourceLocation{
-                  &closure_tree, closure_output_node->identifier, origin_socket.context_hash()});
+          const bke::EvaluateClosureComputeContext &closure_context =
+              compute_context_cache.for_evaluate_closure(
+                  node.context,
+                  node->identifier,
+                  &node->owner_tree(),
+                  ClosureSourceLocation{&closure_tree,
+                                        closure_output_node->identifier,
+                                        origin_socket.context_hash()});
+          if (closure_context.is_recursive()) {
+            continue;
+          }
           const auto &closure_output_storage = *static_cast<const NodeClosureOutput *>(
               closure_output_node->storage);
           for (const int i : IndexRange(closure_output_storage.input_items.items_num)) {
@@ -445,12 +450,17 @@ static Vector<SocketInContext> find_origin_sockets_through_contexts(
           const NodeInContext closure_output_node = origin_socket.owner_node();
           const auto &closure_storage = *static_cast<const NodeClosureOutput *>(
               closure_output_node->storage);
-          const ComputeContext &closure_context = compute_context_cache.for_evaluate_closure(
-              node.context,
-              node->identifier,
-              &node->owner_tree(),
-              ClosureSourceLocation{
-                  &closure_tree, closure_output_node->identifier, origin_socket.context_hash()});
+          const bke::EvaluateClosureComputeContext &closure_context =
+              compute_context_cache.for_evaluate_closure(
+                  node.context,
+                  node->identifier,
+                  &node->owner_tree(),
+                  ClosureSourceLocation{&closure_tree,
+                                        closure_output_node->identifier,
+                                        origin_socket.context_hash()});
+          if (closure_context.is_recursive()) {
+            continue;
+          }
           for (const int i : IndexRange(closure_storage.output_items.items_num)) {
             const NodeClosureOutputItem &item = closure_storage.output_items.items[i];
             if (key == item.name) {

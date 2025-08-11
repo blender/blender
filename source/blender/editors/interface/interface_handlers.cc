@@ -70,6 +70,8 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
+#include "CLG_log.h"
+
 #include "WM_api.hh"
 #include "WM_types.hh"
 #include "wm_event_system.hh"
@@ -79,6 +81,8 @@
 #endif
 
 using blender::StringRef;
+
+static CLG_LogRef LOG = {"ui.handler"};
 
 /* -------------------------------------------------------------------- */
 /** \name Feature Defines
@@ -1576,7 +1580,7 @@ static void ui_multibut_states_apply(bContext *C, uiHandleButtonData *data, uiBl
 
     if (mbut_state == nullptr) {
       /* Highly unlikely. */
-      printf("%s: Can't find button\n", __func__);
+      CLOG_WARN(&LOG, "%s: Can't find button", __func__);
       /* While this avoids crashing, multi-button dragging will fail,
        * which is still a bug from the user perspective. See #83651. */
       continue;
@@ -3606,7 +3610,7 @@ static void ui_textedit_end(bContext *C, uiBut *but, uiHandleButtonData *data)
        * This could check could be made into an assertion if `but->editstr`
        * is valid UTF8 when #ui_textedit_begin assigns the string. */
       if (strip) {
-        printf("%s: invalid utf8 - stripped chars %d\n", __func__, strip);
+        CLOG_INFO_NOCHECK(&LOG, "%s: invalid utf8 - stripped chars %d", __func__, strip);
       }
     }
 
@@ -9503,7 +9507,7 @@ static bool ui_handle_button_activate_by_type(bContext *C, ARegion *region, uiBu
   }
   else {
 #ifndef NDEBUG
-    printf("%s: error, unhandled type: %d\n", __func__, int(but->type));
+    CLOG_WARN(&LOG, "%s: error, unhandled type: %d", __func__, int(but->type));
 #endif
     return false;
   }

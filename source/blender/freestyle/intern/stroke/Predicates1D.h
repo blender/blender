@@ -55,7 +55,7 @@ class UnaryPredicate1D {
 
   /** The () operator. Must be overload by inherited classes.
    *  \param inter:
-   *    The Interface1D on  which we wish to evaluate the predicate.
+   *    The Interface1D on which we wish to evaluate the predicate.
    *  \return true if the condition is satisfied, false otherwise.
    */
   virtual int operator()(Interface1D &inter);

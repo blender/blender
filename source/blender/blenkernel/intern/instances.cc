@@ -153,7 +153,7 @@ Instances::Instances(Instances &&other)
       instances_num_(other.instances_num_),
       attributes_(std::move(other.attributes_)),
       reference_user_counts_(std::move(other.reference_user_counts_)),
-      almost_unique_ids_cache_(std::move(other.almost_unique_ids_cache_))
+      unique_ids_cache_(std::move(other.unique_ids_cache_))
 {
 }
 
@@ -162,7 +162,7 @@ Instances::Instances(const Instances &other)
       instances_num_(other.instances_num_),
       attributes_(other.attributes_),
       reference_user_counts_(other.reference_user_counts_),
-      almost_unique_ids_cache_(other.almost_unique_ids_cache_)
+      unique_ids_cache_(other.unique_ids_cache_)
 {
 }
 
@@ -466,10 +466,15 @@ static Array<int> generate_unique_instance_ids(Span<int> original_ids)
         break;
       }
       if (iteration == max_iteration) {
-        /* It seems to be very unlikely that we ever run into this case (assuming there are less
-         * than 2^30 instances). However, if that happens, it's better to use an id that is not
-         * unique than to be stuck in an infinite loop. */
-        unique_ids[instance_index] = original_id;
+        /* The likelyhood of running into this case is very low even if there is a huge number of
+         * instances. For correctness, it's still good to systematically find an unused id instead
+         * of purely relying on randomness. */
+        for (const int generated_id : IndexRange(INT32_MAX)) {
+          if (used_unique_ids.add(generated_id)) {
+            unique_ids[instance_index] = generated_id;
+            break;
+          }
+        }
         break;
       }
     }
@@ -495,9 +500,9 @@ Span<int> Instances::reference_user_counts() const
   return reference_user_counts_.data();
 }
 
-Span<int> Instances::almost_unique_ids() const
+Span<int> Instances::unique_ids() const
 {
-  almost_unique_ids_cache_.ensure([&](Array<int> &r_data) {
+  unique_ids_cache_.ensure([&](Array<int> &r_data) {
     const VArraySpan<int> instance_ids = *this->attributes().lookup<int>("id");
     if (instance_ids.is_empty()) {
       r_data.reinitialize(instances_num_);
@@ -506,7 +511,7 @@ Span<int> Instances::almost_unique_ids() const
     }
     r_data = generate_unique_instance_ids(instance_ids);
   });
-  return almost_unique_ids_cache_.data();
+  return unique_ids_cache_.data();
 }
 
 static float3 get_transform_position(const float4x4 &transform)

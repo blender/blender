@@ -105,11 +105,6 @@ static void node_operators()
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  if (!U.experimental.use_bundle_and_closure_nodes) {
-    params.set_default_remaining_outputs();
-    return;
-  }
-
   const bNode &node = params.node();
   const NodeCombineBundle &storage = node_storage(node);
 
@@ -234,11 +229,11 @@ std::string CombineBundleItemsAccessor::validate_name(const StringRef name)
     }
   }
   if (!result.empty()) {
-    /* Disallow leading spaces.*/
+    /* Disallow leading spaces. */
     if (std::isspace(result[0])) {
       result[0] = '_';
     }
-    /* Disallow trailing spaces.*/
+    /* Disallow trailing spaces. */
     const int last_index = result.size() - 1;
     if (std::isspace(result[last_index])) {
       result[last_index] = '_';

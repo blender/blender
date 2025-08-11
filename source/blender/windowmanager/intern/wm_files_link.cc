@@ -963,13 +963,13 @@ static wmOperatorStatus wm_lib_relocate_exec_do(bContext *C, wmOperator *op, boo
           continue;
         }
 
-        CLOG_DEBUG(&LOG, "\tCandidate new lib to reload datablocks from: %s", filepath);
+        CLOG_DEBUG(&LOG, "\tCandidate new lib to reload data-blocks from: %s", filepath);
         BKE_blendfile_link_append_context_library_add(lapp_context, filepath, nullptr);
       }
       RNA_END;
     }
     else {
-      CLOG_DEBUG(&LOG, "\tCandidate new lib to reload datablocks from: %s", filepath);
+      CLOG_DEBUG(&LOG, "\tCandidate new lib to reload data-blocks from: %s", filepath);
       BKE_blendfile_link_append_context_library_add(lapp_context, filepath, nullptr);
     }
   }

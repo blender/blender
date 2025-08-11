@@ -33,7 +33,7 @@ void SphereProbeModule::begin_sync()
   LightProbeModule &light_probes = instance_.light_probes;
   SphereProbeData &world_data = *static_cast<SphereProbeData *>(&light_probes.world_sphere_);
   {
-    GPUShader *shader = instance_.shaders.static_shader_get(SPHERE_PROBE_REMAP);
+    gpu::Shader *shader = instance_.shaders.static_shader_get(SPHERE_PROBE_REMAP);
 
     PassSimple &pass = remap_ps_;
     pass.init();

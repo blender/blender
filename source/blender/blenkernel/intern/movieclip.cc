@@ -71,6 +71,10 @@
 
 #include "BLO_read_write.hh"
 
+#include "CLG_log.h"
+
+static CLG_LogRef LOG = {"gpu.texture"};
+
 static void free_buffers(MovieClip *clip);
 
 /** Reset runtime mask fields when data-block is being initialized. */
@@ -2021,7 +2025,7 @@ blender::gpu::Texture *BKE_movieclip_get_gpu_texture(MovieClip *clip, MovieClipU
   /* check if we have a valid image buffer */
   ImBuf *ibuf = BKE_movieclip_get_ibuf(clip, cuser);
   if (ibuf == nullptr) {
-    fprintf(stderr, "blender::gpu::Texture: Blender Texture Not Loaded!\n");
+    CLOG_ERROR(&LOG, "Failed to created GPU texture from Blender movie clip");
     *tex = GPU_texture_create_error(2, false);
     return *tex;
   }

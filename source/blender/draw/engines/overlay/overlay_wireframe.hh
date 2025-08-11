@@ -81,7 +81,7 @@ class Wireframe : Overlay {
       res.select_bind(pass);
 
       auto shader_pass =
-          [&](GPUShader *shader, const char *name, bool use_coloring, float wire_threshold) {
+          [&](gpu::Shader *shader, const char *name, bool use_coloring, float wire_threshold) {
             auto &sub = pass.sub(name);
             if (res.shaders->wireframe_mesh.get() == shader) {
               sub.specialize_constant(shader, "use_custom_depth_bias", do_smooth_lines);

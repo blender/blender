@@ -2431,7 +2431,7 @@ static void extract_zero_volume_cell_tris(Vector<Face *> &r_tris,
  * The cells in \a cinfo must have cells-to-be-retained with in_output_volume set.
  * We keep only triangles between those in the output volume and those not in.
  * We flip the normals of any triangle that has an in_output_volume cell above
- * and a  not-in_output_volume cell below.
+ * and a not-in_output_volume cell below.
  * For all stacks of exact duplicate co-planar triangles, we want to
  * include either one version of the triangle or none, depending on
  * whether the in_output_volume in_output_volumes on either side of the stack are

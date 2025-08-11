@@ -117,7 +117,7 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
     /* apply offset and scale */
     time = (mcmd->frame_scale * time) - mcmd->frame_start;
   }
-  else { /*  if (mcmd->play_mode == MOD_MESHCACHE_PLAY_EVAL) { */
+  else { /* `if (mcmd->play_mode == MOD_MESHCACHE_PLAY_EVAL) {`. */
     switch (mcmd->time_mode) {
       case MOD_MESHCACHE_TIME_FRAME: {
         time = mcmd->eval_frame;

@@ -353,7 +353,7 @@ class Film {
    */
   void update_sample_table();
 
-  void init_pass(PassSimple &pass, GPUShader *sh);
+  void init_pass(PassSimple &pass, gpu::Shader *sh);
 };
 
 /** \} */

@@ -453,7 +453,7 @@ Result Result::upload_to_gpu(const bool from_pool)
   return result;
 }
 
-void Result::bind_as_texture(GPUShader *shader, const char *texture_name) const
+void Result::bind_as_texture(gpu::Shader *shader, const char *texture_name) const
 {
   BLI_assert(storage_type_ == ResultStorageType::GPU);
 
@@ -464,7 +464,7 @@ void Result::bind_as_texture(GPUShader *shader, const char *texture_name) const
   GPU_texture_bind(this->gpu_texture(), texture_image_unit);
 }
 
-void Result::bind_as_image(GPUShader *shader, const char *image_name, bool read) const
+void Result::bind_as_image(gpu::Shader *shader, const char *image_name, bool read) const
 {
   BLI_assert(storage_type_ == ResultStorageType::GPU);
 

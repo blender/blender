@@ -101,17 +101,9 @@ static void ui_imageuser_slot_menu(bContext *C, uiLayout *layout, void *image_p)
     else if (slot->render != nullptr) {
       icon = ICON_DOT;
     }
-    uiDefIconTextButS(block,
-                      ButType::ButMenu,
-                      B_NOP,
-                      icon,
-                      str,
-                      0,
-                      0,
-                      UI_UNIT_X * 5,
-                      UI_UNIT_X,
-                      &image->render_slot,
-                      "");
+    uiBut *but = uiDefIconTextBut(
+        block, ButType::ButMenu, B_NOP, icon, str, 0, 0, UI_UNIT_X * 5, UI_UNIT_X, nullptr, "");
+    UI_but_func_set(but, [image, slot_id](bContext & /*C*/) { image->render_slot = slot_id; });
   }
 
   layout->separator();

@@ -15,6 +15,7 @@
 struct ReportList;
 struct bContext;
 struct wmWindow;
+struct Strip;
 
 Scene *ED_scene_add(Main *bmain, bContext *C, wmWindow *win, eSceneCopyMethod method)
     ATTR_NONNULL();
@@ -23,10 +24,8 @@ Scene *ED_scene_add(Main *bmain, bContext *C, wmWindow *win, eSceneCopyMethod me
  *
  * Special mode for adding a scene assigned to sequencer strip.
  */
-Scene *ED_scene_sequencer_add(Main *bmain,
-                              bContext *C,
-                              eSceneCopyMethod method,
-                              bool assign_strip);
+Scene *ED_scene_sequencer_add(
+    Main *bmain, bContext *C, Strip *active_strip, eSceneCopyMethod method, bool assign_strip);
 /**
  * \note Only call outside of area/region loops.
  * \return true if successful.

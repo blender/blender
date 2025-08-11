@@ -61,7 +61,7 @@ static void compute_preview_gpu(Context &context,
 {
   const int2 preview_size = int2(preview->ibuf->x, preview->ibuf->y);
 
-  GPUShader *shader = context.get_shader("compositor_compute_preview");
+  gpu::Shader *shader = context.get_shader("compositor_compute_preview");
   GPU_shader_bind(shader);
 
   if (input_result.type() == ResultType::Float) {

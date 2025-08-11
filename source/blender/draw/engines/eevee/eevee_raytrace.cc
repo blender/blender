@@ -72,7 +72,7 @@ void RayTraceModule::sync()
   }
   {
     PassSimple &pass = tile_compact_ps_;
-    GPUShader *sh = inst_.shaders.static_shader_get(RAY_TILE_COMPACT);
+    gpu::Shader *sh = inst_.shaders.static_shader_get(RAY_TILE_COMPACT);
     pass.init();
     pass.specialize_constant(sh, "closure_index", &data_.closure_index);
     pass.specialize_constant(sh, "resolution_scale", &data_.resolution_scale);
@@ -90,7 +90,7 @@ void RayTraceModule::sync()
   {
     PassSimple &pass = generate_ps_;
     pass.init();
-    GPUShader *sh = inst_.shaders.static_shader_get(RAY_GENERATE);
+    gpu::Shader *sh = inst_.shaders.static_shader_get(RAY_GENERATE);
     pass.specialize_constant(sh, "closure_index", &data_.closure_index);
     pass.shader_set(sh);
     pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
@@ -107,7 +107,7 @@ void RayTraceModule::sync()
   {
     PassSimple &pass = trace_planar_ps_;
     pass.init();
-    GPUShader *sh = inst_.shaders.static_shader_get(RAY_TRACE_PLANAR);
+    gpu::Shader *sh = inst_.shaders.static_shader_get(RAY_TRACE_PLANAR);
     pass.specialize_constant(sh, "closure_index", &data_.closure_index);
     pass.shader_set(sh);
     pass.bind_ssbo("tiles_coord_buf", &raytrace_tracing_tiles_buf_);
@@ -128,7 +128,7 @@ void RayTraceModule::sync()
   {
     PassSimple &pass = trace_screen_ps_;
     pass.init();
-    GPUShader *sh = inst_.shaders.static_shader_get(RAY_TRACE_SCREEN);
+    gpu::Shader *sh = inst_.shaders.static_shader_get(RAY_TRACE_SCREEN);
     pass.specialize_constant(
         sh, "trace_refraction", reinterpret_cast<bool *>(&data_.trace_refraction));
     pass.specialize_constant(sh, "closure_index", &data_.closure_index);
@@ -155,7 +155,7 @@ void RayTraceModule::sync()
   {
     PassSimple &pass = trace_fallback_ps_;
     pass.init();
-    GPUShader *sh = inst_.shaders.static_shader_get(RAY_TRACE_FALLBACK);
+    gpu::Shader *sh = inst_.shaders.static_shader_get(RAY_TRACE_FALLBACK);
     pass.specialize_constant(sh, "closure_index", &data_.closure_index);
     pass.shader_set(sh);
     pass.bind_ssbo("tiles_coord_buf", &raytrace_tracing_tiles_buf_);
@@ -174,7 +174,7 @@ void RayTraceModule::sync()
   /* Denoise. */
   {
     PassSimple &pass = denoise_spatial_ps_;
-    GPUShader *sh = inst_.shaders.static_shader_get(RAY_DENOISE_SPATIAL);
+    gpu::Shader *sh = inst_.shaders.static_shader_get(RAY_DENOISE_SPATIAL);
     pass.init();
     pass.specialize_constant(sh, "closure_index", &data_.closure_index);
     pass.specialize_constant(sh, "raytrace_resolution_scale", &data_.resolution_scale);
@@ -198,7 +198,7 @@ void RayTraceModule::sync()
   }
   {
     PassSimple &pass = denoise_temporal_ps_;
-    GPUShader *sh = inst_.shaders.static_shader_get(RAY_DENOISE_TEMPORAL);
+    gpu::Shader *sh = inst_.shaders.static_shader_get(RAY_DENOISE_TEMPORAL);
     pass.init();
     pass.specialize_constant(sh, "closure_index", &data_.closure_index);
     pass.shader_set(sh);
@@ -220,7 +220,7 @@ void RayTraceModule::sync()
   {
     PassSimple &pass = denoise_bilateral_ps_;
     pass.init();
-    GPUShader *sh = inst_.shaders.static_shader_get(RAY_DENOISE_BILATERAL);
+    gpu::Shader *sh = inst_.shaders.static_shader_get(RAY_DENOISE_BILATERAL);
     pass.specialize_constant(sh, "closure_index", &data_.closure_index);
     pass.shader_set(sh);
     pass.bind_texture("depth_tx", &depth_tx);
@@ -238,7 +238,7 @@ void RayTraceModule::sync()
   {
     PassSimple &pass = horizon_schedule_ps_;
     /* Reuse tile compaction shader but feed it with horizon scan specific buffers. */
-    GPUShader *sh = inst_.shaders.static_shader_get(RAY_TILE_COMPACT);
+    gpu::Shader *sh = inst_.shaders.static_shader_get(RAY_TILE_COMPACT);
     pass.init();
     pass.specialize_constant(sh, "closure_index", 0);
     pass.specialize_constant(sh, "resolution_scale", &data_.horizon_resolution_scale);
@@ -271,7 +271,7 @@ void RayTraceModule::sync()
   {
     PassSimple &pass = horizon_scan_ps_;
     pass.init();
-    GPUShader *sh = inst_.shaders.static_shader_get(HORIZON_SCAN);
+    gpu::Shader *sh = inst_.shaders.static_shader_get(HORIZON_SCAN);
     pass.specialize_constant(sh, "fast_gi_slice_count", fast_gi_ray_count_);
     pass.specialize_constant(sh, "fast_gi_step_count", fast_gi_step_count_);
     pass.specialize_constant(sh, "fast_gi_ao_only", fast_gi_ao_only_);
@@ -294,7 +294,7 @@ void RayTraceModule::sync()
   {
     PassSimple &pass = horizon_denoise_ps_;
     pass.init();
-    GPUShader *sh = inst_.shaders.static_shader_get(HORIZON_DENOISE);
+    gpu::Shader *sh = inst_.shaders.static_shader_get(HORIZON_DENOISE);
     pass.shader_set(sh);
     pass.bind_texture("in_sh_0_tx", &horizon_radiance_tx_[0]);
     pass.bind_texture("in_sh_1_tx", &horizon_radiance_tx_[1]);
@@ -315,7 +315,7 @@ void RayTraceModule::sync()
   {
     PassSimple &pass = horizon_resolve_ps_;
     pass.init();
-    GPUShader *sh = inst_.shaders.static_shader_get(HORIZON_RESOLVE);
+    gpu::Shader *sh = inst_.shaders.static_shader_get(HORIZON_RESOLVE);
     pass.shader_set(sh);
     pass.bind_texture("depth_tx", &depth_tx);
     pass.bind_texture("horizon_radiance_0_tx", &horizon_radiance_denoised_tx_[0]);

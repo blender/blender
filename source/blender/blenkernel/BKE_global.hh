@@ -234,18 +234,17 @@ enum {
 
 /** #Global.debug */
 enum {
-  G_DEBUG = (1 << 0), /* general debug flag, print more info in unexpected cases */
-  G_DEBUG_FFMPEG = (1 << 1),
-  G_DEBUG_PYTHON = (1 << 2),                /* extra python info */
-  G_DEBUG_EVENTS = (1 << 3),                /* input/window/screen events */
-  G_DEBUG_HANDLERS = (1 << 4),              /* events handling */
-  G_DEBUG_WM = (1 << 5),                    /* operator, undo */
-  G_DEBUG_JOBS = (1 << 6),                  /* jobs time profiling */
-  G_DEBUG_FREESTYLE = (1 << 7),             /* freestyle messages */
-  G_DEBUG_DEPSGRAPH_BUILD = (1 << 8),       /* depsgraph construction messages */
-  G_DEBUG_DEPSGRAPH_EVAL = (1 << 9),        /* depsgraph evaluation messages */
-  G_DEBUG_DEPSGRAPH_TAG = (1 << 10),        /* depsgraph tagging messages */
-  G_DEBUG_DEPSGRAPH_TIME = (1 << 11),       /* depsgraph timing statistics and messages */
+  G_DEBUG = (1 << 0),                 /* general debug flag, print more info in unexpected cases */
+  G_DEBUG_PYTHON = (1 << 2),          /* extra python info */
+  G_DEBUG_EVENTS = (1 << 3),          /* input/window/screen events */
+  G_DEBUG_HANDLERS = (1 << 4),        /* events handling */
+  G_DEBUG_WM = (1 << 5),              /* operator, undo */
+  G_DEBUG_JOBS = (1 << 6),            /* jobs time profiling */
+  G_DEBUG_FREESTYLE = (1 << 7),       /* freestyle messages */
+  G_DEBUG_DEPSGRAPH_BUILD = (1 << 8), /* depsgraph construction messages */
+  G_DEBUG_DEPSGRAPH_EVAL = (1 << 9),  /* depsgraph evaluation messages */
+  G_DEBUG_DEPSGRAPH_TAG = (1 << 10),  /* depsgraph tagging messages */
+  G_DEBUG_DEPSGRAPH_TIME = (1 << 11), /* depsgraph timing statistics and messages */
   G_DEBUG_DEPSGRAPH_NO_THREADS = (1 << 12), /* single threaded depsgraph */
   G_DEBUG_DEPSGRAPH_PRETTY = (1 << 13),     /* use pretty colors in depsgraph messages */
   G_DEBUG_DEPSGRAPH_UID = (1 << 14),        /* Verify validness of session-wide identifiers
@@ -267,8 +266,8 @@ enum {
 };
 
 #define G_DEBUG_ALL \
-  (G_DEBUG | G_DEBUG_FFMPEG | G_DEBUG_PYTHON | G_DEBUG_EVENTS | G_DEBUG_WM | G_DEBUG_JOBS | \
-   G_DEBUG_FREESTYLE | G_DEBUG_DEPSGRAPH | G_DEBUG_IO | G_DEBUG_GHOST | G_DEBUG_WINTAB)
+  (G_DEBUG | G_DEBUG_PYTHON | G_DEBUG_EVENTS | G_DEBUG_WM | G_DEBUG_JOBS | G_DEBUG_FREESTYLE | \
+   G_DEBUG_DEPSGRAPH | G_DEBUG_IO | G_DEBUG_GHOST | G_DEBUG_WINTAB)
 
 /** #Global.fileflags */
 enum {

@@ -21,7 +21,7 @@
  * the `OS_WINDOWS` is defined to 1, and all the other symbols prefixed with `OS_` are defined to 0
  * (except of the aggregates described above).
  *
- * There are  aggregates which allows to access "family" of the operating system:
+ * There are aggregates which allows to access "family" of the operating system:
  *
  * - OS_BSD is defined for 1 for all BSD family of OS (FreeBSD, NextBSD, DragonFly...).
  * - OS_POSIX is defined to 1 if the OS implements POSIX API.

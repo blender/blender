@@ -42,7 +42,7 @@ static void test_draw_pass_all_commands()
   pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_STENCIL);
   pass.clear_color_depth_stencil(float4(0.25f, 0.5f, 100.0f, -2000.0f), 0.5f, 0xF0);
   pass.state_stencil(0x80, 0x0F, 0x8F);
-  GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE_COLOR);
+  gpu::Shader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE_COLOR);
   const int color_location = GPU_shader_get_uniform(sh, "color");
   const int mvp_location = GPU_shader_get_uniform(sh, "ModelViewProjectionMatrix");
   pass.shader_set(sh);
@@ -524,7 +524,7 @@ static void test_draw_submit_only()
   view_other.sync(viewmat, projmat);
 
   /* Add some draws to prevent empty pass optimization. */
-  GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
+  gpu::Shader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
   pass.init();
   pass.shader_set(sh);
   pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);

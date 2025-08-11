@@ -1440,7 +1440,7 @@ class VIEW3D_MT_uv_map(Menu):
 
         layout.separator()
 
-        layout.operator("mesh.mark_seam", icon="EDGE_SEAM").clear = False
+        layout.operator("mesh.mark_seam", icon='EDGE_SEAM').clear = False
         layout.operator("mesh.mark_seam", text="Clear Seam").clear = True
 
         layout.separator()
@@ -4566,7 +4566,7 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
 
             col.separator()
 
-            col.operator("transform.vert_crease", icon="VERTEX_CREASE")
+            col.operator("transform.vert_crease", icon='VERTEX_CREASE')
 
             col.separator()
 
@@ -4623,12 +4623,12 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
 
             col.separator()
 
-            col.operator("mesh.mark_seam", icon="EDGE_SEAM").clear = False
+            col.operator("mesh.mark_seam", icon='EDGE_SEAM').clear = False
             col.operator("mesh.mark_seam", text="Clear Seam").clear = True
 
             col.separator()
 
-            col.operator("mesh.mark_sharp", icon="EDGE_SHARP").clear = False
+            col.operator("mesh.mark_sharp", icon='EDGE_SHARP').clear = False
             col.operator("mesh.mark_sharp", text="Clear Sharp").clear = True
             col.operator("mesh.set_sharpness_by_angle")
 
@@ -4774,7 +4774,7 @@ class VIEW3D_MT_edit_mesh_vertices(Menu):
 
         layout.separator()
 
-        layout.operator("transform.vert_crease", icon="VERTEX_CREASE")
+        layout.operator("transform.vert_crease", icon='VERTEX_CREASE')
 
         layout.separator()
 
@@ -4828,17 +4828,17 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
 
         layout.separator()
 
-        layout.operator("transform.edge_bevelweight", icon="EDGE_BEVEL")
-        layout.operator("transform.edge_crease", icon="EDGE_CREASE")
+        layout.operator("transform.edge_bevelweight", icon='EDGE_BEVEL')
+        layout.operator("transform.edge_crease", icon='EDGE_CREASE')
 
         layout.separator()
 
-        layout.operator("mesh.mark_seam", icon="EDGE_SEAM").clear = False
+        layout.operator("mesh.mark_seam", icon='EDGE_SEAM').clear = False
         layout.operator("mesh.mark_seam", text="Clear Seam").clear = True
 
         layout.separator()
 
-        layout.operator("mesh.mark_sharp", icon="EDGE_SHARP")
+        layout.operator("mesh.mark_sharp", icon='EDGE_SHARP')
         layout.operator("mesh.mark_sharp", text="Clear Sharp").clear = True
 
         layout.operator("mesh.mark_sharp", text="Mark Sharp from Vertices").use_verts = True
@@ -7208,16 +7208,17 @@ class VIEW3D_PT_overlay_edit_mesh(Panel):
         col.active = display_all
 
         row = col.row(align=True)
-        row.prop(overlay, "show_edge_bevel_weight", text="Bevel", icon="EDGE_BEVEL", toggle=True)
-        row.prop(overlay, "show_edge_crease", text="Crease", icon="EDGE_CREASE", toggle=True)
-        row.prop(overlay, "show_edge_seams", text="Seam", icon="EDGE_SEAM", toggle=True)
+        row.prop(overlay, "show_edge_bevel_weight", text="Bevel", icon='EDGE_BEVEL', toggle=True)
+        row.prop(overlay, "show_edge_crease", text="Crease", icon='EDGE_CREASE', toggle=True)
+        row.prop(overlay, "show_edge_seams", text="Seam", icon='EDGE_SEAM', toggle=True)
         row.prop(
             overlay,
             "show_edge_sharp",
             text="Sharp",
-            icon="EDGE_SHARP",
+            icon='EDGE_SHARP',
             text_ctxt=i18n_contexts.plural,
-            toggle=True)
+            toggle=True,
+        )
 
         col.separator()
         split = col.split()

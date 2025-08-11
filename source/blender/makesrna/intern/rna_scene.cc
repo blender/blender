@@ -288,43 +288,37 @@ static const EnumPropertyItem rna_enum_media_type_image_items[] = {
  */
 
 #define R_IMF_ENUM_BMP \
-  {R_IMF_IMTYPE_BMP, "BMP", ICON_FILE_IMAGE, "BMP", "Output image in bitmap format"},
+  {R_IMF_IMTYPE_BMP, "BMP", 0, "Bitmap (.bmp)", "Output image in bitmap format"},
 #define R_IMF_ENUM_IRIS \
-  {R_IMF_IMTYPE_IRIS, "IRIS", ICON_FILE_IMAGE, "Iris", "Output image in SGI IRIS format"},
-#define R_IMF_ENUM_PNG \
-  {R_IMF_IMTYPE_PNG, "PNG", ICON_FILE_IMAGE, "PNG", "Output image in PNG format"},
+  {R_IMF_IMTYPE_IRIS, "IRIS", 0, "Iris (.rgb)", "Output image in SGI IRIS format"},
+#define R_IMF_ENUM_PNG {R_IMF_IMTYPE_PNG, "PNG", 0, "PNG (.png)", "Output image in PNG format"},
 #define R_IMF_ENUM_JPEG \
-  {R_IMF_IMTYPE_JPEG90, "JPEG", ICON_FILE_IMAGE, "JPEG", "Output image in JPEG format"},
+  {R_IMF_IMTYPE_JPEG90, "JPEG", 0, "JPEG (.jpg)", "Output image in JPEG format"},
 #define R_IMF_ENUM_TAGA \
-  {R_IMF_IMTYPE_TARGA, "TARGA", ICON_FILE_IMAGE, "Targa", "Output image in Targa format"},
+  {R_IMF_IMTYPE_TARGA, "TARGA", 0, "Targa (.tga)", "Output image in Targa format"},
 #define R_IMF_ENUM_TAGA_RAW \
   {R_IMF_IMTYPE_RAWTGA, \
    "TARGA_RAW", \
-   ICON_FILE_IMAGE, \
-   "Targa Raw", \
+   0, \
+   "Targa Raw (.tga)", \
    "Output image in uncompressed Targa format"},
 
 #if 0 /* UNUSED (so far) */
 #  define R_IMF_ENUM_DDS \
-    {R_IMF_IMTYPE_DDS, "DDS", ICON_FILE_IMAGE, "DDS", "Output image in DDS format"},
+    {R_IMF_IMTYPE_DDS, "DDS", 0, "DirectDraw Surface (.dds)", "Output image in DDS format"},
 #endif
 
 #ifdef WITH_IMAGE_OPENJPEG
 #  define R_IMF_ENUM_JPEG2K \
-    {R_IMF_IMTYPE_JP2, \
-     "JPEG2000", \
-     ICON_FILE_IMAGE, \
-     "JPEG 2000", \
-     "Output image in JPEG 2000 format"},
+    {R_IMF_IMTYPE_JP2, "JPEG2000", 0, "JPEG 2000 (.jp2)", "Output image in JPEG 2000 format"},
 #else
 #  define R_IMF_ENUM_JPEG2K
 #endif
 
 #ifdef WITH_IMAGE_CINEON
 #  define R_IMF_ENUM_CINEON \
-    {R_IMF_IMTYPE_CINEON, "CINEON", ICON_FILE_IMAGE, "Cineon", "Output image in Cineon format"},
-#  define R_IMF_ENUM_DPX \
-    {R_IMF_IMTYPE_DPX, "DPX", ICON_FILE_IMAGE, "DPX", "Output image in DPX format"},
+    {R_IMF_IMTYPE_CINEON, "CINEON", 0, "Cineon (.cin)", "Output image in Cineon format"},
+#  define R_IMF_ENUM_DPX {R_IMF_IMTYPE_DPX, "DPX", 0, "DPX (.dpx)", "Output image in DPX format"},
 #else
 #  define R_IMF_ENUM_CINEON
 #  define R_IMF_ENUM_DPX
@@ -334,33 +328,25 @@ static const EnumPropertyItem rna_enum_media_type_image_items[] = {
 #  define R_IMF_ENUM_EXR_MULTILAYER \
     {R_IMF_IMTYPE_MULTILAYER, \
      "OPEN_EXR_MULTILAYER", \
-     ICON_FILE_IMAGE, \
-     "OpenEXR MultiLayer", \
+     0, \
+     "OpenEXR MultiLayer (.exr)", \
      "Output image in multilayer OpenEXR format"},
 #  define R_IMF_ENUM_EXR \
-    {R_IMF_IMTYPE_OPENEXR, \
-     "OPEN_EXR", \
-     ICON_FILE_IMAGE, \
-     "OpenEXR", \
-     "Output image in OpenEXR format"},
+    {R_IMF_IMTYPE_OPENEXR, "OPEN_EXR", 0, "OpenEXR (.exr)", "Output image in OpenEXR format"},
 #else
 #  define R_IMF_ENUM_EXR_MULTILAYER
 #  define R_IMF_ENUM_EXR
 #endif
 
 #define R_IMF_ENUM_HDR \
-  {R_IMF_IMTYPE_RADHDR, \
-   "HDR", \
-   ICON_FILE_IMAGE, \
-   "Radiance HDR", \
-   "Output image in Radiance HDR format"},
+  {R_IMF_IMTYPE_RADHDR, "HDR", 0, "Radiance HDR (.hdr)", "Output image in Radiance HDR format"},
 
 #define R_IMF_ENUM_TIFF \
-  {R_IMF_IMTYPE_TIFF, "TIFF", ICON_FILE_IMAGE, "TIFF", "Output image in TIFF format"},
+  {R_IMF_IMTYPE_TIFF, "TIFF", 0, "TIFF (.tif)", "Output image in TIFF format"},
 
 #ifdef WITH_IMAGE_WEBP
 #  define R_IMF_ENUM_WEBP \
-    {R_IMF_IMTYPE_WEBP, "WEBP", ICON_FILE_IMAGE, "WebP", "Output image in WebP format"},
+    {R_IMF_IMTYPE_WEBP, "WEBP", 0, "WebP (.webp)", "Output image in WebP format"},
 #else
 #  define R_IMF_ENUM_WEBP
 #endif
@@ -372,16 +358,14 @@ static const EnumPropertyItem rna_enum_media_type_image_items[] = {
 #endif
 
 #define IMAGE_TYPE_ITEMS_IMAGE \
-  R_IMF_ENUM_BMP \
   /* DDS save not supported yet R_IMF_ENUM_DDS */ \
-  R_IMF_ENUM_IRIS \
-  R_IMF_ENUM_PNG \
   R_IMF_ENUM_JPEG \
-  R_IMF_ENUM_JPEG2K \
-  R_IMF_ENUM_TAGA \
-  R_IMF_ENUM_TAGA_RAW \
-  RNA_ENUM_ITEM_SEPR_COLUMN, R_IMF_ENUM_CINEON R_IMF_ENUM_DPX R_IMF_ENUM_EXR R_IMF_ENUM_HDR \
-                                 R_IMF_ENUM_TIFF R_IMF_ENUM_WEBP
+  R_IMF_ENUM_EXR \
+  R_IMF_ENUM_PNG \
+  R_IMF_ENUM_WEBP \
+  RNA_ENUM_ITEM_SEPR, \
+      R_IMF_ENUM_BMP R_IMF_ENUM_CINEON R_IMF_ENUM_DPX R_IMF_ENUM_IRIS R_IMF_ENUM_JPEG2K \
+          R_IMF_ENUM_HDR R_IMF_ENUM_TAGA R_IMF_ENUM_TAGA_RAW R_IMF_ENUM_TIFF
 
 #define IMAGE_TYPE_ITEMS_MULTI_LAYER_IMAGE R_IMF_ENUM_EXR_MULTILAYER
 
@@ -7333,18 +7317,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Samples", "Number of samples used for ambient occlusion baking from multires");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
-
-  prop = RNA_def_property(srna, "use_bake_user_scale", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "bake_flag", R_BAKE_USERSCALE);
-  RNA_def_property_ui_text(prop, "User Scale", "Use a user scale for the derivative map");
-
-  prop = RNA_def_property(srna, "bake_user_scale", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "bake_user_scale");
-  RNA_def_property_range(prop, 0.0, 1000.0);
-  RNA_def_property_ui_text(prop,
-                           "Scale",
-                           "Instead of automatically normalizing to the range 0 to 1, "
-                           "apply a user scale to the derivative map");
 
   /* stamp */
 

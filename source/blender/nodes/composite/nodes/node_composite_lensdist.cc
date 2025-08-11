@@ -331,7 +331,7 @@ class LensDistortionOperation : public NodeOperation {
 
   void execute_horizontal_distortion_gpu()
   {
-    GPUShader *shader = context().get_shader("compositor_horizontal_lens_distortion");
+    gpu::Shader *shader = context().get_shader("compositor_horizontal_lens_distortion");
     GPU_shader_bind(shader);
 
     const Result &input_image = get_input("Image");
@@ -393,7 +393,7 @@ class LensDistortionOperation : public NodeOperation {
 
   void execute_radial_distortion_gpu()
   {
-    GPUShader *shader = context().get_shader(get_radial_distortion_shader());
+    gpu::Shader *shader = context().get_shader(get_radial_distortion_shader());
     GPU_shader_bind(shader);
 
     const Result &input_image = get_input("Image");

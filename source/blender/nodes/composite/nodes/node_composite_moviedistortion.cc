@@ -112,7 +112,7 @@ class MovieDistortionOperation : public NodeOperation {
 
   void execute_gpu(const Result &distortion_grid)
   {
-    GPUShader *shader = context().get_shader("compositor_movie_distortion");
+    gpu::Shader *shader = context().get_shader("compositor_movie_distortion");
     GPU_shader_bind(shader);
 
     Result &input_image = get_input("Image");

@@ -130,7 +130,7 @@ class DilateErodeOperation : public NodeOperation {
 
   Result execute_step_horizontal_pass_gpu()
   {
-    GPUShader *shader = context().get_shader(get_morphological_step_shader_name());
+    gpu::Shader *shader = context().get_shader(get_morphological_step_shader_name());
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1i(shader, "radius", this->get_structuring_element_size() / 2);
@@ -202,7 +202,7 @@ class DilateErodeOperation : public NodeOperation {
 
   void execute_step_vertical_pass_gpu(Result &horizontal_pass_result)
   {
-    GPUShader *shader = context().get_shader(get_morphological_step_shader_name());
+    gpu::Shader *shader = context().get_shader(get_morphological_step_shader_name());
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1i(shader, "radius", this->get_structuring_element_size() / 2);
@@ -364,7 +364,7 @@ class DilateErodeOperation : public NodeOperation {
 
   void execute_distance_threshold_gpu(Result &output)
   {
-    GPUShader *shader = context().get_shader("compositor_morphological_distance_threshold");
+    gpu::Shader *shader = context().get_shader("compositor_morphological_distance_threshold");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1f(shader, "inset", math::max(this->get_falloff_size(), 10e-6f));

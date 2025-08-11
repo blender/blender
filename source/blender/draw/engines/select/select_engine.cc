@@ -69,8 +69,8 @@ struct Instance : public DrawEngine {
 
     struct Shaders {
       /* Depth Pre Pass */
-      GPUShader *select_id_flat;
-      GPUShader *select_id_uniform;
+      gpu::Shader *select_id_flat;
+      gpu::Shader *select_id_uniform;
     } sh_data[GPU_SHADER_CFG_LEN];
 
     SELECTID_Context context;

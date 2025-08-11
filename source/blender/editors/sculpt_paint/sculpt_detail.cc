@@ -529,6 +529,7 @@ static void dyntopo_detail_size_parallel_lines_draw(uint pos3d,
   normalize_v3(spacing_disp);
 
   float line_disp[3];
+  zero_v3(line_disp);
   rotate_v2_v2fl(line_disp, spacing_disp, DEG2RAD(angle));
   mul_v3_fl(spacing_disp, total_len / tot_lines_fl);
 

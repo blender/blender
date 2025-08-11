@@ -76,17 +76,17 @@ class EvalOutputAPI::EvalOutput {
   // data structure. They need to be overridden in the specific instances of the EvalOutput derived
   // classes if needed, while the interfaces above are overridden through VolatileEvalOutput.
 
-  virtual GPUStorageBuf *create_patch_arrays_buf()
+  virtual gpu::StorageBuf *create_patch_arrays_buf()
   {
     return nullptr;
   }
 
-  virtual GPUStorageBuf *get_patch_index_buf()
+  virtual gpu::StorageBuf *get_patch_index_buf()
   {
     return nullptr;
   }
 
-  virtual GPUStorageBuf *get_patch_param_buf()
+  virtual gpu::StorageBuf *get_patch_param_buf()
   {
     return nullptr;
   }
@@ -101,17 +101,17 @@ class EvalOutputAPI::EvalOutput {
     return nullptr;
   }
 
-  virtual GPUStorageBuf *create_face_varying_patch_array_buf(const int /*face_varying_channel*/)
+  virtual gpu::StorageBuf *create_face_varying_patch_array_buf(const int /*face_varying_channel*/)
   {
     return nullptr;
   }
 
-  virtual GPUStorageBuf *get_face_varying_patch_index_buf(const int /*face_varying_channel*/)
+  virtual gpu::StorageBuf *get_face_varying_patch_index_buf(const int /*face_varying_channel*/)
   {
     return nullptr;
   }
 
-  virtual GPUStorageBuf *get_face_varying_patch_param_buf(const int /*face_varying_channel*/)
+  virtual gpu::StorageBuf *get_face_varying_patch_param_buf(const int /*face_varying_channel*/)
   {
     return nullptr;
   }

@@ -65,8 +65,8 @@ class GroupInputOperation : public NodeOperation {
 
   void execute_pass_gpu(const Result &pass, Result &result)
   {
-    GPUShader *shader = this->context().get_shader(this->get_shader_name(pass),
-                                                   result.precision());
+    gpu::Shader *shader = this->context().get_shader(this->get_shader_name(pass),
+                                                     result.precision());
     GPU_shader_bind(shader);
 
     /* The compositing space might be limited to a subset of the pass texture, so only read that

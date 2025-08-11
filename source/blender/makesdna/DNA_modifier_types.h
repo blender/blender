@@ -1420,7 +1420,7 @@ typedef enum {
   MOD_SCREW_NORMAL_FLIP = (1 << 0),
   MOD_SCREW_NORMAL_CALC = (1 << 1),
   MOD_SCREW_OBJECT_OFFSET = (1 << 2),
-  /*  MOD_SCREW_OBJECT_ANGLE   = (1 << 4), */
+  // MOD_SCREW_OBJECT_ANGLE = (1 << 4),
   MOD_SCREW_SMOOTH_SHADING = (1 << 5),
   MOD_SCREW_UV_STRETCH_U = (1 << 6),
   MOD_SCREW_UV_STRETCH_V = (1 << 7),
@@ -2101,7 +2101,7 @@ typedef enum {
 typedef enum {
   MOD_MESHCACHE_INTERP_NONE = 0,
   MOD_MESHCACHE_INTERP_LINEAR = 1,
-  /*  MOD_MESHCACHE_INTERP_CARDINAL  = 2, */
+  // MOD_MESHCACHE_INTERP_CARDINAL = 2,
 } MeshCacheModifierInterpolation;
 
 typedef enum {

@@ -231,7 +231,7 @@ void MOD_lineart_chain_feature_lines(LineartData *ld)
       normalize_v3(N);
     }
 
-    /*  Step 1: grow left. */
+    /* Step 1: grow left. */
     ba = MOD_lineart_get_bounding_area(ld, e->v1->fbcoord[0], e->v1->fbcoord[1]);
     new_vt = e->v1;
     es = static_cast<LineartEdgeSegment *>(e->segments.first);
@@ -348,7 +348,7 @@ void MOD_lineart_chain_feature_lines(LineartData *ld)
       }
       normalize_v3(N);
     }
-    /*  Step 2: Adding all cuts from the given line, so we can continue connecting the right side
+    /* Step 2: Adding all cuts from the given line, so we can continue connecting the right side
      * of the line. */
     es = static_cast<LineartEdgeSegment *>(e->segments.first);
     last_occlusion = es->occlusion;
@@ -388,7 +388,7 @@ void MOD_lineart_chain_feature_lines(LineartData *ld)
                                last_shadow,
                                e->v2->index);
 
-    /*  Step 3: grow right. */
+    /* Step 3: grow right. */
     ba = MOD_lineart_get_bounding_area(ld, e->v2->fbcoord[0], e->v2->fbcoord[1]);
     new_vt = e->v2;
     while (ba && (new_e = lineart_line_get_connected(
@@ -775,8 +775,8 @@ static void lineart_chain_connect(LineartData * /*ld*/,
       onto->type = MOD_LINEART_EDGE_FLAG_CONTOUR;
     }
   }
-  if (!reverse_1) {  /*  L--R L-R. */
-    if (reverse_2) { /*  L--R R-L. */
+  if (!reverse_1) {  /* L--R L-R. */
+    if (reverse_2) { /* L--R R-L. */
       BLI_listbase_reverse(&sub->chain);
     }
     eci = static_cast<LineartEdgeChainItem *>(sub->chain.first);
@@ -794,8 +794,8 @@ static void lineart_chain_connect(LineartData * /*ld*/,
         onto->chain.last);
     onto->chain.last = sub->chain.last;
   }
-  else {              /*  L-R L--R. */
-    if (!reverse_2) { /*  R-L L--R. */
+  else {              /* L-R L--R. */
+    if (!reverse_2) { /* R-L L--R. */
       BLI_listbase_reverse(&sub->chain);
     }
     eci = static_cast<LineartEdgeChainItem *>(onto->chain.first);

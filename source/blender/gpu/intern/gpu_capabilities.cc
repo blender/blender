@@ -172,11 +172,6 @@ bool GPU_node_link_instancing_workaround()
   return GCaps.node_link_instancing_workaround;
 }
 
-bool GPU_vulkan_render_pass_workaround()
-{
-  return GCaps.render_pass_workaround;
-}
-
 bool GPU_geometry_shader_support()
 {
   return GCaps.geometry_shader_support;

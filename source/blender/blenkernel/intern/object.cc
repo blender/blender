@@ -2664,7 +2664,8 @@ Object *BKE_object_duplicate(Main *bmain,
      * using the original obdata ID, leading to them being falsly detected as being in Edit mode,
      * and therefore not remapping their obdata to the newly duplicated one.
      * See #139715. */
-    BKE_libblock_relink_to_newid(bmain, &obn->id, ID_REMAP_FORCE_OBDATA_IN_EDITMODE);
+    BKE_libblock_relink_to_newid(
+        bmain, &obn->id, ID_REMAP_FORCE_OBDATA_IN_EDITMODE | ID_REMAP_SKIP_USER_CLEAR);
 
 #ifndef NDEBUG
     /* Call to `BKE_libblock_relink_to_newid` above is supposed to have cleared all those flags. */

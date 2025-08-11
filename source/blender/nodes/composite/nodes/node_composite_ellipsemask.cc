@@ -132,7 +132,7 @@ class EllipseMaskOperation : public NodeOperation {
 
   void execute_gpu()
   {
-    GPUShader *shader = context().get_shader(get_shader_name());
+    gpu::Shader *shader = context().get_shader(get_shader_name());
     GPU_shader_bind(shader);
 
     const Domain domain = compute_domain();

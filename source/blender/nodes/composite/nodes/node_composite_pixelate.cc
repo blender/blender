@@ -57,7 +57,7 @@ class PixelateOperation : public NodeOperation {
 
   void execute_gpu()
   {
-    GPUShader *shader = context().get_shader("compositor_pixelate");
+    gpu::Shader *shader = context().get_shader("compositor_pixelate");
     GPU_shader_bind(shader);
 
     const int pixel_size = get_pixel_size();

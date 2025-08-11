@@ -34,7 +34,7 @@ class Lattices : Overlay {
       return;
     }
 
-    auto create_sub_pass = [&](const char *name, GPUShader *shader, bool add_weight_tex) {
+    auto create_sub_pass = [&](const char *name, gpu::Shader *shader, bool add_weight_tex) {
       PassMain::Sub &sub_pass = ps_.sub(name);
       sub_pass.shader_set(shader);
       if (add_weight_tex) {

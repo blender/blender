@@ -469,7 +469,7 @@ static void bm_subdivide_multicut(
 
 /* NOTE: the patterns are rotated as necessary to
  * match the input geometry.  they're based on the
- * pre-split state of the  face */
+ * pre-split state of the face */
 
 /**
  * <pre>

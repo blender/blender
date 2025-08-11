@@ -28,7 +28,11 @@
 
 #include "GPU_texture.hh"
 
+#include "CLG_log.h"
+
 #include "atomic_ops.h"
+
+static CLG_LogRef LOG = {"image.buffer"};
 
 #ifndef WIN32
 static SpinLock mmap_spin;
@@ -288,7 +292,7 @@ bool imb_enlargeencodedbufferImBuf(ImBuf *ibuf)
   }
 
   if (ibuf->encoded_buffer_size < ibuf->encoded_size) {
-    printf("%s: error in parameters\n", __func__);
+    CLOG_ERROR(&LOG, "%s: error in parameters\n", __func__);
     return false;
   }
 

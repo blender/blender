@@ -111,12 +111,12 @@ eCompositorDenoiseQaulity Context::get_denoise_quality() const
       this->get_render_data().compositor_denoise_preview_quality);
 }
 
-GPUShader *Context::get_shader(const char *info_name, ResultPrecision precision)
+gpu::Shader *Context::get_shader(const char *info_name, ResultPrecision precision)
 {
   return cache_manager().cached_shaders.get(info_name, precision);
 }
 
-GPUShader *Context::get_shader(const char *info_name)
+gpu::Shader *Context::get_shader(const char *info_name)
 {
   return get_shader(info_name, get_precision());
 }

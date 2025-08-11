@@ -1209,7 +1209,7 @@ static int adjacent_edge_point_index_from_coord(const SubdivCCG &subdiv_ccg,
   return adjacent_edge_point_index;
 }
 
-/* Adjacent edge has two points in the middle which corresponds to grid  corners, but which are
+/* Adjacent edge has two points in the middle which corresponds to grid corners, but which are
  * the same point in the final geometry.
  * So need to use extra step when calculating next/previous points, so we don't go from a corner
  * of one grid to a corner of adjacent grid. */

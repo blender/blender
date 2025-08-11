@@ -954,62 +954,37 @@ class NodeTreeMainUpdater {
   void update_socket_shapes(bNodeTree &ntree)
   {
     ntree.ensure_topology_cache();
-    if (U.experimental.use_socket_structure_type) {
-      for (bNode *node : ntree.all_nodes()) {
-        if (node->is_undefined()) {
-          continue;
-        }
-        /* For input/output nodes we use the inferred structure types. */
-        if (node->is_group_input() || node->is_group_output() ||
-            ELEM(node->type_legacy, NODE_CLOSURE_INPUT, NODE_CLOSURE_OUTPUT))
-        {
-          for (bNodeSocket *socket : node->input_sockets()) {
-            socket->display_shape = get_input_socket_shape(
-                *socket->runtime->declaration,
-                ntree.runtime->inferred_structure_types[socket->index_in_tree()]);
-          }
-          for (bNodeSocket *socket : node->output_sockets()) {
-            socket->display_shape = get_output_socket_shape(
-                *socket->runtime->declaration,
-                ntree.runtime->inferred_structure_types[socket->index_in_tree()]);
-          }
-          continue;
-        }
-        /* For other nodes we just use the static structure types defined in the declaration. */
+    for (bNode *node : ntree.all_nodes()) {
+      if (node->is_undefined()) {
+        continue;
+      }
+      /* For input/output nodes we use the inferred structure types. */
+      if (node->is_group_input() || node->is_group_output() ||
+          ELEM(node->type_legacy, NODE_CLOSURE_INPUT, NODE_CLOSURE_OUTPUT))
+      {
         for (bNodeSocket *socket : node->input_sockets()) {
-          if (const SocketDeclaration *declaration = socket->runtime->declaration) {
-            socket->display_shape = get_input_socket_shape(*declaration,
-                                                           declaration->structure_type);
-          }
+          socket->display_shape = get_input_socket_shape(
+              *socket->runtime->declaration,
+              ntree.runtime->inferred_structure_types[socket->index_in_tree()]);
         }
         for (bNodeSocket *socket : node->output_sockets()) {
-          if (const SocketDeclaration *declaration = socket->runtime->declaration) {
-            socket->display_shape = get_output_socket_shape(*declaration,
-                                                            declaration->structure_type);
-          }
+          socket->display_shape = get_output_socket_shape(
+              *socket->runtime->declaration,
+              ntree.runtime->inferred_structure_types[socket->index_in_tree()]);
+        }
+        continue;
+      }
+      /* For other nodes we just use the static structure types defined in the declaration. */
+      for (bNodeSocket *socket : node->input_sockets()) {
+        if (const SocketDeclaration *declaration = socket->runtime->declaration) {
+          socket->display_shape = get_input_socket_shape(*declaration,
+                                                         declaration->structure_type);
         }
       }
-    }
-    else {
-      if (ntree.type == NTREE_GEOMETRY) {
-        const Span<bke::FieldSocketState> field_states = ntree.runtime->field_states;
-        for (bNodeSocket *socket : ntree.all_sockets()) {
-          switch (field_states[socket->index_in_tree()]) {
-            case bke::FieldSocketState::RequiresSingle:
-              socket->display_shape = SOCK_DISPLAY_SHAPE_CIRCLE;
-              break;
-            case bke::FieldSocketState::CanBeField:
-              socket->display_shape = SOCK_DISPLAY_SHAPE_DIAMOND_DOT;
-              break;
-            case bke::FieldSocketState::IsField:
-              socket->display_shape = SOCK_DISPLAY_SHAPE_DIAMOND;
-              break;
-          }
-        }
-      }
-      else if (ntree.type == NTREE_COMPOSIT) {
-        for (bNodeSocket *socket : ntree.all_sockets()) {
-          socket->display_shape = SOCK_DISPLAY_SHAPE_CIRCLE;
+      for (bNodeSocket *socket : node->output_sockets()) {
+        if (const SocketDeclaration *declaration = socket->runtime->declaration) {
+          socket->display_shape = get_output_socket_shape(*declaration,
+                                                          declaration->structure_type);
         }
       }
     }

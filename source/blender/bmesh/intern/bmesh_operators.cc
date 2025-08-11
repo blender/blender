@@ -31,17 +31,17 @@ static int bmo_name_to_slotcode_check(const BMOpSlot slot_args[BMO_OP_MAX_SLOTS]
                                       const char *identifier);
 
 const int BMO_OPSLOT_TYPEINFO[BMO_OP_SLOT_TOTAL_TYPES] = {
-    0,                /*  0: BMO_OP_SLOT_SENTINEL */
-    sizeof(int),      /*  1: BMO_OP_SLOT_BOOL */
-    sizeof(int),      /*  2: BMO_OP_SLOT_INT */
-    sizeof(float),    /*  3: BMO_OP_SLOT_FLT */
-    sizeof(void *),   /*  4: BMO_OP_SLOT_PNT */
-    sizeof(void *),   /*  5: BMO_OP_SLOT_PNT */
-    0,                /*  6: unused */
-    0,                /*  7: unused */
-    sizeof(float[3]), /*  8: BMO_OP_SLOT_VEC */
-    sizeof(void *),   /*  9: BMO_OP_SLOT_ELEMENT_BUF */
-    sizeof(void *),   /* 10: BMO_OP_SLOT_MAPPING */
+    0,                /* 0: #BMO_OP_SLOT_SENTINEL */
+    sizeof(int),      /* 1: #BMO_OP_SLOT_BOOL */
+    sizeof(int),      /* 2: #BMO_OP_SLOT_INT */
+    sizeof(float),    /* 3: #BMO_OP_SLOT_FLT */
+    sizeof(void *),   /* 4: #BMO_OP_SLOT_PNT */
+    sizeof(void *),   /* 5: #BMO_OP_SLOT_PNT */
+    0,                /* 6: unused */
+    0,                /* 7: unused */
+    sizeof(float[3]), /* 8: #BMO_OP_SLOT_VEC */
+    sizeof(void *),   /* 9: #BMO_OP_SLOT_ELEMENT_BUF */
+    sizeof(void *),   /* 10: #BMO_OP_SLOT_MAPPING */
 };
 
 /* Dummy slot so there is something to return when slot name lookup fails */

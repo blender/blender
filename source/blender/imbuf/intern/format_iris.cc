@@ -19,10 +19,14 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "CLG_log.h"
+
 #include "IMB_colormanagement.hh"
 #include "IMB_filetype.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
+
+static CLG_LogRef LOG = {"image.jpeg"};
 
 /**
  * The SGI IRIS magic number.
@@ -285,15 +289,15 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
   rle = ISRLE(image.type);
   bpp = BPP(image.type);
   if (!ELEM(bpp, 1, 2)) {
-    fprintf(stderr, "%s: image must have 1 or 2 byte per pix chan\n", __func__);
+    CLOG_ERROR(&LOG, "Image must have 1 or 2 byte per pix chan");
     return nullptr;
   }
   if (uint(image.zsize) > 8) {
-    fprintf(stderr, "%s: channels over 8 not supported\n", __func__);
+    CLOG_ERROR(&LOG, "Channels over 8 not supported");
     return nullptr;
   }
   if (image.xsize == 0 || image.ysize == 0 || image.zsize == 0) {
-    fprintf(stderr, "%s: zero size image found\n", __func__);
+    CLOG_ERROR(&LOG, "Zero size image found");
     return nullptr;
   }
 
@@ -582,7 +586,7 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
   }
 
   if (dirty_flag) {
-    fprintf(stderr, "%s: corrupt file content (%d)\n", __func__, dirty_flag);
+    CLOG_ERROR(&LOG, "Corrupt file content (%d)", dirty_flag);
   }
   ibuf->ftype = IMB_FTYPE_IRIS;
 
@@ -890,7 +894,7 @@ static bool output_iris(const char *filepath,
     return true;
   }
 
-  fprintf(stderr, "%s: not enough space for image!!\n", __func__);
+  CLOG_ERROR(&LOG, "not enough space for image");
   return false;
 }
 
@@ -971,7 +975,7 @@ bool imb_saveiris(ImBuf *ibuf, const char *filepath, int /*flags*/)
 {
   const uint limit = std::numeric_limits<ushort>::max();
   if (ibuf->x > limit || ibuf->y > limit) {
-    fprintf(stderr, "%s: image x/y exceeds %u\n", __func__, limit);
+    CLOG_ERROR(&LOG, "Image x/y exceeds %u", limit);
     return false;
   }
 

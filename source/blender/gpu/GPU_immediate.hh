@@ -17,13 +17,15 @@
 #include "GPU_texture.hh"
 #include "GPU_vertex_format.hh"
 
-struct GPUUniformBuf;
+namespace blender::gpu {
+class UniformBuf;
+}  // namespace blender::gpu
 
 /** Returns a cleared vertex format, ready for #add_attr. */
 GPUVertFormat *immVertexFormat();
 
 /** Every #immBegin must have a program bound first. */
-void immBindShader(GPUShader *shader);
+void immBindShader(blender::gpu::Shader *shader);
 /** Call after your last immEnd, or before binding another program. */
 void immUnbindProgram();
 /**
@@ -109,7 +111,7 @@ void immUniformMatrix4fv(const char *name, const float data[4][4]);
 
 void immBindTexture(const char *name, blender::gpu::Texture *tex);
 void immBindTextureSampler(const char *name, blender::gpu::Texture *tex, GPUSamplerState state);
-void immBindUniformBuf(const char *name, GPUUniformBuf *ubo);
+void immBindUniformBuf(const char *name, blender::gpu::UniformBuf *ubo);
 
 /* Convenience functions for setting "uniform vec4 color". */
 /* The RGB functions have implicit alpha = 1.0. */

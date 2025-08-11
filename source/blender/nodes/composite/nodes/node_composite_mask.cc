@@ -196,7 +196,7 @@ static void register_node_type_cmp_mask()
 
   cmp_node_type_base(&ntype, "CompositorNodeMask", CMP_NODE_MASK);
   ntype.ui_name = "Mask";
-  ntype.ui_description = "Input mask from a mask datablock, created in the image editor";
+  ntype.ui_description = "Input mask from a mask data-block, created in the image editor";
   ntype.enum_name_legacy = "MASK";
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = file_ns::cmp_node_mask_declare;

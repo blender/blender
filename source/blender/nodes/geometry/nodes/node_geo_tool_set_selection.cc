@@ -80,6 +80,22 @@ static GField invert_selection(const GField &selection)
   return GField(FieldOperation::from(invert, {selection}));
 }
 
+/**
+ * After conversion to and from other geometry types, the selection attributes can end up on the
+ * wrong domain (usually the point domain). Since the node requires certain domains to work, just
+ * remove the attributes in this case.
+ */
+static void remove_with_wrong_domain(bke::MutableAttributeAccessor attributes,
+                                     const StringRef name,
+                                     const bke::AttrDomain domain)
+{
+  if (const std::optional<bke::AttributeMetaData> meta_data = attributes.lookup_meta_data(name)) {
+    if (meta_data->domain != domain) {
+      attributes.remove(name);
+    }
+  }
+}
+
 static void node_geo_exec(GeoNodeExecParams params)
 {
   if (!check_tool_context_and_error(params)) {
@@ -99,15 +115,15 @@ static void node_geo_exec(GeoNodeExecParams params)
   const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
   geometry::foreach_real_geometry(geometry, [&](GeometrySet &geometry) {
     if (Mesh *mesh = geometry.get_mesh_for_write()) {
+      bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+      remove_with_wrong_domain(attributes, ".select_vert", AttrDomain::Point);
+      remove_with_wrong_domain(attributes, ".select_edge", AttrDomain::Edge);
+      remove_with_wrong_domain(attributes, ".select_poly", AttrDomain::Face);
       switch (mode) {
         case OB_MODE_EDIT: {
           const Field<bool> field = conversions.try_convert(selection, CPPType::get<bool>());
           switch (domain) {
             case AttrDomain::Point:
-              /* Remove attributes in case they are on the wrong domain, which can happen after
-               * conversion to and from other geometry types. */
-              mesh->attributes_for_write().remove(".select_edge");
-              mesh->attributes_for_write().remove(".select_poly");
               bke::try_capture_field_on_geometry(geometry.get_component_for_write<MeshComponent>(),
                                                  ".select_vert",
                                                  AttrDomain::Point,
@@ -122,10 +138,6 @@ static void node_geo_exec(GeoNodeExecParams params)
               bke::mesh_select_edge_flush(*mesh);
               break;
             case AttrDomain::Face:
-              /* Remove attributes in case they are on the wrong domain, which can happen after
-               * conversion to and from other geometry types. */
-              mesh->attributes_for_write().remove(".select_vert");
-              mesh->attributes_for_write().remove(".select_edge");
               bke::try_capture_field_on_geometry(geometry.get_component_for_write<MeshComponent>(),
                                                  ".select_poly",
                                                  AttrDomain::Face,

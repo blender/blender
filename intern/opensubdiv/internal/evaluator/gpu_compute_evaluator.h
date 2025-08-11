@@ -45,39 +45,39 @@ class GPUStencilTableSSBO {
   ~GPUStencilTableSSBO();
 
   // interfaces needed for GLSLComputeKernel
-  GPUStorageBuf *GetSizesBuffer() const
+  gpu::StorageBuf *GetSizesBuffer() const
   {
     return sizes_buf;
   }
-  GPUStorageBuf *GetOffsetsBuffer() const
+  gpu::StorageBuf *GetOffsetsBuffer() const
   {
     return offsets_buf;
   }
-  GPUStorageBuf *GetIndicesBuffer() const
+  gpu::StorageBuf *GetIndicesBuffer() const
   {
     return indices_buf;
   }
-  GPUStorageBuf *GetWeightsBuffer() const
+  gpu::StorageBuf *GetWeightsBuffer() const
   {
     return weights_buf;
   }
-  GPUStorageBuf *GetDuWeightsBuffer() const
+  gpu::StorageBuf *GetDuWeightsBuffer() const
   {
     return du_weights_buf;
   }
-  GPUStorageBuf *GetDvWeightsBuffer() const
+  gpu::StorageBuf *GetDvWeightsBuffer() const
   {
     return dv_weights_buf;
   }
-  GPUStorageBuf *GetDuuWeightsBuffer() const
+  gpu::StorageBuf *GetDuuWeightsBuffer() const
   {
     return duu_weights_buf;
   }
-  GPUStorageBuf *GetDuvWeightsBuffer() const
+  gpu::StorageBuf *GetDuvWeightsBuffer() const
   {
     return duv_weights_buf;
   }
-  GPUStorageBuf *GetDvvWeightsBuffer() const
+  gpu::StorageBuf *GetDvvWeightsBuffer() const
   {
     return dvv_weights_buf;
   }
@@ -87,15 +87,15 @@ class GPUStencilTableSSBO {
   }
 
  private:
-  GPUStorageBuf *sizes_buf = nullptr;
-  GPUStorageBuf *offsets_buf = nullptr;
-  GPUStorageBuf *indices_buf = nullptr;
-  GPUStorageBuf *weights_buf = nullptr;
-  GPUStorageBuf *du_weights_buf = nullptr;
-  GPUStorageBuf *dv_weights_buf = nullptr;
-  GPUStorageBuf *duu_weights_buf = nullptr;
-  GPUStorageBuf *duv_weights_buf = nullptr;
-  GPUStorageBuf *dvv_weights_buf = nullptr;
+  gpu::StorageBuf *sizes_buf = nullptr;
+  gpu::StorageBuf *offsets_buf = nullptr;
+  gpu::StorageBuf *indices_buf = nullptr;
+  gpu::StorageBuf *weights_buf = nullptr;
+  gpu::StorageBuf *du_weights_buf = nullptr;
+  gpu::StorageBuf *dv_weights_buf = nullptr;
+  gpu::StorageBuf *duu_weights_buf = nullptr;
+  gpu::StorageBuf *duv_weights_buf = nullptr;
+  gpu::StorageBuf *dvv_weights_buf = nullptr;
   int _numStencils;
 };
 
@@ -428,12 +428,12 @@ class GPUComputeEvaluator {
                     OpenSubdiv::Osd::BufferDescriptor const &duDesc,
                     gpu::VertBuf *dvBuffer,
                     OpenSubdiv::Osd::BufferDescriptor const &dvDesc,
-                    GPUStorageBuf *sizesBuffer,
-                    GPUStorageBuf *offsetsBuffer,
-                    GPUStorageBuf *indicesBuffer,
-                    GPUStorageBuf *weightsBuffer,
-                    GPUStorageBuf *duWeightsBuffer,
-                    GPUStorageBuf *dvWeightsBuffer,
+                    gpu::StorageBuf *sizesBuffer,
+                    gpu::StorageBuf *offsetsBuffer,
+                    gpu::StorageBuf *indicesBuffer,
+                    gpu::StorageBuf *weightsBuffer,
+                    gpu::StorageBuf *duWeightsBuffer,
+                    gpu::StorageBuf *dvWeightsBuffer,
                     int start,
                     int end) const;
 
@@ -735,8 +735,8 @@ class GPUComputeEvaluator {
                    int numPatchCoords,
                    gpu::VertBuf *patchCoordsBuffer,
                    const OpenSubdiv::Osd::PatchArrayVector &patchArrays,
-                   GPUStorageBuf *patchIndexBuffer,
-                   GPUStorageBuf *patchParamsBuffer);
+                   gpu::StorageBuf *patchIndexBuffer,
+                   gpu::StorageBuf *patchParamsBuffer);
 
   /// \brief Generic limit eval function. This function has a same
   ///        signature as other device kernels have so that it can be called
@@ -1356,7 +1356,7 @@ class GPUComputeEvaluator {
                  OpenSubdiv::Osd::BufferDescriptor const &duDesc,
                  OpenSubdiv::Osd::BufferDescriptor const &dvDesc,
                  int workGroupSize);
-    GPUShader *shader = nullptr;
+    blender::gpu::Shader *shader = nullptr;
     int uniformStart = 0;
     int uniformEnd = 0;
     int uniformSrcOffset = 0;
@@ -1373,7 +1373,7 @@ class GPUComputeEvaluator {
                  OpenSubdiv::Osd::BufferDescriptor const &duDesc,
                  OpenSubdiv::Osd::BufferDescriptor const &dvDesc,
                  int workGroupSize);
-    GPUShader *shader = nullptr;
+    blender::gpu::Shader *shader = nullptr;
     int uniformSrcOffset = 0;
     int uniformDstOffset = 0;
     int uniformDuDesc = 0;
@@ -1381,11 +1381,11 @@ class GPUComputeEvaluator {
   } _patchKernel;
 
   int _workGroupSize;
-  GPUStorageBuf *_patchArraysSSBO = nullptr;
+  gpu::StorageBuf *_patchArraysSSBO = nullptr;
 
   int GetDispatchSize(int count) const;
 
-  void DispatchCompute(GPUShader *shader, int totalDispatchSize) const;
+  void DispatchCompute(blender::gpu::Shader *shader, int totalDispatchSize) const;
 };
 
 }  // namespace blender::opensubdiv

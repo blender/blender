@@ -64,9 +64,6 @@ struct GPUCapabilities {
 
   bool use_subprocess_shader_compilations = false;
 
-  /* Vulkan related workarounds. */
-  bool render_pass_workaround = false;
-
   /* Metal related workarounds. */
   /* Minimum per-vertex stride in bytes (For a vertex buffer). */
   int minimum_per_vertex_stride = 1;

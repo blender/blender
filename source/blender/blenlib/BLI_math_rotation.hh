@@ -59,7 +59,7 @@ template<typename T, typename RotT>
 [[nodiscard]] Euler3Base<T> rotate(const Euler3Base<T> &a, const RotT &b);
 
 /**
- * Return rotation from orientation \a a  to orientation \a b into another quaternion.
+ * Return rotation from orientation \a a to orientation \a b into another quaternion.
  */
 template<typename T>
 [[nodiscard]] QuaternionBase<T> rotation_between(const QuaternionBase<T> &a,

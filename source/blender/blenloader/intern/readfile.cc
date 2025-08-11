@@ -3018,7 +3018,7 @@ static bool read_libblock_undo_restore(
   if (id_old != nullptr && read_libblock_is_identical(fd, bhead)) {
     /* Local datablock was unchanged, restore from the old main. */
     CLOG_DEBUG(&LOG_UNDO,
-               "UNDO: read %s (uid %u) -> keep identical datablock",
+               "UNDO: read %s (uid %u) -> keep identical data-block",
                id->name,
                id->session_uid);
 

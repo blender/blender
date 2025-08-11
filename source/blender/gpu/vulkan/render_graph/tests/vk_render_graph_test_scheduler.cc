@@ -1144,9 +1144,6 @@ TEST_P(VKRenderGraphTestScheduler, begin_draw_copy_to_attachment_draw_end)
   EXPECT_EQ("end_rendering()", log[12]);
 }
 
-INSTANTIATE_TEST_SUITE_P(,
-                         VKRenderGraphTestScheduler,
-                         ::testing::Values(std::make_tuple(true, true),
-                                           std::make_tuple(true, false)));
+INSTANTIATE_TEST_SUITE_P(, VKRenderGraphTestScheduler, ::testing::Values(true, false));
 
 }  // namespace blender::gpu::render_graph

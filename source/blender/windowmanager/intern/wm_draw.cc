@@ -902,7 +902,7 @@ void wm_draw_region_blend(ARegion *region, int view, bool blend)
   /* Setup actual texture. */
   blender::gpu::Texture *texture = wm_draw_region_texture(region, view);
 
-  GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_RECT_COLOR);
+  blender::gpu::Shader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_RECT_COLOR);
   GPU_shader_bind(shader);
 
   int color_loc = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_COLOR);

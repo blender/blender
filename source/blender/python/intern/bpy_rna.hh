@@ -203,6 +203,10 @@ void BPY_rna_exit();
 void BPY_update_rna_module();
 // PyObject *BPY_rna_doc();
 [[nodiscard]] PyObject *BPY_rna_types();
+/**
+ * Set the `_bpy_types.py` modules `__dict__`, needed for instancing RNA types.
+ */
+void BPY_rna_types_dict_set(PyObject *dict);
 void BPY_rna_types_finalize_external_types(PyObject *submodule);
 
 [[nodiscard]] PyObject *pyrna_struct_CreatePyObject_with_primitive_support(PointerRNA *ptr);

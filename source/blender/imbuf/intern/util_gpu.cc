@@ -10,12 +10,16 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "CLG_log.h"
+
 #include "GPU_capabilities.hh"
 #include "GPU_texture.hh"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
+
+static CLG_LogRef LOG = {"image.gpu"};
 
 /* gpu ibuf utils */
 
@@ -342,17 +346,17 @@ blender::gpu::Texture *IMB_create_gpu_texture(const char *name,
   if (ibuf->ftype == IMB_FTYPE_DDS) {
     blender::gpu::TextureFormat compressed_format;
     if (!IMB_gpu_get_compressed_format(ibuf, &compressed_format)) {
-      fprintf(stderr, "Unable to find a suitable DXT compression,");
+      CLOG_WARN(&LOG, "Unable to find a suitable DXT compression");
     }
     else if (do_rescale) {
-      fprintf(stderr, "Unable to load DXT image resolution,");
+      CLOG_WARN(&LOG, "Unable to load DXT image resolution");
     }
     else if (!is_power_of_2_i(ibuf->x) || !is_power_of_2_i(ibuf->y)) {
       /* We require POT DXT/S3TC texture sizes not because something in there
        * intrinsically needs it, but because we flip them upside down at
        * load time, and that (when mipmaps are involved) is only possible
        * with POT height. */
-      fprintf(stderr, "Unable to load non-power-of-two DXT image resolution,");
+      CLOG_WARN(&LOG, "Unable to load non-power-of-two DXT image resolution");
     }
     else {
       tex = GPU_texture_create_compressed_2d(name,
@@ -367,10 +371,10 @@ blender::gpu::Texture *IMB_create_gpu_texture(const char *name,
         return tex;
       }
 
-      fprintf(stderr, "ST3C support not found,");
+      CLOG_WARN(&LOG, "ST3C support not found");
     }
     /* Fall back to uncompressed texture. */
-    fprintf(stderr, " falling back to uncompressed (%s, %ix%i).\n", name, ibuf->x, ibuf->y);
+    CLOG_WARN(&LOG, "Falling back to uncompressed (%s, %ix%i).", name, ibuf->x, ibuf->y);
   }
 
   blender::gpu::TextureFormat tex_format;

@@ -89,8 +89,8 @@ class InpaintOperation : public NodeOperation {
 
   Result compute_inpainting_boundary_gpu()
   {
-    GPUShader *shader = context().get_shader("compositor_inpaint_compute_boundary",
-                                             ResultPrecision::Half);
+    gpu::Shader *shader = context().get_shader("compositor_inpaint_compute_boundary",
+                                               ResultPrecision::Half);
     GPU_shader_bind(shader);
 
     const Result &input = get_input("Image");
@@ -178,7 +178,7 @@ class InpaintOperation : public NodeOperation {
                                   Result &distance_to_boundary,
                                   Result &smoothing_radius)
   {
-    GPUShader *shader = context().get_shader("compositor_inpaint_fill_region");
+    gpu::Shader *shader = context().get_shader("compositor_inpaint_fill_region");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1i(shader, "max_distance", get_max_distance());
@@ -277,7 +277,7 @@ class InpaintOperation : public NodeOperation {
   void compute_inpainting_region_gpu(const Result &inpainted_region,
                                      const Result &distance_to_boundary)
   {
-    GPUShader *shader = context().get_shader("compositor_inpaint_compute_region");
+    gpu::Shader *shader = context().get_shader("compositor_inpaint_compute_region");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1i(shader, "max_distance", get_max_distance());

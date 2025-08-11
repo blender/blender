@@ -29,6 +29,10 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "CLG_log.h"
+
+static CLG_LogRef LOG = {"image.webp"};
+
 bool imb_is_a_webp(const uchar *mem, size_t size)
 {
   if (WebPGetInfo(mem, size, nullptr, nullptr)) {
@@ -45,7 +49,7 @@ ImBuf *imb_loadwebp(const uchar *mem, size_t size, int flags, ImFileColorSpace &
 
   WebPBitstreamFeatures features;
   if (WebPGetFeatures(mem, size, &features) != VP8_STATUS_OK) {
-    fprintf(stderr, "WebP: Failed to parse features\n");
+    CLOG_ERROR(&LOG, "Failed to parse features");
     return nullptr;
   }
 
@@ -53,7 +57,7 @@ ImBuf *imb_loadwebp(const uchar *mem, size_t size, int flags, ImFileColorSpace &
   ImBuf *ibuf = IMB_allocImBuf(features.width, features.height, planes, 0);
 
   if (ibuf == nullptr) {
-    fprintf(stderr, "WebP: Failed to allocate image memory\n");
+    CLOG_ERROR(&LOG, "Failed to allocate image memory");
     return nullptr;
   }
 
@@ -65,7 +69,7 @@ ImBuf *imb_loadwebp(const uchar *mem, size_t size, int flags, ImFileColorSpace &
     if (WebPDecodeRGBAInto(mem, size, last_row, size_t(ibuf->x) * ibuf->y * 4, -4 * ibuf->x) ==
         nullptr)
     {
-      fprintf(stderr, "WebP: Failed to decode image\n");
+      CLOG_ERROR(&LOG, "Failed to decode image");
     }
   }
 
@@ -99,7 +103,7 @@ ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
   if (!data || !WebPInitDecoderConfig(&config) ||
       WebPGetFeatures(data, data_size, &config.input) != VP8_STATUS_OK)
   {
-    fprintf(stderr, "WebP: Invalid file\n");
+    CLOG_ERROR(&LOG, "Invalid file");
     imb_mmap_lock();
     BLI_mmap_free(mmap_file);
     imb_mmap_unlock();
@@ -116,7 +120,7 @@ ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
 
   ImBuf *ibuf = IMB_allocImBuf(dest_w, dest_h, 32, IB_byte_data);
   if (ibuf == nullptr) {
-    fprintf(stderr, "WebP: Failed to allocate image memory\n");
+    CLOG_ERROR(&LOG, "Failed to allocate image memory");
     imb_mmap_lock();
     BLI_mmap_free(mmap_file);
     imb_mmap_unlock();
@@ -137,7 +141,7 @@ ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
   config.output.u.RGBA.size = size_t(config.output.u.RGBA.stride) * size_t(ibuf->y);
 
   if (WebPDecode(data, data_size, &config) != VP8_STATUS_OK) {
-    fprintf(stderr, "WebP: Failed to decode image\n");
+    CLOG_ERROR(&LOG, "Failed to decode image");
     IMB_freeImBuf(ibuf);
 
     imb_mmap_lock();
@@ -160,7 +164,7 @@ bool imb_savewebp(ImBuf *ibuf, const char *filepath, int /*flags*/)
 {
   const uint limit = 16383;
   if (ibuf->x > limit || ibuf->y > limit) {
-    fprintf(stderr, "WebP: image x/y exceeds %u\n", limit);
+    CLOG_ERROR(&LOG, "image x/y exceeds %u", limit);
     return false;
   }
 
@@ -204,8 +208,7 @@ bool imb_savewebp(ImBuf *ibuf, const char *filepath, int /*flags*/)
     }
   }
   else {
-    fprintf(
-        stderr, "WebP: Unsupported bytes per pixel: %d for file: '%s'\n", bytesperpixel, filepath);
+    CLOG_ERROR(&LOG, "Unsupported bytes per pixel: %d for file: '%s'", bytesperpixel, filepath);
     return false;
   }
 
@@ -213,7 +216,7 @@ bool imb_savewebp(ImBuf *ibuf, const char *filepath, int /*flags*/)
     FILE *fp = BLI_fopen(filepath, "wb");
     if (!fp) {
       free(encoded_data);
-      fprintf(stderr, "WebP: Cannot open file for writing: '%s'\n", filepath);
+      CLOG_ERROR(&LOG, "Cannot open file for writing: '%s'", filepath);
       return false;
     }
     fwrite(encoded_data, encoded_data_size, 1, fp);

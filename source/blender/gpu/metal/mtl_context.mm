@@ -320,8 +320,7 @@ MTLContext::~MTLContext()
     if (this->pipeline_state.ubo_bindings[i].bound &&
         this->pipeline_state.ubo_bindings[i].ubo != nullptr)
     {
-      GPUUniformBuf *ubo = wrap(
-          static_cast<UniformBuf *>(this->pipeline_state.ubo_bindings[i].ubo));
+      gpu::UniformBuf *ubo = this->pipeline_state.ubo_bindings[i].ubo;
       GPU_uniformbuf_unbind(ubo);
     }
   }
@@ -1301,7 +1300,7 @@ bool MTLContext::ensure_buffer_bindings(
     }
   }
 
-  /* Bind Global GPUStorageBuf's */
+  /* Bind Global StorageBuf's */
   /* Iterate through expected SSBOs in the shader interface, and check if the globally bound ones
    * match. This is used to support the gpu_uniformbuffer module, where the uniform data is global,
    * and not owned by the shader instance. */

@@ -1250,7 +1250,7 @@ void ShadowModule::ShadowView::compute_visibility(ObjectBoundsBuf &bounds,
   GPU_storagebuf_clear(visibility_buf_, data);
 
   if (do_visibility_) {
-    GPUShader *shader = inst_.shaders.static_shader_get(SHADOW_VIEW_VISIBILITY);
+    gpu::Shader *shader = inst_.shaders.static_shader_get(SHADOW_VIEW_VISIBILITY);
     GPU_shader_bind(shader);
     GPU_shader_uniform_1i(shader, "resource_len", resource_len);
     GPU_shader_uniform_1i(shader, "view_len", view_len_);

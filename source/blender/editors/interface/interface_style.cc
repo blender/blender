@@ -25,6 +25,8 @@
 
 #include "BLF_api.hh"
 
+#include "CLG_log.h"
+
 #include "interface_intern.hh"
 
 #ifdef WIN32
@@ -32,6 +34,8 @@
 #endif
 
 using blender::StringRef;
+
+static CLG_LogRef LOG = {"ui.font"};
 
 static void fontstyle_set_ex(const uiFontStyle *fs, const float dpi_fac);
 
@@ -512,7 +516,7 @@ void uiStyleInit()
 
     if (font->blf_id == -1) {
       if (G.debug & G_DEBUG) {
-        printf("%s: error, no fonts available\n", __func__);
+        CLOG_WARN(&LOG, "%s: error, no fonts available", __func__);
       }
     }
   }

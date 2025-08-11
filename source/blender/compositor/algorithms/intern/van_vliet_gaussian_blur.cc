@@ -25,7 +25,7 @@ static void sum_causal_and_non_causal_results_gpu(Context &context,
                                                   const Result &second_non_causal_input,
                                                   Result &output)
 {
-  GPUShader *shader = context.get_shader("compositor_van_vliet_gaussian_blur_sum");
+  gpu::Shader *shader = context.get_shader("compositor_van_vliet_gaussian_blur_sum");
   GPU_shader_bind(shader);
 
   first_causal_input.bind_as_texture(shader, "first_causal_input_tx");
@@ -116,7 +116,7 @@ static void blur_pass_gpu(Context &context,
                           Result &second_non_causal_result,
                           const float sigma)
 {
-  GPUShader *shader = context.get_shader("compositor_van_vliet_gaussian_blur");
+  gpu::Shader *shader = context.get_shader("compositor_van_vliet_gaussian_blur");
   GPU_shader_bind(shader);
 
   const VanVlietGaussianCoefficients &coefficients =

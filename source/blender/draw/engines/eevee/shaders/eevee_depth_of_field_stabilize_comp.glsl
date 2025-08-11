@@ -30,11 +30,7 @@ struct DofSample {
   float4 color;
   float coc;
 
-#if defined(GPU_METAL) || defined(GLSL_CPP_STUBS)
-  /* Explicit constructors -- To support GLSL syntax. */
-  inline DofSample() = default;
-  inline DofSample(float4 in_color, float in_coc) : color(in_color), coc(in_coc) {}
-#endif
+  METAL_CONSTRUCTOR_2(DofSample, float4, color, float, coc)
 };
 
 /* -------------------------------------------------------------------- */
@@ -160,11 +156,7 @@ struct DofNeighborhoodMinMax {
   DofSample min;
   DofSample max;
 
-#if defined(GPU_METAL) || defined(GLSL_CPP_STUBS)
-  /* Explicit constructors -- To support GLSL syntax. */
-  inline DofNeighborhoodMinMax() = default;
-  inline DofNeighborhoodMinMax(DofSample in_min, DofSample in_max) : min(in_min), max(in_max) {}
-#endif
+  METAL_CONSTRUCTOR_2(DofNeighborhoodMinMax, DofSample, min, DofSample, max)
 };
 
 /* Return history clipping bounding box in YCoCg color space. */

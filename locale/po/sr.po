@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'6dca66d606ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-04 09:08+0000\n"
+"POT-Creation-Date: 2025-08-11 08:28+0000\n"
 "PO-Revision-Date: 2025-07-23 15:10+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -1321,10 +1321,6 @@ msgstr "Глава"
 
 msgid "Location of head end of the bone relative to its parent"
 msgstr "Локација главе кости релативно у односу на родитеља"
-
-
-msgid "Bone is not visible when it is not in Edit Mode (i.e. in Object or Pose Modes)"
-msgstr "Кост није видљива ван режима измене (нпр. у режимима објекта или позирања)"
 
 
 msgid "Selectable"
@@ -5778,32 +5774,8 @@ msgid "Image bit depth"
 msgstr "Битна дубина слике"
 
 
-msgid "Iris"
-msgstr "Iris"
-
-
-msgid "Targa"
-msgstr "Targa"
-
-
 msgid "Output image in Targa format"
 msgstr "Извоз слике у Targa формату"
-
-
-msgid "Targa Raw"
-msgstr "Targa сирово"
-
-
-msgid "Cineon"
-msgstr "Cineon"
-
-
-msgid "Radiance HDR"
-msgstr "Radiance HDR"
-
-
-msgid "OpenEXR MultiLayer"
-msgstr "Вишеслојни OpenEXR"
 
 
 msgid "Image/Movie file name"
@@ -10828,22 +10800,6 @@ msgid "File Output"
 msgstr "Излазна датотека"
 
 
-msgid "Active Input Index"
-msgstr "Активни индекс улаза"
-
-
-msgid "Base Path"
-msgstr "Основна путања"
-
-
-msgid "Base output path for the image"
-msgstr "Основна излазна путања слике"
-
-
-msgid "File Slots"
-msgstr "Слотови датотека"
-
-
 msgid "Pixelate"
 msgstr "Тачкасто"
 
@@ -11270,14 +11226,6 @@ msgstr "До чвора"
 
 msgid "To socket"
 msgstr "До утичнице"
-
-
-msgid "Output File Slot"
-msgstr "Слот излазне датотеке"
-
-
-msgid "Output File Layer Slot"
-msgstr "Слот слоја излазне датотеке"
 
 
 msgid "Tooltip"
@@ -22067,20 +22015,20 @@ msgid "Strips Selected"
 msgstr "Изабране траке"
 
 
-msgid "Theme Console"
-msgstr "Тема конзоле"
-
-
-msgid "Theme settings for the Console"
-msgstr "Подешавање теме конзоле"
+msgid "Channel Group"
+msgstr "Група канала"
 
 
 msgid "Active Channel Group"
 msgstr "Активна група канала"
 
 
-msgid "Channel Group"
-msgstr "Група канала"
+msgid "Theme Console"
+msgstr "Тема конзоле"
+
+
+msgid "Theme settings for the Console"
+msgstr "Подешавање теме конзоле"
 
 
 msgid "Channels Selected"
@@ -23628,6 +23576,11 @@ msgid "Movie"
 msgstr "Филм"
 
 
+msgctxt "Operator"
+msgid "Delete Keyframes..."
+msgstr "Уклони кључни кадар..."
+
+
 msgid "Storage"
 msgstr "Складиште"
 
@@ -23970,11 +23923,6 @@ msgstr "Звучник"
 msgctxt "Operator"
 msgid "Make Local..."
 msgstr "Створи везе..."
-
-
-msgctxt "Operator"
-msgid "Delete Keyframes..."
-msgstr "Уклони кључни кадар..."
 
 
 msgctxt "Operator"
@@ -25257,10 +25205,6 @@ msgstr "Изабрани слој"
 
 msgid "Select Pass"
 msgstr "Изабери пролаз"
-
-
-msgid "Can't Load Image"
-msgstr "Не могу да учитам слику"
 
 
 msgid "unsupported image format"

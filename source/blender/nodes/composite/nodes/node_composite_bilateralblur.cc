@@ -80,7 +80,7 @@ class BilateralBlurOperation : public NodeOperation {
 
   void execute_gpu()
   {
-    GPUShader *shader = context().get_shader("compositor_bilateral_blur");
+    gpu::Shader *shader = context().get_shader("compositor_bilateral_blur");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1i(shader, "radius", get_blur_radius());

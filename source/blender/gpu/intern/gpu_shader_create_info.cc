@@ -608,7 +608,7 @@ bool gpu_shader_create_info_compile(const char *name_starts_with_filter)
   }
 
   BatchHandle batch = GPU_shader_batch_create_from_infos(infos);
-  Vector<GPUShader *> result = GPU_shader_batch_finalize(batch);
+  Vector<blender::gpu::Shader *> result = GPU_shader_batch_finalize(batch);
 
   for (int i : result.index_range()) {
     const ShaderCreateInfo *info = reinterpret_cast<const ShaderCreateInfo *>(infos[i]);
@@ -620,7 +620,7 @@ bool gpu_shader_create_info_compile(const char *name_starts_with_filter)
 #if 0 /* TODO(fclem): This is too verbose for now. Make it a cmake option. */
         /* Test if any resource is optimized out and print a warning if that's the case. */
         /* TODO(fclem): Limit this to OpenGL backend. */
-        const ShaderInterface *interface = unwrap(shader)->interface;
+        const ShaderInterface *interface = shader->interface;
 
         blender::Vector<ShaderCreateInfo::Resource> all_resources = info->resources_get_all_();
 

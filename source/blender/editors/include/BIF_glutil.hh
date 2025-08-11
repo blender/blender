@@ -16,10 +16,12 @@ struct ColorManagedDisplaySettings;
 struct ColorManagedViewSettings;
 struct ImBuf;
 struct bContext;
-struct GPUShader;
+namespace blender::gpu {
+class Shader;
+}  // namespace blender::gpu
 
 struct IMMDrawPixelsTexState {
-  GPUShader *shader;
+  blender::gpu::Shader *shader;
   unsigned int pos;
   unsigned int texco;
   bool do_shader_unbind;

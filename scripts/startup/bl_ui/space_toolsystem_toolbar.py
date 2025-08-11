@@ -2110,6 +2110,8 @@ class _defs_weight_paint:
     @ToolDef.from_fn
     def gradient():
         def draw_settings(context, layout, tool):
+            # TODO: Ideally, this should not depend on there being a current brush
+            # See #131061
             brush = context.tool_settings.weight_paint.brush
             if brush is not None:
                 from bl_ui.properties_paint_common import UnifiedPaintPanel
@@ -2118,6 +2120,7 @@ class _defs_weight_paint:
                     context,
                     brush,
                     "weight",
+                    unified_paint_settings_override=context.tool_settings.weight_paint.unified_paint_settings,
                     unified_name="use_unified_weight",
                     slider=True,
                     header=True,
@@ -2127,6 +2130,7 @@ class _defs_weight_paint:
                     context,
                     brush,
                     "strength",
+                    unified_paint_settings_override=context.tool_settings.weight_paint.unified_paint_settings,
                     unified_name="use_unified_strength",
                     header=True,
                 )

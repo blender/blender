@@ -44,7 +44,7 @@ class OBJCurvesTest : public testing::Test {
     /* BKE_id_free() hits a code path that uses CLOG, which crashes if not initialized properly. */
     CLG_init();
 
-    /* Might not be necessary but...*/
+    /* Might not be necessary but... */
     BKE_idtype_init();
   }
 
@@ -187,7 +187,7 @@ TEST_F(OBJCurvesTest, nurbs_io_uniform_polyline)
   run_nurbs_test(positions, order, mode, cyclic, src, result, positions, &expected_mode);
 
   /* Validate uniform knots, don't do this in general as it only verifies the knot generator
-   * `bke::curves::nurbs::calculate_knots`.  */
+   * `bke::curves::nurbs::calculate_knots`. */
   Vector<float> knot_buffer(bke::curves::nurbs::knots_num(positions.size(), order, cyclic));
   bke::curves::nurbs::calculate_knots(positions.size(), mode, order, cyclic, knot_buffer);
   const Vector<int> multiplicity = bke::curves::nurbs::calculate_multiplicity_sequence(

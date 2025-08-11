@@ -625,6 +625,14 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
     goto error;
   }
 
+  {
+    const char *ghost_vsync_string = getEnvVarVsyncString();
+    if (ghost_vsync_string) {
+      int swapInterval = atoi(ghost_vsync_string);
+      setSwapInterval(swapInterval);
+    }
+  }
+
   if (m_nativeWindow != 0) {
     initClearGL();
     ::eglSwapBuffers(m_display, m_surface);

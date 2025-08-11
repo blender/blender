@@ -342,9 +342,6 @@ TEST_P(VKRenderGraphTestRender, begin_draw_end__layered)
       log[8]);
 }
 
-INSTANTIATE_TEST_SUITE_P(,
-                         VKRenderGraphTestRender,
-                         ::testing::Values(std::make_tuple(true, true),
-                                           std::make_tuple(true, false)));
+INSTANTIATE_TEST_SUITE_P(, VKRenderGraphTestRender, ::testing::Values(true, false));
 
 }  // namespace blender::gpu::render_graph

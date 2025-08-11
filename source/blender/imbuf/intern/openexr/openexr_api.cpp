@@ -91,12 +91,16 @@
 #include "BKE_idprop.hh"
 #include "BKE_image.hh"
 
+#include "CLG_log.h"
+
 #include "IMB_allocimbuf.hh"
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 #include "IMB_metadata.hh"
 #include "IMB_openexr.hh"
+
+static CLG_LogRef LOG = {"image.openexr"};
 
 using namespace Imf;
 using namespace Imath;
@@ -106,7 +110,6 @@ static struct ExrPass *imb_exr_get_pass(ListBase *lb, const char *passname);
 static bool exr_has_multiview(MultiPartInputFile &file);
 static bool exr_has_multipart_file(MultiPartInputFile &file);
 static bool exr_has_alpha(MultiPartInputFile &file);
-static void exr_printf(const char *__restrict fmt, ...);
 static void imb_exr_type_by_channels(ChannelList &channels,
                                      StringVector &views,
                                      bool *r_singlelayer,
@@ -618,20 +621,20 @@ static bool imb_save_openexr_half(ImBuf *ibuf, const char *filepath, const int f
       }
     }
 
-    exr_printf("OpenEXR-save: Writing OpenEXR file of height %d.\n", height);
+    CLOG_DEBUG(&LOG, "Writing OpenEXR file of height %d", height);
 
     file.setFrameBuffer(frameBuffer);
     file.writePixels(height);
   }
   catch (const std::exception &exc) {
     delete file_stream;
-    printf("OpenEXR-save: ERROR: %s\n", exc.what());
+    CLOG_ERROR(&LOG, "%s: %s", __func__, exc.what());
 
     return false;
   }
   catch (...) { /* Catch-all for edge cases or compiler bugs. */
     delete file_stream;
-    printf("OpenEXR-save: UNKNOWN ERROR\n");
+    CLOG_ERROR(&LOG, "Unknown error in %s", __func__);
 
     return false;
   }
@@ -697,12 +700,12 @@ static bool imb_save_openexr_float(ImBuf *ibuf, const char *filepath, const int 
     file.writePixels(height);
   }
   catch (const std::exception &exc) {
-    printf("OpenEXR-save: ERROR: %s\n", exc.what());
+    CLOG_ERROR(&LOG, "%s: %s", __func__, exc.what());
     delete file_stream;
     return false;
   }
   catch (...) { /* Catch-all for edge cases or compiler bugs. */
-    printf("OpenEXR-save: UNKNOWN ERROR\n");
+    CLOG_ERROR(&LOG, "Unknown error in %s", __func__);
     delete file_stream;
     return false;
   }
@@ -955,7 +958,7 @@ void IMB_exr_add_channel(void *handle,
     data->num_half_channels++;
   }
 
-  exr_printf("added channel %s\n", echan->name);
+  CLOG_DEBUG(&LOG, "Added channel %s", echan->name);
   BLI_addtail(&data->channels, echan);
 }
 
@@ -1008,7 +1011,7 @@ bool IMB_exr_begin_write(void *handle,
     data->ofile = new OutputFile(*(data->ofile_stream), header);
   }
   catch (const std::exception &exc) {
-    std::cerr << "IMB_exr_begin_write: ERROR: " << exc.what() << std::endl;
+    CLOG_ERROR(&LOG, "%s: %s", __func__, exc.what());
 
     delete data->ofile;
     delete data->ofile_stream;
@@ -1017,7 +1020,7 @@ bool IMB_exr_begin_write(void *handle,
     data->ofile_stream = nullptr;
   }
   catch (...) { /* Catch-all for edge cases or compiler bugs. */
-    std::cerr << "IMB_exr_begin_write: UNKNOWN ERROR" << std::endl;
+    CLOG_ERROR(&LOG, "Unknown error in %s", __func__);
 
     delete data->ofile;
     delete data->ofile_stream;
@@ -1163,10 +1166,10 @@ void IMB_exr_write_channels(void *handle)
       data->ofile->writePixels(data->height);
     }
     catch (const std::exception &exc) {
-      std::cerr << "OpenEXR-writePixels: ERROR: " << exc.what() << std::endl;
+      CLOG_ERROR(&LOG, "%s: %s", __func__, exc.what());
     }
     catch (...) { /* Catch-all for edge cases or compiler bugs. */
-      std::cerr << "OpenEXR-writePixels: UNKNOWN ERROR" << std::endl;
+      CLOG_ERROR(&LOG, "Unknown error in %s", __func__);
     }
     /* Free temporary buffers. */
     if (rect_half != nullptr) {
@@ -1174,7 +1177,7 @@ void IMB_exr_write_channels(void *handle)
     }
   }
   else {
-    printf("Error: attempt to save MultiLayer without layers.\n");
+    CLOG_ERROR(&LOG, "Attempt to save MultiLayer without layers.");
   }
 }
 
@@ -1190,13 +1193,13 @@ void IMB_exr_read_channels(void *handle)
   /* 'previous multilayer attribute, flipped. */
   short flip = (ta && STRPREFIX(ta->value().c_str(), "Blender V2.43"));
 
-  exr_printf(
-      "\nIMB_exr_read_channels\n%s %-6s %-22s "
-      "\"%s\"\n---------------------------------------------------------------------\n",
-      "p",
-      "view",
-      "name",
-      "internal_name");
+  CLOG_DEBUG(&LOG,
+             "\nIMB_exr_read_channels\n%s %-6s %-22s "
+             "\"%s\"\n---------------------------------------------------------------------",
+             "p",
+             "view",
+             "name",
+             "internal_name");
 
   for (int i = 0; i < numparts; i++) {
     /* Read part header. */
@@ -1212,7 +1215,8 @@ void IMB_exr_read_channels(void *handle)
         continue;
       }
 
-      exr_printf("%d %-6s %-22s \"%s\"\n",
+      CLOG_DEBUG(&LOG,
+                 "%d %-6s %-22s \"%s\"\n",
                  echan->m->part_number,
                  echan->m->view.c_str(),
                  echan->m->name.c_str(),
@@ -1243,15 +1247,15 @@ void IMB_exr_read_channels(void *handle)
     /* Read pixels. */
     try {
       in.setFrameBuffer(frameBuffer);
-      exr_printf("readPixels:readPixels[%d]: min.y: %d, max.y: %d\n", i, dw.min.y, dw.max.y);
+      CLOG_DEBUG(&LOG, "readPixels:readPixels[%d]: min.y: %d, max.y: %d", i, dw.min.y, dw.max.y);
       in.readPixels(dw.min.y, dw.max.y);
     }
     catch (const std::exception &exc) {
-      std::cerr << "OpenEXR-readPixels: ERROR: " << exc.what() << std::endl;
+      CLOG_ERROR(&LOG, "%s: %s", __func__, exc.what());
       break;
     }
     catch (...) { /* Catch-all for edge cases or compiler bugs. */
-      std::cerr << "OpenEXR-readPixels: UNKNOWN ERROR: " << std::endl;
+      CLOG_ERROR(&LOG, "Unknown error in %s", __func__);
       break;
     }
   }
@@ -1283,7 +1287,7 @@ void IMB_exr_multilayer_convert(void *handle,
   }
 
   if (BLI_listbase_is_empty(&data->layers)) {
-    printf("cannot convert multilayer, no layers in handle\n");
+    CLOG_WARN(&LOG, "Cannot convert multilayer, no layers in handle");
     return;
   }
 
@@ -1420,7 +1424,7 @@ static int imb_exr_split_channel_name(ExrChannel *echan,
   /* last token is channel identifier */
   size_t len = imb_exr_split_token(name, end, &token);
   if (len == 0) {
-    printf("multilayer read: bad channel name: %s\n", name);
+    CLOG_ERROR(&LOG, "Multilayer read: bad channel name: %s", name);
     return 0;
   }
 
@@ -1474,7 +1478,7 @@ static int imb_exr_split_channel_name(ExrChannel *echan,
     /* second token is pass name */
     len = imb_exr_split_token(name, end, &token);
     if (len == 0) {
-      printf("multilayer read: bad channel name: %s\n", name);
+      CLOG_ERROR(&LOG, "Multilayer read: bad channel name: %s", name);
       return 0;
     }
     BLI_strncpy(passname, token, len + 1);
@@ -1656,7 +1660,7 @@ static bool imb_exr_multilayer_parse_channels_from_file(ExrHandle *data)
     }
   }
   if (echan) {
-    printf("error, too many channels in one pass: %s\n", echan->m->name.c_str());
+    CLOG_ERROR(&LOG, "Too many channels in one pass: %s", echan->m->name.c_str());
     return false;
   }
 
@@ -1750,35 +1754,22 @@ static ExrHandle *imb_exr_begin_read_mem(IStream &file_stream,
 
 /* ********************************************************* */
 
-/* debug only */
-static void exr_printf(const char *fmt, ...)
-{
-#if 0
-  va_list args;
-  va_start(args, fmt);
-  vprintf(fmt, args);
-  va_end(args);
-#else
-  (void)fmt;
-#endif
-}
-
 static void exr_print_filecontents(MultiPartInputFile &file)
 {
   int numparts = file.parts();
   if (numparts == 1 && hasMultiView(file.header(0))) {
     const StringVector views = multiView(file.header(0));
-    printf("OpenEXR-load: MultiView file\n");
-    printf("OpenEXR-load: Default view: %s\n", defaultViewName(views).c_str());
+    CLOG_DEBUG(&LOG, "MultiView file");
+    CLOG_DEBUG(&LOG, "Default view: %s", defaultViewName(views).c_str());
     for (const std::string &view : views) {
-      printf("OpenEXR-load: Found view %s\n", view.c_str());
+      CLOG_DEBUG(&LOG, "Found view %s", view.c_str());
     }
   }
   else if (numparts > 1) {
-    printf("OpenEXR-load: MultiPart file\n");
+    CLOG_DEBUG(&LOG, "MultiPart file");
     for (int i = 0; i < numparts; i++) {
       if (file.header(i).hasView()) {
-        printf("OpenEXR-load: Part %d: view = \"%s\"\n", i, file.header(i).view().c_str());
+        CLOG_DEBUG(&LOG, "Part %d: view = \"%s\"", i, file.header(i).view().c_str());
       }
     }
   }
@@ -1787,7 +1778,7 @@ static void exr_print_filecontents(MultiPartInputFile &file)
     const ChannelList &channels = file.header(j).channels();
     for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); ++i) {
       const Channel &channel = i.channel();
-      printf("OpenEXR-load: Found channel %s of type %d\n", i.name(), channel.type);
+      CLOG_DEBUG(&LOG, "Found channel %s of type %d", i.name(), channel.type);
     }
   }
 }
@@ -2082,10 +2073,9 @@ ImBuf *imb_load_openexr(const uchar *mem, size_t size, int flags, ImFileColorSpa
     const size_t width = dw.max.x - dw.min.x + 1;
     const size_t height = dw.max.y - dw.min.y + 1;
 
-    // printf("OpenEXR-load: image data window %d %d %d %d\n",
-    //     dw.min.x, dw.min.y, dw.max.x, dw.max.y);
+    CLOG_DEBUG(&LOG, "Image data window %d %d %d %d", dw.min.x, dw.min.y, dw.max.x, dw.max.y);
 
-    if (false) { /* debug */
+    if (CLOG_CHECK(&LOG, CLG_LEVEL_DEBUG)) {
       exr_print_filecontents(*file);
     }
 
@@ -2093,7 +2083,7 @@ ImBuf *imb_load_openexr(const uchar *mem, size_t size, int flags, ImFileColorSpa
 
     /* do not make an ibuf when */
     if (is_multi && !(flags & IB_test) && !(flags & IB_multilayer)) {
-      printf("Error: cannot process EXR multilayer file\n");
+      CLOG_ERROR(&LOG, "Cannot process EXR multilayer file");
     }
     else {
       const bool is_alpha = exr_has_alpha(*file);
@@ -2238,7 +2228,7 @@ ImBuf *imb_load_openexr(const uchar *mem, size_t size, int flags, ImFileColorSpa
     return ibuf;
   }
   catch (const std::exception &exc) {
-    std::cerr << exc.what() << std::endl;
+    CLOG_ERROR(&LOG, "%s: %s", __func__, exc.what());
     if (ibuf) {
       IMB_freeImBuf(ibuf);
     }
@@ -2248,7 +2238,7 @@ ImBuf *imb_load_openexr(const uchar *mem, size_t size, int flags, ImFileColorSpa
     return nullptr;
   }
   catch (...) { /* Catch-all for edge cases or compiler bugs. */
-    std::cerr << "OpenEXR-Load: UNKNOWN ERROR" << std::endl;
+    CLOG_ERROR(&LOG, "Unknown error in %s", __func__);
     if (ibuf) {
       IMB_freeImBuf(ibuf);
     }
@@ -2357,7 +2347,7 @@ ImBuf *imb_load_filepath_thumbnail_openexr(const char *filepath,
   }
 
   catch (const std::exception &exc) {
-    std::cerr << exc.what() << std::endl;
+    CLOG_ERROR(&LOG, "%s: %s", __func__, exc.what());
     if (ibuf) {
       IMB_freeImBuf(ibuf);
     }
@@ -2367,7 +2357,7 @@ ImBuf *imb_load_filepath_thumbnail_openexr(const char *filepath,
     return nullptr;
   }
   catch (...) { /* Catch-all for edge cases or compiler bugs. */
-    std::cerr << "OpenEXR-Thumbnail: UNKNOWN ERROR" << std::endl;
+    CLOG_ERROR(&LOG, "Unknown error in %s", __func__);
     if (ibuf) {
       IMB_freeImBuf(ibuf);
     }

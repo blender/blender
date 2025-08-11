@@ -58,7 +58,7 @@ void schedule_children(DepsgraphEvalState *state,
 
 /* Denotes which part of dependency graph is being evaluated. */
 enum class EvaluationStage {
-  /* Stage 1: Only  Copy-on-Write operations are to be evaluated, prior to anything else.
+  /* Stage 1: Only Copy-on-Write operations are to be evaluated, prior to anything else.
    * This allows other operations to access its dependencies when there is a dependency cycle
    * involved. */
   COPY_ON_EVAL,

@@ -593,7 +593,7 @@ static bool key_test_depth(const PEData *data, const float co[3], const int scre
     return true;
   }
 
-/* used to calculate here but all callers have  the screen_co already, so pass as arg */
+/* used to calculate here but all callers have the screen_co already, so pass as arg */
 #if 0
   if (ED_view3d_project_int_global(data->vc.region,
                                    co,

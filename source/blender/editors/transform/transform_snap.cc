@@ -1402,14 +1402,18 @@ void tranform_snap_target_median_calc(const TransInfo *t, float r_median[3])
     float v[3];
     zero_v3(v);
 
-    tc->foreach_index_selected([&](const int i) { add_v3_v3(v, tc->data[i].center); });
+    int num_selected = 0;
+    tc->foreach_index_selected([&](const int i) {
+      add_v3_v3(v, tc->data[i].center);
+      num_selected++;
+    });
 
-    if (tc->data_len == 0) {
+    if (num_selected == 0) {
       /* Is this possible? */
       continue;
     }
 
-    mul_v3_fl(v, 1.0 / tc->data_len);
+    mul_v3_fl(v, 1.0 / num_selected);
 
     if (tc->use_local_mat) {
       mul_m4_v3(tc->mat, v);

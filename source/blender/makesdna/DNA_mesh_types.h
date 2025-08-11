@@ -283,7 +283,7 @@ typedef struct Mesh {
   blender::MutableSpan<int> face_offsets_for_write();
 
   /**
-   * Array of vertices for every face corner,  stored in the ".corner_vert" integer attribute.
+   * Array of vertices for every face corner, stored in the ".corner_vert" integer attribute.
    * For example, the vertices in a face can be retrieved with the #slice method:
    * \code{.cc}
    * const Span<int> face_verts = corner_verts.slice(face);

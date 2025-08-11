@@ -2416,7 +2416,7 @@ static void outliner_orphans_purge_ui(bContext * /*C*/, wmOperator *op)
   uiLayout *layout = op->layout;
   PointerRNA *ptr = op->ptr;
   if (!op->customdata) {
-    /* This should only happen on 'adjust last operation' case, since `invoke` will not have  been
+    /* This should only happen on 'adjust last operation' case, since `invoke` will not have been
      * called then before showing the UI (the 'redo panel' UI uses WM-stored operator properties
      * and a newly-created operator).
      *

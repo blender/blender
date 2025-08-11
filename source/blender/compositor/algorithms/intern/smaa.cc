@@ -1431,7 +1431,7 @@ static Result detect_edges_gpu(Context &context,
                                const float threshold,
                                const float local_contrast_adaptation_factor)
 {
-  GPUShader *shader = context.get_shader("compositor_smaa_edge_detection");
+  gpu::Shader *shader = context.get_shader("compositor_smaa_edge_detection");
   GPU_shader_bind(shader);
 
   const float3 luminance_coefficients = get_luminance_coefficients(input.type());
@@ -1501,7 +1501,7 @@ static Result calculate_blending_weights_gpu(Context &context,
                                              const Result &edges,
                                              const int corner_rounding)
 {
-  GPUShader *shader = context.get_shader("compositor_smaa_blending_weight_calculation");
+  gpu::Shader *shader = context.get_shader("compositor_smaa_blending_weight_calculation");
   GPU_shader_bind(shader);
 
   GPU_shader_uniform_1i(shader, "smaa_corner_rounding", corner_rounding);
@@ -1594,7 +1594,7 @@ static void blend_neighborhood_gpu(Context &context,
                                    const Result &weights,
                                    Result &output)
 {
-  GPUShader *shader = context.get_shader(get_blend_shader_name(input.type()));
+  gpu::Shader *shader = context.get_shader(get_blend_shader_name(input.type()));
   GPU_shader_bind(shader);
 
   GPU_texture_filter_mode(input, true);

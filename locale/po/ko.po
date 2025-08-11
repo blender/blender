@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'6dca66d606ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-04 09:08+0000\n"
+"POT-Creation-Date: 2025-08-11 08:28+0000\n"
 "PO-Revision-Date: 2025-07-23 15:30+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -3010,10 +3010,6 @@ msgid "Radius of head of bone (for Envelope deform only)"
 msgstr "본 헤드의 반경 (엔벨로프 변형에 한함)"
 
 
-msgid "Bone is not visible when it is not in Edit Mode (i.e. in Object or Pose Modes)"
-msgstr "에디트 모드가 아니면 본이 보이지 않습니다. (즉, 오브젝트 또는 포즈 모드에서 보이지 않음)"
-
-
 msgid "Selectable"
 msgstr "선택 가능"
 
@@ -3128,10 +3124,6 @@ msgstr "본에 부모가 있을 때, 본의 머리는 부모의 꼬리에 붙어
 
 msgid "Cyclic Offset"
 msgstr "사이클 오프셋"
-
-
-msgid "When bone doesn't have a parent, it receives cyclic offset effects (Deprecated)"
-msgstr "본에 부모가 없으면 순환 오프셋 효과를받습니다 (더 이상 사용되지 않음)"
 
 
 msgid "Deform"
@@ -5014,14 +5006,6 @@ msgstr "컬러 램프 요소"
 
 msgid "Collection of Color Ramp Elements"
 msgstr "컬러 램프 요소의 컬렉션"
-
-
-msgid "File Output Slots"
-msgstr "파일 출력 슬롯"
-
-
-msgid "Collection of File Output node slots"
-msgstr "파일 출력 노드 슬롯의 컬렉션"
 
 
 msgid "Console Input"
@@ -9040,10 +9024,6 @@ msgstr "변형 및 컬러 속성에는 축 컬러를 사용하고 나머지에�
 
 msgid "Auto WXYZ to YRGB"
 msgstr "자동 WXYZ를 YRGB로"
-
-
-msgid "Use axis colors for XYZ parts of transform, and yellow for the 'W' channel"
-msgstr "변환의 XYZ 부분에는 축 컬러를 사용하고 'W'채널에는 노란색을 사용"
 
 
 msgid "User Defined"
@@ -14715,10 +14695,6 @@ msgid "Textbox Overflow"
 msgstr "텍스트박스 오버플로"
 
 
-msgid "Handle the text behavior when it doesn't fit in the text boxes"
-msgstr "텍스트 동작이 텍스트 박스에 맞지 않으면 처리합니다"
-
-
 msgid "Overflow"
 msgstr "오버플로우"
 
@@ -15503,48 +15479,20 @@ msgid "Format used for re-saving this file"
 msgstr "이 파일을 재저장하기 위해 사용하는 형식"
 
 
-msgid "Output image in bitmap format"
-msgstr "비트맵 형식으로 이미지 출력"
+msgid "Output image in JPEG format"
+msgstr "JPEG 형식으로 이미지 출력"
 
 
-msgid "Iris"
-msgstr "Iris"
+msgid "Output image in OpenEXR format"
+msgstr "OpenEXR 포맷으로 이미지 출력"
 
 
 msgid "Output image in PNG format"
 msgstr "PNG 형식으로 이미지 출력"
 
 
-msgid "Output image in JPEG format"
-msgstr "JPEG 형식으로 이미지 출력"
-
-
-msgid "JPEG 2000"
-msgstr "JPEG 2000"
-
-
-msgid "Output image in JPEG 2000 format"
-msgstr "JPEG 2000 형식의 이미지를 출력"
-
-
-msgid "Targa"
-msgstr "Targa"
-
-
-msgid "Output image in Targa format"
-msgstr "Targa 형식으로 이미지 출력"
-
-
-msgid "Targa Raw"
-msgstr "Targa Raw"
-
-
-msgid "Output image in uncompressed Targa format"
-msgstr "압축 해제된 Targa 형식에서 이미지 출력"
-
-
-msgid "Cineon"
-msgstr "Cineon"
+msgid "Output image in bitmap format"
+msgstr "비트맵 형식으로 이미지 출력"
 
 
 msgid "Output image in Cineon format"
@@ -15555,24 +15503,24 @@ msgid "Output image in DPX format"
 msgstr "DPX 형식으로 이미지 출력"
 
 
-msgid "Output image in OpenEXR format"
-msgstr "OpenEXR 포맷으로 이미지 출력"
-
-
-msgid "Radiance HDR"
-msgstr "Radiance HDR"
+msgid "Output image in JPEG 2000 format"
+msgstr "JPEG 2000 형식의 이미지를 출력"
 
 
 msgid "Output image in Radiance HDR format"
 msgstr "Radiance HDR 형식으로 이미지 출력"
 
 
+msgid "Output image in Targa format"
+msgstr "Targa 형식으로 이미지 출력"
+
+
+msgid "Output image in uncompressed Targa format"
+msgstr "압축 해제된 Targa 형식에서 이미지 출력"
+
+
 msgid "Output image in TIFF format"
 msgstr "TIFF 형식으로 이미지 출력"
-
-
-msgid "OpenEXR MultiLayer"
-msgstr "OpenEXR 멀티레이어"
 
 
 msgid "Output image in multilayer OpenEXR format"
@@ -20893,10 +20841,6 @@ msgid "Identifier of operator to call on input event"
 msgstr "입력 이벤트에 호출하는 작업자의 식별자"
 
 
-msgid "Is this keymap item user defined (doesn't just replace a builtin item)"
-msgstr "이 키맵 항목 커스텀됨 (기본 항목을 대체하지 않습니다)"
-
-
 msgid "User Modified"
 msgstr "사용자 수정됨"
 
@@ -23745,6 +23689,10 @@ msgid "Material slot name"
 msgstr "매테리얼 슬롯 이름"
 
 
+msgid "Pivot Point"
+msgstr "피벗 포인트"
+
+
 msgid "Snap"
 msgstr "스냅"
 
@@ -23935,10 +23883,6 @@ msgstr "텍스트"
 
 msgid "Bone Roll"
 msgstr "본 롤"
-
-
-msgid "Pivot Point"
-msgstr "피벗 포인트"
 
 
 msgid "Basic"
@@ -30760,30 +30704,6 @@ msgid "File Output"
 msgstr "파일 출력"
 
 
-msgid "Active Input Index"
-msgstr "활성 입력 인덱스"
-
-
-msgid "Active input index in details view list"
-msgstr "세부 사항 보기 목록에서 활성 인덱스 입력"
-
-
-msgid "Base Path"
-msgstr "베이스 경로"
-
-
-msgid "Base output path for the image"
-msgstr "이미지에 대한 베이스 출력 경로"
-
-
-msgid "File Slots"
-msgstr "파일 Slots"
-
-
-msgid "EXR Layer Slots"
-msgstr "EXR 레이어 슬롯"
-
-
 msgid "Apply render part of display transform when saving byte image"
 msgstr "바이트 이미지를 저장할 때 표시 변환의 렌더 일부를 적용"
 
@@ -32071,30 +31991,6 @@ msgstr "노드 연결"
 
 msgid "Collection of Node Links"
 msgstr "노드 연결의 컬렉션"
-
-
-msgid "Output File Slot"
-msgstr "파일 슬롯 출력"
-
-
-msgid "Single layer file slot of the file output node"
-msgstr "파일 출력 노드의 싱글 레이어 파일 슬롯"
-
-
-msgid "Subpath used for this slot"
-msgstr "이 슬롯에 사용되는 하위 경로"
-
-
-msgid "Output File Layer Slot"
-msgstr "파일 레이어 슬롯 출력"
-
-
-msgid "Multilayer slot of the file output node"
-msgstr "파일 출력 노드의 멀티레이어 슬롯"
-
-
-msgid "OpenEXR layer name used for this slot"
-msgstr "OpenEXR 계층 이름이 슬롯에 사용"
 
 
 msgid "Node Outputs"
@@ -33802,10 +33698,6 @@ msgstr "종료 부분의 직선 경사가 종료 포인트 키 프레임을 지�
 
 msgid "Make Cyclic (F-Modifier)"
 msgstr "사이클을 만들기 (F-모디파이어)"
-
-
-msgid "Add Cycles F-Modifier if one doesn't exist already"
-msgstr "아직 존재하지 않는 경우 Cycles F-모디파이어를 추가합니다"
 
 
 msgid "Clear Cyclic (F-Modifier)"
@@ -43659,29 +43551,6 @@ msgid "Toggle option buttons display for selected nodes"
 msgstr "선택된 노드에 대한 옵션 버튼 표시를 토글"
 
 
-msgctxt "Operator"
-msgid "Add File Node Socket"
-msgstr "파일 노드 소켓을 추가"
-
-
-msgid "Add a new input to a file output node"
-msgstr "파일 출력 노드에 새로운 입력을 추가"
-
-
-msgctxt "Operator"
-msgid "Move File Node Socket"
-msgstr "파일 노드 소켓 이동"
-
-
-msgid "Move the active input of a file output node up or down the list"
-msgstr "목록 위 또는 아래로 파일 출력 노드의 활성 입력을 움직입니다"
-
-
-msgctxt "Operator"
-msgid "Remove File Node Socket"
-msgstr "파일 노드 소켓을 제거"
-
-
 msgid "Attach selected nodes"
 msgstr "선택된 노드를 첨부"
 
@@ -49395,10 +49264,6 @@ msgstr "각 프레임의 길이"
 msgctxt "Operator"
 msgid "Lock Strips"
 msgstr "스트립을 잠금"
-
-
-msgid "Lock strips so they can't be transformed"
-msgstr "스트립을 변형할 수 없도록 잠그기"
 
 
 msgctxt "Operator"
@@ -58641,10 +58506,6 @@ msgid "Vertical Split"
 msgstr "수직 분할"
 
 
-msgid "Region floats on screen, doesn't use any fixed alignment"
-msgstr "지역을 화면에 뛰우고 고정된 정렬을 사용하지 않습니다"
-
-
 msgid "Quad Split"
 msgstr "쿼드 분할"
 
@@ -59287,14 +59148,6 @@ msgstr "멀티리스에서 베이크"
 
 msgid "Bake directly from multires object"
 msgstr "멀티리스 오브젝트에서 직접 베이크합니다"
-
-
-msgid "User Scale"
-msgstr "사용자 축적"
-
-
-msgid "Use a user scale for the derivative map"
-msgstr "디리버티브 맵에 대한 사용자 축적을 사용"
 
 
 msgid "Render Region"
@@ -64727,6 +64580,14 @@ msgid "Scrubbing/Markers Region"
 msgstr "스크러빙/마커 지역"
 
 
+msgid "Channel Group"
+msgstr "채널 그룹"
+
+
+msgid "Active Channel Group"
+msgstr "활성 체널 구릅"
+
+
 msgid "Preview Range"
 msgstr "미리보기 범위"
 
@@ -64767,20 +64628,8 @@ msgid "Theme settings for the Dope Sheet"
 msgstr "도프시트에 대한 테마 설정"
 
 
-msgid "Active Channel Group"
-msgstr "활성 체널 구릅"
-
-
-msgid "Channel Group"
-msgstr "채널 그룹"
-
-
 msgid "Channels Selected"
 msgstr "채널 선택됨"
-
-
-msgid "Dope Sheet Channel"
-msgstr "도프시트 채널"
 
 
 msgid "Interpolation Line"
@@ -65089,14 +64938,6 @@ msgstr "애니메이션 데이터 블록은 활성 액션이 있음"
 
 msgid "No Active Action"
 msgstr "활성 액션 없음"
-
-
-msgid "Animation data-block doesn't have active action"
-msgstr "애니메이션 데이터 블록은 활성 액션이 없습니다"
-
-
-msgid "Nonlinear Animation Channel"
-msgstr "논리니어 애니메이션 채널"
 
 
 msgid "Meta Strips"
@@ -67868,10 +67709,6 @@ msgid "External shader script must have .osl or .oso extension, or be a module n
 msgstr "외부 쉐이더 스크립트는 .osl 또는 .oso 확장자를 가져야하며, 또는 모듈 이름이어야 합니다"
 
 
-msgid "Can't read OSO bytecode to store in node at %r"
-msgstr "%r에서 노드에 저장할 OSO 바이트 코드를 읽을 수 없습니다"
-
-
 msgid "Failed to write .oso file next to external .osl file at "
 msgstr "외부 .osl 파일 옆에 .oso 파일을 쓰지 못했습니다 "
 
@@ -68441,11 +68278,6 @@ msgstr "모두 잠금 반전"
 
 
 msgctxt "Operator"
-msgid "Delete All Shape Keys"
-msgstr "모든 셰이프 키를 삭제"
-
-
-msgctxt "Operator"
 msgid "Sort by Name"
 msgstr "이름으로 분류"
 
@@ -68481,18 +68313,8 @@ msgstr "모든 그룹을 삭제"
 
 
 msgctxt "Operator"
-msgid "Mirror Shape Key (Topology)"
-msgstr "미러 셰이프 키 (토폴로지)"
-
-
-msgctxt "Operator"
-msgid "Move to Top"
-msgstr "맨 위로 이동"
-
-
-msgctxt "Operator"
-msgid "Move to Bottom"
-msgstr "맨 아래로 이동"
+msgid "Flip"
+msgstr "뒤집기"
 
 
 msgid "Auto Normalize"
@@ -69955,6 +69777,16 @@ msgstr "Blender IDs"
 
 
 msgctxt "Operator"
+msgid "Move to Top"
+msgstr "맨 위로 이동"
+
+
+msgctxt "Operator"
+msgid "Move to Bottom"
+msgstr "맨 아래로 이동"
+
+
+msgctxt "Operator"
 msgid "Increase Number"
 msgstr "번호를 증가"
 
@@ -70448,6 +70280,11 @@ msgstr "사운드 교차 페이드"
 msgctxt "Operator"
 msgid "Change Keying Set..."
 msgstr "키잉 설정을 변경..."
+
+
+msgctxt "Operator"
+msgid "Delete Keyframes..."
+msgstr "키 프레임을 삭제..."
 
 
 msgctxt "Operator"
@@ -71352,11 +71189,6 @@ msgstr "로컬을 만들기..."
 
 
 msgctxt "Operator"
-msgid "Delete Keyframes..."
-msgstr "키 프레임을 삭제..."
-
-
-msgctxt "Operator"
 msgid "Clear Keyframes..."
 msgstr "키 프레임을 지우기..."
 
@@ -71669,11 +71501,6 @@ msgstr "강한"
 
 
 msgctxt "Operator"
-msgid "Flip"
-msgstr "뒤집기"
-
-
-msgctxt "Operator"
 msgid "Rotate..."
 msgstr "회전..."
 
@@ -71750,17 +71577,9 @@ msgid "Origins (All)"
 msgstr "오리진 (모두)"
 
 
-msgid "Creases"
-msgstr "크리스"
-
-
 msgctxt "Plural"
 msgid "Sharp"
 msgstr "샤프"
-
-
-msgid "Seams"
-msgstr "씨임"
 
 
 msgid "Vertex Group Weights"
@@ -72727,14 +72546,6 @@ msgid "Undefined Type"
 msgstr "정의되지 않은 유형"
 
 
-msgid "Can't add Rigid Body to non mesh object"
-msgstr "메쉬가 아닌 오브젝트에 리지드 바디를 추가할 수 없습니다"
-
-
-msgid "Can't create Rigid Body world"
-msgstr "리지드 바디 월드를 만들 수 없습니다"
-
-
 msgid "LIB: object lost from scene: '%s'"
 msgstr "LIB: 씬에서 오브젝트 손실: '%s'"
 
@@ -72960,10 +72771,6 @@ msgid "Display action without any time remapping (when unpinned)"
 msgstr "시간 재매핑없이 액션을 표시 (고정 해제시)"
 
 
-msgid "Can't edit this property from a linked data-block"
-msgstr "재정의 데이터 블록에서 이 속성을 편집할 수 없습니다"
-
-
 msgid "No active object"
 msgstr "활성 오브젝트가 없음"
 
@@ -73094,10 +72901,6 @@ msgstr "%d 오브젝트에서 제거된 키 프레임이 없습니다"
 
 msgid "\"%s\" property cannot be animated"
 msgstr "\"%s\" 속성을 애니메이션으로 만들 수 없습니다"
-
-
-msgid "Button doesn't appear to have any property information attached (ptr.data = %p, prop = %p)"
-msgstr "버튼에 속성 정보가 첨부되어 있지 않습니다 (ptr.data = %p, prop = %p)"
 
 
 msgid "Not deleting keyframe for locked F-Curve for NLA Strip influence on %s - %s '%s'"
@@ -74058,7 +73861,7 @@ msgid "Swap Areas"
 msgstr "영역을 교환"
 
 
-msgid "Can't edit external library data"
+msgid "Cannot edit external library data"
 msgstr "외부 라이브러리 데이터를 편집 할 수 없습니다"
 
 
@@ -74129,6 +73932,10 @@ msgstr "아이코스피어"
 
 msgid "Outer"
 msgstr "바깥"
+
+
+msgid "Seams"
+msgstr "씨임"
 
 
 msgid "Selected edges/faces required"
@@ -74378,10 +74185,6 @@ msgid "This data does not support joining in edit mode"
 msgstr "이 데이터는 에디트 모드에서 합치기를 지원하지 않습니다"
 
 
-msgid "Cannot edit external library data"
-msgstr "외부 라이브러리 데이터를 편집 할 수 없습니다"
-
-
 msgid "Cannot delete indirectly linked object '%s'"
 msgstr "간접적으로 연결된 오브젝트 '%s'를 삭제할 수 없습니다"
 
@@ -74498,10 +74301,6 @@ msgid "No active image found in material slot (%d) for object \"%s\""
 msgstr "소재 슬롯 (%d)에서 활성 이미지를 찾을 수 없습니다. 오브젝트 \"%s\"에 대해"
 
 
-msgid "Object \"%s\" is not a mesh or can't be converted to a mesh (Curve, Text, Surface or Metaball)"
-msgstr "오브젝트 \"%s\"는 메쉬가 없거나 메쉬로 변환할 수 없습니다 (커브, 텍스트, 표면 또는 메타볼)"
-
-
 msgid "Uninitialized image %s"
 msgstr "초기화되지 않은 이미지 %s"
 
@@ -74608,10 +74407,6 @@ msgstr "작업자가 고정되어 있으며 설정을 변경하면 고정 해제
 
 msgid "Skipping object '%s', data '%s' has already been processed with a previous object"
 msgstr "오브젝트 '%s' 를 건너뛰기, 데이터 '%s' 는 이미 이전 오브젝트로 처리되었습니다"
-
-
-msgid "Can't edit linked mesh or curve data"
-msgstr "연결된 메쉬나 커브 데이터를 편집할 수 없습니다"
 
 
 msgid "No collection selected"
@@ -74798,10 +74593,6 @@ msgid "Incorrect context for running object data unlink"
 msgstr "실행중인 오브젝트 데이터의 연결이 잘못되었습니다"
 
 
-msgid "Can't unlink this object data"
-msgstr "이 오브젝트는 데이터를 연결을 해제할 수 없습니다"
-
-
 msgid "Collection '%s' (instantiated by the active object) is not overridable"
 msgstr "컬렉션 '%s'(활성 오브젝트로 인스턴스화 됨)을 재정의 할 수 없습니다"
 
@@ -74896,10 +74687,6 @@ msgstr "베이크 실패됨: 잘못된 캔버스"
 
 msgid "Removed %d double particle(s)"
 msgstr "%d개의 중첩 파티클을 제거했습니다"
-
-
-msgid "No hair connected (can't connect hair if particle system modifier is disabled)"
-msgstr "연결된 헤어가 없습니다 (파티클 시스템 모디파이어가 비활성화된 경우 헤어를 연결할 수 없음)"
 
 
 msgid "Copy particle systems to selected: %d done, %d failed"
@@ -75847,10 +75634,6 @@ msgid "See Modifiers panel below"
 msgstr "아래에 모디파이어 패널을 참조"
 
 
-msgid "F-Curve doesn't have any keyframes as it only contains sampled points"
-msgstr "F-커브는 샘플된 포인트 만 포함하므로 키 프레임이 없습니다"
-
-
 msgid "No active keyframe on F-Curve"
 msgstr "F-커브에서 활성 키 프레임 없음"
 
@@ -75996,10 +75779,6 @@ msgid "Hard coded Non-Linear, Gamma:1.7"
 msgstr "비선형 하드 코딩, 감마:1.7"
 
 
-msgid "Can't Load Image"
-msgstr "이미지를 불러올 수 없습니다"
-
-
 msgid "%d float channel(s)"
 msgstr "%d 실수 채널(들)"
 
@@ -76054,10 +75833,6 @@ msgstr "%d 이미지(들)은 %s에서 저장됨"
 
 msgid "Saved %s"
 msgstr "저장된 %s"
-
-
-msgid "can't save image while rendering"
-msgstr "렌더링하는 동안 이미지를 저장할 수 없습니다"
 
 
 msgid "No packed files to unpack"
@@ -76280,10 +76055,6 @@ msgid "Strip None"
 msgstr "스트립 없음"
 
 
-msgid "Can't reload with running modal operators"
-msgstr "실행중인 모달 작업자로 다시 불러올 수 없습니다"
-
-
 msgid "Movie clip not found"
 msgstr "무비 클립을 찾을 수 없습니다"
 
@@ -76300,24 +76071,12 @@ msgid "Please select two strips"
 msgstr "두 스트립을 선택하십시오"
 
 
-msgid "Can't create subtitle file"
-msgstr "자막 파일을 만들 수 없습니다"
-
-
-msgid "Can't overwrite export file"
-msgstr "내보내기 파일을 덮어 쓸 수 없습니다"
-
-
 msgid "No subtitles (text strips) to export"
 msgstr "내보낼 자막(텍스트 스트립)이 없음"
 
 
 msgid "Select one or more strips"
 msgstr "하나 이상의 스트립을 선택하십시오"
-
-
-msgid "Can't set a negative range"
-msgstr "음수 범위를 설정할 수 없습니다"
 
 
 msgid "File Modified Outside and Inside Blender"
@@ -76788,10 +76547,6 @@ msgid "Bone selection count error"
 msgstr "본 선택 개수 오류"
 
 
-msgid "Linked data can't text-space transform"
-msgstr "연결된 데이터는 텍스트 공간을 변형 할 수 없습니다"
-
-
 msgid "Unsupported object type for text-space transform"
 msgstr "텍스트 변환에 대한 지원되지 않는 오브젝트 유형"
 
@@ -77155,22 +76910,6 @@ msgstr "제거하는 매테리얼이 없음"
 
 msgid "Registering id property class: '%s' is too long, maximum length is %d"
 msgstr "등록하는 ID 속성 클래스: '%s' 는 너무 깁니다, 최대 길이는 %d"
-
-
-msgid "This property is for internal use only and can't be edited"
-msgstr "이 속성은 내부용이므로 편집할 수 없습니다"
-
-
-msgid "Can't edit this property from an override data-block"
-msgstr "재정의 데이터 블록에서 이 속성을 편집 할 수 없습니다"
-
-
-msgid "'%s' doesn't have upper case alpha-numeric prefix"
-msgstr "'%s'에는 대문자 알파벳-숫자 접두사가 없습니다"
-
-
-msgid "'%s' doesn't have an alpha-numeric suffix"
-msgstr "'%s'에는 알파벳-숫자 접미사가 없습니다"
 
 
 msgid "Array length mismatch (expected %d, got %d)"
@@ -77584,14 +77323,6 @@ msgstr "잘못된 할당 모드"
 
 msgid "Bad vertex index in list"
 msgstr "목록에서 잘못된 버텍스 인덱스"
-
-
-msgid "Object '%s' can't be selected because it is not in View Layer '%s'!"
-msgstr "오브젝트 '%s'는 뷰 레이어 '%s'에 없으므로 선택할 수 없습니다!"
-
-
-msgid "Object '%s' can't be hidden because it is not in View Layer '%s'!"
-msgstr "오브젝트 '%s'는 뷰 레이어 '%s'에 없으므로 숨길 수 없습니다!"
 
 
 msgid "Object %s not in view layer %s"
@@ -78341,14 +78072,6 @@ msgstr "라이브러리가 아닙니다"
 
 msgid "Nothing indicated"
 msgstr "아무것도 표시하지 않음"
-
-
-msgid "Can't append data-block '%s' of type '%s'"
-msgstr "'%s'을 (를) 추가 할 수 없습니다. '%s'유형의 데이터 블록"
-
-
-msgid "Can't link data-block '%s' of type '%s'"
-msgstr "'%s' 을 연결할 수 없습니다. '%s'유형의 데이터 블록"
 
 
 msgid "'%s': cannot use current file as library"

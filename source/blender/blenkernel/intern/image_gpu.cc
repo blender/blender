@@ -32,6 +32,10 @@
 #include "GPU_state.hh"
 #include "GPU_texture.hh"
 
+#include "CLG_log.h"
+
+static CLG_LogRef LOG = {"gpu.texture"};
+
 using namespace blender::bke::image::partial_update;
 
 /* Prototypes. */
@@ -281,7 +285,7 @@ static blender::gpu::Texture **get_image_gpu_texture_ptr(Image *ima,
 
 static blender::gpu::Texture *image_gpu_texture_error_create(eGPUTextureTarget textarget)
 {
-  fprintf(stderr, "blender::gpu::Texture: Blender Texture Not Loaded!\n");
+  CLOG_ERROR(&LOG, "Failed to created GPU texture from Blender image");
   switch (textarget) {
     case TEXTARGET_2D_ARRAY:
       return GPU_texture_create_error(2, true);

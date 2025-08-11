@@ -49,7 +49,7 @@ struct MaterialPool {
   /* GPU representation of materials. */
   gpMaterial mat_data[GPENCIL_MATERIAL_BUFFER_LEN];
   /* Matching ubo. */
-  GPUUniformBuf *ubo;
+  gpu::UniformBuf *ubo;
   /* Texture per material. NULL means none. */
   gpu::Texture *tex_fill[GPENCIL_MATERIAL_BUFFER_LEN];
   gpu::Texture *tex_stroke[GPENCIL_MATERIAL_BUFFER_LEN];
@@ -61,7 +61,7 @@ struct LightPool {
   /* GPU representation of materials. */
   gpLight light_data[GPENCIL_LIGHT_BUFFER_LEN];
   /* Matching ubo. */
-  struct GPUUniformBuf *ubo;
+  gpu::UniformBuf *ubo;
   /* Number of light in the pool. */
   int light_used;
 };
@@ -361,7 +361,7 @@ struct Instance final : public DrawEngine {
 
   PassSimple &vfx_pass_create(const char *name,
                               DRWState state,
-                              GPUShader *sh,
+                              gpu::Shader *sh,
                               tObject *tgp_ob,
                               GPUSamplerState sampler = GPUSamplerState::internal_sampler());
 
@@ -427,7 +427,7 @@ void gpencil_material_resources_get(MaterialPool *first_pool,
                                     int mat_id,
                                     gpu::Texture **r_tex_stroke,
                                     gpu::Texture **r_tex_fill,
-                                    struct GPUUniformBuf **r_ubo_mat);
+                                    gpu::UniformBuf **r_ubo_mat);
 
 void gpencil_light_ambient_add(LightPool *lightpool, const float color[3]);
 void gpencil_light_pool_populate(LightPool *lightpool, Object *ob);

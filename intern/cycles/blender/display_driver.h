@@ -14,7 +14,9 @@
 
 struct GPUContext;
 struct GPUFence;
-struct GPUShader;
+namespace blender::gpu {
+class Shader;
+}  // namespace blender::gpu
 
 CCL_NAMESPACE_BEGIN
 
@@ -30,7 +32,7 @@ class BlenderDisplayShader {
   BlenderDisplayShader() = default;
   virtual ~BlenderDisplayShader() = default;
 
-  virtual GPUShader *bind(const int width, const int height) = 0;
+  virtual blender::gpu::Shader *bind(const int width, const int height) = 0;
   virtual void unbind() = 0;
 
   /* Get attribute location for position and texture coordinate respectively.
@@ -41,7 +43,7 @@ class BlenderDisplayShader {
  protected:
   /* Get program of this display shader.
    * NOTE: The shader needs to be bound to have access to this. */
-  virtual GPUShader *get_shader_program() = 0;
+  virtual blender::gpu::Shader *get_shader_program() = 0;
 
   /* Cached values of various OpenGL resources. */
   int position_attribute_location_ = -1;
@@ -54,16 +56,16 @@ class BlenderFallbackDisplayShader : public BlenderDisplayShader {
  public:
   ~BlenderFallbackDisplayShader() override;
 
-  GPUShader *bind(const int width, const int height) override;
+  blender::gpu::Shader *bind(const int width, const int height) override;
   void unbind() override;
 
  protected:
-  GPUShader *get_shader_program() override;
+  blender::gpu::Shader *get_shader_program() override;
 
   void create_shader_if_needed();
   void destroy_shader();
 
-  GPUShader *shader_program_ = nullptr;
+  blender::gpu::Shader *shader_program_ = nullptr;
   int image_texture_location_ = -1;
   int fullscreen_location_ = -1;
 
@@ -76,17 +78,17 @@ class BlenderDisplaySpaceShader : public BlenderDisplayShader {
  public:
   BlenderDisplaySpaceShader(BL::RenderEngine &b_engine, BL::Scene &b_scene);
 
-  GPUShader *bind(const int width, const int height) override;
+  blender::gpu::Shader *bind(const int width, const int height) override;
   void unbind() override;
 
  protected:
-  GPUShader *get_shader_program() override;
+  blender::gpu::Shader *get_shader_program() override;
 
   BL::RenderEngine b_engine_;
   BL::Scene &b_scene_;
 
   /* Cached values of various OpenGL resources. */
-  GPUShader *shader_program_ = nullptr;
+  blender::gpu::Shader *shader_program_ = nullptr;
 };
 
 /* Display driver implementation which is specific for Blender viewport integration. */

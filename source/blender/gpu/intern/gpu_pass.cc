@@ -38,7 +38,7 @@ struct GPUPass {
 
   GPUCodegenCreateInfo *create_info = nullptr;
   BatchHandle compilation_handle = 0;
-  std::atomic<GPUShader *> shader = nullptr;
+  std::atomic<blender::gpu::Shader *> shader = nullptr;
   std::atomic<eGPUPassStatus> status = GPU_PASS_QUEUED;
   /* Orphaned GPUPasses gets freed by the garbage collector. */
   std::atomic<int> refcount = 1;
@@ -106,7 +106,7 @@ struct GPUPass {
     compilation_timestamp = ++compilation_counts;
 
     if (!shader && !gpu_pass_validate(create_info)) {
-      fprintf(stderr, "GPUShader: error: too many samplers in shader.\n");
+      fprintf(stderr, "blender::gpu::Shader: error: too many samplers in shader.\n");
     }
 
     status = shader ? GPU_PASS_SUCCESS : GPU_PASS_FAILED;
@@ -170,7 +170,7 @@ bool GPU_pass_should_optimize(GPUPass *pass)
 #endif
 }
 
-GPUShader *GPU_pass_shader_get(GPUPass *pass)
+blender::gpu::Shader *GPU_pass_shader_get(GPUPass *pass)
 {
   return pass->shader;
 }

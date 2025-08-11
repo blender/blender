@@ -8,7 +8,9 @@
 
 #pragma once
 
-struct GPUShader;
+namespace blender::gpu {
+class Shader;
+}  // namespace blender::gpu
 
 /**
  * To Identity transform & empty stack.
@@ -150,7 +152,7 @@ const float (*GPU_matrix_normal_inverse_get(float m[3][3]))[3];
 /**
  * Set uniform values for currently bound shader.
  */
-void GPU_matrix_bind(GPUShader *shader);
+void GPU_matrix_bind(blender::gpu::Shader *shader);
 bool GPU_matrix_dirty_get(); /* since last bind */
 
 /**

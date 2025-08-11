@@ -312,7 +312,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
   PropertyRNA *parm;
   FunctionRNA *func;
 
-  /*  Surface format */
+  /* Surface format */
   static const EnumPropertyItem prop_dynamicpaint_surface_format[] = {
       // {MOD_DPAINT_SURFACE_F_PTEX, "PTEX", ICON_TEXTURE_SHADED, "Ptex", ""},
       {MOD_DPAINT_SURFACE_F_VERTEX, "VERTEX", ICON_OUTLINER_DATA_MESH, "Vertex", ""},
@@ -320,13 +320,13 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  /*  Surface type - generated dynamically based on surface format */
+  /* Surface type - generated dynamically based on surface format */
   static const EnumPropertyItem prop_dynamicpaint_surface_type[] = {
       {MOD_DPAINT_SURFACE_T_PAINT, "PAINT", 0, "Paint", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  /*  Initial color setting */
+  /* Initial color setting */
   static const EnumPropertyItem prop_dynamicpaint_init_color_type[] = {
       {MOD_DPAINT_INITIAL_NONE, "NONE", 0, "None", ""},
       {MOD_DPAINT_INITIAL_COLOR, "COLOR", ICON_COLOR, "Color", ""},

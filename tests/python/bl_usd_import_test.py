@@ -1789,7 +1789,7 @@ class USDImportTest(AbstractUSDTest):
         self.assertEqual({'FINISHED'}, res, f"Unable to export to {usdz2}")
 
         def check_image(name, tiles_num, size, is_packed):
-            self.assertTrue(name in bpy.data.images)
+            self.assertTrue(name in bpy.data.images, f"Could not find '{name}'")
 
             image = bpy.data.images[name]
             self.assertEqual(len(image.tiles), tiles_num)
@@ -1816,7 +1816,7 @@ class USDImportTest(AbstractUSDTest):
         check_image("test_grid_<UDIM>.png", 2, 1024, True)
         check_image("test_normal.exr", 1, 128, True)
         check_image("test_normal_invertY.exr", 1, 128, True)
-        check_image("color_121212.hdr", 1, 4, True)
+        check_image("color_0C0C0C.exr", 1, 1, True)
         check_materials()
 
         # Reload the empty file and import back in using IMPORT_COPY
@@ -1832,7 +1832,7 @@ class USDImportTest(AbstractUSDTest):
         check_image("test_grid_<UDIM>.png", 2, 128, False)
         check_image("test_normal.exr", 1, 128, False)
         check_image("test_normal_invertY.exr", 1, 128, False)
-        check_image("color_121212.hdr", 1, 4, False)
+        check_image("color_0C0C0C.exr", 1, 1, False)
         check_materials()
 
     def test_get_prim_map_parent_xform_not_merged(self):

@@ -359,20 +359,19 @@ std::string get_image_cache_file(const std::string &file_name, bool mkdir)
 
 std::string cache_image_color(const float color[4])
 {
-  char name[128];
-  SNPRINTF(name,
-           "color_%02d%02d%02d.hdr",
-           int(color[0] * 255),
-           int(color[1] * 255),
-           int(color[2] * 255));
+  std::string name = fmt::format("color_{:02X}{:02X}{:02X}.exr",
+                                 int(color[0] * 255),
+                                 int(color[1] * 255),
+                                 int(color[2] * 255));
   std::string file_path = get_image_cache_file(name);
   if (BLI_exists(file_path.c_str())) {
     return file_path;
   }
 
-  ImBuf *ibuf = IMB_allocImBuf(4, 4, 32, IB_float_data);
+  ImBuf *ibuf = IMB_allocImBuf(1, 1, 32, IB_float_data);
   IMB_rectfill(ibuf, color);
-  ibuf->ftype = IMB_FTYPE_RADHDR;
+  ibuf->ftype = IMB_FTYPE_OPENEXR;
+  ibuf->foptions.flag = R_IMF_EXR_CODEC_RLE;
 
   if (IMB_save_image(ibuf, file_path.c_str(), IB_float_data)) {
     CLOG_INFO(&LOG, "%s", file_path.c_str());

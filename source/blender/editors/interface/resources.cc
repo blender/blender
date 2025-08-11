@@ -42,6 +42,10 @@ static bThemeState g_theme_state = {
     RGN_TYPE_WINDOW,
 };
 
+/* -------------------------------------------------------------------- */
+/** \name Init/Exit
+ * \{ */
+
 void ui_resources_init()
 {
   UI_icons_init();
@@ -52,9 +56,11 @@ void ui_resources_free()
   UI_icons_free();
 }
 
-/* ******************************************************** */
-/*    THEMES */
-/* ******************************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Themes
+ * \{ */
 
 const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 {
@@ -325,10 +331,10 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           cp = ts->time_scrub_background;
           break;
         case TH_TIME_MARKER_LINE:
-          cp = ts->time_marker_line;
+          cp = btheme->common.anim.time_marker;
           break;
         case TH_TIME_MARKER_LINE_SELECTED:
-          cp = ts->time_marker_line_selected;
+          cp = btheme->common.anim.time_marker_selected;
           break;
         case TH_VIEW_OVERLAY:
           cp = ts->view_overlay;
@@ -361,10 +367,10 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           cp = ts->active;
           break;
         case TH_GROUP:
-          cp = ts->group;
+          cp = btheme->common.anim.channel_group;
           break;
         case TH_GROUP_ACTIVE:
-          cp = ts->group_active;
+          cp = btheme->common.anim.channel_group_active;
           break;
         case TH_TRANSFORM:
           cp = ts->transform;
@@ -529,7 +535,7 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           cp = ts->keyborder_select;
           break;
         case TH_CFRAME:
-          cp = ts->cframe;
+          cp = btheme->common.anim.playhead;
           break;
         case TH_FRAME_BEFORE:
           cp = ts->before_current_frame;
@@ -794,10 +800,10 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           break;
 
         case TH_DOPESHEET_CHANNELOB:
-          cp = ts->ds_channel;
+          cp = btheme->common.anim.channel;
           break;
         case TH_DOPESHEET_CHANNELSUBOB:
-          cp = ts->ds_subchannel;
+          cp = btheme->common.anim.channel_sub;
           break;
         case TH_DOPESHEET_IPOLINE:
           cp = ts->ds_ipoline;
@@ -1572,3 +1578,5 @@ void UI_make_axis_color(const uchar col[3], const char axis, uchar r_col[3])
       break;
   }
 }
+
+/** \} */

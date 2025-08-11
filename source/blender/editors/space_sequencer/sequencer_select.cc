@@ -1903,7 +1903,7 @@ static wmOperatorStatus sequencer_select_handles_exec(bContext *C, wmOperator *o
       }
     }
   }
-  /*   Select strips */
+  /* Select strips. */
   LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
     if ((strip->flag & SEQ_LEFTSEL) || (strip->flag & SEQ_RIGHTSEL)) {
       if (!(strip->flag & SELECT)) {

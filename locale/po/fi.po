@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'6dca66d606ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-04 09:08+0000\n"
+"POT-Creation-Date: 2025-08-11 08:28+0000\n"
 "PO-Revision-Date: 2025-07-23 15:32+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -6314,50 +6314,6 @@ msgid "3D Location"
 msgstr "3D-sijainti"
 
 
-msgid "BMP"
-msgstr "BMP"
-
-
-msgid "Iris"
-msgstr "Iris"
-
-
-msgid "JPEG"
-msgstr "JPEG"
-
-
-msgid "JPEG 2000"
-msgstr "JPEG 2000"
-
-
-msgid "Targa"
-msgstr "Targa"
-
-
-msgid "Targa Raw"
-msgstr "Targa Raw"
-
-
-msgid "Cineon"
-msgstr "Cineon"
-
-
-msgid "DPX"
-msgstr "DPX"
-
-
-msgid "TIFF"
-msgstr "TIFF"
-
-
-msgid "WebP"
-msgstr "WebP"
-
-
-msgid "OpenEXR MultiLayer"
-msgstr "OpenEXR MultiLayer"
-
-
 msgid "FFmpeg Video"
 msgstr "FFmpeg Video"
 
@@ -8012,6 +7968,10 @@ msgid "ITU 709"
 msgstr "ITU 709"
 
 
+msgid "JPEG"
+msgstr "JPEG"
+
+
 msgid "Combine Color"
 msgstr "Yhdistä väri"
 
@@ -8074,6 +8034,14 @@ msgstr "Sininen kanava"
 
 msgid "File Output"
 msgstr "Tiedoston ulostulo"
+
+
+msgid "Active Item Index"
+msgstr "Aktiivinen esineindeksi"
+
+
+msgid "Index of the active item"
+msgstr "Aktiivisen esineen indeksi"
 
 
 msgid "Save as Render"
@@ -8181,14 +8149,6 @@ msgstr "Pyöristä alaspäin"
 msgctxt "NodeTree"
 msgid "Truncate"
 msgstr "Poista luvun desimaaliosa"
-
-
-msgid "Active Item Index"
-msgstr "Aktiivinen esineindeksi"
-
-
-msgid "Index of the active item"
-msgstr "Aktiivisen esineen indeksi"
 
 
 msgctxt "NodeTree"
@@ -10180,6 +10140,18 @@ msgstr "Laajenna"
 
 msgid "Max Speed"
 msgstr "Maksiminopeus"
+
+
+msgid "BMP"
+msgstr "BMP"
+
+
+msgid "DPX"
+msgstr "DPX"
+
+
+msgid "TIFF"
+msgstr "TIFF"
 
 
 msgid "Mouse location"
@@ -12753,6 +12725,11 @@ msgstr "Ei lisättäviä tasoja"
 
 
 msgctxt "Operator"
+msgid "Flip"
+msgstr "Käännä"
+
+
+msgctxt "Operator"
 msgid "Search..."
 msgstr "Etsi..."
 
@@ -13668,11 +13645,6 @@ msgstr "Vahva"
 
 
 msgctxt "Operator"
-msgid "Flip"
-msgstr "Käännä"
-
-
-msgctxt "Operator"
 msgid "Edge Loops"
 msgstr "Reunasilmukat"
 
@@ -13689,10 +13661,6 @@ msgstr "Järjestä"
 
 msgid "Local Camera"
 msgstr "Lokaalikamera"
-
-
-msgid "Seams"
-msgstr "Saumat"
 
 
 msgctxt "Operator"
@@ -14370,6 +14338,10 @@ msgid "Icosphere"
 msgstr "Icopallo"
 
 
+msgid "Seams"
+msgstr "Saumat"
+
+
 msgid "Close"
 msgstr "Sulje"
 
@@ -14960,10 +14932,6 @@ msgid "Select View"
 msgstr "Valitse näkymä"
 
 
-msgid "Can't Load Image"
-msgstr "Kuvaa ei voida ladata"
-
-
 msgid " RGBA float"
 msgstr " RGBA-liukuluku"
 
@@ -15130,14 +15098,6 @@ msgstr "(tyhjä)"
 
 msgid "Mask not found"
 msgstr "Maskia ei löydy"
-
-
-msgid "Can't create subtitle file"
-msgstr "Tekstitystiedostoa ei kyetty luomaan"
-
-
-msgid "Can't overwrite export file"
-msgstr "Vientitiedostoa ei voida päällekirjoittaa"
 
 
 msgid "Rows:"

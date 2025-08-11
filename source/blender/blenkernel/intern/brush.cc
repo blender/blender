@@ -675,7 +675,7 @@ Brush *BKE_brush_duplicate(Main *bmain,
 
   if (!is_subprocess) {
     /* This code will follow into all ID links using an ID tagged with ID_TAG_NEW. */
-    BKE_libblock_relink_to_newid(bmain, &new_brush->id, 0);
+    BKE_libblock_relink_to_newid(bmain, &new_brush->id, ID_REMAP_SKIP_USER_CLEAR);
 
 #ifndef NDEBUG
     /* Call to `BKE_libblock_relink_to_newid` above is supposed to have cleared all those flags. */

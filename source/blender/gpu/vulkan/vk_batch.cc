@@ -72,12 +72,12 @@ void VKBatch::draw(int vertex_first, int vertex_count, int instance_first, int i
   }
 }
 
-void VKBatch::draw_indirect(GPUStorageBuf *indirect_buf, intptr_t offset)
+void VKBatch::draw_indirect(StorageBuf *indirect_buf, intptr_t offset)
 {
   multi_draw_indirect(indirect_buf, 1, offset, 0);
 }
 
-void VKBatch::multi_draw_indirect(GPUStorageBuf *indirect_buf,
+void VKBatch::multi_draw_indirect(StorageBuf *indirect_buf,
                                   const int count,
                                   const intptr_t offset,
                                   const intptr_t stride)

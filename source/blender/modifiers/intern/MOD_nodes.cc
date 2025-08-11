@@ -474,7 +474,7 @@ namespace blender {
 
 /**
  * Setup side effects nodes so that the given node in the given compute context will be executed.
- * To make sure that it is executed, all parent group nodes and zones have to be set to  have side
+ * To make sure that it is executed, all parent group nodes and zones have to be set to have side
  * effects as well.
  */
 static void try_add_side_effect_node(const ModifierEvalContext &ctx,

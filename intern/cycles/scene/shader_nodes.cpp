@@ -4,6 +4,7 @@
 
 #include "scene/shader_nodes.h"
 #include "kernel/svm/types.h"
+#include "kernel/types.h"
 #include "scene/colorspace.h"
 #include "scene/constant_fold.h"
 #include "scene/film.h"
@@ -7382,13 +7383,15 @@ void NormalMapNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
   if (shader->has_surface_link() && space == NODE_NORMAL_MAP_TANGENT) {
     if (attribute.empty()) {
-      attributes->add(ATTR_STD_UV_TANGENT);
-      attributes->add(ATTR_STD_UV_TANGENT_SIGN);
+      attributes->add(ATTR_STD_UV_TANGENT_UNDISPLACED);
+      attributes->add(ATTR_STD_UV_TANGENT_SIGN_UNDISPLACED);
     }
     else {
-      attributes->add(ustring((string(attribute.c_str()) + ".tangent").c_str()));
-      attributes->add(ustring((string(attribute.c_str()) + ".tangent_sign").c_str()));
+      attributes->add(ustring((string(attribute.c_str()) + ".undisplaced_tangent").c_str()));
+      attributes->add(ustring((string(attribute.c_str()) + ".undisplaced_tangent_sign").c_str()));
     }
+
+    attributes->add(ATTR_STD_NORMAL_UNDISPLACED);
   }
 
   ShaderNode::attributes(shader, attributes);
@@ -7404,13 +7407,14 @@ void NormalMapNode::compile(SVMCompiler &compiler)
 
   if (space == NODE_NORMAL_MAP_TANGENT) {
     if (attribute.empty()) {
-      attr = compiler.attribute(ATTR_STD_UV_TANGENT);
-      attr_sign = compiler.attribute(ATTR_STD_UV_TANGENT_SIGN);
+      attr = compiler.attribute(ATTR_STD_UV_TANGENT_UNDISPLACED);
+      attr_sign = compiler.attribute(ATTR_STD_UV_TANGENT_SIGN_UNDISPLACED);
     }
     else {
-      attr = compiler.attribute(ustring((string(attribute.c_str()) + ".tangent").c_str()));
+      attr = compiler.attribute(
+          ustring((string(attribute.c_str()) + ".undisplaced_tangent").c_str()));
       attr_sign = compiler.attribute(
-          ustring((string(attribute.c_str()) + ".tangent_sign").c_str()));
+          ustring((string(attribute.c_str()) + ".undisplaced_tangent_sign").c_str()));
     }
   }
 
@@ -7427,13 +7431,15 @@ void NormalMapNode::compile(OSLCompiler &compiler)
 {
   if (space == NODE_NORMAL_MAP_TANGENT) {
     if (attribute.empty()) {
-      compiler.parameter("attr_name", ustring("geom:tangent"));
-      compiler.parameter("attr_sign_name", ustring("geom:tangent_sign"));
+      compiler.parameter("attr_name", ustring("geom:undisplaced_tangent"));
+      compiler.parameter("attr_sign_name", ustring("geom:undisplaced_tangent_sign"));
     }
     else {
-      compiler.parameter("attr_name", ustring((string(attribute.c_str()) + ".tangent").c_str()));
-      compiler.parameter("attr_sign_name",
-                         ustring((string(attribute.c_str()) + ".tangent_sign").c_str()));
+      compiler.parameter("attr_name",
+                         ustring((string(attribute.c_str()) + ".undisplaced_tangent").c_str()));
+      compiler.parameter(
+          "attr_sign_name",
+          ustring((string(attribute.c_str()) + ".undisplaced_tangent_sign").c_str()));
     }
   }
 
@@ -7656,12 +7662,12 @@ void VectorDisplacementNode::attributes(Shader *shader, AttributeRequestSet *att
 {
   if (shader->has_surface_link() && space == NODE_NORMAL_MAP_TANGENT) {
     if (attribute.empty()) {
-      attributes->add(ATTR_STD_UV_TANGENT);
-      attributes->add(ATTR_STD_UV_TANGENT_SIGN);
+      attributes->add(ATTR_STD_UV_TANGENT_UNDISPLACED);
+      attributes->add(ATTR_STD_UV_TANGENT_SIGN_UNDISPLACED);
     }
     else {
-      attributes->add(ustring((string(attribute.c_str()) + ".tangent").c_str()));
-      attributes->add(ustring((string(attribute.c_str()) + ".tangent_sign").c_str()));
+      attributes->add(ustring((string(attribute.c_str()) + ".undisplaced_tangent").c_str()));
+      attributes->add(ustring((string(attribute.c_str()) + ".undisplaced_tangent_sign").c_str()));
     }
   }
 
@@ -7679,13 +7685,14 @@ void VectorDisplacementNode::compile(SVMCompiler &compiler)
 
   if (space == NODE_NORMAL_MAP_TANGENT) {
     if (attribute.empty()) {
-      attr = compiler.attribute(ATTR_STD_UV_TANGENT);
-      attr_sign = compiler.attribute(ATTR_STD_UV_TANGENT_SIGN);
+      attr = compiler.attribute(ATTR_STD_UV_TANGENT_UNDISPLACED);
+      attr_sign = compiler.attribute(ATTR_STD_UV_TANGENT_SIGN_UNDISPLACED);
     }
     else {
-      attr = compiler.attribute(ustring((string(attribute.c_str()) + ".tangent").c_str()));
+      attr = compiler.attribute(
+          ustring((string(attribute.c_str()) + ".undisplaced_tangent").c_str()));
       attr_sign = compiler.attribute(
-          ustring((string(attribute.c_str()) + ".tangent_sign").c_str()));
+          ustring((string(attribute.c_str()) + ".undisplaced_tangent_sign").c_str()));
     }
   }
 
@@ -7704,13 +7711,15 @@ void VectorDisplacementNode::compile(OSLCompiler &compiler)
 {
   if (space == NODE_NORMAL_MAP_TANGENT) {
     if (attribute.empty()) {
-      compiler.parameter("attr_name", ustring("geom:tangent"));
-      compiler.parameter("attr_sign_name", ustring("geom:tangent_sign"));
+      compiler.parameter("attr_name", ustring("geom:undisplaced_tangent"));
+      compiler.parameter("attr_sign_name", ustring("geom:undisplaced_tangent_sign"));
     }
     else {
-      compiler.parameter("attr_name", ustring((string(attribute.c_str()) + ".tangent").c_str()));
-      compiler.parameter("attr_sign_name",
-                         ustring((string(attribute.c_str()) + ".tangent_sign").c_str()));
+      compiler.parameter("attr_name",
+                         ustring((string(attribute.c_str()) + ".undisplaced_tangent").c_str()));
+      compiler.parameter(
+          "attr_sign_name",
+          ustring((string(attribute.c_str()) + ".undisplaced_tangent_sign").c_str()));
     }
   }
 

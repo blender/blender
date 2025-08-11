@@ -3215,8 +3215,8 @@ std::optional<blender::Bounds<blender::float3>> BKE_pose_minmax(const Object *ob
     if (!pchan->bone) {
       continue;
     }
-    /* Despite `bone_is_selected` also checking for visibility we need to check visbility
-     * manually due to `use_select` potentially ignoring selection state.*/
+    /* Despite `bone_is_selected` also checking for visibility we need to check visibility
+     * manually due to `use_select` potentially ignoring selection state. */
     if (!blender::animrig::bone_is_visible_pchan(arm, pchan)) {
       continue;
     }

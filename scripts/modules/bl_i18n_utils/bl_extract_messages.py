@@ -405,7 +405,7 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
             return cls.__name__
         cls_id = ""
         bl_rna = getattr(cls, "bl_rna", None)
-        # It seems that py-defined 'wrappers' RNA classes (like `MeshEdge` in `bpy_types.py`) need to be accessed
+        # It seems that py-defined 'wrappers' RNA classes (like `MeshEdge` in `_bpy_types.py`) need to be accessed
         # once from `bpy.types` before they have a valid `bl_rna` member.
         # Weirdly enough, this is only triggered on release builds, debug builds somehow do not have that issue.
         if bl_rna is None:

@@ -338,7 +338,7 @@ static void scene_copy_data(Main *bmain,
                                               scene_dst,
                                               &scene_dst->ed->seqbase,
                                               &scene_src->ed->seqbase,
-                                              STRIP_DUPE_ALL,
+                                              blender::seq::StripDuplicate::All,
                                               flag_subdata);
     BLI_duplicatelist(&scene_dst->ed->channels, &scene_src->ed->channels);
     scene_dst->ed->displayed_channels = &scene_dst->ed->channels;
@@ -1983,7 +1983,8 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
        * using the original obdata ID, leading to them being falsly detected as being in Edit mode,
        * and therefore not remapping their obdata to the newly duplicated one.
        * See #139715. */
-      BKE_libblock_relink_to_newid(bmain, &sce_copy->id, ID_REMAP_FORCE_OBDATA_IN_EDITMODE);
+      BKE_libblock_relink_to_newid(
+          bmain, &sce_copy->id, ID_REMAP_FORCE_OBDATA_IN_EDITMODE | ID_REMAP_SKIP_USER_CLEAR);
 
 #ifndef NDEBUG
       /* Call to `BKE_libblock_relink_to_newid` above is supposed to have cleared all those

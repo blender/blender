@@ -3147,7 +3147,7 @@ void OBJECT_OT_drop_geometry_nodes(wmOperatorType *ot)
   RNA_def_boolean(ot->srna,
                   "show_datablock_in_modifier",
                   true,
-                  "Show the datablock selector in the modifier",
+                  "Show the data-block selector in the modifier",
                   "");
 }
 

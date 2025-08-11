@@ -87,7 +87,7 @@ static const PyC_StringEnumItems pygpu_shader_config_items[] = {
     {0, nullptr},
 };
 
-static int pygpu_shader_uniform_location_get(GPUShader *shader,
+static int pygpu_shader_uniform_location_get(blender::gpu::Shader *shader,
                                              const char *name,
                                              const char *error_prefix)
 {
@@ -960,7 +960,7 @@ static PyObject *pygpu_shader_from_builtin(PyObject * /*self*/, PyObject *args, 
     return nullptr;
   }
 
-  GPUShader *shader = GPU_shader_get_builtin_shader_with_config(
+  blender::gpu::Shader *shader = GPU_shader_get_builtin_shader_with_config(
       eGPUBuiltinShader(pygpu_bultinshader.value_found),
       eGPUShaderConfig(pygpu_config.value_found));
 
@@ -998,7 +998,7 @@ static PyObject *pygpu_shader_create_from_info(BPyGPUShader * /*self*/, BPyGPUSh
     return nullptr;
   }
 
-  GPUShader *shader = GPU_shader_create_from_info_python(o->info);
+  blender::gpu::Shader *shader = GPU_shader_create_from_info_python(o->info);
   if (!shader) {
     PyErr_SetString(PyExc_Exception, "Shader Compile Error, see console for more details");
     return nullptr;
@@ -1069,7 +1069,7 @@ static PyModuleDef pygpu_shader_module_def = {
 /** \name Public API
  * \{ */
 
-PyObject *BPyGPUShader_CreatePyObject(GPUShader *shader, bool is_builtin)
+PyObject *BPyGPUShader_CreatePyObject(blender::gpu::Shader *shader, bool is_builtin)
 {
   BPyGPUShader *self;
 
@@ -1089,7 +1089,7 @@ PyObject *bpygpu_shader_init()
   return submodule;
 }
 
-bool bpygpu_shader_is_polyline(GPUShader *shader)
+bool bpygpu_shader_is_polyline(blender::gpu::Shader *shader)
 {
   return ELEM(shader,
               GPU_shader_get_builtin_shader(GPU_SHADER_3D_POLYLINE_FLAT_COLOR),

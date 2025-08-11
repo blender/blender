@@ -256,7 +256,6 @@ class VKResourceStateTracker {
     return resources_.lookup(resource_handle).type;
   }
 
-  bool use_dynamic_rendering = true;
   bool use_dynamic_rendering_local_read = true;
 
   void debug_print() const;

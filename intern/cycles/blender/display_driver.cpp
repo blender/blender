@@ -37,7 +37,7 @@ unique_ptr<BlenderDisplayShader> BlenderDisplayShader::create(BL::RenderEngine &
 int BlenderDisplayShader::get_position_attrib_location()
 {
   if (position_attribute_location_ == -1) {
-    GPUShader *shader_program = get_shader_program();
+    blender::gpu::Shader *shader_program = get_shader_program();
     position_attribute_location_ = GPU_shader_get_attribute(shader_program,
                                                             position_attribute_name);
   }
@@ -47,7 +47,7 @@ int BlenderDisplayShader::get_position_attrib_location()
 int BlenderDisplayShader::get_tex_coord_attrib_location()
 {
   if (tex_coord_attribute_location_ == -1) {
-    GPUShader *shader_program = get_shader_program();
+    blender::gpu::Shader *shader_program = get_shader_program();
     tex_coord_attribute_location_ = GPU_shader_get_attribute(shader_program,
                                                              tex_coord_attribute_name);
   }
@@ -57,10 +57,11 @@ int BlenderDisplayShader::get_tex_coord_attrib_location()
 /* --------------------------------------------------------------------
  * BlenderFallbackDisplayShader.
  */
-static GPUShader *compile_fallback_shader()
+static blender::gpu::Shader *compile_fallback_shader()
 {
   /* NOTE: Compilation errors are logged to console. */
-  GPUShader *shader = GPU_shader_create_from_info_name("gpu_shader_cycles_display_fallback");
+  blender::gpu::Shader *shader = GPU_shader_create_from_info_name(
+      "gpu_shader_cycles_display_fallback");
   return shader;
 }
 
@@ -69,7 +70,7 @@ BlenderFallbackDisplayShader::~BlenderFallbackDisplayShader()
   destroy_shader();
 }
 
-GPUShader *BlenderFallbackDisplayShader::bind(const int width, const int height)
+blender::gpu::Shader *BlenderFallbackDisplayShader::bind(const int width, const int height)
 {
   create_shader_if_needed();
 
@@ -93,7 +94,7 @@ void BlenderFallbackDisplayShader::unbind()
   GPU_shader_unbind();
 }
 
-GPUShader *BlenderFallbackDisplayShader::get_shader_program()
+blender::gpu::Shader *BlenderFallbackDisplayShader::get_shader_program()
 {
   return shader_program_;
 }
@@ -146,7 +147,7 @@ BlenderDisplaySpaceShader::BlenderDisplaySpaceShader(BL::RenderEngine &b_engine,
   DCHECK(b_engine_.support_display_space_shader(b_scene_));
 }
 
-GPUShader *BlenderDisplaySpaceShader::bind(int /*width*/, int /*height*/)
+blender::gpu::Shader *BlenderDisplaySpaceShader::bind(int /*width*/, int /*height*/)
 {
   b_engine_.bind_display_space_shader(b_scene_);
   return GPU_shader_get_bound();
@@ -157,7 +158,7 @@ void BlenderDisplaySpaceShader::unbind()
   b_engine_.unbind_display_space_shader();
 }
 
-GPUShader *BlenderDisplaySpaceShader::get_shader_program()
+blender::gpu::Shader *BlenderDisplaySpaceShader::get_shader_program()
 {
   if (!shader_program_) {
     shader_program_ = GPU_shader_get_bound();
@@ -833,7 +834,8 @@ void BlenderDisplayDriver::draw(const Params &params)
   GPU_fence_wait(gpu_upload_sync_);
   GPU_blend(GPU_BLEND_ALPHA_PREMULT);
 
-  GPUShader *active_shader = display_shader_->bind(params.full_size.x, params.full_size.y);
+  blender::gpu::Shader *active_shader = display_shader_->bind(params.full_size.x,
+                                                              params.full_size.y);
 
   GPUVertFormat *format = immVertexFormat();
   const int texcoord_attribute = GPU_vertformat_attr_add(

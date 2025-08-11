@@ -55,7 +55,7 @@ void main()
       bg_col = mix(col_low, col_high, screen_uv.y);
       /* Convert back to linear. */
       bg_col = pow(bg_col, float3(2.2f));
-      /*  Dither to hide low precision buffer. (Could be improved) */
+      /* Dither to hide low precision buffer. (Could be improved) */
       bg_col += dither();
       break;
     case BG_RADIAL: {
@@ -68,7 +68,7 @@ void main()
 
       /* Convert back to linear. */
       bg_col = pow(bg_col, float3(2.2f));
-      /*  Dither to hide low precision buffer. (Could be improved) */
+      /* Dither to hide low precision buffer. (Could be improved). */
       bg_col += dither();
       break;
     }

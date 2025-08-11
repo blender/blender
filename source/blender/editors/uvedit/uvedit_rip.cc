@@ -916,7 +916,7 @@ static wmOperatorStatus uv_rip_exec(bContext *C, wmOperator *op)
 
   float aspx, aspy;
   {
-    /* Note that we only want to run this on the. */
+    /* Note that we only want to run this on the active object as this defines the UV image. */
     Object *obedit = CTX_data_edit_object(C);
     ED_uvedit_get_aspect(obedit, &aspx, &aspy);
   }

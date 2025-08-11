@@ -424,7 +424,6 @@ void VKShaderInterface::init_descriptor_set_layout_info(
     UNUSED_VARS(index);
     // TODO: clean up remove negation.
     descriptor_set_layout_info_.bindings.append_n_times(
-        !extensions.dynamic_rendering            ? VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT :
         !extensions.dynamic_rendering_local_read ? VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER :
                                                    VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
         info.subpass_inputs_.size());

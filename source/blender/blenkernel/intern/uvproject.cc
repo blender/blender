@@ -47,7 +47,7 @@ void BKE_uvproject_from_camera(float target[2], float source[3], ProjCameraInfo 
   if (uci->do_pano) {
     float angle = atan2f(pv4[0], -pv4[2]) / (float(M_PI) * 2.0f); /* angle around the camera */
     if (uci->do_persp == false) {
-      target[0] = angle; /* no correct method here, just map to  0-1 */
+      target[0] = angle; /* No correct method here, just map to 0-1. */
       target[1] = pv4[1] / uci->camsize;
     }
     else {

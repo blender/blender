@@ -491,7 +491,7 @@ int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
     ID *id_cow = depsgraph->get_cow_id(id_orig);
     BLI_assert(id_cow != nullptr);
     DEG_COW_PRINT(
-        "    Remapping datablock for %s: id_orig=%p id_cow=%p\n", id_orig->name, id_orig, id_cow);
+        "    Remapping data-block for %s: id_orig=%p id_cow=%p\n", id_orig->name, id_orig, id_cow);
     *id_p = id_cow;
   }
   return IDWALK_RET_NOP;

@@ -1295,7 +1295,7 @@ static void draw_points(const Armatures::DrawContext *ctx,
     }
   }
 
-  /*  Draw tip point */
+  /* Draw tip point. */
   if (is_envelope_draw) {
     drw_shgroup_bone_envelope(ctx,
                               bone.disp_mat(),

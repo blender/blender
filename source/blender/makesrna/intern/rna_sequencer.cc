@@ -4005,21 +4005,21 @@ static void rna_def_sound_equalizer_modifier(BlenderRNA *brna)
                        "min_freq",
                        SOUND_EQUALIZER_DEFAULT_MIN_FREQ,
                        0.0,
-                       SOUND_EQUALIZER_DEFAULT_MAX_FREQ, /*  Hard min and max */
+                       SOUND_EQUALIZER_DEFAULT_MAX_FREQ, /* Hard min and max */
                        "Minimum Frequency",
                        "Minimum Frequency",
                        0.0,
-                       SOUND_EQUALIZER_DEFAULT_MAX_FREQ); /*  Soft min and max */
+                       SOUND_EQUALIZER_DEFAULT_MAX_FREQ); /* Soft min and max */
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_float(func,
                        "max_freq",
                        SOUND_EQUALIZER_DEFAULT_MAX_FREQ,
                        0.0,
-                       SOUND_EQUALIZER_DEFAULT_MAX_FREQ, /*  Hard min and max */
+                       SOUND_EQUALIZER_DEFAULT_MAX_FREQ, /* Hard min and max */
                        "Maximum Frequency",
                        "Maximum Frequency",
                        0.0,
-                       SOUND_EQUALIZER_DEFAULT_MAX_FREQ); /*  Soft min and max */
+                       SOUND_EQUALIZER_DEFAULT_MAX_FREQ); /* Soft min and max */
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
   /* return type */

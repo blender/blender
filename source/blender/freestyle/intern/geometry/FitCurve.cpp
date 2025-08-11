@@ -103,12 +103,12 @@ static Vector2 *V2Negate(Vector2 *v)
   return v;
 }
 
-/*  GenerateBezier:
- *  Use least-squares method to find Bezier control points for region.
- *    Vector2 *d;           Array of digitized points
- *    int     first, last;  Indices defining region
- *    double  *uPrime;      Parameter values for region
- *    Vector2 tHat1, tHat2; Unit tangents at endpoints
+/* GenerateBezier:
+ * Use least-squares method to find Bezier control points for region.
+ *   Vector2 *d;           Array of digitized points
+ *   int     first, last;  Indices defining region
+ *   double  *uPrime;      Parameter values for region
+ *   Vector2 tHat1, tHat2; Unit tangents at endpoints
  */
 static BezierCurve GenerateBezier(
     Vector2 *d, int first, int last, double *uPrime, Vector2 tHat1, Vector2 tHat2)

@@ -609,7 +609,7 @@ const float (*GPU_matrix_normal_inverse_get(float m[3][3]))[3]
   return m;
 }
 
-void GPU_matrix_bind(GPUShader *shader)
+void GPU_matrix_bind(blender::gpu::Shader *shader)
 {
   /* set uniform values to matrix stack values
    * call this before a draw call if desired matrices are dirty

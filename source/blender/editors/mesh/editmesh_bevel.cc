@@ -93,6 +93,9 @@ struct BevelData {
   float segments;   /* Segments as float so smooth mouse pan works in small increments */
 
   CurveProfile *custom_profile;
+
+  bool use_automerge;
+  double automerge_threshold;
 };
 
 enum {
@@ -242,6 +245,9 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
   /* Put the Curve Profile from the toolsettings into the opdata struct */
   opdata->custom_profile = ts->custom_bevel_profile_preset;
 
+  opdata->use_automerge = scene->toolsettings->automerge & AUTO_MERGE;
+  opdata->automerge_threshold = scene->toolsettings->doublimit;
+
   {
     const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
         scene, view_layer, v3d);
@@ -303,7 +309,7 @@ static bool edbm_bevel_calc(wmOperator *op)
 {
   BevelData *opdata = static_cast<BevelData *>(op->customdata);
   BMOperator bmop;
-  bool changed = false;
+  bool changed_multi = false;
 
   const float offset = get_bevel_offset(op);
   const int offset_type = RNA_enum_get(op->ptr, "offset_type");
@@ -382,19 +388,27 @@ static bool edbm_bevel_calc(wmOperator *op)
       }
     }
 
-    /* no need to de-select existing geometry */
-    if (!EDBM_op_finish(em, &bmop, op, true)) {
-      continue;
+    bool changed = false;
+
+    if (opdata->use_automerge) {
+      changed |= EDBM_automerge_connected(
+          obedit, false, BM_ELEM_SELECT, opdata->automerge_threshold);
     }
 
-    EDBMUpdate_Params params{};
-    params.calc_looptris = true;
-    params.calc_normals = true;
-    params.is_destructive = true;
-    EDBM_update(static_cast<Mesh *>(obedit->data), &params);
-    changed = true;
+    changed |= EDBM_op_finish(em, &bmop, op, true);
+
+    /* no need to de-select existing geometry */
+    if (changed) {
+      EDBMUpdate_Params params{};
+      params.calc_looptris = true;
+      params.calc_normals = true;
+      params.is_destructive = true;
+      EDBM_update(static_cast<Mesh *>(obedit->data), &params);
+    }
+
+    changed_multi |= changed;
   }
-  return changed;
+  return changed_multi;
 }
 
 static void edbm_bevel_exit(bContext *C, wmOperator *op)

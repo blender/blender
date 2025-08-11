@@ -658,9 +658,8 @@ class NODE_MT_category_GEO_UTILITIES(Menu):
         layout.menu("NODE_MT_category_GEO_TEXT")
         layout.menu("NODE_MT_category_GEO_VECTOR")
         layout.separator()
-        if context.preferences.experimental.use_bundle_and_closure_nodes:
-            layout.menu("NODE_MT_category_utilities_bundle")
-            layout.menu("NODE_MT_category_utilities_closure")
+        layout.menu("NODE_MT_category_utilities_bundle")
+        layout.menu("NODE_MT_category_utilities_closure")
         layout.menu("NODE_MT_category_GEO_UTILITIES_FIELD")
         if context.preferences.experimental.use_geometry_nodes_lists:
             layout.menu("NODE_MT_category_utilities_list")

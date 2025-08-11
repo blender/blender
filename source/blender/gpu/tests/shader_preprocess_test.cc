@@ -255,7 +255,7 @@ func_TEMPLATE(float, 1)/*float a*/)";
     EXPECT_EQ(error, "");
   }
   {
-    string input = R"(template<typename T, int i = 0> void func(T a) {a;)";
+    string input = R"(template<typename T, int i = 0> void func(T a) {a;})";
     string error;
     string output = process_test_string(input, error);
     EXPECT_EQ(error, "Template declaration unsupported syntax");
@@ -486,6 +486,7 @@ int func2(int a)
     string expect = R"(
 
 struct A_S {};
+#line 4
 int A_func(int a)
 {
   A_S s;
@@ -623,6 +624,7 @@ void test() {
 
 void A_B_func() {}
 struct A_B_S {};
+#line 5
 
 
 
@@ -820,17 +822,16 @@ uint my_func() {
   return i;
 #else
 #line 3
-  return uint(0);
+  uint result;
+  return result;
 #endif
 #line 6
 }
 )";
     string error;
     string output = process_test_string(input, error);
-    // EXPECT_EQ(output, expect); /* TODO: Add support. */
-    EXPECT_EQ(error,
-              "Return statement with values are not supported inside the same scope as "
-              "resource access function.");
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
   }
   {
     string input = R"(
@@ -896,5 +897,203 @@ uint my_func() {
   }
 }
 GPU_TEST(preprocess_resource_guard);
+
+static void test_preprocess_struct_methods()
+{
+  using namespace shader;
+  using namespace std;
+
+  {
+    string input = R"(
+class S {
+ private:
+  int member;
+  int this_member;
+
+ public:
+  static S construct()
+  {
+    S a;
+    a.member = 0;
+    a.this_member = 0;
+    return a;
+  }
+
+  int another_member;
+
+  S function(int i)
+  {
+    this->member = i;
+    this_member++;
+    return *this;
+  }
+
+  int size() const
+  {
+    return this->member;
+  }
+};
+
+void main()
+{
+  S s = S::construct();
+  a.b();
+  a(0).b();
+  a().b();
+  a.b.c();
+  a.b(0).c();
+  a.b().c();
+  a[0].b();
+  a.b[0].c();
+  a.b().c[0];
+}
+)";
+    string expect = R"(
+struct S {
+
+  int member;
+  int this_member;
+
+
+
+
+
+
+
+
+
+
+  int another_member;
+
+
+
+
+
+
+
+
+
+
+
+
+};
+#line 8
+  static S S_construct()
+  {
+    S a;
+    a.member = 0;
+    a.this_member = 0;
+    return a;
+  }
+#line 18
+  S function(inout S _inout_sta this _inout_end, int i)
+  {
+    this.member = i;
+    this_member++;
+    return this;
+  }
+#line 25
+  int size(const S this) 
+  {
+    return this.member;
+  }
+#line 30
+
+void main()
+{
+  S s = S_construct();
+  b(a);
+  b(a(0));
+  b(a());
+  c(a.b);
+  c(b(a, 0));
+  c(b(a));
+  b(a[0]);
+  c(a.b[0]);
+  b(a).c[0];
+}
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+}
+GPU_TEST(preprocess_struct_methods);
+
+static void test_preprocess_parser()
+{
+  using namespace std;
+  using namespace shader::parser;
+
+  {
+    string input = R"(
+1;
+1.0;
+2e10;
+2e10f;
+2.e10f;
+2.0e-1f;
+2.0e-1;
+2.0e-1f;
+0xFF;
+0xFFu;
+)";
+    string expect = R"(
+0;0;0;0;0;0;0;0;0;0;)";
+    EXPECT_EQ(Parser(input).data_get().token_types, expect);
+  }
+  {
+    string input = R"(
+struct T {
+    int t = 1;
+};
+class B {
+    T t;
+};
+)";
+    string expect = R"(
+sw{ww=0;};Sw{ww;};)";
+    EXPECT_EQ(Parser(input).data_get().token_types, expect);
+  }
+  {
+    string input = R"(
+void f(int t = 0) {
+  int i = 0, u = 2, v = {1.0f};
+  {
+    v = i = u, v++;
+    if (v == i) {
+      return;
+    }
+  }
+}
+)";
+    string expect = R"(
+ww(ww=0){ww=0,w=0,w={0};{w=w=w,wP;i(wEw){r;}}})";
+    EXPECT_EQ(Parser(input).data_get().token_types, expect);
+  }
+  {
+    Parser parser("float i;");
+    parser.insert_after(Token{&parser.data_get(), 0}, "A ");
+    parser.insert_after(Token{&parser.data_get(), 0}, "B  ");
+    EXPECT_EQ(parser.result_get(), "float A B  i;");
+  }
+  {
+    string input = R"(
+A
+#line 100
+B
+)";
+    Parser parser(input);
+    Token A = {&parser.data_get(), 1};
+    Token B = {&parser.data_get(), 5};
+
+    EXPECT_EQ(A.str_no_whitespace(), "A");
+    EXPECT_EQ(B.str_no_whitespace(), "B");
+    EXPECT_EQ(A.line_number(), 2);
+    EXPECT_EQ(B.line_number(), 100);
+  }
+}
+GPU_TEST(preprocess_parser);
 
 }  // namespace blender::gpu::tests

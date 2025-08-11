@@ -45,4 +45,11 @@ float3 mesh_interpolate_position_on_edge(Span<float3> coarse_positions,
                                          bool is_simple,
                                          float u);
 
+/**
+ * Calculate positions position of the given mesh vertices at the limit surface of the mesh.
+ *
+ * The limit_positions is to be sized at exactly the number of the base mesh vertices.
+ */
+void calculate_limit_positions(Mesh *mesh, MutableSpan<float3> limit_positions);
+
 }  // namespace blender::bke::subdiv

@@ -75,7 +75,7 @@ enum {
  * \param info: Identifier string for the GHash.
  * \param nentries_reserve: Optionally reserve the number of members that the hash will hold.
  * Use this to avoid resizing buckets if the size is known or can be closely approximated.
- * \return  An empty GHash.
+ * \return An empty GHash.
  */
 GHash *BLI_ghash_new_ex(GHashHashFP hashfp,
                         GHashCmpFP cmpfp,

@@ -100,6 +100,8 @@ static GHOST_SystemHandle g_system = nullptr;
 static const char *g_system_backend_id = nullptr;
 #endif
 
+static CLG_LogRef LOG_GHOST_SYSTEM = {"ghost.system"};
+
 enum eWinOverrideFlag {
   WIN_OVERRIDE_GEOM = (1 << 0),
   WIN_OVERRIDE_WINSTATE = (1 << 1),
@@ -1528,15 +1530,15 @@ static void ghost_event_proc_timestamp_warning(GHOST_EventHandle ghost_event)
     time_unit = unit_table[i].unit;
   }
 
-  fprintf(stderr,
-          "GHOST: suspicious time-stamp from far in the %s: %.2f %s, "
-          "absolute value is %" PRIu64 ", current time is %" PRIu64 ", for type %d\n",
-          time_delta < 0.0f ? "past" : "future",
-          std::abs(time_delta),
-          time_unit,
-          event_ms,
-          now_ms,
-          int(GHOST_GetEventType(ghost_event)));
+  CLOG_INFO_NOCHECK(WM_LOG_EVENTS,
+                    "GHOST: suspicious time-stamp from far in the %s: %.2f %s, "
+                    "absolute value is %" PRIu64 ", current time is %" PRIu64 ", for type %d\n",
+                    time_delta < 0.0f ? "past" : "future",
+                    std::abs(time_delta),
+                    time_unit,
+                    event_ms,
+                    now_ms,
+                    int(GHOST_GetEventType(ghost_event)));
 }
 #endif /* !NDEBUG */
 
@@ -2033,7 +2035,7 @@ void wm_ghost_init(bContext *C)
 
   if (UNLIKELY(g_system == nullptr)) {
     /* GHOST will have reported the back-ends that failed to load. */
-    fprintf(stderr, "GHOST: unable to initialize, exiting!\n");
+    CLOG_STR_ERROR(&LOG_GHOST_SYSTEM, "Unable to initialize GHOST, exiting!");
     /* This will leak memory, it's preferable to crashing. */
     exit(EXIT_FAILURE);
   }

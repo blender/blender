@@ -46,10 +46,14 @@
 #include "ANIM_animdata.hh"
 #include "ANIM_fcurve.hh"
 
+#include "CLG_log.h"
+
 #include "action_runtime.hh"
 
 #include <cstdio>
 #include <cstring>
+
+static CLG_LogRef LOG = {"anim.action"};
 
 namespace blender::animrig {
 
@@ -2177,22 +2181,22 @@ SingleKeyingResult StripKeyframeData::keyframe_insert(Main *bmain,
   }
 
   if (!fcurve) {
-    std::fprintf(stderr,
-                 "FCurve %s[%d] for slot %s was not created due to either the Only Insert "
-                 "Available setting or Replace keyframing mode.\n",
-                 fcurve_descriptor.rna_path.c_str(),
-                 fcurve_descriptor.array_index,
-                 slot.identifier);
+    CLOG_WARN(&LOG,
+              "FCurve %s[%d] for slot %s was not created due to either the Only Insert "
+              "Available setting or Replace keyframing mode.\n",
+              fcurve_descriptor.rna_path.c_str(),
+              fcurve_descriptor.array_index,
+              slot.identifier);
     return SingleKeyingResult::CANNOT_CREATE_FCURVE;
   }
 
   if (!BKE_fcurve_is_keyframable(fcurve)) {
     /* TODO: handle this properly, in a way that can be communicated to the user. */
-    std::fprintf(stderr,
-                 "FCurve %s[%d] for slot %s doesn't allow inserting keys.\n",
-                 fcurve_descriptor.rna_path.c_str(),
-                 fcurve_descriptor.array_index,
-                 slot.identifier);
+    CLOG_WARN(&LOG,
+              "FCurve %s[%d] for slot %s doesn't allow inserting keys.\n",
+              fcurve_descriptor.rna_path.c_str(),
+              fcurve_descriptor.array_index,
+              slot.identifier);
     return SingleKeyingResult::FCURVE_NOT_KEYFRAMEABLE;
   }
 
@@ -2215,11 +2219,11 @@ SingleKeyingResult StripKeyframeData::keyframe_insert(Main *bmain,
       fcurve, time_value, settings, insert_key_flags);
 
   if (insert_vert_result != SingleKeyingResult::SUCCESS) {
-    std::fprintf(stderr,
-                 "Could not insert key into FCurve %s[%d] for slot %s.\n",
-                 fcurve_descriptor.rna_path.c_str(),
-                 fcurve_descriptor.array_index,
-                 slot.identifier);
+    CLOG_WARN(&LOG,
+              "Could not insert key into FCurve %s[%d] for slot %s.\n",
+              fcurve_descriptor.rna_path.c_str(),
+              fcurve_descriptor.array_index,
+              slot.identifier);
     return insert_vert_result;
   }
 

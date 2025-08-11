@@ -108,7 +108,7 @@ class MapUVOperation : public NodeOperation {
   void execute_gpu()
   {
     const Interpolation interpolation = this->get_interpolation();
-    GPUShader *shader = context().get_shader(this->get_shader_name(interpolation));
+    gpu::Shader *shader = context().get_shader(this->get_shader_name(interpolation));
     GPU_shader_bind(shader);
 
     const Result &input_image = get_input("Image");

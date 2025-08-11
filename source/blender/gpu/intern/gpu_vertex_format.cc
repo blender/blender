@@ -632,7 +632,7 @@ static void recommended_fetch_mode_and_comp_type(Type gpu_type,
   }
 }
 
-void GPU_vertformat_from_shader(GPUVertFormat *format, const GPUShader *shader)
+void GPU_vertformat_from_shader(GPUVertFormat *format, const blender::gpu::Shader *shader)
 {
   GPU_vertformat_clear(format);
 

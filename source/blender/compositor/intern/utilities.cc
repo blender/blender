@@ -191,7 +191,7 @@ InputDescriptor input_descriptor_from_input_socket(const bNodeSocket *socket)
   return input_descriptor;
 }
 
-void compute_dispatch_threads_at_least(GPUShader *shader, int2 threads_range, int2 local_size)
+void compute_dispatch_threads_at_least(gpu::Shader *shader, int2 threads_range, int2 local_size)
 {
   /* If the threads range is divisible by the local size, dispatch the number of needed groups,
    * which is their division. If it is not divisible, then dispatch an extra group to cover the

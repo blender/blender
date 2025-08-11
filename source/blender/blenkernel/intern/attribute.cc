@@ -812,7 +812,7 @@ std::optional<blender::StringRefNull> BKE_attributes_active_name_get(AttributeOw
   }
   if (owner.type() != AttributeOwnerType::Mesh) {
     bke::AttributeStorage &storage = *owner.get_storage();
-    if (active_index >= storage.count()) {
+    if (!IndexRange(storage.count()).contains(active_index)) {
       return std::nullopt;
     }
     return storage.at_index(active_index).name();
