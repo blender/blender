@@ -87,8 +87,9 @@ CCL_NAMESPACE_BEGIN
 
 /* BVH/sampling kernel features. */
 #define KERNEL_FEATURE_POINTCLOUD (1U << 12U)
-#define KERNEL_FEATURE_HAIR (1U << 13U)
+#define KERNEL_FEATURE_HAIR_RIBBON (1U << 13U)
 #define KERNEL_FEATURE_HAIR_THICK (1U << 14U)
+#define KERNEL_FEATURE_HAIR (KERNEL_FEATURE_HAIR_RIBBON | KERNEL_FEATURE_HAIR_THICK)
 #define KERNEL_FEATURE_OBJECT_MOTION (1U << 15U)
 
 /* Denotes whether baking functionality is needed. */

@@ -246,6 +246,8 @@ class BlenderSync {
   bool use_adaptive_subdivision = false;
   bool use_developer_ui;
 
+  CurveShapeType curve_shape = CURVE_RIBBON;
+
   float dicing_rate;
   int max_subdivisions;
 
