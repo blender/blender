@@ -220,13 +220,15 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
     const eNodeSocketDatatype socket_type,
     const FunctionRef<std::shared_ptr<AttributeFieldInput>(const CPPType &type)>
         make_attribute_field,
+    BakeDataBlockMap *data_block_map,
     Map<std::string, std::string> &r_attribute_map,
     void *r_value)
 {
   switch (socket_type) {
     case SOCK_GEOMETRY: {
       if (const auto *item = dynamic_cast<const GeometryBakeItem *>(&bake_item)) {
-        new (r_value) GeometrySet(item->geometry);
+        GeometrySet *geometry = new (r_value) GeometrySet(item->geometry);
+        GeometryBakeItem::try_restore_data_blocks(*geometry, data_block_map);
         return true;
       }
       return false;
@@ -296,8 +298,12 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
               return false;
             }
             BUFFER_FOR_CPP_TYPE_VALUE(*stype->geometry_nodes_cpp_type, buffer);
-            if (!copy_bake_item_to_socket_value(
-                    *socket_value->value, stype->type, {}, r_attribute_map, buffer))
+            if (!copy_bake_item_to_socket_value(*socket_value->value,
+                                                stype->type,
+                                                {},
+                                                data_block_map,
+                                                r_attribute_map,
+                                                buffer))
             {
               return false;
             }
@@ -358,14 +364,6 @@ static void rename_attributes(const Span<GeometrySet *> geometries,
   }
 }
 
-static void restore_data_blocks(const Span<GeometrySet *> geometries,
-                                BakeDataBlockMap *data_block_map)
-{
-  for (GeometrySet *main_geometry : geometries) {
-    GeometryBakeItem::try_restore_data_blocks(*main_geometry, data_block_map);
-  }
-}
-
 static void default_initialize_socket_value(const eNodeSocketDatatype socket_type, void *r_value)
 {
   const bke::bNodeSocketType *typeinfo = bke::node_socket_type_find_static(socket_type);
@@ -401,6 +399,7 @@ void move_bake_items_to_socket_values(
             *bake_item,
             socket_type,
             [&](const CPPType &attr_type) { return make_attribute_field(i, attr_type); },
+            data_block_map,
             attribute_map,
             r_socket_value))
     {
@@ -415,7 +414,6 @@ void move_bake_items_to_socket_values(
   }
 
   rename_attributes(geometries, attribute_map);
-  restore_data_blocks(geometries, data_block_map);
 }
 
 void copy_bake_items_to_socket_values(
@@ -440,6 +438,7 @@ void copy_bake_items_to_socket_values(
             *bake_item,
             socket_type,
             [&](const CPPType &attr_type) { return make_attribute_field(i, attr_type); },
+            data_block_map,
             attribute_map,
             r_socket_value))
     {
@@ -452,7 +451,6 @@ void copy_bake_items_to_socket_values(
   }
 
   rename_attributes(geometries, attribute_map);
-  restore_data_blocks(geometries, data_block_map);
 }
 
 }  // namespace blender::bke::bake
