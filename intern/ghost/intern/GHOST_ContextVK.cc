@@ -860,9 +860,10 @@ static GHOST_TSuccess selectPresentMode(const char *ghost_vsync_string,
           return GHOST_kSuccess;
         }
       }
-      fprintf(stderr,
-              "Vsync off was requested via GHOST_VSYNC, but VK_PRESENT_MODE_IMMEDIATE_KHR is not "
-              "supported.\n");
+      CLOG_WARN(&LOG,
+                "Vulkan: Vsync off was requested via BLENDER_VSYNC, but "
+                "VK_PRESENT_MODE_IMMEDIATE_KHR is not "
+                "supported.");
     }
   }
 
