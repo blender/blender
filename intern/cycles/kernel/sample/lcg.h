@@ -26,6 +26,15 @@ template<class T> ccl_device float lcg_step_float(T rng)
   return (float)*rng * (1.0f / (float)0xFFFFFFFF);
 }
 
+template<class T> ccl_device float3 lcg_step_float3(T rng)
+{
+  /* Make sure the random numbers are evaluated in order. */
+  const float rand_x = lcg_step_float(rng);
+  const float rand_y = lcg_step_float(rng);
+  const float rand_z = lcg_step_float(rng);
+  return make_float3(rand_x, rand_y, rand_z);
+}
+
 ccl_device uint lcg_init(const uint seed)
 {
   uint rng = seed;

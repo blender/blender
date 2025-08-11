@@ -1072,7 +1072,8 @@ ccl_device_extern bool rs_texture3d(ccl_private ShaderGlobals *sg,
 
   switch (type) {
     case OSL_TEXTURE_HANDLE_TYPE_SVM: {
-      const float4 rgba = kernel_tex_image_interp_3d(nullptr, slot, *P, INTERPOLATION_NONE, -1.0f);
+      const float4 rgba = kernel_tex_image_interp_3d(
+          nullptr, sg->sd, slot, *P, INTERPOLATION_NONE, false);
       if (nchannels > 0) {
         result[0] = rgba.x;
       }
