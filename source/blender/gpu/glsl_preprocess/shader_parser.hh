@@ -111,11 +111,14 @@ enum class ScopeType : char {
   Function = 'F',
   FunctionArgs = 'f',
   Template = 'T',
+  TemplateArg = 't',
   Subscript = 'A',
   Preprocessor = 'P',
   Assignment = 'a',
   /* Added scope inside function body. */
   Local = 'L',
+  /* Added scope inside FunctionArgs. */
+  FunctionArg = 'g',
 };
 
 /* Poor man's IndexRange. */
@@ -458,13 +461,19 @@ struct ParserData {
             enter_scope(ScopeType::Subscript, tok_id);
             break;
           case AngleOpen:
-            if (token_types[tok_id - 1] == Template) {
+            if (token_types[tok_id - 1] == Template ||
+                /* Catch case of specialized declaration. */
+                ScopeType(scope_types.back()) == ScopeType::Template)
+            {
               enter_scope(ScopeType::Template, tok_id);
               in_template = true;
             }
             break;
           case AngleClose:
             if (in_template && scopes.top().type == ScopeType::Assignment) {
+              exit_scope(tok_id - 1);
+            }
+            if (scopes.top().type == ScopeType::TemplateArg) {
               exit_scope(tok_id - 1);
             }
             if (scopes.top().type == ScopeType::Template) {
@@ -474,6 +483,9 @@ struct ParserData {
           case BracketClose:
           case ParClose:
             if (scopes.top().type == ScopeType::Assignment) {
+              exit_scope(tok_id - 1);
+            }
+            if (scopes.top().type == ScopeType::FunctionArg) {
               exit_scope(tok_id - 1);
             }
             exit_scope(tok_id);
@@ -486,8 +498,20 @@ struct ParserData {
             if (scopes.top().type == ScopeType::Assignment) {
               exit_scope(tok_id - 1);
             }
+            if (scopes.top().type == ScopeType::FunctionArg) {
+              exit_scope(tok_id - 1);
+            }
+            if (scopes.top().type == ScopeType::TemplateArg) {
+              exit_scope(tok_id - 1);
+            }
             break;
           default:
+            if (scopes.top().type == ScopeType::FunctionArgs) {
+              enter_scope(ScopeType::FunctionArg, tok_id);
+            }
+            if (scopes.top().type == ScopeType::Template) {
+              enter_scope(ScopeType::TemplateArg, tok_id);
+            }
             break;
         }
       }
@@ -721,7 +745,7 @@ struct Scope {
   std::string str() const
   {
     return data->str.substr(start().str_index_start(),
-                            end().str_index_last() - start().str_index_start());
+                            end().str_index_last() - start().str_index_start() + 1);
   }
 
   void foreach_match(const std::string &pattern,
@@ -741,6 +765,24 @@ struct Scope {
           match[i] = Token{data, range().start + pos + i};
         }
         callback(match);
+      }
+      pos += 1;
+    }
+  }
+
+  /* Will iterate over all the scopes that are direct children. */
+  void foreach_scope(ScopeType type, std::function<void(Scope)> callback) const
+  {
+    size_t pos = this->index;
+    while ((pos = data->scope_types.find(char(type), pos)) != std::string::npos) {
+      Scope scope{data, pos};
+      if (scope.start().index > this->end().index) {
+        /* Found scope starts after this scope. End iteration. */
+        break;
+      }
+      /* Make sure found scope is direct child of this scope. */
+      if (scope.start().scope().scope().index == this->index) {
+        callback(scope);
       }
       pos += 1;
     }
@@ -859,6 +901,11 @@ struct Parser {
   {
     replace(from.str_index_start(), to.str_index_last(), replacement);
   }
+  /* Replace token by string. */
+  void replace(Token tok, const std::string &replacement)
+  {
+    replace(tok.str_index_start(), tok.str_index_last(), replacement);
+  }
 
   /* Replace the content from `from` to `to` (inclusive) by whitespaces without changing
    * line count and keep the remaining indentation spaces. */
@@ -884,6 +931,12 @@ struct Parser {
   void erase(Token tok)
   {
     erase(tok, tok);
+  }
+  /* Replace the content of the scope by whitespaces without changing
+   * line count and keep the remaining indentation spaces. */
+  void erase(Scope scope)
+  {
+    erase(scope.start(), scope.end());
   }
 
   void insert_after(size_t at, const std::string &content)

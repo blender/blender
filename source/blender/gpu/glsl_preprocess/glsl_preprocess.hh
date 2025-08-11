@@ -413,6 +413,28 @@ class Preprocessor {
       }
     }
     {
+      using namespace std;
+      using namespace shader::parser;
+      Parser parser(out_str);
+
+      parser.foreach_scope(ScopeType::Global, [&](Scope scope) {
+        /* Replace full specialization by simple functions. */
+        scope.foreach_match("t<>ww<", [&](const std::vector<Token> &tokens) {
+          const Scope template_args = tokens[5].scope();
+          const Token fn_name = tokens[4];
+          string fn_name_str = fn_name.str_no_whitespace() + "_";
+          template_args.foreach_scope(ScopeType::TemplateArg, [&](Scope arg) {
+            fn_name_str += arg.start().str_no_whitespace() + "_";
+          });
+          parser.erase(template_args);
+          parser.erase(tokens[0], tokens[2]);
+          parser.replace(fn_name, fn_name_str);
+        });
+      });
+
+      out_str = parser.result_get();
+    }
+    {
       /* Replace explicit instantiation by macro call. */
       /* Only `template ret_t fn<T>(args);` syntax is supported. */
       std::regex regex_instance(R"(template \w+ (\w+)<([\w+\,\ \n]+)>\(([\w+\ \,\n]+)\);)");
