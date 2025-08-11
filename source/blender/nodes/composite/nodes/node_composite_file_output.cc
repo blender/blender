@@ -574,16 +574,11 @@ class FileOutputOperation : public NodeOperation {
         file_output.add_pass(pass_name, view_name, "XY", buffer);
         break;
       case ResultType::Int2:
-        file_output.add_pass(pass_name, view_name, "XY", buffer);
-        break;
       case ResultType::Int:
-        file_output.add_pass(pass_name, view_name, "V", buffer);
-        break;
       case ResultType::Bool:
-        file_output.add_pass(pass_name, view_name, "V", buffer);
-        break;
       case ResultType::Menu:
-        file_output.add_pass(pass_name, view_name, "V", buffer);
+        /* Not supported. */
+        BLI_assert_unreachable();
         break;
     }
   }
@@ -608,26 +603,13 @@ class FileOutputOperation : public NodeOperation {
         single_value.type()->fill_assign_n(single_value.get(), buffer, length);
         return buffer;
       }
-      case ResultType::Int: {
-        const float value = float(result.get_single_value<int32_t>());
-        CPPType::get<float>().fill_assign_n(&value, buffer, length);
-        return buffer;
-      }
-      case ResultType::Int2: {
-        const float2 value = float2(result.get_single_value<int2>());
-        CPPType::get<float2>().fill_assign_n(&value, buffer, length);
-        return buffer;
-      }
-      case ResultType::Bool: {
-        const float value = float(result.get_single_value<bool>());
-        CPPType::get<float>().fill_assign_n(&value, buffer, length);
-        return buffer;
-      }
-      case ResultType::Menu: {
-        const float value = float(result.get_single_value<int32_t>());
-        CPPType::get<float>().fill_assign_n(&value, buffer, length);
-        return buffer;
-      }
+      case ResultType::Int:
+      case ResultType::Int2:
+      case ResultType::Bool:
+      case ResultType::Menu:
+        /* Not supported. */
+        BLI_assert_unreachable();
+        return nullptr;
     }
 
     BLI_assert_unreachable();
