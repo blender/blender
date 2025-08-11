@@ -74,11 +74,7 @@ bool BLI_change_working_dir(const char *dir)
   }
   return _wchdir(wdir) == 0;
 #  else
-  int result = chdir(dir);
-  if (result == 0) {
-    BLI_setenv("PWD", dir);
-  }
-  return result == 0;
+  return chdir(dir) == 0;
 #  endif
 }
 
@@ -93,15 +89,6 @@ char *BLI_current_working_dir(char *dir, const size_t maxncpy)
   }
   return nullptr;
 #  else
-  const char *pwd = BLI_getenv("PWD");
-  if (pwd) {
-    size_t srclen = BLI_strnlen(pwd, maxncpy);
-    if (srclen != maxncpy) {
-      memcpy(dir, pwd, srclen + 1);
-      return dir;
-    }
-    return nullptr;
-  }
   return getcwd(dir, maxncpy);
 #  endif
 }
