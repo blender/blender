@@ -87,7 +87,7 @@ class BlendFileHeader:
 
         bytes_0_6 = file.read(7)
         if bytes_0_6 != b'BLENDER':
-            raise BlendHeaderError("invalid first bytes %r" % bytes_0_6)
+            raise BlendHeaderError("invalid first bytes {!r}".format(bytes_0_6))
         self.magic = bytes_0_6
 
         byte_7 = file.read(1)
@@ -99,21 +99,21 @@ class BlendFileHeader:
             elif byte_7 == b'-':
                 self.pointer_size = 8
             else:
-                raise BlendHeaderError("invalid pointer size %r" % byte_7)
+                raise BlendHeaderError("invalid pointer size {!r}".format(byte_7))
             byte_8 = file.read(1)
             if byte_8 == b'v':
                 self.is_little_endian = True
             elif byte_8 == b'V':
                 self.is_little_endian = False
             else:
-                raise BlendHeaderError("invalid endian indicator %r" % byte_8)
+                raise BlendHeaderError("invalid endian indicator {!r}".format(byte_8))
             bytes_9_11 = file.read(3)
             self.version = int(bytes_9_11)
         else:
             byte_8 = file.read(1)
             header_size = int(byte_7 + byte_8)
             if header_size != 17:
-                raise BlendHeaderError("unknown file header size %d" % header_size)
+                raise BlendHeaderError("unknown file header size {:d}".format(header_size))
             byte_9 = file.read(1)
             if byte_9 != b'-':
                 raise BlendHeaderError("invalid file header")
@@ -121,7 +121,7 @@ class BlendFileHeader:
             byte_10_11 = file.read(2)
             self.file_format_version = int(byte_10_11)
             if self.file_format_version != 1:
-                raise BlendHeaderError("unsupported file format version %r" % self.file_format_version)
+                raise BlendHeaderError("unsupported file format version {:d}".format(self.file_format_version))
             byte_12 = file.read(1)
             if byte_12 != b'v':
                 raise BlendHeaderError("invalid file header")
