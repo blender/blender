@@ -1663,6 +1663,26 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
                                     domain_to_range,
                                     dst_attribute_writers);
 }
+static void copy_vertex_group_name(ListBase *dst_deform_group,
+                                   const OrderedAttributes &ordered_attributes,
+                                   const bDeformGroup &src_deform_group)
+{
+  const StringRef src_name = src_deform_group.name;
+  const int attribute_index = ordered_attributes.ids.index_of_try(src_name);
+  if (attribute_index == -1) {
+    /* The attribute is not propagated to the result (possibly because the mesh isn't included
+     * in the realized output because of the #VariedDepthOptions input). */
+    return;
+  }
+  const bke::AttributeDomainAndType kind = ordered_attributes.kinds[attribute_index];
+  if (kind.domain != bke::AttrDomain::Point || kind.data_type != bke::AttrType::Float) {
+    /* Skip if the source attribute can't possibly contain vertex weights. */
+    return;
+  }
+  bDeformGroup *dst = MEM_callocN<bDeformGroup>(__func__);
+  src_name.copy_utf8_truncated(dst->name);
+  BLI_addtail(dst_deform_group, dst);
+}
 
 static void copy_vertex_group_names(Mesh &dst_mesh,
                                     const OrderedAttributes &ordered_attributes,
@@ -1674,24 +1694,10 @@ static void copy_vertex_group_names(Mesh &dst_mesh,
   }
   for (const Mesh *mesh : src_meshes) {
     LISTBASE_FOREACH (const bDeformGroup *, src, &mesh->vertex_group_names) {
-      const StringRef src_name = src->name;
-      const int attribute_index = ordered_attributes.ids.index_of_try(src_name);
-      if (attribute_index == -1) {
-        /* The attribute is not propagated to the result (possibly because the mesh isn't included
-         * in the realized output because of the #VariedDepthOptions input). */
+      if (existing_names.contains(src->name)) {
         continue;
       }
-      const bke::AttributeDomainAndType kind = ordered_attributes.kinds[attribute_index];
-      if (kind.domain != bke::AttrDomain::Point || kind.data_type != bke::AttrType::Float) {
-        /* Prefer using the highest priority domain and type from all input meshes. */
-        continue;
-      }
-      if (existing_names.contains(src_name)) {
-        continue;
-      }
-      bDeformGroup *dst = MEM_callocN<bDeformGroup>(__func__);
-      src_name.copy_utf8_truncated(dst->name);
-      BLI_addtail(&dst_mesh.vertex_group_names, dst);
+      copy_vertex_group_name(&dst_mesh.vertex_group_names, ordered_attributes, *src);
     }
   }
 }
@@ -2060,6 +2066,25 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
       dst_attribute_writers);
 }
 
+static void copy_vertex_group_names(CurvesGeometry &dst_curve,
+                                    const OrderedAttributes &ordered_attributes,
+                                    const Span<const Curves *> src_curves)
+{
+  Set<StringRef> existing_names;
+  LISTBASE_FOREACH (const bDeformGroup *, defgroup, &dst_curve.vertex_group_names) {
+    existing_names.add(defgroup->name);
+  }
+  for (const Curves *src_curve : src_curves) {
+    LISTBASE_FOREACH (const bDeformGroup *, src, &src_curve->geometry.vertex_group_names) {
+      if (existing_names.contains(src->name)) {
+        continue;
+      }
+      copy_vertex_group_name(&dst_curve.vertex_group_names, ordered_attributes, *src);
+      existing_names.add(src->name);
+    }
+  }
+}
+
 static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
                                         const AllCurvesInfo &all_curves_info,
                                         const Span<RealizeCurveTask> tasks,
@@ -2104,6 +2129,8 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
   const RealizeCurveTask &first_task = tasks.first();
   const Curves &first_curves_id = *first_task.curve_info->curves;
   bke::curves_copy_parameters(first_curves_id, *dst_curves_id);
+
+  copy_vertex_group_names(dst_curves, ordered_attributes, all_curves_info.order);
 
   /* Prepare id attribute. */
   SpanAttributeWriter<int> point_ids;

@@ -21,6 +21,7 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_bounds.hh"
+#include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_numbers.hh"
 #include "BLI_math_vector.hh"
@@ -1947,20 +1948,44 @@ void apply_eval_grease_pencil_data(const GreasePencil &eval_grease_pencil,
     }
   }
 
+  /* Gather the original vertex group names. */
+  Set<StringRef> orig_vgroup_names;
+  LISTBASE_FOREACH (bDeformGroup *, dg, &orig_grease_pencil.vertex_group_names) {
+    orig_vgroup_names.add(dg->name);
+  }
+
   /* Update the drawings. */
   VectorSet<Drawing *> all_updated_drawings;
+
+  Set<StringRef> new_vgroup_names;
   for (auto [layer_eval, layer_orig] : eval_to_orig_layer_map.items()) {
-    const Drawing *drawing_eval = merged_layers_grease_pencil.get_drawing_at(*layer_eval,
-                                                                             eval_frame);
+    Drawing *drawing_eval = merged_layers_grease_pencil.get_drawing_at(*layer_eval, eval_frame);
     Drawing *drawing_orig = orig_grease_pencil.get_drawing_at(*layer_orig, eval_frame);
+
     if (drawing_orig && drawing_eval) {
+      CurvesGeometry &eval_strokes = drawing_eval->strokes_for_write();
+
+      /* Check for new vertex groups in CurvesGeometry. */
+      LISTBASE_FOREACH (bDeformGroup *, dg, &eval_strokes.vertex_group_names) {
+        if (!orig_vgroup_names.contains(dg->name)) {
+          new_vgroup_names.add(dg->name);
+        }
+      }
+
       /* Write the data to the original drawing. */
-      drawing_orig->strokes_for_write() = std::move(drawing_eval->strokes());
+      drawing_orig->strokes_for_write() = std::move(eval_strokes);
       /* Anonymous attributes shouldn't be available on original geometry. */
       drawing_orig->strokes_for_write().attributes_for_write().remove_anonymous();
       drawing_orig->tag_topology_changed();
       all_updated_drawings.add_new(drawing_orig);
     }
+  }
+
+  /* Add new vertex groups to GreasePencil object. */
+  for (StringRef new_vgroup_name : new_vgroup_names) {
+    bDeformGroup *dst = MEM_callocN<bDeformGroup>(__func__);
+    new_vgroup_name.copy_utf8_truncated(dst->name);
+    BLI_addtail(&orig_grease_pencil.vertex_group_names, dst);
   }
 
   /* Get the original material pointers from the result geometry. */
