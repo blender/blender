@@ -339,7 +339,8 @@ void VKDevice::init_glsl_patch()
   std::stringstream ss;
 
   ss << "#version 450\n";
-  if (GPU_shader_draw_parameters_support()) {
+  {
+    /* Required extension. */
     ss << "#extension GL_ARB_shader_draw_parameters : enable\n";
     ss << "#define GPU_ARB_shader_draw_parameters\n";
     ss << "#define gpu_BaseInstance (gl_BaseInstanceARB)\n";

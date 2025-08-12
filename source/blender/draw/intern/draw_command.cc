@@ -175,10 +175,6 @@ void Draw::execute(RecordingState &state) const
 {
   state.front_facing_set(res_index.has_inverted_handedness());
 
-  if (GPU_shader_draw_parameters_support() == false) {
-    GPU_batch_resource_id_buf_set(batch, state.resource_id_buf);
-  }
-
   /* Use same logic as in `finalize_commands`. */
   uint instance_first = 0;
   if (res_index.raw > 0) {
@@ -233,10 +229,6 @@ void DrawMulti::execute(RecordingState &state) const
         GPU_batch_bind_as_resources(
             group.desc.gpu_batch, state.shader, state.specialization_constants_get());
         batch = procedural_batch_get(GPUPrimType(group.desc.expand_prim_type));
-      }
-
-      if (GPU_shader_draw_parameters_support() == false) {
-        GPU_batch_resource_id_buf_set(batch, state.resource_id_buf);
       }
 
       GPU_batch_set_shader(batch, state.shader, state.specialization_constants_get());
@@ -789,14 +781,9 @@ void DrawCommandBuf::generate_commands(Vector<Header, 0> &headers,
   resource_id_buf_.push_update();
 }
 
-void DrawCommandBuf::bind(RecordingState &state)
+void DrawCommandBuf::bind(RecordingState & /*state*/)
 {
-  if (GPU_shader_draw_parameters_support() == false) {
-    state.resource_id_buf = resource_id_buf_;
-  }
-  else {
-    GPU_storagebuf_bind(resource_id_buf_, DRW_RESOURCE_ID_SLOT);
-  }
+  GPU_storagebuf_bind(resource_id_buf_, DRW_RESOURCE_ID_SLOT);
 }
 
 void DrawMultiBuf::generate_commands(Vector<Header, 0> & /*headers*/,
@@ -873,26 +860,16 @@ void DrawMultiBuf::generate_commands(Vector<Header, 0> & /*headers*/,
     GPU_storagebuf_bind(resource_id_buf_, DRW_RESOURCE_ID_SLOT);
     GPU_compute_dispatch(shader, divide_ceil_u(prototype_count_, DRW_COMMAND_GROUP_SIZE), 1, 1);
     /* TODO(@fclem): Investigate moving the barrier in the bind function. */
-    if (GPU_shader_draw_parameters_support() == false) {
-      GPU_memory_barrier(GPU_BARRIER_VERTEX_ATTRIB_ARRAY);
-    }
-    else {
-      GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE);
-    }
+    GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE);
     GPU_storagebuf_sync_as_indirect_buffer(command_buf_);
   }
 
   GPU_debug_group_end();
 }
 
-void DrawMultiBuf::bind(RecordingState &state)
+void DrawMultiBuf::bind(RecordingState & /*state*/)
 {
-  if (GPU_shader_draw_parameters_support() == false) {
-    state.resource_id_buf = resource_id_buf_;
-  }
-  else {
-    GPU_storagebuf_bind(resource_id_buf_, DRW_RESOURCE_ID_SLOT);
-  }
+  GPU_storagebuf_bind(resource_id_buf_, DRW_RESOURCE_ID_SLOT);
 }
 
 /** \} */

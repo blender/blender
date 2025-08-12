@@ -413,28 +413,13 @@ GLShaderInterface::GLShaderInterface(GLuint program, const shader::ShaderCreateI
     }
   }
 
-  size_t workaround_names_size = 0;
-  Vector<StringRefNull> workaround_uniform_names;
-  auto check_enabled_uniform = [&](const char *uniform_name) {
-    if (glGetUniformLocation(program, uniform_name) != -1) {
-      workaround_uniform_names.append(uniform_name);
-      workaround_names_size += StringRefNull(uniform_name).size() + 1;
-      uniform_len_++;
-    }
-  };
-
-  if (!GLContext::shader_draw_parameters_support) {
-    check_enabled_uniform("gpu_BaseInstance");
-  }
-
   BLI_assert_msg(ubo_len_ <= 16, "enabled_ubo_mask_ is uint16_t");
 
   int input_tot_len = attr_len_ + ubo_len_ + uniform_len_ + ssbo_len_ + constant_len_;
   inputs_ = MEM_calloc_arrayN<ShaderInput>(input_tot_len, __func__);
   ShaderInput *input = inputs_;
 
-  name_buffer_ = (char *)MEM_mallocN(info.interface_names_size_ + workaround_names_size,
-                                     "name_buffer");
+  name_buffer_ = (char *)MEM_mallocN(info.interface_names_size_, "name_buffer");
   uint32_t name_buffer_offset = 0;
 
   /* Necessary to make #glUniform works. TODO(fclem) Remove. */
@@ -504,14 +489,6 @@ GLShaderInterface::GLShaderInterface(GLuint program, const shader::ShaderCreateI
   }
   for (const ShaderCreateInfo::PushConst &uni : info.push_constants_) {
     copy_input_name(input, uni.name, name_buffer_, name_buffer_offset);
-    input->location = glGetUniformLocation(program, name_buffer_ + input->name_offset);
-    input->binding = -1;
-    input++;
-  }
-
-  /* Compatibility uniforms. */
-  for (auto &name : workaround_uniform_names) {
-    copy_input_name(input, name, name_buffer_, name_buffer_offset);
     input->location = glGetUniformLocation(program, name_buffer_ + input->name_offset);
     input->binding = -1;
     input++;

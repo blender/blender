@@ -270,6 +270,14 @@ void GLBackend::platform_init()
         support_level = GPU_SUPPORT_LEVEL_LIMITED;
       }
     }
+    if ((device & GPU_DEVICE_QUALCOMM) && (os & GPU_OS_WIN)) {
+      if (strstr(version, "Mesa 20.") || strstr(version, "Mesa 21.") ||
+          strstr(version, "Mesa 22.") || strstr(version, "Mesa 23."))
+      {
+        std::cerr << "Unsupported driver. Requires at least Mesa 24.0.0." << std::endl;
+        support_level = GPU_SUPPORT_LEVEL_UNSUPPORTED;
+      }
+    }
 
     /* Check SSBO bindings requirement. */
     GLint max_ssbo_binds_vertex;
@@ -283,6 +291,16 @@ void GLBackend::platform_init()
     if (max_ssbo_binds < 12) {
       std::cout << "Warning: Unsupported platform as it supports max " << max_ssbo_binds
                 << " SSBO binding locations\n";
+      support_level = GPU_SUPPORT_LEVEL_UNSUPPORTED;
+    }
+
+    if (!epoxy_has_gl_extension("GL_ARB_shader_draw_parameters")) {
+      std::cout << "Error: The OpenGL implementation doesn't support ARB_shader_draw_parameters\n";
+      support_level = GPU_SUPPORT_LEVEL_UNSUPPORTED;
+    }
+
+    if (!epoxy_has_gl_extension("GL_ARB_clip_control")) {
+      std::cout << "Error: The OpenGL implementation doesn't support ARB_clip_control\n";
       support_level = GPU_SUPPORT_LEVEL_UNSUPPORTED;
     }
   }
@@ -373,15 +391,9 @@ static void detect_workarounds()
     GLContext::multi_bind_support = false;
     GLContext::multi_bind_image_support = false;
     /* Turn off OpenGL 4.5 features. */
-    GLContext::clip_control_support = false;
     GLContext::direct_state_access_support = false;
     /* Turn off OpenGL 4.6 features. */
     GLContext::texture_filter_anisotropic_support = false;
-    GCaps.shader_draw_parameters_support = false;
-    GLContext::shader_draw_parameters_support = false;
-    /* Although an OpenGL 4.3 feature, our implementation requires shader_draw_parameters_support.
-     * NOTE: we should untangle this by checking both features for clarity. */
-    GLContext::multi_draw_indirect_support = false;
     /* Turn off extensions. */
     GLContext::layered_rendering_support = false;
     /* Turn off vendor specific extensions. */
@@ -389,7 +401,6 @@ static void detect_workarounds()
     GLContext::framebuffer_fetch_support = false;
     GLContext::texture_barrier_support = false;
     GCaps.stencil_export_support = false;
-    GCaps.clip_control_support = false;
 
 #if 0
     /* Do not alter OpenGL 4.3 features.
@@ -412,7 +423,6 @@ static void detect_workarounds()
      *   Radeon R5 Graphics;
      * And others... */
     GLContext::unused_fb_slot_workaround = true;
-    GCaps.shader_draw_parameters_support = false;
     GCaps.broken_amd_driver = true;
   }
   /* We have issues with this specific renderer. (see #74024) */
@@ -421,14 +431,12 @@ static void detect_workarounds()
        strstr(renderer, "AMD TAHITI")))
   {
     GLContext::unused_fb_slot_workaround = true;
-    GCaps.shader_draw_parameters_support = false;
     GCaps.broken_amd_driver = true;
   }
   /* Fix slowdown on this particular driver. (see #77641) */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE) &&
       strstr(version, "Mesa 19.3.4"))
   {
-    GCaps.shader_draw_parameters_support = false;
     GCaps.broken_amd_driver = true;
   }
   /* See #82856: AMD drivers since 20.11 running on a polaris architecture doesn't support the
@@ -491,17 +499,6 @@ static void detect_workarounds()
     GLContext::unused_fb_slot_workaround = true;
   }
 
-  /* Draw shader parameters are broken on Qualcomm Windows ARM64 devices
-   * on Mesa version < 24.0.0 */
-  if (GPU_type_matches(GPU_DEVICE_QUALCOMM, GPU_OS_WIN, GPU_DRIVER_ANY)) {
-    if (strstr(version, "Mesa 20.") || strstr(version, "Mesa 21.") ||
-        strstr(version, "Mesa 22.") || strstr(version, "Mesa 23."))
-    {
-      GCaps.shader_draw_parameters_support = false;
-      GLContext::shader_draw_parameters_support = false;
-    }
-  }
-
 /* Snapdragon X Elite devices currently have a driver bug that results in
  * eevee rendering a black cube with anything except an emission shader
  * if shader draw parameters are enabled (#122837) */
@@ -522,10 +519,6 @@ static void detect_workarounds()
   }
 #endif
 
-  /* Disable multi-draw if the base instance cannot be read. */
-  if (GLContext::shader_draw_parameters_support == false) {
-    GLContext::multi_draw_indirect_support = false;
-  }
   /* Enable our own incomplete debug layer if no other is available. */
   if (GLContext::debug_layer_support == false) {
     GLContext::debug_layer_workaround = true;
@@ -565,7 +558,6 @@ GLint GLContext::max_ssbo_binds = 0;
 
 /** Extensions. */
 
-bool GLContext::clip_control_support = false;
 bool GLContext::debug_layer_support = false;
 bool GLContext::direct_state_access_support = false;
 bool GLContext::explicit_location_support = false;
@@ -574,8 +566,6 @@ bool GLContext::layered_rendering_support = false;
 bool GLContext::native_barycentric_support = false;
 bool GLContext::multi_bind_support = false;
 bool GLContext::multi_bind_image_support = false;
-bool GLContext::multi_draw_indirect_support = false;
-bool GLContext::shader_draw_parameters_support = false;
 bool GLContext::stencil_texturing_support = false;
 bool GLContext::texture_barrier_support = false;
 bool GLContext::texture_filter_anisotropic_support = false;
@@ -610,7 +600,6 @@ void GLBackend::capabilities_init()
   GCaps.max_samplers = GCaps.max_textures;
   GCaps.mem_stats_support = epoxy_has_gl_extension("GL_NVX_gpu_memory_info") ||
                             epoxy_has_gl_extension("GL_ATI_meminfo");
-  GCaps.shader_draw_parameters_support = epoxy_has_gl_extension("GL_ARB_shader_draw_parameters");
   GCaps.geometry_shader_support = true;
   GCaps.max_samplers = GCaps.max_textures;
   GCaps.hdr_viewport_support = false;
@@ -658,15 +647,9 @@ void GLBackend::capabilities_init()
       "GL_AMD_shader_explicit_vertex_parameter");
   GLContext::multi_bind_support = GLContext::multi_bind_image_support = epoxy_has_gl_extension(
       "GL_ARB_multi_bind");
-  GLContext::multi_draw_indirect_support = epoxy_has_gl_extension("GL_ARB_multi_draw_indirect");
-  GLContext::shader_draw_parameters_support = epoxy_has_gl_extension(
-      "GL_ARB_shader_draw_parameters");
   GLContext::stencil_texturing_support = epoxy_gl_version() >= 43;
   GLContext::texture_filter_anisotropic_support = epoxy_has_gl_extension(
       "GL_EXT_texture_filter_anisotropic");
-  GLContext::clip_control_support = epoxy_has_gl_extension("GL_ARB_clip_control");
-
-  GCaps.clip_control_support = GLContext::clip_control_support;
 
   /* Disabled until it is proven to work. */
   GLContext::framebuffer_fetch_support = false;
