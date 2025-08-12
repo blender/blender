@@ -145,7 +145,8 @@ VKBuffer &VKImmediate::ensure_space(VkDeviceSize bytes_needed, VkDeviceSize offs
                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                 VMA_ALLOCATION_CREATE_MAPPED_BIT |
-                    VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT);
+                    VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+                0.8);
   debug::object_label(result.vk_handle(), "Immediate");
 
   return result;

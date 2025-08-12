@@ -65,6 +65,16 @@ struct VKExtensions {
    */
   bool logic_ops = false;
 
+  /**
+   * Does the device support VK_EXT_memory_priority
+   */
+  bool memory_priority = false;
+
+  /**
+   * Does the device support VK_EXT_pageable_device_local_memory
+   */
+  bool pageable_device_local_memory = false;
+
   /** Log enabled features and extensions. */
   void log() const;
 };

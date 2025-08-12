@@ -409,6 +409,7 @@ void VKBackend::detect_workarounds(VKDevice &device)
     extensions.dynamic_rendering_local_read = false;
     extensions.dynamic_rendering_unused_attachments = false;
     extensions.descriptor_buffer = false;
+    extensions.pageable_device_local_memory = false;
 
     device.workarounds_ = workarounds;
     device.extensions_ = extensions;
@@ -431,6 +432,9 @@ void VKBackend::detect_workarounds(VKDevice &device)
   extensions.descriptor_buffer = device.supports_extension(
       VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME);
 #endif
+  extensions.memory_priority = device.supports_extension(VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME);
+  extensions.pageable_device_local_memory = device.supports_extension(
+      VK_EXT_PAGEABLE_DEVICE_LOCAL_MEMORY_EXTENSION_NAME);
 #ifdef _WIN32
   extensions.external_memory = device.supports_extension(
       VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME);

@@ -535,7 +535,8 @@ void VKDescriptorBufferUpdator::allocate_new_descriptor_set(
                        VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT,
                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
                    0,
-                   VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT);
+                   VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
+                   0.8f);
     debug::object_label(buffer->vk_handle(), "DescriptorBuffer");
     descriptor_buffer_data = static_cast<uint8_t *>(buffer->mapped_memory_get());
     descriptor_buffer_device_address = buffer->device_address_get();
