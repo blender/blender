@@ -775,7 +775,8 @@ static void sequencer_draw_scopes(const SpaceSeq &space_sequencer, ARegion &regi
 static bool sequencer_calc_scopes(const SpaceSeq &space_sequencer,
                                   const ColorManagedViewSettings &view_settings,
                                   const ColorManagedDisplaySettings &display_settings,
-                                  const ImBuf &ibuf)
+                                  const ImBuf &ibuf,
+                                  const int timeline_frame)
 
 {
   if (space_sequencer.mainb == SEQ_DRAW_IMG_IMBUF && space_sequencer.zebra == 0) {
@@ -783,7 +784,7 @@ static bool sequencer_calc_scopes(const SpaceSeq &space_sequencer,
   }
 
   SeqScopes *scopes = &space_sequencer.runtime->scopes;
-  if (scopes->reference_ibuf != &ibuf) {
+  if (scopes->reference_ibuf != &ibuf || scopes->timeline_frame != timeline_frame) {
     scopes->cleanup();
   }
 
@@ -1494,7 +1495,8 @@ static void sequencer_preview_draw_overlays(const bContext *C,
 
   bool has_scopes = false;
   if (overlay_ibuf &&
-      sequencer_calc_scopes(space_sequencer, view_settings, display_settings, *overlay_ibuf))
+      sequencer_calc_scopes(
+          space_sequencer, view_settings, display_settings, *overlay_ibuf, timeline_frame))
   {
     /* Draw scope. */
     sequencer_draw_scopes(space_sequencer, region);

@@ -50,6 +50,8 @@ void SeqScopes::cleanup()
     vector_ibuf = nullptr;
   }
   histogram.data.reinitialize(0);
+  reference_ibuf = nullptr;
+  timeline_frame = 0;
 }
 
 static blender::float2 rgb_to_uv_normalized(const float rgb[3])
