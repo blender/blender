@@ -4606,7 +4606,7 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
         LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_SUNBEAMS) {
+          if (node->type_legacy == CMP_NODE_SUNBEAMS_DEPRECATED) {
             do_version_sun_beams_node_options_to_inputs_animation(node_tree, node);
           }
         }
@@ -5637,7 +5637,7 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
         LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-          if (node->type_legacy == CMP_NODE_SUNBEAMS) {
+          if (node->type_legacy == CMP_NODE_SUNBEAMS_DEPRECATED) {
             do_version_sun_beams_node_options_to_inputs(node_tree, node);
           }
         }
