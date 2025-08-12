@@ -577,6 +577,7 @@ class FileOutputOperation : public NodeOperation {
       case ResultType::Int:
       case ResultType::Bool:
       case ResultType::Menu:
+      case ResultType::String:
         /* Not supported. */
         BLI_assert_unreachable();
         break;
@@ -607,6 +608,7 @@ class FileOutputOperation : public NodeOperation {
       case ResultType::Int2:
       case ResultType::Bool:
       case ResultType::Menu:
+      case ResultType::String:
         /* Not supported. */
         BLI_assert_unreachable();
         return nullptr;
@@ -657,6 +659,7 @@ class FileOutputOperation : public NodeOperation {
       case ResultType::Int:
       case ResultType::Bool:
       case ResultType::Menu:
+      case ResultType::String:
         /* Not supported. */
         BLI_assert_unreachable();
         break;

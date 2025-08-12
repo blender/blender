@@ -268,6 +268,12 @@ mf::Variable *MultiFunctionProcedureOperation::get_constant_input_variable(DInpu
       constant_function = &procedure_.construct_function<mf::CustomMF_Constant<int32_t>>(value);
       break;
     }
+    case SOCK_STRING: {
+      const std::string value = input->default_value_typed<bNodeSocketValueString>()->value;
+      constant_function = &procedure_.construct_function<mf::CustomMF_Constant<std::string>>(
+          value);
+      break;
+    }
     default:
       BLI_assert_unreachable();
       break;

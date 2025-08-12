@@ -57,11 +57,13 @@ static bool is_conversion_supported(const ResultType from_type, const ResultType
         case ResultType::Bool:
           return true;
         case ResultType::Menu:
+        case ResultType::String:
           return false;
       }
       break;
     case ResultType::Menu:
-      return to_type == ResultType::Menu;
+    case ResultType::String:
+      return to_type == from_type;
   }
 
   BLI_assert_unreachable();

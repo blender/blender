@@ -217,12 +217,12 @@ static void initialize_input_stack_value(const DInputSocket input, GPUNodeStack 
       copy_v4_v4(stack.vec, value);
       break;
     }
-    case SOCK_MENU: {
+    case SOCK_MENU:
+    case SOCK_STRING:
       /* Single only types do not support GPU code path. */
       BLI_assert(Result::is_single_value_only_type(get_node_socket_result_type(input.bsocket())));
       BLI_assert_unreachable();
       break;
-    }
     default:
       BLI_assert_unreachable();
       break;
@@ -253,6 +253,7 @@ static const char *get_set_function_name(const ResultType type)
       /* GPUMaterial doesn't support float2, so it is passed as a float3 with z ignored. */
       return "set_rgb";
     case ResultType::Menu:
+    case ResultType::String:
       /* Single only types do not support GPU code path. */
       BLI_assert(Result::is_single_value_only_type(type));
       BLI_assert_unreachable();
@@ -464,6 +465,7 @@ static const char *get_store_function_name(ResultType type)
     case ResultType::Int2:
       return "node_compositor_store_output_int2";
     case ResultType::Menu:
+    case ResultType::String:
       /* Single only types do not support GPU code path. */
       BLI_assert(Result::is_single_value_only_type(type));
       BLI_assert_unreachable();
@@ -575,6 +577,7 @@ static const char *glsl_store_expression_from_result_type(ResultType type)
        * back to int2 before writing it. */
       return "ivec4(ivec2(value.xy), 0, 0)";
     case ResultType::Menu:
+    case ResultType::String:
       /* Single only types do not support GPU code path. */
       BLI_assert(Result::is_single_value_only_type(type));
       BLI_assert_unreachable();
@@ -599,6 +602,7 @@ static ImageType gpu_image_type_from_result_type(const ResultType type)
     case ResultType::Bool:
       return ImageType::Int2D;
     case ResultType::Menu:
+    case ResultType::String:
       /* Single only types do not support GPU code path. */
       BLI_assert(Result::is_single_value_only_type(type));
       BLI_assert_unreachable();
@@ -707,6 +711,7 @@ void ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_create_
         store_int2_function << case_code.str();
         break;
       case ResultType::Menu:
+      case ResultType::String:
         /* Single only types do not support GPU code path. */
         BLI_assert(Result::is_single_value_only_type(result.type()));
         BLI_assert_unreachable();
@@ -754,6 +759,7 @@ static const char *glsl_type_from_result_type(ResultType type)
       /* GPUMaterial doesn't support int2, so it is passed as a float3 with z ignored. */
       return "vec3";
     case ResultType::Menu:
+    case ResultType::String:
       /* Single only types do not support GPU code path. */
       BLI_assert(Result::is_single_value_only_type(type));
       BLI_assert_unreachable();
@@ -786,6 +792,7 @@ static const char *glsl_swizzle_from_result_type(ResultType type)
       /* GPUMaterial doesn't support float2, so it is passed as a float3 with z ignored. */
       return "xyz";
     case ResultType::Menu:
+    case ResultType::String:
       /* Single only types do not support GPU code path. */
       BLI_assert(Result::is_single_value_only_type(type));
       BLI_assert_unreachable();
