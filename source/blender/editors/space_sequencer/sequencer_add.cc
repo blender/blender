@@ -731,7 +731,7 @@ static wmOperatorStatus sequencer_add_scene_strip_new_exec(bContext *C, wmOperat
   load_data_init_from_operator(&load_data, C, op);
 
   int type = RNA_enum_get(op->ptr, "type");
-  Scene *scene_new = ED_scene_sequencer_add(bmain, C, nullptr, eSceneCopyMethod(type), false);
+  Scene *scene_new = ED_scene_sequencer_add(bmain, C, eSceneCopyMethod(type));
   if (scene_new == nullptr) {
     return OPERATOR_CANCELLED;
   }

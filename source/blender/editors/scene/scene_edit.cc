@@ -65,32 +65,10 @@ static Scene *scene_add(Main *bmain, Scene *scene_old, eSceneCopyMethod method)
   return scene_new;
 }
 
-Scene *ED_scene_sequencer_add(
-    Main *bmain, bContext *C, Strip *strip, eSceneCopyMethod method, const bool assign_strip)
+Scene *ED_scene_sequencer_add(Main *bmain, bContext *C, eSceneCopyMethod method)
 {
-  Scene *sequencer_scene = CTX_data_sequencer_scene(C);
   Scene *active_scene = CTX_data_scene(C);
-
   Scene *scene_new = scene_add(bmain, active_scene, method);
-
-  /* If don't need assign the scene to the strip, nothing else to do. */
-  if (!assign_strip) {
-    return scene_new;
-  }
-
-  /* As the scene is created in sequencer, do not set the new scene as active.
-   * This is useful for story-boarding where we want to keep actual scene active.
-   * The new scene is linked to the active strip and the viewport updated. */
-  if (scene_new && strip) {
-    strip->scene = scene_new;
-    /* Do a refresh of the sequencer data. */
-    blender::seq::relations_invalidate_cache_raw(sequencer_scene, strip);
-    DEG_id_tag_update(&sequencer_scene->id, ID_RECALC_AUDIO | ID_RECALC_SEQUENCER_STRIPS);
-    DEG_relations_tag_update(bmain);
-  }
-
-  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, sequencer_scene);
-  WM_event_add_notifier(C, NC_SCENE | ND_SCENEBROWSE, sequencer_scene);
 
   return scene_new;
 }
@@ -284,14 +262,23 @@ static wmOperatorStatus scene_new_sequencer_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   int type = RNA_enum_get(op->ptr, "type");
-  Scene *scene = CTX_data_sequencer_scene(C);
-  Strip *strip = blender::seq::select_active_get(scene);
+  Scene *sequencer_scene = CTX_data_sequencer_scene(C);
+  Strip *strip = blender::seq::select_active_get(sequencer_scene);
   BLI_assert(strip != nullptr);
 
-  if (ED_scene_sequencer_add(bmain, C, strip, eSceneCopyMethod(type), true) == nullptr) {
+  if (!strip->scene) {
     return OPERATOR_CANCELLED;
   }
 
+  Scene *scene_new = scene_add(bmain, strip->scene, eSceneCopyMethod(type));
+  if (!scene_new) {
+    return OPERATOR_CANCELLED;
+  }
+  strip->scene = scene_new;
+  /* Do a refresh of the sequencer data. */
+  blender::seq::relations_invalidate_cache_raw(sequencer_scene, strip);
+  DEG_id_tag_update(&sequencer_scene->id, ID_RECALC_AUDIO | ID_RECALC_SEQUENCER_STRIPS);
+  DEG_relations_tag_update(bmain);
   return OPERATOR_FINISHED;
 }
 
