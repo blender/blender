@@ -14,6 +14,7 @@
 #include "NOD_geometry_nodes_bundle.hh"
 #include "NOD_geometry_nodes_closure.hh"
 #include "NOD_geometry_nodes_list.hh"
+#include "NOD_geometry_nodes_values.hh"
 
 #include "DNA_meshdata_types.h"
 
@@ -40,6 +41,8 @@ BLI_CPP_TYPE_MAKE(blender::nodes::ListPtr, CPPTypeFlags::None);
 BLI_CPP_TYPE_MAKE(blender::bke::GeometryNodesReferenceSet, CPPTypeFlags::None);
 BLI_CPP_TYPE_MAKE(blender::bke::SocketValueVariant, CPPTypeFlags::Printable);
 BLI_VECTOR_CPP_TYPE_MAKE(blender::bke::SocketValueVariant);
+BLI_CPP_TYPE_MAKE(blender::nodes::GeoNodesMultiInput<blender::bke::SocketValueVariant>,
+                  CPPTypeFlags::None);
 
 void BKE_cpp_types_init()
 {
@@ -64,4 +67,5 @@ void BKE_cpp_types_init()
   BLI_CPP_TYPE_REGISTER(blender::bke::GeometryNodesReferenceSet);
   BLI_CPP_TYPE_REGISTER(blender::bke::SocketValueVariant);
   BLI_VECTOR_CPP_TYPE_REGISTER(blender::bke::SocketValueVariant);
+  BLI_CPP_TYPE_REGISTER(blender::nodes::GeoNodesMultiInput<blender::bke::SocketValueVariant>);
 }

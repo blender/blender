@@ -128,40 +128,19 @@ inline std::optional<T> BundleItemValue::as_socket_value(
     }
     converted_value = buffer;
   }
-  if constexpr (geo_nodes_type_stored_as_SocketValueVariant_v<T>) {
-    const auto &value_variant = *static_cast<const bke::SocketValueVariant *>(converted_value);
-    return value_variant.get<T>();
-  }
-  return *static_cast<const T *>(converted_value);
-}
-
-template<typename T> constexpr bool is_valid_static_bundle_item_type()
-{
-  if (geo_nodes_is_field_base_type_v<T>) {
-    return true;
-  }
-  if constexpr (fn::is_field_v<T>) {
-    return geo_nodes_is_field_base_type_v<typename T::base_type>;
-  }
-  if constexpr (is_same_any_v<T, BundlePtr, ClosurePtr, ListPtr>) {
-    return true;
-  }
-  return !geo_nodes_type_stored_as_SocketValueVariant_v<T>;
+  const auto &value_variant = *static_cast<const bke::SocketValueVariant *>(converted_value);
+  return value_variant.get<T>();
 }
 
 template<typename T> inline const bke::bNodeSocketType *socket_type_info_by_static_type()
 {
   if constexpr (fn::is_field_v<T>) {
-    if constexpr (geo_nodes_is_field_base_type_v<typename T::base_type>) {
-      const std::optional<eNodeSocketDatatype> socket_type =
-          bke::geo_nodes_base_cpp_type_to_socket_type(CPPType::get<typename T::base_type>());
-      BLI_assert(socket_type);
-      const bke::bNodeSocketType *socket_type_info = bke::node_socket_type_find_static(
-          *socket_type);
-      BLI_assert(socket_type_info);
-      return socket_type_info;
-    }
-    return nullptr;
+    const std::optional<eNodeSocketDatatype> socket_type =
+        bke::geo_nodes_base_cpp_type_to_socket_type(CPPType::get<typename T::base_type>());
+    BLI_assert(socket_type);
+    const bke::bNodeSocketType *socket_type_info = bke::node_socket_type_find_static(*socket_type);
+    BLI_assert(socket_type_info);
+    return socket_type_info;
   }
   else {
     const std::optional<eNodeSocketDatatype> socket_type =
@@ -185,7 +164,6 @@ template<typename T> constexpr bool is_valid_internal_bundle_item_type()
 
 template<typename T> inline std::optional<T> BundleItemValue::as() const
 {
-  static_assert(is_valid_static_bundle_item_type<T>() || is_valid_internal_bundle_item_type<T>());
   if constexpr (is_valid_internal_bundle_item_type<T>()) {
     using SharingInfoT = typename T::element_type;
     const auto *internal_value = std::get_if<BundleItemInternalValue>(&this->value);
@@ -246,9 +224,6 @@ template<typename T> inline std::optional<T> Bundle::lookup_path(const StringRef
 template<typename T, typename Fn> inline void to_stored_type(T &&value, Fn &&fn)
 {
   using DecayT = std::decay_t<T>;
-  static_assert(
-      is_valid_static_bundle_item_type<DecayT>() || is_valid_internal_bundle_item_type<DecayT>() ||
-      is_same_any_v<DecayT, BundleItemValue, BundleItemSocketValue, BundleItemInternalValue>);
   if constexpr (std::is_same_v<DecayT, BundleItemValue>) {
     fn(std::forward<T>(value));
   }
@@ -266,13 +241,8 @@ template<typename T, typename Fn> inline void to_stored_type(T &&value, Fn &&fn)
     fn(BundleItemValue{BundleItemInternalValue{ImplicitSharingPtr{sharing_info}}});
   }
   else if (const bke::bNodeSocketType *socket_type = socket_type_info_by_static_type<DecayT>()) {
-    if constexpr (geo_nodes_type_stored_as_SocketValueVariant_v<DecayT>) {
-      auto value_variant = bke::SocketValueVariant::From(std::forward<T>(value));
-      fn(BundleItemValue{BundleItemSocketValue{socket_type, &value_variant}});
-    }
-    else {
-      fn(BundleItemValue{BundleItemSocketValue{socket_type, &value}});
-    }
+    auto value_variant = bke::SocketValueVariant::From(std::forward<T>(value));
+    fn(BundleItemValue{BundleItemSocketValue{socket_type, &value_variant}});
   }
   else {
     /* All allowed types should be handled above already. */

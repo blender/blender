@@ -87,15 +87,6 @@ static const CPPType *get_socket_cpp_type(const bNodeSocket &socket)
   return get_socket_cpp_type(*socket.typeinfo);
 }
 
-static const CPPType *get_vector_type(const CPPType &type)
-{
-  const VectorCPPType *vector_type = VectorCPPType::get_from_value(type);
-  if (vector_type == nullptr) {
-    return nullptr;
-  }
-  return &vector_type->self;
-}
-
 /**
  * Checks which sockets of the node are available and creates corresponding inputs/outputs on the
  * lazy-function.
@@ -116,7 +107,7 @@ static void lazy_function_interface_from_node(const bNode &node,
       continue;
     }
     if (socket->is_multi_input() && !is_muted) {
-      type = get_vector_type(*type);
+      type = &CPPType::get<GeoNodesMultiInput<SocketValueVariant>>();
     }
     r_lf_index_by_bsocket[socket->index_in_tree()] = r_inputs.append_and_get_index_as(
         socket->name, *type, input_usage);
@@ -326,17 +317,12 @@ class LazyFunctionForGeometryNode : public LazyFunction {
  * multi-inputs are not supported in lazy-function graphs.
  */
 class LazyFunctionForMultiInput : public LazyFunction {
- private:
-  const CPPType *base_type_;
-
  public:
   Vector<const bNodeLink *> links;
 
   LazyFunctionForMultiInput(const bNodeSocket &socket)
   {
     debug_name_ = "Multi Input";
-    base_type_ = get_socket_cpp_type(socket);
-    BLI_assert(base_type_ != nullptr);
     BLI_assert(socket.is_multi_input());
     for (const bNodeLink *link : socket.directly_linked_links()) {
       if (link->is_muted() || !link->fromsock->is_available() ||
@@ -344,21 +330,18 @@ class LazyFunctionForMultiInput : public LazyFunction {
       {
         continue;
       }
-      inputs_.append({"Input", *base_type_});
+      inputs_.append({"Input", CPPType::get<SocketValueVariant>()});
       this->links.append(link);
     }
-    const CPPType *vector_type = get_vector_type(*base_type_);
-    BLI_assert(vector_type != nullptr);
-    outputs_.append({"Output", *vector_type});
+    outputs_.append({"Output", CPPType::get<GeoNodesMultiInput<SocketValueVariant>>()});
   }
 
   void execute_impl(lf::Params &params, const lf::Context & /*context*/) const override
   {
-    BLI_assert(base_type_ == &CPPType::get<SocketValueVariant>());
     void *output_ptr = params.get_output_data_ptr(0);
-    auto &values = *new (output_ptr) Vector<SocketValueVariant>();
+    auto &values = *new (output_ptr) GeoNodesMultiInput<SocketValueVariant>();
     for (const int i : inputs_.index_range()) {
-      values.append(params.extract_input<SocketValueVariant>(i));
+      values.values.append(params.extract_input<SocketValueVariant>(i));
     }
     params.output_set(0);
   }

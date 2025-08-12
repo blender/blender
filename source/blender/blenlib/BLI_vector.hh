@@ -1151,4 +1151,8 @@ class Vector {
 template<typename T, int64_t InlineBufferCapacity = default_inline_buffer_capacity(sizeof(T))>
 using RawVector = Vector<T, InlineBufferCapacity, RawAllocator>;
 
+template<typename T> static constexpr bool is_Vector_v = false;
+template<typename T, int64_t InlineBufferCapacity, typename Allocator>
+static constexpr bool is_Vector_v<Vector<T, InlineBufferCapacity, Allocator>> = true;
+
 } /* namespace blender */

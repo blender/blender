@@ -172,8 +172,7 @@ void GeoNodeExecParams::set_default_remaining_outputs()
   set_default_remaining_node_outputs(params_, node_);
 }
 
-void GeoNodeExecParams::check_input_access(StringRef identifier,
-                                           const CPPType *requested_type) const
+void GeoNodeExecParams::check_input_access(StringRef identifier) const
 {
   const bNodeSocket *found_socket = nullptr;
   for (const bNodeSocket *socket : node_.input_sockets()) {
@@ -199,17 +198,9 @@ void GeoNodeExecParams::check_input_access(StringRef identifier,
               << "' is disabled.\n";
     BLI_assert_unreachable();
   }
-  else if (requested_type != nullptr && (found_socket->flag & SOCK_MULTI_INPUT) == 0) {
-    const CPPType &expected_type = *found_socket->typeinfo->geometry_nodes_cpp_type;
-    if (*requested_type != expected_type) {
-      std::cout << "The requested type '" << requested_type->name() << "' is incorrect. Expected '"
-                << expected_type.name() << "'.\n";
-      BLI_assert_unreachable();
-    }
-  }
 }
 
-void GeoNodeExecParams::check_output_access(StringRef identifier, const CPPType &value_type) const
+void GeoNodeExecParams::check_output_access(StringRef identifier) const
 {
   const bNodeSocket *found_socket = nullptr;
   for (const bNodeSocket *socket : node_.output_sockets()) {
@@ -238,14 +229,6 @@ void GeoNodeExecParams::check_output_access(StringRef identifier, const CPPType 
   else if (params_.output_was_set(this->get_output_index(identifier))) {
     std::cout << "The identifier '" << identifier << "' has been set already.\n";
     BLI_assert_unreachable();
-  }
-  else {
-    const CPPType &expected_type = *found_socket->typeinfo->geometry_nodes_cpp_type;
-    if (value_type != expected_type) {
-      std::cout << "The value type '" << value_type.name() << "' is incorrect. Expected '"
-                << expected_type.name() << "'.\n";
-      BLI_assert_unreachable();
-    }
   }
 }
 
