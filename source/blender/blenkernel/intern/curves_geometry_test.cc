@@ -558,8 +558,7 @@ TEST(curves_geometry, BasisCacheNonUniformDeg2)
 
   std::array<float, 48> expected_data;
   MutableSpan<float> expectation = MutableSpan<float>(expected_data);
-  fn_Ni2_span0(expectation.slice(0, 3), 0.0f);
-  for (int i = 1; i < 4; i++) {
+  for (int i = 0; i < 3; i++) {
     const float du = i / 3.0f;
     const int step = i * 3;
     fn_Ni2_span0(expectation.slice(step, 3), du);
@@ -568,6 +567,7 @@ TEST(curves_geometry, BasisCacheNonUniformDeg2)
     fn_Ni2_span3(expectation.slice(step + 27, 3), 3.0f + du);
     fn_Ni2_span4(expectation.slice(step + 36, 3), 4.0f + du);
   }
+  fn_Ni2_span4(expectation.slice(45, 3), 5.0f);
 
   /* Test */
   const int evaluated_num = curves::nurbs::calculate_evaluated_num(
