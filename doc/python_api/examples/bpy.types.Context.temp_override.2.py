@@ -1,6 +1,6 @@
 """
 Overriding the context can be useful to set the context after loading files
-(which would otherwise by None). For example:
+(which would otherwise be None). For example:
 """
 
 import bpy
