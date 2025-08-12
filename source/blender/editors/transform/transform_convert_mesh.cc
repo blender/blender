@@ -2590,15 +2590,121 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
 
           if (isect_curr_dirs) {
             /* The `best_dir` can only have one direction. */
-            float3 &dst0 = prev.fdata[best_dir].dst;
-            float3 &dst1 = curr.fdata[best_dir].dst;
-            float3 &dst2 = dst;
-            float3 &dst3 = next.fdata[best_dir].dst;
-            float3 isect0, isect1;
-            if (isect_line_line_epsilon_v3(dst0, dst1, dst2, dst3, isect0, isect1, FLT_EPSILON) !=
-                0)
-            {
-              curr.fdata[best_dir].dst = math::midpoint(isect0, isect1);
+            const float3 &curr_orig = curr.sv->v_co_orig();
+            const float3 &dst0 = prev.fdata[best_dir].dst;
+            const float3 &dst1 = curr.fdata[best_dir].dst;
+            const float3 &dst2 = dst;
+            const float3 &dst3 = next.fdata[best_dir].dst;
+            float3 isect_pair[2];
+
+            /**
+             * Sanity check the line-line intersection.
+             * <pre>
+             *              <- Slide direction.
+             *            +dst0-+----------+
+             *            |     |          |
+             * Line A: -> |     |          |
+             *            |     |          |
+             *            +dst1 |          |
+             *            |\    |          |
+             *   ^        | \   |          |
+             *   |        |  \  |          |
+             *   |        |   \ |          |
+             * Valid      |    \|          |
+             * conical    |     +curr_orig-+
+             * region.    |    /|          |
+             *   |        |   / |          |
+             *   |        |  /  |          |
+             *   v        | /   |          |
+             *            |/    |          |
+             *            +dst2 |          |
+             *            |     |          |
+             * Line B: -> |     |          |
+             *            |     |          |
+             *            +dst3-+----------+
+             *                  ^
+             *                  The slide edges (in this case 3 vertices).
+             * </pre>
+             *
+             * NOTE(@ideasman42): the diagram above depicts the line A/B intersection which
+             * defines the slide destination for the central vertex (`curr_orig`) to move towards.
+             *
+             * While this often makes sense (intuitively) there are cases where the two lines
+             * are close to parallel, where the intersection point may be a distant location.
+             * There is no guarantee the intersection point is anywhere between the lines
+             * (as users would expect).
+             *
+             * To prevent distant points being used, a sanity check is needed.
+             *
+             * Note that the midpoint between `dst1` & `dst2` is always a reasonable fallback
+             * so it's not necessary to use the intersection when it approaches extreme values.
+             * On the other hand it's undesirable to be overly sensitive in considering a location
+             * "invalid" since that may result in erratic behavior from a user perspective
+             * (using a seemingly random method of picking the target).
+             *
+             * Excluding the Intersection
+             * ==========================
+             *
+             * There doesn't seem to be one obvious "correct" solution, I think it's reasonable
+             * to consider the triangle define by (`dst1`, `dst2` & `curr_orig`) to form a cone
+             * where the tip of the cone is `curr_orig` and (`dst1` & `dst2`) are the sides.
+             * The cone extends past those lines (so there is no cutoff between `dst1` & `dst2`).
+             *
+             * Notes:
+             * - Any intersection outside the cone is ignored.
+             * - We may want to limit how distant the point can be
+             *   although there doesn't seem to be an obvious cutoff
+             *   where the intersection point is obviously wrong.
+             *   (although we could clamp at some distance instead of rejecting the location).
+             * - In the case of degenerate geometry (lines that have no length for example)
+             *   just use the mid-point as it's not worth attempting to calculate an intersection
+             *   from degenerate input, since there isn't an obvious correct answer
+             *   and it's more likely to produce confusing results.
+             *
+             * See #144270.
+             */
+
+            const float isect_eps = FLT_EPSILON;
+            int isect_line_line = isect_line_line_epsilon_v3(
+                dst0, dst1, dst2, dst3, isect_pair[0], isect_pair[1], isect_eps);
+
+            if (isect_line_line != 0) {
+              /* Check if the intersections are outside the "valid conical region". */
+              BLI_assert(isect_line_line <= 2);
+              const float3 dir1 = math::normalize(dst1 - curr_orig);
+              const float3 dir2 = math::normalize(dst2 - curr_orig);
+              float len_n;
+              const float3 n = math::normalize_and_get_length(math::cross(dir1, dir2), len_n);
+              if (UNLIKELY(len_n < isect_eps)) {
+                isect_line_line = 0;
+              }
+              else {
+                float len1, len2;
+                const float3 plane_no_1 = math::normalize_and_get_length(math::cross(n, dir1),
+                                                                         len1);
+                const float3 plane_no_2 = math::normalize_and_get_length(math::cross(dir2, n),
+                                                                         len2);
+
+                if (UNLIKELY((len1 < isect_eps) || (len2 < isect_eps))) {
+                  isect_line_line = 0;
+                }
+                else {
+                  for (int isect_pass = 0; isect_pass < isect_line_line; isect_pass++) {
+                    const float3 isect_co = isect_pair[isect_pass] - curr_orig;
+                    if ((math::dot(isect_co, plane_no_1) <= 0.0f) ||
+                        (math::dot(isect_co, plane_no_2) <= 0.0f))
+                    {
+                      /* Outside the plane, ignore. */
+                      isect_line_line = 0;
+                      break;
+                    }
+                  }
+                }
+              }
+            }
+
+            if (isect_line_line != 0) {
+              curr.fdata[best_dir].dst = math::midpoint(isect_pair[0], isect_pair[1]);
             }
             else {
               curr.fdata[best_dir].dst = math::midpoint(dst1, dst2);
