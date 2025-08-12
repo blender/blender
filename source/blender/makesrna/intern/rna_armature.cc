@@ -1780,7 +1780,7 @@ static void rna_def_bone(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", BONE_HIDDEN_A);
   RNA_def_property_ui_text(prop, "Hide", "Bone is not visible when it is in Edit Mode");
   RNA_def_property_ui_icon(prop, ICON_RESTRICT_VIEW_OFF, -1);
-  RNA_def_property_update(prop, 0, "rna_EditBone_hide_update");
+  RNA_def_property_update(prop, 0, "rna_Bone_hide_update");
 
   prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", BONE_SELECTED);
