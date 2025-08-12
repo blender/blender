@@ -88,7 +88,7 @@ GHOST_ContextMTL::GHOST_ContextMTL(bool stereoVisual,
         m_metalLayer.device = metalDevice;
         m_metalLayer.allowsNextDrawableTimeout = NO;
 
-        const char *ghost_vsync_string = getEnvVarVsyncString();
+        const char *ghost_vsync_string = getEnvVarVSyncString();
         if (ghost_vsync_string) {
           int swapInterval = atoi(ghost_vsync_string);
           m_metalLayer.displaySyncEnabled = swapInterval != 0 ? YES : NO;

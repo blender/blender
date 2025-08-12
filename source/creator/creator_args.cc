@@ -864,7 +864,7 @@ static void print_help(bArgs *ba, bool all)
   PRINT(
       "  $BLENDER_CUSTOM_SPLASH_BANNER Full path to an image to overlay on the splash screen.\n");
   PRINT(
-      "  $BLENDER_VSYNC             Set to 0 to disable Vsync.\n"
+      "  $BLENDER_VSYNC             Set to 0 to disable VSync.\n"
       "                             With OpenGL, other values set the swap interval.\n");
 
   if (defs.with_opencolorio) {

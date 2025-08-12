@@ -861,7 +861,7 @@ static GHOST_TSuccess selectPresentMode(const char *ghost_vsync_string,
         }
       }
       CLOG_WARN(&LOG,
-                "Vulkan: Vsync off was requested via BLENDER_VSYNC, but "
+                "Vulkan: VSync off was requested via BLENDER_VSYNC, but "
                 "VK_PRESENT_MODE_IMMEDIATE_KHR is not "
                 "supported.");
     }
@@ -968,7 +968,7 @@ GHOST_TSuccess GHOST_ContextVK::recreateSwapchain(bool use_hdr_swapchain)
   }
 
   VkPresentModeKHR present_mode;
-  if (!selectPresentMode(getEnvVarVsyncString(), physical_device, m_surface, &present_mode)) {
+  if (!selectPresentMode(getEnvVarVSyncString(), physical_device, m_surface, &present_mode)) {
     return GHOST_kFailure;
   }
 

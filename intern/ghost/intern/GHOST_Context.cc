@@ -143,7 +143,7 @@ void GHOST_Context::initClearGL()
 }
 #endif
 
-const char *GHOST_Context::getEnvVarVsyncString()
+const char *GHOST_Context::getEnvVarVSyncString()
 {
   const char *ghost_vsync_string = getenv("BLENDER_VSYNC");
   return ghost_vsync_string;
