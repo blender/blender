@@ -86,7 +86,8 @@ class Context(_StructRNA):
         return value
 
     def copy(self):
-        """Get context members as a dictionary.
+        """
+        Get context members as a dictionary.
 
         :rtype: dict[str, Any]
         """
@@ -118,7 +119,8 @@ class Library(_types.ID):
 
     @property
     def users_id(self):
-        """ID data-blocks that use this library
+        """
+        ID data-blocks that use this library
 
         :type: tuple of :class:`bpy.types.ID`
 
@@ -151,7 +153,8 @@ class Texture(_types.ID):
 
     @property
     def users_material(self):
-        """Materials that use this texture
+        """
+        Materials that use this texture
 
         :type: tuple of :class:`Material`
 
@@ -168,7 +171,8 @@ class Texture(_types.ID):
 
     @property
     def users_object_modifier(self):
-        """Object modifiers that use this texture
+        """
+        Object modifiers that use this texture
 
         :type: tuple of :class:`Object`
 
@@ -211,7 +215,8 @@ class Collection(_types.ID):
 
     @property
     def users_dupli_group(self):
-        """The collection instance objects this collection is used in
+        """
+        The collection instance objects this collection is used in
 
         :type: tuple of :class:`Object`
 
@@ -467,9 +472,11 @@ class _GenericBone:
     # This is done since `Bone` has direct access to this data in RNA.
     @property
     def children_recursive(self):
-        """A list of all children from this bone.
+        """
+        A list of all children from this bone.
 
-        .. note:: Takes ``O(len(bones)**2)`` time."""
+        .. note:: Takes ``O(len(bones)**2)`` time.
+        """
         bones_children = []
         for bone in self._other_bones:
             index = bone.parent_index(self)
