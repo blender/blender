@@ -49,19 +49,6 @@
 
 namespace blender::nodes::node_geo_simulation_cc {
 
-static const CPPType &get_simulation_item_cpp_type(const eNodeSocketDatatype socket_type)
-{
-  const bke::bNodeSocketType *typeinfo = bke::node_socket_type_find_static(socket_type);
-  BLI_assert(typeinfo);
-  BLI_assert(typeinfo->geometry_nodes_cpp_type);
-  return *typeinfo->geometry_nodes_cpp_type;
-}
-
-static const CPPType &get_simulation_item_cpp_type(const NodeSimulationItem &item)
-{
-  return get_simulation_item_cpp_type(eNodeSocketDatatype(item.socket_type));
-}
-
 static bke::bake::BakeSocketConfig make_bake_socket_config(
     const Span<NodeSimulationItem> node_simulation_items)
 {
@@ -269,12 +256,10 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
       const bNodeSocket &input_bsocket = node.input_socket(i);
       const bNodeSocket &output_bsocket = node.output_socket(i + 1);
 
-      const CPPType &type = get_simulation_item_cpp_type(item);
-
       lf_index_by_bsocket[input_bsocket.index_in_tree()] = inputs_.append_and_get_index_as(
-          item.name, type, lf::ValueUsage::Maybe);
+          item.name, CPPType::get<SocketValueVariant>(), lf::ValueUsage::Maybe);
       lf_index_by_bsocket[output_bsocket.index_in_tree()] = outputs_.append_and_get_index_as(
-          item.name, type);
+          item.name, CPPType::get<SocketValueVariant>());
     }
   }
 
@@ -521,7 +506,7 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
 
     const bNodeSocket &skip_bsocket = node.input_socket(0);
     skip_input_index_ = inputs_.append_and_get_index_as(
-        "Skip", *skip_bsocket.typeinfo->geometry_nodes_cpp_type, lf::ValueUsage::Maybe);
+        "Skip", CPPType::get<SocketValueVariant>(), lf::ValueUsage::Maybe);
     lf_index_by_bsocket[skip_bsocket.index_in_tree()] = skip_input_index_;
 
     skip_inputs_offset_ = inputs_.size();
@@ -529,8 +514,7 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
     /* Add the skip inputs that are linked to the simulation input node. */
     for (const int i : simulation_items_.index_range()) {
       const NodeSimulationItem &item = simulation_items_[i];
-      const CPPType &type = get_simulation_item_cpp_type(item);
-      inputs_.append_as(item.name, type, lf::ValueUsage::Maybe);
+      inputs_.append_as(item.name, CPPType::get<SocketValueVariant>(), lf::ValueUsage::Maybe);
     }
 
     solve_inputs_offset_ = inputs_.size();
@@ -541,12 +525,10 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
       const bNodeSocket &input_bsocket = node.input_socket(i + 1);
       const bNodeSocket &output_bsocket = node.output_socket(i);
 
-      const CPPType &type = get_simulation_item_cpp_type(item);
-
       lf_index_by_bsocket[input_bsocket.index_in_tree()] = inputs_.append_and_get_index_as(
-          item.name, type, lf::ValueUsage::Maybe);
+          item.name, CPPType::get<SocketValueVariant>(), lf::ValueUsage::Maybe);
       lf_index_by_bsocket[output_bsocket.index_in_tree()] = outputs_.append_and_get_index_as(
-          item.name, type);
+          item.name, CPPType::get<SocketValueVariant>());
     }
   }
 

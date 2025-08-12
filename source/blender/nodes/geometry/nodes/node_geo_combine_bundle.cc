@@ -115,7 +115,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   for (const int i : IndexRange(storage.items_num)) {
     const NodeCombineBundleItem &item = storage.items[i];
     const bke::bNodeSocketType *stype = bke::node_socket_type_find_static(item.socket_type);
-    if (!stype || !stype->geometry_nodes_cpp_type) {
+    if (!stype || !stype->geometry_nodes_default_value) {
       continue;
     }
     const StringRef name = item.name;

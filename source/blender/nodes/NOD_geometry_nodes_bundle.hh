@@ -15,9 +15,8 @@
 namespace blender::nodes {
 
 struct BundleItemSocketValue {
-  /** The type of data referenced. It uses #bNodeSocketType::geometry_nodes_cpp_type. */
+  /** The type of referenced data. */
   const bke::bNodeSocketType *type;
-  /** Non-owning pointer to the value. The memory is owned by the Bundle directly. */
   bke::SocketValueVariant value;
 };
 

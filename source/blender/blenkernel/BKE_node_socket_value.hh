@@ -218,6 +218,7 @@ template<typename T> inline SocketValueVariant SocketValueVariant::From(T &&valu
 
 template<typename T> inline void SocketValueVariant::set(T &&value)
 {
+  static_assert(!is_same_any_v<std::decay_t<T>, SocketValueVariant, bke::SocketValueVariant *>);
   this->store_impl<std::decay_t<T>>(std::forward<T>(value));
 }
 

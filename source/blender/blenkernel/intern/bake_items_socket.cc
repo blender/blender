@@ -288,7 +288,7 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(
             if (!stype) {
               return std::nullopt;
             }
-            if (!stype->geometry_nodes_cpp_type) {
+            if (!stype->geometry_nodes_default_value) {
               return std::nullopt;
             }
             if (std::optional<SocketValueVariant> child_value_variant =

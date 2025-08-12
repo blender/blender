@@ -127,14 +127,6 @@ static bool node_insert_link(bke::NodeInsertLinkParams &params)
       params.ntree, params.node, params.node, params.link);
 }
 
-static const CPPType &get_item_cpp_type(const eNodeSocketDatatype socket_type)
-{
-  const bke::bNodeSocketType *typeinfo = bke::node_socket_type_find_static(socket_type);
-  BLI_assert(typeinfo);
-  BLI_assert(typeinfo->geometry_nodes_cpp_type);
-  return *typeinfo->geometry_nodes_cpp_type;
-}
-
 static void draw_bake_items(const bContext *C, uiLayout *layout, PointerRNA node_ptr)
 {
   bNodeTree &tree = *reinterpret_cast<bNodeTree *>(node_ptr.owner_id);
@@ -229,11 +221,10 @@ class LazyFunctionForBakeNode final : public LazyFunction {
       const NodeGeometryBakeItem &item = bake_items_[i];
       const bNodeSocket &input_bsocket = node.input_socket(i);
       const bNodeSocket &output_bsocket = node.output_socket(i);
-      const CPPType &type = get_item_cpp_type(eNodeSocketDatatype(item.socket_type));
       lf_index_by_bsocket[input_bsocket.index_in_tree()] = inputs_.append_and_get_index_as(
-          item.name, type, lf::ValueUsage::Maybe);
+          item.name, CPPType::get<SocketValueVariant>(), lf::ValueUsage::Maybe);
       lf_index_by_bsocket[output_bsocket.index_in_tree()] = outputs_.append_and_get_index_as(
-          item.name, type);
+          item.name, CPPType::get<SocketValueVariant>());
     }
 
     bake_socket_config_ = make_bake_socket_config(bake_items_);

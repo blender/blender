@@ -127,7 +127,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       continue;
     }
     const bke::bNodeSocketType *stype = bke::node_socket_type_find_static(item.socket_type);
-    if (!stype || !stype->geometry_nodes_cpp_type) {
+    if (!stype || !stype->geometry_nodes_default_value) {
       continue;
     }
     const BundleItemValue *value = bundle->lookup(name);
