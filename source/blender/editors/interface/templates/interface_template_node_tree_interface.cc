@@ -150,7 +150,7 @@ class NodeSocketViewItem : public BasicTreeViewItem {
     MEM_SAFE_FREE(socket_.name);
 
     socket_.name = BLI_strdup(new_name.c_str());
-    nodetree_.tree_interface.tag_items_changed();
+    nodetree_.tree_interface.tag_item_property_changed();
     BKE_main_ensure_invariants(*CTX_data_main(&C), nodetree_.id);
     ED_undo_push(&const_cast<bContext &>(C), new_name.c_str());
     return true;

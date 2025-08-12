@@ -1704,7 +1704,7 @@ static void rna_NodeTree_debug_zone_lazy_function_graph(
 static void rna_NodeTree_interface_update(bNodeTree *ntree, bContext *C)
 {
   Main *bmain = CTX_data_main(C);
-  ntree->tree_interface.tag_items_changed();
+  ntree->tree_interface.tag_items_changed_generic();
   BKE_main_ensure_invariants(*bmain, ntree->id);
 }
 
