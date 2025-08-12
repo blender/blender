@@ -62,3 +62,10 @@ void node_compositor_store_output_bool(const float id, float value, out float ou
   store_bool(floatBitsToUint(id), value);
   out_value = value;
 }
+
+/* GPUMaterial doesn't support int, so it is passed as a float. */
+void node_compositor_store_output_menu(const float id, float value, out float out_value)
+{
+  store_menu(floatBitsToUint(id), value);
+  out_value = value;
+}

@@ -41,9 +41,9 @@ enum class ResultType : uint8_t {
   Int2,
   Color,
   Bool,
+  Menu,
 
   /* Single value only types. See Result::is_single_value_only_type. */
-  Menu,
   String,
 };
 
@@ -487,6 +487,7 @@ BLI_INLINE_METHOD int64_t Result::channels_count() const
     case ResultType::Float:
     case ResultType::Int:
     case ResultType::Bool:
+    case ResultType::Menu:
       return 1;
     case ResultType::Float2:
     case ResultType::Int2:
@@ -496,7 +497,6 @@ BLI_INLINE_METHOD int64_t Result::channels_count() const
     case ResultType::Color:
     case ResultType::Float4:
       return 4;
-    case ResultType::Menu:
     case ResultType::String:
       /* Single only types do not have channels. */
       BLI_assert(Result::is_single_value_only_type(type_));
