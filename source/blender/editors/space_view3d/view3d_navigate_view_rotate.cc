@@ -344,14 +344,6 @@ static wmOperatorStatus viewrotate_invoke_impl(bContext *C,
   eV3D_OpEvent event_code = ELEM(event->type, MOUSEROTATE, MOUSEPAN) ? VIEW_CONFIRM : VIEW_PASS;
 
   if (event_code == VIEW_CONFIRM) {
-
-#ifdef WITH_APPLE_CROSSPLATFORM
-    /* Only scroll view with multiple fingers on iOS. */
-    if (!(event->flag & WM_EVENT_MULTITOUCH_TWO_FINGERS)) {
-      return OPERATOR_FINISHED;
-    }
-#endif
-
     /* MOUSEROTATE performs orbital rotation, so y axis delta is set to 0 */
     const bool is_inverted = (event->flag & WM_EVENT_SCROLL_INVERT) &&
                              (event->type != MOUSEROTATE);
@@ -375,6 +367,13 @@ static wmOperatorStatus viewrotate_invoke_impl(bContext *C,
 
 static wmOperatorStatus viewrotate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+#ifdef WITH_APPLE_CROSSPLATFORM
+  /* Only scroll view with multiple fingers on iOS. */
+  if (!(event->flag & WM_EVENT_MULTITOUCH_TWO_FINGERS)) {
+    return OPERATOR_FINISHED;
+  }
+#endif
+
   return view3d_navigate_invoke_impl(C, op, event, &ViewOpsType_rotate);
 }
 
