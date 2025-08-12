@@ -41,21 +41,19 @@ static void capture_field_on_geometry_components(GeometrySet &geometry,
 
 static std::unique_ptr<BakeItem> move_common_socket_value_to_bake_item(
     const bNodeSocketType &stype,
-    void *socket_value,
+    SocketValueVariant &socket_value,
     std::optional<StringRef> name,
     Vector<GeometryBakeItem *> &r_geometry_bake_items)
 {
   switch (stype.type) {
     case SOCK_GEOMETRY: {
-      GeometrySet geometry =
-          static_cast<SocketValueVariant *>(socket_value)->extract<GeometrySet>();
+      GeometrySet geometry = socket_value.extract<GeometrySet>();
       auto item = std::make_unique<GeometryBakeItem>(std::move(geometry));
       r_geometry_bake_items.append(item.get());
       return item;
     }
     case SOCK_STRING: {
-      auto &value_variant = *static_cast<SocketValueVariant *>(socket_value);
-      return std::make_unique<StringBakeItem>(value_variant.extract<std::string>());
+      return std::make_unique<StringBakeItem>(socket_value.extract<std::string>());
     }
     case SOCK_FLOAT:
     case SOCK_VECTOR:
@@ -64,14 +62,13 @@ static std::unique_ptr<BakeItem> move_common_socket_value_to_bake_item(
     case SOCK_ROTATION:
     case SOCK_MATRIX:
     case SOCK_RGBA: {
-      auto &value_variant = *static_cast<SocketValueVariant *>(socket_value);
-      if (value_variant.is_context_dependent_field()) {
+      if (socket_value.is_context_dependent_field()) {
         /* Not supported here because it's not known which geometry this field belongs to. */
         return {};
       }
 #ifdef WITH_OPENVDB
-      if (value_variant.is_volume_grid()) {
-        bke::GVolumeGrid grid = value_variant.get<bke::GVolumeGrid>();
+      if (socket_value.is_volume_grid()) {
+        bke::GVolumeGrid grid = socket_value.get<bke::GVolumeGrid>();
         if (name) {
           grid.get_for_write().set_name(*name);
         }
@@ -82,26 +79,29 @@ static std::unique_ptr<BakeItem> move_common_socket_value_to_bake_item(
       UNUSED_VARS(name);
 #endif
 
-      value_variant.convert_to_single();
-      GPointer value = value_variant.get_single_ptr();
+      socket_value.convert_to_single();
+      GPointer value = socket_value.get_single_ptr();
       return std::make_unique<PrimitiveBakeItem>(*value.type(), value.get());
     }
     case SOCK_BUNDLE: {
-      auto &value_variant = *static_cast<SocketValueVariant *>(socket_value);
-      nodes::BundlePtr bundle_ptr = value_variant.extract<nodes::BundlePtr>();
+      nodes::BundlePtr bundle_ptr = socket_value.extract<nodes::BundlePtr>();
       auto bundle_bake_item = std::make_unique<BundleBakeItem>();
       if (bundle_ptr) {
         const nodes::Bundle &bundle = *bundle_ptr;
         for (const nodes::Bundle::StoredItem &bundle_item : bundle.items()) {
-          if (const auto *socket_value = std::get_if<nodes::BundleItemSocketValue>(
+          if (const auto *item_socket_value = std::get_if<nodes::BundleItemSocketValue>(
                   &bundle_item.value.value))
           {
             if (std::unique_ptr<BakeItem> bake_item = move_common_socket_value_to_bake_item(
-                    *socket_value->type, socket_value->value, std::nullopt, r_geometry_bake_items))
+                    *item_socket_value->type,
+                    *static_cast<SocketValueVariant *>(item_socket_value->value),
+                    std::nullopt,
+                    r_geometry_bake_items))
             {
-              bundle_bake_item->items.append(BundleBakeItem::Item{
-                  bundle_item.key,
-                  BundleBakeItem::SocketValue{socket_value->type->idname, std::move(bake_item)}});
+              bundle_bake_item->items.append(
+                  BundleBakeItem::Item{bundle_item.key,
+                                       BundleBakeItem::SocketValue{item_socket_value->type->idname,
+                                                                   std::move(bake_item)}});
             }
           }
           else if (const auto *internal_value = std::get_if<nodes::BundleItemInternalValue>(
@@ -124,9 +124,10 @@ static std::unique_ptr<BakeItem> move_common_socket_value_to_bake_item(
   }
 }
 
-Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<void *> socket_values,
-                                                                  const BakeSocketConfig &config,
-                                                                  BakeDataBlockMap *data_block_map)
+Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(
+    MutableSpan<SocketValueVariant> socket_values,
+    const BakeSocketConfig &config,
+    BakeDataBlockMap *data_block_map)
 {
   BLI_assert(socket_values.size() == config.types.size());
   BLI_assert(socket_values.size() == config.geometries_by_attribute.size());
@@ -141,8 +142,7 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
     if (socket_type != SOCK_GEOMETRY) {
       continue;
     }
-    void *socket_value = socket_values[i];
-    GeometrySet geometry = static_cast<SocketValueVariant *>(socket_value)->extract<GeometrySet>();
+    GeometrySet geometry = socket_values[i].extract<GeometrySet>();
     auto geometry_item = std::make_unique<GeometryBakeItem>(std::move(geometry));
     geometry_bake_items.append(geometry_item.get());
     bake_items[i] = std::move(geometry_item);
@@ -151,7 +151,7 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
   for (const int i : socket_values.index_range()) {
     const eNodeSocketDatatype socket_type = config.types[i];
     const bNodeSocketType &stype = *node_socket_type_find_static(socket_type);
-    void *socket_value = socket_values[i];
+    SocketValueVariant &socket_value = socket_values[i];
     switch (socket_type) {
       case SOCK_GEOMETRY: {
         /* Handled already. */
@@ -169,9 +169,8 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
       case SOCK_ROTATION:
       case SOCK_MATRIX:
       case SOCK_RGBA: {
-        auto &value_variant = *static_cast<SocketValueVariant *>(socket_value);
-        if (value_variant.is_context_dependent_field()) {
-          const fn::GField &field = value_variant.get<fn::GField>();
+        if (socket_value.is_context_dependent_field()) {
+          const fn::GField &field = socket_value.get<fn::GField>();
           const AttrDomain domain = config.domains[i];
           const std::string attribute_name = ".bake_" + std::to_string(i);
           const Span<int> geometry_indices = config.geometries_by_attribute[i];
@@ -216,24 +215,22 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
 /**
  * \return True if #r_value has been constructed.
  */
-[[nodiscard]] static bool copy_bake_item_to_socket_value(
+[[nodiscard]] static std::optional<SocketValueVariant> copy_bake_item_to_socket_value(
     const BakeItem &bake_item,
     const eNodeSocketDatatype socket_type,
     const FunctionRef<std::shared_ptr<AttributeFieldInput>(const CPPType &type)>
         make_attribute_field,
     BakeDataBlockMap *data_block_map,
-    Map<std::string, std::string> &r_attribute_map,
-    void *r_value)
+    Map<std::string, std::string> &r_attribute_map)
 {
   switch (socket_type) {
     case SOCK_GEOMETRY: {
       if (const auto *item = dynamic_cast<const GeometryBakeItem *>(&bake_item)) {
         bke::GeometrySet geometry = item->geometry;
         GeometryBakeItem::try_restore_data_blocks(geometry, data_block_map);
-        SocketValueVariant::ConstructIn(r_value, std::move(geometry));
-        return true;
+        return SocketValueVariant::From(std::move(geometry));
       }
-      return false;
+      return std::nullopt;
     }
     case SOCK_FLOAT:
     case SOCK_VECTOR:
@@ -245,21 +242,20 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
       const CPPType &base_type = *socket_type_to_geo_nodes_base_cpp_type(socket_type);
       if (const auto *item = dynamic_cast<const PrimitiveBakeItem *>(&bake_item)) {
         if (item->type() == base_type) {
-          auto *value_variant = new (r_value) SocketValueVariant();
-          value_variant->store_single(socket_type, item->value());
-          return true;
+          SocketValueVariant value_variant;
+          value_variant.store_single(socket_type, item->value());
+          return value_variant;
         }
-        return false;
+        return std::nullopt;
       }
       if (const auto *item = dynamic_cast<const AttributeBakeItem *>(&bake_item)) {
         if (!make_attribute_field) {
-          return false;
+          return std::nullopt;
         }
         std::shared_ptr<AttributeFieldInput> attribute_field = make_attribute_field(base_type);
         r_attribute_map.add(item->name(), attribute_field->attribute_name());
         fn::GField field{attribute_field};
-        SocketValueVariant::ConstructIn(r_value, std::move(field));
-        return true;
+        return SocketValueVariant::From(std::move(field));
       }
 #ifdef WITH_OPENVDB
       if (const auto *item = dynamic_cast<const VolumeGridBakeItem *>(&bake_item)) {
@@ -268,23 +264,21 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
         const std::optional<eNodeSocketDatatype> grid_socket_type = grid_type_to_socket_type(
             grid_type);
         if (!grid_socket_type) {
-          return false;
+          return std::nullopt;
         }
         if (grid_socket_type == socket_type) {
-          bke::SocketValueVariant::ConstructIn(r_value, *item->grid);
-          return true;
+          return bke::SocketValueVariant::From(*item->grid);
         }
-        return false;
+        return std::nullopt;
       }
 #endif
-      return false;
+      return std::nullopt;
     }
     case SOCK_STRING: {
       if (const auto *item = dynamic_cast<const StringBakeItem *>(&bake_item)) {
-        new (r_value) SocketValueVariant(std::string(item->value()));
-        return true;
+        return SocketValueVariant(std::string(item->value()));
       }
-      return false;
+      return std::nullopt;
     }
     case SOCK_BUNDLE: {
       if (const auto *item = dynamic_cast<const BundleBakeItem *>(&bake_item)) {
@@ -294,23 +288,20 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
           if (const auto *socket_value = std::get_if<BundleBakeItem::SocketValue>(&item.value)) {
             const bNodeSocketType *stype = node_socket_type_find(socket_value->socket_idname);
             if (!stype) {
-              return false;
+              return std::nullopt;
             }
             if (!stype->geometry_nodes_cpp_type) {
-              return false;
+              return std::nullopt;
             }
-            BUFFER_FOR_CPP_TYPE_VALUE(*stype->geometry_nodes_cpp_type, buffer);
-            if (!copy_bake_item_to_socket_value(*socket_value->value,
-                                                stype->type,
-                                                {},
-                                                data_block_map,
-                                                r_attribute_map,
-                                                buffer))
+            if (std::optional<SocketValueVariant> child_value_variant =
+                    copy_bake_item_to_socket_value(
+                        *socket_value->value, stype->type, {}, data_block_map, r_attribute_map))
             {
-              return false;
+              bundle.add(item.key, nodes::BundleItemSocketValue{stype, &*child_value_variant});
             }
-            bundle.add(item.key, nodes::BundleItemSocketValue{stype, buffer});
-            stype->geometry_nodes_cpp_type->destruct(buffer);
+            else {
+              return std::nullopt;
+            }
           }
           if (const auto *internal_value = std::get_if<BundleBakeItem::InternalValue>(&item.value))
           {
@@ -324,15 +315,14 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
                        nodes::BundleItemInternalValue{ImplicitSharingPtr{internal_data}});
           }
         }
-        bke::SocketValueVariant::ConstructIn(r_value, std::move(bundle_ptr));
-        return true;
+        return bke::SocketValueVariant::From(std::move(bundle_ptr));
       }
-      return false;
+      return std::nullopt;
     }
     default:
-      return false;
+      return std::nullopt;
   }
-  return false;
+  return std::nullopt;
 }
 
 static void rename_attributes(const Span<GeometrySet *> geometries,
@@ -366,95 +356,98 @@ static void rename_attributes(const Span<GeometrySet *> geometries,
   }
 }
 
-static void default_initialize_socket_value(const eNodeSocketDatatype socket_type, void *r_value)
+static SocketValueVariant default_initialize_socket_value(const eNodeSocketDatatype socket_type)
 {
   const bke::bNodeSocketType *typeinfo = bke::node_socket_type_find_static(socket_type);
-  if (typeinfo->geometry_nodes_default_cpp_value) {
-    typeinfo->geometry_nodes_cpp_type->copy_construct(typeinfo->geometry_nodes_default_cpp_value,
-                                                      r_value);
-  }
-  else {
-    typeinfo->geometry_nodes_cpp_type->value_initialize(r_value);
-  }
+  return *static_cast<const SocketValueVariant *>(typeinfo->geometry_nodes_default_cpp_value);
 }
 
-void move_bake_items_to_socket_values(
+Vector<SocketValueVariant> move_bake_items_to_socket_values(
     const Span<BakeItem *> bake_items,
     const BakeSocketConfig &config,
     BakeDataBlockMap *data_block_map,
-    FunctionRef<std::shared_ptr<AttributeFieldInput>(int, const CPPType &)> make_attribute_field,
-    const Span<void *> r_socket_values)
+    FunctionRef<std::shared_ptr<AttributeFieldInput>(int, const CPPType &)> make_attribute_field)
 {
   Map<std::string, std::string> attribute_map;
-
-  Vector<GeometrySet *> geometries;
+  Vector<SocketValueVariant> socket_values;
+  socket_values.reserve(bake_items.size());
 
   for (const int i : bake_items.index_range()) {
     const eNodeSocketDatatype socket_type = config.types[i];
     BakeItem *bake_item = bake_items[i];
-    void *r_socket_value = r_socket_values[i];
     if (bake_item == nullptr) {
-      default_initialize_socket_value(socket_type, r_socket_value);
+      socket_values.append(default_initialize_socket_value(socket_type));
       continue;
     }
-    if (!copy_bake_item_to_socket_value(
+    if (std::optional<SocketValueVariant> socket_value = copy_bake_item_to_socket_value(
             *bake_item,
             socket_type,
             [&](const CPPType &attr_type) { return make_attribute_field(i, attr_type); },
             data_block_map,
-            attribute_map,
-            r_socket_value))
+            attribute_map))
     {
-      default_initialize_socket_value(socket_type, r_socket_value);
+      socket_values.append(std::move(*socket_value));
+    }
+    else {
+      socket_values.append(default_initialize_socket_value(socket_type));
       continue;
     }
     if (socket_type == SOCK_GEOMETRY) {
       auto &item = *static_cast<GeometryBakeItem *>(bake_item);
       item.geometry.clear();
-      geometries.append(
-          static_cast<SocketValueVariant *>(r_socket_value)->get_single_ptr().get<GeometrySet>());
     }
   }
 
-  rename_attributes(geometries, attribute_map);
+  for (SocketValueVariant &socket_value : socket_values) {
+    if (socket_value.valid_for_socket(SOCK_GEOMETRY)) {
+      GeometrySet *geometry = socket_value.get_single_ptr().get<GeometrySet>();
+      rename_attributes({geometry}, attribute_map);
+    }
+  }
+
+  return socket_values;
 }
 
-void copy_bake_items_to_socket_values(
+Vector<SocketValueVariant> copy_bake_items_to_socket_values(
     const Span<const BakeItem *> bake_items,
     const BakeSocketConfig &config,
     BakeDataBlockMap *data_block_map,
-    FunctionRef<std::shared_ptr<AttributeFieldInput>(int, const CPPType &)> make_attribute_field,
-    const Span<void *> r_socket_values)
+    FunctionRef<std::shared_ptr<AttributeFieldInput>(int, const CPPType &)> make_attribute_field)
 {
   Map<std::string, std::string> attribute_map;
-  Vector<GeometrySet *> geometries;
+  Vector<SocketValueVariant> socket_values;
+  socket_values.reserve(bake_items.size());
 
   for (const int i : bake_items.index_range()) {
     const eNodeSocketDatatype socket_type = config.types[i];
     const BakeItem *bake_item = bake_items[i];
-    void *r_socket_value = r_socket_values[i];
     if (bake_item == nullptr) {
-      default_initialize_socket_value(socket_type, r_socket_value);
+      socket_values.append(default_initialize_socket_value(socket_type));
       continue;
     }
-    if (!copy_bake_item_to_socket_value(
+
+    if (std::optional<SocketValueVariant> socket_value = copy_bake_item_to_socket_value(
             *bake_item,
             socket_type,
             [&](const CPPType &attr_type) { return make_attribute_field(i, attr_type); },
             data_block_map,
-            attribute_map,
-            r_socket_value))
+            attribute_map))
     {
-      default_initialize_socket_value(socket_type, r_socket_value);
-      continue;
+      socket_values.append(std::move(*socket_value));
     }
-    if (socket_type == SOCK_GEOMETRY) {
-      geometries.append(
-          static_cast<SocketValueVariant *>(r_socket_value)->get_single_ptr().get<GeometrySet>());
+    else {
+      socket_values.append(default_initialize_socket_value(socket_type));
     }
   }
 
-  rename_attributes(geometries, attribute_map);
+  for (SocketValueVariant &socket_value : socket_values) {
+    if (socket_value.valid_for_socket(SOCK_GEOMETRY)) {
+      GeometrySet *geometry = socket_value.get_single_ptr().get<GeometrySet>();
+      rename_attributes({geometry}, attribute_map);
+    }
+  }
+
+  return socket_values;
 }
 
 }  // namespace blender::bke::bake
