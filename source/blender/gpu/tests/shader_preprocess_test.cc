@@ -371,7 +371,7 @@ int func(int a, int b = 0)
 }
 )";
     string expect = R"(
-int func(int a, int b)
+int func(int a, int b )
 {
   return a + b;
 }
@@ -396,7 +396,7 @@ int func(int a = 0, const int b = 0)
 }
 )";
     string expect = R"(
-int func(int a, const int b)
+int func(int a , const int b )
 {
   return a + b;
 }
@@ -426,7 +426,7 @@ int2 func(int2 a = int2(0, 0)) {
 }
 )";
     string expect = R"(
-int2 func(int2 a) {
+int2 func(int2 a ) {
   return a;
 }
 #line 2
@@ -435,7 +435,7 @@ int2 func()
 #line 2
   return func(int2(0, 0));
 }
-#line 6
+#line 5
 )";
     string error;
     string output = process_test_string(input, error);
@@ -449,7 +449,7 @@ void func(int a = 0) {
 }
 )";
     string expect = R"(
-void func(int a) {
+void func(int a ) {
   a;
 }
 #line 2
@@ -458,7 +458,7 @@ void func()
 #line 2
   func(0);
 }
-#line 6
+#line 5
 )";
     string error;
     string output = process_test_string(input, error);

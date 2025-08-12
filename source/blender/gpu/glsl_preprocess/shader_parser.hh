@@ -299,6 +299,7 @@ struct ParserData {
           token_offsets.offsets.emplace_back(offset);
         }
       }
+      token_offsets.offsets.emplace_back(offset);
     }
     {
       /* Keywords detection. */
@@ -760,6 +761,18 @@ struct Scope {
                             end().str_index_last() - start().str_index_start() + 1);
   }
 
+  Token find_token(const char token_type) const
+  {
+    size_t pos = data->token_types.substr(range().start, range().size).find(token_type);
+    return (pos != std::string::npos) ? Token{data, int64_t(range().start + pos)} :
+                                        Token::invalid();
+  }
+
+  bool contains_token(const char token_type) const
+  {
+    return find_token(token_type).is_valid();
+  }
+
   void foreach_match(const std::string &pattern,
                      std::function<void(const std::vector<Token>)> callback) const
   {
@@ -961,6 +974,11 @@ struct Parser {
     insert_after(at.str_index_last(), content);
   }
 
+  void insert_line_number(size_t at, int line)
+  {
+    insert_after(at, "#line " + std::to_string(line) + "\n");
+  }
+
   void insert_before(size_t at, const std::string &content)
   {
     IndexRange range = IndexRange(at, 0);
@@ -1009,7 +1027,11 @@ struct Parser {
   {
     std::string out;
     for (const Mutation &mut : mutations_) {
-      out += "Replace \"";
+      out += "Replace ";
+      out += std::to_string(mut.src_range.start);
+      out += " - ";
+      out += std::to_string(mut.src_range.size);
+      out += " \"";
       out += data_.str.substr(mut.src_range.start, mut.src_range.size);
       out += "\" by \"";
       out += mut.replacement;
