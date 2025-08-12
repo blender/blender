@@ -322,17 +322,6 @@ endif()
 
 if(WITH_ALEMBIC)
   add_definitions(-DWITH_ALEMBIC)
-endif()
-
-if(WITH_OPENVDB)
-  add_definitions(-DWITH_OPENVDB)
-  list(APPEND INC
-    ../../../../intern/openvdb
-  )
-endif()
-
-if(WITH_ALEMBIC)
-  add_definitions(-DWITH_ALEMBIC)
   list(APPEND INC
     ../../io/alembic
   )

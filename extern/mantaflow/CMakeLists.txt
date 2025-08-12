@@ -79,12 +79,6 @@ if(WITH_MANTA_NUMPY AND WITH_PYTHON_NUMPY)
 endif()
 
 if(WITH_OPENVDB)
-  list(APPEND INC_SYS
-    ${OPENVDB_INCLUDE_DIRS}
-  )
-  list(APPEND LIB
-    ${OPENVDB_LIBRARIES}
-  )
   if(WIN32)
     # OpenVDB emits lots of these, they should be suppressed through other
     # means but MSVC 16.8/16.9 has broken this functionality, so C4251 is
@@ -233,18 +227,10 @@ if(WITH_MANTA_NUMPY AND WITH_PYTHON_NUMPY)
 endif()
 
 set(LIB
+  PRIVATE bf::dependencies::optional::openvdb
   PRIVATE bf::dependencies::optional::tbb
   ${PYTHON_LINKFLAGS}
   ${PYTHON_LIBRARIES}
 )
 
 blender_add_lib(extern_mantaflow "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-
-if(WITH_OPENVDB)
-  # The VDB libs above are only added to as INTERFACE libs by blender_add_lib,
-  # meaning extern_mantaflow itself actually does not have a dependency on the
-  # OpenVDB libraries, and CMAKE is free to link the VDB libraries before
-  # extern_mantaflow causing linker errors on linux. By explicitly declaring
-  # a dependency here, CMAKE will do the right thing.
-  target_link_libraries(extern_mantaflow PRIVATE ${OPENVDB_LIBRARIES})
-endif()
