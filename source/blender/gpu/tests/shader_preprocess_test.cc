@@ -994,16 +994,16 @@ struct S {
     return a;
   }
 #line 18
-  S function(inout S _inout_sta this _inout_end, int i)
+  S function(inout S _inout_sta this_ _inout_end, int i)
   {
-    this.member = i;
+    this_.member = i;
     this_member++;
-    return this;
+    return this_;
   }
 #line 25
-  int size(const S this) 
+  int size(const S this_)
   {
-    return this.member;
+    return this_.member;
   }
 #line 30
 
