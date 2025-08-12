@@ -510,8 +510,8 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
                            (([device supportsFamily:MTLGPUFamilyApple4]) ? 96 : 31);
   if (GCaps.max_textures <= 32) {
     /* The iOS Simulator has an equivalent Metal GPU Family of Apple2, provide partial support
-     * for this extra platform by skipping this check.
-     * See: https://developer.apple.com/documentation/metal/developing-metal-apps-that-run-in-simulator?language=objc#Treat-Simulator-as-a-special-device
+     * for this extra platform by skipping this check. See:
+     * https://developer.apple.com/documentation/metal/developing-metal-apps-that-run-in-simulator?language=objc#Treat-Simulator-as-a-special-device
      */
 #ifndef TARGET_OS_SIMULATOR
     BLI_assert(false);
