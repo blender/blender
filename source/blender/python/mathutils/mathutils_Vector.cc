@@ -308,7 +308,7 @@ static PyObject *C_Vector_Range(PyObject *cls, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     C_Vector_Linspace_doc,
-    ".. classmethod:: Linspace(start, stop, size. /)\n"
+    ".. classmethod:: Linspace(start, stop, size, /)\n"
     "\n"
     "   Create a vector of the specified size which is filled with linearly spaced "
     "values between start and stop values.\n"
