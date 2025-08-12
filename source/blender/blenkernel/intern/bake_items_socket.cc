@@ -359,7 +359,7 @@ static void rename_attributes(const Span<GeometrySet *> geometries,
 static SocketValueVariant default_initialize_socket_value(const eNodeSocketDatatype socket_type)
 {
   const bke::bNodeSocketType *typeinfo = bke::node_socket_type_find_static(socket_type);
-  return *static_cast<const SocketValueVariant *>(typeinfo->geometry_nodes_default_cpp_value);
+  return *static_cast<const SocketValueVariant *>(typeinfo->geometry_nodes_default_value);
 }
 
 Vector<SocketValueVariant> move_bake_items_to_socket_values(

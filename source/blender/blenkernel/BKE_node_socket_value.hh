@@ -13,6 +13,8 @@
 #include "BLI_any.hh"
 #include "BLI_generic_pointer.hh"
 
+#include "BKE_node_socket_value_fwd.hh"
+
 namespace blender::bke {
 
 /**

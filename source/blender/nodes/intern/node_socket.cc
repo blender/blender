@@ -974,7 +974,7 @@ static bke::bNodeSocketType *make_socket_type_bool()
     new (r_value) SocketValueVariant(value);
   };
   static SocketValueVariant default_value{false};
-  socktype->geometry_nodes_default_cpp_value = &default_value;
+  socktype->geometry_nodes_default_value = &default_value;
   return socktype;
 }
 
@@ -995,7 +995,7 @@ static bke::bNodeSocketType *make_socket_type_rotation()
     new (r_value) SocketValueVariant(value);
   };
   static SocketValueVariant default_value{math::Quaternion::identity()};
-  socktype->geometry_nodes_default_cpp_value = &default_value;
+  socktype->geometry_nodes_default_value = &default_value;
   return socktype;
 }
 
@@ -1011,7 +1011,7 @@ static bke::bNodeSocketType *make_socket_type_matrix()
     new (r_value) SocketValueVariant(float4x4::identity());
   };
   static SocketValueVariant default_value{float4x4::identity()};
-  socktype->geometry_nodes_default_cpp_value = &default_value;
+  socktype->geometry_nodes_default_value = &default_value;
   return socktype;
 }
 
@@ -1027,7 +1027,7 @@ static bke::bNodeSocketType *make_socket_type_bundle()
     SocketValueVariant::ConstructIn(r_value, nodes::BundlePtr());
   };
   static SocketValueVariant default_value = SocketValueVariant::From(nodes::BundlePtr());
-  socktype->geometry_nodes_default_cpp_value = &default_value;
+  socktype->geometry_nodes_default_value = &default_value;
   return socktype;
 }
 
@@ -1043,7 +1043,7 @@ static bke::bNodeSocketType *make_socket_type_closure()
     SocketValueVariant::ConstructIn(r_value, nodes::ClosurePtr());
   };
   static SocketValueVariant default_value = SocketValueVariant::From(nodes::ClosurePtr());
-  socktype->geometry_nodes_default_cpp_value = &default_value;
+  socktype->geometry_nodes_default_value = &default_value;
   return socktype;
 }
 
@@ -1060,7 +1060,7 @@ static bke::bNodeSocketType *make_socket_type_float(PropertySubType subtype)
     new (r_value) SocketValueVariant(value);
   };
   static SocketValueVariant default_value{0.0f};
-  socktype->geometry_nodes_default_cpp_value = &default_value;
+  socktype->geometry_nodes_default_value = &default_value;
   return socktype;
 }
 
@@ -1077,7 +1077,7 @@ static bke::bNodeSocketType *make_socket_type_int(PropertySubType subtype)
     new (r_value) SocketValueVariant(value);
   };
   static SocketValueVariant default_value{0};
-  socktype->geometry_nodes_default_cpp_value = &default_value;
+  socktype->geometry_nodes_default_value = &default_value;
   return socktype;
 }
 
@@ -1094,7 +1094,7 @@ static bke::bNodeSocketType *make_socket_type_vector(PropertySubType subtype, co
     new (r_value) SocketValueVariant(value);
   };
   static SocketValueVariant default_value{blender::float3(0, 0, 0)};
-  socktype->geometry_nodes_default_cpp_value = &default_value;
+  socktype->geometry_nodes_default_value = &default_value;
   return socktype;
 }
 
@@ -1111,7 +1111,7 @@ static bke::bNodeSocketType *make_socket_type_rgba()
     new (r_value) SocketValueVariant(value);
   };
   static SocketValueVariant default_value{blender::ColorGeometry4f(0, 0, 0, 0)};
-  socktype->geometry_nodes_default_cpp_value = &default_value;
+  socktype->geometry_nodes_default_value = &default_value;
   return socktype;
 }
 
@@ -1128,7 +1128,7 @@ static bke::bNodeSocketType *make_socket_type_string(PropertySubType subtype)
     new (r_value) SocketValueVariant(value);
   };
   static SocketValueVariant default_value{std::string()};
-  socktype->geometry_nodes_default_cpp_value = &default_value;
+  socktype->geometry_nodes_default_value = &default_value;
   return socktype;
 }
 
@@ -1145,7 +1145,7 @@ static bke::bNodeSocketType *make_socket_type_menu()
     new (r_value) SocketValueVariant(value);
   };
   static SocketValueVariant default_value{0};
-  socktype->geometry_nodes_default_cpp_value = &default_value;
+  socktype->geometry_nodes_default_value = &default_value;
   return socktype;
 }
 
@@ -1163,7 +1163,7 @@ static bke::bNodeSocketType *make_socket_type_object()
   };
   static SocketValueVariant default_value = SocketValueVariant::From(
       static_cast<Object *>(nullptr));
-  socktype->geometry_nodes_default_cpp_value = &default_value;
+  socktype->geometry_nodes_default_value = &default_value;
   return socktype;
 }
 
@@ -1179,7 +1179,7 @@ static bke::bNodeSocketType *make_socket_type_geometry()
     SocketValueVariant::ConstructIn(r_value, bke::GeometrySet());
   };
   static SocketValueVariant default_value = SocketValueVariant::From(bke::GeometrySet());
-  socktype->geometry_nodes_default_cpp_value = &default_value;
+  socktype->geometry_nodes_default_value = &default_value;
   return socktype;
 }
 
@@ -1197,7 +1197,7 @@ static bke::bNodeSocketType *make_socket_type_collection()
   };
   static SocketValueVariant default_value = SocketValueVariant::From(
       static_cast<Collection *>(nullptr));
-  socktype->geometry_nodes_default_cpp_value = &default_value;
+  socktype->geometry_nodes_default_value = &default_value;
   return socktype;
 }
 
@@ -1214,7 +1214,7 @@ static bke::bNodeSocketType *make_socket_type_texture()
     SocketValueVariant::ConstructIn(r_value, texture);
   };
   static SocketValueVariant default_value = SocketValueVariant::From(static_cast<Tex *>(nullptr));
-  socktype->geometry_nodes_default_cpp_value = &default_value;
+  socktype->geometry_nodes_default_value = &default_value;
   return socktype;
 }
 
@@ -1232,7 +1232,7 @@ static bke::bNodeSocketType *make_socket_type_image()
   };
   static SocketValueVariant default_value = SocketValueVariant::From(
       static_cast<Image *>(nullptr));
-  socktype->geometry_nodes_default_cpp_value = &default_value;
+  socktype->geometry_nodes_default_value = &default_value;
   return socktype;
 }
 
@@ -1250,7 +1250,7 @@ static bke::bNodeSocketType *make_socket_type_material()
   };
   static SocketValueVariant default_value = SocketValueVariant::From(
       static_cast<Material *>(nullptr));
-  socktype->geometry_nodes_default_cpp_value = &default_value;
+  socktype->geometry_nodes_default_value = &default_value;
   return socktype;
 }
 

@@ -396,14 +396,8 @@ class LazyFunctionForUndefinedNode : public LazyFunction {
 
 void construct_socket_default_value(const bke::bNodeSocketType &stype, void *r_value)
 {
-  const CPPType *cpp_type = stype.geometry_nodes_cpp_type;
-  BLI_assert(cpp_type);
-  if (stype.geometry_nodes_default_cpp_value) {
-    cpp_type->copy_construct(stype.geometry_nodes_default_cpp_value, r_value);
-  }
-  else {
-    cpp_type->value_initialize(r_value);
-  }
+  BLI_assert(stype.geometry_nodes_default_value);
+  new (r_value) SocketValueVariant(*stype.geometry_nodes_default_value);
 }
 
 void set_default_value_for_output_socket(lf::Params &params,
@@ -2143,7 +2137,7 @@ struct GeometryNodesLazyFunctionBuilder {
       }
       else {
         const bNodeSocket &bsocket = zone.output_node()->input_socket(i + 1);
-        lf_to.set_default_value(bsocket.typeinfo->geometry_nodes_default_cpp_value);
+        lf_to.set_default_value(bsocket.typeinfo->geometry_nodes_default_value);
       }
     }
 
@@ -2869,7 +2863,7 @@ struct GeometryNodesLazyFunctionBuilder {
       const CPPType &type = *typeinfo->geometry_nodes_cpp_type;
       lf::GraphOutputSocket &lf_socket = lf_graph.add_output(
           type, interface_output->name ? interface_output->name : "");
-      const void *default_value = typeinfo->geometry_nodes_default_cpp_value;
+      const void *default_value = typeinfo->geometry_nodes_default_value;
       if (default_value == nullptr) {
         default_value = type.default_value();
       }
@@ -3212,8 +3206,7 @@ struct GeometryNodesLazyFunctionBuilder {
           const bNodeLink *link = multi_input_lazy_function.links[i];
           graph_params.lf_input_by_multi_input_link.add(link, &lf_multi_input_socket);
           mapping_->bsockets_by_lf_socket_map.add(&lf_multi_input_socket, bsocket);
-          lf_multi_input_socket.set_default_value(
-              bsocket->typeinfo->geometry_nodes_default_cpp_value);
+          lf_multi_input_socket.set_default_value(bsocket->typeinfo->geometry_nodes_default_value);
         }
       }
       else {
@@ -3797,7 +3790,7 @@ struct GeometryNodesLazyFunctionBuilder {
                                                                                   graph_params);
         if (converted_from_lf_socket == nullptr) {
           for (lf::InputSocket *to_lf_socket : lf_link_targets) {
-            to_lf_socket->set_default_value(to_typeinfo.geometry_nodes_default_cpp_value);
+            to_lf_socket->set_default_value(to_typeinfo.geometry_nodes_default_value);
           }
         }
         else {

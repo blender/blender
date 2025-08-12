@@ -481,6 +481,7 @@ set(SRC
   BKE_node_legacy_types.hh
   BKE_node_runtime.hh
   BKE_node_socket_value.hh
+  BKE_node_socket_value_fwd.hh
   BKE_node_tree_dot_export.hh
   BKE_node_tree_interface.hh
   BKE_node_tree_reference_lifetimes.hh

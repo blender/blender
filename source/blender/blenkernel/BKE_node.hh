@@ -13,6 +13,7 @@
 #include "BLI_compiler_compat.h"
 #include "BLI_span.hh"
 
+#include "BKE_node_socket_value_fwd.hh"
 #include "BKE_volume_enums.hh"
 
 /* for FOREACH_NODETREE_BEGIN */
@@ -209,7 +210,7 @@ struct bNodeSocketType {
   /* Get geometry nodes cpp value. */
   SocketGetGeometryNodesCPPValueFunction get_geometry_nodes_cpp_value = nullptr;
   /* Default value for this socket type. */
-  const void *geometry_nodes_default_cpp_value = nullptr;
+  const SocketValueVariant *geometry_nodes_default_value = nullptr;
 };
 
 using NodeInitExecFunction = void *(*)(bNodeExecContext *context,
