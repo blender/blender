@@ -245,6 +245,7 @@ void smooth_curve_attribute(const IndexMask &curves_to_smooth,
 
 void smooth_curve_positions(bke::CurvesGeometry &curves,
                             const IndexMask &curves_to_smooth,
+                            const VArray<bool> &point_selection,
                             const int iterations,
                             const VArray<float> &influence_by_point,
                             const bool smooth_ends,
@@ -253,8 +254,6 @@ void smooth_curve_positions(bke::CurvesGeometry &curves,
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
   const OffsetIndices points_by_curve = curves.points_by_curve();
   const VArray<bool> cyclic = curves.cyclic();
-  const VArray<bool> point_selection = *curves.attributes().lookup_or_default<bool>(
-      ".selection", bke::AttrDomain::Point, true);
   if (!curves.has_curve_with_type(CURVE_TYPE_BEZIER)) {
     bke::GSpanAttributeWriter positions = attributes.lookup_for_write_span("position");
     smooth_curve_attribute(curves_to_smooth,
@@ -361,6 +360,7 @@ void smooth_curve_positions(bke::CurvesGeometry &curves,
 
 void smooth_curve_positions(bke::CurvesGeometry &curves,
                             const IndexMask &curves_to_smooth,
+                            const VArray<bool> &point_selection,
                             const int iterations,
                             const float influence,
                             const bool smooth_ends,
@@ -368,6 +368,7 @@ void smooth_curve_positions(bke::CurvesGeometry &curves,
 {
   smooth_curve_positions(curves,
                          curves_to_smooth,
+                         point_selection,
                          iterations,
                          VArray<float>::from_single(influence, curves.points_num()),
                          smooth_ends,

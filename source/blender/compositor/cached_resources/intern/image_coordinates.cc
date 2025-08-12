@@ -76,7 +76,7 @@ static const char *get_shader_name(const CoordinatesType type)
 
 void ImageCoordinates::compute_gpu(Context &context, const CoordinatesType type)
 {
-  GPUShader *shader = context.get_shader(get_shader_name(type));
+  gpu::Shader *shader = context.get_shader(get_shader_name(type));
   GPU_shader_bind(shader);
 
   this->result.bind_as_image(shader, "output_img");

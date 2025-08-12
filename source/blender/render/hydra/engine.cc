@@ -147,7 +147,7 @@ pxr::HdTaskSharedPtrVector Engine::tasks()
     if (scene_->r.alphamode != R_ALPHAPREMUL) {
 #ifndef __APPLE__
       /* TODO: Temporary disable skydome task for MacOS due to crash with error:
-       * Failed to created pipeline state, error depthAttachmentPixelFormat is not valid
+       * Failed to create pipeline state, error depthAttachmentPixelFormat is not valid
        * and shader writes to depth */
       res.push_back(light_tasks_delegate_->skydome_task());
 #endif

@@ -1448,7 +1448,7 @@ template<typename T> void dc_triangulate(CDTArrangement<T> *cdt, Array<SiteInfo<
 
 /**
  * Do a Delaunay Triangulation of the points in cdt.verts.
- * This  is only a first step in the Constrained Delaunay triangulation,
+ * This is only a first step in the Constrained Delaunay triangulation,
  * because it doesn't yet deal with the segment constraints.
  * The algorithm used is the Divide & Conquer algorithm from the
  * Guibas-Stolfi "Primitives for the Manipulation of General Subdivision

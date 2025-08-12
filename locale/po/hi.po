@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'6dca66d606ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-04 09:08+0000\n"
+"POT-Creation-Date: 2025-08-11 08:28+0000\n"
 "PO-Revision-Date: 2025-07-23 15:34+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -1865,10 +1865,6 @@ msgstr "धुंधलापन"
 
 msgid "Alpha Mode"
 msgstr "पारदर्शिता रूप"
-
-
-msgid "Iris"
-msgstr "आईरिस"
 
 
 msgid "Duration"
@@ -5135,10 +5131,6 @@ msgid "External shader script must have .osl or .oso extension, or be a module n
 msgstr "बाह्य shader स्क्रिप्ट .osl या .oso एक्सटेंशन होना चाहिए, या एक मॉड्यूल का नाम हो"
 
 
-msgid "Can't read OSO bytecode to store in node at %r"
-msgstr "OSO bytecode %r पर नोड में संग्रहीत करने के लिए नहीं पढ़ सकता"
-
-
 msgid "Failed to write .oso file next to external .osl file at "
 msgstr ".Oso संचिका में बाह्य .oslसंचिकाल में आगे लिखने में विफल "
 
@@ -5483,6 +5475,11 @@ msgstr "चलचित्र"
 
 
 msgctxt "Operator"
+msgid "Delete Keyframes..."
+msgstr "अनुबोधक चिन्हों मिटाएँ..."
+
+
+msgctxt "Operator"
 msgid "Left"
 msgstr "बाईं ओर"
 
@@ -5630,11 +5627,6 @@ msgstr "वक्ता"
 
 
 msgctxt "Operator"
-msgid "Delete Keyframes..."
-msgstr "अनुबोधक चिन्हों मिटाएँ..."
-
-
-msgctxt "Operator"
 msgid "Change Shape"
 msgstr "आकृति बदलें"
 
@@ -5681,10 +5673,6 @@ msgstr "गणना"
 msgctxt "Plural"
 msgid "Sharp"
 msgstr "पैना"
-
-
-msgid "Seams"
-msgstr "तेजी"
 
 
 msgctxt "Operator"
@@ -6144,6 +6132,10 @@ msgstr "गोला"
 
 msgid "Outer"
 msgstr "बाहरी"
+
+
+msgid "Seams"
+msgstr "तेजी"
 
 
 msgid "No additional selected meshes with equal vertex count to join"

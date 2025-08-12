@@ -70,7 +70,7 @@ ccl_device_inline void triangle_point_normal(KernelGlobals kg,
   else {
     *Ng = normalize(cross(v1 - v0, v2 - v0));
   }
-  /* shader`*/
+  /* shader */
   *shader = kernel_data_fetch(tri_shader, prim);
 }
 

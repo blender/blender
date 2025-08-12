@@ -36,7 +36,7 @@ namespace blender::compositor {
  * information. Also see the compositor_parallel_reduction_info.hh file for example shader
  * definitions. */
 static float *parallel_reduction_dispatch(blender::gpu::Texture *texture,
-                                          GPUShader *shader,
+                                          gpu::Shader *shader,
                                           blender::gpu::TextureFormat format)
 {
   GPU_shader_uniform_1b(shader, "is_initial_reduction", true);
@@ -118,7 +118,7 @@ static Value parallel_reduce(const int2 range,
 
 static float sum_red_gpu(Context &context, const Result &result)
 {
-  GPUShader *shader = context.get_shader("compositor_sum_red", ResultPrecision::Full);
+  gpu::Shader *shader = context.get_shader("compositor_sum_red", ResultPrecision::Full);
   GPU_shader_bind(shader);
 
   float *reduced_value = parallel_reduction_dispatch(
@@ -152,7 +152,7 @@ float sum_red(Context &context, const Result &result)
 
 static float sum_green_gpu(Context &context, const Result &result)
 {
-  GPUShader *shader = context.get_shader("compositor_sum_green", ResultPrecision::Full);
+  gpu::Shader *shader = context.get_shader("compositor_sum_green", ResultPrecision::Full);
   GPU_shader_bind(shader);
 
   float *reduced_value = parallel_reduction_dispatch(
@@ -186,7 +186,7 @@ float sum_green(Context &context, const Result &result)
 
 static float sum_blue_gpu(Context &context, const Result &result)
 {
-  GPUShader *shader = context.get_shader("compositor_sum_blue", ResultPrecision::Full);
+  gpu::Shader *shader = context.get_shader("compositor_sum_blue", ResultPrecision::Full);
   GPU_shader_bind(shader);
 
   float *reduced_value = parallel_reduction_dispatch(
@@ -222,7 +222,7 @@ static float sum_luminance_gpu(Context &context,
                                const Result &result,
                                const float3 &luminance_coefficients)
 {
-  GPUShader *shader = context.get_shader("compositor_sum_luminance", ResultPrecision::Full);
+  gpu::Shader *shader = context.get_shader("compositor_sum_luminance", ResultPrecision::Full);
   GPU_shader_bind(shader);
 
   GPU_shader_uniform_3fv(shader, "luminance_coefficients", luminance_coefficients);
@@ -261,7 +261,7 @@ static float sum_log_luminance_gpu(Context &context,
                                    const Result &result,
                                    const float3 &luminance_coefficients)
 {
-  GPUShader *shader = context.get_shader("compositor_sum_log_luminance", ResultPrecision::Full);
+  gpu::Shader *shader = context.get_shader("compositor_sum_log_luminance", ResultPrecision::Full);
   GPU_shader_bind(shader);
 
   GPU_shader_uniform_3fv(shader, "luminance_coefficients", luminance_coefficients);
@@ -301,7 +301,7 @@ float sum_log_luminance(Context &context,
 
 static float4 sum_color_gpu(Context &context, const Result &result)
 {
-  GPUShader *shader = context.get_shader("compositor_sum_color", ResultPrecision::Full);
+  gpu::Shader *shader = context.get_shader("compositor_sum_color", ResultPrecision::Full);
   GPU_shader_bind(shader);
 
   float *reduced_value = parallel_reduction_dispatch(
@@ -341,8 +341,8 @@ static float sum_red_squared_difference_gpu(Context &context,
                                             const Result &result,
                                             const float subtrahend)
 {
-  GPUShader *shader = context.get_shader("compositor_sum_red_squared_difference",
-                                         ResultPrecision::Full);
+  gpu::Shader *shader = context.get_shader("compositor_sum_red_squared_difference",
+                                           ResultPrecision::Full);
   GPU_shader_bind(shader);
 
   GPU_shader_uniform_1f(shader, "subtrahend", subtrahend);
@@ -380,8 +380,8 @@ static float sum_green_squared_difference_gpu(Context &context,
                                               const Result &result,
                                               const float subtrahend)
 {
-  GPUShader *shader = context.get_shader("compositor_sum_green_squared_difference",
-                                         ResultPrecision::Full);
+  gpu::Shader *shader = context.get_shader("compositor_sum_green_squared_difference",
+                                           ResultPrecision::Full);
   GPU_shader_bind(shader);
 
   GPU_shader_uniform_1f(shader, "subtrahend", subtrahend);
@@ -419,8 +419,8 @@ static float sum_blue_squared_difference_gpu(Context &context,
                                              const Result &result,
                                              const float subtrahend)
 {
-  GPUShader *shader = context.get_shader("compositor_sum_blue_squared_difference",
-                                         ResultPrecision::Full);
+  gpu::Shader *shader = context.get_shader("compositor_sum_blue_squared_difference",
+                                           ResultPrecision::Full);
   GPU_shader_bind(shader);
 
   GPU_shader_uniform_1f(shader, "subtrahend", subtrahend);
@@ -459,8 +459,8 @@ static float sum_luminance_squared_difference_gpu(Context &context,
                                                   const float3 &luminance_coefficients,
                                                   const float subtrahend)
 {
-  GPUShader *shader = context.get_shader("compositor_sum_luminance_squared_difference",
-                                         ResultPrecision::Full);
+  gpu::Shader *shader = context.get_shader("compositor_sum_luminance_squared_difference",
+                                           ResultPrecision::Full);
   GPU_shader_bind(shader);
 
   GPU_shader_uniform_3fv(shader, "luminance_coefficients", luminance_coefficients);
@@ -511,7 +511,7 @@ static float maximum_luminance_gpu(Context &context,
                                    const Result &result,
                                    const float3 &luminance_coefficients)
 {
-  GPUShader *shader = context.get_shader("compositor_maximum_luminance", ResultPrecision::Full);
+  gpu::Shader *shader = context.get_shader("compositor_maximum_luminance", ResultPrecision::Full);
   GPU_shader_bind(shader);
 
   GPU_shader_uniform_3fv(shader, "luminance_coefficients", luminance_coefficients);
@@ -551,7 +551,7 @@ float maximum_luminance(Context &context,
 
 static float maximum_float_gpu(Context &context, const Result &result)
 {
-  GPUShader *shader = context.get_shader("compositor_maximum_float", ResultPrecision::Full);
+  gpu::Shader *shader = context.get_shader("compositor_maximum_float", ResultPrecision::Full);
   GPU_shader_bind(shader);
 
   float *reduced_value = parallel_reduction_dispatch(
@@ -585,7 +585,7 @@ float maximum_float(Context &context, const Result &result)
 
 static float2 maximum_float2_gpu(Context &context, const Result &result)
 {
-  GPUShader *shader = context.get_shader("compositor_maximum_float2", ResultPrecision::Full);
+  gpu::Shader *shader = context.get_shader("compositor_maximum_float2", ResultPrecision::Full);
   GPU_shader_bind(shader);
 
   float *reduced_value = parallel_reduction_dispatch(
@@ -622,8 +622,8 @@ static float maximum_float_in_range_gpu(Context &context,
                                         const float lower_bound,
                                         const float upper_bound)
 {
-  GPUShader *shader = context.get_shader("compositor_maximum_float_in_range",
-                                         ResultPrecision::Full);
+  gpu::Shader *shader = context.get_shader("compositor_maximum_float_in_range",
+                                           ResultPrecision::Full);
   GPU_shader_bind(shader);
 
   GPU_shader_uniform_1f(shader, "lower_bound", lower_bound);
@@ -674,7 +674,7 @@ static float minimum_luminance_gpu(Context &context,
                                    const Result &result,
                                    const float3 &luminance_coefficients)
 {
-  GPUShader *shader = context.get_shader("compositor_minimum_luminance", ResultPrecision::Full);
+  gpu::Shader *shader = context.get_shader("compositor_minimum_luminance", ResultPrecision::Full);
   GPU_shader_bind(shader);
 
   GPU_shader_uniform_3fv(shader, "luminance_coefficients", luminance_coefficients);
@@ -714,7 +714,7 @@ float minimum_luminance(Context &context,
 
 static float minimum_float_gpu(Context &context, const Result &result)
 {
-  GPUShader *shader = context.get_shader("compositor_minimum_float", ResultPrecision::Full);
+  gpu::Shader *shader = context.get_shader("compositor_minimum_float", ResultPrecision::Full);
   GPU_shader_bind(shader);
 
   float *reduced_value = parallel_reduction_dispatch(
@@ -751,8 +751,8 @@ static float minimum_float_in_range_gpu(Context &context,
                                         const float lower_bound,
                                         const float upper_bound)
 {
-  GPUShader *shader = context.get_shader("compositor_minimum_float_in_range",
-                                         ResultPrecision::Full);
+  gpu::Shader *shader = context.get_shader("compositor_minimum_float_in_range",
+                                           ResultPrecision::Full);
   GPU_shader_bind(shader);
 
   GPU_shader_uniform_1f(shader, "lower_bound", lower_bound);

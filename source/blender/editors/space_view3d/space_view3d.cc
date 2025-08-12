@@ -1123,6 +1123,8 @@ static void view3d_buttons_region_init(wmWindowManager *wm, ARegion *region)
 
   ED_region_panels_init(wm, region);
 
+  region->flag |= RGN_FLAG_INDICATE_OVERFLOW;
+
   keymap = WM_keymap_ensure(wm->defaultconf, "3D View Generic", SPACE_VIEW3D, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->runtime->handlers, keymap);
 }
@@ -1377,6 +1379,8 @@ static void view3d_tools_region_init(wmWindowManager *wm, ARegion *region)
   wmKeyMap *keymap;
 
   ED_region_panels_init(wm, region);
+
+  region->flag |= RGN_FLAG_INDICATE_OVERFLOW;
 
   keymap = WM_keymap_ensure(wm->defaultconf, "3D View Generic", SPACE_VIEW3D, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->runtime->handlers, keymap);

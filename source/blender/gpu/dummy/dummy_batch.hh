@@ -20,8 +20,8 @@ class DummyBatch : public Batch {
             int /*instance_count*/) override
   {
   }
-  void draw_indirect(GPUStorageBuf * /*indirect_buf*/, intptr_t /*offset*/) override {}
-  void multi_draw_indirect(GPUStorageBuf * /*indirect_buf*/,
+  void draw_indirect(StorageBuf * /*indirect_buf*/, intptr_t /*offset*/) override {}
+  void multi_draw_indirect(StorageBuf * /*indirect_buf*/,
                            int /*count*/,
                            intptr_t /*offset*/,
                            intptr_t /*stride*/) override

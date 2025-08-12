@@ -452,20 +452,8 @@ static StructureType left_to_right_merge(const StructureType a, const StructureT
   if (a == b) {
     return a;
   }
-  if ((a == StructureType::Dynamic && b == StructureType::Single) ||
-      (a == StructureType::Single && b == StructureType::Dynamic))
-  {
+  if (a == StructureType::Dynamic || b == StructureType::Dynamic) {
     return StructureType::Dynamic;
-  }
-  if ((a == StructureType::Dynamic && b == StructureType::Field) ||
-      (a == StructureType::Field && b == StructureType::Dynamic))
-  {
-    return StructureType::Dynamic;
-  }
-  if ((a == StructureType::Dynamic && b == StructureType::Grid) ||
-      (a == StructureType::Grid && b == StructureType::Dynamic))
-  {
-    return StructureType::Grid;
   }
   if ((a == StructureType::Field && b == StructureType::Grid) ||
       (a == StructureType::Grid && b == StructureType::Field))
@@ -481,6 +469,16 @@ static StructureType left_to_right_merge(const StructureType a, const StructureT
       (a == StructureType::Grid && b == StructureType::Single))
   {
     return StructureType::Grid;
+  }
+  if ((a == StructureType::Single && b == StructureType::List) ||
+      (a == StructureType::List && b == StructureType::Single))
+  {
+    return StructureType::List;
+  }
+  if ((a == StructureType::Field && b == StructureType::List) ||
+      (a == StructureType::List && b == StructureType::Field))
+  {
+    return StructureType::List;
   }
   /* Invalid combination. */
   return a;

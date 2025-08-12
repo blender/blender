@@ -85,7 +85,7 @@ static size_t find_byte_not_equal_to(const uint8_t *data,
 
   if (LIKELY(size - offset > min_size_for_fast_path)) {
 
-    /* Pass 1: Scan forward  with a fixed size to check if an early exit
+    /* Pass 1: Scan forward with a fixed size to check if an early exit
      * is needed (this may exit on the first few bytes). */
     const uint8_t *p = data + offset;
     const uint8_t *p_end = p + sizeof(size_t[2]);

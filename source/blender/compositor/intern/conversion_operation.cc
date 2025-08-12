@@ -89,7 +89,7 @@ void ConversionOperation::execute()
     const std::string shader_name = fmt::format("compositor_convert_{}_to_{}",
                                                 Result::type_name(this->get_input().type()),
                                                 Result::type_name(this->get_result().type()));
-    GPUShader *shader = this->context().get_shader(shader_name.c_str());
+    gpu::Shader *shader = this->context().get_shader(shader_name.c_str());
     GPU_shader_bind(shader);
 
     if (this->get_input().type() == ResultType::Color &&

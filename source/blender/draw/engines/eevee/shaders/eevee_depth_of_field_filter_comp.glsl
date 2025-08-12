@@ -17,10 +17,7 @@ struct FilterSample {
   float4 color;
   float weight;
 
-#if defined(GPU_METAL) || defined(GLSL_CPP_STUBS)
-  inline FilterSample() = default;
-  inline FilterSample(float4 in_color, float in_weight) : color(in_color), weight(in_weight) {}
-#endif
+  METAL_CONSTRUCTOR_2(FilterSample, float4, color, float, weight)
 };
 
 /* -------------------------------------------------------------------- */

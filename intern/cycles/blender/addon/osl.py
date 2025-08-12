@@ -232,7 +232,7 @@ def update_internal_script(report, script):
             import traceback
             traceback.print_exc()
 
-            report({'ERROR'}, "Cannot read OSO bytecode to store in node at %r" % oso_path)
+            report({'ERROR'}, "Cannot read OSO bytecode to store in node at {!r}".format(oso_path))
             ok = False
 
     return ok, oso_path, bytecode, bytecode_hash

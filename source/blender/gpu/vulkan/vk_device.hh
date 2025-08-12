@@ -39,12 +39,6 @@ struct VKExtensions {
    * VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR::fragmentShaderBarycentric.
    */
   bool fragment_shader_barycentric = false;
-  /**
-   * Does the device support VK_KHR_dynamic_rendering enabled.
-   *
-   * We should assume that this is always supported. Option will be removed later in 5.0.
-   */
-  bool dynamic_rendering = false;
 
   /**
    * Does the device support VK_KHR_dynamic_rendering_local_read enabled.
@@ -110,7 +104,7 @@ class VKThreadData : public NonCopyable, NonMovable {
   /** Thread ID this instance belongs to. */
   pthread_t thread_id;
   /**
-   * Index of the active resource pool. Is in sync with the active swap chain image or cycled when
+   * Index of the active resource pool. Is in sync with the active swap-chain image or cycled when
    * rendering.
    *
    * NOTE: Initialized to `UINT32_MAX` to detect first change.

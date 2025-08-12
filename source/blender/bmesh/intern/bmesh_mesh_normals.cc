@@ -964,7 +964,7 @@ static void bm_mesh_loops_calc_normals_for_vert_with_clnors(
                                                                  r_lnos,
                                                                  r_lnors_spacearr);
 
-    /* Check if an early exit is possible without  an exhaustive inspection of every loop
+    /* Check if an early exit is possible without an exhaustive inspection of every loop
      * where 1 loop's fan extends out to all remaining loops.
      * This is a common case for smooth vertices. */
     BLI_assert(loops_of_vert_handled <= loops_of_vert_count);

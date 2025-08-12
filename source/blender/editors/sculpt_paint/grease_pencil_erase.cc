@@ -117,7 +117,7 @@ struct EraseOperationExecutor {
    * \param radius_2: squared radius of the circle.
    *
    * \param r_mu0: (output) signed distance from \a s0 to the first intersection, if it exists.
-   * \param r_mu1: (output) signed distance from \a s0 to the second  intersection, if it exists.
+   * \param r_mu1: (output) signed distance from \a s0 to the second intersection, if it exists.
    *
    * All intersections with the infinite line of the segment are considered.
    *

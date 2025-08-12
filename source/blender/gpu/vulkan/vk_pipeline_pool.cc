@@ -565,22 +565,14 @@ VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(VKGraphicsInfo &graph
   }
 
   /* VK_KHR_dynamic_rendering */
-  if (extensions.dynamic_rendering) {
-    vk_pipeline_rendering_create_info_.depthAttachmentFormat =
-        graphics_info.fragment_out.depth_attachment_format;
-    vk_pipeline_rendering_create_info_.stencilAttachmentFormat =
-        graphics_info.fragment_out.stencil_attachment_format;
-    vk_pipeline_rendering_create_info_.colorAttachmentCount =
-        graphics_info.fragment_out.color_attachment_formats.size();
-    vk_pipeline_rendering_create_info_.pColorAttachmentFormats =
-        graphics_info.fragment_out.color_attachment_formats.data();
-  }
-  else {
-    BLI_assert(ELEM(
-        vk_graphics_pipeline_create_info_.pNext, &vk_pipeline_rendering_create_info_, nullptr));
-    vk_graphics_pipeline_create_info_.pNext = nullptr;
-    vk_graphics_pipeline_create_info_.renderPass = graphics_info.fragment_out.vk_render_pass;
-  }
+  vk_pipeline_rendering_create_info_.depthAttachmentFormat =
+      graphics_info.fragment_out.depth_attachment_format;
+  vk_pipeline_rendering_create_info_.stencilAttachmentFormat =
+      graphics_info.fragment_out.stencil_attachment_format;
+  vk_pipeline_rendering_create_info_.colorAttachmentCount =
+      graphics_info.fragment_out.color_attachment_formats.size();
+  vk_pipeline_rendering_create_info_.pColorAttachmentFormats =
+      graphics_info.fragment_out.color_attachment_formats.data();
 
   /* Common values */
   vk_graphics_pipeline_create_info_.layout = graphics_info.vk_pipeline_layout;
@@ -610,7 +602,6 @@ VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(VKGraphicsInfo &graph
   vk_graphics_pipeline_create_info_.stageCount = 0;
   vk_graphics_pipeline_create_info_.layout = VK_NULL_HANDLE;
   vk_graphics_pipeline_create_info_.basePipelineHandle = VK_NULL_HANDLE;
-  vk_graphics_pipeline_create_info_.renderPass = VK_NULL_HANDLE;
   for (VkPipelineShaderStageCreateInfo &info :
        MutableSpan<VkPipelineShaderStageCreateInfo>(vk_pipeline_shader_stage_create_info_, 3))
   {

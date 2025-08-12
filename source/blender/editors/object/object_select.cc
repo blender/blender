@@ -326,7 +326,7 @@ bool jump_to_bone(bContext *C, Object *ob, const char *bone_name, const bool rev
     if (pchan != nullptr) {
       if (reveal_hidden) {
         /* Unhide the bone. */
-        pchan->bone->flag &= ~BONE_HIDDEN_P;
+        pchan->drawflag &= ~PCHAN_DRAW_HIDDEN;
         ANIM_armature_bonecoll_show_from_pchan(arm, pchan);
       }
 

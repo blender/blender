@@ -474,7 +474,7 @@ namespace blender {
 
 /**
  * Setup side effects nodes so that the given node in the given compute context will be executed.
- * To make sure that it is executed, all parent group nodes and zones have to be set to  have side
+ * To make sure that it is executed, all parent group nodes and zones have to be set to have side
  * effects as well.
  */
 static void try_add_side_effect_node(const ModifierEvalContext &ctx,
@@ -1178,7 +1178,7 @@ class NodesModifierSimulationParams : public nodes::GeoNodesSimulationParams {
     use_frame_cache_ = ctx_.object->flag & OB_FLAG_USE_SIMULATION_CACHE;
     depsgraph_is_active_ = DEG_is_active(depsgraph);
     modifier_cache_ = nmd.runtime->cache.get();
-    fps_ = FPS;
+    fps_ = scene->frames_per_second();
 
     if (!modifier_cache_) {
       return;

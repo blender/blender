@@ -969,8 +969,9 @@
 #define _DNA_DEFAULT_GreasePencilLineartModifierData \
   { \
     .edge_types = MOD_LINEART_EDGE_FLAG_INIT_TYPE, \
-    .thickness = 25, \
+    .radius = 0.0025, \
     .opacity = 1.0f, \
+    .thickness_legacy = 25, \
     .crease_threshold = DEG2RAD(140.0f), \
     .calculation_flags = MOD_LINEART_ALLOW_DUPLI_OBJECTS | MOD_LINEART_ALLOW_CLIPPING_BOUNDARIES | \
                          MOD_LINEART_USE_CREASE_ON_SHARP_EDGES | MOD_LINEART_FILTER_FACE_MARK_KEEP_CONTOUR | \

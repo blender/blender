@@ -23,8 +23,8 @@
 namespace blender::gpu::tests {
 
 struct ShaderSpecializationConst {
-  GPUShader *shader = nullptr;
-  GPUStorageBuf *ssbo = nullptr;
+  gpu::Shader *shader = nullptr;
+  StorageBuf *ssbo = nullptr;
   Vector<int> data;
 
   float float_in;

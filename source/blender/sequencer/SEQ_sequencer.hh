@@ -36,8 +36,17 @@ enum {
 };
 
 /* strip_duplicate' flags */
-#define STRIP_DUPE_UNIQUE_NAME (1 << 0)
-#define STRIP_DUPE_ALL (1 << 3) /* otherwise only selected are copied */
+enum class StripDuplicate : uint8_t {
+  /* Note: Technically, the selected strips are duplicated when `All` is not set. */
+  Selected = 0,
+  /* Ensure strips have a unique name. */
+  UniqueName = (1 << 0),
+  /* Duplicate strips and the IDs they reference. */
+  Data = (1 << 1),
+  /* If this is set, duplicate all strips. If not set, duplicate selected strips. */
+  All = (1 << 3),
+};
+ENUM_OPERATORS(StripDuplicate, StripDuplicate::All);
 
 SequencerToolSettings *tool_settings_init();
 SequencerToolSettings *tool_settings_ensure(Scene *scene);
@@ -88,13 +97,18 @@ void meta_stack_set(const Scene *scene, Strip *dst);
  * \param ed: sequence editor data
  */
 Strip *meta_stack_pop(Editing *ed);
-Strip *strip_duplicate_recursive(
-    const Scene *scene_src, Scene *scene_dst, ListBase *new_seq_list, Strip *strip, int dupe_flag);
-void seqbase_duplicate_recursive(const Scene *scene_src,
+Strip *strip_duplicate_recursive(Main *bmain,
+                                 const Scene *scene_src,
+                                 Scene *scene_dst,
+                                 ListBase *new_seq_list,
+                                 Strip *strip,
+                                 StripDuplicate dupe_flag);
+void seqbase_duplicate_recursive(Main *bmain,
+                                 const Scene *scene_src,
                                  Scene *scene_dst,
                                  ListBase *nseqbase,
                                  const ListBase *seqbase,
-                                 int dupe_flag,
+                                 StripDuplicate dupe_flag,
                                  int flag);
 bool is_valid_strip_channel(const Strip *strip);
 

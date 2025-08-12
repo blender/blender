@@ -142,7 +142,8 @@ void DRW_mutexes_exit();
 void DRW_lock_start();
 void DRW_lock_end();
 
-/* Critical section for GPUShader usage. Can be removed when we have threadsafe GPUShader class. */
+/* Critical section for gpu::Shader usage. Can be removed when we have threadsafe gpu::Shader
+ * class. */
 void DRW_submission_start();
 void DRW_submission_end();
 

@@ -437,6 +437,8 @@ static void file_main_region_init(wmWindowManager *wm, ARegion *region)
 
   UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_LIST, region->winx, region->winy);
 
+  region->flag |= RGN_FLAG_INDICATE_OVERFLOW;
+
   /* Truncate, otherwise these can be on ".5" and give fuzzy text. #77696. */
   region->v2d.cur.ymin = trunc(region->v2d.cur.ymin);
   region->v2d.cur.ymax = trunc(region->v2d.cur.ymax);
@@ -600,6 +602,8 @@ static void file_main_region_draw(const bContext *C, ARegion *region)
   rcti view_rect;
   ED_fileselect_layout_maskrect(sfile->layout, v2d, &view_rect);
   UI_view2d_scrollers_draw(v2d, &view_rect);
+
+  ED_region_draw_overflow_indication(CTX_wm_area(C), region, &view_rect);
 }
 
 static void file_operatortypes()

@@ -417,7 +417,7 @@ struct uiButDecorator : public uiBut {
 
 /** Derived struct for #ButType::Progress. */
 struct uiButProgress : public uiBut {
-  /** Progress in  0..1 range */
+  /** Progress in 0..1 range. */
   float progress_factor = 0.0f;
   /** The display style (bar, pie... etc). */
   blender::ui::ButProgressType progress_type = blender::ui::ButProgressType::Bar;

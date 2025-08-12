@@ -913,7 +913,7 @@ static short snap_bezier_nearest(KeyframeEditData * /*ked*/, BezTriple *bezt)
 static short snap_bezier_nearestsec(KeyframeEditData *ked, BezTriple *bezt)
 {
   const Scene *scene = ked->scene;
-  const float secf = float(FPS);
+  const float secf = float(scene->frames_per_second());
 
   if (bezt->f2 & SELECT) {
     BKE_fcurve_keyframe_move_time_with_handles(bezt, floorf(bezt->vec[1][0] / secf + 0.5f) * secf);

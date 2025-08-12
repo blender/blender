@@ -435,11 +435,6 @@ static int bpy_app_binary_path_set(PyObject * /*self*/, PyObject *value, void * 
 
 static PyGetSetDef bpy_app_getsets[] = {
     {"debug", bpy_app_debug_get, bpy_app_debug_set, bpy_app_debug_doc, (void *)G_DEBUG},
-    {"debug_ffmpeg",
-     bpy_app_debug_get,
-     bpy_app_debug_set,
-     bpy_app_debug_doc,
-     (void *)G_DEBUG_FFMPEG},
     {"debug_freestyle",
      bpy_app_debug_get,
      bpy_app_debug_set,

@@ -12,7 +12,7 @@ SHADER_LIBRARY_CREATE_INFO(draw_view)
 SHADER_LIBRARY_CREATE_INFO(workbench_composite)
 SHADER_LIBRARY_CREATE_INFO(workbench_resolve_cavity)
 
-/*  From The Alchemy screen-space ambient obscurance algorithm
+/* From The Alchemy screen-space ambient obscurance algorithm
  * http://graphics.cs.williams.edu/papers/AlchemyHPG11/VV11AlchemyAO.pdf */
 
 #ifdef WORKBENCH_CAVITY

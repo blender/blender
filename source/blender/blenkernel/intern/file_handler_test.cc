@@ -98,7 +98,7 @@ TEST(file_handler, remove)
   EXPECT_EQ(file_handlers().size(), MAX_FILE_HANDLERS_TEST_SIZE - 2);
   EXPECT_EQ(file_handler_find("Test_FH_blender8"), nullptr);
 
-  /** `FileHandlerType` pointer  in `test_file_handlers[7]` is not longer valid. */
+  /** `FileHandlerType` pointer in `test_file_handlers[7]` is not longer valid. */
   EXPECT_EQ(file_handler_find("Test_FH_blender1"), test_file_handlers[0]);
   EXPECT_EQ(file_handler_find("Test_FH_blender3"), test_file_handlers[2]);
   EXPECT_EQ(file_handler_find("Test_FH_blender4"), test_file_handlers[3]);

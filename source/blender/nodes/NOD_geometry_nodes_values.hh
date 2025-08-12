@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "BKE_geometry_set.hh"
 #include "BKE_node.hh"
 #include "BKE_volume_grid_fwd.hh"
 
@@ -54,7 +55,13 @@ static constexpr bool geo_nodes_type_stored_as_SocketValueVariant_v =
                   bke::GVolumeGrid,
                   nodes::BundlePtr,
                   nodes::ClosurePtr,
-                  nodes::ListPtr>;
+                  nodes::ListPtr,
+                  Object *,
+                  Collection *,
+                  Tex *,
+                  Image *,
+                  Material *,
+                  bke::GeometrySet>;
 
 /**
  * Executes a multi-function. If all inputs are single values, the results will also be single

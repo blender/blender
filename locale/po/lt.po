@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'6dca66d606ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-04 09:08+0000\n"
+"POT-Creation-Date: 2025-08-11 08:28+0000\n"
 "PO-Revision-Date: 2025-07-23 15:18+0000\n"
 "Last-Translator: Aras Pranckevičius <aras@nesnausk.org>\n"
 "Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
@@ -2525,38 +2525,6 @@ msgid "Last"
 msgstr "Paskutinė/-is"
 
 
-msgid "BMP"
-msgstr "„BMP“"
-
-
-msgid "Iris"
-msgstr "„Iris“"
-
-
-msgid "JPEG"
-msgstr "„JPEG“"
-
-
-msgid "Targa"
-msgstr "„Targa“"
-
-
-msgid "Cineon"
-msgstr "„Cineon“"
-
-
-msgid "DPX"
-msgstr "„DPX“"
-
-
-msgid "TIFF"
-msgstr "„TIFF“"
-
-
-msgid "WebP"
-msgstr "„WebP“"
-
-
 msgid "Pixels"
 msgstr "Pikseliai"
 
@@ -3259,6 +3227,10 @@ msgid "px"
 msgstr "pks."
 
 
+msgid "JPEG"
+msgstr "„JPEG“"
+
+
 msgid "Growing/shrinking mode"
 msgstr "Augimo/Susitraukimo veiksena"
 
@@ -3313,10 +3285,6 @@ msgstr "Projektuoti A ant B"
 msgctxt "NodeTree"
 msgid "Reflect"
 msgstr "Atspindys"
-
-
-msgid "Reflect A around the normal B. B doesn't need to be normalized."
-msgstr "A atspindys aplink normalę B. B ilgis nebūtinai vienetinis."
 
 
 msgctxt "NodeTree"
@@ -3542,6 +3510,18 @@ msgstr "Objektas"
 
 msgid "Add Mode"
 msgstr "Pridėti veikseną"
+
+
+msgid "BMP"
+msgstr "„BMP“"
+
+
+msgid "DPX"
+msgstr "„DPX“"
+
+
+msgid "TIFF"
+msgstr "„TIFF“"
 
 
 msgctxt "Operator"

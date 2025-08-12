@@ -20,12 +20,12 @@ namespace blender::image_engine {
 class ShaderModule {
  private:
   struct ShaderDeleter {
-    void operator()(GPUShader *shader)
+    void operator()(gpu::Shader *shader)
     {
       GPU_SHADER_FREE_SAFE(shader);
     }
   };
-  using ShaderPtr = std::unique_ptr<GPUShader, ShaderDeleter>;
+  using ShaderPtr = std::unique_ptr<gpu::Shader, ShaderDeleter>;
 
   /** Shared shader module across all engine instances. */
   static ShaderModule *g_shader_module;

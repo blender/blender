@@ -859,7 +859,7 @@ void DrawMultiBuf::generate_commands(Vector<Header, 0> & /*headers*/,
   command_buf_.get_or_resize(group_count_ * 2);
 
   if (prototype_count_ > 0) {
-    GPUShader *shader = DRW_shader_draw_command_generate_get();
+    gpu::Shader *shader = DRW_shader_draw_command_generate_get();
     GPU_shader_bind(shader);
     GPU_shader_uniform_1i(shader, "prototype_len", prototype_count_);
     GPU_shader_uniform_1i(shader, "visibility_word_per_draw", visibility_word_per_draw);

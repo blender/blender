@@ -21,7 +21,7 @@
 #  include "DNA_modifier_types.h"
 #  include "DNA_object_types.h"
 #  include "DNA_scene_types.h"
-#  include "DNA_space_types.h"
+#  include "DNA_space_enums.h"
 
 #  include "BKE_context.hh"
 #  include "BKE_file_handler.hh"
@@ -56,7 +56,11 @@
 #  include "ABC_alembic.h"
 #  include "UI_interface_layout.hh"
 
-const EnumPropertyItem rna_enum_abc_export_evaluation_mode_items[] = {
+#  include "CLG_log.h"
+
+static CLG_LogRef LOG = {"io.alembic"};
+
+static const EnumPropertyItem rna_enum_abc_export_evaluation_mode_items[] = {
     {DAG_EVAL_RENDER,
      "RENDER",
      0,
@@ -508,10 +512,10 @@ static int get_sequence_len(const char *filepath, int *ofs)
 
   DIR *dir = opendir(dirpath);
   if (dir == nullptr) {
-    fprintf(stderr,
-            "Error opening directory '%s': %s\n",
-            dirpath,
-            errno ? strerror(errno) : "unknown error");
+    CLOG_ERROR(&LOG,
+               "Error opening directory '%s': %s",
+               dirpath,
+               errno ? strerror(errno) : "unknown error");
     return -1;
   }
 

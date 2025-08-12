@@ -22,7 +22,9 @@
 
 namespace blender::gpu {
 class Batch;
+class Shader;
 class Texture;
+class UniformBuf;
 }  // namespace blender::gpu
 struct ARegion;
 struct bContext;
@@ -31,8 +33,6 @@ struct DefaultFramebufferList;
 struct DefaultTextureList;
 struct DupliObject;
 struct GPUMaterial;
-struct GPUShader;
-struct GPUUniformBuf;
 struct Mesh;
 struct Object;
 struct ParticleSystem;

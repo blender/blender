@@ -315,7 +315,7 @@ class GlareOperation : public NodeOperation {
 
   Result execute_highlights_gpu()
   {
-    GPUShader *shader = context().get_shader("compositor_glare_highlights");
+    gpu::Shader *shader = context().get_shader("compositor_glare_highlights");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1f(shader, "threshold", this->get_threshold());
@@ -542,7 +542,7 @@ class GlareOperation : public NodeOperation {
 
   void write_highlights_output_gpu(const Result &highlights)
   {
-    GPUShader *shader = this->context().get_shader("compositor_glare_write_highlights_output");
+    gpu::Shader *shader = this->context().get_shader("compositor_glare_write_highlights_output");
     GPU_shader_bind(shader);
 
     GPU_texture_filter_mode(highlights, true);
@@ -652,7 +652,7 @@ class GlareOperation : public NodeOperation {
     GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
     GPU_texture_copy(vertical_pass_result, highlights);
 
-    GPUShader *shader = context().get_shader("compositor_glare_simple_star_vertical_pass");
+    gpu::Shader *shader = context().get_shader("compositor_glare_simple_star_vertical_pass");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1i(shader, "iterations", get_number_of_iterations());
@@ -762,7 +762,7 @@ class GlareOperation : public NodeOperation {
     GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
     GPU_texture_copy(horizontal_pass_result, highlights);
 
-    GPUShader *shader = context().get_shader("compositor_glare_simple_star_horizontal_pass");
+    gpu::Shader *shader = context().get_shader("compositor_glare_simple_star_horizontal_pass");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1i(shader, "iterations", get_number_of_iterations());
@@ -868,7 +868,7 @@ class GlareOperation : public NodeOperation {
     GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
     GPU_texture_copy(anti_diagonal_pass_result, highlights);
 
-    GPUShader *shader = context().get_shader("compositor_glare_simple_star_anti_diagonal_pass");
+    gpu::Shader *shader = context().get_shader("compositor_glare_simple_star_anti_diagonal_pass");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1i(shader, "iterations", get_number_of_iterations());
@@ -980,7 +980,7 @@ class GlareOperation : public NodeOperation {
     GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
     GPU_texture_copy(diagonal_pass_result, highlights);
 
-    GPUShader *shader = context().get_shader("compositor_glare_simple_star_diagonal_pass");
+    gpu::Shader *shader = context().get_shader("compositor_glare_simple_star_diagonal_pass");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1i(shader, "iterations", get_number_of_iterations());
@@ -1111,7 +1111,7 @@ class GlareOperation : public NodeOperation {
 
   Result apply_streak_filter_gpu(const Result &highlights, const float2 &streak_direction)
   {
-    GPUShader *shader = context().get_shader("compositor_glare_streaks_filter");
+    gpu::Shader *shader = context().get_shader("compositor_glare_streaks_filter");
     GPU_shader_bind(shader);
 
     /* Copy the highlights result into a new result because the output will be copied to the input
@@ -1249,7 +1249,7 @@ class GlareOperation : public NodeOperation {
 
   void accumulate_streak_gpu(const Result &streak_result, Result &accumulated_streaks_result)
   {
-    GPUShader *shader = this->context().get_shader("compositor_glare_streaks_accumulate");
+    gpu::Shader *shader = this->context().get_shader("compositor_glare_streaks_accumulate");
     GPU_shader_bind(shader);
 
     const float attenuation_factor = this->compute_streak_attenuation_factor();
@@ -1374,7 +1374,7 @@ class GlareOperation : public NodeOperation {
 
   void accumulate_ghosts_gpu(const Result &base_ghost_result, Result &accumulated_ghosts_result)
   {
-    GPUShader *shader = context().get_shader("compositor_glare_ghost_accumulate");
+    gpu::Shader *shader = context().get_shader("compositor_glare_ghost_accumulate");
     GPU_shader_bind(shader);
 
     /* Color modulators are constant across iterations. */
@@ -1534,7 +1534,7 @@ class GlareOperation : public NodeOperation {
                               const Result &big_ghost_result,
                               Result &base_ghost_result)
   {
-    GPUShader *shader = context().get_shader("compositor_glare_ghost_base");
+    gpu::Shader *shader = context().get_shader("compositor_glare_ghost_base");
     GPU_shader_bind(shader);
 
     GPU_texture_filter_mode(small_ghost_result, true);
@@ -1751,7 +1751,7 @@ class GlareOperation : public NodeOperation {
 
   void compute_bloom_upsample_gpu(const Result &input, Result &output)
   {
-    GPUShader *shader = context().get_shader("compositor_glare_bloom_upsample");
+    gpu::Shader *shader = context().get_shader("compositor_glare_bloom_upsample");
     GPU_shader_bind(shader);
 
     GPU_texture_filter_mode(input, true);
@@ -1869,7 +1869,7 @@ class GlareOperation : public NodeOperation {
                                     Result &output,
                                     const bool use_karis_average)
   {
-    GPUShader *shader = context().get_shader(
+    gpu::Shader *shader = context().get_shader(
         use_karis_average ? "compositor_glare_bloom_downsample_karis_average" :
                             "compositor_glare_bloom_downsample_simple_average");
     GPU_shader_bind(shader);
@@ -2247,7 +2247,7 @@ class GlareOperation : public NodeOperation {
 
   Result execute_sun_beams_gpu(Result &highlights, const int max_steps)
   {
-    GPUShader *shader = context().get_shader("compositor_sun_beams");
+    gpu::Shader *shader = context().get_shader("compositor_sun_beams");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_2fv(shader, "source", this->get_sun_position());
@@ -2342,7 +2342,7 @@ class GlareOperation : public NodeOperation {
 
   void execute_mix_gpu(const Result &glare_result)
   {
-    GPUShader *shader = context().get_shader("compositor_glare_mix");
+    gpu::Shader *shader = context().get_shader("compositor_glare_mix");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1f(shader, "saturation", this->get_saturation());
@@ -2414,7 +2414,7 @@ class GlareOperation : public NodeOperation {
 
   void write_glare_output_gpu(const Result &glare)
   {
-    GPUShader *shader = this->context().get_shader("compositor_glare_write_glare_output");
+    gpu::Shader *shader = this->context().get_shader("compositor_glare_write_glare_output");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1f(shader, "saturation", this->get_saturation());

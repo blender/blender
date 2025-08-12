@@ -157,21 +157,36 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 void ED_operatormacros_sequencer()
 {
   wmOperatorType *ot;
+  wmOperatorTypeMacro *otmacro;
 
   ot = WM_operatortype_append_macro("SEQUENCER_OT_duplicate_move",
                                     "Duplicate Strips",
                                     "Duplicate selected strips and move them",
                                     OPTYPE_UNDO | OPTYPE_REGISTER);
-
   WM_operatortype_macro_define(ot, "SEQUENCER_OT_duplicate");
+  WM_operatortype_macro_define(ot, "TRANSFORM_OT_seq_slide");
+
+  ot = WM_operatortype_append_macro("SEQUENCER_OT_duplicate_move_linked",
+                                    "Duplicate Strips",
+                                    "Duplicate selected strips, but not their data, and move them",
+                                    OPTYPE_UNDO | OPTYPE_REGISTER);
+  otmacro = WM_operatortype_macro_define(ot, "SEQUENCER_OT_duplicate");
+  RNA_boolean_set(otmacro->ptr, "linked", true);
   WM_operatortype_macro_define(ot, "TRANSFORM_OT_seq_slide");
 
   ot = WM_operatortype_append_macro("SEQUENCER_OT_preview_duplicate_move",
                                     "Duplicate Strips",
                                     "Duplicate selected strips and move them",
                                     OPTYPE_UNDO | OPTYPE_REGISTER);
-
   WM_operatortype_macro_define(ot, "SEQUENCER_OT_duplicate");
+  WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+
+  ot = WM_operatortype_append_macro("SEQUENCER_OT_preview_duplicate_move_linked",
+                                    "Duplicate Strips",
+                                    "Duplicate selected strips, but not their data, and move them",
+                                    OPTYPE_UNDO | OPTYPE_REGISTER);
+  otmacro = WM_operatortype_macro_define(ot, "SEQUENCER_OT_duplicate");
+  RNA_boolean_set(otmacro->ptr, "linked", true);
   WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 
   ot = WM_operatortype_append_macro("SEQUENCER_OT_retiming_add_freeze_frame_slide",

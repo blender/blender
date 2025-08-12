@@ -126,11 +126,9 @@ class Instances {
    */
   mutable SharedCache<Array<int>> reference_user_counts_;
 
-  /* These almost unique ids are generated based on the `id` attribute, which might not contain
-   * unique ids at all. They are *almost* unique, because under certain very unlikely
-   * circumstances, they are not unique. Code using these ids should not crash when they are not
-   * unique but can generally expect them to be unique. */
-  mutable SharedCache<Array<int>> almost_unique_ids_cache_;
+  /* These unique ids are generated based on the `id` attribute, which might not contain
+   * unique ids at all. */
+  mutable SharedCache<Array<int>> unique_ids_cache_;
 
  public:
   Instances();
@@ -199,9 +197,10 @@ class Instances {
    */
   void remove(const IndexMask &mask, const AttributeFilter &attribute_filter);
   /**
-   * Get an id for every instance. These can be used e.g. motion blur.
+   * Get an id for every instance. These can be used e.g. motion blur. This is based on the "id"
+   * attribute but makes sure that the ids are actually unique.
    */
-  Span<int> almost_unique_ids() const;
+  Span<int> unique_ids() const;
 
   /**
    * Get cached user counts for every reference.
@@ -225,7 +224,7 @@ class Instances {
   void tag_reference_handles_changed()
   {
     reference_user_counts_.tag_dirty();
-    almost_unique_ids_cache_.tag_dirty();
+    unique_ids_cache_.tag_dirty();
   }
 };
 

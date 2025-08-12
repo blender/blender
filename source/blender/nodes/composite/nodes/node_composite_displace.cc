@@ -112,7 +112,7 @@ class DisplaceOperation : public NodeOperation {
     const Interpolation interpolation = this->get_interpolation();
     const ExtensionMode extension_x = this->get_extension_mode_x();
     const ExtensionMode extension_y = this->get_extension_mode_y();
-    GPUShader *shader = context().get_shader(this->get_shader_name(interpolation));
+    gpu::Shader *shader = context().get_shader(this->get_shader_name(interpolation));
     GPU_shader_bind(shader);
 
     const Result &input_image = get_input("Image");

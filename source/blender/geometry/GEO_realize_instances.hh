@@ -30,7 +30,7 @@ struct RealizeInstancesOptions {
 };
 
 /**
- * Allow  the user to choice which instances to realize and to what depth.
+ * Allow the user to choice which instances to realize and to what depth.
  */
 struct VariedDepthOptions {
   /**

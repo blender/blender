@@ -244,7 +244,7 @@ class ShaderModule {
                                bool use_split_indirect,
                                bool use_lightprobe_eval);
 
-  GPUShader *static_shader_get(eShaderType shader_type);
+  gpu::Shader *static_shader_get(eShaderType shader_type);
   GPUMaterial *material_shader_get(::Material *blender_mat,
                                    bNodeTree *nodetree,
                                    eMaterialPipeline pipeline_type,

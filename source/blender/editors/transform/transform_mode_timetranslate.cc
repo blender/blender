@@ -52,8 +52,8 @@ static void headerTimeTranslate(TransInfo *t, char str[UI_MAX_DRAW_STR])
     if (snap_mode == SCE_SNAP_TO_SECOND) {
       /* Convert to seconds. */
       const Scene *scene = t->scene;
-      delta_x /= FPS;
-      val /= FPS;
+      delta_x /= scene->frames_per_second();
+      val /= scene->frames_per_second();
     }
 
     if (snap_mode == SCE_SNAP_TO_FRAME) {

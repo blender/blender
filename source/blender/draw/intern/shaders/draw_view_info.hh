@@ -59,7 +59,7 @@ GPU_SHADER_CREATE_END()
 GPU_SHADER_CREATE_INFO(draw_resource_with_custom_id_fallback)
 DEFINE("RESOURCE_ID_FALLBACK")
 DEFINE("WITH_CUSTOM_IDS")
-VERTEX_IN(15, uint2, in_resource_id)
+VERTEX_IN(15, uint2, in_resource_id_custom_id)
 GPU_SHADER_CREATE_END()
 
 /** \} */

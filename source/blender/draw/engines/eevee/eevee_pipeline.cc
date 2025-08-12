@@ -601,7 +601,7 @@ void DeferredLayer::end_sync(bool is_first_pass,
 
     /* Add the stencil classification step at the end of the GBuffer pass. */
     {
-      GPUShader *sh = inst_.shaders.static_shader_get(DEFERRED_TILE_CLASSIFY);
+      gpu::Shader *sh = inst_.shaders.static_shader_get(DEFERRED_TILE_CLASSIFY);
       PassMain::Sub &sub = gbuffer_ps_.sub("StencilClassify");
       sub.subpass_transition(GPU_ATTACHMENT_WRITE, /* Needed for depth test. */
                              {GPU_ATTACHMENT_IGNORE,
@@ -678,7 +678,7 @@ void DeferredLayer::end_sync(bool is_first_pass,
         sub.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
         const ShadowSceneData &shadow_scene = inst_.shadows.get_data();
         auto set_specialization_constants =
-            [&](PassSimple::Sub &sub, GPUShader *sh, bool use_transmission) {
+            [&](PassSimple::Sub &sub, gpu::Shader *sh, bool use_transmission) {
               sub.specialize_constant(sh, "render_pass_shadow_id", rbuf_data.shadow_id);
               sub.specialize_constant(sh, "use_split_indirect", use_split_indirect);
               sub.specialize_constant(sh, "use_lightprobe_eval", use_lightprobe_eval);
@@ -690,7 +690,8 @@ void DeferredLayer::end_sync(bool is_first_pass,
          * See page 78 of "SIGGRAPH 2023: Unreal Engine Substrate" by Hillaire & de Rousiers. */
 
         for (int i = min_ii(3, closure_count_) - 1; i >= 0; i--) {
-          GPUShader *sh = inst_.shaders.static_shader_get(eShaderType(DEFERRED_LIGHT_SINGLE + i));
+          gpu::Shader *sh = inst_.shaders.static_shader_get(
+              eShaderType(DEFERRED_LIGHT_SINGLE + i));
           set_specialization_constants(sub, sh, false);
           sub.shader_set(sh);
           sub.bind_image("direct_radiance_1_img", &direct_radiance_txs_[0]);
@@ -725,7 +726,7 @@ void DeferredLayer::end_sync(bool is_first_pass,
     {
       PassSimple &pass = combine_ps_;
       pass.init();
-      GPUShader *sh = inst_.shaders.static_shader_get(DEFERRED_COMBINE);
+      gpu::Shader *sh = inst_.shaders.static_shader_get(DEFERRED_COMBINE);
       /* TODO(fclem): Could specialize directly with the pass index but this would break it for
        * OpenGL and Vulkan implementation which aren't fully supporting the specialize
        * constant. */

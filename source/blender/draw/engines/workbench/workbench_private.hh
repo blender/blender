@@ -50,31 +50,31 @@ class ShaderCache {
 
   ShaderCache();
 
-  GPUShader *prepass_get(eGeometryType geometry_type,
-                         ePipelineType pipeline_type,
-                         eLightingType lighting_type,
-                         eShaderType shader_type,
-                         bool clip)
+  gpu::Shader *prepass_get(eGeometryType geometry_type,
+                           ePipelineType pipeline_type,
+                           eLightingType lighting_type,
+                           eShaderType shader_type,
+                           bool clip)
   {
     return prepass_[int(geometry_type)][int(pipeline_type)][int(lighting_type)][int(shader_type)]
                    [clip]
                        .get();
   }
 
-  GPUShader *resolve_get(eLightingType lighting_type,
-                         bool cavity = false,
-                         bool curvature = false,
-                         bool shadow = false)
+  gpu::Shader *resolve_get(eLightingType lighting_type,
+                           bool cavity = false,
+                           bool curvature = false,
+                           bool shadow = false)
   {
     return resolve_[int(lighting_type)][cavity][curvature][shadow].get();
   }
 
-  GPUShader *shadow_get(bool depth_pass, bool manifold, bool cap = false)
+  gpu::Shader *shadow_get(bool depth_pass, bool manifold, bool cap = false)
   {
     return shadow_[depth_pass][manifold][cap].get();
   }
 
-  GPUShader *volume_get(bool smoke, int interpolation, bool coba, bool slice)
+  gpu::Shader *volume_get(bool smoke, int interpolation, bool coba, bool slice)
   {
     return volume_[smoke][interpolation][coba][slice].get();
   }

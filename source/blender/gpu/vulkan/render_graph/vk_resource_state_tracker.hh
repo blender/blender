@@ -13,7 +13,7 @@
  * - Image layouts: The layout of pixels of an image on the GPU depends on the command being
  *   executed. A certain `vkCmd*` requires the image to be in a certain layout. Using incorrect
  *   layouts could lead to rendering artifacts.
- * - Resource ownership: Resources that are externally managed (swap chain or external) uses a
+ * - Resource ownership: Resources that are externally managed (swap-chain or external) uses a
  *   different workflow as its state can be altered externally and needs to be reset.
  * - Read/Write access masks: To generate correct and performing pipeline barriers the src/dst
  *   access masks needs to be accurate and precise. When creating pipeline barriers the resource
@@ -256,7 +256,6 @@ class VKResourceStateTracker {
     return resources_.lookup(resource_handle).type;
   }
 
-  bool use_dynamic_rendering = true;
   bool use_dynamic_rendering_local_read = true;
 
   void debug_print() const;

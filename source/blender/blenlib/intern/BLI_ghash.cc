@@ -859,7 +859,7 @@ void BLI_ghash_clear(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfree
 
 void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
 {
-  BLI_assert((int)gh->nentries == BLI_mempool_len(gh->entrypool));
+  BLI_assert(int(gh->nentries) == BLI_mempool_len(gh->entrypool));
   if (keyfreefp || valfreefp) {
     ghash_free_cb(gh, keyfreefp, valfreefp);
   }

@@ -244,9 +244,9 @@ void ShadowPass::ShadowView::compute_visibility(ObjectBoundsBuf &bounds,
 
   if (do_visibility_) {
     /* TODO(@pragma37): Use regular culling for the caps pass. */
-    GPUShader *shader = current_pass_type_ == ShadowPass::FORCED_FAIL ?
-                            ShaderCache::get().shadow_visibility_static.get() :
-                            ShaderCache::get().shadow_visibility_dynamic.get();
+    gpu::Shader *shader = current_pass_type_ == ShadowPass::FORCED_FAIL ?
+                              ShaderCache::get().shadow_visibility_static.get() :
+                              ShaderCache::get().shadow_visibility_dynamic.get();
     GPU_shader_bind(shader);
     GPU_shader_uniform_1i(shader, "resource_len", resource_len);
     GPU_shader_uniform_1i(shader, "view_len", view_len_);

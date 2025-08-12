@@ -255,7 +255,7 @@ typedef struct Object {
   char *matbits;
   /** Copy of mesh, curve & meta struct member of same name (keep in sync). */
   int totcol;
-  /** Currently selected material in the UI. */
+  /** Currently selected material in the UI (one-based). */
   int actcol;
 
   /* rot en drot have to be together! (transform('r' en 's')) */
@@ -677,9 +677,8 @@ enum {
   /** Unknown state, clear before use. */
   OB_DONE = 1 << 10,
   OB_FLAG_USE_SIMULATION_CACHE = 1 << 11,
-#ifdef DNA_DEPRECATED_ALLOW
-  OB_FLAG_UNUSED_12 = 1 << 12, /* cleared */
-#endif
+  /** Used for the clipboard to mark the active object. */
+  OB_FLAG_ACTIVE_CLIPBOARD = 1 << 12,
 };
 
 /** #Object.visibility_flag */

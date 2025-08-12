@@ -6,9 +6,13 @@
 
 #include "BLI_path_utils.hh"
 
+#include "CLG_log.h"
+
 #include "ply_import.hh"
 #include "ply_import_buffer.hh"
 #include "ply_import_data.hh"
+
+static CLG_LogRef LOG = {"io.ply"};
 
 namespace blender::io::ply {
 
@@ -31,14 +35,14 @@ TEST(ply_import, BufferRefillTest)
   const char *header_err_a = read_header(infile_a, header_a);
   const char *header_err_b = read_header(infile_b, header_b);
   if (header_err_a != nullptr || header_err_b != nullptr) {
-    fprintf(stderr, "Failed to read PLY header\n");
+    CLOG_ERROR(&LOG, "Failed to read PLY header");
     ADD_FAILURE();
     return;
   }
   std::unique_ptr<PlyData> data_a = import_ply_data(infile_a, header_a);
   std::unique_ptr<PlyData> data_b = import_ply_data(infile_b, header_b);
   if (!data_a->error.empty() || !data_b->error.empty()) {
-    fprintf(stderr, "Failed to read PLY data\n");
+    CLOG_ERROR(&LOG, "Failed to read PLY data");
     ADD_FAILURE();
     return;
   }

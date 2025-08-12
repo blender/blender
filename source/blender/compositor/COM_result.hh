@@ -238,12 +238,12 @@ class Result {
   /* Bind the GPU texture of the result to the texture image unit with the given name in the
    * currently bound given shader. This also inserts a memory barrier for texture fetches to ensure
    * any prior writes to the texture are reflected before reading from it. */
-  void bind_as_texture(GPUShader *shader, const char *texture_name) const;
+  void bind_as_texture(gpu::Shader *shader, const char *texture_name) const;
 
   /* Bind the GPU texture of the result to the image unit with the given name in the currently
    * bound given shader. If read is true, a memory barrier will be inserted for image reads to
    * ensure any prior writes to the images are reflected before reading from it. */
-  void bind_as_image(GPUShader *shader, const char *image_name, bool read = false) const;
+  void bind_as_image(gpu::Shader *shader, const char *image_name, bool read = false) const;
 
   /* Unbind the GPU texture which was previously bound using bind_as_texture. */
   void unbind_as_texture() const;

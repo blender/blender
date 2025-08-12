@@ -534,8 +534,8 @@ void RE_engine_update_memory_stats(RenderEngine *engine, float mem_used, float m
   Render *re = engine->re;
 
   if (re) {
-    re->i.mem_used = (int)ceilf(mem_used);
-    re->i.mem_peak = (int)ceilf(mem_peak);
+    re->i.mem_used = int(ceilf(mem_used));
+    re->i.mem_peak = int(ceilf(mem_peak));
   }
 }
 

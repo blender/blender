@@ -42,19 +42,19 @@ static PyTypeObject BlenderAppCbType;
   "the render stats (render/saving time plus in background mode frame/used [peak] memory)."
 #define DEPSGRAPH_UPDATE_ARG \
   "Accepts two arguments: " \
-  "The scene datablock and the dependency graph being updated"
+  "The scene data-block and the dependency graph being updated"
 #define RENDER_ARG \
   "Accepts one argument: " \
-  "the scene datablock being rendered"
+  "the scene data-block being rendered"
 #define OBJECT_BAKE_ARG \
   "Accepts one argument: " \
-  "the object datablock being baked"
+  "the object data-block being baked"
 #define COMPOSITE_ARG \
   "Accepts one argument: " \
-  "the scene datablock"
+  "the scene data-block"
 #define ANNOTATION_ARG \
   "Accepts two arguments: " \
-  "the annotation datablock and dependency graph"
+  "the annotation data-block and dependency graph"
 #define BLENDIMPORT_ARG \
   "Accepts one argument: " \
   "a BlendImportContext"
@@ -99,8 +99,8 @@ static PyStructSequence_Field app_cb_info_fields[] = {
     {"load_factory_preferences_post", "on loading factory preferences (after)"},
     {"load_factory_startup_post", "on loading factory startup (after)"},
     {"xr_session_start_pre", "on starting an xr session (before)"},
-    {"annotation_pre", "on drawing an annotation (before)"},
-    {"annotation_post", "on drawing an annotation (after)"},
+    {"annotation_pre", "on drawing an annotation (before). " ANNOTATION_ARG},
+    {"annotation_post", "on drawing an annotation (after). " ANNOTATION_ARG},
     {"object_bake_pre", "before starting a bake job. " OBJECT_BAKE_ARG},
     {"object_bake_complete",
      "on completing a bake job; will be called in the main thread. " OBJECT_BAKE_ARG},
@@ -120,10 +120,8 @@ static PyStructSequence_Field app_cb_info_fields[] = {
     {"_extension_repos_sync", "on creating or synchronizing the active repository"},
     {"_extension_repos_files_clear",
      "remove files from the repository directory (uses as a string argument)"},
-    {"blend_import_pre",
-     "on linking or appending data (before), get a single `BlendImportContext` parameter"},
-    {"blend_import_post",
-     "on linking or appending data (after), get a single `BlendImportContext` parameter"},
+    {"blend_import_pre", "on linking or appending data (before). " BLENDIMPORT_ARG},
+    {"blend_import_post", "on linking or appending data (after). " BLENDIMPORT_ARG},
 
 /* sets the permanent tag */
 #define APP_CB_OTHER_FIELDS 1

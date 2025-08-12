@@ -686,13 +686,13 @@ PyDoc_STRVAR(
     pygpu_texture_from_image_doc,
     ".. function:: from_image(image)\n"
     "\n"
-    "   Get GPUTexture corresponding to an Image datablock. The GPUTexture "
+    "   Get GPUTexture corresponding to an Image data-block. The GPUTexture "
     "memory is "
     "shared with Blender.\n"
     "   Note: Colors read from the texture will be in scene linear color space and have "
     "premultiplied or straight alpha matching the image alpha mode.\n"
     "\n"
-    "   :arg image: The Image datablock.\n"
+    "   :arg image: The Image data-block.\n"
     "   :type image: :class:`bpy.types.Image`\n"
     "   :return: The GPUTexture used by the image.\n"
     "   :rtype: :class:`gpu.types.GPUTexture`\n");

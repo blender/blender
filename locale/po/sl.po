@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'6dca66d606ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-04 09:08+0000\n"
+"POT-Creation-Date: 2025-08-11 08:28+0000\n"
 "PO-Revision-Date: 2025-07-27 00:59+0000\n"
 "Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
@@ -4572,10 +4572,6 @@ msgid "Radius of head of bone (for Envelope deform only)"
 msgstr "Polmer kostne glave (le za ovojno deformacijo)"
 
 
-msgid "Bone is not visible when it is not in Edit Mode (i.e. in Object or Pose Modes)"
-msgstr "Kost ni vidna zunaj urejevalnega načina (npr. v objektnem ali pozirnem načinu)"
-
-
 msgid "Selectable"
 msgstr "Je na izbiro"
 
@@ -4706,10 +4702,6 @@ msgstr "Ko ima kost starša, je njena glava prilepljena na staršev rep"
 
 msgid "Cyclic Offset"
 msgstr "Krožni odklon"
-
-
-msgid "When bone doesn't have a parent, it receives cyclic offset effects (Deprecated)"
-msgstr "Ko kost nima starša, nanjo vpliva krožni odklon (zastarelo)"
 
 
 msgid "Deform"
@@ -7736,14 +7728,6 @@ msgid "Collection of Color Ramp Elements"
 msgstr "Zbirka elementov barvne rampe"
 
 
-msgid "File Output Slots"
-msgstr "Polja izhodnih datotek"
-
-
-msgid "Collection of File Output node slots"
-msgstr "Zbirka polj za vozlišča izhodnih datotek"
-
-
 msgid "Console Input"
 msgstr "Konzolni vhod"
 
@@ -9294,10 +9278,6 @@ msgstr "Najmanjši možni kot po Z"
 
 msgid "Legacy Behavior"
 msgstr "Stara funkcionalnost"
-
-
-msgid "Use the old semi-broken behavior that doesn't understand that rotations loop around"
-msgstr "Uporabi zastareli, nekoliko pokvarjeni način delovanja, ki ne upošteva, da rotacije lahko opravijo več krogov"
 
 
 msgid "Limit X"
@@ -11345,10 +11325,6 @@ msgid "Fallback"
 msgstr "Rezerva"
 
 
-msgid "The value to use if the data path can't be resolved"
-msgstr "Vrednost, ki se uporabi, če podatkovni poti ni mogoče slediti do cilja"
-
-
 msgid "ID-block that the specific property used can be found from (id_type property must be set first)"
 msgstr "ID-blok, v katerem je uporabljena lastnost (najprej je treba nastaviti lastnost id_type)"
 
@@ -11407,10 +11383,6 @@ msgstr "Povprečno skaliranje"
 
 msgid "Use Fallback"
 msgstr "Uporabi rezervo"
-
-
-msgid "Use the fallback value if the data path can't be resolved, instead of failing to evaluate the driver"
-msgstr "Če podatkovne poti ni mogoče razrešiti, uporabi rezervno vrednost"
 
 
 msgid "Driver Variable"
@@ -12449,10 +12421,6 @@ msgstr "Uporabi barve osi za transformacijske krivulje in krivulje barvnih lastn
 
 msgid "Auto WXYZ to YRGB"
 msgstr "Samodejno WXYZ v YRGB"
-
-
-msgid "Use axis colors for XYZ parts of transform, and yellow for the 'W' channel"
-msgstr "Uporabi barve osi za transformacijske komponente XYZ in rumeno barvo za komponento 'W'"
 
 
 msgid "User Defined"
@@ -18586,54 +18554,6 @@ msgid "Display Aspect"
 msgstr "Prikazovalno razmerje"
 
 
-msgid "BMP"
-msgstr "BMP"
-
-
-msgid "Iris"
-msgstr "Iris"
-
-
-msgid "JPEG"
-msgstr "JPEG"
-
-
-msgid "JPEG 2000"
-msgstr "JPEG 2000"
-
-
-msgid "Targa"
-msgstr "Targa"
-
-
-msgid "Targa Raw"
-msgstr "Targa Raw"
-
-
-msgid "Cineon"
-msgstr "Cineon"
-
-
-msgid "DPX"
-msgstr "DPX"
-
-
-msgid "Radiance HDR"
-msgstr "Radiance HDR"
-
-
-msgid "TIFF"
-msgstr "TIFF"
-
-
-msgid "WebP"
-msgstr "WebP"
-
-
-msgid "OpenEXR MultiLayer"
-msgstr "OpenEXR MultiLayer"
-
-
 msgid "FFmpeg Video"
 msgstr "FFmpeg Video"
 
@@ -24653,6 +24573,10 @@ msgid "Mask"
 msgstr "Maska"
 
 
+msgid "Pivot Point"
+msgstr "Osišče"
+
+
 msgid "Snap"
 msgstr "Pritrdi"
 
@@ -24843,10 +24767,6 @@ msgstr "Besedilo"
 
 msgid "Bone Roll"
 msgstr "Zasukaj kost"
-
-
-msgid "Pivot Point"
-msgstr "Osišče"
 
 
 msgid "Animals"
@@ -29061,6 +28981,10 @@ msgid "ITU 709"
 msgstr "ITU 709"
 
 
+msgid "JPEG"
+msgstr "JPEG"
+
+
 msgid "Combine Color"
 msgstr "Združi barvo"
 
@@ -29079,6 +29003,14 @@ msgstr "Končni"
 
 msgid "Corner Pin"
 msgstr "Pripni vogale"
+
+
+msgid "X Extension Mode"
+msgstr "Način razširitve X"
+
+
+msgid "Y Extension Mode"
+msgstr "Način razširitve Y"
 
 
 msgid "Interpolation method"
@@ -29251,14 +29183,6 @@ msgstr "Način rasti/krčenja"
 
 msgid "Feather"
 msgstr "Mehčanje"
-
-
-msgid "X Extension Mode"
-msgstr "Način razširitve X"
-
-
-msgid "Y Extension Mode"
-msgstr "Način razširitve Y"
 
 
 msgid "Distance Key"
@@ -29536,30 +29460,6 @@ msgstr "Izhodna datoteka"
 
 msgid "Write image file to disk"
 msgstr "Zapiše slikovno datoteko na disk"
-
-
-msgid "Active Input Index"
-msgstr "Indeks aktivnega vhoda"
-
-
-msgid "Active input index in details view list"
-msgstr "Indeks aktivnega vhoda s seznama podrobnosti"
-
-
-msgid "Base Path"
-msgstr "Izhodiščna pot"
-
-
-msgid "Base output path for the image"
-msgstr "Izhodna pot slike"
-
-
-msgid "File Slots"
-msgstr "Datotečna polja"
-
-
-msgid "EXR Layer Slots"
-msgstr "Polja plasti EXR"
 
 
 msgid "Save as Render"
@@ -32366,10 +32266,6 @@ msgstr "V vtičnico"
 
 msgid "Node Links"
 msgstr "Vozliščne povezave"
-
-
-msgid "Output File Slot"
-msgstr "Polje izhodne datoteke"
 
 
 msgid "Node Outputs"
@@ -40892,6 +40788,10 @@ msgid "Replace with"
 msgstr "Zamenja z"
 
 
+msgid "BMP"
+msgstr "BMP"
+
+
 msgid "IRIS"
 msgstr "IRIS"
 
@@ -40908,8 +40808,16 @@ msgid "CINEON"
 msgstr "CINEON"
 
 
+msgid "DPX"
+msgstr "DPX"
+
+
 msgid "OPEN_EXR"
 msgstr "OPEN_EXR"
+
+
+msgid "TIFF"
+msgstr "TIFF"
 
 
 msgid "Select Children"
@@ -52338,10 +52246,6 @@ msgid "Bake from Multires"
 msgstr "Zapeci iz več ločljivosti"
 
 
-msgid "User Scale"
-msgstr "Merilo uporabnika"
-
-
 msgid "Render Region"
 msgstr "Upodobi območje po meri"
 
@@ -55445,6 +55349,10 @@ msgid "Path Keyframe Before"
 msgstr "Pot ključnih okvirjev prej"
 
 
+msgid "Sub-channel"
+msgstr "Podkanal"
+
+
 msgid "Summary"
 msgstr "Povzetek"
 
@@ -55555,10 +55463,6 @@ msgstr "Tema informacij"
 
 msgid "Active Action"
 msgstr "Aktivna akcija"
-
-
-msgid "Sub-channel"
-msgstr "Podkanal"
 
 
 msgid "Meta Strips"
@@ -59843,16 +59747,6 @@ msgstr "Obrni zaklepe vseh"
 
 
 msgctxt "Operator"
-msgid "Delete All Shape Keys"
-msgstr "Izbriši vse oblikovne ključe"
-
-
-msgctxt "Operator"
-msgid "Apply All Shape Keys"
-msgstr "Uveljavi vse oblikovne ključe"
-
-
-msgctxt "Operator"
 msgid "Sort by Name"
 msgstr "Razvrsti po imenu"
 
@@ -59888,23 +59782,8 @@ msgstr "Izbriši vse skupine"
 
 
 msgctxt "Operator"
-msgid "New Shape from Mix"
-msgstr "Nova oblika iz mešanice"
-
-
-msgctxt "Operator"
-msgid "Mirror Shape Key (Topology)"
-msgstr "Prezrcali oblikovni ključ (topologija)"
-
-
-msgctxt "Operator"
-msgid "Move to Top"
-msgstr "Premakni na vrh"
-
-
-msgctxt "Operator"
-msgid "Move to Bottom"
-msgstr "Premakni na dno"
+msgid "Flip"
+msgstr "Obrni"
 
 
 msgid "Auto Normalize"
@@ -61944,6 +61823,16 @@ msgstr "ID-ji Blender"
 
 
 msgctxt "Operator"
+msgid "Move to Top"
+msgstr "Premakni na vrh"
+
+
+msgctxt "Operator"
+msgid "Move to Bottom"
+msgstr "Premakni na dno"
+
+
+msgctxt "Operator"
 msgid "Increase Number"
 msgstr "Povečaj število"
 
@@ -62888,6 +62777,11 @@ msgstr "Preliv zvoka"
 msgctxt "Operator"
 msgid "Change Keying Set..."
 msgstr "Zamenjaj množico ključev ..."
+
+
+msgctxt "Operator"
+msgid "Delete Keyframes..."
+msgstr "Izbriši ključne okvirje ..."
 
 
 msgctxt "Operator"
@@ -64663,11 +64557,6 @@ msgstr "Naredi krajevno ..."
 
 
 msgctxt "Operator"
-msgid "Delete Keyframes..."
-msgstr "Izbriši ključne okvirje ..."
-
-
-msgctxt "Operator"
 msgid "Clear Keyframes..."
 msgstr "Počisti ključne okvirje ..."
 
@@ -65277,11 +65166,6 @@ msgstr "Močno"
 
 
 msgctxt "Operator"
-msgid "Flip"
-msgstr "Obrni"
-
-
-msgctxt "Operator"
 msgid "Set from Faces"
 msgstr "Nastavi iz lic"
 
@@ -65436,17 +65320,9 @@ msgid "Mesh Edit Mode Overlays"
 msgstr "Pomagala za urejanje mreže"
 
 
-msgid "Creases"
-msgstr "Pregibi"
-
-
 msgctxt "Plural"
 msgid "Sharp"
 msgstr "Ostro"
-
-
-msgid "Seams"
-msgstr "Šivi"
 
 
 msgid "Vertex Group Weights"
@@ -66777,10 +66653,6 @@ msgid "cameras"
 msgstr "kamere"
 
 
-msgid "Can't initialize cloth"
-msgstr "Ne morem inicializirati tkanine"
-
-
 msgid "Null cloth object"
 msgstr "Ničelni objekt tkanine"
 
@@ -67066,10 +66938,6 @@ msgstr "Pretvorba ni podprta"
 
 msgid "Links can only go into a zone but not out"
 msgstr "Povezave lahko vodijo samo v območje, ne iz njega"
-
-
-msgid "Can't find object data of %s lib %s"
-msgstr "Ne najdem podatkov objeta %s iz knj. %s"
 
 
 msgid "Object %s lost data"
@@ -69366,10 +69234,6 @@ msgid "This file is managed by the Blender asset system and cannot be overridden
 msgstr "Za to datoteko skrbi Blenderjev sistem sredstev, zato je ni mogoče povoziti"
 
 
-msgid "Can't edit external library data"
-msgstr "Ni mogoče urejati zunanjih knjižničnih podatkov"
-
-
 msgid "Samples Transform"
 msgstr "Vzorci transformacij"
 
@@ -69558,6 +69422,10 @@ msgstr "Zunaj"
 
 msgid "Miter Profile Shape"
 msgstr "Oblika profila širokega spoja"
+
+
+msgid "Seams"
+msgstr "Šivi"
 
 
 msgid "Intersection Type"
@@ -70875,10 +70743,6 @@ msgid "Select View"
 msgstr "Izberi pogled"
 
 
-msgid "Can't Load Image"
-msgstr "Ni mogoče naložiti slike"
-
-
 msgid "%d × %d, "
 msgstr "%d × %d, "
 
@@ -70949,10 +70813,6 @@ msgstr "%d slik bo shranjenih v %s"
 
 msgid "Saved %s"
 msgstr "Shranjevanje %s uspelo"
-
-
-msgid "can't save image while rendering"
-msgstr "med upodabljanjem ne morem shraniti slike"
 
 
 msgid "No images available"
@@ -71409,10 +71269,6 @@ msgstr "Loči sekvenčne slike"
 
 msgid "MetaStrip"
 msgstr "MetaTrak"
-
-
-msgid "Can't overwrite export file"
-msgstr "Ne morem prepisati izvozne datoteke"
 
 
 msgid "Cannot create transition"
@@ -73274,10 +73130,6 @@ msgstr "B"
 msgctxt "NodeTree"
 msgid "Unknown"
 msgstr "Neznano"
-
-
-msgid "Type \"{}\" can't be formatted"
-msgstr "Tipa \"{}\" ni mogoče oblikovati"
 
 
 msgid "Hash"

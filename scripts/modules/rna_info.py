@@ -144,7 +144,7 @@ class InfoStructRNA:
             if (self.py_class and not hasattr(bpy.types, self.identifier)) else
             "bpy.types"
         )
-        if self.module_name == "bpy_types":
+        if self.module_name == "_bpy_types":
             self.module_name = "bpy.types"
 
     def build(self):

@@ -25,7 +25,7 @@ uint drw_resource_id_raw()
 #if defined(GPU_VERTEX_SHADER)
 #  if defined(RESOURCE_ID_FALLBACK)
 #    ifdef WITH_CUSTOM_IDS
-  uint id = in_resource_id.x;
+  uint id = in_resource_id_custom_id.x;
 #    else
   uint id = in_resource_id;
 #    endif
@@ -54,7 +54,7 @@ uint drw_custom_id()
 #ifdef WITH_CUSTOM_IDS
 #  if defined(GPU_VERTEX_SHADER)
 #    if defined(RESOURCE_ID_FALLBACK)
-  return in_resource_id.y;
+  return in_resource_id_custom_id.y;
 #    else
   uint inst_id = gpu_BaseInstance + gl_InstanceID;
   return resource_id_buf[gpu_BaseInstance + gl_InstanceID].y;

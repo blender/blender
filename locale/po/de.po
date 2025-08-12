@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'6dca66d606ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-04 09:08+0000\n"
+"POT-Creation-Date: 2025-08-11 08:28+0000\n"
 "PO-Revision-Date: 2025-07-23 15:02+0000\n"
 "Last-Translator: Thomas Radeke <rahdick@gmx.de>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -3289,10 +3289,6 @@ msgid "Radius of head of bone (for Envelope deform only)"
 msgstr "Radius des Knochenkopfs (nur für Einhüllenden-Deformation)"
 
 
-msgid "Bone is not visible when it is not in Edit Mode (i.e. in Object or Pose Modes)"
-msgstr "Der Knochen ist nicht sichtbar, wenn kein Bearbeitungsmodus aktiv ist (das heißt im Objekt oder Posenmodus)"
-
-
 msgid "Selectable"
 msgstr "Auswählbar"
 
@@ -3411,10 +3407,6 @@ msgstr "Wenn Knochen einen Elternteil hat, haftet der Knochenkopf am Ende des El
 
 msgid "Cyclic Offset"
 msgstr "Zyklischer Versatz"
-
-
-msgid "When bone doesn't have a parent, it receives cyclic offset effects (Deprecated)"
-msgstr "Wenn der Knochen kein Elternteil besitzt, erhält dieser alle zyklischen Versatzeffekte (überholt)"
 
 
 msgid "Deform"
@@ -5581,14 +5573,6 @@ msgstr "Farbverlaufelemente"
 
 msgid "Collection of Color Ramp Elements"
 msgstr "Sammlung von Farbverlaufelementen"
-
-
-msgid "File Output Slots"
-msgstr "Dateiausgabesteckplätze"
-
-
-msgid "Collection of File Output node slots"
-msgstr "Sammlung von Dateiausgabe Knotensteckplätzen"
 
 
 msgid "Console Input"
@@ -13162,104 +13146,56 @@ msgid "Display Aspect for this image, does not affect rendering"
 msgstr "Das Seitenverhältnis für dieses Bild hat keinen Einfluss auf das Rendern"
 
 
-msgid "BMP"
-msgstr "BMP"
-
-
-msgid "Output image in bitmap format"
-msgstr "Bild im Bitmap-Format ausgeben"
-
-
-msgid "Iris"
-msgstr "Iris"
-
-
-msgid "Output image in SGI IRIS format"
-msgstr "Bild im SGI IRIS-Format ausgeben"
-
-
-msgid "Output image in PNG format"
-msgstr "Bild im PNG-Format ausgeben"
-
-
-msgid "JPEG"
-msgstr "JPEG"
-
-
 msgid "Output image in JPEG format"
 msgstr "Bild im JPEG-Format ausgeben"
-
-
-msgid "JPEG 2000"
-msgstr "JPEG 2000"
-
-
-msgid "Output image in JPEG 2000 format"
-msgstr "Bild im JPEG 2000 Format ausgeben"
-
-
-msgid "Targa"
-msgstr "Targa"
-
-
-msgid "Output image in Targa format"
-msgstr "Bild im Targa-Format ausgeben"
-
-
-msgid "Targa Raw"
-msgstr "Targa Raw"
-
-
-msgid "Output image in uncompressed Targa format"
-msgstr "Bild im unkomprimierten Targa-Format ausgeben"
-
-
-msgid "Cineon"
-msgstr "Cineon"
-
-
-msgid "Output image in Cineon format"
-msgstr "Bild im Cineon-Format ausgeben"
-
-
-msgid "DPX"
-msgstr "DPX"
-
-
-msgid "Output image in DPX format"
-msgstr "Bild im DPX-Format ausgeben"
 
 
 msgid "Output image in OpenEXR format"
 msgstr "Bild im OpenEXR-Format ausgeben"
 
 
-msgid "Radiance HDR"
-msgstr "Radiance HDR"
-
-
-msgid "Output image in Radiance HDR format"
-msgstr "Bild im Radiance-HDR-Format ausgeben"
-
-
-msgid "TIFF"
-msgstr "TIFF"
-
-
-msgid "Output image in TIFF format"
-msgstr "Bild im TIFF-Format ausgeben"
-
-
-msgid "WebP"
-msgstr "WebP"
+msgid "Output image in PNG format"
+msgstr "Bild im PNG-Format ausgeben"
 
 
 msgid "Output image in WebP format"
 msgstr "Bild im WebP Format ausgeben"
 
 
-msgid "OpenEXR MultiLayer"
-msgstr "Multiplikator"
+msgid "Output image in bitmap format"
+msgstr "Bild im Bitmap-Format ausgeben"
+
+
+msgid "Output image in Cineon format"
+msgstr "Bild im Cineon-Format ausgeben"
+
+
+msgid "Output image in DPX format"
+msgstr "Bild im DPX-Format ausgeben"
+
+
+msgid "Output image in SGI IRIS format"
+msgstr "Bild im SGI IRIS-Format ausgeben"
+
+
+msgid "Output image in JPEG 2000 format"
+msgstr "Bild im JPEG 2000 Format ausgeben"
+
+
+msgid "Output image in Radiance HDR format"
+msgstr "Bild im Radiance-HDR-Format ausgeben"
+
+
+msgid "Output image in Targa format"
+msgstr "Bild im Targa-Format ausgeben"
+
+
+msgid "Output image in uncompressed Targa format"
+msgstr "Bild im unkomprimierten Targa-Format ausgeben"
+
+
+msgid "Output image in TIFF format"
+msgstr "Bild im TIFF-Format ausgeben"
 
 
 msgid "Output image in multilayer OpenEXR format"
@@ -18807,6 +18743,10 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
+msgid "Pivot Point"
+msgstr "Drehpunkt"
+
+
 msgid "Snap"
 msgstr "Einrasten"
 
@@ -18985,10 +18925,6 @@ msgstr "Kerning"
 
 msgid "Text"
 msgstr "Text"
-
-
-msgid "Pivot Point"
-msgstr "Drehpunkt"
 
 
 msgid "Assets"
@@ -23121,6 +23057,10 @@ msgid "ITU 709"
 msgstr "ITU 709"
 
 
+msgid "JPEG"
+msgstr "JPEG"
+
+
 msgid "From"
 msgstr "Von"
 
@@ -23452,26 +23392,6 @@ msgstr "Filmverzerrung"
 
 msgid "File Output"
 msgstr "Zeilenausgabe"
-
-
-msgid "Active Input Index"
-msgstr "Aktiv"
-
-
-msgid "Base Path"
-msgstr "Basispfad"
-
-
-msgid "Base output path for the image"
-msgstr "Basis-Ausgabepfad für das Bild"
-
-
-msgid "File Slots"
-msgstr "Dateisteckplätze"
-
-
-msgid "EXR Layer Slots"
-msgstr "EXR Ebenensteckplätze"
 
 
 msgid "Save as Render"
@@ -24846,30 +24766,6 @@ msgstr "Zum Knoten"
 
 msgid "To socket"
 msgstr "Zu Buchse"
-
-
-msgid "Output File Slot"
-msgstr "Ausgabedateisteckplatz"
-
-
-msgid "Single layer file slot of the file output node"
-msgstr "Einfachebenen Dateisteckplatz für die Dateiausgabe des Knoten"
-
-
-msgid "Subpath used for this slot"
-msgstr "Dieser Unterpfad wird für diesen Steckplatz verwendet"
-
-
-msgid "Output File Layer Slot"
-msgstr "Ausgabedatei-Ebenensteckplatz"
-
-
-msgid "Multilayer slot of the file output node"
-msgstr "Mehrfachebenen Dateisteckplatz für die Dateiausgabe des Knoten"
-
-
-msgid "OpenEXR layer name used for this slot"
-msgstr "OpenEXR Ebenenname verwendet für diesen Steckplatz"
 
 
 msgid "Node Outputs"
@@ -32711,32 +32607,21 @@ msgid "Current"
 msgstr "Aktuelle Szene"
 
 
+msgid "BMP"
+msgstr "BMP"
+
+
+msgid "DPX"
+msgstr "DPX"
+
+
+msgid "TIFF"
+msgstr "TIFF"
+
+
 msgctxt "Operator"
 msgid "Toggle Node Options"
 msgstr "Knotenoptionen umschalten"
-
-
-msgctxt "Operator"
-msgid "Add File Node Socket"
-msgstr "Dateiknotenbuchse hinzufügen"
-
-
-msgid "Add a new input to a file output node"
-msgstr "Eine neue Eingabe zu einem Dateiausgabeknoten hinzufügen"
-
-
-msgid "Subpath of the output file"
-msgstr "Unterpfad der Ausgabedatei"
-
-
-msgctxt "Operator"
-msgid "Move File Node Socket"
-msgstr "Dateiknoten-Buchse bewegen"
-
-
-msgctxt "Operator"
-msgid "Remove File Node Socket"
-msgstr "Dateiknoten-Buchse entfernen"
 
 
 msgid "Attach selected nodes"
@@ -43631,14 +43516,6 @@ msgid "Bake directly from multires object"
 msgstr "Direkt von Hochauflösenden Objekten backen"
 
 
-msgid "User Scale"
-msgstr "Benutzerskalierung"
-
-
-msgid "Use a user scale for the derivative map"
-msgstr "Verwenden eines Benutzermaßstabs für die abgeleitete Karte"
-
-
 msgid "Render Region"
 msgstr "Renderbereich"
 
@@ -46849,20 +46726,28 @@ msgid "Strips Selected"
 msgstr "Ausgewählte Streifen"
 
 
+msgid "Collection Color Tag"
+msgstr "Sammlung von Farbschildern"
+
+
+msgid "Channel Group"
+msgstr "Kanalgruppe"
+
+
+msgid "Active Channel Group"
+msgstr "Aktive Kanalgruppe"
+
+
+msgid "Preview Range"
+msgstr "Vorschaubereich"
+
+
 msgid "Marker Line"
 msgstr "Linie markieren"
 
 
 msgid "Marker Line Selected"
 msgstr "Markiere Linie selektiert"
-
-
-msgid "Collection Color Tag"
-msgstr "Sammlung von Farbschildern"
-
-
-msgid "Preview Range"
-msgstr "Vorschaubereich"
 
 
 msgid "Theme Console"
@@ -46897,20 +46782,8 @@ msgid "Theme settings for the Dope Sheet"
 msgstr "Themeneinstellungen für das DopeSheet"
 
 
-msgid "Active Channel Group"
-msgstr "Aktive Kanalgruppe"
-
-
-msgid "Channel Group"
-msgstr "Kanalgruppe"
-
-
 msgid "Channels Selected"
 msgstr "Ausgewählte Kanäle"
-
-
-msgid "Dope Sheet Channel"
-msgstr "DopeSheet-Kanal"
 
 
 msgid "Interpolation Line"
@@ -47151,14 +47024,6 @@ msgstr "Animationsdatenblock hat eine aktive Aktion"
 
 msgid "No Active Action"
 msgstr "Keine aktive Aktion"
-
-
-msgid "Animation data-block doesn't have active action"
-msgstr "Animationsdatenblock hat keine aktive Aktion"
-
-
-msgid "Nonlinear Animation Channel"
-msgstr "Nichtlineare Animationskanäle"
 
 
 msgid "Meta Strips"
@@ -50258,13 +50123,8 @@ msgstr "Alle Gruppen löschen"
 
 
 msgctxt "Operator"
-msgid "Move to Top"
-msgstr "Nach oben verschieben"
-
-
-msgctxt "Operator"
-msgid "Move to Bottom"
-msgstr "Nach unten verschieben"
+msgid "Flip"
+msgstr "Umdrehen"
 
 
 msgid "Auto Normalize"
@@ -51682,6 +51542,16 @@ msgstr "Blender IDs"
 
 
 msgctxt "Operator"
+msgid "Move to Top"
+msgstr "Nach oben verschieben"
+
+
+msgctxt "Operator"
+msgid "Move to Bottom"
+msgstr "Nach unten verschieben"
+
+
+msgctxt "Operator"
 msgid "Increase Number"
 msgstr "Erhöhe Nummer"
 
@@ -52198,6 +52068,11 @@ msgstr "Sound Überblendung"
 msgctxt "Operator"
 msgid "Change Keying Set..."
 msgstr "Schlüsselbildsatz ändern..."
+
+
+msgctxt "Operator"
+msgid "Delete Keyframes..."
+msgstr "Schlüsselbilder löschen..."
 
 
 msgctxt "Operator"
@@ -53242,11 +53117,6 @@ msgstr "Lokal machen..."
 
 
 msgctxt "Operator"
-msgid "Delete Keyframes..."
-msgstr "Schlüsselbilder löschen..."
-
-
-msgctxt "Operator"
 msgid "Clear Keyframes..."
 msgstr "Schlüsselbilder aufräumen..."
 
@@ -53649,11 +53519,6 @@ msgstr "Stark"
 
 
 msgctxt "Operator"
-msgid "Flip"
-msgstr "Umdrehen"
-
-
-msgctxt "Operator"
 msgid "Set from Faces"
 msgstr "Setze von Oberfläche"
 
@@ -53732,17 +53597,9 @@ msgid "Origins"
 msgstr "Ursprünge"
 
 
-msgid "Creases"
-msgstr "Falte/Rille"
-
-
 msgctxt "Plural"
 msgid "Sharp"
 msgstr "Scharf"
-
-
-msgid "Seams"
-msgstr "Nähte"
 
 
 msgid "Vertex Group Weights"
@@ -54342,10 +54199,6 @@ msgstr "Attribut ist kein Teil dieser Geometrie"
 
 msgid "Attribute domain not supported by this geometry type"
 msgstr "Attribut Domain ist nicht unterstützt von diesem Geometrietyp"
-
-
-msgid "Attribute is required and can't be removed"
-msgstr "Attribut wird verwendet und kann nicht gelöscht werden"
 
 
 msgid "LIB: %s: '%s' missing from '%s', parent '%s'"
@@ -55635,7 +55488,7 @@ msgid "Swap Areas"
 msgstr "Bereiche tauschen"
 
 
-msgid "Can't edit external library data"
+msgid "Cannot edit external library data"
 msgstr "Externe Bibliotheksdaten können nicht bearbeiten werden"
 
 
@@ -55738,6 +55591,10 @@ msgstr "Icokugel"
 
 msgid "Outer"
 msgstr "Äußere"
+
+
+msgid "Seams"
+msgstr "Nähte"
 
 
 msgid "Intersection Type"
@@ -55974,10 +55831,6 @@ msgstr "Suzanne"
 
 msgid "Object not found"
 msgstr "Objekt nicht gefunden"
-
-
-msgid "Cannot edit external library data"
-msgstr "Externe Bibliotheksdaten können nicht bearbeiten werden"
 
 
 msgid "Cannot delete indirectly linked object '%s'"
@@ -56829,10 +56682,6 @@ msgid "See Modifiers panel below"
 msgstr "Siehe Modifikator-Panel unten"
 
 
-msgid "F-Curve doesn't have any keyframes as it only contains sampled points"
-msgstr "F-Kurve hat keine Schlüsselbilder, da sie nur abgetastete Punkte enthält"
-
-
 msgid "No active keyframe on F-Curve"
 msgstr "Kein aktives Schlüsselbild auf der F-Kurve"
 
@@ -56901,10 +56750,6 @@ msgid "Select View"
 msgstr "Ansicht auswählen"
 
 
-msgid "Can't Load Image"
-msgstr "Bild kann nicht geladen werden"
-
-
 msgid "%d float channel(s)"
 msgstr "%d float Kanal/Kanäle"
 
@@ -56971,10 +56816,6 @@ msgstr "%d Bild(er) werden gespeichert in %s"
 
 msgid "Saved %s"
 msgstr "Gespeichert %s"
-
-
-msgid "can't save image while rendering"
-msgstr "Bild kann beim Rendern nicht gespeichert werden"
 
 
 msgid "No packed file"
@@ -57159,10 +57000,6 @@ msgstr "Keine Streifen zum einfügen"
 
 msgid "Please select two strips"
 msgstr "Bitte zwei Steifen auswählen"
-
-
-msgid "Can't overwrite export file"
-msgstr "Exportdatei kann nicht überschrieben werden"
 
 
 msgid "Fog Volume"
@@ -58938,10 +58775,6 @@ msgstr "Ist keine Bibliothek"
 
 msgid "Nothing indicated"
 msgstr "Nichts angegeben"
-
-
-msgid "Can't link data-block '%s' of type '%s'"
-msgstr "Datenblock '%s' vom Typ '%s' konnte nicht verlinkt werden"
 
 
 msgid "'%s': cannot use current file as library"

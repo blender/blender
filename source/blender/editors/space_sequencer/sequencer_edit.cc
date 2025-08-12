@@ -591,7 +591,7 @@ static void slip_update_header(const Scene *scene,
   else {
     int frame_offset = std::trunc(offset);
     if (data->show_subframe) {
-      float subframe_offset_sec = (offset - std::trunc(offset)) / FPS;
+      float subframe_offset_sec = (offset - std::trunc(offset)) / scene->frames_per_second();
       SNPRINTF_UTF8(msg,
                     IFACE_("Slip Offset: Frames: %d Sound Offset: %.3f"),
                     frame_offset,
@@ -706,7 +706,7 @@ static void slip_strips_delta(wmOperator *op, Scene *scene, SlipData *data, cons
     seq::relations_invalidate_cache(scene, strip);
 
     strip->runtime.flag &= ~(STRIP_CLAMPED_LH | STRIP_CLAMPED_RH);
-    /* Reconstruct handle clamp state from first principles.  */
+    /* Reconstruct handle clamp state from first principles. */
     if (data->clamp == true) {
       if (seq::time_left_handle_frame_get(scene, strip) == seq::time_start_frame_get(strip)) {
         strip->runtime.flag |= STRIP_CLAMPED_LH;
@@ -1730,11 +1730,14 @@ void SEQUENCER_OT_split(wmOperatorType *ot)
 /** \name Duplicate Strips Operator
  * \{ */
 
-static wmOperatorStatus sequencer_add_duplicate_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus sequencer_add_duplicate_exec(bContext *C, wmOperator *op)
 {
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_get(scene);
   ARegion *region = CTX_wm_region(C);
+
+  const bool linked = RNA_boolean_get(op->ptr, "linked");
 
   if (ed == nullptr) {
     return OPERATOR_CANCELLED;
@@ -1755,7 +1758,11 @@ static wmOperatorStatus sequencer_add_duplicate_exec(bContext *C, wmOperator * /
     }
   }
 
-  seq::seqbase_duplicate_recursive(scene, scene, &duplicated_strips, ed->seqbasep, 0, 0);
+  const seq::StripDuplicate dupe_flag = linked ? seq::StripDuplicate::Selected :
+                                                 (seq::StripDuplicate::Selected |
+                                                  seq::StripDuplicate::Data);
+  seq::seqbase_duplicate_recursive(
+      bmain, scene, scene, &duplicated_strips, ed->seqbasep, dupe_flag, 0);
   deselect_all_strips(scene);
 
   if (duplicated_strips.first == nullptr) {
@@ -1811,6 +1818,8 @@ static wmOperatorStatus sequencer_add_duplicate_exec(bContext *C, wmOperator * /
 
 void SEQUENCER_OT_duplicate(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* Identifiers. */
   ot->name = "Duplicate Strips";
   ot->idname = "SEQUENCER_OT_duplicate";
@@ -1822,6 +1831,13 @@ void SEQUENCER_OT_duplicate(wmOperatorType *ot)
 
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  prop = RNA_def_boolean(ot->srna,
+                         "linked",
+                         false,
+                         "Linked",
+                         "Duplicate strip but not strip data, linking to the original data");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /** \} */
@@ -1909,7 +1925,7 @@ void SEQUENCER_OT_delete(wmOperatorType *ot)
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /*  Properties. */
+  /* Properties. */
   ot->prop = RNA_def_boolean(ot->srna,
                              "delete_data",
                              false,
@@ -1989,6 +2005,7 @@ void SEQUENCER_OT_offset_clear(wmOperatorType *ot)
 
 static wmOperatorStatus sequencer_separate_images_exec(bContext *C, wmOperator *op)
 {
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_get(scene);
   ListBase *seqbase = seq::active_seqbase_get(ed);
@@ -2018,7 +2035,7 @@ static wmOperatorStatus sequencer_separate_images_exec(bContext *C, wmOperator *
         se = seq::render_give_stripelem(scene, strip, timeline_frame);
 
         strip_new = seq::strip_duplicate_recursive(
-            scene, scene, seqbase, strip, STRIP_DUPE_UNIQUE_NAME);
+            bmain, scene, scene, seqbase, strip, seq::StripDuplicate::UniqueName);
 
         strip_new->start = start_ofs;
         strip_new->type = STRIP_TYPE_IMAGE;
@@ -3147,14 +3164,14 @@ static wmOperatorStatus sequencer_export_subtitles_exec(bContext *C, wmOperator 
         sizeof(timecode_str_start),
         -2,
         FRA2TIME(max_ii(seq::time_left_handle_frame_get(scene, strip) - scene->r.sfra, 0)),
-        FPS,
+        scene->frames_per_second(),
         USER_TIMECODE_SUBRIP);
     BLI_timecode_string_from_time(
         timecode_str_end,
         sizeof(timecode_str_end),
         -2,
         FRA2TIME(seq::time_right_handle_frame_get(scene, strip) - scene->r.sfra),
-        FPS,
+        scene->frames_per_second(),
         USER_TIMECODE_SUBRIP);
 
     fprintf(file,

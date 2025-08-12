@@ -793,6 +793,11 @@ bool OSLRenderServices::get_object_standard_attribute(
 #endif
   if (name == u_normal_map_normal) {
     if (sd->type & PRIMITIVE_TRIANGLE) {
+      const AttributeDescriptor desc = find_attribute(
+          kg, sd->object, sd->prim, ATTR_STD_NORMAL_UNDISPLACED);
+      if (desc.offset != ATTR_STD_NOT_FOUND) {
+        return get_object_attribute(kg, sd, desc, type, derivatives, val);
+      }
       const float3 f = triangle_smooth_normal_unnormalized(kg, sd, sd->Ng, sd->prim, sd->u, sd->v);
       return set_attribute(f, type, derivatives, val);
     }

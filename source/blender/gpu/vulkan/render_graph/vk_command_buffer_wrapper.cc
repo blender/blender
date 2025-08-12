@@ -15,7 +15,6 @@ VKCommandBufferWrapper::VKCommandBufferWrapper(VkCommandBuffer vk_command_buffer
                                                const VKExtensions &extensions)
     : vk_command_buffer_(vk_command_buffer)
 {
-  use_dynamic_rendering = extensions.dynamic_rendering;
   use_dynamic_rendering_local_read = extensions.dynamic_rendering_local_read;
 }
 

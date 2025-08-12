@@ -51,7 +51,7 @@ class IDPropertySerializer {
 
   /**
    * \brief return the type name for (de)serializing.
-   * Type name  is stored in the `type` or `subtype` attribute of the serialized id_property.
+   * Type name is stored in the `type` or `subtype` attribute of the serialized id_property.
    */
   virtual std::string type_name() const = 0;
 

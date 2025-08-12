@@ -88,6 +88,63 @@ static void eyedropper_draw_cb(const wmWindow * /*window*/, void *arg)
   eyedropper_draw_cursor_text_region(eye->cb_win_event_xy, eye->sample_text);
 }
 
+/* A heuristic to check whether the current eyedropper destination property is used for non-color
+ * painting. If so, the eyedropper will ignore the PROP_COLOR_GAMMA nature of the property and
+ * not convert linear colors to display space.
+ *
+ * The current logic is targeting texture painting, both 2D and 3D. It assumes that invoking the
+ * operator from 3D viewport means 3D painting, and invoking from image editor means 2D painting.
+ *
+ * For the 3D painting the function checks whether active object is in texture paint mode, and if
+ * so checks the active image (via material slot, or the explicitly specified image) to have
+ * non-color (data) colorspace.
+ *
+ * For the 2D painting it checks the active image editor's image colorspace.
+ *
+ * Since brush color could be re-used from multiple spaces the check is not fully reliable: it is
+ * possible to invoke sampling from one editor and do stroke in other editor. There is no easy way
+ * of dealing with this, and it is unlikely to be a common configuration. */
+static bool is_data_destination(const bContext *C, const Eyedropper *eye)
+{
+  if (eye->ptr.type != &RNA_Brush) {
+    return false;
+  }
+
+  const View3D *v3d = CTX_wm_view3d(C);
+  if (v3d) {
+    /*const*/ Object *object = CTX_data_active_object(C);
+    if (!object) {
+      return false;
+    }
+    if ((object->mode & OB_MODE_TEXTURE_PAINT) == 0) {
+      return false;
+    }
+
+    const Scene *scene = CTX_data_scene(C);
+    const ImagePaintSettings &settings = scene->toolsettings->imapaint;
+    Image *image = nullptr;
+    if (settings.mode == IMAGEPAINT_MODE_MATERIAL) {
+      Material *material = BKE_object_material_get(object, object->actcol);
+      if (material && material->texpaintslot) {
+        image = material->texpaintslot[material->paint_active_slot].ima;
+      }
+    }
+    else if (settings.mode == IMAGEPAINT_MODE_IMAGE) {
+      image = settings.canvas;
+    }
+
+    return image && IMB_colormanagement_space_name_is_data(image->colorspace_settings.name);
+  }
+
+  const SpaceImage *space_image = CTX_wm_space_image(C);
+  if (space_image) {
+    return space_image->image &&
+           IMB_colormanagement_space_name_is_data(space_image->image->colorspace_settings.name);
+  }
+
+  return false;
+}
+
 static bool eyedropper_init(bContext *C, wmOperator *op)
 {
   Eyedropper *eye = MEM_new<Eyedropper>(__func__);
@@ -137,7 +194,7 @@ static bool eyedropper_init(bContext *C, wmOperator *op)
     eye->draw_handle_sample_text = WM_draw_cb_activate(eye->cb_win, eyedropper_draw_cb, eye);
   }
 
-  if (prop_subtype != PROP_COLOR) {
+  if (prop_subtype != PROP_COLOR && !is_data_destination(C, eye)) {
     Scene *scene = CTX_data_scene(C);
     const char *display_device;
 
@@ -290,7 +347,8 @@ static bool eyedropper_cryptomatte_sample_render_fl(const bNode *node,
   return success;
 }
 
-static bool eyedropper_cryptomatte_sample_image_fl(const bNode *node,
+static bool eyedropper_cryptomatte_sample_image_fl(bContext *C,
+                                                   const bNode *node,
                                                    NodeCryptomatte *crypto,
                                                    const char *prefix,
                                                    const float fpos[2],
@@ -299,10 +357,14 @@ static bool eyedropper_cryptomatte_sample_image_fl(const bNode *node,
   bool success = false;
   Image *image = (Image *)node->id;
   BLI_assert((image == nullptr) || (GS(image->id.name) == ID_IM));
-  ImageUser *iuser = &crypto->iuser;
+
+  /* Compute the effective frame number of the image if it was animated. */
+  Scene *scene = CTX_data_scene(C);
+  ImageUser image_user_for_frame = crypto->iuser;
+  BKE_image_user_frame_calc(image, &image_user_for_frame, scene->r.cfra);
 
   if (image && image->type == IMA_TYPE_MULTILAYER) {
-    ImBuf *ibuf = BKE_image_acquire_ibuf(image, iuser, nullptr);
+    ImBuf *ibuf = BKE_image_acquire_ibuf(image, &image_user_for_frame, nullptr);
     if (image->rr) {
       LISTBASE_FOREACH (RenderLayer *, render_layer, &image->rr->layers) {
         success = eyedropper_cryptomatte_sample_renderlayer_fl(render_layer, prefix, fpos, r_col);
@@ -424,7 +486,7 @@ static bool eyedropper_cryptomatte_sample_fl(bContext *C,
     return eyedropper_cryptomatte_sample_render_fl(node, prefix, fpos, r_col);
   }
   if (node->custom1 == CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE) {
-    return eyedropper_cryptomatte_sample_image_fl(node, crypto, prefix, fpos, r_col);
+    return eyedropper_cryptomatte_sample_image_fl(C, node, crypto, prefix, fpos, r_col);
   }
   return false;
 }

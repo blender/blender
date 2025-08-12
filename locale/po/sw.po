@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'6dca66d606ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-04 09:08+0000\n"
+"POT-Creation-Date: 2025-08-11 08:28+0000\n"
 "PO-Revision-Date: 2025-07-23 15:16+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -3822,10 +3822,6 @@ msgid "Radius of head of bone (for Envelope deform only)"
 msgstr "Radius ya kichwa cha mfupa (kwa ulemavu wa Bahasha pekee)"
 
 
-msgid "Bone is not visible when it is not in Edit Mode (i.e. in Object or Pose Modes)"
-msgstr "Mfupa hauonekani wakati hauko katika Njia ya Kuhariri (yaani katika Njia za Kitu au Pose)"
-
-
 msgid "Selectable"
 msgstr "Inaweza kuchaguliwa"
 
@@ -3952,10 +3948,6 @@ msgstr "Mfupa unapokuwa na mzazi, kichwa cha mfupa hukwama kwenye mkia wa mzazi"
 
 msgid "Cyclic Offset"
 msgstr "Msafara wa Baiskeli"
-
-
-msgid "When bone doesn't have a parent, it receives cyclic offset effects (Deprecated)"
-msgstr "Wakati mfupa hauna mzazi, hupokea athari za kukabiliana na mzunguko (Imeacha kutumika)"
 
 
 msgid "Deform"
@@ -6396,14 +6388,6 @@ msgstr "Vipengele vya Njia ya Rangi"
 
 msgid "Collection of Color Ramp Elements"
 msgstr "Mkusanyiko wa Vipengele vya Njia ya Rangi"
-
-
-msgid "File Output Slots"
-msgstr "Nafasi za Pato la faili"
-
-
-msgid "Collection of File Output node slots"
-msgstr "Mkusanyiko wa sehemu za nodi za Pato la Faili"
 
 
 msgid "Console Input"
@@ -9754,10 +9738,6 @@ msgid "Fallback"
 msgstr "Kurudi nyuma"
 
 
-msgid "The value to use if the data path can't be resolved"
-msgstr "Thamani ya kutumia ikiwa njia ya data haiwezi kutatuliwa"
-
-
 msgid "ID-block that the specific property used can be found from (id_type property must be set first)"
 msgstr "Kizuizi cha kitambulisho ambacho mali maalum inayotumiwa inaweza kupatikana kutoka (mali ya id_type lazima iwekwe kwanza)"
 
@@ -9816,10 +9796,6 @@ msgstr "Kiwango cha Wastani"
 
 msgid "Use Fallback"
 msgstr "Tumia Fallback"
-
-
-msgid "Use the fallback value if the data path can't be resolved, instead of failing to evaluate the driver"
-msgstr "Tumia thamani mbadala ikiwa njia ya data haiwezi kutatuliwa, badala ya kushindwa kutathmini dereva."
 
 
 msgid "Driver Variable"
@@ -10801,10 +10777,6 @@ msgstr "Tumia rangi za mhimili kubadilisha na kubadilisha rangi, na upinde wa mv
 
 msgid "Auto WXYZ to YRGB"
 msgstr "WXYZ otomatiki hadi YRGB"
-
-
-msgid "Use axis colors for XYZ parts of transform, and yellow for the 'W' channel"
-msgstr "Tumia rangi za mhimili kwa sehemu za XYZ za kubadilisha, na njano kwa kituo cha 'W'"
 
 
 msgid "User Defined"
@@ -15467,10 +15439,6 @@ msgid "Cyclic Animation"
 msgstr "Uhuishaji wa Mzunguko"
 
 
-msgid "The action is intended to be used as a cycle looping over its manually set playback frame range (enabling this doesn't automatically make it loop)"
-msgstr "Kitendo kinakusudiwa kutumika kama mzunguko unaozunguka safu yake ya fremu ya uchezaji iliyowekwa mwenyewe (kuwezesha hii haifanyi kitanzi kiotomatiki)"
-
-
 msgid "Manual Frame Range"
 msgstr "Msururu wa Fremu Mwongozo"
 
@@ -18389,10 +18357,6 @@ msgid "Enable the curve to become a translation path"
 msgstr "Wezesha curve kuwa njia ya kutafsiri"
 
 
-msgid "Clamp the curve path children so they can't travel past the start/end point of the curve"
-msgstr "Bana watoto kwenye njia ya mkunjo ili wasiweze kupita sehemu ya kuanzia/mwisho ya mkunjo"
-
-
 msgid "Follow"
 msgstr "Fuata"
 
@@ -18611,10 +18575,6 @@ msgstr "Kukabiliana kwa wima kutoka asili ya kitu"
 
 msgid "Textbox Overflow"
 msgstr "Kufurika kwa Kisanduku cha Maandishi"
-
-
-msgid "Handle the text behavior when it doesn't fit in the text boxes"
-msgstr "Shikilia tabia ya maandishi wakati haitoshei kwenye visanduku vya maandishi"
 
 
 msgid "Overflow"
@@ -19469,44 +19429,24 @@ msgid "Format used for re-saving this file"
 msgstr "Umbizo lililotumika kuhifadhi upya faili hii"
 
 
-msgid "Output image in bitmap format"
-msgstr "Picha ya pato katika umbizo la bitmap"
+msgid "Output image in JPEG format"
+msgstr "Picha ya pato katika umbizo la JPEG"
 
 
-msgid "Iris"
-msgstr "Iri"
-
-
-msgid "Output image in SGI IRIS format"
-msgstr "Picha ya pato katika umbizo la SGI IRIS"
+msgid "Output image in OpenEXR format"
+msgstr "Picha ya pato katika umbizo la OpenEXR"
 
 
 msgid "Output image in PNG format"
 msgstr "Picha ya pato katika umbizo la PNG"
 
 
-msgid "Output image in JPEG format"
-msgstr "Picha ya pato katika umbizo la JPEG"
+msgid "Output image in WebP format"
+msgstr "Picha ya pato katika umbizo la WebP"
 
 
-msgid "Output image in JPEG 2000 format"
-msgstr "Picha ya pato katika umbizo la JPEG 2000"
-
-
-msgid "Output image in Targa format"
-msgstr "Pato la picha katika umbizo la Targa"
-
-
-msgid "Targa Raw"
-msgstr "Targa Mbichi"
-
-
-msgid "Output image in uncompressed Targa format"
-msgstr "Picha ya pato katika umbizo la Targa ambalo halijabanwa"
-
-
-msgid "Cineon"
-msgstr "Sinema"
+msgid "Output image in bitmap format"
+msgstr "Picha ya pato katika umbizo la bitmap"
 
 
 msgid "Output image in Cineon format"
@@ -19517,24 +19457,28 @@ msgid "Output image in DPX format"
 msgstr "Picha ya pato katika umbizo la DPX"
 
 
-msgid "Output image in OpenEXR format"
-msgstr "Picha ya pato katika umbizo la OpenEXR"
+msgid "Output image in SGI IRIS format"
+msgstr "Picha ya pato katika umbizo la SGI IRIS"
 
 
-msgid "Radiance HDR"
-msgstr "Mng'aro HDR"
+msgid "Output image in JPEG 2000 format"
+msgstr "Picha ya pato katika umbizo la JPEG 2000"
 
 
 msgid "Output image in Radiance HDR format"
 msgstr "Picha ya pato katika umbizo la Radiance HDR"
 
 
+msgid "Output image in Targa format"
+msgstr "Pato la picha katika umbizo la Targa"
+
+
+msgid "Output image in uncompressed Targa format"
+msgstr "Picha ya pato katika umbizo la Targa ambalo halijabanwa"
+
+
 msgid "Output image in TIFF format"
 msgstr "Pato la picha katika umbizo la TIFF"
-
-
-msgid "Output image in WebP format"
-msgstr "Picha ya pato katika umbizo la WebP"
 
 
 msgid "Output image in multilayer OpenEXR format"
@@ -19683,10 +19627,6 @@ msgstr "Pikseli za X/Y kwa kila mita, kwa bafa ya picha"
 
 msgid "Seam Margin"
 msgstr "Pambizo la Mshono"
-
-
-msgid "Width and height of the image buffer in pixels, zero when image data can't be loaded"
-msgstr "Upana na urefu wa bafa ya picha katika saizi, sufuri wakati data ya picha haiwezi kupakiwa"
 
 
 msgid "Where the image comes from"
@@ -21129,10 +21069,6 @@ msgstr "Upungufu wa picha za fremu ya kwanza inayohusiana na jina la faili yake 
 
 msgid "Global scene frame number at which this movie starts playing (affects all data associated with a clip)"
 msgstr "Nambari ya fremu ya onyesho la kimataifa ambapo filamu hii inaanza kucheza (huathiri data yote inayohusishwa na klipu)"
-
-
-msgid "Width and height in pixels, zero when image data can't be loaded"
-msgstr "Upana na urefu katika pikseli, sufuri wakati data ya picha haiwezi kupakiwa"
 
 
 msgid "Where the clip comes from"
@@ -26051,10 +25987,6 @@ msgid "Identifier of operator to call on input event"
 msgstr "Kitambulisho cha opereta ili kuita tukio la ingizo"
 
 
-msgid "Is this keymap item user defined (doesn't just replace a builtin item)"
-msgstr "Je, kipengee hiki cha kipengee cha ramani kimefafanuliwa (haibadilishi tu kipengee kilichojengwa)"
-
-
 msgid "User Modified"
 msgstr "Mtumiaji Amebadilishwa"
 
@@ -28618,6 +28550,10 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
+msgid "Pivot Point"
+msgstr "Egemeo"
+
+
 msgid "Snap"
 msgstr "Picha"
 
@@ -28672,10 +28608,6 @@ msgstr "Unganisha"
 
 msgid "Text"
 msgstr "Maandishi"
-
-
-msgid "Pivot Point"
-msgstr "Egemeo"
 
 
 msgid "Keyframe Insert Pie"
@@ -32492,10 +32424,6 @@ msgstr "Safu ya Penseli ya Grisi ambayo inapeana viboko vilivyotengenezwa"
 
 msgid "Grease Pencil material assigned to the generated strokes"
 msgstr "Nyenzo ya Penseli ya Grisi iliyopewa viboko vilivyotengenezwa"
-
-
-msgid "The thickness for the generated strokes"
-msgstr "Unene wa viboko vilivyotengenezwa"
 
 
 msgid "Back Face Culling"
@@ -37928,24 +37856,12 @@ msgid "File Output"
 msgstr "Pato la Faili"
 
 
-msgid "Active Input Index"
-msgstr "Fahirisi ya Ingizo Inayotumika"
+msgid "Active Item Index"
+msgstr "Fahirisi ya Kipengee Amilifu"
 
 
-msgid "Active input index in details view list"
-msgstr "Fahirisi ya ingizo inayotumika katika orodha ya maelezo ya mwonekano"
-
-
-msgid "Base Path"
-msgstr "Njia ya Msingi"
-
-
-msgid "Base output path for the image"
-msgstr "Njia ya msingi ya pato la picha"
-
-
-msgid "File Slots"
-msgstr "Nafasi za Faili"
+msgid "Index of the active item"
+msgstr "Fahirisi ya kipengee amilifu"
 
 
 msgid "Save as Render"
@@ -38385,14 +38301,6 @@ msgid "Round the float to the closest integer in the direction of zero (floor if
 msgstr "Zungusha kuelea hadi nambari kamili iliyo karibu zaidi kuelekea sifuri (sakafu ikiwa chanya; dari ikiwa hasi)"
 
 
-msgid "Active Item Index"
-msgstr "Fahirisi ya Kipengee Amilifu"
-
-
-msgid "Index of the active item"
-msgstr "Fahirisi ya kipengee amilifu"
-
-
 msgid "Input value used for unconnected socket"
 msgstr "Thamani ya ingizo inayotumika kwa soketi ambayo haijaunganishwa"
 
@@ -38718,10 +38626,6 @@ msgstr "Uteuzi wa Aina ya Hushughulikia"
 
 msgid "Provide a selection based on the handle types of Bézier control points"
 msgstr "Toa uteuzi kulingana na aina za vishikizo vya vidhibiti vya Bézier"
-
-
-msgid "The handle can be moved anywhere, and doesn't influence the point's other handle"
-msgstr "Nchi inaweza kusogezwa popote, na haiathiri mpini mwingine wa uhakika"
 
 
 msgid "The location is automatically calculated to be smooth"
@@ -42322,30 +42226,6 @@ msgid "Collection of items that make up an enum"
 msgstr "Mkusanyiko wa vitu vinavyounda enum"
 
 
-msgid "Output File Slot"
-msgstr "Nafasi ya Faili ya Pato"
-
-
-msgid "Single layer file slot of the file output node"
-msgstr "Nafasi ya faili ya safu moja ya nodi ya pato la faili"
-
-
-msgid "Subpath used for this slot"
-msgstr "Njia ndogo inayotumika kwa nafasi hii"
-
-
-msgid "Output File Layer Slot"
-msgstr "Pato File Layer Slot"
-
-
-msgid "Multilayer slot of the file output node"
-msgstr "Sehemu ya Multilayer ya nodi ya pato la faili"
-
-
-msgid "OpenEXR layer name used for this slot"
-msgstr "Jina la safu ya OpenEXR linalotumika kwa nafasi hii"
-
-
 msgid "Node Outputs"
 msgstr "Matokeo ya Nodi"
 
@@ -45073,10 +44953,6 @@ msgstr "Mteremko wa mstari ulionyooka wa sehemu za mwisho hupanuliwa kupita frem
 
 msgid "Make Cyclic (F-Modifier)"
 msgstr "Tengeneza Cyclic (F-Modifier)"
-
-
-msgid "Add Cycles F-Modifier if one doesn't exist already"
-msgstr "Ongeza Kirekebishaji cha Mizunguko ya F ikiwa hakipo tayari"
 
 
 msgid "Remove Cycles F-Modifier if not needed anymore"
@@ -58688,10 +58564,6 @@ msgid "Add an existing node group to the current node editor"
 msgstr "Ongeza kikundi cha nodi kilichopo kwenye kihariri cha nodi ya sasa"
 
 
-msgid "Show the datablock selector in the node"
-msgstr "Onyesha kichaguzi cha hifadhidata kwenye nodi"
-
-
 msgctxt "Operator"
 msgid "Add Node Group Asset"
 msgstr "Ongeza Mali ya Kikundi cha Nodi"
@@ -59204,37 +59076,6 @@ msgstr "Geuza Chaguo za Nodi"
 
 msgid "Toggle option buttons display for selected nodes"
 msgstr "Onyesha vitufe vya chaguo la kugeuza kwa nodi zilizochaguliwa"
-
-
-msgctxt "Operator"
-msgid "Add File Node Socket"
-msgstr "Ongeza Soketi ya Nodi ya Faili"
-
-
-msgid "Add a new input to a file output node"
-msgstr "Ongeza ingizo jipya kwenye nodi ya pato la faili"
-
-
-msgid "Subpath of the output file"
-msgstr "Njia ndogo ya faili towe"
-
-
-msgctxt "Operator"
-msgid "Move File Node Socket"
-msgstr "Sogeza Soketi ya Nodi ya Faili"
-
-
-msgid "Move the active input of a file output node up or down the list"
-msgstr "Sogeza ingizo amilifu la nodi ya pato la faili juu au chini kwenye orodha"
-
-
-msgctxt "Operator"
-msgid "Remove File Node Socket"
-msgstr "Ondoa Soketi ya Nodi ya Faili"
-
-
-msgid "Remove the active input from a file output node"
-msgstr "Ondoa ingizo amilifu kutoka kwa nodi ya pato la faili"
 
 
 msgid "Attach selected nodes"
@@ -59891,10 +59732,6 @@ msgstr "Achia Kikundi cha Njia za Jiometri kwenye Kitu"
 
 msgid "Session UID of the geometry node group being dropped"
 msgstr "UID ya Kikao cha kikundi cha nodi ya jiometri inatupwa"
-
-
-msgid "Show the datablock selector in the modifier"
-msgstr "Onyesha kichaguzi cha hifadhidata kwenye kirekebishaji"
 
 
 msgctxt "Operator"
@@ -67545,10 +67382,6 @@ msgstr "Urefu wa kila fremu"
 msgctxt "Operator"
 msgid "Lock Strips"
 msgstr "Mikanda ya kufuli"
-
-
-msgid "Lock strips so they can't be transformed"
-msgstr "Funga vipande ili visiweze kubadilishwa"
 
 
 msgctxt "Operator"
@@ -78141,10 +77974,6 @@ msgid "Never None"
 msgstr "Kamwe Hakuna"
 
 
-msgid "True when this value can't be set to None"
-msgstr "Ni kweli wakati thamani hii haiwezi kuwekwa kuwa Hakuna"
-
-
 msgid "Return"
 msgstr "Rudi"
 
@@ -79959,10 +79788,6 @@ msgid "Vertical Split"
 msgstr "Mgawanyiko Wima"
 
 
-msgid "Region floats on screen, doesn't use any fixed alignment"
-msgstr "Eneo huelea kwenye skrini, haitumii mpangilio wowote usiobadilika"
-
-
 msgid "Quad Split"
 msgstr "Mgawanyiko Mara Nne"
 
@@ -80314,10 +80139,6 @@ msgstr "Oka kawaida"
 
 msgid "Bake displacement"
 msgstr "Oka uhamishaji"
-
-
-msgid "Instead of automatically normalizing to the range 0 to 1, apply a user scale to the derivative map"
-msgstr "Badala ya kurekebisha kiotomatiki kwa safu ya 0 hadi 1, tumia kipimo cha mtumiaji kwenye ramani inayotokana."
 
 
 msgid "Region Maximum X"
@@ -80733,14 +80554,6 @@ msgstr "Oka kutoka Multires"
 
 msgid "Bake directly from multires object"
 msgstr "Oka moja kwa moja kutoka kwa kitu cha multires"
-
-
-msgid "User Scale"
-msgstr "Kiwango cha Mtumiaji"
-
-
-msgid "Use a user scale for the derivative map"
-msgstr "Tumia kipimo cha mtumiaji kwa ramani ya derivative"
 
 
 msgid "Render Region"
@@ -82324,10 +82137,6 @@ msgstr "Onyesha vitufe vya kurejesha muda juu ya vipande"
 
 msgid "Show Source"
 msgstr "Onyesha Chanzo"
-
-
-msgid "Display path to source file, or name of source datablock"
-msgstr "Onyesha njia ya faili chanzo, au jina la hifadhidata chanzo"
 
 
 msgid "Show Color Tags"
@@ -87431,14 +87240,6 @@ msgid "Strips Selected"
 msgstr "Vipande Vimechaguliwa"
 
 
-msgid "Marker Line"
-msgstr "Mstari wa Alama"
-
-
-msgid "Marker Line Selected"
-msgstr "Mstari wa Alama Umechaguliwa"
-
-
 msgid "Scrubbing/Markers Region"
 msgstr "Kanda ya Kusafisha/Alama"
 
@@ -87455,12 +87256,32 @@ msgid "Collection Color Tag"
 msgstr "Lebo ya Rangi ya Mkusanyiko"
 
 
+msgid "Channel Group"
+msgstr "Kikundi cha Kituo"
+
+
+msgid "Active Channel Group"
+msgstr "Kikundi Inayotumika cha Idhaa"
+
+
+msgid "Sub-channel"
+msgstr "Idhaa ndogo"
+
+
 msgid "Preview Range"
 msgstr "Onyesho la kukagua Masafa"
 
 
 msgid "Color of preview range overlay"
 msgstr "Rangi ya safu ya onyesho la kuchungulia"
+
+
+msgid "Marker Line"
+msgstr "Mstari wa Alama"
+
+
+msgid "Marker Line Selected"
+msgstr "Mstari wa Alama Umechaguliwa"
 
 
 msgid "Theme Console"
@@ -87495,24 +87316,8 @@ msgid "Theme settings for the Dope Sheet"
 msgstr "Mipangilio ya mandhari ya Laha ya Dope"
 
 
-msgid "Active Channel Group"
-msgstr "Kikundi Inayotumika cha Idhaa"
-
-
-msgid "Channel Group"
-msgstr "Kikundi cha Kituo"
-
-
 msgid "Channels Selected"
 msgstr "Vituo Vilivyochaguliwa"
-
-
-msgid "Dope Sheet Channel"
-msgstr "Idhaa ya Karatasi ya Dope"
-
-
-msgid "Dope Sheet Sub-channel"
-msgstr "Idhaa ndogo ya Karatasi ya Dope"
 
 
 msgid "Interpolation Line"
@@ -88001,18 +87806,6 @@ msgstr "Kizuizi cha data cha uhuishaji kina kitendo amilifu"
 
 msgid "No Active Action"
 msgstr "Hakuna Hatua Inayotumika"
-
-
-msgid "Animation data-block doesn't have active action"
-msgstr "Kizuizi cha data cha uhuishaji hakina kitendo amilifu"
-
-
-msgid "Nonlinear Animation Channel"
-msgstr "Idhaa ya Uhuishaji Isiyo na Mistari"
-
-
-msgid "Sub-channel"
-msgstr "Idhaa ndogo"
 
 
 msgid "Meta Strips"
@@ -89422,10 +89215,6 @@ msgstr "Lebo ya vigae"
 
 msgid "Number of the position that this tile covers"
 msgstr "Idadi ya nafasi ambayo kigae hiki kinashughulikia"
-
-
-msgid "Width and height of the tile buffer in pixels, zero when image data can't be loaded"
-msgstr "Upana na urefu wa bafa ya kigae katika pikseli, sufuri wakati data ya picha haiwezi kupakiwa"
 
 
 msgid "Collection of UDIM tiles"
@@ -94087,10 +93876,6 @@ msgid "External shader script must have .osl or .oso extension, or be a module n
 msgstr "Hati ya shader ya nje lazima iwe na kiendelezi cha .osl au .oso, au iwe jina la sehemu"
 
 
-msgid "Can't read OSO bytecode to store in node at %r"
-msgstr "Haiwezi kusoma OSO bytecode kuhifadhi katika nodi kwa%r"
-
-
 msgid "Failed to write .oso file next to external .osl file at "
 msgstr "Imeshindwa kuandika faili ya .oso karibu na faili ya .osl ya nje katika "
 
@@ -94872,10 +94657,6 @@ msgstr "Mikusanyo yote ya mifupa inatumika"
 
 msgid "Go to pose mode to copy pose bone colors"
 msgstr "Nenda kwenye modi ya pozi ili kunakili rangi za mfupa"
-
-
-msgid "Asset metadata from external asset libraries can't be edited, only assets stored in the current file can"
-msgstr "Metadata ya kipengee kutoka kwa maktaba ya mali ya nje haiwezi kuhaririwa, ni mali zilizohifadhiwa katika faili ya sasa pekee ndizo zinazoweza."
 
 
 msgid "No asset selected"
@@ -95876,16 +95657,6 @@ msgstr "Funga Geuza Zote"
 
 
 msgctxt "Operator"
-msgid "Delete All Shape Keys"
-msgstr "Futa Funguo Zote za Maumbo"
-
-
-msgctxt "Operator"
-msgid "Apply All Shape Keys"
-msgstr "Tekeleza Funguo Zote za Maumbo"
-
-
-msgctxt "Operator"
 msgid "Sort by Name"
 msgstr "Panga kwa Jina"
 
@@ -95921,23 +95692,8 @@ msgstr "Futa Vikundi Vyote"
 
 
 msgctxt "Operator"
-msgid "New Shape from Mix"
-msgstr "Umbo Mpya kutoka Mchanganyiko"
-
-
-msgctxt "Operator"
-msgid "Mirror Shape Key (Topology)"
-msgstr "Ufunguo wa Umbo la Kioo (Topolojia)"
-
-
-msgctxt "Operator"
-msgid "Move to Top"
-msgstr "Hamisha hadi Juu"
-
-
-msgctxt "Operator"
-msgid "Move to Bottom"
-msgstr "Sogea hadi Chini"
+msgid "Flip"
+msgstr "Geuza"
 
 
 msgid "Auto Normalize"
@@ -97785,6 +97541,16 @@ msgstr "Vitambulisho vya Blender"
 
 
 msgctxt "Operator"
+msgid "Move to Top"
+msgstr "Hamisha hadi Juu"
+
+
+msgctxt "Operator"
+msgid "Move to Bottom"
+msgstr "Sogea hadi Chini"
+
+
+msgctxt "Operator"
 msgid "Increase Number"
 msgstr "Ongeza Idadi"
 
@@ -98633,6 +98399,11 @@ msgstr "Sauti Mtambuka"
 msgctxt "Operator"
 msgid "Change Keying Set..."
 msgstr "Badilisha Uwekaji Ufunguo..."
+
+
+msgctxt "Operator"
+msgid "Delete Keyframes..."
+msgstr "Futa Fremu Muhimu..."
 
 
 msgctxt "Operator"
@@ -99759,11 +99530,6 @@ msgstr "Fanya Karibu Nawe..."
 
 
 msgctxt "Operator"
-msgid "Delete Keyframes..."
-msgstr "Futa Fremu Muhimu..."
-
-
-msgctxt "Operator"
 msgid "Clear Keyframes..."
 msgstr "Futa Fremu Muhimu..."
 
@@ -100090,11 +99856,6 @@ msgstr "Nguvu"
 
 
 msgctxt "Operator"
-msgid "Flip"
-msgstr "Geuza"
-
-
-msgctxt "Operator"
 msgid "Set from Faces"
 msgstr "Weka kutoka kwa Nyuso"
 
@@ -100225,17 +99986,9 @@ msgid "Mesh Edit Mode Overlays"
 msgstr "Miwekeleo ya Modi ya Kuhariri Mesh"
 
 
-msgid "Creases"
-msgstr "Kuongezeka"
-
-
 msgctxt "Plural"
 msgid "Sharp"
 msgstr "mkali"
-
-
-msgid "Seams"
-msgstr "Mishono"
 
 
 msgid "Vertex Group Weights"
@@ -101362,10 +101115,6 @@ msgid "The attribute name must not be empty"
 msgstr "Jina la sifa lazima lisiwe tupu"
 
 
-msgid "Attribute is required and can't be removed"
-msgstr "Sifa inahitajika na haiwezi kuondolewa"
-
-
 msgid "Layer '%s' could not be created"
 msgstr "Tabaka '%s' haikuweza kuundwa"
 
@@ -101460,10 +101209,6 @@ msgstr "kache_faili"
 
 msgid "cameras"
 msgstr "kamera"
-
-
-msgid "Can't initialize cloth"
-msgstr "Haiwezi kuanzisha kitambaa"
 
 
 msgid "Null cloth object"
@@ -101799,10 +101544,6 @@ msgid "node_groups"
 msgstr "vikundi_vya_nodi"
 
 
-msgid "Can't find object data of %s lib %s"
-msgstr "Haiwezi kupata data ya kitu cha %s lib %s"
-
-
 msgid "Object %s lost data"
 msgstr "Kitu %s data iliyopotea"
 
@@ -101937,14 +101678,6 @@ msgstr "Hitilafu Nje ya Kumbukumbu"
 
 msgid "Undefined Type"
 msgstr "Aina Isiyobainishwa"
-
-
-msgid "Can't add Rigid Body to non mesh object"
-msgstr "Haiwezi kuongeza Mwili Mgumu kwa kitu kisicho na matundu"
-
-
-msgid "Can't create Rigid Body world"
-msgstr "Haiwezi kuunda ulimwengu wa Mwili Mgumu"
 
 
 msgid "Compiled without Bullet physics engine"
@@ -102580,10 +102313,6 @@ msgid "Display action without any time remapping (when unpinned)"
 msgstr "Onyesha kitendo bila kuweka upya wakati wowote (wakati umebanduliwa)"
 
 
-msgid "Can't edit this property from a linked data-block"
-msgstr "Haiwezi kuhariri mali hii kutoka kwa kizuizi cha data kilichounganishwa"
-
-
 msgid "No active object"
 msgstr "Hakuna kitu amilifu"
 
@@ -102782,10 +102511,6 @@ msgstr "Hakuna fremu muhimu zilizoondolewa kutoka kwa vitu %d"
 
 msgid "\"%s\" property cannot be animated"
 msgstr "\"%s\" mali haiwezi kuhuishwa"
-
-
-msgid "Button doesn't appear to have any property information attached (ptr.data = %p, prop = %p)"
-msgstr "Kitufe haionekani kuwa na taarifa yoyote ya mali iliyoambatishwa (ptr.data = %p, prop = %p)"
 
 
 msgid "Not deleting keyframe for locked F-Curve for NLA Strip influence on %s - %s '%s'"
@@ -104207,7 +103932,7 @@ msgid "Show in Info Log"
 msgstr "Onyesha katika Info Info"
 
 
-msgid "Can't edit external library data"
+msgid "Cannot edit external library data"
 msgstr "Haiwezi kuhariri data ya maktaba ya nje"
 
 
@@ -104361,6 +104086,10 @@ msgstr "Ikosphere"
 
 msgid "Outer"
 msgstr "Nje"
+
+
+msgid "Seams"
+msgstr "Mishono"
 
 
 msgid "Intersection Type"
@@ -104750,10 +104479,6 @@ msgid "This data does not support joining in edit mode"
 msgstr "Data hii haiauni kujiunga katika hali ya kuhariri"
 
 
-msgid "Cannot edit external library data"
-msgstr "Haiwezi kuhariri data ya maktaba ya nje"
-
-
 msgid "Active object final transform has one or more zero scaled axes"
 msgstr "Ubadilishaji wa mwisho wa kitu kinachotumika una shoka moja au zaidi zilizopimwa sufuri"
 
@@ -104904,10 +104629,6 @@ msgstr "Hakuna picha inayotumika iliyopatikana katika nyenzo \"%s\" (%d) ya kitu
 
 msgid "No active image found in material slot (%d) for object \"%s\""
 msgstr "Hakuna picha inayotumika iliyopatikana katika nafasi ya nyenzo (%d) ya kitu \"%s\""
-
-
-msgid "Object \"%s\" is not a mesh or can't be converted to a mesh (Curve, Text, Surface or Metaball)"
-msgstr "Kitu \"%s\" si matundu au haiwezi kugeuzwa kuwa wavu (Curve, Text, Surface au Metaball)"
 
 
 msgid "Uninitialized image %s"
@@ -105116,10 +104837,6 @@ msgstr "Futa njia za mwendo za vitu vilivyochaguliwa"
 
 msgid "Clear motion paths of all objects"
 msgstr "Futa njia za mwendo za vitu vyote"
-
-
-msgid "Can't edit linked mesh or curve data"
-msgstr "Haiwezi kuhariri mesh iliyounganishwa au data ya curve"
 
 
 msgid "No collection selected"
@@ -105454,10 +105171,6 @@ msgid "Incorrect context for running object data unlink"
 msgstr "Muktadha usio sahihi wa kutengua data ya kitu"
 
 
-msgid "Can't unlink this object data"
-msgstr "Haiwezi kutenganisha data ya kitu hiki"
-
-
 msgid "Collection '%s' (instantiated by the active object) is not overridable"
 msgstr "Mkusanyiko wa '%s' (ulioidhinishwa na kitu amilifu) hauwezi kubatilishwa."
 
@@ -105744,10 +105457,6 @@ msgstr "Imeshindwa kuoka: turubai batili"
 
 msgid "Removed %d double particle(s)"
 msgstr "Imeondolewa %d chembe mbili"
-
-
-msgid "No hair connected (can't connect hair if particle system modifier is disabled)"
-msgstr "Hakuna nywele iliyounganishwa (haiwezi kuunganisha nywele ikiwa kirekebisha mfumo wa chembe kimezimwa)"
 
 
 msgid "Copy particle systems to selected: %d done, %d failed"
@@ -107086,10 +106795,6 @@ msgid "See Modifiers panel below"
 msgstr "Ona paneli ya Virekebishaji hapa chini"
 
 
-msgid "F-Curve doesn't have any keyframes as it only contains sampled points"
-msgstr "F-Curve haina fremu za funguo zozote kwa kuwa ina alama za sampuli pekee"
-
-
 msgid "No active keyframe on F-Curve"
 msgstr "Hakuna fremu muhimu inayotumika kwenye F-Curve"
 
@@ -107295,10 +107000,6 @@ msgid "Hard coded Non-Linear, Gamma:1.7"
 msgstr "Msimbo mgumu Usio wa mstari, Gamma:1.7"
 
 
-msgid "Can't Load Image"
-msgstr "Haiwezi Kupakia Picha"
-
-
 msgid "%d float channel(s)"
 msgstr "njia %d za kuelea"
 
@@ -107385,26 +107086,6 @@ msgstr "%d picha zitahifadhiwa katika %s"
 
 msgid "Saved %s"
 msgstr "Imehifadhiwa %s"
-
-
-msgid "Packed library image can't be saved: \"%s\" from \"%s\""
-msgstr "Picha ya maktaba iliyopakiwa haiwezi kuhifadhiwa: \"%s\" kutoka \"%s\""
-
-
-msgid "Image can't be saved, use a different file format: \"%s\""
-msgstr "Picha haiwezi kuhifadhiwa, tumia umbizo tofauti la faili: \"%s\""
-
-
-msgid "Multiple images can't be saved to an identical path: \"%s\""
-msgstr "Picha nyingi haziwezi kuhifadhiwa kwa njia inayofanana: \"%s\""
-
-
-msgid "Image can't be saved, no valid file path: \"%s\""
-msgstr "Picha haiwezi kuhifadhiwa, hakuna njia halali ya faili: \"%s\""
-
-
-msgid "can't save image while rendering"
-msgstr "haiwezi kuhifadhi picha wakati wa kutoa"
 
 
 msgid "No images available"
@@ -107775,20 +107456,12 @@ msgid "More than one collection is selected"
 msgstr "Zaidi ya mkusanyiko mmoja umechaguliwa"
 
 
-msgid "Can't add a new collection to linked/override scene"
-msgstr "Haiwezi kuongeza mkusanyiko mpya kwenye tukio lililounganishwa/kubatilisha"
-
-
 msgid "No active collection"
 msgstr "Hakuna mkusanyiko unaotumika"
 
 
 msgid "Cannot add a collection to a linked/override collection/scene"
 msgstr "Haiwezi kuongeza mkusanyiko kwenye mkusanyiko/eneo lililounganishwa"
-
-
-msgid "Can't add a color tag to a linked collection"
-msgstr "Haiwezi kuongeza lebo ya rangi kwenye mkusanyiko uliounganishwa"
 
 
 msgid "Cannot delete collection '%s', it is either a linked one used by other linked scenes/collections, or a library override one"
@@ -107851,10 +107524,6 @@ msgid "Move inside collection (Ctrl to link)"
 msgstr "Sogeza ndani ya mkusanyiko (Ctrl ili kuunganisha)"
 
 
-msgid "Can't edit library linked or non-editable override object(s)"
-msgstr "Haiwezi kuhariri vipengee vilivyounganishwa au visivyoweza kuhaririwa vya kubatilisha maktaba"
-
-
 msgid "Use view layer for rendering"
 msgstr "Tumia safu ya kutazama kwa kutoa"
 
@@ -107881,10 +107550,6 @@ msgstr "Njia ya maktaba '%s' haipo, rekebisha hii kabla ya kuhifadhi"
 
 msgid "Library path '%s' is now valid, please reload the library"
 msgstr "Njia ya maktaba '%s' sasa ni halali, tafadhali pakia upya maktaba"
-
-
-msgid "Can't edit library or non-editable override data"
-msgstr "Haiwezi kuhariri maktaba au data isiyoweza kuhaririwa ya kubatilisha"
 
 
 msgid "Not an editable name"
@@ -108083,10 +107748,6 @@ msgid "Strip None"
 msgstr "Ondoa Hakuna"
 
 
-msgid "Can't reload with running modal operators"
-msgstr "Haiwezi kupakia upya kwa kuendesha waendeshaji modal"
-
-
 msgid "Add a color strip to the sequencer"
 msgstr "Ongeza ukanda wa rangi kwenye mpangilio"
 
@@ -108151,24 +107812,12 @@ msgid "Please select two strips"
 msgstr "Tafadhali chagua vipande viwili"
 
 
-msgid "Can't create subtitle file"
-msgstr "Haiwezi kuunda faili ya manukuu"
-
-
-msgid "Can't overwrite export file"
-msgstr "Haiwezi kubatilisha faili ya usafirishaji"
-
-
 msgid "No subtitles (text strips) to export"
 msgstr "Hakuna manukuu (vipande vya maandishi) vya kuhamishwa"
 
 
 msgid "Select one or more strips"
 msgstr "Chagua kipande kimoja au zaidi"
-
-
-msgid "Can't set a negative range"
-msgstr "Haiwezi kuweka masafa hasi"
 
 
 msgid "Proxy is not enabled for %s, skipping"
@@ -108791,10 +108440,6 @@ msgid "Bone selection count error"
 msgstr "Hitilafu ya hesabu ya uteuzi wa mifupa"
 
 
-msgid "Linked data can't text-space transform"
-msgstr "Data iliyounganishwa haiwezi kubadilisha nafasi ya maandishi"
-
-
 msgid "Unsupported object type for text-space transform"
 msgstr "Aina ya kitu kisichotumika kwa ubadilishaji wa nafasi ya maandishi"
 
@@ -109234,10 +108879,6 @@ msgid "No valid formats found"
 msgstr "Hakuna umbizo halali lililopatikana"
 
 
-msgid "Can't allocate FFmpeg format context"
-msgstr "Haiwezi kutenga muktadha wa umbizo la FFmpeg"
-
-
 msgid "Render width has to be 720 pixels for DV!"
 msgstr "Upana wa kutoa lazima uwe pikseli 720 kwa DV!"
 
@@ -109366,32 +109007,12 @@ msgid "%s: Will not overwrite existing asset %s"
 msgstr "%s: Haitabatilisha kipengee kilichopo %s"
 
 
-msgid "%s: Can't resolve path %s"
-msgstr "%s: Haiwezi kutatua njia %s"
-
-
-msgid "%s: Can't resolve path %s for writing"
-msgstr "%s: Haiwezi kutatua njia %s ya uandishi"
-
-
-msgid "%s: Can't copy %s. The source and destination paths are the same"
-msgstr "%s: Haiwezi kunakili %s."
-
-
-msgid "%s: Can't open source asset %s"
-msgstr "%s: Haiwezi kufungua rasilimali chanzo %s"
-
-
 msgid "%s: Will not copy zero size source asset %s"
 msgstr "%s: Haitanakili kipengee cha chanzo cha ukubwa wa sifuri %s"
 
 
 msgid "%s: Null buffer for source asset %s"
 msgstr "%s: Null bafa ya rasilimali chanzo %s"
-
-
-msgid "%s: Can't open destination asset %s for writing"
-msgstr "%s: Haiwezi kufungua kipengee lengwa cha %s kwa maandishi"
 
 
 msgid "%s: Error writing to destination asset %s"
@@ -109462,16 +109083,8 @@ msgid "%s: Couldn't get world bind transforms for skeleton %s"
 msgstr "%s: Haikuweza kupata mabadiliko ya ulimwengu kwa mifupa %s"
 
 
-msgid "%s: Number of bind transforms doesn't match the number of joints for skeleton %s"
-msgstr "%s: Idadi ya vigeuzi vya kuunganisha hailingani na idadi ya viungio vya mifupa %s"
-
-
 msgid "%s: Couldn't get blendshape targets for prim %s"
 msgstr "%s: Haikuweza kupata shabaha za umbo mchanganyiko kwa prim %s"
-
-
-msgid "%s: Number of blendshapes doesn't match number of blendshape targets for prim %s"
-msgstr "%s: Idadi ya maumbo mchanganyiko hailingani na idadi ya shabaha za umbo mchanganyiko kwa prim %s"
 
 
 msgid "%s: Couldn't get stage for prim %s"
@@ -109504,10 +109117,6 @@ msgstr "%s: Haikuweza kuongeza mfupa kwa kiungo %s"
 
 msgid "%s: Mismatch in bone and joint counts for skeleton %s"
 msgstr "%s: Kutolingana kwa hesabu za mifupa na viungo kwa mifupa %s"
-
-
-msgid "USD Skeleton Import: bone matrices with negative determinants detected in prim %s. Such matrices may indicate negative scales, possibly due to mirroring operations, and can't currently be converted to Blender's bone representation. The skeletal animation won't be imported"
-msgstr "USD Ingiza Mifupa: matrices ya mfupa yenye viambishi hasi vilivyotambuliwa katika prim%s."
 
 
 msgid "%s: Joint weights and joint indices element size mismatch for prim %s"
@@ -109602,10 +109211,6 @@ msgid "Built-in fonts cannot be renamed"
 msgstr "Fonti zilizojengewa ndani haziwezi kubadilishwa jina"
 
 
-msgid "Datablocks not in global Main data-base cannot be renamed"
-msgstr "Vizuizi vya data ambavyo haviko katika msingi mkuu wa kimataifa hauwezi kubadilishwa jina"
-
-
 msgid "Asset data cannot be None"
 msgstr "Data ya kipengee haiwezi kuwa Hakuna"
 
@@ -109654,18 +109259,6 @@ msgid "Data-block '%s' is not a library override, or not part of a library overr
 msgstr "Kizuizi cha data '%s' si ubatilishaji wa maktaba, au si sehemu ya maktaba inabatilisha daraja."
 
 
-msgid "This property is for internal use only and can't be edited"
-msgstr "Mali hii ni ya matumizi ya ndani pekee na haiwezi kuhaririwa"
-
-
-msgid "Can't edit this property from an override data-block"
-msgstr "Haiwezi kuhariri sifa hii kutoka kwa kizuizi cha data kilichobatilishwa"
-
-
-msgid "Can't edit this property from a system override data-block"
-msgstr "Haiwezi kuhariri sifa hii kutoka kwa kizuizi cha data cha mfumo"
-
-
 msgid "Only boolean, int, float, and enum properties supported"
 msgstr "Ni sifa za boolean, int, kuelea, na enum pekee zinazotumika"
 
@@ -109676,14 +109269,6 @@ msgstr "Ni sifa za boolean, int, kuelea na enum pekee zinazotumika"
 
 msgid "'%s' does not contain '%s' with prefix and suffix"
 msgstr "'%s' haina '%s' yenye kiambishi awali na kiambishi tamati"
-
-
-msgid "'%s' doesn't have upper case alpha-numeric prefix"
-msgstr "'%s' haina kiambishi awali cha herufi kubwa"
-
-
-msgid "'%s' doesn't have an alpha-numeric suffix"
-msgstr "'%s' haina kiambishi cha alfa-nambari"
 
 
 msgid "%s: expected %s type, not %s"
@@ -110437,10 +110022,6 @@ msgid "Unable to locate socket '%s' in node"
 msgstr "Imeshindwa kupata tundu '%s' kwenye nodi"
 
 
-msgid "Can't pair zone input node %s with %s because it does not have the same zone type"
-msgstr "Haiwezi kuoanisha nodi ya ingizo ya eneo %s na %s kwa sababu haina aina sawa ya eneo."
-
-
 msgid "The output node %s is already paired with %s"
 msgstr "Njia ya pato %s tayari imeoanishwa na %s"
 
@@ -110535,14 +110116,6 @@ msgstr "Hali mbaya ya ugawaji"
 
 msgid "Bad vertex index in list"
 msgstr "Kielezo kibaya cha kipeo katika orodha"
-
-
-msgid "Object '%s' can't be selected because it is not in View Layer '%s'!"
-msgstr "Kitu '%s' hakiwezi kuchaguliwa kwa sababu hakiko katika Tabaka la Mwonekano '%s'!"
-
-
-msgid "Object '%s' can't be hidden because it is not in View Layer '%s'!"
-msgstr "Kitu '%s' hakiwezi kufichwa kwa sababu hakiko katika Tabaka la Mwonekano '%s'!"
 
 
 msgid "Object %s not in view layer %s"
@@ -111653,10 +111226,6 @@ msgstr "Mask ya Ndani"
 
 msgid "Outer Mask"
 msgstr "Mask ya Nje"
-
-
-msgid "Viewport compositor setup not fully supported"
-msgstr "Usanidi wa mtunzi wa Viewport hautumiki kikamilifu"
 
 
 msgid "ID value"
@@ -114211,24 +113780,12 @@ msgid "Cannot save blend file, path \"%s\" is not writable"
 msgstr "Haiwezi kuhifadhi faili iliyochanganywa, njia \"%s\" haiwezi kuandikwa"
 
 
-msgid "Can't read alternative start-up file: \"%s\""
-msgstr "Haiwezi kusoma faili mbadala ya kuanza: \"%s\""
-
-
 msgid "Not a library"
 msgstr "Si maktaba"
 
 
 msgid "Nothing indicated"
 msgstr "Hakuna kilichoonyeshwa"
-
-
-msgid "Can't append data-block '%s' of type '%s'"
-msgstr "Haiwezi kuambatisha kizuizi cha data '%s' cha aina ya '%s'"
-
-
-msgid "Can't link data-block '%s' of type '%s'"
-msgstr "Haiwezi kuunganisha kizuizi cha data '%s' cha aina ya '%s'"
 
 
 msgid "'%s': cannot use current file as library"

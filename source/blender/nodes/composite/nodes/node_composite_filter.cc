@@ -97,7 +97,7 @@ class FilterOperation : public NodeOperation {
 
   void execute_gpu()
   {
-    GPUShader *shader = context().get_shader(get_shader_name());
+    gpu::Shader *shader = context().get_shader(get_shader_name());
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_mat3_as_mat4(shader, "ukernel", get_filter_kernel().ptr());

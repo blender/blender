@@ -48,10 +48,12 @@ void snapFrameTransform(TransInfo *t,
     }
     case SCE_SNAP_TO_SECOND: {
       if (snap_flag & SCE_SNAP_ABS_TIME_STEP) {
-        *r_val_final = floorf((val_final / FPS) + 0.5) * FPS;
+        *r_val_final = floorf((val_final / scene->frames_per_second()) + 0.5) *
+                       scene->frames_per_second();
       }
       else {
-        deltax = float(floor((deltax / FPS) + 0.5) * FPS);
+        deltax = float(floor((deltax / scene->frames_per_second()) + 0.5) *
+                       scene->frames_per_second());
         *r_val_final = val_initial + deltax;
       }
       break;

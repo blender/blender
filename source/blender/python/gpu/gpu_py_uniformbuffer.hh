@@ -12,7 +12,9 @@
 
 #include "BLI_compiler_attrs.h"
 
-struct GPUUniformBuf;
+namespace blender::gpu {
+class UniformBuf;
+}  // namespace blender::gpu
 
 extern PyTypeObject BPyGPUUniformBuf_Type;
 
@@ -20,7 +22,8 @@ extern PyTypeObject BPyGPUUniformBuf_Type;
 
 struct BPyGPUUniformBuf {
   PyObject_HEAD
-  GPUUniformBuf *ubo;
+  blender::gpu::UniformBuf *ubo;
 };
 
-[[nodiscard]] PyObject *BPyGPUUniformBuf_CreatePyObject(GPUUniformBuf *ubo) ATTR_NONNULL(1);
+[[nodiscard]] PyObject *BPyGPUUniformBuf_CreatePyObject(blender::gpu::UniformBuf *ubo)
+    ATTR_NONNULL(1);

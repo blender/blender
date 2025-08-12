@@ -27,6 +27,7 @@
 #include "BKE_object.hh"
 #include "BKE_object_deform.h"
 #include "BKE_report.hh"
+#include "BKE_subdiv_mesh.hh"
 #include "BKE_subsurf.hh"
 
 #include "DEG_depsgraph.hh"
@@ -76,11 +77,14 @@ static int bone_skinnable_cb(Object * /*ob*/, Bone *bone, void *datap)
     bool is_weight_paint;
   } *data = static_cast<Arg *>(datap);
 
-  if (!(data->is_weight_paint) || !(bone->flag & BONE_HIDDEN_P)) {
+  bPoseChannel *pose_bone = BKE_pose_channel_find_name(data->armob->pose, bone->name);
+  if (!pose_bone) {
+    return 0;
+  }
+
+  if (!(data->is_weight_paint) || !(pose_bone->drawflag & PCHAN_DRAW_HIDDEN)) {
     if (!(bone->flag & BONE_NO_DEFORM)) {
-      if (data->heat && data->armob->pose &&
-          BKE_pose_channel_find_name(data->armob->pose, bone->name))
-      {
+      if (data->heat && data->armob->pose && pose_bone) {
         segments = bone->segments;
       }
       else {
@@ -149,48 +153,54 @@ static int dgroup_skinnable_cb(Object *ob, Bone *bone, void *datap)
     int heat;
     bool is_weight_paint;
   } *data = static_cast<Arg *>(datap);
+
+  if (bone->flag & BONE_NO_DEFORM) {
+    return 0;
+  }
+
   bArmature *arm = static_cast<bArmature *>(data->armob->data);
+  const bPoseChannel *pose_bone = BKE_pose_channel_find_name(data->armob->pose, bone->name);
+  if (!pose_bone) {
+    return 0;
+  }
 
-  if (!data->is_weight_paint || !(bone->flag & BONE_HIDDEN_P)) {
-    if (!(bone->flag & BONE_NO_DEFORM)) {
-      if (data->heat && data->armob->pose &&
-          BKE_pose_channel_find_name(data->armob->pose, bone->name))
-      {
-        segments = bone->segments;
-      }
-      else {
-        segments = 1;
-      }
+  if (data->is_weight_paint && (pose_bone->drawflag & PCHAN_DRAW_HIDDEN)) {
+    return 0;
+  }
 
-      if (!data->is_weight_paint ||
-          (ANIM_bone_in_visible_collection(arm, bone) && (bone->flag & BONE_SELECTED)))
-      {
-        if (!(defgroup = BKE_object_defgroup_find_name(ob, bone->name))) {
-          defgroup = BKE_object_defgroup_add_name(ob, bone->name);
-        }
-        else if (defgroup->flag & DG_LOCK_WEIGHT) {
-          /* In case vgroup already exists and is locked, do not modify it here. See #43814. */
-          defgroup = nullptr;
-        }
-      }
+  if (data->heat) {
+    segments = bone->segments;
+  }
+  else {
+    segments = 1;
+  }
 
-      if (data->list != nullptr) {
-        hgroup = (bDeformGroup ***)&data->list;
-
-        for (a = 0; a < segments; a++) {
-          **hgroup = defgroup;
-          (*hgroup)++;
-        }
-      }
-      return segments;
+  if (!data->is_weight_paint ||
+      (ANIM_bone_in_visible_collection(arm, bone) && (bone->flag & BONE_SELECTED)))
+  {
+    if (!(defgroup = BKE_object_defgroup_find_name(ob, bone->name))) {
+      defgroup = BKE_object_defgroup_add_name(ob, bone->name);
+    }
+    else if (defgroup->flag & DG_LOCK_WEIGHT) {
+      /* In case vgroup already exists and is locked, do not modify it here. See #43814. */
+      defgroup = nullptr;
     }
   }
-  return 0;
+
+  if (data->list != nullptr) {
+    hgroup = (bDeformGroup ***)&data->list;
+
+    for (a = 0; a < segments; a++) {
+      **hgroup = defgroup;
+      (*hgroup)++;
+    }
+  }
+  return segments;
 }
 
 static void envelope_bone_weighting(Object *ob,
                                     Mesh *mesh,
-                                    float (*verts)[3],
+                                    const blender::Span<blender::float3> verts,
                                     int numbones,
                                     Bone **bonelist,
                                     bDeformGroup **dgrouplist,
@@ -289,7 +299,8 @@ static void add_verts_to_dgroups(ReportList *reports,
   bPoseChannel *pchan;
   Mesh *mesh;
   Mat4 bbone_array[MAX_BBONE_SUBDIV], *bbone = nullptr;
-  float(*root)[3], (*tip)[3], (*verts)[3];
+  float(*root)[3], (*tip)[3];
+  blender::Array<blender::float3> verts;
   bool *selected;
   int numbones, vertsfilled = 0, segments = 0;
   const bool wpmode = (ob->mode & OB_MODE_WEIGHT_PAINT);
@@ -305,6 +316,10 @@ static void add_verts_to_dgroups(ReportList *reports,
   looper_data.list = nullptr;
   looper_data.is_weight_paint = wpmode;
 
+  if (!par->pose) {
+    BKE_pose_rebuild(nullptr, par, arm, false);
+  }
+  BKE_pose_channels_hash_ensure(par->pose);
   /* count the number of skinnable bones */
   numbones = bone_looper(
       ob, static_cast<Bone *>(arm->bonebase.first), &looper_data, bone_skinnable_cb);
@@ -399,23 +414,23 @@ static void add_verts_to_dgroups(ReportList *reports,
 
   /* create verts */
   mesh = static_cast<Mesh *>(ob->data);
-  verts = static_cast<float(*)[3]>(
-      MEM_callocN(mesh->verts_num * sizeof(*verts), "closestboneverts"));
+  verts.reinitialize(mesh->verts_num);
 
   if (wpmode) {
     /* if in weight paint mode, use final verts from evaluated mesh */
     const Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
     const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
     if (mesh_eval) {
-      BKE_mesh_foreach_mapped_vert_coords_get(mesh_eval, verts, mesh->verts_num);
+      BKE_mesh_foreach_mapped_vert_coords_get(
+          mesh_eval, reinterpret_cast<float(*)[3]>(verts.data()), mesh->verts_num);
       vertsfilled = 1;
     }
   }
   else if (BKE_modifiers_findby_type(ob, eModifierType_Subsurf)) {
     /* Is subdivision-surface on? Lets use the verts on the limit surface then.
-     * = same amount of vertices as mesh, but vertices  moved to the
+     * = same amount of vertices as mesh, but vertices moved to the
      * subdivision-surfaced position, like for 'optimal'. */
-    subsurf_calculate_limit_positions(mesh, verts);
+    blender::bke::subdiv::calculate_limit_positions(mesh, verts);
     vertsfilled = 1;
   }
 
@@ -432,8 +447,16 @@ static void add_verts_to_dgroups(ReportList *reports,
   if (heat) {
     const char *error = nullptr;
 
-    heat_bone_weighting(
-        ob, mesh, verts, numbones, dgrouplist, dgroupflip, root, tip, selected, &error);
+    heat_bone_weighting(ob,
+                        mesh,
+                        reinterpret_cast<float(*)[3]>(verts.data()),
+                        numbones,
+                        dgrouplist,
+                        dgroupflip,
+                        root,
+                        tip,
+                        selected,
+                        &error);
     if (error) {
       BKE_report(reports, RPT_WARNING, error);
     }
@@ -462,7 +485,6 @@ static void add_verts_to_dgroups(ReportList *reports,
   MEM_freeN(root);
   MEM_freeN(tip);
   MEM_freeN(selected);
-  MEM_freeN(verts);
 }
 
 void ED_object_vgroup_calc_from_armature(ReportList *reports,

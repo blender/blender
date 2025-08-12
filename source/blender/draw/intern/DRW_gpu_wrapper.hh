@@ -167,7 +167,7 @@ class DataBuffer {
 template<typename T, int64_t len, bool device_only>
 class UniformCommon : public DataBuffer<T, len, false>, NonMovable, NonCopyable {
  protected:
-  GPUUniformBuf *ubo_;
+  gpu::UniformBuf *ubo_;
 
 #ifndef NDEBUG
   const char *name_ = typeid(T).name();
@@ -195,13 +195,13 @@ class UniformCommon : public DataBuffer<T, len, false>, NonMovable, NonCopyable 
   }
 
   /* To be able to use it with DRW_shgroup_*_ref(). */
-  operator GPUUniformBuf *() const
+  operator gpu::UniformBuf *() const
   {
     return ubo_;
   }
 
   /* To be able to use it with DRW_shgroup_*_ref(). */
-  GPUUniformBuf **operator&()
+  gpu::UniformBuf **operator&()
   {
     return &ubo_;
   }
@@ -210,7 +210,7 @@ class UniformCommon : public DataBuffer<T, len, false>, NonMovable, NonCopyable 
 template<typename T, int64_t len, bool device_only>
 class StorageCommon : public DataBuffer<T, len, false>, NonMovable, NonCopyable {
  protected:
-  GPUStorageBuf *ssbo_;
+  gpu::StorageBuf *ssbo_;
 
 #ifndef NDEBUG
   const char *name_ = typeid(T).name();
@@ -255,12 +255,12 @@ class StorageCommon : public DataBuffer<T, len, false>, NonMovable, NonCopyable 
     GPU_storagebuf_read(ssbo_, this->data_);
   }
 
-  operator GPUStorageBuf *() const
+  operator gpu::StorageBuf *() const
   {
     return ssbo_;
   }
   /* To be able to use it with DRW_shgroup_*_ref(). */
-  GPUStorageBuf **operator&()
+  gpu::StorageBuf **operator&()
   {
     return &ssbo_;
   }

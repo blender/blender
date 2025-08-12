@@ -1567,6 +1567,10 @@ static wmOperatorStatus mesh_reorder_vertices_spatial_exec(bContext *C, wmOperat
     return OPERATOR_CANCELLED;
   }
 
+  if (mesh->faces_num == 0 || mesh->verts_num == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
   if (ob->mode == OB_MODE_SCULPT) {
     blender::ed::sculpt_paint::undo::geometry_begin(*scene, *ob, op);
   }

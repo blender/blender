@@ -61,7 +61,7 @@ class SplitOperation : public NodeOperation {
 
   void execute_gpu()
   {
-    GPUShader *shader = this->context().get_shader("compositor_split");
+    gpu::Shader *shader = this->context().get_shader("compositor_split");
     GPU_shader_bind(shader);
 
     const Domain domain = this->compute_domain();

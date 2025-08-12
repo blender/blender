@@ -87,7 +87,7 @@ static bool parse_version(const std::string &version,
   return false;
 }
 
-/* Try to check if the driver is older than 22.6.1, preferring false positives.  */
+/** Try to check if the driver is older than 22.6.1, preferring false positives. */
 static bool is_bad_AMD_driver(const char *version_cstr)
 {
   std::string version_str = version_cstr;

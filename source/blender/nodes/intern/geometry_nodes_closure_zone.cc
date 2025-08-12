@@ -141,11 +141,6 @@ class LazyFunctionForClosureZone : public LazyFunction {
     for (const int i : zone_.border_links.index_range()) {
       params.set_output(zone_info_.indices.outputs.border_link_usages[i], true);
     }
-    if (!U.experimental.use_bundle_and_closure_nodes) {
-      params.set_output(zone_info_.indices.outputs.main[0],
-                        bke::SocketValueVariant::From(ClosurePtr()));
-      return;
-    }
 
     const auto &storage = *static_cast<const NodeClosureOutput *>(output_bnode_.storage);
 

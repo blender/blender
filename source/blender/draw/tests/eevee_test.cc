@@ -58,7 +58,7 @@ static void test_eevee_shadow_shift_clear()
     tiles_data.push_update();
   }
 
-  GPUShader *sh = GPU_shader_create_from_info_name("eevee_shadow_tilemap_init");
+  gpu::Shader *sh = GPU_shader_create_from_info_name("eevee_shadow_tilemap_init");
 
   PassSimple pass("Test");
   pass.shader_set(sh);
@@ -144,7 +144,7 @@ static void test_eevee_shadow_shift()
     tiles_data.push_update();
   }
 
-  GPUShader *sh = GPU_shader_create_from_info_name("eevee_shadow_tilemap_init");
+  gpu::Shader *sh = GPU_shader_create_from_info_name("eevee_shadow_tilemap_init");
 
   PassSimple pass("Test");
   pass.shader_set(sh);
@@ -240,7 +240,7 @@ static void test_eevee_shadow_tag_update()
 
   tilemaps_data.push_update();
 
-  GPUShader *sh = GPU_shader_create_from_info_name("eevee_shadow_tag_update");
+  gpu::Shader *sh = GPU_shader_create_from_info_name("eevee_shadow_tag_update");
 
   PassSimple pass("Test");
   pass.shader_set(sh);
@@ -455,7 +455,7 @@ static void test_eevee_shadow_free()
     tilemaps_data.push_update();
   }
 
-  GPUShader *sh = GPU_shader_create_from_info_name("eevee_shadow_page_free");
+  gpu::Shader *sh = GPU_shader_create_from_info_name("eevee_shadow_page_free");
 
   PassSimple pass("Test");
   pass.shader_set(sh);
@@ -569,7 +569,7 @@ class TestDefrag {
     pages_free_data.push_update();
     pages_cached_data.push_update();
 
-    GPUShader *sh = GPU_shader_create_from_info_name("eevee_shadow_page_defrag");
+    gpu::Shader *sh = GPU_shader_create_from_info_name("eevee_shadow_page_defrag");
 
     PassSimple pass("Test");
     pass.shader_set(sh);
@@ -701,7 +701,7 @@ class TestAlloc {
       tilemaps_data.push_update();
     }
 
-    GPUShader *sh = GPU_shader_create_from_info_name("eevee_shadow_page_allocate");
+    gpu::Shader *sh = GPU_shader_create_from_info_name("eevee_shadow_page_allocate");
 
     PassSimple pass("Test");
     pass.shader_set(sh);
@@ -867,7 +867,7 @@ static void test_eevee_shadow_finalize()
 
   render_map_buf.clear_to_zero();
 
-  GPUShader *sh = GPU_shader_create_from_info_name("eevee_shadow_tilemap_finalize");
+  gpu::Shader *sh = GPU_shader_create_from_info_name("eevee_shadow_tilemap_finalize");
   PassSimple pass("Test");
   pass.shader_set(sh);
   pass.bind_ssbo("tilemaps_buf", tilemaps_data);
@@ -881,7 +881,7 @@ static void test_eevee_shadow_finalize()
   pass.dispatch(int3(1, 1, tilemaps_data.size()));
   pass.barrier(GPU_BARRIER_SHADER_STORAGE);
 
-  GPUShader *sh2 = GPU_shader_create_from_info_name("eevee_shadow_tilemap_rendermap");
+  gpu::Shader *sh2 = GPU_shader_create_from_info_name("eevee_shadow_tilemap_rendermap");
   pass.shader_set(sh2);
   pass.bind_ssbo("statistics_buf", statistics_buf);
   pass.bind_ssbo("render_view_buf", render_views_buf);
@@ -1278,7 +1278,7 @@ static void test_eevee_shadow_tilemap_amend()
   LightCullingTileBuf culling_tile_buf = {"LightCull_tile"};
   ShadowTileMapDataBuf tilemaps_data = {"tilemaps_data"};
 
-  GPUShader *sh = GPU_shader_create_from_info_name("eevee_shadow_tilemap_amend");
+  gpu::Shader *sh = GPU_shader_create_from_info_name("eevee_shadow_tilemap_amend");
 
   PassSimple pass("Test");
   pass.shader_set(sh);
@@ -1643,7 +1643,7 @@ static void test_eevee_shadow_page_mask_ex(int max_view_per_tilemap)
 
   tilemaps_data.push_update();
 
-  GPUShader *sh = GPU_shader_create_from_info_name("eevee_shadow_page_mask");
+  gpu::Shader *sh = GPU_shader_create_from_info_name("eevee_shadow_page_mask");
 
   PassSimple pass("Test");
   pass.shader_set(sh);
@@ -1877,8 +1877,8 @@ static void test_eevee_surfel_list()
   View view = {"RayProjectionView"};
   view.sync(float4x4::identity(), math::projection::orthographic<float>(0, 2, 0, 2, 0, 1));
 
-  GPUShader *sh_build = GPU_shader_create_from_info_name("eevee_surfel_list_build");
-  GPUShader *sh_sort = GPU_shader_create_from_info_name("eevee_surfel_list_sort");
+  gpu::Shader *sh_build = GPU_shader_create_from_info_name("eevee_surfel_list_build");
+  gpu::Shader *sh_sort = GPU_shader_create_from_info_name("eevee_surfel_list_sort");
 
   PassSimple pass("Build_and_Sort");
   pass.shader_set(sh_build);

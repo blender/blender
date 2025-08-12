@@ -732,7 +732,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
         rlayer_fg = tree.nodes.new(type='CompositorNodeRLayers')
         rlayer_bg = tree.nodes.new(type='CompositorNodeRLayers')
         output = tree.nodes.new(type='NodeGroupOutput')
-        tree.interface.new_socket(name="Image", in_out="OUTPUT", socket_type="NodeSocketColor")
+        tree.interface.new_socket(name="Image", in_out='OUTPUT', socket_type="NodeSocketColor")
 
         movieclip = tree.nodes.new(type='CompositorNodeMovieClip')
         distortion = tree.nodes.new(type='CompositorNodeMovieDistortion')

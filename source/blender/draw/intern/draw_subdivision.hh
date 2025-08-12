@@ -13,9 +13,9 @@
 #include "mesh_extractors/extract_mesh.hh"
 
 struct BMesh;
-struct GPUUniformBuf;
 namespace blender::gpu {
 class IndexBuf;
+class UniformBuf;
 class VertBuf;
 }  // namespace blender::gpu
 struct GPUVertFormat;
@@ -138,7 +138,7 @@ struct DRWSubdivCache {
   Array<float3> loose_edge_positions;
 
   /* UBO to store settings for the various compute shaders. */
-  GPUUniformBuf *ubo;
+  gpu::UniformBuf *ubo;
 
   /* Extra flags, passed to the UBO. */
   bool is_edit_mode;

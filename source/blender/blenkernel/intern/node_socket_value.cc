@@ -8,9 +8,11 @@
 
 #include <sstream>
 
+#include "BKE_geometry_set.hh"
 #include "BKE_node.hh"
 #include "BKE_node_socket_value.hh"
 #include "BKE_volume_grid.hh"
+
 #include "NOD_geometry_nodes_bundle.hh"
 #include "NOD_geometry_nodes_closure.hh"
 #include "NOD_geometry_nodes_list.hh"
@@ -68,6 +70,24 @@ template<typename T> static std::optional<eNodeSocketDatatype> static_type_to_so
   if constexpr (is_same_any_v<T, nodes::ClosurePtr>) {
     return SOCK_CLOSURE;
   }
+  if constexpr (is_same_any_v<T, Object *>) {
+    return SOCK_OBJECT;
+  }
+  if constexpr (is_same_any_v<T, Collection *>) {
+    return SOCK_COLLECTION;
+  }
+  if constexpr (is_same_any_v<T, Tex *>) {
+    return SOCK_TEXTURE;
+  }
+  if constexpr (is_same_any_v<T, Image *>) {
+    return SOCK_IMAGE;
+  }
+  if constexpr (is_same_any_v<T, Material *>) {
+    return SOCK_MATERIAL;
+  }
+  if constexpr (is_same_any_v<T, bke::GeometrySet>) {
+    return SOCK_GEOMETRY;
+  }
   return std::nullopt;
 }
 
@@ -100,14 +120,20 @@ static bool static_type_is_base_socket_type(const eNodeSocketDatatype socket_typ
       return std::is_same_v<T, nodes::BundlePtr>;
     case SOCK_CLOSURE:
       return std::is_same_v<T, nodes::ClosurePtr>;
+    case SOCK_OBJECT:
+      return std::is_same_v<T, Object *>;
+    case SOCK_COLLECTION:
+      return std::is_same_v<T, Collection *>;
+    case SOCK_TEXTURE:
+      return std::is_same_v<T, Tex *>;
+    case SOCK_IMAGE:
+      return std::is_same_v<T, Image *>;
+    case SOCK_MATERIAL:
+      return std::is_same_v<T, Material *>;
+    case SOCK_GEOMETRY:
+      return std::is_same_v<T, bke::GeometrySet>;
     case SOCK_CUSTOM:
     case SOCK_SHADER:
-    case SOCK_OBJECT:
-    case SOCK_IMAGE:
-    case SOCK_GEOMETRY:
-    case SOCK_COLLECTION:
-    case SOCK_TEXTURE:
-    case SOCK_MATERIAL:
       return false;
   }
   BLI_assert_unreachable();
@@ -291,6 +317,30 @@ void SocketValueVariant::store_single(const eNodeSocketDatatype socket_type, con
       value_.emplace<nodes::ClosurePtr>(*static_cast<const nodes::ClosurePtr *>(value));
       break;
     }
+    case SOCK_OBJECT: {
+      value_.emplace<Object *>(*static_cast<Object *const *>(value));
+      break;
+    }
+    case SOCK_COLLECTION: {
+      value_.emplace<Collection *>(*static_cast<Collection *const *>(value));
+      break;
+    }
+    case SOCK_TEXTURE: {
+      value_.emplace<Tex *>(*static_cast<Tex *const *>(value));
+      break;
+    }
+    case SOCK_IMAGE: {
+      value_.emplace<Image *>(*static_cast<Image *const *>(value));
+      break;
+    }
+    case SOCK_MATERIAL: {
+      value_.emplace<Material *>(*static_cast<Material *const *>(value));
+      break;
+    }
+    case SOCK_GEOMETRY: {
+      value_.emplace<bke::GeometrySet>(*static_cast<const bke::GeometrySet *>(value));
+      break;
+    }
     default: {
       BLI_assert_unreachable();
       break;
@@ -397,6 +447,16 @@ void *SocketValueVariant::allocate_single(const eNodeSocketDatatype socket_type)
       return value_.allocate<nodes::BundlePtr>();
     case SOCK_CLOSURE:
       return value_.allocate<nodes::ClosurePtr>();
+    case SOCK_OBJECT:
+      return value_.allocate<Object *>();
+    case SOCK_COLLECTION:
+      return value_.allocate<Collection *>();
+    case SOCK_TEXTURE:
+      return value_.allocate<Tex *>();
+    case SOCK_IMAGE:
+      return value_.allocate<Image *>();
+    case SOCK_MATERIAL:
+      return value_.allocate<Material *>();
     default: {
       BLI_assert_unreachable();
       return nullptr;
@@ -461,6 +521,13 @@ INSTANTIATE(fn::GField)
 INSTANTIATE(blender::nodes::BundlePtr)
 INSTANTIATE(blender::nodes::ClosurePtr)
 INSTANTIATE(blender::nodes::ListPtr)
+INSTANTIATE(blender::bke::GeometrySet)
+
+INSTANTIATE(Object *)
+INSTANTIATE(Collection *)
+INSTANTIATE(Tex *)
+INSTANTIATE(Image *)
+INSTANTIATE(Material *)
 
 INSTANTIATE(float4x4)
 INSTANTIATE(fn::Field<float4x4>)

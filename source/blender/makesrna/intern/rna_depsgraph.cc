@@ -780,7 +780,7 @@ static void rna_def_depsgraph(BlenderRNA *brna)
                          "updated",
                          false,
                          "Updated",
-                         "True if any datablock with this type was added, updated or removed");
+                         "True if any data-block with this type was added, updated or removed");
   RNA_def_function_return(func, parm);
 
   prop = RNA_def_property(srna, "scene_eval", PROP_POINTER, PROP_NONE);

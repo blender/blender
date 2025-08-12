@@ -32,6 +32,7 @@ set(LIB
   PRIVATE bf::blenlib
   PUBLIC  bf::imbuf
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::intern::clog
 )
 
 if(WITH_CODEC_FFMPEG)

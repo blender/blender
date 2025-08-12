@@ -5,7 +5,9 @@
 #include <cstdlib>
 
 #include "bvh/bvh.h"
+
 #include "device/device.h"
+
 #include "scene/alembic.h"
 #include "scene/background.h"
 #include "scene/bake.h"
@@ -27,6 +29,7 @@
 #include "scene/svm.h"
 #include "scene/tables.h"
 #include "scene/volume.h"
+
 #include "session/session.h"
 
 #include "util/guarded_allocator.h"
@@ -500,9 +503,6 @@ void Scene::update_kernel_features()
 
   const bool use_motion = need_motion() == Scene::MotionType::MOTION_BLUR;
   kernel_features |= KERNEL_FEATURE_PATH_TRACING;
-  if (params.hair_shape == CURVE_THICK || params.hair_shape == CURVE_THICK_LINEAR) {
-    kernel_features |= KERNEL_FEATURE_HAIR_THICK;
-  }
 
   /* Track the max prim count in case the backend needs to rebuild BVHs or
    * kernels to support different limits. */
@@ -532,9 +532,10 @@ void Scene::update_kernel_features()
       kernel_features |= KERNEL_FEATURE_SHADOW_CATCHER;
     }
     if (geom->is_hair()) {
-      kernel_features |= KERNEL_FEATURE_HAIR;
-      kernel_max_prim_count = max(kernel_max_prim_count,
-                                  static_cast<Hair *>(geom)->num_segments());
+      const Hair *hair = static_cast<const Hair *>(geom);
+      kernel_features |= (hair->curve_shape == CURVE_RIBBON) ? KERNEL_FEATURE_HAIR_RIBBON :
+                                                               KERNEL_FEATURE_HAIR_THICK;
+      kernel_max_prim_count = max(kernel_max_prim_count, hair->num_segments());
     }
     else if (geom->is_pointcloud()) {
       kernel_features |= KERNEL_FEATURE_POINTCLOUD;

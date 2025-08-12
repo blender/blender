@@ -1705,7 +1705,7 @@ static void rna_def_animdata(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_ANIMATION | ND_NLA_ACTCHANGE, "rna_AnimData_dependency_update");
 
   /* Temporary action slot for tweak mode. Just like `action_slot_handle` this is needed for
-   * library overrides to work.*/
+   * library overrides to work. */
   prop = RNA_def_property(srna, "action_slot_handle_tweak_storage", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, nullptr, "tmp_slot_handle");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_EDITABLE);

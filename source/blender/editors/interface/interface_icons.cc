@@ -51,9 +51,13 @@
 
 #include "WM_api.hh"
 
+#include "CLG_log.h"
+
 #include "interface_intern.hh"
 
 #include <fmt/format.h>
+
+static CLG_LogRef LOG = {"ui.icon"};
 
 struct IconImage {
   int w;
@@ -1161,7 +1165,7 @@ static void icon_create_rect(PreviewImage *prv_img, enum eIconSizes size)
 
   if (!prv_img) {
     if (G.debug & G_DEBUG) {
-      printf("%s, error: requested preview image does not exist", __func__);
+      CLOG_WARN(&LOG, "%s, error: requested preview image does not exist", __func__);
     }
   }
   else if (!prv_img->rect[size]) {
@@ -1335,7 +1339,7 @@ static void icon_set_image(const bContext *C,
 {
   if (!prv_img) {
     if (G.debug & G_DEBUG) {
-      printf("%s: no preview image for this ID: %s\n", __func__, id->name);
+      CLOG_WARN(&LOG, "%s: no preview image for this ID: %s", __func__, id->name);
     }
     return;
   }
@@ -1548,6 +1552,10 @@ static void svg_replace_color_attributes(std::string &svg,
       {"blender_tool_transform", tool_transform},
       {"blender_tool_white", tool_white},
       {"blender_tool_red", tool_red},
+      {"blender_bevel_weight", nullptr, TH_EDGE_BEVEL},
+      {"blender_mesh_crease", nullptr, TH_EDGE_CREASE},
+      {"blender_edge_seam", nullptr, TH_EDGE_SEAM},
+      {"blender_edge_sharp", nullptr, TH_EDGE_SHARP},
   };
 
   for (const ColorItem &item : items) {
@@ -1668,7 +1676,7 @@ static void icon_draw_size(float x,
 
   if (icon == nullptr) {
     if (G.debug & G_DEBUG) {
-      printf("%s: Internal error, no icon for icon ID: %d\n", __func__, icon_id);
+      CLOG_WARN(&LOG, "%s: Internal error, no icon for icon ID: %d", __func__, icon_id);
     }
     icon_id = ICON_NOT_FOUND;
     icon = BKE_icon_get(icon_id);

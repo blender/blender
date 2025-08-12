@@ -651,7 +651,7 @@ ENUM_OPERATORS(eFileSel_File_Types, FILE_TYPE_BLENDERLIB);
 
 /** Selection Flags #FileList::selection_state. */
 typedef enum eDirEntry_SelectFlag {
-  /*  FILE_SEL_ACTIVE         = (1 << 1), */ /* UNUSED */
+  // FILE_SEL_ACTIVE = (1 << 1), /* UNUSED */
   FILE_SEL_HIGHLIGHTED = (1 << 2),
   FILE_SEL_SELECTED = (1 << 3),
   FILE_SEL_EDITING = (1 << 4),
@@ -924,7 +924,7 @@ typedef enum eSpaceClip_Flag {
   SC_SHOW_FILTERS = (1 << 13),
   SC_SHOW_GRAPH_FRAMES = (1 << 14),
   SC_SHOW_GRAPH_TRACKS_MOTION = (1 << 15),
-  /*  SC_SHOW_PYRAMID_LEVELS      = (1 << 16), */ /* UNUSED */
+  // SC_SHOW_PYRAMID_LEVELS = (1 << 16), /* UNUSED */
   SC_LOCK_TIMECURSOR = (1 << 17),
   SC_SHOW_SECONDS = (1 << 18),
   SC_SHOW_GRAPH_SEL_ONLY = (1 << 19),

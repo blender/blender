@@ -115,6 +115,9 @@ class ShapeKeyDropTarget : public ui::TreeViewItemDropTarget {
         BLI_assert_unreachable();
         break;
       case ui::DropLocation::Before:
+        if (drop_index_ == 0) {
+          return TIP_("Cannot move above basis shape key");
+        }
         return fmt::format(fmt::runtime(TIP_("Move {} above {}")), drag_name, drop_name);
       case ui::DropLocation::After:
         return fmt::format(fmt::runtime(TIP_("Move {} below {}")), drag_name, drop_name);
@@ -137,6 +140,9 @@ class ShapeKeyDropTarget : public ui::TreeViewItemDropTarget {
         BLI_assert_unreachable();
         break;
       case ui::DropLocation::Before:
+        if (drop_index == 0) {
+          return false;
+        }
         drop_index -= int(drag_index < drop_index);
         break;
       case ui::DropLocation::After:
@@ -230,8 +236,21 @@ class ShapeKeyItem : public ui::AbstractTreeViewItem {
     return label_;
   }
 
+  void build_context_menu(bContext &C, uiLayout &layout) const override
+  {
+    MenuType *mt = WM_menutype_find("MESH_MT_shape_key_tree_context_menu", true);
+    if (!mt) {
+      return;
+    }
+    UI_menutype_draw(&C, mt, &layout);
+  }
+
   std::unique_ptr<ui::AbstractViewItemDragController> create_drag_controller() const override
   {
+    if (shape_key_.index == 0) {
+      /* Prevent basis shape key from dragging. */
+      return nullptr;
+    }
     return std::make_unique<ShapeKeyDragController>(
         static_cast<ShapeKeyTreeView &>(get_tree_view()), shape_key_);
   }

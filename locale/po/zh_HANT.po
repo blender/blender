@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'6dca66d606ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-04 09:08+0000\n"
+"POT-Creation-Date: 2025-08-11 08:28+0000\n"
 "PO-Revision-Date: 2025-07-27 17:01+0000\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -3762,10 +3762,6 @@ msgid "Radius of head of bone (for Envelope deform only)"
 msgstr "骨骼的頭部半徑 (僅用於封套變形)"
 
 
-msgid "Bone is not visible when it is not in Edit Mode (i.e. in Object or Pose Modes)"
-msgstr "當骨骼非於編輯模式下時看不見 (例如物體模式或姿勢模式)"
-
-
 msgid "Selectable"
 msgstr "可選取"
 
@@ -3860,10 +3856,6 @@ msgstr "當骨骼有親代時，骨骼的頭部會連在親代的尾部"
 
 msgid "Cyclic Offset"
 msgstr "循環偏移"
-
-
-msgid "When bone doesn't have a parent, it receives cyclic offset effects (Deprecated)"
-msgstr "當骨骼無親代時，它會接收循環偏移效果 (已棄用)"
 
 
 msgid "Deform"
@@ -15430,84 +15422,44 @@ msgid "Format used for re-saving this file"
 msgstr "用於再次儲存此檔案的格式"
 
 
-msgid "Output image in bitmap format"
-msgstr "以點陣圖格式輸出影像"
-
-
-msgid "Iris"
-msgstr "Iris"
-
-
-msgid "Output image in PNG format"
-msgstr "以 PNG 格式輸出影像"
-
-
 msgid "Output image in JPEG format"
 msgstr "以 JPEG 格式輸出影像"
-
-
-msgid "JPEG 2000"
-msgstr "JPEG 2000"
-
-
-msgid "Targa"
-msgstr "Targa"
-
-
-msgid "Output image in Targa format"
-msgstr "以 TARGA 格式輸出影像"
-
-
-msgid "Targa Raw"
-msgstr "Targa Raw"
-
-
-msgid "Output image in uncompressed Targa format"
-msgstr "以未壓縮的 Targa 格式輸出影像"
-
-
-msgid "Cineon"
-msgstr "Cineon"
-
-
-msgid "Output image in Cineon format"
-msgstr "以 Cineon 格式輸出影像"
-
-
-msgid "DPX"
-msgstr "DPX"
-
-
-msgid "Output image in DPX format"
-msgstr "以 DPX 格式輸出影像"
 
 
 msgid "Output image in OpenEXR format"
 msgstr "以 OpenEXR 格式輸出影像"
 
 
-msgid "Radiance HDR"
-msgstr "Radiance HDR"
+msgid "Output image in PNG format"
+msgstr "以 PNG 格式輸出影像"
+
+
+msgid "Output image in bitmap format"
+msgstr "以點陣圖格式輸出影像"
+
+
+msgid "Output image in Cineon format"
+msgstr "以 Cineon 格式輸出影像"
+
+
+msgid "Output image in DPX format"
+msgstr "以 DPX 格式輸出影像"
 
 
 msgid "Output image in Radiance HDR format"
 msgstr "以 Radiance HDR 格式輸出影像"
 
 
-msgid "TIFF"
-msgstr "TIFF"
+msgid "Output image in Targa format"
+msgstr "以 TARGA 格式輸出影像"
+
+
+msgid "Output image in uncompressed Targa format"
+msgstr "以未壓縮的 Targa 格式輸出影像"
 
 
 msgid "Output image in TIFF format"
 msgstr "以 TIFF 格式輸出影像"
-
-
-msgid "WebP"
-msgstr "WebP"
-
-
-msgid "OpenEXR MultiLayer"
-msgstr "OpenEXR 多層"
 
 
 msgid "Output image in multilayer OpenEXR format"
@@ -20217,10 +20169,6 @@ msgid "Identifier of operator to call on input event"
 msgstr "於輸入事件呼叫的操作器辨識符"
 
 
-msgid "Is this keymap item user defined (doesn't just replace a builtin item)"
-msgstr "目前按鍵對應項目是否被使用者自訂 (不只是替換內建項目)"
-
-
 msgid "User Modified"
 msgstr "使用者已修改"
 
@@ -22524,6 +22472,10 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
+msgid "Pivot Point"
+msgstr "樞紐點"
+
+
 msgid "Snap"
 msgstr "吸附"
 
@@ -22710,10 +22662,6 @@ msgstr "文字"
 
 msgid "Bone Roll"
 msgstr "骨骼滾動"
-
-
-msgid "Pivot Point"
-msgstr "樞紐點"
 
 
 msgid "Basic"
@@ -28624,30 +28572,6 @@ msgid "File Output"
 msgstr "檔案輸出"
 
 
-msgid "Active Input Index"
-msgstr "作用中輸入索引"
-
-
-msgid "Active input index in details view list"
-msgstr "詳細資訊檢視清單中的作用中輸入索引"
-
-
-msgid "Base Path"
-msgstr "基礎路徑"
-
-
-msgid "Base output path for the image"
-msgstr "影像的基礎輸出路徑"
-
-
-msgid "File Slots"
-msgstr "檔案槽"
-
-
-msgid "EXR Layer Slots"
-msgstr "EXR 分層槽"
-
-
 msgid "Apply render part of display transform when saving byte image"
 msgstr "當儲存位元組影像時套用顯示變換的算繪部份"
 
@@ -30048,10 +29972,6 @@ msgid "Reflect"
 msgstr "反射"
 
 
-msgid "Reflect A around the normal B. B doesn't need to be normalized."
-msgstr "將 A 依法線 B 反射。B 不需要先經歸一化。"
-
-
 msgctxt "NodeTree"
 msgid "Refract"
 msgstr "折射"
@@ -30292,30 +30212,6 @@ msgstr "至接口"
 
 msgid "Node Links"
 msgstr "節點連結"
-
-
-msgid "Output File Slot"
-msgstr "輸出檔案槽"
-
-
-msgid "Single layer file slot of the file output node"
-msgstr "檔案輸出節點的單一層檔案槽"
-
-
-msgid "Subpath used for this slot"
-msgstr "用於此槽的次路徑"
-
-
-msgid "Output File Layer Slot"
-msgstr "輸出檔案分層槽"
-
-
-msgid "Multilayer slot of the file output node"
-msgstr "檔案輸出節點的多層槽"
-
-
-msgid "OpenEXR layer name used for this slot"
-msgstr "用於此槽的 OpenEXR 層名稱"
 
 
 msgid "Node Socket"
@@ -31925,10 +31821,6 @@ msgstr "末端區段斜率會以直線延伸出最末端關鍵影格"
 
 msgid "Make Cyclic (F-Modifier)"
 msgstr "設為循環性 (F 修改器)"
-
-
-msgid "Add Cycles F-Modifier if one doesn't exist already"
-msgstr "加入循環 F 修改器，如果尚未有既有的"
 
 
 msgid "Clear Cyclic (F-Modifier)"
@@ -40328,6 +40220,14 @@ msgid "Mode"
 msgstr "模式"
 
 
+msgid "DPX"
+msgstr "DPX"
+
+
+msgid "TIFF"
+msgstr "TIFF"
+
+
 msgctxt "Operator"
 msgid "Toggle Node Options"
 msgstr "開啟節點選項"
@@ -40335,29 +40235,6 @@ msgstr "開啟節點選項"
 
 msgid "Toggle option buttons display for selected nodes"
 msgstr "為所選節點切換選項按鈕顯示"
-
-
-msgctxt "Operator"
-msgid "Add File Node Socket"
-msgstr "新增檔案節點接口"
-
-
-msgid "Add a new input to a file output node"
-msgstr "新增個新輸入至檔案輸出節點"
-
-
-msgctxt "Operator"
-msgid "Move File Node Socket"
-msgstr "移動檔案節點接口"
-
-
-msgid "Move the active input of a file output node up or down the list"
-msgstr "在清單中將檔案輸出節點的作用中輸入往上移或往下移"
-
-
-msgctxt "Operator"
-msgid "Remove File Node Socket"
-msgstr "移除檔案節點接口"
 
 
 msgid "Attach selected nodes"
@@ -58269,6 +58146,14 @@ msgid "Strips Selected"
 msgstr "選取的片段"
 
 
+msgid "Channel Group"
+msgstr "通道群組"
+
+
+msgid "Active Channel Group"
+msgstr "作用中通道群組"
+
+
 msgid "Marker Line"
 msgstr "標記線"
 
@@ -58305,20 +58190,8 @@ msgid "Theme settings for the Dope Sheet"
 msgstr "律表主題設定"
 
 
-msgid "Active Channel Group"
-msgstr "作用中通道群組"
-
-
-msgid "Channel Group"
-msgstr "通道群組"
-
-
 msgid "Channels Selected"
 msgstr "選取的通道"
-
-
-msgid "Dope Sheet Channel"
-msgstr "律表通道"
 
 
 msgid "Color of Keyframe"
@@ -58619,10 +58492,6 @@ msgstr "作用中動作"
 
 msgid "No Active Action"
 msgstr "無作用中動作"
-
-
-msgid "Nonlinear Animation Channel"
-msgstr "非線性動畫頻道"
 
 
 msgid "Meta Strips"
@@ -61516,10 +61385,6 @@ msgid "External shader script must have .osl or .oso extension, or be a module n
 msgstr "外部著色器命令稿必須有 .osl 或 .oso 副檔名，或者是一個模組名稱"
 
 
-msgid "Can't read OSO bytecode to store in node at %r"
-msgstr "無法讀取 %r 處的 OSO 位元組碼以儲存於節點"
-
-
 msgid "Failed to write .oso file next to external .osl file at "
 msgstr "無法在有外部 .osl 檔旁寫入 .oso 檔，位置於 "
 
@@ -62422,8 +62287,8 @@ msgstr "刪除所有群組"
 
 
 msgctxt "Operator"
-msgid "Mirror Shape Key (Topology)"
-msgstr "鏡射外形鍵 (拓樸)"
+msgid "Flip"
+msgstr "翻轉"
 
 
 msgid "Auto Normalize"
@@ -63802,6 +63667,11 @@ msgstr "更改鍵處理集..."
 
 
 msgctxt "Operator"
+msgid "Delete Keyframes..."
+msgstr "刪除關鍵影格..."
+
+
+msgctxt "Operator"
 msgid "Swap Data"
 msgstr "交換資料"
 
@@ -64921,11 +64791,6 @@ msgstr "設為區域..."
 
 
 msgctxt "Operator"
-msgid "Delete Keyframes..."
-msgstr "刪除關鍵影格..."
-
-
-msgctxt "Operator"
 msgid "Clear Keyframes..."
 msgstr "清除關鍵影格..."
 
@@ -65311,11 +65176,6 @@ msgstr "強"
 
 
 msgctxt "Operator"
-msgid "Flip"
-msgstr "翻轉"
-
-
-msgctxt "Operator"
 msgid "Rotate..."
 msgstr "旋轉…"
 
@@ -65357,17 +65217,9 @@ msgid "Origins (All)"
 msgstr "原點（全部）"
 
 
-msgid "Creases"
-msgstr "皺摺"
-
-
 msgctxt "Plural"
 msgid "Sharp"
 msgstr "銳利"
-
-
-msgid "Seams"
-msgstr "縫線"
 
 
 msgid "Edge Marks"
@@ -65961,10 +65813,6 @@ msgid "cameras"
 msgstr "攝影機"
 
 
-msgid "Can't initialize cloth"
-msgstr "無法初始化布料"
-
-
 msgid "Null cloth object"
 msgstr "空布料物體"
 
@@ -66328,14 +66176,6 @@ msgstr "記憶體不足錯誤"
 
 msgid "Undefined Type"
 msgstr "未定義的類型"
-
-
-msgid "Can't add Rigid Body to non mesh object"
-msgstr "無法將剛體加入非網格物體"
-
-
-msgid "Can't create Rigid Body world"
-msgstr "無法建立剛體世界"
 
 
 msgid "RenderView"
@@ -66767,10 +66607,6 @@ msgstr "已成功移除 %d 幀鍵幀，鍵處理集「%s」"
 
 msgid "\"%s\" property cannot be animated"
 msgstr "「%s」屬性無法做成動畫"
-
-
-msgid "Button doesn't appear to have any property information attached (ptr.data = %p, prop = %p)"
-msgstr "按鈕似乎沒有連結任何屬性資訊 (ptr.data = %p，prop = %p)"
 
 
 msgid "Keying set '%s' not found"
@@ -67940,6 +67776,10 @@ msgid "Miter Profile Shape"
 msgstr "斜接輪廓外形"
 
 
+msgid "Seams"
+msgstr "縫線"
+
+
 msgid "Intersection Type"
 msgstr "交集類型"
 
@@ -68317,10 +68157,6 @@ msgid "Cannot edit library data"
 msgstr "無法編輯藏庫資料"
 
 
-msgid "Can't edit linked mesh or curve data"
-msgstr "無法編輯連結的網格或曲線資料"
-
-
 msgid "Modifier is disabled"
 msgstr "修改器已停用"
 
@@ -68359,10 +68195,6 @@ msgstr "無法將物體連結至已連結的場景"
 
 msgid "Skipped editing library object data"
 msgstr "略過藏庫物體資料編輯"
-
-
-msgid "Can't unlink this object data"
-msgstr "無法取消此物體資料的連結"
 
 
 msgid "Voxel remesher cannot run with a voxel size of 0.0"
@@ -69190,10 +69022,6 @@ msgid "See Modifiers panel below"
 msgstr "檢視下方的修改器面板"
 
 
-msgid "F-Curve doesn't have any keyframes as it only contains sampled points"
-msgstr "F 曲線沒有任何鍵幀，因為它僅包含取樣的點"
-
-
 msgid "No active keyframe on F-Curve"
 msgstr "F 曲線上沒有作用中的鍵幀"
 
@@ -69323,10 +69151,6 @@ msgid "Hard coded Non-Linear, Gamma:1.7"
 msgstr "非線性硬式編碼，伽瑪值：1.7"
 
 
-msgid "Can't Load Image"
-msgstr "無法載入影像"
-
-
 msgid "%d float channel(s)"
 msgstr "%d 個浮點通道"
 
@@ -69373,10 +69197,6 @@ msgstr "將儲存 %d 張影像於 %s"
 
 msgid "Saved %s"
 msgstr "已儲存 %s"
-
-
-msgid "can't save image while rendering"
-msgstr "算繪時無法儲存影像"
 
 
 msgid "No packed files to unpack"
@@ -69647,10 +69467,6 @@ msgid "Strip None"
 msgstr "片段無"
 
 
-msgid "Can't reload with running modal operators"
-msgstr "無法以執行中典範操作器重新載入"
-
-
 msgid "Add a color strip to the sequencer"
 msgstr "將一個色彩片段加入序段編輯器"
 
@@ -69669,10 +69485,6 @@ msgstr "無法載入檔案「%s」"
 
 msgid "Please select two strips"
 msgstr "請選取兩個片段"
-
-
-msgid "Can't overwrite export file"
-msgstr "無法覆寫匯出檔"
 
 
 msgid "Columns:"
@@ -70081,10 +69893,6 @@ msgstr "當「靜止位置」啟用時無法變更姿勢"
 
 msgid "Bone selection count error"
 msgstr "骨骼選取計數錯誤"
-
-
-msgid "Linked data can't text-space transform"
-msgstr "連結的資料無法作文字空間轉換"
 
 
 msgid "Unsupported object type for text-space transform"
@@ -70860,14 +70668,6 @@ msgstr "不良的指派模式"
 
 msgid "Bad vertex index in list"
 msgstr "清單中頂點索引不良"
-
-
-msgid "Object '%s' can't be selected because it is not in View Layer '%s'!"
-msgstr "物體「%s」無法選取，因為它不在檢視層「%s」裡！"
-
-
-msgid "Object '%s' can't be hidden because it is not in View Layer '%s'!"
-msgstr "物體「%s」無法隱藏，因為它不在檢視層「%s」裡！"
 
 
 msgid "Object %s not in view layer %s"
@@ -72258,14 +72058,6 @@ msgstr "非函式庫"
 
 msgid "Nothing indicated"
 msgstr "未有指示"
-
-
-msgid "Can't append data-block '%s' of type '%s'"
-msgstr "無法附加「%s」數據組塊，其類型為「%s」"
-
-
-msgid "Can't link data-block '%s' of type '%s'"
-msgstr "無法連結「%s」數據組塊，其類型為「%s」"
 
 
 msgid "'%s': cannot use current file as library"

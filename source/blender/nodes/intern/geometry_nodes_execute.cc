@@ -578,31 +578,31 @@ static void init_socket_cpp_value_from_property(const IDProperty &property,
     case SOCK_OBJECT: {
       ID *id = IDP_Id(&property);
       Object *object = (id && GS(id->name) == ID_OB) ? (Object *)id : nullptr;
-      *(Object **)r_value = object;
+      bke::SocketValueVariant::ConstructIn(r_value, object);
       break;
     }
     case SOCK_COLLECTION: {
       ID *id = IDP_Id(&property);
       Collection *collection = (id && GS(id->name) == ID_GR) ? (Collection *)id : nullptr;
-      *(Collection **)r_value = collection;
+      bke::SocketValueVariant::ConstructIn(r_value, collection);
       break;
     }
     case SOCK_TEXTURE: {
       ID *id = IDP_Id(&property);
       Tex *texture = (id && GS(id->name) == ID_TE) ? (Tex *)id : nullptr;
-      *(Tex **)r_value = texture;
+      bke::SocketValueVariant::ConstructIn(r_value, texture);
       break;
     }
     case SOCK_IMAGE: {
       ID *id = IDP_Id(&property);
       Image *image = (id && GS(id->name) == ID_IM) ? (Image *)id : nullptr;
-      *(Image **)r_value = image;
+      bke::SocketValueVariant::ConstructIn(r_value, image);
       break;
     }
     case SOCK_MATERIAL: {
       ID *id = IDP_Id(&property);
       Material *material = (id && GS(id->name) == ID_MA) ? (Material *)id : nullptr;
-      *(Material **)r_value = material;
+      bke::SocketValueVariant::ConstructIn(r_value, material);
       break;
     }
     default: {
@@ -905,7 +905,10 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(const bNodeTree &btree,
     const bke::bNodeSocketType *typeinfo = interface_socket.socket_typeinfo();
     const eNodeSocketDatatype socket_type = typeinfo ? typeinfo->type : SOCK_CUSTOM;
     if (socket_type == SOCK_GEOMETRY && i == 0) {
-      param_inputs[function.inputs.main[0]] = &input_geometry;
+      bke::SocketValueVariant *value = allocator.construct<bke::SocketValueVariant>().release();
+      value->set(input_geometry);
+      param_inputs[function.inputs.main[0]] = value;
+      inputs_to_destruct.append(value);
       continue;
     }
 
@@ -957,7 +960,8 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(const bNodeTree &btree,
     ptr.destruct();
   }
 
-  bke::GeometrySet output_geometry = std::move(*param_outputs[0].get<bke::GeometrySet>());
+  bke::GeometrySet output_geometry =
+      param_outputs[0].get<bke::SocketValueVariant>()->extract<bke::GeometrySet>();
   store_output_attributes(output_geometry, btree, properties_set, param_outputs);
 
   for (const int i : IndexRange(num_outputs)) {

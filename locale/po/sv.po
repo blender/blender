@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'6dca66d606ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-04 09:08+0000\n"
+"POT-Creation-Date: 2025-08-11 08:28+0000\n"
 "PO-Revision-Date: 2025-07-31 20:46+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -6334,40 +6334,36 @@ msgid "Color Space Settings"
 msgstr "Inställningar för färgrymd"
 
 
-msgid "BMP"
-msgstr "BMP"
+msgid "Output image in JPEG format"
+msgstr "Resultatbild i JPEG-format"
 
 
-msgid "Output image in bitmap format"
-msgstr "Resultatbild som pixelbild"
-
-
-msgid "Iris"
-msgstr "Iris"
+msgid "Output image in OpenEXR format"
+msgstr "Resultatbild i OpenEXR-format"
 
 
 msgid "Output image in PNG format"
 msgstr "Resultatbild i PNG-format"
 
 
-msgid "JPEG"
-msgstr "JPEG"
+msgid "Output image in bitmap format"
+msgstr "Resultatbild som pixelbild"
 
 
-msgid "Output image in JPEG format"
-msgstr "Resultatbild i JPEG-format"
+msgid "Output image in Cineon format"
+msgstr "Resultatbild i Cineon-format"
 
 
-msgid "JPEG 2000"
-msgstr "JPEG 2000"
+msgid "Output image in DPX format"
+msgstr "Resultatbild i DPX-format"
 
 
 msgid "Output image in JPEG 2000 format"
 msgstr "Resultatbild i JPEG 2000-format"
 
 
-msgid "Targa"
-msgstr "Targa"
+msgid "Output image in Radiance HDR format"
+msgstr "Resultatbild i Radiance HDR-format"
 
 
 msgid "Output image in Targa format"
@@ -6378,44 +6374,8 @@ msgid "Output image in uncompressed Targa format"
 msgstr "Resultatbild i okomprimerat TARGA-format"
 
 
-msgid "Cineon"
-msgstr "Cineon"
-
-
-msgid "Output image in Cineon format"
-msgstr "Resultatbild i Cineon-format"
-
-
-msgid "DPX"
-msgstr "DPX"
-
-
-msgid "Output image in DPX format"
-msgstr "Resultatbild i DPX-format"
-
-
-msgid "Output image in OpenEXR format"
-msgstr "Resultatbild i OpenEXR-format"
-
-
-msgid "Output image in Radiance HDR format"
-msgstr "Resultatbild i Radiance HDR-format"
-
-
-msgid "TIFF"
-msgstr "TIFF"
-
-
 msgid "Output image in TIFF format"
 msgstr "Resultatbild i TIFF-format"
-
-
-msgid "WebP"
-msgstr "WebP"
-
-
-msgid "OpenEXR MultiLayer"
-msgstr "OpenEXR MultiLayer"
 
 
 msgid "Output image in multilayer OpenEXR format"
@@ -9319,6 +9279,10 @@ msgid "Mask"
 msgstr "Mask"
 
 
+msgid "Pivot Point"
+msgstr "Fast punkt"
+
+
 msgid "Snap"
 msgstr "Snäpp"
 
@@ -9429,10 +9393,6 @@ msgstr "Specialtecken"
 
 msgid "Text"
 msgstr "Text"
-
-
-msgid "Pivot Point"
-msgstr "Fast punkt"
 
 
 msgid "Animals"
@@ -10676,6 +10636,10 @@ msgstr "ITU 601"
 
 msgid "ITU 709"
 msgstr "ITU 709"
+
+
+msgid "JPEG"
+msgstr "JPEG"
 
 
 msgid "Combine Color"
@@ -17896,6 +17860,10 @@ msgid "Replace with"
 msgstr "Ersätt med"
 
 
+msgid "BMP"
+msgstr "BMP"
+
+
 msgid "IRIS"
 msgstr "IRIS"
 
@@ -17912,8 +17880,16 @@ msgid "CINEON"
 msgstr "CINEON"
 
 
+msgid "DPX"
+msgstr "DPX"
+
+
 msgid "OPEN_EXR"
 msgstr "OPEN_EXR"
+
+
+msgid "TIFF"
+msgstr "TIFF"
 
 
 msgid "Toggle preview display for selected nodes"
@@ -23691,10 +23667,6 @@ msgid "Calculate heights against unsubdivided low resolution mesh"
 msgstr "Beräkna höjder mot icke-uppdelat lågupplöst mesh"
 
 
-msgid "User Scale"
-msgstr "Användarskala"
-
-
 msgid "Render Region"
 msgstr "Renderingsregion"
 
@@ -24504,16 +24476,16 @@ msgid "Active Theme Area"
 msgstr "Aktiv temadel"
 
 
-msgid "Theme Console"
-msgstr "Temakonsol"
+msgid "Channel Group"
+msgstr "Kanalgrupp"
 
 
 msgid "Active Channel Group"
 msgstr "Aktiv kanalgrupp"
 
 
-msgid "Channel Group"
-msgstr "Kanalgrupp"
+msgid "Theme Console"
+msgstr "Temakonsol"
 
 
 msgid "Summary"
@@ -26854,11 +26826,6 @@ msgstr "Pilstorlek"
 
 
 msgctxt "Operator"
-msgid "Delete All Shape Keys"
-msgstr "Ta bort alla formnycklar"
-
-
-msgctxt "Operator"
 msgid "Sort by Name"
 msgstr "Sortera efter namn"
 
@@ -26889,13 +26856,8 @@ msgstr "Ta bort alla grupper"
 
 
 msgctxt "Operator"
-msgid "Move to Top"
-msgstr "Flytta till toppen"
-
-
-msgctxt "Operator"
-msgid "Move to Bottom"
-msgstr "Flytta till botten"
+msgid "Flip"
+msgstr "Vänd"
 
 
 msgid "Name collisions: "
@@ -27710,6 +27672,16 @@ msgstr "Blender-ID:n"
 
 
 msgctxt "Operator"
+msgid "Move to Top"
+msgstr "Flytta till toppen"
+
+
+msgctxt "Operator"
+msgid "Move to Bottom"
+msgstr "Flytta till botten"
+
+
+msgctxt "Operator"
 msgid "Increase Number"
 msgstr "Öka siffra"
 
@@ -28277,6 +28249,11 @@ msgstr "Bild/sekvens"
 msgctxt "Operator"
 msgid "Fade"
 msgstr "Tona"
+
+
+msgctxt "Operator"
+msgid "Delete Keyframes..."
+msgstr "Ta bort keyframes..."
 
 
 msgid "Storage"
@@ -29163,11 +29140,6 @@ msgstr "Gör lokal..."
 
 
 msgctxt "Operator"
-msgid "Delete Keyframes..."
-msgstr "Ta bort keyframes..."
-
-
-msgctxt "Operator"
 msgid "Clear Keyframes..."
 msgstr "Rensa keyframes..."
 
@@ -29362,11 +29334,6 @@ msgstr "Stark"
 
 
 msgctxt "Operator"
-msgid "Flip"
-msgstr "Vänd"
-
-
-msgctxt "Operator"
 msgid "Rotate..."
 msgstr "Rotera..."
 
@@ -29409,10 +29376,6 @@ msgstr "Statistik"
 
 msgid "Color Opacity"
 msgstr "Färgopacitet"
-
-
-msgid "Seams"
-msgstr "Sömmar"
 
 
 msgctxt "Operator"
@@ -30441,10 +30404,6 @@ msgid "'%s' is not editable"
 msgstr "'%s' är inte redigerbar"
 
 
-msgid "Button doesn't appear to have any property information attached (ptr.data = %p, prop = %p)"
-msgstr "Knappen verkar inte ha någon egenskapsinformation kopplad till sig (ptr.data = %p, prop = %p)"
-
-
 msgid "Missing bone name"
 msgstr "Saknar bennamn"
 
@@ -31078,6 +31037,10 @@ msgstr "Kon"
 
 msgid "Outer"
 msgstr "Yttre"
+
+
+msgid "Seams"
+msgstr "Sömmar"
 
 
 msgid "Close"
@@ -31790,10 +31753,6 @@ msgid "Select Layer"
 msgstr "Välj lager"
 
 
-msgid "Can't Load Image"
-msgstr "Kan inte läsa in bilden"
-
-
 msgid "%d × %d, "
 msgstr "%d × %d, "
 
@@ -31836,22 +31795,6 @@ msgstr "%d bild(er) kommer sparas i %s"
 
 msgid "Saved %s"
 msgstr "Sparade %s"
-
-
-msgid "Image can't be saved, use a different file format: \"%s\""
-msgstr "Bild kunde inte sparas, använd ett annat filformat: \"%s\""
-
-
-msgid "Multiple images can't be saved to an identical path: \"%s\""
-msgstr "Flera bilder kan inte sparas till en identisk sökväg: \"%s\""
-
-
-msgid "Image can't be saved, no valid file path: \"%s\""
-msgstr "Bild kunde inte sparas, ingen giltig sökväg: \"%s\""
-
-
-msgid "can't save image while rendering"
-msgstr "kan inte spara bild när rendering pågår"
 
 
 msgid "No images available"
@@ -32516,28 +32459,12 @@ msgid "Unable to create new object"
 msgstr "Det går inte att skapa ett nytt objekt"
 
 
-msgid "%s: Can't resolve path %s"
-msgstr "%s: Kan inte slå upp sökvägen %s"
-
-
-msgid "%s: Can't write to asset %s: %s"
-msgstr "%s: Kan inte skriva till tillgången %s: %s"
-
-
-msgid "Can't write to asset %s:  %s"
-msgstr "Kan inte skriva till tillgång %s:  %s"
-
-
 msgid "One or more objects used as prototypes in 'Instance on Points' nodes either do not have 'As Instance' enabled in their 'Object Info' nodes, or the prototype is the base geometry input itself. Both cases prevent valid point instancer export. If it's the former, enable 'As Instance' to avoid incorrect self-referencing."
 msgstr "Ett eller flera objekt som används som prototyper i noder av typen ”Instans på punkter” har antingen inte alternativet ”Som instans” aktiverat i sina ’Objektinfo’-noder, eller så är prototypen själva basgeometrin som matats in. Båda fallen förhindrar export av giltiga punktinstanser. Om det är det förstnämnda fallet, aktivera ”Som instans” för att undvika felaktiga självreferenser."
 
 
 msgid "Unhandled Gprim type: %s (%s)"
 msgstr "Ohanterad Gprim-typ: %s (%s)"
-
-
-msgid "Instances number '%d' doesn't match transforms size '%d'"
-msgstr "Instansnummer ’%d’ matchar inte transformeringsstorlek ’%d’"
 
 
 msgid "Built-in fonts cannot be renamed"
@@ -32550,14 +32477,6 @@ msgstr "'%s' är av en typ som inte kan vara en tillgång"
 
 msgid "'%s' does not contain '%s' with prefix and suffix"
 msgstr "'%s' innehåller inte '%s' med prefix och suffix"
-
-
-msgid "'%s' doesn't have upper case alpha-numeric prefix"
-msgstr "'%s' har inte ett alfanumeriskt prefix med versaler"
-
-
-msgid "'%s' doesn't have an alpha-numeric suffix"
-msgstr "'%s' har inte ett alfanumeriskt suffix"
 
 
 msgid "%s: expected %s type, not %s"
@@ -33144,10 +33063,6 @@ msgid "Invalid format: \"{}\""
 msgstr "Ogiltigt format: \"{}\""
 
 
-msgid "Type \"{}\" can't be formatted"
-msgstr "Typen \"{}\" kan inte formateras"
-
-
 msgid "Line Break"
 msgstr "Radbrytning"
 
@@ -33187,10 +33102,6 @@ msgstr "Summa"
 
 msgid "Bake to Disk"
 msgstr "Baka till disk"
-
-
-msgid "Can't bake in zone"
-msgstr "Kan inte baka i zonen"
 
 
 msgid "Baked Frame {}"

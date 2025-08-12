@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'6dca66d606ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-04 09:08+0000\n"
+"POT-Creation-Date: 2025-08-11 08:28+0000\n"
 "PO-Revision-Date: 2025-07-23 15:06+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -1865,6 +1865,10 @@ msgid "Mask"
 msgstr "หน้ากาก"
 
 
+msgid "Pivot Point"
+msgstr "จุดหมุน"
+
+
 msgid "Snap"
 msgstr "ยึดติด"
 
@@ -1943,10 +1947,6 @@ msgstr "ผสาน"
 
 msgid "Text"
 msgstr "ช้อความ"
-
-
-msgid "Pivot Point"
-msgstr "จุดหมุน"
 
 
 msgid "Zoom"
@@ -3962,6 +3962,11 @@ msgid "Offset X"
 msgstr "ออฟเซต X"
 
 
+msgctxt "Operator"
+msgid "Flip"
+msgstr "กลับด้าน"
+
+
 msgid "Detail"
 msgstr "รายละเอียด"
 
@@ -4180,6 +4185,11 @@ msgstr "ภาพยนตร์"
 msgctxt "Operator"
 msgid "Fade"
 msgstr "จาง"
+
+
+msgctxt "Operator"
+msgid "Delete Keyframes..."
+msgstr "ลบคีย์เฟรม..."
 
 
 msgid "Storage"
@@ -4556,11 +4566,6 @@ msgstr "ลำโพง"
 
 
 msgctxt "Operator"
-msgid "Delete Keyframes..."
-msgstr "ลบคีย์เฟรม..."
-
-
-msgctxt "Operator"
 msgid "Clear Keyframes..."
 msgstr "ล้างคีย์เฟรม..."
 
@@ -4658,11 +4663,6 @@ msgstr "ปานกลาง"
 msgctxt "Operator"
 msgid "Strong"
 msgstr "แข็งแรง"
-
-
-msgctxt "Operator"
-msgid "Flip"
-msgstr "กลับด้าน"
 
 
 msgctxt "Operator"

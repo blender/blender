@@ -92,7 +92,8 @@ class GroupOutputOperation : public NodeOperation {
     const Domain domain = this->compute_domain();
     Result output = this->context().get_output();
 
-    GPUShader *shader = this->context().get_shader("compositor_write_output", output.precision());
+    gpu::Shader *shader = this->context().get_shader("compositor_write_output",
+                                                     output.precision());
     GPU_shader_bind(shader);
 
     const Bounds<int2> bounds = this->context().get_compositing_region();

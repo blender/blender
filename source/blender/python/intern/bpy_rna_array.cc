@@ -433,6 +433,9 @@ static char *copy_value_single(PyObject *item,
   return data;
 }
 
+/**
+ * \param data: Data array, may be null.
+ */
 static char *copy_values(PyObject *seq,
                          PointerRNA *ptr,
                          PropertyRNA *prop,
@@ -453,8 +456,6 @@ static char *copy_values(PyObject *seq,
    * developer could write their own sequence type which succeeds on
    * validating but fails later somehow, so include checks for safety.
    */
-
-  /* Note that 'data can be nullptr' */
 
   if (seq_size == -1) {
     return nullptr;

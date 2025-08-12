@@ -86,7 +86,8 @@ class Context(_StructRNA):
         return value
 
     def copy(self):
-        """Get context members as a dictionary.
+        """
+        Get context members as a dictionary.
 
         :rtype: dict[str, Any]
         """
@@ -118,7 +119,8 @@ class Library(_types.ID):
 
     @property
     def users_id(self):
-        """ID data-blocks that use this library
+        """
+        ID data-blocks that use this library
 
         :type: tuple of :class:`bpy.types.ID`
 
@@ -151,7 +153,8 @@ class Texture(_types.ID):
 
     @property
     def users_material(self):
-        """Materials that use this texture
+        """
+        Materials that use this texture
 
         :type: tuple of :class:`Material`
 
@@ -168,7 +171,8 @@ class Texture(_types.ID):
 
     @property
     def users_object_modifier(self):
-        """Object modifiers that use this texture
+        """
+        Object modifiers that use this texture
 
         :type: tuple of :class:`Object`
 
@@ -211,7 +215,8 @@ class Collection(_types.ID):
 
     @property
     def users_dupli_group(self):
-        """The collection instance objects this collection is used in
+        """
+        The collection instance objects this collection is used in
 
         :type: tuple of :class:`Object`
 
@@ -234,7 +239,8 @@ class Object(_types.ID):
 
         :type: tuple of :class:`Object`
 
-        .. note:: Takes ``O(len(bpy.data.objects))`` time."""
+        .. note:: Takes ``O(len(bpy.data.objects))`` time.
+        """
         import bpy
         return tuple(
             child for child in bpy.data.objects
@@ -248,7 +254,8 @@ class Object(_types.ID):
 
         :type: list of :class:`Object`
 
-        .. note:: Takes ``O(len(bpy.data.objects))`` time."""
+        .. note:: Takes ``O(len(bpy.data.objects))`` time.
+        """
         import bpy
         parent_child_map = {}
         for child in bpy.data.objects:
@@ -272,7 +279,8 @@ class Object(_types.ID):
 
         :type: tuple of :class:`Collection`
 
-        .. note:: Takes ``O(len(bpy.data.collections) + len(bpy.data.scenes))`` time."""
+        .. note:: Takes ``O(len(bpy.data.collections) + len(bpy.data.scenes))`` time.
+        """
         import bpy
         return (
             tuple(
@@ -291,7 +299,8 @@ class Object(_types.ID):
 
         :type: tuple of :class:`Scene`
 
-        .. note:: Takes ``O(len(bpy.data.scenes) * len(bpy.data.objects))`` time."""
+        .. note:: Takes ``O(len(bpy.data.scenes) * len(bpy.data.objects))`` time.
+        """
         import bpy
         return tuple(
             scene for scene in bpy.data.scenes
@@ -387,7 +396,9 @@ class _GenericBone:
     __slots__ = ()
 
     def translate(self, vec):
-        """Utility function to add *vec* to the head and tail of this bone"""
+        """
+        Utility function to add *vec* to the head and tail of this bone.
+        """
         self.head += vec
         self.tail += vec
 
@@ -411,34 +422,41 @@ class _GenericBone:
 
     @property
     def x_axis(self):
-        """ Vector pointing down the x-axis of the bone.
+        """
+        Vector pointing down the x-axis of the bone.
         """
         from mathutils import Vector
         return self.matrix.to_3x3() @ Vector((1.0, 0.0, 0.0))
 
     @property
     def y_axis(self):
-        """ Vector pointing down the y-axis of the bone.
+        """
+        Vector pointing down the y-axis of the bone.
         """
         from mathutils import Vector
         return self.matrix.to_3x3() @ Vector((0.0, 1.0, 0.0))
 
     @property
     def z_axis(self):
-        """ Vector pointing down the z-axis of the bone.
+        """
+        Vector pointing down the z-axis of the bone.
         """
         from mathutils import Vector
         return self.matrix.to_3x3() @ Vector((0.0, 0.0, 1.0))
 
     @property
     def basename(self):
-        """The name of this bone before any '.' character"""
+        """
+        The name of this bone before any ``.`` character.
+        """
         # return self.name.rsplit(".", 1)[0]
         return self.name.split(".")[0]
 
     @property
     def parent_recursive(self):
-        """A list of parents, starting with the immediate parent"""
+        """
+        A list of parents, starting with the immediate parent.
+        """
         parent_list = []
         parent = self.parent
 
@@ -452,7 +470,9 @@ class _GenericBone:
 
     @property
     def center(self):
-        """The midpoint between the head and the tail."""
+        """
+        The midpoint between the head and the tail.
+        """
         return (self.head + self.tail) * 0.5
 
     @property
@@ -467,9 +487,11 @@ class _GenericBone:
     # This is done since `Bone` has direct access to this data in RNA.
     @property
     def children_recursive(self):
-        """A list of all children from this bone.
+        """
+        A list of all children from this bone.
 
-        .. note:: Takes ``O(len(bones)**2)`` time."""
+        .. note:: Takes ``O(len(bones)**2)`` time.
+        """
         bones_children = []
         for bone in self._other_bones:
             index = bone.parent_index(self)
@@ -552,9 +574,11 @@ class EditBone(_StructRNA, _GenericBone, metaclass=_StructMetaPropGroup):
 
     @property
     def children(self):
-        """A list of all the bones children.
+        """
+        A list of all the bones children.
 
-        .. note:: Takes ``O(len(bones))`` time."""
+        .. note:: Takes ``O(len(bones))`` time.
+        """
         return [child for child in self._other_bones if child.parent == self]
 
     def align_orientation(self, other):
@@ -601,7 +625,9 @@ class BoneCollection(_StructRNA, metaclass=_StructMetaPropGroup):
 
     @property
     def bones_recursive(self):
-        """A set of all bones assigned to this bone collection and its child collections."""
+        """
+        A set of all bones assigned to this bone collection and its child collections.
+        """
         bones = set()
         collections = [self]
 
@@ -794,7 +820,9 @@ class MeshLoopTriangle(_StructRNA):
 
     @property
     def center(self):
-        """The midpoint of the face."""
+        """
+        The midpoint of the face.
+        """
         face_verts = self.vertices[:]
         mesh_verts = self.id_data.vertices
         return (
@@ -855,7 +883,9 @@ class Sound(_types.ID):
 
     @property
     def factory(self):
-        """The aud.Factory object of the sound."""
+        """
+        The aud.Factory object of the sound.
+        """
         import aud
         return aud._sound_from_pointer(self.as_pointer())
 
@@ -1009,7 +1039,9 @@ class Operator(_StructRNA, metaclass=_RNAMeta):
         return super().__delattr__(attr)
 
     def as_keywords(self, *, ignore=()):
-        """Return a copy of the properties as a dictionary"""
+        """
+        Return a copy of the properties as a dictionary.
+        """
         ignore = ignore + ("rna_type",)
         return {
             attr: getattr(self, attr)
@@ -1019,6 +1051,8 @@ class Operator(_StructRNA, metaclass=_RNAMeta):
 
 
 class Macro(_StructRNA):
+    # Chain multiple operators together and invokes them sequentially as a single operator.
+
     # _types is imported before ops is defined
     # so we have to do a local import on each run
     __slots__ = ()
@@ -1139,7 +1173,9 @@ class _GenericUI:
 
     @classmethod
     def remove(cls, draw_func):
-        """Remove a draw function that has been added to this menu"""
+        """
+        Remove a draw function that has been added to this menu.
+        """
         draw_funcs = cls._dyn_ui_initialize()
         try:
             draw_funcs.remove(draw_func)
@@ -1333,7 +1369,8 @@ class NodeSocket(_StructRNA, metaclass=_RNAMetaPropGroup):
 
         :type: :class:`NodeLinks`
 
-        .. note:: Takes ``O(len(nodetree.links))`` time."""
+        .. note:: Takes ``O(len(nodetree.links))`` time.
+        """
         links = (link for link in self.id_data.links
                  if self in (link.from_socket, link.to_socket))
 

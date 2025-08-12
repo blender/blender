@@ -253,6 +253,7 @@ set(INC
   ../../io/usd
   ../../modifiers
   ../../nodes
+  ../../nodes/composite/include
   ../../nodes/function/include
   ../../nodes/geometry/include
   ../../sequencer

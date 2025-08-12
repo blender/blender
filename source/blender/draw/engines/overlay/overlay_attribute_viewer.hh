@@ -46,7 +46,7 @@ class AttributeViewer : Overlay {
     ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_ALPHA,
                   state.clipping_plane_count);
 
-    auto create_sub = [&](const char *name, GPUShader *shader) {
+    auto create_sub = [&](const char *name, gpu::Shader *shader) {
       auto &sub = ps_.sub(name);
       sub.shader_set(shader);
       return &sub;

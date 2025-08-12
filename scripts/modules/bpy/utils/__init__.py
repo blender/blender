@@ -200,7 +200,7 @@ def modules_from_path(path, loaded_modules):
 # Currently used for "startup" modules.
 _registered_module_names = []
 # Keep for comparisons, never ever reload this.
-import bpy_types as _bpy_types
+import _bpy_types
 
 
 def _register_module_call(mod):

@@ -303,8 +303,11 @@ void ED_view3d_smooth_view_ex(
     if (sview->camera_old) {
       Object *ob_camera_old_eval = DEG_get_evaluated(depsgraph, sview->camera_old);
       if (sview->ofs != nullptr) {
+        /* This assignment will temporarily set the #RegionView3D::dist to zero.
+         * While this isn't typically allowed, it's not a bug to set this temporarily,
+         * doing so shouldn't crash or cause an invalid display, see !143946. */
         sms.src.dist = ED_view3d_offset_distance(
-            ob_camera_old_eval->object_to_world().ptr(), sview->ofs, 0);
+            ob_camera_old_eval->object_to_world().ptr(), sview->ofs, 0.0f);
       }
       ED_view3d_from_object(
           ob_camera_old_eval, sms.src.ofs, sms.src.quat, &sms.src.dist, &sms.src.lens);

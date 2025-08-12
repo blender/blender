@@ -77,6 +77,14 @@ void ED_region_tag_refresh_ui(ARegion *region);
 void ED_region_tag_redraw_editor_overlays(ARegion *region);
 
 /**
+ * If the region has tag RGN_FLAG_INDICATE_OVERFLOW then draw
+ * a line or gradient on edges if there is content overflowing.
+ */
+void ED_region_draw_overflow_indication(const ScrArea *area,
+                                        ARegion *region,
+                                        rcti *mask = nullptr);
+
+/**
  * Set the temporary update flag for property search.
  */
 void ED_region_search_filter_update(const ScrArea *area, ARegion *region);

@@ -497,6 +497,7 @@ struct CurvesSelectionStatus {
   int curve_count = 0;
   int nurbs_count = 0;
   int bezier_count = 0;
+  int poly_count = 0;
 
   int cyclic_count = 0;
   int nurbs_knot_mode_sum = 0;
@@ -511,6 +512,7 @@ struct CurvesSelectionStatus {
     return {a.curve_count + b.curve_count,
             a.nurbs_count + b.nurbs_count,
             a.bezier_count + b.bezier_count,
+            a.poly_count + b.poly_count,
             a.cyclic_count + b.cyclic_count,
             a.nurbs_knot_mode_sum + b.nurbs_knot_mode_sum,
             std::max(a.nurbs_knot_mode_max, b.nurbs_knot_mode_max),
@@ -550,10 +552,12 @@ static CurvesSelectionStatus init_curves_selection_status(
           const CurveType curve_type = CurveType(curve_types[curve]);
           const bool is_nurbs = curve_type == CURVE_TYPE_NURBS;
           const bool is_bezier = curve_type == CURVE_TYPE_BEZIER;
+          const bool is_poly = curve_type == CURVE_TYPE_POLY;
 
           value.curve_count++;
           value.nurbs_count += is_nurbs;
           value.bezier_count += is_bezier;
+          value.poly_count += is_poly;
 
           value.cyclic_count += cyclic[curve];
 
@@ -2502,15 +2506,17 @@ static void view3d_panel_curve_data(const bContext *C, Panel *panel)
     });
   }
 
-  add_labeled_field(
-      "Resolution", status.resolution_max * status.curve_count == status.resolution_sum, [&]() {
-        uiBut *but = uiDefButI(
-            block, ButType::Num, 0, "", 0, 0, butw, buth, &modified.resolution, 1, 64, "");
-        UI_but_number_step_size_set(but, 1);
-        UI_but_number_precision_set(but, -1);
-        UI_but_func_set(but, handle_curves_resolution, nullptr, nullptr);
-        return but;
-      });
+  if (status.poly_count == 0) {
+    add_labeled_field(
+        "Resolution", status.resolution_max * status.curve_count == status.resolution_sum, [&]() {
+          uiBut *but = uiDefButI(
+              block, ButType::Num, 0, "", 0, 0, butw, buth, &modified.resolution, 1, 64, "");
+          UI_but_number_step_size_set(but, 1);
+          UI_but_number_precision_set(but, -1);
+          UI_but_func_set(but, handle_curves_resolution, nullptr, nullptr);
+          return but;
+        });
+  }
 }
 
 void view3d_buttons_register(ARegionType *art)

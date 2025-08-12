@@ -628,7 +628,7 @@ static void add_2nd_order_roller(Object *ob, float /*stiffness*/, int *counter, 
   if (!sb->bspring) {
     return;
   } /* we are 2nd order here so 1rst should have been build :) */
-  /* first run counting  second run adding */
+  /* First run counting second run adding. */
   *counter = 0;
   if (addsprings) {
     bs3 = ob->soft->bspring + ob->soft->totspring;
@@ -1988,7 +1988,7 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene,
 
   bp = &sb->bpoint[ifirst];
   for (bb = number_of_points_here; bb > 0; bb--, bp++) {
-    /* clear forces  accumulator */
+    /* Clear forces accumulator. */
     bp->force[0] = bp->force[1] = bp->force[2] = 0.0;
     /* naive ball self collision */
     /* needs to be done if goal snaps or not */

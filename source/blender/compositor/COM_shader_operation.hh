@@ -84,18 +84,18 @@ class ShaderOperation : public PixelOperation {
   /* Bind the uniform buffer of the GPU material as well as any color band textures needed by the
    * GPU material.  The compiled shader of the material is given as an argument and assumed to be
    * bound. */
-  void bind_material_resources(GPUShader *shader);
+  void bind_material_resources(gpu::Shader *shader);
 
   /* Bind the input results of the operation to the appropriate textures in the GPU material. The
    * attributes stored in output_to_material_attribute_map_ have names that match the texture
    * samplers in the shader as well as the identifiers of the operation inputs that they correspond
    * to. The compiled shader of the material is given as an argument and assumed to be bound. */
-  void bind_inputs(GPUShader *shader);
+  void bind_inputs(gpu::Shader *shader);
 
   /* Bind the output results of the operation to the appropriate images in the GPU material. The
    * name of the images in the shader match the identifier of their corresponding outputs. The
    * compiled shader of the material is given as an argument and assumed to be bound. */
-  void bind_outputs(GPUShader *shader);
+  void bind_outputs(gpu::Shader *shader);
 
   /* A static callback method of interface ConstructGPUMaterialFn that is passed to
    * GPU_material_from_callbacks to construct the GPU material graph. The thunk parameter will be a

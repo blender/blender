@@ -26,7 +26,9 @@
 #include "GPU_storage_buffer.hh"
 #include "GPU_vertex_buffer.hh"
 
-struct GPUShader;
+namespace blender::gpu {
+class Shader;
+}  // namespace blender::gpu
 
 constexpr static int GPU_BATCH_VBO_MAX_LEN = 16;
 constexpr static int GPU_BATCH_INST_VBO_MAX_LEN = 2;
@@ -83,7 +85,7 @@ class Batch {
   /** nullptr if element list not needed */
   blender::gpu::IndexBuf *elem;
   /** Resource ID attribute workaround. */
-  GPUStorageBuf *resource_id_buf;
+  blender::gpu::StorageBuf *resource_id_buf;
   /** Number of vertices to draw for procedural drawcalls. */
   int32_t procedural_vertices;
   /** Bookkeeping. */
@@ -91,13 +93,13 @@ class Batch {
   /** Type of geometry to draw. */
   GPUPrimType prim_type;
   /** Current assigned shader. DEPRECATED. Here only for uniform binding. */
-  GPUShader *shader;
+  gpu::Shader *shader;
 
   virtual ~Batch() = default;
 
   virtual void draw(int v_first, int v_count, int i_first, int i_count) = 0;
-  virtual void draw_indirect(GPUStorageBuf *indirect_buf, intptr_t offset) = 0;
-  virtual void multi_draw_indirect(GPUStorageBuf *indirect_buf,
+  virtual void draw_indirect(blender::gpu::StorageBuf *indirect_buf, intptr_t offset) = 0;
+  virtual void multi_draw_indirect(blender::gpu::StorageBuf *indirect_buf,
                                    int count,
                                    intptr_t offset,
                                    intptr_t stride) = 0;
@@ -264,7 +266,8 @@ bool GPU_batch_vertbuf_has(const blender::gpu::Batch *batch,
  * on some hardware / platform.
  * \note Only to be used by draw manager.
  */
-void GPU_batch_resource_id_buf_set(blender::gpu::Batch *batch, GPUStorageBuf *resource_id_buf);
+void GPU_batch_resource_id_buf_set(blender::gpu::Batch *batch,
+                                   blender::gpu::StorageBuf *resource_id_buf);
 
 /** \} */
 
@@ -273,7 +276,7 @@ void GPU_batch_resource_id_buf_set(blender::gpu::Batch *batch, GPUStorageBuf *re
  *
  * TODO(fclem): This whole section should be removed. See the other `TODO`s in this section.
  * This is because we want to remove #blender::gpu::Batch.shader to avoid usage mistakes.
- * Interacting directly with the #GPUShader provide a clearer interface and less error-prone.
+ * Interacting directly with the #gpu::Shader provide a clearer interface and less error-prone.
  * \{ */
 
 /**
@@ -283,7 +286,7 @@ void GPU_batch_resource_id_buf_set(blender::gpu::Batch *batch, GPUStorageBuf *re
 /* TODO(fclem): These should be removed and replaced by `GPU_shader_bind()`. */
 void GPU_batch_set_shader(
     blender::gpu::Batch *batch,
-    GPUShader *shader,
+    blender::gpu::Shader *shader,
     const blender::gpu::shader::SpecializationConstants *constants_state = nullptr);
 void GPU_batch_program_set_builtin(blender::gpu::Batch *batch, eGPUBuiltinShader shader_id);
 void GPU_batch_program_set_builtin_with_config(blender::gpu::Batch *batch,
@@ -328,7 +331,7 @@ void GPU_batch_program_set_imm_shader(blender::gpu::Batch *batch);
  */
 void GPU_batch_bind_as_resources(
     blender::gpu::Batch *batch,
-    GPUShader *shader,
+    blender::gpu::Shader *shader,
     const blender::gpu::shader::SpecializationConstants *constants = nullptr);
 
 /** \} */
@@ -390,7 +393,7 @@ void GPU_batch_draw_advanced(blender::gpu::Batch *batch,
                              int instance_count);
 
 /**
- * Issue a single draw call using arguments sourced from a #GPUStorageBuf.
+ * Issue a single draw call using arguments sourced from a #blender::gpu::StorageBuf.
  * The argument are expected to be valid for the type of geometry contained by this
  * #blender::gpu::Batch (index or non-indexed).
  *
@@ -401,11 +404,11 @@ void GPU_batch_draw_advanced(blender::gpu::Batch *batch,
  * https://registry.khronos.org/OpenGL-Refpages/gl4/html/glDrawArraysIndirect.xhtml
  */
 void GPU_batch_draw_indirect(blender::gpu::Batch *batch,
-                             GPUStorageBuf *indirect_buf,
+                             blender::gpu::StorageBuf *indirect_buf,
                              intptr_t offset);
 
 /**
- * Issue \a count draw calls using arguments sourced from a #GPUStorageBuf.
+ * Issue \a count draw calls using arguments sourced from a #blender::gpu::StorageBuf.
  * The \a stride (in bytes) control the spacing between each command description.
  * The argument are expected to be valid for the type of geometry contained by this
  * #blender::gpu::Batch (index or non-indexed).
@@ -417,7 +420,7 @@ void GPU_batch_draw_indirect(blender::gpu::Batch *batch,
  * https://registry.khronos.org/OpenGL-Refpages/gl4/html/glMultiDrawArraysIndirect.xhtml
  */
 void GPU_batch_multi_draw_indirect(blender::gpu::Batch *batch,
-                                   GPUStorageBuf *indirect_buf,
+                                   blender::gpu::StorageBuf *indirect_buf,
                                    int count,
                                    intptr_t offset,
                                    intptr_t stride);

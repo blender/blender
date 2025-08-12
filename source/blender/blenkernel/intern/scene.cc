@@ -334,11 +334,12 @@ static void scene_copy_data(Main *bmain,
     scene_dst->ed->show_missing_media_flag = scene_src->ed->show_missing_media_flag;
     scene_dst->ed->proxy_storage = scene_src->ed->proxy_storage;
     STRNCPY(scene_dst->ed->proxy_dir, scene_src->ed->proxy_dir);
-    blender::seq::seqbase_duplicate_recursive(scene_src,
+    blender::seq::seqbase_duplicate_recursive(bmain,
+                                              scene_src,
                                               scene_dst,
                                               &scene_dst->ed->seqbase,
                                               &scene_src->ed->seqbase,
-                                              STRIP_DUPE_ALL,
+                                              blender::seq::StripDuplicate::All,
                                               flag_subdata);
     BLI_duplicatelist(&scene_dst->ed->channels, &scene_src->ed->channels);
     scene_dst->ed->displayed_channels = &scene_dst->ed->channels;
@@ -1631,6 +1632,19 @@ constexpr IDTypeInfo get_type_info()
 }
 IDTypeInfo IDType_ID_SCE = get_type_info();
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Scene member functions
+ */
+
+double Scene::frames_per_second() const
+{
+  return double(this->r.frs_sec) / double(this->r.frs_sec_base);
+}
+
+/** \} */
+
 const char *RE_engine_id_BLENDER_EEVEE = "BLENDER_EEVEE";
 const char *RE_engine_id_BLENDER_EEVEE_NEXT = "BLENDER_EEVEE_NEXT";
 const char *RE_engine_id_BLENDER_WORKBENCH = "BLENDER_WORKBENCH";
@@ -1970,7 +1984,8 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
        * using the original obdata ID, leading to them being falsly detected as being in Edit mode,
        * and therefore not remapping their obdata to the newly duplicated one.
        * See #139715. */
-      BKE_libblock_relink_to_newid(bmain, &sce_copy->id, ID_REMAP_FORCE_OBDATA_IN_EDITMODE);
+      BKE_libblock_relink_to_newid(
+          bmain, &sce_copy->id, ID_REMAP_FORCE_OBDATA_IN_EDITMODE | ID_REMAP_SKIP_USER_CLEAR);
 
 #ifndef NDEBUG
       /* Call to `BKE_libblock_relink_to_newid` above is supposed to have cleared all those
@@ -2342,7 +2357,7 @@ const char *BKE_scene_find_last_marker_name(const Scene *scene, int frame)
 
 int BKE_scene_frame_snap_by_seconds(Scene *scene, double interval_in_seconds, int frame)
 {
-  const int fps = round_db_to_int(FPS * interval_in_seconds);
+  const int fps = round_db_to_int(scene->frames_per_second() * interval_in_seconds);
   const int second_prev = frame - mod_i(frame, fps);
   const int second_next = second_prev + fps;
   const int delta_prev = frame - second_prev;

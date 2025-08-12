@@ -244,7 +244,7 @@ void View::compute_procedural_bounds()
 
   GPU_debug_group_begin("View.compute_procedural_bounds");
 
-  GPUShader *shader = DRW_shader_draw_view_finalize_get();
+  gpu::Shader *shader = DRW_shader_draw_view_finalize_get();
   GPU_shader_bind(shader);
   GPU_uniformbuf_bind_as_ssbo(culling_, GPU_shader_get_ssbo_binding(shader, "view_culling_buf"));
   GPU_uniformbuf_bind(data_, DRW_VIEW_UBO_SLOT);
@@ -287,7 +287,7 @@ void View::compute_visibility(ObjectBoundsBuf &bounds,
   GPU_storagebuf_clear(visibility_buf_, data);
 
   if (do_visibility_) {
-    GPUShader *shader = DRW_shader_draw_visibility_compute_get();
+    gpu::Shader *shader = DRW_shader_draw_visibility_compute_get();
     GPU_shader_bind(shader);
     GPU_shader_uniform_1i(shader, "resource_len", resource_len);
     GPU_shader_uniform_1i(shader, "view_len", view_len_);

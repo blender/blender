@@ -45,7 +45,7 @@ static void zero_pad_gpu(Context &context,
                          const int2 size,
                          const PaddingMethod padding_method)
 {
-  GPUShader *shader = context.get_shader(get_shader_name(input.type(), padding_method));
+  gpu::Shader *shader = context.get_shader(get_shader_name(input.type(), padding_method));
   GPU_shader_bind(shader);
 
   GPU_shader_uniform_2iv(shader, "size", size);

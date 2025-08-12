@@ -68,7 +68,8 @@ static void get_current_time_str(
     const Scene *scene, bool display_seconds, int frame, char *r_str, uint str_maxncpy)
 {
   if (display_seconds) {
-    BLI_timecode_string_from_time(r_str, str_maxncpy, -1, FRA2TIME(frame), FPS, U.timecode_style);
+    BLI_timecode_string_from_time(
+        r_str, str_maxncpy, -1, FRA2TIME(frame), scene->frames_per_second(), U.timecode_style);
   }
   else {
     BLI_snprintf_utf8(r_str, str_maxncpy, "%d", frame);

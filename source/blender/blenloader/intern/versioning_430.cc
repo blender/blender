@@ -308,7 +308,7 @@ void blo_do_versions_430(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
         }
 
         /* Initialize node format color space if it is not set. */
-        NodeImageMultiFile *storage = static_cast<NodeImageMultiFile *>(node->storage);
+        NodeCompositorFileOutput *storage = static_cast<NodeCompositorFileOutput *>(node->storage);
         if (storage->format.linear_colorspace_settings.name[0] == '\0') {
           BKE_image_format_update_color_space_for_type(&storage->format);
         }

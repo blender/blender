@@ -656,6 +656,7 @@ static const EnumPropertyItem node_cryptomatte_layer_name_items[] = {
 
 #  include "NOD_common.hh"
 #  include "NOD_composite.hh"
+#  include "NOD_compositor_file_output.hh"
 #  include "NOD_fn_format_string.hh"
 #  include "NOD_geo_bake.hh"
 #  include "NOD_geo_bundle.hh"
@@ -692,6 +693,7 @@ using blender::nodes::ClosureOutputItemsAccessor;
 using blender::nodes::CombineBundleItemsAccessor;
 using blender::nodes::EvaluateClosureInputItemsAccessor;
 using blender::nodes::EvaluateClosureOutputItemsAccessor;
+using blender::nodes::FileOutputItemsAccessor;
 using blender::nodes::ForeachGeometryElementGenerationItemsAccessor;
 using blender::nodes::ForeachGeometryElementInputItemsAccessor;
 using blender::nodes::ForeachGeometryElementMainItemsAccessor;
@@ -3553,20 +3555,6 @@ static void rna_Image_Node_update_id(Main *bmain, Scene *scene, PointerRNA *ptr)
   rna_Node_update_relations(bmain, scene, ptr);
 }
 
-static void rna_NodeOutputFile_slots_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-  bNode *node = ptr->data_as<bNode>();
-  rna_iterator_listbase_begin(iter, ptr, &node->inputs, nullptr);
-}
-
-static PointerRNA rna_NodeOutputFile_slot_file_get(CollectionPropertyIterator *iter)
-{
-  bNodeSocket *sock = static_cast<bNodeSocket *>(rna_iterator_listbase_get(iter));
-  PointerRNA ptr = RNA_pointer_create_with_parent(
-      iter->parent, &RNA_NodeOutputFileSlotFile, sock->storage);
-  return ptr;
-}
-
 /* --------------------------------------------------------------------
  * White Balance Node.
  */
@@ -3998,81 +3986,6 @@ static const EnumPropertyItem *rna_NodeGeometryCaptureAttributeItem_data_type_it
 }
 
 /* ******** Node Socket Types ******** */
-
-static PointerRNA rna_NodeOutputFile_slot_layer_get(CollectionPropertyIterator *iter)
-{
-  bNodeSocket *sock = static_cast<bNodeSocket *>(rna_iterator_listbase_get(iter));
-  PointerRNA ptr = RNA_pointer_create_with_parent(
-      iter->parent, &RNA_NodeOutputFileSlotLayer, sock->storage);
-  return ptr;
-}
-
-static int rna_NodeOutputFileSocket_find_node(bNodeTree *ntree,
-                                              NodeImageMultiFileSocket *data,
-                                              bNode **nodep,
-                                              bNodeSocket **sockp)
-{
-  bNode *node;
-  bNodeSocket *sock;
-
-  for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
-    for (sock = static_cast<bNodeSocket *>(node->inputs.first); sock; sock = sock->next) {
-      NodeImageMultiFileSocket *sockdata = static_cast<NodeImageMultiFileSocket *>(sock->storage);
-      if (sockdata == data) {
-        *nodep = node;
-        *sockp = sock;
-        return 1;
-      }
-    }
-  }
-
-  *nodep = nullptr;
-  *sockp = nullptr;
-  return 0;
-}
-
-static void rna_NodeOutputFileSlotFile_path_set(PointerRNA *ptr, const char *value)
-{
-  bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
-  NodeImageMultiFileSocket *sockdata = static_cast<NodeImageMultiFileSocket *>(ptr->data);
-  bNode *node;
-  bNodeSocket *sock;
-
-  if (rna_NodeOutputFileSocket_find_node(ntree, sockdata, &node, &sock)) {
-    ntreeCompositOutputFileSetPath(node, sock, value);
-  }
-}
-
-static void rna_NodeOutputFileSlotLayer_name_set(PointerRNA *ptr, const char *value)
-{
-  bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
-  NodeImageMultiFileSocket *sockdata = static_cast<NodeImageMultiFileSocket *>(ptr->data);
-  bNode *node;
-  bNodeSocket *sock;
-
-  if (rna_NodeOutputFileSocket_find_node(ntree, sockdata, &node, &sock)) {
-    ntreeCompositOutputFileSetLayer(node, sock, value);
-  }
-}
-
-static bNodeSocket *rna_NodeOutputFile_slots_new(
-    ID *id, bNode *node, bContext *C, ReportList * /*reports*/, const char *name)
-{
-  bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
-  Scene *scene = CTX_data_scene(C);
-  ImageFormatData *im_format = nullptr;
-  bNodeSocket *sock;
-  if (scene) {
-    im_format = &scene->r.im_format;
-  }
-
-  sock = ntreeCompositOutputFileAddSocket(ntree, node, name, im_format);
-
-  BKE_main_ensure_invariants(*CTX_data_main(C), ntree->id);
-  WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
-
-  return sock;
-}
 
 static void rna_FrameNode_label_size_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
@@ -4592,6 +4505,127 @@ static const EnumPropertyItem node_scatter_phase_items[] = {
      "Approximation of Mie scattering in water droplets, used for scattering in clouds and fog"},
     {0, nullptr, 0, nullptr, nullptr},
 };
+
+static void rna_def_node_item_array_socket_item_common(
+    StructRNA *srna,
+    const char *accessor,
+    const bool add_socket_type,
+    const bool add_vector_socket_dimensions = false)
+{
+  static blender::LinearAllocator<> allocator;
+  PropertyRNA *prop;
+
+  char name_set_func[128];
+  SNPRINTF(name_set_func, "rna_Node_ItemArray_item_name_set<%s>", accessor);
+
+  char item_update_func[128];
+  SNPRINTF(item_update_func, "rna_Node_ItemArray_item_update<%s>", accessor);
+  const char *item_update_func_ptr = allocator.copy_string(item_update_func).c_str();
+
+  char socket_type_itemf[128];
+  SNPRINTF(socket_type_itemf, "rna_Node_ItemArray_socket_type_itemf<%s>", accessor);
+
+  char color_get_func[128];
+  SNPRINTF(color_get_func, "rna_Node_ItemArray_item_color_get<%s>", accessor);
+
+  prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_funcs(
+      prop, nullptr, nullptr, allocator.copy_string(name_set_func).c_str());
+  RNA_def_property_ui_text(prop, "Name", "");
+  RNA_def_struct_name_property(srna, prop);
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, item_update_func_ptr);
+
+  if (add_socket_type) {
+    prop = RNA_def_property(srna, "socket_type", PROP_ENUM, PROP_NONE);
+    RNA_def_property_enum_items(prop, rna_enum_node_socket_data_type_items);
+    RNA_def_property_enum_funcs(
+        prop, nullptr, nullptr, allocator.copy_string(socket_type_itemf).c_str());
+    RNA_def_property_ui_text(prop, "Socket Type", "");
+    RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+    RNA_def_property_update(prop, NC_NODE | NA_EDITED, item_update_func_ptr);
+
+    if (add_vector_socket_dimensions) {
+      prop = RNA_def_property(srna, "vector_socket_dimensions", PROP_INT, PROP_NONE);
+      RNA_def_property_int_sdna(prop, nullptr, "vector_socket_dimensions");
+      RNA_def_property_range(prop, 2, 4);
+      RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+      RNA_def_property_ui_text(prop, "Dimensions", "Dimensions of the vector socket");
+      RNA_def_property_update(prop, NC_NODE | NA_EDITED, item_update_func_ptr);
+    }
+  }
+
+  prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_array(prop, 4);
+  RNA_def_property_float_funcs(
+      prop, allocator.copy_string(color_get_func).c_str(), nullptr, nullptr);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(
+      prop, "Color", "Color of the corresponding socket type in the node editor");
+}
+
+static void rna_def_node_item_array_common_functions(StructRNA *srna,
+                                                     const char *item_name,
+                                                     const char *accessor_name)
+{
+  static blender::LinearAllocator<> allocator;
+  PropertyRNA *parm;
+  FunctionRNA *func;
+
+  char remove_call[128];
+  SNPRINTF(remove_call, "rna_Node_ItemArray_remove<%s>", accessor_name);
+  char clear_call[128];
+  SNPRINTF(clear_call, "rna_Node_ItemArray_clear<%s>", accessor_name);
+  char move_call[128];
+  SNPRINTF(move_call, "rna_Node_ItemArray_move<%s>", accessor_name);
+
+  func = RNA_def_function(srna, "remove", allocator.copy_string(remove_call).c_str());
+  RNA_def_function_ui_description(func, "Remove an item");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_REPORTS);
+  parm = RNA_def_pointer(func, "item", item_name, "Item", "The item to remove");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+
+  func = RNA_def_function(srna, "clear", allocator.copy_string(clear_call).c_str());
+  RNA_def_function_ui_description(func, "Remove all items");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
+
+  func = RNA_def_function(srna, "move", allocator.copy_string(move_call).c_str());
+  RNA_def_function_ui_description(func, "Move an item to another position");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
+  parm = RNA_def_int(
+      func, "from_index", -1, 0, INT_MAX, "From Index", "Index of the item to move", 0, 10000);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_int(
+      func, "to_index", -1, 0, INT_MAX, "To Index", "Target index for the item", 0, 10000);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+}
+
+static void rna_def_node_item_array_new_with_socket_and_name(StructRNA *srna,
+                                                             const char *item_name,
+                                                             const char *accessor_name)
+{
+  static blender::LinearAllocator<> allocator;
+  PropertyRNA *parm;
+  FunctionRNA *func;
+
+  char name[128];
+  SNPRINTF(name, "rna_Node_ItemArray_new_with_socket_and_name<%s>", accessor_name);
+
+  func = RNA_def_function(srna, "new", allocator.copy_string(name).c_str());
+  RNA_def_function_ui_description(func, "Add an item at the end");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_REPORTS);
+  parm = RNA_def_enum(func,
+                      "socket_type",
+                      rna_enum_node_socket_data_type_items,
+                      SOCK_GEOMETRY,
+                      "Socket Type",
+                      "Socket type of the item");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_string(func, "name", nullptr, MAX_NAME, "Name", "");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  /* return value */
+  parm = RNA_def_pointer(func, "item", item_name, "Item", "New item");
+  RNA_def_function_return(func, parm);
+}
 
 /* -- Common nodes ---------------------------------------------------------- */
 
@@ -6487,19 +6521,18 @@ static void def_cmp_render_layers(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_view_layer_update");
 }
 
-static void rna_def_cmp_output_file_slot_file(BlenderRNA *brna)
+static void rna_def_cmp_file_output_item(BlenderRNA *brna)
 {
-  StructRNA *srna;
-  PropertyRNA *prop;
+  StructRNA *srna = RNA_def_struct(brna, "NodeCompositorFileOutputItem", nullptr);
+  RNA_def_struct_ui_text(srna, "File Output Item", "");
 
-  srna = RNA_def_struct(brna, "NodeOutputFileSlotFile", nullptr);
-  RNA_def_struct_sdna(srna, "NodeImageMultiFileSocket");
-  RNA_def_struct_ui_text(
-      srna, "Output File Slot", "Single layer file slot of the file output node");
+  rna_def_node_item_array_socket_item_common(srna, "FileOutputItemsAccessor", true, true);
 
-  prop = RNA_def_property(srna, "use_node_format", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "use_node_format", 1);
-  RNA_def_property_ui_text(prop, "Node Format", "");
+  PropertyRNA *prop = RNA_def_property(srna, "override_node_format", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "override_node_format", 1);
+  RNA_def_property_ui_text(prop,
+                           "Override Node Format",
+                           "Use a different format instead of the node format for this file");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, nullptr);
 
   prop = RNA_def_property(srna, "save_as_render", PROP_BOOLEAN, PROP_NONE);
@@ -6510,99 +6543,58 @@ static void rna_def_cmp_output_file_slot_file(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "format", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "ImageFormatSettings");
-
-  prop = RNA_def_property(srna, "path", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_sdna(prop, nullptr, "path");
-  RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_NodeOutputFileSlotFile_path_set");
-  RNA_def_struct_name_property(srna, prop);
-  RNA_def_property_ui_text(prop, "Path", "Subpath used for this slot");
-  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_FILEBROWSER);
-  RNA_def_property_flag(prop, PROP_PATH_OUTPUT | PROP_PATH_SUPPORTS_TEMPLATES);
-  RNA_def_property_path_template_type(prop, PROP_VARIABLES_RENDER_OUTPUT);
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, nullptr);
 }
-static void rna_def_cmp_output_file_slot_layer(BlenderRNA *brna)
+
+static void rna_def_cmp_file_output_items(BlenderRNA *brna)
 {
-  StructRNA *srna;
-  PropertyRNA *prop;
-
-  srna = RNA_def_struct(brna, "NodeOutputFileSlotLayer", nullptr);
-  RNA_def_struct_sdna(srna, "NodeImageMultiFileSocket");
-  RNA_def_struct_ui_text(
-      srna, "Output File Layer Slot", "Multilayer slot of the file output node");
-
-  prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_sdna(prop, nullptr, "layer");
-  RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_NodeOutputFileSlotLayer_name_set");
-  RNA_def_struct_name_property(srna, prop);
-  RNA_def_property_ui_text(prop, "Name", "OpenEXR layer name used for this slot");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, nullptr);
-}
-static void rna_def_cmp_output_file_slots_api(BlenderRNA *brna,
-                                              PropertyRNA *cprop,
-                                              const char *struct_name)
-{
-  StructRNA *srna;
-  PropertyRNA *parm;
-  FunctionRNA *func;
-
-  RNA_def_property_srna(cprop, struct_name);
-  srna = RNA_def_struct(brna, struct_name, nullptr);
+  StructRNA *srna = RNA_def_struct(brna, "NodeCompositorFileOutputItems", nullptr);
   RNA_def_struct_sdna(srna, "bNode");
-  RNA_def_struct_ui_text(srna, "File Output Slots", "Collection of File Output node slots");
+  RNA_def_struct_ui_text(srna, "Items", "Collection of file output items");
 
-  func = RNA_def_function(srna, "new", "rna_NodeOutputFile_slots_new");
-  RNA_def_function_ui_description(func, "Add a file slot to this node");
-  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS | FUNC_USE_CONTEXT);
-  parm = RNA_def_string(func, "name", nullptr, MAX_NAME, "Name", "");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  /* return value */
-  parm = RNA_def_pointer(func, "socket", "NodeSocket", "", "New socket");
-  RNA_def_function_return(func, parm);
-
-  /* NOTE: methods below can use the standard node socket API functions,
-   * included here for completeness. */
-
-  func = RNA_def_function(srna, "remove", "rna_Node_socket_remove");
-  RNA_def_function_ui_description(func, "Remove a file slot from this node");
-  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_REPORTS);
-  parm = RNA_def_pointer(func, "socket", "NodeSocket", "", "The socket to remove");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-
-  func = RNA_def_function(srna, "clear", "rna_Node_inputs_clear");
-  RNA_def_function_ui_description(func, "Remove all file slots from this node");
-  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_REPORTS);
-
-  func = RNA_def_function(srna, "move", "rna_Node_inputs_move");
-  RNA_def_function_ui_description(func, "Move a file slot to another position");
-  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_REPORTS);
-  parm = RNA_def_int(
-      func, "from_index", -1, 0, INT_MAX, "From Index", "Index of the socket to move", 0, 10000);
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  parm = RNA_def_int(
-      func, "to_index", -1, 0, INT_MAX, "To Index", "Target index for the socket", 0, 10000);
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  rna_def_node_item_array_new_with_socket_and_name(
+      srna, "NodeCompositorFileOutputItem", "FileOutputItemsAccessor");
+  rna_def_node_item_array_common_functions(
+      srna, "NodeCompositorFileOutputItem", "FileOutputItemsAccessor");
 }
-static void def_cmp_output_file(BlenderRNA *brna, StructRNA *srna)
+
+static void def_cmp_file_output(BlenderRNA *brna, StructRNA *srna)
 {
   PropertyRNA *prop;
 
-  rna_def_cmp_output_file_slot_file(brna);
-  rna_def_cmp_output_file_slot_layer(brna);
+  rna_def_cmp_file_output_item(brna);
+  rna_def_cmp_file_output_items(brna);
 
-  RNA_def_struct_sdna_from(srna, "NodeImageMultiFile", "storage");
+  RNA_def_struct_sdna_from(srna, "NodeCompositorFileOutput", "storage");
 
-  prop = RNA_def_property(srna, "base_path", PROP_STRING, PROP_FILEPATH);
-  RNA_def_property_string_sdna(prop, nullptr, "base_path");
-  RNA_def_property_ui_text(prop, "Base Path", "Base output path for the image");
+  prop = RNA_def_property(srna, "file_output_items", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_collection_sdna(prop, nullptr, "items", "items_count");
+  RNA_def_property_struct_type(prop, "NodeCompositorFileOutputItem");
+  RNA_def_property_ui_text(prop, "Items", "");
+  RNA_def_property_srna(prop, "NodeCompositorFileOutputItems");
+
+  prop = RNA_def_property(srna, "active_item_index", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_int_sdna(prop, nullptr, "active_item_index");
+  RNA_def_property_ui_text(prop, "Active Item Index", "Index of the active item");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, nullptr);
+
+  prop = RNA_def_property(srna, "directory", PROP_STRING, PROP_DIRPATH);
+  RNA_def_property_string_sdna(prop, nullptr, "directory");
+  RNA_def_property_ui_text(prop, "Directory", "The directory where the image will be written");
   RNA_def_property_flag(
       prop, PROP_PATH_OUTPUT | PROP_PATH_SUPPORTS_BLEND_RELATIVE | PROP_PATH_SUPPORTS_TEMPLATES);
   RNA_def_property_path_template_type(prop, PROP_VARIABLES_RENDER_OUTPUT);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
-  prop = RNA_def_property(srna, "active_input_index", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "active_input");
-  RNA_def_property_ui_text(prop, "Active Input Index", "Active input index in details view list");
+  prop = RNA_def_property(srna, "file_name", PROP_STRING, PROP_FILENAME);
+  RNA_def_property_string_sdna(prop, nullptr, "file_name");
+  RNA_def_property_ui_text(prop,
+                           "File Name",
+                           "The base name of the file. Other information might be included in the "
+                           "final file name depending on the node options");
+  RNA_def_property_flag(prop, PROP_PATH_OUTPUT | PROP_PATH_SUPPORTS_TEMPLATES);
+  RNA_def_property_path_template_type(prop, PROP_VARIABLES_RENDER_OUTPUT);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "format", PROP_POINTER, PROP_NONE);
@@ -6613,38 +6605,6 @@ static void def_cmp_output_file(BlenderRNA *brna, StructRNA *srna)
   RNA_def_property_ui_text(
       prop, "Save as Render", "Apply render part of display transform when saving byte image");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, nullptr);
-
-  /* XXX using two different collections here for the same basic DNA list!
-   * Details of the output slots depend on whether the node is in Multilayer EXR mode.
-   */
-
-  prop = RNA_def_property(srna, "file_slots", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_funcs(prop,
-                                    "rna_NodeOutputFile_slots_begin",
-                                    "rna_iterator_listbase_next",
-                                    "rna_iterator_listbase_end",
-                                    "rna_NodeOutputFile_slot_file_get",
-                                    nullptr,
-                                    nullptr,
-                                    nullptr,
-                                    nullptr);
-  RNA_def_property_struct_type(prop, "NodeOutputFileSlotFile");
-  RNA_def_property_ui_text(prop, "File Slots", "");
-  rna_def_cmp_output_file_slots_api(brna, prop, "CompositorNodeOutputFileFileSlots");
-
-  prop = RNA_def_property(srna, "layer_slots", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_funcs(prop,
-                                    "rna_NodeOutputFile_slots_begin",
-                                    "rna_iterator_listbase_next",
-                                    "rna_iterator_listbase_end",
-                                    "rna_NodeOutputFile_slot_layer_get",
-                                    nullptr,
-                                    nullptr,
-                                    nullptr,
-                                    nullptr);
-  RNA_def_property_struct_type(prop, "NodeOutputFileSlotLayer");
-  RNA_def_property_ui_text(prop, "EXR Layer Slots", "");
-  rna_def_cmp_output_file_slots_api(brna, prop, "CompositorNodeOutputFileLayerSlots");
 }
 
 static void def_cmp_dilate_erode(BlenderRNA * /*brna*/, StructRNA *srna)
@@ -8049,116 +8009,6 @@ static void def_closure_input(BlenderRNA *brna, StructRNA *srna)
   RNA_def_struct_sdna_from(srna, "NodeClosureInput", "storage");
 
   def_common_zone_input(brna, srna);
-}
-
-static void rna_def_node_item_array_socket_item_common(StructRNA *srna,
-                                                       const char *accessor,
-                                                       const bool add_socket_type)
-{
-  static blender::LinearAllocator<> allocator;
-  PropertyRNA *prop;
-
-  char name_set_func[128];
-  SNPRINTF(name_set_func, "rna_Node_ItemArray_item_name_set<%s>", accessor);
-
-  char item_update_func[128];
-  SNPRINTF(item_update_func, "rna_Node_ItemArray_item_update<%s>", accessor);
-  const char *item_update_func_ptr = allocator.copy_string(item_update_func).c_str();
-
-  char socket_type_itemf[128];
-  SNPRINTF(socket_type_itemf, "rna_Node_ItemArray_socket_type_itemf<%s>", accessor);
-
-  char color_get_func[128];
-  SNPRINTF(color_get_func, "rna_Node_ItemArray_item_color_get<%s>", accessor);
-
-  prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_funcs(
-      prop, nullptr, nullptr, allocator.copy_string(name_set_func).c_str());
-  RNA_def_property_ui_text(prop, "Name", "");
-  RNA_def_struct_name_property(srna, prop);
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, item_update_func_ptr);
-
-  if (add_socket_type) {
-    prop = RNA_def_property(srna, "socket_type", PROP_ENUM, PROP_NONE);
-    RNA_def_property_enum_items(prop, rna_enum_node_socket_data_type_items);
-    RNA_def_property_enum_funcs(
-        prop, nullptr, nullptr, allocator.copy_string(socket_type_itemf).c_str());
-    RNA_def_property_ui_text(prop, "Socket Type", "");
-    RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-    RNA_def_property_update(prop, NC_NODE | NA_EDITED, item_update_func_ptr);
-  }
-
-  prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR_GAMMA);
-  RNA_def_property_array(prop, 4);
-  RNA_def_property_float_funcs(
-      prop, allocator.copy_string(color_get_func).c_str(), nullptr, nullptr);
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_ui_text(
-      prop, "Color", "Color of the corresponding socket type in the node editor");
-}
-
-static void rna_def_node_item_array_common_functions(StructRNA *srna,
-                                                     const char *item_name,
-                                                     const char *accessor_name)
-{
-  static blender::LinearAllocator<> allocator;
-  PropertyRNA *parm;
-  FunctionRNA *func;
-
-  char remove_call[128];
-  SNPRINTF(remove_call, "rna_Node_ItemArray_remove<%s>", accessor_name);
-  char clear_call[128];
-  SNPRINTF(clear_call, "rna_Node_ItemArray_clear<%s>", accessor_name);
-  char move_call[128];
-  SNPRINTF(move_call, "rna_Node_ItemArray_move<%s>", accessor_name);
-
-  func = RNA_def_function(srna, "remove", allocator.copy_string(remove_call).c_str());
-  RNA_def_function_ui_description(func, "Remove an item");
-  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_REPORTS);
-  parm = RNA_def_pointer(func, "item", item_name, "Item", "The item to remove");
-  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-
-  func = RNA_def_function(srna, "clear", allocator.copy_string(clear_call).c_str());
-  RNA_def_function_ui_description(func, "Remove all items");
-  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
-
-  func = RNA_def_function(srna, "move", allocator.copy_string(move_call).c_str());
-  RNA_def_function_ui_description(func, "Move an item to another position");
-  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
-  parm = RNA_def_int(
-      func, "from_index", -1, 0, INT_MAX, "From Index", "Index of the item to move", 0, 10000);
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  parm = RNA_def_int(
-      func, "to_index", -1, 0, INT_MAX, "To Index", "Target index for the item", 0, 10000);
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-}
-
-static void rna_def_node_item_array_new_with_socket_and_name(StructRNA *srna,
-                                                             const char *item_name,
-                                                             const char *accessor_name)
-{
-  static blender::LinearAllocator<> allocator;
-  PropertyRNA *parm;
-  FunctionRNA *func;
-
-  char name[128];
-  SNPRINTF(name, "rna_Node_ItemArray_new_with_socket_and_name<%s>", accessor_name);
-
-  func = RNA_def_function(srna, "new", allocator.copy_string(name).c_str());
-  RNA_def_function_ui_description(func, "Add an item at the end");
-  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_REPORTS);
-  parm = RNA_def_enum(func,
-                      "socket_type",
-                      rna_enum_node_socket_data_type_items,
-                      SOCK_GEOMETRY,
-                      "Socket Type",
-                      "Socket type of the item");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  parm = RNA_def_string(func, "name", nullptr, MAX_NAME, "Name", "");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  /* return value */
-  parm = RNA_def_pointer(func, "item", item_name, "Item", "New item");
-  RNA_def_function_return(func, parm);
 }
 
 static void rna_def_geo_simulation_state_item(BlenderRNA *brna)
@@ -10722,7 +10572,7 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("CompositorNode", "CompositorNodeMovieDistortion", def_cmp_moviedistortion);
   define("CompositorNode", "CompositorNodeNormal");
   define("CompositorNode", "CompositorNodeNormalize");
-  define("CompositorNode", "CompositorNodeOutputFile", def_cmp_output_file);
+  define("CompositorNode", "CompositorNodeOutputFile", def_cmp_file_output);
   define("CompositorNode", "CompositorNodePixelate");
   define("CompositorNode", "CompositorNodePlaneTrackDeform", def_cmp_planetrackdeform);
   define("CompositorNode", "CompositorNodePosterize");

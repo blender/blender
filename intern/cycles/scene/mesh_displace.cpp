@@ -323,6 +323,8 @@ bool GeometryManager::displace(Device *device, Scene *scene, Mesh *mesh, Progres
     }
   }
 
+  mesh->update_tangents(scene, false);
+
   return true;
 }
 

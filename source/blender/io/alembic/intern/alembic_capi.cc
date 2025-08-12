@@ -615,8 +615,8 @@ static void set_frame_range(ImportJobData *data)
     scene->r.cfra = scene->r.sfra;
   }
   else if (data->min_time < data->max_time) {
-    scene->r.sfra = int(round(data->min_time * FPS));
-    scene->r.efra = int(round(data->max_time * FPS));
+    scene->r.sfra = int(round(data->min_time * scene->frames_per_second()));
+    scene->r.efra = int(round(data->max_time * scene->frames_per_second()));
     scene->r.cfra = scene->r.sfra;
   }
 }

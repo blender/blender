@@ -329,9 +329,7 @@ class GHOST_DeviceVK {
     VkPhysicalDeviceDynamicRenderingFeatures dynamic_rendering = {};
     dynamic_rendering.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
     dynamic_rendering.dynamicRendering = VK_TRUE;
-    if (extension_enabled(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME)) {
-      feature_struct_ptr.push_back(&dynamic_rendering);
-    }
+    feature_struct_ptr.push_back(&dynamic_rendering);
 
     VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT
         dynamic_rendering_unused_attachments = {};
@@ -606,10 +604,6 @@ GHOST_ContextVK::~GHOST_ContextVK()
 
 GHOST_TSuccess GHOST_ContextVK::swapBuffers()
 {
-  if (m_swapchain == VK_NULL_HANDLE) {
-    return GHOST_kFailure;
-  }
-
   assert(vulkan_device.has_value() && vulkan_device->device != VK_NULL_HANDLE);
   VkDevice device = vulkan_device->device;
 
@@ -638,7 +632,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
   bool use_hdr_swapchain = false;
 #ifdef WITH_GHOST_WAYLAND
   /* Wayland doesn't provide a WSI with windowing capabilities, therefore cannot detect whether the
-   * swap-chain needs to be recreated. But as a side effect we can recreate the swap chain before
+   * swap-chain needs to be recreated. But as a side effect we can recreate the swap-chain before
    * presenting. */
   if (m_wayland_window_info) {
     const bool recreate_swapchain =
@@ -654,23 +648,55 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
     }
   }
 #endif
+  /* There is no valid swapchain as the previous window was minimized. User can have maximized the
+   * window so we need to check if the swapchain can be created. */
+  if (m_swapchain == VK_NULL_HANDLE) {
+    recreateSwapchain(use_hdr_swapchain);
+  }
 
-  /* Some platforms (NVIDIA/Wayland) can receive an out of date swapchain when acquiring the next
-   * swapchain image. Other do it when calling vkQueuePresent. */
-  VkResult acquire_result = VK_ERROR_OUT_OF_DATE_KHR;
+  /* Acquiree next image, swapchain can be (or become) invalid when minimizing window.*/
   uint32_t image_index = 0;
-  while (acquire_result == VK_ERROR_OUT_OF_DATE_KHR || acquire_result == VK_SUBOPTIMAL_KHR) {
-    acquire_result = vkAcquireNextImageKHR(device,
-                                           m_swapchain,
-                                           UINT64_MAX,
-                                           submission_frame_data.acquire_semaphore,
-                                           VK_NULL_HANDLE,
-                                           &image_index);
-    if (acquire_result == VK_ERROR_OUT_OF_DATE_KHR || acquire_result == VK_SUBOPTIMAL_KHR) {
-      recreateSwapchain(use_hdr_swapchain);
+  if (m_swapchain != VK_NULL_HANDLE) {
+    /* Some platforms (NVIDIA/Wayland) can receive an out of date swapchain when acquiring the next
+     * swapchain image. Other do it when calling vkQueuePresent. */
+    VkResult acquire_result = VK_ERROR_OUT_OF_DATE_KHR;
+    while (m_swapchain != VK_NULL_HANDLE &&
+           (acquire_result == VK_ERROR_OUT_OF_DATE_KHR || acquire_result == VK_SUBOPTIMAL_KHR))
+    {
+      acquire_result = vkAcquireNextImageKHR(device,
+                                             m_swapchain,
+                                             UINT64_MAX,
+                                             submission_frame_data.acquire_semaphore,
+                                             VK_NULL_HANDLE,
+                                             &image_index);
+      if (acquire_result == VK_ERROR_OUT_OF_DATE_KHR || acquire_result == VK_SUBOPTIMAL_KHR) {
+        recreateSwapchain(use_hdr_swapchain);
+      }
     }
   }
-  CLOG_DEBUG(&LOG, "Vulkan: render_frame=%lu, image_index=%u", m_render_frame, image_index);
+
+  /* Fast path for invalid swapchains. When not valid we don't acquire/present, but we do render to
+   * make sure the render graphs don't keep memory allocated that isn't used. */
+  if (m_swapchain == VK_NULL_HANDLE) {
+    CLOG_TRACE(
+        &LOG,
+        "Swap-chain invalid (due to minimized window), perform rendering to reduce render graph "
+        "resources.");
+    GHOST_VulkanSwapChainData swap_chain_data = {};
+    if (swap_buffers_pre_callback_) {
+      swap_buffers_pre_callback_(&swap_chain_data);
+    }
+    if (swap_buffers_post_callback_) {
+      swap_buffers_post_callback_();
+    }
+
+    return GHOST_kSuccess;
+  }
+
+  CLOG_DEBUG(&LOG,
+             "Acquired swap-chain image (render_frame=%lu, image_index=%u)",
+             m_render_frame,
+             image_index);
   GHOST_SwapchainImage &swapchain_image = m_swapchain_images[image_index];
 
   GHOST_VulkanSwapChainData swap_chain_data;
@@ -710,8 +736,8 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
   }
   if (present_result != VK_SUCCESS) {
     CLOG_ERROR(&LOG,
-               "Vulkan: failed to present swap chain image : %s",
-               vulkan_error_as_string(acquire_result));
+               "Vulkan: failed to present swap-chain image : %s",
+               vulkan_error_as_string(present_result));
   }
 
   if (swap_buffers_post_callback_) {
@@ -815,7 +841,8 @@ static void requireExtension(const vector<VkExtensionProperties> &extensions_ava
   }
 }
 
-static GHOST_TSuccess selectPresentMode(VkPhysicalDevice device,
+static GHOST_TSuccess selectPresentMode(const char *ghost_vsync_string,
+                                        VkPhysicalDevice device,
                                         VkSurfaceKHR surface,
                                         VkPresentModeKHR *r_presentMode)
 {
@@ -823,6 +850,23 @@ static GHOST_TSuccess selectPresentMode(VkPhysicalDevice device,
   vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &present_count, nullptr);
   vector<VkPresentModeKHR> presents(present_count);
   vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &present_count, presents.data());
+
+  if (ghost_vsync_string) {
+    bool vsync_off = atoi(ghost_vsync_string) == 0;
+    if (vsync_off) {
+      for (auto present_mode : presents) {
+        if (present_mode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
+          *r_presentMode = present_mode;
+          return GHOST_kSuccess;
+        }
+      }
+      CLOG_WARN(&LOG,
+                "Vulkan: VSync off was requested via BLENDER_VSYNC, but "
+                "VK_PRESENT_MODE_IMMEDIATE_KHR is not "
+                "supported.");
+    }
+  }
+
   /* MAILBOX is the lowest latency V-Sync enabled mode. We will use it if available as it fixes
    * some lag on NVIDIA/Intel GPUs. */
   /* TODO: select the correct presentation mode based on the actual being performed by the user.
@@ -924,7 +968,7 @@ GHOST_TSuccess GHOST_ContextVK::recreateSwapchain(bool use_hdr_swapchain)
   }
 
   VkPresentModeKHR present_mode;
-  if (!selectPresentMode(physical_device, m_surface, &present_mode)) {
+  if (!selectPresentMode(getEnvVarVSyncString(), physical_device, m_surface, &present_mode)) {
     return GHOST_kFailure;
   }
 
@@ -995,22 +1039,27 @@ GHOST_TSuccess GHOST_ContextVK::recreateSwapchain(bool use_hdr_swapchain)
     }
   }
 
-  /* Windows/NVIDIA doesn't support creating a surface image with resolution 0,0.
-   * Minimized windows have an extent of 0,0. Although it fits in the specs returned by
-   * #vkGetPhysicalDeviceSurfaceCapabilitiesKHR.
+  /* Discard swapchain resources of current swapchain. */
+  GHOST_FrameDiscard &discard_pile = m_frame_data[m_render_frame].discard_pile;
+  for (GHOST_SwapchainImage &swapchain_image : m_swapchain_images) {
+    swapchain_image.vk_image = VK_NULL_HANDLE;
+    if (swapchain_image.present_semaphore != VK_NULL_HANDLE) {
+      discard_pile.semaphores.push_back(swapchain_image.present_semaphore);
+      swapchain_image.present_semaphore = VK_NULL_HANDLE;
+    }
+  }
+
+  /* Swap-chains with out any resolution should not be created. In the case the render extent is
+   * zero we should not use the swap-chain.
    *
-   * The fix is limited to NVIDIA. AMD drivers finds the swapchain to be sub-optimal and
-   * asks Blender to recreate the swapchain over and over again until it gets out of memory.
-   *
-   * Ref #138032, #139815
+   * VUID-VkSwapchainCreateInfoKHR-imageExtent-01689
    */
-  if (vulkan_device->properties_12.driverID == VK_DRIVER_ID_NVIDIA_PROPRIETARY) {
-    if (m_render_extent.width == 0) {
-      m_render_extent.width = 1;
+  if (m_render_extent.width == 0 || m_render_extent.height == 0) {
+    if (m_swapchain) {
+      discard_pile.swapchains.push_back(m_swapchain);
+      m_swapchain = VK_NULL_HANDLE;
     }
-    if (m_render_extent.height == 0) {
-      m_render_extent.height = 1;
-    }
+    return GHOST_kFailure;
   }
 
   /* Use double buffering when using FIFO. Increasing the number of images could stall when doing
@@ -1077,14 +1126,6 @@ GHOST_TSuccess GHOST_ContextVK::recreateSwapchain(bool use_hdr_swapchain)
    * that happens we should increase the number of frames in flight. We could also consider
    * splitting the frame in flight and image specific data. */
   assert(actual_image_count <= GHOST_FRAMES_IN_FLIGHT);
-  GHOST_FrameDiscard &discard_pile = m_frame_data[m_render_frame].discard_pile;
-  for (GHOST_SwapchainImage &swapchain_image : m_swapchain_images) {
-    swapchain_image.vk_image = VK_NULL_HANDLE;
-    if (swapchain_image.present_semaphore != VK_NULL_HANDLE) {
-      discard_pile.semaphores.push_back(swapchain_image.present_semaphore);
-      swapchain_image.present_semaphore = VK_NULL_HANDLE;
-    }
-  }
   m_swapchain_images.resize(actual_image_count);
   std::vector<VkImage> swapchain_images(actual_image_count);
   vkGetSwapchainImagesKHR(device, m_swapchain, &actual_image_count, swapchain_images.data());
@@ -1241,7 +1282,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
 #else
   required_device_extensions.push_back(VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
 #endif
-  optional_device_extensions.push_back(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
+  required_device_extensions.push_back(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
   optional_device_extensions.push_back(VK_KHR_DYNAMIC_RENDERING_LOCAL_READ_EXTENSION_NAME);
   optional_device_extensions.push_back(VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME);
   optional_device_extensions.push_back(VK_EXT_SHADER_STENCIL_EXPORT_EXTENSION_NAME);

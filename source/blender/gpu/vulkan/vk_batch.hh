@@ -17,8 +17,8 @@ namespace blender::gpu {
 class VKBatch : public Batch {
  public:
   void draw(int vertex_first, int vertex_count, int instance_first, int instance_count) override;
-  void draw_indirect(GPUStorageBuf *indirect_buf, intptr_t offset) override;
-  void multi_draw_indirect(GPUStorageBuf *indirect_buf,
+  void draw_indirect(StorageBuf *indirect_buf, intptr_t offset) override;
+  void multi_draw_indirect(StorageBuf *indirect_buf,
                            int count,
                            intptr_t offset,
                            intptr_t stride) override;

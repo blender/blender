@@ -1113,8 +1113,8 @@ static wmOperatorStatus ed_marker_move_modal(bContext *C, wmOperator *op, const 
                             (event->modifier & KM_CTRL) != 0,
                             &fac,
                             0.0,
-                            FPS,
-                            0.1 * FPS,
+                            scene->frames_per_second(),
+                            0.1 * scene->frames_per_second(),
                             0);
 
             RNA_int_set(op->ptr, "frames", int(fac));

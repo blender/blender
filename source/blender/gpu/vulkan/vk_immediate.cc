@@ -60,8 +60,8 @@ void VKImmediate::end()
   }
 
   VKContext &context = *VKContext::get();
-  BLI_assert(context.shader == unwrap(shader));
-  Shader &shader = *unwrap(this->shader);
+  BLI_assert(context.shader == shader);
+  Shader &shader = *this->shader;
   if (shader.is_polyline) {
     VKBuffer &buffer = active_buffer_.value();
     VKStateManager &state_manager = context.state_manager_get();
@@ -79,7 +79,7 @@ void VKImmediate::end()
     this->polyline_draw_workaround(0);
   }
   else {
-    GPU_matrix_bind(wrap(context.shader));
+    GPU_matrix_bind(context.shader);
     render_graph::VKResourceAccessInfo &resource_access_info = context.reset_and_get_access_info();
     vertex_attributes_.update_bindings(*this);
     context.active_framebuffer_get()->rendering_ensure(context);

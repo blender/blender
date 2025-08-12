@@ -66,7 +66,7 @@ static Result horizontal_pass_gpu(Context &context,
                                   const float radius,
                                   const int filter_type)
 {
-  GPUShader *shader = context.get_shader(get_blur_shader(input.type()));
+  gpu::Shader *shader = context.get_shader(get_blur_shader(input.type()));
   GPU_shader_bind(shader);
 
   input.bind_as_texture(shader, "input_tx");
@@ -155,7 +155,7 @@ static void vertical_pass_gpu(Context &context,
                               const float2 &radius,
                               const int filter_type)
 {
-  GPUShader *shader = context.get_shader(get_blur_shader(original_input.type()));
+  gpu::Shader *shader = context.get_shader(get_blur_shader(original_input.type()));
   GPU_shader_bind(shader);
 
   horizontal_pass_result.bind_as_texture(shader, "input_tx");

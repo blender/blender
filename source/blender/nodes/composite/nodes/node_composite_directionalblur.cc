@@ -90,7 +90,7 @@ class DirectionalBlurOperation : public NodeOperation {
 
   void execute_gpu()
   {
-    GPUShader *shader = context().get_shader("compositor_directional_blur");
+    gpu::Shader *shader = context().get_shader("compositor_directional_blur");
     GPU_shader_bind(shader);
 
     /* The number of iterations does not cover the original image, that is, the image with no

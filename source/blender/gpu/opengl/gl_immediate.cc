@@ -72,7 +72,7 @@ uchar *GLImmediate::begin()
   const size_t available_bytes = buffer_size() - buffer_offset();
 
 #ifndef NDEBUG
-  if (unwrap(this->shader)->is_polyline) {
+  if (this->shader->is_polyline) {
     /* Silence error. These are bound inside `immEnd()`. */
     GLContext::get()->bound_ssbo_slots |= 1 << GPU_SSBO_POLYLINE_POS_BUF_SLOT;
     GLContext::get()->bound_ssbo_slots |= 1 << GPU_SSBO_POLYLINE_COL_BUF_SLOT;
@@ -99,7 +99,7 @@ uchar *GLImmediate::begin()
   }
 
   uint vert_alignment = vertex_format.stride;
-  if (unwrap(this->shader)->is_polyline) {
+  if (this->shader->is_polyline) {
     /* Polyline needs to bind the buffer as SSBO.
      * The start of the range needs to match the SSBO alignment requirements. */
     vert_alignment = ceil_to_multiple_u(vert_alignment, GPU_storage_buffer_alignment());
@@ -154,7 +154,7 @@ void GLImmediate::end()
   if (vertex_len == 0) {
     /* NOOP. Nothing to draw. */
   }
-  else if (unwrap(this->shader)->is_polyline) {
+  else if (this->shader->is_polyline) {
     GLintptr offset = buffer_offset();
     GLenum target = GL_SHADER_STORAGE_BUFFER;
     glBindBufferRange(target, GPU_SSBO_POLYLINE_POS_BUF_SLOT, vbo_id(), offset, buffer_bytes_used);

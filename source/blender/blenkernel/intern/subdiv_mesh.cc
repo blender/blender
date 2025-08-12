@@ -20,6 +20,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_subdiv.hh"
+#include "BKE_subdiv_deform.hh"
 #include "BKE_subdiv_eval.hh"
 #include "BKE_subdiv_foreach.hh"
 #include "BKE_subdiv_mesh.hh"
@@ -1242,6 +1243,37 @@ Mesh *subdiv_to_mesh(Subdiv *subdiv, const ToMeshSettings *settings, const Mesh 
   stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH);
   subdiv_mesh_context_free(&subdiv_context);
   return result;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Limit surface
+ * \{ */
+
+void calculate_limit_positions(Mesh *mesh, MutableSpan<float3> limit_positions)
+{
+  BLI_assert(mesh->verts_num == limit_positions.size());
+
+  limit_positions.copy_from(mesh->vert_positions());
+
+  Settings settings{};
+  settings.is_simple = false;
+  settings.is_adaptive = true;
+  settings.level = 1;
+  settings.use_creases = true;
+
+  /* Default subdivision surface modifier settings:
+   * - UV Smooth:Keep Corners.
+   * - BoundarySmooth: All. */
+  settings.vtx_boundary_interpolation = SUBDIV_VTX_BOUNDARY_EDGE_ONLY;
+  settings.fvar_linear_interpolation = SUBDIV_FVAR_LINEAR_INTERPOLATION_CORNERS_AND_JUNCTIONS;
+
+  Subdiv *subdiv = update_from_mesh(nullptr, &settings, mesh);
+  if (subdiv) {
+    deform_coarse_vertices(subdiv, mesh, limit_positions);
+    free(subdiv);
+  }
 }
 
 /** \} */

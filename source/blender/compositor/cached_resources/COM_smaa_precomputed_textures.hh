@@ -38,11 +38,11 @@ class SMAAPrecomputedTextures : public CachedResource {
 
   ~SMAAPrecomputedTextures();
 
-  void bind_search_texture(GPUShader *shader, const char *sampler_name) const;
+  void bind_search_texture(gpu::Shader *shader, const char *sampler_name) const;
 
   void unbind_search_texture() const;
 
-  void bind_area_texture(GPUShader *shader, const char *sampler_name) const;
+  void bind_area_texture(gpu::Shader *shader, const char *sampler_name) const;
 
   void unbind_area_texture() const;
 

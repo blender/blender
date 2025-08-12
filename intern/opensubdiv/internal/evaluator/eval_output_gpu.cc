@@ -15,11 +15,11 @@ using OpenSubdiv::Osd::PatchArrayVector;
 
 namespace blender::opensubdiv {
 
-static GPUStorageBuf *create_patch_array_buffer(const PatchArrayVector &patch_arrays)
+static gpu::StorageBuf *create_patch_array_buffer(const PatchArrayVector &patch_arrays)
 {
   const size_t patch_array_size = sizeof(PatchArray);
   const size_t patch_array_byte_size = patch_array_size * patch_arrays.size();
-  GPUStorageBuf *storage_buf = GPU_storagebuf_create_ex(
+  gpu::StorageBuf *storage_buf = GPU_storagebuf_create_ex(
       patch_array_byte_size, patch_arrays.data(), GPU_USAGE_STATIC, "osd_patch_array");
   return storage_buf;
 }
@@ -43,13 +43,13 @@ GpuEvalOutput::GpuEvalOutput(const StencilTable *vertex_stencils,
 {
 }
 
-GPUStorageBuf *GpuEvalOutput::create_patch_arrays_buf()
+gpu::StorageBuf *GpuEvalOutput::create_patch_arrays_buf()
 {
   GPUPatchTable *patch_table = getPatchTable();
   return create_patch_array_buffer(patch_table->GetPatchArrays());
 }
 
-GPUStorageBuf *GpuEvalOutput::create_face_varying_patch_array_buf(const int face_varying_channel)
+gpu::StorageBuf *GpuEvalOutput::create_face_varying_patch_array_buf(const int face_varying_channel)
 {
   GPUPatchTable *patch_table = getFVarPatchTable(face_varying_channel);
   return create_patch_array_buffer(patch_table->GetFVarPatchArrays(face_varying_channel));

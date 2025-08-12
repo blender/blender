@@ -1341,7 +1341,7 @@ void OneapiDevice::get_adjusted_global_and_local_sizes(SyclQueue *queue,
 static const int lowest_supported_driver_version_win = 1016554;
 #  ifdef _WIN32
 /* For Windows driver 101.6557, compute-runtime version is 31896.
- * This information is returned by `ocloc query OCL_DRIVER_VERSION`.*/
+ * This information is returned by `ocloc query OCL_DRIVER_VERSION`. */
 static const int lowest_supported_driver_version_neo = 31896;
 #  else
 static const int lowest_supported_driver_version_neo = 31740;

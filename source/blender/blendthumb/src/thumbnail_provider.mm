@@ -25,7 +25,7 @@
  * The Info.plist file should be properly configured with supported content type.
  *
  * # Codesigning
- * The plugin should be codesigned with entitlements at least for sandbox  and read-only/
+ * The plugin should be codesigned with entitlements at least for sandbox and read-only/
  * read-write (for access to the given file). It's needed to even run the plugin locally.
  * com.apple.security.get-task-allow entitlement is required for debugging.
  *

@@ -912,6 +912,9 @@ static void rna_Property_deprecated_note_get(PointerRNA *ptr, char *value)
   if (const DeprecatedRNA *deprecated = RNA_property_deprecated(prop)) {
     strcpy(value, deprecated->note);
   }
+  else {
+    value[0] = '\0';
+  }
 }
 
 static void rna_Property_deprecated_version_get(PointerRNA *ptr, int *value)

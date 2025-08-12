@@ -18,7 +18,7 @@
 
 namespace blender::gpu::tests {
 struct CallData {
-  GPUStorageBuf *ssbo = nullptr;
+  StorageBuf *ssbo = nullptr;
   Vector<float> data;
 
   float float_in;
@@ -78,7 +78,7 @@ struct CallData {
 };
 
 struct Shader {
-  GPUShader *shader = nullptr;
+  gpu::Shader *shader = nullptr;
   Vector<CallData> call_datas;
 
   Shader()

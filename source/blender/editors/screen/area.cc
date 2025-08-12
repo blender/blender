@@ -16,6 +16,7 @@
 
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
+#include "BLI_math_vector.h"
 #include "BLI_rand.hh"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
@@ -3315,6 +3316,100 @@ void ED_region_panels_layout_ex(const bContext *C,
   }
 }
 
+void ED_region_draw_overflow_indication(const ScrArea *area, ARegion *region, rcti *mask)
+{
+  if (!(region->flag & RGN_FLAG_INDICATE_OVERFLOW)) {
+    return;
+  }
+
+  const bool is_overlap = ED_region_is_overlap(area->spacetype, region->regiontype);
+  const bool is_header = ELEM(region->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER);
+  const bool narrow = region->v2d.scroll & (V2D_SCROLL_VERTICAL | V2D_SCROLL_HORIZONTAL);
+  const float gradient_width = (narrow ? 4.0f : 16.0f) * UI_SCALE_FAC;
+  const float transition = 30.0f * UI_SCALE_FAC;
+
+  float opaque[4];
+  if (narrow) {
+    UI_GetThemeColor3fv(TH_BLACK, opaque);
+    opaque[3] = 0.2f;
+  }
+  else {
+    UI_GetThemeColor3fv(TH_BACK, opaque);
+    opaque[3] = 1.0f;
+    if (!is_header) {
+      mul_v3_fl(opaque, 0.85f);
+    }
+  }
+
+  if (!mask) {
+    mask = &region->v2d.mask;
+  }
+
+  int width = BLI_rcti_size_x(mask) + 1;
+  int height = BLI_rcti_size_y(mask) + 1;
+  float offset_x = mask->xmin;
+  float offset_y = mask->ymin;
+
+  if (is_overlap) {
+    if (is_header) {
+      offset_y += 3.0f * UI_SCALE_FAC;
+    }
+    else if (region->panels.first) {
+      offset_x = UI_PANEL_MARGIN_X;
+      width -= (2 * UI_PANEL_MARGIN_X);
+    }
+  }
+
+  rctf rect{};
+  float transparent[4];
+  copy_v3_v3(transparent, opaque);
+  transparent[3] = 0.0f;
+  float grad_color[4];
+
+  if (region->v2d.cur.xmax < region->v2d.tot.xmax &&
+      !(area->spacetype == SPACE_OUTLINER && region->regiontype == RGN_TYPE_WINDOW))
+  {
+    /* Right Edge. */
+    rect.xmax = offset_x + width;
+    rect.xmin = offset_x + rect.xmax - gradient_width;
+    rect.ymin = offset_y;
+    rect.ymax = height;
+    copy_v4_v4(grad_color, opaque);
+    grad_color[3] *= std::min((region->v2d.tot.xmax - region->v2d.cur.xmax) / transition, 1.0f);
+    UI_draw_roundbox_4fv_ex(&rect, grad_color, transparent, 0.0f, nullptr, 0.0f, 0.0f);
+  }
+  if (region->v2d.cur.xmin > region->v2d.tot.xmin) {
+    /* Left Edge. */
+    rect.xmin = offset_x;
+    rect.xmax = offset_x + gradient_width;
+    rect.ymin = offset_y;
+    rect.ymax = height;
+    copy_v4_v4(grad_color, opaque);
+    grad_color[3] *= std::min((region->v2d.cur.xmin - region->v2d.tot.xmin) / transition, 1.0f);
+    UI_draw_roundbox_4fv_ex(&rect, transparent, grad_color, 0.0f, nullptr, 0.0f, 0.0f);
+  }
+  if (region->v2d.cur.ymax < region->v2d.tot.ymax) {
+    /* Top Edge. */
+    rect.xmin = offset_x;
+    rect.xmax = offset_x + width;
+    rect.ymax = offset_y + height;
+    rect.ymin = rect.ymax - gradient_width;
+    copy_v4_v4(grad_color, opaque);
+    grad_color[3] *= std::min((region->v2d.tot.ymax - region->v2d.cur.ymax) / transition, 1.0f);
+    UI_draw_roundbox_4fv_ex(&rect, grad_color, transparent, 1.0f, nullptr, 0.0f, 0.0f);
+  }
+  if (region->v2d.cur.ymin > region->v2d.tot.ymin) {
+    /* Bottom Edge. */
+    rect.xmin = offset_x;
+    rect.xmax = offset_x + width;
+    rect.ymin = offset_y;
+    rect.ymax = rect.ymin + gradient_width;
+    copy_v4_v4(grad_color, opaque);
+    grad_color[3] *= std::min((region->v2d.cur.ymin - region->v2d.tot.ymin) / transition, 1.0f);
+    UI_draw_roundbox_4fv_ex(&rect, transparent, grad_color, 1.0f, nullptr, 0.0f, 0.0f);
+  }
+}
+
 void ED_region_panels_layout(const bContext *C, ARegion *region)
 {
   ED_region_panels_layout_ex(C,
@@ -3374,6 +3469,8 @@ void ED_region_panels_draw(const bContext *C, ARegion *region)
       mask.xmin += category_width;
     }
   }
+
+  ED_region_draw_overflow_indication(CTX_wm_area(C), region, use_mask ? &mask : nullptr);
 
   /* Hide scrollbars below a threshold. */
   const float aspect = BLI_rctf_size_y(&region->v2d.cur) /
@@ -3693,6 +3790,7 @@ void ED_region_header_draw(const bContext *C, ARegion *region)
   /* clear */
   ED_region_clear(C, region, region_background_color_id(C, region));
   region_draw_blocks_in_view2d(C, region);
+  ED_region_draw_overflow_indication(CTX_wm_area(C), region);
 }
 
 void ED_region_header_draw_with_button_sections(const bContext *C,
@@ -3731,6 +3829,7 @@ void ED_region_header_with_button_sections(const bContext *C,
 void ED_region_header_init(ARegion *region)
 {
   UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_HEADER, region->winx, region->winy);
+  region->flag |= RGN_FLAG_INDICATE_OVERFLOW;
 }
 
 int ED_area_headersize()

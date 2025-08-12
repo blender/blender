@@ -35,7 +35,7 @@ class Immediate {
   /** Current draw call specification. */
   GPUPrimType prim_type = GPU_PRIM_NONE;
   GPUVertFormat vertex_format = {};
-  GPUShader *shader = nullptr;
+  gpu::Shader *shader = nullptr;
   /** Enforce strict vertex count (disabled when using #immBeginAtMost). */
   bool strict_vertex_len = true;
 

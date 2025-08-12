@@ -663,22 +663,6 @@ void POSE_OT_rotation_mode_set(wmOperatorType *ot)
 /* ********************************************** */
 /* Show/Hide Bones */
 
-static int hide_pose_bone_fn(Object *ob, Bone *bone, void *ptr)
-{
-  bArmature *arm = static_cast<bArmature *>(ob->data);
-  const bool hide_select = bool(POINTER_AS_INT(ptr));
-  int count = 0;
-  if (ANIM_bone_in_visible_collection(arm, bone)) {
-    if (((bone->flag & BONE_SELECTED) != 0) == hide_select) {
-      bone->flag |= BONE_HIDDEN_P;
-      /* only needed when 'hide_select' is true, but harmless. */
-      bone->flag &= ~BONE_SELECTED;
-      count += 1;
-    }
-  }
-  return count;
-}
-
 /* active object is armature in posemode, poll checked */
 static wmOperatorStatus pose_hide_exec(bContext *C, wmOperator *op)
 {
@@ -688,15 +672,22 @@ static wmOperatorStatus pose_hide_exec(bContext *C, wmOperator *op)
   bool changed_multi = false;
 
   const int hide_select = !RNA_boolean_get(op->ptr, "unselected");
-  void *hide_select_p = POINTER_FROM_INT(hide_select);
 
   for (Object *ob_iter : objects) {
+    bool changed = false;
     bArmature *arm = static_cast<bArmature *>(ob_iter->data);
+    LISTBASE_FOREACH (bPoseChannel *, pchan, &ob_iter->pose->chanbase) {
+      if (!ANIM_bone_in_visible_collection(arm, pchan->bone)) {
+        continue;
+      }
+      if (((pchan->bone->flag & BONE_SELECTED) != 0) != hide_select) {
+        continue;
+      }
+      pchan->drawflag |= PCHAN_DRAW_HIDDEN;
+      pchan->bone->flag &= ~BONE_SELECTED;
+      changed = true;
+    }
 
-    bool changed = bone_looper(ob_iter,
-                               static_cast<Bone *>(arm->bonebase.first),
-                               hide_select_p,
-                               hide_pose_bone_fn) != 0;
     if (changed) {
       changed_multi = true;
       WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob_iter);
@@ -725,25 +716,6 @@ void POSE_OT_hide(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "unselected", false, "Unselected", "");
 }
 
-static int show_pose_bone_cb(Object *ob, Bone *bone, void *data)
-{
-  const bool select = POINTER_AS_INT(data);
-
-  bArmature *arm = static_cast<bArmature *>(ob->data);
-  int count = 0;
-  if (ANIM_bone_in_visible_collection(arm, bone)) {
-    if (bone->flag & BONE_HIDDEN_P) {
-      if (!(bone->flag & BONE_UNSELECTABLE)) {
-        SET_FLAG_FROM_TEST(bone->flag, select, BONE_SELECTED);
-      }
-      bone->flag &= ~BONE_HIDDEN_P;
-      count += 1;
-    }
-  }
-
-  return count;
-}
-
 /* active object is armature in posemode, poll checked */
 static wmOperatorStatus pose_reveal_exec(bContext *C, wmOperator *op)
 {
@@ -752,13 +724,25 @@ static wmOperatorStatus pose_reveal_exec(bContext *C, wmOperator *op)
   Vector<Object *> objects = BKE_object_pose_array_get_unique(scene, view_layer, CTX_wm_view3d(C));
   bool changed_multi = false;
   const bool select = RNA_boolean_get(op->ptr, "select");
-  void *select_p = POINTER_FROM_INT(select);
 
   for (Object *ob_iter : objects) {
     bArmature *arm = static_cast<bArmature *>(ob_iter->data);
 
-    bool changed = bone_looper(
-        ob_iter, static_cast<Bone *>(arm->bonebase.first), select_p, show_pose_bone_cb);
+    bool changed = false;
+    LISTBASE_FOREACH (bPoseChannel *, pchan, &ob_iter->pose->chanbase) {
+      if (!ANIM_bone_in_visible_collection(arm, pchan->bone)) {
+        continue;
+      }
+      if ((pchan->drawflag & PCHAN_DRAW_HIDDEN) == 0) {
+        continue;
+      }
+      if (!(pchan->bone->flag & BONE_UNSELECTABLE)) {
+        SET_FLAG_FROM_TEST(pchan->bone->flag, select, BONE_SELECTED);
+      }
+      pchan->drawflag &= ~PCHAN_DRAW_HIDDEN;
+      changed = true;
+    }
+
     if (changed) {
       changed_multi = true;
       WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob_iter);

@@ -58,7 +58,7 @@ struct GPUSkyBuilder {
 };
 
 struct GPUMaterial {
-  /* Contains #GPUShader and source code for deferred compilation.
+  /* Contains #blender::gpu::Shader and source code for deferred compilation.
    * Can be shared between materials sharing same node-tree topology. */
   GPUPass *pass = nullptr;
   /* Optimized GPUPass, situationally compiled after initial pass for optimal realtime performance.
@@ -67,7 +67,7 @@ struct GPUMaterial {
   GPUPass *optimized_pass = nullptr;
 
   /* UBOs for this material parameters. */
-  GPUUniformBuf *ubo = nullptr;
+  blender::gpu::UniformBuf *ubo = nullptr;
   /* Some flags about the nodetree & the needed resources. */
   eGPUMaterialFlag flag = GPU_MATFLAG_UPDATED;
   /* The engine type this material is compiled for. */
@@ -188,7 +188,8 @@ GPUMaterial *GPU_material_from_nodetree(Material *ma,
   }
 
   gpu_node_graph_free_nodes(&mat->graph);
-  /* Only free after GPU_pass_shader_get where GPUUniformBuf read data from the local tree. */
+  /* Only free after GPU_pass_shader_get where blender::gpu::UniformBuf read data from the local
+   * tree. */
   blender::bke::node_tree_free_local_tree(localtree);
   BLI_assert(!localtree->id.py_instance); /* Or call #BKE_libblock_free_data_py. */
   MEM_freeN(localtree);
@@ -296,7 +297,7 @@ GPUPass *GPU_material_get_pass(GPUMaterial *material)
              material->pass;
 }
 
-GPUShader *GPU_material_get_shader(GPUMaterial *material)
+blender::gpu::Shader *GPU_material_get_shader(GPUMaterial *material)
 {
   return GPU_pass_shader_get(GPU_material_get_pass(material));
 }
@@ -374,7 +375,7 @@ void GPU_material_uniform_buffer_create(GPUMaterial *material, ListBase *inputs)
   material->ubo = GPU_uniformbuf_create_from_list(inputs, material->name.c_str());
 }
 
-GPUUniformBuf *GPU_material_uniform_buffer_get(GPUMaterial *material)
+blender::gpu::UniformBuf *GPU_material_uniform_buffer_get(GPUMaterial *material)
 {
   return material->ubo;
 }

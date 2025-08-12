@@ -550,7 +550,7 @@ void Film::sync()
 
   /* TODO(fclem): Shader variation for panoramic & scaled resolution. */
 
-  GPUShader *sh = inst_.shaders.static_shader_get(shader);
+  gpu::Shader *sh = inst_.shaders.static_shader_get(shader);
   accumulate_ps_.init();
   init_pass(accumulate_ps_, sh);
   /* Sync with rendering passes. */
@@ -586,7 +586,7 @@ void Film::sync()
   }
 }
 
-void Film::init_pass(PassSimple &pass, GPUShader *sh)
+void Film::init_pass(PassSimple &pass, gpu::Shader *sh)
 {
   GPUSamplerState filter = {GPU_SAMPLER_FILTERING_LINEAR};
   RenderBuffers &rbuffers = inst_.render_buffers;

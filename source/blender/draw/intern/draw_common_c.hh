@@ -10,10 +10,10 @@
 
 struct FluidModifierData;
 struct GPUMaterial;
-struct GPUUniformBuf;
 
 namespace blender::gpu {
 class Texture;
+class UniformBuf;
 class VertBuf;
 }  // namespace blender::gpu
 struct ModifierData;

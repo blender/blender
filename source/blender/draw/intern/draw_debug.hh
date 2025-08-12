@@ -106,7 +106,7 @@ class DebugDraw {
   void display_to_view(View &view);
 
   /** Get GPU debug draw buffer. Can, return nullptr if WITH_DRAW_DEBUG is not enabled. */
-  GPUStorageBuf *gpu_draw_buf_get();
+  gpu::StorageBuf *gpu_draw_buf_get();
 
   void acquire()
   {

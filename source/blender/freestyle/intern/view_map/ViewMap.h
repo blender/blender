@@ -405,13 +405,13 @@ class TVertex : public ViewVertex {
     return _FrontSVertex->getPoint3D();
   }
 
-  /** Returns the projected 3D  x coordinate of the vertex. */
+  /** Returns the projected 3D x coordinate of the vertex. */
   virtual real getProjectedX() const
   {
     return _FrontSVertex->point2D().x();
   }
 
-  /** Returns the projected 3D  y coordinate of the vertex. */
+  /** Returns the projected 3D y coordinate of the vertex. */
   virtual real getProjectedY() const
   {
     return _FrontSVertex->point2D().y();

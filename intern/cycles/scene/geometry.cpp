@@ -430,11 +430,7 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
     }
 
     if (geom->is_hair()) {
-      /* Set curve shape, still a global scene setting for now. */
       Hair *hair = static_cast<Hair *>(geom);
-      if (hair->curve_shape != CURVE_THICK_LINEAR) {
-        hair->curve_shape = scene->params.hair_shape;
-      }
 
       if (hair->need_update_rebuild) {
         device_update_flags |= DEVICE_CURVE_DATA_NEEDS_REALLOC;
@@ -798,7 +794,10 @@ void GeometryManager::device_update(Device *device,
     /* Apply generated attribute if needed or remove if not needed */
     mesh->update_generated(scene);
     /* Apply tangents for generated and UVs (if any need them) or remove if not needed */
-    mesh->update_tangents(scene);
+    mesh->update_tangents(scene, true);
+    if (!mesh->has_true_displacement()) {
+      mesh->update_tangents(scene, false);
+    }
 
     if (progress.get_cancel()) {
       return;

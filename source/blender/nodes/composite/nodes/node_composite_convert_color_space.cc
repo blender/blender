@@ -98,7 +98,7 @@ class ConvertColorSpaceOperation : public NodeOperation {
         context().cache_manager().ocio_color_space_conversion_shaders.get(
             context(), source, target);
 
-    GPUShader *shader = ocio_shader.bind_shader_and_resources();
+    gpu::Shader *shader = ocio_shader.bind_shader_and_resources();
 
     /* A null shader indicates that the conversion shader is just a stub implementation since OCIO
      * is disabled at compile time, so pass the input through in that case. */
