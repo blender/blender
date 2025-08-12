@@ -804,7 +804,7 @@ typedef struct {
 typedef struct {
   /** Image handle to the image that will be presented to the user. */
   VkImage image;
-  /** Format of the swap chain. */
+  /** Format of the swap-chain. */
   VkSurfaceFormatKHR surface_format;
   /** Resolution of the image. */
   VkExtent2D extent;

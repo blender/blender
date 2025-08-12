@@ -632,7 +632,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
   bool use_hdr_swapchain = false;
 #ifdef WITH_GHOST_WAYLAND
   /* Wayland doesn't provide a WSI with windowing capabilities, therefore cannot detect whether the
-   * swap-chain needs to be recreated. But as a side effect we can recreate the swap chain before
+   * swap-chain needs to be recreated. But as a side effect we can recreate the swap-chain before
    * presenting. */
   if (m_wayland_window_info) {
     const bool recreate_swapchain =
@@ -680,7 +680,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
   if (m_swapchain == VK_NULL_HANDLE) {
     CLOG_TRACE(
         &LOG,
-        "Swapchain invalid (due to minimized window), perform rendering to reduce render graph "
+        "Swap-chain invalid (due to minimized window), perform rendering to reduce render graph "
         "resources.");
     GHOST_VulkanSwapChainData swap_chain_data = {};
     if (swap_buffers_pre_callback_) {
@@ -694,7 +694,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
   }
 
   CLOG_DEBUG(&LOG,
-             "Acquired swapchain image (render_frame=%lu, image_index=%u)",
+             "Acquired swap-chain image (render_frame=%lu, image_index=%u)",
              m_render_frame,
              image_index);
   GHOST_SwapchainImage &swapchain_image = m_swapchain_images[image_index];
@@ -736,7 +736,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
   }
   if (present_result != VK_SUCCESS) {
     CLOG_ERROR(&LOG,
-               "Vulkan: failed to present swap chain image : %s",
+               "Vulkan: failed to present swap-chain image : %s",
                vulkan_error_as_string(present_result));
   }
 
@@ -1049,8 +1049,8 @@ GHOST_TSuccess GHOST_ContextVK::recreateSwapchain(bool use_hdr_swapchain)
     }
   }
 
-  /* Swapchains with out any resolution should not be created. In the case the render extent is
-   * zero we should not use the swap chain.
+  /* Swap-chains with out any resolution should not be created. In the case the render extent is
+   * zero we should not use the swap-chain.
    *
    * VUID-VkSwapchainCreateInfoKHR-imageExtent-01689
    */

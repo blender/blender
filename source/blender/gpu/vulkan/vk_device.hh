@@ -104,7 +104,7 @@ class VKThreadData : public NonCopyable, NonMovable {
   /** Thread ID this instance belongs to. */
   pthread_t thread_id;
   /**
-   * Index of the active resource pool. Is in sync with the active swap chain image or cycled when
+   * Index of the active resource pool. Is in sync with the active swap-chain image or cycled when
    * rendering.
    *
    * NOTE: Initialized to `UINT32_MAX` to detect first change.
