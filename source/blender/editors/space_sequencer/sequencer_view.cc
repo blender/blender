@@ -8,6 +8,7 @@
 
 #include "BLI_bounds_types.hh"
 #include "BLI_listbase.h"
+#include "BLI_math_vector.hh"
 #include "BLI_utildefines.h"
 
 #include "DNA_scene_types.h"
@@ -169,15 +170,49 @@ void SEQUENCER_OT_view_frame(wmOperatorType *ot)
 
 /** \} */
 
+/* For frame all/selected operators, when we are in preview region
+ * with histogram display mode, frame the extents of the histogram. */
+static bool view_frame_preview_histogram(bContext *C, wmOperator *op, ARegion *region)
+{
+  if (!region || region->regiontype != RGN_TYPE_PREVIEW) {
+    return false;
+  }
+  SpaceSeq *sseq = CTX_wm_space_seq(C);
+  if (!sseq || sseq->mainb != SEQ_DRAW_IMG_HISTOGRAM) {
+    return false;
+  }
+  const vse::ScopeHistogram &hist = sseq->runtime->scopes.histogram;
+  if (hist.data.is_empty()) {
+    return false;
+  }
+
+  const View2D *v2d = UI_view2d_fromcontext(C);
+  rctf cur_new = v2d->tot;
+  const float val_max = ScopeHistogram::bin_to_float(math::reduce_max(hist.max_bin));
+  cur_new.xmax = cur_new.xmin + (cur_new.xmax - cur_new.xmin) * val_max;
+
+  /* Add some padding around whole histogram. */
+  BLI_rctf_scale(&cur_new, 1.1f);
+
+  const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
+  UI_view2d_smooth_view(C, region, &cur_new, smooth_viewtx);
+  return true;
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Preview Frame All Operator
  * \{ */
 
-static wmOperatorStatus sequencer_view_all_preview_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus sequencer_view_all_preview_exec(bContext *C, wmOperator *op)
 {
   SpaceSeq *sseq = CTX_wm_space_seq(C);
   bScreen *screen = CTX_wm_screen(C);
   ScrArea *area = CTX_wm_area(C);
+
+  if (view_frame_preview_histogram(C, op, CTX_wm_region(C))) {
+    return OPERATOR_FINISHED;
+  }
+
 #if 0
   ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_sequencer_scene(C);
@@ -390,10 +425,14 @@ static wmOperatorStatus sequencer_view_selected_exec(bContext *C, wmOperator *op
 {
   Scene *scene = CTX_data_sequencer_scene(C);
   ARegion *region = CTX_wm_region(C);
-  blender::VectorSet strips = selected_strips_from_context(C);
   View2D *v2d = UI_view2d_fromcontext(C);
   rctf cur_new = v2d->cur;
 
+  if (view_frame_preview_histogram(C, op, region)) {
+    return OPERATOR_FINISHED;
+  }
+
+  blender::VectorSet strips = selected_strips_from_context(C);
   if (strips.is_empty()) {
     return OPERATOR_CANCELLED;
   }
