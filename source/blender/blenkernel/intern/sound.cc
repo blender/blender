@@ -1097,7 +1097,7 @@ void BKE_sound_play_scene(Scene *scene)
   sound_verify_evaluated_id(&scene->id);
 
   AUD_Status status;
-  const double cur_time = FRA2TIME((scene->r.cfra + scene->r.subframe));
+  const double cur_time = FRA2TIME(scene->r.cfra + scene->r.subframe);
 
   AUD_Device_lock(g_state.sound_device);
 

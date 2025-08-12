@@ -1383,7 +1383,7 @@ Array<SocketUsage> infer_all_input_sockets_usage(const bNodeTree &tree)
       continue;
     }
     const SocketInContext socket{nullptr, all_input_sockets[i]};
-    if (inferencer_only_controllers.is_socket_used((socket))) {
+    if (inferencer_only_controllers.is_socket_used(socket)) {
       /* The input should be visible if it's used if only visibility-controlling inputs are
        * considered. */
       continue;
