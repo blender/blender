@@ -1267,19 +1267,6 @@ class LazyFunctionForGroupNode : public LazyFunction {
   }
 };
 
-static GMutablePointer get_socket_default_value(LinearAllocator<> &allocator,
-                                                const bNodeSocket &bsocket)
-{
-  const bke::bNodeSocketType &typeinfo = *bsocket.typeinfo;
-  const CPPType *type = get_socket_cpp_type(typeinfo);
-  if (type == nullptr) {
-    return {};
-  }
-  void *buffer = allocator.allocate(*type);
-  typeinfo.get_geometry_nodes_cpp_value(bsocket.default_value, buffer);
-  return {type, buffer};
-}
-
 LazyFunctionForLogicalOr::LazyFunctionForLogicalOr(const int inputs_num)
 {
   debug_name_ = "Logical Or";
@@ -3911,15 +3898,8 @@ struct GeometryNodesLazyFunctionBuilder {
     if (this->try_add_implicit_input(input_bsocket, input_lf_socket, graph_params)) {
       return;
     }
-    GMutablePointer value = get_socket_default_value(scope_.allocator(), input_bsocket);
-    if (value.get() == nullptr) {
-      /* Not possible to add a default value. */
-      return;
-    }
-    input_lf_socket.set_default_value(value.get());
-    if (!value.type()->is_trivially_destructible) {
-      scope_.add_destruct_call([value]() mutable { value.destruct(); });
-    }
+    input_lf_socket.set_default_value(&scope_.add_value(
+        input_bsocket.typeinfo->get_geometry_nodes_cpp_value(input_bsocket.default_value)));
   }
 
   bool try_add_implicit_input(const bNodeSocket &input_bsocket,
