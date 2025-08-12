@@ -19,8 +19,8 @@ set(SRC
   intern/extract_elements.cc
   intern/fillet_curves.cc
   intern/fit_curves.cc
-  intern/interpolate_curves.cc
   intern/foreach_geometry.cc
+  intern/interpolate_curves.cc
   intern/join_geometries.cc
   intern/merge_curves.cc
   intern/merge_layers.cc
