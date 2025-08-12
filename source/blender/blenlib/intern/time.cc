@@ -27,7 +27,7 @@ double BLI_time_now_seconds()
   if (hasperfcounter == -1) {
     __int64 ifreq;
     hasperfcounter = QueryPerformanceFrequency((LARGE_INTEGER *)&ifreq);
-    perffreq = (double)ifreq;
+    perffreq = double(ifreq);
   }
 
   if (hasperfcounter) {

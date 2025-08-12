@@ -1245,7 +1245,7 @@ static StructRNA *rna_AssetShelf_register(Main *bmain,
                 RPT_ERROR,
                 "Registering asset shelf class: '%s' is too long, maximum length is %d",
                 identifier,
-                (int)sizeof(shelf_type->idname));
+                int(sizeof(shelf_type->idname)));
     return nullptr;
   }
 

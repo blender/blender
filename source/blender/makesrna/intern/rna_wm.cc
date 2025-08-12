@@ -845,7 +845,7 @@ static int rna_NDOFMotionEventData_progress_get(PointerRNA *ptr)
 {
 #  ifdef WITH_INPUT_NDOF
   const wmNDOFMotionData &ndof = *static_cast<const wmNDOFMotionData *>(ptr->data);
-  return static_cast<int>(ndof.progress);
+  return int(ndof.progress);
 #  else
   UNUSED_VARS(ptr);
   return 0;

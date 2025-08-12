@@ -363,7 +363,7 @@ void *MEM_guarded_dupallocN(const void *vmemh)
       }
       else {
         newp = MEM_guarded_mallocN_aligned(
-            memh->len, (size_t)memh->alignment, name, AllocationType::ALLOC_FREE);
+            memh->len, size_t(memh->alignment), name, AllocationType::ALLOC_FREE);
       }
 
       if (newp == nullptr)
