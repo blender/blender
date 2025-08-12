@@ -127,7 +127,7 @@ typedef uint32_t cuuint32_t;
 typedef uint64_t cuuint64_t;
 #endif
 
-#if defined(__x86_64) || defined(AMD64) || defined(_M_AMD64) || defined (__aarch64__) || defined(_M_ARM64) || defined(__ppc64__) || defined(__PPC64__)
+#if defined(__LP64__) || defined(AMD64) || defined(_M_AMD64) || defined(_M_ARM64)
 typedef unsigned long long CUdeviceptr;
 #else
 typedef unsigned int CUdeviceptr;
