@@ -530,7 +530,7 @@ static PyObject *app_translations_locales_get(PyObject * /*self*/, void * /*user
   if (items) {
     for (it = items; it->identifier; it++) {
       if (it->value) {
-        PyTuple_SET_ITEM(ret, pos++, PyUnicode_FromString(it->description));
+        PyTuple_SET_ITEM(ret, pos++, PyUnicode_FromString(it->identifier));
       }
     }
   }
