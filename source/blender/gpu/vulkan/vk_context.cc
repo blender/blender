@@ -143,8 +143,6 @@ void VKContext::begin_frame() {}
 
 void VKContext::end_frame()
 {
-  VKDevice &device = VKBackend::get().device;
-  device.orphaned_data.destroy_discarded_resources(device);
   this->process_frame_timings();
 }
 

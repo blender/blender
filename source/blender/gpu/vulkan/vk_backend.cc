@@ -656,13 +656,14 @@ void VKBackend::render_end()
   thread_data.rendering_depth -= 1;
   BLI_assert_msg(thread_data.rendering_depth >= 0, "Unbalanced `GPU_render_begin/end`");
   if (G.background) {
-    /* Garbage collection when performing background rendering. */
     if (thread_data.rendering_depth == 0) {
       VKContext *context = VKContext::get();
       if (context != nullptr) {
-        context->flush_render_graph(RenderGraphFlushFlags::RENEW_RENDER_GRAPH);
+        context->flush();
       }
-      device.orphaned_data.destroy_discarded_resources(device);
+      std::scoped_lock lock(device.orphaned_data.mutex_get());
+      device.orphaned_data.move_data(device.orphaned_data_render,
+                                     device.orphaned_data.timeline_ + 1);
     }
   }
 
@@ -670,23 +671,9 @@ void VKBackend::render_end()
    * after each frame.
    */
   if (G.is_rendering && thread_data.rendering_depth == 0 && !BLI_thread_is_main()) {
-    {
-      std::scoped_lock lock(device.orphaned_data.mutex_get());
-      device.orphaned_data.move_data(device.orphaned_data_render,
-                                     device.orphaned_data.timeline_ + 1);
-    }
-    /* Fix #139284: During rendering when main thread is blocked or all screens are minimized the
-     * garbage collection will not happen resulting in crashes as resources are not freed.
-     *
-     * A better solution would be to do garbage collection in a separate thread but that requires a
-     * ref counting system. The specifics of such a system is still unclear.
-     *
-     * A possible solution for a Vulkan specific ref counting is to store the ref counts in the
-     * resource tracker. That would only handle images and buffers, but it would solve the most
-     * resource hungry issues.
-     */
-    device.wait_queue_idle();
-    device.orphaned_data.destroy_discarded_resources(device);
+    std::scoped_lock lock(device.orphaned_data.mutex_get());
+    device.orphaned_data.move_data(device.orphaned_data_render,
+                                   device.orphaned_data.timeline_ + 1);
   }
 }
 
