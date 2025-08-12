@@ -3267,12 +3267,6 @@ static bool rna_FileBrowser_FSMenuEntry_use_save_get(PointerRNA *ptr)
   return fsm->save;
 }
 
-static bool rna_FileBrowser_FSMenuEntry_is_valid_get(PointerRNA *ptr)
-{
-  FSMenuEntry *fsm = static_cast<FSMenuEntry *>(ptr->data);
-  return fsm->valid;
-}
-
 static void rna_FileBrowser_FSMenu_next(CollectionPropertyIterator *iter)
 {
   ListBaseIterator *internal = &iter->internal.listbase;
@@ -7607,11 +7601,6 @@ static void rna_def_filemenu_entry(BlenderRNA *brna)
   RNA_def_property_boolean_funcs(prop, "rna_FileBrowser_FSMenuEntry_use_save_get", nullptr);
   RNA_def_property_ui_text(
       prop, "Save", "Whether this path is saved in bookmarks, or generated from OS");
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-
-  prop = RNA_def_property(srna, "is_valid", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_funcs(prop, "rna_FileBrowser_FSMenuEntry_is_valid_get", nullptr);
-  RNA_def_property_ui_text(prop, "Valid", "Whether this path is currently reachable");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }
 

@@ -1249,7 +1249,6 @@ static wmOperatorStatus bookmark_cleanup_exec(bContext *C, wmOperator *op)
 
   if (changed) {
     fsmenu_write_file_and_refresh_or_report_error(fsmenu, area, op->reports);
-    fsmenu_refresh_bookmarks_status(CTX_wm_manager(C), fsmenu);
   }
 
   return OPERATOR_FINISHED;
@@ -2262,9 +2261,6 @@ static wmOperatorStatus file_refresh_exec(bContext *C, wmOperator * /*unused*/)
 
   /* refresh system directory menu */
   fsmenu_refresh_system_category(fsmenu);
-
-  /* Update bookmarks 'valid' state. */
-  fsmenu_refresh_bookmarks_status(wm, fsmenu);
 
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, nullptr);
 
