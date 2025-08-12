@@ -85,6 +85,40 @@ TEST(curves_geometry, TypeCount)
   EXPECT_EQ(counts[CURVE_TYPE_NURBS], 3);
 }
 
+TEST(curves_geometry, CyclicOffsets)
+{
+  CurvesGeometry curves = create_basic_curves(100, 10);
+  {
+    const std::optional<Span<int>> cyclic_offsets = curves.cyclic_offsets();
+    EXPECT_FALSE(cyclic_offsets.has_value());
+  }
+  {
+    curves.cyclic_for_write().fill(true);
+    curves.tag_topology_changed();
+    const std::optional<Span<int>> cyclic_offsets = curves.cyclic_offsets();
+    EXPECT_TRUE(cyclic_offsets.has_value());
+    EXPECT_EQ_SPAN<int>(*cyclic_offsets, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10});
+  }
+  {
+    curves.cyclic_for_write().fill(false);
+    curves.tag_topology_changed();
+    const std::optional<Span<int>> cyclic_offsets = curves.cyclic_offsets();
+    EXPECT_FALSE(cyclic_offsets.has_value());
+  }
+  {
+    curves.attributes_for_write().remove("cyclic");
+    const std::optional<Span<int>> cyclic_offsets = curves.cyclic_offsets();
+    EXPECT_FALSE(cyclic_offsets.has_value());
+  }
+  {
+    curves.cyclic_for_write().copy_from(
+        {false, true, false, true, false, false, false, false, true, false});
+    curves.tag_topology_changed();
+    const std::optional<Span<int>> cyclic_offsets = curves.cyclic_offsets();
+    EXPECT_EQ_SPAN<int>(*cyclic_offsets, {0, 0, 1, 1, 2, 2, 2, 2, 2, 3, 3});
+  }
+}
+
 TEST(curves_geometry, CatmullRomEvaluation)
 {
   CurvesGeometry curves(4, 1);

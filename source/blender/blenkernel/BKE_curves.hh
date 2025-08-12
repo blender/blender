@@ -9,6 +9,7 @@
  * \brief Low-level operations for curves.
  */
 
+#include "BLI_array_utils.hh"
 #include "BLI_bounds_types.hh"
 #include "BLI_implicit_sharing_ptr.hh"
 #include "BLI_index_mask_fwd.hh"
@@ -93,6 +94,8 @@ class CurvesGeometryRuntime {
     Vector<int> all_bezier_offsets;
   };
   mutable SharedCache<EvaluatedOffsets> evaluated_offsets_cache;
+
+  mutable SharedCache<std::optional<Vector<int>>> cyclic_offsets_cache;
 
   mutable SharedCache<Vector<curves::nurbs::BasisCache>> nurbs_basis_cache;
 
@@ -381,6 +384,12 @@ class CurvesGeometry : public ::CurvesGeometry {
    * evaluated offsets cache is current.
    */
   Span<int> bezier_evaluated_offsets_for_curve(int curve_index) const;
+
+  /**
+   * A prefix sum of the cyclic attribute, in other words the number of cyclic curves that precede
+   * each curve. Used for rendering. If there are no cyclic curves, `std::nullopt` is returned.
+   */
+  std::optional<Span<int>> cyclic_offsets() const;
 
   Span<float3> evaluated_positions() const;
   Span<float3> evaluated_tangents() const;
