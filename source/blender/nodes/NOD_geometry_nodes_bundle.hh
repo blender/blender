@@ -45,8 +45,7 @@ struct BundleItemValue {
 };
 
 /**
- * A bundle is a map containing keys and their corresponding values. Values are stored as the type
- * they have in Geometry Nodes (#bNodeSocketType::geometry_nodes_cpp_type).
+ * A bundle is a map containing keys and their corresponding values.
  *
  * The API also supports working with paths in nested bundles like `root/child/data`.
  */

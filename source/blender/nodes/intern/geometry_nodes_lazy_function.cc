@@ -72,21 +72,6 @@ using bke::node_tree_reference_lifetimes::ReferenceLifetimesInfo;
 using bke::node_tree_reference_lifetimes::ReferenceSetInfo;
 using bke::node_tree_reference_lifetimes::ReferenceSetType;
 
-static const CPPType *get_socket_cpp_type(const bke::bNodeSocketType &typeinfo)
-{
-  const CPPType *type = typeinfo.geometry_nodes_cpp_type;
-  if (type == nullptr) {
-    return nullptr;
-  }
-  BLI_assert(type->has_special_member_functions);
-  return type;
-}
-
-static const CPPType *get_socket_cpp_type(const bNodeSocket &socket)
-{
-  return get_socket_cpp_type(*socket.typeinfo);
-}
-
 /**
  * Checks which sockets of the node are available and creates corresponding inputs/outputs on the
  * lazy-function.
@@ -102,12 +87,15 @@ static void lazy_function_interface_from_node(const bNode &node,
     if (!socket->is_available()) {
       continue;
     }
-    const CPPType *type = get_socket_cpp_type(*socket);
-    if (type == nullptr) {
+    if (!socket->typeinfo->geometry_nodes_default_value) {
       continue;
     }
+    const CPPType *type;
     if (socket->is_multi_input() && !is_muted) {
       type = &CPPType::get<GeoNodesMultiInput<SocketValueVariant>>();
+    }
+    else {
+      type = &CPPType::get<SocketValueVariant>();
     }
     r_lf_index_by_bsocket[socket->index_in_tree()] = r_inputs.append_and_get_index_as(
         socket->name, *type, input_usage);
@@ -116,12 +104,11 @@ static void lazy_function_interface_from_node(const bNode &node,
     if (!socket->is_available()) {
       continue;
     }
-    const CPPType *type = get_socket_cpp_type(*socket);
-    if (type == nullptr) {
+    if (!socket->typeinfo->geometry_nodes_default_value) {
       continue;
     }
     r_lf_index_by_bsocket[socket->index_in_tree()] = r_outputs.append_and_get_index_as(
-        socket->name, *type);
+        socket->name, CPPType::get<SocketValueVariant>());
   }
 }
 
@@ -352,11 +339,11 @@ class LazyFunctionForMultiInput : public LazyFunction {
  */
 class LazyFunctionForRerouteNode : public LazyFunction {
  public:
-  LazyFunctionForRerouteNode(const CPPType &type)
+  LazyFunctionForRerouteNode()
   {
     debug_name_ = "Reroute";
-    inputs_.append({"Input", type});
-    outputs_.append({"Output", type});
+    inputs_.append({"Input", CPPType::get<SocketValueVariant>()});
+    outputs_.append({"Output", CPPType::get<SocketValueVariant>()});
   }
 
   void execute_impl(lf::Params &params, const lf::Context & /*context*/) const override
@@ -613,11 +600,11 @@ const LazyFunction *build_implicit_conversion_lazy_function(const bke::bNodeSock
                                                             const bke::bNodeSocketType &to_type,
                                                             ResourceScope &scope)
 {
-  if (!from_type.geometry_nodes_cpp_type || !to_type.geometry_nodes_cpp_type) {
+  if (!from_type.geometry_nodes_default_value || !to_type.geometry_nodes_default_value) {
     return nullptr;
   }
   if (from_type.type == to_type.type) {
-    return &scope.construct<LazyFunctionForRerouteNode>(*from_type.geometry_nodes_cpp_type);
+    return &scope.construct<LazyFunctionForRerouteNode>();
   }
   const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
   const CPPType &from_base_type = *from_type.base_cpp_type;
@@ -979,14 +966,13 @@ class LazyFunctionForGizmoNode : public LazyFunction {
       if (link->fromnode->is_dangling_reroute()) {
         continue;
       }
-      inputs_.append_and_get_index_as(gizmo_socket.identifier,
-                                      *gizmo_socket.typeinfo->geometry_nodes_cpp_type,
-                                      lf::ValueUsage::Maybe);
+      inputs_.append_and_get_index_as(
+          gizmo_socket.identifier, CPPType::get<SocketValueVariant>(), lf::ValueUsage::Maybe);
       gizmo_links.append(link);
     }
     for (const bNodeSocket *socket : bnode.input_sockets().drop_front(1)) {
       r_lf_index_by_bsocket[socket->index_in_tree()] = inputs_.append_and_get_index_as(
-          socket->identifier, *socket->typeinfo->geometry_nodes_cpp_type, lf::ValueUsage::Maybe);
+          socket->identifier, CPPType::get<SocketValueVariant>(), lf::ValueUsage::Maybe);
     }
     r_lf_index_by_bsocket[bnode.output_socket(0).index_in_tree()] =
         outputs_.append_and_get_index_as("Transform", CPPType::get<SocketValueVariant>());
@@ -1647,7 +1633,7 @@ static bool ignore_zone_bsocket(const bNodeSocket &bsocket)
   if (!bsocket.is_available()) {
     return true;
   }
-  if (!bsocket.typeinfo->geometry_nodes_cpp_type) {
+  if (!bsocket.typeinfo->geometry_nodes_default_value) {
     /* These are typically extend sockets. */
     return true;
   }
@@ -1666,25 +1652,22 @@ void initialize_zone_wrapper(const bNodeTreeZone &zone,
       continue;
     }
     zone_info.indices.inputs.main.append(r_inputs.append_and_get_index_as(
-        socket->name, *socket->typeinfo->geometry_nodes_cpp_type, lf::ValueUsage::Maybe));
+        socket->name, CPPType::get<SocketValueVariant>(), lf::ValueUsage::Maybe));
   }
 
   for (const bNodeLink *link : zone.border_links) {
-    zone_info.indices.inputs.border_links.append(
-        r_inputs.append_and_get_index_as(link->fromsock->name,
-                                         *link->tosock->typeinfo->geometry_nodes_cpp_type,
-                                         lf::ValueUsage::Maybe));
+    zone_info.indices.inputs.border_links.append(r_inputs.append_and_get_index_as(
+        link->fromsock->name, CPPType::get<SocketValueVariant>(), lf::ValueUsage::Maybe));
   }
 
   for (const bNodeSocket *socket : zone.output_node()->output_sockets()) {
     if (ignore_zone_bsocket(*socket)) {
       continue;
     }
-    const CPPType *cpp_type = socket->typeinfo->geometry_nodes_cpp_type;
     zone_info.indices.inputs.output_usages.append(
         r_inputs.append_and_get_index_as("Usage", CPPType::get<bool>(), lf::ValueUsage::Maybe));
     zone_info.indices.outputs.main.append(
-        r_outputs.append_and_get_index_as(socket->name, *cpp_type));
+        r_outputs.append_and_get_index_as(socket->name, CPPType::get<SocketValueVariant>()));
   }
 
   for ([[maybe_unused]] const bNodeSocket *socket : zone.input_node()->input_sockets()) {
@@ -2068,7 +2051,7 @@ struct GeometryNodesLazyFunctionBuilder {
     if (zone.input_node() != nullptr) {
       for (const bNodeSocket *bsocket : zone.input_node()->input_sockets().drop_back(1)) {
         zone_info.indices.inputs.main.append(lf_zone_inputs.append_and_get_index(
-            &lf_graph.add_input(*bsocket->typeinfo->geometry_nodes_cpp_type, bsocket->name)));
+            &lf_graph.add_input(CPPType::get<SocketValueVariant>(), bsocket->name)));
         zone_info.indices.outputs.input_usages.append(lf_zone_outputs.append_and_get_index(
             &lf_graph.add_output(CPPType::get<bool>(), "Usage: " + StringRef(bsocket->name))));
       }
@@ -2081,7 +2064,7 @@ struct GeometryNodesLazyFunctionBuilder {
 
     for (const bNodeSocket *bsocket : zone.output_node()->output_sockets().drop_back(1)) {
       zone_info.indices.outputs.main.append(lf_zone_outputs.append_and_get_index(
-          &lf_graph.add_output(*bsocket->typeinfo->geometry_nodes_cpp_type, bsocket->name)));
+          &lf_graph.add_output(CPPType::get<SocketValueVariant>(), bsocket->name)));
       zone_info.indices.inputs.output_usages.append(lf_zone_inputs.append_and_get_index(
           &lf_graph.add_input(CPPType::get<bool>(), "Usage: " + StringRef(bsocket->name))));
     }
@@ -2239,8 +2222,8 @@ struct GeometryNodesLazyFunctionBuilder {
       if (ignore_zone_bsocket(*bsocket)) {
         continue;
       }
-      lf::GraphInputSocket &lf_input = lf_body_graph.add_input(
-          *bsocket->typeinfo->geometry_nodes_cpp_type, bsocket->name);
+      lf::GraphInputSocket &lf_input = lf_body_graph.add_input(CPPType::get<SocketValueVariant>(),
+                                                               bsocket->name);
       lf::GraphOutputSocket &lf_input_usage = lf_body_graph.add_output(
           CPPType::get<bool>(), "Usage: " + StringRef(bsocket->name));
       body_fn.indices.inputs.main.append(lf_body_inputs.append_and_get_index(&lf_input));
@@ -2259,7 +2242,7 @@ struct GeometryNodesLazyFunctionBuilder {
         continue;
       }
       lf::GraphOutputSocket &lf_output = lf_body_graph.add_output(
-          *bsocket->typeinfo->geometry_nodes_cpp_type, bsocket->name);
+          CPPType::get<SocketValueVariant>(), bsocket->name);
       lf::GraphInputSocket &lf_output_usage = lf_body_graph.add_input(
           CPPType::get<bool>(), "Usage: " + StringRef(bsocket->name));
       graph_params.lf_inputs_by_bsocket.add(bsocket, &lf_output);
@@ -2344,7 +2327,7 @@ struct GeometryNodesLazyFunctionBuilder {
   {
     for (const bNodeLink *border_link : zone.border_links) {
       r_indices.append(r_lf_graph_inputs.append_and_get_index(
-          &lf_graph.add_input(*border_link->tosock->typeinfo->geometry_nodes_cpp_type,
+          &lf_graph.add_input(CPPType::get<SocketValueVariant>(),
                               StringRef("Link from ") + border_link->fromsock->name)));
     }
   }
@@ -2829,9 +2812,8 @@ struct GeometryNodesLazyFunctionBuilder {
   {
     const Span<const bNodeTreeInterfaceSocket *> interface_inputs = btree_.interface_inputs();
     for (const bNodeTreeInterfaceSocket *interface_input : interface_inputs) {
-      const bke::bNodeSocketType *typeinfo = interface_input->socket_typeinfo();
       lf::GraphInputSocket &lf_socket = lf_graph.add_input(
-          *typeinfo->geometry_nodes_cpp_type, interface_input->name ? interface_input->name : "");
+          CPPType::get<SocketValueVariant>(), interface_input->name ? interface_input->name : "");
       group_input_sockets_.append(&lf_socket);
     }
   }
@@ -2844,14 +2826,10 @@ struct GeometryNodesLazyFunctionBuilder {
   {
     for (const bNodeTreeInterfaceSocket *interface_output : btree_.interface_outputs()) {
       const bke::bNodeSocketType *typeinfo = interface_output->socket_typeinfo();
-      const CPPType &type = *typeinfo->geometry_nodes_cpp_type;
       lf::GraphOutputSocket &lf_socket = lf_graph.add_output(
-          type, interface_output->name ? interface_output->name : "");
-      const void *default_value = typeinfo->geometry_nodes_default_value;
-      if (default_value == nullptr) {
-        default_value = type.default_value();
-      }
-      lf_socket.set_default_value(default_value);
+          CPPType::get<SocketValueVariant>(),
+          interface_output->name ? interface_output->name : "");
+      lf_socket.set_default_value(typeinfo->geometry_nodes_default_value);
       standard_group_output_sockets_.append(&lf_socket);
     }
   }
@@ -3002,12 +2980,11 @@ struct GeometryNodesLazyFunctionBuilder {
   {
     const bNodeSocket &input_bsocket = bnode.input_socket(0);
     const bNodeSocket &output_bsocket = bnode.output_socket(0);
-    const CPPType *type = get_socket_cpp_type(input_bsocket);
-    if (type == nullptr) {
+    if (!input_bsocket.typeinfo->geometry_nodes_default_value) {
       return;
     }
 
-    auto &lazy_function = scope_.construct<LazyFunctionForRerouteNode>(*type);
+    auto &lazy_function = scope_.construct<LazyFunctionForRerouteNode>();
     lf::Node &lf_node = graph_params.lf_graph.add_function(lazy_function);
 
     lf::InputSocket &lf_input = lf_node.input(0);
@@ -3042,10 +3019,8 @@ struct GeometryNodesLazyFunctionBuilder {
     for (const int i : btree_.interface_outputs().index_range()) {
       const bNodeTreeInterfaceSocket &interface_output = *btree_.interface_outputs()[i];
       const bNodeSocket &bsocket = bnode.input_socket(i);
-      const bke::bNodeSocketType *typeinfo = interface_output.socket_typeinfo();
-      const CPPType &type = *typeinfo->geometry_nodes_cpp_type;
       lf::GraphOutputSocket &lf_socket = graph_params.lf_graph.add_output(
-          type, interface_output.name ? interface_output.name : "");
+          CPPType::get<SocketValueVariant>(), interface_output.name ? interface_output.name : "");
       lf_graph_outputs.append(&lf_socket);
       graph_params.lf_inputs_by_bsocket.add(&bsocket, &lf_socket);
       mapping_->bsockets_by_lf_socket_map.add(&lf_socket, &bsocket);
@@ -3757,10 +3732,10 @@ struct GeometryNodesLazyFunctionBuilder {
     const Vector<TypeWithLinks> types_with_links = this->group_link_targets_by_type(from_bsocket);
 
     for (const TypeWithLinks &type_with_links : types_with_links) {
-      if (type_with_links.typeinfo == nullptr) {
+      if (!type_with_links.typeinfo) {
         continue;
       }
-      if (type_with_links.typeinfo->geometry_nodes_cpp_type == nullptr) {
+      if (!type_with_links.typeinfo->geometry_nodes_default_value) {
         continue;
       }
       const bke::bNodeSocketType &to_typeinfo = *type_with_links.typeinfo;
@@ -4211,13 +4186,13 @@ const GeometryNodesLazyFunctionGraphInfo *ensure_geometry_nodes_lazy_function_gr
   }
   for (const bNodeTreeInterfaceSocket *interface_bsocket : btree.interface_inputs()) {
     const bke::bNodeSocketType *typeinfo = interface_bsocket->socket_typeinfo();
-    if (!typeinfo || !typeinfo->geometry_nodes_cpp_type) {
+    if (!typeinfo || !typeinfo->geometry_nodes_default_value) {
       return nullptr;
     }
   }
   for (const bNodeTreeInterfaceSocket *interface_bsocket : btree.interface_outputs()) {
     const bke::bNodeSocketType *typeinfo = interface_bsocket->socket_typeinfo();
-    if (!typeinfo || !typeinfo->geometry_nodes_cpp_type) {
+    if (!typeinfo || !typeinfo->geometry_nodes_default_value) {
       return nullptr;
     }
   }
