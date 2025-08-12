@@ -907,20 +907,6 @@ def brush_settings(layout, context, brush, popover=False):
             layout.prop(brush, "use_cloth_collision")
             layout.separator()
 
-        elif sculpt_brush_type == 'SCRAPE':
-            row = layout.row(align=True)
-            row.prop(brush, "area_radius_factor")
-            row.prop(brush, "use_pressure_area_radius", text="")
-            row = layout.row()
-            row.prop(brush, "invert_to_scrape_fill", text="Invert to Fill")
-
-        elif sculpt_brush_type == 'FILL':
-            row = layout.row(align=True)
-            row.prop(brush, "area_radius_factor")
-            row.prop(brush, "use_pressure_area_radius", text="")
-            row = layout.row()
-            row.prop(brush, "invert_to_scrape_fill", text="Invert to Scrape")
-
         elif sculpt_brush_type == 'PLANE':
             row = layout.row(align=True)
             row.prop(brush, "area_radius_factor")
