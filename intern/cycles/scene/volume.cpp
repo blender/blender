@@ -908,6 +908,7 @@ void VolumeManager::flatten_octree(DeviceScene *dscene, const Scene *scene) cons
 
     /* Flatten octree. */
     const uint current_index = node_index++;
+    knodes[current_index].parent = -1;
     octree->flatten(knodes, current_index, root, node_index);
     octree->set_flattened();
   }

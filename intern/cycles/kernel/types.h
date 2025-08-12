@@ -1707,69 +1707,17 @@ struct KernelOctreeRoot {
 };
 
 struct KernelOctreeNode {
+  /* Index of the parent node in device vector `volume_tree_nodes`. */
+  int parent;
+
   /* Index of the first child node in device vector `volume_tree_nodes`. All children of the same
    * node are stored in contiguous memory. */
   int first_child;
-
-  int pad;
 
   /* Minimal and maximal volume density inside the node. */
   /* TODO(weizhen): we can make sigma Spectral for better accuracy. Since only root and leaf nodes
    * need sigma, we can introduce `KernelOctreeInnerNode` to reduce the size of the struct. */
   Extrema<float> sigma;
-};
-
-/* Last-in, first-out stack, holding elements with a maximal size of `MAX_SIZE`. */
-template<typename type, int MAX_SIZE> struct KernelStack {
-  type array[MAX_SIZE];
-  /* Index of the top element. */
-  int index = -1;
-
-  ccl_device_inline_method bool is_empty() const
-  {
-    return index < 0;
-  }
-
-  /* Removes the element on top of the stack, and reduces the size by one. */
-  ccl_device_inline_method void pop()
-  {
-    kernel_assert(!is_empty());
-    index--;
-  }
-
-  /* Removes several elements on top of the stack. */
-  ccl_device_inline_method void pop(const int num)
-  {
-    kernel_assert(num >= 0);
-    kernel_assert(index >= num - 1);
-    index -= num;
-  }
-
-  /* Inserts a new element at the top of the stack. */
-  ccl_device_inline_method void push(type elem)
-  {
-    kernel_assert(index < MAX_SIZE - 1);
-    array[++index] = elem;
-  }
-
-  /* Access the top element. */
-  ccl_device_inline_method type top() const
-  {
-    kernel_assert(!is_empty());
-    return array[index];
-  }
-
-  /* Returns the number of elements in the stack. */
-  ccl_device_inline_method int size() const
-  {
-    return index + 1;
-  }
-
-  /* Removes all elements from the stack. Effectively set the size to 0. */
-  ccl_device_inline_method void clear()
-  {
-    index = -1;
-  }
 };
 
 struct KernelLightTreeEmitter {

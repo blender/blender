@@ -137,11 +137,15 @@ ccl_device_inline bool volume_shader_sample(KernelGlobals kg,
  * to find `t.max`, then store a point `current_P` which lies in the adjacent leaf node. The next
  * leaf node is found by checking the higher bits of `current_P`.
  *
+ * The paper suggests to keep a stack of parent nodes, in practice such a stack (even when the size
+ * is just 8) slows down performance on GPU. Instead we store the parent index in the leaf node
+ * directly, since there is sufficient space due to alignment.
+ *
  * \{ */
 
 struct OctreeTracing {
-  /* Stack of parent nodes of the current node. Plus two for world volume and root node. */
-  KernelStack<ccl_global const KernelOctreeNode *, VOLUME_OCTREE_MAX_DEPTH + 1> nodes;
+  /* Current active leaf node. */
+  ccl_global const KernelOctreeNode *node = nullptr;
 
   /* Current active ray segment, typically spans from the front face to the back face of the
    * current leaf node. */
@@ -273,22 +277,6 @@ struct OctreeTracing {
     const uint8_t z = ((current_P.z >> scale) & 1u) << 2u;
     return (x | y | z) ^ octant_mask;
   }
-
-  ccl_device_inline_method bool is_empty() const
-  {
-    return nodes.is_empty();
-  }
-
-  ccl_device_inline_method void push(ccl_global const KernelOctreeNode *node)
-  {
-    nodes.push(node);
-  }
-
-  /* Access the current active leaf node. */
-  ccl_device_inline_method ccl_global const KernelOctreeNode *get_voxel() const
-  {
-    return nodes.top();
-  }
 };
 
 /* Check if an octree node is leaf node. */
@@ -300,11 +288,10 @@ ccl_device_inline bool volume_node_is_leaf(const ccl_global KernelOctreeNode *kn
 /* Find the leaf node of the current position, and replace `octree.node` with that node. */
 ccl_device void volume_voxel_get(KernelGlobals kg, ccl_private OctreeTracing &octree)
 {
-  const ccl_global KernelOctreeNode *knode = octree.get_voxel();
-  while (!volume_node_is_leaf(knode)) {
-    octree.scale--;
-    knode = &kernel_data_fetch(volume_tree_nodes, knode->first_child + octree.get_octant());
-    octree.push(knode);
+  while (!volume_node_is_leaf(octree.node)) {
+    octree.scale -= 1;
+    const int child_index = octree.node->first_child + octree.get_octant();
+    octree.node = &kernel_data_fetch(volume_tree_nodes, child_index);
   }
 }
 
@@ -369,7 +356,7 @@ ccl_device_inline Extrema<float> volume_object_get_extrema(KernelGlobals kg,
   const int shader_flag = kernel_data_fetch(shaders, (octree.entry.shader & SHADER_MASK)).flags;
   if ((path_flag & PATH_RAY_CAMERA) || !(shader_flag & SD_HAS_LIGHT_PATH_NODE)) {
     /* Use the baked volume density extrema. */
-    return octree.get_voxel()->sigma * object_volume_density(kg, octree.entry.object);
+    return octree.node->sigma * object_volume_density(kg, octree.entry.object);
   }
 
   return volume_estimate_extrema<shadow>(kg, ray, sd, state, rng_state, path_flag, octree.entry);
@@ -425,7 +412,7 @@ ccl_device bool volume_octree_setup(KernelGlobals kg,
     const ccl_global KernelOctreeRoot *kroot = volume_find_octree_root(kg, entry);
 
     OctreeTracing local(global.t.min);
-    local.push(&kernel_data_fetch(volume_tree_nodes, kroot->id));
+    local.node = &kernel_data_fetch(volume_tree_nodes, kroot->id);
     local.entry = entry;
 
     /* Convert to object space. */
@@ -460,7 +447,7 @@ ccl_device bool volume_octree_setup(KernelGlobals kg,
     global.no_overlap = true;
   }
 
-  return !global.is_empty() && !global.t.is_empty();
+  return global.node && !global.t.is_empty();
 }
 
 /* Advance to the next adjacent leaf node and update the active interval. */
@@ -487,18 +474,17 @@ ccl_device_inline bool volume_octree_advance(KernelGlobals kg,
 
     /* Outside of the root node, continue tracing using the extrema of the root node. */
     octree.t = {octree.t.max, ray->tmax};
-    octree.nodes.clear();
-    octree.push(
-        &kernel_data_fetch(volume_tree_nodes, volume_find_octree_root(kg, octree.entry)->id));
+    octree.node = &kernel_data_fetch(volume_tree_nodes,
+                                     volume_find_octree_root(kg, octree.entry)->id);
   }
   else {
     kernel_assert(octree.next_scale > octree.scale);
 
     /* Fetch the common ancestor of the current and the next leaf nodes. */
-    octree.nodes.pop(octree.next_scale - octree.scale);
-    octree.scale = octree.next_scale;
-
-    kernel_assert(!octree.is_empty());
+    for (; octree.scale < octree.next_scale; octree.scale++) {
+      kernel_assert(octree.node->parent != -1);
+      octree.node = &kernel_data_fetch(volume_tree_nodes, octree.node->parent);
+    }
 
     /* Find the current active leaf node. */
     volume_voxel_get(kg, octree);

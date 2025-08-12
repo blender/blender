@@ -328,6 +328,7 @@ void Octree::flatten(KernelOctreeNode *knodes,
     /* Loop through all the children and flatten in breadth-first manner, so that children are
      * stored in contiguous indices. */
     for (int i = 0; i < 8; i++) {
+      knodes[knode.first_child + i].parent = current_index;
       flatten(knodes, knode.first_child + i, internal_ptr->children_[i], child_index);
     }
   }
