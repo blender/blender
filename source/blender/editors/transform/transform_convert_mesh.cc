@@ -2590,7 +2590,7 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
 
           if (isect_curr_dirs) {
             /* The `best_dir` can only have one direction. */
-            const float3 &curr_orig = curr.sv->v_co_orig();
+            const float *curr_orig = curr.sv->v_co_orig();
             const float3 &dst0 = prev.fdata[best_dir].dst;
             const float3 &dst1 = curr.fdata[best_dir].dst;
             const float3 &dst2 = dst;
@@ -2652,9 +2652,8 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
              *
              * Notes:
              * - Any intersection outside the cone is ignored.
-             * - We may want to limit how distant the point can be
-             *   although there doesn't seem to be an obvious cutoff
-             *   where the intersection point is obviously wrong.
+             * - We may want to limit how distant the point can be although there
+             *   doesn't seem to be an cutoff where the intersection point is obviously wrong.
              *   (although we could clamp at some distance instead of rejecting the location).
              * - In the case of degenerate geometry (lines that have no length for example)
              *   just use the mid-point as it's not worth attempting to calculate an intersection
@@ -2671,8 +2670,8 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
             if (isect_line_line != 0) {
               /* Check if the intersections are outside the "valid conical region". */
               BLI_assert(isect_line_line <= 2);
-              const float3 dir1 = math::normalize(dst1 - curr_orig);
-              const float3 dir2 = math::normalize(dst2 - curr_orig);
+              const float3 dir1 = math::normalize(dst1 - float3(curr_orig));
+              const float3 dir2 = math::normalize(dst2 - float3(curr_orig));
               float len_n;
               const float3 n = math::normalize_and_get_length(math::cross(dir1, dir2), len_n);
               if (UNLIKELY(len_n < isect_eps)) {
@@ -2690,7 +2689,7 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
                 }
                 else {
                   for (int isect_pass = 0; isect_pass < isect_line_line; isect_pass++) {
-                    const float3 isect_co = isect_pair[isect_pass] - curr_orig;
+                    const float3 isect_co = isect_pair[isect_pass] - float3(curr_orig);
                     if ((math::dot(isect_co, plane_no_1) <= 0.0f) ||
                         (math::dot(isect_co, plane_no_2) <= 0.0f))
                     {
