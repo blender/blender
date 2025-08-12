@@ -469,6 +469,37 @@ class CompositorNodeGroupInterfaceTest(AbstractNodeGroupInterfaceTest, NodeGroup
         self.do_test_remove("NodeSocketFloat")
 
 
+class NodeTreeItemsIteratorTest(AbstractNodeGroupInterfaceTest, NodeGroupInterfaceTests):
+    tree_type = "ShaderNodeTree"
+    group_node_type = "ShaderNodeGroup"
+
+    def setUp(self):
+        super().setUp()
+        self.material = bpy.data.materials.new("test")
+        self.material.use_nodes = True
+        self.main_tree = self.material.node_tree
+
+    # Regression test for changes while iterating over tree interface items (#143551).
+    # The iterator should remain valid when changing properties of a tree item.
+    def test_items_iterator(self):
+        tree, group_node = self.make_group_and_instance()
+
+        tree.interface.new_socket("Input 0", socket_type="NodeSocketFloat", in_out='INPUT')
+        tree.interface.new_socket("Input 1", socket_type="NodeSocketBool", in_out='INPUT')
+        # The cache vector has a fixed buffer for small sizes, add enough sockets to force reallocation.
+        for i in range(20):
+            tree.interface.new_socket(f"Input {2+i}", socket_type="NodeSocketColor", in_out='INPUT')
+
+        # Iterate over items and change properties. The loop iterator must remain valid.
+        for item in tree.interface.items_tree:
+            if item.socket_type == "NodeSocketFloat":
+                item.default_value = 500.0
+            elif item.socket_type == "NodeSocketColor":
+                item.default_value = (1, 0, 0, 1)
+            elif item.socket_type == "NodeSocketBool":
+                item.default_value = True
+
+
 def main():
     global args
     import argparse
