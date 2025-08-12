@@ -56,10 +56,10 @@ template<typename T> constexpr bool is_GeoNodesMultiInput_v<GeoNodesMultiInput<T
  * Performs implicit conversion between socket types. Returns false if the conversion is not
  * possible. In that case, r_to_value is left uninitialized.
  */
-[[nodiscard]] bool implicitly_convert_socket_value(const bke::bNodeSocketType &from_type,
-                                                   const void *from_value,
-                                                   const bke::bNodeSocketType &to_type,
-                                                   void *r_to_value);
+[[nodiscard]] std::optional<bke::SocketValueVariant> implicitly_convert_socket_value(
+    const bke::bNodeSocketType &from_type,
+    const bke::SocketValueVariant &from_value,
+    const bke::bNodeSocketType &to_type);
 
 /**
  * Builds a lazy-function that can convert between socket types. Returns null if the conversion is

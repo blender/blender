@@ -18,7 +18,7 @@ struct BundleItemSocketValue {
   /** The type of data referenced. It uses #bNodeSocketType::geometry_nodes_cpp_type. */
   const bke::bNodeSocketType *type;
   /** Non-owning pointer to the value. The memory is owned by the Bundle directly. */
-  void *value;
+  bke::SocketValueVariant value;
 };
 
 /**
@@ -60,16 +60,8 @@ class Bundle : public ImplicitSharingMixin {
 
  private:
   Vector<StoredItem> items_;
-  Vector<void *> buffers_;
 
  public:
-  Bundle();
-  Bundle(const Bundle &other);
-  Bundle(Bundle &&other) noexcept;
-  Bundle &operator=(const Bundle &other);
-  Bundle &operator=(Bundle &&other) noexcept;
-  ~Bundle();
-
   static BundlePtr create();
 
   bool add(StringRef key, const BundleItemValue &value);
@@ -115,21 +107,15 @@ inline std::optional<T> BundleItemValue::as_socket_value(
   if (!socket_value) {
     return std::nullopt;
   }
-  if (!socket_value->value || !socket_value->type) {
-    return std::nullopt;
+  if (socket_value->type->type == dst_socket_type.type) {
+    return socket_value->value.get<T>();
   }
-  const void *converted_value = socket_value->value;
-  BUFFER_FOR_CPP_TYPE_VALUE(*dst_socket_type.geometry_nodes_cpp_type, buffer);
-  if (socket_value->type != &dst_socket_type) {
-    if (!implicitly_convert_socket_value(
-            *socket_value->type, socket_value->value, dst_socket_type, buffer))
-    {
-      return std::nullopt;
-    }
-    converted_value = buffer;
+  if (std::optional<bke::SocketValueVariant> converted_value = implicitly_convert_socket_value(
+          *socket_value->type, socket_value->value, dst_socket_type))
+  {
+    return converted_value->get<T>();
   }
-  const auto &value_variant = *static_cast<const bke::SocketValueVariant *>(converted_value);
-  return value_variant.get<T>();
+  return std::nullopt;
 }
 
 template<typename T> inline const bke::bNodeSocketType *socket_type_info_by_static_type()
@@ -183,15 +169,8 @@ template<typename T> inline std::optional<T> BundleItemValue::as() const
     if (!socket_value) {
       return std::nullopt;
     }
-    if (!socket_value->value || !socket_value->type) {
-      return std::nullopt;
-    }
-    if (!socket_value->type->geometry_nodes_cpp_type->is<bke::SocketValueVariant>()) {
-      return std::nullopt;
-    }
-    const auto *value = static_cast<const bke::SocketValueVariant *>(socket_value->value);
-    if (value->is_list()) {
-      return value->get<ListPtr>();
+    if (socket_value->value.is_list()) {
+      return socket_value->value.get<ListPtr>();
     }
     return std::nullopt;
   }
@@ -242,7 +221,7 @@ template<typename T, typename Fn> inline void to_stored_type(T &&value, Fn &&fn)
   }
   else if (const bke::bNodeSocketType *socket_type = socket_type_info_by_static_type<DecayT>()) {
     auto value_variant = bke::SocketValueVariant::From(std::forward<T>(value));
-    fn(BundleItemValue{BundleItemSocketValue{socket_type, &value_variant}});
+    fn(BundleItemValue{BundleItemSocketValue{socket_type, value_variant}});
   }
   else {
     /* All allowed types should be handled above already. */

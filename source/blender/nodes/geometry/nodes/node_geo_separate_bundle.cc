@@ -144,14 +144,13 @@ static void node_geo_exec(GeoNodeExecParams params)
           fmt::format("{}: \"{}\"", TIP_("Cannot get internal value from bundle"), name));
       continue;
     }
-    void *output_ptr = lf_params.get_output_data_ptr(i);
-    if (socket_value->type->type == stype->type) {
-      socket_value->type->geometry_nodes_cpp_type->copy_construct(socket_value->value, output_ptr);
-    }
-    else {
-      if (implicitly_convert_socket_value(
-              *socket_value->type, socket_value->value, *stype, output_ptr))
+
+    SocketValueVariant output_value = std::move(socket_value->value);
+    if (socket_value->type->type != stype->type) {
+      if (std::optional<SocketValueVariant> converted_value = implicitly_convert_socket_value(
+              *socket_value->type, output_value, *stype))
       {
+        output_value = std::move(*converted_value);
         params.error_message_add(
             NodeWarningType::Info,
             fmt::format("{}: \"{}\" ({} " BLI_STR_UTF8_BLACK_RIGHT_POINTING_SMALL_TRIANGLE " {})",
@@ -168,10 +167,10 @@ static void node_geo_exec(GeoNodeExecParams params)
                         name,
                         TIP_(socket_value->type->label),
                         TIP_(stype->label)));
-        construct_socket_default_value(*stype, output_ptr);
+        output_value = *socket_value->type->geometry_nodes_default_value;
       }
     }
-    lf_params.output_set(i);
+    lf_params.set_output(i, std::move(output_value));
   }
 
   params.set_default_remaining_outputs();

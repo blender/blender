@@ -788,18 +788,18 @@ void evaluate_closure_eagerly(const Closure &closure, ClosureEagerEvalParams &pa
     if (const std::optional<int> mapped_i = inputs_map[input_item_i]) {
       const bke::bNodeSocketType &from_type = *item.type;
       const bke::bNodeSocketType &to_type = *signature.inputs[*mapped_i].type;
-      const CPPType &to_cpp_type = *to_type.geometry_nodes_cpp_type;
-      void *value = allocator.allocate(to_cpp_type);
-      if (&from_type == &to_type) {
-        to_cpp_type.copy_construct(item.value, value);
+      bke::SocketValueVariant input_value;
+      if (std::optional<bke::SocketValueVariant> value = implicitly_convert_socket_value(
+              from_type, item.value, to_type))
+      {
+        input_value = *value;
       }
       else {
-        if (!implicitly_convert_socket_value(from_type, item.value, to_type, value)) {
-          const void *default_value = closure.default_input_value(*mapped_i);
-          to_cpp_type.copy_construct(default_value, value);
-        }
+        input_value = *to_type.geometry_nodes_default_value;
       }
-      lf_input_values[indices.inputs.main[*mapped_i]] = {to_cpp_type, value};
+      lf_input_values[indices.inputs.main[*mapped_i]] = {
+          CPPType::get<bke::SocketValueVariant>(),
+          allocator.construct<bke::SocketValueVariant>(std::move(input_value)).release()};
     }
     else {
       /* Provided input value is ignored. */
@@ -859,15 +859,15 @@ void evaluate_closure_eagerly(const Closure &closure, ClosureEagerEvalParams &pa
     if (const std::optional<int> mapped_i = outputs_map[output_item_i]) {
       const bke::bNodeSocketType &from_type = *signature.outputs[*mapped_i].type;
       const bke::bNodeSocketType &to_type = *item.type;
-      const CPPType &to_cpp_type = *to_type.geometry_nodes_cpp_type;
-      void *computed_value = lf_output_values[indices.outputs.main[*mapped_i]].get();
-      if (&from_type == &to_type) {
-        to_cpp_type.move_construct(computed_value, item.value);
+      if (std::optional<bke::SocketValueVariant> value = implicitly_convert_socket_value(
+              from_type,
+              *lf_output_values[indices.outputs.main[*mapped_i]].get<bke::SocketValueVariant>(),
+              to_type))
+      {
+        new (item.value) bke::SocketValueVariant(std::move(*value));
       }
       else {
-        if (!implicitly_convert_socket_value(from_type, computed_value, to_type, item.value)) {
-          construct_socket_default_value(to_type, item.value);
-        }
+        new (item.value) bke::SocketValueVariant(*to_type.geometry_nodes_default_value);
       }
     }
     else {

@@ -548,37 +548,34 @@ static void execute_multi_function_on_value_variant__field(
   return true;
 }
 
-bool implicitly_convert_socket_value(const bke::bNodeSocketType &from_type,
-                                     const void *from_value,
-                                     const bke::bNodeSocketType &to_type,
-                                     void *r_to_value)
+std::optional<SocketValueVariant> implicitly_convert_socket_value(
+    const bke::bNodeSocketType &from_type,
+    const SocketValueVariant &from_value,
+    const bke::bNodeSocketType &to_type)
 {
-  BLI_assert(from_value != r_to_value);
   if (from_type.type == to_type.type) {
-    from_type.geometry_nodes_cpp_type->copy_construct(from_value, r_to_value);
-    return true;
+    return from_value;
   }
   const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
   const CPPType *from_cpp_type = from_type.base_cpp_type;
   const CPPType *to_cpp_type = to_type.base_cpp_type;
   if (!from_cpp_type || !to_cpp_type) {
-    return false;
+    return std::nullopt;
   }
   if (conversions.is_convertible(*from_cpp_type, *to_cpp_type)) {
     const MultiFunction &multi_fn = *conversions.get_conversion_multi_function(
         mf::DataType::ForSingle(*from_cpp_type), mf::DataType::ForSingle(*to_cpp_type));
-    SocketValueVariant input_variant = *static_cast<const SocketValueVariant *>(from_value);
-    SocketValueVariant *output_variant = new (r_to_value) SocketValueVariant();
+    SocketValueVariant input_variant = from_value;
+    SocketValueVariant output_variant;
     std::string error_message;
     if (!execute_multi_function_on_value_variant(
-            multi_fn, {}, {&input_variant}, {output_variant}, nullptr, error_message))
+            multi_fn, {}, {&input_variant}, {&output_variant}, nullptr, error_message))
     {
-      std::destroy_at(output_variant);
-      return false;
+      return std::nullopt;
     }
-    return true;
+    return output_variant;
   }
-  return false;
+  return std::nullopt;
 }
 
 class LazyFunctionForImplicitConversion : public LazyFunction {
@@ -691,16 +688,16 @@ class LazyFunctionForMutedNode : public LazyFunction {
         continue;
       }
       const int lf_input_index = lf_index_by_bsocket_[input_bsocket->index_in_tree()];
-      const void *input_value = params.try_get_input_data_ptr_or_request(lf_input_index);
-      if (input_value == nullptr) {
+      const SocketValueVariant *input_value =
+          params.try_get_input_data_ptr_or_request<SocketValueVariant>(lf_input_index);
+      if (!input_value) {
         /* Wait for value to be available. */
         continue;
       }
-      void *output_value = params.get_output_data_ptr(lf_output_index);
-      if (implicitly_convert_socket_value(
-              *input_bsocket->typeinfo, input_value, *output_bsocket->typeinfo, output_value))
+      if (std::optional<SocketValueVariant> converted_value = implicitly_convert_socket_value(
+              *input_bsocket->typeinfo, *input_value, *output_bsocket->typeinfo))
       {
-        params.output_set(lf_output_index);
+        params.set_output(lf_output_index, std::move(*converted_value));
         continue;
       }
       set_default_value_for_output_socket(params, lf_output_index, *output_bsocket);

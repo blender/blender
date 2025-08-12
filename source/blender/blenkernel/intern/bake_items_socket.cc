@@ -92,11 +92,9 @@ static std::unique_ptr<BakeItem> move_common_socket_value_to_bake_item(
           if (const auto *item_socket_value = std::get_if<nodes::BundleItemSocketValue>(
                   &bundle_item.value.value))
           {
+            SocketValueVariant value_variant = item_socket_value->value;
             if (std::unique_ptr<BakeItem> bake_item = move_common_socket_value_to_bake_item(
-                    *item_socket_value->type,
-                    *static_cast<SocketValueVariant *>(item_socket_value->value),
-                    std::nullopt,
-                    r_geometry_bake_items))
+                    *item_socket_value->type, value_variant, std::nullopt, r_geometry_bake_items))
             {
               bundle_bake_item->items.append(
                   BundleBakeItem::Item{bundle_item.key,
@@ -297,7 +295,7 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(
                     copy_bake_item_to_socket_value(
                         *socket_value->value, stype->type, {}, data_block_map, r_attribute_map))
             {
-              bundle.add(item.key, nodes::BundleItemSocketValue{stype, &*child_value_variant});
+              bundle.add(item.key, nodes::BundleItemSocketValue{stype, *child_value_variant});
             }
             else {
               return std::nullopt;
