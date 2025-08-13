@@ -235,6 +235,8 @@ bke::CurvesGeometry fit_poly_to_bezier_curves(const bke::CurvesGeometry &src_cur
     });
 
     const Span<int> corner_indices = corner_indices_per_curve[pos];
+    dst_handle_types_left.slice(dst_points).fill(BEZIER_HANDLE_ALIGN);
+    dst_handle_types_right.slice(dst_points).fill(BEZIER_HANDLE_ALIGN);
     dst_handle_types_left.slice(dst_points).fill_indices(corner_indices, BEZIER_HANDLE_FREE);
     dst_handle_types_right.slice(dst_points).fill_indices(corner_indices, BEZIER_HANDLE_FREE);
 
