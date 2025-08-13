@@ -290,13 +290,13 @@ void GPU_compilation_subprocess_run(const char *subprocess_name)
     SubprocessShader shader(comp_src, vert_src, geom_src, frag_src);
     ShaderBinaryHeader *binary = shader.get_binary(shared_mem.get_data());
 
-    end_semaphore.increment();
-
     if (binary) {
       fstream file(cache_path, std::ios::binary | std::ios::out);
       file.write(reinterpret_cast<char *>(shared_mem.get_data()),
                  binary->size + offsetof(ShaderBinaryHeader, data));
     }
+
+    end_semaphore.increment();
   }
 
   GPU_exit();
