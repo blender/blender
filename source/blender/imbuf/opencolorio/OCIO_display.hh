@@ -55,9 +55,14 @@ class Display {
   /**
    * Quick access to processors that convert color space from the display to scene linear and vice
    * versa. The call is allowed to be caching from the color space implementation perspective.
+   *
+   * With #use_display_emulation, rather than converting to the display space, this converts to
+   * extended sRGB emulating the display space.
    */
-  const virtual CPUProcessor *get_to_scene_linear_cpu_processor() const = 0;
-  const virtual CPUProcessor *get_from_scene_linear_cpu_processor() const = 0;
+  const virtual CPUProcessor *get_to_scene_linear_cpu_processor(
+      bool use_display_emulation) const = 0;
+  const virtual CPUProcessor *get_from_scene_linear_cpu_processor(
+      bool use_display_emulation) const = 0;
 
   /**
    * Determine if the display supports HDR.

@@ -143,51 +143,52 @@ const View *LibOCIODisplay::get_view_by_index(const int index) const
   return &views_[index];
 }
 
-const CPUProcessor *LibOCIODisplay::get_to_scene_linear_cpu_processor() const
+std::unique_ptr<LibOCIOCPUProcessor> LibOCIODisplay::create_scene_linear_cpu_processor(
+    const bool use_display_emulation, const bool inverse) const
 {
-  return to_scene_linear_cpu_processor_.get([&]() -> std::unique_ptr<CPUProcessor> {
-    DisplayParameters display_parameters;
-    display_parameters.from_colorspace = OCIO_NAMESPACE::ROLE_SCENE_LINEAR;
-    display_parameters.view = get_default_view()->name();
-    display_parameters.display = name_;
-    display_parameters.inverse = true;
-    OCIO_NAMESPACE::ConstProcessorRcPtr ocio_processor = create_ocio_display_processor(
-        *config_, display_parameters);
-    if (!ocio_processor) {
-      return nullptr;
-    }
+  const View *view = get_untonemapped_view();
+  if (view == nullptr) {
+    view = get_default_view();
+  }
 
-    OCIO_NAMESPACE::ConstCPUProcessorRcPtr ocio_cpu_processor =
-        ocio_processor->getDefaultCPUProcessor();
-    if (!ocio_cpu_processor) {
-      return nullptr;
-    }
+  DisplayParameters display_parameters;
+  display_parameters.from_colorspace = OCIO_NAMESPACE::ROLE_SCENE_LINEAR;
+  display_parameters.view = view->name();
+  display_parameters.display = name_;
+  display_parameters.inverse = inverse;
+  display_parameters.use_display_emulation = use_display_emulation;
+  OCIO_NAMESPACE::ConstProcessorRcPtr ocio_processor = create_ocio_display_processor(
+      *config_, display_parameters);
+  if (!ocio_processor) {
+    return nullptr;
+  }
 
-    return std::make_unique<LibOCIOCPUProcessor>(ocio_cpu_processor);
-  });
+  OCIO_NAMESPACE::ConstCPUProcessorRcPtr ocio_cpu_processor =
+      ocio_processor->getDefaultCPUProcessor();
+  if (!ocio_cpu_processor) {
+    return nullptr;
+  }
+
+  return std::make_unique<LibOCIOCPUProcessor>(ocio_cpu_processor);
 }
 
-const CPUProcessor *LibOCIODisplay::get_from_scene_linear_cpu_processor() const
+const CPUProcessor *LibOCIODisplay::get_to_scene_linear_cpu_processor(
+    const bool use_display_emulation) const
 {
-  return from_scene_linear_cpu_processor_.get([&]() -> std::unique_ptr<CPUProcessor> {
-    DisplayParameters display_parameters;
-    display_parameters.from_colorspace = OCIO_NAMESPACE::ROLE_SCENE_LINEAR;
-    display_parameters.view = get_default_view()->name();
-    display_parameters.display = name_;
-    OCIO_NAMESPACE::ConstProcessorRcPtr ocio_processor = create_ocio_display_processor(
-        *config_, display_parameters);
-    if (!ocio_processor) {
-      return nullptr;
-    }
+  const CPUProcessorCache &cache = (use_display_emulation) ?
+                                       to_scene_linear_emulation_cpu_processor_ :
+                                       to_scene_linear_cpu_processor_;
+  return cache.get([&] { return create_scene_linear_cpu_processor(use_display_emulation, true); });
+}
 
-    OCIO_NAMESPACE::ConstCPUProcessorRcPtr ocio_cpu_processor =
-        ocio_processor->getDefaultCPUProcessor();
-    if (!ocio_cpu_processor) {
-      return nullptr;
-    }
-
-    return std::make_unique<LibOCIOCPUProcessor>(ocio_cpu_processor);
-  });
+const CPUProcessor *LibOCIODisplay::get_from_scene_linear_cpu_processor(
+    const bool use_display_emulation) const
+{
+  const CPUProcessorCache &cache = (use_display_emulation) ?
+                                       from_scene_linear_emulation_cpu_processor_ :
+                                       from_scene_linear_cpu_processor_;
+  return cache.get(
+      [&] { return create_scene_linear_cpu_processor(use_display_emulation, false); });
 }
 
 }  // namespace blender::ocio

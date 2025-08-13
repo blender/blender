@@ -55,6 +55,9 @@ struct GPUDisplayParameters {
   bool do_overlay_merge = false;
   /* Allow HDR colors (above 1.0) in the result. */
   bool use_hdr = false;
+  /* Rather than outputting colors for the specified display, output extended
+   * sRGB colors emulating the specified display. */
+  bool use_display_emulation = false;
 };
 
 class GPUShaderBinder {

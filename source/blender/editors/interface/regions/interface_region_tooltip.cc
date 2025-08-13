@@ -851,7 +851,8 @@ void UI_tooltip_color_field_add(uiTooltipData &data,
     IMB_colormanagement_srgb_to_scene_linear_v3(scene_linear_color, scene_linear_color);
   }
   else {
-    IMB_colormanagement_scene_linear_to_display_v3(display_color, display);
+    IMB_colormanagement_scene_linear_to_display_v3(
+        display_color, display, DISPLAY_SPACE_COLOR_INSPECTION);
     IMB_colormanagement_scene_linear_to_srgb_v3(srgb_color, srgb_color);
   }
 

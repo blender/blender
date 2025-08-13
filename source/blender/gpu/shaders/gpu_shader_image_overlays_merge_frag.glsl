@@ -32,14 +32,10 @@ void main()
   float4 overlay_col = texture(overlays_texture, texCoord_interp.xy);
 
   if (overlay) {
-    if (!use_hdr) {
-      /* If we're not using an extended color space, clamp the color 0..1. */
-      fragColor = clamp(fragColor, 0.0f, 1.0f);
-    }
-    else {
-      /* When using extended color-space, interpolate towards clamped color to improve display of
+    if (use_hdr) {
+      /* When using HDR, interpolate towards clamped color to improve display of
        * alpha-blended overlays. */
-      fragColor = mix(max(fragColor, 0.0f), clamp(fragColor, 0.0f, 1.0f), overlay_col.a);
+      fragColor = mix(fragColor, clamp(fragColor, 0.0f, 1.0f), overlay_col.a);
     }
     fragColor *= 1.0f - overlay_col.a;
     fragColor += overlay_col;

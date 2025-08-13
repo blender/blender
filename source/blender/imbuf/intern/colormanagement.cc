@@ -748,20 +748,21 @@ static const ColorSpace *get_untonemapped_display_colorspace(
 }
 
 static std::shared_ptr<const ocio::CPUProcessor> get_display_buffer_processor(
+    const ColorManagedDisplaySettings &display_settings,
     const char *look,
     const char *view_transform,
-    const char *display,
     const float exposure,
     const float gamma,
     const float temperature,
     const float tint,
     const bool use_white_balance,
-    const char *from_colorspace)
+    const char *from_colorspace,
+    const ColorManagedDisplaySpace target)
 {
   ocio::DisplayParameters display_parameters;
   display_parameters.from_colorspace = from_colorspace;
   display_parameters.view = view_transform;
-  display_parameters.display = display;
+  display_parameters.display = display_settings.display_device;
   display_parameters.look = (colormanage_use_look(look, view_transform)) ? look : "";
   display_parameters.scale = (exposure == 0.0f) ? 1.0f : powf(2.0f, exposure);
   display_parameters.exponent = (gamma == 1.0f) ? 1.0f : 1.0f / max_ff(FLT_EPSILON, gamma);
@@ -769,6 +770,10 @@ static std::shared_ptr<const ocio::CPUProcessor> get_display_buffer_processor(
   display_parameters.tint = tint;
   display_parameters.use_white_balance = use_white_balance;
   display_parameters.inverse = false;
+  display_parameters.use_hdr = GPU_hdr_support() && target == DISPLAY_SPACE_DRAW &&
+                               IMB_colormanagement_display_is_hdr(&display_settings,
+                                                                  view_transform);
+  display_parameters.use_display_emulation = target == DISPLAY_SPACE_DRAW;
 
   return g_config->get_display_cpu_processor(display_parameters);
 }
@@ -964,7 +969,7 @@ static void colormanage_check_colorspace_settings(
 
     if (!colorspace) {
       CLOG_WARN(&LOG,
-                "%s colorspace \"%s\" not found, will use default instead.\n",
+                "%s colorspace \"%s\" not found, will use default instead.",
                 what,
                 colorspace_settings->name);
 
@@ -1632,7 +1637,8 @@ static bool is_colorspace_same_as_display(const ColorSpace *colorspace,
 ColormanageProcessor *IMB_colormanagement_display_processor_for_imbuf(
     const ImBuf *ibuf,
     const ColorManagedViewSettings *view_settings,
-    const ColorManagedDisplaySettings *display_settings)
+    const ColorManagedDisplaySettings *display_settings,
+    const ColorManagedDisplaySpace display_space)
 {
   bool skip_transform = false;
   if (ibuf->float_buffer.data == nullptr && ibuf->byte_buffer.colorspace) {
@@ -1647,7 +1653,7 @@ ColormanageProcessor *IMB_colormanagement_display_processor_for_imbuf(
     return nullptr;
   }
 
-  return IMB_colormanagement_display_processor_new(view_settings, display_settings);
+  return IMB_colormanagement_display_processor_new(view_settings, display_settings, display_space);
 }
 
 static void colormanage_display_buffer_process_ex(
@@ -1655,10 +1661,11 @@ static void colormanage_display_buffer_process_ex(
     float *display_buffer,
     uchar *display_buffer_byte,
     const ColorManagedViewSettings *view_settings,
-    const ColorManagedDisplaySettings *display_settings)
+    const ColorManagedDisplaySettings *display_settings,
+    const ColorManagedDisplaySpace display_space)
 {
   ColormanageProcessor *cm_processor = IMB_colormanagement_display_processor_for_imbuf(
-      ibuf, view_settings, display_settings);
+      ibuf, view_settings, display_settings, display_space);
   display_buffer_apply_threaded(ibuf,
                                 ibuf->float_buffer.data,
                                 ibuf->byte_buffer.data,
@@ -1674,10 +1681,11 @@ static void colormanage_display_buffer_process_ex(
 static void colormanage_display_buffer_process(ImBuf *ibuf,
                                                uchar *display_buffer,
                                                const ColorManagedViewSettings *view_settings,
-                                               const ColorManagedDisplaySettings *display_settings)
+                                               const ColorManagedDisplaySettings *display_settings,
+                                               const ColorManagedDisplaySpace display_space)
 {
   colormanage_display_buffer_process_ex(
-      ibuf, nullptr, display_buffer, view_settings, display_settings);
+      ibuf, nullptr, display_buffer, view_settings, display_settings, display_space);
 }
 
 /** \} */
@@ -2234,18 +2242,22 @@ void IMB_colormanagement_color_picking_to_scene_linear_v3(float scene_linear[3],
 }
 
 void IMB_colormanagement_scene_linear_to_display_v3(float pixel[3],
-                                                    const ColorManagedDisplay *display)
+                                                    const ColorManagedDisplay *display,
+                                                    const ColorManagedDisplaySpace display_space)
 {
-  const ocio::CPUProcessor *processor = display->get_from_scene_linear_cpu_processor();
+  const ocio::CPUProcessor *processor = display->get_from_scene_linear_cpu_processor(
+      display_space == DISPLAY_SPACE_DRAW);
   if (processor != nullptr) {
     processor->apply_rgb(pixel);
   }
 }
 
 void IMB_colormanagement_display_to_scene_linear_v3(float pixel[3],
-                                                    const ColorManagedDisplay *display)
+                                                    const ColorManagedDisplay *display,
+                                                    const ColorManagedDisplaySpace display_space)
 {
-  const ocio::CPUProcessor *processor = display->get_to_scene_linear_cpu_processor();
+  const ocio::CPUProcessor *processor = display->get_to_scene_linear_cpu_processor(
+      display_space == DISPLAY_SPACE_DRAW);
   if (processor != nullptr) {
     processor->apply_rgb(pixel);
   }
@@ -2255,13 +2267,15 @@ void IMB_colormanagement_pixel_to_display_space_v4(
     float result[4],
     const float pixel[4],
     const ColorManagedViewSettings *view_settings,
-    const ColorManagedDisplaySettings *display_settings)
+    const ColorManagedDisplaySettings *display_settings,
+    const ColorManagedDisplaySpace display_space)
 {
   ColormanageProcessor *cm_processor;
 
   copy_v4_v4(result, pixel);
 
-  cm_processor = IMB_colormanagement_display_processor_new(view_settings, display_settings);
+  cm_processor = IMB_colormanagement_display_processor_new(
+      view_settings, display_settings, display_space);
   IMB_colormanagement_processor_apply_v4(cm_processor, result);
   IMB_colormanagement_processor_free(cm_processor);
 }
@@ -2270,22 +2284,29 @@ static void colormanagement_imbuf_make_display_space(
     ImBuf *ibuf,
     const ColorManagedViewSettings *view_settings,
     const ColorManagedDisplaySettings *display_settings,
+    const ColorManagedDisplaySpace display_space,
     bool make_byte)
 {
   if (!ibuf->byte_buffer.data && make_byte) {
     IMB_alloc_byte_pixels(ibuf);
   }
 
-  colormanage_display_buffer_process_ex(
-      ibuf, ibuf->float_buffer.data, ibuf->byte_buffer.data, view_settings, display_settings);
+  colormanage_display_buffer_process_ex(ibuf,
+                                        ibuf->float_buffer.data,
+                                        ibuf->byte_buffer.data,
+                                        view_settings,
+                                        display_settings,
+                                        display_space);
 }
 
 void IMB_colormanagement_imbuf_make_display_space(
     ImBuf *ibuf,
     const ColorManagedViewSettings *view_settings,
-    const ColorManagedDisplaySettings *display_settings)
+    const ColorManagedDisplaySettings *display_settings,
+    const ColorManagedDisplaySpace display_space)
 {
-  colormanagement_imbuf_make_display_space(ibuf, view_settings, display_settings, false);
+  colormanagement_imbuf_make_display_space(
+      ibuf, view_settings, display_settings, display_space, false);
 }
 
 static ImBuf *imbuf_ensure_editable(ImBuf *ibuf, ImBuf *colormanaged_ibuf, bool allocate_result)
@@ -2368,6 +2389,7 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
     colormanagement_imbuf_make_display_space(colormanaged_ibuf,
                                              &image_format->view_settings,
                                              &image_format->display_settings,
+                                             DISPLAY_SPACE_FILE_OUTPUT,
                                              byte_output);
 
     if (colormanaged_ibuf->float_buffer.data) {
@@ -2554,7 +2576,7 @@ uchar *IMB_display_buffer_acquire(ImBuf *ibuf,
       DISPLAY_BUFFER_CHANNELS * size_t(ibuf->x) * size_t(ibuf->y), "imbuf display buffer");
 
   colormanage_display_buffer_process(
-      ibuf, display_buffer, applied_view_settings, display_settings);
+      ibuf, display_buffer, applied_view_settings, display_settings, DISPLAY_SPACE_DRAW);
 
   colormanage_cache_put(
       ibuf, &cache_view_settings, &cache_display_settings, display_buffer, cache_handle);
@@ -3325,12 +3347,13 @@ void IMB_partial_display_buffer_update_delayed(ImBuf *ibuf, int xmin, int ymin, 
 
 ColormanageProcessor *IMB_colormanagement_display_processor_new(
     const ColorManagedViewSettings *view_settings,
-    const ColorManagedDisplaySettings *display_settings)
+    const ColorManagedDisplaySettings *display_settings,
+    const ColorManagedDisplaySpace display_space)
 {
   ColormanageProcessor *cm_processor;
   ColorManagedViewSettings untonemapped_view_settings;
   const ColorManagedViewSettings *applied_view_settings;
-  const ColorSpace *display_space;
+  const ColorSpace *display_colorspace;
 
   cm_processor = MEM_new<ColormanageProcessor>("colormanagement processor");
 
@@ -3343,21 +3366,22 @@ ColormanageProcessor *IMB_colormanagement_display_processor_new(
     applied_view_settings = &untonemapped_view_settings;
   }
 
-  display_space = get_display_colorspace(applied_view_settings, display_settings);
-  if (display_space) {
-    cm_processor->is_data_result = display_space->is_data();
+  display_colorspace = get_display_colorspace(applied_view_settings, display_settings);
+  if (display_colorspace) {
+    cm_processor->is_data_result = display_colorspace->is_data();
   }
 
   const bool use_white_balance = applied_view_settings->flag & COLORMANAGE_VIEW_USE_WHITE_BALANCE;
-  cm_processor->cpu_processor = get_display_buffer_processor(applied_view_settings->look,
+  cm_processor->cpu_processor = get_display_buffer_processor(*display_settings,
+                                                             applied_view_settings->look,
                                                              applied_view_settings->view_transform,
-                                                             display_settings->display_device,
                                                              applied_view_settings->exposure,
                                                              applied_view_settings->gamma,
                                                              applied_view_settings->temperature,
                                                              applied_view_settings->tint,
                                                              use_white_balance,
-                                                             global_role_scene_linear);
+                                                             global_role_scene_linear,
+                                                             display_space);
 
   if (applied_view_settings->flag & COLORMANAGE_VIEW_USE_CURVES) {
     cm_processor->curve_mapping = BKE_curvemapping_copy(applied_view_settings->curve_mapping);
@@ -3615,6 +3639,7 @@ bool IMB_colormanagement_setup_glsl_draw_from_space(
   display_parameters.do_overlay_merge = do_overlay_merge;
   display_parameters.use_hdr = GPU_hdr_support() &&
                                (applied_view_settings->flag & COLORMANAGE_VIEW_USE_HDR) != 0;
+  display_parameters.use_display_emulation = true;
 
   /* Bind shader. Internally GPU shaders are created and cached on demand. */
   global_gpu_state.gpu_shader_bound = g_config->get_gpu_shader_binder().display_bind(

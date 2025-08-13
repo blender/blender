@@ -65,6 +65,8 @@
 
 #include "UI_resources.hh"
 
+#include "IMB_colormanagement.hh"
+
 #ifdef WITH_OPENSUBDIV
 #  include "BKE_subsurf.hh"
 #endif

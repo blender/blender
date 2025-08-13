@@ -123,12 +123,14 @@ class GPUCurveMappping : NonCopyable, NonMovable {
 
 class GPUDisplayShader : NonCopyable, NonMovable {
  public:
-  /* Cache variables. */
+  /* Cached display parameters. */
   std::string from_colorspace;
   std::string view;
   std::string display;
   std::string look;
   bool use_curve_mapping = false;
+  bool use_hdr = false;
+  bool use_display_emulation = false;
 
   /* The shader is valid and can be bound.
    * Note that the cache might contain invalid shaders to prevent Blender from attempting to keep
