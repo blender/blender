@@ -21,7 +21,6 @@ from bpy.props import (
 )
 
 from bpy.app.translations import (
-    pgettext_tip as tip_,
     pgettext_rpt as rpt_,
     contexts as i18n_contexts,
 )
@@ -337,7 +336,7 @@ class MaterialProperties_MixIn:
 
             engine = context.scene.render.engine
             if engine not in COMPATIBLE_ENGINES:
-                body.label(text=tip_("{:s} is not supported").format(engine), icon='ERROR')
+                body.label(text=rpt_("{:s} is not supported").format(engine), icon='ERROR')
 
             body.prop(self, "overwrite_material")
 

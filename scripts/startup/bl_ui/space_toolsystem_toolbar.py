@@ -21,7 +21,10 @@ from bl_ui.space_toolsystem_common import (
 from bl_ui.properties_paint_common import (
     BrushAssetShelf,
 )
-from bpy.app.translations import pgettext_tip as tip_
+from bpy.app.translations import (
+    pgettext_iface as iface_,
+    pgettext_tip as tip_,
+)
 
 
 def kmi_to_string_or_none(kmi):
@@ -2100,7 +2103,7 @@ class _defs_weight_paint:
                 weight = context.tool_settings.weight_paint.brush.weight
             else:
                 return
-            layout.label(text="Weight: {:.3f}".format(weight))
+            layout.label(text=iface_("Weight: {:.3f}").format(weight), translate=False)
         return dict(
             idname="builtin.sample_weight",
             label="Sample Weight",

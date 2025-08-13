@@ -904,7 +904,7 @@ class BONE_PT_rigify_buttons(bpy.types.Panel):
             except (ImportError, AttributeError, KeyError):
                 row = layout.row()
                 box = row.box()
-                text = iface_("ERROR: type \"{:s}\" does not exist!").format(rig_name)
+                text = rpt_("ERROR: type \"{:s}\" does not exist!").format(rig_name)
                 box.label(text=text, icon='ERROR', translate=False)
             else:
                 if hasattr(rig.Rig, 'parameters_ui'):

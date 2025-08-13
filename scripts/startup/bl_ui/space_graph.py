@@ -3,7 +3,10 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 from bpy.types import Header, Menu, Panel
-from bpy.app.translations import contexts as i18n_contexts
+from bpy.app.translations import (
+    pgettext_iface as iface_,
+    contexts as i18n_contexts,
+)
 from bl_ui.space_dopesheet import (
     DopesheetFilterPopoverBase,
     dopesheet_filter,
@@ -21,15 +24,19 @@ def drivers_editor_footer(layout, context):
         return
 
     layout.separator_spacer()
-    layout.label(text="Driver: {:s} ({:s})".format(act_fcurve.id_data.name, act_fcurve.data_path))
+    layout.label(
+        text=iface_("Driver: {:s} ({:s})").format(
+            act_fcurve.id_data.name,
+            act_fcurve.data_path),
+        translate=False)
 
     if act_driver.variables:
         layout.separator(type='LINE')
-        layout.label(text="Variables: {:d}".format(len(act_driver.variables)))
+        layout.label(text=iface_("Variables: {:d}").format(len(act_driver.variables)), translate=False)
 
     if act_driver.type == 'SCRIPTED' and act_driver.expression:
         layout.separator(type='LINE')
-        layout.label(text="Expression: {:s}".format(act_driver.expression))
+        layout.label(text=iface_("Expression: {:s}").format(act_driver.expression), translate=False)
 
 
 class GRAPH_HT_header(Header):
