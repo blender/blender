@@ -957,18 +957,6 @@ static void rna_def_pointcache_common(StructRNA *srna)
 {
   PropertyRNA *prop;
 
-  static const EnumPropertyItem point_cache_compress_items[] = {
-    {PTCACHE_COMPRESS_NO, "NO", 0, "None", "No compression"},
-  /* TODO: Deprecated. Remove after short testing period in 5.0. */
-#  if 0  // WITH_LZO, WITH_LZMA
-    {PTCACHE_COMPRESS_LZO, "LIGHT", 0, "Lite", "Fast but not so effective compression"},
-    {PTCACHE_COMPRESS_LZMA, "HEAVY", 0, "Heavy", "Effective but slow compression"},
-#  endif
-    {PTCACHE_COMPRESS_ZSTD_FAST, "FAST", 0, "Fast", "Fast but not so effective compression"},
-    {PTCACHE_COMPRESS_ZSTD_SLOW, "SLOW", 0, "Slow", "Effective but slow compression"},
-    {0, nullptr, 0, nullptr, nullptr},
-  };
-
   RNA_def_struct_path_func(srna, "rna_PointCache_path");
 
   RNA_define_lib_overridable(true);
@@ -996,10 +984,6 @@ static void rna_def_pointcache_common(StructRNA *srna)
   RNA_def_property_range(prop, -1, 100);
   RNA_def_property_ui_text(prop, "Cache Index", "Index number of cache files");
   RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_idname_change");
-
-  prop = RNA_def_property(srna, "compression", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, point_cache_compress_items);
-  RNA_def_property_ui_text(prop, "Cache Compression", "Compression method to be used");
 
   /* flags */
   prop = RNA_def_property(srna, "is_baked", PROP_BOOLEAN, PROP_NONE);

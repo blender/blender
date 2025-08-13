@@ -188,10 +188,6 @@ def point_cache_ui(self, cache, enabled, cachetype):
             subcol.active = cache.use_disk_cache
             subcol.prop(cache, "use_library_path", text="Use Library Path")
 
-            col = flow.column()
-            col.active = cache.use_disk_cache
-            col.prop(cache, "compression", text="Compression")
-
             if cache.id_data.library and not cache.use_disk_cache:
                 can_bake = False
 

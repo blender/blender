@@ -2649,7 +2649,6 @@ url_manual_mapping = (
     ("bpy.types.object.visible_diffuse*", "render/cycles/object_settings/object_data.html#bpy-types-object-visible-diffuse"),
     ("bpy.types.objectsolverconstraint*", "animation/constraints/motion_tracking/object_solver.html#bpy-types-objectsolverconstraint"),
     ("bpy.types.particlesystemmodifier*", "physics/particles/index.html#bpy-types-particlesystemmodifier"),
-    ("bpy.types.pointcache.compression*", "physics/baking.html#bpy-types-pointcache-compression"),
     ("bpy.types.rendersettings.threads*", "render/cycles/render_settings/performance.html#bpy-types-rendersettings-threads"),
     ("bpy.types.scenedisplay.render_aa*", "render/workbench/sampling.html#bpy-types-scenedisplay-render-aa"),
     ("bpy.types.sceneeevee.motion_blur*", "render/eevee/render_settings/motion_blur.html#bpy-types-sceneeevee-motion-blur"),
