@@ -13,6 +13,7 @@
 
 #include "BLT_translation.hh"
 
+#include "BKE_context.hh"
 #include "BKE_global.hh"
 
 #ifdef WITH_PYTHON
@@ -25,6 +26,7 @@
 #include "RNA_prototypes.hh"
 
 #include "WM_api.hh"
+#include "WM_message.hh"
 
 #include "AS_asset_representation.hh"
 #include "AS_remote_library.hh"
@@ -145,9 +147,9 @@ void RemoteLibraryLoadingStatus::ping_new_previews(const StringRef url)
   }
 }
 
-void RemoteLibraryLoadingStatus::ping_new_assets(const StringRef url)
+void RemoteLibraryLoadingStatus::ping_new_assets(const bContext &C, const StringRef url)
 {
-  WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST_DOWNLOADED_ASSETS, std::string(url));
+  WM_msg_publish_remote_downloader(CTX_wm_message_bus(&C), url);
 }
 
 void RemoteLibraryLoadingStatus::ping_metafiles_in_place(const StringRef url)

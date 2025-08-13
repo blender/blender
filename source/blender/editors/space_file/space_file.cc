@@ -486,7 +486,7 @@ static void file_main_region_listener(const wmRegionListenerParams *listener_par
 
           const blender::StringRef url = wmn->string_reference;
           if (!url.is_empty()) {
-            filelist_remote_asset_library_refresh_online_assets_status(sfile->files, url);
+            // filelist_remote_asset_library_refresh_online_assets_status(sfile->files, url);
             ED_region_tag_redraw(region);
           }
           break;
@@ -562,6 +562,30 @@ static void file_main_region_message_subscribe(const wmRegionMessageSubscribePar
                               PreferencesSystem,
                               use_online_access,
                               &msg_sub_value_region_clear_remote_libraries);
+  }
+
+  using namespace blender;
+
+  /* Online asset library downloader status updates. */
+  const asset_system::AssetLibrary *asset_library = filelist_asset_library(sfile->files);
+  const std::optional<StringRefNull> remote_url = asset_library ? asset_library->remote_url() :
+                                                                  std::nullopt;
+
+  if (asset_library && remote_url) {
+    wmMsgSubscribeValue msg_sub_value_assets_downloaded{};
+    msg_sub_value_assets_downloaded.owner = region;
+    msg_sub_value_assets_downloaded.user_data = sfile;
+    msg_sub_value_assets_downloaded.notify =
+        [](bContext * /*C*/, wmMsgSubscribeKey * /*msg_key*/, wmMsgSubscribeValue *msg_val) {
+          SpaceFile *sfile = static_cast<SpaceFile *>(msg_val->user_data);
+          const asset_system::AssetLibrary *asset_library = filelist_asset_library(sfile->files);
+          const std::optional<StringRefNull> remote_url = asset_library->remote_url();
+          filelist_remote_asset_library_refresh_online_assets_status(sfile->files, *remote_url);
+          ED_region_tag_redraw(static_cast<ARegion *>(msg_val->owner));
+        };
+
+    WM_msg_subscribe_remote_downloader(
+        mbus, *remote_url, &msg_sub_value_assets_downloaded, __func__);
   }
 }
 

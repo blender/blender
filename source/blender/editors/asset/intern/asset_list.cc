@@ -387,6 +387,7 @@ void asset_reading_region_listen_fn(const wmRegionListenerParams *params)
   const wmNotifier *wmn = params->notifier;
   ARegion *region = params->region;
 
+  /* TODO use message bus */
   switch (wmn->category) {
     case NC_ASSET:
       if (ELEM(wmn->data,

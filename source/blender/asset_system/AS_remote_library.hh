@@ -73,7 +73,7 @@ class RemoteLibraryLoadingStatus {
   static void ping_still_loading(StringRef url);
   static void ping_new_pages(StringRef url);
   static void ping_new_previews(StringRef url);
-  static void ping_new_assets(StringRef url);
+  static void ping_new_assets(const bContext &C, StringRef url);
   static void ping_metafiles_in_place(StringRef url);
   static void set_finished(StringRef url);
   static void set_failure(StringRef url, std::optional<StringRefNull> failure_message);

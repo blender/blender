@@ -811,9 +811,9 @@ static void rna_asset_library_status_ping_loaded_new_previews(const char *librar
   RemoteLibraryLoadingStatus::ping_new_previews(library_url);
 }
 
-static void rna_asset_library_status_ping_loaded_new_assets(const char *library_url)
+static void rna_asset_library_status_ping_loaded_new_assets(bContext *C, const char *library_url)
 {
-  RemoteLibraryLoadingStatus::ping_new_assets(library_url);
+  RemoteLibraryLoadingStatus::ping_new_assets(*C, library_url);
 }
 
 static void rna_asset_library_status_finished_loading(const char *library_url)
@@ -1633,7 +1633,7 @@ void RNA_api_asset_library_loading_status(StructRNA *srna)
   RNA_def_function_ui_description(func,
                                   "Inform the asset system that new assets were downloaded and "
                                   "available at the expected location on disk");
-  RNA_def_function_flag(func, FUNC_NO_SELF);
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
   parm = RNA_def_string(func,
                         "library_url",
                         nullptr,
