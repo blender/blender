@@ -21,6 +21,7 @@
 #include "DNA_material_types.h"
 
 #include "NOD_geometry_nodes_log.hh"
+#include "NOD_menu_value.hh"
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.hh"
 
@@ -362,7 +363,7 @@ class SocketTooltipBuilder {
     return true;
   }
 
-  void build_tooltip_value_enum(const int item_identifier)
+  void build_tooltip_value_enum(const nodes::MenuValue menu_item)
   {
     const auto *storage = socket_.default_value_typed<bNodeSocketValueMenu>();
     if (!storage->enum_items || storage->has_conflict()) {
@@ -370,7 +371,7 @@ class SocketTooltipBuilder {
       return;
     }
     const bke::RuntimeNodeEnumItem *enum_item = storage->enum_items->find_item_by_identifier(
-        item_identifier);
+        menu_item.value);
     if (!enum_item) {
       return;
     }
@@ -482,12 +483,12 @@ class SocketTooltipBuilder {
     }
 
     if (socket_.type == SOCK_MENU) {
-      if (!value_type.is<int>()) {
+      if (!value_type.is<nodes::MenuValue>()) {
         this->build_tooltip_value_unknown();
         return;
       }
-      const int item_identifier = *value.get<int>();
-      this->build_tooltip_value_enum(item_identifier);
+      const nodes::MenuValue menu_item = *value.get<nodes::MenuValue>();
+      this->build_tooltip_value_enum(menu_item);
       return;
     }
 

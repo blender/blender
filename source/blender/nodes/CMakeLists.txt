@@ -129,6 +129,7 @@ set(SRC
   NOD_inverse_eval_path.hh
   NOD_inverse_eval_run.hh
   NOD_math_functions.hh
+  NOD_menu_value.hh
   NOD_multi_function.hh
   NOD_nested_node_id.hh
   NOD_node_declaration.hh

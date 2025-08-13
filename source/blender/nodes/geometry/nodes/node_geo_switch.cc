@@ -202,7 +202,8 @@ class LazyFunctionForSwitchNode : public LazyFunction {
                                    ColorGeometry4f,
                                    std::string,
                                    math::Quaternion,
-                                   float4x4>([&](auto type_tag) {
+                                   float4x4,
+                                   MenuValue>([&](auto type_tag) {
       using T = typename decltype(type_tag)::type;
       if constexpr (std::is_void_v<T>) {
         BLI_assert_unreachable();

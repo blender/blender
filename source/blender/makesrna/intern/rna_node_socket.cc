@@ -586,7 +586,7 @@ int rna_NodeSocketStandard_menu_default(PointerRNA *ptr, PropertyRNA * /*prop*/)
     return 0;
   }
   auto *decl = static_cast<const blender::nodes::decl::Menu *>(sock->runtime->declaration);
-  return decl->default_value;
+  return decl->default_value.value;
 }
 
 /* using a context update function here, to avoid searching the node if possible */

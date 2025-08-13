@@ -13,6 +13,7 @@
 #include "NOD_geometry.hh"
 #include "NOD_geometry_nodes_execute.hh"
 #include "NOD_geometry_nodes_lazy_function.hh"
+#include "NOD_menu_value.hh"
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.hh"
 
@@ -564,7 +565,7 @@ static bke::SocketValueVariant init_socket_cpp_value_from_property(
     }
     case SOCK_MENU: {
       int value = IDP_Int(&property);
-      return bke::SocketValueVariant(std::move(value));
+      return bke::SocketValueVariant::From(MenuValue(value));
     }
     case SOCK_OBJECT: {
       ID *id = IDP_Id(&property);

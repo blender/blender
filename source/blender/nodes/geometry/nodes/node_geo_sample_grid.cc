@@ -48,7 +48,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Vector>("Position").implicit_field(NODE_DEFAULT_INPUT_POSITION_FIELD);
   b.add_input<decl::Menu>("Interpolation")
       .static_items(interpolation_mode_items)
-      .default_value(int(InterpolationMode::TriLinear))
+      .default_value(InterpolationMode::TriLinear)
       .description("How to interpolate the values between neighboring voxels");
 
   b.add_output(data_type, "Value").dependent_field({1});

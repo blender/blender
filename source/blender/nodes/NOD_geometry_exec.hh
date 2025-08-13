@@ -26,6 +26,7 @@
 #include "NOD_derived_node_tree.hh"
 #include "NOD_geometry_nodes_lazy_function.hh"
 #include "NOD_geometry_nodes_values.hh"
+#include "NOD_menu_value.hh"
 
 namespace blender::nodes {
 
@@ -132,7 +133,7 @@ class GeoNodeExecParams {
         return value_variant;
       }
       else if constexpr (std::is_enum_v<T>) {
-        return T(value_variant.extract<int>());
+        return T(value_variant.extract<MenuValue>().value);
       }
       else {
         T value = value_variant.extract<T>();
@@ -177,7 +178,7 @@ class GeoNodeExecParams {
         return value_variant;
       }
       else if constexpr (std::is_enum_v<T>) {
-        return T(value_variant.get<int>());
+        return T(value_variant.get<MenuValue>().value);
       }
       else {
         T value = value_variant.get<T>();
