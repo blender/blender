@@ -20,6 +20,7 @@
 #include "BKE_appdir.hh"
 #include "BKE_blendfile.hh"
 #include "BKE_context.hh"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_screen.hh"
@@ -212,7 +213,25 @@ bool ED_workspace_change(WorkSpace *workspace_new, bContext *C, wmWindowManager 
 
   /* Automatic mode switching. */
   if (workspace_new->object_mode != workspace_old->object_mode) {
-    blender::ed::object::mode_set(C, eObjectMode(workspace_new->object_mode));
+    const Base *base = CTX_data_active_base(C);
+    const Object *object = base->object;
+    if (object) {
+      /* Behavior that depends on the active area is not expected in the context of workspace
+       * switching, ignore the view-port even if it's available. */
+      const View3D *v3d = nullptr;
+
+      const bool base_visible = BKE_base_is_visible(v3d, base);
+      if (!base_visible && object->mode == OB_MODE_OBJECT) {
+        /* Set this to nullptr to indicate that the mode should not be switched. This matches
+         * CTX_data_active_object behavior in the 3D Viewport. See `view3d_context` for more
+         * details. */
+        object = nullptr;
+      }
+    }
+
+    if (object) {
+      blender::ed::object::mode_set(C, eObjectMode(workspace_new->object_mode));
+    }
   }
 
   return true;
