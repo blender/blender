@@ -797,6 +797,8 @@ struct PaintOperationExecutor {
 
     /* Interpolate the screen space positions. */
     linear_interpolation<float2>(prev_coords, coords, new_screen_space_coords, is_first_sample);
+    linear_interpolation<float>(prev_radius, radius, new_radii, is_first_sample);
+    linear_interpolation<float>(prev_opacity, opacity, new_opacities, is_first_sample);
     point_attributes_to_skip.add_multiple({"position", "radius", "opacity"});
 
     /* Randomize radii. */
@@ -806,12 +808,9 @@ struct PaintOperationExecutor {
                                                           self.stroke_random_radius_factor_,
                                                           self.accum_distance_ +
                                                               max_spacing_px * i,
-                                                          radius,
+                                                          new_radii[i],
                                                           extension_sample.pressure);
       }
-    }
-    else {
-      linear_interpolation<float>(prev_radius, radius, new_radii, is_first_sample);
     }
 
     /* Randomize opacities. */
@@ -821,12 +820,9 @@ struct PaintOperationExecutor {
                                                                self.stroke_random_opacity_factor_,
                                                                self.accum_distance_ +
                                                                    max_spacing_px * i,
-                                                               opacity,
+                                                               new_opacities[i],
                                                                extension_sample.pressure);
       }
-    }
-    else {
-      linear_interpolation<float>(prev_opacity, opacity, new_opacities, is_first_sample);
     }
 
     /* Randomize rotations. */
@@ -851,6 +847,8 @@ struct PaintOperationExecutor {
     if (use_vertex_color_ || attributes.contains("vertex_color")) {
       MutableSpan<ColorGeometry4f> new_vertex_colors =
           self.drawing_->vertex_colors_for_write().slice(new_points);
+      linear_interpolation<ColorGeometry4f>(
+          prev_vertex_color, vertex_color_, new_vertex_colors, is_first_sample);
       if (use_settings_random_ || attributes.contains("vertex_color")) {
         for (const int i : IndexRange(new_points_num)) {
           new_vertex_colors[i] = ed::greasepencil::randomize_color(*settings_,
@@ -860,13 +858,9 @@ struct PaintOperationExecutor {
                                                                    self.stroke_random_val_factor_,
                                                                    self.accum_distance_ +
                                                                        max_spacing_px * i,
-                                                                   vertex_color_,
+                                                                   new_vertex_colors[i],
                                                                    extension_sample.pressure);
         }
-      }
-      else {
-        linear_interpolation<ColorGeometry4f>(
-            prev_vertex_color, vertex_color_, new_vertex_colors, is_first_sample);
       }
       point_attributes_to_skip.add("vertex_color");
     }
