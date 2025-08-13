@@ -229,14 +229,10 @@ class TestLibraryOverridesComplex(TestHelper):
 
         self.assertIsNotNone(linked_collection_container.library)
         self.assertIsNone(linked_collection_container.override_library)
-        self.assertEqual(len(bpy.data.collections), num_collections)
-        self.assertTrue(all(id_.library is not None for id_ in bpy.data.collections))
-        self.assertEqual(len(bpy.data.objects), num_objects)
-        self.assertTrue(all(id_.library is not None for id_ in bpy.data.objects))
-        self.assertEqual(len(bpy.data.meshes), num_meshes)
-        self.assertTrue(all(id_.library is not None for id_ in bpy.data.meshes))
-        self.assertEqual(len(bpy.data.armatures), num_armatures)
-        self.assertTrue(all(id_.library is not None for id_ in bpy.data.armatures))
+        self.local_and_linked_ids_numbers_validate(bpy.data.collections, num_collections[0], num_collections[1])
+        self.local_and_linked_ids_numbers_validate(bpy.data.objects, num_objects[0], num_objects[1])
+        self.local_and_linked_ids_numbers_validate(bpy.data.meshes, num_meshes[0], num_meshes[1])
+        self.local_and_linked_ids_numbers_validate(bpy.data.armatures, num_armatures[0], num_armatures[1])
 
         return linked_collection_container
 
@@ -253,14 +249,10 @@ class TestLibraryOverridesComplex(TestHelper):
             self.test_output_path)]
         self.assertIsNotNone(linked_collection_container.library)
         self.assertIsNotNone(linked_collection_container.override_library)
-        self.assertEqual(len(bpy.data.collections), num_collections)
-        self.assertTrue(all(id_.library is not None for id_ in bpy.data.collections))
-        self.assertEqual(len(bpy.data.objects), num_objects)
-        self.assertTrue(all(id_.library is not None for id_ in bpy.data.objects))
-        self.assertEqual(len(bpy.data.meshes), num_meshes)
-        self.assertTrue(all(id_.library is not None for id_ in bpy.data.meshes))
-        self.assertEqual(len(bpy.data.armatures), num_armatures)
-        self.assertTrue(all(id_.library is not None for id_ in bpy.data.armatures))
+        self.local_and_linked_ids_numbers_validate(bpy.data.collections, num_collections[0], num_collections[1])
+        self.local_and_linked_ids_numbers_validate(bpy.data.objects, num_objects[0], num_objects[1])
+        self.local_and_linked_ids_numbers_validate(bpy.data.meshes, num_meshes[0], num_meshes[1])
+        self.local_and_linked_ids_numbers_validate(bpy.data.armatures, num_armatures[0], num_armatures[1])
 
         self.liboverride_hierarchy_validate(linked_collection_container)
 
@@ -294,16 +286,30 @@ class TestLibraryOverridesComplex(TestHelper):
         for ob_ in root_collection.all_objects:
             liboverride_systemoverrideonly_hierarchy_validate(ob_, root_collection)
 
+    # IDs container, number of local IDs, of linked IDs, and number of liboverrides (local, linked).
+    def local_and_linked_ids_numbers_validate(
+            self, ids, local_num, linked_num, linked_missing_num=..., liboverride_num=()):
+        self.assertEqual(len(ids), local_num + linked_num)
+        self.assertFalse(any(id_.library is not None for id_ in ids[:local_num]))
+        self.assertFalse(any(id_.library is None for id_ in ids[local_num:]))
+        if liboverride_num:
+            self.assertEqual(len([id_ for id_ in ids[:local_num] if id_.override_library is not None]),
+                             liboverride_num[0])
+            self.assertEqual(len([id_ for id_ in ids[local_num:] if id_.override_library is not None]),
+                             liboverride_num[1])
+        if linked_missing_num is not ...:
+            self.assertEqual(len([id_ for id_ in ids[local_num:] if id_.is_missing]), linked_missing_num)
+
     def test_link_and_override_resync(self):
         self.init_lib_data()
         self.reset()
 
-        # NOTE: All counts below are in the form `local_ids + linked_ids`.
+        # NOTE: All counts below are in the form `local_ids, linked_ids`.
         linked_collection_container = self.link_lib_data(
-            num_collections=0 + 6,
-            num_objects=0 + 4,
-            num_meshes=0 + 1,
-            num_armatures=0 + 1)
+            num_collections=(0, 6),
+            num_objects=(0, 4),
+            num_meshes=(0, 1),
+            num_armatures=(0, 1))
 
         override_collection_container = linked_collection_container.override_hierarchy_create(
             bpy.context.scene,
@@ -313,13 +319,10 @@ class TestLibraryOverridesComplex(TestHelper):
         self.assertIsNotNone(override_collection_container.override_library)
         # Objects and collections are duplicated as overrides (except for empty collection),
         # but meshes and armatures remain only linked data.
-        self.assertEqual(len(bpy.data.collections), 2 + 6)
-        self.assertTrue(all((id_.library is None and id_.override_library is not None)
-                        for id_ in bpy.data.collections[:2]))
-        self.assertEqual(len(bpy.data.objects), 4 + 4)
-        self.assertTrue(all((id_.library is None and id_.override_library is not None) for id_ in bpy.data.objects[:4]))
-        self.assertEqual(len(bpy.data.meshes), 0 + 1)
-        self.assertEqual(len(bpy.data.armatures), 0 + 1)
+        self.local_and_linked_ids_numbers_validate(bpy.data.collections, 2, 6, liboverride_num=(2, 0))
+        self.local_and_linked_ids_numbers_validate(bpy.data.objects, 4, 4, liboverride_num=(4, 0))
+        self.local_and_linked_ids_numbers_validate(bpy.data.meshes, 0, 1)
+        self.local_and_linked_ids_numbers_validate(bpy.data.armatures, 0, 1)
 
         self.liboverride_hierarchy_validate(override_collection_container)
 
@@ -334,10 +337,10 @@ class TestLibraryOverridesComplex(TestHelper):
         self.reset()
 
         self.link_liboverride_data(
-            num_collections=0 + 8,
-            num_objects=0 + 8,
-            num_meshes=0 + 1,
-            num_armatures=0 + 1)
+            num_collections=(0, 8),
+            num_objects=(0, 8),
+            num_meshes=(0, 1),
+            num_armatures=(0, 1))
 
         bpy.ops.wm.save_as_mainfile(
             filepath=str(self.test_output_path_recursive),
@@ -363,13 +366,10 @@ class TestLibraryOverridesComplex(TestHelper):
         override_collection_container = bpy.data.collections[self.__class__.DATA_NAME_CONTAINER]
         self.assertIsNone(override_collection_container.library)
         self.assertIsNotNone(override_collection_container.override_library)
-        self.assertEqual(len(bpy.data.collections), 2 + 6)
-        self.assertTrue(all((id_.library is None and id_.override_library is not None)
-                        for id_ in bpy.data.collections[:2]))
-        self.assertEqual(len(bpy.data.objects), 4 + 4)
-        self.assertTrue(all((id_.library is None and id_.override_library is not None) for id_ in bpy.data.objects[:4]))
-        self.assertEqual(len(bpy.data.meshes), 0 + 1)
-        self.assertEqual(len(bpy.data.armatures), 0 + 1)
+        self.local_and_linked_ids_numbers_validate(bpy.data.collections, 2, 6, liboverride_num=(2, 0))
+        self.local_and_linked_ids_numbers_validate(bpy.data.objects, 4, 4, liboverride_num=(4, 0))
+        self.local_and_linked_ids_numbers_validate(bpy.data.meshes, 0, 1)
+        self.local_and_linked_ids_numbers_validate(bpy.data.armatures, 0, 1)
 
         obj_armature = bpy.data.objects[self.__class__.DATA_NAME_RIG]
         obj_ctrl2 = bpy.data.objects[self.__class__.DATA_NAME_CONTROLLER_2]
@@ -391,14 +391,14 @@ class TestLibraryOverridesComplex(TestHelper):
         self.assertIsNotNone(override_collection_container.library)
         self.assertIsNotNone(override_collection_container.override_library)
         test_output_path_lib = override_collection_container.library
-        self.assertEqual(len(bpy.data.collections), 0 + 8)
+        self.local_and_linked_ids_numbers_validate(bpy.data.collections, 0, 2 + 6, liboverride_num=(0, 2))
         self.assertTrue(all((id_.override_library is not None)
                             for id_ in bpy.data.collections if id_.library == test_output_path_lib))
-        self.assertEqual(len(bpy.data.objects), 0 + 8)
+        self.local_and_linked_ids_numbers_validate(bpy.data.objects, 0, 4 + 4, liboverride_num=(0, 4))
         self.assertTrue(all((id_.override_library is not None)
                             for id_ in bpy.data.objects if id_.library == test_output_path_lib))
-        self.assertEqual(len(bpy.data.meshes), 0 + 1)
-        self.assertEqual(len(bpy.data.armatures), 0 + 1)
+        self.local_and_linked_ids_numbers_validate(bpy.data.meshes, 0, 1)
+        self.local_and_linked_ids_numbers_validate(bpy.data.armatures, 0, 1)
 
         obj_armature = bpy.data.objects[self.__class__.DATA_NAME_RIG, str(self.test_output_path)]
         obj_ctrl2 = bpy.data.objects[self.__class__.DATA_NAME_CONTROLLER_2, str(self.test_output_path)]
@@ -412,12 +412,12 @@ class TestLibraryOverridesComplex(TestHelper):
         self.init_lib_data()
         self.reset()
 
-        # NOTE: All counts below are in the form `local_ids + linked_ids`.
+        # NOTE: All counts below are in the form `local_ids, linked_ids`.
         linked_collection_container = self.link_lib_data(
-            num_collections=0 + 6,
-            num_objects=0 + 4,
-            num_meshes=0 + 1,
-            num_armatures=0 + 1)
+            num_collections=(0, 6),
+            num_objects=(0, 4),
+            num_meshes=(0, 1),
+            num_armatures=(0, 1))
 
         override_collection_containers = [linked_collection_container.override_hierarchy_create(
             bpy.context.scene,
@@ -430,14 +430,10 @@ class TestLibraryOverridesComplex(TestHelper):
 
         # Objects and collections are duplicated as overrides (except for empty collection),
         # but meshes and armatures remain only linked data.
-        self.assertEqual(len(bpy.data.collections), 3 * 2 + 6)
-        self.assertTrue(all((id_.library is None and id_.override_library is not None)
-                        for id_ in bpy.data.collections[:3 * 2]))
-        self.assertEqual(len(bpy.data.objects), 3 * 4 + 4)
-        self.assertTrue(all((id_.library is None and id_.override_library is not None)
-                        for id_ in bpy.data.objects[:3 * 4]))
-        self.assertEqual(len(bpy.data.meshes), 0 + 1)
-        self.assertEqual(len(bpy.data.armatures), 0 + 1)
+        self.local_and_linked_ids_numbers_validate(bpy.data.collections, 3 * 2, 6, liboverride_num=(3 * 2, 0))
+        self.local_and_linked_ids_numbers_validate(bpy.data.objects, 3 * 4, 4, liboverride_num=(3 * 4, 0))
+        self.local_and_linked_ids_numbers_validate(bpy.data.meshes, 0, 1)
+        self.local_and_linked_ids_numbers_validate(bpy.data.armatures, 0, 1)
 
         bpy.ops.wm.save_as_mainfile(
             filepath=str(self.test_output_path),
@@ -450,10 +446,10 @@ class TestLibraryOverridesComplex(TestHelper):
         self.reset()
 
         self.link_liboverride_data(
-            num_collections=0 + 8,
-            num_objects=0 + 8,
-            num_meshes=0 + 1,
-            num_armatures=0 + 1)
+            num_collections=(0, 8),
+            num_objects=(0, 8),
+            num_meshes=(0, 1),
+            num_armatures=(0, 1))
 
         bpy.ops.wm.save_as_mainfile(
             filepath=str(self.test_output_path_recursive),
@@ -478,14 +474,10 @@ class TestLibraryOverridesComplex(TestHelper):
         self.assertIsNone(override_collection_container.library)
         self.assertIsNotNone(override_collection_container.override_library)
         # Objects and collections are duplicated as overrides, but meshes and armatures remain only linked data.
-        self.assertEqual(len(bpy.data.collections), 3 * 2 + 6)
-        self.assertTrue(all((id_.library is None and id_.override_library is not None)
-                        for id_ in bpy.data.collections[:3 * 2]))
-        self.assertEqual(len(bpy.data.objects), 3 * 4 + 4)
-        self.assertTrue(all((id_.library is None and id_.override_library is not None)
-                        for id_ in bpy.data.objects[:3 * 4]))
-        self.assertEqual(len(bpy.data.meshes), 0 + 1)
-        self.assertEqual(len(bpy.data.armatures), 0 + 1)
+        self.local_and_linked_ids_numbers_validate(bpy.data.collections, 3 * 2, 6, liboverride_num=(3 * 2, 0))
+        self.local_and_linked_ids_numbers_validate(bpy.data.objects, 3 * 4, 4, liboverride_num=(3 * 4, 0))
+        self.local_and_linked_ids_numbers_validate(bpy.data.meshes, 0, 1)
+        self.local_and_linked_ids_numbers_validate(bpy.data.armatures, 0, 1)
 
         obj_armature = bpy.data.objects[self.__class__.DATA_NAME_RIG]
         obj_ctrl2 = bpy.data.objects[self.__class__.DATA_NAME_CONTROLLER_2]
@@ -514,14 +506,14 @@ class TestLibraryOverridesComplex(TestHelper):
         self.assertIsNotNone(linked_collection_container.override_library)
         test_output_path_lib = linked_collection_container.library
         # Objects and collections are duplicated as overrides, but meshes and armatures remain only linked data.
-        self.assertEqual(len(bpy.data.collections), 0 + 8)
+        self.local_and_linked_ids_numbers_validate(bpy.data.collections, 0, 2 + 6, liboverride_num=(0, 2))
         self.assertTrue(all((id_.override_library is not None)
                             for id_ in bpy.data.collections if id_.library == test_output_path_lib))
-        self.assertEqual(len(bpy.data.objects), 0 + 8)
+        self.local_and_linked_ids_numbers_validate(bpy.data.objects, 0, 4 + 4, liboverride_num=(0, 4))
         self.assertTrue(all((id_.override_library is not None)
                             for id_ in bpy.data.objects if id_.library == test_output_path_lib))
-        self.assertEqual(len(bpy.data.meshes), 0 + 1)
-        self.assertEqual(len(bpy.data.armatures), 0 + 1)
+        self.local_and_linked_ids_numbers_validate(bpy.data.meshes, 0, 1)
+        self.local_and_linked_ids_numbers_validate(bpy.data.armatures, 0, 1)
 
         obj_armature = bpy.data.objects[self.__class__.DATA_NAME_RIG, str(self.test_output_path)]
         obj_ctrl2 = bpy.data.objects[self.__class__.DATA_NAME_CONTROLLER_2, str(self.test_output_path)]
@@ -552,12 +544,12 @@ class TestLibraryOverridesComplex(TestHelper):
         self.init_lib_data(init_lib_cb)
         self.reset()
 
-        # NOTE: All counts below are in the form `local_ids + linked_ids`.
+        # NOTE: All counts below are in the form `local_ids, linked_ids`.
         linked_collection_container = self.link_lib_data(
-            num_collections=0 + 6,
-            num_objects=0 + 4,
-            num_meshes=0 + 1,
-            num_armatures=0 + 1)
+            num_collections=(0, 6),
+            num_objects=(0, 4),
+            num_meshes=(0, 1),
+            num_armatures=(0, 1))
 
         override_collection_container = linked_collection_container.override_hierarchy_create(
             bpy.context.scene,
@@ -568,13 +560,10 @@ class TestLibraryOverridesComplex(TestHelper):
 
         # Objects and collections are duplicated as overrides (except for empty collection),
         # but meshes and armatures remain only linked data.
-        self.assertEqual(len(bpy.data.collections), 5 + 6)
-        self.assertTrue(all((id_.library is None and id_.override_library is not None)
-                        for id_ in bpy.data.collections[:2]))
-        self.assertEqual(len(bpy.data.objects), 4 + 4)
-        self.assertTrue(all((id_.library is None and id_.override_library is not None) for id_ in bpy.data.objects[:4]))
-        self.assertEqual(len(bpy.data.meshes), 0 + 1)
-        self.assertEqual(len(bpy.data.armatures), 0 + 1)
+        self.local_and_linked_ids_numbers_validate(bpy.data.collections, 5, 6, liboverride_num=(5, 0))
+        self.local_and_linked_ids_numbers_validate(bpy.data.objects, 4, 4, liboverride_num=(4, 0))
+        self.local_and_linked_ids_numbers_validate(bpy.data.meshes, 0, 1)
+        self.local_and_linked_ids_numbers_validate(bpy.data.armatures, 0, 1)
 
         self.liboverride_hierarchy_validate(override_collection_container)
 
@@ -589,10 +578,10 @@ class TestLibraryOverridesComplex(TestHelper):
         self.reset()
 
         linked_collection_container = self.link_liboverride_data(
-            num_collections=0 + 11,
-            num_objects=0 + 8,
-            num_meshes=0 + 1,
-            num_armatures=0 + 1)
+            num_collections=(0, 11),
+            num_objects=(0, 8),
+            num_meshes=(0, 1),
+            num_armatures=(0, 1))
 
         override_collection_container = linked_collection_container.override_hierarchy_create(
             bpy.context.scene,
@@ -603,13 +592,10 @@ class TestLibraryOverridesComplex(TestHelper):
 
         # Objects and collections are duplicated as overrides (except for empty collection),
         # but meshes and armatures remain only linked data.
-        self.assertEqual(len(bpy.data.collections), 5 + 11)
-        self.assertTrue(all((id_.library is None and id_.override_library is not None)
-                        for id_ in bpy.data.collections[:5]))
-        self.assertEqual(len(bpy.data.objects), 4 + 8)
-        self.assertTrue(all((id_.library is None and id_.override_library is not None) for id_ in bpy.data.objects[:4]))
-        self.assertEqual(len(bpy.data.meshes), 0 + 1)
-        self.assertEqual(len(bpy.data.armatures), 0 + 1)
+        self.local_and_linked_ids_numbers_validate(bpy.data.collections, 5, 5 + 6, liboverride_num=(5, 5))
+        self.local_and_linked_ids_numbers_validate(bpy.data.objects, 4, 4 + 4, liboverride_num=(4, 4))
+        self.local_and_linked_ids_numbers_validate(bpy.data.meshes, 0, 1)
+        self.local_and_linked_ids_numbers_validate(bpy.data.armatures, 0, 1)
 
         self.liboverride_hierarchy_validate(override_collection_container)
 
@@ -646,13 +632,10 @@ class TestLibraryOverridesComplex(TestHelper):
         self.assertIsNone(override_collection_container.library)
         self.assertIsNotNone(override_collection_container.override_library)
         # Objects and collections are duplicated as overrides, but meshes and armatures remain only linked data.
-        self.assertEqual(len(bpy.data.collections), 5 + 6)
-        self.assertTrue(all((id_.library is None and id_.override_library is not None)
-                        for id_ in bpy.data.collections[:5]))
-        self.assertEqual(len(bpy.data.objects), 4 + 4)
-        self.assertTrue(all((id_.library is None and id_.override_library is not None) for id_ in bpy.data.objects[:4]))
-        self.assertEqual(len(bpy.data.meshes), 0 + 1)
-        self.assertEqual(len(bpy.data.armatures), 0 + 1)
+        self.local_and_linked_ids_numbers_validate(bpy.data.collections, 5, 6, liboverride_num=(5, 0))
+        self.local_and_linked_ids_numbers_validate(bpy.data.objects, 4, 4, liboverride_num=(4, 0))
+        self.local_and_linked_ids_numbers_validate(bpy.data.meshes, 0, 1)
+        self.local_and_linked_ids_numbers_validate(bpy.data.armatures, 0, 1)
 
         obj_armature = bpy.data.objects[self.__class__.DATA_NAME_RIG]
         obj_ctrl2 = bpy.data.objects[self.__class__.DATA_NAME_CONTROLLER_2]
@@ -660,6 +643,72 @@ class TestLibraryOverridesComplex(TestHelper):
         self.assertIsNotNone(obj_armature.override_library)
         self.assertIsNone(obj_ctrl2.library)
         self.assertIsNotNone(obj_ctrl2.override_library)
+        self.assertEqual(obj_armature.constraints[0].target, obj_ctrl2)
+
+        self.liboverride_hierarchy_validate(override_collection_container)
+
+        bpy.ops.wm.save_as_mainfile(
+            filepath=str(self.test_output_path),
+            check_existing=False,
+            compress=False,
+            relative_remap=False,
+        )
+
+        # Re-open the 'recursive resync' file, and check that automatic recursive resync did its work correctly,
+        # remapping the target of the linked liboverride armature constraint to controller 2, without creating
+        # unexpected garbage IDs along the line.
+        bpy.ops.wm.open_mainfile(filepath=str(self.test_output_path_recursive))
+
+        override_collection_container = bpy.data.collections[self.__class__.DATA_NAME_CONTAINER]
+        self.assertIsNone(override_collection_container.library)
+        self.assertIsNotNone(override_collection_container.override_library)
+        # Objects and collections are duplicated as overrides, but meshes and armatures remain only linked data.
+        self.local_and_linked_ids_numbers_validate(bpy.data.collections, 5, 5 + 6, liboverride_num=(5, 5))
+        self.local_and_linked_ids_numbers_validate(bpy.data.objects, 4, 4 + 4, liboverride_num=(4, 4))
+        self.local_and_linked_ids_numbers_validate(bpy.data.meshes, 0, 1)
+        self.local_and_linked_ids_numbers_validate(bpy.data.armatures, 0, 1)
+
+        obj_armature = bpy.data.objects[self.__class__.DATA_NAME_RIG]
+        obj_ctrl2 = bpy.data.objects[self.__class__.DATA_NAME_CONTROLLER_2]
+        self.assertIsNotNone(obj_armature.override_library)
+        self.assertIsNotNone(obj_ctrl2.override_library)
+        self.assertEqual(obj_armature.constraints[0].target, obj_ctrl2)
+
+        self.liboverride_hierarchy_validate(override_collection_container)
+
+        bpy.ops.wm.save_as_mainfile(
+            filepath=str(self.test_output_path_recursive),
+            check_existing=False,
+            compress=False,
+            relative_remap=False,
+        )
+
+        # Clear the library from all of its data.
+        self.edit_lib_data(lambda s: s.reset())
+        self.reset()
+
+        # Re-open the main file, and check that automatic resync did its work correctly, preserving as much as possible
+        # from the missing linked data.
+        bpy.ops.wm.open_mainfile(filepath=str(self.test_output_path))
+
+        override_collection_container = bpy.data.collections[self.__class__.DATA_NAME_CONTAINER]
+        self.assertIsNone(override_collection_container.library)
+        self.assertIsNotNone(override_collection_container.override_library)
+        # Objects and collections are duplicated as overrides, but meshes and armatures remain only linked data.
+        self.local_and_linked_ids_numbers_validate(
+            bpy.data.collections, 5, 6, linked_missing_num=6, liboverride_num=(5, 0))
+        self.local_and_linked_ids_numbers_validate(
+            bpy.data.objects, 4, 4, linked_missing_num=4, liboverride_num=(4, 0))
+        self.local_and_linked_ids_numbers_validate(bpy.data.meshes, 0, 1)
+        self.local_and_linked_ids_numbers_validate(bpy.data.armatures, 0, 1)
+
+        obj_armature = bpy.data.objects[self.__class__.DATA_NAME_RIG]
+        obj_ctrl2 = bpy.data.objects[self.__class__.DATA_NAME_CONTROLLER_2]
+        self.assertIsNone(obj_armature.library)
+        self.assertIsNotNone(obj_armature.override_library)
+        self.assertIsNone(obj_ctrl2.library)
+        self.assertIsNotNone(obj_ctrl2.override_library)
+        print(obj_armature.constraints[0].target)
         self.assertEqual(obj_armature.constraints[0].target, obj_ctrl2)
 
         self.liboverride_hierarchy_validate(override_collection_container)
@@ -673,13 +722,12 @@ class TestLibraryOverridesComplex(TestHelper):
         self.assertIsNone(override_collection_container.library)
         self.assertIsNotNone(override_collection_container.override_library)
         # Objects and collections are duplicated as overrides, but meshes and armatures remain only linked data.
-        self.assertEqual(len(bpy.data.collections), 5 + 11)
-        self.assertTrue(all((id_.library is None and id_.override_library is not None)
-                        for id_ in bpy.data.collections[:5]))
-        self.assertEqual(len(bpy.data.objects), 4 + 8)
-        self.assertTrue(all((id_.library is None and id_.override_library is not None) for id_ in bpy.data.objects[:4]))
-        self.assertEqual(len(bpy.data.meshes), 0 + 1)
-        self.assertEqual(len(bpy.data.armatures), 0 + 1)
+        self.local_and_linked_ids_numbers_validate(
+            bpy.data.collections, 5, 5 + 6, linked_missing_num=6, liboverride_num=(5, 5))
+        self.local_and_linked_ids_numbers_validate(
+            bpy.data.objects, 4, 4 + 4, linked_missing_num=4, liboverride_num=(4, 4))
+        self.local_and_linked_ids_numbers_validate(bpy.data.meshes, 0, 1)
+        self.local_and_linked_ids_numbers_validate(bpy.data.armatures, 0, 1)
 
         obj_armature = bpy.data.objects[self.__class__.DATA_NAME_RIG]
         obj_ctrl2 = bpy.data.objects[self.__class__.DATA_NAME_CONTROLLER_2]
@@ -700,12 +748,12 @@ class TestLibraryOverridesComplex(TestHelper):
         self.init_lib_data(init_lib_cb)
         self.reset()
 
-        # NOTE: All counts below are in the form `local_ids + linked_ids`.
+        # NOTE: All counts below are in the form `local_ids, linked_ids`.
         linked_collection_container = self.link_lib_data(
-            num_collections=0 + 6,
-            num_objects=0 + 6,
-            num_meshes=0 + 1,
-            num_armatures=0 + 1)
+            num_collections=(0, 6),
+            num_objects=(0, 6),
+            num_meshes=(0, 1),
+            num_armatures=(0, 1))
 
         override_collection_containers = [linked_collection_container.override_hierarchy_create(
             bpy.context.scene,
@@ -718,25 +766,25 @@ class TestLibraryOverridesComplex(TestHelper):
 
         # Objects and collections are duplicated as overrides (except for empty collection),
         # but meshes and armatures remain only linked data.
-        self.assertEqual(len(bpy.data.collections), 3 * 3 + 6)
-        self.assertTrue(all((id_.library is None and id_.override_library is not None)
-                        for id_ in bpy.data.collections[:3 * 3]))
-        self.assertEqual(len(bpy.data.objects), 3 * 6 + 6)
-        self.assertTrue(all((id_.library is None and id_.override_library is not None)
-                        for id_ in bpy.data.objects[:3 * 6]))
-        self.assertEqual(len(bpy.data.meshes), 0 + 1)
-        self.assertEqual(len(bpy.data.armatures), 0 + 1)
+        self.local_and_linked_ids_numbers_validate(bpy.data.collections, 3 * 3, 6, liboverride_num=(3 * 3, 0))
+        self.local_and_linked_ids_numbers_validate(bpy.data.objects, 3 * 6, 6, liboverride_num=(3 * 6, 0))
+        self.local_and_linked_ids_numbers_validate(bpy.data.meshes, 0, 1)
+        self.local_and_linked_ids_numbers_validate(bpy.data.armatures, 0, 1)
 
         self.assertEqual(
-            bpy.data.objects[self.__class__.DATA_NAME_SAMENAME_0].override_library.reference.name, self.__class__.DATA_NAME_SAMENAME_0)
+            bpy.data.objects[self.__class__.DATA_NAME_SAMENAME_0].override_library.reference.name,
+            self.__class__.DATA_NAME_SAMENAME_0)
         self.assertEqual(
-            bpy.data.objects[self.__class__.DATA_NAME_SAMENAME_3].override_library.reference.name, self.__class__.DATA_NAME_SAMENAME_3)
+            bpy.data.objects[self.__class__.DATA_NAME_SAMENAME_3].override_library.reference.name,
+            self.__class__.DATA_NAME_SAMENAME_3)
         # These names will be used by the second created liboverride, due to how
         # naming is currently handled when original name is already used.
         self.assertEqual(
-            bpy.data.objects[self.__class__.DATA_NAME_SAMENAME_1].override_library.reference.name, self.__class__.DATA_NAME_SAMENAME_0)
+            bpy.data.objects[self.__class__.DATA_NAME_SAMENAME_1].override_library.reference.name,
+            self.__class__.DATA_NAME_SAMENAME_0)
         self.assertEqual(
-            bpy.data.objects[self.__class__.DATA_NAME_SAMENAME_2].override_library.reference.name, self.__class__.DATA_NAME_SAMENAME_3)
+            bpy.data.objects[self.__class__.DATA_NAME_SAMENAME_2].override_library.reference.name,
+            self.__class__.DATA_NAME_SAMENAME_3)
 
         bpy.ops.wm.save_as_mainfile(
             filepath=str(self.test_output_path),
@@ -749,10 +797,10 @@ class TestLibraryOverridesComplex(TestHelper):
         self.reset()
 
         linked_collection_container = self.link_liboverride_data(
-            num_collections=0 + 9,
-            num_objects=0 + 12,
-            num_meshes=0 + 1,
-            num_armatures=0 + 1)
+            num_collections=(0, 9),
+            num_objects=(0, 12),
+            num_meshes=(0, 1),
+            num_armatures=(0, 1))
 
         override_collection_container = linked_collection_container.override_hierarchy_create(
             bpy.context.scene,
@@ -763,13 +811,10 @@ class TestLibraryOverridesComplex(TestHelper):
 
         # Objects and collections are duplicated as overrides (except for empty collection),
         # but meshes and armatures remain only linked data.
-        self.assertEqual(len(bpy.data.collections), 3 + 9)
-        self.assertTrue(all((id_.library is None and id_.override_library is not None)
-                        for id_ in bpy.data.collections[:3]))
-        self.assertEqual(len(bpy.data.objects), 6 + 12)
-        self.assertTrue(all((id_.library is None and id_.override_library is not None) for id_ in bpy.data.objects[:6]))
-        self.assertEqual(len(bpy.data.meshes), 0 + 1)
-        self.assertEqual(len(bpy.data.armatures), 0 + 1)
+        self.local_and_linked_ids_numbers_validate(bpy.data.collections, 3, 3 + 6, liboverride_num=(3, 3))
+        self.local_and_linked_ids_numbers_validate(bpy.data.objects, 6, 6 + 6, liboverride_num=(6, 6))
+        self.local_and_linked_ids_numbers_validate(bpy.data.meshes, 0, 1)
+        self.local_and_linked_ids_numbers_validate(bpy.data.armatures, 0, 1)
 
         self.liboverride_hierarchy_validate(override_collection_container)
 
@@ -796,15 +841,11 @@ class TestLibraryOverridesComplex(TestHelper):
         self.assertIsNone(override_collection_container.library)
         self.assertIsNotNone(override_collection_container.override_library)
         # Objects and collections are duplicated as overrides, but meshes and armatures remain only linked data.
-        self.assertEqual(len(bpy.data.collections), 3 * 3 + 6)
-        self.assertTrue(all((id_.library is None and id_.override_library is not None)
-                        for id_ in bpy.data.collections[:3 * 3]))
+        self.local_and_linked_ids_numbers_validate(bpy.data.collections, 3 * 3, 6, liboverride_num=(3 * 3, 0))
         # Note that the 'missing' renamed objects from the library are now cleared as part of the resync process.
-        self.assertEqual(len(bpy.data.objects), 3 * 6 + 6)
-        self.assertTrue(all((id_.library is None and id_.override_library is not None)
-                        for id_ in bpy.data.objects[:3 * 6]))
-        self.assertEqual(len(bpy.data.meshes), 0 + 1)
-        self.assertEqual(len(bpy.data.armatures), 0 + 1)
+        self.local_and_linked_ids_numbers_validate(bpy.data.objects, 3 * 6, 6, liboverride_num=(3 * 6, 0))
+        self.local_and_linked_ids_numbers_validate(bpy.data.meshes, 0, 1)
+        self.local_and_linked_ids_numbers_validate(bpy.data.armatures, 0, 1)
 
         override_collection_containers = [
             bpy.data.collections[self.__class__.DATA_NAME_CONTAINER],
@@ -828,15 +869,11 @@ class TestLibraryOverridesComplex(TestHelper):
 
         test_output_path_lib = linked_collection_container.library
         # Objects and collections are duplicated as overrides, but meshes and armatures remain only linked data.
-        self.assertEqual(len(bpy.data.collections), 3 + 9)
-        self.assertTrue(all((id_.override_library is not None)
-                            for id_ in bpy.data.collections if id_.library == test_output_path_lib))
+        self.local_and_linked_ids_numbers_validate(bpy.data.collections, 3, 3 + 6, liboverride_num=(3, 3))
         # Note that the 'missing' renamed objects from the library are now cleared as part of the resync process.
-        self.assertEqual(len(bpy.data.objects), 6 + 12)
-        self.assertTrue(all((id_.override_library is not None)
-                            for id_ in bpy.data.objects if id_.library == test_output_path_lib))
-        self.assertEqual(len(bpy.data.meshes), 0 + 1)
-        self.assertEqual(len(bpy.data.armatures), 0 + 1)
+        self.local_and_linked_ids_numbers_validate(bpy.data.objects, 6, 6 + 6, liboverride_num=(6, 6))
+        self.local_and_linked_ids_numbers_validate(bpy.data.meshes, 0, 1)
+        self.local_and_linked_ids_numbers_validate(bpy.data.armatures, 0, 1)
 
         self.liboverride_hierarchy_validate(linked_collection_container)
 
