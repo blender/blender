@@ -113,6 +113,9 @@ void WM_msg_publish_remote_downloader(wmMsgBus *mbus, const blender::StringRef r
   wmMsgParams_RemoteDownloader params{};
   params.remote_url = BLI_strdupn(remote_url.data(), remote_url.size());
   WM_msg_publish_remote_downloader_params(mbus, &params);
+
+  /* Value was copied into the publish key. */
+  MEM_freeN(params.remote_url);
 }
 
 void WM_msg_subscribe_remote_downloader_params(wmMsgBus *mbus,
@@ -139,4 +142,7 @@ void WM_msg_subscribe_remote_downloader(wmMsgBus *mbus,
   wmMsgParams_RemoteDownloader params{};
   params.remote_url = BLI_strdupn(remote_url.data(), remote_url.size());
   WM_msg_subscribe_remote_downloader_params(mbus, &params, msg_val_params, id_repr);
+
+  /* Value was copied into the subscribe key. */
+  MEM_freeN(params.remote_url);
 }
