@@ -39,7 +39,7 @@ void BKE_image_format_init(ImageFormatData *imf, const bool render)
         &imf->view_settings, &imf->display_settings, "Filmic");
   }
   else {
-    BKE_color_managed_view_settings_init_default(&imf->view_settings, &imf->display_settings);
+    BKE_color_managed_view_settings_init_untonemapped(&imf->view_settings, &imf->display_settings);
   }
 
   BKE_color_managed_colorspace_settings_init(&imf->linear_colorspace_settings);

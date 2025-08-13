@@ -1732,8 +1732,8 @@ static std::optional<int> wm_main_playanim_intern(int argc, const char **argv, P
 
   STRNCPY_UTF8(ps.display_ctx.display_settings.display_device,
                IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE));
-  IMB_colormanagement_init_default_view_settings(&ps.display_ctx.view_settings,
-                                                 &ps.display_ctx.display_settings);
+  IMB_colormanagement_init_untonemapped_view_settings(&ps.display_ctx.view_settings,
+                                                      &ps.display_ctx.display_settings);
   ps.display_ctx.ui_scale = 1.0f;
 
   while ((argc > 0) && (argv[0][0] == '-')) {

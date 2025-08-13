@@ -520,7 +520,7 @@ void IMB_colormanagement_finish_glsl_draw();
 /** \name View Transform
  * \{ */
 
-void IMB_colormanagement_init_default_view_settings(
+void IMB_colormanagement_init_untonemapped_view_settings(
     ColorManagedViewSettings *view_settings, const ColorManagedDisplaySettings *display_settings);
 
 /* Roles */

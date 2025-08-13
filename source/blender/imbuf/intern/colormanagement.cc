@@ -764,7 +764,7 @@ static std::shared_ptr<const ocio::CPUProcessor> get_display_buffer_processor(
   return g_config->get_display_cpu_processor(display_parameters);
 }
 
-void IMB_colormanagement_init_default_view_settings(
+void IMB_colormanagement_init_standard_view_settings(
     ColorManagedViewSettings *view_settings, const ColorManagedDisplaySettings *display_settings)
 {
   /* First, try use "Un-tone-mapped" (ACES configs) or "Standard" (Blender config) view transform
@@ -2467,7 +2467,7 @@ uchar *IMB_display_buffer_acquire(ImBuf *ibuf,
   uchar *display_buffer;
   ColormanageCacheViewSettings cache_view_settings;
   ColormanageCacheDisplaySettings cache_display_settings;
-  ColorManagedViewSettings default_view_settings;
+  ColorManagedViewSettings untonemapped_view_settings;
   const ColorManagedViewSettings *applied_view_settings;
 
   *cache_handle = nullptr;
@@ -2482,8 +2482,9 @@ uchar *IMB_display_buffer_acquire(ImBuf *ibuf,
   else {
     /* If no view settings were specified, use default ones, which will
      * attempt not to do any extra color correction. */
-    IMB_colormanagement_init_default_view_settings(&default_view_settings, display_settings);
-    applied_view_settings = &default_view_settings;
+    IMB_colormanagement_init_untonemapped_view_settings(&untonemapped_view_settings,
+                                                        display_settings);
+    applied_view_settings = &untonemapped_view_settings;
   }
 
   /* No float buffer and byte buffer is already in display space, let's just use it. */
@@ -3291,7 +3292,7 @@ ColormanageProcessor *IMB_colormanagement_display_processor_new(
     const ColorManagedDisplaySettings *display_settings)
 {
   ColormanageProcessor *cm_processor;
-  ColorManagedViewSettings default_view_settings;
+  ColorManagedViewSettings untonemapped_view_settings;
   const ColorManagedViewSettings *applied_view_settings;
   const ColorSpace *display_space;
 
@@ -3301,8 +3302,9 @@ ColormanageProcessor *IMB_colormanagement_display_processor_new(
     applied_view_settings = view_settings;
   }
   else {
-    IMB_colormanagement_init_default_view_settings(&default_view_settings, display_settings);
-    applied_view_settings = &default_view_settings;
+    IMB_colormanagement_init_untonemapped_view_settings(&untonemapped_view_settings,
+                                                        display_settings);
+    applied_view_settings = &untonemapped_view_settings;
   }
 
   display_space = get_display_colorspace(applied_view_settings, display_settings);
@@ -3535,7 +3537,7 @@ bool IMB_colormanagement_setup_glsl_draw_from_space(
     bool predivide,
     bool do_overlay_merge)
 {
-  ColorManagedViewSettings default_view_settings;
+  ColorManagedViewSettings untonemapped_view_settings;
   const ColorManagedViewSettings *applied_view_settings;
 
   if (view_settings) {
@@ -3544,8 +3546,9 @@ bool IMB_colormanagement_setup_glsl_draw_from_space(
   else {
     /* If no view settings were specified, use default ones, which will attempt not to do any
      * extra color correction. */
-    IMB_colormanagement_init_default_view_settings(&default_view_settings, display_settings);
-    applied_view_settings = &default_view_settings;
+    IMB_colormanagement_init_untonemapped_view_settings(&untonemapped_view_settings,
+                                                        display_settings);
+    applied_view_settings = &untonemapped_view_settings;
   }
 
   /* Ensure curve mapping is up to date. */
