@@ -853,7 +853,7 @@ static wmOperatorStatus grease_pencil_primitive_invoke(bContext *C,
 }
 
 /* Exit and free memory. */
-static void grease_pencil_primitive_exit(bContext *C, wmOperator *op)
+static void grease_pencil_primitive_exit(bContext *C, wmOperator *op, const bool cancelled)
 {
   PrimitiveToolOperation *ptd = static_cast<PrimitiveToolOperation *>(op->customdata);
 
@@ -862,7 +862,7 @@ static void grease_pencil_primitive_exit(bContext *C, wmOperator *op)
                                        GP_TOOL_FLAG_AUTOMERGE_STROKE) != 0;
   const bool on_back = (scene.toolsettings->gpencil_flags & GP_TOOL_FLAG_PAINT_ONBACK) != 0;
 
-  if (do_automerge_endpoints) {
+  if (do_automerge_endpoints && !cancelled) {
     const Object &ob = *ptd->vc.obact;
     const GreasePencil *grease_pencil = static_cast<GreasePencil *>(ob.data);
     const bke::greasepencil::Layer &active_layer = *grease_pencil->get_active_layer();
@@ -1205,12 +1205,12 @@ static wmOperatorStatus grease_pencil_primitive_event_modal_map(bContext *C,
   switch (event->val) {
     case int(ModalKeyMode::Cancel): {
       grease_pencil_primitive_undo_curves(ptd);
-      grease_pencil_primitive_exit(C, op);
+      grease_pencil_primitive_exit(C, op, true);
 
       return OPERATOR_CANCELLED;
     }
     case int(ModalKeyMode::Confirm): {
-      grease_pencil_primitive_exit(C, op);
+      grease_pencil_primitive_exit(C, op, false);
 
       return OPERATOR_FINISHED;
     }
@@ -1453,7 +1453,7 @@ static wmOperatorStatus grease_pencil_primitive_modal(bContext *C,
   /* Check for confirm before navigation. */
   if (event->type == EVT_MODAL_MAP) {
     if (event->val == int(ModalKeyMode::Confirm)) {
-      grease_pencil_primitive_exit(C, op);
+      grease_pencil_primitive_exit(C, op, false);
 
       return OPERATOR_FINISHED;
     }
@@ -1497,7 +1497,7 @@ static wmOperatorStatus grease_pencil_primitive_modal(bContext *C,
 
       if (ptd.mode == OperatorMode::Idle) {
         grease_pencil_primitive_undo_curves(ptd);
-        grease_pencil_primitive_exit(C, op);
+        grease_pencil_primitive_exit(C, op, true);
 
         return OPERATOR_CANCELLED;
       }
@@ -1534,7 +1534,7 @@ static wmOperatorStatus grease_pencil_primitive_modal(bContext *C,
 static void grease_pencil_primitive_cancel(bContext *C, wmOperator *op)
 {
   /* This is just a wrapper around exit() */
-  grease_pencil_primitive_exit(C, op);
+  grease_pencil_primitive_exit(C, op, true);
 }
 
 static void grease_pencil_primitive_common_props(wmOperatorType *ot,
