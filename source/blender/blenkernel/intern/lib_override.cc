@@ -2878,8 +2878,19 @@ static void lib_override_cleanup_after_resync(Main *bmain)
     if (ID_IS_OVERRIDE_LIBRARY(id)) {
       const IDOverrideLibrary *override_library = BKE_lib_override_library_get(
           nullptr, id, nullptr, nullptr);
+      /* NOTE: Since hierarchy root final validation is only done on 'expected-to-be-processed' IDs
+       * after each level of recursive resync (and not the whole Main data-base, see @00375abc38),
+       * `root` may now be null here. Likely, because deleting some root override sets that pointer
+       * to null.
+       *
+       * If this turns out to be a wrong fix, the other likely solution would be to add a call to
+       * #BKE_lib_override_library_main_hierarchy_root_ensure before calling
+       * #lib_override_cleanup_after_resync.
+       *
+       * This was technically already possible before (e.g. for non-hierarchical isolated
+       * liboverrides), but in practice this is very rare case. */
       const ID *root = override_library->hierarchy_root;
-      if (root == id || (root->override_library->reference->tag & ID_TAG_MISSING) != 0) {
+      if (root && (root == id || (root->override_library->reference->tag & ID_TAG_MISSING) != 0)) {
         return false;
       }
       return ((override_library->reference->tag & ID_TAG_MISSING) != 0);
