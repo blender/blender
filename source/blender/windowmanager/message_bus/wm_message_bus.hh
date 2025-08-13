@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_string_ref.hh"
+
 #include "DNA_listBase.h"
 
 #include "RNA_prototypes.hh"
@@ -35,8 +37,9 @@ using wmMsgSubscribeValueUpdateIdFn =
 enum {
   WM_MSG_TYPE_RNA = 0,
   WM_MSG_TYPE_STATIC = 1,
+  WM_MSG_TYPE_REMOTE_DOWNLOADER = 2,
 };
-#define WM_MSG_TYPE_NUM 2
+#define WM_MSG_TYPE_NUM 3
 
 struct wmMsgTypeInfo {
   struct {
@@ -166,6 +169,39 @@ void WM_msg_subscribe_static(wmMsgBus *mbus,
                              int event,
                              const wmMsgSubscribeValue *msg_val_params,
                              const char *id_repr);
+
+/* -------------------------------------------------------------------------- */
+/* `wm_message_bus_remote_downloader.cc` */
+
+struct wmMsgParams_RemoteDownloader {
+  const char *remote_url;
+};
+
+struct wmMsg_RemoteDownloader {
+  wmMsg head; /* Keep first. */
+  wmMsgParams_RemoteDownloader params;
+};
+
+struct wmMsgSubscribeKey_RemoteDownloader {
+  wmMsgSubscribeKey head;
+  wmMsg_RemoteDownloader msg;
+};
+
+void WM_msgtypeinfo_init_remote_downloader(wmMsgTypeInfo *msgtype_info);
+
+wmMsgSubscribeKey_RemoteDownloader *WM_msg_lookup_remote_downloader(
+    wmMsgBus *mbus, const wmMsgParams_RemoteDownloader *msg_key_params);
+void WM_msg_publish_remote_downloader_params(wmMsgBus *mbus,
+                                             const wmMsgParams_RemoteDownloader *msg_key_params);
+void WM_msg_publish_remote_downloader(wmMsgBus *mbus, blender::StringRef remote_url);
+void WM_msg_subscribe_remote_downloader_params(wmMsgBus *mbus,
+                                               const wmMsgParams_RemoteDownloader *msg_key_params,
+                                               const wmMsgSubscribeValue *msg_val_params,
+                                               const char *id_repr);
+void WM_msg_subscribe_remote_downloader(wmMsgBus *mbus,
+                                        blender::StringRef remote_url,
+                                        const wmMsgSubscribeValue *msg_val_params,
+                                        const char *id_repr);
 
 /* -------------------------------------------------------------------------- */
 /* `wm_message_bus_rna.cc` */
