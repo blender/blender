@@ -306,7 +306,7 @@ class GHOST_DeviceVK {
     /* Enable vulkan 11 features when supported on physical device. */
     VkPhysicalDeviceVulkan11Features vulkan_11_features = {};
     vulkan_11_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
-    vulkan_11_features.shaderDrawParameters = features_11.shaderDrawParameters;
+    vulkan_11_features.shaderDrawParameters = VK_TRUE;
     feature_struct_ptr.push_back(&vulkan_11_features);
 
     /* Enable optional vulkan 12 features when supported on physical device. */
@@ -391,6 +391,22 @@ class GHOST_DeviceVK {
     fragment_shader_barycentric.fragmentShaderBarycentric = VK_TRUE;
     if (extension_enabled(VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME)) {
       feature_struct_ptr.push_back(&fragment_shader_barycentric);
+    }
+
+    /* VK_EXT_memory_priority */
+    VkPhysicalDeviceMemoryPriorityFeaturesEXT memory_priority = {
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PRIORITY_FEATURES_EXT, nullptr, VK_TRUE};
+    if (extension_enabled(VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME)) {
+      feature_struct_ptr.push_back(&memory_priority);
+    }
+
+    /* VK_EXT_pageable_device_local_memory */
+    VkPhysicalDevicePageableDeviceLocalMemoryFeaturesEXT pageable_device_local_memory = {
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PAGEABLE_DEVICE_LOCAL_MEMORY_FEATURES_EXT,
+        nullptr,
+        VK_TRUE};
+    if (extension_enabled(VK_EXT_PAGEABLE_DEVICE_LOCAL_MEMORY_EXTENSION_NAME)) {
+      feature_struct_ptr.push_back(&pageable_device_local_memory);
     }
 
     /* Link all registered feature structs. */
@@ -1291,6 +1307,8 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
   optional_device_extensions.push_back(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME);
   optional_device_extensions.push_back(VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME);
   optional_device_extensions.push_back(VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME);
+  optional_device_extensions.push_back(VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME);
+  optional_device_extensions.push_back(VK_EXT_PAGEABLE_DEVICE_LOCAL_MEMORY_EXTENSION_NAME);
 
   VkInstance instance = VK_NULL_HANDLE;
   if (!vulkan_device.has_value()) {

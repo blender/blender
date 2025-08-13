@@ -102,7 +102,6 @@
 #include "compositor_smaa_info.hh"
 #include "compositor_split_info.hh"
 #include "compositor_summed_area_table_info.hh"
-#include "compositor_sun_beams_info.hh"
 #include "compositor_symmetric_blur_info.hh"
 #include "compositor_symmetric_blur_variable_size_info.hh"
 #include "compositor_symmetric_separable_blur_info.hh"

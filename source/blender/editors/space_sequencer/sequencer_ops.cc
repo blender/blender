@@ -116,6 +116,7 @@ void sequencer_operatortypes()
   WM_operatortype_append(SEQUENCER_OT_sound_strip_add);
   WM_operatortype_append(SEQUENCER_OT_image_strip_add);
   WM_operatortype_append(SEQUENCER_OT_effect_strip_add);
+  WM_operatortype_append(SEQUENCER_OT_add_scene_strip_from_scene_asset);
 
   /* sequencer_modifiers.c */
   WM_operatortype_append(SEQUENCER_OT_strip_modifier_add);

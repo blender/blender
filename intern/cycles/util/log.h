@@ -162,8 +162,10 @@ template<typename T> T DCheckNotNull(T &&t, const char *expression)
 /* Convenient logging of common data structures. */
 struct int2;
 struct float3;
+struct float4;
 
 std::ostream &operator<<(std::ostream &os, const int2 &value);
 std::ostream &operator<<(std::ostream &os, const float3 &value);
+std::ostream &operator<<(std::ostream &os, const float4 &value);
 
 CCL_NAMESPACE_END

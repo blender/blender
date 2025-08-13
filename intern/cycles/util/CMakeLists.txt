@@ -115,6 +115,7 @@ set(SRC_HEADERS
   types_int4.h
   types_int8.h
   types_spectrum.h
+  types_rgbe.h
   types_uchar2.h
   types_uchar3.h
   types_uchar4.h

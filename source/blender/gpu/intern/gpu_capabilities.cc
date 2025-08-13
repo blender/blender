@@ -177,11 +177,6 @@ bool GPU_geometry_shader_support()
   return GCaps.geometry_shader_support;
 }
 
-bool GPU_shader_draw_parameters_support()
-{
-  return GCaps.shader_draw_parameters_support;
-}
-
 bool GPU_hdr_support()
 {
   return GCaps.hdr_viewport_support;
@@ -190,11 +185,6 @@ bool GPU_hdr_support()
 bool GPU_stencil_export_support()
 {
   return GCaps.stencil_export_support;
-}
-
-bool GPU_clip_control_support()
-{
-  return GCaps.clip_control_support;
 }
 
 int GPU_max_shader_storage_buffer_bindings()

@@ -81,15 +81,11 @@ class Shader : public Node {
   NODE_SOCKET_API(EmissionSampling, emission_sampling_method)
   NODE_SOCKET_API(bool, use_transparent_shadow)
   NODE_SOCKET_API(bool, use_bump_map_correction)
-  NODE_SOCKET_API(bool, heterogeneous_volume)
   NODE_SOCKET_API(VolumeSampling, volume_sampling_method)
   NODE_SOCKET_API(int, volume_interpolation_method)
-  NODE_SOCKET_API(float, volume_step_rate)
 
   /* displacement */
   NODE_SOCKET_API(DisplacementMethod, displacement_method)
-
-  float prev_volume_step_rate;
 
   /* synchronization */
   bool need_update_uvs;
@@ -117,6 +113,7 @@ class Shader : public Node {
   bool has_surface_spatial_varying;
   bool has_volume_spatial_varying;
   bool has_volume_attribute_dependency;
+  bool has_light_path_node;
 
   float3 emission_estimate;
   EmissionSampling emission_sampling;

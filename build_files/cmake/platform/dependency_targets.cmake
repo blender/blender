@@ -39,6 +39,30 @@ if(WITH_MANIFOLD)
 endif()
 
 # -----------------------------------------------------------------------------
+# Configure OpenVDB
+
+add_library(bf_deps_optional_openvdb INTERFACE)
+add_library(bf::dependencies::optional::openvdb ALIAS bf_deps_optional_openvdb)
+
+if(WITH_OPENVDB)
+  target_compile_definitions(bf_deps_optional_openvdb INTERFACE WITH_OPENVDB)
+  if(WITH_OPENVDB_BLOSC)
+    target_compile_definitions(bf_deps_optional_openvdb INTERFACE WITH_OPENVDB_BLOSC)
+  endif()
+  if(WITH_OPENVDB_3_ABI_COMPATIBLE)
+    target_compile_definitions(bf_deps_optional_openvdb INTERFACE OPENVDB_3_ABI_COMPATIBLE)
+  endif()
+
+  target_include_directories(bf_deps_optional_openvdb SYSTEM INTERFACE ${OPENVDB_INCLUDE_DIRS})
+  target_link_libraries(bf_deps_optional_openvdb
+    INTERFACE
+    ${OPENVDB_LIBRARIES}
+    bf::dependencies::optional::tbb
+  )
+endif()
+
+
+# -----------------------------------------------------------------------------
 # Configure Eigen
 
 add_library(bf_deps_eigen INTERFACE)

@@ -516,12 +516,6 @@ void gpu_shader_create_info_init()
 /* Declare, register and construct the infos. */
 #include "gpu_shader_create_info_list.hh"
 
-  /* WORKAROUND: Replace the use of gpu_BaseInstance by an instance attribute. */
-  if (GPU_shader_draw_parameters_support() == false) {
-    draw_resource_id = draw_resource_id_fallback;
-    draw_resource_with_custom_id = draw_resource_with_custom_id_fallback;
-  }
-
   if (GPU_stencil_clasify_buffer_workaround()) {
     /* WORKAROUND: Adding a dummy buffer that isn't used fixes a bug inside the Qualcomm driver. */
     eevee_deferred_tile_classify.storage_buf(

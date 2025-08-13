@@ -569,30 +569,40 @@ float ANIM_unit_mapping_get_factor(Scene *scene, ID *id, FCurve *fcu, short flag
     *r_offset = 0.0f;
   }
 
-  /* sanity checks */
-  if (id && fcu && fcu->rna_path) {
-    PointerRNA ptr;
-    PropertyRNA *prop;
+  /* TODO: change the pointer parameters to references, as this function should not be called
+   * without an animated ID or a scene (to get the preferred units). */
 
-    /* get RNA property that F-Curve affects */
-    PointerRNA id_ptr = RNA_id_pointer_create(id);
-    if (RNA_path_resolve_property(&id_ptr, fcu->rna_path, &ptr, &prop)) {
-      /* rotations: radians <-> degrees? */
-      if (RNA_SUBTYPE_UNIT(RNA_property_subtype(prop)) == PROP_UNIT_ROTATION) {
-        /* if the radians flag is not set, default to using degrees which need conversions */
-        if ((scene) && (scene->unit.system_rotation == USER_UNIT_ROT_RADIANS) == 0) {
-          if (flag & ANIM_UNITCONV_RESTORE) {
-            return DEG2RADF(1.0f); /* degrees to radians */
-          }
-          return RAD2DEGF(1.0f); /* radians to degrees */
-        }
-      }
-
-      /* TODO: other rotation types here as necessary */
-    }
+  if (!id || !fcu || !fcu->rna_path || !scene) {
+    /* Not enough information to do the remapping, so just show the data as-is. */
+    return 1.0f;
   }
 
-  /* no mapping needs to occur... */
+  PointerRNA ptr;
+  PropertyRNA *prop;
+  PointerRNA id_ptr = RNA_id_pointer_create(id);
+  if (!RNA_path_resolve_property(&id_ptr, fcu->rna_path, &ptr, &prop)) {
+    /* Without resolving the property, its type & subtype are unknown; remapping is impossible. */
+    return 1.0f;
+  }
+
+  const PropertyUnit prop_unit = PropertyUnit(RNA_SUBTYPE_UNIT(RNA_property_subtype(prop)));
+
+  switch (prop_unit) {
+    case PROP_UNIT_ROTATION:
+      if (scene->unit.system_rotation == USER_UNIT_ROT_RADIANS) {
+        return 1.0f;
+      }
+
+      if (flag & ANIM_UNITCONV_RESTORE) {
+        return DEG2RADF(1.0f);
+      }
+      return RAD2DEGF(1.0f);
+
+    default:
+      /* TODO: other rotation types here as necessary */
+      break;
+  }
+
   return 1.0f;
 }
 

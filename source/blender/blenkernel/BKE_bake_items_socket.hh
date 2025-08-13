@@ -14,6 +14,7 @@
 
 #include "BKE_bake_items.hh"
 #include "BKE_geometry_fields.hh"
+#include "BKE_node_socket_value.hh"
 
 namespace blender::bke::bake {
 
@@ -42,7 +43,9 @@ struct BakeSocketConfig {
  * be in a moved-from state afterwards.
  */
 Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(
-    Span<void *> socket_values, const BakeSocketConfig &config, BakeDataBlockMap *data_block_map);
+    MutableSpan<SocketValueVariant> socket_values,
+    const BakeSocketConfig &config,
+    BakeDataBlockMap *data_block_map);
 
 /**
  * Create socket values from bake items.
@@ -52,26 +55,22 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(
  *
  * \param make_attribute_field: A function that creates a field input for any anonymous attributes
  *   being created for the baked data.
- * \param r_socket_values: The caller is expected to allocate (but not construct) the output
- *   values. All socket values are constructed in this function.
  */
-void move_bake_items_to_socket_values(
+Vector<SocketValueVariant> move_bake_items_to_socket_values(
     Span<BakeItem *> bake_items,
     const BakeSocketConfig &config,
     BakeDataBlockMap *data_block_map,
     FunctionRef<std::shared_ptr<AttributeFieldInput>(int socket_index, const CPPType &)>
-        make_attribute_field,
-    Span<void *> r_socket_values);
+        make_attribute_field);
 
 /**
  * Similar to #move_bake_items_to_socket_values, but does not change the bake items. Hence, this
  * should be used when the bake items are still used later on.
  */
-void copy_bake_items_to_socket_values(
+Vector<SocketValueVariant> copy_bake_items_to_socket_values(
     Span<const BakeItem *> bake_items,
     const BakeSocketConfig &config,
     BakeDataBlockMap *data_block_map,
-    FunctionRef<std::shared_ptr<AttributeFieldInput>(int, const CPPType &)> make_attribute_field,
-    Span<void *> r_socket_values);
+    FunctionRef<std::shared_ptr<AttributeFieldInput>(int, const CPPType &)> make_attribute_field);
 
 }  // namespace blender::bke::bake

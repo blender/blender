@@ -29,6 +29,7 @@
 #    include "kernel/film/adaptive_sampling.h"
 #    include "kernel/film/cryptomatte_passes.h"
 #    include "kernel/film/read.h"
+#    include "kernel/film/volume_guiding_denoise.h"
 
 #    include "kernel/bake/bake.h"
 
@@ -134,6 +135,22 @@ void KERNEL_FUNCTION_FULL_NAME(shader_eval_curve_shadow_transparency)(
 #endif
 }
 
+void KERNEL_FUNCTION_FULL_NAME(shader_eval_volume_density)(const ThreadKernelGlobalsCPU *kg,
+                                                           const KernelShaderEvalInput *input,
+                                                           float *output,
+                                                           const int offset)
+{
+#ifdef KERNEL_STUB
+  STUB_ASSERT(KERNEL_ARCH, shader_eval_volume_density);
+  (void)kg;
+  (void)input;
+  (void)output;
+  (void)offset;
+#else
+  kernel_volume_density_evaluate(kg, input, output, offset);
+#endif
+}
+
 /* --------------------------------------------------------------------
  * Adaptive sampling.
  */
@@ -228,6 +245,56 @@ void KERNEL_FUNCTION_FULL_NAME(cryptomatte_postprocess)(const ThreadKernelGlobal
 }
 
 /* --------------------------------------------------------------------
+ * Volume Scattering Probability Guiding.
+ */
+
+void KERNEL_FUNCTION_FULL_NAME(volume_guiding_filter_x)(const ThreadKernelGlobalsCPU *kg,
+                                                        ccl_global float *render_buffer,
+                                                        const int y,
+                                                        const int center_x,
+                                                        const int min_x,
+                                                        const int max_x,
+                                                        const int offset,
+                                                        const int stride)
+{
+#ifdef KERNEL_STUB
+  STUB_ASSERT(KERNEL_ARCH, volume_guiding_filter_x);
+  (void)kg;
+  (void)render_buffer;
+  (void)y;
+  (void)center_x;
+  (void)min_x;
+  (void)max_x;
+  (void)offset;
+  (void)stride;
+#else
+  volume_guiding_filter_x(kg, render_buffer, y, center_x, min_x, max_x, offset, stride);
+#endif
+}
+
+void KERNEL_FUNCTION_FULL_NAME(volume_guiding_filter_y)(const ThreadKernelGlobalsCPU *kg,
+                                                        ccl_global float *render_buffer,
+                                                        const int x,
+                                                        const int min_y,
+                                                        const int max_y,
+                                                        const int offset,
+                                                        const int stride)
+{
+#ifdef KERNEL_STUB
+  STUB_ASSERT(KERNEL_ARCH, volume_guiding_filter_y);
+  (void)kg;
+  (void)render_buffer;
+  (void)x;
+  (void)min_y;
+  (void)max_y;
+  (void)offset;
+  (void)stride;
+#else
+  volume_guiding_filter_y(kg, render_buffer, x, min_y, max_y, offset, stride);
+#endif
+}
+
+/* --------------------------------------------------------------------
  * Film Convert.
  */
 
@@ -303,9 +370,11 @@ void KERNEL_FUNCTION_FULL_NAME(cryptomatte_postprocess)(const ThreadKernelGlobal
 KERNEL_FILM_CONVERT_FUNCTION(depth, true)
 KERNEL_FILM_CONVERT_FUNCTION(mist, true)
 KERNEL_FILM_CONVERT_FUNCTION(sample_count, true)
+KERNEL_FILM_CONVERT_FUNCTION(volume_majorant, true)
 KERNEL_FILM_CONVERT_FUNCTION(float, true)
 
 KERNEL_FILM_CONVERT_FUNCTION(light_path, false)
+KERNEL_FILM_CONVERT_FUNCTION(rgbe, false)
 KERNEL_FILM_CONVERT_FUNCTION(float3, false)
 
 KERNEL_FILM_CONVERT_FUNCTION(motion, false)

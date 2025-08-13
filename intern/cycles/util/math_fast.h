@@ -341,6 +341,11 @@ ccl_device_inline float vector_angle(const float3 a, const float3 b)
   return 2.0f * fast_atan2f(len(a - b), len(a + b));
 }
 
+ccl_device_inline int floor_log2f(const float x)
+{
+  return (int)(__float_as_uint(x) >> 23) - 127;
+}
+
 /* Based on:
  *
  *   https://github.com/LiraNuna/glsl-sse2/blob/master/source/vec4.h
@@ -351,7 +356,7 @@ ccl_device float fast_log2f(float x)
    * negative values/NAN's. */
   x = clamp(x, FLT_MIN, FLT_MAX);
   const unsigned bits = __float_as_uint(x);
-  const int exponent = (int)(bits >> 23) - 127;
+  const int exponent = floor_log2f(x);
   const float f = __uint_as_float((bits & 0x007FFFFF) | 0x3f800000) - 1.0f;
   /* Examined 2130706432 values of log2 on [1.17549435e-38,3.40282347e+38]:
    * 0.0797524457 avg ULP diff, 3713596 max ULP, 7.62939e-06 max error.

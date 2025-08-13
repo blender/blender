@@ -43,57 +43,9 @@ bool BundleSignature::all_matching_exactly(const Span<BundleSignature> signature
   return true;
 }
 
-Bundle::Bundle() = default;
-
-Bundle::~Bundle()
-{
-  for (StoredItem &item : items_) {
-    if (BundleItemSocketValue *socket_value = std::get_if<BundleItemSocketValue>(
-            &item.value.value))
-    {
-      socket_value->type->geometry_nodes_cpp_type->destruct(socket_value->value);
-    }
-  }
-  for (void *buffer : buffers_) {
-    MEM_freeN(buffer);
-  }
-}
-
-Bundle::Bundle(const Bundle &other)
-{
-  for (const StoredItem &item : other.items_) {
-    this->add_new(item.key, item.value);
-  }
-}
-
-Bundle::Bundle(Bundle &&other) noexcept
-    : items_(std::move(other.items_)), buffers_(std::move(other.buffers_))
-{
-}
-
 BundlePtr Bundle::create()
 {
   return BundlePtr(MEM_new<Bundle>(__func__));
-}
-
-Bundle &Bundle::operator=(const Bundle &other)
-{
-  if (this == &other) {
-    return *this;
-  }
-  this->~Bundle();
-  new (this) Bundle(other);
-  return *this;
-}
-
-Bundle &Bundle::operator=(Bundle &&other) noexcept
-{
-  if (this == &other) {
-    return *this;
-  }
-  this->~Bundle();
-  new (this) Bundle(std::move(other));
-  return *this;
 }
 
 [[maybe_unused]] static bool is_valid_key(const StringRef key)
@@ -104,22 +56,7 @@ Bundle &Bundle::operator=(Bundle &&other) noexcept
 void Bundle::add_new(const StringRef key, const BundleItemValue &value)
 {
   BLI_assert(is_valid_key(key));
-  if (const BundleItemSocketValue *socket_value = std::get_if<BundleItemSocketValue>(&value.value))
-  {
-    const bke::bNodeSocketType &type = *socket_value->type;
-    BLI_assert(type.geometry_nodes_cpp_type);
-    const CPPType &cpp_type = *type.geometry_nodes_cpp_type;
-    void *buffer = MEM_mallocN_aligned(cpp_type.size, cpp_type.alignment, __func__);
-    cpp_type.copy_construct(socket_value->value, buffer);
-    items_.append(StoredItem{std::move(key), {BundleItemSocketValue{&type, buffer}}});
-    buffers_.append(buffer);
-  }
-  else if (std::holds_alternative<BundleItemInternalValue>(value.value)) {
-    items_.append(StoredItem{std::move(key), value});
-  }
-  else {
-    BLI_assert_unreachable();
-  }
+  items_.append(StoredItem{std::move(key), value});
 }
 
 void Bundle::add_override(const StringRef key, const BundleItemValue &value)
@@ -164,7 +101,7 @@ void Bundle::add_path_override(const StringRef path, const BundleItemValue &valu
       std::move(child_bundle));
   this->add(
       first_part,
-      BundleItemSocketValue{bke::node_socket_type_find_static(SOCK_BUNDLE), &child_bundle_value});
+      BundleItemSocketValue{bke::node_socket_type_find_static(SOCK_BUNDLE), child_bundle_value});
 }
 
 bool Bundle::add_path(StringRef path, const BundleItemValue &value)
@@ -245,17 +182,7 @@ BundlePtr Bundle::copy() const
 bool Bundle::remove(const StringRef key)
 {
   BLI_assert(is_valid_key(key));
-  const int removed_num = items_.remove_if([&key](StoredItem &item) {
-    if (item.key == key) {
-      if (BundleItemSocketValue *socket_value = std::get_if<BundleItemSocketValue>(
-              &item.value.value))
-      {
-        socket_value->type->geometry_nodes_cpp_type->destruct(socket_value->value);
-      }
-      return true;
-    }
-    return false;
-  });
+  const int removed_num = items_.remove_if([&key](StoredItem &item) { return item.key == key; });
   return removed_num >= 1;
 }
 

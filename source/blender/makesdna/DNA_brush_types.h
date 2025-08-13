@@ -177,9 +177,6 @@ typedef struct Brush {
   struct MTex mtex;
   struct MTex mask_mtex;
 
-  /* TODO (Sean): To be removed in 5.0 */
-  struct Brush *toggle_brush DNA_DEPRECATED;
-
   PreviewImage *preview;
   /** Color gradient. */
   struct ColorBand *gradient;

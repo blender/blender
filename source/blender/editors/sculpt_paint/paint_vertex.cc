@@ -716,8 +716,13 @@ static Color vpaint_blend(const VPaint &vp,
   return color_blend;
 }
 
-/* If in accumulate mode, blend brush mark directly onto mesh, else blend into temporary
- * stroke_buffer and blend the stroke onto the mesh. */
+/**
+ * If in accumulate mode, blend brush mark directly onto mesh, else blend into temporary
+ * stroke_buffer and blend the stroke onto the mesh.
+ *
+ * \param brush_mark_alpha: Modulated strength on a per-vertex basis
+ * \param brush_strength: Unmodified raw value of the brush
+ */
 template<typename Color, typename Traits>
 static Color vpaint_blend_stroke(const VPaint &vp,
                                  MutableSpan<Color> prev_vertex_colors,
@@ -750,10 +755,10 @@ static Color vpaint_blend_stroke(const VPaint &vp,
                                                          stroke_buffer[index].a);
 
     result = vpaint_blend<Color, Traits>(vp,
-                                         prev_vertex_colors[index],
+                                         vertex_colors[index],
                                          prev_vertex_colors[index],
                                          stroke_buffer[index],
-                                         stroke_buffer[index].a,
+                                         brush_mark_alpha,
                                          Traits::range * brush_strength);
   }
   else {

@@ -50,6 +50,7 @@ class VKBuffer : public NonCopyable {
               VkMemoryPropertyFlags required_flags,
               VkMemoryPropertyFlags preferred_flags,
               VmaAllocationCreateFlags vma_allocation_flags,
+              float priority,
               bool export_memory = false);
   void clear(VKContext &context, uint32_t clear_value);
   void update_immediately(const void *data) const;

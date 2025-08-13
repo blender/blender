@@ -126,7 +126,8 @@ static bool composite_node_tree_socket_type_valid(blender::bke::bNodeTreeType * 
                                                                         SOCK_BOOLEAN,
                                                                         SOCK_VECTOR,
                                                                         SOCK_RGBA,
-                                                                        SOCK_MENU);
+                                                                        SOCK_MENU,
+                                                                        SOCK_STRING);
 }
 
 /**

@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <string>
+
 #include "BLI_assert.h"
 #include "BLI_math_vector_types.hh"
 
@@ -74,6 +76,12 @@ void InputSingleValueOperation::execute()
     }
     case SOCK_MENU: {
       const int32_t value = input_socket_->default_value_typed<bNodeSocketValueMenu>()->value;
+      result.set_single_value(value);
+      break;
+    }
+    case SOCK_STRING: {
+      const std::string value =
+          input_socket_->default_value_typed<bNodeSocketValueString>()->value;
       result.set_single_value(value);
       break;
     }

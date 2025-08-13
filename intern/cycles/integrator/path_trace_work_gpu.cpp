@@ -1018,7 +1018,7 @@ void PathTraceWorkGPU::copy_to_display_naive(PathTraceDisplay *display,
     queue_->zero_to_device(display_rgba_half_);
   }
 
-  PassAccessor::Destination destination(film_->get_display_pass());
+  PassAccessor::Destination destination(film_->get_display_pass(), pass_mode);
   destination.d_pixels_half_rgba = display_rgba_half_.device_pointer;
 
   get_render_tile_film_pixels(destination, pass_mode, num_samples);
@@ -1045,7 +1045,7 @@ bool PathTraceWorkGPU::copy_to_display_interop(PathTraceDisplay *display,
     return false;
   }
 
-  PassAccessor::Destination destination = get_display_destination_template(display);
+  PassAccessor::Destination destination = get_display_destination_template(display, pass_mode);
   destination.d_pixels_half_rgba = d_rgba_half;
 
   get_render_tile_film_pixels(destination, pass_mode, num_samples);
@@ -1174,6 +1174,29 @@ void PathTraceWorkGPU::cryptomatte_postproces()
                                    &effective_buffer_params_.stride);
 
   queue_->enqueue(DEVICE_KERNEL_CRYPTOMATTE_POSTPROCESS, work_size, args);
+}
+
+void PathTraceWorkGPU::denoise_volume_guiding_buffers()
+{
+  const DeviceKernelArguments args(&buffers_->buffer.device_pointer,
+                                   &effective_buffer_params_.full_x,
+                                   &effective_buffer_params_.full_y,
+                                   &effective_buffer_params_.width,
+                                   &effective_buffer_params_.height,
+                                   &effective_buffer_params_.offset,
+                                   &effective_buffer_params_.stride);
+
+  {
+    const int work_size = effective_buffer_params_.width * effective_buffer_params_.height;
+    DCHECK_GT(work_size, 0);
+    queue_->enqueue(DEVICE_KERNEL_VOLUME_GUIDING_FILTER_X, work_size, args);
+  }
+
+  {
+    const int work_size = effective_buffer_params_.width;
+    DCHECK_GT(work_size, 0);
+    queue_->enqueue(DEVICE_KERNEL_VOLUME_GUIDING_FILTER_Y, work_size, args);
+  }
 }
 
 bool PathTraceWorkGPU::copy_render_buffers_from_device()

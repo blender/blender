@@ -34,11 +34,13 @@ class PassAccessorGPU : public PassAccessor {
   /* Float (scalar) passes. */
   DECLARE_PASS_ACCESSOR(depth);
   DECLARE_PASS_ACCESSOR(mist);
+  DECLARE_PASS_ACCESSOR(volume_majorant);
   DECLARE_PASS_ACCESSOR(sample_count);
   DECLARE_PASS_ACCESSOR(float);
 
   /* Float3 passes. */
   DECLARE_PASS_ACCESSOR(light_path);
+  DECLARE_PASS_ACCESSOR(rgbe);
   DECLARE_PASS_ACCESSOR(float3);
 
   /* Float4 passes. */

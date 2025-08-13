@@ -67,6 +67,7 @@ Scene ::Scene(const SceneParams &params_, Device *device)
   particle_system_manager = make_unique<ParticleSystemManager>();
   bake_manager = make_unique<BakeManager>();
   procedural_manager = make_unique<ProceduralManager>();
+  volume_manager = make_unique<VolumeManager>();
 
   /* Create nodes after managers, since create_node() can tag the managers. */
   camera = create_node<Camera>();
@@ -138,10 +139,9 @@ void Scene::free_memory(bool final)
     shader_manager->device_free(device, &dscene, this);
     osl_manager->device_free(device, &dscene, this);
     light_manager->device_free(device, &dscene);
-
     particle_system_manager->device_free(device, &dscene);
-
     bake_manager->device_free(device, &dscene);
+    volume_manager->device_free(&dscene);
 
     if (final) {
       image_manager->device_free(device);
@@ -165,6 +165,7 @@ void Scene::free_memory(bool final)
     bake_manager.reset();
     update_stats.reset();
     procedural_manager.reset();
+    volume_manager.reset();
   }
 }
 
@@ -308,6 +309,14 @@ void Scene::device_update(Device *device_, Progress &progress)
    * Some images may have been uploaded early for displacement already at this point. */
   progress.set_status("Updating Images");
   image_manager->device_update(device, this, progress);
+
+  if (progress.get_cancel() || device->have_error()) {
+    return;
+  }
+
+  /* Evaluate volume shader to build volume octrees. */
+  progress.set_status("Updating Volume");
+  volume_manager->device_update(device, &dscene, this, progress);
 
   if (progress.get_cancel() || device->have_error()) {
     return;
@@ -780,6 +789,22 @@ void Scene::tag_shadow_catcher_modified()
   shadow_catcher_modified_ = true;
 }
 
+bool Scene::has_volume()
+{
+  has_volume_modified_ = false;
+  return dscene.data.integrator.use_volumes;
+}
+
+bool Scene::has_volume_modified() const
+{
+  return has_volume_modified_;
+}
+
+void Scene::tag_has_volume_modified()
+{
+  has_volume_modified_ = true;
+}
+
 template<> Light *Scene::create_node<Light>()
 {
   unique_ptr<Light> node = make_unique<Light>();
@@ -965,6 +990,9 @@ template<> void Scene::delete_node(Geometry *node)
   }
   else {
     flag = GeometryManager::MESH_REMOVED;
+    if (node->has_volume) {
+      volume_manager->tag_update(node);
+    }
   }
 
   geometry.erase_by_swap(node);
@@ -974,8 +1002,14 @@ template<> void Scene::delete_node(Geometry *node)
 template<> void Scene::delete_node(Object *node)
 {
   assert(node->get_owner() == this);
+
+  uint flag = ObjectManager::OBJECT_REMOVED;
+  if (node->get_geometry()->has_volume) {
+    volume_manager->tag_update(node, flag);
+  }
+
   objects.erase_by_swap(node);
-  object_manager->tag_update(this, ObjectManager::OBJECT_REMOVED);
+  object_manager->tag_update(this, flag);
 }
 
 template<> void Scene::delete_node(ParticleSystem *node)

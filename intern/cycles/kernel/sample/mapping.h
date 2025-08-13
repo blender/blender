@@ -208,4 +208,44 @@ ccl_device float2 regular_polygon_sample(const float corners, float rotation, co
   return make_float2(cr * p.x - sr * p.y, sr * p.x + cr * p.y);
 }
 
+/* Generate random variable x following geometric distribution p(x) = r * (1 - r)^x, 0 <= p <= 1.
+ * Also compute the probability mass function pmf.
+ * The sampled order is truncated at `cut_off`. */
+ccl_device_inline int sample_geometric_distribution(const float rand,
+                                                    const float r,
+                                                    ccl_private float &pmf,
+                                                    const int cut_off = INT_MAX)
+{
+  const int n = min(int(floorf(logf(rand) / logf(1.0f - r))), cut_off);
+  pmf = (n == cut_off) ? powf(1.0f - r, n) : r * powf(1.0f - r, n);
+  return n;
+}
+
+/* Generate random variable x following exponential distribution p(x) = lambda * exp(-lambda * x),
+ * where lambda > 0 is the rate parameter. */
+ccl_device_inline float sample_exponential_distribution(const float rand, const float inv_lambda)
+{
+  return -logf(1.0f - rand) * inv_lambda;
+}
+
+/* Generate random variable x following bounded exponential distribution
+ * p(x) = lambda * exp(-lambda * x) / (exp(-lambda * t.min) - exp(-lambda * t.max)),
+ * where lambda > 0 is the rate parameter.
+ * The generated sample lies in (t.min, t.max). */
+ccl_device_inline float sample_exponential_distribution(const float rand,
+                                                        const float lambda,
+                                                        const Interval<float> t)
+{
+  const float attenuation = 1.0f - expf(lambda * (t.min - t.max));
+  return clamp(t.min - logf(1.0f - rand * attenuation) / lambda, t.min, t.max);
+}
+
+ccl_device_inline Spectrum pdf_exponential_distribution(const float x,
+                                                        const Spectrum lambda,
+                                                        const Interval<float> t)
+{
+  const Spectrum attenuation = exp(-lambda * t.min) - exp(-lambda * t.max);
+  return safe_divide(lambda * exp(-lambda * clamp(x, t.min, t.max)), attenuation);
+}
+
 CCL_NAMESPACE_END

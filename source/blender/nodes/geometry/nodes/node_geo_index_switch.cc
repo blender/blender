@@ -229,7 +229,7 @@ class LazyFunctionForIndexSwitchNode : public LazyFunction {
     const eNodeSocketDatatype data_type = eNodeSocketDatatype(storage.data_type);
     const bNodeSocket &index_socket = node.input_socket(0);
     const bNodeSocket &output_socket = node.output_socket(0);
-    const CPPType &cpp_type = *output_socket.typeinfo->geometry_nodes_cpp_type;
+    const CPPType &cpp_type = CPPType::get<SocketValueVariant>();
 
     debug_name_ = node.name;
     can_be_field_ = socket_type_supports_fields(data_type);

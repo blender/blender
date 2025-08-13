@@ -10,6 +10,8 @@
 #  include "util/windows.h"
 #endif
 
+#include <tbb/blocked_range2d.h>
+#include <tbb/blocked_range3d.h>
 #include <tbb/enumerable_thread_specific.h>
 #include <tbb/parallel_for.h>
 #include <tbb/parallel_for_each.h>
@@ -26,6 +28,8 @@
 CCL_NAMESPACE_BEGIN
 
 using tbb::blocked_range;
+using tbb::blocked_range2d;
+using tbb::blocked_range3d;
 using tbb::enumerable_thread_specific;
 using tbb::parallel_for;
 using tbb::parallel_for_each;

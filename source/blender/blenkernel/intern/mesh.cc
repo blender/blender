@@ -858,17 +858,17 @@ void mesh_apply_spatial_organization(Mesh &mesh)
       }
     }
 
-    for (const int vert : IndexRange(mesh.verts_num)) {
-      if (!added_verts[vert]) {
-        new_vert_order.append(vert);
-        added_verts[vert].set();
-      }
-    }
-
     for (const int face_idx : local_group.faces) {
       new_face_order.append(face_idx);
     }
     group_face_offsets.append(new_face_order.size());
+  }
+
+  for (const int vert : IndexRange(mesh.verts_num)) {
+    if (!added_verts[vert]) {
+      new_vert_order.append(vert);
+      added_verts[vert].set();
+    }
   }
 
   Array<int> vert_reverse_map(mesh.verts_num);

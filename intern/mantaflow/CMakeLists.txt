@@ -38,16 +38,6 @@ set(INC_SYS
   ${ZLIB_INCLUDE_DIRS}
 )
 
-if(WITH_OPENVDB)
-  add_definitions(-DWITH_OPENVDB ${OPENVDB_DEFINITIONS})
-  list(APPEND INC_SYS
-    ${OPENVDB_INCLUDE_DIRS}
-  )
-  list(APPEND LIB
-    ${OPENVDB_LIBRARIES}
-  )
-endif()
-
 set(SRC
   intern/manta_python_API.cpp
   intern/manta_fluid_API.cpp
@@ -65,6 +55,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::dependencies::optional::openvdb
   PRIVATE bf::dependencies::optional::tbb
   extern_mantaflow
 

@@ -28,8 +28,6 @@ class Background : public Node {
   NODE_SOCKET_API(bool, transparent_glass)
   NODE_SOCKET_API(float, transparent_roughness_threshold)
 
-  NODE_SOCKET_API(float, volume_step_size)
-
   NODE_SOCKET_API(ustring, lightgroup)
 
   Background();

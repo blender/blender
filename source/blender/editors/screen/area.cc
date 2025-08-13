@@ -313,30 +313,32 @@ static void region_draw_status_text(ScrArea * /*area*/, ARegion *region)
   /* Clear the region from the buffer. */
   GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
 
-  /* Fill with header color. */
-  if (header_color[3] > 0.0f) {
+  /* Fill with header color when the region is not overlapped. */
+  if (!region->overlap) {
     const rctf rect = {0.0f, float(region->winx), 0.0f, float(region->winy)};
-    UI_draw_roundbox_4fv(&rect, true, 0.0f, header_color);
+    UI_draw_roundbox_3fv_alpha(&rect, true, 0.0f, header_color, 1.0f);
   }
 
   const int fontid = BLF_set_default();
-  const float x = 12.0f * UI_SCALE_FAC;
+  float x = 12.0f * UI_SCALE_FAC;
   const float y = 0.4f * UI_UNIT_Y;
+  const float width = BLF_width(fontid, region->runtime->headerstr, BLF_DRAW_STR_DUMMY_MAX);
   GPU_blend(GPU_BLEND_ALPHA);
 
-  if (header_color[3] < 0.3f) {
-    /* Draw a background behind the text for extra contrast. */
-    const float width = BLF_width(fontid, region->runtime->headerstr, BLF_DRAW_STR_DUMMY_MAX);
+  /* Draw a background behind the text for extra contrast. */
+  if (region->overlap) {
+    /* Center the text horizontally. */
+    x = (region->winx - width) / 2.0f;
     const float pad = 5.0f * UI_SCALE_FAC;
     const float x1 = x - pad;
     const float x2 = x + width + pad;
     const float y1 = 3.0f * UI_SCALE_FAC;
     const float y2 = region->winy - (4.0f * UI_SCALE_FAC);
-    float color[4] = {0.0f, 0.0f, 0.0f, 0.3f};
-    UI_GetThemeColor3fv(TH_BACK, color);
+    /* Ensure header_color is not too transparent. */
+    header_color[3] = std::max(header_color[3], 0.6f);
     UI_draw_roundbox_corner_set(UI_CNR_ALL);
     const rctf rect = {x1, x2, y1, y2};
-    UI_draw_roundbox_4fv(&rect, true, 4.0f * UI_SCALE_FAC, color);
+    UI_draw_roundbox_4fv(&rect, true, 4.0f * UI_SCALE_FAC, header_color);
   }
 
   UI_FontThemeColor(fontid, TH_TEXT);

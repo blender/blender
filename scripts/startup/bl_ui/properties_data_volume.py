@@ -128,8 +128,6 @@ class DATA_PT_volume_render(DataButtonsPanel, Panel):
         col.prop(render, "space")
 
         if scene.render.engine == 'CYCLES':
-            col.prop(render, "step_size")
-
             col = layout.column(align=True)
             col.prop(render, "clipping")
 

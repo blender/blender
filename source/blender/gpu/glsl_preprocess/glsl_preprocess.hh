@@ -1420,6 +1420,11 @@ class Preprocessor {
     return str;
   }
 
+  std::string strip_whitespace(const std::string &str) const
+  {
+    return str.substr(0, str.find_last_not_of(" \n") + 1);
+  }
+
   /**
    * Expand functions with default arguments to function overloads.
    * Expects formatted input and that function bodies are followed by newline.
@@ -1427,95 +1432,63 @@ class Preprocessor {
   std::string default_argument_mutation(std::string str)
   {
     using namespace std;
-    int match = 0;
-    default_argument_search(
-        str, [&](int /*parenthesis_depth*/, int /*bracket_depth*/, char & /*c*/) { match++; });
+    using namespace shader::parser;
 
-    if (match == 0) {
-      /* No mutation to do. Early out as the following regex is expensive. */
-      return str;
-    }
+    Parser parser(str);
 
-    vector<pair<string, string>> mutations;
-
-    int64_t line = 0;
-
-    /* Matches function definition. */
-    regex regex_func(R"(\n((\w+)\s+(\w+)\s*\()([^{]+))");
-    regex_global_search(str, regex_func, [&](const smatch &match) {
-      const string prefix = match[1].str();
-      const string return_type = match[2].str();
-      const string func_name = match[3].str();
-      const string args = get_content_between_balanced_pair('(' + match[4].str(), '(', ')');
-      const string suffix = ")\n{";
-
-      int64_t lines_in_content = line_count(match[0].str());
-      line += line_count(match.prefix().str()) + lines_in_content;
-
-      if (args.find('=') == string::npos) {
-        return;
-      }
-
-      const bool has_non_void_return_type = return_type != "void";
-
-      string line_directive = "#line " + std::to_string(line - lines_in_content + 2) + "\n";
-
-      vector<string> args_split = split_string_not_between_balanced_pair(args, ',', '(', ')');
-      string overloads;
-      string args_defined;
-      string args_called;
-
-      /* Rewrite original definition without defaults. */
-      string with_default = match[0].str();
-      string no_default = with_default;
-
-      for (const string &arg : args_split) {
-        regex regex(R"(((?:const )?\w+)\s+(\w+)( = (.+))?)");
-        smatch match;
-        regex_search(arg, match, regex);
-
-        string arg_type = match[1].str();
-        string arg_name = match[2].str();
-        string arg_assign = match[3].str();
-        string arg_value = match[4].str();
-
-        if (!arg_value.empty()) {
-          string body = func_name + "(" + args_called + arg_value + ");";
-          if (has_non_void_return_type) {
-            body = "  return " + body;
-          }
-          else {
-            body = "  " + body;
+    parser.foreach_function(
+        [&](bool, Token fn_type, Token fn_name, Scope fn_args, bool, Scope fn_body) {
+          if (!fn_args.contains_token('=')) {
+            return;
           }
 
-          overloads = line_directive + prefix + args_defined + suffix + '\n' + line_directive +
-                      body + "\n}\n" + overloads;
+          const bool has_non_void_return_type = fn_type.str_no_whitespace() != "void";
 
-          replace_all(no_default, arg_assign, "");
-        }
-        if (!args_defined.empty()) {
-          args_defined += ", ";
-        }
-        args_defined += arg_type + ' ' + arg_name;
-        args_called += arg_name + ", ";
-      }
+          string args_decl;
+          string args_names;
 
-      /* Get function body to put the overload after it. */
-      string body_content = '{' +
-                            get_content_between_balanced_pair(match.suffix().str(), '{', '}') +
-                            "}\n";
+          vector<string> fn_overloads;
 
-      string last_line_directive =
-          "#line " + std::to_string(line - lines_in_content + line_count(body_content) + 3) + "\n";
+          fn_args.foreach_scope(ScopeType::FunctionArg, [&](Scope arg) {
+            Token equal = arg.find_token('=');
+            const char *comma = (args_decl.empty() ? "" : ", ");
+            if (equal.is_invalid()) {
+              args_decl += comma + arg.str();
+              args_names += comma + arg.end().str();
+            }
+            else {
+              string arg_name = equal.prev().str_no_whitespace();
+              string value = parser.substr_range_inclusive(equal.next(), arg.end());
+              string decl = parser.substr_range_inclusive(arg.start(), equal.prev());
 
-      mutations.emplace_back(with_default + body_content,
-                             no_default + body_content + overloads + last_line_directive);
-    });
+              string fn_call = fn_name.str() + '(' + args_names + comma + value + ");";
+              if (has_non_void_return_type) {
+                fn_call = "return " + fn_call;
+              }
+              string overload;
+              overload += fn_type.str();
+              overload += fn_name.str() + '(' + args_decl + ")\n";
+              overload += "{\n";
+              overload += "#line " + std::to_string(fn_type.line_number()) + "\n";
+              overload += "  " + fn_call + "\n}\n";
+              fn_overloads.emplace_back(overload);
 
-    for (auto mutation : mutations) {
-      replace_all(str, mutation.first, mutation.second);
-    }
-    return str;
+              args_decl += comma + strip_whitespace(decl);
+              args_names += comma + arg_name;
+              /* Erase the value assignment and keep the declaration. */
+              parser.erase(equal.scope());
+            }
+          });
+          size_t end_of_fn_char = fn_body.end().line_end() + 1;
+          /* Have to reverse the declaration order. */
+          for (auto it = fn_overloads.rbegin(); it != fn_overloads.rend(); ++it) {
+            parser.insert_line_number(end_of_fn_char, fn_type.line_number());
+            parser.insert_after(end_of_fn_char, *it);
+          }
+          parser.insert_line_number(end_of_fn_char, fn_body.end().line_number() + 1);
+        });
+
+    return parser.result_get();
   }
 
   /* Used to make GLSL matrix constructor compatible with MSL in pyGPU shaders.

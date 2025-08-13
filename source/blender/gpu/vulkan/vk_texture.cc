@@ -200,7 +200,8 @@ void VKTexture::read_sub(
                         /* Although we are only reading, we need to set the host access random bit
                          * to improve the performance on AMD GPUs. */
                         VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT |
-                            VMA_ALLOCATION_CREATE_MAPPED_BIT);
+                            VMA_ALLOCATION_CREATE_MAPPED_BIT,
+                        0.2f);
 
   render_graph::VKCopyImageToBufferNode::CreateInfo copy_image_to_buffer = {};
   render_graph::VKCopyImageToBufferNode::Data &node_data = copy_image_to_buffer.node_data;
@@ -322,7 +323,8 @@ void VKTexture::update_sub(int mip,
                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                           VMA_ALLOCATION_CREATE_MAPPED_BIT |
-                              VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT);
+                              VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+                          0.4f);
     vk_buffer = staging_buffer.vk_handle();
     /* Rows are sequentially stored, when unpack row length is 0, or equal to the extent width. In
      * other cases we unpack the rows to reduce the size of the staging buffer and data transfer.
@@ -549,6 +551,17 @@ static VkImageCreateFlags to_vk_image_create(const eGPUTextureType texture_type,
   return result;
 }
 
+static float memory_priority(const eGPUTextureUsage texture_usage)
+{
+  if (bool(texture_usage & GPU_TEXTURE_USAGE_MEMORY_EXPORT)) {
+    return 0.8f;
+  }
+  if (bool(texture_usage & GPU_TEXTURE_USAGE_ATTACHMENT)) {
+    return 1.0f;
+  }
+  return 0.5f;
+}
+
 bool VKTexture::allocate()
 {
   BLI_assert(vk_image_ == VK_NULL_HANDLE);
@@ -603,7 +616,7 @@ bool VKTexture::allocate()
 
   VmaAllocationCreateInfo allocCreateInfo = {};
   allocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
-  allocCreateInfo.priority = 1.0f;
+  allocCreateInfo.priority = memory_priority(texture_usage);
 
   if (bool(texture_usage & GPU_TEXTURE_USAGE_MEMORY_EXPORT)) {
     image_info.pNext = &external_memory_create_info;

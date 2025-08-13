@@ -194,6 +194,7 @@ def list_render_passes(scene, srl):
     if srl.use_pass_uv:                    yield ("UV",            "UVA",  'VECTOR')
     if srl.use_pass_object_index:          yield ("IndexOB",       "X",    'VALUE')
     if srl.use_pass_material_index:        yield ("IndexMA",       "X",    'VALUE')
+    if crl.use_pass_volume_majorant:       yield ("Volume Majorant", "Z",  'VALUE')
 
     # Light passes.
     if srl.use_pass_diffuse_direct:        yield ("DiffDir",       "RGB",  'COLOR')
@@ -207,6 +208,8 @@ def list_render_passes(scene, srl):
     if srl.use_pass_transmission_color:    yield ("TransCol",      "RGB",  'COLOR')
     if crl.use_pass_volume_direct:         yield ("VolumeDir",     "RGB",  'COLOR')
     if crl.use_pass_volume_indirect:       yield ("VolumeInd",     "RGB",  'COLOR')
+    if crl.use_pass_volume_scatter:        yield ("Volume Scatter",     "RGB",  'COLOR')
+    if crl.use_pass_volume_transmit:       yield ("Volume Transmit",     "RGB",  'COLOR')
     if srl.use_pass_emit:                  yield ("Emit",          "RGB",  'COLOR')
     if srl.use_pass_environment:           yield ("Env",           "RGB",  'COLOR')
     if srl.use_pass_ambient_occlusion:     yield ("AO",            "RGB",  'COLOR')

@@ -10,6 +10,8 @@
 
 #include "kernel/util/colorspace.h"
 
+#include "util/types_rgbe.h"
+
 #ifdef __KERNEL_GPU__
 #  include "util/atomic.h"
 #  define __ATOMIC_PASS_WRITE__
@@ -37,6 +39,18 @@ ccl_device_forceinline ccl_global float *film_pass_pixel_render_buffer_shadow(
   const uint64_t render_buffer_offset = (uint64_t)render_pixel_index *
                                         kernel_data.film.pass_stride;
   return render_buffer + render_buffer_offset;
+}
+
+ccl_device_forceinline ccl_global float *film_pass_pixel_render_buffer(
+    KernelGlobals kg,
+    const int x,
+    const int y,
+    const int offset,
+    const int stride,
+    ccl_global float *ccl_restrict render_buffer)
+{
+  const int render_pixel_index = offset + x + y * stride;
+  return render_buffer + (uint64_t)render_pixel_index * kernel_data.film.pass_stride;
 }
 
 /* Accumulate in passes. */
@@ -96,6 +110,12 @@ ccl_device_inline void film_write_pass_float4(ccl_global float *ccl_restrict buf
 #endif
 }
 
+ccl_device_inline void film_overwrite_pass_rgbe(ccl_global float *ccl_restrict buffer,
+                                                const float3 value)
+{
+  *buffer = rgb_to_rgbe(value).f;
+}
+
 /* Overwrite for passes that only write on sample 0. This assumes only a single thread will write
  * to this pixel and no atomics are needed. */
 
@@ -120,7 +140,7 @@ ccl_device_inline float kernel_read_pass_float(const ccl_global float *ccl_restr
   return *buffer;
 }
 
-ccl_device_inline float3 kernel_read_pass_float3(ccl_global float *ccl_restrict buffer)
+ccl_device_inline float3 kernel_read_pass_float3(const ccl_global float *ccl_restrict buffer)
 {
   return make_float3(buffer[0], buffer[1], buffer[2]);
 }
@@ -128,6 +148,11 @@ ccl_device_inline float3 kernel_read_pass_float3(ccl_global float *ccl_restrict 
 ccl_device_inline float4 kernel_read_pass_float4(ccl_global float *ccl_restrict buffer)
 {
   return make_float4(buffer[0], buffer[1], buffer[2], buffer[3]);
+}
+
+ccl_device_inline float3 kernel_read_pass_rgbe(const ccl_global float *ccl_restrict buffer)
+{
+  return rgbe_to_rgb(RGBE(*buffer));
 }
 
 CCL_NAMESPACE_END

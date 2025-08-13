@@ -796,19 +796,13 @@ LazyFunctionForReduceForeachGeometryElement::LazyFunctionForReduceForeachGeometr
     /* Add parameters for main items. */
     for (const int item_i : IndexRange(node_storage.main_items.items_num)) {
       const NodeForeachGeometryElementMainItem &item = node_storage.main_items.items[item_i];
-      const bNodeSocket &socket = parent.output_bnode_.input_socket(
-          parent_.indices_.main.bsocket_inner[item_i]);
-      inputs_.append_as(
-          item.name, *socket.typeinfo->geometry_nodes_cpp_type, lf::ValueUsage::Used);
+      inputs_.append_as(item.name, CPPType::get<SocketValueVariant>(), lf::ValueUsage::Used);
     }
     /* Add parameters for generation items. */
     for (const int item_i : IndexRange(node_storage.generation_items.items_num)) {
       const NodeForeachGeometryElementGenerationItem &item =
           node_storage.generation_items.items[item_i];
-      const bNodeSocket &socket = parent.output_bnode_.input_socket(
-          parent_.indices_.generation.bsocket_inner[item_i]);
-      inputs_.append_as(
-          item.name, *socket.typeinfo->geometry_nodes_cpp_type, lf::ValueUsage::Maybe);
+      inputs_.append_as(item.name, CPPType::get<SocketValueVariant>(), lf::ValueUsage::Maybe);
     }
   }
 
@@ -817,17 +811,13 @@ LazyFunctionForReduceForeachGeometryElement::LazyFunctionForReduceForeachGeometr
   /* Add outputs for main items. */
   for (const int item_i : IndexRange(node_storage.main_items.items_num)) {
     const NodeForeachGeometryElementMainItem &item = node_storage.main_items.items[item_i];
-    const bNodeSocket &socket = parent.output_bnode_.output_socket(
-        parent_.indices_.main.bsocket_outer[item_i]);
-    outputs_.append_as(item.name, *socket.typeinfo->geometry_nodes_cpp_type);
+    outputs_.append_as(item.name, CPPType::get<SocketValueVariant>());
   }
   /* Add outputs for generation items. */
   for (const int item_i : IndexRange(node_storage.generation_items.items_num)) {
     const NodeForeachGeometryElementGenerationItem &item =
         node_storage.generation_items.items[item_i];
-    const bNodeSocket &socket = parent.output_bnode_.output_socket(
-        parent_.indices_.generation.bsocket_outer[item_i]);
-    outputs_.append_as(item.name, *socket.typeinfo->geometry_nodes_cpp_type);
+    outputs_.append_as(item.name, CPPType::get<SocketValueVariant>());
   }
 }
 

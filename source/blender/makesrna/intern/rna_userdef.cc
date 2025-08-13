@@ -5282,6 +5282,12 @@ static void rna_def_userdef_view(BlenderRNA *brna)
                            "File Browser Display Type",
                            "Default location where the File Editor will be displayed in");
 
+  prop = RNA_def_property(srna, "preferences_display_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, temp_space_display_types);
+  RNA_def_property_ui_text(prop,
+                           "Preferences Display Type",
+                           "Default location where the Preferences will be displayed in");
+
   static const EnumPropertyItem text_hinting_items[] = {
       {0, "AUTO", 0, "Auto", ""},
       {USER_TEXT_HINTING_NONE, "NONE", 0, "None", ""},

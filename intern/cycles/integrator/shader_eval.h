@@ -19,6 +19,7 @@ enum ShaderEvalType {
   SHADER_EVAL_DISPLACE,
   SHADER_EVAL_BACKGROUND,
   SHADER_EVAL_CURVE_SHADOW_TRANSPARENCY,
+  SHADER_EVAL_VOLUME_DENSITY,
 };
 
 /* ShaderEval class performs shader evaluation for background light and displacement. */

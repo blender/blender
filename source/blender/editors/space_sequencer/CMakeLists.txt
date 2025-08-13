@@ -15,6 +15,7 @@ set(INC_SYS
 
 set(SRC
   sequencer_add.cc
+  sequencer_add_menu_scene_assets.cc
   sequencer_buttons.cc
   sequencer_channels_draw.cc
   sequencer_channels_edit.cc
@@ -45,6 +46,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::asset_system
   PRIVATE bf::blenfont
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib

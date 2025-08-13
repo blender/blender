@@ -149,6 +149,7 @@ void VKDevice::submission_runner(TaskPool *__restrict pool, void *task_data)
   Vector<VkSubmitInfo> submit_infos;
   submit_infos.reserve(2);
   std::optional<render_graph::VKCommandBufferWrapper> command_buffer;
+  uint64_t previous_gc_timeline = 0;
 
   CLOG_TRACE(&LOG, "Submission runner initialized");
   while (!BLI_task_pool_current_canceled(pool)) {
@@ -156,6 +157,10 @@ void VKDevice::submission_runner(TaskPool *__restrict pool, void *task_data)
         BLI_thread_queue_pop_timeout(device->submitted_render_graphs_, 1));
     if (submit_task == nullptr) {
       continue;
+    }
+    uint64_t current_timeline = device->submission_finished_timeline_get();
+    if (assign_if_different(previous_gc_timeline, current_timeline)) {
+      device->orphaned_data.destroy_discarded_resources(*device);
     }
 
     /* End current command buffer when we need to wait for a semaphore. In this case all previous
@@ -170,7 +175,6 @@ void VKDevice::submission_runner(TaskPool *__restrict pool, void *task_data)
     if (!command_buffer.has_value()) {
       /* Check for completed command buffers that can be reused. */
       if (command_buffers_unused.is_empty()) {
-        uint64_t current_timeline = device->submission_finished_timeline_get();
         command_buffers_in_use.remove_old(current_timeline,
                                           [&](VkCommandBuffer vk_command_buffer) {
                                             command_buffers_unused.append(vk_command_buffer);

@@ -4199,7 +4199,10 @@ NODE_DEFINE(LightPathNode)
   return type;
 }
 
-LightPathNode::LightPathNode() : ShaderNode(get_node_type()) {}
+LightPathNode::LightPathNode() : ShaderNode(get_node_type())
+{
+  special_type = SHADER_SPECIAL_TYPE_LIGHT_PATH;
+}
 
 void LightPathNode::compile(SVMCompiler &compiler)
 {

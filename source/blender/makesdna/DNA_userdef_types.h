@@ -595,6 +595,8 @@ typedef struct UserDef {
 
   char render_display_type;      /* eUserpref_RenderDisplayType */
   char filebrowser_display_type; /* eUserpref_TempSpaceDisplayType */
+  char preferences_display_type; /* eUserpref_TempSpaceDisplayType */
+  char _pad18[7];
 
   short sequencer_proxy_setup; /* eUserpref_SeqProxySetup */
   short _pad1;

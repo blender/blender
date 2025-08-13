@@ -283,6 +283,7 @@ set(SRC_KERNEL_FILM_HEADERS
   film/aov_passes.h
   film/data_passes.h
   film/denoising_passes.h
+  film/volume_guiding_denoise.h
   film/cryptomatte_passes.h
   film/light_passes.h
   film/read.h
@@ -419,6 +420,7 @@ set(SRC_UTIL_HEADERS
   ../util/types_int4.h
   ../util/types_int8.h
   ../util/types_spectrum.h
+  ../util/types_rgbe.h
   ../util/types_uchar2.h
   ../util/types_uchar3.h
   ../util/types_uchar4.h

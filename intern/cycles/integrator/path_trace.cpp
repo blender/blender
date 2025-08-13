@@ -196,11 +196,21 @@ void PathTrace::render_pipeline(RenderWork render_work)
 
   rebalance(render_work);
 
+  /* Reset sample limit. */
+  render_scheduler_.set_limit_samples_per_update(0);
+
   /* Prepare all per-thread guiding structures before we start with the next rendering
    * iteration/progression. */
   const bool use_guiding = device_scene_->data.integrator.use_guiding;
   if (use_guiding) {
     guiding_prepare_structures();
+  }
+
+  const bool has_volume = device_scene_->data.integrator.use_volumes;
+  if (has_volume) {
+    const uint num_rendered_samples = render_scheduler_.get_num_rendered_samples();
+    const uint limit = next_power_of_two(num_rendered_samples) - num_rendered_samples;
+    render_scheduler_.set_limit_samples_per_update(limit);
   }
 
   path_trace(render_work);
@@ -226,6 +236,11 @@ void PathTrace::render_pipeline(RenderWork render_work)
   }
 
   denoise(render_work);
+  if (render_cancel_.is_requested) {
+    return;
+  }
+
+  denoise_volume_guiding_buffers(render_work, has_volume);
   if (render_cancel_.is_requested) {
     return;
   }
@@ -634,6 +649,26 @@ void PathTrace::denoise(const RenderWork &render_work)
   render_scheduler_.report_denoise_time(render_work, time_dt() - start_time);
 }
 
+void PathTrace::denoise_volume_guiding_buffers(const RenderWork &render_work,
+                                               const bool has_volume)
+{
+  if (!has_volume || !render_scheduler_.volume_guiding_need_denoise()) {
+    return;
+  }
+
+  LOG_WORK << "Denoise volume guiding buffers.";
+
+  const double start_time = time_dt();
+
+  /* TODO: in the multi-GPU case, we can denoise on one device and copy to the rest, instead of
+   * denoising on each device separately. */
+  parallel_for_each(path_trace_works_, [&](unique_ptr<PathTraceWork> &path_trace_work) {
+    path_trace_work->denoise_volume_guiding_buffers();
+  });
+
+  render_scheduler_.report_volume_guiding_denoise_time(render_work, time_dt() - start_time);
+}
+
 void PathTrace::set_output_driver(unique_ptr<OutputDriver> driver)
 {
   output_driver_ = std::move(driver);
@@ -714,10 +749,12 @@ void PathTrace::update_display(const RenderWork &render_work)
       return;
     }
 
-    const PassMode pass_mode = render_work.display.use_denoised_result &&
-                                       render_state_.has_denoised_result ?
-                                   PassMode::DENOISED :
-                                   PassMode::NOISY;
+    const PassType pass_type = film_->get_display_pass();
+    const bool show_denoised = (render_work.display.use_denoised_result &&
+                                has_denoised_result()) ||
+                               is_volume_guiding_pass(pass_type);
+
+    const PassMode pass_mode = show_denoised ? PassMode::DENOISED : PassMode::NOISY;
 
     /* TODO(sergey): When using multi-device rendering map the GPUDisplay once and copy data from
      * all works in parallel. */

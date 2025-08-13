@@ -115,16 +115,16 @@ static void node_geo_exec(GeoNodeExecParams params)
   for (const int i : IndexRange(storage.items_num)) {
     const NodeCombineBundleItem &item = storage.items[i];
     const bke::bNodeSocketType *stype = bke::node_socket_type_find_static(item.socket_type);
-    if (!stype || !stype->geometry_nodes_cpp_type) {
+    if (!stype || !stype->geometry_nodes_default_value) {
       continue;
     }
     const StringRef name = item.name;
     if (name.is_empty()) {
       continue;
     }
-    void *input_ptr = params.low_level_lazy_function_params().try_get_input_data_ptr(i);
-    BLI_assert(input_ptr);
-    bundle.add(name, BundleItemSocketValue{stype, input_ptr});
+    bke::SocketValueVariant value = params.extract_input<bke::SocketValueVariant>(
+        node.input_socket(i).identifier);
+    bundle.add(name, BundleItemSocketValue{stype, std::move(value)});
   }
 
   params.set_output("Bundle", std::move(bundle_ptr));

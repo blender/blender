@@ -22,7 +22,8 @@ bool device_kernel_has_shading(DeviceKernel kernel)
           kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_DEDICATED_LIGHT ||
           kernel == DEVICE_KERNEL_SHADER_EVAL_DISPLACE ||
           kernel == DEVICE_KERNEL_SHADER_EVAL_BACKGROUND ||
-          kernel == DEVICE_KERNEL_SHADER_EVAL_CURVE_SHADOW_TRANSPARENCY);
+          kernel == DEVICE_KERNEL_SHADER_EVAL_CURVE_SHADOW_TRANSPARENCY ||
+          kernel == DEVICE_KERNEL_SHADER_EVAL_VOLUME_DENSITY);
 }
 
 bool device_kernel_has_intersection(DeviceKernel kernel)
@@ -108,6 +109,8 @@ const char *device_kernel_as_string(DeviceKernel kernel)
       return "shader_eval_background";
     case DEVICE_KERNEL_SHADER_EVAL_CURVE_SHADOW_TRANSPARENCY:
       return "shader_eval_curve_shadow_transparency";
+    case DEVICE_KERNEL_SHADER_EVAL_VOLUME_DENSITY:
+      return "shader_eval_volume_density";
 
       /* Film. */
 
@@ -119,9 +122,11 @@ const char *device_kernel_as_string(DeviceKernel kernel)
 
       FILM_CONVERT_KERNEL_AS_STRING(DEPTH, depth)
       FILM_CONVERT_KERNEL_AS_STRING(MIST, mist)
+      FILM_CONVERT_KERNEL_AS_STRING(VOLUME_MAJORANT, volume_majorant)
       FILM_CONVERT_KERNEL_AS_STRING(SAMPLE_COUNT, sample_count)
       FILM_CONVERT_KERNEL_AS_STRING(FLOAT, float)
       FILM_CONVERT_KERNEL_AS_STRING(LIGHT_PATH, light_path)
+      FILM_CONVERT_KERNEL_AS_STRING(RGBE, rgbe)
       FILM_CONVERT_KERNEL_AS_STRING(FLOAT3, float3)
       FILM_CONVERT_KERNEL_AS_STRING(MOTION, motion)
       FILM_CONVERT_KERNEL_AS_STRING(CRYPTOMATTE, cryptomatte)
@@ -150,6 +155,12 @@ const char *device_kernel_as_string(DeviceKernel kernel)
       return "filter_color_preprocess";
     case DEVICE_KERNEL_FILTER_COLOR_POSTPROCESS:
       return "filter_color_postprocess";
+
+    /* Volume Scattering Probability Guiding. */
+    case DEVICE_KERNEL_VOLUME_GUIDING_FILTER_X:
+      return "volume_guiding_filter_x";
+    case DEVICE_KERNEL_VOLUME_GUIDING_FILTER_Y:
+      return "volume_guiding_filter_y";
 
     /* Cryptomatte. */
     case DEVICE_KERNEL_CRYPTOMATTE_POSTPROCESS:

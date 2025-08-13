@@ -222,19 +222,6 @@ list(APPEND LIB
   ${TBB_LIBRARIES}
 )
 
-if(WITH_OPENVDB)
-  add_definitions(-DWITH_OPENVDB ${OPENVDB_DEFINITIONS})
-  list(APPEND INC
-    ../../../../intern/openvdb
-  )
-  list(APPEND INC_SYS
-    ${OPENVDB_INCLUDE_DIRS}
-  )
-  list(APPEND LIB
-    ${OPENVDB_LIBRARIES}
-  )
-endif()
-
 if(WITH_MATERIALX)
   add_definitions(-DWITH_MATERIALX)
   list(APPEND LIB MaterialXCore)

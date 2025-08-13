@@ -75,6 +75,7 @@ class Pass : public Node {
   static const NodeEnum *get_mode_enum();
 
   static PassInfo get_info(PassType type,
+                           const PassMode mode = PassMode::DENOISED,
                            const bool include_albedo = false,
                            const bool is_lightgroup = false);
 
@@ -94,5 +95,7 @@ class Pass : public Node {
 };
 
 std::ostream &operator<<(std::ostream &os, const Pass &pass);
+
+bool is_volume_guiding_pass(const PassType pass_type);
 
 CCL_NAMESPACE_END

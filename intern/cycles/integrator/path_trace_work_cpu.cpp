@@ -197,7 +197,7 @@ void PathTraceWorkCPU::copy_to_display(PathTraceDisplay *display,
 
   const PassAccessorCPU pass_accessor(pass_access_info, kfilm.exposure, num_samples);
 
-  PassAccessor::Destination destination = get_display_destination_template(display);
+  PassAccessor::Destination destination = get_display_destination_template(display, pass_mode);
   destination.pixels_half_rgba = rgba_half;
 
   tbb::task_arena local_arena = local_tbb_arena_create(device_);
@@ -299,6 +299,45 @@ void PathTraceWorkCPU::cryptomatte_postproces()
       for (int x = 0; x < width; ++x, ++pixel_index) {
         kernels_.cryptomatte_postprocess(kernel_globals, render_buffer, pixel_index);
       }
+    });
+  });
+}
+
+void PathTraceWorkCPU::denoise_volume_guiding_buffers()
+{
+  const int min_x = effective_buffer_params_.full_x;
+  const int min_y = effective_buffer_params_.full_y;
+  const int max_x = effective_buffer_params_.width + min_x;
+  const int max_y = effective_buffer_params_.height + min_y;
+  const int offset = effective_buffer_params_.offset;
+  const int stride = effective_buffer_params_.stride;
+
+  float *render_buffer = buffers_->buffer.data();
+
+  tbb::task_arena local_arena = local_tbb_arena_create(device_);
+
+  const blocked_range2d<int> range(min_x, max_x, min_y, max_y);
+
+  /* Filter in x direction. */
+  local_arena.execute([&]() {
+    parallel_for(range, [&](const blocked_range2d<int> r) {
+      ThreadKernelGlobalsCPU *kernel_globals = kernel_thread_globals_.data();
+      for (int y = r.cols().begin(); y < r.cols().end(); ++y) {
+        for (int x = r.rows().begin(); x < r.rows().end(); ++x) {
+          kernels_.volume_guiding_filter_x(
+              kernel_globals, render_buffer, y, x, min_x, max_x, offset, stride);
+        }
+      }
+    });
+  });
+
+  /* Filter in y direction. Unlike `filter_x`, the inner loop of `filter_y` is serially run inside
+   * the kernel, to avoid the need of intermediate buffers. */
+  local_arena.execute([&]() {
+    parallel_for(min_x, max_x, [&](int x) {
+      ThreadKernelGlobalsCPU *kernel_globals = kernel_thread_globals_.data();
+      kernels_.volume_guiding_filter_y(
+          kernel_globals, render_buffer, x, min_y, max_y, offset, stride);
     });
   });
 }

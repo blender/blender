@@ -2,36 +2,25 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-set(INC
-  .
-)
-
-set(INC_SYS
-)
-
-set(SRC
-  openvdb_capi.h
-  openvdb_fwd.hh
-)
-
-set(LIB
-  PRIVATE bf::intern::guardedalloc
-)
-
 if(WITH_OPENVDB)
-  add_definitions(-DWITH_OPENVDB ${OPENVDB_DEFINITIONS})
-
-  list(APPEND INC_SYS
-    ${OPENVDB_INCLUDE_DIRS}
+  list(APPEND INC
+    PUBLIC .
   )
 
   list(APPEND SRC
+    openvdb_capi.h
+    openvdb_fwd.hh
     openvdb_capi.cc
   )
 
   list(APPEND LIB
-    ${OPENVDB_LIBRARIES}
+    PUBLIC bf::dependencies::optional::openvdb
   )
+
+  blender_add_lib(bf_intern_openvdb "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+else()
+  # Empty target
+  add_library(bf_intern_openvdb INTERFACE)
 endif()
 
-blender_add_lib(bf_intern_openvdb "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+add_library(bf::intern::optional::openvdb ALIAS bf_intern_openvdb)

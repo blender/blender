@@ -1641,6 +1641,10 @@ void blo_do_versions_userdef(UserDef *userdef)
     userdef->gpu_flag &= ~USER_GPU_FLAG_UNUSED_0;
   }
 
+  if (!USER_VERSION_ATLEAST(500, 59)) {
+    userdef->preferences_display_type = USER_TEMP_SPACE_DISPLAY_WINDOW;
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a USER_VERSION_ATLEAST check.

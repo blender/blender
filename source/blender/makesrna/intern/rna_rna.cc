@@ -1649,16 +1649,24 @@ static void rna_property_override_diff_propptr(Main *bmain,
             if (opop == nullptr) {
               const char *subitem_refname = rna_itemname_b ? rna_itemname_b->c_str() : nullptr;
               const char *subitem_locname = rna_itemname_a ? rna_itemname_a->c_str() : nullptr;
-              opop = BKE_lib_override_library_property_operation_find(op,
-                                                                      subitem_refname,
-                                                                      subitem_locname,
-                                                                      ptrdiff_ctx.rna_itemid_b,
-                                                                      ptrdiff_ctx.rna_itemid_a,
-                                                                      rna_itemindex_b,
-                                                                      rna_itemindex_a,
-                                                                      true,
-                                                                      nullptr);
+              opop = BKE_lib_override_library_property_operation_get(op,
+                                                                     LIBOVERRIDE_OP_REPLACE,
+                                                                     subitem_refname,
+                                                                     subitem_locname,
+                                                                     ptrdiff_ctx.rna_itemid_b,
+                                                                     ptrdiff_ctx.rna_itemid_a,
+                                                                     rna_itemindex_b,
+                                                                     rna_itemindex_a,
+                                                                     true,
+                                                                     nullptr,
+                                                                     &created);
+              /* Do not use BKE_lib_override_library_operations_tag here, we do not want to
+               * validate as used all of its operations. */
+              op->tag &= ~LIBOVERRIDE_PROP_OP_TAG_UNUSED;
               opop->tag &= ~LIBOVERRIDE_PROP_OP_TAG_UNUSED;
+              if (created) {
+                ptrdiff_ctx.rnadiff_ctx.report_flag |= RNA_OVERRIDE_MATCH_RESULT_CREATED;
+              }
             }
 
             BLI_assert(propptr_a->data == propptr_a->owner_id);

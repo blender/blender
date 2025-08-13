@@ -124,7 +124,7 @@ class LazyFunctionForSwitchNode : public LazyFunction {
       }
     }
     BLI_assert(socket_type != nullptr);
-    const CPPType &cpp_type = *socket_type->geometry_nodes_cpp_type;
+    const CPPType &cpp_type = CPPType::get<SocketValueVariant>();
     base_type_ = socket_type->base_cpp_type;
 
     debug_name_ = node.name;

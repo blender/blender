@@ -48,7 +48,6 @@ class GLContext : public Context {
 
   /** Extensions. */
 
-  static bool clip_control_support;
   static bool debug_layer_support;
   static bool direct_state_access_support;
   static bool explicit_location_support;
@@ -57,8 +56,6 @@ class GLContext : public Context {
   static bool native_barycentric_support;
   static bool multi_bind_support;
   static bool multi_bind_image_support;
-  static bool multi_draw_indirect_support;
-  static bool shader_draw_parameters_support;
   static bool stencil_texturing_support;
   static bool texture_barrier_support;
   static bool texture_filter_anisotropic_support;
