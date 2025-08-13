@@ -767,12 +767,16 @@ static std::shared_ptr<const ocio::CPUProcessor> get_display_buffer_processor(
 void IMB_colormanagement_init_default_view_settings(
     ColorManagedViewSettings *view_settings, const ColorManagedDisplaySettings *display_settings)
 {
-  /* First, try use "Standard" view transform of the requested device. */
+  /* First, try use "Un-tone-mapped" (ACES configs) or "Standard" (Blender config) view transform
+   * of the requested device. */
   const ocio::Display *display = g_config->get_display_by_name(display_settings->display_device);
   if (!display) {
     return;
   }
-  const ocio::View *default_view = display->get_view_by_name("Standard");
+  const ocio::View *default_view = display->get_view_by_name("Un-tone-mapped");
+  if (default_view == nullptr) {
+    default_view = display->get_view_by_name("Standard");
+  }
   /* If that fails, we fall back to the default view transform of the display
    * as per OCIO configuration. */
   if (default_view == nullptr) {
