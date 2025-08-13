@@ -176,6 +176,8 @@ static bool compile_ex(shaderc::Compiler &compiler,
   options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
   if (G.debug & G_DEBUG_GPU_RENDERDOC) {
     options.SetOptimizationLevel(shaderc_optimization_level_zero);
+  }
+  if (G.debug & G_DEBUG_GPU_SHADER_DEBUG_INFO) {
     options.SetGenerateDebugInfo();
   }
 
