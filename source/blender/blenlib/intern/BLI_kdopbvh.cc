@@ -483,14 +483,13 @@ static void bvhtree_info(BVHTree *tree)
          tree->branch_num + tree->leaf_num,
          tree->branch_num,
          tree->leaf_num);
-  printf(
-      "Memory per node = %ubytes\n",
-      (uint)(sizeof(BVHNode) + sizeof(BVHNode *) * tree->tree_type + sizeof(float) * tree->axis));
-  printf("BV memory = %ubytes\n", (uint)MEM_allocN_len(tree->nodebv));
+  printf("Memory per node = %ubytes\n",
+         uint(sizeof(BVHNode) + sizeof(BVHNode *) * tree->tree_type + sizeof(float) * tree->axis));
+  printf("BV memory = %ubytes\n", uint(MEM_allocN_len(tree->nodebv)));
 
   printf("Total memory = %ubytes\n",
-         (uint)(sizeof(BVHTree) + MEM_allocN_len(tree->nodes) + MEM_allocN_len(tree->nodearray) +
-                MEM_allocN_len(tree->nodechild) + MEM_allocN_len(tree->nodebv)));
+         uint(sizeof(BVHTree) + MEM_allocN_len(tree->nodes) + MEM_allocN_len(tree->nodearray) +
+              MEM_allocN_len(tree->nodechild) + MEM_allocN_len(tree->nodebv)));
 
   bvhtree_print_tree(tree, tree->nodes[tree->leaf_num], 0);
 }

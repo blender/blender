@@ -953,6 +953,19 @@ MaterialGPencilStyle *BKE_gpencil_material_settings(Object *ob, short act)
   return BKE_material_default_gpencil()->gp_style;
 }
 
+/**
+ * Ensure a valid active index.
+ * When materials are assigned, the active material must be in the range of `1..totcol`.
+ * see #139182 for details.
+ */
+static void object_material_active_index_sanitize(Object *ob)
+{
+  if (ob->totcol && ob->actcol == 0) {
+    ob->actcol = 1;
+  }
+  ob->actcol = std::min(ob->actcol, ob->totcol);
+}
+
 void BKE_object_material_resize(Main *bmain, Object *ob, const short totcol, bool do_id_user)
 {
   if (totcol == ob->totcol) {
@@ -992,10 +1005,6 @@ void BKE_object_material_resize(Main *bmain, Object *ob, const short totcol, boo
   /* XXX(@ideasman42): why not realloc on shrink? */
 
   ob->totcol = totcol;
-  if (ob->totcol && ob->actcol == 0) {
-    ob->actcol = 1;
-  }
-  ob->actcol = std::min(ob->actcol, ob->totcol);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL | ID_RECALC_GEOMETRY);
   DEG_relations_tag_update(bmain);
@@ -1019,6 +1028,7 @@ void BKE_object_materials_sync_length(Main *bmain, Object *ob, ID *id)
   else {
     /* Normal case: the use the obdata amount of materials slots to update the object's one. */
     BKE_object_material_resize(bmain, ob, *totcol, false);
+    object_material_active_index_sanitize(ob);
   }
 }
 
@@ -1038,6 +1048,7 @@ void BKE_objects_materials_sync_length_all(Main *bmain, ID *id)
   {
     if (ob->data == id) {
       BKE_object_material_resize(bmain, ob, *totcol, false);
+      object_material_active_index_sanitize(ob);
       processed_objects++;
       BLI_assert(processed_objects <= id->us && processed_objects > 0);
       if (processed_objects == id->us) {
@@ -1415,7 +1426,7 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
   }
 
   /* can happen on face selection in editmode */
-  ob->actcol = std::min(ob->actcol, ob->totcol);
+  object_material_active_index_sanitize(ob);
 
   /* we delete the actcol */
   mao = (*matarar)[ob->actcol - 1];
@@ -1454,7 +1465,7 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
         obt->matbits[a - 1] = obt->matbits[a];
       }
       obt->totcol--;
-      obt->actcol = std::min(obt->actcol, obt->totcol);
+      object_material_active_index_sanitize(ob);
 
       if (obt->totcol == 0) {
         MEM_freeN(obt->mat);

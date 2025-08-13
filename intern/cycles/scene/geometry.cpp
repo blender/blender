@@ -347,6 +347,7 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
   bool volume_images_updated = false;
 
   for (Geometry *geom : scene->geometry) {
+    const bool prev_has_volume = geom->has_volume;
     geom->has_volume = false;
 
     update_attribute_realloc_flags(device_update_flags, geom->attributes);
@@ -429,12 +430,20 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
       device_update_flags |= DEVICE_MESH_DATA_NEEDS_REALLOC;
     }
 
-    if (geom->is_hair()) {
-      /* Set curve shape, still a global scene setting for now. */
-      Hair *hair = static_cast<Hair *>(geom);
-      if (hair->curve_shape != CURVE_THICK_LINEAR) {
-        hair->curve_shape = scene->params.hair_shape;
+    if (geom->has_volume) {
+      if (geom->is_modified()) {
+        scene->volume_manager->tag_update(geom);
       }
+      if (!prev_has_volume) {
+        scene->volume_manager->tag_update();
+      }
+    }
+    else if (prev_has_volume) {
+      scene->volume_manager->tag_update(geom);
+    }
+
+    if (geom->is_hair()) {
+      Hair *hair = static_cast<Hair *>(geom);
 
       if (hair->need_update_rebuild) {
         device_update_flags |= DEVICE_CURVE_DATA_NEEDS_REALLOC;

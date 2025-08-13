@@ -81,35 +81,23 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   node->custom1 = int16_t(Operation::Difference);
 }
 
-#ifdef WITH_OPENVDB
-static void get_float_grids(MutableSpan<SocketValueVariant> values,
-                            Vector<bke::VolumeGrid<float>> &grids)
-{
-  for (SocketValueVariant &input : values) {
-    if (auto grid = input.extract<bke::VolumeGrid<float>>()) {
-      grids.append(std::move(grid));
-    }
-  }
-}
-#endif
-
 static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_OPENVDB
   const Operation operation = Operation(params.node().custom1);
 
-  Vector<SocketValueVariant> inputs = params.extract_input<Vector<SocketValueVariant>>("Grid 2");
+  auto grids = params.extract_input<GeoNodesMultiInput<bke::VolumeGrid<float>>>("Grid 2");
   Vector<bke::VolumeGrid<float>> operands;
   switch (operation) {
     case Operation::Intersect:
     case Operation::Union:
-      get_float_grids(inputs, operands);
+      operands.extend(grids.values);
       break;
     case Operation::Difference:
       if (auto grid = params.extract_input<bke::VolumeGrid<float>>("Grid 1")) {
         operands.append(std::move(grid));
       }
-      get_float_grids(inputs, operands);
+      operands.extend(grids.values);
       break;
   }
 

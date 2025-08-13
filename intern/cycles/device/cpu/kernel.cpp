@@ -24,18 +24,24 @@ CPUKernels::CPUKernels()
       REGISTER_KERNEL(shader_eval_displace),
       REGISTER_KERNEL(shader_eval_background),
       REGISTER_KERNEL(shader_eval_curve_shadow_transparency),
+      REGISTER_KERNEL(shader_eval_volume_density),
       /* Adaptive sampling. */
       REGISTER_KERNEL(adaptive_sampling_convergence_check),
       REGISTER_KERNEL(adaptive_sampling_filter_x),
       REGISTER_KERNEL(adaptive_sampling_filter_y),
+      /* Volume Scattering Probability Guiding. */
+      REGISTER_KERNEL(volume_guiding_filter_x),
+      REGISTER_KERNEL(volume_guiding_filter_y),
       /* Cryptomatte. */
       REGISTER_KERNEL(cryptomatte_postprocess),
       /* Film Convert. */
       REGISTER_KERNEL_FILM_CONVERT(depth),
       REGISTER_KERNEL_FILM_CONVERT(mist),
+      REGISTER_KERNEL_FILM_CONVERT(volume_majorant),
       REGISTER_KERNEL_FILM_CONVERT(sample_count),
       REGISTER_KERNEL_FILM_CONVERT(float),
       REGISTER_KERNEL_FILM_CONVERT(light_path),
+      REGISTER_KERNEL_FILM_CONVERT(rgbe),
       REGISTER_KERNEL_FILM_CONVERT(float3),
       REGISTER_KERNEL_FILM_CONVERT(motion),
       REGISTER_KERNEL_FILM_CONVERT(cryptomatte),

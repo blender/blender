@@ -119,8 +119,10 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   /* Check device features. */
   VkPhysicalDeviceVulkan12Features features_12 = {
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES};
+  VkPhysicalDeviceVulkan11Features features_11 = {
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES, &features_12};
   VkPhysicalDeviceFeatures2 features = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
-                                        &features_12};
+                                        &features_11};
 
   vkGetPhysicalDeviceFeatures2(vk_physical_device, &features);
 
@@ -152,6 +154,9 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   }
   if (features.features.fragmentStoresAndAtomics == VK_FALSE) {
     missing_capabilities.append("fragment stores and atomics");
+  }
+  if (features_11.shaderDrawParameters == VK_FALSE) {
+    missing_capabilities.append("shader draw parameters");
   }
   if (features_12.timelineSemaphore == VK_FALSE) {
     missing_capabilities.append("timeline semaphores");
@@ -409,6 +414,7 @@ void VKBackend::detect_workarounds(VKDevice &device)
     extensions.dynamic_rendering_local_read = false;
     extensions.dynamic_rendering_unused_attachments = false;
     extensions.descriptor_buffer = false;
+    extensions.pageable_device_local_memory = false;
 
     device.workarounds_ = workarounds;
     device.extensions_ = extensions;
@@ -426,8 +432,14 @@ void VKBackend::detect_workarounds(VKDevice &device)
   extensions.dynamic_rendering_unused_attachments = device.supports_extension(
       VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME);
   extensions.logic_ops = device.physical_device_features_get().logicOp;
+  /* For stability reasons descriptor buffers have been disabled. */
+#if 0
   extensions.descriptor_buffer = device.supports_extension(
       VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME);
+#endif
+  extensions.memory_priority = device.supports_extension(VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME);
+  extensions.pageable_device_local_memory = device.supports_extension(
+      VK_EXT_PAGEABLE_DEVICE_LOCAL_MEMORY_EXTENSION_NAME);
 #ifdef _WIN32
   extensions.external_memory = device.supports_extension(
       VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME);
@@ -648,13 +660,14 @@ void VKBackend::render_end()
   thread_data.rendering_depth -= 1;
   BLI_assert_msg(thread_data.rendering_depth >= 0, "Unbalanced `GPU_render_begin/end`");
   if (G.background) {
-    /* Garbage collection when performing background rendering. */
     if (thread_data.rendering_depth == 0) {
       VKContext *context = VKContext::get();
       if (context != nullptr) {
-        context->flush_render_graph(RenderGraphFlushFlags::RENEW_RENDER_GRAPH);
+        context->flush();
       }
-      device.orphaned_data.destroy_discarded_resources(device);
+      std::scoped_lock lock(device.orphaned_data.mutex_get());
+      device.orphaned_data.move_data(device.orphaned_data_render,
+                                     device.orphaned_data.timeline_ + 1);
     }
   }
 
@@ -662,23 +675,9 @@ void VKBackend::render_end()
    * after each frame.
    */
   if (G.is_rendering && thread_data.rendering_depth == 0 && !BLI_thread_is_main()) {
-    {
-      std::scoped_lock lock(device.orphaned_data.mutex_get());
-      device.orphaned_data.move_data(device.orphaned_data_render,
-                                     device.orphaned_data.timeline_ + 1);
-    }
-    /* Fix #139284: During rendering when main thread is blocked or all screens are minimized the
-     * garbage collection will not happen resulting in crashes as resources are not freed.
-     *
-     * A better solution would be to do garbage collection in a separate thread but that requires a
-     * ref counting system. The specifics of such a system is still unclear.
-     *
-     * A possible solution for a Vulkan specific ref counting is to store the ref counts in the
-     * resource tracker. That would only handle images and buffers, but it would solve the most
-     * resource hungry issues.
-     */
-    device.wait_queue_idle();
-    device.orphaned_data.destroy_discarded_resources(device);
+    std::scoped_lock lock(device.orphaned_data.mutex_get());
+    device.orphaned_data.move_data(device.orphaned_data_render,
+                                   device.orphaned_data.timeline_ + 1);
   }
 }
 
@@ -699,11 +698,8 @@ void VKBackend::capabilities_init(VKDevice &device)
   /* Reset all capabilities from previous context. */
   GCaps = {};
   GCaps.geometry_shader_support = true;
-  GCaps.clip_control_support = true;
   GCaps.stencil_export_support = device.supports_extension(
       VK_EXT_SHADER_STENCIL_EXPORT_EXTENSION_NAME);
-  GCaps.shader_draw_parameters_support =
-      device.physical_device_vulkan_11_features_get().shaderDrawParameters;
 
   GCaps.max_texture_size = max_ii(limits.maxImageDimension1D, limits.maxImageDimension2D);
   GCaps.max_texture_3d_size = min_uu(limits.maxImageDimension3D, INT_MAX);

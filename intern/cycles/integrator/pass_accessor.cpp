@@ -4,6 +4,7 @@
 
 #include "integrator/pass_accessor.h"
 
+#include "kernel/types.h"
 #include "session/buffers.h"
 
 #include "util/log.h"
@@ -32,15 +33,9 @@ PassAccessor::Destination::Destination(float *pixels, const int num_components)
 {
 }
 
-PassAccessor::Destination::Destination(const PassType pass_type, half4 *pixels)
-    : Destination(pass_type)
+PassAccessor::Destination::Destination(const PassType pass_type, const PassMode pass_mode)
 {
-  pixels_half_rgba = pixels;
-}
-
-PassAccessor::Destination::Destination(const PassType pass_type)
-{
-  const PassInfo pass_info = Pass::get_info(pass_type);
+  const PassInfo pass_info = Pass::get_info(pass_type, pass_mode);
   num_components = pass_info.num_components;
 }
 
@@ -131,12 +126,16 @@ bool PassAccessor::get_render_tile_pixels(const RenderBuffers *render_buffers,
   const PassType type = pass_access_info_.type;
   const PassMode mode = pass_access_info_.mode;
   const PassInfo pass_info = Pass::get_info(
-      type, pass_access_info_.include_albedo, pass_access_info_.is_lightgroup);
+      type, mode, pass_access_info_.include_albedo, pass_access_info_.is_lightgroup);
   int num_written_components = pass_info.num_components;
 
   if (pass_info.num_components == 1) {
+    if (is_volume_guiding_pass(type)) {
+      get_pass_rgbe(render_buffers, buffer_params, destination);
+      num_written_components = 3;
+    }
     /* Single channel passes. */
-    if (mode == PassMode::DENOISED) {
+    else if (mode == PassMode::DENOISED) {
       /* Denoised passes store their final pixels, no need in special calculation. */
       get_pass_float(render_buffers, buffer_params, destination);
     }
@@ -145,6 +144,9 @@ bool PassAccessor::get_render_tile_pixels(const RenderBuffers *render_buffers,
     }
     else if (type == PASS_MIST) {
       get_pass_mist(render_buffers, buffer_params, destination);
+    }
+    else if (type == PASS_VOLUME_MAJORANT) {
+      get_pass_volume_majorant(render_buffers, buffer_params, destination);
     }
     else if (type == PASS_SAMPLE_COUNT) {
       get_pass_sample_count(render_buffers, buffer_params, destination);
@@ -228,8 +230,10 @@ void PassAccessor::init_kernel_film_convert(KernelFilmConvert *kfilm_convert,
                                             const Destination &destination) const
 {
   const PassMode mode = pass_access_info_.mode;
-  const PassInfo &pass_info = Pass::get_info(
-      pass_access_info_.type, pass_access_info_.include_albedo, pass_access_info_.is_lightgroup);
+  const PassInfo &pass_info = Pass::get_info(pass_access_info_.type,
+                                             mode,
+                                             pass_access_info_.include_albedo,
+                                             pass_access_info_.is_lightgroup);
 
   kfilm_convert->pass_offset = pass_access_info_.offset;
   kfilm_convert->pass_stride = buffer_params.pass_stride;
@@ -292,8 +296,10 @@ bool PassAccessor::set_render_tile_pixels(RenderBuffers *render_buffers, const S
     return false;
   }
 
-  const PassInfo pass_info = Pass::get_info(
-      pass_access_info_.type, pass_access_info_.include_albedo, pass_access_info_.is_lightgroup);
+  const PassInfo pass_info = Pass::get_info(pass_access_info_.type,
+                                            pass_access_info_.mode,
+                                            pass_access_info_.include_albedo,
+                                            pass_access_info_.is_lightgroup);
 
   const BufferParams &buffer_params = render_buffers->params;
 

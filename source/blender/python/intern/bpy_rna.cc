@@ -4576,7 +4576,7 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
     bContext *C = static_cast<bContext *>(self->ptr->data);
     if (C == nullptr) {
       PyErr_Format(PyExc_AttributeError,
-                   "bpy_struct: Context is 'nullptr', cannot get \"%.200s\" from context",
+                   "bpy_struct: Context is 'null', cannot get \"%.200s\" from context",
                    name);
       ret = nullptr;
     }
@@ -4862,7 +4862,7 @@ static int pyrna_struct_setattro(BPy_StructRNA *self, PyObject *pyname, PyObject
     bContext *C = static_cast<bContext *>(self->ptr->data);
     if (C == nullptr) {
       PyErr_Format(PyExc_AttributeError,
-                   "bpy_struct: Context is 'nullptr', cannot set \"%.200s\" from context",
+                   "bpy_struct: Context is 'null', cannot set \"%.200s\" from context",
                    name);
       return -1;
     }
@@ -6653,14 +6653,14 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
 
   if (self_ptr == nullptr) {
     PyErr_SetString(PyExc_RuntimeError,
-                    "RNA functions internal RNA pointer is nullptr, this is a bug. aborting");
+                    "RNA functions internal RNA pointer is null, this is a bug. aborting");
     return nullptr;
   }
 
   if (self_func == nullptr) {
     PyErr_Format(
         PyExc_RuntimeError,
-        "%.200s.<unknown>(): RNA function internal function is nullptr, this is a bug. aborting",
+        "%.200s.<unknown>(): RNA function internal function is null, this is a bug. aborting",
         RNA_struct_identifier(self_ptr->type));
     return nullptr;
   }

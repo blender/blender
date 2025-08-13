@@ -350,16 +350,6 @@ if(WITH_GMP)
   )
 endif()
 
-if(WITH_OPENVDB)
-  list(APPEND INC
-    ../../../../intern/openvdb
-  )
-  list(APPEND INC_SYS
-    ${OPENVDB_INCLUDE_DIRS}
-  )
-  add_definitions(-DWITH_OPENVDB ${OPENVDB_DEFINITIONS})
-endif()
-
 add_node_discovery(
   bf_nodes_geometry_generated
   "${SRC}"

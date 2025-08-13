@@ -95,7 +95,6 @@ set(SRC
   nodes/node_composite_setalpha.cc
   nodes/node_composite_split.cc
   nodes/node_composite_stabilize2d.cc
-  nodes/node_composite_sunbeams.cc
   nodes/node_composite_switch.cc
   nodes/node_composite_switchview.cc
   nodes/node_composite_tonemap.cc

@@ -91,6 +91,8 @@ ResultType socket_data_type_to_result_type(const eNodeSocketDatatype data_type,
       return ResultType::Color;
     case SOCK_MENU:
       return ResultType::Menu;
+    case SOCK_STRING:
+      return ResultType::String;
     default:
       BLI_assert_unreachable();
       return ResultType::Float;

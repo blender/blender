@@ -54,8 +54,6 @@ struct RecordingState {
   bool inverted_view = false;
   DRWState pipeline_state = DRW_STATE_NO_DRAW;
   int clip_plane_count = 0;
-  /** Used for gl_BaseInstance workaround. */
-  gpu::StorageBuf *resource_id_buf = nullptr;
   /** Used for pass simple resource ID. Starts at 1 as 0 is the identity handle. */
   int instance_offset = 1;
 

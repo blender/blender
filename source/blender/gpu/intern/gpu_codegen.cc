@@ -170,7 +170,7 @@ void GPUCodegen::generate_attribs()
   /* Input declaration, loading / assignment to interface and geometry shader passthrough. */
   std::stringstream load_ss;
 
-  int slot = GPU_shader_draw_parameters_support() ? 15 : 14;
+  int slot = 15;
   LISTBASE_FOREACH (GPUMaterialAttribute *, attr, &graph.attributes) {
     if (slot == -1) {
       BLI_assert_msg(0, "Too many attributes");

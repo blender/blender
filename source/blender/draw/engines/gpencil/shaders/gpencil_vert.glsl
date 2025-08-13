@@ -39,7 +39,8 @@ void main()
   float3 vert_N;
 
   int4 ma1 = floatBitsToInt(texelFetch(gp_pos_tx, gpencil_stroke_point_id() * 3 + 1));
-  gpMaterial gp_mat = gp_materials[ma1.x + gp_material_offset];
+  PointData point_data1 = decode_ma(ma1);
+  gpMaterial gp_mat = gp_materials[point_data1.mat + gp_material_offset];
   gpMaterialFlag gp_flag = gpMaterialFlag(floatBitsToUint(gp_mat._flag));
 
   gl_Position = gpencil_vertex(float4(viewport_size, 1.0f / viewport_size),
@@ -77,8 +78,7 @@ void main()
     else if (flag_test(gp_flag, GP_STROKE_OVERLAP)) {
       /* Use the index of the point as depth.
        * This means the stroke can overlap itself. */
-      float point_index = float(ma1.z);
-      gp_interp_flat.depth = (point_index + gp_stroke_index_offset + 2.0f) * 0.0000002f;
+      gp_interp_flat.depth = (point_data1.point_id + gp_stroke_index_offset + 2.0f) * 0.0000002f;
     }
     else {
       /* Use the index of first point of the stroke as depth.
@@ -86,8 +86,7 @@ void main()
        * cannot overlap itself.
        * We offset by one so that the fill can be overlapped by its stroke.
        * The offset is ok since we pad the strokes data because of adjacency infos. */
-      float stroke_index = float(ma1.y);
-      gp_interp_flat.depth = (stroke_index + gp_stroke_index_offset + 2.0f) * 0.0000002f;
+      gp_interp_flat.depth = (point_data1.stroke_id + gp_stroke_index_offset + 2.0f) * 0.0000002f;
     }
   }
   else {
@@ -123,7 +122,7 @@ void main()
     gpencil_color_output(fill_col, fcol_decode, 1.0f, gp_mat._fill_texture_mix);
 
     gp_interp_flat.mat_flag = gp_flag & GP_FILL_FLAGS;
-    gp_interp_flat.mat_flag |= uint(ma1.x + gp_material_offset) << GPENCIl_MATID_SHIFT;
+    gp_interp_flat.mat_flag |= uint(point_data1.mat + gp_material_offset) << GPENCIl_MATID_SHIFT;
 
     gp_interp.uv = float2x2(gp_mat.fill_uv_rot_scale.xy, gp_mat.fill_uv_rot_scale.zw) * uv1.xy +
                    gp_mat._fill_uv_offset;
@@ -134,8 +133,7 @@ void main()
     }
     else {
       /* Use the index of first point of the stroke as depth. */
-      float stroke_index = float(ma1.y);
-      gp_interp_flat.depth = (stroke_index + gp_stroke_index_offset + 1.0f) * 0.0000002f;
+      gp_interp_flat.depth = (point_data1.stroke_id + gp_stroke_index_offset + 1.0f) * 0.0000002f;
     }
   }
 }

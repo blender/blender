@@ -210,6 +210,7 @@ class PathTrace {
   void path_trace(RenderWork &render_work);
   void adaptive_sample(RenderWork &render_work);
   void denoise(const RenderWork &render_work);
+  void denoise_volume_guiding_buffers(const RenderWork &render_work, const bool has_volume);
   void cryptomatte_postprocess(const RenderWork &render_work);
   void update_display(const RenderWork &render_work);
   void rebalance(const RenderWork &render_work);

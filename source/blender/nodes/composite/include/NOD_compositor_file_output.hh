@@ -27,6 +27,7 @@ struct FileOutputItemsAccessor : public socket_items::SocketItemsAccessorDefault
   static constexpr bool has_name = true;
   static constexpr bool has_name_validation = true;
   static constexpr bool has_vector_dimensions = true;
+  static constexpr bool can_have_empty_name = true;
   static constexpr char unique_name_separator = '_';
   struct operator_idnames {
     static constexpr StringRefNull add_item = "NODE_OT_file_output_item_add";

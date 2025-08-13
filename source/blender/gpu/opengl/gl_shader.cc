@@ -757,7 +757,7 @@ std::string GLShader::vertex_interface_declare(const ShaderCreateInfo &info) con
     }
   }
   if (bool(info.builtins_ & BuiltinBits::CLIP_CONTROL)) {
-    if (GLContext::clip_control_support && !has_geometry_stage) {
+    if (!has_geometry_stage) {
       /* Assume clip range is set to 0..1 and remap the range just like Vulkan and Metal.
        * If geometry stage is needed, do that remapping inside the geometry shader stage. */
       post_main += "gl_Position.z = (gl_Position.z + gl_Position.w) * 0.5;\n";
@@ -1033,10 +1033,8 @@ std::string GLShader::workaround_geometry_shader_source_create(
     }
     ss << "  gl_Position = gl_in[" << i << "].gl_Position;\n";
     if (bool(info.builtins_ & BuiltinBits::CLIP_CONTROL)) {
-      if (GLContext::clip_control_support) {
-        /* Assume clip range is set to 0..1 and remap the range just like Vulkan and Metal. */
-        ss << "gl_Position.z = (gl_Position.z + gl_Position.w) * 0.5;\n";
-      }
+      /* Assume clip range is set to 0..1 and remap the range just like Vulkan and Metal. */
+      ss << "gl_Position.z = (gl_Position.z + gl_Position.w) * 0.5;\n";
     }
     if (do_layer_output) {
       ss << "  gl_Layer = gpu_Layer[" << i << "];\n";
@@ -1081,24 +1079,18 @@ static StringRefNull glsl_patch_vertex_get()
 
     /* Enable extensions for features that are not part of our base GLSL version
      * don't use an extension for something already available! */
-    if (GLContext::shader_draw_parameters_support) {
+    {
+      /* Required extension. */
       ss << "#extension GL_ARB_shader_draw_parameters : enable\n";
       ss << "#define GPU_ARB_shader_draw_parameters\n";
       ss << "#define gpu_BaseInstance gl_BaseInstanceARB\n";
+      ss << "#define GPU_ARB_clip_control\n";
     }
     if (GLContext::layered_rendering_support) {
       ss << "#extension GL_ARB_shader_viewport_layer_array: enable\n";
     }
     if (GLContext::native_barycentric_support) {
       ss << "#extension GL_AMD_shader_explicit_vertex_parameter: enable\n";
-    }
-    if (GLContext::clip_control_support) {
-      ss << "#define GPU_ARB_clip_control\n";
-    }
-
-    /* Fallbacks. */
-    if (!GLContext::shader_draw_parameters_support) {
-      ss << "uniform int gpu_BaseInstance;\n";
     }
 
     /* Vulkan GLSL compatibility. */
@@ -1131,9 +1123,7 @@ static StringRefNull glsl_patch_geometry_get()
     if (GLContext::native_barycentric_support) {
       ss << "#extension GL_AMD_shader_explicit_vertex_parameter: enable\n";
     }
-    if (GLContext::clip_control_support) {
-      ss << "#define GPU_ARB_clip_control\n";
-    }
+    ss << "#define GPU_ARB_clip_control\n";
 
     /* Array compatibility. */
     ss << "#define gpu_Array(_type) _type[]\n";
@@ -1169,9 +1159,7 @@ static StringRefNull glsl_patch_fragment_get()
       ss << "#extension GL_ARB_shader_stencil_export: enable\n";
       ss << "#define GPU_ARB_shader_stencil_export\n";
     }
-    if (GLContext::clip_control_support) {
-      ss << "#define GPU_ARB_clip_control\n";
-    }
+    ss << "#define GPU_ARB_clip_control\n";
 
     /* Array compatibility. */
     ss << "#define gpu_Array(_type) _type[]\n";
@@ -1200,9 +1188,7 @@ static StringRefNull glsl_patch_compute_get()
     /* Needs to have this defined upfront for configuring shader defines. */
     ss << "#define GPU_COMPUTE_SHADER\n";
 
-    if (GLContext::clip_control_support) {
-      ss << "#define GPU_ARB_clip_control\n";
-    }
+    ss << "#define GPU_ARB_clip_control\n";
 
     ss << datatoc_glsl_shader_defines_glsl;
 

@@ -423,7 +423,7 @@ bool MetalKernelPipeline::should_use_binary_archive() const
     if ((device_kernel >= DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND &&
          device_kernel <= DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW) ||
         (device_kernel >= DEVICE_KERNEL_SHADER_EVAL_DISPLACE &&
-         device_kernel <= DEVICE_KERNEL_SHADER_EVAL_CURVE_SHADOW_TRANSPARENCY))
+         device_kernel <= DEVICE_KERNEL_SHADER_EVAL_VOLUME_DENSITY))
     {
       /* Archive all shade kernels - they take a long time to compile. */
       return true;

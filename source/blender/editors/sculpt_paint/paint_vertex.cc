@@ -507,6 +507,7 @@ void update_cache_variants(bContext *C, VPaint &vp, Object &ob, PointerRNA *ptr)
 {
   using namespace blender;
   const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
+  const PaintMode paint_mode = BKE_paintmode_get_active_from_context(C);
   SculptSession &ss = *ob.sculpt;
   StrokeCache *cache = ss.cache;
   Brush &brush = *BKE_paint_brush(&vp.paint);
@@ -524,7 +525,7 @@ void update_cache_variants(bContext *C, VPaint &vp, Object &ob, PointerRNA *ptr)
    * brush coord/pressure/etc.
    * It's more an events design issue, which doesn't split coordinate/pressure/angle
    * changing events. We should avoid this after events system re-design */
-  if (paint_supports_dynamic_size(brush, PaintMode::Sculpt) || cache->first_time) {
+  if (paint_supports_dynamic_size(brush, paint_mode) || cache->first_time) {
     cache->pressure = RNA_float_get(ptr, "pressure");
   }
 
@@ -535,8 +536,7 @@ void update_cache_variants(bContext *C, VPaint &vp, Object &ob, PointerRNA *ptr)
     BKE_brush_unprojected_radius_set(&vp.paint, &brush, cache->initial_radius);
   }
 
-  if (BKE_brush_use_size_pressure(&brush) && paint_supports_dynamic_size(brush, PaintMode::Sculpt))
-  {
+  if (BKE_brush_use_size_pressure(&brush) && paint_supports_dynamic_size(brush, paint_mode)) {
     cache->radius = cache->initial_radius * cache->pressure;
   }
   else {
@@ -716,8 +716,13 @@ static Color vpaint_blend(const VPaint &vp,
   return color_blend;
 }
 
-/* If in accumulate mode, blend brush mark directly onto mesh, else blend into temporary
- * stroke_buffer and blend the stroke onto the mesh. */
+/**
+ * If in accumulate mode, blend brush mark directly onto mesh, else blend into temporary
+ * stroke_buffer and blend the stroke onto the mesh.
+ *
+ * \param brush_mark_alpha: Modulated strength on a per-vertex basis
+ * \param brush_strength: Unmodified raw value of the brush
+ */
 template<typename Color, typename Traits>
 static Color vpaint_blend_stroke(const VPaint &vp,
                                  MutableSpan<Color> prev_vertex_colors,
@@ -750,10 +755,10 @@ static Color vpaint_blend_stroke(const VPaint &vp,
                                                          stroke_buffer[index].a);
 
     result = vpaint_blend<Color, Traits>(vp,
-                                         prev_vertex_colors[index],
+                                         vertex_colors[index],
                                          prev_vertex_colors[index],
                                          stroke_buffer[index],
-                                         stroke_buffer[index].a,
+                                         brush_mark_alpha,
                                          Traits::range * brush_strength);
   }
   else {

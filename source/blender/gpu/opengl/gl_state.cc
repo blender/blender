@@ -334,14 +334,12 @@ void GLStateManager::set_shadow_bias(const bool enable)
 
 void GLStateManager::set_clip_control(const bool enable)
 {
-  if (GLContext::clip_control_support) {
-    if (enable) {
-      /* Match Vulkan and Metal by default. */
-      glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
-    }
-    else {
-      glClipControl(GL_LOWER_LEFT, GL_NEGATIVE_ONE_TO_ONE);
-    }
+  if (enable) {
+    /* Match Vulkan and Metal by default. */
+    glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
+  }
+  else {
+    glClipControl(GL_LOWER_LEFT, GL_NEGATIVE_ONE_TO_ONE);
   }
 }
 

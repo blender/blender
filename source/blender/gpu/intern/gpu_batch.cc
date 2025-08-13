@@ -35,7 +35,6 @@ void GPU_batch_zero(Batch *batch)
   std::fill_n(batch->verts, ARRAY_SIZE(batch->verts), nullptr);
   std::fill_n(batch->inst, ARRAY_SIZE(batch->inst), nullptr);
   batch->elem = nullptr;
-  batch->resource_id_buf = nullptr;
   batch->flag = eGPUBatchFlag(0);
   batch->prim_type = GPUPrimType(0);
   batch->shader = nullptr;
@@ -228,13 +227,6 @@ bool GPU_batch_vertbuf_has(const Batch *batch, const VertBuf *vertex_buf)
     }
   }
   return false;
-}
-
-void GPU_batch_resource_id_buf_set(Batch *batch, blender::gpu::StorageBuf *resource_id_buf)
-{
-  BLI_assert(resource_id_buf);
-  batch->flag |= GPU_BATCH_DIRTY;
-  batch->resource_id_buf = resource_id_buf;
 }
 
 /** \} */

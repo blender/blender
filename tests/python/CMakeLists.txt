@@ -1365,11 +1365,6 @@ if(WITH_UI_TESTS)
   # list explicitly so changes bisecting/updated are sure to re-run CMake.
   set(_ui_tests
     test_sculpt.asset_shelf_brush_selection
-    test_workspace.sanity_check_general
-    test_workspace.sanity_check_2d_animation
-    test_workspace.sanity_check_sculpting
-    test_workspace.sanity_check_vfx
-    test_workspace.sanity_check_video_editing
     test_undo.compositor_make_group
     test_undo.text_editor_edit_mode_mix
     test_undo.text_editor_simple
@@ -1387,6 +1382,11 @@ if(WITH_UI_TESTS)
     test_undo.view3d_simple
     test_undo.view3d_texture_paint_complex
     test_undo.view3d_texture_paint_simple
+    test_workspace.sanity_check_general
+    test_workspace.sanity_check_2d_animation
+    test_workspace.sanity_check_sculpting
+    test_workspace.sanity_check_vfx
+    test_workspace.sanity_check_video_editing
   )
   foreach(ui_test ${_ui_tests})
     add_blender_test_ui(

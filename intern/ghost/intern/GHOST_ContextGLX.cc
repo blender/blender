@@ -280,8 +280,8 @@ GHOST_TSuccess GHOST_ContextGLX::initializeDrawingContext()
 
     glXMakeCurrent(m_display, m_window, m_context);
 
-    /* For performance measurements with vsync disabled. */
-    const char *ghost_vsync_string = getEnvVarVsyncString();
+    /* For performance measurements with VSync disabled. */
+    const char *ghost_vsync_string = getEnvVarVSyncString();
     if (ghost_vsync_string) {
       int swapInterval = atoi(ghost_vsync_string);
       setSwapInterval(swapInterval);

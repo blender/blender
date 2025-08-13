@@ -299,6 +299,7 @@ class USERPREF_PT_interface_temporary_windows(InterfacePanel, CenterAlignMixIn, 
         col = layout.column()
         col.prop(view, "render_display_type", text="Render In")
         col.prop(view, "filebrowser_display_type", text="File Browser")
+        col.prop(view, "preferences_display_type", text="Preferences")
 
 
 class USERPREF_PT_interface_statusbar(InterfacePanel, CenterAlignMixIn, Panel):

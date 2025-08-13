@@ -211,7 +211,6 @@ class FILEBROWSER_UL_dir(UIList):
         # space = context.space_data
 
         row = layout.row(align=True)
-        row.enabled = direntry.is_valid
         # Non-editable entries would show grayed-out, which is bad in this specific case, so switch to mere label.
         if direntry.is_property_readonly("name"):
             row.label(text=direntry.name, icon_value=icon)

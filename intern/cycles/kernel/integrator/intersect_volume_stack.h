@@ -108,7 +108,8 @@ ccl_device void integrator_volume_stack_init(KernelGlobals kg, IntegratorState s
    * background volume is always assumed to be CG. */
   if (kernel_data.background.volume_shader != SHADER_NONE) {
     if (!(path_flag & PATH_RAY_SHADOW_CATCHER_PASS)) {
-      INTEGRATOR_STATE_ARRAY_WRITE(state, volume_stack, stack_index, object) = OBJECT_NONE;
+      INTEGRATOR_STATE_ARRAY_WRITE(
+          state, volume_stack, stack_index, object) = kernel_data.background.object_index;
       INTEGRATOR_STATE_ARRAY_WRITE(
           state, volume_stack, stack_index, shader) = kernel_data.background.volume_shader;
       stack_index++;

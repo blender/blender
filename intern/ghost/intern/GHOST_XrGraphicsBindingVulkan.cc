@@ -507,7 +507,7 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageCpu(
       nullptr};
   vkBeginCommandBuffer(vk_command_buffer, &vk_command_buffer_begin_info);
 
-  /* Transfer imported render result & swap chain image (UNDEFINED -> GENERAL) */
+  /* Transfer imported render result & swap-chain image (UNDEFINED -> GENERAL). */
   VkImageMemoryBarrier vk_image_memory_barrier = {VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
                                                   nullptr,
                                                   0,
@@ -694,7 +694,7 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageGpu(
       nullptr};
   vkBeginCommandBuffer(vk_command_buffer, &vk_command_buffer_begin_info);
 
-  /* Transfer imported render result & swap chain image (UNDEFINED -> GENERAL) */
+  /* Transfer imported render result & swap-chain image (UNDEFINED -> GENERAL). */
   VkImageMemoryBarrier vk_image_memory_barrier[] = {{VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
                                                      nullptr,
                                                      0,

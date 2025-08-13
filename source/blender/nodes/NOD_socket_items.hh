@@ -37,6 +37,7 @@ struct SocketItemsAccessorDefaults {
   static constexpr bool has_name_validation = false;
   static constexpr bool has_custom_initial_name = false;
   static constexpr bool has_vector_dimensions = false;
+  static constexpr bool can_have_empty_name = false;
   static constexpr char unique_name_separator = '.';
 };
 
@@ -130,17 +131,22 @@ inline void set_item_name_and_make_unique(bNode &node,
 {
   using ItemT = typename Accessor::ItemT;
   SocketItemsRef array = Accessor::get_items_from_node(node);
-  StringRefNull default_name = "Item";
-  if constexpr (Accessor::has_type) {
-    default_name = *bke::node_static_socket_label(Accessor::get_socket_type(item), 0);
+
+  std::string name = value;
+  if constexpr (!Accessor::can_have_empty_name) {
+    if (name.empty()) {
+      if constexpr (Accessor::has_type) {
+        name = *bke::node_static_socket_label(Accessor::get_socket_type(item), 0);
+      }
+      else {
+        name = "Item";
+      }
+    }
   }
 
-  const std::string validated_name = get_validated_name<Accessor>(value);
+  const std::string validated_name = get_validated_name<Accessor>(name);
 
-  char unique_name[MAX_NAME + 4];
-  STRNCPY(unique_name, validated_name.c_str());
-
-  BLI_uniquename_cb(
+  const std::string unique_name = BLI_uniquename_cb(
       [&](const StringRef name) {
         for (ItemT &item_iter : blender::MutableSpan(*array.items, *array.items_num)) {
           if (&item_iter != &item) {
@@ -151,17 +157,15 @@ inline void set_item_name_and_make_unique(bNode &node,
         }
         return false;
       },
-      default_name.c_str(),
       Accessor::unique_name_separator,
-      unique_name,
-      ARRAY_SIZE(unique_name));
+      validated_name);
 
   /* The unique name should still be valid. */
-  BLI_assert(StringRef(unique_name) == get_validated_name<Accessor>(unique_name));
+  BLI_assert(unique_name == get_validated_name<Accessor>(unique_name));
 
   char **item_name = Accessor::get_name(item);
   MEM_SAFE_FREE(*item_name);
-  *item_name = BLI_strdup(unique_name);
+  *item_name = BLI_strdup(unique_name.c_str());
 }
 
 namespace detail {

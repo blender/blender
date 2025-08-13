@@ -125,6 +125,9 @@ class PathTraceWork {
   virtual int adaptive_sampling_converge_filter_count_active(const float threshold,
                                                              bool reset) = 0;
 
+  /* Denoise Volume Scattering Probability Guiding buffers. */
+  virtual void denoise_volume_guiding_buffers() = 0;
+
   /* Run cryptomatte pass post-processing kernels. */
   virtual void cryptomatte_postproces() = 0;
 
@@ -162,8 +165,8 @@ class PathTraceWork {
 
   /* Get destination which offset and stride are configured so that writing to it will write to a
    * proper location of GPU display texture, taking current tile and device slice into account. */
-  PassAccessor::Destination get_display_destination_template(
-      const PathTraceDisplay *display) const;
+  PassAccessor::Destination get_display_destination_template(const PathTraceDisplay *display,
+                                                             const PassMode mode) const;
 
   /* Device which will be used for path tracing.
    * Note that it is an actual render device (and never is a multi-device). */

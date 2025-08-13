@@ -19,21 +19,30 @@ struct ImBuf;
 namespace blender::ed::vse {
 
 struct ScopeHistogram {
-  /* Byte images just have bins for the 0..255 range. */
-  static constexpr int BINS_BYTE = 256;
-  /* Float images spread -0.25..+1.25 range over 512 bins. */
-  static constexpr int BINS_FLOAT = 512;
-  static constexpr float FLOAT_VAL_MIN = -0.25f;
-  static constexpr float FLOAT_VAL_MAX = 1.25f;
+  /* LDR (0..1) range is covered by this many bins. */
+  static constexpr int BINS_01 = 256;
+  /* HDR images extend the range to 0..12 uniformly. */
+  static constexpr int BINS_HDR = BINS_01 * 12;
+  /* R,G,B counts for each bin. */
   Array<uint3> data;
-  uint3 max_value;
+  /* Maximum R,G,B counts across all bins. */
+  uint3 max_value = uint3(0);
+  /* Maximum R,G,B bins used. */
+  uint3 max_bin = uint3(0);
 
   void calc_from_ibuf(const ImBuf *ibuf,
                       const ColorManagedViewSettings &view_settings,
                       const ColorManagedDisplaySettings &display_settings);
-  bool is_float_hist() const
+
+  static int float_to_bin(float f)
   {
-    return data.size() == BINS_FLOAT;
+    int bin = int(f * BINS_01);
+    return math::clamp(bin, 0, BINS_HDR - 1);
+  }
+
+  static float bin_to_float(int bin)
+  {
+    return float(bin) / (BINS_01 - 1);
   }
 };
 
@@ -43,6 +52,7 @@ struct SeqScopes : public NonCopyable {
   static constexpr float VECSCOPE_V_SCALE = 0.5f / 0.615f;
 
   const ImBuf *reference_ibuf = nullptr;
+  int timeline_frame = 0;
   ImBuf *zebra_ibuf = nullptr;
   ImBuf *waveform_ibuf = nullptr;
   ImBuf *sep_waveform_ibuf = nullptr;

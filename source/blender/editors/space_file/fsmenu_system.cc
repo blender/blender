@@ -324,12 +324,8 @@ void fsmenu_read_system(FSMenu *fsmenu, int read_bookmarks)
             break;
         }
 
-        fsmenu_insert_entry(fsmenu,
-                            FS_CATEGORY_SYSTEM,
-                            tmps,
-                            name,
-                            icon,
-                            FSMenuInsert(FS_INSERT_SORTED | FS_INSERT_NO_VALIDATE));
+        fsmenu_insert_entry(
+            fsmenu, FS_CATEGORY_SYSTEM, tmps, name, icon, FSMenuInsert(FS_INSERT_SORTED));
       }
     }
 

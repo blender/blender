@@ -539,17 +539,6 @@ static void rna_def_volume_render(BlenderRNA *brna)
       prop, "Space", "Specify volume density and step size in object or world space");
   RNA_def_property_update(prop, 0, "rna_Volume_update_display");
 
-  prop = RNA_def_property(srna, "step_size", PROP_FLOAT, PROP_DISTANCE);
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_range(prop, 0.0, FLT_MAX);
-  RNA_def_property_ui_range(prop, 0.0, 100.0, 1, 3);
-  RNA_def_property_ui_text(prop,
-                           "Step Size",
-                           "Distance between volume samples. Lower values render more detail at "
-                           "the cost of performance. If set to zero, the step size is "
-                           "automatically determined based on voxel size.");
-  RNA_def_property_update(prop, 0, "rna_Volume_update_display");
-
   prop = RNA_def_property(srna, "clipping", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "clipping");
   RNA_def_property_range(prop, 0.0, 1.0);

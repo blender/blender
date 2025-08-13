@@ -50,6 +50,8 @@ void SeqScopes::cleanup()
     vector_ibuf = nullptr;
   }
   histogram.data.reinitialize(0);
+  reference_ibuf = nullptr;
+  timeline_frame = 0;
 }
 
 static blender::float2 rgb_to_uv_normalized(const float rgb[3])
@@ -383,14 +385,6 @@ ImBuf *make_zebra_view_from_ibuf(const ImBuf *ibuf, float perc)
   return res;
 }
 
-static int get_bin_float(float f)
-{
-  int bin = int(((f - ScopeHistogram::FLOAT_VAL_MIN) /
-                 (ScopeHistogram::FLOAT_VAL_MAX - ScopeHistogram::FLOAT_VAL_MIN)) *
-                ScopeHistogram::BINS_FLOAT);
-  return clamp_i(bin, 0, ScopeHistogram::BINS_FLOAT - 1);
-}
-
 void ScopeHistogram::calc_from_ibuf(const ImBuf *ibuf,
                                     const ColorManagedViewSettings &view_settings,
                                     const ColorManagedDisplaySettings &display_settings)
@@ -403,8 +397,10 @@ void ScopeHistogram::calc_from_ibuf(const ImBuf *ibuf,
       ibuf, &view_settings, &display_settings);
 
   const bool is_float = ibuf->float_buffer.data != nullptr;
-  const int hist_size = is_float ? BINS_FLOAT : BINS_BYTE;
+  const int hist_size = is_float ? BINS_HDR : BINS_01;
 
+  /* Calculate histogram of input image with parallel reduction:
+   * process in chunks, and merge their histograms. */
   Array<uint3> counts(hist_size, uint3(0));
   data = threading::parallel_reduce(
       IndexRange(IMB_get_pixel_count(ibuf)),
@@ -420,9 +416,9 @@ void ScopeHistogram::calc_from_ibuf(const ImBuf *ibuf,
             for ([[maybe_unused]] const int64_t index : range) {
               float4 pixel;
               premul_to_straight_v4_v4(pixel, src);
-              res[get_bin_float(pixel.x)].x++;
-              res[get_bin_float(pixel.y)].y++;
-              res[get_bin_float(pixel.z)].z++;
+              res[float_to_bin(pixel.x)].x++;
+              res[float_to_bin(pixel.y)].y++;
+              res[float_to_bin(pixel.z)].z++;
               src += 4;
             }
           }
@@ -431,9 +427,9 @@ void ScopeHistogram::calc_from_ibuf(const ImBuf *ibuf,
             Array<float4> pixels = pixels_to_display_space(
                 cm_processor, ibuf->float_buffer.colorspace, range.size(), src, 4);
             for (const float4 &pixel : pixels) {
-              res[get_bin_float(pixel.x)].x++;
-              res[get_bin_float(pixel.y)].y++;
-              res[get_bin_float(pixel.z)].z++;
+              res[float_to_bin(pixel.x)].x++;
+              res[float_to_bin(pixel.y)].y++;
+              res[float_to_bin(pixel.z)].z++;
             }
           }
         }
@@ -479,8 +475,19 @@ void ScopeHistogram::calc_from_ibuf(const ImBuf *ibuf,
   }
 
   max_value = uint3(0);
-  for (const uint3 &v : data) {
-    max_value = math::max(max_value, v);
+  max_bin = uint3(0);
+  for (int64_t i : data.index_range()) {
+    const uint3 &val = data[i];
+    max_value = math::max(max_value, val);
+    if (val.x != 0) {
+      max_bin.x = i;
+    }
+    if (val.y != 0) {
+      max_bin.y = i;
+    }
+    if (val.z != 0) {
+      max_bin.z = i;
+    }
   }
 }
 

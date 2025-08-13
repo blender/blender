@@ -5,6 +5,7 @@
 #include <regex>
 
 #include "NOD_geometry_nodes_execute.hh"
+#include "NOD_menu_value.hh"
 #include "NOD_multi_function.hh"
 #include "NOD_node_declaration.hh"
 #include "NOD_node_in_compute_context.hh"
@@ -1383,7 +1384,7 @@ Array<SocketUsage> infer_all_input_sockets_usage(const bNodeTree &tree)
       continue;
     }
     const SocketInContext socket{nullptr, all_input_sockets[i]};
-    if (inferencer_only_controllers.is_socket_used((socket))) {
+    if (inferencer_only_controllers.is_socket_used(socket)) {
       /* The input should be visible if it's used if only visibility-controlling inputs are
        * considered. */
       continue;
@@ -1540,7 +1541,7 @@ bool InputSocketUsageParams::menu_input_may_be(const StringRef identifier,
     /* The value is unknown, so it may be the requested enum value. */
     return true;
   }
-  return value.get_known<int>() == enum_value;
+  return value.get_known<MenuValue>().value == enum_value;
 }
 
 }  // namespace blender::nodes::socket_usage_inference

@@ -17,13 +17,13 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Vector<SocketValueVariant> strings = params.extract_input<Vector<SocketValueVariant>>("Strings");
+  auto strings = params.extract_input<GeoNodesMultiInput<std::string>>("Strings");
   const std::string delim = params.extract_input<std::string>("Delimiter");
 
   std::string output;
-  for (const int i : strings.index_range()) {
-    output += strings[i].extract<std::string>();
-    if (i < (strings.size() - 1)) {
+  for (const int i : strings.values.index_range()) {
+    output += strings.values[i];
+    if (i < (strings.values.size() - 1)) {
       output += delim;
     }
   }

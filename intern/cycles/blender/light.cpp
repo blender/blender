@@ -128,56 +128,60 @@ void BlenderSync::sync_background_light(BL::SpaceView3D &b_v3d)
         cworld, "sampling_method", SAMPLING_NUM, SAMPLING_AUTOMATIC);
     const bool sample_as_light = (sampling_method != SAMPLING_NONE);
 
-    if (sample_as_light || world_use_portal) {
-      /* Create object. */
-      Object *object;
-      const ObjectKey object_key(b_world, nullptr, b_world, false);
-      bool update = object_map.add_or_update(&object, b_world, b_world, object_key);
-      if (update) {
-        /* Lights should be shadow catchers by default. */
-        object->set_is_shadow_catcher(true);
-        object->set_lightgroup(ustring(b_world ? b_world.lightgroup() : ""));
-      }
+    /* Create object. */
+    Object *object;
+    const ObjectKey object_key(b_world, nullptr, b_world, false);
+    bool update = object_map.add_or_update(&object, b_world, b_world, object_key);
+    if (update) {
+      /* Lights should be shadow catchers by default. */
+      object->set_is_shadow_catcher(true);
+      object->set_lightgroup(ustring(b_world ? b_world.lightgroup() : ""));
+    }
 
-      /* Create geometry. */
-      const GeometryKey geom_key{b_world.ptr.data, Geometry::LIGHT};
-      Geometry *geom = geometry_map.find(geom_key);
-      if (geom) {
-        update |= geometry_map.update(geom, b_world);
+    object->set_asset_name(ustring(b_world.name()));
+
+    /* Create geometry. */
+    const GeometryKey geom_key{b_world.ptr.data, Geometry::LIGHT};
+    Geometry *geom = geometry_map.find(geom_key);
+    if (geom) {
+      update |= geometry_map.update(geom, b_world);
+    }
+    else {
+      geom = scene->create_node<Light>();
+      geometry_map.add(geom_key, geom);
+      object->set_geometry(geom);
+      update = true;
+    }
+
+    if (update || world_recalc || b_world.ptr.data != world_map) {
+      /* Initialize light geometry. */
+      Light *light = static_cast<Light *>(geom);
+
+      array<Node *> used_shaders;
+      used_shaders.push_back_slow(scene->default_background);
+      light->set_used_shaders(used_shaders);
+
+      light->set_light_type(LIGHT_BACKGROUND);
+
+      if (sampling_method == SAMPLING_MANUAL) {
+        light->set_map_resolution(get_int(cworld, "sample_map_resolution"));
       }
       else {
-        geom = scene->create_node<Light>();
-        geometry_map.add(geom_key, geom);
-        object->set_geometry(geom);
-        update = true;
+        light->set_map_resolution(0);
       }
 
-      if (update || world_recalc || b_world.ptr.data != world_map) {
-        /* Initialize light geometry. */
-        Light *light = static_cast<Light *>(geom);
+      light->set_use_mis(sample_as_light);
+      light->set_max_bounces(get_int(cworld, "max_bounces"));
 
-        light->set_light_type(LIGHT_BACKGROUND);
-        if (sampling_method == SAMPLING_MANUAL) {
-          light->set_map_resolution(get_int(cworld, "sample_map_resolution"));
-        }
-        else {
-          light->set_map_resolution(0);
-        }
-        array<Node *> used_shaders;
-        used_shaders.push_back_slow(scene->default_background);
-        light->set_used_shaders(used_shaders);
-        light->set_use_mis(sample_as_light);
-        light->set_max_bounces(get_int(cworld, "max_bounces"));
+      /* Force enable light again when world is resynced. */
+      light->set_is_enabled(sample_as_light || world_use_portal);
 
-        /* force enable light again when world is resynced */
-        light->set_is_enabled(true);
+      /* Caustic light. */
+      light->set_use_caustics(get_boolean(cworld, "is_caustics_light"));
 
-        /* caustic light */
-        light->set_use_caustics(get_boolean(cworld, "is_caustics_light"));
+      light->tag_update(scene);
 
-        light->tag_update(scene);
-        geometry_map.set_recalc(b_world);
-      }
+      geometry_map.set_recalc(b_world);
     }
   }
 

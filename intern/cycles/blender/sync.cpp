@@ -349,14 +349,9 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer,
   integrator->set_max_glossy_bounce(get_int(cscene, "glossy_bounces"));
   integrator->set_max_transmission_bounce(get_int(cscene, "transmission_bounces"));
   integrator->set_max_volume_bounce(get_int(cscene, "volume_bounces"));
-
+  integrator->set_volume_unbiased(get_boolean(cscene, "volume_unbiased"));
   integrator->set_transparent_min_bounce(get_int(cscene, "min_transparent_bounces"));
   integrator->set_transparent_max_bounce(get_int(cscene, "transparent_max_bounces"));
-
-  integrator->set_volume_max_steps(get_int(cscene, "volume_max_steps"));
-  const float volume_step_rate = (preview) ? get_float(cscene, "volume_preview_step_rate") :
-                                             get_float(cscene, "volume_step_rate");
-  integrator->set_volume_step_rate(volume_step_rate);
 
   integrator->set_caustics_reflective(get_boolean(cscene, "caustics_reflective"));
   integrator->set_caustics_refractive(get_boolean(cscene, "caustics_refractive"));
@@ -691,6 +686,9 @@ static bool get_known_pass_type(BL::RenderPass &b_pass, PassType &type, PassMode
   MAP_PASS("GlossInd", PASS_GLOSSY_INDIRECT, false);
   MAP_PASS("TransInd", PASS_TRANSMISSION_INDIRECT, false);
   MAP_PASS("VolumeInd", PASS_VOLUME_INDIRECT, false);
+  MAP_PASS("Volume Scatter", PASS_VOLUME_SCATTER, false);
+  MAP_PASS("Volume Transmit", PASS_VOLUME_TRANSMIT, false);
+  MAP_PASS("Volume Majorant", PASS_VOLUME_MAJORANT, false);
 
   MAP_PASS("DiffCol", PASS_DIFFUSE_COLOR, false);
   MAP_PASS("GlossCol", PASS_GLOSSY_COLOR, false);

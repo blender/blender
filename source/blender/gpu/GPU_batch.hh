@@ -84,8 +84,6 @@ class Batch {
   blender::gpu::VertBuf *inst[GPU_BATCH_INST_VBO_MAX_LEN];
   /** nullptr if element list not needed */
   blender::gpu::IndexBuf *elem;
-  /** Resource ID attribute workaround. */
-  blender::gpu::StorageBuf *resource_id_buf;
   /** Number of vertices to draw for procedural drawcalls. */
   int32_t procedural_vertices;
   /** Bookkeeping. */
@@ -260,14 +258,6 @@ void GPU_batch_elembuf_set(blender::gpu::Batch *batch,
  */
 bool GPU_batch_vertbuf_has(const blender::gpu::Batch *batch,
                            const blender::gpu::VertBuf *vertex_buf);
-
-/**
- * Set resource id buffer to bind as instance attribute to workaround the lack of gl_BaseInstance
- * on some hardware / platform.
- * \note Only to be used by draw manager.
- */
-void GPU_batch_resource_id_buf_set(blender::gpu::Batch *batch,
-                                   blender::gpu::StorageBuf *resource_id_buf);
 
 /** \} */
 

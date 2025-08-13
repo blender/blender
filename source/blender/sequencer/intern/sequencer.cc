@@ -15,6 +15,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_listBase.h"
+#include "DNA_mask_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"
@@ -501,7 +502,8 @@ Strip *meta_stack_pop(Editing *ed)
 /** \name Duplicate Functions
  * \{ */
 
-static Strip *strip_duplicate(const Scene *scene_src,
+static Strip *strip_duplicate(Main *bmain,
+                              const Scene *scene_src,
                               Scene *scene_dst,
                               ListBase *new_seq_list,
                               Strip *strip,
@@ -564,16 +566,34 @@ static Strip *strip_duplicate(const Scene *scene_src,
     channels_duplicate(&strip_new->channels, &strip->channels);
   }
   else if (strip->type == STRIP_TYPE_SCENE) {
+    if (int(dupe_flag & StripDuplicate::Data) != 0 && strip_new->scene != nullptr) {
+      Scene *scene_old = strip_new->scene;
+      strip_new->scene = BKE_scene_duplicate(bmain, scene_old, SCE_COPY_FULL);
+    }
     strip_new->data->stripdata = nullptr;
     if (strip->scene_sound) {
       strip_new->scene_sound = BKE_sound_scene_add_scene_sound_defaults(scene_dst, strip_new);
     }
   }
   else if (strip->type == STRIP_TYPE_MOVIECLIP) {
-    /* avoid assert */
+    if (int(dupe_flag & StripDuplicate::Data) != 0 && strip_new->clip != nullptr) {
+      MovieClip *clip_old = strip_new->clip;
+      strip_new->clip = reinterpret_cast<MovieClip *>(
+          BKE_id_copy(bmain, reinterpret_cast<ID *>(clip_old)));
+      if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT)) {
+        id_us_min(&strip_new->clip->id);
+      }
+    }
   }
   else if (strip->type == STRIP_TYPE_MASK) {
-    /* avoid assert */
+    if (int(dupe_flag & StripDuplicate::Data) != 0 && strip_new->mask != nullptr) {
+      Mask *mask_old = strip_new->mask;
+      strip_new->mask = reinterpret_cast<Mask *>(
+          BKE_id_copy(bmain, reinterpret_cast<ID *>(mask_old)));
+      if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT)) {
+        id_us_min(&strip_new->mask->id);
+      }
+    }
   }
   else if (strip->type == STRIP_TYPE_MOVIE) {
     strip_new->data->stripdata = static_cast<StripElem *>(MEM_dupallocN(strip->data->stripdata));
@@ -627,7 +647,8 @@ static Strip *strip_duplicate(const Scene *scene_src,
   return strip_new;
 }
 
-static Strip *strip_duplicate_recursive_impl(const Scene *scene_src,
+static Strip *strip_duplicate_recursive_impl(Main *bmain,
+                                             const Scene *scene_src,
                                              Scene *scene_dst,
                                              ListBase *new_seq_list,
                                              Strip *strip,
@@ -635,17 +656,18 @@ static Strip *strip_duplicate_recursive_impl(const Scene *scene_src,
                                              blender::Map<Strip *, Strip *> &strip_map)
 {
   Strip *strip_new = strip_duplicate(
-      scene_src, scene_dst, new_seq_list, strip, dupe_flag, 0, strip_map);
+      bmain, scene_src, scene_dst, new_seq_list, strip, dupe_flag, 0, strip_map);
   if (strip->type == STRIP_TYPE_META) {
     LISTBASE_FOREACH (Strip *, s, &strip->seqbase) {
       strip_duplicate_recursive_impl(
-          scene_src, scene_dst, &strip_new->seqbase, s, dupe_flag, strip_map);
+          bmain, scene_src, scene_dst, &strip_new->seqbase, s, dupe_flag, strip_map);
     }
   }
   return strip_new;
 }
 
-Strip *strip_duplicate_recursive(const Scene *scene_src,
+Strip *strip_duplicate_recursive(Main *bmain,
+                                 const Scene *scene_src,
                                  Scene *scene_dst,
                                  ListBase *new_seq_list,
                                  Strip *strip,
@@ -654,7 +676,7 @@ Strip *strip_duplicate_recursive(const Scene *scene_src,
   blender::Map<Strip *, Strip *> strip_map;
 
   Strip *strip_new = strip_duplicate_recursive_impl(
-      scene_src, scene_dst, new_seq_list, strip, dupe_flag, strip_map);
+      bmain, scene_src, scene_dst, new_seq_list, strip, dupe_flag, strip_map);
 
   seq_new_fix_links_recursive(strip_new, strip_map);
   if (is_strip_connected(strip_new)) {
@@ -664,7 +686,8 @@ Strip *strip_duplicate_recursive(const Scene *scene_src,
   return strip_new;
 }
 
-static void seqbase_dupli_recursive(const Scene *scene_src,
+static void seqbase_dupli_recursive(Main *bmain,
+                                    const Scene *scene_src,
                                     Scene *scene_dst,
                                     ListBase *nseqbase,
                                     const ListBase *seqbase,
@@ -678,13 +701,14 @@ static void seqbase_dupli_recursive(const Scene *scene_src,
     }
 
     Strip *strip_new = strip_duplicate(
-        scene_src, scene_dst, nseqbase, strip, dupe_flag, flag, strip_map);
+        bmain, scene_src, scene_dst, nseqbase, strip, dupe_flag, flag, strip_map);
     BLI_assert(strip_new != nullptr);
 
     if (strip->type == STRIP_TYPE_META) {
       /* Always include meta all strip children. */
       const StripDuplicate dupe_flag_recursive = dupe_flag | StripDuplicate::All;
-      seqbase_dupli_recursive(scene_src,
+      seqbase_dupli_recursive(bmain,
+                              scene_src,
                               scene_dst,
                               &strip_new->seqbase,
                               &strip->seqbase,
@@ -695,7 +719,8 @@ static void seqbase_dupli_recursive(const Scene *scene_src,
   }
 }
 
-void seqbase_duplicate_recursive(const Scene *scene_src,
+void seqbase_duplicate_recursive(Main *bmain,
+                                 const Scene *scene_src,
                                  Scene *scene_dst,
                                  ListBase *nseqbase,
                                  const ListBase *seqbase,
@@ -704,7 +729,8 @@ void seqbase_duplicate_recursive(const Scene *scene_src,
 {
   blender::Map<Strip *, Strip *> strip_map;
 
-  seqbase_dupli_recursive(scene_src, scene_dst, nseqbase, seqbase, dupe_flag, flag, strip_map);
+  seqbase_dupli_recursive(
+      bmain, scene_src, scene_dst, nseqbase, seqbase, dupe_flag, flag, strip_map);
 
   /* Fix effect, modifier, and connected strip links. */
   LISTBASE_FOREACH (Strip *, strip, nseqbase) {

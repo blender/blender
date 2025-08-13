@@ -194,6 +194,7 @@ const UserDef U_default = {
     .factor_display_type = USER_FACTOR_AS_FACTOR,
     .render_display_type = USER_RENDER_DISPLAY_WINDOW,
     .filebrowser_display_type = USER_TEMP_SPACE_DISPLAY_WINDOW,
+    .preferences_display_type = USER_TEMP_SPACE_DISPLAY_WINDOW,
     .viewport_aa = 8,
 
     .walk_navigation =

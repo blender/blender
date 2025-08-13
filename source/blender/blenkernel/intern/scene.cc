@@ -334,7 +334,8 @@ static void scene_copy_data(Main *bmain,
     scene_dst->ed->show_missing_media_flag = scene_src->ed->show_missing_media_flag;
     scene_dst->ed->proxy_storage = scene_src->ed->proxy_storage;
     STRNCPY(scene_dst->ed->proxy_dir, scene_src->ed->proxy_dir);
-    blender::seq::seqbase_duplicate_recursive(scene_src,
+    blender::seq::seqbase_duplicate_recursive(bmain,
+                                              scene_src,
                                               scene_dst,
                                               &scene_dst->ed->seqbase,
                                               &scene_src->ed->seqbase,

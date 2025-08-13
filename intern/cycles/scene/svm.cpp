@@ -820,20 +820,17 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
     switch (type) {
       case SHADER_TYPE_SURFACE: /* generate surface shader */
         find_aov_nodes_and_dependencies(state.aov_nodes, graph, &state);
-        if (clin->link) {
-          shader->has_surface = true;
+        if (shader->has_surface) {
           state.node_feature_mask = KERNEL_FEATURE_NODE_MASK_SURFACE;
         }
         break;
       case SHADER_TYPE_VOLUME: /* generate volume shader */
-        if (clin->link) {
-          shader->has_volume = true;
+        if (shader->has_volume) {
           state.node_feature_mask = KERNEL_FEATURE_NODE_MASK_VOLUME;
         }
         break;
       case SHADER_TYPE_DISPLACEMENT: /* generate displacement shader */
-        if (clin->link) {
-          shader->has_displacement = true;
+        if (shader->has_displacement) {
           state.node_feature_mask = KERNEL_FEATURE_NODE_MASK_DISPLACEMENT;
         }
         break;
@@ -900,16 +897,6 @@ void SVMCompiler::compile(Shader *shader,
   const bool has_bump = shader->has_bump;
 
   current_shader = shader;
-
-  shader->has_surface = false;
-  shader->has_surface_transparent = false;
-  shader->has_surface_raytrace = false;
-  shader->has_surface_bssrdf = false;
-  shader->has_volume = false;
-  shader->has_displacement = false;
-  shader->has_surface_spatial_varying = false;
-  shader->has_volume_spatial_varying = false;
-  shader->has_volume_attribute_dependency = false;
 
   /* generate bump shader */
   if (has_bump) {

@@ -93,6 +93,8 @@ BUILT_IN_NUMERIC_TYPES = (
 
 IDENTIFIER_CHARS = set(string.ascii_letters + "_" + string.digits)
 
+RE_IDENTIFIER_CHARS = re.compile(r"[" + "".join(list(IDENTIFIER_CHARS)) + "]+")
+
 
 # -----------------------------------------------------------------------------
 # General Utilities
@@ -232,6 +234,39 @@ def text_prev_eol_nonblank(data: str, pos: int, limit: int) -> int:
     while pos_next > limit and data[pos_next] in " \t":
         pos_next -= 1
     return pos_next
+
+
+def text_is_symbol_or_symbol_fragment(symbol: str) -> bool:
+    """
+    Return true if this can be a symbol or part of a symbol.
+    """
+    return RE_IDENTIFIER_CHARS.fullmatch(symbol) is not None
+
+
+def text_symbol_begins_at(data: str, beg: int, symbol: str) -> bool:
+    if beg + len(symbol) <= len(data):
+        if (data[beg: beg + len(symbol)] == symbol):
+            if beg + len(symbol) == len(data):
+                return True
+            # If it begins with a delimiter, no need to perform other checks.
+            if not text_is_symbol_or_symbol_fragment(symbol[0]):
+                return True
+            if not text_is_symbol_or_symbol_fragment(data[beg + len(symbol)]):
+                return True
+    return False
+
+
+def text_symbol_ends_at(data: str, end: int, symbol: str) -> bool:
+    if end >= len(symbol):
+        if (data[end - len(symbol): end] == symbol):
+            if end == len(symbol):
+                return True
+            # If it ends with a delimiter, no need to perform other checks.
+            if not text_is_symbol_or_symbol_fragment(symbol[-1]):
+                return True
+            if not text_is_symbol_or_symbol_fragment(data[end - (len(symbol) + 1)]):
+                return True
+    return False
 
 
 # -----------------------------------------------------------------------------
@@ -1603,6 +1638,34 @@ class edit_generators:
 
             any_number_re = "(" + "|".join(BUILT_IN_NUMERIC_TYPES) + ")"
 
+            # These can be safely ignored, but `sizeof` accounts for such a large number
+            # of cases that should be left as-is, that it's best to explicitly ignore them.
+            # Otherwise a lot of time is wasted testing changes that don't make sense.
+            ignore_prefix = (
+                "sizeof",
+                "alignof",
+            )
+            ignore_suffix = (
+                "\\n",
+            )
+
+            ignore_suffix_chars = {
+                # Used in templates.
+                ">",
+                # Used in contexts when not casting.
+                ")",
+                ",",
+                ";",
+                # Ending a string with a quote.
+                "\"",
+                # Typically in code-comments.
+                "`",
+                # Inside a string.
+                " ",
+                "'",
+                ".",
+            }
+
             # Handle both:
             # - Simple case:  `(float)(a + b)` -> `float(a + b)`.
             # - Complex Case: `(float)foo(a + b) + c` -> `float(foo(a + b)) + c`
@@ -1613,16 +1676,16 @@ class edit_generators:
                     data,
             ):
                 beg, end = match.span()
-                # This could be ignored, but `sizeof` accounts for such a large number
-                # of cases that should be left as-is, that it's best to explicitly ignore them.
-                if (
-                    (beg > 6) and
-                    (data[beg - 6: beg] == 'sizeof') and
-                    (not data[beg - 7].isalpha())
-                ):
+
+                if any(text_symbol_begins_at(data, end, text) for text in ignore_suffix):
+                    continue
+                if any(text_symbol_ends_at(data, beg, text) for text in ignore_prefix):
                     continue
 
                 char_after = data[end]
+                if char_after in ignore_suffix_chars:
+                    continue
+
                 if char_after == "(":
                     # Simple case.
                     edits.append(Edit(

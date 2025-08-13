@@ -124,7 +124,7 @@ class LazyFunctionForSwitchNode : public LazyFunction {
       }
     }
     BLI_assert(socket_type != nullptr);
-    const CPPType &cpp_type = *socket_type->geometry_nodes_cpp_type;
+    const CPPType &cpp_type = CPPType::get<SocketValueVariant>();
     base_type_ = socket_type->base_cpp_type;
 
     debug_name_ = node.name;
@@ -202,7 +202,8 @@ class LazyFunctionForSwitchNode : public LazyFunction {
                                    ColorGeometry4f,
                                    std::string,
                                    math::Quaternion,
-                                   float4x4>([&](auto type_tag) {
+                                   float4x4,
+                                   MenuValue>([&](auto type_tag) {
       using T = typename decltype(type_tag)::type;
       if constexpr (std::is_void_v<T>) {
         BLI_assert_unreachable();

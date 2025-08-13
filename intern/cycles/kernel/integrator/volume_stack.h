@@ -145,7 +145,7 @@ ccl_device_inline bool volume_is_homogeneous(KernelGlobals kg,
 
   if (shader_flag & SD_NEED_VOLUME_ATTRIBUTES) {
     const int object = entry.object;
-    if (object == OBJECT_NONE) {
+    if (object == kernel_data.background.object_index) {
       /* Volume attributes for world is not supported. */
       return true;
     }
@@ -161,24 +161,22 @@ ccl_device_inline bool volume_is_homogeneous(KernelGlobals kg,
 }
 
 template<const bool shadow, typename IntegratorGenericState>
-ccl_device float volume_stack_step_size(KernelGlobals kg, const IntegratorGenericState state)
+ccl_device_inline bool volume_is_homogeneous(KernelGlobals kg, const IntegratorGenericState state)
 {
-  float step_size = FLT_MAX;
-
   for (int i = 0;; i++) {
     const VolumeStack entry = volume_stack_read<shadow>(state, i);
+
     if (entry.shader == SHADER_NONE) {
-      break;
+      return true;
     }
 
     if (!volume_is_homogeneous(kg, entry)) {
-      float object_step_size = object_volume_step_size(kg, entry.object);
-      object_step_size *= kernel_data.integrator.volume_step_rate;
-      step_size = fminf(object_step_size, step_size);
+      return false;
     }
   }
 
-  return step_size;
+  kernel_assert(false);
+  return false;
 }
 
 enum VolumeSampleMethod {

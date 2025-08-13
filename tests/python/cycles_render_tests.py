@@ -271,6 +271,16 @@ def main():
     if ((args.osl == 'all') and (test_dir_name == 'principled_bsdf')):
         report.set_fail_threshold(0.06)
 
+    # Volume scattering probability guiding renders differently on different platforms
+    if (test_dir_name in {'shadow_catcher', 'light'}):
+        report.set_fail_threshold(0.038)
+    if (test_dir_name in {'light', 'camera'}):
+        report.set_fail_threshold(0.02)
+        report.set_fail_percent(4)
+    if (test_dir_name in {'volume', 'openvdb'}):
+        report.set_fail_threshold(0.048)
+        report.set_fail_percent(3)
+
     ok = report.run(args.testdir, args.blender, get_arguments, batch=args.batch)
 
     sys.exit(not ok)

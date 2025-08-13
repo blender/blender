@@ -1251,6 +1251,7 @@ static void grease_pencil_geom_batch_ensure(Object &object,
                               int point_i,
                               int idx,
                               float u_stroke,
+                              bool cyclic,
                               const float4x2 &texture_matrix,
                               GreasePencilStrokeVert &s_vert,
                               GreasePencilColorVert &c_vert) {
@@ -1262,8 +1263,11 @@ static void grease_pencil_geom_batch_ensure(Object &object,
                       ((end_cap == GP_STROKE_CAP_TYPE_ROUND) ? 1.0f : -1.0f);
       s_vert.opacity = opacities[point_i] *
                        ((start_cap == GP_STROKE_CAP_TYPE_ROUND) ? 1.0f : -1.0f);
-      s_vert.point_id = verts_range[idx];
+
+      /* Store if the curve is cyclic in the sign of the point index. */
+      s_vert.point_id = cyclic ? -verts_range[idx] : verts_range[idx];
       s_vert.stroke_id = verts_range.first();
+
       /* The material index is allowed to be negative as it's stored as a generic attribute. To
        * ensure the material used by the shader is valid this needs to be clamped to zero. */
       s_vert.mat = std::max(materials[curve_i], 0) % GPENCIL_MATERIAL_BUFFER_LEN;
@@ -1299,6 +1303,8 @@ static void grease_pencil_geom_batch_ensure(Object &object,
 
       /* First vertex is not drawn. */
       verts_slice.first().mat = -1;
+      /* The first vertex will have the index of the last vertex. */
+      verts_slice.first().stroke_id = verts_range.last();
 
       /* If the stroke has more than 2 points, add the triangle indices to the index buffer. */
       if (points.size() >= 3) {
@@ -1325,6 +1331,7 @@ static void grease_pencil_geom_batch_ensure(Object &object,
                        points[i],
                        idx,
                        u_stroke,
+                       is_cyclic,
                        texture_matrix,
                        verts_slice[idx],
                        cols_slice[idx]);
@@ -1341,6 +1348,7 @@ static void grease_pencil_geom_batch_ensure(Object &object,
                        points[0],
                        idx,
                        u_stroke,
+                       is_cyclic,
                        texture_matrix,
                        verts_slice[idx],
                        cols_slice[idx]);

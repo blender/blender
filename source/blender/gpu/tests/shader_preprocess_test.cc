@@ -255,6 +255,14 @@ func_TEMPLATE(float, 1)/*float a*/)";
     EXPECT_EQ(error, "");
   }
   {
+    string input = R"(template<> void func<T, Q>(T a) {a};)";
+    string expect = R"( void func_T_Q_(T a) {a};)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
     string input = R"(template<typename T, int i = 0> void func(T a) {a;})";
     string error;
     string output = process_test_string(input, error);
@@ -363,7 +371,7 @@ int func(int a, int b = 0)
 }
 )";
     string expect = R"(
-int func(int a, int b)
+int func(int a, int b )
 {
   return a + b;
 }
@@ -388,7 +396,7 @@ int func(int a = 0, const int b = 0)
 }
 )";
     string expect = R"(
-int func(int a, const int b)
+int func(int a , const int b )
 {
   return a + b;
 }
@@ -418,7 +426,7 @@ int2 func(int2 a = int2(0, 0)) {
 }
 )";
     string expect = R"(
-int2 func(int2 a) {
+int2 func(int2 a ) {
   return a;
 }
 #line 2
@@ -427,7 +435,7 @@ int2 func()
 #line 2
   return func(int2(0, 0));
 }
-#line 6
+#line 5
 )";
     string error;
     string output = process_test_string(input, error);
@@ -441,7 +449,7 @@ void func(int a = 0) {
 }
 )";
     string expect = R"(
-void func(int a) {
+void func(int a ) {
   a;
 }
 #line 2
@@ -450,7 +458,7 @@ void func()
 #line 2
   func(0);
 }
-#line 6
+#line 5
 )";
     string error;
     string output = process_test_string(input, error);
@@ -986,16 +994,16 @@ struct S {
     return a;
   }
 #line 18
-  S function(inout S _inout_sta this _inout_end, int i)
+  S function(inout S _inout_sta this_ _inout_end, int i)
   {
-    this.member = i;
+    this_.member = i;
     this_member++;
-    return this;
+    return this_;
   }
 #line 25
-  int size(const S this) 
+  int size(const S this_)
   {
-    return this.member;
+    return this_.member;
   }
 #line 30
 

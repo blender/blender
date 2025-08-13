@@ -48,6 +48,7 @@ class PathTraceWorkGPU : public PathTraceWork {
 
   int adaptive_sampling_converge_filter_count_active(const float threshold, bool reset) override;
   void cryptomatte_postproces() override;
+  void denoise_volume_guiding_buffers() override;
 
  protected:
   void alloc_integrator_soa();

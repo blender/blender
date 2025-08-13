@@ -617,7 +617,7 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
   }
 
   {
-    const char *ghost_vsync_string = getEnvVarVsyncString();
+    const char *ghost_vsync_string = getEnvVarVSyncString();
     if (ghost_vsync_string) {
       int swapInterval = atoi(ghost_vsync_string);
       setSwapInterval(swapInterval);

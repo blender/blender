@@ -8,17 +8,16 @@
 
 #include "NOD_geometry_nodes_lazy_function.hh"
 
+#include "BKE_node_socket_value.hh"
+
 namespace blender::nodes {
 
 struct ClosureEagerEvalParams {
   struct InputItem {
     std::string key;
     const bke::bNodeSocketType *type = nullptr;
-    /**
-     * The actual socket value of type bNodeSocketType::geometry_nodes_cpp_type.
-     * This is not const, because it may be moved from.
-     */
-    void *value = nullptr;
+    /** This may be moved from. */
+    bke::SocketValueVariant value;
   };
 
   struct OutputItem {
@@ -28,7 +27,7 @@ struct ClosureEagerEvalParams {
      * Where the output value should be stored. This is expected to point to uninitialized memory
      * when it's passed into #evaluate_closure_eagerly which will then construct the value inplace.
      */
-    void *value = nullptr;
+    bke::SocketValueVariant *value = nullptr;
   };
 
   Vector<InputItem> inputs;

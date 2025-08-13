@@ -2247,7 +2247,7 @@ class GlareOperation : public NodeOperation {
 
   Result execute_sun_beams_gpu(Result &highlights, const int max_steps)
   {
-    gpu::Shader *shader = context().get_shader("compositor_sun_beams");
+    gpu::Shader *shader = context().get_shader("compositor_glare_sun_beams");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_2fv(shader, "source", this->get_sun_position());

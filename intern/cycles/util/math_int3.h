@@ -107,6 +107,11 @@ ccl_device_inline int3 operator&(const int3 a, const int b)
 #  endif
 }
 
+ccl_device_inline bool all(const int3 a)
+{
+  return a.x && a.y && a.z;
+}
+
 #endif /* !__KERNEL_METAL__ */
 
 CCL_NAMESPACE_END

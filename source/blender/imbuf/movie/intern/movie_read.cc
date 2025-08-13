@@ -55,7 +55,9 @@ extern "C" {
 
 #endif /* WITH_FFMPEG */
 
+#ifdef WITH_FFMPEG
 static CLG_LogRef LOG = {"video.read"};
+#endif
 
 #ifdef WITH_FFMPEG
 static void free_anim_ffmpeg(MovieReader *anim);

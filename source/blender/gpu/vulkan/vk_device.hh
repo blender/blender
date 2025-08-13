@@ -65,6 +65,16 @@ struct VKExtensions {
    */
   bool logic_ops = false;
 
+  /**
+   * Does the device support VK_EXT_memory_priority
+   */
+  bool memory_priority = false;
+
+  /**
+   * Does the device support VK_EXT_pageable_device_local_memory
+   */
+  bool pageable_device_local_memory = false;
+
   /** Log enabled features and extensions. */
   void log() const;
 };
@@ -104,7 +114,7 @@ class VKThreadData : public NonCopyable, NonMovable {
   /** Thread ID this instance belongs to. */
   pthread_t thread_id;
   /**
-   * Index of the active resource pool. Is in sync with the active swap chain image or cycled when
+   * Index of the active resource pool. Is in sync with the active swap-chain image or cycled when
    * rendering.
    *
    * NOTE: Initialized to `UINT32_MAX` to detect first change.

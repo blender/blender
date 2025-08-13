@@ -147,8 +147,13 @@ void SmoothOperation::on_stroke_extended(const bContext &C, const InputSample &e
 
         bool changed = false;
         if (sculpt_mode_flag & GP_SCULPT_FLAGMODE_APPLY_POSITION) {
-          geometry::smooth_curve_positions(
-              curves, curves.curves_range(), iterations, influences, false, false);
+          geometry::smooth_curve_positions(curves,
+                                           curves.curves_range(),
+                                           selection_varray,
+                                           iterations,
+                                           influences,
+                                           false,
+                                           false);
 
           params.drawing.tag_positions_changed();
           changed = true;

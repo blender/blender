@@ -617,9 +617,9 @@ static void rna_Object_ray_cast(Object *ob,
   float direction_unit[3];
   normalize_v3_v3(direction_unit, direction);
 
-  if ((isect_ray_aabb_v3_simple(
-           origin, direction_unit, bounds->min, bounds->max, &distmin, nullptr) &&
-       distmin <= distance))
+  if (isect_ray_aabb_v3_simple(
+          origin, direction_unit, bounds->min, bounds->max, &distmin, nullptr) &&
+      distmin <= distance)
   {
 
     /* No need to managing allocation or freeing of the BVH data.

@@ -42,6 +42,8 @@ void VKExtensions::log() const
              " - [%c] dynamic rendering local read\n"
              " - [%c] dynamic rendering unused attachments\n"
              " - [%c] external memory\n"
+             " - [%c] memory priority\n"
+             " - [%c] pageable device local memory\n"
              " - [%c] shader stencil export",
              shader_output_viewport_index ? 'X' : ' ',
              shader_output_layer ? 'X' : ' ',
@@ -50,6 +52,8 @@ void VKExtensions::log() const
              dynamic_rendering_local_read ? 'X' : ' ',
              dynamic_rendering_unused_attachments ? 'X' : ' ',
              external_memory ? 'X' : ' ',
+             memory_priority ? 'X' : ' ',
+             pageable_device_local_memory ? 'X' : ' ',
              GPU_stencil_export_support() ? 'X' : ' ');
 }
 
@@ -262,6 +266,9 @@ void VKDevice::init_memory_allocator()
   if (extensions_.descriptor_buffer) {
     info.flags |= VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
   }
+  if (extensions_.memory_priority) {
+    info.flags |= VMA_ALLOCATOR_CREATE_EXT_MEMORY_PRIORITY_BIT;
+  }
   vmaCreateAllocator(&info, &mem_allocator_);
 
   if (!extensions_.external_memory) {
@@ -308,6 +315,7 @@ void VKDevice::init_memory_allocator()
   VmaPoolCreateInfo pool_create_info = {};
   pool_create_info.memoryTypeIndex = memory_type_index;
   pool_create_info.pMemoryAllocateNext = &vma_pools.external_memory_info;
+  pool_create_info.priority = 1.0f;
   vmaCreatePool(mem_allocator_, &pool_create_info, &vma_pools.external_memory);
 }
 
@@ -317,7 +325,8 @@ void VKDevice::init_dummy_buffer()
                       VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
                       VkMemoryPropertyFlags(0),
-                      VmaAllocationCreateFlags(0));
+                      VmaAllocationCreateFlags(0),
+                      1.0f);
   debug::object_label(dummy_buffer.vk_handle(), "DummyBuffer");
   /* Default dummy buffer. Set the 4th element to 1 to fix missing orcos. */
   float data[16] = {
@@ -330,7 +339,8 @@ void VKDevice::init_glsl_patch()
   std::stringstream ss;
 
   ss << "#version 450\n";
-  if (GPU_shader_draw_parameters_support()) {
+  {
+    /* Required extension. */
     ss << "#extension GL_ARB_shader_draw_parameters : enable\n";
     ss << "#define GPU_ARB_shader_draw_parameters\n";
     ss << "#define gpu_BaseInstance (gl_BaseInstanceARB)\n";

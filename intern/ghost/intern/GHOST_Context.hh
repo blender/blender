@@ -169,8 +169,8 @@ class GHOST_Context : public GHOST_IContext {
   static void initClearGL();
 #endif
 
-  /** For performance measurements with vsync disabled. */
-  static const char *getEnvVarVsyncString();
+  /** For performance measurements with VSync disabled. */
+  static const char *getEnvVarVSyncString();
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_Context")
 };
