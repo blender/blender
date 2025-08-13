@@ -114,7 +114,7 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
       /* Alter selection as in legacy curves bezt_select_to_transform_triple_flag(). */
       if (!bezier_points.is_empty()) {
         if (curves::update_handle_types_for_transform(
-                curves, selection_per_attribute, bezier_points))
+                t->mode, selection_per_attribute, bezier_points, curves))
         {
           info.drawing.tag_topology_changed();
         }
