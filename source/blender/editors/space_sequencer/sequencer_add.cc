@@ -10,6 +10,8 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "AS_asset_representation.hh"
+
 #include "DNA_sequence_types.h"
 #include "MEM_guardedalloc.h"
 
@@ -49,8 +51,9 @@
 #include "SEQ_time.hh"
 #include "SEQ_transform.hh"
 
+#include "ED_asset.hh"
+#include "ED_asset_menu_utils.hh"
 #include "ED_scene.hh"
-/* For menu, popup, icons, etc. */
 #include "ED_screen.hh"
 #include "ED_sequencer.hh"
 #include "ED_time_scrub_ui.hh"
@@ -1929,6 +1932,103 @@ void SEQUENCER_OT_effect_strip_add(wmOperatorType *ot)
                              0.0f,
                              1.0f);
   RNA_def_property_subtype(prop, PROP_COLOR_GAMMA);
+}
+
+static Scene *sequencer_add_scene_asset(const bContext &C,
+                                        const asset_system::AssetRepresentation &asset,
+                                        ReportList & /*reports*/)
+{
+  Main &bmain = *CTX_data_main(&C);
+  Scene *scene_asset = reinterpret_cast<Scene *>(
+      asset::asset_local_id_ensure_imported(bmain, asset));
+  return scene_asset;
+}
+
+static wmOperatorStatus sequencer_add_scene_asset_invoke(bContext *C,
+                                                         wmOperator *op,
+                                                         const wmEvent *event)
+{
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
+  if (!scene) {
+    return OPERATOR_CANCELLED;
+  }
+  Editing *ed = seq::editing_ensure(scene);
+  BLI_assert(ed != nullptr);
+
+  sequencer_disable_one_time_properties(C, op);
+
+  sequencer_generic_invoke_xy__internal(C, op, 0, STRIP_TYPE_SCENE, event);
+  const asset_system::AssetRepresentation *asset =
+      asset::operator_asset_reference_props_get_asset_from_all_library(*C, *op->ptr, op->reports);
+  if (!asset) {
+    return OPERATOR_CANCELLED;
+  }
+
+  Scene *scene_asset = sequencer_add_scene_asset(*C, *asset, *op->reports);
+  if (!scene_asset) {
+    return OPERATOR_CANCELLED;
+  }
+
+  const char *error_msg;
+  if (!have_free_channels(C, op, 1, &error_msg)) {
+    BKE_report(op->reports, RPT_ERROR, error_msg);
+    return OPERATOR_CANCELLED;
+  }
+
+  if (RNA_boolean_get(op->ptr, "replace_sel")) {
+    deselect_all_strips(scene);
+  }
+
+  seq::LoadData load_data;
+  load_data_init_from_operator(&load_data, C, op);
+  load_data.scene = scene_asset;
+
+  Strip *strip = seq::add_scene_strip(scene, ed->seqbasep, &load_data);
+  seq_load_apply_generic_options(C, op, strip);
+
+  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
+  DEG_relations_tag_update(bmain);
+  sequencer_select_do_updates(C, scene);
+
+  if (RNA_boolean_get(op->ptr, "move_strips")) {
+    move_strips(C);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static std::string sequencer_add_scene_asset_get_description(bContext *C,
+                                                             wmOperatorType * /*ot*/,
+                                                             PointerRNA *ptr)
+{
+  const asset_system::AssetRepresentation *asset =
+      asset::operator_asset_reference_props_get_asset_from_all_library(*C, *ptr, nullptr);
+  if (!asset) {
+    return "";
+  }
+  const AssetMetaData &asset_data = asset->get_metadata();
+  if (!asset_data.description) {
+    return "";
+  }
+  return TIP_(asset_data.description);
+}
+
+void SEQUENCER_OT_add_scene_strip_from_scene_asset(wmOperatorType *ot)
+{
+  ot->name = "Add Scene Asset";
+  ot->description = "Add a scene strip from a scene asset";
+  ot->idname = "SEQUENCER_OT_add_scene_strip_from_scene_asset";
+
+  ot->invoke = sequencer_add_scene_asset_invoke;
+  ot->poll = ED_operator_sequencer_active_editable;
+  ot->get_description = sequencer_add_scene_asset_get_description;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+
+  sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME | SEQPROP_MOVE);
+
+  asset::operator_asset_reference_props_register(*ot->srna);
 }
 
 }  // namespace blender::ed::vse

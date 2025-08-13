@@ -801,13 +801,15 @@ class SEQUENCER_MT_add_scene(Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("sequencer.scene_strip_add_new", text="Empty Scene", icon='ADD').type = 'EMPTY'
 
+        layout.menu_contents("SEQUENCER_MT_scene_add_root_catalogs")
+
         bpy_data_scenes_len = len(bpy.data.scenes)
         if bpy_data_scenes_len > 10:
-            layout.separator()
+            layout.label(text="Scenes", icon='NONE')
             layout.operator_context = 'INVOKE_DEFAULT'
             layout.operator("sequencer.scene_strip_add", text="Scene...", icon='SCENE_DATA')
         elif bpy_data_scenes_len > 1:
-            layout.separator()
+            layout.label(text="Scenes", icon='NONE')
             scene = context.scene
             for sc_item in bpy.data.scenes:
                 if sc_item == scene:
