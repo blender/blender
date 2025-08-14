@@ -619,12 +619,11 @@ int _BaseMathObject_ResizeOkOrRaiseExc(BaseMathObject *self, const char *error_p
     return -1;
   }
   if (UNLIKELY(self->flag & BASE_MATH_FLAG_IS_WRAP)) {
-    PyErr_Format(
-        PyExc_TypeError, "%s: cannot resize wrapped data - only Python vectors", error_prefix);
+    PyErr_Format(PyExc_ValueError, "%s: cannot resize wrapped data", error_prefix);
     return -1;
   }
   if (UNLIKELY(self->cb_user)) {
-    PyErr_Format(PyExc_TypeError, "%s: cannot resize a vector that has an owner", error_prefix);
+    PyErr_Format(PyExc_ValueError, "%s: cannot resize owned data", error_prefix);
     return -1;
   }
   return 0;
