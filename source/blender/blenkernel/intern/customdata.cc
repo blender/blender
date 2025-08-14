@@ -5141,6 +5141,11 @@ void CustomData_blend_write_prepare(CustomData &data,
   }
   data.totlayer = layers_to_write.size();
   data.maxlayer = data.totlayer;
+  std::fill_n(data.typemap, CD_NUMTYPES, 0);
+  data.totsize = 0;
+  if (layers_to_write.is_empty()) {
+    data.layers = nullptr;
+  }
 
   /* NOTE: `data->layers` may be null, this happens when adding
    * a legacy #MPoly struct to a mesh with no other face attributes.

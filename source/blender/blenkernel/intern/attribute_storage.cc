@@ -194,6 +194,7 @@ AttributeStorage::AttributeStorage()
 {
   this->dna_attributes = nullptr;
   this->dna_attributes_num = 0;
+  memset(this->_pad, 0, sizeof(this->_pad));
   this->runtime = MEM_new<AttributeStorageRuntime>(__func__);
 }
 
@@ -600,6 +601,7 @@ void attribute_storage_blend_write_prepare(AttributeStorage &data,
 
     write_data.attributes.append(attribute_dna);
   });
+  data.runtime = nullptr;
 }
 
 static void write_shared_array(BlendWriter &writer,
