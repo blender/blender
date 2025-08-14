@@ -603,7 +603,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
               mat_local, obedit->world_to_object().ptr(), ob_iter->object_to_world().ptr());
         }
         LISTBASE_FOREACH (EditBone *, ebo, arm->edbo) {
-          if (blender::animrig::bone_is_visible_editbone(arm, ebo)) {
+          if (blender::animrig::bone_is_visible(arm, ebo)) {
             if (ebo->flag & BONE_TIPSEL) {
               run_coord_with_matrix(ebo->tail, use_mat_local, mat_local);
               totsel++;
@@ -612,7 +612,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
                 /* Don't include same point multiple times. */
                 ((ebo->flag & BONE_CONNECTED) && (ebo->parent != nullptr) &&
                  (ebo->parent->flag & BONE_TIPSEL) &&
-                 blender::animrig::bone_is_visible_editbone(arm, ebo->parent)) == 0)
+                 blender::animrig::bone_is_visible(arm, ebo->parent)) == 0)
             {
               run_coord_with_matrix(ebo->head, use_mat_local, mat_local);
               totsel++;

@@ -996,7 +996,7 @@ static bool skip_fcurve_selected_data(bAnimContext *ac,
           bArmature *arm = static_cast<bArmature *>(ob->data);
 
           /* Skipping - is currently hidden. */
-          if (!blender::animrig::bone_is_visible_pchan(arm, pchan)) {
+          if (!blender::animrig::bone_is_visible(arm, pchan)) {
             return true;
           }
         }

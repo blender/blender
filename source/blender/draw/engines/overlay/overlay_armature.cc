@@ -1897,7 +1897,7 @@ void Armatures::draw_armature_edit(Armatures::DrawContext *ctx)
        eBone;
        eBone = eBone->next, index += 0x10000)
   {
-    if (!blender::animrig::bone_is_visible_editbone(&arm, eBone)) {
+    if (!blender::animrig::bone_is_visible(&arm, eBone)) {
       continue;
     }
 
@@ -1905,7 +1905,7 @@ void Armatures::draw_armature_edit(Armatures::DrawContext *ctx)
 
     /* catch exception for bone with hidden parent */
     eBone_Flag boneflag = eBone_Flag(eBone->flag);
-    if ((eBone->parent) && !blender::animrig::bone_is_visible_editbone(&arm, eBone->parent)) {
+    if ((eBone->parent) && !blender::animrig::bone_is_visible(&arm, eBone->parent)) {
       boneflag &= ~BONE_CONNECTED;
     }
 
@@ -2022,7 +2022,7 @@ void Armatures::draw_armature_pose(Armatures::DrawContext *ctx)
   for (bPoseChannel *pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan;
        pchan = pchan->next, index += 0x10000)
   {
-    if (!blender::animrig::bone_is_visible_pchan(&arm, pchan)) {
+    if (!blender::animrig::bone_is_visible(&arm, pchan)) {
       continue;
     }
 
@@ -2042,7 +2042,7 @@ void Armatures::draw_armature_pose(Armatures::DrawContext *ctx)
     }
 
     eBone_Flag boneflag = eBone_Flag(bone->flag);
-    if (pchan->parent && !blender::animrig::bone_is_visible_pchan(&arm, pchan->parent)) {
+    if (pchan->parent && !blender::animrig::bone_is_visible(&arm, pchan->parent)) {
       /* Avoid drawing connection line to hidden parent. */
       boneflag &= ~BONE_CONNECTED;
     }

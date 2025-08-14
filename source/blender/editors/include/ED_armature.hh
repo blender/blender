@@ -41,7 +41,7 @@ struct wmOperator;
 #define BONESEL_ANY (BONESEL_TIP | BONESEL_ROOT | BONESEL_BONE)
 
 #define EBONE_SELECTABLE(arm, ebone) \
-  (blender::animrig::bone_is_visible_editbone(arm, ebone) && !((ebone)->flag & BONE_UNSELECTABLE))
+  (blender::animrig::bone_is_visible(arm, ebone) && !((ebone)->flag & BONE_UNSELECTABLE))
 
 #define EBONE_EDITABLE(ebone) \
   (CHECK_TYPE_INLINE(ebone, EditBone *), \
