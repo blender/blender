@@ -43,6 +43,9 @@
 
 #include "asset_library_reference.hh"
 
+/* TODO somehow update online asset status after downloaded by subscribing to
+ * #WM_MSG_TYPE_REMOTE_DOWNLOADER messages. */
+
 namespace blender::ed::asset::list {
 
 /* -------------------------------------------------------------------- */
@@ -252,12 +255,7 @@ bool AssetList::listen(const wmNotifier &notifier)
       break;
     }
     case NC_ASSET:
-      if (ELEM(notifier.data,
-               ND_ASSET_LIST,
-               ND_ASSET_LIST_READING,
-               ND_ASSET_LIST_PREVIEW,
-               ND_ASSET_LIST_DOWNLOADED_ASSETS))
-      {
+      if (ELEM(notifier.data, ND_ASSET_LIST, ND_ASSET_LIST_READING, ND_ASSET_LIST_PREVIEW)) {
         return true;
       }
       if (ELEM(notifier.action, NA_ADDED, NA_REMOVED, NA_EDITED)) {
@@ -389,14 +387,9 @@ void asset_reading_region_listen_fn(const wmRegionListenerParams *params)
   const wmNotifier *wmn = params->notifier;
   ARegion *region = params->region;
 
-  /* TODO use message bus */
   switch (wmn->category) {
     case NC_ASSET:
-      if (ELEM(wmn->data,
-               ND_ASSET_LIST_READING,
-               ND_ASSET_LIST_PREVIEW,
-               ND_ASSET_LIST_DOWNLOADED_ASSETS))
-      {
+      if (ELEM(wmn->data, ND_ASSET_LIST_READING, ND_ASSET_LIST_PREVIEW)) {
         ED_region_tag_refresh_ui(region);
       }
       break;
