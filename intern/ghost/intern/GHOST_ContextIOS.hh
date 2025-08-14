@@ -136,14 +136,7 @@ class GHOST_ContextIOS : public GHOST_Context {
   void metalRegisterPresentCallback(void (*callback)(
       MTLRenderPassDescriptor *, id<MTLRenderPipelineState>, id<MTLTexture>, id<CAMetalDrawable>));
 
-  bool swapBuffersRequested()
-  {
-    return swap_buffers_requested_count > 0;
-  }
   void metalSwapBuffers();
-
-  /* IOS_FIXME: Allows us to detect presents from inactive windows. Will be removed. */
-  void allowPresents(bool allow_presents);
 
   const MTKView *getMTKView()
   {
@@ -195,17 +188,4 @@ class GHOST_ContextIOS : public GHOST_Context {
   void metalFree();
   void metalInitFramebuffer();
   void metalUpdateFramebuffer();
-
-  /* The current approach is to issue the swap/present from the main
-   * draw loop *only* for the currently active window. This is OK for now
-   * because every on-screen window (viewport, file loading etc.) is always full
-   * screen so we only have one active window at a time. If we change to having
-   * sub windows then we may need to revisit this.
-   */
-  bool defer_swap_buffers;
-  int swap_buffers_requested_count;
-
-  /* IOS_FIXME: This will be removed. For now it allows us to detect requests for
-   * presents on contexts attached to non-active windows (and fix them). */
-  bool m_allow_presents;
 };

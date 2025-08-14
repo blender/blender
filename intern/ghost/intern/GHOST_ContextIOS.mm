@@ -87,12 +87,6 @@ GHOST_ContextIOS::GHOST_ContextIOS(UIView *uiView, MTKView *metalView)
 
   /* Initialise swapinterval */
   mtl_SwapInterval = 60;
-
-  /* IOS_FIXME: Temp fix for swapbuffers issue causing sporadic lockups.
-   * Repros on loading assets screen */
-  m_allow_presents = false;
-  defer_swap_buffers = true;
-  swap_buffers_requested_count = 0;
 }
 
 GHOST_ContextIOS::~GHOST_ContextIOS()
@@ -109,12 +103,7 @@ GHOST_ContextIOS::~GHOST_ContextIOS()
 
 GHOST_TSuccess GHOST_ContextIOS::swapBuffers()
 {
-  if (!defer_swap_buffers) {
-    metalSwapBuffers();
-  }
-  else {
-    swap_buffers_requested_count++;
-  }
+  metalSwapBuffers();
   return GHOST_kSuccess;
 }
 
@@ -133,11 +122,13 @@ GHOST_TSuccess GHOST_ContextIOS::getSwapInterval(int &intervalOut)
 
 GHOST_TSuccess GHOST_ContextIOS::activateDrawingContext()
 {
+  active_context_ = this;
   return GHOST_kSuccess;
 }
 
 GHOST_TSuccess GHOST_ContextIOS::releaseDrawingContext()
 {
+  active_context_ = nullptr;
   return GHOST_kSuccess;
 }
 
@@ -188,6 +179,7 @@ GHOST_TSuccess GHOST_ContextIOS::initializeDrawingContext()
       metalInitFramebuffer();
     }
   }
+  activateDrawingContext();
   return GHOST_kSuccess;
 }
 
@@ -387,43 +379,8 @@ void GHOST_ContextIOS::metalRegisterPresentCallback(void (*callback)(
   this->contextPresentCallback = callback;
 }
 
-void GHOST_ContextIOS::allowPresents(bool allow_presents)
-{
-  m_allow_presents = allow_presents;
-}
-
 void GHOST_ContextIOS::metalSwapBuffers()
 {
-  /* Check a request was made. */
-  if (defer_swap_buffers && !swap_buffers_requested_count) {
-    return;
-  }
-  /* If we hit this it implies that we have a request to swap/present
-   * from an inactive window and we need to debug why. */
-  if (!m_allow_presents) {
-    NSLog(@"Present for inactive window observed");
-  }
-
-  /* Get the next drawable. */
-  id<CAMetalDrawable> current_drawable = m_metalView.currentDrawable;
-
-  if (!current_drawable) {
-    NSLog(@"Failed to acquire CAMetalDrawable");
-    return;
-  }
-
-  /* Double presents indicate that we are trying to present updates faster
-   * than the display's refresh rate. We should always display the latest update
-   * (or the screen will lag Blender's view of the world) but output a message
-   * so we are aware and can investigate. */
-  if (current_drawable != GHOST_ContextIOS::prevDrawable) {
-    GHOST_ContextIOS::current_drawable_presented = false;
-    GHOST_ContextIOS::prevDrawable = current_drawable;
-  }
-  if (current_drawable_presented) {
-    NSLog(@"Double present (MTKView)%p!", m_metalView);
-  }
-
   /* clang-format off */
   @autoreleasepool {
     /* clang-format on */
@@ -442,16 +399,31 @@ void GHOST_ContextIOS::metalSwapBuffers()
       attachment.storeAction = MTLStoreActionStore;
     }
 
+    /* Get the next drawable. */
+    id<CAMetalDrawable> current_drawable = m_metalView.currentDrawable;
+    if (!current_drawable) {
+      NSLog(@"Failed to acquire CAMetalDrawable");
+      return;
+    }
+
+    /* Double presents indicate that we are trying to present updates faster
+     * than the display's refresh rate. We should always display the latest update
+     * (or the screen will lag Blender's view of the world) but output a message
+     * so we are aware and can investigate. */
+    if (current_drawable != GHOST_ContextIOS::prevDrawable) {
+      GHOST_ContextIOS::current_drawable_presented = false;
+      GHOST_ContextIOS::prevDrawable = current_drawable;
+    }
+    if (current_drawable_presented) {
+      NSLog(@"Double present (MTKView)%p!", m_metalView);
+    }
+
     assert(contextPresentCallback);
     assert(m_defaultFramebufferMetalTexture[current_swapchain_index].texture != nil);
     (*contextPresentCallback)(passDescriptor,
                               (id<MTLRenderPipelineState>)m_metalRenderPipeline,
                               m_defaultFramebufferMetalTexture[current_swapchain_index].texture,
-                              m_allow_presents ? current_drawable : nullptr);
+                              current_drawable);
     GHOST_ContextIOS::current_drawable_presented = true;
-  }
-
-  if (defer_swap_buffers) {
-    swap_buffers_requested_count = 0;
   }
 }

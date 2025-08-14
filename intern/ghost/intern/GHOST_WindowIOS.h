@@ -78,6 +78,12 @@ class GHOST_WindowIOS : public GHOST_Window {
   void *getOSWindow() const;
 
   /**
+   * Swaps the current framebuffer to the screen
+   * \return Success or failure
+   */
+  GHOST_TSuccess swapBuffers();
+
+  /**
    * Sets the title displayed in the title bar.
    * \param title: The title to display in the title bar.
    */
@@ -87,6 +93,11 @@ class GHOST_WindowIOS : public GHOST_Window {
    * \param title: The title displayed in the title bar.
    */
   std::string getTitle() const;
+
+  /**
+   * Makes sure we get another draw request.
+   */
+  void needsDisplayUpdate();
 
   /**
    * Returns the window rectangle dimensions.
@@ -239,9 +250,11 @@ class GHOST_WindowIOS : public GHOST_Window {
     return m_systemIOS;
   }
 
-  /* Active window controls. We can only present on active windows (for now).  */
-  bool activateWindow();
-  bool deactivateWindow();
+  /* Active window controls. We can only present on active windows.  */
+  void requestToActivateWindow();
+  void requestToDeactivateWindow();
+  bool makeKeyWindow();
+  void resignKeyWindow();
 
 #ifdef WITH_INPUT_IME
   void beginIME(int32_t x, int32_t y, int32_t w, int32_t h, bool completed);
@@ -305,6 +318,7 @@ class GHOST_WindowIOS : public GHOST_Window {
   bool m_debug_context;  // for debug messages during context setup
   bool m_is_dialog;
   bool m_is_active_window;
+  bool m_request_to_make_active;
 
   GHOST_WindowIOS *parent_window_;
 
@@ -319,6 +333,18 @@ class GHOST_WindowIOS : public GHOST_Window {
 
   void beginFrame();
   void endFrame();
+  /* The current approach is to issue the swap/present from the main
+   * draw loop *only* for the currently active window. This is because trying
+   * to issue presents on anything but the MTKView supplied to drawInMTKView
+   * can result in issues. We also defer the swap/present until the end of the
+   * draw loop because Blender can sometime issue multiple requests and this can
+   * make iOS sad if we try and issue more than one per draw-loop.
+   * Because every on-screen window (viewport, file loading etc.) is always full
+   * screen we only have one active window at a time. If we change to having
+   * sub windows then we may need to revisit this.
+   */
+  void flushDeferredSwapBuffers();
+  int deferred_swap_buffers_count;
 
   /* Keyboard handling */
   GHOST_TSuccess popupOnscreenKeyboard(const GHOST_KeyboardProperties &keyboard_properties);
@@ -331,11 +357,6 @@ class GHOST_WindowIOS : public GHOST_Window {
   /* This is the size of the window post-scaled */
   CGSize getNativeWindowSize();
   float getWindowScaleFactor();
-
-  bool isWindowActive()
-  {
-    return m_is_active_window;
-  }
 };
 
 #ifdef WITH_INPUT_IME

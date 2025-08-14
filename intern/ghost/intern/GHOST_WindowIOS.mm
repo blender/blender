@@ -42,7 +42,7 @@
 #  define IOS_INPUT_LOG(...)
 #endif
 
-// #define IOS_WINDOW_LOGGING
+//#define IOS_WINDOW_LOGGING
 #if defined(IOS_WINDOW_LOGGING)
 #  define IOS_WINDOW_LOG(...) NSLog(__VA_ARGS__)
 #else
@@ -58,7 +58,9 @@ static bContext *C = NULL;
 int argc = 0;
 const char **argv = nullptr;
 
+/* Global vars that track the window currently valid from the iOS POV. */
 GHOST_WindowIOS *current_active_window = nullptr;
+GHOST_WindowIOS *next_active_window = nullptr;
 
 /* Implemented in wm.cc. */
 void WM_main_loop_body(bContext *C);
@@ -1381,49 +1383,46 @@ typedef struct UserInputEvent {
 
 - (void)drawInMTKView:(nonnull MTKView *)MTKView
 {
-  /* If no window is currently active we can't display anything.  */
+  /* We should always have a window.. */
   if (current_active_window) {
 
+    /* If the current window has some outstanding swaps we need to
+     * service them before handing control back to Blender otherwise
+     * they may go missing. */
+    if (current_active_window->deferred_swap_buffers_count) {
+      IOS_WINDOW_LOG(@"Issuing oustanding swaps");
+      current_active_window->flushDeferredSwapBuffers();
+      /* Make sure we get another call to draw. */
+      current_active_window->needsDisplayUpdate();
+      return;
+    }
+
     current_active_window->beginFrame();
+  }
 
-    /* Run the main loop to handle all events. */
-    if (C) {
-      WM_main_loop_body(C);
-    }
+  /* Run the main loop to handle all events. */
+  if (C) {
+    WM_main_loop_body(C);
+  }
 
-    /* Get the context associated with the currently active window. */
-    GHOST_ContextIOS *context = reinterpret_cast<GHOST_ContextIOS *>(
-        current_active_window->getContext());
-
-    /* Was drawInMTKView() being invoked for the active window?
-     * (We can get called when a MTKView is in the process of being shut down). */
-    if (MTKView == context->getMTKView()) {
-      /* Update the windows contents if required. */
-      if (context->swapBuffersRequested()) {
-        context->metalSwapBuffers();
-        IOS_WINDOW_LOG(@"drawInMTKView:(cw)%p-(co)%p/%p-(mtkView)%p (req)%p",
-                       current_active_window,
-                       context,
-                       current_active_window->getContext(),
-                       context->getMTKView(),
-                       MTKView);
-      }
-    }
-    else {
-      IOS_WINDOW_LOG(@"Ignore drawInMTKView:(cw)%p-(co)%p-(mtkView)%p (req)%p",
-                     current_active_window,
-                     context,
-                     context->getMTKView(),
-                     MTKView);
-    }
-
+  if (current_active_window) {
+    current_active_window->flushDeferredSwapBuffers();
     current_active_window->endFrame();
+  }
+
+  /* Was there a request to switch windows? */
+  if (next_active_window != nullptr) {
+    if (current_active_window) {
+      current_active_window->resignKeyWindow();
+    }
+    next_active_window->makeKeyWindow();
+    next_active_window = nullptr;
   }
 }
 
 - (void)mtkView:(nonnull MTKView *)view drawableSizeWillChange:(CGSize)size
 {
-  if (!current_active_window || !current_active_window->getValid()) {
+  if (!current_active_window) {
     return;
   }
 
@@ -1537,11 +1536,23 @@ GHOST_WindowIOS::GHOST_WindowIOS(GHOST_SystemIOS *systemIos,
   /* Gesture recognizers. */
   [ghost_rootWindow registerGestureRecognizers];
 
+  deferred_swap_buffers_count = 0;
+
   /* Deactive the parent (if it exists) and activate this one. */
   if (parent_window_) {
-    parent_window_->deactivateWindow();
+    parent_window_->requestToDeactivateWindow();
   }
-  activateWindow();
+
+  /* Make it the key window if there is no other window.
+   * (Otherwise there will never be a call to drawInMTKView) */
+  if (!current_active_window) {
+    m_request_to_make_active = true;
+    makeKeyWindow();
+  }
+  /* Activate this window at the end of the next draw loop. */
+  else {
+    requestToActivateWindow();
+  }
 }
 
 GHOST_WindowIOS::~GHOST_WindowIOS()
@@ -1550,13 +1561,16 @@ GHOST_WindowIOS::~GHOST_WindowIOS()
 
   releaseNativeHandles();
 
-  /* Make sure we get no more draw calls for this window. */
-  deactivateWindow();
-
   /* Restore application control and display to parent window. */
   if (parent_window_) {
-    parent_window_->activateWindow();
+    parent_window_->requestToActivateWindow();
     parent_window_ = nil;
+  }
+  /* We have no choice but to resign, however this seems like it might cause issues. */
+  if (current_active_window == this) {
+    IOS_WINDOW_LOG(@"~GHOST_WindowIOS(): Warning, deactivating the active window %p?", this);
+    requestToDeactivateWindow();
+    resignKeyWindow();
   }
 
   if (m_metalView) {
@@ -1600,6 +1614,40 @@ void *GHOST_WindowIOS::getOSWindow() const
   return (void *)m_uiview;
 }
 
+GHOST_TSuccess GHOST_WindowIOS::swapBuffers()
+{
+  deferred_swap_buffers_count++;
+  return GHOST_kSuccess;
+}
+
+void GHOST_WindowIOS::flushDeferredSwapBuffers()
+{
+  if (deferred_swap_buffers_count) {
+
+    /* These two messages should be made asserts when we've fixed all the issues. */
+    if (!getValid()) {
+      IOS_WINDOW_LOG(@"Ignoring swap (invalid) con(%p) (win=%p)", getContext(), this);
+      return;
+    }
+
+    if (!m_is_active_window) {
+      IOS_WINDOW_LOG(@"Ignoring swap (not active window) con(%p) (win=%p)", getContext(), this);
+      return;
+    }
+
+    IOS_WINDOW_LOG(@"Swapping (ui_View)%p (mtkView)%p con(%p) (win=%p) (sc=%d)",
+                   m_uiview,
+                   m_metalView,
+                   getContext(),
+                   this,
+                   deferred_swap_buffers_count);
+
+    GHOST_ContextIOS *context = reinterpret_cast<GHOST_ContextIOS *>(getContext());
+    context->swapBuffers();
+    deferred_swap_buffers_count = 0;
+  }
+}
+
 void GHOST_WindowIOS::beginFrame()
 {
   GHOSTUIWindow *ui_window = (GHOSTUIWindow *)rootWindow;
@@ -1630,6 +1678,11 @@ void GHOST_WindowIOS::setTitle(const char *title)
 std::string GHOST_WindowIOS::getTitle() const
 {
   return m_window_title;
+}
+
+void GHOST_WindowIOS::needsDisplayUpdate()
+{
+  [m_uiview setNeedsDisplay];
 }
 
 void GHOST_WindowIOS::getWindowBounds(GHOST_Rect &bounds) const
@@ -1909,55 +1962,80 @@ float GHOST_WindowIOS::getWindowScaleFactor()
   return [[UIScreen mainScreen] scale];
 }
 
-bool GHOST_WindowIOS::activateWindow()
+/* Indicate that we want this window to be the next active one. */
+void GHOST_WindowIOS::requestToActivateWindow()
 {
+  /* Check we're not already active. */
+  if (current_active_window != this) {
+    /* Replace any outstanding requests. */
+    if (next_active_window) {
+      next_active_window->requestToDeactivateWindow();
+    }
+    m_request_to_make_active = true;
+    next_active_window = this;
+  }
+}
+
+void GHOST_WindowIOS::requestToDeactivateWindow()
+{
+  if (next_active_window == this) {
+    IOS_WINDOW_LOG(@"requestToDeactivateWindow(): Has something gone wrong? %p", this);
+    next_active_window = nullptr;
+  }
+  m_request_to_make_active = false;
+}
+
+bool GHOST_WindowIOS::makeKeyWindow()
+{
+  if (!getValid()) {
+    IOS_WINDOW_LOG(@"Failed to activate (invalid) con(%p) (win=%p)", getContext(), this);
+    return false;
+  }
+
   GHOST_ContextIOS *context = reinterpret_cast<GHOST_ContextIOS *>(getContext());
-  GHOST_ASSERT(rootWindow != nil, "GHOST_WindowIOS::activateWindow root window required");
-  GHOST_ASSERT(context != nullptr, "GHOST_WindowIOS::activateWindow context required");
-  GHOST_ASSERT(current_active_window == nullptr,
-               "GHOST_WindowIOS::activateWindow cannot have more than one active window");
-  GHOST_ASSERT(current_active_window != this && !m_is_active_window,
-               "GHOST_WindowIOS::activateWindow window is already active");
+  GHOST_ASSERT(rootWindow != nil, "GHOST_WindowIOS::makeKeyWindow() root window required");
+  GHOST_ASSERT(context != nullptr, "GHOST_WindowIOS::makeKeyWindow() context required");
+  GHOST_ASSERT(m_request_to_make_active,
+               "GHOST_WindowIOS::makeKeyWindow() must request activation first");
+
   /* Make window primary visible window. */
   [rootWindow makeKeyAndVisible];
   /* Enable the drawInMTKView() calls for this window. */
   m_metalView.paused = NO;
-  /* Let the context do presents */
-  context->allowPresents(true);
-  current_active_window = this;
-  m_is_active_window = true;
-  IOS_WINDOW_LOG(@"(ui_View)%p (mtkView)%p con(%p) now active (cw=%p)",
+
+  IOS_WINDOW_LOG(@"Key Window: (ui_View)%p (mtkView)%p con(%p) (win=%p)",
                  m_uiview,
                  m_metalView,
                  getContext(),
-                 current_active_window);
+                 this);
+
+  current_active_window = this;
+  m_is_active_window = true;
+  m_request_to_make_active = false;
   return true;
 }
 
-bool GHOST_WindowIOS::deactivateWindow()
+void GHOST_WindowIOS::resignKeyWindow()
 {
-  GHOST_ContextIOS *context = reinterpret_cast<GHOST_ContextIOS *>(getContext());
-  GHOST_ASSERT(rootWindow != nil, "GHOST_WindowIOS::deactivateWindow root window required");
-  GHOST_ASSERT(context != nullptr, "GHOST_WindowIOS::deactivateWindow context required");
-  GHOST_ASSERT(current_active_window == this && current_active_window,
-               "GHOST_WindowIOS::deactivateWindow cannot deactivate a non active window");
   GHOST_ASSERT(current_active_window == this,
-               "GHOST_WindowIOS::deactivateWindow window is not active");
-  current_active_window = nullptr;
-  m_is_active_window = false;
-  /* Diallow presents from the context */
-  context->allowPresents(false);
+               "GHOST_WindowIOS::resignKeyWindow(): Can only resign current active window");
+  GHOST_ASSERT(m_is_active_window,
+               "GHOST_WindowIOS::resignKeyWindow(): Can't resign non active window");
+  GHOST_ASSERT(!m_request_to_make_active,
+               "GHOST_WindowIOS::resignKeyWindow(): activation request outstanding");
+
   /* Disable the drawInMTKView() calls for this window. */
   m_metalView.paused = YES;
   /* Wait until any outstanding presents in flight are done. */
   while (m_uiview_controller.beingPresented) {
   }
-  IOS_WINDOW_LOG(@"(ui_View)%p (mtkView)%p con(%p) deactivated (cw=%p)",
+  IOS_WINDOW_LOG(@"Resigning Key Window: (ui_View)%p (mtkView)%p con(%p) (win=%p)",
                  m_uiview,
                  m_metalView,
                  getContext(),
-                 current_active_window);
-  return true;
+                 this);
+  m_is_active_window = false;
+  current_active_window = nullptr;
 }
 
 CGPoint GHOST_WindowIOS::scalePointToWindow(CGPoint &point)
