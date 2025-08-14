@@ -25,9 +25,7 @@ WindowManagerRuntime::~WindowManagerRuntime()
 {
   BKE_reports_free(&this->reports);
 
-  LISTBASE_FOREACH_MUTABLE (wmNotifier *, notifier, &this->notifier_queue) {
-    MEM_delete(notifier);
-  }
+  BLI_freelistN(&this->notifier_queue);
   if (this->notifier_queue_set) {
     BLI_gset_free(this->notifier_queue_set, nullptr);
   }

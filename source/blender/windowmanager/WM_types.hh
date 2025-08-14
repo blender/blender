@@ -351,14 +351,13 @@ enum {
 /* ************** Notifiers ****************** */
 
 struct wmNotifier {
-  wmNotifier *next = nullptr, *prev = nullptr;
+  wmNotifier *next, *prev;
 
-  const wmWindow *window = nullptr;
+  const wmWindow *window;
 
-  unsigned int category = 0, data = 0, subtype = 0, action = 0;
+  unsigned int category, data, subtype, action;
 
-  void *reference = nullptr;
-  std::string string_reference = "";
+  void *reference;
 };
 
 /* 4 levels

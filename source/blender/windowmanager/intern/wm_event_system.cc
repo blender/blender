@@ -342,14 +342,13 @@ static bool note_cmp_for_queue_fn(const void *a, const void *b)
   const wmNotifier *note_b = static_cast<const wmNotifier *>(b);
   return !(((note_a->category | note_a->data | note_a->subtype | note_a->action) ==
             (note_b->category | note_b->data | note_b->subtype | note_b->action)) &&
-           (note_a->reference == note_b->reference) &&
-           (note_a->string_reference == note_b->string_reference));
+           (note_a->reference == note_b->reference));
 }
 
 static void wm_event_add_notifier_intern(wmWindowManager *wm,
                                          const wmWindow *win,
                                          uint type,
-                                         wmNotifierReference reference)
+                                         void *reference)
 {
   BLI_assert(wm != nullptr);
 
@@ -361,18 +360,7 @@ static void wm_event_add_notifier_intern(wmWindowManager *wm,
   note_test.data = type & NOTE_DATA;
   note_test.subtype = type & NOTE_SUBTYPE;
   note_test.action = type & NOTE_ACTION;
-
-  note_test.reference = nullptr;
-  note_test.string_reference = "";
-  if (void **void_ref = std::get_if<void *>(&reference)) {
-    note_test.reference = *void_ref;
-  }
-  else if (std::string *string_ref = std::get_if<std::string>(&reference)) {
-    note_test.string_reference = *string_ref;
-  }
-  else {
-    BLI_assert_unreachable();
-  }
+  note_test.reference = reference;
 
   BLI_assert(!wm_notifier_is_clear(&note_test));
 
@@ -385,16 +373,13 @@ static void wm_event_add_notifier_intern(wmWindowManager *wm,
   if (BLI_gset_ensure_p_ex(wm->runtime->notifier_queue_set, &note_test, &note_p)) {
     return;
   }
-  wmNotifier *note = MEM_new<wmNotifier>(__func__);
+  wmNotifier *note = MEM_callocN<wmNotifier>(__func__);
   *note = note_test;
   *note_p = note;
   BLI_addtail(&wm->runtime->notifier_queue, note);
 }
 
-void WM_event_add_notifier_ex(wmWindowManager *wm,
-                              const wmWindow *win,
-                              uint type,
-                              wmNotifierReference reference)
+void WM_event_add_notifier_ex(wmWindowManager *wm, const wmWindow *win, uint type, void *reference)
 {
   if (wm == nullptr) {
     /* There may be some cases where e.g. `G_MAIN` is not actually the real current main, but some
@@ -408,14 +393,14 @@ void WM_event_add_notifier_ex(wmWindowManager *wm,
   wm_event_add_notifier_intern(wm, win, type, reference);
 }
 
-void WM_event_add_notifier(const bContext *C, uint type, wmNotifierReference reference)
+void WM_event_add_notifier(const bContext *C, uint type, void *reference)
 {
   /* XXX: in future, which notifiers to send to other windows? */
 
   WM_event_add_notifier_ex(CTX_wm_manager(C), CTX_wm_window(C), type, reference);
 }
 
-void WM_main_add_notifier(uint type, wmNotifierReference reference)
+void WM_main_add_notifier(uint type, void *reference)
 {
   Main *bmain = G_MAIN;
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
@@ -446,7 +431,7 @@ void WM_main_remove_notifier_reference(const void *reference)
         }
         else {
           BLI_remlink(&wm->runtime->notifier_queue, note);
-          MEM_delete(note);
+          MEM_freeN(note);
         }
       }
     }
@@ -494,14 +479,7 @@ void WM_main_remap_editor_id_reference(const blender::bke::id::IDRemapper &mappi
 static void wm_notifier_clear(wmNotifier *note)
 {
   /* Clear the entire notifier, only leaving (`next`, `prev`) members intact. */
-  wmNotifier *prev = note->prev;
-  wmNotifier *next = note->next;
-  *note = wmNotifier{};
-  note->prev = prev;
-  note->next = next;
-  BLI_assert(note->category == 0 && note->data == 0 && note->subtype == 0 && note->action == 0);
-  BLI_assert(note->window == nullptr && note->reference == nullptr &&
-             note->string_reference.empty());
+  memset(((char *)note) + sizeof(Link), 0, sizeof(*note) - sizeof(Link));
   note->category = NOTE_CATEGORY_TAG_CLEARED;
 }
 
@@ -621,7 +599,7 @@ void wm_event_do_notifiers(bContext *C)
     {
       if (wm_notifier_is_clear(note)) {
         note_next = note->next;
-        MEM_delete(note);
+        MEM_freeN(note);
         continue;
       }
 
@@ -702,7 +680,7 @@ void wm_event_do_notifiers(bContext *C)
       note_next = note->next;
       if (wm_notifier_is_clear(note)) {
         BLI_remlink(&wm->runtime->notifier_queue, (void *)note);
-        MEM_delete(note);
+        MEM_freeN(note);
       }
     }
 
@@ -733,7 +711,7 @@ void wm_event_do_notifiers(bContext *C)
              BLI_pophead(&wm->runtime->notifier_queue)))
   {
     if (wm_notifier_is_clear(note)) {
-      MEM_delete(note);
+      MEM_freeN(note);
       continue;
     }
     /* NOTE: no need to set `wm->runtime->notifier_current` since it's been removed from the queue.
@@ -807,7 +785,7 @@ void wm_event_do_notifiers(bContext *C)
       }
     }
 
-    MEM_delete(note);
+    MEM_freeN(note);
   }
 #endif /* If 1 (postpone disabling for in favor of message-bus), eventually. */
 
