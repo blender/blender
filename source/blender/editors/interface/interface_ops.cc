@@ -2845,12 +2845,11 @@ static void UI_OT_view_item_rename(wmOperatorType *ot)
 
 static wmOperatorStatus ui_view_item_select_invoke(bContext *C,
                                                    wmOperator *op,
-                                                   const wmEvent * /*event*/)
+                                                   const wmEvent *event)
 {
-  const wmWindow &win = *CTX_wm_window(C);
   ARegion &region = *CTX_wm_region(C);
 
-  AbstractViewItem *clicked_item = UI_region_views_find_item_at(region, win.eventstate->xy);
+  AbstractViewItem *clicked_item = UI_region_views_find_item_at(region, event->xy);
   if (clicked_item == nullptr) {
     return OPERATOR_CANCELLED;
   }
