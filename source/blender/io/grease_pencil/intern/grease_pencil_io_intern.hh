@@ -79,7 +79,10 @@ class GreasePencilExporter {
   Vector<ObjectInfo> retrieve_objects() const;
 
   using WriteStrokeFn = FunctionRef<void(const Span<float3> positions,
+                                         const Span<float3> positions_left,
+                                         const Span<float3> positions_right,
                                          bool cyclic,
+                                         int8_t type,
                                          const ColorGeometry4f &color,
                                          float opacity,
                                          std::optional<float> width,
@@ -94,6 +97,8 @@ class GreasePencilExporter {
   float2 project_to_screen(const float4x4 &transform, const float3 &position) const;
 
   bool is_selected_frame(const GreasePencil &grease_pencil, int frame_number) const;
+
+  std::string coord_to_svg_string(const float2 &screen_co) const;
 
  private:
   std::optional<Bounds<float2>> compute_screen_space_drawing_bounds(
