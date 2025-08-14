@@ -997,7 +997,7 @@ struct Parser {
     }
 
     /* Order mutations so that they can be applied in one pass. */
-    std::sort(mutations_.begin(), mutations_.end());
+    std::stable_sort(mutations_.begin(), mutations_.end());
 
     int64_t offset = 0;
     for (const Mutation &mut : mutations_) {
