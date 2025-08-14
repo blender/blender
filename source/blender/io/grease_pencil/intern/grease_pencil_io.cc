@@ -136,48 +136,9 @@ GreasePencilExporter::GreasePencilExporter(const IOContext &context, const Expor
 
 constexpr const char *attr_material_index = "material_index";
 
-static IndexMask get_visible_strokes(const Object &object,
-                                     const bke::greasepencil::Drawing &drawing,
-                                     IndexMaskMemory &memory)
-{
-  const bke::CurvesGeometry &strokes = drawing.strokes();
-  const bke::AttributeAccessor attributes = strokes.attributes();
-  const VArray<int> materials = *attributes.lookup_or_default<int>(
-      attr_material_index, bke::AttrDomain::Curve, 0);
-
-  auto is_visible_curve = [&](const int curve_i) {
-    /* Check if stroke can be drawn. */
-    const IndexRange points = strokes.points_by_curve()[curve_i];
-    if (points.size() < 2) {
-      return false;
-    }
-
-    const Material *material = BKE_object_material_get(const_cast<Object *>(&object),
-                                                       materials[curve_i] + 1);
-    if (material == nullptr) {
-      /* We can still export without a material. */
-      return true;
-    }
-
-    /* Check if the material is visible. */
-    const MaterialGPencilStyle *gp_style = material->gp_style;
-    const bool is_hidden_material = (gp_style->flag & GP_MATERIAL_HIDE);
-    const bool is_stroke_material = (gp_style->flag & GP_MATERIAL_STROKE_SHOW);
-    if (gp_style == nullptr || is_hidden_material || !is_stroke_material) {
-      return false;
-    }
-
-    return true;
-  };
-
-  return IndexMask::from_predicate(
-      strokes.curves_range(), GrainSize(512), memory, is_visible_curve);
-}
-
-static std::optional<Bounds<float2>> compute_screen_space_drawing_bounds(
-    const ARegion &region,
+std::optional<Bounds<float2>> GreasePencilExporter::compute_screen_space_drawing_bounds(
     const RegionView3D &rv3d,
-    const Object &object,
+    Object &object,
     const int layer_index,
     const bke::greasepencil::Drawing &drawing)
 {
@@ -188,9 +149,6 @@ static std::optional<Bounds<float2>> compute_screen_space_drawing_bounds(
 
   BLI_assert(object.type == OB_GREASE_PENCIL);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
-  if (!grease_pencil.has_active_layer()) {
-    return drawing_bounds;
-  }
 
   const Layer &layer = *grease_pencil.layers()[layer_index];
   const float4x4 layer_to_world = layer.to_world_space(object);
@@ -198,23 +156,19 @@ static std::optional<Bounds<float2>> compute_screen_space_drawing_bounds(
   const bke::CurvesGeometry &strokes = drawing.strokes();
   const Span<float3> positions = strokes.positions();
 
-  IndexMaskMemory curve_mask_memory;
-  const IndexMask curve_mask = get_visible_strokes(object, drawing, curve_mask_memory);
+  IndexMaskMemory memory;
+  const IndexMask visible_strokes = ed::greasepencil::retrieve_visible_strokes(
+      object, drawing, memory);
 
-  curve_mask.foreach_index(GrainSize(512), [&](const int curve_i) {
+  visible_strokes.foreach_index(GrainSize(512), [&](const int curve_i) {
     const IndexRange points = strokes.points_by_curve()[curve_i];
-    /* Check if stroke can be drawn. */
-    if (points.size() < 2) {
-      return;
-    }
 
     for (const int point_i : points) {
-      const float3 pos_world = math::transform_point(layer_to_world, positions[point_i]);
-      float2 screen_co;
-      eV3DProjStatus result = ED_view3d_project_float_global(
-          &region, pos_world, screen_co, V3D_PROJ_TEST_NOP);
-      if (result == V3D_PROJ_RET_OK) {
-        const float pixels = radii[point_i] / ED_view3d_pixel_size(&rv3d, pos_world);
+      const float2 screen_co = this->project_to_screen(layer_to_world, positions[point_i]);
+
+      if (screen_co.x != V2D_IS_CLIPPED) {
+        const float3 world_pos = math::transform_point(layer_to_world, positions[point_i]);
+        const float pixels = radii[point_i] / ED_view3d_pixel_size(&rv3d, world_pos);
 
         std::optional<Bounds<float2>> point_bounds = Bounds<float2>(screen_co);
         point_bounds->pad(pixels);
@@ -226,8 +180,7 @@ static std::optional<Bounds<float2>> compute_screen_space_drawing_bounds(
   return drawing_bounds;
 }
 
-static std::optional<Bounds<float2>> compute_objects_bounds(
-    const ARegion &region,
+std::optional<Bounds<float2>> GreasePencilExporter::compute_objects_bounds(
     const RegionView3D &rv3d,
     const Depsgraph &depsgraph,
     const Span<GreasePencilExporter::ObjectInfo> objects,
@@ -242,7 +195,7 @@ static std::optional<Bounds<float2>> compute_objects_bounds(
   std::optional<Bounds<float2>> full_bounds = std::nullopt;
 
   for (const ObjectInfo &info : objects) {
-    const Object *object_eval = DEG_get_evaluated(&depsgraph, info.object);
+    Object *object_eval = DEG_get_evaluated(&depsgraph, info.object);
     const GreasePencil &grease_pencil_eval = *static_cast<GreasePencil *>(object_eval->data);
 
     for (const int layer_index : grease_pencil_eval.layers().index_range()) {
@@ -252,8 +205,8 @@ static std::optional<Bounds<float2>> compute_objects_bounds(
         continue;
       }
 
-      std::optional<Bounds<float2>> layer_bounds = compute_screen_space_drawing_bounds(
-          region, rv3d, *object_eval, layer_index, *drawing);
+      std::optional<Bounds<float2>> layer_bounds = this->compute_screen_space_drawing_bounds(
+          rv3d, *object_eval, layer_index, *drawing);
 
       full_bounds = bounds::merge(full_bounds, layer_bounds);
     }
@@ -320,8 +273,8 @@ void GreasePencilExporter::prepare_render_params(Scene &scene, const int frame_n
   }
   else {
     Vector<ObjectInfo> objects = this->retrieve_objects();
-    std::optional<Bounds<float2>> full_bounds = compute_objects_bounds(
-        *context_.region, *context_.rv3d, *context_.depsgraph, objects, frame_number);
+    std::optional<Bounds<float2>> full_bounds = this->compute_objects_bounds(
+        *context_.rv3d, *context_.depsgraph, objects, frame_number);
     screen_rect_ = full_bounds ? *full_bounds : Bounds<float2>(float2(0.0f));
     camera_persmat_ = std::nullopt;
   }
