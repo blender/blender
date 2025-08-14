@@ -131,6 +131,8 @@ void AssetList::setup()
       FILE_TYPE_BLENDERLIB,
       FILTER_ID_ALL,
       true,
+      /* TODO online assets filter flag. */
+      false,
       "",
       "");
 

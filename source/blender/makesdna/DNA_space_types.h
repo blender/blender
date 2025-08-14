@@ -465,7 +465,8 @@ typedef struct FileAssetSelectParams {
 
   short import_method; /* eFileAssetImportMethod */
   short import_flags;  /* eFileImportFlags */
-  char _pad2[4];
+
+  int asset_flags; /* #eFileSel_AssetParams_Flag */
 } FileAssetSelectParams;
 
 /**

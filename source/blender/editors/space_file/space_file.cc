@@ -246,9 +246,12 @@ static void file_refresh(const bContext *C, ScrArea *area)
       params->filter,
       params->filter_id,
       (params->flag & FILE_ASSETS_ONLY) != 0,
+      (asset_params->asset_flags & FILE_ASSETS_HIDE_ONLINE) != 0,
       params->filter_glob,
       params->filter_search);
   if (asset_params) {
+    filelist_set_asset_include_online(sfile->files,
+                                      !(asset_params->asset_flags & FILE_ASSETS_HIDE_ONLINE));
     filelist_set_asset_catalog_filter_options(
         sfile->files,
         eFileSel_Params_AssetCatalogVisibility(asset_params->asset_catalog_visibility),

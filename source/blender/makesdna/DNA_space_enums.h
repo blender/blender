@@ -484,6 +484,12 @@ typedef enum eFileAssetImportFlags {
   FILE_ASSET_IMPORT_INSTANCE_COLLECTIONS_ON_APPEND = (1 << 1),
 } eFileAssetImportFlags;
 
+enum eFileSel_AssetParams_Flag {
+  /** Only show files available offline. More than a filter, it prevents downloading asset listings
+   * when enabled. */
+  FILE_ASSETS_HIDE_ONLINE = (1 << 0),
+};
+
 /** #SpaceFile.browse_mode (File Space Browsing Mode). */
 typedef enum eFileBrowse_Mode {
   /* Regular Blender File Browser */

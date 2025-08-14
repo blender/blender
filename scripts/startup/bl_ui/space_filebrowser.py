@@ -642,6 +642,8 @@ class ASSETBROWSER_PT_filter(asset_utils.AssetBrowserPanel, Panel):
                     row.label(icon=filter_id.bl_rna.properties[identifier].icon)
                     row.prop(filter_id, identifier, toggle=False)
 
+        layout.prop(params, "show_online_assets", text="Online Assets")
+
 
 class AssetBrowserMenu:
     @classmethod

@@ -180,6 +180,30 @@ void filelist_setindexer(FileList *filelist, const FileIndexerType *indexer)
   filelist->indexer = indexer;
 }
 
+void filelist_set_asset_include_online(FileList *filelist, const bool show_online_assets)
+{
+  if (!filelist->asset_library_ref ||
+      !asset_system::is_or_contains_remote_libraries(*filelist->asset_library_ref))
+  {
+    /* Online flag has no effect if not displaying online libraries. This function will be called
+     * again when switching libraries, so updating the flag here shouldn't be needed. Still do it
+     * for predictability. */
+    SET_FLAG_FROM_TEST(filelist->flags, show_online_assets, FL_ASSETS_INCLUDE_ONLINE);
+    return;
+  }
+
+  if (show_online_assets && ((filelist->flags & FL_ASSETS_INCLUDE_ONLINE) == 0)) {
+    /* Full refresh when enabling online assets, so online asset loading is triggered. */
+    filelist_tag_force_reset(filelist);
+    filelist->flags |= FL_ASSETS_INCLUDE_ONLINE;
+  }
+  else if (!show_online_assets && ((filelist->flags & FL_ASSETS_INCLUDE_ONLINE) != 0)) {
+    /* Simply filter out online assets when they were already loaded. */
+    filelist_tag_needs_filtering(filelist);
+    filelist->flags &= ~FL_ASSETS_INCLUDE_ONLINE;
+  }
+}
+
 void filelist_set_asset_catalog_filter_options(
     FileList *filelist,
     eFileSel_Params_AssetCatalogVisibility catalog_visibility,
@@ -3360,6 +3384,10 @@ static void filelist_readjob_remote_asset_library(FileListReadJob *job_params,
     }
   }
 
+  if ((filelist->flags & FL_ASSETS_INCLUDE_ONLINE) == 0) {
+    return;
+  }
+
   /* Enforce latest catalogs from the downloader to be used. */
   job_params->reload_asset_library = true;
   filelist_readjob_load_asset_library_data(job_params, do_update);
@@ -3413,6 +3441,10 @@ static void filelist_start_job_remote_asset_library(FileListReadJob *job_params)
 {
   if ((G.f & G_FLAG_INTERNET_ALLOW) == 0) {
     BLI_assert_unreachable();
+    return;
+  }
+
+  if ((job_params->filelist->flags & FL_ASSETS_INCLUDE_ONLINE) == 0) {
     return;
   }
 
