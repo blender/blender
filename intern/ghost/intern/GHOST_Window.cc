@@ -19,7 +19,7 @@
 GHOST_Window::GHOST_Window(uint32_t width,
                            uint32_t height,
                            GHOST_TWindowState state,
-                           const bool wantStereoVisual,
+                           const GHOST_ContextParams &context_params,
                            const bool /*exclusive*/)
     : m_drawingContextType(GHOST_kDrawingContextTypeNone),
       m_userData(nullptr),
@@ -34,11 +34,13 @@ GHOST_Window::GHOST_Window(uint32_t width,
       m_isUnsavedChanges(false),
       m_windowDecorationStyleFlags(GHOST_kDecorationNone),
       m_windowDecorationStyleSettings(),
-      m_wantStereoVisual(wantStereoVisual),
+      m_want_context_params(context_params),
       m_nativePixelSize(1.0f),
-      m_context(new GHOST_ContextNone(false))
+      m_context(nullptr)
 
 {
+  const GHOST_ContextParams context_params_none = GHOST_CONTEXT_PARAMS_NONE;
+  m_context = new GHOST_ContextNone(context_params_none);
 
   m_fullScreen = state == GHOST_kWindowStateFullScreen;
   if (m_fullScreen) {
@@ -86,7 +88,7 @@ GHOST_TSuccess GHOST_Window::setDrawingContextType(GHOST_TDrawingContextType typ
       m_drawingContextType = type;
     }
     else {
-      m_context = new GHOST_ContextNone(m_wantStereoVisual);
+      m_context = new GHOST_ContextNone(m_want_context_params);
       m_drawingContextType = GHOST_kDrawingContextTypeNone;
     }
 

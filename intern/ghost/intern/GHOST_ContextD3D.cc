@@ -20,8 +20,8 @@
 HMODULE GHOST_ContextD3D::s_d3d_lib = nullptr;
 PFN_D3D11_CREATE_DEVICE GHOST_ContextD3D::s_D3D11CreateDeviceFn = nullptr;
 
-GHOST_ContextD3D::GHOST_ContextD3D(bool stereoVisual, HWND hWnd)
-    : GHOST_Context(stereoVisual), m_hWnd(hWnd)
+GHOST_ContextD3D::GHOST_ContextD3D(const GHOST_ContextParams &context_params, HWND hWnd)
+    : GHOST_Context(context_params), m_hWnd(hWnd)
 {
 }
 

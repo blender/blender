@@ -21,10 +21,10 @@ GHOST_WindowSDL::GHOST_WindowSDL(GHOST_SystemSDL *system,
                                  uint32_t height,
                                  GHOST_TWindowState state,
                                  GHOST_TDrawingContextType type,
-                                 const bool stereoVisual,
+                                 const GHOST_ContextParams &context_params,
                                  const bool exclusive,
                                  const GHOST_IWindow * /*parentWindow*/)
-    : GHOST_Window(width, height, state, stereoVisual, exclusive),
+    : GHOST_Window(width, height, state, context_params, exclusive),
       m_system(system),
       m_valid_setup(false),
       m_invalid_window(false),
@@ -65,12 +65,13 @@ GHOST_WindowSDL::~GHOST_WindowSDL()
 
 GHOST_Context *GHOST_WindowSDL::newDrawingContext(GHOST_TDrawingContextType type)
 {
+
   switch (type) {
 #ifdef WITH_OPENGL_BACKEND
     case GHOST_kDrawingContextTypeOpenGL: {
       for (int minor = 6; minor >= 3; --minor) {
         GHOST_Context *context = new GHOST_ContextSDL(
-            m_wantStereoVisual,
+            m_want_context_params,
             m_sdl_win,
             0, /* Profile bit. */
             4,

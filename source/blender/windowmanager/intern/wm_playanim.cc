@@ -1596,6 +1596,10 @@ static GHOST_WindowHandle playanim_window_open(
   gpusettings.preferred_device.index = U.gpu_preferred_index;
   gpusettings.preferred_device.vendor_id = U.gpu_preferred_vendor_id;
   gpusettings.preferred_device.device_id = U.gpu_preferred_device_id;
+  if (GPU_backend_vsync_is_overridden()) {
+    gpusettings.flags |= GHOST_gpuVSyncIsOverridden;
+    gpusettings.vsync = GHOST_TVSyncModes(GPU_backend_vsync_get());
+  }
 
   {
     bool screen_size_valid = false;

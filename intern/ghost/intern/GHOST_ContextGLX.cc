@@ -28,7 +28,7 @@ static GLboolean _glewSearchExtension(const char *name, const GLubyte *start, co
 GLXContext GHOST_ContextGLX::s_sharedContext = None;
 int GHOST_ContextGLX::s_sharedCount = 0;
 
-GHOST_ContextGLX::GHOST_ContextGLX(bool stereoVisual,
+GHOST_ContextGLX::GHOST_ContextGLX(const GHOST_ContextParams &context_params,
                                    Window window,
                                    Display *display,
                                    GLXFBConfig fbconfig,
@@ -37,7 +37,7 @@ GHOST_ContextGLX::GHOST_ContextGLX(bool stereoVisual,
                                    int contextMinorVersion,
                                    int contextFlags,
                                    int contextResetNotificationStrategy)
-    : GHOST_Context(stereoVisual),
+    : GHOST_Context(context_params),
       m_display(display),
       m_fbconfig(fbconfig),
       m_window(window),
@@ -244,7 +244,8 @@ GHOST_TSuccess GHOST_ContextGLX::initializeDrawingContext()
         int glx_attribs[64];
         int fbcount = 0;
 
-        GHOST_X11_GL_GetAttributes(glx_attribs, 64, m_stereoVisual, false, true);
+        GHOST_X11_GL_GetAttributes(
+            glx_attribs, 64, m_context_params.is_stereo_visual, false, true);
 
         framebuffer_config = glXChooseFBConfig(
             m_display, DefaultScreen(m_display), glx_attribs, &fbcount);
@@ -281,10 +282,11 @@ GHOST_TSuccess GHOST_ContextGLX::initializeDrawingContext()
     glXMakeCurrent(m_display, m_window, m_context);
 
     /* For performance measurements with VSync disabled. */
-    const char *ghost_vsync_string = getEnvVarVSyncString();
-    if (ghost_vsync_string) {
-      int swapInterval = atoi(ghost_vsync_string);
-      setSwapInterval(swapInterval);
+    {
+      const GHOST_TVSyncModes vsync = getVSync();
+      if (vsync != GHOST_kVSyncModeUnset) {
+        setSwapInterval(int(vsync));
+      }
     }
 
     if (m_window) {

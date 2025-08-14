@@ -14,7 +14,7 @@
 
 class GHOST_ContextNone : public GHOST_Context {
  public:
-  GHOST_ContextNone(bool stereoVisual) : GHOST_Context(stereoVisual) {}
+  GHOST_ContextNone(const GHOST_ContextParams &context_params) : GHOST_Context(context_params) {}
 
   /**
    * Dummy function

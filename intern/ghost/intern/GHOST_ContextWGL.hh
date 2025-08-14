@@ -24,7 +24,7 @@ class GHOST_ContextWGL : public GHOST_Context {
   /**
    * Constructor.
    */
-  GHOST_ContextWGL(bool stereoVisual,
+  GHOST_ContextWGL(const GHOST_ContextParams &context_params,
                    bool alphaBackground,
                    HWND hWnd,
                    HDC hDC,

@@ -76,9 +76,8 @@ class GHOST_WindowWayland : public GHOST_Window {
                       const GHOST_IWindow *parentWindow,
                       GHOST_TDrawingContextType type,
                       const bool is_dialog,
-                      const bool stereoVisual,
+                      const GHOST_ContextParams &context_params,
                       const bool exclusive,
-                      const bool is_debug,
                       const GHOST_GPUDevice &preferred_device);
 
   ~GHOST_WindowWayland() override;
@@ -202,7 +201,6 @@ class GHOST_WindowWayland : public GHOST_Window {
  private:
   GHOST_SystemWayland *system_;
   struct GWL_Window *window_;
-  bool is_debug_context_;
   GHOST_GPUDevice preferred_device_;
 
   /**

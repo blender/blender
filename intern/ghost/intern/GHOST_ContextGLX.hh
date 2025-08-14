@@ -29,7 +29,7 @@ class GHOST_ContextGLX : public GHOST_Context {
   /**
    * Constructor.
    */
-  GHOST_ContextGLX(bool stereoVisual,
+  GHOST_ContextGLX(const GHOST_ContextParams &context_params,
                    Window window,
                    Display *display,
                    GLXFBConfig fbconfig,

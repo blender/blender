@@ -44,7 +44,7 @@ class GHOST_WindowX11 : public GHOST_Window {
    * \param state: The state the window is initially opened with.
    * \param parentWindow: Parent (embedder) window.
    * \param type: The type of drawing context installed in this window.
-   * \param stereoVisual: Stereo visual for quad buffered stereo.
+   * \param context_params: Parameters to use when initializing the context.
    * \param preferred_device: Preferred device to use when new device will be created.
    */
   GHOST_WindowX11(GHOST_SystemX11 *system,
@@ -58,9 +58,8 @@ class GHOST_WindowX11 : public GHOST_Window {
                   GHOST_WindowX11 *parentWindow,
                   GHOST_TDrawingContextType type,
                   const bool is_dialog,
-                  const bool stereoVisual,
+                  const GHOST_ContextParams &context_params,
                   const bool exclusive,
-                  const bool is_debug,
                   const GHOST_GPUDevice &preferred_device);
 
   bool getValid() const override;
@@ -241,7 +240,6 @@ class GHOST_WindowX11 : public GHOST_Window {
 #endif
 
   bool m_valid_setup;
-  bool m_is_debug_context;
   GHOST_GPUDevice m_preferred_device;
 
   void icccmSetState(int state);
