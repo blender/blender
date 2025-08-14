@@ -32,9 +32,9 @@ struct ResultBLF;
 struct rcti;
 
 namespace blender::ocio {
-class Display;
+class ColorSpace;
 }  // namespace blender::ocio
-using ColorManagedDisplay = blender::ocio::Display;
+using ColorSpace = blender::ocio::ColorSpace;
 
 int BLF_init();
 void BLF_exit();
@@ -350,12 +350,8 @@ void BLF_shadow_offset(int fontid, int x, int y);
  * The image is assumed to have 4 color channels (RGBA) per pixel.
  * When done, call this function with null buffer pointers.
  */
-void BLF_buffer(int fontid,
-                float *fbuf,
-                unsigned char *cbuf,
-                int w,
-                int h,
-                const ColorManagedDisplay *display);
+void BLF_buffer(
+    int fontid, float *fbuf, unsigned char *cbuf, int w, int h, const ColorSpace *colorspace);
 
 /**
  * Opaque structure used to push/pop values set by the #BLF_buffer function.
@@ -379,7 +375,7 @@ void BLF_buffer_state_free(BLFBufferState *buffer_state);
 /**
  * Set the color to be used for text.
  */
-void BLF_buffer_col(int fontid, const float rgba[4]) ATTR_NONNULL(2);
+void BLF_buffer_col(int fontid, const float srgb_color[4]) ATTR_NONNULL(2);
 
 /**
  * Draw the string into the buffer, this function draw in both buffer,

@@ -24,11 +24,6 @@ struct GSet;
 struct ImageFormatData;
 struct Stereo3dFormat;
 
-namespace blender::ocio {
-class Display;
-}  // namespace blender::ocio
-using ColorManagedDisplay = blender::ocio::Display;
-
 /**
  * Module init/exit.
  */
@@ -470,52 +465,18 @@ void IMB_rectfill(ImBuf *drect, const float col[4]);
 /**
  * Blend pixels of image area with solid color.
  *
- * For images with `uchar` buffer use color matching image color-space.
- * For images with float buffer use color display color-space.
- * If display color-space can not be referenced, use color in SRGB color-space.
- *
  * \param ibuf: an image to be filled with color. It must be 4 channel image.
- * \param col: RGBA color.
- * \param x1, y1, x2, y2: (x1, y1) defines starting point of the rectangular area to be filled,
- * (x2, y2) is the end point. Note that values are allowed to be loosely ordered, which means that
- * x2 is allowed to be lower than x1, as well as y2 is allowed to be lower than y1. No matter the
- * order the area between x1 and x2, and y1 and y2 is filled.
- * \param display: color-space reference for display space.
+ * \param scene_linear_color: RGBA color in scene linear colorspace. For byte buffers, this is
+ * converted to the byte buffer colorspace.
+ * \param x1, y1, x2, y2: (x1, y1) defines starting point
+ * of the rectangular area to be filled, (x2, y2) is the end point. Note that values are allowed to
+ * be loosely ordered, which means that x2 is allowed to be lower than x1, as well as y2 is allowed
+ * to be lower than y1. No matter the order the area between x1 and x2, and y1 and y2 is filled.
+ * \param colorspace: color-space reference for display space.
  */
-void IMB_rectfill_area(ImBuf *ibuf,
-                       const float col[4],
-                       int x1,
-                       int y1,
-                       int x2,
-                       int y2,
-                       const ColorManagedDisplay *display);
-/**
- * Replace pixels of image area with solid color.
- * \param ibuf: an image to be filled with color. It must be 4 channel image.
- * \param col: RGBA color, which is assigned directly to both byte (via scaling) and float buffers.
- * \param x1, y1, x2, y2: (x1, y1) defines starting point of the rectangular area to be filled,
- * (x2, y2) is the end point. Note that values are allowed to be loosely ordered, which means that
- * x2 is allowed to be lower than x1, as well as y2 is allowed to be lower than y1. No matter the
- * order the area between x1 and x2, and y1 and y2 is filled.
- */
-void IMB_rectfill_area_replace(
-    const ImBuf *ibuf, const float col[4], int x1, int y1, int x2, int y2);
+void IMB_rectfill_area(
+    ImBuf *ibuf, const float scene_linear_color[4], int x1, int y1, int x2, int y2);
 void IMB_rectfill_alpha(ImBuf *ibuf, float value);
-
-/**
- * This should not be here, really,
- * we needed it for operating on render data, #IMB_rectfill_area calls it.
- */
-void buf_rectfill_area(unsigned char *rect,
-                       float *rectf,
-                       int width,
-                       int height,
-                       const float col[4],
-                       const ColorManagedDisplay *display,
-                       int x1,
-                       int y1,
-                       int x2,
-                       int y2);
 
 /**
  * Exported for image tools in blender, to quickly allocate 32 bits rect.

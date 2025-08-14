@@ -347,12 +347,11 @@ void paint_proj_stroke_done(void *ps_handle_p);
 void paint_brush_color_get(const Paint *paint,
                            Brush *br,
                            std::optional<blender::float3> &initial_hsv_jitter,
-                           bool color_correction,
                            bool invert,
                            float distance,
                            float pressure,
-                           const ColorManagedDisplay *display,
-                           float r_color[3]);
+                           bool is_data,
+                           float r_color[3] /* In scene linear colorspace. */);
 bool paint_use_opacity_masking(const Paint *paint, const Brush *brush);
 void paint_brush_init_tex(Brush *brush);
 void paint_brush_exit_tex(Brush *brush);

@@ -34,7 +34,6 @@
 struct BPyBLFImBufContext {
   PyObject_HEAD /* Required Python macro. */
   PyObject *py_imbuf;
-  const ColorManagedDisplay *display;
 
   int fontid;
   BLFBufferState *buffer_state;
@@ -532,7 +531,7 @@ static PyObject *py_blf_bind_imbuf_enter(BPyBLFImBufContext *self)
              ibuf->byte_buffer.data,
              ibuf->x,
              ibuf->y,
-             self->display);
+             ibuf->byte_buffer.colorspace);
   self->buffer_state = buffer_state;
 
   Py_RETURN_NONE;
@@ -654,7 +653,7 @@ static PyTypeObject BPyBLFImBufContext_Type = {
 PyDoc_STRVAR(
     /* Wrap. */
     py_blf_bind_imbuf_doc,
-    ".. method:: bind_imbuf(fontid, image, display_name=None)\n"
+    ".. method:: bind_imbuf(fontid, image)\n"
     "\n"
     "   Context manager to draw text into an image buffer instead of the GPU's context.\n"
     "\n"
@@ -663,8 +662,6 @@ PyDoc_STRVAR(
     "   :type fontid: int\n"
     "   :arg imbuf: The image to draw into.\n"
     "   :type imbuf: :class:`imbuf.types.ImBuf`\n"
-    "   :arg display_name: The color management display name to use or None.\n"
-    "   :type display_name: str | None\n"
 
     "   :return: The BLF ImBuf context manager.\n"
     "   :rtype: BLFImBufContext\n");
@@ -697,32 +694,12 @@ static PyObject *py_blf_bind_imbuf(PyObject * /*self*/, PyObject *args, PyObject
     return nullptr;
   }
 
-  const ColorManagedDisplay *display = nullptr;
-  if (display_name) {
-    display = IMB_colormanagement_display_get_named(display_name);
-    if (UNLIKELY(display == nullptr)) {
-      std::string display_names_all;
-      display_names_all.reserve(1024);
-      const char *ex = nullptr;
-      /* 1 based index. */
-      for (int i = 1; (ex = IMB_colormanagement_display_get_indexed_name(i)); i++) {
-        if (i > 1) {
-          display_names_all += ", ";
-        }
-        display_names_all += ex;
-      }
-      PyErr_Format(PyExc_ValueError,
-                   "bind_imbuf: color management \"%s\" not found in [%s]",
-                   display_name,
-                   display_names_all.c_str());
-      return nullptr;
-    }
-  }
+  /* Display name is ignored, it is only kept for backwards compatibility. This should
+   * always have been the image buffer byte colorspace rather than a display. */
 
   BPyBLFImBufContext *ret = PyObject_GC_New(BPyBLFImBufContext, &BPyBLFImBufContext_Type);
 
   ret->py_imbuf = Py_NewRef(py_imbuf);
-  ret->display = display;
 
   ret->fontid = fontid;
   ret->buffer_state = nullptr;

@@ -366,11 +366,10 @@ bool paint_use_opacity_masking(const Paint *paint, const Brush *brush)
 void paint_brush_color_get(const Paint *paint,
                            Brush *br,
                            std::optional<blender::float3> &initial_hsv_jitter,
-                           bool color_correction,
                            bool invert,
                            float distance,
                            float pressure,
-                           const ColorManagedDisplay *display,
+                           bool is_data,
                            float r_color[3])
 {
   if (invert) {
@@ -396,7 +395,7 @@ void paint_brush_color_get(const Paint *paint,
         }
       }
       /* Gradient / Color-band colors are not considered #PROP_COLOR_GAMMA.
-       * Brush colors are expected to be in sRGB though. */
+       * Brush colors are currently in sRGB though. */
       IMB_colormanagement_scene_linear_to_srgb_v3(r_color, color_gr);
     }
     else if (color_jitter_settings) {
@@ -411,8 +410,8 @@ void paint_brush_color_get(const Paint *paint,
       copy_v3_v3(r_color, BKE_brush_color_get(paint, br));
     }
   }
-  if (color_correction) {
-    IMB_colormanagement_display_to_scene_linear_v3(r_color, display);
+  if (!is_data) {
+    IMB_colormanagement_srgb_to_scene_linear_v3(r_color, r_color);
   }
 }
 

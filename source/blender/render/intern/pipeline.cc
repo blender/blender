@@ -1425,10 +1425,7 @@ static void renderresult_stampinfo(Render *re)
       BKE_image_stamp_buf(re->scene,
                           ob_camera_eval,
                           (re->scene->r.stamp & R_STAMP_STRIPMETA) ? rres.stamp_data : nullptr,
-                          rres.ibuf->byte_buffer.data,
-                          rres.ibuf->float_buffer.data,
-                          rres.rectx,
-                          rres.recty);
+                          rres.ibuf);
     }
 
     RE_ReleaseResultImage(re);

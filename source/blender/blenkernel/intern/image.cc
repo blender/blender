@@ -2001,18 +2001,13 @@ static void stampdata_from_template(StampData *stamp_data,
 void BKE_image_stamp_buf(Scene *scene,
                          Object *camera,
                          const StampData *stamp_data_template,
-                         uchar *rect,
-                         float *rectf,
-                         int width,
-                         int height)
+                         ImBuf *ibuf)
 {
   StampData stamp_data;
   int w, h, pad;
   int x, y, y_ofs;
   int h_fixed;
   const int mono = blf_mono_font_render; /* XXX */
-  const ColorManagedDisplay *display;
-  const char *display_device;
 
   /* vars for calculating wordwrap */
   struct {
@@ -2035,12 +2030,9 @@ void BKE_image_stamp_buf(Scene *scene,
 #define BUFF_MARGIN_X 2
 #define BUFF_MARGIN_Y 1
 
-  if (!rect && !rectf) {
+  if (!ibuf->byte_buffer.data && !ibuf->float_buffer.data) {
     return;
   }
-
-  display_device = scene->display_settings.display_device;
-  display = IMB_colormanagement_display_get_named(display_device);
 
   bool do_prefix = (scene->r.stamp & R_STAMP_HIDE_LABELS) == 0;
   if (stamp_data_template == nullptr) {
@@ -2057,9 +2049,14 @@ void BKE_image_stamp_buf(Scene *scene,
 
   /* set before return */
   BLF_size(mono, scene->r.stamp_font_id);
-  BLF_wordwrap(mono, width - (BUFF_MARGIN_X * 2));
+  BLF_wordwrap(mono, ibuf->x - (BUFF_MARGIN_X * 2));
 
-  BLF_buffer(mono, rectf, rect, width, height, display);
+  BLF_buffer(mono,
+             ibuf->float_buffer.data,
+             ibuf->byte_buffer.data,
+             ibuf->x,
+             ibuf->y,
+             ibuf->byte_buffer.colorspace);
   BLF_buffer_col(mono, scene->r.fg_stamp);
   pad = BLF_width_max(mono);
 
@@ -2068,19 +2065,15 @@ void BKE_image_stamp_buf(Scene *scene,
   y_ofs = -BLF_descender(mono);
 
   x = 0;
-  y = height;
+  y = ibuf->y;
 
   if (TEXT_SIZE_CHECK(stamp_data.file, w, h)) {
     /* Top left corner */
     y -= h;
 
     /* also a little of space to the background. */
-    buf_rectfill_area(rect,
-                      rectf,
-                      width,
-                      height,
+    IMB_rectfill_area(ibuf,
                       scene->r.bg_stamp,
-                      display,
                       x - BUFF_MARGIN_X,
                       y - BUFF_MARGIN_Y,
                       w + BUFF_MARGIN_X,
@@ -2099,16 +2092,8 @@ void BKE_image_stamp_buf(Scene *scene,
     y -= h;
 
     /* and space for background. */
-    buf_rectfill_area(rect,
-                      rectf,
-                      width,
-                      height,
-                      scene->r.bg_stamp,
-                      display,
-                      0,
-                      y - BUFF_MARGIN_Y,
-                      w + BUFF_MARGIN_X,
-                      y + h + BUFF_MARGIN_Y);
+    IMB_rectfill_area(
+        ibuf, scene->r.bg_stamp, 0, y - BUFF_MARGIN_Y, w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 
     BLF_position(mono, x, y + y_ofs, 0.0);
     BLF_draw_buffer(mono, stamp_data.date, sizeof(stamp_data.date));
@@ -2122,16 +2107,8 @@ void BKE_image_stamp_buf(Scene *scene,
     y -= h;
 
     /* and space for background. */
-    buf_rectfill_area(rect,
-                      rectf,
-                      width,
-                      height,
-                      scene->r.bg_stamp,
-                      display,
-                      0,
-                      y - BUFF_MARGIN_Y,
-                      w + BUFF_MARGIN_X,
-                      y + h + BUFF_MARGIN_Y);
+    IMB_rectfill_area(
+        ibuf, scene->r.bg_stamp, 0, y - BUFF_MARGIN_Y, w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 
     BLF_position(mono, x, y + y_ofs, 0.0);
     BLF_draw_buffer(mono, stamp_data.rendertime, sizeof(stamp_data.rendertime));
@@ -2145,16 +2122,8 @@ void BKE_image_stamp_buf(Scene *scene,
     y -= h;
 
     /* and space for background. */
-    buf_rectfill_area(rect,
-                      rectf,
-                      width,
-                      height,
-                      scene->r.bg_stamp,
-                      display,
-                      0,
-                      y - BUFF_MARGIN_Y,
-                      w + BUFF_MARGIN_X,
-                      y + h + BUFF_MARGIN_Y);
+    IMB_rectfill_area(
+        ibuf, scene->r.bg_stamp, 0, y - BUFF_MARGIN_Y, w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 
     BLF_position(mono, x, y + y_ofs, 0.0);
     BLF_draw_buffer(mono, stamp_data.memory, sizeof(stamp_data.memory));
@@ -2168,16 +2137,8 @@ void BKE_image_stamp_buf(Scene *scene,
     y -= h;
 
     /* and space for background. */
-    buf_rectfill_area(rect,
-                      rectf,
-                      width,
-                      height,
-                      scene->r.bg_stamp,
-                      display,
-                      0,
-                      y - BUFF_MARGIN_Y,
-                      w + BUFF_MARGIN_X,
-                      y + h + BUFF_MARGIN_Y);
+    IMB_rectfill_area(
+        ibuf, scene->r.bg_stamp, 0, y - BUFF_MARGIN_Y, w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 
     BLF_position(mono, x, y + y_ofs, 0.0);
     BLF_draw_buffer(mono, stamp_data.hostname, sizeof(stamp_data.hostname));
@@ -2192,16 +2153,8 @@ void BKE_image_stamp_buf(Scene *scene,
     y -= h;
 
     /* and space for background. */
-    buf_rectfill_area(rect,
-                      rectf,
-                      width,
-                      height,
-                      scene->r.bg_stamp,
-                      display,
-                      0,
-                      y - BUFF_MARGIN_Y,
-                      w + BUFF_MARGIN_X,
-                      y + h + BUFF_MARGIN_Y);
+    IMB_rectfill_area(
+        ibuf, scene->r.bg_stamp, 0, y - BUFF_MARGIN_Y, w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 
     BLF_position(mono, x, y + y_ofs + (h - h_fixed), 0.0);
     BLF_draw_buffer(mono, stamp_data.note, sizeof(stamp_data.note));
@@ -2215,12 +2168,8 @@ void BKE_image_stamp_buf(Scene *scene,
   if (TEXT_SIZE_CHECK(stamp_data.marker, w, h)) {
 
     /* extra space for background. */
-    buf_rectfill_area(rect,
-                      rectf,
-                      width,
-                      height,
+    IMB_rectfill_area(ibuf,
                       scene->r.bg_stamp,
-                      display,
                       x - BUFF_MARGIN_X,
                       y - BUFF_MARGIN_Y,
                       w + BUFF_MARGIN_X,
@@ -2238,12 +2187,8 @@ void BKE_image_stamp_buf(Scene *scene,
   if (TEXT_SIZE_CHECK(stamp_data.time, w, h)) {
 
     /* extra space for background */
-    buf_rectfill_area(rect,
-                      rectf,
-                      width,
-                      height,
+    IMB_rectfill_area(ibuf,
                       scene->r.bg_stamp,
-                      display,
                       x - BUFF_MARGIN_X,
                       y,
                       x + w + BUFF_MARGIN_X,
@@ -2260,12 +2205,8 @@ void BKE_image_stamp_buf(Scene *scene,
   if (TEXT_SIZE_CHECK(stamp_data.frame, w, h)) {
 
     /* extra space for background. */
-    buf_rectfill_area(rect,
-                      rectf,
-                      width,
-                      height,
+    IMB_rectfill_area(ibuf,
                       scene->r.bg_stamp,
-                      display,
                       x - BUFF_MARGIN_X,
                       y - BUFF_MARGIN_Y,
                       x + w + BUFF_MARGIN_X,
@@ -2282,12 +2223,8 @@ void BKE_image_stamp_buf(Scene *scene,
   if (TEXT_SIZE_CHECK(stamp_data.frame_range, w, h)) {
 
     /* extra space for background. */
-    buf_rectfill_area(rect,
-                      rectf,
-                      width,
-                      height,
+    IMB_rectfill_area(ibuf,
                       scene->r.bg_stamp,
-                      display,
                       x - BUFF_MARGIN_X,
                       y - BUFF_MARGIN_Y,
                       x + w + BUFF_MARGIN_X,
@@ -2304,12 +2241,8 @@ void BKE_image_stamp_buf(Scene *scene,
   if (TEXT_SIZE_CHECK(stamp_data.camera, w, h)) {
 
     /* extra space for background. */
-    buf_rectfill_area(rect,
-                      rectf,
-                      width,
-                      height,
+    IMB_rectfill_area(ibuf,
                       scene->r.bg_stamp,
-                      display,
                       x - BUFF_MARGIN_X,
                       y - BUFF_MARGIN_Y,
                       x + w + BUFF_MARGIN_X,
@@ -2324,12 +2257,8 @@ void BKE_image_stamp_buf(Scene *scene,
   if (TEXT_SIZE_CHECK(stamp_data.cameralens, w, h)) {
 
     /* extra space for background. */
-    buf_rectfill_area(rect,
-                      rectf,
-                      width,
-                      height,
+    IMB_rectfill_area(ibuf,
                       scene->r.bg_stamp,
-                      display,
                       x - BUFF_MARGIN_X,
                       y - BUFF_MARGIN_Y,
                       x + w + BUFF_MARGIN_X,
@@ -2341,15 +2270,11 @@ void BKE_image_stamp_buf(Scene *scene,
   if (TEXT_SIZE_CHECK(stamp_data.scene, w, h)) {
 
     /* Bottom right corner, with an extra space because the BLF API is too strict! */
-    x = width - w - 2;
+    x = ibuf->x - w - 2;
 
     /* extra space for background. */
-    buf_rectfill_area(rect,
-                      rectf,
-                      width,
-                      height,
+    IMB_rectfill_area(ibuf,
                       scene->r.bg_stamp,
-                      display,
                       x - BUFF_MARGIN_X,
                       y - BUFF_MARGIN_Y,
                       x + w + BUFF_MARGIN_X,
@@ -2363,16 +2288,12 @@ void BKE_image_stamp_buf(Scene *scene,
   if (TEXT_SIZE_CHECK(stamp_data.strip, w, h)) {
 
     /* Top right corner, with an extra space because the BLF API is too strict! */
-    x = width - w - pad;
-    y = height - h;
+    x = ibuf->x - w - pad;
+    y = ibuf->y - h;
 
     /* extra space for background. */
-    buf_rectfill_area(rect,
-                      rectf,
-                      width,
-                      height,
+    IMB_rectfill_area(ibuf,
                       scene->r.bg_stamp,
-                      display,
                       x - BUFF_MARGIN_X,
                       y - BUFF_MARGIN_Y,
                       x + w + BUFF_MARGIN_X,

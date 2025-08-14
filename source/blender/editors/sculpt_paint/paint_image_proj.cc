@@ -5787,18 +5787,11 @@ static void paint_proj_stroke_ps(const bContext * /*C*/,
     paint_brush_color_get(paint,
                           brush,
                           ps_handle->initial_hsv_jitter,
-                          false,
                           ps->mode == BRUSH_STROKE_INVERT,
                           distance,
                           pressure,
-                          nullptr,
+                          has_data_projection_paint_image(*ps),
                           ps->paint_color);
-    if (has_data_projection_paint_image(*ps)) {
-      copy_v3_v3(ps->paint_color_linear, ps->paint_color);
-    }
-    else {
-      srgb_to_linearrgb_v3_v3(ps->paint_color_linear, ps->paint_color);
-    }
   }
   else if (ps->brush_type == IMAGE_PAINT_BRUSH_TYPE_MASK) {
     ps->stencil_value = brush->weight;

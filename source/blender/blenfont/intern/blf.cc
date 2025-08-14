@@ -944,8 +944,7 @@ void BLF_shadow_offset(int fontid, int x, int y)
   }
 }
 
-void BLF_buffer(
-    int fontid, float *fbuf, uchar *cbuf, int w, int h, const ColorManagedDisplay *display)
+void BLF_buffer(int fontid, float *fbuf, uchar *cbuf, int w, int h, const ColorSpace *colorspace)
 {
   FontBLF *font = blf_get(fontid);
 
@@ -954,7 +953,7 @@ void BLF_buffer(
     font->buf_info.cbuf = cbuf;
     font->buf_info.dims[0] = w;
     font->buf_info.dims[1] = h;
-    font->buf_info.display = display;
+    font->buf_info.colorspace = colorspace;
   }
 }
 
@@ -1004,12 +1003,12 @@ void BLF_buffer_state_free(BLFBufferState *buffer_state)
   MEM_delete(buffer_state);
 }
 
-void BLF_buffer_col(int fontid, const float rgba[4])
+void BLF_buffer_col(int fontid, const float srgb_color[4])
 {
   FontBLF *font = blf_get(fontid);
 
   if (font) {
-    copy_v4_v4(font->buf_info.col_init, rgba);
+    copy_v4_v4(font->buf_info.col_init, srgb_color);
   }
 }
 
@@ -1017,14 +1016,19 @@ void blf_draw_buffer__start(FontBLF *font)
 {
   FontBufInfoBLF *buf_info = &font->buf_info;
 
-  rgba_float_to_uchar(buf_info->col_char, buf_info->col_init);
+  /* This will be written to scene linear image buffer, so convert to that. */
+  IMB_colormanagement_srgb_to_scene_linear_v3(buf_info->col_float, buf_info->col_init);
+  buf_info->col_float[3] = buf_info->col_init[3];
 
-  if (buf_info->display) {
-    copy_v4_v4(buf_info->col_float, buf_info->col_init);
-    IMB_colormanagement_display_to_scene_linear_v3(buf_info->col_float, buf_info->display);
+  /* Convert to the colorspace of the byte image buffer, assumed sRGB if not specified. */
+  if (buf_info->colorspace) {
+    float col_char[4];
+    copy_v4_v4(col_char, buf_info->col_float);
+    IMB_colormanagement_scene_linear_to_colorspace_v3(col_char, buf_info->colorspace);
+    rgba_float_to_uchar(buf_info->col_char, col_char);
   }
   else {
-    srgb_to_linearrgb_v4(buf_info->col_float, buf_info->col_init);
+    rgba_float_to_uchar(buf_info->col_char, buf_info->col_init);
   }
 }
 void blf_draw_buffer__end() {}

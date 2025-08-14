@@ -251,7 +251,7 @@ void ED_image_draw_info(Scene *scene,
             rgba, rgba, &scene->view_settings, &scene->display_settings);
       }
 
-      SNPRINTF_UTF8(str, "  |  CM  R:%-.4f  G:%-.4f  B:%-.4f", rgba[0], rgba[1], rgba[2]);
+      SNPRINTF_UTF8(str, "  |  Display  R:%-.4f  G:%-.4f  B:%-.4f", rgba[0], rgba[1], rgba[2]);
       BLF_position(blf_mono_font, dx, dy, 0);
       BLF_draw(blf_mono_font, str, sizeof(str));
       dx += BLF_width(blf_mono_font, str, sizeof(str));

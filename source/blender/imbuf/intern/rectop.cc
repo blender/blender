@@ -1008,65 +1008,19 @@ void IMB_rectfill(ImBuf *drect, const float col[4])
   }
 }
 
-void IMB_rectfill_area_replace(
-    const ImBuf *ibuf, const float col[4], int x1, int y1, int x2, int y2)
+void IMB_rectfill_area(
+    ImBuf *ibuf, const float scene_linear_color[4], int x1, int y1, int x2, int y2)
 {
-  /* Sanity checks. */
-  BLI_assert(ibuf->channels == 4);
-
-  if (ibuf->channels != 4) {
+  if (!ibuf) {
     return;
   }
 
-  int width = ibuf->x;
-  int height = ibuf->y;
-  CLAMP(x1, 0, width);
-  CLAMP(x2, 0, width);
-  CLAMP(y1, 0, height);
-  CLAMP(y2, 0, height);
+  uchar *rect = ibuf->byte_buffer.data;
+  float *rectf = ibuf->float_buffer.data;
+  const int width = ibuf->x;
+  const int height = ibuf->y;
 
-  if (x1 > x2) {
-    std::swap(x1, x2);
-  }
-  if (y1 > y2) {
-    std::swap(y1, y2);
-  }
-  if (x1 == x2 || y1 == y2) {
-    return;
-  }
-
-  const uchar col_char[4] = {
-      uchar(col[0] * 255), uchar(col[1] * 255), uchar(col[2] * 255), uchar(col[3] * 255)};
-
-  for (int y = y1; y < y2; y++) {
-    for (int x = x1; x < x2; x++) {
-      size_t offset = size_t(ibuf->x) * y * 4 + 4 * x;
-
-      if (ibuf->byte_buffer.data) {
-        uchar *rrect = ibuf->byte_buffer.data + offset;
-        memcpy(rrect, col_char, sizeof(uchar[4]));
-      }
-
-      if (ibuf->float_buffer.data) {
-        float *rrectf = ibuf->float_buffer.data + offset;
-        memcpy(rrectf, col, sizeof(float[4]));
-      }
-    }
-  }
-}
-
-void buf_rectfill_area(uchar *rect,
-                       float *rectf,
-                       int width,
-                       int height,
-                       const float col[4],
-                       const ColorManagedDisplay *display,
-                       int x1,
-                       int y1,
-                       int x2,
-                       int y2)
-{
-  if ((!rect && !rectf) || (!col) || col[3] == 0.0f) {
+  if ((!rect && !rectf) || scene_linear_color[3] == 0.0f) {
     return;
   }
 
@@ -1089,7 +1043,7 @@ void buf_rectfill_area(uchar *rect,
   const int y_span = y2 - y1;
 
   /* Alpha. */
-  const float a = col[3];
+  const float a = scene_linear_color[3];
   /* Alpha inverted. */
   const float ai = 1 - a;
   /* Alpha, inverted, ai/255.0 - Convert char to float at the same time. */
@@ -1101,6 +1055,15 @@ void buf_rectfill_area(uchar *rect,
     float fr = 0, fg = 0, fb = 0;
 
     const int alphaint = unit_float_to_uchar_clamp(a);
+
+    float col[3];
+    copy_v3_v3(col, scene_linear_color);
+    if (ibuf->byte_buffer.colorspace) {
+      IMB_colormanagement_scene_linear_to_colorspace_v3(col, ibuf->byte_buffer.colorspace);
+    }
+    else {
+      IMB_colormanagement_scene_linear_to_srgb_v3(col, scene_linear_color);
+    }
 
     if (a == 1.0f) {
       chr = unit_float_to_uchar_clamp(col[0]);
@@ -1135,61 +1098,29 @@ void buf_rectfill_area(uchar *rect,
   }
 
   if (rectf) {
-    float col_conv[4];
     float *pixel;
-
-    if (display) {
-      copy_v4_v4(col_conv, col);
-      IMB_colormanagement_display_to_scene_linear_v3(col_conv, display);
-    }
-    else {
-      srgb_to_linearrgb_v4(col_conv, col);
-    }
 
     for (int j = 0; j < y_span; j++) {
       pixel = rectf + (4 * (((size_t(y1) + j) * size_t(width)) + size_t(x1)));
       for (int i = 0; i < x_span; i++) {
         BLI_assert(pixel >= rectf && pixel < rectf + (4 * (size_t(width) * size_t(height))));
         if (a == 1.0f) {
-          pixel[0] = col_conv[0];
-          pixel[1] = col_conv[1];
-          pixel[2] = col_conv[2];
+          pixel[0] = scene_linear_color[0];
+          pixel[1] = scene_linear_color[1];
+          pixel[2] = scene_linear_color[2];
           pixel[3] = 1.0f;
         }
         else {
           float alphatest;
-          pixel[0] = (col_conv[0] * a) + (pixel[0] * ai);
-          pixel[1] = (col_conv[1] * a) + (pixel[1] * ai);
-          pixel[2] = (col_conv[2] * a) + (pixel[2] * ai);
+          pixel[0] = (scene_linear_color[0] * a) + (pixel[0] * ai);
+          pixel[1] = (scene_linear_color[1] * a) + (pixel[1] * ai);
+          pixel[2] = (scene_linear_color[2] * a) + (pixel[2] * ai);
           pixel[3] = (alphatest = (pixel[3] + a)) < 1.0f ? alphatest : 1.0f;
         }
         pixel += 4;
       }
     }
   }
-}
-
-void IMB_rectfill_area(ImBuf *ibuf,
-                       const float col[4],
-                       int x1,
-                       int y1,
-                       int x2,
-                       int y2,
-                       const ColorManagedDisplay *display)
-{
-  if (!ibuf) {
-    return;
-  }
-  buf_rectfill_area(ibuf->byte_buffer.data,
-                    ibuf->float_buffer.data,
-                    ibuf->x,
-                    ibuf->y,
-                    col,
-                    display,
-                    x1,
-                    y1,
-                    x2,
-                    y2);
 }
 
 void IMB_rectfill_alpha(ImBuf *ibuf, const float value)

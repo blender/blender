@@ -313,11 +313,11 @@ static void eyedropper_grease_pencil_color_set(bContext *C,
 
   float3 col_conv = eye->color;
 
-  /* Convert from linear rgb space to display space because palette and brush colors are in display
-   *  space, and this conversion is needed to undo the conversion to linear performed by
-   *  eyedropper_color_sample_fl. */
+  /* Convert from linear rgb space to sRGB space because palette and brush colors are in
+   * sRGB space, and this conversion is needed to undo the conversion to linear performed by
+   * eyedropper_color_sample_fl. */
   if (eye->display && ELEM(eye->mode, EyeMode::Palette, EyeMode::Brush)) {
-    IMB_colormanagement_scene_linear_to_display_v3(col_conv, eye->display);
+    IMB_colormanagement_scene_linear_to_srgb_v3(col_conv, col_conv);
   }
 
   switch (eye->mode) {

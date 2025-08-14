@@ -390,15 +390,7 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 
   if (ibuf_result != nullptr) {
     if ((scene->r.stamp & R_STAMP_ALL) && (scene->r.stamp & R_STAMP_DRAW)) {
-      float *rectf = nullptr;
-      uchar *rect = nullptr;
-      if (ibuf_result->float_buffer.data) {
-        rectf = ibuf_result->float_buffer.data;
-      }
-      else {
-        rect = ibuf_result->byte_buffer.data;
-      }
-      BKE_image_stamp_buf(scene, camera, nullptr, rect, rectf, rr->rectx, rr->recty);
+      BKE_image_stamp_buf(scene, camera, nullptr, ibuf_result);
     }
     RE_render_result_rect_from_ibuf(rr, ibuf_result, oglrender->view_id);
     IMB_freeImBuf(ibuf_result);
