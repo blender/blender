@@ -213,9 +213,9 @@ bool ED_workspace_change(WorkSpace *workspace_new, bContext *C, wmWindowManager 
 
   /* Automatic mode switching. */
   if (workspace_new->object_mode != workspace_old->object_mode) {
-    const Base *base = CTX_data_active_base(C);
-    const Object *object = base->object;
-    if (object) {
+    const Object *object = nullptr;
+    if (const Base *base = CTX_data_active_base(C)) {
+      object = base->object;
       /* Behavior that depends on the active area is not expected in the context of workspace
        * switching, ignore the view-port even if it's available. */
       const View3D *v3d = nullptr;
