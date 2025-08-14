@@ -2088,10 +2088,20 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
    * isn't essential, it reduces flickering. */
   wl_surface_commit(window_->wl.surface);
 
-  window_->is_init = true;
+#ifdef WITH_OPENGL_BACKEND
+  if (type == GHOST_kDrawingContextTypeOpenGL) {
+    /* NOTE(@ideasman42): Set the swap interval to 0 (disable VSync) to prevent blocking.
+     * This was reported for SDL in 2021 so it may be good to revisit this decision
+     * at some point since forcing the VSync setting seems a heavy-handed,
+     * especially if the issue gets resolved up-stream.
+     *
+     * For reference: https://github.com/libsdl-org/SDL/issues/4335
+     * From the report the compositor causing problems was GNOME's Mutter. */
+    setSwapInterval(0);
+  }
+#endif
 
-  /* Set swap interval to 0 to prevent blocking. */
-  setSwapInterval(0);
+  window_->is_init = true;
 }
 
 GHOST_WindowWayland::~GHOST_WindowWayland()
