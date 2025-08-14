@@ -612,6 +612,24 @@ void _BaseMathObject_RaiseNotFrozenExc(const BaseMathObject *self)
       PyExc_TypeError, "%s is not frozen (mutable), call freeze first", Py_TYPE(self)->tp_name);
 }
 
+int _BaseMathObject_ResizeOkOrRaiseExc(BaseMathObject *self, const char *error_prefix)
+{
+  if (UNLIKELY(self->flag & BASE_MATH_FLAG_IS_FROZEN)) {
+    PyErr_Format(PyExc_ValueError, "%s: cannot resize frozen data", error_prefix);
+    return -1;
+  }
+  if (UNLIKELY(self->flag & BASE_MATH_FLAG_IS_WRAP)) {
+    PyErr_Format(
+        PyExc_TypeError, "%s: cannot resize wrapped data - only Python vectors", error_prefix);
+    return -1;
+  }
+  if (UNLIKELY(self->cb_user)) {
+    PyErr_Format(PyExc_TypeError, "%s: cannot resize a vector that has an owner", error_prefix);
+    return -1;
+  }
+  return 0;
+}
+
 /* #BaseMathObject generic functions for all mathutils types. */
 
 char BaseMathObject_owner_doc[] = "The item this is wrapping or None  (read-only).";
