@@ -135,8 +135,6 @@ GreasePencilExporter::GreasePencilExporter(const IOContext &context, const Expor
 {
 }
 
-constexpr const char *attr_material_index = "material_index";
-
 std::optional<Bounds<float2>> GreasePencilExporter::compute_screen_space_drawing_bounds(
     const RegionView3D &rv3d,
     Object &object,
