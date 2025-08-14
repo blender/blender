@@ -647,7 +647,7 @@ def lfs_fallback_setup(args: argparse.Namespace) -> None:
     for remote in remotes:
         url = make_utils.git_get_remote_url(args.git_command, remote)
         if "projects.blender.org" not in url and "git.blender.org" not in url:
-            make_utils.git_set_config(args.git_command, f"lfs.{remote}.searchall", "true")
+            make_utils.git_set_config(args.git_command, "lfs.remote.searchall", "true")
         else:
             add_fallback_remote = False
 
