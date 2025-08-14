@@ -12,7 +12,7 @@
 #include "GHOST_IContext.hh"
 #include "GHOST_Types.h"
 
-#include <cstdlib>  /* For `nullptr`. */
+#include <cstdlib> /* For `nullptr`. */
 
 class GHOST_Context : public GHOST_IContext {
  protected:
