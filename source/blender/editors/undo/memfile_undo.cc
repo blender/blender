@@ -106,6 +106,7 @@ static int memfile_undosys_step_id_reused_cb(LibraryIDLinkCallbackData *cb_data)
    * upcoming packed data. Probably because while packed data remains unchanged, it is handled like
    * regular local data by undo code, and like regular linked data. */
   BLI_assert((owner_id->tag & ID_TAG_UNDO_OLD_ID_REUSED_UNCHANGED) != 0);
+  UNUSED_VARS_NDEBUG(owner_id);
 
   ID *id = *id_pointer;
   if (id != nullptr && !ID_IS_LINKED(id) && (id->tag & ID_TAG_UNDO_OLD_ID_REUSED_UNCHANGED) == 0) {
