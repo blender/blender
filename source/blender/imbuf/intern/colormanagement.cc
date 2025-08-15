@@ -6,6 +6,7 @@
  * \ingroup imbuf
  */
 
+#include "BLI_string_ref.hh"
 #include "IMB_colormanagement.hh"
 #include "IMB_colormanagement_intern.hh"
 
@@ -874,22 +875,64 @@ static void colormanage_check_display_settings(ColorManagedDisplaySettings *disp
                                                const char *what,
                                                const ocio::Display *default_display)
 {
-  if (display_settings->display_device[0] == '\0') {
+  StringRefNull display_name = display_settings->display_device;
+
+  if (display_name.is_empty()) {
     STRNCPY_UTF8(display_settings->display_device, default_display->name().c_str());
+    return;
   }
-  else {
-    const ocio::Display *display = g_config->get_display_by_name(display_settings->display_device);
 
-    if (!display) {
-      CLOG_WARN(&LOG,
-                "Display \"%s\" used by %s not found, setting to default (\"%s\").",
-                display_settings->display_device,
-                what,
-                default_display->name().c_str());
+  const ocio::Display *display = g_config->get_display_by_name(display_name);
+  if (display) {
+    return;
+  }
 
-      STRNCPY_UTF8(display_settings->display_device, default_display->name().c_str());
+  StringRefNull new_display_name = default_display->name();
+
+  /* Try to find a similar name, so that we can match e.g. "sRGB - Display" and "sRGB".
+   * There are aliases for color spaces, but not displays. */
+  for (const int display_index : blender::IndexRange(g_config->get_num_displays())) {
+    display = g_config->get_display_by_index(display_index);
+    if (display->name().startswith(display_name) || display_name.startswith(display->name())) {
+      new_display_name = display->name();
+      break;
     }
   }
+
+  CLOG_WARN(&LOG,
+            "Display \"%s\" used by %s not found, setting to \"%s\".",
+            display_settings->display_device,
+            what,
+            new_display_name.c_str());
+
+  STRNCPY_UTF8(display_settings->display_device, new_display_name.c_str());
+}
+
+static StringRefNull colormanage_find_matching_view_name(const ocio::Display *display,
+                                                         StringRefNull view_name)
+{
+  /* Match untonemapped view conventions between Blender and ACES 2.0. */
+  if (view_name == "Standard" && display->get_view_by_name("Un-tone-mapped")) {
+    return "Un-tone-mapped";
+  }
+  if (view_name == "Un-tone-mapped" && display->get_view_by_name("Standard")) {
+    return "Standard";
+  }
+
+  /* Try to find a similar name, so that we can match e.g. "ACES 2.0" and "ACES 2.0 - HDR
+   * 1000 when switching between SDR and HDR displays. */
+  for (const int view_index : blender::IndexRange(display->get_num_views())) {
+    const ocio::View *view = display->get_view_by_index(view_index);
+    if (view->name().startswith(view_name) || view_name.startswith(view->name())) {
+      return view->name();
+    }
+  }
+
+  if (const ocio::View *view = display->get_default_view()) {
+    return view->name();
+  }
+
+  return "";
 }
 
 static void colormanage_check_view_settings(ColorManagedDisplaySettings *display_settings,
@@ -901,24 +944,25 @@ static void colormanage_check_view_settings(ColorManagedDisplaySettings *display
     return;
   }
   const char *default_look_name = IMB_colormanagement_look_get_default_name();
+  StringRefNull view_name = view_settings->view_transform;
 
-  if (view_settings->view_transform[0] == '\0') {
+  if (view_name.is_empty()) {
     const ocio::View *default_view = display->get_default_view();
     if (default_view) {
       STRNCPY_UTF8(view_settings->view_transform, default_view->name().c_str());
     }
   }
   else {
-    const ocio::View *view = display->get_view_by_name(view_settings->view_transform);
+    const ocio::View *view = display->get_view_by_name(view_name);
     if (!view) {
-      const ocio::View *default_view = display->get_default_view();
-      if (default_view) {
+      StringRefNull new_view_name = colormanage_find_matching_view_name(display, view_name);
+      if (!new_view_name.is_empty()) {
         CLOG_WARN(&LOG,
-                  "%s view \"%s\" not found, setting default \"%s\".",
+                  "%s view \"%s\" not found, setting to \"%s\".",
                   what,
                   view_settings->view_transform,
-                  default_view->name().c_str());
-        STRNCPY_UTF8(view_settings->view_transform, default_view->name().c_str());
+                  new_view_name.c_str());
+        STRNCPY_UTF8(view_settings->view_transform, new_view_name.c_str());
       }
     }
   }
@@ -1032,7 +1076,6 @@ void IMB_colormanagement_validate_settings(const ColorManagedDisplaySettings *di
                                            ColorManagedViewSettings *view_settings)
 {
   const ocio::Display *display = g_config->get_display_by_name(display_settings->display_device);
-  const ocio::View *default_view = display->get_default_view();
 
   bool found = false;
   for (const int view_index : blender::IndexRange(display->get_num_views())) {
@@ -1043,8 +1086,12 @@ void IMB_colormanagement_validate_settings(const ColorManagedDisplaySettings *di
     }
   }
 
-  if (!found && default_view) {
-    STRNCPY_UTF8(view_settings->view_transform, default_view->name().c_str());
+  if (!found) {
+    StringRefNull new_view_name = colormanage_find_matching_view_name(
+        display, view_settings->view_transform);
+    if (!new_view_name.is_empty()) {
+      STRNCPY_UTF8(view_settings->view_transform, new_view_name.c_str());
+    }
   }
 }
 
