@@ -8328,6 +8328,53 @@ def km_grease_pencil_interpolate_tool_modal_map(_params):
 
     return keymap
 
+
+def km_grease_pencil_pen_tool_modal_map(_params):
+    items = []
+    keymap = (
+        "Pen Tool Modal Map",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW', "modal": True},
+        {"items": items},
+    )
+
+    items.extend([
+        ("MOVE_HANDLE", {"type": 'LEFT_CTRL', "value": 'ANY', "any": True}, None),
+        ("MOVE_ENTIRE", {"type": 'LEFT_ALT', "value": 'ANY', "any": True}, None),
+        ("SNAP_ANGLE", {"type": 'LEFT_SHIFT', "value": 'ANY', "any": True}, None),
+    ])
+
+    return keymap
+
+
+def km_3d_view_tool_edit_grease_pencil_pen(params):
+    return (
+        "3D View Tool: Edit Grease Pencil, Pen",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("grease_pencil.pen", {"type": params.tool_mouse, "value": 'PRESS'},
+             {"properties": [
+                 ("extrude_point", True),
+                 ("move_segment", True),
+                 ("select_point", True),
+                 ("move_point", True),
+                 ("extrude_handle", "VECTOR"),
+             ]}),
+            ("grease_pencil.pen", {"type": params.tool_mouse, "value": 'PRESS', "shift": True},
+             {"properties": [
+                 ("extrude_point", True),
+                 ("move_segment", True),
+                 ("select_point", True),
+                 ("move_point", True),
+                 ("extrude_handle", "AUTO"),
+             ]}),
+            ("grease_pencil.pen", {"type": params.tool_mouse, "value": 'PRESS', "ctrl": True},
+             {"properties": [("insert_point", True), ("delete_point", True)]}),
+            ("grease_pencil.pen", {"type": params.tool_mouse, "value": 'DOUBLE_CLICK'},
+             {"properties": [("cycle_handle_type", True)]}),
+        ]},
+    )
+
+
 # ------------------------------------------------------------------------------
 # Grease Pencil: Texture Gradient Tool
 
@@ -8648,6 +8695,7 @@ def generate_keymaps(params=None):
         km_node_link_modal_map(params),
         km_node_resize_modal_map(params),
         km_grease_pencil_primitive_tool_modal_map(params),
+        km_grease_pencil_pen_tool_modal_map(params),
         km_grease_pencil_fill_tool_modal_map(params),
         km_grease_pencil_interpolate_tool_modal_map(params),
         km_sequencer_slip_modal_map(params),
@@ -8796,6 +8844,7 @@ def generate_keymaps(params=None):
         km_sequencer_preview_tool_move(params),
         km_sequencer_preview_tool_rotate(params),
         km_sequencer_preview_tool_scale(params),
+        km_3d_view_tool_edit_grease_pencil_pen(params),
         km_3d_view_tool_edit_grease_pencil_interpolate(params),
         km_3d_view_tool_paint_grease_pencil_interpolate(params),
         km_3d_view_tool_paint_grease_pencil_eyedropper(params),

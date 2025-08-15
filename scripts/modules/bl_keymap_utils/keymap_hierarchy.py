@@ -108,6 +108,7 @@ _km_hierarchy = [
         ]),
 
         ('Primitive Tool Modal Map', 'EMPTY', 'WINDOW', []),
+        ('Pen Tool Modal Map', 'EMPTY', 'WINDOW', []),
         ('Knife Tool Modal Map', 'EMPTY', 'WINDOW', []),
         ('Custom Normals Modal Map', 'EMPTY', 'WINDOW', []),
         ('Bevel Modal Map', 'EMPTY', 'WINDOW', []),

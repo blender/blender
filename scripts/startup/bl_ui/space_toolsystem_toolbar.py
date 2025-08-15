@@ -2426,6 +2426,41 @@ class _defs_grease_pencil_edit:
             keymap=(),
         )
 
+    @ToolDef.from_fn
+    def pen():
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("grease_pencil.pen")
+            layout.prop(props, "radius")
+
+            layout.separator()
+            tool_settings = context.tool_settings
+
+            sub = layout.row(align=True)
+            sub.prop_with_popover(
+                tool_settings,
+                "gpencil_stroke_placement_view3d",
+                text="",
+                panel="VIEW3D_PT_grease_pencil_origin",
+            )
+
+            sub = layout.row(align=True)
+            sub.active = tool_settings.gpencil_stroke_placement_view3d != 'SURFACE'
+            sub.prop_with_popover(
+                tool_settings.gpencil_sculpt,
+                "lock_axis",
+                text="",
+                panel="VIEW3D_PT_grease_pencil_lock",
+            )
+        return dict(
+            idname="builtin.pen",
+            label="Pen",
+            cursor='CROSSHAIR',
+            icon="ops.curve.pen",
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
+        )
+
 
 class _defs_image_generic:
 
@@ -3658,6 +3693,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_view3d_generic.cursor,
             None,
             *_tools_transform,
+            None,
+            _defs_grease_pencil_edit.pen,
             None,
             _defs_edit_curve.curve_radius,
             _defs_transform.bend,
