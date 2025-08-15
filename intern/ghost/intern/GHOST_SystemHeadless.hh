@@ -113,6 +113,8 @@ class GHOST_SystemHeadless : public GHOST_System {
   {
     const GHOST_ContextParams context_params_offscreen =
         GHOST_CONTEXT_PARAMS_FROM_GPU_SETTINGS_OFFSCREEN(gpuSettings);
+    /* This may not be used depending on the build configuration. */
+    (void)context_params_offscreen;
 
     switch (gpuSettings.context_type) {
 #ifdef WITH_VULKAN_BACKEND

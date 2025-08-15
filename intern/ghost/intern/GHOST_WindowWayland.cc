@@ -2090,7 +2090,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   if (type == GHOST_kDrawingContextTypeOpenGL) {
     /* NOTE(@ideasman42): Set the swap interval to 0 (disable VSync) to prevent blocking.
      * This was reported for SDL in 2021 so it may be good to revisit this decision
-     * at some point since forcing the VSync setting seems a heavy-handed,
+     * at some point since forcing the VSync setting seems heavy-handed,
      * especially if the issue gets resolved up-stream.
      *
      * For reference: https://github.com/libsdl-org/SDL/issues/4335
