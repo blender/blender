@@ -24,25 +24,19 @@ float4 transform(float4 hs_position)
   return hs_position;
 }
 
-/* NOTE: Cannot put the ifdef inside the template because of template as macro. */
-#ifdef GPU_ARB_clip_control
 /* Needs to be called for every depth buffer read, but not for the HiZ.
  * The HiZ buffer is already reversed back before downsample. */
 template<typename T> T read(T depth_buffer_value)
 {
+#ifdef GPU_ARB_clip_control
   /* Remapping from 0..1 to 1..0. The scaling to 0..1 is handled as normal by drw_screen_to_ndc. */
   return 1.0f - depth_buffer_value;
-}
-template float read<float>(float);
-template float4 read<float4>(float4);
 #else
-template<typename T> T read(T depth_buffer_value)
-{
   /* Passthrough. */
   return depth_buffer_value;
+#endif
 }
 template float read<float>(float);
 template float4 read<float4>(float4);
-#endif
 
 }  // namespace reverse_z
