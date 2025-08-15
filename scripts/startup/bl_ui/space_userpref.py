@@ -950,6 +950,7 @@ class USERPREF_MT_interface_theme_presets(Menu):
         "ThemeClipEditor",
         "ThemeCollectionColor",
         "ThemeCommon",
+        "ThemeCommonAnim",
         "ThemeConsole",
         "ThemeDopeSheet",
         "ThemeFileBrowser",
