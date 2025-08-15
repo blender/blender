@@ -231,6 +231,14 @@ static wmOperatorStatus view_pan_exec(bContext *C, wmOperator *op)
 /* set up modal operator and relevant settings */
 static wmOperatorStatus view_pan_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+#ifdef WITH_APPLE_CROSSPLATFORM
+  /* Only scroll File / Asset Browser view with multiple finger on iOS. */
+  ScrArea *area = CTX_wm_area(C);
+  if (area->spacetype == SPACE_FILE && !(event->flag & WM_EVENT_MULTITOUCH_TWO_FINGERS)) {
+    return OPERATOR_FINISHED;
+  }
+#endif
+
   wmWindow *window = CTX_wm_window(C);
 
   /* set up customdata */
