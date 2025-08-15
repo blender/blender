@@ -570,8 +570,7 @@ static void file_main_region_message_subscribe(const wmRegionMessageSubscribePar
           ED_region_tag_redraw(static_cast<ARegion *>(msg_val->owner));
         };
 
-    WM_msg_subscribe_remote_downloader(
-        mbus, *remote_url, &msg_sub_value_assets_downloaded, __func__);
+    WM_msg_subscribe_remote_io(mbus, *remote_url, &msg_sub_value_assets_downloaded, __func__);
   }
 }
 

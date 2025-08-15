@@ -149,7 +149,7 @@ void RemoteLibraryLoadingStatus::ping_new_previews(const StringRef url)
 
 void RemoteLibraryLoadingStatus::ping_new_assets(const bContext &C, const StringRef url)
 {
-  WM_msg_publish_remote_downloader(CTX_wm_message_bus(&C), url);
+  WM_msg_publish_remote_io(CTX_wm_message_bus(&C), url);
 }
 
 void RemoteLibraryLoadingStatus::ping_metafiles_in_place(const StringRef url)
