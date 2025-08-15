@@ -809,11 +809,6 @@ if(WITH_GTESTS)
       list(APPEND INC_SYS
         PUBLIC ${VULKAN_INCLUDE_DIRS}
       )
-      if(APPLE)
-        list(APPEND INC_SYS
-          ${MOLTENVK_INCLUDE_DIRS}
-        )
-      endif()
     endif()
   endif()
 endif()

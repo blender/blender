@@ -12,11 +12,7 @@
 #include <string>
 
 #ifdef WITH_VULKAN_BACKEND
-#  ifdef __APPLE__
-#    include <MoltenVK/vk_mvk_moltenvk.h>
-#  else
-#    include <vulkan/vulkan_core.h>
-#  endif
+#  include <vulkan/vulkan_core.h>
 #endif
 
 /* This is used by `GHOST_C-api.h` too, cannot use C++ conventions. */

@@ -501,15 +501,6 @@ void VKBackend::detect_workarounds(VKDevice &device)
   workarounds.vertex_formats.r8g8b8 = (format_properties.bufferFeatures &
                                        VK_FORMAT_FEATURE_VERTEX_BUFFER_BIT) == 0;
 
-#ifdef __APPLE__
-  /* Due to a limitation in MoltenVK, attachments should be sequential even when using
-   * dynamic rendering. MoltenVK internally uses render passes to simulate dynamic rendering and
-   * same limitations apply. */
-  if (GPU_type_matches(GPU_DEVICE_APPLE, GPU_OS_MAC, GPU_DRIVER_ANY)) {
-    GCaps.render_pass_workaround = true;
-  }
-#endif
-
   device.workarounds_ = workarounds;
   device.extensions_ = extensions;
 }
