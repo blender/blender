@@ -275,6 +275,7 @@ BLI_INLINE void ptex_face_uv_to_grid_uv(float ptex_u,
                                         float ptex_v,
                                         float *r_grid_u,
                                         float *r_grid_v);
+BLI_INLINE float2 ptex_face_uv_to_grid_uv(const float2 &ptex_uv);
 
 /* Inverse of above. */
 BLI_INLINE void grid_uv_to_ptex_face_uv(float grid_u,
@@ -295,6 +296,7 @@ BLI_INLINE int rotate_quad_to_corner(float quad_u,
                                      float quad_v,
                                      float *r_corner_u,
                                      float *r_corner_v);
+BLI_INLINE float2 rotate_quad_to_corner(int corner, const float2 &quad);
 
 /* Converts (u, v) coordinate from within a grid to a quad coordinate in
  * normalized ptex coordinates. */

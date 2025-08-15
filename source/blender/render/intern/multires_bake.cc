@@ -17,6 +17,7 @@
 #include "BLI_math_color.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_vector.hh"
 #include "BLI_threads.h"
 
 #include "BKE_attribute.hh"
@@ -244,49 +245,42 @@ static void set_rast_triangle(const MBakeRast *bake_rast, const int x, const int
 }
 
 static void rasterize_half(const MBakeRast *bake_rast,
-                           const float s0_s,
-                           const float t0_s,
-                           const float s1_s,
-                           const float t1_s,
-                           const float s0_l,
-                           const float t0_l,
-                           const float s1_l,
-                           const float t1_l,
+                           const float2 &s0,
+                           const float2 &s1,
+                           const float2 &l0,
+                           const float2 &l1,
                            const int y0_in,
                            const int y1_in,
-                           const int is_mid_right)
+                           const bool is_mid_right)
 {
-  const int s_stable = fabsf(t1_s - t0_s) > FLT_EPSILON ? 1 : 0;
-  const int l_stable = fabsf(t1_l - t0_l) > FLT_EPSILON ? 1 : 0;
+  const bool s_stable = fabsf(s1.y - s0.y) > FLT_EPSILON;
+  const bool l_stable = fabsf(l1.y - l0.y) > FLT_EPSILON;
   const int w = bake_rast->w;
   const int h = bake_rast->h;
-  int y, y0, y1;
 
   if (y1_in <= 0 || y0_in >= h) {
     return;
   }
 
-  y0 = y0_in < 0 ? 0 : y0_in;
-  y1 = y1_in >= h ? h : y1_in;
+  const int y0 = y0_in < 0 ? 0 : y0_in;
+  const int y1 = y1_in >= h ? h : y1_in;
 
-  for (y = y0; y < y1; y++) {
+  for (int y = y0; y < y1; y++) {
     /*-b(x-x0) + a(y-y0) = 0 */
-    int iXl, iXr, x;
-    float x_l = s_stable != 0 ? (s0_s + (((s1_s - s0_s) * (y - t0_s)) / (t1_s - t0_s))) : s0_s;
-    float x_r = l_stable != 0 ? (s0_l + (((s1_l - s0_l) * (y - t0_l)) / (t1_l - t0_l))) : s0_l;
-
+    float x_l = s_stable ? (s0.x + (((s1.x - s0.x) * (y - s0.y)) / (s1.y - s0.y))) : s0.x;
+    float x_r = l_stable ? (l0.x + (((l1.x - l0.x) * (y - l0.y)) / (l1.y - l0.y))) : l0.x;
     if (is_mid_right != 0) {
       std::swap(x_l, x_r);
     }
 
-    iXl = int(ceilf(x_l));
-    iXr = int(ceilf(x_r));
+    int iXl = int(ceilf(x_l));
+    int iXr = int(ceilf(x_r));
 
     if (iXr > 0 && iXl < w) {
       iXl = iXl < 0 ? 0 : iXl;
       iXr = iXr >= w ? w : iXr;
 
-      for (x = iXl; x < iXr; x++) {
+      for (int x = iXl; x < iXr; x++) {
         set_rast_triangle(bake_rast, x, y);
       }
     }
@@ -294,49 +288,47 @@ static void rasterize_half(const MBakeRast *bake_rast,
 }
 
 static void bake_rasterize(const MBakeRast *bake_rast,
-                           const float st0_in[2],
-                           const float st1_in[2],
-                           const float st2_in[2])
+                           const float2 &st0_in,
+                           const float2 &st1_in,
+                           const float2 &st2_in)
 {
-  const int w = bake_rast->w;
-  const int h = bake_rast->h;
-  float slo = st0_in[0] * w - 0.5f;
-  float tlo = st0_in[1] * h - 0.5f;
-  float smi = st1_in[0] * w - 0.5f;
-  float tmi = st1_in[1] * h - 0.5f;
-  float shi = st2_in[0] * w - 0.5f;
-  float thi = st2_in[1] * h - 0.5f;
-  int is_mid_right = 0, ylo, yhi, yhi_beg;
+  const float2 ibuf_size(bake_rast->w, bake_rast->h);
 
-  /* skip degenerates */
-  if ((slo == smi && tlo == tmi) || (slo == shi && tlo == thi) || (smi == shi && tmi == thi)) {
+  float2 p_low = st0_in * ibuf_size - 0.5f;
+  float2 p_mid = st1_in * ibuf_size - 0.5f;
+  float2 p_high = st2_in * ibuf_size - 0.5f;
+
+  /* Skip degenerates. */
+  if ((p_low.x == p_mid.x && p_low.y == p_mid.y) || (p_low.x == p_mid.x && p_low.y == p_high.y) ||
+      (p_mid.x == p_high.x && p_mid.y == p_high.y))
+  {
     return;
   }
 
-  /* sort by T */
-  if (tlo > tmi && tlo > thi) {
-    std::swap(shi, slo);
-    std::swap(thi, tlo);
+  /* Sort by T. */
+  if (p_low.y > p_mid.y && p_low.y > p_high.y) {
+    std::swap(p_high.x, p_low.x);
+    std::swap(p_high.y, p_low.y);
   }
-  else if (tmi > thi) {
-    std::swap(shi, smi);
-    std::swap(thi, tmi);
-  }
-
-  if (tlo > tmi) {
-    std::swap(slo, smi);
-    std::swap(tlo, tmi);
+  else if (p_mid.y > p_high.y) {
+    std::swap(p_high.x, p_mid.x);
+    std::swap(p_high.y, p_mid.y);
   }
 
-  /* check if mid point is to the left or to the right of the lo-hi edge */
-  is_mid_right = (-(shi - slo) * (tmi - thi) + (thi - tlo) * (smi - shi)) > 0 ? 1 : 0;
-  ylo = int(ceilf(tlo));
-  yhi_beg = int(ceilf(tmi));
-  yhi = int(ceilf(thi));
+  if (p_low.y > p_mid.y) {
+    std::swap(p_low.x, p_mid.x);
+    std::swap(p_low.y, p_mid.y);
+  }
+
+  /* Check if mid-point is to the left or to the right of the lo-hi edge. */
+  const bool is_mid_right = math::cross(p_mid - p_high, p_high - p_low) > 0;
+  const int ylo = int(ceilf(p_low.y));
+  const int yhi_beg = int(ceilf(p_mid.y));
+  const int yhi = int(ceilf(p_high.y));
 
   // if (fTmi>ceilf(fTlo))
-  rasterize_half(bake_rast, slo, tlo, smi, tmi, slo, tlo, shi, thi, ylo, yhi_beg, is_mid_right);
-  rasterize_half(bake_rast, smi, tmi, shi, thi, slo, tlo, shi, thi, yhi_beg, yhi, is_mid_right);
+  rasterize_half(bake_rast, p_low, p_mid, p_low, p_high, ylo, yhi_beg, is_mid_right);
+  rasterize_half(bake_rast, p_mid, p_high, p_low, p_high, yhi_beg, yhi, is_mid_right);
 }
 
 static bool multiresbake_test_break(const MultiresBakeRender &bake)
