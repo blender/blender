@@ -69,8 +69,11 @@ OBJMesh::OBJMesh(Depsgraph *depsgraph, const OBJExportParams &export_params, Obj
     this->materials[i] = BKE_object_material_get_eval(obj_eval, i + 1);
   }
 
-  set_world_axes_transform(
-      *obj_eval, export_params.forward_axis, export_params.up_axis, export_params.global_scale);
+  set_world_axes_transform(*obj_eval,
+                           export_params.forward_axis,
+                           export_params.up_axis,
+                           export_params.global_scale,
+                           export_params.apply_transform);
 }
 
 /**
@@ -146,13 +149,15 @@ void OBJMesh::triangulate_mesh_eval()
 void OBJMesh::set_world_axes_transform(const Object &obj_eval,
                                        const eIOAxis forward,
                                        const eIOAxis up,
-                                       const float global_scale)
+                                       const float global_scale,
+                                       const bool apply_transform)
 {
   float3x3 axes_transform;
   /* +Y-forward and +Z-up are the default Blender axis settings. */
   mat3_from_axis_conversion(forward, up, IO_AXIS_Y, IO_AXIS_Z, axes_transform.ptr());
 
-  const float4x4 &object_to_world = obj_eval.object_to_world();
+  const float4x4 &object_to_world = apply_transform ? obj_eval.object_to_world() :
+                                                      float4x4::identity();
   const float3x3 transform = axes_transform * float3x3(object_to_world);
 
   world_and_axes_transform_ = float4x4(transform);
