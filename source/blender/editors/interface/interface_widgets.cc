@@ -49,6 +49,8 @@
 
 #include "UI_abstract_view.hh"
 
+#include "IMB_colormanagement.hh"
+
 #ifdef WITH_INPUT_IME
 #  include "WM_types.hh"
 #endif
@@ -1037,10 +1039,8 @@ static void widgetbase_set_uniform_colors_ubv(uiWidgetBase *wtb,
                                               const uchar *col2,
                                               const uchar *outline,
                                               const uchar *emboss,
-                                              const uchar *tria,
-                                              const bool alpha_check)
+                                              const uchar *tria)
 {
-  widgetbase_set_uniform_alpha_check(wtb, alpha_check);
   rgba_float_args_set_ch(wtb->uniform_params.color_inner1, col1[0], col1[1], col1[2], col1[3]);
   rgba_float_args_set_ch(wtb->uniform_params.color_inner2, col2[0], col2[1], col2[2], col2[3]);
   rgba_float_args_set_ch(
@@ -1143,19 +1143,13 @@ static void draw_widgetbase_batch(uiWidgetBase *wtb)
   }
 }
 
-static void widgetbase_draw_ex(uiWidgetBase *wtb,
-                               const uiWidgetColors *wcol,
-                               bool show_alpha_checkers)
+static void widgetbase_draw(uiWidgetBase *wtb, const uiWidgetColors *wcol)
 {
   uchar inner_col1[4] = {0};
   uchar inner_col2[4] = {0};
   uchar emboss_col[4] = {0};
   uchar outline_col[4] = {0};
   uchar tria_col[4] = {0};
-  /* For color widget. */
-  if (wcol->shaded != 0) {
-    show_alpha_checkers = false;
-  }
 
   /* backdrop non AA */
   if (wtb->draw_inner) {
@@ -1192,11 +1186,9 @@ static void widgetbase_draw_ex(uiWidgetBase *wtb,
   }
 
   /* Draw everything in one draw-call. */
-  if (inner_col1[3] || inner_col2[3] || outline_col[3] || emboss_col[3] || tria_col[3] ||
-      show_alpha_checkers)
-  {
+  if (inner_col1[3] || inner_col2[3] || outline_col[3] || emboss_col[3] || tria_col[3]) {
     widgetbase_set_uniform_colors_ubv(
-        wtb, inner_col1, inner_col2, outline_col, emboss_col, tria_col, show_alpha_checkers);
+        wtb, inner_col1, inner_col2, outline_col, emboss_col, tria_col);
 
     GPU_blend(GPU_BLEND_ALPHA);
     draw_widgetbase_batch(wtb);
@@ -1204,9 +1196,38 @@ static void widgetbase_draw_ex(uiWidgetBase *wtb,
   }
 }
 
-static void widgetbase_draw(uiWidgetBase *wtb, const uiWidgetColors *wcol)
+/* widgetbase_draw variation for drawing colors, with full float color for wide gamut. */
+static void widgetbase_draw_color(uiWidgetBase *wtb,
+                                  const uiWidgetColors *wcol,
+                                  float color[4],
+                                  bool show_alpha_checkers)
 {
-  widgetbase_draw_ex(wtb, wcol, false);
+  const uchar unused_col[4] = {0};
+  uchar emboss_col[4] = {0};
+  uchar outline_col[4] = {0};
+
+  if (wtb->draw_outline) {
+    outline_col[0] = wcol->outline[0];
+    outline_col[1] = wcol->outline[1];
+    outline_col[2] = wcol->outline[2];
+    outline_col[3] = wcol->outline[3];
+
+    /* Emboss shadow if enabled, and inner and outline colors are not fully transparent. */
+    if ((wtb->draw_emboss) && (wcol->inner[3] != 0.0f || wcol->outline[3] != 0.0f)) {
+      UI_GetThemeColor4ubv(TH_WIDGET_EMBOSS, emboss_col);
+    }
+  }
+
+  /* Draw everything in one draw-call. */
+  widgetbase_set_uniform_alpha_check(wtb, show_alpha_checkers);
+  widgetbase_set_uniform_colors_ubv(
+      wtb, unused_col, unused_col, outline_col, emboss_col, unused_col);
+  copy_v4_v4(wtb->uniform_params.color_inner1, color);
+  copy_v4_v4(wtb->uniform_params.color_inner2, color);
+
+  GPU_blend(GPU_BLEND_ALPHA);
+  draw_widgetbase_batch(wtb);
+  GPU_blend(GPU_BLEND_NONE);
 }
 
 /** \} */
@@ -3051,7 +3072,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, const uiWidgetColors *wcol, const 
   const float radius = float(min_ii(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect))) / 2.0f;
 
   ColorPicker *cpicker = static_cast<ColorPicker *>(but->custom_data);
-  float rgb[3], hsv[3], rgb_center[3];
+  float rgb[3], hsv[3], rgb_center[3], rgb_perceptual[3];
   const bool is_color_gamma = ui_but_is_color_gamma(but);
 
   /* Initialize for compatibility. */
@@ -3059,8 +3080,13 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, const uiWidgetColors *wcol, const 
 
   /* Compute current hue. */
   ui_but_v3_get(but, rgb);
-  ui_scene_linear_to_perceptual_space(but, rgb);
-  ui_color_picker_rgb_to_hsv_compat(rgb, hsv);
+  copy_v3_v3(rgb_perceptual, rgb);
+  ui_scene_linear_to_perceptual_space(but, rgb_perceptual);
+  ui_color_picker_rgb_to_hsv_compat(rgb_perceptual, hsv);
+
+  if (!is_color_gamma) {
+    ui_block_cm_to_display_space_v3(but->block, rgb);
+  }
 
   CLAMP(hsv[2], 0.0f, 1.0f); /* for display only */
 
@@ -3138,9 +3164,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, const uiWidgetColors *wcol, const 
 
   /* cursor */
   copy_v3_v3(hsv, cpicker->hsv_perceptual);
-  ui_but_v3_get(but, rgb);
-  ui_scene_linear_to_perceptual_space(but, rgb);
-  ui_color_picker_rgb_to_hsv_compat(rgb, hsv);
+  ui_color_picker_rgb_to_hsv_compat(rgb_perceptual, hsv);
 
   float xpos, ypos;
   ui_hsvcircle_pos_from_vals(cpicker, rect, hsv, &xpos, &ypos);
@@ -3154,10 +3178,22 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, const uiWidgetColors *wcol, const 
 /** \name Draw Custom Buttons
  * \{ */
 
+static void ui_draw_gradient_hsv_to_rgb(
+    const ColorManagedDisplay *display, float h, float s, float v, float rgb[3])
+{
+  hsv_to_rgb(h, s, v, rgb, rgb + 1, rgb + 2);
+
+  if (display) {
+    IMB_colormanagement_color_picking_to_scene_linear_v3(rgb, rgb);
+    IMB_colormanagement_scene_linear_to_display_v3(rgb, display);
+  }
+}
+
 void ui_draw_gradient(const rcti *rect,
                       const float hsv[3],
                       const eButGradientType type,
-                      const float alpha)
+                      const float alpha,
+                      const ColorManagedDisplay *display)
 {
   /* allows for 4 steps (red->yellow) */
   const int steps = 48;
@@ -3172,44 +3208,44 @@ void ui_draw_gradient(const rcti *rect,
 
   switch (type) {
     case UI_GRAD_SV:
-      hsv_to_rgb(h, 0.0, 0.0, &col1[0][0], &col1[0][1], &col1[0][2]);
-      hsv_to_rgb(h, 0.0, 0.333, &col1[1][0], &col1[1][1], &col1[1][2]);
-      hsv_to_rgb(h, 0.0, 0.666, &col1[2][0], &col1[2][1], &col1[2][2]);
-      hsv_to_rgb(h, 0.0, 1.0, &col1[3][0], &col1[3][1], &col1[3][2]);
+      ui_draw_gradient_hsv_to_rgb(display, h, 0.0, 0.0, col1[0]);
+      ui_draw_gradient_hsv_to_rgb(display, h, 0.0, 0.333, col1[1]);
+      ui_draw_gradient_hsv_to_rgb(display, h, 0.0, 0.666, col1[2]);
+      ui_draw_gradient_hsv_to_rgb(display, h, 0.0, 1.0, col1[3]);
       break;
     case UI_GRAD_HV:
-      hsv_to_rgb(0.0, s, 0.0, &col1[0][0], &col1[0][1], &col1[0][2]);
-      hsv_to_rgb(0.0, s, 0.333, &col1[1][0], &col1[1][1], &col1[1][2]);
-      hsv_to_rgb(0.0, s, 0.666, &col1[2][0], &col1[2][1], &col1[2][2]);
-      hsv_to_rgb(0.0, s, 1.0, &col1[3][0], &col1[3][1], &col1[3][2]);
+      ui_draw_gradient_hsv_to_rgb(display, 0.0, s, 0.0, col1[0]);
+      ui_draw_gradient_hsv_to_rgb(display, 0.0, s, 0.333, col1[1]);
+      ui_draw_gradient_hsv_to_rgb(display, 0.0, s, 0.666, col1[2]);
+      ui_draw_gradient_hsv_to_rgb(display, 0.0, s, 1.0, col1[3]);
       break;
     case UI_GRAD_HS:
-      hsv_to_rgb(0.0, 0.0, v, &col1[0][0], &col1[0][1], &col1[0][2]);
-      hsv_to_rgb(0.0, 0.333, v, &col1[1][0], &col1[1][1], &col1[1][2]);
-      hsv_to_rgb(0.0, 0.666, v, &col1[2][0], &col1[2][1], &col1[2][2]);
-      hsv_to_rgb(0.0, 1.0, v, &col1[3][0], &col1[3][1], &col1[3][2]);
+      ui_draw_gradient_hsv_to_rgb(display, 0.0, 0.0, v, col1[0]);
+      ui_draw_gradient_hsv_to_rgb(display, 0.0, 0.333, v, col1[1]);
+      ui_draw_gradient_hsv_to_rgb(display, 0.0, 0.666, v, col1[2]);
+      ui_draw_gradient_hsv_to_rgb(display, 0.0, 1.0, v, col1[3]);
       break;
     case UI_GRAD_H:
-      hsv_to_rgb(0.0, 1.0, 1.0, &col1[0][0], &col1[0][1], &col1[0][2]);
+      ui_draw_gradient_hsv_to_rgb(display, 0.0, 1.0, 1.0, col1[0]);
       copy_v3_v3(col1[1], col1[0]);
       copy_v3_v3(col1[2], col1[0]);
       copy_v3_v3(col1[3], col1[0]);
       break;
     case UI_GRAD_S:
-      hsv_to_rgb(1.0, 0.0, 1.0, &col1[1][0], &col1[1][1], &col1[1][2]);
+      ui_draw_gradient_hsv_to_rgb(display, 1.0, 0.0, 1.0, col1[1]);
       copy_v3_v3(col1[0], col1[1]);
       copy_v3_v3(col1[2], col1[1]);
       copy_v3_v3(col1[3], col1[1]);
       break;
     case UI_GRAD_V:
-      hsv_to_rgb(1.0, 1.0, 0.0, &col1[2][0], &col1[2][1], &col1[2][2]);
+      ui_draw_gradient_hsv_to_rgb(display, 1.0, 1.0, 0.0, col1[2]);
       copy_v3_v3(col1[0], col1[2]);
       copy_v3_v3(col1[1], col1[2]);
       copy_v3_v3(col1[3], col1[2]);
       break;
     default:
       BLI_assert_msg(0, "invalid 'type' argument");
-      hsv_to_rgb(1.0, 1.0, 1.0, &col1[2][0], &col1[2][1], &col1[2][2]);
+      ui_draw_gradient_hsv_to_rgb(display, 1.0, 1.0, 1.0, col1[2]);
       copy_v3_v3(col1[0], col1[2]);
       copy_v3_v3(col1[1], col1[2]);
       copy_v3_v3(col1[3], col1[2]);
@@ -3239,39 +3275,39 @@ void ui_draw_gradient(const rcti *rect,
     /* new color */
     switch (type) {
       case UI_GRAD_SV:
-        hsv_to_rgb(h, dx, 0.0, &col1[0][0], &col1[0][1], &col1[0][2]);
-        hsv_to_rgb(h, dx, 0.333, &col1[1][0], &col1[1][1], &col1[1][2]);
-        hsv_to_rgb(h, dx, 0.666, &col1[2][0], &col1[2][1], &col1[2][2]);
-        hsv_to_rgb(h, dx, 1.0, &col1[3][0], &col1[3][1], &col1[3][2]);
+        ui_draw_gradient_hsv_to_rgb(display, h, dx, 0.0, col1[0]);
+        ui_draw_gradient_hsv_to_rgb(display, h, dx, 0.333, col1[1]);
+        ui_draw_gradient_hsv_to_rgb(display, h, dx, 0.666, col1[2]);
+        ui_draw_gradient_hsv_to_rgb(display, h, dx, 1.0, col1[3]);
         break;
       case UI_GRAD_HV:
-        hsv_to_rgb(dx_next, s, 0.0, &col1[0][0], &col1[0][1], &col1[0][2]);
-        hsv_to_rgb(dx_next, s, 0.333, &col1[1][0], &col1[1][1], &col1[1][2]);
-        hsv_to_rgb(dx_next, s, 0.666, &col1[2][0], &col1[2][1], &col1[2][2]);
-        hsv_to_rgb(dx_next, s, 1.0, &col1[3][0], &col1[3][1], &col1[3][2]);
+        ui_draw_gradient_hsv_to_rgb(display, dx_next, s, 0.0, col1[0]);
+        ui_draw_gradient_hsv_to_rgb(display, dx_next, s, 0.333, col1[1]);
+        ui_draw_gradient_hsv_to_rgb(display, dx_next, s, 0.666, col1[2]);
+        ui_draw_gradient_hsv_to_rgb(display, dx_next, s, 1.0, col1[3]);
         break;
       case UI_GRAD_HS:
-        hsv_to_rgb(dx_next, 0.0, v, &col1[0][0], &col1[0][1], &col1[0][2]);
-        hsv_to_rgb(dx_next, 0.333, v, &col1[1][0], &col1[1][1], &col1[1][2]);
-        hsv_to_rgb(dx_next, 0.666, v, &col1[2][0], &col1[2][1], &col1[2][2]);
-        hsv_to_rgb(dx_next, 1.0, v, &col1[3][0], &col1[3][1], &col1[3][2]);
+        ui_draw_gradient_hsv_to_rgb(display, dx_next, 0.0, v, col1[0]);
+        ui_draw_gradient_hsv_to_rgb(display, dx_next, 0.333, v, col1[1]);
+        ui_draw_gradient_hsv_to_rgb(display, dx_next, 0.666, v, col1[2]);
+        ui_draw_gradient_hsv_to_rgb(display, dx_next, 1.0, v, col1[3]);
         break;
       case UI_GRAD_H:
         /* annoying but without this the color shifts - could be solved some other way
          * - campbell */
-        hsv_to_rgb(dx_next, 1.0, 1.0, &col1[0][0], &col1[0][1], &col1[0][2]);
+        ui_draw_gradient_hsv_to_rgb(display, dx_next, 1.0, 1.0, col1[0]);
         copy_v3_v3(col1[1], col1[0]);
         copy_v3_v3(col1[2], col1[0]);
         copy_v3_v3(col1[3], col1[0]);
         break;
       case UI_GRAD_S:
-        hsv_to_rgb(h, dx, 1.0, &col1[1][0], &col1[1][1], &col1[1][2]);
+        ui_draw_gradient_hsv_to_rgb(display, h, dx, 1.0, col1[1]);
         copy_v3_v3(col1[0], col1[1]);
         copy_v3_v3(col1[2], col1[1]);
         copy_v3_v3(col1[3], col1[1]);
         break;
       case UI_GRAD_V:
-        hsv_to_rgb(h, 1.0, dx, &col1[2][0], &col1[2][1], &col1[2][2]);
+        ui_draw_gradient_hsv_to_rgb(display, h, 1.0, dx, col1[2]);
         copy_v3_v3(col1[0], col1[2]);
         copy_v3_v3(col1[1], col1[2]);
         copy_v3_v3(col1[3], col1[2]);
@@ -3363,8 +3399,9 @@ void ui_hsvcube_pos_from_vals(
 static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
 {
   const uiButHSVCube *hsv_but = (uiButHSVCube *)but;
-  float rgb[3];
+  float rgb[3], rgb_perceptual[3];
   float x = 0.0f, y = 0.0f;
+  const ColorManagedDisplay *display = ui_block_cm_display_get(but->block);
   ColorPicker *cpicker = static_cast<ColorPicker *>(but->custom_data);
   float *hsv = cpicker->hsv_perceptual;
   float hsv_n[3];
@@ -3376,10 +3413,15 @@ static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
   copy_v3_v3(hsv_n, hsv);
 
   ui_but_v3_get(but, rgb);
-  ui_scene_linear_to_perceptual_space(but, rgb);
-  rgb_to_hsv_compat_v(rgb, hsv_n);
+  copy_v3_v3(rgb_perceptual, rgb);
+  ui_scene_linear_to_perceptual_space(but, rgb_perceptual);
+  rgb_to_hsv_compat_v(rgb_perceptual, hsv_n);
 
-  ui_draw_gradient(rect, hsv_n, hsv_but->gradient_type, 1.0f);
+  if (!ui_but_is_color_gamma(but)) {
+    ui_block_cm_to_display_space_v3(but->block, rgb);
+  }
+
+  ui_draw_gradient(rect, hsv_n, hsv_but->gradient_type, 1.0f, display);
 
   ui_hsvcube_pos_from_vals(hsv_but, rect, hsv_n, &x, &y);
 
@@ -4147,18 +4189,15 @@ static void widget_swatch(uiBut *but,
     ui_block_cm_to_display_space_v3(but->block, col);
   }
 
-  rgba_float_to_uchar(wcol->inner, col);
-  const bool show_alpha_checkers = (wcol->inner[3] < 255);
-
-  wcol->shaded = 0;
+  const bool show_alpha_checkers = col[3] < 1.0f;
 
   /* Now we reduce alpha of the inner color (i.e. the color shown)
    * so that this setting can look grayed out, while retaining
    * the checkerboard (for transparent values). This is needed
    * here as the effects of ui_widget_color_disabled() are overwritten. */
-  wcol->inner[3] *= widget_alpha_factor(state);
+  col[3] *= widget_alpha_factor(state);
 
-  widgetbase_draw_ex(&wtb, wcol, show_alpha_checkers);
+  widgetbase_draw_color(&wtb, wcol, col, show_alpha_checkers);
   if (color_but->is_pallete_color &&
       ((Palette *)but->rnapoin.owner_id)->active_color == color_but->palette_color_index)
   {

@@ -1143,7 +1143,11 @@ void ui_layout_panel_popup_scroll_apply(Panel *panel, const float dy);
 /**
  * Draws in resolution of 48x4 colors.
  */
-void ui_draw_gradient(const rcti *rect, const float hsv[3], eButGradientType type, float alpha);
+void ui_draw_gradient(const rcti *rect,
+                      const float hsv[3],
+                      eButGradientType type,
+                      float alpha,
+                      const ColorManagedDisplay *display);
 
 /**
  * Draws rounded corner segments but inverted. Imagine each corner like a filled right triangle,
