@@ -427,20 +427,20 @@ bool GPUShaderBinder::to_scene_linear_bind(const StringRefNull from_colorspace,
   display_parameters.use_predivide = use_predivide;
 
   /* Attempt to get shader from the cache. */
-  internal::GPUDisplayShader *display_shader = scene_linear_cache_->get(display_parameters);
+  internal::GPUDisplayShader *shader = scene_linear_cache_->get(display_parameters);
 
-  if (!display_shader) {
-    display_shader = &display_cache_->create_default();
-    BLI_assert(display_shader);
+  if (!shader) {
+    shader = &scene_linear_cache_->create_default();
+    BLI_assert(shader);
 
-    display_shader->from_colorspace = display_parameters.from_colorspace;
+    shader->from_colorspace = display_parameters.from_colorspace;
 
-    if (display_shader->initialize_common()) {
-      construct_scene_linear_shader(*display_shader);
+    if (shader->initialize_common()) {
+      construct_scene_linear_shader(*shader);
     }
   }
 
-  return gpu_shader_bind(config_, *display_shader, display_parameters);
+  return gpu_shader_bind(config_, *shader, display_parameters);
 }
 
 void GPUShaderBinder::unbind() const
