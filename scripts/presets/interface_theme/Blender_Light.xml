@@ -398,6 +398,24 @@
             >
           </ThemeCommonAnim>
         </anim>
+        <curves>
+          <ThemeCommonCurves
+            handle_free="#000000"
+            handle_sel_free="#000000"
+            handle_auto="#909000"
+            handle_sel_auto="#f0ff40"
+            handle_vect="#409030"
+            handle_sel_vect="#40c030"
+            handle_align="#803060"
+            handle_sel_align="#f090a0"
+            handle_auto_clamped="#994030"
+            handle_sel_auto_clamped="#f0af90"
+            handle_vertex="#000000"
+            handle_vertex_select="#ff8500"
+            handle_vertex_size="5"
+            >
+          </ThemeCommonCurves>
+        </curves>
       </ThemeCommon>
     </common>
     <view_3d>
@@ -445,14 +463,6 @@
         nurb_sel_uline="#f0ff40"
         nurb_sel_vline="#f090a0"
         act_spline="#db2512"
-        handle_free="#000000"
-        handle_auto="#909000"
-        handle_vect="#409030"
-        handle_sel_vect="#40c030"
-        handle_align="#803060"
-        handle_sel_free="#000000"
-        handle_sel_auto="#f0ff40"
-        handle_sel_align="#f090a0"
         lastsel_point="#ffffff"
         extra_edge_len="#ff6149"
         extra_edge_angle="#cccc00"
@@ -519,20 +529,7 @@
         vertex_size="6"
         vertex_bevel="#000000"
         vertex_unreferenced="#000000"
-        handle_free="#000000"
-        handle_auto="#909000"
-        handle_vect="#409030"
-        handle_sel_vect="#40c030"
-        handle_align="#803060"
-        handle_sel_free="#000000"
-        handle_sel_auto="#f0ff40"
-        handle_sel_align="#f090a0"
-        handle_auto_clamped="#994030"
-        handle_sel_auto_clamped="#f0af90"
         lastsel_point="#ffffff"
-        handle_vertex="#000000"
-        handle_vertex_select="#ff8500"
-        handle_vertex_size="5"
         >
         <space>
           <ThemeSpaceGeneric
@@ -731,17 +728,6 @@
         uv_shadow="#707070ff"
         metadatabg="#000000"
         metadatatext="#ffffff"
-        handle_free="#000000"
-        handle_auto="#909000"
-        handle_align="#803060"
-        handle_sel_free="#000000"
-        handle_sel_auto="#f0ff40"
-        handle_sel_align="#f090a0"
-        handle_auto_clamped="#000000"
-        handle_sel_auto_clamped="#000000"
-        handle_vertex="#000000"
-        handle_vertex_select="#ffff00"
-        handle_vertex_size="5"
         paint_curve_handle="#7fff7f7f"
         paint_curve_pivot="#ff7f7f7f"
         >
@@ -1067,17 +1053,7 @@
         strips_selected="#ff8c00"
         metadatabg="#000000"
         metadatatext="#ffffff"
-        handle_free="#000000"
-        handle_auto="#909000"
-        handle_align="#803060"
-        handle_sel_free="#000000"
-        handle_sel_auto="#f0ff40"
-        handle_sel_align="#f090a0"
-        handle_auto_clamped="#000000"
-        handle_sel_auto_clamped="#000000"
-        handle_vertex="#000000"
-        handle_vertex_select="#ffff00"
-        handle_vertex_size="5"
+        preview_range="#a14d0066"
         >
         <space>
           <ThemeSpaceGeneric

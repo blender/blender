@@ -951,6 +951,7 @@ class USERPREF_MT_interface_theme_presets(Menu):
         "ThemeCollectionColor",
         "ThemeCommon",
         "ThemeCommonAnim",
+        "ThemeCommonCurves",
         "ThemeConsole",
         "ThemeDopeSheet",
         "ThemeFileBrowser",
