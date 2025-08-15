@@ -1247,8 +1247,11 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
                     num_loops = len(me.loops)
                     t_ln = np.empty(num_loops * 3, dtype=normal_bl_dtype)
                     # t_lnw = np.zeros(len(me.loops), dtype=np.float64)
-                    for idx, uvlayer in enumerate(me.uv_layers):
-                        name = uvlayer.name
+                    # WARNING: Since tangent layers are recomputed inside the loop, do not directly iterate over the
+                    # uvlayers. Instead, cache their keys (names), and use this cached data inside the loop to compute
+                    # the tangent layers.
+                    uvlayer_names = [uvl.name for uvl in me.uv_layers]
+                    for idx, name in enumerate(uvlayer_names):
                         # Annoying, `me.calc_tangent` errors in case there is no geometry...
                         if num_loops > 0:
                             me.calc_tangents(uvmap=name)
