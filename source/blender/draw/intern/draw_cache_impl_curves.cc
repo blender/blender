@@ -474,19 +474,16 @@ static void create_lines_ibo_with_cyclic(const OffsetIndices<int> points_by_curv
   }
 }
 
-static void extract_curve_lines(const OffsetIndices<int> points_by_curve,
-                                const VArray<bool> &cyclic,
-                                const IndexMask &selection,
-                                const int cyclic_segment_offset,
-                                MutableSpan<uint2> lines)
+static void create_segments_with_cyclic(const OffsetIndices<int> points_by_curve,
+                                        const VArray<bool> &cyclic,
+                                        const IndexMask &selection,
+                                        MutableSpan<uint2> lines)
 {
   selection.foreach_index(GrainSize(512), [&](const int curve) {
     const IndexRange points = points_by_curve[curve];
-    MutableSpan<uint2> curve_lines = lines.slice(points.start() + cyclic_segment_offset,
-                                                 points.size() + 1);
-    for (const int i : IndexRange(points.size() - 1)) {
-      const int point = points[i];
-      curve_lines[i] = uint2(point, point + 1);
+    MutableSpan<uint2> curve_lines = lines.slice(points);
+    for (const int i : points.index_range().drop_back(1)) {
+      curve_lines[i] = uint2(points[i]) + uint2(0, 1);
     }
     if (cyclic[curve]) {
       curve_lines.last() = uint2(points.first(), points.last());
@@ -506,59 +503,58 @@ static void calc_edit_handles_ibo(const OffsetIndices<int> points_by_curve,
                                   const VArray<bool> &cyclic,
                                   gpu::IndexBuf &ibo)
 {
-  const int curves_num = points_by_curve.size();
+  /* All curve types have poly-line segments draw of original (non-evaluate) topology to connect
+   * control points. Bezier have exception -- instead there is left and right handle segments. Left
+   * bezier handle segments point to original and handle points and lie at index of curve segment.
+   * Right bezier handle segments point to original and handle points and lie in a sequence after
+   * all other segments. */
   const int points_num = points_by_curve.total_size();
-  const int non_bezier_points_num = points_num - bezier_offsets.total_size();
-  const int non_bezier_curves_num = curves_num - bezier_curves.size();
+  const int extra_bezier_segments = bezier_offsets.total_size();
 
-  int lines_num = 0;
-  /* Lines for all non-cyclic non-Bezier segments. */
-  lines_num += non_bezier_points_num;
-  /* Lines for all potential non-Bezier cyclic segments. */
-  lines_num += non_bezier_curves_num;
-  /* Lines for all Bezier handles. */
-  lines_num += bezier_offsets.total_size() * 2;
-
+  /* TODO: Use linestrip if there is no bezier curves. */
   GPUIndexBufBuilder builder;
-  GPU_indexbuf_init(
-      &builder, GPU_PRIM_LINES, lines_num, handles_and_points_num(points_num, bezier_offsets));
+  GPU_indexbuf_init(&builder,
+                    GPU_PRIM_LINES,
+                    points_num + extra_bezier_segments,
+                    handles_and_points_num(points_num, bezier_offsets));
   MutableSpan<uint2> lines = GPU_indexbuf_get_data(&builder).cast<uint2>();
+  BLI_assert(lines.size() == points_num + extra_bezier_segments);
+  MutableSpan<uint2> curve_or_handle_segments = lines.take_front(points_num);
 
-  /* All bezier segments are allocated since they form a gaps between other curves but are unused.
-   */
-  /* TODO: Lay left handles in space allocated for bezier segments and right handles right after
-   * all segments. */
-  lines.fill(uint2(0));
+#ifdef NDEBUG
+  lines.fill(uint2(std::numeric_limits<uint32_t>::min()));
+#endif
 
-  int cyclic_segment_offset = 0;
-  extract_curve_lines(points_by_curve, cyclic, catmull_rom_curves, cyclic_segment_offset, lines);
-  cyclic_segment_offset += catmull_rom_curves.size();
+  create_segments_with_cyclic(
+      points_by_curve, cyclic, catmull_rom_curves, curve_or_handle_segments);
+  create_segments_with_cyclic(points_by_curve, cyclic, poly_curves, curve_or_handle_segments);
+  create_segments_with_cyclic(points_by_curve, cyclic, nurbs_curves, curve_or_handle_segments);
 
-  extract_curve_lines(points_by_curve, cyclic, poly_curves, cyclic_segment_offset, lines);
-  cyclic_segment_offset += catmull_rom_curves.size();
+  const IndexRange handles_left = handle_range_left(points_num, bezier_offsets);
+  const IndexRange handles_right = handle_range_right(points_num, bezier_offsets);
 
-  if (!bezier_curves.is_empty()) {
-    const IndexRange handles_left = handle_range_left(points_num, bezier_offsets);
-    const IndexRange handles_right = handle_range_right(points_num, bezier_offsets);
+  bezier_curves.foreach_index(GrainSize(512), [&](const int curve, const int pos) {
+    const IndexRange points = points_by_curve[curve];
+    const IndexRange bezier_point_range = bezier_offsets[pos];
+    for (const int i : points.index_range()) {
+      const int point = points[i];
+      const int bezier_point = bezier_point_range[i];
+      curve_or_handle_segments[point] = uint2(handles_left[bezier_point], point);
+    }
+  });
 
-    MutableSpan lines_left = lines.slice(
-        handle_range_left(non_bezier_points_num, bezier_offsets).shift(non_bezier_curves_num));
-    MutableSpan lines_right = lines.slice(
-        handle_range_right(non_bezier_points_num, bezier_offsets).shift(non_bezier_curves_num));
+  MutableSpan<uint2> right_handle_segments = lines.drop_front(points_num);
+  bezier_curves.foreach_index(GrainSize(512), [&](const int curve, const int pos) {
+    const IndexRange points = points_by_curve[curve];
+    const IndexRange bezier_point_range = bezier_offsets[pos];
+    for (const int i : points.index_range()) {
+      const int point = points[i];
+      const int bezier_point = bezier_point_range[i];
+      right_handle_segments[bezier_point] = uint2(handles_right[bezier_point], point);
+    }
+  });
 
-    bezier_curves.foreach_index(GrainSize(512), [&](const int curve, const int pos) {
-      const IndexRange points = points_by_curve[curve];
-      const IndexRange bezier_point_range = bezier_offsets[pos];
-      for (const int i : points.index_range()) {
-        const int point = points[i];
-        const int bezier_point = bezier_point_range[i];
-        lines_left[bezier_point] = uint2(handles_left[bezier_point], point);
-        lines_right[bezier_point] = uint2(handles_right[bezier_point], point);
-      }
-    });
-  }
-
-  extract_curve_lines(points_by_curve, cyclic, nurbs_curves, cyclic_segment_offset, lines);
+  BLI_assert(!lines.contains(uint2(std::numeric_limits<uint32_t>::min())));
 
   GPU_indexbuf_build_in_place_ex(
       &builder, 0, handles_and_points_num(points_num, bezier_offsets), false, &ibo);
