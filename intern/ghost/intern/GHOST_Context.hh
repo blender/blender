@@ -12,7 +12,7 @@
 #include "GHOST_IContext.hh"
 #include "GHOST_Types.h"
 
-#include <cstdlib>  // for nullptr
+#include <cstdlib> /* For `nullptr`. */
 
 class GHOST_Context : public GHOST_IContext {
  protected:
@@ -21,9 +21,9 @@ class GHOST_Context : public GHOST_IContext {
  public:
   /**
    * Constructor.
-   * \param stereoVisual: Stereo visual for quad buffered stereo.
+   * \param context_params: Parameters to use when initializing the context.
    */
-  GHOST_Context(bool stereoVisual) : m_stereoVisual(stereoVisual) {}
+  GHOST_Context(const GHOST_ContextParams &context_params) : m_context_params(context_params) {}
 
   /**
    * Destructor.
@@ -117,7 +117,13 @@ class GHOST_Context : public GHOST_IContext {
    */
   bool isStereoVisual() const
   {
-    return m_stereoVisual;
+    return m_context_params.is_stereo_visual;
+  }
+
+  /** Get the VSync value. */
+  virtual GHOST_TVSyncModes getVSync()
+  {
+    return m_context_params.vsync;
   }
 
   /**
@@ -160,7 +166,7 @@ class GHOST_Context : public GHOST_IContext {
 #endif
 
  protected:
-  bool m_stereoVisual;
+  GHOST_ContextParams m_context_params;
 
   /** Caller specified, not for internal use. */
   void *m_user_data = nullptr;
@@ -168,9 +174,6 @@ class GHOST_Context : public GHOST_IContext {
 #ifdef WITH_OPENGL_BACKEND
   static void initClearGL();
 #endif
-
-  /** For performance measurements with VSync disabled. */
-  static const char *getEnvVarVSyncString();
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_Context")
 };

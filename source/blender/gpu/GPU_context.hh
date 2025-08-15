@@ -46,6 +46,18 @@ void GPU_backend_type_selection_set_override(eGPUBackendType backend_type);
  */
 bool GPU_backend_type_selection_is_overridden();
 
+/**
+ * Get the VSync value (when set).
+ */
+int GPU_backend_vsync_get();
+/**
+ * Override the default VSync.
+ *
+ * \param vsync: See #GHOST_TVSyncModes for details.
+ */
+void GPU_backend_vsync_set_override(int vsync);
+bool GPU_backend_vsync_is_overridden();
+
 /** Opaque type hiding blender::gpu::Context. */
 struct GPUContext;
 

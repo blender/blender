@@ -30,8 +30,8 @@ class GHOST_WindowNULL : public GHOST_Window {
                    GHOST_TWindowState state,
                    const GHOST_IWindow * /*parentWindow*/,
                    GHOST_TDrawingContextType /*type*/,
-                   const bool stereoVisual)
-      : GHOST_Window(width, height, state, stereoVisual, false)
+                   const GHOST_ContextParams &context_params)
+      : GHOST_Window(width, height, state, context_params, false)
   {
   }
 

@@ -956,21 +956,11 @@ else()
 endif()
 
 # Vulkan
-option(WITH_VULKAN_BACKEND "Enable Vulkan as graphics backend (experimental)" ON)
-mark_as_advanced(WITH_VULKAN_BACKEND)
-if(APPLE)
-  option(WITH_VULKAN_MOLTENVK "Enable Vulkan over MoltenVK (development option)" OFF)
-  mark_as_advanced(WITH_VULKAN_MOLTENVK)
-endif()
-
-if(APPLE AND NOT WITH_VULKAN_MOLTENVK)
+if(NOT APPLE)
+  option(WITH_VULKAN_BACKEND "Enable Vulkan as graphics backend" ON)
+  mark_as_advanced(WITH_VULKAN_BACKEND)
+else()
   set(WITH_VULKAN_BACKEND OFF)
-endif()
-if(NOT WITH_EXPERIMENTAL_FEATURES)
-  if(APPLE)
-    set(WITH_VULKAN_MOLTENVK OFF)
-    set(WITH_VULKAN_BACKEND OFF)
-  endif()
 endif()
 
 # Metal

@@ -18,6 +18,15 @@ struct Mesh;
 struct bContext;
 struct ReportList;
 
+/**
+ * Behavior when the name of an imported material
+ * conflicts with an existing material.
+ */
+enum class eFBXMtlNameCollisionMode {
+  MakeUnique = 0,
+  ReferenceExisting = 1,
+};
+
 enum class eFBXVertexColorMode {
   None = 0,
   sRGB = 1,
@@ -27,6 +36,7 @@ enum class eFBXVertexColorMode {
 struct FBXImportParams {
   char filepath[FILE_MAX] = "";
   float global_scale = 1.0f;
+  eFBXMtlNameCollisionMode mtl_name_collision_mode = eFBXMtlNameCollisionMode::MakeUnique;
   eFBXVertexColorMode vertex_colors = eFBXVertexColorMode::sRGB;
   bool validate_meshes = true;
   bool use_custom_normals = true;

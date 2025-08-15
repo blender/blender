@@ -1,4 +1,5 @@
 /* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ * SPDX-FileCopyrightText: 2025 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -35,6 +36,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 
+#include "BLI_compression.hh"
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
@@ -83,8 +85,6 @@
     lzo_align_t __LZO_MMODEL var[((size) + (sizeof(lzo_align_t) - 1)) / sizeof(lzo_align_t)]
 #endif
 
-#define LZO_OUT_LEN(size) ((size) + (size) / 16 + 64 + 3)
-
 #if 0  // #ifdef WITH_LZMA
 #  include "LzmaLib.h"
 #endif
@@ -128,12 +128,14 @@ static int ptcache_extra_datasize[] = {
 };
 
 /* forward declarations */
-static int ptcache_file_compressed_read(PTCacheFile *pf, uchar *result, uint len);
+static int ptcache_file_compressed_read(PTCacheFile *pf,
+                                        uchar *result,
+                                        uint items_num,
+                                        uint item_size);
 static void ptcache_file_compressed_write(PTCacheFile *pf,
                                           const void *data,
                                           uint items_num,
-                                          uint item_size,
-                                          PointCacheCompression compression);
+                                          uint item_size);
 static int ptcache_file_write(PTCacheFile *pf, const void *data, uint items_num, uint item_size);
 static bool ptcache_file_read(PTCacheFile *pf, void *f, uint items_num, uint item_size);
 
@@ -709,8 +711,7 @@ static int ptcache_dynamicpaint_write(PTCacheFile *pf, void *dp_v)
       return 0;
     }
 
-    ptcache_file_compressed_write(
-        pf, surface->data->type_data, total_points, in_stride, PTCACHE_COMPRESS_ZSTD_FAST);
+    ptcache_file_compressed_write(pf, surface->data->type_data, total_points, in_stride);
   }
   return 1;
 }
@@ -751,9 +752,8 @@ static int ptcache_dynamicpaint_read(PTCacheFile *pf, void *dp_v)
       return 0;
     }
 
-    int ret = ptcache_file_compressed_read(pf,
-                                           static_cast<uchar *>(surface->data->type_data),
-                                           data_len * surface->data->total_points);
+    int ret = ptcache_file_compressed_read(
+        pf, static_cast<uchar *>(surface->data->type_data), surface->data->total_points, data_len);
     if (ret) {
       CLOG_ERROR(&LOG, "Dynamic Paint: Unable to read the compressed cache data");
       return 0;
@@ -1508,11 +1508,13 @@ static void ptcache_file_close(PTCacheFile *pf)
   }
 }
 
-static int ptcache_file_compressed_read(PTCacheFile *pf, uchar *result, uint len)
+static int ptcache_file_compressed_read(PTCacheFile *pf,
+                                        uchar *result,
+                                        uint items_num,
+                                        uint item_size)
 {
   int r = 0;
   size_t in_len;
-  uchar *in;
 
   uchar compressed_val = 0;
   ptcache_file_read(pf, &compressed_val, 1, sizeof(uchar));
@@ -1525,26 +1527,36 @@ static int ptcache_file_compressed_read(PTCacheFile *pf, uchar *result, uint len
       /* do nothing */
     }
     else {
-      in = MEM_calloc_arrayN<uchar>(in_len, "pointcache_compressed_buffer");
+      uchar *in = MEM_calloc_arrayN<uchar>(in_len, "pointcache_compressed_buffer");
       ptcache_file_read(pf, in, in_len, sizeof(uchar));
+
+      uchar *decomp_result = result;
+      if (compressed == PTCACHE_COMPRESS_ZSTD_FILTERED) {
+        decomp_result = MEM_malloc_arrayN<uchar>(items_num * item_size,
+                                                 "pointcache_unfilter_buffer");
+      }
 #if 0  // #ifdef WITH_LZO
       if (compressed == PTCACHE_COMPRESS_LZO_DEPRECATED) {
-        size_t out_len = len;
-        r = lzo1x_decompress_safe(in, (lzo_uint)in_len, result, (lzo_uint *)&out_len, nullptr);
+        size_t out_len = items_num * item_size;
+        r = lzo1x_decompress_safe(in, (lzo_uint)in_len, decomp_result, (lzo_uint *)&out_len, nullptr);
       }
 #endif
 #if 0  // #ifdef WITH_LZMA
       if (compressed == PTCACHE_COMPRESS_LZMA_DEPRECATED) {
-        size_t leni = in_len, leno = len;
+        size_t leni = in_len, leno = items_num * item_size;
         uchar lzma_props[16] = {};
         uint lzma_props_size = 0;
         ptcache_file_read(pf, &lzma_props_size, 1, sizeof(uint));
         ptcache_file_read(pf, lzma_props, lzma_props_size, sizeof(uchar));
-        r = LzmaUncompress(result, &leno, in, &leni, lzma_props, lzma_props_size);
+        r = LzmaUncompress(decomp_result, &leno, in, &leni, lzma_props, lzma_props_size);
       }
 #endif
-      if (ELEM(compressed, PTCACHE_COMPRESS_ZSTD_FAST, PTCACHE_COMPRESS_ZSTD_SLOW)) {
-        const size_t err = ZSTD_decompress(result, len, in, in_len);
+      if (ELEM(compressed,
+               PTCACHE_COMPRESS_ZSTD_FILTERED,
+               PTCACHE_COMPRESS_ZSTD_FAST_DEPRECATED,
+               PTCACHE_COMPRESS_ZSTD_SLOW_DEPRECATED))
+      {
+        const size_t err = ZSTD_decompress(decomp_result, items_num * item_size, in, in_len);
         r = ZSTD_isError(err);
       }
       else {
@@ -1552,102 +1564,47 @@ static int ptcache_file_compressed_read(PTCacheFile *pf, uchar *result, uint len
         r = 1;
       }
       MEM_freeN(in);
+
+      /* Un-filter the decompressed data, if needed. */
+      if (compressed == PTCACHE_COMPRESS_ZSTD_FILTERED) {
+        blender::unfilter_transpose_delta(decomp_result, result, items_num, item_size);
+        MEM_freeN(decomp_result);
+      }
     }
   }
   else {
-    ptcache_file_read(pf, result, len, sizeof(uchar));
+    ptcache_file_read(pf, result, items_num * item_size, sizeof(uchar));
   }
 
   return r;
 }
+
 static void ptcache_file_compressed_write(PTCacheFile *pf,
                                           const void *data,
                                           uint items_num,
-                                          uint item_size,
-                                          PointCacheCompression compression)
+                                          uint item_size)
 {
   /* Allocate space for compressed data. */
+  const PointCacheCompression compression = PTCACHE_COMPRESS_ZSTD_FILTERED;
   const uint data_size = items_num * item_size;
-  size_t out_len = 0;
-  if (ELEM(compression, PTCACHE_COMPRESS_ZSTD_FAST, PTCACHE_COMPRESS_ZSTD_SLOW)) {
-    out_len = ZSTD_compressBound(data_size);
-    if (ZSTD_isError(out_len)) {
-      compression = PTCACHE_COMPRESS_NO;
-    }
-  }
-  else if (compression != PTCACHE_COMPRESS_NO) {
-    out_len = LZO_OUT_LEN(data_size);
-  }
-
+  size_t out_len = ZSTD_compressBound(data_size);
   blender::Array<uchar> out(out_len);
 
-  /* Do actual compression. */
-  int r = 0;
-  uchar lzma_props[16] = {};
-  size_t lzma_props_size = 5;
+  /* Filter the data: transpose by bytes; delta-encode. */
+  blender::Array<uchar> filtered(data_size);
+  blender::filter_transpose_delta((const uint8_t *)data, filtered.data(), items_num, item_size);
 
-#if 0  // #ifdef WITH_LZO
-  if (compression == PTCACHE_COMPRESS_LZO_DEPRECATED) {
-    LZO_HEAP_ALLOC(wrkmem, LZO1X_MEM_COMPRESS);
-
-    r = lzo1x_1_compress(
-        (const uchar *)data, (lzo_uint)data_size, out.data(), (lzo_uint *)&out_len, wrkmem);
-    if (!(r == LZO_E_OK) || (out_len >= data_size)) {
-      compression = PTCACHE_COMPRESS_NO;
-    }
-  }
-#endif
-#if 0  // #ifdef WITH_LZMA
-  if (compression == PTCACHE_COMPRESS_LZMA_DEPRECATED) {
-    r = LzmaCompress(out.data(),
-                     &out_len,
-                     (const uchar *)data,
-                     data_size, /* Assume `sizeof(char) == 1`. */
-                     lzma_props,
-                     &lzma_props_size,
-                     5,
-                     1 << 24,
-                     3,
-                     0,
-                     2,
-                     32,
-                     2);
-
-    if (!(r == SZ_OK) || (out_len >= data_size)) {
-      compression = PTCACHE_COMPRESS_NO;
-    }
-  }
-#endif
-  if (ELEM(compression, PTCACHE_COMPRESS_ZSTD_FAST, PTCACHE_COMPRESS_ZSTD_SLOW)) {
-    /* Zstd level zero is "default" (currently 3). */
-    const int zstd_level = compression == PTCACHE_COMPRESS_ZSTD_SLOW ? 22 : 0;
-    r = ZSTD_compress(out.data(), out_len, data, data_size, zstd_level);
-    if (ZSTD_isError(r)) {
-      compression = PTCACHE_COMPRESS_NO;
-    }
-    else {
-      out_len = r;
-      r = 0;
-    }
-  }
+  /* Do compression: always zstd level 3. */
+  const int zstd_level = 3;
+  size_t res = ZSTD_compress(out.data(), out_len, filtered.data(), data_size, zstd_level);
+  out_len = res;
 
   /* Write to file. */
   const uchar compression_val = compression;
   ptcache_file_write(pf, &compression_val, 1, sizeof(uchar));
-  if (compression != PTCACHE_COMPRESS_NO) {
-    uint size = out_len;
-    ptcache_file_write(pf, &size, 1, sizeof(uint));
-    ptcache_file_write(pf, out.data(), out_len, sizeof(uchar));
-  }
-  else {
-    ptcache_file_write(pf, data, data_size, sizeof(uchar));
-  }
-
-  if (compression == PTCACHE_COMPRESS_LZMA_DEPRECATED) {
-    uint size = lzma_props_size;
-    ptcache_file_write(pf, &lzma_props_size, 1, sizeof(uint));
-    ptcache_file_write(pf, lzma_props, size, sizeof(uchar));
-  }
+  uint size = out_len;
+  ptcache_file_write(pf, &size, 1, sizeof(uint));
+  ptcache_file_write(pf, out.data(), out_len, sizeof(uchar));
 }
 
 static bool ptcache_file_read(PTCacheFile *pf, void *f, uint items_num, uint item_size)
@@ -1670,20 +1627,6 @@ static bool ptcache_file_data_read(PTCacheFile *pf)
   }
 
   return true;
-}
-static int ptcache_file_data_write(PTCacheFile *pf)
-{
-  int i;
-
-  for (i = 0; i < BPHYS_TOT_DATA; i++) {
-    if ((pf->data_types & (1 << i)) &&
-        !ptcache_file_write(pf, pf->cur[i], 1, ptcache_data_size[i]))
-    {
-      return 0;
-    }
-  }
-
-  return 1;
 }
 static int ptcache_file_header_begin_read(PTCacheFile *pf)
 {
@@ -1990,9 +1933,9 @@ static PTCacheMem *ptcache_disk_frame_to_mem(PTCacheID *pid, int cfra)
 
     if (pf->flag & PTCACHE_TYPEFLAG_COMPRESS) {
       for (i = 0; !error && i < BPHYS_TOT_DATA; i++) {
-        uint out_len = pm->totpoint * ptcache_data_size[i];
         if (pf->data_types & (1 << i)) {
-          error = ptcache_file_compressed_read(pf, static_cast<uchar *>(pm->data[i]), out_len);
+          error = ptcache_file_compressed_read(
+              pf, static_cast<uchar *>(pm->data[i]), pm->totpoint, ptcache_data_size[i]);
         }
       }
     }
@@ -2028,7 +1971,8 @@ static PTCacheMem *ptcache_disk_frame_to_mem(PTCacheID *pid, int cfra)
       if (pf->flag & PTCACHE_TYPEFLAG_COMPRESS) {
         error = ptcache_file_compressed_read(pf,
                                              static_cast<uchar *>(extra->data),
-                                             extra->totdata * ptcache_extra_datasize[extra->type]);
+                                             extra->totdata,
+                                             ptcache_extra_datasize[extra->type]);
       }
       else {
         ptcache_file_read(pf, extra->data, extra->totdata, ptcache_extra_datasize[extra->type]);
@@ -2077,36 +2021,16 @@ static int ptcache_mem_frame_to_disk(PTCacheID *pid, PTCacheMem *pm)
     pf->flag |= PTCACHE_TYPEFLAG_EXTRADATA;
   }
 
-  const PointCacheCompression compression = PointCacheCompression(pid->cache->compression);
-  if (compression != PTCACHE_COMPRESS_NO) {
-    pf->flag |= PTCACHE_TYPEFLAG_COMPRESS;
-  }
+  pf->flag |= PTCACHE_TYPEFLAG_COMPRESS;
 
   if (!ptcache_file_header_begin_write(pf) || !pid->write_header(pf)) {
     error = 1;
   }
 
   if (!error) {
-    if (compression != PTCACHE_COMPRESS_NO) {
-      for (i = 0; i < BPHYS_TOT_DATA; i++) {
-        if (pm->data[i]) {
-          ptcache_file_compressed_write(
-              pf, pm->data[i], pm->totpoint, ptcache_data_size[i], compression);
-        }
-      }
-    }
-    else {
-      void *cur[BPHYS_TOT_DATA];
-      BKE_ptcache_mem_pointers_init(pm, cur);
-      ptcache_file_pointers_init(pf);
-
-      for (i = 0; i < pm->totpoint; i++) {
-        ptcache_data_copy(cur, pf->cur);
-        if (!ptcache_file_data_write(pf)) {
-          error = 1;
-          break;
-        }
-        BKE_ptcache_mem_pointers_incr(cur);
+    for (i = 0; i < BPHYS_TOT_DATA; i++) {
+      if (pm->data[i]) {
+        ptcache_file_compressed_write(pf, pm->data[i], pm->totpoint, ptcache_data_size[i]);
       }
     }
   }
@@ -2122,13 +2046,8 @@ static int ptcache_mem_frame_to_disk(PTCacheID *pid, PTCacheMem *pm)
       ptcache_file_write(pf, &extra->type, 1, sizeof(uint));
       ptcache_file_write(pf, &extra->totdata, 1, sizeof(uint));
 
-      if (compression != PTCACHE_COMPRESS_NO) {
-        ptcache_file_compressed_write(
-            pf, extra->data, extra->totdata, ptcache_extra_datasize[extra->type], compression);
-      }
-      else {
-        ptcache_file_write(pf, extra->data, extra->totdata, ptcache_extra_datasize[extra->type]);
-      }
+      ptcache_file_compressed_write(
+          pf, extra->data, extra->totdata, ptcache_extra_datasize[extra->type]);
     }
   }
 

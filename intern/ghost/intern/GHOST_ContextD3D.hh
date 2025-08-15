@@ -23,7 +23,7 @@ class GHOST_ContextD3D : public GHOST_Context {
   friend class GHOST_XrGraphicsBindingVulkanD3D;
 
  public:
-  GHOST_ContextD3D(bool stereoVisual, HWND hWnd);
+  GHOST_ContextD3D(const GHOST_ContextParams &context_params, HWND hWnd);
   ~GHOST_ContextD3D() override;
 
   /**

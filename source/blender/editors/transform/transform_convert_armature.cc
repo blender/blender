@@ -744,9 +744,7 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
     LISTBASE_FOREACH (EditBone *, ebo, edbo) {
       const int data_len_prev = tc->data_len;
 
-      if (blender::animrig::bone_is_visible_editbone(arm, ebo) &&
-          !(ebo->flag & BONE_EDITMODE_LOCKED))
-      {
+      if (blender::animrig::bone_is_visible(arm, ebo) && !(ebo->flag & BONE_EDITMODE_LOCKED)) {
         if (ELEM(t->mode, TFM_BONESIZE, TFM_BONE_ENVELOPE_DIST)) {
           if (ebo->flag & BONE_SELECTED) {
             tc->data_len++;
@@ -817,9 +815,7 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
       /* (length == 0.0) on extrude, used for scaling radius of bone points. */
       ebo->oldlength = ebo->length;
 
-      if (blender::animrig::bone_is_visible_editbone(arm, ebo) &&
-          !(ebo->flag & BONE_EDITMODE_LOCKED))
-      {
+      if (blender::animrig::bone_is_visible(arm, ebo) && !(ebo->flag & BONE_EDITMODE_LOCKED)) {
         if (t->mode == TFM_BONE_ENVELOPE) {
           if (ebo->flag & BONE_ROOTSEL) {
             td->val = &ebo->rad_head;
@@ -1046,8 +1042,7 @@ static void recalcData_edit_armature(TransInfo *t)
 
       if (ebo_parent) {
         /* If this bone has a parent tip that has been moved. */
-        if (blender::animrig::bone_is_visible_editbone(arm, ebo_parent) &&
-            (ebo_parent->flag & BONE_TIPSEL))
+        if (blender::animrig::bone_is_visible(arm, ebo_parent) && (ebo_parent->flag & BONE_TIPSEL))
         {
           copy_v3_v3(ebo->head, ebo_parent->tail);
           if (t->mode == TFM_BONE_ENVELOPE) {
@@ -1480,7 +1475,7 @@ void transform_convert_pose_transflags_update(Object *ob, const int mode, const 
 
   LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
     bone = pchan->bone;
-    if (blender::animrig::bone_is_visible_pchan(arm, pchan)) {
+    if (blender::animrig::bone_is_visible(arm, pchan)) {
       if (bone->flag & BONE_SELECTED) {
         bone->flag |= BONE_TRANSFORM;
       }

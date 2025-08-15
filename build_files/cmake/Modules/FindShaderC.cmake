@@ -5,7 +5,7 @@
 # - Find ShaderC libraries
 # Find the ShaderC includes and libraries
 # This module defines
-#  SHADERC_INCLUDE_DIRS, where to find MoltenVK headers, Set when
+#  SHADERC_INCLUDE_DIRS, where to find ShaderC headers, Set when
 #                        SHADERC_INCLUDE_DIR is found.
 #  SHADERC_LIBRARIES, libraries to link against to use ShaderC.
 #  SHADERC_ROOT_DIR, The base directory to search for ShaderC.

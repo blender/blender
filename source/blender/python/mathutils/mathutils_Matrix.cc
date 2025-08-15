@@ -1391,16 +1391,8 @@ static PyObject *Matrix_resize_4x4(MatrixObject *self)
   float mat[4][4];
   int col;
 
-  if (self->flag & BASE_MATH_FLAG_IS_WRAP) {
-    PyErr_SetString(PyExc_ValueError,
-                    "Matrix.resize_4x4(): "
-                    "cannot resize wrapped data - make a copy and resize that");
-    return nullptr;
-  }
-  if (self->cb_user) {
-    PyErr_SetString(PyExc_ValueError,
-                    "Matrix.resize_4x4(): "
-                    "cannot resize owned data - make a copy and resize that");
+  if (UNLIKELY(BaseMathObject_Prepare_ForResize(self, "Matrix.resize_4x4()") == -1)) {
+    /* An exception has been raised. */
     return nullptr;
   }
 

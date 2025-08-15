@@ -35,7 +35,7 @@ class GHOST_ContextEGL : public GHOST_Context {
    * Constructor.
    */
   GHOST_ContextEGL(const GHOST_System *const system,
-                   bool stereoVisual,
+                   const GHOST_ContextParams &context_params,
                    EGLNativeWindowType nativeWindow,
                    EGLNativeDisplayType nativeDisplay,
                    EGLint contextProfileMask,

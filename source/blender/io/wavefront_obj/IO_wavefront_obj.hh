@@ -47,6 +47,7 @@ struct OBJExportParams {
   /* File Write Options. */
   bool export_selected_objects = false;
   bool apply_modifiers = true;
+  bool apply_transform = true;
   eEvaluationMode export_eval_mode = DAG_EVAL_VIEWPORT;
   bool export_uv = true;
   bool export_normals = true;

@@ -849,6 +849,94 @@ static bool fcurve_belongs_to_strip(const FCurve &fcurve, const std::string &str
   return fcurve.rna_path &&
          std::strncmp(fcurve.rna_path, strip_path.c_str(), strip_path.length()) == 0;
 }
+
+static wmOperatorStatus clear_anim_vse_exec(bContext *C, wmOperator *op)
+{
+  using namespace blender::animrig;
+  bool changed = false;
+
+  Scene *scene = CTX_data_scene(C);
+
+  blender::Vector<PointerRNA> selection;
+  blender::Vector<std::string> selected_strips_rna_paths;
+  get_selection(C, &selection);
+  selected_strips_rna_paths = get_selected_strips_rna_paths(selection);
+
+  if (selected_strips_rna_paths.is_empty()) {
+    BKE_reportf(op->reports, RPT_WARNING, "No strips selected");
+    return OPERATOR_CANCELLED;
+  }
+
+  if (!scene->adt || !scene->adt->action || (scene->adt->slot_handle == Slot::unassigned)) {
+    BKE_reportf(op->reports, RPT_ERROR, "Scene has no animation data or active action");
+    return OPERATOR_CANCELLED;
+  }
+
+  AnimData *adt = scene->adt;
+  bAction *dna_action = adt->action;
+
+  Action &action = dna_action->wrap();
+  blender::Vector<FCurve *> fcurves_to_delete;
+  foreach_fcurve_in_action_slot(action, adt->slot_handle, [&](FCurve &fcurve) {
+    for (const std::string &strip_path : selected_strips_rna_paths) {
+      if (fcurve_belongs_to_strip(fcurve, strip_path)) {
+        fcurves_to_delete.append(&fcurve);
+        break;
+      }
+    }
+  });
+  for (FCurve *fcurve : fcurves_to_delete) {
+    action_fcurve_remove(action, *fcurve);
+    changed = true;
+  }
+
+  if (!changed) {
+    return OPERATOR_CANCELLED;
+  }
+
+  if (scene->adt->action) {
+    DEG_id_tag_update(&scene->adt->action->id, ID_RECALC_ANIMATION_NO_FLUSH);
+  }
+  invalidate_strip_caches(selection, scene);
+  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+  WM_event_add_notifier(C, NC_ANIMATION, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+static wmOperatorStatus clear_anim_vse_invoke(bContext *C,
+                                              wmOperator *op,
+                                              const wmEvent * /*event*/)
+{
+  if (RNA_boolean_get(op->ptr, "confirm")) {
+    return WM_operator_confirm_ex(C,
+                                  op,
+                                  IFACE_("Remove animation from selected strips?"),
+                                  nullptr,
+                                  CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove"),
+                                  ALERT_ICON_NONE,
+                                  false);
+  }
+  return clear_anim_vse_exec(C, op);
+}
+void ANIM_OT_keyframe_clear_vse(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Remove Animation";
+  ot->description = "Remove all keyframe animation for selected strips";
+  ot->idname = "ANIM_OT_keyframe_clear_vse";
+
+  /* callbacks */
+  ot->invoke = clear_anim_vse_invoke;
+  ot->exec = clear_anim_vse_exec;
+
+  ot->poll = ED_operator_areaactive;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  WM_operator_properties_confirm_or_exec(ot);
+}
+
 static bool can_delete_key(FCurve *fcu, Object *ob, ReportList *reports)
 {
   /* don't touch protected F-Curves */

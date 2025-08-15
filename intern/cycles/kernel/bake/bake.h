@@ -141,6 +141,8 @@ ccl_device void kernel_volume_density_evaluate(KernelGlobals kg,
   ShaderData sd;
   shader_setup_from_volume(&sd, &ray, in.object);
   sd.flag = SD_IS_VOLUME_SHADER_EVAL;
+  /* For stochastic texture sampling. */
+  sd.lcg_state = lcg_state_init(offset, 0, 0, 0x15b4f88d);
 
   /* Evaluate extinction and emission without allocating closures. */
   sd.num_closure_left = 0;

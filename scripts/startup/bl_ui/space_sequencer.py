@@ -991,6 +991,7 @@ class SEQUENCER_MT_strip_animation(Menu):
         layout.operator("anim.keyframe_insert_menu", text="Insert Keyframe with Keying Set").always_prompt = True
         layout.operator("anim.keying_set_active_set", text="Change Keying Set...")
         layout.operator("anim.keyframe_delete_vse", text="Delete Keyframes...")
+        layout.operator("anim.keyframe_clear_vse", text="Clear Keyframes...")
 
 
 class SEQUENCER_MT_strip_input(Menu):

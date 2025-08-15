@@ -714,7 +714,7 @@ static wmOperatorStatus separate_armature_exec(bContext *C, wmOperator *op)
       bool has_selected_bone = false;
       bool has_selected_any = false;
       LISTBASE_FOREACH (EditBone *, ebone, arm_old->edbo) {
-        if (blender::animrig::bone_is_visible_editbone(arm_old, ebone)) {
+        if (blender::animrig::bone_is_visible(arm_old, ebone)) {
           if (ebone->flag & BONE_SELECTED) {
             has_selected_bone = true;
             break;

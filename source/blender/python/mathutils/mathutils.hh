@@ -118,6 +118,9 @@ struct Mathutils_Callback {
 [[nodiscard]] int _BaseMathObject_WriteCallback(BaseMathObject *self);
 [[nodiscard]] int _BaseMathObject_ReadIndexCallback(BaseMathObject *self, int index);
 [[nodiscard]] int _BaseMathObject_WriteIndexCallback(BaseMathObject *self, int index);
+/** To implement #BaseMath_Prepare_ForResize. */
+[[nodiscard]] int _BaseMathObject_ResizeOkOrRaiseExc(BaseMathObject *self,
+                                                     const char *error_prefix);
 
 void _BaseMathObject_RaiseFrozenExc(const BaseMathObject *self);
 void _BaseMathObject_RaiseNotFrozenExc(const BaseMathObject *self);
@@ -154,6 +157,12 @@ void _BaseMathObject_RaiseNotFrozenExc(const BaseMathObject *self);
   (UNLIKELY(((_self)->flag & BASE_MATH_FLAG_IS_FROZEN) == 0) ? \
        (_BaseMathObject_RaiseNotFrozenExc((BaseMathObject *)_self), -1) : \
        0)
+/**
+ * Helper to de-duplicate checks for in-place resizing.
+ * \return -1 and set an exception if the vector `_self` cannot be resized.
+ */
+#define BaseMathObject_Prepare_ForResize(_self, error_prefix) \
+  _BaseMathObject_ResizeOkOrRaiseExc((BaseMathObject *)_self, error_prefix)
 
 /* utility func */
 /**

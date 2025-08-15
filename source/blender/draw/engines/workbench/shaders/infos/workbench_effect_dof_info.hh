@@ -83,7 +83,6 @@ DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_effect_dof_resolve)
-SAMPLER(1, sampler2D, scene_color_tx)
 SAMPLER(2, sampler2D, scene_depth_tx)
 SAMPLER(3, sampler2D, half_res_color_tx)
 FRAGMENT_OUT_DUAL(0, float4, final_colorAdd, SRC_0)

@@ -645,6 +645,16 @@ struct Token {
     return {data, index + 1};
   }
 
+  /* Only usable when building with whitespace. */
+  Token next_not_whitespace() const
+  {
+    Token next = this->next();
+    while (next == ' ' || next == '\n') {
+      next = next.next();
+    }
+    return next;
+  }
+
   /* Returns the scope that contains this token. */
   Scope scope() const;
 
@@ -656,6 +666,11 @@ struct Token {
   size_t str_index_last() const
   {
     return index_range().last();
+  }
+
+  size_t str_index_last_no_whitespace() const
+  {
+    return data->str.find_last_not_of(" \n", str_index_last());
   }
 
   /* Index of the first character of the line this token is. */
@@ -700,23 +715,27 @@ struct Token {
 
   TokenType type() const
   {
-    return TokenType(*this);
-  }
-
-  operator TokenType() const
-  {
     if (is_invalid()) {
       return Invalid;
     }
     return TokenType(data->token_types[index]);
   }
+
   bool operator==(TokenType type) const
   {
-    return TokenType(*this) == type;
+    return this->type() == type;
   }
   bool operator!=(TokenType type) const
   {
     return !(*this == type);
+  }
+  bool operator==(char type) const
+  {
+    return *this == TokenType(type);
+  }
+  bool operator!=(char type) const
+  {
+    return *this != TokenType(type);
   }
 };
 
@@ -865,6 +884,13 @@ struct Parser {
     }
   }
 
+  void foreach_match(const std::string &pattern,
+                     std::function<void(const std::vector<Token>)> callback)
+  {
+    foreach_scope(ScopeType::Global,
+                  [&](const Scope scope) { scope.foreach_match(pattern, callback); });
+  }
+
   /* Run a callback for all existing function scopes. */
   void foreach_function(
       std::function<void(
@@ -990,14 +1016,14 @@ struct Parser {
   }
 
   /* Return true if any mutation was applied. */
-  bool apply_mutations()
+  bool only_apply_mutations()
   {
     if (mutations_.empty()) {
       return false;
     }
 
     /* Order mutations so that they can be applied in one pass. */
-    std::sort(mutations_.begin(), mutations_.end());
+    std::stable_sort(mutations_.begin(), mutations_.end());
 
     int64_t offset = 0;
     for (const Mutation &mut : mutations_) {
@@ -1005,14 +1031,22 @@ struct Parser {
       offset += mut.replacement.size() - mut.src_range.size;
     }
     mutations_.clear();
-    this->parse();
     return true;
+  }
+
+  bool apply_mutations()
+  {
+    bool applied = only_apply_mutations();
+    if (applied) {
+      this->parse();
+    }
+    return applied;
   }
 
   /* Apply mutations if any and get resulting string. */
   const std::string &result_get()
   {
-    apply_mutations();
+    only_apply_mutations();
     return data_.str;
   }
 

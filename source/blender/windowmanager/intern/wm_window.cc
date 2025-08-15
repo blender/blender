@@ -880,6 +880,10 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
   gpuSettings.preferred_device.index = U.gpu_preferred_index;
   gpuSettings.preferred_device.vendor_id = U.gpu_preferred_vendor_id;
   gpuSettings.preferred_device.device_id = U.gpu_preferred_device_id;
+  if (GPU_backend_vsync_is_overridden()) {
+    gpuSettings.flags |= GHOST_gpuVSyncIsOverridden;
+    gpuSettings.vsync = GHOST_TVSyncModes(GPU_backend_vsync_get());
+  }
 
   int posx = 0;
   int posy = 0;
@@ -3160,6 +3164,10 @@ void *WM_system_gpu_context_create()
   gpuSettings.preferred_device.index = U.gpu_preferred_index;
   gpuSettings.preferred_device.vendor_id = U.gpu_preferred_vendor_id;
   gpuSettings.preferred_device.device_id = U.gpu_preferred_device_id;
+  if (GPU_backend_vsync_is_overridden()) {
+    gpuSettings.flags |= GHOST_gpuVSyncIsOverridden;
+    gpuSettings.vsync = GHOST_TVSyncModes(GPU_backend_vsync_get());
+  }
 
   return GHOST_CreateGPUContext(g_system, gpuSettings);
 }

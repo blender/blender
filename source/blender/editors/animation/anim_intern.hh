@@ -47,6 +47,7 @@ void ANIM_OT_keyframe_insert_menu(wmOperatorType *ot);
 void ANIM_OT_keyframe_delete_v3d(wmOperatorType *ot);
 void ANIM_OT_keyframe_delete_vse(wmOperatorType *ot);
 void ANIM_OT_keyframe_clear_v3d(wmOperatorType *ot);
+void ANIM_OT_keyframe_clear_vse(wmOperatorType *ot);
 
 /** \} */
 

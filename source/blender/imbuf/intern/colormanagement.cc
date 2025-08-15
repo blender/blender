@@ -738,6 +738,15 @@ static const ColorSpace *get_display_colorspace(
                                                 view_settings->view_transform);
 }
 
+static const ColorSpace *get_untonemapped_display_colorspace(
+    const ColorManagedDisplaySettings *display_settings)
+{
+  ColorManagedViewSettings view_settings = {};
+  IMB_colormanagement_init_untonemapped_view_settings(&view_settings, display_settings);
+  return g_config->get_display_view_color_space(display_settings->display_device,
+                                                view_settings.view_transform);
+}
+
 static std::shared_ptr<const ocio::CPUProcessor> get_display_buffer_processor(
     const char *look,
     const char *view_transform,
@@ -764,15 +773,19 @@ static std::shared_ptr<const ocio::CPUProcessor> get_display_buffer_processor(
   return g_config->get_display_cpu_processor(display_parameters);
 }
 
-void IMB_colormanagement_init_default_view_settings(
+void IMB_colormanagement_init_untonemapped_view_settings(
     ColorManagedViewSettings *view_settings, const ColorManagedDisplaySettings *display_settings)
 {
-  /* First, try use "Standard" view transform of the requested device. */
+  /* First, try use "Un-tone-mapped" (ACES configs) or "Standard" (Blender config) view transform
+   * of the requested device. */
   const ocio::Display *display = g_config->get_display_by_name(display_settings->display_device);
   if (!display) {
     return;
   }
-  const ocio::View *default_view = display->get_view_by_name("Standard");
+  const ocio::View *default_view = display->get_view_by_name("Un-tone-mapped");
+  if (default_view == nullptr) {
+    default_view = display->get_view_by_name("Standard");
+  }
   /* If that fails, we fall back to the default view transform of the display
    * as per OCIO configuration. */
   if (default_view == nullptr) {
@@ -2362,11 +2375,14 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
                                              byte_output);
 
     if (colormanaged_ibuf->float_buffer.data) {
-      /* Float buffer isn't linear anymore,
-       * image format write callback should check for this flag and assume
-       * no space conversion should happen if ibuf->float_buffer.colorspace != nullptr. */
-      colormanaged_ibuf->float_buffer.colorspace = get_display_colorspace(
-          &image_format->view_settings, &image_format->display_settings);
+      /* Float buffer isn't linear anymore.
+       * - Image format write callback checks for this flag and assumes no space
+       *   conversion should happen if ibuf->float_buffer.colorspace != nullptr.
+       * - Video HDR write will convert from this colorspace to the appropriate
+       *   HDR display colorspace. Note this is the untonemapped colorspace
+       *   so that tone mapping is preserved. */
+      colormanaged_ibuf->float_buffer.colorspace = get_untonemapped_display_colorspace(
+          &image_format->display_settings);
       if (byte_output) {
         colormanaged_ibuf->byte_buffer.colorspace = colormanaged_ibuf->float_buffer.colorspace;
       }
@@ -2463,7 +2479,7 @@ uchar *IMB_display_buffer_acquire(ImBuf *ibuf,
   uchar *display_buffer;
   ColormanageCacheViewSettings cache_view_settings;
   ColormanageCacheDisplaySettings cache_display_settings;
-  ColorManagedViewSettings default_view_settings;
+  ColorManagedViewSettings untonemapped_view_settings;
   const ColorManagedViewSettings *applied_view_settings;
 
   *cache_handle = nullptr;
@@ -2478,8 +2494,9 @@ uchar *IMB_display_buffer_acquire(ImBuf *ibuf,
   else {
     /* If no view settings were specified, use default ones, which will
      * attempt not to do any extra color correction. */
-    IMB_colormanagement_init_default_view_settings(&default_view_settings, display_settings);
-    applied_view_settings = &default_view_settings;
+    IMB_colormanagement_init_untonemapped_view_settings(&untonemapped_view_settings,
+                                                        display_settings);
+    applied_view_settings = &untonemapped_view_settings;
   }
 
   /* No float buffer and byte buffer is already in display space, let's just use it. */
@@ -3287,7 +3304,7 @@ ColormanageProcessor *IMB_colormanagement_display_processor_new(
     const ColorManagedDisplaySettings *display_settings)
 {
   ColormanageProcessor *cm_processor;
-  ColorManagedViewSettings default_view_settings;
+  ColorManagedViewSettings untonemapped_view_settings;
   const ColorManagedViewSettings *applied_view_settings;
   const ColorSpace *display_space;
 
@@ -3297,8 +3314,9 @@ ColormanageProcessor *IMB_colormanagement_display_processor_new(
     applied_view_settings = view_settings;
   }
   else {
-    IMB_colormanagement_init_default_view_settings(&default_view_settings, display_settings);
-    applied_view_settings = &default_view_settings;
+    IMB_colormanagement_init_untonemapped_view_settings(&untonemapped_view_settings,
+                                                        display_settings);
+    applied_view_settings = &untonemapped_view_settings;
   }
 
   display_space = get_display_colorspace(applied_view_settings, display_settings);
@@ -3531,7 +3549,7 @@ bool IMB_colormanagement_setup_glsl_draw_from_space(
     bool predivide,
     bool do_overlay_merge)
 {
-  ColorManagedViewSettings default_view_settings;
+  ColorManagedViewSettings untonemapped_view_settings;
   const ColorManagedViewSettings *applied_view_settings;
 
   if (view_settings) {
@@ -3540,8 +3558,9 @@ bool IMB_colormanagement_setup_glsl_draw_from_space(
   else {
     /* If no view settings were specified, use default ones, which will attempt not to do any
      * extra color correction. */
-    IMB_colormanagement_init_default_view_settings(&default_view_settings, display_settings);
-    applied_view_settings = &default_view_settings;
+    IMB_colormanagement_init_untonemapped_view_settings(&untonemapped_view_settings,
+                                                        display_settings);
+    applied_view_settings = &untonemapped_view_settings;
   }
 
   /* Ensure curve mapping is up to date. */

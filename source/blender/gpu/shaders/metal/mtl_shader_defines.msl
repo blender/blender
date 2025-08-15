@@ -1231,11 +1231,6 @@ float4x4 __mat4x4(float3x3 a) { return to_float4x4(a); }
   } \
   ;
 
-#define TEMPLATE_GLUE1(name, arg1) name##_##arg1##_
-#define TEMPLATE_GLUE2(name, arg1, arg2) name##_##arg1##_##arg2##_
-#define TEMPLATE_GLUE3(name, arg1, arg2, arg3) name##_##arg1##_##arg2##_##arg3##_
-#define TEMPLATE_GLUE4(name, arg1, arg2, arg3, arg4) name##_##arg1##_##arg2##_##arg3##_##arg4##_
-
 /* Stage agnostic builtin function.
  * MSL allow mixing shader stages inside the same source file.
  * Leaving the calls untouched makes sure we catch invalid usage during CI testing. */

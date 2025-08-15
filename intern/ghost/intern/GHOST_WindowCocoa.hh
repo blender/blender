@@ -41,7 +41,7 @@ class GHOST_WindowCocoa : public GHOST_Window {
    * \param height: The height the window.
    * \param state: The state the window is initially opened with.
    * \param type: The type of drawing context installed in this window.
-   * \param stereoVisual: Stereo visual for quad buffered stereo.
+   * \param context_params: Parameters to use when initializing the context.
    * \param preferred_device: Preferred device to use when new device will be created.
    */
   GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
@@ -52,8 +52,7 @@ class GHOST_WindowCocoa : public GHOST_Window {
                     uint32_t height,
                     GHOST_TWindowState state,
                     GHOST_TDrawingContextType type,
-                    const bool stereoVisual,
-                    bool is_debug,
+                    const GHOST_ContextParams &context_params,
                     bool dialog,
                     GHOST_WindowCocoa *parentWindow,
                     const GHOST_GPUDevice &preferred_device);
@@ -313,7 +312,6 @@ class GHOST_WindowCocoa : public GHOST_Window {
   GHOST_TabletData m_tablet;
 
   bool m_immediateDraw;
-  bool m_debug_context;  // for debug messages during context setup
   bool m_is_dialog;
   GHOST_GPUDevice m_preferred_device;
 };

@@ -10,6 +10,8 @@
  * However, semantically, these types may have non-trivial copy-constructors and destructors.
  */
 
+#pragma once
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_function_ref.hh"

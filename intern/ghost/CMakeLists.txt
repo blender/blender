@@ -90,16 +90,6 @@ if(WITH_OPENGL_BACKEND)
 endif()
 
 if(WITH_VULKAN_BACKEND)
-  if(WITH_VULKAN_MOLTENVK)
-    list(APPEND INC_SYS
-      PUBLIC ${MOLTENVK_INCLUDE_DIRS}
-    )
-
-    list(APPEND LIB
-      ${MOLTENVK_LIBRARIES}
-    )
-  endif()
-
   list(APPEND SRC
     intern/GHOST_ContextVK.cc
 

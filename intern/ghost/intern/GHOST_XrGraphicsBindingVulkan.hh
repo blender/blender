@@ -11,6 +11,10 @@
 #include <list>
 
 #define VMA_VULKAN_VERSION 1002000  // Vulkan 1.2
+#if !defined(_WIN32) or defined(_M_ARM64)
+/* Silence compilation warning on non-windows x64 systems. */
+#  define VMA_EXTERNAL_MEMORY_WIN32 0
+#endif
 #include "vk_mem_alloc.h"
 
 #include "GHOST_ContextVK.hh"

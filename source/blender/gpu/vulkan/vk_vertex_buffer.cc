@@ -150,7 +150,8 @@ void VKVertexBuffer::upload_data_direct(const VKBuffer &host_buffer)
 
 void VKVertexBuffer::upload_data_via_staging_buffer(VKContext &context)
 {
-  VKStagingBuffer staging_buffer(buffer_, VKStagingBuffer::Direction::HostToDevice);
+  VKStagingBuffer staging_buffer(
+      buffer_, VKStagingBuffer::Direction::HostToDevice, 0, this->size_used_get());
   VKBuffer &buffer = staging_buffer.host_buffer_get();
   if (buffer.is_allocated()) {
     upload_data_direct(buffer);

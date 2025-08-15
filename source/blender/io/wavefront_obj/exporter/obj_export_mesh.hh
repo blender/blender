@@ -223,6 +223,7 @@ class OBJMesh : NonCopyable {
   void set_world_axes_transform(const Object &obj_eval,
                                 eIOAxis forward,
                                 eIOAxis up,
-                                float global_scale);
+                                float global_scale,
+                                bool apply_transform);
 };
 }  // namespace blender::io::obj

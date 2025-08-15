@@ -14,15 +14,15 @@
 #  include "BLI_winstuff.h"
 #endif
 
-#ifdef __APPLE__
-#  include <MoltenVK/vk_mvk_moltenvk.h>
-#else
-#  include <vulkan/vulkan.h>
-#  ifdef _WIN32
-#    include <vulkan/vulkan_win32.h>
-#  endif
+#include <vulkan/vulkan.h>
+#ifdef _WIN32
+#  include <vulkan/vulkan_win32.h>
 #endif
 
+#if !defined(_WIN32) or defined(_M_ARM64)
+/* Silence compilation warning on non-windows x64 systems. */
+#  define VMA_EXTERNAL_MEMORY_WIN32 0
+#endif
 #include "vk_mem_alloc.h"
 
 #include "GPU_index_buffer.hh"

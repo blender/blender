@@ -1651,11 +1651,8 @@ static bool ui_drag_toggle_but_is_supported(const uiBut *but)
     return true;
   }
   if (UI_but_is_decorator(but)) {
-    return ELEM(but->icon,
-                ICON_DECORATE,
-                ICON_DECORATE_KEYFRAME,
-                ICON_DECORATE_ANIMATE,
-                ICON_DECORATE_OVERRIDE);
+    const uiButDecorator *but_decorate = static_cast<const uiButDecorator *>(but);
+    return but_decorate->toggle_keyframe_on_click;
   }
   return false;
 }

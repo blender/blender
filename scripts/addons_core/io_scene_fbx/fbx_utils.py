@@ -1927,5 +1927,5 @@ FBXImportSettings = namedtuple("FBXImportSettings", (
     "use_custom_props", "use_custom_props_enum_as_string",
     "nodal_material_wrap_map", "image_cache",
     "ignore_leaf_bones", "force_connect_children", "automatic_bone_orientation", "bone_correction_matrix",
-    "use_prepost_rot", "colors_type",
+    "use_prepost_rot", "colors_type", "mtl_name_collision_mode",
 ))

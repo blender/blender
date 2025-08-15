@@ -51,6 +51,8 @@ GHOST_IWindow *GHOST_SystemSDL::createWindow(const char *title,
 {
   GHOST_WindowSDL *window = nullptr;
 
+  const GHOST_ContextParams context_params = GHOST_CONTEXT_PARAMS_FROM_GPU_SETTINGS(gpuSettings);
+
   window = new GHOST_WindowSDL(this,
                                title,
                                left,
@@ -59,7 +61,7 @@ GHOST_IWindow *GHOST_SystemSDL::createWindow(const char *title,
                                height,
                                state,
                                gpuSettings.context_type,
-                               ((gpuSettings.flags & GHOST_gpuStereoVisual) != 0),
+                               context_params,
                                exclusive,
                                parentWindow);
 
@@ -131,12 +133,15 @@ uint8_t GHOST_SystemSDL::getNumDisplays() const
 
 GHOST_IContext *GHOST_SystemSDL::createOffscreenContext(GHOST_GPUSettings gpuSettings)
 {
+  const GHOST_ContextParams context_params_offscreen =
+      GHOST_CONTEXT_PARAMS_FROM_GPU_SETTINGS_OFFSCREEN(gpuSettings);
+
   switch (gpuSettings.context_type) {
 #ifdef WITH_OPENGL_BACKEND
     case GHOST_kDrawingContextTypeOpenGL: {
       for (int minor = 6; minor >= 3; --minor) {
         GHOST_Context *context = new GHOST_ContextSDL(
-            false,
+            context_params_offscreen,
             nullptr,
             0, /* Profile bit. */
             4,

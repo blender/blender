@@ -59,12 +59,11 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
                                      uint32_t height,
                                      GHOST_TWindowState state,
                                      GHOST_TDrawingContextType type,
-                                     bool wantStereoVisual,
+                                     const GHOST_ContextParams &context_params,
                                      GHOST_WindowWin32 *parentwindow,
-                                     bool is_debug,
                                      bool dialog,
                                      const GHOST_GPUDevice &preferred_device)
-    : GHOST_Window(width, height, state, wantStereoVisual, false),
+    : GHOST_Window(width, height, state, context_params, false),
       m_mousePresent(false),
       m_inLiveResize(false),
       m_system(system),
@@ -83,8 +82,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
       m_normal_state(GHOST_kWindowStateNormal),
       m_user32(::LoadLibrary("user32.dll")),
       m_parentWindowHwnd(parentwindow ? parentwindow->m_hWnd : HWND_DESKTOP),
-      m_directManipulationHelper(nullptr),
-      m_debug_context(is_debug)
+      m_directManipulationHelper(nullptr)
 {
   DWORD style = parentwindow ?
                     WS_POPUPWINDOW | WS_CAPTION | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SIZEBOX :
@@ -622,7 +620,7 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
 #ifdef WITH_VULKAN_BACKEND
     case GHOST_kDrawingContextTypeVulkan: {
       GHOST_Context *context = new GHOST_ContextVK(
-          false, m_hWnd, 1, 2, m_debug_context, m_preferred_device);
+          m_want_context_params, m_hWnd, 1, 2, m_preferred_device);
       if (context->initializeDrawingContext()) {
         return context;
       }
@@ -635,14 +633,14 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
     case GHOST_kDrawingContextTypeOpenGL: {
       for (int minor = 6; minor >= 3; --minor) {
         GHOST_Context *context = new GHOST_ContextWGL(
-            m_wantStereoVisual,
+            m_want_context_params,
             false,
             m_hWnd,
             m_hDC,
             WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
             4,
             minor,
-            (m_debug_context ? WGL_CONTEXT_DEBUG_BIT_ARB : 0),
+            (m_want_context_params.is_debug ? WGL_CONTEXT_DEBUG_BIT_ARB : 0),
             GHOST_OPENGL_WGL_RESET_NOTIFICATION_STRATEGY);
 
         if (context->initializeDrawingContext()) {
@@ -655,7 +653,7 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
 #endif
 
     case GHOST_kDrawingContextTypeD3D: {
-      GHOST_Context *context = new GHOST_ContextD3D(false, m_hWnd);
+      GHOST_Context *context = new GHOST_ContextD3D(m_want_context_params, m_hWnd);
 
       if (context->initializeDrawingContext()) {
         return context;

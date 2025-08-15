@@ -36,7 +36,7 @@ extern "C" void rtcSetDeviceSYCLDevice(RTCDevice device, const sycl::device sycl
 
 CCL_NAMESPACE_BEGIN
 
-static std::vector<sycl::device> available_sycl_devices();
+static std::vector<sycl::device> available_sycl_devices(bool *multiple_dgpus_detected);
 static int parse_driver_build_version(const sycl::device &device);
 
 static void queue_error_cb(const char *message, void *user_ptr)
@@ -63,11 +63,11 @@ OneapiDevice::OneapiDevice(const DeviceInfo &info, Stats &stats, Profiler &profi
   bool is_finished_ok = create_queue(device_queue_,
                                      info.num,
 #  ifdef WITH_EMBREE_GPU
-                                     use_hardware_raytracing ? (void *)&embree_device : nullptr
+                                     use_hardware_raytracing ? (void *)&embree_device : nullptr,
 #  else
-                                     nullptr
+                                     nullptr,
 #  endif
-  );
+                                     &is_several_intel_dgpu_devices_detected);
 
   if (is_finished_ok == false) {
     set_error("oneAPI queue initialization error: got runtime exception \"" +
@@ -381,7 +381,9 @@ void *OneapiDevice::host_alloc(const MemoryType type, const size_t size)
   void *host_pointer = GPUDevice::host_alloc(type, size);
 
 #  ifdef SYCL_EXT_ONEAPI_COPY_OPTIMIZE
-  if (host_pointer) {
+  /* This extension is not working fully correctly with several
+   * Intel dGPUs present in the system, so it would be turned off in such cases. */
+  if (is_several_intel_dgpu_devices_detected == false && host_pointer) {
     /* Import host_pointer into USM memory for faster host<->device data transfers. */
     if (type == MEM_READ_WRITE || type == MEM_READ_ONLY) {
       sycl::queue *queue = reinterpret_cast<sycl::queue *>(device_queue_);
@@ -400,12 +402,14 @@ void *OneapiDevice::host_alloc(const MemoryType type, const size_t size)
 void OneapiDevice::host_free(const MemoryType type, void *host_pointer, const size_t size)
 {
 #  ifdef SYCL_EXT_ONEAPI_COPY_OPTIMIZE
-  if (type == MEM_READ_WRITE || type == MEM_READ_ONLY) {
-    sycl::queue *queue = reinterpret_cast<sycl::queue *>(device_queue_);
-    /* This API is properly implemented only in Level-Zero backend at the moment and we don't
-     * want it to fail at runtime, so we conservatively use it only for L0. */
-    if (queue->get_backend() == sycl::backend::ext_oneapi_level_zero) {
-      sycl::ext::oneapi::experimental::release_from_device_copy(host_pointer, *queue);
+  if (is_several_intel_dgpu_devices_detected == false) {
+    if (type == MEM_READ_WRITE || type == MEM_READ_ONLY) {
+      sycl::queue *queue = reinterpret_cast<sycl::queue *>(device_queue_);
+      /* This API is properly implemented only in Level-Zero backend at the moment and we don't
+       * want it to fail at runtime, so we conservatively use it only for L0. */
+      if (queue->get_backend() == sycl::backend::ext_oneapi_level_zero) {
+        sycl::ext::oneapi::experimental::release_from_device_copy(host_pointer, *queue);
+      }
     }
   }
 #  endif
@@ -988,17 +992,21 @@ void OneapiDevice::check_usm(SyclQueue *queue_, const void *usm_ptr, bool allow_
 
 bool OneapiDevice::create_queue(SyclQueue *&external_queue,
                                 const int device_index,
-                                void *embree_device_pointer)
+                                void *embree_device_pointer,
+                                bool *is_several_intel_dgpu_devices_detected_pointer)
 {
   bool finished_correct = true;
+  *is_several_intel_dgpu_devices_detected_pointer = false;
+
   try {
-    std::vector<sycl::device> devices = available_sycl_devices();
+    std::vector<sycl::device> devices = available_sycl_devices(
+        is_several_intel_dgpu_devices_detected_pointer);
     if (device_index < 0 || device_index >= devices.size()) {
       return false;
     }
 
     sycl::queue *created_queue = nullptr;
-    if (devices.size() == 1) {
+    if (*is_several_intel_dgpu_devices_detected_pointer == false) {
       created_queue = new sycl::queue(devices[device_index], sycl::property::queue::in_order());
     }
     else {
@@ -1385,7 +1393,7 @@ int parse_driver_build_version(const sycl::device &device)
   return driver_build_version;
 }
 
-std::vector<sycl::device> available_sycl_devices()
+std::vector<sycl::device> available_sycl_devices(bool *multiple_dgpus_detected = nullptr)
 {
   std::vector<sycl::device> available_devices;
   bool allow_all_devices = false;
@@ -1393,6 +1401,7 @@ std::vector<sycl::device> available_sycl_devices()
     allow_all_devices = true;
   }
 
+  int level_zero_dgpu_counter = 0;
   try {
     const std::vector<sycl::platform> &oneapi_platforms = sycl::platform::get_platforms();
 
@@ -1410,6 +1419,14 @@ std::vector<sycl::device> available_sycl_devices()
 
       for (const sycl::device &device : oneapi_devices) {
         bool filter_out = false;
+
+        if (platform.get_backend() == sycl::backend::ext_oneapi_level_zero && device.is_gpu() &&
+            device.get_info<sycl::info::device::host_unified_memory>() == false  // dGPU
+        )
+        {
+          level_zero_dgpu_counter++;
+        }
+
         if (!allow_all_devices) {
           /* For now we support all Intel(R) Arc(TM) devices and likely any future GPU,
            * assuming they have either more than 96 Execution Units or not 7 threads per EU.
@@ -1478,6 +1495,11 @@ std::vector<sycl::device> available_sycl_devices()
   catch (sycl::exception &e) {
     LOG_WARNING << "An error has been encountered while enumerating SYCL devices: " << e.what();
   }
+
+  if (multiple_dgpus_detected) {
+    *multiple_dgpus_detected = level_zero_dgpu_counter > 1;
+  }
+
   return available_devices;
 }
 
@@ -1625,6 +1647,7 @@ char *OneapiDevice::device_capabilities()
     GET_ATTR(mem_base_addr_align)
     GET_ATTR(error_correction_support)
     GET_ATTR(is_available)
+    GET_ATTR(host_unified_memory)
 
     GET_ASPECT(cpu)
     GET_ASPECT(gpu)

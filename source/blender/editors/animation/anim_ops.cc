@@ -1376,6 +1376,7 @@ void ED_operatortypes_anim()
   WM_operatortype_append(ANIM_OT_keyframe_delete_v3d);
   WM_operatortype_append(ANIM_OT_keyframe_delete_vse);
   WM_operatortype_append(ANIM_OT_keyframe_clear_v3d);
+  WM_operatortype_append(ANIM_OT_keyframe_clear_vse);
   WM_operatortype_append(ANIM_OT_keyframe_insert_button);
   WM_operatortype_append(ANIM_OT_keyframe_delete_button);
   WM_operatortype_append(ANIM_OT_keyframe_clear_button);

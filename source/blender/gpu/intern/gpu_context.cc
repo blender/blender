@@ -343,6 +343,7 @@ void GPU_render_step(bool force_resource_release)
 static eGPUBackendType g_backend_type = GPU_BACKEND_OPENGL;
 static std::optional<eGPUBackendType> g_backend_type_override = std::nullopt;
 static std::optional<bool> g_backend_type_supported = std::nullopt;
+static std::optional<int> g_vsync_override = std::nullopt;
 static GPUBackend *g_backend = nullptr;
 static GHOST_SystemHandle g_ghost_system = nullptr;
 
@@ -360,6 +361,21 @@ void GPU_backend_type_selection_set(const eGPUBackendType backend)
 {
   g_backend_type = backend;
   g_backend_type_supported = std::nullopt;
+}
+
+int GPU_backend_vsync_get()
+{
+  return g_vsync_override.value();
+}
+
+void GPU_backend_vsync_set_override(const int vsync)
+{
+  g_vsync_override = vsync;
+}
+
+bool GPU_backend_vsync_is_overridden()
+{
+  return g_vsync_override.has_value();
 }
 
 eGPUBackendType GPU_backend_type_selection_get()

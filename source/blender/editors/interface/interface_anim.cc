@@ -167,18 +167,23 @@ void ui_but_anim_decorate_update_from_flag(uiButDecorator *but)
 
   if (flag & UI_BUT_DRIVEN) {
     but->icon = ICON_DECORATE_DRIVER;
+    but->toggle_keyframe_on_click = false;
   }
   else if (flag & UI_BUT_ANIMATED_KEY) {
     but->icon = ICON_DECORATE_KEYFRAME;
+    but->toggle_keyframe_on_click = true;
   }
   else if (flag & UI_BUT_ANIMATED) {
     but->icon = ICON_DECORATE_ANIMATE;
+    but->toggle_keyframe_on_click = true;
   }
   else if (flag & UI_BUT_OVERRIDDEN) {
     but->icon = ICON_DECORATE_OVERRIDE;
+    but->toggle_keyframe_on_click = false;
   }
   else {
     but->icon = ICON_DECORATE;
+    but->toggle_keyframe_on_click = true;
   }
 
   const int flag_copy = (UI_BUT_DISABLED | UI_BUT_INACTIVE);
@@ -338,21 +343,21 @@ void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void * /*arg_dummy*/)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   uiButDecorator *but_decorate = static_cast<uiButDecorator *>(arg_but);
-  uiBut *but_anim = ui_but_anim_decorate_find_attached_button(but_decorate);
+  if (!but_decorate->toggle_keyframe_on_click) {
+    return;
+  }
 
+  uiBut *but_anim = ui_but_anim_decorate_find_attached_button(but_decorate);
   if (!but_anim) {
     return;
   }
+
   /* While click drag the active button may not be `but_decorate`, instead is the but where the
    * drag started, temporarily override `but_anim` as active. */
   but_anim->flag |= UI_BUT_ACTIVE_OVERRIDE;
   wm->op_undo_depth++;
 
-  if (but_anim->flag & UI_BUT_DRIVEN) {
-    /* pass */
-    /* TODO: report? */
-  }
-  else if (but_anim->flag & UI_BUT_ANIMATED_KEY) {
+  if (but_anim->flag & UI_BUT_ANIMATED_KEY) {
     PointerRNA props_ptr;
     wmOperatorType *ot = WM_operatortype_find("ANIM_OT_keyframe_delete_button", false);
     WM_operator_properties_create_ptr(&props_ptr, ot);

@@ -4,11 +4,7 @@
 
 #include <cstdio>
 
-#ifdef __APPLE__
-#  include <MoltenVK/vk_mvk_moltenvk.h>
-#else
-#  include <vulkan/vulkan.h>
-#endif
+#include <vulkan/vulkan.h>
 
 #define VMA_IMPLEMENTATION
 
