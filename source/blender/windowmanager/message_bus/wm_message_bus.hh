@@ -37,7 +37,9 @@ using wmMsgSubscribeValueUpdateIdFn =
 enum {
   WM_MSG_TYPE_RNA = 0,
   WM_MSG_TYPE_STATIC = 1,
-  WM_MSG_TYPE_REMOTE_DOWNLOADER = 2,
+  /** Messages relating to some remote resources, like progress reporting for online asset
+   * downloads. */
+  WM_MSG_TYPE_REMOTE_IO = 2,
 };
 #define WM_MSG_TYPE_NUM 3
 
@@ -171,37 +173,37 @@ void WM_msg_subscribe_static(wmMsgBus *mbus,
                              const char *id_repr);
 
 /* -------------------------------------------------------------------------- */
-/* `wm_message_bus_remote_downloader.cc` */
+/* `wm_message_bus_remote_io.cc` */
 
-struct wmMsgParams_RemoteDownloader {
+struct wmMsgParams_RemoteIO {
+  /* Owned, needs freeing with `MEM_freeN()`. */
   const char *remote_url;
 };
 
-struct wmMsg_RemoteDownloader {
+struct wmMsg_RemoteIO {
   wmMsg head; /* Keep first. */
-  wmMsgParams_RemoteDownloader params;
+  wmMsgParams_RemoteIO params;
 };
 
-struct wmMsgSubscribeKey_RemoteDownloader {
+struct wmMsgSubscribeKey_RemoteIO {
   wmMsgSubscribeKey head;
-  wmMsg_RemoteDownloader msg;
+  wmMsg_RemoteIO msg;
 };
 
-void WM_msgtypeinfo_init_remote_downloader(wmMsgTypeInfo *msgtype_info);
+void WM_msgtypeinfo_init_remote_io(wmMsgTypeInfo *msgtype_info);
 
-wmMsgSubscribeKey_RemoteDownloader *WM_msg_lookup_remote_downloader(
-    wmMsgBus *mbus, const wmMsgParams_RemoteDownloader *msg_key_params);
-void WM_msg_publish_remote_downloader_params(wmMsgBus *mbus,
-                                             const wmMsgParams_RemoteDownloader *msg_key_params);
-void WM_msg_publish_remote_downloader(wmMsgBus *mbus, blender::StringRef remote_url);
-void WM_msg_subscribe_remote_downloader_params(wmMsgBus *mbus,
-                                               const wmMsgParams_RemoteDownloader *msg_key_params,
-                                               const wmMsgSubscribeValue *msg_val_params,
-                                               const char *id_repr);
-void WM_msg_subscribe_remote_downloader(wmMsgBus *mbus,
-                                        blender::StringRef remote_url,
-                                        const wmMsgSubscribeValue *msg_val_params,
-                                        const char *id_repr);
+wmMsgSubscribeKey_RemoteIO *WM_msg_lookup_remote_io(wmMsgBus *mbus,
+                                                    const wmMsgParams_RemoteIO *msg_key_params);
+void WM_msg_publish_remote_io_params(wmMsgBus *mbus, const wmMsgParams_RemoteIO *msg_key_params);
+void WM_msg_publish_remote_io(wmMsgBus *mbus, blender::StringRef remote_url);
+void WM_msg_subscribe_remote_io_params(wmMsgBus *mbus,
+                                       const wmMsgParams_RemoteIO *msg_key_params,
+                                       const wmMsgSubscribeValue *msg_val_params,
+                                       const char *id_repr);
+void WM_msg_subscribe_remote_io(wmMsgBus *mbus,
+                                blender::StringRef remote_url,
+                                const wmMsgSubscribeValue *msg_val_params,
+                                const char *id_repr);
 
 /* -------------------------------------------------------------------------- */
 /* `wm_message_bus_rna.cc` */

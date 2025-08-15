@@ -33,7 +33,7 @@ using wmMsgTypeInitFn = void (*)(wmMsgTypeInfo *);
 static wmMsgTypeInitFn wm_msg_init_fn[WM_MSG_TYPE_NUM] = {
     WM_msgtypeinfo_init_rna,
     WM_msgtypeinfo_init_static,
-    WM_msgtypeinfo_init_remote_downloader,
+    WM_msgtypeinfo_init_remote_io,
 };
 
 void WM_msgbus_types_init()
