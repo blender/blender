@@ -2556,9 +2556,9 @@ struct RadialControl {
   float current_value = 0.0f;
   float min_value = 0.0f;
   float max_value = 0.0f;
-  /* Original region space coordinates that the operator is started on */
+  /* Original screen space coordinates that the operator started on. */
   int initial_co[2] = {};
-  /* Modified value of #initial_co to simplify calculating new values */
+  /* Modified value of #initial_co to simplify calculating new values. */
   int initial_radial_center[2] = {};
   int slow_mouse[2] = {};
   bool slow_mode = false;
