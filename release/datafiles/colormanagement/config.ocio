@@ -13,7 +13,7 @@
 #
 # See ocio-license.txt for details.
 
-ocio_profile_version: 2
+ocio_profile_version: 2.4
 
 search_path: "luts:filmic"
 strictparsing: true
@@ -57,6 +57,7 @@ roles:
 displays:
   sRGB:
     - !<View> {name: Standard, colorspace: sRGB}
+    - !<View> {name: ACES 2.0, colorspace: ACES 2.0 sRGB}
     - !<View> {name: Khronos PBR Neutral, colorspace: Khronos PBR Neutral sRGB}
     - !<View> {name: AgX, colorspace: AgX Base sRGB}
     - !<View> {name: Filmic, colorspace: Filmic sRGB}
@@ -65,22 +66,33 @@ displays:
     - !<View> {name: Raw, colorspace: Non-Color}
   Display P3:
     - !<View> {name: Standard, colorspace: Display P3}
+    - !<View> {name: ACES 2.0, colorspace: ACES 2.0 Display P3}
     - !<View> {name: AgX, colorspace: AgX Base Display P3}
     - !<View> {name: False Color, colorspace: AgX False Color P3}
     - !<View> {name: Raw, colorspace: Non-Color}
   Rec.1886:
     - !<View> {name: Standard, colorspace: Rec.1886}
+    - !<View> {name: ACES 2.0, colorspace: ACES 2.0 Rec.1886}
     - !<View> {name: AgX, colorspace: AgX Base Rec.1886}
     - !<View> {name: False Color, colorspace: AgX False Color Rec.709}
     - !<View> {name: Raw, colorspace: Non-Color}
   Rec.2020:
     - !<View> {name: Standard, colorspace: Rec.2020}
+    - !<View> {name: ACES 2.0, colorspace: ACES 2.0 Rec.2020}
     - !<View> {name: AgX, colorspace: AgX Base Rec.2020}
     - !<View> {name: False Color, colorspace: AgX False Color Rec.2020}
     - !<View> {name: Raw, colorspace: Non-Color}
-active_displays: [sRGB, Display P3, Rec.1886, Rec.2020]
-active_views: [Standard, Khronos PBR Neutral, AgX, Filmic, Filmic Log, False Color, Raw]
-inactive_colorspaces: [Luminance Compensation Rec.2020, AgX False Color Rec.709, AgX False Color P3, AgX False Color Rec.2020]
+  Rec.2100-PQ:
+    - !<View> {name: Standard, colorspace: Rec.2100-PQ}
+    - !<View> {name: ACES 2.0 - HDR 500 nits, colorspace: ACES 2.0 Rec.2100-PQ - HDR 500 nits}
+    - !<View> {name: ACES 2.0 - HDR 1000 nits, colorspace: ACES 2.0 Rec.2100-PQ - HDR 1000 nits}
+    - !<View> {name: ACES 2.0 - HDR 2000 nits, colorspace: ACES 2.0 Rec.2100-PQ - HDR 2000 nits}
+    - !<View> {name: ACES 2.0 - HDR 4000 nits, colorspace: ACES 2.0 Rec.2100-PQ - HDR 4000 nits}
+    - !<View> {name: False Color, colorspace: AgX False Color Rec.2100-PQ}
+    - !<View> {name: Raw, colorspace: Non-Color}
+active_displays: [sRGB, Display P3, Rec.1886, Rec.2020, Rec.2100-PQ]
+active_views: [Standard, ACES 2.0, ACES 2.0 - HDR 500 nits, ACES 2.0 - HDR 1000 nits, ACES 2.0 - HDR 2000 nits, ACES 2.0 - HDR 4000 nits, Khronos PBR Neutral, AgX, Filmic, Filmic Log, False Color, Raw]
+inactive_colorspaces: [Luminance Compensation Rec.2020, AgX False Color Rec.709, AgX False Color P3, AgX False Color Rec.2020, AgX False Color Rec.2100-PQ, ACES 2.0 Rec.2100-PQ - HDR 500 nits, ACES 2.0 Rec.2100-PQ - HDR 1000 nits, ACES 2.0 Rec.2100-PQ - HDR 2000 nits, ACES 2.0 Rec.2100-PQ - HDR 4000 nits, ACES 2.0 Rec.2020]
 
 colorspaces:
   - !<ColorSpace>
@@ -95,7 +107,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: Linear CIE-XYZ D65
-    aliases: [cie_xyz_d65, CIE-XYZ-D65, XYZ, Linear CIE-XYZ I-D65, lin_ciexyzd65_scene]
+    aliases: [lin_ciexyzd65_scene, cie_xyz_d65, CIE-XYZ-D65, XYZ, Linear CIE-XYZ I-D65]
     family: Chromaticity
     equalitygroup:
     bitdepth: 32f
@@ -106,7 +118,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: Linear Rec.709
-    aliases: [Linear, Linear BT.709, Linear BT.709 I-D65, Linear Tristimulus, linrec709, Utility - Linear - sRGB, Utility - Linear - Rec.709, lin_srgb, Linear Rec.709 (sRGB), lin_rec709_srgb, lin_rec709, lin_srgb, lin_rec709_scene, "CGI: Linear - Rec.709"]
+    aliases: [lin_rec709_scene, Linear, Linear BT.709, Linear BT.709 I-D65, Linear Tristimulus, linrec709, Utility - Linear - sRGB, Utility - Linear - Rec.709, lin_srgb, Linear Rec.709 (sRGB), lin_rec709_srgb, lin_rec709, lin_srgb, "CGI: Linear - Rec.709"]
     family: Linear
     equalitygroup:
     bitdepth: 32f
@@ -120,7 +132,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: Linear DCI-P3 D65
-    aliases: [Linear DCI-P3 I-D65, Linear P3-D65, lin_p3d65, lin_p3d65_scene, Utility - Linear - P3-D65, Apple DCI-P3 D65]
+    aliases: [lin_p3d65_scene, Linear DCI-P3 I-D65, Linear P3-D65, lin_p3d65, Utility - Linear - P3-D65, Apple DCI-P3 D65]
     family: Linear
     equalitygroup:
     bitdepth: 32f
@@ -134,7 +146,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: Linear Rec.2020
-    aliases: [Linear BT.2020 I-D65, Linear BT.2020, lin_rec2020, lin_rec2020_scene, Utility - Linear - Rec.2020]
+    aliases: [lin_rec2020_scene, Linear BT.2020 I-D65, Linear BT.2020, lin_rec2020, Utility - Linear - Rec.2020]
     family: Linear
     equalitygroup:
     bitdepth: 32f
@@ -148,7 +160,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: ACES2065-1
-    aliases: [Linear ACES, aces2065_1, ACES - ACES2065-1, lin_ap0, lin_ap0_scene, "ACES: Linear - AP0"]
+    aliases: [lin_ap0_scene, lin_ap0, Linear ACES, aces2065_1, ACES - ACES2065-1, "ACES: Linear - AP0"]
     family: Linear
     equalitygroup:
     bitdepth: 32f
@@ -162,7 +174,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: ACEScg
-    aliases: [Linear ACEScg, lin_ap1, lin_ap1_scene, ACES - ACEScg, "ACEScg: Linear - AP1"]
+    aliases: [lin_ap1_scene, lin_ap1, Linear ACEScg, ACES - ACEScg, "ACEScg: Linear - AP1"]
     family: Linear
     equalitygroup:
     bitdepth: 32f
@@ -190,7 +202,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: sRGB
-    aliases: [sRGB 2.2, sRGB I-D65, srgb_display, srgb_rec709_scene, sRGB - Display, g22_rec709, Utility - Gamma 2.2 - Rec.709 - Texture, Utility - sRGB - Texture, sRGB - Texture, srgb_tx, srgb_texture, Input - Generic - sRGB - Texture, "sRGB Display: 2.2 Gamma - Rec.709"]
+    aliases: [srgb_rec709_display, srgb_rec709_scene, sRGB 2.2, sRGB I-D65, srgb_display, sRGB - Display, g22_rec709, Utility - Gamma 2.2 - Rec.709 - Texture, Utility - sRGB - Texture, sRGB - Texture, srgb_tx, srgb_texture, Input - Generic - sRGB - Texture, "sRGB Display: 2.2 Gamma - Rec.709"]
     family: Display
     equalitygroup:
     bitdepth: 32f
@@ -204,7 +216,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: Display P3
-    aliases: [Display P3 2.2, Display P3 I-D65, P3-D65 - Display, p3_d65_display, p3d65_display, AppleP3 sRGB OETF]
+    aliases: [srgb_p3d65_display, srgb_p3d65_scene, Display P3 2.2, Display P3 I-D65, P3-D65 - Display, p3_d65_display, p3d65_display, AppleP3 sRGB OETF]
     family: Display
     equalitygroup:
     bitdepth: 32f
@@ -218,7 +230,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: Rec.1886
-    aliases: [BT.1886, BT.1886 2.4, BT.1886 EOTF, BT.1886 I-D65, Rec.1886 / Rec.709 Video - Display, rec1886_rec709_video_display, Rec.1886 Rec.709 - Display, rec1886_rec709_display, "Rec1886: 2.4 Gamma - Rec.709"]
+    aliases: [g24_rec709_display, BT.1886, BT.1886 2.4, BT.1886 EOTF, BT.1886 I-D65, Rec.1886 / Rec.709 Video - Display, rec1886_rec709_display, rec1886_rec709_video_display, Rec.1886 Rec.709 - Display, "Rec1886: 2.4 Gamma - Rec.709"]
     family: Display
     equalitygroup:
     bitdepth: 32f
@@ -232,7 +244,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: Rec.2020
-    aliases: [BT.2020, BT.2020 2.4, BT.2020 I-D65, Rec.1886 / Rec.2020 Video - Display, rec1886_rec2020_video_display, Rec.1886 Rec.2020 - Display, rec1886_rec2020_display, "Rec1886: 2.4 Gamma - Rec.2020"]
+    aliases: [g24_rec2020_display, BT.2020, BT.2020 2.4, BT.2020 I-D65, Rec.1886 / Rec.2020 Video - Display, rec1886_rec2020_display, rec1886_rec2020_video_display, Rec.1886 Rec.2020 - Display, "Rec1886: 2.4 Gamma - Rec.2020"]
     family: Display
     equalitygroup:
     bitdepth: 32f
@@ -280,6 +292,7 @@ colorspaces:
     bitdepth: 32f
     description: |
       sRGB display space with Filmic view transform
+    encoding: sdr-video
     isdata: false
     from_scene_reference: !<GroupTransform>
       children:
@@ -331,6 +344,7 @@ colorspaces:
     bitdepth: 32f
     description: |
       AgX Base Image Encoding for BT.2020 Display
+    encoding: sdr-video
     isdata: false
     from_scene_reference: !<GroupTransform>
       children:
@@ -350,6 +364,7 @@ colorspaces:
     bitdepth: 32f
     description: |
       AgX Base Image Encoding for sRGB Display
+    encoding: sdr-video
     isdata: false
     from_scene_reference: !<GroupTransform>
       children:
@@ -370,6 +385,7 @@ colorspaces:
     bitdepth: 32f
     description: |
       AgX Base Image Encoding for Display P3 Display
+    encoding: sdr-video
     isdata: false
     from_scene_reference: !<GroupTransform>
       children:
@@ -391,6 +407,7 @@ colorspaces:
     bitdepth: 32f
     description: |
       AgX Base Image Encoding for Rec.1886 Display
+    encoding: sdr-video
     isdata: false
     from_scene_reference: !<GroupTransform>
       children:
@@ -447,12 +464,26 @@ colorspaces:
         - !<ColorSpaceTransform> {src: Rec.1886, dst: Rec.2020}
 
   - !<ColorSpace>
+    name: AgX False Color Rec.2100-PQ
+    family: AgX
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      A heat-map-like image formed from AgX Base for Rec.2100-PQ displays
+    isdata: false
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: AgX False Color Rec.709}
+        - !<ColorSpaceTransform> {src: Rec.1886, dst: Rec.2100-PQ}
+
+  - !<ColorSpace>
     name: Khronos PBR Neutral sRGB
     family: Khronos PBR Neutral
     equalitygroup:
     bitdepth: 32f
     description: |
       Khronos PBR Neutral Image Encoding for sRGB Display
+    encoding: sdr-video
     isdata: false
     from_scene_reference: !<GroupTransform>
       children:
@@ -462,8 +493,128 @@ colorspaces:
         - !<ColorSpaceTransform> {src: Linear Rec.709, dst: sRGB}
 
   - !<ColorSpace>
+    name: ACES 2.0 sRGB
+    family: ACES
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+       ACES 2 Output Transform for 100 nit SDR Rec709
+    encoding: sdr-video
+    isdata: false
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: ACES2065-1}
+        - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - SDR-100nit-REC709_2.0}
+        - !<BuiltinTransform> {style: DISPLAY - CIE-XYZ-D65_to_sRGB}
+
+  - !<ColorSpace>
+    name: ACES 2.0 Display P3
+    family: ACES
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+       ACES 2 Output Transform for Apple Display P3
+    encoding: sdr-video
+    isdata: false
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: ACES2065-1}
+        - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - SDR-100nit-P3-D65_2.0}
+        - !<BuiltinTransform> {style: DISPLAY - CIE-XYZ-D65_to_DisplayP3}
+
+  - !<ColorSpace>
+    name: ACES 2.0 Rec.1886
+    family: ACES
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+       ACES 2 Output Transform for 100 nit SDR Rec709
+    encoding: sdr-video
+    isdata: false
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: ACES2065-1}
+        - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - SDR-100nit-REC709_2.0}
+        - !<BuiltinTransform> {style: DISPLAY - CIE-XYZ-D65_to_REC.1886-REC.709}
+
+  - !<ColorSpace>
+    name: ACES 2.0 Rec.2020
+    family: ACES
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+       ACES 2 Output Transform for BT.2020 2.4 Exponent EOTF Display
+    encoding: sdr-video
+    isdata: false
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: ACES2065-1}
+        - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - SDR-100nit-P3-D65_2.0}
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ D65, dst: Rec.2020}
+
+  - !<ColorSpace>
+    name: ACES 2.0 Rec.2100-PQ - HDR 500 nits
+    family: ACES
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+       ACES 2 Output Transform for 500 nit HDR Rec2020
+    encoding: hdr-video
+    isdata: false
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: ACES2065-1}
+        - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - HDR-500nit-REC2020_2.0}
+        - !<BuiltinTransform> {style: DISPLAY - CIE-XYZ-D65_to_REC.2100-PQ}
+
+  - !<ColorSpace>
+    name: ACES 2.0 Rec.2100-PQ - HDR 1000 nits
+    family: ACES
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+       ACES 2 Output Transform for 1000 nit HDR Rec2020
+    encoding: hdr-video
+    isdata: false
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: ACES2065-1}
+        - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - HDR-1000nit-REC2020_2.0}
+        - !<BuiltinTransform> {style: DISPLAY - CIE-XYZ-D65_to_REC.2100-PQ}
+
+  - !<ColorSpace>
+    name: ACES 2.0 Rec.2100-PQ - HDR 2000 nits
+    family: ACES
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+       ACES 2 Output Transform for 2000 nit HDR Rec2020
+    encoding: hdr-video
+    isdata: false
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: ACES2065-1}
+        - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - HDR-2000nit-REC2020_2.0}
+        - !<BuiltinTransform> {style: DISPLAY - CIE-XYZ-D65_to_REC.2100-PQ}
+
+  - !<ColorSpace>
+    name: ACES 2.0 Rec.2100-PQ - HDR 4000 nits
+    family: ACES
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+       ACES 2 Output Transform for 4000 nit HDR Rec2020
+    encoding: hdr-video
+    isdata: false
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: ACES2065-1}
+        - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - HDR-4000nit-REC2020_2.0}
+        - !<BuiltinTransform> {style: DISPLAY - CIE-XYZ-D65_to_REC.2100-PQ}
+
+  - !<ColorSpace>
     name: Rec.2100-PQ
-    aliases: [rec2100_pq_display, Rec.2100-PQ - Display, pq_rec2020_display]
+    aliases: [pq_rec2020_display, rec2100_pq_display, Rec.2100-PQ - Display]
     family: Display
     equalitygroup: ""
     bitdepth: 32f
@@ -479,7 +630,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: Rec.2100-HLG
-    aliases: [rec2100_hlg_display, Rec.2100-HLG - Display, hlg_rec2020_display]
+    aliases: [hlg_rec2020_display, rec2100_hlg_display, Rec.2100-HLG - Display]
     family: Display
     equalitygroup: ""
     bitdepth: 32f
