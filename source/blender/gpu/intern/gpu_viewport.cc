@@ -16,6 +16,7 @@
 
 #include "BKE_colortools.hh"
 
+#include "DNA_color_types.h"
 #include "IMB_colormanagement.hh"
 
 #include "DNA_vec_types.h"
@@ -289,7 +290,8 @@ void GPU_viewport_colorspace_set(GPUViewport *viewport,
   viewport->dither = dither;
   viewport->do_color_management = true;
   viewport->use_hdr = GPU_hdr_support() &&
-                      ((viewport->view_settings.flag & COLORMANAGE_VIEW_USE_HDR) != 0);
+                      IMB_colormanagement_display_is_hdr(&viewport->display_settings,
+                                                         viewport->view_settings.view_transform);
 }
 
 void GPU_viewport_force_hdr(GPUViewport *viewport)

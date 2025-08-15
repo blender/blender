@@ -76,6 +76,13 @@ class RENDER_PT_color_management(RenderButtonsPanel, Panel):
         col.prop(view, "view_transform")
         col.prop(view, "look")
 
+        if view.is_hdr:
+            import gpu
+            if not gpu.capabilities.hdr_support_get():
+                row = col.split(factor=0.4)
+                row.label()
+                row.label(text="HDR display not supported", icon="INFO")
+
         col = flow.column()
         col.prop(view, "exposure")
         col.prop(view, "gamma")
@@ -83,37 +90,6 @@ class RENDER_PT_color_management(RenderButtonsPanel, Panel):
         col.separator()
 
         col.prop(scene.sequencer_colorspace_settings, "name", text="Sequencer")
-
-
-class RENDER_PT_color_management_display_settings(RenderButtonsPanel, Panel):
-    bl_label = "Display"
-    bl_parent_id = "RENDER_PT_color_management"
-    bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {
-        'BLENDER_RENDER',
-        'BLENDER_EEVEE',
-        'BLENDER_WORKBENCH',
-    }
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False  # No animation.
-
-        scene = context.scene
-        view = scene.view_settings
-
-        # Only enable display sub-section if HDR support is available.
-        import gpu
-        layout.enabled = gpu.capabilities.hdr_support_get()
-
-        # Only display HDR toggle for non-Filmic display transforms.
-        col = layout.column(align=True)
-        sub = col.row()
-        sub.active = (not view.view_transform.startswith("Filmic") and not view.view_transform.startswith("AgX") and not
-                      view.view_transform.startswith("False Color") and not
-                      view.view_transform.startswith("Khronos PBR Neutral"))
-        sub.prop(view, "use_hdr_view")
 
 
 class RENDER_PT_color_management_curves(RenderButtonsPanel, Panel):
@@ -1138,7 +1114,6 @@ classes = (
     RENDER_PT_opengl_film,
     RENDER_PT_hydra_debug,
     RENDER_PT_color_management,
-    RENDER_PT_color_management_display_settings,
     RENDER_PT_color_management_curves,
     RENDER_PT_color_management_white_balance_presets,
     RENDER_PT_color_management_white_balance,

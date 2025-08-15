@@ -3638,7 +3638,8 @@ bool IMB_colormanagement_setup_glsl_draw_from_space(
   display_parameters.use_predivide = predivide;
   display_parameters.do_overlay_merge = do_overlay_merge;
   display_parameters.use_hdr = GPU_hdr_support() &&
-                               (applied_view_settings->flag & COLORMANAGE_VIEW_USE_HDR) != 0;
+                               IMB_colormanagement_display_is_hdr(display_settings,
+                                                                  display_parameters.view.c_str());
   display_parameters.use_display_emulation = true;
 
   /* Bind shader. Internally GPU shaders are created and cached on demand. */

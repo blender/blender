@@ -12,6 +12,7 @@
 #include <cstring>
 
 #include "DNA_camera_types.h"
+#include "DNA_color_types.h"
 #include "DNA_listBase.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
@@ -698,13 +699,18 @@ static void wm_draw_offscreen_texture_parameters(GPUOffScreen *offscreen)
 
 static blender::gpu::TextureFormat get_hdr_framebuffer_format(const Scene *scene)
 {
-  bool use_hdr = false;
-  if (scene && ((scene->view_settings.flag & COLORMANAGE_VIEW_USE_HDR) != 0)) {
-    use_hdr = GPU_hdr_support();
+  bool use_float = false;
+
+  if (scene && ((IMB_colormanagement_display_is_hdr(&scene->display_settings,
+                                                    scene->view_settings.view_transform)) ||
+                IMB_colormanagement_display_is_wide_gamut(&scene->display_settings,
+                                                          scene->view_settings.view_transform)))
+  {
+    use_float = GPU_hdr_support();
   }
   blender::gpu::TextureFormat desired_format =
-      (use_hdr) ? blender::gpu::TextureFormat::SFLOAT_16_16_16_16 :
-                  blender::gpu::TextureFormat::UNORM_8_8_8_8;
+      (use_float) ? blender::gpu::TextureFormat::SFLOAT_16_16_16_16 :
+                    blender::gpu::TextureFormat::UNORM_8_8_8_8;
   return desired_format;
 }
 

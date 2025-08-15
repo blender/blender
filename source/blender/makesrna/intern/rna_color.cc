@@ -638,6 +638,20 @@ static void rna_ColorManagedViewSettings_whitepoint_set(PointerRNA *ptr, const f
   IMB_colormanagement_set_whitepoint(value, view_settings->temperature, view_settings->tint);
 }
 
+static bool rna_ColorManagedViewSettings_is_hdr_get(PointerRNA *ptr)
+{
+  ColorManagedViewSettings *view_settings = (ColorManagedViewSettings *)ptr->data;
+  if (GS(ptr->owner_id->name) != ID_SCE) {
+    return false;
+  }
+  const Scene *scene = reinterpret_cast<const Scene *>(ptr->owner_id);
+  if (&scene->view_settings != view_settings) {
+    return false;
+  }
+  return IMB_colormanagement_display_is_hdr(&scene->display_settings,
+                                            view_settings->view_transform);
+}
+
 static bool rna_ColorManagedColorspaceSettings_is_data_get(PointerRNA *ptr)
 {
   ColorManagedColorspaceSettings *colorspace = (ColorManagedColorspaceSettings *)ptr->data;
@@ -1430,15 +1444,11 @@ static void rna_def_colormanage(BlenderRNA *brna)
                            "(automatically converted to/from temperature and tint)");
   RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
 
-  prop = RNA_def_property(srna, "use_hdr_view", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", COLORMANAGE_VIEW_USE_HDR);
+  prop = RNA_def_property(srna, "is_hdr", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(
-      prop,
-      "High Dynamic Range",
-      "Enable high dynamic range display in rendered viewport, uncapping display brightness. This "
-      "requires a monitor with HDR support and a view transform designed for HDR. "
-      "'Filmic' and 'AgX' do not generate HDR colors.");
-  RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagedColorspaceSettings_reload_update");
+      prop, "Is HDR", "The display and view transform supports high dynamic range colors");
+  RNA_def_property_boolean_funcs(prop, "rna_ColorManagedViewSettings_is_hdr_get", nullptr);
 
   /* ** Color-space ** */
   srna = RNA_def_struct(brna, "ColorManagedInputColorspaceSettings", nullptr);
