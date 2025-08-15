@@ -232,9 +232,12 @@ static wmOperatorStatus view_pan_exec(bContext *C, wmOperator *op)
 static wmOperatorStatus view_pan_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 #ifdef WITH_APPLE_CROSSPLATFORM
-  /* Only scroll File / Asset Browser view with multiple finger on iOS. */
   ScrArea *area = CTX_wm_area(C);
-  if (area->spacetype == SPACE_FILE && !(event->flag & WM_EVENT_MULTITOUCH_TWO_FINGERS)) {
+  ARegion *region = CTX_wm_region(C);
+  /* Only scroll the File/Asset Browser and Asset Shelf views with multiple finger on iOS. */
+  if ((area->spacetype == SPACE_FILE || region->regiontype == RGN_TYPE_ASSET_SHELF) &&
+      !(event->flag & WM_EVENT_MULTITOUCH_TWO_FINGERS))
+  {
     return OPERATOR_FINISHED;
   }
 #endif
