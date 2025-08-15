@@ -6134,7 +6134,7 @@ static wmOperatorStatus userpref_show_exec(bContext *C, wmOperator *op)
   wmWindow *win_cur = CTX_wm_window(C);
   /* Use eventstate, not event from _invoke, so this can be called through exec(). */
   const wmEvent *event = win_cur->eventstate;
-  int sizex = (500 + UI_NAVIGATION_REGION_WIDTH) * UI_SCALE_FAC;
+  int sizex = (680 + UI_NAVIGATION_REGION_WIDTH) * UI_SCALE_FAC;
   int sizey = 520 * UI_SCALE_FAC;
 
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "section");
