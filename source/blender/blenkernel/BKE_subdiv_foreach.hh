@@ -98,48 +98,48 @@ struct ForeachContext {
    *
    * NOTE: If this callback returns false, the foreach loop is aborted.
    */
-  ForeachTopologyInformationCb topology_info;
+  ForeachTopologyInformationCb topology_info = nullptr;
   /* These callbacks are called from every ptex which shares "emitting"
    * vertex or edge.
    */
-  ForeachVertexFromCornerCb vertex_every_corner;
-  ForeachVertexFromEdgeCb vertex_every_edge;
+  ForeachVertexFromCornerCb vertex_every_corner = nullptr;
+  ForeachVertexFromEdgeCb vertex_every_edge = nullptr;
   /* Those callbacks are run once per subdivision vertex, ptex is undefined
    * as in it will be whatever first ptex face happened to be traversed in
    * the multi-threaded environment and which shares "emitting" vertex or
    * edge.
    */
-  ForeachVertexFromCornerCb vertex_corner;
-  ForeachVertexFromEdgeCb vertex_edge;
+  ForeachVertexFromCornerCb vertex_corner = nullptr;
+  ForeachVertexFromEdgeCb vertex_edge = nullptr;
   /* Called exactly once, always corresponds to a single ptex face. */
-  ForeachVertexInnerCb vertex_inner;
+  ForeachVertexInnerCb vertex_inner = nullptr;
   /* Called once for each loose vertex. One loose coarse vertex corresponds
    * to a single subdivision vertex.
    */
-  ForeachLooseCb vertex_loose;
+  ForeachLooseCb vertex_loose = nullptr;
   /* Called once per vertex created for loose edge. */
-  ForeachVertexOfLooseEdgeCb vertex_of_loose_edge;
+  ForeachVertexOfLooseEdgeCb vertex_of_loose_edge = nullptr;
   /* NOTE: If subdivided edge does not come from coarse edge, ORIGINDEX_NONE
    * will be passed as coarse_edge_index.
    */
-  ForeachEdgeCb edge;
+  ForeachEdgeCb edge = nullptr;
   /* NOTE: If subdivided loop does not come from coarse loop, ORIGINDEX_NONE
    * will be passed as coarse_loop_index.
    */
-  ForeachLoopCb loop;
-  ForeachPolygonCb poly;
+  ForeachLoopCb loop = nullptr;
+  ForeachPolygonCb poly = nullptr;
 
   /* User-defined pointer, to allow callbacks know something about context the
    * traversal is happening for.
    */
-  void *user_data;
+  void *user_data = nullptr;
 
   /* Initial value of TLS data. */
-  void *user_data_tls;
+  void *user_data_tls = nullptr;
   /* Size of TLS data. */
-  size_t user_data_tls_size;
+  size_t user_data_tls_size = 0;
   /* Function to free TLS storage. */
-  void (*user_data_tls_free)(void *tls);
+  void (*user_data_tls_free)(void *tls) = nullptr;
 };
 
 /* Invokes callbacks in the order and with values which corresponds to creation

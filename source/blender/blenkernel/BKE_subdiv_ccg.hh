@@ -278,9 +278,8 @@ inline int BKE_subdiv_ccg_grid_to_face_index(const SubdivCCG &subdiv_ccg, const 
   return subdiv_ccg.grid_to_face_map[grid_index];
 }
 
-void BKE_subdiv_ccg_eval_limit_point(const SubdivCCG &subdiv_ccg,
-                                     const SubdivCCGCoord &coord,
-                                     blender::float3 &r_point);
+blender::float3 BKE_subdiv_ccg_eval_limit_point(const SubdivCCG &subdiv_ccg,
+                                                const SubdivCCGCoord &coord);
 void BKE_subdiv_ccg_eval_limit_positions(const SubdivCCG &subdiv_ccg,
                                          const CCGKey &key,
                                          int grid_index,

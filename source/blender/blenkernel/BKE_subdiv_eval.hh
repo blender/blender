@@ -35,9 +35,9 @@ bool eval_begin(Subdiv *subdiv,
  */
 bool eval_begin_from_mesh(Subdiv *subdiv,
                           const Mesh *mesh,
-                          Span<float3> coarse_vert_positions,
                           eSubdivEvaluatorType evaluator_type,
-                          OpenSubdiv_EvaluatorCache *evaluator_cache);
+                          Span<float3> coarse_vert_positions = {},
+                          OpenSubdiv_EvaluatorCache *evaluator_cache = nullptr);
 bool eval_refine_from_mesh(Subdiv *subdiv, const Mesh *mesh, Span<float3> coarse_vert_positions);
 
 /* Makes sure displacement evaluator is initialized.
@@ -50,7 +50,7 @@ void eval_init_displacement(Subdiv *subdiv);
 
 /* Evaluate point at a limit surface, with optional derivatives and normal. */
 
-void eval_limit_point(Subdiv *subdiv, int ptex_face_index, float u, float v, float3 &r_P);
+float3 eval_limit_point(Subdiv *subdiv, int ptex_face_index, float u, float v);
 void eval_limit_point_and_derivatives(Subdiv *subdiv,
                                       int ptex_face_index,
                                       float u,
@@ -88,6 +88,6 @@ void eval_displacement(Subdiv *subdiv,
                        float3 &r_D);
 
 /* Evaluate point on a limit surface with displacement applied to it. */
-void eval_final_point(Subdiv *subdiv, int ptex_face_index, float u, float v, float3 &r_P);
+float3 eval_final_point(Subdiv *subdiv, int ptex_face_index, float u, float v);
 
 }  // namespace blender::bke::subdiv

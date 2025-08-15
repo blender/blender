@@ -149,7 +149,7 @@ static void subdiv_mesh_vertex_corner(const ForeachContext *foreach_context,
     mul_v3_fl(D, inv_num_accumulated);
   }
   /* Copy custom data and evaluate position. */
-  eval_limit_point(ctx->subdiv, ptex_face_index, u, v, vertex_co);
+  vertex_co = eval_limit_point(ctx->subdiv, ptex_face_index, u, v);
   /* Apply displacement. */
   add_v3_v3(vertex_co, D);
 }
@@ -186,9 +186,7 @@ void deform_coarse_vertices(Subdiv *subdiv,
   stats_begin(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH);
   /* Make sure evaluator is up to date with possible new topology, and that
    * is refined for the new positions of coarse vertices. */
-  if (!eval_begin_from_mesh(
-          subdiv, coarse_mesh, vert_positions, SUBDIV_EVALUATOR_TYPE_CPU, nullptr))
-  {
+  if (!eval_begin_from_mesh(subdiv, coarse_mesh, SUBDIV_EVALUATOR_TYPE_CPU, vert_positions)) {
     /* This could happen in two situations:
      * - OpenSubdiv is disabled.
      * - Something totally bad happened, and OpenSubdiv rejected our

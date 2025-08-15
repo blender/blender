@@ -109,7 +109,7 @@ static void subdiv_ccg_eval_grid_element_limit(Subdiv &subdiv,
                                                const int element)
 {
   if (subdiv.displacement_evaluator != nullptr) {
-    eval_final_point(&subdiv, ptex_face_index, u, v, subdiv_ccg.positions[element]);
+    subdiv_ccg.positions[element] = eval_final_point(&subdiv, ptex_face_index, u, v);
   }
   else if (!subdiv_ccg.normals.is_empty()) {
     eval_limit_point_and_normal(&subdiv,
@@ -120,7 +120,7 @@ static void subdiv_ccg_eval_grid_element_limit(Subdiv &subdiv,
                                 subdiv_ccg.normals[element]);
   }
   else {
-    eval_limit_point(&subdiv, ptex_face_index, u, v, subdiv_ccg.positions[element]);
+    subdiv_ccg.positions[element] = eval_limit_point(&subdiv, ptex_face_index, u, v);
   }
 }
 
@@ -416,7 +416,7 @@ Mesh *BKE_subdiv_to_ccg_mesh(Subdiv &subdiv,
 {
   /* Make sure evaluator is ready. */
   stats_begin(&subdiv.stats, SUBDIV_STATS_SUBDIV_TO_CCG);
-  if (!eval_begin_from_mesh(&subdiv, &coarse_mesh, {}, SUBDIV_EVALUATOR_TYPE_CPU, nullptr)) {
+  if (!eval_begin_from_mesh(&subdiv, &coarse_mesh, SUBDIV_EVALUATOR_TYPE_CPU)) {
     if (coarse_mesh.faces_num) {
       return nullptr;
     }
@@ -1600,15 +1600,13 @@ static void subdiv_ccg_coord_to_ptex_coord(const SubdivCCG &subdiv_ccg,
   }
 }
 
-void BKE_subdiv_ccg_eval_limit_point(const SubdivCCG &subdiv_ccg,
-                                     const SubdivCCGCoord &coord,
-                                     float3 &r_point)
+float3 BKE_subdiv_ccg_eval_limit_point(const SubdivCCG &subdiv_ccg, const SubdivCCGCoord &coord)
 {
   Subdiv *subdiv = subdiv_ccg.subdiv;
   int ptex_face_index;
   float u, v;
   subdiv_ccg_coord_to_ptex_coord(subdiv_ccg, coord, ptex_face_index, u, v);
-  eval_limit_point(subdiv, ptex_face_index, u, v, r_point);
+  return eval_limit_point(subdiv, ptex_face_index, u, v);
 }
 
 void BKE_subdiv_ccg_eval_limit_positions(const SubdivCCG &subdiv_ccg,
@@ -1623,7 +1621,7 @@ void BKE_subdiv_ccg_eval_limit_positions(const SubdivCCG &subdiv_ccg,
       const int i = CCG_grid_xy_to_index(key.grid_size, x, y);
       coord.x = x;
       coord.y = y;
-      BKE_subdiv_ccg_eval_limit_point(subdiv_ccg, coord, r_limit_positions[i]);
+      r_limit_positions[i] = BKE_subdiv_ccg_eval_limit_point(subdiv_ccg, coord);
     }
   }
 }
