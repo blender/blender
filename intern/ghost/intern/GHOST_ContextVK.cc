@@ -629,14 +629,12 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
    * to be complete, it is also safe in the callback to clean up resources associated with the next
    * frame.
    */
+  m_render_frame = (m_render_frame + 1) % m_frame_data.size();
   GHOST_Frame &submission_frame_data = m_frame_data[m_render_frame];
-  uint64_t next_render_frame = (m_render_frame + 1) % m_frame_data.size();
-
-  /* Wait for next frame to finish rendering. Presenting can still
-   * happen in parallel, but acquiring needs can only happen when the frame acquire semaphore has
-   * been signaled and waited for. */
-  VkFence *next_frame_fence = &m_frame_data[next_render_frame].submission_fence;
-  vkWaitForFences(device, 1, next_frame_fence, true, UINT64_MAX);
+  /* Wait for previous time that the frame was used to finish rendering. Presenting can
+   * still happen in parallel, but acquiring needs can only happen when the frame acquire semaphore
+   * has been signaled and waited for. */
+  vkWaitForFences(device, 1, &submission_frame_data.submission_fence, true, UINT64_MAX);
   submission_frame_data.discard_pile.destroy(device);
   bool use_hdr_swapchain = false;
 #ifdef WITH_GHOST_WAYLAND
@@ -735,7 +733,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
     std::scoped_lock lock(vulkan_device->queue_mutex);
     present_result = vkQueuePresentKHR(m_present_queue, &present_info);
   }
-  m_render_frame = next_render_frame;
+
   if (present_result == VK_ERROR_OUT_OF_DATE_KHR || present_result == VK_SUBOPTIMAL_KHR) {
     recreateSwapchain(use_hdr_swapchain);
     if (swap_buffers_post_callback_) {
