@@ -1527,6 +1527,14 @@ GHOST_WindowIOS::GHOST_WindowIOS(GHOST_SystemIOS *systemIos,
   /* Initialize Metal device. */
   m_metalView.device = MTLCreateSystemDefaultDevice();
 
+  /* Enable HDR/EDR Support. */
+  CAMetalLayer *metalLayer = (CAMetalLayer *)m_metalView.layer;
+  metalLayer.wantsExtendedDynamicRangeContent = YES;
+  metalLayer.pixelFormat = MTLPixelFormatRGBA16Float;
+  CGColorSpaceRef colorspace = CGColorSpaceCreateWithName(kCGColorSpaceExtendedSRGB);
+  metalLayer.colorspace = colorspace;
+  CGColorSpaceRelease(colorspace);
+
   setDrawingContextType(type);
   updateDrawingContext();
   activateDrawingContext();

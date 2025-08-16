@@ -33,6 +33,8 @@ static void ghost_fatal_error_dialog(const char * /*msg*/)
 MTLCommandQueue *GHOST_ContextIOS::s_sharedMetalCommandQueue = nil;
 int GHOST_ContextIOS::s_sharedCount = 0;
 
+static const MTLPixelFormat METAL_FRAMEBUFFERPIXEL_FORMAT_EDR = MTLPixelFormatRGBA16Float;
+
 GHOST_ContextIOS::GHOST_ContextIOS(UIView *uiView, MTKView *metalView)
     : GHOST_Context(false), m_uiView(uiView), m_metalView(metalView), m_metalRenderPipeline(nil)
 {
@@ -76,6 +78,14 @@ GHOST_ContextIOS::GHOST_ContextIOS(UIView *uiView, MTKView *metalView)
     m_uiView = (UIView *)m_metalView;
 
     ownsMetalDevice = true;
+
+    /* Enable HDR/EDR Support. */
+    CAMetalLayer *metalLayer = (CAMetalLayer *)m_metalView.layer;
+    metalLayer.wantsExtendedDynamicRangeContent = YES;
+    metalLayer.pixelFormat = METAL_FRAMEBUFFERPIXEL_FORMAT_EDR;
+    CGColorSpaceRef colorspace = CGColorSpaceCreateWithName(kCGColorSpaceExtendedSRGB);
+    metalLayer.colorspace = colorspace;
+    CGColorSpaceRelease(colorspace);
 
     if (metalDevice) {
       metalInit();
@@ -190,8 +200,6 @@ GHOST_TSuccess GHOST_ContextIOS::releaseNativeHandles()
   return GHOST_kSuccess;
 }
 
-static const MTLPixelFormat METAL_FRAMEBUFFERPIXEL_FORMAT = MTLPixelFormatBGRA8Unorm;
-
 void GHOST_ContextIOS::metalInit()
 {
   /* clang-format off */
@@ -261,7 +269,7 @@ void GHOST_ContextIOS::metalInit()
     desc.vertexFunction = [library newFunctionWithName:@"vertex_shader"];
     [library autorelease];
 
-    [desc.colorAttachments objectAtIndexedSubscript:0].pixelFormat = METAL_FRAMEBUFFERPIXEL_FORMAT;
+    [desc.colorAttachments objectAtIndexedSubscript:0].pixelFormat = METAL_FRAMEBUFFERPIXEL_FORMAT_EDR;
 
     m_metalRenderPipeline = (MTLRenderPipelineState *)[device
         newRenderPipelineStateWithDescriptor:desc
@@ -337,7 +345,7 @@ void GHOST_ContextIOS::metalUpdateFramebuffer()
 
   id<MTLDevice> device = m_metalView.device;
   MTLTextureDescriptor *overlayDesc = [MTLTextureDescriptor
-      texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA16Float
+      texture2DDescriptorWithPixelFormat:METAL_FRAMEBUFFERPIXEL_FORMAT_EDR
                                    width:width
                                   height:height
                                mipmapped:NO];
