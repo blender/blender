@@ -5359,6 +5359,40 @@ static void ui_draw_clip_tri(uiBlock *block, const rcti *rect, uiWidgetType *wt)
   }
 }
 
+static void ui_draw_dialog_alert(uiBlock *block, const rcti *rect)
+{
+  if (block->alert_level != uiBlockAlertLevel::Error) {
+    return;
+  }
+
+  float color[4];
+  switch (block->alert_level) {
+    case uiBlockAlertLevel::Error:
+      UI_GetThemeColor4fv(TH_ERROR, color);
+      break;
+    case uiBlockAlertLevel::Warning:
+      UI_GetThemeColor4fv(TH_WARNING, color);
+      break;
+    case uiBlockAlertLevel::Success:
+      UI_GetThemeColor4fv(TH_SUCCESS, color);
+      break;
+    default:
+      UI_GetThemeColor4fv(TH_INFO, color);
+  }
+
+  bTheme *btheme = UI_GetTheme();
+  const float bg_radius = btheme->tui.wcol_menu_back.roundness * U.widget_unit;
+  const float line_width = 3.0f * UI_SCALE_FAC;
+  const float radius = (bg_radius > (line_width * 2.0f)) ? 0.0f : bg_radius;
+  const float padding = (bg_radius > (line_width * 2.0f)) ? bg_radius : 0.0f;
+  rctf line_rect;
+  BLI_rctf_rcti_copy(&line_rect, rect);
+  line_rect.ymin = line_rect.ymax - line_width;
+  BLI_rctf_pad(&line_rect, -padding, 0.0f);
+  UI_draw_roundbox_corner_set(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
+  UI_draw_roundbox_4fv(&line_rect, true, radius, color);
+}
+
 void ui_draw_menu_back(uiStyle * /*style*/, uiBlock *block, const rcti *rect)
 {
   uiWidgetType *wt = widget_type(UI_WTYPE_MENU_BACK);
@@ -5366,7 +5400,14 @@ void ui_draw_menu_back(uiStyle * /*style*/, uiBlock *block, const rcti *rect)
   wt->state(wt, &STATE_INFO_NULL, blender::ui::EmbossType::Undefined);
   if (block) {
     const float zoom = 1.0f / block->aspect;
-    wt->draw_block(&wt->wcol, rect, block->flag, block->direction, zoom);
+    wt->draw_block(&wt->wcol,
+                   rect,
+                   block->flag,
+                   block->alert_level == uiBlockAlertLevel::None ? block->direction : UI_DIR_DOWN,
+                   zoom);
+    if (block->alert_level != uiBlockAlertLevel::None) {
+      ui_draw_dialog_alert(block, rect);
+    }
   }
   else {
     wt->draw_block(&wt->wcol, rect, 0, 0, 1.0f);

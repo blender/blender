@@ -6115,6 +6115,22 @@ uiLayout *uiItemsAlertBox(uiBlock *block,
                                                      0,
                                                      style);
 
+  if (icon == ALERT_ICON_INFO) {
+    block->alert_level = uiBlockAlertLevel::Info;
+  }
+  else if (icon == ALERT_ICON_WARNING) {
+    block->alert_level = uiBlockAlertLevel::Warning;
+  }
+  else if (icon == ALERT_ICON_QUESTION) {
+    block->alert_level = uiBlockAlertLevel::Warning;
+  }
+  else if (icon == ALERT_ICON_ERROR) {
+    block->alert_level = uiBlockAlertLevel::Error;
+  }
+  else {
+    block->alert_level = uiBlockAlertLevel::None;
+  }
+
   /* Split layout to put alert icon on left side. */
   uiLayout *split_block = &block_layout.split(split_factor, false);
 

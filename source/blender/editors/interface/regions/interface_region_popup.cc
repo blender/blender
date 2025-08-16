@@ -17,6 +17,8 @@
 
 #include "DNA_userdef_types.h"
 
+#include "BLF_api.hh"
+
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
@@ -998,6 +1000,140 @@ void ui_popup_block_free(bContext *C, uiPopupBlockHandle *handle)
   ui_popup_block_remove(C, handle);
 
   MEM_delete(handle);
+}
+
+struct ui_alert_data {
+  eAlertIcon icon;
+  std::string title;
+  std::string message;
+  bool compact;
+  bool okay_button;
+  bool mouse_move_quit;
+};
+
+static void ui_alert_ok_cb(bContext *C, void *arg1, void *arg2)
+{
+  ui_alert_data *data = static_cast<ui_alert_data *>(arg1);
+  MEM_delete(data);
+  uiBlock *block = static_cast<uiBlock *>(arg2);
+  UI_popup_menu_retval_set(block, UI_RETURN_OK, true);
+  wmWindow *win = CTX_wm_window(C);
+  UI_popup_block_close(C, win, block);
+}
+
+static void ui_alert_ok(bContext * /*C*/, void *arg, int /*retval*/)
+{
+  ui_alert_data *data = static_cast<ui_alert_data *>(arg);
+  MEM_delete(data);
+}
+
+static void ui_alert_cancel(bContext * /*C*/, void *user_data)
+{
+  ui_alert_data *data = static_cast<ui_alert_data *>(user_data);
+  MEM_delete(data);
+}
+
+static uiBlock *ui_alert_create(bContext *C, ARegion *region, void *user_data)
+{
+  ui_alert_data *data = static_cast<ui_alert_data *>(user_data);
+
+  const uiStyle *style = UI_style_get_dpi();
+  const short icon_size = (data->compact ? 32 : 40) * UI_SCALE_FAC;
+  const int max_width = int((data->compact ? 250.0f : 350.0f) * UI_SCALE_FAC);
+  const int min_width = int(120.0f * UI_SCALE_FAC);
+
+  uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+  UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
+  UI_block_flag_disable(block, UI_BLOCK_LOOP);
+  UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
+  UI_popup_dummy_panel_set(region, block);
+
+  UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_NUMSELECT);
+  if (data->mouse_move_quit) {
+    UI_block_flag_enable(block, UI_BLOCK_MOVEMOUSE_QUIT);
+  }
+
+  const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
+
+  UI_fontstyle_set(&style->widget);
+  /* Width based on the text lengths. */
+  int text_width = BLF_width(style->widget.uifont_id, data->title.c_str(), data->title.size());
+
+  blender::Vector<blender::StringRef> messages = BLF_string_wrap(
+      fstyle->uifont_id, data->message, max_width, BLFWrapMode::Typographical);
+
+  for (auto &st_ref : messages) {
+    const std::string &st = st_ref;
+    text_width = std::max(text_width,
+                          int(BLF_width(style->widget.uifont_id, st.c_str(), st.size())));
+  }
+
+  int dialog_width = std::max(text_width + int(style->columnspace * 2.5), min_width);
+
+  uiLayout *layout;
+  layout = uiItemsAlertBox(block, style, dialog_width + icon_size, data->icon, icon_size);
+
+  uiLayout *content = &layout->column(false);
+  content->scale_y_set(0.75f);
+
+  /* Title. */
+  uiItemL_ex(content, data->title, ICON_NONE, true, false);
+
+  content->separator(1.0f);
+
+  /* Message lines. */
+  for (auto &st : messages) {
+    content->label(st, ICON_NONE);
+  }
+
+  if (data->okay_button) {
+
+    layout->separator(2.0f);
+
+    /* Clear so the OK button is left alone. */
+    UI_block_func_set(block, nullptr, nullptr, nullptr);
+
+    const float pad = std::max((1.0f - ((200.0f * UI_SCALE_FAC) / float(text_width))) / 2.0f,
+                               0.01f);
+    uiLayout *split = &layout->split(pad, true);
+    split->column(true);
+    uiLayout *buttons = &split->split(1.0f - (pad * 2.0f), true);
+    buttons->scale_y_set(1.2f);
+
+    uiBlock *buttons_block = layout->block();
+    uiBut *okay_but = uiDefBut(
+        buttons_block, ButType::But, 0, "OK", 0, 0, 0, UI_UNIT_Y, nullptr, 0, 0, "");
+    UI_but_func_set(okay_but, ui_alert_ok_cb, user_data, block);
+    UI_but_flag_enable(okay_but, UI_BUT_ACTIVE_DEFAULT);
+  }
+
+  const int padding = (data->compact ? 10 : 14) * UI_SCALE_FAC;
+
+  if (data->mouse_move_quit) {
+    const float button_center_x = -0.5f;
+    const float button_center_y = data->okay_button ? 4.0f : 2.0f;
+    const int bounds_offset[2] = {int(button_center_x * layout->width()),
+                                  int(button_center_y * UI_UNIT_X)};
+    UI_block_bounds_set_popup(block, padding, bounds_offset);
+  }
+  else {
+    UI_block_bounds_set_centered(block, padding);
+  }
+
+  return block;
+}
+
+void UI_alert(bContext *C, std::string title, std::string message, eAlertIcon icon, bool compact)
+{
+  ui_alert_data *data = MEM_new<ui_alert_data>(__func__);
+  data->title = title;
+  data->message = message;
+  data->icon = icon;
+  data->compact = compact;
+  data->okay_button = true;
+  data->mouse_move_quit = compact;
+
+  UI_popup_block_ex(C, ui_alert_create, ui_alert_ok, ui_alert_cancel, data, nullptr);
 }
 
 /** \} */
