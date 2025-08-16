@@ -343,6 +343,11 @@ class BoneCollectionItem : public AbstractTreeViewItem {
     return bone_collection_.name;
   }
 
+  void delete_item(bContext *C) override
+  {
+    ANIM_armature_bonecoll_remove(&armature_, &bone_collection_);
+    ED_undo_push(C, "Delete Bone Collection");
+  }
   std::unique_ptr<AbstractViewItemDragController> create_drag_controller() const override
   {
     /* Reject dragging linked (or otherwise uneditable) bone collections. */
