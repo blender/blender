@@ -1106,7 +1106,7 @@ static void traverse_fan_local_corners(const Span<VertCornerInfo> corner_infos,
     int local_edge = corner_infos[current].local_edge_next;
     bool found_cyclic_fan = false;
     while (const EdgeTwoCorners *edge = std::get_if<EdgeTwoCorners>(&edge_infos[local_edge])) {
-      current = current == edge->local_corner_1 ? edge->local_corner_2 : edge->local_corner_1;
+      current = mesh::edge_other_vert(int2(edge->local_corner_1, edge->local_corner_2), current);
       if (current == start_local_corner) {
         found_cyclic_fan = true;
         break;
