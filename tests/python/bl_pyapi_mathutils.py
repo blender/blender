@@ -64,12 +64,18 @@ def _test_flat_buffer_protocol(self, ty, n):
 
     vec = ty(expected)
     vec.freeze()
+    view = memoryview(vec)
     with self.assertRaises(TypeError):
-        view = memoryview(vec)
         view[0] = 1
 
 
 class MatrixTesting(unittest.TestCase):
+
+    def assertAlmostEqualMatrix(self, first, second, size, *, places=6, msg=None, delta=None):
+        for i in range(size):
+            for j in range(size):
+                self.assertAlmostEqual(first[i][j], second[i][j], places=places, msg=msg, delta=delta)
+
     def test_matrix_column_access(self):
         # mat =
         # [ 1  2  3  4 ]
@@ -301,11 +307,6 @@ class MatrixTesting(unittest.TestCase):
         self.assertEqual(view.shape, (4, 4))
         self.assertEqual(view.format, "f")
         self.assertEqual(view.tolist(), expected)
-
-    def assertAlmostEqualMatrix(self, first, second, size, *, places=6, msg=None, delta=None):
-        for i in range(size):
-            for j in range(size):
-                self.assertAlmostEqual(first[i][j], second[i][j], places=places, msg=msg, delta=delta)
 
 
 class VectorTesting(unittest.TestCase):
