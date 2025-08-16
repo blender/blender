@@ -991,44 +991,44 @@ void GEOMETRY_OT_execute_node_group(wmOperatorType *ot)
                              "cursor_position",
                              3,
                              nullptr,
-                             FLT_MIN,
+                             -FLT_MAX,
                              FLT_MAX,
                              "3D Cursor Position",
                              "",
-                             FLT_MIN,
+                             -FLT_MAX,
                              FLT_MAX);
   RNA_def_property_flag(prop, PROP_HIDDEN);
   prop = RNA_def_float_array(ot->srna,
                              "cursor_rotation",
                              4,
                              nullptr,
-                             FLT_MIN,
+                             -FLT_MAX,
                              FLT_MAX,
                              "3D Cursor Rotation",
                              "",
-                             FLT_MIN,
+                             -FLT_MAX,
                              FLT_MAX);
   RNA_def_property_flag(prop, PROP_HIDDEN);
   prop = RNA_def_float_array(ot->srna,
                              "viewport_projection_matrix",
                              16,
                              nullptr,
-                             FLT_MIN,
+                             -FLT_MAX,
                              FLT_MAX,
                              "Viewport Projection Transform",
                              "",
-                             FLT_MIN,
+                             -FLT_MAX,
                              FLT_MAX);
   RNA_def_property_flag(prop, PROP_HIDDEN);
   prop = RNA_def_float_array(ot->srna,
                              "viewport_view_matrix",
                              16,
                              nullptr,
-                             FLT_MIN,
+                             -FLT_MAX,
                              FLT_MAX,
                              "Viewport View Transform",
                              "",
-                             FLT_MIN,
+                             -FLT_MAX,
                              FLT_MAX);
   RNA_def_property_flag(prop, PROP_HIDDEN);
   prop = RNA_def_boolean(
