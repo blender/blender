@@ -306,6 +306,59 @@ static PyObject *Color_str(ColorObject *self)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Color Type: Buffer Protocol
+ * \{ */
+
+static int Color_getbuffer(PyObject *obj, Py_buffer *view, int flags)
+{
+  ColorObject *self = (ColorObject *)obj;
+  if (UNLIKELY(BaseMath_Prepare_ForBufferAccess(self, view, flags) == -1)) {
+    return -1;
+  }
+  if (UNLIKELY(BaseMath_ReadCallback(self) == -1)) {
+    return -1;
+  }
+
+  memset(view, 0, sizeof(*view));
+
+  view->obj = (PyObject *)self;
+  view->buf = (void *)self->col;
+  view->len = Py_ssize_t(COLOR_SIZE * sizeof(float));
+  view->itemsize = sizeof(float);
+  view->ndim = 1;
+  if ((flags & PyBUF_WRITABLE) == 0) {
+    view->readonly = 1;
+  }
+  if (flags & PyBUF_FORMAT) {
+    view->format = (char *)"f";
+  }
+
+  self->flag |= BASE_MATH_FLAG_HAS_BUFFER_VIEW;
+
+  Py_INCREF(self);
+  return 0;
+}
+
+static void Color_releasebuffer(PyObject * /*exporter*/, Py_buffer *view)
+{
+  ColorObject *self = (ColorObject *)view->obj;
+  self->flag &= ~BASE_MATH_FLAG_HAS_BUFFER_VIEW;
+
+  if (view->readonly == 0) {
+    if (UNLIKELY(BaseMath_WriteCallback(self) == -1)) {
+      PyErr_Print();
+    }
+  }
+}
+
+static PyBufferProcs Color_as_buffer = {
+    (getbufferproc)Color_getbuffer,
+    (releasebufferproc)Color_releasebuffer,
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Color Type: Rich Compare
  * \{ */
 
@@ -1230,7 +1283,7 @@ PyTypeObject color_Type = {
     /*tp_str*/ (reprfunc)Color_str,
     /*tp_getattro*/ nullptr,
     /*tp_setattro*/ nullptr,
-    /*tp_as_buffer*/ nullptr,
+    /*tp_as_buffer*/ &Color_as_buffer,
     /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
     /*tp_doc*/ color_doc,
     /*tp_traverse*/ (traverseproc)BaseMathObject_traverse,

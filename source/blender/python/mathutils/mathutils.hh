@@ -40,6 +40,14 @@ enum {
    * (typical use cases for tuple).
    */
   BASE_MATH_FLAG_IS_FROZEN = (1 << 1),
+  /**
+   * When set, prevents calling freeze() and resize() while using the buffer protocol.
+   *
+   * \note `memoryview` & `np.frombuffer` pass the `PyBUF_FORMAT | PyBUF_INDIRECT` flags,
+   * and the object can be mutated, so `PyBUF_WRITABLE` can't be handled.
+   * That's why it's always necessary to check for write access.
+   */
+  BASE_MATH_FLAG_HAS_BUFFER_VIEW = (1 << 2),
 };
 #define BASE_MATH_FLAG_DEFAULT 0
 
@@ -121,6 +129,9 @@ struct Mathutils_Callback {
 /** To implement #BaseMath_Prepare_ForResize. */
 [[nodiscard]] int _BaseMathObject_ResizeOkOrRaiseExc(BaseMathObject *self,
                                                      const char *error_prefix);
+[[nodiscard]] int _BaseMathObject_RaiseBufferViewExc(BaseMathObject *self,
+                                                     Py_buffer *view,
+                                                     int flags);
 
 void _BaseMathObject_RaiseFrozenExc(const BaseMathObject *self);
 void _BaseMathObject_RaiseNotFrozenExc(const BaseMathObject *self);
@@ -163,6 +174,15 @@ void _BaseMathObject_RaiseNotFrozenExc(const BaseMathObject *self);
  */
 #define BaseMathObject_Prepare_ForResize(_self, error_prefix) \
   _BaseMathObject_ResizeOkOrRaiseExc((BaseMathObject *)_self, error_prefix)
+
+/**
+ * Ensure #BASE_MATH_FLAG_HAS_BUFFER_VIEW is supported.
+ * \param _view: The `view` argument forwarded from #PyBufferProcs::bf_getbuffer.
+ * \param _flags: The `flags` argument forwarded from #PyBufferProcs::bf_getbuffer.
+ * \return -1 and set an exception if the vector `_self` does not support buffer access.
+ */
+#define BaseMath_Prepare_ForBufferAccess(_self, _view, _flags) \
+  _BaseMathObject_RaiseBufferViewExc((BaseMathObject *)_self, _view, _flags)
 
 /* utility func */
 /**

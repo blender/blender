@@ -499,6 +499,7 @@ static PyObject *Vector_resize(VectorObject *self, PyObject *value)
 
   if (UNLIKELY(BaseMathObject_Prepare_ForResize(self, "Vector.resize()") == -1)) {
     /* An exception has been raised. */
+
     return nullptr;
   }
 
@@ -1592,6 +1593,59 @@ static PyObject *Vector_str(VectorObject *self)
   return mathutils_dynstr_to_py(ds); /* frees ds */
 }
 #endif
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Vector Type: Buffer Protocol
+ * \{ */
+
+static int Vector_getbuffer(PyObject *obj, Py_buffer *view, int flags)
+{
+  VectorObject *self = (VectorObject *)obj;
+  if (UNLIKELY(BaseMath_Prepare_ForBufferAccess(self, view, flags) == -1)) {
+    return -1;
+  }
+  if (UNLIKELY(BaseMath_ReadCallback(self) == -1)) {
+    return -1;
+  }
+
+  memset(view, 0, sizeof(*view));
+
+  view->obj = (PyObject *)self;
+  view->buf = (void *)self->vec;
+  view->len = Py_ssize_t(self->vec_num * sizeof(float));
+  view->itemsize = sizeof(float);
+  view->ndim = 1;
+  if ((flags & PyBUF_WRITABLE) == 0) {
+    view->readonly = 1;
+  }
+  if (flags & PyBUF_FORMAT) {
+    view->format = (char *)"f";
+  }
+
+  self->flag |= BASE_MATH_FLAG_HAS_BUFFER_VIEW;
+
+  Py_INCREF(self);
+  return 0;
+}
+
+static void Vector_releasebuffer(PyObject * /*exporter*/, Py_buffer *view)
+{
+  VectorObject *self = (VectorObject *)view->obj;
+  self->flag &= ~BASE_MATH_FLAG_HAS_BUFFER_VIEW;
+
+  if (view->readonly == 0) {
+    if (UNLIKELY(BaseMath_WriteCallback(self) == -1)) {
+      PyErr_Print();
+    }
+  }
+}
+
+static PyBufferProcs Vector_as_buffer = {
+    (getbufferproc)Vector_getbuffer,
+    (releasebufferproc)Vector_releasebuffer,
+};
 
 /** \} */
 
@@ -3411,7 +3465,7 @@ PyTypeObject vector_Type = {
     /*tp_str*/ (reprfunc)Vector_str,
     /*tp_getattro*/ nullptr,
     /*tp_setattro*/ nullptr,
-    /*tp_as_buffer*/ nullptr,
+    /*tp_as_buffer*/ &Vector_as_buffer,
     /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
     /*tp_doc*/ vector_doc,
     /*tp_traverse*/ (traverseproc)BaseMathObject_traverse,
