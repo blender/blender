@@ -34,16 +34,16 @@ class GHOST_EventTrackpad : public GHOST_Event {
                       bool isDirectionInverted)
       : GHOST_Event(msec, GHOST_kEventTrackpad, window)
   {
-    m_trackpadEventData.subtype = subtype;
-    m_trackpadEventData.x = x;
-    m_trackpadEventData.y = y;
-    m_trackpadEventData.deltaX = deltaX;
-    m_trackpadEventData.deltaY = deltaY;
-    m_trackpadEventData.isDirectionInverted = isDirectionInverted;
-    m_data = &m_trackpadEventData;
+    trackpad_event_data_.subtype = subtype;
+    trackpad_event_data_.x = x;
+    trackpad_event_data_.y = y;
+    trackpad_event_data_.deltaX = deltaX;
+    trackpad_event_data_.deltaY = deltaY;
+    trackpad_event_data_.isDirectionInverted = isDirectionInverted;
+    data_ = &trackpad_event_data_;
   }
 
  protected:
   /** The mouse pan data */
-  GHOST_TEventTrackpadData m_trackpadEventData;
+  GHOST_TEventTrackpadData trackpad_event_data_;
 };

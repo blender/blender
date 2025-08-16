@@ -29,13 +29,13 @@ class GHOST_EventString : public GHOST_Event {
                     GHOST_TEventDataPtr data_ptr)
       : GHOST_Event(msec, type, window)
   {
-    m_data = data_ptr;
+    data_ = data_ptr;
   }
 
   ~GHOST_EventString() override
   {
-    if (m_data) {
-      free((void *)m_data);
+    if (data_) {
+      free((void *)data_);
     }
   }
 };

@@ -79,31 +79,31 @@ class GHOST_ContextWGL : public GHOST_Context {
 
   /**
    * Gets the current swap interval for #swapBuffers.
-   * \param intervalOut: Variable to store the swap interval if it can be read.
+   * \param interval_out: Variable to store the swap interval if it can be read.
    * \return Whether the swap interval can be read.
    */
-  GHOST_TSuccess getSwapInterval(int &intervalOut) override;
+  GHOST_TSuccess getSwapInterval(int &interval_out) override;
 
  private:
   int choose_pixel_format_arb(bool stereoVisual, bool needAlpha);
   int _choose_pixel_format_arb_1(bool stereoVisual, bool needAlpha);
 
-  HWND m_hWnd;
-  HDC m_hDC;
+  HWND h_wnd_;
+  HDC h_DC_;
 
-  const int m_contextProfileMask;
-  const int m_contextMajorVersion;
-  const int m_contextMinorVersion;
-  const int m_contextFlags;
-  const bool m_alphaBackground;
-  const int m_contextResetNotificationStrategy;
+  const int context_profile_mask_;
+  const int context_major_version_;
+  const int context_minor_version_;
+  const int context_flags_;
+  const bool alpha_background_;
+  const int context_reset_notification_strategy_;
 
-  HGLRC m_hGLRC;
+  HGLRC h_GLRC_;
 
 #ifndef NDEBUG
-  const char *m_dummyVendor;
-  const char *m_dummyRenderer;
-  const char *m_dummyVersion;
+  const char *dummy_vendor_;
+  const char *dummy_renderer_;
+  const char *dummy_version_;
 #endif
 
   static HGLRC s_sharedHGLRC;

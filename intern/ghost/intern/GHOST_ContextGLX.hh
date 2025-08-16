@@ -84,23 +84,23 @@ class GHOST_ContextGLX : public GHOST_Context {
 
   /**
    * Gets the current swap interval for #swapBuffers.
-   * \param intervalOut: Variable to store the swap interval if it can be read.
+   * \param interval_out: Variable to store the swap interval if it can be read.
    * \return Whether the swap interval can be read.
    */
-  GHOST_TSuccess getSwapInterval(int &intervalOut) override;
+  GHOST_TSuccess getSwapInterval(int &interval_out) override;
 
  private:
-  Display *m_display;
-  GLXFBConfig m_fbconfig;
-  Window m_window;
+  Display *display_;
+  GLXFBConfig fbconfig_;
+  Window window_;
 
-  const int m_contextProfileMask;
-  const int m_contextMajorVersion;
-  const int m_contextMinorVersion;
-  const int m_contextFlags;
-  const int m_contextResetNotificationStrategy;
+  const int context_profile_mask_;
+  const int context_major_version_;
+  const int context_minor_version_;
+  const int context_flags_;
+  const int context_reset_notification_strategy_;
 
-  GLXContext m_context;
+  GLXContext context_;
 
   /** The first created OpenGL context (for sharing display lists) */
   static GLXContext s_sharedContext;

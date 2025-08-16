@@ -197,65 +197,65 @@ GHOST_ContextEGL::GHOST_ContextEGL(const GHOST_System *const system,
                                    EGLint contextResetNotificationStrategy,
                                    EGLenum api)
     : GHOST_Context(context_params),
-      m_system(system),
-      m_nativeDisplay(nativeDisplay),
-      m_nativeWindow(nativeWindow),
-      m_contextProfileMask(contextProfileMask),
-      m_contextMajorVersion(contextMajorVersion),
-      m_contextMinorVersion(contextMinorVersion),
-      m_contextFlags(contextFlags),
-      m_contextResetNotificationStrategy(contextResetNotificationStrategy),
-      m_api(api),
-      m_context(EGL_NO_CONTEXT),
-      m_surface(EGL_NO_SURFACE),
-      m_display(EGL_NO_DISPLAY),
-      m_config(EGL_NO_CONFIG_KHR),
-      m_swap_interval(1),
-      m_sharedContext(
+      system_(system),
+      native_display_(nativeDisplay),
+      native_window_(nativeWindow),
+      context_profile_mask_(contextProfileMask),
+      context_major_version_(contextMajorVersion),
+      context_minor_version_(contextMinorVersion),
+      context_flags_(contextFlags),
+      context_reset_notification_strategy_(contextResetNotificationStrategy),
+      api_(api),
+      context_(EGL_NO_CONTEXT),
+      surface_(EGL_NO_SURFACE),
+      display_(EGL_NO_DISPLAY),
+      config_(EGL_NO_CONFIG_KHR),
+      swap_interval_(1),
+      shared_context_(
           choose_api(api, s_gl_sharedContext, s_gles_sharedContext, s_vg_sharedContext)),
-      m_sharedCount(choose_api(api, s_gl_sharedCount, s_gles_sharedCount, s_vg_sharedCount)),
-      m_surface_from_native_window(false)
+      shared_count_(choose_api(api, s_gl_sharedCount, s_gles_sharedCount, s_vg_sharedCount)),
+      surface_from_native_window_(false)
 {
 }
 
 GHOST_ContextEGL::~GHOST_ContextEGL()
 {
-  if (m_display != EGL_NO_DISPLAY) {
+  if (display_ != EGL_NO_DISPLAY) {
 
-    bindAPI(m_api);
+    bindAPI(api_);
 
-    if (m_context != EGL_NO_CONTEXT) {
-      if (m_context == ::eglGetCurrentContext()) {
-        EGL_CHK(::eglMakeCurrent(m_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT));
+    if (context_ != EGL_NO_CONTEXT) {
+      if (context_ == ::eglGetCurrentContext()) {
+        EGL_CHK(::eglMakeCurrent(display_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT));
       }
-      if (m_context != m_sharedContext || m_sharedCount == 1) {
-        assert(m_sharedCount > 0);
+      if (context_ != shared_context_ || shared_count_ == 1) {
+        assert(shared_count_ > 0);
 
-        m_sharedCount--;
+        shared_count_--;
 
-        if (m_sharedCount == 0) {
-          m_sharedContext = EGL_NO_CONTEXT;
+        if (shared_count_ == 0) {
+          shared_context_ = EGL_NO_CONTEXT;
         }
-        EGL_CHK(::eglDestroyContext(m_display, m_context));
+        EGL_CHK(::eglDestroyContext(display_, context_));
       }
     }
 
-    if (m_surface != EGL_NO_SURFACE) {
-      EGL_CHK(::eglDestroySurface(m_display, m_surface));
+    if (surface_ != EGL_NO_SURFACE) {
+      EGL_CHK(::eglDestroySurface(display_, surface_));
     }
   }
 }
 
 GHOST_TSuccess GHOST_ContextEGL::swapBuffers()
 {
-  return EGL_CHK(::eglSwapBuffers(m_display, m_surface)) ? GHOST_kSuccess : GHOST_kFailure;
+  return EGL_CHK(::eglSwapBuffers(display_, surface_)) ? GHOST_kSuccess : GHOST_kFailure;
 }
 
 GHOST_TSuccess GHOST_ContextEGL::setSwapInterval(int interval)
 {
-  if (epoxy_egl_version(m_display) >= 11) {
-    if (EGL_CHK(::eglSwapInterval(m_display, interval))) {
-      m_swap_interval = interval;
+  if (epoxy_egl_version(display_) >= 11) {
+    if (EGL_CHK(::eglSwapInterval(display_, interval))) {
+      swap_interval_ = interval;
 
       return GHOST_kSuccess;
     }
@@ -264,48 +264,48 @@ GHOST_TSuccess GHOST_ContextEGL::setSwapInterval(int interval)
   return GHOST_kFailure;
 }
 
-GHOST_TSuccess GHOST_ContextEGL::getSwapInterval(int &intervalOut)
+GHOST_TSuccess GHOST_ContextEGL::getSwapInterval(int &interval_out)
 {
   /* This is a bit of a kludge because there does not seem to
    * be a way to query the swap interval with EGL. */
-  intervalOut = m_swap_interval;
+  interval_out = swap_interval_;
 
   return GHOST_kSuccess;
 }
 
 EGLDisplay GHOST_ContextEGL::getDisplay() const
 {
-  return m_display;
+  return display_;
 }
 
 EGLConfig GHOST_ContextEGL::getConfig() const
 {
-  return m_config;
+  return config_;
 }
 
 EGLContext GHOST_ContextEGL::getContext() const
 {
-  return m_context;
+  return context_;
 }
 
 GHOST_TSuccess GHOST_ContextEGL::activateDrawingContext()
 {
-  if (m_display) {
+  if (display_) {
     active_context_ = this;
-    bindAPI(m_api);
-    return EGL_CHK(::eglMakeCurrent(m_display, m_surface, m_surface, m_context)) ? GHOST_kSuccess :
-                                                                                   GHOST_kFailure;
+    bindAPI(api_);
+    return EGL_CHK(::eglMakeCurrent(display_, surface_, surface_, context_)) ? GHOST_kSuccess :
+                                                                               GHOST_kFailure;
   }
   return GHOST_kFailure;
 }
 
 GHOST_TSuccess GHOST_ContextEGL::releaseDrawingContext()
 {
-  if (m_display) {
+  if (display_) {
     active_context_ = nullptr;
-    bindAPI(m_api);
+    bindAPI(api_);
 
-    return EGL_CHK(::eglMakeCurrent(m_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT)) ?
+    return EGL_CHK(::eglMakeCurrent(display_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT)) ?
                GHOST_kSuccess :
                GHOST_kFailure;
   }
@@ -314,7 +314,7 @@ GHOST_TSuccess GHOST_ContextEGL::releaseDrawingContext()
 
 inline bool GHOST_ContextEGL::bindAPI(EGLenum api)
 {
-  if (epoxy_egl_version(m_display) >= 12) {
+  if (epoxy_egl_version(display_) >= 12) {
     return (EGL_CHK(eglBindAPI(api)) == EGL_TRUE);
   }
 
@@ -336,10 +336,10 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
   std::vector<EGLint> attrib_list;
   EGLint num_config = 0;
 
-  if (m_context_params.is_stereo_visual) {
+  if (context_params_.is_stereo_visual) {
     fprintf(stderr, "Warning! Stereo OpenGL ES contexts are not supported.\n");
   }
-  m_context_params.is_stereo_visual = false; /* It doesn't matter what the Window wants. */
+  context_params_.is_stereo_visual = false; /* It doesn't matter what the Window wants. */
 
   EGLDisplay prev_display = eglGetCurrentDisplay();
   EGLSurface prev_draw = eglGetCurrentSurface(EGL_DRAW);
@@ -348,18 +348,18 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
 
   EGLint egl_major = 0, egl_minor = 0;
 
-  if (!EGL_CHK((m_display = ::eglGetDisplay(m_nativeDisplay)) != EGL_NO_DISPLAY)) {
+  if (!EGL_CHK((display_ = ::eglGetDisplay(native_display_)) != EGL_NO_DISPLAY)) {
     goto error;
   }
 
   {
-    const EGLBoolean init_display_result = ::eglInitialize(m_display, &egl_major, &egl_minor);
+    const EGLBoolean init_display_result = ::eglInitialize(display_, &egl_major, &egl_minor);
     const EGLint init_display_error = (init_display_result) ? 0 : eglGetError();
 
     if (!init_display_result || (egl_major == 0 && egl_minor == 0)) {
       /* We failed to create a regular render window, retry and see if we can create a headless
        * render context. */
-      ::eglTerminate(m_display);
+      ::eglTerminate(display_);
 
       const char *egl_extension_st = eglQueryString(EGL_NO_DISPLAY, EGL_EXTENSIONS);
       assert(egl_extension_st != nullptr);
@@ -375,10 +375,10 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
         goto error;
       }
 
-      m_display = eglGetPlatformDisplayEXT(
+      display_ = eglGetPlatformDisplayEXT(
           EGL_PLATFORM_SURFACELESS_MESA, EGL_DEFAULT_DISPLAY, nullptr);
 
-      const EGLBoolean headless_result = ::eglInitialize(m_display, &egl_major, &egl_minor);
+      const EGLBoolean headless_result = ::eglInitialize(display_, &egl_major, &egl_minor);
       const EGLint init_headless_error = (headless_result) ? 0 : eglGetError();
 
       if (!headless_result) {
@@ -393,10 +393,10 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
   fprintf(stderr, "EGL Version %d.%d\n", egl_major, egl_minor);
 #endif
 
-  if (!EGL_CHK(::eglMakeCurrent(m_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT))) {
+  if (!EGL_CHK(::eglMakeCurrent(display_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT))) {
     goto error;
   }
-  if (!bindAPI(m_api)) {
+  if (!bindAPI(api_)) {
     goto error;
   }
 
@@ -404,40 +404,40 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
 
   attrib_list.reserve(20);
 
-  if (m_api == EGL_OPENGL_ES_API && epoxy_egl_version(m_display) >= 12) {
+  if (api_ == EGL_OPENGL_ES_API && epoxy_egl_version(display_) >= 12) {
     /* According to the spec it seems that you are required to set EGL_RENDERABLE_TYPE,
      * but some implementations (ANGLE) do not seem to care. */
 
-    if (m_contextMajorVersion == 1) {
+    if (context_major_version_ == 1) {
       attrib_list.push_back(EGL_RENDERABLE_TYPE);
       attrib_list.push_back(EGL_OPENGL_ES_BIT);
     }
-    else if (m_contextMajorVersion == 2) {
+    else if (context_major_version_ == 2) {
       attrib_list.push_back(EGL_RENDERABLE_TYPE);
       attrib_list.push_back(EGL_OPENGL_ES2_BIT);
     }
-    else if (m_contextMajorVersion == 3) {
+    else if (context_major_version_ == 3) {
       attrib_list.push_back(EGL_RENDERABLE_TYPE);
       attrib_list.push_back(EGL_OPENGL_ES3_BIT_KHR);
     }
     else {
       fprintf(stderr,
               "Warning! Unable to request an ES context of version %d.%d\n",
-              m_contextMajorVersion,
-              m_contextMinorVersion);
+              context_major_version_,
+              context_minor_version_);
     }
 
-    if (!((m_contextMajorVersion == 1) ||
-          (m_contextMajorVersion == 2 && epoxy_egl_version(m_display) >= 13) ||
-          (m_contextMajorVersion == 3 &&
-           epoxy_has_egl_extension(m_display, "KHR_create_context")) ||
-          (m_contextMajorVersion == 3 && epoxy_egl_version(m_display) >= 15)))
+    if (!((context_major_version_ == 1) ||
+          (context_major_version_ == 2 && epoxy_egl_version(display_) >= 13) ||
+          (context_major_version_ == 3 &&
+           epoxy_has_egl_extension(display_, "KHR_create_context")) ||
+          (context_major_version_ == 3 && epoxy_egl_version(display_) >= 15)))
     {
       fprintf(stderr,
               "Warning! May not be able to create a version %d.%d ES context with version %d.%d "
               "of EGL\n",
-              m_contextMajorVersion,
-              m_contextMinorVersion,
+              context_major_version_,
+              context_minor_version_,
               egl_major,
               egl_minor);
     }
@@ -456,7 +456,7 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
   attrib_list.push_back(EGL_BLUE_SIZE);
   attrib_list.push_back(8);
 
-  if (m_nativeWindow == 0) {
+  if (native_window_ == 0) {
     /* Off-screen surface. */
     attrib_list.push_back(EGL_SURFACE_TYPE);
     attrib_list.push_back(EGL_PBUFFER_BIT);
@@ -464,7 +464,7 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
 
   attrib_list.push_back(EGL_NONE);
 
-  if (!EGL_CHK(::eglChooseConfig(m_display, &(attrib_list[0]), &m_config, 1, &num_config))) {
+  if (!EGL_CHK(::eglChooseConfig(display_, &(attrib_list[0]), &config_, 1, &num_config))) {
     goto error;
   }
 
@@ -473,7 +473,7 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
     goto error;
   }
 
-  if (m_nativeWindow != 0) {
+  if (native_window_ != 0) {
     std::vector<EGLint> surface_attrib_list;
     surface_attrib_list.reserve(3);
 #ifdef WITH_GHOST_WAYLAND
@@ -483,7 +483,7 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
      * See #102994. */
     /* EGL_EXT_present_opaque isn't added to the latest release of epoxy, but is part of the latest
      * EGL https://github.com/KhronosGroup/EGL-Registry/blob/main/api/egl.xml */
-    if (epoxy_has_egl_extension(m_display, "EGL_EXT_present_opaque")) {
+    if (epoxy_has_egl_extension(display_, "EGL_EXT_present_opaque")) {
 #  ifndef EGL_PRESENT_OPAQUE_EXT
 #    define EGL_PRESENT_OPAQUE_EXT 0x31DF
 #  endif
@@ -493,9 +493,9 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
 #endif
     surface_attrib_list.push_back(EGL_NONE);
 
-    m_surface = ::eglCreateWindowSurface(
-        m_display, m_config, m_nativeWindow, surface_attrib_list.data());
-    m_surface_from_native_window = true;
+    surface_ = ::eglCreateWindowSurface(
+        display_, config_, native_window_, surface_attrib_list.data());
+    surface_from_native_window_ = true;
   }
   else {
     static const EGLint pb_attrib_list[] = {
@@ -505,101 +505,100 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
         1,
         EGL_NONE,
     };
-    m_surface = ::eglCreatePbufferSurface(m_display, m_config, pb_attrib_list);
+    surface_ = ::eglCreatePbufferSurface(display_, config_, pb_attrib_list);
   }
 
-  if (!EGL_CHK(m_surface != EGL_NO_SURFACE)) {
+  if (!EGL_CHK(surface_ != EGL_NO_SURFACE)) {
     goto error;
   }
   attrib_list.clear();
 
-  if (epoxy_egl_version(m_display) >= 15 ||
-      epoxy_has_egl_extension(m_display, "KHR_create_context"))
+  if (epoxy_egl_version(display_) >= 15 || epoxy_has_egl_extension(display_, "KHR_create_context"))
   {
-    if (m_api == EGL_OPENGL_API || m_api == EGL_OPENGL_ES_API) {
-      if (m_contextMajorVersion != 0) {
+    if (api_ == EGL_OPENGL_API || api_ == EGL_OPENGL_ES_API) {
+      if (context_major_version_ != 0) {
         attrib_list.push_back(EGL_CONTEXT_MAJOR_VERSION_KHR);
-        attrib_list.push_back(m_contextMajorVersion);
+        attrib_list.push_back(context_major_version_);
       }
 
-      if (m_contextMinorVersion != 0) {
+      if (context_minor_version_ != 0) {
         attrib_list.push_back(EGL_CONTEXT_MINOR_VERSION_KHR);
-        attrib_list.push_back(m_contextMinorVersion);
+        attrib_list.push_back(context_minor_version_);
       }
 
-      if (m_contextFlags != 0) {
+      if (context_flags_ != 0) {
         attrib_list.push_back(EGL_CONTEXT_FLAGS_KHR);
-        attrib_list.push_back(m_contextFlags);
+        attrib_list.push_back(context_flags_);
       }
     }
     else {
-      if (m_contextMajorVersion != 0 || m_contextMinorVersion != 0) {
+      if (context_major_version_ != 0 || context_minor_version_ != 0) {
         fprintf(stderr,
                 "Warning! Cannot request specific versions of %s contexts.",
-                api_string(m_api).c_str());
+                api_string(api_).c_str());
       }
 
-      if (m_contextFlags != 0) {
-        fprintf(stderr, "Warning! Flags cannot be set on %s contexts.", api_string(m_api).c_str());
+      if (context_flags_ != 0) {
+        fprintf(stderr, "Warning! Flags cannot be set on %s contexts.", api_string(api_).c_str());
       }
     }
 
-    if (m_api == EGL_OPENGL_API) {
-      if (m_contextProfileMask != 0) {
+    if (api_ == EGL_OPENGL_API) {
+      if (context_profile_mask_ != 0) {
         attrib_list.push_back(EGL_CONTEXT_OPENGL_PROFILE_MASK_KHR);
-        attrib_list.push_back(m_contextProfileMask);
+        attrib_list.push_back(context_profile_mask_);
       }
     }
     else {
-      if (m_contextProfileMask != 0) {
+      if (context_profile_mask_ != 0) {
         fprintf(
-            stderr, "Warning! Cannot select profile for %s contexts.", api_string(m_api).c_str());
+            stderr, "Warning! Cannot select profile for %s contexts.", api_string(api_).c_str());
       }
     }
 
-    if (m_api == EGL_OPENGL_API || epoxy_egl_version(m_display) >= 15) {
-      if (m_contextResetNotificationStrategy != 0) {
+    if (api_ == EGL_OPENGL_API || epoxy_egl_version(display_) >= 15) {
+      if (context_reset_notification_strategy_ != 0) {
         attrib_list.push_back(EGL_CONTEXT_OPENGL_RESET_NOTIFICATION_STRATEGY_KHR);
-        attrib_list.push_back(m_contextResetNotificationStrategy);
+        attrib_list.push_back(context_reset_notification_strategy_);
       }
     }
     else {
-      if (m_contextResetNotificationStrategy != 0) {
+      if (context_reset_notification_strategy_ != 0) {
         fprintf(stderr,
                 "Warning! EGL %d.%d cannot set the reset notification strategy on %s contexts.",
                 egl_major,
                 egl_minor,
-                api_string(m_api).c_str());
+                api_string(api_).c_str());
       }
     }
   }
   else {
-    if (m_api == EGL_OPENGL_ES_API) {
-      if (m_contextMajorVersion != 0) {
+    if (api_ == EGL_OPENGL_ES_API) {
+      if (context_major_version_ != 0) {
         attrib_list.push_back(EGL_CONTEXT_CLIENT_VERSION);
-        attrib_list.push_back(m_contextMajorVersion);
+        attrib_list.push_back(context_major_version_);
       }
     }
     else {
-      if (m_contextMajorVersion != 0 || m_contextMinorVersion != 0) {
+      if (context_major_version_ != 0 || context_minor_version_ != 0) {
         fprintf(stderr,
                 "Warning! EGL %d.%d is unable to select between versions of %s.",
                 egl_major,
                 egl_minor,
-                api_string(m_api).c_str());
+                api_string(api_).c_str());
       }
     }
 
-    if (m_contextFlags != 0) {
+    if (context_flags_ != 0) {
       fprintf(stderr, "Warning! EGL %d.%d is unable to set context flags.", egl_major, egl_minor);
     }
-    if (m_contextProfileMask != 0) {
+    if (context_profile_mask_ != 0) {
       fprintf(stderr,
               "Warning! EGL %d.%d is unable to select between profiles.",
               egl_major,
               egl_minor);
     }
-    if (m_contextResetNotificationStrategy != 0) {
+    if (context_reset_notification_strategy_ != 0) {
       fprintf(stderr,
               "Warning! EGL %d.%d is unable to set the reset notification strategies.",
               egl_major,
@@ -609,19 +608,19 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
 
   attrib_list.push_back(EGL_NONE);
 
-  m_context = ::eglCreateContext(m_display, m_config, m_sharedContext, &(attrib_list[0]));
+  context_ = ::eglCreateContext(display_, config_, shared_context_, &(attrib_list[0]));
 
-  if (!EGL_CHK(m_context != EGL_NO_CONTEXT)) {
+  if (!EGL_CHK(context_ != EGL_NO_CONTEXT)) {
     goto error;
   }
 
-  if (m_sharedContext == EGL_NO_CONTEXT) {
-    m_sharedContext = m_context;
+  if (shared_context_ == EGL_NO_CONTEXT) {
+    shared_context_ = context_;
   }
 
-  m_sharedCount++;
+  shared_count_++;
 
-  if (!EGL_CHK(::eglMakeCurrent(m_display, m_surface, m_surface, m_context))) {
+  if (!EGL_CHK(::eglMakeCurrent(display_, surface_, surface_, context_))) {
     goto error;
   }
 
@@ -632,9 +631,9 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
     }
   }
 
-  if (m_nativeWindow != 0) {
+  if (native_window_ != 0) {
     initClearGL();
-    ::eglSwapBuffers(m_display, m_surface);
+    ::eglSwapBuffers(display_, surface_);
   }
 
   active_context_ = this;
@@ -649,11 +648,11 @@ error:
 
 GHOST_TSuccess GHOST_ContextEGL::releaseNativeHandles()
 {
-  m_nativeDisplay = nullptr;
+  native_display_ = nullptr;
 
-  m_nativeWindow = 0;
-  if (m_surface_from_native_window) {
-    m_surface = EGL_NO_SURFACE;
+  native_window_ = 0;
+  if (surface_from_native_window_) {
+    surface_ = EGL_NO_SURFACE;
   }
 
   return GHOST_kSuccess;

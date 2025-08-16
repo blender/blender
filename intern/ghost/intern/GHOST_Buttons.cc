@@ -17,19 +17,19 @@ bool GHOST_Buttons::get(GHOST_TButton mask) const
 {
   switch (mask) {
     case GHOST_kButtonMaskLeft:
-      return m_ButtonLeft;
+      return button_left_;
     case GHOST_kButtonMaskMiddle:
-      return m_ButtonMiddle;
+      return button_middle_;
     case GHOST_kButtonMaskRight:
-      return m_ButtonRight;
+      return button_right_;
     case GHOST_kButtonMaskButton4:
-      return m_Button4;
+      return button4_;
     case GHOST_kButtonMaskButton5:
-      return m_Button5;
+      return button5_;
     case GHOST_kButtonMaskButton6:
-      return m_Button6;
+      return button6_;
     case GHOST_kButtonMaskButton7:
-      return m_Button7;
+      return button7_;
     default:
       return false;
   }
@@ -39,25 +39,25 @@ void GHOST_Buttons::set(GHOST_TButton mask, bool down)
 {
   switch (mask) {
     case GHOST_kButtonMaskLeft:
-      m_ButtonLeft = down;
+      button_left_ = down;
       break;
     case GHOST_kButtonMaskMiddle:
-      m_ButtonMiddle = down;
+      button_middle_ = down;
       break;
     case GHOST_kButtonMaskRight:
-      m_ButtonRight = down;
+      button_right_ = down;
       break;
     case GHOST_kButtonMaskButton4:
-      m_Button4 = down;
+      button4_ = down;
       break;
     case GHOST_kButtonMaskButton5:
-      m_Button5 = down;
+      button5_ = down;
       break;
     case GHOST_kButtonMaskButton6:
-      m_Button6 = down;
+      button6_ = down;
       break;
     case GHOST_kButtonMaskButton7:
-      m_Button7 = down;
+      button7_ = down;
       break;
     default:
       break;
@@ -66,13 +66,13 @@ void GHOST_Buttons::set(GHOST_TButton mask, bool down)
 
 void GHOST_Buttons::clear()
 {
-  m_ButtonLeft = false;
-  m_ButtonMiddle = false;
-  m_ButtonRight = false;
-  m_Button4 = false;
-  m_Button5 = false;
-  m_Button6 = false;
-  m_Button7 = false;
+  button_left_ = false;
+  button_middle_ = false;
+  button_right_ = false;
+  button4_ = false;
+  button5_ = false;
+  button6_ = false;
+  button7_ = false;
 }
 
 GHOST_Buttons::~GHOST_Buttons() = default;

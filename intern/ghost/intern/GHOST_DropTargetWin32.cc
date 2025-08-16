@@ -19,11 +19,11 @@ void printLastError(void);
 #endif /* WITH_GHOST_DEBUG */
 
 GHOST_DropTargetWin32::GHOST_DropTargetWin32(GHOST_WindowWin32 *window, GHOST_SystemWin32 *system)
-    : m_window(window), m_system(system)
+    : window_(window), system_(system)
 {
-  m_cRef = 1;
-  m_hWnd = window->getHWND();
-  m_draggedObjectType = GHOST_kDragnDropTypeUnknown;
+  c_ref_ = 1;
+  h_wnd_ = window->getHWND();
+  dragged_object_type_ = GHOST_kDragnDropTypeUnknown;
 }
 
 GHOST_DropTargetWin32::~GHOST_DropTargetWin32() {}
@@ -54,7 +54,7 @@ HRESULT __stdcall GHOST_DropTargetWin32::QueryInterface(REFIID riid, void **ppv_
 
 ULONG __stdcall GHOST_DropTargetWin32::AddRef(void)
 {
-  return ::InterlockedIncrement(&m_cRef);
+  return ::InterlockedIncrement(&c_ref_);
 }
 
 /*
@@ -62,7 +62,7 @@ ULONG __stdcall GHOST_DropTargetWin32::AddRef(void)
  */
 ULONG __stdcall GHOST_DropTargetWin32::Release(void)
 {
-  ULONG refs = ::InterlockedDecrement(&m_cRef);
+  ULONG refs = ::InterlockedDecrement(&c_ref_);
 
   if (refs == 0) {
     delete this;
@@ -82,12 +82,12 @@ HRESULT __stdcall GHOST_DropTargetWin32::DragEnter(IDataObject *p_data_object,
                                                    DWORD *pdw_effect)
 {
   /* We accept all drop by default. */
-  m_window->setAcceptDragOperation(true);
+  window_->setAcceptDragOperation(true);
   *pdw_effect = DROPEFFECT_NONE;
 
-  m_draggedObjectType = getGhostType(p_data_object);
-  m_system->pushDragDropEvent(
-      GHOST_kEventDraggingEntered, m_draggedObjectType, m_window, pt.x, pt.y, nullptr);
+  dragged_object_type_ = getGhostType(p_data_object);
+  system_->pushDragDropEvent(
+      GHOST_kEventDraggingEntered, dragged_object_type_, window_, pt.x, pt.y, nullptr);
   return S_OK;
 }
 
@@ -98,7 +98,7 @@ HRESULT __stdcall GHOST_DropTargetWin32::DragOver(DWORD /*grf_key_state*/,
                                                   POINTL pt,
                                                   DWORD *pdw_effect)
 {
-  if (m_window->canAcceptDragOperation()) {
+  if (window_->canAcceptDragOperation()) {
     *pdw_effect = allowedDropEffect(*pdw_effect);
   }
   else {
@@ -106,8 +106,8 @@ HRESULT __stdcall GHOST_DropTargetWin32::DragOver(DWORD /*grf_key_state*/,
     /* XXX Uncomment to test drop. Drop will not be called if `pdw_effect == DROPEFFECT_NONE`. */
     // *pdw_effect = DROPEFFECT_COPY;
   }
-  m_system->pushDragDropEvent(
-      GHOST_kEventDraggingUpdated, m_draggedObjectType, m_window, pt.x, pt.y, nullptr);
+  system_->pushDragDropEvent(
+      GHOST_kEventDraggingUpdated, dragged_object_type_, window_, pt.x, pt.y, nullptr);
   return S_OK;
 }
 
@@ -116,9 +116,9 @@ HRESULT __stdcall GHOST_DropTargetWin32::DragOver(DWORD /*grf_key_state*/,
  */
 HRESULT __stdcall GHOST_DropTargetWin32::DragLeave(void)
 {
-  m_system->pushDragDropEvent(
-      GHOST_kEventDraggingExited, m_draggedObjectType, m_window, 0, 0, nullptr);
-  m_draggedObjectType = GHOST_kDragnDropTypeUnknown;
+  system_->pushDragDropEvent(
+      GHOST_kEventDraggingExited, dragged_object_type_, window_, 0, 0, nullptr);
+  dragged_object_type_ = GHOST_kDragnDropTypeUnknown;
   return S_OK;
 }
 
@@ -132,17 +132,17 @@ HRESULT __stdcall GHOST_DropTargetWin32::Drop(IDataObject *p_data_object,
                                               DWORD *pdw_effect)
 {
   void *data = getGhostData(p_data_object);
-  if (m_window->canAcceptDragOperation()) {
+  if (window_->canAcceptDragOperation()) {
     *pdw_effect = allowedDropEffect(*pdw_effect);
   }
   else {
     *pdw_effect = DROPEFFECT_NONE;
   }
   if (data) {
-    m_system->pushDragDropEvent(
-        GHOST_kEventDraggingDropDone, m_draggedObjectType, m_window, pt.x, pt.y, data);
+    system_->pushDragDropEvent(
+        GHOST_kEventDraggingDropDone, dragged_object_type_, window_, pt.x, pt.y, data);
   }
-  m_draggedObjectType = GHOST_kDragnDropTypeUnknown;
+  dragged_object_type_ = GHOST_kDragnDropTypeUnknown;
   return S_OK;
 }
 

@@ -1590,15 +1590,15 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr p
 static GHOST_WindowHandle playanim_window_open(
     GHOST_SystemHandle ghost_system, const char *title, int posx, int posy, int sizex, int sizey)
 {
-  GHOST_GPUSettings gpusettings = {0};
+  GHOST_GPUSettings gpu_settings = {0};
   const eGPUBackendType gpu_backend = GPU_backend_type_selection_get();
-  gpusettings.context_type = wm_ghost_drawing_context_type(gpu_backend);
-  gpusettings.preferred_device.index = U.gpu_preferred_index;
-  gpusettings.preferred_device.vendor_id = U.gpu_preferred_vendor_id;
-  gpusettings.preferred_device.device_id = U.gpu_preferred_device_id;
+  gpu_settings.context_type = wm_ghost_drawing_context_type(gpu_backend);
+  gpu_settings.preferred_device.index = U.gpu_preferred_index;
+  gpu_settings.preferred_device.vendor_id = U.gpu_preferred_vendor_id;
+  gpu_settings.preferred_device.device_id = U.gpu_preferred_device_id;
   if (GPU_backend_vsync_is_overridden()) {
-    gpusettings.flags |= GHOST_gpuVSyncIsOverridden;
-    gpusettings.vsync = GHOST_TVSyncModes(GPU_backend_vsync_get());
+    gpu_settings.flags |= GHOST_gpuVSyncIsOverridden;
+    gpu_settings.vsync = GHOST_TVSyncModes(GPU_backend_vsync_get());
   }
 
   {
@@ -1654,7 +1654,7 @@ static GHOST_WindowHandle playanim_window_open(
                             /* Could optionally start full-screen. */
                             GHOST_kWindowStateNormal,
                             false,
-                            gpusettings);
+                            gpu_settings);
 }
 
 static void playanim_window_zoom(PlayState &ps, const float zoom_offset)

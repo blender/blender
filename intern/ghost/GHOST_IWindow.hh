@@ -94,16 +94,16 @@ class GHOST_IWindow {
 
   /**
    * Set the window decoration style flags.
-   * \param styleFlags: Window decoration style flags.
+   * \param style_flags: Window decoration style flags.
    */
-  virtual void setWindowDecorationStyleFlags(GHOST_TWindowDecorationStyleFlags styleFlags) = 0;
+  virtual void setWindowDecorationStyleFlags(GHOST_TWindowDecorationStyleFlags style_flags) = 0;
 
   /**
    * Set the window decoration style settings.
-   * \param decorationSettings: Window decoration style settings.
+   * \param decoration_settings: Window decoration style settings.
    */
   virtual void setWindowDecorationStyleSettings(
-      GHOST_WindowDecorationStyleSettings decorationSettings) = 0;
+      GHOST_WindowDecorationStyleSettings decoration_settings) = 0;
 
   /**
    * Apply the window decoration style using the current flags and settings.
@@ -164,7 +164,7 @@ class GHOST_IWindow {
   /**
    * Tells if the ongoing drag & drop object can be accepted upon mouse drop
    */
-  virtual void setAcceptDragOperation(bool canAccept) = 0;
+  virtual void setAcceptDragOperation(bool can_accept) = 0;
 
   /**
    * Returns acceptance of the dropped object.
@@ -187,10 +187,10 @@ class GHOST_IWindow {
 
   /**
    * Sets the window "modified" status, indicating unsaved changes.
-   * \param isUnsavedChanges: Unsaved changes or not.
+   * \param is_unsaved_changes: Unsaved changes or not.
    * \return Indication of success.
    */
-  virtual GHOST_TSuccess setModifiedState(bool isUnsavedChanges) = 0;
+  virtual GHOST_TSuccess setModifiedState(bool is_unsaved_changes) = 0;
 
   /**
    * Gets the window "modified" status, indicating unsaved changes.
@@ -220,11 +220,11 @@ class GHOST_IWindow {
 
   /**
    * Gets the current swap interval for #swapBuffers.
-   * \param intervalOut: pointer to location to return swap interval.
+   * \param interval_out: pointer to location to return swap interval.
    * (left untouched if there is an error)
    * \return A boolean success indicator of if swap interval was successfully read.
    */
-  virtual GHOST_TSuccess getSwapInterval(int &intervalOut) = 0;
+  virtual GHOST_TSuccess getSwapInterval(int &interval_out) = 0;
 
   /**
    * Activates the drawing context of this window.
@@ -258,9 +258,9 @@ class GHOST_IWindow {
 
   /**
    * Changes the window user data.
-   * \param userData: The window user data.
+   * \param user_data: The window user data.
    */
-  virtual void setUserData(const GHOST_TUserDataPtr userData) = 0;
+  virtual void setUserData(const GHOST_TUserDataPtr user_data) = 0;
 
   virtual bool isDialog() const = 0;
 
@@ -291,10 +291,10 @@ class GHOST_IWindow {
 
   /**
    * Set the shape of the cursor.
-   * \param cursorShape: The new cursor shape type id.
+   * \param cursor_shape: The new cursor shape type id.
    * \return Indication of success.
    */
-  virtual GHOST_TSuccess setCursorShape(GHOST_TStandardCursor cursorShape) = 0;
+  virtual GHOST_TSuccess setCursorShape(GHOST_TStandardCursor cursor_shape) = 0;
 
   /**
    * Gets the cursor grab region, if unset the window is used.
@@ -316,7 +316,7 @@ class GHOST_IWindow {
    * Test if the standard cursor shape is supported by current platform.
    * \return Indication of success.
    */
-  virtual GHOST_TSuccess hasCursorShape(GHOST_TStandardCursor cursorShape) = 0;
+  virtual GHOST_TSuccess hasCursorShape(GHOST_TStandardCursor cursor_shape) = 0;
 
   /**
    * Set the shape of the cursor to a custom cursor.

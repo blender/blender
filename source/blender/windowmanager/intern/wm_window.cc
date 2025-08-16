@@ -866,23 +866,23 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
                                       bool is_dialog)
 {
   /* A new window is created when page-flip mode is required for a window. */
-  GHOST_GPUSettings gpuSettings = {0};
+  GHOST_GPUSettings gpu_settings = {0};
   if (win->stereo3d_format->display_mode == S3D_DISPLAY_PAGEFLIP) {
-    gpuSettings.flags |= GHOST_gpuStereoVisual;
+    gpu_settings.flags |= GHOST_gpuStereoVisual;
   }
 
   if (G.debug & G_DEBUG_GPU) {
-    gpuSettings.flags |= GHOST_gpuDebugContext;
+    gpu_settings.flags |= GHOST_gpuDebugContext;
   }
 
   eGPUBackendType gpu_backend = GPU_backend_type_selection_get();
-  gpuSettings.context_type = wm_ghost_drawing_context_type(gpu_backend);
-  gpuSettings.preferred_device.index = U.gpu_preferred_index;
-  gpuSettings.preferred_device.vendor_id = U.gpu_preferred_vendor_id;
-  gpuSettings.preferred_device.device_id = U.gpu_preferred_device_id;
+  gpu_settings.context_type = wm_ghost_drawing_context_type(gpu_backend);
+  gpu_settings.preferred_device.index = U.gpu_preferred_index;
+  gpu_settings.preferred_device.vendor_id = U.gpu_preferred_vendor_id;
+  gpu_settings.preferred_device.device_id = U.gpu_preferred_device_id;
   if (GPU_backend_vsync_is_overridden()) {
-    gpuSettings.flags |= GHOST_gpuVSyncIsOverridden;
-    gpuSettings.vsync = GHOST_TVSyncModes(GPU_backend_vsync_get());
+    gpu_settings.flags |= GHOST_gpuVSyncIsOverridden;
+    gpu_settings.vsync = GHOST_TVSyncModes(GPU_backend_vsync_get());
   }
 
   int posx = 0;
@@ -910,7 +910,7 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
       win->sizey,
       (GHOST_TWindowState)win->windowstate,
       is_dialog,
-      gpuSettings);
+      gpu_settings);
 
   if (ghostwin) {
     win->gpuctx = GPU_context_create(ghostwin, nullptr);
@@ -3155,21 +3155,21 @@ void *WM_system_gpu_context_create()
   BLI_assert(BLI_thread_is_main());
   BLI_assert(GPU_framebuffer_active_get() == GPU_framebuffer_back_get());
 
-  GHOST_GPUSettings gpuSettings = {0};
+  GHOST_GPUSettings gpu_settings = {0};
   const eGPUBackendType gpu_backend = GPU_backend_type_selection_get();
-  gpuSettings.context_type = wm_ghost_drawing_context_type(gpu_backend);
+  gpu_settings.context_type = wm_ghost_drawing_context_type(gpu_backend);
   if (G.debug & G_DEBUG_GPU) {
-    gpuSettings.flags |= GHOST_gpuDebugContext;
+    gpu_settings.flags |= GHOST_gpuDebugContext;
   }
-  gpuSettings.preferred_device.index = U.gpu_preferred_index;
-  gpuSettings.preferred_device.vendor_id = U.gpu_preferred_vendor_id;
-  gpuSettings.preferred_device.device_id = U.gpu_preferred_device_id;
+  gpu_settings.preferred_device.index = U.gpu_preferred_index;
+  gpu_settings.preferred_device.vendor_id = U.gpu_preferred_vendor_id;
+  gpu_settings.preferred_device.device_id = U.gpu_preferred_device_id;
   if (GPU_backend_vsync_is_overridden()) {
-    gpuSettings.flags |= GHOST_gpuVSyncIsOverridden;
-    gpuSettings.vsync = GHOST_TVSyncModes(GPU_backend_vsync_get());
+    gpu_settings.flags |= GHOST_gpuVSyncIsOverridden;
+    gpu_settings.vsync = GHOST_TVSyncModes(GPU_backend_vsync_get());
   }
 
-  return GHOST_CreateGPUContext(g_system, gpuSettings);
+  return GHOST_CreateGPUContext(g_system, gpu_settings);
 }
 
 void WM_system_gpu_context_dispose(void *context)

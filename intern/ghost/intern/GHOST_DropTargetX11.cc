@@ -16,41 +16,41 @@
 #include <cstdio>
 #include <cstring>
 
-bool GHOST_DropTargetX11::m_xdndInitialized = false;
-DndClass GHOST_DropTargetX11::m_dndClass;
-Atom *GHOST_DropTargetX11::m_dndTypes = nullptr;
-Atom *GHOST_DropTargetX11::m_dndActions = nullptr;
-const char *GHOST_DropTargetX11::m_dndMimeTypes[] = {
+bool GHOST_DropTargetX11::xdnd_initialized_ = false;
+DndClass GHOST_DropTargetX11::dnd_class_;
+Atom *GHOST_DropTargetX11::dnd_types_ = nullptr;
+Atom *GHOST_DropTargetX11::dnd_actions_ = nullptr;
+const char *GHOST_DropTargetX11::dnd_mime_types_[] = {
     "url/url", "text/uri-list", "text/plain", "application/octet-stream"};
-int GHOST_DropTargetX11::m_refCounter = 0;
+int GHOST_DropTargetX11::ref_counter_ = 0;
 
 #define dndTypeURLID 0
 #define dndTypeURIListID 1
 #define dndTypePlainTextID 2
 #define dndTypeOctetStreamID 3
 
-#define dndTypeURL m_dndTypes[dndTypeURLID]
-#define dndTypeURIList m_dndTypes[dndTypeURIListID]
-#define dndTypePlainText m_dndTypes[dndTypePlainTextID]
-#define dndTypeOctetStream m_dndTypes[dndTypeOctetStreamID]
+#define dndTypeURL dnd_types_[dndTypeURLID]
+#define dndTypeURIList dnd_types_[dndTypeURIListID]
+#define dndTypePlainText dnd_types_[dndTypePlainTextID]
+#define dndTypeOctetStream dnd_types_[dndTypeOctetStreamID]
 
 void GHOST_DropTargetX11::Initialize()
 {
-  Display *display = m_system->getXDisplay();
-  int dndTypesCount = ARRAY_SIZE(m_dndMimeTypes);
+  Display *display = system_->getXDisplay();
+  int dndTypesCount = ARRAY_SIZE(dnd_mime_types_);
   int counter;
 
-  xdnd_init(&m_dndClass, display);
+  xdnd_init(&dnd_class_, display);
 
-  m_dndTypes = new Atom[dndTypesCount + 1];
-  XInternAtoms(display, (char **)m_dndMimeTypes, dndTypesCount, 0, m_dndTypes);
-  m_dndTypes[dndTypesCount] = 0;
+  dnd_types_ = new Atom[dndTypesCount + 1];
+  XInternAtoms(display, (char **)dnd_mime_types_, dndTypesCount, 0, dnd_types_);
+  dnd_types_[dndTypesCount] = 0;
 
-  m_dndActions = new Atom[8];
+  dnd_actions_ = new Atom[8];
   counter = 0;
 
-  m_dndActions[counter++] = m_dndClass.XdndActionCopy;
-  m_dndActions[counter++] = m_dndClass.XdndActionMove;
+  dnd_actions_[counter++] = dnd_class_.XdndActionCopy;
+  dnd_actions_[counter++] = dnd_class_.XdndActionMove;
 
 #if 0 /* Not supported yet */
   dndActions[counter++] = dnd->XdndActionLink;
@@ -60,41 +60,41 @@ void GHOST_DropTargetX11::Initialize()
   dndActions[counter++] = dnd->XdndActionDescription;
 #endif
 
-  m_dndActions[counter++] = 0;
+  dnd_actions_[counter++] = 0;
 }
 
 void GHOST_DropTargetX11::Uninitialize()
 {
-  xdnd_shut(&m_dndClass);
+  xdnd_shut(&dnd_class_);
 
-  delete[] m_dndActions;
-  delete[] m_dndTypes;
+  delete[] dnd_actions_;
+  delete[] dnd_types_;
 }
 
 GHOST_DropTargetX11::GHOST_DropTargetX11(GHOST_WindowX11 *window, GHOST_SystemX11 *system)
-    : m_window(window), m_system(system)
+    : window_(window), system_(system)
 {
-  if (!m_xdndInitialized) {
+  if (!xdnd_initialized_) {
     Initialize();
-    m_xdndInitialized = true;
+    xdnd_initialized_ = true;
     GHOST_PRINT("XDND initialized\n");
   }
 
   Window wnd = window->getXWindow();
 
-  xdnd_set_dnd_aware(&m_dndClass, wnd, nullptr);
-  xdnd_set_type_list(&m_dndClass, wnd, m_dndTypes);
+  xdnd_set_dnd_aware(&dnd_class_, wnd, nullptr);
+  xdnd_set_type_list(&dnd_class_, wnd, dnd_types_);
 
-  m_draggedObjectType = GHOST_kDragnDropTypeUnknown;
-  m_refCounter++;
+  dragged_object_type_ = GHOST_kDragnDropTypeUnknown;
+  ref_counter_++;
 }
 
 GHOST_DropTargetX11::~GHOST_DropTargetX11()
 {
-  m_refCounter--;
-  if (m_refCounter == 0) {
+  ref_counter_--;
+  if (ref_counter_ == 0) {
     Uninitialize();
-    m_xdndInitialized = false;
+    xdnd_initialized_ = false;
     GHOST_PRINT("XDND uninitialized\n");
   }
 }
@@ -170,7 +170,7 @@ void *GHOST_DropTargetX11::getGhostData(Atom dropType, const uchar *dropBuffer, 
   tmpBuffer[dropBufferSize] = 0;
 
   if (dropType == dndTypeURIList) {
-    m_draggedObjectType = GHOST_kDragnDropTypeFilenames;
+    dragged_object_type_ = GHOST_kDragnDropTypeFilenames;
     data = getURIListGhostData(tmpBuffer, dropBufferSize);
   }
   else if (dropType == dndTypeURL) {
@@ -178,17 +178,17 @@ void *GHOST_DropTargetX11::getGhostData(Atom dropType, const uchar *dropBuffer, 
     char *decodedPath = FileUrlDecode((const char *)tmpBuffer);
 
     if (decodedPath) {
-      m_draggedObjectType = GHOST_kDragnDropTypeString;
+      dragged_object_type_ = GHOST_kDragnDropTypeString;
       data = decodedPath;
     }
   }
   else if (ELEM(dropType, dndTypePlainText, dndTypeOctetStream)) {
-    m_draggedObjectType = GHOST_kDragnDropTypeString;
+    dragged_object_type_ = GHOST_kDragnDropTypeString;
     data = tmpBuffer;
     needsFree = false;
   }
   else {
-    m_draggedObjectType = GHOST_kDragnDropTypeUnknown;
+    dragged_object_type_ = GHOST_kDragnDropTypeUnknown;
   }
 
   if (needsFree) {
@@ -204,10 +204,10 @@ bool GHOST_DropTargetX11::GHOST_HandleClientMessage(XEvent *event)
   uchar *dropBuffer;
   int dropBufferSize, dropX, dropY;
 
-  if (xdnd_get_drop(m_system->getXDisplay(),
+  if (xdnd_get_drop(system_->getXDisplay(),
                     event,
-                    m_dndTypes,
-                    m_dndActions,
+                    dnd_types_,
+                    dnd_actions_,
                     &dropBuffer,
                     &dropBufferSize,
                     &dropType,
@@ -217,13 +217,13 @@ bool GHOST_DropTargetX11::GHOST_HandleClientMessage(XEvent *event)
     void *data = getGhostData(dropType, dropBuffer, dropBufferSize);
 
     if (data) {
-      m_system->pushDragDropEvent(
-          GHOST_kEventDraggingDropDone, m_draggedObjectType, m_window, dropX, dropY, data);
+      system_->pushDragDropEvent(
+          GHOST_kEventDraggingDropDone, dragged_object_type_, window_, dropX, dropY, data);
     }
 
     free(dropBuffer);
 
-    m_draggedObjectType = GHOST_kDragnDropTypeUnknown;
+    dragged_object_type_ = GHOST_kDragnDropTypeUnknown;
 
     return true;
   }

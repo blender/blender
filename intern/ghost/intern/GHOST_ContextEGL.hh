@@ -90,10 +90,10 @@ class GHOST_ContextEGL : public GHOST_Context {
 
   /**
    * Gets the current swap interval for #swapBuffers.
-   * \param intervalOut: Variable to store the swap interval if it can be read.
+   * \param interval_out: Variable to store the swap interval if it can be read.
    * \return Whether the swap interval can be read.
    */
-  GHOST_TSuccess getSwapInterval(int &intervalOut) override;
+  GHOST_TSuccess getSwapInterval(int &interval_out) override;
 
   EGLDisplay getDisplay() const;
 
@@ -104,33 +104,33 @@ class GHOST_ContextEGL : public GHOST_Context {
  private:
   bool bindAPI(EGLenum api);
 
-  const GHOST_System *const m_system;
+  const GHOST_System *const system_;
 
-  EGLNativeDisplayType m_nativeDisplay;
-  EGLNativeWindowType m_nativeWindow;
+  EGLNativeDisplayType native_display_;
+  EGLNativeWindowType native_window_;
 
-  const EGLint m_contextProfileMask;
-  const EGLint m_contextMajorVersion;
-  const EGLint m_contextMinorVersion;
-  const EGLint m_contextFlags;
-  const EGLint m_contextResetNotificationStrategy;
+  const EGLint context_profile_mask_;
+  const EGLint context_major_version_;
+  const EGLint context_minor_version_;
+  const EGLint context_flags_;
+  const EGLint context_reset_notification_strategy_;
 
-  const EGLenum m_api;
+  const EGLenum api_;
 
-  EGLContext m_context;
-  EGLSurface m_surface;
-  EGLDisplay m_display;
-  EGLConfig m_config;
+  EGLContext context_;
+  EGLSurface surface_;
+  EGLDisplay display_;
+  EGLConfig config_;
 
-  EGLint m_swap_interval;
+  EGLint swap_interval_;
 
-  EGLContext &m_sharedContext;
-  EGLint &m_sharedCount;
+  EGLContext &shared_context_;
+  EGLint &shared_count_;
 
   /**
-   * True when the surface is created from `m_nativeWindow`.
+   * True when the surface is created from `native_window_`.
    */
-  bool m_surface_from_native_window;
+  bool surface_from_native_window_;
 
   static EGLContext s_gl_sharedContext;
   static EGLint s_gl_sharedCount;

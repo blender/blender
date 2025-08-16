@@ -104,17 +104,17 @@ using namespace std;
 
 GHOST_SystemX11::GHOST_SystemX11()
     : GHOST_System(),
-      m_xkb_descr(nullptr),
-      m_keyboard_vector{0},
+      xkb_descr_(nullptr),
+      keyboard_vector_{0},
 #ifdef WITH_X11_XINPUT
-      m_last_key_time(0),
+      last_key_time_(0),
 #endif
-      m_keycode_last_repeat_key(uint(-1))
+      keycode_last_repeat_key_(uint(-1))
 {
   XInitThreads();
-  m_display = XOpenDisplay(nullptr);
+  display_ = XOpenDisplay(nullptr);
 
-  if (!m_display) {
+  if (!display_) {
     throw std::runtime_error("unable to open a display!");
   }
 
@@ -127,17 +127,17 @@ GHOST_SystemX11::GHOST_SystemX11()
   /* NOTE: Don't open connection to XIM server here, because the locale has to be
    * set before opening the connection but `setlocale()` has not been called yet.
    * the connection will be opened after entering the event loop. */
-  m_xim = nullptr;
+  xim_ = nullptr;
 #endif
 
 #define GHOST_INTERN_ATOM_IF_EXISTS(atom) \
   { \
-    m_atom.atom = XInternAtom(m_display, #atom, True); \
+    atom_.atom = XInternAtom(display_, #atom, True); \
   } \
   (void)0
 #define GHOST_INTERN_ATOM(atom) \
   { \
-    m_atom.atom = XInternAtom(m_display, #atom, False); \
+    atom_.atom = XInternAtom(display_, #atom, False); \
   } \
   (void)0
 
@@ -162,16 +162,16 @@ GHOST_SystemX11::GHOST_SystemX11()
   GHOST_INTERN_ATOM(INCR);
   GHOST_INTERN_ATOM(UTF8_STRING);
 #ifdef WITH_X11_XINPUT
-  m_atom.TABLET = XInternAtom(m_display, XI_TABLET, False);
+  atom_.TABLET = XInternAtom(display_, XI_TABLET, False);
 #endif
 
 #undef GHOST_INTERN_ATOM_IF_EXISTS
 #undef GHOST_INTERN_ATOM
 
-  m_last_warp_x = 0;
-  m_last_warp_y = 0;
-  m_last_release_keycode = 0;
-  m_last_release_time = 0;
+  last_warp_x_ = 0;
+  last_warp_y_ = 0;
+  last_release_keycode_ = 0;
+  last_release_time_ = 0;
 
   /* Use detectable auto-repeat, mac and windows also do this. */
   int use_xkb;
@@ -179,14 +179,14 @@ GHOST_SystemX11::GHOST_SystemX11()
   int xkb_major = XkbMajorVersion, xkb_minor = XkbMinorVersion;
 
   use_xkb = XkbQueryExtension(
-      m_display, &xkb_opcode, &xkb_event, &xkb_error, &xkb_major, &xkb_minor);
+      display_, &xkb_opcode, &xkb_event, &xkb_error, &xkb_major, &xkb_minor);
   if (use_xkb) {
-    XkbSetDetectableAutoRepeat(m_display, true, nullptr);
+    XkbSetDetectableAutoRepeat(display_, true, nullptr);
 
-    m_xkb_descr = XkbGetMap(m_display, 0, XkbUseCoreKbd);
-    if (m_xkb_descr) {
-      XkbGetNames(m_display, XkbKeyNamesMask, m_xkb_descr);
-      XkbGetControls(m_display, XkbPerKeyRepeatMask | XkbRepeatKeysMask, m_xkb_descr);
+    xkb_descr_ = XkbGetMap(display_, 0, XkbUseCoreKbd);
+    if (xkb_descr_) {
+      XkbGetNames(display_, XkbKeyNamesMask, xkb_descr_);
+      XkbGetControls(display_, XkbPerKeyRepeatMask | XkbRepeatKeysMask, xkb_descr_);
     }
   }
 
@@ -197,23 +197,23 @@ GHOST_SystemX11::GHOST_SystemX11()
 #ifdef WITH_X11_XINPUT
   /* Detect if we have XINPUT (for reuse). */
   {
-    memset(&m_xinput_version, 0, sizeof(m_xinput_version));
-    XExtensionVersion *version = XGetExtensionVersion(m_display, INAME);
+    memset(&xinput_version_, 0, sizeof(xinput_version_));
+    XExtensionVersion *version = XGetExtensionVersion(display_, INAME);
     if (version && (version != (XExtensionVersion *)NoSuchExtension)) {
       if (version->present) {
-        m_xinput_version = *version;
+        xinput_version_ = *version;
       }
       XFree(version);
     }
   }
 
 #  ifdef USE_XINPUT_HOTPLUG
-  if (m_xinput_version.present) {
+  if (xinput_version_.present) {
     XEventClass class_presence;
     int xi_presence;
-    DevicePresence(m_display, xi_presence, class_presence);
+    DevicePresence(display_, xi_presence, class_presence);
     XSelectExtensionEvent(
-        m_display, RootWindow(m_display, DefaultScreen(m_display)), &class_presence, 1);
+        display_, RootWindow(display_, DefaultScreen(display_)), &class_presence, 1);
     (void)xi_presence;
   }
 #  endif /* USE_XINPUT_HOTPLUG */
@@ -225,8 +225,8 @@ GHOST_SystemX11::GHOST_SystemX11()
 GHOST_SystemX11::~GHOST_SystemX11()
 {
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
-  if (m_xim) {
-    XCloseIM(m_xim);
+  if (xim_) {
+    XCloseIM(xim_);
   }
 #endif
 
@@ -235,11 +235,11 @@ GHOST_SystemX11::~GHOST_SystemX11()
   clearXInputDevices();
 #endif /* WITH_X11_XINPUT */
 
-  if (m_xkb_descr) {
-    XkbFreeKeyboard(m_xkb_descr, XkbAllComponentsMask, true);
+  if (xkb_descr_) {
+    XkbFreeKeyboard(xkb_descr_, XkbAllComponentsMask, true);
   }
 
-  XCloseDisplay(m_display);
+  XCloseDisplay(display_);
 }
 
 GHOST_TSuccess GHOST_SystemX11::init()
@@ -248,7 +248,7 @@ GHOST_TSuccess GHOST_SystemX11::init()
 
   if (success) {
 #ifdef WITH_INPUT_NDOF
-    m_ndofManager = new GHOST_NDOFManagerUnix(*this);
+    ndof_manager_ = new GHOST_NDOFManagerUnix(*this);
 #endif
     return GHOST_kSuccess;
   }
@@ -333,7 +333,7 @@ uint8_t GHOST_SystemX11::getNumDisplays() const
 
 void GHOST_SystemX11::getMainDisplayDimensions(uint32_t &width, uint32_t &height) const
 {
-  if (m_display) {
+  if (display_) {
     /* NOTE(@ideasman42): for this to work as documented,
      * we would need to use Xinerama check r54370 for code that did this,
      * we've since removed since its not worth the extra dependency. */
@@ -343,9 +343,9 @@ void GHOST_SystemX11::getMainDisplayDimensions(uint32_t &width, uint32_t &height
 
 void GHOST_SystemX11::getAllDisplayDimensions(uint32_t &width, uint32_t &height) const
 {
-  if (m_display) {
-    width = DisplayWidth(m_display, DefaultScreen(m_display));
-    height = DisplayHeight(m_display, DefaultScreen(m_display));
+  if (display_) {
+    width = DisplayWidth(display_, DefaultScreen(display_));
+    height = DisplayHeight(display_, DefaultScreen(display_));
   }
 }
 
@@ -355,32 +355,32 @@ GHOST_IWindow *GHOST_SystemX11::createWindow(const char *title,
                                              uint32_t width,
                                              uint32_t height,
                                              GHOST_TWindowState state,
-                                             GHOST_GPUSettings gpuSettings,
+                                             GHOST_GPUSettings gpu_settings,
                                              const bool exclusive,
                                              const bool is_dialog,
-                                             const GHOST_IWindow *parentWindow)
+                                             const GHOST_IWindow *parent_window)
 {
   GHOST_WindowX11 *window = nullptr;
 
-  if (!m_display) {
+  if (!display_) {
     return nullptr;
   }
 
-  const GHOST_ContextParams context_params = GHOST_CONTEXT_PARAMS_FROM_GPU_SETTINGS(gpuSettings);
+  const GHOST_ContextParams context_params = GHOST_CONTEXT_PARAMS_FROM_GPU_SETTINGS(gpu_settings);
   window = new GHOST_WindowX11(this,
-                               m_display,
+                               display_,
                                title,
                                left,
                                top,
                                width,
                                height,
                                state,
-                               (GHOST_WindowX11 *)parentWindow,
-                               gpuSettings.context_type,
+                               (GHOST_WindowX11 *)parent_window,
+                               gpu_settings.context_type,
                                is_dialog,
                                context_params,
                                exclusive,
-                               gpuSettings.preferred_device);
+                               gpu_settings.preferred_device);
 
   if (window) {
     /* Both are now handle in GHOST_WindowX11.cc
@@ -388,8 +388,8 @@ GHOST_IWindow *GHOST_SystemX11::createWindow(const char *title,
 
     if (window->getValid()) {
       /* Store the pointer to the window */
-      m_windowManager->addWindow(window);
-      m_windowManager->setActiveWindow(window);
+      window_manager_->addWindow(window);
+      window_manager_->setActiveWindow(window);
       pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window));
     }
     else {
@@ -400,24 +400,24 @@ GHOST_IWindow *GHOST_SystemX11::createWindow(const char *title,
   return window;
 }
 
-GHOST_IContext *GHOST_SystemX11::createOffscreenContext(GHOST_GPUSettings gpuSettings)
+GHOST_IContext *GHOST_SystemX11::createOffscreenContext(GHOST_GPUSettings gpu_settings)
 {
   const GHOST_ContextParams context_params_offscreen =
-      GHOST_CONTEXT_PARAMS_FROM_GPU_SETTINGS_OFFSCREEN(gpuSettings);
+      GHOST_CONTEXT_PARAMS_FROM_GPU_SETTINGS_OFFSCREEN(gpu_settings);
 
-  switch (gpuSettings.context_type) {
+  switch (gpu_settings.context_type) {
 #ifdef WITH_VULKAN_BACKEND
     case GHOST_kDrawingContextTypeVulkan: {
       GHOST_Context *context = new GHOST_ContextVK(context_params_offscreen,
                                                    GHOST_kVulkanPlatformX11,
                                                    0,
-                                                   m_display,
+                                                   display_,
                                                    nullptr,
                                                    nullptr,
                                                    nullptr,
                                                    1,
                                                    2,
-                                                   gpuSettings.preferred_device);
+                                                   gpu_settings.preferred_device);
       if (context->initializeDrawingContext()) {
         return context;
       }
@@ -432,7 +432,7 @@ GHOST_IContext *GHOST_SystemX11::createOffscreenContext(GHOST_GPUSettings gpuSet
         GHOST_Context *context = new GHOST_ContextGLX(
             context_params_offscreen,
             (Window) nullptr,
-            m_display,
+            display_,
             (GLXFBConfig) nullptr,
             GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
             4,
@@ -474,22 +474,22 @@ static void destroyIMCallback(XIM /*xim*/, XPointer ptr, XPointer /*data*/)
 
 bool GHOST_SystemX11::openX11_IM()
 {
-  if (!m_display) {
+  if (!display_) {
     return false;
   }
 
   /* set locale modifiers such as `@im=ibus` specified by XMODIFIERS. */
   XSetLocaleModifiers("");
 
-  m_xim = XOpenIM(m_display, nullptr, (char *)GHOST_X11_RES_NAME, (char *)GHOST_X11_RES_CLASS);
-  if (!m_xim) {
+  xim_ = XOpenIM(display_, nullptr, (char *)GHOST_X11_RES_NAME, (char *)GHOST_X11_RES_CLASS);
+  if (!xim_) {
     return false;
   }
 
   XIMCallback destroy;
   destroy.callback = (XIMProc)destroyIMCallback;
-  destroy.client_data = (XPointer)&m_xim;
-  XSetIMValues(m_xim, XNDestroyCallback, &destroy, nullptr);
+  destroy.client_data = (XPointer)&xim_;
+  XSetIMValues(xim_, XNDestroyCallback, &destroy, nullptr);
   return true;
 }
 #endif
@@ -506,7 +506,7 @@ GHOST_WindowX11 *GHOST_SystemX11::findGhostWindow(Window xwind) const
    * We should always check the window manager's list of windows
    * and only process events on these windows. */
 
-  const vector<GHOST_IWindow *> &win_vec = m_windowManager->getWindows();
+  const vector<GHOST_IWindow *> &win_vec = window_manager_->getWindows();
 
   vector<GHOST_IWindow *>::const_iterator win_it = win_vec.begin();
   vector<GHOST_IWindow *>::const_iterator win_end = win_vec.end();
@@ -583,7 +583,7 @@ Time GHOST_SystemX11::lastEventTime(Time default_time)
   init_timestamp_data data;
   data.timestamp = default_time;
   XEvent ev;
-  XCheckIfEvent(m_display, &ev, &init_timestamp_scanner, (XPointer)&data);
+  XCheckIfEvent(display_, &ev, &init_timestamp_scanner, (XPointer)&data);
 
   return data.timestamp;
 }
@@ -598,17 +598,17 @@ bool GHOST_SystemX11::processEvents(bool waitForEvent)
   do {
     GHOST_TimerManager *timerMgr = getTimerManager();
 
-    if (waitForEvent && m_dirty_windows.empty() && !XPending(m_display)) {
+    if (waitForEvent && dirty_windows_.empty() && !XPending(display_)) {
       uint64_t next = timerMgr->nextFireTime();
 
       if (next == GHOST_kFireTimeNever) {
-        SleepTillEvent(m_display, -1);
+        SleepTillEvent(display_, -1);
       }
       else {
         const int64_t maxSleep = next - getMilliSeconds();
 
         if (maxSleep >= 0) {
-          SleepTillEvent(m_display, next - getMilliSeconds());
+          SleepTillEvent(display_, next - getMilliSeconds());
         }
       }
     }
@@ -617,20 +617,20 @@ bool GHOST_SystemX11::processEvents(bool waitForEvent)
       anyProcessed = true;
     }
 
-    while (XPending(m_display)) {
+    while (XPending(display_)) {
       XEvent xevent;
-      XNextEvent(m_display, &xevent);
+      XNextEvent(display_, &xevent);
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
       /* open connection to XIM server and create input context (XIC)
        * when receiving the first FocusIn or KeyPress event after startup,
        * or recover XIM and XIC when the XIM server has been restarted */
       if (ELEM(xevent.type, FocusIn, KeyPress)) {
-        if (!m_xim && openX11_IM()) {
+        if (!xim_ && openX11_IM()) {
           GHOST_PRINT("Connected to XIM server\n");
         }
 
-        if (m_xim) {
+        if (xim_) {
           GHOST_WindowX11 *window = findGhostWindow(xevent.xany.window);
           if (window && !window->getX11_XIC() && window->createX11_XIC()) {
             GHOST_PRINT("XIM input context created\n");
@@ -647,7 +647,7 @@ bool GHOST_SystemX11::processEvents(bool waitForEvent)
       /* Ensure generated time-stamps are non-zero. */
       if (ELEM(xevent.type, KeyPress, KeyRelease)) {
         if (xevent.xkey.time != 0) {
-          m_last_key_time = xevent.xkey.time;
+          last_key_time_ = xevent.xkey.time;
         }
       }
 
@@ -660,12 +660,12 @@ bool GHOST_SystemX11::processEvents(bool waitForEvent)
       /* When using auto-repeat, some key-press events can actually come *after* the
        * last key-release. The next code takes care of that. */
       if (xevent.type == KeyRelease) {
-        m_last_release_keycode = xevent.xkey.keycode;
-        m_last_release_time = xevent.xkey.time;
+        last_release_keycode_ = xevent.xkey.keycode;
+        last_release_time_ = xevent.xkey.time;
       }
       else if (xevent.type == KeyPress) {
-        if ((xevent.xkey.keycode == m_last_release_keycode) &&
-            (xevent.xkey.time <= m_last_release_time))
+        if ((xevent.xkey.keycode == last_release_keycode_) &&
+            (xevent.xkey.time <= last_release_time_))
         {
           continue;
         }
@@ -685,15 +685,15 @@ bool GHOST_SystemX11::processEvents(bool waitForEvent)
         /* use previous event's window, because KeymapNotify event
          * has no window information. */
         GHOST_WindowX11 *window = findGhostWindow(xevent.xany.window);
-        if (window && XPending(m_display) >= 2) {
-          XNextEvent(m_display, &xevent);
+        if (window && XPending(display_) >= 2) {
+          XNextEvent(display_, &xevent);
 
           if (xevent.type == KeymapNotify) {
             XEvent xev_next;
 
             /* check if KeyPress or KeyRelease event was generated
              * in order to confirm the window is active. */
-            XPeekEvent(m_display, &xev_next);
+            XPeekEvent(display_, &xev_next);
 
             if (ELEM(xev_next.type, KeyPress, KeyRelease)) {
               const uint64_t event_ms = ms_from_input_time(xev_next.xkey.time);
@@ -712,7 +712,7 @@ bool GHOST_SystemX11::processEvents(bool waitForEvent)
               };
 
               for (int i = 0; i < int(ARRAY_SIZE(modifiers)); i++) {
-                KeyCode kc = XKeysymToKeycode(m_display, modifiers[i]);
+                KeyCode kc = XKeysymToKeycode(display_, modifiers[i]);
                 if (kc != 0 && ((xevent.xkeymap.key_vector[kc >> 3] >> (kc & 7)) & 1) != 0) {
                   pushEvent(new GHOST_EventKey(event_ms,
                                                GHOST_kEventKeyDown,
@@ -734,7 +734,7 @@ bool GHOST_SystemX11::processEvents(bool waitForEvent)
     }
 
 #ifdef WITH_INPUT_NDOF
-    if (static_cast<GHOST_NDOFManagerUnix *>(m_ndofManager)->processEvents()) {
+    if (static_cast<GHOST_NDOFManagerUnix *>(ndof_manager_)->processEvents()) {
       anyProcessed = true;
     }
 #endif
@@ -801,12 +801,12 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
     /* Set to true if this key will repeat. */
     bool is_repeat_keycode = false;
 
-    if (m_xkb_descr != nullptr) {
+    if (xkb_descr_ != nullptr) {
       /* Use XKB support. */
       is_repeat_keycode = (
           /* Should always be true, check just in case. */
           (xke->keycode < (XkbPerKeyBitArraySize << 3)) &&
-          bit_is_on(m_xkb_descr->ctrls->per_key_repeat, xke->keycode));
+          bit_is_on(xkb_descr_->ctrls->per_key_repeat, xke->keycode));
     }
     else {
       /* No XKB support (filter by modifier). */
@@ -834,30 +834,30 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
 
     if (is_repeat_keycode) {
       if (xe->type == KeyPress) {
-        if (m_keycode_last_repeat_key == xke->keycode) {
+        if (keycode_last_repeat_key_ == xke->keycode) {
           is_repeat = true;
         }
-        m_keycode_last_repeat_key = xke->keycode;
+        keycode_last_repeat_key_ = xke->keycode;
       }
       else {
-        if (m_keycode_last_repeat_key == xke->keycode) {
-          m_keycode_last_repeat_key = uint(-1);
+        if (keycode_last_repeat_key_ == xke->keycode) {
+          keycode_last_repeat_key_ = uint(-1);
         }
       }
     }
   }
   else if (xe->type == EnterNotify) {
     /* We can't tell how the key state changed, clear it to avoid stuck keys. */
-    m_keycode_last_repeat_key = uint(-1);
+    keycode_last_repeat_key_ = uint(-1);
   }
 
 #ifdef USE_XINPUT_HOTPLUG
   /* Hot-Plug support */
-  if (m_xinput_version.present) {
+  if (xinput_version_.present) {
     XEventClass class_presence;
     int xi_presence;
 
-    DevicePresence(m_display, xi_presence, class_presence);
+    DevicePresence(display_, xi_presence, class_presence);
     (void)class_presence;
 
     if (xe->type == xi_presence) {
@@ -868,7 +868,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
 
         /* update all window events */
         {
-          const vector<GHOST_IWindow *> &win_vec = m_windowManager->getWindows();
+          const vector<GHOST_IWindow *> &win_vec = window_manager_->getWindows();
           vector<GHOST_IWindow *>::const_iterator win_it = win_vec.begin();
           vector<GHOST_IWindow *>::const_iterator win_end = win_vec.end();
 
@@ -895,7 +895,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
   if (window->GetTabletData().Active != GHOST_kTabletModeNone) {
     bool any_proximity = false;
 
-    for (const GHOST_TabletX11 &xtablet : m_xtablets) {
+    for (const GHOST_TabletX11 &xtablet : xtablets_) {
       if (checkTabletProximity(xe->xany.display, xtablet.Device)) {
         any_proximity = true;
       }
@@ -947,14 +947,14 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
             const int32_t subregion_div = 4; /* One quarter of the region. */
             const int32_t size[2] = {bounds.getWidth(), bounds.getHeight()};
             const int32_t center[2] = {
-                (bounds.m_l + bounds.m_r) / 2,
-                (bounds.m_t + bounds.m_b) / 2,
+                (bounds.l_ + bounds.r_) / 2,
+                (bounds.t_ + bounds.b_) / 2,
             };
             /* Shrink the box to prevent the cursor escaping. */
-            bounds.m_l = center[0] - (size[0] / (subregion_div * 2));
-            bounds.m_r = center[0] + (size[0] / (subregion_div * 2));
-            bounds.m_t = center[1] - (size[1] / (subregion_div * 2));
-            bounds.m_b = center[1] + (size[1] / (subregion_div * 2));
+            bounds.l_ = center[0] - (size[0] / (subregion_div * 2));
+            bounds.r_ = center[0] + (size[0] / (subregion_div * 2));
+            bounds.t_ = center[1] - (size[1] / (subregion_div * 2));
+            bounds.b_ = center[1] + (size[1] / (subregion_div * 2));
             bounds_margin = 0;
             bounds_axis = GHOST_TAxisFlag(GHOST_kAxisX | GHOST_kAxisY);
           }
@@ -983,13 +983,13 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
            * We also have to add a few extra milliseconds of 'padding', as sometimes we get two
            * close events that will generate extra wrap on the same axis within those few
            * milliseconds. */
-          if (x_new != xme.x_root && xme.time > m_last_warp_x) {
+          if (x_new != xme.x_root && xme.time > last_warp_x_) {
             x_accum += (xme.x_root - x_new);
-            m_last_warp_x = lastEventTime(xme.time) + 25;
+            last_warp_x_ = lastEventTime(xme.time) + 25;
           }
-          if (y_new != xme.y_root && xme.time > m_last_warp_y) {
+          if (y_new != xme.y_root && xme.time > last_warp_y_) {
             y_accum += (xme.y_root - y_new);
-            m_last_warp_y = lastEventTime(xme.time) + 25;
+            last_warp_y_ = lastEventTime(xme.time) + 25;
           }
           window->setCursorGrabAccum(x_accum, y_accum);
           /* When wrapping we don't need to add an event because the
@@ -1021,7 +1021,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
       XKeyEvent *xke = &(xe->xkey);
 #ifdef WITH_X11_XINPUT
       /* Can be zero for XIM generated events. */
-      const Time time = xke->time ? xke->time : m_last_key_time;
+      const Time time = xke->time ? xke->time : last_key_time_;
 #else
       const Time time = xke->time;
 #endif
@@ -1093,7 +1093,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
 
       /* Only allow a limited set of keys from XLookupKeysym,
        * all others we take from XLookupString, unless it gives unknown key... */
-      gkey = ghost_key_from_keysym_or_keycode(key_sym, m_xkb_descr, xke->keycode);
+      gkey = ghost_key_from_keysym_or_keycode(key_sym, xkb_descr_, xke->keycode);
       switch (gkey) {
         case GHOST_kKeyRightAlt:
         case GHOST_kKeyLeftAlt:
@@ -1159,7 +1159,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
         key_sym = XLookupKeysym(xke, 0);
       }
 
-      gkey = ghost_key_from_keysym_or_keycode(key_sym, m_xkb_descr, xke->keycode);
+      gkey = ghost_key_from_keysym_or_keycode(key_sym, xkb_descr_, xke->keycode);
 
       if (!XLookupString(xke, &ascii, 1, nullptr, nullptr)) {
         ascii = '\0';
@@ -1209,7 +1209,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
                     status == XLookupKeySym ? "XLookupKeySym" :
                                               "Unknown status"));
 
-            printf("'%.*s' %p %p\n", len, utf8_buf, xic, m_xim);
+            printf("'%.*s' %p %p\n", len, utf8_buf, xic, xim_);
           }
         }
         else {
@@ -1356,10 +1356,10 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
     case ClientMessage: {
       XClientMessageEvent &xcme = xe->xclient;
 
-      if (((Atom)xcme.data.l[0]) == m_atom.WM_DELETE_WINDOW) {
+      if (((Atom)xcme.data.l[0]) == atom_.WM_DELETE_WINDOW) {
         g_event = new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowClose, window);
       }
-      else if (((Atom)xcme.data.l[0]) == m_atom.WM_TAKE_FOCUS) {
+      else if (((Atom)xcme.data.l[0]) == atom_.WM_TAKE_FOCUS) {
         XWindowAttributes attr;
         Window fwin;
         int revert_to;
@@ -1374,11 +1374,11 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
          * to be sure that our windows is mapped
          * or this call fail and close blender.
          */
-        if (XGetWindowAttributes(m_display, xcme.window, &attr) == True) {
-          if (XGetInputFocus(m_display, &fwin, &revert_to) == True) {
+        if (XGetWindowAttributes(display_, xcme.window, &attr) == True) {
+          if (XGetInputFocus(display_, &fwin, &revert_to) == True) {
             if (attr.map_state == IsViewable) {
               if (fwin != xcme.window) {
-                XSetInputFocus(m_display, xcme.window, RevertToParent, xcme.data.l[1]);
+                XSetInputFocus(display_, xcme.window, RevertToParent, xcme.data.l[1]);
               }
             }
           }
@@ -1432,10 +1432,10 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
 #endif
 
       if (xce.type == EnterNotify) {
-        m_windowManager->setActiveWindow(window);
+        window_manager_->setActiveWindow(window);
       }
       else {
-        m_windowManager->setWindowInactive(window);
+        window_manager_->setWindowInactive(window);
       }
 
       break;
@@ -1450,13 +1450,13 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
        *   state, and receipt of an #UnmapNotify event will
        *   indicate a transition to the Iconic state. ]
        */
-      if (window->m_post_init == True) {
+      if (window->post_init_ == True) {
         /*
          * Now we are sure that the window is
          * mapped, so only need change the state.
          */
-        window->setState(window->m_post_state);
-        window->m_post_init = False;
+        window->setState(window->post_state_);
+        window->post_init_ = False;
       }
       break;
     case UnmapNotify:
@@ -1482,14 +1482,10 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
       nxe.xselection.time = xse->time;
 
       /* Check to see if the requester is asking for String */
-      if (ELEM(xse->target,
-               m_atom.UTF8_STRING,
-               m_atom.STRING,
-               m_atom.COMPOUND_TEXT,
-               m_atom.C_STRING))
+      if (ELEM(xse->target, atom_.UTF8_STRING, atom_.STRING, atom_.COMPOUND_TEXT, atom_.C_STRING))
       {
-        if (xse->selection == XInternAtom(m_display, "PRIMARY", False)) {
-          XChangeProperty(m_display,
+        if (xse->selection == XInternAtom(display_, "PRIMARY", False)) {
+          XChangeProperty(display_,
                           xse->requestor,
                           xse->property,
                           xse->target,
@@ -1498,8 +1494,8 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
                           (uchar *)txt_select_buffer,
                           strlen(txt_select_buffer));
         }
-        else if (xse->selection == XInternAtom(m_display, "CLIPBOARD", False)) {
-          XChangeProperty(m_display,
+        else if (xse->selection == XInternAtom(display_, "CLIPBOARD", False)) {
+          XChangeProperty(display_,
                           xse->requestor,
                           xse->property,
                           xse->target,
@@ -1509,13 +1505,10 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
                           strlen(txt_cut_buffer));
         }
       }
-      else if (xse->target == m_atom.TARGETS) {
-        const Atom atom_list[] = {m_atom.TARGETS,
-                                  m_atom.UTF8_STRING,
-                                  m_atom.STRING,
-                                  m_atom.COMPOUND_TEXT,
-                                  m_atom.C_STRING};
-        XChangeProperty(m_display,
+      else if (xse->target == atom_.TARGETS) {
+        const Atom atom_list[] = {
+            atom_.TARGETS, atom_.UTF8_STRING, atom_.STRING, atom_.COMPOUND_TEXT, atom_.C_STRING};
+        XChangeProperty(display_,
                         xse->requestor,
                         xse->property,
                         XA_ATOM,
@@ -1523,7 +1516,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
                         PropModeReplace,
                         reinterpret_cast<const uchar *>(atom_list),
                         ARRAY_SIZE(atom_list));
-        XFlush(m_display);
+        XFlush(display_);
       }
       else {
         /* Change property to None because we do not support the selection request target. */
@@ -1531,14 +1524,14 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
       }
 
       /* Send the event to the client 0 0 == False, #SelectionNotify */
-      XSendEvent(m_display, xse->requestor, 0, 0, &nxe);
-      XFlush(m_display);
+      XSendEvent(display_, xse->requestor, 0, 0, &nxe);
+      XFlush(display_);
       break;
     }
 
     default: {
 #ifdef WITH_X11_XINPUT
-      for (GHOST_TabletX11 &xtablet : m_xtablets) {
+      for (GHOST_TabletX11 &xtablet : xtablets_) {
         if (ELEM(xe->type, xtablet.MotionEvent, xtablet.PressEvent)) {
           const XDeviceMotionEvent *data = (const XDeviceMotionEvent *)xe;
           if (data->deviceid != xtablet.ID) {
@@ -1626,20 +1619,14 @@ GHOST_TSuccess GHOST_SystemX11::getPixelAtCursor(float r_color[3]) const
   if (getCursorPosition(x, y) == GHOST_kFailure) {
     return GHOST_kFailure;
   }
-  XImage *image = XGetImage(m_display,
-                            XRootWindow(m_display, XDefaultScreen(m_display)),
-                            x,
-                            y,
-                            1,
-                            1,
-                            AllPlanes,
-                            XYPixmap);
+  XImage *image = XGetImage(
+      display_, XRootWindow(display_, XDefaultScreen(display_)), x, y, 1, 1, AllPlanes, XYPixmap);
   if (image == nullptr) {
     return GHOST_kFailure;
   }
   c.pixel = XGetPixel(image, 0, 0);
   XFree(image);
-  XQueryColor(m_display, XDefaultColormap(m_display, XDefaultScreen(m_display)), &c);
+  XQueryColor(display_, XDefaultColormap(display_, XDefaultScreen(display_)), &c);
 
   /* X11 returns colors in the [0, 65535] range, so we need to scale back to [0, 1]. */
   r_color[0] = c.red / 65535.0f;
@@ -1653,46 +1640,45 @@ GHOST_TSuccess GHOST_SystemX11::getModifierKeys(GHOST_ModifierKeys &keys) const
 
   /* Analyze the masks returned from #XQueryPointer. */
 
-  memset((void *)m_keyboard_vector, 0, sizeof(m_keyboard_vector));
+  memset((void *)keyboard_vector_, 0, sizeof(keyboard_vector_));
 
-  XQueryKeymap(m_display, (char *)m_keyboard_vector);
+  XQueryKeymap(display_, (char *)keyboard_vector_);
 
   /* Now translate key symbols into key-codes and test with vector. */
 
-  const static KeyCode shift_l = XKeysymToKeycode(m_display, XK_Shift_L);
-  const static KeyCode shift_r = XKeysymToKeycode(m_display, XK_Shift_R);
-  const static KeyCode control_l = XKeysymToKeycode(m_display, XK_Control_L);
-  const static KeyCode control_r = XKeysymToKeycode(m_display, XK_Control_R);
-  const static KeyCode alt_l = XKeysymToKeycode(m_display, XK_Alt_L);
-  const static KeyCode alt_r = XKeysymToKeycode(m_display, XK_Alt_R);
-  const static KeyCode super_l = XKeysymToKeycode(m_display, XK_Super_L);
-  const static KeyCode super_r = XKeysymToKeycode(m_display, XK_Super_R);
-  const static KeyCode hyper_l = XKeysymToKeycode(m_display, XK_Hyper_L);
-  const static KeyCode hyper_r = XKeysymToKeycode(m_display, XK_Hyper_R);
+  const static KeyCode shift_l = XKeysymToKeycode(display_, XK_Shift_L);
+  const static KeyCode shift_r = XKeysymToKeycode(display_, XK_Shift_R);
+  const static KeyCode control_l = XKeysymToKeycode(display_, XK_Control_L);
+  const static KeyCode control_r = XKeysymToKeycode(display_, XK_Control_R);
+  const static KeyCode alt_l = XKeysymToKeycode(display_, XK_Alt_L);
+  const static KeyCode alt_r = XKeysymToKeycode(display_, XK_Alt_R);
+  const static KeyCode super_l = XKeysymToKeycode(display_, XK_Super_L);
+  const static KeyCode super_r = XKeysymToKeycode(display_, XK_Super_R);
+  const static KeyCode hyper_l = XKeysymToKeycode(display_, XK_Hyper_L);
+  const static KeyCode hyper_r = XKeysymToKeycode(display_, XK_Hyper_R);
 
   /* shift */
   keys.set(GHOST_kModifierKeyLeftShift,
-           ((m_keyboard_vector[shift_l >> 3] >> (shift_l & 7)) & 1) != 0);
+           ((keyboard_vector_[shift_l >> 3] >> (shift_l & 7)) & 1) != 0);
   keys.set(GHOST_kModifierKeyRightShift,
-           ((m_keyboard_vector[shift_r >> 3] >> (shift_r & 7)) & 1) != 0);
+           ((keyboard_vector_[shift_r >> 3] >> (shift_r & 7)) & 1) != 0);
   /* control */
   keys.set(GHOST_kModifierKeyLeftControl,
-           ((m_keyboard_vector[control_l >> 3] >> (control_l & 7)) & 1) != 0);
+           ((keyboard_vector_[control_l >> 3] >> (control_l & 7)) & 1) != 0);
   keys.set(GHOST_kModifierKeyRightControl,
-           ((m_keyboard_vector[control_r >> 3] >> (control_r & 7)) & 1) != 0);
+           ((keyboard_vector_[control_r >> 3] >> (control_r & 7)) & 1) != 0);
   /* alt */
-  keys.set(GHOST_kModifierKeyLeftAlt, ((m_keyboard_vector[alt_l >> 3] >> (alt_l & 7)) & 1) != 0);
-  keys.set(GHOST_kModifierKeyRightAlt, ((m_keyboard_vector[alt_r >> 3] >> (alt_r & 7)) & 1) != 0);
+  keys.set(GHOST_kModifierKeyLeftAlt, ((keyboard_vector_[alt_l >> 3] >> (alt_l & 7)) & 1) != 0);
+  keys.set(GHOST_kModifierKeyRightAlt, ((keyboard_vector_[alt_r >> 3] >> (alt_r & 7)) & 1) != 0);
   /* super (windows) - only one GHOST-kModifierKeyOS, so mapping to either */
-  keys.set(GHOST_kModifierKeyLeftOS,
-           ((m_keyboard_vector[super_l >> 3] >> (super_l & 7)) & 1) != 0);
+  keys.set(GHOST_kModifierKeyLeftOS, ((keyboard_vector_[super_l >> 3] >> (super_l & 7)) & 1) != 0);
   keys.set(GHOST_kModifierKeyRightOS,
-           ((m_keyboard_vector[super_r >> 3] >> (super_r & 7)) & 1) != 0);
+           ((keyboard_vector_[super_r >> 3] >> (super_r & 7)) & 1) != 0);
   /* hyper */
   keys.set(GHOST_kModifierKeyLeftHyper,
-           ((m_keyboard_vector[hyper_l >> 3] >> (hyper_l & 7)) & 1) != 0);
+           ((keyboard_vector_[hyper_l >> 3] >> (hyper_l & 7)) & 1) != 0);
   keys.set(GHOST_kModifierKeyRightHyper,
-           ((m_keyboard_vector[hyper_r >> 3] >> (hyper_r & 7)) & 1) != 0);
+           ((keyboard_vector_[hyper_r >> 3] >> (hyper_r & 7)) & 1) != 0);
 
   return GHOST_kSuccess;
 }
@@ -1703,8 +1689,8 @@ GHOST_TSuccess GHOST_SystemX11::getButtons(GHOST_Buttons &buttons) const
   int rx, ry, wx, wy;
   uint mask_return;
 
-  if (XQueryPointer(m_display,
-                    RootWindow(m_display, DefaultScreen(m_display)),
+  if (XQueryPointer(display_,
+                    RootWindow(display_, DefaultScreen(display_)),
                     &root_return,
                     &child_return,
                     &rx,
@@ -1757,7 +1743,7 @@ static GHOST_TSuccess getCursorPosition_impl(Display *display,
 GHOST_TSuccess GHOST_SystemX11::getCursorPosition(int32_t &x, int32_t &y) const
 {
   Window child_return;
-  return getCursorPosition_impl(m_display, x, y, &child_return);
+  return getCursorPosition_impl(display_, x, y, &child_return);
 }
 
 GHOST_TSuccess GHOST_SystemX11::setCursorPosition(int32_t x, int32_t y)
@@ -1771,7 +1757,7 @@ GHOST_TSuccess GHOST_SystemX11::setCursorPosition(int32_t x, int32_t y)
 
 #ifdef WITH_XWAYLAND_HACK
   Window child_return = None;
-  if (getCursorPosition_impl(m_display, cx, cy, &child_return) == GHOST_kFailure) {
+  if (getCursorPosition_impl(display_, cx, cy, &child_return) == GHOST_kFailure) {
     return GHOST_kFailure;
   }
 #else
@@ -1786,34 +1772,34 @@ GHOST_TSuccess GHOST_SystemX11::setCursorPosition(int32_t x, int32_t y)
 #ifdef WITH_XWAYLAND_HACK
   if (use_xwayland_hack) {
     if (child_return != None) {
-      XFixesHideCursor(m_display, child_return);
+      XFixesHideCursor(display_, child_return);
     }
   }
 #endif
 
 #if defined(WITH_X11_XINPUT) && defined(USE_X11_XINPUT_WARP)
-  if ((m_xinput_version.present) && (m_xinput_version.major_version >= 2)) {
+  if ((xinput_version_.present) && (xinput_version_.major_version >= 2)) {
     /* Needed to account for XInput "Coordinate Transformation Matrix", see #48901 */
     int device_id;
-    if (XIGetClientPointer(m_display, None, &device_id) != False) {
-      XIWarpPointer(m_display, device_id, None, None, 0, 0, 0, 0, relx, rely);
+    if (XIGetClientPointer(display_, None, &device_id) != False) {
+      XIWarpPointer(display_, device_id, None, None, 0, 0, 0, 0, relx, rely);
     }
   }
   else
 #endif
   {
-    XWarpPointer(m_display, None, None, 0, 0, 0, 0, relx, rely);
+    XWarpPointer(display_, None, None, 0, 0, 0, 0, relx, rely);
   }
 
 #ifdef WITH_XWAYLAND_HACK
   if (use_xwayland_hack) {
     if (child_return != None) {
-      XFixesShowCursor(m_display, child_return);
+      XFixesShowCursor(display_, child_return);
     }
   }
 #endif
 
-  XSync(m_display, 0); /* Sync to process all requests */
+  XSync(display_, 0); /* Sync to process all requests */
 
   return GHOST_kSuccess;
 }
@@ -1840,13 +1826,13 @@ void GHOST_SystemX11::addDirtyWindow(GHOST_WindowX11 *bad_wind)
 {
   GHOST_ASSERT((bad_wind != nullptr), "addDirtyWindow() nullptr ptr trapped (window)");
 
-  m_dirty_windows.push_back(bad_wind);
+  dirty_windows_.push_back(bad_wind);
 }
 
 bool GHOST_SystemX11::generateWindowExposeEvents()
 {
-  vector<GHOST_WindowX11 *>::const_iterator w_start = m_dirty_windows.begin();
-  vector<GHOST_WindowX11 *>::const_iterator w_end = m_dirty_windows.end();
+  vector<GHOST_WindowX11 *>::const_iterator w_start = dirty_windows_.begin();
+  vector<GHOST_WindowX11 *>::const_iterator w_end = dirty_windows_.end();
   bool anyProcessed = false;
 
   for (; w_start != w_end; ++w_start) {
@@ -1861,7 +1847,7 @@ bool GHOST_SystemX11::generateWindowExposeEvents()
     }
   }
 
-  m_dirty_windows.clear();
+  dirty_windows_.clear();
   return anyProcessed;
 }
 
@@ -2056,7 +2042,7 @@ void GHOST_SystemX11::getClipboard_xcout(
   ulong pty_size, pty_items;
   uchar *ltxt = *txt;
 
-  const vector<GHOST_IWindow *> &win_vec = m_windowManager->getWindows();
+  const vector<GHOST_IWindow *> &win_vec = window_manager_->getWindows();
   vector<GHOST_IWindow *>::const_iterator win_it = win_vec.begin();
   GHOST_WindowX11 *window = static_cast<GHOST_WindowX11 *>(*win_it);
   Window win = window->getXWindow();
@@ -2071,7 +2057,7 @@ void GHOST_SystemX11::getClipboard_xcout(
       }
 
       /* Send a selection request */
-      XConvertSelection(m_display, sel, target, m_atom.XCLIP_OUT, win, CurrentTime);
+      XConvertSelection(display_, sel, target, atom_.XCLIP_OUT, win, CurrentTime);
       *context = XCLIB_XCOUT_SENTCONVSEL;
       return;
 
@@ -2080,23 +2066,23 @@ void GHOST_SystemX11::getClipboard_xcout(
         return;
       }
 
-      if (target == m_atom.UTF8_STRING && evt->xselection.property == None) {
+      if (target == atom_.UTF8_STRING && evt->xselection.property == None) {
         *context = XCLIB_XCOUT_FALLBACK_UTF8;
         return;
       }
-      if (target == m_atom.COMPOUND_TEXT && evt->xselection.property == None) {
+      if (target == atom_.COMPOUND_TEXT && evt->xselection.property == None) {
         *context = XCLIB_XCOUT_FALLBACK_COMP;
         return;
       }
-      if (target == m_atom.TEXT && evt->xselection.property == None) {
+      if (target == atom_.TEXT && evt->xselection.property == None) {
         *context = XCLIB_XCOUT_FALLBACK_TEXT;
         return;
       }
 
       /* find the size and format of the data in property */
-      XGetWindowProperty(m_display,
+      XGetWindowProperty(display_,
                          win,
-                         m_atom.XCLIP_OUT,
+                         atom_.XCLIP_OUT,
                          0,
                          0,
                          False,
@@ -2108,10 +2094,10 @@ void GHOST_SystemX11::getClipboard_xcout(
                          &buffer);
       XFree(buffer);
 
-      if (pty_type == m_atom.INCR) {
+      if (pty_type == atom_.INCR) {
         /* start INCR mechanism by deleting property */
-        XDeleteProperty(m_display, win, m_atom.XCLIP_OUT);
-        XFlush(m_display);
+        XDeleteProperty(display_, win, atom_.XCLIP_OUT);
+        XFlush(display_);
         *context = XCLIB_XCOUT_INCR;
         return;
       }
@@ -2125,9 +2111,9 @@ void GHOST_SystemX11::getClipboard_xcout(
       }
 
       /* Not using INCR mechanism, just read the property. */
-      XGetWindowProperty(m_display,
+      XGetWindowProperty(display_,
                          win,
-                         m_atom.XCLIP_OUT,
+                         atom_.XCLIP_OUT,
                          0,
                          long(pty_size),
                          False,
@@ -2139,7 +2125,7 @@ void GHOST_SystemX11::getClipboard_xcout(
                          &buffer);
 
       /* finished with property, delete it */
-      XDeleteProperty(m_display, win, m_atom.XCLIP_OUT);
+      XDeleteProperty(display_, win, atom_.XCLIP_OUT);
 
       /* copy the buffer to the pointer for returned data */
       ltxt = (uchar *)malloc(pty_items);
@@ -2174,9 +2160,9 @@ void GHOST_SystemX11::getClipboard_xcout(
       }
 
       /* check size and format of the property */
-      XGetWindowProperty(m_display,
+      XGetWindowProperty(display_,
                          win,
-                         m_atom.XCLIP_OUT,
+                         atom_.XCLIP_OUT,
                          0,
                          0,
                          False,
@@ -2192,14 +2178,14 @@ void GHOST_SystemX11::getClipboard_xcout(
          * to tell the other X client that we have read
          * it and to send the next property */
         XFree(buffer);
-        XDeleteProperty(m_display, win, m_atom.XCLIP_OUT);
+        XDeleteProperty(display_, win, atom_.XCLIP_OUT);
         return;
       }
 
       if (pty_size == 0) {
         /* no more data, exit from loop */
         XFree(buffer);
-        XDeleteProperty(m_display, win, m_atom.XCLIP_OUT);
+        XDeleteProperty(display_, win, atom_.XCLIP_OUT);
         *context = XCLIB_XCOUT_NONE;
 
         /* this means that an INCR transfer is now
@@ -2211,9 +2197,9 @@ void GHOST_SystemX11::getClipboard_xcout(
 
       /* if we have come this far, the property contains
        * text, we know the size. */
-      XGetWindowProperty(m_display,
+      XGetWindowProperty(display_,
                          win,
-                         m_atom.XCLIP_OUT,
+                         atom_.XCLIP_OUT,
                          0,
                          long(pty_size),
                          False,
@@ -2241,8 +2227,8 @@ void GHOST_SystemX11::getClipboard_xcout(
       XFree(buffer);
 
       /* delete property to get the next item */
-      XDeleteProperty(m_display, win, m_atom.XCLIP_OUT);
-      XFlush(m_display);
+      XDeleteProperty(display_, win, atom_.XCLIP_OUT);
+      XFlush(display_);
       return;
   }
 }
@@ -2250,7 +2236,7 @@ void GHOST_SystemX11::getClipboard_xcout(
 char *GHOST_SystemX11::getClipboard(bool selection) const
 {
   Atom sseln;
-  Atom target = m_atom.UTF8_STRING;
+  Atom target = atom_.UTF8_STRING;
   Window owner;
 
   /* From `xclip.c` `doOut()` v0.11. */
@@ -2260,21 +2246,21 @@ char *GHOST_SystemX11::getClipboard(bool selection) const
   uint context = XCLIB_XCOUT_NONE;
 
   if (selection == True) {
-    sseln = m_atom.PRIMARY;
+    sseln = atom_.PRIMARY;
   }
   else {
-    sseln = m_atom.CLIPBOARD;
+    sseln = atom_.CLIPBOARD;
   }
 
-  const vector<GHOST_IWindow *> &win_vec = m_windowManager->getWindows();
+  const vector<GHOST_IWindow *> &win_vec = window_manager_->getWindows();
   vector<GHOST_IWindow *>::const_iterator win_it = win_vec.begin();
   GHOST_WindowX11 *window = static_cast<GHOST_WindowX11 *>(*win_it);
   Window win = window->getXWindow();
 
   /* check if we are the owner. */
-  owner = XGetSelectionOwner(m_display, sseln);
+  owner = XGetSelectionOwner(display_, sseln);
   if (owner == win) {
-    if (sseln == m_atom.CLIPBOARD) {
+    if (sseln == atom_.CLIPBOARD) {
       size_t sel_buf_size = strlen(txt_cut_buffer) + 1;
       sel_buf = (char *)malloc(sel_buf_size);
       memcpy(sel_buf, txt_cut_buffer, sel_buf_size);
@@ -2296,7 +2282,7 @@ char *GHOST_SystemX11::getClipboard(bool selection) const
     /* only get an event if xcout() is doing something */
     bool restore_this_event = false;
     if (context != XCLIB_XCOUT_NONE) {
-      XNextEvent(m_display, &evt);
+      XNextEvent(display_, &evt);
       restore_this_event = (evt.type != SelectionNotify);
     }
 
@@ -2310,19 +2296,19 @@ char *GHOST_SystemX11::getClipboard(bool selection) const
     /* Fallback is needed. Set #XA_STRING to target and restart the loop. */
     if (context == XCLIB_XCOUT_FALLBACK) {
       context = XCLIB_XCOUT_NONE;
-      target = m_atom.STRING;
+      target = atom_.STRING;
       continue;
     }
     if (context == XCLIB_XCOUT_FALLBACK_UTF8) {
       /* utf8 fail, move to compound text. */
       context = XCLIB_XCOUT_NONE;
-      target = m_atom.COMPOUND_TEXT;
+      target = atom_.COMPOUND_TEXT;
       continue;
     }
     if (context == XCLIB_XCOUT_FALLBACK_COMP) {
       /* Compound text fail, move to text. */
       context = XCLIB_XCOUT_NONE;
-      target = m_atom.TEXT;
+      target = atom_.TEXT;
       continue;
     }
     if (context == XCLIB_XCOUT_FALLBACK_TEXT) {
@@ -2337,7 +2323,7 @@ char *GHOST_SystemX11::getClipboard(bool selection) const
   }
 
   while (!restore_events.empty()) {
-    XPutBackEvent(m_display, &restore_events.back());
+    XPutBackEvent(display_, &restore_events.back());
     restore_events.pop_back();
   }
 
@@ -2347,7 +2333,7 @@ char *GHOST_SystemX11::getClipboard(bool selection) const
     memcpy(tmp_data, (char *)sel_buf, sel_len);
     tmp_data[sel_len] = '\0';
 
-    if (sseln == m_atom.STRING) {
+    if (sseln == atom_.STRING) {
       XFree(sel_buf);
     }
     else {
@@ -2361,17 +2347,17 @@ char *GHOST_SystemX11::getClipboard(bool selection) const
 
 void GHOST_SystemX11::putClipboard(const char *buffer, bool selection) const
 {
-  Window m_window, owner;
+  Window window_, owner;
 
-  const vector<GHOST_IWindow *> &win_vec = m_windowManager->getWindows();
+  const vector<GHOST_IWindow *> &win_vec = window_manager_->getWindows();
   vector<GHOST_IWindow *>::const_iterator win_it = win_vec.begin();
   GHOST_WindowX11 *window = static_cast<GHOST_WindowX11 *>(*win_it);
-  m_window = window->getXWindow();
+  window_ = window->getXWindow();
 
   if (buffer) {
     if (selection == False) {
-      XSetSelectionOwner(m_display, m_atom.CLIPBOARD, m_window, CurrentTime);
-      owner = XGetSelectionOwner(m_display, m_atom.CLIPBOARD);
+      XSetSelectionOwner(display_, atom_.CLIPBOARD, window_, CurrentTime);
+      owner = XGetSelectionOwner(display_, atom_.CLIPBOARD);
       if (txt_cut_buffer) {
         free((void *)txt_cut_buffer);
       }
@@ -2381,8 +2367,8 @@ void GHOST_SystemX11::putClipboard(const char *buffer, bool selection) const
       memcpy(txt_cut_buffer, buffer, buffer_size);
     }
     else {
-      XSetSelectionOwner(m_display, m_atom.PRIMARY, m_window, CurrentTime);
-      owner = XGetSelectionOwner(m_display, m_atom.PRIMARY);
+      XSetSelectionOwner(display_, atom_.PRIMARY, window_, CurrentTime);
+      owner = XGetSelectionOwner(display_, atom_.PRIMARY);
       if (txt_select_buffer) {
         free((void *)txt_select_buffer);
       }
@@ -2392,7 +2378,7 @@ void GHOST_SystemX11::putClipboard(const char *buffer, bool selection) const
       memcpy(txt_select_buffer, buffer, buffer_size);
     }
 
-    if (owner != m_window) {
+    if (owner != window_) {
       fprintf(stderr, "failed to own primary\n");
     }
   }
@@ -2520,34 +2506,34 @@ GHOST_TSuccess GHOST_SystemX11::showMessageBox(const char *title,
 
   Window window;
   XEvent e;
-  int screen = DefaultScreen(m_display);
-  window = XCreateSimpleWindow(m_display,
-                               RootWindow(m_display, screen),
+  int screen = DefaultScreen(display_);
+  window = XCreateSimpleWindow(display_,
+                               RootWindow(display_, screen),
                                0,
                                0,
                                dialog_data.width,
                                dialog_data.height,
                                1,
-                               BlackPixel(m_display, screen),
-                               WhitePixel(m_display, screen));
+                               BlackPixel(display_, screen),
+                               WhitePixel(display_, screen));
 
   /* Window Should not be resizable */
   {
     hints.flags = PSize | PMinSize | PMaxSize;
     hints.min_width = hints.max_width = hints.base_width = dialog_data.width;
     hints.min_height = hints.max_height = hints.base_height = dialog_data.height;
-    XSetWMNormalHints(m_display, window, &hints);
+    XSetWMNormalHints(display_, window, &hints);
   }
 
   /* Set title */
   {
-    Atom wm_Name = XInternAtom(m_display, "_NET_WM_NAME", False);
-    Atom utf8Str = XInternAtom(m_display, "UTF8_STRING", False);
+    Atom wm_Name = XInternAtom(display_, "_NET_WM_NAME", False);
+    Atom utf8Str = XInternAtom(display_, "UTF8_STRING", False);
 
-    Atom winType = XInternAtom(m_display, "_NET_WM_WINDOW_TYPE", False);
-    Atom typeDialog = XInternAtom(m_display, "_NET_WM_WINDOW_TYPE_DIALOG", False);
+    Atom winType = XInternAtom(display_, "_NET_WM_WINDOW_TYPE", False);
+    Atom typeDialog = XInternAtom(display_, "_NET_WM_WINDOW_TYPE_DIALOG", False);
 
-    XChangeProperty(m_display,
+    XChangeProperty(display_,
                     window,
                     wm_Name,
                     utf8Str,
@@ -2557,40 +2543,40 @@ GHOST_TSuccess GHOST_SystemX11::showMessageBox(const char *title,
                     int(strlen(title)));
 
     XChangeProperty(
-        m_display, window, winType, XA_ATOM, 32, PropModeReplace, (uchar *)&typeDialog, 1);
+        display_, window, winType, XA_ATOM, 32, PropModeReplace, (uchar *)&typeDialog, 1);
   }
 
   /* Create buttons GC */
   XGCValues buttonBorderGCValues;
-  buttonBorderGCValues.foreground = BlackPixel(m_display, screen);
-  buttonBorderGCValues.background = WhitePixel(m_display, screen);
+  buttonBorderGCValues.foreground = BlackPixel(display_, screen);
+  buttonBorderGCValues.background = WhitePixel(display_, screen);
   XGCValues buttonGCValues;
-  buttonGCValues.foreground = WhitePixel(m_display, screen);
-  buttonGCValues.background = BlackPixel(m_display, screen);
+  buttonGCValues.foreground = WhitePixel(display_, screen);
+  buttonGCValues.background = BlackPixel(display_, screen);
 
-  GC buttonBorderGC = XCreateGC(m_display, window, GCForeground, &buttonBorderGCValues);
-  GC buttonGC = XCreateGC(m_display, window, GCForeground, &buttonGCValues);
+  GC buttonBorderGC = XCreateGC(display_, window, GCForeground, &buttonBorderGCValues);
+  GC buttonGC = XCreateGC(display_, window, GCForeground, &buttonGCValues);
 
-  XSelectInput(m_display, window, ExposureMask | ButtonPressMask | ButtonReleaseMask);
-  XMapWindow(m_display, window);
+  XSelectInput(display_, window, ExposureMask | ButtonPressMask | ButtonReleaseMask);
+  XMapWindow(display_, window);
 
   const bool has_link = link && strlen(link);
 
   while (true) {
-    XNextEvent(m_display, &e);
+    XNextEvent(display_, &e);
     if (e.type == Expose) {
       for (int i = 0; i < textLines; i++) {
-        XDrawString(m_display,
+        XDrawString(display_,
                     window,
-                    DefaultGC(m_display, screen),
+                    DefaultGC(display_, screen),
                     dialog_data.padding_x,
                     dialog_data.padding_x + (i + 1) * dialog_data.line_height,
                     text_splitted[i],
                     int(strlen(text_splitted[i])));
       }
-      dialog_data.drawButton(m_display, window, buttonBorderGC, buttonGC, 1, continue_label);
+      dialog_data.drawButton(display_, window, buttonBorderGC, buttonGC, 1, continue_label);
       if (has_link) {
-        dialog_data.drawButton(m_display, window, buttonBorderGC, buttonGC, 2, help_label);
+        dialog_data.drawButton(display_, window, buttonBorderGC, buttonGC, 2, help_label);
       }
     }
     else if (e.type == ButtonRelease) {
@@ -2615,9 +2601,9 @@ GHOST_TSuccess GHOST_SystemX11::showMessageBox(const char *title,
   }
   free(text_splitted);
 
-  XDestroyWindow(m_display, window);
-  XFreeGC(m_display, buttonBorderGC);
-  XFreeGC(m_display, buttonGC);
+  XDestroyWindow(display_, window);
+  XFreeGC(display_, buttonBorderGC);
+  XFreeGC(display_, buttonGC);
   return GHOST_kSuccess;
 }
 
@@ -2768,7 +2754,7 @@ static GHOST_TTabletMode tablet_mode_from_name(const char *name, const char *typ
 
 void GHOST_SystemX11::refreshXInputDevices()
 {
-  if (m_xinput_version.present) {
+  if (xinput_version_.present) {
     /* Close tablet devices. */
     clearXInputDevices();
 
@@ -2777,10 +2763,10 @@ void GHOST_SystemX11::refreshXInputDevices()
 
     {
       int device_count;
-      XDeviceInfo *device_info = XListInputDevices(m_display, &device_count);
+      XDeviceInfo *device_info = XListInputDevices(display_, &device_count);
 
       for (int i = 0; i < device_count; ++i) {
-        char *device_type = device_info[i].type ? XGetAtomName(m_display, device_info[i].type) :
+        char *device_type = device_info[i].type ? XGetAtomName(display_, device_info[i].type) :
                                                   nullptr;
         GHOST_TTabletMode tablet_mode = tablet_mode_from_name(device_info[i].name, device_type);
 
@@ -2796,7 +2782,7 @@ void GHOST_SystemX11::refreshXInputDevices()
 
         GHOST_TabletX11 xtablet = {tablet_mode};
         xtablet.ID = device_info[i].id;
-        xtablet.Device = XOpenDevice(m_display, xtablet.ID);
+        xtablet.Device = XOpenDevice(display_, xtablet.ID);
 
         if (xtablet.Device != nullptr) {
           /* Find how many pressure levels tablet has */
@@ -2828,7 +2814,7 @@ void GHOST_SystemX11::refreshXInputDevices()
             }
           }
 
-          m_xtablets.push_back(xtablet);
+          xtablets_.push_back(xtablet);
         }
       }
 
@@ -2841,13 +2827,13 @@ void GHOST_SystemX11::refreshXInputDevices()
 
 void GHOST_SystemX11::clearXInputDevices()
 {
-  for (GHOST_TabletX11 &xtablet : m_xtablets) {
+  for (GHOST_TabletX11 &xtablet : xtablets_) {
     if (xtablet.Device) {
-      XCloseDevice(m_display, xtablet.Device);
+      XCloseDevice(display_, xtablet.Device);
     }
   }
 
-  m_xtablets.clear();
+  xtablets_.clear();
 }
 
 #endif /* WITH_X11_XINPUT */

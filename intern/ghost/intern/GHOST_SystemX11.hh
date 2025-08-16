@@ -113,9 +113,9 @@ class GHOST_SystemX11 : public GHOST_System {
    * \param width: The width the window.
    * \param height: The height the window.
    * \param state: The state of the window when opened.
-   * \param stereoVisual: Create a stereo visual for quad buffered stereo.
+   * \param gpu_settings: Misc GPU settings.
    * \param exclusive: Use to show the window on top and ignore others (used full-screen).
-   * \param parentWindow: Parent (embedder) window.
+   * \param parent_window: Parent (embedder) window.
    * \return The new window (or 0 if creation failed).
    */
   GHOST_IWindow *createWindow(const char *title,
@@ -124,17 +124,17 @@ class GHOST_SystemX11 : public GHOST_System {
                               uint32_t width,
                               uint32_t height,
                               GHOST_TWindowState state,
-                              GHOST_GPUSettings gpuSettings,
+                              GHOST_GPUSettings gpu_settings,
                               const bool exclusive = false,
                               const bool is_dialog = false,
-                              const GHOST_IWindow *parentWindow = nullptr) override;
+                              const GHOST_IWindow *parent_window = nullptr) override;
 
   /**
    * Create a new off-screen context.
    * Never explicitly delete the context, use #disposeContext() instead.
    * \return The new context (or 0 if creation failed).
    */
-  GHOST_IContext *createOffscreenContext(GHOST_GPUSettings gpuSettings) override;
+  GHOST_IContext *createOffscreenContext(GHOST_GPUSettings gpu_settings) override;
 
   /**
    * Dispose of a context.
@@ -190,13 +190,13 @@ class GHOST_SystemX11 : public GHOST_System {
 
   Display *getXDisplay()
   {
-    return m_display;
+    return display_;
   }
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
   XIM getX11_XIM()
   {
-    return m_xim;
+    return xim_;
   }
 #endif
 
@@ -289,7 +289,7 @@ class GHOST_SystemX11 : public GHOST_System {
 
   std::vector<GHOST_TabletX11> &GetXTablets()
   {
-    return m_xtablets;
+    return xtablets_;
   }
 #endif  // WITH_X11_XINPUT
 
@@ -325,50 +325,50 @@ class GHOST_SystemX11 : public GHOST_System {
 #ifdef WITH_X11_XINPUT
     Atom TABLET;
 #endif
-  } m_atom;
+  } atom_;
 
 #ifdef WITH_X11_XINPUT
-  XExtensionVersion m_xinput_version;
+  XExtensionVersion xinput_version_;
 #endif
 
  private:
-  Display *m_display;
+  Display *display_;
 
   /** Use for scan-code look-ups. */
-  XkbDescRec *m_xkb_descr;
+  XkbDescRec *xkb_descr_;
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
-  XIM m_xim;
+  XIM xim_;
 #endif
 
 #ifdef WITH_X11_XINPUT
   /* Tablet devices */
-  std::vector<GHOST_TabletX11> m_xtablets;
+  std::vector<GHOST_TabletX11> xtablets_;
 #endif
 
   /** The vector of windows that need to be updated. */
-  std::vector<GHOST_WindowX11 *> m_dirty_windows;
+  std::vector<GHOST_WindowX11 *> dirty_windows_;
 
   /** A vector of keyboard key masks. */
-  char m_keyboard_vector[32];
+  char keyboard_vector_[32];
 
   /**
    * To prevent multiple warp, we store the time of the last warp event
    * and stop accumulating all events generated before that.
    */
-  Time m_last_warp_x;
-  Time m_last_warp_y;
+  Time last_warp_x_;
+  Time last_warp_y_;
 
   /* Detect auto-repeat glitch. */
-  unsigned int m_last_release_keycode;
-  Time m_last_release_time;
+  unsigned int last_release_keycode_;
+  Time last_release_time_;
 
 #ifdef WITH_X11_XINPUT
   /** Last key press or release, to apply to XIM generated events. */
-  Time m_last_key_time;
+  Time last_key_time_;
 #endif
 
-  uint m_keycode_last_repeat_key;
+  uint keycode_last_repeat_key_;
 
   /**
    * Return the ghost window associated with the

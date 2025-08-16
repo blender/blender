@@ -1731,7 +1731,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
                                          const uint32_t width,
                                          const uint32_t height,
                                          const GHOST_TWindowState state,
-                                         const GHOST_IWindow *parentWindow,
+                                         const GHOST_IWindow *parent_window,
                                          const GHOST_TDrawingContextType type,
                                          const bool is_dialog,
                                          const GHOST_ContextParams &context_params,
@@ -1813,9 +1813,9 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
     libdecor_frame_set_min_content_size(decor.frame, UNPACK2(size_min));
     libdecor_frame_set_app_id(decor.frame, xdg_app_id);
 
-    if (parentWindow) {
+    if (parent_window) {
       GWL_LibDecor_Window &decor_parent =
-          *dynamic_cast<const GHOST_WindowWayland *>(parentWindow)->window_->libdecor;
+          *dynamic_cast<const GHOST_WindowWayland *>(parent_window)->window_->libdecor;
       libdecor_frame_set_parent(decor.frame, decor_parent.frame);
     }
   }
@@ -1834,9 +1834,9 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
     xdg_surface_add_listener(decor.surface, &xdg_surface_listener, window_);
     xdg_toplevel_add_listener(decor.toplevel, &xdg_toplevel_listener, window_);
 
-    if (parentWindow && is_dialog) {
+    if (parent_window && is_dialog) {
       GWL_XDG_Decor_Window &decor_parent =
-          *dynamic_cast<const GHOST_WindowWayland *>(parentWindow)->window_->xdg_decor;
+          *dynamic_cast<const GHOST_WindowWayland *>(parent_window)->window_->xdg_decor;
       xdg_toplevel_set_parent(decor.toplevel, decor_parent.toplevel);
     }
   }
@@ -2172,9 +2172,9 @@ GHOST_TSuccess GHOST_WindowWayland::swapBuffers()
 }
 #endif /* USE_EVENT_BACKGROUND_THREAD */
 
-GHOST_TSuccess GHOST_WindowWayland::hasCursorShape(GHOST_TStandardCursor cursorShape)
+GHOST_TSuccess GHOST_WindowWayland::hasCursorShape(GHOST_TStandardCursor cursor_shape)
 {
-  return system_->cursor_shape_check(cursorShape);
+  return system_->cursor_shape_check(cursor_shape);
 }
 
 GHOST_TSuccess GHOST_WindowWayland::setWindowCursorGrab(GHOST_TGrabCursorMode mode)
@@ -2185,7 +2185,7 @@ GHOST_TSuccess GHOST_WindowWayland::setWindowCursorGrab(GHOST_TGrabCursorMode mo
 
   GHOST_Rect bounds_buf;
   const GHOST_Rect *bounds = nullptr;
-  if (m_cursorGrab == GHOST_kGrabWrap) {
+  if (cursor_grab_ == GHOST_kGrabWrap) {
     if (getCursorGrabBounds(bounds_buf) == GHOST_kFailure) {
       getClientBounds(bounds_buf);
     }
@@ -2193,10 +2193,10 @@ GHOST_TSuccess GHOST_WindowWayland::setWindowCursorGrab(GHOST_TGrabCursorMode mo
   }
 
   if (system_->window_cursor_grab_set(mode,
-                                      m_cursorGrab,
-                                      m_cursorGrabInitPos,
+                                      cursor_grab_,
+                                      cursor_grab_init_pos_,
                                       bounds,
-                                      m_cursorGrabAxis,
+                                      cursor_grab_axis_,
                                       window_->wl.surface,
                                       this->scale_params_get()))
   {
@@ -2214,16 +2214,16 @@ GHOST_TSuccess GHOST_WindowWayland::setWindowCursorShape(GHOST_TStandardCursor s
   const bool is_active = this == static_cast<const GHOST_WindowWayland *>(
                                      system_->getWindowManager()->getActiveWindow());
   gwl_window_cursor_custom_clear(&window_->cursor_generator);
-  m_cursorShape = shape;
+  cursor_shape_ = shape;
 
   GHOST_TSuccess ok;
   if (is_active) {
-    ok = system_->cursor_shape_set(m_cursorShape);
+    ok = system_->cursor_shape_set(cursor_shape_);
     GHOST_TSuccess ok_test = ok;
     if (ok == GHOST_kFailure) {
       /* Failed, try again with the default cursor. */
-      m_cursorShape = GHOST_kStandardCursorDefault;
-      ok_test = system_->cursor_shape_set(m_cursorShape);
+      cursor_shape_ = GHOST_kStandardCursorDefault;
+      ok_test = system_->cursor_shape_set(cursor_shape_);
     }
 
     wl_display *display = system_->wl_display_get();
@@ -2243,7 +2243,7 @@ GHOST_TSuccess GHOST_WindowWayland::setWindowCursorShape(GHOST_TStandardCursor s
     /* Set later when activating the window. */
     ok = system_->cursor_shape_check(shape);
     if (ok == GHOST_kFailure) {
-      m_cursorShape = GHOST_kStandardCursorDefault;
+      cursor_shape_ = GHOST_kStandardCursorDefault;
     }
   }
   return ok;
@@ -2254,7 +2254,7 @@ bool GHOST_WindowWayland::getCursorGrabUseSoftwareDisplay()
 #ifdef USE_EVENT_BACKGROUND_THREAD
   std::lock_guard lock_server_guard{*system_->server_mutex};
 #endif
-  return system_->cursor_grab_use_software_display_get(m_cursorGrab);
+  return system_->cursor_grab_use_software_display_get(cursor_grab_);
 }
 
 GHOST_TSuccess GHOST_WindowWayland::setWindowCustomCursorGenerator(
@@ -2264,7 +2264,7 @@ GHOST_TSuccess GHOST_WindowWayland::setWindowCustomCursorGenerator(
 #ifdef USE_EVENT_BACKGROUND_THREAD
   std::lock_guard lock_server_guard{*system_->server_mutex};
 #endif
-  m_cursorShape = GHOST_kStandardCursorCustom;
+  cursor_shape_ = GHOST_kStandardCursorCustom;
   if (window_->cursor_generator) {
     gwl_window_cursor_custom_free(window_->cursor_generator);
   }
@@ -2457,13 +2457,13 @@ GHOST_Context *GHOST_WindowWayland::newDrawingContext(GHOST_TDrawingContextType 
 {
   switch (type) {
     case GHOST_kDrawingContextTypeNone: {
-      GHOST_Context *context = new GHOST_ContextNone(m_want_context_params);
+      GHOST_Context *context = new GHOST_ContextNone(want_context_params_);
       return context;
     }
 
 #ifdef WITH_VULKAN_BACKEND
     case GHOST_kDrawingContextTypeVulkan: {
-      GHOST_ContextVK *context = new GHOST_ContextVK(m_want_context_params,
+      GHOST_ContextVK *context = new GHOST_ContextVK(want_context_params_,
                                                      GHOST_kVulkanPlatformWayland,
                                                      0,
                                                      nullptr,
@@ -2486,14 +2486,14 @@ GHOST_Context *GHOST_WindowWayland::newDrawingContext(GHOST_TDrawingContextType 
       for (int minor = 6; minor >= 3; --minor) {
         GHOST_Context *context = new GHOST_ContextEGL(
             system_,
-            m_want_context_params,
+            want_context_params_,
             EGLNativeWindowType(window_->backend.egl_window),
             EGLNativeDisplayType(system_->wl_display_get()),
             EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
             4,
             minor,
             GHOST_OPENGL_EGL_CONTEXT_FLAGS |
-                (m_want_context_params.is_debug ? EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR : 0),
+                (want_context_params_.is_debug ? EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR : 0),
             GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
             EGL_OPENGL_API);
 
@@ -2675,7 +2675,7 @@ GHOST_TSuccess GHOST_WindowWayland::cursor_shape_refresh()
     return GHOST_kSuccess;
   }
 #endif
-  return gwl_window_cursor_shape_refresh(m_cursorShape, window_->cursor_generator, system_);
+  return gwl_window_cursor_shape_refresh(cursor_shape_, window_->cursor_generator, system_);
 }
 
 void GHOST_WindowWayland::outputs_changed_update_scale_tag()

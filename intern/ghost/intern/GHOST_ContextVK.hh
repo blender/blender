@@ -192,10 +192,10 @@ class GHOST_ContextVK : public GHOST_Context {
 
   /**
    * Gets the current swap interval for swapBuffers.
-   * \param intervalOut: Variable to store the swap interval if it can be read.
+   * \param interval_out: Variable to store the swap interval if it can be read.
    * \return Whether the swap interval can be read.
    */
-  GHOST_TSuccess getSwapInterval(int & /*intervalOut*/) override
+  GHOST_TSuccess getSwapInterval(int & /*interval_out*/) override
   {
     return GHOST_kFailure;
   };
@@ -212,38 +212,38 @@ class GHOST_ContextVK : public GHOST_Context {
 
  private:
 #ifdef _WIN32
-  HWND m_hwnd;
+  HWND hwnd_;
 #elif defined(__APPLE__)
-  CAMetalLayer *m_metal_layer;
+  CAMetalLayer *metal_layer_;
 #else /* Linux */
-  GHOST_TVulkanPlatformType m_platform;
+  GHOST_TVulkanPlatformType platform_;
   /* X11 */
-  Display *m_display;
-  Window m_window;
+  Display *display_;
+  Window window_;
   /* Wayland */
-  wl_surface *m_wayland_surface;
-  wl_display *m_wayland_display;
-  const GHOST_ContextVK_WindowInfo *m_wayland_window_info;
+  wl_surface *wayland_surface_;
+  wl_display *wayland_display_;
+  const GHOST_ContextVK_WindowInfo *wayland_window_info_;
 #endif
 
-  const int m_context_major_version;
-  const int m_context_minor_version;
-  const GHOST_GPUDevice m_preferred_device;
+  const int context_major_version_;
+  const int context_minor_version_;
+  const GHOST_GPUDevice preferred_device_;
 
-  VkQueue m_graphic_queue;
-  VkQueue m_present_queue;
+  VkQueue graphic_queue_;
+  VkQueue present_queue_;
 
   /* For display only. */
-  VkSurfaceKHR m_surface;
-  VkSwapchainKHR m_swapchain;
-  std::vector<GHOST_SwapchainImage> m_swapchain_images;
-  std::vector<GHOST_Frame> m_frame_data;
-  uint64_t m_render_frame;
-  uint64_t m_image_count;
+  VkSurfaceKHR surface_;
+  VkSwapchainKHR swapchain_;
+  std::vector<GHOST_SwapchainImage> swapchain_images_;
+  std::vector<GHOST_Frame> frame_data_;
+  uint64_t render_frame_;
+  uint64_t image_count_;
 
-  VkExtent2D m_render_extent;
-  VkExtent2D m_render_extent_min;
-  VkSurfaceFormatKHR m_surface_format;
+  VkExtent2D render_extent_;
+  VkExtent2D render_extent_min_;
+  VkSurfaceFormatKHR surface_format_;
 
   std::function<void(const GHOST_VulkanSwapChainData *)> swap_buffers_pre_callback_;
   std::function<void(void)> swap_buffers_post_callback_;

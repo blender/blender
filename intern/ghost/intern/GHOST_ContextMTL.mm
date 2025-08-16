@@ -50,46 +50,46 @@ GHOST_ContextMTL::GHOST_ContextMTL(const GHOST_ContextParams &context_params,
                                    NSView *metalView,
                                    CAMetalLayer *metalLayer)
     : GHOST_Context(context_params),
-      m_metalView(metalView),
-      m_metalLayer(metalLayer),
-      m_metalRenderPipeline(nil)
+      metal_view_(metalView),
+      metal_layer_(metalLayer),
+      metal_render_pipeline_(nil)
 {
   @autoreleasepool {
     /* Initialize Metal Swap-chain. */
     current_swapchain_index = 0;
     for (int i = 0; i < METAL_SWAPCHAIN_SIZE; i++) {
-      m_defaultFramebufferMetalTexture[i].texture = nil;
-      m_defaultFramebufferMetalTexture[i].index = i;
+      default_framebuffer_metal_texture_[i].texture = nil;
+      default_framebuffer_metal_texture_[i].index = i;
     }
 
-    if (m_metalView) {
-      m_ownsMetalDevice = false;
+    if (metal_view_) {
+      owns_metal_device_ = false;
       metalInit();
     }
     else {
       /* Prepare offscreen GHOST Context Metal device. */
       id<MTLDevice> metalDevice = MTLCreateSystemDefaultDevice();
 
-      if (m_context_params.is_debug) {
+      if (context_params_.is_debug) {
         printf("Selected Metal Device: %s\n", [metalDevice.name UTF8String]);
       }
 
-      m_ownsMetalDevice = true;
+      owns_metal_device_ = true;
       if (metalDevice) {
-        m_metalLayer = [[CAMetalLayer alloc] init];
-        m_metalLayer.edgeAntialiasingMask = 0;
-        m_metalLayer.masksToBounds = NO;
-        m_metalLayer.opaque = YES;
-        m_metalLayer.framebufferOnly = YES;
-        m_metalLayer.presentsWithTransaction = NO;
-        [m_metalLayer removeAllAnimations];
-        m_metalLayer.device = metalDevice;
-        m_metalLayer.allowsNextDrawableTimeout = NO;
+        metal_layer_ = [[CAMetalLayer alloc] init];
+        metal_layer_.edgeAntialiasingMask = 0;
+        metal_layer_.masksToBounds = NO;
+        metal_layer_.opaque = YES;
+        metal_layer_.framebufferOnly = YES;
+        metal_layer_.presentsWithTransaction = NO;
+        [metal_layer_ removeAllAnimations];
+        metal_layer_.device = metalDevice;
+        metal_layer_.allowsNextDrawableTimeout = NO;
 
         {
           const GHOST_TVSyncModes vsync = getVSync();
           if (vsync != GHOST_kVSyncModeUnset) {
-            m_metalLayer.displaySyncEnabled = (vsync == GHOST_kVSyncModeOff) ? NO : YES;
+            metal_layer_.displaySyncEnabled = (vsync == GHOST_kVSyncModeOff) ? NO : YES;
           }
         }
 
@@ -99,11 +99,11 @@ GHOST_ContextMTL::GHOST_ContextMTL(const GHOST_ContextParams &context_params,
          * 3. Setting the extended sRGB color space so that the OS knows how to interpret the
          *    values.
          */
-        m_metalLayer.wantsExtendedDynamicRangeContent = YES;
-        m_metalLayer.pixelFormat = METAL_FRAMEBUFFERPIXEL_FORMAT_EDR;
+        metal_layer_.wantsExtendedDynamicRangeContent = YES;
+        metal_layer_.pixelFormat = METAL_FRAMEBUFFERPIXEL_FORMAT_EDR;
         const CFStringRef name = kCGColorSpaceExtendedSRGB;
         CGColorSpaceRef colorspace = CGColorSpaceCreateWithName(name);
-        m_metalLayer.colorspace = colorspace;
+        metal_layer_.colorspace = colorspace;
         CGColorSpaceRelease(colorspace);
 
         metalInit();
@@ -123,10 +123,10 @@ GHOST_ContextMTL::~GHOST_ContextMTL()
 {
   metalFree();
 
-  if (m_ownsMetalDevice) {
-    if (m_metalLayer) {
-      [m_metalLayer release];
-      m_metalLayer = nil;
+  if (owns_metal_device_) {
+    if (metal_layer_) {
+      [metal_layer_ release];
+      metal_layer_ = nil;
     }
   }
   assert(s_sharedCount);
@@ -140,7 +140,7 @@ GHOST_ContextMTL::~GHOST_ContextMTL()
 
 GHOST_TSuccess GHOST_ContextMTL::swapBuffers()
 {
-  if (m_metalView) {
+  if (metal_view_) {
     metalSwapBuffers();
   }
   return GHOST_kSuccess;
@@ -152,9 +152,9 @@ GHOST_TSuccess GHOST_ContextMTL::setSwapInterval(int interval)
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_ContextMTL::getSwapInterval(int &intervalOut)
+GHOST_TSuccess GHOST_ContextMTL::getSwapInterval(int &interval_out)
 {
-  intervalOut = mtl_SwapInterval;
+  interval_out = mtl_SwapInterval;
   return GHOST_kSuccess;
 }
 
@@ -178,7 +178,7 @@ unsigned int GHOST_ContextMTL::getDefaultFramebuffer()
 
 GHOST_TSuccess GHOST_ContextMTL::updateDrawingContext()
 {
-  if (m_metalView) {
+  if (metal_view_) {
     metalUpdateFramebuffer();
     return GHOST_kSuccess;
   }
@@ -194,7 +194,7 @@ id<MTLTexture> GHOST_ContextMTL::metalOverlayTexture()
   updateDrawingContext();
 
   /* Return texture. */
-  return m_defaultFramebufferMetalTexture[current_swapchain_index].texture;
+  return default_framebuffer_metal_texture_[current_swapchain_index].texture;
 }
 
 MTLCommandQueue *GHOST_ContextMTL::metalCommandQueue()
@@ -203,7 +203,7 @@ MTLCommandQueue *GHOST_ContextMTL::metalCommandQueue()
 }
 MTLDevice *GHOST_ContextMTL::metalDevice()
 {
-  id<MTLDevice> device = m_metalLayer.device;
+  id<MTLDevice> device = metal_layer_.device;
   return (MTLDevice *)device;
 }
 
@@ -216,7 +216,7 @@ void GHOST_ContextMTL::metalRegisterPresentCallback(void (*callback)(
 GHOST_TSuccess GHOST_ContextMTL::initializeDrawingContext()
 {
   @autoreleasepool {
-    if (m_metalView) {
+    if (metal_view_) {
       metalInitFramebuffer();
     }
   }
@@ -226,7 +226,7 @@ GHOST_TSuccess GHOST_ContextMTL::initializeDrawingContext()
 
 GHOST_TSuccess GHOST_ContextMTL::releaseNativeHandles()
 {
-  m_metalView = nil;
+  metal_view_ = nil;
 
   return GHOST_kSuccess;
 }
@@ -234,7 +234,7 @@ GHOST_TSuccess GHOST_ContextMTL::releaseNativeHandles()
 void GHOST_ContextMTL::metalInit()
 {
   @autoreleasepool {
-    id<MTLDevice> device = m_metalLayer.device;
+    id<MTLDevice> device = metal_layer_.device;
 
     /* Create a command queue for blit/present operation.
      * NOTE: All context should share a single command queue
@@ -303,7 +303,7 @@ void GHOST_ContextMTL::metalInit()
     /* Ensure library is released. */
     [library autorelease];
 
-    m_metalRenderPipeline = (MTLRenderPipelineState *)[device
+    metal_render_pipeline_ = (MTLRenderPipelineState *)[device
         newRenderPipelineStateWithDescriptor:desc
                                        error:&error];
     if (error) {
@@ -332,15 +332,15 @@ void GHOST_ContextMTL::metalInit()
 
 void GHOST_ContextMTL::metalFree()
 {
-  if (m_metalRenderPipeline) {
-    [m_metalRenderPipeline release];
-    m_metalRenderPipeline = nil;
+  if (metal_render_pipeline_) {
+    [metal_render_pipeline_ release];
+    metal_render_pipeline_ = nil;
   }
 
   for (int i = 0; i < METAL_SWAPCHAIN_SIZE; i++) {
-    if (m_defaultFramebufferMetalTexture[i].texture) {
-      [m_defaultFramebufferMetalTexture[i].texture release];
-      m_defaultFramebufferMetalTexture[i].texture = nil;
+    if (default_framebuffer_metal_texture_[i].texture) {
+      [default_framebuffer_metal_texture_[i].texture release];
+      default_framebuffer_metal_texture_[i].texture = nil;
     }
   }
 }
@@ -353,22 +353,22 @@ void GHOST_ContextMTL::metalInitFramebuffer()
 void GHOST_ContextMTL::metalUpdateFramebuffer()
 {
   @autoreleasepool {
-    const NSRect bounds = [m_metalView bounds];
-    const NSSize backingSize = [m_metalView convertSizeToBacking:bounds.size];
+    const NSRect bounds = [metal_view_ bounds];
+    const NSSize backingSize = [metal_view_ convertSizeToBacking:bounds.size];
     const size_t width = size_t(backingSize.width);
     const size_t height = size_t(backingSize.height);
 
-    if (m_defaultFramebufferMetalTexture[current_swapchain_index].texture &&
-        m_defaultFramebufferMetalTexture[current_swapchain_index].texture.width == width &&
-        m_defaultFramebufferMetalTexture[current_swapchain_index].texture.height == height)
+    if (default_framebuffer_metal_texture_[current_swapchain_index].texture &&
+        default_framebuffer_metal_texture_[current_swapchain_index].texture.width == width &&
+        default_framebuffer_metal_texture_[current_swapchain_index].texture.height == height)
     {
       return;
     }
 
     /* Free old texture */
-    [m_defaultFramebufferMetalTexture[current_swapchain_index].texture release];
+    [default_framebuffer_metal_texture_[current_swapchain_index].texture release];
 
-    id<MTLDevice> device = m_metalLayer.device;
+    id<MTLDevice> device = metal_layer_.device;
     MTLTextureDescriptor *overlayDesc = [MTLTextureDescriptor
         texture2DDescriptorWithPixelFormat:METAL_FRAMEBUFFERPIXEL_FORMAT_EDR
                                      width:width
@@ -387,14 +387,14 @@ void GHOST_ContextMTL::metalUpdateFramebuffer()
           stringWithFormat:@"Metal Overlay for GHOST Context %p", this];  //@"";
     }
 
-    m_defaultFramebufferMetalTexture[current_swapchain_index].texture = overlayTex;
+    default_framebuffer_metal_texture_[current_swapchain_index].texture = overlayTex;
 
     /* Clear texture on create */
     id<MTLCommandBuffer> cmdBuffer = [s_sharedMetalCommandQueue commandBuffer];
     MTLRenderPassDescriptor *passDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
     {
       auto attachment = [passDescriptor.colorAttachments objectAtIndexedSubscript:0];
-      attachment.texture = m_defaultFramebufferMetalTexture[current_swapchain_index].texture;
+      attachment.texture = default_framebuffer_metal_texture_[current_swapchain_index].texture;
       attachment.loadAction = MTLLoadActionClear;
       attachment.clearColor = MTLClearColorMake(0.294, 0.294, 0.294, 1.000);
       attachment.storeAction = MTLStoreActionStore;
@@ -406,7 +406,7 @@ void GHOST_ContextMTL::metalUpdateFramebuffer()
     }
     [cmdBuffer commit];
 
-    m_metalLayer.drawableSize = CGSizeMake(CGFloat(width), CGFloat(height));
+    metal_layer_.drawableSize = CGSizeMake(CGFloat(width), CGFloat(height));
   }
 }
 
@@ -415,7 +415,7 @@ void GHOST_ContextMTL::metalSwapBuffers()
   @autoreleasepool {
     updateDrawingContext();
 
-    id<CAMetalDrawable> drawable = [m_metalLayer nextDrawable];
+    id<CAMetalDrawable> drawable = [metal_layer_ nextDrawable];
     if (!drawable) {
       return;
     }
@@ -430,10 +430,10 @@ void GHOST_ContextMTL::metalSwapBuffers()
     }
 
     assert(contextPresentCallback);
-    assert(m_defaultFramebufferMetalTexture[current_swapchain_index].texture != nil);
+    assert(default_framebuffer_metal_texture_[current_swapchain_index].texture != nil);
     (*contextPresentCallback)(passDescriptor,
-                              (id<MTLRenderPipelineState>)m_metalRenderPipeline,
-                              m_defaultFramebufferMetalTexture[current_swapchain_index].texture,
+                              (id<MTLRenderPipelineState>)metal_render_pipeline_,
+                              default_framebuffer_metal_texture_[current_swapchain_index].texture,
                               drawable);
   }
 }

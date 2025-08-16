@@ -77,7 +77,7 @@ class GHOST_WindowWin32 : public GHOST_Window {
                     GHOST_TWindowState state,
                     GHOST_TDrawingContextType type,
                     const GHOST_ContextParams &context_params,
-                    GHOST_WindowWin32 *parentWindow,
+                    GHOST_WindowWin32 *parent_window,
                     bool dialog,
                     const GHOST_GPUDevice &preferred_device);
 
@@ -238,10 +238,10 @@ class GHOST_WindowWin32 : public GHOST_Window {
   /**
    * Loads the windows equivalent of a standard GHOST cursor.
    * \param visible: Flag for cursor visibility.
-   * \param cursorShape: The cursor shape.
+   * \param cursor_shape: The cursor shape.
    */
   HCURSOR getStandardCursor(GHOST_TStandardCursor shape) const;
-  void loadCursor(bool visible, GHOST_TStandardCursor cursorShape) const;
+  void loadCursor(bool visible, GHOST_TStandardCursor cursor_shape) const;
 
   /**
    * Query whether given tablet API should be used.
@@ -294,10 +294,10 @@ class GHOST_WindowWin32 : public GHOST_Window {
   uint16_t getDPIHint() override;
 
   /** True if the mouse is either over or captured by the window. */
-  bool m_mousePresent;
+  bool mouse_present_;
 
   /** True if the window currently resizing. */
-  bool m_inLiveResize;
+  bool in_live_resize_;
 
   /** Called when OS colors change and when the window is created. */
   void ThemeRefresh();
@@ -305,7 +305,7 @@ class GHOST_WindowWin32 : public GHOST_Window {
 #ifdef WITH_INPUT_IME
   GHOST_ImeWin32 *getImeInput()
   {
-    return &m_imeInput;
+    return &ime_input_;
   }
 
   void beginIME(int32_t x, int32_t y, int32_t w, int32_t h, bool completed);
@@ -368,52 +368,52 @@ class GHOST_WindowWin32 : public GHOST_Window {
   void unregisterWindowAppUserModelProperties();
 
   /** Pointer to system. */
-  GHOST_SystemWin32 *m_system;
+  GHOST_SystemWin32 *system_;
   /** Pointer to COM #IDropTarget implementer. */
-  GHOST_DropTargetWin32 *m_dropTarget;
+  GHOST_DropTargetWin32 *drop_target_;
   /** Window handle. */
-  HWND m_hWnd;
+  HWND h_wnd_;
   /** Device context handle. */
-  HDC m_hDC;
+  HDC h_DC_;
 
-  bool m_isDialog;
-  GHOST_GPUDevice m_preferred_device;
+  bool is_dialog_;
+  GHOST_GPUDevice preferred_device_;
 
   /** Flag for if window has captured the mouse. */
-  bool m_hasMouseCaptured;
+  bool has_mouse_captured_;
   /**
    * Flag if an operator grabs the mouse with #WM_cursor_grab_enable, #WM_cursor_grab_disable
    * Multiple grabs must be released with a single un-grab.
    */
-  bool m_hasGrabMouse;
+  bool has_grab_mouse_;
   /** Count of number of pressed buttons. */
-  int m_nPressedButtons;
+  int n_pressed_buttons_;
   /** HCURSOR structure of the custom cursor. */
-  HCURSOR m_customCursor;
+  HCURSOR custom_cursor_;
 
   /** ITaskbarList3 structure for progress bar. */
-  ITaskbarList3 *m_Bar;
+  ITaskbarList3 *bar_;
 
   static const wchar_t *s_windowClassName;
   static const int s_maxTitleLength;
 
   /** Pointer to Wintab manager if Wintab is loaded. */
-  GHOST_Wintab *m_wintab;
+  GHOST_Wintab *wintab_;
 
   /** Most recent tablet data. */
-  GHOST_TabletData m_lastPointerTabletData;
+  GHOST_TabletData last_pointer_tablet_data_;
 
-  GHOST_TWindowState m_normal_state;
+  GHOST_TWindowState normal_state_;
 
   /** `user32.dll` handle */
-  HMODULE m_user32;
+  HMODULE user32_;
 
-  HWND m_parentWindowHwnd;
+  HWND parent_window_hwnd_;
 
-  GHOST_DirectManipulationHelper *m_directManipulationHelper;
+  GHOST_DirectManipulationHelper *direct_manipulation_helper_;
 
 #ifdef WITH_INPUT_IME
   /** Handle input method editors event */
-  GHOST_ImeWin32 m_imeInput;
+  GHOST_ImeWin32 ime_input_;
 #endif
 };

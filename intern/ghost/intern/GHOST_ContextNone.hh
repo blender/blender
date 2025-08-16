@@ -60,11 +60,11 @@ class GHOST_ContextNone : public GHOST_Context {
 
   /**
    * Dummy function
-   * \param intervalOut: Gets whatever was set by #setSwapInterval.
+   * \param interval_out: Gets whatever was set by #setSwapInterval.
    * \return Always succeeds.
    */
-  GHOST_TSuccess getSwapInterval(int &intervalOut) override;
+  GHOST_TSuccess getSwapInterval(int &interval_out) override;
 
  private:
-  int m_swapInterval = 1;
+  int swap_interval_ = 1;
 };

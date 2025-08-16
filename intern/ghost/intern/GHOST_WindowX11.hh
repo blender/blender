@@ -42,7 +42,7 @@ class GHOST_WindowX11 : public GHOST_Window {
    * \param width: The width the window.
    * \param height: The height the window.
    * \param state: The state the window is initially opened with.
-   * \param parentWindow: Parent (embedder) window.
+   * \param parent_window: Parent (embedder) window.
    * \param type: The type of drawing context installed in this window.
    * \param context_params: Parameters to use when initializing the context.
    * \param preferred_device: Preferred device to use when new device will be created.
@@ -55,7 +55,7 @@ class GHOST_WindowX11 : public GHOST_Window {
                   uint32_t width,
                   uint32_t height,
                   GHOST_TWindowState state,
-                  GHOST_WindowX11 *parentWindow,
+                  GHOST_WindowX11 *parent_window,
                   GHOST_TDrawingContextType type,
                   const bool is_dialog,
                   const GHOST_ContextParams &context_params,
@@ -120,13 +120,13 @@ class GHOST_WindowX11 : public GHOST_Window {
 
   GHOST_TabletData &GetTabletData()
   {
-    return m_tabletData;
+    return tablet_data_;
   }
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
   XIC getX11_XIC()
   {
-    return m_xic;
+    return xic_;
   }
 
   bool createX11_XIC();
@@ -139,7 +139,7 @@ class GHOST_WindowX11 : public GHOST_Window {
 #ifdef WITH_XDND
   GHOST_DropTargetX11 *getDropTarget()
   {
-    return m_dropTarget;
+    return drop_target_;
   }
 #endif
 
@@ -148,10 +148,10 @@ class GHOST_WindowX11 : public GHOST_Window {
    * in FullScree or Maximized state.
    * Check GHOST_WindowX11.cc
    */
-  bool m_post_init;
-  GHOST_TWindowState m_post_state;
+  bool post_init_;
+  GHOST_TWindowState post_state_;
 
-  GHOST_TSuccess setDialogHints(GHOST_WindowX11 *parentWindow);
+  GHOST_TSuccess setDialogHints(GHOST_WindowX11 *parent_window);
 
   uint16_t getDPIHint() override;
 
@@ -204,43 +204,43 @@ class GHOST_WindowX11 : public GHOST_Window {
 
   Cursor getEmptyCursor();
 
-  Window m_window;
-  Display *m_display;
-  XVisualInfo *m_visualInfo;
-  void *m_fbconfig;
+  Window window_;
+  Display *display_;
+  XVisualInfo *visual_info_;
+  void *fbconfig_;
 
-  GHOST_TWindowState m_normal_state;
+  GHOST_TWindowState normal_state_;
 
   /** A pointer to the typed system class. */
-  GHOST_SystemX11 *m_system;
+  GHOST_SystemX11 *system_;
 
   /** Used to concatenate calls to invalidate() on this window. */
-  bool m_invalid_window;
+  bool invalid_window_;
 
   /** XCursor structure of an empty (blank) cursor */
-  Cursor m_empty_cursor;
+  Cursor empty_cursor_;
 
   /** XCursor structure of the custom cursor */
-  Cursor m_custom_cursor;
+  Cursor custom_cursor_;
 
   /** XCursor to show when cursor is visible */
-  Cursor m_visible_cursor;
+  Cursor visible_cursor_;
 
   /** Cache of XC_* ID's to XCursor structures */
-  std::map<uint, Cursor> m_standard_cursors;
+  std::map<uint, Cursor> standard_cursors_;
 
 #ifdef WITH_XDND
-  GHOST_DropTargetX11 *m_dropTarget;
+  GHOST_DropTargetX11 *drop_target_;
 #endif
 
-  GHOST_TabletData m_tabletData;
+  GHOST_TabletData tablet_data_;
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
-  XIC m_xic;
+  XIC xic_;
 #endif
 
-  bool m_valid_setup;
-  GHOST_GPUDevice m_preferred_device;
+  bool valid_setup_;
+  GHOST_GPUDevice preferred_device_;
 
   void icccmSetState(int state);
   int icccmGetState() const;

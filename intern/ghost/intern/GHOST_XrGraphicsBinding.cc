@@ -62,8 +62,8 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
  public:
   ~GHOST_XrGraphicsBindingOpenGL()
   {
-    if (m_fbo != 0) {
-      glDeleteFramebuffers(1, &m_fbo);
+    if (fbo_ != 0) {
+      glDeleteFramebuffers(1, &fbo_);
     }
   }
 
@@ -75,19 +75,19 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
     int gl_major_version, gl_minor_version;
 #  if defined(WIN32)
     GHOST_ContextWGL &ctx_gl = static_cast<GHOST_ContextWGL &>(ghost_ctx);
-    gl_major_version = ctx_gl.m_contextMajorVersion;
-    gl_minor_version = ctx_gl.m_contextMinorVersion;
+    gl_major_version = ctx_gl.context_major_version_;
+    gl_minor_version = ctx_gl.context_minor_version_;
 #  elif defined(WITH_GHOST_X11) || defined(WITH_GHOST_WAYLAND)
     if (dynamic_cast<GHOST_ContextEGL *>(&ghost_ctx)) {
       GHOST_ContextEGL &ctx_gl = static_cast<GHOST_ContextEGL &>(ghost_ctx);
-      gl_major_version = ctx_gl.m_contextMajorVersion;
-      gl_minor_version = ctx_gl.m_contextMinorVersion;
+      gl_major_version = ctx_gl.context_major_version_;
+      gl_minor_version = ctx_gl.context_minor_version_;
     }
 #    if defined(WITH_GHOST_X11)
     else {
       GHOST_ContextGLX &ctx_gl = static_cast<GHOST_ContextGLX &>(ghost_ctx);
-      gl_major_version = ctx_gl.m_contextMajorVersion;
-      gl_minor_version = ctx_gl.m_contextMinorVersion;
+      gl_major_version = ctx_gl.context_major_version_;
+      gl_minor_version = ctx_gl.context_minor_version_;
     }
 #    endif
 #  endif
@@ -146,7 +146,7 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
       GHOST_ContextEGL &ctx_egl = static_cast<GHOST_ContextEGL &>(ghost_ctx);
       const bool is_wayland = (
 #    if defined(WITH_GHOST_WAYLAND)
-          dynamic_cast<const GHOST_SystemWayland *const>(ctx_egl.m_system) != nullptr
+          dynamic_cast<const GHOST_SystemWayland *const>(ctx_egl.system_) != nullptr
 #    else
           false
 #    endif
@@ -156,7 +156,7 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
 #    if defined(WITH_GHOST_WAYLAND)
         /* #GHOST_SystemWayland */
         oxr_binding.wl.type = XR_TYPE_GRAPHICS_BINDING_OPENGL_WAYLAND_KHR;
-        oxr_binding.wl.display = (wl_display *)ctx_egl.m_nativeDisplay;
+        oxr_binding.wl.display = (wl_display *)ctx_egl.native_display_;
 #    else
         GHOST_ASSERT(false, "Unexpected State: logical error, unreachable!");
 #    endif /* !WITH_GHOST_WAYLAND */
@@ -183,13 +183,13 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
     else { /* `!is_ctx_egl` */
 #    if defined(WITH_GHOST_X11)
       GHOST_ContextGLX &ctx_glx = static_cast<GHOST_ContextGLX &>(ghost_ctx);
-      XVisualInfo *visual_info = glXGetVisualFromFBConfig(ctx_glx.m_display, ctx_glx.m_fbconfig);
+      XVisualInfo *visual_info = glXGetVisualFromFBConfig(ctx_glx.display_, ctx_glx.fbconfig_);
 
       oxr_binding.glx.type = XR_TYPE_GRAPHICS_BINDING_OPENGL_XLIB_KHR;
-      oxr_binding.glx.xDisplay = ctx_glx.m_display;
-      oxr_binding.glx.glxFBConfig = ctx_glx.m_fbconfig;
-      oxr_binding.glx.glxDrawable = ctx_glx.m_window;
-      oxr_binding.glx.glxContext = ctx_glx.m_context;
+      oxr_binding.glx.xDisplay = ctx_glx.display_;
+      oxr_binding.glx.glxFBConfig = ctx_glx.fbconfig_;
+      oxr_binding.glx.glxDrawable = ctx_glx.window_;
+      oxr_binding.glx.glxContext = ctx_glx.context_;
       oxr_binding.glx.visualid = visual_info->visualid;
 
       XFree(visual_info);
@@ -201,12 +201,12 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
     GHOST_ContextWGL &ctx_wgl = static_cast<GHOST_ContextWGL &>(ghost_ctx);
 
     oxr_binding.wgl.type = XR_TYPE_GRAPHICS_BINDING_OPENGL_WIN32_KHR;
-    oxr_binding.wgl.hDC = ctx_wgl.m_hDC;
-    oxr_binding.wgl.hGLRC = ctx_wgl.m_hGLRC;
+    oxr_binding.wgl.hDC = ctx_wgl.h_DC_;
+    oxr_binding.wgl.hGLRC = ctx_wgl.h_GLRC_;
 #  endif /* WIN32 */
 
     /* Generate a frame-buffer to use for blitting into the texture. */
-    glGenFramebuffers(1, &m_fbo);
+    glGenFramebuffers(1, &fbo_);
   }
 
   std::optional<int64_t> chooseSwapchainFormat(const std::vector<int64_t> &runtime_formats,
@@ -269,7 +269,7 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
     }
 
     /* Keep alive. */
-    m_image_cache.push_back(std::move(ogl_images));
+    image_cache_.push_back(std::move(ogl_images));
 
     return base_images;
   }
@@ -281,7 +281,7 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
     XrSwapchainImageOpenGLKHR &ogl_swapchain_image = reinterpret_cast<XrSwapchainImageOpenGLKHR &>(
         swapchain_image);
 
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_);
 
     glFramebufferTexture2D(
         GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ogl_swapchain_image.image, 0);
@@ -307,8 +307,8 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
   }
 
  private:
-  std::list<std::vector<XrSwapchainImageOpenGLKHR>> m_image_cache;
-  GLuint m_fbo = 0;
+  std::list<std::vector<XrSwapchainImageOpenGLKHR>> image_cache_;
+  GLuint fbo_ = 0;
 };
 #endif
 

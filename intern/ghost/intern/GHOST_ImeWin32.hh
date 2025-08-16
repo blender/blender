@@ -36,7 +36,7 @@ class GHOST_EventIME : public GHOST_Event {
                  const void *customdata)
       : GHOST_Event(msec, type, window)
   {
-    this->m_data = customdata;
+    this->data_ = customdata;
   }
 };
 

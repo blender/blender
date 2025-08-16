@@ -183,24 +183,24 @@ class GHOST_Wintab {
 
  private:
   /** Wintab DLL handle. */
-  unique_hmodule m_handle;
+  unique_hmodule handle_;
   /** Wintab API functions. */
-  GHOST_WIN32_WTInfo m_fpInfo = nullptr;
-  GHOST_WIN32_WTGet m_fpGet = nullptr;
-  GHOST_WIN32_WTSet m_fpSet = nullptr;
-  GHOST_WIN32_WTPacketsGet m_fpPacketsGet = nullptr;
-  GHOST_WIN32_WTEnable m_fpEnable = nullptr;
-  GHOST_WIN32_WTOverlap m_fpOverlap = nullptr;
+  GHOST_WIN32_WTInfo fp_info_ = nullptr;
+  GHOST_WIN32_WTGet fp_get_ = nullptr;
+  GHOST_WIN32_WTSet fp_set_ = nullptr;
+  GHOST_WIN32_WTPacketsGet fp_packets_get_ = nullptr;
+  GHOST_WIN32_WTEnable fp_enable_ = nullptr;
+  GHOST_WIN32_WTOverlap fp_overlap_ = nullptr;
 
   /** Stores the Wintab tablet context. */
-  unique_hctx m_context;
+  unique_hctx context_;
   /** Whether the context is enabled. */
-  bool m_enabled = false;
+  bool enabled_ = false;
   /** Whether the context has focus and is at the top of overlap order. */
-  bool m_focused = false;
+  bool focused_ = false;
 
   /** Pressed button map. */
-  DWORD m_buttons = 0;
+  DWORD buttons_ = 0;
 
   /** Range of a coordinate space. */
   struct Range {
@@ -218,25 +218,25 @@ class GHOST_Wintab {
     Range y = {};
   };
   /** Whether Wintab coordinates are trusted. */
-  bool m_coordTrusted = false;
+  bool coord_trusted_ = false;
   /** Tablet input range. */
-  Coord m_tabletCoord = {};
+  Coord tablet_coord_ = {};
   /** System output range. */
-  Coord m_systemCoord = {};
+  Coord system_coord_ = {};
 
-  int m_maxPressure = 0;
-  int m_maxAzimuth = 0;
-  int m_maxAltitude = 0;
+  int max_pressure_ = 0;
+  int max_azimuth_ = 0;
+  int max_altitude_ = 0;
 
   /** Number of connected Wintab devices. */
-  UINT m_numDevices = 0;
+  UINT num_devices_ = 0;
   /** Reusable buffer to read in Wintab packets. */
-  std::vector<PACKET> m_pkts;
+  std::vector<PACKET> pkts_;
   /** Most recently received tablet data, or none if pen is not in range. */
-  GHOST_TabletData m_lastTabletData = GHOST_TABLET_DATA_NONE;
+  GHOST_TabletData last_tablet_data_ = GHOST_TABLET_DATA_NONE;
 
   /** Whether Wintab logging is enabled. */
-  static bool m_debug;
+  static bool debug_;
 
   GHOST_Wintab(unique_hmodule handle,
                GHOST_WIN32_WTInfo info,

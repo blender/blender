@@ -45,13 +45,13 @@ GHOST_TSuccess GHOST_ContextNone::releaseNativeHandles()
 
 GHOST_TSuccess GHOST_ContextNone::setSwapInterval(int interval)
 {
-  m_swapInterval = interval;
+  swap_interval_ = interval;
 
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_ContextNone::getSwapInterval(int &intervalOut)
+GHOST_TSuccess GHOST_ContextNone::getSwapInterval(int &interval_out)
 {
-  intervalOut = m_swapInterval;
+  interval_out = swap_interval_;
   return GHOST_kSuccess;
 }

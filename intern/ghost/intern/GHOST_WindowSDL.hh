@@ -26,12 +26,12 @@ class GHOST_SystemSDL;
 
 class GHOST_WindowSDL : public GHOST_Window {
  private:
-  GHOST_SystemSDL *m_system;
-  bool m_valid_setup;
-  bool m_invalid_window;
+  GHOST_SystemSDL *system_;
+  bool valid_setup_;
+  bool invalid_window_;
 
-  SDL_Window *m_sdl_win;
-  SDL_Cursor *m_sdl_custom_cursor;
+  SDL_Window *sdl_win_;
+  SDL_Cursor *sdl_custom_cursor_;
 
  public:
   GHOST_WindowSDL(GHOST_SystemSDL *system,
@@ -44,14 +44,14 @@ class GHOST_WindowSDL : public GHOST_Window {
                   GHOST_TDrawingContextType type,
                   const GHOST_ContextParams &context_params,
                   const bool exclusive = false,
-                  const GHOST_IWindow *parentWindow = nullptr);
+                  const GHOST_IWindow *parent_window = nullptr);
 
   ~GHOST_WindowSDL();
 
   /* SDL specific */
   SDL_Window *getSDLWindow()
   {
-    return m_sdl_win;
+    return sdl_win_;
   }
 
   GHOST_TSuccess invalidate() override;
@@ -63,7 +63,7 @@ class GHOST_WindowSDL : public GHOST_Window {
 
   void validate()
   {
-    m_invalid_window = false;
+    invalid_window_ = false;
   }
 
   bool getValid() const override;

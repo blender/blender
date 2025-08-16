@@ -23,41 +23,41 @@ class GHOST_Event : public GHOST_IEvent {
    * \param window: The generating window (or nullptr if system event).
    */
   GHOST_Event(uint64_t msec, GHOST_TEventType type, GHOST_IWindow *window)
-      : m_type(type), m_time(msec), m_window(window)
+      : type_(type), time_(msec), window_(window)
   {
   }
 
   /** \copydoc #GHOST_IEvent::getType */
   GHOST_TEventType getType() const override
   {
-    return m_type;
+    return type_;
   }
 
   /** \copydoc #GHOST_IEvent::getTime */
   uint64_t getTime() const override
   {
-    return m_time;
+    return time_;
   }
 
   /** \copydoc #GHOST_IEvent::getWindow */
   GHOST_IWindow *getWindow() const override
   {
-    return m_window;
+    return window_;
   }
 
   /** \copydoc #GHOST_IEvent::getData */
   GHOST_TEventDataPtr getData() const override
   {
-    return m_data;
+    return data_;
   }
 
  protected:
   /** Type of this event. */
-  GHOST_TEventType m_type;
+  GHOST_TEventType type_;
   /** The time this event was generated. */
-  uint64_t m_time;
+  uint64_t time_;
   /** Pointer to the generating window. */
-  GHOST_IWindow *m_window;
+  GHOST_IWindow *window_;
   /** Pointer to the event data. */
-  GHOST_TEventDataPtr m_data = nullptr;
+  GHOST_TEventDataPtr data_ = nullptr;
 };

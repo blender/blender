@@ -64,26 +64,26 @@ class GHOST_EventDragnDrop : public GHOST_Event {
                        GHOST_TDragnDropDataPtr data)
       : GHOST_Event(time, type, window)
   {
-    m_dragnDropEventData.x = x;
-    m_dragnDropEventData.y = y;
-    m_dragnDropEventData.dataType = dataType;
-    m_dragnDropEventData.data = data;
-    m_data = &m_dragnDropEventData;
+    dragn_drop_event_data_.x = x;
+    dragn_drop_event_data_.y = y;
+    dragn_drop_event_data_.dataType = dataType;
+    dragn_drop_event_data_.data = data;
+    data_ = &dragn_drop_event_data_;
   }
 
   ~GHOST_EventDragnDrop() override
   {
     /* Free the dropped object data. */
-    if (m_dragnDropEventData.data == nullptr) {
+    if (dragn_drop_event_data_.data == nullptr) {
       return;
     }
 
-    switch (m_dragnDropEventData.dataType) {
+    switch (dragn_drop_event_data_.dataType) {
       case GHOST_kDragnDropTypeBitmap:
-        IMB_freeImBuf((ImBuf *)m_dragnDropEventData.data);
+        IMB_freeImBuf((ImBuf *)dragn_drop_event_data_.data);
         break;
       case GHOST_kDragnDropTypeFilenames: {
-        GHOST_TStringArray *strArray = (GHOST_TStringArray *)m_dragnDropEventData.data;
+        GHOST_TStringArray *strArray = (GHOST_TStringArray *)dragn_drop_event_data_.data;
         int i;
 
         for (i = 0; i < strArray->count; i++) {
@@ -95,7 +95,7 @@ class GHOST_EventDragnDrop : public GHOST_Event {
         break;
       }
       case GHOST_kDragnDropTypeString:
-        free(m_dragnDropEventData.data);
+        free(dragn_drop_event_data_.data);
         break;
 
       default:
@@ -105,5 +105,5 @@ class GHOST_EventDragnDrop : public GHOST_Event {
 
  protected:
   /** The x,y-coordinates of the cursor position. */
-  GHOST_TEventDragnDropData m_dragnDropEventData;
+  GHOST_TEventDragnDropData dragn_drop_event_data_;
 };

@@ -54,7 +54,7 @@ class GHOST_WindowCocoa : public GHOST_Window {
                     GHOST_TDrawingContextType type,
                     const GHOST_ContextParams &context_params,
                     bool dialog,
-                    GHOST_WindowCocoa *parentWindow,
+                    GHOST_WindowCocoa *parent_window,
                     const GHOST_GPUDevice &preferred_device);
 
   /**
@@ -139,10 +139,10 @@ class GHOST_WindowCocoa : public GHOST_Window {
 
   /**
    * Sets the window "modified" status, indicating unsaved changes
-   * \param isUnsavedChanges: Unsaved changes or not.
+   * \param is_unsaved_changes: Unsaved changes or not.
    * \return Indication of success.
    */
-  GHOST_TSuccess setModifiedState(bool isUnsavedChanges) override;
+  GHOST_TSuccess setModifiedState(bool is_unsaved_changes) override;
 
   /**
    * Converts a point in screen coordinates to client rectangle coordinates
@@ -217,7 +217,7 @@ class GHOST_WindowCocoa : public GHOST_Window {
 
   GHOST_TabletData &GetCocoaTabletData()
   {
-    return m_tablet;
+    return tablet_;
   }
 
   /**
@@ -236,17 +236,17 @@ class GHOST_WindowCocoa : public GHOST_Window {
   /** public function to get the window containing the view */
   BlenderWindow *getViewWindow() const
   {
-    return m_window;
+    return window_;
   };
 
   /* Internal value to ensure proper redraws during animations */
   void setImmediateDraw(bool value)
   {
-    m_immediateDraw = value;
+    immediate_draw_ = value;
   }
   bool getImmediateDraw() const
   {
-    return m_immediateDraw;
+    return immediate_draw_;
   }
 
 #ifdef WITH_INPUT_IME
@@ -297,23 +297,23 @@ class GHOST_WindowCocoa : public GHOST_Window {
                                             bool can_invert_color) override;
 
   /** The window containing the view */
-  BlenderWindow *m_window;
+  BlenderWindow *window_;
 
   /** The view, either Metal or OpenGL */
-  CocoaOpenGLView *m_openGLView;
-  CocoaMetalView *m_metalView;
-  CAMetalLayer *m_metalLayer;
+  CocoaOpenGLView *opengl_view_;
+  CocoaMetalView *metal_view_;
+  CAMetalLayer *metal_layer_;
 
   /** The mother SystemCocoa class to send events */
-  GHOST_SystemCocoa *m_systemCocoa;
+  GHOST_SystemCocoa *system_cocoa_;
 
-  NSCursor *m_customCursor;
+  NSCursor *custom_cursor_;
 
-  GHOST_TabletData m_tablet;
+  GHOST_TabletData tablet_;
 
-  bool m_immediateDraw;
-  bool m_is_dialog;
-  GHOST_GPUDevice m_preferred_device;
+  bool immediate_draw_;
+  bool is_dialog_;
+  GHOST_GPUDevice preferred_device_;
 };
 
 #ifdef WITH_INPUT_IME
@@ -331,7 +331,7 @@ class GHOST_EventIME : public GHOST_Event {
                  const void *customdata)
       : GHOST_Event(msec, type, window)
   {
-    this->m_data = customdata;
+    this->data_ = customdata;
   }
 };
 

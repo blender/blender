@@ -12,39 +12,39 @@ void GHOST_Rect::inset(int32_t i)
 {
   if (i > 0) {
     /* Grow the rectangle. */
-    m_l -= i;
-    m_r += i;
-    m_t -= i;
-    m_b += i;
+    l_ -= i;
+    r_ += i;
+    t_ -= i;
+    b_ += i;
   }
   else if (i < 0) {
     /* Shrink the rectangle, check for insets larger than half the size. */
     int32_t i2 = i * 2;
     if (getWidth() > i2) {
-      m_l += i;
-      m_r -= i;
+      l_ += i;
+      r_ -= i;
     }
     else {
-      m_l = m_l + ((m_r - m_l) / 2);
-      m_r = m_l;
+      l_ = l_ + ((r_ - l_) / 2);
+      r_ = l_;
     }
     if (getHeight() > i2) {
-      m_t += i;
-      m_b -= i;
+      t_ += i;
+      b_ -= i;
     }
     else {
-      m_t = m_t + ((m_b - m_t) / 2);
-      m_b = m_t;
+      t_ = t_ + ((b_ - t_) / 2);
+      b_ = t_;
     }
   }
 }
 
 GHOST_TVisibility GHOST_Rect::getVisibility(GHOST_Rect &r) const
 {
-  bool lt = isInside(r.m_l, r.m_t);
-  bool rt = isInside(r.m_r, r.m_t);
-  bool lb = isInside(r.m_l, r.m_b);
-  bool rb = isInside(r.m_r, r.m_b);
+  bool lt = isInside(r.l_, r.t_);
+  bool rt = isInside(r.r_, r.t_);
+  bool lb = isInside(r.l_, r.b_);
+  bool rb = isInside(r.r_, r.b_);
   GHOST_TVisibility v;
   if (lt && rt && lb && rb) {
     /* All points inside, rectangle is inside this. */
@@ -53,7 +53,7 @@ GHOST_TVisibility GHOST_Rect::getVisibility(GHOST_Rect &r) const
   else if (!(lt || rt || lb || rb)) {
     /* None of the points inside.
      * Check to see whether the rectangle is larger than this one. */
-    if ((r.m_l < m_l) && (r.m_t < m_t) && (r.m_r > m_r) && (r.m_b > m_b)) {
+    if ((r.l_ < l_) && (r.t_ < t_) && (r.r_ > r_) && (r.b_ > b_)) {
       v = GHOST_kPartiallyVisible;
     }
     else {
@@ -69,12 +69,12 @@ GHOST_TVisibility GHOST_Rect::getVisibility(GHOST_Rect &r) const
 
 void GHOST_Rect::setCenter(int32_t cx, int32_t cy)
 {
-  int32_t offset = cx - (m_l + (m_r - m_l) / 2);
-  m_l += offset;
-  m_r += offset;
-  offset = cy - (m_t + (m_b - m_t) / 2);
-  m_t += offset;
-  m_b += offset;
+  int32_t offset = cx - (l_ + (r_ - l_) / 2);
+  l_ += offset;
+  r_ += offset;
+  offset = cy - (t_ + (b_ - t_) / 2);
+  t_ += offset;
+  b_ += offset;
 }
 
 void GHOST_Rect::setCenter(int32_t cx, int32_t cy, int32_t w, int32_t h)
@@ -83,29 +83,29 @@ void GHOST_Rect::setCenter(int32_t cx, int32_t cy, int32_t w, int32_t h)
 
   w_2 = w >> 1;
   h_2 = h >> 1;
-  m_l = cx - w_2;
-  m_t = cy - h_2;
-  m_r = m_l + w;
-  m_b = m_t + h;
+  l_ = cx - w_2;
+  t_ = cy - h_2;
+  r_ = l_ + w;
+  b_ = t_ + h;
 }
 
 bool GHOST_Rect::clip(GHOST_Rect &r) const
 {
   bool clipped = false;
-  if (r.m_l < m_l) {
-    r.m_l = m_l;
+  if (r.l_ < l_) {
+    r.l_ = l_;
     clipped = true;
   }
-  if (r.m_t < m_t) {
-    r.m_t = m_t;
+  if (r.t_ < t_) {
+    r.t_ = t_;
     clipped = true;
   }
-  if (r.m_r > m_r) {
-    r.m_r = m_r;
+  if (r.r_ > r_) {
+    r.r_ = r_;
     clipped = true;
   }
-  if (r.m_b > m_b) {
-    r.m_b = m_b;
+  if (r.b_ > b_) {
+    r.b_ = b_;
     clipped = true;
   }
   return clipped;

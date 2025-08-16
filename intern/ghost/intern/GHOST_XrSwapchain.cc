@@ -42,7 +42,7 @@ static OpenXRSwapchainData::ImageVec swapchain_images_create(XrSwapchain swapcha
 GHOST_XrSwapchain::GHOST_XrSwapchain(GHOST_IXrGraphicsBinding &gpu_binding,
                                      const XrSession &session,
                                      const XrViewConfigurationView &view_config)
-    : m_oxr(std::make_unique<OpenXRSwapchainData>())
+    : oxr_(std::make_unique<OpenXRSwapchainData>())
 {
   XrSwapchainCreateInfo create_info = {XR_TYPE_SWAPCHAIN_CREATE_INFO};
   uint32_t format_count = 0;
@@ -56,7 +56,7 @@ GHOST_XrSwapchain::GHOST_XrSwapchain(GHOST_IXrGraphicsBinding &gpu_binding,
   assert(swapchain_formats.size() == format_count);
 
   std::optional chosen_format = gpu_binding.chooseSwapchainFormat(
-      swapchain_formats, m_format, m_is_srgb_buffer);
+      swapchain_formats, format_, is_srgb_buffer_);
   if (!chosen_format) {
     throw GHOST_XrException(
         "Error: No format matching OpenXR runtime supported swapchain formats found.");
@@ -72,31 +72,31 @@ GHOST_XrSwapchain::GHOST_XrSwapchain(GHOST_IXrGraphicsBinding &gpu_binding,
   create_info.arraySize = 1;
   create_info.mipCount = 1;
 
-  CHECK_XR(xrCreateSwapchain(session, &create_info, &m_oxr->swapchain),
+  CHECK_XR(xrCreateSwapchain(session, &create_info, &oxr_->swapchain),
            "Failed to create OpenXR swapchain.");
 
-  m_image_width = create_info.width;
-  m_image_height = create_info.height;
+  image_width_ = create_info.width;
+  image_height_ = create_info.height;
 
-  m_oxr->swapchain_images = swapchain_images_create(m_oxr->swapchain, gpu_binding);
+  oxr_->swapchain_images = swapchain_images_create(oxr_->swapchain, gpu_binding);
 }
 
 GHOST_XrSwapchain::GHOST_XrSwapchain(GHOST_XrSwapchain &&other)
-    : m_oxr(std::move(other.m_oxr)),
-      m_image_width(other.m_image_width),
-      m_image_height(other.m_image_height),
-      m_format(other.m_format),
-      m_is_srgb_buffer(other.m_is_srgb_buffer)
+    : oxr_(std::move(other.oxr_)),
+      image_width_(other.image_width_),
+      image_height_(other.image_height_),
+      format_(other.format_),
+      is_srgb_buffer_(other.is_srgb_buffer_)
 {
   /* Prevent xrDestroySwapchain call for the moved out item. */
-  other.m_oxr = nullptr;
+  other.oxr_ = nullptr;
 }
 
 GHOST_XrSwapchain::~GHOST_XrSwapchain()
 {
-  /* m_oxr may be nullptr after move. */
-  if (m_oxr && m_oxr->swapchain != XR_NULL_HANDLE) {
-    CHECK_XR_ASSERT(xrDestroySwapchain(m_oxr->swapchain));
+  /* oxr_ may be nullptr after move. */
+  if (oxr_ && oxr_->swapchain != XR_NULL_HANDLE) {
+    CHECK_XR_ASSERT(xrDestroySwapchain(oxr_->swapchain));
   }
 }
 
@@ -107,36 +107,36 @@ XrSwapchainImageBaseHeader *GHOST_XrSwapchain::acquireDrawableSwapchainImage()
   XrSwapchainImageWaitInfo wait_info = {XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO};
   uint32_t image_idx;
 
-  CHECK_XR(xrAcquireSwapchainImage(m_oxr->swapchain, &acquire_info, &image_idx),
+  CHECK_XR(xrAcquireSwapchainImage(oxr_->swapchain, &acquire_info, &image_idx),
            "Failed to acquire swapchain image for the VR session.");
   wait_info.timeout = XR_INFINITE_DURATION;
-  CHECK_XR(xrWaitSwapchainImage(m_oxr->swapchain, &wait_info),
+  CHECK_XR(xrWaitSwapchainImage(oxr_->swapchain, &wait_info),
            "Failed to acquire swapchain image for the VR session.");
 
-  return m_oxr->swapchain_images[image_idx];
+  return oxr_->swapchain_images[image_idx];
 }
 
 void GHOST_XrSwapchain::updateCompositionLayerProjectViewSubImage(XrSwapchainSubImage &r_sub_image)
 {
-  r_sub_image.swapchain = m_oxr->swapchain;
+  r_sub_image.swapchain = oxr_->swapchain;
   r_sub_image.imageRect.offset = {0, 0};
-  r_sub_image.imageRect.extent = {m_image_width, m_image_height};
+  r_sub_image.imageRect.extent = {image_width_, image_height_};
 }
 
 GHOST_TXrSwapchainFormat GHOST_XrSwapchain::getFormat() const
 {
-  return m_format;
+  return format_;
 }
 
 bool GHOST_XrSwapchain::isBufferSRGB() const
 {
-  return m_is_srgb_buffer;
+  return is_srgb_buffer_;
 }
 
 void GHOST_XrSwapchain::releaseImage()
 {
   XrSwapchainImageReleaseInfo release_info = {XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO};
 
-  CHECK_XR(xrReleaseSwapchainImage(m_oxr->swapchain, &release_info),
+  CHECK_XR(xrReleaseSwapchainImage(oxr_->swapchain, &release_info),
            "Failed to release swapchain image used to submit VR session frame.");
 }

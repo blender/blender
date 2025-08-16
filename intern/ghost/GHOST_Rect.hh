@@ -27,7 +27,7 @@ class GHOST_Rect {
    * \param b: requested bottom coordinate of the rectangle.
    */
   GHOST_Rect(int32_t l = 0, int32_t t = 0, int32_t r = 0, int32_t b = 0)
-      : m_l(l), m_t(t), m_r(r), m_b(b)
+      : l_(l), t_(t), r_(r), b_(b)
   {
   }
 
@@ -66,7 +66,7 @@ class GHOST_Rect {
 
   /**
    * Returns whether this rectangle is valid.
-   * Valid rectangles are rectangles that have m_l <= m_r and m_t <= m_b.
+   * Valid rectangles are rectangles that have l_ <= r_ and t_ <= b_.
    * Thus, empty rectangles are valid.
    * \return boolean value (true==valid rectangle)
    */
@@ -151,33 +151,33 @@ class GHOST_Rect {
   virtual bool clip(GHOST_Rect &r) const;
 
   /** Left coordinate of the rectangle */
-  int32_t m_l;
+  int32_t l_;
   /** Top coordinate of the rectangle */
-  int32_t m_t;
+  int32_t t_;
   /** Right coordinate of the rectangle */
-  int32_t m_r;
+  int32_t r_;
   /** Bottom coordinate of the rectangle */
-  int32_t m_b;
+  int32_t b_;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_Rect")
 };
 
 inline int32_t GHOST_Rect::getWidth() const
 {
-  return m_r - m_l;
+  return r_ - l_;
 }
 
 inline int32_t GHOST_Rect::getHeight() const
 {
-  return m_b - m_t;
+  return b_ - t_;
 }
 
 inline void GHOST_Rect::set(int32_t l, int32_t t, int32_t r, int32_t b)
 {
-  m_l = l;
-  m_t = t;
-  m_r = r;
-  m_b = b;
+  l_ = l;
+  t_ = t;
+  r_ = r;
+  b_ = b;
 }
 
 inline bool GHOST_Rect::isEmpty() const
@@ -187,38 +187,38 @@ inline bool GHOST_Rect::isEmpty() const
 
 inline bool GHOST_Rect::isValid() const
 {
-  return (m_l <= m_r) && (m_t <= m_b);
+  return (l_ <= r_) && (t_ <= b_);
 }
 
 inline void GHOST_Rect::unionRect(const GHOST_Rect &r)
 {
-  if (r.m_l < m_l) {
-    m_l = r.m_l;
+  if (r.l_ < l_) {
+    l_ = r.l_;
   }
-  if (r.m_r > m_r) {
-    m_r = r.m_r;
+  if (r.r_ > r_) {
+    r_ = r.r_;
   }
-  if (r.m_t < m_t) {
-    m_t = r.m_t;
+  if (r.t_ < t_) {
+    t_ = r.t_;
   }
-  if (r.m_b > m_b) {
-    m_b = r.m_b;
+  if (r.b_ > b_) {
+    b_ = r.b_;
   }
 }
 
 inline void GHOST_Rect::unionPoint(int32_t x, int32_t y)
 {
-  if (x < m_l) {
-    m_l = x;
+  if (x < l_) {
+    l_ = x;
   }
-  if (x > m_r) {
-    m_r = x;
+  if (x > r_) {
+    r_ = x;
   }
-  if (y < m_t) {
-    m_t = y;
+  if (y < t_) {
+    t_ = y;
   }
-  if (y > m_b) {
-    m_b = y;
+  if (y > b_) {
+    b_ = y;
   }
 }
 
@@ -233,18 +233,18 @@ inline void GHOST_Rect::wrapPoint(int32_t &x, int32_t &y, int32_t ofs, GHOST_TAx
   }
 
   if (axis & GHOST_kAxisX) {
-    while (x - ofs < m_l) {
+    while (x - ofs < l_) {
       x += w - (ofs * 2);
     }
-    while (x + ofs > m_r) {
+    while (x + ofs > r_) {
       x -= w - (ofs * 2);
     }
   }
   if (axis & GHOST_kAxisY) {
-    while (y - ofs < m_t) {
+    while (y - ofs < t_) {
       y += h - (ofs * 2);
     }
-    while (y + ofs > m_b) {
+    while (y + ofs > b_) {
       y -= h - (ofs * 2);
     }
   }
@@ -252,22 +252,22 @@ inline void GHOST_Rect::wrapPoint(int32_t &x, int32_t &y, int32_t ofs, GHOST_TAx
 
 inline void GHOST_Rect::clampPoint(int32_t &x, int32_t &y)
 {
-  if (x < m_l) {
-    x = m_l;
+  if (x < l_) {
+    x = l_;
   }
-  else if (x > m_r) {
-    x = m_r;
+  else if (x > r_) {
+    x = r_;
   }
 
-  if (y < m_t) {
-    y = m_t;
+  if (y < t_) {
+    y = t_;
   }
-  else if (y > m_b) {
-    y = m_b;
+  else if (y > b_) {
+    y = b_;
   }
 }
 
 inline bool GHOST_Rect::isInside(int32_t x, int32_t y) const
 {
-  return (x >= m_l) && (x <= m_r) && (y >= m_t) && (y <= m_b);
+  return (x >= l_) && (x <= r_) && (y >= t_) && (y <= b_);
 }

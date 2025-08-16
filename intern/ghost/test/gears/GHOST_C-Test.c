@@ -32,7 +32,7 @@
 #endif /* defined(WIN32) || defined(__APPLE__) */
 
 static void gearsTimerProc(GHOST_TimerTaskHandle task, uint64_t time);
-bool processEvent(GHOST_EventHandle hEvent, GHOST_TUserDataPtr userData);
+bool processEvent(GHOST_EventHandle hEvent, GHOST_TUserDataPtr user_data);
 
 static GLfloat view_rotx = 20.0, view_roty = 30.0, view_rotz = 0.0;
 static GLfloat fAngle = 0.0;
@@ -269,7 +269,7 @@ static void setViewPortGL(GHOST_WindowHandle hWindow)
   GHOST_DisposeRectangle(hRect);
 }
 
-bool processEvent(GHOST_EventHandle hEvent, GHOST_TUserDataPtr userData)
+bool processEvent(GHOST_EventHandle hEvent, GHOST_TUserDataPtr user_data)
 {
   bool handled = true;
   int cursor;
@@ -389,7 +389,7 @@ bool processEvent(GHOST_EventHandle hEvent, GHOST_TUserDataPtr userData)
 
 int main(int argc, char **argv)
 {
-  GHOST_GPUSettings gpuSettings = {0};
+  GHOST_GPUSettings gpu_settings = {0};
   char *title1 = "gears - main window";
   char *title2 = "gears - secondary window";
   GHOST_EventConsumerHandle consumer = GHOST_CreateEventConsumer(processEvent, NULL);
@@ -410,7 +410,7 @@ int main(int argc, char **argv)
                                      GHOST_kWindowStateNormal,
                                      false,
                                      GHOST_kDrawingContextTypeOpenGL,
-                                     gpuSettings);
+                                     gpu_settings);
     if (!sMainWindow) {
       printf("could not create main window\n");
       exit(-1);
@@ -427,7 +427,7 @@ int main(int argc, char **argv)
                                           GHOST_kWindowStateNormal,
                                           false,
                                           GHOST_kDrawingContextTypeOpenGL,
-                                          gpuSettings);
+                                          gpu_settings);
     if (!sSecondaryWindow) {
       printf("could not create secondary window\n");
       exit(-1);

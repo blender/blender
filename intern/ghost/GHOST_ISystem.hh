@@ -184,16 +184,16 @@ class GHOST_ISystem {
    * \note On most operating systems, messages need to be processed in order
    * for the timer callbacks to be invoked.
    *
-   * \param delay: The time to wait for the first call to the #timerProc (in milliseconds).
-   * \param interval: The interval between calls to the #timerProc.
-   * \param timerProc: The callback invoked when the interval expires.
-   * \param userData: Placeholder for user data.
+   * \param delay: The time to wait for the first call to the #timer_proc (in milliseconds).
+   * \param interval: The interval between calls to the #timer_proc.
+   * \param timer_proc: The callback invoked when the interval expires.
+   * \param user_data: Placeholder for user data.
    * \return A timer task (0 if timer task installation failed).
    */
   virtual GHOST_ITimerTask *installTimer(uint64_t delay,
                                          uint64_t interval,
-                                         GHOST_TimerProcPtr timerProc,
-                                         GHOST_TUserDataPtr userData = nullptr) = 0;
+                                         GHOST_TimerProcPtr timer_proc,
+                                         GHOST_TUserDataPtr user_data = nullptr) = 0;
 
   /**
    * Removes a timer.
@@ -235,10 +235,10 @@ class GHOST_ISystem {
    * \param width: The width the window.
    * \param height: The height the window.
    * \param state: The state of the window when opened.
-   * \param gpuSettings: Misc GPU settings.
+   * \param gpu_settings: Misc GPU settings.
    * \param exclusive: Use to show the window on top and ignore others (used full-screen).
    * \param is_dialog: Stay on top of parent window, no icon in taskbar, can't be minimized.
-   * \param parentWindow: Parent (embedder) window
+   * \param parent_window: Parent (embedder) window
    * \return The new window (or 0 if creation failed).
    */
   virtual GHOST_IWindow *createWindow(const char *title,
@@ -247,10 +247,10 @@ class GHOST_ISystem {
                                       uint32_t width,
                                       uint32_t height,
                                       GHOST_TWindowState state,
-                                      GHOST_GPUSettings gpuSettings,
+                                      GHOST_GPUSettings gpu_settings,
                                       const bool exclusive = false,
                                       const bool is_dialog = false,
-                                      const GHOST_IWindow *parentWindow = nullptr) = 0;
+                                      const GHOST_IWindow *parent_window = nullptr) = 0;
 
   /**
    * Dispose a window.
@@ -264,7 +264,7 @@ class GHOST_ISystem {
    * Never explicitly delete the context, use #disposeContext() instead.
    * \return The new context (or 0 if creation failed).
    */
-  virtual GHOST_IContext *createOffscreenContext(GHOST_GPUSettings gpuSettings) = 0;
+  virtual GHOST_IContext *createOffscreenContext(GHOST_GPUSettings gpu_settings) = 0;
 
   /**
    * Dispose of a context.
@@ -397,18 +397,18 @@ class GHOST_ISystem {
   /**
    * Returns the state of a modifier key (outside the message queue).
    * \param mask: The modifier key state to retrieve.
-   * \param isDown: The state of a modifier key (true == pressed).
+   * \param is_down: The state of a modifier key (true == pressed).
    * \return Indication of success.
    */
-  virtual GHOST_TSuccess getModifierKeyState(GHOST_TModifierKey mask, bool &isDown) const = 0;
+  virtual GHOST_TSuccess getModifierKeyState(GHOST_TModifierKey mask, bool &is_down) const = 0;
 
   /**
    * Returns the state of a mouse button (outside the message queue).
    * \param mask: The button state to retrieve.
-   * \param isDown: Button state.
+   * \param is_down: Button state.
    * \return Indication of success.
    */
-  virtual GHOST_TSuccess getButtonState(GHOST_TButton mask, bool &isDown) const = 0;
+  virtual GHOST_TSuccess getButtonState(GHOST_TButton mask, bool &is_down) const = 0;
 
   /**
    * Enable multi-touch gestures if supported.
@@ -535,11 +535,11 @@ class GHOST_ISystem {
   virtual GHOST_TSuccess exit() = 0;
 
   /** The one and only system */
-  static GHOST_ISystem *m_system;
-  static const char *m_system_backend_id;
+  static GHOST_ISystem *system_;
+  static const char *system_backend_id_;
 
   /** Function to call that sets the back-trace. */
-  static GHOST_TBacktraceFn m_backtrace_fn;
+  static GHOST_TBacktraceFn backtrace_fn_;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_ISystem")
 };

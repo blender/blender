@@ -21,10 +21,10 @@ class GHOST_CallbackEventConsumer : public GHOST_IEventConsumer {
   /**
    * Constructor.
    * \param eventCallback: The call-back routine invoked.
-   * \param userData: The data passed back through the call-back routine.
+   * \param user_data: The data passed back through the call-back routine.
    */
   GHOST_CallbackEventConsumer(GHOST_EventCallbackProcPtr eventCallback,
-                              GHOST_TUserDataPtr userData);
+                              GHOST_TUserDataPtr user_data);
 
   /**
    * Destructor.
@@ -40,9 +40,9 @@ class GHOST_CallbackEventConsumer : public GHOST_IEventConsumer {
 
  protected:
   /** The call-back routine invoked. */
-  GHOST_EventCallbackProcPtr m_eventCallback;
+  GHOST_EventCallbackProcPtr event_callback_;
   /** The data passed back through the call-back routine. */
-  GHOST_TUserDataPtr m_userData;
+  GHOST_TUserDataPtr user_data_;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_CallbackEventConsumer")
 };

@@ -49,8 +49,8 @@
 
 @implementation COCOA_VIEW_CLASS
 
-@synthesize systemCocoa = m_systemCocoa;
-@synthesize windowCocoa = m_windowCocoa;
+@synthesize systemCocoa = system_cocoa_;
+@synthesize windowCocoa = window_cocoa_;
 
 - (instancetype)initWithSystemCocoa:(GHOST_SystemCocoa *)sysCocoa
                         windowCocoa:(GHOST_WindowCocoa *)winCocoa
@@ -59,8 +59,8 @@
   self = [super init];
 
   if (self) {
-    m_systemCocoa = sysCocoa;
-    m_windowCocoa = winCocoa;
+    system_cocoa_ = sysCocoa;
+    window_cocoa_ = winCocoa;
 
     composing = false;
     composing_text = nil;
@@ -108,7 +108,7 @@
 #endif
 
   if (!ime_process) {
-    m_systemCocoa->handleKeyEvent(event);
+    system_cocoa_->handleKeyEvent(event);
   }
 
   /* Start or continue composing? */
@@ -127,7 +127,7 @@
     const int controlCharForKorean = (GHOST_IME_COMPOSITION_EVENT | GHOST_IME_RESULT_EVENT |
                                       GHOST_IME_KEY_CONTROL_CHAR);
     if (((ime.state_flag & controlCharForKorean) == controlCharForKorean)) {
-      m_systemCocoa->handleKeyEvent(event);
+      system_cocoa_->handleKeyEvent(event);
     }
 
     ime.state_flag &= ~(GHOST_IME_COMPOSITION_EVENT | GHOST_IME_RESULT_EVENT);
@@ -142,19 +142,19 @@
 #define HANDLE_KEY_EVENT(eventType) \
   -(void)eventType : (NSEvent *)event \
   { \
-    m_systemCocoa->handleKeyEvent(event); \
+    system_cocoa_->handleKeyEvent(event); \
   }
 
 #define HANDLE_MOUSE_EVENT(eventType) \
   -(void)eventType : (NSEvent *)event \
   { \
-    m_systemCocoa->handleMouseEvent(event); \
+    system_cocoa_->handleMouseEvent(event); \
   }
 
 #define HANDLE_TABLET_EVENT(eventType) \
   -(void)eventType : (NSEvent *)event \
   { \
-    m_systemCocoa->handleMouseEvent(event); \
+    system_cocoa_->handleMouseEvent(event); \
   }
 
 HANDLE_KEY_EVENT(keyUp)
@@ -190,12 +190,12 @@ HANDLE_TABLET_EVENT(tabletProximity)
   }
   else {
     [super drawRect:rect];
-    m_systemCocoa->handleWindowEvent(GHOST_kEventWindowUpdate, m_windowCocoa);
+    system_cocoa_->handleWindowEvent(GHOST_kEventWindowUpdate, window_cocoa_);
 
     /* For some cases like entering full-screen we need to redraw immediately
      * so our window does not show blank during the animation */
-    if (m_windowCocoa->getImmediateDraw()) {
-      m_systemCocoa->dispatchEvents();
+    if (window_cocoa_->getImmediateDraw()) {
+      system_cocoa_->dispatchEvents();
     }
   }
 }
@@ -391,7 +391,7 @@ HANDLE_TABLET_EVENT(tabletProximity)
 - (void)setImeCandidateWinPos:(int32_t)x y:(int32_t)y w:(int32_t)w h:(int32_t)h
 {
   int32_t outX, outY;
-  m_windowCocoa->clientToScreen(x, y, outX, outY);
+  window_cocoa_->clientToScreen(x, y, outX, outY);
   ime.candidate_window_position = NSMakeRect((CGFloat)outX, (CGFloat)outY, (CGFloat)w, (CGFloat)h);
 }
 
@@ -417,8 +417,8 @@ HANDLE_TABLET_EVENT(tabletProximity)
 - (void)processImeEvent:(GHOST_TEventType)imeEventType
 {
   GHOST_Event *event = new GHOST_EventIME(
-      m_systemCocoa->getMilliSeconds(), imeEventType, m_windowCocoa, &ime.event);
-  m_systemCocoa->pushEvent(event);
+      system_cocoa_->getMilliSeconds(), imeEventType, window_cocoa_, &ime.event);
+  system_cocoa_->pushEvent(event);
 }
 
 - (std::string)convertNSString:(NSString *)inString

@@ -93,16 +93,16 @@ extern uint64_t GHOST_GetMilliSeconds(GHOST_SystemHandle systemhandle);
  * Note that, on most operating systems, messages need to be processed in order
  * for the timer callbacks to be invoked.
  * \param systemhandle: The handle to the system.
- * \param delay: The time to wait for the first call to the timerProc (in milliseconds).
- * \param interval: The interval between calls to the timerProc (in milliseconds).
- * \param timerProc: The callback invoked when the interval expires.
- * \param userData: Placeholder for user data.
+ * \param delay: The time to wait for the first call to the timer_proc (in milliseconds).
+ * \param interval: The interval between calls to the timer_proc (in milliseconds).
+ * \param timer_proc: The callback invoked when the interval expires.
+ * \param user_data: Placeholder for user data.
  * \return A timer task (0 if timer task installation failed).
  */
 extern GHOST_TimerTaskHandle GHOST_InstallTimer(GHOST_SystemHandle systemhandle,
                                                 uint64_t delay,
                                                 uint64_t interval,
-                                                GHOST_TimerProcPtr timerProc,
+                                                GHOST_TimerProcPtr timer_proc,
                                                 GHOST_TUserDataPtr user_data);
 
 /**
@@ -162,7 +162,7 @@ extern GHOST_TSuccess GHOST_GetAllDisplayDimensions(GHOST_SystemHandle systemhan
  * \param height: The height the window.
  * \param state: The state of the window when opened.
  * \param is_dialog: Stay on top of parent window, no icon in taskbar, can't be minimized.
- * \param gpuSettings: Misc GPU options.
+ * \param gpu_settings: Misc GPU options.
  * \return A handle to the new window ( == nullptr if creation failed).
  */
 extern GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
@@ -174,17 +174,17 @@ extern GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
                                              uint32_t height,
                                              GHOST_TWindowState state,
                                              bool is_dialog,
-                                             GHOST_GPUSettings gpuSettings);
+                                             GHOST_GPUSettings gpu_settings);
 
 /**
  * Create a new off-screen context.
  * Never explicitly delete the context, use #disposeContext() instead.
  * \param systemhandle: The handle to the system.
- * \param gpuSettings: Misc GPU options.
+ * \param gpu_settings: Misc GPU options.
  * \return A handle to the new context ( == nullptr if creation failed).
  */
 extern GHOST_ContextHandle GHOST_CreateGPUContext(GHOST_SystemHandle systemhandle,
-                                                  GHOST_GPUSettings gpuSettings);
+                                                  GHOST_GPUSettings gpu_settings);
 
 /**
  * Dispose of a context.
@@ -433,7 +433,7 @@ extern GHOST_TSuccess GHOST_SetCursorGrab(GHOST_WindowHandle windowhandle,
  * Returns the state of a modifier key (outside the message queue).
  * \param systemhandle: The handle to the system.
  * \param mask: The modifier key state to retrieve.
- * \param isDown: Pointer to return modifier state in.
+ * \param is_down: Pointer to return modifier state in.
  * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_GetModifierKeyState(GHOST_SystemHandle systemhandle,
@@ -444,7 +444,7 @@ extern GHOST_TSuccess GHOST_GetModifierKeyState(GHOST_SystemHandle systemhandle,
  * Returns the state of a mouse button (outside the message queue).
  * \param systemhandle: The handle to the system.
  * \param mask: The button state to retrieve.
- * \param isDown: Pointer to return button state in.
+ * \param is_down: Pointer to return button state in.
  * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_GetButtonState(GHOST_SystemHandle systemhandle,
@@ -511,10 +511,10 @@ extern GHOST_TimerProcPtr GHOST_GetTimerProc(GHOST_TimerTaskHandle timertaskhand
 /**
  * Changes the timer callback.
  * \param timertaskhandle: The handle to the timer-task.
- * \param timerProc: The timer callback.
+ * \param timer_proc: The timer callback.
  */
 extern void GHOST_SetTimerProc(GHOST_TimerTaskHandle timertaskhandle,
-                               GHOST_TimerProcPtr timerProc);
+                               GHOST_TimerProcPtr timer_proc);
 
 /**
  * Returns the timer user data.
@@ -592,17 +592,17 @@ extern GHOST_TWindowDecorationStyleFlags GHOST_GetWindowDecorationStyleFlags(
 
 /**
  * Set the window decoration style flags.
- * \param styleFlags: Window decoration style flags.
+ * \param style_flags: Window decoration style flags.
  */
 extern void GHOST_SetWindowDecorationStyleFlags(GHOST_WindowHandle windowhandle,
-                                                GHOST_TWindowDecorationStyleFlags styleFlags);
+                                                GHOST_TWindowDecorationStyleFlags style_flags);
 
 /**
  * Set the window decoration style settings.
- * \param decorationSettings: Window decoration style settings.
+ * \param decoration_settings: Window decoration style settings.
  */
 extern void GHOST_SetWindowDecorationStyleSettings(
-    GHOST_WindowHandle windowhandle, GHOST_WindowDecorationStyleSettings decorationSettings);
+    GHOST_WindowHandle windowhandle, GHOST_WindowDecorationStyleSettings decoration_settings);
 
 /**
  * Apply the window decoration style using the current flags and settings.
@@ -699,11 +699,11 @@ extern GHOST_TSuccess GHOST_SetWindowState(GHOST_WindowHandle windowhandle,
 /**
  * Sets the window "modified" status, indicating unsaved changes.
  * \param windowhandle: The handle to the window.
- * \param isUnsavedChanges: Unsaved changes or not.
+ * \param is_unsaved_changes: Unsaved changes or not.
  * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_SetWindowModifiedState(GHOST_WindowHandle windowhandle,
-                                                   bool isUnsavedChanges);
+                                                   bool is_unsaved_changes);
 
 /**
  * Sets the order of the window (bottom, top).
@@ -847,7 +847,7 @@ extern GHOST_TSuccess GHOST_IsEmptyRectangle(GHOST_RectangleHandle rectanglehand
 
 /**
  * Returns whether this rectangle is valid.
- * Valid rectangles are rectangles that have m_l <= m_r and m_t <= m_b.
+ * Valid rectangles are rectangles that have l_ <= r_ and t_ <= b_.
  * Thus, empty rectangles are valid.
  * \param rectanglehandle: The handle to the rectangle.
  * \return Success value (true == valid rectangle)

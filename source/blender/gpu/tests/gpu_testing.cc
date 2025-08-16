@@ -39,12 +39,12 @@ void GPUTest::SetUpTestSuite(GHOST_TDrawingContextType draw_context_type,
   if (!GPU_backend_supported()) {
     GTEST_SKIP() << "GPU backend not supported";
   }
-  GHOST_GPUSettings gpuSettings = {};
-  gpuSettings.context_type = draw_context_type;
-  gpuSettings.flags = GHOST_gpuDebugContext;
+  GHOST_GPUSettings gpu_settings = {};
+  gpu_settings.context_type = draw_context_type;
+  gpu_settings.flags = GHOST_gpuDebugContext;
   ghost_system_ = GHOST_CreateSystemBackground();
   GPU_backend_ghost_system_set(ghost_system_);
-  ghost_context_ = GHOST_CreateGPUContext(ghost_system_, gpuSettings);
+  ghost_context_ = GHOST_CreateGPUContext(ghost_system_, gpu_settings);
   GHOST_ActivateGPUContext(ghost_context_);
   context_ = GPU_context_create(nullptr, ghost_context_);
   GPU_init();

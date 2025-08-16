@@ -109,22 +109,22 @@ class GHOST_SystemHeadless : public GHOST_System {
   void getAllDisplayDimensions(uint32_t & /*width*/, uint32_t & /*height*/) const override
   { /* nop */
   }
-  GHOST_IContext *createOffscreenContext(GHOST_GPUSettings gpuSettings) override
+  GHOST_IContext *createOffscreenContext(GHOST_GPUSettings gpu_settings) override
   {
     const GHOST_ContextParams context_params_offscreen =
-        GHOST_CONTEXT_PARAMS_FROM_GPU_SETTINGS_OFFSCREEN(gpuSettings);
+        GHOST_CONTEXT_PARAMS_FROM_GPU_SETTINGS_OFFSCREEN(gpu_settings);
     /* This may not be used depending on the build configuration. */
     (void)context_params_offscreen;
 
-    switch (gpuSettings.context_type) {
+    switch (gpu_settings.context_type) {
 #ifdef WITH_VULKAN_BACKEND
       case GHOST_kDrawingContextTypeVulkan: {
 #  ifdef _WIN32
         GHOST_Context *context = new GHOST_ContextVK(
-            context_params_offscreen, (HWND)0, 1, 2, gpuSettings.preferred_device);
+            context_params_offscreen, (HWND)0, 1, 2, gpu_settings.preferred_device);
 #  elif defined(__APPLE__)
         GHOST_Context *context = new GHOST_ContextVK(
-            context_params_offscreen, nullptr, 1, 2, gpuSettings.preferred_device);
+            context_params_offscreen, nullptr, 1, 2, gpu_settings.preferred_device);
 #  else
         GHOST_Context *context = new GHOST_ContextVK(context_params_offscreen,
                                                      GHOST_kVulkanPlatformHeadless,
@@ -135,7 +135,7 @@ class GHOST_SystemHeadless : public GHOST_System {
                                                      nullptr,
                                                      1,
                                                      2,
-                                                     gpuSettings.preferred_device);
+                                                     gpu_settings.preferred_device);
 #  endif
         if (context->initializeDrawingContext()) {
           return context;
@@ -203,20 +203,21 @@ class GHOST_SystemHeadless : public GHOST_System {
                               uint32_t width,
                               uint32_t height,
                               GHOST_TWindowState state,
-                              GHOST_GPUSettings gpuSettings,
+                              GHOST_GPUSettings gpu_settings,
                               const bool /*exclusive*/,
                               const bool /*is_dialog*/,
-                              const GHOST_IWindow *parentWindow) override
+                              const GHOST_IWindow *parent_window) override
   {
-    const GHOST_ContextParams context_params = GHOST_CONTEXT_PARAMS_FROM_GPU_SETTINGS(gpuSettings);
+    const GHOST_ContextParams context_params = GHOST_CONTEXT_PARAMS_FROM_GPU_SETTINGS(
+        gpu_settings);
     return new GHOST_WindowNULL(title,
                                 left,
                                 top,
                                 width,
                                 height,
                                 state,
-                                parentWindow,
-                                gpuSettings.context_type,
+                                parent_window,
+                                gpu_settings.context_type,
                                 context_params);
   }
 

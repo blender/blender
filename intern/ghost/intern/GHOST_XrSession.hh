@@ -87,16 +87,16 @@ class GHOST_XrSession {
  private:
   /** Pointer back to context managing this session. Would be nice to avoid, but needed to access
    * custom callbacks set before session start. */
-  class GHOST_XrContext *m_context;
+  class GHOST_XrContext *context_;
 
-  std::unique_ptr<OpenXRSessionData> m_oxr; /* Could use stack, but PImpl is preferable. */
+  std::unique_ptr<OpenXRSessionData> oxr_; /* Could use stack, but PImpl is preferable. */
 
   /** Active Ghost graphic context. Owned by Blender, not GHOST. */
-  class GHOST_Context *m_gpu_ctx = nullptr;
-  std::unique_ptr<class GHOST_IXrGraphicsBinding> m_gpu_binding;
+  class GHOST_Context *gpu_ctx_ = nullptr;
+  std::unique_ptr<class GHOST_IXrGraphicsBinding> gpu_binding_;
 
   /** Rendering information. Set when drawing starts. */
-  std::unique_ptr<GHOST_XrDrawInfo> m_draw_info;
+  std::unique_ptr<GHOST_XrDrawInfo> draw_info_;
 
   void initSystem();
   void beginSession();
