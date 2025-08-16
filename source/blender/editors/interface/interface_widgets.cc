@@ -5403,7 +5403,8 @@ void ui_draw_menu_back(uiStyle * /*style*/, uiBlock *block, const rcti *rect)
     wt->draw_block(&wt->wcol,
                    rect,
                    block->flag,
-                   block->alert_level == uiBlockAlertLevel::None ? block->direction : UI_DIR_DOWN,
+                   block->alert_level == uiBlockAlertLevel::None ? block->direction :
+                                                                   char(UI_DIR_DOWN),
                    zoom);
     if (block->alert_level != uiBlockAlertLevel::None) {
       ui_draw_dialog_alert(block, rect);
