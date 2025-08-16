@@ -348,11 +348,11 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm,
       i = BM_elem_index_get(e);
 
       if (BM_edge_is_manifold(e)) {
-        BMFace *f_double;
-        f_new = BM_faces_join_pair(bm, e->l, e->l->radial_next, false, &f_double);
-        /* See #BM_faces_join note on callers asserting when `r_double` is non-null. */
-        BLI_assert_msg(f_double == nullptr,
-                       "Doubled face detected at " AT ". Resulting mesh may be corrupt.");
+        /* The `f_new` may be an existing face, see #144383.
+         * In this case it's still flagged as output so the selection
+         * isn't "lost" when dissolving, see: !144653. */
+        f_new = BM_faces_join_pair(bm, e->l, e->l->radial_next, false, nullptr);
+
         if (f_new) {
           BMLoop *l_first, *l_iter;
 
