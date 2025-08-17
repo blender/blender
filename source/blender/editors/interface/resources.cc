@@ -426,9 +426,6 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_EDITMESH_ACTIVE:
           cp = ts->editmesh_active;
           break;
-        case TH_EDGE_FACESEL:
-          cp = ts->edge_facesel;
-          break;
         case TH_FACE:
           cp = ts->face;
           break;
@@ -565,9 +562,6 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_ACTIVE_SPLINE:
           cp = ts->act_spline;
           break;
-        case TH_ACTIVE_VERT:
-          cp = ts->lastsel_point;
-          break;
 
         case TH_HANDLE_FREE:
           cp = btheme->common.curves.handle_free;
@@ -656,14 +650,8 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_NODE_TEXTURE:
           cp = ts->nodeclass_texture;
           break;
-        case TH_NODE_PATTERN:
-          cp = ts->nodeclass_pattern;
-          break;
         case TH_NODE_SCRIPT:
           cp = ts->nodeclass_script;
-          break;
-        case TH_NODE_LAYOUT:
-          cp = ts->nodeclass_layout;
           break;
         case TH_NODE_GEOMETRY:
           cp = ts->nodeclass_geometry;

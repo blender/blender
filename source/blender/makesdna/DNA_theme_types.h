@@ -303,7 +303,7 @@ typedef struct ThemeSpace {
   unsigned char vertex[4], vertex_select[4], vertex_active[4], vertex_bevel[4],
       vertex_unreferenced[4];
   unsigned char edge[4], edge_select[4], edge_mode_select[4];
-  unsigned char edge_seam[4], edge_sharp[4], edge_facesel[4], edge_crease[4], edge_bevel[4];
+  unsigned char edge_seam[4], edge_sharp[4], edge_crease[4], edge_bevel[4];
   /** Solid faces. */
   unsigned char face[4], face_select[4], face_mode_select[4], face_retopology[4];
   unsigned char face_back[4], face_front[4];
@@ -322,7 +322,7 @@ typedef struct ThemeSpace {
   char _pad10[4];
 
   unsigned char nurb_uline[4], nurb_vline[4];
-  unsigned char act_spline[4], nurb_sel_uline[4], nurb_sel_vline[4], lastsel_point[4];
+  unsigned char act_spline[4], nurb_sel_uline[4], nurb_sel_vline[4];
 
   /** Dope-sheet. */
   unsigned char ds_ipoline[4];
@@ -355,7 +355,6 @@ typedef struct ThemeSpace {
   unsigned char nodeclass_output[4], nodeclass_filter[4];
   unsigned char nodeclass_vector[4], nodeclass_texture[4];
   unsigned char nodeclass_shader[4], nodeclass_script[4];
-  unsigned char nodeclass_pattern[4], nodeclass_layout[4];
   unsigned char nodeclass_geometry[4], nodeclass_attribute[4];
 
   unsigned char node_zone_simulation[4];

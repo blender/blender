@@ -1400,10 +1400,6 @@ static int node_get_colorid(TreeDrawContext &tree_draw_ctx, const bNode &node)
       return TH_NODE_SHADER;
     case NODE_CLASS_SCRIPT:
       return TH_NODE_SCRIPT;
-    case NODE_CLASS_PATTERN:
-      return TH_NODE_PATTERN;
-    case NODE_CLASS_LAYOUT:
-      return TH_NODE_LAYOUT;
     case NODE_CLASS_GEOMETRY:
       return TH_NODE_GEOMETRY;
     case NODE_CLASS_ATTRIBUTE:

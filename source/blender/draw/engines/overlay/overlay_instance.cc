@@ -272,7 +272,6 @@ void Resources::update_theme_settings(const DRWContext *ctx, const State &state)
   UI_GetThemeColor4fv(TH_EDGE_SHARP, gb.colors.edge_sharp);
   UI_GetThemeColor4fv(TH_EDGE_CREASE, gb.colors.edge_crease);
   UI_GetThemeColor4fv(TH_EDGE_BEVEL, gb.colors.edge_bweight);
-  UI_GetThemeColor4fv(TH_EDGE_FACESEL, gb.colors.edge_face_select);
   UI_GetThemeColor4fv(TH_FACE, gb.colors.face);
   UI_GetThemeColor4fv(TH_FACE_SELECT, gb.colors.face_select);
   UI_GetThemeColor4fv(TH_FACE_MODE_SELECT, gb.colors.face_mode_select);
