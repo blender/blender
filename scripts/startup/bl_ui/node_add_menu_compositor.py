@@ -87,6 +87,7 @@ class NODE_MT_category_compositor_color(Menu):
         node_add_menu.add_node_type(layout, "ShaderNodeBlackbody")
         node_add_menu.add_node_type(layout, "ShaderNodeValToRGB")
         node_add_menu.add_node_type(layout, "CompositorNodeConvertColorSpace")
+        node_add_menu.add_node_type(layout, "CompositorNodeConvertToDisplay")
         node_add_menu.add_node_type(layout, "CompositorNodeSetAlpha")
         layout.separator()
         node_add_menu.add_node_type(layout, "CompositorNodeInvert")

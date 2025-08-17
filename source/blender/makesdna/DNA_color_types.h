@@ -222,4 +222,7 @@ enum {
   COLORMANAGE_VIEW_USE_CURVES = (1 << 0),
   COLORMANAGE_VIEW_USE_DEPRECATED = (1 << 1),
   COLORMANAGE_VIEW_USE_WHITE_BALANCE = (1 << 2),
+  /* Only work as pure view transform and look, no other settings.
+   * Not user editable, but fixed depending on where settings are stored. */
+  COLORMANAGE_VIEW_ONLY_VIEW_LOOK = (1 << 3)
 };

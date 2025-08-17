@@ -1948,7 +1948,7 @@ void BKE_color_managed_view_settings_free(ColorManagedViewSettings *settings)
 }
 
 void BKE_color_managed_view_settings_blend_write(BlendWriter *writer,
-                                                 ColorManagedViewSettings *settings)
+                                                 const ColorManagedViewSettings *settings)
 {
   if (settings->curve_mapping) {
     BKE_curvemapping_blend_write(writer, settings->curve_mapping);

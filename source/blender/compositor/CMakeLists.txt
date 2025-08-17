@@ -11,6 +11,7 @@ set(INC
   ../gpu/intern
   ../makesrna
   ../render/intern
+  ../imbuf/opencolorio/intern/libocio
 )
 
 set(INC_SYS
@@ -161,6 +162,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::intern::clog
   PRIVATE bf::dependencies::optional::opencolorio
 )
 

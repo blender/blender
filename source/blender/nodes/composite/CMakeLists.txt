@@ -40,6 +40,7 @@ set(SRC
   nodes/node_composite_convolve.cc
   nodes/node_composite_common.cc
   nodes/node_composite_convert_color_space.cc
+  nodes/node_composite_convert_to_display.cc
   nodes/node_composite_cornerpin.cc
   nodes/node_composite_crop.cc
   nodes/node_composite_cryptomatte.cc

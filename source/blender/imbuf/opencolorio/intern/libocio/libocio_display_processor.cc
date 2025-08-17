@@ -257,6 +257,56 @@ static void display_as_extended_srgb(const LibOCIOConfig &config,
   }
 }
 
+OCIO_NAMESPACE::TransformRcPtr create_ocio_display_transform(
+    const OCIO_NAMESPACE::ConstConfigRcPtr &ocio_config,
+    StringRefNull display,
+    StringRefNull view,
+    StringRefNull look,
+    StringRefNull from_colorspace)
+{
+  OCIO_NAMESPACE::GroupTransformRcPtr group = OCIO_NAMESPACE::GroupTransform::Create();
+
+  /* Add look transform. */
+  bool use_look = (look != nullptr && look[0] != '\0' && look != "None");
+  if (use_look) {
+    const char *look_output = nullptr;
+
+    try {
+      look_output = OCIO_NAMESPACE::LookTransform::GetLooksResultColorSpace(
+          ocio_config, ocio_config->getCurrentContext(), look.c_str());
+    }
+    catch (OCIO_NAMESPACE::Exception &exception) {
+      report_exception(exception);
+      return nullptr;
+    }
+
+    if (look_output != nullptr && look_output[0] != 0) {
+      OCIO_NAMESPACE::LookTransformRcPtr lt = OCIO_NAMESPACE::LookTransform::Create();
+      lt->setSrc(from_colorspace.c_str());
+      lt->setDst(look_output);
+      lt->setLooks(look.c_str());
+      group->appendTransform(lt);
+
+      /* Make further transforms aware of the color space change. */
+      from_colorspace = look_output;
+    }
+    else {
+      /* For empty looks, no output color space is returned. */
+      use_look = false;
+    }
+  }
+
+  /* Add view and display transform. */
+  OCIO_NAMESPACE::DisplayViewTransformRcPtr dvt = OCIO_NAMESPACE::DisplayViewTransform::Create();
+  dvt->setSrc(from_colorspace.c_str());
+  dvt->setLooksBypass(use_look);
+  dvt->setView(view.c_str());
+  dvt->setDisplay(display.c_str());
+  group->appendTransform(dvt);
+
+  return group;
+}
+
 OCIO_NAMESPACE::ConstProcessorRcPtr create_ocio_display_processor(
     const LibOCIOConfig &config, const DisplayParameters &display_parameters)
 {
@@ -293,43 +343,12 @@ OCIO_NAMESPACE::ConstProcessorRcPtr create_ocio_display_processor(
     group->appendTransform(mt);
   }
 
-  /* Add look transform. */
-  bool use_look = (display_parameters.look != nullptr && display_parameters.look[0] != '\0');
-  if (use_look) {
-    const char *look_output = nullptr;
-
-    try {
-      look_output = LookTransform::GetLooksResultColorSpace(
-          ocio_config, ocio_config->getCurrentContext(), display_parameters.look.c_str());
-    }
-    catch (Exception &exception) {
-      report_exception(exception);
-      return nullptr;
-    }
-
-    if (look_output != nullptr && look_output[0] != 0) {
-      LookTransformRcPtr lt = LookTransform::Create();
-      lt->setSrc(from_colorspace);
-      lt->setDst(look_output);
-      lt->setLooks(display_parameters.look.c_str());
-      group->appendTransform(lt);
-
-      /* Make further transforms aware of the color space change. */
-      from_colorspace = look_output;
-    }
-    else {
-      /* For empty looks, no output color space is returned. */
-      use_look = false;
-    }
-  }
-
-  /* Add view and display transform. */
-  DisplayViewTransformRcPtr dvt = DisplayViewTransform::Create();
-  dvt->setSrc(from_colorspace);
-  dvt->setLooksBypass(use_look);
-  dvt->setView(display_parameters.view.c_str());
-  dvt->setDisplay(display_parameters.display.c_str());
-  group->appendTransform(dvt);
+  /* Core display processor. */
+  group->appendTransform(create_ocio_display_transform(ocio_config,
+                                                       display_parameters.display,
+                                                       display_parameters.view,
+                                                       display_parameters.look,
+                                                       from_colorspace));
 
   /* Gamma. */
   if (display_parameters.exponent != 1.0f) {
