@@ -85,7 +85,7 @@ void remove_selection_attributes(
 /**
  * Get the position span associated with the given selection attribute name.
  */
-Span<float3> get_selection_attribute_positions(
+std::optional<Span<float3>> get_selection_attribute_positions(
     const bke::CurvesGeometry &curves,
     const bke::crazyspace::GeometryDeformation &deformation,
     StringRef attribute_name);

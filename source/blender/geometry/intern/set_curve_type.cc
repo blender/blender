@@ -356,8 +356,8 @@ static bke::CurvesGeometry convert_curves_to_bezier(const bke::CurvesGeometry &s
   auto bezier_to_bezier = [&](const IndexMask &selection) {
     const VArraySpan<int8_t> src_types_l = src_curves.handle_types_left();
     const VArraySpan<int8_t> src_types_r = src_curves.handle_types_right();
-    const Span<float3> src_handles_l = src_curves.handle_positions_left();
-    const Span<float3> src_handles_r = src_curves.handle_positions_right();
+    const Span<float3> src_handles_l = *src_curves.handle_positions_left();
+    const Span<float3> src_handles_r = *src_curves.handle_positions_right();
 
     array_utils::copy_group_to_group(
         src_points_by_curve, dst_points_by_curve, selection, src_positions, dst_positions);
@@ -558,8 +558,8 @@ static bke::CurvesGeometry convert_curves_to_nurbs(const bke::CurvesGeometry &sr
   };
 
   auto bezier_to_nurbs = [&](const IndexMask &selection) {
-    const Span<float3> src_handles_l = src_curves.handle_positions_left();
-    const Span<float3> src_handles_r = src_curves.handle_positions_right();
+    const Span<float3> src_handles_l = *src_curves.handle_positions_left();
+    const Span<float3> src_handles_r = *src_curves.handle_positions_right();
 
     index_mask::masked_fill<int8_t>(dst_curves.nurbs_orders_for_write(), 4, selection);
     index_mask::masked_fill<int8_t>(
@@ -592,11 +592,11 @@ static bke::CurvesGeometry convert_curves_to_nurbs(const bke::CurvesGeometry &sr
     array_utils::copy_group_to_group(
         src_points_by_curve, dst_points_by_curve, selection, src_positions, dst_positions);
 
-    if (!src_curves.nurbs_weights().is_empty()) {
+    if (const std::optional<Span<float>> nurbs_weights = src_curves.nurbs_weights()) {
       array_utils::copy_group_to_group(src_points_by_curve,
                                        dst_points_by_curve,
                                        selection,
-                                       src_curves.nurbs_weights(),
+                                       *nurbs_weights,
                                        dst_curves.nurbs_weights_for_write());
     }
 
@@ -705,8 +705,8 @@ static bke::CurvesGeometry convert_curves_to_catmull_rom_or_poly(
   };
 
   auto convert_from_bezier = [&](const IndexMask &selection) {
-    const Span<float3> src_left_handles = src_curves.handle_positions_left();
-    const Span<float3> src_right_handles = src_curves.handle_positions_right();
+    const Span<float3> src_left_handles = *src_curves.handle_positions_left();
+    const Span<float3> src_right_handles = *src_curves.handle_positions_right();
 
     /* Transfer positions. */
     selection.foreach_index([&](const int curve_i) {

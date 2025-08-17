@@ -544,7 +544,9 @@ void curve_populate_trans_data_structs(const TransInfo &t,
                                        void *extra)
 {
   const std::array<Span<float3>, 3> src_positions_per_selection_attr = {
-      curves.positions(), curves.handle_positions_left(), curves.handle_positions_right()};
+      curves.positions(),
+      curves.handle_positions_left().value_or(Span<float3>()),
+      curves.handle_positions_right().value_or(Span<float3>())};
   const View3D *v3d = static_cast<const View3D *>(t.view);
   const bool hide_handles = (v3d != nullptr) ? (v3d->overlay.handle_display == CURVE_HANDLE_NONE) :
                                                false;

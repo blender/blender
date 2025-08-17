@@ -252,13 +252,13 @@ static void populate_curve_props_for_bezier(const bke::CurvesGeometry &curves,
   const int num_curves = curves.curve_num;
 
   const Span<float3> positions = curves.positions();
-  const Span<float3> handles_l = curves.handle_positions_left();
-  const Span<float3> handles_r = curves.handle_positions_right();
+  const std::optional<Span<float3>> handles_l = curves.handle_positions_left();
+  const std::optional<Span<float3>> handles_r = curves.handle_positions_right();
 
   pxr::VtArray<int> segments(num_curves);
 
   populate_curve_verts_for_bezier(
-      curves, positions, handles_l, handles_r, verts, control_point_counts, segments, is_cyclic);
+      curves, positions, *handles_l, *handles_r, verts, control_point_counts, segments, is_cyclic);
 
   populate_curve_widths(curves, widths);
   interpolation = get_curve_width_interpolation(

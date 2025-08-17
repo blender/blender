@@ -601,8 +601,8 @@ struct PenToolOperation {
     MutableSpan<float3> dst_positions = dst.positions_for_write();
     MutableSpan<int8_t> handle_types_left = dst.handle_types_left_for_write();
     MutableSpan<int8_t> handle_types_right = dst.handle_types_right_for_write();
-    const Span<float3> src_handles_left = src.handle_positions_left();
-    const Span<float3> src_handles_right = src.handle_positions_right();
+    const Span<float3> src_handles_left = *src.handle_positions_left();
+    const Span<float3> src_handles_right = *src.handle_positions_right();
     MutableSpan<float3> dst_handles_left = dst.handle_positions_left_for_write();
     MutableSpan<float3> dst_handles_right = dst.handle_positions_right_for_write();
     handle_types_left[dst_point_index] = BEZIER_HANDLE_ALIGN;
@@ -832,8 +832,8 @@ static void pen_find_closest_point_or_handle(const PenToolOperation &ptd,
     }
   });
 
-  const Span<float3> handle_left = curves.handle_positions_left();
-  const Span<float3> handle_right = curves.handle_positions_right();
+  const Span<float3> handle_left = *curves.handle_positions_left();
+  const Span<float3> handle_right = *curves.handle_positions_right();
   const IndexMask bezier_points = ed::greasepencil::retrieve_visible_bezier_handle_points(
       *ptd.vc.obact, drawing, layer_index, ptd.vc.v3d->overlay.handle_display, memory);
 

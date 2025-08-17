@@ -214,7 +214,7 @@ void Instances::add_instance(const int instance_handle, const float4x4 &transfor
 
 Span<int> Instances::reference_handles() const
 {
-  return get_span_attribute<int>(
+  return *get_span_attribute<int>(
       attributes_, AttrDomain::Instance, ".reference_index", instances_num_);
 }
 
@@ -226,7 +226,7 @@ MutableSpan<int> Instances::reference_handles_for_write()
 
 Span<float4x4> Instances::transforms() const
 {
-  return get_span_attribute<float4x4>(
+  return *get_span_attribute<float4x4>(
       attributes_, AttrDomain::Instance, "instance_transform", instances_num_);
 }
 

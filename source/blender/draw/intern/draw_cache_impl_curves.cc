@@ -366,12 +366,12 @@ static void create_edit_points_position(const bke::CurvesGeometry &curves,
   array_utils::gather_group_to_group(points_by_curve,
                                      bezier_offsets,
                                      bezier_curves,
-                                     curves.handle_positions_left(),
+                                     *curves.handle_positions_left(),
                                      data.slice(handle_range_left(points_num, bezier_offsets)));
   array_utils::gather_group_to_group(points_by_curve,
                                      bezier_offsets,
                                      bezier_curves,
-                                     curves.handle_positions_right(),
+                                     *curves.handle_positions_right(),
                                      data.slice(handle_range_right(points_num, bezier_offsets)));
 }
 

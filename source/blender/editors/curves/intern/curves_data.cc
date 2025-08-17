@@ -26,9 +26,11 @@ Vector<Span<float3>> get_curves_positions(const bke::CurvesGeometry &curves)
 {
   Vector<Span<float3>> positions_per_attribute;
   positions_per_attribute.append(curves.positions());
-  if (curves.has_curve_with_type(CURVE_TYPE_BEZIER)) {
-    positions_per_attribute.append(curves.handle_positions_left());
-    positions_per_attribute.append(curves.handle_positions_right());
+  const std::optional<Span<float3>> handles_left = curves.handle_positions_left();
+  const std::optional<Span<float3>> handles_right = curves.handle_positions_right();
+  if (handles_left && handles_right) {
+    positions_per_attribute.append(*handles_left);
+    positions_per_attribute.append(*handles_right);
   }
   return positions_per_attribute;
 }
