@@ -1300,7 +1300,7 @@ void normals_calc_corners(const Span<float3> vert_positions,
       local_corner_visited.fill(false);
 
       int start_local_corner = 0;
-      while (start_local_corner != -1) {
+      while (true) {
         corners_in_fan.clear();
         traverse_fan_local_corners(corner_infos, edge_infos, start_local_corner, corners_in_fan);
 
@@ -1321,8 +1321,14 @@ void normals_calc_corners(const Span<float3> vert_positions,
         if (visited_count == corner_infos.size()) {
           break;
         }
+
         local_corner_visited.as_mutable_span().fill_indices(corners_in_fan.as_span(), true);
-        start_local_corner = local_corner_visited.first_index_of_try(false);
+        BLI_assert(!local_corner_visited.as_span().take_front(start_local_corner).contains(false));
+        BLI_assert(local_corner_visited.as_span().drop_front(start_local_corner).contains(false));
+        /* Will start traversing the next smooth fan mixed in shared index space. */
+        while (local_corner_visited[start_local_corner]) {
+          start_local_corner++;
+        }
       }
       BLI_assert(visited_count == corner_infos.size());
     }
