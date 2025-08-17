@@ -8570,7 +8570,7 @@ class VIEW3D_PT_greasepencil_vertex_paint_context_menu(Panel):
         row.prop(brush, "use_pressure_size", text="", icon='STYLUS_PRESSURE')
 
         if brush.gpencil_vertex_brush_type in {'DRAW', 'BLUR', 'SMEAR'}:
-            ups = tool_settings.unified_paint_settings
+            ups = settings.unified_paint_settings
             strength_owner = ups if ups.use_unified_strength else brush
             row = layout.row(align=True)
             row.prop(strength_owner, "strength", text="")

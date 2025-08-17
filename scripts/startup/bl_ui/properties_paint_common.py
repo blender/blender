@@ -1625,7 +1625,7 @@ def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False)
     tool_settings = context.tool_settings
     settings = tool_settings.gpencil_paint
     gp_settings = brush.gpencil_settings
-    ups = tool_settings.unified_paint_settings
+    ups = settings.unified_paint_settings
     brush_prop_owner = ups if ups.use_unified_size else brush
     tool = context.workspace.tools.from_space_view3d_mode(context.mode, create=False)
     if gp_settings is None:
