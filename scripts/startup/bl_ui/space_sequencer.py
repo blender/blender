@@ -9,6 +9,7 @@ from bpy.types import (
     Panel,
 )
 from bpy.app.translations import (
+    pgettext_iface as iface_,
     contexts as i18n_contexts,
     pgettext_iface as iface_,
     pgettext_rpt as rpt_,
@@ -994,6 +995,31 @@ class SEQUENCER_MT_strip_animation(Menu):
         layout.operator("anim.keyframe_clear_vse", text="Clear Keyframes...")
 
 
+class SEQUENCER_MT_strip_mirror(Menu):
+    bl_label = "Mirror"
+
+    def draw(self, _context):
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_PREVIEW'
+
+        layout.operator("transform.mirror", text="Interactive Mirror")
+
+        layout.separator()
+
+        for (space_name, space_id) in (("Global", 'GLOBAL'), ("Local", 'LOCAL')):
+            for axis_index, axis_name in enumerate("XY"):
+                props = layout.operator(
+                    "transform.mirror",
+                    text="{:s} {:s}".format(axis_name, iface_(space_name)),
+                    translate=False,
+                )
+                props.constraint_axis[axis_index] = True
+                props.orient_type = space_id
+
+            if space_id == 'GLOBAL':
+                layout.separator()
+
+
 class SEQUENCER_MT_strip_input(Menu):
     bl_label = "Inputs"
 
@@ -1147,6 +1173,7 @@ class SEQUENCER_MT_strip(Menu):
         strip = context.active_strip
 
         if has_preview:
+            layout.menu("SEQUENCER_MT_strip_mirror")
             layout.separator()
             layout.operator("sequencer.preview_duplicate_move", text="Duplicate")
             layout.operator("sequencer.copy", text="Copy")
@@ -3202,6 +3229,7 @@ classes = (
     SEQUENCER_MT_strip_text,
     SEQUENCER_MT_strip_show_hide,
     SEQUENCER_MT_strip_animation,
+    SEQUENCER_MT_strip_mirror,
     SEQUENCER_MT_strip_input,
     SEQUENCER_MT_strip_lock_mute,
     SEQUENCER_MT_image,
