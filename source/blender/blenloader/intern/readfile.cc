@@ -5219,6 +5219,14 @@ bool BLO_read_requires_endian_switch(BlendDataReader *reader)
   return (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN) != 0;
 }
 
+int BLO_read_struct_member_offset(const BlendDataReader *reader,
+                                  const char *stype,
+                                  const char *vartype,
+                                  const char *name)
+{
+  return DNA_struct_member_offset_by_name_with_alias(reader->fd->filesdna, stype, vartype, name);
+}
+
 void BLO_read_struct_list_with_size(BlendDataReader *reader,
                                     const size_t expected_elem_size,
                                     ListBase *list)
