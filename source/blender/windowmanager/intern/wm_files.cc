@@ -4287,6 +4287,35 @@ void wm_test_autorun_warning(bContext *C)
   }
 }
 
+void wm_test_foreign_file_warning(bContext *C)
+{
+  if (!G_MAIN->is_read_invalid) {
+    return;
+  }
+
+  G_MAIN->is_read_invalid = false;
+
+  wmWindowManager *wm = CTX_wm_manager(C);
+  wmWindow *win = (wm->winactive) ? wm->winactive : static_cast<wmWindow *>(wm->windows.first);
+
+  if (win) {
+    /* We want this warning on the Main window, not a child window even if active. See #118765. */
+    if (win->parent) {
+      win = win->parent;
+    }
+
+    wmWindow *prevwin = CTX_wm_window(C);
+    CTX_wm_window_set(C, win);
+    UI_alert(C,
+             RPT_("Unable to Load File"),
+             RPT_("The file specified is not a valid Blend document."),
+             ALERT_ICON_ERROR,
+             false);
+
+    CTX_wm_window_set(C, prevwin);
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

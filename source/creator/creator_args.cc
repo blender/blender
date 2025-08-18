@@ -2674,16 +2674,17 @@ static bool handle_load_file(bContext *C, const char *filepath_arg, const bool l
     if (load_empty_file == false) {
       error_msg = error_msg_generic;
     }
-    else if (BLI_exists(filepath)) {
+    else if (BLI_exists(filepath) && BKE_blendfile_extension_check(filepath)) {
       /* When a file is found but can't be loaded, handling it as a new file
        * could cause it to be unintentionally overwritten (data loss).
        * Further this is almost certainly not that a user would expect or want.
        * If they do, they can delete the file beforehand. */
       error_msg = error_msg_generic;
     }
-    else if (!BKE_blendfile_extension_check(filepath)) {
-      /* Unrelated arguments should not be treated as new blend files. */
-      error_msg = "argument has no '.blend' file extension, not using as new file";
+    else {
+      /* Non-blend or non-existing. Continue loading and give warning. */
+      G_MAIN->is_read_invalid = true;
+      return true;
     }
 
     if (error_msg) {

@@ -814,6 +814,8 @@ void wm_event_do_notifiers(bContext *C)
   wm_test_autorun_warning(C);
   /* Deprecation warning. */
   wm_test_gpu_backend_fallback(C);
+  /* Foreign File warning. */
+  wm_test_foreign_file_warning(C);
 
   GPU_render_end();
 }
