@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'6dca66d606ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-11 08:28+0000\n"
+"POT-Creation-Date: 2025-08-18 09:16+0000\n"
 "PO-Revision-Date: 2025-07-23 15:34+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -2584,64 +2584,64 @@ msgid "Snap"
 msgstr "स्नैप"
 
 
-msgid "Mirror"
-msgstr "दर्पण"
-
-
-msgid "Light"
-msgstr "प्रकाश"
-
-
-msgid "Rigid Body"
-msgstr "कठोर-पदार्थ"
-
-
-msgid "Apply"
-msgstr "लागू करें"
-
-
-msgid "Track"
-msgstr "ट्रैक"
-
-
-msgid "Quick Effects"
-msgstr "त्वरित प्रभाव"
-
-
-msgid "Show/Hide"
-msgstr "छुपाएँ / दिखाएँ"
-
-
-msgid "Make Single User"
-msgstr "एकल प्रयोक्ता बनाएँ"
-
-
-msgid "Hooks"
-msgstr "खूँटी"
-
-
-msgid "Names"
-msgstr "नाम"
+msgid "Enable Bone Options"
+msgstr "हड्डी विकल्प को सक्षम करें"
 
 
 msgid "Toggle Bone Options"
 msgstr "हड्डी विकल्प बंद/बुझ"
 
 
-msgid "Enable Bone Options"
-msgstr "हड्डी विकल्प को सक्षम करें"
+msgid "Apply"
+msgstr "लागू करें"
 
 
-msgid "Merge"
-msgstr "विलय करें"
+msgid "Names"
+msgstr "नाम"
+
+
+msgid "Show/Hide"
+msgstr "छुपाएँ / दिखाएँ"
+
+
+msgid "Mirror"
+msgstr "दर्पण"
+
+
+msgid "Hooks"
+msgstr "खूँटी"
+
+
+msgid "Make Single User"
+msgstr "एकल प्रयोक्ता बनाएँ"
+
+
+msgid "Quick Effects"
+msgstr "त्वरित प्रभाव"
+
+
+msgid "Track"
+msgstr "ट्रैक"
+
+
+msgid "Rigid Body"
+msgstr "कठोर-पदार्थ"
+
+
+msgid "Light"
+msgstr "प्रकाश"
+
+
+msgid "Bone Roll"
+msgstr "हड्डी पंजी"
 
 
 msgid "Text"
 msgstr "पाठ"
 
 
-msgid "Bone Roll"
-msgstr "हड्डी पंजी"
+msgid "Merge"
+msgstr "विलय करें"
 
 
 msgid "Basic"
@@ -4957,16 +4957,16 @@ msgid "Color of marker"
 msgstr "चिन्हक के रंग"
 
 
-msgid "Vertex Group Unreferenced"
-msgstr "वर्टेक्स Unreferenced समूह"
-
-
 msgid "Converter Node"
 msgstr "परिवर्तक ग्रन्थि"
 
 
 msgid "Wires"
 msgstr "तार"
+
+
+msgid "Vertex Group Unreferenced"
+msgstr "वर्टेक्स Unreferenced समूह"
 
 
 msgid "Inner"

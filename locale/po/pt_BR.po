@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'6dca66d606ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-08-11 08:28+0000\n"
+"POT-Creation-Date: 2025-08-18 09:16+0000\n"
 "PO-Revision-Date: 2025-07-23 15:03+0000\n"
 "Last-Translator: Amy Lily <lillya.assist@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -9969,10 +9969,6 @@ msgid "File Select Parameters"
 msgstr "Parâmetros de seleção de arquivo"
 
 
-msgid "Whether this path is currently reachable"
-msgstr "Define se este caminho pode ser alcançado pelas configurações atuais."
-
-
 msgid "Save"
 msgstr "Salvar"
 
@@ -10459,14 +10455,6 @@ msgstr "Zip"
 
 msgid "Effective but slow compression"
 msgstr "Compressão mais efetiva, mas pouco mais lenta."
-
-
-msgid "Blosc"
-msgstr "Blosc"
-
-
-msgid "Multithreaded compression, similar in size and quality as 'Zip'"
-msgstr "Utiliza um formato de compressão otimizado para multitarefas, similar em tamanho e qualidade ao formato \"ZIP\"."
 
 
 msgid "Do not use any compression"
@@ -21308,56 +21296,168 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Pivot Point"
-msgstr "Pontos de pivô"
+msgid "Face Data"
+msgstr "Dados das faces"
 
 
-msgid "Snap"
-msgstr "Atrair"
+msgid "Mesh Select Mode"
+msgstr "Modo de seleção de malhas"
 
 
 msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
 
 
-msgid "Mirror"
-msgstr "Espelhar"
+msgid "Disable Bone Options"
+msgstr "Desabilitar as opções de ossos"
 
 
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
+msgid "Snap"
+msgstr "Atrair"
+
+
+msgid "Enable Bone Options"
+msgstr "Habilitar opções de ossos"
+
+
+msgid "Toggle Bone Options"
+msgstr "Alternar opções de ossos"
+
+
+msgid "Pivot Point"
+msgstr "Pontos de pivô"
+
+
+msgid "Apply"
+msgstr "Aplicar"
+
+
+msgid "Random Mask"
+msgstr "Máscara Aleatória"
+
+
+msgid "Names"
+msgstr "Nomes"
+
+
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
 
 
 msgid "Local View"
 msgstr "Visão local"
 
 
-msgid "Viewpoint"
-msgstr "Ponto de visualização"
+msgid "Propagate"
+msgstr "Propagar"
 
 
-msgid "Navigation"
-msgstr "Navegação"
+msgid "In-Betweens"
+msgstr "Entre as continuidades"
 
 
-msgid "Align View"
-msgstr "Alinhar visualização"
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
 
 
-msgid "Align View to Active"
-msgstr "Alinhar vista para o ativo"
+msgid "Clear Transform"
+msgstr "Limpar transformações"
 
 
-msgid "View Regions"
-msgstr "Visualizar Regiões"
+msgid "Mirror"
+msgstr "Espelhar"
+
+
+msgid "Hooks"
+msgstr "Ganchos"
+
+
+msgid "Select Similar"
+msgstr "Selecionar por similaridades"
+
+
+msgid "Convert"
+msgstr "Converter"
+
+
+msgid "Make Single User"
+msgstr "Tornar usuário único"
 
 
 msgid "Select More/Less"
 msgstr "Selecionar mais ou menos"
 
 
-msgid "Select Similar"
-msgstr "Selecionar por similaridades"
+msgid "Clean Up"
+msgstr "Limpeza"
+
+
+msgid "Quick Effects"
+msgstr "Efeitos instantâneos"
+
+
+msgid "View Regions"
+msgstr "Visualizar Regiões"
+
+
+msgid "Align View to Active"
+msgstr "Alinhar vista para o ativo"
+
+
+msgid "Track"
+msgstr "Rastrear"
+
+
+msgid "Align View"
+msgstr "Alinhar visualização"
+
+
+msgid "Navigation"
+msgstr "Navegação"
+
+
+msgid "Viewpoint"
+msgstr "Ponto de visualização"
+
+
+msgid "Rigid Body"
+msgstr "Corpo rígido"
+
+
+msgid "Relations"
+msgstr "Relações"
+
+
+msgid "Add Image"
+msgstr "Adicionar Imagem"
+
+
+msgid "Light Probe"
+msgstr "Sonda de Luz"
+
+
+msgid "Light"
+msgstr "Luz"
+
+
+msgid "Metaball"
+msgstr "Meta-esfera"
+
+
+msgid "Bone Roll"
+msgstr "Rolagem dos ossos"
+
+
+msgid "Text"
+msgstr "Texto"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiais"
+
+
+msgid "Select Loops"
+msgstr "Selecionar anéis"
 
 
 msgid "Select All by Trait"
@@ -21368,120 +21468,8 @@ msgid "Select Linked"
 msgstr "Selecionar vinculados(as)"
 
 
-msgid "Select Loops"
-msgstr "Selecionar anéis"
-
-
-msgid "Metaball"
-msgstr "Meta-esfera"
-
-
-msgid "Light"
-msgstr "Luz"
-
-
-msgid "Light Probe"
-msgstr "Sonda de Luz"
-
-
-msgid "Add Image"
-msgstr "Adicionar Imagem"
-
-
-msgid "Relations"
-msgstr "Relações"
-
-
-msgid "Rigid Body"
-msgstr "Corpo rígido"
-
-
-msgid "Apply"
-msgstr "Aplicar"
-
-
-msgid "Track"
-msgstr "Rastrear"
-
-
-msgid "Quick Effects"
-msgstr "Efeitos instantâneos"
-
-
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
-
-
-msgid "Clean Up"
-msgstr "Limpeza"
-
-
-msgid "Make Single User"
-msgstr "Tornar usuário único"
-
-
-msgid "Convert"
-msgstr "Converter"
-
-
-msgid "Hooks"
-msgstr "Ganchos"
-
-
-msgid "Random Mask"
-msgstr "Máscara Aleatória"
-
-
-msgid "Clear Transform"
-msgstr "Limpar transformações"
-
-
-msgid "In-Betweens"
-msgstr "Entre as continuidades"
-
-
-msgid "Propagate"
-msgstr "Propagar"
-
-
-msgid "Names"
-msgstr "Nomes"
-
-
-msgid "Toggle Bone Options"
-msgstr "Alternar opções de ossos"
-
-
-msgid "Enable Bone Options"
-msgstr "Habilitar opções de ossos"
-
-
-msgid "Disable Bone Options"
-msgstr "Desabilitar as opções de ossos"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modo de seleção de malhas"
-
-
-msgid "Face Data"
-msgstr "Dados das faces"
-
-
 msgid "Merge"
 msgstr "Fundir"
-
-
-msgid "Special Characters"
-msgstr "Caracteres especiais"
-
-
-msgid "Text"
-msgstr "Texto"
-
-
-msgid "Bone Roll"
-msgstr "Rolagem dos ossos"
 
 
 msgid "Basic"
@@ -44489,6 +44477,26 @@ msgid "Use HC method for relaxation"
 msgstr "Usa o método Classes de Humphrey para relaxamento."
 
 
+msgid "Channel to place this strip into"
+msgstr "O canal no qual posicionar esta trilha."
+
+
+msgid "Start frame of the sequence strip"
+msgstr "Quadro inicial da faixa de sequência."
+
+
+msgid "Allow Overlap"
+msgstr "Permitir sobreposições"
+
+
+msgid "Don't correct overlap on new sequence strips"
+msgstr "Não corrige as sobreposições em novas faixas de sequência."
+
+
+msgid "Replace Selection"
+msgstr "Sobrepor seleção"
+
+
 msgctxt "Operator"
 msgid "Change Effect Type"
 msgstr "Alterar os tipos de efeito"
@@ -44613,28 +44621,8 @@ msgid "Add an effect to the sequencer, most are applied on top of existing strip
 msgstr "Adiciona um efeito ao editor de sequências, a maioria é aplicada sobre o topo das faixas existentes."
 
 
-msgid "Channel to place this strip into"
-msgstr "O canal no qual posicionar esta trilha."
-
-
 msgid "End frame for the color strip"
 msgstr "Quadro final par a faixa de cor."
-
-
-msgid "Start frame of the sequence strip"
-msgstr "Quadro inicial da faixa de sequência."
-
-
-msgid "Allow Overlap"
-msgstr "Permitir sobreposições"
-
-
-msgid "Don't correct overlap on new sequence strips"
-msgstr "Não corrige as sobreposições em novas faixas de sequência."
-
-
-msgid "Replace Selection"
-msgstr "Sobrepor seleção"
 
 
 msgid "Sequencer effect type"
@@ -48736,24 +48724,24 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
-msgid "Render Pass"
-msgstr "Passo de renderização"
+msgid "Stereoscopy"
+msgstr "Estereoscopia"
 
 
 msgid "Motion Tracking"
 msgstr "Captura de movimentos"
 
 
-msgid "Transform Orientations"
-msgstr "Orientações de transformação"
-
-
 msgid "Quad View"
 msgstr "Exibição Quadrante"
 
 
-msgid "Stereoscopy"
-msgstr "Estereoscopia"
+msgid "Transform Orientations"
+msgstr "Orientações de transformação"
+
+
+msgid "Render Pass"
+msgstr "Passo de renderização"
 
 
 msgid "Bone Constraints"
@@ -50265,14 +50253,6 @@ msgstr "Coleção de caminhos."
 
 msgid "Point in a point cloud"
 msgstr "Ponto em uma nuvem de pontos"
-
-
-msgid "Cache Compression"
-msgstr "Compressão de cache"
-
-
-msgid "Fast but not so effective compression"
-msgstr "Compressão rápida mas não tão eficaz."
 
 
 msgid "Cache file path"
@@ -52044,14 +52024,6 @@ msgid "Multiple Importance Sample"
 msgstr "Amostra de múltipla importância"
 
 
-msgid "Homogeneous Volume"
-msgstr "Volume homogêneo"
-
-
-msgid "When using volume rendering, assume volume has the same density everywhere (not using any textures), for faster rendering"
-msgstr "Durante o uso de renderização de volumes, assume que o volume possui a mesma densidade em qualquer lugar (sem usar quaisquer texturas), para uma renderização mais rápida."
-
-
 msgid "Volume Interpolation"
 msgstr "Interpolação de volume"
 
@@ -52624,14 +52596,6 @@ msgid "Maximum number of volumetric scattering events"
 msgstr "Número máximo de eventos de espalhamento volumétrico."
 
 
-msgid "Max Steps"
-msgstr "Máximo de passos"
-
-
-msgid "Maximum number of steps through the volume before giving up, to avoid extremely long render times with big objects or small step sizes"
-msgstr "Número máximo de passos através dos volumes antes do encerramento, para evitar tempos de renderização extremamente longos com grandes objetos ou tamanhos pequenos de passos."
-
-
 msgid "Render pass to show in the 3D Viewport"
 msgstr "Passe de renderização para mostrar na janela de exibição 3D"
 
@@ -52682,10 +52646,6 @@ msgstr "Resolução de mapa"
 
 msgid "Interpolation method to use for volumes"
 msgstr "Método de interpolação a ser utilizado para volumes."
-
-
-msgid "Distance between volume shader samples when rendering the volume (lower values give more accurate and detailed results, but also increased render time)"
-msgstr "Distância entre as amostras de sombreamento dos volumes durante sua renderização (valores mais baixos fornecem precisão e resultados detalhados, mas também aumentam o tempo de renderização)."
 
 
 msgid "Settings/info about a language"
@@ -57800,18 +57760,6 @@ msgid "Color of disabled marker"
 msgstr "A cor do marcadores desabilitados."
 
 
-msgid "Handle Vertex"
-msgstr "Manípulos - Vértices"
-
-
-msgid "Handle Vertex Select"
-msgstr "Manípulos - Vértices selecionados"
-
-
-msgid "Handle Vertex Size"
-msgstr "Manípulos - Tamanho dos vértices"
-
-
 msgid "Locked Marker"
 msgstr "Marcador - Travado"
 
@@ -57882,6 +57830,18 @@ msgstr "Grupo de canal ativo"
 
 msgid "Marker Line"
 msgstr "Linha do Marcador"
+
+
+msgid "Handle Vertex"
+msgstr "Manípulos - Vértices"
+
+
+msgid "Handle Vertex Select"
+msgstr "Manípulos - Vértices selecionados"
+
+
+msgid "Handle Vertex Size"
+msgstr "Manípulos - Tamanho dos vértices"
 
 
 msgid "Theme Console"
@@ -58024,14 +57984,6 @@ msgid "Color of summary channel"
 msgstr "Cor do canal sumário."
 
 
-msgid "Value Sliders"
-msgstr "Deslizadores de valor"
-
-
-msgid "View Sliders"
-msgstr "Deslizadores de visualização"
-
-
 msgid "Theme File Browser"
 msgstr "Tema - Navegador de arquivos"
 
@@ -58108,24 +58060,12 @@ msgid "Channels Region"
 msgstr "Região de canais"
 
 
-msgid "Vertex Bevel"
-msgstr "Chanfros de vértices"
-
-
 msgid "Vertex Select"
 msgstr "Seleção de vértices"
 
 
 msgid "Vertex Size"
 msgstr "Tamanho dos vértices"
-
-
-msgid "Vertex Group Unreferenced"
-msgstr "Grupo de vértices não referenciado"
-
-
-msgid "Window Sliders"
-msgstr "Deslizadores de janela"
 
 
 msgid "Theme Image Editor"
@@ -58146,10 +58086,6 @@ msgstr "Ponto de face selecionado"
 
 msgid "Face Dot Size"
 msgstr "Tamanho do ponto de face"
-
-
-msgid "Freestyle Face Mark"
-msgstr "Marcações de faces Freestyle"
 
 
 msgid "Paint Curve Handle"
@@ -58264,10 +58200,6 @@ msgid "Input Node"
 msgstr "Nós de entrada"
 
 
-msgid "Layout Node"
-msgstr "Nós de esquema"
-
-
 msgid "Matte Node"
 msgstr "Nós de tela"
 
@@ -58284,16 +58216,8 @@ msgid "Curving of the noodle"
 msgstr "Curvamento do nódulo."
 
 
-msgid "Pattern Node"
-msgstr "Nós de padrão"
-
-
 msgid "Script Node"
 msgstr "Nós de scripts"
-
-
-msgid "Selected Text"
-msgstr "Texto selecionado"
 
 
 msgid "Vector Node"
@@ -58348,16 +58272,16 @@ msgid "Audio Strip"
 msgstr "Faixa de áudio"
 
 
-msgid "Draw Action"
-msgstr "Desenhar ação"
-
-
 msgid "Clip Strip"
 msgstr "Faixa de clipe"
 
 
 msgid "Preview Background"
 msgstr "Previsão de plano de fundo"
+
+
+msgid "Selected Text"
+msgstr "Texto selecionado"
 
 
 msgid "Theme Space Settings"
@@ -58584,10 +58508,6 @@ msgid "Edge Bevel"
 msgstr "Ferramenta para aplicar chanfros às arestas selecionadas."
 
 
-msgid "Edge UV Face Select"
-msgstr "Seleção de faces de arestas UV"
-
-
 msgid "Edge Seam"
 msgstr "Costuras de arestas"
 
@@ -58614,6 +58534,10 @@ msgstr "Texto das áreas das faces"
 
 msgid "Freestyle Edge Mark"
 msgstr "Marcações de arestas Freestyle"
+
+
+msgid "Freestyle Face Mark"
+msgstr "Marcações de faces Freestyle"
 
 
 msgid "Grease Pencil Vertex"
@@ -58654,6 +58578,14 @@ msgstr "A cor para indicar os quadros-chave de lápis de cera."
 
 msgid "Object Keyframe"
 msgstr "Quadros-chave dos objetos"
+
+
+msgid "Vertex Bevel"
+msgstr "Chanfros de vértices"
+
+
+msgid "Vertex Group Unreferenced"
+msgstr "Grupo de vértices não referenciado"
 
 
 msgid "View Overlay"
@@ -60134,10 +60066,6 @@ msgstr "Sem nós de saída"
 
 msgid "Cast Shadow"
 msgstr "Projetar sombras"
-
-
-msgid "Homogeneous"
-msgstr "Homogeneizar"
 
 
 msgid "Max Samples"
@@ -61778,6 +61706,16 @@ msgstr "Apagar quadros-chave..."
 
 
 msgctxt "Operator"
+msgid "Clear Keyframes..."
+msgstr "Limpar quadros-chave..."
+
+
+msgctxt "Operator"
+msgid "Interactive Mirror"
+msgstr "Espelhamento interativo"
+
+
+msgctxt "Operator"
 msgid "Change Path/Files"
 msgstr "Alterar caminhos e / ou arquivos"
 
@@ -62386,11 +62324,6 @@ msgstr "Localização:"
 
 
 msgctxt "Operator"
-msgid "Interactive Mirror"
-msgstr "Espelhamento interativo"
-
-
-msgctxt "Operator"
 msgid "Selection to Active"
 msgstr "Selecionados para ativos"
 
@@ -62643,11 +62576,6 @@ msgstr "Alto-falante"
 msgctxt "Operator"
 msgid "Make Local..."
 msgstr "Tornar local..."
-
-
-msgctxt "Operator"
-msgid "Clear Keyframes..."
-msgstr "Limpar quadros-chave..."
 
 
 msgctxt "Operator"

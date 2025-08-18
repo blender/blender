@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'6dca66d606ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-11 08:28+0000\n"
+"POT-Creation-Date: 2025-08-18 09:16+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: VertexSelection <amacsizk2021@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -11797,10 +11797,6 @@ msgid "File Select Parameters"
 msgstr "Dosya Seçim Parametreleri"
 
 
-msgid "Whether this path is currently reachable"
-msgstr "Bu yol şu anda ulaşılabilir mi"
-
-
 msgid "Save"
 msgstr "Kaydet"
 
@@ -12843,14 +12839,6 @@ msgstr "Posta kodu"
 
 msgid "Effective but slow compression"
 msgstr "Etkili ama yavaş sıkıştırma"
-
-
-msgid "Blosc"
-msgstr "Blok"
-
-
-msgid "Multithreaded compression, similar in size and quality as 'Zip'"
-msgstr "Çok iş parçacıklı sıkıştırma, boyut ve kalite olarak 'Zip' ile benzer"
 
 
 msgid "Do not use any compression"
@@ -29106,24 +29094,8 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
-msgid "Pivot Point"
-msgstr "Pivot Noktası"
-
-
-msgid "Snap"
-msgstr "Yakala"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Orantılı Düzenleme Düşüşü"
-
-
-msgid "Mask Edit"
-msgstr "Maske Düzenleme"
-
-
-msgid "Automasking"
-msgstr "Otomatik maskeleme"
+msgid "Face Data"
+msgstr "Yüz Verileri"
 
 
 msgid "Face Sets Edit"
@@ -29134,152 +29106,48 @@ msgid "Vertex Group Locks"
 msgstr "Vertex Grup Kilitleri"
 
 
-msgid "Mirror"
-msgstr "Yansıtma"
+msgid "Automasking"
+msgstr "Otomatik maskeleme"
 
 
-msgid "UV Mapping"
-msgstr "UV Haritalama"
+msgid "Mesh Select Mode"
+msgstr "Örgü Seçim Kipi"
 
 
-msgid "Local View"
-msgstr "Yerel Görünüm"
+msgid "Mask Edit"
+msgstr "Maske Düzenleme"
 
 
-msgid "Viewpoint"
-msgstr "Bakış açısı"
+msgid "Proportional Editing Falloff"
+msgstr "Orantılı Düzenleme Düşüşü"
 
 
-msgid "Navigation"
-msgstr "Navigasyon"
+msgid "Disable Bone Options"
+msgstr "Kemik Seçeneklerini Devre Dışı Bırak"
 
 
-msgid "Align View"
-msgstr "Görünümü hizala"
+msgid "Snap"
+msgstr "Yakala"
 
 
-msgid "Align View to Active"
-msgstr "Görünümü Etkin Olarak Hizala"
+msgid "Enable Bone Options"
+msgstr "Kemik Seçeneklerini Etkinleştir"
 
 
-msgid "View Regions"
-msgstr "Bölgeleri Görüntüle"
+msgid "Toggle Bone Options"
+msgstr "Kemik Seçeneklerini Değiştir"
 
 
-msgid "Select More/Less"
-msgstr "Daha Fazla/Daha Az Seç"
-
-
-msgid "Select Similar"
-msgstr "Benzerini Seç"
-
-
-msgid "Select All by Trait"
-msgstr "Özelliğe Göre Tümünü Seç"
-
-
-msgid "Select Linked"
-msgstr "Bağlantılıyı Seç"
-
-
-msgid "Select Loops"
-msgstr "Döngüleri Seç"
-
-
-msgid "Assign Material"
-msgstr "Malzeme Atamak"
-
-
-msgid "Metaball"
-msgstr "Metabol"
-
-
-msgid "Light"
-msgstr "Işık"
-
-
-msgid "Light Probe"
-msgstr "Işık Sondası"
-
-
-msgid "Add Image"
-msgstr "Resim Ekle"
-
-
-msgid "Relations"
-msgstr "İlişkiler"
-
-
-msgid "Rigid Body"
-msgstr "Sert Gövde"
+msgid "Pivot Point"
+msgstr "Pivot Noktası"
 
 
 msgid "Apply"
 msgstr "Uygula"
 
 
-msgid "Track"
-msgstr "İzlemek"
-
-
-msgid "Quick Effects"
-msgstr "Hızlı Etkiler"
-
-
-msgid "Show/Hide"
-msgstr "Göster/Gizle"
-
-
-msgid "Clean Up"
-msgstr "Temizle"
-
-
-msgid "Asset"
-msgstr "Varlık"
-
-
-msgid "Make Single User"
-msgstr "Tek Kullanıcı Yap"
-
-
-msgid "Convert"
-msgstr "Çevir"
-
-
-msgid "Link/Transfer Data"
-msgstr "Veriyi Bağlantıla/Aktar"
-
-
-msgid "Hooks"
-msgstr "Kancalar"
-
-
-msgid "Trim/Add"
-msgstr "Kırp/Ekle"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Heykel Seti Pivot"
-
-
-msgid "Face Sets Init"
-msgstr "Yüz Setleri Başlatma"
-
-
 msgid "Random Mask"
 msgstr "Rastgele Maske"
-
-
-msgid "Clear Transform"
-msgstr "Temizle Dönüşüm"
-
-
-msgid "In-Betweens"
-msgstr "Arada Kalanlar"
-
-
-msgid "Propagate"
-msgstr "Yaymak"
 
 
 msgid "Bone Collections"
@@ -29290,24 +29158,164 @@ msgid "Names"
 msgstr "Adlar"
 
 
-msgid "Toggle Bone Options"
-msgstr "Kemik Seçeneklerini Değiştir"
+msgid "Show/Hide"
+msgstr "Göster/Gizle"
 
 
-msgid "Enable Bone Options"
-msgstr "Kemik Seçeneklerini Etkinleştir"
+msgid "Local View"
+msgstr "Yerel Görünüm"
 
 
-msgid "Disable Bone Options"
-msgstr "Kemik Seçeneklerini Devre Dışı Bırak"
+msgid "Propagate"
+msgstr "Yaymak"
 
 
-msgid "Mesh Select Mode"
-msgstr "Örgü Seçim Kipi"
+msgid "In-Betweens"
+msgstr "Arada Kalanlar"
 
 
-msgid "Face Data"
-msgstr "Yüz Verileri"
+msgid "UV Mapping"
+msgstr "UV Haritalama"
+
+
+msgid "Clear Transform"
+msgstr "Temizle Dönüşüm"
+
+
+msgid "Mirror"
+msgstr "Yansıtma"
+
+
+msgid "Face Sets Init"
+msgstr "Yüz Setleri Başlatma"
+
+
+msgid "Hooks"
+msgstr "Kancalar"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Heykel Seti Pivot"
+
+
+msgid "Trim/Add"
+msgstr "Kırp/Ekle"
+
+
+msgid "Select Similar"
+msgstr "Benzerini Seç"
+
+
+msgid "Convert"
+msgstr "Çevir"
+
+
+msgid "Link/Transfer Data"
+msgstr "Veriyi Bağlantıla/Aktar"
+
+
+msgid "Make Single User"
+msgstr "Tek Kullanıcı Yap"
+
+
+msgid "Select More/Less"
+msgstr "Daha Fazla/Daha Az Seç"
+
+
+msgid "Clean Up"
+msgstr "Temizle"
+
+
+msgid "Asset"
+msgstr "Varlık"
+
+
+msgid "Quick Effects"
+msgstr "Hızlı Etkiler"
+
+
+msgid "View Regions"
+msgstr "Bölgeleri Görüntüle"
+
+
+msgid "Align View to Active"
+msgstr "Görünümü Etkin Olarak Hizala"
+
+
+msgid "Track"
+msgstr "İzlemek"
+
+
+msgid "Align View"
+msgstr "Görünümü hizala"
+
+
+msgid "Navigation"
+msgstr "Navigasyon"
+
+
+msgid "Viewpoint"
+msgstr "Bakış açısı"
+
+
+msgid "Rigid Body"
+msgstr "Sert Gövde"
+
+
+msgid "Relations"
+msgstr "İlişkiler"
+
+
+msgid "Add Image"
+msgstr "Resim Ekle"
+
+
+msgid "Light Probe"
+msgstr "Işık Sondası"
+
+
+msgid "Light"
+msgstr "Işık"
+
+
+msgid "Metaball"
+msgstr "Metabol"
+
+
+msgid "Bone Roll"
+msgstr "Kemik Rulosu"
+
+
+msgid "Assign Material"
+msgstr "Malzeme Atamak"
+
+
+msgid "Text"
+msgstr "Metin"
+
+
+msgid "Kerning"
+msgstr "Harf aralığı"
+
+
+msgid "Special Characters"
+msgstr "Özel Karakterler"
+
+
+msgid "Select Loops"
+msgstr "Döngüleri Seç"
+
+
+msgid "Select All by Trait"
+msgstr "Özelliğe Göre Tümünü Seç"
+
+
+msgid "Select Linked"
+msgstr "Bağlantılıyı Seç"
+
+
+msgid "Merge"
+msgstr "Birleştir"
 
 
 msgid "Select by Face Strength"
@@ -29316,26 +29324,6 @@ msgstr "Yüz Gücüne Göre Seç"
 
 msgid "Set Face Strength"
 msgstr "Yüz Gücünü Ayarla"
-
-
-msgid "Merge"
-msgstr "Birleştir"
-
-
-msgid "Special Characters"
-msgstr "Özel Karakterler"
-
-
-msgid "Kerning"
-msgstr "Harf aralığı"
-
-
-msgid "Text"
-msgstr "Metin"
-
-
-msgid "Bone Roll"
-msgstr "Kemik Rulosu"
 
 
 msgid "Keyframe Insert Pie"
@@ -38977,10 +38965,6 @@ msgstr "2D sabitleme hareket izleme ayarlarını kullanarak görüntüleri sabit
 
 msgid "Method to use to filter stabilization"
 msgstr "Filtre stabilizasyonunda kullanılacak yöntem"
-
-
-msgid "Create sun beams based on image brightness"
-msgstr "Görüntü parlaklığına göre güneş ışınları oluşturun"
 
 
 msgid "Switch"
@@ -56815,6 +56799,18 @@ msgid "Ignore the last bone at the end of each chain (used to mark the length of
 msgstr "Her zincirin sonundaki son kemiği (önceki kemiğin uzunluğunu işaretlemek için kullanılır) dikkate almayın"
 
 
+msgid "Material Name Collision"
+msgstr "Malzeme Adı Çarpışması"
+
+
+msgid "Make Unique"
+msgstr "Benzersiz Yap"
+
+
+msgid "Reference Existing"
+msgstr "Referans Mevcut"
+
+
 msgid "Import options categories"
 msgstr "İthalat seçenekleri kategorileri"
 
@@ -69809,6 +69805,38 @@ msgid "Use Geometry (cotangent) relaxation, making UVs follow the underlying 3D 
 msgstr "Geometri (kotanjant) gevşemesini kullanın, UV'lerin alttaki 3B geometriyi takip etmesini sağlayın"
 
 
+msgid "Channel to place this strip into"
+msgstr "Bu şeridin yerleştirileceği kanal"
+
+
+msgid "Start frame of the sequence strip"
+msgstr "Dizi şeridinin başlangıç karesi"
+
+
+msgid "Allow Overlap"
+msgstr "Çakışmaya İzin Ver"
+
+
+msgid "Don't correct overlap on new sequence strips"
+msgstr "Yeni dizi şeritlerindeki örtüşmeyi düzeltmeyin"
+
+
+msgid "Override Overlap Shuffle Behavior"
+msgstr "Üst üste binme karıştırma davranışını geçersiz kıl"
+
+
+msgid "Use the overlap_mode tool settings to determine how to shuffle overlapping strips"
+msgstr "Çakışan şeritlerin nasıl karıştırılacağını belirlemek için overlap_mode aracı ayarlarını kullanın"
+
+
+msgid "Replace Selection"
+msgstr "Seçimi Değiştir"
+
+
+msgid "Deselect previously selected strips"
+msgstr "Daha önce seçilen şeritleri seçimini kaldır"
+
+
 msgctxt "Operator"
 msgid "Change Effect Type"
 msgstr "Etki Türünü Değiştir"
@@ -69985,44 +70013,12 @@ msgid "Add Effect Strip"
 msgstr "Efekt Şeridi Ekle"
 
 
-msgid "Channel to place this strip into"
-msgstr "Bu şeridin yerleştirileceği kanal"
-
-
 msgid "Initialize the strip with this color"
 msgstr "Şeridi bu renkle başlat"
 
 
 msgid "End frame for the color strip"
 msgstr "Renkli şerit için son çerçeve"
-
-
-msgid "Start frame of the sequence strip"
-msgstr "Dizi şeridinin başlangıç karesi"
-
-
-msgid "Allow Overlap"
-msgstr "Çakışmaya İzin Ver"
-
-
-msgid "Don't correct overlap on new sequence strips"
-msgstr "Yeni dizi şeritlerindeki örtüşmeyi düzeltmeyin"
-
-
-msgid "Override Overlap Shuffle Behavior"
-msgstr "Üst üste binme karıştırma davranışını geçersiz kıl"
-
-
-msgid "Use the overlap_mode tool settings to determine how to shuffle overlapping strips"
-msgstr "Çakışan şeritlerin nasıl karıştırılacağını belirlemek için overlap_mode aracı ayarlarını kullanın"
-
-
-msgid "Replace Selection"
-msgstr "Seçimi Değiştir"
-
-
-msgid "Deselect previously selected strips"
-msgstr "Daha önce seçilen şeritleri seçimini kaldır"
 
 
 msgid "Sequencer effect type"
@@ -72424,39 +72420,6 @@ msgstr "Bir geçersiz kılma işlemini kaldırın"
 
 msgid "Reset to default values all elements of the array"
 msgstr "Dizinin tüm elemanlarını varsayılan değerlere sıfırla"
-
-
-msgctxt "Operator"
-msgid "Define Override Type"
-msgstr "Geçersiz Kılma Türünü Tanımla"
-
-
-msgid "Create an override operation, or set the type of an existing one"
-msgstr "Bir geçersiz kılma işlemi oluşturun veya mevcut bir işlemin türünü ayarlayın"
-
-
-msgid "Type of override operation"
-msgstr "Geçersiz kılma işleminin türü"
-
-
-msgid "NoOp"
-msgstr "HayırOp"
-
-
-msgid "'No-Operation', place holder preventing automatic override to ever affect the property"
-msgstr "'İşlem Yok', otomatik geçersiz kılmanın mülkü etkilemesini önleyen yer tutucu"
-
-
-msgid "Completely replace value from linked data by local one"
-msgstr "Bağlantılı verilerdeki değeri tamamen yerel bir değerle değiştirin"
-
-
-msgid "Store difference to linked data value"
-msgstr "Bağlantılı veri değerine göre farkı sakla"
-
-
-msgid "Store factor to linked data value (useful e.g. for scale)"
-msgstr "Faktörü bağlantılı veri değerine depola (örneğin ölçek için yararlıdır)"
 
 
 msgctxt "Operator"
@@ -75118,18 +75081,6 @@ msgid "Import OBJ groups as vertex groups"
 msgstr "OBJ gruplarını tepe noktası grupları olarak içe aktar"
 
 
-msgid "Material Name Collision"
-msgstr "Malzeme Adı Çarpışması"
-
-
-msgid "Make Unique"
-msgstr "Benzersiz Yap"
-
-
-msgid "Reference Existing"
-msgstr "Referans Mevcut"
-
-
 msgid "Split By Group"
 msgstr "Gruplara Göre Böl"
 
@@ -77237,116 +77188,8 @@ msgid "Panel containing UI elements"
 msgstr "UI öğelerini içeren panel"
 
 
-msgid "Active Tool"
-msgstr "Etkin Araç"
-
-
-msgid "View Lock"
-msgstr "Görünüm Kilidi"
-
-
 msgid "Selectability & Visibility"
 msgstr "Seçilebilirlik ve Görünürlük"
-
-
-msgid "Shadow Settings"
-msgstr "Gölge Ayarları"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO Ayarları"
-
-
-msgid "Cavity"
-msgstr "Boşluk"
-
-
-msgid "Render Pass"
-msgstr "Render Geçişi"
-
-
-msgid "Compositor"
-msgstr "Dizgici"
-
-
-msgid "Overlays"
-msgstr "Kaplamalar"
-
-
-msgid "Guides"
-msgstr "Rehberler"
-
-
-msgid "Viewer Node"
-msgstr "Görüntüleyici Düğümü"
-
-
-msgid "Motion Tracking"
-msgstr "Hareket İzleme"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Mesh Düzenleme Modu"
-
-
-msgid "Measurement"
-msgstr "Ölçüm"
-
-
-msgid "Curve Edit Mode"
-msgstr "Eğri Düzenleme Modu"
-
-
-msgid "Snapping"
-msgstr "Çıtlama"
-
-
-msgid "Transform Orientations"
-msgstr "Dönüştürme Yönlendirmeleri"
-
-
-msgid "Stroke Placement"
-msgstr "İnme Yerleşimi"
-
-
-msgid "Drawing Plane"
-msgstr "Çizim düzlemi"
-
-
-msgid "Quad View"
-msgstr "Dörtlü Görünüm"
-
-
-msgid "Onion Skin"
-msgstr "Soğan Kabuğu"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoskopi"
-
-
-msgid "Multi Frame"
-msgstr "Çoklu Çerçeve"
-
-
-msgid "Auto-Masking"
-msgstr "Otomatik Maskeleme"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Eğriler Heykel Eğri Seçenekleri Ekle"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Eğriler Şekil Parametresi Düşüşü"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "Eğriler Büyüyor/Küçülüyor Ölçekleme"
-
-
-msgid "Viewport Debug"
-msgstr "Görüş Alanı Hata Ayıklaması"
 
 
 msgid "VR"
@@ -77357,12 +77200,120 @@ msgid "VR Info"
 msgstr "VR Bilgisi"
 
 
+msgid "View Lock"
+msgstr "Görünüm Kilidi"
+
+
+msgid "Active Tool"
+msgstr "Etkin Araç"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "Eğriler Büyüyor/Küçülüyor Ölçekleme"
+
+
+msgid "Viewport Debug"
+msgstr "Görüş Alanı Hata Ayıklaması"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Eğriler Heykel Eğri Seçenekleri Ekle"
+
+
+msgid "Snapping"
+msgstr "Çıtlama"
+
+
+msgid "Auto-Masking"
+msgstr "Otomatik Maskeleme"
+
+
+msgid "Measurement"
+msgstr "Ölçüm"
+
+
+msgid "Curve Edit Mode"
+msgstr "Eğri Düzenleme Modu"
+
+
+msgid "Viewer Node"
+msgstr "Görüntüleyici Düğümü"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoskopi"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Mesh Düzenleme Modu"
+
+
+msgid "Motion Tracking"
+msgstr "Hareket İzleme"
+
+
+msgid "Multi Frame"
+msgstr "Çoklu Çerçeve"
+
+
 msgid "glTF Variants"
 msgstr "glTF Çeşitleri"
 
 
 msgid "glTF Material Variants"
 msgstr "glTF Malzeme Varyantları"
+
+
+msgid "Onion Skin"
+msgstr "Soğan Kabuğu"
+
+
+msgid "Quad View"
+msgstr "Dörtlü Görünüm"
+
+
+msgid "Guides"
+msgstr "Rehberler"
+
+
+msgid "Overlays"
+msgstr "Kaplamalar"
+
+
+msgid "Transform Orientations"
+msgstr "Dönüştürme Yönlendirmeleri"
+
+
+msgid "Stroke Placement"
+msgstr "İnme Yerleşimi"
+
+
+msgid "Cavity"
+msgstr "Boşluk"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Eğriler Şekil Parametresi Düşüşü"
+
+
+msgid "Drawing Plane"
+msgstr "Çizim düzlemi"
+
+
+msgid "Render Pass"
+msgstr "Render Geçişi"
+
+
+msgid "Compositor"
+msgstr "Dizgici"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO Ayarları"
+
+
+msgid "Shadow Settings"
+msgstr "Gölge Ayarları"
 
 
 msgid "Chain Scaling"
@@ -79638,14 +79589,6 @@ msgstr "Aktif Nokta Önbelleği"
 
 msgid "Active point cache for physics simulations"
 msgstr "Fizik simülasyonları için aktif nokta önbelleği"
-
-
-msgid "Cache Compression"
-msgstr "Önbellek Sıkıştırma"
-
-
-msgid "Fast but not so effective compression"
-msgstr "Hızlı ama çok etkili olmayan sıkıştırma"
 
 
 msgid "Cache file path"
@@ -82671,10 +82614,6 @@ msgid "Front and Back"
 msgstr "Ön ve Arka"
 
 
-msgid "Homogeneous Volume"
-msgstr "Homojen Hacim"
-
-
 msgid "Bump Map Correction"
 msgstr "Bump Haritası Düzeltmesi"
 
@@ -82709,10 +82648,6 @@ msgstr "Eşit açılı"
 
 msgid "Multiple Importance"
 msgstr "Çoklu Önem"
-
-
-msgid "Step Rate"
-msgstr "Adım Oranı"
 
 
 msgid "AO Distance"
@@ -83497,10 +83432,6 @@ msgstr "Hacim Rehberlik Olasılığı"
 
 msgid "The probability of guiding a direction inside a volume"
 msgstr "Bir hacim içinde bir yöne doğru yönlendirme olasılığı"
-
-
-msgid "Max Steps"
-msgstr "Maksimum Adımlar"
 
 
 msgid "Render pass to show in the 3D Viewport"
@@ -92474,38 +92405,6 @@ msgid "Color of disabled marker"
 msgstr "Engelli işaretleyicinin rengi"
 
 
-msgid "Align Handle"
-msgstr "Sapı Hizala"
-
-
-msgid "Align Handle Selected"
-msgstr "Hizalama Tutamağı Seçildi"
-
-
-msgid "Auto Handle Selected"
-msgstr "Otomatik Tutamaç Seçildi"
-
-
-msgid "Auto-Clamped Handle Selected"
-msgstr "Otomatik Kelepçeli Sap Seçildi"
-
-
-msgid "Free Handle Selected"
-msgstr "Ücretsiz Sap Seçildi"
-
-
-msgid "Handle Vertex"
-msgstr "Vertex'i ele al"
-
-
-msgid "Handle Vertex Select"
-msgstr "Vertex Seçimini Yönet"
-
-
-msgid "Handle Vertex Size"
-msgstr "Kol Tepe Boyutu"
-
-
 msgid "Locked Marker"
 msgstr "Kilitli İşaretleyici"
 
@@ -92612,6 +92511,42 @@ msgstr "İşaret çizgisi"
 
 msgid "Marker Line Selected"
 msgstr "İşaretçi Çizgisi Seçildi"
+
+
+msgid "Align Handle"
+msgstr "Sapı Hizala"
+
+
+msgid "Align Handle Selected"
+msgstr "Hizalama Tutamağı Seçildi"
+
+
+msgid "Auto Handle Selected"
+msgstr "Otomatik Tutamaç Seçildi"
+
+
+msgid "Auto-Clamped Handle Selected"
+msgstr "Otomatik Kelepçeli Sap Seçildi"
+
+
+msgid "Free Handle Selected"
+msgstr "Ücretsiz Sap Seçildi"
+
+
+msgid "Vector Handle Selected"
+msgstr "Vektör Kolu Seçildi"
+
+
+msgid "Handle Vertex"
+msgstr "Vertex'i ele al"
+
+
+msgid "Handle Vertex Select"
+msgstr "Vertex Seçimini Yönet"
+
+
+msgid "Handle Vertex Size"
+msgstr "Kol Tepe Boyutu"
 
 
 msgid "Theme Console"
@@ -92794,14 +92729,6 @@ msgid "Color of summary channel"
 msgstr "Özet kanalının rengi"
 
 
-msgid "Value Sliders"
-msgstr "Değer Kaydırıcıları"
-
-
-msgid "View Sliders"
-msgstr "Kaydırıcıları Görüntüle"
-
-
 msgid "Theme File Browser"
 msgstr "Tema Dosyası Tarayıcısı"
 
@@ -92930,32 +92857,12 @@ msgid "Channels Region"
 msgstr "Kanallar Bölgesi"
 
 
-msgid "Vector Handle Selected"
-msgstr "Vektör Kolu Seçildi"
-
-
-msgid "Last Selected Point"
-msgstr "Son Seçilen Nokta"
-
-
-msgid "Vertex Bevel"
-msgstr "Tepe Eğimi"
-
-
 msgid "Vertex Select"
 msgstr "Tepe Noktası Seçimi"
 
 
 msgid "Vertex Size"
 msgstr "Tepe Noktası Boyutu"
-
-
-msgid "Vertex Group Unreferenced"
-msgstr "Vertex Grubu Referanssız"
-
-
-msgid "Window Sliders"
-msgstr "Pencere Sürgüleri"
 
 
 msgid "Theme Image Editor"
@@ -92978,32 +92885,16 @@ msgid "Active Vertex/Edge/Face"
 msgstr "Aktif Tepe/Kenar/Yüz"
 
 
-msgid "Face Orientation Back"
-msgstr "Yüz Yönü Geri"
-
-
 msgid "Face Dot Selected"
 msgstr "Yüz Noktası Seçildi"
-
-
-msgid "Face Orientation Front"
-msgstr "Yüz Yönü Ön"
 
 
 msgid "Face Mode Selection"
 msgstr "Yüz Modu Seçimi"
 
 
-msgid "Face Retopology"
-msgstr "Yüz Retopolojisi"
-
-
 msgid "Face Dot Size"
 msgstr "Yüz Nokta Boyutu"
-
-
-msgid "Freestyle Face Mark"
-msgstr "Serbest Stil Yüz İşareti"
 
 
 msgid "Paint Curve Handle"
@@ -93302,10 +93193,6 @@ msgid "Input Node"
 msgstr "Giriş Düğümü"
 
 
-msgid "Layout Node"
-msgstr "Yerleşim Düğümü"
-
-
 msgid "Matte Node"
 msgstr "Mat Düğüm"
 
@@ -93326,20 +93213,12 @@ msgid "Curving of the noodle"
 msgstr "Eriştenin kıvrılması"
 
 
-msgid "Pattern Node"
-msgstr "Desen Düğümü"
-
-
 msgid "Repeat Zone"
 msgstr "Tekrarlama Bölgesi"
 
 
 msgid "Script Node"
 msgstr "Komut Dosyası Düğümü"
-
-
-msgid "Selected Text"
-msgstr "Seçilmiş Metin"
 
 
 msgid "Simulation Zone"
@@ -93422,10 +93301,6 @@ msgid "Audio Strip"
 msgstr "Ses şeridi"
 
 
-msgid "Draw Action"
-msgstr "Çizim Eylemi"
-
-
 msgid "Clip Strip"
 msgstr "Klips şeridi"
 
@@ -93436,6 +93311,10 @@ msgstr "Önizleme Arkaplanı"
 
 msgid "Selected Strips"
 msgstr "Seçilmiş Şeritler"
+
+
+msgid "Selected Text"
+msgstr "Seçilmiş Metin"
 
 
 msgid "Transition Strip"
@@ -93859,10 +93738,6 @@ msgid "Edge Crease"
 msgstr "Kenar kıvrımı"
 
 
-msgid "Edge UV Face Select"
-msgstr "Edge UV Yüz Seçimi"
-
-
 msgid "Edge Mode Selection"
 msgstr "Kenar Modu Seçimi"
 
@@ -93895,8 +93770,24 @@ msgid "Face Area Text"
 msgstr "Yüz Alanı Metni"
 
 
+msgid "Face Orientation Back"
+msgstr "Yüz Yönü Geri"
+
+
+msgid "Face Orientation Front"
+msgstr "Yüz Yönü Ön"
+
+
+msgid "Face Retopology"
+msgstr "Yüz Retopolojisi"
+
+
 msgid "Freestyle Edge Mark"
 msgstr "Serbest Stil Kenar İşareti"
+
+
+msgid "Freestyle Face Mark"
+msgstr "Serbest Stil Yüz İşareti"
 
 
 msgid "Grease Pencil Vertex"
@@ -93961,6 +93852,14 @@ msgstr "Nesne Anahtar Karesi"
 
 msgid "Color for indicating object keyframes"
 msgstr "Nesne anahtar karelerini belirtmek için renk"
+
+
+msgid "Vertex Bevel"
+msgstr "Tepe Eğimi"
+
+
+msgid "Vertex Group Unreferenced"
+msgstr "Vertex Grubu Referanssız"
 
 
 msgid "View Overlay"
@@ -98454,6 +98353,15 @@ msgstr "Alt Bölümü Azalt"
 
 
 msgctxt "WindowManager"
+msgid "Move Entire Point"
+msgstr "Tüm Noktayı Taşı"
+
+
+msgid "Move the entire point using its handles"
+msgstr "Noktanın tamamını tutamaklarını kullanarak hareket ettirin"
+
+
+msgctxt "WindowManager"
 msgid "Knife Tool Modal Map"
 msgstr "Bıçak Aracı Modal Haritası"
 
@@ -98879,15 +98787,6 @@ msgstr "Yandaki Tutamağı Taşı"
 
 msgid "Move the closer handle of the adjacent vertex"
 msgstr "Bitişik tepe noktasının daha yakın tutamacını hareket ettirin"
-
-
-msgctxt "WindowManager"
-msgid "Move Entire Point"
-msgstr "Tüm Noktayı Taşı"
-
-
-msgid "Move the entire point using its handles"
-msgstr "Noktanın tamamını tutamaklarını kullanarak hareket ettirin"
 
 
 msgctxt "WindowManager"
@@ -100406,10 +100305,6 @@ msgid "Offscreen Scale"
 msgstr "Ekran Dışı Ölçek"
 
 
-msgid "Step Rate Render"
-msgstr "Adım Oranı Oluşturma"
-
-
 msgid "Direct Light"
 msgstr "Doğrudan Işık"
 
@@ -100472,10 +100367,6 @@ msgstr "Çıkış düğümü yok"
 
 msgid "Cast Shadow"
 msgstr "Gölge Dökümü"
-
-
-msgid "Homogeneous"
-msgstr "Homojen"
 
 
 msgid "BVH"
@@ -103690,14 +103581,6 @@ msgid "Mask Value"
 msgstr "Maske Değeri"
 
 
-msgid "Invert to Fill"
-msgstr "Doldurmak için Ters Çevir"
-
-
-msgid "Invert to Scrape"
-msgstr "Kazımak için Ters Çevirmek"
-
-
 msgctxt "Operator"
 msgid "Copy Active to Selected Objects"
 msgstr "Etkin'i Seçili Nesnelere Kopyala"
@@ -106078,6 +105961,16 @@ msgstr "Anahtar Kareleri Sil..."
 
 
 msgctxt "Operator"
+msgid "Clear Keyframes..."
+msgstr "Anahtar Kareleri Temizle..."
+
+
+msgctxt "Operator"
+msgid "Interactive Mirror"
+msgstr "Etkileşimli Ayna"
+
+
+msgctxt "Operator"
 msgid "Change Path/Files"
 msgstr "Yol/Dosyaları Değiştir"
 
@@ -107302,11 +107195,6 @@ msgstr "Kullanıcı:"
 
 
 msgctxt "Operator"
-msgid "Interactive Mirror"
-msgstr "Etkileşimli Ayna"
-
-
-msgctxt "Operator"
 msgid "Selection to Active"
 msgstr "Aktif Seçim"
 
@@ -107633,11 +107521,6 @@ msgstr "Örgü Düzlemi"
 msgctxt "Operator"
 msgid "Make Local..."
 msgstr "Yerel Yap..."
-
-
-msgctxt "Operator"
-msgid "Clear Keyframes..."
-msgstr "Anahtar Kareleri Temizle..."
 
 
 msgctxt "Operator"
@@ -111879,21 +111762,6 @@ msgstr "Geçersiz Kılmaları Kaldır"
 msgctxt "Operator"
 msgid "Remove Single Override"
 msgstr "Tek Geçersiz Kılmayı Kaldır"
-
-
-msgctxt "Operator"
-msgid "Define Overrides"
-msgstr "Geçersiz Kılmaları Tanımla"
-
-
-msgctxt "Operator"
-msgid "Define Single Override"
-msgstr "Tek Geçersiz Kılmayı Tanımla"
-
-
-msgctxt "Operator"
-msgid "Define Override"
-msgstr "Geçersiz Kılmayı Tanımla"
 
 
 msgctxt "Operator"
@@ -123763,12 +123631,12 @@ msgid " (Recovered)"
 msgstr " (Kurtarıldı)"
 
 
-msgid "Failed to load using Vulkan, using OpenGL instead."
-msgstr "Vulkan kullanılarak yükleme başarısız oldu, bunun yerine OpenGL kullanıldı."
-
-
 msgid "Updating GPU drivers may solve this issue."
 msgstr "GPU sürücülerini güncellemek bu sorunu çözebilir."
+
+
+msgid "Failed to load using Vulkan, using OpenGL instead."
+msgstr "Vulkan kullanılarak yükleme başarısız oldu, bunun yerine OpenGL kullanıldı."
 
 
 msgid "Failed to create window"

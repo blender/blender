@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'6dca66d606ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-11 08:28+0000\n"
+"POT-Creation-Date: 2025-08-18 09:16+0000\n"
 "PO-Revision-Date: 2025-07-23 15:14+0000\n"
 "Last-Translator: Kamil <uhkamil@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -11572,68 +11572,40 @@ msgid "Mask"
 msgstr "Maska"
 
 
-msgid "Snap"
-msgstr "Przyciągnij"
+msgid "Face Data"
+msgstr "Dane ściany"
 
 
 msgid "Proportional Editing Falloff"
 msgstr "Proporcjonalne edytowanie spadku"
 
 
-msgid "Mirror"
-msgstr "Odbicie lustrzane"
-
-
-msgid "Local View"
-msgstr "Widok lokalny"
-
-
-msgid "Viewpoint"
-msgstr "Punkt obserwacji"
-
-
-msgid "Navigation"
-msgstr "Nawigacja"
-
-
-msgid "Select Linked"
-msgstr "Zaznacz powiązane"
-
-
-msgid "Assign Material"
-msgstr "Przypisanie materiału"
-
-
-msgid "Metaball"
-msgstr "Metakula"
-
-
-msgid "Light"
-msgstr "Światło"
-
-
-msgid "Light Probe"
-msgstr "Sonda świetlna"
-
-
-msgid "Rigid Body"
-msgstr "Bryła sztywna"
+msgid "Snap"
+msgstr "Przyciągnij"
 
 
 msgid "Apply"
 msgstr "Zastosuj"
 
 
-msgid "Track"
-msgstr "Ścieżka"
-
-
-msgid "Quick Effects"
-msgstr "Szybkie efekty"
+msgid "Bone Collections"
+msgstr "Kolekcja kości"
 
 
 msgid "Show/Hide"
 msgstr "Pokaż/Ukryj"
+
+
+msgid "Local View"
+msgstr "Widok lokalny"
+
+
+msgid "Mirror"
+msgstr "Odbicie lustrzane"
+
+
+msgid "Convert"
+msgstr "Konwertuj"
 
 
 msgid "Clean Up"
@@ -11644,24 +11616,52 @@ msgid "Asset"
 msgstr "Prefabrykat"
 
 
-msgid "Convert"
-msgstr "Konwertuj"
+msgid "Quick Effects"
+msgstr "Szybkie efekty"
 
 
-msgid "Bone Collections"
-msgstr "Kolekcja kości"
+msgid "Track"
+msgstr "Ścieżka"
 
 
-msgid "Face Data"
-msgstr "Dane ściany"
+msgid "Navigation"
+msgstr "Nawigacja"
 
 
-msgid "Merge"
-msgstr "Scal"
+msgid "Viewpoint"
+msgstr "Punkt obserwacji"
+
+
+msgid "Rigid Body"
+msgstr "Bryła sztywna"
+
+
+msgid "Light Probe"
+msgstr "Sonda świetlna"
+
+
+msgid "Light"
+msgstr "Światło"
+
+
+msgid "Metaball"
+msgstr "Metakula"
+
+
+msgid "Assign Material"
+msgstr "Przypisanie materiału"
 
 
 msgid "Text"
 msgstr "Tekst"
+
+
+msgid "Select Linked"
+msgstr "Zaznacz powiązane"
+
+
+msgid "Merge"
+msgstr "Scal"
 
 
 msgid "Catalog"
@@ -17361,20 +17361,8 @@ msgid "Active Tool"
 msgstr "Aktywne narzędzie"
 
 
-msgid "Shadow Settings"
-msgstr "Ustawienia cienia"
-
-
-msgid "Compositor"
-msgstr "Kompozytor"
-
-
-msgid "Motion Tracking"
-msgstr "Śledzenie ruchu"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Tryb edycji siatki"
+msgid "Snapping"
+msgstr "Przyciąganie"
 
 
 msgid "Measurement"
@@ -17385,12 +17373,24 @@ msgid "Curve Edit Mode"
 msgstr "Tryb edycji krzywej"
 
 
-msgid "Snapping"
-msgstr "Przyciąganie"
+msgid "Mesh Edit Mode"
+msgstr "Tryb edycji siatki"
+
+
+msgid "Motion Tracking"
+msgstr "Śledzenie ruchu"
 
 
 msgid "Transform Orientations"
 msgstr "Orientacje przekształcenia"
+
+
+msgid "Compositor"
+msgstr "Kompozytor"
+
+
+msgid "Shadow Settings"
+msgstr "Ustawienia cienia"
 
 
 msgid "Aperture"
@@ -20352,10 +20352,6 @@ msgid "Renders"
 msgstr "Rendery"
 
 
-msgid "Homogeneous"
-msgstr "Jednorodny"
-
-
 msgid "Max Samples"
 msgstr "Maksimum próbek"
 
@@ -21728,6 +21724,16 @@ msgstr "Usuń klatki kluczowe..."
 
 
 msgctxt "Operator"
+msgid "Clear Keyframes..."
+msgstr "Wyczyść klatki kluczowe..."
+
+
+msgctxt "Operator"
+msgid "Interactive Mirror"
+msgstr "Lustro interaktywne"
+
+
+msgctxt "Operator"
 msgid "Change Path/Files"
 msgstr "Zmień ścieżkę/pliki"
 
@@ -22392,11 +22398,6 @@ msgstr "Użytkownik:"
 
 
 msgctxt "Operator"
-msgid "Interactive Mirror"
-msgstr "Lustro interaktywne"
-
-
-msgctxt "Operator"
 msgid "Selection to Active"
 msgstr "Zaznaczenie do aktywnego"
 
@@ -22643,11 +22644,6 @@ msgstr "Głośnik"
 msgctxt "Operator"
 msgid "Mesh Plane"
 msgstr "Siatka płaszczyzny"
-
-
-msgctxt "Operator"
-msgid "Clear Keyframes..."
-msgstr "Wyczyść klatki kluczowe..."
 
 
 msgctxt "Operator"

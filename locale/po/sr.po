@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'6dca66d606ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-11 08:28+0000\n"
+"POT-Creation-Date: 2025-08-18 09:16+0000\n"
 "PO-Revision-Date: 2025-07-23 15:10+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -8521,112 +8521,112 @@ msgid "Material slot name"
 msgstr "Назив слота материјала"
 
 
-msgid "Snap"
-msgstr "Лепљење"
-
-
-msgid "Mirror"
-msgstr "Огледало"
-
-
-msgid "UV Mapping"
-msgstr "UV Мапирање"
-
-
-msgid "Local View"
-msgstr "Локални поглед"
-
-
-msgid "Navigation"
-msgstr "Навигација"
-
-
-msgid "Align View"
-msgstr "Поравнај поглед"
-
-
-msgid "Select Linked"
-msgstr "Изабери повезано"
-
-
-msgid "Metaball"
-msgstr "Мета лопта"
-
-
-msgid "Light"
-msgstr "Светлост"
-
-
-msgid "Relations"
-msgstr "Односи"
-
-
-msgid "Rigid Body"
-msgstr "Круто тело"
-
-
-msgid "Apply"
-msgstr "Примени"
-
-
-msgid "Track"
-msgstr "Стаза"
-
-
-msgid "Quick Effects"
-msgstr "Брзи ефекти"
-
-
-msgid "Show/Hide"
-msgstr "Прикажи/сакриј"
-
-
-msgid "Hooks"
-msgstr "Удице"
-
-
-msgid "Clear Transform"
-msgstr "Очисти трансформације"
-
-
-msgid "In-Betweens"
-msgstr "У међувремену"
-
-
-msgid "Propagate"
-msgstr "Пренеси"
-
-
-msgid "Names"
-msgstr "Имена"
-
-
-msgid "Toggle Bone Options"
-msgstr "Мање/више информација"
-
-
-msgid "Enable Bone Options"
-msgstr "Омогући опције костију"
+msgid "Mesh Select Mode"
+msgstr "Мод избора мреже"
 
 
 msgid "Disable Bone Options"
 msgstr "Онемогући опције костију"
 
 
-msgid "Mesh Select Mode"
-msgstr "Мод избора мреже"
+msgid "Snap"
+msgstr "Лепљење"
 
 
-msgid "Merge"
-msgstr "Сједини"
+msgid "Enable Bone Options"
+msgstr "Омогући опције костију"
+
+
+msgid "Toggle Bone Options"
+msgstr "Мање/више информација"
+
+
+msgid "Apply"
+msgstr "Примени"
+
+
+msgid "Names"
+msgstr "Имена"
+
+
+msgid "Show/Hide"
+msgstr "Прикажи/сакриј"
+
+
+msgid "Local View"
+msgstr "Локални поглед"
+
+
+msgid "Propagate"
+msgstr "Пренеси"
+
+
+msgid "In-Betweens"
+msgstr "У међувремену"
+
+
+msgid "UV Mapping"
+msgstr "UV Мапирање"
+
+
+msgid "Clear Transform"
+msgstr "Очисти трансформације"
+
+
+msgid "Mirror"
+msgstr "Огледало"
+
+
+msgid "Hooks"
+msgstr "Удице"
+
+
+msgid "Quick Effects"
+msgstr "Брзи ефекти"
+
+
+msgid "Track"
+msgstr "Стаза"
+
+
+msgid "Align View"
+msgstr "Поравнај поглед"
+
+
+msgid "Navigation"
+msgstr "Навигација"
+
+
+msgid "Rigid Body"
+msgstr "Круто тело"
+
+
+msgid "Relations"
+msgstr "Односи"
+
+
+msgid "Light"
+msgstr "Светлост"
+
+
+msgid "Metaball"
+msgstr "Мета лопта"
+
+
+msgid "Bone Roll"
+msgstr "Ролна костију"
 
 
 msgid "Special Characters"
 msgstr "Специјални знаци"
 
 
-msgid "Bone Roll"
-msgstr "Ролна костију"
+msgid "Select Linked"
+msgstr "Изабери повезано"
+
+
+msgid "Merge"
+msgstr "Сједини"
 
 
 msgid "Basic"
@@ -17550,6 +17550,26 @@ msgid "Use Laplacian method for relaxation"
 msgstr "Користи Лапласов метод за опуштање"
 
 
+msgid "Channel to place this strip into"
+msgstr "Канал на који постављате траку"
+
+
+msgid "Start frame of the sequence strip"
+msgstr "Почетни кадар траке секвенце"
+
+
+msgid "Allow Overlap"
+msgstr "Дозволи преклапање"
+
+
+msgid "Don't correct overlap on new sequence strips"
+msgstr "Не исправљај преклапање за нове траке секвенце"
+
+
+msgid "Replace Selection"
+msgstr "Замени избор"
+
+
 msgctxt "Operator"
 msgid "Change Effect Type"
 msgstr "Измени врсту ефеката"
@@ -17637,28 +17657,8 @@ msgid "Add an effect to the sequencer, most are applied on top of existing strip
 msgstr "Додај ефекат на секвенцер, већина се додаје на врх постојећих трака"
 
 
-msgid "Channel to place this strip into"
-msgstr "Канал на који постављате траку"
-
-
 msgid "End frame for the color strip"
 msgstr "Крајњи кадар траке бојења"
-
-
-msgid "Start frame of the sequence strip"
-msgstr "Почетни кадар траке секвенце"
-
-
-msgid "Allow Overlap"
-msgstr "Дозволи преклапање"
-
-
-msgid "Don't correct overlap on new sequence strips"
-msgstr "Не исправљај преклапање за нове траке секвенце"
-
-
-msgid "Replace Selection"
-msgstr "Замени избор"
 
 
 msgid "Sequencer effect type"
@@ -19791,10 +19791,6 @@ msgid "Target Particle System"
 msgstr "Систем честица мете"
 
 
-msgid "Cache Compression"
-msgstr "Компресија"
-
-
 msgid "Cache file path"
 msgstr "Путања до складишта"
 
@@ -20511,10 +20507,6 @@ msgid "Case"
 msgstr "Велика/мала слова"
 
 
-msgid "When using volume rendering, assume volume has the same density everywhere (not using any textures), for faster rendering"
-msgstr "При рендеровању запремине, рачунај да је густина свуда иста (не користи текстуре), ради бржег рендеринга"
-
-
 msgid "Use Motion Blur"
 msgstr "Замућење покрета"
 
@@ -20577,10 +20569,6 @@ msgstr "Величина плочице"
 
 msgid "Layer Samples"
 msgstr "Узорака слоја"
-
-
-msgid "Max Steps"
-msgstr "Макс. корака"
 
 
 msgid "Diffuse Direct"
@@ -22047,14 +22035,6 @@ msgid "Color of summary channel"
 msgstr "Боја канала резимеа"
 
 
-msgid "Value Sliders"
-msgstr "Клизачи вредности"
-
-
-msgid "View Sliders"
-msgstr "Клизачи погледа"
-
-
 msgid "Selected File"
 msgstr "Изабрана датотека"
 
@@ -22103,10 +22083,6 @@ msgid "Vertex Size"
 msgstr "Величина темена"
 
 
-msgid "Window Sliders"
-msgstr "Клизачи прозора"
-
-
 msgid "Edge Select"
 msgstr "Избор ивице"
 
@@ -22117,10 +22093,6 @@ msgstr "Изабрана тачка странице"
 
 msgid "Face Dot Size"
 msgstr "Величина тачке странице"
-
-
-msgid "Freestyle Face Mark"
-msgstr "Слободоручне ознаке страница"
 
 
 msgid "Wire Edit"
@@ -22183,16 +22155,8 @@ msgid "Matte Node"
 msgstr "Мат чвор"
 
 
-msgid "Pattern Node"
-msgstr "Чвор шаре"
-
-
 msgid "Script Node"
 msgstr "Чвор скрипте"
-
-
-msgid "Selected Text"
-msgstr "Изабрани текст"
 
 
 msgid "Vector Node"
@@ -22223,16 +22187,16 @@ msgid "Audio Strip"
 msgstr "Звучна трака"
 
 
-msgid "Draw Action"
-msgstr "Цртај акцију"
-
-
 msgid "Clip Strip"
 msgstr "Трака исечка"
 
 
 msgid "Preview Background"
 msgstr "Позадина прегледа"
+
+
+msgid "Selected Text"
+msgstr "Изабрани текст"
 
 
 msgid "Window Background"
@@ -22333,6 +22297,10 @@ msgstr "Текст угла странице"
 
 msgid "Freestyle Edge Mark"
 msgstr "Слободоручне ознаке ивица"
+
+
+msgid "Freestyle Face Mark"
+msgstr "Слободоручне ознаке страница"
 
 
 msgid "Grease Pencil Vertex"
@@ -23581,6 +23549,16 @@ msgid "Delete Keyframes..."
 msgstr "Уклони кључни кадар..."
 
 
+msgctxt "Operator"
+msgid "Clear Keyframes..."
+msgstr "Очисти кључне кадрове"
+
+
+msgctxt "Operator"
+msgid "Interactive Mirror"
+msgstr "Интерактивно огледало"
+
+
 msgid "Storage"
 msgstr "Складиште"
 
@@ -23751,11 +23729,6 @@ msgstr "Локација:"
 
 
 msgctxt "Operator"
-msgid "Interactive Mirror"
-msgstr "Интерактивно огледало"
-
-
-msgctxt "Operator"
 msgid "Cursor to Active"
 msgstr "Курсор на активно"
 
@@ -23923,11 +23896,6 @@ msgstr "Звучник"
 msgctxt "Operator"
 msgid "Make Local..."
 msgstr "Створи везе..."
-
-
-msgctxt "Operator"
-msgid "Clear Keyframes..."
-msgstr "Очисти кључне кадрове"
 
 
 msgctxt "Operator"

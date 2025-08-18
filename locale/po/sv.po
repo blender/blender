@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'6dca66d606ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-11 08:28+0000\n"
-"PO-Revision-Date: 2025-07-31 20:46+0000\n"
+"POT-Creation-Date: 2025-08-18 09:16+0000\n"
+"PO-Revision-Date: 2025-08-12 06:21+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
 "Language: sv\n"
@@ -1305,6 +1305,14 @@ msgstr "Namn på attributen"
 
 msgid "Array"
 msgstr "Array"
+
+
+msgid "Store a value for every element"
+msgstr "Lagra ett värde för varje element"
+
+
+msgid "Store a single value for the entire domain"
+msgstr "Lagra ett enstaka värde för hela domänen"
 
 
 msgid "Bool Attribute"
@@ -6374,6 +6382,10 @@ msgid "Output image in uncompressed Targa format"
 msgstr "Resultatbild i okomprimerat TARGA-format"
 
 
+msgid "TIFF (.tif)"
+msgstr "TIFF (.tif)"
+
+
 msgid "Output image in TIFF format"
 msgstr "Resultatbild i TIFF-format"
 
@@ -9279,92 +9291,36 @@ msgid "Mask"
 msgstr "Mask"
 
 
-msgid "Pivot Point"
-msgstr "Fast punkt"
-
-
 msgid "Snap"
 msgstr "Snäpp"
 
 
-msgid "Mirror"
-msgstr "Spegla"
-
-
-msgid "Local View"
-msgstr "Lokal vy"
-
-
-msgid "Viewpoint"
-msgstr "Visningspunkt"
-
-
-msgid "Navigation"
-msgstr "Navigering"
-
-
-msgid "Align View"
-msgstr "Justera vy"
-
-
-msgid "Align View to Active"
-msgstr "Justera vy till aktiv"
-
-
-msgid "Select More/Less"
-msgstr "Markera mera/mindre"
-
-
-msgid "Assign Material"
-msgstr "Tilldela material"
-
-
-msgid "Metaball"
-msgstr "Metaboll"
-
-
-msgid "Light"
-msgstr "Ljus"
-
-
-msgid "Light Probe"
-msgstr "Ljussond"
-
-
-msgid "Add Image"
-msgstr "Lägg till bild"
-
-
-msgid "Relations"
-msgstr "Relationer"
-
-
-msgid "Rigid Body"
-msgstr "Rigid kropp"
+msgid "Pivot Point"
+msgstr "Fast punkt"
 
 
 msgid "Apply"
 msgstr "Applicera"
 
 
-msgid "Track"
-msgstr "Spår"
-
-
-msgid "Quick Effects"
-msgstr "Snabbeffekter"
+msgid "Names"
+msgstr "Namn"
 
 
 msgid "Show/Hide"
 msgstr "Visa/dölj"
 
 
-msgid "Clean Up"
-msgstr "Städa upp"
+msgid "Local View"
+msgstr "Lokal vy"
 
 
-msgid "Asset"
-msgstr "Tillgång"
+msgid "Propagate"
+msgstr "Propagera"
+
+
+msgid "Mirror"
+msgstr "Spegla"
 
 
 msgid "Convert"
@@ -9375,24 +9331,80 @@ msgid "Link/Transfer Data"
 msgstr "Länka/överför data"
 
 
-msgid "Propagate"
-msgstr "Propagera"
+msgid "Select More/Less"
+msgstr "Markera mera/mindre"
 
 
-msgid "Names"
-msgstr "Namn"
+msgid "Clean Up"
+msgstr "Städa upp"
 
 
-msgid "Merge"
-msgstr "Sammanfoga"
+msgid "Asset"
+msgstr "Tillgång"
+
+
+msgid "Quick Effects"
+msgstr "Snabbeffekter"
+
+
+msgid "Align View to Active"
+msgstr "Justera vy till aktiv"
+
+
+msgid "Track"
+msgstr "Spår"
+
+
+msgid "Align View"
+msgstr "Justera vy"
+
+
+msgid "Navigation"
+msgstr "Navigering"
+
+
+msgid "Viewpoint"
+msgstr "Visningspunkt"
+
+
+msgid "Rigid Body"
+msgstr "Rigid kropp"
+
+
+msgid "Relations"
+msgstr "Relationer"
+
+
+msgid "Add Image"
+msgstr "Lägg till bild"
+
+
+msgid "Light Probe"
+msgstr "Ljussond"
+
+
+msgid "Light"
+msgstr "Ljus"
+
+
+msgid "Metaball"
+msgstr "Metaboll"
+
+
+msgid "Assign Material"
+msgstr "Tilldela material"
+
+
+msgid "Text"
+msgstr "Text"
 
 
 msgid "Special Characters"
 msgstr "Specialtecken"
 
 
-msgid "Text"
-msgstr "Text"
+msgid "Merge"
+msgstr "Sammanfoga"
 
 
 msgid "Animals"
@@ -16482,6 +16494,10 @@ msgid "Update Scene FPS"
 msgstr "Uppdatera scenens bildfrekvens"
 
 
+msgid "Make Unique"
+msgstr "Gör unik"
+
+
 msgid "Import Animation"
 msgstr "Importera animering"
 
@@ -19653,6 +19669,14 @@ msgid "Unmasked"
 msgstr "Omaskerad"
 
 
+msgid "Allow Overlap"
+msgstr "Tillåt överlappning"
+
+
+msgid "Replace Selection"
+msgstr "Ersätt markering"
+
+
 msgctxt "Sequence"
 msgid "Type"
 msgstr "Typ"
@@ -19719,14 +19743,6 @@ msgstr "Kopiera"
 
 msgid "Delete Data"
 msgstr "Ta bort data"
-
-
-msgid "Allow Overlap"
-msgstr "Tillåt överlappning"
-
-
-msgid "Replace Selection"
-msgstr "Ersätt markering"
 
 
 msgctxt "Operator"
@@ -20344,10 +20360,6 @@ msgid "Jump to Target"
 msgstr "Hoppa till mål"
 
 
-msgid "NoOp"
-msgstr "NoOp"
-
-
 msgctxt "Operator"
 msgid "Align"
 msgstr "Justera"
@@ -20766,10 +20778,6 @@ msgstr "Importera Wavefront OBJ"
 
 msgid "Load a Wavefront OBJ scene"
 msgstr "Läs in en Wavefront OBJ-scen"
-
-
-msgid "Make Unique"
-msgstr "Gör unik"
 
 
 msgctxt "Operator"
@@ -21355,8 +21363,28 @@ msgid "Palette Color"
 msgstr "Palettfärg"
 
 
+msgid "VR"
+msgstr "VR"
+
+
 msgid "Active Tool"
 msgstr "Aktivt verktyg"
+
+
+msgid "Measurement"
+msgstr "Mätning"
+
+
+msgid "Viewer Node"
+msgstr "Visningsnod"
+
+
+msgid "Overlays"
+msgstr "Överlägg"
+
+
+msgid "Stroke Placement"
+msgstr "Streckplacering"
 
 
 msgid "Cavity"
@@ -21365,26 +21393,6 @@ msgstr "Hålrum"
 
 msgid "Render Pass"
 msgstr "Renderingspass"
-
-
-msgid "Overlays"
-msgstr "Överlägg"
-
-
-msgid "Viewer Node"
-msgstr "Visningsnod"
-
-
-msgid "Measurement"
-msgstr "Mätning"
-
-
-msgid "Stroke Placement"
-msgstr "Streckplacering"
-
-
-msgid "VR"
-msgstr "VR"
 
 
 msgid "Import Settings"
@@ -24520,10 +24528,6 @@ msgid "Transitions"
 msgstr "Övergångar"
 
 
-msgid "Layout Node"
-msgstr "Layoutnod"
-
-
 msgid "Repeat Zone"
 msgstr "Upprepa zon"
 
@@ -24550,10 +24554,6 @@ msgstr "Temainställningar för egenskaperna"
 
 msgid "Search Match"
 msgstr "Sökträff"
-
-
-msgid "Draw Action"
-msgstr "Ritningsåtgärd"
 
 
 msgid "Preview Background"
@@ -25663,6 +25663,16 @@ msgid "Age: {:s}"
 msgstr "Ålder: {:s}"
 
 
+msgctxt "Preferences"
+msgid "Legacy (User)"
+msgstr "Föråldrad (användare)"
+
+
+msgctxt "Preferences"
+msgid "Legacy (Other)"
+msgstr "Föråldrad (annan)"
+
+
 msgid "Missing Built-in Add-ons"
 msgstr "Saknade inbyggda tillägg"
 
@@ -25827,6 +25837,39 @@ msgid "Paste and Bake"
 msgstr "Klistra in och baka"
 
 
+msgid "HIP has known stability issues"
+msgstr "HIP har kända stabilitetsproblem"
+
+
+msgid "Do not use compute device"
+msgstr "Använd inte beräkningsenhet"
+
+
+msgctxt "Operator"
+msgid "#140278"
+msgstr "#140278"
+
+
+msgid "Use CUDA for GPU acceleration"
+msgstr "Använd CUDA för GPU-acceleration"
+
+
+msgid "Use OptiX for GPU acceleration"
+msgstr "Använd OptiX för GPU-acceleration"
+
+
+msgid "Use HIP for GPU acceleration"
+msgstr "Använd HIP för GPU-acceleration"
+
+
+msgid "Use Metal for GPU acceleration"
+msgstr "Använd Metal för GPU-acceleration"
+
+
+msgid "Use oneAPI for GPU acceleration"
+msgstr "Använd oneAPI för GPU-acceleration"
+
+
 msgid "and NVIDIA driver version %s or newer"
 msgstr "och NVIDIA-drivrutin version %s eller nyare"
 
@@ -25883,6 +25926,10 @@ msgid "Use GPU"
 msgstr "Använd GPU"
 
 
+msgid "Scatter"
+msgstr "Sprid"
+
+
 msgid "Cycles built without Embree support"
 msgstr "Cycles byggd utan Embree-stöd"
 
@@ -25911,6 +25958,11 @@ msgstr "Det går inte att uppdatera scenens bildfrekvens eftersom BVH-filen inne
 
 msgid "Unable to parse XML, %s:%s for file %r"
 msgstr "Det gick inte att tolka XML, %s:%s för filen %r"
+
+
+msgctxt "Operator"
+msgid "FBX (.fbx) (Legacy)"
+msgstr "FBX (.fbx) (föråldrad)"
 
 
 msgctxt "Operator"
@@ -28256,6 +28308,16 @@ msgid "Delete Keyframes..."
 msgstr "Ta bort keyframes..."
 
 
+msgctxt "Operator"
+msgid "Clear Keyframes..."
+msgstr "Rensa keyframes..."
+
+
+msgctxt "Operator"
+msgid "Interactive Mirror"
+msgstr "Interaktiv spegel"
+
+
 msgid "Storage"
 msgstr "Lagring"
 
@@ -28398,6 +28460,10 @@ msgstr "Packa upp"
 
 msgid "Pack"
 msgstr "Packa"
+
+
+msgid "{:d} MB"
+msgstr "{:d} MB"
 
 
 msgid "dB"
@@ -28892,6 +28958,10 @@ msgid "Repository URL"
 msgstr "URL till förrådet"
 
 
+msgid "• Windows on ARM requires driver 31.0.112.0 or higher"
+msgstr "• Windows på ARM kräver drivrutin 31.0.112.0 eller högre"
+
+
 msgid "Enabled on startup, overriding the preference."
 msgstr "Aktiverad vid uppstart, åsidosätter inställningen."
 
@@ -28918,11 +28988,6 @@ msgstr "Läs in fabriksinställningar {:s}"
 
 msgid "Color {:d}"
 msgstr "Färg {:d}"
-
-
-msgctxt "Operator"
-msgid "Interactive Mirror"
-msgstr "Interaktiv spegel"
 
 
 msgctxt "Operator"
@@ -29137,11 +29202,6 @@ msgstr "Högtalare"
 msgctxt "Operator"
 msgid "Make Local..."
 msgstr "Gör lokal..."
-
-
-msgctxt "Operator"
-msgid "Clear Keyframes..."
-msgstr "Rensa keyframes..."
 
 
 msgctxt "Operator"
@@ -30571,6 +30631,10 @@ msgid "R"
 msgstr "R"
 
 
+msgid "Generating StudioLight icon..."
+msgstr "Genererar StudioLight-ikon..."
+
+
 msgid "OS"
 msgstr "OS"
 
@@ -30970,6 +31034,10 @@ msgid "Stop animation playback"
 msgstr "Stoppa uppspelning av animering"
 
 
+msgid "Canceling..."
+msgstr "Avbryter..."
+
+
 msgid "Resize Region"
 msgstr "Ändra storlek på region"
 
@@ -31166,6 +31234,10 @@ msgid "The selection included %d object type(s) which do not support conversion 
 msgstr "Valet innehöll %d objekttyp(er) som inte stöder konvertering till ”%s”"
 
 
+msgid "Baking nodes..."
+msgstr "Bakar noder..."
+
+
 msgid "Add IK"
 msgstr "Lägg till IK"
 
@@ -31208,6 +31280,10 @@ msgstr "Det går inte att överföra läget, käll- och/eller målobjekten är i
 
 msgid "Apply Modifier"
 msgstr "Tillämpa modifierare"
+
+
+msgid "Simulating ocean..."
+msgstr "Simulerar hav..."
 
 
 msgid "%d new levels rebuilt"
@@ -31338,6 +31414,18 @@ msgid "Time:"
 msgstr "Tid:"
 
 
+msgid "Mem:%dM, Peak %dM"
+msgstr "Minne:%dM, Högsta %dM"
+
+
+msgid "Mem:%dM, Peak: %dM"
+msgstr "Minne:%dM, Högsta: %dM"
+
+
+msgid "Rendering sequence..."
+msgstr "Renderar sekvens..."
+
+
 msgid "Scene has no camera"
 msgstr "Scenen har ingen kamera"
 
@@ -31346,12 +31434,20 @@ msgid "Write error: cannot save %s"
 msgstr "Skrivfel: kan inte spara %s"
 
 
+msgid "Generating icon preview..."
+msgstr "Genererar ikonförhandsvisning..."
+
+
 msgid "Replace this area"
 msgstr "Ersätt detta område"
 
 
 msgid "Select Area"
 msgstr "Välj område"
+
+
+msgid "Set {} as active"
+msgstr "Ställ in {} som aktiv"
 
 
 msgid "No fullscreen areas were found"
@@ -31626,6 +31722,10 @@ msgstr "Filnamn"
 
 msgid "Asset Catalogs"
 msgstr "Tillgångskataloger"
+
+
+msgid "Listing directories..."
+msgstr "Listar kataloger..."
 
 
 msgid "Home"
@@ -31949,8 +32049,20 @@ msgid "Cannot insert group '%s' in '%s'"
 msgstr "Kunde inte infoga gruppen '%s' i '%s'"
 
 
+msgid "Value: Unknown (not evaluated)"
+msgstr "Värde: Okänt (inte evaluerat)"
+
+
+msgid "Values: None"
+msgstr "Värden: Inga"
+
+
 msgid "True"
 msgstr "Sant"
+
+
+msgid "Type: List"
+msgstr "Typ: Lista"
 
 
 msgid "Disconnect"
@@ -32465,6 +32577,10 @@ msgstr "Ett eller flera objekt som används som prototyper i noder av typen ”I
 
 msgid "Unhandled Gprim type: %s (%s)"
 msgstr "Ohanterad Gprim-typ: %s (%s)"
+
+
+msgid "OBJ Export: No information to write"
+msgstr "OBJ-export: Ingen information att skriva"
 
 
 msgid "Built-in fonts cannot be renamed"
@@ -33334,10 +33450,6 @@ msgstr "BSSRDF"
 
 msgid "Diameter"
 msgstr "Diameter"
-
-
-msgid "Scatter"
-msgstr "Sprid"
 
 
 msgid "Coordinate 1"

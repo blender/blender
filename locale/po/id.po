@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'6dca66d606ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-11 08:28+0000\n"
+"POT-Creation-Date: 2025-08-18 09:16+0000\n"
 "PO-Revision-Date: 2025-07-23 14:57+0000\n"
 "Last-Translator: Michael Tribayu Jatnika Natawiria <mike.natawiria@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -10531,10 +10531,6 @@ msgid "Zip"
 msgstr "Zip"
 
 
-msgid "Blosc"
-msgstr "Blosc"
-
-
 msgid "Data Depth"
 msgstr "Kedalaman Data"
 
@@ -15323,64 +15319,64 @@ msgid "Snap"
 msgstr "Jepret"
 
 
-msgid "Mirror"
-msgstr "Cermin"
-
-
-msgid "Navigation"
-msgstr "Navigasi"
-
-
-msgid "Select Linked"
-msgstr "Seleksi yang Terhubung"
-
-
-msgid "Assign Material"
-msgstr "Tugaskan Bahan"
-
-
-msgid "Metaball"
-msgstr "Metabola"
-
-
-msgid "Light"
-msgstr "Cahaya"
-
-
-msgid "Light Probe"
-msgstr "Probe Cahaya"
-
-
-msgid "Add Image"
-msgstr "Tambah Gambar"
-
-
 msgid "Apply"
 msgstr "Tetapkan"
-
-
-msgid "Track"
-msgstr "Lacak"
-
-
-msgid "Asset"
-msgstr "Aset"
-
-
-msgid "Hooks"
-msgstr "Kait"
 
 
 msgid "Names"
 msgstr "Nama"
 
 
-msgid "Merge"
-msgstr "Menggabungkan"
+msgid "Mirror"
+msgstr "Cermin"
+
+
+msgid "Hooks"
+msgstr "Kait"
+
+
+msgid "Asset"
+msgstr "Aset"
+
+
+msgid "Track"
+msgstr "Lacak"
+
+
+msgid "Navigation"
+msgstr "Navigasi"
+
+
+msgid "Add Image"
+msgstr "Tambah Gambar"
+
+
+msgid "Light Probe"
+msgstr "Probe Cahaya"
+
+
+msgid "Light"
+msgstr "Cahaya"
+
+
+msgid "Metaball"
+msgstr "Metabola"
+
+
+msgid "Assign Material"
+msgstr "Tugaskan Bahan"
 
 
 msgid "Text"
 msgstr "Teks"
+
+
+msgid "Select Linked"
+msgstr "Seleksi yang Terhubung"
+
+
+msgid "Merge"
+msgstr "Menggabungkan"
 
 
 msgctxt "MovieClip"
@@ -25556,10 +25552,6 @@ msgid "Map Resolution"
 msgstr "Resolusi Peta"
 
 
-msgid "Distance between volume shader samples when rendering the volume (lower values give more accurate and detailed results, but also increased render time)"
-msgstr "Jarak diantara sampel volume shader saat render volume (mengecilkan nilai memberi hasil lebih akurat dan lengkap, tetapi menambahkan waktu render)"
-
-
 msgid "Language Name"
 msgstr "Nama Bahasa"
 
@@ -27358,10 +27350,6 @@ msgid "No output node"
 msgstr "Tidak ada node keluaran"
 
 
-msgid "Homogeneous"
-msgstr "Homogen"
-
-
 msgid "Texture Limit"
 msgstr "Batas Tekstur"
 
@@ -29147,6 +29135,16 @@ msgid "Delete Keyframes..."
 msgstr "Hapus Keyframe..."
 
 
+msgctxt "Operator"
+msgid "Clear Keyframes..."
+msgstr "Kosongkan Keyframe..."
+
+
+msgctxt "Operator"
+msgid "Interactive Mirror"
+msgstr "Cermin interaktif"
+
+
 msgid "Raw"
 msgstr "Raw"
 
@@ -29431,11 +29429,6 @@ msgstr "Pengguna:"
 
 
 msgctxt "Operator"
-msgid "Interactive Mirror"
-msgstr "Cermin interaktif"
-
-
-msgctxt "Operator"
 msgid "Selection to Active"
 msgstr "Seleksi ke Aktif"
 
@@ -29538,11 +29531,6 @@ msgstr "Kamera"
 msgctxt "Operator"
 msgid "Speaker"
 msgstr "Tambah Gambar"
-
-
-msgctxt "Operator"
-msgid "Clear Keyframes..."
-msgstr "Kosongkan Keyframe..."
 
 
 msgctxt "Operator"
