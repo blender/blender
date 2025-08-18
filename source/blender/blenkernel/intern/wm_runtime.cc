@@ -7,12 +7,15 @@
  */
 
 #include "BKE_report.hh"
+#include "BKE_undo_system.hh"
 #include "BKE_wm_runtime.hh"
 
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 
 #include "WM_api.hh"
+
+#include "WM_message.hh"
 
 namespace blender::bke {
 
@@ -49,6 +52,14 @@ WindowManagerRuntime::~WindowManagerRuntime()
   }
 
   WM_drag_free_list(&this->drags);
+
+  if (this->undo_stack) {
+    BKE_undosys_stack_destroy(this->undo_stack);
+  }
+
+  if (this->message_bus != nullptr) {
+    WM_msgbus_destroy(this->message_bus);
+  }
 }
 
 WindowRuntime::~WindowRuntime()

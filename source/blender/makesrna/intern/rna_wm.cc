@@ -1272,7 +1272,7 @@ static PointerRNA rna_WindowManager_active_keyconfig_get(PointerRNA *ptr)
       BLI_findstring(&wm->runtime->keyconfigs, U.keyconfigstr, offsetof(wmKeyConfig, idname)));
 
   if (!kc) {
-    kc = wm->defaultconf;
+    kc = wm->runtime->defaultconf;
   }
 
   return RNA_pointer_create_with_parent(*ptr, &RNA_KeyConfig, kc);
@@ -1288,6 +1288,24 @@ static void rna_WindowManager_active_keyconfig_set(PointerRNA *ptr,
   if (kc) {
     WM_keyconfig_set_active(wm, kc->idname);
   }
+}
+
+static PointerRNA rna_WindowManager_default_keyconfig_get(PointerRNA *ptr)
+{
+  wmWindowManager *wm = static_cast<wmWindowManager *>(ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, &RNA_KeyConfig, wm->runtime->defaultconf);
+}
+
+static PointerRNA rna_WindowManager_addon_keyconfig_get(PointerRNA *ptr)
+{
+  wmWindowManager *wm = static_cast<wmWindowManager *>(ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, &RNA_KeyConfig, wm->runtime->addonconf);
+}
+
+static PointerRNA rna_WindowManager_user_keyconfig_get(PointerRNA *ptr)
+{
+  wmWindowManager *wm = static_cast<wmWindowManager *>(ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, &RNA_KeyConfig, wm->runtime->userconf);
 }
 
 static void rna_WindowManager_extensions_statusbar_update(Main * /*bmain*/,
@@ -2803,13 +2821,15 @@ static void rna_def_wm_keyconfigs(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_ui_text(prop, "Active KeyConfig", "Active key configuration (preset)");
 
   prop = RNA_def_property(srna, "default", PROP_POINTER, PROP_NEVER_NULL);
-  RNA_def_property_pointer_sdna(prop, nullptr, "defaultconf");
+  RNA_def_property_pointer_funcs(
+      prop, "rna_WindowManager_default_keyconfig_get", nullptr, nullptr, nullptr);
   RNA_def_property_struct_type(prop, "KeyConfig");
   RNA_def_property_ui_text(prop, "Default Key Configuration", "Default builtin key configuration");
 
   prop = RNA_def_property(srna, "addon", PROP_POINTER, PROP_NEVER_NULL);
-  RNA_def_property_pointer_sdna(prop, nullptr, "addonconf");
   RNA_def_property_struct_type(prop, "KeyConfig");
+  RNA_def_property_pointer_funcs(
+      prop, "rna_WindowManager_addon_keyconfig_get", nullptr, nullptr, nullptr);
   RNA_def_property_ui_text(
       prop,
       "Add-on Key Configuration",
@@ -2817,8 +2837,9 @@ static void rna_def_wm_keyconfigs(BlenderRNA *brna, PropertyRNA *cprop)
       "configuration when handling events");
 
   prop = RNA_def_property(srna, "user", PROP_POINTER, PROP_NEVER_NULL);
-  RNA_def_property_pointer_sdna(prop, nullptr, "userconf");
   RNA_def_property_struct_type(prop, "KeyConfig");
+  RNA_def_property_pointer_funcs(
+      prop, "rna_WindowManager_user_keyconfig_get", nullptr, nullptr, nullptr);
   RNA_def_property_ui_text(
       prop,
       "User Key Configuration",

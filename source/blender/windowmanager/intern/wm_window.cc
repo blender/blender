@@ -224,8 +224,8 @@ static void wm_ghostwindow_destroy(wmWindowManager *wm, wmWindow *win)
    * drawing context to discard the GW context. */
   wm_window_clear_drawable(wm);
 
-  if (win == wm->winactive) {
-    wm->winactive = nullptr;
+  if (win == wm->runtime->winactive) {
+    wm->runtime->winactive = nullptr;
   }
 
   /* We need this window's GPU context active to discard it. */
@@ -897,7 +897,7 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
   }
 
   /* Clear drawable so we can set the new window. */
-  wmWindow *prev_windrawable = wm->windrawable;
+  wmWindow *prev_windrawable = wm->runtime->windrawable;
   wm_window_clear_drawable(wm);
 
   GHOST_WindowHandle ghostwin = GHOST_CreateWindow(
@@ -1015,13 +1015,15 @@ static void wm_window_ghostwindow_ensure(wmWindowManager *wm, wmWindow *win, boo
   }
 
   /* Add key-map handlers (1 handler for all keys in map!). */
-  wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Window", SPACE_EMPTY, RGN_TYPE_WINDOW);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      wm->runtime->defaultconf, "Window", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&win->handlers, keymap);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Screen", SPACE_EMPTY, RGN_TYPE_WINDOW);
+  keymap = WM_keymap_ensure(wm->runtime->defaultconf, "Screen", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&win->handlers, keymap);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Screen Editing", SPACE_EMPTY, RGN_TYPE_WINDOW);
+  keymap = WM_keymap_ensure(
+      wm->runtime->defaultconf, "Screen Editing", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&win->modalhandlers, keymap);
 
   /* Add drop boxes. */
@@ -1414,9 +1416,9 @@ static uint8_t wm_ghost_modifier_query(const enum ModSide side)
 
 static void wm_window_set_drawable(wmWindowManager *wm, wmWindow *win, bool activate)
 {
-  BLI_assert(ELEM(wm->windrawable, nullptr, win));
+  BLI_assert(ELEM(wm->runtime->windrawable, nullptr, win));
 
-  wm->windrawable = win;
+  wm->runtime->windrawable = win;
   if (activate) {
     GHOST_ActivateWindowDrawingContext(static_cast<GHOST_WindowHandle>(win->ghostwin));
   }
@@ -1425,8 +1427,8 @@ static void wm_window_set_drawable(wmWindowManager *wm, wmWindow *win, bool acti
 
 void wm_window_clear_drawable(wmWindowManager *wm)
 {
-  if (wm->windrawable) {
-    wm->windrawable = nullptr;
+  if (wm->runtime->windrawable) {
+    wm->runtime->windrawable = nullptr;
   }
 }
 
@@ -1434,7 +1436,7 @@ void wm_window_make_drawable(wmWindowManager *wm, wmWindow *win)
 {
   BLI_assert(GPU_framebuffer_active_get() == GPU_framebuffer_back_get());
 
-  if (win != wm->windrawable && win->ghostwin) {
+  if (win != wm->runtime->windrawable && win->ghostwin) {
     // win->lmbut = 0; /* Keeps hanging when mouse-pressed while other window opened. */
     wm_window_clear_drawable(wm);
 
@@ -1460,7 +1462,7 @@ void wm_window_reset_drawable()
   if (wm == nullptr) {
     return;
   }
-  wmWindow *win = wm->windrawable;
+  wmWindow *win = wm->runtime->windrawable;
 
   if (win && win->ghostwin) {
     wm_window_clear_drawable(wm);
@@ -1570,7 +1572,7 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr C
       win = static_cast<wmWindow *>(GHOST_GetWindowUserData(ghostwin));
     }
     else {
-      win = wm->winactive;
+      win = wm->runtime->winactive;
     }
 
     /* Display quit dialog or quit immediately. */
@@ -1620,8 +1622,8 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr C
       /* Entering window, update mouse position (without sending an event). */
       wm_window_update_eventstate(win);
 
-      /* No context change! `C->wm->windrawable` is drawable, or for area queues. */
-      wm->winactive = win;
+      /* No context change! `C->wm->runtime->windrawable` is drawable, or for area queues. */
+      wm->runtime->winactive = win;
       win->active = 1;
 
       /* Zero the `keymodifier`, it hangs on hotkeys that open windows otherwise. */
@@ -1806,8 +1808,8 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr C
 
       event.flag = eWM_EventFlag(0);
 
-      /* No context change! `C->wm->windrawable` is drawable, or for area queues. */
-      wm->winactive = win;
+      /* No context change! `C->wm->runtime->windrawable` is drawable, or for area queues. */
+      wm->runtime->winactive = win;
       win->active = 1;
 
       WM_event_add(win, &event);
@@ -2150,7 +2152,8 @@ void wm_test_gpu_backend_fallback(bContext *C)
   G.f |= G_FLAG_GPU_BACKEND_FALLBACK_QUIET;
 
   wmWindowManager *wm = CTX_wm_manager(C);
-  wmWindow *win = static_cast<wmWindow *>((wm->winactive) ? wm->winactive : wm->windows.first);
+  wmWindow *win = static_cast<wmWindow *>((wm->runtime->winactive) ? wm->runtime->winactive :
+                                                                     wm->windows.first);
 
   if (win) {
     /* We want this warning on the Main window, not a child window even if active. See #118765. */

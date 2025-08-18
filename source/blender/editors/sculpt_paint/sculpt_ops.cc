@@ -450,7 +450,7 @@ void object_sculpt_mode_enter(Main &bmain,
     if ((message_unsupported == nullptr) || force_dyntopo) {
       /* Needed because we may be entering this mode before the undo system loads. */
       wmWindowManager *wm = static_cast<wmWindowManager *>(bmain.wm.first);
-      const bool has_undo = wm->undo_stack != nullptr;
+      const bool has_undo = wm->runtime->undo_stack != nullptr;
       /* Undo push is needed to prevent memory leak. */
       if (has_undo) {
         undo::push_begin_ex(scene, ob, "Dynamic topology enable");

@@ -243,9 +243,9 @@ static BlendFileReadWMSetupData *wm_file_read_setup_wm_init(bContext *C,
    * However it's _not_ cleared when the UI is kept. This complicates use from add-ons
    * which can re-register subscribers on file-load. To support this use case,
    * it's best to have predictable behavior - always clear. */
-  if (wm->message_bus != nullptr) {
-    WM_msgbus_destroy(wm->message_bus);
-    wm->message_bus = nullptr;
+  if (wm->runtime->message_bus != nullptr) {
+    WM_msgbus_destroy(wm->runtime->message_bus);
+    wm->runtime->message_bus = nullptr;
   }
 
   /* XXX Hack! We have to clear context popup-region here, because removing all
@@ -279,11 +279,11 @@ static void wm_file_read_setup_wm_substitute_old_window(wmWindowManager *oldwm,
   win->gpuctx = oldwin->gpuctx;
   win->active = oldwin->active;
   if (win->active) {
-    wm->winactive = win;
+    wm->runtime->winactive = win;
   }
-  if (oldwm->windrawable == oldwin) {
-    oldwm->windrawable = nullptr;
-    wm->windrawable = win;
+  if (oldwm->runtime->windrawable == oldwin) {
+    oldwm->runtime->windrawable = nullptr;
+    wm->runtime->windrawable = win;
   }
 
   /* File loading in background mode still calls this. */
@@ -378,18 +378,18 @@ static void wm_file_read_setup_wm_use_new(bContext *C,
 
   /* Move existing key configurations into the new WM. */
   wm->runtime->keyconfigs = old_wm->runtime->keyconfigs;
-  wm->addonconf = old_wm->addonconf;
-  wm->defaultconf = old_wm->defaultconf;
-  wm->userconf = old_wm->userconf;
+  wm->runtime->addonconf = old_wm->runtime->addonconf;
+  wm->runtime->defaultconf = old_wm->runtime->defaultconf;
+  wm->runtime->userconf = old_wm->runtime->userconf;
 
   BLI_listbase_clear(&old_wm->runtime->keyconfigs);
-  old_wm->addonconf = nullptr;
-  old_wm->defaultconf = nullptr;
-  old_wm->userconf = nullptr;
+  old_wm->runtime->addonconf = nullptr;
+  old_wm->runtime->defaultconf = nullptr;
+  old_wm->runtime->userconf = nullptr;
 
   /* Ensure new keymaps are made, and space types are set. */
   wm->init_flag = 0;
-  wm->winactive = nullptr;
+  wm->runtime->winactive = nullptr;
 
   /* Clearing drawable of old WM before deleting any context to avoid clearing the wrong wm. */
   wm_window_clear_drawable(old_wm);
@@ -857,14 +857,14 @@ static void wm_file_read_post(bContext *C,
 
   if (use_data) {
     if (!G.background) {
-      if (wm->undo_stack == nullptr) {
-        wm->undo_stack = BKE_undosys_stack_create();
+      if (wm->runtime->undo_stack == nullptr) {
+        wm->runtime->undo_stack = BKE_undosys_stack_create();
       }
       else {
-        BKE_undosys_stack_clear(wm->undo_stack);
+        BKE_undosys_stack_clear(wm->runtime->undo_stack);
       }
-      BKE_undosys_stack_init_from_main(wm->undo_stack, bmain);
-      BKE_undosys_stack_init_from_context(wm->undo_stack, C);
+      BKE_undosys_stack_init_from_main(wm->runtime->undo_stack, bmain);
+      BKE_undosys_stack_init_from_context(wm->runtime->undo_stack, C);
     }
   }
 
@@ -1540,8 +1540,8 @@ void wm_homefile_read_ex(bContext *C,
     /* Clear keymaps because the current default keymap may have been initialized
      * from user preferences, which have been reset. */
     LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
-      if (wm->defaultconf) {
-        wm->defaultconf->flag &= ~KEYCONF_INIT_DEFAULT;
+      if (wm->runtime->defaultconf) {
+        wm->runtime->defaultconf->flag &= ~KEYCONF_INIT_DEFAULT;
       }
     }
   }
@@ -1956,7 +1956,7 @@ static ImBuf *blend_file_thumb_from_camera(const bContext *C,
   BlendThumbnail *thumb;
   wmWindowManager *wm = CTX_wm_manager(C);
   const float pixelsize_old = U.pixelsize;
-  wmWindow *windrawable_old = wm->windrawable;
+  wmWindow *windrawable_old = wm->runtime->windrawable;
   char err_out[256] = "unknown";
 
   /* Screen if no camera found. */
@@ -2318,7 +2318,7 @@ static bool wm_autosave_write_try(Main *bmain, wmWindowManager *wm)
    * compared to when the #MemFile undo step was used for saving undo-steps. So for now just skip
    * auto-save when we are in a mode where auto-save wouldn't have worked previously anyway. This
    * check can be removed once the performance regressions have been solved. */
-  if (ED_undosys_stack_memfile_get_if_active(wm->undo_stack) != nullptr) {
+  if (ED_undosys_stack_memfile_get_if_active(wm->runtime->undo_stack) != nullptr) {
     WM_autosave_write(wm, bmain);
     return true;
   }
@@ -4272,7 +4272,8 @@ void wm_test_autorun_warning(bContext *C)
   G.f |= G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET;
 
   wmWindowManager *wm = CTX_wm_manager(C);
-  wmWindow *win = (wm->winactive) ? wm->winactive : static_cast<wmWindow *>(wm->windows.first);
+  wmWindow *win = (wm->runtime->winactive) ? wm->runtime->winactive :
+                                             static_cast<wmWindow *>(wm->windows.first);
 
   if (win) {
     /* We want this warning on the Main window, not a child window even if active. See #118765. */
@@ -4296,7 +4297,8 @@ void wm_test_foreign_file_warning(bContext *C)
   G_MAIN->is_read_invalid = false;
 
   wmWindowManager *wm = CTX_wm_manager(C);
-  wmWindow *win = (wm->winactive) ? wm->winactive : static_cast<wmWindow *>(wm->windows.first);
+  wmWindow *win = (wm->runtime->winactive) ? wm->runtime->winactive :
+                                             static_cast<wmWindow *>(wm->windows.first);
 
   if (win) {
     /* We want this warning on the Main window, not a child window even if active. See #118765. */

@@ -107,7 +107,7 @@ static wmGizmo *tool_generic_create_gizmo(const bContext *C, wmGizmoGroup *gzgro
   }
 
   wmWindowManager *wm = CTX_wm_manager(C);
-  wmKeyConfig *kc = wm->defaultconf;
+  wmKeyConfig *kc = wm->runtime->defaultconf;
 
   gz->keymap = WM_keymap_ensure(kc, tref->runtime->keymap, tref->space_type, RGN_TYPE_WINDOW);
   return gz;
