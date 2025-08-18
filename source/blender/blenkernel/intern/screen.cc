@@ -1102,7 +1102,9 @@ void BKE_screen_view3d_shading_blend_read_data(BlendDataReader *reader, View3DSh
 
 static void write_region(BlendWriter *writer, ARegion *region, int spacetype)
 {
-  BLO_write_struct(writer, ARegion, region);
+  ARegion region_copy = *region;
+  region_copy.runtime = nullptr;
+  BLO_write_struct_at_address(writer, ARegion, region, &region_copy);
 
   if (region->regiondata) {
     if (region->flag & RGN_FLAG_TEMP_REGIONDATA) {
@@ -1149,7 +1151,10 @@ static void write_uilist(BlendWriter *writer, uiList *ui_list)
 static void write_panel_list(BlendWriter *writer, ListBase *lb)
 {
   LISTBASE_FOREACH (Panel *, panel, lb) {
-    BLO_write_struct(writer, Panel, panel);
+    Panel panel_copy = *panel;
+    panel_copy.runtime_flag = 0;
+    panel_copy.runtime = nullptr;
+    BLO_write_struct_at_address(writer, Panel, panel, &panel_copy);
     BLO_write_struct_list(writer, LayoutPanelState, &panel->layout_panel_states);
     LISTBASE_FOREACH (LayoutPanelState *, state, &panel->layout_panel_states) {
       BLO_write_string(writer, state->idname);
