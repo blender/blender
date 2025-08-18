@@ -258,7 +258,7 @@ int time_find_next_prev_edit(Scene *scene,
     return timeline_frame;
   }
 
-  LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
+  LISTBASE_FOREACH (Strip *, strip, ed->current_strips()) {
     int i;
 
     if (do_skip_mute && render_is_muted(channels, strip)) {

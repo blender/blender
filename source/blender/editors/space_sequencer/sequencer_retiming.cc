@@ -97,13 +97,13 @@ static wmOperatorStatus sequencer_retiming_data_show_exec(bContext *C, wmOperato
   }
 
   if (sequencer_retiming_mode_is_active(C)) {
-    sequencer_retiming_data_hide_all(ed->seqbasep);
+    sequencer_retiming_data_hide_all(ed->current_strips());
   }
   else if (seq::retiming_data_is_editable(strip_act)) {
-    sequencer_retiming_data_hide_selection(ed->seqbasep);
+    sequencer_retiming_data_hide_selection(ed->current_strips());
   }
   else {
-    sequencer_retiming_data_show_selection(ed->seqbasep);
+    sequencer_retiming_data_show_selection(ed->current_strips());
   }
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
@@ -153,7 +153,7 @@ static wmOperatorStatus sequencer_retiming_reset_exec(bContext *C, wmOperator * 
   Scene *scene = CTX_data_sequencer_scene(C);
   const Editing *ed = seq::editing_get(scene);
 
-  for (Strip *strip : seq::query_selected_strips(ed->seqbasep)) {
+  for (Strip *strip : seq::query_selected_strips(ed->current_strips())) {
     seq::retiming_reset(scene, strip);
   }
 

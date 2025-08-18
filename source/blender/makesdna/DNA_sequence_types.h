@@ -331,8 +331,15 @@ typedef struct EditingRuntime {
 } EditingRuntime;
 
 typedef struct Editing {
-  /** Pointer to the current list of strips being edited (can be within a meta-strip). */
+  /**
+   * Pointer to the current list of strips being edited (can be within a meta-strip).
+   * \note Use #current_strips() to access, rather than using this variable directly.
+   */
   ListBase *seqbasep;
+  /**
+   * Pointer to the current list of channels being displayed (can be within a meta-strip).
+   * \note Use #current_channels() to access, rather than using this variable directly.
+   */
   ListBase *displayed_channels;
   void *_pad0;
   /** Pointer to the top-most strips. */
@@ -355,6 +362,16 @@ typedef struct Editing {
   PrefetchJob *prefetch_job;
 
   EditingRuntime runtime;
+
+#ifdef __cplusplus
+  /** Access currently displayed strips, from root sequence or a meta-strip. */
+  ListBase *current_strips();
+  ListBase *current_strips() const;
+
+  /** Access currently displayed channels, from root sequence or a meta-strip. */
+  ListBase *current_channels();
+  ListBase *current_channels() const;
+#endif
 } Editing;
 
 /** \} */

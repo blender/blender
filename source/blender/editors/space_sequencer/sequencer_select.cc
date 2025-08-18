@@ -318,7 +318,7 @@ Strip *find_neighboring_strip(const Scene *scene, const Strip *test, const int l
   if (sel > 0) {
     sel = SELECT;
   }
-  LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
+  LISTBASE_FOREACH (Strip *, strip, ed->current_strips()) {
     if ((strip != test) && (test->channel == strip->channel) &&
         ((sel == -1) || (sel && (strip->flag & SELECT)) ||
          (sel == 0 && (strip->flag & SELECT) == 0)))
@@ -625,7 +625,7 @@ static void sequencer_select_linked_handle(const bContext *C,
           if ((strip->flag & SEQ_LEFTSEL) && (neighbor->flag & SEQ_RIGHTSEL)) {
             strip->flag |= SELECT;
             select_active_side(scene,
-                               ed->seqbasep,
+                               ed->current_strips(),
                                seq::SIDE_LEFT,
                                strip->channel,
                                seq::time_left_handle_frame_get(scene, strip));
@@ -642,7 +642,7 @@ static void sequencer_select_linked_handle(const bContext *C,
           if ((strip->flag & SEQ_RIGHTSEL) && (neighbor->flag & SEQ_LEFTSEL)) {
             strip->flag |= SELECT;
             select_active_side(scene,
-                               ed->seqbasep,
+                               ed->current_strips(),
                                seq::SIDE_RIGHT,
                                strip->channel,
                                seq::time_left_handle_frame_get(scene, strip));
@@ -660,7 +660,7 @@ static void sequencer_select_linked_handle(const bContext *C,
     else {
 
       select_active_side(scene,
-                         ed->seqbasep,
+                         ed->current_strips(),
                          sel_side,
                          strip->channel,
                          seq::time_left_handle_frame_get(scene, strip));
@@ -1075,7 +1075,7 @@ static blender::Vector<Strip *> padded_strips_under_mouse_get(const Scene *scene
   }
 
   blender::Vector<Strip *> strips;
-  LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
+  LISTBASE_FOREACH (Strip *, strip, ed->current_strips()) {
     if (strip->channel != int(mouse_co[1])) {
       continue;
     }
@@ -1857,7 +1857,7 @@ static wmOperatorStatus sequencer_select_handles_exec(bContext *C, wmOperator *o
   Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_get(scene);
   int sel_side = RNA_enum_get(op->ptr, "side");
-  LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
+  LISTBASE_FOREACH (Strip *, strip, ed->current_strips()) {
     if (strip->flag & SELECT) {
       Strip *l_neighbor = find_neighboring_strip(scene, strip, seq::SIDE_LEFT, -1);
       Strip *r_neighbor = find_neighboring_strip(scene, strip, seq::SIDE_RIGHT, -1);
@@ -1904,7 +1904,7 @@ static wmOperatorStatus sequencer_select_handles_exec(bContext *C, wmOperator *o
     }
   }
   /* Select strips. */
-  LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
+  LISTBASE_FOREACH (Strip *, strip, ed->current_strips()) {
     if ((strip->flag & SEQ_LEFTSEL) || (strip->flag & SEQ_RIGHTSEL)) {
       if (!(strip->flag & SELECT)) {
         strip->flag |= SELECT;
@@ -2036,7 +2036,7 @@ static wmOperatorStatus sequencer_select_side_exec(bContext *C, wmOperator *op)
 
   copy_vn_i(frame_ranges, ARRAY_SIZE(frame_ranges), frame_init);
 
-  LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
+  LISTBASE_FOREACH (Strip *, strip, ed->current_strips()) {
     if (UNLIKELY(strip->channel >= seq::MAX_CHANNELS)) {
       continue;
     }
@@ -2056,7 +2056,7 @@ static wmOperatorStatus sequencer_select_side_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  select_active_side_range(scene, ed->seqbasep, sel_side, frame_ranges, frame_init);
+  select_active_side_range(scene, ed->current_strips(), sel_side, frame_ranges, frame_init);
 
   ED_outliner_select_sync_from_sequence_tag(C);
 
@@ -2185,7 +2185,7 @@ static wmOperatorStatus sequencer_box_select_exec(bContext *C, wmOperator *op)
     return OPERATOR_FINISHED;
   }
 
-  LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
+  LISTBASE_FOREACH (Strip *, strip, ed->current_strips()) {
     rctf rq;
     strip_rectf(scene, strip, &rq);
     if (BLI_rctf_isect(&rq, &rectf, nullptr)) {

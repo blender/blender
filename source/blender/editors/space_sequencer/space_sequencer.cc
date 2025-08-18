@@ -487,7 +487,7 @@ static void sequencer_main_clamp_view(const bContext *C, ARegion *region)
   seq::timeline_init_boundbox(scene, &strip_boundbox);
   Editing *ed = seq::editing_get(scene);
   if (ed != nullptr) {
-    seq::timeline_expand_boundbox(scene, ed->seqbasep, &strip_boundbox);
+    seq::timeline_expand_boundbox(scene, ed->current_strips(), &strip_boundbox);
   }
   /* We need to calculate how much the current view is padded and add this padding to our
    * strip bounding box. Without this, the scrub-bar or other overlays would occlude the

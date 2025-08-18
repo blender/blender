@@ -344,7 +344,7 @@ const Strip *strip_topmost_get(const Scene *scene, int frame)
   const Strip *best_strip = nullptr;
   int best_channel = -1;
 
-  LISTBASE_FOREACH (const Strip *, strip, ed->seqbasep) {
+  LISTBASE_FOREACH (const Strip *, strip, ed->current_strips()) {
     if (render_is_muted(channels, strip) || !time_strip_intersects_frame(scene, strip, frame)) {
       continue;
     }

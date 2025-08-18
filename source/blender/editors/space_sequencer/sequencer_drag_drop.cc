@@ -238,7 +238,8 @@ static float update_overlay_strip_position_data(bContext *C, const int mval[2])
   Editing *ed = seq::editing_ensure(scene);
 
   for (int i = 0; i < coords->channel_len && !coords->is_intersecting; i++) {
-    coords->is_intersecting = seq::transform_test_overlap(scene, ed->seqbasep, &dummy_strip);
+    coords->is_intersecting = seq::transform_test_overlap(
+        scene, ed->current_strips(), &dummy_strip);
     seq::strip_channel_set(&dummy_strip, dummy_strip.channel + 1);
   }
 
