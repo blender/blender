@@ -157,7 +157,7 @@ bool Light::has_contribution(const Scene *scene, const Object *object)
     return false;
   }
   if (light_type == LIGHT_BACKGROUND) {
-    return true;
+    return is_enabled;
   }
   if (light_type == LIGHT_AREA) {
     if ((get_sizeu() * get_sizev() * get_size() == 0.0f) ||
@@ -264,12 +264,11 @@ void LightManager::test_enabled_lights(Scene *scene)
     }
 
     Light *light = static_cast<Light *>(object->get_geometry());
+    light->is_enabled = light->has_contribution(scene, object);
+    has_portal |= light->is_portal;
     if (!light->is_enabled) {
       continue;
     }
-
-    light->is_enabled = light->has_contribution(scene, object);
-    has_portal |= light->is_portal;
 
     if (light->light_type == LIGHT_BACKGROUND) {
       background_lights.push_back(light);
