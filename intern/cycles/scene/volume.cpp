@@ -21,6 +21,7 @@
 #include "util/nanovdb.h"
 #include "util/path.h"
 #include "util/progress.h"
+#include "util/texture.h"
 #include "util/types.h"
 
 #include "bvh/octree.h"
@@ -487,6 +488,7 @@ void GeometryManager::create_volume_mesh(const Scene *scene, Volume *volume, Pro
     /* Create NanoVDB grid handle from texture memory. */
     device_texture *texture = handle.image_memory();
     if (texture == nullptr || texture->host_pointer == nullptr ||
+        texture->info.data_type == IMAGE_DATA_TYPE_NANOVDB_EMPTY ||
         !is_nanovdb_type(texture->info.data_type))
     {
       continue;
