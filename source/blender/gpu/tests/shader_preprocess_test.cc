@@ -65,7 +65,7 @@ static std::string process_test_string(std::string str,
       "test.glsl",
       true,
       true,
-      [&](const std::smatch & /*match*/, const char *err_msg) {
+      [&](int /*err_line*/, int /*err_char*/, const std::string & /*line*/, const char *err_msg) {
         if (first_error.empty()) {
           first_error = err_msg;
         }
@@ -1057,6 +1057,8 @@ static void test_preprocess_parser()
   using namespace std;
   using namespace shader::parser;
 
+  ParserData::report_callback no_err_report = [](int, int, string, const char *) {};
+
   {
     string input = R"(
 1;
@@ -1072,7 +1074,7 @@ static void test_preprocess_parser()
 )";
     string expect = R"(
 0;0;0;0;0;0;0;0;0;0;)";
-    EXPECT_EQ(Parser(input).data_get().token_types, expect);
+    EXPECT_EQ(Parser(input, no_err_report).data_get().token_types, expect);
   }
   {
     string input = R"(
@@ -1085,7 +1087,7 @@ class B {
 )";
     string expect = R"(
 sw{ww=0;};Sw{ww;};)";
-    EXPECT_EQ(Parser(input).data_get().token_types, expect);
+    EXPECT_EQ(Parser(input, no_err_report).data_get().token_types, expect);
   }
   {
     string input = R"(
@@ -1101,12 +1103,12 @@ void f(int t = 0) {
 )";
     string expect = R"(
 ww(ww=0){ww=0,w=0,w={0};{w=w=w,wP;i(wEw){r;}}})";
-    EXPECT_EQ(Parser(input).data_get().token_types, expect);
+    EXPECT_EQ(Parser(input, no_err_report).data_get().token_types, expect);
   }
   {
-    Parser parser("float i;");
-    parser.insert_after(Token{&parser.data_get(), 0}, "A ");
-    parser.insert_after(Token{&parser.data_get(), 0}, "B  ");
+    Parser parser("float i;", no_err_report);
+    parser.insert_after(Token::from_position(&parser.data_get(), 0), "A ");
+    parser.insert_after(Token::from_position(&parser.data_get(), 0), "B  ");
     EXPECT_EQ(parser.result_get(), "float A B  i;");
   }
   {
@@ -1115,12 +1117,12 @@ A
 #line 100
 B
 )";
-    Parser parser(input);
-    Token A = {&parser.data_get(), 1};
-    Token B = {&parser.data_get(), 5};
+    Parser parser(input, no_err_report);
+    Token A = Token::from_position(&parser.data_get(), 1);
+    Token B = Token::from_position(&parser.data_get(), 5);
 
-    EXPECT_EQ(A.str_no_whitespace(), "A");
-    EXPECT_EQ(B.str_no_whitespace(), "B");
+    EXPECT_EQ(A.str(), "A");
+    EXPECT_EQ(B.str(), "B");
     EXPECT_EQ(A.line_number(), 2);
     EXPECT_EQ(B.line_number(), 100);
   }
