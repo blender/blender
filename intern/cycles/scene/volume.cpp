@@ -508,7 +508,7 @@ void GeometryManager::create_volume_mesh(const Scene *scene, Volume *volume, Pro
 
   /* If nothing to build, early out. */
   if (builder.empty_grid()) {
-    LOG_WORK << "Memory usage volume mesh: 0 Mb. (empty grid)";
+    LOG_DEBUG << "Memory usage volume mesh: 0 Mb. (empty grid)";
     return;
   }
 
@@ -539,9 +539,10 @@ void GeometryManager::create_volume_mesh(const Scene *scene, Volume *volume, Pro
   }
 
   /* Print stats. */
-  LOG_WORK << "Memory usage volume mesh: "
-           << (vertices.size() * sizeof(float3) + indices.size() * sizeof(int)) / (1024.0 * 1024.0)
-           << "Mb.";
+  LOG_DEBUG << "Memory usage volume mesh: "
+            << (vertices.size() * sizeof(float3) + indices.size() * sizeof(int)) /
+                   (1024.0 * 1024.0)
+            << "Mb.";
 #else
   (void)scene;
 #endif /* defined(WITH_OPENVDB) && defined(WITH_NANOVDB) */
@@ -835,8 +836,8 @@ void VolumeManager::build_octree(Device *device, Progress &progress)
 
   const double build_time = time_dt() - start_time;
 
-  LOG_WORK << object_octrees_.size() << " volume octree(s) with a total of " << num_octree_nodes()
-           << " nodes are built in " << build_time << " seconds.";
+  LOG_DEBUG << object_octrees_.size() << " volume octree(s) with a total of " << num_octree_nodes()
+            << " nodes are built in " << build_time << " seconds.";
 }
 
 void VolumeManager::update_root_indices(DeviceScene *dscene, const Scene *scene) const
@@ -918,12 +919,12 @@ void VolumeManager::flatten_octree(DeviceScene *dscene, const Scene *scene) cons
   dscene->volume_tree_nodes.copy_to_device();
   dscene->volume_tree_roots.copy_to_device();
 
-  LOG_WORK << "Memory usage of volume octrees: "
-           << (dscene->volume_tree_nodes.size() * sizeof(KernelOctreeNode) +
-               dscene->volume_tree_roots.size() * sizeof(KernelOctreeRoot) +
-               dscene->volume_tree_root_ids.size() * sizeof(int)) /
-                  (1024.0 * 1024.0)
-           << "Mb.";
+  LOG_DEBUG << "Memory usage of volume octrees: "
+            << (dscene->volume_tree_nodes.size() * sizeof(KernelOctreeNode) +
+                dscene->volume_tree_roots.size() * sizeof(KernelOctreeRoot) +
+                dscene->volume_tree_root_ids.size() * sizeof(int)) /
+                   (1024.0 * 1024.0)
+            << "Mb.";
 }
 
 std::string VolumeManager::visualize_octree(const char *filename) const

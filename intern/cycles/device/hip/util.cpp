@@ -56,7 +56,7 @@ bool hipSupportsDriver()
     return false;
   }
 
-  LOG_DEBUG << "Detected HIP driver version: " << hip_driver_version;
+  LOG_TRACE << "Detected HIP driver version: " << hip_driver_version;
 
   if (hip_driver_version < 60140252) {
     /* Cycles crashes during rendering due to issues in older GPU drivers.

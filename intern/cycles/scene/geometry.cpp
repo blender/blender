@@ -982,7 +982,7 @@ void GeometryManager::device_update(Device *device,
 
     TaskPool::Summary summary;
     pool.wait_work(&summary);
-    LOG_WORK << "Objects BVH build pool statistics:\n" << summary.full_report();
+    LOG_DEBUG << "Objects BVH build pool statistics:\n" << summary.full_report();
   }
 
   for (Shader *shader : scene->shaders) {

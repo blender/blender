@@ -43,9 +43,9 @@ void SVMShaderManager::device_update_shader(Scene *scene,
   compiler.background = (shader == scene->background->get_shader(scene));
   compiler.compile(shader, *svm_nodes, 0, &summary);
 
-  LOG_WORK << "Compilation summary:\n"
-           << "Shader name: " << shader->name << "\n"
-           << summary.full_report();
+  LOG_DEBUG << "Compilation summary:\n"
+            << "Shader name: " << shader->name << "\n"
+            << summary.full_report();
 }
 
 void SVMShaderManager::device_update_specific(Device *device,

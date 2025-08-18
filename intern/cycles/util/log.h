@@ -23,9 +23,8 @@ enum LogLevel {
   LOG_LEVEL_DWARNING = 5,       /* Warning in debug build only */
   LOG_LEVEL_INFO_IMPORTANT = 6, /* Important info that is printed by default */
   LOG_LEVEL_INFO = 7,           /* Info about devices, scene contents and features used. */
-  LOG_LEVEL_WORK = 8,           /* Work being performed and timing/memory stats about that work. */
-  LOG_LEVEL_STATS = 9,          /* Detailed device timing stats. */
-  LOG_LEVEL_DEBUG = 10,         /* Verbose debug messages. */
+  LOG_LEVEL_DEBUG = 8,          /* Work being performed and timing/memory stats about that work. */
+  LOG_LEVEL_TRACE = 9,          /* Verbose debug messages, to trace code being executed. */
   LOG_LEVEL_UNKNOWN = -1,
 };
 
@@ -105,9 +104,8 @@ extern LogLevel LOG_LEVEL;
 #define LOG_DWARNING LOG(LOG_LEVEL_DWARNING)
 #define LOG_INFO_IMPORTANT LOG(LOG_LEVEL_INFO_IMPORTANT)
 #define LOG_INFO LOG(LOG_LEVEL_INFO)
-#define LOG_WORK LOG(LOG_LEVEL_WORK)
-#define LOG_STATS LOG(LOG_LEVEL_STATS)
 #define LOG_DEBUG LOG(LOG_LEVEL_DEBUG)
+#define LOG_TRACE LOG(LOG_LEVEL_TRACE)
 
 /* Check if logging is enabled, to avoid doing expensive work to compute
  * the logging message. Note that any work to the right of LOG(level) will
@@ -148,7 +146,7 @@ template<typename T> T DCheckNotNull(T &&t, const char *expression)
 #  define DCHECK_LT(a, b) DCHECK_OP(<, a, b)
 #  define DCHECK_LE(a, b) DCHECK_OP(<=, a, b)
 #else
-#  define LOG_SUPPRESS() LOG_IF(LOG_LEVEL_DEBUG, false)
+#  define LOG_SUPPRESS() LOG_IF(LOG_LEVEL_TRACE, false)
 #  define DCHECK(expression) LOG_SUPPRESS()
 #  define DCHECK_NOTNULL(expression) (expression)
 #  define DCHECK_GE(a, b) LOG_SUPPRESS()

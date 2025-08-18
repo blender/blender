@@ -596,9 +596,9 @@ MetalDevice::MetalMem *MetalDevice::generic_alloc(device_memory &mem)
     }
 
     if (mem.name) {
-      LOG_WORK << "Buffer allocate: " << mem.name << ", "
-               << string_human_readable_number(mem.memory_size()) << " bytes. ("
-               << string_human_readable_size(mem.memory_size()) << ")";
+      LOG_DEBUG << "Buffer allocate: " << mem.name << ", "
+                << string_human_readable_number(mem.memory_size()) << " bytes. ("
+                << string_human_readable_size(mem.memory_size()) << ")";
     }
 
     mem.device_size = metal_buffer.allocatedSize;
@@ -1077,9 +1077,9 @@ void MetalDevice::tex_alloc(device_texture &mem)
        */
       desc.allowGPUOptimizedContents = false;
 
-      LOG_WORK << "Texture 2D allocate: " << mem.name << ", "
-               << string_human_readable_number(mem.memory_size()) << " bytes. ("
-               << string_human_readable_size(mem.memory_size()) << ")";
+      LOG_DEBUG << "Texture 2D allocate: " << mem.name << ", "
+                << string_human_readable_number(mem.memory_size()) << " bytes. ("
+                << string_human_readable_size(mem.memory_size()) << ")";
 
       mtlTexture = [mtlDevice newTextureWithDescriptor:desc];
       if (!mtlTexture) {
