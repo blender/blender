@@ -125,6 +125,18 @@ struct PointerRNA {
   {
     return static_cast<T *>(this->data);
   }
+
+  /**
+   * Get the immediate parent pointer, if any.
+   */
+  PointerRNA parent() const
+  {
+    if (ancestors.is_empty()) {
+      return PointerRNA();
+    }
+
+    return PointerRNA(owner_id, ancestors.last().type, ancestors.last().data);
+  }
 };
 
 extern const PointerRNA PointerRNA_NULL;
