@@ -765,6 +765,45 @@ static void test_preprocess_swizzle()
 }
 GPU_TEST(preprocess_swizzle);
 
+static void test_preprocess_enum()
+{
+  using namespace shader;
+  using namespace std;
+
+  {
+    string input = R"(
+enum class enum_class : int {
+  VALUE = 0,
+};
+)";
+    string expect = R"(
+
+
+
+#line 2
+#define enum_class int
+#line 3
+constant static constexpr int enum_class_VALUE = 0;
+#line 5
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
+enum class enum_class {
+  VALUE = 0,
+};
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(error, "enum declaration must explicitly use an underlying type");
+  }
+}
+GPU_TEST(preprocess_enum);
+
 #ifdef __APPLE__ /* This processing is only done for metal compatibility. */
 static void test_preprocess_matrix_constructors()
 {

@@ -218,6 +218,7 @@ class Preprocessor {
       }
       str = preprocessor_directive_mutation(str);
       str = swizzle_function_mutation(str, report_error);
+      str = enum_macro_injection(str, language == CPP, report_error);
       if (language == BLENDER_GLSL) {
         str = struct_method_mutation(str, report_error);
         str = method_call_mutation(str, report_error);
@@ -247,7 +248,6 @@ class Preprocessor {
       str = variable_reference_mutation(str, report_error);
       str = template_definition_mutation(str, report_error);
       str = template_call_mutation(str, report_error);
-      str = enum_macro_injection(str);
     }
 #ifdef __APPLE__ /* Limiting to Apple hardware since GLSL compilers might have issues. */
     if (language == GLSL) {
@@ -1509,13 +1509,15 @@ class Preprocessor {
     return guarded_cope;
   }
 
-  std::string enum_macro_injection(std::string str)
+  std::string enum_macro_injection(const std::string &str,
+                                   bool is_shared_file,
+                                   report_callback &report_error)
   {
     /**
      * Transform C,C++ enum declaration into GLSL compatible defines and constants:
      *
      * \code{.cpp}
-     * enum eMyEnum : uint32_t {
+     * enum eMyEnum : uint {
      *   ENUM_1 = 0u,
      *   ENUM_2 = 1u,
      *   ENUM_3 = 2u,
@@ -1525,11 +1527,11 @@ class Preprocessor {
      * becomes
      *
      * \code{.glsl}
-     * _enum_decl(_eMyEnum)
-     *   ENUM_1 = 0u,
-     *   ENUM_2 = 1u,
-     *   ENUM_3 = 2u, _enum_end
-     * #define eMyEnum _enum_type(_eMyEnum)
+     * #define eMyEnum uint
+     * constant static constexpr uint ENUM_1 = 0u;
+     * constant static constexpr uint ENUM_2 = 1u;
+     * constant static constexpr uint ENUM_3 = 2u;
+     *
      * \endcode
      *
      * It is made like so to avoid messing with error lines, allowing to point at the exact
@@ -1540,20 +1542,73 @@ class Preprocessor {
      * - All values needs to be specified using constant literals to avoid compiler differences.
      * - All values needs to have the 'u' suffix to avoid GLSL compiler errors.
      */
-    {
-      /* Replaces all matches by the respective string hash. */
-      std::regex regex(R"(enum\s+((\w+)\s*(?:\:\s*\w+\s*)?)\{(\n[^}]+)\n\};)");
-      str = std::regex_replace(str,
-                               regex,
-                               "_enum_decl(_$1)$3 _enum_end\n"
-                               "#define $2 _enum_type(_$2)");
-    }
-    {
-      /* Remove trailing comma if any. */
-      std::regex regex(R"(,(\s*_enum_end))");
-      str = std::regex_replace(str, regex, "$1");
-    }
-    return str;
+    using namespace std;
+    using namespace shader::parser;
+
+    Parser parser(str, report_error);
+
+    auto missing_underlying_type = [&](vector<Token> tokens) {
+      report_error(tokens[0].line_number(),
+                   tokens[0].char_number(),
+                   tokens[0].line_str(),
+                   "enum declaration must explicitly use an underlying type");
+    };
+
+    parser.foreach_match("Mw{", missing_underlying_type);
+    parser.foreach_match("MSw{", missing_underlying_type);
+
+    auto process_enum =
+        [&](Token enum_tok, Token class_tok, Token enum_name, Token enum_type, Scope enum_scope) {
+          string type_str = enum_type.str();
+
+          if (is_shared_file) {
+            if (type_str != "uint32_t" && type_str != "int32_t") {
+              report_error(
+                  enum_type.line_number(),
+                  enum_type.char_number(),
+                  enum_type.line_str(),
+                  "enum declaration must use uint32_t or int32_t underlying type for interface "
+                  "compatibility");
+              return;
+            }
+          }
+
+          size_t insert_at = enum_scope.end().line_end();
+          parser.erase(enum_tok.str_index_start(), insert_at);
+          parser.insert_line_number(insert_at + 1, enum_tok.line_number());
+          parser.insert_after(insert_at + 1,
+                              "#define " + enum_name.str() + " " + enum_type.str() + "\n");
+
+          enum_scope.foreach_scope(ScopeType::Assignment, [&](Scope scope) {
+            string name = scope.start().prev().str();
+            string value = scope.str();
+            if (class_tok.is_valid()) {
+              name = enum_name.str() + "::" + name;
+            }
+            string decl = "constant static constexpr " + type_str + " " + name + " " + value +
+                          ";\n";
+            parser.insert_line_number(insert_at + 1, scope.start().line_number());
+            parser.insert_after(insert_at + 1, decl);
+          });
+          parser.insert_line_number(insert_at + 1, enum_scope.end().line_number() + 1);
+        };
+
+    parser.foreach_match("MSw:w{", [&](vector<Token> tokens) {
+      process_enum(tokens[0], tokens[1], tokens[2], tokens[4], tokens[5].scope());
+    });
+    parser.foreach_match("Mw:w{", [&](vector<Token> tokens) {
+      process_enum(tokens[0], Token::invalid(), tokens[1], tokens[3], tokens[4].scope());
+    });
+
+    parser.apply_mutations();
+
+    parser.foreach_match("M", [&](vector<Token> tokens) {
+      report_error(tokens[0].line_number(),
+                   tokens[0].char_number(),
+                   tokens[0].line_str(),
+                   "invalid enum declaration");
+    });
+    return parser.result_get();
   }
 
   std::string strip_whitespace(const std::string &str) const

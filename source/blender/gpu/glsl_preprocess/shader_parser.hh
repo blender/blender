@@ -376,6 +376,9 @@ struct ParserData {
           else if (word == "public") {
             c = Public;
           }
+          else if (word == "enum") {
+            c = Enum;
+          }
         }
       }
     }
