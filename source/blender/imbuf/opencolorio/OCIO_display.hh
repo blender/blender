@@ -27,6 +27,11 @@ class Display {
    */
   virtual StringRefNull name() const = 0;
 
+  /*
+   * Name to display in the user interface.
+   */
+  virtual StringRefNull ui_name() const = 0;
+
   /**
    * Get default view of this display. */
   virtual const View *get_default_view() const = 0;

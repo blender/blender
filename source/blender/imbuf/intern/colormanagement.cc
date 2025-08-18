@@ -2917,18 +2917,39 @@ const char *IMB_colormanagement_look_validate_for_view(const char *view_name,
 
 void IMB_colormanagement_display_items_add(EnumPropertyItem **items, int *totitem)
 {
-  for (const int display_index : blender::IndexRange(g_config->get_num_displays())) {
-    const ocio::Display *display = g_config->get_display_by_index(display_index);
+  /* Group by SDR/HDR, to help communicate what obscure Rec.XXXX names do. */
+  for (const bool hdr : {false, true}) {
+    bool first = true;
 
-    EnumPropertyItem item;
+    for (const int display_index : blender::IndexRange(g_config->get_num_displays())) {
+      const ocio::Display *display = g_config->get_display_by_index(display_index);
 
-    item.value = display->index;
-    item.name = display->name().c_str();
-    item.identifier = display->name().c_str();
-    item.icon = 0;
-    item.description = "";
+      if (display->is_hdr() != hdr) {
+        continue;
+      }
 
-    RNA_enum_item_add(items, totitem, &item);
+      if (first) {
+        EnumPropertyItem item;
+        item.value = -1;
+        item.name = (hdr) ? "HDR" : "SDR";
+        item.identifier = "";
+        item.icon = 0;
+        item.description = "";
+        RNA_enum_item_add(items, totitem, &item);
+
+        first = false;
+      }
+
+      EnumPropertyItem item;
+
+      item.value = display->index;
+      item.name = display->ui_name().c_str();
+      item.identifier = display->name().c_str();
+      item.icon = 0;
+      item.description = "";
+
+      RNA_enum_item_add(items, totitem, &item);
+    }
   }
 }
 

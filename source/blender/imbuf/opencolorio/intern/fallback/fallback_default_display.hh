@@ -29,6 +29,11 @@ class FallbackDefaultDisplay : public Display {
     return name_;
   }
 
+  StringRefNull ui_name() const override
+  {
+    return name();
+  }
+
   const View *get_default_view() const override
   {
     return &default_view_;

@@ -112,6 +112,11 @@ LibOCIODisplay::LibOCIODisplay(const int index, const LibOCIOConfig &config) : c
       }
     }
   }
+
+  /* Hide redundant suffix from ACES config. */
+  if (name_.endswith(" - Display")) {
+    ui_name_ = StringRef(name_).drop_known_suffix(" - Display");
+  }
 }
 
 const View *LibOCIODisplay::get_untonemapped_view() const

@@ -29,6 +29,7 @@ class LibOCIODisplay : public Display {
   const LibOCIOConfig *config_ = nullptr;
 
   StringRefNull name_;
+  std::string ui_name_;
   Vector<LibOCIOView> views_;
   const LibOCIOView *untonemapped_view_ = nullptr;
   bool is_hdr_ = false;
@@ -51,6 +52,11 @@ class LibOCIODisplay : public Display {
   StringRefNull name() const override
   {
     return name_;
+  }
+
+  StringRefNull ui_name() const override
+  {
+    return (ui_name_.empty()) ? name_ : ui_name_.c_str();
   }
 
   const View *get_default_view() const override
