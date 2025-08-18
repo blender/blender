@@ -377,12 +377,12 @@ static void wm_file_read_setup_wm_use_new(bContext *C,
   wm->op_undo_depth = old_wm->op_undo_depth;
 
   /* Move existing key configurations into the new WM. */
-  wm->keyconfigs = old_wm->keyconfigs;
+  wm->runtime->keyconfigs = old_wm->runtime->keyconfigs;
   wm->addonconf = old_wm->addonconf;
   wm->defaultconf = old_wm->defaultconf;
   wm->userconf = old_wm->userconf;
 
-  BLI_listbase_clear(&old_wm->keyconfigs);
+  BLI_listbase_clear(&old_wm->runtime->keyconfigs);
   old_wm->addonconf = nullptr;
   old_wm->defaultconf = nullptr;
   old_wm->userconf = nullptr;

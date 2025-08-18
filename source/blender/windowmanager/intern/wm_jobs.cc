@@ -161,21 +161,21 @@ static void wm_job_main_thread_yield(wmJob *wm_job)
 static wmJob *wm_job_find(const wmWindowManager *wm, const void *owner, const eWM_JobType job_type)
 {
   if (owner && (job_type != WM_JOB_TYPE_ANY)) {
-    LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
+    LISTBASE_FOREACH (wmJob *, wm_job, &wm->runtime->jobs) {
       if (wm_job->owner == owner && wm_job->job_type == job_type) {
         return wm_job;
       }
     }
   }
   else if (owner) {
-    LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
+    LISTBASE_FOREACH (wmJob *, wm_job, &wm->runtime->jobs) {
       if (wm_job->owner == owner) {
         return wm_job;
       }
     }
   }
   else if (job_type != WM_JOB_TYPE_ANY) {
-    LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
+    LISTBASE_FOREACH (wmJob *, wm_job, &wm->runtime->jobs) {
       if (wm_job->job_type == job_type) {
         return wm_job;
       }
@@ -199,7 +199,7 @@ wmJob *WM_jobs_get(wmWindowManager *wm,
   if (wm_job == nullptr) {
     wm_job = MEM_callocN<wmJob>("new job");
 
-    BLI_addtail(&wm->jobs, wm_job);
+    BLI_addtail(&wm->runtime->jobs, wm_job);
     wm_job->win = win;
     wm_job->owner = owner;
     wm_job->flag = flag;
@@ -224,7 +224,7 @@ wmJob *WM_jobs_get(wmWindowManager *wm,
 bool WM_jobs_test(const wmWindowManager *wm, const void *owner, int job_type)
 {
   /* Job can be running or about to run (suspended). */
-  LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
+  LISTBASE_FOREACH (wmJob *, wm_job, &wm->runtime->jobs) {
     if (wm_job->owner != owner) {
       continue;
     }
@@ -257,7 +257,7 @@ static void wm_jobs_update_progress_bars(wmWindowManager *wm)
   float total_progress = 0.0f;
   float jobs_progress = 0;
 
-  LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
+  LISTBASE_FOREACH (wmJob *, wm_job, &wm->runtime->jobs) {
     if (wm_job->threads.first && !wm_job->ready) {
       if (wm_job->flag & WM_JOB_PROGRESS) {
         /* Accumulate global progress for running jobs. */
@@ -414,7 +414,7 @@ static void wm_jobs_test_suspend_stop(wmWindowManager *wm, wmJob *test)
   }
   else {
     /* Check other jobs. */
-    LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
+    LISTBASE_FOREACH (wmJob *, wm_job, &wm->runtime->jobs) {
       /* Obvious case, no test needed. */
       if (wm_job == test || !wm_job->running) {
         continue;
@@ -530,7 +530,7 @@ static void wm_job_end(wmWindowManager *wm, wmJob *wm_job)
 
 static void wm_job_free(wmWindowManager *wm, wmJob *wm_job)
 {
-  BLI_remlink(&wm->jobs, wm_job);
+  BLI_remlink(&wm->runtime->jobs, wm_job);
   WM_job_main_thread_lock_release(wm_job);
   BLI_ticket_mutex_free(wm_job->main_thread_mutex);
 
@@ -578,7 +578,7 @@ void WM_jobs_kill_all(wmWindowManager *wm)
 {
   wmJob *wm_job;
 
-  while ((wm_job = static_cast<wmJob *>(wm->jobs.first))) {
+  while ((wm_job = static_cast<wmJob *>(wm->runtime->jobs.first))) {
     wm_jobs_kill_job(wm, wm_job);
   }
 
@@ -588,7 +588,7 @@ void WM_jobs_kill_all(wmWindowManager *wm)
 
 void WM_jobs_kill_all_except(wmWindowManager *wm, const void *owner)
 {
-  LISTBASE_FOREACH_MUTABLE (wmJob *, wm_job, &wm->jobs) {
+  LISTBASE_FOREACH_MUTABLE (wmJob *, wm_job, &wm->runtime->jobs) {
     if (wm_job->owner != owner) {
       wm_jobs_kill_job(wm, wm_job);
     }
@@ -599,7 +599,7 @@ void WM_jobs_kill_type(wmWindowManager *wm, const void *owner, int job_type)
 {
   BLI_assert(job_type != WM_JOB_TYPE_ANY);
 
-  LISTBASE_FOREACH_MUTABLE (wmJob *, wm_job, &wm->jobs) {
+  LISTBASE_FOREACH_MUTABLE (wmJob *, wm_job, &wm->runtime->jobs) {
     if (owner && wm_job->owner != owner) {
       continue;
     }
@@ -612,7 +612,7 @@ void WM_jobs_kill_type(wmWindowManager *wm, const void *owner, int job_type)
 
 void WM_jobs_kill_all_from_owner(wmWindowManager *wm, const void *owner)
 {
-  LISTBASE_FOREACH_MUTABLE (wmJob *, wm_job, &wm->jobs) {
+  LISTBASE_FOREACH_MUTABLE (wmJob *, wm_job, &wm->runtime->jobs) {
     if (wm_job->owner == owner) {
       wm_jobs_kill_job(wm, wm_job);
     }
@@ -623,7 +623,7 @@ void WM_jobs_stop_type(wmWindowManager *wm, const void *owner, eWM_JobType job_t
 {
   BLI_assert(job_type != WM_JOB_TYPE_ANY);
 
-  LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
+  LISTBASE_FOREACH (wmJob *, wm_job, &wm->runtime->jobs) {
     if (owner && wm_job->owner != owner) {
       continue;
     }
@@ -637,7 +637,7 @@ void WM_jobs_stop_type(wmWindowManager *wm, const void *owner, eWM_JobType job_t
 
 void WM_jobs_stop_all_from_owner(wmWindowManager *wm, const void *owner)
 {
-  LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
+  LISTBASE_FOREACH (wmJob *, wm_job, &wm->runtime->jobs) {
     if (wm_job->owner == owner) {
       if (wm_job->running) {
         wm_job->worker_status.stop = true;
@@ -648,7 +648,7 @@ void WM_jobs_stop_all_from_owner(wmWindowManager *wm, const void *owner)
 
 void wm_jobs_timer_end(wmWindowManager *wm, wmTimer *wt)
 {
-  wmJob *wm_job = static_cast<wmJob *>(BLI_findptr(&wm->jobs, wt, offsetof(wmJob, wt)));
+  wmJob *wm_job = static_cast<wmJob *>(BLI_findptr(&wm->runtime->jobs, wt, offsetof(wmJob, wt)));
   if (wm_job) {
     wm_jobs_kill_job(wm, wm_job);
   }
@@ -656,7 +656,7 @@ void wm_jobs_timer_end(wmWindowManager *wm, wmTimer *wt)
 
 void wm_jobs_timer(wmWindowManager *wm, wmTimer *wt)
 {
-  wmJob *wm_job = static_cast<wmJob *>(BLI_findptr(&wm->jobs, wt, offsetof(wmJob, wt)));
+  wmJob *wm_job = static_cast<wmJob *>(BLI_findptr(&wm->runtime->jobs, wt, offsetof(wmJob, wt)));
 
   if (wm_job) {
     /* Running threads. */
@@ -745,7 +745,7 @@ void wm_jobs_timer(wmWindowManager *wm, wmTimer *wt)
 
 bool WM_jobs_has_running(const wmWindowManager *wm)
 {
-  LISTBASE_FOREACH (const wmJob *, wm_job, &wm->jobs) {
+  LISTBASE_FOREACH (const wmJob *, wm_job, &wm->runtime->jobs) {
     if (wm_job->running) {
       return true;
     }
@@ -756,7 +756,7 @@ bool WM_jobs_has_running(const wmWindowManager *wm)
 
 bool WM_jobs_has_running_type(const wmWindowManager *wm, int job_type)
 {
-  LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
+  LISTBASE_FOREACH (wmJob *, wm_job, &wm->runtime->jobs) {
     if (wm_job->running && wm_job->job_type == job_type) {
       return true;
     }

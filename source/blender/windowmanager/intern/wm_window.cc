@@ -255,7 +255,7 @@ void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
   BKE_screen_area_map_free(&win->global_areas);
 
   /* End running jobs, a job end also removes its timer. */
-  LISTBASE_FOREACH_MUTABLE (wmTimer *, wt, &wm->timers) {
+  LISTBASE_FOREACH_MUTABLE (wmTimer *, wt, &wm->runtime->timers) {
     if (wt->flags & WM_TIMER_TAGGED_FOR_REMOVAL) {
       continue;
     }
@@ -265,7 +265,7 @@ void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
   }
 
   /* Timer removing, need to call this API function. */
-  LISTBASE_FOREACH_MUTABLE (wmTimer *, wt, &wm->timers) {
+  LISTBASE_FOREACH_MUTABLE (wmTimer *, wt, &wm->runtime->timers) {
     if (wt->flags & WM_TIMER_TAGGED_FOR_REMOVAL) {
       continue;
     }
@@ -1816,7 +1816,7 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr C
       event.type = EVT_DROP;
       event.val = KM_RELEASE;
       event.custom = EVT_DATA_DRAGDROP;
-      event.customdata = &wm->drags;
+      event.customdata = &wm->runtime->drags;
       event.customdata_free = true;
 
       WM_event_add(win, &event);
@@ -1913,7 +1913,7 @@ static bool wm_window_timers_process(const bContext *C, int *sleep_us_p)
   double ntime_min = DBL_MAX;
 
   /* Mutable in case the timer gets removed. */
-  LISTBASE_FOREACH_MUTABLE (wmTimer *, wt, &wm->timers) {
+  LISTBASE_FOREACH_MUTABLE (wmTimer *, wt, &wm->runtime->timers) {
     if (wt->flags & WM_TIMER_TAGGED_FOR_REMOVAL) {
       continue;
     }
@@ -2239,7 +2239,7 @@ eWM_CapabilitiesFlag WM_capabilities_flag()
 void WM_event_timer_sleep(wmWindowManager *wm, wmWindow * /*win*/, wmTimer *timer, bool do_sleep)
 {
   /* Extra security check. */
-  if (BLI_findindex(&wm->timers, timer) == -1) {
+  if (BLI_findindex(&wm->runtime->timers, timer) == -1) {
     return;
   }
   /* It's disputable if this is needed, when tagged for removal,
@@ -2267,7 +2267,7 @@ wmTimer *WM_event_timer_add(wmWindowManager *wm,
   wt->time_step = time_step;
   wt->win = win;
 
-  BLI_addtail(&wm->timers, wt);
+  BLI_addtail(&wm->runtime->timers, wt);
 
   return wt;
 }
@@ -2289,20 +2289,20 @@ wmTimer *WM_event_timer_add_notifier(wmWindowManager *wm,
   wt->customdata = POINTER_FROM_UINT(type);
   wt->flags |= WM_TIMER_NO_FREE_CUSTOM_DATA;
 
-  BLI_addtail(&wm->timers, wt);
+  BLI_addtail(&wm->runtime->timers, wt);
 
   return wt;
 }
 
 void wm_window_timers_delete_removed(wmWindowManager *wm)
 {
-  LISTBASE_FOREACH_MUTABLE (wmTimer *, wt, &wm->timers) {
+  LISTBASE_FOREACH_MUTABLE (wmTimer *, wt, &wm->runtime->timers) {
     if ((wt->flags & WM_TIMER_TAGGED_FOR_REMOVAL) == 0) {
       continue;
     }
 
     /* Actual removal and freeing of the timer. */
-    BLI_remlink(&wm->timers, wt);
+    BLI_remlink(&wm->runtime->timers, wt);
     MEM_freeN(wt);
   }
 }
@@ -2315,20 +2315,10 @@ void WM_event_timer_free_data(wmTimer *timer)
   }
 }
 
-void WM_event_timers_free_all(wmWindowManager *wm)
-{
-  BLI_assert_msg(BLI_listbase_is_empty(&wm->windows),
-                 "This should only be called when freeing the window-manager");
-  while (wmTimer *timer = static_cast<wmTimer *>(BLI_pophead(&wm->timers))) {
-    WM_event_timer_free_data(timer);
-    MEM_freeN(timer);
-  }
-}
-
 void WM_event_timer_remove(wmWindowManager *wm, wmWindow * /*win*/, wmTimer *timer)
 {
   /* Extra security check. */
-  if (BLI_findindex(&wm->timers, timer) == -1) {
+  if (BLI_findindex(&wm->runtime->timers, timer) == -1) {
     return;
   }
 

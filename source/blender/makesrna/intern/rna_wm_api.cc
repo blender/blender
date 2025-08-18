@@ -566,7 +566,7 @@ wmKeyConfig *rna_KeyConfig_new(wmWindowManager *wm, const char *idname)
 static void rna_KeyConfig_remove(wmWindowManager *wm, ReportList *reports, PointerRNA *keyconf_ptr)
 {
   wmKeyConfig *keyconf = static_cast<wmKeyConfig *>(keyconf_ptr->data);
-  if (UNLIKELY(BLI_findindex(&wm->keyconfigs, keyconf) == -1)) {
+  if (UNLIKELY(BLI_findindex(&wm->runtime->keyconfigs, keyconf) == -1)) {
     BKE_reportf(reports, RPT_ERROR, "KeyConfig '%s' cannot be removed", keyconf->idname);
     return;
   }

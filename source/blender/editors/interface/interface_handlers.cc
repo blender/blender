@@ -8612,7 +8612,7 @@ static void button_tooltip_timer_reset(bContext *C, uiBut *but)
 
   if ((U.flag & USER_TOOLTIPS) || (data->tooltip_force)) {
     if (!but->block->tooltipdisabled) {
-      if (!wm->drags.first) {
+      if (!wm->runtime->drags.first) {
         const bool is_quick_tip = UI_but_has_quick_tooltip(but);
         const double delay = is_quick_tip ? UI_TOOLTIP_DELAY_QUICK : UI_TOOLTIP_DELAY;
         WM_tooltip_timer_init_ex(

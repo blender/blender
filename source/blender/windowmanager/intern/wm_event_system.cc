@@ -1069,8 +1069,8 @@ static intptr_t wm_operator_undo_active_id(const wmWindowManager *wm)
 
 static intptr_t wm_operator_register_active_id(const wmWindowManager *wm)
 {
-  if (wm->operators.last) {
-    return intptr_t(wm->operators.last);
+  if (wm->runtime->operators.last) {
+    return intptr_t(wm->runtime->operators.last);
   }
   return -1;
 }
@@ -1448,7 +1448,7 @@ bool WM_operator_is_repeat(const bContext *C, const wmOperator *op)
   wmOperator *op_prev;
   if (op->prev == nullptr && op->next == nullptr) {
     wmWindowManager *wm = CTX_wm_manager(C);
-    op_prev = static_cast<wmOperator *>(wm->operators.last);
+    op_prev = static_cast<wmOperator *>(wm->runtime->operators.last);
   }
   else {
     op_prev = op->prev;
@@ -3838,7 +3838,7 @@ static ARegion *region_event_inside(bContext *C, const int xy[2])
 static void wm_paintcursor_tag(bContext *C, wmWindowManager *wm, ARegion *region)
 {
   if (region) {
-    LISTBASE_FOREACH_MUTABLE (wmPaintCursor *, pc, &wm->paintcursors) {
+    LISTBASE_FOREACH_MUTABLE (wmPaintCursor *, pc, &wm->runtime->paintcursors) {
       if (pc->poll == nullptr || pc->poll(C)) {
         wmWindow *win = CTX_wm_window(C);
         WM_paint_cursor_tag_redraw(win, region);
@@ -3848,7 +3848,7 @@ static void wm_paintcursor_tag(bContext *C, wmWindowManager *wm, ARegion *region
 }
 
 /**
- * Called on mouse-move, check updates for `wm->paintcursors`.
+ * Called on mouse-move, check updates for `wm->runtime->paintcursors`.
  *
  * \note Context was set on active area and region.
  */
@@ -3856,7 +3856,7 @@ static void wm_paintcursor_test(bContext *C, const wmEvent *event)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
 
-  if (wm->paintcursors.first) {
+  if (wm->runtime->paintcursors.first) {
     const bScreen *screen = CTX_wm_screen(C);
     ARegion *region = screen ? screen->active_region : nullptr;
 
@@ -3890,7 +3890,7 @@ static eHandlerActionFlag wm_event_drag_and_drop_test(wmWindowManager *wm,
 {
   bScreen *screen = WM_window_get_active_screen(win);
 
-  if (BLI_listbase_is_empty(&wm->drags)) {
+  if (BLI_listbase_is_empty(&wm->runtime->drags)) {
     return WM_HANDLER_CONTINUE;
   }
 
@@ -3899,7 +3899,7 @@ static eHandlerActionFlag wm_event_drag_and_drop_test(wmWindowManager *wm,
   }
   else if (ELEM(event->type, EVT_ESCKEY, RIGHTMOUSE)) {
     wm_drags_exit(wm, win);
-    WM_drag_free_list(&wm->drags);
+    WM_drag_free_list(&wm->runtime->drags);
 
     screen->do_draw_drag = true;
 
@@ -3913,7 +3913,7 @@ static eHandlerActionFlag wm_event_drag_and_drop_test(wmWindowManager *wm,
     wm_event_custom_clear(event);
 
     event->custom = EVT_DATA_DRAGDROP;
-    event->customdata = &wm->drags;
+    event->customdata = &wm->runtime->drags;
     event->customdata_free = true;
 
     /* Clear drop icon. */
@@ -4052,7 +4052,7 @@ static eHandlerActionFlag wm_event_do_region_handlers(bContext *C, wmEvent *even
   wm_region_mouse_co(C, event);
 
   const wmWindowManager *wm = CTX_wm_manager(C);
-  if (!BLI_listbase_is_empty(&wm->drags)) {
+  if (!BLI_listbase_is_empty(&wm->runtime->drags)) {
     /* Does polls for drop regions and checks #uiButs. */
     /* Need to be here to make sure region context is true. */
     if (ELEM(event->type, MOUSEMOVE, EVT_DROP) || ISKEYMODIFIER(event->type)) {

@@ -118,7 +118,7 @@ static void wm_paintcursor_draw(bContext *C, ScrArea *area, ARegion *region)
     return;
   }
 
-  LISTBASE_FOREACH_MUTABLE (wmPaintCursor *, pc, &wm->paintcursors) {
+  LISTBASE_FOREACH_MUTABLE (wmPaintCursor *, pc, &wm->runtime->paintcursors) {
     if ((pc->space_type != SPACE_TYPE_ANY) && (area->spacetype != pc->space_type)) {
       continue;
     }
@@ -1132,7 +1132,8 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
       if (!region->runtime->visible) {
         continue;
       }
-      const bool do_paint_cursor = (wm->paintcursors.first && region == screen->active_region);
+      const bool do_paint_cursor = (wm->runtime->paintcursors.first &&
+                                    region == screen->active_region);
       const bool do_draw_overlay = (region->runtime->type && region->runtime->type->draw_overlay);
       if (!(do_paint_cursor || do_draw_overlay)) {
         continue;
@@ -1189,7 +1190,7 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
   }
 
   /* Needs pixel coords in screen. */
-  if (wm->drags.first) {
+  if (wm->runtime->drags.first) {
     wm_drags_draw(C, win);
     wmWindowViewport(win);
   }

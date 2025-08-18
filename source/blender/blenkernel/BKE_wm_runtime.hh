@@ -42,6 +42,27 @@ struct WindowManagerRuntime {
   /** The current notifier in the `notifier_queue` being handled (clear instead of freeing). */
   const wmNotifier *notifier_current = nullptr;
 
+  /** Operator registry. */
+  ListBase operators = {nullptr, nullptr};
+
+  /** Extra overlay cursors to draw, like circles. */
+  ListBase paintcursors = {nullptr, nullptr};
+
+  /**
+   * Known key configurations.
+   * This includes all the #wmKeyConfig members (`defaultconf`, `addonconf`, etc).
+   */
+  ListBase keyconfigs = {nullptr, nullptr};
+
+  /** Active timers. */
+  ListBase timers = {nullptr, nullptr};
+
+  /** Threaded jobs manager. */
+  ListBase jobs = {nullptr, nullptr};
+
+  /** Active dragged items. */
+  ListBase drags = {nullptr, nullptr};
+
   WindowManagerRuntime();
   ~WindowManagerRuntime();
 };

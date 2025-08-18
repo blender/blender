@@ -3690,7 +3690,7 @@ static bool screen_maximize_area_poll(bContext *C)
          /* Don't change temporary screens. */
          !WM_window_is_temp_screen(win) &&
          /* Don't maximize when dragging. */
-         BLI_listbase_is_empty(&wm->drags);
+         BLI_listbase_is_empty(&wm->runtime->drags);
 }
 
 static void SCREEN_OT_screen_full_area(wmOperatorType *ot)
@@ -4779,13 +4779,13 @@ static bool repeat_history_poll(bContext *C)
     return false;
   }
   wmWindowManager *wm = CTX_wm_manager(C);
-  return !BLI_listbase_is_empty(&wm->operators);
+  return !BLI_listbase_is_empty(&wm->runtime->operators);
 }
 
 static wmOperatorStatus repeat_last_exec(bContext *C, wmOperator * /*op*/)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  wmOperator *lastop = static_cast<wmOperator *>(wm->operators.last);
+  wmOperator *lastop = static_cast<wmOperator *>(wm->runtime->operators.last);
 
   /* Seek last registered operator */
   while (lastop) {
@@ -4828,7 +4828,7 @@ static wmOperatorStatus repeat_history_invoke(bContext *C,
 {
   wmWindowManager *wm = CTX_wm_manager(C);
 
-  int items = BLI_listbase_count(&wm->operators);
+  int items = BLI_listbase_count(&wm->runtime->operators);
   if (items == 0) {
     return OPERATOR_CANCELLED;
   }
@@ -4839,7 +4839,7 @@ static wmOperatorStatus repeat_history_invoke(bContext *C,
 
   wmOperator *lastop;
   int i;
-  for (i = items - 1, lastop = static_cast<wmOperator *>(wm->operators.last); lastop;
+  for (i = items - 1, lastop = static_cast<wmOperator *>(wm->runtime->operators.last); lastop;
        lastop = lastop->prev, i--)
   {
     if ((lastop->type->flag & OPTYPE_REGISTER) && WM_operator_repeat_check(C, lastop)) {
@@ -4858,11 +4858,12 @@ static wmOperatorStatus repeat_history_exec(bContext *C, wmOperator *op)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
 
-  op = static_cast<wmOperator *>(BLI_findlink(&wm->operators, RNA_int_get(op->ptr, "index")));
+  op = static_cast<wmOperator *>(
+      BLI_findlink(&wm->runtime->operators, RNA_int_get(op->ptr, "index")));
   if (op) {
     /* let's put it as last operator in list */
-    BLI_remlink(&wm->operators, op);
-    BLI_addtail(&wm->operators, op);
+    BLI_remlink(&wm->runtime->operators, op);
+    BLI_addtail(&wm->runtime->operators, op);
 
     WM_operator_repeat(C, op);
   }

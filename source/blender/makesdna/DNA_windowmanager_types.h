@@ -113,28 +113,10 @@ typedef struct wmWindowManager {
   /** Set after selection to notify outliner to sync. Stores type of selection */
   short outliner_sync_select_dirty;
 
-  /** Operator registry. */
-  ListBase operators;
-
   /** Available/pending extensions updates. */
   int extensions_updates;
   /** Number of blocked & installed extensions. */
   int extensions_blocked;
-
-  /** Threaded jobs manager. */
-  ListBase jobs;
-
-  /** Extra overlay cursors to draw, like circles. */
-  ListBase paintcursors;
-
-  /** Active dragged items. */
-  ListBase drags;
-
-  /**
-   * Known key configurations.
-   * This includes all the #wmKeyConfig members (`defaultconf`, `addonconf`, etc).
-   */
-  ListBase keyconfigs;
 
   /** Default configuration. */
   struct wmKeyConfig *defaultconf;
@@ -143,8 +125,6 @@ typedef struct wmWindowManager {
   /** User configuration. */
   struct wmKeyConfig *userconf;
 
-  /** Active timers. */
-  ListBase timers;
   /** Timer for auto save. */
   struct wmTimer *autosavetimer;
   /** Auto-save timer was up, but it wasn't possible to auto-save in the current mode. */

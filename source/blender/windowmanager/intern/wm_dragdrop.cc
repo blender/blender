@@ -310,7 +310,7 @@ void WM_event_start_prepared_drag(bContext *C, wmDrag *drag)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
 
-  BLI_addtail(&wm->drags, drag);
+  BLI_addtail(&wm->runtime->drags, drag);
   wm_dropbox_invoke(C, drag);
 }
 
@@ -599,7 +599,7 @@ void wm_drags_check_ops(bContext *C, const wmEvent *event)
   wmWindowManager *wm = CTX_wm_manager(C);
 
   bool any_active = false;
-  LISTBASE_FOREACH (wmDrag *, drag, &wm->drags) {
+  LISTBASE_FOREACH (wmDrag *, drag, &wm->runtime->drags) {
     wm_drop_update_active(C, drag, event);
 
     if (drag->drop_state.active_dropbox) {
@@ -609,7 +609,7 @@ void wm_drags_check_ops(bContext *C, const wmEvent *event)
 
   /* Change the cursor to display that dropping isn't possible here. But only if there is something
    * being dragged actually. Cursor will be restored in #wm_drags_exit(). */
-  if (!BLI_listbase_is_empty(&wm->drags)) {
+  if (!BLI_listbase_is_empty(&wm->runtime->drags)) {
     WM_cursor_modal_set(CTX_wm_window(C), any_active ? WM_CURSOR_DEFAULT : WM_CURSOR_STOP);
   }
 }
@@ -1264,7 +1264,7 @@ void wm_drags_draw(bContext *C, wmWindow *win)
 
   /* Should we support multi-line drag draws? Maybe not, more types mixed won't work well. */
   GPU_blend(GPU_BLEND_ALPHA);
-  LISTBASE_FOREACH (wmDrag *, drag, &wm->drags) {
+  LISTBASE_FOREACH (wmDrag *, drag, &wm->runtime->drags) {
     if (drag->drop_state.active_dropbox) {
       CTX_wm_area_set(C, drag->drop_state.area_from);
       CTX_wm_region_set(C, drag->drop_state.region_from);

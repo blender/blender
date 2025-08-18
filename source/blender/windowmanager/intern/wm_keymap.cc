@@ -290,11 +290,11 @@ static void wm_keymap_diff_item_free(wmKeyMapDiffItem *kmdi)
 
 wmKeyConfig *WM_keyconfig_new(wmWindowManager *wm, const char *idname, bool user_defined)
 {
-  BLI_assert(!BLI_findstring(&wm->keyconfigs, idname, offsetof(wmKeyConfig, idname)));
+  BLI_assert(!BLI_findstring(&wm->runtime->keyconfigs, idname, offsetof(wmKeyConfig, idname)));
   /* Create new configuration. */
   wmKeyConfig *keyconf = MEM_callocN<wmKeyConfig>("wmKeyConfig");
   STRNCPY_UTF8(keyconf->idname, idname);
-  BLI_addtail(&wm->keyconfigs, keyconf);
+  BLI_addtail(&wm->runtime->keyconfigs, keyconf);
 
   if (user_defined) {
     keyconf->flag |= KEYCONF_USER;
@@ -306,7 +306,7 @@ wmKeyConfig *WM_keyconfig_new(wmWindowManager *wm, const char *idname, bool user
 wmKeyConfig *WM_keyconfig_ensure(wmWindowManager *wm, const char *idname, bool user_defined)
 {
   wmKeyConfig *keyconf = static_cast<wmKeyConfig *>(
-      BLI_findstring(&wm->keyconfigs, idname, offsetof(wmKeyConfig, idname)));
+      BLI_findstring(&wm->runtime->keyconfigs, idname, offsetof(wmKeyConfig, idname)));
   if (keyconf) {
     if (keyconf == wm->defaultconf) {
       /* For default configuration, we need to keep keymap
@@ -328,14 +328,14 @@ wmKeyConfig *WM_keyconfig_ensure(wmWindowManager *wm, const char *idname, bool u
 
 void WM_keyconfig_remove(wmWindowManager *wm, wmKeyConfig *keyconf)
 {
-  BLI_assert(BLI_findindex(&wm->keyconfigs, keyconf) != -1);
+  BLI_assert(BLI_findindex(&wm->runtime->keyconfigs, keyconf) != -1);
   if (STREQLEN(U.keyconfigstr, keyconf->idname, sizeof(U.keyconfigstr))) {
     STRNCPY(U.keyconfigstr, wm->defaultconf->idname);
     U.runtime.is_dirty = true;
     WM_keyconfig_update_tag(nullptr, nullptr);
   }
 
-  BLI_remlink(&wm->keyconfigs, keyconf);
+  BLI_remlink(&wm->runtime->keyconfigs, keyconf);
   WM_keyconfig_free(keyconf);
 
   /* Clear pointers. */
@@ -370,7 +370,7 @@ static wmKeyConfig *WM_keyconfig_active(wmWindowManager *wm)
 
   /* First try from preset. */
   keyconf = static_cast<wmKeyConfig *>(
-      BLI_findstring(&wm->keyconfigs, U.keyconfigstr, offsetof(wmKeyConfig, idname)));
+      BLI_findstring(&wm->runtime->keyconfigs, U.keyconfigstr, offsetof(wmKeyConfig, idname)));
   if (keyconf) {
     return keyconf;
   }
@@ -1900,7 +1900,7 @@ void WM_keyconfig_update_ex(wmWindowManager *wm, bool keep_properties)
     /* One or more operator-types have been removed, this won't happen often
      * but when it does we have to check _every_ key-map item. */
     wm_keymap_item_properties_update_ot_from_list(&U.user_keymaps, keep_properties);
-    LISTBASE_FOREACH (wmKeyConfig *, kc, &wm->keyconfigs) {
+    LISTBASE_FOREACH (wmKeyConfig *, kc, &wm->runtime->keyconfigs) {
       wm_keymap_item_properties_update_ot_from_list(&kc->keymaps, keep_properties);
     }
 
