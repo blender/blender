@@ -1535,6 +1535,8 @@ static bool bpy_prop_pointer_poll_fn(PointerRNA *self, PointerRNA candidate, Pro
 
   BLI_assert(self != nullptr);
 
+  py_func = prop_store->py_data.pointer_data.poll_fn;
+
   {
     PyObject *args = PyTuple_New(2);
     PyObject *py_self = pyrna_struct_as_instance(self);
