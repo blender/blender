@@ -178,7 +178,7 @@ class AttributeStorage : public ::AttributeStorage {
                  Attribute::DataVariant data);
 
   /** Return a possibly changed version of the input name that is unique within existing names. */
-  std::string unique_name_calc(StringRef name);
+  std::string unique_name_calc(StringRef name) const;
 
   /** Change the name of a single existing attribute. */
   void rename(StringRef old_name, std::string new_name);
