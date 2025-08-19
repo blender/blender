@@ -60,10 +60,10 @@ static float select_major_distance(const float *possible_distances,
 }
 
 static const float discrete_value_scales[] = {
-    1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000};
+    1, 2, 4, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000};
 
-static const float continuous_value_scales[] = {0.01, 0.02, 0.05,  0.1,   0.2,   0.5,   1,   2,
-                                                5,    10,   20,    50,    100,   200,   500, 1000,
+static const float continuous_value_scales[] = {0.01, 0.02, 0.04,  0.1,   0.2,   0.4,   1,   2,
+                                                4,    10,   20,    50,    100,   200,   500, 1000,
                                                 2000, 5000, 10000, 20000, 50000, 100000};
 
 static uint view2d_major_step_x__discrete(const View2D *v2d)
@@ -252,9 +252,10 @@ static void view2d_draw_lines(const View2D *v2d,
     uchar minor_color[3];
     UI_GetThemeColorShade3ubv(TH_GRID, 16, minor_color);
     ParallelLinesSet minor_lines;
-    /* Draw minor lines at every second major line. */
-    minor_lines.distance = major_distance * 2.0f;
-    minor_lines.offset = major_distance;
+    /* Draw minor between major lines. In order for the lines to be on full frames values in
+     * `discrete_value_scales` have to be even numbers. */
+    minor_lines.distance = major_distance;
+    minor_lines.offset = major_distance / 2.0f;
     view2d_draw_lines_internal(v2d, &minor_lines, minor_color, direction);
   }
 }
