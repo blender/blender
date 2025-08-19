@@ -1030,6 +1030,13 @@ CombinedKeyingResult insert_keyframes(Main *bmain,
     return combined_result;
   }
 
+  if (const bAction *action = adt->action) {
+    if (ID_IS_LINKED(action) || ID_IS_OVERRIDE_LIBRARY(action)) {
+      combined_result.add(SingleKeyingResult::ID_NOT_EDITABLE, rna_paths.size());
+      return combined_result;
+    }
+  }
+
   bAction *dna_action = id_action_ensure(bmain, id);
   BLI_assert(dna_action != nullptr);
   Action &action = dna_action->wrap();
