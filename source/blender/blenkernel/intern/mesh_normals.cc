@@ -1337,7 +1337,8 @@ void normals_calc_corners(const Span<float3> vert_positions,
 
   Vector<int> space_groups_count;
   Vector<Vector<CornerSpaceGroup, 0>> all_space_groups;
-  for (auto &groups : space_groups) {
+  /* WARNING: can't use `auto` here, causes build failure on GCC 15.2, WITH_TBB=OFF. */
+  for (Vector<CornerSpaceGroup, 0> &groups : space_groups) {
     space_groups_count.append(groups.size());
     all_space_groups.append(std::move(groups));
   }
