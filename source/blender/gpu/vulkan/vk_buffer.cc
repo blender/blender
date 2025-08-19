@@ -25,6 +25,7 @@ bool VKBuffer::create(size_t size_in_bytes,
                       VkMemoryPropertyFlags required_flags,
                       VkMemoryPropertyFlags preferred_flags,
                       VmaAllocationCreateFlags allocation_flags,
+                      float priority,
                       bool export_memory)
 {
   BLI_assert(!is_allocated());
@@ -60,7 +61,7 @@ bool VKBuffer::create(size_t size_in_bytes,
 
   VmaAllocationCreateInfo vma_create_info = {};
   vma_create_info.flags = allocation_flags;
-  vma_create_info.priority = 1.0f;
+  vma_create_info.priority = priority;
   vma_create_info.requiredFlags = required_flags;
   vma_create_info.preferredFlags = preferred_flags;
   vma_create_info.usage = VMA_MEMORY_USAGE_AUTO;

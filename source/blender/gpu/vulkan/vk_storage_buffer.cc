@@ -69,7 +69,8 @@ void VKStorageBuffer::allocate()
                  buffer_usage_flags,
                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                  VkMemoryPropertyFlags(0),
-                 VmaAllocationCreateFlags(0));
+                 VmaAllocationCreateFlags(0),
+                 0.8f);
   BLI_assert(buffer_.is_allocated());
   debug::object_label(buffer_.vk_handle(), name_);
 }

@@ -113,7 +113,8 @@ void VKIndexBuffer::allocate()
                      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                  VkMemoryPropertyFlags(0),
-                 VmaAllocationCreateFlags(0));
+                 VmaAllocationCreateFlags(0),
+                 0.8f);
   debug::object_label(buffer_.vk_handle(), "IndexBuffer");
 }
 

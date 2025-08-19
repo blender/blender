@@ -393,6 +393,22 @@ class GHOST_DeviceVK {
       feature_struct_ptr.push_back(&fragment_shader_barycentric);
     }
 
+    /* VK_EXT_memory_priority */
+    VkPhysicalDeviceMemoryPriorityFeaturesEXT memory_priority = {
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PRIORITY_FEATURES_EXT, nullptr, VK_TRUE};
+    if (extension_enabled(VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME)) {
+      feature_struct_ptr.push_back(&memory_priority);
+    }
+
+    /* VK_EXT_pageable_device_local_memory */
+    VkPhysicalDevicePageableDeviceLocalMemoryFeaturesEXT pageable_device_local_memory = {
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PAGEABLE_DEVICE_LOCAL_MEMORY_FEATURES_EXT,
+        nullptr,
+        VK_TRUE};
+    if (extension_enabled(VK_EXT_PAGEABLE_DEVICE_LOCAL_MEMORY_EXTENSION_NAME)) {
+      feature_struct_ptr.push_back(&pageable_device_local_memory);
+    }
+
     /* Link all registered feature structs. */
     for (int i = 1; i < feature_struct_ptr.size(); i++) {
       ((VkBaseInStructure *)(feature_struct_ptr[i - 1]))->pNext =
@@ -1240,6 +1256,8 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
   optional_device_extensions.push_back(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME);
   optional_device_extensions.push_back(VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME);
   optional_device_extensions.push_back(VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME);
+  optional_device_extensions.push_back(VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME);
+  optional_device_extensions.push_back(VK_EXT_PAGEABLE_DEVICE_LOCAL_MEMORY_EXTENSION_NAME);
 
   VkInstance instance = VK_NULL_HANDLE;
   if (!vulkan_device.has_value()) {
