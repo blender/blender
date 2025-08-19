@@ -664,7 +664,7 @@ static AssetWeakReference *asset_reference_create_from_brush(Brush *brush)
 
 bool BKE_paint_brush_set(Main *bmain,
                          Paint *paint,
-                         const AssetWeakReference *brush_asset_reference)
+                         const AssetWeakReference &brush_asset_reference)
 {
   /* Don't resolve this during file read, it will be done after. */
   if (bmain->is_locked_for_linking) {
@@ -672,7 +672,7 @@ bool BKE_paint_brush_set(Main *bmain,
   }
 
   Brush *brush = reinterpret_cast<Brush *>(
-      blender::bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, *brush_asset_reference));
+      blender::bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, brush_asset_reference));
   BLI_assert(brush == nullptr || !ID_IS_LINKED(brush) ||
              blender::bke::asset_edit_id_is_editable(brush->id));
 
@@ -690,8 +690,8 @@ bool BKE_paint_brush_set(Main *bmain,
     paint->brush_asset_reference = nullptr;
     if (brush != nullptr) {
       BLI_assert(blender::bke::asset_edit_weak_reference_from_id(brush->id) ==
-                 *brush_asset_reference);
-      paint->brush_asset_reference = MEM_new<AssetWeakReference>(__func__, *brush_asset_reference);
+                 brush_asset_reference);
+      paint->brush_asset_reference = MEM_new<AssetWeakReference>(__func__, brush_asset_reference);
     }
   }
 

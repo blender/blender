@@ -398,13 +398,13 @@ static void toolsystem_brush_activate_from_toolref_for_object_paint(Main *bmain,
       }();
 
       if (brush_asset_reference) {
-        BKE_paint_brush_set(bmain, paint, &*brush_asset_reference);
+        BKE_paint_brush_set(bmain, paint, *brush_asset_reference);
       }
     }
     /* Re-activate the main brush, regardless of the brush type. */
     else {
       if (paint->tool_brush_bindings.main_brush_asset_reference) {
-        BKE_paint_brush_set(bmain, paint, paint->tool_brush_bindings.main_brush_asset_reference);
+        BKE_paint_brush_set(bmain, paint, *paint->tool_brush_bindings.main_brush_asset_reference);
         toolsystem_main_brush_binding_update_from_active(paint);
       }
       else {
@@ -417,7 +417,7 @@ static void toolsystem_brush_activate_from_toolref_for_object_paint(Main *bmain,
         }();
 
         if (main_brush_asset_reference) {
-          BKE_paint_brush_set(bmain, paint, &*main_brush_asset_reference);
+          BKE_paint_brush_set(bmain, paint, *main_brush_asset_reference);
           toolsystem_main_brush_binding_update_from_active(paint);
         }
       }
