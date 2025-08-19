@@ -21,10 +21,6 @@ COMPUTE_SHADER_CREATE_INFO(eevee_shadow_page_mask)
 /* Visibility value to write back. */
 #define SHADOW_TILE_MASKED SHADOW_IS_ALLOCATED
 
-shared uint tiles_local[SHADOW_TILEDATA_PER_TILEMAP];
-shared uint levels_rendered;
-shared uint force_base_page;
-
 int shadow_tile_offset_lds(int2 tile, int lod)
 {
   return shadow_tile_offset(uint2(tile), 0, lod);
