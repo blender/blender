@@ -248,6 +248,10 @@ def update_script_node(node, report):
     if node.mode == 'EXTERNAL':
         # compile external script file
         ok, oso_path, oso_file_remove = update_external_script(report, node.filepath, node.id_data.library)
+        if ok:
+            # Clear old internal bytecode, and also trigger node update if it was already cleared.
+            node.bytecode = ""
+            node.bytecode_hash = ""
 
     elif node.mode == 'INTERNAL' and node.script:
         # internal script, we will store bytecode in the node
