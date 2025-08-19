@@ -68,7 +68,6 @@ struct PrefetchJob {
   RenderData context = {};
   RenderData context_cpy = {};
   ListBase *seqbasep = nullptr;
-  ListBase *seqbasep_cpy = nullptr;
 
   /* prefetch area */
   int cfra = 0;

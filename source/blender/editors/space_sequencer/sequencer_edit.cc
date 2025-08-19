@@ -2127,6 +2127,11 @@ static wmOperatorStatus sequencer_meta_toggle_exec(bContext *C, wmOperator * /*o
     /* Deselect active meta strip. */
     seq::select_active_set(scene, nullptr);
     seq::meta_stack_set(scene, active_strip);
+    /* Invalidate the cache of the meta strip when going in and out of it.
+     * The cache does not consider if we are inside of a meta strip or not,
+     * so we have to make sure that we recache so it is not using outdated data.
+     */
+    seq::relations_invalidate_cache(scene, active_strip);
   }
   else {
     /* Exit meta-strip if possible. */
@@ -2137,6 +2142,11 @@ static wmOperatorStatus sequencer_meta_toggle_exec(bContext *C, wmOperator * /*o
     /* Display parent meta. */
     Strip *meta_parent = seq::meta_stack_pop(ed);
     seq::select_active_set(scene, meta_parent);
+    /* Invalidate the cache of the meta strip when going in and out of it.
+     * The cache does not consider if we are inside of a meta strip or not,
+     * so we have to make sure that we recache so it is not using outdated data.
+     */
+    seq::relations_invalidate_cache(scene, meta_parent);
   }
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
