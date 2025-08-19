@@ -17,6 +17,7 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_bit_vector.hh"
+#include "BLI_enumerable_thread_specific.hh"
 #include "BLI_linklist.h"
 #include "BLI_math_base.hh"
 #include "BLI_math_vector.hh"
@@ -1177,6 +1178,12 @@ static float3 accumulate_fan_normal(const Span<VertCornerInfo> corner_infos,
   return math::normalize(fan_normal);
 }
 
+struct CornerSpaceGroup {
+  /* Maybe acyclic and unordered set of adjacent corners in same smooth group around vertex. */
+  Array<int> fan_corners;
+  CornerNormalSpace space;
+};
+
 /** Don't inline this function to simplify the code path without custom normals. */
 BLI_NOINLINE static void handle_fan_result_and_custom_normals(
     const Span<short2> custom_normals,
@@ -1184,7 +1191,8 @@ BLI_NOINLINE static void handle_fan_result_and_custom_normals(
     const Span<float3> edge_dirs,
     const Span<int> local_corners_in_fan,
     float3 &fan_normal,
-    CornerNormalSpaceArray *r_fan_spaces)
+    CornerNormalSpaceArray *r_fan_spaces,
+    Vector<CornerSpaceGroup, 0> &r_local_space_groups)
 {
   const int local_edge_first = corner_infos[local_corners_in_fan.first()].local_edge_next;
   const int local_edge_last = corner_infos[local_corners_in_fan.last()].local_edge_prev;
@@ -1214,23 +1222,16 @@ BLI_NOINLINE static void handle_fan_result_and_custom_normals(
     fan_normal = corner_space_custom_data_to_normal(fan_space, short2(average_custom_normal));
   }
 
-  if (r_fan_spaces) {
-    std::lock_guard lock(r_fan_spaces->build_mutex);
-    r_fan_spaces->spaces.append(fan_space);
-    const int fan_space_index = r_fan_spaces->spaces.size() - 1;
-    for (const int local_corner : local_corners_in_fan) {
-      const VertCornerInfo &info = corner_infos[local_corner];
-      r_fan_spaces->corner_space_indices[info.corner] = fan_space_index;
-    }
-    if (r_fan_spaces->create_corners_by_space) {
-      Array<int> corners_in_space(local_corners_in_fan.size());
-      for (const int i : local_corners_in_fan.index_range()) {
-        const VertCornerInfo &info = corner_infos[local_corners_in_fan[i]];
-        corners_in_space[i] = info.corner;
-      }
-      r_fan_spaces->corners_by_space.append(std::move(corners_in_space));
-    }
+  if (!r_fan_spaces) {
+    return;
   }
+
+  Array<int> fan_corners(local_corners_in_fan.size());
+  for (const int i : local_corners_in_fan.index_range()) {
+    const VertCornerInfo &info = corner_infos[local_corners_in_fan[i]];
+    fan_corners[i] = info.corner;
+  }
+  r_local_space_groups.append({std::move(fan_corners), fan_space});
 }
 
 void normals_calc_corners(const Span<float3> vert_positions,
@@ -1245,28 +1246,19 @@ void normals_calc_corners(const Span<float3> vert_positions,
                           CornerNormalSpaceArray *r_fan_spaces,
                           MutableSpan<float3> r_corner_normals)
 {
-  if (r_fan_spaces) {
-    /* These are potentially-wasteful over-allocations. */
-    r_fan_spaces->spaces.reserve(corner_verts.size());
-    r_fan_spaces->corner_space_indices.reinitialize(corner_verts.size());
-    if (r_fan_spaces->create_corners_by_space) {
-      r_fan_spaces->corners_by_space.reserve(corner_verts.size());
-    }
-  }
+  threading::EnumerableThreadSpecific<Vector<CornerSpaceGroup, 0>> space_groups;
 
-  int64_t grain_size = 256;
-  /* Decrease parallelism in case where lock is used to avoid contention. */
-  if (!custom_normals.is_empty() || r_fan_spaces) {
-    grain_size = std::max(int64_t(16384), vert_positions.size() / 2);
-  }
-
-  threading::parallel_for(vert_positions.index_range(), grain_size, [&](const IndexRange range) {
+  threading::parallel_for(vert_positions.index_range(), 256, [&](const IndexRange range) {
     Vector<VertCornerInfo, 16> corner_infos;
     LocalEdgeVectorSet local_edge_by_vert;
     Vector<VertEdgeInfo, 16> edge_infos;
     Vector<float3, 16> edge_dirs;
     Vector<bool, 16> local_corner_visited;
     Vector<int, 16> corners_in_fan;
+
+    Vector<CornerSpaceGroup, 0> *local_space_groups = r_fan_spaces ? &space_groups.local() :
+                                                                     nullptr;
+
     for (const int vert : range) {
       const float3 vert_position = vert_positions[vert];
       const Span<int> vert_faces = vert_to_face_map[vert];
@@ -1308,8 +1300,13 @@ void normals_calc_corners(const Span<float3> vert_positions,
             corner_infos, edge_dirs, face_normals, corners_in_fan);
 
         if (!custom_normals.is_empty() || r_fan_spaces) {
-          handle_fan_result_and_custom_normals(
-              custom_normals, corner_infos, edge_dirs, corners_in_fan, fan_normal, r_fan_spaces);
+          handle_fan_result_and_custom_normals(custom_normals,
+                                               corner_infos,
+                                               edge_dirs,
+                                               corners_in_fan,
+                                               fan_normal,
+                                               r_fan_spaces,
+                                               *local_space_groups);
         }
 
         for (const int local_corner : corners_in_fan) {
@@ -1331,6 +1328,48 @@ void normals_calc_corners(const Span<float3> vert_positions,
         }
       }
       BLI_assert(visited_count == corner_infos.size());
+    }
+  });
+
+  if (!r_fan_spaces) {
+    return;
+  }
+
+  Vector<int> space_groups_count;
+  Vector<Vector<CornerSpaceGroup, 0>> all_space_groups;
+  for (auto &groups : space_groups) {
+    space_groups_count.append(groups.size());
+    all_space_groups.append(std::move(groups));
+  }
+  space_groups_count.append(0);
+  const OffsetIndices<int> space_offsets = offset_indices::accumulate_counts_to_offsets(
+      space_groups_count);
+
+  r_fan_spaces->spaces.reinitialize(space_offsets.total_size());
+  r_fan_spaces->corner_space_indices.reinitialize(corner_verts.size());
+  if (r_fan_spaces->create_corners_by_space) {
+    r_fan_spaces->corners_by_space.reinitialize(space_offsets.total_size());
+  }
+
+  const int64_t mean_size = space_offsets.total_size() / space_offsets.size();
+  const int64_t grain_size = math::clamp<int64_t>((1024 * 512) / mean_size, 256, 1024 * 16);
+  threading::parallel_for(all_space_groups.index_range(), grain_size, [&](const IndexRange range) {
+    for (const int thread_i : range) {
+      Vector<CornerSpaceGroup, 0> &local_space_groups = all_space_groups[thread_i];
+      for (const int group_i : local_space_groups.index_range()) {
+        const int space_index = space_offsets[thread_i][group_i];
+        r_fan_spaces->spaces[space_index] = local_space_groups[group_i].space;
+        r_fan_spaces->corner_space_indices.as_mutable_span().fill_indices(
+            local_space_groups[group_i].fan_corners.as_span(), space_index);
+      }
+      if (!r_fan_spaces->create_corners_by_space) {
+        continue;
+      }
+      for (const int group_i : local_space_groups.index_range()) {
+        const int space_index = space_offsets[thread_i][group_i];
+        r_fan_spaces->corners_by_space[space_index] = std::move(
+            local_space_groups[group_i].fan_corners);
+      }
     }
   });
 }
