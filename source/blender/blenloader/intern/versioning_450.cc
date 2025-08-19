@@ -15,6 +15,7 @@
 #include "DNA_defaults.h"
 #include "DNA_light_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_sequence_types.h"
 
@@ -6491,6 +6492,23 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
       if (brush->gpencil_settings) {
         do_version_convert_gp_jitter_values(brush);
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 90)) {
+    LISTBASE_FOREACH (Object *, object, &bmain->objects) {
+      LISTBASE_FOREACH (ModifierData *, modifier, &object->modifiers) {
+        if (modifier->type != eModifierType_GreasePencilLineart) {
+          continue;
+        }
+        GreasePencilLineartModifierData *lmd = reinterpret_cast<GreasePencilLineartModifierData *>(
+            modifier);
+        if (lmd->radius != 0.0f) {
+          continue;
+        }
+        lmd->radius = float(lmd->thickness_legacy) *
+                      blender::bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
       }
     }
   }

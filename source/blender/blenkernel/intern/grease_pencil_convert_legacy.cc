@@ -3197,7 +3197,7 @@ void lineart_wrap_v3(const LineartGpencilModifierData *lmd_legacy,
   lmd->shadow_camera_near = lmd_legacy->shadow_camera_near;
   lmd->shadow_camera_far = lmd_legacy->shadow_camera_far;
   lmd->opacity = lmd_legacy->opacity;
-  lmd->thickness = lmd_legacy->thickness;
+  lmd->radius = float(lmd_legacy->thickness) * LEGACY_RADIUS_CONVERSION_FACTOR;
   lmd->mask_switches = lmd_legacy->mask_switches;
   lmd->material_mask_bits = lmd_legacy->material_mask_bits;
   lmd->intersection_mask = lmd_legacy->intersection_mask;
@@ -3240,7 +3240,7 @@ void lineart_unwrap_v3(LineartGpencilModifierData *lmd_legacy,
   lmd_legacy->shadow_camera_near = lmd->shadow_camera_near;
   lmd_legacy->shadow_camera_far = lmd->shadow_camera_far;
   lmd_legacy->opacity = lmd->opacity;
-  lmd_legacy->thickness = lmd->thickness;
+  lmd_legacy->thickness = lmd->radius / LEGACY_RADIUS_CONVERSION_FACTOR;
   lmd_legacy->mask_switches = lmd->mask_switches;
   lmd_legacy->material_mask_bits = lmd->material_mask_bits;
   lmd_legacy->intersection_mask = lmd->intersection_mask;
