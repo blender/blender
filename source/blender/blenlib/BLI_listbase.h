@@ -395,6 +395,10 @@ BLI_INLINE bool operator==(const ListBase &a, const ListBase &b)
 {
   return BLI_listbase_equal(&a, &b);
 }
+BLI_INLINE bool operator!=(const ListBase &a, const ListBase &b)
+{
+  return !(a == b);
+}
 
 template<typename T, typename Fn> T *BLI_listbase_find(const ListBase &listbase, Fn &&predicate)
 {

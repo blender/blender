@@ -41,9 +41,14 @@ AssetShelfSettings &AssetShelfSettings::operator=(const AssetShelfSettings &othe
     return *this; /* Handle self-assignment safely. */
   }
 
-  /* Free existing properties. */
-  BKE_asset_catalog_path_list_free(this->enabled_catalog_paths);
-  MEM_SAFE_FREE(this->active_catalog_path);
+  /* Free existing properties. Check if they point to the same memory first, #AssetShelfSettings
+   * might have been shallow copied before. */
+  if (this->enabled_catalog_paths != other.enabled_catalog_paths) {
+    BKE_asset_catalog_path_list_free(this->enabled_catalog_paths);
+  }
+  if (this->active_catalog_path != other.active_catalog_path) {
+    MEM_SAFE_FREE(this->active_catalog_path);
+  }
 
   /* Copy from 'other'. */
   this->asset_library_reference = other.asset_library_reference;
