@@ -98,8 +98,8 @@ ccl_device_inline void print_int3(const ccl_private char *label, const int3 a)
 
 #if defined(__KERNEL_METAL__)
 /* Metal has native packed_int3. */
-#elif defined(__KERNEL_CUDA__) || defined(__KERNEL_ONEAPI__)
-/* CUDA and oneAPI int3 are already packed. */
+#elif defined(__KERNEL_CUDA__)
+/* CUDA is already packed. */
 typedef int3 packed_int3;
 #else
 /* HIP int3 is not packed (https://github.com/ROCm-Developer-Tools/HIP/issues/706). */
@@ -140,9 +140,9 @@ struct packed_int3 {
   }
 #  endif
 };
+#endif
 
 static_assert(sizeof(packed_int3) == 12, "packed_int3 expected to be exactly 12 bytes");
-#endif
 
 ccl_device_inline packed_int3 make_packed_int3(const int x, const int y, int z)
 {
