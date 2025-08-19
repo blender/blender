@@ -78,7 +78,7 @@ typename NanoToOpenVDBMask<NanoBuildT>::OpenGridT::Ptr NanoToOpenVDBMask<NanoBui
   const nanovdb::Map &nanoMap = reinterpret_cast<const nanovdb::GridData *>(srcGrid)->mMap;
   auto mat = openvdb::math::Mat4<double>::identity();
   mat.setMat3(openvdb::math::Mat3<double>(nanoMap.mMatD));
-  mat.transpose(); /* The 3x3 in nanovdb is transposed relative to openvdb's 3x3. */
+  mat = mat.transpose(); /* The 3x3 in nanovdb is transposed relative to openvdb's 3x3. */
   mat.setTranslation(openvdb::math::Vec3<double>(nanoMap.mVecD));
   dstGrid->setTransform(openvdb::math::Transform::createLinearTransform(mat));
 
