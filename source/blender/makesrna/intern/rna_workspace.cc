@@ -24,6 +24,7 @@
 
 #  include "BKE_global.hh"
 #  include "BKE_paint.hh"
+#  include "BKE_paint_types.hh"
 #  include "BKE_report.hh"
 #  include "BKE_workspace.hh"
 

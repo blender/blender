@@ -12,6 +12,7 @@
 #include "BKE_library.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
+#include "BKE_paint_types.hh"
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
 

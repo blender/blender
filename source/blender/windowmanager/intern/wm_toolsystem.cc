@@ -393,7 +393,7 @@ static void toolsystem_brush_activate_from_toolref_for_object_paint(Main *bmain,
           return *brush_ref->brush_asset_reference;
         }
         /* No remembered brush found for this type, use a default for the type. */
-        return BKE_paint_brush_type_default_reference(eObjectMode(paint->runtime->ob_mode),
+        return BKE_paint_brush_type_default_reference(paint->runtime->paint_mode,
                                                       tref_rt->brush_type);
       }();
 
@@ -413,8 +413,7 @@ static void toolsystem_brush_activate_from_toolref_for_object_paint(Main *bmain,
           if (paint->tool_brush_bindings.main_brush_asset_reference) {
             return *paint->tool_brush_bindings.main_brush_asset_reference;
           }
-          return BKE_paint_brush_type_default_reference(eObjectMode(paint->runtime->ob_mode),
-                                                        std::nullopt);
+          return BKE_paint_brush_type_default_reference(paint->runtime->paint_mode, std::nullopt);
         }();
 
         if (main_brush_asset_reference) {
