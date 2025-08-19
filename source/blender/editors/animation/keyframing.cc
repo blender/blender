@@ -1064,18 +1064,18 @@ static wmOperatorStatus delete_key_vse_without_keying_set(bContext *C, wmOperato
   if (confirm) {
     /* If called by invoke (from the UI), make a note that we've removed keyframes. */
     if (modified_strips.is_empty()) {
-      BKE_reportf(op->reports,
-                  RPT_WARNING,
-                  "No keyframes removed from %" PRId64 " strip(s)",
-                  selected_strips_rna_paths.size());
+      const std::string msg = fmt::format(
+          fmt::runtime(RPT_("No keyframes removed from {} strip(s)")),
+          selected_strips_rna_paths.size());
+      BKE_report(op->reports, RPT_WARNING, msg.c_str());
       return OPERATOR_CANCELLED;
     }
 
-    BKE_reportf(op->reports,
-                RPT_INFO,
-                "%" PRId64 " strip(s) successfully had %" PRId64 " keyframes removed",
-                modified_strips.size(),
-                modified_fcurves.size());
+    const std::string msg = fmt::format(
+        fmt::runtime(RPT_("{} strip(s) successfully had {} keyframes removed")),
+        modified_strips.size(),
+        modified_fcurves.size());
+    BKE_report(op->reports, RPT_INFO, msg.c_str());
   }
 
   return OPERATOR_FINISHED;
