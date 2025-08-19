@@ -940,7 +940,7 @@ static PyObject *Vector_orthogonal(VectorObject *self)
 PyDoc_STRVAR(
     /* Wrap. */
     Vector_reflect_doc,
-    ".. method:: reflect(mirror. /)\n"
+    ".. method:: reflect(mirror, /)\n"
     "\n"
     "   Return the reflection vector from the *mirror* argument.\n"
     "\n"
