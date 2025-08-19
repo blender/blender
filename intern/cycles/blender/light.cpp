@@ -108,10 +108,6 @@ void BlenderSync::sync_light(BObjectInfo &b_ob_info, Light *light)
     light->set_is_portal(false);
   }
 
-  if (light->get_is_portal()) {
-    world_use_portal = true;
-  }
-
   /* tag */
   light->tag_update(scene);
 }
@@ -172,9 +168,6 @@ void BlenderSync::sync_background_light(BL::SpaceView3D &b_v3d)
 
       light->set_use_mis(sample_as_light);
       light->set_max_bounces(get_int(cworld, "max_bounces"));
-
-      /* Force enable light again when world is resynced. */
-      light->set_is_enabled(sample_as_light || world_use_portal);
 
       /* Caustic light. */
       light->set_use_caustics(get_boolean(cworld, "is_caustics_light"));

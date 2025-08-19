@@ -538,8 +538,6 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
     geometry_motion_synced.clear();
   }
 
-  world_use_portal = false;
-
   if (!motion) {
     /* Object to geometry instance mapping is built for the reference time, as other
      * times just look up the corresponding geometry. */
