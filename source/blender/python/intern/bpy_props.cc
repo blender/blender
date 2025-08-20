@@ -1339,8 +1339,6 @@ static void bpy_prop_string_set_fn(PointerRNA *ptr, PropertyRNA *prop, const cha
     if (!py_value) {
       PyErr_SetString(PyExc_ValueError, "the set value must be a valid string");
       PyC_Err_PrintWithFunc(py_func);
-    }
-    else {
       py_value = Py_None;
       Py_INCREF(py_value);
     }
