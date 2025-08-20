@@ -534,12 +534,12 @@ ccl_device_template_spec bool set_attribute(ustring str,
   if (type.basetype == TypeDesc::STRING && type.aggregate == TypeDesc::SCALAR &&
       type.arraylen == 0)
   {
-    ustring *sval = (ustring *)val;
+    OSLUStringHash *sval = (OSLUStringHash *)val;
     sval[0] = str;
 
     if (derivatives) {
-      sval[1] = OSLRenderServices::u_empty;
-      sval[2] = OSLRenderServices::u_empty;
+      sval[1] = OSLUStringHash();
+      sval[2] = OSLUStringHash();
     }
 
     return true;
