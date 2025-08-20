@@ -34,6 +34,18 @@ class SceneButtonsPanel:
     bl_context = "scene"
 
 
+class SCENE_PT_context_scene(SceneButtonsPanel, Panel):
+    bl_label = ""
+    bl_options = {'HIDE_HEADER'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        window = context.window
+
+        layout.template_ID(window, "scene", new="scene.new", unlink="scene.delete")
+
+
 class SCENE_PT_scene(SceneButtonsPanel, Panel):
     bl_label = "Scene"
 
@@ -459,6 +471,7 @@ class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, Panel):
 
 classes = (
     SCENE_UL_keying_set_paths,
+    SCENE_PT_context_scene,
     SCENE_PT_scene,
     SCENE_PT_unit,
     SCENE_PT_physics,
