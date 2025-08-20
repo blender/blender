@@ -192,7 +192,7 @@ Brush *BKE_paint_brush_from_essentials(Main *bmain, PaintMode paint_mode, const 
  * Check if brush \a brush may be set/activated for \a paint. Passing null for \a brush will return
  * true.
  */
-bool BKE_paint_brush_poll(const Paint *paint, const Brush *brush);
+bool BKE_paint_can_use_brush(const Paint *paint, const Brush *brush);
 
 /**
  * Activates \a brush for painting, and updates #Paint.brush_asset_reference so the brush can be

@@ -643,7 +643,7 @@ const Brush *BKE_paint_brush_for_read(const Paint *paint)
   return paint ? paint->brush : nullptr;
 }
 
-bool BKE_paint_brush_poll(const Paint *paint, const Brush *brush)
+bool BKE_paint_can_use_brush(const Paint *paint, const Brush *brush)
 {
   if (paint == nullptr) {
     return false;
@@ -678,7 +678,7 @@ bool BKE_paint_brush_set(Main *bmain,
 
   /* Ensure we have a brush with appropriate mode to assign.
    * Could happen if contents of asset blend were manually changed. */
-  if (brush == nullptr || !BKE_paint_brush_poll(paint, brush)) {
+  if (brush == nullptr || !BKE_paint_can_use_brush(paint, brush)) {
     return false;
   }
 
@@ -700,7 +700,7 @@ bool BKE_paint_brush_set(Main *bmain,
 
 bool BKE_paint_brush_set(Paint *paint, Brush *brush)
 {
-  if (!BKE_paint_brush_poll(paint, brush)) {
+  if (!BKE_paint_can_use_brush(paint, brush)) {
     return false;
   }
 
