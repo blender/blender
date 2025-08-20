@@ -33,6 +33,7 @@ class NODE_MT_geometry_node_GEO_COLOR(Menu):
     def draw(self, context):
         layout = self.layout
         node_add_menu.add_node_type(layout, "ShaderNodeBlackbody")
+        node_add_menu.add_node_type(layout, "ShaderNodeGamma")
         node_add_menu.add_node_type(layout, "ShaderNodeValToRGB")
         node_add_menu.add_node_type(layout, "ShaderNodeRGBCurve")
         layout.separator()

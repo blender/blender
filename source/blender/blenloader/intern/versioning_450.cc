@@ -3132,19 +3132,19 @@ static void do_version_blur_defocus_nodes_remove_gamma(bNodeTree *node_tree)
       continue;
     }
 
-    bNode *gamma_node = blender::bke::node_add_static_node(nullptr, *node_tree, CMP_NODE_GAMMA);
+    bNode *gamma_node = blender::bke::node_add_static_node(nullptr, *node_tree, SH_NODE_GAMMA);
     gamma_node->parent = link->tonode->parent;
     gamma_node->location[0] = link->tonode->location[0] - link->tonode->width - 20.0f;
     gamma_node->location[1] = link->tonode->location[1];
 
-    bNodeSocket *image_input = blender::bke::node_find_socket(*gamma_node, SOCK_IN, "Image");
-    bNodeSocket *image_output = blender::bke::node_find_socket(*gamma_node, SOCK_OUT, "Image");
+    bNodeSocket *color_input = blender::bke::node_find_socket(*gamma_node, SOCK_IN, "Color");
+    bNodeSocket *color_output = blender::bke::node_find_socket(*gamma_node, SOCK_OUT, "Color");
 
     bNodeSocket *gamma_input = blender::bke::node_find_socket(*gamma_node, SOCK_IN, "Gamma");
     gamma_input->default_value_typed<bNodeSocketValueFloat>()->value = 2.0f;
 
-    version_node_add_link(*node_tree, *link->fromnode, *link->fromsock, *gamma_node, *image_input);
-    version_node_add_link(*node_tree, *gamma_node, *image_output, *link->tonode, *link->tosock);
+    version_node_add_link(*node_tree, *link->fromnode, *link->fromsock, *gamma_node, *color_input);
+    version_node_add_link(*node_tree, *gamma_node, *color_output, *link->tonode, *link->tosock);
 
     blender::bke::node_remove_link(node_tree, *link);
   }
@@ -3166,19 +3166,19 @@ static void do_version_blur_defocus_nodes_remove_gamma(bNodeTree *node_tree)
       continue;
     }
 
-    bNode *gamma_node = blender::bke::node_add_static_node(nullptr, *node_tree, CMP_NODE_GAMMA);
+    bNode *gamma_node = blender::bke::node_add_static_node(nullptr, *node_tree, SH_NODE_GAMMA);
     gamma_node->parent = link->fromnode->parent;
     gamma_node->location[0] = link->fromnode->location[0] + link->fromnode->width + 20.0f;
     gamma_node->location[1] = link->fromnode->location[1];
 
-    bNodeSocket *image_input = blender::bke::node_find_socket(*gamma_node, SOCK_IN, "Image");
-    bNodeSocket *image_output = blender::bke::node_find_socket(*gamma_node, SOCK_OUT, "Image");
+    bNodeSocket *color_input = blender::bke::node_find_socket(*gamma_node, SOCK_IN, "Color");
+    bNodeSocket *color_output = blender::bke::node_find_socket(*gamma_node, SOCK_OUT, "Color");
 
     bNodeSocket *gamma_input = blender::bke::node_find_socket(*gamma_node, SOCK_IN, "Gamma");
     gamma_input->default_value_typed<bNodeSocketValueFloat>()->value = 0.5f;
 
-    version_node_add_link(*node_tree, *link->fromnode, *link->fromsock, *gamma_node, *image_input);
-    version_node_add_link(*node_tree, *gamma_node, *image_output, *link->tonode, *link->tosock);
+    version_node_add_link(*node_tree, *link->fromnode, *link->fromsock, *gamma_node, *color_input);
+    version_node_add_link(*node_tree, *gamma_node, *color_output, *link->tonode, *link->tosock);
 
     blender::bke::node_remove_link(node_tree, *link);
   }
