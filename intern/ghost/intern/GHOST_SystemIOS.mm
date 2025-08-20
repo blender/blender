@@ -1,4 +1,6 @@
-
+/* SPDX-FileCopyrightText: 2025 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "GHOST_SystemIOS.h"
 
@@ -14,8 +16,6 @@
 #ifdef WITH_INPUT_NDOF
 #  include "GHOST_NDOFManagerCocoa.hh"
 #endif
-
-#include "AssertMacros.h"
 
 #import <MetalKit/MTKView.h>
 #import <UIKit/UIKit.h>
@@ -43,6 +43,8 @@ void WM_main_loop_body(bContext *C);
 int main_ios_callback(int argc, const char **argv);
 
 @interface IOSAppDelegate : UIResponder <UIApplicationDelegate>
+   
+@property(strong, nonatomic) UIWindow *window;
 
 @end
 
