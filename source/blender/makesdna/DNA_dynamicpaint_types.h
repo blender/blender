@@ -72,14 +72,6 @@ enum {
   MOD_DPAINT_INITIAL_VERTEXCOLOR = 3,
 };
 
-/* Is stored in ModifierData.runtime. */
-#
-#
-typedef struct DynamicPaintRuntime {
-  struct Mesh *canvas_mesh;
-  struct Mesh *brush_mesh;
-} DynamicPaintRuntime;
-
 typedef struct DynamicPaintSurface {
 
   struct DynamicPaintSurface *next, *prev;
