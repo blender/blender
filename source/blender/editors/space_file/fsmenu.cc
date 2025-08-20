@@ -231,6 +231,15 @@ void fsmenu_insert_entry(FSMenu *fsmenu,
                          int icon,
                          FSMenuInsert flag)
 {
+  /* NOTE: this function must *not* perform file-system checks on `path`,
+   * although the path may be inspected as a literal string.
+   *
+   * This is important because accessing the file system may reference drives
+   * which are offline, network drives requiring an internet connection,
+   * external drives that aren't plugged in, etc.
+   * Delays in any file-system checks can causes hanging on startup.
+   * See !138218 for details. */
+
   const uint path_len = strlen(path);
   BLI_assert(path_len > 0);
   if (path_len == 0) {
@@ -445,15 +454,10 @@ void fsmenu_read_bookmarks(FSMenu *fsmenu, const char *filepath)
         if (line[len - 1] == '\n') {
           line[len - 1] = '\0';
         }
-        /* don't do this because it can be slow on network drives,
-         * having a bookmark from a drive that's ejected or so isn't
-         * all _that_ bad */
-#if 0
-        if (BLI_exists(line))
-#endif
-        {
-          fsmenu_insert_entry(fsmenu, category, line, name, ICON_FILE_FOLDER, FS_INSERT_SAVE);
-        }
+        /* Don't check if the path exists before adding because it can be slow on network drives,
+         * having a bookmark from a drive that's ejected or so isn't all that bad.
+         * See !138218 for details. */
+        fsmenu_insert_entry(fsmenu, category, line, name, ICON_FILE_FOLDER, FS_INSERT_SAVE);
       }
       /* always reset name. */
       name[0] = '\0';
