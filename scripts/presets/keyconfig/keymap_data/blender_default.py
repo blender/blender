@@ -6999,7 +6999,7 @@ def km_image_editor_tool_mask_cursor(params):
         "Image Editor Tool: Mask, Cursor",
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
-            ("mask.cursor_set", {"type": params.tool_mouse, "value": 'PRESS'}, None),
+            ("uv.cursor_set", {"type": params.tool_mouse, "value": 'PRESS'}, None),
             # Don't use `tool_maybe_tweak_event` since it conflicts with `PRESS` that places the cursor.
             ("transform.translate", params.tool_tweak_event,
              {"properties": [("release_confirm", True), ("cursor_transform", True)]}),
@@ -7013,7 +7013,7 @@ def km_image_editor_tool_mask_select(params, *, fallback):
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
             *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else _template_items_tool_select(
-                params, "mask.select", "mask.cursor_set", fallback=fallback)),
+                params, "mask.select", "uv.cursor_set", fallback=fallback)),
             *([] if params.use_fallback_tool_select_handled else
               _template_mask_select(
                   type=params.select_mouse,
