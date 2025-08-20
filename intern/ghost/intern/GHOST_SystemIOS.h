@@ -19,6 +19,16 @@ class GHOST_EventKey;
 class GHOST_EventWindow;
 class GHOST_WindowIOS;
 
+#ifdef __OBJC__
+#  import <MetalKit/MTKView.h>
+
+@interface GHOST_IOSMetalRenderer : NSObject <MTKViewDelegate>
+
+- (nonnull instancetype)initWithMetalKitView:(nonnull MTKView *)mtkView;
+
+@end
+#endif
+
 GHOST_TKey convertKey(int rawCode, uint16_t recvChar, uint16_t /*keyAction*/);
 
 class GHOST_SystemIOS : public GHOST_System {
@@ -290,6 +300,10 @@ class GHOST_SystemIOS : public GHOST_System {
   GHOST_TSuccess handleKeyEvent(void *eventPtr);
 
 #endif
+
+  /* Public global state vars that track the currently valid window from the iOS POV. */
+  GHOST_WindowIOS *current_active_window = nullptr;
+  GHOST_WindowIOS *next_active_window = nullptr;
 
  protected:
   /**

@@ -25,6 +25,7 @@
 
 #import <GameController/GameController.h>
 #import <MetalKit/MTKDefines.h>
+#import <MetalKit/MTKView.h>
 #import <UIKit/UIKit.h>
 
 #include <sys/sysctl.h>
@@ -32,6 +33,129 @@
 #include <sys/types.h>
 
 #include <mach/mach_time.h>
+
+// #define IOS_SYSTEM_LOGGING
+#if defined(IOS_SYSTEM_LOGGING)
+#  define IOS_SYSTEM_LOG(...) NSLog(__VA_ARGS__)
+#else
+#  define IOS_SYSTEM_LOG(...)
+#endif
+
+extern "C" {
+struct bContext;
+static bContext *C = nullptr;
+}
+
+int argc = 0;
+const char **argv = nullptr;
+
+/* Implemented in wm.cc. */
+void WM_main_loop_body(bContext *C);
+int main_ios_callback(int argc, const char **argv);
+
+@interface IOSAppDelegate : UIResponder <UIApplicationDelegate>
+
+@end
+
+@implementation IOSAppDelegate
+
+- (BOOL)application:(UIApplication *)application
+    didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+  main_ios_callback(argc, argv);
+
+  return YES;
+}
+
+@end
+
+@implementation GHOST_IOSMetalRenderer
+{
+  id<MTLDevice> _device;
+  id<MTLCommandQueue> _commandQueue;
+}
+
+- (nonnull instancetype)initWithMetalKitView:(nonnull MTKView *)mtkView
+{
+  self = [super init];
+  if (self) {
+    _device = mtkView.device;
+
+    /* Create the command queue. */
+    _commandQueue = [_device newCommandQueue];
+  }
+
+  return self;
+}
+
+- (void)drawInMTKView:(nonnull MTKView *)MTKView
+{
+  GHOST_SystemIOS *system = static_cast<GHOST_SystemIOS *>(GHOST_ISystem::getSystem());
+
+  /* We should always have a window... */
+  if (system->current_active_window) {
+
+    /* If the current window has some outstanding swaps we need to
+     * service them before handing control back to Blender otherwise
+     * they may go missing. */
+    if (system->current_active_window->deferred_swap_buffers_count) {
+      IOS_SYSTEM_LOG(@"Issuing oustanding swaps");
+      system->current_active_window->flushDeferredSwapBuffers();
+      /* Make sure we get another call to draw. */
+      system->current_active_window->needsDisplayUpdate();
+      return;
+    }
+
+    system->current_active_window->beginFrame();
+  }
+
+  /* Run the main loop to handle all events. */
+  if (C) {
+    WM_main_loop_body(C);
+  }
+
+  if (system->current_active_window) {
+    system->current_active_window->flushDeferredSwapBuffers();
+    system->current_active_window->endFrame();
+  }
+
+  /* Was there a request to switch windows? */
+  if (system->next_active_window != nullptr) {
+    if (system->current_active_window) {
+      system->current_active_window->resignKeyWindow();
+    }
+    system->next_active_window->makeKeyWindow();
+    system->next_active_window = nullptr;
+  }
+}
+
+- (void)mtkView:(nonnull MTKView *)view drawableSizeWillChange:(CGSize)size
+{
+  GHOST_SystemIOS *system = static_cast<GHOST_SystemIOS *>(GHOST_ISystem::getSystem());
+  if (!system->current_active_window) {
+    return;
+  }
+
+  system->pushEvent(new GHOST_Event(
+      system->getMilliSeconds(), GHOST_kEventWindowSize, system->current_active_window));
+}
+
+@end
+
+int GHOST_iosmain(int _argc, const char **_argv)
+{
+  argc = _argc;
+  argv = _argv;
+  @autoreleasepool {
+    return UIApplicationMain(
+        _argc, (char *_Nullable *)_argv, nil, NSStringFromClass([IOSAppDelegate class]));
+  }
+}
+
+void GHOST_iosfinalize(bContext *CTX)
+{
+  C = CTX;
+}
 
 #pragma mark KeyMap, mouse converters
 
