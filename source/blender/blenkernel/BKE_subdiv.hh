@@ -251,7 +251,7 @@ void free(Subdiv *subdiv);
  */
 
 void displacement_attach_from_multires(Subdiv *subdiv,
-                                       Mesh *mesh,
+                                       const Mesh *mesh,
                                        const MultiresModifierData *mmd);
 
 void displacement_detach(Subdiv *subdiv);
