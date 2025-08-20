@@ -6084,7 +6084,25 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
       wm_event_add_trackpad(win, &event, delta[0], delta[1]);
       break;
     }
-      /* Multi touch */
+    /* Multi-touch. */
+    case GHOST_kEventTouch: {
+      const GHOST_TEventTouchData *td = static_cast<const GHOST_TEventTouchData *>(customdata);
+      switch (td->subtype) {
+        case GHOST_kTouchEventEdgeSwipeInLeft:
+          event.type = TOUCH_EDGE_SWIPE_IN_LEFT;
+          event.val = KM_PRESS;
+          wm_event_add_intern(win, &event);
+          break;
+        case GHOST_kTouchEventEdgeSwipeInRight:
+          event.type = TOUCH_EDGE_SWIPE_IN_RIGHT;
+          event.val = KM_PRESS;
+          wm_event_add_intern(win, &event);
+          break;
+        default:
+          break;
+      }
+      break;
+    }
     case GHOST_kEventTwoFingerTap:
       event.type = TOUCH_TWO_FINGER_TAP;
       event.val = KM_PRESS;

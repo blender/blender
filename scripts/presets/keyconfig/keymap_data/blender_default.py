@@ -813,6 +813,11 @@ def km_screen(params):
         # Zen mode
         ("screen.screen_full_area", {"type": 'TOUCH_FOUR_FINGER_TAP', "value": "PRESS"},
          {"properties": [("use_hide_panels", True)]}),
+        # Edge swipe
+        ("screen.edge_swipe", {"type": 'TOUCH_EDGE_SWIPE_IN_LEFT', "value": "PRESS"},
+         {"properties": [("direction", 'IN_LEFT')]}),
+        ("screen.edge_swipe", {"type": 'TOUCH_EDGE_SWIPE_IN_RIGHT', "value": "PRESS"},
+         {"properties": [("direction", 'IN_RIGHT')]}),
         # Quad view
         ("screen.region_quadview", {"type": 'Q', "value": 'PRESS', "ctrl": True, "alt": True}, None),
         # Repeat last

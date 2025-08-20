@@ -112,6 +112,12 @@ static bool rna_Screen_fullscreen_get(PointerRNA *ptr)
   return (screen->state == SCREENMAXIMIZED || screen->state == SCREENFULL);
 }
 
+static bool rna_Screen_focus_mode_get(PointerRNA *ptr)
+{
+  bScreen *screen = (bScreen *)ptr->data;
+  return screen->state == SCREENFULL;
+}
+
 static int rna_Area_type_get(PointerRNA *ptr)
 {
   ScrArea *area = (ScrArea *)ptr->data;
@@ -712,6 +718,12 @@ static void rna_def_screen(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_boolean_funcs(prop, "rna_Screen_fullscreen_get", nullptr);
   RNA_def_property_ui_text(prop, "Maximize", "An area is maximized, filling this screen");
+
+  prop = RNA_def_property(srna, "is_focus_mode", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_boolean_funcs(prop, "rna_Screen_focus_mode_get", nullptr);
+  RNA_def_property_ui_text(
+      prop, "Focus Mode", "An area is maximized with the least amount of user interface");
 
   /* Status Bar. */
 

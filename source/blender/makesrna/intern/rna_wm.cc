@@ -194,6 +194,8 @@ static const EnumPropertyItem event_ndof_type_items[] = {
 };
 
 static const EnumPropertyItem event_touch_type_items[] = {
+    {TOUCH_EDGE_SWIPE_IN_LEFT, "TOUCH_EDGE_SWIPE_IN_LEFT", 0, "Edge Swap In Left"},
+    {TOUCH_EDGE_SWIPE_IN_RIGHT, "TOUCH_EDGE_SWIPE_IN_RIGHT", 0, "Edge Swap In Right"},
     {TOUCH_TWO_FINGER_TAP, "TOUCH_TWO_FINGER_TAP", 0, "2 Fingers Tap", ""},
     {TOUCH_THREE_FINGER_TAP, "TOUCH_THREE_FINGER_TAP", 0, "3 Fingers Tap", ""},
     {TOUCH_FOUR_FINGER_TAP, "TOUCH_FOUR_FINGER_TAP", 0, "4 Fingers Tap", ""},
@@ -460,6 +462,8 @@ const EnumPropertyItem rna_enum_event_type_items[] = {
     {NDOF_BUTTON_11, "NDOF_BUTTON_11", 0, "NDOF Button 11", "NdofB11"},
     {NDOF_BUTTON_12, "NDOF_BUTTON_12", 0, "NDOF Button 12", "NdofB12"},
     /* Touch events. */
+    {TOUCH_EDGE_SWIPE_IN_LEFT, "TOUCH_EDGE_SWIPE_IN_LEFT", 0, "Swap |→   |"},
+    {TOUCH_EDGE_SWIPE_IN_RIGHT, "TOUCH_EDGE_SWIPE_IN_RIGHT", 0, "Swap |   ←|"},
     {TOUCH_TWO_FINGER_TAP, "TOUCH_TWO_FINGER_TAP", 0, "2 Fingers Tap"},
     {TOUCH_THREE_FINGER_TAP, "TOUCH_THREE_FINGER_TAP", 0, "3 Fingers Tap"},
     {TOUCH_FOUR_FINGER_TAP, "TOUCH_FOUR_FINGER_TAP", 0, "4 Fingers Tap"},

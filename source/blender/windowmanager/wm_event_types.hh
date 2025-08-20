@@ -343,9 +343,12 @@ enum wmEventType : int16_t {
   TOUCH_TWO_FINGER_TAP = 0x0200,   /* 512 */
   TOUCH_THREE_FINGER_TAP = 0x0201, /* 513 */
   TOUCH_FOUR_FINGER_TAP = 0x0202,  /* 514 */
+  /* Edge-swap. */
+  TOUCH_EDGE_SWIPE_IN_LEFT = 0x0203,  /* 515 */
+  TOUCH_EDGE_SWIPE_IN_RIGHT = 0x0204, /* 516 */
 
 /* Maximum mouse value (inclusive). */
-#define _EVT_TOUCH_MAX 0x0202 /* 514 */
+#define _EVT_TOUCH_MAX 0x0204 /* 516 */
 
 #define ISTOUCH(event_type) ((event_type) >= _EVT_TOUCH_MIN && (event_type) <= _EVT_TOUCH_MAX)
 
