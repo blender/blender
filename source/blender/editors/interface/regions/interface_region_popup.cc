@@ -1002,7 +1002,7 @@ void ui_popup_block_free(bContext *C, uiPopupBlockHandle *handle)
   MEM_delete(handle);
 }
 
-struct ui_alert_data {
+struct uiAlertData {
   eAlertIcon icon;
   std::string title;
   std::string message;
@@ -1013,7 +1013,7 @@ struct ui_alert_data {
 
 static void ui_alert_ok_cb(bContext *C, void *arg1, void *arg2)
 {
-  ui_alert_data *data = static_cast<ui_alert_data *>(arg1);
+  uiAlertData *data = static_cast<uiAlertData *>(arg1);
   MEM_delete(data);
   uiBlock *block = static_cast<uiBlock *>(arg2);
   UI_popup_menu_retval_set(block, UI_RETURN_OK, true);
@@ -1023,19 +1023,19 @@ static void ui_alert_ok_cb(bContext *C, void *arg1, void *arg2)
 
 static void ui_alert_ok(bContext * /*C*/, void *arg, int /*retval*/)
 {
-  ui_alert_data *data = static_cast<ui_alert_data *>(arg);
+  uiAlertData *data = static_cast<uiAlertData *>(arg);
   MEM_delete(data);
 }
 
 static void ui_alert_cancel(bContext * /*C*/, void *user_data)
 {
-  ui_alert_data *data = static_cast<ui_alert_data *>(user_data);
+  uiAlertData *data = static_cast<uiAlertData *>(user_data);
   MEM_delete(data);
 }
 
 static uiBlock *ui_alert_create(bContext *C, ARegion *region, void *user_data)
 {
-  ui_alert_data *data = static_cast<ui_alert_data *>(user_data);
+  uiAlertData *data = static_cast<uiAlertData *>(user_data);
 
   const uiStyle *style = UI_style_get_dpi();
   const short icon_size = (data->compact ? 32 : 40) * UI_SCALE_FAC;
@@ -1125,7 +1125,7 @@ static uiBlock *ui_alert_create(bContext *C, ARegion *region, void *user_data)
 
 void UI_alert(bContext *C, std::string title, std::string message, eAlertIcon icon, bool compact)
 {
-  ui_alert_data *data = MEM_new<ui_alert_data>(__func__);
+  uiAlertData *data = MEM_new<uiAlertData>(__func__);
   data->title = title;
   data->message = message;
   data->icon = icon;
