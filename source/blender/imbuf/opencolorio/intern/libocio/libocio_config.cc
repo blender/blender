@@ -315,9 +315,11 @@ const ColorSpace *LibOCIOConfig::get_color_space(const StringRefNull name) const
     }
   }
 
-  report_error(
-      fmt::format("Invalid OpenColorIO configuration: color space {} not found on Blender side",
-                  ocio_color_space->getName()));
+  if (!ocio_config_->isInactiveColorSpace(ocio_color_space->getName())) {
+    report_error(
+        fmt::format("Invalid OpenColorIO configuration: color space {} not found on Blender side",
+                    ocio_color_space->getName()));
+  }
 
   return nullptr;
 }

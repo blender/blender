@@ -776,16 +776,12 @@ static std::shared_ptr<const ocio::CPUProcessor> get_display_buffer_processor(
 void IMB_colormanagement_init_untonemapped_view_settings(
     ColorManagedViewSettings *view_settings, const ColorManagedDisplaySettings *display_settings)
 {
-  /* First, try use "Un-tone-mapped" (ACES configs) or "Standard" (Blender config) view transform
-   * of the requested device. */
   const ocio::Display *display = g_config->get_display_by_name(display_settings->display_device);
   if (!display) {
     return;
   }
-  const ocio::View *default_view = display->get_view_by_name("Un-tone-mapped");
-  if (default_view == nullptr) {
-    default_view = display->get_view_by_name("Standard");
-  }
+  /* Try to guess what the untonemapped view is. */
+  const ocio::View *default_view = display->get_untonemapped_view();
   /* If that fails, we fall back to the default view transform of the display
    * as per OCIO configuration. */
   if (default_view == nullptr) {
@@ -2676,6 +2672,34 @@ const char *IMB_colormanagement_display_get_default_view_transform_name(
     return "";
   }
   return default_view->name().c_str();
+}
+
+const ColorSpace *IMB_colormangement_display_get_color_space(
+    const ColorManagedDisplaySettings *display_settings)
+{
+  return get_untonemapped_display_colorspace(display_settings);
+}
+
+bool IMB_colormanagement_display_is_hdr(const ColorManagedDisplaySettings *display_settings,
+                                        const char *view_name)
+{
+  const ocio::Display *display = g_config->get_display_by_name(display_settings->display_device);
+  if (display == nullptr) {
+    return false;
+  }
+  const ocio::View *view = display->get_view_by_name(view_name);
+  return (view) ? view->is_hdr() : false;
+}
+
+bool IMB_colormanagement_display_is_wide_gamut(const ColorManagedDisplaySettings *display_settings,
+                                               const char *view_name)
+{
+  const ocio::Display *display = g_config->get_display_by_name(display_settings->display_device);
+  if (display == nullptr) {
+    return false;
+  }
+  const ocio::View *view = display->get_view_by_name(view_name);
+  return (view) ? view->is_wide_gamut() : false;
 }
 
 /** \} */

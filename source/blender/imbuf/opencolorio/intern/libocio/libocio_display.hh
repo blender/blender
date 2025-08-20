@@ -29,6 +29,8 @@ class LibOCIODisplay : public Display {
 
   StringRefNull name_;
   Vector<LibOCIOView> views_;
+  const LibOCIOView *untonemapped_view_ = nullptr;
+  bool is_hdr_ = false;
 
   CPUProcessorCache to_scene_linear_cpu_processor_;
   CPUProcessorCache from_scene_linear_cpu_processor_;
@@ -38,7 +40,7 @@ class LibOCIODisplay : public Display {
   LibOCIODisplay(const LibOCIODisplay &other) = delete;
   LibOCIODisplay(LibOCIODisplay &&other) noexcept = default;
 
-  ~LibOCIODisplay() = default;
+  ~LibOCIODisplay() override = default;
 
   LibOCIODisplay &operator=(const LibOCIODisplay &other) = delete;
   LibOCIODisplay &operator=(LibOCIODisplay &&other) = default;
@@ -55,12 +57,19 @@ class LibOCIODisplay : public Display {
     return get_view_by_index(0);
   }
 
+  const View *get_untonemapped_view() const override;
+
   const View *get_view_by_name(StringRefNull name) const override;
   int get_num_views() const override;
   const View *get_view_by_index(int index) const override;
 
   const CPUProcessor *get_to_scene_linear_cpu_processor() const override;
   const CPUProcessor *get_from_scene_linear_cpu_processor() const override;
+
+  bool is_hdr() const override
+  {
+    return is_hdr_;
+  }
 
   MEM_CXX_CLASS_ALLOC_FUNCS("LibOCIOConfig");
 };

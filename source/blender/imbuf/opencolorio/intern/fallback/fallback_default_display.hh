@@ -34,6 +34,11 @@ class FallbackDefaultDisplay : public Display {
     return &default_view_;
   }
 
+  const View *get_untonemapped_view() const override
+  {
+    return &default_view_;
+  }
+
   const View *get_view_by_name(const StringRefNull name) const override
   {
     if (name == default_view_.name()) {
@@ -65,6 +70,11 @@ class FallbackDefaultDisplay : public Display {
   {
     static FallbackLinearRGBToSRGBCPUProcessor processor;
     return &processor;
+  }
+
+  bool is_hdr() const override
+  {
+    return false;
   }
 };
 

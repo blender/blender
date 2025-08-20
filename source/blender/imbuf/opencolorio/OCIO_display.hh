@@ -32,6 +32,10 @@ class Display {
   virtual const View *get_default_view() const = 0;
 
   /**
+   * Get the view without tonemapping. */
+  virtual const View *get_untonemapped_view() const = 0;
+
+  /**
    * Get view with the given name for this display.
    * If the view does not exist nullptr is returned.
    */
@@ -54,6 +58,11 @@ class Display {
    */
   const virtual CPUProcessor *get_to_scene_linear_cpu_processor() const = 0;
   const virtual CPUProcessor *get_from_scene_linear_cpu_processor() const = 0;
+
+  /**
+   * Determine if the display supports HDR.
+   */
+  virtual bool is_hdr() const = 0;
 };
 
 }  // namespace blender::ocio

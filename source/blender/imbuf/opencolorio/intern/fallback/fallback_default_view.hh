@@ -19,6 +19,16 @@ class FallbackDefaultView : public View {
   {
     return "Standard";
   }
+
+  bool is_hdr() const override
+  {
+    return false;
+  }
+
+  bool is_wide_gamut() const override
+  {
+    return false;
+  }
 };
 
 }  // namespace blender::ocio

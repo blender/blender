@@ -19,15 +19,18 @@ class CPUProcessor;
 class GPUShaderBinder;
 
 struct DisplayParameters {
+  /* Convert from a colorspace to a display, using the view transform and look. */
   StringRefNull from_colorspace;
   StringRefNull view;
   StringRefNull display;
   StringRefNull look;
+  /* Artistic controls. */
   float scale = 1.0f;
   float exponent = 1.0f;
   float temperature = 6500.0f;
   float tint = 10.0f;
   bool use_white_balance = false;
+  /* Invert the entire transform. */
   bool inverse = false;
 };
 
