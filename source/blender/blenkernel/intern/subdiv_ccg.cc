@@ -1443,37 +1443,6 @@ void BKE_subdiv_ccg_neighbor_coords_get(const SubdivCCG &subdiv_ccg,
 #endif
 }
 
-const int *BKE_subdiv_ccg_start_face_grid_index_ensure(SubdivCCG &subdiv_ccg)
-{
-#ifdef WITH_OPENSUBDIV
-  if (subdiv_ccg.cache_.start_face_grid_index.is_empty()) {
-    const Subdiv *subdiv = subdiv_ccg.subdiv;
-    const blender::opensubdiv::TopologyRefinerImpl *topology_refiner = subdiv->topology_refiner;
-    if (topology_refiner == nullptr) {
-      return nullptr;
-    }
-
-    const int num_coarse_faces = topology_refiner->base_level().GetNumFaces();
-
-    subdiv_ccg.cache_.start_face_grid_index.reinitialize(num_coarse_faces);
-
-    int start_grid_index = 0;
-    for (int face_index = 0; face_index < num_coarse_faces; face_index++) {
-      const int num_face_grids = topology_refiner->base_level().GetFaceVertices(face_index).size();
-      subdiv_ccg.cache_.start_face_grid_index[face_index] = start_grid_index;
-      start_grid_index += num_face_grids;
-    }
-  }
-#endif
-
-  return subdiv_ccg.cache_.start_face_grid_index.data();
-}
-
-const int *BKE_subdiv_ccg_start_face_grid_index_get(const SubdivCCG &subdiv_ccg)
-{
-  return subdiv_ccg.cache_.start_face_grid_index.data();
-}
-
 static void adjacent_vertices_index_from_adjacent_edge(const SubdivCCG &subdiv_ccg,
                                                        const SubdivCCGCoord &coord,
                                                        const blender::Span<int> corner_verts,
@@ -1600,15 +1569,6 @@ static void subdiv_ccg_coord_to_ptex_coord(const SubdivCCG &subdiv_ccg,
   }
 }
 
-float3 BKE_subdiv_ccg_eval_limit_point(const SubdivCCG &subdiv_ccg, const SubdivCCGCoord &coord)
-{
-  Subdiv *subdiv = subdiv_ccg.subdiv;
-  int ptex_face_index;
-  float u, v;
-  subdiv_ccg_coord_to_ptex_coord(subdiv_ccg, coord, ptex_face_index, u, v);
-  return eval_limit_point(subdiv, ptex_face_index, u, v);
-}
-
 void BKE_subdiv_ccg_eval_limit_positions(const SubdivCCG &subdiv_ccg,
                                          const CCGKey &key,
                                          const int grid_index,
@@ -1621,7 +1581,12 @@ void BKE_subdiv_ccg_eval_limit_positions(const SubdivCCG &subdiv_ccg,
       const int i = CCG_grid_xy_to_index(key.grid_size, x, y);
       coord.x = x;
       coord.y = y;
-      r_limit_positions[i] = BKE_subdiv_ccg_eval_limit_point(subdiv_ccg, coord);
+
+      int ptex_face_index;
+      float u, v;
+      subdiv_ccg_coord_to_ptex_coord(subdiv_ccg, coord, ptex_face_index, u, v);
+
+      r_limit_positions[i] = eval_limit_point(subdiv_ccg.subdiv, ptex_face_index, u, v);
     }
   }
 }

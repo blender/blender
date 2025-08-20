@@ -176,12 +176,6 @@ struct SubdivCCG : blender::NonCopyable {
     bool hidden = false;
   } dirty;
 
-  /* Cached values, are not supposed to be accessed directly. */
-  struct {
-    /* Indexed by face, indicates index of the first grid which corresponds to the face. */
-    blender::Array<int> start_face_grid_index;
-  } cache_;
-
   ~SubdivCCG();
 };
 
@@ -199,7 +193,7 @@ struct SubdivCCG : blender::NonCopyable {
 std::unique_ptr<SubdivCCG> BKE_subdiv_to_ccg(blender::bke::subdiv::Subdiv &subdiv,
                                              const SubdivToCCGSettings &settings,
                                              const Mesh &coarse_mesh,
-                                             SubdivCCGMaskEvaluator *mask_evaluator);
+                                             SubdivCCGMaskEvaluator *mask_evaluator = nullptr);
 
 /* Helper function, creates Mesh structure which is properly setup to use
  * grids.
@@ -278,8 +272,6 @@ inline int BKE_subdiv_ccg_grid_to_face_index(const SubdivCCG &subdiv_ccg, const 
   return subdiv_ccg.grid_to_face_map[grid_index];
 }
 
-blender::float3 BKE_subdiv_ccg_eval_limit_point(const SubdivCCG &subdiv_ccg,
-                                                const SubdivCCGCoord &coord);
 void BKE_subdiv_ccg_eval_limit_positions(const SubdivCCG &subdiv_ccg,
                                          const CCGKey &key,
                                          int grid_index,
@@ -308,15 +300,6 @@ bool BKE_subdiv_ccg_coord_is_mesh_boundary(blender::OffsetIndices<int> faces,
                                            blender::BitSpan boundary_verts,
                                            const SubdivCCG &subdiv_ccg,
                                            SubdivCCGCoord coord);
-
-/* Get array which is indexed by face index and contains index of a first grid of the face.
- *
- * The "ensure" version allocates the mapping if it's not known yet and stores it in the subdiv_ccg
- * descriptor. This function is NOT safe for threading.
- *
- * The "get" version simply returns cached array. */
-const int *BKE_subdiv_ccg_start_face_grid_index_ensure(SubdivCCG &subdiv_ccg);
-const int *BKE_subdiv_ccg_start_face_grid_index_get(const SubdivCCG &subdiv_ccg);
 
 blender::BitGroupVector<> &BKE_subdiv_ccg_grid_hidden_ensure(SubdivCCG &subdiv_ccg);
 void BKE_subdiv_ccg_grid_hidden_free(SubdivCCG &subdiv_ccg);

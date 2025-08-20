@@ -288,8 +288,8 @@ BLI_INLINE void grid_uv_to_ptex_face_uv(float grid_u,
  */
 BLI_INLINE int grid_size_from_level(int level);
 
-/* Simplified version of mdisp_rot_face_to_crn, only handles quad and
- * works in normalized coordinates.
+/* Find per-corner coordinate with given per-face UV coord.
+ * Only handles quad and works in normalized coordinates.
  *
  * NOTE: Output coordinates are in ptex coordinates. */
 BLI_INLINE int rotate_quad_to_corner(float quad_u,

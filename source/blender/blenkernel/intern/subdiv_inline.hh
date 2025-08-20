@@ -28,7 +28,7 @@ BLI_INLINE void ptex_face_uv_to_grid_uv(const float ptex_u,
 
 BLI_INLINE float2 ptex_face_uv_to_grid_uv(const float2 &ptex_uv)
 {
-  return 1.0f - float2(ptex_uv.y, ptex_uv.x);
+  return float2(1.0f - ptex_uv.y, 1.0f - ptex_uv.x);
 }
 
 BLI_INLINE void grid_uv_to_ptex_face_uv(const float grid_u,

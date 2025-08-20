@@ -6753,6 +6753,15 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
       //{RE_BAKE_AO, "AO", 0, "Ambient Occlusion", "Bake ambient occlusion"},
       {RE_BAKE_NORMALS, "NORMALS", 0, "Normals", "Bake normals"},
       {RE_BAKE_DISPLACEMENT, "DISPLACEMENT", 0, "Displacement", "Bake displacement"},
+
+      /* TODO(sergey): Uncomment once tangent space displacement is supported. */
+      /* Use C++ style comment because #if 0 breaks indentation. */
+      // {RE_BAKE_VECTOR_DISPLACEMENT,
+      //  "VECTOR_DISPLACEMENT",
+      //  0,
+      //  "Vector Displacement",
+      //  "Bake vector displacement"},
+
       {0, nullptr, 0, nullptr, nullptr},
   };
 

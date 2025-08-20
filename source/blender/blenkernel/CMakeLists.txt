@@ -34,9 +34,6 @@ set(INC_SYS
 
 set(SRC
   ${CMAKE_SOURCE_DIR}/release/datafiles/userdef/userdef_default.c
-  intern/CCGSubSurf.cc
-  intern/CCGSubSurf_legacy.cc
-  intern/CCGSubSurf_util.cc
   intern/action.cc
   intern/action_bones.cc
   intern/action_mirror.cc
@@ -205,7 +202,6 @@ set(SRC
   intern/mesh_flip_faces.cc
   intern/mesh_iterators.cc
   intern/mesh_legacy_convert.cc
-  intern/mesh_legacy_derived_mesh.cc
   intern/mesh_mapping.cc
   intern/mesh_merge_customdata.cc
   intern/mesh_mirror.cc
@@ -295,7 +291,6 @@ set(SRC
   intern/subdiv_modifier.cc
   intern/subdiv_stats.cc
   intern/subdiv_topology.cc
-  intern/subsurf_ccg.cc
   intern/text.cc
   intern/text_suggestions.cc
   intern/texture.cc
@@ -461,7 +456,6 @@ set(SRC
   BKE_mesh_fair.hh
   BKE_mesh_iterators.hh
   BKE_mesh_legacy_convert.hh
-  BKE_mesh_legacy_derived_mesh.hh
   BKE_mesh_mapping.hh
   BKE_mesh_mirror.hh
   BKE_mesh_remap.hh
@@ -523,7 +517,6 @@ set(SRC
   BKE_subdiv_mesh.hh
   BKE_subdiv_modifier.hh
   BKE_subdiv_topology.hh
-  BKE_subsurf.hh
   BKE_text.h
   BKE_text_suggestions.h
   BKE_texture.h
@@ -553,9 +546,6 @@ set(SRC
   particle_private.h
   tracking_private.h
 
-  intern/CCGSubSurf.h
-  intern/CCGSubSurf_inline.h
-  intern/CCGSubSurf_intern.h
   intern/attribute_access_intern.hh
   intern/attribute_storage_access.hh
   intern/data_transfer_intern.hh

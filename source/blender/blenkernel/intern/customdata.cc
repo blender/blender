@@ -51,6 +51,7 @@
 #include "BKE_attribute_legacy_convert.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_attribute_storage.hh"
+#include "BKE_ccg.hh"
 #include "BKE_customdata.hh"
 #include "BKE_customdata_file.h"
 #include "BKE_deform.hh"
@@ -58,7 +59,6 @@
 #include "BKE_main.hh"
 #include "BKE_mesh_remap.hh"
 #include "BKE_multires.hh"
-#include "BKE_subsurf.hh"
 
 #include "BLO_read_write.hh"
 
@@ -5190,7 +5190,7 @@ static void write_grid_paint_mask(BlendWriter *writer,
     for (int i = 0; i < count; i++) {
       const GridPaintMask *gpm = &grid_paint_mask[i];
       if (gpm->data) {
-        const uint32_t gridsize = uint32_t(BKE_ccg_gridsize(gpm->level));
+        const uint32_t gridsize = uint32_t(CCG_grid_size(gpm->level));
         BLO_write_float_array(writer, gridsize * gridsize, gpm->data);
       }
     }
@@ -5303,7 +5303,7 @@ static void blend_read_paint_mask(BlendDataReader *reader,
     for (int i = 0; i < count; i++) {
       GridPaintMask *gpm = &grid_paint_mask[i];
       if (gpm->data) {
-        const int gridsize = BKE_ccg_gridsize(gpm->level);
+        const int gridsize = CCG_grid_size(gpm->level);
         BLO_read_float_array(reader, gridsize * gridsize, &gpm->data);
       }
     }

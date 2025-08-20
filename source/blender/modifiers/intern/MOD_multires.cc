@@ -29,7 +29,6 @@
 #include "BKE_subdiv_ccg.hh"
 #include "BKE_subdiv_deform.hh"
 #include "BKE_subdiv_mesh.hh"
-#include "BKE_subsurf.hh"
 
 #include "UI_interface.hh"
 #include "UI_interface_layout.hh"

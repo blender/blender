@@ -492,6 +492,7 @@ blender::gpu::Texture *RE_pass_ensure_gpu_texture_cache(struct Render *re,
 #define RE_BAKE_NORMALS 0
 #define RE_BAKE_DISPLACEMENT 1
 #define RE_BAKE_AO 2
+#define RE_BAKE_VECTOR_DISPLACEMENT 3
 
 void RE_GetCameraWindow(struct Render *re, const struct Object *camera, float r_winmat[4][4]);
 /**
