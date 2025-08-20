@@ -2885,9 +2885,9 @@ static int pyrna_prop_collection_type_check(BPy_PropertyRNA *self, PyObject *val
 
   if (value == Py_None) {
     if (RNA_property_flag(self->prop) & PROP_NEVER_NULL) {
-      PyErr_Format(PyExc_TypeError,
-                   "bpy_prop_collection[key] = value: invalid, "
-                   "this collection doesn't support None assignment");
+      PyErr_SetString(PyExc_TypeError,
+                      "bpy_prop_collection[key] = value: invalid, "
+                      "this collection doesn't support None assignment");
       return -1;
     }
 
@@ -2914,9 +2914,9 @@ static int pyrna_prop_collection_type_check(BPy_PropertyRNA *self, PyObject *val
     return 0; /* OK, this is the correct type! */
   }
 
-  PyErr_Format(PyExc_TypeError,
-               "bpy_prop_collection[key] = value: internal error, "
-               "failed to get the collection type");
+  PyErr_SetString(PyExc_TypeError,
+                  "bpy_prop_collection[key] = value: internal error, "
+                  "failed to get the collection type");
   return -1;
 }
 
@@ -5974,7 +5974,7 @@ static PyObject *pyprop_array_foreach_getset(BPy_PropertyArrayRNA *self,
   PyObject *seq;
 
   if (!ELEM(prop_type, PROP_INT, PROP_FLOAT)) {
-    PyErr_Format(PyExc_TypeError, "foreach_get/set available only for int and float");
+    PyErr_SetString(PyExc_TypeError, "foreach_get/set available only for int and float");
     return nullptr;
   }
 

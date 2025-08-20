@@ -652,7 +652,7 @@ int _BaseMathObject_RaiseBufferViewExc(BaseMathObject *self, Py_buffer *view, in
       return -1;
     }
     if (UNLIKELY(self->flag & BASE_MATH_FLAG_IS_FROZEN)) {
-      PyErr_Format(PyExc_BufferError, "Data is frozen, cannot get a writable buffer");
+      PyErr_SetString(PyExc_BufferError, "Data is frozen, cannot get a writable buffer");
       return -1;
     }
   }

@@ -965,7 +965,7 @@ static PyObject *pygpu_shader_from_builtin(PyObject * /*self*/, PyObject *args, 
       eGPUShaderConfig(pygpu_config.value_found));
 
   if (shader == nullptr) {
-    PyErr_Format(PyExc_ValueError, "Builtin shader doesn't exist in the requested config");
+    PyErr_SetString(PyExc_ValueError, "Builtin shader doesn't exist in the requested config");
     return nullptr;
   }
 

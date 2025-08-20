@@ -52,7 +52,7 @@ static bool pygpu_buffer_dimensions_tot_len_compare(const Py_ssize_t *shape_a,
   if (pygpu_buffer_dimensions_tot_elem(shape_a, shape_a_len) !=
       pygpu_buffer_dimensions_tot_elem(shape_b, shape_b_len))
   {
-    PyErr_Format(PyExc_BufferError, "array size does not match");
+    PyErr_SetString(PyExc_BufferError, "array size does not match");
     return false;
   }
 
