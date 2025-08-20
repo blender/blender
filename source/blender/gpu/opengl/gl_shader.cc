@@ -87,18 +87,6 @@ void GLShader::init(const shader::ShaderCreateInfo &info, bool is_batch_compilat
   }
 }
 
-void GLShader::init()
-{
-  main_program_ = program_cache_
-                      .lookup_or_add_cb(constants->values,
-                                        []() { return std::make_unique<GLProgram>(); })
-                      .get();
-  if (!main_program_->program_id) {
-    main_program_->program_id = glCreateProgram();
-    debug::object_label(GL_PROGRAM, main_program_->program_id, name);
-  }
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
