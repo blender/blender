@@ -18,9 +18,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Comment this out to test workaround for getting gpuAddress and gpuResourceID on macOS < 13.0. */
-#  define CYCLES_USE_TIER2D_BINDLESS
-
 string MetalInfo::get_device_name(id<MTLDevice> device)
 {
   string device_name = [device.name UTF8String];
@@ -121,110 +118,63 @@ const vector<id<MTLDevice>> &MetalInfo::get_usable_devices()
   return usable_devices;
 }
 
-struct GPUAddressHelper {
-  id<MTLBuffer> resource_buffer = nil;
-  id<MTLArgumentEncoder> address_encoder = nil;
-
-  /* One time setup of arg encoder. */
-  void init(id<MTLDevice> device)
+id<MTLBuffer> MetalBufferPool::get_buffer(id<MTLDevice> device,
+                                          id<MTLCommandBuffer> command_buffer,
+                                          NSUInteger length,
+                                          const void *pointer,
+                                          Stats &stats)
+{
+  id<MTLBuffer> buffer = nil;
   {
-    if (resource_buffer) {
-      /* No setup required - already initialised. */
-      return;
+    thread_scoped_lock lock(buffer_mutex);
+    /* Find an unused buffer with matching size and storage mode. */
+    for (MetalBufferListEntry &bufferEntry : temp_buffers) {
+      if (bufferEntry.buffer.length == length && bufferEntry.command_buffer == nil) {
+        buffer = bufferEntry.buffer;
+        bufferEntry.command_buffer = command_buffer;
+        break;
+      }
     }
-
-#  ifdef CYCLES_USE_TIER2D_BINDLESS
-    if (@available(macos 13.0, *)) {
-      /* No setup required - there's an API now! */
-      return;
+    if (!buffer) {
+      /* Create a new buffer and add it to the pool. Typically this pool will only grow to a
+       * handful of entries. */
+      buffer = [device newBufferWithLength:length options:MTLResourceStorageModeShared];
+      stats.mem_alloc(buffer.allocatedSize);
+      total_temp_mem_size += buffer.allocatedSize;
+      temp_buffers.push_back(MetalBufferListEntry{buffer, command_buffer});
     }
-#  endif
-
-    /* Setup a tiny buffer to encode the GPU address / resourceID into. */
-    resource_buffer = [device newBufferWithLength:8 options:MTLResourceStorageModeShared];
-
-    /* Create an encoder to extract a gpuAddress from a MTLBuffer. */
-    MTLArgumentDescriptor *encoder_params = [[MTLArgumentDescriptor alloc] init];
-    encoder_params.arrayLength = 1;
-    encoder_params.access = MTLBindingAccessReadWrite;
-    encoder_params.dataType = MTLDataTypePointer;
-    address_encoder = [device newArgumentEncoderWithArguments:@[ encoder_params ]];
-    [address_encoder setArgumentBuffer:resource_buffer offset:0];
-  };
-
-  uint64_t gpuAddress(id<MTLBuffer> buffer)
-  {
-#  ifdef CYCLES_USE_TIER2D_BINDLESS
-    if (@available(macos 13.0, *)) {
-      return buffer.gpuAddress;
-    }
-#  endif
-    [address_encoder setBuffer:buffer offset:0 atIndex:0];
-    return *(uint64_t *)[resource_buffer contents];
   }
 
-  uint64_t gpuResourceID(id<MTLTexture> texture)
-  {
-#  ifdef CYCLES_USE_TIER2D_BINDLESS
-    if (@available(macos 13.0, *)) {
-      MTLResourceID resourceID = texture.gpuResourceID;
-      return (uint64_t &)resourceID;
-    }
-#  endif
-    [address_encoder setTexture:texture atIndex:0];
-    return *(uint64_t *)[resource_buffer contents];
+  /* Copy over data */
+  if (pointer) {
+    memcpy(buffer.contents, pointer, length);
   }
 
-  uint64_t gpuResourceID(id<MTLAccelerationStructure> accel_struct)
-  {
-#  ifdef CYCLES_USE_TIER2D_BINDLESS
-    if (@available(macos 13.0, *)) {
-      MTLResourceID resourceID = accel_struct.gpuResourceID;
-      return (uint64_t &)resourceID;
+  return buffer;
+}
+
+void MetalBufferPool::process_command_buffer_completion(id<MTLCommandBuffer> command_buffer)
+{
+  assert(command_buffer);
+  thread_scoped_lock lock(buffer_mutex);
+  /* Mark any temp buffers associated with command_buffer as unused. */
+  for (MetalBufferListEntry &buffer_entry : temp_buffers) {
+    if (buffer_entry.command_buffer == command_buffer) {
+      buffer_entry.command_buffer = nil;
     }
-#  endif
-    [address_encoder setAccelerationStructure:accel_struct atIndex:0];
-    return *(uint64_t *)[resource_buffer contents];
   }
+}
 
-  uint64_t gpuResourceID(id<MTLIntersectionFunctionTable> ift)
-  {
-#  ifdef CYCLES_USE_TIER2D_BINDLESS
-    if (@available(macos 13.0, *)) {
-      MTLResourceID resourceID = ift.gpuResourceID;
-      return (uint64_t &)resourceID;
-    }
-#  endif
-    [address_encoder setIntersectionFunctionTable:ift atIndex:0];
-    return *(uint64_t *)[resource_buffer contents];
+MetalBufferPool::~MetalBufferPool()
+{
+  thread_scoped_lock lock(buffer_mutex);
+  /* Release all buffers that have not been recently reused */
+  for (MetalBufferListEntry &buffer_entry : temp_buffers) {
+    total_temp_mem_size -= buffer_entry.buffer.allocatedSize;
+    [buffer_entry.buffer release];
+    buffer_entry.buffer = nil;
   }
-};
-
-GPUAddressHelper g_gpu_address_helper;
-
-void metal_gpu_address_helper_init(id<MTLDevice> device)
-{
-  g_gpu_address_helper.init(device);
-}
-
-uint64_t metal_gpuAddress(id<MTLBuffer> buffer)
-{
-  return g_gpu_address_helper.gpuAddress(buffer);
-}
-
-uint64_t metal_gpuResourceID(id<MTLTexture> texture)
-{
-  return g_gpu_address_helper.gpuResourceID(texture);
-}
-
-uint64_t metal_gpuResourceID(id<MTLAccelerationStructure> accel_struct)
-{
-  return g_gpu_address_helper.gpuResourceID(accel_struct);
-}
-
-uint64_t metal_gpuResourceID(id<MTLIntersectionFunctionTable> ift)
-{
-  return g_gpu_address_helper.gpuResourceID(ift);
+  temp_buffers.clear();
 }
 
 CCL_NAMESPACE_END

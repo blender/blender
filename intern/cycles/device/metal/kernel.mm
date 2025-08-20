@@ -340,7 +340,7 @@ void ShaderCache::load_kernel(DeviceKernel device_kernel,
    * to be active. */
   pipeline->pipeline_id = g_next_pipeline_id.fetch_add(1);
   pipeline->originating_device_id = device->device_id;
-  pipeline->kernel_data_ = device->launch_params->data;
+  pipeline->kernel_data_ = device->launch_params.data;
   pipeline->pso_type = pso_type;
   pipeline->mtlDevice = mtlDevice;
   pipeline->kernels_md5 = device->kernels_md5[pso_type];
