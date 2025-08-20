@@ -377,11 +377,6 @@ void BLO_read_glob_list(BlendDataReader *reader, ListBase *list);
 BlendFileReadReport *BLO_read_data_reports(BlendDataReader *reader);
 struct Library *BLO_read_data_current_library(BlendDataReader *reader);
 
-int BLO_read_struct_member_offset(const BlendDataReader *reader,
-                                  const char *stype,
-                                  const char *vartype,
-                                  const char *name);
-
 /** \} */
 
 /* -------------------------------------------------------------------- */

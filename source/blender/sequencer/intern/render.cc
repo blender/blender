@@ -1985,8 +1985,9 @@ ImBuf *render_give_ibuf(const RenderData *context, float timeline_frame, int cha
   if ((chanshown < 0) && !BLI_listbase_is_empty(&ed->metastack)) {
     int count = BLI_listbase_count(&ed->metastack);
     count = max_ii(count + chanshown, 0);
-    seqbasep = ((MetaStack *)BLI_findlink(&ed->metastack, count))->oldbasep;
-    channels = ((MetaStack *)BLI_findlink(&ed->metastack, count))->old_channels;
+    MetaStack *ms = static_cast<MetaStack *>(BLI_findlink(&ed->metastack, count));
+    seqbasep = &ms->old_strip->seqbase;
+    channels = &ms->old_strip->channels;
     chanshown = 0;
   }
   else {

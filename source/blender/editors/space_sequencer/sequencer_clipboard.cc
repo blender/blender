@@ -167,7 +167,6 @@ static bool sequencer_write_copy_paste_file(Main *bmain_src,
 
   /* Create an empty sequence editor data to store all copied strips. */
   scene_dst->ed = MEM_callocN<Editing>(__func__);
-  scene_dst->ed->seqbasep = &scene_dst->ed->seqbase;
   seq::seqbase_duplicate_recursive(bmain_src,
                                    scene_src,
                                    scene_dst,
@@ -177,7 +176,6 @@ static bool sequencer_write_copy_paste_file(Main *bmain_src,
                                    0);
 
   BLI_duplicatelist(&scene_dst->ed->channels, &scene_src->ed->channels);
-  scene_dst->ed->displayed_channels = &scene_dst->ed->channels;
 
   /* Save current frame and active strip. */
   scene_dst->r.cfra = scene_src->r.cfra;
@@ -499,7 +497,7 @@ wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
   BKE_id_delete(bmain_dst, scene_src);
 
   Strip *iseq_first = static_cast<Strip *>(nseqbase.first);
-  BLI_movelisttolist(ed_dst->seqbasep, &nseqbase);
+  BLI_movelisttolist(ed_dst->current_strips(), &nseqbase);
   /* Restore "first" pointer as BLI_movelisttolist sets it to nullptr */
   nseqbase.first = iseq_first;
 
@@ -517,8 +515,8 @@ wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
      * strip. */
     seq::transform_translate_strip(scene_dst, istrip, ofs);
     /* Ensure, that pasted strips don't overlap. */
-    if (seq::transform_test_overlap(scene_dst, ed_dst->seqbasep, istrip)) {
-      seq::transform_seqbase_shuffle(ed_dst->seqbasep, istrip, scene_dst);
+    if (seq::transform_test_overlap(scene_dst, ed_dst->current_strips(), istrip)) {
+      seq::transform_seqbase_shuffle(ed_dst->current_strips(), istrip, scene_dst);
     }
   }
 

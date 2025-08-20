@@ -3424,16 +3424,6 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       }
       blender::seq::channels_ensure(&ed->channels);
       blender::seq::for_each_callback(&scene->ed->seqbase, strip_meta_channels_ensure, nullptr);
-
-      ed->displayed_channels = &ed->channels;
-
-      ListBase *previous_channels = &ed->channels;
-      LISTBASE_FOREACH (MetaStack *, ms, &ed->metastack) {
-        ms->old_channels = previous_channels;
-        previous_channels = &ms->parent_strip->channels;
-        /* If `MetaStack` exists, active channels must point to last link. */
-        ed->displayed_channels = &ms->parent_strip->channels;
-      }
     }
   }
 
