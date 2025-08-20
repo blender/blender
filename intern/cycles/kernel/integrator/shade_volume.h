@@ -92,9 +92,11 @@ ccl_device_inline Spectrum volume_shader_eval_extinction(KernelGlobals kg,
 
   volume_shader_eval<shadow>(kg, state, sd, path_flag);
 
-  /* iOS only compiler error: removing this static_cast leds to the following on iOS with Xcode 16.4:
-   * `Conditional expression is ambiguous; 'PackedSpectrum' (aka 'ccl::packed_float3') can be converted to 'float3' and vice versa` */
-  return (sd->flag & SD_EXTINCTION) ? static_cast<Spectrum>(sd->closure_transparent_extinction) : zero_spectrum();
+  /* iOS only compiler error: removing this static_cast leds to the following on iOS with
+   * Xcode 16.4: `Conditional expression is ambiguous; 'PackedSpectrum' (aka 'ccl::packed_float3')
+   * can be converted to 'float3' and vice versa` */
+  return (sd->flag & SD_EXTINCTION) ? static_cast<Spectrum>(sd->closure_transparent_extinction) :
+                                      zero_spectrum();
 }
 
 /* Evaluate shader to get absorption, scattering and emission at P. */

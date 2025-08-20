@@ -269,7 +269,8 @@ void GHOST_ContextIOS::metalInit()
     desc.vertexFunction = [library newFunctionWithName:@"vertex_shader"];
     [library autorelease];
 
-    [desc.colorAttachments objectAtIndexedSubscript:0].pixelFormat = METAL_FRAMEBUFFERPIXEL_FORMAT_EDR;
+    [desc.colorAttachments objectAtIndexedSubscript:0].pixelFormat =
+        METAL_FRAMEBUFFERPIXEL_FORMAT_EDR;
 
     m_metalRenderPipeline = (MTLRenderPipelineState *)[device
         newRenderPipelineStateWithDescriptor:desc

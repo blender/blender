@@ -42,7 +42,7 @@
 #  define IOS_INPUT_LOG(...)
 #endif
 
-//#define IOS_WINDOW_LOGGING
+// #define IOS_WINDOW_LOGGING
 #if defined(IOS_WINDOW_LOGGING)
 #  define IOS_WINDOW_LOG(...) NSLog(__VA_ARGS__)
 #else
