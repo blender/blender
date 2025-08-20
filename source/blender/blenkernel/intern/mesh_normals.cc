@@ -1192,7 +1192,7 @@ BLI_NOINLINE static void handle_fan_result_and_custom_normals(
     const Span<int> local_corners_in_fan,
     float3 &fan_normal,
     CornerNormalSpaceArray *r_fan_spaces,
-    Vector<CornerSpaceGroup, 0> &r_local_space_groups)
+    Vector<CornerSpaceGroup, 0> *r_local_space_groups)
 {
   const int local_edge_first = corner_infos[local_corners_in_fan.first()].local_edge_next;
   const int local_edge_last = corner_infos[local_corners_in_fan.last()].local_edge_prev;
@@ -1231,7 +1231,7 @@ BLI_NOINLINE static void handle_fan_result_and_custom_normals(
     const VertCornerInfo &info = corner_infos[local_corners_in_fan[i]];
     fan_corners[i] = info.corner;
   }
-  r_local_space_groups.append({std::move(fan_corners), fan_space});
+  r_local_space_groups->append({std::move(fan_corners), fan_space});
 }
 
 void normals_calc_corners(const Span<float3> vert_positions,
@@ -1306,7 +1306,7 @@ void normals_calc_corners(const Span<float3> vert_positions,
                                                corners_in_fan,
                                                fan_normal,
                                                r_fan_spaces,
-                                               *local_space_groups);
+                                               local_space_groups);
         }
 
         for (const int local_corner : corners_in_fan) {
