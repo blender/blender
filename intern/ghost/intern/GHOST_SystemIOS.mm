@@ -2,20 +2,14 @@
 
 #include "GHOST_SystemIOS.h"
 
-#include "GHOST_C-api.h"
+#include "GHOST_ContextIOS.hh"
+#include "GHOST_WindowIOS.h"
+
+#include "GHOST_Debug.hh"
 #include "GHOST_EventButton.hh"
 #include "GHOST_EventCursor.hh"
 #include "GHOST_EventDragnDrop.hh"
-#include "GHOST_EventKey.hh"
-#include "GHOST_EventString.hh"
-#include "GHOST_EventTrackpad.hh"
-#include "GHOST_EventWheel.hh"
-#include "GHOST_TimerManager.hh"
-#include "GHOST_TimerTask.hh"
-#include "GHOST_WindowIOS.h"
 #include "GHOST_WindowManager.hh"
-
-#include "GHOST_ContextIOS.hh"
 
 #ifdef WITH_INPUT_NDOF
 #  include "GHOST_NDOFManagerCocoa.hh"
@@ -23,16 +17,11 @@
 
 #include "AssertMacros.h"
 
-#import <GameController/GameController.h>
-#import <MetalKit/MTKDefines.h>
 #import <MetalKit/MTKView.h>
 #import <UIKit/UIKit.h>
 
 #include <sys/sysctl.h>
 #include <sys/time.h>
-#include <sys/types.h>
-
-#include <mach/mach_time.h>
 
 // #define IOS_SYSTEM_LOGGING
 #if defined(IOS_SYSTEM_LOGGING)
@@ -462,14 +451,13 @@ void GHOST_SystemIOS::getMainDisplayDimensions(uint32_t &width, uint32_t &height
   CGFloat screenHeight = screenRect.size.height * scaling_fac;
 
   if (screenWidth <= 0 || screenHeight <= 0) {
-    assert(false);
+    GHOST_ASSERT(false, "Negative or null display dimmensions");
     screenWidth = 2532;
     screenHeight = 1170;
   }
 
   width = screenWidth;
   height = screenHeight;
-  assert(width > 0 && height > 0);
 }
 
 void GHOST_SystemIOS::getAllDisplayDimensions(uint32_t &width, uint32_t &height) const

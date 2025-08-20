@@ -9,18 +9,15 @@
  */
 
 #include "GHOST_ContextIOS.hh"
+
 #include "GHOST_Debug.hh"
 
-#include <DNA_userdef_types.h>
-#include <Metal/Metal.h>
-#include <QuartzCore/QuartzCore.h>
+#include "DNA_userdef_types.h"
 
-#import <MetalKit/MTKDefines.h>
+#import <Metal/Metal.h>
 #import <MetalKit/MTKView.h>
+#import <QuartzCore/QuartzCore.h>
 #import <UIKit/UIKit.h>
-
-#include <cassert>
-#include <vector>
 
 bool GHOST_ContextIOS::current_drawable_presented = false;
 id<CAMetalDrawable> GHOST_ContextIOS::prevDrawable = nil;
@@ -63,7 +60,7 @@ GHOST_ContextIOS::GHOST_ContextIOS(UIView *uiView, MTKView *metalView)
       screenHeight = 1170;
     }
 
-    assert(screenWidth > 0 && screenHeight > 0);
+    GHOST_ASSERT(screenWidth > 0 && screenHeight > 0, "Negative or null display dimmensions");
 
     if (screenWidth <= 0) {
       /* TODO: Avoid using default resolution, this path should however not be hit. */
@@ -73,7 +70,7 @@ GHOST_ContextIOS::GHOST_ContextIOS(UIView *uiView, MTKView *metalView)
 
     /* Create own device */
     m_metalView = [[MTKView alloc] initWithFrame:CGRectMake(0, 0, screenWidth, screenHeight)];
-    assert(m_metalView);
+    GHOST_ASSERT(m_metalView, "iOS: Failed to initialize Metal View");
     m_metalView.device = metalDevice;
     m_uiView = (UIView *)m_metalView;
 
@@ -326,7 +323,7 @@ void GHOST_ContextIOS::metalUpdateFramebuffer()
   size_t height = screenHeight * scaling_fac;
 
   if (width <= 0 && height <= 0) {
-    assert(false);
+    GHOST_ASSERT(false, "Negative or null display dimmensions");
     /* TOOD: Better default size. This should not happen but is here to avoid erroneous
      * initialization. */
     width = 1440;
@@ -427,8 +424,9 @@ void GHOST_ContextIOS::metalSwapBuffers()
       NSLog(@"Double present (MTKView)%p!", m_metalView);
     }
 
-    assert(contextPresentCallback);
-    assert(m_defaultFramebufferMetalTexture[current_swapchain_index].texture != nil);
+    GHOST_ASSERT(contextPresentCallback, "iOS: Missing context present callback");
+    GHOST_ASSERT(m_defaultFramebufferMetalTexture[current_swapchain_index].texture != nil,
+                 "iOS: Default Framebuffer Metal Texture is nil");
     (*contextPresentCallback)(passDescriptor,
                               (id<MTLRenderPipelineState>)m_metalRenderPipeline,
                               m_defaultFramebufferMetalTexture[current_swapchain_index].texture,

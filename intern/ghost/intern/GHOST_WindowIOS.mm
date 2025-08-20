@@ -3,8 +3,11 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "GHOST_WindowIOS.h"
+
+#include "GHOST_ContextIOS.hh"
+#include "GHOST_SystemIOS.h"
+
 #include "GHOST_C-api.h"
-#include "GHOST_ContextNone.hh"
 #include "GHOST_Debug.hh"
 #include "GHOST_EventButton.hh"
 #include "GHOST_EventCursor.hh"
@@ -12,25 +15,10 @@
 #include "GHOST_EventKey.hh"
 #include "GHOST_EventTouch.hh"
 #include "GHOST_EventTrackpad.hh"
-#include "GHOST_EventWheel.hh"
-#include "GHOST_SystemIOS.h"
-#include "GHOST_TimerManager.hh"
-#include "GHOST_TimerTask.hh"
-#include "GHOST_Types.h"
-#include "GHOST_WindowManager.hh"
-
-#include "GHOST_ContextIOS.hh"
-
-#include <Metal/Metal.h>
-#include <MetalKit/MTKDefines.h>
-#include <QuartzCore/QuartzCore.h>
-#include <UIKit/UIKit.h>
-
-#include <sys/sysctl.h>
 
 #import <GameController/GameController.h>
-#import <MetalKit/MTKDefines.h>
-#import <MetalKit/MTKView.h>
+#import <Metal/Metal.h>
+#import <QuartzCore/QuartzCore.h>
 #import <UIKit/UIKit.h>
 #import <UIKit/UIPencilInteraction.h>
 
