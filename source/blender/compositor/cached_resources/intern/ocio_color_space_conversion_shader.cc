@@ -317,7 +317,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
                               ImageReadWriteType::Float2D,
                               output_image_name());
     shader_create_info_.compute_source("gpu_shader_compositor_ocio_processor.glsl");
-    shader_create_info_.compute_source_generated += shader_code_;
+    shader_create_info_.compute_source_generated += GPU_shader_preprocess_source(shader_code_);
 
     GPUShaderCreateInfo *info = reinterpret_cast<GPUShaderCreateInfo *>(&shader_create_info_);
     shader_ = GPU_shader_create_from_info(info);
