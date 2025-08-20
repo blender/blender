@@ -5224,6 +5224,14 @@ int BLO_read_fileversion_get(BlendDataReader *reader)
   return reader->fd->fileversion;
 }
 
+int BLO_read_struct_member_offset(const BlendDataReader *reader,
+                                  const char *stype,
+                                  const char *vartype,
+                                  const char *name)
+{
+  return DNA_struct_member_offset_by_name_with_alias(reader->fd->filesdna, stype, vartype, name);
+}
+
 void BLO_read_struct_list_with_size(BlendDataReader *reader,
                                     const size_t expected_elem_size,
                                     ListBase *list)

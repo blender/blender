@@ -302,8 +302,8 @@ typedef struct Strip {
 
 typedef struct MetaStack {
   struct MetaStack *next, *prev;
-  /** May be null (that means the root sequence). */
-  Strip *old_strip;
+  ListBase *oldbasep;
+  ListBase *old_channels;
   Strip *parent_strip;
   /* The startdisp/enddisp when entering the metastrip. */
   int disp_range[2];
@@ -332,11 +332,16 @@ typedef struct EditingRuntime {
 
 typedef struct Editing {
   /**
-   * The current meta-strip being edited and/or viewed, may be null in which case the root
-   * sequence is used.
+   * Pointer to the current list of strips being edited (can be within a meta-strip).
+   * \note Use #current_strips() to access, rather than using this variable directly.
    */
-  Strip *current_meta_strip;
-
+  ListBase *seqbasep;
+  /**
+   * Pointer to the current list of channels being displayed (can be within a meta-strip).
+   * \note Use #current_channels() to access, rather than using this variable directly.
+   */
+  ListBase *displayed_channels;
+  void *_pad0;
   /** Pointer to the top-most strips. */
   ListBase seqbase;
   ListBase metastack;
