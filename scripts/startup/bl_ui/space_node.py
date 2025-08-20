@@ -193,7 +193,8 @@ class NODE_HT_header(Header):
         layout.separator_spacer()
 
         if len(snode.path) > 1:
-            layout.operator("node.tree_path_parent", text="", icon='FILE_PARENT')
+            op = layout.operator("node.tree_path_parent", text="", icon='FILE_PARENT')
+            op.parent_tree_index = len(snode.path) - 2
 
         # Backdrop
         if is_compositor:

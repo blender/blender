@@ -76,12 +76,15 @@ struct ContextPathItem {
   /* #BIFIconID */
   int icon;
   int icon_indicator_number;
+
+  std::function<void(bContext &)> handle_func;
 };
 
 void context_path_add_generic(Vector<ContextPathItem> &path,
                               StructRNA &rna_type,
                               void *ptr,
-                              const BIFIconID icon_override = ICON_NONE);
+                              const BIFIconID icon_override = ICON_NONE,
+                              std::function<void(bContext &)> handle_func = nullptr);
 
 void template_breadcrumbs(uiLayout &layout, Span<ContextPathItem> context_path);
 
