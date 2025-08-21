@@ -151,11 +151,11 @@ class NODE_HT_header(Header):
             row.template_ID(scene, "compositing_node_group", new="node.new_compositing_node_group")
 
         elif snode.tree_type == 'GeometryNodeTree':
-            layout.prop(snode, "geometry_nodes_type", text="")
+            layout.prop(snode, "node_tree_sub_type", text="")
             NODE_MT_editor_menus.draw_collapsible(context, layout)
             layout.separator_spacer()
 
-            if snode.geometry_nodes_type == 'MODIFIER':
+            if snode.node_tree_sub_type == 'MODIFIER':
                 ob = context.object
 
                 row = layout.row()
@@ -172,7 +172,7 @@ class NODE_HT_header(Header):
                     else:
                         row.template_ID(snode, "node_tree", new="node.new_geometry_nodes_modifier")
             else:
-                layout.template_ID(snode, "geometry_nodes_tool_tree", new="node.new_geometry_node_group_tool")
+                layout.template_ID(snode, "selected_node_group", new="node.new_geometry_node_group_tool")
                 if snode.node_tree:
                     layout.popover(panel="NODE_PT_geometry_node_tool_object_types", text="Types")
                     layout.popover(panel="NODE_PT_geometry_node_tool_mode", text="Modes")

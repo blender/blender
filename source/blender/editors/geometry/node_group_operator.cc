@@ -163,7 +163,7 @@ static void find_socket_log_contexts(const Main &bmain,
         if (snode.edittree == nullptr) {
           continue;
         }
-        if (snode.geometry_nodes_type != SNODE_GEOMETRY_TOOL) {
+        if (snode.node_tree_sub_type != SNODE_GEOMETRY_TOOL) {
           continue;
         }
         bke::ComputeContextCache compute_context_cache;

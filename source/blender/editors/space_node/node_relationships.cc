@@ -913,7 +913,7 @@ static bool node_active_link_viewer_poll(bContext *C)
     return true;
   }
   if (ED_node_is_geometry(snode)) {
-    if (snode->geometry_nodes_type == SNODE_GEOMETRY_TOOL) {
+    if (snode->node_tree_sub_type == SNODE_GEOMETRY_TOOL) {
       /* The viewer node is not supported in the "Tool" context. */
       return false;
     }

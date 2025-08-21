@@ -353,11 +353,11 @@ class NewGeometryNodeGroupTool(Operator):
     @classmethod
     def poll(cls, context):
         space = context.space_data
-        return space and space.type == 'NODE_EDITOR' and space.geometry_nodes_type == 'TOOL'
+        return space and space.type == 'NODE_EDITOR' and space.node_tree_sub_type == 'TOOL'
 
     def execute(self, context):
         group = geometry_node_group_empty_tool_new(context)
-        context.space_data.geometry_nodes_tool_tree = group
+        context.space_data.selected_node_group = group
         return {'FINISHED'}
 
 

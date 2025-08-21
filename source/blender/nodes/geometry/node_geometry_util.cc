@@ -35,7 +35,7 @@ bool check_tool_context_and_error(GeoNodeExecParams &params)
 
 void search_link_ops_for_tool_node(GatherLinkSearchOpParams &params)
 {
-  if (params.space_node().geometry_nodes_type == SNODE_GEOMETRY_TOOL) {
+  if (params.space_node().node_tree_sub_type == SNODE_GEOMETRY_TOOL) {
     search_link_ops_for_basic_node(params);
   }
 }

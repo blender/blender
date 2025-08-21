@@ -145,7 +145,7 @@ static void get_context_path_node_geometry(const bContext &C,
                                            SpaceNode &snode,
                                            Vector<ui::ContextPathItem> &path)
 {
-  if (snode.flag & SNODE_PIN || snode.geometry_nodes_type == SNODE_GEOMETRY_TOOL) {
+  if (snode.flag & SNODE_PIN || snode.node_tree_sub_type == SNODE_GEOMETRY_TOOL) {
     context_path_add_node_tree_and_node_groups(snode, path);
   }
   else {

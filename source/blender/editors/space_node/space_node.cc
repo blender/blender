@@ -323,7 +323,7 @@ std::optional<nodes::FoundNestedNodeID> find_nested_node_id_in_root(
 
 std::optional<ObjectAndModifier> get_modifier_for_node_editor(const SpaceNode &snode)
 {
-  if (snode.geometry_nodes_type != SNODE_GEOMETRY_MODIFIER) {
+  if (snode.node_tree_sub_type != SNODE_GEOMETRY_MODIFIER) {
     return std::nullopt;
   }
   if (snode.id == nullptr) {
@@ -475,7 +475,7 @@ static std::optional<const ComputeContext *> compute_context_for_tree_path(
 static const ComputeContext *get_node_editor_root_compute_context(
     const SpaceNode &snode, bke::ComputeContextCache &compute_context_cache)
 {
-  switch (SpaceNodeGeometryNodesType(snode.geometry_nodes_type)) {
+  switch (SpaceNodeGeometryNodesType(snode.node_tree_sub_type)) {
     case SNODE_GEOMETRY_MODIFIER: {
       std::optional<ed::space_node::ObjectAndModifier> object_and_modifier =
           ed::space_node::get_modifier_for_node_editor(snode);
@@ -1515,9 +1515,9 @@ static void node_id_remap(ID *old_id, ID *new_id, SpaceNode *snode)
   }
   else if (GS(old_id->name) == ID_NT) {
 
-    if (snode->geometry_nodes_tool_tree) {
-      if (&snode->geometry_nodes_tool_tree->id == old_id) {
-        snode->geometry_nodes_tool_tree = reinterpret_cast<bNodeTree *>(new_id);
+    if (snode->selected_node_group) {
+      if (&snode->selected_node_group->id == old_id) {
+        snode->selected_node_group = reinterpret_cast<bNodeTree *>(new_id);
       }
     }
 
@@ -1618,7 +1618,7 @@ static void node_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
   }
 
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(
-      data, snode->geometry_nodes_tool_tree, IDWALK_CB_USER_ONE | IDWALK_CB_DIRECT_WEAK_LINK);
+      data, snode->selected_node_group, IDWALK_CB_USER_ONE | IDWALK_CB_DIRECT_WEAK_LINK);
 
   /* Both `snode->id` and `snode->nodetree` have been remapped now, so their data can be
    * accessed. */
