@@ -172,18 +172,33 @@ static bool compile_ex(shaderc::Compiler &compiler,
   }
 
   shaderc::CompileOptions options;
-  options.SetOptimizationLevel(shaderc_optimization_level_performance);
+  bool do_optimize = true;
   options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
   if (G.debug & G_DEBUG_GPU_RENDERDOC) {
-    options.SetOptimizationLevel(shaderc_optimization_level_zero);
+    do_optimize = false;
   }
-  if (G.debug & G_DEBUG_GPU_SHADER_DEBUG_INFO) {
-    options.SetGenerateDebugInfo();
-  }
-
   /* WORKAROUND: Qualcomm driver can crash when handling optimized SPIR-V. */
   if (GPU_type_matches(GPU_DEVICE_QUALCOMM, GPU_OS_ANY, GPU_DRIVER_ANY)) {
-    options.SetOptimizationLevel(shaderc_optimization_level_zero);
+    do_optimize = false;
+  }
+  /* Do not optimize large shaders. They can overflow internal buffers that during optimizations
+   * that cannot be adjusted via the ShaderC API. ShaderC in the past had this API
+   * (PassId::kCompactIds) but is unused.
+   *
+   * The shaders in #144614 and #143516 are larger than 512Kb so using this as a limit to disable
+   * optimizations.
+   */
+  constexpr int64_t optimization_source_size_limit = 512 * 1024;
+  if (shader_module.combined_sources.size() > optimization_source_size_limit) {
+    do_optimize = false;
+  }
+  options.SetOptimizationLevel(do_optimize ? shaderc_optimization_level_performance :
+                                             shaderc_optimization_level_zero);
+
+  /* Should always be called after setting the optimization level. Setting optimization level
+   * resets all previous passes. */
+  if (G.debug & G_DEBUG_GPU_SHADER_DEBUG_INFO) {
+    options.SetGenerateDebugInfo();
   }
 
   std::string full_name = shader.name_get() + "_" + to_stage_name(stage);
