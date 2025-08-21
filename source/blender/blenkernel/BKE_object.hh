@@ -648,6 +648,15 @@ void BKE_object_groups_clear(Main *bmain, Scene *scene, Object *object);
 KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot);
 
 /**
+ * The number of times to recurse parents for evaluation.
+ *
+ * NOTE(@ideasman42): This value was picked to avoid infinite recursion.
+ * 5 is arbitrary but changing it would change behavior in some corner cases.
+ * See code comments in #BKE_object_modifier_update_subframe_only_callback for details.
+ */
+#define OBJECT_MODIFIER_UPDATE_SUBFRAME_RECURSION_DEFAULT 5
+
+/**
  * \note this function should eventually be replaced by depsgraph functionality.
  * Avoid calling this in new code unless there is a very good reason for it!
  */
@@ -655,9 +664,9 @@ bool BKE_object_modifier_update_subframe(Depsgraph *depsgraph,
                                          Scene *scene,
                                          Object *ob,
                                          bool update_mesh,
-                                         int parent_recursion,
+                                         int parent_recursion_limit,
                                          float frame,
-                                         int type);
+                                         int /*ModifierType*/ modifier_type);
 
 bool BKE_object_empty_image_frame_is_visible_in_view3d(const Object *ob, const RegionView3D *rv3d);
 bool BKE_object_empty_image_data_is_visible_in_view3d(const Object *ob, const RegionView3D *rv3d);

@@ -5219,15 +5219,15 @@ static void object_cacheIgnoreClear(Object *ob, int state)
 bool BKE_object_modifier_update_subframe(Depsgraph *depsgraph,
                                          Scene *scene,
                                          Object *ob,
-                                         bool update_mesh,
-                                         int parent_recursion,
-                                         float frame,
-                                         int type)
+                                         const bool update_mesh,
+                                         const int parent_recursion_limit,
+                                         const float frame,
+                                         const /*ModifierType*/ int modifier_type)
 {
   const bool flush_to_original = DEG_is_active(depsgraph);
-  ModifierData *md = BKE_modifiers_findby_type(ob, (ModifierType)type);
+  ModifierData *md = BKE_modifiers_findby_type(ob, ModifierType(modifier_type));
 
-  if (type == eModifierType_DynamicPaint) {
+  if (modifier_type == eModifierType_DynamicPaint) {
     DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
 
     /* if other is dynamic paint canvas, don't update */
@@ -5235,7 +5235,7 @@ bool BKE_object_modifier_update_subframe(Depsgraph *depsgraph,
       return true;
     }
   }
-  else if (type == eModifierType_Fluid) {
+  else if (modifier_type == eModifierType_Fluid) {
     FluidModifierData *fmd = (FluidModifierData *)md;
 
     if (fmd && (fmd->type & MOD_FLUID_TYPE_DOMAIN) != 0) {
@@ -5244,16 +5244,16 @@ bool BKE_object_modifier_update_subframe(Depsgraph *depsgraph,
   }
 
   /* if object has parents, update them too */
-  if (parent_recursion) {
-    int recursion = parent_recursion - 1;
+  if (parent_recursion_limit) {
+    const int recursion = parent_recursion_limit - 1;
     bool no_update = false;
     if (ob->parent) {
       no_update |= BKE_object_modifier_update_subframe(
-          depsgraph, scene, ob->parent, false, recursion, frame, type);
+          depsgraph, scene, ob->parent, false, recursion, frame, modifier_type);
     }
     if (ob->track) {
       no_update |= BKE_object_modifier_update_subframe(
-          depsgraph, scene, ob->track, false, recursion, frame, type);
+          depsgraph, scene, ob->track, false, recursion, frame, modifier_type);
     }
 
     /* Skip sub-frame if object is parented to vertex of a dynamic paint canvas. */
@@ -5269,7 +5269,7 @@ bool BKE_object_modifier_update_subframe(Depsgraph *depsgraph,
         LISTBASE_FOREACH (bConstraintTarget *, ct, &targets) {
           if (ct->tar) {
             BKE_object_modifier_update_subframe(
-                depsgraph, scene, ct->tar, false, recursion, frame, type);
+                depsgraph, scene, ct->tar, false, recursion, frame, modifier_type);
           }
         }
         /* free temp targets */
