@@ -29,6 +29,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_fileops.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_color.h"
 #include "BLI_math_color.hh"
@@ -1288,6 +1289,58 @@ const char *IMB_colormanagement_srgb_colorspace_name_get()
 
   /* Fallback if nothing can be found. */
   return global_role_default_byte;
+}
+
+blender::Vector<char> IMB_colormanagement_space_icc_profile(const ColorSpace *colorspace)
+{
+  /* ICC profiles shipped with Blender are named after the OpenColorIO interop ID. */
+  blender::Vector<char> icc_profile;
+
+  const StringRefNull interop_id = colorspace->interop_id();
+  if (interop_id.is_empty()) {
+    return icc_profile;
+  }
+
+  const std::optional<std::string> dir = BKE_appdir_folder_id(BLENDER_DATAFILES,
+                                                              "colormanagement");
+  if (!dir.has_value()) {
+    return icc_profile;
+  }
+
+  char icc_filename[FILE_MAX];
+  STRNCPY(icc_filename, (interop_id + ".icc").c_str());
+  BLI_path_make_safe_filename(icc_filename);
+
+  char icc_filepath[FILE_MAX];
+  BLI_path_join(icc_filepath, sizeof(icc_filepath), dir->c_str(), "icc", icc_filename);
+
+  blender::fstream f(icc_filepath, std::ios::binary | std::ios::in | std::ios::ate);
+  if (!f.is_open()) {
+    /* If we can't find a scene referred filename, try display referred. */
+    blender::StringRef icc_filepath_ref = icc_filepath;
+    if (icc_filepath_ref.endswith("_scene.icc")) {
+      std::string icc_filepath_display = icc_filepath_ref.drop_suffix(strlen("_scene.icc")) +
+                                         "_display.icc";
+      f.open(icc_filepath_display, std::ios::binary | std::ios::in | std::ios::ate);
+    }
+
+    if (!f.is_open()) {
+      return icc_profile;
+    }
+  }
+
+  std::streamsize size = f.tellg();
+  if (size <= 0) {
+    return icc_profile;
+  }
+  icc_profile.resize(size);
+
+  f.seekg(0, std::ios::beg);
+  if (!f.read(icc_profile.data(), icc_profile.size())) {
+    icc_profile.clear();
+  }
+
+  return icc_profile;
 }
 
 blender::float3x3 IMB_colormanagement_get_xyz_to_scene_linear()

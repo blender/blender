@@ -9,6 +9,7 @@
  */
 
 #include "BLI_compiler_compat.h"
+#include "BLI_vector.hh"
 
 #include "BLI_math_matrix_types.hh"
 
@@ -80,6 +81,8 @@ bool IMB_colormanagement_space_is_srgb(const ColorSpace *colorspace);
 bool IMB_colormanagement_space_name_is_data(const char *name);
 bool IMB_colormanagement_space_name_is_scene_linear(const char *name);
 bool IMB_colormanagement_space_name_is_srgb(const char *name);
+
+blender::Vector<char> IMB_colormanagement_space_icc_profile(const ColorSpace *colorspace);
 
 BLI_INLINE void IMB_colormanagement_get_luminance_coefficients(float r_rgb[3]);
 
