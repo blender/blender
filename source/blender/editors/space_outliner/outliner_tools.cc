@@ -437,6 +437,10 @@ static void unlink_object_fn(bContext *C,
                              TreeStoreElem *tselem)
 {
   if (tsep && tsep->id) {
+
+    if (!TSE_IS_REAL_ID(tsep)) {
+      return;
+    }
     Main *bmain = CTX_data_main(C);
     Object *ob = (Object *)tselem->id;
     const eSpaceOutliner_Mode outliner_mode = eSpaceOutliner_Mode(
