@@ -513,6 +513,9 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   blo_update_defaults_paint(reinterpret_cast<Paint *>(ts->gp_sculptpaint));
   blo_update_defaults_paint(reinterpret_cast<Paint *>(ts->curves_sculpt));
   blo_update_defaults_paint(reinterpret_cast<Paint *>(&ts->imapaint));
+
+  /* Weight Paint settings */
+  ts->weightuser = OB_DRAW_GROUPUSER_ACTIVE;
 }
 
 void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)

@@ -3344,6 +3344,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE | PROP_DEG_SYNC_ONLY);
   RNA_def_property_enum_sdna(prop, nullptr, "weightuser");
   RNA_def_property_enum_items(prop, draw_groupuser_items);
+  RNA_def_property_enum_default(prop, OB_DRAW_GROUPUSER_ACTIVE);
   RNA_def_property_ui_text(prop, "Mask Non-Group Vertices", "Display unweighted vertices");
   RNA_def_property_update(prop, 0, "rna_Scene_update_active_object_data");
 
