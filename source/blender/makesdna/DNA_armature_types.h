@@ -27,12 +27,20 @@ class BoneColor;
 struct AnimData;
 struct BoneCollection;
 
-/* this system works on different transformation space levels;
+/* The Armature system works on different transformation space levels:
  *
- * 1) Bone Space;      with each Bone having its own (0,0,0) origin
- * 2) Armature Space;  the rest position, in Object space, Bones Spaces are applied hierarchical
- * 3) Pose Space;      the animation position, in Object space
- * 4) World Space;     Object matrix applied to Pose or Armature space
+ * 1) Bone Space:     In the orientation of the parent bone, position relative
+ *                    to the parent's tail. Same as Armature Space for bones
+ *                    without parent.
+ * 2) Armature Space: The bone's rest transform in Object space. This is the
+ *                    multiplication of the bone space matrices of the bone and
+ *                    all its ancestors.
+ * 3) Pose Space:     The bone's posed transform in Object space. This is the
+ *                    same space as Armature Space, except that it represents
+ *                    the current bone transform instead of the rest pose.
+ *                    See bPoseChannel::pose_mat
+ * 4) Channel Space:  The bone's local transform relative to its rest transform.
+ *                    See bPoseChannel::chan_mat
  */
 
 typedef struct BoneColor {
@@ -73,10 +81,14 @@ typedef struct Bone {
 
   /** Roll is input for edit-mode, length calculated. */
   float roll;
+  /** Head position in Bone Space (see top of this file). */
   float head[3];
-  /** Head/tail and roll in Bone Space. */
+  /** Tail position in Bone Space (see top of this file). */
   float tail[3];
-  /** Rotation derived from head/tail/roll. */
+  /**
+   * Bone matrix in Bone Space (see top of this file).
+   *
+   * bone.matrix in RNA. Computed in BKE_armature_where_is_bone(). */
   float bone_mat[3][3];
 
   int flag;
@@ -87,16 +99,19 @@ typedef struct Bone {
   char inherit_scale_mode;
   char _pad[3];
 
+  /** Head position in armature space. So should be the same as head in edit mode. */
   float arm_head[3];
-  /** Head/tail in Armature Space (rest pose). */
+  /** Tail position in armature space. So should be the same as tail in edit mode. */
   float arm_tail[3];
-  /** Matrix: `(bonemat(b)+head(b))*arm_mat(b-1)`, rest pose. */
+  /** Matrix: `(bone_mat(b)+head(b))*arm_mat(b-1)`, rest pose in armature space. */
   float arm_mat[4][4];
   /** Roll in Armature Space (rest pose). */
   float arm_roll;
 
-  /** dist, weight: for non-deformgroup deforms. */
-  float dist, weight;
+  /** Envelope distance, added to rad_head / rad_tail. */
+  float dist;
+  /** Weight: for non-deformgroup deforms. */
+  float weight;
   /**
    * The width for block bones. The final X/Z bone widths are double these values.
    *
