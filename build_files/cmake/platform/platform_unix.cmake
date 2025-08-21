@@ -585,7 +585,7 @@ if(WITH_MANIFOLD)
     endif()
     set_and_warn_library_found("MANIFOLD" MANIFOLD_FOUND WITH_MANIFOLD)
   endif()
-  mark_as_advanced(openpgl_DIR)
+  mark_as_advanced(manifold_DIR)
 endif()
 
 if(WITH_CYCLES AND WITH_CYCLES_PATH_GUIDING)
