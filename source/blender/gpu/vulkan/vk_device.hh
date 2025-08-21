@@ -427,7 +427,16 @@ class VKDevice : public NonCopyable {
   {
     BLI_assert(vk_timeline_semaphore_ != VK_NULL_HANDLE);
     TimelineValue current_timeline;
-    vkGetSemaphoreCounterValue(vk_device_, vk_timeline_semaphore_, &current_timeline);
+    VkResult result = vkGetSemaphoreCounterValue(
+        vk_device_, vk_timeline_semaphore_, &current_timeline);
+    UNUSED_VARS(result);
+    BLI_assert_msg(
+        result == VK_SUCCESS && current_timeline != UINT64_MAX,
+        "Potential driver crash has happened. Several drivers will report UINT64_MAX when "
+        "requesting a counter value of an timeline semaphore right after/during a driver reset. "
+        "If this happen we should investigate what makes the driver crash. In the past this has "
+        "been detected on QUALCOMM and NVIDIA drivers. The result code of the call is "
+        "VK_SUCCESS.");
     return current_timeline;
   }
 
