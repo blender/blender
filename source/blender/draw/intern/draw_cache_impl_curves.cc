@@ -362,17 +362,25 @@ static void create_edit_points_position(const bke::CurvesGeometry &curves,
   MutableSpan<float3> data = vbo.data<float3>();
   data.take_front(positions.size()).copy_from(positions);
 
-  /* TODO: Use deformed left_handle_positions and left_handle_positions. */
-  array_utils::gather_group_to_group(points_by_curve,
-                                     bezier_offsets,
-                                     bezier_curves,
-                                     *curves.handle_positions_left(),
-                                     data.slice(handle_range_left(points_num, bezier_offsets)));
-  array_utils::gather_group_to_group(points_by_curve,
-                                     bezier_offsets,
-                                     bezier_curves,
-                                     *curves.handle_positions_right(),
-                                     data.slice(handle_range_right(points_num, bezier_offsets)));
+  if (!bezier_curves.is_empty()) {
+    /* TODO: Use deformed left_handle_positions and left_handle_positions. */
+    const std::optional<Span<float3>> handles_left = curves.handle_positions_left();
+    const std::optional<Span<float3>> handles_right = curves.handle_positions_right();
+    if (handles_left && handles_right) {
+      array_utils::gather_group_to_group(
+          points_by_curve,
+          bezier_offsets,
+          bezier_curves,
+          *handles_left,
+          data.slice(handle_range_left(points_num, bezier_offsets)));
+      array_utils::gather_group_to_group(
+          points_by_curve,
+          bezier_offsets,
+          bezier_curves,
+          *handles_right,
+          data.slice(handle_range_right(points_num, bezier_offsets)));
+    }
+  }
 }
 
 static void create_edit_points_selection(const OffsetIndices<int> points_by_curve,
@@ -393,25 +401,23 @@ static void create_edit_points_selection(const OffsetIndices<int> points_by_curv
       ".selection", bke::AttrDomain::Point, 1.0f);
   attribute.materialize(data.take_front(points_num));
 
-  if (bezier_curves.is_empty()) {
-    return;
+  if (!bezier_curves.is_empty()) {
+    const VArray selection_left = *attributes.lookup_or_default<float>(
+        ".selection_handle_left", bke::AttrDomain::Point, 1.0f);
+    const VArray selection_right = *attributes.lookup_or_default<float>(
+        ".selection_handle_right", bke::AttrDomain::Point, 1.0f);
+
+    array_utils::gather_group_to_group(points_by_curve,
+                                       bezier_offsets,
+                                       bezier_curves,
+                                       selection_left,
+                                       data.slice(handle_range_left(points_num, bezier_offsets)));
+    array_utils::gather_group_to_group(points_by_curve,
+                                       bezier_offsets,
+                                       bezier_curves,
+                                       selection_right,
+                                       data.slice(handle_range_right(points_num, bezier_offsets)));
   }
-
-  const VArray selection_left = *attributes.lookup_or_default<float>(
-      ".selection_handle_left", bke::AttrDomain::Point, 1.0f);
-  const VArray selection_right = *attributes.lookup_or_default<float>(
-      ".selection_handle_right", bke::AttrDomain::Point, 1.0f);
-
-  array_utils::gather_group_to_group(points_by_curve,
-                                     bezier_offsets,
-                                     bezier_curves,
-                                     selection_left,
-                                     data.slice(handle_range_left(points_num, bezier_offsets)));
-  array_utils::gather_group_to_group(points_by_curve,
-                                     bezier_offsets,
-                                     bezier_curves,
-                                     selection_right,
-                                     data.slice(handle_range_right(points_num, bezier_offsets)));
 }
 
 static void create_lines_ibo_no_cyclic(const OffsetIndices<int> points_by_curve,
