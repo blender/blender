@@ -132,10 +132,10 @@ class VKResourceStateTracker {
     /**
      * State tracking to ensure correct pipeline barriers and command creation.
      */
-    VKResourceBarrierState barrier_state;
+    VKResourceBarrierState barrier_state = {};
 
 #ifndef NDEBUG
-    const char *name;
+    const char *name = nullptr;
 #endif
 
     /**
