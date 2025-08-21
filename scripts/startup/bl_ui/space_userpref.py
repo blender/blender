@@ -320,12 +320,16 @@ class USERPREF_PT_interface_statusbar(InterfacePanel, CenterAlignMixIn, Panel):
         col.prop(view, "show_statusbar_version", text="Blender Version")
 
 
-class USERPREF_PT_interface_menus(InterfacePanel, Panel):
+class USERPREF_PT_interface_menus(InterfacePanel, CenterAlignMixIn, Panel):
     bl_label = "Menus"
     bl_options = {'DEFAULT_CLOSED'}
 
-    def draw(self, context):
-        pass
+    def draw_centered(self, context, layout):
+        prefs = context.preferences
+        view = prefs.view
+        col = layout.column()
+        col.prop(view, "use_mouse_out_close")
+        col.prop(view, "use_mouse_neighbor_open")
 
 
 class USERPREF_PT_interface_menus_mouse_over(InterfacePanel, CenterAlignMixIn, Panel):
