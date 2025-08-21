@@ -52,7 +52,8 @@
  *
  * When it is OFF: displacement is calculated between the multi-resolution at the highest
  * subdivision level and a mesh which is created from the bake level mesh by subdividing it further
- * to the subdivision level of the highest multi-resolution level.
+ * to reach the same subdivision level of the highest multi-resolution level. Additionally, the
+ * texture UV, and UV tangents are used from this "special" mesh.
  *
  * Possible optimizations
  * ----------------------
@@ -351,11 +352,6 @@ struct RasterizeTriangle {
   bool has_uv_tangents;
   float4 uv_tangents[3];
 
-  /* Corresponds to the same fields in the #RasterizeQuad.
-   * Refer to its documentation for more details. */
-  int bake_level_quad_index;
-  float2 bake_level_quad_uvs[3];
-
   float3 get_position(const float2 &uv) const
   {
     return interp_barycentric_triangle(positions, uv);
@@ -367,11 +363,6 @@ struct RasterizeTriangle {
       return normals[0];
     }
     return math::normalize(interp_barycentric_triangle(normals, uv));
-  }
-
-  float2 get_bake_level_quad_uv(const float2 &uv) const
-  {
-    return interp_barycentric_triangle(bake_level_quad_uvs, uv);
   }
 };
 
@@ -395,19 +386,6 @@ struct RasterizeQuad {
    * The uv_tangents might be uninitialized if has_uv_tangents=false. */
   bool has_uv_tangents;
   float4 uv_tangents[4];
-
-  /* Face index and UV coordinate within the face when baking to non-base mesh (with some
-   * subdivision levels applied).
-   *
-   * The fields are referring to the face as a quad because with one subdivision level applied all
-   * faces becomes quads.
-   *
-   * The uv origin is at the first face corner, U points in the direction to the next corner, the
-   * V points in the direction of the previous corner.
-   *
-   * When baking to the base level the fields values is unspecified. */
-  int bake_level_quad_index;
-  float2 bake_level_quad_uvs[4];
 };
 
 struct RasterizeResult {
@@ -424,6 +402,12 @@ struct BakedImBuf {
 
 struct MultiresBakeResult {
   Vector<BakedImBuf> baked_ibufs;
+
+  /* Bake-level mesh subdivided to the final multi-resolution level.
+   * It is created by displacement baker that used "Use Low Resolution Mesh" OFF.
+   *
+   * This mesh is to be used to filter baked images. */
+  const Mesh *highres_bake_mesh = nullptr;
 
   /* Minimum and maximum height during displacement baking. */
   float height_min = FLT_MAX;
@@ -505,8 +489,8 @@ static void flush_pixel(const MultiresBaker &baker,
                         const int y,
                         RasterizeResult &result)
 {
-  const float2 st{(x + 0.5f) / tile.ibuf->x + tile.uv_offset[0],
-                  (y + 0.5f) / tile.ibuf->y + tile.uv_offset[1]};
+  const float2 st{(x + 0.5f) / tile.ibuf->x + tile.uv_offset.x,
+                  (y + 0.5f) / tile.ibuf->y + tile.uv_offset.y};
 
   const float2 bary_uv = resolve_tri_uv(
       st, triangle.tex_uvs[0], triangle.tex_uvs[1], triangle.tex_uvs[2]);
@@ -639,7 +623,6 @@ static void rasterize_quad(const MultiresBaker &baker,
   triangle.grid_index = quad.grid_index;
   triangle.is_flat = quad.is_flat;
   triangle.has_uv_tangents = quad.has_uv_tangents;
-  triangle.bake_level_quad_index = quad.bake_level_quad_index;
 
   const int3 quad_split_data[2] = {{0, 1, 2}, {2, 3, 0}};
   for (const int3 &triangle_idx : Span(quad_split_data, 2)) {
@@ -665,10 +648,6 @@ static void rasterize_quad(const MultiresBaker &baker,
       triangle.uv_tangents[2] = quad.uv_tangents[triangle_idx.z];
     }
 
-    triangle.bake_level_quad_uvs[0] = quad.bake_level_quad_uvs[triangle_idx.x];
-    triangle.bake_level_quad_uvs[1] = quad.bake_level_quad_uvs[triangle_idx.y];
-    triangle.bake_level_quad_uvs[2] = quad.bake_level_quad_uvs[triangle_idx.z];
-
     rasterize_triangle(baker, tile, triangle, result);
   }
 }
@@ -679,130 +658,14 @@ static void rasterize_quad(const MultiresBaker &baker,
 /** \name Displacement Baker
  * \{ */
 
-class MultiresBaseDisplacementBaker : public MultiresBaker {
-  /* SubdivCCG at the highest multi-resolution level. */
+class MultiresDisplacementBaker : public MultiresBaker {
   const SubdivCCG &high_subdiv_ccg_;
 
-  /* Baking happens to non-zero subdivision level. */
-  bool is_baking_to_subdivided_mesh_ = false;
-
-  /* SubdivCCG created from the bake level mesh by subdividing it to the highest multi-resolution
-   * level. It is used as "reference" surface when baking with "Low Resolution Mesh" option
-   * disabled. */
-  std::unique_ptr<SubdivCCG> subdivided_ccg_;
-
  public:
-  MultiresBaseDisplacementBaker(const MultiresBakeRender &bake,
-                                const Mesh &bake_level_mesh,
-                                const SubdivCCG &subdiv_ccg)
-      : high_subdiv_ccg_(subdiv_ccg)
-  {
-    if (!bake.use_low_resolution_mesh) {
-      create_subdivided_ccg(bake_level_mesh, *bake.multires_modifier);
-      is_baking_to_subdivided_mesh_ = bake.multires_modifier->lvl > 0;
-    }
-  }
-
- protected:
-  void get_bake_level_position_and_normal(const RasterizeTriangle &triangle,
-                                          const float2 &bary_uv,
-                                          const float2 &grid_uv,
-                                          float3 &bake_level_position,
-                                          float3 &bake_level_normal) const
-  {
-    if (subdivided_ccg_) {
-      if (!is_baking_to_subdivided_mesh_) {
-        bake_level_position = sample_position_on_subdiv_ccg(
-            *subdivided_ccg_, triangle.grid_index, grid_uv);
-        bake_level_normal = sample_normal_on_subdiv_ccg(
-            *subdivided_ccg_, triangle.grid_index, grid_uv);
-      }
-      else {
-        /* Map bake level face and UV coordinate within it to the grid index and its uv within
-         * the subdivided_ccg_.
-         *
-         * The fact that the bake mesh is subdivided at least once makes math a bit easier since
-         * all its faces are quads, which maps 1:1 to the PTex faces in the subdivided_ccg_. So the
-         * only trick comes in mapping UV coordinate within a quad face to a corner and UV
-         * coordinate within this corner. */
-
-        const float2 quad_uv = triangle.get_bake_level_quad_uv(bary_uv);
-        float2 corner_uv;
-        const int corner = subdiv::rotate_quad_to_corner(
-            quad_uv.x, quad_uv.y, &corner_uv.x, &corner_uv.y);
-
-        const float2 quad_grid_uv = subdiv::ptex_face_uv_to_grid_uv(corner_uv);
-        const int quad_grid_index = triangle.bake_level_quad_index * 4 + corner;
-
-        bake_level_position = sample_position_on_subdiv_ccg(
-            *subdivided_ccg_, quad_grid_index, quad_grid_uv);
-        bake_level_normal = sample_normal_on_subdiv_ccg(
-            *subdivided_ccg_, quad_grid_index, quad_grid_uv);
-      }
-    }
-    else {
-      bake_level_position = triangle.get_position(bary_uv);
-      bake_level_normal = triangle.get_normal(bary_uv);
-    }
-  }
-
-  float3 get_high_level_position(const int grid_index, const float2 &grid_uv) const
-  {
-    return sample_position_on_subdiv_ccg(high_subdiv_ccg_, grid_index, grid_uv);
-  }
-
- private:
-  subdiv::Subdiv *create_subdiv_for_subdivided_ccg(const Mesh &bake_level_mesh,
-                                                   const MultiresModifierData &multires_modifier)
-  {
-    subdiv::Settings subdiv_settings;
-    BKE_multires_subdiv_settings_init(&subdiv_settings, &multires_modifier);
-    subdiv::Subdiv *subdiv = subdiv::update_from_mesh(nullptr, &subdiv_settings, &bake_level_mesh);
-
-    /* Initialization evaluation of the limit surface and the displacement. */
-    if (!subdiv::eval_begin_from_mesh(subdiv, &bake_level_mesh, subdiv::SUBDIV_EVALUATOR_TYPE_CPU))
-    {
-      subdiv::free(subdiv);
-      return nullptr;
-    }
-
-    return subdiv;
-  }
-
-  void create_subdivided_ccg(const Mesh &bake_level_mesh,
-                             const MultiresModifierData &multires_modifier)
-  {
-    subdiv::Subdiv *subdiv = create_subdiv_for_subdivided_ccg(bake_level_mesh, multires_modifier);
-    if (!subdiv) {
-      return;
-    }
-
-    const int top_level = multires_modifier.totlvl;
-    const int bake_level = multires_modifier.lvl;
-
-    const int subdivide_level = top_level - bake_level;
-    if (subdivide_level == 0) {
-      subdiv::free(subdiv);
-      return;
-    }
-
-    SubdivToCCGSettings settings;
-    settings.resolution = (1 << subdivide_level) + 1;
-    settings.need_normal = true;
-    settings.need_mask = false;
-
-    subdivided_ccg_ = BKE_subdiv_to_ccg(*subdiv, settings, bake_level_mesh);
-  }
-};
-
-class MultiresDisplacementBaker : public MultiresBaseDisplacementBaker {
- public:
-  MultiresDisplacementBaker(const MultiresBakeRender &bake,
-                            const Mesh &bake_level_mesh,
-                            const SubdivCCG &subdiv_ccg,
+  MultiresDisplacementBaker(const SubdivCCG &subdiv_ccg,
                             const ImBuf &ibuf,
                             ExtraBuffers &extra_buffers)
-      : MultiresBaseDisplacementBaker(bake, bake_level_mesh, subdiv_ccg)
+      : high_subdiv_ccg_(subdiv_ccg)
   {
     extra_buffers.displacement_buffer.reinitialize(IMB_get_pixel_count(&ibuf));
     extra_buffers.displacement_buffer.fill(0);
@@ -813,11 +676,10 @@ class MultiresDisplacementBaker : public MultiresBaseDisplacementBaker {
                     const float2 &grid_uv,
                     RasterizeResult &result) const override
   {
-    float3 bake_level_position, bake_level_normal;
-    get_bake_level_position_and_normal(
-        triangle, bary_uv, grid_uv, bake_level_position, bake_level_normal);
-
-    const float3 high_level_position = get_high_level_position(triangle.grid_index, grid_uv);
+    const float3 bake_level_position = triangle.get_position(bary_uv);
+    const float3 bake_level_normal = triangle.get_normal(bary_uv);
+    const float3 high_level_position = sample_position_on_subdiv_ccg(
+        high_subdiv_ccg_, triangle.grid_index, grid_uv);
 
     const float length = math::dot(bake_level_normal, (high_level_position - bake_level_position));
 
@@ -840,12 +702,12 @@ class MultiresDisplacementBaker : public MultiresBaseDisplacementBaker {
   }
 };
 
-class MultiresVectorDisplacementBaker : public MultiresBaseDisplacementBaker {
+class MultiresVectorDisplacementBaker : public MultiresBaker {
+  const SubdivCCG &high_subdiv_ccg_;
+
  public:
-  MultiresVectorDisplacementBaker(const MultiresBakeRender &bake,
-                                  const Mesh &bake_level_mesh,
-                                  const SubdivCCG &subdiv_ccg)
-      : MultiresBaseDisplacementBaker(bake, bake_level_mesh, subdiv_ccg)
+  explicit MultiresVectorDisplacementBaker(const SubdivCCG &subdiv_ccg)
+      : high_subdiv_ccg_(subdiv_ccg)
   {
   }
 
@@ -854,11 +716,10 @@ class MultiresVectorDisplacementBaker : public MultiresBaseDisplacementBaker {
                     const float2 &grid_uv,
                     RasterizeResult & /*result*/) const override
   {
-    float3 bake_level_position, bake_level_normal;
-    get_bake_level_position_and_normal(
-        triangle, bary_uv, grid_uv, bake_level_position, bake_level_normal);
+    const float3 bake_level_position = triangle.get_position(bary_uv);
 
-    const float3 high_level_position = get_high_level_position(triangle.grid_index, grid_uv);
+    const float3 high_level_position = sample_position_on_subdiv_ccg(
+        high_subdiv_ccg_, triangle.grid_index, grid_uv);
 
     return high_level_position - bake_level_position;
   }
@@ -926,10 +787,9 @@ class MultiresNormalsBaker : public MultiresBaker {
     /* This sequence of math is designed specifically as is with great care to be compatible with
      * our shader. Please don't change without good reason. */
     float3x3 from_tang;
-    from_tang[0] = tang0.xyz() * u + tang1.xyz() * v + tang2.xyz() * w;
-    from_tang[2] = no0.xyz() * u + no1.xyz() * v + no2.xyz() * w;
-
-    from_tang[1] = sign * math::cross(from_tang[2], from_tang[0]); /* `B = sign * cross(N, T)` */
+    from_tang.x = tang0.xyz() * u + tang1.xyz() * v + tang2.xyz() * w;
+    from_tang.z = no0.xyz() * u + no1.xyz() * v + no2.xyz() * w;
+    from_tang.y = sign * math::cross(from_tang[2], from_tang[0]); /* `B = sign * cross(N, T)` */
 
     return math::invert(from_tang);
   }
@@ -959,7 +819,6 @@ static void initialize_images(MultiresBakeRender &bake)
  * \{ */
 
 static std::unique_ptr<MultiresBaker> create_baker(const MultiresBakeRender &bake,
-                                                   const Mesh &bake_level_mesh,
                                                    const SubdivCCG &subdiv_ccg,
                                                    const ImBuf &ibuf,
                                                    ExtraBuffers &extra_buffers)
@@ -968,10 +827,9 @@ static std::unique_ptr<MultiresBaker> create_baker(const MultiresBakeRender &bak
     case RE_BAKE_NORMALS:
       return std::make_unique<MultiresNormalsBaker>(subdiv_ccg);
     case RE_BAKE_DISPLACEMENT:
-      return std::make_unique<MultiresDisplacementBaker>(
-          bake, bake_level_mesh, subdiv_ccg, ibuf, extra_buffers);
+      return std::make_unique<MultiresDisplacementBaker>(subdiv_ccg, ibuf, extra_buffers);
     case RE_BAKE_VECTOR_DISPLACEMENT:
-      return std::make_unique<MultiresVectorDisplacementBaker>(bake, bake_level_mesh, subdiv_ccg);
+      return std::make_unique<MultiresVectorDisplacementBaker>(subdiv_ccg);
   }
   BLI_assert_unreachable();
   return nullptr;
@@ -1016,15 +874,6 @@ static void rasterize_base_face(const MultiresBaker &baker,
   if (quad.has_uv_tangents) {
     quad.uv_tangents[0] = face_center_uv_tangent_calc(mesh_arrays, uv_tangents, face_index);
   }
-
-  /* The exact values do not really matter here, these fields should not be used when baking to
-   * the base mesh. Assign some values that will make it easier to spot that their values are not
-   * valid if anyone accesses them by mistake. */
-  quad.bake_level_quad_index = -1;
-  quad.bake_level_quad_uvs[0] = float2(0.0f, 0.0f);
-  quad.bake_level_quad_uvs[1] = float2(0.0f, 0.0f);
-  quad.bake_level_quad_uvs[2] = float2(0.0f, 0.0f);
-  quad.bake_level_quad_uvs[3] = float2(0.0f, 0.0f);
 
   for (const int corner : face) {
     const int prev_corner = bke::mesh::face_corner_prev(face, corner);
@@ -1088,8 +937,7 @@ static void bake_single_image_to_base_mesh(MultiresBakeRender &bake,
                                            ExtraBuffers &extra_buffers,
                                            MultiresBakeResult &result)
 {
-  std::unique_ptr<MultiresBaker> baker = create_baker(
-      bake, bake_level_mesh, subdiv_ccg, ibuf, extra_buffers);
+  std::unique_ptr<MultiresBaker> baker = create_baker(bake, subdiv_ccg, ibuf, extra_buffers);
   if (!baker) {
     return;
   }
@@ -1153,20 +1001,20 @@ struct GridCoord {
   float2 uv;
 };
 
-struct SubdividedCornerGridCoordData {
-  MeshArrays coarse_mesh_arrays;
-
-  Array<GridCoord> corner_grid_coords;
-};
-
-static Array<GridCoord> get_subdivided_corner_grid_coords(MultiresBakeRender &bake,
-                                                          const SubdivCCG &subdiv_ccg)
+static Array<GridCoord> get_subdivided_corner_grid_coords(subdiv::Subdiv &subdiv,
+                                                          const Mesh &coarse_mesh,
+                                                          const int level)
 {
+  struct SubdividedCornerGridCoordData {
+    MeshArrays coarse_mesh_arrays;
+    Array<GridCoord> corner_grid_coords;
+  };
+
   subdiv::ToMeshSettings mesh_settings;
-  mesh_settings.resolution = (1 << bake.multires_modifier->lvl) + 1;
+  mesh_settings.resolution = (1 << level) + 1;
 
   SubdividedCornerGridCoordData data;
-  data.coarse_mesh_arrays = MeshArrays(*bake.base_mesh);
+  data.coarse_mesh_arrays = MeshArrays(coarse_mesh);
 
   subdiv::ForeachContext foreach_context;
   foreach_context.user_data = &data;
@@ -1212,7 +1060,7 @@ static Array<GridCoord> get_subdivided_corner_grid_coords(MultiresBakeRender &ba
     }
   };
 
-  foreach_subdiv_geometry(subdiv_ccg.subdiv, &foreach_context, &mesh_settings, bake.base_mesh);
+  foreach_subdiv_geometry(&subdiv, &foreach_context, &mesh_settings, &coarse_mesh);
 
   return data.corner_grid_coords;
 }
@@ -1264,15 +1112,6 @@ static void rasterize_subdivided_face(const MultiresBaker &baker,
     quad.normals[3] = quad.normals[0];
   }
 
-  /* Fill in bake level face information.
-   * The face index is known explicitly. The UV coordinates are such that first face corner is
-   * (0, 0), next corner is (1, 0), and previous corner is (0, 1). */
-  quad.bake_level_quad_index = face_index;
-  quad.bake_level_quad_uvs[0] = float2(0.0f, 0.0f);
-  quad.bake_level_quad_uvs[1] = float2(1.0f, 0.0f);
-  quad.bake_level_quad_uvs[2] = float2(1.0f, 1.0f);
-  quad.bake_level_quad_uvs[3] = float2(0.0f, 1.0f);
-
   rasterize_quad(baker, tile, quad, result);
 }
 
@@ -1285,8 +1124,7 @@ static void bake_single_image_to_subdivided_mesh(MultiresBakeRender &bake,
                                                  ExtraBuffers &extra_buffers,
                                                  MultiresBakeResult &result)
 {
-  std::unique_ptr<MultiresBaker> baker = create_baker(
-      bake, bake_level_mesh, subdiv_ccg, ibuf, extra_buffers);
+  std::unique_ptr<MultiresBaker> baker = create_baker(bake, subdiv_ccg, ibuf, extra_buffers);
   if (!baker) {
     return;
   }
@@ -1302,7 +1140,8 @@ static void bake_single_image_to_subdivided_mesh(MultiresBakeRender &bake,
   tile.extra_buffers = &extra_buffers;
   tile.uv_offset = get_tile_uv(image, image_tile);
 
-  const Array<GridCoord> corner_grid_coords = get_subdivided_corner_grid_coords(bake, subdiv_ccg);
+  const Array<GridCoord> corner_grid_coords = get_subdivided_corner_grid_coords(
+      *subdiv_ccg.subdiv, *bake.base_mesh, bake.multires_modifier->lvl);
 
   SpinLock spin_lock;
   BLI_spin_init(&spin_lock);
@@ -1350,6 +1189,232 @@ static void bake_single_image_to_subdivided_mesh(MultiresBakeRender &bake,
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name High resolution displacement baking
+ * Used in cases of displacement baking with Low Resolution Mesh equals False.
+ * \{ */
+
+/* Subdivide bake_level_mesh to the level of `total level - viewport level`.
+ * Essentially bring the bake_level_mesh to the same resolution level as the top multi-resolution
+ * level. */
+static const Mesh *create_highres_mesh(const Mesh &bake_level_mesh,
+                                       const MultiresModifierData &multires_modifier)
+{
+  const int top_level = multires_modifier.totlvl;
+  const int bake_level = multires_modifier.lvl;
+  const int subdivide_level = top_level - bake_level;
+  if (subdivide_level == 0) {
+    return &bake_level_mesh;
+  }
+
+  subdiv::Settings subdiv_settings;
+  BKE_multires_subdiv_settings_init(&subdiv_settings, &multires_modifier);
+  subdiv::Subdiv *subdiv = subdiv::update_from_mesh(nullptr, &subdiv_settings, &bake_level_mesh);
+
+  subdiv::ToMeshSettings mesh_settings;
+  mesh_settings.resolution = (1 << subdivide_level) + 1;
+
+  Mesh *result = subdiv::subdiv_to_mesh(subdiv, &mesh_settings, &bake_level_mesh);
+
+  subdiv::free(subdiv);
+
+  return result;
+}
+
+/* Get grid coordinates for every corner of the highres_bake_mesh. */
+static Array<GridCoord> get_highres_mesh_loop_grid_coords(
+    subdiv::Subdiv &subdiv,
+    const MultiresModifierData &multires_modifier,
+    const Mesh &base_mesh,
+    const Mesh &bake_level_mesh,
+    const Mesh &highres_bake_mesh)
+{
+  UNUSED_VARS_NDEBUG(highres_bake_mesh);
+
+  if (multires_modifier.lvl == 0) {
+    /* Simple case: baking from subdivided mesh highres_bake_mesh to the base mesh. */
+    return get_subdivided_corner_grid_coords(
+        subdiv, bake_level_mesh, multires_modifier.totlvl - multires_modifier.lvl);
+  }
+
+  /* More tricky case:
+   * - The base_mesh is first subdivided to the viewport level (bake_level_mesh)
+   * - The bake_level_mesh is then further subdivided (highres_bake_mesh).
+   *
+   * This case needs an extra level of indirection: map loops from the highres_bake_mesh to the
+   * faces of the bake_level_mesh, and then interpolate the grid coordinates calculated for the
+   * bake_level_mesh to get grid coordinates.
+   *
+   * The coarse mesh here is the same as bake_level_mesh, and the subdiv mesh is the same as
+   * highres_bake_mesh.
+   *
+   * It is possible to optimize the memory usage here by utilizing an implicit knowledge about
+   * how faces in the high-res mesh are created from the bake level mesh: Since the bake level
+   * mesh has some amount of subdivisions in this branch all its faces are quads. So all the
+   * faces in the high-res mesh are also quads, created in the grid pattern from the bake level
+   * faces. */
+
+  struct HighresCornerGridCoordData {
+    MeshArrays bake_level_mesh_arrays;
+    Array<GridCoord> bake_level_corner_grid_coords;
+
+    Array<GridCoord> corner_grid_coords;
+  };
+
+  const int top_level = multires_modifier.totlvl;
+  const int bake_level = multires_modifier.lvl;
+  const int subdivide_level = top_level - bake_level;
+
+  subdiv::ToMeshSettings mesh_settings;
+  mesh_settings.resolution = (1 << subdivide_level) + 1;
+
+  HighresCornerGridCoordData data;
+  data.bake_level_mesh_arrays = MeshArrays(bake_level_mesh);
+  data.bake_level_corner_grid_coords = get_subdivided_corner_grid_coords(
+      subdiv, base_mesh, multires_modifier.lvl);
+
+  subdiv::ForeachContext foreach_context;
+  foreach_context.user_data = &data;
+
+  foreach_context.topology_info = [](const subdiv::ForeachContext *context,
+                                     const int /*num_vertices*/,
+                                     const int /*num_edges*/,
+                                     const int num_corners,
+                                     const int /*num_faces*/,
+                                     const int * /*subdiv_face_offset*/) -> bool {
+    HighresCornerGridCoordData *data = static_cast<HighresCornerGridCoordData *>(
+        context->user_data);
+    data->corner_grid_coords.reinitialize(num_corners);
+    return true;
+  };
+
+  foreach_context.loop = [](const subdiv::ForeachContext *context,
+                            void * /*tls*/,
+                            const int /*ptex_face_index*/,
+                            const float u,
+                            const float v,
+                            const int /*bake_level_corner_index*/,
+                            const int bake_level_face_index,
+                            const int /*bake_level_corner*/,
+                            const int highres_corner_index,
+                            const int /*highres_vertex_index*/,
+                            const int /*highres_edge_index*/) {
+    HighresCornerGridCoordData *data = static_cast<HighresCornerGridCoordData *>(
+        context->user_data);
+
+    const Span<GridCoord> bake_level_corner_grid_coords = data->bake_level_corner_grid_coords;
+
+    const IndexRange bake_level_face = data->bake_level_mesh_arrays.faces[bake_level_face_index];
+    BLI_assert(bake_level_face.size() == 4);
+
+    const int bake_level_face_start = bake_level_face.start();
+
+    GridCoord &corner_grid_coord = data->corner_grid_coords[highres_corner_index];
+    corner_grid_coord.grid_index = bake_level_corner_grid_coords[bake_level_face_start].grid_index;
+    corner_grid_coord.uv = interp_bilinear_quad(
+        u,
+        v,
+        bake_level_corner_grid_coords[bake_level_face_start + 0].uv,
+        bake_level_corner_grid_coords[bake_level_face_start + 1].uv,
+        bake_level_corner_grid_coords[bake_level_face_start + 2].uv,
+        bake_level_corner_grid_coords[bake_level_face_start + 3].uv);
+
+    /* Loops of the bake level mesh are supposed to be in the same grid. */
+    BLI_assert(corner_grid_coord.grid_index ==
+               bake_level_corner_grid_coords[bake_level_face_start + 1].grid_index);
+    BLI_assert(corner_grid_coord.grid_index ==
+               bake_level_corner_grid_coords[bake_level_face_start + 2].grid_index);
+    BLI_assert(corner_grid_coord.grid_index ==
+               bake_level_corner_grid_coords[bake_level_face_start + 3].grid_index);
+  };
+
+  foreach_subdiv_geometry(&subdiv, &foreach_context, &mesh_settings, &bake_level_mesh);
+
+  BLI_assert(data.corner_grid_coords.size() == highres_bake_mesh.corners_num);
+  return data.corner_grid_coords;
+}
+
+static void bake_single_image_displacement(MultiresBakeRender &bake,
+                                           const Mesh &bake_level_mesh,
+                                           const SubdivCCG &subdiv_ccg,
+                                           Image &image,
+                                           ImageTile &image_tile,
+                                           ImBuf &ibuf,
+                                           ExtraBuffers &extra_buffers,
+                                           MultiresBakeResult &result)
+{
+  std::unique_ptr<MultiresBaker> baker = create_baker(bake, subdiv_ccg, ibuf, extra_buffers);
+  if (!baker) {
+    return;
+  }
+
+  const Mesh *highres_bake_mesh = create_highres_mesh(bake_level_mesh, *bake.multires_modifier);
+
+  const Array<GridCoord> corner_grid_coords = get_highres_mesh_loop_grid_coords(
+      *subdiv_ccg.subdiv,
+      *bake.multires_modifier,
+      *bake.base_mesh,
+      bake_level_mesh,
+      *highres_bake_mesh);
+
+  MeshArrays mesh_arrays(*highres_bake_mesh);
+  Array<float4> uv_tangents;
+  if (need_tangent(bake)) {
+    uv_tangents = calc_uv_tangents(mesh_arrays);
+  }
+
+  RasterizeTile tile;
+  tile.ibuf = &ibuf;
+  tile.extra_buffers = &extra_buffers;
+  tile.uv_offset = get_tile_uv(image, image_tile);
+
+  SpinLock spin_lock;
+  BLI_spin_init(&spin_lock);
+  std::atomic<int> num_baked_faces = 0;
+  threading::parallel_for(mesh_arrays.faces.index_range(), 1, [&](const IndexRange range) {
+    for (const int64_t face_index : range) {
+      if (multiresbake_test_break(bake)) {
+        return;
+      }
+
+      /* Check whether the face is to be baked into the current image. */
+      const int mat_nr = mesh_arrays.material_indices[face_index];
+      const Image *face_image = mat_nr < bake.ob_image.size() ? bake.ob_image[mat_nr] : nullptr;
+      if (face_image != &image) {
+        continue;
+      }
+
+      RasterizeResult rasterize_result;
+      rasterize_subdivided_face(*baker,
+                                tile,
+                                mesh_arrays,
+                                corner_grid_coords,
+                                uv_tangents,
+                                face_index,
+                                rasterize_result);
+
+      ++num_baked_faces;
+      BLI_spin_lock(&spin_lock);
+      result.height_min = std::min(result.height_min, rasterize_result.height_min);
+      result.height_max = std::max(result.height_max, rasterize_result.height_max);
+      if (bake.do_update) {
+        *bake.do_update = true;
+      }
+      if (bake.progress) {
+        *bake.progress = (float(bake.num_baked_objects) +
+                          float(num_baked_faces) / mesh_arrays.faces.size()) /
+                         bake.num_total_objects;
+      }
+      BLI_spin_unlock(&spin_lock);
+    }
+  });
+  BLI_spin_end(&spin_lock);
+
+  result.highres_bake_mesh = highres_bake_mesh;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Image baking entry point
  * \{ */
 
@@ -1362,6 +1427,15 @@ static void bake_single_image(MultiresBakeRender &bake,
                               ExtraBuffers &extra_buffers,
                               MultiresBakeResult &result)
 {
+  if (ELEM(bake.mode, RE_BAKE_DISPLACEMENT, RE_BAKE_VECTOR_DISPLACEMENT) &&
+      !bake.use_low_resolution_mesh &&
+      bake.multires_modifier->lvl != bake.multires_modifier->totlvl)
+  {
+    bake_single_image_displacement(
+        bake, bake_level_mesh, subdiv_ccg, image, image_tile, ibuf, extra_buffers, result);
+    return;
+  }
+
   if (bake.multires_modifier->lvl == 0) {
     bake_single_image_to_base_mesh(
         bake, bake_level_mesh, subdiv_ccg, image, image_tile, ibuf, extra_buffers, result);
@@ -1604,8 +1678,13 @@ void RE_multires_bake_images(MultiresBakeRender &bake)
   MultiresBakeResult result;
   initialize_images(bake);
   bake_images(bake, *bake_level_mesh, *subdiv_ccg, result);
-  finish_images(bake, *bake_level_mesh, result);
 
+  const Mesh *filter_mesh = result.highres_bake_mesh ? result.highres_bake_mesh : bake_level_mesh;
+  finish_images(bake, *filter_mesh, result);
+
+  if (result.highres_bake_mesh && result.highres_bake_mesh != bake_level_mesh) {
+    BKE_id_free(nullptr, const_cast<Mesh *>(result.highres_bake_mesh));
+  }
   if (bake_level_mesh != bake.base_mesh) {
     BKE_id_free(nullptr, bake_level_mesh);
   }
