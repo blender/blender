@@ -1383,6 +1383,7 @@ static wmOperatorStatus image_open_exec(bContext *C, wmOperator *op)
     }
 
     BLI_freelistN(&range->udim_tiles);
+    BLI_freelistN(&range->frames);
   }
   BLI_freelistN(&ranges);
 

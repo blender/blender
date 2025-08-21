@@ -534,12 +534,12 @@ ccl_device_template_spec bool set_attribute(ustring str,
   if (type.basetype == TypeDesc::STRING && type.aggregate == TypeDesc::SCALAR &&
       type.arraylen == 0)
   {
-    ustring *sval = (ustring *)val;
+    OSLUStringHash *sval = (OSLUStringHash *)val;
     sval[0] = str;
 
     if (derivatives) {
-      sval[1] = OSLRenderServices::u_empty;
-      sval[2] = OSLRenderServices::u_empty;
+      sval[1] = OSLUStringHash();
+      sval[2] = OSLUStringHash();
     }
 
     return true;
@@ -1286,7 +1286,7 @@ bool OSLRenderServices::texture3d(OSLUStringHash filename,
       const int slot = handle->svm_slots[0].y;
       const float3 P_float3 = make_float3(P.x, P.y, P.z);
       float4 rgba = kernel_tex_image_interp_3d(
-          kernel_globals, slot, P_float3, INTERPOLATION_NONE, -1.0f);
+          kernel_globals, globals->sd, slot, P_float3, INTERPOLATION_NONE, false);
 
       result[0] = rgba[0];
       if (nchannels > 1) {

@@ -173,17 +173,20 @@ Array<float3> retrieve_all_positions(const bke::CurvesGeometry &curves,
   }
   const OffsetIndices points_by_curve = curves.points_by_curve();
   const Span<float3> positions = curves.positions();
-  const Span<float3> handle_positions_left = curves.handle_positions_left();
-  const Span<float3> handle_positions_right = curves.handle_positions_right();
+  const std::optional<Span<float3>> handle_positions_left = curves.handle_positions_left();
+  const std::optional<Span<float3>> handle_positions_right = curves.handle_positions_right();
+  if (!handle_positions_left || !handle_positions_right) {
+    return {};
+  }
 
   Array<float3> all_positions(positions.size() * 3);
   curves_selection.foreach_index(GrainSize(1024), [&](const int curve) {
     const IndexRange points = points_by_curve[curve];
     for (const int point : points) {
       const int index = point * 3;
-      all_positions[index] = handle_positions_left[point];
+      all_positions[index] = (*handle_positions_left)[point];
       all_positions[index + 1] = positions[point];
-      all_positions[index + 2] = handle_positions_right[point];
+      all_positions[index + 2] = (*handle_positions_right)[point];
     }
   });
 

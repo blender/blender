@@ -11,7 +11,8 @@ if(NOT WITH_CROSSCOMPILED_TOOLS)
     glsl_preprocess.cc
 
     glsl_preprocess.hh
-  )
+    shader_parser.hh
+)
 
   if(WITH_GPU_SHADER_ASSERT)
     add_definitions(-DWITH_GPU_SHADER_ASSERT)

@@ -282,7 +282,7 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
   /* Adjust current operator. */
   /* Don't use 'WM_operator_last_redo' because selection actions will be ignored. */
-  wmOperator *op = static_cast<wmOperator *>(CTX_wm_manager(C)->operators.last);
+  wmOperator *op = static_cast<wmOperator *>(CTX_wm_manager(C)->runtime->operators.last);
   bool has_redo = (op && op->type == ggd->ot_extrude);
   wmOperator *op_xform = static_cast<wmOperator *>(has_redo ? op->macro.last : nullptr);
 

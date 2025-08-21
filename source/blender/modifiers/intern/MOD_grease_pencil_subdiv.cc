@@ -88,21 +88,34 @@ static void subdivide_drawing(ModifierData &md, Object &ob, bke::greasepencil::D
   if (use_catmull_clark) {
     modifier::greasepencil::ensure_no_bezier_curves(drawing);
     bke::CurvesGeometry subdivided_curves = drawing.strokes();
+    const VArray<bool> cyclic = subdivided_curves.cyclic();
     for ([[maybe_unused]] const int level_i : IndexRange(mmd.level)) {
       VArray<int> one_cut = VArray<int>::from_single(1, subdivided_curves.points_num());
       subdivided_curves = geometry::subdivide_curves(
           subdivided_curves, strokes, std::move(one_cut), {});
 
       offset_indices::OffsetIndices<int> points_by_curve = subdivided_curves.points_by_curve();
-      MutableSpan<float3> positions = subdivided_curves.positions_for_write();
+      const Array<float3> src_positions = subdivided_curves.positions();
+      MutableSpan<float3> dst_positions = subdivided_curves.positions_for_write();
       threading::parallel_for(subdivided_curves.curves_range(), 1024, [&](const IndexRange range) {
         for (const int curve_i : range) {
           const IndexRange points = points_by_curve[curve_i];
           for (const int point_i : points.drop_front(1).drop_back(1)) {
-            positions[point_i] = math::interpolate(
-                positions[point_i],
-                math::interpolate(positions[point_i - 1], positions[point_i + 1], 0.5f),
+            dst_positions[point_i] = math::interpolate(
+                src_positions[point_i],
+                math::interpolate(src_positions[point_i - 1], src_positions[point_i + 1], 0.5f),
                 0.5f);
+          }
+
+          if (cyclic[curve_i] && points.size() > 1) {
+            const float3 &first_pos = src_positions[points.first()];
+            const float3 &last_pos = src_positions[points.last()];
+            const float3 &after_first_pos = src_positions[points.first() + 1];
+            const float3 &before_last_pos = src_positions[points.last() - 1];
+            dst_positions[points.first()] = math::interpolate(
+                first_pos, math::interpolate(last_pos, after_first_pos, 0.5f), 0.5f);
+            dst_positions[points.last()] = math::interpolate(
+                last_pos, math::interpolate(before_last_pos, first_pos, 0.5f), 0.5f);
           }
         }
       });

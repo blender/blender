@@ -163,7 +163,7 @@ class MenuSwitchFn : public mf::MultiFunction {
       : enum_def_(enum_def), type_(type)
   {
     mf::SignatureBuilder builder{"Menu Switch", signature_};
-    builder.single_input<int>("Menu");
+    builder.single_input<MenuValue>("Menu");
     for (const NodeEnumItem &enum_item : enum_def.items()) {
       builder.single_input(enum_item.name, type);
     }
@@ -176,24 +176,24 @@ class MenuSwitchFn : public mf::MultiFunction {
   {
     const int value_inputs_start = 1;
     const int inputs_num = enum_def_.items_num;
-    const VArray<int> values = params.readonly_single_input<int>(0, "Menu");
+    const VArray<MenuValue> values = params.readonly_single_input<MenuValue>(0, "Menu");
     /* Use one extra mask at the end for invalid indices. */
     const int invalid_index = inputs_num;
 
     GMutableSpan output = params.uninitialized_single_output(
         signature_.params.index_range().last(), "Output");
 
-    auto find_item_index = [&](const int value) -> int {
+    auto find_item_index = [&](const MenuValue value) -> int {
       for (const int i : enum_def_.items().index_range()) {
         const NodeEnumItem &item = enum_def_.items()[i];
-        if (item.identifier == value) {
+        if (item.identifier == value.value) {
           return i;
         }
       }
       return invalid_index;
     };
 
-    if (const std::optional<int> value = values.get_if_single()) {
+    if (const std::optional<MenuValue> value = values.get_if_single()) {
       const int index = find_item_index(*value);
       if (index < inputs_num) {
         const GVArray inputs = params.readonly_single_input(value_inputs_start + index);
@@ -258,19 +258,19 @@ class LazyFunctionForMenuSwitchNode : public LazyFunction {
   {
     SocketValueVariant condition_variant = params.get_input<SocketValueVariant>(0);
     if (condition_variant.is_context_dependent_field() && can_be_field_) {
-      this->execute_field(condition_variant.get<Field<int>>(), params);
+      this->execute_field(condition_variant.get<Field<MenuValue>>(), params);
     }
     else {
-      this->execute_single(condition_variant.get<int>(), params);
+      this->execute_single(condition_variant.get<MenuValue>(), params);
     }
   }
 
-  void execute_single(const int condition, lf::Params &params) const
+  void execute_single(const MenuValue condition, lf::Params &params) const
   {
     for (const int i : IndexRange(enum_def_.items_num)) {
       const NodeEnumItem &enum_item = enum_def_.items_array[i];
       const int input_index = i + 1;
-      if (enum_item.identifier == condition) {
+      if (enum_item.identifier == condition.value) {
         SocketValueVariant *value_to_forward =
             params.try_get_input_data_ptr_or_request<SocketValueVariant>(input_index);
         if (value_to_forward == nullptr) {
@@ -289,7 +289,7 @@ class LazyFunctionForMenuSwitchNode : public LazyFunction {
     set_default_remaining_node_outputs(params, node_);
   }
 
-  void execute_field(Field<int> condition, lf::Params &params) const
+  void execute_field(Field<MenuValue> condition, lf::Params &params) const
   {
     /* When the condition is a non-constant field, we need all inputs. */
     const int values_num = this->enum_def_.items_num;
@@ -347,10 +347,10 @@ class LazyFunctionForMenuSwitchSocketUsage : public lf::LazyFunction {
       }
     }
     else {
-      const int32_t value = condition_variant.get<int>();
+      const MenuValue value = condition_variant.get<MenuValue>();
       for (const int i : IndexRange(enum_def_.items_num)) {
         const NodeEnumItem &enum_item = enum_def_.items()[i];
-        params.set_output(i, value == enum_item.identifier);
+        params.set_output(i, value.value == enum_item.identifier);
       }
     }
   }
@@ -365,12 +365,12 @@ class MenuSwitchOperation : public NodeOperation {
   void execute() override
   {
     Result &output = this->get_result("Output");
-    const int32_t menu_identifier = this->get_input("Menu").get_single_value<int32_t>();
+    const MenuValue menu_identifier = this->get_input("Menu").get_single_value<MenuValue>();
     const NodeEnumDefinition &enum_definition = node_storage(bnode()).enum_definition;
 
     for (const int i : IndexRange(enum_definition.items_num)) {
       const NodeEnumItem &enum_item = enum_definition.items()[i];
-      if (enum_item.identifier != menu_identifier) {
+      if (enum_item.identifier != menu_identifier.value) {
         continue;
       }
       const std::string identifier = MenuSwitchItemsAccessor::socket_identifier_for_item(

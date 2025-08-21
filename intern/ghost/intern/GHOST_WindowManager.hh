@@ -86,10 +86,10 @@ class GHOST_WindowManager {
 
  protected:
   /** The list of windows managed */
-  std::vector<GHOST_IWindow *> m_windows;
+  std::vector<GHOST_IWindow *> windows_;
 
   /** The active window. */
-  GHOST_IWindow *m_activeWindow;
+  GHOST_IWindow *active_window_;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_WindowManager")
 };

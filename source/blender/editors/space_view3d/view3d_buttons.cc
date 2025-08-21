@@ -344,7 +344,7 @@ static CurvesPointSelectionStatus init_curves_point_selection_status(
   }
   const OffsetIndices points_by_curve = curves.points_by_curve();
   const VArray<int8_t> curve_types = curves.curve_types();
-  const Span<float> nurbs_weights = curves.nurbs_weights();
+  const std::optional<Span<float>> nurbs_weights = curves.nurbs_weights();
   const VArray<float> radius = curves.radius();
   const VArray<float> tilt = curves.tilt();
   const Span<float3> positions = curves.positions();
@@ -372,8 +372,7 @@ static CurvesPointSelectionStatus init_curves_point_selection_status(
             add_v3_v3(value.median.location, positions[point]);
             value.total_nurbs_weights += is_nurbs;
             value.median.nurbs_weight += is_nurbs ?
-                                             (nurbs_weights.is_empty() ? 1.0f :
-                                                                         nurbs_weights[point]) :
+                                             (nurbs_weights ? (*nurbs_weights)[point] : 1.0f) :
                                              0;
             value.median.radius += radius[point];
             value.median.tilt += tilt[point];
@@ -387,9 +386,11 @@ static CurvesPointSelectionStatus init_curves_point_selection_status(
     return status;
   }
 
-  auto add_handles = [&](StringRef selection_attribute, Span<float3> positions) {
+  auto add_handles = [&](StringRef selection_attribute, std::optional<Span<float3>> positions) {
+    if (!positions) {
+      return;
+    }
     const IndexMask selection = retrieve_selected_points(curves, selection_attribute, memory);
-
     if (selection.is_empty()) {
       return;
     }
@@ -397,7 +398,7 @@ static CurvesPointSelectionStatus init_curves_point_selection_status(
     status.total += selection.size();
 
     selection.foreach_index(
-        [&](const int point) { add_v3_v3(status.median.location, positions[point]); });
+        [&](const int point) { add_v3_v3(status.median.location, (*positions)[point]); });
   };
 
   add_handles(".selection_handle_left", curves.handle_positions_left());

@@ -1001,7 +1001,7 @@ void BlenderSync::sync_mesh_motion(BObjectInfo &b_ob_info, Mesh *mesh, const int
           LOG_WARNING << "Topology differs, disabling motion blur for object " << ob_name;
         }
         else {
-          LOG_DEBUG << "No actual deformation motion for object " << ob_name;
+          LOG_TRACE << "No actual deformation motion for object " << ob_name;
         }
         attributes.remove(ATTR_STD_MOTION_VERTEX_POSITION);
         if (attr_mN) {
@@ -1009,7 +1009,7 @@ void BlenderSync::sync_mesh_motion(BObjectInfo &b_ob_info, Mesh *mesh, const int
         }
       }
       else if (motion_step > 0) {
-        LOG_DEBUG << "Filling deformation motion for object " << ob_name;
+        LOG_TRACE << "Filling deformation motion for object " << ob_name;
         /* motion, fill up previous steps that we might have skipped because
          * they had no motion, but we need them anyway now */
         const float3 *P = mesh->get_verts().data();

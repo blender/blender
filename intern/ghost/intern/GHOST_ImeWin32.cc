@@ -150,8 +150,8 @@ void GHOST_ImeWin32::DestroyImeWindow(HWND /*window_handle*/)
 
 void GHOST_ImeWin32::MoveImeWindow(HWND /*window_handle*/, HIMC imm_context)
 {
-  int x = caret_rect_.m_l;
-  int y = caret_rect_.m_t;
+  int x = caret_rect_.l_;
+  int y = caret_rect_.t_;
   const int kCaretMargin = 1;
   /**
    * As written in a comment in GHOST_ImeWin32::CreateImeWindow(),
@@ -193,7 +193,7 @@ void GHOST_ImeWin32::MoveImeWindow(HWND /*window_handle*/, HIMC imm_context)
 void GHOST_ImeWin32::UpdateImeWindow(HWND window_handle)
 {
   /* Just move the IME window attached to the given window. */
-  if (caret_rect_.m_l >= 0 && caret_rect_.m_t >= 0) {
+  if (caret_rect_.l_ >= 0 && caret_rect_.t_ >= 0) {
     HIMC imm_context = ::ImmGetContext(window_handle);
     if (imm_context) {
       MoveImeWindow(window_handle, imm_context);
@@ -460,7 +460,7 @@ void GHOST_ImeWin32::BeginIME(HWND window_handle, const GHOST_Rect &caret_rect, 
      * This update is used for moving an IME window when a renderer process
      * resize/moves the input caret.
      */
-    if (caret_rect.m_l >= 0 && caret_rect.m_t >= 0) {
+    if (caret_rect.l_ >= 0 && caret_rect.t_ >= 0) {
       caret_rect_ = caret_rect;
       MoveImeWindow(window_handle, imm_context);
     }

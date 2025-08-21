@@ -28,11 +28,11 @@ class GHOST_EventWheel : public GHOST_Event {
   GHOST_EventWheel(uint64_t msec, GHOST_IWindow *window, GHOST_TEventWheelAxis axis, int32_t value)
       : GHOST_Event(msec, GHOST_kEventWheel, window)
   {
-    m_wheelEventData.axis = axis;
-    m_wheelEventData.value = value;
-    m_data = &m_wheelEventData;
+    wheel_event_data_.axis = axis;
+    wheel_event_data_.value = value;
+    data_ = &wheel_event_data_;
   }
 
  protected:
-  GHOST_TEventWheelData m_wheelEventData;
+  GHOST_TEventWheelData wheel_event_data_;
 };

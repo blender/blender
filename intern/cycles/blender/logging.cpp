@@ -30,11 +30,14 @@ void CCL_log_init()
             return;
           case ccl::LOG_LEVEL_INFO:
           case ccl::LOG_LEVEL_INFO_IMPORTANT:
-          case ccl::LOG_LEVEL_WORK:
-          case ccl::LOG_LEVEL_STATS:
-          case ccl::LOG_LEVEL_DEBUG:
-          case ccl::LOG_LEVEL_UNKNOWN:
             CLG_log_str(log_type, CLG_LEVEL_INFO, file_line, func, msg);
+            return;
+          case ccl::LOG_LEVEL_DEBUG:
+            CLG_log_str(log_type, CLG_LEVEL_DEBUG, file_line, func, msg);
+            return;
+          case ccl::LOG_LEVEL_TRACE:
+          case ccl::LOG_LEVEL_UNKNOWN:
+            CLG_log_str(log_type, CLG_LEVEL_TRACE, file_line, func, msg);
             return;
         }
       });
@@ -55,10 +58,10 @@ void CCL_log_init()
       ccl::log_level_set(ccl::LOG_LEVEL_INFO);
       break;
     case CLG_LEVEL_DEBUG:
-      ccl::log_level_set(ccl::LOG_LEVEL_WORK);
+      ccl::log_level_set(ccl::LOG_LEVEL_DEBUG);
       break;
     case CLG_LEVEL_TRACE:
-      ccl::log_level_set(ccl::LOG_LEVEL_DEBUG);
+      ccl::log_level_set(ccl::LOG_LEVEL_TRACE);
       break;
   }
 }

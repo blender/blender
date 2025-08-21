@@ -72,6 +72,7 @@ void ED_operatortypes_grease_pencil_edit();
 void ED_operatortypes_grease_pencil_join();
 void ED_operatortypes_grease_pencil_material();
 void ED_operatortypes_grease_pencil_modes();
+void ED_operatortypes_grease_pencil_pen();
 void ED_operatortypes_grease_pencil_primitives();
 void ED_operatortypes_grease_pencil_weight_paint();
 void ED_operatortypes_grease_pencil_vertex_paint();
@@ -84,6 +85,7 @@ void ED_keymap_grease_pencil(wmKeyConfig *keyconf);
 void ED_primitivetool_modal_keymap(wmKeyConfig *keyconf);
 void ED_filltool_modal_keymap(wmKeyConfig *keyconf);
 void ED_interpolatetool_modal_keymap(wmKeyConfig *keyconf);
+void ED_pentool_modal_keymap(wmKeyConfig *keyconf);
 
 void GREASE_PENCIL_OT_stroke_trim(wmOperatorType *ot);
 

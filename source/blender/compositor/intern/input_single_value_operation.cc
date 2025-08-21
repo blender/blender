@@ -76,7 +76,7 @@ void InputSingleValueOperation::execute()
     }
     case SOCK_MENU: {
       const int32_t value = input_socket_->default_value_typed<bNodeSocketValueMenu>()->value;
-      result.set_single_value(value);
+      result.set_single_value(nodes::MenuValue(value));
       break;
     }
     case SOCK_STRING: {

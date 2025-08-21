@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'6dca66d606ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-11 08:28+0000\n"
+"POT-Creation-Date: 2025-08-18 09:16+0000\n"
 "PO-Revision-Date: 2025-07-23 14:52+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -2702,68 +2702,68 @@ msgid "Mask"
 msgstr "Mask"
 
 
-msgid "Mirror"
-msgstr "Spiegel"
-
-
-msgid "Local View"
-msgstr "Lokale Scherm"
-
-
-msgid "Navigation"
-msgstr "Navigatie"
-
-
-msgid "Select Similar"
-msgstr "Selecteer Vergelijkbaar"
-
-
-msgid "Select Linked"
-msgstr "Selecteer Aaneengesloten"
-
-
-msgid "Light"
-msgstr "Licht"
-
-
-msgid "Add Image"
-msgstr "Voeg Afbeelding Toe"
-
-
-msgid "Relations"
-msgstr "Relaties"
-
-
-msgid "Rigid Body"
-msgstr "Star Lichaam"
-
-
-msgid "Quick Effects"
-msgstr "Snelle Effecten"
+msgid "Names"
+msgstr "Namen"
 
 
 msgid "Show/Hide"
 msgstr "Toon/Verberg"
 
 
-msgid "Convert"
-msgstr "Converteer"
-
-
-msgid "Hooks"
-msgstr "Haken"
+msgid "Local View"
+msgstr "Lokale Scherm"
 
 
 msgid "Clear Transform"
 msgstr "Maak Transformatie Leeg"
 
 
-msgid "Names"
-msgstr "Namen"
+msgid "Mirror"
+msgstr "Spiegel"
+
+
+msgid "Hooks"
+msgstr "Haken"
+
+
+msgid "Select Similar"
+msgstr "Selecteer Vergelijkbaar"
+
+
+msgid "Convert"
+msgstr "Converteer"
+
+
+msgid "Quick Effects"
+msgstr "Snelle Effecten"
+
+
+msgid "Navigation"
+msgstr "Navigatie"
+
+
+msgid "Rigid Body"
+msgstr "Star Lichaam"
+
+
+msgid "Relations"
+msgstr "Relaties"
+
+
+msgid "Add Image"
+msgstr "Voeg Afbeelding Toe"
+
+
+msgid "Light"
+msgstr "Licht"
 
 
 msgid "Text"
 msgstr "Tekst"
+
+
+msgid "Select Linked"
+msgstr "Selecteer Aaneengesloten"
 
 
 msgctxt "MovieClip"
@@ -5718,6 +5718,10 @@ msgid "Random"
 msgstr "Willekeurig"
 
 
+msgid "Replace Selection"
+msgstr "Vervang Selectie"
+
+
 msgctxt "Sequence"
 msgid "Type"
 msgstr "Type"
@@ -5776,10 +5780,6 @@ msgstr "Tekst"
 msgctxt "Operator"
 msgid "Copy"
 msgstr "Kopieer"
-
-
-msgid "Replace Selection"
-msgstr "Vervang Selectie"
 
 
 msgctxt "Operator"
@@ -7780,6 +7780,16 @@ msgstr "Verwijder Sleutelframes..."
 
 
 msgctxt "Operator"
+msgid "Clear Keyframes..."
+msgstr "Maak Sleutelframes Leeg..."
+
+
+msgctxt "Operator"
+msgid "Interactive Mirror"
+msgstr "Interactieve Spiegel"
+
+
+msgctxt "Operator"
 msgid "Left"
 msgstr "Links"
 
@@ -8002,11 +8012,6 @@ msgstr "Locatie:"
 
 
 msgctxt "Operator"
-msgid "Interactive Mirror"
-msgstr "Interactieve Spiegel"
-
-
-msgctxt "Operator"
 msgid "Active Camera"
 msgstr "Actieve Camera"
 
@@ -8119,11 +8124,6 @@ msgstr "Luidspreker"
 msgctxt "Operator"
 msgid "Make Local..."
 msgstr "Maak Lokaal..."
-
-
-msgctxt "Operator"
-msgid "Clear Keyframes..."
-msgstr "Maak Sleutelframes Leeg..."
 
 
 msgctxt "Operator"

@@ -1391,16 +1391,8 @@ static PyObject *Matrix_resize_4x4(MatrixObject *self)
   float mat[4][4];
   int col;
 
-  if (self->flag & BASE_MATH_FLAG_IS_WRAP) {
-    PyErr_SetString(PyExc_ValueError,
-                    "Matrix.resize_4x4(): "
-                    "cannot resize wrapped data - make a copy and resize that");
-    return nullptr;
-  }
-  if (self->cb_user) {
-    PyErr_SetString(PyExc_ValueError,
-                    "Matrix.resize_4x4(): "
-                    "cannot resize owned data - make a copy and resize that");
+  if (UNLIKELY(BaseMathObject_Prepare_ForResize(self, "Matrix.resize_4x4()") == -1)) {
+    /* An exception has been raised. */
     return nullptr;
   }
 
@@ -2377,6 +2369,71 @@ static PyObject *Matrix_str(MatrixObject *self)
   return mathutils_dynstr_to_py(ds); /* frees ds */
 }
 #endif
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Matrix Type: Buffer Protocol
+ * \{ */
+
+static int Matrix_getbuffer(PyObject *obj, Py_buffer *view, int flags)
+{
+  MatrixObject *self = (MatrixObject *)obj;
+  if (UNLIKELY(BaseMath_Prepare_ForBufferAccess(self, view, flags) == -1)) {
+    return -1;
+  }
+  if (UNLIKELY(BaseMath_ReadCallback(self) == -1)) {
+    return -1;
+  }
+
+  memset(view, 0, sizeof(*view));
+
+  view->obj = (PyObject *)self;
+  view->buf = (void *)self->matrix;
+  view->len = Py_ssize_t(self->row_num * self->col_num * sizeof(float));
+  view->itemsize = sizeof(float);
+  if ((flags & PyBUF_WRITABLE) == 0) {
+    view->readonly = 1;
+  }
+  if (flags & PyBUF_FORMAT) {
+    view->format = (char *)"f";
+  }
+  if (flags & PyBUF_ND) {
+    view->ndim = 2;
+    view->shape = MEM_malloc_arrayN<Py_ssize_t>(size_t(view->ndim), __func__);
+    view->shape[0] = self->row_num;
+    view->shape[1] = self->col_num;
+  }
+  if (flags & PyBUF_STRIDES) {
+    view->strides = MEM_malloc_arrayN<Py_ssize_t>(size_t(view->ndim), __func__);
+    view->strides[0] = sizeof(float); /* step between lines in column-major */
+    view->strides[1] = Py_ssize_t(self->row_num) * sizeof(float); /* step between columns */
+  }
+
+  self->flag |= BASE_MATH_FLAG_HAS_BUFFER_VIEW;
+
+  Py_INCREF(self);
+  return 0;
+}
+
+static void Matrix_releasebuffer(PyObject * /*exporter*/, Py_buffer *view)
+{
+  MatrixObject *self = (MatrixObject *)view->obj;
+  self->flag &= ~BASE_MATH_FLAG_HAS_BUFFER_VIEW;
+
+  if (view->readonly == 0) {
+    if (UNLIKELY(BaseMath_WriteCallback(self) == -1)) {
+      PyErr_Print();
+    }
+  }
+  MEM_SAFE_FREE(view->shape);
+  MEM_SAFE_FREE(view->strides);
+}
+
+static PyBufferProcs Matrix_as_buffer = {
+    (getbufferproc)Matrix_getbuffer,
+    (releasebufferproc)Matrix_releasebuffer,
+};
 
 /** \} */
 
@@ -3488,7 +3545,7 @@ PyTypeObject matrix_Type = {
     /*tp_str*/ (reprfunc)Matrix_str,
     /*tp_getattro*/ nullptr,
     /*tp_setattro*/ nullptr,
-    /*tp_as_buffer*/ nullptr,
+    /*tp_as_buffer*/ &Matrix_as_buffer,
     /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
     /*tp_doc*/ matrix_doc,
     /*tp_traverse*/ (traverseproc)BaseMathObject_traverse,

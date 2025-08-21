@@ -1143,8 +1143,7 @@ string MANTA::getRealValue(const string &varName)
   it = mRNAMap.find(varName);
 
   if (it == mRNAMap.end()) {
-    cerr << "Fluid Error -- variable " << varName << " not found in RNA map " << it->second
-         << endl;
+    cerr << "Fluid Error -- variable " << varName << " not found in RNA map" << endl;
     return "";
   }
 

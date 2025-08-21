@@ -1990,8 +1990,8 @@ ImBuf *render_give_ibuf(const RenderData *context, float timeline_frame, int cha
     chanshown = 0;
   }
   else {
-    seqbasep = ed->seqbasep;
-    channels = ed->displayed_channels;
+    seqbasep = ed->current_strips();
+    channels = ed->current_channels();
   }
 
   intra_frame_cache_set_cur_frame(
@@ -2047,6 +2047,8 @@ ImBuf *render_give_ibuf_direct(const RenderData *context, float timeline_frame, 
 {
   SeqRenderState state;
 
+  intra_frame_cache_set_cur_frame(
+      context->scene, timeline_frame, context->view_id, context->rectx, context->recty);
   ImBuf *ibuf = seq_render_strip(context, &state, strip, timeline_frame);
   return ibuf;
 }

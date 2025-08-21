@@ -426,9 +426,6 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_EDITMESH_ACTIVE:
           cp = ts->editmesh_active;
           break;
-        case TH_EDGE_FACESEL:
-          cp = ts->edge_facesel;
-          break;
         case TH_FACE:
           cp = ts->face;
           break;
@@ -549,6 +546,7 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_TIME_GP_KEYFRAME:
           cp = ts->time_gp_keyframe;
           break;
+
         case TH_NURB_ULINE:
           cp = ts->nurb_uline;
           break;
@@ -564,39 +562,38 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_ACTIVE_SPLINE:
           cp = ts->act_spline;
           break;
-        case TH_ACTIVE_VERT:
-          cp = ts->lastsel_point;
-          break;
+
         case TH_HANDLE_FREE:
-          cp = ts->handle_free;
-          break;
-        case TH_HANDLE_AUTO:
-          cp = ts->handle_auto;
-          break;
-        case TH_HANDLE_AUTOCLAMP:
-          cp = ts->handle_auto_clamped;
-          break;
-        case TH_HANDLE_VECT:
-          cp = ts->handle_vect;
-          break;
-        case TH_HANDLE_ALIGN:
-          cp = ts->handle_align;
+          cp = btheme->common.curves.handle_free;
           break;
         case TH_HANDLE_SEL_FREE:
-          cp = ts->handle_sel_free;
+          cp = btheme->common.curves.handle_sel_free;
+          break;
+        case TH_HANDLE_AUTO:
+          cp = btheme->common.curves.handle_auto;
           break;
         case TH_HANDLE_SEL_AUTO:
-          cp = ts->handle_sel_auto;
+          cp = btheme->common.curves.handle_sel_auto;
           break;
-        case TH_HANDLE_SEL_AUTOCLAMP:
-          cp = ts->handle_sel_auto_clamped;
+        case TH_HANDLE_VECT:
+          cp = btheme->common.curves.handle_vect;
           break;
         case TH_HANDLE_SEL_VECT:
-          cp = ts->handle_sel_vect;
+          cp = btheme->common.curves.handle_sel_vect;
+          break;
+        case TH_HANDLE_ALIGN:
+          cp = btheme->common.curves.handle_align;
           break;
         case TH_HANDLE_SEL_ALIGN:
-          cp = ts->handle_sel_align;
+          cp = btheme->common.curves.handle_sel_align;
           break;
+        case TH_HANDLE_AUTOCLAMP:
+          cp = btheme->common.curves.handle_auto_clamped;
+          break;
+        case TH_HANDLE_SEL_AUTOCLAMP:
+          cp = btheme->common.curves.handle_sel_auto_clamped;
+          break;
+
         case TH_FREESTYLE_EDGE_MARK:
           cp = ts->freestyle_edge_mark;
           break;
@@ -653,14 +650,8 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_NODE_TEXTURE:
           cp = ts->nodeclass_texture;
           break;
-        case TH_NODE_PATTERN:
-          cp = ts->nodeclass_pattern;
-          break;
         case TH_NODE_SCRIPT:
           cp = ts->nodeclass_script;
-          break;
-        case TH_NODE_LAYOUT:
-          cp = ts->nodeclass_layout;
           break;
         case TH_NODE_GEOMETRY:
           cp = ts->nodeclass_geometry;
@@ -780,13 +771,13 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           break;
 
         case TH_HANDLE_VERTEX:
-          cp = ts->handle_vertex;
+          cp = btheme->common.curves.handle_vertex;
           break;
         case TH_HANDLE_VERTEX_SELECT:
-          cp = ts->handle_vertex_select;
+          cp = btheme->common.curves.handle_vertex_select;
           break;
         case TH_HANDLE_VERTEX_SIZE:
-          cp = &ts->handle_vertex_size;
+          cp = &btheme->common.curves.handle_vertex_size;
           break;
 
         case TH_GP_VERTEX:

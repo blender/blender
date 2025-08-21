@@ -208,7 +208,7 @@ class GHOST_SystemWayland : public GHOST_System {
 
   void getAllDisplayDimensions(uint32_t &width, uint32_t &height) const override;
 
-  GHOST_IContext *createOffscreenContext(GHOST_GPUSettings gpuSettings) override;
+  GHOST_IContext *createOffscreenContext(GHOST_GPUSettings gpu_settings) override;
 
   GHOST_TSuccess disposeContext(GHOST_IContext *context) override;
 
@@ -218,10 +218,10 @@ class GHOST_SystemWayland : public GHOST_System {
                               uint32_t width,
                               uint32_t height,
                               GHOST_TWindowState state,
-                              GHOST_GPUSettings gpuSettings,
+                              GHOST_GPUSettings gpu_settings,
                               const bool exclusive,
                               const bool is_dialog,
-                              const GHOST_IWindow *parentWindow) override;
+                              const GHOST_IWindow *parent_window) override;
 
   GHOST_TCapabilityFlag getCapabilities() const override;
 
@@ -231,7 +231,7 @@ class GHOST_SystemWayland : public GHOST_System {
 
   GHOST_TSuccess cursor_shape_set(GHOST_TStandardCursor shape);
 
-  GHOST_TSuccess cursor_shape_check(GHOST_TStandardCursor cursorShape);
+  GHOST_TSuccess cursor_shape_check(GHOST_TStandardCursor cursor_shape);
 
   GHOST_TSuccess cursor_shape_custom_set(const GHOST_CursorGenerator &cg);
 

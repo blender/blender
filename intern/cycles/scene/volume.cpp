@@ -21,6 +21,7 @@
 #include "util/nanovdb.h"
 #include "util/path.h"
 #include "util/progress.h"
+#include "util/texture.h"
 #include "util/types.h"
 
 #include "bvh/octree.h"
@@ -487,6 +488,7 @@ void GeometryManager::create_volume_mesh(const Scene *scene, Volume *volume, Pro
     /* Create NanoVDB grid handle from texture memory. */
     device_texture *texture = handle.image_memory();
     if (texture == nullptr || texture->host_pointer == nullptr ||
+        texture->info.data_type == IMAGE_DATA_TYPE_NANOVDB_EMPTY ||
         !is_nanovdb_type(texture->info.data_type))
     {
       continue;
@@ -506,7 +508,7 @@ void GeometryManager::create_volume_mesh(const Scene *scene, Volume *volume, Pro
 
   /* If nothing to build, early out. */
   if (builder.empty_grid()) {
-    LOG_WORK << "Memory usage volume mesh: 0 Mb. (empty grid)";
+    LOG_DEBUG << "Memory usage volume mesh: 0 Mb. (empty grid)";
     return;
   }
 
@@ -537,9 +539,10 @@ void GeometryManager::create_volume_mesh(const Scene *scene, Volume *volume, Pro
   }
 
   /* Print stats. */
-  LOG_WORK << "Memory usage volume mesh: "
-           << (vertices.size() * sizeof(float3) + indices.size() * sizeof(int)) / (1024.0 * 1024.0)
-           << "Mb.";
+  LOG_DEBUG << "Memory usage volume mesh: "
+            << (vertices.size() * sizeof(float3) + indices.size() * sizeof(int)) /
+                   (1024.0 * 1024.0)
+            << "Mb.";
 #else
   (void)scene;
 #endif /* defined(WITH_OPENVDB) && defined(WITH_NANOVDB) */
@@ -652,6 +655,50 @@ bool VolumeManager::is_homogeneous_volume(const Object *object, const Shader *sh
 }
 
 #ifdef WITH_OPENVDB
+/* Given a mesh, check if every edge has exactly two incident triangles, and if the two triangles
+ * have the same orientation. */
+static bool mesh_is_closed(const std::vector<openvdb::Vec3I> &triangles)
+{
+  const size_t num_triangles = triangles.size();
+  if (num_triangles % 2) {
+    return false;
+  }
+
+  /* Store the two vertices that forms an edge. */
+  std::multiset<std::pair<int, int>> edges;
+  int num_edges = 0;
+
+  for (const auto &tri : triangles) {
+    for (int i = 0; i < 3; i++) {
+      const std::pair<int, int> e = {tri[i], tri[(i + 1) % 3]};
+      if (edges.count(e)) {
+        /* Same edge exists. */
+        return false;
+      }
+
+      /* Check if an edge in the opposite order exists. */
+      const auto count = edges.count({e.second, e.first});
+      if (count > 1) {
+        /* Edge has more than 2 incident faces. */
+        return false;
+      }
+      if (count == 1) {
+        /* If an edge in the opposite order exists, increment the count. */
+        edges.insert({e.second, e.first});
+      }
+      else {
+        /* Insert a new edge. */
+        num_edges++;
+        edges.insert(e);
+      }
+    }
+  }
+
+  /* Until this point, the count of each element in the set is at most 2; to check if they are
+   * exactly 2, we just need to compare the total numbers. */
+  return num_triangles * 3 == num_edges * 2;
+}
+
 openvdb::BoolGrid::ConstPtr VolumeManager::mesh_to_sdf_grid(const Mesh *mesh,
                                                             const Shader *shader,
                                                             const float half_width)
@@ -674,6 +721,12 @@ openvdb::BoolGrid::ConstPtr VolumeManager::mesh_to_sdf_grid(const Mesh *mesh,
                              mesh->get_triangles()[i * 3 + 1],
                              mesh->get_triangles()[i * 3 + 2]);
     }
+  }
+
+  if (!mesh_is_closed(triangles)) {
+    /* `meshToLevelSet()` requires a closed mesh, otherwise we can not determine the interior of
+     * the mesh. Evaluate the whole bounding box in this case. */
+    return openvdb::BoolGrid::create();
   }
 
   /* TODO(weizhen): Should consider object instead of mesh size. */
@@ -833,8 +886,8 @@ void VolumeManager::build_octree(Device *device, Progress &progress)
 
   const double build_time = time_dt() - start_time;
 
-  LOG_WORK << object_octrees_.size() << " volume octree(s) with a total of " << num_octree_nodes()
-           << " nodes are built in " << build_time << " seconds.";
+  LOG_DEBUG << object_octrees_.size() << " volume octree(s) with a total of " << num_octree_nodes()
+            << " nodes are built in " << build_time << " seconds.";
 }
 
 void VolumeManager::update_root_indices(DeviceScene *dscene, const Scene *scene) const
@@ -916,12 +969,12 @@ void VolumeManager::flatten_octree(DeviceScene *dscene, const Scene *scene) cons
   dscene->volume_tree_nodes.copy_to_device();
   dscene->volume_tree_roots.copy_to_device();
 
-  LOG_WORK << "Memory usage of volume octrees: "
-           << (dscene->volume_tree_nodes.size() * sizeof(KernelOctreeNode) +
-               dscene->volume_tree_roots.size() * sizeof(KernelOctreeRoot) +
-               dscene->volume_tree_root_ids.size() * sizeof(int)) /
-                  (1024.0 * 1024.0)
-           << "Mb.";
+  LOG_DEBUG << "Memory usage of volume octrees: "
+            << (dscene->volume_tree_nodes.size() * sizeof(KernelOctreeNode) +
+                dscene->volume_tree_roots.size() * sizeof(KernelOctreeRoot) +
+                dscene->volume_tree_root_ids.size() * sizeof(int)) /
+                   (1024.0 * 1024.0)
+            << "Mb.";
 }
 
 std::string VolumeManager::visualize_octree(const char *filename) const

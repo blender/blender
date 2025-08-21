@@ -245,7 +245,7 @@ class TestEnvironment:
         # Execute Blender command with arguments.
         common_args = ['--factory-startup', '-noaudio', '--enable-autoexec', '--python-exit-code', '1']
         if foreground:
-            common_args += ['--no-window-focus', '--window-geometry', '0', '0', '1024', '768']
+            common_args += ['--no-window-focus', '--window-geometry', '0', '0', '1024', '768', '--gpu-vsync', 'off']
         else:
             common_args += ['--background']
 

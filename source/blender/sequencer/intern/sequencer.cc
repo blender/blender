@@ -426,7 +426,7 @@ ListBase *active_seqbase_get(const Editing *ed)
     return nullptr;
   }
 
-  return ed->seqbasep;
+  return ed->current_strips();
 }
 
 void active_seqbase_set(Editing *ed, ListBase *seqbase)
@@ -1158,3 +1158,23 @@ void eval_strips(Depsgraph *depsgraph, Scene *scene, ListBase *seqbase)
 }
 
 }  // namespace blender::seq
+
+ListBase *Editing::current_strips()
+{
+  return this->seqbasep;
+}
+ListBase *Editing::current_strips() const
+{
+  /* NOTE: Const correctness is non-existent with ListBase anyway. */
+  return this->seqbasep;
+}
+
+ListBase *Editing::current_channels()
+{
+  return this->displayed_channels;
+}
+ListBase *Editing::current_channels() const
+{
+  /* NOTE: Const correctness is non-existent with ListBase anyway. */
+  return this->displayed_channels;
+}

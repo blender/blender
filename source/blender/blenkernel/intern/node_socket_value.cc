@@ -16,6 +16,7 @@
 #include "NOD_geometry_nodes_bundle.hh"
 #include "NOD_geometry_nodes_closure.hh"
 #include "NOD_geometry_nodes_list.hh"
+#include "NOD_menu_value.hh"
 
 #include "BLI_color.hh"
 #include "BLI_math_rotation_types.hh"
@@ -57,6 +58,9 @@ template<typename T> static std::optional<eNodeSocketDatatype> static_type_to_so
   }
   if constexpr (is_single_or_field_or_grid_v<T, math::Quaternion>) {
     return SOCK_ROTATION;
+  }
+  if constexpr (is_same_any_v<T, nodes::MenuValue, fn::Field<nodes::MenuValue>>) {
+    return SOCK_MENU;
   }
   if constexpr (is_same_any_v<T, float4x4, fn::Field<float4x4>>) {
     return SOCK_MATRIX;
@@ -115,7 +119,7 @@ static bool static_type_is_base_socket_type(const eNodeSocketDatatype socket_typ
     case SOCK_STRING:
       return std::is_same_v<T, std::string>;
     case SOCK_MENU:
-      return std::is_same_v<T, int>;
+      return std::is_same_v<T, nodes::MenuValue>;
     case SOCK_BUNDLE:
       return std::is_same_v<T, nodes::BundlePtr>;
     case SOCK_CLOSURE:
@@ -297,6 +301,10 @@ void SocketValueVariant::store_single(const eNodeSocketDatatype socket_type, con
       value_.emplace<math::Quaternion>(*static_cast<const math::Quaternion *>(value));
       break;
     }
+    case SOCK_MENU: {
+      value_.emplace<nodes::MenuValue>(*static_cast<const nodes::MenuValue *>(value));
+      break;
+    }
     case SOCK_MATRIX: {
       value_.emplace<float4x4>(*static_cast<const float4x4 *>(value));
       break;
@@ -442,7 +450,7 @@ void *SocketValueVariant::allocate_single(const eNodeSocketDatatype socket_type)
     case SOCK_STRING:
       return value_.allocate<std::string>();
     case SOCK_MENU:
-      return value_.allocate<int>();
+      return value_.allocate<nodes::MenuValue>();
     case SOCK_BUNDLE:
       return value_.allocate<nodes::BundlePtr>();
     case SOCK_CLOSURE:
@@ -487,9 +495,6 @@ bool SocketValueVariant::valid_for_socket(eNodeSocketDatatype socket_type) const
   if (kind_ == Kind::None) {
     return false;
   }
-  if (socket_type == SOCK_MENU) {
-    return socket_type_ == SOCK_INT;
-  }
   return socket_type_ == socket_type;
 }
 
@@ -531,6 +536,9 @@ INSTANTIATE(Material *)
 
 INSTANTIATE(float4x4)
 INSTANTIATE(fn::Field<float4x4>)
+
+INSTANTIATE(nodes::MenuValue)
+INSTANTIATE(fn::Field<nodes::MenuValue>)
 
 #ifdef WITH_OPENVDB
 INSTANTIATE(GVolumeGrid)

@@ -223,9 +223,9 @@ void ED_editors_exit(Main *bmain, bool do_undo_system)
     wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
     /* normally we don't check for null undo stack,
      * do here since it may run in different context. */
-    if (wm->undo_stack) {
-      BKE_undosys_stack_destroy(wm->undo_stack);
-      wm->undo_stack = nullptr;
+    if (wm->runtime->undo_stack) {
+      BKE_undosys_stack_destroy(wm->runtime->undo_stack);
+      wm->runtime->undo_stack = nullptr;
     }
   }
 

@@ -370,7 +370,7 @@ static void paint_stroke_update_step(bContext *C,
   }
 
   if ((brush->flag & BRUSH_DRAG_DOT) || (brush->flag & BRUSH_ANCHORED)) {
-    UndoStack *ustack = CTX_wm_manager(C)->undo_stack;
+    UndoStack *ustack = CTX_wm_manager(C)->runtime->undo_stack;
     ED_image_undo_restore(ustack->step_init);
   }
 

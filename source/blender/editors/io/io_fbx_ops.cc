@@ -33,6 +33,20 @@
 #  include "io_fbx_ops.hh"
 #  include "io_utils.hh"
 
+const EnumPropertyItem rna_enum_fbx_mtl_name_collision_mode_items[] = {
+    {int(eFBXMtlNameCollisionMode::MakeUnique),
+     "MAKE_UNIQUE",
+     0,
+     "Make Unique",
+     "Import each FBX material as a unique Blender material"},
+    {int(eFBXMtlNameCollisionMode::ReferenceExisting),
+     "REFERENCE_EXISTING",
+     0,
+     "Reference Existing",
+     "If a material with the same name already exists, reference that instead of importing"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 static const EnumPropertyItem fbx_vertex_colors_mode[] = {
     {int(eFBXVertexColorMode::None), "NONE", 0, "None", "Do not import color attributes"},
     {int(eFBXVertexColorMode::sRGB),
@@ -60,6 +74,8 @@ static wmOperatorStatus wm_fbx_import_exec(bContext *C, wmOperator *op)
   params.use_anim = RNA_boolean_get(op->ptr, "use_anim");
   params.anim_offset = RNA_float_get(op->ptr, "anim_offset");
   params.vertex_colors = eFBXVertexColorMode(RNA_enum_get(op->ptr, "import_colors"));
+  params.mtl_name_collision_mode = eFBXMtlNameCollisionMode(
+      RNA_enum_get(op->ptr, "mtl_name_collision_mode"));
 
   params.reports = op->reports;
 
@@ -110,6 +126,11 @@ static void ui_fbx_import_settings(const bContext *C, uiLayout *layout, PointerR
     col->prop(ptr, "validate_meshes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
+  if (uiLayout *panel = layout->panel(C, "FBX_import_material", true, IFACE_("Materials"))) {
+    uiLayout *col = &panel->column(false);
+    col->prop(ptr, "mtl_name_collision_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  }
+
   {
     PanelLayout panel = layout->panel(C, "FBX_import_anim", true);
     panel.header->use_property_split_set(false);
@@ -157,6 +178,14 @@ void WM_OT_fbx_import(wmOperatorType *ot)
                                  FILE_SORT_DEFAULT);
 
   RNA_def_float(ot->srna, "global_scale", 1.0f, 1e-6f, 1e6f, "Scale", "", 0.001f, 1000.0f);
+
+  RNA_def_enum(
+      ot->srna,
+      "mtl_name_collision_mode",
+      rna_enum_fbx_mtl_name_collision_mode_items,
+      int(eFBXMtlNameCollisionMode::MakeUnique),
+      "Material Name Collision",
+      "Behavior when the name of an imported material conflicts with an existing material");
   RNA_def_enum(ot->srna,
                "import_colors",
                fbx_vertex_colors_mode,

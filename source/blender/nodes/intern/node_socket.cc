@@ -37,6 +37,7 @@
 
 #include "NOD_geometry_nodes_bundle.hh"
 #include "NOD_geometry_nodes_closure.hh"
+#include "NOD_menu_value.hh"
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.hh"
 
@@ -1125,15 +1126,15 @@ static bke::bNodeSocketType *make_socket_type_string(PropertySubType subtype)
 static bke::bNodeSocketType *make_socket_type_menu()
 {
   bke::bNodeSocketType *socktype = make_standard_socket_type(SOCK_MENU, PROP_NONE);
-  socktype->base_cpp_type = &blender::CPPType::get<int>();
+  socktype->base_cpp_type = &blender::CPPType::get<nodes::MenuValue>();
   socktype->get_base_cpp_value = [](const void *socket_value, void *r_value) {
-    *(int *)r_value = ((bNodeSocketValueMenu *)socket_value)->value;
+    new (r_value) nodes::MenuValue(((bNodeSocketValueMenu *)socket_value)->value);
   };
   socktype->get_geometry_nodes_cpp_value = [](const void *socket_value) {
-    const int value = ((bNodeSocketValueMenu *)socket_value)->value;
-    return SocketValueVariant(value);
+    const nodes::MenuValue value{((bNodeSocketValueMenu *)socket_value)->value};
+    return SocketValueVariant::From(value);
   };
-  static SocketValueVariant default_value{0};
+  static SocketValueVariant default_value = SocketValueVariant::From(nodes::MenuValue());
   socktype->geometry_nodes_default_value = &default_value;
   return socktype;
 }

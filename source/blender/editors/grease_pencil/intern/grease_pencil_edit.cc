@@ -3212,69 +3212,87 @@ static wmOperatorStatus grease_pencil_reproject_exec(bContext *C, wmOperator *op
     }
 
     threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
-      IndexMaskMemory memory;
-      const IndexMask points_to_reproject = retrieve_editable_and_selected_points(
-          *object, info.drawing, info.layer_index, memory);
-      if (points_to_reproject.is_empty()) {
-        return;
-      }
-
       bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
-      MutableSpan<float3> positions = curves.positions_for_write();
-      const bke::greasepencil::Layer &layer = grease_pencil.layer(info.layer_index);
-      if (mode == ReprojectMode::Surface) {
-        const float4x4 layer_space_to_world_space = layer.to_world_space(*object);
-        const float4x4 world_space_to_layer_space = math::invert(layer_space_to_world_space);
-        points_to_reproject.foreach_index(GrainSize(4096), [&](const int point_i) {
-          float3 &position = positions[point_i];
-          const float3 world_pos = math::transform_point(layer_space_to_world_space, position);
-          float2 screen_co;
-          if (ED_view3d_project_float_global(region, world_pos, screen_co, V3D_PROJ_TEST_NOP) !=
-              eV3DProjStatus::V3D_PROJ_RET_OK)
-          {
-            return;
-          }
 
-          float3 ray_start, ray_direction;
-          if (!ED_view3d_win_to_ray_clipped(
-                  depsgraph, region, v3d, screen_co, ray_start, ray_direction, true))
-          {
-            return;
-          }
+      IndexMaskMemory memory;
+      const IndexMask editable_points = retrieve_editable_points(
+          *object, info.drawing, info.layer_index, memory);
 
-          float hit_depth = std::numeric_limits<float>::max();
-          float3 hit_position(0.0f);
-          float3 hit_normal(0.0f);
+      for (const StringRef selection_name :
+           ed::curves::get_curves_selection_attribute_names(curves))
+      {
+        const IndexMask selected_points = ed::curves::retrieve_selected_points(
+            curves, selection_name, memory);
+        const IndexMask points_to_reproject = IndexMask::from_intersection(
+            editable_points, selected_points, memory);
 
-          transform::SnapObjectParams params{};
-          params.snap_target_select = SCE_SNAP_TARGET_ALL;
-          if (transform::snap_object_project_ray(snap_context,
-                                                 depsgraph,
-                                                 v3d,
-                                                 &params,
-                                                 ray_start,
-                                                 ray_direction,
-                                                 &hit_depth,
-                                                 hit_position,
-                                                 hit_normal))
-          {
-            /* Apply offset over surface. */
-            position = math::transform_point(
-                world_space_to_layer_space,
-                hit_position + math::normalize(ray_start - hit_position) * offset);
-          }
-        });
+        if (points_to_reproject.is_empty()) {
+          return;
+        }
+
+        MutableSpan<float3> positions = curves.positions_for_write();
+        if (selection_name == ".selection_handle_left") {
+          positions = curves.handle_positions_left_for_write();
+        }
+        else if (selection_name == ".selection_handle_right") {
+          positions = curves.handle_positions_right_for_write();
+        }
+
+        const bke::greasepencil::Layer &layer = grease_pencil.layer(info.layer_index);
+        if (mode == ReprojectMode::Surface) {
+          const float4x4 layer_space_to_world_space = layer.to_world_space(*object);
+          const float4x4 world_space_to_layer_space = math::invert(layer_space_to_world_space);
+          points_to_reproject.foreach_index(GrainSize(4096), [&](const int point_i) {
+            float3 &position = positions[point_i];
+            const float3 world_pos = math::transform_point(layer_space_to_world_space, position);
+            float2 screen_co;
+            if (ED_view3d_project_float_global(region, world_pos, screen_co, V3D_PROJ_TEST_NOP) !=
+                eV3DProjStatus::V3D_PROJ_RET_OK)
+            {
+              return;
+            }
+
+            float3 ray_start, ray_direction;
+            if (!ED_view3d_win_to_ray_clipped(
+                    depsgraph, region, v3d, screen_co, ray_start, ray_direction, true))
+            {
+              return;
+            }
+
+            float hit_depth = std::numeric_limits<float>::max();
+            float3 hit_position(0.0f);
+            float3 hit_normal(0.0f);
+
+            transform::SnapObjectParams params{};
+            params.snap_target_select = SCE_SNAP_TARGET_ALL;
+            if (transform::snap_object_project_ray(snap_context,
+                                                   depsgraph,
+                                                   v3d,
+                                                   &params,
+                                                   ray_start,
+                                                   ray_direction,
+                                                   &hit_depth,
+                                                   hit_position,
+                                                   hit_normal))
+            {
+              /* Apply offset over surface. */
+              position = math::transform_point(
+                  world_space_to_layer_space,
+                  hit_position + math::normalize(ray_start - hit_position) * offset);
+            }
+          });
+        }
+        else {
+          const DrawingPlacement drawing_placement(
+              scene, *region, *v3d, *object, &layer, mode, offset, nullptr);
+          points_to_reproject.foreach_index(GrainSize(4096), [&](const int point_i) {
+            positions[point_i] = drawing_placement.reproject(positions[point_i]);
+          });
+        }
+
+        info.drawing.tag_positions_changed();
+        changed.store(true, std::memory_order_relaxed);
       }
-      else {
-        const DrawingPlacement drawing_placement(
-            scene, *region, *v3d, *object, &layer, mode, offset, nullptr);
-        points_to_reproject.foreach_index(GrainSize(4096), [&](const int point_i) {
-          positions[point_i] = drawing_placement.reproject(positions[point_i]);
-        });
-      }
-
-      info.drawing.tag_positions_changed();
-      changed.store(true, std::memory_order_relaxed);
     });
   }
 
@@ -3426,19 +3444,29 @@ static wmOperatorStatus grease_pencil_snap_to_grid_exec(bContext *C, wmOperator 
       continue;
     }
 
-    IndexMaskMemory memory;
-    const IndexMask selected_points = ed::curves::retrieve_selected_points(curves, memory);
+    for (const StringRef selection_name : ed::curves::get_curves_selection_attribute_names(curves))
+    {
+      IndexMaskMemory memory;
+      const IndexMask selected_points = ed::curves::retrieve_selected_points(
+          curves, selection_name, memory);
 
-    const Layer &layer = grease_pencil.layer(drawing_info.layer_index);
-    const float4x4 layer_to_world = layer.to_world_space(object);
-    const float4x4 world_to_layer = math::invert(layer_to_world);
+      const Layer &layer = grease_pencil.layer(drawing_info.layer_index);
+      const float4x4 layer_to_world = layer.to_world_space(object);
+      const float4x4 world_to_layer = math::invert(layer_to_world);
 
-    MutableSpan<float3> positions = curves.positions_for_write();
-    selected_points.foreach_index(GrainSize(4096), [&](const int point_i) {
-      const float3 pos_world = math::transform_point(layer_to_world, positions[point_i]);
-      const float3 pos_snapped = grid_size * math::floor(pos_world / grid_size + 0.5f);
-      positions[point_i] = math::transform_point(world_to_layer, pos_snapped);
-    });
+      MutableSpan<float3> positions = curves.positions_for_write();
+      if (selection_name == ".selection_handle_left") {
+        positions = curves.handle_positions_left_for_write();
+      }
+      else if (selection_name == ".selection_handle_right") {
+        positions = curves.handle_positions_right_for_write();
+      }
+      selected_points.foreach_index(GrainSize(4096), [&](const int point_i) {
+        const float3 pos_world = math::transform_point(layer_to_world, positions[point_i]);
+        const float3 pos_snapped = grid_size * math::floor(pos_world / grid_size + 0.5f);
+        positions[point_i] = math::transform_point(world_to_layer, pos_snapped);
+      });
+    }
 
     drawing_info.drawing.tag_positions_changed();
     DEG_id_tag_update(&grease_pencil.id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);

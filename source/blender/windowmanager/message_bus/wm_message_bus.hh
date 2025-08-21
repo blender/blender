@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_string_ref.hh"
+
 #include "DNA_listBase.h"
 
 #include "RNA_prototypes.hh"
@@ -35,8 +37,11 @@ using wmMsgSubscribeValueUpdateIdFn =
 enum {
   WM_MSG_TYPE_RNA = 0,
   WM_MSG_TYPE_STATIC = 1,
+  /** Messages relating to some remote resources, like progress reporting for online asset
+   * downloads. */
+  WM_MSG_TYPE_REMOTE_IO = 2,
 };
-#define WM_MSG_TYPE_NUM 2
+#define WM_MSG_TYPE_NUM 3
 
 struct wmMsgTypeInfo {
   struct {
@@ -166,6 +171,39 @@ void WM_msg_subscribe_static(wmMsgBus *mbus,
                              int event,
                              const wmMsgSubscribeValue *msg_val_params,
                              const char *id_repr);
+
+/* -------------------------------------------------------------------------- */
+/* `wm_message_bus_remote_io.cc` */
+
+struct wmMsgParams_RemoteIO {
+  /* Owned, needs freeing with `MEM_freeN()`. */
+  const char *remote_url;
+};
+
+struct wmMsg_RemoteIO {
+  wmMsg head; /* Keep first. */
+  wmMsgParams_RemoteIO params;
+};
+
+struct wmMsgSubscribeKey_RemoteIO {
+  wmMsgSubscribeKey head;
+  wmMsg_RemoteIO msg;
+};
+
+void WM_msgtypeinfo_init_remote_io(wmMsgTypeInfo *msgtype_info);
+
+wmMsgSubscribeKey_RemoteIO *WM_msg_lookup_remote_io(wmMsgBus *mbus,
+                                                    const wmMsgParams_RemoteIO *msg_key_params);
+void WM_msg_publish_remote_io_params(wmMsgBus *mbus, const wmMsgParams_RemoteIO *msg_key_params);
+void WM_msg_publish_remote_io(wmMsgBus *mbus, blender::StringRef remote_url);
+void WM_msg_subscribe_remote_io_params(wmMsgBus *mbus,
+                                       const wmMsgParams_RemoteIO *msg_key_params,
+                                       const wmMsgSubscribeValue *msg_val_params,
+                                       const char *id_repr);
+void WM_msg_subscribe_remote_io(wmMsgBus *mbus,
+                                blender::StringRef remote_url,
+                                const wmMsgSubscribeValue *msg_val_params,
+                                const char *id_repr);
 
 /* -------------------------------------------------------------------------- */
 /* `wm_message_bus_rna.cc` */

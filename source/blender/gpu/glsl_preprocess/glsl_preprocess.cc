@@ -67,41 +67,16 @@ int main(int argc, char **argv)
 
   int error = 0;
 
-  auto count_lines = [](const std::string &str) {
-    size_t lines = 0;
-    for (char c : str) {
-      if (c == '\n') {
-        lines++;
-      }
-    }
-    return lines;
-  };
+  auto report_error =
+      [&](int err_line, int err_char, const std::string &line, const char *err_msg) {
+        std::cerr << input_file_name;
+        std::cerr << ':' << std::to_string(err_line) << ':' << std::to_string(err_char + 1);
+        std::cerr << ": error: " << err_msg << std::endl;
+        std::cerr << line << std::endl;
+        std::cerr << std::string(err_char, ' ') << '^' << std::endl;
 
-  auto get_line = [&](size_t line) {
-    std::string src = buffer.str();
-    size_t start = 0, end;
-    for (; line > 1; line--) {
-      start = src.find('\n', start + 1);
-    }
-    end = src.find('\n', start + 1);
-    return src.substr(start + 1, end - (start + 1));
-  };
-
-  auto report_error = [&](const std::smatch &match, const char *err_msg) {
-    size_t remaining_lines = count_lines(match.suffix());
-    size_t total_lines = count_lines(buffer.str());
-
-    size_t err_line = 1 + total_lines - remaining_lines;
-    size_t err_char = (match.prefix().str().size() - 1) - match.prefix().str().rfind('\n');
-
-    std::cerr << input_file_name;
-    std::cerr << ':' << std::to_string(err_line) << ':' << std::to_string(err_char);
-    std::cerr << ": error: " << err_msg << std::endl;
-    std::cerr << get_line(err_line) << std::endl;
-    std::cerr << std::string(err_char, ' ') << '^' << std::endl;
-
-    error++;
-  };
+        error++;
+      };
   std::string filename(output_file_name);
   const bool is_info = filename.find("info.hh") != std::string::npos;
   const bool is_glsl = filename.find(".glsl") != std::string::npos;

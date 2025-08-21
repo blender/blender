@@ -799,7 +799,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
     volume_unbiased: BoolProperty(
         name="Unbiased",
-        description="If enabled, volume rendering converges to the correct result with sufficiently large numbers"
+        description="If enabled, volume rendering converges to the correct result with sufficiently large numbers "
         "of samples, but might appear noisier in the process",
         default=False,
     )

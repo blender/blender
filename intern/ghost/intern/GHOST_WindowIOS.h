@@ -46,18 +46,17 @@ class GHOST_WindowIOS : public GHOST_Window {
    * \param type: The type of drawing context installed in this window.
    * \param stereoVisual: Stereo visual for quad buffered stereo.
    */
-  GHOST_WindowIOS(GHOST_SystemIOS *m_system,
+  GHOST_WindowIOS(GHOST_SystemIOS *system_ios,
                   const char *title,
                   int32_t left,
                   int32_t bottom,
                   uint32_t width,
                   uint32_t height,
                   GHOST_TWindowState state,
-                  GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone,
-                  const bool stereoVisual = false,
-                  bool is_debug = false,
-                  bool dialog = false,
-                  GHOST_WindowIOS *parentWindow = 0);
+                  GHOST_TDrawingContextType type,
+                  const GHOST_ContextParams &context_params,
+                  bool /*is_dialog*/,
+                  GHOST_WindowIOS *parent_window);
 
   /**
    * Destructor.
@@ -228,17 +227,17 @@ class GHOST_WindowIOS : public GHOST_Window {
   /** public function to get the window containing the OpenGL view */
   UIView *getUIView() const
   {
-    return m_uiview;
+    return uiview_;
   };
 
   /* Internal value to ensure proper redraws during animations */
   void setImmediateDraw(bool value)
   {
-    m_immediateDraw = value;
+    immediate_draw_ = value;
   }
   bool getImmediateDraw(void) const
   {
-    return m_immediateDraw;
+    return immediate_draw_;
   }
 
   /**
@@ -247,7 +246,7 @@ class GHOST_WindowIOS : public GHOST_Window {
    */
   GHOST_SystemIOS *getSystem() const
   {
-    return m_systemIOS;
+    return system_ios_;
   }
 
   /* Active window controls. We can only present on active windows.  */
@@ -307,27 +306,27 @@ class GHOST_WindowIOS : public GHOST_Window {
   uint16_t getDPIHint();
 
   /** The mother SystemCocoa class to send events */
-  GHOST_SystemIOS *m_systemIOS;
+  GHOST_SystemIOS *system_ios_;
 
   /** The view, either Metal or OpenGL */
-  UIViewController *m_uiview_controller;
-  UIView *m_uiview;
-  MTKView *m_metalView;
+  UIViewController *uiview_controller_;
+  UIView *uiview_;
+  MTKView *metal_view_;
 
-  bool m_immediateDraw;
-  bool m_debug_context;  // for debug messages during context setup
-  bool m_is_dialog;
-  bool m_is_active_window;
-  bool m_request_to_make_active;
+  bool immediate_draw_;
+  bool debug_context_;  // for debug messages during context setup
+  bool is_dialog_;
+  bool is_active_window_;
+  bool request_to_make_active_;
 
   GHOST_WindowIOS *parent_window_;
 
-  char *m_window_title;
+  char *window_title_;
 
  public:
   inline UIView *getView()
   {
-    return m_uiview;
+    return uiview_;
   }
   CGPoint scalePointToWindow(CGPoint &point);
 
@@ -371,7 +370,7 @@ class GHOST_EventIME : public GHOST_Event {
   GHOST_EventIME(uint64_t msec, GHOST_TEventType type, GHOST_IWindow *window, void *customdata)
       : GHOST_Event(msec, type, window)
   {
-    this->m_data = customdata;
+    this->data_ = customdata;
   }
 };
 

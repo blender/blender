@@ -2428,40 +2428,40 @@ void BKE_grease_pencil_point_coords_get(const GreasePencil &grease_pencil,
     const bke::greasepencil::Layer &layer = grease_pencil.layer(layer_i);
     const float4x4 layer_to_object = layer.local_transform();
     const Map<bke::greasepencil::FramesMapKeyT, GreasePencilFrame> frames = layer.frames();
-    frames.foreach_item(
-        [&](const bke::greasepencil::FramesMapKeyT /*key*/, const GreasePencilFrame frame) {
-          const GreasePencilDrawingBase *base = grease_pencil.drawing(frame.drawing_index);
-          if (base->type != GP_DRAWING) {
-            return;
-          }
-          const bke::greasepencil::Drawing &drawing =
-              reinterpret_cast<const GreasePencilDrawing *>(base)->wrap();
-          const bke::CurvesGeometry &curves = drawing.strokes();
-          const Span<float3> positions = curves.positions();
-          const VArray<float> radii = drawing.radii();
+    frames.foreach_item([&](const bke::greasepencil::FramesMapKeyT /*key*/,
+                            const GreasePencilFrame frame) {
+      const GreasePencilDrawingBase *base = grease_pencil.drawing(frame.drawing_index);
+      if (base->type != GP_DRAWING) {
+        return;
+      }
+      const bke::greasepencil::Drawing &drawing =
+          reinterpret_cast<const GreasePencilDrawing *>(base)->wrap();
+      const bke::CurvesGeometry &curves = drawing.strokes();
+      const Span<float3> positions = curves.positions();
+      const VArray<float> radii = drawing.radii();
 
-          if (!curves.has_curve_with_type(CURVE_TYPE_BEZIER)) {
-            for (const int i : curves.points_range()) {
-              all_positions[index] = math::transform_point(layer_to_object, positions[i]);
-              all_radii[index] = radii[i];
-              index++;
-            }
-          }
-          else {
-            const Span<float3> handle_positions_left = curves.handle_positions_left();
-            const Span<float3> handle_positions_right = curves.handle_positions_right();
-            for (const int i : curves.points_range()) {
-              const int index_pos = index * 3;
-              all_positions[index_pos] = math::transform_point(layer_to_object,
-                                                               handle_positions_left[i]);
-              all_positions[index_pos + 1] = math::transform_point(layer_to_object, positions[i]);
-              all_positions[index_pos + 2] = math::transform_point(layer_to_object,
-                                                                   handle_positions_right[i]);
-              all_radii[index] = radii[i];
-              index++;
-            }
-          }
-        });
+      if (!curves.has_curve_with_type(CURVE_TYPE_BEZIER)) {
+        for (const int i : curves.points_range()) {
+          all_positions[index] = math::transform_point(layer_to_object, positions[i]);
+          all_radii[index] = radii[i];
+          index++;
+        }
+      }
+      else {
+        const std::optional<Span<float3>> handle_positions_left = curves.handle_positions_left();
+        const std::optional<Span<float3>> handle_positions_right = curves.handle_positions_right();
+        for (const int i : curves.points_range()) {
+          const int index_pos = index * 3;
+          all_positions[index_pos] = math::transform_point(layer_to_object,
+                                                           (*handle_positions_left)[i]);
+          all_positions[index_pos + 1] = math::transform_point(layer_to_object, positions[i]);
+          all_positions[index_pos + 2] = math::transform_point(layer_to_object,
+                                                               (*handle_positions_right)[i]);
+          all_radii[index] = radii[i];
+          index++;
+        }
+      }
+    });
   }
 }
 

@@ -12,7 +12,7 @@
 #include "GHOST_IContext.hh"
 #include "GHOST_Types.h"
 
-#include <cstdlib>  // for nullptr
+#include <cstdlib> /* For `nullptr`. */
 
 class GHOST_Context : public GHOST_IContext {
  protected:
@@ -21,9 +21,9 @@ class GHOST_Context : public GHOST_IContext {
  public:
   /**
    * Constructor.
-   * \param stereoVisual: Stereo visual for quad buffered stereo.
+   * \param context_params: Parameters to use when initializing the context.
    */
-  GHOST_Context(bool stereoVisual) : m_stereoVisual(stereoVisual) {}
+  GHOST_Context(const GHOST_ContextParams &context_params) : context_params_(context_params) {}
 
   /**
    * Destructor.
@@ -86,7 +86,7 @@ class GHOST_Context : public GHOST_IContext {
 
   /**
    * Gets the current swap interval for #swapBuffers.
-   * \param intervalOut: Variable to store the swap interval if it can be read.
+   * \param interval_out: Variable to store the swap interval if it can be read.
    * \return Whether the swap interval can be read.
    */
   virtual GHOST_TSuccess getSwapInterval(int & /*interval*/)
@@ -99,7 +99,7 @@ class GHOST_Context : public GHOST_IContext {
    */
   void *getUserData()
   {
-    return m_user_data;
+    return user_data_;
   }
 
   /**
@@ -107,7 +107,7 @@ class GHOST_Context : public GHOST_IContext {
    */
   void setUserData(void *user_data)
   {
-    m_user_data = user_data;
+    user_data_ = user_data;
   }
 
   /**
@@ -117,7 +117,13 @@ class GHOST_Context : public GHOST_IContext {
    */
   bool isStereoVisual() const
   {
-    return m_stereoVisual;
+    return context_params_.is_stereo_visual;
+  }
+
+  /** Get the VSync value. */
+  virtual GHOST_TVSyncModes getVSync()
+  {
+    return context_params_.vsync;
   }
 
   /**
@@ -160,17 +166,14 @@ class GHOST_Context : public GHOST_IContext {
 #endif
 
  protected:
-  bool m_stereoVisual;
+  GHOST_ContextParams context_params_;
 
   /** Caller specified, not for internal use. */
-  void *m_user_data = nullptr;
+  void *user_data_ = nullptr;
 
 #ifdef WITH_OPENGL_BACKEND
   static void initClearGL();
 #endif
-
-  /** For performance measurements with VSync disabled. */
-  static const char *getEnvVarVSyncString();
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_Context")
 };

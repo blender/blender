@@ -160,6 +160,15 @@ class NodeSocketViewItem : public BasicTreeViewItem {
     return socket_.name;
   }
 
+  void delete_item(bContext *C) override
+  {
+    Main *bmain = CTX_data_main(C);
+    nodetree_.tree_interface.remove_item(socket_.item);
+    BKE_main_ensure_invariants(*bmain, nodetree_.id);
+    WM_main_add_notifier(NC_NODE | NA_EDITED, &nodetree_);
+    ED_undo_push(C, "Delete Node Interface Socket");
+  }
+
   std::unique_ptr<AbstractViewItemDragController> create_drag_controller() const override;
   std::unique_ptr<TreeViewItemDropTarget> create_drop_target() override;
 };
@@ -230,6 +239,15 @@ class NodePanelViewItem : public BasicTreeViewItem {
   StringRef get_rename_string() const override
   {
     return panel_.name;
+  }
+
+  void delete_item(bContext *C) override
+  {
+    Main *bmain = CTX_data_main(C);
+    nodetree_.tree_interface.remove_item(panel_.item);
+    BKE_main_ensure_invariants(*bmain, nodetree_.id);
+    WM_main_add_notifier(NC_NODE | NA_EDITED, &nodetree_);
+    ED_undo_push(C, "Delete Node Interface Panel");
   }
 
   std::unique_ptr<AbstractViewItemDragController> create_drag_controller() const override;

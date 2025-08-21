@@ -147,11 +147,11 @@ GVArray get_varray_attribute(const AttributeStorage &storage,
   return return_default();
 }
 
-GSpan get_span_attribute(const AttributeStorage &storage,
-                         const AttrDomain domain,
-                         const CPPType &cpp_type,
-                         const StringRef name,
-                         const int64_t domain_size)
+std::optional<GSpan> get_span_attribute(const AttributeStorage &storage,
+                                        const AttrDomain domain,
+                                        const CPPType &cpp_type,
+                                        const StringRef name,
+                                        const int64_t domain_size)
 {
   const bke::Attribute *attr = storage.wrap().lookup(name);
   if (!attr) {

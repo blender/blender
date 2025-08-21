@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'6dca66d606ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-11 08:28+0000\n"
+"POT-Creation-Date: 2025-08-18 09:16+0000\n"
 "PO-Revision-Date: 2025-07-23 15:14+0000\n"
 "Last-Translator: Jan Vavřínek <janvavrinek1@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -13882,124 +13882,124 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
-msgid "Pivot Point"
-msgstr "Bod pro pivot"
-
-
-msgid "Snap"
-msgstr "Přichytit"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Způsob útlumu"
-
-
-msgid "Mirror"
-msgstr "Zrcadlit"
-
-
-msgid "UV Mapping"
-msgstr "UV mapování"
-
-
-msgid "Local View"
-msgstr "Lokální pohled"
-
-
-msgid "Navigation"
-msgstr "Navigace"
-
-
-msgid "Align View"
-msgstr "Zarovnat pohled"
-
-
-msgid "Select Linked"
-msgstr "Vybrat Propojené"
-
-
-msgid "Assign Material"
-msgstr "Přiřadit Materiál"
-
-
-msgid "Metaball"
-msgstr "Meta objekt"
-
-
-msgid "Light"
-msgstr "Světlo"
-
-
-msgid "Relations"
-msgstr "Vztahy"
-
-
-msgid "Rigid Body"
-msgstr "Tuhé Těleso"
-
-
-msgid "Apply"
-msgstr "Použít"
-
-
-msgid "Track"
-msgstr "Sledování"
-
-
-msgid "Quick Effects"
-msgstr "Rychlé Efekty"
-
-
-msgid "Show/Hide"
-msgstr "Zobrazit/skrýt"
-
-
-msgid "Clean Up"
-msgstr "Vyčistit"
-
-
-msgid "Make Single User"
-msgstr "Přivlastnit"
-
-
-msgid "Hooks"
-msgstr "Háky"
-
-
-msgid "Clear Transform"
-msgstr "Vyčistit transformaci"
-
-
-msgid "Propagate"
-msgstr "Vložit"
-
-
-msgid "Names"
-msgstr "Názvy"
+msgid "Face Data"
+msgstr "Data Ploch"
 
 
 msgid "Mesh Select Mode"
 msgstr "Síťový mód výběru"
 
 
-msgid "Face Data"
-msgstr "Data Ploch"
+msgid "Proportional Editing Falloff"
+msgstr "Způsob útlumu"
 
 
-msgid "Merge"
-msgstr "Sloučit"
+msgid "Snap"
+msgstr "Přichytit"
 
 
-msgid "Special Characters"
-msgstr "Speciální Znaky"
+msgid "Pivot Point"
+msgstr "Bod pro pivot"
+
+
+msgid "Apply"
+msgstr "Použít"
+
+
+msgid "Names"
+msgstr "Názvy"
+
+
+msgid "Show/Hide"
+msgstr "Zobrazit/skrýt"
+
+
+msgid "Local View"
+msgstr "Lokální pohled"
+
+
+msgid "Propagate"
+msgstr "Vložit"
+
+
+msgid "UV Mapping"
+msgstr "UV mapování"
+
+
+msgid "Clear Transform"
+msgstr "Vyčistit transformaci"
+
+
+msgid "Mirror"
+msgstr "Zrcadlit"
+
+
+msgid "Hooks"
+msgstr "Háky"
+
+
+msgid "Make Single User"
+msgstr "Přivlastnit"
+
+
+msgid "Clean Up"
+msgstr "Vyčistit"
+
+
+msgid "Quick Effects"
+msgstr "Rychlé Efekty"
+
+
+msgid "Track"
+msgstr "Sledování"
+
+
+msgid "Align View"
+msgstr "Zarovnat pohled"
+
+
+msgid "Navigation"
+msgstr "Navigace"
+
+
+msgid "Rigid Body"
+msgstr "Tuhé Těleso"
+
+
+msgid "Relations"
+msgstr "Vztahy"
+
+
+msgid "Light"
+msgstr "Světlo"
+
+
+msgid "Metaball"
+msgstr "Meta objekt"
+
+
+msgid "Bone Roll"
+msgstr "Kost"
+
+
+msgid "Assign Material"
+msgstr "Přiřadit Materiál"
 
 
 msgid "Text"
 msgstr "Text"
 
 
-msgid "Bone Roll"
-msgstr "Kost"
+msgid "Special Characters"
+msgstr "Speciální Znaky"
+
+
+msgid "Select Linked"
+msgstr "Vybrat Propojené"
+
+
+msgid "Merge"
+msgstr "Sloučit"
 
 
 msgid "Basic"
@@ -27988,6 +27988,22 @@ msgid "Use HC method for relaxation"
 msgstr "Orientace manipulátorů (Klávesová zkratka: Alt Space)"
 
 
+msgid "Start frame of the sequence strip"
+msgstr "První frame animace"
+
+
+msgid "Allow Overlap"
+msgstr "Povolit Překrytí"
+
+
+msgid "Don't correct overlap on new sequence strips"
+msgstr "První frame animace"
+
+
+msgid "Replace Selection"
+msgstr "Nahrdit objekt"
+
+
 msgctxt "Operator"
 msgid "Change Effect Type"
 msgstr "Změnit Typ Efektu"
@@ -28079,22 +28095,6 @@ msgstr "Zdvojí vybrané objekty"
 msgctxt "Operator"
 msgid "Add Effect Strip"
 msgstr "NLA Proužky"
-
-
-msgid "Start frame of the sequence strip"
-msgstr "První frame animace"
-
-
-msgid "Allow Overlap"
-msgstr "Povolit Překrytí"
-
-
-msgid "Don't correct overlap on new sequence strips"
-msgstr "První frame animace"
-
-
-msgid "Replace Selection"
-msgstr "Nahrdit objekt"
 
 
 msgid "Fade Type"
@@ -30740,40 +30740,20 @@ msgid "Restrict"
 msgstr "Omezit"
 
 
-msgid "Active Tool"
-msgstr "Aktivní nástroj"
-
-
 msgid "View Lock"
 msgstr "Zámek zobrazení"
 
 
-msgid "Shadow Settings"
-msgstr "Nastavení Stínů"
+msgid "Active Tool"
+msgstr "Aktivní nástroj"
 
 
-msgid "SSAO Settings"
-msgstr "Nastavení SSAO"
+msgid "Snapping"
+msgstr "Přichytávání"
 
 
-msgid "Cavity"
-msgstr "Dutina"
-
-
-msgid "Overlays"
-msgstr "Překrytí"
-
-
-msgid "Guides"
-msgstr "Vodítka"
-
-
-msgid "Motion Tracking"
-msgstr "Sledování Pohybu"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Editační Režim Sítě"
+msgid "Auto-Masking"
+msgstr "Auto-Maska"
 
 
 msgid "Measurement"
@@ -30784,20 +30764,40 @@ msgid "Curve Edit Mode"
 msgstr "Editační Režim Křivky"
 
 
-msgid "Snapping"
-msgstr "Přichytávání"
+msgid "Stereoscopy"
+msgstr "Stereoskopie"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Editační Režim Sítě"
+
+
+msgid "Motion Tracking"
+msgstr "Sledování Pohybu"
+
+
+msgid "Guides"
+msgstr "Vodítka"
+
+
+msgid "Overlays"
+msgstr "Překrytí"
 
 
 msgid "Transform Orientations"
 msgstr "Orientace transformací"
 
 
-msgid "Stereoscopy"
-msgstr "Stereoskopie"
+msgid "Cavity"
+msgstr "Dutina"
 
 
-msgid "Auto-Masking"
-msgstr "Auto-Maska"
+msgid "SSAO Settings"
+msgstr "Nastavení SSAO"
+
+
+msgid "Shadow Settings"
+msgstr "Nastavení Stínů"
 
 
 msgid "Chain Scaling"
@@ -32221,10 +32221,6 @@ msgid "Target Particle System"
 msgstr "Částicový systém"
 
 
-msgid "Cache Compression"
-msgstr "Komprimovat soubor"
-
-
 msgid "Cache file path"
 msgstr "Důležité cesty"
 
@@ -33339,10 +33335,6 @@ msgstr "Použít Odšumění v 3D Zobrazení"
 
 msgid "Denoise the image in the 3D viewport"
 msgstr "Odšumění obrázku ve 3D okně"
-
-
-msgid "Max Steps"
-msgstr "Max Počet Kroků"
 
 
 msgid "Diffuse Direct"
@@ -36103,18 +36095,6 @@ msgid "Color of disabled marker"
 msgstr "Sledovat cestu"
 
 
-msgid "Handle Vertex"
-msgstr "Přidat UVkouly"
-
-
-msgid "Handle Vertex Select"
-msgstr "Skrýt označené"
-
-
-msgid "Handle Vertex Size"
-msgstr "Mód Úchopu"
-
-
 msgid "Locked Marker"
 msgstr "Vytvořit sledování"
 
@@ -36175,6 +36155,18 @@ msgid "Active Channel Group"
 msgstr "Akce"
 
 
+msgid "Handle Vertex"
+msgstr "Přidat UVkouly"
+
+
+msgid "Handle Vertex Select"
+msgstr "Skrýt označené"
+
+
+msgid "Handle Vertex Size"
+msgstr "Mód Úchopu"
+
+
 msgid "Theme Console"
 msgstr "Zobrazit kontrolery"
 
@@ -36217,14 +36209,6 @@ msgstr "Shrnutí"
 
 msgid "Color of summary channel"
 msgstr "O(d)značit vše"
-
-
-msgid "Value Sliders"
-msgstr "Časový Skluz"
-
-
-msgid "View Sliders"
-msgstr "Vrstvy"
 
 
 msgid "Theme File Browser"
@@ -36315,28 +36299,12 @@ msgid "Channels Region"
 msgstr "Změnit pruh"
 
 
-msgid "Last Selected Point"
-msgstr "Poslední Vybraný Bod"
-
-
-msgid "Vertex Bevel"
-msgstr "Zkosení Vrcholu"
-
-
 msgid "Vertex Select"
 msgstr "Výběr vrcholů"
 
 
 msgid "Vertex Size"
 msgstr "Velikost vertexu"
-
-
-msgid "Vertex Group Unreferenced"
-msgstr "Neodkazující Skupina Vrcholů"
-
-
-msgid "Window Sliders"
-msgstr "Vrstvy"
 
 
 msgid "Theme Image Editor"
@@ -36355,16 +36323,8 @@ msgid "Active Vertex/Edge/Face"
 msgstr "Aktivní Vrchol/Hrana/Plocha"
 
 
-msgid "Face Orientation Back"
-msgstr "Orientace Plochy Do Zadu"
-
-
 msgid "Face Dot Selected"
 msgstr "Vybraná Tečka Plochy"
-
-
-msgid "Face Orientation Front"
-msgstr "Orientace Plochy Do Předu"
 
 
 msgid "Face Dot Size"
@@ -36455,10 +36415,6 @@ msgid "Curving of the noodle"
 msgstr "Úhle hrany"
 
 
-msgid "Selected Text"
-msgstr "Vybrat další"
-
-
 msgid "Wires"
 msgstr "Drát"
 
@@ -36503,16 +36459,16 @@ msgid "Audio Strip"
 msgstr "NLA Proužky"
 
 
-msgid "Draw Action"
-msgstr "Akce"
-
-
 msgid "Clip Strip"
 msgstr "Začátek střihu"
 
 
 msgid "Preview Background"
 msgstr "Pozadí okna"
+
+
+msgid "Selected Text"
+msgstr "Vybrat další"
 
 
 msgid "Theme Space Settings"
@@ -36695,6 +36651,14 @@ msgid "Edge Sharp"
 msgstr "Ostrá Hrana"
 
 
+msgid "Face Orientation Back"
+msgstr "Orientace Plochy Do Zadu"
+
+
+msgid "Face Orientation Front"
+msgstr "Orientace Plochy Do Předu"
+
+
 msgid "Grease Pencil Vertex"
 msgstr "Vertex Skicovací Tužky"
 
@@ -36725,6 +36689,14 @@ msgstr "Klíčový Snímek Skicovací Tužky"
 
 msgid "Object Keyframe"
 msgstr "Klíčový snímek Objektu"
+
+
+msgid "Vertex Bevel"
+msgstr "Zkosení Vrcholu"
+
+
+msgid "Vertex Group Unreferenced"
+msgstr "Neodkazující Skupina Vrcholů"
 
 
 msgid "Theme Widget Color Set"
@@ -39354,6 +39326,16 @@ msgstr "Odebrat klíčový snímek..."
 
 
 msgctxt "Operator"
+msgid "Clear Keyframes..."
+msgstr "Odstranit Klíčové Snímky..."
+
+
+msgctxt "Operator"
+msgid "Interactive Mirror"
+msgstr "Interaktivní zrcadlení"
+
+
+msgctxt "Operator"
 msgid "Change Path/Files"
 msgstr "Změna cesty/souborů"
 
@@ -39899,11 +39881,6 @@ msgstr "Umístění:"
 
 
 msgctxt "Operator"
-msgid "Interactive Mirror"
-msgstr "Interaktivní zrcadlení"
-
-
-msgctxt "Operator"
 msgid "Cursor to Active"
 msgstr "Kurzor k aktivnímu"
 
@@ -40081,11 +40058,6 @@ msgstr "Reproduktor"
 msgctxt "Operator"
 msgid "Make Local..."
 msgstr "Vytvořit lokální..."
-
-
-msgctxt "Operator"
-msgid "Clear Keyframes..."
-msgstr "Odstranit Klíčové Snímky..."
 
 
 msgctxt "Operator"

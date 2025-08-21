@@ -101,9 +101,9 @@ class GHOST_SystemWin32 : public GHOST_System {
    * \param width: The width the window.
    * \param height: The height the window.
    * \param state: The state of the window when opened.
-   * \param gpuSettings: Misc GPU settings.
+   * \param gpu_settings: Misc GPU settings.
    * \param exclusive: Use to show the window on top and ignore others (used full-screen).
-   * \param parentWindow: Parent window.
+   * \param parent_window: Parent window.
    * \return The new window (or 0 if creation failed).
    */
   GHOST_IWindow *createWindow(const char *title,
@@ -112,17 +112,17 @@ class GHOST_SystemWin32 : public GHOST_System {
                               uint32_t width,
                               uint32_t height,
                               GHOST_TWindowState state,
-                              GHOST_GPUSettings gpuSettings,
+                              GHOST_GPUSettings gpu_settings,
                               const bool exclusive = false,
                               const bool is_dialog = false,
-                              const GHOST_IWindow *parentWindow = nullptr) override;
+                              const GHOST_IWindow *parent_window = nullptr) override;
 
   /**
    * Create a new off-screen context.
    * Never explicitly delete the window, use #disposeContext() instead.
    * \return The new context (or 0 if creation failed).
    */
-  GHOST_IContext *createOffscreenContext(GHOST_GPUSettings gpuSettings) override;
+  GHOST_IContext *createOffscreenContext(GHOST_GPUSettings gpu_settings) override;
 
   /**
    * Dispose of a context.
@@ -387,7 +387,7 @@ class GHOST_SystemWin32 : public GHOST_System {
   static void processWheelEventHorizontal(GHOST_WindowWin32 *window, WPARAM wParam, LPARAM lParam);
 
   /**
-   * Creates a key event and updates the key data stored locally (m_modifierKeys).
+   * Creates a key event and updates the key data stored locally (modifier_keys_).
    * In most cases this is a straightforward conversion of key codes.
    * For the modifier keys however, we want to distinguish left and right keys.
    * \param window: The window receiving the event (the active window).
@@ -476,40 +476,40 @@ class GHOST_SystemWin32 : public GHOST_System {
   bool setConsoleWindowState(GHOST_TConsoleWindowState action) override;
 
   /** State variable set at initialization. */
-  bool m_hasPerformanceCounter;
+  bool has_performance_counter_;
   /** High frequency timer variable. */
-  __int64 m_freq;
+  __int64 freq_;
   /** AltGr on current keyboard layout. */
-  bool m_hasAltGr;
+  bool has_alt_gr_;
   /** Language identifier. */
-  WORD m_langId;
+  WORD lang_id_;
   /** Stores keyboard layout. */
-  HKL m_keylayout;
+  HKL keylayout_;
 
   /** Console status. */
-  bool m_consoleStatus;
+  bool console_status_;
 
   /** Wheel delta accumulators. */
-  int m_wheelDeltaAccumVertical;
-  int m_wheelDeltaAccumHorizontal;
+  int wheel_delta_accum_vertical_;
+  int wheel_delta_accum_horizontal_;
 };
 
 inline void GHOST_SystemWin32::handleKeyboardChange()
 {
-  m_keylayout = GetKeyboardLayout(0); /* Get keylayout for current thread. */
+  keylayout_ = GetKeyboardLayout(0); /* Get keylayout for current thread. */
   int i;
   SHORT s;
 
   /* Save the language identifier. */
-  m_langId = LOWORD(m_keylayout);
+  lang_id_ = LOWORD(keylayout_);
 
-  for (m_hasAltGr = false, i = 32; i < 256; ++i) {
-    s = VkKeyScanEx((char)i, m_keylayout);
+  for (has_alt_gr_ = false, i = 32; i < 256; ++i) {
+    s = VkKeyScanEx((char)i, keylayout_);
     /* `s == -1` means no key that translates passed char code high byte contains shift state.
      * bit 2 Control pressed, bit 4 `Alt` pressed if both are pressed,
      * we have `AltGr` key-combination on key-layout. */
     if (s != -1 && (s & 0x600) == 0x600) {
-      m_hasAltGr = true;
+      has_alt_gr_ = true;
       break;
     }
   }

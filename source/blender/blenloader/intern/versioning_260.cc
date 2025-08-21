@@ -842,7 +842,7 @@ static const char *node_get_static_idname(int type, int treetype)
         return "CompositorNodeLumaMatte";
       case CMP_NODE_BRIGHTCONTRAST:
         return "CompositorNodeBrightContrast";
-      case CMP_NODE_GAMMA:
+      case CMP_NODE_GAMMA_DEPRECATED:
         return "CompositorNodeGamma";
       case CMP_NODE_INVERT:
         return "CompositorNodeInvert";

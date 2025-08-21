@@ -220,9 +220,10 @@ void create_aligned_handles_masks(const bke::CurvesGeometry &curves,
 void calculate_aligned_handles(const TransCustomData &custom_data,
                                bke::CurvesGeometry &curves,
                                int curve_index);
-bool update_handle_types_for_transform(bke::CurvesGeometry &curves,
+bool update_handle_types_for_transform(eTfmMode mode,
                                        const std::array<IndexMask, 3> &selection_per_attribute,
-                                       const IndexMask &bezier_points);
+                                       const IndexMask &bezier_points,
+                                       bke::CurvesGeometry &curves);
 
 }  // namespace curves
 

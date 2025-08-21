@@ -5,6 +5,7 @@
 #include <regex>
 
 #include "NOD_geometry_nodes_execute.hh"
+#include "NOD_menu_value.hh"
 #include "NOD_multi_function.hh"
 #include "NOD_node_declaration.hh"
 #include "NOD_node_in_compute_context.hh"
@@ -1540,7 +1541,7 @@ bool InputSocketUsageParams::menu_input_may_be(const StringRef identifier,
     /* The value is unknown, so it may be the requested enum value. */
     return true;
   }
-  return value.get_known<int>() == enum_value;
+  return value.get_known<MenuValue>().value == enum_value;
 }
 
 }  // namespace blender::nodes::socket_usage_inference

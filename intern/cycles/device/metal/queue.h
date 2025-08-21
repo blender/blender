@@ -15,9 +15,6 @@
 
 #  define MAX_SAMPLE_BUFFER_LENGTH 4096
 
-/* The number of resources to be contiguously encoded into the MetalAncillaries struct. */
-#  define ANCILLARY_SLOT_COUNT 11
-
 CCL_NAMESPACE_BEGIN
 
 class MetalDevice;
@@ -60,6 +57,7 @@ class MetalDeviceQueue : public DeviceQueue {
   id<MTLBlitCommandEncoder> get_blit_encoder();
 
   MetalDevice *metal_device_;
+  MetalBufferPool temp_buffer_pool_;
 
   API_AVAILABLE(macos(11.0), ios(14.0))
   MTLCommandBufferDescriptor *command_buffer_desc_ = nullptr;

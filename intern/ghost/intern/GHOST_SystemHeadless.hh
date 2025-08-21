@@ -127,20 +127,24 @@ class GHOST_SystemHeadless : public GHOST_System {
   void getAllDisplayDimensions(uint32_t & /*width*/, uint32_t & /*height*/) const override
   { /* nop */
   }
-  GHOST_IContext *createOffscreenContext(GHOST_GPUSettings gpuSettings) override
+  GHOST_IContext *createOffscreenContext(GHOST_GPUSettings gpu_settings) override
   {
-    switch (gpuSettings.context_type) {
+    const GHOST_ContextParams context_params_offscreen =
+        GHOST_CONTEXT_PARAMS_FROM_GPU_SETTINGS_OFFSCREEN(gpu_settings);
+    /* This may not be used depending on the build configuration. */
+    (void)context_params_offscreen;
+
+    switch (gpu_settings.context_type) {
 #ifdef WITH_VULKAN_BACKEND
       case GHOST_kDrawingContextTypeVulkan: {
-        const bool debug_context = (gpuSettings.flags & GHOST_gpuDebugContext) != 0;
 #  ifdef _WIN32
         GHOST_Context *context = new GHOST_ContextVK(
-            false, (HWND)0, 1, 2, debug_context, gpuSettings.preferred_device);
+            context_params_offscreen, (HWND)0, 1, 2, gpu_settings.preferred_device);
 #  elif defined(__APPLE__)
         GHOST_Context *context = new GHOST_ContextVK(
-            false, nullptr, 1, 2, debug_context, gpuSettings.preferred_device);
+            context_params_offscreen, nullptr, 1, 2, gpu_settings.preferred_device);
 #  else
-        GHOST_Context *context = new GHOST_ContextVK(false,
+        GHOST_Context *context = new GHOST_ContextVK(context_params_offscreen,
                                                      GHOST_kVulkanPlatformHeadless,
                                                      0,
                                                      0,
@@ -149,8 +153,7 @@ class GHOST_SystemHeadless : public GHOST_System {
                                                      nullptr,
                                                      1,
                                                      2,
-                                                     debug_context,
-                                                     gpuSettings.preferred_device);
+                                                     gpu_settings.preferred_device);
 #  endif
         if (context->initializeDrawingContext()) {
           return context;
@@ -166,7 +169,7 @@ class GHOST_SystemHeadless : public GHOST_System {
         GHOST_Context *context;
         for (int minor = 6; minor >= 3; --minor) {
           context = new GHOST_ContextEGL((GHOST_System *)this,
-                                         false,
+                                         context_params_offscreen,
                                          EGLNativeWindowType(0),
                                          EGLNativeDisplayType(EGL_DEFAULT_DISPLAY),
                                          EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
@@ -218,20 +221,22 @@ class GHOST_SystemHeadless : public GHOST_System {
                               uint32_t width,
                               uint32_t height,
                               GHOST_TWindowState state,
-                              GHOST_GPUSettings gpuSettings,
+                              GHOST_GPUSettings gpu_settings,
                               const bool /*exclusive*/,
                               const bool /*is_dialog*/,
-                              const GHOST_IWindow *parentWindow) override
+                              const GHOST_IWindow *parent_window) override
   {
+    const GHOST_ContextParams context_params = GHOST_CONTEXT_PARAMS_FROM_GPU_SETTINGS(
+        gpu_settings);
     return new GHOST_WindowNULL(title,
                                 left,
                                 top,
                                 width,
                                 height,
                                 state,
-                                parentWindow,
-                                gpuSettings.context_type,
-                                ((gpuSettings.flags & GHOST_gpuStereoVisual) != 0));
+                                parent_window,
+                                gpu_settings.context_type,
+                                context_params);
   }
 
   GHOST_IWindow *getWindowUnderCursor(int32_t /*x*/, int32_t /*y*/) override

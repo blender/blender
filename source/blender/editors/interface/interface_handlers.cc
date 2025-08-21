@@ -43,6 +43,7 @@
 #include "BKE_curveprofile.h"
 #include "BKE_movieclip.h"
 #include "BKE_paint.hh"
+#include "BKE_paint_types.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
@@ -1651,11 +1652,8 @@ static bool ui_drag_toggle_but_is_supported(const uiBut *but)
     return true;
   }
   if (UI_but_is_decorator(but)) {
-    return ELEM(but->icon,
-                ICON_DECORATE,
-                ICON_DECORATE_KEYFRAME,
-                ICON_DECORATE_ANIMATE,
-                ICON_DECORATE_OVERRIDE);
+    const uiButDecorator *but_decorate = static_cast<const uiButDecorator *>(but);
+    return but_decorate->toggle_keyframe_on_click;
   }
   return false;
 }
@@ -3611,8 +3609,8 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
   keyboard_properties.inital_text_state = GHOST_KeyboardProperties::select_all_text;
   keyboard_properties.text_select_range[0] = 0;
   keyboard_properties.text_select_range[1] = 0;
-  keyboard_properties.text_box_origin[0] = text_box.m_l;
-  keyboard_properties.text_box_origin[1] = text_box.m_b;
+  keyboard_properties.text_box_origin[0] = text_box.l_;
+  keyboard_properties.text_box_origin[1] = text_box.b_;
   keyboard_properties.text_box_size[0] = text_box.getWidth();
   keyboard_properties.text_box_size[1] = text_box.getHeight();
   keyboard_properties.tip_text = but->tip.data();
@@ -8685,7 +8683,7 @@ static void button_tooltip_timer_reset(bContext *C, uiBut *but)
 
   if ((U.flag & USER_TOOLTIPS) || (data->tooltip_force)) {
     if (!but->block->tooltipdisabled) {
-      if (!wm->drags.first) {
+      if (!wm->runtime->drags.first) {
         const bool is_quick_tip = UI_but_has_quick_tooltip(but);
         const double delay = is_quick_tip ? UI_TOOLTIP_DELAY_QUICK : UI_TOOLTIP_DELAY;
         WM_tooltip_timer_init_ex(

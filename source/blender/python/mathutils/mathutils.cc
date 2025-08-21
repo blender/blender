@@ -612,6 +612,53 @@ void _BaseMathObject_RaiseNotFrozenExc(const BaseMathObject *self)
       PyExc_TypeError, "%s is not frozen (mutable), call freeze first", Py_TYPE(self)->tp_name);
 }
 
+int _BaseMathObject_ResizeOkOrRaiseExc(BaseMathObject *self, const char *error_prefix)
+{
+  if (UNLIKELY(self->flag & BASE_MATH_FLAG_IS_FROZEN)) {
+    PyErr_Format(PyExc_ValueError, "%s: cannot resize frozen data", error_prefix);
+    return -1;
+  }
+  if (UNLIKELY(self->flag & BASE_MATH_FLAG_IS_WRAP)) {
+    PyErr_Format(PyExc_ValueError, "%s: cannot resize wrapped data", error_prefix);
+    return -1;
+  }
+  if (UNLIKELY(self->flag & BASE_MATH_FLAG_HAS_BUFFER_VIEW)) {
+    PyErr_Format(PyExc_BufferError,
+                 "%s: cannot resize data while exported to buffer protocol",
+                 error_prefix);
+    return -1;
+  }
+  if (UNLIKELY(self->cb_user)) {
+    PyErr_Format(PyExc_ValueError, "%s: cannot resize owned data", error_prefix);
+    return -1;
+  }
+  return 0;
+}
+
+int _BaseMathObject_RaiseBufferViewExc(BaseMathObject *self, Py_buffer *view, int flags)
+{
+  if (UNLIKELY(view == nullptr)) {
+    PyErr_SetString(PyExc_BufferError, "null view in getbuffer is obsolete");
+    return -1;
+  }
+  if (UNLIKELY(self->flag & BASE_MATH_FLAG_HAS_BUFFER_VIEW)) {
+    PyErr_SetString(PyExc_BufferError,
+                    "Data is already exported via buffer protocol, "
+                    "multiple simultaneous exports are not allowed.");
+    return -1;
+  }
+  if (flags & PyBUF_WRITABLE) {
+    if (UNLIKELY(BaseMath_WriteCallback(self) == -1)) {
+      return -1;
+    }
+    if (UNLIKELY(self->flag & BASE_MATH_FLAG_IS_FROZEN)) {
+      PyErr_SetString(PyExc_BufferError, "Data is frozen, cannot get a writable buffer");
+      return -1;
+    }
+  }
+  return 0;
+}
+
 /* #BaseMathObject generic functions for all mathutils types. */
 
 char BaseMathObject_owner_doc[] = "The item this is wrapping or None  (read-only).";
@@ -653,6 +700,11 @@ PyObject *BaseMathObject_freeze(BaseMathObject *self)
 {
   if ((self->flag & BASE_MATH_FLAG_IS_WRAP) || (self->cb_user != nullptr)) {
     PyErr_SetString(PyExc_TypeError, "Cannot freeze wrapped/owned data");
+    return nullptr;
+  }
+
+  if (self->flag & BASE_MATH_FLAG_HAS_BUFFER_VIEW) {
+    PyErr_SetString(PyExc_BufferError, "Cannot freeze data while exported to buffer protocol");
     return nullptr;
   }
 

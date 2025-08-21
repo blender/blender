@@ -361,6 +361,12 @@ IDNewNameResult BKE_id_rename(Main &bmain,
                               blender::StringRefNull name,
                               const IDNewNameMode mode = IDNewNameMode::RenameExistingNever);
 
+/**
+ * Find an ID in `bmain` by its type, name, and library ID.
+ *
+ * If `lib` is unset, the first ID matching the looked-up name is returned (local or linked). If
+ * `lib` is null, the ID is searched into local ones only.
+ */
 ID *BKE_libblock_find_name(Main *bmain,
                            short type,
                            const char *name,
@@ -368,10 +374,20 @@ ID *BKE_libblock_find_name(Main *bmain,
     ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 ID *BKE_libblock_find_session_uid(Main *bmain, short type, uint32_t session_uid);
 ID *BKE_libblock_find_session_uid(Main *bmain, uint32_t session_uid);
+/**
+ * Find an ID in `bmain` by its type, name, and library ID name.
+ *
+ * If `lib_name` is null or empty, the ID is searched into local ones only.
+ */
 ID *BKE_libblock_find_name_and_library(Main *bmain,
                                        short type,
                                        const char *name,
                                        const char *lib_name);
+/**
+ * Find an ID in `bmain` by its type, name, and absolute library file path.
+ *
+ * If `lib_filepath_abs` is null or empty, the ID is searched into local ones only.
+ */
 ID *BKE_libblock_find_name_and_library_filepath(Main *bmain,
                                                 short type,
                                                 const char *name,

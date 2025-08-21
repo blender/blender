@@ -94,8 +94,7 @@ ccl_device float4 volume_attribute_float4(KernelGlobals kg,
     object_inverse_position_transform(kg, sd, &P);
     const InterpolationType interp = (sd->flag & SD_VOLUME_CUBIC) ? INTERPOLATION_CUBIC :
                                                                     INTERPOLATION_NONE;
-    return kernel_tex_image_interp_3d(
-        kg, desc.offset, P, interp, (stochastic) ? lcg_step_float(&sd->lcg_state) : -1.0f);
+    return kernel_tex_image_interp_3d(kg, sd, desc.offset, P, interp, stochastic);
   }
   return zero_float4();
 }

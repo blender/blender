@@ -202,7 +202,7 @@ static void rna_progress_update(wmWindowManager *wm, float value)
 {
   if (wm_progress_state.is_valid) {
     /* Map to factor 0..1. */
-    wmWindow *win = wm->winactive;
+    wmWindow *win = wm->runtime->winactive;
     if (win) {
       const float progress_factor = (value - wm_progress_state.min) /
                                     (wm_progress_state.max - wm_progress_state.min);
@@ -214,7 +214,7 @@ static void rna_progress_update(wmWindowManager *wm, float value)
 static void rna_progress_end(wmWindowManager *wm)
 {
   if (wm_progress_state.is_valid) {
-    wmWindow *win = wm->winactive;
+    wmWindow *win = wm->runtime->winactive;
     if (win) {
       WM_cursor_modal_restore(win);
       wm_progress_state.is_valid = false;
@@ -490,7 +490,7 @@ static wmKeyMap *rna_KeyMaps_new(wmKeyConfig *keyconf,
      * Currently this is only useful for add-ons to override built-in modal keymaps
      * which is not the intended use for add-on keymaps. */
     wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
-    if (keyconf == wm->addonconf) {
+    if (keyconf == wm->runtime->addonconf) {
       BKE_reportf(reports, RPT_ERROR, "Modal key-maps not supported for add-on key-config");
       return nullptr;
     }
@@ -566,7 +566,7 @@ wmKeyConfig *rna_KeyConfig_new(wmWindowManager *wm, const char *idname)
 static void rna_KeyConfig_remove(wmWindowManager *wm, ReportList *reports, PointerRNA *keyconf_ptr)
 {
   wmKeyConfig *keyconf = static_cast<wmKeyConfig *>(keyconf_ptr->data);
-  if (UNLIKELY(BLI_findindex(&wm->keyconfigs, keyconf) == -1)) {
+  if (UNLIKELY(BLI_findindex(&wm->runtime->keyconfigs, keyconf) == -1)) {
     BKE_reportf(reports, RPT_ERROR, "KeyConfig '%s' cannot be removed", keyconf->idname);
     return;
   }
@@ -676,7 +676,7 @@ static void rna_PieMenuEnd(bContext *C, PointerRNA *handle)
 
 static void rna_WindowManager_print_undo_steps(wmWindowManager *wm)
 {
-  BKE_undosys_print(wm->undo_stack);
+  BKE_undosys_print(wm->runtime->undo_stack);
 }
 
 static void rna_WindowManager_tag_script_reload()

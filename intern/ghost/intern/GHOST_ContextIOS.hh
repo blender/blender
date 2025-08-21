@@ -52,7 +52,7 @@ class GHOST_ContextIOS : public GHOST_Context {
   /**
    * Constructor.
    */
-  GHOST_ContextIOS(UIView *uiView, MTKView *metalView);
+  GHOST_ContextIOS(const GHOST_ContextParams &context_params,UIView *uiView, MTKView *metalView);
 
   /**
    * Destructor.
@@ -140,17 +140,17 @@ class GHOST_ContextIOS : public GHOST_Context {
 
   const MTKView *getMTKView()
   {
-    return m_metalView;
+    return metal_view_;
   }
 
  private:
   /** Metal state */
-  UIView *m_uiView;
-  MTKView *m_metalView;
+  UIView *ui_view_;
+  MTKView *metal_view_;
 
   /** Metal state */
-  MTLRenderPipelineState *m_metalRenderPipeline;
-  bool ownsMetalDevice;
+  MTLRenderPipelineState *metal_render_pipeline_;
+  bool owns_metal_device_;
 
   /** The virtualized default frame-buffer's texture. */
   /**
@@ -176,12 +176,12 @@ class GHOST_ContextIOS : public GHOST_Context {
                                  id<MTLTexture>,
                                  id<CAMetalDrawable>);
 
-  int mtl_SwapInterval;
+  int mtl_swap_internal;
 
-  static int s_sharedCount;
+  static int s_shared_count;
 
   /* Single device queue for multiple contexts. */
-  static MTLCommandQueue *s_sharedMetalCommandQueue;
+  static MTLCommandQueue *s_shared_metal_command_queue;
 
   /* Metal functions */
   void metalInit();

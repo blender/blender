@@ -7,10 +7,15 @@
  */
 
 #include "BKE_report.hh"
+#include "BKE_undo_system.hh"
 #include "BKE_wm_runtime.hh"
 
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
+
+#include "WM_api.hh"
+
+#include "WM_message.hh"
 
 namespace blender::bke {
 
@@ -26,6 +31,34 @@ WindowManagerRuntime::~WindowManagerRuntime()
   BLI_freelistN(&this->notifier_queue);
   if (this->notifier_queue_set) {
     BLI_gset_free(this->notifier_queue_set, nullptr);
+  }
+
+  while (wmOperator *op = static_cast<wmOperator *>(BLI_pophead(&this->operators))) {
+    WM_operator_free(op);
+  }
+
+  BLI_freelistN(&this->paintcursors);
+
+  /* NOTE(@ideasman42): typically timers are associated with windows and timers will have been
+   * freed when the windows are removed. However timers can be created which don't have windows
+   * and in this case it's necessary to free them on exit, see: #109953. */
+  while (wmTimer *timer = static_cast<wmTimer *>(BLI_pophead(&this->timers))) {
+    WM_event_timer_free_data(timer);
+    MEM_freeN(timer);
+  }
+
+  while (wmKeyConfig *keyconf = static_cast<wmKeyConfig *>(BLI_pophead(&this->keyconfigs))) {
+    WM_keyconfig_free(keyconf);
+  }
+
+  WM_drag_free_list(&this->drags);
+
+  if (this->undo_stack) {
+    BKE_undosys_stack_destroy(this->undo_stack);
+  }
+
+  if (this->message_bus != nullptr) {
+    WM_msgbus_destroy(this->message_bus);
   }
 }
 

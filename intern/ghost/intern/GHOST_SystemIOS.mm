@@ -84,20 +84,20 @@ int main_ios_callback(int argc, const char **argv);
   GHOST_SystemIOS *system = static_cast<GHOST_SystemIOS *>(GHOST_ISystem::getSystem());
 
   /* We should always have a window... */
-  if (system->current_active_window) {
+  if (system->current_active_window_) {
 
     /* If the current window has some outstanding swaps we need to
      * service them before handing control back to Blender otherwise
      * they may go missing. */
-    if (system->current_active_window->deferred_swap_buffers_count) {
+    if (system->current_active_window_->deferred_swap_buffers_count) {
       IOS_SYSTEM_LOG(@"Issuing oustanding swaps");
-      system->current_active_window->flushDeferredSwapBuffers();
+      system->current_active_window_->flushDeferredSwapBuffers();
       /* Make sure we get another call to draw. */
-      system->current_active_window->needsDisplayUpdate();
+      system->current_active_window_->needsDisplayUpdate();
       return;
     }
 
-    system->current_active_window->beginFrame();
+    system->current_active_window_->beginFrame();
   }
 
   /* Run the main loop to handle all events. */
@@ -105,30 +105,30 @@ int main_ios_callback(int argc, const char **argv);
     WM_main_loop_body(C);
   }
 
-  if (system->current_active_window) {
-    system->current_active_window->flushDeferredSwapBuffers();
-    system->current_active_window->endFrame();
+  if (system->current_active_window_) {
+    system->current_active_window_->flushDeferredSwapBuffers();
+    system->current_active_window_->endFrame();
   }
 
   /* Was there a request to switch windows? */
-  if (system->next_active_window != nullptr) {
-    if (system->current_active_window) {
-      system->current_active_window->resignKeyWindow();
+  if (system->next_active_window_ != nullptr) {
+    if (system->current_active_window_) {
+      system->current_active_window_->resignKeyWindow();
     }
-    system->next_active_window->makeKeyWindow();
-    system->next_active_window = nullptr;
+    system->next_active_window_->makeKeyWindow();
+    system->next_active_window_ = nullptr;
   }
 }
 
 - (void)mtkView:(nonnull MTKView *)view drawableSizeWillChange:(CGSize)size
 {
   GHOST_SystemIOS *system = static_cast<GHOST_SystemIOS *>(GHOST_ISystem::getSystem());
-  if (!system->current_active_window) {
+  if (!system->current_active_window_) {
     return;
   }
 
   system->pushEvent(new GHOST_Event(
-      system->getMilliSeconds(), GHOST_kEventWindowSize, system->current_active_window));
+      system->getMilliSeconds(), GHOST_kEventWindowSize, system->current_active_window_));
 }
 
 @end
@@ -388,9 +388,9 @@ GHOST_SystemIOS::GHOST_SystemIOS()
   size_t len;
   char *rstring = NULL;
 
-  m_modifierMask = 0;
-  m_outsideLoopEventProcessed = false;
-  m_needDelayedApplicationBecomeActiveEventProcessing = false;
+  modifier_mask_ = 0;
+  outside_loop_event_processed_ = false;
+  need_delayed_application_become_active_event_processing_ = false;
 
   /* TODO: sysctl likely should be replaced with another approach. */
   mib[0] = CTL_KERN;
@@ -410,10 +410,10 @@ GHOST_SystemIOS::GHOST_SystemIOS()
   free(rstring);
   rstring = NULL;
 
-  m_ignoreWindowSizedMessages = false;
-  m_ignoreMomentumScroll = false;
-  m_multiTouchScroll = false;
-  m_last_warp_timestamp = 0;
+  ignore_window_sized_message_ = false;
+  ignore_momentum_scroll_ = false;
+  multi_touch_scroll_ = false;
+  last_warp_timestamp_ = 0;
 }
 
 GHOST_SystemIOS::~GHOST_SystemIOS() {}
@@ -474,12 +474,13 @@ GHOST_IWindow *GHOST_SystemIOS::createWindow(const char *title,
                                              uint32_t /*width*/,
                                              uint32_t /*height*/,
                                              GHOST_TWindowState state,
-                                             GHOST_GPUSettings gpuSettings,
+                                             GHOST_GPUSettings gpu_settings,
                                              const bool /*exclusive*/,
                                              const bool is_dialog,
-                                             const GHOST_IWindow *parentWindow)
+                                             const GHOST_IWindow *parent_window)
 {
-  GHOST_IWindow *window = NULL;
+  const GHOST_ContextParams context_params = GHOST_CONTEXT_PARAMS_FROM_GPU_SETTINGS(gpu_settings);
+  GHOST_IWindow *window = nullptr;
   @autoreleasepool {
 
     /* Create window at native size. */
@@ -492,24 +493,23 @@ GHOST_IWindow *GHOST_SystemIOS::createWindow(const char *title,
                                                   (unsigned int)bounds.size.width,
                                                   (unsigned int)bounds.size.height,
                                                   state,
-                                                  gpuSettings.context_type,
-                                                  gpuSettings.flags & GHOST_gpuStereoVisual,
-                                                  gpuSettings.flags & GHOST_gpuDebugContext,
+                                                  gpu_settings.context_type,
+                                                  context_params,
                                                   is_dialog,
-                                                  (GHOST_WindowIOS *)parentWindow);
+                                                  (GHOST_WindowIOS *)parent_window);
 
     if (window->getValid()) {
       // Store the pointer to the window
-      GHOST_ASSERT(m_windowManager, "m_windowManager not initialized");
-      m_windowManager->addWindow(window);
-      m_windowManager->setActiveWindow(window);
+      GHOST_ASSERT(window_manager_, "m_windowManager not initialized");
+      window_manager_->addWindow(window);
+      window_manager_->setActiveWindow(window);
       pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowActivate, window));
       pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window));
     }
     else {
       GHOST_PRINT("GHOST_SystemIOS::createWindow(): window invalid\n");
       delete window;
-      window = NULL;
+      window = nullptr;
     }
   }
   return window;
@@ -520,15 +520,18 @@ GHOST_IWindow *GHOST_SystemIOS::createWindow(const char *title,
  * Never explicitly delete the context, use #disposeContext() instead.
  * \return The new context (or 0 if creation failed).
  */
-GHOST_IContext *GHOST_SystemIOS::createOffscreenContext(GHOST_GPUSettings /*gpuSettings*/)
+GHOST_IContext *GHOST_SystemIOS::createOffscreenContext(GHOST_GPUSettings gpu_settings)
 {
-  GHOST_Context *context = new GHOST_ContextIOS(NULL, NULL);
-  if (context->initializeDrawingContext())
-    return context;
-  else
-    delete context;
+  const GHOST_ContextParams context_params_offscreen =
+      GHOST_CONTEXT_PARAMS_FROM_GPU_SETTINGS_OFFSCREEN(gpu_settings);
 
-  return NULL;
+  GHOST_Context *context = new GHOST_ContextIOS(context_params_offscreen, nullptr, nullptr);
+  if (context->initializeDrawingContext()) {
+    return context;
+  }
+
+  delete context;
+  return nullptr;
 }
 
 /**
@@ -550,9 +553,10 @@ GHOST_TSuccess GHOST_SystemIOS::disposeContext(GHOST_IContext *context)
 GHOST_TSuccess GHOST_SystemIOS::getCursorPosition(int32_t & /*x*/, int32_t & /*y*/) const
 {
   /* iOS Passthrough. */
-  GHOST_IWindow *window = this->m_windowManager->getActiveWindow();
-  if (!window)
+  GHOST_IWindow *window = this->window_manager_->getActiveWindow();
+  if (!window) {
     return GHOST_kFailure;
+  }
   // GHOST_ASSERT(FALSE,"GHOST_SystemIOS::getCursorPosition unsupported on iOS");
   return GHOST_kSuccess;
 }
@@ -563,13 +567,13 @@ GHOST_TSuccess GHOST_SystemIOS::getCursorPosition(int32_t & /*x*/, int32_t & /*y
  */
 GHOST_TSuccess GHOST_SystemIOS::setCursorPosition(int32_t x, int32_t y)
 {
-  GHOST_WindowIOS *window = (GHOST_WindowIOS *)m_windowManager->getActiveWindow();
+  GHOST_WindowIOS *window = (GHOST_WindowIOS *)window_manager_->getActiveWindow();
   if (!window)
     return GHOST_kFailure;
 
   pushEvent(new GHOST_EventCursor(
       getMilliSeconds(), GHOST_kEventCursorMove, window, x, y, window->getTabletData()));
-  m_outsideLoopEventProcessed = true;
+  outside_loop_event_processed_ = true;
 
   return GHOST_kSuccess;
 }
@@ -577,7 +581,7 @@ GHOST_TSuccess GHOST_SystemIOS::setCursorPosition(int32_t x, int32_t y)
 GHOST_TSuccess GHOST_SystemIOS::setMouseCursorPosition(int32_t /*x*/, int32_t /*y*/)
 {
   /* iOS Passthrough. */
-  GHOST_WindowIOS *window = (GHOST_WindowIOS *)m_windowManager->getActiveWindow();
+  GHOST_WindowIOS *window = (GHOST_WindowIOS *)window_manager_->getActiveWindow();
   if (!window)
     return GHOST_kFailure;
   GHOST_ASSERT(FALSE, "GHOST_SystemIOS::setMouseCursorPosition unsupported on iOS");
@@ -617,15 +621,15 @@ bool GHOST_SystemIOS::processEvents(bool /*waitForEvent*/)
 
 GHOST_TSuccess GHOST_SystemIOS::handleApplicationBecomeActiveEvent()
 {
-  m_modifierMask = 0;
+  modifier_mask_ = 0;
 
-  m_outsideLoopEventProcessed = true;
+  outside_loop_event_processed_ = true;
   return GHOST_kSuccess;
 }
 
 bool GHOST_SystemIOS::hasDialogWindow()
 {
-  for (GHOST_IWindow *iwindow : m_windowManager->getWindows()) {
+  for (GHOST_IWindow *iwindow : window_manager_->getWindows()) {
     GHOST_WindowIOS *window = (GHOST_WindowIOS *)iwindow;
     if (window->isDialog()) {
       return true;
@@ -636,7 +640,7 @@ bool GHOST_SystemIOS::hasDialogWindow()
 
 void GHOST_SystemIOS::notifyExternalEventProcessed()
 {
-  m_outsideLoopEventProcessed = true;
+  outside_loop_event_processed_ = true;
 }
 
 GHOST_TSuccess GHOST_SystemIOS::handleWindowEvent(GHOST_TEventType eventType,
@@ -650,16 +654,16 @@ GHOST_TSuccess GHOST_SystemIOS::handleWindowEvent(GHOST_TEventType eventType,
       pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowClose, window));
       break;
     case GHOST_kEventWindowActivate:
-      m_windowManager->setActiveWindow(window);
+      window_manager_->setActiveWindow(window);
       window->loadCursor(window->getCursorVisibility(), window->getCursorShape());
       pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowActivate, window));
       break;
     case GHOST_kEventWindowDeactivate:
-      m_windowManager->setWindowInactive(window);
+      window_manager_->setWindowInactive(window);
       pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowDeactivate, window));
       break;
     case GHOST_kEventWindowUpdate:
-      if (m_nativePixel) {
+      if (native_pixel_) {
         window->setNativePixelSize();
         pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventNativeResolutionChange, window));
       }
@@ -669,7 +673,7 @@ GHOST_TSuccess GHOST_SystemIOS::handleWindowEvent(GHOST_TEventType eventType,
       pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowMove, window));
       break;
     case GHOST_kEventWindowSize:
-      if (!m_ignoreWindowSizedMessages) {
+      if (!ignore_window_sized_message_) {
         // Enforce only one resize message per event loop
         // (coalescing all the live resize messages)
         window->updateDrawingContext();
@@ -685,7 +689,7 @@ GHOST_TSuccess GHOST_SystemIOS::handleWindowEvent(GHOST_TEventType eventType,
       break;
     case GHOST_kEventNativeResolutionChange:
 
-      if (m_nativePixel) {
+      if (native_pixel_) {
         pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventNativeResolutionChange, window));
       }
 
@@ -694,7 +698,7 @@ GHOST_TSuccess GHOST_SystemIOS::handleWindowEvent(GHOST_TEventType eventType,
       break;
   }
 
-  m_outsideLoopEventProcessed = true;
+  outside_loop_event_processed_ = true;
 
   return GHOST_kSuccess;
 }
@@ -838,13 +842,13 @@ GHOST_TSuccess GHOST_SystemIOS::handleDraggingEvent(GHOST_TEventType eventType,
     default:
       return GHOST_kFailure;
   }
-  m_outsideLoopEventProcessed = true;
+  outside_loop_event_processed_ = true;
   return GHOST_kSuccess;
 }
 
 void GHOST_SystemIOS::handleQuitRequest()
 {
-  GHOST_Window *window = (GHOST_Window *)m_windowManager->getActiveWindow();
+  GHOST_Window *window = (GHOST_Window *)window_manager_->getActiveWindow();
 
   // Discard quit event if we are in cursor grab sequence
   if (window && window->getCursorGrabModeIsWarp())
@@ -852,7 +856,7 @@ void GHOST_SystemIOS::handleQuitRequest()
 
   // Push the event to Blender so it can open a dialog if needed
   pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventQuitRequest, window));
-  m_outsideLoopEventProcessed = true;
+  outside_loop_event_processed_ = true;
 }
 
 bool GHOST_SystemIOS::handleOpenDocumentRequest(void * /*filepathStr*/)
@@ -865,7 +869,7 @@ bool GHOST_SystemIOS::handleOpenDocumentRequest(void * /*filepathStr*/)
 #if 0
 GHOST_TSuccess GHOST_SystemIOS::handleTabletEvent(void * /*eventPtr*/, short /*eventType*/)
 {
-  GHOST_WindowIOS *window = (GHOST_WindowIOS *)m_windowManager->getActiveWindow();
+  GHOST_WindowIOS *window = (GHOST_WindowIOS *)window_manager_->getActiveWindow();
   if (!window)
     return GHOST_kFailure;
   
@@ -941,5 +945,5 @@ void GHOST_SystemIOS::putClipboard(const char *buffer, bool selection) const
 GHOST_IWindow *GHOST_SystemIOS::getWindowUnderCursor(int32_t /*x*/, int32_t /*y*/)
 {
   GHOST_ASSERT(FALSE, "GHOST_SystemIOS::getWindowUnderCursor unsupported on iOS");
-  return NULL;
+  return nullptr;
 }

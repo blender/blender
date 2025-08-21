@@ -583,11 +583,15 @@ static void grease_pencil_primitive_init_curves(PrimitiveToolOperation &ptd)
   bke::SpanAttributeWriter<int> materials = attributes.lookup_or_add_for_write_span<int>(
       "material_index", bke::AttrDomain::Curve);
   materials.span[target_curve_index] = ptd.material_index;
+  materials.finish();
+  curve_attributes_to_skip.add("material_index");
 
   bke::SpanAttributeWriter<bool> cyclic = attributes.lookup_or_add_for_write_span<bool>(
       "cyclic", bke::AttrDomain::Curve);
   const bool is_cyclic = ELEM(ptd.type, PrimitiveType::Box, PrimitiveType::Circle);
   cyclic.span[target_curve_index] = is_cyclic;
+  cyclic.finish();
+  curve_attributes_to_skip.add("cyclic");
 
   if (bke::SpanAttributeWriter<float> softness = attributes.lookup_or_add_for_write_span<float>(
           "softness", bke::AttrDomain::Curve))
@@ -636,9 +640,13 @@ static void grease_pencil_primitive_init_curves(PrimitiveToolOperation &ptd)
     curve_attributes_to_skip.add("fill_color");
   }
 
-  cyclic.finish();
-  materials.finish();
-  curve_attributes_to_skip.add_multiple({"material_index", "cyclic"});
+  if (bke::SpanAttributeWriter<float> u_scale = attributes.lookup_or_add_for_write_span<float>(
+          "u_scale", bke::AttrDomain::Curve))
+  {
+    u_scale.span[target_curve_index] = 1.0f;
+    u_scale.finish();
+    curve_attributes_to_skip.add("u_scale");
+  }
 
   curves.curve_types_for_write()[target_curve_index] = CURVE_TYPE_POLY;
   curves.update_curve_types();

@@ -66,7 +66,7 @@ struct GHOST_XrDrawInfo {
  * \{ */
 
 GHOST_XrSession::GHOST_XrSession(GHOST_XrContext &xr_context)
-    : m_context(&xr_context), m_oxr(std::make_unique<OpenXRSessionData>())
+    : context_(&xr_context), oxr_(std::make_unique<OpenXRSessionData>())
 {
 }
 
@@ -74,29 +74,29 @@ GHOST_XrSession::~GHOST_XrSession()
 {
   unbindGraphicsContext();
 
-  m_oxr->swapchains.clear();
-  m_oxr->action_sets.clear();
+  oxr_->swapchains.clear();
+  oxr_->action_sets.clear();
 
-  if (m_oxr->reference_space != XR_NULL_HANDLE) {
-    CHECK_XR_ASSERT(xrDestroySpace(m_oxr->reference_space));
+  if (oxr_->reference_space != XR_NULL_HANDLE) {
+    CHECK_XR_ASSERT(xrDestroySpace(oxr_->reference_space));
   }
-  if (m_oxr->view_space != XR_NULL_HANDLE) {
-    CHECK_XR_ASSERT(xrDestroySpace(m_oxr->view_space));
+  if (oxr_->view_space != XR_NULL_HANDLE) {
+    CHECK_XR_ASSERT(xrDestroySpace(oxr_->view_space));
   }
-  if (m_oxr->combined_eye_space != XR_NULL_HANDLE) {
-    CHECK_XR_ASSERT(xrDestroySpace(m_oxr->combined_eye_space));
+  if (oxr_->combined_eye_space != XR_NULL_HANDLE) {
+    CHECK_XR_ASSERT(xrDestroySpace(oxr_->combined_eye_space));
   }
-  if (m_oxr->session != XR_NULL_HANDLE) {
-    CHECK_XR_ASSERT(xrDestroySession(m_oxr->session));
+  if (oxr_->session != XR_NULL_HANDLE) {
+    CHECK_XR_ASSERT(xrDestroySession(oxr_->session));
   }
 
-  m_oxr->session = XR_NULL_HANDLE;
-  m_oxr->session_state = XR_SESSION_STATE_UNKNOWN;
+  oxr_->session = XR_NULL_HANDLE;
+  oxr_->session_state = XR_SESSION_STATE_UNKNOWN;
 
-  m_oxr->passthrough_supported = false;
-  m_oxr->passthrough_layer.layerHandle = XR_NULL_HANDLE;
+  oxr_->passthrough_supported = false;
+  oxr_->passthrough_layer.layerHandle = XR_NULL_HANDLE;
 
-  m_context->getCustomFuncs().session_exit_fn(m_context->getCustomFuncs().session_exit_customdata);
+  context_->getCustomFuncs().session_exit_fn(context_->getCustomFuncs().session_exit_customdata);
 }
 
 /**
@@ -105,14 +105,14 @@ GHOST_XrSession::~GHOST_XrSession()
  */
 void GHOST_XrSession::initSystem()
 {
-  assert(m_context->getInstance() != XR_NULL_HANDLE);
-  assert(m_oxr->system_id == XR_NULL_SYSTEM_ID);
+  assert(context_->getInstance() != XR_NULL_HANDLE);
+  assert(oxr_->system_id == XR_NULL_SYSTEM_ID);
 
   XrSystemGetInfo system_info = {};
   system_info.type = XR_TYPE_SYSTEM_GET_INFO;
   system_info.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
 
-  CHECK_XR(xrGetSystem(m_context->getInstance(), &system_info, &m_oxr->system_id),
+  CHECK_XR(xrGetSystem(context_->getInstance(), &system_info, &oxr_->system_id),
            "Failed to get device information. Is a device plugged in?");
 }
 
@@ -211,9 +211,9 @@ static void create_reference_spaces(OpenXRSessionData &oxr,
 
 void GHOST_XrSession::start(const GHOST_XrSessionBeginInfo *begin_info)
 {
-  assert(m_context->getInstance() != XR_NULL_HANDLE);
-  assert(m_oxr->session == XR_NULL_HANDLE);
-  if (m_context->getCustomFuncs().gpu_ctx_bind_fn == nullptr) {
+  assert(context_->getInstance() != XR_NULL_HANDLE);
+  assert(oxr_->session == XR_NULL_HANDLE);
+  if (context_->getCustomFuncs().gpu_ctx_bind_fn == nullptr) {
     throw GHOST_XrException(
         "Invalid API usage: No way to bind graphics context to the XR session. Call "
         "GHOST_XrGraphicsContextBindFuncs() with valid parameters before starting the "
@@ -223,7 +223,7 @@ void GHOST_XrSession::start(const GHOST_XrSessionBeginInfo *begin_info)
   initSystem();
 
   bindGraphicsContext();
-  if (m_gpu_ctx == nullptr) {
+  if (gpu_ctx_ == nullptr) {
     throw GHOST_XrException(
         "Invalid API usage: No graphics context returned through the callback set with "
         "GHOST_XrGraphicsContextBindFuncs(). This is required for session starting (through "
@@ -231,62 +231,62 @@ void GHOST_XrSession::start(const GHOST_XrSessionBeginInfo *begin_info)
   }
 
   std::string requirement_str;
-  m_gpu_binding = GHOST_XrGraphicsBindingCreateFromType(m_context->getGraphicsBindingType(),
-                                                        *m_gpu_ctx);
-  if (!m_gpu_binding->checkVersionRequirements(
-          *m_gpu_ctx, m_context->getInstance(), m_oxr->system_id, &requirement_str))
+  gpu_binding_ = GHOST_XrGraphicsBindingCreateFromType(context_->getGraphicsBindingType(),
+                                                       *gpu_ctx_);
+  if (!gpu_binding_->checkVersionRequirements(
+          *gpu_ctx_, context_->getInstance(), oxr_->system_id, &requirement_str))
   {
     std::ostringstream strstream;
     strstream << "Available graphics context version does not meet the following requirements: "
               << requirement_str;
     throw GHOST_XrException(strstream.str().data());
   }
-  m_gpu_binding->initFromGhostContext(*m_gpu_ctx, m_context->getInstance(), m_oxr->system_id);
+  gpu_binding_->initFromGhostContext(*gpu_ctx_, context_->getInstance(), oxr_->system_id);
 
   XrSessionCreateInfo create_info = {};
   create_info.type = XR_TYPE_SESSION_CREATE_INFO;
-  create_info.systemId = m_oxr->system_id;
-  create_info.next = &m_gpu_binding->oxr_binding;
+  create_info.systemId = oxr_->system_id;
+  create_info.next = &gpu_binding_->oxr_binding;
 
-  CHECK_XR(xrCreateSession(m_context->getInstance(), &create_info, &m_oxr->session),
+  CHECK_XR(xrCreateSession(context_->getInstance(), &create_info, &oxr_->session),
            "Failed to create VR session. The OpenXR runtime may have additional requirements for "
            "the graphics driver that are not met. Other causes are possible too however.\nTip: "
            "The --debug-xr command line option for Blender might allow the runtime to output "
            "detailed error information to the command line.");
 
   prepareDrawing();
-  create_reference_spaces(*m_oxr, begin_info->base_pose, m_context->isDebugMode());
+  create_reference_spaces(*oxr_, begin_info->base_pose, context_->isDebugMode());
 
   /* Create and bind actions here. */
-  m_context->getCustomFuncs().session_create_fn();
+  context_->getCustomFuncs().session_create_fn();
 }
 
 void GHOST_XrSession::requestEnd()
 {
-  xrRequestExitSession(m_oxr->session);
+  xrRequestExitSession(oxr_->session);
 }
 
 void GHOST_XrSession::beginSession()
 {
   XrSessionBeginInfo begin_info = {XR_TYPE_SESSION_BEGIN_INFO};
-  begin_info.primaryViewConfigurationType = m_oxr->view_type;
-  CHECK_XR(xrBeginSession(m_oxr->session, &begin_info), "Failed to cleanly begin the VR session.");
+  begin_info.primaryViewConfigurationType = oxr_->view_type;
+  CHECK_XR(xrBeginSession(oxr_->session, &begin_info), "Failed to cleanly begin the VR session.");
 }
 
 void GHOST_XrSession::endSession()
 {
-  assert(m_oxr->session != XR_NULL_HANDLE);
-  CHECK_XR(xrEndSession(m_oxr->session), "Failed to cleanly end the VR session.");
+  assert(oxr_->session != XR_NULL_HANDLE);
+  CHECK_XR(xrEndSession(oxr_->session), "Failed to cleanly end the VR session.");
 }
 
 GHOST_XrSession::LifeExpectancy GHOST_XrSession::handleStateChangeEvent(
     const XrEventDataSessionStateChanged &lifecycle)
 {
-  m_oxr->session_state = lifecycle.state;
+  oxr_->session_state = lifecycle.state;
 
   /* Runtime may send events for apparently destroyed session. Our handle should be nullptr then.
    */
-  assert(m_oxr->session == XR_NULL_HANDLE || m_oxr->session == lifecycle.session);
+  assert(oxr_->session == XR_NULL_HANDLE || oxr_->session == lifecycle.session);
 
   switch (lifecycle.state) {
     case XR_SESSION_STATE_READY:
@@ -313,34 +313,33 @@ GHOST_XrSession::LifeExpectancy GHOST_XrSession::handleStateChangeEvent(
 
 void GHOST_XrSession::prepareDrawing()
 {
-  assert(m_context->getInstance() != XR_NULL_HANDLE);
+  assert(context_->getInstance() != XR_NULL_HANDLE);
 
   std::vector<XrViewConfigurationView> view_configs;
   uint32_t view_count;
 
   /* Attempt to use quad view if supported. */
-  if (m_context->isExtensionEnabled(XR_VARJO_QUAD_VIEWS_EXTENSION_NAME)) {
-    m_oxr->view_type = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_QUAD_VARJO;
+  if (context_->isExtensionEnabled(XR_VARJO_QUAD_VIEWS_EXTENSION_NAME)) {
+    oxr_->view_type = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_QUAD_VARJO;
   }
 
-  m_oxr->foveation_supported = m_context->isExtensionEnabled(
+  oxr_->foveation_supported = context_->isExtensionEnabled(
       XR_VARJO_FOVEATED_RENDERING_EXTENSION_NAME);
 
-  CHECK_XR(
-      xrEnumerateViewConfigurationViews(
-          m_context->getInstance(), m_oxr->system_id, m_oxr->view_type, 0, &view_count, nullptr),
-      "Failed to get count of view configurations.");
+  CHECK_XR(xrEnumerateViewConfigurationViews(
+               context_->getInstance(), oxr_->system_id, oxr_->view_type, 0, &view_count, nullptr),
+           "Failed to get count of view configurations.");
   view_configs.resize(view_count, {XR_TYPE_VIEW_CONFIGURATION_VIEW});
-  CHECK_XR(xrEnumerateViewConfigurationViews(m_context->getInstance(),
-                                             m_oxr->system_id,
-                                             m_oxr->view_type,
+  CHECK_XR(xrEnumerateViewConfigurationViews(context_->getInstance(),
+                                             oxr_->system_id,
+                                             oxr_->view_type,
                                              view_configs.size(),
                                              &view_count,
                                              view_configs.data()),
            "Failed to get view configurations.");
 
   /* If foveated rendering is used, query the foveated views. */
-  if (m_oxr->foveation_supported) {
+  if (oxr_->foveation_supported) {
     std::vector<XrFoveatedViewConfigurationViewVARJO> request_foveated_config{
         view_count, {XR_TYPE_FOVEATED_VIEW_CONFIGURATION_VIEW_VARJO, nullptr, XR_TRUE}};
 
@@ -350,9 +349,9 @@ void GHOST_XrSession::prepareDrawing()
     for (uint32_t i = 0; i < view_count; i++) {
       foveated_views[i].next = &request_foveated_config[i];
     }
-    CHECK_XR(xrEnumerateViewConfigurationViews(m_context->getInstance(),
-                                               m_oxr->system_id,
-                                               m_oxr->view_type,
+    CHECK_XR(xrEnumerateViewConfigurationViews(context_->getInstance(),
+                                               oxr_->system_id,
+                                               oxr_->view_type,
                                                view_configs.size(),
                                                &view_count,
                                                foveated_views.data()),
@@ -369,12 +368,12 @@ void GHOST_XrSession::prepareDrawing()
   }
 
   for (const XrViewConfigurationView &view_config : view_configs) {
-    m_oxr->swapchains.emplace_back(*m_gpu_binding, m_oxr->session, view_config);
+    oxr_->swapchains.emplace_back(*gpu_binding_, oxr_->session, view_config);
   }
 
-  m_oxr->views.resize(view_count, {XR_TYPE_VIEW});
+  oxr_->views.resize(view_count, {XR_TYPE_VIEW});
 
-  m_draw_info = std::make_unique<GHOST_XrDrawInfo>();
+  draw_info_ = std::make_unique<GHOST_XrDrawInfo>();
 }
 
 void GHOST_XrSession::beginFrameDrawing()
@@ -384,30 +383,30 @@ void GHOST_XrSession::beginFrameDrawing()
   XrFrameState frame_state = {XR_TYPE_FRAME_STATE};
 
   /* TODO Blocking call. Drawing should run on a separate thread to avoid interferences. */
-  CHECK_XR(xrWaitFrame(m_oxr->session, &wait_info, &frame_state),
+  CHECK_XR(xrWaitFrame(oxr_->session, &wait_info, &frame_state),
            "Failed to synchronize frame rates between Blender and the device.");
 
   /* Check if we have foveation available for the current frame. */
-  m_draw_info->foveation_active = false;
-  if (m_oxr->foveation_supported) {
+  draw_info_->foveation_active = false;
+  if (oxr_->foveation_supported) {
     XrSpaceLocation render_gaze_location{XR_TYPE_SPACE_LOCATION};
-    CHECK_XR(xrLocateSpace(m_oxr->combined_eye_space,
-                           m_oxr->view_space,
+    CHECK_XR(xrLocateSpace(oxr_->combined_eye_space,
+                           oxr_->view_space,
                            frame_state.predictedDisplayTime,
                            &render_gaze_location),
              "Failed to locate combined eye space.");
 
-    m_draw_info->foveation_active = (render_gaze_location.locationFlags &
-                                     XR_SPACE_LOCATION_ORIENTATION_TRACKED_BIT) != 0;
+    draw_info_->foveation_active = (render_gaze_location.locationFlags &
+                                    XR_SPACE_LOCATION_ORIENTATION_TRACKED_BIT) != 0;
   }
 
-  CHECK_XR(xrBeginFrame(m_oxr->session, &begin_info),
+  CHECK_XR(xrBeginFrame(oxr_->session, &begin_info),
            "Failed to submit frame rendering start state.");
 
-  m_draw_info->frame_state = frame_state;
+  draw_info_->frame_state = frame_state;
 
-  if (m_context->isDebugTimeMode()) {
-    m_draw_info->frame_begin_time = std::chrono::high_resolution_clock::now();
+  if (context_->isDebugTimeMode()) {
+    draw_info_->frame_begin_time = std::chrono::high_resolution_clock::now();
   }
 }
 
@@ -439,15 +438,15 @@ void GHOST_XrSession::endFrameDrawing(std::vector<XrCompositionLayerBaseHeader *
 {
   XrFrameEndInfo end_info = {XR_TYPE_FRAME_END_INFO};
 
-  end_info.displayTime = m_draw_info->frame_state.predictedDisplayTime;
+  end_info.displayTime = draw_info_->frame_state.predictedDisplayTime;
   end_info.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
   end_info.layerCount = layers.size();
   end_info.layers = layers.data();
 
-  CHECK_XR(xrEndFrame(m_oxr->session, &end_info), "Failed to submit rendered frame.");
+  CHECK_XR(xrEndFrame(oxr_->session, &end_info), "Failed to submit rendered frame.");
 
-  if (m_context->isDebugTimeMode()) {
-    print_debug_timings(*m_draw_info);
+  if (context_->isDebugTimeMode()) {
+    print_debug_timings(*draw_info_);
   }
 }
 
@@ -460,17 +459,17 @@ void GHOST_XrSession::draw(void *draw_customdata)
 
   beginFrameDrawing();
 
-  if (m_context->getCustomFuncs().passthrough_enabled_fn(draw_customdata)) {
+  if (context_->getCustomFuncs().passthrough_enabled_fn(draw_customdata)) {
     enablePassthrough();
-    if (m_oxr->passthrough_supported) {
-      layers.push_back((XrCompositionLayerBaseHeader *)&m_oxr->passthrough_layer);
+    if (oxr_->passthrough_supported) {
+      layers.push_back((XrCompositionLayerBaseHeader *)&oxr_->passthrough_layer);
     }
     else {
-      m_context->getCustomFuncs().disable_passthrough_fn(draw_customdata);
+      context_->getCustomFuncs().disable_passthrough_fn(draw_customdata);
     }
   }
 
-  if (m_draw_info->frame_state.shouldRender) {
+  if (draw_info_->frame_state.shouldRender) {
     proj_layer = drawLayer(projection_layer_views, draw_customdata);
     if (layers.size() > 0) {
       proj_layer.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
@@ -518,8 +517,8 @@ void GHOST_XrSession::drawView(GHOST_XrSwapchain &swapchain,
   ghost_xr_draw_view_info_from_view(view, draw_view_info);
 
   /* Draw! */
-  m_context->getCustomFuncs().draw_view_fn(&draw_view_info, draw_customdata);
-  m_gpu_binding->submitToSwapchainImage(swapchain_image, draw_view_info);
+  context_->getCustomFuncs().draw_view_fn(&draw_view_info, draw_customdata);
+  gpu_binding_->submitToSwapchainImage(swapchain_image, draw_view_info);
 }
 
 XrCompositionLayerProjection GHOST_XrSession::drawLayer(
@@ -533,59 +532,58 @@ XrCompositionLayerProjection GHOST_XrSession::drawLayer(
   XrSpaceLocation view_location{XR_TYPE_SPACE_LOCATION};
   uint32_t view_count;
 
-  viewloc_info.viewConfigurationType = m_oxr->view_type;
-  viewloc_info.displayTime = m_draw_info->frame_state.predictedDisplayTime;
-  viewloc_info.space = m_oxr->reference_space;
+  viewloc_info.viewConfigurationType = oxr_->view_type;
+  viewloc_info.displayTime = draw_info_->frame_state.predictedDisplayTime;
+  viewloc_info.space = oxr_->reference_space;
 
-  if (m_draw_info->foveation_active) {
+  if (draw_info_->foveation_active) {
     viewloc_info.next = &foveated_info;
   }
 
-  CHECK_XR(xrLocateViews(m_oxr->session,
+  CHECK_XR(xrLocateViews(oxr_->session,
                          &viewloc_info,
                          &view_state,
-                         m_oxr->views.size(),
+                         oxr_->views.size(),
                          &view_count,
-                         m_oxr->views.data()),
+                         oxr_->views.data()),
            "Failed to query frame view and projection state.");
 
-  assert(m_oxr->swapchains.size() == view_count);
+  assert(oxr_->swapchains.size() == view_count);
 
-  CHECK_XR(
-      xrLocateSpace(
-          m_oxr->view_space, m_oxr->reference_space, viewloc_info.displayTime, &view_location),
-      "Failed to query frame view space");
+  CHECK_XR(xrLocateSpace(
+               oxr_->view_space, oxr_->reference_space, viewloc_info.displayTime, &view_location),
+           "Failed to query frame view space");
 
   r_proj_layer_views.resize(view_count);
   std::vector<XrSwapchainImageBaseHeader *> swapchain_images;
   swapchain_images.resize(view_count);
 
   for (uint32_t view_idx = 0; view_idx < view_count; view_idx++) {
-    GHOST_XrSwapchain &swapchain = m_oxr->swapchains[view_idx];
+    GHOST_XrSwapchain &swapchain = oxr_->swapchains[view_idx];
     swapchain_images[view_idx] = swapchain.acquireDrawableSwapchainImage();
   }
 
-  m_gpu_binding->submitToSwapchainBegin();
+  gpu_binding_->submitToSwapchainBegin();
   for (uint32_t view_idx = 0; view_idx < view_count; view_idx++) {
-    GHOST_XrSwapchain &swapchain = m_oxr->swapchains[view_idx];
+    GHOST_XrSwapchain &swapchain = oxr_->swapchains[view_idx];
     XrSwapchainImageBaseHeader &swapchain_image = *swapchain_images[view_idx];
     drawView(swapchain,
              swapchain_image,
              r_proj_layer_views[view_idx],
              view_location,
-             m_oxr->views[view_idx],
+             oxr_->views[view_idx],
              view_idx,
              draw_customdata);
   }
-  m_gpu_binding->submitToSwapchainEnd();
+  gpu_binding_->submitToSwapchainEnd();
 
   for (uint32_t view_idx = 0; view_idx < view_count; view_idx++) {
-    GHOST_XrSwapchain &swapchain = m_oxr->swapchains[view_idx];
+    GHOST_XrSwapchain &swapchain = oxr_->swapchains[view_idx];
     swapchain.releaseImage();
     swapchain_images[view_idx] = nullptr;
   }
 
-  layer.space = m_oxr->reference_space;
+  layer.space = oxr_->reference_space;
   layer.viewCount = r_proj_layer_views.size();
   layer.views = r_proj_layer_views.data();
 
@@ -594,7 +592,7 @@ XrCompositionLayerProjection GHOST_XrSession::drawLayer(
 
 bool GHOST_XrSession::needsUpsideDownDrawing() const
 {
-  return m_gpu_binding && m_gpu_binding->needsUpsideDownDrawing(*m_gpu_ctx);
+  return gpu_binding_ && gpu_binding_->needsUpsideDownDrawing(*gpu_ctx_);
 }
 
 /** \} */ /* Drawing */
@@ -605,10 +603,10 @@ bool GHOST_XrSession::needsUpsideDownDrawing() const
 
 bool GHOST_XrSession::isRunning() const
 {
-  if (m_oxr->session == XR_NULL_HANDLE) {
+  if (oxr_->session == XR_NULL_HANDLE) {
     return false;
   }
-  switch (m_oxr->session_state) {
+  switch (oxr_->session_state) {
     case XR_SESSION_STATE_READY:
     case XR_SESSION_STATE_SYNCHRONIZED:
     case XR_SESSION_STATE_VISIBLE:
@@ -633,18 +631,18 @@ bool GHOST_XrSession::isRunning() const
 
 void GHOST_XrSession::bindGraphicsContext()
 {
-  const GHOST_XrCustomFuncs &custom_funcs = m_context->getCustomFuncs();
+  const GHOST_XrCustomFuncs &custom_funcs = context_->getCustomFuncs();
   assert(custom_funcs.gpu_ctx_bind_fn);
-  m_gpu_ctx = static_cast<GHOST_Context *>(custom_funcs.gpu_ctx_bind_fn());
+  gpu_ctx_ = static_cast<GHOST_Context *>(custom_funcs.gpu_ctx_bind_fn());
 }
 
 void GHOST_XrSession::unbindGraphicsContext()
 {
-  const GHOST_XrCustomFuncs &custom_funcs = m_context->getCustomFuncs();
+  const GHOST_XrCustomFuncs &custom_funcs = context_->getCustomFuncs();
   if (custom_funcs.gpu_ctx_unbind_fn) {
-    custom_funcs.gpu_ctx_unbind_fn((GHOST_ContextHandle)m_gpu_ctx);
+    custom_funcs.gpu_ctx_unbind_fn((GHOST_ContextHandle)gpu_ctx_);
   }
-  m_gpu_ctx = nullptr;
+  gpu_ctx_ = nullptr;
 }
 
 /** \} */ /* Graphics Context Injection */
@@ -665,12 +663,12 @@ static GHOST_XrActionSet *find_action_set(OpenXRSessionData *oxr, const char *ac
 
 bool GHOST_XrSession::createActionSet(const GHOST_XrActionSetInfo &info)
 {
-  std::map<std::string, GHOST_XrActionSet> &action_sets = m_oxr->action_sets;
+  std::map<std::string, GHOST_XrActionSet> &action_sets = oxr_->action_sets;
   if (action_sets.find(info.name) != action_sets.end()) {
     return false;
   }
 
-  XrInstance instance = m_context->getInstance();
+  XrInstance instance = context_->getInstance();
 
   action_sets.emplace(
       std::piecewise_construct, std::make_tuple(info.name), std::make_tuple(instance, info));
@@ -680,7 +678,7 @@ bool GHOST_XrSession::createActionSet(const GHOST_XrActionSetInfo &info)
 
 void GHOST_XrSession::destroyActionSet(const char *action_set_name)
 {
-  std::map<std::string, GHOST_XrActionSet> &action_sets = m_oxr->action_sets;
+  std::map<std::string, GHOST_XrActionSet> &action_sets = oxr_->action_sets;
   /* It's possible nothing is removed. */
   action_sets.erase(action_set_name);
 }
@@ -689,12 +687,12 @@ bool GHOST_XrSession::createActions(const char *action_set_name,
                                     uint32_t count,
                                     const GHOST_XrActionInfo *infos)
 {
-  GHOST_XrActionSet *action_set = find_action_set(m_oxr.get(), action_set_name);
+  GHOST_XrActionSet *action_set = find_action_set(oxr_.get(), action_set_name);
   if (action_set == nullptr) {
     return false;
   }
 
-  XrInstance instance = m_context->getInstance();
+  XrInstance instance = context_->getInstance();
 
   for (uint32_t i = 0; i < count; ++i) {
     if (!action_set->createAction(instance, infos[i])) {
@@ -709,7 +707,7 @@ void GHOST_XrSession::destroyActions(const char *action_set_name,
                                      uint32_t count,
                                      const char *const *action_names)
 {
-  GHOST_XrActionSet *action_set = find_action_set(m_oxr.get(), action_set_name);
+  GHOST_XrActionSet *action_set = find_action_set(oxr_.get(), action_set_name);
   if (action_set == nullptr) {
     return;
   }
@@ -723,13 +721,13 @@ bool GHOST_XrSession::createActionBindings(const char *action_set_name,
                                            uint32_t count,
                                            const GHOST_XrActionProfileInfo *infos)
 {
-  GHOST_XrActionSet *action_set = find_action_set(m_oxr.get(), action_set_name);
+  GHOST_XrActionSet *action_set = find_action_set(oxr_.get(), action_set_name);
   if (action_set == nullptr) {
     return false;
   }
 
-  XrInstance instance = m_context->getInstance();
-  XrSession session = m_oxr->session;
+  XrInstance instance = context_->getInstance();
+  XrSession session = oxr_->session;
 
   for (uint32_t profile_idx = 0; profile_idx < count; ++profile_idx) {
     const GHOST_XrActionProfileInfo &info = infos[profile_idx];
@@ -750,7 +748,7 @@ void GHOST_XrSession::destroyActionBindings(const char *action_set_name,
                                             const char *const *action_names,
                                             const char *const *profile_paths)
 {
-  GHOST_XrActionSet *action_set = find_action_set(m_oxr.get(), action_set_name);
+  GHOST_XrActionSet *action_set = find_action_set(oxr_.get(), action_set_name);
   if (action_set == nullptr) {
     return;
   }
@@ -769,7 +767,7 @@ bool GHOST_XrSession::attachActionSets()
 {
   /* Suggest action bindings for all action sets. */
   std::map<XrPath, std::vector<XrActionSuggestedBinding>> profile_bindings;
-  for (auto &[name, action_set] : m_oxr->action_sets) {
+  for (auto &[name, action_set] : oxr_->action_sets) {
     action_set.getBindings(profile_bindings);
   }
 
@@ -779,7 +777,7 @@ bool GHOST_XrSession::attachActionSets()
 
   XrInteractionProfileSuggestedBinding bindings_info{
       XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING};
-  XrInstance instance = m_context->getInstance();
+  XrInstance instance = context_->getInstance();
 
   for (auto &[profile, bindings] : profile_bindings) {
     bindings_info.interactionProfile = profile;
@@ -792,17 +790,17 @@ bool GHOST_XrSession::attachActionSets()
 
   /* Attach action sets. */
   XrSessionActionSetsAttachInfo attach_info{XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO};
-  attach_info.countActionSets = uint32_t(m_oxr->action_sets.size());
+  attach_info.countActionSets = uint32_t(oxr_->action_sets.size());
 
   /* Create an aligned copy of the action sets to pass to xrAttachSessionActionSets(). */
   std::vector<XrActionSet> action_sets(attach_info.countActionSets);
   uint32_t i = 0;
-  for (auto &[name, action_set] : m_oxr->action_sets) {
+  for (auto &[name, action_set] : oxr_->action_sets) {
     action_sets[i++] = action_set.getActionSet();
   }
   attach_info.actionSets = action_sets.data();
 
-  CHECK_XR(xrAttachSessionActionSets(m_oxr->session, &attach_info),
+  CHECK_XR(xrAttachSessionActionSets(oxr_->session, &attach_info),
            "Failed to attach XR action sets.");
 
   return true;
@@ -810,7 +808,7 @@ bool GHOST_XrSession::attachActionSets()
 
 bool GHOST_XrSession::syncActions(const char *action_set_name)
 {
-  std::map<std::string, GHOST_XrActionSet> &action_sets = m_oxr->action_sets;
+  std::map<std::string, GHOST_XrActionSet> &action_sets = oxr_->action_sets;
 
   XrActionsSyncInfo sync_info{XR_TYPE_ACTIONS_SYNC_INFO};
   sync_info.countActiveActionSets = (action_set_name != nullptr) ? 1 :
@@ -823,7 +821,7 @@ bool GHOST_XrSession::syncActions(const char *action_set_name)
   GHOST_XrActionSet *action_set = nullptr;
 
   if (action_set_name != nullptr) {
-    action_set = find_action_set(m_oxr.get(), action_set_name);
+    action_set = find_action_set(oxr_.get(), action_set_name);
     if (action_set == nullptr) {
       return false;
     }
@@ -842,12 +840,12 @@ bool GHOST_XrSession::syncActions(const char *action_set_name)
   }
   sync_info.activeActionSets = active_action_sets.data();
 
-  CHECK_XR(xrSyncActions(m_oxr->session, &sync_info), "Failed to synchronize XR actions.");
+  CHECK_XR(xrSyncActions(oxr_->session, &sync_info), "Failed to synchronize XR actions.");
 
   /* Update action states (i.e. Blender custom data). */
-  XrSession session = m_oxr->session;
-  XrSpace reference_space = m_oxr->reference_space;
-  const XrTime &predicted_display_time = m_draw_info->frame_state.predictedDisplayTime;
+  XrSession session = oxr_->session;
+  XrSpace reference_space = oxr_->reference_space;
+  const XrTime &predicted_display_time = draw_info_->frame_state.predictedDisplayTime;
 
   if (action_set != nullptr) {
     action_set->updateStates(session, reference_space, predicted_display_time);
@@ -868,7 +866,7 @@ bool GHOST_XrSession::applyHapticAction(const char *action_set_name,
                                         const float &frequency,
                                         const float &amplitude)
 {
-  GHOST_XrActionSet *action_set = find_action_set(m_oxr.get(), action_set_name);
+  GHOST_XrActionSet *action_set = find_action_set(oxr_.get(), action_set_name);
   if (action_set == nullptr) {
     return false;
   }
@@ -879,7 +877,7 @@ bool GHOST_XrSession::applyHapticAction(const char *action_set_name,
   }
 
   action->applyHapticFeedback(
-      m_oxr->session, action_name, subaction_path, duration, frequency, amplitude);
+      oxr_->session, action_name, subaction_path, duration, frequency, amplitude);
 
   return true;
 }
@@ -888,7 +886,7 @@ void GHOST_XrSession::stopHapticAction(const char *action_set_name,
                                        const char *action_name,
                                        const char *subaction_path)
 {
-  GHOST_XrActionSet *action_set = find_action_set(m_oxr.get(), action_set_name);
+  GHOST_XrActionSet *action_set = find_action_set(oxr_.get(), action_set_name);
   if (action_set == nullptr) {
     return;
   }
@@ -898,12 +896,12 @@ void GHOST_XrSession::stopHapticAction(const char *action_set_name,
     return;
   }
 
-  action->stopHapticFeedback(m_oxr->session, action_name, subaction_path);
+  action->stopHapticFeedback(oxr_->session, action_name, subaction_path);
 }
 
 void *GHOST_XrSession::getActionSetCustomdata(const char *action_set_name)
 {
-  GHOST_XrActionSet *action_set = find_action_set(m_oxr.get(), action_set_name);
+  GHOST_XrActionSet *action_set = find_action_set(oxr_.get(), action_set_name);
   if (action_set == nullptr) {
     return nullptr;
   }
@@ -913,7 +911,7 @@ void *GHOST_XrSession::getActionSetCustomdata(const char *action_set_name)
 
 void *GHOST_XrSession::getActionCustomdata(const char *action_set_name, const char *action_name)
 {
-  GHOST_XrActionSet *action_set = find_action_set(m_oxr.get(), action_set_name);
+  GHOST_XrActionSet *action_set = find_action_set(oxr_.get(), action_set_name);
   if (action_set == nullptr) {
     return nullptr;
   }
@@ -928,7 +926,7 @@ void *GHOST_XrSession::getActionCustomdata(const char *action_set_name, const ch
 
 uint32_t GHOST_XrSession::getActionCount(const char *action_set_name)
 {
-  const GHOST_XrActionSet *action_set = find_action_set(m_oxr.get(), action_set_name);
+  const GHOST_XrActionSet *action_set = find_action_set(oxr_.get(), action_set_name);
   if (action_set == nullptr) {
     return 0;
   }
@@ -939,7 +937,7 @@ uint32_t GHOST_XrSession::getActionCount(const char *action_set_name)
 void GHOST_XrSession::getActionCustomdataArray(const char *action_set_name,
                                                void **r_customdata_array)
 {
-  GHOST_XrActionSet *action_set = find_action_set(m_oxr.get(), action_set_name);
+  GHOST_XrActionSet *action_set = find_action_set(oxr_.get(), action_set_name);
   if (action_set == nullptr) {
     return;
   }
@@ -956,17 +954,17 @@ void GHOST_XrSession::getActionCustomdataArray(const char *action_set_name,
 
 bool GHOST_XrSession::loadControllerModel(const char *subaction_path)
 {
-  if (!m_context->isExtensionEnabled(XR_MSFT_CONTROLLER_MODEL_EXTENSION_NAME)) {
+  if (!context_->isExtensionEnabled(XR_MSFT_CONTROLLER_MODEL_EXTENSION_NAME)) {
     return false;
   }
 
-  XrSession session = m_oxr->session;
-  std::map<std::string, GHOST_XrControllerModel> &controller_models = m_oxr->controller_models;
+  XrSession session = oxr_->session;
+  std::map<std::string, GHOST_XrControllerModel> &controller_models = oxr_->controller_models;
   std::map<std::string, GHOST_XrControllerModel>::iterator it = controller_models.find(
       subaction_path);
 
   if (it == controller_models.end()) {
-    XrInstance instance = m_context->getInstance();
+    XrInstance instance = context_->getInstance();
     it = controller_models
              .emplace(std::piecewise_construct,
                       std::make_tuple(subaction_path),
@@ -981,17 +979,17 @@ bool GHOST_XrSession::loadControllerModel(const char *subaction_path)
 
 void GHOST_XrSession::unloadControllerModel(const char *subaction_path)
 {
-  std::map<std::string, GHOST_XrControllerModel> &controller_models = m_oxr->controller_models;
+  std::map<std::string, GHOST_XrControllerModel> &controller_models = oxr_->controller_models;
   /* It's possible nothing is removed. */
   controller_models.erase(subaction_path);
 }
 
 bool GHOST_XrSession::updateControllerModelComponents(const char *subaction_path)
 {
-  XrSession session = m_oxr->session;
-  std::map<std::string, GHOST_XrControllerModel>::iterator it = m_oxr->controller_models.find(
+  XrSession session = oxr_->session;
+  std::map<std::string, GHOST_XrControllerModel>::iterator it = oxr_->controller_models.find(
       subaction_path);
-  if (it == m_oxr->controller_models.end()) {
+  if (it == oxr_->controller_models.end()) {
     return false;
   }
 
@@ -1003,9 +1001,9 @@ bool GHOST_XrSession::updateControllerModelComponents(const char *subaction_path
 bool GHOST_XrSession::getControllerModelData(const char *subaction_path,
                                              GHOST_XrControllerModelData &r_data)
 {
-  std::map<std::string, GHOST_XrControllerModel>::iterator it = m_oxr->controller_models.find(
+  std::map<std::string, GHOST_XrControllerModel>::iterator it = oxr_->controller_models.find(
       subaction_path);
-  if (it == m_oxr->controller_models.end()) {
+  if (it == oxr_->controller_models.end()) {
     return false;
   }
 
@@ -1044,16 +1042,16 @@ static void init_passthrough_extension_functions(XrInstance instance)
 
 void GHOST_XrSession::enablePassthrough()
 {
-  if (!m_context->isExtensionEnabled(XR_FB_PASSTHROUGH_EXTENSION_NAME)) {
-    m_oxr->passthrough_supported = false;
+  if (!context_->isExtensionEnabled(XR_FB_PASSTHROUGH_EXTENSION_NAME)) {
+    oxr_->passthrough_supported = false;
     return;
   }
 
-  if (m_oxr->passthrough_layer.layerHandle != XR_NULL_HANDLE) {
+  if (oxr_->passthrough_layer.layerHandle != XR_NULL_HANDLE) {
     return; /* Already initialized */
   }
 
-  init_passthrough_extension_functions(m_context->getInstance());
+  init_passthrough_extension_functions(context_->getInstance());
 
   XrResult result;
 
@@ -1063,7 +1061,7 @@ void GHOST_XrSession::enablePassthrough()
   passthrough_create_info.flags |= XR_PASSTHROUGH_IS_RUNNING_AT_CREATION_BIT_FB;
 
   XrPassthroughFB passthrough_handle;
-  result = g_xrCreatePassthroughFB(m_oxr->session, &passthrough_create_info, &passthrough_handle);
+  result = g_xrCreatePassthroughFB(oxr_->session, &passthrough_create_info, &passthrough_handle);
 
   XrPassthroughLayerCreateInfoFB passthrough_layer_create_info;
   passthrough_layer_create_info.type = XR_TYPE_PASSTHROUGH_LAYER_CREATE_INFO_FB;
@@ -1074,18 +1072,18 @@ void GHOST_XrSession::enablePassthrough()
 
   XrPassthroughLayerFB passthrough_layer_handle;
   result = g_xrCreatePassthroughLayerFB(
-      m_oxr->session, &passthrough_layer_create_info, &passthrough_layer_handle);
+      oxr_->session, &passthrough_layer_create_info, &passthrough_layer_handle);
 
   g_xrPassthroughStartFB(passthrough_handle);
   g_xrPassthroughLayerResumeFB(passthrough_layer_handle);
 
-  m_oxr->passthrough_layer.type = XR_TYPE_COMPOSITION_LAYER_PASSTHROUGH_FB;
-  m_oxr->passthrough_layer.next = nullptr;
-  m_oxr->passthrough_layer.flags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
-  m_oxr->passthrough_layer.space = nullptr;
-  m_oxr->passthrough_layer.layerHandle = passthrough_layer_handle;
+  oxr_->passthrough_layer.type = XR_TYPE_COMPOSITION_LAYER_PASSTHROUGH_FB;
+  oxr_->passthrough_layer.next = nullptr;
+  oxr_->passthrough_layer.flags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
+  oxr_->passthrough_layer.space = nullptr;
+  oxr_->passthrough_layer.layerHandle = passthrough_layer_handle;
 
-  m_oxr->passthrough_supported = (result == XR_SUCCESS);
+  oxr_->passthrough_supported = (result == XR_SUCCESS);
 }
 
 /** \} */ /* Meta Quest Passthrough */

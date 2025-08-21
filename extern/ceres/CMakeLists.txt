@@ -184,9 +184,6 @@ set(SRC
   internal/ceres/float_suitesparse.h
   internal/ceres/function_sample.cc
   internal/ceres/function_sample.h
-  internal/ceres/generate_bundle_adjustment_tests.py
-  internal/ceres/generate_template_specializations.py
-  internal/ceres/generated
   internal/ceres/gradient_checker.cc
   internal/ceres/gradient_checking_cost_function.cc
   internal/ceres/gradient_checking_cost_function.h
@@ -246,7 +243,6 @@ set(SRC
   internal/ceres/partitioned_matrix_view.cc
   internal/ceres/partitioned_matrix_view.h
   internal/ceres/partitioned_matrix_view_impl.h
-  internal/ceres/partitioned_matrix_view_template.py
   internal/ceres/polynomial.cc
   internal/ceres/polynomial.h
   internal/ceres/power_series_expansion_preconditioner.cc
@@ -272,7 +268,6 @@ set(SRC
   internal/ceres/schur_eliminator.cc
   internal/ceres/schur_eliminator.h
   internal/ceres/schur_eliminator_impl.h
-  internal/ceres/schur_eliminator_template.py
   internal/ceres/schur_jacobi_preconditioner.cc
   internal/ceres/schur_jacobi_preconditioner.h
   internal/ceres/schur_templates.cc

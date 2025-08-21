@@ -164,10 +164,13 @@ RESHAPE(float3x3, mat3x3, mat3x4)
 #define _enum_decl(name) constexpr uint
 #define _enum_end _enum_dummy;
 
-#define TEMPLATE_GLUE1(name, arg1) name##_##arg1##_
-#define TEMPLATE_GLUE2(name, arg1, arg2) name##_##arg1##_##arg2##_
-#define TEMPLATE_GLUE3(name, arg1, arg2, arg3) name##_##arg1##_##arg2##_##arg3##_
-#define TEMPLATE_GLUE4(name, arg1, arg2, arg3, arg4) name##_##arg1##_##arg2##_##arg3##_##arg4##_
+/* Incompatible keywords. */
+#define static
+#define inline
+#define constant
+#define device
+#define thread
+#define threadgroup
 
 /* Stage agnostic builtin function.
  * GLSL doesn't allow mixing shader stages inside the same source file.

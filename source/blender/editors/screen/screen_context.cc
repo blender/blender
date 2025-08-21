@@ -280,7 +280,7 @@ static eContextResult screen_ctx_visible_or_editable_bones_(const bContext *C,
       /* Attention: X-Axis Mirroring is also handled here... */
       LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
         /* first and foremost, bone must be visible and selected */
-        if (blender::animrig::bone_is_visible_editbone(arm, ebone)) {
+        if (blender::animrig::bone_is_visible(arm, ebone)) {
           /* Get 'x-axis mirror equivalent' bone if the X-Axis Mirroring option is enabled
            * so that most users of this data don't need to explicitly check for it themselves.
            *
@@ -307,7 +307,7 @@ static eContextResult screen_ctx_visible_or_editable_bones_(const bContext *C,
             /* only include bones if visible */
             CTX_data_list_add(result, &arm->id, &RNA_EditBone, ebone);
 
-            if ((flipbone) && blender::animrig::bone_is_visible_editbone(arm, flipbone) == 0) {
+            if ((flipbone) && blender::animrig::bone_is_visible(arm, flipbone) == 0) {
               CTX_data_list_add(result, &arm->id, &RNA_EditBone, flipbone);
             }
           }
@@ -350,9 +350,7 @@ static eContextResult screen_ctx_selected_bones_(const bContext *C,
       /* Attention: X-Axis Mirroring is also handled here... */
       LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
         /* first and foremost, bone must be visible and selected */
-        if (blender::animrig::bone_is_visible_editbone(arm, ebone) &&
-            (ebone->flag & BONE_SELECTED))
-        {
+        if (blender::animrig::bone_is_visible(arm, ebone) && (ebone->flag & BONE_SELECTED)) {
           /* Get 'x-axis mirror equivalent' bone if the X-Axis Mirroring option is enabled
            * so that most users of this data don't need to explicitly check for it themselves.
            *
@@ -690,7 +688,7 @@ static eContextResult screen_ctx_sequences(const bContext *C, bContextDataResult
   Scene *scene = WM_window_get_active_scene(win);
   Editing *ed = blender::seq::editing_get(scene);
   if (ed) {
-    LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
+    LISTBASE_FOREACH (Strip *, strip, ed->current_strips()) {
       CTX_data_list_add(result, &scene->id, &RNA_Strip, strip);
     }
     CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
@@ -704,7 +702,7 @@ static eContextResult screen_ctx_selected_sequences(const bContext *C, bContextD
   Scene *scene = WM_window_get_active_scene(win);
   Editing *ed = blender::seq::editing_get(scene);
   if (ed) {
-    LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
+    LISTBASE_FOREACH (Strip *, strip, ed->current_strips()) {
       if (strip->flag & SELECT) {
         CTX_data_list_add(result, &scene->id, &RNA_Strip, strip);
       }
@@ -725,7 +723,7 @@ static eContextResult screen_ctx_selected_editable_sequences(const bContext *C,
   }
 
   ListBase *channels = blender::seq::channels_displayed_get(ed);
-  LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
+  LISTBASE_FOREACH (Strip *, strip, ed->current_strips()) {
     if (strip->flag & SELECT && !blender::seq::transform_is_locked(channels, strip)) {
       CTX_data_list_add(result, &scene->id, &RNA_Strip, strip);
     }
@@ -1155,7 +1153,7 @@ static eContextResult screen_ctx_strips(const bContext *C, bContextDataResult *r
   Scene *scene = WM_window_get_active_scene(win);
   Editing *ed = blender::seq::editing_get(scene);
   if (ed) {
-    LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
+    LISTBASE_FOREACH (Strip *, strip, ed->current_strips()) {
       CTX_data_list_add(result, &scene->id, &RNA_Strip, strip);
     }
     CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
@@ -1169,7 +1167,7 @@ static eContextResult screen_ctx_selected_strips(const bContext *C, bContextData
   Scene *scene = WM_window_get_active_scene(win);
   Editing *ed = blender::seq::editing_get(scene);
   if (ed) {
-    LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
+    LISTBASE_FOREACH (Strip *, strip, ed->current_strips()) {
       if (strip->flag & SELECT) {
         CTX_data_list_add(result, &scene->id, &RNA_Strip, strip);
       }
@@ -1190,7 +1188,7 @@ static eContextResult screen_ctx_selected_editable_strips(const bContext *C,
   }
 
   ListBase *channels = blender::seq::channels_displayed_get(ed);
-  LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
+  LISTBASE_FOREACH (Strip *, strip, ed->current_strips()) {
     if (strip->flag & SELECT && !blender::seq::transform_is_locked(channels, strip)) {
       CTX_data_list_add(result, &scene->id, &RNA_Strip, strip);
     }

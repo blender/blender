@@ -113,7 +113,7 @@ static wmOperatorStatus outliner_highlight_update_invoke(bContext *C,
 
   /* Drag and drop does its own highlighting. */
   wmWindowManager *wm = CTX_wm_manager(C);
-  if (wm->drags.first) {
+  if (wm->runtime->drags.first) {
     return OPERATOR_PASS_THROUGH;
   }
 

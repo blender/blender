@@ -87,18 +87,6 @@ void GLShader::init(const shader::ShaderCreateInfo &info, bool is_batch_compilat
   }
 }
 
-void GLShader::init()
-{
-  main_program_ = program_cache_
-                      .lookup_or_add_cb(constants->values,
-                                        []() { return std::make_unique<GLProgram>(); })
-                      .get();
-  if (!main_program_->program_id) {
-    main_program_->program_id = glCreateProgram();
-    debug::object_label(GL_PROGRAM, main_program_->program_id, name);
-  }
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -616,6 +604,10 @@ std::string GLShader::resources_declare(const ShaderCreateInfo &info) const
         BLI_assert_unreachable();
         break;
     }
+  }
+  ss << "\n/* Shared Variables. */\n";
+  for (const ShaderCreateInfo::SharedVariable &sv : info.shared_variables_) {
+    ss << "shared " << to_string(sv.type) << " " << sv.name << ";\n";
   }
   /* NOTE: We define macros in GLSL to trigger compilation error if the resource names
    * are reused for local variables. This is to match other backend behavior which needs accessors

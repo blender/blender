@@ -872,17 +872,18 @@ typedef struct SpaceNode {
   /** Shader from object or world (#eSpaceNode_ShaderFrom). */
   char shaderfrom;
   /**
-   * Whether to edit any geometry node group, or follow the active modifier context.
-   * #SpaceNodeGeometryNodesType.
+   * The sub type of the node tree being edited.
+   * #SpaceNodeGeometryNodesType or #SpaceNodeCompositorNodesType.
    */
-  char geometry_nodes_type;
+  char node_tree_sub_type;
 
   /**
-   * Used as the editor's top-level node group for #SNODE_GEOMETRY_TOOL. This is stored in the
-   * node editor because it isn't part of the context otherwise, and it isn't meant to be set
-   * separately from the editor's regular node group.
+   * Used as the editor's top-level node group for node trees that are not part of the context and
+   * thus needs to be stored in the node editor. For instance #SNODE_GEOMETRY_MODIFIER is part of
+   * the context since it is stored on the active modifier, while #SNODE_GEOMETRY_TOOL is not part
+   * of the context.
    */
-  struct bNodeTree *geometry_nodes_tool_tree;
+  struct bNodeTree *selected_node_group;
 
   /** Grease-pencil data. */
   struct bGPdata *gpd;

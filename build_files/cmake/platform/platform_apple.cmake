@@ -221,7 +221,7 @@ else()
 	  "Try building MacOS version first: 'make update' or 'make deps'\n"
     )
   endif()
-  
+
   message(STATUS "HOST PYTHON EXECUTABLE: ${PYTHON_EXECUTABLE}")
 endif()
 
@@ -276,11 +276,6 @@ add_bundled_libraries(opensubdiv/lib)
 
 if(WITH_APPLE_CROSSPLATFORM)
   set(OPENSUBDIV_INCLUDE_DIRS ${OPENSUBDIV_INCLUDE_DIR})
-endif()
-if(WITH_VULKAN_BACKEND)
-  find_package(MoltenVK REQUIRED)
-  find_package(ShaderC REQUIRED)
-  find_package(Vulkan REQUIRED)
 endif()
 
 if(WITH_CODEC_SNDFILE)

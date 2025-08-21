@@ -540,10 +540,10 @@ const EnumPropertyItem rna_enum_node_combsep_color_items[] = {
 };
 
 static const EnumPropertyItem rna_enum_mix_data_type_items[] = {
-    {SOCK_FLOAT, "FLOAT", 0, "Float", ""},
-    {SOCK_VECTOR, "VECTOR", 0, "Vector", ""},
-    {SOCK_RGBA, "RGBA", 0, "Color", ""},
-    {SOCK_ROTATION, "ROTATION", 0, "Rotation", ""},
+    {SOCK_FLOAT, "FLOAT", ICON_NODE_SOCKET_FLOAT, "Float", ""},
+    {SOCK_VECTOR, "VECTOR", ICON_NODE_SOCKET_VECTOR, "Vector", ""},
+    {SOCK_RGBA, "RGBA", ICON_NODE_SOCKET_RGBA, "Color", ""},
+    {SOCK_ROTATION, "ROTATION", ICON_NODE_SOCKET_ROTATION, "Rotation", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -4717,8 +4717,12 @@ static void def_clamp(BlenderRNA * /*brna*/, StructRNA *srna)
 static void def_map_range(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   static const EnumPropertyItem rna_enum_data_type_items[] = {
-      {CD_PROP_FLOAT, "FLOAT", 0, "Float", "Floating-point value"},
-      {CD_PROP_FLOAT3, "FLOAT_VECTOR", 0, "Vector", "3D vector with floating-point values"},
+      {CD_PROP_FLOAT, "FLOAT", ICON_NODE_SOCKET_FLOAT, "Float", "Floating-point value"},
+      {CD_PROP_FLOAT3,
+       "FLOAT_VECTOR",
+       ICON_NODE_SOCKET_VECTOR,
+       "Vector",
+       "3D vector with floating-point values"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 

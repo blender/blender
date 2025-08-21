@@ -149,7 +149,7 @@ static void calc_position_with_interpolation(CurvesGeometry &curves,
   const int added_curves_num = root_positions_cu.size();
 
   const OffsetIndices points_by_curve = curves.points_by_curve();
-  const Span<float2> uv_coords = curves.surface_uv_coords();
+  const Span<float2> uv_coords = *curves.surface_uv_coords();
 
   threading::parallel_for(IndexRange(added_curves_num), 256, [&](const IndexRange range) {
     for (const int added_curve_i : range) {

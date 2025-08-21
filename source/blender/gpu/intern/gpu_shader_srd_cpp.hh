@@ -40,6 +40,7 @@
 #define SRD_RESOURCE_BEGIN(srd) SRD_STRUCT_BEGIN(srd)
 #define SRD_RESOURCE_END(srd) SRD_STRUCT_END(srd)
 #define SRD_RESOURCE_SPECIALIZATION_CONSTANT(srd, type, name, default) type name = {};
+#define SRD_RESOURCE_GROUP_SHARED(srd, type, name) type name;
 #define SRD_RESOURCE_PUSH_CONSTANT(srd, type, name) type name = {};
 #define SRD_RESOURCE_PUSH_CONSTANT_ARRAY(srd, type, name, array) type(*name) = {};
 #define SRD_RESOURCE_SAMPLER(srd, binding, type, name) type name = {};

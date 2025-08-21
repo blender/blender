@@ -262,6 +262,8 @@ void GPU_compilation_subprocess_run(const char *subprocess_name)
         /* Use temp memory so we don't overwrite the source hash. */
         static char tmp_mem[compilation_subprocess_shared_memory_size];
         file.read(tmp_mem, size);
+        /* Close first in case validation hangs the driver. */
+        file.close();
         /* Ensure it's valid. */
         if (!validate_binary(tmp_mem)) {
           std::cout << "Compilation Subprocess: Failed to load cached shader binary " << hash_str
@@ -269,7 +271,6 @@ void GPU_compilation_subprocess_run(const char *subprocess_name)
           /* TODO: No longer true. */
           /* We can't compile the shader anymore since we have written over the source code,
            * but we delete the cache for the next time this shader is requested. */
-          file.close();
           BLI_delete(cache_path.c_str(), false, false);
         }
         /* Copy the temp memory to the shared memory now that we know loading the shader doesn't
@@ -290,13 +291,13 @@ void GPU_compilation_subprocess_run(const char *subprocess_name)
     SubprocessShader shader(comp_src, vert_src, geom_src, frag_src);
     ShaderBinaryHeader *binary = shader.get_binary(shared_mem.get_data());
 
-    end_semaphore.increment();
-
     if (binary) {
       fstream file(cache_path, std::ios::binary | std::ios::out);
       file.write(reinterpret_cast<char *>(shared_mem.get_data()),
                  binary->size + offsetof(ShaderBinaryHeader, data));
     }
+
+    end_semaphore.increment();
   }
 
   GPU_exit();

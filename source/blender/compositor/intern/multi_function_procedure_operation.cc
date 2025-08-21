@@ -265,7 +265,8 @@ mf::Variable *MultiFunctionProcedureOperation::get_constant_input_variable(DInpu
     }
     case SOCK_MENU: {
       const int32_t value = input->default_value_typed<bNodeSocketValueMenu>()->value;
-      constant_function = &procedure_.construct_function<mf::CustomMF_Constant<int32_t>>(value);
+      constant_function = &procedure_.construct_function<mf::CustomMF_Constant<nodes::MenuValue>>(
+          value);
       break;
     }
     case SOCK_STRING: {

@@ -188,6 +188,10 @@ void ScreenSpaceDrawingMode::do_partial_update(
                texture_height / BLI_rctf_size_y(&info.clipping_uv_bounds)),
           ceil((changed_overlapping_region_in_uv_space.ymax - info.clipping_uv_bounds.ymin) *
                texture_height / BLI_rctf_size_y(&info.clipping_uv_bounds)));
+      gpu_texture_region_to_update.xmax = min_ii(gpu_texture_region_to_update.xmax,
+                                                 info.clipping_bounds.xmax);
+      gpu_texture_region_to_update.ymax = min_ii(gpu_texture_region_to_update.ymax,
+                                                 info.clipping_bounds.ymax);
 
       rcti tile_region_to_extract;
       BLI_rcti_init(

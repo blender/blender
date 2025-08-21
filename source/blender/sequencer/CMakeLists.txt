@@ -65,6 +65,7 @@ set(SRC
   intern/iterator.cc
   intern/media_presence.cc
   intern/modifier.cc
+  intern/modifier.hh
   intern/multiview.cc
   intern/multiview.hh
   intern/prefetch.cc

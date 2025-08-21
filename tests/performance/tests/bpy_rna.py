@@ -77,14 +77,23 @@ def _run_runtime_group_register_access(args):
     property_transform_cb = {
         'BoolProperty': lambda v: not v,
         'IntProperty': lambda v: v + 1,
+        'FloatVectorProperty': lambda v: [v[2] + 1.0, v[0], v[1]],
         'StringProperty': lambda v: ("B" if (v and v[0] == "A") else "A") + v[1:],
     }.get(property_type, lambda v: v)
 
     if do_get_set:
         class DummyGroup(bpy.types.PropertyGroup):
             dummy_prop: property_definition_cb(
-                get=lambda self: self.bl_system_properties_get()["dummy_prop"],
-                set=lambda self, val: self.bl_system_properties_get().set("dummy_prop", val),
+                get=lambda self:
+                    self.bl_system_properties_get().get(
+                        "dummy_prop",
+                        (self.bl_rna.properties["dummy_prop"].default_array if
+                         self.bl_rna.properties["dummy_prop"].is_array else
+                         self.bl_rna.properties["dummy_prop"].default)),
+                set=lambda self, val:
+                    self.bl_system_properties_get().__setitem__(
+                        "dummy_prop",
+                        val),
             )
     else:
         class DummyGroup(bpy.types.PropertyGroup):
@@ -144,13 +153,16 @@ def generate(env):
         BPYRNATest("ID Instance Access", _run_id_instance_access, 10000 * 1000),
         BPYRNATest("Static RNA Stuct Instance Access", _run_static_subdata_instance_access, 10000 * 1000),
         BPYRNATest("IDProperty Access", _run_idproperty_access, 10000 * 1000),
-        BPYRNATest("Py-Defined Struct Register", _run_runtime_group_register_access, 100 * 1000, {"do_register": True}),
+        BPYRNATest("Py-Defined Struct Register", _run_runtime_group_register_access, 100 * 1000,
+                   {"do_register": True}),
         BPYRNATest("Py-Defined IntProperty Access", _run_runtime_group_register_access, 10000 * 1000,
                    {"do_access": True, "property_type": 'IntProperty'}),
-        BPYRNATest("Py-Defined IntProperty Custom Get/Set Access", _run_runtime_group_register_access, 10 * 1000,
+        BPYRNATest("Py-Defined IntProperty Custom Get/Set Access", _run_runtime_group_register_access, 100 * 1000,
                    {"do_access": True, "do_get_set": True, "property_type": 'IntProperty'}),
-        BPYRNATest("Py-Defined BoolProperty Custom Get/Set Access", _run_runtime_group_register_access, 10 * 1000,
+        BPYRNATest("Py-Defined BoolProperty Custom Get/Set Access", _run_runtime_group_register_access, 100 * 1000,
                    {"do_access": True, "do_get_set": True, "property_type": 'BoolProperty'}),
+        BPYRNATest("Py-Defined FloatVectorProperty Custom Get/Set Access", _run_runtime_group_register_access, 100 * 1000,
+                   {"do_access": True, "do_get_set": True, "property_type": 'FloatVectorProperty'}),
         BPYRNATest("Py-Defined StringProperty Custom Get/Set Access", _run_runtime_group_register_access, 10 * 1000,
                    {"do_access": True, "do_get_set": True, "property_type": 'StringProperty'}),
     ]

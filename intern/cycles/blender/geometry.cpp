@@ -128,11 +128,6 @@ Geometry *BlenderSync::sync_geometry(BObjectInfo &b_ob_info,
   }
 
   if (!sync) {
-    /* Need to determine this every sync. */
-    if (geom->is_light() && static_cast<const Light *>(geom)->get_is_portal()) {
-      world_use_portal = true;
-    }
-
     /* If transform was applied to geometry, need full update. */
     if (object_updated && geom->transform_applied) {
       ;

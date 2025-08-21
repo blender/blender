@@ -65,6 +65,7 @@ struct MultiresModifierData;
 struct Object;
 struct Paint;
 struct PaintCurve;
+enum class PaintMode : int8_t;
 struct PaintModeSettings;
 struct Palette;
 struct PaletteColor;
@@ -89,27 +90,6 @@ extern const uchar PAINT_CURSOR_TEXTURE_PAINT[3];
 extern const uchar PAINT_CURSOR_SCULPT_CURVES[3];
 extern const uchar PAINT_CURSOR_PAINT_GREASE_PENCIL[3];
 extern const uchar PAINT_CURSOR_SCULPT_GREASE_PENCIL[3];
-
-enum class PaintMode : int8_t {
-  Sculpt = 0,
-  /** Vertex color. */
-  Vertex = 1,
-  Weight = 2,
-  /** 3D view (projection painting). */
-  Texture3D = 3,
-  /** Image space (2D painting). */
-  Texture2D = 4,
-  GPencil = 6,
-  /* Grease Pencil Vertex Paint */
-  VertexGPencil = 7,
-  SculptGPencil = 8,
-  WeightGPencil = 9,
-  /** Curves. */
-  SculptCurves = 10,
-
-  /** Keep last. */
-  Invalid = 11,
-};
 
 /* overlay invalidation */
 enum ePaintOverlayControlFlags {
@@ -206,13 +186,13 @@ bool BKE_paint_use_unified_color(const Paint *paint);
 
 Brush *BKE_paint_brush(Paint *paint);
 const Brush *BKE_paint_brush_for_read(const Paint *paint);
-Brush *BKE_paint_brush_from_essentials(Main *bmain, eObjectMode ob_mode, const char *name);
+Brush *BKE_paint_brush_from_essentials(Main *bmain, PaintMode paint_mode, const char *name);
 
 /**
  * Check if brush \a brush may be set/activated for \a paint. Passing null for \a brush will return
  * true.
  */
-bool BKE_paint_brush_poll(const Paint *paint, const Brush *brush);
+bool BKE_paint_can_use_brush(const Paint *paint, const Brush *brush);
 
 /**
  * Activates \a brush for painting, and updates #Paint.brush_asset_reference so the brush can be
@@ -231,10 +211,12 @@ bool BKE_paint_brush_set(Paint *paint, Brush *brush);
 /**
  * Version of #BKE_paint_brush_set() that takes an asset reference instead of a brush, importing
  * the brush if necessary.
+ *
+ * \return False if unable to set the brush to the provided asset reference. True otherwise.
  */
 bool BKE_paint_brush_set(Main *bmain,
                          Paint *paint,
-                         const AssetWeakReference *brush_asset_reference);
+                         const AssetWeakReference &brush_asset_reference);
 bool BKE_paint_brush_set_default(Main *bmain, Paint *paint);
 bool BKE_paint_brush_set_essentials(Main *bmain, Paint *paint, const char *name);
 void BKE_paint_previous_asset_reference_set(Paint *paint,
@@ -242,7 +224,7 @@ void BKE_paint_previous_asset_reference_set(Paint *paint,
 void BKE_paint_previous_asset_reference_clear(Paint *paint);
 
 std::optional<AssetWeakReference> BKE_paint_brush_type_default_reference(
-    eObjectMode ob_mode, std::optional<int> brush_type);
+    PaintMode paint_mode, std::optional<int> brush_type);
 void BKE_paint_brushes_set_default_references(ToolSettings *ts);
 /**
  * Make sure the active brush asset is available as active brush, importing it if necessary. If
@@ -263,7 +245,7 @@ Brush *BKE_paint_eraser_brush(Paint *paint);
 const Brush *BKE_paint_eraser_brush_for_read(const Paint *paint);
 
 bool BKE_paint_eraser_brush_set(Paint *paint, Brush *brush);
-Brush *BKE_paint_eraser_brush_from_essentials(Main *bmain, eObjectMode ob_mode, const char *name);
+Brush *BKE_paint_eraser_brush_from_essentials(Main *bmain, PaintMode paint_mode, const char *name);
 bool BKE_paint_eraser_brush_set_default(Main *bmain, Paint *paint);
 bool BKE_paint_eraser_brush_set_essentials(Main *bmain, Paint *paint, const char *name);
 

@@ -29,8 +29,8 @@ class GHOST_XrSwapchain {
   bool isBufferSRGB() const;
 
  private:
-  std::unique_ptr<OpenXRSwapchainData> m_oxr; /* Could use stack, but PImpl is preferable. */
-  int32_t m_image_width, m_image_height;
-  GHOST_TXrSwapchainFormat m_format;
-  bool m_is_srgb_buffer = false;
+  std::unique_ptr<OpenXRSwapchainData> oxr_; /* Could use stack, but PImpl is preferable. */
+  int32_t image_width_, image_height_;
+  GHOST_TXrSwapchainFormat format_;
+  bool is_srgb_buffer_ = false;
 };

@@ -307,8 +307,8 @@ class OIDNDenoiseContext {
   /* Read pass pixels using PassAccessor into a temporary buffer which is owned by the pass.. */
   void read_pass_pixels_into_buffer(OIDNPass &oidn_pass)
   {
-    LOG_WORK << "Allocating temporary buffer for pass " << oidn_pass.name << " ("
-             << pass_type_as_string(oidn_pass.type) << ")";
+    LOG_DEBUG << "Allocating temporary buffer for pass " << oidn_pass.name << " ("
+              << pass_type_as_string(oidn_pass.type) << ")";
 
     const int64_t width = buffer_params_.width;
     const int64_t height = buffer_params_.height;

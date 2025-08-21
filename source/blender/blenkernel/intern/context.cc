@@ -822,7 +822,7 @@ wmGizmoGroup *CTX_wm_gizmo_group(const bContext *C)
 
 wmMsgBus *CTX_wm_message_bus(const bContext *C)
 {
-  return C->wm.manager ? C->wm.manager->message_bus : nullptr;
+  return C->wm.manager ? C->wm.manager->runtime->message_bus : nullptr;
 }
 
 ReportList *CTX_wm_reports(const bContext *C)

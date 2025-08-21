@@ -252,7 +252,7 @@ static float _final_mass(Object *ob, BodyPoint *bp)
  */
 static const int CCD_SAFETY = 190561;
 
-struct ccdf_minmax {
+struct CCDF_MinMax {
   float minx, miny, minz, maxx, maxy, maxz;
 };
 
@@ -262,7 +262,7 @@ struct ccd_Mesh {
   const float (*vert_positions_prev)[3];
   const blender::int3 *vert_tris;
   int safety;
-  ccdf_minmax *mima;
+  CCDF_MinMax *mima;
   /* Axis Aligned Bounding Box AABB */
   float bbmin[3];
   float bbmax[3];
@@ -272,7 +272,7 @@ static ccd_Mesh *ccd_mesh_make(Object *ob)
 {
   CollisionModifierData *cmd;
   ccd_Mesh *pccd_M = nullptr;
-  ccdf_minmax *mima;
+  CCDF_MinMax *mima;
   float hull;
   int i;
 
@@ -318,7 +318,7 @@ static ccd_Mesh *ccd_mesh_make(Object *ob)
   pccd_M->vert_tris = static_cast<const blender::int3 *>(MEM_dupallocN(cmd->vert_tris));
 
   /* OBBs for idea1 */
-  pccd_M->mima = MEM_malloc_arrayN<ccdf_minmax>(size_t(pccd_M->tri_num), "ccd_Mesh_Faces_mima");
+  pccd_M->mima = MEM_malloc_arrayN<CCDF_MinMax>(size_t(pccd_M->tri_num), "ccd_Mesh_Faces_mima");
 
   /* Anyhow we need to walk the list of faces and find OBB they live in. */
   for (i = 0, mima = pccd_M->mima; i < pccd_M->tri_num; i++, mima++) {
@@ -357,7 +357,7 @@ static ccd_Mesh *ccd_mesh_make(Object *ob)
 static void ccd_mesh_update(Object *ob, ccd_Mesh *pccd_M)
 {
   CollisionModifierData *cmd;
-  ccdf_minmax *mima;
+  CCDF_MinMax *mima;
   float hull;
   int i;
 
@@ -1160,7 +1160,7 @@ static int sb_detect_face_collisionCached(const float face_v1[3],
         const float(*vert_positions)[3] = nullptr;
         const float(*vert_positions_prev)[3] = nullptr;
         const blender::int3 *vt = nullptr;
-        const ccdf_minmax *mima = nullptr;
+        const CCDF_MinMax *mima = nullptr;
 
         if (ccdm) {
           vert_positions = ccdm->vert_positions;
@@ -1341,7 +1341,7 @@ static int sb_detect_edge_collisionCached(const float edge_v1[3],
         const float(*vert_positions)[3] = nullptr;
         const float(*vert_positions_prev)[3] = nullptr;
         const blender::int3 *vt = nullptr;
-        const ccdf_minmax *mima = nullptr;
+        const CCDF_MinMax *mima = nullptr;
 
         if (ccdm) {
           vert_positions = ccdm->vert_positions;
@@ -1643,7 +1643,7 @@ static int sb_detect_vertex_collisionCached(float opco[3],
         const float(*vert_positions)[3] = nullptr;
         const float(*vert_positions_prev)[3] = nullptr;
         const blender::int3 *vt = nullptr;
-        const ccdf_minmax *mima = nullptr;
+        const CCDF_MinMax *mima = nullptr;
 
         if (ccdm) {
           vert_positions = ccdm->vert_positions;

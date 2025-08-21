@@ -12,11 +12,7 @@
 #include <string>
 
 #ifdef WITH_VULKAN_BACKEND
-#  ifdef __APPLE__
-#    include <MoltenVK/vk_mvk_moltenvk.h>
-#  else
-#    include <vulkan/vulkan_core.h>
-#  endif
+#  include <vulkan/vulkan_core.h>
 #endif
 
 /* This is used by `GHOST_C-api.h` too, cannot use C++ conventions. */
@@ -115,6 +111,8 @@ typedef struct GHOST_CursorGenerator {
 typedef enum {
   GHOST_gpuStereoVisual = (1 << 0),
   GHOST_gpuDebugContext = (1 << 1),
+  GHOST_gpuVSyncIsOverridden = (1 << 2),
+
 } GHOST_GPUFlags;
 
 typedef enum GHOST_DialogOptions {
@@ -826,8 +824,62 @@ typedef struct {
   uint device_id;
 } GHOST_GPUDevice;
 
+/**
+ * Options for VSync.
+ *
+ * \note with the exception of #GHOST_kVSyncModeUnset,
+ * these map to the OpenGL "swap interval" argument.
+ */
+typedef enum {
+  /** Up to the GPU driver to choose. */
+  GHOST_kVSyncModeUnset = -2,
+  /** Adaptive sync (OpenGL only). */
+  GHOST_kVSyncModeAuto = -1,
+  /** Disable, useful for unclasped redraws for testing performance. */
+  GHOST_kVSyncModeOff = 0,
+  /** Force enable. */
+  GHOST_kVSyncModeOn = 1,
+} GHOST_TVSyncModes;
+
+/**
+ * Settings used to create a GPU context.
+ *
+ * \note Avoid adding values here unless they apply across multiple context implementations.
+ * Otherwise the settings would be better added as extra arguments, only passed to that class.
+ */
+typedef struct {
+  bool is_stereo_visual;
+  bool is_debug;
+  GHOST_TVSyncModes vsync;
+} GHOST_ContextParams;
+
+#define GHOST_CONTEXT_PARAMS_NONE \
+  { \
+    /*is_stereo_visual*/ false, /*is_debug*/ false, /*vsync*/ GHOST_kVSyncModeUnset, \
+  }
+
+#define GHOST_CONTEXT_PARAMS_FROM_GPU_SETTINGS_OFFSCREEN(gpu_settings) \
+  { \
+    /*is_stereo_visual*/ false, \
+        /*is_debug*/ (((gpu_settings).flags & GHOST_gpuDebugContext) != 0), \
+        /*vsync*/ GHOST_kVSyncModeUnset, \
+  }
+
+#define GHOST_CONTEXT_PARAMS_FROM_GPU_SETTINGS(gpu_settings) \
+  { \
+    /*is_stereo_visual*/ (((gpu_settings).flags & GHOST_gpuStereoVisual) != 0), \
+        /*is_debug*/ (((gpu_settings).flags & GHOST_gpuDebugContext) != 0), /*vsync*/ \
+        (((gpu_settings).flags & GHOST_gpuVSyncIsOverridden) ? (gpu_settings).vsync : \
+                                                               GHOST_kVSyncModeUnset), \
+  }
+
 typedef struct {
   int flags;
+  /**
+   * Use when `flags & GHOST_gpuVSyncIsOverridden` is set.
+   * See #GHOST_ContextParams::vsync.
+   */
+  GHOST_TVSyncModes vsync;
   GHOST_TDrawingContextType context_type;
   GHOST_GPUDevice preferred_device;
 } GHOST_GPUSettings;

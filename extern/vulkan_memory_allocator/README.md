@@ -10,11 +10,6 @@ Easy to integrate Vulkan memory allocation library.
 
 **Product page:** [Vulkan Memory Allocator on GPUOpen](https://gpuopen.com/gaming-product/vulkan-memory-allocator/)
 
-**Build status:**
-
-- Windows: [![Build status](https://ci.appveyor.com/api/projects/status/4vlcrb0emkaio2pn/branch/master?svg=true)](https://ci.appveyor.com/project/adam-sawicki-amd/vulkanmemoryallocator/branch/master)  
-- Linux: [![Build Status](https://app.travis-ci.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.svg?branch=master)](https://app.travis-ci.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator)
-
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.svg)](http://isitmaintained.com/project/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator "Average time to resolve an issue")
 
 # Problem
@@ -48,7 +43,7 @@ Additional features:
 - Support for sparse binding and sparse residency: Convenience functions that allocate or free multiple memory pages at once.
 - Custom memory pools: Create a pool with desired parameters (e.g. fixed or limited maximum size) and allocate memory out of it.
 - Linear allocator: Create a pool with linear algorithm and use it for much faster allocations and deallocations in free-at-once, stack, double stack, or ring buffer fashion.
-- Support for Vulkan 1.0, 1.1, 1.2, 1.3.
+- Support for Vulkan 1.0...1.4.
 - Support for extensions (and equivalent functionality included in new Vulkan versions):
    - VK_KHR_dedicated_allocation: Just enable it and it will be used automatically by the library.
    - VK_KHR_bind_memory2.
@@ -58,6 +53,7 @@ Additional features:
    - VK_KHR_buffer_device_address: Flag `VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT_KHR` is automatically added to memory allocations where needed.
    - VK_EXT_memory_priority: Set `priority` of allocations or custom pools and it will be set automatically using this extension.
    - VK_AMD_device_coherent_memory.
+   - VK_KHR_external_memory_win32.
 - Defragmentation of GPU and CPU memory: Let the library move data around to free some memory blocks and make your allocations better compacted.
 - Statistics: Obtain brief or detailed statistics about the amount of memory used, unused, number of allocated blocks, number of allocations etc. - globally, per memory heap, and per memory type.
 - Debug annotations: Associate custom `void* pUserData` and debug `char* pName` with each allocation.
@@ -155,6 +151,7 @@ See **[Documentation](https://gpuopen-librariesandsdks.github.io/VulkanMemoryAll
 # Software using this library
 
 - **[Blender](https://www.blender.org)**
+- **[Qt Project](https://github.com/qt)**
 - **[Baldur's Gate III](https://www.mobygames.com/game/150689/baldurs-gate-iii/credits/windows/?autoplatform=true)**
 - **[Cyberpunk 2077](https://www.mobygames.com/game/128136/cyberpunk-2077/credits/windows/?autoplatform=true)**
 - **[X-Plane](https://x-plane.com/)**

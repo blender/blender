@@ -111,14 +111,14 @@ class GHOST_EventManager {
   using TEventStack = std::deque<const GHOST_IEvent *>;
 
   /** The event stack. */
-  std::deque<const GHOST_IEvent *> m_events;
-  std::deque<const GHOST_IEvent *> m_handled_events;
+  std::deque<const GHOST_IEvent *> events_;
+  std::deque<const GHOST_IEvent *> handled_events_;
 
   /** A vector with event consumers. */
   using TConsumerVector = std::vector<GHOST_IEventConsumer *>;
 
   /** The list with event consumers. */
-  TConsumerVector m_consumers;
+  TConsumerVector consumers_;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_EventManager")
 };

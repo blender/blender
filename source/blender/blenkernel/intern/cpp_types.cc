@@ -15,6 +15,7 @@
 #include "NOD_geometry_nodes_closure.hh"
 #include "NOD_geometry_nodes_list.hh"
 #include "NOD_geometry_nodes_values.hh"
+#include "NOD_menu_value.hh"
 
 #include "DNA_meshdata_types.h"
 
@@ -34,6 +35,7 @@ BLI_CPP_TYPE_MAKE(Image *, CPPTypeFlags::BasicType)
 BLI_CPP_TYPE_MAKE(Material *, CPPTypeFlags::BasicType)
 
 BLI_CPP_TYPE_MAKE(MStringProperty, CPPTypeFlags::None);
+BLI_CPP_TYPE_MAKE(blender::nodes::MenuValue, CPPTypeFlags::None);
 BLI_CPP_TYPE_MAKE(blender::nodes::BundlePtr, CPPTypeFlags::None);
 BLI_CPP_TYPE_MAKE(blender::nodes::ClosurePtr, CPPTypeFlags::None);
 BLI_CPP_TYPE_MAKE(blender::nodes::ListPtr, CPPTypeFlags::None);
@@ -60,6 +62,7 @@ void BKE_cpp_types_init()
   BLI_CPP_TYPE_REGISTER(Material *);
 
   BLI_CPP_TYPE_REGISTER(MStringProperty);
+  BLI_CPP_TYPE_REGISTER(blender::nodes::MenuValue);
   BLI_CPP_TYPE_REGISTER(blender::nodes::BundlePtr);
   BLI_CPP_TYPE_REGISTER(blender::nodes::ClosurePtr);
   BLI_CPP_TYPE_REGISTER(blender::nodes::ListPtr);

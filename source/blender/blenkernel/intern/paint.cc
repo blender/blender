@@ -643,7 +643,7 @@ const Brush *BKE_paint_brush_for_read(const Paint *paint)
   return paint ? paint->brush : nullptr;
 }
 
-bool BKE_paint_brush_poll(const Paint *paint, const Brush *brush)
+bool BKE_paint_can_use_brush(const Paint *paint, const Brush *brush)
 {
   if (paint == nullptr) {
     return false;
@@ -664,7 +664,7 @@ static AssetWeakReference *asset_reference_create_from_brush(Brush *brush)
 
 bool BKE_paint_brush_set(Main *bmain,
                          Paint *paint,
-                         const AssetWeakReference *brush_asset_reference)
+                         const AssetWeakReference &brush_asset_reference)
 {
   /* Don't resolve this during file read, it will be done after. */
   if (bmain->is_locked_for_linking) {
@@ -672,13 +672,13 @@ bool BKE_paint_brush_set(Main *bmain,
   }
 
   Brush *brush = reinterpret_cast<Brush *>(
-      blender::bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, *brush_asset_reference));
+      blender::bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, brush_asset_reference));
   BLI_assert(brush == nullptr || !ID_IS_LINKED(brush) ||
              blender::bke::asset_edit_id_is_editable(brush->id));
 
   /* Ensure we have a brush with appropriate mode to assign.
    * Could happen if contents of asset blend were manually changed. */
-  if (!BKE_paint_brush_poll(paint, brush)) {
+  if (brush == nullptr || !BKE_paint_can_use_brush(paint, brush)) {
     return false;
   }
 
@@ -690,8 +690,8 @@ bool BKE_paint_brush_set(Main *bmain,
     paint->brush_asset_reference = nullptr;
     if (brush != nullptr) {
       BLI_assert(blender::bke::asset_edit_weak_reference_from_id(brush->id) ==
-                 *brush_asset_reference);
-      paint->brush_asset_reference = MEM_new<AssetWeakReference>(__func__, *brush_asset_reference);
+                 brush_asset_reference);
+      paint->brush_asset_reference = MEM_new<AssetWeakReference>(__func__, brush_asset_reference);
     }
   }
 
@@ -700,7 +700,7 @@ bool BKE_paint_brush_set(Main *bmain,
 
 bool BKE_paint_brush_set(Paint *paint, Brush *brush)
 {
-  if (!BKE_paint_brush_poll(paint, brush)) {
+  if (!BKE_paint_can_use_brush(paint, brush)) {
     return false;
   }
 
@@ -715,26 +715,28 @@ bool BKE_paint_brush_set(Paint *paint, Brush *brush)
   return true;
 }
 
-static const char *paint_brush_essentials_asset_file_name_from_obmode(const eObjectMode ob_mode)
+static const char *paint_brush_essentials_asset_file_name_from_paint_mode(
+    const PaintMode paint_mode)
 {
-  switch (ob_mode) {
-    case OB_MODE_SCULPT:
+  switch (paint_mode) {
+    case PaintMode::Sculpt:
       return "essentials_brushes-mesh_sculpt.blend";
-    case OB_MODE_VERTEX_PAINT:
+    case PaintMode::Vertex:
       return "essentials_brushes-mesh_vertex.blend";
-    case OB_MODE_WEIGHT_PAINT:
+    case PaintMode::Weight:
       return "essentials_brushes-mesh_weight.blend";
-    case OB_MODE_TEXTURE_PAINT:
+    case PaintMode::Texture2D:
+    case PaintMode::Texture3D:
       return "essentials_brushes-mesh_texture.blend";
-    case OB_MODE_PAINT_GREASE_PENCIL:
+    case PaintMode::GPencil:
       return "essentials_brushes-gp_draw.blend";
-    case OB_MODE_SCULPT_GREASE_PENCIL:
+    case PaintMode::SculptGPencil:
       return "essentials_brushes-gp_sculpt.blend";
-    case OB_MODE_WEIGHT_GREASE_PENCIL:
+    case PaintMode::WeightGPencil:
       return "essentials_brushes-gp_weight.blend";
-    case OB_MODE_VERTEX_GREASE_PENCIL:
+    case PaintMode::VertexGPencil:
       return "essentials_brushes-gp_vertex.blend";
-    case OB_MODE_SCULPT_CURVES:
+    case PaintMode::SculptCurves:
       return "essentials_brushes-curve_sculpt.blend";
     default:
       return nullptr;
@@ -742,9 +744,10 @@ static const char *paint_brush_essentials_asset_file_name_from_obmode(const eObj
 }
 
 static AssetWeakReference *paint_brush_asset_reference_ptr_from_essentials(
-    const char *name, const eObjectMode ob_mode)
+    const char *name, const PaintMode paint_mode)
 {
-  const char *essentials_file_name = paint_brush_essentials_asset_file_name_from_obmode(ob_mode);
+  const char *essentials_file_name = paint_brush_essentials_asset_file_name_from_paint_mode(
+      paint_mode);
   if (!essentials_file_name) {
     return nullptr;
   }
@@ -758,9 +761,10 @@ static AssetWeakReference *paint_brush_asset_reference_ptr_from_essentials(
 }
 
 static std::optional<AssetWeakReference> paint_brush_asset_reference_from_essentials(
-    const char *name, const eObjectMode ob_mode)
+    const char *name, const PaintMode paint_mode)
 {
-  const char *essentials_file_name = paint_brush_essentials_asset_file_name_from_obmode(ob_mode);
+  const char *essentials_file_name = paint_brush_essentials_asset_file_name_from_paint_mode(
+      paint_mode);
   if (!essentials_file_name) {
     return {};
   }
@@ -773,10 +777,10 @@ static std::optional<AssetWeakReference> paint_brush_asset_reference_from_essent
   return weak_ref;
 }
 
-Brush *BKE_paint_brush_from_essentials(Main *bmain, const eObjectMode ob_mode, const char *name)
+Brush *BKE_paint_brush_from_essentials(Main *bmain, const PaintMode paint_mode, const char *name)
 {
   std::optional<AssetWeakReference> weak_ref = paint_brush_asset_reference_from_essentials(
-      name, ob_mode);
+      name, paint_mode);
   if (!weak_ref) {
     return nullptr;
   }
@@ -792,7 +796,7 @@ static void paint_brush_set_essentials_reference(Paint *paint, const char *name)
 
   BLI_assert(paint->runtime->initialized);
   paint->brush_asset_reference = paint_brush_asset_reference_ptr_from_essentials(
-      name, eObjectMode(paint->runtime->ob_mode));
+      name, paint->runtime->paint_mode);
   paint->brush = nullptr;
 }
 
@@ -803,12 +807,12 @@ static void paint_eraser_brush_set_essentials_reference(Paint *paint, const char
 
   BLI_assert(paint->runtime->initialized);
   paint->eraser_brush_asset_reference = paint_brush_asset_reference_ptr_from_essentials(
-      name, eObjectMode(paint->runtime->ob_mode));
+      name, paint->runtime->paint_mode);
   paint->eraser_brush = nullptr;
 }
 
 static void paint_brush_default_essentials_name_get(
-    eObjectMode ob_mode,
+    const PaintMode paint_mode,
     std::optional<int> brush_type,
     blender::StringRefNull *r_name,
     blender::StringRefNull *r_eraser_name = nullptr)
@@ -816,8 +820,8 @@ static void paint_brush_default_essentials_name_get(
   const char *name = "";
   const char *eraser_name = "";
 
-  switch (ob_mode) {
-    case OB_MODE_SCULPT:
+  switch (paint_mode) {
+    case PaintMode::Sculpt:
       name = "Draw";
       if (brush_type) {
         switch (eBrushSculptType(*brush_type)) {
@@ -844,7 +848,7 @@ static void paint_brush_default_essentials_name_get(
         }
       }
       break;
-    case OB_MODE_VERTEX_PAINT:
+    case PaintMode::Vertex:
       name = "Paint Hard";
       if (brush_type) {
         switch (eBrushVertexPaintType(*brush_type)) {
@@ -863,7 +867,7 @@ static void paint_brush_default_essentials_name_get(
         }
       }
       break;
-    case OB_MODE_WEIGHT_PAINT:
+    case PaintMode::Weight:
       name = "Paint";
       if (brush_type) {
         switch (eBrushWeightPaintType(*brush_type)) {
@@ -882,7 +886,8 @@ static void paint_brush_default_essentials_name_get(
         }
       }
       break;
-    case OB_MODE_TEXTURE_PAINT:
+    case PaintMode::Texture2D:
+    case PaintMode::Texture3D:
       name = "Paint Hard";
       if (brush_type) {
         switch (eBrushImagePaintType(*brush_type)) {
@@ -906,7 +911,7 @@ static void paint_brush_default_essentials_name_get(
         }
       }
       break;
-    case OB_MODE_SCULPT_CURVES:
+    case PaintMode::SculptCurves:
       name = "Comb";
       if (brush_type) {
         switch (eBrushCurvesSculptType(*brush_type)) {
@@ -927,7 +932,7 @@ static void paint_brush_default_essentials_name_get(
         }
       }
       break;
-    case OB_MODE_PAINT_GREASE_PENCIL:
+    case PaintMode::GPencil:
       name = "Pencil";
       /* Different default brush for some brush types. */
       if (brush_type) {
@@ -946,7 +951,7 @@ static void paint_brush_default_essentials_name_get(
       }
       eraser_name = "Eraser Soft";
       break;
-    case OB_MODE_VERTEX_GREASE_PENCIL:
+    case PaintMode::VertexGPencil:
       name = "Paint";
       if (brush_type) {
         switch (eBrushGPVertexType(*brush_type)) {
@@ -972,7 +977,7 @@ static void paint_brush_default_essentials_name_get(
         }
       }
       break;
-    case OB_MODE_SCULPT_GREASE_PENCIL:
+    case PaintMode::SculptGPencil:
       name = "Smooth";
       if (brush_type) {
         switch (eBrushGPSculptType(*brush_type)) {
@@ -984,7 +989,7 @@ static void paint_brush_default_essentials_name_get(
         }
       }
       break;
-    case OB_MODE_WEIGHT_GREASE_PENCIL:
+    case PaintMode::WeightGPencil:
       name = "Paint";
       if (brush_type) {
         switch (eBrushGPWeightType(*brush_type)) {
@@ -1015,16 +1020,16 @@ static void paint_brush_default_essentials_name_get(
 }
 
 std::optional<AssetWeakReference> BKE_paint_brush_type_default_reference(
-    eObjectMode ob_mode, std::optional<int> brush_type)
+    const PaintMode paint_mode, std::optional<int> brush_type)
 {
   blender::StringRefNull name;
 
-  paint_brush_default_essentials_name_get(ob_mode, brush_type, &name, nullptr);
+  paint_brush_default_essentials_name_get(paint_mode, brush_type, &name, nullptr);
   if (name.is_empty()) {
     return {};
   }
 
-  return paint_brush_asset_reference_from_essentials(name.c_str(), ob_mode);
+  return paint_brush_asset_reference_from_essentials(name.c_str(), paint_mode);
 }
 
 static void paint_brush_set_default_reference(Paint *paint,
@@ -1041,7 +1046,7 @@ static void paint_brush_set_default_reference(Paint *paint,
   blender::StringRefNull eraser_name;
 
   paint_brush_default_essentials_name_get(
-      eObjectMode(paint->runtime->ob_mode), std::nullopt, &name, &eraser_name);
+      paint->runtime->paint_mode, std::nullopt, &name, &eraser_name);
 
   if (do_regular && !name.is_empty()) {
     paint_brush_set_essentials_reference(paint, name.c_str());
@@ -1188,10 +1193,12 @@ bool BKE_paint_eraser_brush_set(Paint *paint, Brush *brush)
   return true;
 }
 
-Brush *BKE_paint_eraser_brush_from_essentials(Main *bmain, eObjectMode ob_mode, const char *name)
+Brush *BKE_paint_eraser_brush_from_essentials(Main *bmain,
+                                              const PaintMode paint_mode,
+                                              const char *name)
 {
   std::optional<AssetWeakReference> weak_ref = paint_brush_asset_reference_from_essentials(
-      name, ob_mode);
+      name, paint_mode);
   if (!weak_ref) {
     return {};
   }
@@ -1220,30 +1227,41 @@ static void paint_runtime_init(const ToolSettings *ts, Paint *paint)
 
   if (paint == &ts->imapaint.paint) {
     paint->runtime->ob_mode = OB_MODE_TEXTURE_PAINT;
+    /* Note: This is an odd case where 3D Texture paint and Image Paint share the same struct.
+     * It would be equally valid to assign PaintMode::Texture2D to this. */
+    paint->runtime->paint_mode = PaintMode::Texture3D;
   }
   else if (ts->sculpt && paint == &ts->sculpt->paint) {
     paint->runtime->ob_mode = OB_MODE_SCULPT;
+    paint->runtime->paint_mode = PaintMode::Sculpt;
   }
   else if (ts->vpaint && paint == &ts->vpaint->paint) {
     paint->runtime->ob_mode = OB_MODE_VERTEX_PAINT;
+    paint->runtime->paint_mode = PaintMode::Vertex;
   }
   else if (ts->wpaint && paint == &ts->wpaint->paint) {
     paint->runtime->ob_mode = OB_MODE_WEIGHT_PAINT;
+    paint->runtime->paint_mode = PaintMode::Weight;
   }
   else if (ts->gp_paint && paint == &ts->gp_paint->paint) {
     paint->runtime->ob_mode = OB_MODE_PAINT_GREASE_PENCIL;
+    paint->runtime->paint_mode = PaintMode::GPencil;
   }
   else if (ts->gp_vertexpaint && paint == &ts->gp_vertexpaint->paint) {
     paint->runtime->ob_mode = OB_MODE_VERTEX_GREASE_PENCIL;
+    paint->runtime->paint_mode = PaintMode::VertexGPencil;
   }
   else if (ts->gp_sculptpaint && paint == &ts->gp_sculptpaint->paint) {
     paint->runtime->ob_mode = OB_MODE_SCULPT_GREASE_PENCIL;
+    paint->runtime->paint_mode = PaintMode::SculptGPencil;
   }
   else if (ts->gp_weightpaint && paint == &ts->gp_weightpaint->paint) {
     paint->runtime->ob_mode = OB_MODE_WEIGHT_GREASE_PENCIL;
+    paint->runtime->paint_mode = PaintMode::WeightGPencil;
   }
   else if (ts->curves_sculpt && paint == &ts->curves_sculpt->paint) {
     paint->runtime->ob_mode = OB_MODE_SCULPT_CURVES;
+    paint->runtime->paint_mode = PaintMode::SculptCurves;
   }
   else {
     BLI_assert_unreachable();

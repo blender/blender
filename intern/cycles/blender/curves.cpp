@@ -450,7 +450,7 @@ static void export_hair_motion_validate_attribute(Hair *hair,
   if (num_motion_keys != num_keys || !have_motion) {
     /* No motion or hair "topology" changed, remove attributes again. */
     if (num_motion_keys != num_keys) {
-      LOG_WORK << "Hair topology changed, removing motion attribute.";
+      LOG_DEBUG << "Hair topology changed, removing motion attribute.";
     }
     hair->attributes.remove(ATTR_STD_MOTION_VERTEX_POSITION);
   }

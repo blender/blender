@@ -5194,7 +5194,7 @@ KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
 /**
  * Set "ignore cache" flag for all caches on this object.
  */
-static void object_cacheIgnoreClear(Object *ob, int state)
+static void object_cacheIgnoreClear(Object *ob, const bool state)
 {
   ListBase pidlist;
   BKE_ptcache_ids_from_object(&pidlist, ob, nullptr, 0);
@@ -5285,9 +5285,9 @@ bool BKE_object_modifier_update_subframe(Depsgraph *depsgraph,
     BKE_animsys_evaluate_animdata(
         &ob->id, ob->adt, &anim_eval_context, ADT_RECALC_ANIM, flush_to_original);
     /* Ignore cache clear during sub-frame updates to not mess up cache validity. */
-    object_cacheIgnoreClear(ob, 1);
+    object_cacheIgnoreClear(ob, true);
     BKE_object_handle_update(depsgraph, scene, ob);
-    object_cacheIgnoreClear(ob, 0);
+    object_cacheIgnoreClear(ob, false);
   }
   else {
     BKE_object_where_is_calc_time(depsgraph, scene, ob, frame);

@@ -581,7 +581,7 @@ static PyObject *imbuf_load_from_memory_impl(const char *buffer,
       reinterpret_cast<const uchar *>(buffer), buffer_size, flags, "<imbuf.load_from_buffer>");
 
   if (ibuf == nullptr) {
-    PyErr_Format(PyExc_ValueError, "load_from_buffer: Unable to load image from memory");
+    PyErr_SetString(PyExc_ValueError, "load_from_buffer: Unable to load image from memory");
     return nullptr;
   }
 

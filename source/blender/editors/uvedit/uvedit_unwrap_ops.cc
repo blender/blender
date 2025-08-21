@@ -2096,7 +2096,7 @@ static bool uvedit_live_unwrap_timer_validate(const wmWindowManager *wm)
   if (g_live_unwrap.timer == nullptr) {
     return false;
   }
-  if (BLI_findindex(&wm->timers, g_live_unwrap.timer) != -1) {
+  if (BLI_findindex(&wm->runtime->timers, g_live_unwrap.timer) != -1) {
     return false;
   }
   g_live_unwrap.timer = nullptr;

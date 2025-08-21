@@ -1328,8 +1328,9 @@ void ED_fileselect_exit(wmWindowManager *wm, SpaceFile *sfile)
     return;
   }
   if (sfile->op) {
-    wmWindow *temp_win = (wm->winactive && WM_window_is_temp_screen(wm->winactive)) ?
-                             wm->winactive :
+    wmWindow *temp_win = (wm->runtime->winactive &&
+                          WM_window_is_temp_screen(wm->runtime->winactive)) ?
+                             wm->runtime->winactive :
                              nullptr;
     if (temp_win) {
       int win_size[2];

@@ -16,24 +16,24 @@
 
 class GHOST_EventNDOFMotion : public GHOST_Event {
  protected:
-  GHOST_TEventNDOFMotionData m_axisData;
+  GHOST_TEventNDOFMotionData axis_data_;
 
  public:
   GHOST_EventNDOFMotion(uint64_t time, GHOST_IWindow *window)
       : GHOST_Event(time, GHOST_kEventNDOFMotion, window)
   {
-    m_data = &m_axisData;
+    data_ = &axis_data_;
   }
 };
 
 class GHOST_EventNDOFButton : public GHOST_Event {
  protected:
-  GHOST_TEventNDOFButtonData m_buttonData;
+  GHOST_TEventNDOFButtonData button_data_;
 
  public:
   GHOST_EventNDOFButton(uint64_t time, GHOST_IWindow *window)
       : GHOST_Event(time, GHOST_kEventNDOFButton, window)
   {
-    m_data = &m_buttonData;
+    data_ = &button_data_;
   }
 };

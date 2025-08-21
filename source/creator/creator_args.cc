@@ -754,6 +754,7 @@ static void print_help(bArgs *ba, bool all)
   BLI_args_print_arg_doc(ba, "--debug-gpu");
   BLI_args_print_arg_doc(ba, "--debug-gpu-force-workarounds");
   BLI_args_print_arg_doc(ba, "--debug-gpu-compile-shaders");
+  BLI_args_print_arg_doc(ba, "--debug-gpu-shader-debug-info");
   if (defs.with_renderdoc) {
     BLI_args_print_arg_doc(ba, "--debug-gpu-scope-capture");
     BLI_args_print_arg_doc(ba, "--debug-gpu-renderdoc");
@@ -784,6 +785,7 @@ static void print_help(bArgs *ba, bool all)
   PRINT("\n");
   PRINT("GPU Options:\n");
   BLI_args_print_arg_doc(ba, "--gpu-backend");
+  BLI_args_print_arg_doc(ba, "--gpu-vsync");
   if (defs.with_opengl_backend) {
     BLI_args_print_arg_doc(ba, "--gpu-compilation-subprocesses");
   }
@@ -871,9 +873,6 @@ static void print_help(bArgs *ba, bool all)
   PRINT("  $BLENDER_CUSTOM_SPLASH     Full path to an image that replaces the splash screen.\n");
   PRINT(
       "  $BLENDER_CUSTOM_SPLASH_BANNER Full path to an image to overlay on the splash screen.\n");
-  PRINT(
-      "  $BLENDER_VSYNC             Set to 0 to disable VSync.\n"
-      "                             With OpenGL, other values set the swap interval.\n");
 
   if (defs.with_opencolorio) {
     PRINT("  $OCIO                      Path to override the OpenColorIO configuration file.\n");
@@ -1266,10 +1265,10 @@ static const char arg_handle_log_set_doc[] =
     "\tEnable logging categories, taking a single comma separated argument.\n"
     "\n"
     "\t--log \"*\": log everything\n"
-    "\t--log \"event\": logs every category starting with \"event\"\n"
-    "\t--log \"render,cycles\": log both render and cycles messages\n"
-    "\t--log \"*mesh*\": log every category containing \"mesh\" sub-string\n"
-    "\t--log \"*,^operator\": log everything except operators, with ^prefix to exclude";
+    "\t--log \"event\": logs every category starting with 'event'.\n"
+    "\t--log \"render,cycles\": log both render and cycles messages.\n"
+    "\t--log \"*mesh*\": log every category containing 'mesh' sub-string.\n"
+    "\t--log \"*,^operator\": log everything except operators, with '^prefix' to exclude.";
 static int arg_handle_log_set(int argc, const char **argv, void * /*data*/)
 {
   const char *arg_id = "--log";
@@ -1529,10 +1528,21 @@ static int arg_handle_debug_gpu_renderdoc_set(int /*argc*/,
                                               void * /*data*/)
 {
 #  ifdef WITH_RENDERDOC
-  G.debug |= G_DEBUG_GPU_RENDERDOC | G_DEBUG_GPU;
+  G.debug |= G_DEBUG_GPU_RENDERDOC | G_DEBUG_GPU | G_DEBUG_GPU_SHADER_DEBUG_INFO;
 #  else
   BLI_assert_unreachable();
 #  endif
+  return 0;
+}
+
+static const char arg_handle_debug_gpu_shader_debug_info_set_doc[] =
+    "\n"
+    "\tEnable shader debug info generation (Vulkan only).";
+static int arg_handle_debug_gpu_shader_debug_info_set(int /*argc*/,
+                                                      const char ** /*argv*/,
+                                                      void * /*data*/)
+{
+  G.debug |= G_DEBUG_GPU_SHADER_DEBUG_INFO;
   return 0;
 }
 
@@ -1603,6 +1613,44 @@ static int arg_handle_gpu_backend_set(int argc, const char **argv, void * /*data
   return 1;
 }
 
+static const char arg_handle_gpu_vsync_set_doc[] =
+    "\n"
+    "\tSet the VSync.\n"
+    "\tValid options are: 'on', 'off' & 'auto' for adaptive sync.\n"
+    "\n"
+    "\t* The default settings depend on the GPU driver.\n"
+    "\t* Disabling VSync can be useful for testing performance.\n"
+    "\t* 'auto' is only supported by the OpenGL backend.";
+static int arg_handle_gpu_vsync_set(int argc, const char **argv, void * /*data*/)
+{
+  const char *arg_id = "--gpu-vsync";
+
+  if (argc < 2) {
+    fprintf(stderr, "\nError: VSync value must follow '%s'.\n", arg_id);
+    return 0;
+  }
+
+  /* Must be compatible with #GHOST_TVSyncModes. */
+  int vsync;
+  if (STREQ(argv[1], "on")) {
+    vsync = 1;
+  }
+  else if (STREQ(argv[1], "off")) {
+    vsync = 0;
+  }
+  else if (STREQ(argv[1], "auto")) {
+    vsync = -1;
+  }
+  else {
+    fprintf(stderr, "\nError: expected a value in [on, off, auto] '%s %s'.\n", arg_id, argv[1]);
+    return 1;
+  }
+
+  GPU_backend_vsync_set_override(vsync);
+
+  return 1;
+}
+
 static const char arg_handle_gpu_compilation_subprocesses_set_doc[] =
     "\n"
     "\tOverride the Max Compilation Subprocesses setting (OpenGL only).";
@@ -1623,7 +1671,7 @@ static int arg_handle_gpu_compilation_subprocesses_set(int argc,
               argv[1],
               min,
               max);
-      return 0;
+      return 1;
     }
 
 #  ifdef WITH_OPENGL_BACKEND
@@ -2627,16 +2675,17 @@ static bool handle_load_file(bContext *C, const char *filepath_arg, const bool l
     if (load_empty_file == false) {
       error_msg = error_msg_generic;
     }
-    else if (BLI_exists(filepath)) {
+    else if (BLI_exists(filepath) && BKE_blendfile_extension_check(filepath)) {
       /* When a file is found but can't be loaded, handling it as a new file
        * could cause it to be unintentionally overwritten (data loss).
        * Further this is almost certainly not that a user would expect or want.
        * If they do, they can delete the file beforehand. */
       error_msg = error_msg_generic;
     }
-    else if (!BKE_blendfile_extension_check(filepath)) {
-      /* Unrelated arguments should not be treated as new blend files. */
-      error_msg = "argument has no '.blend' file extension, not using as new file";
+    else {
+      /* Non-blend or non-existing. Continue loading and give warning. */
+      G_MAIN->is_read_invalid = true;
+      return true;
     }
 
     if (error_msg) {
@@ -2747,6 +2796,7 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
   /* GPU backend selection should be part of #ARG_PASS_ENVIRONMENT for correct GPU context
    * selection for animation player. */
   BLI_args_add(ba, nullptr, "--gpu-backend", CB_ALL(arg_handle_gpu_backend_set), nullptr);
+  BLI_args_add(ba, nullptr, "--gpu-vsync", CB(arg_handle_gpu_vsync_set), nullptr);
   if (defs.with_opengl_backend) {
     BLI_args_add(ba,
                  nullptr,
@@ -2886,6 +2936,11 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
     BLI_args_add(
         ba, nullptr, "--debug-gpu-renderdoc", CB(arg_handle_debug_gpu_renderdoc_set), nullptr);
   }
+  BLI_args_add(ba,
+               nullptr,
+               "--debug-gpu-shader-debug-info",
+               CB(arg_handle_debug_gpu_shader_debug_info_set),
+               nullptr);
 
   BLI_args_add(ba,
                nullptr,

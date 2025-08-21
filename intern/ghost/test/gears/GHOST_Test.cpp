@@ -385,59 +385,59 @@ class Application : public GHOST_IEventConsumer {
   ~Application();
   virtual bool processEvent(GHOST_IEvent *event);
 
-  GHOST_ISystem *m_system;
-  GHOST_IWindow *m_mainWindow;
-  GHOST_IWindow *m_secondaryWindow;
-  GHOST_ITimerTask *m_gearsTimer, *m_testTimer;
-  GHOST_TStandardCursor m_cursor;
-  bool m_exitRequested;
+  GHOST_ISystem *system_;
+  GHOST_IWindow *main_window_;
+  GHOST_IWindow *secondary_window_;
+  GHOST_ITimerTask *gears_timer_, *test_timer_;
+  GHOST_TStandardCursor cursor_;
+  bool exit_requested_;
 
   bool stereo;
 };
 
 Application::Application(GHOST_ISystem *system)
-    : m_system(system),
-      m_mainWindow(0),
-      m_secondaryWindow(0),
-      m_gearsTimer(0),
-      m_testTimer(0),
-      m_cursor(GHOST_kStandardCursorFirstCursor),
-      m_exitRequested(false),
+    : system_(system),
+      main_window_(0),
+      secondary_window_(0),
+      gears_timer_(0),
+      test_timer_(0),
+      cursor_(GHOST_kStandardCursorFirstCursor),
+      exit_requested_(false),
       stereo(false)
 {
-  GHOST_GPUSettings gpuSettings = {0};
-  gpuSettings.context_type = GHOST_kDrawingContextTypeOpenGL;
+  GHOST_GPUSettings gpu_settings = {0};
+  gpu_settings.context_type = GHOST_kDrawingContextTypeOpenGL;
   fApp = this;
 
   // Create the main window
-  m_mainWindow = system->createWindow(
-      "gears - main window", 10, 64, 320, 200, GHOST_kWindowStateNormal, gpuSettings);
+  main_window_ = system->createWindow(
+      "gears - main window", 10, 64, 320, 200, GHOST_kWindowStateNormal, gpu_settings);
 
-  if (!m_mainWindow) {
+  if (!main_window_) {
     std::cout << "could not create main window\n";
     exit(-1);
   }
 
   // Create a secondary window
-  m_secondaryWindow = system->createWindow(
-      "gears - secondary window", 340, 64, 320, 200, GHOST_kWindowStateNormal, gpuSettings);
-  if (!m_secondaryWindow) {
+  secondary_window_ = system->createWindow(
+      "gears - secondary window", 340, 64, 320, 200, GHOST_kWindowStateNormal, gpu_settings);
+  if (!secondary_window_) {
     std::cout << "could not create secondary window\n";
     exit(-1);
   }
 
   // Install a timer to have the gears running
-  m_gearsTimer = system->installTimer(0 /*delay*/, 20 /*interval*/, gearsTimerProc, m_mainWindow);
+  gears_timer_ = system->installTimer(0 /*delay*/, 20 /*interval*/, gearsTimerProc, main_window_);
 }
 
 Application::~Application()
 {
   // Dispose windows
-  if (m_system->validWindow(m_mainWindow)) {
-    m_system->disposeWindow(m_mainWindow);
+  if (system_->validWindow(main_window_)) {
+    system_->disposeWindow(main_window_);
   }
-  if (m_system->validWindow(m_secondaryWindow)) {
-    m_system->disposeWindow(m_secondaryWindow);
+  if (system_->validWindow(secondary_window_)) {
+    system_->disposeWindow(secondary_window_);
   }
 }
 
@@ -474,19 +474,19 @@ bool Application::processEvent(const GHOST_IEvent *event)
       GHOST_TEventKeyData *keyData = (GHOST_TEventKeyData *)event->getData();
       switch (keyData->key) {
         case GHOST_kKeyC: {
-          int cursor = m_cursor;
+          int cursor = cursor_;
           cursor++;
           if (cursor >= GHOST_kStandardCursorNumCursors) {
             cursor = GHOST_kStandardCursorFirstCursor;
           }
-          m_cursor = (GHOST_TStandardCursor)cursor;
-          window->setCursorShape(m_cursor);
+          cursor_ = (GHOST_TStandardCursor)cursor;
+          window->setCursorShape(cursor_);
           break;
         }
 
         case GHOST_kKeyE: {
           int x = 200, y = 200;
-          m_system->setCursorPosition(x, y);
+          system_->setCursorPosition(x, y);
           break;
         }
 
@@ -496,27 +496,27 @@ bool Application::processEvent(const GHOST_IEvent *event)
 
         case GHOST_kKeyM: {
           bool down = false;
-          m_system->getModifierKeyState(GHOST_kModifierKeyLeftShift, down);
+          system_->getModifierKeyState(GHOST_kModifierKeyLeftShift, down);
           if (down) {
             std::cout << "left shift down\n";
           }
-          m_system->getModifierKeyState(GHOST_kModifierKeyRightShift, down);
+          system_->getModifierKeyState(GHOST_kModifierKeyRightShift, down);
           if (down) {
             std::cout << "right shift down\n";
           }
-          m_system->getModifierKeyState(GHOST_kModifierKeyLeftAlt, down);
+          system_->getModifierKeyState(GHOST_kModifierKeyLeftAlt, down);
           if (down) {
             std::cout << "left Alt down\n";
           }
-          m_system->getModifierKeyState(GHOST_kModifierKeyRightAlt, down);
+          system_->getModifierKeyState(GHOST_kModifierKeyRightAlt, down);
           if (down) {
             std::cout << "right Alt down\n";
           }
-          m_system->getModifierKeyState(GHOST_kModifierKeyLeftControl, down);
+          system_->getModifierKeyState(GHOST_kModifierKeyLeftControl, down);
           if (down) {
             std::cout << "left control down\n";
           }
-          m_system->getModifierKeyState(GHOST_kModifierKeyRightControl, down);
+          system_->getModifierKeyState(GHOST_kModifierKeyRightControl, down);
           if (down) {
             std::cout << "right control down\n";
           }
@@ -524,7 +524,7 @@ bool Application::processEvent(const GHOST_IEvent *event)
         }
 
         case GHOST_kKeyQ:
-          m_exitRequested = true;
+          exit_requested_ = true;
           break;
 
         case GHOST_kKeyS:  // toggle mono and stereo
@@ -537,22 +537,22 @@ bool Application::processEvent(const GHOST_IEvent *event)
           break;
 
         case GHOST_kKeyT:
-          if (!m_testTimer) {
-            m_testTimer = m_system->installTimer(0, 1000, testTimerProc);
+          if (!test_timer_) {
+            test_timer_ = system_->installTimer(0, 1000, testTimerProc);
           }
 
           else {
-            m_system->removeTimer(m_testTimer);
-            m_testTimer = 0;
+            system_->removeTimer(test_timer_);
+            test_timer_ = 0;
           }
 
           break;
 
         case GHOST_kKeyW:
-          if (m_mainWindow) {
-            std::string title = m_mainWindow->getTitle();
+          if (main_window_) {
+            std::string title = main_window_->getTitle();
             title += "-";
-            m_mainWindow->setTitle(title);
+            main_window_->setTitle(title);
           }
           break;
 
@@ -564,11 +564,11 @@ bool Application::processEvent(const GHOST_IEvent *event)
 
     case GHOST_kEventWindowClose: {
       GHOST_IWindow *window2 = event->getWindow();
-      if (window2 == m_mainWindow) {
-        m_exitRequested = true;
+      if (window2 == main_window_) {
+        exit_requested_ = true;
       }
       else {
-        m_system->disposeWindow(window2);
+        system_->disposeWindow(window2);
       }
       break;
     }
@@ -583,7 +583,7 @@ bool Application::processEvent(const GHOST_IEvent *event)
 
     case GHOST_kEventWindowUpdate: {
       GHOST_IWindow *window2 = event->getWindow();
-      if (!m_system->validWindow(window2)) {
+      if (!system_->validWindow(window2)) {
         break;
       }
 
@@ -677,7 +677,7 @@ int main(int /*argc*/, char ** /*argv*/)
     fSystem->addEventConsumer(&app);
 
     // Enter main loop
-    while (!app.m_exitRequested) {
+    while (!app.exit_requested_) {
       // printf("main: loop\n");
       fSystem->processEvents(true);
       fSystem->dispatchEvents();

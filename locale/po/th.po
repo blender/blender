@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'6dca66d606ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-11 08:28+0000\n"
+"POT-Creation-Date: 2025-08-18 09:16+0000\n"
 "PO-Revision-Date: 2025-07-23 15:06+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -1865,88 +1865,88 @@ msgid "Mask"
 msgstr "หน้ากาก"
 
 
-msgid "Pivot Point"
-msgstr "จุดหมุน"
-
-
-msgid "Snap"
-msgstr "ยึดติด"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "แก้ไข"
+msgid "Face Data"
+msgstr "ข้อมูลด้าน"
 
 
 msgid "Mask Edit"
 msgstr "การแก้ไขหน้ากาก"
 
 
-msgid "Mirror"
-msgstr "กระจกสะท้อน"
+msgid "Proportional Editing Falloff"
+msgstr "แก้ไข"
 
 
-msgid "Local View"
-msgstr "มุมมองท้องถิ่น"
+msgid "Snap"
+msgstr "ยึดติด"
 
 
-msgid "Viewpoint"
-msgstr "จุดของมุมมอง"
-
-
-msgid "Navigation"
-msgstr "การนำทาง"
-
-
-msgid "Align View"
-msgstr "จัดมุมมอง"
-
-
-msgid "Align View to Active"
-msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
-
-
-msgid "View Regions"
-msgstr "ขอบเขตมุมมอง"
-
-
-msgid "Metaball"
-msgstr "เมตาบอล"
-
-
-msgid "Light"
-msgstr "แสง"
-
-
-msgid "Add Image"
-msgstr "เพิ่มภาพ"
+msgid "Pivot Point"
+msgstr "จุดหมุน"
 
 
 msgid "Apply"
 msgstr "นำไปใช้"
 
 
-msgid "Track"
-msgstr "แทร็ค"
+msgid "Names"
+msgstr "ชื่อ"
+
+
+msgid "Local View"
+msgstr "มุมมองท้องถิ่น"
+
+
+msgid "Mirror"
+msgstr "กระจกสะท้อน"
 
 
 msgid "Hooks"
 msgstr "ตะขอ"
 
 
-msgid "Names"
-msgstr "ชื่อ"
+msgid "View Regions"
+msgstr "ขอบเขตมุมมอง"
 
 
-msgid "Face Data"
-msgstr "ข้อมูลด้าน"
+msgid "Align View to Active"
+msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
 
 
-msgid "Merge"
-msgstr "ผสาน"
+msgid "Track"
+msgstr "แทร็ค"
+
+
+msgid "Align View"
+msgstr "จัดมุมมอง"
+
+
+msgid "Navigation"
+msgstr "การนำทาง"
+
+
+msgid "Viewpoint"
+msgstr "จุดของมุมมอง"
+
+
+msgid "Add Image"
+msgstr "เพิ่มภาพ"
+
+
+msgid "Light"
+msgstr "แสง"
+
+
+msgid "Metaball"
+msgstr "เมตาบอล"
 
 
 msgid "Text"
 msgstr "ช้อความ"
+
+
+msgid "Merge"
+msgstr "ผสาน"
 
 
 msgid "Zoom"
@@ -3050,6 +3050,10 @@ msgid "Relax UVs"
 msgstr "ผ่อนคลาย UV"
 
 
+msgid "Replace Selection"
+msgstr "แทนที่ที่เลือกไว้"
+
+
 msgctxt "Sequence"
 msgid "Add"
 msgstr "เพิ่ม"
@@ -3063,10 +3067,6 @@ msgstr "การปรับเปลี่ยน"
 msgctxt "Operator"
 msgid "Copy"
 msgstr "คัดลอก"
-
-
-msgid "Replace Selection"
-msgstr "แทนที่ที่เลือกไว้"
 
 
 msgctxt "Operator"
@@ -3670,12 +3670,12 @@ msgid "Text color"
 msgstr "สีข้อความ"
 
 
-msgid "Selected Text"
-msgstr "ข้อความที่ถูกเลือก"
-
-
 msgid "Preview Background"
 msgstr "พื้นหลังตัวอย่าง"
+
+
+msgid "Selected Text"
+msgstr "ข้อความที่ถูกเลือก"
 
 
 msgid "Panel Title"
@@ -4192,6 +4192,11 @@ msgid "Delete Keyframes..."
 msgstr "ลบคีย์เฟรม..."
 
 
+msgctxt "Operator"
+msgid "Clear Keyframes..."
+msgstr "ล้างคีย์เฟรม..."
+
+
 msgid "Storage"
 msgstr "พื้นที่จัดเก็บ"
 
@@ -4563,11 +4568,6 @@ msgstr "กล้อง"
 msgctxt "Operator"
 msgid "Speaker"
 msgstr "ลำโพง"
-
-
-msgctxt "Operator"
-msgid "Clear Keyframes..."
-msgstr "ล้างคีย์เฟรม..."
 
 
 msgctxt "Operator"

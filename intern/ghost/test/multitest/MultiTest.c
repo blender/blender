@@ -309,7 +309,7 @@ MainWindow *mainwindow_new(MultiTestApp *app)
 {
   GHOST_SystemHandle sys = multitestapp_get_system(app);
   GHOST_WindowHandle win;
-  GHOST_GPUSettings gpuSettings = {0};
+  GHOST_GPUSettings gpu_settings = {0};
 
   win = GHOST_CreateWindow(sys,
                            NULL,
@@ -321,7 +321,7 @@ MainWindow *mainwindow_new(MultiTestApp *app)
                            GHOST_kWindowStateNormal,
                            false,
                            GHOST_kDrawingContextTypeOpenGL,
-                           gpuSettings);
+                           gpu_settings);
 
   if (win) {
     MainWindow *mw = MEM_callocN(sizeof(*mw), "mainwindow_new");
@@ -561,7 +561,7 @@ static void loggerwindow_handle(void *priv, GHOST_EventHandle evt)
 
 LoggerWindow *loggerwindow_new(MultiTestApp *app)
 {
-  GHOST_GPUSettings gpuSettings = {0};
+  GHOST_GPUSettings gpu_settings = {0};
   GHOST_SystemHandle sys = multitestapp_get_system(app);
   uint32_t screensize[2];
   GHOST_WindowHandle win;
@@ -582,7 +582,7 @@ LoggerWindow *loggerwindow_new(MultiTestApp *app)
                            GHOST_kWindowStateNormal,
                            false,
                            GHOST_kDrawingContextTypeOpenGL,
-                           gpuSettings);
+                           gpu_settings);
 
   if (win) {
     LoggerWindow *lw = MEM_callocN(sizeof(*lw), "loggerwindow_new");
@@ -774,7 +774,7 @@ static void extrawindow_handle(void *priv, GHOST_EventHandle evt)
 
 ExtraWindow *extrawindow_new(MultiTestApp *app)
 {
-  GHOST_GPUSettings gpuSettings = {0};
+  GHOST_GPUSettings gpu_settings = {0};
   GHOST_SystemHandle sys = multitestapp_get_system(app);
   GHOST_WindowHandle win;
 
@@ -788,7 +788,7 @@ ExtraWindow *extrawindow_new(MultiTestApp *app)
                            GHOST_kWindowStateNormal,
                            false,
                            GHOST_kDrawingContextTypeOpenGL,
-                           gpuSettings);
+                           gpu_settings);
 
   if (win) {
     ExtraWindow *ew = MEM_callocN(sizeof(*ew), "mainwindow_new");

@@ -228,7 +228,7 @@ class RenderGraph : public testing::Test {
     /* Initialize logging after the creation of the essential resources. This way the logging
      * mock sink does not warn about uninteresting messages which happens prior to the setup of
      * the actual mock sinks. */
-    log_level_set(LOG_LEVEL_DEBUG);
+    log_level_set(LOG_LEVEL_TRACE);
   }
 
   void TearDown() override

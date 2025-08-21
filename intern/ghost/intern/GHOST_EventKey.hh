@@ -29,10 +29,10 @@ class GHOST_EventKey : public GHOST_Event {
       uint64_t msec, GHOST_TEventType type, GHOST_IWindow *window, GHOST_TKey key, bool is_repeat)
       : GHOST_Event(msec, type, window)
   {
-    m_keyEventData.key = key;
-    m_keyEventData.utf8_buf[0] = '\0';
-    m_keyEventData.is_repeat = is_repeat;
-    m_data = &m_keyEventData;
+    key_event_data_.key = key;
+    key_event_data_.utf8_buf[0] = '\0';
+    key_event_data_.is_repeat = is_repeat;
+    data_ = &key_event_data_;
   }
 
   /**
@@ -51,18 +51,18 @@ class GHOST_EventKey : public GHOST_Event {
                  const char utf8_buf[6])
       : GHOST_Event(msec, type, window)
   {
-    m_keyEventData.key = key;
+    key_event_data_.key = key;
     if (utf8_buf) {
-      memcpy(m_keyEventData.utf8_buf, utf8_buf, sizeof(m_keyEventData.utf8_buf));
+      memcpy(key_event_data_.utf8_buf, utf8_buf, sizeof(key_event_data_.utf8_buf));
     }
     else {
-      m_keyEventData.utf8_buf[0] = '\0';
+      key_event_data_.utf8_buf[0] = '\0';
     }
-    m_keyEventData.is_repeat = is_repeat;
-    m_data = &m_keyEventData;
+    key_event_data_.is_repeat = is_repeat;
+    data_ = &key_event_data_;
   }
 
  protected:
   /** The key event data. */
-  GHOST_TEventKeyData m_keyEventData;
+  GHOST_TEventKeyData key_event_data_;
 };

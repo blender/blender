@@ -27,13 +27,16 @@ static void ghost_fatal_error_dialog(const char * /*msg*/)
   exit(1);
 }
 
-MTLCommandQueue *GHOST_ContextIOS::s_sharedMetalCommandQueue = nil;
-int GHOST_ContextIOS::s_sharedCount = 0;
+MTLCommandQueue *GHOST_ContextIOS::s_shared_metal_command_queue = nil;
+int GHOST_ContextIOS::s_shared_count = 0;
 
 static const MTLPixelFormat METAL_FRAMEBUFFERPIXEL_FORMAT_EDR = MTLPixelFormatRGBA16Float;
 
-GHOST_ContextIOS::GHOST_ContextIOS(UIView *uiView, MTKView *metalView)
-    : GHOST_Context(false), m_uiView(uiView), m_metalView(metalView), m_metalRenderPipeline(nil)
+GHOST_ContextIOS::GHOST_ContextIOS(const GHOST_ContextParams &context_params,UIView *uiView, MTKView *metalView)
+    : GHOST_Context(context_params),
+      ui_view_(uiView),
+      metal_view_(metalView),
+      metal_render_pipeline_(nil)
 {
   /* Init swapchain */
   current_swapchain_index = 0;
@@ -43,8 +46,8 @@ GHOST_ContextIOS::GHOST_ContextIOS(UIView *uiView, MTKView *metalView)
   }
 
   /* Verify and initialise View */
-  if (m_metalView) {
-    ownsMetalDevice = false;
+  if (metal_view_) {
+    owns_metal_device_ = false;
     metalInit();
   }
   else {
@@ -69,15 +72,15 @@ GHOST_ContextIOS::GHOST_ContextIOS(UIView *uiView, MTKView *metalView)
     }
 
     /* Create own device */
-    m_metalView = [[MTKView alloc] initWithFrame:CGRectMake(0, 0, screenWidth, screenHeight)];
-    GHOST_ASSERT(m_metalView, "iOS: Failed to initialize Metal View");
-    m_metalView.device = metalDevice;
-    m_uiView = (UIView *)m_metalView;
+    metal_view_ = [[MTKView alloc] initWithFrame:CGRectMake(0, 0, screenWidth, screenHeight)];
+    GHOST_ASSERT(metal_view_, "iOS: Failed to initialize Metal View");
+    metal_view_.device = metalDevice;
+    ui_view_ = (UIView *)metal_view_;
 
-    ownsMetalDevice = true;
+    owns_metal_device_ = true;
 
     /* Enable HDR/EDR Support. */
-    CAMetalLayer *metalLayer = (CAMetalLayer *)m_metalView.layer;
+    CAMetalLayer *metalLayer = (CAMetalLayer *)metal_view_.layer;
     metalLayer.wantsExtendedDynamicRangeContent = YES;
     metalLayer.pixelFormat = METAL_FRAMEBUFFERPIXEL_FORMAT_EDR;
     CGColorSpaceRef colorspace = CGColorSpaceCreateWithName(kCGColorSpaceExtendedSRGB);
@@ -93,17 +96,17 @@ GHOST_ContextIOS::GHOST_ContextIOS(UIView *uiView, MTKView *metalView)
   }
 
   /* Initialise swapinterval */
-  mtl_SwapInterval = 60;
+  mtl_swap_internal = 60;
 }
 
 GHOST_ContextIOS::~GHOST_ContextIOS()
 {
   metalFree();
 
-  if (ownsMetalDevice) {
-    if (m_metalView) {
-      [m_metalView release];
-      m_metalView = nil;
+  if (owns_metal_device_) {
+    if (metal_view_) {
+      [metal_view_ release];
+      metal_view_ = nil;
     }
   }
 }
@@ -116,14 +119,14 @@ GHOST_TSuccess GHOST_ContextIOS::swapBuffers()
 
 GHOST_TSuccess GHOST_ContextIOS::setSwapInterval(int interval)
 {
-  mtl_SwapInterval = interval;
+  mtl_swap_internal = interval;
   return GHOST_kSuccess;
 }
 
 GHOST_TSuccess GHOST_ContextIOS::getSwapInterval(int &intervalOut)
 {
 
-  intervalOut = mtl_SwapInterval;
+  intervalOut = mtl_swap_internal;
   return GHOST_kSuccess;
 }
 
@@ -147,7 +150,7 @@ unsigned int GHOST_ContextIOS::getDefaultFramebuffer()
 GHOST_TSuccess GHOST_ContextIOS::updateDrawingContext()
 {
 
-  if (m_metalView) {
+  if (metal_view_) {
     metalUpdateFramebuffer();
     return GHOST_kSuccess;
   }
@@ -168,21 +171,21 @@ id<MTLTexture> GHOST_ContextIOS::metalOverlayTexture()
 
 MTLCommandQueue *GHOST_ContextIOS::metalCommandQueue()
 {
-  return s_sharedMetalCommandQueue;
+  return s_shared_metal_command_queue;
 }
 
 id<MTLDevice> extern_device = nil;
 MTLDevice *GHOST_ContextIOS::metalDevice()
 {
-  id<MTLDevice> device = m_metalView.device;
-  extern_device = m_metalView.device;
+  id<MTLDevice> device = metal_view_.device;
+  extern_device = metal_view_.device;
   return (MTLDevice *)device;
 }
 
 GHOST_TSuccess GHOST_ContextIOS::initializeDrawingContext()
 {
   @autoreleasepool {
-    if (m_metalView) {
+    if (metal_view_) {
       metalInitFramebuffer();
     }
   }
@@ -192,7 +195,7 @@ GHOST_TSuccess GHOST_ContextIOS::initializeDrawingContext()
 
 GHOST_TSuccess GHOST_ContextIOS::releaseNativeHandles()
 {
-  m_metalView = nil;
+  metal_view_ = nil;
 
   return GHOST_kSuccess;
 }
@@ -202,17 +205,17 @@ void GHOST_ContextIOS::metalInit()
   /* clang-format off */
   @autoreleasepool {
     /* clang-format on */
-    id<MTLDevice> device = m_metalView.device;
+    id<MTLDevice> device = metal_view_.device;
 
     /* Create a command queue for blit/present operation.
      * NOTE: All context should share a single command queue
      * to ensure correct ordering of work submitted from multiple contexts. */
-    if (s_sharedMetalCommandQueue == nil) {
-      s_sharedMetalCommandQueue = (MTLCommandQueue *)[device
+    if (s_shared_metal_command_queue == nil) {
+      s_shared_metal_command_queue = (MTLCommandQueue *)[device
           newCommandQueueWithMaxCommandBufferCount:GHOST_ContextIOS::max_command_buffer_count];
     }
     /* Ensure active GHOSTContext retains a reference to the shared context. */
-    [s_sharedMetalCommandQueue retain];
+    [s_shared_metal_command_queue retain];
 
     // Create shaders for blit operation
     NSString *source = @R"msl(
@@ -269,7 +272,7 @@ void GHOST_ContextIOS::metalInit()
     [desc.colorAttachments objectAtIndexedSubscript:0].pixelFormat =
         METAL_FRAMEBUFFERPIXEL_FORMAT_EDR;
 
-    m_metalRenderPipeline = (MTLRenderPipelineState *)[device
+    metal_render_pipeline_ = (MTLRenderPipelineState *)[device
         newRenderPipelineStateWithDescriptor:desc
                                        error:&error];
     if (error) {
@@ -295,9 +298,9 @@ void GHOST_ContextIOS::metalInit()
 
 void GHOST_ContextIOS::metalFree()
 {
-  if (m_metalRenderPipeline) {
-    [m_metalRenderPipeline release];
-    m_metalRenderPipeline = nil;
+  if (metal_render_pipeline_) {
+    [metal_render_pipeline_ release];
+    metal_render_pipeline_ = nil;
   }
 
   for (int i = 0; i < METAL_SWAPCHAIN_SIZE; i++) {
@@ -341,7 +344,7 @@ void GHOST_ContextIOS::metalUpdateFramebuffer()
   /* Free old texture */
   [m_defaultFramebufferMetalTexture[current_swapchain_index].texture release];
 
-  id<MTLDevice> device = m_metalView.device;
+  id<MTLDevice> device = metal_view_.device;
   MTLTextureDescriptor *overlayDesc = [MTLTextureDescriptor
       texture2DDescriptorWithPixelFormat:METAL_FRAMEBUFFERPIXEL_FORMAT_EDR
                                    width:width
@@ -362,7 +365,7 @@ void GHOST_ContextIOS::metalUpdateFramebuffer()
   m_defaultFramebufferMetalTexture[current_swapchain_index].texture = overlayTex;
 
   /* Clear texture on create */
-  id<MTLCommandBuffer> cmdBuffer = [s_sharedMetalCommandQueue commandBuffer];
+  id<MTLCommandBuffer> cmdBuffer = [s_shared_metal_command_queue commandBuffer];
   MTLRenderPassDescriptor *passDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
   {
     auto attachment = [passDescriptor.colorAttachments objectAtIndexedSubscript:0];
@@ -393,7 +396,7 @@ void GHOST_ContextIOS::metalSwapBuffers()
     updateDrawingContext();
 
     /* Get a renderpass descriptor for the current view. */
-    MTLRenderPassDescriptor *passDescriptor = m_metalView.currentRenderPassDescriptor;
+    MTLRenderPassDescriptor *passDescriptor = metal_view_.currentRenderPassDescriptor;
     if (passDescriptor == nil) {
       NSLog(@"Failed to acquire MTLRenderPassDescriptor");
       return;
@@ -406,7 +409,7 @@ void GHOST_ContextIOS::metalSwapBuffers()
     }
 
     /* Get the next drawable. */
-    id<CAMetalDrawable> current_drawable = m_metalView.currentDrawable;
+    id<CAMetalDrawable> current_drawable = metal_view_.currentDrawable;
     if (!current_drawable) {
       NSLog(@"Failed to acquire CAMetalDrawable");
       return;
@@ -421,14 +424,14 @@ void GHOST_ContextIOS::metalSwapBuffers()
       GHOST_ContextIOS::prevDrawable = current_drawable;
     }
     if (current_drawable_presented) {
-      NSLog(@"Double present (MTKView)%p!", m_metalView);
+      NSLog(@"Double present (MTKView)%p!", metal_view_);
     }
 
     GHOST_ASSERT(contextPresentCallback, "iOS: Missing context present callback");
     GHOST_ASSERT(m_defaultFramebufferMetalTexture[current_swapchain_index].texture != nil,
                  "iOS: Default Framebuffer Metal Texture is nil");
     (*contextPresentCallback)(passDescriptor,
-                              (id<MTLRenderPipelineState>)m_metalRenderPipeline,
+                              (id<MTLRenderPipelineState>)metal_render_pipeline_,
                               m_defaultFramebufferMetalTexture[current_swapchain_index].texture,
                               current_drawable);
     GHOST_ContextIOS::current_drawable_presented = true;

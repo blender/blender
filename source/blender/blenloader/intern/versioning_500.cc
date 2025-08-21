@@ -1250,15 +1250,13 @@ static void do_version_remove_lzo_and_lzma_compression(FileData *fd, Object *obj
 
   LISTBASE_FOREACH (PTCacheID *, pid, &pidlist) {
     bool found_incompatible_cache = false;
-    if (pid->cache->compression == PTCACHE_COMPRESS_LZO_DEPRECATED) {
-      pid->cache->compression = PTCACHE_COMPRESS_ZSTD_FAST;
+    if (ELEM(pid->cache->compression,
+             PTCACHE_COMPRESS_LZO_DEPRECATED,
+             PTCACHE_COMPRESS_LZMA_DEPRECATED))
+    {
+      pid->cache->compression = PTCACHE_COMPRESS_ZSTD_FILTERED;
       found_incompatible_cache = true;
     }
-    else if (pid->cache->compression == PTCACHE_COMPRESS_LZMA_DEPRECATED) {
-      pid->cache->compression = PTCACHE_COMPRESS_ZSTD_SLOW;
-      found_incompatible_cache = true;
-    }
-
     if (pid->type == PTCACHE_TYPE_DYNAMICPAINT) {
       /* Dynamicpaint was hardcoded to use LZO. */
       found_incompatible_cache = true;
@@ -2284,6 +2282,23 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
                       bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
       }
     }
+  }
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 61)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type != NTREE_COMPOSIT) {
+        continue;
+      }
+      version_node_input_socket_name(ntree, CMP_NODE_GAMMA_DEPRECATED, "Image", "Color");
+      version_node_output_socket_name(ntree, CMP_NODE_GAMMA_DEPRECATED, "Image", "Color");
+
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type_legacy == CMP_NODE_GAMMA_DEPRECATED) {
+          node->type_legacy = SH_NODE_GAMMA;
+          STRNCPY_UTF8(node->idname, "ShaderNodeGamma");
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
   }
 
   /**

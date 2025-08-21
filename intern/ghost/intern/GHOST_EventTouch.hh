@@ -32,13 +32,13 @@ class GHOST_EventTouch : public GHOST_Event {
                    uint numFingers = 1)
       : GHOST_Event(msec, GHOST_kEventTouch, window)
   {
-    m_touchEventData.subtype = subtype;
-    m_touchEventData.x = x;
-    m_touchEventData.y = y;
-    m_touchEventData.numFingers = numFingers;
-    m_data = &m_touchEventData;
+    touch_event_data_.subtype = subtype;
+    touch_event_data_.x = x;
+    touch_event_data_.y = y;
+    touch_event_data_.numFingers = numFingers;
+    data_ = &touch_event_data_;
   }
 
  protected:
-  GHOST_TEventTouchData m_touchEventData;
+  GHOST_TEventTouchData touch_event_data_;
 };

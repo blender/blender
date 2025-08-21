@@ -22,22 +22,22 @@
 #  endif
 #endif
 
-GHOST_ISystemPaths *GHOST_ISystemPaths::m_systemPaths = nullptr;
+GHOST_ISystemPaths *GHOST_ISystemPaths::system_paths_ = nullptr;
 
 GHOST_TSuccess GHOST_ISystemPaths::create()
 {
   GHOST_TSuccess success;
-  if (!m_systemPaths) {
+  if (!system_paths_) {
 #ifdef WIN32
-    m_systemPaths = new GHOST_SystemPathsWin32();
+    system_paths_ = new GHOST_SystemPathsWin32();
 #else
 #  ifdef __APPLE__
-    m_systemPaths = new GHOST_SystemPathsCocoa();
+    system_paths_ = new GHOST_SystemPathsCocoa();
 #  else
-    m_systemPaths = new GHOST_SystemPathsUnix();
+    system_paths_ = new GHOST_SystemPathsUnix();
 #  endif
 #endif
-    success = m_systemPaths != nullptr ? GHOST_kSuccess : GHOST_kFailure;
+    success = system_paths_ != nullptr ? GHOST_kSuccess : GHOST_kFailure;
   }
   else {
     success = GHOST_kFailure;
@@ -48,9 +48,9 @@ GHOST_TSuccess GHOST_ISystemPaths::create()
 GHOST_TSuccess GHOST_ISystemPaths::dispose()
 {
   GHOST_TSuccess success = GHOST_kSuccess;
-  if (m_systemPaths) {
-    delete m_systemPaths;
-    m_systemPaths = nullptr;
+  if (system_paths_) {
+    delete system_paths_;
+    system_paths_ = nullptr;
   }
   else {
     success = GHOST_kFailure;
@@ -60,8 +60,8 @@ GHOST_TSuccess GHOST_ISystemPaths::dispose()
 
 GHOST_ISystemPaths *GHOST_ISystemPaths::get()
 {
-  if (!m_systemPaths) {
+  if (!system_paths_) {
     create();
   }
-  return m_systemPaths;
+  return system_paths_;
 }

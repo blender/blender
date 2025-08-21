@@ -30,12 +30,12 @@ class GHOST_EventCursor : public GHOST_Event {
                     int32_t x,
                     int32_t y,
                     const GHOST_TabletData &tablet)
-      : GHOST_Event(msec, type, window), m_cursorEventData({x, y, tablet})
+      : GHOST_Event(msec, type, window), cursor_event_data_({x, y, tablet})
   {
-    m_data = &m_cursorEventData;
+    data_ = &cursor_event_data_;
   }
 
  protected:
   /** The x,y-coordinates of the cursor position. */
-  GHOST_TEventCursorData m_cursorEventData;
+  GHOST_TEventCursorData cursor_event_data_;
 };

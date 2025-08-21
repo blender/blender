@@ -683,6 +683,10 @@ static void scene_foreach_toolsettings(LibraryForeachIDData *data,
         do_undo_restore,
         scene_foreach_paint(data, paint, do_undo_restore, reader, paint_old));
 
+    /* WARNING: Handling this object pointer is fairly intricated, to support both 'regular'
+     * foreach_id processing (in which case both sets of data, current and old, are the same), and
+     * the restore-after-undo cases. It does not have a helper, because so far it is the only case
+     * of having to deal with non-'paint' data in a sub-toolsett struct. */
     Object *gravity_object = toolsett->sculpt ? toolsett->sculpt->gravity_object : nullptr;
     Object *gravity_object_old = toolsett_old->sculpt->gravity_object;
     BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_IDSUPER_P(data,
@@ -695,7 +699,11 @@ static void scene_foreach_toolsettings(LibraryForeachIDData *data,
     if (toolsett->sculpt) {
       toolsett->sculpt->gravity_object = gravity_object;
     }
-    toolsett_old->sculpt->gravity_object = gravity_object_old;
+    /* Do not re-assign `gravity_object_old` object if both current and old data are the same
+     * (foreach_id case), that would nullify assignement above, making remapping cases fail. */
+    if (toolsett_old != toolsett) {
+      toolsett_old->sculpt->gravity_object = gravity_object_old;
+    }
   }
   if (toolsett_old->gp_paint) {
     paint = toolsett->gp_paint ? &toolsett->gp_paint->paint : nullptr;

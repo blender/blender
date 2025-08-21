@@ -328,7 +328,7 @@ const CPPType &Result::cpp_type(const ResultType type)
     case ResultType::Bool:
       return CPPType::get<bool>();
     case ResultType::Menu:
-      return CPPType::get<int32_t>();
+      return CPPType::get<nodes::MenuValue>();
     case ResultType::String:
       return CPPType::get<std::string>();
   }
@@ -446,7 +446,7 @@ void Result::allocate_single_value()
       this->set_single_value(false);
       break;
     case ResultType::Menu:
-      this->set_single_value(0);
+      this->set_single_value(nodes::MenuValue(0));
       break;
     case ResultType::String:
       this->set_single_value(std::string(""));

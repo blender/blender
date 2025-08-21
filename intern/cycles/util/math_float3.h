@@ -236,6 +236,15 @@ ccl_device_inline int3 operator>=(const float3 a, const float3 b)
 #  endif
 }
 
+ccl_device_inline int3 operator<(const float3 a, const float3 b)
+{
+#  ifdef __KERNEL_SSE__
+  return int3(_mm_castps_si128(_mm_cmplt_ps(a.m128, b.m128)));
+#  else
+  return make_int3(a.x < b.x, a.y < b.y, a.z < b.z);
+#  endif
+}
+
 ccl_device_inline float dot(const float3 a, const float3 b)
 {
 #  if defined(__KERNEL_SSE42__) && defined(__KERNEL_SSE__)

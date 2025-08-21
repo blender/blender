@@ -20,6 +20,7 @@
 #include "BLT_translation.hh"
 
 #include "ED_asset.hh"
+#include "ED_asset_catalog.hh"
 #include "ED_fileselect.hh"
 #include "ED_undo.hh"
 
@@ -88,6 +89,7 @@ class AssetCatalogTreeViewItem : public ui::BasicTreeViewItem {
 
   bool supports_renaming() const override;
   bool rename(const bContext &C, StringRefNull new_name) override;
+  void delete_item(bContext *C) override;
 
   /** Add drag support for catalog items. */
   std::unique_ptr<ui::AbstractViewItemDragController> create_drag_controller() const override;
@@ -337,6 +339,13 @@ bool AssetCatalogTreeViewItem::rename(const bContext &C, StringRefNull new_name)
       this->get_tree_view());
   asset::catalog_rename(tree_view.asset_library_, catalog_item_.get_catalog_id(), new_name);
   return true;
+}
+
+void AssetCatalogTreeViewItem::delete_item(bContext * /*C*/)
+{
+  const AssetCatalogTreeView &tree_view = static_cast<const AssetCatalogTreeView &>(
+      this->get_tree_view());
+  ed::asset::catalog_remove(tree_view.asset_library_, catalog_item_.get_catalog_id());
 }
 
 std::unique_ptr<ui::TreeViewItemDropTarget> AssetCatalogTreeViewItem::create_drop_target()

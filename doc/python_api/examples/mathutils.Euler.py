@@ -30,3 +30,6 @@ vec.rotate(eul)
 mat_rot = eul.to_matrix()
 mat_loc = mathutils.Matrix.Translation((2.0, 3.0, 4.0))
 mat = mat_loc @ mat_rot.to_4x4()
+
+# Direct buffer access is supported.
+print(memoryview(eul).tobytes())

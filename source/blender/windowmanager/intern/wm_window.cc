@@ -224,8 +224,15 @@ static void wm_ghostwindow_destroy(wmWindowManager *wm, wmWindow *win)
    * drawing context to discard the GW context. */
   wm_window_clear_drawable(wm);
 
-  if (win == wm->winactive) {
-    wm->winactive = nullptr;
+  if (win == wm->runtime->winactive) {
+    wm->runtime->winactive = nullptr;
+  }
+
+  GHOST_ContextHandle restore_ghost_context = GHOST_GetActiveGPUContext();
+  GPUContext *restore_context = GPU_context_active_get();
+  if (restore_context == win->gpuctx) {
+    restore_ghost_context = nullptr;
+    restore_context = nullptr;
   }
 
   /* We need this window's GPU context active to discard it. */
@@ -238,6 +245,11 @@ static void wm_ghostwindow_destroy(wmWindowManager *wm, wmWindow *win)
   GHOST_DisposeWindow(g_system, static_cast<GHOST_WindowHandle>(win->ghostwin));
   win->ghostwin = nullptr;
   win->gpuctx = nullptr;
+
+  if (restore_ghost_context && restore_context) {
+    GHOST_ActivateGPUContext(restore_ghost_context);
+    GPU_context_active_set(restore_context);
+  }
 }
 
 void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
@@ -255,7 +267,7 @@ void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
   BKE_screen_area_map_free(&win->global_areas);
 
   /* End running jobs, a job end also removes its timer. */
-  LISTBASE_FOREACH_MUTABLE (wmTimer *, wt, &wm->timers) {
+  LISTBASE_FOREACH_MUTABLE (wmTimer *, wt, &wm->runtime->timers) {
     if (wt->flags & WM_TIMER_TAGGED_FOR_REMOVAL) {
       continue;
     }
@@ -265,7 +277,7 @@ void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
   }
 
   /* Timer removing, need to call this API function. */
-  LISTBASE_FOREACH_MUTABLE (wmTimer *, wt, &wm->timers) {
+  LISTBASE_FOREACH_MUTABLE (wmTimer *, wt, &wm->runtime->timers) {
     if (wt->flags & WM_TIMER_TAGGED_FOR_REMOVAL) {
       continue;
     }
@@ -866,20 +878,24 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
                                       bool is_dialog)
 {
   /* A new window is created when page-flip mode is required for a window. */
-  GHOST_GPUSettings gpuSettings = {0};
+  GHOST_GPUSettings gpu_settings = {0};
   if (win->stereo3d_format->display_mode == S3D_DISPLAY_PAGEFLIP) {
-    gpuSettings.flags |= GHOST_gpuStereoVisual;
+    gpu_settings.flags |= GHOST_gpuStereoVisual;
   }
 
   if (G.debug & G_DEBUG_GPU) {
-    gpuSettings.flags |= GHOST_gpuDebugContext;
+    gpu_settings.flags |= GHOST_gpuDebugContext;
   }
 
   eGPUBackendType gpu_backend = GPU_backend_type_selection_get();
-  gpuSettings.context_type = wm_ghost_drawing_context_type(gpu_backend);
-  gpuSettings.preferred_device.index = U.gpu_preferred_index;
-  gpuSettings.preferred_device.vendor_id = U.gpu_preferred_vendor_id;
-  gpuSettings.preferred_device.device_id = U.gpu_preferred_device_id;
+  gpu_settings.context_type = wm_ghost_drawing_context_type(gpu_backend);
+  gpu_settings.preferred_device.index = U.gpu_preferred_index;
+  gpu_settings.preferred_device.vendor_id = U.gpu_preferred_vendor_id;
+  gpu_settings.preferred_device.device_id = U.gpu_preferred_device_id;
+  if (GPU_backend_vsync_is_overridden()) {
+    gpu_settings.flags |= GHOST_gpuVSyncIsOverridden;
+    gpu_settings.vsync = GHOST_TVSyncModes(GPU_backend_vsync_get());
+  }
 
   int posx = 0;
   int posy = 0;
@@ -893,7 +909,7 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
   }
 
   /* Clear drawable so we can set the new window. */
-  wmWindow *prev_windrawable = wm->windrawable;
+  wmWindow *prev_windrawable = wm->runtime->windrawable;
   wm_window_clear_drawable(wm);
 
   GHOST_WindowHandle ghostwin = GHOST_CreateWindow(
@@ -906,7 +922,7 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
       win->sizey,
       (GHOST_TWindowState)win->windowstate,
       is_dialog,
-      gpuSettings);
+      gpu_settings);
 
   if (ghostwin) {
     win->gpuctx = GPU_context_create(ghostwin, nullptr);
@@ -1011,13 +1027,15 @@ static void wm_window_ghostwindow_ensure(wmWindowManager *wm, wmWindow *win, boo
   }
 
   /* Add key-map handlers (1 handler for all keys in map!). */
-  wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Window", SPACE_EMPTY, RGN_TYPE_WINDOW);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      wm->runtime->defaultconf, "Window", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&win->handlers, keymap);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Screen", SPACE_EMPTY, RGN_TYPE_WINDOW);
+  keymap = WM_keymap_ensure(wm->runtime->defaultconf, "Screen", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&win->handlers, keymap);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Screen Editing", SPACE_EMPTY, RGN_TYPE_WINDOW);
+  keymap = WM_keymap_ensure(
+      wm->runtime->defaultconf, "Screen Editing", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&win->modalhandlers, keymap);
 
   /* Add drop boxes. */
@@ -1410,9 +1428,9 @@ static uint8_t wm_ghost_modifier_query(const enum ModSide side)
 
 static void wm_window_set_drawable(wmWindowManager *wm, wmWindow *win, bool activate)
 {
-  BLI_assert(ELEM(wm->windrawable, nullptr, win));
+  BLI_assert(ELEM(wm->runtime->windrawable, nullptr, win));
 
-  wm->windrawable = win;
+  wm->runtime->windrawable = win;
   if (activate) {
     GHOST_ActivateWindowDrawingContext(static_cast<GHOST_WindowHandle>(win->ghostwin));
   }
@@ -1421,8 +1439,8 @@ static void wm_window_set_drawable(wmWindowManager *wm, wmWindow *win, bool acti
 
 void wm_window_clear_drawable(wmWindowManager *wm)
 {
-  if (wm->windrawable) {
-    wm->windrawable = nullptr;
+  if (wm->runtime->windrawable) {
+    wm->runtime->windrawable = nullptr;
   }
 }
 
@@ -1430,7 +1448,7 @@ void wm_window_make_drawable(wmWindowManager *wm, wmWindow *win)
 {
   BLI_assert(GPU_framebuffer_active_get() == GPU_framebuffer_back_get());
 
-  if (win != wm->windrawable && win->ghostwin) {
+  if (win != wm->runtime->windrawable && win->ghostwin) {
     // win->lmbut = 0; /* Keeps hanging when mouse-pressed while other window opened. */
     wm_window_clear_drawable(wm);
 
@@ -1456,7 +1474,7 @@ void wm_window_reset_drawable()
   if (wm == nullptr) {
     return;
   }
-  wmWindow *win = wm->windrawable;
+  wmWindow *win = wm->runtime->windrawable;
 
   if (win && win->ghostwin) {
     wm_window_clear_drawable(wm);
@@ -1566,7 +1584,7 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr C
       win = static_cast<wmWindow *>(GHOST_GetWindowUserData(ghostwin));
     }
     else {
-      win = wm->winactive;
+      win = wm->runtime->winactive;
     }
 
     /* Display quit dialog or quit immediately. */
@@ -1616,8 +1634,8 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr C
       /* Entering window, update mouse position (without sending an event). */
       wm_window_update_eventstate(win);
 
-      /* No context change! `C->wm->windrawable` is drawable, or for area queues. */
-      wm->winactive = win;
+      /* No context change! `C->wm->runtime->windrawable` is drawable, or for area queues. */
+      wm->runtime->winactive = win;
       win->active = 1;
 
       /* Zero the `keymodifier`, it hangs on hotkeys that open windows otherwise. */
@@ -1802,8 +1820,8 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr C
 
       event.flag = eWM_EventFlag(0);
 
-      /* No context change! `C->wm->windrawable` is drawable, or for area queues. */
-      wm->winactive = win;
+      /* No context change! `C->wm->runtime->windrawable` is drawable, or for area queues. */
+      wm->runtime->winactive = win;
       win->active = 1;
 
       WM_event_add(win, &event);
@@ -1812,7 +1830,7 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr C
       event.type = EVT_DROP;
       event.val = KM_RELEASE;
       event.custom = EVT_DATA_DRAGDROP;
-      event.customdata = &wm->drags;
+      event.customdata = &wm->runtime->drags;
       event.customdata_free = true;
 
       WM_event_add(win, &event);
@@ -1909,7 +1927,7 @@ static bool wm_window_timers_process(const bContext *C, int *sleep_us_p)
   double ntime_min = DBL_MAX;
 
   /* Mutable in case the timer gets removed. */
-  LISTBASE_FOREACH_MUTABLE (wmTimer *, wt, &wm->timers) {
+  LISTBASE_FOREACH_MUTABLE (wmTimer *, wt, &wm->runtime->timers) {
     if (wt->flags & WM_TIMER_TAGGED_FOR_REMOVAL) {
       continue;
     }
@@ -2133,31 +2151,6 @@ GHOST_TDrawingContextType wm_ghost_drawing_context_type(const eGPUBackendType gp
   return GHOST_kDrawingContextTypeNone;
 }
 
-static uiBlock *block_create_gpu_backend_fallback(bContext *C, ARegion *region, void * /*arg1*/)
-{
-  uiBlock *block = UI_block_begin(
-      C, region, "autorun_warning_popup", blender::ui::EmbossType::Emboss);
-  UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
-  UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
-
-  uiLayout *layout = uiItemsAlertBox(block, 44, ALERT_ICON_ERROR);
-
-  /* Title and explanation text. */
-  uiLayout *col = &layout->column(false);
-  col->scale_y_set(0.8f);
-  uiItemL_ex(
-      col, RPT_("Failed to load using Vulkan, using OpenGL instead."), ICON_NONE, true, false);
-  col->separator(1.3f, LayoutSeparatorType::Space);
-
-  col->label(RPT_("Updating GPU drivers may solve this issue."), ICON_NONE);
-  col->label(RPT_("The graphics backend can be changed in the System section of the Preferences."),
-             ICON_NONE);
-
-  UI_block_bounds_set_centered(block, 14 * UI_SCALE_FAC);
-
-  return block;
-}
-
 void wm_test_gpu_backend_fallback(bContext *C)
 {
   if (!bool(G.f & G_FLAG_GPU_BACKEND_FALLBACK)) {
@@ -2171,7 +2164,8 @@ void wm_test_gpu_backend_fallback(bContext *C)
   G.f |= G_FLAG_GPU_BACKEND_FALLBACK_QUIET;
 
   wmWindowManager *wm = CTX_wm_manager(C);
-  wmWindow *win = static_cast<wmWindow *>((wm->winactive) ? wm->winactive : wm->windows.first);
+  wmWindow *win = static_cast<wmWindow *>((wm->runtime->winactive) ? wm->runtime->winactive :
+                                                                     wm->windows.first);
 
   if (win) {
     /* We want this warning on the Main window, not a child window even if active. See #118765. */
@@ -2181,7 +2175,14 @@ void wm_test_gpu_backend_fallback(bContext *C)
 
     wmWindow *prevwin = CTX_wm_window(C);
     CTX_wm_window_set(C, win);
-    UI_popup_block_invoke(C, block_create_gpu_backend_fallback, nullptr, nullptr);
+    std::string message = RPT_("Updating GPU drivers may solve this issue.");
+    message += RPT_(
+        "The graphics backend can be changed in the System section of the Preferences.");
+    UI_alert(C,
+             RPT_("Failed to load using Vulkan, using OpenGL instead."),
+             message,
+             ALERT_ICON_ERROR,
+             false);
     CTX_wm_window_set(C, prevwin);
   }
 }
@@ -2253,7 +2254,7 @@ eWM_CapabilitiesFlag WM_capabilities_flag()
 void WM_event_timer_sleep(wmWindowManager *wm, wmWindow * /*win*/, wmTimer *timer, bool do_sleep)
 {
   /* Extra security check. */
-  if (BLI_findindex(&wm->timers, timer) == -1) {
+  if (BLI_findindex(&wm->runtime->timers, timer) == -1) {
     return;
   }
   /* It's disputable if this is needed, when tagged for removal,
@@ -2281,7 +2282,7 @@ wmTimer *WM_event_timer_add(wmWindowManager *wm,
   wt->time_step = time_step;
   wt->win = win;
 
-  BLI_addtail(&wm->timers, wt);
+  BLI_addtail(&wm->runtime->timers, wt);
 
   return wt;
 }
@@ -2303,20 +2304,20 @@ wmTimer *WM_event_timer_add_notifier(wmWindowManager *wm,
   wt->customdata = POINTER_FROM_UINT(type);
   wt->flags |= WM_TIMER_NO_FREE_CUSTOM_DATA;
 
-  BLI_addtail(&wm->timers, wt);
+  BLI_addtail(&wm->runtime->timers, wt);
 
   return wt;
 }
 
 void wm_window_timers_delete_removed(wmWindowManager *wm)
 {
-  LISTBASE_FOREACH_MUTABLE (wmTimer *, wt, &wm->timers) {
+  LISTBASE_FOREACH_MUTABLE (wmTimer *, wt, &wm->runtime->timers) {
     if ((wt->flags & WM_TIMER_TAGGED_FOR_REMOVAL) == 0) {
       continue;
     }
 
     /* Actual removal and freeing of the timer. */
-    BLI_remlink(&wm->timers, wt);
+    BLI_remlink(&wm->runtime->timers, wt);
     MEM_freeN(wt);
   }
 }
@@ -2329,20 +2330,10 @@ void WM_event_timer_free_data(wmTimer *timer)
   }
 }
 
-void WM_event_timers_free_all(wmWindowManager *wm)
-{
-  BLI_assert_msg(BLI_listbase_is_empty(&wm->windows),
-                 "This should only be called when freeing the window-manager");
-  while (wmTimer *timer = static_cast<wmTimer *>(BLI_pophead(&wm->timers))) {
-    WM_event_timer_free_data(timer);
-    MEM_freeN(timer);
-  }
-}
-
 void WM_event_timer_remove(wmWindowManager *wm, wmWindow * /*win*/, wmTimer *timer)
 {
   /* Extra security check. */
-  if (BLI_findindex(&wm->timers, timer) == -1) {
+  if (BLI_findindex(&wm->runtime->timers, timer) == -1) {
     return;
   }
 
@@ -3151,17 +3142,21 @@ void *WM_system_gpu_context_create()
   BLI_assert(BLI_thread_is_main());
   BLI_assert(GPU_framebuffer_active_get() == GPU_framebuffer_back_get());
 
-  GHOST_GPUSettings gpuSettings = {0};
+  GHOST_GPUSettings gpu_settings = {0};
   const eGPUBackendType gpu_backend = GPU_backend_type_selection_get();
-  gpuSettings.context_type = wm_ghost_drawing_context_type(gpu_backend);
+  gpu_settings.context_type = wm_ghost_drawing_context_type(gpu_backend);
   if (G.debug & G_DEBUG_GPU) {
-    gpuSettings.flags |= GHOST_gpuDebugContext;
+    gpu_settings.flags |= GHOST_gpuDebugContext;
   }
-  gpuSettings.preferred_device.index = U.gpu_preferred_index;
-  gpuSettings.preferred_device.vendor_id = U.gpu_preferred_vendor_id;
-  gpuSettings.preferred_device.device_id = U.gpu_preferred_device_id;
+  gpu_settings.preferred_device.index = U.gpu_preferred_index;
+  gpu_settings.preferred_device.vendor_id = U.gpu_preferred_vendor_id;
+  gpu_settings.preferred_device.device_id = U.gpu_preferred_device_id;
+  if (GPU_backend_vsync_is_overridden()) {
+    gpu_settings.flags |= GHOST_gpuVSyncIsOverridden;
+    gpu_settings.vsync = GHOST_TVSyncModes(GPU_backend_vsync_get());
+  }
 
-  return GHOST_CreateGPUContext(g_system, gpuSettings);
+  return GHOST_CreateGPUContext(g_system, gpu_settings);
 }
 
 void WM_system_gpu_context_dispose(void *context)

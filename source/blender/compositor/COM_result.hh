@@ -23,6 +23,8 @@
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"
 
+#include "NOD_menu_value.hh"
+
 #include "COM_domain.hh"
 #include "COM_meta_data.hh"
 
@@ -133,8 +135,8 @@ class Result {
    * which will be identical to that stored in the data_ member. The active variant member depends
    * on the type of the result. This member is uninitialized and should not be used if the result
    * is not a single value. */
-  std::variant<float, float2, float3, float4, int32_t, int2, bool, std::string> single_value_ =
-      0.0f;
+  std::variant<float, float2, float3, float4, int32_t, int2, bool, std::string, nodes::MenuValue>
+      single_value_ = 0.0f;
   /* The domain of the result. This only matters if the result was not a single value. See the
    * discussion in COM_domain.hh for more information. */
   Domain domain_ = Domain::identity();

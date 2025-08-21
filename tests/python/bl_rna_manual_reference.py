@@ -56,6 +56,7 @@ def test_lookup_coverage():
         for struct_id, v in sorted(struct.items()):
             props = [(prop.identifier, prop) for prop in v.properties]
             struct_path = "bpy.types.%s" % struct_id[1]
+            yield (struct_path, "%s" % struct_path)
             for prop_id, prop in props:
                 yield (struct_path, "%s.%s" % (struct_path, prop_id))
 
@@ -81,10 +82,11 @@ def test_lookup_coverage():
         # url = wm.WM_OT_doc_view_manual._lookup_rna_url(rna_id, verbose=False)
         url = lookup_rna_url(rna_id, visit_indices)
 
+        if url is None:
+            print(rna_id)
+
         if VERBOSE:
             print(rna_id, "->", url)
-        else:
-            print(rna_id)
 
         set_group_all.add(rna_group)
         if url is not None:

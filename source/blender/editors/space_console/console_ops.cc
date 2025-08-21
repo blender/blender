@@ -383,15 +383,26 @@ static wmOperatorStatus console_move_exec(bContext *C, wmOperator *op)
   ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
 
   int type = RNA_enum_get(op->ptr, "type");
-  bool select = RNA_boolean_get(op->ptr, "select");
+  const bool select = RNA_boolean_get(op->ptr, "select");
 
   bool done = false;
-  int old_pos = ci->cursor;
+  const int old_pos = ci->cursor;
   int pos = 0;
 
   if (!select && sc->sel_start != sc->sel_end) {
     /* Clear selection if we are not extending it. */
     sc->sel_start = sc->sel_end;
+  }
+  const bool had_select = sc->sel_start != sc->sel_end;
+
+  int select_side = 0;
+  if (had_select) {
+    if (sc->sel_start == ci->len - old_pos) {
+      select_side = -1;
+    }
+    else if (sc->sel_end == ci->len - old_pos) {
+      select_side = 1;
+    }
   }
 
   switch (type) {
@@ -431,15 +442,32 @@ static wmOperatorStatus console_move_exec(bContext *C, wmOperator *op)
   }
 
   if (select) {
-    if (sc->sel_start == sc->sel_end || sc->sel_start > ci->len || sc->sel_end > ci->len) {
-      sc->sel_start = ci->len - old_pos;
-      sc->sel_end = sc->sel_start;
-    }
-    if (pos > old_pos) {
-      sc->sel_start = ci->len - pos;
+    if (had_select) {
+      if (select_side != 0) {
+        /* Modify the current selection if either side was was positioned at the cursor. */
+        if (select_side == -1) {
+          sc->sel_start = ci->len - pos;
+        }
+        else if (select_side == 1) {
+          sc->sel_end = ci->len - pos;
+        }
+        if (sc->sel_start > sc->sel_end) {
+          std::swap(sc->sel_start, sc->sel_end);
+        }
+      }
     }
     else {
-      sc->sel_end = ci->len - pos;
+      /* Create a new selection. */
+      if (old_pos > pos) {
+        sc->sel_start = ci->len - old_pos;
+        sc->sel_end = ci->len - pos;
+        BLI_assert(sc->sel_start < sc->sel_end);
+      }
+      else if (old_pos < pos) {
+        sc->sel_start = ci->len - pos;
+        sc->sel_end = ci->len - old_pos;
+        BLI_assert(sc->sel_start < sc->sel_end);
+      }
     }
   }
 

@@ -31,23 +31,23 @@ enum eLoadFlags {
 };
 ENUM_OPERATORS(eLoadFlags, SEQ_LOAD_SET_VIEW_TRANSFORM)
 
-/** API for adding new sequence strips. */
+/** API for adding new strips. If multiple strips are added, data is updated for each one. */
 struct LoadData {
   int start_frame;
   int channel;
-  char name[64]; /* Strip name. */
+  char name[64]; /* Strip name, including file extension. */
   /** Typically a `filepath` but may reference any kind of path. */
   char path[/*FILE_MAX*/ 1024];
   struct {
-    int len;
-    int end_frame;
+    int count; /* Number of images in this strip, 1 if not an image sequence. */
+    int length;
   } image;         /* Only for image strips. */
   Scene *scene;    /* Only for scene strips. */
   MovieClip *clip; /* Only for clip strips. */
   Mask *mask;      /* Only for mask strips. */
   struct {
     int type;
-    int end_frame;
+    int length;
     Strip *input1;
     Strip *input2;
   } effect; /* Only for effect strips. */
@@ -57,7 +57,7 @@ struct LoadData {
   char views_format;
   Stereo3dFormat *stereo3d_format;
   bool allow_invalid_file;     /* Used by RNA API to create placeholder strips. */
-  double r_video_stream_start; /* For AV synchronization. Set by `SEQ_add_movie_strip`. */
+  double r_video_stream_start; /* For AV synchronization. Set by `seq::add_movie_strip`. */
   bool adjust_playback_rate;
   bool allow_overlap;
 };

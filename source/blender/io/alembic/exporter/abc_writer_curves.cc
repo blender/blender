@@ -163,15 +163,15 @@ void ABCCurveWriter::do_write(HierarchyContext &context)
   std::vector<uint8_t> orders;
 
   const Span<float3> positions = curves.positions();
-  const Span<float> nurbs_weights = curves.nurbs_weights();
+  const std::optional<Span<float>> nurbs_weights = curves.nurbs_weights();
   const VArray<int8_t> nurbs_orders = curves.nurbs_orders();
   const VArray<float> radii = curves.radius();
 
   vert_counts.resize(curves.curves_num());
   const OffsetIndices points_by_curve = curves.points_by_curve();
-  if (blender_curve_type == CURVE_TYPE_BEZIER) {
-    const Span<float3> handles_l = curves.handle_positions_left();
-    const Span<float3> handles_r = curves.handle_positions_right();
+  const std::optional<Span<float3>> handles_l = curves.handle_positions_left();
+  const std::optional<Span<float3>> handles_r = curves.handle_positions_right();
+  if (blender_curve_type == CURVE_TYPE_BEZIER && handles_l && handles_r) {
 
     for (const int i_curve : curves.curves_range()) {
       const IndexRange points = points_by_curve[i_curve];
@@ -190,8 +190,8 @@ void ABCCurveWriter::do_write(HierarchyContext &context)
         verts.push_back(to_yup_V3f(positions[i_point]));
         widths.push_back(radii[i_point] * 2.0f);
 
-        verts.push_back(to_yup_V3f(handles_r[i_point]));
-        verts.push_back(to_yup_V3f(handles_l[i_point + 1]));
+        verts.push_back(to_yup_V3f((*handles_r)[i_point]));
+        verts.push_back(to_yup_V3f((*handles_l)[i_point + 1]));
       }
 
       /* The last vert in the array doesn't need a right handle because the curve stops
@@ -202,8 +202,8 @@ void ABCCurveWriter::do_write(HierarchyContext &context)
       /* If the curve is cyclic, include the right handle of the last point and the
        * left handle of the first point. */
       if (is_cyclic) {
-        verts.push_back(to_yup_V3f(handles_r[last_point_index]));
-        verts.push_back(to_yup_V3f(handles_l[start_point_index]));
+        verts.push_back(to_yup_V3f((*handles_r)[last_point_index]));
+        verts.push_back(to_yup_V3f((*handles_l)[start_point_index]));
       }
 
       vert_counts[i_curve] = verts.size() - current_vert_count;
@@ -218,8 +218,10 @@ void ABCCurveWriter::do_write(HierarchyContext &context)
     }
 
     if (blender_curve_type == CURVE_TYPE_NURBS) {
-      weights.resize(curves.points_num());
-      std::copy_n(nurbs_weights.data(), weights.size(), weights.data());
+      if (nurbs_weights) {
+        weights.resize(curves.points_num());
+        std::copy_n(nurbs_weights->data(), weights.size(), weights.data());
+      }
 
       orders.resize(curves.curves_num());
       for (const int i_curve : curves.curves_range()) {

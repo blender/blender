@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'6dca66d606ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-11 08:28+0000\n"
+"POT-Creation-Date: 2025-08-18 09:16+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: Balázs Füvesi <fuvesib@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -6561,60 +6561,60 @@ msgid "Mask"
 msgstr "Maszk"
 
 
-msgid "Mirror"
-msgstr "Tükrözés"
-
-
-msgid "Local View"
-msgstr "Helyi nézet"
-
-
-msgid "Navigation"
-msgstr "Navigáció"
-
-
-msgid "Align View"
-msgstr "Nézet igazítása"
-
-
-msgid "Metaball"
-msgstr "Meta test"
-
-
-msgid "Light"
-msgstr "Fényforrás"
-
-
-msgid "Relations"
-msgstr "Kapcsolatok"
-
-
-msgid "Rigid Body"
-msgstr "Szilárd test"
-
-
 msgid "Apply"
 msgstr "Elfogadás"
-
-
-msgid "Track"
-msgstr "Nyom"
 
 
 msgid "Show/Hide"
 msgstr "Mutat/Rejt"
 
 
+msgid "Local View"
+msgstr "Helyi nézet"
+
+
+msgid "Mirror"
+msgstr "Tükrözés"
+
+
 msgid "Clean Up"
 msgstr "Tisztítás"
 
 
-msgid "Merge"
-msgstr "Összefésülés"
+msgid "Track"
+msgstr "Nyom"
+
+
+msgid "Align View"
+msgstr "Nézet igazítása"
+
+
+msgid "Navigation"
+msgstr "Navigáció"
+
+
+msgid "Rigid Body"
+msgstr "Szilárd test"
+
+
+msgid "Relations"
+msgstr "Kapcsolatok"
+
+
+msgid "Light"
+msgstr "Fényforrás"
+
+
+msgid "Metaball"
+msgstr "Meta test"
 
 
 msgid "Text"
 msgstr "Szöveg"
+
+
+msgid "Merge"
+msgstr "Összefésülés"
 
 
 msgctxt "MovieClip"
@@ -11930,6 +11930,18 @@ msgid "Custom Curve"
 msgstr "Egyéni görbe"
 
 
+msgid "Channel to place this strip into"
+msgstr "Csatorna, amiben a sáv el lesz helyezve"
+
+
+msgid "Start frame of the sequence strip"
+msgstr "A szekvenciasáv kezdő képkockája"
+
+
+msgid "Replace Selection"
+msgstr "Kijelölés lecserélése"
+
+
 msgctxt "Sequence"
 msgid "Type"
 msgstr "Típus"
@@ -11997,18 +12009,6 @@ msgstr "Másolás"
 
 msgid "Add an effect to the sequencer, most are applied on top of existing strips"
 msgstr "Effekt hozzáadása a szekvenciához, többségük a létező sávok fölé kerül"
-
-
-msgid "Channel to place this strip into"
-msgstr "Csatorna, amiben a sáv el lesz helyezve"
-
-
-msgid "Start frame of the sequence strip"
-msgstr "A szekvenciasáv kezdő képkockája"
-
-
-msgid "Replace Selection"
-msgstr "Kijelölés lecserélése"
 
 
 msgid "Add an image or image sequence to the sequencer"
@@ -12805,12 +12805,12 @@ msgid "Detail Size"
 msgstr "Részlet mérete"
 
 
-msgid "Render Pass"
-msgstr "Render vezeték"
-
-
 msgid "Motion Tracking"
 msgstr "Mozgáskövetés"
+
+
+msgid "Render Pass"
+msgstr "Render vezeték"
 
 
 msgid "Chain Scaling"
@@ -14543,22 +14543,6 @@ msgid "Color of disabled marker"
 msgstr "Letiltott marker színe"
 
 
-msgid "Align Handle"
-msgstr "Markolat igazítása"
-
-
-msgid "Handle Vertex"
-msgstr "Fogantyú csúcspont"
-
-
-msgid "Handle Vertex Select"
-msgstr "Kijelölt fogantyú csúcspont"
-
-
-msgid "Handle Vertex Size"
-msgstr "Fogantyú csúcspont mérete"
-
-
 msgid "Locked Marker"
 msgstr "Zárolt marker"
 
@@ -14607,6 +14591,22 @@ msgid "Active Channel Group"
 msgstr "Aktív csatorna csoport"
 
 
+msgid "Align Handle"
+msgstr "Markolat igazítása"
+
+
+msgid "Handle Vertex"
+msgstr "Fogantyú csúcspont"
+
+
+msgid "Handle Vertex Select"
+msgstr "Kijelölt fogantyú csúcspont"
+
+
+msgid "Handle Vertex Size"
+msgstr "Fogantyú csúcspont mérete"
+
+
 msgid "Theme Dope Sheet"
 msgstr "Kulcstábla témája"
 
@@ -14629,14 +14629,6 @@ msgstr "Kijelölt hosszú kulcs"
 
 msgid "Summary"
 msgstr "Összegzés"
-
-
-msgid "Value Sliders"
-msgstr "Érték csúszkák"
-
-
-msgid "View Sliders"
-msgstr "Nézet csúszkák"
 
 
 msgid "Shadow Size"
@@ -14695,10 +14687,6 @@ msgid "Vertex Size"
 msgstr "Csúcspont mérete"
 
 
-msgid "Window Sliders"
-msgstr "Ablak csúszkák"
-
-
 msgid "Edge Select"
 msgstr "Kijelölt él"
 
@@ -14709,10 +14697,6 @@ msgstr "Kijelölt oldallap pont"
 
 msgid "Face Dot Size"
 msgstr "Oldallap pontjának mérete"
-
-
-msgid "Freestyle Face Mark"
-msgstr "Freestyle Oldallap jelölés"
 
 
 msgid "Active Action"
@@ -14795,10 +14779,6 @@ msgid "Camera Path"
 msgstr "Kamera útvonal"
 
 
-msgid "Edge UV Face Select"
-msgstr "UV Oldallap kiválasztás élei"
-
-
 msgid "Edge Seam"
 msgstr "Él illesztés"
 
@@ -14817,6 +14797,10 @@ msgstr "Oldallap szög felirat"
 
 msgid "Face Area Text"
 msgstr "Oldallap terület felirat"
+
+
+msgid "Freestyle Face Mark"
+msgstr "Freestyle Oldallap jelölés"
 
 
 msgid "Face Normal"
@@ -15749,6 +15733,11 @@ msgstr "Kulcs-képkockák törlése..."
 
 
 msgctxt "Operator"
+msgid "Clear Keyframes..."
+msgstr "Kulcsképkockák tisztítása..."
+
+
+msgctxt "Operator"
 msgid "Left"
 msgstr "Bal"
 
@@ -16068,11 +16057,6 @@ msgstr "Kamera"
 msgctxt "Operator"
 msgid "Speaker"
 msgstr "Hangszóró"
-
-
-msgctxt "Operator"
-msgid "Clear Keyframes..."
-msgstr "Kulcsképkockák tisztítása..."
 
 
 msgctxt "Operator"

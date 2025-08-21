@@ -5,6 +5,8 @@
 #pragma once
 
 #include "kernel/globals.h"
+#include "kernel/sample/lcg.h"
+
 #include "util/texture.h"
 
 #if !defined(__KERNEL_METAL__) && !defined(__KERNEL_ONEAPI__)
@@ -22,163 +24,61 @@ namespace {
 #endif
 
 #ifdef WITH_NANOVDB
-/* Stochastically turn a tricubic filter into a trilinear filter. */
-ccl_device_inline float3 interp_tricubic_to_trilinear_stochastic(const float3 P, float randu)
+/* -------------------------------------------------------------------- */
+/** Return the sample position for stochastical one-tap sampling.
+ * From "Stochastic Texture Filtering": https://arxiv.org/abs/2305.05810
+ * \{ */
+ccl_device_inline float3 interp_tricubic_stochastic(const float3 P, ccl_private float3 &rand)
 {
-  /* Some optimizations possible:
-   * - Could use select() for SIMD if we split the random number into 10
-   *   bits each and use that for each dimensions.
-   * - For GPU would be better not to compute P0 and P1 for all dimensions
-   *   in advance?
-   * - 1/g0 and 1/(1 - g0) are computed twice.
-   */
-
   const float3 p = floor(P);
   const float3 t = P - p;
 
-  /* Cubic weights. */
-  const float3 w0 = (1.0f / 6.0f) * (t * (t * (-t + 3.0f) - 3.0f) + 1.0f);
-  const float3 w1 = (1.0f / 6.0f) * (t * t * (3.0f * t - 6.0f) + 4.0f);
-  //    float3 w2 = (1.0f / 6.0f) * (t * (t * (-3.0f * t + 3.0f) + 3.0f) + 1.0f);
-  const float3 w3 = (1.0f / 6.0f) * (t * t * t);
+  /* Cubic interpolation weights. */
+  const float3 w[4] = {(((-1.0f / 6.0f) * t + 0.5f) * t - 0.5f) * t + (1.0f / 6.0f),
+                       ((0.5f * t - 1.0f) * t) * t + (2.0f / 3.0f),
+                       ((-0.5f * t + 0.5f) * t + 0.5f) * t + (1.0f / 6.0f),
+                       (1.0f / 6.0f) * t * t * t};
 
-  const float3 g0 = w0 + w1;
-  const float3 P0 = p + (w1 / g0) - 1.0f;
-  const float3 P1 = p + (w3 / (make_float3(1.0f) - g0)) + 1.0f;
+  /* For reservoir sampling, always accept the first in the stream. */
+  float3 total_weight = w[0];
+  float3 offset = make_float3(-1.0f);
 
-  float3 Pnew = P0;
-
-  if (randu < g0.x) {
-    randu /= g0.x;
-  }
-  else {
-    Pnew.x = P1.x;
-    randu = (randu - g0.x) / (1 - g0.x);
+  for (int j = 1; j < 4; j++) {
+    total_weight += w[j];
+    const float3 thresh = w[j] / total_weight;
+    const auto mask = rand < thresh;
+    offset = select(mask, make_float3(float(j) - 1.0f), offset);
+    rand = select(mask, safe_divide(rand, thresh), safe_divide(rand - thresh, 1.0f - thresh));
   }
 
-  if (randu < g0.y) {
-    randu /= g0.y;
-  }
-  else {
-    Pnew.y = P1.y;
-    randu = (randu - g0.y) / (1 - g0.y);
-  }
-
-  if (randu < g0.z) {
-  }
-  else {
-    Pnew.z = P1.z;
-  }
-
-  return Pnew;
+  return p + offset;
 }
 
-/* From "Stochastic Texture Filtering": https://arxiv.org/abs/2305.05810
- *
- * Could be used in specific situations where we are certain a single
- * tap is enough. Maybe better to try optimizing bilinear lookups in
- * NanoVDB (detect when fully inside a single leaf) than deal with this. */
-
-#  if 0
-ccl_device int3 interp_tricubic_stochastic(const float3 P, float randu)
+ccl_device_inline float3 interp_trilinear_stochastic(const float3 P, const float3 rand)
 {
-  const float ix = floorf(P.x);
-  const float iy = floorf(P.y);
-  const float iz = floorf(P.z);
-  const float deltas[3] = {P.x - ix, P.y - iy, P.z - iz};
-  int idx[3] = {(int)ix - 1, (int)iy - 1, (int)iz - 1};
-
-  for (int i = 0; i < 3; i++) {
-    const float t = deltas[i];
-    const float t2 = t * t;
-
-    /* Weighted reservoir sampling, first tap always accepted */
-    const float w0 = (1.0f / 6.0f) * (-t * t2 + 3 * t2 - 3 * t + 1);
-    float sumWt = w0;
-    int index = 0;
-
-    /* TODO: reduce number of divisions? */
-
-    /* Sample the other 3 filter taps. */
-    {
-      const float w1 = (1.0f / 6.0f) * (3 * t * t2 - 6 * t2 + 4);
-      sumWt += w1;
-      const float p = w1 / sumWt;
-      if (randu < p) {
-        index = 1;
-        randu /= p;
-      }
-      else {
-        randu = (randu - p) / (1 - p);
-      }
-    }
-
-    {
-      const float w2 = (1.0f / 6.0f) * (-3 * t * t2 + 3 * t2 + 3 * t + 1);
-      sumWt += w2;
-      const float p = w2 / sumWt;
-      if (randu < p) {
-        index = 2;
-        randu /= p;
-      }
-      else {
-        randu = (randu - p) / (1 - p);
-      }
-    }
-
-    {
-      const float w3 = (1.0f / 6.0f) * t * t2;
-      sumWt += w3;
-      const float p = w3 / sumWt;
-      if (randu < p) {
-        index = 3;
-        randu /= p;
-      }
-      else {
-        randu = (randu - p) / (1 - p);
-      }
-    }
-
-    idx[i] += index;
-  }
-
-  return make_int3(idx[0], idx[1], idx[2]);
+  const float3 p = floor(P);
+  const float3 t = P - p;
+  return select(rand < t, p + 1.0f, p);
 }
 
-ccl_device int3 interp_trilinear_stochastic(const float3 P, float randu)
+ccl_device_inline float3 interp_stochastic(const float3 P,
+                                           ccl_private InterpolationType &interpolation,
+                                           ccl_private float3 &rand)
 {
-  const float ix = floorf(P.x);
-  const float iy = floorf(P.y);
-  const float iz = floorf(P.z);
-  int idx[3] = {(int)ix, (int)iy, (int)iz};
-
-  const float tx = P.x - ix;
-  const float ty = P.y - iy;
-  const float tz = P.z - iz;
-
-  if (randu < tx) {
-    idx[0]++;
-    randu /= tx;
+  float3 P_new = P;
+  if (interpolation == INTERPOLATION_CUBIC) {
+    P_new = interp_tricubic_stochastic(P, rand);
+  }
+  else if (interpolation == INTERPOLATION_LINEAR) {
+    P_new = interp_trilinear_stochastic(P, rand);
   }
   else {
-    randu = (randu - tx) / (1 - tx);
+    kernel_assert(interpolation == INTERPOLATION_CLOSEST);
   }
-
-  if (randu < ty) {
-    idx[1]++;
-    randu /= ty;
-  }
-  else {
-    randu = (randu - ty) / (1 - ty);
-  }
-
-  if (randu < tz) {
-    idx[2]++;
-  }
-
-  return make_int3(idx[0], idx[1], idx[2]);
+  interpolation = INTERPOLATION_CLOSEST;
+  return P_new;
 }
-#  endif
+/** \} */
 
 template<typename OutT, typename Acc>
 ccl_device OutT kernel_tex_image_interp_trilinear_nanovdb(ccl_private Acc &acc, const float3 P)
@@ -278,8 +178,12 @@ OutT kernel_tex_image_interp_nanovdb(const ccl_global TextureInfo &info,
 }
 #endif /* WITH_NANOVDB */
 
-ccl_device float4 kernel_tex_image_interp_3d(
-    KernelGlobals kg, const int id, float3 P, InterpolationType interp, const float randu)
+ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals kg,
+                                             ccl_private ShaderData *sd,
+                                             const int id,
+                                             float3 P,
+                                             InterpolationType interp,
+                                             const bool stochastic)
 {
 #ifdef WITH_NANOVDB
   const ccl_global TextureInfo &info = kernel_data_fetch(texture_info, id);
@@ -294,9 +198,10 @@ ccl_device float4 kernel_tex_image_interp_3d(
 
   /* A -0.5 offset is used to center the cubic samples around the sample point. */
   P = P - make_float3(0.5f);
-  if (interpolation == INTERPOLATION_CUBIC && randu >= 0.0f) {
-    P = interp_tricubic_to_trilinear_stochastic(P, randu);
-    interpolation = INTERPOLATION_LINEAR;
+
+  if (stochastic) {
+    float3 rand = lcg_step_float3(&sd->lcg_state);
+    P = interp_stochastic(P, interpolation, rand);
   }
 
   const ImageDataType data_type = (ImageDataType)info.data_type;
@@ -325,10 +230,11 @@ ccl_device float4 kernel_tex_image_interp_3d(
   }
 #else
   (void)kg;
+  (void)sd;
   (void)id;
   (void)P;
   (void)interp;
-  (void)randu;
+  (void)stochastic;
 #endif
 
   return make_float4(

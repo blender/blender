@@ -30,7 +30,7 @@ bool ConstantFolder::all_inputs_constant() const
 
 void ConstantFolder::make_constant(const float value) const
 {
-  LOG_DEBUG << "Folding " << node->name << "::" << output->name() << " to constant (" << value
+  LOG_TRACE << "Folding " << node->name << "::" << output->name() << " to constant (" << value
             << ").";
 
   for (ShaderInput *sock : output->links) {
@@ -43,7 +43,7 @@ void ConstantFolder::make_constant(const float value) const
 
 void ConstantFolder::make_constant(const float3 value) const
 {
-  LOG_DEBUG << "Folding " << node->name << "::" << output->name() << " to constant " << value
+  LOG_TRACE << "Folding " << node->name << "::" << output->name() << " to constant " << value
             << ".";
 
   for (ShaderInput *sock : output->links) {
@@ -56,7 +56,7 @@ void ConstantFolder::make_constant(const float3 value) const
 
 void ConstantFolder::make_constant(const int value) const
 {
-  LOG_DEBUG << "Folding " << node->name << "::" << output->name() << " to constant (" << value
+  LOG_TRACE << "Folding " << node->name << "::" << output->name() << " to constant (" << value
             << ").";
 
   for (ShaderInput *sock : output->links) {
@@ -113,7 +113,7 @@ void ConstantFolder::bypass(ShaderOutput *new_output) const
 {
   assert(new_output);
 
-  LOG_DEBUG << "Folding " << node->name << "::" << output->name() << " to socket "
+  LOG_TRACE << "Folding " << node->name << "::" << output->name() << " to socket "
             << new_output->parent->name << "::" << new_output->name() << ".";
 
   /* Remove all outgoing links from socket and connect them to new_output instead.
@@ -132,7 +132,7 @@ void ConstantFolder::discard() const
 {
   assert(output->type() == SocketType::CLOSURE);
 
-  LOG_DEBUG << "Discarding closure " << node->name << ".";
+  LOG_TRACE << "Discarding closure " << node->name << ".";
 
   graph->disconnect(output);
 }

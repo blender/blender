@@ -158,6 +158,8 @@ void WM_init_splash(bContext *C);
 
 void WM_init_gpu();
 
+bool WM_gpu_is_initialized();
+
 /**
  * Return an identifier for the underlying GHOST implementation.
  * \warning Use of this function should be limited & never for compatibility checks.
@@ -821,13 +823,6 @@ wmTimer *WM_event_timer_add_notifier(wmWindowManager *wm,
                                      double time_step);
 
 void WM_event_timer_free_data(wmTimer *timer);
-/**
- * Free all timers immediately.
- *
- * \note This should only be used on-exit,
- * in all other cases timers should be tagged for removal by #WM_event_timer_remove.
- */
-void WM_event_timers_free_all(wmWindowManager *wm);
 
 /**
  * Mark the given `timer` to be removed, actual removal and deletion is deferred and handled

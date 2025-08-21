@@ -67,7 +67,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Bool>("Rotate").default_value(true).description("Rotate islands for best fit");
   b.add_input<decl::Menu>("Method")
       .static_items(shape_method_items)
-      .default_value(int(ShapeMethod::Aabb))
+      .default_value(ShapeMethod::Aabb)
       .description("Method used for packing UV islands");
 }
 

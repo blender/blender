@@ -573,7 +573,7 @@ bNodeSocket &Menu::build(bNodeTree &ntree, bNode &node) const
                                                      this->identifier.c_str(),
                                                      this->name.c_str());
 
-  ((bNodeSocketValueMenu *)socket.default_value)->value = this->default_value;
+  ((bNodeSocketValueMenu *)socket.default_value)->value = this->default_value.value;
   this->set_common_flags(socket);
   return socket;
 }

@@ -54,7 +54,7 @@ bool DenoiserGPU::denoise_buffer(const BufferParams &buffer_params,
     task.render_buffers = render_buffers;
   }
   else {
-    LOG_WORK << "Creating temporary buffer on denoiser device.";
+    LOG_DEBUG << "Creating temporary buffer on denoiser device.";
 
     /* Create buffer which is available by the device used by denoiser. */
 

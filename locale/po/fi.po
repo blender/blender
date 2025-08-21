@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'6dca66d606ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-11 08:28+0000\n"
+"POT-Creation-Date: 2025-08-18 09:16+0000\n"
 "PO-Revision-Date: 2025-07-23 15:32+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -7268,52 +7268,8 @@ msgid "Mask"
 msgstr "Maski"
 
 
-msgid "UV Mapping"
-msgstr "UV-kartoittaminen"
-
-
-msgid "Select More/Less"
-msgstr "Valitse enemmän/vähemmän"
-
-
-msgid "Select Similar"
-msgstr "Valitse samankaltainen"
-
-
-msgid "Select All by Trait"
-msgstr "Valitse kaikki piirteen mukaan"
-
-
-msgid "Select Loops"
-msgstr "Valitse silmukat"
-
-
-msgid "Metaball"
-msgstr "Metapallo"
-
-
-msgid "Light"
-msgstr "Valo"
-
-
-msgid "Light Probe"
-msgstr "Valoluotain"
-
-
-msgid "Add Image"
-msgstr "Lisää kuva"
-
-
-msgid "Track"
-msgstr "Raide"
-
-
-msgid "Show/Hide"
-msgstr "Näytä/Piilota"
-
-
-msgid "Hooks"
-msgstr "Koukut"
+msgid "Mesh Select Mode"
+msgstr "Muodon valintatila"
 
 
 msgid "Random Mask"
@@ -7324,12 +7280,56 @@ msgid "Names"
 msgstr "Nimet"
 
 
-msgid "Mesh Select Mode"
-msgstr "Muodon valintatila"
+msgid "Show/Hide"
+msgstr "Näytä/Piilota"
+
+
+msgid "UV Mapping"
+msgstr "UV-kartoittaminen"
+
+
+msgid "Hooks"
+msgstr "Koukut"
+
+
+msgid "Select Similar"
+msgstr "Valitse samankaltainen"
+
+
+msgid "Select More/Less"
+msgstr "Valitse enemmän/vähemmän"
+
+
+msgid "Track"
+msgstr "Raide"
+
+
+msgid "Add Image"
+msgstr "Lisää kuva"
+
+
+msgid "Light Probe"
+msgstr "Valoluotain"
+
+
+msgid "Light"
+msgstr "Valo"
+
+
+msgid "Metaball"
+msgstr "Metapallo"
 
 
 msgid "Text"
 msgstr "Teksti"
+
+
+msgid "Select Loops"
+msgstr "Valitse silmukat"
+
+
+msgid "Select All by Trait"
+msgstr "Valitse kaikki piirteen mukaan"
 
 
 msgid "Basic"
@@ -11299,10 +11299,6 @@ msgid "Vignette"
 msgstr "Vinjetti"
 
 
-msgid "Vertex Bevel"
-msgstr "Kärkiviiste"
-
-
 msgid "Vertex Select"
 msgstr "Kärkivalinta"
 
@@ -11351,10 +11347,6 @@ msgid "Input Node"
 msgstr "Syötenoodi"
 
 
-msgid "Layout Node"
-msgstr "Pohjapiirrosnoodi"
-
-
 msgid "Node Selected"
 msgstr "Noodi valittu"
 
@@ -11367,10 +11359,6 @@ msgid "Script Node"
 msgstr "Koodinoodi"
 
 
-msgid "Selected Text"
-msgstr "Valittu teksti"
-
-
 msgid "Simulation Zone"
 msgstr "Simulaatioalue"
 
@@ -11381,6 +11369,10 @@ msgstr "Vektorinoodi"
 
 msgid "Edited Object"
 msgstr "Muokattu Objekti"
+
+
+msgid "Selected Text"
+msgstr "Valittu teksti"
 
 
 msgid "Gizmo A"
@@ -11405,6 +11397,10 @@ msgstr "Reunan Valinta"
 
 msgid "Object Selected"
 msgstr "Objekti Valittu"
+
+
+msgid "Vertex Bevel"
+msgstr "Kärkiviiste"
 
 
 msgid "Inner"

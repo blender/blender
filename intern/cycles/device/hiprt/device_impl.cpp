@@ -103,7 +103,7 @@ HIPRTDevice::HIPRTDevice(const DeviceInfo &info,
     return;
   }
 
-  if (LOG_IS_ON(LOG_LEVEL_DEBUG)) {
+  if (LOG_IS_ON(LOG_LEVEL_TRACE)) {
     hiprtSetLogLevel(hiprtLogLevelInfo | hiprtLogLevelWarn | hiprtLogLevelError);
   }
   else {

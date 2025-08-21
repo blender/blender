@@ -142,9 +142,3 @@ void GHOST_Context::initClearGL()
   glClearColor(0.000, 0.000, 0.000, 0.000);
 }
 #endif
-
-const char *GHOST_Context::getEnvVarVSyncString()
-{
-  const char *ghost_vsync_string = getenv("BLENDER_VSYNC");
-  return ghost_vsync_string;
-}

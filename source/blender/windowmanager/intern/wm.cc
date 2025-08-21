@@ -200,25 +200,8 @@ static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
 
   direct_link_wm_xr_data(reader, &wm->xr);
 
-  BLI_listbase_clear(&wm->timers);
-  BLI_listbase_clear(&wm->operators);
-  BLI_listbase_clear(&wm->paintcursors);
-
-  BLI_listbase_clear(&wm->keyconfigs);
-  wm->defaultconf = nullptr;
-  wm->addonconf = nullptr;
-  wm->userconf = nullptr;
-  wm->undo_stack = nullptr;
-
-  wm->message_bus = nullptr;
-
   wm->xr.runtime = nullptr;
 
-  BLI_listbase_clear(&wm->jobs);
-  BLI_listbase_clear(&wm->drags);
-
-  wm->windrawable = nullptr;
-  wm->winactive = nullptr;
   wm->init_flag = 0;
   wm->op_undo_depth = 0;
   wm->extensions_updates = WM_EXTENSIONS_UPDATE_UNSET;
@@ -312,7 +295,7 @@ void WM_operator_free_all_after(wmWindowManager *wm, wmOperator *op)
   op = op->next;
   while (op != nullptr) {
     wmOperator *op_next = op->next;
-    BLI_remlink(&wm->operators, op);
+    BLI_remlink(&wm->runtime->operators, op);
     WM_operator_free(op);
     op = op_next;
   }
@@ -351,7 +334,7 @@ void wm_operator_register(bContext *C, wmOperator *op)
   wmWindowManager *wm = CTX_wm_manager(C);
   int tot = 0;
 
-  BLI_addtail(&wm->operators, op);
+  BLI_addtail(&wm->runtime->operators, op);
 
   /* Only count registered operators. */
   while (op) {
@@ -360,7 +343,7 @@ void wm_operator_register(bContext *C, wmOperator *op)
       tot += 1;
     }
     if (tot > MAX_OP_REGISTERED) {
-      BLI_remlink(&wm->operators, op);
+      BLI_remlink(&wm->runtime->operators, op);
       WM_operator_free(op);
     }
     op = op_prev;
@@ -373,7 +356,7 @@ void wm_operator_register(bContext *C, wmOperator *op)
 
 void WM_operator_stack_clear(wmWindowManager *wm)
 {
-  while (wmOperator *op = static_cast<wmOperator *>(BLI_pophead(&wm->operators))) {
+  while (wmOperator *op = static_cast<wmOperator *>(BLI_pophead(&wm->runtime->operators))) {
     WM_operator_free(op);
   }
 
@@ -434,28 +417,28 @@ void WM_keyconfig_init(bContext *C)
   wmWindowManager *wm = CTX_wm_manager(C);
 
   /* Create standard key configuration. */
-  if (wm->defaultconf == nullptr) {
+  if (wm->runtime->defaultconf == nullptr) {
     /* Keep lowercase to match the preset filename. */
-    wm->defaultconf = WM_keyconfig_new(wm, WM_KEYCONFIG_STR_DEFAULT, false);
+    wm->runtime->defaultconf = WM_keyconfig_new(wm, WM_KEYCONFIG_STR_DEFAULT, false);
   }
-  if (wm->addonconf == nullptr) {
-    wm->addonconf = WM_keyconfig_new(wm, WM_KEYCONFIG_STR_DEFAULT " addon", false);
+  if (wm->runtime->addonconf == nullptr) {
+    wm->runtime->addonconf = WM_keyconfig_new(wm, WM_KEYCONFIG_STR_DEFAULT " addon", false);
   }
-  if (wm->userconf == nullptr) {
-    wm->userconf = WM_keyconfig_new(wm, WM_KEYCONFIG_STR_DEFAULT " user", false);
+  if (wm->runtime->userconf == nullptr) {
+    wm->runtime->userconf = WM_keyconfig_new(wm, WM_KEYCONFIG_STR_DEFAULT " user", false);
   }
 
   /* Initialize only after python init is done, for keymaps that use python operators. */
   if (CTX_py_init_get(C) && (wm->init_flag & WM_INIT_FLAG_KEYCONFIG) == 0) {
     /* Create default key config, only initialize once,
      * it's persistent across sessions. */
-    if (!(wm->defaultconf->flag & KEYCONF_INIT_DEFAULT)) {
-      wm_window_keymap(wm->defaultconf);
-      ED_spacetypes_keymap(wm->defaultconf);
+    if (!(wm->runtime->defaultconf->flag & KEYCONF_INIT_DEFAULT)) {
+      wm_window_keymap(wm->runtime->defaultconf);
+      ED_spacetypes_keymap(wm->runtime->defaultconf);
 
       WM_keyconfig_reload(C);
 
-      wm->defaultconf->flag |= KEYCONF_INIT_DEFAULT;
+      wm->runtime->defaultconf->flag |= KEYCONF_INIT_DEFAULT;
     }
 
     /* Harmless, but no need to update in background mode. */
@@ -484,8 +467,8 @@ void WM_check(bContext *C)
   }
 
   /* Run before loading the keyconfig. */
-  if (wm->message_bus == nullptr) {
-    wm->message_bus = WM_msgbus_create();
+  if (wm->runtime->message_bus == nullptr) {
+    wm->runtime->message_bus = WM_msgbus_create();
   }
 
   if (!G.background) {
@@ -548,7 +531,7 @@ void wm_add_default(Main *bmain, bContext *C)
   BKE_workspace_active_layout_set(win->workspace_hook, win->winid, workspace, layout);
   screen->winid = win->winid;
 
-  wm->winactive = win;
+  wm->runtime->winactive = win;
   wm->file_saved = 1;
   wm->runtime = MEM_new<blender::bke::WindowManagerRuntime>(__func__);
   wm_window_make_drawable(wm, win);
@@ -585,36 +568,11 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
     wm_window_free(C, wm, win);
   }
 
-  while (wmOperator *op = static_cast<wmOperator *>(BLI_pophead(&wm->operators))) {
-    WM_operator_free(op);
-  }
-
-  while (wmKeyConfig *keyconf = static_cast<wmKeyConfig *>(BLI_pophead(&wm->keyconfigs))) {
-    WM_keyconfig_free(keyconf);
-  }
-
-  if (wm->message_bus != nullptr) {
-    WM_msgbus_destroy(wm->message_bus);
-  }
-
 #ifdef WITH_PYTHON
   BPY_callback_wm_free(wm);
 #endif
-  BLI_freelistN(&wm->paintcursors);
-
-  WM_drag_free_list(&wm->drags);
 
   wm_reports_free(wm);
-
-  /* NOTE(@ideasman42): typically timers are associated with windows and timers will have been
-   * freed when the windows are removed. However timers can be created which don't have windows
-   * and in this case it's necessary to free them on exit, see: #109953. */
-  WM_event_timers_free_all(wm);
-
-  if (wm->undo_stack) {
-    BKE_undosys_stack_destroy(wm->undo_stack);
-    wm->undo_stack = nullptr;
-  }
 
   if (C && CTX_wm_manager(C) == wm) {
     CTX_wm_manager_set(C, nullptr);

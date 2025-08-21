@@ -8,6 +8,7 @@
 
 #include "BKE_camera.h"
 #include "BKE_layer.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_light.h"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
@@ -98,9 +99,17 @@ void FbxImportContext::import_globals(Scene *scene) const
 void FbxImportContext::import_materials()
 {
   for (const ufbx_material *fmat : this->fbx.materials) {
-    Material *mat = io::fbx::import_material(this->bmain, this->base_dir, *fmat);
-    if (this->params.use_custom_props) {
-      read_custom_properties(fmat->props, mat->id, this->params.props_enum_as_string);
+    Material *mat = nullptr;
+    /* Check if a material with this name already exists in the main database */
+    if (this->params.mtl_name_collision_mode == eFBXMtlNameCollisionMode::ReferenceExisting) {
+      mat = (Material *)BKE_libblock_find_name(this->bmain, ID_MA, fmat->name.data);
+    }
+
+    if (mat == nullptr) {
+      mat = io::fbx::import_material(this->bmain, this->base_dir, *fmat);
+      if (this->params.use_custom_props) {
+        read_custom_properties(fmat->props, mat->id, this->params.props_enum_as_string);
+      }
     }
     this->mapping.mat_to_material.add(fmat, mat);
   }

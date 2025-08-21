@@ -28,3 +28,6 @@ print("Color: {:d}, {:d}, {:d}".format(*(int(c) for c in (col * 255.0))))
 
 # This example prints the color as hexadecimal.
 print("Hexadecimal: {:02x}{:02x}{:02x}".format(int(col.r * 255), int(col.g * 255), int(col.b * 255)))
+
+# Direct buffer access is supported.
+print(memoryview(col).tobytes())

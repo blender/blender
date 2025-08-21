@@ -941,8 +941,8 @@ static void grease_pencil_edit_batch_ensure(Object &object,
     MutableSpan<float3> positions_slice_left = edit_points.slice(left_slice);
     MutableSpan<float3> positions_slice_right = edit_points.slice(right_slice);
 
-    const Span<float3> handles_left = curves.handle_positions_left();
-    const Span<float3> handles_right = curves.handle_positions_right();
+    const Span<float3> handles_left = *curves.handle_positions_left();
+    const Span<float3> handles_right = *curves.handle_positions_right();
 
     /* This will copy over the position but without the layer transform. */
     array_utils::gather(handles_left, bezier_points, positions_slice_left);

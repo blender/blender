@@ -29,3 +29,6 @@ exp_avg = (quat_a.to_exponential_map() +
 quat_avg = mathutils.Quaternion(exp_avg)
 print("Average rotation:")
 print(quat_avg)
+
+# Direct buffer access is supported.
+print(memoryview(quat_avg).tobytes())

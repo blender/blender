@@ -20,15 +20,15 @@ GHOST_DirectManipulationHelper::GHOST_DirectManipulationHelper(
         directManipulationEventHandler,
     DWORD directManipulationViewportHandlerCookie,
     bool isScrollDirectionInverted)
-    : m_hWnd(hWnd),
-      m_scrollDirectionRegKey(nullptr),
-      m_scrollDirectionChangeEvent(nullptr),
-      m_directManipulationManager(directManipulationManager),
-      m_directManipulationUpdateManager(directManipulationUpdateManager),
-      m_directManipulationViewport(directManipulationViewport),
-      m_directManipulationEventHandler(directManipulationEventHandler),
-      m_directManipulationViewportHandlerCookie(directManipulationViewportHandlerCookie),
-      m_isScrollDirectionInverted(isScrollDirectionInverted)
+    : h_wnd_(hWnd),
+      scroll_direction_reg_key_(nullptr),
+      scroll_direction_change_event_(nullptr),
+      direct_manipulation_manager_(directManipulationManager),
+      direct_manipulation_update_manager_(directManipulationUpdateManager),
+      direct_manipulation_viewport_(directManipulationViewport),
+      direct_manipulation_event_handler_(directManipulationEventHandler),
+      direct_manipulation_viewport_handler_cookie_(directManipulationViewportHandlerCookie),
+      is_scroll_direction_inverted_(isScrollDirectionInverted)
 {
 }
 
@@ -137,29 +137,29 @@ bool GHOST_DirectManipulationHelper::getScrollDirectionFromReg()
 void GHOST_DirectManipulationHelper::registerScrollDirectionChangeListener()
 {
 
-  if (!m_scrollDirectionRegKey) {
+  if (!scroll_direction_reg_key_) {
     HRESULT hr = HRESULT_FROM_WIN32(
         RegOpenKeyExW(HKEY_CURRENT_USER,
                       L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\PrecisionTouchPad\\",
                       0,
                       KEY_NOTIFY,
-                      &m_scrollDirectionRegKey));
+                      &scroll_direction_reg_key_));
     if (!SUCCEEDED(hr)) {
       GHOST_PRINT("Failed to open scroll direction registry key\n");
       return;
     }
   }
 
-  if (!m_scrollDirectionChangeEvent) {
-    m_scrollDirectionChangeEvent = CreateEventW(nullptr, true, false, nullptr);
+  if (!scroll_direction_change_event_) {
+    scroll_direction_change_event_ = CreateEventW(nullptr, true, false, nullptr);
   }
   else {
-    ResetEvent(m_scrollDirectionChangeEvent);
+    ResetEvent(scroll_direction_change_event_);
   }
-  HRESULT hr = HRESULT_FROM_WIN32(RegNotifyChangeKeyValue(m_scrollDirectionRegKey,
+  HRESULT hr = HRESULT_FROM_WIN32(RegNotifyChangeKeyValue(scroll_direction_reg_key_,
                                                           true,
                                                           REG_NOTIFY_CHANGE_LAST_SET,
-                                                          m_scrollDirectionChangeEvent,
+                                                          scroll_direction_change_event_,
                                                           true));
   if (!SUCCEEDED(hr)) {
     GHOST_PRINT("Failed to register scroll direction change listener\n");
@@ -169,61 +169,62 @@ void GHOST_DirectManipulationHelper::registerScrollDirectionChangeListener()
 
 void GHOST_DirectManipulationHelper::onPointerHitTest(UINT32 pointerId)
 {
-  [[maybe_unused]] HRESULT hr = m_directManipulationViewport->SetContact(pointerId);
+  [[maybe_unused]] HRESULT hr = direct_manipulation_viewport_->SetContact(pointerId);
   GHOST_ASSERT(SUCCEEDED(hr), "Viewport set contact failed\n");
 
-  if (WaitForSingleObject(m_scrollDirectionChangeEvent, 0) == WAIT_OBJECT_0) {
-    m_isScrollDirectionInverted = getScrollDirectionFromReg();
+  if (WaitForSingleObject(scroll_direction_change_event_, 0) == WAIT_OBJECT_0) {
+    is_scroll_direction_inverted_ = getScrollDirectionFromReg();
     registerScrollDirectionChangeListener();
   }
 }
 
 void GHOST_DirectManipulationHelper::update()
 {
-  if (m_directManipulationEventHandler->dm_status == DIRECTMANIPULATION_RUNNING ||
-      m_directManipulationEventHandler->dm_status == DIRECTMANIPULATION_INERTIA)
+  if (direct_manipulation_event_handler_->dm_status == DIRECTMANIPULATION_RUNNING ||
+      direct_manipulation_event_handler_->dm_status == DIRECTMANIPULATION_INERTIA)
   {
-    [[maybe_unused]] HRESULT hr = m_directManipulationUpdateManager->Update(nullptr);
+    [[maybe_unused]] HRESULT hr = direct_manipulation_update_manager_->Update(nullptr);
     GHOST_ASSERT(SUCCEEDED(hr), "DirectManipulationUpdateManager update failed\n");
   }
 }
 
 void GHOST_DirectManipulationHelper::setDPI(uint16_t dpi)
 {
-  m_directManipulationEventHandler->dpi = dpi;
+  direct_manipulation_event_handler_->dpi = dpi;
 }
 
 GHOST_TTrackpadInfo GHOST_DirectManipulationHelper::getTrackpadInfo()
 {
-  GHOST_TTrackpadInfo result = m_directManipulationEventHandler->accumulated_values;
-  result.isScrollDirectionInverted = m_isScrollDirectionInverted;
+  GHOST_TTrackpadInfo result = direct_manipulation_event_handler_->accumulated_values;
+  result.isScrollDirectionInverted = is_scroll_direction_inverted_;
 
-  m_directManipulationEventHandler->accumulated_values = {0, 0, 0};
+  direct_manipulation_event_handler_->accumulated_values = {0, 0, 0};
   return result;
 }
 
 GHOST_DirectManipulationHelper::~GHOST_DirectManipulationHelper()
 {
   HRESULT hr;
-  hr = m_directManipulationViewport->Stop();
+  hr = direct_manipulation_viewport_->Stop();
   GHOST_ASSERT(SUCCEEDED(hr), "Viewport stop failed\n");
 
-  hr = m_directManipulationViewport->RemoveEventHandler(m_directManipulationViewportHandlerCookie);
+  hr = direct_manipulation_viewport_->RemoveEventHandler(
+      direct_manipulation_viewport_handler_cookie_);
   GHOST_ASSERT(SUCCEEDED(hr), "Viewport remove event handler failed\n");
 
-  hr = m_directManipulationViewport->Abandon();
+  hr = direct_manipulation_viewport_->Abandon();
   GHOST_ASSERT(SUCCEEDED(hr), "Viewport abandon failed\n");
 
-  hr = m_directManipulationManager->Deactivate(m_hWnd);
+  hr = direct_manipulation_manager_->Deactivate(h_wnd_);
   GHOST_ASSERT(SUCCEEDED(hr), "DirectManipulationManager deactivate failed\n");
 
-  if (m_scrollDirectionChangeEvent) {
-    CloseHandle(m_scrollDirectionChangeEvent);
-    m_scrollDirectionChangeEvent = nullptr;
+  if (scroll_direction_change_event_) {
+    CloseHandle(scroll_direction_change_event_);
+    scroll_direction_change_event_ = nullptr;
   }
-  if (m_scrollDirectionRegKey) {
-    RegCloseKey(m_scrollDirectionRegKey);
-    m_scrollDirectionRegKey = nullptr;
+  if (scroll_direction_reg_key_) {
+    RegCloseKey(scroll_direction_reg_key_);
+    scroll_direction_reg_key_ = nullptr;
   }
 }
 

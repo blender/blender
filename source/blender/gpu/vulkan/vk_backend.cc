@@ -437,6 +437,7 @@ void VKBackend::detect_workarounds(VKDevice &device)
   extensions.descriptor_buffer = device.supports_extension(
       VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME);
 #endif
+  extensions.maintenance4 = device.supports_extension(VK_KHR_MAINTENANCE_4_EXTENSION_NAME);
   extensions.memory_priority = device.supports_extension(VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME);
   extensions.pageable_device_local_memory = device.supports_extension(
       VK_EXT_PAGEABLE_DEVICE_LOCAL_MEMORY_EXTENSION_NAME);
@@ -500,15 +501,6 @@ void VKBackend::detect_workarounds(VKDevice &device)
       device.physical_device_get(), VK_FORMAT_R8G8B8_UNORM, &format_properties);
   workarounds.vertex_formats.r8g8b8 = (format_properties.bufferFeatures &
                                        VK_FORMAT_FEATURE_VERTEX_BUFFER_BIT) == 0;
-
-#ifdef __APPLE__
-  /* Due to a limitation in MoltenVK, attachments should be sequential even when using
-   * dynamic rendering. MoltenVK internally uses render passes to simulate dynamic rendering and
-   * same limitations apply. */
-  if (GPU_type_matches(GPU_DEVICE_APPLE, GPU_OS_MAC, GPU_DRIVER_ANY)) {
-    GCaps.render_pass_workaround = true;
-  }
-#endif
 
   device.workarounds_ = workarounds;
   device.extensions_ = extensions;

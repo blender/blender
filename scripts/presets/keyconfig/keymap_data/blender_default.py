@@ -1058,6 +1058,8 @@ def km_user_interface(_params):
         ("ui.view_item_select", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
          {"properties": [("range_select", True)]}),
         ("ui.view_item_rename", {"type": 'F2', "value": 'PRESS'}, None),
+        ("ui.view_item_delete", {"type": 'X', "value": 'PRESS'}, None),
+        ("ui.view_item_delete", {"type": 'DEL', "value": 'PRESS'}, None),
     ])
 
     return keymap
@@ -3258,13 +3260,22 @@ def km_sequencer_preview(params):
          {"properties": [("keep_offset", True)]}),
 
         # Animation
-        ("anim.keyframe_insert", {"type": 'I', "value": 'PRESS'}, None),
         ("anim.keying_set_active_set", {"type": 'K', "value": 'PRESS', "shift": True}, None),
         ("anim.keyframe_insert_menu", {"type": 'K', "value": 'PRESS'}, {"properties": [("always_prompt", True)]}),
         ("anim.keyframe_delete_vse", {"type": 'I', "value": 'PRESS', "alt": True}, None),
 
         *_template_items_context_menu("SEQUENCER_MT_preview_context_menu", params.context_menu_event),
     ])
+
+    if params.use_pie_click_drag:
+        items.extend([
+            ("anim.keyframe_insert", {"type": 'I', "value": 'CLICK'}, None),
+            op_menu_pie("ANIM_MT_keyframe_insert_pie", {"type": 'I', "value": 'CLICK_DRAG'}),
+        ])
+    else:
+        items.extend([
+            ("anim.keyframe_insert", {"type": 'I', "value": 'PRESS'}, None),
+        ])
 
     if not params.legacy:
         # New pie menus.
@@ -3672,9 +3683,9 @@ def km_frames(params):
         ("screen.frame_jump", {"type": 'LEFT_ARROW', "value": 'PRESS', "shift": True, "repeat": True},
          {"properties": [("end", False)]}),
         ("screen.keyframe_jump", {"type": 'UP_ARROW', "value": 'PRESS', "repeat": True},
-         {"properties": [("next", True)]}),
-        ("screen.keyframe_jump", {"type": 'DOWN_ARROW', "value": 'PRESS', "repeat": True},
          {"properties": [("next", False)]}),
+        ("screen.keyframe_jump", {"type": 'DOWN_ARROW', "value": 'PRESS', "repeat": True},
+         {"properties": [("next", True)]}),
         ("screen.keyframe_jump", {"type": 'MEDIA_LAST', "value": 'PRESS'},
          {"properties": [("next", True)]}),
         ("screen.keyframe_jump", {"type": 'MEDIA_FIRST', "value": 'PRESS'},
@@ -6998,7 +7009,7 @@ def km_image_editor_tool_mask_cursor(params):
         "Image Editor Tool: Mask, Cursor",
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
-            ("mask.cursor_set", {"type": params.tool_mouse, "value": 'PRESS'}, None),
+            ("uv.cursor_set", {"type": params.tool_mouse, "value": 'PRESS'}, None),
             # Don't use `tool_maybe_tweak_event` since it conflicts with `PRESS` that places the cursor.
             ("transform.translate", params.tool_tweak_event,
              {"properties": [("release_confirm", True), ("cursor_transform", True)]}),
@@ -7012,7 +7023,7 @@ def km_image_editor_tool_mask_select(params, *, fallback):
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
             *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else _template_items_tool_select(
-                params, "mask.select", "mask.cursor_set", fallback=fallback)),
+                params, "mask.select", "uv.cursor_set", fallback=fallback)),
             *([] if params.use_fallback_tool_select_handled else
               _template_mask_select(
                   type=params.select_mouse,
@@ -8338,6 +8349,53 @@ def km_grease_pencil_interpolate_tool_modal_map(_params):
 
     return keymap
 
+
+def km_grease_pencil_pen_tool_modal_map(_params):
+    items = []
+    keymap = (
+        "Pen Tool Modal Map",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW', "modal": True},
+        {"items": items},
+    )
+
+    items.extend([
+        ("MOVE_HANDLE", {"type": 'LEFT_CTRL', "value": 'ANY', "any": True}, None),
+        ("MOVE_ENTIRE", {"type": 'LEFT_ALT', "value": 'ANY', "any": True}, None),
+        ("SNAP_ANGLE", {"type": 'LEFT_SHIFT', "value": 'ANY', "any": True}, None),
+    ])
+
+    return keymap
+
+
+def km_3d_view_tool_edit_grease_pencil_pen(params):
+    return (
+        "3D View Tool: Edit Grease Pencil, Pen",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("grease_pencil.pen", {"type": params.tool_mouse, "value": 'PRESS'},
+             {"properties": [
+                 ("extrude_point", True),
+                 ("move_segment", True),
+                 ("select_point", True),
+                 ("move_point", True),
+                 ("extrude_handle", "VECTOR"),
+             ]}),
+            ("grease_pencil.pen", {"type": params.tool_mouse, "value": 'PRESS', "shift": True},
+             {"properties": [
+                 ("extrude_point", True),
+                 ("move_segment", True),
+                 ("select_point", True),
+                 ("move_point", True),
+                 ("extrude_handle", "AUTO"),
+             ]}),
+            ("grease_pencil.pen", {"type": params.tool_mouse, "value": 'PRESS', "ctrl": True},
+             {"properties": [("insert_point", True), ("delete_point", True)]}),
+            ("grease_pencil.pen", {"type": params.tool_mouse, "value": 'DOUBLE_CLICK'},
+             {"properties": [("cycle_handle_type", True)]}),
+        ]},
+    )
+
+
 # ------------------------------------------------------------------------------
 # Grease Pencil: Texture Gradient Tool
 
@@ -8658,6 +8716,7 @@ def generate_keymaps(params=None):
         km_node_link_modal_map(params),
         km_node_resize_modal_map(params),
         km_grease_pencil_primitive_tool_modal_map(params),
+        km_grease_pencil_pen_tool_modal_map(params),
         km_grease_pencil_fill_tool_modal_map(params),
         km_grease_pencil_interpolate_tool_modal_map(params),
         km_sequencer_slip_modal_map(params),
@@ -8806,6 +8865,7 @@ def generate_keymaps(params=None):
         km_sequencer_preview_tool_move(params),
         km_sequencer_preview_tool_rotate(params),
         km_sequencer_preview_tool_scale(params),
+        km_3d_view_tool_edit_grease_pencil_pen(params),
         km_3d_view_tool_edit_grease_pencil_interpolate(params),
         km_3d_view_tool_paint_grease_pencil_interpolate(params),
         km_3d_view_tool_paint_grease_pencil_eyedropper(params),

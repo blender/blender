@@ -1639,6 +1639,16 @@ class USDImportTest(AbstractUSDTest):
             self.assertTrue(len(ob.modifiers) == 1 and ob.modifiers[0].type ==
                             'MESH_SEQUENCE_CACHE', f"{ob.name} has incorrect modifiers")
 
+        # Check that the shape with the color attribute properly updates and has correct values
+        def get_first_color_value(blender_object, frame):
+            bpy.context.scene.frame_set(frame)
+            depsgraph = bpy.context.evaluated_depsgraph_get()
+            return blender_object.evaluated_get(depsgraph).data.attributes["displayColor"].data.values()[0].color
+        blender_color = get_first_color_value(bpy.data.objects["capsule_color"], 1)
+        self.assertEqual(self.round_vector(blender_color), [0.8, 1.0, 0.0, 1.0])
+        blender_color = get_first_color_value(bpy.data.objects["capsule_color"], 2)
+        self.assertEqual(self.round_vector(blender_color), [0.1, 0.8, 0.0, 1.0])
+
     def test_import_collection_creation(self):
         """Test that the 'create_collection' option functions correctly."""
 

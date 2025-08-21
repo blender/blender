@@ -64,7 +64,7 @@ bool VDBImageLoader::load_metadata(const ImageDeviceFeatures &features, ImageMet
   bbox = grid->evalActiveVoxelBoundingBox();
   if (bbox.empty()) {
     metadata.type = IMAGE_DATA_TYPE_NANOVDB_EMPTY;
-    metadata.byte_size = 0;
+    metadata.byte_size = 1;
     grid.reset();
     return true;
   }
@@ -115,12 +115,16 @@ bool VDBImageLoader::load_metadata(const ImageDeviceFeatures &features, ImageMet
 #endif
 }
 
-bool VDBImageLoader::load_pixels(const ImageMetaData & /*metadata*/,
+bool VDBImageLoader::load_pixels(const ImageMetaData &metadata,
                                  void *pixels,
                                  const size_t /*pixels_size*/,
                                  const bool /*associate_alpha*/)
 {
 #ifdef WITH_NANOVDB
+  if (metadata.type == IMAGE_DATA_TYPE_NANOVDB_EMPTY) {
+    memset(pixels, 0, metadata.byte_size);
+    return true;
+  }
   if (nanogrid) {
     memcpy(pixels, nanogrid.data(), nanogrid.size());
     return true;

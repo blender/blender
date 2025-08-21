@@ -16,6 +16,7 @@ set(SRC
   intern/description.cc
   intern/description.hh
   intern/gpu_shader_binder.cc
+  intern/gpu_shader_binder_internal.hh
   intern/ocio_shader_shared.hh
   intern/opencolorio.hh
   intern/source_processor.cc
