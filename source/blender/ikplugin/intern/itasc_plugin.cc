@@ -12,6 +12,12 @@
 #include <cstring>
 #include <vector>
 
+/* Already suppressed in `intern/itasc/CMakeLists.txt` however that doesn't apply here. */
+#if defined(__GNUC__) && !defined(__clang__)
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wdeprecated-copy"
+#endif
+
 /* iTaSC headers */
 #ifdef WITH_IK_ITASC
 #  include "Armature.hpp"
@@ -22,6 +28,10 @@
 #  include "Scene.hpp"
 #  include "WDLSSolver.hpp"
 #  include "WSDLSSolver.hpp"
+#endif
+
+#if defined(__GNUC__) && !defined(__clang__)
+#  pragma GCC diagnostic pop
 #endif
 
 #include "MEM_guardedalloc.h"

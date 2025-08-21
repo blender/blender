@@ -89,6 +89,12 @@ cat > CMakeLists.txt << EOF
 #       If you're doing changes in this file, please update template
 #       in that script too
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  # Suppress these warnings until the issue is addressed as this adds noise.
+  # Use `-Wno-deprecated-copy` as this may have been enabled via `-Wextra`.
+  add_cxx_flag_per_config("-Wno-deprecated-copy")
+endif()
+
 set(INC
   .
 )
