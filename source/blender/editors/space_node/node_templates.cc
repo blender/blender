@@ -26,6 +26,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_main_invariants.hh"
 #include "BKE_node_runtime.hh"
@@ -712,6 +713,10 @@ void uiTemplateNodeLink(
     if (input->link->fromnode->flag & NODE_ACTIVE_TEXTURE) {
       but->flag |= UI_BUT_NODE_ACTIVE;
     }
+  }
+
+  if (!ID_IS_EDITABLE(ntree)) {
+    UI_but_disable(but, "Cannot edit linked node tree");
   }
 }
 
