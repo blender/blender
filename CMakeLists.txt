@@ -2479,6 +2479,7 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
   add_check_cxx_compiler_flags(
     CXX_REMOVE_STRICT_FLAGS
 
+    CXX_WARN_NO_NONTRIVIAL_MEMCALL -Wno-nontrivial-memcall
     CXX_WARN_NO_UNUSED_PARAMETER -Wno-unused-parameter
     CXX_WARN_NO_UNUSED_PRIVATE_FIELD -Wno-unused-private-field
     CXX_WARN_NO_CXX11_NARROWING -Wno-c++11-narrowing
