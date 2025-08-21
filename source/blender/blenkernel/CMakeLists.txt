@@ -557,6 +557,7 @@ set(SRC
   intern/CCGSubSurf_inline.h
   intern/CCGSubSurf_intern.h
   intern/attribute_access_intern.hh
+  intern/attribute_storage_access.hh
   intern/data_transfer_intern.hh
   intern/lib_intern.hh
   intern/multires_inline.hh

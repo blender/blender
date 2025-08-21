@@ -249,7 +249,9 @@ set(SRC
   nodes/node_geo_warning.cc
 
   include/NOD_geo_bake.hh
+  include/NOD_geo_bundle.hh
   include/NOD_geo_capture_attribute.hh
+  include/NOD_geo_closure.hh
   include/NOD_geo_foreach_geometry_element.hh
   include/NOD_geo_index_switch.hh
   include/NOD_geo_menu_switch.hh
