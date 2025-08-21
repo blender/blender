@@ -45,6 +45,11 @@ void TreeElementAnimData::expand(SpaceOutliner & /*space_outliner*/) const
   expand_NLA_tracks();
 }
 
+animrig::slot_handle_t TreeElementAnimData::get_slot_handle() const
+{
+  return this->anim_data_.slot_handle;
+}
+
 void TreeElementAnimData::expand_drivers() const
 {
   if (BLI_listbase_is_empty(&anim_data_.drivers)) {
