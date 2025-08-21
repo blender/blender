@@ -1642,7 +1642,7 @@ static int arg_handle_gpu_vsync_set(int argc, const char **argv, void * /*data*/
   }
   else {
     fprintf(stderr, "\nError: expected a value in [on, off, auto] '%s %s'.\n", arg_id, argv[1]);
-    return 0;
+    return 1;
   }
 
   GPU_backend_vsync_set_override(vsync);
@@ -1670,7 +1670,7 @@ static int arg_handle_gpu_compilation_subprocesses_set(int argc,
               argv[1],
               min,
               max);
-      return 0;
+      return 1;
     }
 
 #  ifdef WITH_OPENGL_BACKEND
