@@ -160,7 +160,9 @@ BMEdge *BM_edge_create(
   e->v2 = v2;
   e->l = nullptr;
 
-  memset(&e->v1_disk_link, 0, sizeof(BMDiskLink[2]));
+  memset(&e->v1_disk_link, 0, sizeof(BMDiskLink));
+  memset(&e->v2_disk_link, 0, sizeof(BMDiskLink));
+
   /* --- done --- */
 
   bmesh_disk_edge_append(e, e->v1);

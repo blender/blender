@@ -565,7 +565,7 @@ void rna_NodeSocketStandard_vector_default(PointerRNA *ptr,
     return;
   }
   auto *decl = static_cast<const blender::nodes::decl::Vector *>(sock->runtime->declaration);
-  std::copy_n(&decl->default_value.x, decl->dimensions, r_values);
+  std::copy_n(&decl->default_value[0], decl->dimensions, r_values);
 }
 
 void rna_NodeSocketStandard_color_default(PointerRNA *ptr, PropertyRNA * /*prop*/, float *r_values)
@@ -576,7 +576,17 @@ void rna_NodeSocketStandard_color_default(PointerRNA *ptr, PropertyRNA * /*prop*
     return;
   }
   auto *decl = static_cast<const blender::nodes::decl::Color *>(sock->runtime->declaration);
-  std::copy_n(&decl->default_value.r, 4, r_values);
+
+#  if defined(__GNUC__) && !defined(__clang__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Warray-bounds"
+#  endif
+
+  std::copy_n(&decl->default_value[0], 4, r_values);
+
+#  if defined(__GNUC__) && !defined(__clang__)
+#    pragma GCC diagnostic pop
+#  endif
 }
 
 int rna_NodeSocketStandard_menu_default(PointerRNA *ptr, PropertyRNA * /*prop*/)
