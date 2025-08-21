@@ -2656,48 +2656,7 @@ static void rna_Node_name_set(PointerRNA *ptr, const char *value)
 static int rna_Node_color_tag_get(PointerRNA *ptr)
 {
   bNode *node = ptr->data_as<bNode>();
-
-  const int nclass = node->typeinfo->ui_class == nullptr ? node->typeinfo->nclass :
-                                                           node->typeinfo->ui_class(node);
-
-  switch (nclass) {
-    case NODE_CLASS_INPUT:
-      return int(blender::bke::NodeColorTag::Input);
-    case NODE_CLASS_OUTPUT:
-      return int(blender::bke::NodeColorTag::Output);
-    case NODE_CLASS_OP_COLOR:
-      return int(blender::bke::NodeColorTag::Color);
-    case NODE_CLASS_OP_VECTOR:
-      return int(blender::bke::NodeColorTag::Vector);
-    case NODE_CLASS_OP_FILTER:
-      return int(blender::bke::NodeColorTag::Filter);
-    case NODE_CLASS_CONVERTER:
-      return int(blender::bke::NodeColorTag::Converter);
-    case NODE_CLASS_MATTE:
-      return int(blender::bke::NodeColorTag::Matte);
-    case NODE_CLASS_DISTORT:
-      return int(blender::bke::NodeColorTag::Distort);
-    case NODE_CLASS_PATTERN:
-      return int(blender::bke::NodeColorTag::Pattern);
-    case NODE_CLASS_TEXTURE:
-      return int(blender::bke::NodeColorTag::Texture);
-    case NODE_CLASS_SCRIPT:
-      return int(blender::bke::NodeColorTag::Script);
-    case NODE_CLASS_INTERFACE:
-      return int(blender::bke::NodeColorTag::Interface);
-    case NODE_CLASS_SHADER:
-      return int(blender::bke::NodeColorTag::Shader);
-    case NODE_CLASS_GEOMETRY:
-      return int(blender::bke::NodeColorTag::Geometry);
-    case NODE_CLASS_ATTRIBUTE:
-      return int(blender::bke::NodeColorTag::Attribute);
-    case NODE_CLASS_GROUP:
-      return int(blender::bke::NodeColorTag::Group);
-    case NODE_CLASS_LAYOUT:
-      break;
-  }
-
-  return int(blender::bke::NodeColorTag::None);
+  return int(blender::bke::node_color_tag(*node));
 }
 
 static bool allow_adding_sockets(const bNode &node)

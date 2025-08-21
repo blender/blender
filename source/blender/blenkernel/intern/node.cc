@@ -4768,6 +4768,49 @@ StringRefNull node_socket_label(const bNodeSocket &sock)
   return (sock.label[0] != '\0') ? sock.label : sock.name;
 }
 
+NodeColorTag node_color_tag(const bNode &node)
+{
+  const int nclass = node.typeinfo->ui_class == nullptr ? node.typeinfo->nclass :
+                                                          node.typeinfo->ui_class(&node);
+  switch (nclass) {
+    case NODE_CLASS_INPUT:
+      return NodeColorTag::Input;
+    case NODE_CLASS_OUTPUT:
+      return NodeColorTag::Output;
+    case NODE_CLASS_OP_COLOR:
+      return NodeColorTag::Color;
+    case NODE_CLASS_OP_VECTOR:
+      return NodeColorTag::Vector;
+    case NODE_CLASS_OP_FILTER:
+      return NodeColorTag::Filter;
+    case NODE_CLASS_CONVERTER:
+      return NodeColorTag::Converter;
+    case NODE_CLASS_MATTE:
+      return NodeColorTag::Matte;
+    case NODE_CLASS_DISTORT:
+      return NodeColorTag::Distort;
+    case NODE_CLASS_PATTERN:
+      return NodeColorTag::Pattern;
+    case NODE_CLASS_TEXTURE:
+      return NodeColorTag::Texture;
+    case NODE_CLASS_SCRIPT:
+      return NodeColorTag::Script;
+    case NODE_CLASS_INTERFACE:
+      return NodeColorTag::Interface;
+    case NODE_CLASS_SHADER:
+      return NodeColorTag::Shader;
+    case NODE_CLASS_GEOMETRY:
+      return NodeColorTag::Geometry;
+    case NODE_CLASS_ATTRIBUTE:
+      return NodeColorTag::Attribute;
+    case NODE_CLASS_GROUP:
+      return NodeColorTag::Group;
+    case NODE_CLASS_LAYOUT:
+      break;
+  }
+  return NodeColorTag::None;
+}
+
 static void node_type_base_defaults(bNodeType &ntype)
 {
   /* default size values */
