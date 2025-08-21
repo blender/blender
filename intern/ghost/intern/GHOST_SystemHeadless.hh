@@ -104,6 +104,15 @@ class GHOST_SystemHeadless : public GHOST_System {
   {
     return nullptr;
   }
+
+  GHOST_TSuccess startSecurityScopedFileAccess(const char * /*filepath*/) override {
+    return GHOST_kSuccess;
+  }
+
+  GHOST_TSuccess stopSecurityScopedFileAccess(const char * /*filepath*/) override {
+    return GHOST_kSuccess;
+  }
+
 #endif
   uint64_t getMilliSeconds() const override
   {

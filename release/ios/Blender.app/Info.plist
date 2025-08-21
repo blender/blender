@@ -2,8 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>LSMinimumSystemVersion</key>
-	<string>10.9.0</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
@@ -11,8 +9,6 @@
 			<array>
 				<string>blend</string>
 			</array>
-			<key>CFBundleTypeIconFile</key>
-			<string>Blender_Legacy_Document_Icon.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Blender File</string>
 			<key>CFBundleTypeOSTypes</key>
@@ -27,8 +23,6 @@
 			<array>
 				<string>org.blenderfoundation.blender.file</string>
 			</array>
-			<key>CFBundleTypeIconSystemGenerated</key>
-			<true/>
 		</dict>
 	</array>
 	<key>UILaunchStoryboardName</key>
@@ -63,6 +57,12 @@
 	<false/>
 	<key>UIStatusBarHidden</key>
 	<true/>
+    <key>UIFileSharingEnabled</key>
+    <true/>
+    <key>UISupportsDocumentBrowser</key>
+    <true/>
+    <key>LSSupportsOpeningDocumentsInPlace</key>
+    <true/>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationLandscapeLeft</string>

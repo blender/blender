@@ -1065,6 +1065,10 @@ bool WM_file_read(bContext *C,
 
   WM_cursor_wait(true);
 
+#ifdef WITH_APPLE_CROSSPLATFORM
+  GHOST_startSecurityScopedFileAccess(filepath);
+#endif
+
   /* First try to append data from exotic file formats. */
   /* It throws error box when file doesn't exist and returns -1. */
   /* NOTE(ton): it should set some error message somewhere. */
@@ -1174,6 +1178,10 @@ bool WM_file_read(bContext *C,
   wm_read_callback_post_wrapper(C, filepath, success);
 
   BLI_assert(BKE_main_namemap_validate(*CTX_data_main(C)));
+
+#ifdef WITH_APPLE_CROSSPLATFORM
+  GHOST_stopSecurityScopedFileAccess(filepath);
+#endif
 
   return success;
 }

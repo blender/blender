@@ -11,6 +11,7 @@
 #include "GHOST_EventButton.hh"
 #include "GHOST_EventCursor.hh"
 #include "GHOST_EventDragnDrop.hh"
+#include "GHOST_EventString.hh"
 #include "GHOST_WindowManager.hh"
 
 #ifdef WITH_INPUT_NDOF
@@ -54,6 +55,17 @@ int main_ios_callback(int argc, const char **argv);
     didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
   main_ios_callback(argc, argv);
+
+  return YES;
+}
+
+- (BOOL)application:(UIApplication *)application
+            openURL:(NSURL *)url
+            options:(NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options
+{
+  GHOST_SystemIOS *system = static_cast<GHOST_SystemIOS *>(GHOST_ISystem::getSystem());
+
+  system->handleOpenDocumentRequest(url.path);
 
   return YES;
 }
@@ -735,6 +747,22 @@ const char *GHOST_SystemIOS::getKeyboardInput(GHOST_IWindow *window)
   return windowIOS->getLastKeyboardString();
 }
 
+GHOST_TSuccess GHOST_SystemIOS::startSecurityScopedFileAccess(const char *filepath)
+{
+  NSURL *url = [NSURL fileURLWithPath:[NSString stringWithUTF8String:filepath]];
+  BOOL success = [url startAccessingSecurityScopedResource];
+
+  return success ? GHOST_kSuccess : GHOST_kFailure;
+}
+
+GHOST_TSuccess GHOST_SystemIOS::stopSecurityScopedFileAccess(const char *filepath)
+{
+  NSURL *url = [NSURL fileURLWithPath:[NSString stringWithUTF8String:filepath]];
+  [url stopAccessingSecurityScopedResource];
+
+  return GHOST_kSuccess;
+}
+
 // Note: called from NSWindow subclass
 GHOST_TSuccess GHOST_SystemIOS::handleDraggingEvent(GHOST_TEventType eventType,
                                                     GHOST_TDragnDropTypes draggedObjectType,
@@ -859,9 +887,36 @@ void GHOST_SystemIOS::handleQuitRequest()
   outside_loop_event_processed_ = true;
 }
 
-bool GHOST_SystemIOS::handleOpenDocumentRequest(void * /*filepathStr*/)
+bool GHOST_SystemIOS::handleOpenDocumentRequest(void *filepathStr)
 {
-  /* TODO: Passthrough or alternative impleme ntation for iOS. */
+  NSString *filepath = (NSString *)filepathStr;
+
+  @autoreleasepool {
+    if (!current_active_window_) {
+      return NO;
+    }
+
+    /* Discard event if we are in cursor grab sequence,
+     * it'll lead to "stuck cursor" situation if the alert panel is raised. */
+    if (current_active_window_->getCursorGrabModeIsWarp()) {
+      return NO;
+    }
+
+    const size_t filenameTextSize = [filepath lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
+    char *temp_buff = (char *)malloc(filenameTextSize + 1);
+
+    if (temp_buff == nullptr) {
+      return GHOST_kFailure;
+    }
+
+    memcpy(temp_buff, [filepath cStringUsingEncoding:NSUTF8StringEncoding], filenameTextSize);
+    temp_buff[filenameTextSize] = '\0';
+
+    pushEvent(new GHOST_EventString(getMilliSeconds(),
+                                    GHOST_kEventOpenMainFile,
+                                    current_active_window_,
+                                    static_cast<GHOST_TEventDataPtr>(temp_buff)));
+  }
   return YES;
 }
 

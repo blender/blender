@@ -471,6 +471,9 @@ class GHOST_ISystem {
   virtual GHOST_TSuccess hideOnScreenKeyboard(GHOST_IWindow *window) = 0;
 
   virtual const char *getKeyboardInput(GHOST_IWindow *window) = 0;
+
+  virtual GHOST_TSuccess startSecurityScopedFileAccess(const char *filepath) = 0;
+  virtual GHOST_TSuccess stopSecurityScopedFileAccess(const char *filepath) = 0;
 #endif
 
   /**

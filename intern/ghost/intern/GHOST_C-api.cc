@@ -96,6 +96,16 @@ const char *GHOST_getKeyboardInput(GHOST_WindowHandle windowhandle)
   return system->getKeyboardInput(window);
 }
 
+extern GHOST_TSuccess GHOST_startSecurityScopedFileAccess(const char *filepath) {
+  GHOST_ISystem *system = GHOST_ISystem::getSystem();
+  return system->startSecurityScopedFileAccess(filepath);
+}
+
+extern GHOST_TSuccess GHOST_stopSecurityScopedFileAccess(const char *filepath) {
+  GHOST_ISystem *system = GHOST_ISystem::getSystem();
+  return system->stopSecurityScopedFileAccess(filepath);
+}
+
 #endif
 
 GHOST_EventConsumerHandle GHOST_CreateEventConsumer(GHOST_EventCallbackProcPtr eventCallback,

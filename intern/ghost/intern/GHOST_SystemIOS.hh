@@ -243,6 +243,9 @@ class GHOST_SystemIOS : public GHOST_System {
 
   const char *getKeyboardInput(GHOST_IWindow *window) override;
 
+  GHOST_TSuccess startSecurityScopedFileAccess(const char *filepath);
+  GHOST_TSuccess stopSecurityScopedFileAccess(const char *filepath);
+
   /**
    * Handles a window event. Called by GHOST_WindowIOS window delegate
    * \param eventType: The type of window event.

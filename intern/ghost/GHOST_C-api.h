@@ -74,6 +74,9 @@ extern void GHOST_hideOnScreenKeyboard(GHOST_WindowHandle window_handle);
 
 extern const char *GHOST_getKeyboardInput(GHOST_WindowHandle window_handle);
 
+extern GHOST_TSuccess GHOST_startSecurityScopedFileAccess(const char *filepath);
+extern GHOST_TSuccess GHOST_stopSecurityScopedFileAccess(const char *filepath);
+
 #endif
 
 /**
