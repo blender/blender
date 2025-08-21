@@ -2736,8 +2736,13 @@ static void compute_flowsemission(Scene *scene,
          * BLI_mutex_lock() called in manta_step(), so safe to update subframe here
          * TODO(sebbas): Using BKE_scene_ctime_get(scene) instead of new DEG_get_ctime(depsgraph)
          * as subframes don't work with the latter yet. */
-        BKE_object_modifier_update_subframe(
-            depsgraph, scene, flowobj, true, 5, BKE_scene_ctime_get(scene), eModifierType_Fluid);
+        BKE_object_modifier_update_subframe(depsgraph,
+                                            scene,
+                                            flowobj,
+                                            true,
+                                            OBJECT_MODIFIER_UPDATE_SUBFRAME_RECURSION_DEFAULT,
+                                            BKE_scene_ctime_get(scene),
+                                            eModifierType_Fluid);
 
         /* Emission from particles. */
         if (ffs->source == FLUID_FLOW_SOURCE_PARTICLES) {

@@ -13,6 +13,7 @@
 
 #include "BLI_bounds_types.hh"
 #include "BLI_compiler_attrs.h"
+#include "BLI_function_ref.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_sys_types.h"
@@ -671,13 +672,24 @@ KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot);
  * \note this function should eventually be replaced by depsgraph functionality.
  * Avoid calling this in new code unless there is a very good reason for it!
  */
-bool BKE_object_modifier_update_subframe(Depsgraph *depsgraph,
+void BKE_object_modifier_update_subframe(Depsgraph *depsgraph,
                                          Scene *scene,
                                          Object *ob,
                                          bool update_mesh,
                                          int parent_recursion_limit,
                                          float frame,
                                          int /*ModifierType*/ modifier_type);
+
+/**
+ * Call `update_or_tag_fn` on all objects which #BKE_object_modifier_update_subframe would update.
+ * Used by the depsgraph to setup relations.
+ */
+void BKE_object_modifier_update_subframe_only_callback(
+    Object *ob,
+    bool update_mesh,
+    int parent_recursion_limit,
+    int /*ModifierType*/ modifier_type,
+    blender::FunctionRef<void(Object *object, bool update_mesh)> update_or_tag_fn);
 
 bool BKE_object_empty_image_frame_is_visible_in_view3d(const Object *ob, const RegionView3D *rv3d);
 bool BKE_object_empty_image_data_is_visible_in_view3d(const Object *ob, const RegionView3D *rv3d);
