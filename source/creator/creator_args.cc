@@ -1265,10 +1265,10 @@ static const char arg_handle_log_set_doc[] =
     "\tEnable logging categories, taking a single comma separated argument.\n"
     "\n"
     "\t--log \"*\": log everything\n"
-    "\t--log \"event\": logs every category starting with \"event\"\n"
-    "\t--log \"render,cycles\": log both render and cycles messages\n"
-    "\t--log \"*mesh*\": log every category containing \"mesh\" sub-string\n"
-    "\t--log \"*,^operator\": log everything except operators, with ^prefix to exclude";
+    "\t--log \"event\": logs every category starting with 'event'.\n"
+    "\t--log \"render,cycles\": log both render and cycles messages.\n"
+    "\t--log \"*mesh*\": log every category containing 'mesh' sub-string.\n"
+    "\t--log \"*,^operator\": log everything except operators, with '^prefix' to exclude.";
 static int arg_handle_log_set(int argc, const char **argv, void * /*data*/)
 {
   const char *arg_id = "--log";
