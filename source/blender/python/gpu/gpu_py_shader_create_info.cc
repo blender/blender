@@ -1232,7 +1232,7 @@ PyDoc_STRVAR(
     "   :type z: int\n");
 static PyObject *pygpu_shader_info_local_group_size(BPyGPUShaderCreateInfo *self, PyObject *args)
 {
-  int x = -1, y = -1, z = -1;
+  int x = -1, y = 1, z = 1;
 
   if (!PyArg_ParseTuple(args, "i|ii:local_group_size", &x, &y, &z)) {
     return nullptr;
