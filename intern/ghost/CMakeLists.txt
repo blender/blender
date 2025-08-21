@@ -183,8 +183,8 @@ elseif(APPLE AND NOT WITH_GHOST_X11)
     if(APPLE_TARGET_IOS)
       # GHOST modules for iPadOS.
       list(APPEND SRC
-        intern/GHOST_SystemIOS.h
-        intern/GHOST_WindowIOS.h
+        intern/GHOST_SystemIOS.hh
+        intern/GHOST_WindowIOS.hh
 
         intern/GHOST_SystemIOS.mm
         intern/GHOST_WindowIOS.mm

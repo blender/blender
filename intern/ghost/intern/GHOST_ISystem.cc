@@ -28,7 +28,7 @@
 #  include "GHOST_SystemWin32.hh"
 #elif defined(__APPLE__)
 #  if defined(WITH_APPLE_CROSSPLATFORM)
-#    include "GHOST_SystemIOS.h"
+#    include "GHOST_SystemIOS.hh"
 #  else
 #    include "GHOST_SystemCocoa.hh"
 #  endif

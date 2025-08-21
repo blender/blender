@@ -1,7 +1,10 @@
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
- * Declaration of GHOST_SystemCocoa class.
+ * Declaration of GHOST_SystemIOS class.
  */
 
 #pragma once
@@ -41,7 +44,7 @@ class GHOST_SystemIOS : public GHOST_System {
   /**
    * Destructor.
    */
-  ~GHOST_SystemIOS();
+  ~GHOST_SystemIOS() override;
 
   /***************************************************************************************
    * Time(r) functionality
@@ -53,7 +56,7 @@ class GHOST_SystemIOS : public GHOST_System {
    * Based on ANSI clock() routine.
    * \return The number of milliseconds.
    */
-  uint64_t getMilliSeconds() const;
+  uint64_t getMilliSeconds() const override;
 
   /***************************************************************************************
    * Display/window management functionality
@@ -63,18 +66,18 @@ class GHOST_SystemIOS : public GHOST_System {
    * Returns the number of displays on this system.
    * \return The number of displays.
    */
-  uint8_t getNumDisplays() const;
+  uint8_t getNumDisplays() const override;
 
   /**
    * Returns the dimensions of the main display on this system.
    * \return The dimension of the main display.
    */
-  void getMainDisplayDimensions(uint32_t &width, uint32_t &height) const;
+  void getMainDisplayDimensions(uint32_t &width, uint32_t &height) const override;
 
   /** Returns the combine dimensions of all monitors.
    * \return The dimension of the workspace.
    */
-  void getAllDisplayDimensions(uint32_t &width, uint32_t &height) const;
+  void getAllDisplayDimensions(uint32_t &width, uint32_t &height) const override;
 
   /**
    * Create a new window.
@@ -101,21 +104,21 @@ class GHOST_SystemIOS : public GHOST_System {
                               GHOST_GPUSettings gpu_settings,
                               const bool exclusive = false,
                               const bool is_dialog = false,
-                              const GHOST_IWindow *parent_window = NULL);
+                              const GHOST_IWindow *parent_window = NULL) override;
 
   /**
    * Create a new off-screen context.
    * Never explicitly delete the context, use #disposeContext() instead.
    * \return The new context (or 0 if creation failed).
    */
-  GHOST_IContext *createOffscreenContext(GHOST_GPUSettings glSettings);
+  GHOST_IContext *createOffscreenContext(GHOST_GPUSettings glSettings) override;
 
   /**
    * Dispose of a context.
    * \param context: Pointer to the context to be disposed.
    * \return Indication of success.
    */
-  GHOST_TSuccess disposeContext(GHOST_IContext *context);
+  GHOST_TSuccess disposeContext(GHOST_IContext *context) override;
 
   /**
    * Get the Window under the cursor.
@@ -123,7 +126,7 @@ class GHOST_SystemIOS : public GHOST_System {
    * \param y: The y-coordinate of the cursor.
    * \return The window under the cursor or nullptr if none.
    */
-  GHOST_IWindow *getWindowUnderCursor(int32_t x, int32_t y);
+  GHOST_IWindow *getWindowUnderCursor(int32_t x, int32_t y) override;
 
   /***************************************************************************************
    * Event management functionality
@@ -134,7 +137,7 @@ class GHOST_SystemIOS : public GHOST_System {
    * \param waitForEvent: Flag to wait for an event (or return immediately).
    * \return Indication of the presence of events.
    */
-  bool processEvents(bool waitForEvent);
+  bool processEvents(bool waitForEvent) override;
 
   /**
    * Handle User request to quit, from Menu bar Quit, and Command+Q
@@ -175,7 +178,7 @@ class GHOST_SystemIOS : public GHOST_System {
    * \param y: The y-coordinate of the cursor.
    * \return Indication of success.
    */
-  GHOST_TSuccess getCursorPosition(int32_t &x, int32_t &y) const;
+  GHOST_TSuccess getCursorPosition(int32_t &x, int32_t &y) const override;
 
   /**
    * Updates the location of the cursor (location in screen coordinates).
@@ -183,7 +186,7 @@ class GHOST_SystemIOS : public GHOST_System {
    * \param y: The y-coordinate of the cursor.
    * \return Indication of success.
    */
-  GHOST_TSuccess setCursorPosition(int32_t x, int32_t y);
+  GHOST_TSuccess setCursorPosition(int32_t x, int32_t y) override;
 
   /***************************************************************************************
    * Access to mouse button and keyboard states.
@@ -194,30 +197,30 @@ class GHOST_SystemIOS : public GHOST_System {
    * \param keys: The state of all modifier keys (true == pressed).
    * \return Indication of success.
    */
-  GHOST_TSuccess getModifierKeys(GHOST_ModifierKeys &keys) const;
+  GHOST_TSuccess getModifierKeys(GHOST_ModifierKeys &keys) const override;
 
   /**
    * Returns the state of the mouse buttons (outside the message queue).
    * \param buttons: The state of the buttons.
    * \return Indication of success.
    */
-  GHOST_TSuccess getButtons(GHOST_Buttons &buttons) const;
+  GHOST_TSuccess getButtons(GHOST_Buttons &buttons) const override;
 
-  GHOST_TCapabilityFlag getCapabilities() const;
+  GHOST_TCapabilityFlag getCapabilities() const override;
 
   /**
    * Returns Clipboard data
    * \param selection: Indicate which buffer to return.
    * \return Returns the selected buffer
    */
-  char *getClipboard(bool selection) const;
+  char *getClipboard(bool selection) const override;
 
   /**
    * Puts buffer to system clipboard
    * \param buffer: The buffer to be copied.
    * \param selection: Indicates which buffer to copy too, only used on X11.
    */
-  void putClipboard(const char *buffer, bool selection) const;
+  void putClipboard(const char *buffer, bool selection) const override;
 
   /**
    * Pops up a keybaord on screen. Called by GHOST_WindowIOS window subclass
@@ -227,7 +230,7 @@ class GHOST_SystemIOS : public GHOST_System {
    * \return Indication whether the event was handled.
    */
   GHOST_TSuccess popupOnScreenKeyboard(GHOST_IWindow *window,
-                                       const GHOST_KeyboardProperties &keyboard_properties);
+                                       const GHOST_KeyboardProperties &keyboard_properties) override;
 
   /**
    * Hides a popup a keybaord. Called by GHOST_WindowIOS window subclass
@@ -236,9 +239,9 @@ class GHOST_SystemIOS : public GHOST_System {
    * \param window: The window on which the event occurred.
    * \return Indication whether the event was handled.
    */
-  GHOST_TSuccess hideOnScreenKeyboard(GHOST_IWindow *window);
+  GHOST_TSuccess hideOnScreenKeyboard(GHOST_IWindow *window) override;
 
-  const char *getKeyboardInput(GHOST_IWindow *window);
+  const char *getKeyboardInput(GHOST_IWindow *window) override;
 
   /**
    * Handles a window event. Called by GHOST_WindowIOS window delegate
@@ -267,7 +270,7 @@ class GHOST_SystemIOS : public GHOST_System {
   /**
    * \see GHOST_ISystem
    */
-  bool setConsoleWindowState(GHOST_TConsoleWindowState /*action*/)
+  bool setConsoleWindowState(GHOST_TConsoleWindowState /*action*/) override
   {
     return false;
   }
@@ -311,7 +314,7 @@ class GHOST_SystemIOS : public GHOST_System {
    * For now, it just registers the window class (WNDCLASS).
    * \return A success value.
    */
-  GHOST_TSuccess init();
+  GHOST_TSuccess init() override;
 
   /**
    * Performs the actual cursor position update (location in screen coordinates).

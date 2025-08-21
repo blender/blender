@@ -2,10 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "GHOST_WindowIOS.h"
+#include "GHOST_WindowIOS.hh"
 
 #include "GHOST_ContextIOS.hh"
-#include "GHOST_SystemIOS.h"
+#include "GHOST_SystemIOS.hh"
 
 #include "GHOST_C-api.h"
 #include "GHOST_Debug.hh"
