@@ -432,7 +432,7 @@ static PyObject *bpy_file_path_map(PyObject *self, PyObject *args, PyObject *kwd
   filepathmap_data.include_libraries = (include_libraries == Py_True);
 
   if (subset) {
-    PyObject *subset_fast = PySequence_Fast(subset, "user_map");
+    PyObject *subset_fast = PySequence_Fast(subset, "subset");
     if (subset_fast == nullptr) {
       goto error;
     }
