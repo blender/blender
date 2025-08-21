@@ -40,6 +40,7 @@ void ED_spacetype_console();
 void ED_spacetype_userpref();
 void ED_spacetype_clip();
 void ED_spacetype_statusbar();
+void ED_spacetype_editor_dock();
 void ED_spacetype_topbar();
 
 namespace blender::ed::vse {

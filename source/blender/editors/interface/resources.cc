@@ -155,6 +155,8 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case SPACE_CLIP:
           ts = &btheme->space_clip;
           break;
+        /* TODO own theme? */
+        case SPACE_EDITOR_DOCK:
         case SPACE_TOPBAR:
           ts = &btheme->space_topbar;
           break;

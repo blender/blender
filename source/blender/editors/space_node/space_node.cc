@@ -1706,9 +1706,9 @@ static void node_space_subtype_item_extend(bContext *C, EnumPropertyItem **item,
   }
 }
 
-static blender::StringRefNull node_space_name_get(const ScrArea *area)
+static blender::StringRefNull node_space_name_get(const SpaceLink *space_link)
 {
-  SpaceNode *snode = static_cast<SpaceNode *>(area->spacedata.first);
+  const SpaceNode *snode = reinterpret_cast<const SpaceNode *>(space_link);
   bke::bNodeTreeType *tree_type = bke::node_tree_type_find(snode->tree_idname);
   if (tree_type == nullptr) {
     return IFACE_("Node Editor");
@@ -1716,9 +1716,9 @@ static blender::StringRefNull node_space_name_get(const ScrArea *area)
   return tree_type->ui_name;
 }
 
-static int node_space_icon_get(const ScrArea *area)
+static int node_space_icon_get(const SpaceLink *space_link)
 {
-  SpaceNode *snode = static_cast<SpaceNode *>(area->spacedata.first);
+  const SpaceNode *snode = reinterpret_cast<const SpaceNode *>(space_link);
   bke::bNodeTreeType *tree_type = bke::node_tree_type_find(snode->tree_idname);
   if (tree_type == nullptr) {
     return ICON_NODETREE;

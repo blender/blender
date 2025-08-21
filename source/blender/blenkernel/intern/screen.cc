@@ -646,6 +646,7 @@ void BKE_screen_area_free(ScrArea *area)
   BLI_freelistN(&area->regionbase);
 
   BKE_spacedata_freelist(&area->spacedata);
+  BLI_freelistN(&area->docked_spaces_ordered);
 
   BLI_freelistN(&area->actionzones);
 }

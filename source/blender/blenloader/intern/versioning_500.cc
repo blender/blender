@@ -57,6 +57,9 @@
 
 #include "BLO_read_write.hh"
 
+#include "ED_editor_dock.hh"
+#include "ED_screen.hh"
+
 #include "SEQ_iterator.hh"
 #include "SEQ_modifier.hh"
 #include "SEQ_sequencer.hh"
@@ -2312,6 +2315,44 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+  }
+
+  {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      ScrArea *docked_area = [&]() -> ScrArea * {
+        LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+          if (area->flag & AREA_FLAG_DOCKED) {
+            return area;
+          }
+        }
+        return nullptr;
+      }();
+
+      if (!docked_area) {
+        /* Use same method as #screen_geom_vertices_scale_pass() to get the min-max of the screen
+         * verts. Simply adding areas with (0, 0) as position would mess with its screen resizing
+         * calculations. */
+        const int2 min = [&]() {
+          float min[2] = {20000.0f, 20000.0f};
+          float max[2] = {0.0f, 0.0f};
+
+          LISTBASE_FOREACH (ScrVert *, sv, &screen->vertbase) {
+            const float fv[2] = {float(sv->vec.x), float(sv->vec.y)};
+            minmax_v2v2_v2(min, max, fv);
+          }
+          return int2{round_fl_to_int(min[0]), round_fl_to_int(min[1])};
+        }();
+
+        /* #Ed_screen_area_add_empty() substracts 1 from max-values, so keep them 1 here. */
+        const rcti area_rect = {min.x, min.x + 1, min.y, min.y + 1};
+        docked_area = ED_screen_area_add_empty(screen, area_rect);
+        docked_area->flag |= AREA_FLAG_DOCKED;
+
+        /* TODO null for scene - is this a good idea? */
+        blender::ed::editor_dock::add_docked_space(docked_area, SPACE_OUTLINER, nullptr);
+        blender::ed::editor_dock::add_docked_space(docked_area, SPACE_PROPERTIES, nullptr);
+      }
+    }
   }
 
   /**

@@ -216,6 +216,22 @@ bScreen *screen_add(Main *bmain, const char *name, const rcti *rect)
   return screen;
 }
 
+ScrArea *ED_screen_area_add_empty(bScreen *screen, const rcti &rect)
+{
+  ScrVert *sv1 = screen_geom_vertex_add(screen, rect.xmin, rect.ymin);
+  ScrVert *sv2 = screen_geom_vertex_add(screen, rect.xmin, rect.ymax - 1);
+  ScrVert *sv3 = screen_geom_vertex_add(screen, rect.xmax - 1, rect.ymax - 1);
+  ScrVert *sv4 = screen_geom_vertex_add(screen, rect.xmax - 1, rect.ymin);
+
+  screen_geom_edge_add(screen, sv1, sv2);
+  screen_geom_edge_add(screen, sv2, sv3);
+  screen_geom_edge_add(screen, sv3, sv4);
+  screen_geom_edge_add(screen, sv4, sv1);
+
+  /* dummy type, no spacedata */
+  return screen_addarea(screen, sv1, sv2, sv3, sv4, SPACE_EMPTY);
+}
+
 void screen_data_copy(bScreen *to, bScreen *from)
 {
   /* Free contents of 'to', is from blenkernel `screen.cc`. */
@@ -1027,7 +1043,7 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 blender::StringRefNull ED_area_name(const ScrArea *area)
 {
   if (area->type && area->type->space_name_get) {
-    return area->type->space_name_get(area);
+    return area->type->space_name_get(static_cast<SpaceLink *>(area->spacedata.first));
   }
 
   const int index = RNA_enum_from_value(rna_enum_space_type_items, area->spacetype);
@@ -1038,10 +1054,36 @@ blender::StringRefNull ED_area_name(const ScrArea *area)
 int ED_area_icon(const ScrArea *area)
 {
   if (area->type && area->type->space_icon_get) {
-    return area->type->space_icon_get(area);
+    return area->type->space_icon_get(static_cast<SpaceLink *>(area->spacedata.first));
   }
 
   const int index = RNA_enum_from_value(rna_enum_space_type_items, area->spacetype);
+  const EnumPropertyItem item = rna_enum_space_type_items[index];
+  return item.icon;
+}
+
+blender::StringRefNull ED_spacedata_name(const SpaceLink *space_link)
+{
+  SpaceType *stype = BKE_spacetype_from_id(space_link->spacetype);
+
+  if (stype && stype->space_name_get) {
+    return stype->space_name_get(space_link);
+  }
+
+  const int index = RNA_enum_from_value(rna_enum_space_type_items, space_link->spacetype);
+  const EnumPropertyItem item = rna_enum_space_type_items[index];
+  return item.name;
+}
+
+int ED_spacedata_icon(const SpaceLink *space_link)
+{
+  SpaceType *stype = BKE_spacetype_from_id(space_link->spacetype);
+
+  if (stype && stype->space_icon_get) {
+    return stype->space_icon_get(space_link);
+  }
+
+  const int index = RNA_enum_from_value(rna_enum_space_type_items, space_link->spacetype);
   const EnumPropertyItem item = rna_enum_space_type_items[index];
   return item.icon;
 }
@@ -1331,6 +1373,20 @@ static void screen_global_statusbar_area_refresh(wmWindow *win, bScreen *screen)
       win, screen, SPACE_STATUSBAR, GLOBAL_AREA_ALIGN_BOTTOM, &rect, size, size_min, size_max);
 }
 
+static void screen_global_editor_dock_area_refresh(wmWindow *win, bScreen *screen)
+{
+  const blender::int2 win_size = WM_window_native_pixel_size(win);
+  /* Reuse header height for width. */
+  const short size = 1.4f * screen_global_header_size();
+  rcti rect;
+
+  BLI_rcti_init(&rect, 0, win_size[0] - 1, 0, win_size[1] - 1);
+  rect.xmin = rect.xmax - size;
+
+  screen_global_area_refresh(
+      win, screen, SPACE_EDITOR_DOCK, GLOBAL_AREA_ALIGN_RIGHT, &rect, size, size, size);
+}
+
 void ED_screen_global_areas_sync(wmWindow *win)
 {
   /* Update screen flags from height in window, this is weak and perhaps
@@ -1360,6 +1416,7 @@ void ED_screen_global_areas_refresh(wmWindow *win)
     return;
   }
 
+  screen_global_editor_dock_area_refresh(win, screen);
   screen_global_topbar_area_refresh(win, screen);
   screen_global_statusbar_area_refresh(win, screen);
 }

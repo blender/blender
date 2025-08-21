@@ -401,6 +401,7 @@ typedef struct ScrGlobalAreaData {
    * affect their size at all. However, they can still be 'collapsed', by changing this value.
    * Ignores DPI (#ED_area_global_size_y and winx/winy don't).
    */
+  /* TODO rename to size? */
   short cur_fixed_height;
   /**
    * For global areas, this is the min and max size they can use depending on
@@ -422,6 +423,8 @@ enum GlobalAreaFlag {
 typedef enum GlobalAreaAlign {
   GLOBAL_AREA_ALIGN_TOP = 0,
   GLOBAL_AREA_ALIGN_BOTTOM = 1,
+  GLOBAL_AREA_ALIGN_RIGHT = 2,
+  GLOBAL_AREA_ALIGN_LEFT = 3,
 } GlobalAreaAlign;
 
 typedef struct ScrArea_Runtime {
@@ -483,6 +486,8 @@ typedef struct ScrArea {
    * The first item is the active/visible one.
    */
   ListBase spacedata;
+  /* The docked editors in this area, in order we want to display them in. */
+  ListBase docked_spaces_ordered; /* #LinkData (#SpaceLink) */
   /**
    * #ARegion.
    * \note This region list is the one from the active/visible editor (first item in
@@ -566,7 +571,7 @@ enum {
   AREA_FLAG_ACTIVE_TOOL_UPDATE = (1 << 4),
   // AREA_FLAG_UNUSED_5 = (1 << 5),
 
-  AREA_FLAG_UNUSED_6 = (1 << 6), /* cleared */
+  AREA_FLAG_DOCKED = (1 << 6),
 
   /**
    * For temporary full-screens (file browser, image editor render)

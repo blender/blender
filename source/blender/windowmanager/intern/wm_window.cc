@@ -2848,7 +2848,7 @@ void WM_window_screen_rect_calc(const wmWindow *win, rcti *r_rect)
 
   /* Subtract global areas from screen rectangle. */
   LISTBASE_FOREACH (ScrArea *, global_area, &win->global_areas.areabase) {
-    int height = ED_area_global_size_y(global_area) - 1;
+    int size = ED_area_global_size_y(global_area) - 1;
 
     if (global_area->global->flag & GLOBAL_AREA_IS_HIDDEN) {
       continue;
@@ -2856,10 +2856,16 @@ void WM_window_screen_rect_calc(const wmWindow *win, rcti *r_rect)
 
     switch (global_area->global->align) {
       case GLOBAL_AREA_ALIGN_TOP:
-        screen_rect.ymax -= height;
+        screen_rect.ymax -= size;
         break;
       case GLOBAL_AREA_ALIGN_BOTTOM:
-        screen_rect.ymin += height;
+        screen_rect.ymin += size;
+        break;
+      case GLOBAL_AREA_ALIGN_LEFT:
+        screen_rect.xmin += size;
+        break;
+      case GLOBAL_AREA_ALIGN_RIGHT:
+        screen_rect.xmax -= size;
         break;
       default:
         BLI_assert_unreachable();

@@ -1074,6 +1074,22 @@ typedef struct SpaceStatusBar {
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Editor Dock
+ * \{ */
+
+typedef struct SpaceEditorDock {
+  SpaceLink *next, *prev;
+  /** Storage of regions for inactive spaces. */
+  ListBase regionbase;
+  char spacetype;
+  char link_flag;
+  char _pad0[6];
+  /* End 'SpaceLink' header. */
+} SpaceEditorDock;
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Spreadsheet
  * \{ */
 

@@ -970,6 +970,7 @@ static void ui_but_update_old_active_from_new(uiBut *oldbut, uiBut *but)
 
   oldbut->flag = (oldbut->flag & ~flag_copy) | (but->flag & flag_copy);
   oldbut->drawflag = (oldbut->drawflag & ~drawflag_copy) | (but->drawflag & drawflag_copy);
+  oldbut->emboss = but->emboss;
 
   ui_but_extra_icons_update_from_old_but(but, oldbut);
   std::swap(but->extra_op_icons, oldbut->extra_op_icons);

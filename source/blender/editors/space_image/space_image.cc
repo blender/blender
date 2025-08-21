@@ -1158,9 +1158,9 @@ static void image_space_subtype_item_extend(bContext * /*C*/,
   RNA_enum_items_add(item, totitem, rna_enum_space_image_mode_items);
 }
 
-static blender::StringRefNull image_space_name_get(const ScrArea *area)
+static blender::StringRefNull image_space_name_get(const SpaceLink *space_link)
 {
-  SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+  const SpaceImage *sima = reinterpret_cast<const SpaceImage *>(space_link);
   int index = RNA_enum_from_value(rna_enum_space_image_mode_items, sima->mode);
   if (index < 0) {
     index = SI_MODE_VIEW;
@@ -1169,9 +1169,9 @@ static blender::StringRefNull image_space_name_get(const ScrArea *area)
   return item.name;
 }
 
-static int image_space_icon_get(const ScrArea *area)
+static int image_space_icon_get(const SpaceLink *space_link)
 {
-  SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+  const SpaceImage *sima = reinterpret_cast<const SpaceImage *>(space_link);
   int index = RNA_enum_from_value(rna_enum_space_image_mode_items, sima->mode);
   if (index < 0) {
     index = SI_MODE_VIEW;

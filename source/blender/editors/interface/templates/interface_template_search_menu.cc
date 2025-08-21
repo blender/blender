@@ -641,6 +641,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
           SPACE_MENU_NOP(SPACE_STATUSBAR);
           SPACE_MENU_NOP(SPACE_TOPBAR);
           SPACE_MENU_NOP(SPACE_SPREADSHEET);
+          SPACE_MENU_NOP(SPACE_EDITOR_DOCK);
         }
       }
       for (int i = 0; i < idname_array_len; i++) {

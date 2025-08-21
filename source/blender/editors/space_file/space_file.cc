@@ -842,17 +842,17 @@ static void file_space_subtype_item_extend(bContext * /*C*/, EnumPropertyItem **
   RNA_enum_items_add(item, totitem, rna_enum_space_file_browse_mode_items);
 }
 
-static blender::StringRefNull file_space_name_get(const ScrArea *area)
+static blender::StringRefNull file_space_name_get(const SpaceLink *space_link)
 {
-  SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);
+  const SpaceFile *sfile = reinterpret_cast<const SpaceFile *>(space_link);
   const int index = RNA_enum_from_value(rna_enum_space_file_browse_mode_items, sfile->browse_mode);
   const EnumPropertyItem item = rna_enum_space_file_browse_mode_items[index];
   return item.name;
 }
 
-static int file_space_icon_get(const ScrArea *area)
+static int file_space_icon_get(const SpaceLink *space_link)
 {
-  SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);
+  const SpaceFile *sfile = reinterpret_cast<const SpaceFile *>(space_link);
   const int index = RNA_enum_from_value(rna_enum_space_file_browse_mode_items, sfile->browse_mode);
   const EnumPropertyItem item = rna_enum_space_file_browse_mode_items[index];
   return item.icon;

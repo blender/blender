@@ -137,6 +137,12 @@ const EnumPropertyItem rna_enum_space_type_items[] = {
      "Status Bar",
      "Global bar at the bottom of the "
      "screen for general status information"},
+    {SPACE_EDITOR_DOCK,
+     "EDITOR_DOCK",
+     ICON_NONE,
+     "Editor Dock",
+     "Global bar at the side of the "
+     "screen for quick toggling of editors"},
 
     /* Data. */
     RNA_ENUM_ITEM_HEADING(N_("Data"), nullptr),
@@ -689,6 +695,7 @@ static StructRNA *rna_Space_refine(PointerRNA *ptr)
     case SPACE_EMPTY:
     case SPACE_TOPBAR:
     case SPACE_STATUSBAR:
+    case SPACE_EDITOR_DOCK:
       break;
   }
 

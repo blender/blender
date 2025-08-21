@@ -6756,7 +6756,7 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
   }
 
   /* Keep as-is. */
-  if (ELEM(area->spacetype, SPACE_STATUSBAR, SPACE_TOPBAR)) {
+  if (ELEM(area->spacetype, SPACE_STATUSBAR, SPACE_TOPBAR, SPACE_EDITOR_DOCK)) {
     return;
   }
   if (ELEM(region->regiontype,
