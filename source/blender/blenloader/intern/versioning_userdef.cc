@@ -1269,8 +1269,6 @@ void blo_do_versions_userdef(UserDef *userdef)
     if (userdef->pixelsize == 0.0f) {
       userdef->pixelsize = 1.0f;
     }
-    /* Clear old userdef flag for "Camera Parent Lock". */
-    userdef->uiflag &= ~USER_UIFLAG_UNUSED_3;
   }
 
   if (!USER_VERSION_ATLEAST(292, 9)) {
@@ -1660,6 +1658,10 @@ void blo_do_versions_userdef(UserDef *userdef)
 
   if (!USER_VERSION_ATLEAST(500, 100)) {
     userdef->flag |= (USER_MENU_MOUSE_OUT_CLOSE | USER_MENU_NEIGHBOR_OPEN);
+  }
+
+  if (!USER_VERSION_ATLEAST(500, 100)) {
+    userdef->uiflag |= USER_VISIBLE_AREA_HANDLE;
   }
 
   /**

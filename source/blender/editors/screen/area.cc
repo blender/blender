@@ -157,9 +157,31 @@ static void area_draw_azone_fullscreen(short /*x1*/, short /*y1*/, short x2, sho
 /**
  * \brief Corner widgets use for dragging and splitting the view.
  */
-static void area_draw_azone(short /*x1*/, short /*y1*/, short /*x2*/, short /*y2*/)
+static void area_draw_azone(ScrArea *area, ARegion *region, AZone *az)
 {
-  /* No drawing needed since all corners are action zone, and visually distinguishable. */
+  if (!(U.uiflag & USER_VISIBLE_AREA_HANDLE)) {
+    return;
+  }
+
+  if (region->regiontype != RGN_TYPE_HEADER) {
+    return;
+  }
+
+  if (az->x1 < area->totrct.xmin + 1) {
+    if ((region->alignment == RGN_ALIGN_TOP && az->y2 > area->totrct.ymax - 1) ||
+        (region->alignment == RGN_ALIGN_BOTTOM && az->y1 < area->totrct.ymin + 1))
+    {
+      UI_icon_draw_ex(float(az->x1) + UI_SCALE_FAC,
+                      float(az->y1) + (6.0f * UI_SCALE_FAC),
+                      ICON_GRIP_V,
+                      1.0 / UI_SCALE_FAC,
+                      0.4f,
+                      0.0f,
+                      nullptr,
+                      false,
+                      UI_NO_ICON_OVERLAY_TEXT);
+    }
+  }
 }
 
 /**
@@ -279,7 +301,7 @@ static void region_draw_azones(ScrArea *area, ARegion *region)
 
     if (BLI_rcti_isect(&region->runtime->drawrct, &azrct, nullptr)) {
       if (az->type == AZONE_AREA) {
-        area_draw_azone(az->x1, az->y1, az->x2, az->y2);
+        area_draw_azone(area, region, az);
       }
       else if (az->type == AZONE_REGION) {
         if (az->region && !(az->region->flag & RGN_FLAG_POLL_FAILED)) {
@@ -981,7 +1003,7 @@ static void area_azone_init(const wmWindow *win, const bScreen *screen, ScrArea 
       /* Bottom-left. */
       {area->totrct.xmin - U.pixelsize,
        area->totrct.ymin - U.pixelsize,
-       area->totrct.xmin + UI_AZONESPOTW,
+       area->totrct.xmin + UI_HEADER_OFFSET,
        float(area->totrct.ymin + ED_area_headersize())},
       /* Bottom-right. */
       {area->totrct.xmax - UI_AZONESPOTW,
@@ -991,7 +1013,7 @@ static void area_azone_init(const wmWindow *win, const bScreen *screen, ScrArea 
       /* Top-left. */
       {area->totrct.xmin - U.pixelsize,
        float(area->totrct.ymax - ED_area_headersize()),
-       area->totrct.xmin + UI_AZONESPOTW,
+       area->totrct.xmin + UI_HEADER_OFFSET,
        area->totrct.ymax + U.pixelsize},
       /* Top-right. */
       {area->totrct.xmax - UI_AZONESPOTW,
@@ -3331,7 +3353,7 @@ void ED_region_draw_overflow_indication(const ScrArea *area, ARegion *region, rc
   const bool is_header = ELEM(region->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER);
   const bool narrow = region->v2d.scroll & (V2D_SCROLL_VERTICAL | V2D_SCROLL_HORIZONTAL);
   const float gradient_width = (narrow ? 4.0f : 16.0f) * UI_SCALE_FAC;
-  const float transition = 30.0f * UI_SCALE_FAC;
+  float transition = 30.0f * UI_SCALE_FAC;
 
   float opaque[4];
   if (narrow) {
@@ -3386,12 +3408,21 @@ void ED_region_draw_overflow_indication(const ScrArea *area, ARegion *region, rc
   if (region->v2d.cur.xmin > region->v2d.tot.xmin) {
     /* Left Edge. */
     rect.xmin = offset_x;
-    rect.xmax = offset_x + gradient_width;
+    if (is_header && (U.uiflag & USER_VISIBLE_AREA_HANDLE)) {
+      rect.xmin += 12.0f * UI_SCALE_FAC;
+      transition = 20.0f * UI_SCALE_FAC;
+    }
+    rect.xmax = rect.xmin + gradient_width;
     rect.ymin = offset_y;
     rect.ymax = height;
     copy_v4_v4(grad_color, opaque);
     grad_color[3] *= std::min((region->v2d.cur.xmin - region->v2d.tot.xmin) / transition, 1.0f);
     UI_draw_roundbox_4fv_ex(&rect, transparent, grad_color, 0.0f, nullptr, 0.0f, 0.0f);
+    if (is_header && (U.uiflag & USER_VISIBLE_AREA_HANDLE)) {
+      rect.xmin = 0.0f;
+      rect.xmax = 12.0f * UI_SCALE_FAC;
+      UI_draw_roundbox_4fv_ex(&rect, grad_color, nullptr, 0.0f, nullptr, 0.0f, 0.0f);
+    }
   }
   if (region->v2d.cur.ymax < region->v2d.tot.ymax) {
     /* Top Edge. */
@@ -3696,13 +3727,16 @@ void ED_region_header_layout(const bContext *C, ARegion *region)
 {
   const uiStyle *style = UI_style_get_dpi();
   bool region_layout_based = region->flag & RGN_FLAG_DYNAMIC_SIZE;
+  ScrArea *area = CTX_wm_area(C);
+  const int offset = ELEM(area->spacetype, SPACE_TOPBAR, SPACE_STATUSBAR) ? 4.0f * UI_SCALE_FAC :
+                                                                            int(UI_HEADER_OFFSET);
 
   /* Height of buttons and scaling needed to achieve it. */
   const int buttony = min_ii(UI_UNIT_Y, region->winy - 2 * UI_SCALE_FAC);
   const float buttony_scale = buttony / float(UI_UNIT_Y);
 
   /* Vertically center buttons. */
-  blender::int2 co = {int(UI_HEADER_OFFSET), buttony + (region->winy - buttony) / 2};
+  blender::int2 co = {offset, buttony + (region->winy - buttony) / 2};
   int maxco = co.x;
 
   /* set view2d view matrix for scrolling (without scrollers) */
@@ -3748,7 +3782,7 @@ void ED_region_header_layout(const bContext *C, ARegion *region)
     /* for view2d */
     maxco = std::max(co.x, maxco);
 
-    int new_sizex = (maxco + UI_HEADER_OFFSET) / UI_SCALE_FAC;
+    int new_sizex = (maxco + offset) / UI_SCALE_FAC;
 
     if (region_layout_based && (region->sizex != new_sizex)) {
       /* region size is layout based and needs to be updated */
@@ -3766,7 +3800,7 @@ void ED_region_header_layout(const bContext *C, ARegion *region)
   }
 
   if (!region_layout_based) {
-    maxco += UI_HEADER_OFFSET;
+    maxco += offset;
   }
 
   /* Always as last. */

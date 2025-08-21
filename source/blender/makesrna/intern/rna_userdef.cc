@@ -5010,6 +5010,11 @@ static void rna_def_userdef_view(BlenderRNA *brna)
       prop, "Developer Extras", "Display advanced settings and tools for developers");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
+  prop = RNA_def_property(srna, "show_area_handle", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "uiflag", USER_VISIBLE_AREA_HANDLE);
+  RNA_def_property_ui_text(prop, "Corner Handle", "Show visible area maintenance corner handle");
+  RNA_def_property_update(prop, 0, "rna_userdef_gpu_update");
+
   prop = RNA_def_property(srna, "show_object_info", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "uiflag", USER_DRAWVIEWINFO);
   RNA_def_property_ui_text(prop,
