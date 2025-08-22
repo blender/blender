@@ -30,6 +30,7 @@ ENUM_OPERATORS(VKImageViewFlags, VKImageViewFlags::NO_SWIZZLING)
 
 class VKTexture : public Texture {
   friend class VKDescriptorSetUpdator;
+  friend class VKContext;
 
   /**
    * Texture format how the texture is stored on the device.
@@ -148,6 +149,8 @@ class VKTexture : public Texture {
                      int mip_offset,
                      int layer_offset,
                      bool use_stencil) override;
+  /* Initialize VKTexture with a swapchain image. */
+  void init_swapchain(VkImage vk_image, TextureFormat gpu_format);
 
  private:
   /** Is this texture a view of another texture. */

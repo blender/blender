@@ -1434,6 +1434,8 @@ GHOST_Event *GHOST_SystemWin32::processWindowSizeEvent(GHOST_WindowWin32 *window
     system->dispatchEvents();
     return nullptr;
   }
+
+  window->updateHDRInfo();
   return sizeEvent;
 }
 
@@ -2159,6 +2161,9 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
           if (LOWORD(wParam) == WA_INACTIVE) {
             window->lostMouseCapture();
           }
+          else {
+            window->updateHDRInfo();
+          }
 
           lResult = ::DefWindowProc(hwnd, msg, wParam, lParam);
           break;
@@ -2176,6 +2181,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
         }
         case WM_EXITSIZEMOVE: {
           window->in_live_resize_ = 0;
+          window->updateHDRInfo();
           break;
         }
         case WM_PAINT: {
@@ -2240,6 +2246,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
           }
           else {
             event = processWindowEvent(GHOST_kEventWindowMove, window);
+            window->updateHDRInfo();
           }
 
           break;
@@ -2275,6 +2282,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
           if (wt) {
             wt->remapCoordinates();
           }
+          window->updateHDRInfo();
           break;
         }
         case WM_KILLFOCUS: {
@@ -2293,6 +2301,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
           {
             window->ThemeRefresh();
           }
+          window->updateHDRInfo();
           break;
         }
         /* ======================

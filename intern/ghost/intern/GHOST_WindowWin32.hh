@@ -326,6 +326,9 @@ class GHOST_WindowWin32 : public GHOST_Window {
 
   GHOST_TTrackpadInfo getTrackpadInfo();
 
+  /* Update HDR info on initialization and window changes. */
+  void updateHDRInfo();
+
  private:
   /**
    * \param type: The type of rendering context create.
@@ -411,6 +414,8 @@ class GHOST_WindowWin32 : public GHOST_Window {
   HWND parent_window_hwnd_;
 
   GHOST_DirectManipulationHelper *direct_manipulation_helper_;
+
+  GHOST_WindowHDRInfo hdr_info_ = GHOST_WINDOW_HDR_INFO_NONE;
 
 #ifdef WITH_INPUT_IME
   /** Handle input method editors event */

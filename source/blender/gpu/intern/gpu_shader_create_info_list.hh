@@ -50,6 +50,10 @@
 #  include "gpu_shader_fullscreen_blit_info.hh"
 #endif
 
+#ifdef WITH_VULKAN_BACKEND
+#  include "vk_backbuffer_blit_info.hh"
+#endif
+
 /* Compositor. */
 #include "compositor_alpha_crop_info.hh"
 #include "compositor_bilateral_blur_info.hh"

@@ -218,6 +218,9 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
 
   /* Initialize Direct Manipulation. */
   direct_manipulation_helper_ = GHOST_DirectManipulationHelper::create(h_wnd_, getDPIHint());
+
+  /* Initialize HDR info. */
+  updateHDRInfo();
 }
 
 void GHOST_WindowWin32::updateDirectManipulation()
@@ -619,7 +622,7 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
 #ifdef WITH_VULKAN_BACKEND
     case GHOST_kDrawingContextTypeVulkan: {
       GHOST_Context *context = new GHOST_ContextVK(
-          want_context_params_, h_wnd_, 1, 2, preferred_device_);
+          want_context_params_, h_wnd_, 1, 2, preferred_device_, &hdr_info_);
       if (context->initializeDrawingContext()) {
         return context;
       }
@@ -1260,5 +1263,89 @@ void GHOST_WindowWin32::unregisterWindowAppUserModelProperties()
     pstore->SetValue(PKEY_AppUserModel_RelaunchCommand, value);
     pstore->SetValue(PKEY_AppUserModel_RelaunchDisplayNameResource, value);
     pstore->Release();
+  }
+}
+
+/* We call this from a few window event changes, but actually none of them immediately
+ * respond to SDR white level changes in the system. That requires using the WinRT API,
+ * which we don't do so far. */
+void GHOST_WindowWin32::updateHDRInfo()
+{
+  /* Get monitor from window. */
+  HMONITOR hmonitor = ::MonitorFromWindow(h_wnd_, MONITOR_DEFAULTTONEAREST);
+  if (!hmonitor) {
+    return;
+  }
+
+  MONITORINFOEXW monitor_info = {};
+  monitor_info.cbSize = sizeof(MONITORINFOEXW);
+  if (!::GetMonitorInfoW(hmonitor, &monitor_info)) {
+    return;
+  }
+
+  /* Get active display paths and modes. */
+  UINT32 path_count = 0;
+  UINT32 mode_count = 0;
+  if (::GetDisplayConfigBufferSizes(QDC_ONLY_ACTIVE_PATHS, &path_count, &mode_count) !=
+      ERROR_SUCCESS)
+  {
+    return;
+  }
+
+  std::vector<DISPLAYCONFIG_PATH_INFO> paths(path_count);
+  std::vector<DISPLAYCONFIG_MODE_INFO> modes(mode_count);
+  if (::QueryDisplayConfig(
+          QDC_ONLY_ACTIVE_PATHS, &path_count, paths.data(), &mode_count, modes.data(), nullptr) !=
+      ERROR_SUCCESS)
+  {
+    return;
+  }
+
+  GHOST_WindowHDRInfo info = GHOST_WINDOW_HDR_INFO_NONE;
+
+  /* Find the display path matching the monitor. */
+  for (const DISPLAYCONFIG_PATH_INFO &path : paths) {
+    DISPLAYCONFIG_SOURCE_DEVICE_NAME device_name = {};
+    device_name.header.type = DISPLAYCONFIG_DEVICE_INFO_GET_SOURCE_NAME;
+    device_name.header.size = sizeof(device_name);
+    device_name.header.adapterId = path.sourceInfo.adapterId;
+    device_name.header.id = path.sourceInfo.id;
+
+    if (::DisplayConfigGetDeviceInfo(&device_name.header) != ERROR_SUCCESS) {
+      continue;
+    }
+    if (wcscmp(monitor_info.szDevice, device_name.viewGdiDeviceName) != 0) {
+      continue;
+    }
+
+    /* Query HDR status. */
+    DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO color_info = {};
+    color_info.header.type = DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO;
+    color_info.header.size = sizeof(color_info);
+    color_info.header.adapterId = path.targetInfo.adapterId;
+    color_info.header.id = path.targetInfo.id;
+
+    if (::DisplayConfigGetDeviceInfo(&color_info.header) == ERROR_SUCCESS) {
+      info.hdr_enabled = color_info.advancedColorSupported && color_info.advancedColorEnabled;
+    }
+
+    if (info.hdr_enabled) {
+      /* Query SDR white level. */
+      DISPLAYCONFIG_SDR_WHITE_LEVEL white_level = {};
+      white_level.header.type = DISPLAYCONFIG_DEVICE_INFO_GET_SDR_WHITE_LEVEL;
+      white_level.header.size = sizeof(white_level);
+      white_level.header.adapterId = path.targetInfo.adapterId;
+      white_level.header.id = path.targetInfo.id;
+
+      if (::DisplayConfigGetDeviceInfo(&white_level.header) == ERROR_SUCCESS) {
+        if (white_level.SDRWhiteLevel > 0) {
+          /* Windows assumes 1.0 = 80 nits, so multipley by that to get the absolute
+           * value in nits if we need it in the future. */
+          info.sdr_white_level = static_cast<float>(white_level.SDRWhiteLevel) / 1000.0f;
+        }
+      }
+    }
+
+    hdr_info_ = info;
   }
 }

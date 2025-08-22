@@ -852,6 +852,18 @@ typedef struct {
   float colored_titlebar_bg_color[3];
 } GHOST_WindowDecorationStyleSettings;
 
+typedef struct {
+  /* Is HDR enabled for this Window? */
+  bool hdr_enabled;
+  /* Scale factor to display SDR content in HDR. */
+  float sdr_white_level;
+} GHOST_WindowHDRInfo;
+
+#define GHOST_WINDOW_HDR_INFO_NONE \
+  { \
+    /*hdr_enabled*/ false, /*sdr_white_level*/ 1.0f, \
+  }
+
 #ifdef WITH_VULKAN_BACKEND
 typedef struct {
   /** Image handle to the image that will be presented to the user. */
@@ -866,6 +878,8 @@ typedef struct {
   VkSemaphore present_semaphore;
   /** Fence to signal after the image has been updated. */
   VkFence submission_fence;
+  /* Factor to scale SDR content to HDR. */
+  float sdr_scale;
 } GHOST_VulkanSwapChainData;
 
 typedef enum {

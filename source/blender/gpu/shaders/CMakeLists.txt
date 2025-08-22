@@ -83,6 +83,14 @@ set(SRC_GLSL_COMP
   # gpu_shader_index_2d_array_tris.glsl
 )
 
+set(SRC_VULKAN_GLSL_COMP
+    vk_backbuffer_blit_comp.glsl
+)
+
+if(WITH_VULKAN_BACKEND)
+  list(APPEND SRC_GLSL_COMP ${SRC_VULKAN_GLSL_COMP})
+endif()
+
 set(SRC_GLSL_LIB
   common/gpu_shader_print_lib.glsl
 )

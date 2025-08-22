@@ -480,6 +480,15 @@ bool VKTexture::init_internal(gpu::Texture *src,
   return true;
 }
 
+void VKTexture::init_swapchain(VkImage vk_image, TextureFormat format)
+{
+  device_format_ = format_ = format;
+  format_flag_ = to_format_flag(format);
+  vk_image_ = vk_image;
+  type_ = GPU_TEXTURE_2D;
+  usage_set(GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_WRITE);
+}
+
 bool VKTexture::is_texture_view() const
 {
   return source_texture_ != nullptr;
