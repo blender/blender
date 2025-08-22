@@ -1639,7 +1639,7 @@ class CYCLES_LIGHT_PT_beam_shape(CyclesButtonsPanel, Panel):
 
         col = layout.column()
         if light.type == 'SPOT':
-            col.prop(light, "spot_size", text="Spot Size")
+            col.prop(light, "spot_size", text="Angle")
             col.prop(light, "spot_blend", text="Blend", slider=True)
             col.prop(light, "show_cone")
         elif light.type == 'AREA':
