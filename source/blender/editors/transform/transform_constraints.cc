@@ -6,6 +6,7 @@
  * \ingroup edtransform
  */
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -1025,7 +1026,13 @@ void startConstraint(TransInfo *t)
 {
   t->con.mode |= CON_APPLY;
   *t->con.text = ' ';
-  t->num.idx_max = min_ii(getConstraintSpaceDimension(t) - 1, t->idx_max);
+
+  /* When `dims` is zero, no constraints are set (or not set *yet*).
+   * In this case `t->num.idx_max` is unlikely to be used.
+   * Set to `t->idx_max` as it's the default when transform starts
+   * to prevent numeric errors, see: #144916. */
+  const short dims = getConstraintSpaceDimension(t);
+  t->num.idx_max = (dims > 0) ? std::min<short>(dims - 1, t->idx_max) : t->idx_max;
 }
 
 void stopConstraint(TransInfo *t)
