@@ -522,7 +522,9 @@ static void rna_UnifiedPaintSettings_update(bContext *C, PointerRNA * /*ptr*/)
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Brush *br = BKE_paint_brush(BKE_paint_get_active(scene, view_layer));
+  /* TODO: Verify if tagging the brush for these settings being changed is correct. */
   WM_main_add_notifier(NC_BRUSH | NA_EDITED, br);
+  WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, scene);
 }
 
 static void rna_UnifiedPaintSettings_size_set(PointerRNA *ptr, int value)
