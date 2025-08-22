@@ -83,7 +83,7 @@ static PyStructSequence_Field app_info_fields[] = {
      "The Blender File version, as a tuple of 3 numbers (major, minor, file sub-version), that "
      "will be used to save a .blend file. The last item in this tuple indicates the file "
      "sub-version, which is different from the release micro version (the last item of the "
-     "`bpy.app.version` tuple). The file sub-version can be incremented multiple times while a "
+     "``bpy.app.version`` tuple). The file sub-version can be incremented multiple times while a "
      "Blender version is under development. This value is, and should be, used for handling "
      "compatibility changes between Blender versions"},
     {"version_string", "The Blender version formatted as a string"},

@@ -1634,7 +1634,7 @@ PyDoc_STRVAR(
     "   :type vert_coords: Sequence[:class:`mathutils.Vector`]\n"
     "   :arg edges: Edges, as pairs of indices in ``vert_coords``\n"
     "   :type edges: Sequence[Sequence[int, int]]\n"
-    "   :arg faces: Faces, each sublist is a face, as indices in `vert_coords` (CCW oriented)\n"
+    "   :arg faces: Faces, each sublist is a face, as indices in ``vert_coords`` (CCW oriented).\n"
     "   :type faces: Sequence[Sequence[int]]\n"
     "   :arg output_type: What output looks like. 0 => triangles with convex hull. "
     "1 => triangles inside constraints. "

@@ -2178,8 +2178,8 @@ void PAINT_OT_vertex_paint(wmOperatorType *ot)
       "override_location",
       false,
       "Override Location",
-      "Override the given `location` array by recalculating object space positions from the "
-      "provided `mouse_event` positions");
+      "Override the given \"location\" array by recalculating object space positions from the "
+      "provided \"mouse_event\" positions");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 

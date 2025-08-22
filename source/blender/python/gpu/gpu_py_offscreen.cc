@@ -598,10 +598,10 @@ PyDoc_STRVAR(
     "   :type height: int\n"
     "   :arg format: Internal data format inside GPU memory for color attachment "
     "texture. Possible values are:\n"
-    "      `RGBA8`,\n"
-    "      `RGBA16`,\n"
-    "      `RGBA16F`,\n"
-    "      `RGBA32F`,\n"
+    "      ``RGBA8``,\n"
+    "      ``RGBA16``,\n"
+    "      ``RGBA16F``,\n"
+    "      ``RGBA32F``.\n"
     "   :type format: str\n");
 PyTypeObject BPyGPUOffScreen_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)

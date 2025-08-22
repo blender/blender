@@ -4118,7 +4118,7 @@ PyDoc_STRVAR(
             BPY_PROPDEF_TAGS_DOC BPY_PROPDEF_POLL_DOC BPY_PROPDEF_UPDATE_DOC
     "\n"
     ".. note:: Pointer properties do not support storing references to embedded IDs "
-    "(e.g. `bpy.types.Scene.collection`, `bpy.types.Material.node_tree`).\n"
+    "(e.g. :class:`bpy.types.Scene.collection`, :class:`bpy.types.Material.node_tree`).\n"
     "   These should exclusively be referenced and accessed through their owner ID "
     "(e.g. the scene or material).\n");
 PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)

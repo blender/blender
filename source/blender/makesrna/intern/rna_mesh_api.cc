@@ -314,8 +314,9 @@ void RNA_api_mesh(StructRNA *srna)
       "",
       "Also consider different smoothgroups sharing only vertices (but without any common edge) "
       "as neighbors, preventing them from sharing the same bitflag value. Only effective when "
-      "`use_bitflags` is set. WARNING: Will overflow (run out of available bits) easily with some "
-      "types of topology, e.g. large fans of sharp edges");
+      "``use_bitflags`` is set. "
+      "WARNING: Will overflow (run out of available bits) easily with some types of topology, "
+      "e.g. large fans of sharp edges");
   /* return values */
   parm = RNA_def_int_array(func, "poly_groups", 1, nullptr, 0, 0, "", "Smooth Groups", 0, 0);
   RNA_def_parameter_flags(parm, PROP_DYNAMIC, PARM_OUTPUT);

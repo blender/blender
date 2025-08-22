@@ -2,12 +2,12 @@
 Basic FileHandler for importing a single file
 ---------------------------------------------
 
-A file handler allows custom 'drag-and-drop' behavior to be associated with a given ``Operator``
+A file handler allows custom drag-and-drop behavior to be associated with a given ``Operator``
 (:class:`FileHandler.bl_import_operator`) and set of file extensions
 (:class:`FileHandler.bl_file_extensions`). Control over which area of the UI accepts the
-`drag-in-drop` action is specified using the :class:`FileHandler.poll_drop` method.
+drag-in-drop action is specified using the :class:`FileHandler.poll_drop` method.
 
-Similar to operators that use a file select window, operators participating in 'drag-and-drop', and
+Similar to operators that use a file select window, operators participating in drag-and-drop, and
 only accepting a single file, must define the following property:
 
 .. code-block:: python

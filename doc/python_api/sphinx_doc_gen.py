@@ -1741,7 +1741,7 @@ def pyrna2sphinx(basepath):
                     if not descr:
                         descr = prop.name
                     # In rare cases `descr` may be empty.
-                    fw("         `{:s}`, {:s}\n\n".format(
+                    fw("         ``{:s}``, {:s}\n\n".format(
                         prop.identifier,
                         ", ".join((val for val in (descr, type_descr) if val))
                     ))
