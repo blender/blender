@@ -971,19 +971,19 @@ PyDoc_STRVAR(
     Color_channel_r_doc,
     "Red color channel.\n"
     "\n"
-    ":type: float");
+    ":type: float\n");
 PyDoc_STRVAR(
     /* Wrap. */
     Color_channel_g_doc,
     "Green color channel.\n"
     "\n"
-    ":type: float");
+    ":type: float\n");
 PyDoc_STRVAR(
     /* Wrap. */
     Color_channel_b_doc,
     "Blue color channel.\n"
     "\n"
-    ":type: float");
+    ":type: float\n");
 
 static PyObject *Color_channel_get(ColorObject *self, void *type)
 {
@@ -1002,19 +1002,19 @@ PyDoc_STRVAR(
     Color_channel_hsv_h_doc,
     "HSV Hue component in [0, 1].\n"
     "\n"
-    ":type: float");
+    ":type: float\n");
 PyDoc_STRVAR(
     /* Wrap. */
     Color_channel_hsv_s_doc,
     "HSV Saturation component in [0, 1].\n"
     "\n"
-    ":type: float");
+    ":type: float\n");
 PyDoc_STRVAR(
     /* Wrap. */
     Color_channel_hsv_v_doc,
     "HSV Value component in [0, 1].\n"
     "\n"
-    ":type: float");
+    ":type: float\n");
 
 static PyObject *Color_channel_hsv_get(ColorObject *self, void *type)
 {
@@ -1064,7 +1064,7 @@ PyDoc_STRVAR(
     Color_hsv_doc,
     "HSV Values in [0, 1].\n"
     "\n"
-    ":type: float triplet");
+    ":type: tuple[float, float, float]\n");
 /** Color channel HSV (get): `x = color.hsv`. */
 static PyObject *Color_hsv_get(ColorObject *self, void * /*closure*/)
 {

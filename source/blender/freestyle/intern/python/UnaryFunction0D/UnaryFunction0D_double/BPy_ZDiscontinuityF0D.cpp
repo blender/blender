@@ -40,7 +40,6 @@ PyDoc_STRVAR(
     "   :return: The normalized distance between the pointed Interface0D\n"
     "      and the occludee.\n"
     "   :rtype: float\n");
-
 static int ZDiscontinuityF0D___init__(BPy_ZDiscontinuityF0D *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {nullptr};

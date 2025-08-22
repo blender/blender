@@ -34,9 +34,8 @@ PyDoc_STRVAR(
     "   :arg brother: An Interface0DIterator object.\n"
     "   :type brother: :class:`Interface0DIterator`\n"
     "   :arg it: An iterator object to be nested.\n"
-    "   :type it: :class:`SVertexIterator`, :class:`CurvePointIterator`, or\n"
-    "      :class:`StrokeVertexIterator`");
-
+    "   :type it: :class:`SVertexIterator` | :class:`CurvePointIterator` | "
+    ":class:`StrokeVertexIterator`\n");
 static int convert_nested_it(PyObject *obj, void *v)
 {
   if (!obj || !BPy_Iterator_Check(obj)) {
@@ -136,8 +135,7 @@ PyDoc_STRVAR(
     "has been created from the `vertices_begin()` method of the :class:`Stroke`\n"
     "class, the .object property refers to a :class:`StrokeVertex` object.\n"
     "\n"
-    ":type: :class:`Interface0D` or one of its subclasses.");
-
+    ":type: :class:`Interface0D` or one of its subclasses.\n");
 static PyObject *Interface0DIterator_object_get(BPy_Interface0DIterator *self, void * /*closure*/)
 {
   if (self->if0D_it->isEnd()) {
@@ -152,8 +150,7 @@ PyDoc_STRVAR(
     Interface0DIterator_t_doc,
     "The curvilinear abscissa of the current point.\n"
     "\n"
-    ":type: float");
-
+    ":type: float\n");
 static PyObject *Interface0DIterator_t_get(BPy_Interface0DIterator *self, void * /*closure*/)
 {
   return PyFloat_FromDouble(self->if0D_it->t());
@@ -164,8 +161,7 @@ PyDoc_STRVAR(
     Interface0DIterator_u_doc,
     "The point parameter at the current point in the 1D element (0 <= u <= 1).\n"
     "\n"
-    ":type: float");
-
+    ":type: float\n");
 static PyObject *Interface0DIterator_u_get(BPy_Interface0DIterator *self, void * /*closure*/)
 {
   return PyFloat_FromDouble(self->if0D_it->u());
@@ -177,8 +173,7 @@ PyDoc_STRVAR(
     "True if the iterator points to the last valid element.\n"
     "For its counterpart (pointing to the first valid element), use it.is_begin.\n"
     "\n"
-    ":type: bool");
-
+    ":type: bool\n");
 static PyObject *Interface0DIterator_at_last_get(BPy_Interface0DIterator *self, void * /*closure*/)
 {
   return PyBool_from_bool(self->if0D_it->atLast());

@@ -284,8 +284,7 @@ PyDoc_STRVAR(
     "\n"
     ".. note::\n"
     "\n"
-    "   This is not part of the stable API and may change between releases.");
-
+    "   This is not part of the stable API and may change between releases.\n");
 PyTypeObject bpy_prop_deferred_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "_PropertyDeferred",
@@ -4560,7 +4559,6 @@ PyDoc_STRVAR(
     "directly.\n"
     "\n"
     ".. note:: All parameters to these functions must be passed as keywords.\n");
-
 static PyModuleDef props_module = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "bpy.props",

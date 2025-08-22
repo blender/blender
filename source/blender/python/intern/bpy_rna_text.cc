@@ -56,7 +56,7 @@ PyDoc_STRVAR(
     "(negative values count backwards from the end, the end value is not inclusive).\n"
     "   :type range: tuple[tuple[int, int], tuple[int, int]]\n"
     "   :return: The specified region as a string.\n"
-    "   :rtype: str.\n");
+    "   :rtype: str\n");
 /* Receive a Python Tuple as parameter to represent the region range. */
 static PyObject *bpy_rna_region_as_string(PyObject *self, PyObject *args, PyObject *kwds)
 {

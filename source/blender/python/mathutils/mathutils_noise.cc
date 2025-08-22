@@ -274,12 +274,6 @@ static void vTurb(float x,
   }
 }
 
-/*-------------------------DOC STRINGS ---------------------------*/
-PyDoc_STRVAR(
-    /* Wrap. */
-    M_Noise_doc,
-    "The Blender noise module");
-
 /*------------------------------------------------------------*/
 /* Python Functions */
 /*------------------------------------------------------------*/
@@ -1150,6 +1144,10 @@ static PyMethodDef M_Noise_methods[] = {
 #  endif
 #endif
 
+PyDoc_STRVAR(
+    /* Wrap. */
+    M_Noise_doc,
+    "The Blender noise module.");
 static PyModuleDef M_Noise_module_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "mathutils.noise",

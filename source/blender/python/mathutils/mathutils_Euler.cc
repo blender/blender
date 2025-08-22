@@ -741,7 +741,7 @@ PyDoc_STRVAR(
     Euler_axis_doc,
     "Euler axis angle in radians.\n"
     "\n"
-    ":type: float");
+    ":type: float\n");
 static PyObject *Euler_axis_get(EulerObject *self, void *type)
 {
   return Euler_item(self, POINTER_AS_INT(type));
@@ -759,7 +759,7 @@ PyDoc_STRVAR(
     Euler_order_doc,
     "Euler rotation order.\n"
     "\n"
-    ":type: Literal['XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX']");
+    ":type: Literal['XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX']\n");
 static PyObject *Euler_order_get(EulerObject *self, void * /*closure*/)
 {
   if (BaseMath_ReadCallback(self) == -1) {

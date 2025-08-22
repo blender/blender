@@ -409,7 +409,6 @@ PyDoc_STRVAR(
     "\n"
     "   :class:`KDTree.balance` must have been called before using any of the ``find`` "
     "methods.\n");
-
 PyTypeObject PyKDTree_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "KDTree",

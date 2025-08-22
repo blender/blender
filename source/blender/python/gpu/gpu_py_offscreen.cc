@@ -333,7 +333,7 @@ PyDoc_STRVAR(
     pygpu_offscreen_width_doc,
     "Width of the texture.\n"
     "\n"
-    ":type: int");
+    ":type: int\n");
 static PyObject *pygpu_offscreen_width_get(BPyGPUOffScreen *self, void * /*type*/)
 {
   BPY_GPU_OFFSCREEN_CHECK_OBJ(self);
@@ -345,7 +345,7 @@ PyDoc_STRVAR(
     pygpu_offscreen_height_doc,
     "Height of the texture.\n"
     "\n"
-    ":type: int");
+    ":type: int\n");
 static PyObject *pygpu_offscreen_height_get(BPyGPUOffScreen *self, void * /*type*/)
 {
   BPY_GPU_OFFSCREEN_CHECK_OBJ(self);
@@ -357,7 +357,7 @@ PyDoc_STRVAR(
     pygpu_offscreen_texture_color_doc,
     "The color texture attached.\n"
     "\n"
-    ":type: :class:`gpu.types.GPUTexture`");
+    ":type: :class:`gpu.types.GPUTexture`\n");
 static PyObject *pygpu_offscreen_texture_color_get(BPyGPUOffScreen *self, void * /*type*/)
 {
   BPY_GPU_OFFSCREEN_CHECK_OBJ(self);

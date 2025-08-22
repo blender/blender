@@ -407,7 +407,7 @@ static PyObject *pygpu_framebuffer__tp_new(PyTypeObject * /*self*/, PyObject *ar
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_framebuffer_is_bound_doc,
-    "Checks if this is the active framebuffer in the context.");
+    "Checks if this is the active frame-buffer in the context.");
 static PyObject *pygpu_framebuffer_is_bound(BPyGPUFrameBuffer *self, void * /*type*/)
 {
   PYGPU_FRAMEBUFFER_CHECK_OBJ(self);

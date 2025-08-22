@@ -313,7 +313,7 @@ PyDoc_STRVAR(
     pygpu_texture_width_doc,
     "Width of the texture.\n"
     "\n"
-    ":type: int");
+    ":type: int\n");
 static PyObject *pygpu_texture_width_get(BPyGPUTexture *self, void * /*type*/)
 {
   BPYGPU_TEXTURE_CHECK_OBJ(self);
@@ -325,7 +325,7 @@ PyDoc_STRVAR(
     pygpu_texture_height_doc,
     "Height of the texture.\n"
     "\n"
-    ":type: int");
+    ":type: int\n");
 static PyObject *pygpu_texture_height_get(BPyGPUTexture *self, void * /*type*/)
 {
   BPYGPU_TEXTURE_CHECK_OBJ(self);
@@ -337,7 +337,7 @@ PyDoc_STRVAR(
     pygpu_texture_format_doc,
     "Format of the texture.\n"
     "\n"
-    ":type: str");
+    ":type: str\n");
 static PyObject *pygpu_texture_format_get(BPyGPUTexture *self, void * /*type*/)
 {
   BPYGPU_TEXTURE_CHECK_OBJ(self);
@@ -718,7 +718,7 @@ static PyMethodDef pygpu_texture__m_methods[] = {
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_texture__m_doc,
-    "This module provides utils for textures.");
+    "This module provides utilities for textures.");
 static PyModuleDef pygpu_texture_module_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "gpu.texture",

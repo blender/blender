@@ -38,7 +38,6 @@ PyDoc_STRVAR(
     "   :type it: :class:`freestyle.types.Interface0DIterator`\n"
     "   :return: A pixel in one of the level of the complete viewmap.\n"
     "   :rtype: float\n");
-
 static int ReadCompleteViewMapPixelF0D___init__(BPy_ReadCompleteViewMapPixelF0D *self,
                                                 PyObject *args,
                                                 PyObject *kwds)

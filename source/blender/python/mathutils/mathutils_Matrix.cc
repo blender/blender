@@ -1915,7 +1915,7 @@ PyDoc_STRVAR(
     "   Return the translation, rotation, and scale components of this matrix.\n"
     "\n"
     "   :return: Tuple of translation, rotation, and scale.\n"
-    "   :rtype: tuple[:class:`Vector`, :class:`Quaternion`, :class:`Vector`]");
+    "   :rtype: tuple[:class:`Vector`, :class:`Quaternion`, :class:`Vector`]\n");
 static PyObject *Matrix_decompose(MatrixObject *self)
 {
   PyObject *ret;
@@ -3165,7 +3165,7 @@ PyDoc_STRVAR(
     Matrix_translation_doc,
     "The translation component of the matrix.\n"
     "\n"
-    ":type: :class:`Vector`");
+    ":type: :class:`Vector`\n");
 static PyObject *Matrix_translation_get(MatrixObject *self, void * /*closure*/)
 {
   PyObject *ret;
@@ -3219,16 +3219,18 @@ PyDoc_STRVAR(
     Matrix_row_doc,
     "Access the matrix by rows (default), (read-only).\n"
     "\n"
-    ":type: Matrix Access");
+    ":type: Matrix Access\n");
 static PyObject *Matrix_row_get(MatrixObject *self, void * /*closure*/)
 {
   return MatrixAccess_CreatePyObject(self, MAT_ACCESS_ROW);
 }
 
-PyDoc_STRVAR(Matrix_col_doc,
-             "Access the matrix by columns, 3x3 and 4x4 only, (read-only).\n"
-             "\n"
-             ":type: Matrix Access");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Matrix_col_doc,
+    "Access the matrix by columns, 3x3 and 4x4 only, (read-only).\n"
+    "\n"
+    ":type: Matrix Access\n");
 static PyObject *Matrix_col_get(MatrixObject *self, void * /*closure*/)
 {
   return MatrixAccess_CreatePyObject(self, MAT_ACCESS_COL);
@@ -3239,7 +3241,7 @@ PyDoc_STRVAR(
     Matrix_median_scale_doc,
     "The average scale applied to each axis (read-only).\n"
     "\n"
-    ":type: float");
+    ":type: float\n");
 static PyObject *Matrix_median_scale_get(MatrixObject *self, void * /*closure*/)
 {
   float mat[3][3];
@@ -3266,7 +3268,7 @@ PyDoc_STRVAR(
     Matrix_is_identity_doc,
     "True if this is an identity matrix (read-only).\n"
     "\n"
-    ":type: bool");
+    ":type: bool\n");
 static PyObject *Matrix_is_identity_get(MatrixObject *self, void * /*closure*/)
 {
   if (BaseMath_ReadCallback(self) == -1) {
@@ -3281,7 +3283,7 @@ PyDoc_STRVAR(
     "True if this matrix results in a negative scale, 3x3 and 4x4 only, "
     "(read-only).\n"
     "\n"
-    ":type: bool");
+    ":type: bool\n");
 static PyObject *Matrix_is_negative_get(MatrixObject *self, void * /*closure*/)
 {
   if (BaseMath_ReadCallback(self) == -1) {
@@ -3307,7 +3309,7 @@ PyDoc_STRVAR(
     Matrix_is_orthogonal_doc,
     "True if this matrix is orthogonal, 3x3 and 4x4 only, (read-only).\n"
     "\n"
-    ":type: bool");
+    ":type: bool\n");
 static PyObject *Matrix_is_orthogonal_get(MatrixObject *self, void * /*closure*/)
 {
   if (BaseMath_ReadCallback(self) == -1) {
@@ -3334,7 +3336,7 @@ PyDoc_STRVAR(
     "True if this matrix has got orthogonal axis vectors, 3x3 and 4x4 only, "
     "(read-only).\n"
     "\n"
-    ":type: bool");
+    ":type: bool\n");
 static PyObject *Matrix_is_orthogonal_axis_vectors_get(MatrixObject *self, void * /*closure*/)
 {
   if (BaseMath_ReadCallback(self) == -1) {

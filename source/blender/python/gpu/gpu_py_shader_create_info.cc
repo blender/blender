@@ -353,7 +353,7 @@ PyDoc_STRVAR(
     pygpu_interface_info_name_doc,
     "Name of the interface block.\n"
     "\n"
-    ":type: str");
+    ":type: str\n");
 static PyObject *pygpu_interface_info_name_get(BPyGPUStageInterfaceInfo *self, void * /*closure*/)
 {
   StageInterfaceInfo *interface = reinterpret_cast<StageInterfaceInfo *>(self->interface);
@@ -1373,7 +1373,6 @@ PyDoc_STRVAR(
     ".. class:: GPUShaderCreateInfo()\n"
     "\n"
     "   Stores and describes types and variables that are used in shader sources.\n");
-
 PyTypeObject BPyGPUShaderCreateInfo_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "GPUShaderCreateInfo",

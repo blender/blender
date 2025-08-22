@@ -59,7 +59,6 @@ PyDoc_STRVAR(
     "\n"
     "   :return: The current scene.\n"
     "   :rtype: :class:`bpy.types.Scene`\n");
-
 static PyObject *Freestyle_getCurrentScene(PyObject * /*self*/)
 {
   Scene *scene = g_freestyle.scene;
@@ -152,7 +151,6 @@ PyDoc_STRVAR(
     "   :type color2: :class:`mathutils.Vector` | tuple[float, float, float] | list[float]\n"
     "   :return: Blended color in RGB format.\n"
     "   :rtype: :class:`mathutils.Vector`\n");
-
 static PyObject *Freestyle_blendRamp(PyObject * /*self*/, PyObject *args)
 {
   PyObject *obj1, *obj2;
@@ -203,7 +201,6 @@ PyDoc_STRVAR(
     "   :type in: float\n"
     "   :return: color in RGBA format.\n"
     "   :rtype: :class:`mathutils.Vector`\n");
-
 static PyObject *Freestyle_evaluateColorRamp(PyObject * /*self*/, PyObject *args)
 {
   BPy_StructRNA *py_srna;
@@ -242,7 +239,6 @@ PyDoc_STRVAR(
     "   :type value: float\n"
     "   :return: Mapped output value.\n"
     "   :rtype: float\n");
-
 static PyObject *Freestyle_evaluateCurveMappingF(PyObject * /*self*/, PyObject *args)
 {
   BPy_StructRNA *py_srna;

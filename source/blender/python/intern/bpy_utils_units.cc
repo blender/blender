@@ -366,8 +366,7 @@ static PyMethodDef bpyunits_methods[] = {
 PyDoc_STRVAR(
     /* Wrap. */
     bpyunits_doc,
-    "This module contains some data/methods regarding units handling.");
-
+    "This module contains some data/methods regarding units handling.\n");
 static PyModuleDef bpyunits_module = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "bpy.utils.units",

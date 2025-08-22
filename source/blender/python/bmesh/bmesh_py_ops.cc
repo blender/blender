@@ -253,7 +253,7 @@ static PyMethodDef BPy_BM_ops_methods[] = {
 PyDoc_STRVAR(
     /* Wrap. */
     BPy_BM_ops_doc,
-    "Access to BMesh operators");
+    "Access to BMesh operators.");
 static PyModuleDef BPy_BM_ops_module_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "bmesh.ops",

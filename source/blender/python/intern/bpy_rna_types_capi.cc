@@ -112,7 +112,7 @@ PyDoc_STRVAR(
     pyrna_WindowManager_clipboard_doc,
     "Clipboard text storage.\n"
     "\n"
-    ":type: str");
+    ":type: str\n");
 static PyObject *pyrna_WindowManager_clipboard_get(PyObject * /*self*/, void * /*flag*/)
 {
   int text_len = 0;
@@ -168,7 +168,6 @@ PyDoc_STRVAR(
     "   :type region_type: str\n"
     "   :return: Handler that can be removed later on.\n"
     "   :rtype: object\n");
-
 PyDoc_STRVAR(
     /* Wrap. */
     pyrna_draw_cursor_remove_doc,
@@ -240,8 +239,7 @@ PyDoc_STRVAR(
     "editor.\n"
     "   :type draw_type: str\n"
     "   :return: Handler that can be removed later on.\n"
-    "   :rtype: object");
-
+    "   :rtype: object\n");
 PyDoc_STRVAR(
     /* Wrap. */
     pyrna_draw_handler_remove_doc,

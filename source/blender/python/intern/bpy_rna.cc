@@ -3079,7 +3079,6 @@ static PyObject *prop_subscript_ass_array_slice__as_seq_fast(PyObject *value, in
     PyErr_SetString(PyExc_ValueError,
                     "bpy_prop_array[slice] = value: "
                     "re-sizing bpy_struct element in arrays isn't supported");
-
     return nullptr;
   }
 
@@ -5183,7 +5182,7 @@ static PyObject *pyrna_struct_get_data(BPy_DummyPointerRNA *self, void * /*closu
 PyDoc_STRVAR(
     /* Wrap. */
     pyrna_struct_get_rna_type_doc,
-    "The property type for introspection");
+    "The property type for introspection.");
 static PyObject *pyrna_struct_get_rna_type(BPy_PropertyRNA *self, void * /*closure*/)
 {
   PointerRNA tptr = RNA_pointer_create_discrete(nullptr, &RNA_Property, self->prop);
@@ -8776,7 +8775,7 @@ static void bpy_types_module_free(void *self)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_types_module_doc,
-    "Access to internal Blender types");
+    "Access to internal Blender types.");
 static PyModuleDef bpy_types_module_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "bpy.types",

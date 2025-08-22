@@ -44,7 +44,6 @@ PyDoc_STRVAR(
     "\n"
     "   :arg stroke: A Stroke object.\n"
     "   :type stroke: :class:`freestyle.types.Stroke`\n");
-
 static int GuidingLinesShader___init__(BPy_GuidingLinesShader *self,
                                        PyObject *args,
                                        PyObject *kwds)

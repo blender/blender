@@ -96,31 +96,31 @@ PyDoc_STRVAR(
     bpy_bm_elem_select_doc,
     "Selected state of this element.\n"
     "\n"
-    ":type: bool");
+    ":type: bool\n");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bm_elem_hide_doc,
     "Hidden state of this element.\n"
     "\n"
-    ":type: bool");
+    ":type: bool\n");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bm_elem_tag_doc,
     "Generic attribute scripts can use for own logic\n"
     "\n"
-    ":type: bool");
+    ":type: bool\n");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bm_elem_smooth_doc,
     "Smooth state of this element.\n"
     "\n"
-    ":type: bool");
+    ":type: bool\n");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bm_elem_seam_doc,
     "Seam for UV unwrapping.\n"
     "\n"
-    ":type: bool");
+    ":type: bool\n");
 
 static PyObject *bpy_bm_elem_hflag_get(BPy_BMElem *self, void *flag)
 {
@@ -204,7 +204,7 @@ PyDoc_STRVAR(
     bpy_bmvertseq_doc,
     "This meshes vert sequence (read-only).\n"
     "\n"
-    ":type: :class:`BMVertSeq`");
+    ":type: :class:`BMVertSeq`\n");
 static PyObject *bpy_bmvertseq_get(BPy_BMesh *self, void * /*closure*/)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -216,7 +216,7 @@ PyDoc_STRVAR(
     bpy_bmedgeseq_doc,
     "This meshes edge sequence (read-only).\n"
     "\n"
-    ":type: :class:`BMEdgeSeq`");
+    ":type: :class:`BMEdgeSeq`\n");
 static PyObject *bpy_bmedgeseq_get(BPy_BMesh *self, void * /*closure*/)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -228,7 +228,7 @@ PyDoc_STRVAR(
     bpy_bmfaceseq_doc,
     "This meshes face sequence (read-only).\n"
     "\n"
-    ":type: :class:`BMFaceSeq`");
+    ":type: :class:`BMFaceSeq`\n");
 static PyObject *bpy_bmfaceseq_get(BPy_BMesh *self, void * /*closure*/)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -252,18 +252,24 @@ static PyObject *bpy_bmloopseq_get(BPy_BMesh *self, void * /*closure*/)
 }
 
 /* vert */
-PyDoc_STRVAR(bpy_bmvert_link_edges_doc,
-             "Edges connected to this vertex (read-only).\n"
-             "\n"
-             ":type: :class:`BMElemSeq` of :class:`BMEdge`");
-PyDoc_STRVAR(bpy_bmvert_link_faces_doc,
-             "Faces connected to this vertex (read-only).\n"
-             "\n"
-             ":type: :class:`BMElemSeq` of :class:`BMFace`");
-PyDoc_STRVAR(bpy_bmvert_link_loops_doc,
-             "Loops that use this vertex (read-only).\n"
-             "\n"
-             ":type: :class:`BMElemSeq` of :class:`BMLoop`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bmvert_link_edges_doc,
+    "Edges connected to this vertex (read-only).\n"
+    "\n"
+    ":type: :class:`BMElemSeq` of :class:`BMEdge`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bmvert_link_faces_doc,
+    "Faces connected to this vertex (read-only).\n"
+    "\n"
+    ":type: :class:`BMElemSeq` of :class:`BMFace`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bmvert_link_loops_doc,
+    "Loops that use this vertex (read-only).\n"
+    "\n"
+    ":type: :class:`BMElemSeq` of :class:`BMLoop`\n");
 /* edge */
 PyDoc_STRVAR(
     /* Wrap. */
@@ -271,39 +277,45 @@ PyDoc_STRVAR(
     "Verts this edge uses (always 2), (read-only).\n"
     "\n"
     ":type: :class:`BMElemSeq` of "
-    ":class:`BMVert`");
-PyDoc_STRVAR(bpy_bmedge_link_faces_doc,
-             "Faces connected to this edge, (read-only).\n"
-             "\n"
-             ":type: :class:`BMElemSeq` of :class:`BMFace`");
-PyDoc_STRVAR(bpy_bmedge_link_loops_doc,
-             "Loops connected to this edge, (read-only).\n"
-             "\n"
-             ":type: :class:`BMElemSeq` of :class:`BMLoop`");
+    ":class:`BMVert`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bmedge_link_faces_doc,
+    "Faces connected to this edge, (read-only).\n"
+    "\n"
+    ":type: :class:`BMElemSeq` of :class:`BMFace`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bmedge_link_loops_doc,
+    "Loops connected to this edge, (read-only).\n"
+    "\n"
+    ":type: :class:`BMElemSeq` of :class:`BMLoop`\n");
 /* face */
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmface_verts_doc,
     "Verts of this face, (read-only).\n"
     "\n"
-    ":type: :class:`BMElemSeq` of :class:`BMVert`");
+    ":type: :class:`BMElemSeq` of :class:`BMVert`\n");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmface_edges_doc,
     "Edges of this face, (read-only).\n"
     "\n"
-    ":type: :class:`BMElemSeq` of :class:`BMEdge`");
+    ":type: :class:`BMElemSeq` of :class:`BMEdge`\n");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmface_loops_doc,
     "Loops of this face, (read-only).\n"
     "\n"
-    ":type: :class:`BMElemSeq` of :class:`BMLoop`");
+    ":type: :class:`BMElemSeq` of :class:`BMLoop`\n");
 /* loop */
-PyDoc_STRVAR(bpy_bmloops_link_loops_doc,
-             "Loops connected to this loop, (read-only).\n"
-             "\n"
-             ":type: :class:`BMElemSeq` of :class:`BMLoop`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bmloops_link_loops_doc,
+    "Loops connected to this loop, (read-only).\n"
+    "\n"
+    ":type: :class:`BMElemSeq` of :class:`BMLoop`\n");
 
 static PyObject *bpy_bmelemseq_elem_get(BPy_BMElem *self, void *itype)
 {
@@ -316,16 +328,18 @@ PyDoc_STRVAR(
     bpy_bm_is_valid_doc,
     "True when this element is valid (hasn't been removed).\n"
     "\n"
-    ":type: bool");
+    ":type: bool\n");
 static PyObject *bpy_bm_is_valid_get(BPy_BMGeneric *self, void * /*closure*/)
 {
   return PyBool_FromLong(BPY_BM_IS_VALID(self));
 }
 
-PyDoc_STRVAR(bpy_bmesh_is_wrapped_doc,
-             "True when this mesh is owned by blender (typically the editmode BMesh).\n"
-             "\n"
-             ":type: bool");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bmesh_is_wrapped_doc,
+    "True when this mesh is owned by blender (typically the editmode BMesh).\n"
+    "\n"
+    ":type: bool\n");
 static PyObject *bpy_bmesh_is_wrapped_get(BPy_BMesh *self, void * /*closure*/)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -339,7 +353,7 @@ PyDoc_STRVAR(
     "The selection mode, values can be {'VERT', 'EDGE', 'FACE'}, cannot be assigned an empty "
     "set.\n"
     "\n"
-    ":type: set");
+    ":type: set\n");
 static PyObject *bpy_bmesh_select_mode_get(BPy_BMesh *self, void * /*closure*/)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -372,7 +386,7 @@ PyDoc_STRVAR(
     "Sequence of selected items (the last is displayed as active).\n"
     "\n"
     ":type: "
-    ":class:`BMEditSelSeq`");
+    ":class:`BMEditSelSeq`\n");
 static PyObject *bpy_bmesh_select_history_get(BPy_BMesh *self, void * /*closure*/)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -396,7 +410,7 @@ PyDoc_STRVAR(
     "The coordinates for this vertex as a 3D, wrapped vector.\n"
     "\n"
     ":type: "
-    ":class:`mathutils.Vector`");
+    ":class:`mathutils.Vector`\n");
 static PyObject *bpy_bmvert_co_get(BPy_BMVert *self, void * /*closure*/)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -414,10 +428,12 @@ static int bpy_bmvert_co_set(BPy_BMVert *self, PyObject *value, void * /*closure
   return -1;
 }
 
-PyDoc_STRVAR(bpy_bmvert_normal_doc,
-             "The normal for this vertex as a 3D, wrapped vector.\n"
-             "\n"
-             ":type: :class:`mathutils.Vector`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bmvert_normal_doc,
+    "The normal for this vertex as a 3D, wrapped vector.\n"
+    "\n"
+    ":type: :class:`mathutils.Vector`\n");
 static PyObject *bpy_bmvert_normal_get(BPy_BMVert *self, void * /*closure*/)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -440,7 +456,7 @@ PyDoc_STRVAR(
     bpy_bmvert_is_manifold_doc,
     "True when this vertex is manifold (read-only).\n"
     "\n"
-    ":type: bool");
+    ":type: bool\n");
 static PyObject *bpy_bmvert_is_manifold_get(BPy_BMVert *self, void * /*closure*/)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -452,17 +468,19 @@ PyDoc_STRVAR(
     bpy_bmvert_is_wire_doc,
     "True when this vertex is not connected to any faces (read-only).\n"
     "\n"
-    ":type: bool");
+    ":type: bool\n");
 static PyObject *bpy_bmvert_is_wire_get(BPy_BMVert *self, void * /*closure*/)
 {
   BPY_BM_CHECK_OBJ(self);
   return PyBool_FromLong(BM_vert_is_wire(self->v));
 }
 
-PyDoc_STRVAR(bpy_bmvert_is_boundary_doc,
-             "True when this vertex is connected to boundary edges (read-only).\n"
-             "\n"
-             ":type: bool");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bmvert_is_boundary_doc,
+    "True when this vertex is connected to boundary edges (read-only).\n"
+    "\n"
+    ":type: bool\n");
 static PyObject *bpy_bmvert_is_boundary_get(BPy_BMVert *self, void * /*closure*/)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -477,7 +495,7 @@ PyDoc_STRVAR(
     bpy_bmedge_is_manifold_doc,
     "True when this edge is manifold (read-only).\n"
     "\n"
-    ":type: bool");
+    ":type: bool\n");
 static PyObject *bpy_bmedge_is_manifold_get(BPy_BMEdge *self, void * /*closure*/)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -490,7 +508,7 @@ PyDoc_STRVAR(
     "True when this edge is manifold, between two faces with the same winding "
     "(read-only).\n"
     "\n"
-    ":type: bool");
+    ":type: bool\n");
 static PyObject *bpy_bmedge_is_contiguous_get(BPy_BMEdge *self, void * /*closure*/)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -502,7 +520,7 @@ PyDoc_STRVAR(
     bpy_bmedge_is_convex_doc,
     "True when this edge joins two convex faces, depends on a valid face normal (read-only).\n"
     "\n"
-    ":type: bool");
+    ":type: bool\n");
 static PyObject *bpy_bmedge_is_convex_get(BPy_BMEdge *self, void * /*closure*/)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -514,7 +532,7 @@ PyDoc_STRVAR(
     bpy_bmedge_is_wire_doc,
     "True when this edge is not connected to any faces (read-only).\n"
     "\n"
-    ":type: bool");
+    ":type: bool\n");
 static PyObject *bpy_bmedge_is_wire_get(BPy_BMEdge *self, void * /*closure*/)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -526,7 +544,7 @@ PyDoc_STRVAR(
     bpy_bmedge_is_boundary_doc,
     "True when this edge is at the boundary of a face (read-only).\n"
     "\n"
-    ":type: bool");
+    ":type: bool\n");
 static PyObject *bpy_bmedge_is_boundary_get(BPy_BMEdge *self, void * /*closure*/)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -536,10 +554,12 @@ static PyObject *bpy_bmedge_is_boundary_get(BPy_BMEdge *self, void * /*closure*/
 /* Face
  * ^^^^ */
 
-PyDoc_STRVAR(bpy_bmface_normal_doc,
-             "The normal for this face as a 3D, wrapped vector.\n"
-             "\n"
-             ":type: :class:`mathutils.Vector`");
+PyDoc_STRVAR(
+    /* Warp. */
+    bpy_bmface_normal_doc,
+    "The normal for this face as a 3D, wrapped vector.\n"
+    "\n"
+    ":type: :class:`mathutils.Vector`\n");
 static PyObject *bpy_bmface_normal_get(BPy_BMFace *self, void * /*closure*/)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -562,7 +582,7 @@ PyDoc_STRVAR(
     bpy_bmface_material_index_doc,
     "The face's material index.\n"
     "\n"
-    ":type: int");
+    ":type: int\n");
 static PyObject *bpy_bmface_material_index_get(BPy_BMFace *self, void * /*closure*/)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -598,17 +618,19 @@ PyDoc_STRVAR(
     bpy_bmloop_vert_doc,
     "The loop's vertex (read-only).\n"
     "\n"
-    ":type: :class:`BMVert`");
+    ":type: :class:`BMVert`\n");
 static PyObject *bpy_bmloop_vert_get(BPy_BMLoop *self, void * /*closure*/)
 {
   BPY_BM_CHECK_OBJ(self);
   return BPy_BMVert_CreatePyObject(self->bm, self->l->v);
 }
 
-PyDoc_STRVAR(bpy_bmloop_edge_doc,
-             "The loop's edge (between this loop and the next), (read-only).\n"
-             "\n"
-             ":type: :class:`BMEdge`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bmloop_edge_doc,
+    "The loop's edge (between this loop and the next), (read-only).\n"
+    "\n"
+    ":type: :class:`BMEdge`\n");
 static PyObject *bpy_bmloop_edge_get(BPy_BMLoop *self, void * /*closure*/)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -620,7 +642,7 @@ PyDoc_STRVAR(
     bpy_bmloop_face_doc,
     "The face this loop makes (read-only).\n"
     "\n"
-    ":type: :class:`BMFace`");
+    ":type: :class:`BMFace`\n");
 static PyObject *bpy_bmloop_face_get(BPy_BMLoop *self, void * /*closure*/)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -632,7 +654,7 @@ PyDoc_STRVAR(
     bpy_bmloop_link_loop_next_doc,
     "The next face corner (read-only).\n"
     "\n"
-    ":type: :class:`BMLoop`");
+    ":type: :class:`BMLoop`\n");
 static PyObject *bpy_bmloop_link_loop_next_get(BPy_BMLoop *self, void * /*closure*/)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -644,7 +666,7 @@ PyDoc_STRVAR(
     bpy_bmloop_link_loop_prev_doc,
     "The previous face corner (read-only).\n"
     "\n"
-    ":type: :class:`BMLoop`");
+    ":type: :class:`BMLoop`\n");
 static PyObject *bpy_bmloop_link_loop_prev_get(BPy_BMLoop *self, void * /*closure*/)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -656,7 +678,7 @@ PyDoc_STRVAR(
     bpy_bmloop_link_loop_radial_next_doc,
     "The next loop around the edge (read-only).\n"
     "\n"
-    ":type: :class:`BMLoop`");
+    ":type: :class:`BMLoop`\n");
 static PyObject *bpy_bmloop_link_loop_radial_next_get(BPy_BMLoop *self, void * /*closure*/)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -668,7 +690,7 @@ PyDoc_STRVAR(
     bpy_bmloop_link_loop_radial_prev_doc,
     "The previous loop around the edge (read-only).\n"
     "\n"
-    ":type: :class:`BMLoop`");
+    ":type: :class:`BMLoop`\n");
 static PyObject *bpy_bmloop_link_loop_radial_prev_get(BPy_BMLoop *self, void * /*closure*/)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -681,7 +703,7 @@ PyDoc_STRVAR(
     "True when this loop is at the convex corner of a face, depends on a valid face "
     "normal (read-only).\n"
     "\n"
-    ":type: bool");
+    ":type: bool\n");
 static PyObject *bpy_bmloop_is_convex_get(BPy_BMLoop *self, void * /*closure*/)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -697,25 +719,25 @@ PyDoc_STRVAR(
     bpy_bmelemseq_layers_vert_doc,
     "custom-data layers (read-only).\n"
     "\n"
-    ":type: :class:`BMLayerAccessVert`");
+    ":type: :class:`BMLayerAccessVert`\n");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmelemseq_layers_edge_doc,
     "custom-data layers (read-only).\n"
     "\n"
-    ":type: :class:`BMLayerAccessEdge`");
+    ":type: :class:`BMLayerAccessEdge`\n");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmelemseq_layers_face_doc,
     "custom-data layers (read-only).\n"
     "\n"
-    ":type: :class:`BMLayerAccessFace`");
+    ":type: :class:`BMLayerAccessFace`\n");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmelemseq_layers_loop_doc,
     "custom-data layers (read-only).\n"
     "\n"
-    ":type: :class:`BMLayerAccessLoop`");
+    ":type: :class:`BMLayerAccessLoop`\n");
 static PyObject *bpy_bmelemseq_layers_get(BPy_BMElemSeq *self, void *htype)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -731,7 +753,7 @@ PyDoc_STRVAR(
     bpy_bmfaceseq_active_doc,
     "active face.\n"
     "\n"
-    ":type: :class:`BMFace` or None");
+    ":type: :class:`BMFace` | None\n");
 static PyObject *bpy_bmfaceseq_active_get(BPy_BMElemSeq *self, void * /*closure*/)
 {
   BMesh *bm = self->bm;
@@ -1471,7 +1493,6 @@ PyDoc_STRVAR(
     "   .. note::\n"
     "\n"
     "      The normal of any vertex where :attr:`is_wire` is True will be a zero vector.\n");
-
 static PyObject *bpy_bmesh_normal_update(BPy_BMesh *self)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -2899,7 +2920,7 @@ PyDoc_STRVAR(
     "   Ensure internal data needed for int subscription is initialized with "
     "verts/edges/faces, eg ``bm.verts[index]``.\n"
     "\n"
-    "   This needs to be called again after adding/removing data in this sequence.");
+    "   This needs to be called again after adding/removing data in this sequence.\n");
 static PyObject *bpy_bmelemseq_ensure_lookup_table(BPy_BMElemSeq *self)
 {
   BPY_BM_CHECK_OBJ(self);

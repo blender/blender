@@ -168,7 +168,6 @@ PyDoc_STRVAR(
     ".. method:: __init__()\n"
     "\n"
     "   Default constructor.\n");
-
 static int StrokeShader___init__(BPy_StrokeShader *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {nullptr};
@@ -201,7 +200,6 @@ PyDoc_STRVAR(
     "\n"
     "   :arg stroke: A Stroke object.\n"
     "   :type stroke: :class:`Stroke`\n");
-
 static PyObject *StrokeShader_shade(BPy_StrokeShader *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {"stroke", nullptr};
@@ -258,8 +256,7 @@ PyDoc_STRVAR(
     StrokeShader_name_doc,
     "The name of the stroke shader.\n"
     "\n"
-    ":type: str");
-
+    ":type: str\n");
 static PyObject *StrokeShader_name_get(BPy_StrokeShader *self, void * /*closure*/)
 {
   return PyUnicode_FromString(Py_TYPE(self)->tp_name);

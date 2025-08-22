@@ -802,7 +802,7 @@ PyDoc_STRVAR(
     pygpu_shader_name_doc,
     "The name of the shader object for debugging purposes (read-only).\n"
     "\n"
-    ":type: str");
+    ":type: str\n");
 static PyObject *pygpu_shader_name(BPyGPUShader *self, void * /*closure*/)
 {
   return PyUnicode_FromString(GPU_shader_get_name(self->shader));
@@ -814,7 +814,7 @@ PyDoc_STRVAR(
     "The name of the program object for use by the OpenGL API (read-only).\n"
     "This is deprecated and will always return -1.\n"
     "\n"
-    ":type: int");
+    ":type: int\n");
 static PyObject *pygpu_shader_program_get(BPyGPUShader * /*self*/, void * /*closure*/)
 {
   PyErr_WarnEx(

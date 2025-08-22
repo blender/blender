@@ -36,7 +36,6 @@ PyDoc_STRVAR(
     "   :return: The nature of the 1D element to which the pointed Interface0D\n"
     "      belongs.\n"
     "   :rtype: :class:`freestyle.types.Nature`\n");
-
 static int CurveNatureF0D___init__(BPy_CurveNatureF0D *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {nullptr};

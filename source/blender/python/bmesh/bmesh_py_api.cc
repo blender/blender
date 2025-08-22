@@ -40,7 +40,6 @@ PyDoc_STRVAR(
     "   :type use_operators: bool\n"
     "   :return: Return a new, empty BMesh.\n"
     "   :rtype: :class:`bmesh.types.BMesh`\n");
-
 static PyObject *bpy_bm_new(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   static const char *kwlist[] = {"use_operators", nullptr};

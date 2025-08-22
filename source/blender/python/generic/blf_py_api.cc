@@ -55,7 +55,6 @@ PyDoc_STRVAR(
     "   :type y: float\n"
     "   :arg z: Z axis position to draw the text.\n"
     "   :type z: float\n");
-
 static PyObject *py_blf_position(PyObject * /*self*/, PyObject *args)
 {
   int fontid;

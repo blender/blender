@@ -36,7 +36,6 @@ PyDoc_STRVAR(
     "\n"
     "   :arg stroke: A Stroke object.\n"
     "   :type stroke: :class:`freestyle.types.Stroke`\n");
-
 static int SamplingShader___init__(BPy_SamplingShader *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {"sampling", nullptr};

@@ -38,7 +38,6 @@ PyDoc_STRVAR(
     "   :return: The 2D oriented tangent to the 1D element evaluated at the\n"
     "      pointed Interface0D.\n"
     "   :rtype: :class:`mathutils.Vector`\n");
-
 static int VertexOrientation2DF0D___init__(BPy_VertexOrientation2DF0D *self,
                                            PyObject *args,
                                            PyObject *kwds)

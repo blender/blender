@@ -88,7 +88,6 @@ PyDoc_STRVAR(
     "   :type inter2: :class:`Interface1D`\n"
     "   :return: True or false.\n"
     "   :rtype: bool\n");
-
 static int BinaryPredicate1D___init__(BPy_BinaryPredicate1D *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {nullptr};
@@ -145,8 +144,7 @@ PyDoc_STRVAR(
     BinaryPredicate1D_name_doc,
     "The name of the binary 1D predicate.\n"
     "\n"
-    ":type: str");
-
+    ":type: str\n");
 static PyObject *BinaryPredicate1D_name_get(BPy_BinaryPredicate1D *self, void * /*closure*/)
 {
   return PyUnicode_FromString(Py_TYPE(self)->tp_name);

@@ -37,8 +37,7 @@ PyDoc_STRVAR(
     "   :arg brother: A Chain object.\n"
     "   :type brother: :class:`Chain`\n"
     "   :arg id: An Id object.\n"
-    "   :type id: :class:`Id`");
-
+    "   :type id: :class:`Id`\n");
 static int Chain_init(BPy_Chain *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist_1[] = {"brother", nullptr};
@@ -77,10 +76,8 @@ PyDoc_STRVAR(
     "\n"
     "   :arg viewedge: The ViewEdge that must be added.\n"
     "   :type viewedge: :class:`ViewEdge`\n"
-    "   :arg orientation: The orientation with which the ViewEdge must be\n"
-    "      processed.\n"
-    "   :type orientation: bool");
-
+    "   :arg orientation: The orientation with which the ViewEdge must be processed.\n"
+    "   :type orientation: bool\n");
 static PyObject *Chain_push_viewedge_back(BPy_Chain *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {"viewedge", "orientation", nullptr};
@@ -108,8 +105,7 @@ PyDoc_STRVAR(
     "   :type viewedge: :class:`ViewEdge`\n"
     "   :arg orientation: The orientation with which the ViewEdge must be\n"
     "      processed.\n"
-    "   :type orientation: bool");
-
+    "   :type orientation: bool\n");
 static PyObject *Chain_push_viewedge_front(BPy_Chain *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {"viewedge", "orientation", nullptr};

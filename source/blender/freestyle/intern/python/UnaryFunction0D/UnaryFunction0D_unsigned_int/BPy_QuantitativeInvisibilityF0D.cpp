@@ -41,7 +41,6 @@ PyDoc_STRVAR(
     "   :type it: :class:`freestyle.types.Interface0DIterator`\n"
     "   :return: The quantitative invisibility of the pointed Interface0D.\n"
     "   :rtype: int\n");
-
 static int QuantitativeInvisibilityF0D___init__(BPy_QuantitativeInvisibilityF0D *self,
                                                 PyObject *args,
                                                 PyObject *kwds)

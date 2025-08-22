@@ -62,7 +62,7 @@ static PyMethodDef BPy_BM_geometry_methods[] = {
 PyDoc_STRVAR(
     /* Wrap. */
     BPy_BM_utils_doc,
-    "This module provides access to bmesh geometry evaluation functions.");
+    "This module provides access to bmesh geometry evaluation functions.\n");
 static PyModuleDef BPy_BM_geometry_module_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "bmesh.geometry",

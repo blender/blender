@@ -52,7 +52,6 @@ PyDoc_STRVAR(
     ".. method:: __init__()\n"
     "\n"
     "   Default constructor.\n");
-
 static int UnaryFunction0DVec3f___init__(BPy_UnaryFunction0DVec3f *self,
                                          PyObject *args,
                                          PyObject *kwds)

@@ -1514,7 +1514,7 @@ PyDoc_STRVAR(
     Quaternion_axis_doc,
     "Quaternion axis value.\n"
     "\n"
-    ":type: float");
+    ":type: float\n");
 static PyObject *Quaternion_axis_get(QuaternionObject *self, void *type)
 {
   return Quaternion_item(self, POINTER_AS_INT(type));
@@ -1530,7 +1530,7 @@ PyDoc_STRVAR(
     Quaternion_magnitude_doc,
     "Size of the quaternion (read-only).\n"
     "\n"
-    ":type: float");
+    ":type: float\n");
 static PyObject *Quaternion_magnitude_get(QuaternionObject *self, void * /*closure*/)
 {
   if (BaseMath_ReadCallback(self) == -1) {
@@ -1545,7 +1545,7 @@ PyDoc_STRVAR(
     Quaternion_angle_doc,
     "Angle of the quaternion.\n"
     "\n"
-    ":type: float");
+    ":type: float\n");
 static PyObject *Quaternion_angle_get(QuaternionObject *self, void * /*closure*/)
 {
   float tquat[4];
@@ -1605,7 +1605,7 @@ PyDoc_STRVAR(
     Quaternion_axis_vector_doc,
     "Quaternion axis as a vector.\n"
     "\n"
-    ":type: :class:`Vector`");
+    ":type: :class:`Vector`\n");
 static PyObject *Quaternion_axis_vector_get(QuaternionObject *self, void * /*closure*/)
 {
   float tquat[4];
