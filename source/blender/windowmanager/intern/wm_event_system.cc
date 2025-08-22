@@ -5154,7 +5154,7 @@ wmEventHandler_Dropbox *WM_event_add_dropbox_handler(ListBase *handlers, ListBas
   return handler;
 }
 
-void WM_event_remove_area_handler(ListBase *handlers, void *area)
+void WM_event_remove_handlers_by_area(ListBase *handlers, const ScrArea *area)
 {
   /* XXX(@ton): solution works, still better check the real cause. */
 
