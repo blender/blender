@@ -3018,6 +3018,16 @@ static const EnumPropertyItem *rna_FileSelectParams_display_type_itemf(bContext 
   return fileselectparams_display_type_items;
 }
 
+static int rna_FileSelectParams_display_type_default(PointerRNA *ptr, PropertyRNA *prop)
+{
+  if (RNA_struct_is_a(ptr->type, &RNA_FileAssetSelectParams)) {
+    return FILE_IMGDISPLAY;
+  }
+
+  EnumPropertyRNA *eprop = reinterpret_cast<EnumPropertyRNA *>(prop);
+  return eprop->defaultvalue;
+}
+
 static const EnumPropertyItem *rna_FileSelectParams_recursion_level_itemf(bContext * /*C*/,
                                                                           PointerRNA *ptr,
                                                                           PropertyRNA * /*prop*/,
@@ -7338,6 +7348,7 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, nullptr, "display");
   RNA_def_property_enum_items(prop, fileselectparams_display_type_items);
   RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_FileSelectParams_display_type_itemf");
+  RNA_def_property_enum_default_func(prop, "rna_FileSelectParams_display_type_default");
   RNA_def_property_ui_text(prop, "Display Mode", "Display mode for the file list");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, nullptr);
 
