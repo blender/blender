@@ -12469,24 +12469,6 @@ void UI_popup_handlers_remove_all(bContext *C, ListBase *handlers)
   WM_event_free_ui_handler_all(C, handlers, ui_popup_handler, ui_popup_handler_remove);
 }
 
-void UI_popup_handlers_remove_by_region(ListBase *handlers, const ARegion *region)
-{
-  LISTBASE_FOREACH_MUTABLE (wmEventHandler *, handler_base, handlers) {
-    if (handler_base->type == WM_HANDLER_TYPE_UI) {
-      wmEventHandler_UI *handler = (wmEventHandler_UI *)handler_base;
-      if ((handler->handle_fn == ui_popup_handler) &&
-          (handler->remove_fn == ui_popup_handler_remove))
-      {
-        uiPopupBlockHandle *popup = static_cast<uiPopupBlockHandle *>(handler->user_data);
-        if (popup->region == region) {
-          WM_event_remove_ui_handler(
-              handlers, ui_popup_handler, ui_popup_handler_remove, popup, false);
-        }
-      }
-    }
-  }
-}
-
 bool UI_textbutton_activate_rna(const bContext *C,
                                 ARegion *region,
                                 const void *rna_poin_data,
