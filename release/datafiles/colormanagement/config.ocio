@@ -88,16 +88,20 @@ displays:
     - !<View> {name: ACES 2.0 - HDR 1000 nits, colorspace: ACES 2.0 Rec.2100-PQ - HDR 1000 nits}
     - !<View> {name: ACES 2.0 - HDR 2000 nits, colorspace: ACES 2.0 Rec.2100-PQ - HDR 2000 nits}
     - !<View> {name: ACES 2.0 - HDR 4000 nits, colorspace: ACES 2.0 Rec.2100-PQ - HDR 4000 nits}
+    - !<View> {name: AgX, colorspace: AgX Rec.2100-PQ - SDR}
+    - !<View> {name: AgX - HDR 1000 nits, colorspace: AgX Rec.2100-PQ - HDR 1000 nits (P3 D65)}
     - !<View> {name: False Color, colorspace: AgX False Color Rec.2100-PQ}
     - !<View> {name: Raw, colorspace: Non-Color}
   Rec.2100-HLG:
     - !<View> {name: Standard, colorspace: Rec.2100-HLG}
     - !<View> {name: ACES 2.0 - HDR 1000 nits, colorspace: ACES 2.0 Rec.2100-HLG - HDR 1000 nits}
+    - !<View> {name: AgX, colorspace: AgX Rec.2100-HLG - SDR}
+    - !<View> {name: AgX - HDR 1000 nits, colorspace: AgX Rec.2100-HLG - HDR 1000 nits (P3 D65)}
     - !<View> {name: False Color, colorspace: AgX False Color Rec.2100-HLG}
     - !<View> {name: Raw, colorspace: Non-Color}
 active_displays: [sRGB, Display P3, Rec.1886, Rec.2020, Rec.2100-PQ, Rec.2100-HLG]
-active_views: [Standard, ACES 2.0, ACES 2.0 - HDR 500 nits, ACES 2.0 - HDR 1000 nits, ACES 2.0 - HDR 2000 nits, ACES 2.0 - HDR 4000 nits, Khronos PBR Neutral, AgX, Filmic, Filmic Log, False Color, Raw]
-inactive_colorspaces: [Luminance Compensation Rec.2020, AgX False Color Rec.709, AgX False Color P3, AgX False Color Rec.2020, AgX False Color Rec.2100-HLG, AgX False Color Rec.2100-PQ, ACES 2.0 Rec.2100-PQ - HDR 500 nits, ACES 2.0 Rec.2100-PQ - HDR 1000 nits, ACES 2.0 Rec.2100-PQ - HDR 2000 nits, ACES 2.0 Rec.2100-PQ - HDR 4000 nits, ACES 2.0 Rec.2020, ACES 2.0 Rec.2100-HLG - HDR 1000 nits]
+active_views: [Standard, ACES 2.0, ACES 2.0 - HDR 500 nits, ACES 2.0 - HDR 1000 nits, ACES 2.0 - HDR 2000 nits, ACES 2.0 - HDR 4000 nits, Khronos PBR Neutral, AgX, AgX - HDR 1000 nits, Filmic, Filmic Log, False Color, Raw]
+inactive_colorspaces: [Luminance Compensation Rec.2020, AgX False Color Rec.709, AgX False Color P3, AgX False Color Rec.2020, AgX False Color Rec.2100-HLG, AgX False Color Rec.2100-PQ, ACES 2.0 Rec.2100-PQ - HDR 500 nits, ACES 2.0 Rec.2100-PQ - HDR 1000 nits, ACES 2.0 Rec.2100-PQ - HDR 2000 nits, ACES 2.0 Rec.2100-PQ - HDR 4000 nits, ACES 2.0 Rec.2020, AgX Rec.2100-HLG - HDR 1000 nits (P3 D65), AgX Rec.2100-PQ - HDR 1000 nits (P3 D65), AgX Rec.2100-HLG - SDR, AgX Rec.2100-PQ - SDR, ACES 2.0 Rec.2100-HLG - HDR 1000 nits]
 
 colorspaces:
   - !<ColorSpace>
@@ -676,6 +680,63 @@ colorspaces:
       children:
         - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear CIE-XYZ D65}
         - !<BuiltinTransform> {style: DISPLAY - CIE-XYZ-D65_to_REC.2100-HLG-1000nit}
+
+  - !<ColorSpace>
+    name: AgX Rec.2100-HLG - SDR
+    family: AgX
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      AgX Base P3 limited Image Encoding for BT.2100-HLG matching SDR
+    encoding: hdr-video
+    isdata: false
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: AgX Base Display P3}
+        - !<ColorSpaceTransform> {src: Display P3, dst: Rec.2100-HLG}
+
+  - !<ColorSpace>
+    name: AgX Rec.2100-PQ - SDR
+    family: AgX
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      AgX Base P3 limited Image Encoding for BT.2100-PQ matching SDR
+    encoding: hdr-video
+    isdata: false
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: AgX Base Display P3}
+        - !<ColorSpaceTransform> {src: Display P3, dst: Rec.2100-PQ}
+
+  - !<ColorSpace>
+    name: AgX Rec.2100-HLG - HDR 1000 nits (P3 D65)
+    family: AgX
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      AgX 1000 nits peak Image Encoding for BT.2100-HLG P3 limited Display. Reference white is 100nits
+    encoding: hdr-video
+    isdata: false
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear FilmLight E-Gamut}
+        - !<AllocationTransform> {allocation: lg2, vars: [-12.47393, 12.5260688117]}
+        - !<FileTransform> {src: AgX_Rec2100-HLG_p3_lim.cube, interpolation: tetrahedral}
+
+  - !<ColorSpace>
+    name: AgX Rec.2100-PQ - HDR 1000 nits (P3 D65)
+    family: AgX
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      AgX 1000 nits peak Image Encoding for BT.2100-PQ P3 limited Display. Reference white is 100nits
+    encoding: hdr-video
+    isdata: false
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: AgX Rec.2100-HLG - HDR 1000 nits (P3 D65)}
+        - !<ColorSpaceTransform> {src: Rec.2100-HLG, dst: Rec.2100-PQ}
 
 looks:
   - !<Look>
