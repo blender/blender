@@ -928,6 +928,12 @@ void USDStageReader::collect_point_instancer_proto_paths(const pxr::UsdPrim &pri
       }
     }
 
+    /* We should only consider potential point instancers if they would be included by the scene
+     * instancing flags. */
+    if (!params_.support_scene_instancing && child_prim.IsInPrototype()) {
+      continue;
+    }
+
     if (pxr::UsdGeomPointInstancer instancer = pxr::UsdGeomPointInstancer(child_prim)) {
       pxr::SdfPathVector paths;
       instancer.GetPrototypesRel().GetTargets(&paths);
