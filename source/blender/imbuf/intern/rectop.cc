@@ -982,12 +982,9 @@ void IMB_rectfill(ImBuf *drect, const float col[4])
 
   if (drect->byte_buffer.data) {
     uint *rrect = (uint *)drect->byte_buffer.data;
-    char ccol[4];
 
-    ccol[0] = int(col[0] * 255);
-    ccol[1] = int(col[1] * 255);
-    ccol[2] = int(col[2] * 255);
-    ccol[3] = int(col[3] * 255);
+    char ccol[4];
+    unit_float_to_uchar_clamp_v4(ccol, col);
 
     num = IMB_get_pixel_count(drect);
     for (; num > 0; num--) {
