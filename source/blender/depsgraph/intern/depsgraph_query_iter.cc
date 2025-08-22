@@ -523,7 +523,8 @@ bool evil::DEG_iterator_temp_object_from_dupli(const Object *dupli_parent,
   return true;
 }
 
-void ensure_id_properties_freed(const IDProperty *dupli_idprops, IDProperty **temp_dupli_idprops)
+static void ensure_id_properties_freed(const IDProperty *dupli_idprops,
+                                       IDProperty **temp_dupli_idprops)
 {
   if (*temp_dupli_idprops == nullptr) {
     /* No ID properties in temp data-block -- no leak is possible. */
