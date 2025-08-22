@@ -97,6 +97,7 @@ void DRW_volume_init(DRWData *drw_data)
   if (drw_data->volume_module == nullptr) {
     drw_data->volume_module = MEM_new<VolumeModule>("VolumeModule");
   }
+  drw_data->volume_module->ubo_pool.reset();
 }
 
 void DRW_volume_module_free(draw::VolumeModule *module)
