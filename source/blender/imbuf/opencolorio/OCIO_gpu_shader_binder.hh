@@ -53,8 +53,10 @@ struct GPUDisplayParameters {
   bool use_predivide = false;
   /* Composite an overlay buffer on top of the image. */
   bool do_overlay_merge = false;
-  /* Allow HDR colors (above 1.0) in the result. */
-  bool use_hdr = false;
+  /* Writing to a HDR buffer. */
+  bool use_hdr_buffer = false;
+  /* Chosen display is a HDR display. */
+  bool use_hdr_display = false;
   /* Rather than outputting colors for the specified display, output extended
    * sRGB colors emulating the specified display. */
   bool use_display_emulation = false;

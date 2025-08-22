@@ -78,15 +78,12 @@ struct GPUViewport {
   /* Color management. */
   ColorManagedViewSettings view_settings;
   ColorManagedDisplaySettings display_settings;
-  bool use_hdr;
+  bool use_hdr_display;
   CurveMapping *orig_curve_mapping;
   float dither;
   /* TODO(@fclem): the UV-image display use the viewport but do not set any view transform for the
    * moment. The end goal would be to let the GPUViewport do the color management. */
   bool do_color_management;
-  /* Used for rendering HDR content without clamping even if display doesn't necessarily support
-   * HDR. This is used for viewport render preview (see #77909). */
-  bool force_hdr_output;
   GPUViewportBatch batch;
 };
 
@@ -289,14 +286,8 @@ void GPU_viewport_colorspace_set(GPUViewport *viewport,
   BKE_color_managed_display_settings_copy(&viewport->display_settings, display_settings);
   viewport->dither = dither;
   viewport->do_color_management = true;
-  viewport->use_hdr = GPU_hdr_support() &&
-                      IMB_colormanagement_display_is_hdr(&viewport->display_settings,
-                                                         viewport->view_settings.view_transform);
-}
-
-void GPU_viewport_force_hdr(GPUViewport *viewport)
-{
-  viewport->force_hdr_output = true;
+  viewport->use_hdr_display = IMB_colormanagement_display_is_hdr(
+      &viewport->display_settings, viewport->view_settings.view_transform);
 }
 
 void GPU_viewport_stereo_composite(GPUViewport *viewport, Stereo3dFormat *stereo_format)
@@ -460,11 +451,6 @@ static void gpu_viewport_draw_colormanaged(GPUViewport *viewport,
   blender::gpu::Texture *color_overlay = viewport->color_overlay_tx[view];
 
   bool use_ocio = false;
-  bool use_hdr = viewport->use_hdr;
-
-  if (viewport->force_hdr_output) {
-    use_hdr = true;
-  }
 
   if (viewport->do_color_management && display_colorspace) {
     /* During the binding process the last used VertexFormat is tested and can assert as it is not
@@ -491,7 +477,7 @@ static void gpu_viewport_draw_colormanaged(GPUViewport *viewport,
     GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_IMAGE_OVERLAYS_MERGE);
     GPU_batch_uniform_1i(batch, "overlay", do_overlay_merge);
     GPU_batch_uniform_1i(batch, "display_transform", display_colorspace);
-    GPU_batch_uniform_1i(batch, "use_hdr", use_hdr);
+    GPU_batch_uniform_1i(batch, "use_hdr_display", viewport->use_hdr_display);
   }
 
   GPU_texture_bind(color, 0);

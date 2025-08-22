@@ -29,7 +29,8 @@ namespace blender::ocio {
 static void display_as_extended_srgb(const LibOCIOConfig &config,
                                      OCIO_NAMESPACE::GroupTransformRcPtr &group,
                                      StringRefNull display_name,
-                                     StringRefNull view_name)
+                                     StringRefNull view_name,
+                                     const bool use_hdr_buffer)
 {
   /* Emulate the user specified display on an extended sRGB display, conceptually:
    * - Apply the view and display transform
@@ -56,9 +57,52 @@ static void display_as_extended_srgb(const LibOCIOConfig &config,
     return;
   }
 
+#  ifdef __APPLE__
+  /* The Metal backend always uses sRGB or extended sRGB buffer.
+   *
+   * How this will be decoded depends on the macOS display preset, but from testing
+   * on a MacBook P3 M3 it appears:
+   * - Apple XDR Display (P3 - 1600 nits): Decode with gamma 2.2
+   * - HDR Video (P3-ST 2084): Decode with sRGB. As we encode with the sRGB transfer
+   *   function, this will be cancelled out, and linear values will be passed on
+   *   effectively unmodified.
+   */
+  const TransferFunction target_transfer_function = TransferFunction::sRGB;
+  UNUSED_VARS(use_hdr_buffer);
+#  elif defined(_WIN32)
+  /* The Vulkan backend uses either sRGB for SDR, or linear extended sRGB for HDR.
+   *
+   * - Windows HDR mode off: use_hdr_buffer will be false, and we encode with sRGB.
+   *   By default Windows will decode with gamma 2.2.
+   * - Windows HDR mode on: use_hdr_buffer will be true, and we encode with sRGB.
+   *   The Vulkan HDR swapchain blitting will decode with sRGB to cancel this out
+   *   exactly, meaning we effectively pass on linear values unmodified.
+   *
+   * Note this means that both the user interface and SDR content will not be
+   * displayed the same in HDR mode off and on. However it is consistent with other
+   * software. To match, gamma 2.2 would have to be used.
+   */
+  const TransferFunction target_transfer_function = TransferFunction::sRGB;
+  UNUSED_VARS(use_hdr_buffer);
+#  else
+  /* The Vulkan backend uses either sRGB for SDR, or linear extended sRGB for HDR.
+   *
+   * - When using a HDR swapchain and the display + view is HDR, ensure we pass on
+   *   values linearly by doing gamma 2.2 encode here + gamma 2.2 decode in the
+   *   Vulkan HDR swapchain blitting.
+   * - When using HDR swapain and the display + view is SDR, use sRGB encode to
+   *   emulate what happens on a typical SDR monitor.
+   * - When using an SDR swapchain, the buffer is always sRGB.
+   */
+  const TransferFunction target_transfer_function = (use_hdr_buffer && view->is_hdr()) ?
+                                                        TransferFunction::Gamma22 :
+                                                        TransferFunction::sRGB;
+#  endif
+
   /* If we are already in the desired display colorspace, all we have to do is clamp. */
-  if ((view->transfer_function() == TransferFunction::sRGB ||
-       view->transfer_function() == TransferFunction::ExtendedsRGB) &&
+  if ((view->transfer_function() == target_transfer_function ||
+       (view->transfer_function() == TransferFunction::ExtendedsRGB &&
+        target_transfer_function == TransferFunction::sRGB)) &&
       view->gamut() == Gamut::Rec709)
   {
     auto clamp = OCIO_NAMESPACE::RangeTransform::Create();
@@ -192,13 +236,25 @@ static void display_as_extended_srgb(const LibOCIOConfig &config,
     group->appendTransform(to_rec709);
   }
 
-  /* sRGB transfer function, mirrored for negative as specified by scRGB and extended sRGB. */
-  auto to_extended_srgb = OCIO_NAMESPACE::ExponentWithLinearTransform::Create();
-  to_extended_srgb->setGamma({2.4, 2.4, 2.4, 1.0});
-  to_extended_srgb->setOffset({0.055, 0.055, 0.055, 0.0});
-  to_extended_srgb->setDirection(OCIO_NAMESPACE::TRANSFORM_DIR_INVERSE);
-  to_extended_srgb->setNegativeStyle(OCIO_NAMESPACE::NEGATIVE_MIRROR);
-  group->appendTransform(to_extended_srgb);
+  if (target_transfer_function == TransferFunction::sRGB) {
+    /* Piecewise sRGB transfer function. */
+    auto to_ui = OCIO_NAMESPACE::ExponentWithLinearTransform::Create();
+    to_ui->setGamma({2.4, 2.4, 2.4, 1.0});
+    to_ui->setOffset({0.055, 0.055, 0.055, 0.0});
+    /* Mirrored for negative as specified by scRGB and extended sRGB. */
+    to_ui->setNegativeStyle(OCIO_NAMESPACE::NEGATIVE_MIRROR);
+    to_ui->setDirection(OCIO_NAMESPACE::TRANSFORM_DIR_INVERSE);
+    group->appendTransform(to_ui);
+  }
+  else {
+    /* Pure gamma 2.2 function. */
+    auto to_ui = OCIO_NAMESPACE::ExponentTransform::Create();
+    to_ui->setValue({2.2, 2.2, 2.2, 1.0});
+    /* Mirrored for negative as specified by scRGB and extended sRGB. */
+    to_ui->setNegativeStyle(OCIO_NAMESPACE::NEGATIVE_MIRROR);
+    to_ui->setDirection(OCIO_NAMESPACE::TRANSFORM_DIR_INVERSE);
+    group->appendTransform(to_ui);
+  }
 }
 
 OCIO_NAMESPACE::ConstProcessorRcPtr create_ocio_display_processor(
@@ -287,7 +343,11 @@ OCIO_NAMESPACE::ConstProcessorRcPtr create_ocio_display_processor(
   }
 
   if (display_parameters.use_display_emulation) {
-    display_as_extended_srgb(config, group, display_parameters.display, display_parameters.view);
+    display_as_extended_srgb(config,
+                             group,
+                             display_parameters.display,
+                             display_parameters.view,
+                             display_parameters.use_hdr_buffer);
   }
 
   if (display_parameters.inverse) {

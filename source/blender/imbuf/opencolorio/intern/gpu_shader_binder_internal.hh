@@ -129,7 +129,8 @@ class GPUDisplayShader : NonCopyable, NonMovable {
   std::string display;
   std::string look;
   bool use_curve_mapping = false;
-  bool use_hdr = false;
+  bool use_hdr_buffer = false;
+  bool use_hdr_display = false;
   bool use_display_emulation = false;
 
   /* The shader is valid and can be bound.

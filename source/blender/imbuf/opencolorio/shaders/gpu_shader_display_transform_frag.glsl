@@ -224,7 +224,7 @@ float4 OCIO_ProcessColor(float4 col, float4 col_overlay)
     /* This sign/abs is used to preserve negative values for extended sRGB. */
     col.rgb = sign(col.rgb) * pow(abs(col.rgb), float3(parameters.exponent * 2.2));
 
-    if (parameters.use_hdr) {
+    if (parameters.use_hdr_display) {
       /* When using extended color-space, interpolate towards clamped color to improve display of
        * alpha-blended overlays. */
       col = mix(col, clamp(col, 0.0, 1.0), col_overlay.a);

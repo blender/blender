@@ -781,9 +781,9 @@ static std::shared_ptr<const ocio::CPUProcessor> get_display_buffer_processor(
   display_parameters.tint = tint;
   display_parameters.use_white_balance = use_white_balance;
   display_parameters.inverse = false;
-  display_parameters.use_hdr = GPU_hdr_support() && target == DISPLAY_SPACE_DRAW &&
-                               IMB_colormanagement_display_is_hdr(&display_settings,
-                                                                  view_transform);
+  display_parameters.use_hdr_buffer = GPU_hdr_support();
+  display_parameters.use_hdr_display = IMB_colormanagement_display_is_hdr(&display_settings,
+                                                                          view_transform);
   display_parameters.use_display_emulation = target == DISPLAY_SPACE_DRAW;
 
   return g_config->get_display_cpu_processor(display_parameters);
@@ -3773,9 +3773,9 @@ bool IMB_colormanagement_setup_glsl_draw_from_space(
                                           COLORMANAGE_VIEW_USE_WHITE_BALANCE) != 0;
   display_parameters.use_predivide = predivide;
   display_parameters.do_overlay_merge = do_overlay_merge;
-  display_parameters.use_hdr = GPU_hdr_support() &&
-                               IMB_colormanagement_display_is_hdr(display_settings,
-                                                                  display_parameters.view.c_str());
+  display_parameters.use_hdr_buffer = GPU_hdr_support();
+  display_parameters.use_hdr_display = IMB_colormanagement_display_is_hdr(
+      display_settings, display_parameters.view.c_str());
   display_parameters.use_display_emulation = true;
 
   /* Bind shader. Internally GPU shaders are created and cached on demand. */
