@@ -2188,7 +2188,6 @@ void UI_region_handlers_add(ListBase *handlers);
 void UI_popup_handlers_add(bContext *C, ListBase *handlers, uiPopupBlockHandle *popup, char flag);
 void UI_popup_handlers_remove(ListBase *handlers, uiPopupBlockHandle *popup);
 void UI_popup_handlers_remove_all(bContext *C, ListBase *handlers);
-void UI_popup_handlers_remove_by_region(ListBase *handlers, const ARegion *region);
 
 /* Module
  *
