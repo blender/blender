@@ -64,6 +64,7 @@ static CLG_LogRef LOG = {"color_management"};
 
 using blender::float3;
 using blender::float3x3;
+using blender::StringRef;
 using blender::StringRefNull;
 
 namespace ocio = blender::ocio;
@@ -642,25 +643,38 @@ void colormanagement_exit()
 /** \name Internal functions
  * \{ */
 
-static bool has_explicit_look_for_view(const char *view_name)
+static StringRef view_filter_for_look(StringRefNull view_name)
 {
-  if (!view_name) {
-    return false;
+  if (view_name.is_empty()) {
+    return StringRef();
   }
 
+  /* First try to find any looks with the full name prefix. */
   for (const int look_index : blender::IndexRange(g_config->get_num_looks())) {
     const ocio::Look *look = g_config->get_look_by_index(look_index);
     if (look->view() == view_name) {
-      return true;
+      return view_name;
     }
   }
 
-  return false;
+  /* Then try with the short name prefix. */
+  const int64_t separator_offset = view_name.find(" - ");
+  if (separator_offset == -1) {
+    return StringRef();
+  }
+  StringRef view_short_name = view_name.substr(0, separator_offset);
+
+  for (const int look_index : blender::IndexRange(g_config->get_num_looks())) {
+    const ocio::Look *look = g_config->get_look_by_index(look_index);
+    if (look->view() == view_short_name) {
+      return view_short_name;
+    }
+  }
+
+  return StringRef();
 }
 
-static bool colormanage_compatible_look(const ocio::Look *look,
-                                        const char *view_name,
-                                        const bool has_explicit_look)
+static bool colormanage_compatible_look(const ocio::Look *look, StringRef view_filter)
 {
   if (look->is_noop) {
     return true;
@@ -668,22 +682,13 @@ static bool colormanage_compatible_look(const ocio::Look *look,
 
   /* Skip looks only relevant to specific view transforms.
    * If the view transform has view-specific look ignore non-specific looks. */
-
-  if (view_name && look->view() == view_name) {
-    return true;
-  }
-
-  if (has_explicit_look) {
-    return false;
-  }
-
-  return look->view().is_empty();
+  return (view_filter.is_empty()) ? look->view().is_empty() : look->view() == view_filter;
 }
 
 static bool colormanage_compatible_look(const ocio::Look *look, const char *view_name)
 {
-  const bool has_explicit_look = has_explicit_look_for_view(view_name);
-  return colormanage_compatible_look(look, view_name, has_explicit_look);
+  const StringRef view_filter = view_filter_for_look(view_name);
+  return colormanage_compatible_look(look, view_filter);
 }
 
 static bool colormanage_use_look(const char *look_name, const char *view_name)
@@ -1317,7 +1322,7 @@ blender::Vector<char> IMB_colormanagement_space_icc_profile(const ColorSpace *co
   blender::fstream f(icc_filepath, std::ios::binary | std::ios::in | std::ios::ate);
   if (!f.is_open()) {
     /* If we can't find a scene referred filename, try display referred. */
-    blender::StringRef icc_filepath_ref = icc_filepath;
+    StringRef icc_filepath_ref = icc_filepath;
     if (icc_filepath_ref.endswith("_scene.icc")) {
       std::string icc_filepath_display = icc_filepath_ref.drop_suffix(strlen("_scene.icc")) +
                                          "_display.icc";
@@ -3081,11 +3086,11 @@ void IMB_colormanagement_look_items_add(EnumPropertyItem **items,
                                         int *totitem,
                                         const char *view_name)
 {
-  const bool has_explicit_look = has_explicit_look_for_view(view_name);
+  const StringRef view_filter = view_filter_for_look(view_name);
 
   for (const int look_index : blender::IndexRange(g_config->get_num_looks())) {
     const ocio::Look *look = g_config->get_look_by_index(look_index);
-    if (!colormanage_compatible_look(look, view_name, has_explicit_look)) {
+    if (!colormanage_compatible_look(look, view_filter)) {
       continue;
     }
 
