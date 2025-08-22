@@ -98,10 +98,11 @@ void VKDiscardPool::discard_render_pass(VkRenderPass vk_render_pass)
   render_passes_.append_timeline(timeline_, vk_render_pass);
 }
 
-void VKDiscardPool::discard_descriptor_pool(VkDescriptorPool vk_descriptor_pool)
+void VKDiscardPool::discard_descriptor_pool_for_reuse(VkDescriptorPool vk_descriptor_pool,
+                                                      VKDescriptorPools *descriptor_pools)
 {
   std::scoped_lock mutex(mutex_);
-  descriptor_pools_.append_timeline(timeline_, vk_descriptor_pool);
+  descriptor_pools_.append_timeline(timeline_, std::pair(vk_descriptor_pool, descriptor_pools));
 }
 
 void VKDiscardPool::destroy_discarded_resources(VKDevice &device, bool force)
@@ -147,11 +148,10 @@ void VKDiscardPool::destroy_discarded_resources(VKDevice &device, bool force)
     vkDestroyRenderPass(device.vk_handle(), vk_render_pass, nullptr);
   });
 
-  /* TODO: Introduce reuse_old as the allocations can all be reused by resetting the pool. */
-  descriptor_pools_.remove_old(current_timeline, [&](VkDescriptorPool vk_descriptor_pool) {
-    vkResetDescriptorPool(device.vk_handle(), vk_descriptor_pool, 0);
-    vkDestroyDescriptorPool(device.vk_handle(), vk_descriptor_pool, nullptr);
-  });
+  descriptor_pools_.remove_old(
+      current_timeline, [&](std::pair<VkDescriptorPool, VKDescriptorPools *> descriptor_pool) {
+        descriptor_pool.second->recycle(descriptor_pool.first);
+      });
 }
 
 VKDiscardPool &VKDiscardPool::discard_pool_get()

@@ -12,38 +12,37 @@
 #include "vk_device.hh"
 
 namespace blender::gpu {
-VKDescriptorPools::VKDescriptorPools() {}
 
 VKDescriptorPools::~VKDescriptorPools()
 {
   const VKDevice &device = VKBackend::get().device;
-  for (const VkDescriptorPool vk_descriptor_pool : pools_) {
+  for (const VkDescriptorPool vk_descriptor_pool : recycled_pools_) {
     vkDestroyDescriptorPool(device.vk_handle(), vk_descriptor_pool, nullptr);
+  }
+  recycled_pools_.clear();
+  if (vk_descriptor_pool_ != VK_NULL_HANDLE) {
+    vkDestroyDescriptorPool(device.vk_handle(), vk_descriptor_pool_, nullptr);
+    vk_descriptor_pool_ = VK_NULL_HANDLE;
   }
 }
 
 void VKDescriptorPools::init(const VKDevice &device)
 {
-  BLI_assert(pools_.is_empty());
-  add_new_pool(device);
+  ensure_pool(device);
 }
 
-void VKDescriptorPools::discard(VKContext &context)
+void VKDescriptorPools::ensure_pool(const VKDevice &device)
 {
-  const VKDevice &device = VKBackend::get().device;
-  VKDiscardPool &discard_pool = context.discard_pool;
-
-  for (const VkDescriptorPool vk_descriptor_pool : pools_) {
-    discard_pool.discard_descriptor_pool(vk_descriptor_pool);
+  if (vk_descriptor_pool_ != VK_NULL_HANDLE) {
+    return;
   }
-  pools_.clear();
 
-  add_new_pool(device);
-  active_pool_index_ = 0;
-}
+  std::scoped_lock lock(mutex_);
+  if (!recycled_pools_.is_empty()) {
+    vk_descriptor_pool_ = recycled_pools_.pop_last();
+    return;
+  }
 
-void VKDescriptorPools::add_new_pool(const VKDevice &device)
-{
   Vector<VkDescriptorPoolSize> pool_sizes = {
       {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, POOL_SIZE_STORAGE_BUFFER},
       {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, POOL_SIZE_STORAGE_IMAGE},
@@ -56,44 +55,32 @@ void VKDescriptorPools::add_new_pool(const VKDevice &device)
   pool_info.maxSets = POOL_SIZE_DESCRIPTOR_SETS;
   pool_info.poolSizeCount = pool_sizes.size();
   pool_info.pPoolSizes = pool_sizes.data();
-  VkDescriptorPool descriptor_pool = VK_NULL_HANDLE;
-  VkResult result = vkCreateDescriptorPool(
-      device.vk_handle(), &pool_info, nullptr, &descriptor_pool);
-  UNUSED_VARS(result);
-  pools_.append(descriptor_pool);
+  vkCreateDescriptorPool(device.vk_handle(), &pool_info, nullptr, &vk_descriptor_pool_);
 }
 
-VkDescriptorPool VKDescriptorPools::active_pool_get()
+void VKDescriptorPools::discard_active_pool(VKContext &context)
 {
-  BLI_assert(!pools_.is_empty());
-  return pools_[active_pool_index_];
+  context.discard_pool.discard_descriptor_pool_for_reuse(vk_descriptor_pool_, this);
+  vk_descriptor_pool_ = VK_NULL_HANDLE;
 }
 
-void VKDescriptorPools::activate_next_pool()
+void VKDescriptorPools::recycle(VkDescriptorPool vk_descriptor_pool)
 {
-  BLI_assert(!is_last_pool_active());
-  active_pool_index_ += 1;
-}
-
-void VKDescriptorPools::activate_last_pool()
-{
-  active_pool_index_ = pools_.size() - 1;
-}
-
-bool VKDescriptorPools::is_last_pool_active()
-{
-  return active_pool_index_ == pools_.size() - 1;
+  const VKDevice &device = VKBackend::get().device;
+  vkResetDescriptorPool(device.vk_handle(), vk_descriptor_pool, 0);
+  std::scoped_lock lock(mutex_);
+  recycled_pools_.append(vk_descriptor_pool);
 }
 
 VkDescriptorSet VKDescriptorPools::allocate(const VkDescriptorSetLayout descriptor_set_layout)
 {
   BLI_assert(descriptor_set_layout != VK_NULL_HANDLE);
+  BLI_assert(vk_descriptor_pool_ != VK_NULL_HANDLE);
   const VKDevice &device = VKBackend::get().device;
 
   VkDescriptorSetAllocateInfo allocate_info = {};
-  VkDescriptorPool pool = active_pool_get();
   allocate_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-  allocate_info.descriptorPool = pool;
+  allocate_info.descriptorPool = vk_descriptor_pool_;
   allocate_info.descriptorSetCount = 1;
   allocate_info.pSetLayouts = &descriptor_set_layout;
   VkDescriptorSet vk_descriptor_set = VK_NULL_HANDLE;
@@ -101,12 +88,10 @@ VkDescriptorSet VKDescriptorPools::allocate(const VkDescriptorSetLayout descript
       device.vk_handle(), &allocate_info, &vk_descriptor_set);
 
   if (ELEM(result, VK_ERROR_OUT_OF_POOL_MEMORY, VK_ERROR_FRAGMENTED_POOL)) {
-    if (is_last_pool_active()) {
-      add_new_pool(device);
-      activate_last_pool();
-    }
-    else {
-      activate_next_pool();
+    {
+      VKContext &context = *VKContext::get();
+      discard_active_pool(context);
+      ensure_pool(device);
     }
     return allocate(descriptor_set_layout);
   }
