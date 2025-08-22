@@ -925,13 +925,16 @@ static wmOperatorStatus wm_lib_relocate_exec_do(bContext *C, wmOperator *op, boo
     return OPERATOR_CANCELLED;
   }
 
-  if (BLI_path_cmp(BKE_main_blendfile_path(bmain), filepath) == 0) {
-    BKE_reportf(op->reports,
-                RPT_ERROR_INVALID_INPUT,
-                "Cannot relocate library '%s' to current blend file '%s'",
-                lib->id.name,
-                filepath);
-    return OPERATOR_CANCELLED;
+  {
+    const char *blendfile_path = BKE_main_blendfile_path(bmain);
+    if ((blendfile_path[0] != '\0') && (BLI_path_cmp(blendfile_path, filepath) == 0)) {
+      BKE_reportf(op->reports,
+                  RPT_ERROR_INVALID_INPUT,
+                  "Cannot relocate library '%s' to current blend file '%s'",
+                  lib->id.name,
+                  filepath);
+      return OPERATOR_CANCELLED;
+    }
   }
 
   LibraryLink_Params lapp_params;
