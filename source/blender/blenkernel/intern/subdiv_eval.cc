@@ -295,7 +295,7 @@ float3 eval_limit_point(Subdiv *subdiv, const int ptex_face_index, const float u
   subdiv->evaluator->eval_output->evaluateLimit(ptex_face_index, u, v, r_P, nullptr, nullptr);
   return r_P;
 #else
-  UNUSED_VARS(subdiv, ptex_face_index, u, v, r_P);
+  UNUSED_VARS(subdiv, ptex_face_index, u, v);
   return {0.0f, 0.0f, 0.0f};
 #endif
 }
