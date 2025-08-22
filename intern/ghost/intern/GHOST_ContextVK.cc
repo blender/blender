@@ -163,6 +163,7 @@ class GHOST_DeviceVK {
   VkDevice device = VK_NULL_HANDLE;
 
   uint32_t generic_queue_family = 0;
+  VkQueue generic_queue = VK_NULL_HANDLE;
 
   VkPhysicalDeviceProperties2 properties = {
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2,
@@ -243,7 +244,6 @@ class GHOST_DeviceVK {
     if (device != VK_NULL_HANDLE) {
       return;
     }
-    init_generic_queue_family();
 
     vector<VkDeviceQueueCreateInfo> queue_create_infos;
     vector<const char *> device_extensions(required_extensions);
@@ -412,6 +412,9 @@ class GHOST_DeviceVK {
 
     device_create_info.pNext = feature_struct_ptr[0];
     vkCreateDevice(physical_device, &device_create_info, nullptr, &device);
+
+    init_generic_queue_family();
+    init_generic_queue();
   }
 
   void init_generic_queue_family()
@@ -435,6 +438,11 @@ class GHOST_DeviceVK {
       }
       generic_queue_family++;
     }
+  }
+
+  void init_generic_queue()
+  {
+    vkGetDeviceQueue(device, generic_queue_family, 0, &generic_queue);
   }
 };
 
@@ -730,7 +738,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
   VkResult present_result = VK_SUCCESS;
   {
     std::scoped_lock lock(vulkan_device->queue_mutex);
-    present_result = vkQueuePresentKHR(present_queue_, &present_info);
+    present_result = vkQueuePresentKHR(vulkan_device->generic_queue, &present_info);
   }
 
   if (present_result == VK_ERROR_OUT_OF_DATE_KHR || present_result == VK_SUBOPTIMAL_KHR) {
@@ -780,7 +788,7 @@ GHOST_TSuccess GHOST_ContextVK::getVulkanHandles(GHOST_VulkanHandles &r_handles)
         vulkan_device->physical_device,
         vulkan_device->device,
         vulkan_device->generic_queue_family,
-        graphic_queue_,
+        vulkan_device->generic_queue,
         &vulkan_device->queue_mutex,
     };
   }
@@ -1379,11 +1387,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
   vulkan_device->users++;
   vulkan_device->ensure_device(required_device_extensions, optional_device_extensions);
 
-  vkGetDeviceQueue(vulkan_device->device, vulkan_device->generic_queue_family, 0, &graphic_queue_);
-
   if (use_window_surface) {
-    vkGetDeviceQueue(
-        vulkan_device->device, vulkan_device->generic_queue_family, 0, &present_queue_);
     recreateSwapchain(use_hdr_swapchain);
   }
 

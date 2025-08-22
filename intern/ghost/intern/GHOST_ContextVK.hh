@@ -230,9 +230,6 @@ class GHOST_ContextVK : public GHOST_Context {
   const int context_minor_version_;
   const GHOST_GPUDevice preferred_device_;
 
-  VkQueue graphic_queue_;
-  VkQueue present_queue_;
-
   /* For display only. */
   VkSurfaceKHR surface_;
   VkSwapchainKHR swapchain_;
