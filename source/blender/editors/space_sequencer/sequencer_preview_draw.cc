@@ -1566,7 +1566,7 @@ static void sequencer_preview_draw_overlays(const bContext *C,
     GPU_blend(GPU_BLEND_OVERLAY_MASK_FROM_ALPHA);
 
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-    immUniformColor3f(-.0f, 1.0f, 1.0f);
+    immUniformColor3f(1.0f, 1.0f, 1.0f);
     immRectf(pos, position.xmin, position.ymin, position.xmax, position.ymax);
     immUnbindProgram();
 
