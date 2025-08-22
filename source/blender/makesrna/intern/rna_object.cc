@@ -27,6 +27,7 @@
 
 #include "ED_object_vgroup.hh"
 
+#include "BLI_math_vector.h"
 #include "WM_api.hh"
 #include "WM_types.hh"
 
@@ -160,14 +161,10 @@ static const EnumPropertyItem parent_type_items[] = {
 #define INSTANCE_ITEMS_SHARED \
   {0, "NONE", 0, "None", ""}, \
       {OB_DUPLIVERTS, "VERTS", 0, "Vertices", "Instantiate child objects on all vertices"}, \
-  { \
-    OB_DUPLIFACES, "FACES", 0, "Faces", "Instantiate child objects on all faces" \
-  }
+      {OB_DUPLIFACES, "FACES", 0, "Faces", "Instantiate child objects on all faces"}
 
 #define INSTANCE_ITEM_COLLECTION \
-  { \
-    OB_DUPLICOLLECTION, "COLLECTION", 0, "Collection", "Enable collection instancing" \
-  }
+  {OB_DUPLICOLLECTION, "COLLECTION", 0, "Collection", "Enable collection instancing"}
 static const EnumPropertyItem instance_items[] = {
     INSTANCE_ITEMS_SHARED,
     INSTANCE_ITEM_COLLECTION,
@@ -212,18 +209,9 @@ const EnumPropertyItem rna_enum_lightprobes_type_items[] = {
 };
 
 /* used for 2 enums */
-#define OBTYPE_CU_CURVE \
-  { \
-    OB_CURVES_LEGACY, "CURVE", ICON_OUTLINER_OB_CURVE, "Curve", "" \
-  }
-#define OBTYPE_CU_SURF \
-  { \
-    OB_SURF, "SURFACE", ICON_OUTLINER_OB_SURFACE, "Surface", "" \
-  }
-#define OBTYPE_CU_FONT \
-  { \
-    OB_FONT, "FONT", ICON_OUTLINER_OB_FONT, "Text", "" \
-  }
+#define OBTYPE_CU_CURVE {OB_CURVES_LEGACY, "CURVE", ICON_OUTLINER_OB_CURVE, "Curve", ""}
+#define OBTYPE_CU_SURF {OB_SURF, "SURFACE", ICON_OUTLINER_OB_SURFACE, "Surface", ""}
+#define OBTYPE_CU_FONT {OB_FONT, "FONT", ICON_OUTLINER_OB_FONT, "Text", ""}
 
 const EnumPropertyItem rna_enum_object_type_items[] = {
     {OB_MESH, "MESH", ICON_OUTLINER_OB_MESH, "Mesh", ""},
@@ -400,7 +388,7 @@ static void rna_Object_matrix_world_set(PointerRNA *ptr, const float *values)
 static void rna_Object_matrix_local_get(PointerRNA *ptr, float values[16])
 {
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
-  BKE_object_matrix_local_get(ob, (float(*)[4])values);
+  BKE_object_matrix_local_get(ob, (float (*)[4])values);
 }
 
 static void rna_Object_matrix_local_set(PointerRNA *ptr, const float values[16])
@@ -414,10 +402,10 @@ static void rna_Object_matrix_local_set(PointerRNA *ptr, const float values[16])
   if (ob->parent) {
     float invmat[4][4];
     invert_m4_m4(invmat, ob->parentinv);
-    mul_m4_m4m4(local_mat, invmat, (float(*)[4])values);
+    mul_m4_m4m4(local_mat, invmat, (float (*)[4])values);
   }
   else {
-    copy_m4_m4(local_mat, (float(*)[4])values);
+    copy_m4_m4(local_mat, (float (*)[4])values);
   }
 
   /* Don't use compatible so we get predictable rotation, and do not use parenting either,
@@ -428,13 +416,13 @@ static void rna_Object_matrix_local_set(PointerRNA *ptr, const float values[16])
 static void rna_Object_matrix_basis_get(PointerRNA *ptr, float values[16])
 {
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
-  BKE_object_to_mat4(ob, (float(*)[4])values);
+  BKE_object_to_mat4(ob, (float (*)[4])values);
 }
 
 static void rna_Object_matrix_basis_set(PointerRNA *ptr, const float values[16])
 {
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
-  BKE_object_apply_mat4(ob, (float(*)[4])values, false, false);
+  BKE_object_apply_mat4(ob, (float (*)[4])values, false, false);
 }
 
 void rna_Object_internal_update_data_impl(PointerRNA *ptr)
@@ -2221,6 +2209,324 @@ static void rna_LightLinking_collection_update(Main *bmain, Scene * /*scene*/, P
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, ptr->owner_id);
 }
 
+static int rna_light_probe_grid_cache_frame_block_len(PointerRNA *ptr)
+{
+  Object *object = (Object *)ptr->owner_id;
+  LightProbeGridCacheFrame *cache = object->lightprobe_cache->grid_static_cache;
+  return cache->block_len;
+}
+
+static int rna_irradiance_data_length(PointerRNA *ptr)
+{
+  Object *object = (Object *)ptr->owner_id;
+  LightProbeGridCacheFrame *cache = object->lightprobe_cache->grid_static_cache;
+  return cache->size[0] * cache->size[1] * cache->size[2];
+}
+
+static void rna_irradiance_data_co_get(PointerRNA *ptr, float *value)
+{
+  copy_v3_v3(value, (const float *)ptr->data);
+}
+
+static float rna_def_light_probe_visibility_data_co_get(PointerRNA *ptr)
+{
+  return ((const float *)ptr->data)[0];
+}
+
+static int rna_def_light_probe_connectivity_validity_get(PointerRNA *ptr)
+{
+  return ((const uint8_t *)ptr->data)[0];
+}
+
+static void rna_irradiance_data_co_set(PointerRNA *ptr, const float *value)
+{
+  copy_v3_v3((float *)ptr->data, value);
+  Object *object = (Object *)ptr->owner_id;
+  object->lightprobe_cache->dirty = true;
+}
+
+static void rna_def_light_probe_visibility_data_co_set(PointerRNA *ptr, const float value)
+{
+  ((float *)ptr->data)[0] = value;
+  Object *object = (Object *)ptr->owner_id;
+  object->lightprobe_cache->dirty = true;
+}
+
+static void rna_def_light_probe_connectivity_validity_set(PointerRNA *ptr, const int value)
+{
+  ((uint8_t *)ptr->data)[0] = value;
+  Object *object = (Object *)ptr->owner_id;
+  object->lightprobe_cache->dirty = true;
+}
+
+static void rna_light_probe_grid_cache_frame_block_infos_begin(CollectionPropertyIterator *iter,
+                                                               PointerRNA *ptr)
+{
+  Object *object = (Object *)ptr->owner_id;
+  LightProbeGridCacheFrame *cache = object->lightprobe_cache->grid_static_cache;
+  rna_iterator_array_begin(iter,
+                           ptr,
+                           cache->block_infos,
+                           sizeof(LightProbeBlockData),
+                           cache->block_len,
+                           false,
+                           nullptr);
+}
+
+static void rna_irradiance_L0_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+  Object *object = (Object *)ptr->owner_id;
+  LightProbeGridCacheFrame *cache = object->lightprobe_cache->grid_static_cache;
+  rna_iterator_array_begin(iter,
+                           ptr,
+                           cache->irradiance.L0,
+                           sizeof(blender::float3),
+                           rna_irradiance_data_length(ptr),
+                           false,
+                           nullptr);
+}
+
+static void rna_irradiance_L1_a_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+  Object *object = (Object *)ptr->owner_id;
+  LightProbeGridCacheFrame *cache = object->lightprobe_cache->grid_static_cache;
+  rna_iterator_array_begin(iter,
+                           ptr,
+                           cache->irradiance.L1_a,
+                           sizeof(blender::float3),
+                           rna_irradiance_data_length(ptr),
+                           false,
+                           nullptr);
+}
+
+static void rna_irradiance_L1_b_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+  Object *object = (Object *)ptr->owner_id;
+  LightProbeGridCacheFrame *cache = object->lightprobe_cache->grid_static_cache;
+  rna_iterator_array_begin(iter,
+                           ptr,
+                           cache->irradiance.L1_b,
+                           sizeof(blender::float3),
+                           rna_irradiance_data_length(ptr),
+                           false,
+                           nullptr);
+}
+
+static void rna_irradiance_L1_c_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+  Object *object = (Object *)ptr->owner_id;
+  LightProbeGridCacheFrame *cache = object->lightprobe_cache->grid_static_cache;
+  rna_iterator_array_begin(iter,
+                           ptr,
+                           cache->irradiance.L1_c,
+                           sizeof(blender::float3),
+                           rna_irradiance_data_length(ptr),
+                           false,
+                           nullptr);
+}
+
+static void rna_light_probe_visibility_data_L0_begin(CollectionPropertyIterator *iter,
+                                                     PointerRNA *ptr)
+{
+  Object *object = (Object *)ptr->owner_id;
+  LightProbeGridCacheFrame *cache = object->lightprobe_cache->grid_static_cache;
+  rna_iterator_array_begin(iter,
+                           ptr,
+                           cache->visibility.L0,
+                           sizeof(float),
+                           rna_irradiance_data_length(ptr),
+                           false,
+                           nullptr);
+}
+
+static void rna_light_probe_visibility_data_L1_a_begin(CollectionPropertyIterator *iter,
+                                                       PointerRNA *ptr)
+{
+  Object *object = (Object *)ptr->owner_id;
+  LightProbeGridCacheFrame *cache = object->lightprobe_cache->grid_static_cache;
+  rna_iterator_array_begin(iter,
+                           ptr,
+                           cache->visibility.L1_a,
+                           sizeof(float),
+                           rna_irradiance_data_length(ptr),
+                           false,
+                           nullptr);
+}
+
+static void rna_light_probe_visibility_data_L1_b_begin(CollectionPropertyIterator *iter,
+                                                       PointerRNA *ptr)
+{
+  Object *object = (Object *)ptr->owner_id;
+  LightProbeGridCacheFrame *cache = object->lightprobe_cache->grid_static_cache;
+  rna_iterator_array_begin(iter,
+                           ptr,
+                           cache->visibility.L1_b,
+                           sizeof(float),
+                           rna_irradiance_data_length(ptr),
+                           false,
+                           nullptr);
+}
+
+static void rna_light_probe_visibility_data_L1_c_begin(CollectionPropertyIterator *iter,
+                                                       PointerRNA *ptr)
+{
+  Object *object = (Object *)ptr->owner_id;
+  LightProbeGridCacheFrame *cache = object->lightprobe_cache->grid_static_cache;
+  rna_iterator_array_begin(iter,
+                           ptr,
+                           cache->visibility.L1_c,
+                           sizeof(float),
+                           rna_irradiance_data_length(ptr),
+                           false,
+                           nullptr);
+}
+
+static void rna_light_probe_connectivity_validity_begin(CollectionPropertyIterator *iter,
+                                                        PointerRNA *ptr)
+{
+  Object *object = (Object *)ptr->owner_id;
+  LightProbeGridCacheFrame *cache = object->lightprobe_cache->grid_static_cache;
+  rna_iterator_array_begin(iter,
+                           ptr,
+                           cache->connectivity.validity,
+                           sizeof(uint8_t),
+                           rna_irradiance_data_length(ptr),
+                           false,
+                           nullptr);
+}
+
+static bool rna_light_probe_grid_cache_frame_lookup_int(PointerRNA *ptr,
+                                                        int index,
+                                                        PointerRNA *r_ptr)
+{
+  Object *object = (Object *)ptr->owner_id;
+  LightProbeGridCacheFrame *cache = object->lightprobe_cache->grid_static_cache;
+  if (index < 0 || index >= cache->block_len) {
+    return false;
+  }
+  rna_pointer_create_with_ancestors(
+      *ptr, &RNA_LightProbeIrradianceData, &cache->block_infos[index], *r_ptr);
+  return true;
+}
+
+static bool rna_irradiance_L0_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+{
+  Object *object = (Object *)ptr->owner_id;
+  if (index < 0 || index >= rna_irradiance_data_length(ptr)) {
+    return false;
+  }
+  LightProbeGridCacheFrame *cache = object->lightprobe_cache->grid_static_cache;
+  rna_pointer_create_with_ancestors(
+      *ptr, &RNA_LightProbeIrradianceData, &cache->irradiance.L0[index], *r_ptr);
+  return true;
+}
+
+static bool rna_irradiance_L1_a_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+{
+  Object *object = (Object *)ptr->owner_id;
+  if (index < 0 || index >= rna_irradiance_data_length(ptr)) {
+    return false;
+  }
+  LightProbeGridCacheFrame *cache = object->lightprobe_cache->grid_static_cache;
+  rna_pointer_create_with_ancestors(
+      *ptr, &RNA_LightProbeIrradianceData, &cache->irradiance.L1_a[index], *r_ptr);
+  return true;
+}
+
+static bool rna_irradiance_L1_b_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+{
+  Object *object = (Object *)ptr->owner_id;
+  if (index < 0 || index >= rna_irradiance_data_length(ptr)) {
+    return false;
+  }
+  LightProbeGridCacheFrame *cache = object->lightprobe_cache->grid_static_cache;
+  rna_pointer_create_with_ancestors(
+      *ptr, &RNA_LightProbeIrradianceData, &cache->irradiance.L1_b[index], *r_ptr);
+  return true;
+}
+
+static bool rna_irradiance_L1_c_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+{
+  Object *object = (Object *)ptr->owner_id;
+  if (index < 0 || index >= rna_irradiance_data_length(ptr)) {
+    return false;
+  }
+  LightProbeGridCacheFrame *cache = object->lightprobe_cache->grid_static_cache;
+  rna_pointer_create_with_ancestors(
+      *ptr, &RNA_LightProbeIrradianceData, &cache->irradiance.L1_c[index], *r_ptr);
+  return true;
+}
+
+static bool rna_light_probe_visibility_data_L0_lookup_int(PointerRNA *ptr,
+                                                          int index,
+                                                          PointerRNA *r_ptr)
+{
+  Object *object = (Object *)ptr->owner_id;
+  if (index < 0 || index >= rna_irradiance_data_length(ptr)) {
+    return false;
+  }
+  LightProbeGridCacheFrame *cache = object->lightprobe_cache->grid_static_cache;
+  rna_pointer_create_with_ancestors(
+      *ptr, &RNA_LightProbeVisibilityData, &cache->visibility.L0[index], *r_ptr);
+  return true;
+}
+
+static bool rna_light_probe_visibility_data_L1_a_lookup_int(PointerRNA *ptr,
+                                                            int index,
+                                                            PointerRNA *r_ptr)
+{
+  Object *object = (Object *)ptr->owner_id;
+  if (index < 0 || index >= rna_irradiance_data_length(ptr)) {
+    return false;
+  }
+  LightProbeGridCacheFrame *cache = object->lightprobe_cache->grid_static_cache;
+  rna_pointer_create_with_ancestors(
+      *ptr, &RNA_LightProbeVisibilityData, &cache->visibility.L1_a[index], *r_ptr);
+  return true;
+}
+
+static bool rna_light_probe_visibility_data_L1_b_lookup_int(PointerRNA *ptr,
+                                                            int index,
+                                                            PointerRNA *r_ptr)
+{
+  Object *object = (Object *)ptr->owner_id;
+  if (index < 0 || index >= rna_irradiance_data_length(ptr)) {
+    return false;
+  }
+  LightProbeGridCacheFrame *cache = object->lightprobe_cache->grid_static_cache;
+  rna_pointer_create_with_ancestors(
+      *ptr, &RNA_LightProbeVisibilityData, &cache->visibility.L1_b[index], *r_ptr);
+  return true;
+}
+
+static bool rna_light_probe_visibility_data_L1_c_lookup_int(PointerRNA *ptr,
+                                                            int index,
+                                                            PointerRNA *r_ptr)
+{
+  Object *object = (Object *)ptr->owner_id;
+  if (index < 0 || index >= rna_irradiance_data_length(ptr)) {
+    return false;
+  }
+  LightProbeGridCacheFrame *cache = object->lightprobe_cache->grid_static_cache;
+  rna_pointer_create_with_ancestors(
+      *ptr, &RNA_LightProbeVisibilityData, &cache->visibility.L1_c[index], *r_ptr);
+  return true;
+}
+
+static bool rna_light_probe_connectivity_validity_lookup_int(PointerRNA *ptr,
+                                                             int index,
+                                                             PointerRNA *r_ptr)
+{
+  Object *object = (Object *)ptr->owner_id;
+  if (index < 0 || index >= rna_irradiance_data_length(ptr)) {
+    return false;
+  }
+  LightProbeGridCacheFrame *cache = object->lightprobe_cache->grid_static_cache;
+  rna_pointer_create_with_ancestors(
+      *ptr, &RNA_LightProbeConnectivityData, &cache->connectivity.validity[index], *r_ptr);
+  return true;
+}
+
 #else
 
 static void rna_def_vertex_group(BlenderRNA *brna)
@@ -3683,6 +3989,11 @@ static void rna_def_object(BlenderRNA *brna)
   rna_def_motionpath_common(srna);
 
   RNA_api_object(srna);
+
+  prop = RNA_def_property(srna, "lightprobe_cache", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "LightProbeObjectCache");
+  RNA_def_property_ui_text(
+      prop, "Lightprobe Cache", "Irradiance caches baked for this object (light-probes only).");
 }
 
 static void rna_def_object_light_linking(BlenderRNA *brna)
@@ -3723,6 +4034,313 @@ static void rna_def_object_light_linking(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_LightLinking_collection_update");
 }
 
+static void rna_def_light_probe_irradiance_data(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "LightProbeIrradianceData", nullptr);
+  RNA_def_struct_ui_text(srna,
+                         "Light Probe Irradiance Data",
+                         "Irradiance stored as RGB triple using scene linear color space.");
+
+  prop = RNA_def_property(srna, "co", PROP_FLOAT, PROP_COLOR);
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_float_funcs(
+      prop, "rna_irradiance_data_co_get", "rna_irradiance_data_co_set", nullptr);
+  RNA_def_property_ui_text(prop, "Color", "");
+}
+
+static void rna_def_light_probe_visibility_data(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "LightProbeVisibilityData", nullptr);
+  RNA_def_struct_ui_text(
+      srna,
+      "Light Probe Visiblity Data",
+      "Normalized visibility of distant light. Used for compositing grids together.");
+
+  prop = RNA_def_property(srna, "co", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_funcs(prop,
+                               "rna_def_light_probe_visibility_data_co_get",
+                               "rna_def_light_probe_visibility_data_co_set",
+                               nullptr);
+  RNA_def_property_ui_text(prop, "Visibility", "");
+}
+
+static void rna_def_light_probe_block_data(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "LightProbeBlockData", nullptr);
+  RNA_def_struct_ui_text(srna,
+                         "Light Probe Block Data",
+                         "Defines one block of data inside the grid cache data arrays.");
+
+  prop = RNA_def_property(srna, "offset", PROP_INT, PROP_COORDS);
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_ui_text(prop, "Offset", "Offset inside the level-of-detail this block starts.");
+
+  prop = RNA_def_property(srna, "level", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Level", "Level-of-detail this block is from.");
+}
+
+static void rna_def_light_probe_connectivity_data(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "LightProbeConnectivityData", nullptr);
+  RNA_def_struct_ui_text(
+      srna,
+      "Light probe Connectivity Data",
+      "Used to avoid light leaks. Validate visibility between each grid sample.");
+
+  prop = RNA_def_property(srna, "co", PROP_INT, PROP_NONE);
+  RNA_def_property_int_funcs(prop,
+                             "rna_def_light_probe_connectivity_validity_get",
+                             "rna_def_light_probe_connectivity_validity_set",
+                             nullptr);
+}
+
+static void rna_def_light_probe_grid_cache_frame(BlenderRNA *brna)
+{
+  rna_def_light_probe_irradiance_data(brna);
+  rna_def_light_probe_visibility_data(brna);
+  rna_def_light_probe_block_data(brna);
+  rna_def_light_probe_connectivity_data(brna);
+
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "LightProbeGridCacheFrame", nullptr);
+  RNA_def_struct_ui_text(
+      srna, "Light Probe Grid Cache Frame", "A frame worth of baked lighting data.");
+
+  prop = RNA_def_property(srna, "size", PROP_INT, PROP_COORDS);
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_ui_text(prop, "size", "Number of samples in the highest level of detail.");
+
+  static const EnumPropertyItem data_layout_items[] = {
+      {int(LIGHTPROBE_CACHE_UNIFORM_GRID),
+       "LIGHTPROBE_CACHE_UNIFORM_GRID",
+       0,
+       "Lightprobe Cache Uniform Grid",
+       "Simple uniform grid. Raw output from GPU. Used during the baking process."},
+      {int(LIGHTPROBE_CACHE_ADAPTIVE_RESOLUTION),
+       "LIGHTPROBE_CACHE_ADAPTIVE_RESOLUTION",
+       0,
+       "Lightprobe Cache Adaptive Resolution",
+       "Fills the space with different levels of resolution. More efficient storage."},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  prop = RNA_def_property(srna, "data_layout", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, data_layout_items);
+  RNA_def_property_ui_text(prop, "Cache Type", "None or Static");
+
+  prop = RNA_def_property(srna, "block_len", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_text(prop,
+                           "Block Length",
+                           "Sparse or adaptive layout only: number of blocks inside data arrays.");
+
+  prop = RNA_def_property(srna, "block_size", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop,
+      "Block Size",
+      "Sparse or adaptive layout only: size of a block in samples. All 3 dimensions are equal.");
+
+  prop = RNA_def_property(srna, "block_infos", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_light_probe_grid_cache_frame_block_infos_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    "rna_light_probe_grid_cache_frame_block_len",
+                                    "rna_light_probe_grid_cache_frame_lookup_int",
+                                    nullptr,
+                                    nullptr);
+  RNA_def_property_struct_type(prop, "LightProbeBlockData");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
+  RNA_def_property_ui_text(
+      prop, "Block Infos", "Sparse or adaptive layout only: specify the blocks positions.");
+
+  // irradiance
+  prop = RNA_def_property(srna, "irradiance_l0", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_irradiance_L0_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    "rna_irradiance_data_length",
+                                    "rna_irradiance_L0_lookup_int",
+                                    nullptr,
+                                    nullptr);
+  RNA_def_property_struct_type(prop, "LightProbeIrradianceData");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
+  RNA_def_property_ui_text(prop, "Irradiance L0", "Baked data.");
+
+  prop = RNA_def_property(srna, "irradiance_l1_a", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_irradiance_L1_a_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    "rna_irradiance_data_length",
+                                    "rna_irradiance_L1_a_lookup_int",
+                                    nullptr,
+                                    nullptr);
+  RNA_def_property_struct_type(prop, "LightProbeIrradianceData");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
+  RNA_def_property_ui_text(prop, "Irradiance L1_a", "Baked data.");
+
+  prop = RNA_def_property(srna, "irradiance_l1_b", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_irradiance_L1_b_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    "rna_irradiance_data_length",
+                                    "rna_irradiance_L1_b_lookup_int",
+                                    nullptr,
+                                    nullptr);
+  RNA_def_property_struct_type(prop, "LightProbeIrradianceData");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
+  RNA_def_property_ui_text(prop, "Irradiance L1_b", "Baked data.");
+
+  prop = RNA_def_property(srna, "irradiance_l1_c", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_irradiance_L1_c_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    "rna_irradiance_data_length",
+                                    "rna_irradiance_L1_c_lookup_int",
+                                    nullptr,
+                                    nullptr);
+  RNA_def_property_struct_type(prop, "LightProbeIrradianceData");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
+  RNA_def_property_ui_text(prop, "Irradiance L1_c", "Baked data.");
+
+  // visibility
+  prop = RNA_def_property(srna, "visibility_l0", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_light_probe_visibility_data_L0_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    "rna_irradiance_data_length",
+                                    "rna_light_probe_visibility_data_L0_lookup_int",
+                                    nullptr,
+                                    nullptr);
+  RNA_def_property_struct_type(prop, "LightProbeVisibilityData");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
+  RNA_def_property_ui_text(prop, "Visibility", "Baked data.");
+
+  prop = RNA_def_property(srna, "visibility_l1_a", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_light_probe_visibility_data_L1_a_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    "rna_irradiance_data_length",
+                                    "rna_light_probe_visibility_data_L1_a_lookup_int",
+                                    nullptr,
+                                    nullptr);
+  RNA_def_property_struct_type(prop, "LightProbeVisibilityData");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
+  RNA_def_property_ui_text(prop, "Visibility", "Baked data.");
+
+  prop = RNA_def_property(srna, "visibility_l1_b", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_light_probe_visibility_data_L1_b_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    "rna_irradiance_data_length",
+                                    "rna_light_probe_visibility_data_L1_b_lookup_int",
+                                    nullptr,
+                                    nullptr);
+  RNA_def_property_struct_type(prop, "LightProbeVisibilityData");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
+  RNA_def_property_ui_text(prop, "Visibility", "Baked data.");
+
+  prop = RNA_def_property(srna, "visibility_l1_c", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_light_probe_visibility_data_L1_c_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    "rna_irradiance_data_length",
+                                    "rna_light_probe_visibility_data_L1_c_lookup_int",
+                                    nullptr,
+                                    nullptr);
+  RNA_def_property_struct_type(prop, "LightProbeVisibilityData");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
+  RNA_def_property_ui_text(prop, "Visibility", "Baked data.");
+
+  // connectivity
+  prop = RNA_def_property(srna, "connectivity_validity", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_light_probe_connectivity_validity_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    "rna_irradiance_data_length",
+                                    "rna_light_probe_connectivity_validity_lookup_int",
+                                    nullptr,
+                                    nullptr);
+  RNA_def_property_struct_type(prop, "LightProbeConnectivityData");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
+  RNA_def_property_ui_text(
+      prop,
+      "Connectivity Validity",
+      "Used to avoid light leaks. Validate visibility between each grid sample.");
+}
+
+static void rna_def_light_probe_object_cache(BlenderRNA *brna)
+{
+  rna_def_light_probe_grid_cache_frame(brna);
+
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "LightProbeObjectCache", nullptr);
+  RNA_def_struct_ui_text(srna, "Light probe cache", "");
+
+  static const EnumPropertyItem cache_type_items[] = {
+      {int(LIGHTPROBE_CACHE_TYPE_NONE),
+       "LIGHTPROBE_CACHE_TYPE_NONE",
+       0,
+       "Lightprobe Cache Type None",
+       "Light cache was just created and is not yet baked. Keep as 0 for default value."},
+      {int(LIGHTPROBE_CACHE_TYPE_STATIC),
+       "LIGHTPROBE_CACHE_TYPE_STATIC",
+       0,
+       "Lightprobe Cache Type Static",
+       "Light cache is baked for one specific frame and captures all indirect lighting."},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  prop = RNA_def_property(srna, "cache_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, cache_type_items);
+  RNA_def_property_ui_text(prop, "Cache Type", "None or Static");
+
+  prop = RNA_def_property(srna, "shared", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop, "Shared", "True if this cache references the original object's cache.");
+
+  prop = RNA_def_property(srna, "dirty", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop, "Dirty", "True if the cache has been tagged for automatic baking.");
+
+  prop = RNA_def_property(srna, "grid_static_cache", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "LightProbeGridCacheFrame");
+}
+
 void RNA_def_object(BlenderRNA *brna)
 {
   rna_def_object(brna);
@@ -3733,6 +4351,7 @@ void RNA_def_object(BlenderRNA *brna)
   rna_def_object_display(brna);
   rna_def_object_lineart(brna);
   rna_def_object_light_linking(brna);
+  rna_def_light_probe_object_cache(brna);
   RNA_define_animate_sdna(true);
 }
 
