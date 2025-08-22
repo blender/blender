@@ -5832,6 +5832,22 @@ void rna_def_freestyle_settings(BlenderRNA *brna)
 
 static void rna_def_bake_data(BlenderRNA *brna)
 {
+  static const EnumPropertyItem bake_type_items[] = {
+      //{R_BAKE_AO, "AO", 0, "Ambient Occlusion", "Bake ambient occlusion"},
+      {R_BAKE_NORMALS, "NORMALS", 0, "Normals", "Bake normals"},
+      {R_BAKE_DISPLACEMENT, "DISPLACEMENT", 0, "Displacement", "Bake displacement"},
+
+      /* TODO(sergey): Uncomment once tangent space displacement is supported. */
+      /* Use C++ style comment because #if 0 breaks indentation. */
+      // {RE_BAKE_VECTOR_DISPLACEMENT,
+      //  "VECTOR_DISPLACEMENT",
+      //  0,
+      //  "Vector Displacement",
+      //  "Bake vector displacement"},
+
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   StructRNA *srna;
   PropertyRNA *prop;
 
@@ -5840,6 +5856,11 @@ static void rna_def_bake_data(BlenderRNA *brna)
   RNA_def_struct_nested(brna, srna, "RenderSettings");
   RNA_def_struct_ui_text(srna, "Bake Data", "Bake data for a Scene data-block");
   RNA_def_struct_path_func(srna, "rna_BakeSettings_path");
+
+  prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, bake_type_items);
+  RNA_def_property_ui_text(prop, "Bake Type", "Choose shading information to bake into the image");
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 
   prop = RNA_def_property(srna, "cage_object", PROP_POINTER, PROP_NONE);
   RNA_def_property_ui_text(
@@ -6014,6 +6035,17 @@ static void rna_def_bake_data(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, rna_enum_bake_pass_filter_type_items);
   RNA_def_property_ui_text(prop, "Pass Filter", "Passes to include in the active baking pass");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+  prop = RNA_def_property(srna, "use_multires", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", R_BAKE_MULTIRES);
+  RNA_def_property_ui_text(prop, "Bake from Multires", "Bake directly from multires object");
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
+
+  prop = RNA_def_property(srna, "use_lores_mesh", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", R_BAKE_LORES_MESH);
+  RNA_def_property_ui_text(
+      prop, "Low Resolution Mesh", "Calculate heights against unsubdivided low resolution mesh");
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 }
 
 static void rna_def_view_layers(BlenderRNA *brna, PropertyRNA *cprop)
@@ -6748,33 +6780,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  /* Bake */
-  static const EnumPropertyItem bake_mode_items[] = {
-      //{RE_BAKE_AO, "AO", 0, "Ambient Occlusion", "Bake ambient occlusion"},
-      {RE_BAKE_NORMALS, "NORMALS", 0, "Normals", "Bake normals"},
-      {RE_BAKE_DISPLACEMENT, "DISPLACEMENT", 0, "Displacement", "Bake displacement"},
-
-      /* TODO(sergey): Uncomment once tangent space displacement is supported. */
-      /* Use C++ style comment because #if 0 breaks indentation. */
-      // {RE_BAKE_VECTOR_DISPLACEMENT,
-      //  "VECTOR_DISPLACEMENT",
-      //  0,
-      //  "Vector Displacement",
-      //  "Bake vector displacement"},
-
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
-  static const EnumPropertyItem bake_margin_type_items[] = {
-      {R_BAKE_ADJACENT_FACES,
-       "ADJACENT_FACES",
-       0,
-       "Adjacent Faces",
-       "Use pixels from adjacent faces across UV seams"},
-      {R_BAKE_EXTEND, "EXTEND", 0, "Extend", "Extend border pixels outwards"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   static const EnumPropertyItem pixel_size_items[] = {
       {0, "AUTO", 0, "Automatic", "Automatic pixel size, depends on the user interface scale"},
       {1, "1", 0, "1" BLI_STR_UTF8_MULTIPLICATION_SIGN, "Render at full resolution"},
@@ -7257,63 +7262,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
                            "Cache Result",
                            "Save render cache to EXR files (useful for heavy compositing, "
                            "Note: affects indirectly rendered scenes)");
-  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
-
-  /* Bake */
-
-  prop = RNA_def_property(srna, "bake_type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_bitflag_sdna(prop, nullptr, "bake_mode");
-  RNA_def_property_enum_items(prop, bake_mode_items);
-  RNA_def_property_ui_text(prop, "Bake Type", "Choose shading information to bake into the image");
-  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
-
-  prop = RNA_def_property(srna, "use_bake_selected_to_active", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "bake_flag", R_BAKE_TO_ACTIVE);
-  RNA_def_property_ui_text(prop,
-                           "Selected to Active",
-                           "Bake shading on the surface of selected objects to the active object");
-  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
-
-  prop = RNA_def_property(srna, "use_bake_clear", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "bake_flag", R_BAKE_CLEAR);
-  RNA_def_property_ui_text(prop, "Clear", "Clear Images before baking");
-  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
-
-  prop = RNA_def_property(srna, "bake_margin", PROP_INT, PROP_PIXEL);
-  RNA_def_property_int_sdna(prop, nullptr, "bake_margin");
-  RNA_def_property_range(prop, 0, 64);
-  RNA_def_property_ui_text(prop, "Margin", "Extends the baked result as a post process filter");
-  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
-
-  prop = RNA_def_property(srna, "bake_margin_type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "bake_margin_type");
-  RNA_def_property_enum_items(prop, bake_margin_type_items);
-  RNA_def_property_ui_text(prop, "Margin Type", "Algorithm to generate the margin");
-  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
-
-  prop = RNA_def_property(srna, "bake_bias", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "bake_biasdist");
-  RNA_def_property_range(prop, 0.0, 1000.0);
-  RNA_def_property_ui_text(
-      prop, "Bias", "Bias towards faces further away from the object (in Blender units)");
-  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
-
-  prop = RNA_def_property(srna, "use_bake_multires", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "bake_flag", R_BAKE_MULTIRES);
-  RNA_def_property_ui_text(prop, "Bake from Multires", "Bake directly from multires object");
-  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
-
-  prop = RNA_def_property(srna, "use_bake_lores_mesh", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "bake_flag", R_BAKE_LORES_MESH);
-  RNA_def_property_ui_text(
-      prop, "Low Resolution Mesh", "Calculate heights against unsubdivided low resolution mesh");
-  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
-
-  prop = RNA_def_property(srna, "bake_samples", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "bake_samples");
-  RNA_def_property_range(prop, 64, 1024);
-  RNA_def_property_ui_text(
-      prop, "Samples", "Number of samples used for ambient occlusion baking from multires");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 
   /* stamp */

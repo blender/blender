@@ -23,7 +23,7 @@ def bake(context):
         scene.render.bake.target = 'IMAGE_TEXTURES'
         cscene.bake_type = 'COMBINED'
 
-    if scene.render.use_bake_multires:
+    if scene.render.bake.use_multires:
         # Multires baking calls a different function to bake images.
         bpy.ops.object.bake_image()
     else:

@@ -2230,10 +2230,6 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
       if (scene->ed) {
         blender::seq::for_each_callback(&scene->ed->seqbase, strip_set_alpha_mode_cb, nullptr);
       }
-
-      if (scene->r.bake_samples == 0) {
-        scene->r.bake_samples = 256;
-      }
     }
 
     LISTBASE_FOREACH (Image *, image, &bmain->images) {

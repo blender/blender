@@ -473,7 +473,7 @@ static float2 get_tile_uv(Image &image, ImageTile &tile)
 
 static bool need_tangent(const MultiresBakeRender &bake)
 {
-  return bake.mode == RE_BAKE_NORMALS;
+  return bake.type == R_BAKE_NORMALS;
 }
 
 /** \} */
@@ -823,13 +823,16 @@ static std::unique_ptr<MultiresBaker> create_baker(const MultiresBakeRender &bak
                                                    const ImBuf &ibuf,
                                                    ExtraBuffers &extra_buffers)
 {
-  switch (bake.mode) {
-    case RE_BAKE_NORMALS:
+  switch (bake.type) {
+    case R_BAKE_NORMALS:
       return std::make_unique<MultiresNormalsBaker>(subdiv_ccg);
-    case RE_BAKE_DISPLACEMENT:
+    case R_BAKE_DISPLACEMENT:
       return std::make_unique<MultiresDisplacementBaker>(subdiv_ccg, ibuf, extra_buffers);
-    case RE_BAKE_VECTOR_DISPLACEMENT:
+    case R_BAKE_VECTOR_DISPLACEMENT:
       return std::make_unique<MultiresVectorDisplacementBaker>(subdiv_ccg);
+    case R_BAKE_AO:
+      /* Not implemented, should not be used. */
+      break;
   }
   BLI_assert_unreachable();
   return nullptr;
@@ -1427,7 +1430,7 @@ static void bake_single_image(MultiresBakeRender &bake,
                               ExtraBuffers &extra_buffers,
                               MultiresBakeResult &result)
 {
-  if (ELEM(bake.mode, RE_BAKE_DISPLACEMENT, RE_BAKE_VECTOR_DISPLACEMENT) &&
+  if (ELEM(bake.type, R_BAKE_DISPLACEMENT, R_BAKE_VECTOR_DISPLACEMENT) &&
       !bake.use_low_resolution_mesh &&
       bake.multires_modifier->lvl != bake.multires_modifier->totlvl)
   {
@@ -1569,7 +1572,7 @@ static void finish_images(MultiresBakeRender &bake,
                           const Mesh &bake_level_mesh,
                           MultiresBakeResult &result)
 {
-  const bool use_displacement_buffer = bake.mode == RE_BAKE_DISPLACEMENT;
+  const bool use_displacement_buffer = bake.type == R_BAKE_DISPLACEMENT;
 
   for (BakedImBuf &baked_ibuf : result.baked_ibufs) {
     Image *image = baked_ibuf.image;

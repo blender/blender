@@ -94,11 +94,9 @@ struct MultiresBakeJob {
   /** margin type */
   char bake_margin_type;
   /** mode of baking (displacement, normals, AO) */
-  short mode;
+  eBakeType type;
   /** Use low-resolution mesh when baking displacement maps */
   bool use_low_resolution_mesh;
-  /** Bias between object and start ray point when doing AO baking */
-  float bias;
 };
 
 static bool multiresbake_check(bContext *C, wmOperator *op)
@@ -278,17 +276,17 @@ static wmOperatorStatus multiresbake_image_exec_locked(bContext *C, wmOperator *
     return OPERATOR_CANCELLED;
   }
 
-  if (scene->r.bake_flag & R_BAKE_CLEAR) { /* clear images */
+  if (scene->r.bake.flag & R_BAKE_CLEAR) { /* clear images */
     CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases) {
       Object &object = *base->object;
       BLI_assert(object.type == OB_MESH);
 
       ClearFlag clear_flag = ClearFlag(0);
 
-      if (scene->r.bake_mode == RE_BAKE_NORMALS) {
+      if (scene->r.bake.type == R_BAKE_NORMALS) {
         clear_flag = CLEAR_TANGENT_NORMAL;
       }
-      else if (scene->r.bake_mode == RE_BAKE_DISPLACEMENT) {
+      else if (scene->r.bake.type == R_BAKE_DISPLACEMENT) {
         clear_flag = CLEAR_DISPLACEMENT;
       }
 
@@ -309,16 +307,15 @@ static wmOperatorStatus multiresbake_image_exec_locked(bContext *C, wmOperator *
     multires_flush_sculpt_updates(&object);
 
     /* Copy data stored in job descriptor. */
-    bake.bake_margin = scene->r.bake_margin;
-    if (scene->r.bake_mode == RE_BAKE_NORMALS) {
+    bake.bake_margin = scene->r.bake.margin;
+    if (scene->r.bake.type == R_BAKE_NORMALS) {
       bake.bake_margin_type = R_BAKE_EXTEND;
     }
     else {
-      bake.bake_margin_type = eBakeMarginType(scene->r.bake_margin_type);
+      bake.bake_margin_type = eBakeMarginType(scene->r.bake.margin_type);
     }
-    bake.mode = scene->r.bake_mode;
-    bake.use_low_resolution_mesh = scene->r.bake_flag & R_BAKE_LORES_MESH;
-    bake.bias = scene->r.bake_biasdist;
+    bake.type = eBakeType(scene->r.bake.type);
+    bake.use_low_resolution_mesh = scene->r.bake.flag & R_BAKE_LORES_MESH;
 
     bake.ob_image = bake_object_image_get_array(object);
 
@@ -347,17 +344,16 @@ static void init_multiresbake_job(bContext *C, MultiresBakeJob *bkj)
 
   /* backup scene settings, so their changing in UI would take no effect on baker */
   bkj->scene = scene;
-  bkj->bake_margin = scene->r.bake_margin;
-  if (scene->r.bake_mode == RE_BAKE_NORMALS) {
+  bkj->bake_margin = scene->r.bake.margin;
+  if (scene->r.bake.type == R_BAKE_NORMALS) {
     bkj->bake_margin_type = R_BAKE_EXTEND;
   }
   else {
-    bkj->bake_margin_type = scene->r.bake_margin_type;
+    bkj->bake_margin_type = eBakeMarginType(scene->r.bake.margin_type);
   }
-  bkj->mode = scene->r.bake_mode;
-  bkj->use_low_resolution_mesh = scene->r.bake_flag & R_BAKE_LORES_MESH;
-  bkj->bake_clear = scene->r.bake_flag & R_BAKE_CLEAR;
-  bkj->bias = scene->r.bake_biasdist;
+  bkj->type = eBakeType(scene->r.bake.type);
+  bkj->use_low_resolution_mesh = scene->r.bake.flag & R_BAKE_LORES_MESH;
+  bkj->bake_clear = scene->r.bake.flag & R_BAKE_CLEAR;
 
   CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases) {
     Object &object = *base->object;
@@ -388,10 +384,10 @@ static void multiresbake_startjob(void *bkv, wmJobWorkerStatus *worker_status)
     LISTBASE_FOREACH (MultiresBakerJobData *, data, &bkj->data) {
       ClearFlag clear_flag = ClearFlag(0);
 
-      if (bkj->mode == RE_BAKE_NORMALS) {
+      if (bkj->type == R_BAKE_NORMALS) {
         clear_flag = CLEAR_TANGENT_NORMAL;
       }
-      else if (bkj->mode == RE_BAKE_DISPLACEMENT) {
+      else if (bkj->type == R_BAKE_DISPLACEMENT) {
         clear_flag = CLEAR_DISPLACEMENT;
       }
 
@@ -405,7 +401,7 @@ static void multiresbake_startjob(void *bkv, wmJobWorkerStatus *worker_status)
     /* copy data stored in job descriptor */
     bake.bake_margin = bkj->bake_margin;
     bake.bake_margin_type = eBakeMarginType(bkj->bake_margin_type);
-    bake.mode = bkj->mode;
+    bake.type = bkj->type;
     bake.use_low_resolution_mesh = bkj->use_low_resolution_mesh;
     bake.ob_image = data->ob_image;
 
@@ -419,8 +415,6 @@ static void multiresbake_startjob(void *bkv, wmJobWorkerStatus *worker_status)
     bake.stop = &worker_status->stop;
     bake.do_update = &worker_status->do_update;
     bake.progress = &worker_status->progress;
-
-    bake.bias = bkj->bias;
 
     RE_multires_bake_images(bake);
 
@@ -515,13 +509,13 @@ static wmOperatorStatus objects_bake_render_modal(bContext *C,
 
 static bool is_multires_bake(Scene *scene)
 {
-  if (ELEM(scene->r.bake_mode,
-           RE_BAKE_NORMALS,
-           RE_BAKE_DISPLACEMENT,
-           RE_BAKE_VECTOR_DISPLACEMENT,
-           RE_BAKE_AO))
+  if (ELEM(scene->r.bake.type,
+           R_BAKE_NORMALS,
+           R_BAKE_DISPLACEMENT,
+           R_BAKE_VECTOR_DISPLACEMENT,
+           R_BAKE_AO))
   {
-    return scene->r.bake_flag & R_BAKE_MULTIRES;
+    return scene->r.bake.flag & R_BAKE_MULTIRES;
   }
 
   return false;

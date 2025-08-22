@@ -29,6 +29,7 @@
   { \
     .im_format = _DNA_DEFAULT_ImageFormatData, \
     .filepath = "//", \
+    .type = R_BAKE_NORMALS, \
     .flag = R_BAKE_CLEAR, \
     .pass_filter = R_BAKE_PASS_FILTER_ALL, \
     .width = 512, \
@@ -89,13 +90,6 @@
  \
     .gauss = 1.5, \
     .dither_intensity = 1.0f, \
- \
-    .bake_mode = 0, \
-    .bake_margin = 16, \
-    .bake_margin_type = R_BAKE_ADJACENT_FACES, \
-    .bake_flag = R_BAKE_CLEAR, \
-    .bake_samples = 256, \
-    .bake_biasdist = 0.001f, \
  \
     /* BakeData */ \
     .bake = _DNA_DEFAULT_BakeData, \
