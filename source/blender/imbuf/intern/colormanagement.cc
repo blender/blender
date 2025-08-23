@@ -2836,7 +2836,7 @@ bool IMB_colormanagement_display_is_wide_gamut(const ColorManagedDisplaySettings
     return false;
   }
   const ocio::View *view = display->get_view_by_name(view_name);
-  return (view) ? view->is_wide_gamut() : false;
+  return (view) ? view->gamut() != ocio::Gamut::Rec709 : false;
 }
 
 /** \} */

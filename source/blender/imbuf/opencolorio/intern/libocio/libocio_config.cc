@@ -347,6 +347,23 @@ const ColorSpace *LibOCIOConfig::get_sorted_color_space_by_index(const int index
   return get_color_space_by_index(sorted_color_space_index_[index]);
 }
 
+const ColorSpace *LibOCIOConfig::get_color_space_by_interop_id(StringRefNull interop_id) const
+{
+  for (const LibOCIOColorSpace &color_space : color_spaces_) {
+    if (color_space.interop_id() == interop_id) {
+      return &color_space;
+    }
+  }
+
+  for (const LibOCIOColorSpace &color_space : inactive_color_spaces_) {
+    if (color_space.interop_id() == interop_id) {
+      return &color_space;
+    }
+  }
+
+  return nullptr;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "libocio_display_processor.hh"
+#include "OCIO_view.hh"
+#include <OpenColorIO/OpenColorTransforms.h>
 
 #if defined(WITH_OPENCOLORIO)
 
@@ -55,7 +57,7 @@ static void display_as_extended_srgb(const LibOCIOConfig &config,
   /* Clamp to gamut, so that we don't display values outside of it. One exception
    * is extended sRGB, where we need to preserve them for correct results and assume
    * the view transform already clamped them. */
-  if (!(view && view->is_extended())) {
+  if (!(view && view->transfer_function() == TransferFunction::ExtendedsRGB)) {
     auto clamp = OCIO_NAMESPACE::RangeTransform::Create();
     clamp->setStyle(OCIO_NAMESPACE::RANGE_CLAMP);
     clamp->setMinInValue(0.0);
@@ -66,7 +68,9 @@ static void display_as_extended_srgb(const LibOCIOConfig &config,
   }
 
   /* Nothing further to do if already using sRGB. */
-  if (view && view->is_srgb()) {
+  if (view && view->transfer_function() == TransferFunction::sRGB &&
+      view->gamut() == Gamut::Rec709)
+  {
     return;
   }
 

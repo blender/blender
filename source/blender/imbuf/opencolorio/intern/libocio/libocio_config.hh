@@ -59,6 +59,7 @@ class LibOCIOConfig : public Config {
   int get_num_color_spaces() const override;
   const ColorSpace *get_color_space_by_index(int index) const override;
   const ColorSpace *get_sorted_color_space_by_index(int index) const override;
+  const ColorSpace *get_color_space_by_interop_id(StringRefNull interop_id) const;
 
   /* Display API. */
   const Display *get_default_display() const override;

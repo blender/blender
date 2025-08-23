@@ -65,11 +65,10 @@ LibOCIODisplay::LibOCIODisplay(const int index, const LibOCIOConfig &config) : c
       is_hdr_ |= view_is_hdr;
     }
 
-    /* Detect sRGB and wide gamut through interop ID. These are not entirely reliable,
-     * and are currently only used as optimization. */
-    bool is_wide_gamut = true;
-    bool is_srgb = false;
-    bool is_extended = false;
+    /* Detect gamut and transfer function through interop ID. When unknown, things
+     * should still work correctly but may miss optimizations. */
+    Gamut gamut = Gamut::Unknown;
+    TransferFunction transfer_function = TransferFunction::Unknown;
 
     StringRefNull display_interop_id;
     if (ocio_display_colorspace) {
@@ -81,14 +80,49 @@ LibOCIODisplay::LibOCIODisplay(const int index, const LibOCIOConfig &config) : c
     }
 
     if (!display_interop_id.is_empty()) {
-      is_srgb = display_interop_id == "srgb_rec709_display" ||
-                display_interop_id == "srgb_rec709_scene";
-      is_wide_gamut = !(display_interop_id.endswith("_rec709_display") ||
-                        display_interop_id.endswith("_rec709_scene"));
-      is_extended = display_interop_id.startswith("srgbx_");
+      if (display_interop_id.endswith("_rec709_display") ||
+          display_interop_id.endswith("_rec709_scene"))
+      {
+        gamut = Gamut::Rec709;
+      }
+      else if (display_interop_id.endswith("_p3d65_display") ||
+               display_interop_id.endswith("_p3d65_scene"))
+      {
+        gamut = Gamut::P3D65;
+      }
+      else if (display_interop_id.endswith("_rec2020_display") ||
+               display_interop_id.endswith("_rec2020_scene"))
+      {
+        gamut = Gamut::Rec2020;
+      }
+
+      if (display_interop_id.startswith("srgb_")) {
+        transfer_function = TransferFunction::sRGB;
+      }
+      else if (display_interop_id.startswith("srgbx_")) {
+        transfer_function = TransferFunction::ExtendedsRGB;
+      }
+      else if (display_interop_id.startswith("pq_")) {
+        transfer_function = TransferFunction::PQ;
+      }
+      else if (display_interop_id.startswith("hlg_")) {
+        transfer_function = TransferFunction::HLG;
+      }
+      else if (display_interop_id.startswith("g18_")) {
+        transfer_function = TransferFunction::Gamma18;
+      }
+      else if (display_interop_id.startswith("g22_")) {
+        transfer_function = TransferFunction::Gamma22;
+      }
+      else if (display_interop_id.startswith("g24_")) {
+        transfer_function = TransferFunction::Gamma24;
+      }
+      else if (display_interop_id.startswith("g26_")) {
+        transfer_function = TransferFunction::Gamma26;
+      }
     }
 
-    views_.append_as(view_index, view_name, view_is_hdr, is_wide_gamut, is_srgb, is_extended);
+    views_.append_as(view_index, view_name, view_is_hdr, gamut, transfer_function);
   }
 
   /* Detect untonemppaed view transform. */

@@ -8,6 +8,25 @@
 
 namespace blender::ocio {
 
+enum class Gamut {
+  Unknown,
+  Rec709,  /* sRGB primaries + D65 white point. */
+  P3D65,   /* DCI-P3 primaries + D65 white point. */
+  Rec2020, /* Rec.2020 primaries + D65 white point */
+};
+
+enum class TransferFunction {
+  Unknown,
+  sRGB,         /* Piecewise sRGB */
+  ExtendedsRGB, /* Piecewise sRGB, unclipped for wide gamut */
+  Gamma18,      /* Pure Gamma 1.8 */
+  Gamma22,      /* Pure Gamma 2.2 */
+  Gamma24,      /* Pure Gamma 2.4 */
+  Gamma26,      /* Pure Gamma 2.6 */
+  PQ,           /* PQ from Rec.2100 */
+  HLG,          /* HLG from Rec.2100 */
+};
+
 class View {
  public:
   virtual ~View() = default;
@@ -30,9 +49,14 @@ class View {
   virtual bool is_hdr() const = 0;
 
   /**
-   * Does this view transform output wide gamut colors?
+   * Gamut of the display colorspace.
    */
-  virtual bool is_wide_gamut() const = 0;
+  virtual Gamut gamut() const = 0;
+
+  /**
+   * Transfer function of the display colorspace.
+   */
+  virtual TransferFunction transfer_function() const = 0;
 };
 
 }  // namespace blender::ocio
