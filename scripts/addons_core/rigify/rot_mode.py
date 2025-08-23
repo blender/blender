@@ -91,7 +91,7 @@ def group_qe(_obj, action, bone, bone_prefix, order):
     # pose_bone = bone
     data_path = bone_prefix + "rotation_quaternion"
     frames = frames_matching(action, data_path)
-    group = action.groups[bone.name]
+    group = action.groups.get(bone.name)
 
     for fr in frames:
         quat = bone.rotation_quaternion.copy()
@@ -109,7 +109,7 @@ def group_eq(_obj, action, bone, bone_prefix, order):
     # pose_bone = bone
     data_path = bone_prefix + "rotation_euler"
     frames = frames_matching(action, data_path)
-    group = action.groups[bone.name]
+    group = action.groups.get(bone.name)
 
     for fr in frames:
         euler = bone.rotation_euler.copy()
@@ -128,21 +128,29 @@ def convert_curves_of_bone_in_action(obj, action, bone, order):
     bone_prefix = ''
 
     for fcurve in action.fcurves:
-        if fcurve.group.name == bone.name:
+        
+        # Groups can be NoneType
+        if fcurve.group:
+            if fcurve.group.name != bone.name:
+                continue
+        else:
+            shortened_datapath = fcurve.data_path[len('pose.bones'): fcurve.data_path.rfind(".")]
+            if not bone.name in shortened_datapath:
+                continue
 
-            # If To-Euler conversion
-            if order != 'QUATERNION':
-                if fcurve.data_path.endswith('rotation_quaternion'):
-                    to_euler = True
-                    bone_prefix = fcurve.data_path[:-len('rotation_quaternion')]
-                    break
+        # If To-Euler conversion
+        if order != 'QUATERNION':
+            if fcurve.data_path.endswith('rotation_quaternion'):
+                to_euler = True
+                bone_prefix = fcurve.data_path[:-len('rotation_quaternion')]
+                break
 
-            # If To-Quaternion conversion
-            else:
-                if fcurve.data_path.endswith('rotation_euler'):
-                    to_euler = True
-                    bone_prefix = fcurve.data_path[:-len('rotation_euler')]
-                    break
+        # If To-Quaternion conversion
+        else:
+            if fcurve.data_path.endswith('rotation_euler'):
+                to_euler = True
+                bone_prefix = fcurve.data_path[:-len('rotation_euler')]
+                break
 
     fcurves_to_remove = []
 
