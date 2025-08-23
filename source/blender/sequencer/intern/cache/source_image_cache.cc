@@ -280,7 +280,7 @@ bool source_image_cache_evict(Scene *scene)
    * biasing the ones that are behind the current frame. */
   const int cur_frame = scene->r.cfra;
   SourceImageCache::StripEntry *best_strip = nullptr;
-  std::pair<int, int> best_key = {};
+  std::pair<float, int> best_key = {};
   int best_score = 0;
   for (const auto &strip : cache->map_.items()) {
     for (const auto &entry : strip.value.frames.items()) {
