@@ -59,6 +59,7 @@
 
 #ifdef WITH_RUBBERBAND
 #include "fx/TimeStretchPitchScale.h"
+#include "fx/AnimateableTimeStretchPitchScale.h"
 #endif
 
 #include <cassert>
@@ -795,7 +796,7 @@ AUD_API AUD_Sound* AUD_Sound_equalize(AUD_Sound* sound, float *definition, int s
 #endif
 
 #ifdef WITH_RUBBERBAND
-AUD_API AUD_Sound* AUD_Sound_timeStretchPitchScale(AUD_Sound* sound, double timeRatio, double pitchScale, AUD_StretcherQuality quality, bool preserveFormant)
+AUD_API AUD_Sound* AUD_Sound_timeStretchPitchScale(AUD_Sound* sound, double timeRatio, double pitchScale, AUD_StretcherQuality quality, char preserveFormant)
 {
 	assert(sound);
 	try
@@ -807,4 +808,51 @@ AUD_API AUD_Sound* AUD_Sound_timeStretchPitchScale(AUD_Sound* sound, double time
 		return nullptr;
 	}
 }
+
+AUD_API AUD_Sound* AUD_Sound_animateableTimeStretchPitchScale(AUD_Sound* sound, float fps, double timeRatio, double pitchScale, AUD_StretcherQuality quality, char preserveFormant)
+{
+	assert(sound);
+	try
+	{
+		return new AUD_Sound(new AnimateableTimeStretchPitchScale(*sound, fps, timeRatio, pitchScale, static_cast<StretcherQuality>(quality), preserveFormant));
+	}
+	catch(Exception&)
+	{
+		return nullptr;
+	}
+}
+
+AUD_API void AUD_Sound_animateableTimeStretchPitchScale_setConstantRangeAnimationData(AUD_Sound* sound, AUD_AnimateablePropertyType type, int frame_start, int frame_end,
+                                                                                      float* data)
+{
+	std::shared_ptr<AnimateableProperty> prop = std::dynamic_pointer_cast<AnimateableTimeStretchPitchScale>(*sound)->getAnimProperty(static_cast<AnimateablePropertyType>(type));
+	prop->writeConstantRange(data, frame_start, frame_end);
+}
+
+AUD_API void AUD_Sound_animateableTimeStretchPitchScale_setAnimationData(AUD_Sound* sound, AUD_AnimateablePropertyType type, int frame, float* data, char animated)
+{
+	std::shared_ptr<AnimateableProperty> prop = std::dynamic_pointer_cast<AnimateableTimeStretchPitchScale>(*sound)->getAnimProperty(static_cast<AnimateablePropertyType>(type));
+	if(animated)
+	{
+		if(frame >= 0)
+			prop->write(data, frame, 1);
+	}
+	else
+	{
+		prop->write(data);
+	}
+}
+
+AUD_API float AUD_Sound_animateableTimeStretchPitchScale_getFPS(AUD_Sound* sound)
+{
+	assert(sound);
+	return dynamic_cast<AnimateableTimeStretchPitchScale*>(sound->get())->getFPS();
+}
+
+AUD_API void AUD_Sound_animateableTimeStretchPitchScale_setFPS(AUD_Sound* sound, float value)
+{
+	assert(sound);
+	dynamic_cast<AnimateableTimeStretchPitchScale*>(sound->get())->setFPS(value);
+}
+
 #endif

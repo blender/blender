@@ -45,4 +45,9 @@ bool TimeStretchPitchScale::getPreserveFormant() const
 {
 	return m_preserveFormant;
 }
+
+StretcherQuality TimeStretchPitchScale::getStretcherQuality() const
+{
+	return m_quality;
+}
 AUD_NAMESPACE_END

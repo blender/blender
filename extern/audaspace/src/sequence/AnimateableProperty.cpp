@@ -16,6 +16,7 @@
 
 #include "sequence/AnimateableProperty.h"
 
+#include <cassert>
 #include <cstring>
 #include <cmath>
 #include <mutex>
@@ -226,6 +227,14 @@ void AnimateableProperty::read(float position, float* out)
 					 (t3 - 2 * t2 + t) * m0 + (t3 - t2) * m1;
 		}
 	}
+}
+
+float AnimateableProperty::readSingle(float position)
+{
+	assert(m_count == 1);
+	float value;
+	read(position, &value);
+	return value;
 }
 
 bool AnimateableProperty::isAnimated() const
