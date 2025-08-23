@@ -3,14 +3,16 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "libocio_display_processor.hh"
-#include "OCIO_view.hh"
-#include <OpenColorIO/OpenColorTransforms.h>
 
 #if defined(WITH_OPENCOLORIO)
+
+#  include <cfloat>
+#  include <sstream>
 
 #  include "BLI_math_matrix.hh"
 
 #  include "OCIO_config.hh"
+#  include "OCIO_view.hh"
 
 #  include "error_handling.hh"
 #  include "libocio_config.hh"
@@ -29,76 +31,166 @@ static void display_as_extended_srgb(const LibOCIOConfig &config,
                                      StringRefNull display_name,
                                      StringRefNull view_name)
 {
-  /* Emulate the user specified display on an extended sRGB display:
+  /* Emulate the user specified display on an extended sRGB display, conceptually:
    * - Apply the view and display transform
    * - Clamp colors to be within gamut
    * - Apply the inverse untonemapped display transform
-   * - Convert to extended sRGB
-   */
+   * - Convert to extended sRGB or gamma 2.2 scRGB
+   *
+   * When possible, we do equivalent but faster transforms. */
 
-  /* TODO: This is quite inefficient, and may be possible to optimize.
-   *
-   * Ideally we want OpenColor to cancel out the last part of the forward display transform
-   * and inverse untonemapped display transform. By itself this seems to generally work for
-   * the Blender and ACES 2.0 configs.
-   *
-   * However the clamping prevents this. For common display color spaces it should be possible
-   * to clamp the gamut and HDR in a linear space. For example for PQ, we'd need to clamp
-   * to Rec.2020 gamut and (10000 nits max / 100 nits reference white) = 100.0. Probably this
-   * can be done with a matrix transform, clamp and inverse matrix transform. Where hopefully
-   * the matrix transforms can be merged with a preceding or following one. */
+  /* TODO: Optimization: Often the view transform will already clamp. Maybe we can have a
+   * few hardcoded checks for known view transforms? This helps eliminate a clamp and
+   * in some cases a matrix multiplication. */
 
   const LibOCIODisplay *display = static_cast<const LibOCIODisplay *>(
       config.get_display_by_name(display_name));
   const LibOCIOView *view = (display) ? static_cast<const LibOCIOView *>(
                                             display->get_view_by_name(view_name)) :
                                         nullptr;
+  if (view == nullptr) {
+    CLOG_WARN(&LOG,
+              "Unable to find display '%s' and view '%s', display may be incorrect",
+              display_name.c_str(),
+              view_name.c_str());
+    return;
+  }
 
-  /* Clamp to gamut, so that we don't display values outside of it. One exception
-   * is extended sRGB, where we need to preserve them for correct results and assume
-   * the view transform already clamped them. */
-  if (!(view && view->transfer_function() == TransferFunction::ExtendedsRGB)) {
+  /* If we are already in the desired display colorspace, all we have to do is clamp. */
+  if ((view->transfer_function() == TransferFunction::sRGB ||
+       view->transfer_function() == TransferFunction::ExtendedsRGB) &&
+      view->gamut() == Gamut::Rec709)
+  {
     auto clamp = OCIO_NAMESPACE::RangeTransform::Create();
     clamp->setStyle(OCIO_NAMESPACE::RANGE_CLAMP);
     clamp->setMinInValue(0.0);
     clamp->setMinOutValue(0.0);
-    clamp->setMaxInValue(1.0);
-    clamp->setMaxOutValue(1.0);
+    if (view->transfer_function() != TransferFunction::ExtendedsRGB) {
+      clamp->setMaxInValue(1.0);
+      clamp->setMaxOutValue(1.0);
+    }
     group->appendTransform(clamp);
-  }
-
-  /* Nothing further to do if already using sRGB. */
-  if (view && view->transfer_function() == TransferFunction::sRGB &&
-      view->gamut() == Gamut::Rec709)
-  {
     return;
   }
 
-  /* Find the linear Rec.709 colorspace needed for the extended sRGB transform. */
-  const OCIO_NAMESPACE::ConstConfigRcPtr &ocio_config = config.get_ocio_config();
-  const char *lin_rec709_srgb = ocio_config->getCanonicalName("lin_rec709_srgb");
-  if (lin_rec709_srgb == nullptr || lin_rec709_srgb[0] == '\0') {
-    CLOG_INFO(&LOG, "Failed to find lin_rec709_srgb colorspace, display may be incorrect");
+  /* Find linear Rec.709 colorspace, needed for the sRGB gamut. */
+  const ColorSpace *lin_rec709 = config.get_color_space_by_interop_id("lin_rec709_scene");
+  if (lin_rec709 == nullptr) {
+    CLOG_WARN(&LOG, "Failed to find lin_rec709_scene colorspace, display may be incorrect");
     return;
   }
 
-  /* Find the display and its untonemapped view. */
+  /* Find the untonemapped view.
+   * TODO: It would be better to do this based on cie_xyz_d65_interchange for configs
+   * that support it. */
   const View *untonemapped_view = display->get_untonemapped_view();
   if (untonemapped_view == nullptr) {
-    CLOG_INFO(&LOG,
+    CLOG_WARN(&LOG,
               "Failed to find untonemapped view for \"%s\", display may be incorrect",
               display->name().c_str());
     return;
   }
 
-  /* Convert to extended sRGB. */
   const ColorSpace *display_colorspace = config.get_display_view_color_space(
       display->name().c_str(), untonemapped_view->name().c_str());
 
-  auto to_rec709 = OCIO_NAMESPACE::ColorSpaceTransform::Create();
-  to_rec709->setSrc(display_colorspace->name().c_str());
-  to_rec709->setDst(lin_rec709_srgb);
-  group->appendTransform(to_rec709);
+  /* Find the linear colorspace with the gamut of the display colorspace. */
+  const ColorSpace *lin_gamut = nullptr;
+  switch (view->gamut()) {
+    case Gamut::Rec709: {
+      lin_gamut = config.get_color_space_by_interop_id("lin_rec709_scene");
+      break;
+    }
+    case Gamut::P3D65: {
+      lin_gamut = config.get_color_space_by_interop_id("lin_p3d65_scene");
+      break;
+    }
+    case Gamut::Rec2020: {
+      lin_gamut = config.get_color_space_by_interop_id("lin_rec2020_scene");
+      break;
+    }
+    case Gamut::Unknown: {
+      break;
+    }
+  }
+
+  if (lin_gamut && view->transfer_function() != TransferFunction::Unknown) {
+    /* Optimized path for known gamut and transfer function. We want OpenColorIO to cancel out
+     * out the transfer function of the chosen display, but this is not possible when clamping
+     * happens in the middle of it.
+     *
+     * So here we transform to the linear colorspace with the gamut of the display colorspace,
+     * and clamp there. This means there will be only matrix multiplications, or nothing at
+     * all for Rec.709. */
+    auto to_lin_gamut = OCIO_NAMESPACE::ColorSpaceTransform::Create();
+    to_lin_gamut->setSrc(display_colorspace->name().c_str());
+    to_lin_gamut->setDst(lin_gamut->name().c_str());
+    group->appendTransform(to_lin_gamut);
+
+    /* Clamp colors to the chosen display colorspace, to emulate it on the actual display that
+     * may have a wider gamut or HDR. */
+    double clamp_max = 0.0;
+    switch (view->transfer_function()) {
+      case TransferFunction::sRGB:
+      case TransferFunction::Gamma18:
+      case TransferFunction::Gamma22:
+      case TransferFunction::Gamma24:
+      case TransferFunction::Gamma26:
+        clamp_max = 1.0;
+        break;
+      case TransferFunction::PQ:
+        clamp_max = 100.0; /* 10000 peak nits / 100 nits. */
+        break;
+      case TransferFunction::HLG:
+        clamp_max = 10.0; /* 1000 peak nits / 100 nits. */
+        break;
+      case TransferFunction::ExtendedsRGB:
+        clamp_max = DBL_MAX; /* Allow HDR > 1.0. */
+        break;
+      case TransferFunction::Unknown:
+        break;
+    }
+
+    auto clamp = OCIO_NAMESPACE::RangeTransform::Create();
+    clamp->setStyle(OCIO_NAMESPACE::RANGE_CLAMP);
+    clamp->setMinInValue(0.0);
+    clamp->setMinOutValue(0.0);
+    if (clamp_max != DBL_MAX) {
+      clamp->setMaxInValue(clamp_max);
+      clamp->setMaxOutValue(clamp_max);
+    }
+    group->appendTransform(clamp);
+
+    /* Transform to linear Rec.709. */
+    if (lin_gamut != lin_rec709) {
+      auto to_rec709 = OCIO_NAMESPACE::ColorSpaceTransform::Create();
+      to_rec709->setSrc(lin_gamut->name().c_str());
+      to_rec709->setDst(lin_rec709->name().c_str());
+      group->appendTransform(to_rec709);
+    }
+  }
+  else {
+    /* Clamp colors to the chosen display colorspace, to emulate it on the actual display that
+     * may have a wider gamut or HDR. Only do it for transfer functions where we know it's
+     * correct, if unknown we hope the view transform already did it. */
+    if (view->transfer_function() != TransferFunction::Unknown) {
+      auto clamp = OCIO_NAMESPACE::RangeTransform::Create();
+      clamp->setStyle(OCIO_NAMESPACE::RANGE_CLAMP);
+      clamp->setMinInValue(0.0);
+      clamp->setMinOutValue(0.0);
+      if (view->transfer_function() != TransferFunction::ExtendedsRGB) {
+        clamp->setMaxInValue(1.0);
+        clamp->setMaxOutValue(1.0);
+      }
+      group->appendTransform(clamp);
+    }
+
+    /* Convert from display colorspace to linear Rec.709. */
+    auto to_rec709 = OCIO_NAMESPACE::ColorSpaceTransform::Create();
+    to_rec709->setSrc(display_colorspace->name().c_str());
+    to_rec709->setDst(lin_rec709->name().c_str());
+    group->appendTransform(to_rec709);
+  }
 
   /* sRGB transfer function, mirrored for negative as specified by scRGB and extended sRGB. */
   auto to_extended_srgb = OCIO_NAMESPACE::ExponentWithLinearTransform::Create();
@@ -200,6 +292,12 @@ OCIO_NAMESPACE::ConstProcessorRcPtr create_ocio_display_processor(
 
   if (display_parameters.inverse) {
     group->setDirection(TRANSFORM_DIR_INVERSE);
+  }
+
+  if (CLOG_CHECK(&LOG, CLG_LEVEL_TRACE)) {
+    std::stringstream sstream;
+    sstream << *group;
+    CLOG_TRACE(&LOG, "Creating display transform:\n%s", sstream.str().c_str());
   }
 
   /* Create processor from transform. This is the moment were OCIO validates the entire transform,
