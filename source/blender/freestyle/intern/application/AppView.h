@@ -19,6 +19,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include <memory>
+
 namespace Freestyle {
 
 using namespace Geometry;
@@ -234,9 +236,9 @@ class AppView {
 
   // The root node container
   NodeGroup _RootNode;
-  NodeDrawingStyle *_ModelRootNode;
-  NodeDrawingStyle *_SilhouetteRootNode;
-  NodeDrawingStyle *_DebugRootNode;
+  std::unique_ptr<NodeDrawingStyle> _ModelRootNode;
+  std::unique_ptr<NodeDrawingStyle> _SilhouetteRootNode;
+  std::unique_ptr<NodeDrawingStyle> _DebugRootNode;
 
   NodeGroup _Light;
 
@@ -249,7 +251,7 @@ class AppView {
   bool _Draw2DScene;
   bool _Draw3DScene;
   NodeGroup _p2DNode;
-  NodeDrawingStyle *_p2DSelectionNode;
+  std::unique_ptr<NodeDrawingStyle> _p2DSelectionNode;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:AppView")
 };

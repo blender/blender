@@ -59,6 +59,7 @@
 #include "BLI_string_utf8.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
+#include "BLI_raii.hh"
 
 #include "BLT_translation.hh"
 
@@ -998,6 +999,10 @@ static void object_lib_override_apply_post(ID *id_dst, ID *id_src)
   ListBase pidlist_dst, pidlist_src;
   BKE_ptcache_ids_from_object(&pidlist_dst, object_dst, nullptr, 0);
   BKE_ptcache_ids_from_object(&pidlist_src, object_src, nullptr, 0);
+  
+  /* Use RAII to ensure lists are freed even if function exits early */
+  blender::list_guard pidlist_dst_guard(&pidlist_dst);
+  blender::list_guard pidlist_src_guard(&pidlist_src);
 
   /* Problem with point caches is that several status flags (like OUTDATED or BAKED) are read-only
    * at RNA level, and therefore not overridable per-se.
@@ -1050,8 +1055,7 @@ static void object_lib_override_apply_post(ID *id_dst, ID *id_src)
       }
     }
   }
-  BLI_freelistN(&pidlist_dst);
-  BLI_freelistN(&pidlist_src);
+  /* Lists are automatically freed by RAII guards when they go out of scope */
 }
 
 static IDProperty *object_asset_dimensions_property(Object *ob)

@@ -38,23 +38,23 @@ namespace Freestyle {
 AppView::AppView(const char * /*iName*/)
 {
   _Fovy = DEG2RADF(30.0f);
-  _ModelRootNode = new NodeDrawingStyle;
-  _SilhouetteRootNode = new NodeDrawingStyle;
-  _DebugRootNode = new NodeDrawingStyle;
+  _ModelRootNode = std::make_unique<NodeDrawingStyle>();
+  _SilhouetteRootNode = std::make_unique<NodeDrawingStyle>();
+  _DebugRootNode = std::make_unique<NodeDrawingStyle>();
 
-  _RootNode.AddChild(_ModelRootNode);
+  _RootNode.AddChild(_ModelRootNode.get());
   _SilhouetteRootNode->setStyle(DrawingStyle::LINES);
   _SilhouetteRootNode->setLightingEnabled(false);
   _SilhouetteRootNode->setLineWidth(2.0f);
   _SilhouetteRootNode->setPointSize(3.0f);
 
-  _RootNode.AddChild(_SilhouetteRootNode);
+  _RootNode.AddChild(_SilhouetteRootNode.get());
 
   _DebugRootNode->setStyle(DrawingStyle::LINES);
   _DebugRootNode->setLightingEnabled(false);
   _DebugRootNode->setLineWidth(1.0f);
 
-  _RootNode.AddChild(_DebugRootNode);
+  _RootNode.AddChild(_DebugRootNode.get());
 
   _minBBox = std::min(
       std::min(_ModelRootNode->bbox().getMin()[0], _ModelRootNode->bbox().getMin()[1]),
@@ -66,15 +66,15 @@ AppView::AppView(const char * /*iName*/)
   _maxAbs = std::max(rabs(_minBBox), rabs(_maxBBox));
   _minAbs = std::min(rabs(_minBBox), rabs(_maxBBox));
 
-  _p2DSelectionNode = new NodeDrawingStyle;
+  _p2DSelectionNode = std::make_unique<NodeDrawingStyle>();
   _p2DSelectionNode->setLightingEnabled(false);
   _p2DSelectionNode->setStyle(DrawingStyle::LINES);
   _p2DSelectionNode->setLineWidth(5.0f);
 
-  _p2DNode.AddChild(_p2DSelectionNode);
+  _p2DNode.AddChild(_p2DSelectionNode.get());
 
-  NodeLight *light = new NodeLight;
-  _Light.AddChild(light);
+  auto light = std::make_unique<NodeLight>();
+  _Light.AddChild(light.release());  // Transfer ownership to _Light
 }
 
 AppView::~AppView()
