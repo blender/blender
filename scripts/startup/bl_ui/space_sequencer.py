@@ -2830,10 +2830,11 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output, Panel):
         col.prop(st, "proxy_render_size")
 
         col = layout.column()
-        col.prop(st, "use_proxies")
         if st.proxy_render_size in {'NONE', 'SCENE'}:
             col.enabled = False
+        col.prop(st, "use_proxies")
 
+        col = layout.column()
         col.prop(st, "display_channel", text="Channel")
 
         if st.display_mode == 'IMAGE':
