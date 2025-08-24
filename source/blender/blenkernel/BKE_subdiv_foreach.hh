@@ -93,56 +93,63 @@ using ForeachVertexOfLooseEdgeCb = void (*)(const ForeachContext *context,
                                             int subdiv_vertex_index);
 
 struct ForeachContext {
-  /* Is called when topology information becomes available.
+  /**
+   * Is called when topology information becomes available.
    * Is only called once.
    *
-   * NOTE: If this callback returns false, the foreach loop is aborted.
+   * \note If this callback returns false, the foreach loop is aborted.
    */
   ForeachTopologyInformationCb topology_info = nullptr;
-  /* These callbacks are called from every ptex which shares "emitting"
+  /**
+   * These callbacks are called from every ptex which shares "emitting"
    * vertex or edge.
    */
   ForeachVertexFromCornerCb vertex_every_corner = nullptr;
   ForeachVertexFromEdgeCb vertex_every_edge = nullptr;
-  /* Those callbacks are run once per subdivision vertex, ptex is undefined
+  /**
+   * Those callbacks are run once per subdivision vertex, ptex is undefined
    * as in it will be whatever first ptex face happened to be traversed in
-   * the multi-threaded environment and which shares "emitting" vertex or
-   * edge.
+   * the multi-threaded environment and which shares "emitting" vertex or edge.
    */
   ForeachVertexFromCornerCb vertex_corner = nullptr;
   ForeachVertexFromEdgeCb vertex_edge = nullptr;
-  /* Called exactly once, always corresponds to a single ptex face. */
+  /** Called exactly once, always corresponds to a single ptex face. */
   ForeachVertexInnerCb vertex_inner = nullptr;
-  /* Called once for each loose vertex. One loose coarse vertex corresponds
+  /**
+   * Called once for each loose vertex. One loose coarse vertex corresponds
    * to a single subdivision vertex.
    */
   ForeachLooseCb vertex_loose = nullptr;
-  /* Called once per vertex created for loose edge. */
+  /** Called once per vertex created for loose edge. */
   ForeachVertexOfLooseEdgeCb vertex_of_loose_edge = nullptr;
-  /* NOTE: If subdivided edge does not come from coarse edge, ORIGINDEX_NONE
+  /**
+   * \note If subdivided edge does not come from coarse edge, ORIGINDEX_NONE
    * will be passed as coarse_edge_index.
    */
   ForeachEdgeCb edge = nullptr;
-  /* NOTE: If subdivided loop does not come from coarse loop, ORIGINDEX_NONE
+  /**
+   * \note If subdivided loop does not come from coarse loop, ORIGINDEX_NONE
    * will be passed as coarse_loop_index.
    */
   ForeachLoopCb loop = nullptr;
   ForeachPolygonCb poly = nullptr;
 
-  /* User-defined pointer, to allow callbacks know something about context the
+  /**
+   * User-defined pointer, to allow callbacks know something about context the
    * traversal is happening for.
    */
   void *user_data = nullptr;
 
-  /* Initial value of TLS data. */
+  /** Initial value of TLS data. */
   void *user_data_tls = nullptr;
-  /* Size of TLS data. */
+  /** Size of TLS data. */
   size_t user_data_tls_size = 0;
-  /* Function to free TLS storage. */
+  /** Function to free TLS storage. */
   void (*user_data_tls_free)(void *tls) = nullptr;
 };
 
-/* Invokes callbacks in the order and with values which corresponds to creation
+/**
+ * Invokes callbacks in the order and with values which corresponds to creation
  * of final subdivided mesh.
  *
  * Main goal is to abstract all the traversal routines to give geometry element
@@ -154,6 +161,7 @@ struct ForeachContext {
  * TODO(sergey): Need to either get rid of subdiv or of coarse_mesh.
  * The main point here is to be able to get base level topology, which can be
  * done with either of those. Having both of them is kind of redundant.
+
  */
 bool foreach_subdiv_geometry(Subdiv *subdiv,
                              const ForeachContext *context,
