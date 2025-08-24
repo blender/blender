@@ -1376,7 +1376,11 @@ void screen_change_prepare(
     wmTimer *wt = screen_old->animtimer;
 
     /* Remove popup handlers (menus), while unlikely, it's possible an "error"
-     * popup is displayed when switching screens, see: #144958. */
+     * popup is displayed when switching screens.
+     * Ideally popups from reported errors would remain so the error isn't hidden from the user.
+     * On the other hand this is a rare occurrence, script developers will often show errors
+     * in a console too, so it's not such a priority to relocate these to the new screen.
+     * See: #144958. */
     UI_popup_handlers_remove_all(C, &win->modalhandlers);
 
     /* remove handlers referencing areas in old screen */
