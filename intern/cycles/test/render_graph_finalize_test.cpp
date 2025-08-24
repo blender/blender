@@ -148,7 +148,7 @@ class ShaderGraphBuilder {
 };
 
 /* A ScopedMockLog object intercepts log messages issued during its lifespan,
- * to test if the approriate logs are output. */
+ * to test if the appropriate logs are output. */
 class ScopedMockLog {
  public:
   ScopedMockLog()

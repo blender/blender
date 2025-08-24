@@ -58,7 +58,7 @@ TEST(RGBE, round_trip)
   }
 
   {
-    /* No test for NaN, undefined behaviour. */
+    /* No test for NaN, undefined behavior. */
   }
 }
 

@@ -520,7 +520,7 @@ class Preprocessor {
     using namespace shader::parser;
 
     Parser parser(str, report_error, true);
-    /* This rely on our codestyle that do not put spaces between template name and the opening
+    /* This rely on our code-style that do not put spaces between template name and the opening
      * angle bracket. */
     parser.foreach_match("w<", [&](const std::vector<Token> &tokens) {
       Token token = tokens[1];

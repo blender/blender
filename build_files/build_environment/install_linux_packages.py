@@ -1090,7 +1090,7 @@ class PackageInstaller:
         return self.version_match(version, ref_version)
 
     def package_query_version_ge_lt(self, package_distro_name, ref_version_min, ref_version_mex):
-        """Check if given package name fits inbetween given minimal and maximal excluded versions."""
+        """Check if given package name fits in between given minimal and maximal excluded versions."""
         version = self.package_query_version_get(package_distro_name)
         if version is None:
             return False

@@ -610,7 +610,7 @@ void FRS_do_stroke_rendering(Render *re, ViewLayer *view_layer)
 
   /* Init camera
    * Objects are transformed into camera coordinate system, therefore the camera position
-   * is zero and the modelview matrix is the identity matrix. */
+   * is zero and the model-view matrix is the identity matrix. */
   Object *ob_camera_orig = RE_GetCamera(re);
   Object *ob_camera_eval = DEG_get_evaluated(depsgraph, ob_camera_orig);
   zero_v3(g_freestyle.viewpoint);

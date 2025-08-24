@@ -411,7 +411,7 @@ static wmOperatorStatus workspace_append_activate_exec(bContext *C, wmOperator *
     appended_workspace = reinterpret_cast<WorkSpace *>(
         BKE_libblock_find_name(bmain, ID_WS, idname, nullptr));
     if (appended_workspace) {
-      /* Copy, to mimmic behavior when appending from another file (which always creates a new copy
+      /* Copy, to mimic behavior when appending from another file (which always creates a new copy
        * of the data). */
       appended_workspace = ED_workspace_duplicate(appended_workspace, bmain, CTX_wm_window(C));
     }

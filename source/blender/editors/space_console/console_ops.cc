@@ -444,7 +444,7 @@ static wmOperatorStatus console_move_exec(bContext *C, wmOperator *op)
   if (select) {
     if (had_select) {
       if (select_side != 0) {
-        /* Modify the current selection if either side was was positioned at the cursor. */
+        /* Modify the current selection if either side was positioned at the cursor. */
         if (select_side == -1) {
           sc->sel_start = ci->len - pos;
         }
