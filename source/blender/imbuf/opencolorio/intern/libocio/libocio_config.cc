@@ -263,12 +263,13 @@ float3x3 LibOCIOConfig::get_xyz_to_scene_linear_matrix() const
 
 const char *LibOCIOConfig::get_color_space_from_filepath(const char *filepath) const
 {
-  /* If Blender specific default_byte or default_float roles exist, don't use the default rule
-   * which can't distinguish between these two cases automatically. */
-  if (ocio_config_->filepathOnlyMatchesDefaultRule(filepath) &&
-      (ocio_config_->hasRole(OCIO_ROLE_DEFAULT_BYTE) ||
-       ocio_config_->hasRole(OCIO_ROLE_DEFAULT_FLOAT)))
-  {
+  /* Ignore the default rule, same behavior as for example OpenImageIO and xStudio.
+   * The ACES studio config has only a default rule set to ACES2065-1, which works
+   * poorly if we assign it to every file as default.
+   *
+   * It's unclear if the default rule should be used for anything, and if not why
+   * it even exists. */
+  if (ocio_config_->filepathOnlyMatchesDefaultRule(filepath)) {
     return nullptr;
   }
 
