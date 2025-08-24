@@ -163,7 +163,7 @@ static void subdiv_mesh_vertex_corner(const ForeachContext *foreach_context,
 static void setup_foreach_callbacks(const SubdivDeformContext *subdiv_context,
                                     ForeachContext *foreach_context)
 {
-  memset(foreach_context, 0, sizeof(*foreach_context));
+  *foreach_context = {};
   /* General information. */
   foreach_context->topology_info = subdiv_mesh_topology_info;
   /* Every boundary geometry. Used for displacement and normals averaging. */

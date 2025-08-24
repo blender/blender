@@ -662,7 +662,7 @@ static void draw_subdiv_loop_cb(const bke::subdiv::ForeachContext *foreach_conte
 
 static void draw_subdiv_foreach_callbacks(bke::subdiv::ForeachContext *foreach_context)
 {
-  memset(foreach_context, 0, sizeof(*foreach_context));
+  *foreach_context = {};
   foreach_context->topology_info = draw_subdiv_topology_info_cb;
   foreach_context->loop = draw_subdiv_loop_cb;
   foreach_context->edge = draw_subdiv_edge_cb;
