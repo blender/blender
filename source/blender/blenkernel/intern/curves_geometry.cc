@@ -131,7 +131,7 @@ CurvesGeometry::CurvesGeometry(const CurvesGeometry &other)
                             other.runtime->custom_knots_sharing_info,
                             other.runtime->type_counts,
                             other.runtime->evaluated_offsets_cache,
-                            other.runtime->cyclic_offsets_cache,
+                            other.runtime->has_cyclic_curve_cache,
                             other.runtime->nurbs_basis_cache,
                             other.runtime->evaluated_position_cache,
                             other.runtime->bounds_cache,
@@ -716,49 +716,12 @@ OffsetIndices<int> CurvesGeometry::evaluated_points_by_curve() const
   return OffsetIndices<int>(runtime.evaluated_offsets_cache.data().evaluated_offsets);
 }
 
-std::optional<Span<int>> CurvesGeometry::cyclic_offsets() const
+bool CurvesGeometry::has_cyclic_curve() const
 {
-  this->runtime->cyclic_offsets_cache.ensure([&](std::optional<Vector<int>> &r_data) {
-    const VArray<bool> cyclic = this->cyclic();
-
-    const auto ensure_vector = [&]() {
-      if (r_data) {
-        r_data->resize(cyclic.size() + 1);
-      }
-      else {
-        r_data.emplace(cyclic.size() + 1);
-      }
-      return r_data->as_mutable_span();
-    };
-
-    if (const std::optional<bool> single = cyclic.get_if_single()) {
-      if (*single) {
-        array_utils::fill_index_range(ensure_vector());
-      }
-      else {
-        r_data = std::nullopt;
-      }
-      return;
-    }
-
-    MutableSpan span = ensure_vector();
-
-    int sum = 0;
-    for (const int i : cyclic.index_range()) {
-      span[i] = sum;
-      if (cyclic[i]) {
-        sum++;
-      }
-    }
-    span.last() = sum;
-    if (sum == 0) {
-      r_data = std::nullopt;
-    }
+  this->runtime->has_cyclic_curve_cache.ensure([&](bool &r_data) {
+    r_data = array_utils::contains(this->cyclic(), this->curves_range(), true);
   });
-  if (!this->runtime->cyclic_offsets_cache.data()) {
-    return std::nullopt;
-  }
-  return this->runtime->cyclic_offsets_cache.data()->as_span();
+  return this->runtime->has_cyclic_curve_cache.data();
 }
 
 IndexMask CurvesGeometry::indices_for_curve_type(const CurveType type,
@@ -1259,7 +1222,7 @@ void CurvesGeometry::tag_topology_changed()
   this->runtime->custom_knot_offsets_cache.tag_dirty();
   this->tag_positions_changed();
   this->runtime->evaluated_offsets_cache.tag_dirty();
-  this->runtime->cyclic_offsets_cache.tag_dirty();
+  this->runtime->has_cyclic_curve_cache.tag_dirty();
   this->runtime->nurbs_basis_cache.tag_dirty();
   this->runtime->max_material_index_cache.tag_dirty();
   this->runtime->check_type_counts = true;
