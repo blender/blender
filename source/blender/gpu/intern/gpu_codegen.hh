@@ -46,6 +46,7 @@ struct GPUCodegenCreateInfo : ShaderCreateInfo {
 
   GPUCodegenCreateInfo(const char *name) : ShaderCreateInfo(name), info_name_(name)
   {
+    is_codegen_ = true;
     /* Base class is always initialized first, so we need to update the name_ pointer here. */
     name_ = info_name_.c_str();
   };

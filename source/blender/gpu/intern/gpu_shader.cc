@@ -660,6 +660,7 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
 
   using namespace blender::gpu::shader;
   const_cast<ShaderCreateInfo &>(info).finalize();
+  BLI_assert(info.do_static_compilation_ || info.is_codegen_);
 
   TimePoint start_time;
 
