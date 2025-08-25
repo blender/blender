@@ -19,7 +19,7 @@
 
 namespace blender::gpu {
 
-GPUCapabilities GCaps;
+GPUCapabilities GCaps = {};
 
 }
 
