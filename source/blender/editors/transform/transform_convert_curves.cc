@@ -681,6 +681,14 @@ void curve_populate_trans_data_structs(const TransInfo &t,
   }
 
   if (use_connected_only) {
+    Array<int> curves_offsets_in_td_buffer(curves.curves_num() + 1, 0);
+    affected_curves.foreach_index(GrainSize(512), [&](const int64_t curve) {
+      curves_offsets_in_td_buffer[curve] =
+          points_to_transform_per_attr[0].slice_content(points_by_curve[curve]).size();
+    });
+    offset_indices::accumulate_counts_to_offsets(curves_offsets_in_td_buffer);
+    const OffsetIndices<int> curves_offsets_in_td(curves_offsets_in_td_buffer);
+
     Array<int> bezier_offsets_in_td(curves.curves_num() + 1, 0);
     offset_indices::copy_group_sizes(points_by_curve, bezier_curves, bezier_offsets_in_td);
     offset_indices::accumulate_counts_to_offsets(bezier_offsets_in_td);
@@ -693,14 +701,15 @@ void curve_populate_trans_data_structs(const TransInfo &t,
       for (const int curve_i : segment) {
         const int selection_attrs_num = curve_types[curve_i] == CURVE_TYPE_BEZIER ? 3 : 1;
         const IndexRange curve_points = points_by_curve[curve_i];
-        const int total_curve_points = selection_attrs_num * curve_points.size();
+        const IndexRange editable_curve_points = curves_offsets_in_td[curve_i];
+        const int total_curve_points = selection_attrs_num * editable_curve_points.size();
         map.reinitialize(total_curve_points);
         closest_distances.reinitialize(total_curve_points);
         closest_distances.fill(std::numeric_limits<float>::max());
         mapped_curve_positions.reinitialize(total_curve_points);
 
         fill_map(CurveType(curve_types[curve_i]),
-                 curve_points,
+                 editable_curve_points,
                  position_offsets_in_td,
                  bezier_offsets_in_td[curve_i],
                  map);
