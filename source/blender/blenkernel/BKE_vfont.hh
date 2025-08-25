@@ -20,7 +20,11 @@ struct CharTrans {
   float xof, yof;
   float rot;
   short linenr, charnr;
-  char dobreak;
+
+  uint dobreak : 1;
+  uint is_overflow : 1;
+  uint is_wrap : 1;
+  uint is_smallcaps : 1;
 };
 
 struct EditFontSelBox {
@@ -77,11 +81,14 @@ enum eEditFontMode {
   FO_DUPLI = 4,
   FO_PAGEUP = 8,
   FO_PAGEDOWN = 9,
-  FO_SELCHANGE = 10,
+  FO_LINE_BEGIN = 10,
+  FO_LINE_END = 11,
+  FO_SELCHANGE = 12,
 };
 
 /** #BKE_vfont_to_curve will move the cursor in these cases. */
-#define FO_CURS_IS_MOTION(mode) (ELEM(mode, FO_CURSUP, FO_CURSDOWN, FO_PAGEUP, FO_PAGEDOWN))
+#define FO_CURS_IS_MOTION(mode) \
+  (ELEM(mode, FO_CURSUP, FO_CURSDOWN, FO_PAGEUP, FO_PAGEDOWN, FO_LINE_BEGIN, FO_LINE_END))
 
 /* -------------------------------------------------------------------- */
 /** \name VFont API
@@ -132,6 +139,7 @@ void BKE_vfont_char_build(Curve *cu,
                           ListBase *nubase,
                           unsigned int charcode,
                           const CharInfo *info,
+                          bool is_smallcaps,
                           float ofsx,
                           float ofsy,
                           float rot,
