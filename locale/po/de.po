@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68abaa12d581')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-18 09:16+0000\n"
+"POT-Creation-Date: 2025-08-25 08:31+0000\n"
 "PO-Revision-Date: 2025-07-23 15:02+0000\n"
 "Last-Translator: Thomas Radeke <rahdick@gmx.de>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -1760,6 +1760,30 @@ msgid "Bake to image data-blocks associated with active image texture nodes in m
 msgstr "Backe zu Bilddatenblöcken verbunden mit aktiven Bildtexturknoten in Materialien"
 
 
+msgid "Bake Type"
+msgstr "Back-Typ"
+
+
+msgid "Choose shading information to bake into the image"
+msgstr "Shading-Informationen wählen, um in ein Abbild zu backen"
+
+
+msgid "Normals"
+msgstr "Normalen"
+
+
+msgid "Bake normals"
+msgstr "Normalen backen"
+
+
+msgid "Displacement"
+msgstr "Verschiebung"
+
+
+msgid "Bake displacement"
+msgstr "Verschiebungen backen"
+
+
 msgid "Automatic Name"
 msgstr "Autobenennung"
 
@@ -1782,6 +1806,18 @@ msgstr "Entfernen"
 
 msgid "Clear Images before baking (internal only)"
 msgstr "Bilder vor dem Backen entfernen (nur intern)"
+
+
+msgid "Low Resolution Mesh"
+msgstr "Niedrig aufgelöste Masche"
+
+
+msgid "Bake from Multires"
+msgstr "Von Hochauflösenden backen"
+
+
+msgid "Bake directly from multires object"
+msgstr "Direkt von Hochauflösenden Objekten backen"
 
 
 msgid "Color the pass"
@@ -5275,10 +5311,6 @@ msgid "Display Device"
 msgstr "Darstellungsgerät"
 
 
-msgid "Display device name"
-msgstr "Darstellungsgerätname"
-
-
 msgid "Input color space settings"
 msgstr "Einstellungen kopieren"
 
@@ -8095,10 +8127,6 @@ msgstr "Max Versatz"
 
 msgid "Displace Factor"
 msgstr "Versatzfaktor"
-
-
-msgid "Displacement"
-msgstr "Verschiebung"
 
 
 msgid "Dissolve Time"
@@ -12718,10 +12746,6 @@ msgid "Fast Editing"
 msgstr "Schnellbearbeitung"
 
 
-msgid "Normals"
-msgstr "Normalen"
-
-
 msgid "Active Texture"
 msgstr "Aktive Textur"
 
@@ -13595,14 +13619,6 @@ msgstr "Transparente Kegel in der 3D-Ansicht anzeigen, um zu visualisieren, welc
 
 msgid "The softness of the spotlight edge"
 msgstr "Die Weichheit des Scheinwerfer-Randes"
-
-
-msgid "Spot Size"
-msgstr "Spotgröße"
-
-
-msgid "Angle of the spotlight beam"
-msgstr "Winkel des Scheinwerferstrahls"
 
 
 msgid "Cast a square spot light shape"
@@ -18743,176 +18759,60 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Face Data"
-msgstr "Flächendaten"
-
-
-msgid "Vertex Group Locks"
-msgstr "Punktgruppen sperren"
-
-
-msgid "Mesh Select Mode"
-msgstr "Maschenauswahlmodus"
-
-
-msgid "Mask Edit"
-msgstr "Maskenbearbeitung"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proportionaler Bearbeitungsabfall"
-
-
-msgid "Disable Bone Options"
-msgstr "Knochen-Optionen ausschalten"
+msgid "Pivot Point"
+msgstr "Drehpunkt"
 
 
 msgid "Snap"
 msgstr "Einrasten"
 
 
-msgid "Enable Bone Options"
-msgstr "Knochen-Optionen einschalten"
+msgid "Proportional Editing Falloff"
+msgstr "Proportionaler Bearbeitungsabfall"
 
 
-msgid "Toggle Bone Options"
-msgstr "Knochen-Optionen umschalten"
+msgid "Mask Edit"
+msgstr "Maskenbearbeitung"
 
 
-msgid "Pivot Point"
-msgstr "Drehpunkt"
-
-
-msgid "Apply"
-msgstr "Anwenden"
-
-
-msgid "Random Mask"
-msgstr "Zufällige Maske"
-
-
-msgid "Names"
-msgstr "Namen"
-
-
-msgid "Show/Hide"
-msgstr "Zeigen/Verbergen"
-
-
-msgid "Local View"
-msgstr "Lokale Ansicht"
-
-
-msgid "In-Betweens"
-msgstr "Dazwischen"
-
-
-msgid "Clear Transform"
-msgstr "Transformation löschen"
+msgid "Vertex Group Locks"
+msgstr "Punktgruppen sperren"
 
 
 msgid "Mirror"
 msgstr "Spiegeln"
 
 
-msgid "Hooks"
-msgstr "Haken"
-
-
-msgid "Select Similar"
-msgstr "Ähnliche auswählen"
-
-
-msgid "Convert"
-msgstr "Konvertieren"
-
-
-msgid "Make Single User"
-msgstr "Einfachen Benutzer erzeugen"
-
-
-msgid "Select More/Less"
-msgstr "Mehr/weniger anzeigen"
-
-
-msgid "Clean Up"
-msgstr "Aufräumen"
-
-
-msgid "Asset"
-msgstr "Asset"
-
-
-msgid "Quick Effects"
-msgstr "Schnelle Effekte"
-
-
-msgid "View Regions"
-msgstr "Vierfenster Ansicht"
-
-
-msgid "Align View to Active"
-msgstr "Ansicht auf Aktiv ausrichten"
-
-
-msgid "Track"
-msgstr "Spur"
-
-
-msgid "Align View"
-msgstr "Ansicht ausrichten"
-
-
-msgid "Navigation"
-msgstr "Navigation"
+msgid "Local View"
+msgstr "Lokale Ansicht"
 
 
 msgid "Viewpoint"
 msgstr "Ansicht"
 
 
-msgid "Rigid Body"
-msgstr "Rigid Body"
+msgid "Navigation"
+msgstr "Navigation"
 
 
-msgid "Relations"
-msgstr "Beziehungen"
+msgid "Align View"
+msgstr "Ansicht ausrichten"
 
 
-msgid "Add Image"
-msgstr "Bild hinzufügen"
+msgid "Align View to Active"
+msgstr "Ansicht auf Aktiv ausrichten"
 
 
-msgid "Light Probe"
-msgstr "Lichtsonde"
+msgid "View Regions"
+msgstr "Vierfenster Ansicht"
 
 
-msgid "Light"
-msgstr "Licht"
+msgid "Select More/Less"
+msgstr "Mehr/weniger anzeigen"
 
 
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Assign Material"
-msgstr "Material zuweisen"
-
-
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Special Characters"
-msgstr "Sonderzeichen"
-
-
-msgid "Select Loops"
-msgstr "Schleifen auswählen"
+msgid "Select Similar"
+msgstr "Ähnliche auswählen"
 
 
 msgid "Select All by Trait"
@@ -18923,8 +18823,124 @@ msgid "Select Linked"
 msgstr "Verknüpfte auswählen"
 
 
+msgid "Select Loops"
+msgstr "Schleifen auswählen"
+
+
+msgid "Assign Material"
+msgstr "Material zuweisen"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Light"
+msgstr "Licht"
+
+
+msgid "Light Probe"
+msgstr "Lichtsonde"
+
+
+msgid "Add Image"
+msgstr "Bild hinzufügen"
+
+
+msgid "Relations"
+msgstr "Beziehungen"
+
+
+msgid "Rigid Body"
+msgstr "Rigid Body"
+
+
+msgid "Apply"
+msgstr "Anwenden"
+
+
+msgid "Track"
+msgstr "Spur"
+
+
+msgid "Quick Effects"
+msgstr "Schnelle Effekte"
+
+
+msgid "Show/Hide"
+msgstr "Zeigen/Verbergen"
+
+
+msgid "Clean Up"
+msgstr "Aufräumen"
+
+
+msgid "Asset"
+msgstr "Asset"
+
+
+msgid "Make Single User"
+msgstr "Einfachen Benutzer erzeugen"
+
+
+msgid "Convert"
+msgstr "Konvertieren"
+
+
+msgid "Hooks"
+msgstr "Haken"
+
+
+msgid "Random Mask"
+msgstr "Zufällige Maske"
+
+
+msgid "Clear Transform"
+msgstr "Transformation löschen"
+
+
+msgid "In-Betweens"
+msgstr "Dazwischen"
+
+
+msgid "Names"
+msgstr "Namen"
+
+
+msgid "Toggle Bone Options"
+msgstr "Knochen-Optionen umschalten"
+
+
+msgid "Enable Bone Options"
+msgstr "Knochen-Optionen einschalten"
+
+
+msgid "Disable Bone Options"
+msgstr "Knochen-Optionen ausschalten"
+
+
+msgid "Mesh Select Mode"
+msgstr "Maschenauswahlmodus"
+
+
+msgid "Face Data"
+msgstr "Flächendaten"
+
+
 msgid "Merge"
 msgstr "Zusammenführen"
+
+
+msgid "Special Characters"
+msgstr "Sonderzeichen"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Text"
+msgstr "Text"
 
 
 msgid "Assets"
@@ -36190,10 +36206,6 @@ msgid "Relax UVs"
 msgstr "UVs entspannen"
 
 
-msgid "Start frame of the sequence strip"
-msgstr "Startbild des Sequenzstreifens"
-
-
 msgid "Allow Overlap"
 msgstr "Überlappung erlauben"
 
@@ -39235,72 +39247,24 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
-msgid "VR"
-msgstr "VR"
+msgid "Active Tool"
+msgstr "Aktives Werkzeug"
 
 
 msgid "View Lock"
 msgstr "Ansicht sperren"
 
 
-msgid "Active Tool"
-msgstr "Aktives Werkzeug"
+msgid "Shadow Settings"
+msgstr "Schatteneinstellungen"
 
 
-msgid "Snapping"
-msgstr "Einrasten"
-
-
-msgid "Auto-Masking"
-msgstr "Automatisches Maskieren"
-
-
-msgid "Measurement"
-msgstr "Messung"
-
-
-msgid "Curve Edit Mode"
-msgstr "Kurven-Bearbeitungsmodus"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoskopie"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Maschenbearbeitungsmodus"
-
-
-msgid "Motion Tracking"
-msgstr "Bewegungsverfolgung"
-
-
-msgid "Onion Skin"
-msgstr "Zwiebelhaut"
-
-
-msgid "Quad View"
-msgstr "Vierfenster-Ansicht"
-
-
-msgid "Guides"
-msgstr "Hilfslinien"
-
-
-msgid "Overlays"
-msgstr "Überlagerungen"
-
-
-msgid "Transform Orientations"
-msgstr "Transformationsausrichtung"
+msgid "SSAO Settings"
+msgstr "SSAO Einstellungen"
 
 
 msgid "Cavity"
 msgstr "Hohlraum"
-
-
-msgid "Drawing Plane"
-msgstr "Malfläche"
 
 
 msgid "Render Pass"
@@ -39311,12 +39275,60 @@ msgid "Compositor"
 msgstr "Setzer"
 
 
-msgid "SSAO Settings"
-msgstr "SSAO Einstellungen"
+msgid "Overlays"
+msgstr "Überlagerungen"
 
 
-msgid "Shadow Settings"
-msgstr "Schatteneinstellungen"
+msgid "Guides"
+msgstr "Hilfslinien"
+
+
+msgid "Motion Tracking"
+msgstr "Bewegungsverfolgung"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Maschenbearbeitungsmodus"
+
+
+msgid "Measurement"
+msgstr "Messung"
+
+
+msgid "Curve Edit Mode"
+msgstr "Kurven-Bearbeitungsmodus"
+
+
+msgid "Snapping"
+msgstr "Einrasten"
+
+
+msgid "Transform Orientations"
+msgstr "Transformationsausrichtung"
+
+
+msgid "Drawing Plane"
+msgstr "Malfläche"
+
+
+msgid "Quad View"
+msgstr "Vierfenster-Ansicht"
+
+
+msgid "Onion Skin"
+msgstr "Zwiebelhaut"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoskopie"
+
+
+msgid "Auto-Masking"
+msgstr "Automatisches Maskieren"
+
+
+msgid "VR"
+msgstr "VR"
 
 
 msgid "Chain Scaling"
@@ -42564,10 +42576,6 @@ msgid "AO Bounces Render"
 msgstr "AO Bounces Render"
 
 
-msgid "Bake Type"
-msgstr "Back-Typ"
-
-
 msgid "Type of pass to bake"
 msgstr "Typ der Durchgänge, die gebacken werden sollen"
 
@@ -43188,22 +43196,6 @@ msgid "Render Passes"
 msgstr "Renderpassierungen"
 
 
-msgid "Number of samples used for ambient occlusion baking from multires"
-msgstr "Anzahl der Samples, die vom Audiomix-Puffer verwendet wird"
-
-
-msgid "Choose shading information to bake into the image"
-msgstr "Shading-Informationen wählen, um in ein Abbild zu backen"
-
-
-msgid "Bake normals"
-msgstr "Normalen backen"
-
-
-msgid "Bake displacement"
-msgstr "Verschiebungen backen"
-
-
 msgid "Region Maximum X"
 msgstr "Region Maximum X"
 
@@ -43486,22 +43478,6 @@ msgstr "Anzahl der Threads anhand der CPUs automatisch ermitteln"
 
 msgid "Manually determine the number of threads"
 msgstr "Anzahl der Threads manuell festlegen"
-
-
-msgid "Clear Images before baking"
-msgstr "Abbild vor dem Backen löschen"
-
-
-msgid "Low Resolution Mesh"
-msgstr "Niedrig aufgelöste Masche"
-
-
-msgid "Bake from Multires"
-msgstr "Von Hochauflösenden backen"
-
-
-msgid "Bake directly from multires object"
-msgstr "Direkt von Hochauflösenden Objekten backen"
 
 
 msgid "Render Region"
@@ -58719,16 +58695,16 @@ msgid "Nothing indicated"
 msgstr "Nichts angegeben"
 
 
-msgid "'%s': cannot use current file as library"
-msgstr "'%s': die aktuelle Datei kann nicht als Bibliothek verwendet werden"
-
-
 msgid "'%s': nothing indicated"
 msgstr "'%s': nichts is angegeben"
 
 
 msgid "'%s': not a library"
 msgstr "'%s': ist keine Bibliothek"
+
+
+msgid "'%s': cannot use current file as library"
+msgstr "'%s': die aktuelle Datei kann nicht als Bibliothek verwendet werden"
 
 
 msgid "'%s' is not a valid library filepath"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68abaa12d581')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-18 09:16+0000\n"
+"POT-Creation-Date: 2025-08-25 08:31+0000\n"
 "PO-Revision-Date: 2025-07-23 15:25+0000\n"
 "Last-Translator: 32437w5k7 <32437w5k7@mozmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -2553,6 +2553,30 @@ msgid "Bake to image data-blocks associated with active image texture nodes in m
 msgstr "Precalcola in blocchi-dati immagine associati con i nodi texture immagine attivi nei materiali"
 
 
+msgid "Bake Type"
+msgstr "Tipo di Precalcolo"
+
+
+msgid "Choose shading information to bake into the image"
+msgstr "Sceglie informazioni di ombreggiatura da precalcolare nell'immagine"
+
+
+msgid "Normals"
+msgstr "Normali"
+
+
+msgid "Bake normals"
+msgstr "Precalcolo delle normali"
+
+
+msgid "Displacement"
+msgstr "Spostamento"
+
+
+msgid "Bake displacement"
+msgstr "Precalcolo dello spostamento"
+
+
 msgid "Automatic Name"
 msgstr "Nome Automatico"
 
@@ -2575,6 +2599,18 @@ msgstr "Cancella"
 
 msgid "Clear Images before baking (internal only)"
 msgstr "Cancella le immagini prima del precalcolo (solo interne)"
+
+
+msgid "Low Resolution Mesh"
+msgstr "Mesh Bassa Risoluzione"
+
+
+msgid "Bake from Multires"
+msgstr "Precalcolo dal Multires"
+
+
+msgid "Bake directly from multires object"
+msgstr "Effettua il precalcolo direttamente dal multires degli oggetti"
 
 
 msgid "Color the pass"
@@ -6440,10 +6476,6 @@ msgid "Display Device"
 msgstr "Dispositivo di Visualizzazione"
 
 
-msgid "Display device name"
-msgstr "Nome schermo"
-
-
 msgid "Input color space settings"
 msgstr "Impostazioni spazio colore input"
 
@@ -9937,10 +9969,6 @@ msgstr "Fattore Spostamento"
 
 msgid "Strength of displace when applied to the mesh"
 msgstr "Intensità dello spostamento quando viene applicato alla mesh"
-
-
-msgid "Displacement"
-msgstr "Spostamento"
 
 
 msgid "Dissolve Time"
@@ -16269,10 +16297,6 @@ msgid "Don't fill polygons while editing"
 msgstr "Non riempie i poligoni durante la modifica"
 
 
-msgid "Normals"
-msgstr "Normali"
-
-
 msgid "Collision distance"
 msgstr "Distanza di collisione"
 
@@ -17243,14 +17267,6 @@ msgstr "Sfumatura Fascio"
 
 msgid "The softness of the spotlight edge"
 msgstr "La morbidezza dei bordi del fascio luminoso"
-
-
-msgid "Spot Size"
-msgstr "Dimensione Spot"
-
-
-msgid "Angle of the spotlight beam"
-msgstr "Angolo del fascio dello spot"
 
 
 msgid "Cast a square spot light shape"
@@ -24600,8 +24616,24 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "Face Data"
-msgstr "Dati Faccia"
+msgid "Pivot Point"
+msgstr "Punto di Perno"
+
+
+msgid "Snap"
+msgstr "Aggancia"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Decadimento Modifica Proporzionale"
+
+
+msgid "Mask Edit"
+msgstr "Modifica Maschera"
+
+
+msgid "Automasking"
+msgstr "Automascheramento"
 
 
 msgid "Face Sets Edit"
@@ -24612,196 +24644,44 @@ msgid "Vertex Group Locks"
 msgstr "Blocchi del Gruppo di Vertici"
 
 
-msgid "Automasking"
-msgstr "Automascheramento"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modalità Selezione Mesh"
-
-
-msgid "Mask Edit"
-msgstr "Modifica Maschera"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Decadimento Modifica Proporzionale"
-
-
-msgid "Disable Bone Options"
-msgstr "Disabilita Opzioni Osso"
-
-
-msgid "Snap"
-msgstr "Aggancia"
-
-
-msgid "Enable Bone Options"
-msgstr "Abilita Opzioni Osso"
-
-
-msgid "Toggle Bone Options"
-msgstr "Attiva/disattiva Opzioni Osso"
-
-
-msgid "Pivot Point"
-msgstr "Punto di Perno"
-
-
-msgid "Apply"
-msgstr "Applica"
-
-
-msgid "Random Mask"
-msgstr "Maschera Casuale"
-
-
-msgid "Bone Collections"
-msgstr "Raccolte di Ossa"
-
-
-msgid "Names"
-msgstr "Nomi"
-
-
-msgid "Show/Hide"
-msgstr "Mostra/Nascondi"
-
-
-msgid "Local View"
-msgstr "Vista Locale"
-
-
-msgid "Propagate"
-msgstr "Propaga"
-
-
-msgid "In-Betweens"
-msgstr "Intermedio"
+msgid "Mirror"
+msgstr "Specchia"
 
 
 msgid "UV Mapping"
 msgstr "Mappatura UV"
 
 
-msgid "Clear Transform"
-msgstr "Cancella Trasformazione"
-
-
-msgid "Mirror"
-msgstr "Specchia"
-
-
-msgid "Face Sets Init"
-msgstr "Init Sets di Facce"
-
-
-msgid "Hooks"
-msgstr "Ganci"
-
-
-msgid "Select Similar"
-msgstr "Seleziona Simili"
-
-
-msgid "Convert"
-msgstr "Converti"
-
-
-msgid "Link/Transfer Data"
-msgstr "Collega/Trasferisci Dati"
-
-
-msgid "Make Single User"
-msgstr "Rendi Utilizzatore Singolo"
-
-
-msgid "Select More/Less"
-msgstr "Seleziona Più/Meno"
-
-
-msgid "Clean Up"
-msgstr "Ripulisci"
-
-
-msgid "Asset"
-msgstr "Risorsa"
-
-
-msgid "Quick Effects"
-msgstr "Effetti Veloci"
-
-
-msgid "View Regions"
-msgstr "Regione Vista"
-
-
-msgid "Align View to Active"
-msgstr "Allinea Vista a Attivo"
-
-
-msgid "Track"
-msgstr "Traccia"
-
-
-msgid "Align View"
-msgstr "Allinea Vista"
-
-
-msgid "Navigation"
-msgstr "Navigazione"
+msgid "Local View"
+msgstr "Vista Locale"
 
 
 msgid "Viewpoint"
 msgstr "Punto di vista"
 
 
-msgid "Rigid Body"
-msgstr "Corpo Rigido"
+msgid "Navigation"
+msgstr "Navigazione"
 
 
-msgid "Relations"
-msgstr "Relazioni"
+msgid "Align View"
+msgstr "Allinea Vista"
 
 
-msgid "Add Image"
-msgstr "Aggiungi Immagine"
+msgid "Align View to Active"
+msgstr "Allinea Vista a Attivo"
 
 
-msgid "Light Probe"
-msgstr "Sensore di Luce"
+msgid "View Regions"
+msgstr "Regione Vista"
 
 
-msgid "Light"
-msgstr "Luce"
+msgid "Select More/Less"
+msgstr "Seleziona Più/Meno"
 
 
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Bone Roll"
-msgstr "Rollio Osso"
-
-
-msgid "Assign Material"
-msgstr "Assegna Materiale"
-
-
-msgid "Text"
-msgstr "Testo"
-
-
-msgid "Kerning"
-msgstr "Crenatura"
-
-
-msgid "Special Characters"
-msgstr "Caratteri Speciali"
-
-
-msgid "Select Loops"
-msgstr "Seleziona Anelli"
+msgid "Select Similar"
+msgstr "Seleziona Simili"
 
 
 msgid "Select All by Trait"
@@ -24812,8 +24692,124 @@ msgid "Select Linked"
 msgstr "Seleziona Collegati"
 
 
-msgid "Merge"
-msgstr "Unisci"
+msgid "Select Loops"
+msgstr "Seleziona Anelli"
+
+
+msgid "Assign Material"
+msgstr "Assegna Materiale"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Light"
+msgstr "Luce"
+
+
+msgid "Light Probe"
+msgstr "Sensore di Luce"
+
+
+msgid "Add Image"
+msgstr "Aggiungi Immagine"
+
+
+msgid "Relations"
+msgstr "Relazioni"
+
+
+msgid "Rigid Body"
+msgstr "Corpo Rigido"
+
+
+msgid "Apply"
+msgstr "Applica"
+
+
+msgid "Track"
+msgstr "Traccia"
+
+
+msgid "Quick Effects"
+msgstr "Effetti Veloci"
+
+
+msgid "Show/Hide"
+msgstr "Mostra/Nascondi"
+
+
+msgid "Clean Up"
+msgstr "Ripulisci"
+
+
+msgid "Asset"
+msgstr "Risorsa"
+
+
+msgid "Make Single User"
+msgstr "Rendi Utilizzatore Singolo"
+
+
+msgid "Convert"
+msgstr "Converti"
+
+
+msgid "Link/Transfer Data"
+msgstr "Collega/Trasferisci Dati"
+
+
+msgid "Hooks"
+msgstr "Ganci"
+
+
+msgid "Face Sets Init"
+msgstr "Init Sets di Facce"
+
+
+msgid "Random Mask"
+msgstr "Maschera Casuale"
+
+
+msgid "Clear Transform"
+msgstr "Cancella Trasformazione"
+
+
+msgid "In-Betweens"
+msgstr "Intermedio"
+
+
+msgid "Propagate"
+msgstr "Propaga"
+
+
+msgid "Bone Collections"
+msgstr "Raccolte di Ossa"
+
+
+msgid "Names"
+msgstr "Nomi"
+
+
+msgid "Toggle Bone Options"
+msgstr "Attiva/disattiva Opzioni Osso"
+
+
+msgid "Enable Bone Options"
+msgstr "Abilita Opzioni Osso"
+
+
+msgid "Disable Bone Options"
+msgstr "Disabilita Opzioni Osso"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modalità Selezione Mesh"
+
+
+msgid "Face Data"
+msgstr "Dati Faccia"
 
 
 msgid "Select by Face Strength"
@@ -24822,6 +24818,26 @@ msgstr "Seleziona per Intensità delle Facce"
 
 msgid "Set Face Strength"
 msgstr "Imposta Intensità Faccia"
+
+
+msgid "Merge"
+msgstr "Unisci"
+
+
+msgid "Special Characters"
+msgstr "Caratteri Speciali"
+
+
+msgid "Kerning"
+msgstr "Crenatura"
+
+
+msgid "Text"
+msgstr "Testo"
+
+
+msgid "Bone Roll"
+msgstr "Rollio Osso"
 
 
 msgid "Keyframe Insert Pie"
@@ -46700,16 +46716,8 @@ msgid "Channel to place this strip into"
 msgstr "Canale in cui mettere questo spezzone"
 
 
-msgid "Start frame of the sequence strip"
-msgstr "Fotogramma iniziale dello spezzone di sequenza"
-
-
 msgid "Allow Overlap"
 msgstr "Permetti Sovrapposizione"
-
-
-msgid "Don't correct overlap on new sequence strips"
-msgstr "Non corregge la sovrapposizione nei nuovi spezzoni di sequenza"
 
 
 msgid "Replace Selection"
@@ -46843,10 +46851,6 @@ msgstr "Aggiungi Sspezzone Effetti"
 
 msgid "Add an effect to the sequencer, most are applied on top of existing strips"
 msgstr "Aggiunge un effetto al sequencer, la maggior parte sono applicati sopra gli spezzoni esistenti"
-
-
-msgid "End frame for the color strip"
-msgstr "Fotogramma finale dello spezzone di colore"
 
 
 msgid "Sequencer effect type"
@@ -50523,40 +50527,12 @@ msgid "Active Palette Color"
 msgstr "Colore Tavolozza Attivo"
 
 
-msgid "Snapping"
-msgstr "Ancoraggio"
+msgid "Shadow Settings"
+msgstr "Impostazioni Ombra"
 
 
-msgid "Auto-Masking"
-msgstr "Auto-Mascheramento"
-
-
-msgid "Measurement"
-msgstr "Misurazione"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoscopia"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Modalità Modifica Mesh"
-
-
-msgid "Motion Tracking"
-msgstr "Tracciatura Movimento"
-
-
-msgid "Overlays"
-msgstr "Sovrapposizioni"
-
-
-msgid "Transform Orientations"
-msgstr "Assi (Orientamenti Trasformazione)"
-
-
-msgid "Stroke Placement"
-msgstr "Giacitura Tratto"
+msgid "SSAO Settings"
+msgstr "Impostazioni SSAO"
 
 
 msgid "Cavity"
@@ -50571,12 +50547,40 @@ msgid "Compositor"
 msgstr "Compositore"
 
 
-msgid "SSAO Settings"
-msgstr "Impostazioni SSAO"
+msgid "Overlays"
+msgstr "Sovrapposizioni"
 
 
-msgid "Shadow Settings"
-msgstr "Impostazioni Ombra"
+msgid "Motion Tracking"
+msgstr "Tracciatura Movimento"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Modalità Modifica Mesh"
+
+
+msgid "Measurement"
+msgstr "Misurazione"
+
+
+msgid "Snapping"
+msgstr "Ancoraggio"
+
+
+msgid "Transform Orientations"
+msgstr "Assi (Orientamenti Trasformazione)"
+
+
+msgid "Stroke Placement"
+msgstr "Giacitura Tratto"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoscopia"
+
+
+msgid "Auto-Masking"
+msgstr "Auto-Mascheramento"
 
 
 msgid "Chain Scaling"
@@ -53795,10 +53799,6 @@ msgid "AO Bounces Render"
 msgstr "Rimbalzi OA Render"
 
 
-msgid "Bake Type"
-msgstr "Tipo di Precalcolo"
-
-
 msgid "Type of pass to bake"
 msgstr "Tipo di passaggio di cui fare il precalcolo"
 
@@ -54483,26 +54483,6 @@ msgid "Rendering settings for a Scene data-block"
 msgstr "Impostazioni del rendering per un blocco-dati Scena"
 
 
-msgid "Bias"
-msgstr "Influenza"
-
-
-msgid "Number of samples used for ambient occlusion baking from multires"
-msgstr "Numero di campioni utilizzati per il precalcolo dell'occlusione ambientale dal multires"
-
-
-msgid "Choose shading information to bake into the image"
-msgstr "Sceglie informazioni di ombreggiatura da precalcolare nell'immagine"
-
-
-msgid "Bake normals"
-msgstr "Precalcolo delle normali"
-
-
-msgid "Bake displacement"
-msgstr "Precalcolo dello spostamento"
-
-
 msgid "Region Maximum X"
 msgstr "Regione X Massimo"
 
@@ -54814,22 +54794,6 @@ msgstr "Determina automaticamente il numero di processi, basandosi sulla CPU"
 
 msgid "Manually determine the number of threads"
 msgstr "Determina manualmente il numero di processi"
-
-
-msgid "Clear Images before baking"
-msgstr "Cancella le immagini prima del precalcolo"
-
-
-msgid "Low Resolution Mesh"
-msgstr "Mesh Bassa Risoluzione"
-
-
-msgid "Bake from Multires"
-msgstr "Precalcolo dal Multires"
-
-
-msgid "Bake directly from multires object"
-msgstr "Effettua il precalcolo direttamente dal multires degli oggetti"
 
 
 msgid "Render Region"
@@ -55478,6 +55442,10 @@ msgstr "Se diverso da zero, il valore massimo per il contributo delle luci nei v
 
 msgid "If non-zero, the maximum value for indirect lighting in volumes. Higher values will be scaled down to avoid too much noise and slow convergence at the cost of accuracy. Used by light-probes."
 msgstr "Se diverso da zero, il valore massimo per l'illuminazione indiretta in volumi. I valori più alti saranno ridimensionati per evitare troppo rumore e una convergenza lenta a scapito della precisione. Utilizzato dalle light-probes."
+
+
+msgid "Bias"
+msgstr "Influenza"
 
 
 msgid "Light Threshold"
@@ -56579,21 +56547,6 @@ msgid "Node tree being displayed and edited"
 msgstr "Albero dei nodi da mostrare e modificare"
 
 
-msgctxt "ID"
-msgid "Geometry Nodes Type"
-msgstr "Tipo di nodi di geometria"
-
-
-msgctxt "ID"
-msgid "Modifier"
-msgstr "Modificatore"
-
-
-msgctxt "ID"
-msgid "Tool"
-msgstr "Strumento"
-
-
 msgid "Data-block whose nodes are being edited"
 msgstr "Blocco-dati i cui nodi sono stati modificati"
 
@@ -56608,6 +56561,16 @@ msgstr "Blocco-dati da cui è collegato il blocco-dati modificato"
 
 msgid "Auto-offset Direction"
 msgstr "Direzione Auto-Spaziatura"
+
+
+msgctxt "ID"
+msgid "Modifier"
+msgstr "Modificatore"
+
+
+msgctxt "ID"
+msgid "Tool"
+msgstr "Strumento"
 
 
 msgid "Use the pinned node tree"
@@ -69499,16 +69462,16 @@ msgid "Nothing indicated"
 msgstr "Nessuna selezione"
 
 
-msgid "'%s': cannot use current file as library"
-msgstr "'%s': impossibile utilizzare il file corrente come libreria"
-
-
 msgid "'%s': nothing indicated"
 msgstr "'%s': nulla indicato"
 
 
 msgid "'%s': not a library"
 msgstr "'%s': non è una libreria"
+
+
+msgid "'%s': cannot use current file as library"
+msgstr "'%s': impossibile utilizzare il file corrente come libreria"
 
 
 msgid "'%s' is not a valid library filepath"

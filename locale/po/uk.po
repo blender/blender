@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68abaa12d581')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-18 09:16+0000\n"
+"POT-Creation-Date: 2025-08-25 08:31+0000\n"
 "PO-Revision-Date: 2025-07-23 15:08+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -1751,6 +1751,30 @@ msgid "Bake to image data-blocks associated with active image texture nodes in m
 msgstr "Запекти у блоки даних зображення, асоційовані з активними вузлами текстур зображення в матеріалах"
 
 
+msgid "Bake Type"
+msgstr "Тип запікання"
+
+
+msgid "Choose shading information to bake into the image"
+msgstr "Виберіть тип відтінення для запікання в зображення"
+
+
+msgid "Normals"
+msgstr "Нормалі"
+
+
+msgid "Bake normals"
+msgstr "Запекти нормалі"
+
+
+msgid "Displacement"
+msgstr "Зміщення"
+
+
+msgid "Bake displacement"
+msgstr "Запекти зміщення"
+
+
 msgid "Automatic Name"
 msgstr "Автоматичне іменування"
 
@@ -1773,6 +1797,22 @@ msgstr "Зчистити"
 
 msgid "Clear Images before baking (internal only)"
 msgstr "Зчистити зображення перед запіканням (лише внутрішнє)"
+
+
+msgid "Low Resolution Mesh"
+msgstr "Низько-роздільна сіть"
+
+
+msgid "Calculate heights against unsubdivided low resolution mesh"
+msgstr "Розрахувати висоти для непідподіленої низько-роздільної сіті"
+
+
+msgid "Bake from Multires"
+msgstr "Запекти за Багатороздільністю"
+
+
+msgid "Bake directly from multires object"
+msgstr "Запекти безпосередньо з об'єкту, що має модифікатор «Багатороздільність»"
 
 
 msgid "Color the pass"
@@ -5180,10 +5220,6 @@ msgstr "Керування кольором для пристроїв відоб
 
 msgid "Display Device"
 msgstr "Пристрій показу"
-
-
-msgid "Display device name"
-msgstr "Параметри пристрою для показу"
 
 
 msgid "Input color space settings"
@@ -9082,10 +9118,6 @@ msgstr "Коефіцієнт зміщення"
 
 msgid "Strength of displace when applied to the mesh"
 msgstr "Сила зміщення при застосуванні до сіті"
-
-
-msgid "Displacement"
-msgstr "Зміщення"
 
 
 msgid "Dissolve Time"
@@ -16937,10 +16969,6 @@ msgid "Don't fill polygons while editing"
 msgstr "Не заповнювати багатокутників при редагуванні"
 
 
-msgid "Normals"
-msgstr "Нормалі"
-
-
 msgid "Enable symmetry in the X axis"
 msgstr "Увімкнути симетрію по осі X"
 
@@ -18249,14 +18277,6 @@ msgstr "Змішання плями"
 
 msgid "The softness of the spotlight edge"
 msgstr "М'якість переходу на межі освітлення від прожектора"
-
-
-msgid "Spot Size"
-msgstr "Розмір плями"
-
-
-msgid "Angle of the spotlight beam"
-msgstr "Кут променя прожектора"
 
 
 msgid "Cast a square spot light shape"
@@ -26415,8 +26435,24 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
-msgid "Face Data"
-msgstr "Дані граней"
+msgid "Pivot Point"
+msgstr "Точка Опертя"
+
+
+msgid "Snap"
+msgstr "Підхоп"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Спад Пропорційного Редагування"
+
+
+msgid "Mask Edit"
+msgstr "Редагування Маски"
+
+
+msgid "Automasking"
+msgstr "Автомаскування"
 
 
 msgid "Face Sets Edit"
@@ -26427,192 +26463,44 @@ msgid "Vertex Group Locks"
 msgstr "Блокування Груп Вершин"
 
 
-msgid "Automasking"
-msgstr "Автомаскування"
-
-
-msgid "Mesh Select Mode"
-msgstr "Режим Вибору Сіті"
-
-
-msgid "Mask Edit"
-msgstr "Редагування Маски"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Спад Пропорційного Редагування"
-
-
-msgid "Disable Bone Options"
-msgstr "Відключити параметри кісток"
-
-
-msgid "Snap"
-msgstr "Підхоп"
-
-
-msgid "Enable Bone Options"
-msgstr "Увімкнути параметри кісток"
-
-
-msgid "Toggle Bone Options"
-msgstr "Перемкнути параметри кісток"
-
-
-msgid "Pivot Point"
-msgstr "Точка Опертя"
-
-
-msgid "Apply"
-msgstr "Застосувати"
-
-
-msgid "Names"
-msgstr "Назви"
-
-
-msgid "Show/Hide"
-msgstr "Показати/приховати"
-
-
-msgid "Local View"
-msgstr "Огляд Локально"
-
-
-msgid "Propagate"
-msgstr "Поширити"
-
-
-msgid "In-Betweens"
-msgstr "У проміжках"
+msgid "Mirror"
+msgstr "Дзеркалення"
 
 
 msgid "UV Mapping"
 msgstr "Розкладання UV"
 
 
-msgid "Clear Transform"
-msgstr "Зчистити трансформації"
-
-
-msgid "Mirror"
-msgstr "Дзеркалення"
-
-
-msgid "Face Sets Init"
-msgstr "Ініціація Наборів Граней"
-
-
-msgid "Hooks"
-msgstr "Гачки"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Ліплення Задати Опертя"
-
-
-msgid "Select Similar"
-msgstr "Вибрати подібні"
-
-
-msgid "Convert"
-msgstr "Конвертування"
-
-
-msgid "Link/Transfer Data"
-msgstr "Пов'язати/Перенести Дані"
-
-
-msgid "Make Single User"
-msgstr "Зробити однокористувацьким"
-
-
-msgid "Select More/Less"
-msgstr "Вибрати більше/менше"
-
-
-msgid "Clean Up"
-msgstr "Вичищення"
-
-
-msgid "Asset"
-msgstr "Актив"
-
-
-msgid "Quick Effects"
-msgstr "Швидкі ефекти"
-
-
-msgid "View Regions"
-msgstr "Регіони Огляду"
-
-
-msgid "Align View to Active"
-msgstr "Вирівняти Огляд за Активним"
-
-
-msgid "Track"
-msgstr "Стеження"
-
-
-msgid "Align View"
-msgstr "Вирівняти Огляд"
-
-
-msgid "Navigation"
-msgstr "Навігація"
+msgid "Local View"
+msgstr "Огляд Локально"
 
 
 msgid "Viewpoint"
 msgstr "Точка зору"
 
 
-msgid "Rigid Body"
-msgstr "Тверде тіло"
+msgid "Navigation"
+msgstr "Навігація"
 
 
-msgid "Relations"
-msgstr "Зв'язки"
+msgid "Align View"
+msgstr "Вирівняти Огляд"
 
 
-msgid "Add Image"
-msgstr "Додати Зображення"
+msgid "Align View to Active"
+msgstr "Вирівняти Огляд за Активним"
 
 
-msgid "Light Probe"
-msgstr "Проба Освітлення"
+msgid "View Regions"
+msgstr "Регіони Огляду"
 
 
-msgid "Light"
-msgstr "Слабко"
+msgid "Select More/Less"
+msgstr "Вибрати більше/менше"
 
 
-msgid "Metaball"
-msgstr "Метакуля"
-
-
-msgid "Bone Roll"
-msgstr "Прокручення Кістки"
-
-
-msgid "Assign Material"
-msgstr "Призначити Матеріал"
-
-
-msgid "Text"
-msgstr "Текст"
-
-
-msgid "Kerning"
-msgstr "Кернінг"
-
-
-msgid "Special Characters"
-msgstr "Спеціальні символи"
-
-
-msgid "Select Loops"
-msgstr "Виділити петлі"
+msgid "Select Similar"
+msgstr "Вибрати подібні"
 
 
 msgid "Select All by Trait"
@@ -26623,8 +26511,120 @@ msgid "Select Linked"
 msgstr "Виділити пов'язане"
 
 
-msgid "Merge"
-msgstr "Об'єднання"
+msgid "Select Loops"
+msgstr "Виділити петлі"
+
+
+msgid "Assign Material"
+msgstr "Призначити Матеріал"
+
+
+msgid "Metaball"
+msgstr "Метакуля"
+
+
+msgid "Light"
+msgstr "Слабко"
+
+
+msgid "Light Probe"
+msgstr "Проба Освітлення"
+
+
+msgid "Add Image"
+msgstr "Додати Зображення"
+
+
+msgid "Relations"
+msgstr "Зв'язки"
+
+
+msgid "Rigid Body"
+msgstr "Тверде тіло"
+
+
+msgid "Apply"
+msgstr "Застосувати"
+
+
+msgid "Track"
+msgstr "Стеження"
+
+
+msgid "Quick Effects"
+msgstr "Швидкі ефекти"
+
+
+msgid "Show/Hide"
+msgstr "Показати/приховати"
+
+
+msgid "Clean Up"
+msgstr "Вичищення"
+
+
+msgid "Asset"
+msgstr "Актив"
+
+
+msgid "Make Single User"
+msgstr "Зробити однокористувацьким"
+
+
+msgid "Convert"
+msgstr "Конвертування"
+
+
+msgid "Link/Transfer Data"
+msgstr "Пов'язати/Перенести Дані"
+
+
+msgid "Hooks"
+msgstr "Гачки"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Ліплення Задати Опертя"
+
+
+msgid "Face Sets Init"
+msgstr "Ініціація Наборів Граней"
+
+
+msgid "Clear Transform"
+msgstr "Зчистити трансформації"
+
+
+msgid "In-Betweens"
+msgstr "У проміжках"
+
+
+msgid "Propagate"
+msgstr "Поширити"
+
+
+msgid "Names"
+msgstr "Назви"
+
+
+msgid "Toggle Bone Options"
+msgstr "Перемкнути параметри кісток"
+
+
+msgid "Enable Bone Options"
+msgstr "Увімкнути параметри кісток"
+
+
+msgid "Disable Bone Options"
+msgstr "Відключити параметри кісток"
+
+
+msgid "Mesh Select Mode"
+msgstr "Режим Вибору Сіті"
+
+
+msgid "Face Data"
+msgstr "Дані граней"
 
 
 msgid "Select by Face Strength"
@@ -26633,6 +26633,26 @@ msgstr "Вибрати за Силою Грані"
 
 msgid "Set Face Strength"
 msgstr "Задати Силу Грані"
+
+
+msgid "Merge"
+msgstr "Об'єднання"
+
+
+msgid "Special Characters"
+msgstr "Спеціальні символи"
+
+
+msgid "Kerning"
+msgstr "Кернінг"
+
+
+msgid "Text"
+msgstr "Текст"
+
+
+msgid "Bone Roll"
+msgstr "Прокручення Кістки"
 
 
 msgid "Basic"
@@ -56184,16 +56204,8 @@ msgid "Channel to place this strip into"
 msgstr "Канал, на якому розмістити цю смужку"
 
 
-msgid "Start frame of the sequence strip"
-msgstr "Початковий кадр смужки послідовності"
-
-
 msgid "Allow Overlap"
 msgstr "Дозволити перекриття"
-
-
-msgid "Don't correct overlap on new sequence strips"
-msgstr "Не виправляти перекриття на нових смужках"
 
 
 msgid "Replace Selection"
@@ -56328,10 +56340,6 @@ msgid "Initialize the strip with this color"
 msgstr "Ініціалізувати смужку з цим кольором"
 
 
-msgid "End frame for the color strip"
-msgstr "Кінцевий кадр колірної смужки"
-
-
 msgid "Sequencer effect type"
 msgstr "Тип ефекту відеорядника"
 
@@ -56441,36 +56449,16 @@ msgid "Add an image or image sequence to the sequencer"
 msgstr "Додати зображення або ряд зображень у відеорядник"
 
 
-msgid "Scale fit method"
-msgstr "Метод підгонки масштабу"
-
-
-msgid "Scale image to fit within the canvas"
-msgstr "Масштабувати зображення, щоб припасувати його в межах полотна"
-
-
 msgid "Scale to Fill"
 msgstr "Масштаб до Заповнення"
-
-
-msgid "Scale image to completely fill the canvas"
-msgstr "Масштабувати зображення, щоб повністю заповнити полотно"
 
 
 msgid "Stretch to Fill"
 msgstr "Розтяг до Заповнення"
 
 
-msgid "Stretch image to fill the canvas"
-msgstr "Розтягнути зображення, щоб заповнити полотно"
-
-
 msgid "Use Original Size"
 msgstr "Вжити Оригінальний Розмір"
-
-
-msgid "Keep image at its original size"
-msgstr "Утримати зображення в його оригінальному розмірі"
 
 
 msgctxt "Operator"
@@ -56965,22 +56953,6 @@ msgstr "Скинути трансформи локації, масштабу т�
 msgctxt "Operator"
 msgid "Strip Transform Set Fit"
 msgstr "Задання Підгонки Трансформи Смужки"
-
-
-msgid "Scale fit fit_method"
-msgstr "Підгонка масштабу fit_method"
-
-
-msgid "Scale image so fits in preview"
-msgstr "Масштабувати зображення, щоб вписати його в передогляд"
-
-
-msgid "Scale image so it fills preview completely"
-msgstr "Масштабувати зображення так, що воно заповнює передогляд повністю"
-
-
-msgid "Stretch image so it fills preview"
-msgstr "Розтягнути зображення так, що воно заповнює передогляд"
 
 
 msgctxt "Operator"
@@ -61575,24 +61547,44 @@ msgid "Panel containing UI elements"
 msgstr "Панель, що містить елементи Інтерфейсу Користувача"
 
 
-msgid "VR"
-msgstr "ВР"
+msgid "Active Tool"
+msgstr "Активний Засіб"
 
 
 msgid "View Lock"
 msgstr "Блокувати Огляд"
 
 
-msgid "Active Tool"
-msgstr "Активний Засіб"
+msgid "Shadow Settings"
+msgstr "Устави Тіні"
 
 
-msgid "Snapping"
-msgstr "Підхоплення"
+msgid "SSAO Settings"
+msgstr "Устави Загороди Оточення Простору Екрану"
 
 
-msgid "Auto-Masking"
-msgstr "Авто-Маскування"
+msgid "Cavity"
+msgstr "Порожнинність"
+
+
+msgid "Render Pass"
+msgstr "Прохід Рендера"
+
+
+msgid "Overlays"
+msgstr "Накладки"
+
+
+msgid "Guides"
+msgstr "Напрямні"
+
+
+msgid "Motion Tracking"
+msgstr "Відстеження руху"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Режим Редагування Сіті"
 
 
 msgid "Measurement"
@@ -61603,36 +61595,8 @@ msgid "Curve Edit Mode"
 msgstr "Режим Редагування Кривої"
 
 
-msgid "Stereoscopy"
-msgstr "Стереоскопія"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Режим Редагування Сіті"
-
-
-msgid "Motion Tracking"
-msgstr "Відстеження руху"
-
-
-msgid "Multi Frame"
-msgstr "Багато Кадр"
-
-
-msgid "Onion Skin"
-msgstr "Покрив Калькою"
-
-
-msgid "Quad View"
-msgstr "Чотирибічний Огляд"
-
-
-msgid "Guides"
-msgstr "Напрямні"
-
-
-msgid "Overlays"
-msgstr "Накладки"
+msgid "Snapping"
+msgstr "Підхоплення"
 
 
 msgid "Transform Orientations"
@@ -61643,24 +61607,32 @@ msgid "Stroke Placement"
 msgstr "Розміщення Штриха"
 
 
-msgid "Cavity"
-msgstr "Порожнинність"
-
-
 msgid "Drawing Plane"
 msgstr "Площина Рисування"
 
 
-msgid "Render Pass"
-msgstr "Прохід Рендера"
+msgid "Quad View"
+msgstr "Чотирибічний Огляд"
 
 
-msgid "SSAO Settings"
-msgstr "Устави Загороди Оточення Простору Екрану"
+msgid "Onion Skin"
+msgstr "Покрив Калькою"
 
 
-msgid "Shadow Settings"
-msgstr "Устави Тіні"
+msgid "Stereoscopy"
+msgstr "Стереоскопія"
+
+
+msgid "Multi Frame"
+msgstr "Багато Кадр"
+
+
+msgid "Auto-Masking"
+msgstr "Авто-Маскування"
+
+
+msgid "VR"
+msgstr "ВР"
 
 
 msgid "Chain Scaling"
@@ -66074,10 +66046,6 @@ msgid "AO Bounces Render"
 msgstr "Рендер з Відскоками Загороди Оточення"
 
 
-msgid "Bake Type"
-msgstr "Тип запікання"
-
-
 msgid "Type of pass to bake"
 msgstr "Тип проходу для запікання"
 
@@ -67174,26 +67142,6 @@ msgid "Rendering settings for a Scene data-block"
 msgstr "Устави рендерингу для блока даних сцени"
 
 
-msgid "Bias"
-msgstr "Відхил"
-
-
-msgid "Number of samples used for ambient occlusion baking from multires"
-msgstr "Кількість вибірок для запікання впливу середовища з багатороздільного"
-
-
-msgid "Choose shading information to bake into the image"
-msgstr "Виберіть тип відтінення для запікання в зображення"
-
-
-msgid "Bake normals"
-msgstr "Запекти нормалі"
-
-
-msgid "Bake displacement"
-msgstr "Запекти зміщення"
-
-
 msgid "Region Maximum X"
 msgstr "Максимум X Регіону"
 
@@ -67572,26 +67520,6 @@ msgstr "Автоматично визначати кількість поток�
 
 msgid "Manually determine the number of threads"
 msgstr "Вручну вказати число потоків"
-
-
-msgid "Clear Images before baking"
-msgstr "Зчистити зображення перед запіканням"
-
-
-msgid "Low Resolution Mesh"
-msgstr "Низько-роздільна сіть"
-
-
-msgid "Calculate heights against unsubdivided low resolution mesh"
-msgstr "Розрахувати висоти для непідподіленої низько-роздільної сіті"
-
-
-msgid "Bake from Multires"
-msgstr "Запекти за Багатороздільністю"
-
-
-msgid "Bake directly from multires object"
-msgstr "Запекти безпосередньо з об'єкту, що має модифікатор «Багатороздільність»"
 
 
 msgid "Render Region"
@@ -68702,6 +68630,10 @@ msgid "Brightness threshold for using sprite base depth of field"
 msgstr "Поріг яскравості для використання спрайта, базованого на глибині різкості"
 
 
+msgid "Bias"
+msgstr "Відхил"
+
+
 msgid "Trace Precision"
 msgstr "Точність простеження"
 
@@ -69116,6 +69048,10 @@ msgstr "Показ Хвилеформи"
 
 msgid "Sequencer Tool Settings"
 msgstr "Устави Засобу Секвенсера"
+
+
+msgid "Scale fit method"
+msgstr "Метод підгонки масштабу"
 
 
 msgid "Bounding Box Center"
@@ -82990,11 +82926,6 @@ msgstr "Наладнати Потужність Освітлювача"
 
 
 msgctxt "Operator"
-msgid "Adjust Spot Light Size"
-msgstr "Наладнати Розмір Прожектора"
-
-
-msgctxt "Operator"
 msgid "Adjust Spot Light Blend"
 msgstr "Наладнати Змішання Прожектора"
 
@@ -89986,10 +89917,6 @@ msgid "Nothing indicated"
 msgstr "Нічого не вказано"
 
 
-msgid "'%s': cannot use current file as library"
-msgstr "'%s': неможливо використати поточний файл як бібліотеку"
-
-
 msgid "'%s': nothing indicated"
 msgstr "'%s': нічого не вказано"
 
@@ -90000,6 +89927,10 @@ msgstr "'%s': не є бібліотекою"
 
 msgid "Scene '%s' is linked, instantiation of objects is disabled"
 msgstr "Сцена '%s' є пов'язаною, примірникування об'єктів вимкнено"
+
+
+msgid "'%s': cannot use current file as library"
+msgstr "'%s': неможливо використати поточний файл як бібліотеку"
 
 
 msgid "'%s' is not a valid library filepath"

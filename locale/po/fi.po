@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68abaa12d581')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-18 09:16+0000\n"
+"POT-Creation-Date: 2025-08-25 08:31+0000\n"
 "PO-Revision-Date: 2025-07-23 15:32+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -1417,6 +1417,10 @@ msgstr "Kohde"
 
 msgid "Image Textures"
 msgstr "Kuvatekstuurit"
+
+
+msgid "Normals"
+msgstr "Normaalit"
 
 
 msgid "Automatic Name"
@@ -6298,10 +6302,6 @@ msgid "Small Caps"
 msgstr "Pienet kirjaimet"
 
 
-msgid "Normals"
-msgstr "Normaalit"
-
-
 msgid "Node Tree"
 msgstr "Noodipuu"
 
@@ -7268,8 +7268,52 @@ msgid "Mask"
 msgstr "Maski"
 
 
-msgid "Mesh Select Mode"
-msgstr "Muodon valintatila"
+msgid "UV Mapping"
+msgstr "UV-kartoittaminen"
+
+
+msgid "Select More/Less"
+msgstr "Valitse enemmän/vähemmän"
+
+
+msgid "Select Similar"
+msgstr "Valitse samankaltainen"
+
+
+msgid "Select All by Trait"
+msgstr "Valitse kaikki piirteen mukaan"
+
+
+msgid "Select Loops"
+msgstr "Valitse silmukat"
+
+
+msgid "Metaball"
+msgstr "Metapallo"
+
+
+msgid "Light"
+msgstr "Valo"
+
+
+msgid "Light Probe"
+msgstr "Valoluotain"
+
+
+msgid "Add Image"
+msgstr "Lisää kuva"
+
+
+msgid "Track"
+msgstr "Raide"
+
+
+msgid "Show/Hide"
+msgstr "Näytä/Piilota"
+
+
+msgid "Hooks"
+msgstr "Koukut"
 
 
 msgid "Random Mask"
@@ -7280,56 +7324,12 @@ msgid "Names"
 msgstr "Nimet"
 
 
-msgid "Show/Hide"
-msgstr "Näytä/Piilota"
-
-
-msgid "UV Mapping"
-msgstr "UV-kartoittaminen"
-
-
-msgid "Hooks"
-msgstr "Koukut"
-
-
-msgid "Select Similar"
-msgstr "Valitse samankaltainen"
-
-
-msgid "Select More/Less"
-msgstr "Valitse enemmän/vähemmän"
-
-
-msgid "Track"
-msgstr "Raide"
-
-
-msgid "Add Image"
-msgstr "Lisää kuva"
-
-
-msgid "Light Probe"
-msgstr "Valoluotain"
-
-
-msgid "Light"
-msgstr "Valo"
-
-
-msgid "Metaball"
-msgstr "Metapallo"
+msgid "Mesh Select Mode"
+msgstr "Muodon valintatila"
 
 
 msgid "Text"
 msgstr "Teksti"
-
-
-msgid "Select Loops"
-msgstr "Valitse silmukat"
-
-
-msgid "Select All by Trait"
-msgstr "Valitse kaikki piirteen mukaan"
 
 
 msgid "Basic"
@@ -10528,15 +10528,6 @@ msgstr "Kursorin sijainti"
 
 msgid "Edit Tree"
 msgstr "Muokkaa puuta"
-
-
-msgid "Node Tool Tree"
-msgstr "Noodityökalupuu"
-
-
-msgctxt "ID"
-msgid "Geometry Nodes Type"
-msgstr "Geometrianoodien tyyppi"
 
 
 msgctxt "ID"

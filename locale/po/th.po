@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68abaa12d581')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-18 09:16+0000\n"
+"POT-Creation-Date: 2025-08-25 08:31+0000\n"
 "PO-Revision-Date: 2025-07-23 15:06+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -552,6 +552,10 @@ msgstr "ภายนอก"
 
 msgid "Target"
 msgstr "เป้าหมาย"
+
+
+msgid "Normals"
+msgstr "แนวฉาก"
 
 
 msgid "Clear"
@@ -1342,10 +1346,6 @@ msgid "Font Size"
 msgstr "ขนาดฟอนต์"
 
 
-msgid "Normals"
-msgstr "แนวฉาก"
-
-
 msgid "Square"
 msgstr "สี่เหลี่ยม"
 
@@ -1865,88 +1865,88 @@ msgid "Mask"
 msgstr "หน้ากาก"
 
 
-msgid "Face Data"
-msgstr "ข้อมูลด้าน"
-
-
-msgid "Mask Edit"
-msgstr "การแก้ไขหน้ากาก"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "แก้ไข"
+msgid "Pivot Point"
+msgstr "จุดหมุน"
 
 
 msgid "Snap"
 msgstr "ยึดติด"
 
 
-msgid "Pivot Point"
-msgstr "จุดหมุน"
+msgid "Proportional Editing Falloff"
+msgstr "แก้ไข"
 
 
-msgid "Apply"
-msgstr "นำไปใช้"
-
-
-msgid "Names"
-msgstr "ชื่อ"
-
-
-msgid "Local View"
-msgstr "มุมมองท้องถิ่น"
+msgid "Mask Edit"
+msgstr "การแก้ไขหน้ากาก"
 
 
 msgid "Mirror"
 msgstr "กระจกสะท้อน"
 
 
-msgid "Hooks"
-msgstr "ตะขอ"
-
-
-msgid "View Regions"
-msgstr "ขอบเขตมุมมอง"
-
-
-msgid "Align View to Active"
-msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
-
-
-msgid "Track"
-msgstr "แทร็ค"
-
-
-msgid "Align View"
-msgstr "จัดมุมมอง"
-
-
-msgid "Navigation"
-msgstr "การนำทาง"
+msgid "Local View"
+msgstr "มุมมองท้องถิ่น"
 
 
 msgid "Viewpoint"
 msgstr "จุดของมุมมอง"
 
 
-msgid "Add Image"
-msgstr "เพิ่มภาพ"
+msgid "Navigation"
+msgstr "การนำทาง"
 
 
-msgid "Light"
-msgstr "แสง"
+msgid "Align View"
+msgstr "จัดมุมมอง"
+
+
+msgid "Align View to Active"
+msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
+
+
+msgid "View Regions"
+msgstr "ขอบเขตมุมมอง"
 
 
 msgid "Metaball"
 msgstr "เมตาบอล"
 
 
-msgid "Text"
-msgstr "ช้อความ"
+msgid "Light"
+msgstr "แสง"
+
+
+msgid "Add Image"
+msgstr "เพิ่มภาพ"
+
+
+msgid "Apply"
+msgstr "นำไปใช้"
+
+
+msgid "Track"
+msgstr "แทร็ค"
+
+
+msgid "Hooks"
+msgstr "ตะขอ"
+
+
+msgid "Names"
+msgstr "ชื่อ"
+
+
+msgid "Face Data"
+msgstr "ข้อมูลด้าน"
 
 
 msgid "Merge"
 msgstr "ผสาน"
+
+
+msgid "Text"
+msgstr "ช้อความ"
 
 
 msgid "Zoom"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68abaa12d581')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-18 09:16+0000\n"
+"POT-Creation-Date: 2025-08-25 08:31+0000\n"
 "PO-Revision-Date: 2025-07-23 15:14+0000\n"
 "Last-Translator: Kamil <uhkamil@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -1961,6 +1961,22 @@ msgid "Image Textures"
 msgstr "Tekstury obrazu"
 
 
+msgid "Bake Type"
+msgstr "Rodzaj wypalania"
+
+
+msgid "Normals"
+msgstr "Wektory normalne"
+
+
+msgid "Bake normals"
+msgstr "Wypal wektory normalne"
+
+
+msgid "Displacement"
+msgstr "Przemieszczenie"
+
+
 msgid "Automatic Name"
 msgstr "Nazwa automatyczna"
 
@@ -1983,6 +1999,14 @@ msgstr "Wyczyść"
 
 msgid "Clear Images before baking (internal only)"
 msgstr "Wyczyść obraz przed obliczeniami (tylko użycie wewnętrzne)"
+
+
+msgid "Bake from Multires"
+msgstr "Wypal wieloskalowo"
+
+
+msgid "Bake directly from multires object"
+msgstr "Wypala bezpośrednio z obiektu wieloskalowego"
 
 
 msgid "Selected to Active"
@@ -4449,10 +4473,6 @@ msgstr "Zarządzaniem kolorem zależne od urządzenia wyświetlającego"
 
 msgid "Display Device"
 msgstr "Urządzenie wyświetlające"
-
-
-msgid "Display device name"
-msgstr "Nazwa urządzenia wyświetlającego"
 
 
 msgid "Input color space settings"
@@ -7301,10 +7321,6 @@ msgid "Brush Collection"
 msgstr "Kolekcja pędzli"
 
 
-msgid "Displacement"
-msgstr "Przemieszczenie"
-
-
 msgid "Approximately in how many frames should dissolve happen"
 msgstr "Przybliżona ilość klatek w których powinno się rozłożyć"
 
@@ -9761,10 +9777,6 @@ msgid "Y Offset"
 msgstr "Odstęp Y"
 
 
-msgid "Normals"
-msgstr "Wektory normalne"
-
-
 msgid "Mean"
 msgstr "Średnia"
 
@@ -11572,40 +11584,68 @@ msgid "Mask"
 msgstr "Maska"
 
 
-msgid "Face Data"
-msgstr "Dane ściany"
+msgid "Snap"
+msgstr "Przyciągnij"
 
 
 msgid "Proportional Editing Falloff"
 msgstr "Proporcjonalne edytowanie spadku"
 
 
-msgid "Snap"
-msgstr "Przyciągnij"
-
-
-msgid "Apply"
-msgstr "Zastosuj"
-
-
-msgid "Bone Collections"
-msgstr "Kolekcja kości"
-
-
-msgid "Show/Hide"
-msgstr "Pokaż/Ukryj"
+msgid "Mirror"
+msgstr "Odbicie lustrzane"
 
 
 msgid "Local View"
 msgstr "Widok lokalny"
 
 
-msgid "Mirror"
-msgstr "Odbicie lustrzane"
+msgid "Viewpoint"
+msgstr "Punkt obserwacji"
 
 
-msgid "Convert"
-msgstr "Konwertuj"
+msgid "Navigation"
+msgstr "Nawigacja"
+
+
+msgid "Select Linked"
+msgstr "Zaznacz powiązane"
+
+
+msgid "Assign Material"
+msgstr "Przypisanie materiału"
+
+
+msgid "Metaball"
+msgstr "Metakula"
+
+
+msgid "Light"
+msgstr "Światło"
+
+
+msgid "Light Probe"
+msgstr "Sonda świetlna"
+
+
+msgid "Rigid Body"
+msgstr "Bryła sztywna"
+
+
+msgid "Apply"
+msgstr "Zastosuj"
+
+
+msgid "Track"
+msgstr "Ścieżka"
+
+
+msgid "Quick Effects"
+msgstr "Szybkie efekty"
+
+
+msgid "Show/Hide"
+msgstr "Pokaż/Ukryj"
 
 
 msgid "Clean Up"
@@ -11616,52 +11656,24 @@ msgid "Asset"
 msgstr "Prefabrykat"
 
 
-msgid "Quick Effects"
-msgstr "Szybkie efekty"
+msgid "Convert"
+msgstr "Konwertuj"
 
 
-msgid "Track"
-msgstr "Ścieżka"
+msgid "Bone Collections"
+msgstr "Kolekcja kości"
 
 
-msgid "Navigation"
-msgstr "Nawigacja"
-
-
-msgid "Viewpoint"
-msgstr "Punkt obserwacji"
-
-
-msgid "Rigid Body"
-msgstr "Bryła sztywna"
-
-
-msgid "Light Probe"
-msgstr "Sonda świetlna"
-
-
-msgid "Light"
-msgstr "Światło"
-
-
-msgid "Metaball"
-msgstr "Metakula"
-
-
-msgid "Assign Material"
-msgstr "Przypisanie materiału"
-
-
-msgid "Text"
-msgstr "Tekst"
-
-
-msgid "Select Linked"
-msgstr "Zaznacz powiązane"
+msgid "Face Data"
+msgstr "Dane ściany"
 
 
 msgid "Merge"
 msgstr "Scal"
+
+
+msgid "Text"
+msgstr "Tekst"
 
 
 msgid "Catalog"
@@ -17361,8 +17373,20 @@ msgid "Active Tool"
 msgstr "Aktywne narzędzie"
 
 
-msgid "Snapping"
-msgstr "Przyciąganie"
+msgid "Shadow Settings"
+msgstr "Ustawienia cienia"
+
+
+msgid "Compositor"
+msgstr "Kompozytor"
+
+
+msgid "Motion Tracking"
+msgstr "Śledzenie ruchu"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Tryb edycji siatki"
 
 
 msgid "Measurement"
@@ -17373,24 +17397,12 @@ msgid "Curve Edit Mode"
 msgstr "Tryb edycji krzywej"
 
 
-msgid "Mesh Edit Mode"
-msgstr "Tryb edycji siatki"
-
-
-msgid "Motion Tracking"
-msgstr "Śledzenie ruchu"
+msgid "Snapping"
+msgstr "Przyciąganie"
 
 
 msgid "Transform Orientations"
 msgstr "Orientacje przekształcenia"
-
-
-msgid "Compositor"
-msgstr "Kompozytor"
-
-
-msgid "Shadow Settings"
-msgstr "Ustawienia cienia"
 
 
 msgid "Aperture"
@@ -18158,10 +18170,6 @@ msgid "Use Denoising"
 msgstr "Używa odszymiania"
 
 
-msgid "Bake Type"
-msgstr "Rodzaj wypalania"
-
-
 msgid "Denoiser"
 msgstr "Odszumiacz"
 
@@ -18430,10 +18438,6 @@ msgid "Hydra Render Engine"
 msgstr "Silnik renderowania Hydra"
 
 
-msgid "Bake normals"
-msgstr "Wypal wektory normalne"
-
-
 msgid "GPU"
 msgstr "Procesor graficzny"
 
@@ -18484,14 +18488,6 @@ msgstr "Kolor tekstu"
 
 msgid "Automatically determine the number of threads, based on CPUs"
 msgstr "Automatycznie określa liczbę wątków na podstawie procesora"
-
-
-msgid "Bake from Multires"
-msgstr "Wypal wieloskalowo"
-
-
-msgid "Bake directly from multires object"
-msgstr "Wypala bezpośrednio z obiektu wieloskalowego"
 
 
 msgid "Render Region"

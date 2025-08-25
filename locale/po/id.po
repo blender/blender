@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68abaa12d581')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-18 09:16+0000\n"
+"POT-Creation-Date: 2025-08-25 08:31+0000\n"
 "PO-Revision-Date: 2025-07-23 14:57+0000\n"
 "Last-Translator: Michael Tribayu Jatnika Natawiria <mike.natawiria@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -2573,6 +2573,18 @@ msgstr "Bakar data-blok gambar yang berkaitan dengan node tekstur gambar aktif d
 
 msgid "Bake to the active color attribute on meshes"
 msgstr "Panggang ke atribut warna aktif di jala"
+
+
+msgid "Bake Type"
+msgstr "Tipe Bake"
+
+
+msgid "Normals"
+msgstr "Normal"
+
+
+msgid "Displacement"
+msgstr "Pemindahan"
 
 
 msgid "Automatic Name"
@@ -6392,10 +6404,6 @@ msgid "Display Device"
 msgstr "Perangkat Tampilan"
 
 
-msgid "Display device name"
-msgstr "Nama perangkat tampilan"
-
-
 msgid "Input color space settings"
 msgstr "Pengaturan spasi warna masukan"
 
@@ -9062,10 +9070,6 @@ msgstr "Koleksi Cat"
 
 msgid "Color Dry"
 msgstr "Kering Warna"
-
-
-msgid "Displacement"
-msgstr "Pemindahan"
 
 
 msgid "Acceleration"
@@ -12380,10 +12384,6 @@ msgid "Textboxes"
 msgstr "Tekstur"
 
 
-msgid "Normals"
-msgstr "Normal"
-
-
 msgid "Surface UV Map"
 msgstr "Peta UV Permukaan"
 
@@ -15319,64 +15319,64 @@ msgid "Snap"
 msgstr "Jepret"
 
 
-msgid "Apply"
-msgstr "Tetapkan"
-
-
-msgid "Names"
-msgstr "Nama"
-
-
 msgid "Mirror"
 msgstr "Cermin"
-
-
-msgid "Hooks"
-msgstr "Kait"
-
-
-msgid "Asset"
-msgstr "Aset"
-
-
-msgid "Track"
-msgstr "Lacak"
 
 
 msgid "Navigation"
 msgstr "Navigasi"
 
 
-msgid "Add Image"
-msgstr "Tambah Gambar"
-
-
-msgid "Light Probe"
-msgstr "Probe Cahaya"
-
-
-msgid "Light"
-msgstr "Cahaya"
-
-
-msgid "Metaball"
-msgstr "Metabola"
+msgid "Select Linked"
+msgstr "Seleksi yang Terhubung"
 
 
 msgid "Assign Material"
 msgstr "Tugaskan Bahan"
 
 
-msgid "Text"
-msgstr "Teks"
+msgid "Metaball"
+msgstr "Metabola"
 
 
-msgid "Select Linked"
-msgstr "Seleksi yang Terhubung"
+msgid "Light"
+msgstr "Cahaya"
+
+
+msgid "Light Probe"
+msgstr "Probe Cahaya"
+
+
+msgid "Add Image"
+msgstr "Tambah Gambar"
+
+
+msgid "Apply"
+msgstr "Tetapkan"
+
+
+msgid "Track"
+msgstr "Lacak"
+
+
+msgid "Asset"
+msgstr "Aset"
+
+
+msgid "Hooks"
+msgstr "Kait"
+
+
+msgid "Names"
+msgstr "Nama"
 
 
 msgid "Merge"
 msgstr "Menggabungkan"
+
+
+msgid "Text"
+msgstr "Teks"
 
 
 msgctxt "MovieClip"
@@ -25492,10 +25492,6 @@ msgid "AO Bounces Render"
 msgstr "AO Memantul Render"
 
 
-msgid "Bake Type"
-msgstr "Tipe Bake"
-
-
 msgid "Adaptively blur glossy shaders after blurry bounces, to reduce noise at the cost of accuracy"
 msgstr "Secara adaptif blur shader glossy setelah blur memantul, untuk mengurangi noise dengan mengorbankan akurasi"
 
@@ -32071,10 +32067,6 @@ msgid "Nothing indicated"
 msgstr "Tidak ada yang berindikasi"
 
 
-msgid "'%s': cannot use current file as library"
-msgstr "'%s': tidak dapat menggunakan file sekarang sebagai perpustakaan"
-
-
 msgid "'%s': nothing indicated"
 msgstr "'%s': tidak terindikasi"
 
@@ -32085,6 +32077,10 @@ msgstr "'%s': bukan perpustakaan"
 
 msgid "Scene '%s' is linked, instantiation of objects is disabled"
 msgstr "Adegan '%s' telah dihubungkan, instantiasi objek telah dinonaktifkan"
+
+
+msgid "'%s': cannot use current file as library"
+msgstr "'%s': tidak dapat menggunakan file sekarang sebagai perpustakaan"
 
 
 msgid "'%s' is not a valid library filepath"

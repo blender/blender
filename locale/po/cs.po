@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68abaa12d581')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-18 09:16+0000\n"
+"POT-Creation-Date: 2025-08-25 08:31+0000\n"
 "PO-Revision-Date: 2025-07-23 15:14+0000\n"
 "Last-Translator: Jan Vavřínek <janvavrinek1@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -2036,6 +2036,22 @@ msgid "Image Textures"
 msgstr "Obrázkové Textury"
 
 
+msgid "Normals"
+msgstr "Normály"
+
+
+msgid "Bake normals"
+msgstr "Bake normálních map"
+
+
+msgid "Displacement"
+msgstr "Displacement"
+
+
+msgid "Bake displacement"
+msgstr "Bake displacement"
+
+
 msgid "Automatic Name"
 msgstr "Automatický název"
 
@@ -2046,6 +2062,18 @@ msgstr "Klec"
 
 msgid "Clear"
 msgstr "Vyčistit"
+
+
+msgid "Low Resolution Mesh"
+msgstr "Jemnost dělení"
+
+
+msgid "Bake from Multires"
+msgstr "Bake z Multires"
+
+
+msgid "Bake directly from multires object"
+msgstr "Bake přímo z multires objektu"
 
 
 msgid "Selected to Active"
@@ -4279,10 +4307,6 @@ msgid "Display Device"
 msgstr "Zobrazovací Nástroj"
 
 
-msgid "Display device name"
-msgstr "Název zobrazovacího nástroje"
-
-
 msgid "Input color space settings"
 msgstr "Nastavení vstupního barevného prostoru"
 
@@ -6411,10 +6435,6 @@ msgstr "Maximální Dislokace"
 
 msgid "Displace Factor"
 msgstr "Faktor Dislokace"
-
-
-msgid "Displacement"
-msgstr "Displacement"
 
 
 msgid "Acceleration"
@@ -9541,10 +9561,6 @@ msgid "Don't fill polygons while editing"
 msgstr "Typ filtru"
 
 
-msgid "Normals"
-msgstr "Normály"
-
-
 msgid "Enable symmetry in the X axis"
 msgstr "Povolit symetrii podle osy X"
 
@@ -10005,14 +10021,6 @@ msgstr "Zobrazit Kužel"
 
 msgid "Spot Blend"
 msgstr "Přechod"
-
-
-msgid "Spot Size"
-msgstr "Velikost fontu:   8"
-
-
-msgid "Angle of the spotlight beam"
-msgstr "Velikost štětce"
 
 
 msgid "Sun Light"
@@ -13882,124 +13890,124 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
-msgid "Face Data"
-msgstr "Data Ploch"
-
-
-msgid "Mesh Select Mode"
-msgstr "Síťový mód výběru"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Způsob útlumu"
+msgid "Pivot Point"
+msgstr "Bod pro pivot"
 
 
 msgid "Snap"
 msgstr "Přichytit"
 
 
-msgid "Pivot Point"
-msgstr "Bod pro pivot"
-
-
-msgid "Apply"
-msgstr "Použít"
-
-
-msgid "Names"
-msgstr "Názvy"
-
-
-msgid "Show/Hide"
-msgstr "Zobrazit/skrýt"
-
-
-msgid "Local View"
-msgstr "Lokální pohled"
-
-
-msgid "Propagate"
-msgstr "Vložit"
-
-
-msgid "UV Mapping"
-msgstr "UV mapování"
-
-
-msgid "Clear Transform"
-msgstr "Vyčistit transformaci"
+msgid "Proportional Editing Falloff"
+msgstr "Způsob útlumu"
 
 
 msgid "Mirror"
 msgstr "Zrcadlit"
 
 
-msgid "Hooks"
-msgstr "Háky"
+msgid "UV Mapping"
+msgstr "UV mapování"
 
 
-msgid "Make Single User"
-msgstr "Přivlastnit"
-
-
-msgid "Clean Up"
-msgstr "Vyčistit"
-
-
-msgid "Quick Effects"
-msgstr "Rychlé Efekty"
-
-
-msgid "Track"
-msgstr "Sledování"
-
-
-msgid "Align View"
-msgstr "Zarovnat pohled"
+msgid "Local View"
+msgstr "Lokální pohled"
 
 
 msgid "Navigation"
 msgstr "Navigace"
 
 
-msgid "Rigid Body"
-msgstr "Tuhé Těleso"
-
-
-msgid "Relations"
-msgstr "Vztahy"
-
-
-msgid "Light"
-msgstr "Světlo"
-
-
-msgid "Metaball"
-msgstr "Meta objekt"
-
-
-msgid "Bone Roll"
-msgstr "Kost"
-
-
-msgid "Assign Material"
-msgstr "Přiřadit Materiál"
-
-
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Special Characters"
-msgstr "Speciální Znaky"
+msgid "Align View"
+msgstr "Zarovnat pohled"
 
 
 msgid "Select Linked"
 msgstr "Vybrat Propojené"
 
 
+msgid "Assign Material"
+msgstr "Přiřadit Materiál"
+
+
+msgid "Metaball"
+msgstr "Meta objekt"
+
+
+msgid "Light"
+msgstr "Světlo"
+
+
+msgid "Relations"
+msgstr "Vztahy"
+
+
+msgid "Rigid Body"
+msgstr "Tuhé Těleso"
+
+
+msgid "Apply"
+msgstr "Použít"
+
+
+msgid "Track"
+msgstr "Sledování"
+
+
+msgid "Quick Effects"
+msgstr "Rychlé Efekty"
+
+
+msgid "Show/Hide"
+msgstr "Zobrazit/skrýt"
+
+
+msgid "Clean Up"
+msgstr "Vyčistit"
+
+
+msgid "Make Single User"
+msgstr "Přivlastnit"
+
+
+msgid "Hooks"
+msgstr "Háky"
+
+
+msgid "Clear Transform"
+msgstr "Vyčistit transformaci"
+
+
+msgid "Propagate"
+msgstr "Vložit"
+
+
+msgid "Names"
+msgstr "Názvy"
+
+
+msgid "Mesh Select Mode"
+msgstr "Síťový mód výběru"
+
+
+msgid "Face Data"
+msgstr "Data Ploch"
+
+
 msgid "Merge"
 msgstr "Sloučit"
+
+
+msgid "Special Characters"
+msgstr "Speciální Znaky"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Bone Roll"
+msgstr "Kost"
 
 
 msgid "Basic"
@@ -27988,16 +27996,8 @@ msgid "Use HC method for relaxation"
 msgstr "Orientace manipulátorů (Klávesová zkratka: Alt Space)"
 
 
-msgid "Start frame of the sequence strip"
-msgstr "První frame animace"
-
-
 msgid "Allow Overlap"
 msgstr "Povolit Překrytí"
-
-
-msgid "Don't correct overlap on new sequence strips"
-msgstr "První frame animace"
 
 
 msgid "Replace Selection"
@@ -30740,20 +30740,40 @@ msgid "Restrict"
 msgstr "Omezit"
 
 
-msgid "View Lock"
-msgstr "Zámek zobrazení"
-
-
 msgid "Active Tool"
 msgstr "Aktivní nástroj"
 
 
-msgid "Snapping"
-msgstr "Přichytávání"
+msgid "View Lock"
+msgstr "Zámek zobrazení"
 
 
-msgid "Auto-Masking"
-msgstr "Auto-Maska"
+msgid "Shadow Settings"
+msgstr "Nastavení Stínů"
+
+
+msgid "SSAO Settings"
+msgstr "Nastavení SSAO"
+
+
+msgid "Cavity"
+msgstr "Dutina"
+
+
+msgid "Overlays"
+msgstr "Překrytí"
+
+
+msgid "Guides"
+msgstr "Vodítka"
+
+
+msgid "Motion Tracking"
+msgstr "Sledování Pohybu"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Editační Režim Sítě"
 
 
 msgid "Measurement"
@@ -30764,40 +30784,20 @@ msgid "Curve Edit Mode"
 msgstr "Editační Režim Křivky"
 
 
-msgid "Stereoscopy"
-msgstr "Stereoskopie"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Editační Režim Sítě"
-
-
-msgid "Motion Tracking"
-msgstr "Sledování Pohybu"
-
-
-msgid "Guides"
-msgstr "Vodítka"
-
-
-msgid "Overlays"
-msgstr "Překrytí"
+msgid "Snapping"
+msgstr "Přichytávání"
 
 
 msgid "Transform Orientations"
 msgstr "Orientace transformací"
 
 
-msgid "Cavity"
-msgstr "Dutina"
+msgid "Stereoscopy"
+msgstr "Stereoskopie"
 
 
-msgid "SSAO Settings"
-msgstr "Nastavení SSAO"
-
-
-msgid "Shadow Settings"
-msgstr "Nastavení Stínů"
+msgid "Auto-Masking"
+msgstr "Auto-Maska"
 
 
 msgid "Chain Scaling"
@@ -33613,14 +33613,6 @@ msgid "Render Strands in this Layer"
 msgstr "Přerenderovat tuto vrstvu"
 
 
-msgid "Bake normals"
-msgstr "Bake normálních map"
-
-
-msgid "Bake displacement"
-msgstr "Bake displacement"
-
-
 msgid "Engine to use for rendering"
 msgstr "Engine použitý pro render"
 
@@ -33839,18 +33831,6 @@ msgstr "Režim Vláken"
 
 msgid "Auto-Detect"
 msgstr "Auto-Detekce"
-
-
-msgid "Low Resolution Mesh"
-msgstr "Jemnost dělení"
-
-
-msgid "Bake from Multires"
-msgstr "Bake z Multires"
-
-
-msgid "Bake directly from multires object"
-msgstr "Bake přímo z multires objektu"
 
 
 msgid "Render Region"
@@ -40762,11 +40742,6 @@ msgstr "Umístění objektu"
 msgctxt "Operator"
 msgid "Adjust Light Power"
 msgstr "Upravit Sílu Světla"
-
-
-msgctxt "Operator"
-msgid "Adjust Spot Light Size"
-msgstr "Upravit Velikost Bodového Světla"
 
 
 msgctxt "Operator"

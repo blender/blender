@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68abaa12d581')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-18 09:16+0000\n"
-"PO-Revision-Date: 2025-07-23 14:58+0000\n"
-"Last-Translator: Pastean_Narcis_Dan <dedeye1001@gmail.com>\n"
+"POT-Creation-Date: 2025-08-25 08:31+0000\n"
+"PO-Revision-Date: 2025-08-23 04:59+0000\n"
+"Last-Translator: Dominic Iastrebschi <domjotebit@gmail.com>\n"
 "Language-Team: Romanian <https://translate.blender.org/projects/blender-ui/ui/ro/>\n"
 "Language: ro\n"
 "MIME-Version: 1.0\n"
@@ -2070,6 +2070,10 @@ msgid "Edit"
 msgstr "Editare"
 
 
+msgid "Sculpt"
+msgstr "Sculptare"
+
+
 msgid "Tool"
 msgstr "Instrument"
 
@@ -2122,6 +2126,10 @@ msgid "Animation"
 msgstr "Animație"
 
 
+msgid "Simulation"
+msgstr "Simulare"
+
+
 msgid "Color Management"
 msgstr "Gestionarea Culorii"
 
@@ -2144,20 +2152,20 @@ msgid "Sampling"
 msgstr "Eșantionare"
 
 
-msgid "Apply"
-msgstr "Aplicare"
-
-
-msgid "Convert"
-msgstr "Convertire"
+msgid "Light"
+msgstr "Lumină"
 
 
 msgid "Add Image"
 msgstr "Adăugare Imagine"
 
 
-msgid "Light"
-msgstr "Lumină"
+msgid "Apply"
+msgstr "Aplicare"
+
+
+msgid "Convert"
+msgstr "Convertire"
 
 
 msgid "Marker"

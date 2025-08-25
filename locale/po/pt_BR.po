@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68abaa12d581')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-08-18 09:16+0000\n"
+"POT-Creation-Date: 2025-08-25 08:31+0000\n"
 "PO-Revision-Date: 2025-07-23 15:03+0000\n"
 "Last-Translator: Amy Lily <lillya.assist@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -2297,6 +2297,30 @@ msgid "Where to output the baked map"
 msgstr "Onde gerar o mapa preparado"
 
 
+msgid "Bake Type"
+msgstr "Tipo de geração e e gravação"
+
+
+msgid "Choose shading information to bake into the image"
+msgstr "Permite escolher as informações de sombreamento para gerar e gravar dentro da imagem."
+
+
+msgid "Normals"
+msgstr "Normais"
+
+
+msgid "Bake normals"
+msgstr "Gera e grava as normais."
+
+
+msgid "Displacement"
+msgstr "Deslocamento"
+
+
+msgid "Bake displacement"
+msgstr "Gera e grava o deslocamento."
+
+
 msgid "Automatic Name"
 msgstr "Nomear automaticamente"
 
@@ -2319,6 +2343,22 @@ msgstr "Limpar"
 
 msgid "Clear Images before baking (internal only)"
 msgstr "Limpa as imagens antes de gerar e gravar (somente internamente)"
+
+
+msgid "Low Resolution Mesh"
+msgstr "Malha de baixa resolução"
+
+
+msgid "Calculate heights against unsubdivided low resolution mesh"
+msgstr "Calcula as alturas contra as malhas de baixa resolução não subdivididas."
+
+
+msgid "Bake from Multires"
+msgstr "Gerar e gravar a partir da multirresolução"
+
+
+msgid "Bake directly from multires object"
+msgstr "Gera e grava diretamente a partir de um objeto multirresolução."
 
 
 msgid "Color the pass"
@@ -4946,10 +4986,6 @@ msgstr "Gerenciamento de cores específica para o dispositivo de exibição."
 
 msgid "Display Device"
 msgstr "Dispositivo de exibição"
-
-
-msgid "Display device name"
-msgstr "Mostra o nome do dispositivo de exibição."
 
 
 msgid "Input color space settings"
@@ -8124,10 +8160,6 @@ msgstr "Fator de deslocamento"
 
 msgid "Strength of displace when applied to the mesh"
 msgstr "Potência do deslocamento quando aplicado a malha."
-
-
-msgid "Displacement"
-msgstr "Deslocamento"
 
 
 msgid "Approximately in how many frames should dissolve happen"
@@ -13135,10 +13167,6 @@ msgid "Don't fill polygons while editing"
 msgstr "Não preenche os polígonos durante a edição."
 
 
-msgid "Normals"
-msgstr "Normais"
-
-
 msgid "Freestyle Line Style"
 msgstr "Freestyle - Estilos de linhas"
 
@@ -14240,14 +14268,6 @@ msgstr "Mescla para o foco"
 
 msgid "The softness of the spotlight edge"
 msgstr "A suavidade das arestas da iluminação da lâmpada focal."
-
-
-msgid "Spot Size"
-msgstr "Tamanho do foco"
-
-
-msgid "Angle of the spotlight beam"
-msgstr "Ângulo do farol da lâmpada focal."
 
 
 msgid "Cast a square spot light shape"
@@ -21296,168 +21316,56 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Face Data"
-msgstr "Dados das faces"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modo de seleção de malhas"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Tipo de decaimento para edição proporcional"
-
-
-msgid "Disable Bone Options"
-msgstr "Desabilitar as opções de ossos"
+msgid "Pivot Point"
+msgstr "Pontos de pivô"
 
 
 msgid "Snap"
 msgstr "Atrair"
 
 
-msgid "Enable Bone Options"
-msgstr "Habilitar opções de ossos"
-
-
-msgid "Toggle Bone Options"
-msgstr "Alternar opções de ossos"
-
-
-msgid "Pivot Point"
-msgstr "Pontos de pivô"
-
-
-msgid "Apply"
-msgstr "Aplicar"
-
-
-msgid "Random Mask"
-msgstr "Máscara Aleatória"
-
-
-msgid "Names"
-msgstr "Nomes"
-
-
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
-
-
-msgid "Local View"
-msgstr "Visão local"
-
-
-msgid "Propagate"
-msgstr "Propagar"
-
-
-msgid "In-Betweens"
-msgstr "Entre as continuidades"
-
-
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
-
-
-msgid "Clear Transform"
-msgstr "Limpar transformações"
+msgid "Proportional Editing Falloff"
+msgstr "Tipo de decaimento para edição proporcional"
 
 
 msgid "Mirror"
 msgstr "Espelhar"
 
 
-msgid "Hooks"
-msgstr "Ganchos"
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
 
 
-msgid "Select Similar"
-msgstr "Selecionar por similaridades"
-
-
-msgid "Convert"
-msgstr "Converter"
-
-
-msgid "Make Single User"
-msgstr "Tornar usuário único"
-
-
-msgid "Select More/Less"
-msgstr "Selecionar mais ou menos"
-
-
-msgid "Clean Up"
-msgstr "Limpeza"
-
-
-msgid "Quick Effects"
-msgstr "Efeitos instantâneos"
-
-
-msgid "View Regions"
-msgstr "Visualizar Regiões"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o ativo"
-
-
-msgid "Track"
-msgstr "Rastrear"
-
-
-msgid "Align View"
-msgstr "Alinhar visualização"
-
-
-msgid "Navigation"
-msgstr "Navegação"
+msgid "Local View"
+msgstr "Visão local"
 
 
 msgid "Viewpoint"
 msgstr "Ponto de visualização"
 
 
-msgid "Rigid Body"
-msgstr "Corpo rígido"
+msgid "Navigation"
+msgstr "Navegação"
 
 
-msgid "Relations"
-msgstr "Relações"
+msgid "Align View"
+msgstr "Alinhar visualização"
 
 
-msgid "Add Image"
-msgstr "Adicionar Imagem"
+msgid "Align View to Active"
+msgstr "Alinhar vista para o ativo"
 
 
-msgid "Light Probe"
-msgstr "Sonda de Luz"
+msgid "View Regions"
+msgstr "Visualizar Regiões"
 
 
-msgid "Light"
-msgstr "Luz"
+msgid "Select More/Less"
+msgstr "Selecionar mais ou menos"
 
 
-msgid "Metaball"
-msgstr "Meta-esfera"
-
-
-msgid "Bone Roll"
-msgstr "Rolagem dos ossos"
-
-
-msgid "Text"
-msgstr "Texto"
-
-
-msgid "Special Characters"
-msgstr "Caracteres especiais"
-
-
-msgid "Select Loops"
-msgstr "Selecionar anéis"
+msgid "Select Similar"
+msgstr "Selecionar por similaridades"
 
 
 msgid "Select All by Trait"
@@ -21468,8 +21376,120 @@ msgid "Select Linked"
 msgstr "Selecionar vinculados(as)"
 
 
+msgid "Select Loops"
+msgstr "Selecionar anéis"
+
+
+msgid "Metaball"
+msgstr "Meta-esfera"
+
+
+msgid "Light"
+msgstr "Luz"
+
+
+msgid "Light Probe"
+msgstr "Sonda de Luz"
+
+
+msgid "Add Image"
+msgstr "Adicionar Imagem"
+
+
+msgid "Relations"
+msgstr "Relações"
+
+
+msgid "Rigid Body"
+msgstr "Corpo rígido"
+
+
+msgid "Apply"
+msgstr "Aplicar"
+
+
+msgid "Track"
+msgstr "Rastrear"
+
+
+msgid "Quick Effects"
+msgstr "Efeitos instantâneos"
+
+
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
+
+
+msgid "Clean Up"
+msgstr "Limpeza"
+
+
+msgid "Make Single User"
+msgstr "Tornar usuário único"
+
+
+msgid "Convert"
+msgstr "Converter"
+
+
+msgid "Hooks"
+msgstr "Ganchos"
+
+
+msgid "Random Mask"
+msgstr "Máscara Aleatória"
+
+
+msgid "Clear Transform"
+msgstr "Limpar transformações"
+
+
+msgid "In-Betweens"
+msgstr "Entre as continuidades"
+
+
+msgid "Propagate"
+msgstr "Propagar"
+
+
+msgid "Names"
+msgstr "Nomes"
+
+
+msgid "Toggle Bone Options"
+msgstr "Alternar opções de ossos"
+
+
+msgid "Enable Bone Options"
+msgstr "Habilitar opções de ossos"
+
+
+msgid "Disable Bone Options"
+msgstr "Desabilitar as opções de ossos"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modo de seleção de malhas"
+
+
+msgid "Face Data"
+msgstr "Dados das faces"
+
+
 msgid "Merge"
 msgstr "Fundir"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiais"
+
+
+msgid "Text"
+msgstr "Texto"
+
+
+msgid "Bone Roll"
+msgstr "Rolagem dos ossos"
 
 
 msgid "Basic"
@@ -44481,16 +44501,8 @@ msgid "Channel to place this strip into"
 msgstr "O canal no qual posicionar esta trilha."
 
 
-msgid "Start frame of the sequence strip"
-msgstr "Quadro inicial da faixa de sequência."
-
-
 msgid "Allow Overlap"
 msgstr "Permitir sobreposições"
-
-
-msgid "Don't correct overlap on new sequence strips"
-msgstr "Não corrige as sobreposições em novas faixas de sequência."
 
 
 msgid "Replace Selection"
@@ -44619,10 +44631,6 @@ msgstr "Adicionar faixa de efeito"
 
 msgid "Add an effect to the sequencer, most are applied on top of existing strips"
 msgstr "Adiciona um efeito ao editor de sequências, a maioria é aplicada sobre o topo das faixas existentes."
-
-
-msgid "End frame for the color strip"
-msgstr "Quadro final par a faixa de cor."
 
 
 msgid "Sequencer effect type"
@@ -48724,24 +48732,24 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
-msgid "Stereoscopy"
-msgstr "Estereoscopia"
+msgid "Render Pass"
+msgstr "Passo de renderização"
 
 
 msgid "Motion Tracking"
 msgstr "Captura de movimentos"
 
 
-msgid "Quad View"
-msgstr "Exibição Quadrante"
-
-
 msgid "Transform Orientations"
 msgstr "Orientações de transformação"
 
 
-msgid "Render Pass"
-msgstr "Passo de renderização"
+msgid "Quad View"
+msgstr "Exibição Quadrante"
+
+
+msgid "Stereoscopy"
+msgstr "Estereoscopia"
 
 
 msgid "Bone Constraints"
@@ -52148,10 +52156,6 @@ msgid "AO Bounces Render"
 msgstr "Rebatimentos de renderização para OA"
 
 
-msgid "Bake Type"
-msgstr "Tipo de geração e e gravação"
-
-
 msgid "Type of pass to bake"
 msgstr "Tipo de passo para gerar e gravar"
 
@@ -53024,26 +53028,6 @@ msgid "Rendering settings for a Scene data-block"
 msgstr "Configurações de renderização para um bloco de dados de cena."
 
 
-msgid "Bias"
-msgstr "Ajuste fino"
-
-
-msgid "Number of samples used for ambient occlusion baking from multires"
-msgstr "Número de amostras usadas para geração de oclusão ambiente a partir de multirresolução."
-
-
-msgid "Choose shading information to bake into the image"
-msgstr "Permite escolher as informações de sombreamento para gerar e gravar dentro da imagem."
-
-
-msgid "Bake normals"
-msgstr "Gera e grava as normais."
-
-
-msgid "Bake displacement"
-msgstr "Gera e grava o deslocamento."
-
-
 msgid "Dither Intensity"
 msgstr "Intensidade de agitação"
 
@@ -53314,26 +53298,6 @@ msgstr "Determina automaticamente o número de tarefas, com base na quantidade d
 
 msgid "Manually determine the number of threads"
 msgstr "Permite determinar manualmente o número de tarefas de processamento."
-
-
-msgid "Clear Images before baking"
-msgstr "Limpa as imagens antes de gerar e gravar."
-
-
-msgid "Low Resolution Mesh"
-msgstr "Malha de baixa resolução"
-
-
-msgid "Calculate heights against unsubdivided low resolution mesh"
-msgstr "Calcula as alturas contra as malhas de baixa resolução não subdivididas."
-
-
-msgid "Bake from Multires"
-msgstr "Gerar e gravar a partir da multirresolução"
-
-
-msgid "Bake directly from multires object"
-msgstr "Gera e grava diretamente a partir de um objeto multirresolução."
 
 
 msgid "Render Region"
@@ -54302,6 +54266,10 @@ msgstr "Tamanho Máximo"
 
 msgid "Sprite Threshold"
 msgstr "Limiar do Sprite"
+
+
+msgid "Bias"
+msgstr "Ajuste fino"
 
 
 msgid "Trace Precision"
@@ -63281,11 +63249,6 @@ msgstr "Ajustar Potência da Luz"
 
 
 msgctxt "Operator"
-msgid "Adjust Spot Light Size"
-msgstr "Ajustar Tamanho da Luz de Spot"
-
-
-msgctxt "Operator"
 msgid "Adjust Spot Light Blend"
 msgstr "Ajustar Mesclagem da Luz de Spot"
 
@@ -68688,16 +68651,16 @@ msgid "Nothing indicated"
 msgstr "Sem indicação de dados."
 
 
-msgid "'%s': cannot use current file as library"
-msgstr "'%s': não é possível usar o arquivo atual como biblioteca"
-
-
 msgid "'%s': nothing indicated"
 msgstr "'%s': nada indicado"
 
 
 msgid "'%s': not a library"
 msgstr "'%s': não é uma biblioteca"
+
+
+msgid "'%s': cannot use current file as library"
+msgstr "'%s': não é possível usar o arquivo atual como biblioteca"
 
 
 msgid "'%s' is not a valid library filepath"

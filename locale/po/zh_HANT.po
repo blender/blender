@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68abaa12d581')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-18 09:16+0000\n"
+"POT-Creation-Date: 2025-08-25 08:31+0000\n"
 "PO-Revision-Date: 2025-07-27 17:01+0000\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -2183,6 +2183,30 @@ msgid "Bake to the active color attribute on meshes"
 msgstr "烘焙至網格的作用中色彩特性"
 
 
+msgid "Bake Type"
+msgstr "烘焙類型"
+
+
+msgid "Choose shading information to bake into the image"
+msgstr "選擇著色資訊來烘培至影像中"
+
+
+msgid "Normals"
+msgstr "法線"
+
+
+msgid "Bake normals"
+msgstr "烘培法線"
+
+
+msgid "Displacement"
+msgstr "錯置"
+
+
+msgid "Bake displacement"
+msgstr "烘培錯置"
+
+
 msgid "Automatic Name"
 msgstr "自動命名"
 
@@ -2205,6 +2229,22 @@ msgstr "清除"
 
 msgid "Clear Images before baking (internal only)"
 msgstr "烘培之前清除影像 (僅用於內部)"
+
+
+msgid "Low Resolution Mesh"
+msgstr "低解析度網格"
+
+
+msgid "Calculate heights against unsubdivided low resolution mesh"
+msgstr "針對低解析度網格計算未細分的高度"
+
+
+msgid "Bake from Multires"
+msgstr "從多解析度烘培"
+
+
+msgid "Bake directly from multires object"
+msgstr "從多解析度物體直接烘焙"
 
 
 msgid "Color the pass"
@@ -5612,10 +5652,6 @@ msgid "Display Device"
 msgstr "顯示裝置"
 
 
-msgid "Display device name"
-msgstr "顯示裝置名稱"
-
-
 msgid "Input color space settings"
 msgstr "輸入色彩空間設定"
 
@@ -8928,10 +8964,6 @@ msgstr "錯置係數"
 
 msgid "Strength of displace when applied to the mesh"
 msgstr "當套用至網格時的錯置強度"
-
-
-msgid "Displacement"
-msgstr "錯置"
 
 
 msgid "Dissolve Time"
@@ -14781,10 +14813,6 @@ msgid "Don't fill polygons while editing"
 msgstr "編輯時不填補多角形"
 
 
-msgid "Normals"
-msgstr "法線"
-
-
 msgid "Freestyle Line Style"
 msgstr "Freestyle 線條樣式"
 
@@ -15833,14 +15861,6 @@ msgstr "聚光交混"
 
 msgid "The softness of the spotlight edge"
 msgstr "聚光邊線的柔度"
-
-
-msgid "Spot Size"
-msgstr "聚光大小"
-
-
-msgid "Angle of the spotlight beam"
-msgstr "聚光光束的角度"
 
 
 msgid "Cast a square spot light shape"
@@ -22464,116 +22484,104 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
-msgid "Face Data"
-msgstr "面資料"
-
-
-msgid "Face Sets Edit"
-msgstr "面集編輯"
-
-
-msgid "Automasking"
-msgstr "自動遮罩"
-
-
-msgid "Mesh Select Mode"
-msgstr "網格選取模式"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "比例化編輯衰落"
-
-
-msgid "Disable Bone Options"
-msgstr "停用骨骼設定"
+msgid "Pivot Point"
+msgstr "樞紐點"
 
 
 msgid "Snap"
 msgstr "吸附"
 
 
-msgid "Enable Bone Options"
-msgstr "啟用骨骼設定"
+msgid "Proportional Editing Falloff"
+msgstr "比例化編輯衰落"
 
 
-msgid "Toggle Bone Options"
-msgstr "開關骨骼選項"
+msgid "Automasking"
+msgstr "自動遮罩"
 
 
-msgid "Pivot Point"
-msgstr "樞紐點"
-
-
-msgid "Apply"
-msgstr "套用"
-
-
-msgid "Random Mask"
-msgstr "隨機遮罩"
-
-
-msgid "Bone Collections"
-msgstr "骨骼集盒"
-
-
-msgid "Names"
-msgstr "名稱"
-
-
-msgid "Show/Hide"
-msgstr "顯示/隱藏"
-
-
-msgid "Local View"
-msgstr "區域檢視"
-
-
-msgid "Propagate"
-msgstr "增生"
-
-
-msgid "In-Betweens"
-msgstr "內部之間"
-
-
-msgid "UV Mapping"
-msgstr "UV 映射處理"
-
-
-msgid "Clear Transform"
-msgstr "清除變換"
+msgid "Face Sets Edit"
+msgstr "面集編輯"
 
 
 msgid "Mirror"
 msgstr "鏡像"
 
 
-msgid "Hooks"
-msgstr "鉤"
+msgid "UV Mapping"
+msgstr "UV 映射處理"
 
 
-msgid "Sculpt Set Pivot"
-msgstr "設定樞紐點"
+msgid "Local View"
+msgstr "區域檢視"
+
+
+msgid "Viewpoint"
+msgstr "視點"
+
+
+msgid "Navigation"
+msgstr "導覽"
+
+
+msgid "Align View"
+msgstr "對齊檢視"
+
+
+msgid "Align View to Active"
+msgstr "對齊檢視至作用項"
+
+
+msgid "View Regions"
+msgstr "檢視範圍"
+
+
+msgid "Select More/Less"
+msgstr "選取更多/更少"
 
 
 msgid "Select Similar"
 msgstr "選取相似者"
 
 
-msgid "Convert"
-msgstr "轉換"
+msgid "Select Linked"
+msgstr "選取連結項"
 
 
-msgid "Link/Transfer Data"
-msgstr "連結/傳輸資料"
+msgid "Metaball"
+msgstr "變幻球"
 
 
-msgid "Make Single User"
-msgstr "製作單一使用者"
+msgid "Light"
+msgstr "燈光"
 
 
-msgid "Select More/Less"
-msgstr "選取更多/更少"
+msgid "Light Probe"
+msgstr "燈光採樣器"
+
+
+msgid "Relations"
+msgstr "關係"
+
+
+msgid "Rigid Body"
+msgstr "剛體"
+
+
+msgid "Apply"
+msgstr "套用"
+
+
+msgid "Track"
+msgstr "追蹤"
+
+
+msgid "Quick Effects"
+msgstr "快速效果"
+
+
+msgid "Show/Hide"
+msgstr "顯示/隱藏"
 
 
 msgid "Clean Up"
@@ -22584,76 +22592,88 @@ msgid "Asset"
 msgstr "素材"
 
 
-msgid "Quick Effects"
-msgstr "快速效果"
+msgid "Make Single User"
+msgstr "製作單一使用者"
 
 
-msgid "View Regions"
-msgstr "檢視範圍"
+msgid "Convert"
+msgstr "轉換"
 
 
-msgid "Align View to Active"
-msgstr "對齊檢視至作用項"
+msgid "Link/Transfer Data"
+msgstr "連結/傳輸資料"
 
 
-msgid "Track"
-msgstr "追蹤"
+msgid "Hooks"
+msgstr "鉤"
 
 
-msgid "Align View"
-msgstr "對齊檢視"
+msgid "Sculpt Set Pivot"
+msgstr "設定樞紐點"
 
 
-msgid "Navigation"
-msgstr "導覽"
+msgid "Random Mask"
+msgstr "隨機遮罩"
 
 
-msgid "Viewpoint"
-msgstr "視點"
+msgid "Clear Transform"
+msgstr "清除變換"
 
 
-msgid "Rigid Body"
-msgstr "剛體"
+msgid "In-Betweens"
+msgstr "內部之間"
 
 
-msgid "Relations"
-msgstr "關係"
+msgid "Propagate"
+msgstr "增生"
 
 
-msgid "Light Probe"
-msgstr "燈光採樣器"
+msgid "Bone Collections"
+msgstr "骨骼集盒"
 
 
-msgid "Light"
-msgstr "燈光"
+msgid "Names"
+msgstr "名稱"
 
 
-msgid "Metaball"
-msgstr "變幻球"
+msgid "Toggle Bone Options"
+msgstr "開關骨骼選項"
 
 
-msgid "Bone Roll"
-msgstr "骨骼滾動"
+msgid "Enable Bone Options"
+msgstr "啟用骨骼設定"
 
 
-msgid "Text"
-msgstr "文字"
+msgid "Disable Bone Options"
+msgstr "停用骨骼設定"
 
 
-msgid "Kerning"
-msgstr "字間微調"
+msgid "Mesh Select Mode"
+msgstr "網格選取模式"
+
+
+msgid "Face Data"
+msgstr "面資料"
+
+
+msgid "Merge"
+msgstr "合併"
 
 
 msgid "Special Characters"
 msgstr "特殊字元"
 
 
-msgid "Select Linked"
-msgstr "選取連結項"
+msgid "Kerning"
+msgstr "字間微調"
 
 
-msgid "Merge"
-msgstr "合併"
+msgid "Text"
+msgstr "文字"
+
+
+msgid "Bone Roll"
+msgstr "骨骼滾動"
 
 
 msgid "Basic"
@@ -44926,16 +44946,8 @@ msgid "Channel to place this strip into"
 msgstr "放置此片段的通道"
 
 
-msgid "Start frame of the sequence strip"
-msgstr "序段片段的起始影格"
-
-
 msgid "Allow Overlap"
 msgstr "允許重疊"
-
-
-msgid "Don't correct overlap on new sequence strips"
-msgstr "不在新的序段片段上校正重疊的情況"
 
 
 msgid "Replace Selection"
@@ -45064,10 +45076,6 @@ msgstr "新增特效片段"
 
 msgid "Add an effect to the sequencer, most are applied on top of existing strips"
 msgstr "為序段編輯器新增一項效果，大多套用在既有的片段之上"
-
-
-msgid "End frame for the color strip"
-msgstr "色彩片段的結束影格"
 
 
 msgid "Sequencer effect type"
@@ -48801,48 +48809,40 @@ msgid "Palette Color"
 msgstr "色版色彩"
 
 
-msgid "VR"
-msgstr "VR"
-
-
 msgid "Active Tool"
 msgstr "作用中工具"
 
 
-msgid "Snapping"
-msgstr "吸附"
+msgid "Cavity"
+msgstr "坑腔"
 
 
-msgid "Auto-Masking"
-msgstr "自動遮罩"
+msgid "Render Pass"
+msgstr "算繪通遞"
 
 
-msgid "Measurement"
-msgstr "測量"
+msgid "Compositor"
+msgstr "合成器"
+
+
+msgid "Overlays"
+msgstr "疊層"
 
 
 msgid "Viewer Node"
 msgstr "檢視器節點"
 
 
-msgid "Stereoscopy"
-msgstr "立體視覺"
-
-
 msgid "Motion Tracking"
 msgstr "運動跟蹤"
 
 
-msgid "Multi Frame"
-msgstr "多重畫框"
+msgid "Measurement"
+msgstr "測量"
 
 
-msgid "Quad View"
-msgstr "四格檢視"
-
-
-msgid "Overlays"
-msgstr "疊層"
+msgid "Snapping"
+msgstr "吸附"
 
 
 msgid "Transform Orientations"
@@ -48853,20 +48853,28 @@ msgid "Stroke Placement"
 msgstr "筆觸放置"
 
 
-msgid "Cavity"
-msgstr "坑腔"
-
-
 msgid "Drawing Plane"
 msgstr "描繪平面"
 
 
-msgid "Render Pass"
-msgstr "算繪通遞"
+msgid "Quad View"
+msgstr "四格檢視"
 
 
-msgid "Compositor"
-msgstr "合成器"
+msgid "Stereoscopy"
+msgstr "立體視覺"
+
+
+msgid "Multi Frame"
+msgstr "多重畫框"
+
+
+msgid "Auto-Masking"
+msgstr "自動遮罩"
+
+
+msgid "VR"
+msgstr "VR"
 
 
 msgid "Chain Scaling"
@@ -52634,10 +52642,6 @@ msgid "Volume Direct"
 msgstr "容體直接"
 
 
-msgid "Bake Type"
-msgstr "烘焙類型"
-
-
 msgid "Type of pass to bake"
 msgstr "烘焙的通遞類型"
 
@@ -53327,26 +53331,6 @@ msgid "Rendering settings for a Scene data-block"
 msgstr "場景資料組塊的算繪設定"
 
 
-msgid "Bias"
-msgstr "偏差"
-
-
-msgid "Number of samples used for ambient occlusion baking from multires"
-msgstr "用於從多解析度烘焙周遭遮擋的樣本數"
-
-
-msgid "Choose shading information to bake into the image"
-msgstr "選擇著色資訊來烘培至影像中"
-
-
-msgid "Bake normals"
-msgstr "烘培法線"
-
-
-msgid "Bake displacement"
-msgstr "烘培錯置"
-
-
 msgid "Maximum X value for the render region"
 msgstr "算繪範圍的 X 軸最大值"
 
@@ -53595,26 +53579,6 @@ msgstr "自動判定 CPU 的執行緒數目"
 
 msgid "Manually determine the number of threads"
 msgstr "手動決定執行緒數目"
-
-
-msgid "Clear Images before baking"
-msgstr "烘培之前清除影像"
-
-
-msgid "Low Resolution Mesh"
-msgstr "低解析度網格"
-
-
-msgid "Calculate heights against unsubdivided low resolution mesh"
-msgstr "針對低解析度網格計算未細分的高度"
-
-
-msgid "Bake from Multires"
-msgstr "從多解析度烘培"
-
-
-msgid "Bake directly from multires object"
-msgstr "從多解析度物體直接烘焙"
 
 
 msgid "Render Region"
@@ -54323,6 +54287,10 @@ msgstr "陰影硬度係數"
 
 msgid "Over-blur"
 msgstr "過度模糊"
+
+
+msgid "Bias"
+msgstr "偏差"
 
 
 msgid "Ray Count"
@@ -55878,6 +55846,14 @@ msgid "Node tree being displayed and edited"
 msgstr "正被顯示與編輯的節點樹"
 
 
+msgid "ID From"
+msgstr "ID 來源"
+
+
+msgid "Auto-offset Direction"
+msgstr "自動偏移方向"
+
+
 msgctxt "ID"
 msgid "Modifier"
 msgstr "修改器"
@@ -55886,14 +55862,6 @@ msgstr "修改器"
 msgctxt "ID"
 msgid "Tool"
 msgstr "工具"
-
-
-msgid "ID From"
-msgstr "ID 來源"
-
-
-msgid "Auto-offset Direction"
-msgstr "自動偏移方向"
 
 
 msgid "Use the pinned node tree"
@@ -71992,16 +71960,16 @@ msgid "Nothing indicated"
 msgstr "未有指示"
 
 
-msgid "'%s': cannot use current file as library"
-msgstr "「%s」：無法將目前檔案作為函式庫使用"
-
-
 msgid "'%s': nothing indicated"
 msgstr "「%s」：未有指示"
 
 
 msgid "'%s': not a library"
 msgstr "「%s」：非函式庫"
+
+
+msgid "'%s': cannot use current file as library"
+msgstr "「%s」：無法將目前檔案作為函式庫使用"
 
 
 msgid "'%s' is not a valid library filepath"

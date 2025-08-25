@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68abaa12d581')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-18 09:16+0000\n"
+"POT-Creation-Date: 2025-08-25 08:31+0000\n"
 "PO-Revision-Date: 2025-07-23 14:52+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -663,6 +663,10 @@ msgstr "Extern"
 
 msgid "Target"
 msgstr "Doel"
+
+
+msgid "Normals"
+msgstr "Normalen"
 
 
 msgid "Split Materials"
@@ -2147,10 +2151,6 @@ msgid "Underline Position"
 msgstr "Positie Onderstreping"
 
 
-msgid "Normals"
-msgstr "Normalen"
-
-
 msgid "Active Texture"
 msgstr "Actieve Textuur"
 
@@ -2702,68 +2702,68 @@ msgid "Mask"
 msgstr "Mask"
 
 
-msgid "Names"
-msgstr "Namen"
-
-
-msgid "Show/Hide"
-msgstr "Toon/Verberg"
+msgid "Mirror"
+msgstr "Spiegel"
 
 
 msgid "Local View"
 msgstr "Lokale Scherm"
 
 
-msgid "Clear Transform"
-msgstr "Maak Transformatie Leeg"
-
-
-msgid "Mirror"
-msgstr "Spiegel"
-
-
-msgid "Hooks"
-msgstr "Haken"
+msgid "Navigation"
+msgstr "Navigatie"
 
 
 msgid "Select Similar"
 msgstr "Selecteer Vergelijkbaar"
 
 
-msgid "Convert"
-msgstr "Converteer"
-
-
-msgid "Quick Effects"
-msgstr "Snelle Effecten"
-
-
-msgid "Navigation"
-msgstr "Navigatie"
-
-
-msgid "Rigid Body"
-msgstr "Star Lichaam"
-
-
-msgid "Relations"
-msgstr "Relaties"
-
-
-msgid "Add Image"
-msgstr "Voeg Afbeelding Toe"
+msgid "Select Linked"
+msgstr "Selecteer Aaneengesloten"
 
 
 msgid "Light"
 msgstr "Licht"
 
 
+msgid "Add Image"
+msgstr "Voeg Afbeelding Toe"
+
+
+msgid "Relations"
+msgstr "Relaties"
+
+
+msgid "Rigid Body"
+msgstr "Star Lichaam"
+
+
+msgid "Quick Effects"
+msgstr "Snelle Effecten"
+
+
+msgid "Show/Hide"
+msgstr "Toon/Verberg"
+
+
+msgid "Convert"
+msgstr "Converteer"
+
+
+msgid "Hooks"
+msgstr "Haken"
+
+
+msgid "Clear Transform"
+msgstr "Maak Transformatie Leeg"
+
+
+msgid "Names"
+msgstr "Namen"
+
+
 msgid "Text"
 msgstr "Tekst"
-
-
-msgid "Select Linked"
-msgstr "Selecteer Aaneengesloten"
 
 
 msgctxt "MovieClip"

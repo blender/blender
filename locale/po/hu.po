@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68abaa12d581')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-18 09:16+0000\n"
+"POT-Creation-Date: 2025-08-25 08:31+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: Balázs Füvesi <fuvesib@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -868,12 +868,48 @@ msgid "Target"
 msgstr "Cél"
 
 
+msgid "Choose shading information to bake into the image"
+msgstr "Árnyékolási információk kiválasztása a képbe való sütésükhöz"
+
+
+msgid "Normals"
+msgstr "Normálisok"
+
+
+msgid "Bake normals"
+msgstr "Normálisok kisütése"
+
+
+msgid "Displacement"
+msgstr "Elmozdítás"
+
+
+msgid "Bake displacement"
+msgstr "Elmozdítások kisütése"
+
+
 msgid "Automatic Name"
 msgstr "Automatikus név"
 
 
 msgid "Clear"
 msgstr "Törlés"
+
+
+msgid "Low Resolution Mesh"
+msgstr "Alacsony felbontású térháló"
+
+
+msgid "Calculate heights against unsubdivided low resolution mesh"
+msgstr "Magasságok számítása a felosztatlan, alacsony felbontású térhálók ellen"
+
+
+msgid "Bake from Multires"
+msgstr "Sütés Multi-felbontásból"
+
+
+msgid "Bake directly from multires object"
+msgstr "Sütés közvetlenül a multi-felbontásos objektumokból"
 
 
 msgid "Selected to Active"
@@ -1280,10 +1316,6 @@ msgstr "Engedélyezett"
 
 msgid "Display Device"
 msgstr "Kijelző"
-
-
-msgid "Display device name"
-msgstr "Kijelző eszköz neve"
 
 
 msgid "Input Color Space"
@@ -3019,10 +3051,6 @@ msgid "Factor"
 msgstr "Faktor"
 
 
-msgid "Displacement"
-msgstr "Elmozdítás"
-
-
 msgid "File Format"
 msgstr "Fájlformátum"
 
@@ -4285,10 +4313,6 @@ msgstr "Betűméret"
 
 msgid "Spacing between words"
 msgstr "Szavak közti távolság"
-
-
-msgid "Normals"
-msgstr "Normálisok"
 
 
 msgid "Freestyle Line Style"
@@ -6561,60 +6585,60 @@ msgid "Mask"
 msgstr "Maszk"
 
 
-msgid "Apply"
-msgstr "Elfogadás"
-
-
-msgid "Show/Hide"
-msgstr "Mutat/Rejt"
+msgid "Mirror"
+msgstr "Tükrözés"
 
 
 msgid "Local View"
 msgstr "Helyi nézet"
 
 
-msgid "Mirror"
-msgstr "Tükrözés"
-
-
-msgid "Clean Up"
-msgstr "Tisztítás"
-
-
-msgid "Track"
-msgstr "Nyom"
+msgid "Navigation"
+msgstr "Navigáció"
 
 
 msgid "Align View"
 msgstr "Nézet igazítása"
 
 
-msgid "Navigation"
-msgstr "Navigáció"
-
-
-msgid "Rigid Body"
-msgstr "Szilárd test"
-
-
-msgid "Relations"
-msgstr "Kapcsolatok"
+msgid "Metaball"
+msgstr "Meta test"
 
 
 msgid "Light"
 msgstr "Fényforrás"
 
 
-msgid "Metaball"
-msgstr "Meta test"
+msgid "Relations"
+msgstr "Kapcsolatok"
 
 
-msgid "Text"
-msgstr "Szöveg"
+msgid "Rigid Body"
+msgstr "Szilárd test"
+
+
+msgid "Apply"
+msgstr "Elfogadás"
+
+
+msgid "Track"
+msgstr "Nyom"
+
+
+msgid "Show/Hide"
+msgstr "Mutat/Rejt"
+
+
+msgid "Clean Up"
+msgstr "Tisztítás"
 
 
 msgid "Merge"
 msgstr "Összefésülés"
+
+
+msgid "Text"
+msgstr "Szöveg"
 
 
 msgctxt "MovieClip"
@@ -11934,10 +11958,6 @@ msgid "Channel to place this strip into"
 msgstr "Csatorna, amiben a sáv el lesz helyezve"
 
 
-msgid "Start frame of the sequence strip"
-msgstr "A szekvenciasáv kezdő képkockája"
-
-
 msgid "Replace Selection"
 msgstr "Kijelölés lecserélése"
 
@@ -12805,12 +12825,12 @@ msgid "Detail Size"
 msgstr "Részlet mérete"
 
 
-msgid "Motion Tracking"
-msgstr "Mozgáskövetés"
-
-
 msgid "Render Pass"
 msgstr "Render vezeték"
+
+
+msgid "Motion Tracking"
+msgstr "Mozgáskövetés"
 
 
 msgid "Chain Scaling"
@@ -13840,26 +13860,6 @@ msgid "Render Strands in this Layer"
 msgstr "Szálak renderelése ezen a rétegen"
 
 
-msgid "Bias"
-msgstr "Eltérés"
-
-
-msgid "Number of samples used for ambient occlusion baking from multires"
-msgstr "Mintavételek száma a multi-felbontásos objektumokból kisütött környezeti elnyelődésnél"
-
-
-msgid "Choose shading information to bake into the image"
-msgstr "Árnyékolási információk kiválasztása a képbe való sütésükhöz"
-
-
-msgid "Bake normals"
-msgstr "Normálisok kisütése"
-
-
-msgid "Bake displacement"
-msgstr "Elmozdítások kisütése"
-
-
 msgid "Dither Intensity"
 msgstr "Szórás intenzitás"
 
@@ -13990,26 +13990,6 @@ msgstr "A szálak számának automatikus meghatározása, a CPU-n alapulva"
 
 msgid "Manually determine the number of threads"
 msgstr "A szálak számának manuális meghatározása"
-
-
-msgid "Clear Images before baking"
-msgstr "Képek tisztára törlése sütés előtt"
-
-
-msgid "Low Resolution Mesh"
-msgstr "Alacsony felbontású térháló"
-
-
-msgid "Calculate heights against unsubdivided low resolution mesh"
-msgstr "Magasságok számítása a felosztatlan, alacsony felbontású térhálók ellen"
-
-
-msgid "Bake from Multires"
-msgstr "Sütés Multi-felbontásból"
-
-
-msgid "Bake directly from multires object"
-msgstr "Sütés közvetlenül a multi-felbontásos objektumokból"
 
 
 msgid "Add the file format extensions to the rendered file name (eg: filename + .jpg)"
@@ -14150,6 +14130,10 @@ msgstr "Impulzus szétválasztása"
 
 msgid "Reduce extra velocity that can build up when objects collide (lowers simulation stability a little so use only when necessary)"
 msgstr "Extra sebesség csökkentése, ami termelődhet az objektumok ütözésekor (alacsonyabb szimulációs stabilitás, csak akkor ajánlott, ha feltétlenül szükséges)"
+
+
+msgid "Bias"
+msgstr "Eltérés"
 
 
 msgid "Show Cache"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68abaa12d581')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-18 09:16+0000\n"
+"POT-Creation-Date: 2025-08-25 08:31+0000\n"
 "PO-Revision-Date: 2025-07-23 15:18+0000\n"
 "Last-Translator: Aras Pranckevičius <aras@nesnausk.org>\n"
 "Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
@@ -971,6 +971,10 @@ msgstr "Vidinis/-ė"
 
 msgid "External"
 msgstr "Išorinis/-ė"
+
+
+msgid "Normals"
+msgstr "Normalės"
 
 
 msgid "Free"
@@ -2465,10 +2469,6 @@ msgid "Textboxes"
 msgstr "Teksto laukai"
 
 
-msgid "Normals"
-msgstr "Normalės"
-
-
 msgid "Active Texture"
 msgstr "Aktyvi tekstūra"
 
@@ -3105,12 +3105,12 @@ msgid "Apply"
 msgstr "Pritaikyti"
 
 
-msgid "Show/Hide"
-msgstr "Rodyti/Slėpti"
-
-
 msgid "Track"
 msgstr "Sekti"
+
+
+msgid "Show/Hide"
+msgstr "Rodyti/Slėpti"
 
 
 msgid "Text"
@@ -3914,6 +3914,10 @@ msgid "Display warnings"
 msgstr "Rodyti/Vaizduoti įspėjimus/perspėjimus"
 
 
+msgid "ID From"
+msgstr "ID iš"
+
+
 msgctxt "ID"
 msgid "Modifier"
 msgstr "Keitiklis"
@@ -3922,10 +3926,6 @@ msgstr "Keitiklis"
 msgctxt "ID"
 msgid "Tool"
 msgstr "Įrankis"
-
-
-msgid "ID From"
-msgstr "ID iš"
 
 
 msgid "Blender File"

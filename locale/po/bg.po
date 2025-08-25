@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68abaa12d581')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-18 09:16+0000\n"
+"POT-Creation-Date: 2025-08-25 08:31+0000\n"
 "PO-Revision-Date: 2025-07-23 15:34+0000\n"
 "Last-Translator: Just Adam <adam.abbas2009@gmail.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -1136,40 +1136,40 @@ msgid "Mask"
 msgstr "Маскиране"
 
 
-msgid "Apply"
-msgstr "Прилагане"
-
-
-msgid "In-Betweens"
-msgstr "Междинни Кадри"
-
-
 msgid "UV Mapping"
 msgstr "UV Картиране"
-
-
-msgid "Hooks"
-msgstr "Куки"
-
-
-msgid "Make Single User"
-msgstr "Направи с Единствен Потребител"
-
-
-msgid "Rigid Body"
-msgstr "Твърдо тяло"
 
 
 msgid "Light"
 msgstr "Светлина"
 
 
-msgid "Text"
-msgstr "Текст"
+msgid "Rigid Body"
+msgstr "Твърдо тяло"
+
+
+msgid "Apply"
+msgstr "Прилагане"
+
+
+msgid "Make Single User"
+msgstr "Направи с Единствен Потребител"
+
+
+msgid "Hooks"
+msgstr "Куки"
+
+
+msgid "In-Betweens"
+msgstr "Междинни Кадри"
 
 
 msgid "Merge"
 msgstr "Слей"
+
+
+msgid "Text"
+msgstr "Текст"
 
 
 msgid "Languages..."
@@ -2199,16 +2199,16 @@ msgid "Strand"
 msgstr "Нишка"
 
 
-msgid "Bias"
-msgstr "Отклонение"
-
-
 msgid "FPS"
 msgstr "FPS"
 
 
 msgid "Viscosity"
 msgstr "Вискозитет"
+
+
+msgid "Bias"
+msgstr "Отклонение"
 
 
 msgid "Edge spring friction"

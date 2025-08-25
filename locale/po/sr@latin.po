@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68abaa12d581')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-18 09:16+0000\n"
+"POT-Creation-Date: 2025-08-25 08:31+0000\n"
 "PO-Revision-Date: 2025-07-23 14:56+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -777,6 +777,22 @@ msgstr "Spoljno"
 
 msgid "Target"
 msgstr "Cilj"
+
+
+msgid "Choose shading information to bake into the image"
+msgstr "Izaberite informaciju senčenja za pretvaranje (pečenje) u sliku"
+
+
+msgid "Normals"
+msgstr "Normale"
+
+
+msgid "Bake normals"
+msgstr "Ispeci normale"
+
+
+msgid "Displacement"
+msgstr "Izdizanje"
 
 
 msgid "Automatic Name"
@@ -1927,10 +1943,6 @@ msgstr "Ubi čestice pri sudaru"
 
 msgid "Display Device"
 msgstr "Prikaži krive"
-
-
-msgid "Display device name"
-msgstr "Prikaži scene"
 
 
 msgid "Input Color Space"
@@ -3533,10 +3545,6 @@ msgstr "Faktor izdizanja"
 
 msgid "Strength of displace when applied to the mesh"
 msgstr "Jačina izdizanja kad se primeni na meš"
-
-
-msgid "Displacement"
-msgstr "Izdizanje"
 
 
 msgid "Acceleration"
@@ -5602,10 +5610,6 @@ msgid "Don't fill polygons while editing"
 msgstr "Ne popunjavaj poligone prilikom uređivanja"
 
 
-msgid "Normals"
-msgstr "Normale"
-
-
 msgid "Freestyle Line Style"
 msgstr "Slobodoručni stil linije"
 
@@ -6024,10 +6028,6 @@ msgstr "Veličina Y"
 
 msgid "Show Cone"
 msgstr "Prikaži kupu"
-
-
-msgid "Spot Size"
-msgstr "Veličina projekcije"
 
 
 msgid "Intensity"
@@ -8521,112 +8521,112 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
-msgid "Mesh Select Mode"
-msgstr "Mod izbora mreže"
-
-
-msgid "Disable Bone Options"
-msgstr "Onemogući opcije kostiju"
-
-
 msgid "Snap"
 msgstr "Lepljenje"
-
-
-msgid "Enable Bone Options"
-msgstr "Omogući opcije kostiju"
-
-
-msgid "Toggle Bone Options"
-msgstr "Manje/više informacija"
-
-
-msgid "Apply"
-msgstr "Primeni"
-
-
-msgid "Names"
-msgstr "Imena"
-
-
-msgid "Show/Hide"
-msgstr "Prikaži/sakrij"
-
-
-msgid "Local View"
-msgstr "Lokalni pogled"
-
-
-msgid "Propagate"
-msgstr "Prenesi"
-
-
-msgid "In-Betweens"
-msgstr "U međuvremenu"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapiranje"
-
-
-msgid "Clear Transform"
-msgstr "Očisti transformacije"
 
 
 msgid "Mirror"
 msgstr "Ogledalo"
 
 
-msgid "Hooks"
-msgstr "Udice"
+msgid "UV Mapping"
+msgstr "UV Mapiranje"
 
 
-msgid "Quick Effects"
-msgstr "Brzi efekti"
-
-
-msgid "Track"
-msgstr "Staza"
-
-
-msgid "Align View"
-msgstr "Poravnaj pogled"
+msgid "Local View"
+msgstr "Lokalni pogled"
 
 
 msgid "Navigation"
 msgstr "Navigacija"
 
 
-msgid "Rigid Body"
-msgstr "Kruto telo"
-
-
-msgid "Relations"
-msgstr "Odnosi"
-
-
-msgid "Light"
-msgstr "Svetlost"
-
-
-msgid "Metaball"
-msgstr "Meta lopta"
-
-
-msgid "Bone Roll"
-msgstr "Rolna kostiju"
-
-
-msgid "Special Characters"
-msgstr "Specijalni znaci"
+msgid "Align View"
+msgstr "Poravnaj pogled"
 
 
 msgid "Select Linked"
 msgstr "Izaberi povezano"
 
 
+msgid "Metaball"
+msgstr "Meta lopta"
+
+
+msgid "Light"
+msgstr "Svetlost"
+
+
+msgid "Relations"
+msgstr "Odnosi"
+
+
+msgid "Rigid Body"
+msgstr "Kruto telo"
+
+
+msgid "Apply"
+msgstr "Primeni"
+
+
+msgid "Track"
+msgstr "Staza"
+
+
+msgid "Quick Effects"
+msgstr "Brzi efekti"
+
+
+msgid "Show/Hide"
+msgstr "Prikaži/sakrij"
+
+
+msgid "Hooks"
+msgstr "Udice"
+
+
+msgid "Clear Transform"
+msgstr "Očisti transformacije"
+
+
+msgid "In-Betweens"
+msgstr "U međuvremenu"
+
+
+msgid "Propagate"
+msgstr "Prenesi"
+
+
+msgid "Names"
+msgstr "Imena"
+
+
+msgid "Toggle Bone Options"
+msgstr "Manje/više informacija"
+
+
+msgid "Enable Bone Options"
+msgstr "Omogući opcije kostiju"
+
+
+msgid "Disable Bone Options"
+msgstr "Onemogući opcije kostiju"
+
+
+msgid "Mesh Select Mode"
+msgstr "Mod izbora mreže"
+
+
 msgid "Merge"
 msgstr "Sjedini"
+
+
+msgid "Special Characters"
+msgstr "Specijalni znaci"
+
+
+msgid "Bone Roll"
+msgstr "Rolna kostiju"
 
 
 msgid "Basic"
@@ -17554,16 +17554,8 @@ msgid "Channel to place this strip into"
 msgstr "Kanal na koji postavljate traku"
 
 
-msgid "Start frame of the sequence strip"
-msgstr "Početni kadar trake sekvence"
-
-
 msgid "Allow Overlap"
 msgstr "Dozvoli preklapanje"
-
-
-msgid "Don't correct overlap on new sequence strips"
-msgstr "Ne ispravljaj preklapanje za nove trake sekvence"
 
 
 msgid "Replace Selection"
@@ -17655,10 +17647,6 @@ msgstr "Dodaj traku sa efektom"
 
 msgid "Add an effect to the sequencer, most are applied on top of existing strips"
 msgstr "Dodaj efekat na sekvencer, većina se dodaje na vrh postojećih traka"
-
-
-msgid "End frame for the color strip"
-msgstr "Krajnji kadar trake bojenja"
 
 
 msgid "Sequencer effect type"
@@ -20691,22 +20679,6 @@ msgid "Strand"
 msgstr "Štrafta"
 
 
-msgid "Bias"
-msgstr "Pristrasnost"
-
-
-msgid "Number of samples used for ambient occlusion baking from multires"
-msgstr "Broj uzoraka korišćenih za pečenje ambijentalnog senčenja za višerezolucijone objekte"
-
-
-msgid "Choose shading information to bake into the image"
-msgstr "Izaberite informaciju senčenja za pretvaranje (pečenje) u sliku"
-
-
-msgid "Bake normals"
-msgstr "Ispeci normale"
-
-
 msgid "Engine"
 msgstr "Pogon"
 
@@ -20989,6 +20961,10 @@ msgstr "Faktor poluprečnika"
 
 msgid "Number of samples"
 msgstr "Broj uzoraka"
+
+
+msgid "Bias"
+msgstr "Pristrasnost"
 
 
 msgid "YCbCr (ITU 601)"

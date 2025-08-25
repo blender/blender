@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68abaa12d581')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-18 09:16+0000\n"
+"POT-Creation-Date: 2025-08-25 08:31+0000\n"
 "PO-Revision-Date: 2025-08-12 06:21+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -1495,8 +1495,24 @@ msgid "Image Textures"
 msgstr "Bildtexturer"
 
 
+msgid "Bake Type"
+msgstr "Bakningstyp"
+
+
+msgid "Normals"
+msgstr "Normaler"
+
+
 msgid "Clear"
 msgstr "Nollställ"
+
+
+msgid "Low Resolution Mesh"
+msgstr "Lågupplöst mesh"
+
+
+msgid "Calculate heights against unsubdivided low resolution mesh"
+msgstr "Beräkna höjder mot icke-uppdelat lågupplöst mesh"
 
 
 msgid "View From"
@@ -2865,10 +2881,6 @@ msgstr "Avsluta partiklar"
 
 msgid "Kill collided particles"
 msgstr "Ta bort krockade partiklar"
-
-
-msgid "Display device name"
-msgstr "Visa enhetens namn"
 
 
 msgid "Is Data"
@@ -4451,14 +4463,6 @@ msgstr "Operator"
 
 msgid "File Extensions"
 msgstr "Filändelse"
-
-
-msgid ""
-"Formatted string of file extensions supported by the file handler, each extension should start with a \".\" and be separated by \";\".\n"
-"For Example: `\".blend;.ble\"`"
-msgstr ""
-"Formaterad sträng av filändelser som stöds av filhanteraren, varje filändelse ska börja med \".\" och separeras med \";\".\n"
-"Till exempel: `\".blend;.ble\"`"
 
 
 msgid "Label"
@@ -6247,10 +6251,6 @@ msgstr "Textrutor"
 
 msgid "Fast Editing"
 msgstr "Snabbredigera"
-
-
-msgid "Normals"
-msgstr "Normaler"
 
 
 msgid "Active Texture"
@@ -9291,48 +9291,84 @@ msgid "Mask"
 msgstr "Mask"
 
 
-msgid "Snap"
-msgstr "Snäpp"
-
-
 msgid "Pivot Point"
 msgstr "Fast punkt"
 
 
-msgid "Apply"
-msgstr "Applicera"
-
-
-msgid "Names"
-msgstr "Namn"
-
-
-msgid "Show/Hide"
-msgstr "Visa/dölj"
-
-
-msgid "Local View"
-msgstr "Lokal vy"
-
-
-msgid "Propagate"
-msgstr "Propagera"
+msgid "Snap"
+msgstr "Snäpp"
 
 
 msgid "Mirror"
 msgstr "Spegla"
 
 
-msgid "Convert"
-msgstr "Konvertera"
+msgid "Local View"
+msgstr "Lokal vy"
 
 
-msgid "Link/Transfer Data"
-msgstr "Länka/överför data"
+msgid "Viewpoint"
+msgstr "Visningspunkt"
+
+
+msgid "Navigation"
+msgstr "Navigering"
+
+
+msgid "Align View"
+msgstr "Justera vy"
+
+
+msgid "Align View to Active"
+msgstr "Justera vy till aktiv"
 
 
 msgid "Select More/Less"
 msgstr "Markera mera/mindre"
+
+
+msgid "Assign Material"
+msgstr "Tilldela material"
+
+
+msgid "Metaball"
+msgstr "Metaboll"
+
+
+msgid "Light"
+msgstr "Ljus"
+
+
+msgid "Light Probe"
+msgstr "Ljussond"
+
+
+msgid "Add Image"
+msgstr "Lägg till bild"
+
+
+msgid "Relations"
+msgstr "Relationer"
+
+
+msgid "Rigid Body"
+msgstr "Rigid kropp"
+
+
+msgid "Apply"
+msgstr "Applicera"
+
+
+msgid "Track"
+msgstr "Spår"
+
+
+msgid "Quick Effects"
+msgstr "Snabbeffekter"
+
+
+msgid "Show/Hide"
+msgstr "Visa/dölj"
 
 
 msgid "Clean Up"
@@ -9343,68 +9379,32 @@ msgid "Asset"
 msgstr "Tillgång"
 
 
-msgid "Quick Effects"
-msgstr "Snabbeffekter"
+msgid "Convert"
+msgstr "Konvertera"
 
 
-msgid "Align View to Active"
-msgstr "Justera vy till aktiv"
+msgid "Link/Transfer Data"
+msgstr "Länka/överför data"
 
 
-msgid "Track"
-msgstr "Spår"
+msgid "Propagate"
+msgstr "Propagera"
 
 
-msgid "Align View"
-msgstr "Justera vy"
+msgid "Names"
+msgstr "Namn"
 
 
-msgid "Navigation"
-msgstr "Navigering"
-
-
-msgid "Viewpoint"
-msgstr "Visningspunkt"
-
-
-msgid "Rigid Body"
-msgstr "Rigid kropp"
-
-
-msgid "Relations"
-msgstr "Relationer"
-
-
-msgid "Add Image"
-msgstr "Lägg till bild"
-
-
-msgid "Light Probe"
-msgstr "Ljussond"
-
-
-msgid "Light"
-msgstr "Ljus"
-
-
-msgid "Metaball"
-msgstr "Metaboll"
-
-
-msgid "Assign Material"
-msgstr "Tilldela material"
-
-
-msgid "Text"
-msgstr "Text"
+msgid "Merge"
+msgstr "Sammanfoga"
 
 
 msgid "Special Characters"
 msgstr "Specialtecken"
 
 
-msgid "Merge"
-msgstr "Sammanfoga"
+msgid "Text"
+msgstr "Text"
 
 
 msgid "Animals"
@@ -21363,28 +21363,8 @@ msgid "Palette Color"
 msgstr "Palettfärg"
 
 
-msgid "VR"
-msgstr "VR"
-
-
 msgid "Active Tool"
 msgstr "Aktivt verktyg"
-
-
-msgid "Measurement"
-msgstr "Mätning"
-
-
-msgid "Viewer Node"
-msgstr "Visningsnod"
-
-
-msgid "Overlays"
-msgstr "Överlägg"
-
-
-msgid "Stroke Placement"
-msgstr "Streckplacering"
 
 
 msgid "Cavity"
@@ -21393,6 +21373,26 @@ msgstr "Hålrum"
 
 msgid "Render Pass"
 msgstr "Renderingspass"
+
+
+msgid "Overlays"
+msgstr "Överlägg"
+
+
+msgid "Viewer Node"
+msgstr "Visningsnod"
+
+
+msgid "Measurement"
+msgstr "Mätning"
+
+
+msgid "Stroke Placement"
+msgstr "Streckplacering"
+
+
+msgid "VR"
+msgstr "VR"
 
 
 msgid "Import Settings"
@@ -23387,10 +23387,6 @@ msgid "Use Motion Blur"
 msgstr "Använd rörelseoskärpa"
 
 
-msgid "Bake Type"
-msgstr "Bakningstyp"
-
-
 msgid "BVH2"
 msgstr "BVH2"
 
@@ -23595,14 +23591,6 @@ msgid "Render Passes"
 msgstr "Renderingspass"
 
 
-msgid "Bias"
-msgstr "Justering"
-
-
-msgid "Algorithm to generate the margin"
-msgstr "Algoritm för att generera marginalen"
-
-
 msgid "Engine"
 msgstr "Motor"
 
@@ -23665,14 +23653,6 @@ msgstr "Global maximal uppdelningsnivå"
 
 msgid "Threads Mode"
 msgstr "Trådläge"
-
-
-msgid "Low Resolution Mesh"
-msgstr "Lågupplöst mesh"
-
-
-msgid "Calculate heights against unsubdivided low resolution mesh"
-msgstr "Beräkna höjder mot icke-uppdelat lågupplöst mesh"
 
 
 msgid "Render Region"
@@ -23753,6 +23733,10 @@ msgstr "Viskositet"
 
 msgid "Classical"
 msgstr "Klassisk"
+
+
+msgid "Bias"
+msgstr "Justering"
 
 
 msgid "Trace Precision"
