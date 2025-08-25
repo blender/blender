@@ -2893,6 +2893,8 @@ static std::optional<wp_cursor_shape_device_v1_shape> gwl_seat_cursor_find_wl_sh
       return std::nullopt;
     case GHOST_kStandardCursorBlade:
       return std::nullopt;
+    case GHOST_kStandardCursorSlip:
+      return std::nullopt;
     case GHOST_kStandardCursorCustom:
       return std::nullopt;
   }

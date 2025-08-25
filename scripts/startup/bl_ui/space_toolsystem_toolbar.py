@@ -3159,6 +3159,18 @@ class _defs_sequencer_generic:
         )
 
     @ToolDef.from_fn
+    def slip():
+        return dict(
+            idname="builtin.slip",
+            label="Slip",
+            description=(
+                "Shift underlying strip content without affecting handles"
+            ),
+            icon="ops.sequencer.slip",
+            keymap="Sequencer Tool: Slip",
+        )
+
+    @ToolDef.from_fn
     def sample():
         return dict(
             idname="builtin.sample",
@@ -3960,6 +3972,7 @@ class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
         'SEQUENCER': [
             _defs_sequencer_select.box_timeline,
             _defs_sequencer_generic.blade,
+            _defs_sequencer_generic.slip
         ],
         'SEQUENCER_PREVIEW': [
             _defs_sequencer_select.box_timeline,

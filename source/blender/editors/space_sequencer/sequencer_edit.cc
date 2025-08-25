@@ -766,12 +766,31 @@ static void slip_update_header(const Scene *scene,
   ED_area_status_text(area, msg);
 }
 
-static SlipData *slip_data_init(const Scene *scene)
+static SlipData *slip_data_init(bContext *C, const wmOperator *op, const wmEvent *event)
 {
-  Editing *ed = seq::editing_get(scene);
+  const Scene *scene = CTX_data_scene(C);
+  const Editing *ed = seq::editing_get(scene);
+  const View2D *v2d = UI_view2d_fromcontext(C);
+
   SlipData *data = MEM_new<SlipData>("slipdata");
 
-  VectorSet<Strip *> strips = seq::query_selected_strips(ed->current_strips());
+  VectorSet<Strip *> strips;
+  if (RNA_boolean_get(op->ptr, "use_cursor_position") && event) {
+    Strip *strip = strip_under_mouse_get(scene, v2d, event->mval);
+    if (strip) {
+      strips.add(strip);
+    }
+    if (!RNA_boolean_get(op->ptr, "ignore_connections")) {
+      VectorSet<Strip *> connections = seq::connected_strips_get(strip);
+      for (Strip *connection : connections) {
+        strips.add(connection);
+      }
+    }
+  }
+  else {
+    strips = seq::query_selected_strips(ed->current_strips());
+  }
+
   ListBase *channels = seq::channels_displayed_get(seq::editing_get(scene));
   strips.remove_if([&](Strip *strip) {
     return (seq::transform_single_image_check(strip) || seq::transform_is_locked(channels, strip));
@@ -818,7 +837,7 @@ static wmOperatorStatus sequencer_slip_invoke(bContext *C, wmOperator *op, const
   ScrArea *area = CTX_wm_area(C);
   View2D *v2d = UI_view2d_fromcontext(C);
 
-  SlipData *data = slip_data_init(scene);
+  SlipData *data = slip_data_init(C, op, event);
   if (data == nullptr) {
     return OPERATOR_CANCELLED;
   }
@@ -958,7 +977,7 @@ static wmOperatorStatus sequencer_slip_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_sequencer_scene(C);
 
-  SlipData *data = slip_data_init(scene);
+  SlipData *data = slip_data_init(C, op, nullptr);
   if (data == nullptr) {
     return OPERATOR_CANCELLED;
   }
@@ -1110,6 +1129,16 @@ void SEQUENCER_OT_slip(wmOperatorType *ot)
                   false,
                   "Slip Keyframes",
                   "Move the keyframes alongside the media");
+  RNA_def_boolean(ot->srna,
+                  "use_cursor_position",
+                  false,
+                  "Use Cursor Position",
+                  "Slip strips under mouse cursor instead of all selected strips");
+  RNA_def_boolean(ot->srna,
+                  "ignore_connections",
+                  false,
+                  "Ignore Connections",
+                  "Do not slip connected strips if using cursor position");
 }
 
 /** \} */
