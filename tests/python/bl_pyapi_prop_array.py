@@ -2,6 +2,10 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+# NOTE: See also `bl_pyapi_prop.py` for the non-`Vector` bpy.props similar tests,
+# and `bl_pyapi_idprop.py` for some deeper testing of the consistency between
+# the underlying IDProperty storage, and the property data exposed in Python.
+
 # ./blender.bin --background --python tests/python/bl_pyapi_prop_array.py -- --verbose
 import bpy
 from bpy.props import (

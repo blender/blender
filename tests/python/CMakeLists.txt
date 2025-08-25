@@ -261,6 +261,11 @@ add_blender_test(
 )
 
 add_blender_test(
+  script_pyapi_prop
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_prop.py
+)
+
+add_blender_test(
   script_pyapi_prop_array
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_prop_array.py
 )
