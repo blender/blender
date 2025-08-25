@@ -233,10 +233,16 @@ IndexMask retrieve_selected_curves(const Curves &curves_id, IndexMaskMemory &mem
  * or points in curves with a selection factor greater than zero).
  */
 IndexMask retrieve_selected_points(const bke::CurvesGeometry &curves, IndexMaskMemory &memory);
+IndexMask retrieve_selected_points(const Curves &curves_id, IndexMaskMemory &memory);
+/**
+ * Find points that are selected, for a given attribute_name, requires mask of all Bezier points.
+ * Note: When retrieving ".selection_handle_left" or ".selection_handle_right" all non-Bezier
+ * points will be deselected even if the raw attribute is selected.
+ */
 IndexMask retrieve_selected_points(const bke::CurvesGeometry &curves,
                                    StringRef attribute_name,
+                                   const IndexMask &bezier_points,
                                    IndexMaskMemory &memory);
-IndexMask retrieve_selected_points(const Curves &curves_id, IndexMaskMemory &memory);
 
 /**
  * Find points that are selected (a selection factor greater than zero) or have

@@ -16,6 +16,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
+#include "BKE_curves_utils.hh"
 
 #include "ED_curves.hh"
 #include "ED_select_utils.hh"
@@ -78,13 +79,18 @@ IndexMask retrieve_selected_curves(const Curves &curves_id, IndexMaskMemory &mem
 
 IndexMask retrieve_selected_points(const bke::CurvesGeometry &curves, IndexMaskMemory &memory)
 {
-  return retrieve_selected_points(curves, ".selection", memory);
+  return IndexMask::from_bools(
+      *curves.attributes().lookup_or_default<bool>(".selection", bke::AttrDomain::Point, true),
+      memory);
 }
 
 IndexMask retrieve_all_selected_points(const bke::CurvesGeometry &curves,
                                        const int handle_display,
                                        IndexMaskMemory &memory)
 {
+  const IndexMask bezier_points = bke::curves::curve_type_point_selection(
+      curves, CURVE_TYPE_BEZIER, memory);
+
   Vector<IndexMask> selection_by_attribute;
   for (const StringRef selection_name : ed::curves::get_curves_selection_attribute_names(curves)) {
     if (selection_name != ".selection" && handle_display == CURVE_HANDLE_NONE) {
@@ -92,18 +98,24 @@ IndexMask retrieve_all_selected_points(const bke::CurvesGeometry &curves,
     }
 
     selection_by_attribute.append(
-        ed::curves::retrieve_selected_points(curves, selection_name, memory));
+        ed::curves::retrieve_selected_points(curves, selection_name, bezier_points, memory));
   }
   return IndexMask::from_union(selection_by_attribute, memory);
 }
 
 IndexMask retrieve_selected_points(const bke::CurvesGeometry &curves,
                                    StringRef attribute_name,
+                                   const IndexMask &bezier_points,
                                    IndexMaskMemory &memory)
 {
-  return IndexMask::from_bools(
-      *curves.attributes().lookup_or_default<bool>(attribute_name, bke::AttrDomain::Point, true),
-      memory);
+  const VArray<bool> selected = *curves.attributes().lookup_or_default<bool>(
+      attribute_name, bke::AttrDomain::Point, true);
+
+  if (attribute_name == ".selection") {
+    return IndexMask::from_bools(selected, memory);
+  }
+
+  return IndexMask::from_bools(bezier_points, selected, memory);
 }
 
 IndexMask retrieve_selected_points(const Curves &curves_id, IndexMaskMemory &memory)

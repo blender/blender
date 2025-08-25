@@ -350,7 +350,7 @@ static CurvesPointSelectionStatus init_curves_point_selection_status(
   const Span<float3> positions = curves.positions();
 
   IndexMaskMemory memory;
-  const IndexMask selection = retrieve_selected_points(curves, ".selection", memory);
+  const IndexMask selection = retrieve_selected_points(curves, memory);
 
   CurvesPointSelectionStatus status = threading::parallel_reduce(
       curves.curves_range(),
@@ -386,11 +386,15 @@ static CurvesPointSelectionStatus init_curves_point_selection_status(
     return status;
   }
 
+  const IndexMask bezier_points = bke::curves::curve_type_point_selection(
+      curves, CURVE_TYPE_BEZIER, memory);
+
   auto add_handles = [&](StringRef selection_attribute, std::optional<Span<float3>> positions) {
     if (!positions) {
       return;
     }
-    const IndexMask selection = retrieve_selected_points(curves, selection_attribute, memory);
+    const IndexMask selection = retrieve_selected_points(
+        curves, selection_attribute, bezier_points, memory);
     if (selection.is_empty()) {
       return;
     }
@@ -428,7 +432,7 @@ static bool apply_to_curves_point_selection(const int tot,
   const MutableSpan<float> tilt = median.tilt ? curves.tilt_for_write() : MutableSpan<float>{};
 
   IndexMaskMemory memory;
-  const IndexMask selection = retrieve_selected_points(curves, ".selection", memory);
+  const IndexMask selection = retrieve_selected_points(curves, memory);
   const bool update_location = math::length_manhattan(float3(median.location)) > 0;
   MutableSpan<float3> positions = update_location && !selection.is_empty() ?
                                       curves.positions_for_write() :
@@ -468,8 +472,12 @@ static bool apply_to_curves_point_selection(const int tot,
     return changed;
   }
 
+  const IndexMask bezier_points = bke::curves::curve_type_point_selection(
+      curves, CURVE_TYPE_BEZIER, memory);
+
   auto apply_to_handles = [&](StringRef selection_attribute, StringRef handles_attribute) {
-    const IndexMask selection = retrieve_selected_points(curves, selection_attribute, memory);
+    const IndexMask selection = retrieve_selected_points(
+        curves, selection_attribute, bezier_points, memory);
     if (selection.is_empty()) {
       return;
     }

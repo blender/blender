@@ -92,16 +92,6 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
       const IndexMask editable_strokes = ed::greasepencil::retrieve_editable_strokes(
           *object, info.drawing, info.layer_index, curves_transform_data->memory);
 
-      for (const int attribute_i : selection_attribute_names.index_range()) {
-        const StringRef &selection_name = selection_attribute_names[attribute_i];
-        selection_per_attribute[attribute_i] = ed::curves::retrieve_selected_points(
-            curves, selection_name, curves_transform_data->memory);
-
-        /* Make sure only editable points are used. */
-        selection_per_attribute[attribute_i] = IndexMask::from_intersection(
-            selection_per_attribute[attribute_i], editable_points, curves_transform_data->memory);
-      }
-
       bezier_curves[layer_offset] = bke::curves::indices_for_type(curves.curve_types(),
                                                                   curves.curve_type_counts(),
                                                                   CURVE_TYPE_BEZIER,
@@ -110,6 +100,16 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
       const OffsetIndices<int> points_by_curve = curves.points_by_curve();
       const IndexMask bezier_points = IndexMask::from_ranges(
           points_by_curve, bezier_curves[layer_offset], curves_transform_data->memory);
+
+      for (const int attribute_i : selection_attribute_names.index_range()) {
+        const StringRef &selection_name = selection_attribute_names[attribute_i];
+        selection_per_attribute[attribute_i] = ed::curves::retrieve_selected_points(
+            curves, selection_name, bezier_points, curves_transform_data->memory);
+
+        /* Make sure only editable points are used. */
+        selection_per_attribute[attribute_i] = IndexMask::from_intersection(
+            selection_per_attribute[attribute_i], editable_points, curves_transform_data->memory);
+      }
 
       /* Alter selection as in legacy curves bezt_select_to_transform_triple_flag(). */
       if (!bezier_points.is_empty()) {

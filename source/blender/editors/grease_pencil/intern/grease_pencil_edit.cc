@@ -3222,11 +3222,14 @@ static wmOperatorStatus grease_pencil_reproject_exec(bContext *C, wmOperator *op
       const IndexMask editable_points = retrieve_editable_points(
           *object, info.drawing, info.layer_index, memory);
 
+      const IndexMask bezier_points = bke::curves::curve_type_point_selection(
+          curves, CURVE_TYPE_BEZIER, memory);
+
       for (const StringRef selection_name :
            ed::curves::get_curves_selection_attribute_names(curves))
       {
         const IndexMask selected_points = ed::curves::retrieve_selected_points(
-            curves, selection_name, memory);
+            curves, selection_name, bezier_points, memory);
         const IndexMask points_to_reproject = IndexMask::from_intersection(
             editable_points, selected_points, memory);
 
@@ -3448,11 +3451,14 @@ static wmOperatorStatus grease_pencil_snap_to_grid_exec(bContext *C, wmOperator 
       continue;
     }
 
+    IndexMaskMemory memory;
+    const IndexMask bezier_points = bke::curves::curve_type_point_selection(
+        curves, CURVE_TYPE_BEZIER, memory);
+
     for (const StringRef selection_name : ed::curves::get_curves_selection_attribute_names(curves))
     {
-      IndexMaskMemory memory;
       const IndexMask selected_points = ed::curves::retrieve_selected_points(
-          curves, selection_name, memory);
+          curves, selection_name, bezier_points, memory);
 
       const Layer &layer = grease_pencil.layer(drawing_info.layer_index);
       const float4x4 layer_to_world = layer.to_world_space(object);

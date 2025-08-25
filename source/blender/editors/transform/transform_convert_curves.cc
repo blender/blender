@@ -302,12 +302,6 @@ static void createTransCurvesVerts(bContext *C, TransInfo *t)
         curves);
     std::array<IndexMask, 3> selection_per_attribute;
 
-    for (const int attribute_i : selection_attribute_names.index_range()) {
-      const StringRef &selection_name = selection_attribute_names[attribute_i];
-      selection_per_attribute[attribute_i] = ed::curves::retrieve_selected_points(
-          curves, selection_name, curves_transform_data->memory);
-    }
-
     bezier_curves[i] = bke::curves::indices_for_type(curves.curve_types(),
                                                      curves.curve_type_counts(),
                                                      CURVE_TYPE_BEZIER,
@@ -316,6 +310,12 @@ static void createTransCurvesVerts(bContext *C, TransInfo *t)
 
     const IndexMask bezier_points = bke::curves::curve_to_point_selection(
         curves.points_by_curve(), bezier_curves[i], curves_transform_data->memory);
+
+    for (const int attribute_i : selection_attribute_names.index_range()) {
+      const StringRef &selection_name = selection_attribute_names[attribute_i];
+      selection_per_attribute[attribute_i] = ed::curves::retrieve_selected_points(
+          curves, selection_name, bezier_points, curves_transform_data->memory);
+    }
 
     /* Alter selection as in legacy curves bezt_select_to_transform_triple_flag(). */
     if (!bezier_points.is_empty()) {
