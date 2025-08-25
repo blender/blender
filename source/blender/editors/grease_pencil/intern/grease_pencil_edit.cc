@@ -439,6 +439,7 @@ static wmOperatorStatus grease_pencil_delete_exec(bContext *C, wmOperator * /*op
 {
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
+  View3D *v3d = CTX_wm_view3d(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
   const bke::AttrDomain selection_domain = ED_grease_pencil_edit_selection_domain_get(
@@ -447,19 +448,24 @@ static wmOperatorStatus grease_pencil_delete_exec(bContext *C, wmOperator * /*op
   bool changed = false;
   const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
-    IndexMaskMemory memory;
-    const IndexMask elements = ed::greasepencil::retrieve_editable_and_selected_elements(
-        *object, info.drawing, info.layer_index, selection_domain, memory);
-    if (elements.is_empty()) {
-      return;
-    }
-
     bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
+
+    IndexMaskMemory memory;
     if (selection_domain == bke::AttrDomain::Curve) {
-      curves.remove_curves(elements, {});
+      const IndexMask strokes = ed::greasepencil::retrieve_editable_and_selected_strokes(
+          *object, info.drawing, info.layer_index, memory);
+      if (strokes.is_empty()) {
+        return;
+      }
+      curves.remove_curves(strokes, {});
     }
     else if (selection_domain == bke::AttrDomain::Point) {
-      curves = geometry::remove_points_and_split(curves, elements);
+      const IndexMask points = ed::greasepencil::retrieve_editable_and_all_selected_points(
+          *object, info.drawing, info.layer_index, v3d->overlay.handle_display, memory);
+      if (points.is_empty()) {
+        return;
+      }
+      curves = geometry::remove_points_and_split(curves, points);
     }
     info.drawing.tag_topology_changed();
     changed = true;
@@ -518,11 +524,8 @@ static Array<bool> get_points_to_dissolve(bke::CurvesGeometry &curves,
                                           const IndexMask &mask,
                                           const DissolveMode mode)
 {
-  const VArray<bool> selection = *curves.attributes().lookup_or_default<bool>(
-      ".selection", bke::AttrDomain::Point, true);
-
-  Array<bool> points_to_dissolve(curves.points_num(), false);
-  selection.materialize(mask, points_to_dissolve);
+  Array<bool> points_to_dissolve(curves.points_num());
+  mask.to_bools(points_to_dissolve);
 
   if (mode == DissolveMode::POINTS) {
     return points_to_dissolve;
@@ -580,6 +583,7 @@ static wmOperatorStatus grease_pencil_dissolve_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
+  View3D *v3d = CTX_wm_view3d(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
   const DissolveMode mode = DissolveMode(RNA_enum_get(op->ptr, "type"));
@@ -593,8 +597,8 @@ static wmOperatorStatus grease_pencil_dissolve_exec(bContext *C, wmOperator *op)
     }
 
     IndexMaskMemory memory;
-    const IndexMask points = ed::greasepencil::retrieve_editable_and_selected_points(
-        *object, info.drawing, info.layer_index, memory);
+    const IndexMask points = ed::greasepencil::retrieve_editable_and_all_selected_points(
+        *object, info.drawing, info.layer_index, v3d->overlay.handle_display, memory);
     if (points.is_empty()) {
       return;
     }

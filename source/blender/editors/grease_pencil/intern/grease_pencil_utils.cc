@@ -1376,6 +1376,21 @@ IndexMask retrieve_editable_and_selected_elements(Object &object,
   return {};
 }
 
+IndexMask retrieve_editable_and_all_selected_points(Object &object,
+                                                    const bke::greasepencil::Drawing &drawing,
+                                                    int layer_index,
+                                                    int handle_display,
+                                                    IndexMaskMemory &memory)
+{
+  const bke::CurvesGeometry &curves = drawing.strokes();
+
+  const IndexMask editable_points = retrieve_editable_points(object, drawing, layer_index, memory);
+  const IndexMask selected_points = ed::curves::retrieve_all_selected_points(
+      curves, handle_display, memory);
+
+  return IndexMask::from_intersection(editable_points, selected_points, memory);
+}
+
 bool has_editable_layer(const GreasePencil &grease_pencil)
 {
   using namespace blender::bke::greasepencil;

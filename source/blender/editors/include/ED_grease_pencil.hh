@@ -453,6 +453,11 @@ IndexMask retrieve_editable_and_selected_elements(Object &object,
                                                   int layer_index,
                                                   bke::AttrDomain selection_domain,
                                                   IndexMaskMemory &memory);
+IndexMask retrieve_editable_and_all_selected_points(Object &object,
+                                                    const bke::greasepencil::Drawing &drawing,
+                                                    int layer_index,
+                                                    int handle_display,
+                                                    IndexMaskMemory &memory);
 bool has_editable_layer(const GreasePencil &grease_pencil);
 
 void create_blank(Main &bmain, Object &object, int frame_number);

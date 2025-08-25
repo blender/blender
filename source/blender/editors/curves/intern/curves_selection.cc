@@ -81,10 +81,16 @@ IndexMask retrieve_selected_points(const bke::CurvesGeometry &curves, IndexMaskM
   return retrieve_selected_points(curves, ".selection", memory);
 }
 
-IndexMask retrieve_all_selected_points(const bke::CurvesGeometry &curves, IndexMaskMemory &memory)
+IndexMask retrieve_all_selected_points(const bke::CurvesGeometry &curves,
+                                       const int handle_display,
+                                       IndexMaskMemory &memory)
 {
   Vector<IndexMask> selection_by_attribute;
   for (const StringRef selection_name : ed::curves::get_curves_selection_attribute_names(curves)) {
+    if (selection_name != ".selection" && handle_display == CURVE_HANDLE_NONE) {
+      continue;
+    }
+
     selection_by_attribute.append(
         ed::curves::retrieve_selected_points(curves, selection_name, memory));
   }

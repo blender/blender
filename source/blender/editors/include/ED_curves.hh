@@ -242,7 +242,9 @@ IndexMask retrieve_selected_points(const Curves &curves_id, IndexMaskMemory &mem
  * Find points that are selected (a selection factor greater than zero) or have
  * any of their Bezier handle selected.
  */
-IndexMask retrieve_all_selected_points(const bke::CurvesGeometry &curves, IndexMaskMemory &memory);
+IndexMask retrieve_all_selected_points(const bke::CurvesGeometry &curves,
+                                       int handle_display,
+                                       IndexMaskMemory &memory);
 
 /**
  * If the selection_id attribute doesn't exist, create it with the requested type (bool or float).
