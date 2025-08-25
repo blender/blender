@@ -82,6 +82,12 @@ struct SocketUsageInferencer {
     for (const bNode *node : root_tree_.group_input_nodes()) {
       for (const int i : root_tree_.interface_inputs().index_range()) {
         const bNodeSocket &socket = node->output_socket(i);
+        if (!socket.is_directly_linked()) {
+          /* This socket is not linked, hence it's value is never used. Thus we don't have to add
+           * it to #all_socket_values_. This optimization helps a lot when the node group has a
+           * very large number of inputs and group input nodes. */
+          continue;
+        }
         const SocketInContext socket_in_context{nullptr, &socket};
         const void *input_value = nullptr;
         if (!this->treat_socket_as_unknown(socket_in_context)) {
