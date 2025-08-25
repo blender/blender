@@ -322,15 +322,17 @@ class USDImportTest(AbstractUSDTest):
             blender_mesh2_eval = bpy.data.objects["mesh_vert_crease"].evaluated_get(depsgraph)
 
             # Check crease values
-            blender_crease_data = [round(d.value) for d in blender_mesh1_eval.data.attributes["crease_edge"].data]
-            usd_crease_data = [round(sharpness_to_crease(d)) for d in usd_mesh1.GetCreaseSharpnessesAttr().Get(frame)]
+            blender_crease_data = [round(d.value, 5) for d in blender_mesh1_eval.data.attributes["crease_edge"].data]
+            usd_crease_data = [
+                round(sharpness_to_crease(d), 5) for d in usd_mesh1.GetCreaseSharpnessesAttr().Get(frame)]
             self.assertEqual(
                 blender_crease_data,
                 usd_crease_data,
                 f"Frame {frame}: {blender_mesh1_eval.name} crease values do not match")
 
-            blender_crease_data = [round(d.value) for d in blender_mesh2_eval.data.attributes["crease_vert"].data]
-            usd_crease_data = [round(sharpness_to_crease(d)) for d in usd_mesh2.GetCornerSharpnessesAttr().Get(frame)]
+            blender_crease_data = [round(d.value, 5) for d in blender_mesh2_eval.data.attributes["crease_vert"].data]
+            usd_crease_data = [
+                round(sharpness_to_crease(d), 5) for d in usd_mesh2.GetCornerSharpnessesAttr().Get(frame)]
             self.assertEqual(
                 blender_crease_data,
                 usd_crease_data,
