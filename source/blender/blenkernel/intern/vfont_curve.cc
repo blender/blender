@@ -674,7 +674,8 @@ static bool vfont_to_curve(Object *ob,
                            const char32_t **r_text,
                            int *r_text_len,
                            bool *r_text_free,
-                           CharTrans **r_chartransdata)
+                           CharTrans **r_chartransdata,
+                           float *r_font_size_eval)
 {
   EditFont *ef = cu->editfont;
   EditFontSelBox *selboxes = nullptr;
@@ -1800,8 +1801,12 @@ static bool vfont_to_curve(Object *ob,
   }
 
   /* Store the effective scale, to use for the text-box lines. */
-  cu->fsize_realtime = font_size;
-
+  if (ef != nullptr) {
+    ef->font_size_eval = font_size;
+  }
+  if (r_font_size_eval) {
+    *r_font_size_eval = font_size;
+  }
   return true;
 
 #undef MARGIN_X_MIN
@@ -1823,7 +1828,8 @@ bool BKE_vfont_to_curve_ex(Object *ob,
                            const char32_t **r_text,
                            int *r_text_len,
                            bool *r_text_free,
-                           CharTrans **r_chartransdata)
+                           CharTrans **r_chartransdata,
+                           float *r_font_size_eval)
 {
   VFontToCurveIter data = {};
   data.iteraction = cu->totbox * FONT_TO_CURVE_SCALE_ITERATIONS;
@@ -1833,8 +1839,17 @@ bool BKE_vfont_to_curve_ex(Object *ob,
   data.status = VFONT_TO_CURVE_INIT;
 
   do {
-    data.ok &= vfont_to_curve(
-        ob, cu, mode, &data, nullptr, r_nubase, r_text, r_text_len, r_text_free, r_chartransdata);
+    data.ok &= vfont_to_curve(ob,
+                              cu,
+                              mode,
+                              &data,
+                              nullptr,
+                              r_nubase,
+                              r_text,
+                              r_text_len,
+                              r_text_free,
+                              r_chartransdata,
+                              r_font_size_eval);
   } while (data.ok && ELEM(data.status, VFONT_TO_CURVE_SCALE_ONCE, VFONT_TO_CURVE_BISECT));
 
   return data.ok;
@@ -1859,8 +1874,17 @@ int BKE_vfont_cursor_to_text_index(Object *ob, const float cursor_location[2])
   cursor_params.r_string_offset = -1;
 
   do {
-    data.ok &= vfont_to_curve(
-        ob, cu, FO_CURS, &data, &cursor_params, r_nubase, nullptr, nullptr, nullptr, nullptr);
+    data.ok &= vfont_to_curve(ob,
+                              cu,
+                              FO_CURS,
+                              &data,
+                              &cursor_params,
+                              r_nubase,
+                              nullptr,
+                              nullptr,
+                              nullptr,
+                              nullptr,
+                              nullptr);
   } while (data.ok && ELEM(data.status, VFONT_TO_CURVE_SCALE_ONCE, VFONT_TO_CURVE_BISECT));
 
   return cursor_params.r_string_offset;
@@ -1873,16 +1897,30 @@ bool BKE_vfont_to_curve_nubase(Object *ob, const eEditFontMode mode, ListBase *r
 {
   BLI_assert(ob->type == OB_FONT);
 
-  return BKE_vfont_to_curve_ex(
-      ob, static_cast<Curve *>(ob->data), mode, r_nubase, nullptr, nullptr, nullptr, nullptr);
+  return BKE_vfont_to_curve_ex(ob,
+                               static_cast<Curve *>(ob->data),
+                               mode,
+                               r_nubase,
+                               nullptr,
+                               nullptr,
+                               nullptr,
+                               nullptr,
+                               nullptr);
 }
 
 bool BKE_vfont_to_curve(Object *ob, const eEditFontMode mode)
 {
   Curve *cu = static_cast<Curve *>(ob->data);
 
-  return BKE_vfont_to_curve_ex(
-      ob, static_cast<Curve *>(ob->data), mode, &cu->nurb, nullptr, nullptr, nullptr, nullptr);
+  return BKE_vfont_to_curve_ex(ob,
+                               static_cast<Curve *>(ob->data),
+                               mode,
+                               &cu->nurb,
+                               nullptr,
+                               nullptr,
+                               nullptr,
+                               nullptr,
+                               nullptr);
 }
 
 /** \} */

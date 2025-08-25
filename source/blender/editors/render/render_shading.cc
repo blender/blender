@@ -368,7 +368,7 @@ static wmOperatorStatus material_slot_assign_exec(bContext *C, wmOperator * /*op
       }
     }
     else if (ob->type == OB_FONT) {
-      const Curve *cu =static_cast<const Curve *>(ob->data);
+      const Curve *cu = static_cast<const Curve *>(ob->data);
       EditFont *ef = cu->editfont;
       int i, selstart, selend;
 

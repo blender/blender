@@ -37,6 +37,9 @@ struct EditFont {
   /** Text style info (aligned with `textbuf`). */
   CharInfo *textbufinfo;
 
+  /** The font size from the last evaluated text layout. */
+  float font_size_eval;
+
   /** Array of rectangles & rotation. */
   float textcurs[4][2];
   EditFontSelBox *selboxes;
@@ -142,7 +145,8 @@ bool BKE_vfont_to_curve_ex(Object *ob,
                            const char32_t **r_text,
                            int *r_text_len,
                            bool *r_text_free,
-                           CharTrans **r_chartransdata);
+                           CharTrans **r_chartransdata,
+                           float *r_font_size_eval);
 bool BKE_vfont_to_curve_nubase(Object *ob, eEditFontMode mode, ListBase *r_nubase);
 
 /** \} */

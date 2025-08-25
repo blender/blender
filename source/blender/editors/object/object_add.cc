@@ -3607,6 +3607,7 @@ static Object *convert_font_to_curve_legacy_generic(Object *ob,
                         nullptr,
                         nullptr,
                         nullptr,
+                        nullptr,
                         nullptr);
 
   newob->type = OB_CURVES_LEGACY;

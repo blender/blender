@@ -5096,6 +5096,7 @@ std::optional<blender::Bounds<blender::float3>> BKE_curve_minmax(const Curve *cu
                           nullptr,
                           nullptr,
                           nullptr,
+                          nullptr,
                           nullptr);
     BLI_SCOPED_DEFER([&]() { BKE_nurbList_free(&temp_nurb_lb); });
     return calc_nurblist_bounds(&temp_nurb_lb, false);
