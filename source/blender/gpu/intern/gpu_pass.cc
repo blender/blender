@@ -163,11 +163,6 @@ bool GPU_pass_should_optimize(GPUPass *pass)
    * NOTE: Only enabled on Metal, since it doesn't seem to yield any performance improvements for
    * other backends. */
   return (GPU_backend_get_type() == GPU_BACKEND_METAL) && pass->should_optimize;
-
-#if 0
-  /* Returns optimization heuristic prepared during initial codegen. */
-  return pass->should_optimize;
-#endif
 }
 
 blender::gpu::Shader *GPU_pass_shader_get(GPUPass *pass)
