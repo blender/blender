@@ -1010,15 +1010,6 @@ static bool vfont_to_curve(Object *ob,
   current_line_length += xof + twidth - MARGIN_X_MIN;
   longest_line_length = std::max(current_line_length, longest_line_length);
 
-  cu->lines = 1;
-  for (i = 0; i <= slen; i++) {
-    const char32_t charcode = mem[i];
-    ct = &chartransdata[i];
-    if (charcode == '\n' || ct->dobreak) {
-      cu->lines++;
-    }
-  }
-
   if (ef && selboxes) {
     /* Set combined style flags for the selected string. Start with all styles then
      * remove one if ANY characters do not have it. Break out if we've removed them all. */
