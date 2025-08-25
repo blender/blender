@@ -2694,8 +2694,10 @@ static void node_header_custom_tooltip(const bNode &node, uiBut &but)
         const std::string description = node.typeinfo->ui_description_fn ?
                                             node.typeinfo->ui_description_fn(node) :
                                             node.typeinfo->ui_description;
-        UI_tooltip_text_field_add(
-            data, std::move(description), "", UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL);
+        if (!description.empty()) {
+          UI_tooltip_text_field_add(
+              data, std::move(description), "", UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL);
+        }
         if (U.flag & USER_TOOLTIPS_PYTHON) {
           UI_tooltip_text_field_add(data,
                                     fmt::format("Python: {}", node.idname),
