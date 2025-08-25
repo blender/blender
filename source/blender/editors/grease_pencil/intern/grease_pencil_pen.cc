@@ -1170,7 +1170,7 @@ static wmOperatorStatus grease_pencil_pen_invoke(bContext *C, wmOperator *op, co
 
       if (ptd.closest_element.element_mode == ElementMode::Edge) {
         add_single.store(false, std::memory_order_relaxed);
-        if (ptd.insert_point) {
+        if (ptd.insert_point && ptd.closest_element.drawing_index == drawing_index) {
           ptd.insert_point_to_curve(curves);
           info.drawing.tag_topology_changed();
           changed.store(true, std::memory_order_relaxed);
