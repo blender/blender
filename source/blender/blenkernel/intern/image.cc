@@ -2555,9 +2555,12 @@ bool BKE_imbuf_alpha_test(ImBuf *ibuf)
 
 bool BKE_imbuf_write(ImBuf *ibuf, const char *filepath, const ImageFormatData *imf)
 {
-  BKE_image_format_to_imbuf(ibuf, imf);
+  if (!BLI_file_ensure_parent_dir_exists(filepath)) {
+    CLOG_ERROR(&LOG, "Couldn't create directory for file %s: %s", filepath, std::strerror(errno));
+    return false;
+  }
 
-  BLI_file_ensure_parent_dir_exists(filepath);
+  BKE_image_format_to_imbuf(ibuf, imf);
 
   const bool ok = IMB_save_image(ibuf, filepath, IB_byte_data);
   if (ok == 0) {

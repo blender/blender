@@ -2400,6 +2400,22 @@ static void re_movie_free_all(Render *re)
   re->movie_writers.clear_and_shrink();
 }
 
+static void touch_file(const char *filepath)
+{
+  if (BLI_exists(filepath)) {
+    return;
+  }
+
+  if (!BLI_file_ensure_parent_dir_exists(filepath)) {
+    CLOG_ERROR(&LOG, "Couldn't create directory for file %s: %s", filepath, std::strerror(errno));
+    return;
+  }
+  if (!BLI_file_touch(filepath)) {
+    CLOG_ERROR(&LOG, "Couldn't touch file %s: %s", filepath, std::strerror(errno));
+    return;
+  }
+}
+
 void RE_RenderAnim(Render *re,
                    Main *bmain,
                    Scene *scene,
@@ -2581,10 +2597,7 @@ void RE_RenderAnim(Render *re,
 
       if (rd.mode & R_TOUCH) {
         if (!is_multiview_name) {
-          if (!BLI_exists(filepath)) {
-            BLI_file_ensure_parent_dir_exists(filepath);
-            BLI_file_touch(filepath);
-          }
+          touch_file(filepath);
         }
         else {
           char filepath_view[FILE_MAX];
@@ -2596,10 +2609,7 @@ void RE_RenderAnim(Render *re,
 
             BKE_scene_multiview_filepath_get(srv, filepath, filepath_view);
 
-            if (!BLI_exists(filepath_view)) {
-              BLI_file_ensure_parent_dir_exists(filepath_view);
-              BLI_file_touch(filepath_view);
-            }
+            touch_file(filepath);
           }
         }
       }

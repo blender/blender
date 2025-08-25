@@ -1516,7 +1516,10 @@ static bool ffmpeg_filepath_get(MovieWriter *context,
 
   BLI_path_abs(filepath, BKE_main_blendfile_path_from_global());
 
-  BLI_file_ensure_parent_dir_exists(filepath);
+  if (!BLI_file_ensure_parent_dir_exists(filepath)) {
+    CLOG_ERROR(&LOG, "Couldn't create directory for file %s: %s", filepath, std::strerror(errno));
+    return false;
+  }
 
   autosplit[0] = '\0';
 
