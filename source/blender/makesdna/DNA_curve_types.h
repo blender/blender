@@ -265,10 +265,9 @@ typedef struct Curve {
    * specified. The effective radius is a function of the bevel point radius and the taper radius.
    */
   char taper_radius_mode;
-  char _pad;
+  char _pad[3];
 
   /* font part */
-  short lines;
   float spacing, linedist, shear, fsize, wordspace, ulpos, ulheight;
   float xof, yof;
   float linewidth;
