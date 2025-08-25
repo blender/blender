@@ -388,6 +388,7 @@
     .snap_angle_increment_3d_precision = DEG2RADF(1.0f), \
     .snap_angle_increment_2d_precision = DEG2RADF(1.0f), \
  \
+    .snap_flag_seq = SCE_SNAP, \
     /* Weight Paint */ \
     .weightuser = OB_DRAW_GROUPUSER_ACTIVE, \
  \

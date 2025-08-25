@@ -65,6 +65,7 @@
 #include "ED_numinput.hh"
 #include "ED_scene.hh"
 #include "ED_screen.hh"
+#include "ED_screen_types.hh"
 #include "ED_sequencer.hh"
 
 #include "UI_interface_layout.hh"
@@ -160,7 +161,11 @@ bool has_playback_animation(const Scene *scene)
 
 bool sequencer_edit_poll(bContext *C)
 {
-  return (seq::editing_get(CTX_data_sequencer_scene(C)) != nullptr);
+  Scene *scene = CTX_data_sequencer_scene(C);
+  if (!scene) {
+    return false;
+  }
+  return (seq::editing_get(scene) != nullptr);
 }
 
 bool sequencer_edit_with_channel_region_poll(bContext *C)
@@ -191,7 +196,7 @@ bool sequencer_strip_poll(bContext *C)
 bool sequencer_strip_editable_poll(bContext *C)
 {
   Scene *scene = CTX_data_sequencer_scene(C);
-  if (!ID_IS_EDITABLE(&scene->id)) {
+  if (!scene || !ID_IS_EDITABLE(&scene->id)) {
     return false;
   }
   Editing *ed = seq::editing_get(scene);
@@ -200,19 +205,28 @@ bool sequencer_strip_editable_poll(bContext *C)
 
 bool sequencer_strip_has_path_poll(bContext *C)
 {
-  Editing *ed;
-  Strip *strip;
-  return (((ed = seq::editing_get(CTX_data_sequencer_scene(C))) != nullptr) &&
-          ((strip = ed->act_strip) != nullptr) && STRIP_HAS_PATH(strip));
+  Scene *scene = CTX_data_sequencer_scene(C);
+  if (!scene) {
+    return false;
+  }
+  Editing *ed = seq::editing_get(scene);
+  if (!ed) {
+    return false;
+  }
+  Strip *strip = ed->act_strip;
+  if (!strip) {
+    return false;
+  }
+  return STRIP_HAS_PATH(strip);
 }
 
 bool sequencer_view_has_preview_poll(bContext *C)
 {
-  SpaceSeq *sseq = CTX_wm_space_seq(C);
-  if (sseq == nullptr) {
+  if (!sequencer_edit_poll(C)) {
     return false;
   }
-  if (seq::editing_get(CTX_data_sequencer_scene(C)) == nullptr) {
+  SpaceSeq *sseq = CTX_wm_space_seq(C);
+  if (sseq == nullptr) {
     return false;
   }
   if (!(ELEM(sseq->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW) &&
@@ -230,11 +244,16 @@ bool sequencer_view_has_preview_poll(bContext *C)
 
 bool sequencer_view_preview_only_poll(const bContext *C)
 {
-  SpaceSeq *sseq = CTX_wm_space_seq(C);
-  if (sseq == nullptr) {
+  Scene *scene = CTX_data_sequencer_scene(C);
+  if (!scene) {
     return false;
   }
-  if (seq::editing_get(CTX_data_sequencer_scene(C)) == nullptr) {
+  Editing *ed = seq::editing_get(scene);
+  if (!ed) {
+    return false;
+  }
+  SpaceSeq *sseq = CTX_wm_space_seq(C);
+  if (sseq == nullptr) {
     return false;
   }
   if (!(ELEM(sseq->view, SEQ_VIEW_PREVIEW) && (sseq->mainb == SEQ_DRAW_IMG_IMBUF))) {
@@ -266,6 +285,9 @@ bool sequencer_view_strips_poll(bContext *C)
 
 static bool sequencer_effect_poll(bContext *C)
 {
+  if (!sequencer_edit_poll(C)) {
+    return false;
+  }
   Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_get(scene);
 
@@ -281,6 +303,9 @@ static bool sequencer_effect_poll(bContext *C)
 
 static bool sequencer_swap_inputs_poll(bContext *C)
 {
+  if (!sequencer_edit_poll(C)) {
+    return false;
+  }
   Scene *scene = CTX_data_sequencer_scene(C);
   Strip *active_strip = seq::select_active_get(scene);
 
@@ -289,6 +314,142 @@ static bool sequencer_swap_inputs_poll(bContext *C)
   }
 
   return false;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Scene syncing with current scene strip
+ * \{ */
+
+bool is_scene_time_sync_needed(const bContext &C)
+{
+  WorkSpace *workspace = CTX_wm_workspace(&C);
+  if (!workspace || !workspace->sequencer_scene) {
+    return false;
+  }
+  if ((workspace->flags & WORKSPACE_SYNC_SCENE_TIME) == 0) {
+    return false;
+  }
+  SpaceSeq *sseq = CTX_wm_space_seq(&C);
+  if (!sseq) {
+    /* We only want to start syncing the time when we're in a sequence editor.
+     * Changing time in any other editor should just affect the active scene. */
+    return false;
+  }
+  return true;
+}
+
+static Scene *get_sequencer_scene_for_time_sync(const bContext &C)
+{
+  wmWindowManager *wm = CTX_wm_manager(&C);
+  bScreen *screen = ED_screen_animation_playing(wm);
+  if (screen && screen->animtimer) {
+    wmTimer *wt = screen->animtimer;
+    ScreenAnimData *sad = static_cast<ScreenAnimData *>(wt->customdata);
+    if (sad->do_scene_syncing) {
+      return sad->scene;
+    }
+    /* If we're playing a scene that's not a sequence scene, don't try and sync. */
+    return nullptr;
+  }
+  if (is_scene_time_sync_needed(C)) {
+    return CTX_data_sequencer_scene(&C);
+  }
+  return nullptr;
+}
+
+void sync_active_scene_and_time_with_scene_strip(bContext &C)
+{
+  using namespace blender;
+  Scene *sequence_scene = get_sequencer_scene_for_time_sync(C);
+  if (!sequence_scene) {
+    return;
+  }
+
+  wmWindow *win = CTX_wm_window(&C);
+  Scene *active_scene = WM_window_get_active_scene(win);
+
+  Editing *ed = seq::editing_get(sequence_scene);
+  if (!ed) {
+    return;
+  }
+  ListBase *seqbase = seq::active_seqbase_get(ed);
+  const ListBase *channels = seq::channels_displayed_get(ed);
+  VectorSet<Strip *> query_strips = seq::query_strips_recursive_at_frame(
+      sequence_scene, seqbase, sequence_scene->r.cfra);
+  /* Ignore effect strips, sound strips and muted strips. */
+  query_strips.remove_if([&](const Strip *strip) {
+    return (strip->type & STRIP_TYPE_EFFECT) != 0 || strip->type == STRIP_TYPE_SOUND_RAM ||
+           seq::render_is_muted(channels, strip);
+  });
+  Vector<Strip *> strips = query_strips.extract_vector();
+  /* Sort strips by channel. */
+  std::sort(strips.begin(), strips.end(), [](const Strip *a, const Strip *b) {
+    return a->channel > b->channel;
+  });
+  /* Get the top-most scene strip. */
+  const Strip *scene_strip = [&]() -> const Strip * {
+    for (const Strip *strip : strips) {
+      if (strip->type == STRIP_TYPE_SCENE) {
+        return strip;
+      }
+    }
+    return nullptr;
+  }();
+  if (!scene_strip || !scene_strip->scene) {
+    /* No scene strip with scene found. Switch to pinned scene. */
+    Main *bmain = CTX_data_main(&C);
+    WM_window_set_active_scene(bmain, &C, win, sequence_scene);
+    return;
+  }
+  if (active_scene != scene_strip->scene) {
+    /* Sync active scene in window. */
+    Main *bmain = CTX_data_main(&C);
+    WM_window_set_active_scene(bmain, &C, win, scene_strip->scene);
+    active_scene = scene_strip->scene;
+  }
+  Object *camera = [&]() -> Object * {
+    if (scene_strip->scene_camera) {
+      return scene_strip->scene_camera;
+    }
+    return scene_strip->scene->camera;
+  }();
+  if (camera) {
+    /* Sync camera in any 3D view that uses camera view. */
+    PointerRNA camera_ptr = RNA_id_pointer_create(&camera->id);
+    bScreen *screen = WM_window_get_active_screen(win);
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+        if (sl->spacetype != SPACE_VIEW3D) {
+          continue;
+        }
+        View3D *view3d = reinterpret_cast<View3D *>(sl);
+        if (view3d->camera == camera) {
+          continue;
+        }
+        PointerRNA view3d_ptr = RNA_pointer_create_discrete(&screen->id, &RNA_SpaceView3D, view3d);
+        RNA_pointer_set(&view3d_ptr, "camera", camera_ptr);
+      }
+    }
+  }
+
+  /* Compute the scene time based on the scene strip. */
+  const float frame_index = seq::give_frame_index(
+      sequence_scene, scene_strip, sequence_scene->r.cfra);
+  if (active_scene->r.flag & SCER_SHOW_SUBFRAME) {
+    active_scene->r.cfra = int(frame_index);
+    active_scene->r.subframe = frame_index - int(frame_index);
+  }
+  else {
+    active_scene->r.cfra = round_fl_to_int(frame_index);
+    active_scene->r.subframe = 0.0f;
+  }
+  FRAMENUMBER_MIN_CLAMP(active_scene->r.cfra);
+
+  DEG_id_tag_update(&active_scene->id, ID_RECALC_FRAME_CHANGE);
+  WM_event_add_notifier(&C, NC_WINDOW, nullptr);
+  WM_event_add_notifier(&C, NC_SCENE | ND_FRAME, nullptr);
 }
 
 /** \} */
@@ -685,7 +846,8 @@ static wmOperatorStatus sequencer_slip_invoke(bContext *C, wmOperator *op, const
   return OPERATOR_RUNNING_MODAL;
 }
 
-static void slip_strips_delta(wmOperator *op, Scene *scene, SlipData *data, const float delta)
+static void slip_strips_delta(
+    bContext *C, wmOperator *op, Scene *scene, SlipData *data, const float delta)
 {
   float new_offset = data->prev_offset + delta;
   /* Calculate rounded whole frames between offsets, which cannot be determined from `delta` alone.
@@ -718,6 +880,8 @@ static void slip_strips_delta(wmOperator *op, Scene *scene, SlipData *data, cons
       }
     }
   }
+
+  sync_active_scene_and_time_with_scene_strip(*C);
 
   RNA_float_set(op->ptr, "offset", new_offset);
   data->prev_offset = new_offset;
@@ -803,13 +967,14 @@ static wmOperatorStatus sequencer_slip_exec(bContext *C, wmOperator *op)
   float offset = RNA_float_get(op->ptr, "offset");
   slip_apply_clamp(scene, data, &offset);
 
-  slip_strips_delta(op, scene, data, offset);
+  slip_strips_delta(C, op, scene, data, offset);
+
   slip_cleanup(C, op, scene);
   return OPERATOR_FINISHED;
 }
 
 static void slip_handle_num_input(
-    const bContext *C, wmOperator *op, ScrArea *area, SlipData *data, Scene *scene)
+    bContext *C, wmOperator *op, ScrArea *area, SlipData *data, Scene *scene)
 {
   float offset;
   applyNumInput(&data->num_input, &offset);
@@ -818,7 +983,7 @@ static void slip_handle_num_input(
   slip_update_header(scene, area, data, offset);
   RNA_float_set(op->ptr, "offset", offset);
 
-  slip_strips_delta(op, scene, data, offset_delta);
+  slip_strips_delta(C, op, scene, data, offset_delta);
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 }
@@ -843,7 +1008,7 @@ static wmOperatorStatus sequencer_slip_modal(bContext *C, wmOperator *op, const 
         return OPERATOR_FINISHED;
       }
       case SLIP_MODAL_CANCEL: {
-        slip_strips_delta(op, scene, data, -data->prev_offset);
+        slip_strips_delta(C, op, scene, data, -data->prev_offset);
         slip_cleanup(C, op, scene);
         return OPERATOR_CANCELLED;
       }
@@ -864,7 +1029,7 @@ static wmOperatorStatus sequencer_slip_modal(bContext *C, wmOperator *op, const 
           /* If we exit precision mode, make sure we undo the fractional adjustments and align the
            * virtual mouse pointer. */
           float to_nearest_frame = -(data->prev_offset - round_fl_to_int(data->prev_offset));
-          slip_strips_delta(op, scene, data, to_nearest_frame);
+          slip_strips_delta(C, op, scene, data, to_nearest_frame);
           data->virtual_mval_x += to_nearest_frame * UI_view2d_scale_get_x(v2d);
         }
         break;
@@ -899,7 +1064,7 @@ static wmOperatorStatus sequencer_slip_modal(bContext *C, wmOperator *op, const 
       /* Also adjust virtual mouse pointer after clamp is applied. */
       data->virtual_mval_x += (clamped_offset - offset) * UI_view2d_scale_get_x(v2d);
 
-      slip_strips_delta(op, scene, data, clamped_offset_delta);
+      slip_strips_delta(C, op, scene, data, clamped_offset_delta);
       slip_update_header(scene, area, data, clamped_offset);
 
       WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
@@ -973,6 +1138,8 @@ static wmOperatorStatus sequencer_mute_exec(bContext *C, wmOperator *op)
     }
   }
 
+  sync_active_scene_and_time_with_scene_strip(*C);
+
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
@@ -1032,6 +1199,8 @@ static wmOperatorStatus sequencer_unmute_exec(bContext *C, wmOperator *op)
       }
     }
   }
+
+  sync_active_scene_and_time_with_scene_strip(*C);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
@@ -3059,7 +3228,7 @@ void SEQUENCER_OT_change_scene(wmOperatorType *ot)
 
   /* Properties. */
   prop = RNA_def_enum(ot->srna, "scene", rna_enum_dummy_NULL_items, 0, "Scene", "");
-  RNA_def_enum_funcs(prop, RNA_scene_without_active_itemf);
+  RNA_def_enum_funcs(prop, RNA_scene_without_sequencer_scene_itemf);
   RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
   ot->prop = prop;
 }
@@ -3203,10 +3372,19 @@ static wmOperatorStatus sequencer_export_subtitles_exec(bContext *C, wmOperator 
 
 static bool sequencer_strip_is_text_poll(bContext *C)
 {
-  Editing *ed;
-  Strip *strip;
-  return (((ed = seq::editing_get(CTX_data_sequencer_scene(C))) != nullptr) &&
-          ((strip = ed->act_strip) != nullptr) && (strip->type == STRIP_TYPE_TEXT));
+  Scene *scene = CTX_data_sequencer_scene(C);
+  if (!scene) {
+    return false;
+  }
+  Editing *ed = seq::editing_get(scene);
+  if (!ed) {
+    return false;
+  }
+  Strip *strip = ed->act_strip;
+  if (!strip) {
+    return false;
+  }
+  return strip->type == STRIP_TYPE_TEXT;
 }
 
 void SEQUENCER_OT_export_subtitles(wmOperatorType *ot)

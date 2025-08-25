@@ -244,6 +244,7 @@ WorkSpace *ED_workspace_duplicate(WorkSpace *workspace_old, Main *bmain, wmWindo
 
   workspace_new->flags = workspace_old->flags;
   workspace_new->pin_scene = workspace_old->pin_scene;
+  workspace_new->sequencer_scene = workspace_old->sequencer_scene;
   workspace_new->object_mode = workspace_old->object_mode;
   workspace_new->order = workspace_old->order;
   BLI_duplicatelist(&workspace_new->owner_ids, &workspace_old->owner_ids);

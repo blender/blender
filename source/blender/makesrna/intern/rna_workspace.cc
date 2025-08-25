@@ -33,6 +33,7 @@
 
 #  include "ED_asset.hh"
 #  include "ED_paint.hh"
+#  include "ED_sequencer.hh"
 
 #  include "RNA_access.hh"
 
@@ -243,6 +244,11 @@ static int rna_WorkSpaceTool_widget_length(PointerRNA *ptr)
 {
   bToolRef *tref = static_cast<bToolRef *>(ptr->data);
   return tref->runtime ? strlen(tref->runtime->gizmo_group) : 0;
+}
+
+static void rna_workspace_sync_scene_time_update(bContext *C, PointerRNA * /*ptr*/)
+{
+  blender::ed::vse::sync_active_scene_and_time_with_scene_strip(*C);
 }
 
 #else /* RNA_RUNTIME */
@@ -484,6 +490,19 @@ static void rna_def_workspace(BlenderRNA *brna)
                            "Active asset library to show in the UI, not used by the Asset Browser "
                            "(which has its own active asset library)");
   RNA_def_property_update(prop, NC_ASSET | ND_ASSET_LIST_READING, nullptr);
+
+  prop = RNA_def_property(srna, "sequencer_scene", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, nullptr, "sequencer_scene");
+  RNA_def_property_ui_text(prop, "Sequencer Scene", "");
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_PTR_NO_OWNERSHIP);
+  RNA_def_property_update(prop, 0, "rna_window_update_all");
+
+  prop = RNA_def_property(srna, "use_scene_time_sync", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flags", WORKSPACE_SYNC_SCENE_TIME);
+  RNA_def_property_ui_text(
+      prop, "Sync Active Scene", "Set the active scene and time based on the current scene strip");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(prop, NC_WINDOW, "rna_workspace_sync_scene_time_update");
 
   RNA_api_workspace(srna);
 }

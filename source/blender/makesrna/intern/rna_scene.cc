@@ -775,6 +775,7 @@ static const EnumPropertyItem eevee_resolution_scale_items[] = {
 #  include "ED_node.hh"
 #  include "ED_render.hh"
 #  include "ED_scene.hh"
+#  include "ED_sequencer.hh"
 #  include "ED_uvedit.hh"
 #  include "ED_view3d.hh"
 
@@ -1147,6 +1148,14 @@ static void rna_Scene_show_subframe_update(Main * /*bmain*/,
 {
   Scene *scene = (Scene *)ptr->owner_id;
   scene->r.subframe = 0.0f;
+}
+
+static void rna_Scene_frame_update_context(bContext *C, PointerRNA *ptr)
+{
+  Scene *scene = (Scene *)ptr->owner_id;
+  blender::ed::vse::sync_active_scene_and_time_with_scene_strip(*C);
+  DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
+  WM_main_add_notifier(NC_SCENE | ND_FRAME, scene);
 }
 
 static void rna_Scene_frame_update(Main * /*bmain*/, Scene * /*current_scene*/, PointerRNA *ptr)
@@ -3599,7 +3608,6 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_ui_text(prop, "Use Snapping", "Snap strips during transform");
   RNA_def_property_ui_icon(prop, ICON_SNAP_OFF, 1);
-  RNA_def_property_boolean_default(prop, true);
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* Publish message-bus. */
 
   prop = RNA_def_property(srna, "use_snap_uv", PROP_BOOLEAN, PROP_NONE);
@@ -8657,7 +8665,8 @@ void RNA_def_scene(BlenderRNA *brna)
       prop,
       "Current Frame",
       "Current frame, to update animation data from Python frame_set() instead");
-  RNA_def_property_update(prop, NC_SCENE | ND_FRAME, "rna_Scene_frame_update");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(prop, NC_SCENE | ND_FRAME, "rna_Scene_frame_update_context");
 
   prop = RNA_def_property(srna, "frame_subframe", PROP_FLOAT, PROP_TIME);
   RNA_def_property_float_sdna(prop, nullptr, "r.subframe");

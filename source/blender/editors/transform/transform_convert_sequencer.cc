@@ -560,9 +560,12 @@ static void create_trans_seq_clamp_data(TransInfo *t, const Scene *scene)
   }
 }
 
-static void createTransSeqData(bContext * /*C*/, TransInfo *t)
+static void createTransSeqData(bContext *C, TransInfo *t)
 {
-  Scene *scene = CTX_data_sequencer_scene(t->context);
+  Scene *scene = CTX_data_sequencer_scene(C);
+  if (!scene) {
+    return;
+  }
   Editing *ed = seq::editing_get(scene);
   TransData *td = nullptr;
   TransData2D *td2d = nullptr;
