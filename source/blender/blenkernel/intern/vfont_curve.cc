@@ -707,7 +707,9 @@ static bool vfont_to_curve(Object *ob,
 
   BLI_assert(ob == nullptr || ob->type == OB_FONT);
 
-  if (cu->str == nullptr) {
+  /* Read-file ensures non-null, must have become null at run-time, this is a bug! */
+  if (UNLIKELY(!(cu->str && cu->tb && (ef ? ef->textbufinfo : cu->strinfo)))) {
+    BLI_assert(0);
     return false;
   }
 
@@ -749,20 +751,8 @@ static bool vfont_to_curve(Object *ob,
 
     BLI_str_utf8_as_utf32(mem_tmp, cu->str, slen + 1);
 
-    if (cu->strinfo == nullptr) { /* Should only ever happen with old files. */
-      cu->strinfo = MEM_calloc_arrayN<CharInfo>(size_t(slen) + 4, "strinfo compat");
-    }
-    custrinfo = cu->strinfo;
-    if (!custrinfo) {
-      MEM_freeN(mem_tmp);
-      return false;
-    }
-
     mem = mem_tmp;
-  }
-
-  if (cu->tb == nullptr) {
-    cu->tb = MEM_calloc_arrayN<TextBox>(MAXTEXTBOX, "TextBox compat");
+    custrinfo = cu->strinfo;
   }
 
   if (ef != nullptr && ob != nullptr) {
@@ -1489,13 +1479,6 @@ static bool vfont_to_curve(Object *ob,
 
       const char32_t charcode = vfont_char_apply_smallcaps(mem[i], info);
 
-      /* Only do that check in case we do have an object, otherwise all materials get erased every
-       * time that code is called without an object. */
-      if (ob != nullptr && (info->mat_nr > (ob->totcol))) {
-        // CLOG_ERROR(
-        //     &LOG, "Illegal material index (%d) in text object, setting to 0", info->mat_nr);
-        info->mat_nr = 0;
-      }
       /* We don't want to see any character for `\n`. */
       if (charcode != '\n') {
 
