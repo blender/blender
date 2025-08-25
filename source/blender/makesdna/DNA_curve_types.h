@@ -306,8 +306,7 @@ typedef struct Curve {
   float bevfac1, bevfac2;
   char bevfac1_mapping, bevfac2_mapping;
 
-  char _pad2[6];
-  float fsize_realtime;
+  char _pad2[2];
 
   /**
    * A pointer to curve data from evaluation. Owned by the object's #geometry_set_eval, either as a

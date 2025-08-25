@@ -213,13 +213,15 @@ class Text : Overlay {
 
   void add_boxes(const Resources &res, const Curve &cu, const float4x4 &ob_to_world)
   {
+    const EditFont *edit_font = cu.editfont;
     for (const int i : IndexRange(cu.totbox)) {
       const TextBox &tb = cu.tb[i];
       const bool is_active = (i == (cu.actbox - 1));
       const float4 &color = is_active ? res.theme.colors.active_object : res.theme.colors.wire;
 
       if ((tb.w != 0.0f) || (tb.h != 0.0f)) {
-        const float3 top_left = float3(cu.xof + tb.x, cu.yof + tb.y + cu.fsize_realtime, 0.001);
+        const float3 top_left = float3(
+            cu.xof + tb.x, cu.yof + tb.y + edit_font->font_size_eval, 0.001);
         const float3 w = float3(tb.w, 0.0f, 0.0f);
         const float3 h = float3(0.0f, tb.h, 0.0f);
         float4x3 vecs = float4x3(top_left, top_left + w, top_left + w - h, top_left - h);

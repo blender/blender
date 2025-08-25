@@ -203,16 +203,24 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
   int text_len;
   bool text_free;
   const char32_t *r_text = nullptr;
+  float final_font_size = 0.0f;
   /* Mode FO_DUPLI used because it doesn't create curve splines. */
-  BKE_vfont_to_curve_ex(
-      nullptr, &cu, FO_DUPLI, nullptr, &r_text, &text_len, &text_free, &chartransdata);
+  BKE_vfont_to_curve_ex(nullptr,
+                        &cu,
+                        FO_DUPLI,
+                        nullptr,
+                        &r_text,
+                        &text_len,
+                        &text_free,
+                        &chartransdata,
+                        &final_font_size);
 
   if (text_free) {
     MEM_freeN(r_text);
   }
 
   Span<CharInfo> info{cu.strinfo, text_len};
-  layout.final_font_size = cu.fsize_realtime;
+  layout.final_font_size = final_font_size;
   layout.positions.reserve(text_len);
 
   for (const int i : IndexRange(text_len)) {
