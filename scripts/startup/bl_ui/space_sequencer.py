@@ -993,6 +993,7 @@ class SEQUENCER_MT_strip_animation(Menu):
 
     def draw(self, _context):
         layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_PREVIEW'
 
         layout.operator("anim.keyframe_insert", text="Insert Keyframe")
         layout.operator("anim.keyframe_insert_menu", text="Insert Keyframe with Keying Set").always_prompt = True
