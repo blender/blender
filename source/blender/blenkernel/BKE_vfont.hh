@@ -101,8 +101,8 @@ VFont *BKE_vfont_load(Main *bmain, const char *filepath);
 VFont *BKE_vfont_load_exists_ex(Main *bmain, const char *filepath, bool *r_exists);
 VFont *BKE_vfont_load_exists(Main *bmain, const char *filepath);
 
-int BKE_vfont_select_get(Object *ob, int *r_start, int *r_end);
-void BKE_vfont_select_clamp(Object *ob);
+int BKE_vfont_select_get(const Curve *cu, int *r_start, int *r_end);
+void BKE_vfont_select_clamp(Curve *cu);
 
 void BKE_vfont_clipboard_free();
 void BKE_vfont_clipboard_set(const char32_t *text_buf, const CharInfo *info_buf, size_t len);
