@@ -390,6 +390,16 @@ void clear_selection_attribute(Span<PointsRange> ranges_selected)
       ed::curves::fill_selection_false(selection.span);
       selection.finish();
     }
+    if (bke::GSpanAttributeWriter selection = attributes.lookup_for_write_span(".selection_left"))
+    {
+      ed::curves::fill_selection_false(selection.span);
+      selection.finish();
+    }
+    if (bke::GSpanAttributeWriter selection = attributes.lookup_for_write_span(".selection_right"))
+    {
+      ed::curves::fill_selection_false(selection.span);
+      selection.finish();
+    }
   }
 }
 
