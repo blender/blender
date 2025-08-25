@@ -1260,6 +1260,7 @@ context_type_map = {
     "selected_visible_actions": [("Action", True)],
     "selected_visible_fcurves": [("FCurve", True)],
     "sequences": [("Strip", True)],
+    "sequencer_scene": [("Scene", False)],
     "strips": [("Strip", True)],
     "soft_body": [("SoftBodyModifier", False)],
     "speaker": [("Speaker", False)],
