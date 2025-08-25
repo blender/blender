@@ -102,8 +102,15 @@ struct SocketUsageInferencer {
 
   void mark_top_level_node_outputs_as_used()
   {
-    for (const bNodeSocket *socket : root_tree_.all_output_sockets()) {
-      all_socket_usages_.add_new({nullptr, socket}, true);
+    for (const bNode *node : root_tree_.all_nodes()) {
+      if (node->is_group_input()) {
+        /* Can skip these sockets, because they don't affect usage anyway, and there may be a lot
+         * of them. See #144756. */
+        continue;
+      }
+      for (const bNodeSocket *socket : node->output_sockets()) {
+        all_socket_usages_.add_new({nullptr, socket}, true);
+      }
     }
   }
 
@@ -123,6 +130,10 @@ struct SocketUsageInferencer {
     const std::optional<bool> is_used = all_socket_usages_.lookup_try(socket);
     if (is_used.has_value()) {
       return *is_used;
+    }
+    if (socket->is_output() && !socket->is_directly_linked()) {
+      /* In this case we can return early because the socket can't be used if it's not linked. */
+      return false;
     }
     if (socket->owner_tree().has_available_link_cycle()) {
       return false;
@@ -348,7 +359,12 @@ struct SocketUsageInferencer {
         socket.context, node->identifier, &node->owner_tree());
     Vector<const bNodeSocket *> dependent_sockets;
     for (const bNode *group_input_node : group->group_input_nodes()) {
-      dependent_sockets.append(&group_input_node->output_socket(socket->index()));
+      const bNodeSocket &group_input_socket = group_input_node->output_socket(socket->index());
+      if (group_input_socket.is_directly_linked()) {
+        /* Skip unlinked group inputs to avoid further unnecessary processing of them further down
+         * the line. */
+        dependent_sockets.append(&group_input_socket);
+      }
     }
     this->usage_task__with_dependent_sockets(socket, dependent_sockets, {}, &group_context);
   }
@@ -1427,7 +1443,6 @@ void infer_group_interface_inputs_usage(const bNodeTree &group,
                                         const Span<GPointer> group_input_values,
                                         const MutableSpan<SocketUsage> r_input_usages)
 {
-
   SocketUsage default_usage;
   default_usage.is_used = false;
   default_usage.is_visible = true;
