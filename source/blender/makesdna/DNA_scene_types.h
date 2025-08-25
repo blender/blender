@@ -665,10 +665,14 @@ typedef struct BakeData {
   char normal_swizzle[3];
   char normal_space;
 
+  char displacement_space;
+
   char target;
   char save_mode;
   char margin_type;
   char view_from;
+
+  char _pad[7];
 
   struct Object *cage_object;
 } BakeData;
@@ -744,13 +748,13 @@ typedef enum eBakePassFilter {
   R_BAKE_PASS_FILTER_COLOR = (1 << 8),
 } eBakePassFilter;
 
-/** #BakeData::normal_space */
-enum {
+/** #BakeData::normal_space and #BakeData::displacement_space */
+typedef enum eBakeSpace {
   R_BAKE_SPACE_CAMERA = 0,
   R_BAKE_SPACE_WORLD = 1,
   R_BAKE_SPACE_OBJECT = 2,
   R_BAKE_SPACE_TANGENT = 3,
-};
+} eBakeSpace;
 
 #define R_BAKE_PASS_FILTER_ALL (~0)
 

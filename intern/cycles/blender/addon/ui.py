@@ -2147,6 +2147,8 @@ class CYCLES_RENDER_PT_bake_output(CyclesButtonsPanel, Panel):
             layout.prop(cbk, "use_clear", text="Clear Image")
             if cbk.type in {'DISPLACEMENT', 'VECTOR_DISPLACEMENT'}:
                 layout.prop(cbk, "use_lores_mesh")
+            if cbk.type == 'VECTOR_DISPLACEMENT':
+                layout.prop(cbk, "displacement_space", text="Space")
         else:
             layout.prop(cbk, "target")
             if cbk.target == 'IMAGE_TEXTURES':

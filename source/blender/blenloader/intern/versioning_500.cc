@@ -2329,6 +2329,12 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 62)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      scene->r.bake.displacement_space = R_BAKE_SPACE_OBJECT;
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.

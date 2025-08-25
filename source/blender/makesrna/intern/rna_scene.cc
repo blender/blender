@@ -5844,15 +5844,17 @@ static void rna_def_bake_data(BlenderRNA *brna)
       //{R_BAKE_AO, "AO", 0, "Ambient Occlusion", "Bake ambient occlusion"},
       {R_BAKE_NORMALS, "NORMALS", 0, "Normals", "Bake normals"},
       {R_BAKE_DISPLACEMENT, "DISPLACEMENT", 0, "Displacement", "Bake displacement"},
+      {R_BAKE_VECTOR_DISPLACEMENT,
+       "VECTOR_DISPLACEMENT",
+       0,
+       "Vector Displacement",
+       "Bake vector displacement"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
 
-      /* TODO(sergey): Uncomment once tangent space displacement is supported. */
-      /* Use C++ style comment because #if 0 breaks indentation. */
-      // {RE_BAKE_VECTOR_DISPLACEMENT,
-      //  "VECTOR_DISPLACEMENT",
-      //  0,
-      //  "Vector Displacement",
-      //  "Bake vector displacement"},
-
+  static const EnumPropertyItem displacement_space_items[] = {
+      {R_BAKE_SPACE_OBJECT, "OBJECT", 0, "Object", "Bake the displacement in object space"},
+      {R_BAKE_SPACE_TANGENT, "TANGENT", 0, "Tangent", "Bake the displacement in tangent space"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -6053,6 +6055,12 @@ static void rna_def_bake_data(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", R_BAKE_LORES_MESH);
   RNA_def_property_ui_text(
       prop, "Low Resolution Mesh", "Calculate heights against unsubdivided low resolution mesh");
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
+
+  prop = RNA_def_property(srna, "displacement_space", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "displacement_space");
+  RNA_def_property_enum_items(prop, displacement_space_items);
+  RNA_def_property_ui_text(prop, "Displacement Space", "Choose displacement space for baking");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 }
 

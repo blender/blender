@@ -29,6 +29,7 @@ struct MultiresBakeRender {
   int bake_margin = 0;
   eBakeMarginType bake_margin_type = R_BAKE_ADJACENT_FACES;
   eBakeType type = R_BAKE_NORMALS;
+  eBakeSpace displacement_space = R_BAKE_SPACE_OBJECT;
 
   /* Use low-resolution mesh when baking displacement maps.
    * When true displacement is calculated between the final position in the SubdivCCG and the

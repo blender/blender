@@ -95,6 +95,7 @@ struct MultiresBakeJob {
   char bake_margin_type;
   /** mode of baking (displacement, normals, AO) */
   eBakeType type;
+  eBakeSpace displacement_space;
   /** Use low-resolution mesh when baking displacement maps */
   bool use_low_resolution_mesh;
 };
@@ -315,6 +316,7 @@ static wmOperatorStatus multiresbake_image_exec_locked(bContext *C, wmOperator *
       bake.bake_margin_type = eBakeMarginType(scene->r.bake.margin_type);
     }
     bake.type = eBakeType(scene->r.bake.type);
+    bake.displacement_space = eBakeSpace(scene->r.bake.displacement_space);
     bake.use_low_resolution_mesh = scene->r.bake.flag & R_BAKE_LORES_MESH;
 
     bake.ob_image = bake_object_image_get_array(object);
@@ -352,6 +354,7 @@ static void init_multiresbake_job(bContext *C, MultiresBakeJob *bkj)
     bkj->bake_margin_type = eBakeMarginType(scene->r.bake.margin_type);
   }
   bkj->type = eBakeType(scene->r.bake.type);
+  bkj->displacement_space = eBakeSpace(scene->r.bake.displacement_space);
   bkj->use_low_resolution_mesh = scene->r.bake.flag & R_BAKE_LORES_MESH;
   bkj->bake_clear = scene->r.bake.flag & R_BAKE_CLEAR;
 
@@ -402,6 +405,7 @@ static void multiresbake_startjob(void *bkv, wmJobWorkerStatus *worker_status)
     bake.bake_margin = bkj->bake_margin;
     bake.bake_margin_type = eBakeMarginType(bkj->bake_margin_type);
     bake.type = bkj->type;
+    bake.displacement_space = bkj->displacement_space;
     bake.use_low_resolution_mesh = bkj->use_low_resolution_mesh;
     bake.ob_image = data->ob_image;
 

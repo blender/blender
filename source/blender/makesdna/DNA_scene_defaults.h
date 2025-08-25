@@ -38,6 +38,7 @@
     .margin_type = R_BAKE_ADJACENT_FACES, \
     .normal_space = R_BAKE_SPACE_TANGENT, \
     .normal_swizzle = {R_BAKE_POSX, R_BAKE_POSY, R_BAKE_POSZ}, \
+    .displacement_space = R_BAKE_SPACE_OBJECT, \
   }
 
 #define _DNA_DEFAULT_FFMpegCodecData \
