@@ -1380,32 +1380,10 @@ static wmOperatorStatus move_cursor(bContext *C, int type, const bool select)
 
   switch (type) {
     case LINE_BEGIN:
-      while (ef->pos > 0) {
-        if (ef->textbuf[ef->pos - 1] == '\n') {
-          break;
-        }
-        if (ef->textbufinfo[ef->pos - 1].flag & CU_CHINFO_WRAP) {
-          break;
-        }
-        ef->pos--;
-      }
-      cursmove = FO_CURS;
+      cursmove = FO_LINE_BEGIN;
       break;
-
     case LINE_END:
-      while (ef->pos < ef->len) {
-        if (ef->textbuf[ef->pos] == 0) {
-          break;
-        }
-        if (ef->textbuf[ef->pos] == '\n') {
-          break;
-        }
-        if (ef->textbufinfo[ef->pos].flag & CU_CHINFO_WRAP) {
-          break;
-        }
-        ef->pos++;
-      }
-      cursmove = FO_CURS;
+      cursmove = FO_LINE_END;
       break;
 
     case TEXT_BEGIN:
