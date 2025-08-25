@@ -7138,7 +7138,7 @@ class VIEW3D_PT_overlay_viewer_node(Panel):
         subrow.prop(overlay, "viewer_attribute_opacity", text="Color Opacity")
 
         row = col.row(align=True)
-        row.active = view.show_viewer
+        row.active = view.show_viewer and overlay.show_text
         row.prop(overlay, "show_viewer_text", text="Attribute Text")
 
 
