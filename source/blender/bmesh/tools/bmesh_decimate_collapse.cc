@@ -775,7 +775,6 @@ static void bm_edge_collapse_loop_customdata(
             CustomData_bmesh_interp_n(&bm->ldata,
                                       cd_src,
                                       w,
-                                      nullptr,
                                       ARRAY_SIZE(cd_src),
                                       POINTER_OFFSET(l_iter->head.data, offset),
                                       i);

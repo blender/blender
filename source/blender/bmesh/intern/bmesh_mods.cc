@@ -374,7 +374,7 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm,
 
         src[0] = kvloop->head.data;
         src[1] = tvloop->head.data;
-        CustomData_bmesh_interp(&bm->ldata, src, w, nullptr, 2, kvloop->head.data);
+        CustomData_bmesh_interp(&bm->ldata, src, w, 2, kvloop->head.data);
       }
     } while ((l_iter = l_iter->radial_next) != e_kill->l);
   }

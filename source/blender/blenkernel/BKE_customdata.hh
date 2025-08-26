@@ -95,8 +95,7 @@ inline eCustomDataMask CD_TYPE_AS_MASK(eCustomDataType type)
 
 void customData_mask_layers__print(const CustomData_MeshMasks *mask);
 
-using cd_interp = void (*)(
-    const void **sources, const float *weights, const float *sub_weights, int count, void *dest);
+using cd_interp = void (*)(const void **sources, const float *weights, int count, void *dest);
 using cd_copy = void (*)(const void *source, void *dest, int count);
 using cd_set_default_value = void (*)(void *data, int count);
 using cd_free = void (*)(void *data, int count);
@@ -423,8 +422,6 @@ void CustomData_free_elem(CustomData *data, int index, int count);
  * \param src_indices: Indices of every source items to interpolate into the destination one.
  * \param weights: The weight to apply to each source value individually. If NULL, they will be
  * averaged.
- * \param sub_weights: The weights of sub-items, only used to affect each corners of a
- * tessellated face data (should always be and array of four values).
  * \param count: The number of source items to interpolate.
  * \param dest_index: Index of the destination item, in which to put the result of the
  * interpolation.
@@ -433,7 +430,6 @@ void CustomData_interp(const CustomData *source,
                        CustomData *dest,
                        const int *src_indices,
                        const float *weights,
-                       const float *sub_weights,
                        int count,
                        int dest_index);
 /**
@@ -443,16 +439,11 @@ void CustomData_interp(const CustomData *source,
 void CustomData_bmesh_interp_n(CustomData *data,
                                const void **src_blocks,
                                const float *weights,
-                               const float *sub_weights,
                                int count,
                                void *dst_block_ofs,
                                int n);
-void CustomData_bmesh_interp(CustomData *data,
-                             const void **src_blocks,
-                             const float *weights,
-                             const float *sub_weights,
-                             int count,
-                             void *dst_block);
+void CustomData_bmesh_interp(
+    CustomData *data, const void **src_blocks, const float *weights, int count, void *dst_block);
 
 /**
  * Swap data inside each item, for all layers.
