@@ -162,6 +162,17 @@ static StringRef to_stage_name(shaderc_shader_kind stage)
   return "unknown stage";
 }
 
+static std::string patch_line_directives(std::string source)
+{
+  /* Patch line directives so that we can make error reporting consistent. */
+  size_t start_pos = 0;
+  while ((start_pos = source.find("#line ", start_pos)) != std::string::npos) {
+    source[start_pos] = '/';
+    source[start_pos + 1] = '/';
+  }
+  return source;
+}
+
 static bool compile_ex(shaderc::Compiler &compiler,
                        VKShader &shader,
                        shaderc_shader_kind stage,
@@ -201,9 +212,12 @@ static bool compile_ex(shaderc::Compiler &compiler,
     options.SetGenerateDebugInfo();
   }
 
+  /* Removes line directive. */
+  std::string sources = patch_line_directives(shader_module.combined_sources);
+
   std::string full_name = shader.name_get() + "_" + to_stage_name(stage);
   shader_module.compilation_result = compiler.CompileGlslToSpv(
-      shader_module.combined_sources, stage, full_name.c_str(), options);
+      sources, stage, full_name.c_str(), options);
   bool compilation_succeeded = shader_module.compilation_result.GetCompilationStatus() ==
                                shaderc_compilation_status_success;
   if (compilation_succeeded) {

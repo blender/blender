@@ -35,6 +35,9 @@
 
 #include <sstream>
 #include <stdio.h>
+
+#include <fmt/format.h>
+
 #ifdef WIN32
 #  define popen _popen
 #  define pclose _pclose
@@ -1268,11 +1271,17 @@ GLuint GLShader::create_shader_stage(GLenum gl_stage,
     return 0;
   }
 
-  Array<const char *, 16> c_str_sources(sources.size());
-  for (const int i : sources.index_range()) {
-    c_str_sources[i] = sources[i].c_str();
+  std::string concat_source = fmt::to_string(fmt::join(sources, ""));
+
+  /* Patch line directives so that we can make error reporting consistent. */
+  size_t start_pos = 0;
+  while ((start_pos = concat_source.find("#line ", start_pos)) != std::string::npos) {
+    concat_source[start_pos] = '/';
+    concat_source[start_pos + 1] = '/';
   }
-  glShaderSource(shader, c_str_sources.size(), c_str_sources.data(), nullptr);
+
+  const char *str_ptr = concat_source.c_str();
+  glShaderSource(shader, 1, &str_ptr, nullptr);
   glCompileShader(shader);
 
   GLint status;

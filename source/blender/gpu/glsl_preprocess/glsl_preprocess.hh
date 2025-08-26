@@ -2244,23 +2244,9 @@ class Preprocessor {
     std::string filename = std::regex_replace(filepath, std::regex(R"((?:.*)\/(.*))"), "$1");
 
     std::stringstream suffix;
-    suffix << "#line 1 ";
-#ifdef __APPLE__
-    /* For now, only Metal supports filename in line directive.
-     * There is no way to know the actual backend, so we assume Apple uses Metal. */
-    /* TODO(fclem): We could make it work using a macro to choose between the filename and the hash
-     * at runtime. i.e.: `FILENAME_MACRO(12546546541, 'filename.glsl')` This should work for both
-     * MSL and GLSL. */
-    if (!filename.empty()) {
-      suffix << "\"" << filename << "\"";
-    }
-#else
-    uint64_t hash_value = metadata::hash(filename);
-    /* Fold the value so it fits the GLSL spec. */
-    hash_value = (hash_value ^ (hash_value >> 32)) & (~uint64_t(0) >> 33);
-    suffix << std::to_string(uint64_t(hash_value));
-#endif
-    suffix << "\n";
+    /* NOTE: This is not supported by GLSL. All line directives are muted at runtime and the
+     * sources are scanned after error reporting for the locating the muted line. */
+    suffix << "#line 1 \"" << filename << "\"\n";
     return suffix.str();
   }
 

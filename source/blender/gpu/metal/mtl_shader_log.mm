@@ -35,8 +35,9 @@ const char *MTLLogParser::parse_line(const char *source_combined,
     log_line = error_line_number_end;
     log_line = skip_separators(log_line, ": ");
     log_item.cursor.column = parse_number(log_line, &error_line_number_end);
-    /* For some reason the column is off by one. */
-    log_item.cursor.column--;
+    /* For some reason the row and column is 0 based in C++ / Metal compiler. */
+    log_item.cursor.row -= 1;
+    log_item.cursor.column -= 1;
     log_line = error_line_number_end;
     /* Simply copy the start of the error line since it is already in the format we want. */
     log_item.cursor.file_name_and_error_line = StringRef(name_start, error_line_number_end);
