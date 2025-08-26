@@ -8093,8 +8093,8 @@ static wmOperatorStatus edbm_mark_freestyle_face_exec(bContext *C, wmOperator *o
       continue;
     }
 
-    BM_data_layer_ensure_named(em->bm, &em->bm->edata, CD_PROP_BOOL, "freestyle_edge");
-    const int offset = CustomData_get_offset_named(&em->bm->edata, CD_PROP_BOOL, "freestyle_edge");
+    BM_data_layer_ensure_named(em->bm, &em->bm->pdata, CD_PROP_BOOL, "freestyle_face");
+    const int offset = CustomData_get_offset_named(&em->bm->pdata, CD_PROP_BOOL, "freestyle_face");
     if (offset == -1) {
       continue;
     }
