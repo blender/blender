@@ -21,6 +21,8 @@
 
 namespace blender::gpu::shader {
 
+#define ERROR_TOK(token) (token).line_number(), (token).char_number(), (token).line_str()
+
 /* Metadata extracted from shader source file.
  * These are then converted to their GPU module equivalent. */
 /* TODO(fclem): Make GPU enums standalone and directly use them instead of using separate enums
@@ -220,7 +222,9 @@ class Preprocessor {
       str = swizzle_function_mutation(str, report_error);
       str = enum_macro_injection(str, language == CPP, report_error);
       if (language == BLENDER_GLSL) {
+        str = template_struct_mutation(str, report_error);
         str = struct_method_mutation(str, report_error);
+        str = empty_struct_mutation(str, report_error);
         str = method_call_mutation(str, report_error);
         str = stage_function_mutation(str);
         str = resource_guard_mutation(str, report_error);
@@ -350,6 +354,170 @@ class Preprocessor {
     return std::regex_replace(out_str, regex, "\n");
   }
 
+  std::string template_struct_mutation(const std::string &str, report_callback &report_error)
+  {
+    using namespace std;
+    using namespace shader::parser;
+
+    std::string out_str = str;
+
+    {
+      Parser parser(out_str, report_error);
+
+      parser.foreach_match("w<..>(..)", [&](const vector<Token> &tokens) {
+        const Scope template_args = tokens[1].scope();
+        template_args.foreach_match("w<..>", [&parser](const vector<Token> &tokens) {
+          string args_concat;
+          tokens[1].scope().foreach_scope(ScopeType::TemplateArg, [&](const Scope &scope) {
+            args_concat += '_' + scope.start().str();
+          });
+          /* This is already contained in a template. Don't output trailing underscore as double
+           * underscore is reserved in GLSL. */
+          parser.replace(tokens[1].scope(), args_concat);
+        });
+      });
+
+      parser.apply_mutations();
+
+      /* Replace full specialization by simple struct. */
+      parser.foreach_match("t<>sw<..>", [&](const std::vector<Token> &tokens) {
+        const Scope template_args = tokens[5].scope();
+        const Token struct_name = tokens[4];
+        string struct_name_str = struct_name.str() + "_";
+        template_args.foreach_scope(ScopeType::TemplateArg, [&](Scope arg) {
+          struct_name_str += arg.start().str() + "_";
+        });
+        parser.erase(template_args);
+        parser.erase(tokens[0], tokens[2]);
+        parser.replace(struct_name, struct_name_str);
+      });
+
+      out_str = parser.result_get();
+    }
+    {
+      Parser parser(out_str, report_error);
+
+      parser.foreach_scope(ScopeType::Template, [&](Scope temp) {
+        /* Parse template declaration. */
+        Token struct_start = temp.end().next();
+        if (struct_start != Struct) {
+          return;
+        }
+        Token struct_name = struct_start.next();
+        Scope struct_body = struct_name.next().scope();
+
+        bool error = false;
+        temp.foreach_match("=", [&](const std::vector<Token> &tokens) {
+          report_error(ERROR_TOK(tokens[0]),
+                       "Default arguments are not supported inside template declaration");
+          error = true;
+        });
+        if (error) {
+          return;
+        }
+
+        string arg_pattern;
+        vector<string> arg_list;
+        temp.foreach_scope(ScopeType::TemplateArg, [&](Scope arg) {
+          const Token type = arg.start();
+          const Token name = type.next();
+          const string name_str = name.str();
+          const string type_str = type.str();
+
+          arg_list.emplace_back(name_str);
+
+          if (type_str == "typename") {
+            arg_pattern += ",w";
+          }
+          else if (type_str == "enum" || type_str == "bool") {
+            arg_pattern += ",w";
+          }
+          else if (type_str == "int" || type_str == "uint") {
+            arg_pattern += ",0";
+          }
+          else {
+            report_error(ERROR_TOK(type), "Invalid template argument type");
+          }
+        });
+
+        Token struct_end = struct_body.end();
+        const string fn_decl = parser.substr_range_inclusive(struct_start.str_index_start(),
+                                                             struct_end.str_index_last());
+
+        /* Remove declaration. */
+        Token template_keyword = temp.start().prev();
+        parser.erase(template_keyword.str_index_start(), struct_end.line_end());
+
+        /* Replace instantiations. */
+        Scope parent_scope = temp.scope();
+        string specialization_pattern = "tsw<" + arg_pattern.substr(1) + ">";
+        parent_scope.foreach_match(specialization_pattern, [&](const std::vector<Token> &tokens) {
+          if (struct_name.str() != tokens[2].str()) {
+            return;
+          }
+          /* Parse template values. */
+          vector<pair<string, string>> arg_name_value_pairs;
+          for (int i = 0; i < arg_list.size(); i++) {
+            arg_name_value_pairs.emplace_back(arg_list[i], tokens[4 + 2 * i].str());
+          }
+          /* Specialize template content. */
+          Parser instance_parser(fn_decl, report_error, true);
+          instance_parser.foreach_match("w", [&](const std::vector<Token> &tokens) {
+            string token_str = tokens[0].str();
+            for (const auto &arg_name_value : arg_name_value_pairs) {
+              if (token_str == arg_name_value.first) {
+                instance_parser.replace(tokens[0], arg_name_value.second);
+              }
+            }
+          });
+
+          const string template_args = parser.substr_range_inclusive(
+              tokens[3], tokens[3 + arg_pattern.size()]);
+          size_t pos = fn_decl.find(" " + struct_name.str());
+          instance_parser.insert_after(pos + struct_name.str().size(), template_args);
+          /* Paste template content in place of instantiation. */
+          Token end_of_instantiation = tokens.back();
+          string instance = instance_parser.result_get();
+          parser.insert_line_number(tokens.front().str_index_start() - 1,
+                                    struct_start.line_number());
+          parser.replace(tokens.front().str_index_start(),
+                         end_of_instantiation.str_index_last_no_whitespace(),
+                         instance);
+          parser.insert_line_number(end_of_instantiation.line_end() + 1,
+                                    end_of_instantiation.line_number() + 1);
+        });
+      });
+
+      out_str = parser.result_get();
+    }
+    {
+      Parser parser(out_str, report_error);
+
+      /* This rely on our codestyle that do not put spaces between template name and the opening
+       * angle bracket. */
+      parser.foreach_match("sw<", [&](const std::vector<Token> &tokens) {
+        Token token = tokens[2];
+        parser.replace(token, "_");
+        token = token.next();
+        while (token != '>') {
+          if (token == ',') {
+            /* Also replace and skip the space after the comma. */
+            Token next_token = token.next_not_whitespace();
+            parser.replace(token, next_token.prev(), "_");
+            token = next_token;
+          }
+          else {
+            token = token.next();
+          }
+        }
+        /* Replace closing angle bracket. */
+        parser.replace(token, "_");
+      });
+      out_str = parser.result_get();
+    }
+    return out_str;
+  }
+
   std::string template_definition_mutation(const std::string &str, report_callback &report_error)
   {
     if (str.find("template") == std::string::npos) {
@@ -383,11 +551,14 @@ class Preprocessor {
     {
       Parser parser(out_str, report_error);
 
-      parser.foreach_scope(ScopeType::Template, [&](Scope temp) {
+      parser.foreach_match("t<..>ww(..)c?{..}", [&](const vector<Token> &tokens) {
         /* Parse template declaration. */
-        Token fn_start = temp.end().next();
-        Token fn_name = (fn_start == Static) ? fn_start.next().next() : fn_start.next();
-        Scope fn_args = fn_name.next().scope();
+        Token fn_start = tokens[5];
+        Token fn_name = tokens[6];
+        Scope fn_args = tokens[7].scope();
+        Scope temp = tokens[1].scope();
+        Scope fn_body = tokens[13].scope();
+        Token fn_end = fn_body.end();
 
         bool error = false;
         temp.foreach_match("=", [&](const std::vector<Token> &tokens) {
@@ -435,16 +606,18 @@ class Preprocessor {
             all_template_args_in_function_signature = false;
           }
           else {
-            report_error(type.line_number(),
-                         type.char_number(),
-                         type.line_str(),
-                         "Invalid template argument type");
+            report_error(ERROR_TOK(type), "Invalid template argument type");
           }
         });
 
-        Token after_args = fn_name.next().scope().end().next();
-        Scope fn_body = (after_args == Const) ? after_args.next().scope() : after_args.scope();
-        Token fn_end = fn_body.end();
+        Token fn_args_start = fn_name.next();
+
+        if (fn_args_start != '(') {
+          report_error(ERROR_TOK(fn_args_start),
+                       "Expected open parenthesis after template function name");
+          return;
+        }
+
         const string fn_decl = parser.substr_range_inclusive(fn_start.str_index_start(),
                                                              fn_end.line_end());
 
@@ -454,7 +627,7 @@ class Preprocessor {
 
         /* Replace instantiations. */
         Scope parent_scope = temp.scope();
-        string specialization_pattern = "tww<" + arg_pattern.substr(1) + ">(";
+        string specialization_pattern = "tww<" + arg_pattern.substr(1) + ">(..);";
         parent_scope.foreach_match(specialization_pattern, [&](const std::vector<Token> &tokens) {
           if (fn_name.str() != tokens[2].str()) {
             return;
@@ -482,7 +655,7 @@ class Preprocessor {
             instance_parser.insert_after(pos + fn_name.str().size(), template_args);
           }
           /* Paste template content in place of instantiation. */
-          Token end_of_instantiation = tokens.back().scope().end().next();
+          Token end_of_instantiation = tokens.back();
           string instance = instance_parser.result_get();
           parser.insert_line_number(tokens.front().str_index_start() - 1, fn_start.line_number());
           parser.replace(tokens.front().str_index_start(),
@@ -1331,6 +1504,24 @@ class Preprocessor {
     return parser.result_get();
   }
 
+  /* Add padding member to empty structs.
+   * Empty structs are useful for templating. */
+  std::string empty_struct_mutation(const std::string &str, report_callback report_error)
+  {
+    using namespace std;
+    using namespace shader::parser;
+
+    Parser parser(str, report_error);
+
+    parser.foreach_scope(ScopeType::Global, [&](Scope scope) {
+      scope.foreach_match("sw{};", [&](const std::vector<Token> &tokens) {
+        parser.insert_after(tokens[2], "int _pad;");
+      });
+    });
+
+    return parser.result_get();
+  }
+
   /* Transform `a.fn(b)` into `fn(a, b)`. */
   std::string method_call_mutation(const std::string &str, report_callback report_error)
   {
@@ -1447,9 +1638,10 @@ class Preprocessor {
     parser.foreach_function([&](bool, Token fn_type, Token, Scope, bool, Scope fn_body) {
       fn_body.foreach_match("w(w,", [&](const std::vector<Token> &tokens) {
         string func_name = tokens[0].str();
-        if (func_name != "specialization_constant_get" && func_name != "push_constant_get" &&
-            func_name != "interface_get" && func_name != "attribute_get" &&
-            func_name != "buffer_get" && func_name != "sampler_get" && func_name != "image_get")
+        if (func_name != "specialization_constant_get" && func_name != "shared_variable_get" &&
+            func_name != "push_constant_get" && func_name != "interface_get" &&
+            func_name != "attribute_get" && func_name != "buffer_get" &&
+            func_name != "sampler_get" && func_name != "image_get")
         {
           return;
         }
@@ -1486,10 +1678,25 @@ class Preprocessor {
     string guard_start = "#if defined(CREATE_INFO_" + info + ")\n";
     string guard_else;
     if (fn_type.is_valid() && fn_type.str() != "void") {
+      string type = fn_type.str();
+      bool is_trivial = false;
+      if (type == "float" || type == "float2" || type == "float3" || type == "float4" ||
+          /**/
+          type == "int" || type == "int2" || type == "int3" || type == "int4" ||
+          /**/
+          type == "uint" || type == "uint2" || type == "uint3" || type == "uint4" ||
+          /**/
+          type == "float2x2" || type == "float2x3" || type == "float2x4" ||
+          /**/
+          type == "float3x2" || type == "float3x3" || type == "float3x4" ||
+          /**/
+          type == "float4x2" || type == "float4x3" || type == "float4x4")
+      {
+        is_trivial = true;
+      }
       guard_else += "#else\n";
       guard_else += line_start;
-      guard_else += "  " + fn_type.str() + " result;\n";
-      guard_else += "  return result;\n";
+      guard_else += "  return " + type + (is_trivial ? "(0)" : "::zero()") + ";\n";
     }
     string guard_end = "#endif\n";
 

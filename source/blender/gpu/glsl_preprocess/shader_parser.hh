@@ -634,7 +634,7 @@ struct Scope {
     int str_start = data->token_offsets[index_range.start].start;
     int str_end = data->token_offsets[index_range.last()].last();
     return {std::string_view(data->token_types).substr(index_range.start, index_range.size),
-            std::string_view(data->str).substr(str_start, str_end - str_start),
+            std::string_view(data->str).substr(str_start, str_end - str_start + 1),
             data,
             index};
   }
@@ -691,22 +691,64 @@ struct Scope {
   void foreach_match(const std::string &pattern,
                      std::function<void(const std::vector<Token>)> callback) const
   {
-    const std::string scope_tokens = data->token_types.substr(range().start, range().size);
+    assert(!pattern.empty());
+    const std::string_view scope_tokens =
+        std::string_view(data->token_types).substr(range().start, range().size);
+
+    auto count_match = [](const std::string_view &s, const std::string_view &pattern) {
+      size_t pos = 0, occurrences = 0;
+      while ((pos = s.find(pattern, pos)) != std::string::npos) {
+        occurrences += 1;
+        pos += pattern.length();
+      }
+      return occurrences;
+    };
+    const int control_token_count = count_match(pattern, "?") * 2 + count_match(pattern, "..") * 2;
+
+    if (range().size < pattern.size() - control_token_count) {
+      return;
+    }
+
+    const size_t searchable_range = scope_tokens.size() -
+                                    (pattern.size() - 1 - control_token_count);
 
     std::vector<Token> match;
     match.resize(pattern.size());
 
-    size_t pos = 0;
-    while ((pos = scope_tokens.find(pattern, pos)) != std::string::npos) {
-      match[0] = Token::from_position(data, range().start + pos);
-      /* Do not match preprocessor directive by default. */
-      if (match[0].scope().type() != ScopeType::Preprocessor) {
-        for (int i = 1; i < pattern.size(); i++) {
-          match[i] = Token::from_position(data, range().start + pos + i);
+    for (size_t pos = 0; pos < searchable_range; pos++) {
+      size_t cursor = range().start + pos;
+
+      for (int i = 0; i < pattern.size(); i++) {
+        bool is_last_token = i == pattern.size() - 1;
+        TokenType token_type = TokenType(data->token_types[cursor]);
+        TokenType curr_search_token = TokenType(pattern[i]);
+        TokenType next_search_token = TokenType(is_last_token ? '\0' : pattern[i + 1]);
+
+        /* Scope skipping. */
+        if (!is_last_token && curr_search_token == '.' && next_search_token == '.') {
+          cursor = match[i - 1].scope().end().index;
+          i++;
+          continue;
         }
-        callback(match);
+
+        /* Regular token. */
+        if (curr_search_token == token_type) {
+          match[i] = Token::from_position(data, cursor++);
+
+          if (is_last_token) {
+            callback(match);
+          }
+        }
+        else if (!is_last_token && curr_search_token != '?' && next_search_token == '?') {
+          /* This was and optional token. Continue scanning. */
+          match[i] = Token::invalid();
+          i++;
+        }
+        else {
+          /* Token mismatch. Test next position. */
+          break;
+        }
       }
-      pos += 1;
     }
   }
 
@@ -764,7 +806,7 @@ inline void ParserData::parse_scopes(report_callback &report_error)
 
     enter_scope(ScopeType::Global, 0);
 
-    bool in_template = false;
+    int in_template = 0;
 
     int tok_id = -1;
     for (char &c : token_types) {
@@ -826,16 +868,19 @@ inline void ParserData::parse_scopes(report_callback &report_error)
           enter_scope(ScopeType::Subscript, tok_id);
           break;
         case AngleOpen:
-          if ((tok_id >= 1 && token_types[tok_id - 1] == Template) ||
-              /* Catch case of specialized declaration. */
-              ScopeType(scope_types.back()) == ScopeType::Template)
-          {
-            enter_scope(ScopeType::Template, tok_id);
-            in_template = true;
+          if (tok_id >= 1) {
+            char prev_char = str[token_offsets[tok_id - 1].last()];
+            /* Rely on the fact that template are formatted without spaces but comparison isn't. */
+            if ((prev_char != ' ' && prev_char != '\n' && prev_char != '<') ||
+                token_types[tok_id - 1] == Template)
+            {
+              enter_scope(ScopeType::Template, tok_id);
+              in_template++;
+            }
           }
           break;
         case AngleClose:
-          if (in_template && scopes.top().type == ScopeType::Assignment) {
+          if (in_template > 0 && scopes.top().type == ScopeType::Assignment) {
             exit_scope(tok_id - 1);
           }
           if (scopes.top().type == ScopeType::TemplateArg) {
@@ -843,6 +888,7 @@ inline void ParserData::parse_scopes(report_callback &report_error)
           }
           if (scopes.top().type == ScopeType::Template) {
             exit_scope(tok_id);
+            in_template--;
           }
           break;
         case BracketClose:
@@ -879,6 +925,10 @@ inline void ParserData::parse_scopes(report_callback &report_error)
           }
           break;
       }
+    }
+
+    if (scopes.top().type == ScopeType::Preprocessor) {
+      exit_scope(tok_id - 1);
     }
 
     if (scopes.top().type != ScopeType::Global) {
@@ -971,18 +1021,13 @@ struct Parser {
       std::function<void(
           bool is_static, Token type, Token name, Scope args, bool is_const, Scope body)> callback)
   {
-    foreach_scope(ScopeType::FunctionArgs, [&](const Scope args) {
-      const bool is_const = args.end().next() == Const;
-      Token next = (is_const ? args.end().next() : args.end()).next();
-      if (next != '{') {
-        /* Function Prototype. */
-        return;
-      }
-      const bool is_static = args.start().prev().prev().prev() == Static;
-      Token type = args.start().prev().prev();
-      Token name = args.start().prev();
-      Scope body = next.scope();
-      callback(is_static, type, name, args, is_const, body);
+    foreach_match("m?ww(..)c?{..}", [&](const std::vector<Token> matches) {
+      callback(matches[0] == Static,
+               matches[2],
+               matches[3],
+               matches[4].scope(),
+               matches[8] == Const,
+               matches[10].scope());
     });
   }
 
@@ -1031,6 +1076,11 @@ struct Parser {
   void replace(Token tok, const std::string &replacement)
   {
     replace(tok.str_index_start(), tok.str_index_last(), replacement);
+  }
+  /* Replace Scope by string. */
+  void replace(Scope scope, const std::string &replacement)
+  {
+    replace(scope.start(), scope.end(), replacement);
   }
 
   /* Replace the content from `from` to `to` (inclusive) by whitespaces without changing

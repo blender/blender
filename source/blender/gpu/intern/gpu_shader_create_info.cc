@@ -150,6 +150,8 @@ void ShaderCreateInfo::finalize(const bool recursive)
     specialization_constants_.extend_non_duplicates(info.specialization_constants_);
     compilation_constants_.extend_non_duplicates(info.compilation_constants_);
 
+    shared_variables_.extend(info.shared_variables_);
+
     validate_vertex_attributes(&info);
 
     /* Insert with duplicate check. */
@@ -356,6 +358,16 @@ std::string ShaderCreateInfo::check_error() const
       if (compilation_constants_[i].name == compilation_constants_[j].name) {
         error += this->name_ + " contains two compilation constants with the name: " +
                  std::string(compilation_constants_[i].name);
+      }
+    }
+  }
+
+  /* Validate shared variables. */
+  for (int i = 0; i < shared_variables_.size(); i++) {
+    for (int j = i + 1; j < shared_variables_.size(); j++) {
+      if (shared_variables_[i].name == shared_variables_[j].name) {
+        error += this->name_ + " contains two specialization constants with the name: " +
+                 std::string(shared_variables_[i].name);
       }
     }
   }
