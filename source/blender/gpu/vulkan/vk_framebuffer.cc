@@ -198,9 +198,14 @@ void VKFrameBuffer::clear(const eGPUFrameBufferBits buffers,
           buffers, clear_depth, clear_stencil, clear_attachments);
     }
     else {
-      VKTexture *depth_texture = unwrap(unwrap(depth_tex()));
+      const GPUAttachment &attachment = depth_attachment();
+      VKTexture *depth_texture = unwrap(unwrap(attachment.tex));
       if (depth_texture != nullptr) {
-        depth_texture->clear_depth_stencil(buffers, clear_depth, clear_stencil);
+        depth_texture->clear_depth_stencil(
+            buffers,
+            clear_depth,
+            clear_stencil,
+            attachment.layer == -1 ? std::nullopt : std::make_optional(attachment.layer));
       }
     }
   }
