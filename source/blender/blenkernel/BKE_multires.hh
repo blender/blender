@@ -90,7 +90,16 @@ void multiresModifier_del_levels(MultiresModifierData *mmd,
                                  Scene *scene,
                                  Object *object,
                                  int direction);
-void multiresModifier_base_apply(Depsgraph *depsgraph, Object *object, MultiresModifierData *mmd);
+
+enum class ApplyBaseMode : int8_t {
+  Base,
+  ForSubdivision,
+};
+
+void multiresModifier_base_apply(Depsgraph *depsgraph,
+                                 Object *object,
+                                 MultiresModifierData *mmd,
+                                 ApplyBaseMode mode);
 int multiresModifier_rebuild_subdiv(Depsgraph *depsgraph,
                                     Object *object,
                                     MultiresModifierData *mmd,

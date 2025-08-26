@@ -379,9 +379,15 @@ static void shape_panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout->enabled_set(RNA_enum_get(&ob_ptr, "mode") != OB_MODE_EDIT);
 
+  PointerRNA op_ptr;
   row = &layout->row(false);
   row->op("OBJECT_OT_multires_reshape", IFACE_("Reshape"), ICON_NONE);
-  row->op("OBJECT_OT_multires_base_apply", IFACE_("Apply Base"), ICON_NONE);
+
+  row = &layout->row(false);
+  op_ptr = row->op("OBJECT_OT_multires_base_apply", IFACE_("Apply Base"), ICON_NONE);
+  RNA_boolean_set(&op_ptr, "apply_heuristic", true);
+  op_ptr = row->op("OBJECT_OT_multires_base_apply", IFACE_("Conform Base"), ICON_NONE);
+  RNA_boolean_set(&op_ptr, "apply_heuristic", false);
 }
 
 static void generate_panel_draw(const bContext * /*C*/, Panel *panel)
