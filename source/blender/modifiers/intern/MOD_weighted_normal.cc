@@ -81,7 +81,7 @@ struct WeightedNormalData {
   blender::OffsetIndices<int> faces;
   blender::Span<blender::float3> face_normals;
   blender::VArraySpan<bool> sharp_faces;
-  const int *face_strength;
+  blender::VArray<int> face_strength;
 
   const MDeformVert *dvert;
   int defgrp_index;
@@ -106,8 +106,6 @@ static bool check_item_face_strength(WeightedNormalData *wn_data,
                                      WeightedNormalDataAggregateItem *item_data,
                                      const int face_index)
 {
-  BLI_assert(wn_data->face_strength != nullptr);
-
   const int mp_strength = wn_data->face_strength[face_index];
 
   if (mp_strength > item_data->curr_strength) {
@@ -192,7 +190,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
   const blender::Span<int> loop_to_face = wn_data->loop_to_face;
 
   const blender::Span<blender::float3> face_normals = wn_data->face_normals;
-  const int *face_strength = wn_data->face_strength;
+  const VArray<int> face_strength = wn_data->face_strength;
 
   const MDeformVert *dvert = wn_data->dvert;
 
@@ -203,7 +201,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
 
   const bool keep_sharp = (wnmd->flag & MOD_WEIGHTEDNORMAL_KEEP_SHARP) != 0;
   const bool use_face_influence = (wnmd->flag & MOD_WEIGHTEDNORMAL_FACE_INFLUENCE) != 0 &&
-                                  face_strength != nullptr;
+                                  bool(face_strength);
   const bool has_vgroup = dvert != nullptr;
 
   blender::Array<blender::float3> corner_normals;
@@ -517,8 +515,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   wn_data.faces = faces;
   wn_data.face_normals = mesh->face_normals_true();
   wn_data.sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
-  wn_data.face_strength = static_cast<const int *>(CustomData_get_layer_named(
-      &result->face_data, CD_PROP_INT32, MOD_WEIGHTEDNORMALS_FACEWEIGHT_CDLAYER_ID));
+  wn_data.face_strength = *attributes.lookup<int>(MOD_WEIGHTEDNORMALS_FACEWEIGHT_CDLAYER_ID,
+                                                  bke::AttrDomain::Face);
 
   wn_data.dvert = dvert;
   wn_data.defgrp_index = defgrp_index;
