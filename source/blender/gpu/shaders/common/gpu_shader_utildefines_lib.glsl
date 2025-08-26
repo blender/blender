@@ -6,10 +6,6 @@
 
 #include "gpu_glsl_cpp_stubs.hh"
 
-/* WORKAROUND: to guard against double include in EEVEE. */
-#ifndef GPU_SHADER_UTILDEFINES_GLSL
-#  define GPU_SHADER_UTILDEFINES_GLSL
-
 #  ifndef FLT_MAX
 #    define FLT_MAX uintBitsToFloat(0x7F7FFFFFu)
 #    define FLT_MIN uintBitsToFloat(0x00800000u)
@@ -162,5 +158,3 @@ float3 offset_ray(float3 P, float3 Ng)
                 (abs(P.y) < origin) ? uf.y : P_i.y,
                 (abs(P.z) < origin) ? uf.z : P_i.z);
 }
-
-#endif /* GPU_SHADER_UTILDEFINES_GLSL */

@@ -7,10 +7,6 @@
 #include "gpu_shader_math_rotation_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
 
-/* WORKAROUND: to guard against double include in EEVEE. */
-#ifndef GPU_SHADER_MATH_MATRIX_LIB_GLSL
-#  define GPU_SHADER_MATH_MATRIX_LIB_GLSL
-
 /* -------------------------------------------------------------------- */
 /** \name Static constructors
  * \{ */
@@ -73,7 +69,7 @@ float4x4 mat4x4_identity()
 /** \} */
 
 /* Metal does not need prototypes. */
-#  ifndef GPU_METAL
+#ifndef GPU_METAL
 
 /* -------------------------------------------------------------------- */
 /** \name Matrix Operations
@@ -461,7 +457,7 @@ bool is_uniformly_scaled(float3x3 mat);
 
 /** \} */
 
-#  endif /* GPU_METAL */
+#endif /* GPU_METAL */
 
 /* ---------------------------------------------------------------------- */
 /** \name Implementation
@@ -496,7 +492,7 @@ float4x4 invert(float4x4 mat, out bool r_success)
   return r_success ? inverse(mat) : float4x4(0.0f);
 }
 
-#  if defined(GPU_OPENGL) || defined(GPU_METAL)
+#if defined(GPU_OPENGL) || defined(GPU_METAL)
 float2 normalize(float2 a)
 {
   return a * inversesqrt(length_squared(a));
@@ -509,7 +505,7 @@ float4 normalize(float4 a)
 {
   return a * inversesqrt(length_squared(a));
 }
-#  endif
+#endif
 
 float2x2 normalize(float2x2 mat)
 {
@@ -1577,5 +1573,3 @@ bool is_unit_scale(float2x2 m)
 }
 
 /** \} */
-
-#endif /* GPU_SHADER_MATH_MATRIX_LIB_GLSL */
