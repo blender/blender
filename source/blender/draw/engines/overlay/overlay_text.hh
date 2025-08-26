@@ -177,13 +177,13 @@ class Text : Overlay {
       }
       float4x2 box;
       /* NOTE: v2_quad_corners_to_mat4 don't need the 3rd corner. */
-      if (sb->rot == 0.0f) {
+      if (sb->rotate == 0.0f) {
         box[0] = float2(sb->x, sb->y);
         box[1] = float2(sb->x + selboxw, sb->y);
         box[3] = float2(sb->x, sb->y + sb->h);
       }
       else {
-        float2x2 mat = math::from_rotation<float2x2>(sb->rot);
+        float2x2 mat = math::from_rotation<float2x2>(sb->rotate);
         box[0] = float2(sb->x, sb->y);
         box[1] = mat[0] * selboxw + float2(&sb->x);
         box[3] = mat[1] * sb->h + float2(&sb->x);

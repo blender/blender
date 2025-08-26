@@ -18,10 +18,10 @@ struct VFont;
 
 struct CharTrans {
   float xof, yof;
-  float rot;
+  float rotate;
   short linenr, charnr;
 
-  uint dobreak : 1;
+  uint do_break : 1;
   uint is_overflow : 1;
   uint is_wrap : 1;
   uint is_smallcaps : 1;
@@ -29,7 +29,7 @@ struct CharTrans {
 
 struct EditFontSelBox {
   float x, y, w, h;
-  float rot;
+  float rotate;
 };
 
 /**

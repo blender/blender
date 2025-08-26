@@ -300,10 +300,10 @@ static VChar *vfont_char_find_or_placeholder(const VFontData *vfd,
 static Nurb *build_underline(const Curve *cu,
                              ListBase *nubase,
                              const rctf *rect,
-                             float yofs,
-                             float rot,
-                             int charidx,
-                             short mat_nr,
+                             const float yofs,
+                             const float rotate,
+                             const int charidx,
+                             const short mat_nr,
                              const float font_size,
                              Nurb *ul_prev_nu)
 {
@@ -337,9 +337,9 @@ static Nurb *build_underline(const Curve *cu,
   nu->bp = bp;
   BLI_addtail(nubase, nu);
 
-  if (rot != 0.0f) {
-    float si = sinf(rot);
-    float co = cosf(rot);
+  if (rotate != 0.0f) {
+    float si = sinf(rotate);
+    float co = cosf(rotate);
 
     for (int i = nu->pntsu; i > 0; i--) {
       float *fp = bp->vec;
@@ -376,16 +376,16 @@ static void vfont_char_build_impl(const Curve *cu,
                                   const VChar *che,
                                   const CharInfo *info,
                                   const bool is_smallcaps,
-                                  float ofsx,
-                                  float ofsy,
-                                  float rot,
-                                  int charidx,
+                                  const float ofsx,
+                                  const float ofsy,
+                                  const float rotate,
+                                  const int charidx,
                                   const float fsize)
 {
   /* Make a copy at distance ofsx, ofsy with shear. */
   float shear = cu->shear;
-  float si = sinf(rot);
-  float co = cosf(rot);
+  float si = sinf(rotate);
+  float co = cosf(rotate);
 
   /* Select the glyph data */
   const Nurb *nu_from_vchar = nullptr;
@@ -433,7 +433,7 @@ static void vfont_char_build_impl(const Curve *cu,
           bezt++;
         }
       }
-      if (rot != 0.0f) {
+      if (rotate != 0.0f) {
         bezt = nu->bezt;
         for (int i = nu->pntsu; i > 0; i--) {
           float *fp = bezt->vec[0];
@@ -493,7 +493,7 @@ void BKE_vfont_char_build(Curve *cu,
                           const bool is_smallcaps,
                           float ofsx,
                           float ofsy,
-                          float rot,
+                          float rotate,
                           int charidx,
                           const float fsize)
 {
@@ -503,7 +503,7 @@ void BKE_vfont_char_build(Curve *cu,
   }
   VChar *che;
   vfont_char_find(vfd, charcode, &che);
-  vfont_char_build_impl(cu, nubase, che, info, is_smallcaps, ofsx, ofsy, rot, charidx, fsize);
+  vfont_char_build_impl(cu, nubase, che, info, is_smallcaps, ofsx, ofsy, rotate, charidx, fsize);
 }
 
 static float vfont_char_width(const Curve *cu, VChar *che, const bool is_smallcaps)
@@ -872,7 +872,7 @@ static bool vfont_to_curve(Object *ob,
 
     /* Calculate positions. */
 
-    if ((tb_scale.w != 0.0f) && (ct->dobreak == 0)) { /* May need wrapping. */
+    if ((tb_scale.w != 0.0f) && (ct->do_break == 0)) { /* May need wrapping. */
       const float x_available = xof_scale + tb_scale.w;
       const float x_used = (xof - tb_scale.x) + twidth;
 
@@ -889,8 +889,8 @@ static bool vfont_to_curve(Object *ob,
       }
       else if (x_used > x_available) {
         // CLOG_WARN(&LOG, "linewidth exceeded: %c%c%c...", mem[i], mem[i+1], mem[i+2]);
-        bool dobreak = false;
-        for (j = i; (mem[j] != '\n') && (chartransdata[j].dobreak == 0); j--) {
+        bool do_break = false;
+        for (j = i; (mem[j] != '\n') && (chartransdata[j].do_break == 0); j--) {
 
           /* Special case when there are no breaks possible. */
           if (UNLIKELY(j == 0)) {
@@ -918,15 +918,15 @@ static bool vfont_to_curve(Object *ob,
             i = j - 1;
             xof = ct->xof;
             BLI_assert(&ct[1] == &chartransdata[i + 1]);
-            ct[1].dobreak = 1;
+            ct[1].do_break = 1;
             ct[1].is_wrap = 1;
-            dobreak = true;
+            do_break = true;
             break;
           }
-          BLI_assert(chartransdata[j].dobreak == 0);
+          BLI_assert(chartransdata[j].do_break == 0);
         }
 
-        if (dobreak) {
+        if (do_break) {
           if (tb_scale.h == 0.0f) {
             /* NOTE: If underlined text is truncated away, the extra space is also truncated. */
             BLI_assert(&chartransdata[i + 1] == &ct[1]);
@@ -938,7 +938,7 @@ static bool vfont_to_curve(Object *ob,
       }
     }
 
-    if (charcode == '\n' || charcode == 0 || ct->dobreak) {
+    if (charcode == '\n' || charcode == 0 || ct->do_break) {
       ct->xof = xof;
       ct->yof = yof;
       ct->linenr = lnr;
@@ -971,7 +971,7 @@ static bool vfont_to_curve(Object *ob,
       }
 
       current_line_length += xof - MARGIN_X_MIN;
-      if (ct->dobreak) {
+      if (ct->do_break) {
         current_line_length += twidth;
       }
       else {
@@ -1084,7 +1084,7 @@ static bool vfont_to_curve(Object *ob,
         }
       }
       for (i = 0; i <= slen; i++) {
-        for (j = i; !ELEM(mem[j], '\0', '\n') && (chartransdata[j].dobreak == 0) && (j < slen);
+        for (j = i; !ELEM(mem[j], '\0', '\n') && (chartransdata[j].do_break == 0) && (j < slen);
              j++)
         {
           /* Pass. */
@@ -1099,13 +1099,13 @@ static bool vfont_to_curve(Object *ob,
     else if ((cu->spacemode == CU_ALIGN_X_JUSTIFY) && use_textbox) {
       float curofs = 0.0f;
       for (i = 0; i <= slen; i++) {
-        for (j = i; (mem[j]) && (mem[j] != '\n') && (chartransdata[j].dobreak == 0) && (j < slen);
+        for (j = i; (mem[j]) && (mem[j] != '\n') && (chartransdata[j].do_break == 0) && (j < slen);
              j++)
         {
           /* Pass. */
         }
 
-        if ((mem[j] != '\n') && (chartransdata[j].dobreak != 0)) {
+        if ((mem[j] != '\n') && (chartransdata[j].do_break != 0)) {
           if (mem[i] == ' ') {
             TempLineInfo *li;
 
@@ -1114,7 +1114,7 @@ static bool vfont_to_curve(Object *ob,
           }
           ct->xof += curofs;
         }
-        if (mem[i] == '\n' || chartransdata[i].dobreak) {
+        if (mem[i] == '\n' || chartransdata[i].do_break) {
           curofs = 0;
         }
         ct++;
@@ -1342,10 +1342,10 @@ static bool vfont_to_curve(Object *ob,
 
         mul_v3_fl(vec, sizefac);
 
-        ct->rot = float(M_PI) - atan2f(rotvec[1], rotvec[0]);
+        ct->rotate = float(M_PI) - atan2f(rotvec[1], rotvec[0]);
 
-        si = sinf(ct->rot);
-        co = cosf(ct->rot);
+        si = sinf(ct->rotate);
+        co = cosf(ct->rotate);
 
         yof = ct->yof;
 
@@ -1355,7 +1355,7 @@ static bool vfont_to_curve(Object *ob,
         if (selboxes && (i >= selstart) && (i <= selend)) {
           EditFontSelBox *sb;
           sb = &selboxes[i - selstart];
-          sb->rot = -ct->rot;
+          sb->rotate = -ct->rotate;
         }
       }
     }
@@ -1368,9 +1368,9 @@ static bool vfont_to_curve(Object *ob,
         EditFontSelBox *sb = &selboxes[i - selstart];
         sb->x = ct->xof;
         sb->y = ct->yof;
-        if (ct->rot != 0.0f) {
-          sb->x -= sinf(ct->rot) * font_select_y_offset;
-          sb->y -= cosf(ct->rot) * font_select_y_offset;
+        if (ct->rotate != 0.0f) {
+          sb->x -= sinf(ct->rotate) * font_select_y_offset;
+          sb->y -= cosf(ct->rotate) * font_select_y_offset;
         }
         else {
           /* Simple downward shift below baseline when not rotated. */
@@ -1459,13 +1459,13 @@ static bool vfont_to_curve(Object *ob,
     /* By default the cursor is exactly between the characters
      * and matches the rotation of the character to the right. */
     float cursor_left = 0.0f - cursor_half;
-    float rotation = ct->rot;
+    float cursor_rotate = ct->rotate;
 
     if (ef->selboxes) {
       if (ef->selend >= ef->selstart) {
         /* Cursor at right edge of a text selection. Match rotation to the character at the
          * end of selection. Cursor is further right to show the selected characters better. */
-        rotation = chartransdata[max_ii(0, ef->selend - 1)].rot;
+        cursor_rotate = chartransdata[max_ii(0, ef->selend - 1)].rotate;
         cursor_left = 0.0f;
       }
       else {
@@ -1476,7 +1476,7 @@ static bool vfont_to_curve(Object *ob,
     }
     else if ((ef->pos == ef->len) && (ef->len > 0)) {
       /* Nothing selected, but at the end of the string. Match rotation to previous character. */
-      rotation = chartransdata[ef->len - 1].rot;
+      cursor_rotate = chartransdata[ef->len - 1].rotate;
     }
 
     /* We need the rotation to be around the bottom-left corner. So we make
@@ -1498,7 +1498,7 @@ static bool vfont_to_curve(Object *ob,
     for (int vert = 0; vert < 4; vert++) {
       float temp_fl[2];
       /* Rotate around the cursor's bottom-left corner. */
-      rotate_v2_v2fl(temp_fl, &ef->textcurs[vert][0], -rotation);
+      rotate_v2_v2fl(temp_fl, &ef->textcurs[vert][0], -cursor_rotate);
       ef->textcurs[vert][0] = font_size * (xoffset + temp_fl[0]);
       ef->textcurs[vert][1] = font_size * (yoffset + temp_fl[1]);
     }
@@ -1536,7 +1536,7 @@ static bool vfont_to_curve(Object *ob,
          * since character checking has been done earlier already. */
         che = vfont_char_find_or_placeholder(vfinfo_ctx.vfd, charcode, che_placeholder);
         vfont_char_build_impl(
-            cu, r_nubase, che, info, ct->is_smallcaps, ct->xof, ct->yof, ct->rot, i, font_size);
+            cu, r_nubase, che, info, ct->is_smallcaps, ct->xof, ct->yof, ct->rotate, i, font_size);
 
         if (info->flag & CU_CHINFO_UNDERLINE) {
           float ulwidth, uloverlap = 0.0f;
@@ -1572,7 +1572,7 @@ static bool vfont_to_curve(Object *ob,
                                        r_nubase,
                                        &rect,
                                        cu->ulpos - 0.05f,
-                                       ct->rot,
+                                       ct->rotate,
                                        i,
                                        info->mat_nr,
                                        font_size,
