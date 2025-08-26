@@ -112,7 +112,7 @@ struct Source {
   {
     std::stringstream ss;
     ss << "static void " << function_name
-       << "(GPUSource &source, GPUFunctionDictionnary *g_functions, GPUPrintFormatMap *g_formats) "
+       << "(GPUSource &source, GPUFunctionDictionary *g_functions, GPUPrintFormatMap *g_formats) "
           "{\n";
     for (auto function : functions) {
       ss << "  {\n";

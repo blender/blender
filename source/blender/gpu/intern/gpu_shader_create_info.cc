@@ -32,11 +32,11 @@
 
 namespace blender::gpu::shader {
 
-using CreateInfoDictionnary = Map<StringRef, ShaderCreateInfo *>;
-using InterfaceDictionnary = Map<StringRef, StageInterfaceInfo *>;
+using CreateInfoDictionary = Map<StringRef, ShaderCreateInfo *>;
+using InterfaceDictionary = Map<StringRef, StageInterfaceInfo *>;
 
-static CreateInfoDictionnary *g_create_infos = nullptr;
-static InterfaceDictionnary *g_interfaces = nullptr;
+static CreateInfoDictionary *g_create_infos = nullptr;
+static InterfaceDictionary *g_interfaces = nullptr;
 
 /* -------------------------------------------------------------------- */
 /** \name Check Backend Support
@@ -500,8 +500,8 @@ using namespace blender::gpu::shader;
 #endif
 void gpu_shader_create_info_init()
 {
-  g_create_infos = new CreateInfoDictionnary();
-  g_interfaces = new InterfaceDictionnary();
+  g_create_infos = new CreateInfoDictionary();
+  g_interfaces = new InterfaceDictionary();
 
 #define GPU_SHADER_NAMED_INTERFACE_INFO(_interface, _inst_name) \
   StageInterfaceInfo *ptr_##_interface = new StageInterfaceInfo(#_interface, #_inst_name); \

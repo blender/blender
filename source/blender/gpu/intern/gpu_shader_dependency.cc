@@ -47,8 +47,8 @@ extern "C" {
 namespace blender::gpu {
 
 using GPUPrintFormatMap = Map<uint32_t, shader::PrintfFormat>;
-using GPUSourceDictionnary = Map<StringRef, GPUSource *>;
-using GPUFunctionDictionnary = Map<StringRef, GPUFunction *>;
+using GPUSourceDictionary = Map<StringRef, GPUSource *>;
+using GPUFunctionDictionary = Map<StringRef, GPUFunction *>;
 
 struct GPUSource {
   StringRefNull fullpath;
@@ -168,9 +168,9 @@ struct GPUSource {
       const char *path,
       const char *file,
       const char *datatoc,
-      GPUFunctionDictionnary *g_functions,
+      GPUFunctionDictionary *g_functions,
       GPUPrintFormatMap *g_formats,
-      std::function<void(GPUSource &, GPUFunctionDictionnary *, GPUPrintFormatMap *)> metadata_fn)
+      std::function<void(GPUSource &, GPUFunctionDictionary *, GPUPrintFormatMap *)> metadata_fn)
       : fullpath(path), filename(file), source(datatoc)
   {
     metadata_fn(*this, g_functions, g_formats);
@@ -244,7 +244,7 @@ struct GPUSource {
 
   void add_function(StringRefNull name,
                     Span<shader::metadata::ArgumentFormat> arguments,
-                    GPUFunctionDictionnary *g_functions)
+                    GPUFunctionDictionary *g_functions)
   {
     GPUFunction *func = MEM_new<GPUFunction>(__func__);
     name.copy_utf8_truncated(func->name, sizeof(func->name));
@@ -302,7 +302,7 @@ struct GPUSource {
   }
 
   /* Return 1 one error. */
-  int init_dependencies(const GPUSourceDictionnary &dict)
+  int init_dependencies(const GPUSourceDictionary &dict)
   {
     if (this->dependencies_init) {
       return 0;
@@ -343,7 +343,7 @@ struct GPUSource {
 
   void source_get(Vector<StringRefNull> &result,
                   const shader::GeneratedSourceList &generated_sources,
-                  const GPUSourceDictionnary &dict) const
+                  const GPUSourceDictionary &dict) const
   {
     /* Check if this file was already included. */
     for (const StringRefNull &source_content : result) {
@@ -390,7 +390,7 @@ struct GPUSource {
   /* Returns the final string with all includes done. */
   void build(Vector<StringRefNull> &result,
              const shader::GeneratedSourceList &generated_sources,
-             const GPUSourceDictionnary &dict) const
+             const GPUSourceDictionary &dict) const
   {
     for (auto *dep : dependencies) {
       dep->source_get(result, generated_sources, dict);
@@ -433,15 +433,15 @@ namespace shader {
 using namespace blender::gpu;
 
 static GPUPrintFormatMap *g_formats = nullptr;
-static GPUSourceDictionnary *g_sources = nullptr;
-static GPUFunctionDictionnary *g_functions = nullptr;
+static GPUSourceDictionary *g_sources = nullptr;
+static GPUFunctionDictionary *g_functions = nullptr;
 static bool force_printf_injection = false;
 
 void gpu_shader_dependency_init()
 {
   g_formats = new GPUPrintFormatMap();
-  g_sources = new GPUSourceDictionnary();
-  g_functions = new GPUFunctionDictionnary();
+  g_sources = new GPUSourceDictionary();
+  g_functions = new GPUFunctionDictionary();
 
 #define SHADER_SOURCE(filename_underscore, filename, filepath) \
   g_sources->add_new(filename, \
@@ -469,7 +469,7 @@ void gpu_shader_dependency_init()
                     patch_basis_source.c_str(),
                     g_functions,
                     g_formats,
-                    [](GPUSource &, GPUFunctionDictionnary *, GPUPrintFormatMap *) {}));
+                    [](GPUSource &, GPUFunctionDictionary *, GPUPrintFormatMap *) {}));
 #endif
 
   int errors = 0;
