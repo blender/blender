@@ -5097,15 +5097,8 @@ std::optional<blender::Bounds<blender::float3>> BKE_curve_minmax(const Curve *cu
    */
   if (is_font) {
     ListBase temp_nurb_lb{};
-    BKE_vfont_to_curve_ex(nullptr,
-                          *cu,
-                          FO_EDIT,
-                          &temp_nurb_lb,
-                          nullptr,
-                          nullptr,
-                          nullptr,
-                          nullptr,
-                          nullptr);
+    BKE_vfont_to_curve_ex(
+        nullptr, *cu, FO_EDIT, &temp_nurb_lb, nullptr, nullptr, nullptr, nullptr, nullptr);
     BLI_SCOPED_DEFER([&]() { BKE_nurbList_free(&temp_nurb_lb); });
     return calc_nurblist_bounds(&temp_nurb_lb, false);
   }
