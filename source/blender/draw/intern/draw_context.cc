@@ -780,9 +780,9 @@ struct InstancesKey {
   }
 };
 
-void foreach_obref_in_scene(DRWContext &draw_ctx,
-                            FunctionRef<bool(Object &)> should_draw_object_cb,
-                            FunctionRef<void(ObjectRef &)> draw_object_cb)
+static void foreach_obref_in_scene(DRWContext &draw_ctx,
+                                   FunctionRef<bool(Object &)> should_draw_object_cb,
+                                   FunctionRef<void(ObjectRef &)> draw_object_cb)
 {
   DupliList duplilist;
   Map<InstancesKey, VectorList<DupliObject *>> dupli_map;
