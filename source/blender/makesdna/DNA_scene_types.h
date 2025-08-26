@@ -1756,9 +1756,6 @@ typedef struct ToolSettings {
   /** Keyframe type (see DNA_curve_types.h). */
   char keyframe_type;
 
-  /** Multi-resolution meshes. */
-  char multires_subdiv_type;
-
   /** Edge tagging, store operator settings (no UI access). */
   char edge_mode;
 
@@ -1770,6 +1767,9 @@ typedef struct ToolSettings {
   char transform_flag;
   /** Snap elements (per space-type), #eSnapMode. */
   char snap_node_mode;
+
+  char _pad;
+
   short snap_mode;
   short snap_uv_mode;
   short snap_anim_mode;
