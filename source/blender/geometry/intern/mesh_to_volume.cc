@@ -125,8 +125,6 @@ static openvdb::FloatGrid::Ptr mesh_to_density_grid_impl(
 
   float4x4 mesh_to_index_space_transform = math::from_scale<float4x4>(float3(1.0f / voxel_size));
   mesh_to_index_space_transform *= mesh_to_volume_space_transform;
-  /* Better align generated grid with the source mesh. */
-  mesh_to_index_space_transform.location() -= 0.5f;
 
   OpenVDBMeshAdapter mesh_adapter{
       positions, corner_verts, corner_tris, mesh_to_index_space_transform};
@@ -184,7 +182,7 @@ bke::VolumeGrid<float> mesh_to_sdf_grid(const Span<float3> positions,
   threading::parallel_for(positions.index_range(), 2048, [&](const IndexRange range) {
     for (const int i : range) {
       const float3 &co = positions[i];
-      points[i] = openvdb::Vec3s(co.x, co.y, co.z) - 0.5f * voxel_size;
+      points[i] = openvdb::Vec3s(co.x, co.y, co.z);
     }
   });
 

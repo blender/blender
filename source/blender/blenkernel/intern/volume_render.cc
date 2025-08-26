@@ -102,7 +102,7 @@ static void create_texture_to_object_matrix(const openvdb::Mat4d &grid_transform
   memcpy(index_to_object, openvdb::Mat4s(grid_transform).asPointer(), sizeof(index_to_object));
 
   float texture_to_index[4][4];
-  const openvdb::Vec3f loc = bbox.min().asVec3s();
+  const openvdb::Vec3f loc = bbox.min().asVec3s() - openvdb::Vec3s(0.5f);
   const openvdb::Vec3f size = bbox.dim().asVec3s();
   size_to_mat4(texture_to_index, size.asV());
   copy_v3_v3(texture_to_index[3], loc.asV());
