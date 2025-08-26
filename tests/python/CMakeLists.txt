@@ -424,6 +424,13 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_geometry_attributes.py
 )
 
+add_blender_test(
+  geonode_file_reporting
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_geonode_file_reporting.py
+  --
+  --testdir "${TEST_SRC_DIR}/io_tests"
+)
+
 # ------------------------------------------------------------------------------
 # MODIFIERS TESTS
 # ------------------------------------------------------------------------------
