@@ -1368,6 +1368,7 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
     ed->runtime.intra_frame_cache = nullptr;
     ed->runtime.source_image_cache = nullptr;
     ed->runtime.final_image_cache = nullptr;
+    ed->runtime.preview_cache = nullptr;
 
     /* recursive link sequences, lb will be correctly initialized */
     link_recurs_seq(reader, &ed->seqbase);

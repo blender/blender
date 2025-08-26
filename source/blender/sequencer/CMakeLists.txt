@@ -27,6 +27,7 @@ set(SRC
   SEQ_modifier.hh
   SEQ_offscreen.hh
   SEQ_prefetch.hh
+  SEQ_preview_cache.hh
   SEQ_proxy.hh
   SEQ_relations.hh
   SEQ_render.hh
@@ -44,6 +45,7 @@ set(SRC
   intern/cache/final_image_cache.hh
   intern/cache/intra_frame_cache.cc
   intern/cache/intra_frame_cache.hh
+  intern/cache/preview_cache.cc
   intern/cache/source_image_cache.cc
   intern/cache/source_image_cache.hh
   intern/cache/thumbnail_cache.cc
@@ -100,6 +102,7 @@ set(LIB
   PRIVATE bf::blentranslation
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::gpu
   PRIVATE bf::imbuf
   PRIVATE bf::imbuf::movie
   PRIVATE bf::intern::atomic

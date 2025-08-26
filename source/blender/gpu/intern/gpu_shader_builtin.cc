@@ -109,6 +109,12 @@ static const char *builtin_shader_create_info_name(eGPUBuiltinShader shader)
       return "gpu_shader_sequencer_strips";
     case GPU_SHADER_SEQUENCER_THUMBS:
       return "gpu_shader_sequencer_thumbs";
+    case GPU_SHADER_SEQUENCER_SCOPE_RASTER:
+      return "gpu_shader_sequencer_scope_raster";
+    case GPU_SHADER_SEQUENCER_SCOPE_RESOLVE:
+      return "gpu_shader_sequencer_scope_resolve";
+    case GPU_SHADER_SEQUENCER_ZEBRA:
+      return "gpu_shader_sequencer_zebra";
     case GPU_SHADER_INDEXBUF_POINTS:
       return "gpu_shader_index_2d_array_points";
     case GPU_SHADER_INDEXBUF_LINES:

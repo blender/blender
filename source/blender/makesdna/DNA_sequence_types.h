@@ -31,6 +31,7 @@ namespace blender::seq {
 struct FinalImageCache;
 struct IntraFrameCache;
 struct MediaPresence;
+struct PreviewCache;
 struct ThumbnailCache;
 struct TextVarsRuntime;
 struct PrefetchJob;
@@ -40,6 +41,7 @@ struct StripLookup;
 using FinalImageCache = blender::seq::FinalImageCache;
 using IntraFrameCache = blender::seq::IntraFrameCache;
 using MediaPresence = blender::seq::MediaPresence;
+using PreviewCache = blender::seq::PreviewCache;
 using ThumbnailCache = blender::seq::ThumbnailCache;
 using TextVarsRuntime = blender::seq::TextVarsRuntime;
 using PrefetchJob = blender::seq::PrefetchJob;
@@ -49,6 +51,7 @@ using StripLookup = blender::seq::StripLookup;
 typedef struct FinalImageCache FinalImageCache;
 typedef struct IntraFrameCache IntraFrameCache;
 typedef struct MediaPresence MediaPresence;
+typedef struct PreviewCache PreviewCache;
 typedef struct ThumbnailCache ThumbnailCache;
 typedef struct TextVarsRuntime TextVarsRuntime;
 typedef struct PrefetchJob PrefetchJob;
@@ -328,6 +331,7 @@ typedef struct EditingRuntime {
   IntraFrameCache *intra_frame_cache;
   SourceImageCache *source_image_cache;
   FinalImageCache *final_image_cache;
+  PreviewCache *preview_cache;
 } EditingRuntime;
 
 typedef struct Editing {

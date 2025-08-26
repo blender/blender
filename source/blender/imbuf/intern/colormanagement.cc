@@ -1739,25 +1739,31 @@ static bool is_colorspace_same_as_display(const ColorSpace *colorspace,
   return false;
 }
 
+bool IMB_colormanagement_display_processor_needed(
+    const ImBuf *ibuf,
+    const ColorManagedViewSettings *view_settings,
+    const ColorManagedDisplaySettings *display_settings)
+{
+  if (ibuf->float_buffer.data == nullptr && ibuf->byte_buffer.colorspace) {
+    return !is_colorspace_same_as_display(
+        ibuf->byte_buffer.colorspace, view_settings, display_settings);
+  }
+  if (ibuf->byte_buffer.data == nullptr && ibuf->float_buffer.colorspace) {
+    return !is_colorspace_same_as_display(
+        ibuf->float_buffer.colorspace, view_settings, display_settings);
+  }
+  return true;
+}
+
 ColormanageProcessor *IMB_colormanagement_display_processor_for_imbuf(
     const ImBuf *ibuf,
     const ColorManagedViewSettings *view_settings,
     const ColorManagedDisplaySettings *display_settings,
     const ColorManagedDisplaySpace display_space)
 {
-  bool skip_transform = false;
-  if (ibuf->float_buffer.data == nullptr && ibuf->byte_buffer.colorspace) {
-    skip_transform = is_colorspace_same_as_display(
-        ibuf->byte_buffer.colorspace, view_settings, display_settings);
-  }
-  if (ibuf->byte_buffer.data == nullptr && ibuf->float_buffer.colorspace) {
-    skip_transform = is_colorspace_same_as_display(
-        ibuf->float_buffer.colorspace, view_settings, display_settings);
-  }
-  if (skip_transform) {
+  if (!IMB_colormanagement_display_processor_needed(ibuf, view_settings, display_settings)) {
     return nullptr;
   }
-
   return IMB_colormanagement_display_processor_new(view_settings, display_settings, display_space);
 }
 

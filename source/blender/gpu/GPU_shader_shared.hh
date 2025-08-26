@@ -171,6 +171,14 @@ struct SeqContextDrawData {
 };
 BLI_STATIC_ASSERT_ALIGN(SeqContextDrawData, 16)
 
+/* VSE scope point rasterizer data. */
+struct SeqScopeRasterData {
+  uint col_r;
+  uint col_g;
+  uint col_b;
+  uint col_a;
+};
+
 struct GreasePencilStrokeData {
   packed_float3 position;
   float stroke_thickness;

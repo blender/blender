@@ -85,6 +85,12 @@ enum eGPUBuiltinShader {
   GPU_SHADER_SEQUENCER_STRIPS,
   /** Draw strip thumbnails in sequencer timeline. */
   GPU_SHADER_SEQUENCER_THUMBS,
+  /** Rasterize sequencer scope points into buffers via compute. */
+  GPU_SHADER_SEQUENCER_SCOPE_RASTER,
+  /** Resolve rasterized scope point buffers to display. */
+  GPU_SHADER_SEQUENCER_SCOPE_RESOLVE,
+  /** Draw sequencer zebra pattern (overexposed regions). */
+  GPU_SHADER_SEQUENCER_ZEBRA,
 
   /** Compute shaders to generate 2d index buffers (mainly for curve drawing). */
   GPU_SHADER_INDEXBUF_POINTS,

@@ -341,7 +341,7 @@ typedef struct SpaceSeq {
   short mainb; /* eSpaceSeq_RegionType; strange name for view type (image, histogram, ...). */
   short render_size; /* eSpaceSeq_Proxy_RenderSize. */
   short chanshown;
-  short zebra;
+  short zebra; /* Show overexposed. 0=disabled; otherwise as percentage of "pure white". */
   int flag;
   /** Deprecated, handled by View2D now. */
   float zoom DNA_DEPRECATED;

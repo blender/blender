@@ -51,12 +51,9 @@ struct SeqScopes : public NonCopyable {
   static constexpr float VECSCOPE_U_SCALE = 0.5f / 0.436f;
   static constexpr float VECSCOPE_V_SCALE = 0.5f / 0.615f;
 
-  const ImBuf *reference_ibuf = nullptr;
-  int timeline_frame = 0;
-  ImBuf *zebra_ibuf = nullptr;
-  ImBuf *waveform_ibuf = nullptr;
-  ImBuf *sep_waveform_ibuf = nullptr;
-  ImBuf *vector_ibuf = nullptr;
+  const ImBuf *last_ibuf = nullptr;
+  int last_timeline_frame = 0;
+  bool last_ibuf_float = false;
   ScopeHistogram histogram;
 
   SeqScopes() = default;
@@ -64,16 +61,5 @@ struct SeqScopes : public NonCopyable {
 
   void cleanup();
 };
-
-ImBuf *make_waveform_view_from_ibuf(const ImBuf *ibuf,
-                                    const ColorManagedViewSettings &view_settings,
-                                    const ColorManagedDisplaySettings &display_settings);
-ImBuf *make_sep_waveform_view_from_ibuf(const ImBuf *ibuf,
-                                        const ColorManagedViewSettings &view_settings,
-                                        const ColorManagedDisplaySettings &display_settings);
-ImBuf *make_vectorscope_view_from_ibuf(const ImBuf *ibuf,
-                                       const ColorManagedViewSettings &view_settings,
-                                       const ColorManagedDisplaySettings &display_settings);
-ImBuf *make_zebra_view_from_ibuf(const ImBuf *ibuf, float perc);
 
 }  // namespace blender::ed::vse
