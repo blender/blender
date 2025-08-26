@@ -20,13 +20,16 @@
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 #include "DNA_rigidbody_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
 #include "DNA_world_types.h"
 
+#include "BLI_function_ref.hh"
 #include "BLI_listbase.h"
+#include "BLI_math_color.h"
 #include "BLI_math_numbers.hh"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
@@ -741,42 +744,47 @@ static void version_seq_text_from_legacy(Main *bmain)
   }
 }
 
-static void apply_unified_paint_settings_to_all_modes(Scene &scene)
+static void for_each_mode_paint_settings(
+    Scene &scene, blender::FunctionRef<void(Scene &scene, Paint *paint)> func)
 {
+  func(scene, reinterpret_cast<Paint *>(scene.toolsettings->vpaint));
+  func(scene, reinterpret_cast<Paint *>(scene.toolsettings->wpaint));
+  func(scene, reinterpret_cast<Paint *>(scene.toolsettings->sculpt));
+  func(scene, reinterpret_cast<Paint *>(scene.toolsettings->gp_paint));
+  func(scene, reinterpret_cast<Paint *>(scene.toolsettings->gp_vertexpaint));
+  func(scene, reinterpret_cast<Paint *>(scene.toolsettings->gp_sculptpaint));
+  func(scene, reinterpret_cast<Paint *>(scene.toolsettings->gp_weightpaint));
+  func(scene, reinterpret_cast<Paint *>(scene.toolsettings->curves_sculpt));
+  func(scene, reinterpret_cast<Paint *>(&scene.toolsettings->imapaint));
+}
+
+static void copy_unified_paint_settings(Scene &scene, Paint *paint)
+{
+  if (paint == nullptr) {
+    return;
+  }
+
   const UnifiedPaintSettings &scene_ups = scene.toolsettings->unified_paint_settings;
-  auto apply_to_paint = [&](Paint *paint) {
-    if (paint == nullptr) {
-      return;
-    }
-    UnifiedPaintSettings &ups = paint->unified_paint_settings;
+  UnifiedPaintSettings &ups = paint->unified_paint_settings;
 
-    ups.size = scene_ups.size;
-    ups.unprojected_radius = scene_ups.unprojected_radius;
-    ups.alpha = scene_ups.alpha;
-    ups.weight = scene_ups.weight;
-    copy_v3_v3(ups.rgb, scene_ups.rgb);
-    copy_v3_v3(ups.secondary_rgb, scene_ups.secondary_rgb);
-    ups.color_jitter_flag = scene_ups.color_jitter_flag;
-    copy_v3_v3(ups.hsv_jitter, scene_ups.hsv_jitter);
+  ups.size = scene_ups.size;
+  ups.unprojected_radius = scene_ups.unprojected_radius;
+  ups.alpha = scene_ups.alpha;
+  ups.weight = scene_ups.weight;
+  copy_v3_v3(ups.color, scene_ups.color);
+  copy_v3_v3(ups.rgb, scene_ups.rgb);
+  copy_v3_v3(ups.secondary_color, scene_ups.secondary_color);
+  copy_v3_v3(ups.secondary_rgb, scene_ups.secondary_rgb);
+  ups.color_jitter_flag = scene_ups.color_jitter_flag;
+  copy_v3_v3(ups.hsv_jitter, scene_ups.hsv_jitter);
 
-    BLI_assert(ups.curve_rand_hue == nullptr);
-    BLI_assert(ups.curve_rand_saturation == nullptr);
-    BLI_assert(ups.curve_rand_value == nullptr);
-    ups.curve_rand_hue = BKE_curvemapping_copy(scene_ups.curve_rand_hue);
-    ups.curve_rand_saturation = BKE_curvemapping_copy(scene_ups.curve_rand_saturation);
-    ups.curve_rand_value = BKE_curvemapping_copy(scene_ups.curve_rand_value);
-    ups.flag = scene_ups.flag;
-  };
-
-  apply_to_paint(reinterpret_cast<Paint *>(scene.toolsettings->vpaint));
-  apply_to_paint(reinterpret_cast<Paint *>(scene.toolsettings->wpaint));
-  apply_to_paint(reinterpret_cast<Paint *>(scene.toolsettings->sculpt));
-  apply_to_paint(reinterpret_cast<Paint *>(scene.toolsettings->gp_paint));
-  apply_to_paint(reinterpret_cast<Paint *>(scene.toolsettings->gp_vertexpaint));
-  apply_to_paint(reinterpret_cast<Paint *>(scene.toolsettings->gp_sculptpaint));
-  apply_to_paint(reinterpret_cast<Paint *>(scene.toolsettings->gp_weightpaint));
-  apply_to_paint(reinterpret_cast<Paint *>(scene.toolsettings->curves_sculpt));
-  apply_to_paint(reinterpret_cast<Paint *>(&scene.toolsettings->imapaint));
+  BLI_assert(ups.curve_rand_hue == nullptr);
+  BLI_assert(ups.curve_rand_saturation == nullptr);
+  BLI_assert(ups.curve_rand_value == nullptr);
+  ups.curve_rand_hue = BKE_curvemapping_copy(scene_ups.curve_rand_hue);
+  ups.curve_rand_saturation = BKE_curvemapping_copy(scene_ups.curve_rand_saturation);
+  ups.curve_rand_value = BKE_curvemapping_copy(scene_ups.curve_rand_value);
+  ups.flag = scene_ups.flag;
 }
 
 /* The Use Alpha option is does not exist in the new generic Mix node, it essentially just
@@ -1905,7 +1913,7 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 26)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      apply_unified_paint_settings_to_all_modes(*scene);
+      for_each_mode_paint_settings(*scene, copy_unified_paint_settings);
     }
   }
 
@@ -2372,7 +2380,7 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_END;
   }
 
-  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 62)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 63)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->r.bake_flag & R_BAKE_MULTIRES) {
         scene->r.bake.type = scene->r.bake_mode;
@@ -2397,6 +2405,31 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       remove_in_and_out_node_interface(*node_tree);
     }
     FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 65)) {
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      srgb_to_linearrgb_v3_v3(brush->color, brush->rgb);
+      srgb_to_linearrgb_v3_v3(brush->secondary_color, brush->secondary_rgb);
+    }
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      UnifiedPaintSettings &ups = scene->toolsettings->unified_paint_settings;
+      srgb_to_linearrgb_v3_v3(ups.color, ups.rgb);
+      srgb_to_linearrgb_v3_v3(ups.secondary_color, ups.secondary_rgb);
+
+      for_each_mode_paint_settings(*scene, [](Scene & /*scene*/, Paint *paint) {
+        if (paint != nullptr) {
+          UnifiedPaintSettings &ups = paint->unified_paint_settings;
+          srgb_to_linearrgb_v3_v3(ups.color, ups.rgb);
+          srgb_to_linearrgb_v3_v3(ups.secondary_color, ups.secondary_rgb);
+        }
+      });
+    }
+    LISTBASE_FOREACH (Palette *, palette, &bmain->palettes) {
+      LISTBASE_FOREACH (PaletteColor *, color, &palette->colors) {
+        srgb_to_linearrgb_v3_v3(color->color, color->rgb);
+      }
+    }
   }
 
   /**

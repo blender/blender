@@ -350,8 +350,7 @@ void paint_brush_color_get(const Paint *paint,
                            bool invert,
                            float distance,
                            float pressure,
-                           bool is_data,
-                           float r_color[3] /* In scene linear colorspace. */);
+                           float r_color[3]);
 bool paint_use_opacity_masking(const Paint *paint, const Brush *brush);
 void paint_brush_init_tex(Brush *brush);
 void paint_brush_exit_tex(Brush *brush);

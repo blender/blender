@@ -650,7 +650,7 @@ static ColorPaint4f vpaint_get_current_col(VPaint &vp, bool secondary)
   float color[4];
   const float *brush_color = secondary ? BKE_brush_secondary_color_get(&vp.paint, brush) :
                                          BKE_brush_color_get(&vp.paint, brush);
-  IMB_colormanagement_srgb_to_scene_linear_v3(color, brush_color);
+  copy_v3_v3(color, brush_color);
 
   color[3] = 1.0f; /* alpha isn't used, could even be removed to speedup paint a little */
 

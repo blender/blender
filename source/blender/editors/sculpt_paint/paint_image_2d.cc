@@ -407,14 +407,8 @@ static ImBuf *brush_painter_imbuf_new(
 
   /* get brush color */
   if (brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_DRAW) {
-    paint_brush_color_get(paint,
-                          brush,
-                          painter->initial_hsv_jitter,
-                          cache->invert,
-                          distance,
-                          pressure,
-                          cache->is_data,
-                          brush_rgb);
+    paint_brush_color_get(
+        paint, brush, painter->initial_hsv_jitter, cache->invert, distance, pressure, brush_rgb);
 
     if (cache->is_srgb) {
       IMB_colormanagement_scene_linear_to_srgb_v3(brush_rgb, brush_rgb);
@@ -503,14 +497,8 @@ static void brush_painter_imbuf_update(BrushPainter *painter,
 
   /* get brush color */
   if (brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_DRAW) {
-    paint_brush_color_get(paint,
-                          brush,
-                          painter->initial_hsv_jitter,
-                          cache->invert,
-                          0.0f,
-                          1.0f,
-                          cache->is_data,
-                          brush_rgb);
+    paint_brush_color_get(
+        paint, brush, painter->initial_hsv_jitter, cache->invert, 0.0f, 1.0f, brush_rgb);
 
     if (cache->is_srgb) {
       IMB_colormanagement_scene_linear_to_srgb_v3(brush_rgb, brush_rgb);

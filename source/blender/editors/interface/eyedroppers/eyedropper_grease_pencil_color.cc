@@ -145,9 +145,7 @@ static void eyedropper_grease_pencil_exit(bContext *C, wmOperator *op)
   op->customdata = nullptr;
 }
 
-static void eyedropper_add_material(bContext *C,
-                                    const float3 col_conv,
-                                    const MaterialMode mat_mode)
+static void eyedropper_add_material(bContext *C, const float3 color, const MaterialMode mat_mode)
 {
   Main *bmain = CTX_data_main(C);
   Object *ob = CTX_data_active_object(C);
@@ -166,10 +164,10 @@ static void eyedropper_add_material(bContext *C,
     MaterialGPencilStyle *gp_style = ma->gp_style;
     if (gp_style != nullptr) {
       /* Check stroke color. */
-      bool found_stroke = compare_v3v3(gp_style->stroke_rgba, col_conv, 0.01f) &&
+      bool found_stroke = compare_v3v3(gp_style->stroke_rgba, color, 0.01f) &&
                           (gp_style->flag & GP_MATERIAL_STROKE_SHOW);
       /* Check fill color. */
-      bool found_fill = compare_v3v3(gp_style->fill_rgba, col_conv, 0.01f) &&
+      bool found_fill = compare_v3v3(gp_style->fill_rgba, color, 0.01f) &&
                         (gp_style->flag & GP_MATERIAL_FILL_SHOW);
 
       if ((mat_mode == MaterialMode::Stroke) && (found_stroke) &&
@@ -215,7 +213,7 @@ static void eyedropper_add_material(bContext *C,
     /* Stroke color. */
     gp_style_new->flag |= GP_MATERIAL_STROKE_SHOW;
     gp_style_new->flag &= ~GP_MATERIAL_FILL_SHOW;
-    copy_v3_v3(gp_style_new->stroke_rgba, col_conv);
+    copy_v3_v3(gp_style_new->stroke_rgba, color);
     zero_v4(gp_style_new->fill_rgba);
   }
   /* Fill Only. */
@@ -224,20 +222,20 @@ static void eyedropper_add_material(bContext *C,
     gp_style_new->flag &= ~GP_MATERIAL_STROKE_SHOW;
     gp_style_new->flag |= GP_MATERIAL_FILL_SHOW;
     zero_v4(gp_style_new->stroke_rgba);
-    copy_v3_v3(gp_style_new->fill_rgba, col_conv);
+    copy_v3_v3(gp_style_new->fill_rgba, color);
   }
   /* Stroke and Fill. */
   else if (mat_mode == MaterialMode::Both) {
     gp_style_new->flag |= GP_MATERIAL_STROKE_SHOW | GP_MATERIAL_FILL_SHOW;
-    copy_v3_v3(gp_style_new->stroke_rgba, col_conv);
-    copy_v3_v3(gp_style_new->fill_rgba, col_conv);
+    copy_v3_v3(gp_style_new->stroke_rgba, color);
+    copy_v3_v3(gp_style_new->fill_rgba, color);
   }
   /* Push undo for new created material. */
   ED_undo_push(C, "Add Grease Pencil Material");
 }
 
 /* Create a new palette color and palette if needed. */
-static void eyedropper_add_palette_color(bContext *C, const float3 col_conv)
+static void eyedropper_add_palette_color(bContext *C, const float3 color)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -263,7 +261,7 @@ static void eyedropper_add_palette_color(bContext *C, const float3 col_conv)
   Palette *palette = paint->palette;
   int i;
   LISTBASE_FOREACH_INDEX (PaletteColor *, palcolor, &palette->colors, i) {
-    if (compare_v3v3(palcolor->rgb, col_conv, 0.01f)) {
+    if (compare_v3v3(palcolor->color, color, 0.01f)) {
       palette->active_color = i;
       return;
     }
@@ -273,12 +271,12 @@ static void eyedropper_add_palette_color(bContext *C, const float3 col_conv)
   PaletteColor *palcol = BKE_palette_color_add(palette);
   if (palcol) {
     palette->active_color = BLI_listbase_count(&palette->colors) - 1;
-    copy_v3_v3(palcol->rgb, col_conv);
+    BKE_palette_color_set(palcol, color);
   }
 }
 
 /* Set the active brush's color. */
-static void eyedropper_set_brush_color(bContext *C, const float3 &col_conv)
+static void eyedropper_set_brush_color(bContext *C, const float3 &color)
 {
   Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = scene->toolsettings;
@@ -288,7 +286,8 @@ static void eyedropper_set_brush_color(bContext *C, const float3 &col_conv)
     return;
   }
 
-  copy_v3_v3(brush->rgb, col_conv);
+  copy_v3_v3(brush->color, color);
+  BKE_brush_color_sync_legacy(brush);
   BKE_brush_tag_unsaved_changes(brush);
 }
 
@@ -311,24 +310,15 @@ static void eyedropper_grease_pencil_color_set(bContext *C,
     mat_mode = MaterialMode::Both;
   }
 
-  float3 col_conv = eye->color;
-
-  /* Convert from linear rgb space to sRGB space because palette and brush colors are in
-   * sRGB space, and this conversion is needed to undo the conversion to linear performed by
-   * eyedropper_color_sample_fl. */
-  if (eye->display && ELEM(eye->mode, EyeMode::Palette, EyeMode::Brush)) {
-    IMB_colormanagement_scene_linear_to_srgb_v3(col_conv, col_conv);
-  }
-
   switch (eye->mode) {
     case EyeMode::Material:
-      eyedropper_add_material(C, col_conv, mat_mode);
+      eyedropper_add_material(C, eye->color, mat_mode);
       break;
     case EyeMode::Palette:
-      eyedropper_add_palette_color(C, col_conv);
+      eyedropper_add_palette_color(C, eye->color);
       break;
     case EyeMode::Brush:
-      eyedropper_set_brush_color(C, col_conv);
+      eyedropper_set_brush_color(C, eye->color);
       break;
   }
 }

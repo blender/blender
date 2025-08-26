@@ -140,11 +140,14 @@ bool BKE_palette_is_empty(const Palette *palette);
 void BKE_palette_color_remove(Palette *palette, PaletteColor *color);
 void BKE_palette_clear(Palette *palette);
 
+void BKE_palette_color_set(PaletteColor *color, const float rgb[3]);
+void BKE_palette_color_sync_legacy(PaletteColor *color);
+
 void BKE_palette_sort_hsv(tPaletteColorHSV *color_array, int totcol);
 void BKE_palette_sort_svh(tPaletteColorHSV *color_array, int totcol);
 void BKE_palette_sort_vhs(tPaletteColorHSV *color_array, int totcol);
 void BKE_palette_sort_luminance(tPaletteColorHSV *color_array, int totcol);
-bool BKE_palette_from_hash(Main *bmain, GHash *color_table, const char *name, bool linear);
+bool BKE_palette_from_hash(Main *bmain, GHash *color_table, const char *name);
 
 /* Paint curves. */
 

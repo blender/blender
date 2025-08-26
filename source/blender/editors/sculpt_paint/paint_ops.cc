@@ -14,6 +14,7 @@
 
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
+#include "BLI_math_color.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
@@ -41,6 +42,8 @@
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
+
+#include "IMB_colormanagement.hh"
 
 #include "curves_sculpt_intern.hh"
 #include "paint_hide.hh"
@@ -183,11 +186,11 @@ static wmOperatorStatus palette_color_add_exec(bContext *C, wmOperator * /*op*/)
              PaintMode::GPencil,
              PaintMode::VertexGPencil))
     {
-      copy_v3_v3(color->rgb, BKE_brush_color_get(paint, brush));
+      copy_v3_v3(color->color, BKE_brush_color_get(paint, brush));
       color->value = 0.0;
     }
     else if (mode == PaintMode::Weight) {
-      zero_v3(color->rgb);
+      zero_v3(color->color);
       color->value = brush->weight;
     }
   }
@@ -272,8 +275,10 @@ static wmOperatorStatus palette_extract_img_exec(bContext *C, wmOperator *op)
     const int range = int(pow(10.0f, threshold));
     for (int row = 0; row < ibuf->y; row++) {
       for (int col = 0; col < ibuf->x; col++) {
-        float color[4];
-        IMB_sampleImageAtLocation(ibuf, float(col), float(row), false, color);
+        float color[3];
+        IMB_sampleImageAtLocation(ibuf, float(col), float(row), color);
+        /* Convert to sRGB for hex. */
+        IMB_colormanagement_scene_linear_to_srgb_v3(color, color);
         for (int i = 0; i < 3; i++) {
           color[i] = truncf(color[i] * range) / range;
         }
@@ -285,7 +290,7 @@ static wmOperatorStatus palette_extract_img_exec(bContext *C, wmOperator *op)
       }
     }
 
-    done = BKE_palette_from_hash(bmain, color_table, image->id.name + 2, false);
+    done = BKE_palette_from_hash(bmain, color_table, image->id.name + 2);
   }
 
   /* Free memory. */
@@ -343,9 +348,9 @@ static wmOperatorStatus palette_sort_exec(bContext *C, wmOperator *op)
     int t = 0;
     LISTBASE_FOREACH (PaletteColor *, color, &palette->colors) {
       float h, s, v;
-      rgb_to_hsv(color->rgb[0], color->rgb[1], color->rgb[2], &h, &s, &v);
+      rgb_to_hsv(color->color[0], color->color[1], color->color[2], &h, &s, &v);
       col_elm = &color_array[t];
-      copy_v3_v3(col_elm->rgb, color->rgb);
+      copy_v3_v3(col_elm->rgb, color->color);
       col_elm->value = color->value;
       col_elm->h = h;
       col_elm->s = s;
@@ -376,7 +381,7 @@ static wmOperatorStatus palette_sort_exec(bContext *C, wmOperator *op)
       col_elm = &color_array[i];
       PaletteColor *palcol = BKE_palette_color_add(palette);
       if (palcol) {
-        copy_v3_v3(palcol->rgb, col_elm->rgb);
+        copy_v3_v3(palcol->color, col_elm->rgb);
       }
     }
   }
@@ -489,7 +494,7 @@ static wmOperatorStatus palette_join_exec(bContext *C, wmOperator *op)
     LISTBASE_FOREACH (PaletteColor *, color, &palette_join->colors) {
       PaletteColor *palcol = BKE_palette_color_add(palette);
       if (palcol) {
-        copy_v3_v3(palcol->rgb, color->rgb);
+        copy_v3_v3(palcol->color, color->color);
         palcol->value = color->value;
         done = true;
       }

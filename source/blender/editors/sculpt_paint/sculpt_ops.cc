@@ -650,9 +650,7 @@ static wmOperatorStatus sample_color_invoke(bContext *C, wmOperator *op, const w
                                                 std::get<int>(ss.active_vert()));
   }
 
-  float color_srgb[3];
-  IMB_colormanagement_scene_linear_to_srgb_v3(color_srgb, active_vertex_color);
-  BKE_brush_color_set(&sd.paint, &brush, color_srgb);
+  BKE_brush_color_set(&sd.paint, &brush, active_vertex_color);
 
   WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, &brush);
 
@@ -1195,7 +1193,7 @@ static wmOperatorStatus mask_from_cavity_exec(bContext *C, wmOperator *op)
   const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
 
   /* Set up automasking settings. */
-  Sculpt scene_copy = sd;
+  Sculpt scene_copy = dna::shallow_copy(sd);
 
   MaskSettingsSource src = (MaskSettingsSource)RNA_enum_get(op->ptr, "settings_source");
   switch (src) {
@@ -1389,7 +1387,7 @@ static wmOperatorStatus mask_from_boundary_exec(bContext *C, wmOperator *op)
   const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
 
   /* Set up automasking settings. */
-  Sculpt scene_copy = sd;
+  Sculpt scene_copy = dna::shallow_copy(sd);
 
   MaskSettingsSource src = (MaskSettingsSource)RNA_enum_get(op->ptr, "settings_source");
   switch (src) {

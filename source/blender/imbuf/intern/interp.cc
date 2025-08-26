@@ -6,21 +6,24 @@
  * \ingroup imbuf
  */
 
+#include "BLI_math_color.h"
+
 #include "IMB_colormanagement.hh"
 #include "IMB_interp.hh"
 
-void IMB_sampleImageAtLocation(ImBuf *ibuf, float x, float y, bool make_linear_rgb, float color[4])
+void IMB_sampleImageAtLocation(ImBuf *ibuf, float x, float y, float scene_linear_rgb[3])
 {
   using namespace blender;
   if (ibuf->float_buffer.data) {
-    imbuf::interpolate_nearest_border_fl(ibuf, color, x, y);
+    float rgba[4];
+    imbuf::interpolate_nearest_border_fl(ibuf, rgba, x, y);
+    premul_to_straight_v4_v4(rgba, rgba);
+    copy_v3_v3(scene_linear_rgb, rgba);
   }
   else {
     uchar4 byte_color = imbuf::interpolate_nearest_border_byte(ibuf, x, y);
-    rgba_uchar_to_float(color, byte_color);
-    if (make_linear_rgb) {
-      IMB_colormanagement_colorspace_to_scene_linear_v4(
-          color, false, ibuf->byte_buffer.colorspace);
-    }
+    rgb_uchar_to_float(scene_linear_rgb, byte_color);
+    IMB_colormanagement_colorspace_to_scene_linear_v3(scene_linear_rgb,
+                                                      ibuf->byte_buffer.colorspace);
   }
 }

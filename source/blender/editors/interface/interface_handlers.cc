@@ -6660,13 +6660,13 @@ static int ui_do_but_COLOR(bContext *C, uiBut *but, uiHandleButtonData *data, co
               if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA) {
                 RNA_property_float_get_array_at_most(
                     &but->rnapoin, but->rnaprop, color, ARRAY_SIZE(color));
+                IMB_colormanagement_srgb_to_scene_linear_v3(color, color);
                 BKE_brush_color_set(paint, brush, color);
                 updated = true;
               }
               else if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR) {
                 RNA_property_float_get_array_at_most(
                     &but->rnapoin, but->rnaprop, color, ARRAY_SIZE(color));
-                IMB_colormanagement_scene_linear_to_srgb_v3(color, color);
                 BKE_brush_color_set(paint, brush, color);
                 updated = true;
               }

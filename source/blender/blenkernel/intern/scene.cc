@@ -1585,7 +1585,7 @@ static void scene_undo_preserve(BlendLibReader *reader, ID *id_new, ID *id_old)
      * (like object ones). */
     scene_foreach_toolsettings(
         nullptr, scene_new->toolsettings, true, reader, scene_old->toolsettings);
-    std::swap(*scene_old->toolsettings, *scene_new->toolsettings);
+    blender::dna::shallow_swap(*scene_old->toolsettings, *scene_new->toolsettings);
   }
 }
 

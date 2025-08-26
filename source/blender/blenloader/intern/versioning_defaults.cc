@@ -367,8 +367,8 @@ static void blo_update_defaults_paint(Paint *paint)
   paint->unified_paint_settings.alpha = default_ups.alpha;
   paint->unified_paint_settings.weight = default_ups.weight;
   paint->unified_paint_settings.flag = default_ups.flag;
-  copy_v3_v3(paint->unified_paint_settings.rgb, default_ups.rgb);
-  copy_v3_v3(paint->unified_paint_settings.secondary_rgb, default_ups.secondary_rgb);
+  copy_v3_v3(paint->unified_paint_settings.color, default_ups.color);
+  copy_v3_v3(paint->unified_paint_settings.secondary_color, default_ups.secondary_color);
 
   if (paint->unified_paint_settings.curve_rand_hue == nullptr) {
     paint->unified_paint_settings.curve_rand_hue = BKE_paint_default_curve();
@@ -492,8 +492,8 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
 
   const UnifiedPaintSettings &default_ups = *DNA_struct_default_get(UnifiedPaintSettings);
   ts->unified_paint_settings.flag = default_ups.flag;
-  copy_v3_v3(ts->unified_paint_settings.rgb, default_ups.rgb);
-  copy_v3_v3(ts->unified_paint_settings.secondary_rgb, default_ups.secondary_rgb);
+  copy_v3_v3(ts->unified_paint_settings.color, default_ups.color);
+  copy_v3_v3(ts->unified_paint_settings.secondary_color, default_ups.secondary_color);
 
   if (ts->unified_paint_settings.curve_rand_hue == nullptr) {
     ts->unified_paint_settings.curve_rand_hue = BKE_paint_default_curve();

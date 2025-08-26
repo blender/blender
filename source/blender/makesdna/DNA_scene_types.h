@@ -1075,6 +1075,8 @@ typedef struct TimeMarker {
  * values are used
  */
 typedef struct UnifiedPaintSettings {
+  DNA_DEFINE_CXX_METHODS(UnifiedPaintSettings)
+
   /** Unified radius of brush in pixels. */
   int size;
 
@@ -1088,9 +1090,13 @@ typedef struct UnifiedPaintSettings {
   float weight;
 
   /** Unified brush color. */
-  float rgb[3];
+  float color[3];
   /** Unified brush secondary color. */
-  float secondary_rgb[3];
+  float secondary_color[3];
+
+  /* Deprecated sRGB color for forward compatibility. */
+  float rgb[3] DNA_DEPRECATED;
+  float secondary_rgb[3] DNA_DEPRECATED;
 
   /** Unified color jitter settings */
   int color_jitter_flag;
@@ -1152,6 +1158,8 @@ typedef struct ToolSystemBrushBindings {
 
 /** Paint Tool Base. */
 typedef struct Paint {
+  DNA_DEFINE_CXX_METHODS(Paint)
+
   /**
    * The active brush. Possibly null. Possibly stored in a separate #Main data-base and not user-
    * counted.
@@ -1302,6 +1310,8 @@ typedef struct ParticleEditSettings {
 
 /** Sculpt. */
 typedef struct Sculpt {
+  DNA_DEFINE_CXX_METHODS(Sculpt)
+
   Paint paint;
 
   /** For rotating around a pivot point. */
@@ -1646,6 +1656,8 @@ enum {
 };
 
 typedef struct ToolSettings {
+  DNA_DEFINE_CXX_METHODS(ToolSettings)
+
   /** Vertex paint. */
   VPaint *vpaint;
   /** Weight paint. */

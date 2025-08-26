@@ -2403,8 +2403,8 @@ static wmOperatorStatus drop_color_invoke(bContext *C, wmOperator *op, const wmE
     }
   }
   else {
-    if (!gamma) {
-      linearrgb_to_srgb_v3_v3(color, color);
+    if (gamma) {
+      srgb_to_linearrgb_v3_v3(color, color);
     }
 
     ED_imapaint_bucket_fill(C, color, op, event->mval);
