@@ -891,6 +891,15 @@ int BLF_ascender(int fontid)
   return 0.0f;
 }
 
+bool BLF_bounds_max(int fontid, rctf *r_bounds)
+{
+  FontBLF *font = blf_get(fontid);
+  if (font) {
+    return blf_font_bounds_max(font, r_bounds);
+  }
+  return false;
+}
+
 void BLF_rotation(int fontid, float angle)
 {
   FontBLF *font = blf_get(fontid);
