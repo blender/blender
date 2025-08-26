@@ -220,7 +220,10 @@ void ED_screen_draw_edges(wmWindow *win)
   GPU_scissor_test(false);
 }
 
-void screen_draw_move_highlight(const wmWindow *win, bScreen *screen, eScreenAxis dir_axis)
+void screen_draw_move_highlight(const wmWindow *win,
+                                bScreen *screen,
+                                eScreenAxis dir_axis,
+                                float anim_factor)
 {
   rctf rect = {SHRT_MAX, SHRT_MIN, SHRT_MAX, SHRT_MIN};
 
@@ -239,39 +242,21 @@ void screen_draw_move_highlight(const wmWindow *win, bScreen *screen, eScreenAxi
     };
   }
 
-  /* Pull in ends not at window edges. */
   rcti window_rect;
   WM_window_screen_rect_calc(win, &window_rect);
   const float offset = U.border_width * UI_SCALE_FAC;
+  const float width = std::min(2.0f * offset, 5.0f * UI_SCALE_FAC);
   if (dir_axis == SCREEN_AXIS_H) {
-    if (rect.xmin > (window_rect.xmin + 2)) {
-      rect.xmin += offset;
-    }
-    if (rect.xmax < (window_rect.xmax - 2)) {
-      rect.xmax -= offset;
-    }
+    BLI_rctf_pad(&rect, -offset, width);
   }
   else {
-    if (rect.ymin > (window_rect.ymin + 2)) {
-      rect.ymin += offset;
-    }
-    if (rect.ymax < (window_rect.ymax - 2)) {
-      rect.ymax -= offset;
-    }
+    BLI_rctf_pad(&rect, width, -offset);
   }
 
-  const float width = std::min(2.0f * U.border_width * UI_SCALE_FAC, 5.0f * UI_SCALE_FAC);
-
-  if (dir_axis == SCREEN_AXIS_H) {
-    BLI_rctf_pad(&rect, 0.0f, width);
-  }
-  else {
-    BLI_rctf_pad(&rect, width, 0.0f);
-  }
-
-  float inner[4] = {1.0f, 1.0f, 1.0f, 0.4f};
+  float inner[4] = {1.0f, 1.0f, 1.0f, 0.4f * anim_factor};
   float outline[4];
   UI_GetThemeColor4fv(TH_EDITOR_BORDER, outline);
+  outline[3] *= anim_factor;
 
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
   UI_draw_roundbox_4fv_ex(

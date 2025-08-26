@@ -1726,6 +1726,9 @@ struct sAreaMoveData {
   eScreenAxis dir_axis;
   AreaMoveSnapType snap_type;
   bScreen *screen;
+  double start_time;
+  double end_time;
+  wmWindow *win;
   void *draw_callback; /* Call #screen_draw_move_highlight */
 };
 
@@ -1813,7 +1816,30 @@ static void area_move_draw_cb(const wmWindow *win, void *userdata)
 {
   const wmOperator *op = static_cast<const wmOperator *>(userdata);
   const sAreaMoveData *md = static_cast<sAreaMoveData *>(op->customdata);
-  screen_draw_move_highlight(win, md->screen, md->dir_axis);
+  const double now = BLI_time_now_seconds();
+  float factor = 1.0f;
+  if (now < md->end_time) {
+    factor = pow((now - md->start_time) / (md->end_time - md->start_time), 2);
+    md->screen->do_refresh = true;
+  }
+  screen_draw_move_highlight(win, md->screen, md->dir_axis, factor);
+}
+
+static void area_move_out_draw_cb(const wmWindow *win, void *userdata)
+{
+  const sAreaMoveData *md = static_cast<sAreaMoveData *>(userdata);
+  const double now = BLI_time_now_seconds();
+  float factor = 1.0f;
+  if (now > md->end_time) {
+    WM_draw_cb_exit(md->win, md->draw_callback);
+    MEM_freeN(md);
+    return;
+  }
+  if (now < md->end_time) {
+    factor = 1.0f - pow((now - md->start_time) / (md->end_time - md->start_time), 2);
+    md->screen->do_refresh = true;
+  }
+  screen_draw_move_highlight(win, md->screen, md->dir_axis, factor);
 }
 
 /* validate selection inside screen, set variables OK */
@@ -1868,6 +1894,8 @@ static bool area_move_init(bContext *C, wmOperator *op)
   md->snap_type = use_bigger_smaller_snap ? SNAP_BIGGER_SMALLER_ONLY : SNAP_AREAGRID;
 
   md->screen = screen;
+  md->start_time = BLI_time_now_seconds();
+  md->end_time = md->start_time + AREA_MOVE_LINE_FADEIN;
   md->draw_callback = WM_draw_cb_activate(CTX_wm_window(C), area_move_draw_cb, op);
 
   return true;
@@ -2073,8 +2101,12 @@ static void area_move_exit(bContext *C, wmOperator *op)
     WM_draw_cb_exit(CTX_wm_window(C), md->draw_callback);
   }
 
-  MEM_freeN(md);
   op->customdata = nullptr;
+
+  md->start_time = BLI_time_now_seconds();
+  md->end_time = md->start_time + AREA_MOVE_LINE_FADEOUT;
+  md->win = CTX_wm_window(C);
+  md->draw_callback = WM_draw_cb_activate(md->win, area_move_out_draw_cb, md);
 
   /* this makes sure aligned edges will result in aligned grabbing */
   BKE_screen_remove_double_scrverts(CTX_wm_screen(C));
