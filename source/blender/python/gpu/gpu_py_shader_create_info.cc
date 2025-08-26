@@ -582,7 +582,7 @@ static PyObject *pygpu_shader_info_vertex_out(BPyGPUShaderCreateInfo *self,
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_shader_info_fragment_out_doc,
-    ".. method:: fragment_out(slot, type, name, blend='NONE')\n"
+    ".. method:: fragment_out(slot, type, name, *, blend='NONE')\n"
     "\n"
     "   Specify a fragment output corresponding to a framebuffer target slot.\n"
     "\n"
@@ -724,7 +724,7 @@ static PyObject *pygpu_shader_info_uniform_buf(BPyGPUShaderCreateInfo *self, PyO
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_shader_info_image_doc,
-    ".. method:: image(slot, format, type, name, qualifiers={'NO_RESTRICT'})\n"
+    ".. method:: image(slot, format, type, name, *, qualifiers={'NO_RESTRICT'})\n"
     "\n"
     "   Specify an image resource used for arbitrary load and store operations.\n"
     "\n"

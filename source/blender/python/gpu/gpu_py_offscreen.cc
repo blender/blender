@@ -241,7 +241,7 @@ static PyObject *pygpu_offscreen_bind(BPyGPUOffScreen *self)
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_offscreen_unbind_doc,
-    ".. method:: unbind(restore=True)\n"
+    ".. method:: unbind(*, restore=True)\n"
     "\n"
     "   Unbind the offscreen object.\n"
     "\n"
@@ -369,7 +369,7 @@ PyDoc_STRVAR(
     /* Wrap. */
     pygpu_offscreen_draw_view3d_doc,
     ".. method:: draw_view3d(scene, view_layer, view3d, region, view_matrix, projection_matrix, "
-    "do_color_management=False, draw_background=True)\n"
+    "*, do_color_management=False, draw_background=True)\n"
     "\n"
     "   Draw the 3d viewport in the offscreen object.\n"
     "\n"

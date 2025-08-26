@@ -33,7 +33,7 @@
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bm_new_doc,
-    ".. method:: new(use_operators=True)\n"
+    ".. method:: new(*, use_operators=True)\n"
     "\n"
     "   :arg use_operators: Support calling operators in :mod:`bmesh.ops` (uses some "
     "extra memory per vert/edge/face).\n"
@@ -95,7 +95,7 @@ void EDBM_update_extern(Mesh *mesh, const bool do_tessface, const bool is_destru
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bm_update_edit_mesh_doc,
-    ".. method:: update_edit_mesh(mesh, loop_triangles=True, destructive=True)\n"
+    ".. method:: update_edit_mesh(mesh, *, loop_triangles=True, destructive=True)\n"
     "\n"
     "   Update the mesh after changes to the BMesh in editmode,\n"
     "   optionally recalculating n-gon tessellation.\n"

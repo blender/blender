@@ -565,7 +565,7 @@ static PyMethodDef pygpu_texture__tp_methods[] = {
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_texture__tp_doc,
-    ".. class:: GPUTexture(size, layers=0, is_cubemap=False, format='RGBA8', "
+    ".. class:: GPUTexture(size, *, layers=0, is_cubemap=False, format='RGBA8', "
     "data=None)\n"
     "\n"
     "   This object gives access to off GPU textures.\n"

@@ -137,7 +137,7 @@ static PyTypeObject bpy_rna_data_context_Type = {
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_rna_data_context_load_doc,
-    ".. method:: temp_data(filepath=None)\n"
+    ".. method:: temp_data(*, filepath=None)\n"
     "\n"
     "   A context manager that temporarily creates blender file data.\n"
     "\n"

@@ -198,7 +198,7 @@ static int py_find_nearest_cb(void *user_data, int index, const float co[3], flo
 PyDoc_STRVAR(
     /* Wrap. */
     py_kdtree_find_doc,
-    ".. method:: find(co, filter=None)\n"
+    ".. method:: find(co, *, filter=None)\n"
     "\n"
     "   Find nearest point to ``co``.\n"
     "\n"

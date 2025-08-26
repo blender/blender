@@ -636,7 +636,7 @@ static PyObject *py_bvhtree_overlap(PyBVHTree *self, PyBVHTree *other)
 PyDoc_STRVAR(
     /* Wrap. */
     C_BVHTree_FromPolygons_doc,
-    ".. classmethod:: FromPolygons(vertices, polygons, all_triangles=False, epsilon=0.0)\n"
+    ".. classmethod:: FromPolygons(vertices, polygons, *, all_triangles=False, epsilon=0.0)\n"
     "\n"
     "   BVH tree constructed geometry passed in as arguments.\n"
     "\n"
@@ -928,7 +928,7 @@ static PyObject *C_BVHTree_FromPolygons(PyObject * /*cls*/, PyObject *args, PyOb
 PyDoc_STRVAR(
     /* Wrap. */
     C_BVHTree_FromBMesh_doc,
-    ".. classmethod:: FromBMesh(bmesh, epsilon=0.0)\n"
+    ".. classmethod:: FromBMesh(bmesh, *, epsilon=0.0)\n"
     "\n"
     "   BVH tree based on :class:`BMesh` data.\n"
     "\n"
@@ -1126,7 +1126,7 @@ static const Mesh *bvh_get_mesh(const char *funcname,
 PyDoc_STRVAR(
     /* Wrap. */
     C_BVHTree_FromObject_doc,
-    ".. classmethod:: FromObject(object, depsgraph, deform=True, render=False, "
+    ".. classmethod:: FromObject(object, depsgraph, *, deform=True, render=False, "
     "cage=False, epsilon=0.0)\n"
     "\n"
     "   BVH tree based on :class:`Object` data.\n"

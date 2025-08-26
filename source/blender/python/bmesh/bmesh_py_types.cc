@@ -1268,8 +1268,8 @@ static PyObject *bpy_bmesh_to_mesh(BPy_BMesh *self, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmesh_from_object_doc,
-    ".. method:: from_object(object, depsgraph, cage=False, face_normals=True, "
-    "vertex_normals=True)\n"
+    ".. method:: from_object(object, depsgraph, *, "
+    "cage=False, face_normals=True, vertex_normals=True)\n"
     "\n"
     "   Initialize this bmesh from existing object data-block (only meshes are currently "
     "supported).\n"
@@ -1375,8 +1375,8 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmesh_from_mesh_doc,
-    ".. method:: from_mesh(mesh, face_normals=True, vertex_normals=True, use_shape_key=False, "
-    "shape_key_index=0)\n"
+    ".. method:: from_mesh(mesh, *, "
+    "face_normals=True, vertex_normals=True, use_shape_key=False, shape_key_index=0)\n"
     "\n"
     "   Initialize this bmesh from existing mesh data-block.\n"
     "\n"
@@ -1505,7 +1505,7 @@ static PyObject *bpy_bmesh_normal_update(BPy_BMesh *self)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmesh_transform_doc,
-    ".. method:: transform(matrix, filter=None)\n"
+    ".. method:: transform(matrix, *, filter=None)\n"
     "\n"
     "   Transform the mesh (optionally filtering flagged data only).\n"
     "\n"
@@ -1570,7 +1570,7 @@ static PyObject *bpy_bmesh_transform(BPy_BMElem *self, PyObject *args, PyObject 
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmesh_calc_volume_doc,
-    ".. method:: calc_volume(signed=False)\n"
+    ".. method:: calc_volume(*, signed=False)\n"
     "\n"
     "   Calculate mesh volume based on face normals.\n"
     "\n"
@@ -2130,7 +2130,7 @@ static PyObject *bpy_bmface_copy_from_face_interp(BPy_BMFace *self, PyObject *ar
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmface_copy_doc,
-    ".. method:: copy(verts=True, edges=True)\n"
+    ".. method:: copy(*, verts=True, edges=True)\n"
     "\n"
     "   Make a copy of this face.\n"
     "\n"
@@ -2933,7 +2933,7 @@ static PyObject *bpy_bmelemseq_ensure_lookup_table(BPy_BMElemSeq *self)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmelemseq_sort_doc,
-    ".. method:: sort(key=None, reverse=False)\n"
+    ".. method:: sort(*, key=None, reverse=False)\n"
     "\n"
     "   Sort the elements of this sequence, using an optional custom sort key.\n"
     "   Indices of elements are not changed, :class:`BMElemSeq.index_update` can be used for "

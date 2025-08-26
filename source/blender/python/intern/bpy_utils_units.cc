@@ -146,7 +146,7 @@ static bool bpyunits_validate(const char *usys_str, const char *ucat_str, int *r
 PyDoc_STRVAR(
     /* Wrap. */
     bpyunits_to_value_doc,
-    ".. method:: to_value(unit_system, unit_category, str_input, str_ref_unit=None)\n"
+    ".. method:: to_value(unit_system, unit_category, str_input, *, str_ref_unit=None)\n"
     "\n"
     "   Convert a given input string into a float value.\n"
     "\n"
@@ -229,7 +229,7 @@ static PyObject *bpyunits_to_value(PyObject * /*self*/, PyObject *args, PyObject
 PyDoc_STRVAR(
     /* Wrap. */
     bpyunits_to_string_doc,
-    ".. method:: to_string(unit_system, unit_category, value, precision=3, "
+    ".. method:: to_string(unit_system, unit_category, value, *, precision=3, "
     "split_unit=False, compatible_unit=False)\n"
     "\n"
     "   Convert a given input float value into a string with units.\n"

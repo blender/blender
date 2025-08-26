@@ -46,7 +46,7 @@ struct TextRegion {
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_rna_region_as_string_doc,
-    ".. method:: region_as_string(range=None)\n"
+    ".. method:: region_as_string(*, range=None)\n"
     "\n"
     "   :arg range: The region of text to be returned, "
     "defaulting to the selection when no range is passed.\n"
@@ -123,7 +123,7 @@ PyMethodDef BPY_rna_region_as_string_method_def = {
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_rna_region_from_string_doc,
-    ".. method:: region_from_string(body, range=None)\n"
+    ".. method:: region_from_string(body, /, *, range=None)\n"
     "\n"
     "   :arg body: The text to be inserted.\n"
     "   :type body: str\n"

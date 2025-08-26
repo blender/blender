@@ -295,7 +295,7 @@ static PyObject *M_Noise_random(PyObject * /*self*/)
 PyDoc_STRVAR(
     /* Wrap. */
     M_Noise_random_unit_vector_doc,
-    ".. function:: random_unit_vector(size=3)\n"
+    ".. function:: random_unit_vector(*, size=3)\n"
     "\n"
     "   Returns a unit vector with random entries.\n"
     "\n"
@@ -331,7 +331,7 @@ static PyObject *M_Noise_random_unit_vector(PyObject * /*self*/, PyObject *args,
 PyDoc_STRVAR(
     /* Wrap. */
     M_Noise_random_vector_doc,
-    ".. function:: random_vector(size=3)\n"
+    ".. function:: random_vector(*, size=3)\n"
     "\n"
     "   Returns a vector with random entries in the range (-1, 1).\n"
     "\n"
@@ -384,7 +384,7 @@ static PyObject *M_Noise_seed_set(PyObject * /*self*/, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     M_Noise_noise_doc,
-    ".. function:: noise(position, /, noise_basis='PERLIN_ORIGINAL')\n"
+    ".. function:: noise(position, /, *, noise_basis='PERLIN_ORIGINAL')\n"
     "\n"
     "   Returns noise value from the noise basis at the position specified.\n"
     "\n"
@@ -427,7 +427,7 @@ static PyObject *M_Noise_noise(PyObject * /*self*/, PyObject *args, PyObject *kw
 PyDoc_STRVAR(
     /* Wrap. */
     M_Noise_noise_vector_doc,
-    ".. function:: noise_vector(position, noise_basis='PERLIN_ORIGINAL')\n"
+    ".. function:: noise_vector(position, /, *, noise_basis='PERLIN_ORIGINAL')\n"
     "\n"
     "   Returns the noise vector from the noise basis at the specified position.\n"
     "\n"
@@ -470,8 +470,8 @@ static PyObject *M_Noise_noise_vector(PyObject * /*self*/, PyObject *args, PyObj
 PyDoc_STRVAR(
     /* Wrap. */
     M_Noise_turbulence_doc,
-    ".. function:: turbulence(position, octaves, hard, /, noise_basis='PERLIN_ORIGINAL', "
-    "amplitude_scale=0.5, frequency_scale=2.0)\n"
+    ".. function:: turbulence(position, octaves, hard, /, *, "
+    "noise_basis='PERLIN_ORIGINAL', amplitude_scale=0.5, frequency_scale=2.0)\n"
     "\n"
     "   Returns the turbulence value from the noise basis at the specified position.\n"
     "\n"
@@ -531,7 +531,7 @@ static PyObject *M_Noise_turbulence(PyObject * /*self*/, PyObject *args, PyObjec
 PyDoc_STRVAR(
     /* Wrap. */
     M_Noise_turbulence_vector_doc,
-    ".. function:: turbulence_vector(position, octaves, hard, /, "
+    ".. function:: turbulence_vector(position, octaves, hard, /, *, "
     "noise_basis='PERLIN_ORIGINAL', amplitude_scale=0.5, frequency_scale=2.0)\n"
     "\n"
     "   Returns the turbulence vector from the noise basis at the specified position.\n"
@@ -595,7 +595,8 @@ static PyObject *M_Noise_turbulence_vector(PyObject * /*self*/, PyObject *args, 
 PyDoc_STRVAR(
     /* Wrap. */
     M_Noise_fractal_doc,
-    ".. function:: fractal(position, H, lacunarity, octaves, /, noise_basis='PERLIN_ORIGINAL')\n"
+    ".. function:: fractal(position, H, lacunarity, octaves, /, *, "
+    "noise_basis='PERLIN_ORIGINAL')\n"
     "\n"
     "   Returns the fractal Brownian motion (fBm) noise value from the noise basis at the "
     "specified position.\n"
@@ -645,7 +646,7 @@ static PyObject *M_Noise_fractal(PyObject * /*self*/, PyObject *args, PyObject *
 PyDoc_STRVAR(
     /* Wrap. */
     M_Noise_multi_fractal_doc,
-    ".. function:: multi_fractal(position, H, lacunarity, octaves, /, "
+    ".. function:: multi_fractal(position, H, lacunarity, octaves, /, *, "
     "noise_basis='PERLIN_ORIGINAL')\n"
     "\n"
     "   Returns multifractal noise value from the noise basis at the specified position.\n"
@@ -702,7 +703,7 @@ static PyObject *M_Noise_multi_fractal(PyObject * /*self*/, PyObject *args, PyOb
 PyDoc_STRVAR(
     /* Wrap. */
     M_Noise_variable_lacunarity_doc,
-    ".. function:: variable_lacunarity(position, distortion, /, "
+    ".. function:: variable_lacunarity(position, distortion, /, *, "
     "noise_type1='PERLIN_ORIGINAL', noise_type2='PERLIN_ORIGINAL')\n"
     "\n"
     "   Returns variable lacunarity noise value, a distorted variety of noise, from "
@@ -775,7 +776,7 @@ static PyObject *M_Noise_variable_lacunarity(PyObject * /*self*/, PyObject *args
 PyDoc_STRVAR(
     /* Wrap. */
     M_Noise_hetero_terrain_doc,
-    ".. function:: hetero_terrain(position, H, lacunarity, octaves, offset, /, "
+    ".. function:: hetero_terrain(position, H, lacunarity, octaves, offset, /, *, "
     "noise_basis='PERLIN_ORIGINAL')\n"
     "\n"
     "   Returns the heterogeneous terrain value from the noise basis at the specified position.\n"
@@ -835,7 +836,7 @@ static PyObject *M_Noise_hetero_terrain(PyObject * /*self*/, PyObject *args, PyO
 PyDoc_STRVAR(
     /* Wrap. */
     M_Noise_hybrid_multi_fractal_doc,
-    ".. function:: hybrid_multi_fractal(position, H, lacunarity, octaves, offset, gain, /, "
+    ".. function:: hybrid_multi_fractal(position, H, lacunarity, octaves, offset, gain, /, *, "
     "noise_basis='PERLIN_ORIGINAL')\n"
     "\n"
     "   Returns hybrid multifractal value from the noise basis at the specified position.\n"
@@ -900,7 +901,7 @@ static PyObject *M_Noise_hybrid_multi_fractal(PyObject * /*self*/, PyObject *arg
 PyDoc_STRVAR(
     /* Wrap. */
     M_Noise_ridged_multi_fractal_doc,
-    ".. function:: ridged_multi_fractal(position, H, lacunarity, octaves, offset, gain, /, "
+    ".. function:: ridged_multi_fractal(position, H, lacunarity, octaves, offset, gain, /, *, "
     "noise_basis='PERLIN_ORIGINAL')\n"
     "\n"
     "   Returns ridged multifractal value from the noise basis at the specified position.\n"
@@ -965,7 +966,7 @@ static PyObject *M_Noise_ridged_multi_fractal(PyObject * /*self*/, PyObject *arg
 PyDoc_STRVAR(
     /* Wrap. */
     M_Noise_voronoi_doc,
-    ".. function:: voronoi(position, /, distance_metric='DISTANCE', exponent=2.5)\n"
+    ".. function:: voronoi(position, /, *, distance_metric='DISTANCE', exponent=2.5)\n"
     "\n"
     "   Returns a list of distances to the four closest features and their locations.\n"
     "\n"

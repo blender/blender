@@ -632,7 +632,7 @@ static bool idprop_ui_data_update_id(IDProperty *idprop, PyObject *args, PyObjec
 PyDoc_STRVAR(
     /* Wrap. */
     BPy_IDPropertyUIManager_update_doc,
-    ".. method:: update( "
+    ".. method:: update(*, "
     "subtype=None, "
     "min=None, "
     "max=None, "

@@ -606,7 +606,7 @@ char *(*BPY_python_app_help_text_fn)(bool all) = nullptr;
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_app_help_text_doc,
-    ".. staticmethod:: help_text(all=False)\n"
+    ".. staticmethod:: help_text(*, all=False)\n"
     "\n"
     "   Return the help text as a string.\n"
     "\n"

@@ -399,7 +399,7 @@ static PyObject *bpy_bm_utils_edge_rotate(PyObject * /*self*/, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bm_utils_face_split_doc,
-    ".. method:: face_split(face, vert_a, vert_b, coords=(), use_exist=True, example=None)\n"
+    ".. method:: face_split(face, vert_a, vert_b, *, coords=(), use_exist=True, example=None)\n"
     "\n"
     "   Face split with optional intermediate points.\n"
     "\n"

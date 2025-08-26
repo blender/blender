@@ -417,7 +417,7 @@ static PyObject *pygpu_framebuffer_is_bound(BPyGPUFrameBuffer *self, void * /*ty
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_framebuffer_clear_doc,
-    ".. method:: clear(color=None, depth=None, stencil=None)\n"
+    ".. method:: clear(*, color=None, depth=None, stencil=None)\n"
     "\n"
     "   Fill color, depth and stencil textures with specific value.\n"
     "   Common values: color=(0.0, 0.0, 0.0, 1.0), depth=1.0, stencil=0.\n"
@@ -537,7 +537,7 @@ static PyObject *pygpu_framebuffer_viewport_get(BPyGPUFrameBuffer *self, void * 
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_framebuffer_read_color_doc,
-    ".. function:: read_color(x, y, xsize, ysize, channels, slot, format, data=data)\n"
+    ".. function:: read_color(x, y, xsize, ysize, channels, slot, format, *, data=data)\n"
     "\n"
     "   Read a block of pixels from the frame buffer.\n"
     "\n"
@@ -657,7 +657,7 @@ static PyObject *pygpu_framebuffer_read_color(BPyGPUFrameBuffer *self,
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_framebuffer_read_depth_doc,
-    ".. function:: read_depth(x, y, xsize, ysize, data=data)\n"
+    ".. function:: read_depth(x, y, xsize, ysize, *, data=data)\n"
     "\n"
     "   Read a pixel depth block from the frame buffer.\n"
     "\n"
@@ -804,7 +804,7 @@ static PyMethodDef pygpu_framebuffer__tp_methods[] = {
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_framebuffer__tp_doc,
-    ".. class:: GPUFrameBuffer(depth_slot=None, color_slots=None)\n"
+    ".. class:: GPUFrameBuffer(*, depth_slot=None, color_slots=None)\n"
     "\n"
     "   This object gives access to framebuffer functionalities.\n"
     "   When a 'layer' is specified in a argument, a single layer of a 3D or array "
