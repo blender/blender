@@ -88,6 +88,9 @@ class TestPropNumerical(unittest.TestCase):
         self.assertIsInstance(v, py_type)
         self.assertEqual(v, expected_value)
         setattr(id_inst, prop_name, v)
+        self.assertEqual(getattr(id_inst, prop_name), expected_value)
+        setattr(id_inst, prop_name, py_type(self.custom_value))
+        self.assertEqual(getattr(id_inst, prop_name), py_type(self.custom_value))
 
     def test_access_bool(self):
         self.do_test_access("test_bool", bool, bool(self.default_value))
