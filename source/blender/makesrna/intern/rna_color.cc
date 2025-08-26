@@ -1344,8 +1344,8 @@ static void rna_def_colormanage(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Display Device",
-      "Display device name. For viewing, this is the display that will be emulated by limiting of "
-      "gamut and HDR colors. For image and video output, this is the display space used for "
+      "Display device name. For viewing, this is the display that will be emulated by limiting "
+      "the gamut and HDR colors. For image and video output, this is the display space used for "
       "writing.");
   RNA_def_property_update(
       prop, NC_WINDOW, "rna_ColorManagedDisplaySettings_display_device_update");
