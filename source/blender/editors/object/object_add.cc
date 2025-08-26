@@ -3601,7 +3601,7 @@ static Object *convert_font_to_curve_legacy_generic(Object *ob,
 
   Object *ob_eval = DEG_get_evaluated(info.depsgraph, ob);
   BKE_vfont_to_curve_ex(ob_eval,
-                        static_cast<Curve *>(ob_eval->data),
+                        *static_cast<const Curve *>(ob_eval->data),
                         FO_EDIT,
                         &cu->nurb,
                         nullptr,

@@ -207,7 +207,7 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
   float final_font_size = 0.0f;
   /* Mode FO_DUPLI used because it doesn't create curve splines. */
   BKE_vfont_to_curve_ex(nullptr,
-                        &cu,
+                        cu,
                         FO_DUPLI,
                         nullptr,
                         &r_text,
@@ -279,7 +279,7 @@ static Map<int, int> create_curve_instances(GeoNodeExecParams &params,
     CharInfo charinfo = {0};
     charinfo.mat_nr = 1;
 
-    BKE_vfont_char_build(&cu, &cu.nurb, layout.char_codes[i], &charinfo, false, 0, 0, 0, i, 1);
+    BKE_vfont_char_build(cu, &cu.nurb, layout.char_codes[i], &charinfo, false, 0, 0, 0, i, 1);
     Curves *curves_id = bke::curve_legacy_to_curves(cu);
     if (curves_id == nullptr) {
       if (pivot_required) {

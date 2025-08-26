@@ -827,10 +827,15 @@ static Object *find_family_object(
 
 static void make_duplis_font(const DupliContext *ctx)
 {
+  /* Font dupli-verts not supported inside collections. */
+  if (ctx->collection) {
+    return;
+  }
+
   Object *par = ctx->object;
   GHash *family_gh;
   Object *ob;
-  Curve *cu;
+  Curve *cu = (Curve *)par->data;
   CharTrans *ct, *chartransdata = nullptr;
   float vec[3], obmat[4][4], pmat[4][4], fsize, xof, yof;
   int text_len, a;
@@ -838,30 +843,17 @@ static void make_duplis_font(const DupliContext *ctx)
   const char32_t *text = nullptr;
   bool text_free = false;
 
-  /* Font dupli-verts not supported inside collections. */
-  if (ctx->collection) {
-    return;
-  }
-
   copy_m4_m4(pmat, par->object_to_world().ptr());
 
   /* In `par` the family name is stored, use this to find the other objects. */
 
-  BKE_vfont_to_curve_ex(par,
-                        (Curve *)par->data,
-                        FO_DUPLI,
-                        nullptr,
-                        &text,
-                        &text_len,
-                        &text_free,
-                        &chartransdata,
-                        nullptr);
+  BKE_vfont_to_curve_ex(
+      par, *cu, FO_DUPLI, nullptr, &text, &text_len, &text_free, &chartransdata, nullptr);
 
   if (text == nullptr || chartransdata == nullptr) {
     return;
   }
 
-  cu = (Curve *)par->data;
   fsize = cu->fsize;
   xof = cu->xof;
   yof = cu->yof;
