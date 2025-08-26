@@ -52,7 +52,6 @@ enum eMaterialGeometry {
   MAT_GEOM_MESH = 0,
   MAT_GEOM_POINTCLOUD,
   MAT_GEOM_CURVES,
-  MAT_GEOM_GPENCIL,
   MAT_GEOM_VOLUME,
 
   /* These maps to special shader. */
@@ -192,8 +191,6 @@ static inline eMaterialGeometry to_material_geometry(const Object *ob)
       return MAT_GEOM_CURVES;
     case OB_VOLUME:
       return MAT_GEOM_VOLUME;
-    case OB_GREASE_PENCIL:
-      return MAT_GEOM_GPENCIL;
     case OB_POINTCLOUD:
       return MAT_GEOM_POINTCLOUD;
     default:

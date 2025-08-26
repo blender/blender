@@ -70,12 +70,6 @@ void init_globals_curves()
 #endif
 }
 
-void init_globals_gpencil()
-{
-  /* Undo back-face flip as the grease-pencil normal is already pointing towards the camera. */
-  g_data.N = g_data.Ni = interp.N;
-}
-
 void init_globals()
 {
   /* Default values. */
@@ -114,8 +108,6 @@ void init_globals()
   init_globals_mesh();
 #elif defined(MAT_GEOM_CURVES)
   init_globals_curves();
-#elif defined(MAT_GEOM_GPENCIL)
-  init_globals_gpencil();
 #endif
 }
 

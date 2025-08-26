@@ -578,9 +578,6 @@ class SamplerSlots {
     if (ELEM(geometry_type, MAT_GEOM_POINTCLOUD, MAT_GEOM_CURVES)) {
       index_ = 1;
     }
-    else if (geometry_type == MAT_GEOM_GPENCIL) {
-      index_ = 2;
-    }
 
     first_reserved_ = MATERIAL_TEXTURE_RESERVED_SLOT_FIRST;
     last_reserved_ = MATERIAL_TEXTURE_RESERVED_SLOT_LAST_NO_EVAL;
@@ -834,17 +831,6 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
        * make the attribs_load function calls valid.
        */
       ATTR_FALLTHROUGH;
-    case MAT_GEOM_GPENCIL:
-      /**
-       * Only one uv and one color attribute layer are supported by gpencil objects and they are
-       * already declared in another createInfo. These are here to make the attribs_load
-       * function calls valid.
-       */
-      for (auto &input : info.vertex_inputs_) {
-        global_vars << input.type << " " << input.name << ";\n";
-      }
-      info.vertex_inputs_.clear();
-      break;
     case MAT_GEOM_VOLUME:
       /** Volume grid attributes come from 3D textures. Transfer attributes to samplers. */
       for (auto &input : info.vertex_inputs_) {
@@ -981,9 +967,6 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
   switch (geometry_type) {
     case MAT_GEOM_WORLD:
       info.additional_info("eevee_geom_world");
-      break;
-    case MAT_GEOM_GPENCIL:
-      info.additional_info("eevee_geom_gpencil");
       break;
     case MAT_GEOM_CURVES:
       info.additional_info("eevee_geom_curves");
