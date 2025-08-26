@@ -27,7 +27,7 @@ namespace blender::seq {
 
 ListBase *channels_displayed_get(const Editing *ed)
 {
-  return ed->current_channels();
+  return ed ? ed->current_channels() : nullptr;
 }
 
 void channels_displayed_set(Editing *ed, ListBase *channels)

@@ -274,7 +274,7 @@ void seq_free_strip_recurse(Scene *scene, Strip *strip, const bool do_id_user)
 
 Editing *editing_get(const Scene *scene)
 {
-  return scene->ed;
+  return scene ? scene->ed : nullptr;
 }
 
 Editing *editing_ensure(Scene *scene)
@@ -422,11 +422,7 @@ int tool_settings_pivot_point_get(Scene *scene)
 
 ListBase *active_seqbase_get(const Editing *ed)
 {
-  if (ed == nullptr) {
-    return nullptr;
-  }
-
-  return ed->current_strips();
+  return ed ? ed->current_strips() : nullptr;
 }
 
 void active_seqbase_set(Editing *ed, ListBase *seqbase)

@@ -111,6 +111,9 @@ static bool change_frame_poll(bContext *C)
       return true;
     }
     if (area->spacetype == SPACE_SEQ) {
+      if (!CTX_data_sequencer_scene(C)) {
+        return false;
+      }
       /* Check the region type so tools (which are shared between preview/strip view)
        * don't conflict with actions which can have the same key bound (2D cursor for example). */
       const ARegion *region = CTX_wm_region(C);
