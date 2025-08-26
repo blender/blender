@@ -543,8 +543,7 @@ static void flush_pixel(const MultiresBaker &baker,
                         const int y,
                         RasterizeResult &result)
 {
-  const float2 st{(x + 0.5f) / tile.ibuf->x + tile.uv_offset.x,
-                  (y + 0.5f) / tile.ibuf->y + tile.uv_offset.y};
+  const float2 st{(x + 0.5f) / tile.ibuf->x, (y + 0.5f) / tile.ibuf->y};
 
   const float2 bary_uv = resolve_tri_uv(
       st, triangle.tex_uvs[0], triangle.tex_uvs[1], triangle.tex_uvs[2]);
@@ -890,7 +889,7 @@ static void rasterize_base_face(const MultiresBaker &baker,
   quad.grid_uvs[2] = float2(1.0f, 1.0f);
   quad.grid_uvs[3] = float2(0.0f, 1.0f);
 
-  quad.tex_uvs[0] = face_center_tex_uv_calc(mesh_arrays, face_index);
+  quad.tex_uvs[0] = face_center_tex_uv_calc(mesh_arrays, face_index) - tile.uv_offset;
   quad.positions[0] = bke::mesh::face_center_calc(mesh_arrays.vert_positions, face_verts);
 
   /* TODO(sergey): Support corner normals. */
@@ -920,9 +919,11 @@ static void rasterize_base_face(const MultiresBaker &baker,
 
     quad.grid_index = corner;
 
-    quad.tex_uvs[1] = (mesh_arrays.uv_map[corner] + mesh_arrays.uv_map[next_corner]) * 0.5f;
+    quad.tex_uvs[1] = (mesh_arrays.uv_map[corner] + mesh_arrays.uv_map[next_corner]) * 0.5f -
+                      tile.uv_offset;
     quad.tex_uvs[2] = mesh_arrays.uv_map[corner] - tile.uv_offset;
-    quad.tex_uvs[3] = (mesh_arrays.uv_map[prev_corner] + mesh_arrays.uv_map[corner]) * 0.5f;
+    quad.tex_uvs[3] = (mesh_arrays.uv_map[prev_corner] + mesh_arrays.uv_map[corner]) * 0.5f -
+                      tile.uv_offset;
 
     quad.positions[1] = (position + next_position) * 0.5f;
     quad.positions[2] = position;
@@ -1127,7 +1128,7 @@ static void rasterize_subdivided_face(const MultiresBaker &baker,
     BLI_assert(corner_grid_coords[corner].grid_index == quad.grid_index);
     quad.grid_uvs[i] = corner_grid_coords[corner].uv;
 
-    quad.tex_uvs[i] = mesh_arrays.uv_map[corner];
+    quad.tex_uvs[i] = mesh_arrays.uv_map[corner] - tile.uv_offset;
     quad.positions[i] = mesh_arrays.vert_positions[vertex];
     if (!quad.is_flat) {
       quad.normals[i] = mesh_arrays.vert_normals[vertex];
@@ -1380,7 +1381,11 @@ static void bake_single_image_displacement(MultiresBakeRender &bake,
     return;
   }
 
-  const Mesh *highres_bake_mesh = create_highres_mesh(bake_level_mesh, *bake.multires_modifier);
+  const Mesh *highres_bake_mesh = result.highres_bake_mesh;
+  if (!highres_bake_mesh) {
+    highres_bake_mesh = create_highres_mesh(bake_level_mesh, *bake.multires_modifier);
+    result.highres_bake_mesh = highres_bake_mesh;
+  }
 
   const Array<GridCoord> corner_grid_coords = get_highres_mesh_loop_grid_coords(
       *subdiv_ccg.subdiv,
@@ -1441,8 +1446,6 @@ static void bake_single_image_displacement(MultiresBakeRender &bake,
     }
   });
   BLI_spin_end(&spin_lock);
-
-  result.highres_bake_mesh = highres_bake_mesh;
 }
 
 /** \} */
