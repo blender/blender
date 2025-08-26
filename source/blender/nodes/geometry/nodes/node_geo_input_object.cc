@@ -13,7 +13,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Object>("Object").custom_draw([](CustomSocketDrawParams &params) {
     uiLayoutSetAlignment(&params.layout, UI_LAYOUT_ALIGN_EXPAND);
-    params.layout.prop(&params.node_ptr, "object", UI_ITEM_NONE, "", ICON_NONE);
+    params.layout.prop(&params.node_ptr, "object", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   });
 }
 
