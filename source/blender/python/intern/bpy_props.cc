@@ -4101,7 +4101,7 @@ PyDoc_STRVAR(
     /* Wrap. */
     BPy_PointerProperty_doc,
     ".. function:: PointerProperty("
-    "type=None, "
+    "type, "
     "*, "
     "name=\"\", "
     "description=\"\", "
@@ -4259,7 +4259,7 @@ PyDoc_STRVAR(
     /* Wrap. */
     BPy_CollectionProperty_doc,
     ".. function:: CollectionProperty("
-    "type=None, "
+    "type, "
     "*, "
     "name=\"\", "
     "description=\"\", "
