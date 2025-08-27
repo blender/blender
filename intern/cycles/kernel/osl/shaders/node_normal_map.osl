@@ -13,6 +13,7 @@ shader node_normal_map(float Strength = 1.0,
 {
   color mcolor = 2.0 * color(Color[0] - 0.5, Color[1] - 0.5, Color[2] - 0.5);
   int is_backfacing = backfacing();
+  int linear_interpolate_strength = 0;
 
   if (space == "tangent") {
     vector tangent;
@@ -20,8 +21,25 @@ shader node_normal_map(float Strength = 1.0,
     float tangent_sign;
     float is_smooth = 0.0;
 
+    if (!getattribute(attr_name, tangent) || !getattribute(attr_sign_name, tangent_sign)) {
+      Normal = N;
+      return;
+    }
+
     getattribute("geom:is_smooth", is_smooth);
-    if (!is_smooth) {
+    if (is_smooth) {
+      if (getattribute("undisplaced_N", ninterp)) {
+        /* Can't interpolate in tangent space as the displaced normal is not used
+         * for the tangent frame. */
+        linear_interpolate_strength = 1;
+      }
+      else if (getattribute("geom:normal_map_normal", ninterp)) {
+      }
+      else {
+        ninterp = N;
+      }
+    }
+    else {
       ninterp = normalize(transform("world", "object", Ng));
 
       /* the normal is already inverted, which is too soon for the math here */
@@ -30,46 +48,44 @@ shader node_normal_map(float Strength = 1.0,
       }
     }
 
-    // get _unnormalized_ interpolated normal and tangent
-    if (getattribute(attr_name, tangent) && getattribute(attr_sign_name, tangent_sign) &&
-        (!is_smooth || getattribute("geom:normal_map_normal", ninterp)))
-    {
-      /* apply normal map */
-      vector B = tangent_sign * cross(ninterp, tangent);
+    /* apply normal map */
+    vector B = tangent_sign * cross(ninterp, tangent);
 
-      /* apply strength */
+    /* apply strength */
+    if (!linear_interpolate_strength) {
       mcolor[0] *= Strength;
       mcolor[1] *= Strength;
       mcolor[2] = mix(1.0, mcolor[2], clamp(Strength, 0.0, 1.0));
-
-      Normal = normalize(mcolor[0] * tangent + mcolor[1] * B + mcolor[2] * ninterp);
-
-      /* transform to world space */
-      Normal = normalize(transform("object", "world", Normal));
     }
-    else {
-      Normal = normal(0, 0, 0);
+
+    Normal = normalize(mcolor[0] * tangent + mcolor[1] * B + mcolor[2] * ninterp);
+
+    /* transform to world space */
+    Normal = normalize(transform("object", "world", Normal));
+  }
+  else {
+    linear_interpolate_strength = 1;
+
+    if (space == "object") {
+      Normal = normalize(transform("object", "world", vector(mcolor)));
     }
-  }
-  else if (space == "object") {
-    Normal = normalize(transform("object", "world", vector(mcolor)));
-  }
-  else if (space == "world") {
-    Normal = normalize(vector(mcolor));
-  }
-  else if (space == "blender_object") {
-    /* strange blender convention */
-    mcolor[1] = -mcolor[1];
-    mcolor[2] = -mcolor[2];
+    else if (space == "world") {
+      Normal = normalize(vector(mcolor));
+    }
+    else if (space == "blender_object") {
+      /* strange blender convention */
+      mcolor[1] = -mcolor[1];
+      mcolor[2] = -mcolor[2];
 
-    Normal = normalize(transform("object", "world", vector(mcolor)));
-  }
-  else if (space == "blender_world") {
-    /* strange blender convention */
-    mcolor[1] = -mcolor[1];
-    mcolor[2] = -mcolor[2];
+      Normal = normalize(transform("object", "world", vector(mcolor)));
+    }
+    else if (space == "blender_world") {
+      /* strange blender convention */
+      mcolor[1] = -mcolor[1];
+      mcolor[2] = -mcolor[2];
 
-    Normal = normalize(vector(mcolor));
+      Normal = normalize(vector(mcolor));
+    }
   }
 
   /* invert normal for backfacing polygons */
@@ -77,6 +93,7 @@ shader node_normal_map(float Strength = 1.0,
     Normal = -Normal;
   }
 
-  if (Strength != 1.0 && space != "tangent")
+  if (linear_interpolate_strength && Strength != 1.0) {
     Normal = normalize(N + (Normal - N) * max(Strength, 0.0));
+  }
 }

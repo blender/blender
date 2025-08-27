@@ -337,6 +337,8 @@ ccl_device_noinline void svm_node_normal_map(KernelGlobals kg,
   const bool is_backfacing = (sd->flag & SD_BACKFACING) != 0;
   float3 N;
   float strength = stack_load_float(stack, strength_offset);
+  bool linear_interpolate_strength = false;
+
   if (space == NODE_NORMAL_MAP_TANGENT) {
     /* tangent space */
     if (sd->object == OBJECT_NONE || (sd->type & PRIMITIVE_TRIANGLE) == 0) {
@@ -366,6 +368,9 @@ ccl_device_noinline void svm_node_normal_map(KernelGlobals kg,
       if (attr_undisplaced_normal.offset != ATTR_STD_NOT_FOUND) {
         normal =
             primitive_surface_attribute<float3>(kg, sd, attr_undisplaced_normal, false, false).val;
+        /* Can't interpolate in tangent space as the displaced normal is not used
+         * for the tangent frame. */
+        linear_interpolate_strength = true;
       }
       else {
         normal = triangle_smooth_normal_unnormalized(kg, sd, sd->Ng, sd->prim, sd->u, sd->v);
@@ -382,9 +387,11 @@ ccl_device_noinline void svm_node_normal_map(KernelGlobals kg,
       object_inverse_normal_transform(kg, sd, &normal);
     }
     /* Apply strength in the tangent case. */
-    color.x *= strength;
-    color.y *= strength;
-    color.z = mix(1.0f, color.z, saturatef(strength));
+    if (!linear_interpolate_strength) {
+      color.x *= strength;
+      color.y *= strength;
+      color.z = mix(1.0f, color.z, saturatef(strength));
+    }
 
     /* apply normal map */
     const float3 B = sign * cross(normal, tangent);
@@ -399,6 +406,8 @@ ccl_device_noinline void svm_node_normal_map(KernelGlobals kg,
     }
   }
   else {
+    linear_interpolate_strength = true;
+
     /* strange blender convention */
     if (space == NODE_NORMAL_MAP_BLENDER_OBJECT || space == NODE_NORMAL_MAP_BLENDER_WORLD) {
       color.y = -color.y;
@@ -419,12 +428,12 @@ ccl_device_noinline void svm_node_normal_map(KernelGlobals kg,
     if (is_backfacing) {
       N = -N;
     }
+  }
 
-    /* Apply strength in all but tangent space. */
-    if (strength != 1.0f) {
-      strength = max(strength, 0.0f);
-      N = safe_normalize(sd->N + (N - sd->N) * strength);
-    }
+  /* Use simple linear linear interpolation if we can't do it in tangent space. */
+  if (linear_interpolate_strength && strength != 1.0f) {
+    strength = max(strength, 0.0f);
+    N = safe_normalize(sd->N + (N - sd->N) * strength);
   }
 
   if (is_zero(N) || !isfinite_safe(N)) {
