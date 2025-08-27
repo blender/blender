@@ -816,7 +816,9 @@ static void foreach_obref_in_scene(DRWContext &draw_ctx,
     bool ob_visible = visibility & (OB_VISIBLE_SELF | OB_VISIBLE_PARTICLES);
 
     if (ob_visible && should_draw_object_cb(*ob)) {
-      ObjectRef ob_ref(ob);
+      /* NOTE: object_duplilist_preview is still handled by DEG_OBJECT_ITER,
+       * dupli_parent and dupli_object_current won't be null for these. */
+      ObjectRef ob_ref(ob, data_.dupli_parent, data_.dupli_object_current);
       draw_object_cb(ob_ref);
     }
 
