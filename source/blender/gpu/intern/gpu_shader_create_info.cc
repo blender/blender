@@ -535,6 +535,8 @@ void gpu_shader_create_info_init()
   }
 
   for (ShaderCreateInfo *info : g_create_infos->values()) {
+    info->is_generated_ = false;
+
     info->builtins_ |= gpu_shader_dependency_get_builtins(info->vertex_source_);
     info->builtins_ |= gpu_shader_dependency_get_builtins(info->fragment_source_);
     info->builtins_ |= gpu_shader_dependency_get_builtins(info->geometry_source_);

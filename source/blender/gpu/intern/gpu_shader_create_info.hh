@@ -687,6 +687,8 @@ struct ShaderCreateInfo {
   StringRefNull name_;
   /** True if the shader is static and can be pre-compiled at compile time. */
   bool do_static_compilation_ = false;
+  /** True if the shader is not part of gpu_shader_create_info_list. */
+  bool is_generated_ = true;
   /** If true, all additionally linked create info will be merged into this one. */
   bool finalized_ = false;
   /** If true, all resources will have an automatic location assigned. */
