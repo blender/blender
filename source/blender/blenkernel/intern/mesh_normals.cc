@@ -1465,16 +1465,6 @@ static void mesh_normals_corner_custom_set(const Span<float3> positions,
   }
   else {
     for (const int i : corner_verts.index_range()) {
-      if (lnors_spacearr.corner_space_indices[i] == -1) {
-        /* This should not happen in theory, but in some rare case (probably ugly geometry)
-         * we can get some missing loopspacearr at this point. :/
-         * Maybe we should set those corners' edges as sharp? */
-        done_corners[i].set();
-        if (G.debug & G_DEBUG) {
-          printf("WARNING! Getting invalid nullptr corner space for corner %d!\n", i);
-        }
-        continue;
-      }
       if (done_corners[i]) {
         continue;
       }
