@@ -253,8 +253,8 @@ void UI_node_socket_draw_cache_flush();
 void nodesocket_batch_start();
 void nodesocket_batch_end();
 
-void nodelink_batch_start(SpaceNode &snode);
-void nodelink_batch_end(SpaceNode &snode);
+void nodelink_batch_start(const SpaceNode &snode);
+void nodelink_batch_end(const SpaceNode &snode);
 
 /**
  * \note this is used for fake links in groups too.
