@@ -382,8 +382,6 @@ static void detect_workarounds()
     printf("    version: %s\n\n", version);
     GCaps.depth_blitting_workaround = true;
     GCaps.stencil_clasify_buffer_workaround = true;
-    GCaps.node_link_instancing_workaround = true;
-    GCaps.line_directive_workaround = true;
     GLContext::debug_layer_workaround = true;
     /* Turn off Blender features. */
     GCaps.hdr_viewport_support = false;
@@ -457,15 +455,6 @@ static void detect_workarounds()
       GCaps.use_hq_normals_workaround = true;
     }
   }
-  /* See #132968: Legacy AMD drivers do not accept a hash after the line number and results into
-   * undefined behavior. Users have reported that the issue can go away after doing a clean
-   * install of the driver.
-   */
-  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
-    if (is_bad_AMD_driver(version)) {
-      GCaps.line_directive_workaround = true;
-    }
-  }
 
   /* Maybe not all of these drivers have problems with `GL_ARB_base_instance`.
    * But it's hard to test each case.
@@ -535,12 +524,6 @@ static void detect_workarounds()
    * `internal format of texture N is not supported`. */
   if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_OFFICIAL)) {
     GLContext::multi_bind_image_support = false;
-  }
-
-  /* #134509 Intel ARC GPU have a driver bug that break the display of batched node-links.
-   * Disabling batching fixes the issue. */
-  if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
-    GCaps.node_link_instancing_workaround = true;
   }
 
   /* Metal-related Workarounds. */

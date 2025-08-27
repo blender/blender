@@ -493,18 +493,6 @@ void gpu_shader_dependency_init()
     }
   }
 #endif
-
-  if (GCaps.line_directive_workaround) {
-    for (auto *value : g_sources->values()) {
-      value->patched_source = value->source;
-      value->source = value->patched_source.c_str();
-      size_t start_pos = 0;
-      while ((start_pos = value->patched_source.find("#line ", start_pos)) != std::string::npos) {
-        value->patched_source[start_pos] = '/';
-        value->patched_source[start_pos + 1] = '/';
-      }
-    }
-  }
 }
 
 void gpu_shader_dependency_exit()
