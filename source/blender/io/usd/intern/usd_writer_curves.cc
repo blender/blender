@@ -270,6 +270,7 @@ static void populate_curve_props_for_nurbs(const bke::CurvesGeometry &curves,
                                            pxr::VtIntArray &control_point_counts,
                                            pxr::VtArray<float> &widths,
                                            pxr::VtArray<double> &knots,
+                                           pxr::VtArray<double> &weights,
                                            pxr::VtArray<int> &orders,
                                            pxr::TfToken &interpolation,
                                            const bool is_cyclic)
@@ -281,31 +282,54 @@ static void populate_curve_props_for_nurbs(const bke::CurvesGeometry &curves,
 
   const Span<float3> positions = curves.positions();
   const Span<float> custom_knots = curves.nurbs_custom_knots();
+  const std::optional<Span<float>> nurbs_weights = curves.nurbs_weights();
 
   VArray<int8_t> geom_orders = curves.nurbs_orders();
   VArray<int8_t> knots_modes = curves.nurbs_knots_modes();
+  const VArray<float> radii = curves.radius();
 
   const OffsetIndices points_by_curve = curves.points_by_curve();
   const OffsetIndices custom_knots_by_curve = curves.nurbs_custom_knots_by_curve();
   for (const int i_curve : curves.curves_range()) {
     const IndexRange points = points_by_curve[i_curve];
+    const size_t curr_vert_num = verts.size();
     for (const int i_point : points) {
       verts.push_back(
           pxr::GfVec3f(positions[i_point][0], positions[i_point][1], positions[i_point][2]));
+      widths.push_back(radii[i_point] * 2.0f);
     }
 
-    const int tot_points = points.size();
-    control_point_counts[i_curve] = tot_points;
+    if (nurbs_weights) {
+      for (const int i_point : points) {
+        weights.push_back((*nurbs_weights)[i_point]);
+      }
+    }
+
+    /* Repeat the first degree(order - 1) number of points and weights if curve is cyclic. */
+    if (is_cyclic) {
+      for (const int i_point : points.take_front(geom_orders[i_curve] - 1)) {
+        verts.push_back(
+            pxr::GfVec3f(positions[i_point][0], positions[i_point][1], positions[i_point][2]));
+        widths.push_back(radii[i_point] * 2.0f);
+        if (nurbs_weights) {
+          weights.push_back((*nurbs_weights)[i_point]);
+        }
+      }
+    }
+
+    const int tot_blender_points = int(points.size());
+    const int tot_usd_points = int(verts.size() - curr_vert_num);
+    control_point_counts[i_curve] = tot_usd_points;
 
     const int8_t order = geom_orders[i_curve];
     orders[i_curve] = int(geom_orders[i_curve]);
 
     const KnotsMode mode = KnotsMode(knots_modes[i_curve]);
 
-    const int knots_num = bke::curves::nurbs::knots_num(tot_points, order, is_cyclic);
+    const int knots_num = bke::curves::nurbs::knots_num(tot_blender_points, order, is_cyclic);
     Array<float> temp_knots(knots_num);
     bke::curves::nurbs::load_curve_knots(mode,
-                                         tot_points,
+                                         tot_blender_points,
                                          order,
                                          is_cyclic,
                                          custom_knots_by_curve[i_curve],
@@ -333,20 +357,22 @@ static void populate_curve_props_for_nurbs(const bke::CurvesGeometry &curves,
     }
   }
 
-  populate_curve_widths(curves, widths);
   interpolation = pxr::UsdGeomTokens->vertex;
 }
 
 void USDCurvesWriter::set_writer_attributes_for_nurbs(
     const pxr::UsdGeomNurbsCurves &usd_nurbs_curves,
-    const pxr::VtArray<double> &knots,
-    const pxr::VtArray<int> &orders,
+    pxr::VtArray<double> &knots,
+    pxr::VtArray<double> &weights,
+    pxr::VtArray<int> &orders,
     const pxr::UsdTimeCode time)
 {
   pxr::UsdAttribute attr_knots = usd_nurbs_curves.CreateKnotsAttr(pxr::VtValue(), true);
-  usd_value_writer_.SetAttribute(attr_knots, pxr::VtValue(knots), time);
+  set_attribute(attr_knots, knots, time, usd_value_writer_);
+  pxr::UsdAttribute attr_weights = usd_nurbs_curves.CreatePointWeightsAttr(pxr::VtValue(), true);
+  set_attribute(attr_weights, weights, time, usd_value_writer_);
   pxr::UsdAttribute attr_order = usd_nurbs_curves.CreateOrderAttr(pxr::VtValue(), true);
-  usd_value_writer_.SetAttribute(attr_order, pxr::VtValue(orders), time);
+  set_attribute(attr_order, orders, time, usd_value_writer_);
 }
 
 void USDCurvesWriter::set_writer_attributes(pxr::UsdGeomCurves &usd_curves,
@@ -618,17 +644,24 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
       break;
     case CURVE_TYPE_NURBS: {
       pxr::VtArray<double> knots;
+      pxr::VtArray<double> weights;
       pxr::VtArray<int> orders;
-      orders.resize(curves.curves_num());
 
       usd_nurbs_curves = pxr::UsdGeomNurbsCurves::Define(usd_export_context_.stage,
                                                          usd_export_context_.usd_path);
       usd_curves = &usd_nurbs_curves;
 
-      populate_curve_props_for_nurbs(
-          curves, verts, control_point_counts, widths, knots, orders, interpolation, is_cyclic);
+      populate_curve_props_for_nurbs(curves,
+                                     verts,
+                                     control_point_counts,
+                                     widths,
+                                     knots,
+                                     weights,
+                                     orders,
+                                     interpolation,
+                                     is_cyclic);
 
-      set_writer_attributes_for_nurbs(usd_nurbs_curves, knots, orders, time);
+      set_writer_attributes_for_nurbs(usd_nurbs_curves, knots, weights, orders, time);
 
       break;
     }
@@ -641,8 +674,11 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
 
   this->assign_materials(context, *usd_curves);
 
-  this->write_velocities(curves, *usd_curves);
-  this->write_custom_data(curves, *usd_curves);
+  /* TODO: We cannot write custom privars for cyclic NURBS curves at the moment. */
+  if (!is_cyclic || (is_cyclic && curve_type != CURVE_TYPE_NURBS)) {
+    this->write_velocities(curves, *usd_curves);
+    this->write_custom_data(curves, *usd_curves);
+  }
 
   auto prim = usd_curves->GetPrim();
   write_id_properties(prim, curves_id->id, time);

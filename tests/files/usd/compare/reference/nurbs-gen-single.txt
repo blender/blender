@@ -1,0 +1,2251 @@
+==== Curves(new): 96
+- Curve 'C220' splines:1 control-points:2
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (1.000, 0.000, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 
+
+- Curve 'C221' splines:1 control-points:2
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (1.000, 0.000, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 
+
+- Curve 'C222' splines:1 control-points:2
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (1.000, 0.000, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 
+
+- Curve 'C223' splines:1 control-points:2
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (1.000, 0.000, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 
+
+- Curve 'C320' splines:1 control-points:3
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (0.000, 0.000, 0.000)
+    - (1.000, 0.900, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 
+
+- Curve 'C321' splines:1 control-points:3
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (0.000, 0.000, 0.000)
+    - (1.000, 0.900, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 
+
+- Curve 'C322' splines:1 control-points:3
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (0.000, 0.000, 0.000)
+    - (1.000, 0.900, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 
+
+- Curve 'C323' splines:1 control-points:3
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (0.000, 0.000, 0.000)
+    - (1.000, 0.900, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 
+
+- Curve 'C330' splines:1 control-points:3
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 0 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (0.000, 0.000, 0.000)
+    - (1.000, 0.900, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 
+
+- Curve 'C331' splines:1 control-points:3
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (0.000, 0.000, 0.000)
+    - (1.000, 0.900, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 
+
+- Curve 'C332' splines:1 control-points:3
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 0 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (0.000, 0.000, 0.000)
+    - (1.000, 0.900, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 
+
+- Curve 'C333' splines:1 control-points:3
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (0.000, 0.000, 0.000)
+    - (1.000, 0.900, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 
+
+- Curve 'C420' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.333, 0.000, 0.000)
+    - (0.333, 0.900, 0.000)
+    - (1.000, 0.800, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 
+
+- Curve 'C421' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.333, 0.000, 0.000)
+    - (0.333, 0.900, 0.000)
+    - (1.000, 0.800, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 
+
+- Curve 'C422' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.333, 0.000, 0.000)
+    - (0.333, 0.900, 0.000)
+    - (1.000, 0.800, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 
+
+- Curve 'C423' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.333, 0.000, 0.000)
+    - (0.333, 0.900, 0.000)
+    - (1.000, 0.800, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 
+
+- Curve 'C430' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 0 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.333, 0.000, 0.000)
+    - (0.333, 0.900, 0.000)
+    - (1.000, 0.800, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 
+
+- Curve 'C431' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.333, 0.000, 0.000)
+    - (0.333, 0.900, 0.000)
+    - (1.000, 0.800, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 
+
+- Curve 'C432' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 2 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.333, 0.000, 0.000)
+    - (0.333, 0.900, 0.000)
+    - (1.000, 0.800, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 
+
+- Curve 'C433' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 3 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.333, 0.000, 0.000)
+    - (0.333, 0.900, 0.000)
+    - (1.000, 0.800, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 
+
+- Curve 'C440' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 0 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.333, 0.000, 0.000)
+    - (0.333, 0.900, 0.000)
+    - (1.000, 0.800, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 
+
+- Curve 'C441' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 4 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.333, 0.000, 0.000)
+    - (0.333, 0.900, 0.000)
+    - (1.000, 0.800, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 
+
+- Curve 'C442' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 0 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.333, 0.000, 0.000)
+    - (0.333, 0.900, 0.000)
+    - (1.000, 0.800, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 
+
+- Curve 'C443' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 4 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.333, 0.000, 0.000)
+    - (0.333, 0.900, 0.000)
+    - (1.000, 0.800, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 
+
+- Curve 'C520' splines:1 control-points:5
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.900, 0.000)
+    - (0.500, 0.800, 0.000)
+    - (1.000, 0.500, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 
+
+- Curve 'C521' splines:1 control-points:5
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.900, 0.000)
+    - (0.500, 0.800, 0.000)
+    - (1.000, 0.500, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 
+
+- Curve 'C522' splines:1 control-points:5
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.900, 0.000)
+    - (0.500, 0.800, 0.000)
+    - (1.000, 0.500, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 
+
+- Curve 'C523' splines:1 control-points:5
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.900, 0.000)
+    - (0.500, 0.800, 0.000)
+    - (1.000, 0.500, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 
+
+- Curve 'C530' splines:1 control-points:5
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 0 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.900, 0.000)
+    - (0.500, 0.800, 0.000)
+    - (1.000, 0.500, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 
+
+- Curve 'C531' splines:1 control-points:5
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.900, 0.000)
+    - (0.500, 0.800, 0.000)
+    - (1.000, 0.500, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 
+
+- Curve 'C532' splines:1 control-points:5
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 4 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.900, 0.000)
+    - (0.500, 0.800, 0.000)
+    - (1.000, 0.500, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 
+
+- Curve 'C533' splines:1 control-points:5
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.900, 0.000)
+    - (0.500, 0.800, 0.000)
+    - (1.000, 0.500, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 
+
+- Curve 'C540' splines:1 control-points:5
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 0 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.900, 0.000)
+    - (0.500, 0.800, 0.000)
+    - (1.000, 0.500, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 
+
+- Curve 'C541' splines:1 control-points:5
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 4 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.900, 0.000)
+    - (0.500, 0.800, 0.000)
+    - (1.000, 0.500, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 
+
+- Curve 'C542' splines:1 control-points:5
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 4 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.900, 0.000)
+    - (0.500, 0.800, 0.000)
+    - (1.000, 0.500, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 
+
+- Curve 'C543' splines:1 control-points:5
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.900, 0.000)
+    - (0.500, 0.800, 0.000)
+    - (1.000, 0.500, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 
+
+- Curve 'C620' splines:1 control-points:6
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.600, 0.000, 0.000)
+    - (-0.200, 0.900, 0.000)
+    - (0.200, 0.800, 0.000)
+    - (0.600, 0.500, 0.000)
+    - (1.000, 0.100, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 0.030 
+
+- Curve 'C621' splines:1 control-points:6
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.600, 0.000, 0.000)
+    - (-0.200, 0.900, 0.000)
+    - (0.200, 0.800, 0.000)
+    - (0.600, 0.500, 0.000)
+    - (1.000, 0.100, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 0.030 
+
+- Curve 'C622' splines:1 control-points:6
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.600, 0.000, 0.000)
+    - (-0.200, 0.900, 0.000)
+    - (0.200, 0.800, 0.000)
+    - (0.600, 0.500, 0.000)
+    - (1.000, 0.100, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 0.030 
+
+- Curve 'C623' splines:1 control-points:6
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.600, 0.000, 0.000)
+    - (-0.200, 0.900, 0.000)
+    - (0.200, 0.800, 0.000)
+    - (0.600, 0.500, 0.000)
+    - (1.000, 0.100, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 0.030 
+
+- Curve 'C630' splines:1 control-points:6
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 0 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.600, 0.000, 0.000)
+    - (-0.200, 0.900, 0.000)
+    - (0.200, 0.800, 0.000)
+    - (0.600, 0.500, 0.000)
+    - (1.000, 0.100, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 0.030 
+
+- Curve 'C631' splines:1 control-points:6
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.600, 0.000, 0.000)
+    - (-0.200, 0.900, 0.000)
+    - (0.200, 0.800, 0.000)
+    - (0.600, 0.500, 0.000)
+    - (1.000, 0.100, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 0.030 
+
+- Curve 'C632' splines:1 control-points:6
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 2 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.600, 0.000, 0.000)
+    - (-0.200, 0.900, 0.000)
+    - (0.200, 0.800, 0.000)
+    - (0.600, 0.500, 0.000)
+    - (1.000, 0.100, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 0.030 
+
+- Curve 'C633' splines:1 control-points:6
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 3 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.600, 0.000, 0.000)
+    - (-0.200, 0.900, 0.000)
+    - (0.200, 0.800, 0.000)
+    - (0.600, 0.500, 0.000)
+    - (1.000, 0.100, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 0.030 
+
+- Curve 'C640' splines:1 control-points:6
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 0 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.600, 0.000, 0.000)
+    - (-0.200, 0.900, 0.000)
+    - (0.200, 0.800, 0.000)
+    - (0.600, 0.500, 0.000)
+    - (1.000, 0.100, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 0.030 
+
+- Curve 'C641' splines:1 control-points:6
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 4 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.600, 0.000, 0.000)
+    - (-0.200, 0.900, 0.000)
+    - (0.200, 0.800, 0.000)
+    - (0.600, 0.500, 0.000)
+    - (1.000, 0.100, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 0.030 
+
+- Curve 'C642' splines:1 control-points:6
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 4 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.600, 0.000, 0.000)
+    - (-0.200, 0.900, 0.000)
+    - (0.200, 0.800, 0.000)
+    - (0.600, 0.500, 0.000)
+    - (1.000, 0.100, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 0.030 
+
+- Curve 'C643' splines:1 control-points:6
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'knots_mode' INT8 CURVE
+    - 3 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.600, 0.000, 0.000)
+    - (-0.200, 0.900, 0.000)
+    - (0.200, 0.800, 0.000)
+    - (0.600, 0.500, 0.000)
+    - (1.000, 0.100, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 0.030 
+
+- Curve 'NC220' splines:1 control-points:2
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (1.000, 0.000, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 
+
+- Curve 'NC221' splines:1 control-points:2
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (1.000, 0.000, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 
+
+- Curve 'NC222' splines:1 control-points:2
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (1.000, 0.000, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 
+
+- Curve 'NC223' splines:1 control-points:2
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (1.000, 0.000, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 
+
+- Curve 'NC320' splines:1 control-points:3
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (0.000, 0.000, 0.000)
+    - (1.000, 0.900, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 
+
+- Curve 'NC321' splines:1 control-points:3
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (0.000, 0.000, 0.000)
+    - (1.000, 0.900, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 
+
+- Curve 'NC322' splines:1 control-points:3
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (0.000, 0.000, 0.000)
+    - (1.000, 0.900, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 
+
+- Curve 'NC323' splines:1 control-points:3
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (0.000, 0.000, 0.000)
+    - (1.000, 0.900, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 
+
+- Curve 'NC330' splines:1 control-points:3
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 0 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (0.000, 0.000, 0.000)
+    - (1.000, 0.900, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 
+
+- Curve 'NC331' splines:1 control-points:3
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 3 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (0.000, 0.000, 0.000)
+    - (1.000, 0.900, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 
+
+- Curve 'NC332' splines:1 control-points:3
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 2 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (0.000, 0.000, 0.000)
+    - (1.000, 0.900, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 
+
+- Curve 'NC333' splines:1 control-points:3
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 3 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (0.000, 0.000, 0.000)
+    - (1.000, 0.900, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 
+
+- Curve 'NC420' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.333, 0.000, 0.000)
+    - (0.333, 0.900, 0.000)
+    - (1.000, 0.800, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 
+
+- Curve 'NC421' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.333, 0.000, 0.000)
+    - (0.333, 0.900, 0.000)
+    - (1.000, 0.800, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 
+
+- Curve 'NC422' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.333, 0.000, 0.000)
+    - (0.333, 0.900, 0.000)
+    - (1.000, 0.800, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 
+
+- Curve 'NC423' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.333, 0.000, 0.000)
+    - (0.333, 0.900, 0.000)
+    - (1.000, 0.800, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 
+
+- Curve 'NC430' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 0 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.333, 0.000, 0.000)
+    - (0.333, 0.900, 0.000)
+    - (1.000, 0.800, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 
+
+- Curve 'NC431' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.333, 0.000, 0.000)
+    - (0.333, 0.900, 0.000)
+    - (1.000, 0.800, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 
+
+- Curve 'NC432' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 2 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.333, 0.000, 0.000)
+    - (0.333, 0.900, 0.000)
+    - (1.000, 0.800, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 
+
+- Curve 'NC433' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 3 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.333, 0.000, 0.000)
+    - (0.333, 0.900, 0.000)
+    - (1.000, 0.800, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 
+
+- Curve 'NC440' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 0 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.333, 0.000, 0.000)
+    - (0.333, 0.900, 0.000)
+    - (1.000, 0.800, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 
+
+- Curve 'NC441' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 3 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.333, 0.000, 0.000)
+    - (0.333, 0.900, 0.000)
+    - (1.000, 0.800, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 
+
+- Curve 'NC442' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 2 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.333, 0.000, 0.000)
+    - (0.333, 0.900, 0.000)
+    - (1.000, 0.800, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 
+
+- Curve 'NC443' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 3 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.333, 0.000, 0.000)
+    - (0.333, 0.900, 0.000)
+    - (1.000, 0.800, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 
+
+- Curve 'NC520' splines:1 control-points:5
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.900, 0.000)
+    - (0.500, 0.800, 0.000)
+    - (1.000, 0.500, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 
+
+- Curve 'NC521' splines:1 control-points:5
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.900, 0.000)
+    - (0.500, 0.800, 0.000)
+    - (1.000, 0.500, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 
+
+- Curve 'NC522' splines:1 control-points:5
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.900, 0.000)
+    - (0.500, 0.800, 0.000)
+    - (1.000, 0.500, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 
+
+- Curve 'NC523' splines:1 control-points:5
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.900, 0.000)
+    - (0.500, 0.800, 0.000)
+    - (1.000, 0.500, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 
+
+- Curve 'NC530' splines:1 control-points:5
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 0 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.900, 0.000)
+    - (0.500, 0.800, 0.000)
+    - (1.000, 0.500, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 
+
+- Curve 'NC531' splines:1 control-points:5
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.900, 0.000)
+    - (0.500, 0.800, 0.000)
+    - (1.000, 0.500, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 
+
+- Curve 'NC532' splines:1 control-points:5
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 2 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.900, 0.000)
+    - (0.500, 0.800, 0.000)
+    - (1.000, 0.500, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 
+
+- Curve 'NC533' splines:1 control-points:5
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 3 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.900, 0.000)
+    - (0.500, 0.800, 0.000)
+    - (1.000, 0.500, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 
+
+- Curve 'NC540' splines:1 control-points:5
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 0 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.900, 0.000)
+    - (0.500, 0.800, 0.000)
+    - (1.000, 0.500, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 
+
+- Curve 'NC541' splines:1 control-points:5
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.900, 0.000)
+    - (0.500, 0.800, 0.000)
+    - (1.000, 0.500, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 
+
+- Curve 'NC542' splines:1 control-points:5
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 2 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.900, 0.000)
+    - (0.500, 0.800, 0.000)
+    - (1.000, 0.500, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 
+
+- Curve 'NC543' splines:1 control-points:5
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 3 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.900, 0.000)
+    - (0.500, 0.800, 0.000)
+    - (1.000, 0.500, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 
+
+- Curve 'NC620' splines:1 control-points:6
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.600, 0.000, 0.000)
+    - (-0.200, 0.900, 0.000)
+    - (0.200, 0.800, 0.000)
+    - (0.600, 0.500, 0.000)
+    - (1.000, 0.100, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 0.030 
+
+- Curve 'NC621' splines:1 control-points:6
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.600, 0.000, 0.000)
+    - (-0.200, 0.900, 0.000)
+    - (0.200, 0.800, 0.000)
+    - (0.600, 0.500, 0.000)
+    - (1.000, 0.100, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 0.030 
+
+- Curve 'NC622' splines:1 control-points:6
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.600, 0.000, 0.000)
+    - (-0.200, 0.900, 0.000)
+    - (0.200, 0.800, 0.000)
+    - (0.600, 0.500, 0.000)
+    - (1.000, 0.100, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 0.030 
+
+- Curve 'NC623' splines:1 control-points:6
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.600, 0.000, 0.000)
+    - (-0.200, 0.900, 0.000)
+    - (0.200, 0.800, 0.000)
+    - (0.600, 0.500, 0.000)
+    - (1.000, 0.100, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 0.030 
+
+- Curve 'NC630' splines:1 control-points:6
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 0 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.600, 0.000, 0.000)
+    - (-0.200, 0.900, 0.000)
+    - (0.200, 0.800, 0.000)
+    - (0.600, 0.500, 0.000)
+    - (1.000, 0.100, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 0.030 
+
+- Curve 'NC631' splines:1 control-points:6
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.600, 0.000, 0.000)
+    - (-0.200, 0.900, 0.000)
+    - (0.200, 0.800, 0.000)
+    - (0.600, 0.500, 0.000)
+    - (1.000, 0.100, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 0.030 
+
+- Curve 'NC632' splines:1 control-points:6
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 2 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.600, 0.000, 0.000)
+    - (-0.200, 0.900, 0.000)
+    - (0.200, 0.800, 0.000)
+    - (0.600, 0.500, 0.000)
+    - (1.000, 0.100, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 0.030 
+
+- Curve 'NC633' splines:1 control-points:6
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 3 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.600, 0.000, 0.000)
+    - (-0.200, 0.900, 0.000)
+    - (0.200, 0.800, 0.000)
+    - (0.600, 0.500, 0.000)
+    - (1.000, 0.100, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 0.030 
+
+- Curve 'NC640' splines:1 control-points:6
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 0 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.600, 0.000, 0.000)
+    - (-0.200, 0.900, 0.000)
+    - (0.200, 0.800, 0.000)
+    - (0.600, 0.500, 0.000)
+    - (1.000, 0.100, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 0.030 
+
+- Curve 'NC641' splines:1 control-points:6
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.600, 0.000, 0.000)
+    - (-0.200, 0.900, 0.000)
+    - (0.200, 0.800, 0.000)
+    - (0.600, 0.500, 0.000)
+    - (1.000, 0.100, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 0.030 
+
+- Curve 'NC642' splines:1 control-points:6
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 2 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.600, 0.000, 0.000)
+    - (-0.200, 0.900, 0.000)
+    - (0.200, 0.800, 0.000)
+    - (0.600, 0.500, 0.000)
+    - (1.000, 0.100, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 0.030 
+
+- Curve 'NC643' splines:1 control-points:6
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 3 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 
+  - attr 'nurbs_weight' FLOAT POINT
+    - 1.000 0.707 1.000 0.707 1.000 0.707 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.600, 0.000, 0.000)
+    - (-0.200, 0.900, 0.000)
+    - (0.200, 0.800, 0.000)
+    - (0.600, 0.500, 0.000)
+    - (1.000, 0.100, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 0.025 0.030 
+
+==== Objects: 96
+- Obj 'C220' CURVES data:'C220'
+  - pos 4.000, -5.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C221' CURVES data:'C221'
+  - pos 4.000, -4.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C222' CURVES data:'C222'
+  - pos 4.000, -3.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C223' CURVES data:'C223'
+  - pos 4.000, -2.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C320' CURVES data:'C320'
+  - pos 7.000, -5.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C321' CURVES data:'C321'
+  - pos 7.000, -4.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C322' CURVES data:'C322'
+  - pos 7.000, -3.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C323' CURVES data:'C323'
+  - pos 7.000, -2.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C330' CURVES data:'C330'
+  - pos 7.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C331' CURVES data:'C331'
+  - pos 7.000, 1.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C332' CURVES data:'C332'
+  - pos 7.000, 2.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C333' CURVES data:'C333'
+  - pos 7.000, 3.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C420' CURVES data:'C420'
+  - pos 10.000, -5.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C421' CURVES data:'C421'
+  - pos 10.000, -4.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C422' CURVES data:'C422'
+  - pos 10.000, -3.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C423' CURVES data:'C423'
+  - pos 10.000, -2.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C430' CURVES data:'C430'
+  - pos 10.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C431' CURVES data:'C431'
+  - pos 10.000, 1.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C432' CURVES data:'C432'
+  - pos 10.000, 2.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C433' CURVES data:'C433'
+  - pos 10.000, 3.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C440' CURVES data:'C440'
+  - pos 10.000, 5.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C441' CURVES data:'C441'
+  - pos 10.000, 6.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C442' CURVES data:'C442'
+  - pos 10.000, 7.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C443' CURVES data:'C443'
+  - pos 10.000, 8.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C520' CURVES data:'C520'
+  - pos 13.000, -5.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C521' CURVES data:'C521'
+  - pos 13.000, -4.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C522' CURVES data:'C522'
+  - pos 13.000, -3.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C523' CURVES data:'C523'
+  - pos 13.000, -2.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C530' CURVES data:'C530'
+  - pos 13.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C531' CURVES data:'C531'
+  - pos 13.000, 1.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C532' CURVES data:'C532'
+  - pos 13.000, 2.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C533' CURVES data:'C533'
+  - pos 13.000, 3.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C540' CURVES data:'C540'
+  - pos 13.000, 5.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C541' CURVES data:'C541'
+  - pos 13.000, 6.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C542' CURVES data:'C542'
+  - pos 13.000, 7.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C543' CURVES data:'C543'
+  - pos 13.000, 8.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C620' CURVES data:'C620'
+  - pos 16.000, -5.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C621' CURVES data:'C621'
+  - pos 16.000, -4.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C622' CURVES data:'C622'
+  - pos 16.000, -3.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C623' CURVES data:'C623'
+  - pos 16.000, -2.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C630' CURVES data:'C630'
+  - pos 16.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C631' CURVES data:'C631'
+  - pos 16.000, 1.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C632' CURVES data:'C632'
+  - pos 16.000, 2.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C633' CURVES data:'C633'
+  - pos 16.000, 3.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C640' CURVES data:'C640'
+  - pos 16.000, 5.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C641' CURVES data:'C641'
+  - pos 16.000, 6.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C642' CURVES data:'C642'
+  - pos 16.000, 7.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'C643' CURVES data:'C643'
+  - pos 16.000, 8.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC220' CURVES data:'NC220'
+  - pos -12.000, -5.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC221' CURVES data:'NC221'
+  - pos -12.000, -4.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC222' CURVES data:'NC222'
+  - pos -12.000, -3.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC223' CURVES data:'NC223'
+  - pos -12.000, -2.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC320' CURVES data:'NC320'
+  - pos -9.000, -5.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC321' CURVES data:'NC321'
+  - pos -9.000, -4.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC322' CURVES data:'NC322'
+  - pos -9.000, -3.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC323' CURVES data:'NC323'
+  - pos -9.000, -2.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC330' CURVES data:'NC330'
+  - pos -9.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC331' CURVES data:'NC331'
+  - pos -9.000, 1.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC332' CURVES data:'NC332'
+  - pos -9.000, 2.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC333' CURVES data:'NC333'
+  - pos -9.000, 3.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC420' CURVES data:'NC420'
+  - pos -6.000, -5.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC421' CURVES data:'NC421'
+  - pos -6.000, -4.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC422' CURVES data:'NC422'
+  - pos -6.000, -3.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC423' CURVES data:'NC423'
+  - pos -6.000, -2.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC430' CURVES data:'NC430'
+  - pos -6.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC431' CURVES data:'NC431'
+  - pos -6.000, 1.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC432' CURVES data:'NC432'
+  - pos -6.000, 2.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC433' CURVES data:'NC433'
+  - pos -6.000, 3.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC440' CURVES data:'NC440'
+  - pos -6.000, 5.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC441' CURVES data:'NC441'
+  - pos -6.000, 6.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC442' CURVES data:'NC442'
+  - pos -6.000, 7.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC443' CURVES data:'NC443'
+  - pos -6.000, 8.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC520' CURVES data:'NC520'
+  - pos -3.000, -5.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC521' CURVES data:'NC521'
+  - pos -3.000, -4.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC522' CURVES data:'NC522'
+  - pos -3.000, -3.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC523' CURVES data:'NC523'
+  - pos -3.000, -2.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC530' CURVES data:'NC530'
+  - pos -3.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC531' CURVES data:'NC531'
+  - pos -3.000, 1.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC532' CURVES data:'NC532'
+  - pos -3.000, 2.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC533' CURVES data:'NC533'
+  - pos -3.000, 3.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC540' CURVES data:'NC540'
+  - pos -3.000, 5.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC541' CURVES data:'NC541'
+  - pos -3.000, 6.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC542' CURVES data:'NC542'
+  - pos -3.000, 7.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC543' CURVES data:'NC543'
+  - pos -3.000, 8.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC620' CURVES data:'NC620'
+  - pos 0.000, -5.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC621' CURVES data:'NC621'
+  - pos 0.000, -4.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC622' CURVES data:'NC622'
+  - pos 0.000, -3.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC623' CURVES data:'NC623'
+  - pos 0.000, -2.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC630' CURVES data:'NC630'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC631' CURVES data:'NC631'
+  - pos 0.000, 1.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC632' CURVES data:'NC632'
+  - pos 0.000, 2.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC633' CURVES data:'NC633'
+  - pos 0.000, 3.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC640' CURVES data:'NC640'
+  - pos 0.000, 5.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC641' CURVES data:'NC641'
+  - pos 0.000, 6.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC642' CURVES data:'NC642'
+  - pos 0.000, 7.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NC643' CURVES data:'NC643'
+  - pos 0.000, 8.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+

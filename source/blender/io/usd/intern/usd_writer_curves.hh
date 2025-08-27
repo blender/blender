@@ -40,8 +40,9 @@ class USDCurvesWriter final : public USDAbstractWriter {
                              const pxr::TfToken interpolation);
 
   void set_writer_attributes_for_nurbs(const pxr::UsdGeomNurbsCurves &usd_nurbs_curves,
-                                       const pxr::VtArray<double> &knots,
-                                       const pxr::VtArray<int> &orders,
+                                       pxr::VtArray<double> &knots,
+                                       pxr::VtArray<double> &weights,
+                                       pxr::VtArray<int> &orders,
                                        const pxr::UsdTimeCode time);
 
   void write_generic_data(const bke::CurvesGeometry &curves,
