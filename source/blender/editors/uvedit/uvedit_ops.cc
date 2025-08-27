@@ -651,8 +651,8 @@ static wmOperatorStatus uv_remove_doubles_to_selected(bContext *C, wmOperator *o
   bool *changed = MEM_calloc_arrayN<bool>(objects.size(), __func__);
 
   /* Maximum index of an objects[i]'s UVs in UV_arr.
-   * It helps find which UV in *mloopuv_arr belongs to which object. */
-  uint *ob_mloopuv_max_idx = MEM_calloc_arrayN<uint>(objects.size(), __func__);
+   * It helps find which UV in *uv_map_arr belongs to which object. */
+  uint *ob_uv_map_max_idx = MEM_calloc_arrayN<uint>(objects.size(), __func__);
 
   /* Calculate max possible number of kdtree nodes. */
   int uv_maxlen = 0;
@@ -669,21 +669,21 @@ static wmOperatorStatus uv_remove_doubles_to_selected(bContext *C, wmOperator *o
   KDTree_2d *tree = BLI_kdtree_2d_new(uv_maxlen);
 
   blender::Vector<int> duplicates;
-  blender::Vector<float *> mloopuv_arr;
+  blender::Vector<float *> uv_map_arr;
 
-  int mloopuv_count = 0; /* Also used for *duplicates count. */
+  int uv_map_count = 0; /* Also used for *duplicates count. */
 
   for (const int ob_index : objects.index_range()) {
     Object *obedit = objects[ob_index];
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     ED_uvedit_foreach_uv(scene, em->bm, true, true, [&](float luv[2]) {
-      BLI_kdtree_2d_insert(tree, mloopuv_count, luv);
+      BLI_kdtree_2d_insert(tree, uv_map_count, luv);
       duplicates.append(-1);
-      mloopuv_arr.append(luv);
-      mloopuv_count++;
+      uv_map_arr.append(luv);
+      uv_map_count++;
     });
 
-    ob_mloopuv_max_idx[ob_index] = mloopuv_count - 1;
+    ob_uv_map_max_idx[ob_index] = uv_map_count - 1;
   }
 
   BLI_kdtree_2d_balance(tree);
@@ -692,8 +692,8 @@ static wmOperatorStatus uv_remove_doubles_to_selected(bContext *C, wmOperator *o
 
   if (found_duplicates > 0) {
     /* Calculate average uv for duplicates. */
-    int *uv_duplicate_count = MEM_calloc_arrayN<int>(mloopuv_count, __func__);
-    for (int i = 0; i < mloopuv_count; i++) {
+    int *uv_duplicate_count = MEM_calloc_arrayN<int>(uv_map_count, __func__);
+    for (int i = 0; i < uv_map_count; i++) {
       if (duplicates[i] == -1) { /* If doesn't reference another */
         uv_duplicate_count[i]++; /* self */
         continue;
@@ -702,27 +702,27 @@ static wmOperatorStatus uv_remove_doubles_to_selected(bContext *C, wmOperator *o
       if (duplicates[i] != i) {
         /* If not self then accumulate uv for averaging.
          * Self uv is already present in accumulator */
-        add_v2_v2(mloopuv_arr[duplicates[i]], mloopuv_arr[i]);
+        add_v2_v2(uv_map_arr[duplicates[i]], uv_map_arr[i]);
       }
       uv_duplicate_count[duplicates[i]]++;
     }
 
-    for (int i = 0; i < mloopuv_count; i++) {
+    for (int i = 0; i < uv_map_count; i++) {
       if (uv_duplicate_count[i] < 2) {
         continue;
       }
 
-      mul_v2_fl(mloopuv_arr[i], 1.0f / float(uv_duplicate_count[i]));
+      mul_v2_fl(uv_map_arr[i], 1.0f / float(uv_duplicate_count[i]));
     }
     MEM_freeN(uv_duplicate_count);
 
     /* Update duplicated uvs. */
     uint ob_index = 0;
-    for (int i = 0; i < mloopuv_count; i++) {
-      /* Make sure we know which object owns the mloopuv at this index.
+    for (int i = 0; i < uv_map_count; i++) {
+      /* Make sure we know which object owns the uv_map at this index.
        * Remember that in some cases the object will have no loop uv,
        * thus we need the while loop, and not simply an if check. */
-      while (ob_mloopuv_max_idx[ob_index] < i) {
+      while (ob_uv_map_max_idx[ob_index] < i) {
         ob_index++;
       }
 
@@ -730,7 +730,7 @@ static wmOperatorStatus uv_remove_doubles_to_selected(bContext *C, wmOperator *o
         continue;
       }
 
-      copy_v2_v2(mloopuv_arr[i], mloopuv_arr[duplicates[i]]);
+      copy_v2_v2(uv_map_arr[i], uv_map_arr[duplicates[i]]);
       changed[ob_index] = true;
     }
 
@@ -746,7 +746,7 @@ static wmOperatorStatus uv_remove_doubles_to_selected(bContext *C, wmOperator *o
 
   BLI_kdtree_2d_free(tree);
   MEM_freeN(changed);
-  MEM_freeN(ob_mloopuv_max_idx);
+  MEM_freeN(ob_uv_map_max_idx);
 
   return OPERATOR_FINISHED;
 }
@@ -770,15 +770,15 @@ static wmOperatorStatus uv_remove_doubles_to_unselected(bContext *C, wmOperator 
 
   KDTree_2d *tree = BLI_kdtree_2d_new(uv_maxlen);
 
-  blender::Vector<float *> mloopuv_arr;
+  blender::Vector<float *> uv_map_arr;
 
-  int mloopuv_count = 0;
+  int uv_map_count = 0;
 
   /* Add visible non-selected uvs to tree */
   ED_uvedit_foreach_uv_multi(scene, objects, true, false, [&](float luv[2]) {
-    BLI_kdtree_2d_insert(tree, mloopuv_count, luv);
-    mloopuv_arr.append(luv);
-    mloopuv_count++;
+    BLI_kdtree_2d_insert(tree, uv_map_count, luv);
+    uv_map_arr.append(luv);
+    uv_map_count++;
   });
 
   BLI_kdtree_2d_balance(tree);
@@ -792,7 +792,7 @@ static wmOperatorStatus uv_remove_doubles_to_unselected(bContext *C, wmOperator 
       const int i = BLI_kdtree_2d_find_nearest(tree, luv, &nearest);
 
       if (i != -1 && nearest.dist < threshold) {
-        copy_v2_v2(luv, mloopuv_arr[i]);
+        copy_v2_v2(luv, uv_map_arr[i]);
         changed = true;
       }
     });

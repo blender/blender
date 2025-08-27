@@ -465,9 +465,9 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
         {0.125, 0.50}, {0.375, 0.50}, {0.375, 0.75}, {0.125, 0.75}, {0.375, 0.50}, {0.625, 0.50},
         {0.625, 0.75}, {0.375, 0.75}, {0.375, 0.25}, {0.625, 0.25}, {0.625, 0.50}, {0.375, 0.50},
     };
-    float(*mloopuv)[2] = static_cast<float(*)[2]>(
+    float(*uv_map)[2] = static_cast<float(*)[2]>(
         CustomData_get_layer_for_write(&mesh->corner_data, CD_PROP_FLOAT2, mesh->corners_num));
-    memcpy(mloopuv, uv_values, sizeof(float[2]) * mesh->corners_num);
+    memcpy(uv_map, uv_values, sizeof(float[2]) * mesh->corners_num);
   }
 
   /* Make sure that the curve profile is initialized */

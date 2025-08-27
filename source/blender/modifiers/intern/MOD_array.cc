@@ -689,18 +689,18 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   if (chunk_nloops > 0 && is_zero_v2(amd->uv_offset) == false) {
     const int totuv = CustomData_number_of_layers(&result->corner_data, CD_PROP_FLOAT2);
     for (i = 0; i < totuv; i++) {
-      blender::float2 *dmloopuv = static_cast<blender::float2 *>(CustomData_get_layer_n_for_write(
+      blender::float2 *uv_map = static_cast<blender::float2 *>(CustomData_get_layer_n_for_write(
           &result->corner_data, CD_PROP_FLOAT2, i, result->corners_num));
-      dmloopuv += chunk_nloops;
+      uv_map += chunk_nloops;
       for (c = 1; c < count; c++) {
         const float uv_offset[2] = {
             amd->uv_offset[0] * float(c),
             amd->uv_offset[1] * float(c),
         };
         int l_index = chunk_nloops;
-        for (; l_index-- != 0; dmloopuv++) {
-          (*dmloopuv)[0] += uv_offset[0];
-          (*dmloopuv)[1] += uv_offset[1];
+        for (; l_index-- != 0; uv_map++) {
+          (*uv_map)[0] += uv_offset[0];
+          (*uv_map)[1] += uv_offset[1];
         }
       }
     }

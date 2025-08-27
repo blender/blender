@@ -1113,7 +1113,7 @@ struct FaceDupliData_Mesh {
   Span<int> corner_verts;
   Span<float3> vert_positions;
   const float (*orco)[3];
-  const float2 *mloopuv;
+  const float2 *uv_map;
 };
 
 struct FaceDupliData_EditMesh {
@@ -1257,7 +1257,7 @@ static void make_child_duplis_faces_from_mesh(const DupliContext *ctx,
 {
   FaceDupliData_Mesh *fdd = (FaceDupliData_Mesh *)userdata;
   const float(*orco)[3] = fdd->orco;
-  const float2 *mloopuv = fdd->mloopuv;
+  const float2 *uv_map = fdd->uv_map;
   const int totface = fdd->totface;
   const bool use_scale = fdd->params.use_scale;
 
@@ -1286,9 +1286,9 @@ static void make_child_duplis_faces_from_mesh(const DupliContext *ctx,
         madd_v3_v3fl(dob->orco, orco[face_verts[j]], w);
       }
     }
-    if (mloopuv) {
+    if (uv_map) {
       for (int j = 0; j < face.size(); j++) {
-        madd_v2_v2fl(dob->uv, mloopuv[face[j]], w);
+        madd_v2_v2fl(dob->uv, uv_map[face[j]], w);
       }
     }
   }
@@ -1369,9 +1369,9 @@ static void make_duplis_faces(const DupliContext *ctx)
     fdd.faces = mesh_eval->faces();
     fdd.corner_verts = mesh_eval->corner_verts();
     fdd.vert_positions = mesh_eval->vert_positions();
-    fdd.mloopuv = (uv_idx != -1) ? (const float2 *)CustomData_get_layer_n(
-                                       &mesh_eval->corner_data, CD_PROP_FLOAT2, uv_idx) :
-                                   nullptr;
+    fdd.uv_map = (uv_idx != -1) ? (const float2 *)CustomData_get_layer_n(
+                                      &mesh_eval->corner_data, CD_PROP_FLOAT2, uv_idx) :
+                                  nullptr;
     fdd.orco = (const float(*)[3])CustomData_get_layer(&mesh_eval->vert_data, CD_ORCO);
 
     make_child_duplis(ctx, &fdd, make_child_duplis_faces_from_mesh);

@@ -83,7 +83,7 @@ static void matrix_from_obj_pchan(float mat[4][4], Object *ob, const char *bonen
 struct UVWarpData {
   blender::OffsetIndices<int> faces;
   blender::Span<int> corner_verts;
-  blender::MutableSpan<blender::float2> mloopuv;
+  blender::MutableSpan<blender::float2> uv_map;
 
   const MDeformVert *dvert;
   int defgrp_index;
@@ -100,7 +100,7 @@ static void uv_warp_compute(void *__restrict userdata,
   const blender::IndexRange face = data->faces[i];
   const blender::Span<int> face_verts = data->corner_verts.slice(face);
 
-  blender::float2 *mluv = &data->mloopuv[face.start()];
+  blender::float2 *mluv = &data->uv_map[face.start()];
 
   const MDeformVert *dvert = data->dvert;
   const int defgrp_index = data->defgrp_index;
@@ -197,7 +197,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   const blender::Span<int> corner_verts = mesh->corner_verts();
 
   blender::bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
-  blender::bke::SpanAttributeWriter mloopuv =
+  blender::bke::SpanAttributeWriter uv_map =
       attributes.lookup_or_add_for_write_span<blender::float2>(uvname,
                                                                blender::bke::AttrDomain::Corner);
   MOD_get_vgroup(ctx->object, mesh, umd->vgroup_name, &dvert, &defgrp_index);
@@ -205,7 +205,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   UVWarpData data{};
   data.faces = faces;
   data.corner_verts = corner_verts;
-  data.mloopuv = mloopuv.span;
+  data.uv_map = uv_map.span;
   data.dvert = dvert;
   data.defgrp_index = defgrp_index;
   data.warp_mat = warp_mat;
@@ -218,7 +218,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
   mesh->runtime->is_original_bmesh = false;
 
-  mloopuv.finish();
+  uv_map.finish();
 
   return mesh;
 }

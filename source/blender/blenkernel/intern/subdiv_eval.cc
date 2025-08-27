@@ -119,7 +119,7 @@ struct FaceVaryingDataFromUVContext {
   opensubdiv::TopologyRefinerImpl *topology_refiner;
   const Mesh *mesh;
   OffsetIndices<int> faces;
-  const float (*mloopuv)[2];
+  const float (*uv_map)[2];
   float (*buffer)[2];
   int layer_index;
 };
@@ -131,7 +131,7 @@ static void set_face_varying_data_from_uv_task(void *__restrict userdata,
   FaceVaryingDataFromUVContext *ctx = static_cast<FaceVaryingDataFromUVContext *>(userdata);
   opensubdiv::TopologyRefinerImpl *topology_refiner = ctx->topology_refiner;
   const int layer_index = ctx->layer_index;
-  const float(*mluv)[2] = &ctx->mloopuv[ctx->faces[face_index].start()];
+  const float(*mluv)[2] = &ctx->uv_map[ctx->faces[face_index].start()];
 
   /* TODO(sergey): OpenSubdiv's C-API converter can change winding of
    * loops of a face, need to watch for that, to prevent wrong UVs assigned.
@@ -145,13 +145,13 @@ static void set_face_varying_data_from_uv_task(void *__restrict userdata,
 
 static void set_face_varying_data_from_uv(Subdiv *subdiv,
                                           const Mesh *mesh,
-                                          const float (*mloopuv)[2],
+                                          const float (*uv_map)[2],
                                           const int layer_index)
 {
   opensubdiv::TopologyRefinerImpl *topology_refiner = subdiv->topology_refiner;
   OpenSubdiv_Evaluator *evaluator = subdiv->evaluator;
   const int num_faces = topology_refiner->base_level().GetNumFaces();
-  const float(*mluv)[2] = mloopuv;
+  const float(*mluv)[2] = uv_map;
 
   const int num_fvar_values = topology_refiner->base_level().GetNumFVarValues(layer_index);
   /* Use a temporary buffer so we do not upload UVs one at a time to the GPU. */
@@ -160,7 +160,7 @@ static void set_face_varying_data_from_uv(Subdiv *subdiv,
   FaceVaryingDataFromUVContext ctx;
   ctx.topology_refiner = topology_refiner;
   ctx.layer_index = layer_index;
-  ctx.mloopuv = mluv;
+  ctx.uv_map = mluv;
   ctx.mesh = mesh;
   ctx.faces = mesh->faces();
   ctx.buffer = buffer;
@@ -256,9 +256,9 @@ bool eval_refine_from_mesh(Subdiv *subdiv,
   /* Set face-varying data to UV maps. */
   const int num_uv_layers = CustomData_number_of_layers(&mesh->corner_data, CD_PROP_FLOAT2);
   for (int layer_index = 0; layer_index < num_uv_layers; layer_index++) {
-    const float(*mloopuv)[2] = static_cast<const float(*)[2]>(
+    const float(*uv_map)[2] = static_cast<const float(*)[2]>(
         CustomData_get_layer_n(&mesh->corner_data, CD_PROP_FLOAT2, layer_index));
-    set_face_varying_data_from_uv(subdiv, mesh, mloopuv, layer_index);
+    set_face_varying_data_from_uv(subdiv, mesh, uv_map, layer_index);
   }
   /* Set vertex data to orco. */
   set_vertex_data_from_orco(subdiv, mesh);
