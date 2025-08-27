@@ -10,6 +10,8 @@
 #include <cfloat>
 #include <cmath>
 
+#include "fmt/format.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_matrix.h"
@@ -29,6 +31,7 @@
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
+#include "BKE_global.hh"
 #include "BKE_image.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_types.hh"
@@ -891,6 +894,11 @@ static int paint_space_stroke(bContext *C,
   return count;
 }
 
+static bool print_pressure_status_enabled()
+{
+  return (G.debug_value == 887);
+}
+
 /**** Public API ****/
 
 PaintStroke *paint_stroke_new(bContext *C,
@@ -1009,6 +1017,9 @@ void paint_stroke_free(bContext *C, wmOperator * /*op*/, PaintStroke *stroke)
 
 static void stroke_done(bContext *C, wmOperator *op, PaintStroke *stroke)
 {
+  if (print_pressure_status_enabled()) {
+    ED_workspace_status_text(C, nullptr);
+  }
   bke::PaintRuntime *paint_runtime = stroke->paint->runtime;
 
   /* reset rotation here to avoid doing so in cursor display */
@@ -1478,6 +1489,11 @@ wmOperatorStatus paint_stroke_modal(bContext *C,
   const float tablet_pressure = WM_event_tablet_data(event, &stroke->pen_flip, nullptr);
   float pressure = ((br->flag & (BRUSH_LINE | BRUSH_ANCHORED | BRUSH_DRAG_DOT)) ? 1.0f :
                                                                                   tablet_pressure);
+
+  if (print_pressure_status_enabled() && WM_event_is_tablet(event)) {
+    std::string msg = fmt::format("Tablet Pressure: {:.4f}", pressure);
+    ED_workspace_status_text(C, msg.c_str());
+  }
 
   /* When processing a timer event the pressure from the event is 0, so use the last valid
    * pressure. */
