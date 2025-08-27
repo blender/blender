@@ -653,7 +653,7 @@ static void rna_def_paint(BlenderRNA *brna)
                            "the last used brush on file load");
 
   prop = RNA_def_property(srna, "eraser_brush", PROP_POINTER, PROP_NONE);
-  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
   RNA_def_property_struct_type(prop, "Brush");
   RNA_def_property_pointer_funcs(prop,
                                  "rna_Paint_eraser_brush_get",
