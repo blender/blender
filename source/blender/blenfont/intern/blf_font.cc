@@ -187,40 +187,18 @@ static ft_pix blf_unscaled_F26Dot6_to_pixels(FontBLF *font, FT_Pos value)
  */
 static void blf_batch_draw_init()
 {
-  GPUVertFormat format = {0};
-  g_batch.pos_loc = GPU_vertformat_attr_add(
-      &format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32_32);
-  g_batch.col_loc = GPU_vertformat_attr_add(
-      &format, "col", blender::gpu::VertAttrType::UNORM_8_8_8_8);
-  g_batch.offset_loc = GPU_vertformat_attr_add(
-      &format, "offset", blender::gpu::VertAttrType::SINT_32);
-  g_batch.glyph_size_loc = GPU_vertformat_attr_add(
-      &format, "glyph_size", blender::gpu::VertAttrType::SINT_32_32);
-  g_batch.glyph_flags_loc = GPU_vertformat_attr_add(
-      &format, "flags", blender::gpu::VertAttrType::UINT_32);
-
-  g_batch.verts = GPU_vertbuf_create_with_format_ex(format, GPU_USAGE_STREAM);
-  GPU_vertbuf_data_alloc(*g_batch.verts, BLF_BATCH_DRAW_LEN_MAX);
-
-  GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.pos_loc, &g_batch.pos_step);
-  GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.col_loc, &g_batch.col_step);
-  GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.offset_loc, &g_batch.offset_step);
-  GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.glyph_size_loc, &g_batch.glyph_size_step);
-  GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.glyph_flags_loc, &g_batch.glyph_flags_step);
+  g_batch.glyph_buf = GPU_storagebuf_create(sizeof(g_batch.glyph_data));
   g_batch.glyph_len = 0;
-
-  /* A dummy VBO containing 4 points, attributes are not used. */
-  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
-  GPU_vertbuf_data_alloc(*vbo, 4);
-
   /* We render a quad as a triangle strip and instance it for each glyph. */
-  g_batch.batch = GPU_batch_create_ex(GPU_PRIM_TRI_STRIP, vbo, nullptr, GPU_BATCH_OWNS_VBO);
-  GPU_batch_instbuf_set(g_batch.batch, g_batch.verts, true);
+  g_batch.batch = GPU_batch_create_procedural(GPU_PRIM_TRI_STRIP, 4);
 }
 
 static void blf_batch_draw_exit()
 {
   GPU_BATCH_DISCARD_SAFE(g_batch.batch);
+  if (g_batch.glyph_buf) {
+    GPU_storagebuf_free(g_batch.glyph_buf);
+  }
 }
 
 void blf_batch_draw_begin(FontBLF *font)
@@ -337,8 +315,8 @@ void blf_batch_draw()
   }
 
   blender::gpu::Texture *texture = blf_batch_cache_texture_load();
-  GPU_vertbuf_data_len_set(*g_batch.verts, g_batch.glyph_len);
-  GPU_vertbuf_use(g_batch.verts); /* Send data. */
+  GPU_storagebuf_update(g_batch.glyph_buf, g_batch.glyph_data);
+  GPU_storagebuf_bind(g_batch.glyph_buf, 0);
 
   GPU_batch_program_set_builtin(g_batch.batch, GPU_SHADER_TEXT);
   GPU_batch_texture_bind(g_batch.batch, "glyph", texture);
@@ -348,18 +326,11 @@ void blf_batch_draw()
   int width_shift = 31 - bitscan_reverse_i(tex_width);
   GPU_batch_uniform_1i(g_batch.batch, "glyph_tex_width_mask", tex_width - 1);
   GPU_batch_uniform_1i(g_batch.batch, "glyph_tex_width_shift", width_shift);
-  GPU_batch_draw(g_batch.batch);
+  GPU_batch_draw_advanced(g_batch.batch, 0, 4, 0, g_batch.glyph_len);
 
   GPU_blend(GPU_BLEND_NONE);
 
   GPU_texture_unbind(texture);
-
-  /* Restart to 1st vertex data pointers. */
-  GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.pos_loc, &g_batch.pos_step);
-  GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.col_loc, &g_batch.col_step);
-  GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.offset_loc, &g_batch.offset_step);
-  GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.glyph_size_loc, &g_batch.glyph_size_step);
-  GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.glyph_flags_loc, &g_batch.glyph_flags_step);
   g_batch.glyph_len = 0;
 }
 

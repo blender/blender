@@ -6,8 +6,9 @@
  * \ingroup gpu
  */
 
+#pragma once
+
 #ifndef USE_GPU_SHADER_CREATE_INFO
-#  pragma once
 
 #  include "GPU_shader_shared_utils.hh"
 
@@ -127,6 +128,16 @@ enum eGPUSeqFlags : uint32_t {
 
   GPU_SEQ_FLAG_ANY_HANDLE = GPU_SEQ_FLAG_SELECTED_LH | GPU_SEQ_FLAG_SELECTED_RH
 };
+
+/* Glyph for text rendering. */
+struct GlyphQuad {
+  int4 position;
+  float4 glyph_color; /* Cannot be name `color` because of metal macros. */
+  int2 glyph_size;
+  int offset;
+  uint flags;
+};
+BLI_STATIC_ASSERT_ALIGN(GlyphQuad, 16)
 
 /* VSE per-strip data for timeline rendering. */
 struct SeqStripDrawData {
