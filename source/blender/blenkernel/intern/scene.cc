@@ -1246,6 +1246,8 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
     if (BLO_read_fileversion_get(reader) >= 500) {
       ups->size = std::max(ups->size / 2, 1);
       ups->unprojected_radius = std::max(ups->unprojected_radius / 2, 0.001f);
+
+      sce->toolsettings->uvsculpt.size = std::max(sce->toolsettings->uvsculpt.size / 2, 1);
     }
 
     BLO_read_struct(reader, CurveMapping, &ups->curve_rand_hue);
