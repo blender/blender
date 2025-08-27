@@ -622,7 +622,7 @@ void Instance::acquire_resources()
 
   const int2 size = int2(draw_ctx->viewport_size_get());
 
-  const eGPUTextureFormat format_color = this->use_signed_fb ? GPU_RGBA16F : GPU_R11F_G11F_B10F;
+  const eGPUTextureFormat format_color = GPU_RGBA16F;
   const eGPUTextureFormat format_reveal = this->use_signed_fb ? GPU_RGBA16F : GPU_RGB10_A2;
 
   this->depth_tx.acquire(size, GPU_DEPTH24_STENCIL8);

@@ -276,7 +276,7 @@ struct Instance final : public DrawEngine {
   bool use_object_fb;
   bool use_mask_fb;
   /* Some blend mode needs to add negative values.
-   * This is only supported if target texture is signed. */
+   * This is only supported if target texture is signed. Only switch for the `reveal_tex`. */
   bool use_signed_fb;
   /* Use only lines for multiedit and not active frame. */
   bool use_multiedit_lines_only;
