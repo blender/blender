@@ -249,19 +249,14 @@ static void attr_create_uv_map(Scene *scene,
   for (const ustring &uv_name : blender_uv_names) {
     const bool active_render = uv_name == render_name;
     const AttributeStandard uv_std = (active_render) ? ATTR_STD_UV : ATTR_STD_NONE;
-    const AttributeStandard tangent_std = (active_render) ? ATTR_STD_UV_TANGENT : ATTR_STD_NONE;
-    const ustring tangent_name = ustring((string(uv_name) + ".tangent").c_str());
 
     /* Denotes whether UV map was requested directly. */
     const bool need_uv = mesh->need_attribute(scene, uv_name) ||
-                         mesh->need_attribute(scene, uv_std);
-    /* Denotes whether tangent was requested directly. */
-    const bool need_tangent = mesh->need_attribute(scene, tangent_name) ||
-                              (active_render && mesh->need_attribute(scene, tangent_std));
+                         (active_render && mesh->need_attribute(scene, uv_std));
 
     /* UV map */
     Attribute *uv_attr = nullptr;
-    if (need_uv || need_tangent) {
+    if (need_uv) {
       if (active_render) {
         uv_attr = mesh->attributes.add(uv_std, uv_name);
       }
@@ -301,20 +296,15 @@ static void attr_create_subd_uv_map(Scene *scene,
   for (const ustring &uv_name : blender_uv_names) {
     const bool active_render = uv_name == render_name;
     const AttributeStandard uv_std = (active_render) ? ATTR_STD_UV : ATTR_STD_NONE;
-    const AttributeStandard tangent_std = (active_render) ? ATTR_STD_UV_TANGENT : ATTR_STD_NONE;
-    const ustring tangent_name = ustring((string(uv_name) + ".tangent").c_str());
 
     /* Denotes whether UV map was requested directly. */
     const bool need_uv = mesh->need_attribute(scene, uv_name) ||
-                         mesh->need_attribute(scene, uv_std);
-    /* Denotes whether tangent was requested directly. */
-    const bool need_tangent = mesh->need_attribute(scene, tangent_name) ||
-                              (active_render && mesh->need_attribute(scene, tangent_std));
+                         (active_render && mesh->need_attribute(scene, uv_std));
 
     Attribute *uv_attr = nullptr;
 
     /* UV map */
-    if (need_uv || need_tangent) {
+    if (need_uv) {
       if (active_render) {
         uv_attr = mesh->subd_attributes.add(uv_std, uv_name);
       }
