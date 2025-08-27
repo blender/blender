@@ -9,7 +9,7 @@
 #  include "draw_object_infos_info.hh"
 #  include "draw_view_info.hh"
 
-#  define HAIR_SHADER
+#  define CURVES_SHADER
 #  define DRW_HAIR_INFO
 #endif
 
@@ -23,7 +23,7 @@ GPU_SHADER_CREATE_INFO(overlay_sculpt_curves_selection)
 DO_STATIC_COMPILATION()
 PUSH_CONSTANT(bool, is_point_domain)
 PUSH_CONSTANT(float, selection_opacity)
-SAMPLER(1, samplerBuffer, selection_tx)
+SAMPLER(2, samplerBuffer, selection_tx)
 VERTEX_OUT(overlay_sculpt_curves_selection_iface)
 VERTEX_SOURCE("overlay_sculpt_curves_selection_vert.glsl")
 FRAGMENT_SOURCE("overlay_sculpt_curves_selection_frag.glsl")
@@ -31,7 +31,8 @@ FRAGMENT_OUT(0, float4, out_color)
 ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_modelmat)
 ADDITIONAL_INFO(draw_globals)
-ADDITIONAL_INFO(draw_hair)
+ADDITIONAL_INFO(draw_curves)
+ADDITIONAL_INFO(draw_curves_infos)
 GPU_SHADER_CREATE_END()
 
 OVERLAY_INFO_CLIP_VARIATION(overlay_sculpt_curves_selection)

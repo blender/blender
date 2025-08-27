@@ -113,6 +113,7 @@ enum class ScopeType : char {
   Struct = 'S',
   Function = 'F',
   FunctionArgs = 'f',
+  FunctionCall = 'c',
   Template = 'T',
   TemplateArg = 't',
   Subscript = 'A',
@@ -849,6 +850,9 @@ inline void ParserData::parse_scopes(report_callback &report_error)
           else if (scopes.top().type == ScopeType::Struct) {
             enter_scope(ScopeType::Function, tok_id);
           }
+          else if (scopes.top().type == ScopeType::Namespace) {
+            enter_scope(ScopeType::Function, tok_id);
+          }
           else {
             enter_scope(ScopeType::Local, tok_id);
           }
@@ -859,6 +863,12 @@ inline void ParserData::parse_scopes(report_callback &report_error)
           }
           else if (scopes.top().type == ScopeType::Struct) {
             enter_scope(ScopeType::FunctionArgs, tok_id);
+          }
+          else if ((scopes.top().type == ScopeType::Function ||
+                    scopes.top().type == ScopeType::Local) &&
+                   (tok_id >= 1 && token_types[tok_id - 1] == Word))
+          {
+            enter_scope(ScopeType::FunctionCall, tok_id);
           }
           else {
             enter_scope(ScopeType::Local, tok_id);
@@ -1028,6 +1038,14 @@ struct Parser {
                matches[4].scope(),
                matches[8] == Const,
                matches[10].scope());
+    });
+    foreach_match("m?ww<..>(..)c?{..}", [&](const std::vector<Token> matches) {
+      callback(matches[0] == Static,
+               matches[2],
+               matches[3],
+               matches[8].scope(),
+               matches[12] == Const,
+               matches[14].scope());
     });
   }
 

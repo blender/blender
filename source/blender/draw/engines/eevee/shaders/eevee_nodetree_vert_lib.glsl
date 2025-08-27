@@ -9,7 +9,10 @@
 #include "eevee_nodetree_lib.glsl"
 
 /* Loading of the attributes into GlobalData. */
-void attrib_load() {}
+void attrib_load(MeshVertex domain) {}
+void attrib_load(PointCloudPoint domain) {}
+void attrib_load(CurvesPoint domain) {}
+void attrib_load(GPencilPoint domain) {}
 
 /* Material graph connected to the displacement output. */
 float3 nodetree_displacement()

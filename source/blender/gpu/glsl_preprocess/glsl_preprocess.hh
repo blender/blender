@@ -1481,11 +1481,11 @@ class Preprocessor {
               });
             }
 
-            /* `*this` -> `this` */
+            /* `*this` -> `this_` */
             scope.foreach_match("*T", [&](const std::vector<Token> &tokens) {
               fn_parser.replace(tokens[0], tokens[1], "this_");
             });
-            /* `this->` -> `this.` */
+            /* `this->` -> `this_.` */
             scope.foreach_match("TD", [&](const std::vector<Token> &tokens) {
               fn_parser.replace(tokens[0], tokens[1], "this_.");
             });
@@ -1976,11 +1976,19 @@ class Preprocessor {
         return str;
       }
       if (value.find("(") != string::npos) {
-        report_error(line_number(match),
-                     char_number(match),
-                     line_str(match),
-                     "Reference definitions cannot contain function calls.");
-        return str;
+        if (value.find("specialization_constant_get(") == string::npos &&
+            value.find("push_constant_get(") == string::npos &&
+            value.find("interface_get(") == string::npos &&
+            value.find("attribute_get(") == string::npos &&
+            value.find("buffer_get(") == string::npos &&
+            value.find("sampler_get(") == string::npos && value.find("image_get(") == string::npos)
+        {
+          report_error(line_number(match),
+                       char_number(match),
+                       line_str(match),
+                       "Reference definitions cannot contain function calls.");
+          return str;
+        }
       }
       if (value.find("[") != string::npos) {
         const string index_var = get_content_between_balanced_pair(value, '[', ']');

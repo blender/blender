@@ -31,23 +31,9 @@ struct VolumeModule;
 class ObjectRef;
 }  // namespace blender::draw
 
-/* draw_hair.cc */
-
-/**
- * \note Only valid after #DRW_curves_update().
- */
-blender::gpu::VertBuf *DRW_hair_pos_buffer_get(Object *object,
-                                               ParticleSystem *psys,
-                                               ModifierData *md);
-
 /* draw_curves.cc */
 
 namespace blender::draw {
-
-/**
- * \note Only valid after #DRW_curves_update().
- */
-gpu::VertBuf *DRW_curves_pos_buffer_get(Object *object);
 
 /* If drw_data is nullptr, DST global is accessed to get it. */
 void DRW_curves_init(DRWData *drw_data = nullptr);

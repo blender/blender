@@ -1020,6 +1020,30 @@ uint my_func() {
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
+  {
+    /* Guard in template. */
+    string input = R"(
+template<> uint my_func<uint>(uint i) {
+  return buffer_get(draw_resource_id, resource_id_buf)[i];
+}
+)";
+    string expect = R"(
+ uint my_func_uint_(uint i) {
+#if defined(CREATE_INFO_draw_resource_id)
+#line 3
+  return buffer_get(draw_resource_id, resource_id_buf)[i];
+#else
+#line 3
+  return uint(0);
+#endif
+#line 4
+}
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
 }
 GPU_TEST(preprocess_resource_guard);
 

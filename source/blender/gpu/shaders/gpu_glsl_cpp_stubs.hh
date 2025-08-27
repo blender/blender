@@ -1051,18 +1051,19 @@ void groupMemoryBarrier() {}
 #define common common_is_reserved_glsl_keyword_do_not_use
 #define partition partition_is_reserved_glsl_keyword_do_not_use
 #define active active_is_reserved_glsl_keyword_do_not_use
-#define class class_is_reserved_glsl_keyword_do_not_use
+// #define class /* Supported. */
 #define union union_is_reserved_glsl_keyword_do_not_use
 // #define enum /* Supported. */
 #define typedef typedef_is_reserved_glsl_keyword_do_not_use
 // #define template /* Needed for Stubs. */
-#define this this_is_reserved_glsl_keyword_do_not_use
+// #define this /* Needed for Stubs. */
 #define packed packed_is_reserved_glsl_keyword_do_not_use
 #define resource resource_is_reserved_glsl_keyword_do_not_use
 #define goto goto_is_reserved_glsl_keyword_do_not_use
 // #define inline  /* Supported. */
 #define noinline noinline_is_reserved_glsl_keyword_do_not_use
-#define public public_is_reserved_glsl_keyword_do_not_use
+// #define public /* Supported. */
+// #define private /* Supported. */
 // #define static /* Supported. */
 // #define extern /* Needed for Stubs. */
 #define external external_is_reserved_glsl_keyword_do_not_use

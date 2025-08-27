@@ -112,7 +112,7 @@ float4 velocity_resolve(sampler2D vector_tx, int2 texel, float depth)
 
 /**
  * Given a triple of position, compute the previous and next motion vectors.
- * Returns a tuple of world space motion deltas.
+ * Returns a tuple of local space motion deltas.
  */
 void velocity_local_pos_get(float3 lP, int vert_id, out float3 lP_prev, out float3 lP_next)
 {

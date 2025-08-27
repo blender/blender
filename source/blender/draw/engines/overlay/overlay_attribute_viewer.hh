@@ -227,14 +227,17 @@ class AttributeViewer : Overlay {
         {
           if (attribute_type_supports_viewer_overlay(meta_data->data_type)) {
             bool is_point_domain;
-            gpu::VertBuf **texture = DRW_curves_texture_for_evaluated_attribute(
-                &curves_id, ".viewer", &is_point_domain);
-            auto &sub = *curves_sub_;
-            gpu::Batch *batch = curves_sub_pass_setup(sub, state.scene, ob_ref.object);
-            sub.push_constant("opacity", opacity);
-            sub.push_constant("is_point_domain", is_point_domain);
-            sub.bind_texture("color_tx", *texture);
-            sub.draw(batch, manager.unique_handle(ob_ref));
+            bool is_valid;
+            gpu::VertBufPtr &texture = DRW_curves_texture_for_evaluated_attribute(
+                &curves_id, ".viewer", is_point_domain, is_valid);
+            if (is_valid) {
+              auto &sub = *curves_sub_;
+              gpu::Batch *batch = curves_sub_pass_setup(sub, state.scene, ob_ref.object);
+              sub.push_constant("opacity", opacity);
+              sub.push_constant("is_point_domain", is_point_domain);
+              sub.bind_texture("color_tx", texture);
+              sub.draw(batch, manager.unique_handle(ob_ref));
+            }
           }
         }
         break;

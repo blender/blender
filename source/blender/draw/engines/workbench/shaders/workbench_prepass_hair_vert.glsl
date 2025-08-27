@@ -27,13 +27,12 @@ float integer_noise(int n)
   return (float(nn) / 1073741824.0f);
 }
 
-float3 workbench_hair_random_normal(float3 tangent, float3 binor, float rand)
+float3 workbench_hair_random_normal(float3 tangent, float3 binor, float3 nor, float rand)
 {
   /* To "simulate" anisotropic shading, randomize hair normal per strand. */
-  float3 nor = cross(tangent, binor);
   nor = normalize(mix(nor, -tangent, rand * 0.1f));
   float cos_theta = (rand * 2.0f - 1.0f) * 0.2f;
-  float sin_theta = sqrt(max(0.0f, 1.0f - cos_theta * cos_theta));
+  float sin_theta = sin_from_cos(cos_theta);
   nor = nor * sin_theta + binor * cos_theta;
   return nor;
 }
@@ -47,41 +46,43 @@ void workbench_hair_random_material(float rand,
   rand -= 0.5f;
   rand *= 0.1f;
   /* Add some variation to the hairs to avoid uniform look. */
-  metallic = clamp(metallic + rand, 0.0f, 1.0f);
-  roughness = clamp(roughness + rand, 0.0f, 1.0f);
+  metallic = saturate(metallic + rand);
+  roughness = saturate(roughness + rand);
   /* Modulate by color intensity to reduce very high contrast when color is dark. */
-  color = clamp(color + rand * (color + 0.05f), 0.0f, 1.0f);
+  color = saturate(color + rand * (color + 0.05f));
 }
 
 void main()
 {
-  bool is_persp = (drw_view().winmat[3][3] == 0.0f);
-  float time = 0.0f, thick_time = 0.0f, thickness = 0.0f;
-  float3 world_pos, tangent, binor;
-  hair_get_pos_tan_binor_time(is_persp,
-                              drw_modelinv(),
-                              drw_view().viewinv[3].xyz,
-                              drw_view().viewinv[2].xyz,
-                              world_pos,
-                              tangent,
-                              binor,
-                              time,
-                              thickness,
-                              thick_time);
+  const curves::Point ls_pt = curves::point_get(uint(gl_VertexID));
+  const curves::Point ws_pt = curves::object_to_world(ls_pt, drw_modelmat());
+  const curves::ShapePoint pt = curves::shape_point_get(ws_pt, drw_world_incident_vector(ws_pt.P));
+  float3 world_pos = pt.P;
 
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
-  float hair_rand = integer_noise(hair_get_strand_id());
-  float3 nor = workbench_hair_random_normal(tangent, binor, hair_rand);
+  float hair_rand = integer_noise(ws_pt.curve_id);
+
+  float3 nor = pt.N;
+  if (drw_curves.half_cylinder_face_count == 1) {
+    /* Very cheap smooth normal using attribute interpolator.
+     * Using the correct normals over the cylinder (-1..1) leads to unwanted result as the
+     * interpolation is not spherical but linear. So we use a smaller range (-SQRT2..SQRT2) in
+     * which the linear interpolation is close enough to the desired result. */
+    nor = pt.N + pt.curve_N;
+  }
+  else if (drw_curves.half_cylinder_face_count == 0) {
+    nor = workbench_hair_random_normal(pt.curve_T, pt.curve_B, pt.curve_N, hair_rand);
+  }
 
   view_clipping_distances(world_pos);
 
-  uv_interp = hair_get_customdata_vec2(au);
+  uv_interp = curves::get_customdata_vec2(ws_pt.curve_id, au);
 
   normal_interp = normalize(drw_normal_world_to_view(nor));
 
   workbench_material_data_get(int(drw_custom_id()),
-                              hair_get_customdata_vec3(ac),
+                              curves::get_customdata_vec3(ws_pt.curve_id, ac),
                               color_interp,
                               alpha_interp,
                               _roughness,

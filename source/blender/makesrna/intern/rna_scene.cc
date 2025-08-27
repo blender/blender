@@ -6863,6 +6863,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   static const EnumPropertyItem hair_shape_type_items[] = {
       {SCE_HAIR_SHAPE_STRAND, "STRAND", 0, "Strand", ""},
       {SCE_HAIR_SHAPE_STRIP, "STRIP", 0, "Strip", ""},
+      {SCE_HAIR_SHAPE_CYLINDER, "CYLINDER", 0, "Cylinder", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 

@@ -227,6 +227,10 @@ struct GPUMaterialAttribute {
    * If true, the attribute is the length of hair particles and curves.
    */
   bool is_hair_length;
+  /**
+   * If true, the attribute is the intercept of hair particles and curves.
+   */
+  bool is_hair_intercept;
 };
 
 struct GPUMaterialTexture {
@@ -306,6 +310,7 @@ GPUNodeLink *GPU_attribute_default_color(GPUMaterial *mat);
  * Add a GPU attribute that refers to the approximate length of curves/hairs.
  */
 GPUNodeLink *GPU_attribute_hair_length(GPUMaterial *mat);
+GPUNodeLink *GPU_attribute_hair_intercept(GPUMaterial *mat);
 GPUNodeLink *GPU_attribute_with_default(GPUMaterial *mat,
                                         eCustomDataType type,
                                         const char *name,

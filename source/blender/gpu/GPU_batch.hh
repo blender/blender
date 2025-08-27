@@ -84,7 +84,7 @@ class Batch {
   blender::gpu::VertBuf *inst[GPU_BATCH_INST_VBO_MAX_LEN];
   /** nullptr if element list not needed */
   blender::gpu::IndexBuf *elem;
-  /** Number of vertices to draw for procedural drawcalls. */
+  /** Number of vertices to draw for procedural drawcalls. -1 otherwise. */
   int32_t procedural_vertices;
   /** Bookkeeping. */
   eGPUBatchFlag flag;

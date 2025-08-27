@@ -316,7 +316,6 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_ambient_occlusion_lib.glsl
   engines/eevee/shaders/eevee_ambient_occlusion_pass_comp.glsl
   engines/eevee/shaders/eevee_attributes_curves_lib.glsl
-  engines/eevee/shaders/eevee_attributes_gpencil_lib.glsl
   engines/eevee/shaders/eevee_attributes_mesh_lib.glsl
   engines/eevee/shaders/eevee_attributes_pointcloud_lib.glsl
   engines/eevee/shaders/eevee_attributes_volume_lib.glsl
@@ -554,8 +553,11 @@ set(GLSL_SRC
   intern/shaders/draw_debug_draw_lib.glsl
   intern/shaders/draw_debug_shape_lib.glsl
   intern/shaders/draw_fxaa_lib.glsl
+  intern/shaders/draw_curves_interpolation_comp.glsl
+  intern/shaders/draw_curves_length_intercept_comp.glsl
   intern/shaders/draw_curves_lib.glsl
-  intern/shaders/draw_hair_refine_comp.glsl
+  intern/shaders/draw_curves_test.glsl
+  intern/shaders/draw_curves_topology_comp.glsl
   intern/shaders/draw_shape_lib.glsl
   intern/shaders/draw_command_generate_comp.glsl
   intern/shaders/draw_debug_draw_display_frag.glsl
@@ -573,8 +575,10 @@ set(GLSL_SRC
   intern/shaders/draw_view_reconstruction_lib.glsl
   intern/shaders/draw_visibility_comp.glsl
 
+  intern/draw_attribute_shader_shared.hh
   intern/draw_command_shared.hh
   intern/draw_defines.hh
+  intern/draw_curves_defines.hh
   intern/draw_pointcloud_private.hh
   intern/draw_shader_shared.hh
   intern/draw_subdiv_defines.hh
@@ -828,6 +832,7 @@ if(WITH_GTESTS)
   if(WITH_GPU_DRAW_TESTS)
     set(TEST_SRC
       tests/draw_pass_test.cc
+      tests/draw_curves_test.cc
       tests/draw_testing.cc
       tests/eevee_test.cc
 

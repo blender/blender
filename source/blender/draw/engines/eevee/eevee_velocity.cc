@@ -178,22 +178,12 @@ bool VelocityModule::step_object_sync(ObjectKey &object_key,
     auto add_cb = [&]() {
       VelocityGeometryData data;
       if (particle_sys) {
-        if (inst_.is_viewport()) {
-          data.pos_buf = DRW_hair_pos_buffer_get(ob, particle_sys, modifier_data);
-        }
-        else {
-          data.pos_buf = draw::hair_pos_buffer_get(inst_.scene, ob, particle_sys, modifier_data);
-        }
+        data.pos_buf = draw::hair_pos_buffer_get(inst_.scene, ob, particle_sys, modifier_data);
         return data;
       }
       switch (ob->type) {
         case OB_CURVES:
-          if (inst_.is_viewport()) {
-            data.pos_buf = DRW_curves_pos_buffer_get(ob);
-          }
-          else {
-            data.pos_buf = draw::curves_pos_buffer_get(inst_.scene, ob);
-          }
+          data.pos_buf = draw::curves_pos_buffer_get(ob);
           break;
         case OB_POINTCLOUD:
           data.pos_buf = DRW_pointcloud_position_and_radius_buffer_get(ob);
