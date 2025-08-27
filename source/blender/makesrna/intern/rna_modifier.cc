@@ -24,6 +24,7 @@
 #include "BKE_animsys.h"
 #include "BKE_customdata.hh"
 #include "BKE_data_transfer.h"
+#include "BKE_grease_pencil.hh"
 #include "BKE_mesh_remap.hh"
 
 #include "RNA_define.hh"
@@ -2039,6 +2040,14 @@ static void rna_Lineart_end_level_set(PointerRNA *ptr, int value)
   value = std::clamp(value, 0, 128);
   lmd->level_end = value;
   lmd->level_start = std::min(value, int(lmd->level_start));
+}
+
+static void rna_Lineart_thickness_set(PointerRNA *ptr, int value)
+{
+  GreasePencilLineartModifierData *lmd = reinterpret_cast<GreasePencilLineartModifierData *>(
+      ptr->data);
+  lmd->thickness_legacy = value;
+  lmd->radius = float(value) / blender::bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
 }
 
 static const NodesModifierData *find_nodes_modifier_by_bake(const Object &object,
@@ -9134,6 +9143,16 @@ static void rna_def_modifier_grease_pencil_lineart(BlenderRNA *brna)
   RNA_def_property_ui_range(prop, 0.0f, 0.5f, 0.01f, 3);
   RNA_def_property_range(prop, 0.0f, 0.5f);
   RNA_def_property_update(prop, NC_SCENE, "rna_Modifier_update");
+
+  /* For 4.5 LTS only, thickness is deprecated in 5.0, but keep this RNA access for compatibility.
+   */
+  prop = RNA_def_property(srna, "thickness", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Thickness", "The thickness for the generated strokes");
+  RNA_def_property_int_sdna(prop, "GreasePencilLineartModifierData", "thickness_legacy");
+  RNA_def_property_ui_range(prop, 1, 100, 1, 1);
+  RNA_def_property_range(prop, 1, 200);
+  RNA_def_property_int_funcs(prop, nullptr, "rna_Lineart_thickness_set", nullptr);
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "radius", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_ui_text(prop, "Radius", "The radius for the generated strokes");
