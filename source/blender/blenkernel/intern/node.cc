@@ -435,6 +435,7 @@ static void node_foreach_path(ID *id, BPathForeachPathData *bpath_data)
       break;
     }
     case NTREE_GEOMETRY: {
+      ntree->ensure_topology_cache(); /* Otherwise node->input_sockets() doesn't work. */
       for (bNode *node : ntree->all_nodes()) {
         for (bNodeSocket *socket : node->input_sockets()) {
           /* Find file path input sockets. */
