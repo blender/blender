@@ -72,7 +72,10 @@ template<int Offset> class BindSpaceImages {
  public:
   Vector<VKTexture *> bound_resources;
 
-  void bind(VKTexture *resource, int binding)
+  void bind(VKTexture *resource,
+            int binding,
+            TextureWriteFormat format,
+            StateManager *state_manager)
   {
     if (binding >= Offset) {
       binding -= Offset;
@@ -81,6 +84,7 @@ template<int Offset> class BindSpaceImages {
       bound_resources.resize(binding + 1);
     }
     bound_resources[binding] = resource;
+    state_manager->image_formats[binding] = format;
   }
 
   VKTexture *get(int binding) const
@@ -91,11 +95,12 @@ template<int Offset> class BindSpaceImages {
     return bound_resources[binding];
   }
 
-  void unbind(void *resource)
+  void unbind(void *resource, StateManager *state_manager)
   {
     for (int index : IndexRange(bound_resources.size())) {
       if (bound_resources[index] == resource) {
         bound_resources[index] = nullptr;
+        state_manager->image_formats[index] = TextureWriteFormat::Invalid;
       }
     }
   }

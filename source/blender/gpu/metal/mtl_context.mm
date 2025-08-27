@@ -2408,7 +2408,9 @@ void MTLContext::sampler_bind(MTLSamplerState sampler_state, uint sampler_unit)
   this->pipeline_state.sampler_bindings[sampler_unit] = {true, sampler_state};
 }
 
-void MTLContext::texture_unbind(gpu::MTLTexture *mtl_texture, bool is_image)
+void MTLContext::texture_unbind(gpu::MTLTexture *mtl_texture,
+                                bool is_image,
+                                StateManager *state_manager)
 {
   BLI_assert(mtl_texture);
 
@@ -2422,6 +2424,9 @@ void MTLContext::texture_unbind(gpu::MTLTexture *mtl_texture, bool is_image)
     if (resource_bind_table[i].texture_resource == mtl_texture) {
       resource_bind_table[i].texture_resource = nullptr;
       resource_bind_table[i].used = false;
+      if (is_image) {
+        state_manager->image_formats[i] = TextureWriteFormat::Invalid;
+      }
     }
   }
 

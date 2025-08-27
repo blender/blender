@@ -850,7 +850,7 @@ class MTLContext : public Context {
   /* Context Global-State Texture Binding. */
   void texture_bind(gpu::MTLTexture *mtl_texture, uint texture_unit, bool is_image);
   void sampler_bind(MTLSamplerState, uint sampler_unit);
-  void texture_unbind(gpu::MTLTexture *mtl_texture, bool is_image);
+  void texture_unbind(gpu::MTLTexture *mtl_texture, bool is_image, StateManager *state_manager);
   void texture_unbind_all(bool is_image);
   void sampler_state_cache_init();
   id<MTLSamplerState> get_sampler_from_state(MTLSamplerState state);

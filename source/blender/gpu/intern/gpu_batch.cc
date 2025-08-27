@@ -20,6 +20,7 @@
 #include "GPU_vertex_buffer.hh"
 #include "gpu_backend.hh"
 #include "gpu_context_private.hh"
+#include "gpu_debug_private.hh"
 #include "gpu_shader_private.hh"
 
 #include <cstring>
@@ -502,6 +503,10 @@ void GPU_batch_draw_advanced(
     return;
   }
 
+#ifndef NDEBUG
+  debug_validate_binding_image_format();
+#endif
+
   batch->draw(vertex_first, vertex_count, instance_first, instance_count);
 }
 
@@ -511,6 +516,10 @@ void GPU_batch_draw_indirect(Batch *batch, blender::gpu::StorageBuf *indirect_bu
   BLI_assert(indirect_buf != nullptr);
   BLI_assert(Context::get()->shader != nullptr);
   Context::get()->assert_framebuffer_shader_compatibility(Context::get()->shader);
+
+#ifndef NDEBUG
+  debug_validate_binding_image_format();
+#endif
 
   batch->draw_indirect(indirect_buf, offset);
 }
@@ -525,6 +534,10 @@ void GPU_batch_multi_draw_indirect(Batch *batch,
   BLI_assert(indirect_buf != nullptr);
   BLI_assert(Context::get()->shader != nullptr);
   Context::get()->assert_framebuffer_shader_compatibility(Context::get()->shader);
+
+#ifndef NDEBUG
+  debug_validate_binding_image_format();
+#endif
 
   batch->multi_draw_indirect(indirect_buf, count, offset, stride);
 }

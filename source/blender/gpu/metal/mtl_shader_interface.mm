@@ -403,6 +403,9 @@ void MTLShaderInterface::prepare_common_shader_inputs(const shader::ShaderCreate
       current_input++;
     }
   }
+  if (info != nullptr) {
+    set_image_formats_from_info(*info);
+  }
 
   /* SSBO bindings. */
   BLI_assert(&inputs_[attr_len_ + ubo_len_ + uniform_len_] >= current_input);
