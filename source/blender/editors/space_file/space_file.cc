@@ -246,7 +246,7 @@ static void file_refresh(const bContext *C, ScrArea *area)
       params->filter,
       params->filter_id,
       (params->flag & FILE_ASSETS_ONLY) != 0,
-      (asset_params->asset_flags & FILE_ASSETS_HIDE_ONLINE) != 0,
+      asset_params && (asset_params->asset_flags & FILE_ASSETS_HIDE_ONLINE) != 0,
       params->filter_glob,
       params->filter_search);
   if (asset_params) {
