@@ -830,7 +830,11 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
        * Only orco layer is supported by world and it is procedurally generated. These are here to
        * make the attribs_load function calls valid.
        */
-      ATTR_FALLTHROUGH;
+      for (auto &input : info.vertex_inputs_) {
+        global_vars << input.type << " " << input.name << ";\n";
+      }
+      info.vertex_inputs_.clear();
+      break;
     case MAT_GEOM_VOLUME:
       /** Volume grid attributes come from 3D textures. Transfer attributes to samplers. */
       for (auto &input : info.vertex_inputs_) {
