@@ -1654,6 +1654,7 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, nullptr, "bundle_pos");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Bundle", "Position of bundle reconstructed from this track");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MOVIECLIP);
   RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
 
   /* hide */
