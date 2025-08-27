@@ -5269,9 +5269,6 @@ static bool object_modifier_recurse_for_update_subframe(const ObjectModifierUpda
     if (ob->parent) {
       no_update |= object_modifier_recurse_for_update_subframe(ctx, ob->parent, false, recursion);
     }
-    if (ob->track) {
-      no_update |= object_modifier_recurse_for_update_subframe(ctx, ob->track, false, recursion);
-    }
 
     /* Skip sub-frame if object is parented to vertex of a dynamic paint canvas. */
     if (no_update && ELEM(ob->partype, PARVERT1, PARVERT3)) {
