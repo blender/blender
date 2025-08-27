@@ -44,6 +44,7 @@ set(SRC
   editmesh_undo.cc
   editmesh_utils.cc
   mesh_data.cc
+  mesh_join.cc
   mesh_mirror.cc
   mesh_ops.cc
   meshtools.cc
