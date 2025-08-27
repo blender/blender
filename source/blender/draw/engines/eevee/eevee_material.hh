@@ -228,14 +228,6 @@ struct MaterialKey {
     return uint64_t(mat) + options;
   }
 
-  bool operator<(const MaterialKey &k) const
-  {
-    if (mat == k.mat) {
-      return options < k.options;
-    }
-    return mat < k.mat;
-  }
-
   bool operator==(const MaterialKey &k) const
   {
     return (mat == k.mat) && (options == k.options);
@@ -270,11 +262,6 @@ struct ShaderKey {
   uint64_t hash() const
   {
     return uint64_t(shader) + options;
-  }
-
-  bool operator<(const ShaderKey &k) const
-  {
-    return (shader == k.shader) ? (options < k.options) : (shader < k.shader);
   }
 
   bool operator==(const ShaderKey &k) const

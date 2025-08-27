@@ -205,11 +205,6 @@ class ShaderModule {
     {
       return hash_value_ == k.hash_value_;
     }
-
-    bool operator<(const SpecializationsKey &k) const
-    {
-      return hash_value_ < k.hash_value_;
-    }
   };
 
   Map<SpecializationsKey, SpecializationBatchHandle> specialization_handles_;

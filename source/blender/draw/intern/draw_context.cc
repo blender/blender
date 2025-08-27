@@ -733,29 +733,6 @@ struct InstancesKey {
     return hash_value;
   }
 
-  bool operator<(const InstancesKey &k) const
-  {
-    if (hash_value != k.hash_value) {
-      return hash_value < k.hash_value;
-    }
-    if (object != k.object) {
-      return object < k.object;
-    }
-    if (ob_data != k.ob_data) {
-      return ob_data < k.ob_data;
-    }
-    if (flags != k.flags) {
-      return flags < k.flags;
-    }
-    if (preview_base_geometry != k.preview_base_geometry) {
-      return preview_base_geometry < k.preview_base_geometry;
-    }
-    if (preview_instance_index != k.preview_instance_index) {
-      return preview_instance_index < k.preview_instance_index;
-    }
-    return false;
-  }
-
   bool operator==(const InstancesKey &k) const
   {
     if (hash_value != k.hash_value) {
