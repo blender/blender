@@ -28,6 +28,7 @@ struct rcti;
 struct TransVertStore;
 struct wmKeyConfig;
 struct wmOperator;
+struct EnumPropertyItem;
 namespace blender::bke {
 enum class AttrDomain : int8_t;
 struct GSpanAttributeWriter;
@@ -473,6 +474,16 @@ void resize_curves(bke::CurvesGeometry &curves,
 void reorder_curves(bke::CurvesGeometry &curves, Span<int> old_by_new_indices_map);
 
 wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op);
+
+enum class SetHandleType : uint8_t {
+  Free = 0,
+  Auto = 1,
+  Vector = 2,
+  Align = 3,
+  Toggle = 4,
+};
+
+extern const EnumPropertyItem rna_enum_set_handle_type_items[];
 
 /** \} */
 
