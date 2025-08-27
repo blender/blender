@@ -1480,7 +1480,8 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
     rcti *rct = &pc_dyn->rect;
     const char *category_id = pc_dyn->idname;
     const char *category_id_draw = IFACE_(category_id);
-    const int category_width = BLF_width(fontid, category_id_draw, BLF_DRAW_STR_DUMMY_MAX);
+    const int category_width = round_fl_to_int(
+        BLF_width(fontid, category_id_draw, BLF_DRAW_STR_DUMMY_MAX));
 
     rct->xmin = rct_xmin;
     rct->xmax = rct_xmax;
@@ -1613,9 +1614,9 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
     /* Tab titles. */
 
     /* Offset toward the middle of the rect. */
-    const int text_v_ofs = (rct_xmax - rct_xmin) * 0.5f;
+    const int text_v_ofs = round_fl_to_int(float(rct_xmax - rct_xmin) * 0.5f);
     /* Offset down as the font size increases. */
-    const int text_size_offset = int(fstyle_points * UI_SCALE_FAC * 0.35f);
+    const int text_size_offset = round_fl_to_int(fstyle_points * UI_SCALE_FAC * 0.35f);
 
     BLF_position(fontid,
                  is_left ? rct->xmax - text_v_ofs + text_size_offset :
