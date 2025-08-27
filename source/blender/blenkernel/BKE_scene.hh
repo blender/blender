@@ -14,6 +14,7 @@
 struct Base;
 struct Collection;
 struct Depsgraph;
+struct ImageFormatData;
 struct GHash;
 struct Main;
 struct Object;
@@ -278,9 +279,13 @@ void BKE_scene_multiview_view_prefix_get(Scene *scene,
                                          const char *filepath,
                                          char *r_prefix,
                                          const char **r_ext);
-void BKE_scene_multiview_videos_dimensions_get(
-    const RenderData *rd, size_t width, size_t height, size_t *r_width, size_t *r_height);
-int BKE_scene_multiview_num_videos_get(const RenderData *rd);
+void BKE_scene_multiview_videos_dimensions_get(const RenderData *rd,
+                                               const ImageFormatData *imf,
+                                               size_t width,
+                                               size_t height,
+                                               size_t *r_width,
+                                               size_t *r_height);
+int BKE_scene_multiview_num_videos_get(const RenderData *rd, const ImageFormatData *imf);
 /**
  * Calculate the final pixels-per-meter, from the scenes PPM & aspect data.
  */

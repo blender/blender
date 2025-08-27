@@ -700,12 +700,12 @@ static int remap_crf_to_h265_crf(int crf, bool is_10_or_12_bpp)
   return crf;
 }
 
-static const AVCodec *get_prores_encoder(const RenderData *rd, int rectx, int recty)
+static const AVCodec *get_prores_encoder(const ImageFormatData *imf, int rectx, int recty)
 {
   /* The prores_aw encoder currently (April 2025) has issues when encoding alpha with high
    * resolution but is faster in most cases for similar quality. Use it instead of prores_ks
    * if possible. (Upstream issue https://trac.ffmpeg.org/ticket/11536) */
-  if (rd->im_format.planes == R_IMF_PLANES_RGBA) {
+  if (imf->planes == R_IMF_PLANES_RGBA) {
     if ((size_t(rectx) * size_t(recty)) > (3840 * 2160)) {
       return avcodec_find_encoder_by_name("prores_ks");
     }
@@ -724,7 +724,8 @@ static int remap_crf_to_h264_10bpp_crf(int crf)
 
 static void set_quality_rate_options(const MovieWriter *context,
                                      const AVCodecID codec_id,
-                                     const RenderData *rd,
+                                     const FFMpegCodecData *ffcodecdata,
+                                     const ImageFormatData *imf,
                                      AVDictionary **opts)
 {
   AVCodecContext *c = context->video_codec;
@@ -732,9 +733,9 @@ static void set_quality_rate_options(const MovieWriter *context,
   /* Handle constant bit rate (CBR) case. */
   if (!MOV_codec_supports_crf(codec_id) || context->ffmpeg_crf < 0) {
     c->bit_rate = context->ffmpeg_video_bitrate * 1000;
-    c->rc_max_rate = rd->ffcodecdata.rc_max_rate * 1000;
-    c->rc_min_rate = rd->ffcodecdata.rc_min_rate * 1000;
-    c->rc_buffer_size = rd->ffcodecdata.rc_buffer_size * 1024;
+    c->rc_max_rate = ffcodecdata->rc_max_rate * 1000;
+    c->rc_min_rate = ffcodecdata->rc_min_rate * 1000;
+    c->rc_buffer_size = ffcodecdata->rc_buffer_size * 1024;
     return;
   }
 
@@ -742,8 +743,8 @@ static void set_quality_rate_options(const MovieWriter *context,
    * https://trac.ffmpeg.org/wiki/Encode/VP9 */
   c->bit_rate = 0;
 
-  const bool is_10_bpp = rd->im_format.depth == R_IMF_CHAN_DEPTH_10;
-  const bool is_12_bpp = rd->im_format.depth == R_IMF_CHAN_DEPTH_12;
+  const bool is_10_bpp = imf->depth == R_IMF_CHAN_DEPTH_10;
+  const bool is_12_bpp = imf->depth == R_IMF_CHAN_DEPTH_12;
   const bool av1_librav1e = codec_id == AV_CODEC_ID_AV1 && STREQ(c->codec->name, "librav1e");
   const bool av1_libsvtav1 = codec_id == AV_CODEC_ID_AV1 && STREQ(c->codec->name, "libsvtav1");
 
@@ -801,6 +802,7 @@ static void set_quality_rate_options(const MovieWriter *context,
 
 static AVStream *alloc_video_stream(MovieWriter *context,
                                     const RenderData *rd,
+                                    const ImageFormatData *imf,
                                     AVCodecID codec_id,
                                     AVFormatContext *of,
                                     int rectx,
@@ -828,7 +830,7 @@ static AVStream *alloc_video_stream(MovieWriter *context,
     codec = get_av1_encoder(context, rd, &opts, rectx, recty);
   }
   else if (codec_id == AV_CODEC_ID_PRORES) {
-    codec = get_prores_encoder(rd, rectx, recty);
+    codec = get_prores_encoder(imf, rectx, recty);
   }
   else {
     codec = avcodec_find_encoder(codec_id);
@@ -881,7 +883,7 @@ static AVStream *alloc_video_stream(MovieWriter *context,
   c->gop_size = context->ffmpeg_gop_size;
   c->max_b_frames = context->ffmpeg_max_b_frames;
 
-  set_quality_rate_options(context, codec_id, rd, &opts);
+  set_quality_rate_options(context, codec_id, &rd->ffcodecdata, imf, &opts);
 
   if (context->ffmpeg_preset) {
     /* 'preset' is used by h.264, 'deadline' is used by WEBM/VP9. I'm not
@@ -926,9 +928,9 @@ static AVStream *alloc_video_stream(MovieWriter *context,
     c->pix_fmt = AV_PIX_FMT_YUV422P;
   }
 
-  const bool is_10_bpp = rd->im_format.depth == R_IMF_CHAN_DEPTH_10;
-  const bool is_12_bpp = rd->im_format.depth == R_IMF_CHAN_DEPTH_12;
-  const bool is_16_bpp = rd->im_format.depth == R_IMF_CHAN_DEPTH_16;
+  const bool is_10_bpp = imf->depth == R_IMF_CHAN_DEPTH_10;
+  const bool is_12_bpp = imf->depth == R_IMF_CHAN_DEPTH_12;
+  const bool is_16_bpp = imf->depth == R_IMF_CHAN_DEPTH_16;
 
   eFFMpegVideoHdr hdr = eFFMpegVideoHdr(rd->ffcodecdata.video_hdr);
   /* Never use HDR for non-10/12 bpp or grayscale outputs. */
@@ -961,7 +963,7 @@ static AVStream *alloc_video_stream(MovieWriter *context,
 
   /* Keep lossless encodes in the RGB domain. */
   if (codec_id == AV_CODEC_ID_HUFFYUV) {
-    if (rd->im_format.planes == R_IMF_PLANES_RGBA) {
+    if (imf->planes == R_IMF_PLANES_RGBA) {
       c->pix_fmt = AV_PIX_FMT_BGRA;
     }
     else {
@@ -977,7 +979,7 @@ static AVStream *alloc_video_stream(MovieWriter *context,
   }
 
   if (codec_id == AV_CODEC_ID_FFV1) {
-    if (rd->im_format.planes == R_IMF_PLANES_BW) {
+    if (imf->planes == R_IMF_PLANES_BW) {
       c->pix_fmt = AV_PIX_FMT_GRAY8;
       if (is_10_bpp) {
         c->pix_fmt = AV_PIX_FMT_GRAY10;
@@ -989,7 +991,7 @@ static AVStream *alloc_video_stream(MovieWriter *context,
         c->pix_fmt = AV_PIX_FMT_GRAY16;
       }
     }
-    else if (rd->im_format.planes == R_IMF_PLANES_RGBA) {
+    else if (imf->planes == R_IMF_PLANES_RGBA) {
       c->pix_fmt = AV_PIX_FMT_RGB32;
       if (is_10_bpp) {
         c->pix_fmt = AV_PIX_FMT_GBRAP10;
@@ -1016,10 +1018,10 @@ static AVStream *alloc_video_stream(MovieWriter *context,
   }
 
   if (codec_id == AV_CODEC_ID_QTRLE) {
-    if (rd->im_format.planes == R_IMF_PLANES_BW) {
+    if (imf->planes == R_IMF_PLANES_BW) {
       c->pix_fmt = AV_PIX_FMT_GRAY8;
     }
-    else if (rd->im_format.planes == R_IMF_PLANES_RGBA) {
+    else if (imf->planes == R_IMF_PLANES_RGBA) {
       c->pix_fmt = AV_PIX_FMT_ARGB;
     }
     else { /* RGB */
@@ -1027,7 +1029,7 @@ static AVStream *alloc_video_stream(MovieWriter *context,
     }
   }
 
-  if (codec_id == AV_CODEC_ID_VP9 && rd->im_format.planes == R_IMF_PLANES_RGBA) {
+  if (codec_id == AV_CODEC_ID_VP9 && imf->planes == R_IMF_PLANES_RGBA) {
     c->pix_fmt = AV_PIX_FMT_YUVA420P;
   }
   else if (ELEM(codec_id, AV_CODEC_ID_H264, AV_CODEC_ID_H265, AV_CODEC_ID_VP9, AV_CODEC_ID_AV1) &&
@@ -1044,10 +1046,10 @@ static AVStream *alloc_video_stream(MovieWriter *context,
   }
 
   if (codec_id == AV_CODEC_ID_PNG) {
-    if (rd->im_format.planes == R_IMF_PLANES_BW) {
+    if (imf->planes == R_IMF_PLANES_BW) {
       c->pix_fmt = AV_PIX_FMT_GRAY8;
     }
-    else if (rd->im_format.planes == R_IMF_PLANES_RGBA) {
+    else if (imf->planes == R_IMF_PLANES_RGBA) {
       c->pix_fmt = AV_PIX_FMT_RGBA;
     }
     else { /* RGB */
@@ -1067,7 +1069,7 @@ static AVStream *alloc_video_stream(MovieWriter *context,
       c->profile = context->ffmpeg_profile;
       c->pix_fmt = AV_PIX_FMT_YUV444P10LE;
 
-      if (rd->im_format.planes == R_IMF_PLANES_RGBA) {
+      if (imf->planes == R_IMF_PLANES_RGBA) {
         c->pix_fmt = AV_PIX_FMT_YUVA444P10LE;
       }
     }
@@ -1203,6 +1205,7 @@ static void ffmpeg_add_metadata_callback(void *data,
 static bool start_ffmpeg_impl(MovieWriter *context,
                               const Scene *scene,
                               const RenderData *rd,
+                              const ImageFormatData *imf,
                               int rectx,
                               int recty,
                               const char *suffix,
@@ -1348,7 +1351,7 @@ static bool start_ffmpeg_impl(MovieWriter *context,
 
   if (video_codec != AV_CODEC_ID_NONE) {
     context->video_stream = alloc_video_stream(
-        context, rd, video_codec, of, rectx, recty, error, sizeof(error));
+        context, rd, imf, video_codec, of, rectx, recty, error, sizeof(error));
     CLOG_INFO(&LOG, "ffmpeg: alloc video stream %p", context->video_stream);
     if (!context->video_stream) {
       if (error[0]) {
@@ -1574,6 +1577,7 @@ static void ffmpeg_get_filepath(char filepath[/*FILE_MAX*/ 1024],
 
 static MovieWriter *ffmpeg_movie_open(const Scene *scene,
                                       const RenderData *rd,
+                                      const ImageFormatData *imf,
                                       int rectx,
                                       int recty,
                                       ReportList *reports,
@@ -1595,7 +1599,7 @@ static MovieWriter *ffmpeg_movie_open(const Scene *scene,
   context->ffmpeg_preview = preview;
   context->stamp_data = BKE_stamp_info_from_scene_static(scene);
 
-  bool success = start_ffmpeg_impl(context, scene, rd, rectx, recty, suffix, reports);
+  bool success = start_ffmpeg_impl(context, scene, rd, imf, rectx, recty, suffix, reports);
 
   if (success) {
     success = movie_audio_open(context,
@@ -1618,6 +1622,7 @@ static void end_ffmpeg_impl(MovieWriter *context, bool is_autosplit);
 static bool ffmpeg_movie_append(MovieWriter *context,
                                 const Scene *scene,
                                 const RenderData *rd,
+                                const ImageFormatData *imf,
                                 int start_frame,
                                 int frame,
                                 const ImBuf *image,
@@ -1645,7 +1650,7 @@ static bool ffmpeg_movie_append(MovieWriter *context,
       end_ffmpeg_impl(context, true);
       context->ffmpeg_autosplit_count++;
 
-      success &= start_ffmpeg_impl(context, scene, rd, image->x, image->y, suffix, reports);
+      success &= start_ffmpeg_impl(context, scene, rd, imf, image->x, image->y, suffix, reports);
     }
   }
 
@@ -1729,25 +1734,25 @@ static void ffmpeg_movie_close(MovieWriter *context)
 
 #endif /* WITH_FFMPEG */
 
-MovieWriter *MOV_write_begin(const char imtype,
-                             const Scene *scene,
+MovieWriter *MOV_write_begin(const Scene *scene,
                              const RenderData *rd,
+                             const ImageFormatData *imf,
                              int rectx,
                              int recty,
                              ReportList *reports,
                              bool preview,
                              const char *suffix)
 {
-  if (imtype != R_IMF_IMTYPE_FFMPEG) {
+  if (imf->imtype != R_IMF_IMTYPE_FFMPEG) {
     BKE_report(reports, RPT_ERROR, "Image format is not a movie format");
     return nullptr;
   }
 
   MovieWriter *writer = nullptr;
 #ifdef WITH_FFMPEG
-  writer = ffmpeg_movie_open(scene, rd, rectx, recty, reports, preview, suffix);
+  writer = ffmpeg_movie_open(scene, rd, imf, rectx, recty, reports, preview, suffix);
 #else
-  UNUSED_VARS(scene, rd, rectx, recty, reports, preview, suffix);
+  UNUSED_VARS(scene, rd, imf, rectx, recty, reports, preview, suffix);
 #endif
   return writer;
 }
@@ -1755,6 +1760,7 @@ MovieWriter *MOV_write_begin(const char imtype,
 bool MOV_write_append(MovieWriter *writer,
                       const Scene *scene,
                       const RenderData *rd,
+                      const ImageFormatData *imf,
                       int start_frame,
                       int frame,
                       const ImBuf *image,
@@ -1766,7 +1772,8 @@ bool MOV_write_append(MovieWriter *writer,
   }
 
 #ifdef WITH_FFMPEG
-  bool ok = ffmpeg_movie_append(writer, scene, rd, start_frame, frame, image, suffix, reports);
+  bool ok = ffmpeg_movie_append(
+      writer, scene, rd, imf, start_frame, frame, image, suffix, reports);
   return ok;
 #else
   UNUSED_VARS(scene, rd, start_frame, frame, image, suffix, reports);

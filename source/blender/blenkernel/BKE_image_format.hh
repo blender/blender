@@ -141,4 +141,5 @@ void BKE_image_format_color_management_copy_from_scene(ImageFormatData *imf, con
 
 void BKE_image_format_init_for_write(ImageFormatData *imf,
                                      const Scene *scene_src,
-                                     const ImageFormatData *imf_src);
+                                     const ImageFormatData *imf_src,
+                                     const bool allow_video = false);

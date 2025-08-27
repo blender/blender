@@ -3150,14 +3150,15 @@ void BKE_scene_multiview_view_prefix_get(Scene *scene,
 }
 
 void BKE_scene_multiview_videos_dimensions_get(const RenderData *rd,
+                                               const ImageFormatData *imf,
                                                const size_t width,
                                                const size_t height,
                                                size_t *r_width,
                                                size_t *r_height)
 {
-  if ((rd->scemode & R_MULTIVIEW) && rd->im_format.views_format == R_IMF_VIEWS_STEREO_3D) {
-    IMB_stereo3d_write_dimensions(rd->im_format.stereo3d_format.display_mode,
-                                  (rd->im_format.stereo3d_format.flag & S3D_SQUEEZED_FRAME) != 0,
+  if ((rd->scemode & R_MULTIVIEW) && imf->views_format == R_IMF_VIEWS_STEREO_3D) {
+    IMB_stereo3d_write_dimensions(imf->stereo3d_format.display_mode,
+                                  (imf->stereo3d_format.flag & S3D_SQUEEZED_FRAME) != 0,
                                   width,
                                   height,
                                   r_width,
@@ -3169,9 +3170,9 @@ void BKE_scene_multiview_videos_dimensions_get(const RenderData *rd,
   }
 }
 
-int BKE_scene_multiview_num_videos_get(const RenderData *rd)
+int BKE_scene_multiview_num_videos_get(const RenderData *rd, const ImageFormatData *imf)
 {
-  if (BKE_imtype_is_movie(rd->im_format.imtype) == false) {
+  if (BKE_imtype_is_movie(imf->imtype) == false) {
     return 0;
   }
 
@@ -3179,7 +3180,7 @@ int BKE_scene_multiview_num_videos_get(const RenderData *rd)
     return 1;
   }
 
-  if (rd->im_format.views_format == R_IMF_VIEWS_STEREO_3D) {
+  if (imf->views_format == R_IMF_VIEWS_STEREO_3D) {
     return 1;
   }
 
