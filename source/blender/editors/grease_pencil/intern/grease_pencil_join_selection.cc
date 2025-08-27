@@ -507,10 +507,12 @@ wmOperatorStatus grease_pencil_join_selection_exec(bContext *C, wmOperator *op)
 
   /* Temporary geometry where to perform the logic
    * Once it gets stable, it is appended all at once to the destination curves */
-  bke::CurvesGeometry tmp_curves(selected_points_count, 1);
+  Drawing tmp_drawing;
+  tmp_drawing.strokes_for_write() = bke::CurvesGeometry(selected_points_count, 1);
+  bke::CurvesGeometry &tmp_curves = tmp_drawing.strokes_for_write();
 
   const PointsRange working_range = copy_point_attributes(
-      ranges_selected, tmp_curves, *dst_drawing);
+      ranges_selected, tmp_curves, tmp_drawing);
   copy_curve_attributes(ranges_selected, tmp_curves, *dst_drawing);
 
   clear_selection_attribute(ranges_selected);
