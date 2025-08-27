@@ -51,10 +51,7 @@
 
 #include "mesh_intern.hh"
 
-using blender::float3;
-using blender::int2;
-using blender::MutableSpan;
-using blender::Span;
+namespace blender::ed::mesh {
 
 /* join selected meshes into the active mesh, context sensitive
  * return 0 if no join is made (error) and 1 if the join is done */
@@ -66,7 +63,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
                              Object *ob_src,
                              const float imat[4][4],
                              float3 **vert_positions_pp,
-                             blender::int2 **medge_pp,
+                             int2 **medge_pp,
                              int **corner_verts_pp,
                              int **corner_edges_pp,
                              int *all_face_offsets,
@@ -80,7 +77,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
                              int faces_num,
                              Key *key,
                              Key *nkey,
-                             blender::Vector<Material *> &matar,
+                             Vector<Material *> &matar,
                              int *vertofs,
                              int *edgeofs,
                              int *loopofs,
@@ -90,7 +87,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
 
   Mesh *mesh = static_cast<Mesh *>(ob_src->data);
   float3 *vert_positions = *vert_positions_pp;
-  blender::int2 *edge = *medge_pp;
+  int2 *edge = *medge_pp;
   int *corner_verts = *corner_verts_pp;
   int *corner_edges = *corner_edges_pp;
 
@@ -213,8 +210,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
       multiresModifier_prepare_join(depsgraph, scene, ob_src, ob_dst);
 
       if ((mmd = get_multires_modifier(scene, ob_src, true))) {
-        blender::ed::object::iter_other(
-            bmain, ob_src, true, blender::ed::object::multires_update_totlevels, &mmd->totlvl);
+        object::iter_other(bmain, ob_src, true, object::multires_update_totlevels, &mmd->totlvl);
       }
     }
 
@@ -231,7 +227,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
   /* Make remapping for material indices. Assume at least one slot,
    * that will be null if there are no actual slots. */
   const int totcol = std::max(ob_src->totcol, 1);
-  blender::Vector<int> matmap(totcol);
+  Vector<int> matmap(totcol);
   if (mesh->faces_num) {
     for (a = 1; a <= totcol; a++) {
       Material *ma = (a <= ob_src->totcol) ? BKE_object_material_get(ob_src, a) : nullptr;
@@ -283,7 +279,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
 
     const Span<int> src_face_offsets = mesh->face_offsets();
     int *face_offsets = all_face_offsets + *polyofs;
-    for (const int i : blender::IndexRange(mesh->faces_num)) {
+    for (const int i : IndexRange(mesh->faces_num)) {
       face_offsets[i] = src_face_offsets[i] + *loopofs;
     }
   }
@@ -304,7 +300,6 @@ static void join_mesh_single(Depsgraph *depsgraph,
  * of them will have different IDs for their Face Sets. */
 static void mesh_join_offset_face_sets_ID(Mesh *mesh, int *face_set_offset)
 {
-  using namespace blender;
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<int> face_sets = attributes.lookup_for_write_span<int>(
       ".sculpt_face_set");
@@ -325,14 +320,14 @@ static void mesh_join_offset_face_sets_ID(Mesh *mesh, int *face_set_offset)
   face_sets.finish();
 }
 
-wmOperatorStatus ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
+wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
   Material *ma;
   Mesh *mesh;
-  blender::int2 *edge = nullptr;
+  int2 *edge = nullptr;
   Key *key, *nkey = nullptr;
   float imat[4][4];
   int a, totedge = 0, totvert = 0;
@@ -413,7 +408,7 @@ wmOperatorStatus ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   }
 
   /* Active object materials in new main array, is nicer start! */
-  blender::Vector<Material *> matar;
+  Vector<Material *> matar;
   for (a = 0; a < ob->totcol; a++) {
     matar.append(BKE_object_material_get(ob, a + 1));
     id_us_plus((ID *)matar[a]);
@@ -613,7 +608,7 @@ wmOperatorStatus ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
 
       /* free base, now that data is merged */
       if (ob_iter != ob) {
-        blender::ed::object::base_free_and_unlink(bmain, scene, ob_iter);
+        object::base_free_and_unlink(bmain, scene, ob_iter);
       }
     }
   }
@@ -626,8 +621,7 @@ wmOperatorStatus ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
 
   if (faces_num) {
     mesh->face_offset_indices = face_offsets;
-    mesh->runtime->face_offsets_sharing_info = blender::implicit_sharing::info_for_mem_free(
-        face_offsets);
+    mesh->runtime->face_offsets_sharing_info = implicit_sharing::info_for_mem_free(face_offsets);
   }
 
   mesh->verts_num = totvert;
@@ -699,3 +693,5 @@ wmOperatorStatus ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
 
   return OPERATOR_FINISHED;
 }
+
+}  // namespace blender::ed::mesh

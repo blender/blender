@@ -5095,7 +5095,7 @@ static wmOperatorStatus object_join_exec(bContext *C, wmOperator *op)
 
   wmOperatorStatus ret = OPERATOR_CANCELLED;
   if (ob->type == OB_MESH) {
-    ret = ED_mesh_join_objects_exec(C, op);
+    ret = mesh::join_objects_exec(C, op);
   }
   else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
     ret = ED_curve_join_objects_exec(C, op);
