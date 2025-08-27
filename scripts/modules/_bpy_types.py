@@ -1448,7 +1448,7 @@ class HydraRenderEngine(RenderEngine):
 
     def get_render_settings(self, engine_type: str):
         """
-        Provide render settings for `HdRenderDelegate`.
+        Provide render settings for ``HdRenderDelegate``.
         """
         return {}
 
@@ -1510,9 +1510,9 @@ class GreasePencilDrawing(_StructRNA):
 
         .. note::
 
-            When point/curves count of a drawing is changed, the slice returned by this
-            call prior to the change is no longer valid. You need to get the new stroke
-            slice via `drawing.strokes[n]`.
+           When point/curves count of a drawing is changed, the slice returned by this
+           call prior to the change is no longer valid. You need to get the new stroke
+           slice via ``drawing.strokes[n]``.
         """
         from _bpy_internal.grease_pencil.stroke import GreasePencilStrokeSlice
         num_strokes = self.attributes.domain_size('CURVE')

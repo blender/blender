@@ -435,6 +435,44 @@ static void rna_Scopes_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *p
   s->ok = 0;
 }
 
+static const ColorManagedDisplaySettings *rna_display_settings_from_view_settings(
+    const PointerRNA *ptr, const Scene *scene = nullptr)
+{
+  /* Assumes view_settings and display_settings are stored next to each other. */
+  PointerRNA parent_ptr = ptr->parent();
+  if (parent_ptr.data) {
+    PointerRNA display_ptr = RNA_pointer_get(&parent_ptr, "display_settings");
+    if (display_ptr.type == &RNA_ColorManagedDisplaySettings) {
+      return display_ptr.data_as<const ColorManagedDisplaySettings>();
+    }
+  }
+
+  if (ptr->owner_id && GS(ptr->owner_id) == ID_SCE) {
+    return &reinterpret_cast<const Scene *>(ptr->owner_id)->display_settings;
+  }
+
+  if (scene) {
+    /* Shouldn't be necessary and is not correct in general, but just in case. */
+    return &scene->display_settings;
+  }
+
+  return nullptr;
+}
+
+static ColorManagedViewSettings *rna_view_settings_from_display_settings(PointerRNA *ptr)
+{
+  /* Assumes view_settings and display_settings are stored next to each other. */
+  PointerRNA parent_ptr = ptr->parent();
+  if (parent_ptr.data) {
+    PointerRNA view_ptr = RNA_pointer_get(&parent_ptr, "view_settings");
+    if (view_ptr.type == &RNA_ColorManagedViewSettings) {
+      return view_ptr.data_as<ColorManagedViewSettings>();
+    }
+  }
+
+  return nullptr;
+}
+
 static int rna_ColorManagedDisplaySettings_display_device_get(PointerRNA *ptr)
 {
   ColorManagedDisplaySettings *display = (ColorManagedDisplaySettings *)ptr->data;
@@ -472,11 +510,7 @@ static void rna_ColorManagedDisplaySettings_display_device_update(Main *bmain,
 {
   ID *id = ptr->owner_id;
 
-  if (!id) {
-    return;
-  }
-
-  if (GS(id->name) == ID_SCE) {
+  if (id && GS(id->name) == ID_SCE) {
     Scene *scene = (Scene *)id;
 
     IMB_colormanagement_validate_settings(&scene->display_settings, &scene->view_settings);
@@ -489,6 +523,16 @@ static void rna_ColorManagedDisplaySettings_display_device_update(Main *bmain,
          ma = static_cast<Material *>(ma->id.next))
     {
       DEG_id_tag_update(&ma->id, ID_RECALC_SYNC_TO_EVAL);
+    }
+  }
+  else {
+    ColorManagedViewSettings *view_settings = rna_view_settings_from_display_settings(ptr);
+    if (view_settings) {
+      IMB_colormanagement_validate_settings(ptr->data_as<const ColorManagedDisplaySettings>(),
+                                            view_settings);
+      if (ptr->owner_id) {
+        DEG_id_tag_update(ptr->owner_id, 0);
+      }
     }
   }
 }
@@ -517,11 +561,12 @@ static void rna_ColorManagedViewSettings_view_transform_set(PointerRNA *ptr, int
 }
 
 static const EnumPropertyItem *rna_ColorManagedViewSettings_view_transform_itemf(
-    bContext *C, PointerRNA * /*ptr*/, PropertyRNA * /*prop*/, bool *r_free)
+    bContext *C, PointerRNA *ptr, PropertyRNA * /*prop*/, bool *r_free)
 {
-  Scene *scene = CTX_data_scene(C);
+  const ColorManagedDisplaySettings *display_settings = rna_display_settings_from_view_settings(
+      ptr, CTX_data_scene(C));
+
   EnumPropertyItem *items = nullptr;
-  ColorManagedDisplaySettings *display_settings = &scene->display_settings;
   int totitem = 0;
 
   IMB_colormanagement_view_items_add(&items, &totitem, display_settings->display_device);
@@ -591,6 +636,20 @@ static void rna_ColorManagedViewSettings_whitepoint_set(PointerRNA *ptr, const f
 {
   ColorManagedViewSettings *view_settings = (ColorManagedViewSettings *)ptr->data;
   IMB_colormanagement_set_whitepoint(value, view_settings->temperature, view_settings->tint);
+}
+
+static bool rna_ColorManagedViewSettings_is_hdr_get(PointerRNA *ptr)
+{
+  ColorManagedViewSettings *view_settings = (ColorManagedViewSettings *)ptr->data;
+  if (GS(ptr->owner_id->name) != ID_SCE) {
+    return false;
+  }
+  const Scene *scene = reinterpret_cast<const Scene *>(ptr->owner_id);
+  if (&scene->view_settings != view_settings) {
+    return false;
+  }
+  return IMB_colormanagement_display_is_hdr(&scene->display_settings,
+                                            view_settings->view_transform);
 }
 
 static bool rna_ColorManagedColorspaceSettings_is_data_get(PointerRNA *ptr)
@@ -1282,7 +1341,12 @@ static void rna_def_colormanage(BlenderRNA *brna)
                               "rna_ColorManagedDisplaySettings_display_device_get",
                               "rna_ColorManagedDisplaySettings_display_device_set",
                               "rna_ColorManagedDisplaySettings_display_device_itemf");
-  RNA_def_property_ui_text(prop, "Display Device", "Display device name");
+  RNA_def_property_ui_text(
+      prop,
+      "Display Device",
+      "Display device name. For viewing, this is the display that will be emulated by limiting "
+      "the gamut and HDR colors. For image and video output, this is the display space used for "
+      "writing.");
   RNA_def_property_update(
       prop, NC_WINDOW, "rna_ColorManagedDisplaySettings_display_device_update");
 
@@ -1380,15 +1444,11 @@ static void rna_def_colormanage(BlenderRNA *brna)
                            "(automatically converted to/from temperature and tint)");
   RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
 
-  prop = RNA_def_property(srna, "use_hdr_view", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", COLORMANAGE_VIEW_USE_HDR);
+  prop = RNA_def_property(srna, "is_hdr", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(
-      prop,
-      "High Dynamic Range",
-      "Enable high dynamic range display in rendered viewport, uncapping display brightness. This "
-      "requires a monitor with HDR support and a view transform designed for HDR. "
-      "'Filmic' and 'AgX' do not generate HDR colors.");
-  RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagedColorspaceSettings_reload_update");
+      prop, "Is HDR", "The display and view transform supports high dynamic range colors");
+  RNA_def_property_boolean_funcs(prop, "rna_ColorManagedViewSettings_is_hdr_get", nullptr);
 
   /* ** Color-space ** */
   srna = RNA_def_struct(brna, "ColorManagedInputColorspaceSettings", nullptr);

@@ -170,6 +170,8 @@ void GPUCodegen::generate_attribs()
   /* Input declaration, loading / assignment to interface and geometry shader passthrough. */
   std::stringstream load_ss;
 
+  /* Index of the attribute as ordered in graph.attributes. */
+  int attr_n = 0;
   int slot = 15;
   LISTBASE_FOREACH (GPUMaterialAttribute *, attr, &graph.attributes) {
     if (slot == -1) {
@@ -185,9 +187,10 @@ void GPUCodegen::generate_attribs()
     eGPUType input_type, iface_type;
 
     load_ss << "var_attrs." << var_name;
-    if (attr->is_hair_length) {
+    if (attr->is_hair_length || attr->is_hair_intercept) {
       iface_type = input_type = GPU_FLOAT;
-      load_ss << " = attr_load_" << input_type << "(" << attr_name << ");\n";
+      load_ss << " = attr_load_" << input_type << "(domain, " << attr_name << ", " << attr_n
+              << ");\n";
     }
     else {
       switch (attr->type) {
@@ -195,18 +198,20 @@ void GPUCodegen::generate_attribs()
           /* Need vec4 to detect usage of default attribute. */
           input_type = GPU_VEC4;
           iface_type = GPU_VEC3;
-          load_ss << " = attr_load_orco(" << attr_name << ");\n";
+          load_ss << " = attr_load_orco(domain, " << attr_name << ", " << attr_n << ");\n";
           break;
         case CD_TANGENT:
           iface_type = input_type = GPU_VEC4;
-          load_ss << " = attr_load_tangent(" << attr_name << ");\n";
+          load_ss << " = attr_load_tangent(domain, " << attr_name << ", " << attr_n << ");\n";
           break;
         default:
           iface_type = input_type = GPU_VEC4;
-          load_ss << " = attr_load_" << input_type << "(" << attr_name << ");\n";
+          load_ss << " = attr_load_" << input_type << "(domain, " << attr_name << ", " << attr_n
+                  << ");\n";
           break;
       }
     }
+    attr_n++;
 
     info.vertex_in(slot--, to_type(input_type), attr_name);
     iface.smooth(to_type(iface_type), var_name);

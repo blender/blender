@@ -21,6 +21,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_base.hh"
+#include "BLI_math_color.h"
 #include "BLI_rand.h"
 
 #include "BLT_translation.hh"
@@ -543,8 +544,8 @@ static void brush_defaults(Brush *brush)
   FROM_DEFAULT(fill_threshold);
   FROM_DEFAULT(flag);
   FROM_DEFAULT(sampling_flag);
-  FROM_DEFAULT_PTR(rgb);
-  FROM_DEFAULT_PTR(secondary_rgb);
+  FROM_DEFAULT_PTR(color);
+  FROM_DEFAULT_PTR(secondary_color);
   FROM_DEFAULT(spacing);
   FROM_DEFAULT(smooth_stroke_radius);
   FROM_DEFAULT(smooth_stroke_factor);
@@ -1119,9 +1120,9 @@ float BKE_brush_sample_masktex(
 const float *BKE_brush_color_get(const Paint *paint, const Brush *brush)
 {
   if (BKE_paint_use_unified_color(paint)) {
-    return paint->unified_paint_settings.rgb;
+    return paint->unified_paint_settings.color;
   }
-  return brush->rgb;
+  return brush->color;
 }
 
 /** Get color jitter settings if enabled. */
@@ -1133,7 +1134,7 @@ std::optional<BrushColorJitterSettings> BKE_brush_color_jitter_get_settings(cons
       return std::nullopt;
     }
 
-    const UnifiedPaintSettings settings = paint->unified_paint_settings;
+    const UnifiedPaintSettings &settings = paint->unified_paint_settings;
     return BrushColorJitterSettings{
         settings.color_jitter_flag,
         settings.hsv_jitter[0],
@@ -1163,21 +1164,37 @@ std::optional<BrushColorJitterSettings> BKE_brush_color_jitter_get_settings(cons
 const float *BKE_brush_secondary_color_get(const Paint *paint, const Brush *brush)
 {
   if (BKE_paint_use_unified_color(paint)) {
-    return paint->unified_paint_settings.secondary_rgb;
+    return paint->unified_paint_settings.secondary_color;
   }
-  return brush->secondary_rgb;
+  return brush->secondary_color;
 }
 
 void BKE_brush_color_set(Paint *paint, Brush *brush, const float color[3])
 {
   if (BKE_paint_use_unified_color(paint)) {
     UnifiedPaintSettings *ups = &paint->unified_paint_settings;
-    copy_v3_v3(ups->rgb, color);
+    copy_v3_v3(ups->color, color);
+    BKE_brush_color_sync_legacy(ups);
   }
   else {
-    copy_v3_v3(brush->rgb, color);
+    copy_v3_v3(brush->color, color);
     BKE_brush_tag_unsaved_changes(brush);
+    BKE_brush_color_sync_legacy(brush);
   }
+}
+
+void BKE_brush_color_sync_legacy(Brush *brush)
+{
+  /* For forward compatibility. */
+  linearrgb_to_srgb_v3_v3(brush->rgb, brush->color);
+  linearrgb_to_srgb_v3_v3(brush->secondary_rgb, brush->secondary_color);
+}
+
+void BKE_brush_color_sync_legacy(UnifiedPaintSettings *ups)
+{
+  /* For forward compatibility. */
+  linearrgb_to_srgb_v3_v3(ups->rgb, ups->color);
+  linearrgb_to_srgb_v3_v3(ups->secondary_rgb, ups->secondary_color);
 }
 
 void BKE_brush_size_set(Paint *paint, Brush *brush, int size)

@@ -301,7 +301,7 @@ bool AttributeStorage::remove(const StringRef name)
   return this->runtime->attributes.remove_as(name);
 }
 
-std::string AttributeStorage::unique_name_calc(const StringRef name)
+std::string AttributeStorage::unique_name_calc(const StringRef name) const
 {
   return BLI_uniquename_cb(
       [&](const StringRef check_name) { return this->lookup(check_name) != nullptr; }, '.', name);

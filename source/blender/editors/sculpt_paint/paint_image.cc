@@ -15,8 +15,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
+#include "BLI_math_color.h"
 #include "BLI_math_vector.hh"
-#include "BLI_noise.hh"
 #include "BLI_rand.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -45,7 +45,6 @@
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_types.hh"
-#include "BKE_report.hh"
 #include "BKE_scene.hh"
 
 #include "NOD_texture.h"
@@ -366,11 +365,9 @@ bool paint_use_opacity_masking(const Paint *paint, const Brush *brush)
 void paint_brush_color_get(const Paint *paint,
                            Brush *br,
                            std::optional<blender::float3> &initial_hsv_jitter,
-                           bool color_correction,
                            bool invert,
                            float distance,
                            float pressure,
-                           const ColorManagedDisplay *display,
                            float r_color[3])
 {
   if (invert) {
@@ -395,24 +392,21 @@ void paint_brush_color_get(const Paint *paint,
           break;
         }
       }
-      /* Gradient / Color-band colors are not considered #PROP_COLOR_GAMMA.
-       * Brush colors are expected to be in sRGB though. */
-      IMB_colormanagement_scene_linear_to_srgb_v3(r_color, color_gr);
+      copy_v3_v3(r_color, color_gr);
     }
     else if (color_jitter_settings) {
-      copy_v3_v3(r_color,
-                 BKE_paint_randomize_color(*color_jitter_settings,
-                                           *initial_hsv_jitter,
-                                           distance,
-                                           pressure,
-                                           BKE_brush_color_get(paint, br)));
+      /* Perform color jitter with sRGB transfer function. This is inconsistent with other
+       * paint modes which do it in linear space. But arguably it's better to do it in the
+       * more perceptually uniform color space. */
+      blender::float3 color = BKE_brush_color_get(paint, br);
+      linearrgb_to_srgb_v3_v3(color, color);
+      color = BKE_paint_randomize_color(
+          *color_jitter_settings, *initial_hsv_jitter, distance, pressure, color);
+      srgb_to_linearrgb_v3_v3(r_color, color);
     }
     else {
       copy_v3_v3(r_color, BKE_brush_color_get(paint, br));
     }
-  }
-  if (color_correction) {
-    IMB_colormanagement_display_to_scene_linear_v3(r_color, display);
   }
 }
 
@@ -871,10 +865,12 @@ static wmOperatorStatus brush_colors_flip_exec(bContext *C, wmOperator * /*op*/)
 
   if (BKE_paint_use_unified_color(paint)) {
     UnifiedPaintSettings &ups = paint->unified_paint_settings;
-    swap_v3_v3(ups.rgb, ups.secondary_rgb);
+    swap_v3_v3(ups.color, ups.secondary_color);
+    BKE_brush_color_sync_legacy(&ups);
   }
   else if (br) {
-    swap_v3_v3(br->rgb, br->secondary_rgb);
+    swap_v3_v3(br->color, br->secondary_color);
+    BKE_brush_color_sync_legacy(br);
     BKE_brush_tag_unsaved_changes(br);
   }
   else {

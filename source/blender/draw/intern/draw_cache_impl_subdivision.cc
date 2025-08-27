@@ -662,7 +662,7 @@ static void draw_subdiv_loop_cb(const bke::subdiv::ForeachContext *foreach_conte
 
 static void draw_subdiv_foreach_callbacks(bke::subdiv::ForeachContext *foreach_context)
 {
-  memset(foreach_context, 0, sizeof(*foreach_context));
+  *foreach_context = {};
   foreach_context->topology_info = draw_subdiv_topology_info_cb;
   foreach_context->loop = draw_subdiv_loop_cb;
   foreach_context->edge = draw_subdiv_edge_cb;
@@ -1628,12 +1628,11 @@ static bool draw_subdiv_create_requested_buffers(Object &ob,
   };
 
   if (!bke::subdiv::eval_begin_from_mesh(
-          subdiv, mesh_eval, {}, bke::subdiv::SUBDIV_EVALUATOR_TYPE_GPU, g_subdiv_evaluator_cache))
+          subdiv, mesh_eval, bke::subdiv::SUBDIV_EVALUATOR_TYPE_GPU))
   {
     /* This could happen in two situations:
      * - OpenSubdiv is disabled.
-     * - Something totally bad happened, and OpenSubdiv rejected our
-     *   topology.
+     * - Something totally bad happened, and OpenSubdiv rejected our topology.
      * In either way, we can't safely continue. However, we still have to handle potential loose
      * geometry, which is done separately. */
     if (mesh_eval->faces_num) {

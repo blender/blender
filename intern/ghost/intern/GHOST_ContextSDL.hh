@@ -84,22 +84,22 @@ class GHOST_ContextSDL : public GHOST_Context {
 
   /**
    * Gets the current swap interval for #swapBuffers.
-   * \param intervalOut: Variable to store the swap interval if it can be read.
+   * \param interval_out: Variable to store the swap interval if it can be read.
    * \return Whether the swap interval can be read.
    */
-  GHOST_TSuccess getSwapInterval(int &intervalOut) override;
+  GHOST_TSuccess getSwapInterval(int &interval_out) override;
 
  private:
-  SDL_Window *m_window;
-  SDL_Window *m_hidden_window;
+  SDL_Window *window_;
+  SDL_Window *hidden_window_;
 
-  const int m_contextProfileMask;
-  const int m_contextMajorVersion;
-  const int m_contextMinorVersion;
-  const int m_contextFlags;
-  const int m_contextResetNotificationStrategy;
+  const int context_profile_mask_;
+  const int context_major_version_;
+  const int context_minor_version_;
+  const int context_flags_;
+  const int context_reset_notification_strategy_;
 
-  SDL_GLContext m_context; /* m_sdl_glcontext */
+  SDL_GLContext context_; /* sdl_glcontext_ */
 
   /** The first created OpenGL context (for sharing display lists) */
   static SDL_GLContext s_sharedContext;

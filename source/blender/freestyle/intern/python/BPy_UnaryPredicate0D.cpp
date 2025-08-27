@@ -67,7 +67,6 @@ PyDoc_STRVAR(
     "   :type it: :class:`Interface0DIterator`\n"
     "   :return: True if the condition is satisfied, false otherwise.\n"
     "   :rtype: bool\n");
-
 static int UnaryPredicate0D___init__(BPy_UnaryPredicate0D *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {nullptr};
@@ -132,8 +131,7 @@ PyDoc_STRVAR(
     UnaryPredicate0D_name_doc,
     "The name of the unary 0D predicate.\n"
     "\n"
-    ":type: str");
-
+    ":type: str\n");
 static PyObject *UnaryPredicate0D_name_get(BPy_UnaryPredicate0D *self, void * /*closure*/)
 {
   return PyUnicode_FromString(Py_TYPE(self)->tp_name);

@@ -652,6 +652,25 @@ macro(add_cxx_flag
   string(APPEND CMAKE_CXX_FLAGS " ${flag}")
 endmacro()
 
+# Needed to "negate" options: `-Wno-example`
+# as this doesn't work when added to `CMAKE_CXX_FLAGS`.
+macro(add_c_flag_per_config
+  flag)
+
+  string(APPEND CMAKE_C_FLAGS_DEBUG " ${flag}")
+  string(APPEND CMAKE_C_FLAGS_RELEASE " ${flag}")
+  string(APPEND CMAKE_C_FLAGS_MINSIZEREL " ${flag}")
+  string(APPEND CMAKE_C_FLAGS_RELWITHDEBINFO " ${flag}")
+endmacro()
+macro(add_cxx_flag_per_config
+  flag)
+
+  string(APPEND CMAKE_CXX_FLAGS_DEBUG " ${flag}")
+  string(APPEND CMAKE_CXX_FLAGS_RELEASE " ${flag}")
+  string(APPEND CMAKE_CXX_FLAGS_MINSIZEREL " ${flag}")
+  string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " ${flag}")
+endmacro()
+
 macro(remove_strict_flags)
 
   if(CMAKE_COMPILER_IS_GNUCC)

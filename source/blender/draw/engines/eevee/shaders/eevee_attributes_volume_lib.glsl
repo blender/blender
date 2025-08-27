@@ -12,6 +12,7 @@ SHADER_LIBRARY_CREATE_INFO(draw_modelmat)
 
 #include "draw_model_lib.glsl"
 #include "draw_object_infos_lib.glsl"
+#include "eevee_nodetree_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_matrix_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
@@ -42,56 +43,51 @@ float3 g_lP = float3(0.0f);
 float3 g_wP = float3(0.0f);
 #  endif
 
-float3 grid_coordinates()
+float3 grid_coordinates(int index)
 {
 #  ifdef GRID_ATTRIBUTES
-  float3 co = (drw_volume.grids_xform[g_attr_id] * float4(g_lP, 1.0f)).xyz;
+  return (drw_volume.grids_xform[index] * float4(g_lP, 1.0f)).xyz;
 #  else
   /* Only for test shaders. All the runtime shaders require `draw_object_infos` and
    * `draw_volume_infos`. */
-  float3 co = float3(0.0f);
+  return float3(0.0f);
 #  endif
-  g_attr_id += 1;
-  return co;
 }
 
-float3 attr_load_orco(sampler3D tex)
+float3 attr_load_orco(VolumePoint point, sampler3D tex, int index)
 {
-  g_attr_id += 1;
 #  ifdef GRID_ATTRIBUTES
   return drw_object_orco(g_lP);
 #  else
   return g_wP;
 #  endif
 }
-float4 attr_load_tangent(sampler3D tex)
+float4 attr_load_tangent(VolumePoint point, sampler3D tex, int index)
 {
-  g_attr_id += 1;
   return float4(0);
 }
-float4 attr_load_vec4(sampler3D tex)
+float4 attr_load_vec4(VolumePoint point, sampler3D tex, int index)
 {
-  return texture(tex, grid_coordinates());
+  return texture(tex, grid_coordinates(index));
 }
-float3 attr_load_vec3(sampler3D tex)
+float3 attr_load_vec3(VolumePoint point, sampler3D tex, int index)
 {
-  return texture(tex, grid_coordinates()).rgb;
+  return texture(tex, grid_coordinates(index)).rgb;
 }
-float2 attr_load_vec2(sampler3D tex)
+float2 attr_load_vec2(VolumePoint point, sampler3D tex, int index)
 {
-  return texture(tex, grid_coordinates()).rg;
+  return texture(tex, grid_coordinates(index)).rg;
 }
-float attr_load_float(sampler3D tex)
+float attr_load_float(VolumePoint point, sampler3D tex, int index)
 {
-  return texture(tex, grid_coordinates()).r;
+  return texture(tex, grid_coordinates(index)).r;
 }
-float4 attr_load_color(sampler3D tex)
+float4 attr_load_color(VolumePoint point, sampler3D tex, int index)
 {
-  return texture(tex, grid_coordinates());
+  return texture(tex, grid_coordinates(index));
 }
-float3 attr_load_uv(sampler3D attr)
+float3 attr_load_uv(VolumePoint point, sampler3D attr, int index)
 {
-  g_attr_id += 1;
   return float3(0);
 }
 

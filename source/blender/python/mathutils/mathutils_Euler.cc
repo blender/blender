@@ -384,6 +384,59 @@ static PyObject *Euler_str(EulerObject *self)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Euler Type: Buffer Protocol
+ * \{ */
+
+static int Euler_getbuffer(PyObject *obj, Py_buffer *view, int flags)
+{
+  EulerObject *self = (EulerObject *)obj;
+  if (UNLIKELY(BaseMath_Prepare_ForBufferAccess(self, view, flags) == -1)) {
+    return -1;
+  }
+  if (UNLIKELY(BaseMath_ReadCallback(self) == -1)) {
+    return -1;
+  }
+
+  memset(view, 0, sizeof(*view));
+
+  view->obj = (PyObject *)self;
+  view->buf = (void *)self->eul;
+  view->len = Py_ssize_t(EULER_SIZE * sizeof(float));
+  view->itemsize = sizeof(float);
+  view->ndim = 1;
+  if ((flags & PyBUF_WRITABLE) == 0) {
+    view->readonly = 1;
+  }
+  if (flags & PyBUF_FORMAT) {
+    view->format = (char *)"f";
+  }
+
+  self->flag |= BASE_MATH_FLAG_HAS_BUFFER_VIEW;
+
+  Py_INCREF(self);
+  return 0;
+}
+
+static void Euler_releasebuffer(PyObject * /*exporter*/, Py_buffer *view)
+{
+  EulerObject *self = (EulerObject *)view->obj;
+  self->flag &= ~BASE_MATH_FLAG_HAS_BUFFER_VIEW;
+
+  if (view->readonly == 0) {
+    if (UNLIKELY(BaseMath_WriteCallback(self) == -1)) {
+      PyErr_Print();
+    }
+  }
+}
+
+static PyBufferProcs Euler_as_buffer = {
+    (getbufferproc)Euler_getbuffer,
+    (releasebufferproc)Euler_releasebuffer,
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Euler Type: Rich Compare
  * \{ */
 
@@ -688,7 +741,7 @@ PyDoc_STRVAR(
     Euler_axis_doc,
     "Euler axis angle in radians.\n"
     "\n"
-    ":type: float");
+    ":type: float\n");
 static PyObject *Euler_axis_get(EulerObject *self, void *type)
 {
   return Euler_item(self, POINTER_AS_INT(type));
@@ -706,7 +759,7 @@ PyDoc_STRVAR(
     Euler_order_doc,
     "Euler rotation order.\n"
     "\n"
-    ":type: Literal['XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX']");
+    ":type: Literal['XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX']\n");
 static PyObject *Euler_order_get(EulerObject *self, void * /*closure*/)
 {
   if (BaseMath_ReadCallback(self) == -1) {
@@ -854,7 +907,7 @@ PyTypeObject euler_Type = {
     /*tp_str*/ (reprfunc)Euler_str,
     /*tp_getattro*/ nullptr,
     /*tp_setattro*/ nullptr,
-    /*tp_as_buffer*/ nullptr,
+    /*tp_as_buffer*/ &Euler_as_buffer,
     /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
     /*tp_doc*/ euler_doc,
     /*tp_traverse*/ (traverseproc)BaseMathObject_traverse,

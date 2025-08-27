@@ -540,10 +540,10 @@ const EnumPropertyItem rna_enum_node_combsep_color_items[] = {
 };
 
 static const EnumPropertyItem rna_enum_mix_data_type_items[] = {
-    {SOCK_FLOAT, "FLOAT", 0, "Float", ""},
-    {SOCK_VECTOR, "VECTOR", 0, "Vector", ""},
-    {SOCK_RGBA, "RGBA", 0, "Color", ""},
-    {SOCK_ROTATION, "ROTATION", 0, "Rotation", ""},
+    {SOCK_FLOAT, "FLOAT", ICON_NODE_SOCKET_FLOAT, "Float", ""},
+    {SOCK_VECTOR, "VECTOR", ICON_NODE_SOCKET_VECTOR, "Vector", ""},
+    {SOCK_RGBA, "RGBA", ICON_NODE_SOCKET_RGBA, "Color", ""},
+    {SOCK_ROTATION, "ROTATION", ICON_NODE_SOCKET_ROTATION, "Rotation", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -2656,48 +2656,7 @@ static void rna_Node_name_set(PointerRNA *ptr, const char *value)
 static int rna_Node_color_tag_get(PointerRNA *ptr)
 {
   bNode *node = ptr->data_as<bNode>();
-
-  const int nclass = node->typeinfo->ui_class == nullptr ? node->typeinfo->nclass :
-                                                           node->typeinfo->ui_class(node);
-
-  switch (nclass) {
-    case NODE_CLASS_INPUT:
-      return int(blender::bke::NodeColorTag::Input);
-    case NODE_CLASS_OUTPUT:
-      return int(blender::bke::NodeColorTag::Output);
-    case NODE_CLASS_OP_COLOR:
-      return int(blender::bke::NodeColorTag::Color);
-    case NODE_CLASS_OP_VECTOR:
-      return int(blender::bke::NodeColorTag::Vector);
-    case NODE_CLASS_OP_FILTER:
-      return int(blender::bke::NodeColorTag::Filter);
-    case NODE_CLASS_CONVERTER:
-      return int(blender::bke::NodeColorTag::Converter);
-    case NODE_CLASS_MATTE:
-      return int(blender::bke::NodeColorTag::Matte);
-    case NODE_CLASS_DISTORT:
-      return int(blender::bke::NodeColorTag::Distort);
-    case NODE_CLASS_PATTERN:
-      return int(blender::bke::NodeColorTag::Pattern);
-    case NODE_CLASS_TEXTURE:
-      return int(blender::bke::NodeColorTag::Texture);
-    case NODE_CLASS_SCRIPT:
-      return int(blender::bke::NodeColorTag::Script);
-    case NODE_CLASS_INTERFACE:
-      return int(blender::bke::NodeColorTag::Interface);
-    case NODE_CLASS_SHADER:
-      return int(blender::bke::NodeColorTag::Shader);
-    case NODE_CLASS_GEOMETRY:
-      return int(blender::bke::NodeColorTag::Geometry);
-    case NODE_CLASS_ATTRIBUTE:
-      return int(blender::bke::NodeColorTag::Attribute);
-    case NODE_CLASS_GROUP:
-      return int(blender::bke::NodeColorTag::Group);
-    case NODE_CLASS_LAYOUT:
-      break;
-  }
-
-  return int(blender::bke::NodeColorTag::None);
+  return int(blender::bke::node_color_tag(*node));
 }
 
 static bool allow_adding_sockets(const bNode &node)
@@ -4717,8 +4676,12 @@ static void def_clamp(BlenderRNA * /*brna*/, StructRNA *srna)
 static void def_map_range(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   static const EnumPropertyItem rna_enum_data_type_items[] = {
-      {CD_PROP_FLOAT, "FLOAT", 0, "Float", "Floating-point value"},
-      {CD_PROP_FLOAT3, "FLOAT_VECTOR", 0, "Vector", "3D vector with floating-point values"},
+      {CD_PROP_FLOAT, "FLOAT", ICON_NODE_SOCKET_FLOAT, "Float", "Floating-point value"},
+      {CD_PROP_FLOAT3,
+       "FLOAT_VECTOR",
+       ICON_NODE_SOCKET_VECTOR,
+       "Vector",
+       "3D vector with floating-point values"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 

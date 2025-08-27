@@ -166,7 +166,7 @@ static Brush *create_fill_guide_brush()
 
   settings->brush_draw_mode = GP_BRUSH_MODE_VERTEXCOLOR;
   /* TODO: Use theme setting. */
-  copy_v3_fl3(fill_guides_brush->rgb, 0.0f, 1.0f, 1.0f);
+  copy_v3_fl3(fill_guides_brush->color, 0.0f, 1.0f, 1.0f);
   settings->vertex_factor = 1.0f;
 
   settings->active_smooth = 0.35f;
@@ -292,7 +292,7 @@ struct PaintOperationExecutor {
     use_vertex_color_ = brush_using_vertex_color(scene_->toolsettings->gp_paint, brush_);
     if (use_vertex_color_) {
       ColorGeometry4f color_base;
-      srgb_to_linearrgb_v3_v3(color_base, brush_->rgb);
+      copy_v3_v3(color_base, brush_->color);
       color_base.a = settings_->vertex_factor;
       if (ELEM(settings_->vertex_mode, GPPAINT_MODE_STROKE, GPPAINT_MODE_BOTH)) {
         vertex_color_ = color_base;

@@ -452,6 +452,19 @@ ImageSpec imb_create_write_spec(const WriteContext &ctx, int file_channels, Type
     }
   }
 
+  /* Write ICC profile if there is one associated with the colorspace. */
+  const ColorSpace *colorspace = (ctx.mem_spec.format == TypeDesc::FLOAT) ?
+                                     ctx.ibuf->float_buffer.colorspace :
+                                     ctx.ibuf->byte_buffer.colorspace;
+  if (colorspace) {
+    Vector<char> icc_profile = IMB_colormanagement_space_icc_profile(colorspace);
+    if (!icc_profile.is_empty()) {
+      file_spec.attribute("ICCProfile",
+                          OIIO::TypeDesc(OIIO::TypeDesc::UINT8, icc_profile.size()),
+                          icc_profile.data());
+    }
+  }
+
   return file_spec;
 }
 

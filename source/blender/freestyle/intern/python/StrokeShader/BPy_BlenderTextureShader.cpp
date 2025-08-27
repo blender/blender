@@ -29,10 +29,10 @@ PyDoc_STRVAR(
     "\n"
     "   Builds a BlenderTextureShader object.\n"
     "\n"
-    "   :arg texture: A line style texture slot or a shader node tree to define\n"
-    "       a set of textures.\n"
-    "   :type texture: :class:`bpy.types.LineStyleTextureSlot` or\n"
-    "       :class:`bpy.types.ShaderNodeTree`\n"
+    "   :arg texture: A line style texture slot or a shader node tree to define "
+    "a set of textures.\n"
+    "   :type texture: :class:`bpy.types.LineStyleTextureSlot` | "
+    ":class:`bpy.types.ShaderNodeTree`\n"
     "\n"
     ".. method:: shade(stroke)\n"
     "\n"
@@ -41,7 +41,6 @@ PyDoc_STRVAR(
     "\n"
     "   :arg stroke: A Stroke object.\n"
     "   :type stroke: :class:`freestyle.types.Stroke`\n");
-
 static int BlenderTextureShader___init__(BPy_BlenderTextureShader *self,
                                          PyObject *args,
                                          PyObject *kwds)

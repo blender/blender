@@ -1292,7 +1292,7 @@ wmOperator *WM_operator_last_redo(const bContext *C)
   wmWindowManager *wm = CTX_wm_manager(C);
 
   /* Only for operators that are registered and did an undo push. */
-  LISTBASE_FOREACH_BACKWARD (wmOperator *, op, &wm->operators) {
+  LISTBASE_FOREACH_BACKWARD (wmOperator *, op, &wm->runtime->operators) {
     if ((op->type->flag & OPTYPE_REGISTER) && (op->type->flag & OPTYPE_UNDO)) {
       return op;
     }
@@ -2489,7 +2489,7 @@ wmPaintCursor *WM_paint_cursor_activate(short space_type,
 
   wmPaintCursor *pc = MEM_callocN<wmPaintCursor>("paint cursor");
 
-  BLI_addtail(&wm->paintcursors, pc);
+  BLI_addtail(&wm->runtime->paintcursors, pc);
 
   pc->customdata = customdata;
   pc->poll = poll;
@@ -2504,9 +2504,9 @@ wmPaintCursor *WM_paint_cursor_activate(short space_type,
 bool WM_paint_cursor_end(wmPaintCursor *handle)
 {
   wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
-  LISTBASE_FOREACH (wmPaintCursor *, pc, &wm->paintcursors) {
+  LISTBASE_FOREACH (wmPaintCursor *, pc, &wm->runtime->paintcursors) {
     if (pc == handle) {
-      BLI_remlink(&wm->paintcursors, pc);
+      BLI_remlink(&wm->runtime->paintcursors, pc);
       MEM_freeN(pc);
       return true;
     }
@@ -2516,12 +2516,12 @@ bool WM_paint_cursor_end(wmPaintCursor *handle)
 
 void WM_paint_cursor_remove_by_type(wmWindowManager *wm, void *draw_fn, void (*free)(void *))
 {
-  LISTBASE_FOREACH_MUTABLE (wmPaintCursor *, pc, &wm->paintcursors) {
+  LISTBASE_FOREACH_MUTABLE (wmPaintCursor *, pc, &wm->runtime->paintcursors) {
     if (pc->draw == draw_fn) {
       if (free) {
         free(pc->customdata);
       }
-      BLI_remlink(&wm->paintcursors, pc);
+      BLI_remlink(&wm->runtime->paintcursors, pc);
       MEM_freeN(pc);
     }
   }
@@ -2556,9 +2556,9 @@ struct RadialControl {
   float current_value = 0.0f;
   float min_value = 0.0f;
   float max_value = 0.0f;
-  /* Original region space coordinates that the operator is started on */
+  /* Original screen space coordinates that the operator started on. */
   int initial_co[2] = {};
-  /* Modified value of #initial_co to simplify calculating new values */
+  /* Modified value of #initial_co to simplify calculating new values. */
   int initial_radial_center[2] = {};
   int slow_mouse[2] = {};
   bool slow_mode = false;
@@ -3195,8 +3195,8 @@ static wmOperatorStatus radial_control_invoke(bContext *C, wmOperator *op, const
 
   /* Temporarily disable other paint cursors. */
   wmWindowManager *wm = CTX_wm_manager(C);
-  rc->orig_paintcursors = wm->paintcursors;
-  BLI_listbase_clear(&wm->paintcursors);
+  rc->orig_paintcursors = wm->runtime->paintcursors;
+  BLI_listbase_clear(&wm->runtime->paintcursors);
 
   /* Add radial control paint cursor. */
   rc->cursor = WM_paint_cursor_activate(
@@ -3237,7 +3237,7 @@ static void radial_control_cancel(bContext *C, wmOperator *op)
   WM_paint_cursor_end(static_cast<wmPaintCursor *>(rc->cursor));
 
   /* Restore original paint cursors. */
-  wm->paintcursors = rc->orig_paintcursors;
+  wm->runtime->paintcursors = rc->orig_paintcursors;
 
   /* Not sure if this is a good notifier to use;
    * intended purpose is to update the UI so that the
@@ -4578,17 +4578,17 @@ const EnumPropertyItem *RNA_scene_local_itemf(bContext *C,
   return rna_id_itemf(
       r_free, C ? (ID *)CTX_data_main(C)->scenes.first : nullptr, true, nullptr, nullptr);
 }
-const EnumPropertyItem *RNA_scene_without_active_itemf(bContext *C,
-                                                       PointerRNA * /*ptr*/,
-                                                       PropertyRNA * /*prop*/,
-                                                       bool *r_free)
+const EnumPropertyItem *RNA_scene_without_sequencer_scene_itemf(bContext *C,
+                                                                PointerRNA * /*ptr*/,
+                                                                PropertyRNA * /*prop*/,
+                                                                bool *r_free)
 {
-  Scene *scene_active = C ? CTX_data_scene(C) : nullptr;
+  Scene *sequencer_scene = C ? CTX_data_sequencer_scene(C) : nullptr;
   return rna_id_itemf(r_free,
                       C ? (ID *)CTX_data_main(C)->scenes.first : nullptr,
                       false,
                       rna_id_enum_filter_single,
-                      scene_active);
+                      sequencer_scene);
 }
 const EnumPropertyItem *RNA_movieclip_itemf(bContext *C,
                                             PointerRNA * /*ptr*/,

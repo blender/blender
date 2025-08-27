@@ -255,7 +255,7 @@ class DATA_PT_spot(DataButtonsPanel, Panel):
 
         col = layout.column()
 
-        col.prop(light, "spot_size", text="Size")
+        col.prop(light, "spot_size", text="Angle")
         col.prop(light, "spot_blend", text="Blend", slider=True)
 
         col.prop(light, "show_cone")

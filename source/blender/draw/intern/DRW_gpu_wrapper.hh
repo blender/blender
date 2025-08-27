@@ -303,7 +303,7 @@ template<
     /* bool device_only = false */>
 class UniformBuffer : public T, public detail::UniformCommon<T, 1, false> {
  public:
-  UniformBuffer(const char *name = nullptr) : detail::UniformCommon<T, 1, false>(name)
+  UniformBuffer(const char *name = nullptr) : T{}, detail::UniformCommon<T, 1, false>(name)
   {
     /* TODO(@fclem): How could we map this? */
     this->data_ = static_cast<T *>(this);
@@ -496,7 +496,7 @@ template<
     bool device_only = false>
 class StorageBuffer : public T, public detail::StorageCommon<T, 1, device_only> {
  public:
-  StorageBuffer(const char *name = nullptr) : detail::StorageCommon<T, 1, device_only>(name)
+  StorageBuffer(const char *name = nullptr) : T{}, detail::StorageCommon<T, 1, device_only>(name)
   {
     /* TODO(@fclem): How could we map this? */
     this->data_ = static_cast<T *>(this);

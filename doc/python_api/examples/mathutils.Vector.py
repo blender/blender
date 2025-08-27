@@ -53,3 +53,6 @@ vec.xyz = vec.zyx
 vec.xy = vec4d.zw
 vec.xyz = vec4d.wzz
 vec4d.wxyz = vec.yxyx
+
+# Direct buffer access is supported.
+raw_data = memoryview(vec).tobytes()

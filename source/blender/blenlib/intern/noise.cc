@@ -21,6 +21,19 @@
 #include "BLI_noise.hh"
 #include "BLI_utildefines.h"
 
+/* Some noise functions integer overflow as part of expected operation. */
+#ifdef __SANITIZE_ADDRESS__
+/* CLANG also supports GNU extensions. */
+#  if defined(__GNUC__) || defined(__clang__)
+#    define ATTR_NO_SIGNED_INT_OVERFLOW [[gnu::no_sanitize("signed-integer-overflow")]]
+#  else
+/* TODO: MSVC, others as needed. */
+#    define ATTR_NO_SIGNED_INT_OVERFLOW
+#  endif
+#else
+#  define ATTR_NO_SIGNED_INT_OVERFLOW
+#endif
+
 namespace blender::noise {
 
 /* -------------------------------------------------------------------- */
@@ -143,6 +156,7 @@ BLI_INLINE uint32_t float_as_uint(float f)
  * Slightly modified to only use signed integers,
  * so that they can also be implemented in OSL. */
 
+ATTR_NO_SIGNED_INT_OVERFLOW
 static inline int2 hash_pcg2d_i(int2 v)
 {
   v = v * int2(1664525) + int2(1013904223);
@@ -154,6 +168,7 @@ static inline int2 hash_pcg2d_i(int2 v)
   return v;
 }
 
+ATTR_NO_SIGNED_INT_OVERFLOW
 static inline int3 hash_pcg3d_i(int3 v)
 {
   v = v * int3(1664525) + int3(1013904223);
@@ -167,6 +182,7 @@ static inline int3 hash_pcg3d_i(int3 v)
   return v;
 }
 
+ATTR_NO_SIGNED_INT_OVERFLOW
 static inline int4 hash_pcg4d_i(int4 v)
 {
   v = v * int4(1664525) + int4(1013904223);

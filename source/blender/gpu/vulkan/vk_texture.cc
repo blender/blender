@@ -122,7 +122,7 @@ void VKTexture::clear(eGPUDataFormat format, const void *data)
                            format,
                            TextureFormat::SFLOAT_32_DEPTH_UINT_8,
                            TextureFormat::SFLOAT_32_DEPTH_UINT_8);
-    clear_depth_stencil(GPU_DEPTH_BIT | GPU_STENCIL_BIT, clear_depth, 0u);
+    clear_depth_stencil(GPU_DEPTH_BIT | GPU_STENCIL_BIT, clear_depth, 0u, std::nullopt);
     return;
   }
 
@@ -146,7 +146,8 @@ void VKTexture::clear(eGPUDataFormat format, const void *data)
 
 void VKTexture::clear_depth_stencil(const eGPUFrameBufferBits buffers,
                                     float clear_depth,
-                                    uint clear_stencil)
+                                    uint clear_stencil,
+                                    std::optional<int> layer)
 {
   BLI_assert(buffers & (GPU_DEPTH_BIT | GPU_STENCIL_BIT));
   VkImageAspectFlags vk_image_aspect_device = to_vk_image_aspect_flag_bits(device_format_get());
@@ -166,6 +167,10 @@ void VKTexture::clear_depth_stencil(const eGPUFrameBufferBits buffers,
   clear_depth_stencil_image.node_data.vk_image_subresource_range.aspectMask = vk_image_aspect;
   clear_depth_stencil_image.node_data.vk_image_subresource_range.layerCount =
       VK_REMAINING_ARRAY_LAYERS;
+  if (layer.has_value()) {
+    clear_depth_stencil_image.node_data.vk_image_subresource_range.baseArrayLayer = *layer;
+    clear_depth_stencil_image.node_data.vk_image_subresource_range.layerCount = 1;
+  }
   clear_depth_stencil_image.node_data.vk_image_subresource_range.levelCount =
       VK_REMAINING_MIP_LEVELS;
 
@@ -478,6 +483,15 @@ bool VKTexture::init_internal(gpu::Texture *src,
   use_stencil_ = use_stencil;
 
   return true;
+}
+
+void VKTexture::init_swapchain(VkImage vk_image, TextureFormat format)
+{
+  device_format_ = format_ = format;
+  format_flag_ = to_format_flag(format);
+  vk_image_ = vk_image;
+  type_ = GPU_TEXTURE_2D;
+  usage_set(GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_WRITE);
 }
 
 bool VKTexture::is_texture_view() const

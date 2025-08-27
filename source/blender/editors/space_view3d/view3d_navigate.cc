@@ -852,7 +852,7 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
 
     ofs = float3(0);
     for (int i = 0; i < 4; i++) {
-      ofs += ef->textcurs[i];
+      add_v2_v2(ofs, ef->textcurs[i]);
     }
     ofs *= 0.25f;
 

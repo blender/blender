@@ -30,18 +30,18 @@ class GHOST_XrControllerModel {
   void getData(GHOST_XrControllerModelData &r_data);
 
  private:
-  XrPath m_subaction_path = XR_NULL_PATH;
-  XrControllerModelKeyMSFT m_model_key = XR_NULL_CONTROLLER_MODEL_KEY_MSFT;
+  XrPath subaction_path_ = XR_NULL_PATH;
+  XrControllerModelKeyMSFT model_key_ = XR_NULL_CONTROLLER_MODEL_KEY_MSFT;
 
-  std::future<void> m_load_task;
-  std::atomic<bool> m_data_loaded = false;
+  std::future<void> load_task_;
+  std::atomic<bool> data_loaded_ = false;
 
-  std::vector<GHOST_XrControllerModelVertex> m_vertices;
-  std::vector<uint32_t> m_indices;
-  std::vector<GHOST_XrControllerModelComponent> m_components;
-  std::vector<GHOST_XrControllerModelNode> m_nodes;
+  std::vector<GHOST_XrControllerModelVertex> vertices_;
+  std::vector<uint32_t> indices_;
+  std::vector<GHOST_XrControllerModelComponent> components_;
+  std::vector<GHOST_XrControllerModelNode> nodes_;
   /** Maps node states to nodes. */
-  std::vector<int32_t> m_node_state_indices;
+  std::vector<int32_t> node_state_indices_;
 
   void loadControllerModel(XrSession session);
 };

@@ -241,7 +241,7 @@ static PyObject *pygpu_offscreen_bind(BPyGPUOffScreen *self)
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_offscreen_unbind_doc,
-    ".. method:: unbind(restore=True)\n"
+    ".. method:: unbind(*, restore=True)\n"
     "\n"
     "   Unbind the offscreen object.\n"
     "\n"
@@ -333,7 +333,7 @@ PyDoc_STRVAR(
     pygpu_offscreen_width_doc,
     "Width of the texture.\n"
     "\n"
-    ":type: int");
+    ":type: int\n");
 static PyObject *pygpu_offscreen_width_get(BPyGPUOffScreen *self, void * /*type*/)
 {
   BPY_GPU_OFFSCREEN_CHECK_OBJ(self);
@@ -345,7 +345,7 @@ PyDoc_STRVAR(
     pygpu_offscreen_height_doc,
     "Height of the texture.\n"
     "\n"
-    ":type: int");
+    ":type: int\n");
 static PyObject *pygpu_offscreen_height_get(BPyGPUOffScreen *self, void * /*type*/)
 {
   BPY_GPU_OFFSCREEN_CHECK_OBJ(self);
@@ -357,7 +357,7 @@ PyDoc_STRVAR(
     pygpu_offscreen_texture_color_doc,
     "The color texture attached.\n"
     "\n"
-    ":type: :class:`gpu.types.GPUTexture`");
+    ":type: :class:`gpu.types.GPUTexture`\n");
 static PyObject *pygpu_offscreen_texture_color_get(BPyGPUOffScreen *self, void * /*type*/)
 {
   BPY_GPU_OFFSCREEN_CHECK_OBJ(self);
@@ -369,7 +369,7 @@ PyDoc_STRVAR(
     /* Wrap. */
     pygpu_offscreen_draw_view3d_doc,
     ".. method:: draw_view3d(scene, view_layer, view3d, region, view_matrix, projection_matrix, "
-    "do_color_management=False, draw_background=True)\n"
+    "*, do_color_management=False, draw_background=True)\n"
     "\n"
     "   Draw the 3d viewport in the offscreen object.\n"
     "\n"
@@ -598,10 +598,10 @@ PyDoc_STRVAR(
     "   :type height: int\n"
     "   :arg format: Internal data format inside GPU memory for color attachment "
     "texture. Possible values are:\n"
-    "      `RGBA8`,\n"
-    "      `RGBA16`,\n"
-    "      `RGBA16F`,\n"
-    "      `RGBA32F`,\n"
+    "      ``RGBA8``,\n"
+    "      ``RGBA16``,\n"
+    "      ``RGBA16F``,\n"
+    "      ``RGBA32F``.\n"
     "   :type format: str\n");
 PyTypeObject BPyGPUOffScreen_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)

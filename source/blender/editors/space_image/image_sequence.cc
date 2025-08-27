@@ -23,11 +23,6 @@
 
 #include "ED_image.hh"
 
-struct ImageFrame {
-  ImageFrame *next, *prev;
-  int framenr;
-};
-
 /**
  * Get a list of frames from the list of image files matching the first file name sequence pattern.
  * The files and directory are read from standard file-select operator properties.
@@ -134,6 +129,11 @@ static void image_detect_frame_range(ImageFrameRange *range, const bool detect_u
     range->length = 1;
     range->offset = 0;
   }
+
+  ImageFrame *frame_last = static_cast<ImageFrame *>(range->frames.last);
+  if (frame_last != nullptr) {
+    range->max_framenr = frame_last->framenr;
+  }
 }
 
 ListBase ED_image_filesel_detect_sequences(blender::StringRefNull root_path,
@@ -155,7 +155,6 @@ ListBase ED_image_filesel_detect_sequences(blender::StringRefNull root_path,
     image_sequence_get_frame_ranges(op, &ranges);
     LISTBASE_FOREACH (ImageFrameRange *, range, &ranges) {
       image_detect_frame_range(range, detect_udim);
-      BLI_freelistN(&range->frames);
 
       if (was_relative) {
         BLI_path_rel(range->filepath, root_path.c_str());

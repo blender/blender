@@ -52,7 +52,6 @@ PyDoc_STRVAR(
     "   :type inter2: :class:`freestyle.types.Interface1D`\n"
     "   :return: True or false.\n"
     "   :rtype: bool\n");
-
 static int ViewMapGradientNormBP1D___init__(BPy_ViewMapGradientNormBP1D *self,
                                             PyObject *args,
                                             PyObject *kwds)

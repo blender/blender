@@ -38,8 +38,7 @@ PyDoc_STRVAR(
     "   :arg step: A resampling resolution with which the curve is resampled.\n"
     "      If zero, no resampling is done (i.e., the iterator iterates over\n"
     "      initial vertices).\n"
-    "   :type step: float");
-
+    "   :type step: float\n");
 static int CurvePointIterator_init(BPy_CurvePointIterator *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist_1[] = {"brother", nullptr};
@@ -78,8 +77,7 @@ PyDoc_STRVAR(
     CurvePointIterator_object_doc,
     "The CurvePoint object currently pointed by this iterator.\n"
     "\n"
-    ":type: :class:`CurvePoint`");
-
+    ":type: :class:`CurvePoint`\n");
 static PyObject *CurvePointIterator_object_get(BPy_CurvePointIterator *self, void * /*closure*/)
 {
   if (self->cp_it->isEnd()) {
@@ -94,8 +92,7 @@ PyDoc_STRVAR(
     CurvePointIterator_t_doc,
     "The curvilinear abscissa of the current point.\n"
     "\n"
-    ":type: float");
-
+    ":type: float\n");
 static PyObject *CurvePointIterator_t_get(BPy_CurvePointIterator *self, void * /*closure*/)
 {
   return PyFloat_FromDouble(self->cp_it->t());
@@ -106,8 +103,7 @@ PyDoc_STRVAR(
     CurvePointIterator_u_doc,
     "The point parameter at the current point in the stroke (0 <= u <= 1).\n"
     "\n"
-    ":type: float");
-
+    ":type: float\n");
 static PyObject *CurvePointIterator_u_get(BPy_CurvePointIterator *self, void * /*closure*/)
 {
   return PyFloat_FromDouble(self->cp_it->u());

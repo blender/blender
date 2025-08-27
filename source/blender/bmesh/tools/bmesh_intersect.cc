@@ -155,7 +155,7 @@ static bool ghash_insert_link(GHash *gh, void *key, void *val, bool use_test, Me
   return true;
 }
 
-struct vert_sort_t {
+struct VertSort {
   float val;
   BMVert *v;
 };
@@ -165,7 +165,7 @@ static void edge_verts_sort(const float co[3], LinkBase *v_ls_base)
 {
   /* not optimal but list will be typically < 5 */
   uint i;
-  vert_sort_t *vert_sort = BLI_array_alloca(vert_sort, v_ls_base->list_len);
+  VertSort *vert_sort = BLI_array_alloca(vert_sort, v_ls_base->list_len);
   LinkNode *node;
 
   BLI_assert(v_ls_base->list_len > 1);

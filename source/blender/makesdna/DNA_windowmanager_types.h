@@ -91,15 +91,6 @@ typedef struct wmWindowManager {
 
   ID id;
 
-  /** Separate active from drawable. */
-  struct wmWindow *windrawable;
-  /**
-   * \note `CTX_wm_window(C)` is usually preferred.
-   * Avoid relying on this where possible as this may become NULL during when handling
-   * events that close or replace windows (e.g. opening a file).
-   * While this happens rarely in practice, it can cause difficult to reproduce bugs.
-   */
-  struct wmWindow *winactive;
   ListBase windows;
 
   /** Set on file read. */
@@ -113,48 +104,16 @@ typedef struct wmWindowManager {
   /** Set after selection to notify outliner to sync. Stores type of selection */
   short outliner_sync_select_dirty;
 
-  /** Operator registry. */
-  ListBase operators;
-
   /** Available/pending extensions updates. */
   int extensions_updates;
   /** Number of blocked & installed extensions. */
   int extensions_blocked;
 
-  /** Threaded jobs manager. */
-  ListBase jobs;
-
-  /** Extra overlay cursors to draw, like circles. */
-  ListBase paintcursors;
-
-  /** Active dragged items. */
-  ListBase drags;
-
-  /**
-   * Known key configurations.
-   * This includes all the #wmKeyConfig members (`defaultconf`, `addonconf`, etc).
-   */
-  ListBase keyconfigs;
-
-  /** Default configuration. */
-  struct wmKeyConfig *defaultconf;
-  /** Addon configuration. */
-  struct wmKeyConfig *addonconf;
-  /** User configuration. */
-  struct wmKeyConfig *userconf;
-
-  /** Active timers. */
-  ListBase timers;
   /** Timer for auto save. */
   struct wmTimer *autosavetimer;
   /** Auto-save timer was up, but it wasn't possible to auto-save in the current mode. */
   char autosave_scheduled;
   char _pad2[7];
-
-  /** All undo history (runtime only). */
-  struct UndoStack *undo_stack;
-
-  struct wmMsgBus *message_bus;
 
   // #ifdef WITH_XR_OPENXR
   wmXrData xr;
@@ -163,7 +122,8 @@ typedef struct wmWindowManager {
   WindowManagerRuntimeHandle *runtime;
 } wmWindowManager;
 
-#define WM_KEYCONFIG_ARRAY_P(wm) &(wm)->defaultconf, &(wm)->addonconf, &(wm)->userconf
+#define WM_KEYCONFIG_ARRAY_P(wm) \
+  &(wm)->runtime->defaultconf, &(wm)->runtime->addonconf, &(wm)->runtime->userconf
 
 /** #wmWindowManager.extensions_updates */
 enum {

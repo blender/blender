@@ -41,6 +41,7 @@
 #include "ED_object.hh"
 #include "ED_paint.hh"
 #include "ED_screen.hh"
+#include "ED_screen_types.hh"
 #include "ED_sculpt.hh"
 #include "ED_space_api.hh"
 #include "ED_util.hh"
@@ -68,6 +69,15 @@ void ED_editors_init_for_undo(Main *bmain)
     if (ob && (ob->mode & OB_MODE_TEXTURE_PAINT)) {
       BKE_texpaint_slots_refresh_object(scene, ob);
       ED_paint_proj_mesh_data_check(*scene, *ob, nullptr, nullptr, nullptr, nullptr);
+    }
+
+    /* Stop animation from playing.
+     * TODO: There might be a way to keep the animation from playing, but sad->scene and
+     * sad->view_layer pointers are outdated and would need to be updated somehow. */
+    bScreen *animscreen = ED_screen_animation_playing(wm);
+    if (animscreen && animscreen->animtimer) {
+      WM_event_timer_remove(wm, win, animscreen->animtimer);
+      animscreen->animtimer = nullptr;
     }
 
     /* UI Updates. */
@@ -223,9 +233,9 @@ void ED_editors_exit(Main *bmain, bool do_undo_system)
     wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
     /* normally we don't check for null undo stack,
      * do here since it may run in different context. */
-    if (wm->undo_stack) {
-      BKE_undosys_stack_destroy(wm->undo_stack);
-      wm->undo_stack = nullptr;
+    if (wm->runtime->undo_stack) {
+      BKE_undosys_stack_destroy(wm->runtime->undo_stack);
+      wm->runtime->undo_stack = nullptr;
     }
   }
 

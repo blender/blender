@@ -32,11 +32,11 @@ COMPUTE_SHADER_CREATE_INFO(eevee_ray_denoise_bilateral)
 /* In order to remove some more fireflies, "tone-map" the color samples during the accumulation. */
 float3 to_accumulation_space(float3 color)
 {
-  return color / (1.0f + reduce_add(color));
+  return color / (1.0f + reduce_max(color));
 }
 float3 from_accumulation_space(float3 color)
 {
-  return color / (1.0f - reduce_add(color));
+  return color / (1.0f - reduce_max(color));
 }
 
 void main()

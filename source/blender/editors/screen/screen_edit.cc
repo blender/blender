@@ -40,6 +40,7 @@
 #include "ED_node.hh"
 #include "ED_screen.hh"
 #include "ED_screen_types.hh"
+#include "ED_sequencer.hh"
 
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"
@@ -952,7 +953,7 @@ void ED_region_exit(bContext *C, ARegion *region)
     region->runtime->regiontimer = nullptr;
   }
 
-  WM_msgbus_clear_by_owner(wm->message_bus, region);
+  WM_msgbus_clear_by_owner(wm->runtime->message_bus, region);
 
   CTX_wm_region_set(C, prevar);
 }
@@ -1375,9 +1376,17 @@ void screen_change_prepare(
   if (screen_old != screen_new) {
     wmTimer *wt = screen_old->animtimer;
 
+    /* Remove popup handlers (menus), while unlikely, it's possible an "error"
+     * popup is displayed when switching screens.
+     * Ideally popups from reported errors would remain so the error isn't hidden from the user.
+     * On the other hand this is a rare occurrence, script developers will often show errors
+     * in a console too, so it's not such a priority to relocate these to the new screen.
+     * See: #144958. */
+    UI_popup_handlers_remove_all(C, &win->modalhandlers);
+
     /* remove handlers referencing areas in old screen */
     LISTBASE_FOREACH (ScrArea *, area, &screen_old->areabase) {
-      WM_event_remove_area_handler(&win->modalhandlers, area);
+      WM_event_remove_handlers_by_area(&win->modalhandlers, area);
     }
 
     /* we put timer to sleep, so screen_exit has to think there's no timer */
@@ -1940,12 +1949,12 @@ ScrArea *ED_screen_temp_space_open(bContext *C,
   return nullptr;
 }
 
-void ED_screen_animation_timer(bContext *C, int redraws, int sync, int enable)
+void ED_screen_animation_timer(
+    bContext *C, Scene *scene, ViewLayer *view_layer, int redraws, int sync, int enable)
 {
   bScreen *screen = CTX_wm_screen(C);
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = CTX_wm_window(C);
-  Scene *scene = CTX_data_scene(C);
   bScreen *stopscreen = ED_screen_animation_playing(wm);
 
   if (stopscreen) {
@@ -1959,6 +1968,11 @@ void ED_screen_animation_timer(bContext *C, int redraws, int sync, int enable)
     screen->animtimer = WM_event_timer_add(wm, win, TIMER0, (1.0 / scene->frames_per_second()));
 
     sad->region = CTX_wm_region(C);
+    sad->scene = scene;
+    sad->view_layer = view_layer;
+
+    sad->do_scene_syncing = blender::ed::vse::is_scene_time_sync_needed(*C);
+
     sad->sfra = scene->r.cfra;
     /* Make sure that were are inside the scene or preview frame range. */
     CLAMP(scene->r.cfra, PSFRA, PEFRA);

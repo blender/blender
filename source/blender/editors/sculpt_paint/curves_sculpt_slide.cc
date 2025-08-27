@@ -136,7 +136,7 @@ struct SlideOperationExecutor {
       report_missing_uv_map_on_original_surface(stroke_extension.reports);
       return;
     }
-    if (curves_orig_->surface_uv_coords().is_empty()) {
+    if (!curves_orig_->surface_uv_coords()) {
       BKE_report(stroke_extension.reports,
                  RPT_WARNING,
                  "Curves do not have surface attachment information");
@@ -257,7 +257,7 @@ struct SlideOperationExecutor {
                             const ReverseUVSampler &reverse_uv_sampler_orig,
                             Vector<SlideCurveInfo> &r_curves_to_slide)
   {
-    const Span<float2> surface_uv_coords = curves_orig_->surface_uv_coords();
+    const Span<float2> surface_uv_coords = *curves_orig_->surface_uv_coords();
     const float brush_radius_sq_cu = pow2f(brush_radius_cu);
 
     const Span<int> offsets = curves_orig_->offsets();

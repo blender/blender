@@ -95,7 +95,7 @@ class CurvesGeometryRuntime {
   };
   mutable SharedCache<EvaluatedOffsets> evaluated_offsets_cache;
 
-  mutable SharedCache<std::optional<Vector<int>>> cyclic_offsets_cache;
+  mutable SharedCache<bool> has_cyclic_curve_cache;
 
   mutable SharedCache<Vector<curves::nurbs::BasisCache>> nurbs_basis_cache;
 
@@ -277,9 +277,9 @@ class CurvesGeometry : public ::CurvesGeometry {
    * values may be generated automatically based on the handle types. Call #tag_positions_changed
    * after changes.
    */
-  Span<float3> handle_positions_left() const;
+  std::optional<Span<float3>> handle_positions_left() const;
   MutableSpan<float3> handle_positions_left_for_write();
-  Span<float3> handle_positions_right() const;
+  std::optional<Span<float3>> handle_positions_right() const;
   MutableSpan<float3> handle_positions_right_for_write();
 
   /**
@@ -299,13 +299,13 @@ class CurvesGeometry : public ::CurvesGeometry {
   /**
    * The weight for each control point for NURBS curves. Call #tag_positions_changed after changes.
    */
-  Span<float> nurbs_weights() const;
+  std::optional<Span<float>> nurbs_weights() const;
   MutableSpan<float> nurbs_weights_for_write();
 
   /**
    * UV coordinate for each curve that encodes where the curve is attached to the surface mesh.
    */
-  Span<float2> surface_uv_coords() const;
+  std::optional<Span<float2>> surface_uv_coords() const;
   MutableSpan<float2> surface_uv_coords_for_write();
 
   /**
@@ -385,11 +385,7 @@ class CurvesGeometry : public ::CurvesGeometry {
    */
   Span<int> bezier_evaluated_offsets_for_curve(int curve_index) const;
 
-  /**
-   * A prefix sum of the cyclic attribute, in other words the number of cyclic curves that precede
-   * each curve. Used for rendering. If there are no cyclic curves, `std::nullopt` is returned.
-   */
-  std::optional<Span<int>> cyclic_offsets() const;
+  bool has_cyclic_curve() const;
 
   Span<float3> evaluated_positions() const;
   Span<float3> evaluated_tangents() const;

@@ -41,8 +41,7 @@ PyDoc_STRVAR(
     "      ViewVertex of begin.\n"
     "   :type orientation: bool\n"
     "   :arg brother: A ViewEdgeIterator object.\n"
-    "   :type brother: :class:`ViewEdgeIterator`");
-
+    "   :type brother: :class:`ViewEdgeIterator`\n");
 static int check_begin(PyObject *obj, void *v)
 {
   if (obj != nullptr && obj != Py_None && !BPy_ViewEdge_Check(obj)) {
@@ -85,8 +84,7 @@ PyDoc_STRVAR(
     ViewEdgeIterator_change_orientation_doc,
     ".. method:: change_orientation()\n"
     "\n"
-    "   Changes the current orientation.");
-
+    "   Changes the current orientation.\n");
 static PyObject *ViewEdgeIterator_change_orientation(BPy_ViewEdgeIterator *self)
 {
   self->ve_it->changeOrientation();
@@ -126,8 +124,7 @@ PyDoc_STRVAR(
     ViewEdgeIterator_object_doc,
     "The ViewEdge object currently pointed by this iterator.\n"
     "\n"
-    ":type: :class:`ViewEdge`");
-
+    ":type: :class:`ViewEdge`\n");
 static PyObject *ViewEdgeIterator_object_get(BPy_ViewEdgeIterator *self, void * /*closure*/)
 {
   if (!self->ve_it->isEnd()) {
@@ -146,8 +143,7 @@ PyDoc_STRVAR(
     ViewEdgeIterator_current_edge_doc,
     "The ViewEdge object currently pointed by this iterator.\n"
     "\n"
-    ":type: :class:`ViewEdge`");
-
+    ":type: :class:`ViewEdge`\n");
 static PyObject *ViewEdgeIterator_current_edge_get(BPy_ViewEdgeIterator *self, void * /*closure*/)
 {
   ViewEdge *ve = self->ve_it->getCurrentEdge();
@@ -178,8 +174,7 @@ PyDoc_STRVAR(
     "the iterator searches over the ViewEdges surrounding the ending ViewVertex\n"
     "of the \"begin\" ViewEdge.\n"
     "\n"
-    ":type: bool");
-
+    ":type: bool\n");
 static PyObject *ViewEdgeIterator_orientation_get(BPy_ViewEdgeIterator *self, void * /*closure*/)
 {
   return PyBool_from_bool(self->ve_it->getOrientation());
@@ -202,8 +197,7 @@ PyDoc_STRVAR(
     ViewEdgeIterator_begin_doc,
     "The first ViewEdge used for the iteration.\n"
     "\n"
-    ":type: :class:`ViewEdge`");
-
+    ":type: :class:`ViewEdge`\n");
 static PyObject *ViewEdgeIterator_begin_get(BPy_ViewEdgeIterator *self, void * /*closure*/)
 {
   ViewEdge *ve = self->ve_it->getBegin();

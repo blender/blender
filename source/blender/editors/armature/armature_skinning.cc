@@ -28,7 +28,6 @@
 #include "BKE_object_deform.h"
 #include "BKE_report.hh"
 #include "BKE_subdiv_mesh.hh"
-#include "BKE_subsurf.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"

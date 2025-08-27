@@ -16,12 +16,12 @@ index 31e43483b49..9856d84a8b1 100644
 -
      if (tmp(i, j, k) != 0)
        return;
-+    static const Vec3i nb[6] = {Vec3i(i+1, j, k),
-+                                Vec3i(i-1, j, k),
-+                                Vec3i(i, j+1, k),
-+                                Vec3i(i, j-1, k),
-+                                Vec3i(i, j, k+1),
-+                                Vec3i(i, j, k-1)};
++    const Vec3i nb[6] = {Vec3i(i+1, j, k),
++                         Vec3i(i-1, j, k),
++                         Vec3i(i, j+1, k),
++                         Vec3i(i, j-1, k),
++                         Vec3i(i, j, k+1),
++                         Vec3i(i, j, k-1)};
 +    const int dim = (vel.is3D() ? 3 : 2);
  
      // copy from initialized neighbors
@@ -51,12 +51,12 @@ index 31e43483b49..9856d84a8b1 100644
 -
      if (weight(i, j, k)[c] != 0)
        return;
-+    static const Vec3i nb[6] = {Vec3i(i+1, j, k),
-+                                Vec3i(i-1, j, k),
-+                                Vec3i(i, j+1, k),
-+                                Vec3i(i, j-1, k),
-+                                Vec3i(i, j, k+1),
-+                                Vec3i(i, j, k-1)};
++    const Vec3i nb[6] = {Vec3i(i+1, j, k),
++                         Vec3i(i-1, j, k),
++                         Vec3i(i, j+1, k),
++                         Vec3i(i, j-1, k),
++                         Vec3i(i, j, k+1),
++                         Vec3i(i, j, k-1)};
 +    const int dim = (vel.is3D() ? 3 : 2);
  
      // copy from initialized neighbors

@@ -42,6 +42,7 @@ struct GPUPass {
   std::atomic<eGPUPassStatus> status = GPU_PASS_QUEUED;
   /* Orphaned GPUPasses gets freed by the garbage collector. */
   std::atomic<int> refcount = 1;
+  double creation_timestamp = 0.0f;
   /* The last time the refcount was greater than 0. */
   double gc_timestamp = 0.0f;
 
@@ -52,11 +53,15 @@ struct GPUPass {
   bool should_optimize = false;
   bool is_optimization_pass = false;
 
+  /* Number of seconds after creation required before compiling an optimization pass. */
+  static constexpr float optimization_delay = 10.0f;
+
   GPUPass(GPUCodegenCreateInfo *info,
           bool deferred_compilation,
           bool is_optimization_pass,
           bool should_optimize)
       : create_info(info),
+        creation_timestamp(BLI_time_now_seconds()),
         should_optimize(should_optimize),
         is_optimization_pass(is_optimization_pass)
   {
@@ -117,18 +122,20 @@ struct GPUPass {
 
   void update(double timestamp)
   {
-    update_compilation();
+    update_compilation(timestamp);
     update_gc_timestamp(timestamp);
   }
 
-  void update_compilation()
+  void update_compilation(double timestamp)
   {
     if (compilation_handle) {
       if (GPU_shader_batch_is_ready(compilation_handle)) {
         finalize_compilation();
       }
     }
-    else if (status == GPU_PASS_QUEUED && refcount > 0) {
+    else if (status == GPU_PASS_QUEUED && refcount > 0 &&
+             ((creation_timestamp + optimization_delay) <= timestamp))
+    {
       BLI_assert(is_optimization_pass);
       GPUShaderCreateInfo *base_info = reinterpret_cast<GPUShaderCreateInfo *>(create_info);
       compilation_handle = GPU_shader_batch_create_from_infos(
@@ -163,11 +170,6 @@ bool GPU_pass_should_optimize(GPUPass *pass)
    * NOTE: Only enabled on Metal, since it doesn't seem to yield any performance improvements for
    * other backends. */
   return (GPU_backend_get_type() == GPU_BACKEND_METAL) && pass->should_optimize;
-
-#if 0
-  /* Returns optimization heuristic prepared during initial codegen. */
-  return pass->should_optimize;
-#endif
 }
 
 blender::gpu::Shader *GPU_pass_shader_get(GPUPass *pass)
@@ -213,13 +215,7 @@ class GPUPassCache {
 
   /** Number of seconds with 0 users required before garbage collecting a pass. */
   static constexpr float gc_collect_rate_ = 60.0f;
-  /**
-   * Number of seconds without base compilations required before starting to compile optimization
-   * passes.
-   */
-  static constexpr float optimization_delay_ = 10.0f;
-
-  double last_base_compilation_timestamp_ = -1.0;
+  static constexpr float optimization_gc_collect_rate_ = 1.0f;
 
   Map<uint32_t, std::unique_ptr<GPUPass>> passes_[GPU_MAT_ENGINE_MAX][2 /*is_optimization_pass*/];
   std::mutex mutex_;
@@ -259,46 +255,25 @@ class GPUPassCache {
 
     double timestamp = BLI_time_now_seconds();
 
-    bool base_passes_ready = true;
-
     /* Base Passes. */
     for (auto &engine_passes : passes_) {
       for (std::unique_ptr<GPUPass> &pass : engine_passes[false].values()) {
         pass->update(timestamp);
-        if (pass->status == GPU_PASS_QUEUED) {
-          base_passes_ready = false;
-        }
       }
 
       engine_passes[false].remove_if(
           [&](auto item) { return item.value->should_gc(gc_collect_rate_, timestamp); });
     }
 
-    /* Optimization Passes GC. */
+    /* Optimization Passes */
     for (auto &engine_passes : passes_) {
       for (std::unique_ptr<GPUPass> &pass : engine_passes[true].values()) {
-        pass->update_gc_timestamp(timestamp);
+        pass->update(timestamp);
       }
 
-      engine_passes[true].remove_if(
-          /* TODO: Use lower rate for optimization passes? */
-          [&](auto item) { return item.value->should_gc(gc_collect_rate_, timestamp); });
-    }
-
-    if (!base_passes_ready) {
-      last_base_compilation_timestamp_ = timestamp;
-      return;
-    }
-
-    if ((timestamp - last_base_compilation_timestamp_) < optimization_delay_) {
-      return;
-    }
-
-    /* Optimization Passes Compilation. */
-    for (auto &engine_passes : passes_) {
-      for (std::unique_ptr<GPUPass> &pass : engine_passes[true].values()) {
-        pass->update_compilation();
-      }
+      engine_passes[true].remove_if([&](auto item) {
+        return item.value->should_gc(optimization_gc_collect_rate_, timestamp);
+      });
     }
   }
 

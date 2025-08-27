@@ -135,7 +135,7 @@ static PyMethodDef pygpu_compute__tp_methods[] = {
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_compute__tp_doc,
-    "This module provides access to the global GPU compute functions");
+    "This module provides access to the global GPU compute functions.");
 static PyModuleDef pygpu_compute_module_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "gpu.compute",

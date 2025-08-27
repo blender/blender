@@ -43,7 +43,6 @@ PyDoc_STRVAR(
     "   :type it: :class:`freestyle.types.Interface0DIterator`\n"
     "   :return: A pixel in one of the level of one of the steerable viewmaps.\n"
     "   :rtype: float\n");
-
 static int ReadSteerableViewMapPixelF0D___init__(BPy_ReadSteerableViewMapPixelF0D *self,
                                                  PyObject *args,
                                                  PyObject *kwds)

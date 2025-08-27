@@ -21,15 +21,15 @@ HMODULE GHOST_ContextD3D::s_d3d_lib = nullptr;
 PFN_D3D11_CREATE_DEVICE GHOST_ContextD3D::s_D3D11CreateDeviceFn = nullptr;
 
 GHOST_ContextD3D::GHOST_ContextD3D(const GHOST_ContextParams &context_params, HWND hWnd)
-    : GHOST_Context(context_params), m_hWnd(hWnd)
+    : GHOST_Context(context_params), h_wnd_(hWnd)
 {
 }
 
 GHOST_ContextD3D::~GHOST_ContextD3D()
 {
-  m_device->Release();
-  m_device_ctx->ClearState();
-  m_device_ctx->Release();
+  device_->Release();
+  device_ctx_->ClearState();
+  device_ctx_->Release();
 }
 
 GHOST_TSuccess GHOST_ContextD3D::swapBuffers()
@@ -95,9 +95,9 @@ GHOST_TSuccess GHOST_ContextD3D::initializeDrawingContext()
       nullptr,
       0,
       D3D11_SDK_VERSION,
-      &m_device,
+      &device_,
       nullptr,
-      &m_device_ctx);
+      &device_ctx_);
 
   WIN32_CHK(hres == S_OK);
 
@@ -115,7 +115,7 @@ class GHOST_SharedOpenGLResource {
     HANDLE device;
     GLuint fbo;
     HANDLE render_target{nullptr};
-  } m_shared;
+  } shared_;
 
   enum RenderTarget { TARGET_RENDERBUF, TARGET_TEX2D };
 
@@ -126,7 +126,7 @@ class GHOST_SharedOpenGLResource {
                              unsigned int height,
                              DXGI_FORMAT format,
                              ID3D11RenderTargetView *render_target = nullptr)
-      : m_device(device), m_device_ctx(device_ctx), m_cur_width(width), m_cur_height(height)
+      : device_(device), device_ctx_(device_ctx), cur_width_(width), cur_height_(height)
   {
     if (!render_target) {
       D3D11_TEXTURE2D_DESC texDesc{};
@@ -158,17 +158,17 @@ class GHOST_SharedOpenGLResource {
       tex->Release();
     }
 
-    m_render_target = render_target;
-    if (m_render_target) {
+    render_target_ = render_target;
+    if (render_target_) {
       ID3D11Resource *backbuffer_res = nullptr;
-      m_render_target->GetResource(&backbuffer_res);
+      render_target_->GetResource(&backbuffer_res);
       if (backbuffer_res) {
-        backbuffer_res->QueryInterface<ID3D11Texture2D>(&m_render_target_tex);
+        backbuffer_res->QueryInterface<ID3D11Texture2D>(&render_target_tex_);
         backbuffer_res->Release();
       }
     }
 
-    if (!m_render_target || !m_render_target_tex) {
+    if (!render_target_ || !render_target_tex_) {
       fprintf(stderr, "Error creating render target for shared DirectX-OpenGL resource\n");
       return;
     }
@@ -176,39 +176,39 @@ class GHOST_SharedOpenGLResource {
 
   ~GHOST_SharedOpenGLResource()
   {
-    if (m_render_target_tex) {
-      m_render_target_tex->Release();
+    if (render_target_tex_) {
+      render_target_tex_->Release();
     }
-    if (m_render_target) {
-      m_render_target->Release();
+    if (render_target_) {
+      render_target_->Release();
     }
 
-    if (m_is_initialized) {
+    if (is_initialized_) {
 #if 0 /* TODO: Causes an access violation since Blender 3.4 (a296b8f694d1). */
-        if (m_shared.render_target
+        if (shared_.render_target
 #  if 1
           /* TODO: #wglDXUnregisterObjectNV() causes an access violation on AMD when the shared
            * resource is a GL texture. Since there is currently no good alternative, just skip
            * unregistering the shared resource. */
-          && !m_use_gl_texture2d
+          && !use_gl_texture2d_
 #  endif
       ) {
-        wglDXUnregisterObjectNV(m_shared.device, m_shared.render_target);
+        wglDXUnregisterObjectNV(shared_.device, shared_.render_target);
       }
-      if (m_shared.device) {
-        wglDXCloseDeviceNV(m_shared.device);
+      if (shared_.device) {
+        wglDXCloseDeviceNV(shared_.device);
       }
-      glDeleteFramebuffers(1, &m_shared.fbo);
-      if (m_use_gl_texture2d) {
-        glDeleteTextures(1, &m_gl_render_target);
+      glDeleteFramebuffers(1, &shared_.fbo);
+      if (use_gl_texture2d_) {
+        glDeleteTextures(1, &gl_render_target_);
       }
       else {
-        glDeleteRenderbuffers(1, &m_gl_render_target);
+        glDeleteRenderbuffers(1, &gl_render_target_);
       }
 #else
-      glDeleteFramebuffers(1, &m_shared.fbo);
-      if (m_use_gl_texture2d) {
-        glDeleteTextures(1, &m_gl_render_target);
+      glDeleteFramebuffers(1, &shared_.fbo);
+      if (use_gl_texture2d_) {
+        glDeleteTextures(1, &gl_render_target_);
       }
 #endif
     }
@@ -217,11 +217,11 @@ class GHOST_SharedOpenGLResource {
   /* Returns true if the shared object was successfully registered, false otherwise. */
   bool reregisterSharedObject(RenderTarget target)
   {
-    if (m_shared.render_target) {
-      wglDXUnregisterObjectNV(m_shared.device, m_shared.render_target);
+    if (shared_.render_target) {
+      wglDXUnregisterObjectNV(shared_.device, shared_.render_target);
     }
 
-    if (!m_render_target_tex) {
+    if (!render_target_tex_) {
       return false;
     }
 
@@ -229,21 +229,21 @@ class GHOST_SharedOpenGLResource {
       glTexImage2D(GL_TEXTURE_2D,
                    0,
                    GL_RGBA8,
-                   m_cur_width,
-                   m_cur_height,
+                   cur_width_,
+                   cur_height_,
                    0,
                    GL_RGBA,
                    GL_UNSIGNED_BYTE,
                    nullptr);
     }
 
-    m_shared.render_target = wglDXRegisterObjectNV(m_shared.device,
-                                                   m_render_target_tex,
-                                                   m_gl_render_target,
-                                                   (target == TARGET_TEX2D) ? GL_TEXTURE_2D :
-                                                                              GL_RENDERBUFFER,
-                                                   WGL_ACCESS_READ_WRITE_NV);
-    if (!m_shared.render_target) {
+    shared_.render_target = wglDXRegisterObjectNV(shared_.device,
+                                                  render_target_tex_,
+                                                  gl_render_target_,
+                                                  (target == TARGET_TEX2D) ? GL_TEXTURE_2D :
+                                                                             GL_RENDERBUFFER,
+                                                  WGL_ACCESS_READ_WRITE_NV);
+    if (!shared_.render_target) {
       fprintf(stderr, "Error registering shared object using wglDXRegisterObjectNV()\n");
       return false;
     }
@@ -253,55 +253,55 @@ class GHOST_SharedOpenGLResource {
 
   GHOST_TSuccess initialize()
   {
-    m_shared.device = wglDXOpenDeviceNV(m_device);
-    if (m_shared.device == nullptr) {
+    shared_.device = wglDXOpenDeviceNV(device_);
+    if (shared_.device == nullptr) {
       fprintf(stderr, "Error opening shared device using wglDXOpenDeviceNV()\n");
       return GHOST_kFailure;
     }
 
     /* Build the render-buffer. */
-    glGenRenderbuffers(1, &m_gl_render_target);
-    glBindRenderbuffer(GL_RENDERBUFFER, m_gl_render_target);
+    glGenRenderbuffers(1, &gl_render_target_);
+    glBindRenderbuffer(GL_RENDERBUFFER, gl_render_target_);
 
     if (!reregisterSharedObject(TARGET_RENDERBUF)) {
       glBindRenderbuffer(GL_RENDERBUFFER, 0);
-      if (m_gl_render_target) {
-        glDeleteRenderbuffers(1, &m_gl_render_target);
+      if (gl_render_target_) {
+        glDeleteRenderbuffers(1, &gl_render_target_);
       }
       /* Fall back to texture 2d. */
-      m_use_gl_texture2d = true;
-      glGenTextures(1, &m_gl_render_target);
-      glBindTexture(GL_TEXTURE_2D, m_gl_render_target);
+      use_gl_texture2d_ = true;
+      glGenTextures(1, &gl_render_target_);
+      glBindTexture(GL_TEXTURE_2D, gl_render_target_);
 
       reregisterSharedObject(TARGET_TEX2D);
     }
 
     /* Build the frame-buffer. */
-    glGenFramebuffers(1, &m_shared.fbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, m_shared.fbo);
-    if (m_use_gl_texture2d) {
+    glGenFramebuffers(1, &shared_.fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, shared_.fbo);
+    if (use_gl_texture2d_) {
       glFramebufferTexture2D(
-          GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_gl_render_target, 0);
+          GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gl_render_target_, 0);
     }
     else {
       glFramebufferRenderbuffer(
-          GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, m_gl_render_target);
+          GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, gl_render_target_);
     }
-    m_is_initialized = true;
+    is_initialized_ = true;
 
     return GHOST_kSuccess;
   }
 
   void ensureUpdated(unsigned int width, unsigned int height)
   {
-    if (m_is_initialized == false) {
+    if (is_initialized_ == false) {
       initialize();
     }
 
-    if ((m_cur_width != width) || (m_cur_height != height)) {
-      m_cur_width = width;
-      m_cur_height = height;
-      reregisterSharedObject(m_use_gl_texture2d ? TARGET_TEX2D : TARGET_RENDERBUF);
+    if ((cur_width_ != width) || (cur_height_ != height)) {
+      cur_width_ = width;
+      cur_height_ = height;
+      reregisterSharedObject(use_gl_texture2d_ ? TARGET_TEX2D : TARGET_RENDERBUF);
     }
   }
 
@@ -310,7 +310,7 @@ class GHOST_SharedOpenGLResource {
     GLint fbo;
     glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &fbo);
 
-    if (!m_render_target || !m_render_target_tex) {
+    if (!render_target_ || !render_target_tex_) {
       return GHOST_kFailure;
     }
 
@@ -318,13 +318,13 @@ class GHOST_SharedOpenGLResource {
 
 #ifdef NDEBUG
     const float clear_col[] = {0.8f, 0.5f, 1.0f, 1.0f};
-    m_device_ctx->ClearRenderTargetView(m_render_target, clear_col);
+    device_ctx_->ClearRenderTargetView(render_target_, clear_col);
 #endif
-    m_device_ctx->OMSetRenderTargets(1, &m_render_target, nullptr);
+    device_ctx_->OMSetRenderTargets(1, &render_target_, nullptr);
 
     beginGLOnly();
 
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_shared.fbo);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, shared_.fbo);
     GLenum err = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (err != GL_FRAMEBUFFER_COMPLETE) {
       fprintf(
@@ -343,25 +343,25 @@ class GHOST_SharedOpenGLResource {
     return GHOST_kSuccess;
   }
 
-  ID3D11RenderTargetView *m_render_target{nullptr};
-  ID3D11Texture2D *m_render_target_tex{nullptr};
+  ID3D11RenderTargetView *render_target_{nullptr};
+  ID3D11Texture2D *render_target_tex_{nullptr};
 
  private:
   void beginGLOnly()
   {
-    wglDXLockObjectsNV(m_shared.device, 1, &m_shared.render_target);
+    wglDXLockObjectsNV(shared_.device, 1, &shared_.render_target);
   }
   void endGLOnly()
   {
-    wglDXUnlockObjectsNV(m_shared.device, 1, &m_shared.render_target);
+    wglDXUnlockObjectsNV(shared_.device, 1, &shared_.render_target);
   }
 
-  ID3D11Device *m_device;
-  ID3D11DeviceContext *m_device_ctx;
-  GLuint m_gl_render_target;
-  unsigned int m_cur_width, m_cur_height;
-  bool m_is_initialized{false};
-  bool m_use_gl_texture2d{false};
+  ID3D11Device *device_;
+  ID3D11DeviceContext *device_ctx_;
+  GLuint gl_render_target_;
+  unsigned int cur_width_, cur_height_;
+  bool is_initialized_{false};
+  bool use_gl_texture2d_{false};
 };
 
 GHOST_SharedOpenGLResource *GHOST_ContextD3D::createSharedOpenGLResource(
@@ -377,7 +377,7 @@ GHOST_SharedOpenGLResource *GHOST_ContextD3D::createSharedOpenGLResource(
     return nullptr;
   }
   GHOST_SharedOpenGLResource *shared_res = new GHOST_SharedOpenGLResource(
-      m_device, m_device_ctx, width, height, format, render_target);
+      device_, device_ctx_, width, height, format, render_target);
 
   return shared_res;
 }
@@ -402,5 +402,5 @@ GHOST_TSuccess GHOST_ContextD3D::blitFromOpenGLContext(GHOST_SharedOpenGLResourc
 
 ID3D11Texture2D *GHOST_ContextD3D::getSharedTexture2D(GHOST_SharedOpenGLResource *shared_res)
 {
-  return shared_res->m_render_target_tex;
+  return shared_res->render_target_tex_;
 }

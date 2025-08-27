@@ -1319,9 +1319,8 @@ static void evaluate_higher_grid_positions(MultiresReshapeSmoothContext *reshape
             reshape_context, grid_coord);
 
         /* Surface. */
-        blender::float3 P;
-        blender::bke::subdiv::eval_limit_point(
-            reshape_subdiv, ptex_coord->ptex_face_index, ptex_coord->u, ptex_coord->v, P);
+        const blender::float3 P = blender::bke::subdiv::eval_limit_point(
+            reshape_subdiv, ptex_coord->ptex_face_index, ptex_coord->u, ptex_coord->v);
 
         *grid_element.displacement = P;
 

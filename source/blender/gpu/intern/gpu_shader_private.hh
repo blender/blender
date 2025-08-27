@@ -71,8 +71,6 @@ class Shader {
 
   /* TODO: Remove `is_batch_compilation`. */
   virtual void init(const shader::ShaderCreateInfo &info, bool is_batch_compilation) = 0;
-  /* Variant for legacy python shaders. To be removed, not supported in Vulkan or Metal. */
-  virtual void init() = 0;
 
   virtual void vertex_shader_from_glsl(MutableSpan<StringRefNull> sources) = 0;
   virtual void geometry_shader_from_glsl(MutableSpan<StringRefNull> sources) = 0;
@@ -303,7 +301,7 @@ struct LogCursor {
   int source = -1;
   int row = -1;
   int column = -1;
-  StringRef file_name_and_error_line = {};
+  std::string file_name_and_error_line;
 };
 
 struct GPULogItem {
@@ -328,6 +326,10 @@ class GPULogParser {
   bool at_number(const char *log_line) const;
   bool at_any(const char *log_line, const StringRef chars) const;
   int parse_number(const char *log_line, const char **r_new_position) const;
+
+  static size_t line_start_get(StringRefNull source_combined, size_t target_line);
+  static StringRef filename_get(StringRefNull source_combined, size_t pos);
+  static size_t source_line_get(StringRefNull source_combined, size_t pos);
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GPULogParser");
 };

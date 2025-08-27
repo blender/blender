@@ -33,6 +33,7 @@ class NODE_MT_geometry_node_GEO_COLOR(Menu):
     def draw(self, context):
         layout = self.layout
         node_add_menu.add_node_type(layout, "ShaderNodeBlackbody")
+        node_add_menu.add_node_type(layout, "ShaderNodeGamma")
         node_add_menu.add_node_type(layout, "ShaderNodeValToRGB")
         node_add_menu.add_node_type(layout, "ShaderNodeRGBCurve")
         layout.separator()
@@ -228,7 +229,7 @@ class NODE_MT_geometry_node_GEO_GEOMETRY_READ(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeInputNormal")
         node_add_menu.add_node_type(layout, "GeometryNodeInputPosition", search_weight=1.0)
         node_add_menu.add_node_type(layout, "GeometryNodeInputRadius")
-        if context.space_data.geometry_nodes_type == 'TOOL':
+        if context.space_data.node_tree_sub_type == 'TOOL':
             node_add_menu.add_node_type(layout, "GeometryNodeToolSelection")
             node_add_menu.add_node_type(layout, "GeometryNodeToolActiveElement")
         node_add_menu.draw_assets_for_catalog(layout, "Geometry/Read")
@@ -243,7 +244,7 @@ class NODE_MT_geometry_node_GEO_GEOMETRY_WRITE(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeSetGeometryName")
         node_add_menu.add_node_type(layout, "GeometryNodeSetID")
         node_add_menu.add_node_type(layout, "GeometryNodeSetPosition", search_weight=1.0)
-        if context.space_data.geometry_nodes_type == 'TOOL':
+        if context.space_data.node_tree_sub_type == 'TOOL':
             node_add_menu.add_node_type(layout, "GeometryNodeToolSetSelection")
         node_add_menu.draw_assets_for_catalog(layout, "Geometry/Write")
 
@@ -290,7 +291,7 @@ class NODE_MT_geometry_node_GEO_INPUT(Menu):
     def draw(self, context):
         layout = self.layout
         layout.menu("NODE_MT_geometry_node_GEO_INPUT_CONSTANT")
-        if context.space_data.geometry_nodes_type != 'TOOL':
+        if context.space_data.node_tree_sub_type != 'TOOL':
             layout.menu("NODE_MT_geometry_node_GEO_INPUT_GIZMO")
         layout.menu("NODE_MT_geometry_node_GEO_INPUT_GROUP")
         layout.menu("NODE_MT_category_import")
@@ -335,7 +336,7 @@ class NODE_MT_geometry_node_GEO_INPUT_SCENE(Menu):
 
     def draw(self, context):
         layout = self.layout
-        if context.space_data.geometry_nodes_type == 'TOOL':
+        if context.space_data.node_tree_sub_type == 'TOOL':
             node_add_menu.add_node_type(layout, "GeometryNodeTool3DCursor")
         node_add_menu.add_node_type(layout, "GeometryNodeInputActiveCamera")
         node_add_menu.add_node_type_with_outputs(
@@ -357,7 +358,7 @@ class NODE_MT_geometry_node_GEO_INPUT_SCENE(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeCollectionInfo")
         node_add_menu.add_node_type(layout, "GeometryNodeImageInfo")
         node_add_menu.add_node_type(layout, "GeometryNodeIsViewport")
-        if context.space_data.geometry_nodes_type == 'TOOL':
+        if context.space_data.node_tree_sub_type == 'TOOL':
             node_add_menu.add_node_type_with_outputs(
                 context, layout, "GeometryNodeToolMousePosition",
                 ["Mouse X", "Mouse Y", "Region Width", "Region Height"],
@@ -365,7 +366,7 @@ class NODE_MT_geometry_node_GEO_INPUT_SCENE(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeObjectInfo")
         node_add_menu.add_node_type_with_outputs(context, layout, "GeometryNodeInputSceneTime", ["Frame", "Seconds"])
         node_add_menu.add_node_type(layout, "GeometryNodeSelfObject")
-        if context.space_data.geometry_nodes_type == 'TOOL':
+        if context.space_data.node_tree_sub_type == 'TOOL':
             node_add_menu.add_node_type_with_outputs(
                 context, layout, "GeometryNodeViewportTransform",
                 ["Projection", "View", "Is Orthographic"],
@@ -453,7 +454,7 @@ class NODE_MT_geometry_node_GEO_MESH_READ(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeInputMeshFaceArea")
         node_add_menu.add_node_type(layout, "GeometryNodeMeshFaceSetBoundaries")
         node_add_menu.add_node_type(layout, "GeometryNodeInputMeshFaceNeighbors")
-        if context.space_data.geometry_nodes_type == 'TOOL':
+        if context.space_data.node_tree_sub_type == 'TOOL':
             node_add_menu.add_node_type(layout, "GeometryNodeToolFaceSet")
         node_add_menu.add_node_type(layout, "GeometryNodeInputMeshFaceIsPlanar")
         node_add_menu.add_node_type(layout, "GeometryNodeInputShadeSmooth")
@@ -481,7 +482,7 @@ class NODE_MT_geometry_node_GEO_MESH_WRITE(Menu):
 
     def draw(self, context):
         layout = self.layout
-        if context.space_data.geometry_nodes_type == 'TOOL':
+        if context.space_data.node_tree_sub_type == 'TOOL':
             node_add_menu.add_node_type(layout, "GeometryNodeToolSetFaceSet")
         node_add_menu.add_node_type(layout, "GeometryNodeSetMeshNormal")
         node_add_menu.add_node_type(layout, "GeometryNodeSetShadeSmooth")

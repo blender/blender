@@ -794,7 +794,7 @@ typedef struct bNodeTree {
   /** Precision used by the GPU execution of the compositor tree. */
   int precision DNA_DEPRECATED;
 
-  /** #blender::bke::NodeGroupColorTag. */
+  /** #blender::bke::NodeColorTag. */
   int color_tag;
 
   /**

@@ -44,7 +44,6 @@ PyDoc_STRVAR(
     "   :type inter: :class:`freestyle.types.Interface1D`\n"
     "   :return: The normalized distance between the Interface1D and the occludee.\n"
     "   :rtype: float\n");
-
 static int ZDiscontinuityF1D___init__(BPy_ZDiscontinuityF1D *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {"integration_type", nullptr};

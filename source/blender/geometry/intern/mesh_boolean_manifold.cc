@@ -283,7 +283,7 @@ static void get_manifold(Manifold &manifold,
   meshgl.vertProperties.resize(size_t(mesh.verts_num) * props_num);
   array_utils::copy(mesh.vert_positions(), MutableSpan(meshgl.vertProperties).cast<float3>());
 
-  /* Using separate a OriginalID for each input face will prevent coplanar
+  /* Using separate a OriginalID for each input face will prevent co-planar
    * faces from being merged.  We need this until the fix introduced in
    * Manifold at version 3.1.0. */
   constexpr bool use_runids = false;
@@ -355,7 +355,7 @@ static void get_manifolds(MutableSpan<Manifold> manifolds,
   }
   const int meshes_num = manifolds.size();
 
-  /* Transforming the original input meshes is a simple way to reuse the Mesh::corner_tris() cache
+  /* Transforming the original input meshes is a simple way to reuse the #Mesh::corner_tris() cache
    * for un-transformed meshes. This should reduce memory usage and help to avoid unnecessary cache
    * re-computations. */
   Array<const Mesh *> transformed_meshes(meshes_num);
@@ -1227,14 +1227,14 @@ static inline bool approx_in_line(const float3 &p0, const float3 &p1, const floa
  * and then being dissolved by merge_out_faces.
  * TODO: don't do this if the vertex was original.
  * (To do that we need the mapping from input to output verts to be passed as an argument,
- * and at th moment, we don't do that mapping yet -- and would have to redo itif we end up
+ * and at th moment, we don't do that mapping yet -- and would have to redo it if we end up
  * dissolving vert.)
  */
 static void dissolve_valence2_verts(MeshAssembly &ma)
 {
   const int vnum = ma.output_verts_num;
   Array<bool> dissolve(vnum, false);
-  /* We'll rememeber up to two vertex neighbors for each vertex. */
+  /* We'll remember up to two vertex neighbors for each vertex. */
   Array<std::pair<int, int>> neighbors(ma.output_verts_num, std::pair<int, int>(-1, -1));
   /* First, tentatively set dissolve based on neighbors. Alignment will be checked later. */
   for (const int f : ma.new_faces.index_range()) {
@@ -1265,8 +1265,7 @@ static void dissolve_valence2_verts(MeshAssembly &ma)
   /* We can't dissolve so many verts in a face that it leaves less than a triangle.
    * This should be rare, since the above logic will prevent dissolving a vert from a triangle,
    * but it is possible that two or more verts are to be dissolved from a quad or ngon.
-   * Do a pass to remove the possiblitiy of dissolving anything from such faces.
-   */
+   * Do a pass to remove the possibility of dissolving anything from such faces. */
   for (const int f : ma.new_faces.index_range()) {
     const OutFace &face = ma.new_faces[f];
     const int fsize = face.verts.size();
@@ -1311,11 +1310,10 @@ static void dissolve_valence2_verts(MeshAssembly &ma)
     return;
   }
 
-  /* We need to compress out the disssolved vertices out of ma.vertpos,
+  /* We need to compress out the dissolved vertices out of `ma.vertpos`,
    * remap all the faces to account for that compression,
    * and rebuild any faces containing those compressed verts.
-   * The compressing part is a bit like #mesh_copy_selection.
-   */
+   * The compressing part is a bit like #mesh_copy_selection. */
   IndexMaskMemory memory;
   IndexMask keep = IndexMask::from_bools_inverse(
       dissolve.index_range(), dissolve.as_span(), memory);
@@ -1324,7 +1322,7 @@ static void dissolve_valence2_verts(MeshAssembly &ma)
   ma.old_to_new_vert_map.fill(-1);
   index_mask::build_reverse_map<int>(keep, ma.old_to_new_vert_map);
 
-  /* Compress vertpos in place. Is there a parallel way to do this? */
+  /* Compress `vertpos` in place. Is there a parallel way to do this? */
   float *vpos_data = ma.vertpos.data();
   BLI_assert(ma.vertpos_stride == 3);
   for (const int old_v : IndexRange(vnum)) {

@@ -13,7 +13,7 @@
 
 #  include "overlay_shader_shared.hh"
 
-#  define HAIR_SHADER
+#  define CURVES_SHADER
 #  define DRW_HAIR_INFO
 
 #  define POINTCLOUD_SHADER
@@ -810,7 +810,8 @@ OVERLAY_INFO_VARIATIONS_MODELMAT(overlay_depth_pointcloud, overlay_depth_pointcl
 GPU_SHADER_CREATE_INFO(overlay_depth_curves_base)
 VERTEX_SOURCE("overlay_depth_only_curves_vert.glsl")
 FRAGMENT_SOURCE("overlay_depth_only_frag.glsl")
-ADDITIONAL_INFO(draw_hair)
+ADDITIONAL_INFO(draw_curves)
+ADDITIONAL_INFO(draw_curves_infos)
 ADDITIONAL_INFO(draw_globals)
 ADDITIONAL_INFO(draw_view)
 GPU_SHADER_CREATE_END()

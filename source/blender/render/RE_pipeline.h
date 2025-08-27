@@ -488,11 +488,6 @@ void RE_pass_set_buffer_data(struct RenderPass *pass, float *data);
 blender::gpu::Texture *RE_pass_ensure_gpu_texture_cache(struct Render *re,
                                                         struct RenderPass *rpass);
 
-/* shaded view or baking options */
-#define RE_BAKE_NORMALS 0
-#define RE_BAKE_DISPLACEMENT 1
-#define RE_BAKE_AO 2
-
 void RE_GetCameraWindow(struct Render *re, const struct Object *camera, float r_winmat[4][4]);
 /**
  * Must be called after #RE_GetCameraWindow(), does not change `re->winmat`.

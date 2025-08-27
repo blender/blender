@@ -876,8 +876,8 @@ void BlenderDisplayDriver::draw(const Params &params)
 
   gpu_context_unlock();
 
-  LOG_STATS << "Display driver number of textures: " << DisplayGPUTexture::num_used;
-  LOG_STATS << "Display driver number of PBOs: " << DisplayGPUPixelBuffer::num_used;
+  LOG_TRACE << "Display driver number of textures: " << DisplayGPUTexture::num_used;
+  LOG_TRACE << "Display driver number of PBOs: " << DisplayGPUPixelBuffer::num_used;
 }
 
 void BlenderDisplayDriver::gpu_context_create()

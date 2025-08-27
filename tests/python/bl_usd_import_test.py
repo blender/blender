@@ -322,15 +322,17 @@ class USDImportTest(AbstractUSDTest):
             blender_mesh2_eval = bpy.data.objects["mesh_vert_crease"].evaluated_get(depsgraph)
 
             # Check crease values
-            blender_crease_data = [round(d.value) for d in blender_mesh1_eval.data.attributes["crease_edge"].data]
-            usd_crease_data = [round(sharpness_to_crease(d)) for d in usd_mesh1.GetCreaseSharpnessesAttr().Get(frame)]
+            blender_crease_data = [round(d.value, 5) for d in blender_mesh1_eval.data.attributes["crease_edge"].data]
+            usd_crease_data = [
+                round(sharpness_to_crease(d), 5) for d in usd_mesh1.GetCreaseSharpnessesAttr().Get(frame)]
             self.assertEqual(
                 blender_crease_data,
                 usd_crease_data,
                 f"Frame {frame}: {blender_mesh1_eval.name} crease values do not match")
 
-            blender_crease_data = [round(d.value) for d in blender_mesh2_eval.data.attributes["crease_vert"].data]
-            usd_crease_data = [round(sharpness_to_crease(d)) for d in usd_mesh2.GetCornerSharpnessesAttr().Get(frame)]
+            blender_crease_data = [round(d.value, 5) for d in blender_mesh2_eval.data.attributes["crease_vert"].data]
+            usd_crease_data = [
+                round(sharpness_to_crease(d), 5) for d in usd_mesh2.GetCornerSharpnessesAttr().Get(frame)]
             self.assertEqual(
                 blender_crease_data,
                 usd_crease_data,
@@ -1638,6 +1640,16 @@ class USDImportTest(AbstractUSDTest):
         for ob in blender_objects:
             self.assertTrue(len(ob.modifiers) == 1 and ob.modifiers[0].type ==
                             'MESH_SEQUENCE_CACHE', f"{ob.name} has incorrect modifiers")
+
+        # Check that the shape with the color attribute properly updates and has correct values
+        def get_first_color_value(blender_object, frame):
+            bpy.context.scene.frame_set(frame)
+            depsgraph = bpy.context.evaluated_depsgraph_get()
+            return blender_object.evaluated_get(depsgraph).data.attributes["displayColor"].data.values()[0].color
+        blender_color = get_first_color_value(bpy.data.objects["capsule_color"], 1)
+        self.assertEqual(self.round_vector(blender_color), [0.8, 1.0, 0.0, 1.0])
+        blender_color = get_first_color_value(bpy.data.objects["capsule_color"], 2)
+        self.assertEqual(self.round_vector(blender_color), [0.1, 0.8, 0.0, 1.0])
 
     def test_import_collection_creation(self):
         """Test that the 'create_collection' option functions correctly."""

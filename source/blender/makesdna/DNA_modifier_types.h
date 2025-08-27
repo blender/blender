@@ -268,9 +268,6 @@ typedef struct SubsurfModifierData {
   /** #eSubsurfBoundarySmooth. */
   short boundary_smooth;
   char _pad[2];
-
-  /* TODO(sergey): Get rid of those with the old CCG subdivision code. */
-  void *emCache, *mCache;
 } SubsurfModifierData;
 
 typedef struct LatticeModifierData {

@@ -416,7 +416,6 @@ class SocketTooltipBuilder {
     this->build_tooltip_value_and_type_oneline(value_str, TIP_("Float Color"));
     this->add_space();
 
-    this->add_text_field_mono(TIP_("Display:"), UI_TIP_LC_NORMAL);
     bool is_gamma = false;
     const ColorManagedDisplay *display = nullptr;
     if (but_) {

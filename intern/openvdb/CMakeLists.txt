@@ -3,17 +3,20 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 if(WITH_OPENVDB)
-  list(APPEND INC
+  set(INC_SYS
+  )
+
+  set(INC
     PUBLIC .
   )
 
-  list(APPEND SRC
+  set(SRC
     openvdb_capi.h
     openvdb_fwd.hh
     openvdb_capi.cc
   )
 
-  list(APPEND LIB
+  set(LIB
     PUBLIC bf::dependencies::optional::openvdb
   )
 

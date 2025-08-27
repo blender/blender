@@ -805,34 +805,35 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_tool(bContext *C,
 
 static std::string ui_tooltip_color_string(const blender::float4 &color,
                                            const blender::StringRefNull title,
+                                           const int max_title_len,
                                            const bool show_alpha,
                                            const bool show_hex = false)
 {
+  const int align = max_title_len - title.size();
+
   if (show_hex) {
     uchar hex[4];
     rgba_float_to_uchar(hex, color);
     if (show_alpha) {
-      return fmt::format("{}: #{:02X}{:02X}{:02X}{:02X}",
-                         TIP_(title),
+      return fmt::format("{}:{: <{}} #{:02X}{:02X}{:02X}{:02X}",
+                         title,
+                         "",
+                         align,
                          int(hex[0]),
                          int(hex[1]),
                          int(hex[2]),
                          int(hex[3]));
     }
     return fmt::format(
-        "{}: #{:02X}{:02X}{:02X}", TIP_(title), int(hex[0]), int(hex[1]), int(hex[2]));
+        "{}:{: <{}} #{:02X}{:02X}{:02X}", title, "", align, int(hex[0]), int(hex[1]), int(hex[2]));
   }
 
   if (show_alpha) {
-    return fmt::format("{}:  {:.3f}  {:.3f}  {:.3f}  {:.3f}",
-                       TIP_(title),
-                       color[0],
-                       color[1],
-                       color[2],
-                       color[3]);
+    return fmt::format("{}:{: <{}} {:.3f}", title, "", align, color[3]);
   }
 
-  return fmt::format("{}:  {:.3f}  {:.3f}  {:.3f}", TIP_(title), color[0], color[1], color[2]);
+  return fmt::format(
+      "{}:{: <{}} {:.3f}  {:.3f}  {:.3f}", title, "", align, color[0], color[1], color[2]);
 };
 
 void UI_tooltip_color_field_add(uiTooltipData &data,
@@ -842,25 +843,43 @@ void UI_tooltip_color_field_add(uiTooltipData &data,
                                 const ColorManagedDisplay *display,
                                 const uiTooltipColorID color_id)
 {
-  blender::float4 color = original_color;
-  if (!is_gamma && display) {
-    IMB_colormanagement_scene_linear_to_display_v3(color, display);
+  blender::float4 scene_linear_color = original_color;
+  blender::float4 display_color = original_color;
+  blender::float4 srgb_color = original_color;
+
+  if (is_gamma) {
+    IMB_colormanagement_srgb_to_scene_linear_v3(scene_linear_color, scene_linear_color);
+  }
+  else {
+    IMB_colormanagement_scene_linear_to_display_v3(
+        display_color, display, DISPLAY_SPACE_COLOR_INSPECTION);
+    IMB_colormanagement_scene_linear_to_srgb_v3(srgb_color, srgb_color);
   }
 
-  const std::string hex_st = ui_tooltip_color_string(color, "Hex", has_alpha, true);
+  float hsv[4];
+  rgb_to_hsv_v(srgb_color, hsv);
+  hsv[3] = srgb_color[3];
 
+  const blender::StringRefNull hex_title = TIP_("Hex");
+  const blender::StringRefNull rgb_title = (is_gamma) ? TIP_("sRGB") : TIP_("Display RGB");
+  const blender::StringRefNull hsv_title = TIP_("HSV");
+  const blender::StringRefNull alpha_title = TIP_("Alpha");
+  const int max_title_len = std::max(
+      {hex_title.size(), rgb_title.size(), hsv_title.size(), alpha_title.size()});
+
+  const std::string hex_st = ui_tooltip_color_string(
+      srgb_color, hex_title, max_title_len, has_alpha, true);
   const std::string rgba_st = ui_tooltip_color_string(
-      color, has_alpha ? "RGBA" : "RGB", has_alpha);
-
-  float hsva[4];
-  rgb_to_hsv_v(color, hsva);
-  hsva[3] = color[3];
-  const std::string hsva_st = ui_tooltip_color_string(hsva, has_alpha ? "HSVA" : "HSV", has_alpha);
+      display_color, rgb_title, max_title_len, false);
+  const std::string hsv_st = ui_tooltip_color_string(hsv, hsv_title, max_title_len, false);
+  const std::string alpha_st = ui_tooltip_color_string(
+      scene_linear_color, alpha_title, max_title_len, true);
 
   const uiFontStyle *fs = &UI_style_get()->tooltip;
   BLF_size(blf_mono_font, fs->points * UI_SCALE_FAC);
-  float w = BLF_width(blf_mono_font, hsva_st.c_str(), hsva_st.size());
+  float w = BLF_width(blf_mono_font, hsv_st.c_str(), hsv_st.size());
 
+  /* TODO: This clips wide gamut. Should make a float buffer and draw for display. */
   uiTooltipImage image_data;
   image_data.width = int(w);
   image_data.height = int(w / (has_alpha ? 4.0f : 3.0f));
@@ -868,35 +887,38 @@ void UI_tooltip_color_field_add(uiTooltipData &data,
   image_data.border = true;
   image_data.premultiplied = false;
 
-  if (color[3] == 1.0f) {
+  if (scene_linear_color[3] == 1.0f) {
     /* No transparency so draw the entire area solid without checkerboard. */
     image_data.background = uiTooltipImageBackground::None;
-    IMB_rectfill_area(image_data.ibuf, color, 1, 1, image_data.width, image_data.height, display);
+    IMB_rectfill_area(
+        image_data.ibuf, scene_linear_color, 1, 1, image_data.width, image_data.height);
   }
   else {
     image_data.background = uiTooltipImageBackground::Checkerboard_Fixed;
     /* Draw one half with transparency. */
     IMB_rectfill_area(image_data.ibuf,
-                      color,
+                      scene_linear_color,
                       image_data.width / 2,
                       1,
                       image_data.width,
-                      image_data.height,
-                      display);
+                      image_data.height);
     /* Draw the other half with a solid color. */
-    color[3] = 1.0f;
+    scene_linear_color[3] = 1.0f;
     IMB_rectfill_area(
-        image_data.ibuf, color, 1, 1, image_data.width / 2, image_data.height, display);
+        image_data.ibuf, scene_linear_color, 1, 1, image_data.width / 2, image_data.height);
   }
 
   UI_tooltip_text_field_add(data, {}, {}, UI_TIP_STYLE_SPACER, color_id, false);
   UI_tooltip_text_field_add(data, {}, {}, UI_TIP_STYLE_SPACER, color_id, false);
   UI_tooltip_image_field_add(data, image_data);
   UI_tooltip_text_field_add(data, {}, {}, UI_TIP_STYLE_SPACER, color_id, false);
-  UI_tooltip_text_field_add(data, hex_st, {}, UI_TIP_STYLE_MONO, color_id, false);
-  UI_tooltip_text_field_add(data, {}, {}, UI_TIP_STYLE_SPACER, color_id, false);
   UI_tooltip_text_field_add(data, rgba_st, {}, UI_TIP_STYLE_MONO, color_id, false);
-  UI_tooltip_text_field_add(data, hsva_st, {}, UI_TIP_STYLE_MONO, color_id, false);
+  UI_tooltip_text_field_add(data, hsv_st, {}, UI_TIP_STYLE_MONO, color_id, false);
+  if (has_alpha) {
+    UI_tooltip_text_field_add(data, alpha_st, {}, UI_TIP_STYLE_MONO, color_id, false);
+  }
+  UI_tooltip_text_field_add(data, {}, {}, UI_TIP_STYLE_SPACER, color_id, false);
+  UI_tooltip_text_field_add(data, hex_st, {}, UI_TIP_STYLE_MONO, color_id, false);
 
   /* Tooltip now owns a copy of the ImBuf, so we can delete ours. */
   IMB_freeImBuf(image_data.ibuf);

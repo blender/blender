@@ -759,7 +759,7 @@ int Scene::get_volume_stack_size() const
 
   volume_stack_size = min(volume_stack_size, MAX_VOLUME_STACK_SIZE);
 
-  LOG_WORK << "Detected required volume stack size " << volume_stack_size;
+  LOG_DEBUG << "Detected required volume stack size " << volume_stack_size;
 
   return volume_stack_size;
 }

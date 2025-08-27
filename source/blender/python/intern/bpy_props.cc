@@ -39,6 +39,7 @@
 #include "../generic/py_capi_rna.hh"
 #include "../generic/py_capi_utils.hh"
 #include "../generic/python_compat.hh" /* IWYU pragma: keep. */
+#include "../generic/python_utildefines.hh"
 
 using blender::Array;
 
@@ -283,8 +284,7 @@ PyDoc_STRVAR(
     "\n"
     ".. note::\n"
     "\n"
-    "   This is not part of the stable API and may change between releases.");
-
+    "   This is not part of the stable API and may change between releases.\n");
 PyTypeObject bpy_prop_deferred_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "_PropertyDeferred",
@@ -603,24 +603,22 @@ static void bpy_prop_update_fn(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 
   BPyPropStore *prop_store = static_cast<BPyPropStore *>(RNA_property_py_data_get(prop));
   PyObject *py_func;
-  PyObject *args;
-  PyObject *self;
   PyObject *ret;
 
   BLI_assert(prop_store != nullptr);
 
   py_func = prop_store->py_data.update_fn;
 
-  args = PyTuple_New(2);
-  self = pyrna_struct_as_instance(ptr);
-  PyTuple_SET_ITEM(args, 0, self);
+  {
+    PyObject *args = PyTuple_New(2);
+    PyObject *self = pyrna_struct_as_instance(ptr);
+    PyTuple_SET_ITEMS(args, self, reinterpret_cast<PyObject *>(bpy_context_module));
+    Py_INCREF(bpy_context_module);
 
-  PyTuple_SET_ITEM(args, 1, (PyObject *)bpy_context_module);
-  Py_INCREF(bpy_context_module);
+    ret = PyObject_CallObject(py_func, args);
 
-  ret = PyObject_CallObject(py_func, args);
-
-  Py_DECREF(args);
+    Py_DECREF(args);
+  }
 
   if (ret == nullptr) {
     PyC_Err_PrintWithFunc(py_func);
@@ -653,8 +651,6 @@ static bool bpy_prop_boolean_get_fn(PointerRNA *ptr, PropertyRNA *prop)
 
   BPyPropStore *prop_store = static_cast<BPyPropStore *>(RNA_property_py_data_get(prop));
   PyObject *py_func;
-  PyObject *args;
-  PyObject *self;
   PyObject *ret;
   bool value;
 
@@ -662,13 +658,15 @@ static bool bpy_prop_boolean_get_fn(PointerRNA *ptr, PropertyRNA *prop)
 
   py_func = prop_store->py_data.get_fn;
 
-  args = PyTuple_New(1);
-  self = pyrna_struct_as_instance(ptr);
-  PyTuple_SET_ITEM(args, 0, self);
+  {
+    PyObject *args = PyTuple_New(1);
+    PyObject *self = pyrna_struct_as_instance(ptr);
+    PyTuple_SET_ITEMS(args, self);
 
-  ret = PyObject_CallObject(py_func, args);
+    ret = PyObject_CallObject(py_func, args);
 
-  Py_DECREF(args);
+    Py_DECREF(args);
+  }
 
   if (ret == nullptr) {
     PyC_Err_PrintWithFunc(py_func);
@@ -699,23 +697,21 @@ static void bpy_prop_boolean_set_fn(PointerRNA *ptr, PropertyRNA *prop, bool val
 
   BPyPropStore *prop_store = static_cast<BPyPropStore *>(RNA_property_py_data_get(prop));
   PyObject *py_func;
-  PyObject *args;
-  PyObject *self;
   PyObject *ret;
 
   BLI_assert(prop_store != nullptr);
 
   py_func = prop_store->py_data.set_fn;
 
-  args = PyTuple_New(2);
-  self = pyrna_struct_as_instance(ptr);
-  PyTuple_SET_ITEM(args, 0, self);
+  {
+    PyObject *args = PyTuple_New(2);
+    PyObject *self = pyrna_struct_as_instance(ptr);
+    PyTuple_SET_ITEMS(args, self, PyBool_FromLong(value));
 
-  PyTuple_SET_ITEM(args, 1, PyBool_FromLong(value));
+    ret = PyObject_CallObject(py_func, args);
 
-  ret = PyObject_CallObject(py_func, args);
-
-  Py_DECREF(args);
+    Py_DECREF(args);
+  }
 
   if (ret == nullptr) {
     PyC_Err_PrintWithFunc(py_func);
@@ -738,8 +734,6 @@ static void bpy_prop_boolean_array_get_fn(PointerRNA *ptr, PropertyRNA *prop, bo
 
   BPyPropStore *prop_store = static_cast<BPyPropStore *>(RNA_property_py_data_get(prop));
   PyObject *py_func;
-  PyObject *args;
-  PyObject *self;
   PyObject *ret;
 
   bool is_values_set = false;
@@ -752,13 +746,15 @@ static void bpy_prop_boolean_array_get_fn(PointerRNA *ptr, PropertyRNA *prop, bo
 
   py_func = prop_store->py_data.get_fn;
 
-  args = PyTuple_New(1);
-  self = pyrna_struct_as_instance(ptr);
-  PyTuple_SET_ITEM(args, 0, self);
+  {
+    PyObject *args = PyTuple_New(1);
+    PyObject *self = pyrna_struct_as_instance(ptr);
+    PyTuple_SET_ITEMS(args, self);
 
-  ret = PyObject_CallObject(py_func, args);
+    ret = PyObject_CallObject(py_func, args);
 
-  Py_DECREF(args);
+    Py_DECREF(args);
+  }
 
   if (ret != nullptr) {
     if (bpy_prop_array_from_py_with_dims(values,
@@ -792,10 +788,7 @@ static void bpy_prop_boolean_array_set_fn(PointerRNA *ptr, PropertyRNA *prop, co
 
   BPyPropStore *prop_store = static_cast<BPyPropStore *>(RNA_property_py_data_get(prop));
   PyObject *py_func;
-  PyObject *args;
-  PyObject *self;
   PyObject *ret;
-  PyObject *py_values;
 
   const int len = RNA_property_array_length(ptr, prop);
   BPyPropArrayLength array_len_info{};
@@ -806,22 +799,24 @@ static void bpy_prop_boolean_array_set_fn(PointerRNA *ptr, PropertyRNA *prop, co
 
   py_func = prop_store->py_data.set_fn;
 
-  args = PyTuple_New(2);
-  self = pyrna_struct_as_instance(ptr);
-  PyTuple_SET_ITEM(args, 0, self);
+  {
+    PyObject *args = PyTuple_New(2);
+    PyObject *self = pyrna_struct_as_instance(ptr);
 
-  if (array_len_info.dims_len == 0) {
-    py_values = PyC_Tuple_PackArray_Bool(values, len);
+    PyObject *py_values;
+    if (array_len_info.dims_len == 0) {
+      py_values = PyC_Tuple_PackArray_Bool(values, len);
+    }
+    else {
+      py_values = PyC_Tuple_PackArray_Multi_Bool(
+          values, array_len_info.dims, array_len_info.dims_len);
+    }
+    PyTuple_SET_ITEMS(args, self, py_values);
+
+    ret = PyObject_CallObject(py_func, args);
+
+    Py_DECREF(args);
   }
-  else {
-    py_values = PyC_Tuple_PackArray_Multi_Bool(
-        values, array_len_info.dims, array_len_info.dims_len);
-  }
-  PyTuple_SET_ITEM(args, 1, py_values);
-
-  ret = PyObject_CallObject(py_func, args);
-
-  Py_DECREF(args);
 
   if (ret == nullptr) {
     PyC_Err_PrintWithFunc(py_func);
@@ -850,8 +845,6 @@ static int bpy_prop_int_get_fn(PointerRNA *ptr, PropertyRNA *prop)
 
   BPyPropStore *prop_store = static_cast<BPyPropStore *>(RNA_property_py_data_get(prop));
   PyObject *py_func;
-  PyObject *args;
-  PyObject *self;
   PyObject *ret;
 
   int value;
@@ -860,13 +853,15 @@ static int bpy_prop_int_get_fn(PointerRNA *ptr, PropertyRNA *prop)
 
   py_func = prop_store->py_data.get_fn;
 
-  args = PyTuple_New(1);
-  self = pyrna_struct_as_instance(ptr);
-  PyTuple_SET_ITEM(args, 0, self);
+  {
+    PyObject *args = PyTuple_New(1);
+    PyObject *self = pyrna_struct_as_instance(ptr);
+    PyTuple_SET_ITEMS(args, self);
 
-  ret = PyObject_CallObject(py_func, args);
+    ret = PyObject_CallObject(py_func, args);
 
-  Py_DECREF(args);
+    Py_DECREF(args);
+  }
 
   if (ret == nullptr) {
     PyC_Err_PrintWithFunc(py_func);
@@ -894,23 +889,21 @@ static void bpy_prop_int_set_fn(PointerRNA *ptr, PropertyRNA *prop, int value)
 
   BPyPropStore *prop_store = static_cast<BPyPropStore *>(RNA_property_py_data_get(prop));
   PyObject *py_func;
-  PyObject *args;
-  PyObject *self;
   PyObject *ret;
 
   BLI_assert(prop_store != nullptr);
 
   py_func = prop_store->py_data.set_fn;
 
-  args = PyTuple_New(2);
-  self = pyrna_struct_as_instance(ptr);
-  PyTuple_SET_ITEM(args, 0, self);
+  {
+    PyObject *args = PyTuple_New(2);
+    PyObject *self = pyrna_struct_as_instance(ptr);
+    PyTuple_SET_ITEMS(args, self, PyLong_FromLong(value));
 
-  PyTuple_SET_ITEM(args, 1, PyLong_FromLong(value));
+    ret = PyObject_CallObject(py_func, args);
 
-  ret = PyObject_CallObject(py_func, args);
-
-  Py_DECREF(args);
+    Py_DECREF(args);
+  }
 
   if (ret == nullptr) {
     PyC_Err_PrintWithFunc(py_func);
@@ -933,8 +926,6 @@ static void bpy_prop_int_array_get_fn(PointerRNA *ptr, PropertyRNA *prop, int *v
 
   BPyPropStore *prop_store = static_cast<BPyPropStore *>(RNA_property_py_data_get(prop));
   PyObject *py_func;
-  PyObject *args;
-  PyObject *self;
   PyObject *ret;
 
   bool is_values_set = false;
@@ -947,13 +938,15 @@ static void bpy_prop_int_array_get_fn(PointerRNA *ptr, PropertyRNA *prop, int *v
 
   py_func = prop_store->py_data.get_fn;
 
-  args = PyTuple_New(1);
-  self = pyrna_struct_as_instance(ptr);
-  PyTuple_SET_ITEM(args, 0, self);
+  {
+    PyObject *args = PyTuple_New(1);
+    PyObject *self = pyrna_struct_as_instance(ptr);
+    PyTuple_SET_ITEMS(args, self);
 
-  ret = PyObject_CallObject(py_func, args);
+    ret = PyObject_CallObject(py_func, args);
 
-  Py_DECREF(args);
+    Py_DECREF(args);
+  }
 
   if (ret != nullptr) {
     if (bpy_prop_array_from_py_with_dims(values,
@@ -987,10 +980,7 @@ static void bpy_prop_int_array_set_fn(PointerRNA *ptr, PropertyRNA *prop, const 
 
   BPyPropStore *prop_store = static_cast<BPyPropStore *>(RNA_property_py_data_get(prop));
   PyObject *py_func;
-  PyObject *args;
-  PyObject *self;
   PyObject *ret;
-  PyObject *py_values;
 
   const int len = RNA_property_array_length(ptr, prop);
   BPyPropArrayLength array_len_info{};
@@ -1001,23 +991,24 @@ static void bpy_prop_int_array_set_fn(PointerRNA *ptr, PropertyRNA *prop, const 
 
   py_func = prop_store->py_data.set_fn;
 
-  args = PyTuple_New(2);
-  self = pyrna_struct_as_instance(ptr);
-  PyTuple_SET_ITEM(args, 0, self);
+  {
+    PyObject *args = PyTuple_New(2);
+    PyObject *self = pyrna_struct_as_instance(ptr);
 
-  if (array_len_info.dims_len == 0) {
-    py_values = PyC_Tuple_PackArray_I32(values, len);
+    PyObject *py_values;
+    if (array_len_info.dims_len == 0) {
+      py_values = PyC_Tuple_PackArray_I32(values, len);
+    }
+    else {
+      py_values = PyC_Tuple_PackArray_Multi_I32(
+          values, array_len_info.dims, array_len_info.dims_len);
+    }
+    PyTuple_SET_ITEMS(args, self, py_values);
+
+    ret = PyObject_CallObject(py_func, args);
+
+    Py_DECREF(args);
   }
-  else {
-    py_values = PyC_Tuple_PackArray_Multi_I32(
-        values, array_len_info.dims, array_len_info.dims_len);
-  }
-
-  PyTuple_SET_ITEM(args, 1, py_values);
-
-  ret = PyObject_CallObject(py_func, args);
-
-  Py_DECREF(args);
 
   if (ret == nullptr) {
     PyC_Err_PrintWithFunc(py_func);
@@ -1046,8 +1037,6 @@ static float bpy_prop_float_get_fn(PointerRNA *ptr, PropertyRNA *prop)
 
   BPyPropStore *prop_store = static_cast<BPyPropStore *>(RNA_property_py_data_get(prop));
   PyObject *py_func;
-  PyObject *args;
-  PyObject *self;
   PyObject *ret;
 
   float value;
@@ -1056,13 +1045,15 @@ static float bpy_prop_float_get_fn(PointerRNA *ptr, PropertyRNA *prop)
 
   py_func = prop_store->py_data.get_fn;
 
-  args = PyTuple_New(1);
-  self = pyrna_struct_as_instance(ptr);
-  PyTuple_SET_ITEM(args, 0, self);
+  {
+    PyObject *args = PyTuple_New(1);
+    PyObject *self = pyrna_struct_as_instance(ptr);
+    PyTuple_SET_ITEMS(args, self);
 
-  ret = PyObject_CallObject(py_func, args);
+    ret = PyObject_CallObject(py_func, args);
 
-  Py_DECREF(args);
+    Py_DECREF(args);
+  }
 
   if (ret == nullptr) {
     PyC_Err_PrintWithFunc(py_func);
@@ -1090,23 +1081,21 @@ static void bpy_prop_float_set_fn(PointerRNA *ptr, PropertyRNA *prop, float valu
 
   BPyPropStore *prop_store = static_cast<BPyPropStore *>(RNA_property_py_data_get(prop));
   PyObject *py_func;
-  PyObject *args;
-  PyObject *self;
   PyObject *ret;
 
   BLI_assert(prop_store != nullptr);
 
   py_func = prop_store->py_data.set_fn;
 
-  args = PyTuple_New(2);
-  self = pyrna_struct_as_instance(ptr);
-  PyTuple_SET_ITEM(args, 0, self);
+  {
+    PyObject *args = PyTuple_New(2);
+    PyObject *self = pyrna_struct_as_instance(ptr);
+    PyTuple_SET_ITEMS(args, self, PyFloat_FromDouble(value));
 
-  PyTuple_SET_ITEM(args, 1, PyFloat_FromDouble(value));
+    ret = PyObject_CallObject(py_func, args);
 
-  ret = PyObject_CallObject(py_func, args);
-
-  Py_DECREF(args);
+    Py_DECREF(args);
+  }
 
   if (ret == nullptr) {
     PyC_Err_PrintWithFunc(py_func);
@@ -1129,8 +1118,6 @@ static void bpy_prop_float_array_get_fn(PointerRNA *ptr, PropertyRNA *prop, floa
 
   BPyPropStore *prop_store = static_cast<BPyPropStore *>(RNA_property_py_data_get(prop));
   PyObject *py_func;
-  PyObject *args;
-  PyObject *self;
   PyObject *ret;
 
   bool is_values_set = false;
@@ -1143,13 +1130,15 @@ static void bpy_prop_float_array_get_fn(PointerRNA *ptr, PropertyRNA *prop, floa
 
   py_func = prop_store->py_data.get_fn;
 
-  args = PyTuple_New(1);
-  self = pyrna_struct_as_instance(ptr);
-  PyTuple_SET_ITEM(args, 0, self);
+  {
+    PyObject *args = PyTuple_New(1);
+    PyObject *self = pyrna_struct_as_instance(ptr);
+    PyTuple_SET_ITEMS(args, self);
 
-  ret = PyObject_CallObject(py_func, args);
+    ret = PyObject_CallObject(py_func, args);
 
-  Py_DECREF(args);
+    Py_DECREF(args);
+  }
 
   if (ret != nullptr) {
     if (bpy_prop_array_from_py_with_dims(values,
@@ -1187,10 +1176,7 @@ static void bpy_prop_float_array_set_fn(PointerRNA *ptr, PropertyRNA *prop, cons
 
   BPyPropStore *prop_store = static_cast<BPyPropStore *>(RNA_property_py_data_get(prop));
   PyObject *py_func;
-  PyObject *args;
-  PyObject *self;
   PyObject *ret;
-  PyObject *py_values;
 
   const int len = RNA_property_array_length(ptr, prop);
   BPyPropArrayLength array_len_info{};
@@ -1201,23 +1187,25 @@ static void bpy_prop_float_array_set_fn(PointerRNA *ptr, PropertyRNA *prop, cons
 
   py_func = prop_store->py_data.set_fn;
 
-  args = PyTuple_New(2);
-  self = pyrna_struct_as_instance(ptr);
-  PyTuple_SET_ITEM(args, 0, self);
+  {
+    PyObject *args = PyTuple_New(2);
+    PyObject *self = pyrna_struct_as_instance(ptr);
 
-  if (array_len_info.dims_len == 0) {
-    py_values = PyC_Tuple_PackArray_F32(values, len);
+    PyObject *py_values;
+    if (array_len_info.dims_len == 0) {
+      py_values = PyC_Tuple_PackArray_F32(values, len);
+    }
+    else {
+      /* No need for matrix column/row swapping here unless the matrix data is read directly. */
+      py_values = PyC_Tuple_PackArray_Multi_F32(
+          values, array_len_info.dims, array_len_info.dims_len);
+    }
+    PyTuple_SET_ITEMS(args, self, py_values);
+
+    ret = PyObject_CallObject(py_func, args);
+
+    Py_DECREF(args);
   }
-  else {
-    /* No need for matrix column/row swapping here unless the matrix data is read directly. */
-    py_values = PyC_Tuple_PackArray_Multi_F32(
-        values, array_len_info.dims, array_len_info.dims_len);
-  }
-  PyTuple_SET_ITEM(args, 1, py_values);
-
-  ret = PyObject_CallObject(py_func, args);
-
-  Py_DECREF(args);
 
   if (ret == nullptr) {
     PyC_Err_PrintWithFunc(py_func);
@@ -1246,21 +1234,21 @@ static void bpy_prop_string_get_fn(PointerRNA *ptr, PropertyRNA *prop, char *val
 
   BPyPropStore *prop_store = static_cast<BPyPropStore *>(RNA_property_py_data_get(prop));
   PyObject *py_func;
-  PyObject *args;
-  PyObject *self;
   PyObject *ret;
 
   BLI_assert(prop_store != nullptr);
 
   py_func = prop_store->py_data.get_fn;
 
-  args = PyTuple_New(1);
-  self = pyrna_struct_as_instance(ptr);
-  PyTuple_SET_ITEM(args, 0, self);
+  {
+    PyObject *args = PyTuple_New(1);
+    PyObject *self = pyrna_struct_as_instance(ptr);
+    PyTuple_SET_ITEMS(args, self);
 
-  ret = PyObject_CallObject(py_func, args);
+    ret = PyObject_CallObject(py_func, args);
 
-  Py_DECREF(args);
+    Py_DECREF(args);
+  }
 
   if (ret == nullptr) {
     PyC_Err_PrintWithFunc(py_func);
@@ -1289,8 +1277,6 @@ static int bpy_prop_string_length_fn(PointerRNA *ptr, PropertyRNA *prop)
 
   BPyPropStore *prop_store = static_cast<BPyPropStore *>(RNA_property_py_data_get(prop));
   PyObject *py_func;
-  PyObject *args;
-  PyObject *self;
   PyObject *ret;
 
   int length;
@@ -1299,13 +1285,15 @@ static int bpy_prop_string_length_fn(PointerRNA *ptr, PropertyRNA *prop)
 
   py_func = prop_store->py_data.get_fn;
 
-  args = PyTuple_New(1);
-  self = pyrna_struct_as_instance(ptr);
-  PyTuple_SET_ITEM(args, 0, self);
+  {
+    PyObject *args = PyTuple_New(1);
+    PyObject *self = pyrna_struct_as_instance(ptr);
+    PyTuple_SET_ITEMS(args, self);
 
-  ret = PyObject_CallObject(py_func, args);
+    ret = PyObject_CallObject(py_func, args);
 
-  Py_DECREF(args);
+    Py_DECREF(args);
+  }
 
   if (ret == nullptr) {
     PyC_Err_PrintWithFunc(py_func);
@@ -1336,32 +1324,29 @@ static void bpy_prop_string_set_fn(PointerRNA *ptr, PropertyRNA *prop, const cha
 
   BPyPropStore *prop_store = static_cast<BPyPropStore *>(RNA_property_py_data_get(prop));
   PyObject *py_func;
-  PyObject *args;
-  PyObject *self;
   PyObject *ret;
-
-  PyObject *py_value;
 
   BLI_assert(prop_store != nullptr);
 
   py_func = prop_store->py_data.set_fn;
 
-  args = PyTuple_New(2);
-  self = pyrna_struct_as_instance(ptr);
-  PyTuple_SET_ITEM(args, 0, self);
+  {
+    PyObject *args = PyTuple_New(2);
+    PyObject *self = pyrna_struct_as_instance(ptr);
 
-  py_value = PyUnicode_FromString(value);
-  if (!py_value) {
-    PyErr_SetString(PyExc_ValueError, "the return value must be a string");
-    PyC_Err_PrintWithFunc(py_func);
+    PyObject *py_value = PyUnicode_FromString(value);
+    if (!py_value) {
+      PyErr_SetString(PyExc_ValueError, "the set value must be a valid string");
+      PyC_Err_PrintWithFunc(py_func);
+      py_value = Py_None;
+      Py_INCREF(py_value);
+    }
+    PyTuple_SET_ITEMS(args, self, py_value);
+
+    ret = PyObject_CallObject(py_func, args);
+
+    Py_DECREF(args);
   }
-  else {
-    PyTuple_SET_ITEM(args, 1, py_value);
-  }
-
-  ret = PyObject_CallObject(py_func, args);
-
-  Py_DECREF(args);
 
   if (ret == nullptr) {
     PyC_Err_PrintWithFunc(py_func);
@@ -1442,28 +1427,24 @@ static void bpy_prop_string_visit_for_search_fn(
 
   BPyPropStore *prop_store = static_cast<BPyPropStore *>(RNA_property_py_data_get(prop));
   PyObject *py_func;
-  PyObject *args;
-  PyObject *self;
   PyObject *ret;
-  PyObject *py_edit_text;
 
   BLI_assert(prop_store != nullptr);
 
   py_func = prop_store->py_data.string_data.search_fn;
 
-  args = PyTuple_New(3);
-  self = pyrna_struct_as_instance(ptr);
-  PyTuple_SET_ITEM(args, 0, self);
+  {
+    PyObject *args = PyTuple_New(3);
+    PyObject *self = pyrna_struct_as_instance(ptr);
+    PyObject *py_context = reinterpret_cast<PyObject *>(bpy_context_module);
+    PyObject *py_edit_text = PyUnicode_FromString(edit_text);
+    Py_INCREF(py_context);
+    PyTuple_SET_ITEMS(args, self, py_context, py_edit_text);
 
-  Py_INCREF(bpy_context_module);
-  PyTuple_SET_ITEM(args, 1, (PyObject *)bpy_context_module);
+    ret = PyObject_CallObject(py_func, args);
 
-  py_edit_text = PyUnicode_FromString(edit_text);
-  PyTuple_SET_ITEM(args, 2, py_edit_text);
-
-  ret = PyObject_CallObject(py_func, args);
-
-  Py_DECREF(args);
+    Py_DECREF(args);
+  }
 
   if (ret == nullptr) {
     PyC_Err_PrintWithFunc(py_func);
@@ -1545,26 +1526,24 @@ static bool bpy_prop_pointer_poll_fn(PointerRNA *self, PointerRNA candidate, Pro
   const BPyPropGIL_RNAWritable_State bpy_state = bpy_prop_gil_rna_writable_begin();
 
   BPyPropStore *prop_store = static_cast<BPyPropStore *>(RNA_property_py_data_get(prop));
-  PyObject *py_self;
-  PyObject *py_candidate;
   PyObject *py_func;
-  PyObject *args;
   PyObject *ret;
   bool result;
 
   BLI_assert(self != nullptr);
 
-  py_self = pyrna_struct_as_instance(self);
-  py_candidate = pyrna_struct_as_instance(&candidate);
   py_func = prop_store->py_data.pointer_data.poll_fn;
 
-  args = PyTuple_New(2);
-  PyTuple_SET_ITEM(args, 0, py_self);
-  PyTuple_SET_ITEM(args, 1, py_candidate);
+  {
+    PyObject *args = PyTuple_New(2);
+    PyObject *py_self = pyrna_struct_as_instance(self);
+    PyObject *py_candidate = pyrna_struct_as_instance(&candidate);
+    PyTuple_SET_ITEMS(args, py_self, py_candidate);
 
-  ret = PyObject_CallObject(py_func, args);
+    ret = PyObject_CallObject(py_func, args);
 
-  Py_DECREF(args);
+    Py_DECREF(args);
+  }
 
   if (ret == nullptr) {
     PyC_Err_PrintWithFunc(py_func);
@@ -1592,8 +1571,6 @@ static int bpy_prop_enum_get_fn(PointerRNA *ptr, PropertyRNA *prop)
 
   BPyPropStore *prop_store = static_cast<BPyPropStore *>(RNA_property_py_data_get(prop));
   PyObject *py_func;
-  PyObject *args;
-  PyObject *self;
   PyObject *ret;
 
   int value;
@@ -1602,13 +1579,15 @@ static int bpy_prop_enum_get_fn(PointerRNA *ptr, PropertyRNA *prop)
 
   py_func = prop_store->py_data.get_fn;
 
-  args = PyTuple_New(1);
-  self = pyrna_struct_as_instance(ptr);
-  PyTuple_SET_ITEM(args, 0, self);
+  {
+    PyObject *args = PyTuple_New(1);
+    PyObject *self = pyrna_struct_as_instance(ptr);
+    PyTuple_SET_ITEMS(args, self);
 
-  ret = PyObject_CallObject(py_func, args);
+    ret = PyObject_CallObject(py_func, args);
 
-  Py_DECREF(args);
+    Py_DECREF(args);
+  }
 
   if (ret == nullptr) {
     PyC_Err_PrintWithFunc(py_func);
@@ -1636,23 +1615,21 @@ static void bpy_prop_enum_set_fn(PointerRNA *ptr, PropertyRNA *prop, int value)
 
   BPyPropStore *prop_store = static_cast<BPyPropStore *>(RNA_property_py_data_get(prop));
   PyObject *py_func;
-  PyObject *args;
-  PyObject *self;
   PyObject *ret;
 
   BLI_assert(prop_store != nullptr);
 
   py_func = prop_store->py_data.set_fn;
 
-  args = PyTuple_New(2);
-  self = pyrna_struct_as_instance(ptr);
-  PyTuple_SET_ITEM(args, 0, self);
+  {
+    PyObject *args = PyTuple_New(2);
+    PyObject *self = pyrna_struct_as_instance(ptr);
+    PyTuple_SET_ITEMS(args, self, PyLong_FromLong(value));
 
-  PyTuple_SET_ITEM(args, 1, PyLong_FromLong(value));
+    ret = PyObject_CallObject(py_func, args);
 
-  ret = PyObject_CallObject(py_func, args);
-
-  Py_DECREF(args);
+    Py_DECREF(args);
+  }
 
   if (ret == nullptr) {
     PyC_Err_PrintWithFunc(py_func);
@@ -1904,30 +1881,22 @@ static const EnumPropertyItem *bpy_prop_enum_itemf_fn(bContext *C,
 
   BPyPropStore *prop_store = static_cast<BPyPropStore *>(RNA_property_py_data_get(prop));
   PyObject *py_func = prop_store->py_data.enum_data.itemf_fn;
-  PyObject *self = nullptr;
-  PyObject *args;
   PyObject *items; /* returned from the function call */
 
   const EnumPropertyItem *eitems = nullptr;
   int err = 0;
 
-  args = PyTuple_New(2);
-  self = pyrna_struct_as_instance(ptr);
-  PyTuple_SET_ITEM(args, 0, self);
+  {
+    PyObject *args = PyTuple_New(2);
+    PyObject *self = pyrna_struct_as_instance(ptr);
+    PyObject *py_context = C ? reinterpret_cast<PyObject *>(bpy_context_module) : Py_None;
+    Py_INCREF(py_context);
+    PyTuple_SET_ITEMS(args, self, py_context);
 
-  /* now get the context */
-  if (C) {
-    PyTuple_SET_ITEM(args, 1, (PyObject *)bpy_context_module);
-    Py_INCREF(bpy_context_module);
+    items = PyObject_CallObject(py_func, args);
+
+    Py_DECREF(args);
   }
-  else {
-    PyTuple_SET_ITEM(args, 1, Py_None);
-    Py_INCREF(Py_None);
-  }
-
-  items = PyObject_CallObject(py_func, args);
-
-  Py_DECREF(args);
 
   if (items == nullptr) {
     err = -1;
@@ -4132,7 +4101,7 @@ PyDoc_STRVAR(
     /* Wrap. */
     BPy_PointerProperty_doc,
     ".. function:: PointerProperty("
-    "type=None, "
+    "type, "
     "*, "
     "name=\"\", "
     "description=\"\", "
@@ -4149,7 +4118,7 @@ PyDoc_STRVAR(
             BPY_PROPDEF_TAGS_DOC BPY_PROPDEF_POLL_DOC BPY_PROPDEF_UPDATE_DOC
     "\n"
     ".. note:: Pointer properties do not support storing references to embedded IDs "
-    "(e.g. `bpy.types.Scene.collection`, `bpy.types.Material.node_tree`).\n"
+    "(e.g. :class:`bpy.types.Scene.collection`, :class:`bpy.types.Material.node_tree`).\n"
     "   These should exclusively be referenced and accessed through their owner ID "
     "(e.g. the scene or material).\n");
 PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
@@ -4290,7 +4259,7 @@ PyDoc_STRVAR(
     /* Wrap. */
     BPy_CollectionProperty_doc,
     ".. function:: CollectionProperty("
-    "type=None, "
+    "type, "
     "*, "
     "name=\"\", "
     "description=\"\", "
@@ -4590,7 +4559,6 @@ PyDoc_STRVAR(
     "directly.\n"
     "\n"
     ".. note:: All parameters to these functions must be passed as keywords.\n");
-
 static PyModuleDef props_module = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "bpy.props",

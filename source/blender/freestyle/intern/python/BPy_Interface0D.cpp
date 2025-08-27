@@ -79,8 +79,7 @@ PyDoc_STRVAR(
     "\n"
     ".. method:: __init__()\n"
     "\n"
-    "   Default constructor.");
-
+    "   Default constructor.\n");
 static int Interface0D_init(BPy_Interface0D *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {nullptr};
@@ -118,8 +117,7 @@ PyDoc_STRVAR(
     "   :arg inter: A 0D element.\n"
     "   :type inter: :class:`Interface0D`\n"
     "   :return: The FEdge lying between the two 0D elements.\n"
-    "   :rtype: :class:`FEdge`");
-
+    "   :rtype: :class:`FEdge`\n");
 static PyObject *Interface0D_get_fedge(BPy_Interface0D *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {"inter", nullptr};
@@ -172,8 +170,7 @@ PyDoc_STRVAR(
     Interface0D_name_doc,
     "The string of the name of this 0D element.\n"
     "\n"
-    ":type: str");
-
+    ":type: str\n");
 static PyObject *Interface0D_name_get(BPy_Interface0D *self, void * /*closure*/)
 {
   return PyUnicode_FromString(Py_TYPE(self)->tp_name);
@@ -184,8 +181,7 @@ PyDoc_STRVAR(
     Interface0D_point_3d_doc,
     "The 3D point of this 0D element.\n"
     "\n"
-    ":type: :class:`mathutils.Vector`");
-
+    ":type: :class:`mathutils.Vector`\n");
 static PyObject *Interface0D_point_3d_get(BPy_Interface0D *self, void * /*closure*/)
 {
   Vec3f p(self->if0D->getPoint3D());
@@ -200,8 +196,7 @@ PyDoc_STRVAR(
     Interface0D_projected_x_doc,
     "The X coordinate of the projected 3D point of this 0D element.\n"
     "\n"
-    ":type: float");
-
+    ":type: float\n");
 static PyObject *Interface0D_projected_x_get(BPy_Interface0D *self, void * /*closure*/)
 {
   real x = self->if0D->getProjectedX();
@@ -216,8 +211,7 @@ PyDoc_STRVAR(
     Interface0D_projected_y_doc,
     "The Y coordinate of the projected 3D point of this 0D element.\n"
     "\n"
-    ":type: float");
-
+    ":type: float\n");
 static PyObject *Interface0D_projected_y_get(BPy_Interface0D *self, void * /*closure*/)
 {
   real y = self->if0D->getProjectedY();
@@ -232,8 +226,7 @@ PyDoc_STRVAR(
     Interface0D_projected_z_doc,
     "The Z coordinate of the projected 3D point of this 0D element.\n"
     "\n"
-    ":type: float");
-
+    ":type: float\n");
 static PyObject *Interface0D_projected_z_get(BPy_Interface0D *self, void * /*closure*/)
 {
   real z = self->if0D->getProjectedZ();
@@ -248,8 +241,7 @@ PyDoc_STRVAR(
     Interface0D_point_2d_doc,
     "The 2D point of this 0D element.\n"
     "\n"
-    ":type: :class:`mathutils.Vector`");
-
+    ":type: :class:`mathutils.Vector`\n");
 static PyObject *Interface0D_point_2d_get(BPy_Interface0D *self, void * /*closure*/)
 {
   Vec2f p(self->if0D->getPoint2D());
@@ -264,8 +256,7 @@ PyDoc_STRVAR(
     Interface0D_id_doc,
     "The Id of this 0D element.\n"
     "\n"
-    ":type: :class:`Id`");
-
+    ":type: :class:`Id`\n");
 static PyObject *Interface0D_id_get(BPy_Interface0D *self, void * /*closure*/)
 {
   Id id(self->if0D->getId());
@@ -280,8 +271,7 @@ PyDoc_STRVAR(
     Interface0D_nature_doc,
     "The nature of this 0D element.\n"
     "\n"
-    ":type: :class:`Nature`");
-
+    ":type: :class:`Nature`\n");
 static PyObject *Interface0D_nature_get(BPy_Interface0D *self, void * /*closure*/)
 {
   Nature::VertexNature nature = self->if0D->getNature();

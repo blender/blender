@@ -151,8 +151,8 @@ bke::CurvesGeometry fit_poly_to_bezier_curves(const bke::CurvesGeometry &src_cur
       dst_curve_sizes);
   dst_curves.resize(dst_curves.offsets().last(), dst_curves.curves_num());
 
-  const Span<float3> src_handles_left = src_curves.handle_positions_left();
-  const Span<float3> src_handles_right = src_curves.handle_positions_right();
+  const std::optional<Span<float3>> src_handles_left = src_curves.handle_positions_left();
+  const std::optional<Span<float3>> src_handles_right = src_curves.handle_positions_right();
   const VArraySpan<int8_t> src_handle_types_left = src_curves.handle_types_left();
   const VArraySpan<int8_t> src_handle_types_right = src_curves.handle_types_right();
 
@@ -163,20 +163,20 @@ bke::CurvesGeometry fit_poly_to_bezier_curves(const bke::CurvesGeometry &src_cur
   MutableSpan<int8_t> dst_handle_types_right = dst_curves.handle_types_right_for_write();
 
   /* First handle the unselected curves. */
-  if (!src_handles_left.is_empty()) {
+  if (src_handles_left) {
     array_utils::copy_group_to_group(src_points_by_curve,
                                      dst_points_by_curve,
                                      unselected_curves,
-                                     src_handles_left,
+                                     *src_handles_left,
                                      dst_handles_left);
   }
   array_utils::copy_group_to_group(
       src_points_by_curve, dst_points_by_curve, unselected_curves, src_positions, dst_positions);
-  if (!src_handles_right.is_empty()) {
+  if (src_handles_right) {
     array_utils::copy_group_to_group(src_points_by_curve,
                                      dst_points_by_curve,
                                      unselected_curves,
-                                     src_handles_right,
+                                     *src_handles_right,
                                      dst_handles_right);
   }
   if (!src_handle_types_left.is_empty()) {

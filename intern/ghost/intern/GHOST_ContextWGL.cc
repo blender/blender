@@ -35,33 +35,33 @@ GHOST_ContextWGL::GHOST_ContextWGL(const GHOST_ContextParams &context_params,
                                    int contextFlags,
                                    int contextResetNotificationStrategy)
     : GHOST_Context(context_params),
-      m_hWnd(hWnd),
-      m_hDC(hDC),
-      m_contextProfileMask(contextProfileMask),
-      m_contextMajorVersion(contextMajorVersion),
-      m_contextMinorVersion(contextMinorVersion),
-      m_contextFlags(contextFlags),
-      m_alphaBackground(alphaBackground),
-      m_contextResetNotificationStrategy(contextResetNotificationStrategy),
-      m_hGLRC(nullptr)
+      h_wnd_(hWnd),
+      h_DC_(hDC),
+      context_profile_mask_(contextProfileMask),
+      context_major_version_(contextMajorVersion),
+      context_minor_version_(contextMinorVersion),
+      context_flags_(contextFlags),
+      alpha_background_(alphaBackground),
+      context_reset_notification_strategy_(contextResetNotificationStrategy),
+      h_GLRC_(nullptr)
 #ifndef NDEBUG
       ,
-      m_dummyVendor(nullptr),
-      m_dummyRenderer(nullptr),
-      m_dummyVersion(nullptr)
+      dummy_vendor_(nullptr),
+      dummy_renderer_(nullptr),
+      dummy_version_(nullptr)
 #endif
 {
-  assert(m_hDC != nullptr);
+  assert(h_DC_ != nullptr);
 }
 
 GHOST_ContextWGL::~GHOST_ContextWGL()
 {
-  if (m_hGLRC != nullptr) {
-    if (m_hGLRC == ::wglGetCurrentContext()) {
+  if (h_GLRC_ != nullptr) {
+    if (h_GLRC_ == ::wglGetCurrentContext()) {
       WIN32_CHK(::wglMakeCurrent(nullptr, nullptr));
     }
 
-    if (m_hGLRC != s_sharedHGLRC || s_sharedCount == 1) {
+    if (h_GLRC_ != s_sharedHGLRC || s_sharedCount == 1) {
       assert(s_sharedCount > 0);
 
       s_sharedCount--;
@@ -70,27 +70,27 @@ GHOST_ContextWGL::~GHOST_ContextWGL()
         s_sharedHGLRC = nullptr;
       }
 
-      WIN32_CHK(::wglDeleteContext(m_hGLRC));
+      WIN32_CHK(::wglDeleteContext(h_GLRC_));
     }
   }
 
 #ifndef NDEBUG
-  if (m_dummyRenderer) {
-    free((void *)m_dummyRenderer);
-    free((void *)m_dummyVendor);
-    free((void *)m_dummyVersion);
+  if (dummy_renderer_) {
+    free((void *)dummy_renderer_);
+    free((void *)dummy_vendor_);
+    free((void *)dummy_version_);
   }
 #endif
 }
 
 GHOST_TSuccess GHOST_ContextWGL::swapBuffers()
 {
-  return WIN32_CHK(::SwapBuffers(m_hDC)) ? GHOST_kSuccess : GHOST_kFailure;
+  return WIN32_CHK(::SwapBuffers(h_DC_)) ? GHOST_kSuccess : GHOST_kFailure;
 }
 
 GHOST_TSuccess GHOST_ContextWGL::setSwapInterval(int interval)
 {
-  if (epoxy_has_wgl_extension(m_hDC, "WGL_EXT_swap_control")) {
+  if (epoxy_has_wgl_extension(h_DC_, "WGL_EXT_swap_control")) {
     return WIN32_CHK(::wglSwapIntervalEXT(interval)) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
   }
   else {
@@ -98,10 +98,10 @@ GHOST_TSuccess GHOST_ContextWGL::setSwapInterval(int interval)
   }
 }
 
-GHOST_TSuccess GHOST_ContextWGL::getSwapInterval(int &intervalOut)
+GHOST_TSuccess GHOST_ContextWGL::getSwapInterval(int &interval_out)
 {
-  if (epoxy_has_wgl_extension(m_hDC, "WGL_EXT_swap_control")) {
-    intervalOut = ::wglGetSwapIntervalEXT();
+  if (epoxy_has_wgl_extension(h_DC_, "WGL_EXT_swap_control")) {
+    interval_out = ::wglGetSwapIntervalEXT();
     return GHOST_kSuccess;
   }
   else {
@@ -111,7 +111,7 @@ GHOST_TSuccess GHOST_ContextWGL::getSwapInterval(int &intervalOut)
 
 GHOST_TSuccess GHOST_ContextWGL::activateDrawingContext()
 {
-  if (WIN32_CHK(::wglMakeCurrent(m_hDC, m_hGLRC))) {
+  if (WIN32_CHK(::wglMakeCurrent(h_DC_, h_GLRC_))) {
     active_context_ = this;
     return GHOST_kSuccess;
   }
@@ -124,7 +124,7 @@ GHOST_TSuccess GHOST_ContextWGL::releaseDrawingContext()
 {
   /* Calling wglMakeCurrent(nullptr, nullptr) without an active context returns an error,
    * so we always pass the device context handle. */
-  if (WIN32_CHK(::wglMakeCurrent(m_hDC, nullptr))) {
+  if (WIN32_CHK(::wglMakeCurrent(h_DC_, nullptr))) {
     active_context_ = nullptr;
     return GHOST_kSuccess;
   }
@@ -450,7 +450,7 @@ int GHOST_ContextWGL::_choose_pixel_format_arb_1(bool stereoVisual, bool needAlp
 
   uint nNumFormats;
   WIN32_CHK(wglChoosePixelFormatARB(
-      m_hDC, &(iAttributes[0]), nullptr, _MAX_PIXEL_FORMATS, iPixelFormats, &nNumFormats));
+      h_DC_, &(iAttributes[0]), nullptr, _MAX_PIXEL_FORMATS, iPixelFormats, &nNumFormats));
 
   if (nNumFormats > 0) {
     iPixelFormat = iPixelFormats[0];
@@ -460,7 +460,7 @@ int GHOST_ContextWGL::_choose_pixel_format_arb_1(bool stereoVisual, bool needAlp
   if (iPixelFormat != 0) {
     if (needAlpha) {
       int alphaBits, iQuery = WGL_ALPHA_BITS_ARB;
-      wglGetPixelFormatAttribivARB(m_hDC, iPixelFormat, 0, 1, &iQuery, &alphaBits);
+      wglGetPixelFormatAttribivARB(h_DC_, iPixelFormat, 0, 1, &iQuery, &alphaBits);
       if (alphaBits == 0) {
         fprintf(stderr, "Warning! Unable to find a frame buffer with alpha channel.\n");
       }
@@ -480,7 +480,7 @@ int GHOST_ContextWGL::choose_pixel_format_arb(bool stereoVisual, bool needAlpha)
 
     iPixelFormat = _choose_pixel_format_arb_1(false, needAlpha);
 
-    m_context_params.is_stereo_visual = false; /* Set context property to actual value. */
+    context_params_.is_stereo_visual = false; /* Set context property to actual value. */
   }
 
   return iPixelFormat;
@@ -508,18 +508,18 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
   WIN32_CHK(GetLastError() == NO_ERROR);
 
   {
-    const bool needAlpha = m_alphaBackground;
-    DummyContextWGL dummy(m_hDC, m_hWnd, m_context_params.is_stereo_visual, needAlpha);
+    const bool needAlpha = alpha_background_;
+    DummyContextWGL dummy(h_DC_, h_wnd_, context_params_.is_stereo_visual, needAlpha);
 
-    if (!dummy.has_WGL_ARB_create_context || ::GetPixelFormat(m_hDC) == 0) {
+    if (!dummy.has_WGL_ARB_create_context || ::GetPixelFormat(h_DC_) == 0) {
       int iPixelFormat = 0;
 
       if (dummy.has_WGL_ARB_pixel_format) {
-        iPixelFormat = choose_pixel_format_arb(m_context_params.is_stereo_visual, needAlpha);
+        iPixelFormat = choose_pixel_format_arb(context_params_.is_stereo_visual, needAlpha);
       }
 
       if (iPixelFormat == 0) {
-        iPixelFormat = choose_pixel_format_legacy(m_hDC, dummy.preferredPFD);
+        iPixelFormat = choose_pixel_format_legacy(h_DC_, dummy.preferredPFD);
       }
 
       if (iPixelFormat == 0) {
@@ -528,7 +528,7 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 
       PIXELFORMATDESCRIPTOR chosenPFD;
       int lastPFD = ::DescribePixelFormat(
-          m_hDC, iPixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &chosenPFD);
+          h_DC_, iPixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &chosenPFD);
 
       if (!WIN32_CHK(lastPFD != 0)) {
         goto error;
@@ -538,14 +538,14 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
         fprintf(stderr, "Warning! Unable to find a pixel format with an alpha channel.\n");
       }
 
-      if (!WIN32_CHK(::SetPixelFormat(m_hDC, iPixelFormat, &chosenPFD))) {
+      if (!WIN32_CHK(::SetPixelFormat(h_DC_, iPixelFormat, &chosenPFD))) {
         goto error;
       }
     }
 
     if (dummy.has_WGL_ARB_create_context) {
-      int profileBitCore = m_contextProfileMask & WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
-      int profileBitCompat = m_contextProfileMask & WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
+      int profileBitCore = context_profile_mask_ & WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
+      int profileBitCompat = context_profile_mask_ & WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
 
       if (!dummy.has_WGL_ARB_create_context_profile && profileBitCore) {
         fprintf(stderr, "Warning! OpenGL core profile not available.\n");
@@ -565,7 +565,7 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
         profileMask |= profileBitCompat;
       }
 
-      if (profileMask != m_contextProfileMask) {
+      if (profileMask != context_profile_mask_) {
         fprintf(stderr, "Warning! Ignoring untested OpenGL context profile mask bits.");
       }
 
@@ -576,25 +576,25 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
         iAttributes.push_back(profileMask);
       }
 
-      if (m_contextMajorVersion != 0) {
+      if (context_major_version_ != 0) {
         iAttributes.push_back(WGL_CONTEXT_MAJOR_VERSION_ARB);
-        iAttributes.push_back(m_contextMajorVersion);
+        iAttributes.push_back(context_major_version_);
       }
 
-      if (m_contextMinorVersion != 0) {
+      if (context_minor_version_ != 0) {
         iAttributes.push_back(WGL_CONTEXT_MINOR_VERSION_ARB);
-        iAttributes.push_back(m_contextMinorVersion);
+        iAttributes.push_back(context_minor_version_);
       }
 
-      if (m_contextFlags != 0) {
+      if (context_flags_ != 0) {
         iAttributes.push_back(WGL_CONTEXT_FLAGS_ARB);
-        iAttributes.push_back(m_contextFlags);
+        iAttributes.push_back(context_flags_);
       }
 
-      if (m_contextResetNotificationStrategy != 0) {
+      if (context_reset_notification_strategy_ != 0) {
         if (dummy.has_WGL_ARB_create_context_robustness) {
           iAttributes.push_back(WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB);
-          iAttributes.push_back(m_contextResetNotificationStrategy);
+          iAttributes.push_back(context_reset_notification_strategy_);
         }
         else {
           fprintf(stderr, "Warning! Cannot set the reset notification strategy.");
@@ -603,15 +603,15 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 
       iAttributes.push_back(0);
 
-      m_hGLRC = ::wglCreateContextAttribsARB(m_hDC, s_sharedHGLRC, &(iAttributes[0]));
+      h_GLRC_ = ::wglCreateContextAttribsARB(h_DC_, s_sharedHGLRC, &(iAttributes[0]));
     }
   }
 
   /* Silence warnings interpreted as errors by users when trying to get
    * a context with version higher than 3.3 Core. */
   {
-    const bool silent = m_contextMajorVersion > 3;
-    if (!WIN32_CHK_SILENT(m_hGLRC != nullptr, silent)) {
+    const bool silent = context_major_version_ > 3;
+    if (!WIN32_CHK_SILENT(h_GLRC_ != nullptr, silent)) {
       goto error;
     }
   }
@@ -626,10 +626,10 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
   s_sharedCount++;
 
   if (s_sharedHGLRC == nullptr) {
-    s_sharedHGLRC = m_hGLRC;
+    s_sharedHGLRC = h_GLRC_;
   }
 
-  if (!WIN32_CHK(::wglMakeCurrent(m_hDC, m_hGLRC))) {
+  if (!WIN32_CHK(::wglMakeCurrent(h_DC_, h_GLRC_))) {
     goto error;
   }
 
@@ -643,7 +643,7 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
   }
 
   initClearGL();
-  ::SwapBuffers(m_hDC);
+  ::SwapBuffers(h_DC_);
 
 #ifndef NDEBUG
   {
@@ -651,11 +651,11 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
     const char *renderer = reinterpret_cast<const char *>(glGetString(GL_RENDERER));
     const char *version = reinterpret_cast<const char *>(glGetString(GL_VERSION));
 
-    reportContextString("Vendor", m_dummyVendor, vendor);
-    reportContextString("Renderer", m_dummyRenderer, renderer);
-    reportContextString("Version", m_dummyVersion, version);
+    reportContextString("Vendor", dummy_vendor_, vendor);
+    reportContextString("Renderer", dummy_renderer_, renderer);
+    reportContextString("Version", dummy_version_, version);
 
-    fprintf(stderr, "Context Version: %d.%d\n", m_contextMajorVersion, m_contextMinorVersion);
+    fprintf(stderr, "Context Version: %d.%d\n", context_major_version_, context_minor_version_);
   }
 #endif
 
@@ -668,11 +668,11 @@ error:
 
 GHOST_TSuccess GHOST_ContextWGL::releaseNativeHandles()
 {
-  GHOST_TSuccess success = m_hGLRC != s_sharedHGLRC || s_sharedCount == 1 ? GHOST_kSuccess :
+  GHOST_TSuccess success = h_GLRC_ != s_sharedHGLRC || s_sharedCount == 1 ? GHOST_kSuccess :
                                                                             GHOST_kFailure;
 
-  m_hWnd = nullptr;
-  m_hDC = nullptr;
+  h_wnd_ = nullptr;
+  h_DC_ = nullptr;
 
   return success;
 }

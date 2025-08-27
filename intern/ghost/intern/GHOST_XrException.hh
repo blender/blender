@@ -15,17 +15,16 @@ class GHOST_XrException : public std::exception {
   friend class GHOST_XrContext;
 
  public:
-  GHOST_XrException(const char *msg, int result = 0)
-      : std::exception(), m_msg(msg), m_result(result)
+  GHOST_XrException(const char *msg, int result = 0) : std::exception(), msg_(msg), result_(result)
   {
   }
 
   const char *what() const noexcept override
   {
-    return m_msg.data();
+    return msg_.data();
   }
 
  private:
-  std::string m_msg;
-  int m_result;
+  std::string msg_;
+  int result_;
 };

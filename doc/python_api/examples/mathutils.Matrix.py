@@ -30,3 +30,6 @@ mat[0][0:3] = 0.0, 1.0, 2.0
 
 # Each item in a matrix is a vector so vector utility functions can be used.
 mat[0].xyz = 0.0, 1.0, 2.0
+
+# Direct buffer access is supported.
+print(memoryview(mat).tobytes())

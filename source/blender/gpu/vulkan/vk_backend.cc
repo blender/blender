@@ -89,6 +89,19 @@ bool GPU_vulkan_is_supported_driver(VkPhysicalDevice vk_physical_device)
   {
     return false;
   }
+
+  /* NVIDIA driver 580.76.05 doesn't start using specific Wayland configurations #144625. There are
+   * multiple reports also not Blender related and NVIDIA mentions that a new driver will be
+   * released. It is unclear if that driver will fix our issue. For now disabling this driver on
+   * Linux. This also disables it for configurations that are working as well (including X11). */
+  if (vk_physical_device_driver_properties.driverID == VK_DRIVER_ID_NVIDIA_PROPRIETARY &&
+      ((StringRefNull(vk_physical_device_driver_properties.driverInfo).find("580.76.5", 0) !=
+        StringRef::not_found) ||
+       (StringRefNull(vk_physical_device_driver_properties.driverInfo).find("580.76.05", 0) !=
+        StringRef::not_found)))
+  {
+    return false;
+  }
 #endif
 
 #ifdef _WIN32
@@ -437,6 +450,7 @@ void VKBackend::detect_workarounds(VKDevice &device)
   extensions.descriptor_buffer = device.supports_extension(
       VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME);
 #endif
+  extensions.maintenance4 = device.supports_extension(VK_KHR_MAINTENANCE_4_EXTENSION_NAME);
   extensions.memory_priority = device.supports_extension(VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME);
   extensions.pageable_device_local_memory = device.supports_extension(
       VK_EXT_PAGEABLE_DEVICE_LOCAL_MEMORY_EXTENSION_NAME);

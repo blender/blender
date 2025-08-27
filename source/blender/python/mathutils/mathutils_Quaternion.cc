@@ -864,6 +864,59 @@ static PyObject *Quaternion_str(QuaternionObject *self)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Quaternion Type: Buffer Protocol
+ * \{ */
+
+static int Quaternion_getbuffer(PyObject *obj, Py_buffer *view, int flags)
+{
+  QuaternionObject *self = (QuaternionObject *)obj;
+  if (UNLIKELY(BaseMath_Prepare_ForBufferAccess(self, view, flags) == -1)) {
+    return -1;
+  }
+  if (UNLIKELY(BaseMath_ReadCallback(self) == -1)) {
+    return -1;
+  }
+
+  memset(view, 0, sizeof(*view));
+
+  view->obj = (PyObject *)self;
+  view->buf = (void *)self->quat;
+  view->len = Py_ssize_t(QUAT_SIZE * sizeof(float));
+  view->itemsize = sizeof(float);
+  view->ndim = 1;
+  if ((flags & PyBUF_WRITABLE) == 0) {
+    view->readonly = 1;
+  }
+  if (flags & PyBUF_FORMAT) {
+    view->format = (char *)"f";
+  }
+
+  self->flag |= BASE_MATH_FLAG_HAS_BUFFER_VIEW;
+
+  Py_INCREF(self);
+  return 0;
+}
+
+static void Quaternion_releasebuffer(PyObject * /*exporter*/, Py_buffer *view)
+{
+  QuaternionObject *self = (QuaternionObject *)view->obj;
+  self->flag &= ~BASE_MATH_FLAG_HAS_BUFFER_VIEW;
+
+  if (view->readonly == 0) {
+    if (UNLIKELY(BaseMath_WriteCallback(self) == -1)) {
+      PyErr_Print();
+    }
+  }
+}
+
+static PyBufferProcs Quaternion_as_buffer = {
+    (getbufferproc)Quaternion_getbuffer,
+    (releasebufferproc)Quaternion_releasebuffer,
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Quaternion Type: Rich Compare
  * \{ */
 
@@ -1461,7 +1514,7 @@ PyDoc_STRVAR(
     Quaternion_axis_doc,
     "Quaternion axis value.\n"
     "\n"
-    ":type: float");
+    ":type: float\n");
 static PyObject *Quaternion_axis_get(QuaternionObject *self, void *type)
 {
   return Quaternion_item(self, POINTER_AS_INT(type));
@@ -1477,7 +1530,7 @@ PyDoc_STRVAR(
     Quaternion_magnitude_doc,
     "Size of the quaternion (read-only).\n"
     "\n"
-    ":type: float");
+    ":type: float\n");
 static PyObject *Quaternion_magnitude_get(QuaternionObject *self, void * /*closure*/)
 {
   if (BaseMath_ReadCallback(self) == -1) {
@@ -1492,7 +1545,7 @@ PyDoc_STRVAR(
     Quaternion_angle_doc,
     "Angle of the quaternion.\n"
     "\n"
-    ":type: float");
+    ":type: float\n");
 static PyObject *Quaternion_angle_get(QuaternionObject *self, void * /*closure*/)
 {
   float tquat[4];
@@ -1552,7 +1605,7 @@ PyDoc_STRVAR(
     Quaternion_axis_vector_doc,
     "Quaternion axis as a vector.\n"
     "\n"
-    ":type: :class:`Vector`");
+    ":type: :class:`Vector`\n");
 static PyObject *Quaternion_axis_vector_get(QuaternionObject *self, void * /*closure*/)
 {
   float tquat[4];
@@ -1801,7 +1854,7 @@ PyTypeObject quaternion_Type = {
     /*tp_str*/ (reprfunc)Quaternion_str,
     /*tp_getattro*/ nullptr,
     /*tp_setattro*/ nullptr,
-    /*tp_as_buffer*/ nullptr,
+    /*tp_as_buffer*/ &Quaternion_as_buffer,
     /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
     /*tp_doc*/ quaternion_doc,
     /*tp_traverse*/ (traverseproc)BaseMathObject_traverse,

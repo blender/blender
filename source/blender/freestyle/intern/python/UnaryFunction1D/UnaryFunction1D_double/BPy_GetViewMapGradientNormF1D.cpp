@@ -51,7 +51,6 @@ PyDoc_STRVAR(
     "   :type inter: :class:`freestyle.types.Interface1D`\n"
     "   :return: The density of the ViewMap for a given Interface1D.\n"
     "   :rtype: float\n");
-
 static int GetViewMapGradientNormF1D___init__(BPy_GetViewMapGradientNormF1D *self,
                                               PyObject *args,
                                               PyObject *kwds)

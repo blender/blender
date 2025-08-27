@@ -220,8 +220,8 @@ static void get_mesh_evaluator_settings(OpenSubdiv_EvaluatorSettings *settings, 
 
 bool eval_begin_from_mesh(Subdiv *subdiv,
                           const Mesh *mesh,
-                          const Span<float3> coarse_vert_positions,
                           eSubdivEvaluatorType evaluator_type,
+                          const Span<float3> coarse_vert_positions,
                           OpenSubdiv_EvaluatorCache *evaluator_cache)
 {
 #ifdef WITH_OPENSUBDIV
@@ -288,13 +288,15 @@ void eval_init_displacement(Subdiv *subdiv)
  * Single point queries.
  */
 
-void eval_limit_point(
-    Subdiv *subdiv, const int ptex_face_index, const float u, const float v, float3 &r_P)
+float3 eval_limit_point(Subdiv *subdiv, const int ptex_face_index, const float u, const float v)
 {
 #ifdef WITH_OPENSUBDIV
+  float3 r_P;
   subdiv->evaluator->eval_output->evaluateLimit(ptex_face_index, u, v, r_P, nullptr, nullptr);
+  return r_P;
 #else
-  UNUSED_VARS(subdiv, ptex_face_index, u, v, r_P);
+  UNUSED_VARS(subdiv, ptex_face_index, u, v);
+  return {0.0f, 0.0f, 0.0f};
 #endif
 }
 
@@ -383,9 +385,9 @@ void eval_displacement(Subdiv *subdiv,
       subdiv->displacement_evaluator, ptex_face_index, u, v, dPdu, dPdv, r_D);
 }
 
-void eval_final_point(
-    Subdiv *subdiv, const int ptex_face_index, const float u, const float v, float3 &r_P)
+float3 eval_final_point(Subdiv *subdiv, const int ptex_face_index, const float u, const float v)
 {
+  float3 r_P;
   if (subdiv->displacement_evaluator) {
     float3 dPdu;
     float3 dPdv;
@@ -395,8 +397,9 @@ void eval_final_point(
     r_P += D;
   }
   else {
-    eval_limit_point(subdiv, ptex_face_index, u, v, r_P);
+    r_P = eval_limit_point(subdiv, ptex_face_index, u, v);
   }
+  return r_P;
 }
 
 }  // namespace blender::bke::subdiv

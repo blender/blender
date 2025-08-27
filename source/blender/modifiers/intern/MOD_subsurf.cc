@@ -50,8 +50,6 @@
 #include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
-#include "intern/CCGSubSurf.h"
-
 static void init_data(ModifierData *md)
 {
   SubsurfModifierData *smd = (SubsurfModifierData *)md;
@@ -59,18 +57,6 @@ static void init_data(ModifierData *md)
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(smd, modifier));
 
   MEMCPY_STRUCT_AFTER(smd, DNA_struct_default_get(SubsurfModifierData), modifier);
-}
-
-static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
-{
-#if 0
-  const SubsurfModifierData *smd = (const SubsurfModifierData *)md;
-#endif
-  SubsurfModifierData *tsmd = (SubsurfModifierData *)target;
-
-  BKE_modifier_copydata_generic(md, target, flag);
-
-  tsmd->emCache = tsmd->mCache = nullptr;
 }
 
 static void free_runtime_data(void *runtime_data_v)
@@ -92,14 +78,6 @@ static void free_data(ModifierData *md)
 {
   SubsurfModifierData *smd = (SubsurfModifierData *)md;
 
-  if (smd->mCache) {
-    ccgSubSurf_free(static_cast<CCGSubSurf *>(smd->mCache));
-    smd->mCache = nullptr;
-  }
-  if (smd->emCache) {
-    ccgSubSurf_free(static_cast<CCGSubSurf *>(smd->emCache));
-    smd->emCache = nullptr;
-  }
   free_runtime_data(smd->modifier.runtime);
 }
 
@@ -477,13 +455,6 @@ static void panel_register(ARegionType *region_type)
   modifier_panel_register(region_type, eModifierType_Subsurf, panel_draw);
 }
 
-static void blend_read(BlendDataReader * /*reader*/, ModifierData *md)
-{
-  SubsurfModifierData *smd = (SubsurfModifierData *)md;
-
-  smd->emCache = smd->mCache = nullptr;
-}
-
 ModifierTypeInfo modifierType_Subsurf = {
     /*idname*/ "Subdivision",
     /*name*/ N_("Subdivision"),
@@ -496,7 +467,7 @@ ModifierTypeInfo modifierType_Subsurf = {
         eModifierTypeFlag_AcceptsCVs,
     /*icon*/ ICON_MOD_SUBSURF,
 
-    /*copy_data*/ copy_data,
+    /*copy_data*/ BKE_modifier_copydata_generic,
 
     /*deform_verts*/ nullptr,
     /*deform_matrices*/ deform_matrices,
@@ -517,6 +488,6 @@ ModifierTypeInfo modifierType_Subsurf = {
     /*free_runtime_data*/ free_runtime_data,
     /*panel_register*/ panel_register,
     /*blend_write*/ nullptr,
-    /*blend_read*/ blend_read,
+    /*blend_read*/ nullptr,
     /*foreach_cache*/ nullptr,
 };

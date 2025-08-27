@@ -92,10 +92,10 @@ class GHOST_ContextMTL : public GHOST_Context {
 
   /**
    * Gets the current swap interval for #swapBuffers.
-   * \param intervalOut: Variable to store the swap interval if it can be read.
+   * \param interval_out: Variable to store the swap interval if it can be read.
    * \return Whether the swap interval can be read.
    */
-  GHOST_TSuccess getSwapInterval(int &intervalOut) override;
+  GHOST_TSuccess getSwapInterval(int &interval_out) override;
 
   /**
    * Updates the drawing context of this window.
@@ -129,15 +129,15 @@ class GHOST_ContextMTL : public GHOST_Context {
 
  private:
   /** Metal state */
-  NSView *m_metalView;
-  CAMetalLayer *m_metalLayer;
-  MTLRenderPipelineState *m_metalRenderPipeline;
-  bool m_ownsMetalDevice;
+  NSView *metal_view_;
+  CAMetalLayer *metal_layer_;
+  MTLRenderPipelineState *metal_render_pipeline_;
+  bool owns_metal_device_;
 
   /** The virtualized default frame-buffer's texture. */
   /**
    * Texture that you can render into with Metal. The texture will be
-   * composited on top of `m_defaultFramebufferMetalTexture` whenever
+   * composited on top of `default_framebuffer_metal_texture_` whenever
    * `swapBuffers` is called.
    */
   static const int METAL_SWAPCHAIN_SIZE = 3;
@@ -145,7 +145,7 @@ class GHOST_ContextMTL : public GHOST_Context {
     id<MTLTexture> texture;
     unsigned int index;
   };
-  MTLSwapchainTexture m_defaultFramebufferMetalTexture[METAL_SWAPCHAIN_SIZE];
+  MTLSwapchainTexture default_framebuffer_metal_texture_[METAL_SWAPCHAIN_SIZE];
   unsigned int current_swapchain_index = 0;
 
   /* Present callback.

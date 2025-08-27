@@ -2885,9 +2885,9 @@ static int pyrna_prop_collection_type_check(BPy_PropertyRNA *self, PyObject *val
 
   if (value == Py_None) {
     if (RNA_property_flag(self->prop) & PROP_NEVER_NULL) {
-      PyErr_Format(PyExc_TypeError,
-                   "bpy_prop_collection[key] = value: invalid, "
-                   "this collection doesn't support None assignment");
+      PyErr_SetString(PyExc_TypeError,
+                      "bpy_prop_collection[key] = value: invalid, "
+                      "this collection doesn't support None assignment");
       return -1;
     }
 
@@ -2914,9 +2914,9 @@ static int pyrna_prop_collection_type_check(BPy_PropertyRNA *self, PyObject *val
     return 0; /* OK, this is the correct type! */
   }
 
-  PyErr_Format(PyExc_TypeError,
-               "bpy_prop_collection[key] = value: internal error, "
-               "failed to get the collection type");
+  PyErr_SetString(PyExc_TypeError,
+                  "bpy_prop_collection[key] = value: internal error, "
+                  "failed to get the collection type");
   return -1;
 }
 
@@ -3079,7 +3079,6 @@ static PyObject *prop_subscript_ass_array_slice__as_seq_fast(PyObject *value, in
     PyErr_SetString(PyExc_ValueError,
                     "bpy_prop_array[slice] = value: "
                     "re-sizing bpy_struct element in arrays isn't supported");
-
     return nullptr;
   }
 
@@ -5183,7 +5182,7 @@ static PyObject *pyrna_struct_get_data(BPy_DummyPointerRNA *self, void * /*closu
 PyDoc_STRVAR(
     /* Wrap. */
     pyrna_struct_get_rna_type_doc,
-    "The property type for introspection");
+    "The property type for introspection.");
 static PyObject *pyrna_struct_get_rna_type(BPy_PropertyRNA *self, void * /*closure*/)
 {
   PointerRNA tptr = RNA_pointer_create_discrete(nullptr, &RNA_Property, self->prop);
@@ -5974,7 +5973,7 @@ static PyObject *pyprop_array_foreach_getset(BPy_PropertyArrayRNA *self,
   PyObject *seq;
 
   if (!ELEM(prop_type, PROP_INT, PROP_FLOAT)) {
-    PyErr_Format(PyExc_TypeError, "foreach_get/set available only for int and float");
+    PyErr_SetString(PyExc_TypeError, "foreach_get/set available only for int and float");
     return nullptr;
   }
 
@@ -8776,7 +8775,7 @@ static void bpy_types_module_free(void *self)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_types_module_doc,
-    "Access to internal Blender types");
+    "Access to internal Blender types.");
 static PyModuleDef bpy_types_module_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "bpy.types",

@@ -17,6 +17,11 @@ namespace blender::gpu {
 class Texture;
 }  // namespace blender::gpu
 
+namespace blender::ocio {
+class ColorSpace;
+}  // namespace blender::ocio
+using ColorSpace = blender::ocio::ColorSpace;
+
 struct rcti;
 struct Depsgraph;
 struct ID;
@@ -113,10 +118,7 @@ void BKE_stamp_data_free(StampData *stamp_data);
 void BKE_image_stamp_buf(Scene *scene,
                          Object *camera,
                          const StampData *stamp_data_template,
-                         unsigned char *rect,
-                         float *rectf,
-                         int width,
-                         int height);
+                         ImBuf *ibuf);
 bool BKE_imbuf_alpha_test(ImBuf *ibuf);
 bool BKE_imbuf_write_stamp(const Scene *scene,
                            const RenderResult *rr,

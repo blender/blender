@@ -576,9 +576,6 @@ class SamplerSlots {
   {
     index_ = 0;
     if (ELEM(geometry_type, MAT_GEOM_POINTCLOUD, MAT_GEOM_CURVES)) {
-      index_ = 1;
-    }
-    else if (geometry_type == MAT_GEOM_GPENCIL) {
       index_ = 2;
     }
 
@@ -833,13 +830,6 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
        * Only orco layer is supported by world and it is procedurally generated. These are here to
        * make the attribs_load function calls valid.
        */
-      ATTR_FALLTHROUGH;
-    case MAT_GEOM_GPENCIL:
-      /**
-       * Only one uv and one color attribute layer are supported by gpencil objects and they are
-       * already declared in another createInfo. These are here to make the attribs_load
-       * function calls valid.
-       */
       for (auto &input : info.vertex_inputs_) {
         global_vars << input.type << " " << input.name << ";\n";
       }
@@ -873,8 +863,31 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
     info.vertex_out_interfaces_.clear();
   }
 
+  const char *domain_type_frag = "";
+  const char *domain_type_vert = "";
+  switch (geometry_type) {
+    case MAT_GEOM_MESH:
+      domain_type_frag = (pipeline_type == MAT_PIPE_VOLUME_MATERIAL) ? "VolumePoint" :
+                                                                       "MeshVertex";
+      domain_type_vert = "MeshVertex";
+      break;
+    case MAT_GEOM_POINTCLOUD:
+      domain_type_frag = domain_type_vert = "PointCloudPoint";
+      break;
+    case MAT_GEOM_CURVES:
+      domain_type_frag = domain_type_vert = "CurvesPoint";
+      break;
+    case MAT_GEOM_WORLD:
+      domain_type_frag = (pipeline_type == MAT_PIPE_VOLUME_MATERIAL) ? "VolumePoint" :
+                                                                       "WorldPoint";
+      domain_type_vert = "WorldPoint";
+      break;
+    case MAT_GEOM_VOLUME:
+      domain_type_frag = domain_type_vert = "VolumePoint";
+      break;
+  }
+
   std::stringstream attr_load;
-  attr_load << "void attrib_load()\n";
   attr_load << "{\n";
   attr_load << (!codegen.attr_load.empty() ? codegen.attr_load : "");
   attr_load << "}\n\n";
@@ -882,12 +895,14 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
   std::stringstream vert_gen, frag_gen;
 
   if (do_vertex_attrib_load) {
-    vert_gen << global_vars.str() << attr_load.str();
-    frag_gen << "void attrib_load() {}\n"; /* Placeholder. */
+    vert_gen << global_vars.str() << "void attrib_load(" << domain_type_vert << " domain)"
+             << attr_load.str();
+    frag_gen << "void attrib_load(" << domain_type_frag << " domain) {}\n"; /* Placeholder. */
   }
   else {
-    vert_gen << "void attrib_load() {}\n"; /* Placeholder. */
-    frag_gen << global_vars.str() << attr_load.str();
+    vert_gen << "void attrib_load(" << domain_type_vert << " domain) {}\n"; /* Placeholder. */
+    frag_gen << global_vars.str() << "void attrib_load(" << domain_type_frag << " domain)"
+             << attr_load.str();
   }
 
   /* TODO(fclem): This should become part of the dependency system. */
@@ -981,9 +996,6 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
   switch (geometry_type) {
     case MAT_GEOM_WORLD:
       info.additional_info("eevee_geom_world");
-      break;
-    case MAT_GEOM_GPENCIL:
-      info.additional_info("eevee_geom_gpencil");
       break;
     case MAT_GEOM_CURVES:
       info.additional_info("eevee_geom_curves");

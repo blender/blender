@@ -1066,6 +1066,7 @@ void uiTemplateImageSettings(uiLayout *layout,
 
   /* Override color management */
   if (color_management) {
+    col->separator_spacer();
 
     if (uiLayout *panel = col->panel(C,
                                      panel_idname ? panel_idname : "settings_color_management",

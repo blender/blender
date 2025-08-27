@@ -66,7 +66,6 @@ PyDoc_STRVAR(
     "* :class:`UnaryFunction1DVec3f`\n"
     "* :class:`UnaryFunction1DVectorViewShape`\n"
     "* :class:`UnaryFunction1DVoid`\n");
-
 static void UnaryFunction1D___dealloc__(BPy_UnaryFunction1D *self)
 {
   Py_TYPE(self)->tp_free((PyObject *)self);
@@ -84,8 +83,7 @@ PyDoc_STRVAR(
     UnaryFunction1D_name_doc,
     "The name of the unary 1D function.\n"
     "\n"
-    ":type: str");
-
+    ":type: str\n");
 static PyObject *UnaryFunction1D_name_get(BPy_UnaryFunction1D *self, void * /*closure*/)
 {
   return PyUnicode_FromString(Py_TYPE(self)->tp_name);

@@ -42,8 +42,12 @@ namespace blender::ed::vse {
 
 bool sequencer_retiming_mode_is_active(const bContext *C)
 {
-  Editing *ed = seq::editing_get(CTX_data_sequencer_scene(C));
-  if (ed == nullptr) {
+  Scene *scene = CTX_data_sequencer_scene(C);
+  if (!scene) {
+    return false;
+  }
+  Editing *ed = seq::editing_get(scene);
+  if (!ed) {
     return false;
   }
   return seq::retiming_selection_get(ed).size() > 0;
@@ -97,13 +101,13 @@ static wmOperatorStatus sequencer_retiming_data_show_exec(bContext *C, wmOperato
   }
 
   if (sequencer_retiming_mode_is_active(C)) {
-    sequencer_retiming_data_hide_all(ed->seqbasep);
+    sequencer_retiming_data_hide_all(ed->current_strips());
   }
   else if (seq::retiming_data_is_editable(strip_act)) {
-    sequencer_retiming_data_hide_selection(ed->seqbasep);
+    sequencer_retiming_data_hide_selection(ed->current_strips());
   }
   else {
-    sequencer_retiming_data_show_selection(ed->seqbasep);
+    sequencer_retiming_data_show_selection(ed->current_strips());
   }
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
@@ -129,8 +133,12 @@ void SEQUENCER_OT_retiming_show(wmOperatorType *ot)
 
 static bool retiming_poll(bContext *C)
 {
-  const Editing *ed = seq::editing_get(CTX_data_sequencer_scene(C));
-  if (ed == nullptr) {
+  Scene *scene = CTX_data_sequencer_scene(C);
+  if (!scene) {
+    return false;
+  }
+  Editing *ed = seq::editing_get(scene);
+  if (!ed) {
     return false;
   }
   Strip *strip = ed->act_strip;
@@ -153,7 +161,7 @@ static wmOperatorStatus sequencer_retiming_reset_exec(bContext *C, wmOperator * 
   Scene *scene = CTX_data_sequencer_scene(C);
   const Editing *ed = seq::editing_get(scene);
 
-  for (Strip *strip : seq::query_selected_strips(ed->seqbasep)) {
+  for (Strip *strip : seq::query_selected_strips(ed->current_strips())) {
     seq::retiming_reset(scene, strip);
   }
 

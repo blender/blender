@@ -37,7 +37,6 @@
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_subdiv.hh"
 #include "BKE_subdiv_deform.hh"
-#include "BKE_subsurf.hh"
 
 #include "DEG_depsgraph_query.hh"
 

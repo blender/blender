@@ -428,6 +428,7 @@ typedef enum {
   GHOST_kStandardCursorHandClosed,
   GHOST_kStandardCursorHandPoint,
   GHOST_kStandardCursorBlade,
+  GHOST_kStandardCursorSlip,
   GHOST_kStandardCursorCustom,
 
 #define GHOST_kStandardCursorNumCursors (int(GHOST_kStandardCursorCustom) + 1)
@@ -822,19 +823,19 @@ typedef struct {
     /*is_stereo_visual*/ false, /*is_debug*/ false, /*vsync*/ GHOST_kVSyncModeUnset, \
   }
 
-#define GHOST_CONTEXT_PARAMS_FROM_GPU_SETTINGS_OFFSCREEN(gpuSettings) \
+#define GHOST_CONTEXT_PARAMS_FROM_GPU_SETTINGS_OFFSCREEN(gpu_settings) \
   { \
     /*is_stereo_visual*/ false, \
-        /*is_debug*/ (((gpuSettings).flags & GHOST_gpuDebugContext) != 0), \
+        /*is_debug*/ (((gpu_settings).flags & GHOST_gpuDebugContext) != 0), \
         /*vsync*/ GHOST_kVSyncModeUnset, \
   }
 
-#define GHOST_CONTEXT_PARAMS_FROM_GPU_SETTINGS(gpuSettings) \
+#define GHOST_CONTEXT_PARAMS_FROM_GPU_SETTINGS(gpu_settings) \
   { \
-    /*is_stereo_visual*/ (((gpuSettings).flags & GHOST_gpuStereoVisual) != 0), \
-        /*is_debug*/ (((gpuSettings).flags & GHOST_gpuDebugContext) != 0), /*vsync*/ \
-        (((gpuSettings).flags & GHOST_gpuVSyncIsOverridden) ? (gpuSettings).vsync : \
-                                                              GHOST_kVSyncModeUnset), \
+    /*is_stereo_visual*/ (((gpu_settings).flags & GHOST_gpuStereoVisual) != 0), \
+        /*is_debug*/ (((gpu_settings).flags & GHOST_gpuDebugContext) != 0), /*vsync*/ \
+        (((gpu_settings).flags & GHOST_gpuVSyncIsOverridden) ? (gpu_settings).vsync : \
+                                                               GHOST_kVSyncModeUnset), \
   }
 
 typedef struct {
@@ -852,6 +853,18 @@ typedef struct {
   float colored_titlebar_bg_color[3];
 } GHOST_WindowDecorationStyleSettings;
 
+typedef struct {
+  /* Is HDR enabled for this Window? */
+  bool hdr_enabled;
+  /* Scale factor to display SDR content in HDR. */
+  float sdr_white_level;
+} GHOST_WindowHDRInfo;
+
+#define GHOST_WINDOW_HDR_INFO_NONE \
+  { \
+    /*hdr_enabled*/ false, /*sdr_white_level*/ 1.0f, \
+  }
+
 #ifdef WITH_VULKAN_BACKEND
 typedef struct {
   /** Image handle to the image that will be presented to the user. */
@@ -866,6 +879,8 @@ typedef struct {
   VkSemaphore present_semaphore;
   /** Fence to signal after the image has been updated. */
   VkFence submission_fence;
+  /* Factor to scale SDR content to HDR. */
+  float sdr_scale;
 } GHOST_VulkanSwapChainData;
 
 typedef enum {

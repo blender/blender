@@ -44,14 +44,14 @@ GHOST_IWindow *GHOST_SystemSDL::createWindow(const char *title,
                                              uint32_t width,
                                              uint32_t height,
                                              GHOST_TWindowState state,
-                                             GHOST_GPUSettings gpuSettings,
+                                             GHOST_GPUSettings gpu_settings,
                                              const bool exclusive,
                                              const bool /*is_dialog*/,
-                                             const GHOST_IWindow *parentWindow)
+                                             const GHOST_IWindow *parent_window)
 {
   GHOST_WindowSDL *window = nullptr;
 
-  const GHOST_ContextParams context_params = GHOST_CONTEXT_PARAMS_FROM_GPU_SETTINGS(gpuSettings);
+  const GHOST_ContextParams context_params = GHOST_CONTEXT_PARAMS_FROM_GPU_SETTINGS(gpu_settings);
 
   window = new GHOST_WindowSDL(this,
                                title,
@@ -60,10 +60,10 @@ GHOST_IWindow *GHOST_SystemSDL::createWindow(const char *title,
                                width,
                                height,
                                state,
-                               gpuSettings.context_type,
+                               gpu_settings.context_type,
                                context_params,
                                exclusive,
-                               parentWindow);
+                               parent_window);
 
   if (window) {
     if (GHOST_kWindowStateFullScreen == state) {
@@ -78,7 +78,7 @@ GHOST_IWindow *GHOST_SystemSDL::createWindow(const char *title,
     }
 
     if (window->getValid()) {
-      m_windowManager->addWindow(window);
+      window_manager_->addWindow(window);
       pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window));
     }
     else {
@@ -131,12 +131,12 @@ uint8_t GHOST_SystemSDL::getNumDisplays() const
   return SDL_GetNumVideoDisplays();
 }
 
-GHOST_IContext *GHOST_SystemSDL::createOffscreenContext(GHOST_GPUSettings gpuSettings)
+GHOST_IContext *GHOST_SystemSDL::createOffscreenContext(GHOST_GPUSettings gpu_settings)
 {
   const GHOST_ContextParams context_params_offscreen =
-      GHOST_CONTEXT_PARAMS_FROM_GPU_SETTINGS_OFFSCREEN(gpuSettings);
+      GHOST_CONTEXT_PARAMS_FROM_GPU_SETTINGS_OFFSCREEN(gpu_settings);
 
-  switch (gpuSettings.context_type) {
+  switch (gpu_settings.context_type) {
 #ifdef WITH_OPENGL_BACKEND
     case GHOST_kDrawingContextTypeOpenGL: {
       for (int minor = 6; minor >= 3; --minor) {
@@ -495,7 +495,7 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
     case SDL_QUIT: {
       const SDL_QuitEvent &sdl_sub_evt = sdl_event->quit;
       const uint64_t event_ms = sdl_sub_evt.timestamp;
-      GHOST_IWindow *window = m_windowManager->getActiveWindow();
+      GHOST_IWindow *window = window_manager_->getActiveWindow();
       g_event = new GHOST_Event(event_ms, GHOST_kEventQuitRequest, window);
       break;
     }
@@ -534,12 +534,12 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
 
         /* Can't use #setCursorPosition because the mouse may have no focus! */
         if (x_new != x_root || y_new != y_root) {
-          if (1 /* `xme.time > m_last_warp` */) {
+          if (1 /* `xme.time > last_warp_` */) {
             /* when wrapping we don't need to add an event because the
              * #setCursorPosition call will cause a new event after */
             SDL_WarpMouseInWindow(sdl_win, x_new - x_win, y_new - y_win); /* wrap */
             window->setCursorGrabAccum(x_accum + (x_root - x_new), y_accum + (y_root - y_new));
-            // m_last_warp = lastEventTime(xme.time);
+            // last_warp_ = lastEventTime(xme.time);
           }
           else {
             // setCursorPosition(x_new, y_new); /* wrap but don't accumulate */
@@ -677,8 +677,8 @@ GHOST_TSuccess GHOST_SystemSDL::setCursorPosition(int32_t x, int32_t y)
 
 bool GHOST_SystemSDL::generateWindowExposeEvents()
 {
-  std::vector<GHOST_WindowSDL *>::iterator w_start = m_dirty_windows.begin();
-  std::vector<GHOST_WindowSDL *>::const_iterator w_end = m_dirty_windows.end();
+  std::vector<GHOST_WindowSDL *>::iterator w_start = dirty_windows_.begin();
+  std::vector<GHOST_WindowSDL *>::const_iterator w_end = dirty_windows_.end();
   bool anyProcessed = false;
 
   for (; w_start != w_end; ++w_start) {
@@ -695,7 +695,7 @@ bool GHOST_SystemSDL::generateWindowExposeEvents()
     }
   }
 
-  m_dirty_windows.clear();
+  dirty_windows_.clear();
   return anyProcessed;
 }
 
@@ -709,19 +709,19 @@ bool GHOST_SystemSDL::processEvents(bool waitForEvent)
   do {
     GHOST_TimerManager *timerMgr = getTimerManager();
 
-    if (waitForEvent && m_dirty_windows.empty() && !SDL_HasEvents(SDL_FIRSTEVENT, SDL_LASTEVENT)) {
+    if (waitForEvent && dirty_windows_.empty() && !SDL_HasEvents(SDL_FIRSTEVENT, SDL_LASTEVENT)) {
       uint64_t next = timerMgr->nextFireTime();
 
       if (next == GHOST_kFireTimeNever) {
         SDL_WaitEventTimeout(nullptr, -1);
-        // SleepTillEvent(m_display, -1);
+        // SleepTillEvent(display_, -1);
       }
       else {
         int64_t maxSleep = next - getMilliSeconds();
 
         if (maxSleep >= 0) {
           SDL_WaitEventTimeout(nullptr, next - getMilliSeconds());
-          // SleepTillEvent(m_display, next - getMilliSeconds()); /* X11. */
+          // SleepTillEvent(display_, next - getMilliSeconds()); /* X11. */
         }
       }
     }
@@ -754,7 +754,7 @@ GHOST_WindowSDL *GHOST_SystemSDL::findGhostWindow(SDL_Window *sdl_win)
    * We should always check the window manager's list of windows
    * and only process events on these windows. */
 
-  const std::vector<GHOST_IWindow *> &win_vec = m_windowManager->getWindows();
+  const std::vector<GHOST_IWindow *> &win_vec = window_manager_->getWindows();
 
   std::vector<GHOST_IWindow *>::const_iterator win_it = win_vec.begin();
   std::vector<GHOST_IWindow *>::const_iterator win_end = win_vec.end();
@@ -772,7 +772,7 @@ void GHOST_SystemSDL::addDirtyWindow(GHOST_WindowSDL *bad_wind)
 {
   GHOST_ASSERT((bad_wind != nullptr), "addDirtyWindow() nullptr ptr trapped (window)");
 
-  m_dirty_windows.push_back(bad_wind);
+  dirty_windows_.push_back(bad_wind);
 }
 
 GHOST_TSuccess GHOST_SystemSDL::getButtons(GHOST_Buttons &buttons) const

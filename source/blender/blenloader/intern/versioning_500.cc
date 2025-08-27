@@ -20,11 +20,16 @@
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 #include "DNA_rigidbody_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_windowmanager_types.h"
+#include "DNA_workspace_types.h"
 #include "DNA_world_types.h"
 
+#include "BLI_function_ref.hh"
 #include "BLI_listbase.h"
+#include "BLI_math_color.h"
 #include "BLI_math_numbers.hh"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
@@ -58,6 +63,8 @@
 #include "SEQ_iterator.hh"
 #include "SEQ_modifier.hh"
 #include "SEQ_sequencer.hh"
+
+#include "WM_api.hh"
 
 #include "readfile.hh"
 
@@ -737,42 +744,47 @@ static void version_seq_text_from_legacy(Main *bmain)
   }
 }
 
-static void apply_unified_paint_settings_to_all_modes(Scene &scene)
+static void for_each_mode_paint_settings(
+    Scene &scene, blender::FunctionRef<void(Scene &scene, Paint *paint)> func)
 {
+  func(scene, reinterpret_cast<Paint *>(scene.toolsettings->vpaint));
+  func(scene, reinterpret_cast<Paint *>(scene.toolsettings->wpaint));
+  func(scene, reinterpret_cast<Paint *>(scene.toolsettings->sculpt));
+  func(scene, reinterpret_cast<Paint *>(scene.toolsettings->gp_paint));
+  func(scene, reinterpret_cast<Paint *>(scene.toolsettings->gp_vertexpaint));
+  func(scene, reinterpret_cast<Paint *>(scene.toolsettings->gp_sculptpaint));
+  func(scene, reinterpret_cast<Paint *>(scene.toolsettings->gp_weightpaint));
+  func(scene, reinterpret_cast<Paint *>(scene.toolsettings->curves_sculpt));
+  func(scene, reinterpret_cast<Paint *>(&scene.toolsettings->imapaint));
+}
+
+static void copy_unified_paint_settings(Scene &scene, Paint *paint)
+{
+  if (paint == nullptr) {
+    return;
+  }
+
   const UnifiedPaintSettings &scene_ups = scene.toolsettings->unified_paint_settings;
-  auto apply_to_paint = [&](Paint *paint) {
-    if (paint == nullptr) {
-      return;
-    }
-    UnifiedPaintSettings &ups = paint->unified_paint_settings;
+  UnifiedPaintSettings &ups = paint->unified_paint_settings;
 
-    ups.size = scene_ups.size;
-    ups.unprojected_radius = scene_ups.unprojected_radius;
-    ups.alpha = scene_ups.alpha;
-    ups.weight = scene_ups.weight;
-    copy_v3_v3(ups.rgb, scene_ups.rgb);
-    copy_v3_v3(ups.secondary_rgb, scene_ups.secondary_rgb);
-    ups.color_jitter_flag = scene_ups.color_jitter_flag;
-    copy_v3_v3(ups.hsv_jitter, scene_ups.hsv_jitter);
+  ups.size = scene_ups.size;
+  ups.unprojected_radius = scene_ups.unprojected_radius;
+  ups.alpha = scene_ups.alpha;
+  ups.weight = scene_ups.weight;
+  copy_v3_v3(ups.color, scene_ups.color);
+  copy_v3_v3(ups.rgb, scene_ups.rgb);
+  copy_v3_v3(ups.secondary_color, scene_ups.secondary_color);
+  copy_v3_v3(ups.secondary_rgb, scene_ups.secondary_rgb);
+  ups.color_jitter_flag = scene_ups.color_jitter_flag;
+  copy_v3_v3(ups.hsv_jitter, scene_ups.hsv_jitter);
 
-    BLI_assert(ups.curve_rand_hue == nullptr);
-    BLI_assert(ups.curve_rand_saturation == nullptr);
-    BLI_assert(ups.curve_rand_value == nullptr);
-    ups.curve_rand_hue = BKE_curvemapping_copy(scene_ups.curve_rand_hue);
-    ups.curve_rand_saturation = BKE_curvemapping_copy(scene_ups.curve_rand_saturation);
-    ups.curve_rand_value = BKE_curvemapping_copy(scene_ups.curve_rand_value);
-    ups.flag = scene_ups.flag;
-  };
-
-  apply_to_paint(reinterpret_cast<Paint *>(scene.toolsettings->vpaint));
-  apply_to_paint(reinterpret_cast<Paint *>(scene.toolsettings->wpaint));
-  apply_to_paint(reinterpret_cast<Paint *>(scene.toolsettings->sculpt));
-  apply_to_paint(reinterpret_cast<Paint *>(scene.toolsettings->gp_paint));
-  apply_to_paint(reinterpret_cast<Paint *>(scene.toolsettings->gp_vertexpaint));
-  apply_to_paint(reinterpret_cast<Paint *>(scene.toolsettings->gp_sculptpaint));
-  apply_to_paint(reinterpret_cast<Paint *>(scene.toolsettings->gp_weightpaint));
-  apply_to_paint(reinterpret_cast<Paint *>(scene.toolsettings->curves_sculpt));
-  apply_to_paint(reinterpret_cast<Paint *>(&scene.toolsettings->imapaint));
+  BLI_assert(ups.curve_rand_hue == nullptr);
+  BLI_assert(ups.curve_rand_saturation == nullptr);
+  BLI_assert(ups.curve_rand_value == nullptr);
+  ups.curve_rand_hue = BKE_curvemapping_copy(scene_ups.curve_rand_hue);
+  ups.curve_rand_saturation = BKE_curvemapping_copy(scene_ups.curve_rand_saturation);
+  ups.curve_rand_value = BKE_curvemapping_copy(scene_ups.curve_rand_value);
+  ups.flag = scene_ups.flag;
 }
 
 /* The Use Alpha option is does not exist in the new generic Mix node, it essentially just
@@ -1676,12 +1688,79 @@ void do_versions_after_linking_500(FileData *fd, Main *bmain)
     FOREACH_NODETREE_END;
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 63)) {
+    LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
+      LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+        Scene *scene = WM_window_get_active_scene(win);
+        WorkSpace *workspace = WM_window_get_active_workspace(win);
+        workspace->sequencer_scene = scene;
+      }
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
    *
    * \note Keep this message at the bottom of the function.
    */
+}
+
+static void remove_in_and_out_node_panel_recursive(bNodeTreeInterfacePanel &panel)
+{
+  using namespace blender;
+  const Span old_sockets(panel.items_array, panel.items_num);
+
+  Vector<bNodeTreeInterfaceItem *> new_sockets;
+  for (bNodeTreeInterfaceItem *item : old_sockets) {
+    if (item->item_type == NODE_INTERFACE_PANEL) {
+      remove_in_and_out_node_panel_recursive(*reinterpret_cast<bNodeTreeInterfacePanel *>(item));
+      continue;
+    }
+    bNodeTreeInterfaceSocket *socket = reinterpret_cast<bNodeTreeInterfaceSocket *>(item);
+    constexpr int in_and_out = NODE_INTERFACE_SOCKET_INPUT | NODE_INTERFACE_SOCKET_OUTPUT;
+    if ((socket->flag & in_and_out) != in_and_out) {
+      continue;
+    }
+
+    bNodeTreeInterfaceSocket *new_output = MEM_callocN<bNodeTreeInterfaceSocket>(__func__);
+    new_output->item.item_type = NODE_INTERFACE_SOCKET;
+    new_output->name = BLI_strdup_null(socket->name);
+    new_output->description = BLI_strdup_null(socket->description);
+    new_output->socket_type = BLI_strdup_null(socket->socket_type);
+    new_output->flag = socket->flag & ~NODE_INTERFACE_SOCKET_INPUT;
+    new_output->attribute_domain = socket->attribute_domain;
+    new_output->default_input = socket->default_input;
+    new_output->default_attribute_name = BLI_strdup_null(socket->default_attribute_name);
+    new_output->identifier = BLI_strdup(socket->identifier);
+    if (socket->properties) {
+      new_output->properties = IDP_CopyProperty_ex(socket->properties,
+                                                   LIB_ID_CREATE_NO_USER_REFCOUNT);
+    }
+    new_output->structure_type = socket->structure_type;
+    new_sockets.append(reinterpret_cast<bNodeTreeInterfaceItem *>(new_output));
+
+    socket->flag &= ~NODE_INTERFACE_SOCKET_OUTPUT;
+  }
+
+  if (new_sockets.is_empty()) {
+    return;
+  }
+
+  new_sockets.extend(old_sockets);
+  VectorData new_socket_data = new_sockets.release();
+  MEM_freeN(panel.items_array);
+  panel.items_array = new_socket_data.data;
+  panel.items_num = new_socket_data.size;
+}
+
+/**
+ * Fix node interface sockest that could become both inputs and outputs before the current design
+ * was settled on.
+ */
+static void remove_in_and_out_node_interface(bNodeTree &node_tree)
+{
+  remove_in_and_out_node_panel_recursive(node_tree.tree_interface.root_panel);
 }
 
 void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
@@ -1834,7 +1913,7 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 26)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      apply_unified_paint_settings_to_all_modes(*scene);
+      for_each_mode_paint_settings(*scene, copy_unified_paint_settings);
     }
   }
 
@@ -2280,6 +2359,75 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
         }
         lmd->radius = float(lmd->thickness_legacy) *
                       bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
+      }
+    }
+  }
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 61)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type != NTREE_COMPOSIT) {
+        continue;
+      }
+      version_node_input_socket_name(ntree, CMP_NODE_GAMMA_DEPRECATED, "Image", "Color");
+      version_node_output_socket_name(ntree, CMP_NODE_GAMMA_DEPRECATED, "Image", "Color");
+
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type_legacy == CMP_NODE_GAMMA_DEPRECATED) {
+          node->type_legacy = SH_NODE_GAMMA;
+          STRNCPY_UTF8(node->idname, "ShaderNodeGamma");
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 63)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->r.bake_flag & R_BAKE_MULTIRES) {
+        scene->r.bake.type = scene->r.bake_mode;
+        scene->r.bake.flag |= (scene->r.bake_flag & (R_BAKE_MULTIRES | R_BAKE_LORES_MESH));
+        scene->r.bake.margin_type = scene->r.bake_margin_type;
+        scene->r.bake.margin = scene->r.bake_margin;
+      }
+      else {
+        scene->r.bake.type = R_BAKE_NORMALS;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 62)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      scene->r.bake.displacement_space = R_BAKE_SPACE_OBJECT;
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 64)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      remove_in_and_out_node_interface(*node_tree);
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 65)) {
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      srgb_to_linearrgb_v3_v3(brush->color, brush->rgb);
+      srgb_to_linearrgb_v3_v3(brush->secondary_color, brush->secondary_rgb);
+    }
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      UnifiedPaintSettings &ups = scene->toolsettings->unified_paint_settings;
+      srgb_to_linearrgb_v3_v3(ups.color, ups.rgb);
+      srgb_to_linearrgb_v3_v3(ups.secondary_color, ups.secondary_rgb);
+
+      for_each_mode_paint_settings(*scene, [](Scene & /*scene*/, Paint *paint) {
+        if (paint != nullptr) {
+          UnifiedPaintSettings &ups = paint->unified_paint_settings;
+          srgb_to_linearrgb_v3_v3(ups.color, ups.rgb);
+          srgb_to_linearrgb_v3_v3(ups.secondary_color, ups.secondary_rgb);
+        }
+      });
+    }
+    LISTBASE_FOREACH (Palette *, palette, &bmain->palettes) {
+      LISTBASE_FOREACH (PaletteColor *, color, &palette->colors) {
+        srgb_to_linearrgb_v3_v3(color->color, color->rgb);
       }
     }
   }

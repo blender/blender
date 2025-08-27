@@ -10,8 +10,10 @@
 
 #pragma once
 
+#include "BLI_math_base.h"
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
+#include "BLI_virtual_array.hh"
 
 #include "GPU_common.hh"
 #include "GPU_vertex_format.hh"
@@ -54,6 +56,31 @@ enum GPUUsageType {
 ENUM_OPERATORS(GPUUsageType, GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
 
 namespace blender::gpu {
+class VertBuf;
+}  // namespace blender::gpu
+
+void GPU_vertbuf_discard(blender::gpu::VertBuf *);
+
+blender::gpu::VertBuf *GPU_vertbuf_calloc();
+blender::gpu::VertBuf *GPU_vertbuf_create_with_format_ex(const GPUVertFormat &format,
+                                                         GPUUsageType usage);
+
+static inline blender::gpu::VertBuf *GPU_vertbuf_create_with_format(const GPUVertFormat &format)
+{
+  return GPU_vertbuf_create_with_format_ex(format, GPU_USAGE_STATIC);
+}
+
+namespace blender::gpu {
+
+class VertBufDeleter {
+ public:
+  void operator()(VertBuf *vbo)
+  {
+    GPU_vertbuf_discard(vbo);
+  }
+};
+
+using VertBufPtr = std::unique_ptr<gpu::VertBuf, gpu::VertBufDeleter>;
 
 /**
  * Implementation of Vertex Buffers.
@@ -90,6 +117,48 @@ class VertBuf {
  public:
   VertBuf();
   virtual ~VertBuf();
+
+  template<typename T> static VertBufPtr from_size(const int size)
+  {
+    BLI_assert(size > 0);
+    VertBufPtr buf = VertBufPtr(GPU_vertbuf_create_with_format(GenericVertexFormat<T>::format()));
+    /* GPU formats needs to be aligned to 4 bytes. */
+    buf->allocate(ceil_to_multiple_u(size * sizeof(T), 4) / sizeof(GenericVertexFormat<T>));
+    return buf;
+  }
+
+  template<typename T> static VertBufPtr from_span(const Span<T> data)
+  {
+    BLI_assert(!data.is_empty());
+    VertBufPtr buf = VertBufPtr(GPU_vertbuf_create_with_format_ex(
+        GenericVertexFormat<T>::format(), GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY));
+    /* GPU formats needs to be aligned to 4 bytes. */
+    buf->allocate(ceil_to_multiple_u(data.size_in_bytes(), 4) / sizeof(GenericVertexFormat<T>));
+    buf->data<T>().slice(0, data.size()).copy_from(data);
+    return buf;
+  }
+
+  template<typename T> static VertBufPtr from_varray(const VArray<T> &array)
+  {
+    BLI_assert(!array.is_empty());
+    VertBufPtr buf = VertBufPtr(GPU_vertbuf_create_with_format_ex(
+        GenericVertexFormat<T>::format(), GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY));
+    /* GPU formats needs to be aligned to 4 bytes. */
+    buf->allocate(ceil_to_multiple_u(array.size() * sizeof(T), 4) /
+                  sizeof(GenericVertexFormat<T>));
+    array.materialize(buf->data<T>().slice(0, array.size()));
+    return buf;
+  }
+
+  template<typename T> static VertBufPtr device_only(uint size)
+  {
+    BLI_assert(size > 0);
+    VertBufPtr buf = VertBufPtr(GPU_vertbuf_create_with_format_ex(
+        GenericVertexFormat<T>::format(),
+        GPU_USAGE_DEVICE_ONLY | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY));
+    buf->allocate(size);
+    return buf;
+  }
 
   void init(const GPUVertFormat &format, GPUUsageType usage);
   void clear();
@@ -155,13 +224,6 @@ class VertBuf {
 
 }  // namespace blender::gpu
 
-blender::gpu::VertBuf *GPU_vertbuf_calloc();
-blender::gpu::VertBuf *GPU_vertbuf_create_with_format_ex(const GPUVertFormat &format,
-                                                         GPUUsageType usage);
-
-#define GPU_vertbuf_create_with_format(format) \
-  GPU_vertbuf_create_with_format_ex(format, GPU_USAGE_STATIC)
-
 /**
  * (Download and) fill data with the data from the vertex buffer.
  * NOTE: caller is responsible to reserve enough memory of the data parameter.
@@ -169,7 +231,6 @@ blender::gpu::VertBuf *GPU_vertbuf_create_with_format_ex(const GPUVertFormat &fo
 void GPU_vertbuf_read(const blender::gpu::VertBuf *verts, void *data);
 /** Same as discard but does not free. */
 void GPU_vertbuf_clear(blender::gpu::VertBuf *verts);
-void GPU_vertbuf_discard(blender::gpu::VertBuf *);
 
 /**
  * Avoid blender::gpu::VertBuf data-block being free but not its data.
@@ -292,17 +353,3 @@ uint GPU_vertbuf_get_memory_usage();
       verts = nullptr; \
     } \
   } while (0)
-
-namespace blender::gpu {
-
-class VertBufDeleter {
- public:
-  void operator()(VertBuf *vbo)
-  {
-    GPU_vertbuf_discard(vbo);
-  }
-};
-
-using VertBufPtr = std::unique_ptr<gpu::VertBuf, gpu::VertBufDeleter>;
-
-}  // namespace blender::gpu

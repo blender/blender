@@ -35,7 +35,6 @@ PyDoc_STRVAR(
     "   :type it: :class:`freestyle.types.Interface0DIterator`\n"
     "   :return: The Z 3D coordinate of the pointed Interface0D.\n"
     "   :rtype: float\n");
-
 static int GetZF0D___init__(BPy_GetZF0D *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {nullptr};

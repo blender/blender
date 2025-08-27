@@ -295,14 +295,14 @@ static bool pygpu_framebuffer_new_parse_arg(PyObject *o, GPUAttachment *r_attach
         return false;
       }
 
-      if (c_texture && PyUnicode_CompareWithASCIIString(key, c_texture)) {
+      if (c_texture && PyUnicode_CompareWithASCIIString(key, c_texture) == 0) {
         /* Compare only once. */
         c_texture = nullptr;
         if (!bpygpu_ParseTexture(value, &tmp_attach.tex)) {
           return false;
         }
       }
-      else if (c_layer && PyUnicode_CompareWithASCIIString(key, c_layer)) {
+      else if (c_layer && PyUnicode_CompareWithASCIIString(key, c_layer) == 0) {
         /* Compare only once. */
         c_layer = nullptr;
         tmp_attach.layer = PyLong_AsLong(value);
@@ -310,7 +310,7 @@ static bool pygpu_framebuffer_new_parse_arg(PyObject *o, GPUAttachment *r_attach
           return false;
         }
       }
-      else if (c_mip && PyUnicode_CompareWithASCIIString(key, c_mip)) {
+      else if (c_mip && PyUnicode_CompareWithASCIIString(key, c_mip) == 0) {
         /* Compare only once. */
         c_mip = nullptr;
         tmp_attach.mip = PyLong_AsLong(value);
@@ -407,7 +407,7 @@ static PyObject *pygpu_framebuffer__tp_new(PyTypeObject * /*self*/, PyObject *ar
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_framebuffer_is_bound_doc,
-    "Checks if this is the active framebuffer in the context.");
+    "Checks if this is the active frame-buffer in the context.");
 static PyObject *pygpu_framebuffer_is_bound(BPyGPUFrameBuffer *self, void * /*type*/)
 {
   PYGPU_FRAMEBUFFER_CHECK_OBJ(self);
@@ -417,7 +417,7 @@ static PyObject *pygpu_framebuffer_is_bound(BPyGPUFrameBuffer *self, void * /*ty
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_framebuffer_clear_doc,
-    ".. method:: clear(color=None, depth=None, stencil=None)\n"
+    ".. method:: clear(*, color=None, depth=None, stencil=None)\n"
     "\n"
     "   Fill color, depth and stencil textures with specific value.\n"
     "   Common values: color=(0.0, 0.0, 0.0, 1.0), depth=1.0, stencil=0.\n"
@@ -537,7 +537,7 @@ static PyObject *pygpu_framebuffer_viewport_get(BPyGPUFrameBuffer *self, void * 
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_framebuffer_read_color_doc,
-    ".. function:: read_color(x, y, xsize, ysize, channels, slot, format, data=data)\n"
+    ".. function:: read_color(x, y, xsize, ysize, channels, slot, format, *, data=data)\n"
     "\n"
     "   Read a block of pixels from the frame buffer.\n"
     "\n"
@@ -549,8 +549,9 @@ PyDoc_STRVAR(
     "   :arg slot: The framebuffer slot to read data from.\n"
     "   :type slot: int\n"
     "   :arg format: The format that describes the content of a single channel.\n"
-    "      Possible values are `FLOAT`, `INT`, `UINT`, `UBYTE`, `UINT_24_8` and `10_11_11_REV`.\n"
-    "      `UINT_24_8` is deprecated, use `FLOAT` instead.\n"
+    "      Possible values are ``FLOAT``, ``INT``, ``UINT``, ``UBYTE``, ``UINT_24_8`` & "
+    "``10_11_11_REV``.\n"
+    "      ``UINT_24_8`` is deprecated, use ``FLOAT`` instead.\n"
     "   :type format: str\n"
     "   :arg data: Optional Buffer object to fill with the pixels values.\n"
     "   :type data: :class:`gpu.types.Buffer`\n"
@@ -656,7 +657,7 @@ static PyObject *pygpu_framebuffer_read_color(BPyGPUFrameBuffer *self,
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_framebuffer_read_depth_doc,
-    ".. function:: read_depth(x, y, xsize, ysize, data=data)\n"
+    ".. function:: read_depth(x, y, xsize, ysize, *, data=data)\n"
     "\n"
     "   Read a pixel depth block from the frame buffer.\n"
     "\n"
@@ -803,17 +804,17 @@ static PyMethodDef pygpu_framebuffer__tp_methods[] = {
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_framebuffer__tp_doc,
-    ".. class:: GPUFrameBuffer(depth_slot=None, color_slots=None)\n"
+    ".. class:: GPUFrameBuffer(*, depth_slot=None, color_slots=None)\n"
     "\n"
     "   This object gives access to framebuffer functionalities.\n"
     "   When a 'layer' is specified in a argument, a single layer of a 3D or array "
     "texture is attached to the frame-buffer.\n"
     "   For cube map textures, layer is translated into a cube map face.\n"
     "\n"
-    "   :arg depth_slot: GPUTexture to attach or a `dict` containing keywords: "
+    "   :arg depth_slot: GPUTexture to attach or a ``dict`` containing keywords: "
     "'texture', 'layer' and 'mip'.\n"
     "   :type depth_slot: :class:`gpu.types.GPUTexture` | dict[] | None\n"
-    "   :arg color_slots: Tuple where each item can be a GPUTexture or a `dict` "
+    "   :arg color_slots: Tuple where each item can be a GPUTexture or a ``dict`` "
     "containing keywords: 'texture', 'layer' and 'mip'.\n"
     "   :type color_slots: :class:`gpu.types.GPUTexture` | "
     "dict[str, int | :class:`gpu.types.GPUTexture`] | "

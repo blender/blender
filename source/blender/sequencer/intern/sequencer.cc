@@ -44,6 +44,7 @@
 #include "SEQ_effects.hh"
 #include "SEQ_iterator.hh"
 #include "SEQ_modifier.hh"
+#include "SEQ_preview_cache.hh"
 #include "SEQ_proxy.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_retiming.hh"
@@ -274,7 +275,7 @@ void seq_free_strip_recurse(Scene *scene, Strip *strip, const bool do_id_user)
 
 Editing *editing_get(const Scene *scene)
 {
-  return scene->ed;
+  return scene ? scene->ed : nullptr;
 }
 
 Editing *editing_ensure(Scene *scene)
@@ -310,11 +311,12 @@ void editing_free(Scene *scene, const bool do_id_user)
 
   BLI_freelistN(&ed->metastack);
   strip_lookup_free(ed);
-  blender::seq::media_presence_free(scene);
-  blender::seq::thumbnail_cache_destroy(scene);
-  blender::seq::intra_frame_cache_destroy(scene);
-  blender::seq::source_image_cache_destroy(scene);
-  blender::seq::final_image_cache_destroy(scene);
+  seq::media_presence_free(scene);
+  seq::thumbnail_cache_destroy(scene);
+  seq::intra_frame_cache_destroy(scene);
+  seq::source_image_cache_destroy(scene);
+  seq::final_image_cache_destroy(scene);
+  seq::preview_cache_destroy(scene);
   channels_free(&ed->channels);
 
   MEM_freeN(ed);
@@ -354,7 +356,7 @@ SequencerToolSettings *tool_settings_init()
   tool_settings->snap_mode = SEQ_SNAP_TO_STRIPS | SEQ_SNAP_TO_CURRENT_FRAME |
                              SEQ_SNAP_TO_STRIP_HOLD | SEQ_SNAP_TO_MARKERS | SEQ_SNAP_TO_RETIMING |
                              SEQ_SNAP_TO_PREVIEW_BORDERS | SEQ_SNAP_TO_PREVIEW_CENTER |
-                             SEQ_SNAP_TO_STRIPS_PREVIEW;
+                             SEQ_SNAP_TO_STRIPS_PREVIEW | SEQ_SNAP_TO_FRAME_RANGE;
   tool_settings->snap_distance = 15;
   tool_settings->overlap_mode = SEQ_OVERLAP_SHUFFLE;
   tool_settings->pivot_point = V3D_AROUND_LOCAL_ORIGINS;
@@ -422,11 +424,7 @@ int tool_settings_pivot_point_get(Scene *scene)
 
 ListBase *active_seqbase_get(const Editing *ed)
 {
-  if (ed == nullptr) {
-    return nullptr;
-  }
-
-  return ed->seqbasep;
+  return ed ? ed->current_strips() : nullptr;
 }
 
 void active_seqbase_set(Editing *ed, ListBase *seqbase)
@@ -1158,3 +1156,23 @@ void eval_strips(Depsgraph *depsgraph, Scene *scene, ListBase *seqbase)
 }
 
 }  // namespace blender::seq
+
+ListBase *Editing::current_strips()
+{
+  return this->seqbasep;
+}
+ListBase *Editing::current_strips() const
+{
+  /* NOTE: Const correctness is non-existent with ListBase anyway. */
+  return this->seqbasep;
+}
+
+ListBase *Editing::current_channels()
+{
+  return this->displayed_channels;
+}
+ListBase *Editing::current_channels() const
+{
+  /* NOTE: Const correctness is non-existent with ListBase anyway. */
+  return this->displayed_channels;
+}

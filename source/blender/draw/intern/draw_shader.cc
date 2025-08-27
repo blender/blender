@@ -98,7 +98,13 @@ class ShaderCache {
     get_static_cache().release();
   }
 
-  gpu::StaticShader hair_refine = {"draw_hair_refine_compute"};
+  gpu::StaticShader curves_topology = {"draw_curves_topology"};
+  gpu::StaticShader curves_evaluate_position = {"draw_curves_interpolate_position"};
+  gpu::StaticShader curves_evaluate_float4 = {"draw_curves_interpolate_float4_attribute"};
+  gpu::StaticShader curves_evaluate_float3 = {"draw_curves_interpolate_float3_attribute"};
+  gpu::StaticShader curves_evaluate_float2 = {"draw_curves_interpolate_float2_attribute"};
+  gpu::StaticShader curves_evaluate_float = {"draw_curves_interpolate_float_attribute"};
+  gpu::StaticShader curves_evaluate_length_intercept = {"draw_curves_evaluate_length_intercept"};
   gpu::StaticShader debug_draw_display = {"draw_debug_draw_display"};
   gpu::StaticShader draw_visibility_compute = {"draw_visibility_compute"};
   gpu::StaticShader draw_view_finalize = {"draw_view_finalize"};
@@ -149,15 +155,29 @@ class ShaderCache {
 
 using namespace blender::draw::Shader;
 
-blender::gpu::Shader *DRW_shader_hair_refine_get(ParticleRefineShader /*refinement*/)
+blender::gpu::Shader *DRW_shader_curves_topology_get()
 {
-  return ShaderCache::get().hair_refine.get();
+  return ShaderCache::get().curves_topology.get();
 }
 
-blender::gpu::Shader *DRW_shader_curves_refine_get(blender::draw::CurvesEvalShader /*type*/)
+blender::gpu::Shader *DRW_shader_curves_refine_get(blender::draw::CurvesEvalShader type)
 {
-  /* TODO: Implement curves evaluation types (Bezier and Catmull Rom). */
-  return ShaderCache::get().hair_refine.get();
+  switch (type) {
+    case blender::draw::CURVES_EVAL_POSITION:
+      return ShaderCache::get().curves_evaluate_position.get();
+    case blender::draw::CURVES_EVAL_FLOAT4:
+      return ShaderCache::get().curves_evaluate_float4.get();
+    case blender::draw::CURVES_EVAL_FLOAT3:
+      return ShaderCache::get().curves_evaluate_float3.get();
+    case blender::draw::CURVES_EVAL_FLOAT2:
+      return ShaderCache::get().curves_evaluate_float2.get();
+    case blender::draw::CURVES_EVAL_FLOAT:
+      return ShaderCache::get().curves_evaluate_float.get();
+    case blender::draw::CURVES_EVAL_LENGTH_INTERCEPT:
+      return ShaderCache::get().curves_evaluate_length_intercept.get();
+  }
+  BLI_assert_unreachable();
+  return nullptr;
 }
 
 blender::gpu::Shader *DRW_shader_debug_draw_display_get()

@@ -389,8 +389,8 @@ void GreasePencilExporter::foreach_stroke_in_layer(const Object &object,
       "end_cap", bke::AttrDomain::Curve, 0);
   /* Point attributes. */
   const Span<float3> positions = curves.positions();
-  const Span<float3> positions_left = curves.handle_positions_left();
-  const Span<float3> positions_right = curves.handle_positions_right();
+  const Span<float3> positions_left = *curves.handle_positions_left();
+  const Span<float3> positions_right = *curves.handle_positions_right();
   const VArray<int8_t> types = curves.curve_types();
   const VArraySpan<float> radii = drawing.radii();
   const VArraySpan<float> opacities = drawing.opacities();
@@ -499,8 +499,8 @@ void GreasePencilExporter::foreach_stroke_in_layer(const Object &object,
 
         const OffsetIndices outline_points_by_curve = outline.points_by_curve();
         const Span<float3> outline_positions = outline.positions();
-        const Span<float3> outline_positions_left = curves.handle_positions_left();
-        const Span<float3> outline_positions_right = curves.handle_positions_right();
+        const Span<float3> outline_positions_left = *curves.handle_positions_left();
+        const Span<float3> outline_positions_right = *curves.handle_positions_right();
 
         for (const int i_outline_curve : outline.curves_range()) {
           const IndexRange outline_points = outline_points_by_curve[i_outline_curve];

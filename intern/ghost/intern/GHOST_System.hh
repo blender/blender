@@ -56,8 +56,8 @@ class GHOST_System : public GHOST_ISystem {
   /** \copydoc #GHOST_ISystem::installTimer */
   GHOST_ITimerTask *installTimer(uint64_t delay,
                                  uint64_t interval,
-                                 GHOST_TimerProcPtr timerProc,
-                                 GHOST_TUserDataPtr userData = nullptr) override;
+                                 GHOST_TimerProcPtr timer_proc,
+                                 GHOST_TUserDataPtr user_data = nullptr) override;
   /** \copydoc #GHOST_ISystem::removeTimer */
   GHOST_TSuccess removeTimer(GHOST_ITimerTask *timerTask) override;
 
@@ -69,23 +69,23 @@ class GHOST_System : public GHOST_ISystem {
   GHOST_TSuccess disposeWindow(GHOST_IWindow *window) override;
 
   /** \copydoc #GHOST_ISystem::createOffscreenContext */
-  GHOST_IContext *createOffscreenContext(GHOST_GPUSettings gpuSettings) override = 0;
+  GHOST_IContext *createOffscreenContext(GHOST_GPUSettings gpu_settings) override = 0;
 
   /** \copydoc #GHOST_ISystem::validWindow */
   bool validWindow(GHOST_IWindow *window) override;
 
   /** \copydoc #GHOST_ISystem::useNativePixel */
   bool useNativePixel() override;
-  bool m_nativePixel;
+  bool native_pixel_;
 
   /** \copydoc #GHOST_ISystem::useWindowFocus */
   void useWindowFocus(const bool use_focus) override;
 
-  bool m_windowFocus;
+  bool window_focus_;
 
   /** \copydoc #GHOST_ISystem::setAutoFocus */
   void setAutoFocus(const bool auto_focus) override;
-  bool m_autoFocus;
+  bool auto_focus_;
 
   /** \copydoc #GHOST_ISystem::getWindowUnderCursor */
   GHOST_IWindow *getWindowUnderCursor(int32_t x, int32_t y) override;
@@ -142,10 +142,10 @@ class GHOST_System : public GHOST_ISystem {
    ***************************************************************************************/
 
   /** \copydoc #GHOST_ISystem::getModifierKeyState */
-  GHOST_TSuccess getModifierKeyState(GHOST_TModifierKey mask, bool &isDown) const override;
+  GHOST_TSuccess getModifierKeyState(GHOST_TModifierKey mask, bool &is_down) const override;
 
   /** \copydoc #GHOST_ISystem::getButtonState */
-  GHOST_TSuccess getButtonState(GHOST_TButton mask, bool &isDown) const override;
+  GHOST_TSuccess getButtonState(GHOST_TButton mask, bool &is_down) const override;
 
   /** \copydoc #GHOST_ISystem::setMultitouchGestures */
   void setMultitouchGestures(const bool use) override;
@@ -257,51 +257,51 @@ class GHOST_System : public GHOST_ISystem {
   GHOST_TSuccess exit() override;
 
   /** The timer manager. */
-  GHOST_TimerManager *m_timerManager;
+  GHOST_TimerManager *timer_manager_;
 
   /** The window manager. */
-  GHOST_WindowManager *m_windowManager;
+  GHOST_WindowManager *window_manager_;
 
   /** The event manager. */
-  GHOST_EventManager *m_eventManager;
+  GHOST_EventManager *event_manager_;
 
 #ifdef WITH_INPUT_NDOF
   /** The N-degree of freedom device manager */
-  GHOST_NDOFManager *m_ndofManager;
+  GHOST_NDOFManager *ndof_manager_;
 #endif
 
 #ifdef WITH_GHOST_DEBUG
   /** Prints all the events. */
-  GHOST_EventPrinter *m_eventPrinter;
+  GHOST_EventPrinter *event_printer_;
 #endif  // WITH_GHOST_DEBUG
 
   /** Use multi-touch gestures. */
-  bool m_multitouchGestures;
+  bool multitouch_gestures_;
 
   /** Which tablet API to use. */
-  GHOST_TTabletAPI m_tabletAPI;
+  GHOST_TTabletAPI tablet_api_;
 
-  bool m_is_debug_enabled;
+  bool is_debug_enabled_;
 };
 
 inline GHOST_TimerManager *GHOST_System::getTimerManager() const
 {
-  return m_timerManager;
+  return timer_manager_;
 }
 
 inline GHOST_EventManager *GHOST_System::getEventManager() const
 {
-  return m_eventManager;
+  return event_manager_;
 }
 
 inline GHOST_WindowManager *GHOST_System::getWindowManager() const
 {
-  return m_windowManager;
+  return window_manager_;
 }
 
 #ifdef WITH_INPUT_NDOF
 inline GHOST_NDOFManager *GHOST_System::getNDOFManager() const
 {
-  return m_ndofManager;
+  return ndof_manager_;
 }
 #endif

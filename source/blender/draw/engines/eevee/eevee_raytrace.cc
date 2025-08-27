@@ -194,7 +194,9 @@ void RayTraceModule::sync()
     pass.bind_resources(inst_.sampling);
     pass.bind_resources(inst_.gbuffer);
     pass.dispatch(raytrace_denoise_dispatch_buf_);
-    pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
+    /* Can either be loaded by next denoise pass as image or by combined pass as texture if this is
+     * the lass stage. */
+    pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS | GPU_BARRIER_TEXTURE_FETCH);
   }
   {
     PassSimple &pass = denoise_temporal_ps_;
@@ -215,7 +217,9 @@ void RayTraceModule::sync()
     pass.bind_ssbo("tiles_coord_buf", &raytrace_denoise_tiles_buf_);
     pass.bind_resources(inst_.sampling);
     pass.dispatch(raytrace_denoise_dispatch_buf_);
-    pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
+    /* Can either be loaded by next denoise pass as image or by combined pass as texture if this is
+     * the lass stage. */
+    pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS | GPU_BARRIER_TEXTURE_FETCH);
   }
   {
     PassSimple &pass = denoise_bilateral_ps_;
@@ -233,7 +237,8 @@ void RayTraceModule::sync()
     pass.bind_resources(inst_.sampling);
     pass.bind_resources(inst_.gbuffer);
     pass.dispatch(raytrace_denoise_dispatch_buf_);
-    pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
+    /* Can either be loaded and written by horizon scan as image or by combined pass as texture. */
+    pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS | GPU_BARRIER_TEXTURE_FETCH);
   }
   {
     PassSimple &pass = horizon_schedule_ps_;
@@ -266,7 +271,8 @@ void RayTraceModule::sync()
     pass.bind_resources(inst_.uniform_data);
     pass.bind_resources(inst_.gbuffer);
     pass.dispatch(&horizon_tracing_dispatch_size_);
-    pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
+    /* Result loaded by the next stage using samplers. */
+    pass.barrier(GPU_BARRIER_TEXTURE_FETCH);
   }
   {
     PassSimple &pass = horizon_scan_ps_;
@@ -289,6 +295,7 @@ void RayTraceModule::sync()
     pass.bind_resources(inst_.sampling);
     pass.bind_resources(inst_.gbuffer);
     pass.dispatch(horizon_tracing_dispatch_buf_);
+    /* Result loaded by the next stage using samplers. */
     pass.barrier(GPU_BARRIER_TEXTURE_FETCH);
   }
   {
@@ -310,6 +317,7 @@ void RayTraceModule::sync()
     pass.bind_resources(inst_.sampling);
     pass.bind_resources(inst_.hiz_buffer.front);
     pass.dispatch(horizon_tracing_dispatch_buf_);
+    /* Result loaded by the next stage using samplers. */
     pass.barrier(GPU_BARRIER_TEXTURE_FETCH);
   }
   {
@@ -333,7 +341,8 @@ void RayTraceModule::sync()
     pass.bind_resources(inst_.volume_probes);
     pass.bind_resources(inst_.sphere_probes);
     pass.dispatch(horizon_denoise_dispatch_buf_);
-    pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
+    /* Can either be loaded by another denoising stage or by combined pass as texture. */
+    pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS | GPU_BARRIER_TEXTURE_FETCH);
   }
 
   for (int i : IndexRange(3)) {

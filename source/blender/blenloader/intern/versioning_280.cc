@@ -85,6 +85,7 @@
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
 #include "BKE_paint.hh"
+#include "BKE_paint_types.hh"
 #include "BKE_pointcache.h"
 #include "BKE_report.hh"
 #include "BKE_rigidbody.h"
@@ -3291,8 +3292,6 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       if (STR_ELEM(scene->r.engine, "BLENDER_RENDER", "BLENDER_GAME")) {
         STRNCPY_UTF8(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
       }
-
-      scene->r.bake_mode = 0;
     }
 
     LISTBASE_FOREACH (Tex *, tex, &bmain->textures) {

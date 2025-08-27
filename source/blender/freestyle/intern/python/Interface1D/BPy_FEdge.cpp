@@ -46,8 +46,7 @@ PyDoc_STRVAR(
     "   :arg first_vertex: The first SVertex.\n"
     "   :type first_vertex: :class:`SVertex`\n"
     "   :arg second_vertex: The second SVertex.\n"
-    "   :type second_vertex: :class:`SVertex`");
-
+    "   :type second_vertex: :class:`SVertex`\n");
 static int FEdge_init(BPy_FEdge *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist_1[] = {"brother", nullptr};
@@ -120,8 +119,7 @@ PyDoc_STRVAR(
     FEdge_first_svertex_doc,
     "The first SVertex constituting this FEdge.\n"
     "\n"
-    ":type: :class:`SVertex`");
-
+    ":type: :class:`SVertex`\n");
 static PyObject *FEdge_first_svertex_get(BPy_FEdge *self, void * /*closure*/)
 {
   SVertex *A = self->fe->vertexA();
@@ -146,8 +144,7 @@ PyDoc_STRVAR(
     FEdge_second_svertex_doc,
     "The second SVertex constituting this FEdge.\n"
     "\n"
-    ":type: :class:`SVertex`");
-
+    ":type: :class:`SVertex`\n");
 static PyObject *FEdge_second_svertex_get(BPy_FEdge *self, void * /*closure*/)
 {
   SVertex *B = self->fe->vertexB();
@@ -173,8 +170,7 @@ PyDoc_STRVAR(
     "The FEdge following this one in the ViewEdge. The value is None if\n"
     "this FEdge is the last of the ViewEdge.\n"
     "\n"
-    ":type: :class:`FEdge`");
-
+    ":type: :class:`FEdge`\n");
 static PyObject *FEdge_next_fedge_get(BPy_FEdge *self, void * /*closure*/)
 {
   FEdge *fe = self->fe->nextEdge();
@@ -200,8 +196,7 @@ PyDoc_STRVAR(
     "The FEdge preceding this one in the ViewEdge. The value is None if\n"
     "this FEdge is the first one of the ViewEdge.\n"
     "\n"
-    ":type: :class:`FEdge`");
-
+    ":type: :class:`FEdge`\n");
 static PyObject *FEdge_previous_fedge_get(BPy_FEdge *self, void * /*closure*/)
 {
   FEdge *fe = self->fe->previousEdge();
@@ -226,8 +221,7 @@ PyDoc_STRVAR(
     FEdge_viewedge_doc,
     "The ViewEdge to which this FEdge belongs to.\n"
     "\n"
-    ":type: :class:`ViewEdge`");
-
+    ":type: :class:`ViewEdge`\n");
 static PyObject *FEdge_viewedge_get(BPy_FEdge *self, void * /*closure*/)
 {
   ViewEdge *ve = self->fe->viewedge();
@@ -252,8 +246,7 @@ PyDoc_STRVAR(
     FEdge_is_smooth_doc,
     "True if this FEdge is a smooth FEdge.\n"
     "\n"
-    ":type: bool");
-
+    ":type: bool\n");
 static PyObject *FEdge_is_smooth_get(BPy_FEdge *self, void * /*closure*/)
 {
   return PyBool_from_bool(self->fe->isSmooth());
@@ -274,8 +267,7 @@ PyDoc_STRVAR(
     FEdge_id_doc,
     "The Id of this FEdge.\n"
     "\n"
-    ":type: :class:`Id`");
-
+    ":type: :class:`Id`\n");
 static PyObject *FEdge_id_get(BPy_FEdge *self, void * /*closure*/)
 {
   Id id(self->fe->getId());
@@ -297,8 +289,7 @@ PyDoc_STRVAR(
     FEdge_nature_doc,
     "The nature of this FEdge.\n"
     "\n"
-    ":type: :class:`Nature`");
-
+    ":type: :class:`Nature`\n");
 static PyObject *FEdge_nature_get(BPy_FEdge *self, void * /*closure*/)
 {
   return BPy_Nature_from_Nature(self->fe->getNature());

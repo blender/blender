@@ -10,13 +10,18 @@
 
 #include "CLG_log.h"
 
+#include "BLI_function_ref.hh"
 #include "BLI_listbase.h"
+#include "BLI_map.hh"
 #include "BLI_math_matrix.h"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
+#include "BLI_sys_types.h"
 #include "BLI_task.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
 #include "BLF_api.hh"
 
@@ -29,6 +34,7 @@
 #include "BKE_editmesh.hh"
 #include "BKE_global.hh"
 #include "BKE_grease_pencil.h"
+#include "BKE_idprop.hh"
 #include "BKE_lattice.hh"
 #include "BKE_layer.hh"
 #include "BKE_main.hh"
@@ -72,10 +78,12 @@
 
 #include "WM_api.hh"
 
+#include "DRW_render.hh"
 #include "draw_cache.hh"
 #include "draw_color_management.hh"
 #include "draw_common_c.hh"
 #include "draw_context_private.hh"
+#include "draw_handle.hh"
 #include "draw_manager_text.hh"
 #include "draw_shader.hh"
 #include "draw_subdivision.hh"
@@ -548,10 +556,8 @@ struct DupliCacheManager {
     Object *ob = nullptr;
     ID *ob_data = nullptr;
 
-    bool operator==(const DupliObject *ob_dupli)
-    {
-      return this->ob == ob_dupli->ob && this->ob_data == ob_dupli->ob_data;
-    }
+    DupliKey() = default;
+    DupliKey(const DupliObject *ob_dupli) : ob(ob_dupli->ob), ob_data(ob_dupli->ob_data) {}
 
     uint64_t hash() const
     {
@@ -586,8 +592,7 @@ void DupliCacheManager::try_add(blender::draw::ObjectRef &ob_ref)
     return;
   }
 
-  last_key_.ob = ob_ref.dupli_object_->ob;
-  last_key_.ob_data = ob_ref.dupli_object_->ob_data;
+  last_key_ = ob_ref.dupli_object_;
 
   if (dupli_set_ == nullptr) {
     dupli_set_ = MEM_new<blender::Set<DupliKey>>("DupliCacheManager::dupli_set_");
@@ -654,14 +659,259 @@ void DupliCacheManager::extract_all(ExtractionGraph &extraction)
 
 namespace blender::draw {
 
-ObjectRef::ObjectRef(DEGObjectIterData &iter_data, Object *ob)
-    : dupli_object_(iter_data.dupli_object_current),
-      dupli_parent_(iter_data.dupli_parent),
-      object(ob)
+ObjectRef::ObjectRef(Object *ob, Object *dupli_parent, DupliObject *dupli_object)
+    : dupli_object_(dupli_object), dupli_parent_(dupli_parent), object(ob)
 {
 }
 
-ObjectRef::ObjectRef(Object *ob) : object(ob) {}
+ObjectRef::ObjectRef(Object &ob, Object *dupli_parent, const VectorList<DupliObject *> &duplis)
+    : dupli_object_(duplis[0]), dupli_parent_(dupli_parent), duplis_(&duplis), object(&ob)
+{
+}
+
+}  // namespace blender::draw
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Scene Iteration
+ * \{ */
+
+namespace blender::draw {
+
+static bool supports_handle_ranges(Object *ob)
+{
+  if (ob->type == OB_MESH) {
+    /* Hair drawing doesn't support handle ranges. */
+    LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
+      const int draw_as = (psys->part->draw_as == PART_DRAW_REND) ? psys->part->ren_as :
+                                                                    psys->part->draw_as;
+      if (draw_as == PART_DRAW_PATH && DRW_object_is_visible_psys_in_active_context(ob, psys)) {
+        return false;
+      }
+    }
+    /* Smoke drawing doesn't support handle ranges. */
+    return !BKE_modifiers_findby_type(ob, eModifierType_Fluid);
+  }
+  return ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF, OB_FONT, OB_POINTCLOUD, OB_GREASE_PENCIL);
+}
+
+enum class InstancesFlags : uint8_t {
+  IsNegativeScale = 1 << 0,
+};
+ENUM_OPERATORS(InstancesFlags, InstancesFlags::IsNegativeScale);
+
+struct InstancesKey {
+  uint64_t hash_value;
+
+  Object *object;
+  ID *ob_data;
+  const blender::bke::GeometrySet *preview_base_geometry;
+  int preview_instance_index;
+  InstancesFlags flags;
+
+  InstancesKey(Object *object,
+               ID *ob_data,
+               InstancesFlags flags,
+               const blender::bke::GeometrySet *preview_base_geometry,
+               int preview_instance_index)
+      : object(object),
+        ob_data(ob_data),
+        preview_base_geometry(preview_base_geometry),
+        preview_instance_index(preview_instance_index),
+        flags(flags)
+  {
+    hash_value = get_default_hash(object);
+    hash_value = get_default_hash(hash_value, ob_data);
+    hash_value = get_default_hash(hash_value, preview_base_geometry);
+    hash_value = get_default_hash(hash_value, preview_instance_index);
+    hash_value = get_default_hash(hash_value, uint8_t(flags));
+  }
+
+  uint64_t hash() const
+  {
+    return hash_value;
+  }
+
+  bool operator<(const InstancesKey &k) const
+  {
+    if (hash_value != k.hash_value) {
+      return hash_value < k.hash_value;
+    }
+    if (object != k.object) {
+      return object < k.object;
+    }
+    if (ob_data != k.ob_data) {
+      return ob_data < k.ob_data;
+    }
+    if (flags != k.flags) {
+      return flags < k.flags;
+    }
+    if (preview_base_geometry != k.preview_base_geometry) {
+      return preview_base_geometry < k.preview_base_geometry;
+    }
+    if (preview_instance_index != k.preview_instance_index) {
+      return preview_instance_index < k.preview_instance_index;
+    }
+    return false;
+  }
+
+  bool operator==(const InstancesKey &k) const
+  {
+    if (hash_value != k.hash_value) {
+      return false;
+    }
+    if (object != k.object) {
+      return false;
+    }
+    if (ob_data != k.ob_data) {
+      return false;
+    }
+    if (flags != k.flags) {
+      return false;
+    }
+    if (preview_base_geometry != k.preview_base_geometry) {
+      return false;
+    }
+    if (preview_instance_index != k.preview_instance_index) {
+      return false;
+    }
+    return true;
+  }
+};
+
+static void foreach_obref_in_scene(DRWContext &draw_ctx,
+                                   FunctionRef<bool(Object &)> should_draw_object_cb,
+                                   FunctionRef<void(ObjectRef &)> draw_object_cb)
+{
+  DupliList duplilist;
+  Map<InstancesKey, VectorList<DupliObject *>> dupli_map;
+
+  Object tmp_object;
+  ObjectRuntimeHandle tmp_runtime;
+
+  Depsgraph *depsgraph = draw_ctx.depsgraph;
+  eEvaluationMode eval_mode = DEG_get_mode(depsgraph);
+  View3D *v3d = draw_ctx.v3d;
+
+  /* EEVEE is not supported for now. */
+  const bool engines_support_handle_ranges = (v3d && v3d->shading.type <= OB_SOLID) ||
+                                             BKE_scene_uses_blender_workbench(draw_ctx.scene);
+
+  DEGObjectIterSettings deg_iter_settings = {nullptr};
+  deg_iter_settings.depsgraph = depsgraph;
+  deg_iter_settings.flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+                            DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET;
+  if (v3d && v3d->flag2 & V3D_SHOW_VIEWER) {
+    deg_iter_settings.viewer_path = &v3d->viewer_path;
+  }
+
+  DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
+
+    if (!DEG_iterator_object_is_visible(eval_mode, ob)) {
+      continue;
+    }
+
+    int visibility = BKE_object_visibility(ob, eval_mode);
+    bool ob_visible = visibility & (OB_VISIBLE_SELF | OB_VISIBLE_PARTICLES);
+
+    if (ob_visible && should_draw_object_cb(*ob)) {
+      ObjectRef ob_ref(ob);
+      draw_object_cb(ob_ref);
+    }
+
+    bool instances_visible = (visibility & OB_VISIBLE_INSTANCES) &&
+                             ((ob->transflag & OB_DUPLI) ||
+                              ob->runtime->geometry_set_eval != nullptr);
+
+    if (!instances_visible) {
+      continue;
+    }
+
+    duplilist.clear();
+    object_duplilist(
+        draw_ctx.depsgraph, draw_ctx.scene, ob, deg_iter_settings.included_objects, duplilist);
+
+    if (duplilist.is_empty()) {
+      continue;
+    }
+
+    dupli_map.clear();
+    for (DupliObject &dupli : duplilist) {
+
+      if (!DEG_iterator_dupli_is_visible(&dupli, eval_mode)) {
+        continue;
+      }
+
+      /* TODO: Optimize.
+       * We can't check the dupli.ob since visibility may be different than the dupli itself.
+       * But we should be able to check the dupli visibility without creating a temp object. */
+#if 0
+      if (!should_draw_object_cb(*dupli.ob)) {
+        continue;
+      }
+#endif
+
+      if (!engines_support_handle_ranges || !supports_handle_ranges(dupli.ob)) {
+        /* Sync the dupli as a single object. */
+        if (!evil::DEG_iterator_temp_object_from_dupli(
+                ob, &dupli, eval_mode, false, &tmp_object, &tmp_runtime) ||
+            !should_draw_object_cb(tmp_object))
+        {
+          evil::DEG_iterator_temp_object_free_properties(&dupli, &tmp_object);
+          continue;
+        }
+
+        tmp_object.light_linking = ob->light_linking;
+        SET_FLAG_FROM_TEST(tmp_object.transflag, is_negative_m4(dupli.mat), OB_NEG_SCALE);
+        tmp_object.runtime->object_to_world = float4x4(dupli.mat);
+        tmp_object.runtime->world_to_object = invert(tmp_object.runtime->object_to_world);
+
+        blender::draw::ObjectRef ob_ref(&tmp_object, ob, &dupli);
+        draw_object_cb(ob_ref);
+
+        evil::DEG_iterator_temp_object_free_properties(&dupli, &tmp_object);
+        continue;
+      }
+
+      InstancesFlags flags = InstancesFlags(0);
+      {
+        SET_FLAG_FROM_TEST(flags, is_negative_m4(dupli.mat), InstancesFlags::IsNegativeScale);
+      }
+      InstancesKey key(dupli.ob,
+                       dupli.ob_data,
+                       flags,
+                       dupli.preview_base_geometry,
+                       dupli.preview_instance_index);
+
+      dupli_map.lookup_or_add_default(key).append(&dupli);
+    }
+
+    for (const auto &[key, instances] : dupli_map.items()) {
+      DupliObject *first_dupli = instances.first();
+      if (!evil::DEG_iterator_temp_object_from_dupli(
+              ob, first_dupli, eval_mode, false, &tmp_object, &tmp_runtime) ||
+          !should_draw_object_cb(tmp_object))
+      {
+        evil::DEG_iterator_temp_object_free_properties(first_dupli, &tmp_object);
+        continue;
+      }
+
+      tmp_object.light_linking = ob->light_linking;
+      SET_FLAG_FROM_TEST(
+          tmp_object.transflag, bool(key.flags & InstancesFlags::IsNegativeScale), OB_NEG_SCALE);
+      /* Should use DrawInstances data instead. */
+      tmp_object.runtime->object_to_world = float4x4();
+      tmp_object.runtime->world_to_object = float4x4();
+
+      blender::draw::ObjectRef ob_ref(tmp_object, ob, instances);
+      draw_object_cb(ob_ref);
+
+      evil::DEG_iterator_temp_object_free_properties(first_dupli, &tmp_object);
+    }
+  }
+  DEG_OBJECT_ITER_END;
+}
 
 }  // namespace blender::draw
 
@@ -1168,7 +1418,6 @@ static void drw_draw_render_loop_3d(DRWContext &draw_ctx, RenderEngineType *engi
   Depsgraph *depsgraph = draw_ctx.depsgraph;
   View3D *v3d = draw_ctx.v3d;
 
-  const int object_type_exclude_viewport = v3d->object_type_exclude_viewport;
   /* Check if scene needs to perform the populate loop */
   const bool internal_engine = (engine_type->flag & RE_INTERNAL) != 0;
   const bool draw_type_render = v3d->shading.type == OB_RENDER;
@@ -1177,28 +1426,18 @@ static void drw_draw_render_loop_3d(DRWContext &draw_ctx, RenderEngineType *engi
   const bool do_populate_loop = internal_engine || overlays_on || !draw_type_render ||
                                 gpencil_engine_needed;
 
+  auto should_draw_object = [&](Object &ob) -> bool {
+    return BKE_object_is_visible_in_viewport(v3d, &ob);
+  };
+
   draw_ctx.enable_engines(gpencil_engine_needed, engine_type);
   draw_ctx.engines_data_validate();
   draw_ctx.engines_init_and_sync([&](DupliCacheManager &duplis, ExtractionGraph &extraction) {
     /* Only iterate over objects for internal engines or when overlays are enabled */
     if (do_populate_loop) {
-      DEGObjectIterSettings deg_iter_settings = {nullptr};
-      deg_iter_settings.depsgraph = depsgraph;
-      deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
-      if (v3d->flag2 & V3D_SHOW_VIEWER) {
-        deg_iter_settings.viewer_path = &v3d->viewer_path;
-      }
-      DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
-        if ((object_type_exclude_viewport & (1 << ob->type)) != 0) {
-          continue;
-        }
-        if (!BKE_object_is_visible_in_viewport(v3d, ob)) {
-          continue;
-        }
-        blender::draw::ObjectRef ob_ref(data_, ob);
+      foreach_obref_in_scene(draw_ctx, should_draw_object, [&](ObjectRef &ob_ref) {
         drw_engines_cache_populate(ob_ref, duplis, extraction);
-      }
-      DEG_OBJECT_ITER_END;
+      });
     }
   });
 
@@ -1505,33 +1744,32 @@ void DRW_render_object_iter(
     Depsgraph *depsgraph,
     std::function<void(blender::draw::ObjectRef &, RenderEngine *, Depsgraph *)> callback)
 {
-  DRWContext &draw_ctx = drw_get();
+  using namespace blender::draw;
 
-  const int object_type_exclude_viewport = draw_ctx.v3d ?
-                                               draw_ctx.v3d->object_type_exclude_viewport :
-                                               0;
+  DRWContext &draw_ctx = drw_get();
+  View3D *v3d = draw_ctx.v3d;
+
+  auto should_draw_object = [&](Object &ob) -> bool {
+    if (v3d) {
+      return BKE_object_is_visible_in_viewport(v3d, &ob);
+    }
+    return true;
+  };
 
   draw_ctx.sync([&](DupliCacheManager &duplis, ExtractionGraph &extraction) {
-    DEGObjectIterSettings deg_iter_settings = {nullptr};
-    deg_iter_settings.depsgraph = depsgraph;
-    deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
-    DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
-      if ((object_type_exclude_viewport & (1 << ob->type)) == 0) {
-        blender::draw::ObjectRef ob_ref(data_, ob);
-        if (ob_ref.is_dupli() == false) {
-          blender::draw::drw_batch_cache_validate(ob);
-        }
-        else {
-          duplis.try_add(ob_ref);
-        }
-        callback(ob_ref, engine, depsgraph);
-        if (ob_ref.is_dupli() == false) {
-          blender::draw::drw_batch_cache_generate_requested(ob, *extraction.graph);
-        }
-        /* Batch generation for duplis happens after iter_callback. */
+    foreach_obref_in_scene(draw_ctx, should_draw_object, [&](ObjectRef &ob_ref) {
+      if (ob_ref.is_dupli() == false) {
+        blender::draw::drw_batch_cache_validate(ob_ref.object);
       }
-    }
-    DEG_OBJECT_ITER_END;
+      else {
+        duplis.try_add(ob_ref);
+      }
+      callback(ob_ref, engine, depsgraph);
+      if (ob_ref.is_dupli() == false) {
+        blender::draw::drw_batch_cache_generate_requested(ob_ref.object, *extraction.graph);
+      }
+      /* Batch generation for duplis happens after iter_callback. */
+    });
   });
 }
 
@@ -1705,46 +1943,38 @@ void DRW_draw_select_loop(Depsgraph *depsgraph,
       const int object_type_exclude_select = (v3d->object_type_exclude_viewport |
                                               v3d->object_type_exclude_select);
       bool filter_exclude = false;
-      DEGObjectIterSettings deg_iter_settings = {nullptr};
-      deg_iter_settings.depsgraph = depsgraph;
-      deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
-      if (v3d->flag2 & V3D_SHOW_VIEWER) {
-        deg_iter_settings.viewer_path = &v3d->viewer_path;
-      }
-      DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
-        if (!BKE_object_is_visible_in_viewport(v3d, ob)) {
-          continue;
-        }
 
-        if (use_pose_exception && (ob->mode & OB_MODE_POSE)) {
-          if ((ob->base_flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) == 0) {
-            continue;
+      auto should_draw_object = [&](Object &ob) {
+        if (use_pose_exception && (ob.mode & OB_MODE_POSE)) {
+          if ((ob.base_flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) == 0) {
+            return false;
           }
         }
         else {
-          if ((ob->base_flag & BASE_SELECTABLE) == 0) {
-            continue;
+          if ((ob.base_flag & BASE_SELECTABLE) == 0) {
+            return false;
           }
         }
 
-        if ((object_type_exclude_select & (1 << ob->type)) == 0) {
+        if ((object_type_exclude_select & (1 << ob.type)) == 0) {
           if (object_filter_fn != nullptr) {
-            if (ob->base_flag & BASE_FROM_DUPLI) {
+            if (ob.base_flag & BASE_FROM_DUPLI) {
               /* pass (use previous filter_exclude value) */
             }
             else {
-              filter_exclude = (object_filter_fn(ob, object_filter_user_data) == false);
+              filter_exclude = (object_filter_fn(&ob, object_filter_user_data) == false);
             }
             if (filter_exclude) {
-              continue;
+              return false;
             }
           }
-
-          blender::draw::ObjectRef ob_ref(data_, ob);
-          drw_engines_cache_populate(ob_ref, duplis, extraction);
         }
-      }
-      DEG_OBJECT_ITER_END;
+        return true;
+      };
+
+      foreach_obref_in_scene(draw_ctx, should_draw_object, [&](ObjectRef &ob_ref) {
+        drw_engines_cache_populate(ob_ref, duplis, extraction);
+      });
     }
   });
 
@@ -1798,35 +2028,27 @@ void DRW_draw_depth_loop(Depsgraph *depsgraph,
   draw_ctx.acquire_data();
   draw_ctx.enable_engines(use_gpencil);
   draw_ctx.engines_init_and_sync([&](DupliCacheManager &duplis, ExtractionGraph &extraction) {
-    const int object_type_exclude_viewport = v3d->object_type_exclude_viewport;
-    DEGObjectIterSettings deg_iter_settings = {nullptr};
-    deg_iter_settings.depsgraph = draw_ctx.depsgraph;
-    deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
-    if (v3d->flag2 & V3D_SHOW_VIEWER) {
-      deg_iter_settings.viewer_path = &v3d->viewer_path;
-    }
+    auto should_draw_object = [&](Object &ob) {
+      if (!BKE_object_is_visible_in_viewport(v3d, &ob)) {
+        return false;
+      }
+      if (use_only_selected && !(ob.base_flag & BASE_SELECTED)) {
+        return false;
+      }
+      if ((ob.base_flag & BASE_SELECTABLE) == 0) {
+        return false;
+      }
+      return true;
+    };
+
     if (use_only_active_object) {
       blender::draw::ObjectRef ob_ref(draw_ctx.obact);
       drw_engines_cache_populate(ob_ref, duplis, extraction);
     }
     else {
-      DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
-        if ((object_type_exclude_viewport & (1 << ob->type)) != 0) {
-          continue;
-        }
-        if (!BKE_object_is_visible_in_viewport(v3d, ob)) {
-          continue;
-        }
-        if (use_only_selected && !(ob->base_flag & BASE_SELECTED)) {
-          continue;
-        }
-        if ((ob->base_flag & BASE_SELECTABLE) == 0) {
-          continue;
-        }
-        blender::draw::ObjectRef ob_ref(data_, ob);
+      foreach_obref_in_scene(draw_ctx, should_draw_object, [&](ObjectRef &ob_ref) {
         drw_engines_cache_populate(ob_ref, duplis, extraction);
-      }
-      DEG_OBJECT_ITER_END;
+      });
     }
   });
 
@@ -1862,6 +2084,8 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d)
     return;
   }
 
+  using namespace blender::draw;
+
   /* Make sure select engine gets the correct vertex size. */
   UI_SetTheme(SPACE_VIEW3D, RGN_TYPE_WINDOW);
 
@@ -1875,26 +2099,25 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d)
     }
 
     if (RETOPOLOGY_ENABLED(v3d) && !XRAY_ENABLED(v3d)) {
-      DEGObjectIterSettings deg_iter_settings = {nullptr};
-      deg_iter_settings.depsgraph = depsgraph;
-      deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
-      DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
-        if (ob->type != OB_MESH) {
+      auto should_draw_object = [&](Object &ob) {
+        if (ob.type != OB_MESH) {
           /* The iterator has evaluated meshes for all solid objects.
            * It also has non-mesh objects however, which are not supported here. */
-          continue;
+          return false;
         }
-        if (DRW_object_is_in_edit_mode(ob)) {
+        if (DRW_object_is_in_edit_mode(&ob)) {
           /* Only background (non-edit) objects are used for occlusion. */
-          continue;
+          return false;
         }
-        if (!BKE_object_is_visible_in_viewport(v3d, ob)) {
-          continue;
+        if (!BKE_object_is_visible_in_viewport(v3d, &ob)) {
+          return false;
         }
-        blender::draw::ObjectRef ob_ref(data_, ob);
+        return true;
+      };
+
+      foreach_obref_in_scene(draw_ctx, should_draw_object, [&](ObjectRef &ob_ref) {
         drw_engines_cache_populate(ob_ref, duplis, extraction);
-      }
-      DEG_OBJECT_ITER_END;
+      });
     }
   });
 

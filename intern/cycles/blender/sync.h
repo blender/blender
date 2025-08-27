@@ -237,7 +237,6 @@ class BlenderSync {
   set<float> motion_times;
   void *world_map;
   bool world_recalc;
-  bool world_use_portal = false;
   BlenderViewportParameters viewport_parameters;
 
   Scene *scene;

@@ -12,6 +12,7 @@
 #include <cstring>
 
 #include "DNA_camera_types.h"
+#include "DNA_color_types.h"
 #include "DNA_listBase.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
@@ -64,6 +65,8 @@
 #include "wm_window.hh"
 
 #include "UI_resources.hh"
+
+#include "IMB_colormanagement.hh"
 
 #ifdef WITH_OPENSUBDIV
 #  include "BKE_subsurf.hh"
@@ -118,7 +121,7 @@ static void wm_paintcursor_draw(bContext *C, ScrArea *area, ARegion *region)
     return;
   }
 
-  LISTBASE_FOREACH_MUTABLE (wmPaintCursor *, pc, &wm->paintcursors) {
+  LISTBASE_FOREACH_MUTABLE (wmPaintCursor *, pc, &wm->runtime->paintcursors) {
     if ((pc->space_type != SPACE_TYPE_ANY) && (area->spacetype != pc->space_type)) {
       continue;
     }
@@ -696,13 +699,18 @@ static void wm_draw_offscreen_texture_parameters(GPUOffScreen *offscreen)
 
 static blender::gpu::TextureFormat get_hdr_framebuffer_format(const Scene *scene)
 {
-  bool use_hdr = false;
-  if (scene && ((scene->view_settings.flag & COLORMANAGE_VIEW_USE_HDR) != 0)) {
-    use_hdr = GPU_hdr_support();
+  bool use_float = false;
+
+  if (scene && ((IMB_colormanagement_display_is_hdr(&scene->display_settings,
+                                                    scene->view_settings.view_transform)) ||
+                IMB_colormanagement_display_is_wide_gamut(&scene->display_settings,
+                                                          scene->view_settings.view_transform)))
+  {
+    use_float = GPU_hdr_support();
   }
   blender::gpu::TextureFormat desired_format =
-      (use_hdr) ? blender::gpu::TextureFormat::SFLOAT_16_16_16_16 :
-                  blender::gpu::TextureFormat::UNORM_8_8_8_8;
+      (use_float) ? blender::gpu::TextureFormat::SFLOAT_16_16_16_16 :
+                    blender::gpu::TextureFormat::UNORM_8_8_8_8;
   return desired_format;
 }
 
@@ -982,8 +990,10 @@ static void wm_draw_area_offscreen(bContext *C, wmWindow *win, ScrArea *area, bo
     if ((1 << area->spacetype) & WM_TOOLSYSTEM_SPACE_MASK) {
       if (area->spacetype == SPACE_SEQ) {
         Scene *scene = CTX_data_sequencer_scene(C);
-        WM_toolsystem_update_from_context(
-            C, CTX_wm_workspace(C), scene, BKE_view_layer_default_render(scene), area);
+        if (scene) {
+          WM_toolsystem_update_from_context(
+              C, CTX_wm_workspace(C), scene, BKE_view_layer_default_render(scene), area);
+        }
       }
       else {
         WM_toolsystem_update_from_context(
@@ -1132,7 +1142,8 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
       if (!region->runtime->visible) {
         continue;
       }
-      const bool do_paint_cursor = (wm->paintcursors.first && region == screen->active_region);
+      const bool do_paint_cursor = (wm->runtime->paintcursors.first &&
+                                    region == screen->active_region);
       const bool do_draw_overlay = (region->runtime->type && region->runtime->type->draw_overlay);
       if (!(do_paint_cursor || do_draw_overlay)) {
         continue;
@@ -1189,7 +1200,7 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
   }
 
   /* Needs pixel coords in screen. */
-  if (wm->drags.first) {
+  if (wm->runtime->drags.first) {
     wm_drags_draw(C, win);
     wmWindowViewport(win);
   }
@@ -1331,7 +1342,7 @@ uint8_t *WM_window_pixels_read_from_frontbuffer(const wmWindowManager *wm,
    * for a slower but more reliable version of this function
    * #WM_window_pixels_read_from_offscreen should be preferred.
    * See it's comments for details on why it's needed, see also #98462. */
-  bool setup_context = wm->windrawable != win;
+  bool setup_context = wm->runtime->windrawable != win;
 
   if (setup_context) {
     GHOST_ActivateWindowDrawingContext(static_cast<GHOST_WindowHandle>(win->ghostwin));
@@ -1345,10 +1356,10 @@ uint8_t *WM_window_pixels_read_from_frontbuffer(const wmWindowManager *wm,
   GPU_frontbuffer_read_color(0, 0, win_size[0], win_size[1], 4, GPU_DATA_UBYTE, rect);
 
   if (setup_context) {
-    if (wm->windrawable) {
+    if (wm->runtime->windrawable) {
       GHOST_ActivateWindowDrawingContext(
-          static_cast<GHOST_WindowHandle>(wm->windrawable->ghostwin));
-      GPU_context_active_set(static_cast<GPUContext *>(wm->windrawable->gpuctx));
+          static_cast<GHOST_WindowHandle>(wm->runtime->windrawable->ghostwin));
+      GPU_context_active_set(static_cast<GPUContext *>(wm->runtime->windrawable->gpuctx));
     }
   }
 
@@ -1370,7 +1381,7 @@ void WM_window_pixels_read_sample_from_frontbuffer(const wmWindowManager *wm,
                                                    float r_col[3])
 {
   BLI_assert(WM_capabilities_flag() & WM_CAPABILITY_GPU_FRONT_BUFFER_READ);
-  bool setup_context = wm->windrawable != win;
+  bool setup_context = wm->runtime->windrawable != win;
 
   if (setup_context) {
     GHOST_ActivateWindowDrawingContext(static_cast<GHOST_WindowHandle>(win->ghostwin));
@@ -1388,10 +1399,10 @@ void WM_window_pixels_read_sample_from_frontbuffer(const wmWindowManager *wm,
   copy_v3_v3(r_col, color_with_alpha.xyz());
 
   if (setup_context) {
-    if (wm->windrawable) {
+    if (wm->runtime->windrawable) {
       GHOST_ActivateWindowDrawingContext(
-          static_cast<GHOST_WindowHandle>(wm->windrawable->ghostwin));
-      GPU_context_active_set(static_cast<GPUContext *>(wm->windrawable->gpuctx));
+          static_cast<GHOST_WindowHandle>(wm->runtime->windrawable->ghostwin));
+      GPU_context_active_set(static_cast<GPUContext *>(wm->runtime->windrawable->gpuctx));
     }
   }
 }

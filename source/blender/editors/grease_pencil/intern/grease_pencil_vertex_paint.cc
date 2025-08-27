@@ -360,8 +360,7 @@ static wmOperatorStatus grease_pencil_vertex_paint_set_exec(bContext *C, wmOpera
   const float factor = RNA_float_get(op->ptr, "factor");
   const bool use_selection_mask = ED_grease_pencil_any_vertex_mask_selection(scene.toolsettings);
 
-  float3 color_linear;
-  srgb_to_linearrgb_v3_v3(color_linear, BKE_brush_color_get(&paint, &brush));
+  float3 color_linear = BKE_brush_color_get(&paint, &brush);
   const ColorGeometry4f target_color(color_linear[0], color_linear[1], color_linear[2], 1.0f);
 
   std::atomic<bool> any_changed;

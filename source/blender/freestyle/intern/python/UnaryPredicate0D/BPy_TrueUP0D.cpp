@@ -27,7 +27,6 @@ PyDoc_STRVAR(
     "   :type it: :class:`freestyle.types.Interface0DIterator`\n"
     "   :return: True.\n"
     "   :rtype: bool\n");
-
 static int TrueUP0D___init__(BPy_TrueUP0D *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {nullptr};

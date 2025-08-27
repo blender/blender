@@ -356,8 +356,8 @@ bke::CurvesGeometry subdivide_curves(const bke::CurvesGeometry &src_curves,
     const Span<float3> src_positions = src_curves.positions();
     const VArraySpan<int8_t> src_types_l{src_curves.handle_types_left()};
     const VArraySpan<int8_t> src_types_r{src_curves.handle_types_right()};
-    const Span<float3> src_handles_l = src_curves.handle_positions_left();
-    const Span<float3> src_handles_r = src_curves.handle_positions_right();
+    const Span<float3> src_handles_l = *src_curves.handle_positions_left();
+    const Span<float3> src_handles_r = *src_curves.handle_positions_right();
 
     MutableSpan<float3> dst_positions = dst_curves.positions_for_write();
     MutableSpan<int8_t> dst_types_l = dst_curves.handle_types_left_for_write();

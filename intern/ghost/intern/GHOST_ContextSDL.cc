@@ -24,28 +24,28 @@ GHOST_ContextSDL::GHOST_ContextSDL(const GHOST_ContextParams &context_params,
                                    int contextFlags,
                                    int contextResetNotificationStrategy)
     : GHOST_Context(context_params),
-      m_window(window),
-      m_hidden_window(nullptr),
-      m_contextProfileMask(contextProfileMask),
-      m_contextMajorVersion(contextMajorVersion),
-      m_contextMinorVersion(contextMinorVersion),
-      m_contextFlags(contextFlags),
-      m_contextResetNotificationStrategy(contextResetNotificationStrategy),
-      m_context(nullptr)
+      window_(window),
+      hidden_window_(nullptr),
+      context_profile_mask_(contextProfileMask),
+      context_major_version_(contextMajorVersion),
+      context_minor_version_(contextMinorVersion),
+      context_flags_(contextFlags),
+      context_reset_notification_strategy_(contextResetNotificationStrategy),
+      context_(nullptr)
 {
-  // assert(m_window  != nullptr);
+  // assert(window_  != nullptr);
 }
 
 GHOST_ContextSDL::~GHOST_ContextSDL()
 {
-  if (m_context == nullptr) {
+  if (context_ == nullptr) {
     return;
   }
 
-  if (m_window != nullptr && m_context == SDL_GL_GetCurrentContext()) {
-    SDL_GL_MakeCurrent(m_window, nullptr);
+  if (window_ != nullptr && context_ == SDL_GL_GetCurrentContext()) {
+    SDL_GL_MakeCurrent(window_, nullptr);
   }
-  if (m_context != s_sharedContext || s_sharedCount == 1) {
+  if (context_ != s_sharedContext || s_sharedCount == 1) {
     assert(s_sharedCount > 0);
 
     s_sharedCount--;
@@ -53,33 +53,33 @@ GHOST_ContextSDL::~GHOST_ContextSDL()
     if (s_sharedCount == 0) {
       s_sharedContext = nullptr;
     }
-    SDL_GL_DeleteContext(m_context);
+    SDL_GL_DeleteContext(context_);
   }
 
-  if (m_hidden_window != nullptr) {
-    SDL_DestroyWindow(m_hidden_window);
+  if (hidden_window_ != nullptr) {
+    SDL_DestroyWindow(hidden_window_);
   }
 }
 
 GHOST_TSuccess GHOST_ContextSDL::swapBuffers()
 {
-  SDL_GL_SwapWindow(m_window);
+  SDL_GL_SwapWindow(window_);
 
   return GHOST_kSuccess;
 }
 
 GHOST_TSuccess GHOST_ContextSDL::activateDrawingContext()
 {
-  if (m_context == nullptr) {
+  if (context_ == nullptr) {
     return GHOST_kFailure;
   }
   active_context_ = this;
-  return SDL_GL_MakeCurrent(m_window, m_context) ? GHOST_kSuccess : GHOST_kFailure;
+  return SDL_GL_MakeCurrent(window_, context_) ? GHOST_kSuccess : GHOST_kFailure;
 }
 
 GHOST_TSuccess GHOST_ContextSDL::releaseDrawingContext()
 {
-  if (m_context == nullptr) {
+  if (context_ == nullptr) {
     return GHOST_kFailure;
   }
   active_context_ = nullptr;
@@ -91,10 +91,10 @@ GHOST_TSuccess GHOST_ContextSDL::initializeDrawingContext()
 {
   const bool needAlpha = false;
 
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, m_contextProfileMask);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, m_contextMajorVersion);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, m_contextMinorVersion);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, m_contextFlags);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, context_profile_mask_);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, context_major_version_);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, context_minor_version_);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, context_flags_);
 
   SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -106,33 +106,33 @@ GHOST_TSuccess GHOST_ContextSDL::initializeDrawingContext()
     SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
   }
 
-  if (m_context_params.is_stereo_visual) {
+  if (context_params_.is_stereo_visual) {
     SDL_GL_SetAttribute(SDL_GL_STEREO, 1);
   }
 
-  if (m_window == nullptr) {
-    m_hidden_window = SDL_CreateWindow("Offscreen Context Windows",
-                                       SDL_WINDOWPOS_UNDEFINED,
-                                       SDL_WINDOWPOS_UNDEFINED,
-                                       1,
-                                       1,
-                                       SDL_WINDOW_OPENGL | SDL_WINDOW_BORDERLESS |
-                                           SDL_WINDOW_HIDDEN);
+  if (window_ == nullptr) {
+    hidden_window_ = SDL_CreateWindow("Offscreen Context Windows",
+                                      SDL_WINDOWPOS_UNDEFINED,
+                                      SDL_WINDOWPOS_UNDEFINED,
+                                      1,
+                                      1,
+                                      SDL_WINDOW_OPENGL | SDL_WINDOW_BORDERLESS |
+                                          SDL_WINDOW_HIDDEN);
 
-    m_window = m_hidden_window;
+    window_ = hidden_window_;
   }
 
-  m_context = SDL_GL_CreateContext(m_window);
+  context_ = SDL_GL_CreateContext(window_);
 
   GHOST_TSuccess success;
 
-  if (m_context != nullptr) {
+  if (context_ != nullptr) {
     if (!s_sharedContext) {
-      s_sharedContext = m_context;
+      s_sharedContext = context_;
     }
     s_sharedCount++;
 
-    success = (SDL_GL_MakeCurrent(m_window, m_context) < 0) ? GHOST_kFailure : GHOST_kSuccess;
+    success = (SDL_GL_MakeCurrent(window_, context_) < 0) ? GHOST_kFailure : GHOST_kSuccess;
 
     {
       const GHOST_TVSyncModes vsync = getVSync();
@@ -142,7 +142,7 @@ GHOST_TSuccess GHOST_ContextSDL::initializeDrawingContext()
     }
 
     initClearGL();
-    SDL_GL_SwapWindow(m_window);
+    SDL_GL_SwapWindow(window_);
 
     active_context_ = this;
     success = GHOST_kSuccess;
@@ -156,7 +156,7 @@ GHOST_TSuccess GHOST_ContextSDL::initializeDrawingContext()
 
 GHOST_TSuccess GHOST_ContextSDL::releaseNativeHandles()
 {
-  m_window = nullptr;
+  window_ = nullptr;
 
   return GHOST_kSuccess;
 }
@@ -169,8 +169,8 @@ GHOST_TSuccess GHOST_ContextSDL::setSwapInterval(int interval)
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_ContextSDL::getSwapInterval(int &intervalOut)
+GHOST_TSuccess GHOST_ContextSDL::getSwapInterval(int &interval_out)
 {
-  intervalOut = SDL_GL_GetSwapInterval();
+  interval_out = SDL_GL_GetSwapInterval();
   return GHOST_kSuccess;
 }

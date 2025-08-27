@@ -546,7 +546,7 @@ void ShaderManager::device_update_pre(Device * /*device*/,
 
   /* Set this early as it is needed by volume rendering passes. */
   KernelIntegrator *kintegrator = &dscene->data.integrator;
-  if (kintegrator->use_volumes != has_volumes) {
+  if (bool(kintegrator->use_volumes) != has_volumes) {
     scene->tag_has_volume_modified();
     kintegrator->use_volumes = has_volumes;
   }

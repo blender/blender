@@ -14,6 +14,8 @@
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 
+#include "GPU_vertex_buffer.hh"
+
 struct GPUMaterial;
 namespace blender::gpu {
 class Batch;
@@ -138,9 +140,10 @@ blender::gpu::Batch *DRW_lattice_batch_cache_get_edit_verts(Lattice *lt);
  * \return A pointer to location where the texture will be
  * stored, which will be filled by #DRW_shgroup_curves_create_sub.
  */
-gpu::VertBuf **DRW_curves_texture_for_evaluated_attribute(Curves *curves,
-                                                          StringRef name,
-                                                          bool *r_is_point_domain);
+blender::gpu::VertBufPtr &DRW_curves_texture_for_evaluated_attribute(Curves *curves,
+                                                                     StringRef name,
+                                                                     bool &r_is_point_domain,
+                                                                     bool &r_valid_attribute);
 
 blender::gpu::Batch *DRW_curves_batch_cache_get_edit_points(Curves *curves);
 blender::gpu::Batch *DRW_curves_batch_cache_get_sculpt_curves_cage(Curves *curves);

@@ -28,7 +28,6 @@ PyDoc_STRVAR(
     "\n"
     "   :return: The system time stamp.\n"
     "   :rtype: int\n");
-
 static PyObject *ContextFunctions_get_time_stamp(PyObject * /*self*/)
 {
   return PyLong_FromLong(ContextFunctions::GetTimeStampCF());
@@ -43,7 +42,6 @@ PyDoc_STRVAR(
     "\n"
     "   :return: The canvas width.\n"
     "   :rtype: int\n");
-
 static PyObject *ContextFunctions_get_canvas_width(PyObject * /*self*/)
 {
   return PyLong_FromLong(ContextFunctions::GetCanvasWidthCF());
@@ -58,7 +56,6 @@ PyDoc_STRVAR(
     "\n"
     "   :return: The canvas height.\n"
     "   :rtype: int\n");
-
 static PyObject *ContextFunctions_get_canvas_height(PyObject * /*self*/)
 {
   return PyLong_FromLong(ContextFunctions::GetCanvasHeightCF());
@@ -73,7 +70,6 @@ PyDoc_STRVAR(
     "\n"
     "   :return: A tuple of 4 numbers (xmin, ymin, xmax, ymax).\n"
     "   :rtype: tuple[int, int, int, int]\n");
-
 static PyObject *ContextFunctions_get_border(PyObject * /*self*/)
 {
   BBox<Vec2i> border(ContextFunctions::GetBorderCF());
@@ -103,7 +99,6 @@ PyDoc_STRVAR(
     "   :type num_levels: int\n"
     "   :arg sigma: The sigma value of the gaussian function.\n"
     "   :type sigma: float\n");
-
 static PyObject *ContextFunctions_load_map(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {"file_name", "map_name", "num_levels", "sigma", nullptr};
@@ -140,7 +135,6 @@ PyDoc_STRVAR(
     "   :type y: int\n"
     "   :return: The floating-point value stored for that pixel.\n"
     "   :rtype: float\n");
-
 static PyObject *ContextFunctions_read_map_pixel(PyObject * /*self*/,
                                                  PyObject *args,
                                                  PyObject *kwds)
@@ -175,7 +169,6 @@ PyDoc_STRVAR(
     "   :type y: int\n"
     "   :return: The floating-point value stored for that pixel.\n"
     "   :rtype: float\n");
-
 static PyObject *ContextFunctions_read_complete_view_map_pixel(PyObject * /*self*/,
                                                                PyObject *args,
                                                                PyObject *kwds)
@@ -211,7 +204,6 @@ PyDoc_STRVAR(
     "   :type y: int\n"
     "   :return: The floating-point value stored for that pixel.\n"
     "   :rtype: float\n");
-
 static PyObject *ContextFunctions_read_directional_view_map_pixel(PyObject * /*self*/,
                                                                   PyObject *args,
                                                                   PyObject *kwds)
@@ -238,7 +230,6 @@ PyDoc_STRVAR(
     "\n"
     "   :return: The selected FEdge.\n"
     "   :rtype: :class:`FEdge`\n");
-
 static PyObject *ContextFunctions_get_selected_fedge(PyObject * /*self*/)
 {
   FEdge *fe = ContextFunctions::GetSelectedFEdgeCF();
@@ -255,7 +246,6 @@ PyDoc_STRVAR(
     module_docstring,
     "The Blender Freestyle.ContextFunctions submodule\n"
     "\n");
-
 /*-----------------------ContextFunctions module functions definitions-------------------*/
 
 #ifdef __GNUC__

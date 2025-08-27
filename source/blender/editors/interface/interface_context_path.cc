@@ -6,6 +6,7 @@
  * \ingroup edinterface
  */
 
+#include "BLF_api.hh"
 #include "BLI_vector.hh"
 
 #include "RNA_access.hh"
@@ -21,7 +22,8 @@ namespace blender::ui {
 void context_path_add_generic(Vector<ContextPathItem> &path,
                               StructRNA &rna_type,
                               void *ptr,
-                              const BIFIconID icon_override)
+                              const BIFIconID icon_override,
+                              std::function<void(bContext &)> handle_func)
 {
   /* Add the null check here to make calling functions less verbose. */
   if (!ptr) {
@@ -38,10 +40,10 @@ void context_path_add_generic(Vector<ContextPathItem> &path,
 
   if (&rna_type == &RNA_NodeTree) {
     ID *id = (ID *)ptr;
-    path.append({name, icon, ID_REAL_USERS(id)});
+    path.append({name, icon, ID_REAL_USERS(id), handle_func});
   }
   else {
-    path.append({name, icon, 1});
+    path.append({name, icon, 1, handle_func});
   }
   if (name != name_buf) {
     MEM_freeN(name);
@@ -64,8 +66,15 @@ void template_breadcrumbs(uiLayout &layout, Span<ContextPathItem> context_path)
     if (i > 0) {
       sub_row->label("", ICON_RIGHTARROW_THIN);
     }
-    uiBut *but = uiItemL_ex(
-        sub_row, context_path[i].name.c_str(), context_path[i].icon, false, false);
+    uiBut *but;
+    int icon = context_path[i].icon;
+    std::string name = context_path[i].name;
+    if (context_path[i].handle_func) {
+      but = sub_row->button(name.c_str(), icon, context_path[i].handle_func);
+    }
+    else {
+      but = uiItemL_ex(sub_row, name.c_str(), icon, false, false);
+    }
     UI_but_icon_indicator_number_set(but, context_path[i].icon_indicator_number);
   }
 }

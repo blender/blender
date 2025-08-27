@@ -76,12 +76,15 @@ struct ContextPathItem {
   /* #BIFIconID */
   int icon;
   int icon_indicator_number;
+
+  std::function<void(bContext &)> handle_func;
 };
 
 void context_path_add_generic(Vector<ContextPathItem> &path,
                               StructRNA &rna_type,
                               void *ptr,
-                              const BIFIconID icon_override = ICON_NONE);
+                              const BIFIconID icon_override = ICON_NONE,
+                              std::function<void(bContext &)> handle_func = nullptr);
 
 void template_breadcrumbs(uiLayout &layout, Span<ContextPathItem> context_path);
 
@@ -292,3 +295,5 @@ blender::ui::AbstractTreeView *UI_block_add_view(
     uiBlock &block,
     blender::StringRef idname,
     std::unique_ptr<blender::ui::AbstractTreeView> tree_view);
+
+void UI_alert(bContext *C, std::string title, std::string message, eAlertIcon icon, bool compact);

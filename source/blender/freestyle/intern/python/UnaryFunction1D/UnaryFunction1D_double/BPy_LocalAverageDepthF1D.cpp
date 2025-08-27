@@ -47,7 +47,6 @@ PyDoc_STRVAR(
     "   :type inter: :class:`freestyle.types.Interface1D`\n"
     "   :return: The average depth evaluated for the Interface1D.\n"
     "   :rtype: float\n");
-
 static int LocalAverageDepthF1D___init__(BPy_LocalAverageDepthF1D *self,
                                          PyObject *args,
                                          PyObject *kwds)

@@ -48,9 +48,12 @@
     .fill_threshold = 0.2f, \
  \
     /* BRUSH PAINT BRUSH SETTINGS */ \
-    /* Default rgb color of the brush when painting - white. */ \
+    /* Default rgb color of the brush when painting - white. Initialize both
+     * linear and deprecated sRGB values. */ \
+    .color = {1.0f, 1.0f, 1.0f}, \
     .rgb = {1.0f, 1.0f, 1.0f}, \
  \
+    .secondary_color = {0, 0, 0}, \
     .secondary_rgb = {0, 0, 0}, \
  \
     /* BRUSH STROKE SETTINGS */ \

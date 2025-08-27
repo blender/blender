@@ -1337,7 +1337,7 @@ static void customdata_weld(
     return;
   }
 
-  CustomData_interp(source, dest, src_indices, nullptr, nullptr, count, dest_index);
+  CustomData_interp(source, dest, src_indices, nullptr, count, dest_index);
 
   int src_i, dest_i;
   int j;

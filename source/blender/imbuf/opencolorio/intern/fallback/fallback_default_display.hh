@@ -29,7 +29,17 @@ class FallbackDefaultDisplay : public Display {
     return name_;
   }
 
+  StringRefNull ui_name() const override
+  {
+    return name();
+  }
+
   const View *get_default_view() const override
+  {
+    return &default_view_;
+  }
+
+  const View *get_untonemapped_view() const override
   {
     return &default_view_;
   }
@@ -55,16 +65,23 @@ class FallbackDefaultDisplay : public Display {
     return &default_view_;
   }
 
-  const CPUProcessor *get_to_scene_linear_cpu_processor() const override
+  const CPUProcessor *get_to_scene_linear_cpu_processor(
+      bool /*use_display_emulation*/) const override
   {
     static FallbackSRGBToLinearRGBCPUProcessor processor;
     return &processor;
   }
 
-  const CPUProcessor *get_from_scene_linear_cpu_processor() const override
+  const CPUProcessor *get_from_scene_linear_cpu_processor(
+      bool /*use_display_emulation*/) const override
   {
     static FallbackLinearRGBToSRGBCPUProcessor processor;
     return &processor;
+  }
+
+  bool is_hdr() const override
+  {
+    return false;
   }
 };
 

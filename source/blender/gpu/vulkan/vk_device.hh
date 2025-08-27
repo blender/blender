@@ -55,6 +55,9 @@ struct VKExtensions {
    */
   bool external_memory = false;
 
+  /** VK_KHR_maintenance4 */
+  bool maintenance4 = false;
+
   /**
    * Does the device support VK_EXT_descriptor_buffer.
    */
@@ -233,6 +236,8 @@ class VKDevice : public NonCopyable {
   std::string glsl_frag_patch_;
   std::string glsl_comp_patch_;
   Vector<VKThreadData *> thread_data_;
+
+  Shader *vk_backbuffer_blit_sh_ = nullptr;
 
  public:
   render_graph::VKResourceStateTracker resources;
@@ -424,7 +429,16 @@ class VKDevice : public NonCopyable {
   {
     BLI_assert(vk_timeline_semaphore_ != VK_NULL_HANDLE);
     TimelineValue current_timeline;
-    vkGetSemaphoreCounterValue(vk_device_, vk_timeline_semaphore_, &current_timeline);
+    VkResult result = vkGetSemaphoreCounterValue(
+        vk_device_, vk_timeline_semaphore_, &current_timeline);
+    UNUSED_VARS(result);
+    BLI_assert_msg(
+        result == VK_SUCCESS && current_timeline != UINT64_MAX,
+        "Potential driver crash has happened. Several drivers will report UINT64_MAX when "
+        "requesting a counter value of an timeline semaphore right after/during a driver reset. "
+        "If this happen we should investigate what makes the driver crash. In the past this has "
+        "been detected on QUALCOMM and NVIDIA drivers. The result code of the call is "
+        "VK_SUCCESS.");
     return current_timeline;
   }
 
@@ -466,6 +480,14 @@ class VKDevice : public NonCopyable {
   void debug_print();
 
   /** \} */
+
+  Shader *vk_backbuffer_blit_sh_get()
+  {
+    if (vk_backbuffer_blit_sh_ == nullptr) {
+      vk_backbuffer_blit_sh_ = GPU_shader_create_from_info_name("vk_backbuffer_blit");
+    }
+    return vk_backbuffer_blit_sh_;
+  }
 
  private:
   void init_physical_device_properties();

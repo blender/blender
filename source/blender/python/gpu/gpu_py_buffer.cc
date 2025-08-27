@@ -52,7 +52,7 @@ static bool pygpu_buffer_dimensions_tot_len_compare(const Py_ssize_t *shape_a,
   if (pygpu_buffer_dimensions_tot_elem(shape_a, shape_a_len) !=
       pygpu_buffer_dimensions_tot_elem(shape_b, shape_b_len))
   {
-    PyErr_Format(PyExc_BufferError, "array size does not match");
+    PyErr_SetString(PyExc_BufferError, "array size does not match");
     return false;
   }
 
@@ -678,8 +678,9 @@ PyDoc_STRVAR(
     "   For Python access to GPU functions requiring a pointer.\n"
     "\n"
     "   :arg format: Format type to interpret the buffer.\n"
-    "      Possible values are `FLOAT`, `INT`, `UINT`, `UBYTE`, `UINT_24_8` and `10_11_11_REV`.\n"
-    "      `UINT_24_8` is deprecated, use `FLOAT` instead.\n"
+    "      Possible values are ``FLOAT``, ``INT``, ``UINT``, ``UBYTE``, ``UINT_24_8`` & "
+    "``10_11_11_REV``.\n"
+    "      ``UINT_24_8`` is deprecated, use ``FLOAT`` instead.\n"
     "   :type format: str\n"
     "   :arg dimensions: Array describing the dimensions.\n"
     "   :type dimensions: int\n"

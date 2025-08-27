@@ -30,12 +30,12 @@ class GHOST_EventButton : public GHOST_Event {
                     GHOST_IWindow *window,
                     GHOST_TButton button,
                     const GHOST_TabletData &tablet)
-      : GHOST_Event(time, type, window), m_buttonEventData({button, tablet})
+      : GHOST_Event(time, type, window), button_event_data_({button, tablet})
   {
-    m_data = &m_buttonEventData;
+    data_ = &button_event_data_;
   }
 
  protected:
   /** The button event data. */
-  GHOST_TEventButtonData m_buttonEventData;
+  GHOST_TEventButtonData button_event_data_;
 };

@@ -111,7 +111,7 @@ class CPPType : NonCopyable, NonMovable {
    * Required memory alignment for an instance of this type.
    *
    * C++ equivalent:
-   *   alignof(T);
+   *   `alignof(T);`
    */
   int64_t alignment = 0;
 
@@ -120,7 +120,7 @@ class CPPType : NonCopyable, NonMovable {
    * not have to be destructed.
    *
    * C++ equivalent:
-   *   std::is_trivial_v<T>;
+   *   `std::is_trivial_v<T>;`
    */
   bool is_trivial = false;
 
@@ -129,7 +129,7 @@ class CPPType : NonCopyable, NonMovable {
    * for optimization purposes.
    *
    * C++ equivalent:
-   *   std::is_trivially_destructible_v<T>;
+   *   `std::is_trivially_destructible_v<T>;`
    */
   bool is_trivially_destructible = false;
 
@@ -240,7 +240,7 @@ class CPPType : NonCopyable, NonMovable {
    * For some trivial types (like int), this method does nothing.
    *
    * C++ equivalent:
-   *   new (ptr) T;
+   *   `new (ptr) T;`
    */
   void default_construct(void *ptr) const;
   void default_construct_n(void *ptr, int64_t n) const;
@@ -250,7 +250,7 @@ class CPPType : NonCopyable, NonMovable {
    * Same as #default_construct, but does zero initialization for trivial types.
    *
    * C++ equivalent:
-   *   new (ptr) T();
+   *   `new (ptr) T();`
    */
   void value_initialize(void *ptr) const;
   void value_initialize_n(void *ptr, int64_t n) const;
@@ -262,7 +262,7 @@ class CPPType : NonCopyable, NonMovable {
    * For some trivial types, this does nothing.
    *
    * C++ equivalent:
-   *   ptr->~T();
+   *   `ptr->~T();`
    */
   void destruct(void *ptr) const;
   void destruct_n(void *ptr, int64_t n) const;
@@ -272,7 +272,7 @@ class CPPType : NonCopyable, NonMovable {
    * Copy an instance of this type from src to dst.
    *
    * C++ equivalent:
-   *   dst = src;
+   *   `dst = src;`
    */
   void copy_assign(const void *src, void *dst) const;
   void copy_assign_n(const void *src, void *dst, int64_t n) const;
@@ -289,7 +289,7 @@ class CPPType : NonCopyable, NonMovable {
    * The memory pointed to by dst should be uninitialized.
    *
    * C++ equivalent:
-   *   new (dst) T(src);
+   *   `new (dst) T(src);`
    */
   void copy_construct(const void *src, void *dst) const;
   void copy_construct_n(const void *src, void *dst, int64_t n) const;
@@ -306,7 +306,7 @@ class CPPType : NonCopyable, NonMovable {
    * The memory pointed to by dst should be initialized.
    *
    * C++ equivalent:
-   *   dst = std::move(src);
+   *   `dst = std::move(src);`
    */
   void move_assign(void *src, void *dst) const;
   void move_assign_n(void *src, void *dst, int64_t n) const;
@@ -318,7 +318,7 @@ class CPPType : NonCopyable, NonMovable {
    * The memory pointed to by dst should be uninitialized.
    *
    * C++ equivalent:
-   *   new (dst) T(std::move(src));
+   *   `new (dst) T(std::move(src));`
    */
   void move_construct(void *src, void *dst) const;
   void move_construct_n(void *src, void *dst, int64_t n) const;
@@ -329,8 +329,8 @@ class CPPType : NonCopyable, NonMovable {
    * afterwards.
    *
    * C++ equivalent:
-   *   dst = std::move(src);
-   *   src->~T();
+   *   `dst = std::move(src);`
+   *   `src->~T();`
    */
   void relocate_assign(void *src, void *dst) const;
   void relocate_assign_n(void *src, void *dst, int64_t n) const;
@@ -341,8 +341,8 @@ class CPPType : NonCopyable, NonMovable {
    * afterwards.
    *
    * C++ equivalent:
-   *   new (dst) T(std::move(src))
-   *   src->~T();
+   *   `new (dst) T(std::move(src))`
+   *   `src->~T();`
    */
   void relocate_construct(void *src, void *dst) const;
   void relocate_construct_n(void *src, void *dst, int64_t n) const;

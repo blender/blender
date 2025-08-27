@@ -7,7 +7,7 @@
 VERTEX_SHADER_CREATE_INFO(eevee_clip_plane)
 VERTEX_SHADER_CREATE_INFO(eevee_geom_curves)
 
-#include "draw_curves_lib.glsl" /* TODO rename to curve. */
+#include "draw_curves_lib.glsl"
 #include "draw_model_lib.glsl"
 #include "eevee_attributes_curves_lib.glsl"
 #include "eevee_nodetree_vert_lib.glsl"
@@ -24,27 +24,31 @@ void main()
 
   init_interface();
 
-  bool is_persp = (drw_view().winmat[3][3] == 0.0f);
-  hair_get_pos_tan_binor_time(is_persp,
-                              drw_modelinv(),
-                              drw_view().viewinv[3].xyz,
-                              drw_view().viewinv[2].xyz,
-                              interp.P,
-                              curve_interp.tangent,
-                              curve_interp.binormal,
-                              curve_interp.time,
-                              curve_interp.thickness,
-                              curve_interp.time_width);
+  const curves::Point ls_pt = curves::point_get(uint(gl_VertexID));
+  const curves::Point ws_pt = curves::object_to_world(ls_pt, drw_modelmat());
 
-  interp.N = cross(curve_interp.tangent, curve_interp.binormal);
-  curve_interp_flat.strand_id = hair_get_strand_id();
-  curve_interp.barycentric_coords = hair_get_barycentric();
+  const float3 V = drw_world_incident_vector(ws_pt.P);
+
+  const curves::ShapePoint pt = curves::shape_point_get(ws_pt, V);
+  interp.P = pt.P;
+  /* Correct normal is derived in fragment shader. */
+  interp.N = pt.curve_N;
+  curve_interp.binormal = pt.curve_B;
+  curve_interp.tangent = pt.curve_T;
+  /* Final radius is used for correct normal interpolation. */
+  curve_interp.radius = ws_pt.radius;
+  /* Scaled by radius for correct interpolation. */
+  curve_interp.time_width = ws_pt.azimuthal_offset * ws_pt.radius;
+  /* Note: Used for attribute loading. */
+  curve_interp.point_id = float(ws_pt.point_id);
+  curve_interp_flat.strand_id = ws_pt.curve_id;
+
 #ifdef MAT_VELOCITY
   /* Due to the screen space nature of the vertex positioning, we compute only the motion of curve
    * strand, not its cylinder. Otherwise we would add the rotation velocity. */
-  int vert_idx = hair_get_base_id();
+  int vert_idx = ws_pt.point_id;
   float3 prv, nxt;
-  float3 pos = hair_get_point(vert_idx).position;
+  float3 pos = ls_pt.P;
   velocity_local_pos_get(pos, vert_idx, prv, nxt);
   /* FIXME(fclem): Evaluating before displacement avoid displacement being treated as motion but
    * ignores motion from animated displacement. Supporting animated displacement motion vectors
@@ -55,9 +59,15 @@ void main()
 #endif
 
   init_globals();
-  attrib_load();
+  attrib_load(CurvesPoint(ws_pt.curve_id, ws_pt.point_id, ws_pt.curve_segment));
 
   interp.P += nodetree_displacement();
+
+#ifdef MAT_SHADOW
+  /* Since curves always face the view, camera and shadow orientation don't match.
+   * Apply a bias to avoid self-shadow issues. */
+  interp.P -= V * ws_pt.radius;
+#endif
 
 #ifdef MAT_CLIP_PLANE
   clip_interp.clip_distance = dot(clip_plane.plane, float4(interp.P, 1.0f));

@@ -469,6 +469,10 @@ IndexMask curve_to_point_selection(OffsetIndices<int> points_by_curve,
                                    const IndexMask &curve_selection,
                                    IndexMaskMemory &memory);
 
+IndexMask curve_type_point_selection(const bke::CurvesGeometry &curves,
+                                     CurveType curve_type,
+                                     IndexMaskMemory &memory);
+
 void fill_points(OffsetIndices<int> points_by_curve,
                  const IndexMask &curve_selection,
                  GPointer value,

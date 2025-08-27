@@ -159,7 +159,8 @@ static void buttons_main_region_init(wmWindowManager *wm, ARegion *region)
 
   region->flag |= RGN_FLAG_INDICATE_OVERFLOW;
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Property Editor", SPACE_PROPERTIES, RGN_TYPE_WINDOW);
+  keymap = WM_keymap_ensure(
+      wm->runtime->defaultconf, "Property Editor", SPACE_PROPERTIES, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->runtime->handlers, keymap);
 }
 

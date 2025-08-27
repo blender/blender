@@ -641,7 +641,7 @@ static void boxsample(ImBuf *ibuf,
 /* from here, some functions only used for the new filtering */
 
 /* anisotropic filters, data struct used instead of long line of (possibly unused) func args */
-struct afdata_t {
+struct AFData {
   float dxt[2], dyt[2];
   int intpol, extflag;
 };
@@ -718,7 +718,7 @@ static int ibuf_get_color_clip(float col[4], ImBuf *ibuf, int x, int y, int extf
 
 struct ReadEWAData {
   ImBuf *ibuf;
-  const afdata_t *AFD;
+  const AFData *AFD;
 };
 
 static void ewa_read_pixel_cb(void *userdata, int x, int y, float result[4])
@@ -727,7 +727,7 @@ static void ewa_read_pixel_cb(void *userdata, int x, int y, float result[4])
   ibuf_get_color_clip(result, data->ibuf, x, y, data->AFD->extflag);
 }
 
-static void ewa_eval(TexResult *texr, ImBuf *ibuf, float fx, float fy, const afdata_t *AFD)
+static void ewa_eval(TexResult *texr, ImBuf *ibuf, float fx, float fy, const AFData *AFD)
 {
   ReadEWAData data;
   const float uv[2] = {fx, fy};
@@ -770,7 +770,7 @@ void image_sample(
 void ibuf_sample(ImBuf *ibuf, float fx, float fy, float dx, float dy, float result[4])
 {
   TexResult texres = {0};
-  afdata_t AFD;
+  AFData AFD;
 
   AFD.dxt[0] = dx;
   AFD.dxt[1] = dx;

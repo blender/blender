@@ -36,6 +36,8 @@ class WORKSPACE_PT_main(WorkSpaceButtonsPanel, Panel):
 
         layout.prop(workspace, "use_pin_scene")
         layout.prop(workspace, "object_mode", text="Mode")
+        layout.prop(workspace, "sequencer_scene")
+        layout.prop(workspace, "use_scene_time_sync")
 
 
 class WORKSPACE_PT_addons(WorkSpaceButtonsPanel, Panel):

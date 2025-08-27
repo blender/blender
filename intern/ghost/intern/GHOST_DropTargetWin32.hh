@@ -123,15 +123,15 @@ class GHOST_DropTargetWin32 : public IDropTarget {
 
   /* Private member variables */
   /* COM reference count. */
-  LONG m_cRef;
+  LONG c_ref_;
   /* Handle of the associated window. */
-  HWND m_hWnd;
+  HWND h_wnd_;
   /* The associated GHOST_WindowWin32. */
-  GHOST_WindowWin32 *m_window;
+  GHOST_WindowWin32 *window_;
   /* The System. */
-  GHOST_SystemWin32 *m_system;
+  GHOST_SystemWin32 *system_;
   /* Data type of the dragged object */
-  GHOST_TDragnDropTypes m_draggedObjectType;
+  GHOST_TDragnDropTypes dragged_object_type_;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_DropTargetWin32")
 };

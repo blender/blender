@@ -78,14 +78,15 @@ LibOCIOConfig::LibOCIOConfig(const OCIO_NAMESPACE::ConstConfigRcPtr &ocio_config
   OCIO_NAMESPACE::SetCurrentConfig(ocio_config);
   ocio_config_ = OCIO_NAMESPACE::GetCurrentConfig();
 
-  initialize_color_spaces();
+  initialize_active_color_spaces();
+  initialize_inactive_color_spaces();
   initialize_looks();
   initialize_displays();
 }
 
 LibOCIOConfig::~LibOCIOConfig() {}
 
-void LibOCIOConfig::initialize_color_spaces()
+void LibOCIOConfig::initialize_active_color_spaces()
 {
   OCIO_NAMESPACE::ColorSpaceSetRcPtr ocio_color_spaces;
 
@@ -123,6 +124,34 @@ void LibOCIOConfig::initialize_color_spaces()
   std::sort(sorted_color_space_index_.begin(), sorted_color_space_index_.end(), [&](int a, int b) {
     return color_spaces_[a].name() < color_spaces_[b].name();
   });
+}
+
+void LibOCIOConfig::initialize_inactive_color_spaces()
+{
+  const int num_inactive_color_spaces = ocio_config_->getNumColorSpaces(
+      OCIO_NAMESPACE::SEARCH_REFERENCE_SPACE_ALL, OCIO_NAMESPACE::COLORSPACE_INACTIVE);
+  if (num_inactive_color_spaces < 0) {
+    report_error(fmt::format(
+        "Invalid OpenColorIO configuration: invalid number of inactive color spaces {}",
+        num_inactive_color_spaces));
+    return;
+  }
+
+  for (const int i : IndexRange(num_inactive_color_spaces)) {
+    const char *colorspace_name = ocio_config_->getColorSpaceNameByIndex(
+        OCIO_NAMESPACE::SEARCH_REFERENCE_SPACE_ALL, OCIO_NAMESPACE::COLORSPACE_INACTIVE, i);
+
+    OCIO_NAMESPACE::ConstColorSpaceRcPtr ocio_color_space;
+    try {
+      ocio_color_space = ocio_config_->getColorSpace(colorspace_name);
+    }
+    catch (OCIO_NAMESPACE::Exception &exception) {
+      report_exception(exception);
+      continue;
+    }
+
+    inactive_color_spaces_.append_as(i, ocio_config_, ocio_color_space);
+  }
 }
 
 void LibOCIOConfig::initialize_looks()
@@ -234,12 +263,13 @@ float3x3 LibOCIOConfig::get_xyz_to_scene_linear_matrix() const
 
 const char *LibOCIOConfig::get_color_space_from_filepath(const char *filepath) const
 {
-  /* If Blender specific default_byte or default_float roles exist, don't use the default rule
-   * which can't distinguish between these two cases automatically. */
-  if (ocio_config_->filepathOnlyMatchesDefaultRule(filepath) &&
-      (ocio_config_->hasRole(OCIO_ROLE_DEFAULT_BYTE) ||
-       ocio_config_->hasRole(OCIO_ROLE_DEFAULT_FLOAT)))
-  {
+  /* Ignore the default rule, same behavior as for example OpenImageIO and xStudio.
+   * The ACES studio config has only a default rule set to ACES2065-1, which works
+   * poorly if we assign it to every file as default.
+   *
+   * It's unclear if the default rule should be used for anything, and if not why
+   * it even exists. */
+  if (ocio_config_->filepathOnlyMatchesDefaultRule(filepath)) {
     return nullptr;
   }
 
@@ -269,18 +299,28 @@ const ColorSpace *LibOCIOConfig::get_color_space(const StringRefNull name) const
     return nullptr;
   }
 
+  /* TODO(sergey): Is there faster way to lookup Blender-side color space?
+   * It does not seem that pointer in ConstColorSpaceRcPtr is unique enough to use for
+   * comparison. */
   for (const LibOCIOColorSpace &color_space : color_spaces_) {
-    /* TODO(sergey): Is there faster way to lookup Blender-side color space?
-     * It does not seem that pointer in ConstColorSpaceRcPtr is unique enough to use for
-     * comparison. */
     if (color_space.name() == ocio_color_space->getName()) {
       return &color_space;
     }
   }
 
-  report_error(
-      fmt::format("Invalid OpenColorIO configuration: color space {} not found on Blender side",
-                  ocio_color_space->getName()));
+  /* Also lookup in the inactive color space, as the requested space might be coming from the
+   * display and marked as inactive to prevent it from showing up in the application menu. */
+  for (const LibOCIOColorSpace &color_space : inactive_color_spaces_) {
+    if (color_space.name() == ocio_color_space->getName()) {
+      return &color_space;
+    }
+  }
+
+  if (!ocio_config_->isInactiveColorSpace(ocio_color_space->getName())) {
+    report_error(
+        fmt::format("Invalid OpenColorIO configuration: color space {} not found on Blender side",
+                    ocio_color_space->getName()));
+  }
 
   return nullptr;
 }

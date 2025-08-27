@@ -85,7 +85,6 @@ PyDoc_STRVAR(
     ".. method:: __init__()\n"
     "\n"
     "   Default constructor.\n");
-
 static int UnaryFunction0DFloat___init__(BPy_UnaryFunction0DFloat *self,
                                          PyObject *args,
                                          PyObject *kwds)

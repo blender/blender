@@ -289,6 +289,9 @@ inline BooleanMix booleans_mix_calc(const VArray<bool> &varray)
   return booleans_mix_calc(varray, varray.index_range());
 }
 
+/** Check if the value exists in the array. */
+bool contains(const VArray<bool> &varray, const IndexMask &indices_to_check, bool value);
+
 /**
  * Finds all the index ranges for which consecutive values in \a span equal \a value.
  */

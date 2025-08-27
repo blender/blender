@@ -300,7 +300,6 @@ void VKDevice::init_submission_pool()
 {
   CLOG_TRACE(&LOG, "Create submission pool");
   submission_pool_ = BLI_task_pool_create_background_serial(this, TASK_PRIORITY_HIGH);
-  BLI_task_pool_push(submission_pool_, VKDevice::submission_runner, nullptr, false, nullptr);
   submitted_render_graphs_ = BLI_thread_queue_init();
   unused_render_graphs_ = BLI_thread_queue_init();
 
@@ -309,6 +308,8 @@ void VKDevice::init_submission_pool()
   VkSemaphoreCreateInfo vk_semaphore_create_info = {
       VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO, &vk_semaphore_type_create_info, 0};
   vkCreateSemaphore(vk_device_, &vk_semaphore_create_info, nullptr, &vk_timeline_semaphore_);
+
+  BLI_task_pool_push(submission_pool_, VKDevice::submission_runner, nullptr, false, nullptr);
 }
 
 void VKDevice::deinit_submission_pool()

@@ -1588,6 +1588,19 @@ int blf_font_ascender(FontBLF *font)
   return ft_pix_to_int((ft_pix)font->ft_size->metrics.ascender);
 }
 
+bool blf_font_bounds_max(FontBLF *font, rctf *r_bounds)
+{
+  if (!blf_ensure_face(font)) {
+    return false;
+  }
+
+  r_bounds->xmin = float(font->face->bbox.xMin) / float(font->face->units_per_EM) * font->size;
+  r_bounds->xmax = float(font->face->bbox.xMax) / float(font->face->units_per_EM) * font->size;
+  r_bounds->ymin = float(font->face->bbox.yMin) / float(font->face->units_per_EM) * font->size;
+  r_bounds->ymax = float(font->face->bbox.yMax) / float(font->face->units_per_EM) * font->size;
+  return true;
+}
+
 char *blf_display_name(FontBLF *font)
 {
   if (!blf_ensure_face(font) || !font->face->family_name) {

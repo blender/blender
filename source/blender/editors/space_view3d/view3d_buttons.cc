@@ -344,13 +344,13 @@ static CurvesPointSelectionStatus init_curves_point_selection_status(
   }
   const OffsetIndices points_by_curve = curves.points_by_curve();
   const VArray<int8_t> curve_types = curves.curve_types();
-  const Span<float> nurbs_weights = curves.nurbs_weights();
+  const std::optional<Span<float>> nurbs_weights = curves.nurbs_weights();
   const VArray<float> radius = curves.radius();
   const VArray<float> tilt = curves.tilt();
   const Span<float3> positions = curves.positions();
 
   IndexMaskMemory memory;
-  const IndexMask selection = retrieve_selected_points(curves, ".selection", memory);
+  const IndexMask selection = retrieve_selected_points(curves, memory);
 
   CurvesPointSelectionStatus status = threading::parallel_reduce(
       curves.curves_range(),
@@ -372,8 +372,7 @@ static CurvesPointSelectionStatus init_curves_point_selection_status(
             add_v3_v3(value.median.location, positions[point]);
             value.total_nurbs_weights += is_nurbs;
             value.median.nurbs_weight += is_nurbs ?
-                                             (nurbs_weights.is_empty() ? 1.0f :
-                                                                         nurbs_weights[point]) :
+                                             (nurbs_weights ? (*nurbs_weights)[point] : 1.0f) :
                                              0;
             value.median.radius += radius[point];
             value.median.tilt += tilt[point];
@@ -387,9 +386,15 @@ static CurvesPointSelectionStatus init_curves_point_selection_status(
     return status;
   }
 
-  auto add_handles = [&](StringRef selection_attribute, Span<float3> positions) {
-    const IndexMask selection = retrieve_selected_points(curves, selection_attribute, memory);
+  const IndexMask bezier_points = bke::curves::curve_type_point_selection(
+      curves, CURVE_TYPE_BEZIER, memory);
 
+  auto add_handles = [&](StringRef selection_attribute, std::optional<Span<float3>> positions) {
+    if (!positions) {
+      return;
+    }
+    const IndexMask selection = retrieve_selected_points(
+        curves, selection_attribute, bezier_points, memory);
     if (selection.is_empty()) {
       return;
     }
@@ -397,7 +402,7 @@ static CurvesPointSelectionStatus init_curves_point_selection_status(
     status.total += selection.size();
 
     selection.foreach_index(
-        [&](const int point) { add_v3_v3(status.median.location, positions[point]); });
+        [&](const int point) { add_v3_v3(status.median.location, (*positions)[point]); });
   };
 
   add_handles(".selection_handle_left", curves.handle_positions_left());
@@ -427,7 +432,7 @@ static bool apply_to_curves_point_selection(const int tot,
   const MutableSpan<float> tilt = median.tilt ? curves.tilt_for_write() : MutableSpan<float>{};
 
   IndexMaskMemory memory;
-  const IndexMask selection = retrieve_selected_points(curves, ".selection", memory);
+  const IndexMask selection = retrieve_selected_points(curves, memory);
   const bool update_location = math::length_manhattan(float3(median.location)) > 0;
   MutableSpan<float3> positions = update_location && !selection.is_empty() ?
                                       curves.positions_for_write() :
@@ -467,8 +472,12 @@ static bool apply_to_curves_point_selection(const int tot,
     return changed;
   }
 
+  const IndexMask bezier_points = bke::curves::curve_type_point_selection(
+      curves, CURVE_TYPE_BEZIER, memory);
+
   auto apply_to_handles = [&](StringRef selection_attribute, StringRef handles_attribute) {
-    const IndexMask selection = retrieve_selected_points(curves, selection_attribute, memory);
+    const IndexMask selection = retrieve_selected_points(
+        curves, selection_attribute, bezier_points, memory);
     if (selection.is_empty()) {
       return;
     }

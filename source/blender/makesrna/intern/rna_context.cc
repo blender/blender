@@ -192,6 +192,16 @@ static PointerRNA rna_Context_layer_collection_get(PointerRNA *ptr)
 static PointerRNA rna_Context_tool_settings_get(PointerRNA *ptr)
 {
   bContext *C = (bContext *)ptr->data;
+  const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
+  if (is_sequencer) {
+    Scene *scene = CTX_data_sequencer_scene(C);
+    if (scene) {
+      ToolSettings *toolsettings = scene->toolsettings;
+      return RNA_pointer_create_id_subdata(
+          *reinterpret_cast<ID *>(scene), &RNA_ToolSettings, toolsettings);
+    }
+    return PointerRNA_NULL;
+  }
   return RNA_pointer_create_id_subdata(
       *reinterpret_cast<ID *>(CTX_data_scene(C)), &RNA_ToolSettings, CTX_data_tool_settings(C));
 }

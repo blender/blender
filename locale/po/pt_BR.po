@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'6dca66d606ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68abaa12d581')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-08-11 08:28+0000\n"
+"POT-Creation-Date: 2025-08-25 08:31+0000\n"
 "PO-Revision-Date: 2025-07-23 15:03+0000\n"
 "Last-Translator: Amy Lily <lillya.assist@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -2297,6 +2297,30 @@ msgid "Where to output the baked map"
 msgstr "Onde gerar o mapa preparado"
 
 
+msgid "Bake Type"
+msgstr "Tipo de geração e e gravação"
+
+
+msgid "Choose shading information to bake into the image"
+msgstr "Permite escolher as informações de sombreamento para gerar e gravar dentro da imagem."
+
+
+msgid "Normals"
+msgstr "Normais"
+
+
+msgid "Bake normals"
+msgstr "Gera e grava as normais."
+
+
+msgid "Displacement"
+msgstr "Deslocamento"
+
+
+msgid "Bake displacement"
+msgstr "Gera e grava o deslocamento."
+
+
 msgid "Automatic Name"
 msgstr "Nomear automaticamente"
 
@@ -2319,6 +2343,22 @@ msgstr "Limpar"
 
 msgid "Clear Images before baking (internal only)"
 msgstr "Limpa as imagens antes de gerar e gravar (somente internamente)"
+
+
+msgid "Low Resolution Mesh"
+msgstr "Malha de baixa resolução"
+
+
+msgid "Calculate heights against unsubdivided low resolution mesh"
+msgstr "Calcula as alturas contra as malhas de baixa resolução não subdivididas."
+
+
+msgid "Bake from Multires"
+msgstr "Gerar e gravar a partir da multirresolução"
+
+
+msgid "Bake directly from multires object"
+msgstr "Gera e grava diretamente a partir de um objeto multirresolução."
 
 
 msgid "Color the pass"
@@ -4946,10 +4986,6 @@ msgstr "Gerenciamento de cores específica para o dispositivo de exibição."
 
 msgid "Display Device"
 msgstr "Dispositivo de exibição"
-
-
-msgid "Display device name"
-msgstr "Mostra o nome do dispositivo de exibição."
 
 
 msgid "Input color space settings"
@@ -8126,10 +8162,6 @@ msgid "Strength of displace when applied to the mesh"
 msgstr "Potência do deslocamento quando aplicado a malha."
 
 
-msgid "Displacement"
-msgstr "Deslocamento"
-
-
 msgid "Approximately in how many frames should dissolve happen"
 msgstr "Aproximadamente em quantos quadros a dissolução deverá ocorrer."
 
@@ -9969,10 +10001,6 @@ msgid "File Select Parameters"
 msgstr "Parâmetros de seleção de arquivo"
 
 
-msgid "Whether this path is currently reachable"
-msgstr "Define se este caminho pode ser alcançado pelas configurações atuais."
-
-
 msgid "Save"
 msgstr "Salvar"
 
@@ -10459,14 +10487,6 @@ msgstr "Zip"
 
 msgid "Effective but slow compression"
 msgstr "Compressão mais efetiva, mas pouco mais lenta."
-
-
-msgid "Blosc"
-msgstr "Blosc"
-
-
-msgid "Multithreaded compression, similar in size and quality as 'Zip'"
-msgstr "Utiliza um formato de compressão otimizado para multitarefas, similar em tamanho e qualidade ao formato \"ZIP\"."
 
 
 msgid "Do not use any compression"
@@ -13147,10 +13167,6 @@ msgid "Don't fill polygons while editing"
 msgstr "Não preenche os polígonos durante a edição."
 
 
-msgid "Normals"
-msgstr "Normais"
-
-
 msgid "Freestyle Line Style"
 msgstr "Freestyle - Estilos de linhas"
 
@@ -14252,14 +14268,6 @@ msgstr "Mescla para o foco"
 
 msgid "The softness of the spotlight edge"
 msgstr "A suavidade das arestas da iluminação da lâmpada focal."
-
-
-msgid "Spot Size"
-msgstr "Tamanho do foco"
-
-
-msgid "Angle of the spotlight beam"
-msgstr "Ângulo do farol da lâmpada focal."
 
 
 msgid "Cast a square spot light shape"
@@ -44489,6 +44497,18 @@ msgid "Use HC method for relaxation"
 msgstr "Usa o método Classes de Humphrey para relaxamento."
 
 
+msgid "Channel to place this strip into"
+msgstr "O canal no qual posicionar esta trilha."
+
+
+msgid "Allow Overlap"
+msgstr "Permitir sobreposições"
+
+
+msgid "Replace Selection"
+msgstr "Sobrepor seleção"
+
+
 msgctxt "Operator"
 msgid "Change Effect Type"
 msgstr "Alterar os tipos de efeito"
@@ -44611,30 +44631,6 @@ msgstr "Adicionar faixa de efeito"
 
 msgid "Add an effect to the sequencer, most are applied on top of existing strips"
 msgstr "Adiciona um efeito ao editor de sequências, a maioria é aplicada sobre o topo das faixas existentes."
-
-
-msgid "Channel to place this strip into"
-msgstr "O canal no qual posicionar esta trilha."
-
-
-msgid "End frame for the color strip"
-msgstr "Quadro final par a faixa de cor."
-
-
-msgid "Start frame of the sequence strip"
-msgstr "Quadro inicial da faixa de sequência."
-
-
-msgid "Allow Overlap"
-msgstr "Permitir sobreposições"
-
-
-msgid "Don't correct overlap on new sequence strips"
-msgstr "Não corrige as sobreposições em novas faixas de sequência."
-
-
-msgid "Replace Selection"
-msgstr "Sobrepor seleção"
 
 
 msgid "Sequencer effect type"
@@ -50267,14 +50263,6 @@ msgid "Point in a point cloud"
 msgstr "Ponto em uma nuvem de pontos"
 
 
-msgid "Cache Compression"
-msgstr "Compressão de cache"
-
-
-msgid "Fast but not so effective compression"
-msgstr "Compressão rápida mas não tão eficaz."
-
-
 msgid "Cache file path"
 msgstr "Diretório de arquivos de cache."
 
@@ -52044,14 +52032,6 @@ msgid "Multiple Importance Sample"
 msgstr "Amostra de múltipla importância"
 
 
-msgid "Homogeneous Volume"
-msgstr "Volume homogêneo"
-
-
-msgid "When using volume rendering, assume volume has the same density everywhere (not using any textures), for faster rendering"
-msgstr "Durante o uso de renderização de volumes, assume que o volume possui a mesma densidade em qualquer lugar (sem usar quaisquer texturas), para uma renderização mais rápida."
-
-
 msgid "Volume Interpolation"
 msgstr "Interpolação de volume"
 
@@ -52174,10 +52154,6 @@ msgstr "Rebatimentos para OA"
 
 msgid "AO Bounces Render"
 msgstr "Rebatimentos de renderização para OA"
-
-
-msgid "Bake Type"
-msgstr "Tipo de geração e e gravação"
 
 
 msgid "Type of pass to bake"
@@ -52624,14 +52600,6 @@ msgid "Maximum number of volumetric scattering events"
 msgstr "Número máximo de eventos de espalhamento volumétrico."
 
 
-msgid "Max Steps"
-msgstr "Máximo de passos"
-
-
-msgid "Maximum number of steps through the volume before giving up, to avoid extremely long render times with big objects or small step sizes"
-msgstr "Número máximo de passos através dos volumes antes do encerramento, para evitar tempos de renderização extremamente longos com grandes objetos ou tamanhos pequenos de passos."
-
-
 msgid "Render pass to show in the 3D Viewport"
 msgstr "Passe de renderização para mostrar na janela de exibição 3D"
 
@@ -52682,10 +52650,6 @@ msgstr "Resolução de mapa"
 
 msgid "Interpolation method to use for volumes"
 msgstr "Método de interpolação a ser utilizado para volumes."
-
-
-msgid "Distance between volume shader samples when rendering the volume (lower values give more accurate and detailed results, but also increased render time)"
-msgstr "Distância entre as amostras de sombreamento dos volumes durante sua renderização (valores mais baixos fornecem precisão e resultados detalhados, mas também aumentam o tempo de renderização)."
 
 
 msgid "Settings/info about a language"
@@ -53064,26 +53028,6 @@ msgid "Rendering settings for a Scene data-block"
 msgstr "Configurações de renderização para um bloco de dados de cena."
 
 
-msgid "Bias"
-msgstr "Ajuste fino"
-
-
-msgid "Number of samples used for ambient occlusion baking from multires"
-msgstr "Número de amostras usadas para geração de oclusão ambiente a partir de multirresolução."
-
-
-msgid "Choose shading information to bake into the image"
-msgstr "Permite escolher as informações de sombreamento para gerar e gravar dentro da imagem."
-
-
-msgid "Bake normals"
-msgstr "Gera e grava as normais."
-
-
-msgid "Bake displacement"
-msgstr "Gera e grava o deslocamento."
-
-
 msgid "Dither Intensity"
 msgstr "Intensidade de agitação"
 
@@ -53354,26 +53298,6 @@ msgstr "Determina automaticamente o número de tarefas, com base na quantidade d
 
 msgid "Manually determine the number of threads"
 msgstr "Permite determinar manualmente o número de tarefas de processamento."
-
-
-msgid "Clear Images before baking"
-msgstr "Limpa as imagens antes de gerar e gravar."
-
-
-msgid "Low Resolution Mesh"
-msgstr "Malha de baixa resolução"
-
-
-msgid "Calculate heights against unsubdivided low resolution mesh"
-msgstr "Calcula as alturas contra as malhas de baixa resolução não subdivididas."
-
-
-msgid "Bake from Multires"
-msgstr "Gerar e gravar a partir da multirresolução"
-
-
-msgid "Bake directly from multires object"
-msgstr "Gera e grava diretamente a partir de um objeto multirresolução."
 
 
 msgid "Render Region"
@@ -54342,6 +54266,10 @@ msgstr "Tamanho Máximo"
 
 msgid "Sprite Threshold"
 msgstr "Limiar do Sprite"
+
+
+msgid "Bias"
+msgstr "Ajuste fino"
 
 
 msgid "Trace Precision"
@@ -57800,18 +57728,6 @@ msgid "Color of disabled marker"
 msgstr "A cor do marcadores desabilitados."
 
 
-msgid "Handle Vertex"
-msgstr "Manípulos - Vértices"
-
-
-msgid "Handle Vertex Select"
-msgstr "Manípulos - Vértices selecionados"
-
-
-msgid "Handle Vertex Size"
-msgstr "Manípulos - Tamanho dos vértices"
-
-
 msgid "Locked Marker"
 msgstr "Marcador - Travado"
 
@@ -57882,6 +57798,18 @@ msgstr "Grupo de canal ativo"
 
 msgid "Marker Line"
 msgstr "Linha do Marcador"
+
+
+msgid "Handle Vertex"
+msgstr "Manípulos - Vértices"
+
+
+msgid "Handle Vertex Select"
+msgstr "Manípulos - Vértices selecionados"
+
+
+msgid "Handle Vertex Size"
+msgstr "Manípulos - Tamanho dos vértices"
 
 
 msgid "Theme Console"
@@ -58024,14 +57952,6 @@ msgid "Color of summary channel"
 msgstr "Cor do canal sumário."
 
 
-msgid "Value Sliders"
-msgstr "Deslizadores de valor"
-
-
-msgid "View Sliders"
-msgstr "Deslizadores de visualização"
-
-
 msgid "Theme File Browser"
 msgstr "Tema - Navegador de arquivos"
 
@@ -58108,24 +58028,12 @@ msgid "Channels Region"
 msgstr "Região de canais"
 
 
-msgid "Vertex Bevel"
-msgstr "Chanfros de vértices"
-
-
 msgid "Vertex Select"
 msgstr "Seleção de vértices"
 
 
 msgid "Vertex Size"
 msgstr "Tamanho dos vértices"
-
-
-msgid "Vertex Group Unreferenced"
-msgstr "Grupo de vértices não referenciado"
-
-
-msgid "Window Sliders"
-msgstr "Deslizadores de janela"
 
 
 msgid "Theme Image Editor"
@@ -58146,10 +58054,6 @@ msgstr "Ponto de face selecionado"
 
 msgid "Face Dot Size"
 msgstr "Tamanho do ponto de face"
-
-
-msgid "Freestyle Face Mark"
-msgstr "Marcações de faces Freestyle"
 
 
 msgid "Paint Curve Handle"
@@ -58264,10 +58168,6 @@ msgid "Input Node"
 msgstr "Nós de entrada"
 
 
-msgid "Layout Node"
-msgstr "Nós de esquema"
-
-
 msgid "Matte Node"
 msgstr "Nós de tela"
 
@@ -58284,16 +58184,8 @@ msgid "Curving of the noodle"
 msgstr "Curvamento do nódulo."
 
 
-msgid "Pattern Node"
-msgstr "Nós de padrão"
-
-
 msgid "Script Node"
 msgstr "Nós de scripts"
-
-
-msgid "Selected Text"
-msgstr "Texto selecionado"
 
 
 msgid "Vector Node"
@@ -58348,16 +58240,16 @@ msgid "Audio Strip"
 msgstr "Faixa de áudio"
 
 
-msgid "Draw Action"
-msgstr "Desenhar ação"
-
-
 msgid "Clip Strip"
 msgstr "Faixa de clipe"
 
 
 msgid "Preview Background"
 msgstr "Previsão de plano de fundo"
+
+
+msgid "Selected Text"
+msgstr "Texto selecionado"
 
 
 msgid "Theme Space Settings"
@@ -58584,10 +58476,6 @@ msgid "Edge Bevel"
 msgstr "Ferramenta para aplicar chanfros às arestas selecionadas."
 
 
-msgid "Edge UV Face Select"
-msgstr "Seleção de faces de arestas UV"
-
-
 msgid "Edge Seam"
 msgstr "Costuras de arestas"
 
@@ -58614,6 +58502,10 @@ msgstr "Texto das áreas das faces"
 
 msgid "Freestyle Edge Mark"
 msgstr "Marcações de arestas Freestyle"
+
+
+msgid "Freestyle Face Mark"
+msgstr "Marcações de faces Freestyle"
 
 
 msgid "Grease Pencil Vertex"
@@ -58654,6 +58546,14 @@ msgstr "A cor para indicar os quadros-chave de lápis de cera."
 
 msgid "Object Keyframe"
 msgstr "Quadros-chave dos objetos"
+
+
+msgid "Vertex Bevel"
+msgstr "Chanfros de vértices"
+
+
+msgid "Vertex Group Unreferenced"
+msgstr "Grupo de vértices não referenciado"
 
 
 msgid "View Overlay"
@@ -60134,10 +60034,6 @@ msgstr "Sem nós de saída"
 
 msgid "Cast Shadow"
 msgstr "Projetar sombras"
-
-
-msgid "Homogeneous"
-msgstr "Homogeneizar"
 
 
 msgid "Max Samples"
@@ -61778,6 +61674,16 @@ msgstr "Apagar quadros-chave..."
 
 
 msgctxt "Operator"
+msgid "Clear Keyframes..."
+msgstr "Limpar quadros-chave..."
+
+
+msgctxt "Operator"
+msgid "Interactive Mirror"
+msgstr "Espelhamento interativo"
+
+
+msgctxt "Operator"
 msgid "Change Path/Files"
 msgstr "Alterar caminhos e / ou arquivos"
 
@@ -62386,11 +62292,6 @@ msgstr "Localização:"
 
 
 msgctxt "Operator"
-msgid "Interactive Mirror"
-msgstr "Espelhamento interativo"
-
-
-msgctxt "Operator"
 msgid "Selection to Active"
 msgstr "Selecionados para ativos"
 
@@ -62643,11 +62544,6 @@ msgstr "Alto-falante"
 msgctxt "Operator"
 msgid "Make Local..."
 msgstr "Tornar local..."
-
-
-msgctxt "Operator"
-msgid "Clear Keyframes..."
-msgstr "Limpar quadros-chave..."
 
 
 msgctxt "Operator"
@@ -63350,11 +63246,6 @@ msgstr "Obter distância DOF"
 msgctxt "Operator"
 msgid "Adjust Light Power"
 msgstr "Ajustar Potência da Luz"
-
-
-msgctxt "Operator"
-msgid "Adjust Spot Light Size"
-msgstr "Ajustar Tamanho da Luz de Spot"
 
 
 msgctxt "Operator"
@@ -68760,16 +68651,16 @@ msgid "Nothing indicated"
 msgstr "Sem indicação de dados."
 
 
-msgid "'%s': cannot use current file as library"
-msgstr "'%s': não é possível usar o arquivo atual como biblioteca"
-
-
 msgid "'%s': nothing indicated"
 msgstr "'%s': nada indicado"
 
 
 msgid "'%s': not a library"
 msgstr "'%s': não é uma biblioteca"
+
+
+msgid "'%s': cannot use current file as library"
+msgstr "'%s': não é possível usar o arquivo atual como biblioteca"
 
 
 msgid "'%s' is not a valid library filepath"

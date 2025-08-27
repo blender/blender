@@ -9,6 +9,10 @@
 #pragma once
 
 struct GSet;
+struct UndoStack;
+struct wmMsgBus;
+struct wmKeyConfig;
+struct wmWindow;
 #ifdef WITH_INPUT_IME
 struct wmIMEData;
 #endif
@@ -20,6 +24,16 @@ struct wmIMEData;
 namespace blender::bke {
 
 struct WindowManagerRuntime {
+  /** Separate active from drawable. */
+  wmWindow *windrawable = nullptr;
+  /**
+   * \note `CTX_wm_window(C)` is usually preferred.
+   * Avoid relying on this where possible as this may become NULL during when handling
+   * events that close or replace windows (e.g. opening a file).
+   * While this happens rarely in practice, it can cause difficult to reproduce bugs.
+   */
+  wmWindow *winactive = nullptr;
+
   /** Indicates whether interface is locked for user interaction. */
   bool is_interface_locked = false;
 
@@ -41,6 +55,41 @@ struct WindowManagerRuntime {
 
   /** The current notifier in the `notifier_queue` being handled (clear instead of freeing). */
   const wmNotifier *notifier_current = nullptr;
+
+  /** Operator registry. */
+  ListBase operators = {nullptr, nullptr};
+
+  /** Extra overlay cursors to draw, like circles. */
+  ListBase paintcursors = {nullptr, nullptr};
+
+  /**
+   * Known key configurations.
+   * This includes all the #wmKeyConfig members (`defaultconf`, `addonconf`, etc).
+   */
+  ListBase keyconfigs = {nullptr, nullptr};
+
+  /** Active timers. */
+  ListBase timers = {nullptr, nullptr};
+
+  /** Threaded jobs manager. */
+  ListBase jobs = {nullptr, nullptr};
+
+  /** Active dragged items. */
+  ListBase drags = {nullptr, nullptr};
+
+  /** Default configuration. */
+  wmKeyConfig *defaultconf = nullptr;
+
+  /** Addon configuration. */
+  wmKeyConfig *addonconf = nullptr;
+
+  /** User configuration. */
+  wmKeyConfig *userconf = nullptr;
+
+  /** All undo history. */
+  UndoStack *undo_stack = nullptr;
+
+  wmMsgBus *message_bus = nullptr;
 
   WindowManagerRuntime();
   ~WindowManagerRuntime();

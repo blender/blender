@@ -224,20 +224,20 @@ GHOST_Wintab::GHOST_Wintab(unique_hmodule handle,
                            Coord tablet,
                            Coord system,
                            size_t queueSize)
-    : m_handle{std::move(handle)},
-      m_fpInfo{info},
-      m_fpGet{get},
-      m_fpSet{set},
-      m_fpPacketsGet{packetsGet},
-      m_fpEnable{enable},
-      m_fpOverlap{overlap},
-      m_context{std::move(hctx)},
-      m_tabletCoord{tablet},
-      m_systemCoord{system},
-      m_pkts{queueSize}
+    : handle_{std::move(handle)},
+      fp_info_{info},
+      fp_get_{get},
+      fp_set_{set},
+      fp_packets_get_{packetsGet},
+      fp_enable_{enable},
+      fp_overlap_{overlap},
+      context_{std::move(hctx)},
+      tablet_coord_{tablet},
+      system_coord_{system},
+      pkts_{queueSize}
 {
-  m_fpInfo(WTI_INTERFACE, IFC_NDEVICES, &m_numDevices);
-  WINTAB_PRINTF("Wintab Devices: %d\n", m_numDevices);
+  fp_info_(WTI_INTERFACE, IFC_NDEVICES, &num_devices_);
+  WINTAB_PRINTF("Wintab Devices: %d\n", num_devices_);
 
   updateCursorInfo();
 
@@ -247,63 +247,63 @@ GHOST_Wintab::GHOST_Wintab(unique_hmodule handle,
 
 GHOST_Wintab::~GHOST_Wintab()
 {
-  WINTAB_PRINTF("Closing Wintab context %p\n", m_context.get());
+  WINTAB_PRINTF("Closing Wintab context %p\n", context_.get());
 }
 
 void GHOST_Wintab::enable()
 {
-  m_fpEnable(m_context.get(), true);
-  m_enabled = true;
+  fp_enable_(context_.get(), true);
+  enabled_ = true;
 }
 
 void GHOST_Wintab::disable()
 {
-  if (m_focused) {
+  if (focused_) {
     loseFocus();
   }
-  m_fpEnable(m_context.get(), false);
-  m_enabled = false;
+  fp_enable_(context_.get(), false);
+  enabled_ = false;
 }
 
 void GHOST_Wintab::gainFocus()
 {
-  m_fpOverlap(m_context.get(), true);
-  m_focused = true;
+  fp_overlap_(context_.get(), true);
+  focused_ = true;
 }
 
 void GHOST_Wintab::loseFocus()
 {
-  if (m_lastTabletData.Active != GHOST_kTabletModeNone) {
+  if (last_tablet_data_.Active != GHOST_kTabletModeNone) {
     leaveRange();
   }
 
   /* Mouse mode of tablet or display layout may change when Wintab or Window is inactive. Don't
    * trust for mouse movement until re-verified. */
-  m_coordTrusted = false;
+  coord_trusted_ = false;
 
-  m_fpOverlap(m_context.get(), false);
-  m_focused = false;
+  fp_overlap_(context_.get(), false);
+  focused_ = false;
 }
 
 void GHOST_Wintab::leaveRange()
 {
   /* Button state can't be tracked while out of range, reset it. */
-  m_buttons = 0;
+  buttons_ = 0;
   /* Set to none to indicate tablet is inactive. */
-  m_lastTabletData = GHOST_TABLET_DATA_NONE;
+  last_tablet_data_ = GHOST_TABLET_DATA_NONE;
   /* Clear the packet queue. */
-  m_fpPacketsGet(m_context.get(), m_pkts.size(), m_pkts.data());
+  fp_packets_get_(context_.get(), pkts_.size(), pkts_.data());
 }
 
 void GHOST_Wintab::remapCoordinates()
 {
   LOGCONTEXT lc = {0};
 
-  if (m_fpInfo(WTI_DEFSYSCTX, 0, &lc)) {
-    extractCoordinates(lc, m_tabletCoord, m_systemCoord);
+  if (fp_info_(WTI_DEFSYSCTX, 0, &lc)) {
+    extractCoordinates(lc, tablet_coord_, system_coord_);
     modifyContext(lc);
 
-    m_fpSet(m_context.get(), &lc);
+    fp_set_(context_.get(), &lc);
   }
 }
 
@@ -311,52 +311,52 @@ void GHOST_Wintab::updateCursorInfo()
 {
   AXIS Pressure, Orientation[3];
 
-  BOOL pressureSupport = m_fpInfo(WTI_DEVICES, DVC_NPRESSURE, &Pressure);
-  m_maxPressure = pressureSupport ? Pressure.axMax : 0;
-  WINTAB_PRINTF("HCTX %p %s maxPressure: %d\n", m_context.get(), __func__, m_maxPressure);
+  BOOL pressureSupport = fp_info_(WTI_DEVICES, DVC_NPRESSURE, &Pressure);
+  max_pressure_ = pressureSupport ? Pressure.axMax : 0;
+  WINTAB_PRINTF("HCTX %p %s maxPressure: %d\n", context_.get(), __func__, max_pressure_);
 
-  BOOL tiltSupport = m_fpInfo(WTI_DEVICES, DVC_ORIENTATION, &Orientation);
+  BOOL tiltSupport = fp_info_(WTI_DEVICES, DVC_ORIENTATION, &Orientation);
   /* Check if tablet supports azimuth [0] and altitude [1], encoded in axResolution. */
   if (tiltSupport && Orientation[0].axResolution && Orientation[1].axResolution) {
-    m_maxAzimuth = Orientation[0].axMax;
-    m_maxAltitude = Orientation[1].axMax;
+    max_azimuth_ = Orientation[0].axMax;
+    max_altitude_ = Orientation[1].axMax;
   }
   else {
-    m_maxAzimuth = m_maxAltitude = 0;
+    max_azimuth_ = max_altitude_ = 0;
   }
   WINTAB_PRINTF("HCTX %p %s maxAzimuth: %d, maxAltitude: %d\n",
-                m_context.get(),
+                context_.get(),
                 __func__,
-                m_maxAzimuth,
-                m_maxAltitude);
+                max_azimuth_,
+                max_altitude_);
 }
 
 void GHOST_Wintab::processInfoChange(LPARAM lParam)
 {
   /* Update number of connected Wintab digitizers. */
   if (LOWORD(lParam) == WTI_INTERFACE && HIWORD(lParam) == IFC_NDEVICES) {
-    m_fpInfo(WTI_INTERFACE, IFC_NDEVICES, &m_numDevices);
-    WINTAB_PRINTF("HCTX %p %s numDevices: %d\n", m_context.get(), __func__, m_numDevices);
+    fp_info_(WTI_INTERFACE, IFC_NDEVICES, &num_devices_);
+    WINTAB_PRINTF("HCTX %p %s numDevices: %d\n", context_.get(), __func__, num_devices_);
   }
 }
 
 bool GHOST_Wintab::devicesPresent()
 {
-  return m_numDevices > 0;
+  return num_devices_ > 0;
 }
 
 GHOST_TabletData GHOST_Wintab::getLastTabletData()
 {
-  return m_lastTabletData;
+  return last_tablet_data_;
 }
 
 void GHOST_Wintab::getInput(std::vector<GHOST_WintabInfoWin32> &outWintabInfo)
 {
-  const int numPackets = m_fpPacketsGet(m_context.get(), m_pkts.size(), m_pkts.data());
+  const int numPackets = fp_packets_get_(context_.get(), pkts_.size(), pkts_.data());
   outWintabInfo.reserve(numPackets);
 
   for (int i = 0; i < numPackets; i++) {
-    const PACKET pkt = m_pkts[i];
+    const PACKET pkt = pkts_[i];
     GHOST_WintabInfoWin32 out;
 
     /* % 3 for multiple devices ("DualTrack"). */
@@ -376,11 +376,11 @@ void GHOST_Wintab::getInput(std::vector<GHOST_WintabInfoWin32> &outWintabInfo)
     out.x = pkt.pkX;
     out.y = pkt.pkY;
 
-    if (m_maxPressure > 0) {
-      out.tabletData.Pressure = float(pkt.pkNormalPressure) / float(m_maxPressure);
+    if (max_pressure_ > 0) {
+      out.tabletData.Pressure = float(pkt.pkNormalPressure) / float(max_pressure_);
     }
 
-    if ((m_maxAzimuth > 0) && (m_maxAltitude > 0)) {
+    if ((max_azimuth_ > 0) && (max_altitude_ > 0)) {
       /* From the wintab spec:
        * orAzimuth: Specifies the clockwise rotation of the cursor about the z axis through a
        * full circular range.
@@ -397,8 +397,8 @@ void GHOST_Wintab::getInput(std::vector<GHOST_WintabInfoWin32> &outWintabInfo)
       ORIENTATION ort = pkt.pkOrientation;
 
       /* Convert raw fixed point data to radians. */
-      float altRad = float((fabs(float(ort.orAltitude)) / float(m_maxAltitude)) * M_PI_2);
-      float azmRad = float((float(ort.orAzimuth) / float(m_maxAzimuth)) * M_PI * 2.0);
+      float altRad = float((fabs(float(ort.orAltitude)) / float(max_altitude_)) * M_PI_2);
+      float azmRad = float((float(ort.orAzimuth) / float(max_azimuth_)) * M_PI * 2.0);
 
       /* Find length of the stylus' projected vector on the XY plane. */
       float vecLen = cos(altRad);
@@ -416,9 +416,9 @@ void GHOST_Wintab::getInput(std::vector<GHOST_WintabInfoWin32> &outWintabInfo)
 
     /* Some Wintab libraries don't handle relative button input, so we track button presses
      * manually. */
-    DWORD buttonsChanged = m_buttons ^ pkt.pkButtons;
+    DWORD buttonsChanged = buttons_ ^ pkt.pkButtons;
     /* We only needed the prior button state to compare to current, so we can overwrite it now. */
-    m_buttons = pkt.pkButtons;
+    buttons_ = pkt.pkButtons;
 
     /* Iterate over button flag indices until all flags are clear. */
     for (WORD buttonIndex = 0; buttonsChanged; buttonIndex++, buttonsChanged >>= 1) {
@@ -443,7 +443,7 @@ void GHOST_Wintab::getInput(std::vector<GHOST_WintabInfoWin32> &outWintabInfo)
   }
 
   if (!outWintabInfo.empty()) {
-    m_lastTabletData = outWintabInfo.back().tabletData;
+    last_tablet_data_ = outWintabInfo.back().tabletData;
   }
 }
 
@@ -453,8 +453,8 @@ GHOST_TButton GHOST_Wintab::mapWintabToGhostButton(uint cursor, WORD physicalBut
   BYTE logicalButtons[numButtons] = {0};
   BYTE systemButtons[numButtons] = {0};
 
-  if (!m_fpInfo(WTI_CURSORS + cursor, CSR_BUTTONMAP, &logicalButtons) ||
-      !m_fpInfo(WTI_CURSORS + cursor, CSR_SYSBTNMAP, &systemButtons))
+  if (!fp_info_(WTI_CURSORS + cursor, CSR_BUTTONMAP, &logicalButtons) ||
+      !fp_info_(WTI_CURSORS + cursor, CSR_SYSBTNMAP, &systemButtons))
   {
     return GHOST_kButtonMaskNone;
   }
@@ -506,13 +506,13 @@ void GHOST_Wintab::mapWintabToSysCoordinates(int x_in, int y_in, int &x_out, int
     return outPoint;
   };
 
-  x_out = remap(x_in, m_tabletCoord.x, m_systemCoord.x);
-  y_out = remap(y_in, m_tabletCoord.y, m_systemCoord.y);
+  x_out = remap(x_in, tablet_coord_.x, system_coord_.x);
+  y_out = remap(y_in, tablet_coord_.y, system_coord_.y);
 }
 
 bool GHOST_Wintab::trustCoordinates()
 {
-  return m_coordTrusted;
+  return coord_trusted_;
 }
 
 bool GHOST_Wintab::testCoordinates(int sysX, int sysY, int wtX, int wtY)
@@ -521,30 +521,30 @@ bool GHOST_Wintab::testCoordinates(int sysX, int sysY, int wtX, int wtY)
 
   /* Allow off by one pixel tolerance in case of rounding error. */
   if (abs(sysX - wtX) <= 1 && abs(sysY - wtY) <= 1) {
-    m_coordTrusted = true;
+    coord_trusted_ = true;
     return true;
   }
   else {
-    m_coordTrusted = false;
+    coord_trusted_ = false;
     return false;
   }
 }
 
-bool GHOST_Wintab::m_debug = false;
+bool GHOST_Wintab::debug_ = false;
 
 void GHOST_Wintab::setDebug(bool debug)
 {
-  m_debug = debug;
+  debug_ = debug;
 }
 
 bool GHOST_Wintab::getDebug()
 {
-  return m_debug;
+  return debug_;
 }
 
 void GHOST_Wintab::printContextDebugInfo()
 {
-  if (!m_debug) {
+  if (!debug_) {
     return;
   }
 
@@ -553,7 +553,7 @@ void GHOST_Wintab::printContextDebugInfo()
   BYTE systemButtons[32] = {0};
   for (int i = 0; i < 3; i++) {
     printf("initializeWintab cursor %d buttons\n", i);
-    uint lbut = m_fpInfo(WTI_CURSORS + i, CSR_BUTTONMAP, &logicalButtons);
+    uint lbut = fp_info_(WTI_CURSORS + i, CSR_BUTTONMAP, &logicalButtons);
     if (lbut) {
       printf("%d", logicalButtons[0]);
       for (int j = 1; j < lbut; j++) {
@@ -564,7 +564,7 @@ void GHOST_Wintab::printContextDebugInfo()
     else {
       printf("logical button error\n");
     }
-    uint sbut = m_fpInfo(WTI_CURSORS + i, CSR_SYSBTNMAP, &systemButtons);
+    uint sbut = fp_info_(WTI_CURSORS + i, CSR_SYSBTNMAP, &systemButtons);
     if (sbut) {
       printf("%d", systemButtons[0]);
       for (int j = 1; j < sbut; j++) {
@@ -581,8 +581,8 @@ void GHOST_Wintab::printContextDebugInfo()
 
   /* Print open context constraints. */
   uint maxcontexts, opencontexts;
-  m_fpInfo(WTI_INTERFACE, IFC_NCONTEXTS, &maxcontexts);
-  m_fpInfo(WTI_STATUS, STA_CONTEXTS, &opencontexts);
+  fp_info_(WTI_INTERFACE, IFC_NCONTEXTS, &maxcontexts);
+  fp_info_(WTI_STATUS, STA_CONTEXTS, &opencontexts);
   printf("%u max contexts, %u open contexts\n", maxcontexts, opencontexts);
 
   /* Print system information. */
@@ -613,52 +613,52 @@ void GHOST_Wintab::printContextDebugInfo()
   LOGCONTEXT lc;
 
   /* Print system context. */
-  m_fpInfo(WTI_DEFSYSCTX, 0, &lc);
+  fp_info_(WTI_DEFSYSCTX, 0, &lc);
   printf("WTI_DEFSYSCTX\n");
   printContextRanges(lc);
 
   /* Print system context, manually populated. */
-  m_fpInfo(WTI_DEFSYSCTX, CTX_INORGX, &lc.lcInOrgX);
-  m_fpInfo(WTI_DEFSYSCTX, CTX_INORGY, &lc.lcInOrgY);
-  m_fpInfo(WTI_DEFSYSCTX, CTX_INEXTX, &lc.lcInExtX);
-  m_fpInfo(WTI_DEFSYSCTX, CTX_INEXTY, &lc.lcInExtY);
-  m_fpInfo(WTI_DEFSYSCTX, CTX_OUTORGX, &lc.lcOutOrgX);
-  m_fpInfo(WTI_DEFSYSCTX, CTX_OUTORGY, &lc.lcOutOrgY);
-  m_fpInfo(WTI_DEFSYSCTX, CTX_OUTEXTX, &lc.lcOutExtX);
-  m_fpInfo(WTI_DEFSYSCTX, CTX_OUTEXTY, &lc.lcOutExtY);
-  m_fpInfo(WTI_DEFSYSCTX, CTX_SYSORGX, &lc.lcSysOrgX);
-  m_fpInfo(WTI_DEFSYSCTX, CTX_SYSORGY, &lc.lcSysOrgY);
-  m_fpInfo(WTI_DEFSYSCTX, CTX_SYSEXTX, &lc.lcSysExtX);
-  m_fpInfo(WTI_DEFSYSCTX, CTX_SYSEXTY, &lc.lcSysExtY);
+  fp_info_(WTI_DEFSYSCTX, CTX_INORGX, &lc.lcInOrgX);
+  fp_info_(WTI_DEFSYSCTX, CTX_INORGY, &lc.lcInOrgY);
+  fp_info_(WTI_DEFSYSCTX, CTX_INEXTX, &lc.lcInExtX);
+  fp_info_(WTI_DEFSYSCTX, CTX_INEXTY, &lc.lcInExtY);
+  fp_info_(WTI_DEFSYSCTX, CTX_OUTORGX, &lc.lcOutOrgX);
+  fp_info_(WTI_DEFSYSCTX, CTX_OUTORGY, &lc.lcOutOrgY);
+  fp_info_(WTI_DEFSYSCTX, CTX_OUTEXTX, &lc.lcOutExtX);
+  fp_info_(WTI_DEFSYSCTX, CTX_OUTEXTY, &lc.lcOutExtY);
+  fp_info_(WTI_DEFSYSCTX, CTX_SYSORGX, &lc.lcSysOrgX);
+  fp_info_(WTI_DEFSYSCTX, CTX_SYSORGY, &lc.lcSysOrgY);
+  fp_info_(WTI_DEFSYSCTX, CTX_SYSEXTX, &lc.lcSysExtX);
+  fp_info_(WTI_DEFSYSCTX, CTX_SYSEXTY, &lc.lcSysExtY);
   printf("WTI_DEFSYSCTX CTX_*\n");
   printContextRanges(lc);
 
-  for (uint i = 0; i < m_numDevices; i++) {
+  for (uint i = 0; i < num_devices_; i++) {
     /* Print individual device system context. */
-    m_fpInfo(WTI_DSCTXS + i, 0, &lc);
+    fp_info_(WTI_DSCTXS + i, 0, &lc);
     printf("WTI_DSCTXS %u\n", i);
     printContextRanges(lc);
 
     /* Print individual device system context, manually populated. */
-    m_fpInfo(WTI_DSCTXS + i, CTX_INORGX, &lc.lcInOrgX);
-    m_fpInfo(WTI_DSCTXS + i, CTX_INORGY, &lc.lcInOrgY);
-    m_fpInfo(WTI_DSCTXS + i, CTX_INEXTX, &lc.lcInExtX);
-    m_fpInfo(WTI_DSCTXS + i, CTX_INEXTY, &lc.lcInExtY);
-    m_fpInfo(WTI_DSCTXS + i, CTX_OUTORGX, &lc.lcOutOrgX);
-    m_fpInfo(WTI_DSCTXS + i, CTX_OUTORGY, &lc.lcOutOrgY);
-    m_fpInfo(WTI_DSCTXS + i, CTX_OUTEXTX, &lc.lcOutExtX);
-    m_fpInfo(WTI_DSCTXS + i, CTX_OUTEXTY, &lc.lcOutExtY);
-    m_fpInfo(WTI_DSCTXS + i, CTX_SYSORGX, &lc.lcSysOrgX);
-    m_fpInfo(WTI_DSCTXS + i, CTX_SYSORGY, &lc.lcSysOrgY);
-    m_fpInfo(WTI_DSCTXS + i, CTX_SYSEXTX, &lc.lcSysExtX);
-    m_fpInfo(WTI_DSCTXS + i, CTX_SYSEXTY, &lc.lcSysExtY);
+    fp_info_(WTI_DSCTXS + i, CTX_INORGX, &lc.lcInOrgX);
+    fp_info_(WTI_DSCTXS + i, CTX_INORGY, &lc.lcInOrgY);
+    fp_info_(WTI_DSCTXS + i, CTX_INEXTX, &lc.lcInExtX);
+    fp_info_(WTI_DSCTXS + i, CTX_INEXTY, &lc.lcInExtY);
+    fp_info_(WTI_DSCTXS + i, CTX_OUTORGX, &lc.lcOutOrgX);
+    fp_info_(WTI_DSCTXS + i, CTX_OUTORGY, &lc.lcOutOrgY);
+    fp_info_(WTI_DSCTXS + i, CTX_OUTEXTX, &lc.lcOutExtX);
+    fp_info_(WTI_DSCTXS + i, CTX_OUTEXTY, &lc.lcOutExtY);
+    fp_info_(WTI_DSCTXS + i, CTX_SYSORGX, &lc.lcSysOrgX);
+    fp_info_(WTI_DSCTXS + i, CTX_SYSORGY, &lc.lcSysOrgY);
+    fp_info_(WTI_DSCTXS + i, CTX_SYSEXTX, &lc.lcSysExtX);
+    fp_info_(WTI_DSCTXS + i, CTX_SYSEXTY, &lc.lcSysExtY);
     printf("WTI_DSCTX %u CTX_*\n", i);
     printContextRanges(lc);
 
     /* Print device axis. */
     AXIS axis_x, axis_y;
-    m_fpInfo(WTI_DEVICES + i, DVC_X, &axis_x);
-    m_fpInfo(WTI_DEVICES + i, DVC_Y, &axis_y);
+    fp_info_(WTI_DEVICES + i, DVC_X, &axis_x);
+    fp_info_(WTI_DEVICES + i, DVC_Y, &axis_y);
     printf("WTI_DEVICES %u axis_x org: %d, axis_y org: %d axis_x ext: %d, axis_y ext: %d\n",
            i,
            axis_x.axMin,

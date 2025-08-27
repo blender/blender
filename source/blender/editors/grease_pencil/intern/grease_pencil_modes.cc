@@ -13,6 +13,7 @@
 #include "BKE_global.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_paint.hh"
+#include "BKE_paint_types.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

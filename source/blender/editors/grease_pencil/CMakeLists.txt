@@ -29,6 +29,7 @@ set(SRC
   intern/grease_pencil_merge.cc
   intern/grease_pencil_modes.cc
   intern/grease_pencil_ops.cc
+  intern/grease_pencil_pen.cc
   intern/grease_pencil_primitive.cc
   intern/grease_pencil_randomize.cc
   intern/grease_pencil_select.cc

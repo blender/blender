@@ -2,7 +2,7 @@
 FileHandler for Importing multiple files and exposing Operator options
 ----------------------------------------------------------------------
 
-Operators which support being executed with multiple files from 'drag-and-drop' require the
+Operators which support being executed with multiple files from drag-and-drop require the
 following properties be defined:
 
 .. code-block:: python
@@ -11,7 +11,7 @@ following properties be defined:
     files: CollectionProperty(type=OperatorFileListElement, options={'SKIP_SAVE', 'HIDDEN'})
 
 These ``directory`` and ``files`` properties will be set with the necessary data from the
-`drag-and-drop` operation.
+drag-and-drop operation.
 
 Additionally, if the operator provides operator properties that need to be accessible to the user,
 the :class:`ImportHelper.invoke_popup` method can be used to show a dialog leveraging the standard

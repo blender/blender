@@ -97,6 +97,17 @@ blender::VectorSet<Strip *> query_all_strips(ListBase *seqbase);
 blender::VectorSet<Strip *> query_all_strips_recursive(const ListBase *seqbase);
 
 /**
+ * Query strips at \a timeline_frame in seqbase and nested meta strips.
+ *
+ * \param seqbase: ListBase in which strips are queried
+ * \param timeline_frame: viewed frame
+ * \return set of strips
+ */
+blender::VectorSet<Strip *> query_strips_recursive_at_frame(const Scene *scene,
+                                                            const ListBase *seqbase,
+                                                            int timeline_frame);
+
+/**
  * Query all effect strips that are directly or indirectly connected to strip_reference.
  * This includes all effects of strip_reference, strips used by another inputs and their effects,
  * so that whole chain is fully independent of other strips.

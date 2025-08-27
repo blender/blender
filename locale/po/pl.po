@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'6dca66d606ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68abaa12d581')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-11 08:28+0000\n"
+"POT-Creation-Date: 2025-08-25 08:31+0000\n"
 "PO-Revision-Date: 2025-07-23 15:14+0000\n"
 "Last-Translator: Kamil <uhkamil@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -1961,6 +1961,22 @@ msgid "Image Textures"
 msgstr "Tekstury obrazu"
 
 
+msgid "Bake Type"
+msgstr "Rodzaj wypalania"
+
+
+msgid "Normals"
+msgstr "Wektory normalne"
+
+
+msgid "Bake normals"
+msgstr "Wypal wektory normalne"
+
+
+msgid "Displacement"
+msgstr "Przemieszczenie"
+
+
 msgid "Automatic Name"
 msgstr "Nazwa automatyczna"
 
@@ -1983,6 +1999,14 @@ msgstr "Wyczyść"
 
 msgid "Clear Images before baking (internal only)"
 msgstr "Wyczyść obraz przed obliczeniami (tylko użycie wewnętrzne)"
+
+
+msgid "Bake from Multires"
+msgstr "Wypal wieloskalowo"
+
+
+msgid "Bake directly from multires object"
+msgstr "Wypala bezpośrednio z obiektu wieloskalowego"
 
 
 msgid "Selected to Active"
@@ -4449,10 +4473,6 @@ msgstr "Zarządzaniem kolorem zależne od urządzenia wyświetlającego"
 
 msgid "Display Device"
 msgstr "Urządzenie wyświetlające"
-
-
-msgid "Display device name"
-msgstr "Nazwa urządzenia wyświetlającego"
 
 
 msgid "Input color space settings"
@@ -7301,10 +7321,6 @@ msgid "Brush Collection"
 msgstr "Kolekcja pędzli"
 
 
-msgid "Displacement"
-msgstr "Przemieszczenie"
-
-
 msgid "Approximately in how many frames should dissolve happen"
 msgstr "Przybliżona ilość klatek w których powinno się rozłożyć"
 
@@ -9759,10 +9775,6 @@ msgstr "Odstęp X"
 
 msgid "Y Offset"
 msgstr "Odstęp Y"
-
-
-msgid "Normals"
-msgstr "Wektory normalne"
 
 
 msgid "Mean"
@@ -18158,10 +18170,6 @@ msgid "Use Denoising"
 msgstr "Używa odszymiania"
 
 
-msgid "Bake Type"
-msgstr "Rodzaj wypalania"
-
-
 msgid "Denoiser"
 msgstr "Odszumiacz"
 
@@ -18430,10 +18438,6 @@ msgid "Hydra Render Engine"
 msgstr "Silnik renderowania Hydra"
 
 
-msgid "Bake normals"
-msgstr "Wypal wektory normalne"
-
-
 msgid "GPU"
 msgstr "Procesor graficzny"
 
@@ -18484,14 +18488,6 @@ msgstr "Kolor tekstu"
 
 msgid "Automatically determine the number of threads, based on CPUs"
 msgstr "Automatycznie określa liczbę wątków na podstawie procesora"
-
-
-msgid "Bake from Multires"
-msgstr "Wypal wieloskalowo"
-
-
-msgid "Bake directly from multires object"
-msgstr "Wypala bezpośrednio z obiektu wieloskalowego"
 
 
 msgid "Render Region"
@@ -20352,10 +20348,6 @@ msgid "Renders"
 msgstr "Rendery"
 
 
-msgid "Homogeneous"
-msgstr "Jednorodny"
-
-
 msgid "Max Samples"
 msgstr "Maksimum próbek"
 
@@ -21728,6 +21720,16 @@ msgstr "Usuń klatki kluczowe..."
 
 
 msgctxt "Operator"
+msgid "Clear Keyframes..."
+msgstr "Wyczyść klatki kluczowe..."
+
+
+msgctxt "Operator"
+msgid "Interactive Mirror"
+msgstr "Lustro interaktywne"
+
+
+msgctxt "Operator"
 msgid "Change Path/Files"
 msgstr "Zmień ścieżkę/pliki"
 
@@ -22392,11 +22394,6 @@ msgstr "Użytkownik:"
 
 
 msgctxt "Operator"
-msgid "Interactive Mirror"
-msgstr "Lustro interaktywne"
-
-
-msgctxt "Operator"
 msgid "Selection to Active"
 msgstr "Zaznaczenie do aktywnego"
 
@@ -22643,11 +22640,6 @@ msgstr "Głośnik"
 msgctxt "Operator"
 msgid "Mesh Plane"
 msgstr "Siatka płaszczyzny"
-
-
-msgctxt "Operator"
-msgid "Clear Keyframes..."
-msgstr "Wyczyść klatki kluczowe..."
 
 
 msgctxt "Operator"

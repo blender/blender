@@ -430,7 +430,7 @@ class MSLGeneratorInterface {
   std::string generate_msl_compute_inputs_string();
   std::string generate_msl_vertex_entry_stub();
   std::string generate_msl_fragment_entry_stub();
-  std::string generate_msl_compute_entry_stub();
+  std::string generate_msl_compute_entry_stub(const shader::ShaderCreateInfo &info);
   std::string generate_msl_fragment_tile_input_population();
   std::string generate_msl_global_uniform_population(ShaderStage stage);
   std::string generate_ubo_block_macro_chain(MSLBufferBlock block);

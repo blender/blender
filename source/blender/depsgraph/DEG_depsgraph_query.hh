@@ -314,6 +314,59 @@ void DEG_iterator_objects_end(BLI_Iterator *iter);
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name DEG object iterators - Manual dupli iteration
+ * Helper functions for handling dupli instances iteration manually (ie. without passing
+ * DEG_ITER_OBJECT_FLAG_DUPLI to DEGObjectIterSettings::flags)
+ * \{ */
+
+/**
+ * Returns true if the object should be visible on the given context.
+ */
+bool DEG_iterator_object_is_visible(eEvaluationMode eval_mode, const Object *ob);
+
+/**
+ * Returns true if the dupli instance should be visible on the given context.
+ */
+bool DEG_iterator_dupli_is_visible(const DupliObject *dupli, eEvaluationMode eval_mode);
+
+namespace evil {
+/**
+ * WARNING: DON'T USE!!!
+ *
+ * These functions are exposed publicly as a temporary measure while we figure out how to fully get
+ * rid of temporary objects in the Draw module (See #144811).
+ *
+ * DON'T ADD NEW USE CASES FOR THESE FUNCTIONS.
+ */
+
+/**
+ * WARNING: DON'T USE!!!
+ * Generates a temporary object for a given dupli instance.
+ *
+ * Returns true if the resulting object should be visible, otherwise the temp object should be
+ * considered invalid.
+ * NOTE: DEG_iterator_temp_object_free_properties should be called regardless.
+ *
+ * \param do_matrix_setup: If false, the temp_object won't have valid
+ * object_to_world/world_to_object matrices, and the OB_NEG_SCALE flag will never be set.
+ */
+[[nodiscard]] bool DEG_iterator_temp_object_from_dupli(const Object *dupli_parent,
+                                                       const DupliObject *dupli,
+                                                       eEvaluationMode eval_mode,
+                                                       bool do_matrix_setup,
+                                                       Object *r_temp_object,
+                                                       ObjectRuntimeHandle *r_temp_runtime);
+
+/**
+ * WARNING: DON'T USE!!!
+ * Frees any property allocated when calling DEG_iterator_temp_object_from_dupli.
+ */
+void DEG_iterator_temp_object_free_properties(const DupliObject *dupli, Object *temp_object);
+}  // namespace evil
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name DEG ID iterators
  * \{ */
 

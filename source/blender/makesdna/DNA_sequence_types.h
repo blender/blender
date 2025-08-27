@@ -31,6 +31,7 @@ namespace blender::seq {
 struct FinalImageCache;
 struct IntraFrameCache;
 struct MediaPresence;
+struct PreviewCache;
 struct ThumbnailCache;
 struct TextVarsRuntime;
 struct PrefetchJob;
@@ -40,6 +41,7 @@ struct StripLookup;
 using FinalImageCache = blender::seq::FinalImageCache;
 using IntraFrameCache = blender::seq::IntraFrameCache;
 using MediaPresence = blender::seq::MediaPresence;
+using PreviewCache = blender::seq::PreviewCache;
 using ThumbnailCache = blender::seq::ThumbnailCache;
 using TextVarsRuntime = blender::seq::TextVarsRuntime;
 using PrefetchJob = blender::seq::PrefetchJob;
@@ -49,6 +51,7 @@ using StripLookup = blender::seq::StripLookup;
 typedef struct FinalImageCache FinalImageCache;
 typedef struct IntraFrameCache IntraFrameCache;
 typedef struct MediaPresence MediaPresence;
+typedef struct PreviewCache PreviewCache;
 typedef struct ThumbnailCache ThumbnailCache;
 typedef struct TextVarsRuntime TextVarsRuntime;
 typedef struct PrefetchJob PrefetchJob;
@@ -328,11 +331,19 @@ typedef struct EditingRuntime {
   IntraFrameCache *intra_frame_cache;
   SourceImageCache *source_image_cache;
   FinalImageCache *final_image_cache;
+  PreviewCache *preview_cache;
 } EditingRuntime;
 
 typedef struct Editing {
-  /** Pointer to the current list of strips being edited (can be within a meta-strip). */
+  /**
+   * Pointer to the current list of strips being edited (can be within a meta-strip).
+   * \note Use #current_strips() to access, rather than using this variable directly.
+   */
   ListBase *seqbasep;
+  /**
+   * Pointer to the current list of channels being displayed (can be within a meta-strip).
+   * \note Use #current_channels() to access, rather than using this variable directly.
+   */
   ListBase *displayed_channels;
   void *_pad0;
   /** Pointer to the top-most strips. */
@@ -355,6 +366,16 @@ typedef struct Editing {
   PrefetchJob *prefetch_job;
 
   EditingRuntime runtime;
+
+#ifdef __cplusplus
+  /** Access currently displayed strips, from root sequence or a meta-strip. */
+  ListBase *current_strips();
+  ListBase *current_strips() const;
+
+  /** Access currently displayed channels, from root sequence or a meta-strip. */
+  ListBase *current_channels();
+  ListBase *current_channels() const;
+#endif
 } Editing;
 
 /** \} */

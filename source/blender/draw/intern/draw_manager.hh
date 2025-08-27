@@ -136,10 +136,10 @@ class Manager {
    * Create a new resource handle for the given object, but optionally override model matrix and
    * bounds.
    */
-  ResourceHandle resource_handle(const ObjectRef &ref,
-                                 const float4x4 *model_matrix,
-                                 const float3 *bounds_center,
-                                 const float3 *bounds_half_extent);
+  ResourceHandleRange resource_handle(const ObjectRef &ref,
+                                      const float4x4 *model_matrix,
+                                      const float3 *bounds_center,
+                                      const float3 *bounds_half_extent);
   /**
    * Get resource id for a loose matrix. The draw-calls for this resource handle won't be culled
    * and there won't be any associated object info / bounds. Assumes correct handedness / winding.
@@ -326,17 +326,42 @@ inline ResourceHandleRange Manager::resource_handle(const ObjectRef &ref, float 
   bool is_active_object = ref.is_active(object_active);
   bool is_edit_mode = object_active && DRW_object_is_in_edit_mode(object_active) &&
                       ref.object->mode == object_active->mode;
-  matrix_buf.current().get_or_resize(resource_len_).sync(*ref.object);
-  bounds_buf.current().get_or_resize(resource_len_).sync(*ref.object, inflate_bounds);
-  infos_buf.current().get_or_resize(resource_len_).sync(ref, is_active_object, is_edit_mode);
-  return ResourceHandle(resource_len_++, (ref.object->transflag & OB_NEG_SCALE) != 0);
+
+  if (ref.duplis_) {
+    uint start = resource_len_;
+
+    ObjectBounds proto_bounds;
+    proto_bounds.sync(*ref.object, inflate_bounds);
+
+    ObjectInfos proto_info;
+    proto_info.sync(ref, is_active_object, is_edit_mode);
+
+    for (const DupliObject *dupli : *ref.duplis_) {
+      matrix_buf.current().get_or_resize(resource_len_).sync(float4x4(dupli->mat));
+      bounds_buf.current().get_or_resize(resource_len_) = proto_bounds;
+
+      ObjectInfos &info = infos_buf.current().get_or_resize(resource_len_);
+      info = proto_info;
+      info.random = dupli->random_id * (1.0f / (float)0xFFFFFFFF);
+
+      resource_len_++;
+    }
+    return ResourceHandleRange(start, resource_len_ - start);
+  }
+  else {
+    matrix_buf.current().get_or_resize(resource_len_).sync(*ref.object);
+    bounds_buf.current().get_or_resize(resource_len_).sync(*ref.object, inflate_bounds);
+    infos_buf.current().get_or_resize(resource_len_).sync(ref, is_active_object, is_edit_mode);
+    return ResourceHandle(resource_len_++, (ref.object->transflag & OB_NEG_SCALE) != 0);
+  }
 }
 
-inline ResourceHandle Manager::resource_handle(const ObjectRef &ref,
-                                               const float4x4 *model_matrix,
-                                               const float3 *bounds_center,
-                                               const float3 *bounds_half_extent)
+inline ResourceHandleRange Manager::resource_handle(const ObjectRef &ref,
+                                                    const float4x4 *model_matrix,
+                                                    const float3 *bounds_center,
+                                                    const float3 *bounds_half_extent)
 {
+  BLI_assert(!ref.duplis_);
   bool is_active_object = ref.is_active(object_active);
   bool is_edit_mode = object_active && DRW_object_is_in_edit_mode(object_active) &&
                       ref.object->mode == object_active->mode;
@@ -377,6 +402,7 @@ inline ResourceHandle Manager::resource_handle(const float4x4 &model_matrix,
 inline ResourceHandle Manager::resource_handle_for_psys(const ObjectRef &ref,
                                                         const float4x4 &model_matrix)
 {
+  BLI_assert(!ref.duplis_);
   bool is_active_object = ref.is_active(object_active);
   bool is_edit_mode = object_active && DRW_object_is_in_edit_mode(object_active) &&
                       ref.object->mode == object_active->mode;

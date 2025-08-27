@@ -34,10 +34,10 @@
 
 static CLG_LogRef LOG = {"ghost.system"};
 
-GHOST_ISystem *GHOST_ISystem::m_system = nullptr;
-const char *GHOST_ISystem::m_system_backend_id = nullptr;
+GHOST_ISystem *GHOST_ISystem::system_ = nullptr;
+const char *GHOST_ISystem::system_backend_id_ = nullptr;
 
-GHOST_TBacktraceFn GHOST_ISystem::m_backtrace_fn = nullptr;
+GHOST_TBacktraceFn GHOST_ISystem::backtrace_fn_ = nullptr;
 
 GHOST_TSuccess GHOST_ISystem::createSystem(bool verbose, [[maybe_unused]] bool background)
 {
@@ -52,7 +52,7 @@ GHOST_TSuccess GHOST_ISystem::createSystem(bool verbose, [[maybe_unused]] bool b
   std::vector<GHOST_BackendInfo> backends_attempted;
 
   GHOST_TSuccess success;
-  if (!m_system) {
+  if (!system_) {
 
 #if defined(WITH_HEADLESS)
     /* Pass. */
@@ -72,98 +72,98 @@ GHOST_TSuccess GHOST_ISystem::createSystem(bool verbose, [[maybe_unused]] bool b
       backends_attempted.push_back({"WAYLAND"});
       try {
         CLOG_INFO(&LOG, "Create Wayland system");
-        m_system = new GHOST_SystemWayland(background);
+        system_ = new GHOST_SystemWayland(background);
       }
       catch (const std::runtime_error &e) {
         if (verbose) {
           backends_attempted.back().failure_msg = e.what();
         }
         CLOG_INFO(&LOG, "Wayland system not created, falling back to X11");
-        delete m_system;
-        m_system = nullptr;
+        delete system_;
+        system_ = nullptr;
 #  ifdef WITH_GHOST_WAYLAND_DYNLOAD
         ghost_wl_dynload_libraries_exit();
 #  endif
       }
     }
     else {
-      m_system = nullptr;
+      system_ = nullptr;
     }
 
-    if (!m_system) {
+    if (!system_) {
       /* Try to fall back to X11. */
       backends_attempted.push_back({"X11"});
       try {
         CLOG_INFO(&LOG, "Create X11 system");
-        m_system = new GHOST_SystemX11();
+        system_ = new GHOST_SystemX11();
       }
       catch (const std::runtime_error &e) {
         if (verbose) {
           backends_attempted.back().failure_msg = e.what();
         }
-        delete m_system;
-        m_system = nullptr;
+        delete system_;
+        system_ = nullptr;
       }
     }
 #elif defined(WITH_GHOST_X11)
     backends_attempted.push_back({"X11"});
     try {
       CLOG_INFO(&LOG, "Create X11 system");
-      m_system = new GHOST_SystemX11();
+      system_ = new GHOST_SystemX11();
     }
     catch (const std::runtime_error &e) {
       if (verbose) {
         backends_attempted.back().failure_msg = e.what();
       }
-      delete m_system;
-      m_system = nullptr;
+      delete system_;
+      system_ = nullptr;
     }
 #elif defined(WITH_GHOST_WAYLAND)
     if (has_wayland_libraries) {
       backends_attempted.push_back({"WAYLAND"});
       try {
         CLOG_INFO(&LOG, "Create Wayland system");
-        m_system = new GHOST_SystemWayland(background);
+        system_ = new GHOST_SystemWayland(background);
       }
       catch (const std::runtime_error &e) {
         if (verbose) {
           backends_attempted.back().failure_msg = e.what();
         }
-        delete m_system;
-        m_system = nullptr;
+        delete system_;
+        system_ = nullptr;
 #  ifdef WITH_GHOST_WAYLAND_DYNLOAD
         ghost_wl_dynload_libraries_exit();
 #  endif
       }
     }
     else {
-      m_system = nullptr;
+      system_ = nullptr;
     }
 #elif defined(WITH_GHOST_SDL)
     backends_attempted.push_back({"SDL"});
     try {
       CLOG_INFO(&LOG, "Create SDL system");
-      m_system = new GHOST_SystemSDL();
+      system_ = new GHOST_SystemSDL();
     }
     catch (const std::runtime_error &e) {
       if (verbose) {
         backends_attempted.back().failure_msg = e.what();
       }
-      delete m_system;
-      m_system = nullptr;
+      delete system_;
+      system_ = nullptr;
     }
 #elif defined(WIN32)
     backends_attempted.push_back({"WIN32"});
     CLOG_INFO(&LOG, "Create Windows system");
-    m_system = new GHOST_SystemWin32();
+    system_ = new GHOST_SystemWin32();
 #elif defined(__APPLE__)
     backends_attempted.push_back({"COCOA"});
     CLOG_INFO(&LOG, "Create Cocoa system");
-    m_system = new GHOST_SystemCocoa();
+    system_ = new GHOST_SystemCocoa();
 #endif
 
-    if (m_system) {
-      m_system_backend_id = backends_attempted.back().id;
+    if (system_) {
+      system_backend_id_ = backends_attempted.back().id;
     }
     else if (verbose || CLOG_CHECK(&LOG, CLG_LEVEL_INFO)) {
       bool show_messages = false;
@@ -191,13 +191,13 @@ GHOST_TSuccess GHOST_ISystem::createSystem(bool verbose, [[maybe_unused]] bool b
       }
       CLOG_STR_INFO_NOCHECK(&LOG, msg.c_str());
     }
-    success = m_system != nullptr ? GHOST_kSuccess : GHOST_kFailure;
+    success = system_ != nullptr ? GHOST_kSuccess : GHOST_kFailure;
   }
   else {
     success = GHOST_kFailure;
   }
   if (success) {
-    success = m_system->init();
+    success = system_->init();
   }
   return success;
 }
@@ -205,7 +205,7 @@ GHOST_TSuccess GHOST_ISystem::createSystem(bool verbose, [[maybe_unused]] bool b
 GHOST_TSuccess GHOST_ISystem::createSystemBackground()
 {
   GHOST_TSuccess success;
-  if (!m_system) {
+  if (!system_) {
 #if !defined(WITH_HEADLESS)
     /* Try to create a off-screen render surface with the graphical systems. */
     CLOG_INFO(&LOG, "Create background system");
@@ -216,14 +216,14 @@ GHOST_TSuccess GHOST_ISystem::createSystemBackground()
     /* Try to fall back to headless mode if all else fails. */
 #endif
     CLOG_INFO(&LOG, "Create headless system");
-    m_system = new GHOST_SystemHeadless();
-    success = m_system != nullptr ? GHOST_kSuccess : GHOST_kFailure;
+    system_ = new GHOST_SystemHeadless();
+    success = system_ != nullptr ? GHOST_kSuccess : GHOST_kFailure;
   }
   else {
     success = GHOST_kFailure;
   }
   if (success) {
-    success = m_system->init();
+    success = system_->init();
   }
   return success;
 }
@@ -232,9 +232,9 @@ GHOST_TSuccess GHOST_ISystem::disposeSystem()
 {
   CLOG_DEBUG(&LOG, "Dispose system");
   GHOST_TSuccess success = GHOST_kSuccess;
-  if (m_system) {
-    delete m_system;
-    m_system = nullptr;
+  if (system_) {
+    delete system_;
+    system_ = nullptr;
   }
   else {
     success = GHOST_kFailure;
@@ -244,20 +244,20 @@ GHOST_TSuccess GHOST_ISystem::disposeSystem()
 
 GHOST_ISystem *GHOST_ISystem::getSystem()
 {
-  return m_system;
+  return system_;
 }
 
 const char *GHOST_ISystem::getSystemBackend()
 {
-  return m_system_backend_id;
+  return system_backend_id_;
 }
 
 GHOST_TBacktraceFn GHOST_ISystem::getBacktraceFn()
 {
-  return GHOST_ISystem::m_backtrace_fn;
+  return GHOST_ISystem::backtrace_fn_;
 }
 
 void GHOST_ISystem::setBacktraceFn(GHOST_TBacktraceFn backtrace_fn)
 {
-  GHOST_ISystem::m_backtrace_fn = backtrace_fn;
+  GHOST_ISystem::backtrace_fn_ = backtrace_fn;
 }

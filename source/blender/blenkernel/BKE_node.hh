@@ -1136,6 +1136,8 @@ StringRefNull node_socket_label(const bNodeSocket &sock);
  */
 std::optional<StringRefNull> node_socket_short_label(const bNodeSocket &sock);
 
+NodeColorTag node_color_tag(const bNode &node);
+
 /**
  * Initialize a new node type struct with default values and callbacks.
  */

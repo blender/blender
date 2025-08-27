@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'6dca66d606ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68abaa12d581')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-11 08:28+0000\n"
+"POT-Creation-Date: 2025-08-25 08:31+0000\n"
 "PO-Revision-Date: 2025-07-23 14:57+0000\n"
 "Last-Translator: Michael Tribayu Jatnika Natawiria <mike.natawiria@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -2573,6 +2573,18 @@ msgstr "Bakar data-blok gambar yang berkaitan dengan node tekstur gambar aktif d
 
 msgid "Bake to the active color attribute on meshes"
 msgstr "Panggang ke atribut warna aktif di jala"
+
+
+msgid "Bake Type"
+msgstr "Tipe Bake"
+
+
+msgid "Normals"
+msgstr "Normal"
+
+
+msgid "Displacement"
+msgstr "Pemindahan"
 
 
 msgid "Automatic Name"
@@ -6392,10 +6404,6 @@ msgid "Display Device"
 msgstr "Perangkat Tampilan"
 
 
-msgid "Display device name"
-msgstr "Nama perangkat tampilan"
-
-
 msgid "Input color space settings"
 msgstr "Pengaturan spasi warna masukan"
 
@@ -9064,10 +9072,6 @@ msgid "Color Dry"
 msgstr "Kering Warna"
 
 
-msgid "Displacement"
-msgstr "Pemindahan"
-
-
 msgid "Acceleration"
 msgstr "Akselerasi"
 
@@ -10529,10 +10533,6 @@ msgstr "Metode kompresi untuk digunakan"
 
 msgid "Zip"
 msgstr "Zip"
-
-
-msgid "Blosc"
-msgstr "Blosc"
 
 
 msgid "Data Depth"
@@ -12382,10 +12382,6 @@ msgstr "Font Italic"
 
 msgid "Textboxes"
 msgstr "Tekstur"
-
-
-msgid "Normals"
-msgstr "Normal"
 
 
 msgid "Surface UV Map"
@@ -25496,10 +25492,6 @@ msgid "AO Bounces Render"
 msgstr "AO Memantul Render"
 
 
-msgid "Bake Type"
-msgstr "Tipe Bake"
-
-
 msgid "Adaptively blur glossy shaders after blurry bounces, to reduce noise at the cost of accuracy"
 msgstr "Secara adaptif blur shader glossy setelah blur memantul, untuk mengurangi noise dengan mengorbankan akurasi"
 
@@ -25554,10 +25546,6 @@ msgstr "Hitungan Sampel"
 
 msgid "Map Resolution"
 msgstr "Resolusi Peta"
-
-
-msgid "Distance between volume shader samples when rendering the volume (lower values give more accurate and detailed results, but also increased render time)"
-msgstr "Jarak diantara sampel volume shader saat render volume (mengecilkan nilai memberi hasil lebih akurat dan lengkap, tetapi menambahkan waktu render)"
 
 
 msgid "Language Name"
@@ -27358,10 +27346,6 @@ msgid "No output node"
 msgstr "Tidak ada node keluaran"
 
 
-msgid "Homogeneous"
-msgstr "Homogen"
-
-
 msgid "Texture Limit"
 msgstr "Batas Tekstur"
 
@@ -29147,6 +29131,16 @@ msgid "Delete Keyframes..."
 msgstr "Hapus Keyframe..."
 
 
+msgctxt "Operator"
+msgid "Clear Keyframes..."
+msgstr "Kosongkan Keyframe..."
+
+
+msgctxt "Operator"
+msgid "Interactive Mirror"
+msgstr "Cermin interaktif"
+
+
 msgid "Raw"
 msgstr "Raw"
 
@@ -29431,11 +29425,6 @@ msgstr "Pengguna:"
 
 
 msgctxt "Operator"
-msgid "Interactive Mirror"
-msgstr "Cermin interaktif"
-
-
-msgctxt "Operator"
 msgid "Selection to Active"
 msgstr "Seleksi ke Aktif"
 
@@ -29538,11 +29527,6 @@ msgstr "Kamera"
 msgctxt "Operator"
 msgid "Speaker"
 msgstr "Tambah Gambar"
-
-
-msgctxt "Operator"
-msgid "Clear Keyframes..."
-msgstr "Kosongkan Keyframe..."
 
 
 msgctxt "Operator"
@@ -32083,10 +32067,6 @@ msgid "Nothing indicated"
 msgstr "Tidak ada yang berindikasi"
 
 
-msgid "'%s': cannot use current file as library"
-msgstr "'%s': tidak dapat menggunakan file sekarang sebagai perpustakaan"
-
-
 msgid "'%s': nothing indicated"
 msgstr "'%s': tidak terindikasi"
 
@@ -32097,6 +32077,10 @@ msgstr "'%s': bukan perpustakaan"
 
 msgid "Scene '%s' is linked, instantiation of objects is disabled"
 msgstr "Adegan '%s' telah dihubungkan, instantiasi objek telah dinonaktifkan"
+
+
+msgid "'%s': cannot use current file as library"
+msgstr "'%s': tidak dapat menggunakan file sekarang sebagai perpustakaan"
 
 
 msgid "'%s' is not a valid library filepath"

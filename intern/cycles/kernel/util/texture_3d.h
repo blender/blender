@@ -196,9 +196,6 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals kg,
                                         (InterpolationType)info.interpolation :
                                         interp;
 
-  /* A -0.5 offset is used to center the cubic samples around the sample point. */
-  P = P - make_float3(0.5f);
-
   if (stochastic) {
     float3 rand = lcg_step_float3(&sd->lcg_state);
     P = interp_stochastic(P, interpolation, rand);

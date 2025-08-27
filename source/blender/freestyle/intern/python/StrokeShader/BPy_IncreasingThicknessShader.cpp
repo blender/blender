@@ -42,7 +42,6 @@ PyDoc_STRVAR(
     "\n"
     "   :arg stroke: A Stroke object.\n"
     "   :type stroke: :class:`freestyle.types.Stroke`\n");
-
 static int IncreasingThicknessShader___init__(BPy_IncreasingThicknessShader *self,
                                               PyObject *args,
                                               PyObject *kwds)

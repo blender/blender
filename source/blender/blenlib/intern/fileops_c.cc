@@ -341,10 +341,19 @@ bool BLI_file_touch(const char *filepath)
   return false;
 }
 
-static bool dir_create_recursive(char *dirname, int len)
+/**
+ * Create the given directory and its parents if necessary.
+ *
+ * If the directory already exists, this function is a no-op.
+ *
+ * \param dirname The directory to create.
+ * \param len The number of bytes of 'dirname' to use as path to create. This
+ * makes the recursive call possible without doing string duplication for each
+ * parent directory.
+ */
+static bool dir_create_recursive(const char *dirname, const int len)
 {
   BLI_assert(strlen(dirname) == len);
-  BLI_assert(BLI_exists(dirname) == 0);
   /* Caller must ensure the path doesn't have trailing slashes. */
   BLI_assert_msg(len && !BLI_path_slash_is_native_compat(dirname[len - 1]),
                  "Paths must not end with a slash!");
@@ -375,12 +384,26 @@ static bool dir_create_recursive(char *dirname, int len)
     *dirname_parent_end = dirname_parent_end_value;
   }
   if (ret) {
+    /* Ignore errors when the directory was created (probably by another process) in between the
+     * earlier call to BLI_exists() and this call to mkdir. Since this function only creates a
+     * directory if it doesn't exist yet, this is actually not seen as an error, even though
+     * mkdir() failed. */
 #ifdef WIN32
     if (umkdir(dirname) == -1) {
+      if (GetLastError() == ERROR_ALREADY_EXISTS && BLI_is_dir(dirname)) {
+        return true;
+      }
+
+      /* Any other error should bubble up as an actual error. */
       ret = false;
     }
 #else
     if (mkdir(dirname, 0777) != 0) {
+      if (errno == EEXIST && BLI_is_dir(dirname)) {
+        return true;
+      }
+
+      /* Any other error should bubble up as an actual error. */
       ret = false;
     }
 #endif

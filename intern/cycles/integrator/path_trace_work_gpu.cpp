@@ -158,7 +158,7 @@ void PathTraceWorkGPU::alloc_integrator_soa()
     if ((kernel_features & (feature))) { \
       string name_str = string_printf("%sintegrator_state_" #parent_struct "_" #name, \
                                       shadow ? "shadow_" : ""); \
-      LOG_DEBUG << "Skipping " << name_str \
+      LOG_TRACE << "Skipping " << name_str \
                 << " -- data is packed inside integrator_state_" #parent_struct "_packed"; \
     }
 #  define KERNEL_STRUCT_BEGIN_PACKED(parent_struct, feature) \
@@ -207,13 +207,13 @@ void PathTraceWorkGPU::alloc_integrator_soa()
 #undef KERNEL_STRUCT_END_ARRAY
 #undef KERNEL_STRUCT_VOLUME_STACK_SIZE
 
-  if (LOG_IS_ON(LOG_LEVEL_STATS)) {
+  if (LOG_IS_ON(LOG_LEVEL_TRACE)) {
     size_t total_soa_size = 0;
     for (auto &&soa_memory : integrator_state_soa_) {
       total_soa_size += soa_memory->memory_size();
     }
 
-    LOG_STATS << "GPU SoA state size: " << string_human_readable_size(total_soa_size);
+    LOG_TRACE << "GPU SoA state size: " << string_human_readable_size(total_soa_size);
   }
 }
 

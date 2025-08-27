@@ -538,8 +538,6 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
     geometry_motion_synced.clear();
   }
 
-  world_use_portal = false;
-
   if (!motion) {
     /* Object to geometry instance mapping is built for the reference time, as other
      * times just look up the corresponding geometry. */
@@ -708,7 +706,7 @@ void BlenderSync::sync_motion(BL::RenderSettings &b_render,
       continue;
     }
 
-    LOG_WORK << "Synchronizing motion for the relative time " << relative_time << ".";
+    LOG_DEBUG << "Synchronizing motion for the relative time " << relative_time << ".";
 
     /* fixed shutter time to get previous and next frame for motion pass */
     const float shuttertime = scene->motion_shutter_time();

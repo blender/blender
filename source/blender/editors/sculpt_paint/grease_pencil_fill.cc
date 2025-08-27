@@ -660,7 +660,7 @@ static bke::CurvesGeometry boundary_to_curves(const Scene &scene,
       scene.toolsettings->gp_paint, &brush);
   if (use_vertex_color) {
     ColorGeometry4f vertex_color;
-    srgb_to_linearrgb_v3_v3(vertex_color, brush.rgb);
+    copy_v3_v3(vertex_color, brush.color);
     vertex_color.a = brush.gpencil_settings->vertex_factor;
 
     if (ELEM(brush.gpencil_settings->vertex_mode, GPPAINT_MODE_FILL, GPPAINT_MODE_BOTH)) {

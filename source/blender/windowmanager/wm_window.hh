@@ -143,3 +143,4 @@ wmOperatorStatus wm_window_new_main_exec(bContext *C, wmOperator *op);
 
 void wm_test_autorun_revert_action_set(wmOperatorType *ot, PointerRNA *ptr);
 void wm_test_autorun_warning(bContext *C);
+void wm_test_foreign_file_warning(bContext *C);

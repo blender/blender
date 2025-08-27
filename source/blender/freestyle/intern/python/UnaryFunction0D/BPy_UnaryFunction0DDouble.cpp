@@ -105,7 +105,6 @@ PyDoc_STRVAR(
     ".. method:: __init__()\n"
     "\n"
     "   Default constructor.\n");
-
 static int UnaryFunction0DDouble___init__(BPy_UnaryFunction0DDouble *self,
                                           PyObject *args,
                                           PyObject *kwds)

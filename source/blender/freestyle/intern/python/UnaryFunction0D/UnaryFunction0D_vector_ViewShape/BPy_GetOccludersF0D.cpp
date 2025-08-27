@@ -36,7 +36,6 @@ PyDoc_STRVAR(
     "   :return: A list of ViewShape objects occluding the pointed\n"
     "      Interface0D.\n"
     "   :rtype: list[:class:`freestyle.types.ViewShape`]\n");
-
 static int GetOccludersF0D___init__(BPy_GetOccludersF0D *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {nullptr};

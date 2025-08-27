@@ -182,6 +182,8 @@
            #name, \
            Frequency::freq)
 
+#  define GROUP_SHARED(type, name) .shared_variable(Type::type##_t, #name)
+
 #  define BUILTINS(builtin) .builtins(builtin)
 
 #  define VERTEX_SOURCE(filename) .vertex_source(filename)
@@ -278,6 +280,8 @@
 
 #  define IMAGE(slot, format, qualifiers, type, name) _##qualifiers type name;
 #  define IMAGE_FREQ(slot, format, qualifiers, type, name, freq) _##qualifiers type name;
+
+#  define GROUP_SHARED(type, name) type name;
 
 #  define BUILTINS(builtin)
 
@@ -814,6 +818,13 @@ struct ShaderCreateInfo {
   Vector<CompilationConstant, 0> compilation_constants_;
   Vector<SpecializationConstant> specialization_constants_;
 
+  struct SharedVariable {
+    Type type;
+    StringRefNull name;
+  };
+
+  Vector<SharedVariable, 0> shared_variables_;
+
   struct Sampler {
     ImageType type;
     GPUSamplerState sampler;
@@ -1147,6 +1158,18 @@ struct ShaderCreateInfo {
   /* TODO: Add API to specify unique specialization config permutations in CreateInfo, allowing
    * specialized compilation to be primed and handled in the background at start-up, rather than
    * waiting for a given permutation to occur dynamically. */
+
+  /** \} */
+
+  /* -------------------------------------------------------------------- */
+  /** \name Compute shader Shared variables
+   * \{ */
+
+  Self &shared_variable(Type type, StringRefNull name)
+  {
+    shared_variables_.append({type, name});
+    return *(Self *)this;
+  }
 
   /** \} */
 

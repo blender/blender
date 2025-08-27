@@ -31,7 +31,11 @@ static void cmp_node_rgb_declare(NodeDeclarationBuilder &b)
         uiLayout &col = params.layout.column(false);
         uiTemplateColorPicker(
             &col, &params.socket_ptr, "default_value", true, false, false, false);
-        col.prop(&params.socket_ptr, "default_value", UI_ITEM_R_SLIDER, "", ICON_NONE);
+        col.prop(&params.socket_ptr,
+                 "default_value",
+                 UI_ITEM_R_SLIDER | UI_ITEM_R_SPLIT_EMPTY_NAME,
+                 "",
+                 ICON_NONE);
       });
 }
 

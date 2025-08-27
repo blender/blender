@@ -16,6 +16,7 @@
 
 #include "BKE_colortools.hh"
 
+#include "DNA_color_types.h"
 #include "IMB_colormanagement.hh"
 
 #include "DNA_vec_types.h"
@@ -77,6 +78,7 @@ struct GPUViewport {
   /* Color management. */
   ColorManagedViewSettings view_settings;
   ColorManagedDisplaySettings display_settings;
+  bool use_hdr;
   CurveMapping *orig_curve_mapping;
   float dither;
   /* TODO(@fclem): the UV-image display use the viewport but do not set any view transform for the
@@ -287,6 +289,9 @@ void GPU_viewport_colorspace_set(GPUViewport *viewport,
   BKE_color_managed_display_settings_copy(&viewport->display_settings, display_settings);
   viewport->dither = dither;
   viewport->do_color_management = true;
+  viewport->use_hdr = GPU_hdr_support() &&
+                      IMB_colormanagement_display_is_hdr(&viewport->display_settings,
+                                                         viewport->view_settings.view_transform);
 }
 
 void GPU_viewport_force_hdr(GPUViewport *viewport)
@@ -455,8 +460,7 @@ static void gpu_viewport_draw_colormanaged(GPUViewport *viewport,
   blender::gpu::Texture *color_overlay = viewport->color_overlay_tx[view];
 
   bool use_ocio = false;
-  bool use_hdr = GPU_hdr_support() &&
-                 ((viewport->view_settings.flag & COLORMANAGE_VIEW_USE_HDR) != 0);
+  bool use_hdr = viewport->use_hdr;
 
   if (viewport->force_hdr_output) {
     use_hdr = true;

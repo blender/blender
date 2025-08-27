@@ -50,6 +50,10 @@
 #  include "gpu_shader_fullscreen_blit_info.hh"
 #endif
 
+#ifdef WITH_VULKAN_BACKEND
+#  include "vk_backbuffer_blit_info.hh"
+#endif
+
 /* Compositor. */
 #include "compositor_alpha_crop_info.hh"
 #include "compositor_bilateral_blur_info.hh"
@@ -114,8 +118,8 @@
 #include "compositor_z_combine_info.hh"
 
 /* DRW module. */
+#include "draw_curves_info.hh"
 #include "draw_debug_info.hh"
-#include "draw_hair_refine_info.hh"
 #include "draw_object_infos_info.hh"
 #include "draw_view_info.hh"
 #include "gpu_shader_fullscreen_info.hh"

@@ -7,13 +7,13 @@
 /* Resources bind slots. */
 
 /* Textures. */
-/* Slot 0 is reserved by draw_hair. */
-#define WB_MATCAP_SLOT 1
-#define WB_TEXTURE_SLOT 2
-#define WB_TILE_ARRAY_SLOT 3
-#define WB_TILE_DATA_SLOT 4
-#define WB_CURVES_UV_SLOT 5
-#define WB_CURVES_COLOR_SLOT 6
+/* Slot 0-1 are reserved by curves and pointcloud attributes. */
+#define WB_MATCAP_SLOT 2
+#define WB_TEXTURE_SLOT 3
+#define WB_TILE_ARRAY_SLOT 4
+#define WB_TILE_DATA_SLOT 5
+#define WB_CURVES_UV_SLOT 6
+#define WB_CURVES_COLOR_SLOT 7
 
 /* UBOs (Storage buffers in Workbench Next). */
 #define WB_MATERIAL_SLOT 0

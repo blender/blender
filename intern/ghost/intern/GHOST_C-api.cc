@@ -139,11 +139,11 @@ GHOST_TSuccess GHOST_GetAllDisplayDimensions(GHOST_SystemHandle systemhandle,
 }
 
 GHOST_ContextHandle GHOST_CreateGPUContext(GHOST_SystemHandle systemhandle,
-                                           GHOST_GPUSettings gpuSettings)
+                                           GHOST_GPUSettings gpu_settings)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
 
-  return (GHOST_ContextHandle)system->createOffscreenContext(gpuSettings);
+  return (GHOST_ContextHandle)system->createOffscreenContext(gpu_settings);
 }
 
 GHOST_TSuccess GHOST_DisposeGPUContext(GHOST_SystemHandle systemhandle,
@@ -164,7 +164,7 @@ GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
                                       uint32_t height,
                                       GHOST_TWindowState state,
                                       bool is_dialog,
-                                      GHOST_GPUSettings gpuSettings)
+                                      GHOST_GPUSettings gpu_settings)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
 
@@ -174,7 +174,7 @@ GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
                                                   width,
                                                   height,
                                                   state,
-                                                  gpuSettings,
+                                                  gpu_settings,
                                                   false,
                                                   is_dialog,
                                                   (GHOST_IWindow *)parent_windowhandle);
@@ -417,10 +417,10 @@ void GHOST_GetCursorGrabState(GHOST_WindowHandle windowhandle,
   GHOST_Rect bounds_rect;
   bool use_software_cursor;
   window->getCursorGrabState(*r_mode, *r_axis_flag, bounds_rect, use_software_cursor);
-  r_bounds[0] = bounds_rect.m_l;
-  r_bounds[1] = bounds_rect.m_t;
-  r_bounds[2] = bounds_rect.m_r;
-  r_bounds[3] = bounds_rect.m_b;
+  r_bounds[0] = bounds_rect.l_;
+  r_bounds[1] = bounds_rect.t_;
+  r_bounds[2] = bounds_rect.r_;
+  r_bounds[3] = bounds_rect.b_;
   *r_use_software_cursor = use_software_cursor;
 }
 
@@ -591,17 +591,17 @@ GHOST_TWindowDecorationStyleFlags GHOST_GetWindowDecorationStyleFlags(
 }
 
 void GHOST_SetWindowDecorationStyleFlags(GHOST_WindowHandle windowhandle,
-                                         GHOST_TWindowDecorationStyleFlags styleFlags)
+                                         GHOST_TWindowDecorationStyleFlags style_flags)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
-  window->setWindowDecorationStyleFlags(styleFlags);
+  window->setWindowDecorationStyleFlags(style_flags);
 }
 
-void GHOST_SetWindowDecorationStyleSettings(GHOST_WindowHandle windowhandle,
-                                            GHOST_WindowDecorationStyleSettings decorationSettings)
+void GHOST_SetWindowDecorationStyleSettings(
+    GHOST_WindowHandle windowhandle, GHOST_WindowDecorationStyleSettings decoration_settings)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
-  window->setWindowDecorationStyleSettings(decorationSettings);
+  window->setWindowDecorationStyleSettings(decoration_settings);
 }
 
 GHOST_TSuccess GHOST_ApplyWindowDecorationStyle(GHOST_WindowHandle windowhandle)
@@ -690,11 +690,12 @@ GHOST_TSuccess GHOST_SetWindowState(GHOST_WindowHandle windowhandle, GHOST_TWind
   return window->setState(state);
 }
 
-GHOST_TSuccess GHOST_SetWindowModifiedState(GHOST_WindowHandle windowhandle, bool isUnsavedChanges)
+GHOST_TSuccess GHOST_SetWindowModifiedState(GHOST_WindowHandle windowhandle,
+                                            bool is_unsaved_changes)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
 
-  return window->setModifiedState(isUnsavedChanges);
+  return window->setModifiedState(is_unsaved_changes);
 }
 
 GHOST_TSuccess GHOST_SetWindowOrder(GHOST_WindowHandle windowhandle, GHOST_TWindowOrder order)
@@ -808,10 +809,10 @@ void GHOST_GetRectangle(
 {
   const GHOST_Rect *rect = (GHOST_Rect *)rectanglehandle;
 
-  *l = rect->m_l;
-  *t = rect->m_t;
-  *r = rect->m_r;
-  *b = rect->m_b;
+  *l = rect->l_;
+  *t = rect->t_;
+  *r = rect->r_;
+  *b = rect->b_;
 }
 
 void GHOST_SetRectangle(

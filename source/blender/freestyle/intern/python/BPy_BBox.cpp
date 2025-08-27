@@ -37,8 +37,7 @@ PyDoc_STRVAR(
     "\n"
     ".. method:: __init__()\n"
     "\n"
-    "   Default constructor.");
-
+    "   Default constructor.\n");
 static int BBox_init(BPy_BBox *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {nullptr};

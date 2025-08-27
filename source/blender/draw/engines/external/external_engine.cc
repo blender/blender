@@ -482,9 +482,14 @@ void DRW_engine_external_free(RegionView3D *rv3d)
   if (rv3d->view_render) {
     /* Free engine with DRW context enabled, as this may clean up per-context
      * resources like VAOs. */
-    DRW_gpu_context_enable_ex(true);
+    bool swap_context = !DRW_gpu_context_is_enabled();
+    if (swap_context) {
+      DRW_gpu_context_enable_ex(true);
+    }
     RE_FreeViewRender(rv3d->view_render);
     rv3d->view_render = nullptr;
-    DRW_gpu_context_disable_ex(true);
+    if (swap_context) {
+      DRW_gpu_context_disable_ex(true);
+    }
   }
 }

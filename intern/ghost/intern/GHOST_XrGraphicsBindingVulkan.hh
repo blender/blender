@@ -50,21 +50,21 @@ class GHOST_XrGraphicsBindingVulkan : public GHOST_IXrGraphicsBinding {
   bool needsUpsideDownDrawing(GHOST_Context &ghost_ctx) const override;
 
  private:
-  GHOST_ContextVK &m_ghost_ctx;
+  GHOST_ContextVK &ghost_ctx_;
 
-  VkInstance m_vk_instance = VK_NULL_HANDLE;
-  VkPhysicalDevice m_vk_physical_device = VK_NULL_HANDLE;
-  uint32_t m_graphics_queue_family = 0;
-  VkQueue m_vk_queue = VK_NULL_HANDLE;
-  VkDevice m_vk_device = VK_NULL_HANDLE;
-  VmaAllocator m_vma_allocator = VK_NULL_HANDLE;
-  VmaAllocation m_vk_buffer_allocation = VK_NULL_HANDLE;
-  VkBuffer m_vk_buffer = VK_NULL_HANDLE;
-  VmaAllocationInfo m_vk_buffer_allocation_info = {};
-  GHOST_TVulkanXRModes m_data_transfer_mode = GHOST_kVulkanXRModeCPU;
+  VkInstance vk_instance_ = VK_NULL_HANDLE;
+  VkPhysicalDevice vk_physical_device_ = VK_NULL_HANDLE;
+  uint32_t graphics_queue_family_ = 0;
+  VkQueue vk_queue_ = VK_NULL_HANDLE;
+  VkDevice vk_device_ = VK_NULL_HANDLE;
+  VmaAllocator vma_allocator_ = VK_NULL_HANDLE;
+  VmaAllocation vk_buffer_allocation_ = VK_NULL_HANDLE;
+  VkBuffer vk_buffer_ = VK_NULL_HANDLE;
+  VmaAllocationInfo vk_buffer_allocation_info_ = {};
+  GHOST_TVulkanXRModes data_transfer_mode_ = GHOST_kVulkanXRModeCPU;
 
-  std::list<std::vector<XrSwapchainImageVulkan2KHR>> m_image_cache;
-  VkCommandPool m_vk_command_pool = VK_NULL_HANDLE;
+  std::list<std::vector<XrSwapchainImageVulkan2KHR>> image_cache_;
+  VkCommandPool vk_command_pool_ = VK_NULL_HANDLE;
 
   struct ImportedMemory {
     char view_idx;
@@ -72,7 +72,7 @@ class GHOST_XrGraphicsBindingVulkan : public GHOST_IXrGraphicsBinding {
     VkImage vk_image_xr;
     VkDeviceMemory vk_device_memory_xr;
   };
-  std::vector<ImportedMemory> m_imported_memory;
+  std::vector<ImportedMemory> imported_memory_;
 
   GHOST_TVulkanXRModes choseDataTransferMode();
   void submitToSwapchainImageCpu(XrSwapchainImageVulkan2KHR &swapchain_image,
@@ -85,7 +85,7 @@ class GHOST_XrGraphicsBindingVulkan : public GHOST_IXrGraphicsBinding {
    *
    * This can be improved by having a single command buffer per swap-chain image.
    */
-  VkCommandBuffer m_vk_command_buffer = VK_NULL_HANDLE;
+  VkCommandBuffer vk_command_buffer_ = VK_NULL_HANDLE;
 
   static PFN_xrGetVulkanGraphicsRequirements2KHR s_xrGetVulkanGraphicsRequirements2KHR_fn;
   static PFN_xrGetVulkanGraphicsDevice2KHR s_xrGetVulkanGraphicsDevice2KHR_fn;

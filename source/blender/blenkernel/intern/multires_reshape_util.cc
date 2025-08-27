@@ -56,9 +56,7 @@ blender::bke::subdiv::Subdiv *multires_reshape_create_subdiv(Depsgraph *depsgrap
   if (!subdiv) {
     return nullptr;
   }
-  if (!subdiv::eval_begin_from_mesh(
-          subdiv, base_mesh, {}, subdiv::SUBDIV_EVALUATOR_TYPE_CPU, nullptr))
-  {
+  if (!subdiv::eval_begin_from_mesh(subdiv, base_mesh, subdiv::SUBDIV_EVALUATOR_TYPE_CPU)) {
     subdiv::free(subdiv);
     return nullptr;
   }

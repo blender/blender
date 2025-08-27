@@ -25,9 +25,9 @@ struct ToMeshSettings {
    * created for a corner of non-quad face) will have resolution of
    * `resolution - 1`.
    */
-  int resolution;
+  int resolution = -1;
   /** When true, only edges emitted from coarse ones will be displayed. */
-  bool use_optimal_display;
+  bool use_optimal_display = false;
 };
 
 /** Create real hi-res mesh from subdivision, all geometry is "real". */

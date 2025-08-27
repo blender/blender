@@ -1207,3 +1207,121 @@ ccl_device_extern bool rs_trace_get(ccl_private ShaderGlobals *sg,
 {
   return false;
 }
+
+/* These osl_ functions are supposed to be implemented by OSL itself, but they are not yet.
+ * See: https://github.com/AcademySoftwareFoundation/OpenShadingLanguage/pull/1951
+ * So we have to keep them around for now.
+ *
+ * The 1.14.4 based beta used for Blender 4.5 does not need them though, so we check the
+ * version for that. */
+#if (OSL_LIBRARY_VERSION_CODE >= 11405) || (OSL_LIBRARY_VERSION_CODE < 11403)
+ccl_device_extern void osl_texture_set_firstchannel(ccl_private OSLTextureOptions *opt,
+                                                    const int firstchannel)
+{
+}
+
+ccl_device_extern int osl_texture_decode_wrapmode(DeviceString name_)
+{
+  return 0;
+}
+
+ccl_device_extern void osl_texture_set_swrap_code(ccl_private OSLTextureOptions *opt,
+                                                  const int mode)
+{
+}
+
+ccl_device_extern void osl_texture_set_twrap_code(ccl_private OSLTextureOptions *opt,
+                                                  const int mode)
+{
+}
+
+ccl_device_extern void osl_texture_set_rwrap_code(ccl_private OSLTextureOptions *opt,
+                                                  const int mode)
+{
+}
+
+ccl_device_extern void osl_texture_set_stwrap_code(ccl_private OSLTextureOptions *opt,
+                                                   const int mode)
+{
+}
+
+ccl_device_extern void osl_texture_set_sblur(ccl_private OSLTextureOptions *opt, const float blur)
+{
+}
+
+ccl_device_extern void osl_texture_set_tblur(ccl_private OSLTextureOptions *opt, const float blur)
+{
+}
+
+ccl_device_extern void osl_texture_set_rblur(ccl_private OSLTextureOptions *opt, const float blur)
+{
+}
+
+ccl_device_extern void osl_texture_set_stblur(ccl_private OSLTextureOptions *opt, const float blur)
+{
+}
+
+ccl_device_extern void osl_texture_set_swidth(ccl_private OSLTextureOptions *opt,
+                                              const float width)
+{
+}
+
+ccl_device_extern void osl_texture_set_twidth(ccl_private OSLTextureOptions *opt,
+                                              const float width)
+{
+}
+
+ccl_device_extern void osl_texture_set_rwidth(ccl_private OSLTextureOptions *opt,
+                                              const float width)
+{
+}
+
+ccl_device_extern void osl_texture_set_stwidth(ccl_private OSLTextureOptions *opt,
+                                               const float width)
+{
+}
+
+ccl_device_extern void osl_texture_set_fill(ccl_private OSLTextureOptions *opt, const float fill)
+{
+}
+
+ccl_device_extern void osl_texture_set_time(ccl_private OSLTextureOptions *opt, const float time)
+{
+}
+
+ccl_device_extern void osl_texture_set_interp_code(ccl_private OSLTextureOptions *opt,
+                                                   const int mode)
+{
+}
+
+ccl_device_extern void osl_texture_set_subimage(ccl_private OSLTextureOptions *opt,
+                                                const int subimage)
+{
+}
+
+ccl_device_extern void osl_texture_set_subimagename(ccl_private OSLTextureOptions *opt,
+                                                    DeviceString subimagename_)
+{
+}
+
+ccl_device_extern void osl_texture_set_missingcolor_arena(ccl_private OSLTextureOptions *opt,
+                                                          ccl_private float3 *color)
+{
+}
+
+ccl_device_extern void osl_texture_set_missingcolor_alpha(ccl_private OSLTextureOptions *opt,
+                                                          const int nchannels,
+                                                          const float alpha)
+{
+}
+
+ccl_device_extern void osl_init_trace_options(ccl_private void *oec, ccl_private void *opt) {}
+
+ccl_device_extern void osl_trace_set_mindist(ccl_private void *opt, float x) {}
+
+ccl_device_extern void osl_trace_set_maxdist(ccl_private void *opt, float x) {}
+
+ccl_device_extern void osl_trace_set_shade(ccl_private void *opt, int x) {}
+
+ccl_device_extern void osl_trace_set_traceset(ccl_private void *opt, const DeviceString x) {}
+#endif

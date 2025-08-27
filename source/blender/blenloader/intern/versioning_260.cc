@@ -842,7 +842,7 @@ static const char *node_get_static_idname(int type, int treetype)
         return "CompositorNodeLumaMatte";
       case CMP_NODE_BRIGHTCONTRAST:
         return "CompositorNodeBrightContrast";
-      case CMP_NODE_GAMMA:
+      case CMP_NODE_GAMMA_DEPRECATED:
         return "CompositorNodeGamma";
       case CMP_NODE_INVERT:
         return "CompositorNodeInvert";
@@ -2229,10 +2229,6 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed) {
         blender::seq::for_each_callback(&scene->ed->seqbase, strip_set_alpha_mode_cb, nullptr);
-      }
-
-      if (scene->r.bake_samples == 0) {
-        scene->r.bake_samples = 256;
       }
     }
 

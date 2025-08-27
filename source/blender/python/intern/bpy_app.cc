@@ -83,7 +83,7 @@ static PyStructSequence_Field app_info_fields[] = {
      "The Blender File version, as a tuple of 3 numbers (major, minor, file sub-version), that "
      "will be used to save a .blend file. The last item in this tuple indicates the file "
      "sub-version, which is different from the release micro version (the last item of the "
-     "`bpy.app.version` tuple). The file sub-version can be incremented multiple times while a "
+     "``bpy.app.version`` tuple). The file sub-version can be incremented multiple times while a "
      "Blender version is under development. This value is, and should be, used for handling "
      "compatibility changes between Blender versions"},
     {"version_string", "The Blender version formatted as a string"},
@@ -131,8 +131,7 @@ static PyStructSequence_Field app_info_fields[] = {
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_app_doc,
-    "This module contains application values that remain unchanged during runtime.");
-
+    "This module contains application values that remain unchanged during runtime.\n");
 static PyStructSequence_Desc app_info_desc = {
     /*name*/ "bpy.app",
     /*doc*/ bpy_app_doc,
@@ -242,7 +241,7 @@ PyDoc_STRVAR(
     /* Wrap. */
     bpy_app_debug_doc,
     "Boolean, for debug info "
-    "(started with ``--debug`` / ``--debug-*`` matching this attribute name)");
+    "(started with ``--debug`` / ``--debug-*`` matching this attribute name).");
 static PyObject *bpy_app_debug_get(PyObject * /*self*/, void *closure)
 {
   const int flag = POINTER_AS_INT(closure);
@@ -272,17 +271,19 @@ static int bpy_app_debug_set(PyObject * /*self*/, PyObject *value, void *closure
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_app_internet_offline_doc,
-    "Boolean, true when internet access is allowed by Blender & 3rd party scripts (read-only)");
+    "Boolean, true when internet access is allowed by Blender & 3rd party scripts "
+    "(read-only).");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_app_internet_offline_override_doc,
-    "Boolean, true when internet access preference is overridden by the command line (read-only)");
-
+    "Boolean, true when internet access preference is overridden by the command line "
+    "(read-only).");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_app_global_flag_doc,
     "Boolean, for application behavior "
     "(started with ``--enable-*`` matching this attribute name)");
+
 static PyObject *bpy_app_global_flag_get(PyObject * /*self*/, void *closure)
 {
   const int flag = POINTER_AS_INT(closure);
@@ -324,7 +325,7 @@ static int bpy_app_global_flag_set__only_disable(PyObject * /*self*/,
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_app_debug_value_doc,
-    "Short, number which can be set to non-zero values for testing purposes");
+    "Short, number which can be set to non-zero values for testing purposes.");
 static PyObject *bpy_app_debug_value_get(PyObject * /*self*/, void * /*closure*/)
 {
   return PyLong_FromLong(G.debug_value);
@@ -350,7 +351,7 @@ static int bpy_app_debug_value_set(PyObject * /*self*/, PyObject *value, void * 
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_app_tempdir_doc,
-    "String, the temp directory used by blender (read-only)");
+    "String, the temp directory used by blender (read-only).");
 static PyObject *bpy_app_tempdir_get(PyObject * /*self*/, void * /*closure*/)
 {
   return PyC_UnicodeFromBytes(BKE_tempdir_session());
@@ -359,7 +360,7 @@ static PyObject *bpy_app_tempdir_get(PyObject * /*self*/, void * /*closure*/)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_app_driver_dict_doc,
-    "Dictionary for drivers namespace, editable in-place, reset on file load (read-only)");
+    "Dictionary for drivers namespace, editable in-place, reset on file load (read-only).");
 static PyObject *bpy_app_driver_dict_get(PyObject * /*self*/, void * /*closure*/)
 {
   if (bpy_pydriver_Dict == nullptr) {
@@ -375,7 +376,7 @@ static PyObject *bpy_app_driver_dict_get(PyObject * /*self*/, void * /*closure*/
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_app_preview_render_size_doc,
-    "Reference size for icon/preview renders (read-only)");
+    "Reference size for icon/preview renders (read-only).");
 static PyObject *bpy_app_preview_render_size_get(PyObject * /*self*/, void *closure)
 {
   return PyLong_FromLong(
@@ -571,7 +572,7 @@ PyDoc_STRVAR(
     "   :arg job_type: job type in :ref:`rna_enum_wm_job_type_items`.\n"
     "   :type job_type: str\n"
     "   :return: Whether a job of the given type is currently running.\n"
-    "   :rtype: bool.\n");
+    "   :rtype: bool\n");
 static PyObject *bpy_app_is_job_running(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 {
   BPy_EnumProperty_Parse job_type_enum{};
@@ -605,7 +606,7 @@ char *(*BPY_python_app_help_text_fn)(bool all) = nullptr;
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_app_help_text_doc,
-    ".. staticmethod:: help_text(all=False)\n"
+    ".. staticmethod:: help_text(*, all=False)\n"
     "\n"
     "   Return the help text as a string.\n"
     "\n"

@@ -254,6 +254,11 @@ class TestIdPropertyUIData(TestHelper, unittest.TestCase):
             self.assertEqual(self.id.path_resolve('["%s"]' % bpy.utils.escape_identifier(self.key_id)), 'A')
 
 
+# NOTE: the tests below are fairly deep checks on expected consistency in the py-defined dynamic RNA properties,
+# between their python representations (as RNA properties) and their underlying (IDProperty-based) storage.
+# See `bl_pyapi_prop.py` and `bl_pyapi_prop_array.py` for more basic but systematic testing
+# of all `bpy.props`-defined property types.
+
 # Check statically typed underlying IDProperties storage for dynamic RNA properties.
 class TestIdPropertyDynamicRNA(TestHelper, unittest.TestCase):
 

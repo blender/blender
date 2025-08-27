@@ -14,7 +14,7 @@
 /**
  * Interface for a timer task.
  * Timer tasks are created by the system and can be installed by the system.
- * After installation, the timer callback-procedure or "timerProc" will be called
+ * After installation, the timer callback-procedure or "timer_proc" will be called
  * periodically. You should not need to inherit this class. It is passed to the
  * application in the timer-callback.<br>
  * <br>
@@ -38,9 +38,9 @@ class GHOST_ITimerTask {
 
   /**
    * Changes the timer callback.
-   * \param timerProc: The timer callback.
+   * \param timer_proc: The timer callback.
    */
-  virtual void setTimerProc(const GHOST_TimerProcPtr timerProc) = 0;
+  virtual void setTimerProc(const GHOST_TimerProcPtr timer_proc) = 0;
 
   /**
    * Returns the timer user data.
@@ -50,9 +50,9 @@ class GHOST_ITimerTask {
 
   /**
    * Changes the time user data.
-   * \param userData: The timer user data.
+   * \param user_data: The timer user data.
    */
-  virtual void setUserData(const GHOST_TUserDataPtr userData) = 0;
+  virtual void setUserData(const GHOST_TUserDataPtr user_data) = 0;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_ITimerTask")
 };

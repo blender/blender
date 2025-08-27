@@ -108,12 +108,6 @@ struct VolumeToMeshOp {
       this->tris.clear();
       this->quads.clear();
     }
-
-    /* Better align generated mesh with volume (see #85312). */
-    openvdb::Vec3s offset = grid.voxelSize() / 2.0f;
-    for (openvdb::Vec3s &position : this->verts) {
-      position += offset;
-    }
   }
 };
 

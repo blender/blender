@@ -17,6 +17,9 @@
  * Inserts a new fsmenu entry with the given \a path.
  * Duplicate entries are not added.
  * \param flag: Options for inserting the entry.
+ *
+ * \note The existence of `path` is *intentionally* not accessed,
+ * see inline code-comments for details.
  */
 void fsmenu_insert_entry(struct FSMenu *fsmenu,
                          enum FSMenuCategory category,

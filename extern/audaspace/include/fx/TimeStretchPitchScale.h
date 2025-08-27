@@ -89,6 +89,12 @@ public:
 	 * Returns whether formant preservation is enabled.
 	 */
 	bool getPreserveFormant() const;
+
+	/**
+	 * Returns the quality of the stretcher.
+	 */
+	StretcherQuality getStretcherQuality() const;
+
 	virtual std::shared_ptr<IReader> createReader();
 };
 

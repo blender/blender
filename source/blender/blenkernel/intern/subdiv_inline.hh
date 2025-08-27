@@ -26,6 +26,11 @@ BLI_INLINE void ptex_face_uv_to_grid_uv(const float ptex_u,
   *r_grid_v = 1.0f - ptex_u;
 }
 
+BLI_INLINE float2 ptex_face_uv_to_grid_uv(const float2 &ptex_uv)
+{
+  return float2(1.0f - ptex_uv.y, 1.0f - ptex_uv.x);
+}
+
 BLI_INLINE void grid_uv_to_ptex_face_uv(const float grid_u,
                                         const float grid_v,
                                         float *r_ptex_u,
@@ -68,6 +73,22 @@ BLI_INLINE int rotate_quad_to_corner(const float quad_u,
     *r_corner_v = 2.0f * quad_u;
   }
   return corner;
+}
+
+BLI_INLINE float2 rotate_quad_to_corner(const int corner, const float2 &quad)
+{
+  switch (corner) {
+    case 0:
+      return 2.0f * quad;
+    case 1:
+      return {2.0f * quad.y, 2.0f * (1.0f - quad.x)};
+    case 2:
+      return 2.0f * (1.0f - quad);
+    case 3:
+    default:
+      BLI_assert(corner == 3);
+      return {2.0f * (1.0f - quad.y), 2.0f * quad.x};
+  }
 }
 
 BLI_INLINE void rotate_grid_to_quad(

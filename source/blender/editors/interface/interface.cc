@@ -2293,12 +2293,6 @@ void UI_block_draw(const bContext *C, uiBlock *block)
       continue;
     }
 
-    /* Don't draw buttons that are wider than available space. */
-    const int width = BLI_rcti_size_x(&rect);
-    if ((width > U.widget_unit * 2.5f / block->aspect) && width > region->winx) {
-      continue;
-    }
-
     /* XXX: figure out why invalid coordinates happen when closing render window */
     /* and material preview is redrawn in main window (temp fix for bug #23848) */
     if (rect.xmin < rect.xmax && rect.ymin < rect.ymax) {
@@ -5105,6 +5099,11 @@ uiBut *uiDefButAlert(uiBlock *block, int icon, int x, int y, short width, short 
 {
   ImBuf *ibuf = UI_icon_alert_imbuf_get((eAlertIcon)icon, float(width));
   if (ibuf) {
+    if (icon == ALERT_ICON_ERROR) {
+      uchar color[4];
+      UI_GetThemeColor4ubv(TH_ERROR, color);
+      return uiDefButImage(block, ibuf, x, y, ibuf->x, ibuf->y, color);
+    }
     bTheme *btheme = UI_GetTheme();
     return uiDefButImage(block, ibuf, x, y, ibuf->x, ibuf->y, btheme->tui.wcol_menu_back.text);
   }

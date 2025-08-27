@@ -1609,7 +1609,6 @@ PyDoc_STRVAR(
     /* Wrap. */
     BPy_IDGroup_View_reversed_doc,
     "Return a reverse iterator over the ID Property keys values or items.");
-
 static PyObject *BPy_IDGroup_View_reversed(BPy_IDGroup_View *self, PyObject * /*ignored*/)
 {
   BPy_IDGroup_View *result = IDGroup_View_New_WithType(self->group, Py_TYPE(self));

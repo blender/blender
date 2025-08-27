@@ -10,7 +10,7 @@
 #  include "draw_view_info.hh"
 #  include "overlay_common_info.hh"
 
-#  define HAIR_SHADER
+#  define CURVES_SHADER
 #  define DRW_HAIR_INFO
 
 #  define POINTCLOUD_SHADER
@@ -84,11 +84,12 @@ VERTEX_SOURCE("overlay_viewer_attribute_curves_vert.glsl")
 FRAGMENT_SOURCE("overlay_viewer_attribute_frag.glsl")
 FRAGMENT_OUT(0, float4, out_color)
 FRAGMENT_OUT(1, float4, line_output)
-SAMPLER(1, samplerBuffer, color_tx)
+SAMPLER(2, samplerBuffer, color_tx)
 PUSH_CONSTANT(bool, is_point_domain)
 VERTEX_OUT(overlay_viewer_attribute_iface)
 ADDITIONAL_INFO(overlay_viewer_attribute_common)
-ADDITIONAL_INFO(draw_hair)
+ADDITIONAL_INFO(draw_curves)
+ADDITIONAL_INFO(draw_curves_infos)
 ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_globals)
 ADDITIONAL_INFO(draw_modelmat)

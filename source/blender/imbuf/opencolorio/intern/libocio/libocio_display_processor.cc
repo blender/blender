@@ -12,10 +12,98 @@
 
 #  include "error_handling.hh"
 #  include "libocio_config.hh"
+#  include "libocio_display.hh"
 
 #  include "../white_point.hh"
 
+#  include "CLG_log.h"
+
+static CLG_LogRef LOG = {"color_management"};
+
 namespace blender::ocio {
+
+static void display_as_extended_srgb(const LibOCIOConfig &config,
+                                     OCIO_NAMESPACE::GroupTransformRcPtr &group,
+                                     StringRefNull display_name,
+                                     StringRefNull view_name)
+{
+  /* Emulate the user specified display on an extended sRGB display:
+   * - Apply the view and display transform
+   * - Clamp colors to be within gamut
+   * - Apply the inverse untonemapped display transform
+   * - Convert to extended sRGB
+   */
+
+  /* TODO: This is quite inefficient, and may be possible to optimize.
+   *
+   * Ideally we want OpenColor to cancel out the last part of the forward display transform
+   * and inverse untonemapped display transform. By itself this seems to generally work for
+   * the Blender and ACES 2.0 configs.
+   *
+   * However the clamping prevents this. For common display color spaces it should be possible
+   * to clamp the gamut and HDR in a linear space. For example for PQ, we'd need to clamp
+   * to Rec.2020 gamut and (10000 nits max / 100 nits reference white) = 100.0. Probably this
+   * can be done with a matrix transform, clamp and inverse matrix transform. Where hopefully
+   * the matrix transforms can be merged with a preceding or following one. */
+
+  const LibOCIODisplay *display = static_cast<const LibOCIODisplay *>(
+      config.get_display_by_name(display_name));
+  const LibOCIOView *view = (display) ? static_cast<const LibOCIOView *>(
+                                            display->get_view_by_name(view_name)) :
+                                        nullptr;
+
+  /* Clamp to gamut, so that we don't display values outside of it. One exception
+   * is extended sRGB, where we need to preserve them for correct results and assume
+   * the view transform already clamped them. */
+  if (!(view && view->is_extended())) {
+    auto clamp = OCIO_NAMESPACE::RangeTransform::Create();
+    clamp->setStyle(OCIO_NAMESPACE::RANGE_CLAMP);
+    clamp->setMinInValue(0.0);
+    clamp->setMinOutValue(0.0);
+    clamp->setMaxInValue(1.0);
+    clamp->setMaxOutValue(1.0);
+    group->appendTransform(clamp);
+  }
+
+  /* Nothing further to do if already using sRGB. */
+  if (view && view->is_srgb()) {
+    return;
+  }
+
+  /* Find the linear Rec.709 colorspace needed for the extended sRGB transform. */
+  const OCIO_NAMESPACE::ConstConfigRcPtr &ocio_config = config.get_ocio_config();
+  const char *lin_rec709_srgb = ocio_config->getCanonicalName("lin_rec709_srgb");
+  if (lin_rec709_srgb == nullptr || lin_rec709_srgb[0] == '\0') {
+    CLOG_INFO(&LOG, "Failed to find lin_rec709_srgb colorspace, display may be incorrect");
+    return;
+  }
+
+  /* Find the display and its untonemapped view. */
+  const View *untonemapped_view = display->get_untonemapped_view();
+  if (untonemapped_view == nullptr) {
+    CLOG_INFO(&LOG,
+              "Failed to find untonemapped view for \"%s\", display may be incorrect",
+              display->name().c_str());
+    return;
+  }
+
+  /* Convert to extended sRGB. */
+  const ColorSpace *display_colorspace = config.get_display_view_color_space(
+      display->name().c_str(), untonemapped_view->name().c_str());
+
+  auto to_rec709 = OCIO_NAMESPACE::ColorSpaceTransform::Create();
+  to_rec709->setSrc(display_colorspace->name().c_str());
+  to_rec709->setDst(lin_rec709_srgb);
+  group->appendTransform(to_rec709);
+
+  /* sRGB transfer function, mirrored for negative as specified by scRGB and extended sRGB. */
+  auto to_extended_srgb = OCIO_NAMESPACE::ExponentWithLinearTransform::Create();
+  to_extended_srgb->setGamma({2.4, 2.4, 2.4, 1.0});
+  to_extended_srgb->setOffset({0.055, 0.055, 0.055, 0.0});
+  to_extended_srgb->setDirection(OCIO_NAMESPACE::TRANSFORM_DIR_INVERSE);
+  to_extended_srgb->setNegativeStyle(OCIO_NAMESPACE::NEGATIVE_MIRROR);
+  group->appendTransform(to_extended_srgb);
+}
 
 OCIO_NAMESPACE::ConstProcessorRcPtr create_ocio_display_processor(
     const LibOCIOConfig &config, const DisplayParameters &display_parameters)
@@ -100,6 +188,10 @@ OCIO_NAMESPACE::ConstProcessorRcPtr create_ocio_display_processor(
                              1.0};
     et->setValue(value);
     group->appendTransform(et);
+  }
+
+  if (display_parameters.use_display_emulation) {
+    display_as_extended_srgb(config, group, display_parameters.display, display_parameters.view);
   }
 
   if (display_parameters.inverse) {

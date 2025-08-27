@@ -77,7 +77,7 @@ bool OIDNDenoiserGPU::is_device_supported(const DeviceInfo &device)
     return false;
   }
 
-  LOG_DEBUG << "Checking device " << device.description << " (" << device.id
+  LOG_TRACE << "Checking device " << device.description << " (" << device.id
             << ") for OIDN GPU support";
 
   int device_type = OIDN_DEVICE_TYPE_DEFAULT;
@@ -101,20 +101,20 @@ bool OIDNDenoiserGPU::is_device_supported(const DeviceInfo &device)
 #    ifdef OIDN_DEVICE_METAL
     case DEVICE_METAL: {
       const int num_devices = oidnGetNumPhysicalDevices();
-      LOG_DEBUG << "Found " << num_devices << " OIDN device(s)";
+      LOG_TRACE << "Found " << num_devices << " OIDN device(s)";
       for (int i = 0; i < num_devices; i++) {
         const int type = oidnGetPhysicalDeviceInt(i, "type");
         const char *name = oidnGetPhysicalDeviceString(i, "name");
-        LOG_DEBUG << "OIDN device " << i << ": name=\"" << name
+        LOG_TRACE << "OIDN device " << i << ": name=\"" << name
                   << "\", type=" << oidn_device_type_to_string(OIDNDeviceType(type));
         if (type == OIDN_DEVICE_TYPE_METAL) {
           if (device.id.find(name) != std::string::npos) {
-            LOG_DEBUG << "OIDN device name matches the Cycles device name";
+            LOG_TRACE << "OIDN device name matches the Cycles device name";
             return true;
           }
         }
       }
-      LOG_DEBUG << "No matched OIDN device found";
+      LOG_TRACE << "No matched OIDN device found";
       return false;
     }
 #    endif
@@ -127,11 +127,11 @@ bool OIDNDenoiserGPU::is_device_supported(const DeviceInfo &device)
 
   /* Match GPUs by their PCI ID. */
   const int num_devices = oidnGetNumPhysicalDevices();
-  LOG_DEBUG << "Found " << num_devices << " OIDN device(s)";
+  LOG_TRACE << "Found " << num_devices << " OIDN device(s)";
   for (int i = 0; i < num_devices; i++) {
     const int type = oidnGetPhysicalDeviceInt(i, "type");
     const char *name = oidnGetPhysicalDeviceString(i, "name");
-    LOG_DEBUG << "OIDN device " << i << ": name=\"" << name
+    LOG_TRACE << "OIDN device " << i << ": name=\"" << name
               << "\" type=" << oidn_device_type_to_string(OIDNDeviceType(type));
     if (type == device_type) {
       if (oidnGetPhysicalDeviceBool(i, "pciAddressSupported")) {
@@ -141,16 +141,16 @@ bool OIDNDenoiserGPU::is_device_supported(const DeviceInfo &device)
         string pci_id = string_printf("%04x:%02x:%02x", pci_domain, pci_bus, pci_device);
         LOG_INFO << "OIDN device PCI-e identifier: " << pci_id;
         if (device.id.find(pci_id) != string::npos) {
-          LOG_DEBUG << "OIDN device PCI-e identifier matches the Cycles device ID";
+          LOG_TRACE << "OIDN device PCI-e identifier matches the Cycles device ID";
           return true;
         }
       }
       else {
-        LOG_DEBUG << "Device does not support pciAddressSupported";
+        LOG_TRACE << "Device does not support pciAddressSupported";
       }
     }
   }
-  LOG_DEBUG << "No matched OIDN device found";
+  LOG_TRACE << "No matched OIDN device found";
   return false;
 #  endif
 }

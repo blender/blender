@@ -2,8 +2,26 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "gpu_shader_common_hash.glsl"
 #include "gpu_shader_compositor_texture_utilities.glsl"
 #include "gpu_shader_math_base_lib.glsl"
+
+/* Returns an index for a position along the path between the texel and the source.
+ *
+ * When jitter is enabled, the position index is computed using the Global Shift
+ * sampling technique: a hash-based global shift is applied to the indices which is then
+ * factored to cover the range [0, steps].
+ * Without jitter, the integer index `i` is returned
+ * directly.
+ */
+float get_sample_position(int i, float random_offset)
+{
+#if defined(JITTER)
+  return safe_divide(i + random_offset, 1.0f - jitter_factor);
+#else
+  return i;
+#endif
+}
 
 void main()
 {
@@ -26,8 +44,17 @@ void main()
 
   float accumulated_weight = 0.0f;
   float4 accumulated_color = float4(0.0f);
-  for (int i = 0; i <= steps; i++) {
-    float2 position = coordinates + i * step_vector;
+
+#if defined(JITTER)
+  int number_of_steps = int((1.0f - jitter_factor) * steps);
+#else
+  int number_of_steps = steps;
+#endif
+  float random_offset = hash_uint2_to_float(uint(texel.x), uint(texel.y));
+
+  for (int i = 0; i <= number_of_steps; i++) {
+    float position_index = get_sample_position(i, random_offset);
+    float2 position = coordinates + position_index * step_vector;
 
     /* We are already past the image boundaries, and any future steps are also past the image
      * boundaries, so break. */
@@ -39,12 +66,17 @@ void main()
 
     /* Attenuate the contributions of pixels that are further away from the source using a
      * quadratic falloff. */
-    float weight = square(1.0f - i / float(steps));
+    float weight = square(1.0f - position_index / float(steps));
 
     accumulated_weight += weight;
     accumulated_color += sample_color * weight;
   }
 
-  accumulated_color /= accumulated_weight != 0.0f ? accumulated_weight : 1.0f;
+  if (accumulated_weight != 0.0f) {
+    accumulated_color /= accumulated_weight;
+  }
+  else {
+    accumulated_color = texture(input_tx, coordinates);
+  }
   imageStore(output_img, texel, accumulated_color);
 }

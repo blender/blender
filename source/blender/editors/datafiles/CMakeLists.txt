@@ -152,6 +152,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.sculpt.polyline_trim
   ops.sequencer.blade
   ops.sequencer.retime
+  ops.sequencer.slip
   ops.transform.bone_envelope
   ops.transform.bone_size
   ops.transform.edge_slide
@@ -965,6 +966,7 @@ if(WITH_BLENDER)
       cursor_pointer
       cursor_right_handle
       cursor_s_arrow
+      cursor_slip
       cursor_stop
       cursor_swap_area
       cursor_text_edit

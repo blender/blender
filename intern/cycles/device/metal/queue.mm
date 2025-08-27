@@ -398,7 +398,7 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
 
     debug_enqueue_begin(kernel, work_size);
 
-    LOG_STATS << "Metal queue launch " << device_kernel_as_string(kernel) << ", work_size "
+    LOG_TRACE << "Metal queue launch " << device_kernel_as_string(kernel) << ", work_size "
               << work_size;
 
     id<MTLComputeCommandEncoder> mtlComputeCommandEncoder = get_compute_encoder(kernel);

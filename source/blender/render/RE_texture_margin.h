@@ -7,7 +7,6 @@
  * \ingroup bke
  */
 
-struct DerivedMesh;
 struct ImBuf;
 struct Mesh;
 
@@ -26,6 +25,3 @@ void RE_generate_texturemargin_adjacentfaces(struct ImBuf *ibuf,
                                              struct Mesh const *me,
                                              char const *uv_layer,
                                              const float uv_offset[2]);
-
-void RE_generate_texturemargin_adjacentfaces_dm(
-    struct ImBuf *ibuf, char *mask, int margin, struct DerivedMesh *dm, const float uv_offset[2]);

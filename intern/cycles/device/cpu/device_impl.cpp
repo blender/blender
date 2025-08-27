@@ -97,9 +97,9 @@ void CPUDevice::mem_alloc(device_memory &mem)
   }
   else {
     if (mem.name) {
-      LOG_WORK << "Buffer allocate: " << mem.name << ", "
-               << string_human_readable_number(mem.memory_size()) << " bytes. ("
-               << string_human_readable_size(mem.memory_size()) << ")";
+      LOG_DEBUG << "Buffer allocate: " << mem.name << ", "
+                << string_human_readable_number(mem.memory_size()) << " bytes. ("
+                << string_human_readable_size(mem.memory_size()) << ")";
     }
 
     if (mem.type == MEM_DEVICE_ONLY) {
@@ -199,9 +199,9 @@ void CPUDevice::const_copy_to(const char *name, void *host, const size_t size)
 
 void CPUDevice::global_alloc(device_memory &mem)
 {
-  LOG_WORK << "Global memory allocate: " << mem.name << ", "
-           << string_human_readable_number(mem.memory_size()) << " bytes. ("
-           << string_human_readable_size(mem.memory_size()) << ")";
+  LOG_DEBUG << "Global memory allocate: " << mem.name << ", "
+            << string_human_readable_number(mem.memory_size()) << " bytes. ("
+            << string_human_readable_size(mem.memory_size()) << ")";
 
   kernel_global_memory_copy(&kernel_globals, mem.name, mem.host_pointer, mem.data_size);
 
@@ -221,9 +221,9 @@ void CPUDevice::global_free(device_memory &mem)
 
 void CPUDevice::tex_alloc(device_texture &mem)
 {
-  LOG_WORK << "Texture allocate: " << mem.name << ", "
-           << string_human_readable_number(mem.memory_size()) << " bytes. ("
-           << string_human_readable_size(mem.memory_size()) << ")";
+  LOG_DEBUG << "Texture allocate: " << mem.name << ", "
+            << string_human_readable_number(mem.memory_size()) << " bytes. ("
+            << string_human_readable_size(mem.memory_size()) << ")";
 
   mem.device_pointer = (device_ptr)mem.host_pointer;
   mem.device_size = mem.memory_size();

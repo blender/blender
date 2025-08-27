@@ -4,7 +4,7 @@
 
 # ./blender.bin --background --python tests/python/bl_pyapi_mathutils.py -- --verbose
 import unittest
-from mathutils import Matrix, Vector, Quaternion, Euler
+from mathutils import Matrix, Vector, Quaternion, Euler, Color
 from mathutils import kdtree, geometry
 import math
 
@@ -33,7 +33,49 @@ vector_data = sum(
                    for sign in (1.0, -1.0))), ()) + ((0.0, 0.0, 0.0),)
 
 
+def _test_flat_buffer_protocol(self, ty, n):
+    expected = list(range(n))
+    data = ty(expected)
+    view = memoryview(data)
+
+    self.assertEqual(view.shape, (n,))
+    self.assertEqual(view.format, "f")
+    self.assertEqual(view.tolist(), expected)
+
+    # Check multiple simultaneous.
+    with self.assertRaises(BufferError):
+        memoryview(data)
+
+    # Check frozen.
+    with self.assertRaises(BufferError):
+        data.freeze()
+
+    # Check resize.
+    if ty is Vector:
+        with self.assertRaises(BufferError):
+            data.resize(100)
+
+    _incref = view  # For potential changes in GC.
+
+    # Check for a release buffer call, GC releases the buffer if it's not referenced.
+    data = ty(expected)
+    memoryview(data)
+    memoryview(data)
+
+    vec = ty(expected)
+    vec.freeze()
+    view = memoryview(vec)
+    with self.assertRaises(TypeError):
+        view[0] = 1
+
+
 class MatrixTesting(unittest.TestCase):
+
+    def assertAlmostEqualMatrix(self, first, second, size, *, places=6, msg=None, delta=None):
+        for i in range(size):
+            for j in range(size):
+                self.assertAlmostEqual(first[i][j], second[i][j], places=places, msg=msg, delta=delta)
+
     def test_matrix_column_access(self):
         # mat =
         # [ 1  2  3  4 ]
@@ -257,10 +299,14 @@ class MatrixTesting(unittest.TestCase):
         with self.assertRaises(TypeError):
             mat[0][0] = 0.0
 
-    def assertAlmostEqualMatrix(self, first, second, size, *, places=6, msg=None, delta=None):
-        for i in range(size):
-            for j in range(size):
-                self.assertAlmostEqual(first[i][j], second[i][j], places=places, msg=msg, delta=delta)
+    def test_buffer_protocol(self):
+        expected = [list(range(i * 4, (i * 4) + 4)) for i in range(4)]
+        m = Matrix(expected)
+        view = memoryview(m)
+
+        self.assertEqual(view.shape, (4, 4))
+        self.assertEqual(view.format, "f")
+        self.assertEqual(view.tolist(), expected)
 
 
 class VectorTesting(unittest.TestCase):
@@ -323,6 +369,9 @@ class VectorTesting(unittest.TestCase):
         with self.assertRaises(TypeError):
             vec[0] = 0.0
 
+    def test_buffer_protocol(self):
+        _test_flat_buffer_protocol(self, Vector, 10)
+
 
 class QuaternionTesting(unittest.TestCase):
 
@@ -351,6 +400,21 @@ class QuaternionTesting(unittest.TestCase):
         self.assertAlmostEqual(axis.x, math.sqrt(0.5), 6)
         self.assertAlmostEqual(axis.y, math.sqrt(0.5), 6)
         self.assertAlmostEqual(axis.z, 0)
+
+    def test_buffer_protocol(self):
+        _test_flat_buffer_protocol(self, Quaternion, 4)
+
+
+class EulerTesting(unittest.TestCase):
+
+    def test_buffer_protocol(self):
+        _test_flat_buffer_protocol(self, Euler, 3)
+
+
+class ColorTesting(unittest.TestCase):
+
+    def test_buffer_protocol(self):
+        _test_flat_buffer_protocol(self, Color, 3)
 
 
 class KDTreeTesting(unittest.TestCase):

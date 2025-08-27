@@ -131,7 +131,7 @@ CurvesGeometry::CurvesGeometry(const CurvesGeometry &other)
                             other.runtime->custom_knots_sharing_info,
                             other.runtime->type_counts,
                             other.runtime->evaluated_offsets_cache,
-                            other.runtime->cyclic_offsets_cache,
+                            other.runtime->has_cyclic_curve_cache,
                             other.runtime->nurbs_basis_cache,
                             other.runtime->evaluated_position_cache,
                             other.runtime->bounds_cache,
@@ -313,7 +313,7 @@ void CurvesGeometry::update_curve_types()
 
 Span<float3> CurvesGeometry::positions() const
 {
-  return get_span_attribute<float3>(
+  return *get_span_attribute<float3>(
       this->attribute_storage.wrap(), AttrDomain::Point, ATTR_POSITION, this->points_num());
 }
 MutableSpan<float3> CurvesGeometry::positions_for_write()
@@ -428,7 +428,7 @@ MutableSpan<int8_t> CurvesGeometry::handle_types_right_for_write()
                                        0);
 }
 
-Span<float3> CurvesGeometry::handle_positions_left() const
+std::optional<Span<float3>> CurvesGeometry::handle_positions_left() const
 {
   return get_span_attribute<float3>(this->attribute_storage.wrap(),
                                     AttrDomain::Point,
@@ -443,7 +443,7 @@ MutableSpan<float3> CurvesGeometry::handle_positions_left_for_write()
                                        this->points_num());
 }
 
-Span<float3> CurvesGeometry::handle_positions_right() const
+std::optional<Span<float3>> CurvesGeometry::handle_positions_right() const
 {
   return get_span_attribute<float3>(this->attribute_storage.wrap(),
                                     AttrDomain::Point,
@@ -469,7 +469,7 @@ MutableSpan<int8_t> CurvesGeometry::nurbs_orders_for_write()
       this->attribute_storage.wrap(), AttrDomain::Curve, ATTR_NURBS_ORDER, this->curves_num(), 4);
 }
 
-Span<float> CurvesGeometry::nurbs_weights() const
+std::optional<Span<float>> CurvesGeometry::nurbs_weights() const
 {
   return get_span_attribute<float>(
       this->attribute_storage.wrap(), AttrDomain::Point, ATTR_NURBS_WEIGHT, this->points_num());
@@ -500,7 +500,7 @@ MutableSpan<int8_t> CurvesGeometry::nurbs_knots_modes_for_write()
                                        0);
 }
 
-Span<float2> CurvesGeometry::surface_uv_coords() const
+std::optional<Span<float2>> CurvesGeometry::surface_uv_coords() const
 {
   return get_span_attribute<float2>(this->attribute_storage.wrap(),
                                     AttrDomain::Curve,
@@ -716,49 +716,12 @@ OffsetIndices<int> CurvesGeometry::evaluated_points_by_curve() const
   return OffsetIndices<int>(runtime.evaluated_offsets_cache.data().evaluated_offsets);
 }
 
-std::optional<Span<int>> CurvesGeometry::cyclic_offsets() const
+bool CurvesGeometry::has_cyclic_curve() const
 {
-  this->runtime->cyclic_offsets_cache.ensure([&](std::optional<Vector<int>> &r_data) {
-    const VArray<bool> cyclic = this->cyclic();
-
-    const auto ensure_vector = [&]() {
-      if (r_data) {
-        r_data->resize(cyclic.size() + 1);
-      }
-      else {
-        r_data.emplace(cyclic.size() + 1);
-      }
-      return r_data->as_mutable_span();
-    };
-
-    if (const std::optional<bool> single = cyclic.get_if_single()) {
-      if (*single) {
-        array_utils::fill_index_range(ensure_vector());
-      }
-      else {
-        r_data = std::nullopt;
-      }
-      return;
-    }
-
-    MutableSpan span = ensure_vector();
-
-    int sum = 0;
-    for (const int i : cyclic.index_range()) {
-      span[i] = sum;
-      if (cyclic[i]) {
-        sum++;
-      }
-    }
-    span.last() = sum;
-    if (sum == 0) {
-      r_data = std::nullopt;
-    }
+  this->runtime->has_cyclic_curve_cache.ensure([&](bool &r_data) {
+    r_data = array_utils::contains(this->cyclic(), this->curves_range(), true);
   });
-  if (!this->runtime->cyclic_offsets_cache.data()) {
-    return std::nullopt;
-  }
-  return this->runtime->cyclic_offsets_cache.data()->as_span();
+  return this->runtime->has_cyclic_curve_cache.data();
 }
 
 IndexMask CurvesGeometry::indices_for_curve_type(const CurveType type,
@@ -875,9 +838,9 @@ Span<float3> CurvesGeometry::evaluated_positions() const
           points_by_curve, evaluated_points_by_curve, selection, positions, evaluated_positions);
     };
     auto evaluate_bezier = [&](const IndexMask &selection) {
-      const Span<float3> handle_positions_left = this->handle_positions_left();
-      const Span<float3> handle_positions_right = this->handle_positions_right();
-      if (handle_positions_left.is_empty() || handle_positions_right.is_empty()) {
+      const std::optional<Span<float3>> handle_positions_left = this->handle_positions_left();
+      const std::optional<Span<float3>> handle_positions_right = this->handle_positions_right();
+      if (!handle_positions_left || !handle_positions_right) {
         curves::fill_points(evaluated_points_by_curve, selection, float3(0), evaluated_positions);
         return;
       }
@@ -888,8 +851,8 @@ Span<float3> CurvesGeometry::evaluated_positions() const
         const IndexRange evaluated_points = evaluated_points_by_curve[curve_index];
         const IndexRange offsets = curves::per_curve_point_offsets_range(points, curve_index);
         curves::bezier::calculate_evaluated_positions(positions.slice(points),
-                                                      handle_positions_left.slice(points),
-                                                      handle_positions_right.slice(points),
+                                                      handle_positions_left->slice(points),
+                                                      handle_positions_right->slice(points),
                                                       all_bezier_offsets.slice(offsets),
                                                       evaluated_positions.slice(evaluated_points));
       });
@@ -897,14 +860,15 @@ Span<float3> CurvesGeometry::evaluated_positions() const
     auto evaluate_nurbs = [&](const IndexMask &selection) {
       this->ensure_nurbs_basis_cache();
       const VArray<int8_t> nurbs_orders = this->nurbs_orders();
-      const Span<float> nurbs_weights = this->nurbs_weights();
+      const std::optional<Span<float>> nurbs_weights = this->nurbs_weights();
       const Span<curves::nurbs::BasisCache> nurbs_basis_cache = runtime.nurbs_basis_cache.data();
       selection.foreach_index(GrainSize(128), [&](const int curve_index) {
         const IndexRange points = points_by_curve[curve_index];
         const IndexRange evaluated_points = evaluated_points_by_curve[curve_index];
         curves::nurbs::interpolate_to_evaluated(nurbs_basis_cache[curve_index],
                                                 nurbs_orders[curve_index],
-                                                nurbs_weights.slice_safe(points),
+                                                nurbs_weights ? nurbs_weights->slice(points) :
+                                                                Span<float>(),
                                                 positions.slice(points),
                                                 evaluated_positions.slice(evaluated_points));
       });
@@ -948,8 +912,8 @@ Span<float3> CurvesGeometry::evaluated_tangents() const
     if (!bezier_mask.is_empty()) {
       const OffsetIndices<int> points_by_curve = this->points_by_curve();
       const Span<float3> positions = this->positions();
-      const Span<float3> handles_left = this->handle_positions_left();
-      const Span<float3> handles_right = this->handle_positions_right();
+      const Span<float3> handles_left = *this->handle_positions_left();
+      const Span<float3> handles_right = *this->handle_positions_right();
 
       bezier_mask.foreach_index(GrainSize(1024), [&](const int curve_index) {
         if (cyclic[curve_index]) {
@@ -1006,7 +970,7 @@ struct EvalData {
   const Span<int> all_bezier_evaluated_offsets;
   const Span<curves::nurbs::BasisCache> nurbs_basis_cache;
   const VArray<int8_t> &nurbs_orders;
-  const Span<float> nurbs_weights;
+  const std::optional<Span<float>> nurbs_weights;
 };
 
 static void evaluate_generic_data_for_curve(const EvalData &eval_data,
@@ -1030,11 +994,12 @@ static void evaluate_generic_data_for_curve(const EvalData &eval_data,
       break;
     }
     case CURVE_TYPE_NURBS:
-      curves::nurbs::interpolate_to_evaluated(eval_data.nurbs_basis_cache[curve_index],
-                                              eval_data.nurbs_orders[curve_index],
-                                              eval_data.nurbs_weights.slice_safe(points),
-                                              src,
-                                              dst);
+      curves::nurbs::interpolate_to_evaluated(
+          eval_data.nurbs_basis_cache[curve_index],
+          eval_data.nurbs_orders[curve_index],
+          eval_data.nurbs_weights ? eval_data.nurbs_weights->slice(points) : Span<float>(),
+          src,
+          dst);
       break;
   }
 }
@@ -1257,7 +1222,7 @@ void CurvesGeometry::tag_topology_changed()
   this->runtime->custom_knot_offsets_cache.tag_dirty();
   this->tag_positions_changed();
   this->runtime->evaluated_offsets_cache.tag_dirty();
-  this->runtime->cyclic_offsets_cache.tag_dirty();
+  this->runtime->has_cyclic_curve_cache.tag_dirty();
   this->runtime->nurbs_basis_cache.tag_dirty();
   this->runtime->max_material_index_cache.tag_dirty();
   this->runtime->check_type_counts = true;
@@ -1298,7 +1263,7 @@ void CurvesGeometry::calculate_bezier_auto_handles()
   if (!this->has_curve_with_type(CURVE_TYPE_BEZIER)) {
     return;
   }
-  if (this->handle_positions_left().is_empty() || this->handle_positions_right().is_empty()) {
+  if (!this->handle_positions_left() || !this->handle_positions_right()) {
     return;
   }
   const OffsetIndices points_by_curve = this->points_by_curve();
@@ -1337,10 +1302,10 @@ void CurvesGeometry::translate(const float3 &translation)
   }
 
   translate_positions(this->positions_for_write(), translation);
-  if (!this->handle_positions_left().is_empty()) {
+  if (this->handle_positions_left()) {
     translate_positions(this->handle_positions_left_for_write(), translation);
   }
-  if (!this->handle_positions_right().is_empty()) {
+  if (this->handle_positions_right()) {
     translate_positions(this->handle_positions_right_for_write(), translation);
   }
   this->tag_positions_changed();
@@ -1355,10 +1320,10 @@ void CurvesGeometry::translate(const float3 &translation)
 void CurvesGeometry::transform(const float4x4 &matrix)
 {
   transform_positions(this->positions_for_write(), matrix);
-  if (!this->handle_positions_left().is_empty()) {
+  if (this->handle_positions_left()) {
     transform_positions(this->handle_positions_left_for_write(), matrix);
   }
-  if (!this->handle_positions_right().is_empty()) {
+  if (this->handle_positions_right()) {
     transform_positions(this->handle_positions_right_for_write(), matrix);
   }
   MutableAttributeAccessor attributes = this->attributes_for_write();

@@ -225,7 +225,10 @@ void multiresModifier_subdivide_to_level(Object *object,
 /** \name Apply base
  * \{ */
 
-void multiresModifier_base_apply(Depsgraph *depsgraph, Object *object, MultiresModifierData *mmd)
+void multiresModifier_base_apply(Depsgraph *depsgraph,
+                                 Object *object,
+                                 MultiresModifierData *mmd,
+                                 const ApplyBaseMode mode)
 {
   multires_force_sculpt_rebuild(object);
 
@@ -256,7 +259,9 @@ void multiresModifier_base_apply(Depsgraph *depsgraph, Object *object, MultiresM
    * - Heuristic moves them a bit, kind of canceling out the effect of subsurf (so then when
    *   multires modifier applies subsurf vertices are placed at the desired location). */
   multires_reshape_apply_base_update_mesh_coords(&reshape_context);
-  multires_reshape_apply_base_refit_base_mesh(&reshape_context);
+  if (mode == ApplyBaseMode::ForSubdivision) {
+    multires_reshape_apply_base_refit_base_mesh(&reshape_context);
+  }
 
   /* Reshape to the stored final state.
    * Not that the base changed, so the subdiv is to be refined to the new positions. Unfortunately,

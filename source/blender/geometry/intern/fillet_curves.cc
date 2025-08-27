@@ -410,8 +410,8 @@ static bke::CurvesGeometry fillet_curves(const bke::CurvesGeometry &src_curves,
   if (src_curves.has_curve_with_type(CURVE_TYPE_BEZIER)) {
     src_types_l = src_curves.handle_types_left();
     src_types_r = src_curves.handle_types_right();
-    src_handles_l = src_curves.handle_positions_left();
-    src_handles_r = src_curves.handle_positions_right();
+    src_handles_l = *src_curves.handle_positions_left();
+    src_handles_r = *src_curves.handle_positions_right();
 
     dst_types_l = dst_curves.handle_types_left_for_write();
     dst_types_r = dst_curves.handle_types_right_for_write();

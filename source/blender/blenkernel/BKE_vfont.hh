@@ -18,14 +18,18 @@ struct VFont;
 
 struct CharTrans {
   float xof, yof;
-  float rot;
+  float rotate;
   short linenr, charnr;
-  char dobreak;
+
+  uint do_break : 1;
+  uint is_overflow : 1;
+  uint is_wrap : 1;
+  uint is_smallcaps : 1;
 };
 
 struct EditFontSelBox {
   float x, y, w, h;
-  float rot;
+  float rotate;
 };
 
 /**
@@ -36,6 +40,9 @@ struct EditFont {
   char32_t *textbuf;
   /** Text style info (aligned with `textbuf`). */
   CharInfo *textbufinfo;
+
+  /** The font size from the last evaluated text layout. */
+  float font_size_eval;
 
   /** Array of rectangles & rotation. */
   float textcurs[4][2];
@@ -74,11 +81,14 @@ enum eEditFontMode {
   FO_DUPLI = 4,
   FO_PAGEUP = 8,
   FO_PAGEDOWN = 9,
-  FO_SELCHANGE = 10,
+  FO_LINE_BEGIN = 10,
+  FO_LINE_END = 11,
+  FO_SELCHANGE = 12,
 };
 
 /** #BKE_vfont_to_curve will move the cursor in these cases. */
-#define FO_CURS_IS_MOTION(mode) (ELEM(mode, FO_CURSUP, FO_CURSDOWN, FO_PAGEUP, FO_PAGEDOWN))
+#define FO_CURS_IS_MOTION(mode) \
+  (ELEM(mode, FO_CURSUP, FO_CURSDOWN, FO_PAGEUP, FO_PAGEDOWN, FO_LINE_BEGIN, FO_LINE_END))
 
 /* -------------------------------------------------------------------- */
 /** \name VFont API
@@ -101,8 +111,8 @@ VFont *BKE_vfont_load(Main *bmain, const char *filepath);
 VFont *BKE_vfont_load_exists_ex(Main *bmain, const char *filepath, bool *r_exists);
 VFont *BKE_vfont_load_exists(Main *bmain, const char *filepath);
 
-int BKE_vfont_select_get(Object *ob, int *r_start, int *r_end);
-void BKE_vfont_select_clamp(Object *ob);
+int BKE_vfont_select_get(const Curve *cu, int *r_start, int *r_end);
+void BKE_vfont_select_clamp(Curve *cu);
 
 void BKE_vfont_clipboard_free();
 void BKE_vfont_clipboard_set(const char32_t *text_buf, const CharInfo *info_buf, size_t len);
@@ -125,10 +135,11 @@ int BKE_vfont_cursor_to_text_index(Object *ob, const float cursor_location[2]);
  * \warning Expects to have access to evaluated data (i.e. passed object should be evaluated one).
  */
 bool BKE_vfont_to_curve(Object *ob, eEditFontMode mode);
-void BKE_vfont_char_build(Curve *cu,
+void BKE_vfont_char_build(const Curve &cu,
                           ListBase *nubase,
                           unsigned int charcode,
                           const CharInfo *info,
+                          bool is_smallcaps,
                           float ofsx,
                           float ofsy,
                           float rot,
@@ -136,13 +147,14 @@ void BKE_vfont_char_build(Curve *cu,
                           float fsize);
 
 bool BKE_vfont_to_curve_ex(Object *ob,
-                           Curve *cu,
+                           const Curve &cu,
                            eEditFontMode mode,
                            ListBase *r_nubase,
                            const char32_t **r_text,
                            int *r_text_len,
                            bool *r_text_free,
-                           CharTrans **r_chartransdata);
+                           CharTrans **r_chartransdata,
+                           float *r_font_size_eval);
 bool BKE_vfont_to_curve_nubase(Object *ob, eEditFontMode mode, ListBase *r_nubase);
 
 /** \} */

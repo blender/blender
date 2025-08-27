@@ -20,6 +20,7 @@ struct GlyphCacheBLF;
 struct ListBase;
 struct ResultBLF;
 struct rcti;
+struct rctf;
 enum class BLFWrapMode;
 
 /**
@@ -153,6 +154,7 @@ int blf_font_height_max(FontBLF *font);
 int blf_font_width_max(FontBLF *font);
 int blf_font_descender(FontBLF *font);
 int blf_font_ascender(FontBLF *font);
+bool blf_font_bounds_max(FontBLF *font, rctf *r_bounds);
 
 char *blf_display_name(FontBLF *font);
 

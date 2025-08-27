@@ -105,7 +105,7 @@ static bool vdb_voxel_intersect(const float3 p_min,
                                 const openvdb::tools::FindActiveValues<openvdb::BoolTree> &find)
 {
   if (grid->empty()) {
-    /* Non-mesh volume. */
+    /* Non-mesh volume or open mesh. */
     return true;
   }
 

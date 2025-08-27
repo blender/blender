@@ -13,8 +13,10 @@
 
 #include "DNA_mesh_types.h"
 
-/* Hardcoded for until GPU shaders are automatically generated, then we will have a more
- * programmatic way of detecting this. */
+/**
+ * Hard-coded for until GPU shaders are automatically generated,
+ * then we will have a more programmatic way of detecting this.
+ */
 #define MAX_GPU_SUBDIV_SSBOS 12
 
 struct Mesh;
@@ -27,27 +29,29 @@ struct Subdiv;
 struct Settings;
 }  // namespace blender::bke::subdiv
 
-/* Runtime subsurf modifier data, cached in modifier on evaluated meshes. */
+/** Runtime subsurf modifier data, cached in modifier on evaluated meshes. */
 struct SubsurfRuntimeData {
-  /* Subdivision settings, exists before descriptor or mesh wrapper is created. */
+  /** Subdivision settings, exists before descriptor or mesh wrapper is created. */
   blender::bke::subdiv::Settings settings;
 
-  /* Cached subdivision surface descriptor, with topology and settings. */
+  /** Cached subdivision surface descriptor, with topology and settings. */
   blender::bke::subdiv::Subdiv *subdiv_cpu;
   blender::bke::subdiv::Subdiv *subdiv_gpu;
 
-  /* Recent usage markers for UI diagnostics. To avoid UI flicker due to races
+  /**
+   * Recent usage markers for UI diagnostics. To avoid UI flicker due to races
    * between evaluation and UI redraw, they are set to 2 when an evaluator is used,
-   * and count down every frame. */
+   * and count down every frame.
+   */
   char used_cpu, used_gpu;
 
-  /* Cached mesh wrapper data, to be used for GPU subdiv or lazy evaluation on CPU. */
+  /** Cached mesh wrapper data, to be used for GPU subdiv or lazy evaluation on CPU. */
   bool has_gpu_subdiv;
   int resolution;
   bool use_optimal_display;
   bool use_loop_normals;
 
-  /* Cached from the draw code for stats display. */
+  /** Cached from the draw code for stats display. */
   int stats_totvert;
   int stats_totedge;
   int stats_faces_num;

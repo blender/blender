@@ -1241,6 +1241,7 @@ float4x4 __mat4x4(float3x3 a) { return to_float4x4(a); }
 
 /* Resource accessor. */
 #define specialization_constant_get(create_info, _res) _res
+#define shared_variable_get(create_info, _res) _res
 #define push_constant_get(create_info, _res) _res
 #define interface_get(create_info, _res) _res
 #define attribute_get(create_info, _res) _res

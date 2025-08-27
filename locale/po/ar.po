@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'6dca66d606ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68abaa12d581')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-11 08:28+0000\n"
+"POT-Creation-Date: 2025-08-25 08:31+0000\n"
 "PO-Revision-Date: 2025-07-23 14:53+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
@@ -1064,6 +1064,30 @@ msgid "Target"
 msgstr "ﻑﺪﻫ"
 
 
+msgid "Bake Type"
+msgstr "ﺰﺒﺨﻟﺍ ﻉﻮﻧ"
+
+
+msgid "Choose shading information to bake into the image"
+msgstr "ﺓﺭﻮﺼﻟﺍ ﻰﻟﺇ ﻦﻳﺰﺨﺘﻠﻟ ﻞﻴﻠﻈﺘﻟﺍ ﺕﺎﻣﻮﻠﻌﻣ ﺭﺎﻴﺘﺧﺇ"
+
+
+msgid "Normals"
+msgstr "ﺕﺎﻤﻇﺎﻨﻟﺍ"
+
+
+msgid "Bake normals"
+msgstr "ﺕﺎﻤﻇﺎﻨﻟﺍ ﻥﺰﺧ"
+
+
+msgid "Displacement"
+msgstr "ﻖﺜﺒﻟﺍ"
+
+
+msgid "Bake displacement"
+msgstr "ﻖﺜﺒﻟﺍ ﻥﺰﺧ"
+
+
 msgid "Automatic Name"
 msgstr "ﺔﻴﺗﺍﺫ ﺔﻴﻤﺴﺗ"
 
@@ -1086,6 +1110,22 @@ msgstr "ﺢﺴﻣﺇ"
 
 msgid "Clear Images before baking (internal only)"
 msgstr "(ﻂﻘﻓ ﻲﻠﺧﺍﺪﻠﻟ) ﻦﻳﺰﺨﺘﻟﺍ ﻞﺒﻗ ﺭﻮﺼﻟﺍ ﻝﺯﺇ"
+
+
+msgid "Low Resolution Mesh"
+msgstr "ﺔﻀﻔﺨﻨﻣ ﺔﻗﺩ ﻭﺫ ﻞﻜﺷ"
+
+
+msgid "Calculate heights against unsubdivided low resolution mesh"
+msgstr " ﺎﻴﻤﻴﺴﻘﺗ ﺔﻤﻌﻨﻤﻟﺍ ﺮﻴﻐﻟﺍ ﺔﻗﺪﻟﺍ ﺔﻀﻔﺨﻨﻤﻟﺍ ﻝﺎﻜﺷﻷ﻿ﺍ ﻩﺎﺠﺗﺍ ﺕﺎﻋﺎﻔﺗﺭﻹ﻿ﺍ ﺐﺴﺣﺃ"
+
+
+msgid "Bake from Multires"
+msgstr "ﺕﺎﻗﺪﻟﺍ ﺩﺪﻌﺘﻣ ﻦﻣ ﻥﺰﺧ"
+
+
+msgid "Bake directly from multires object"
+msgstr "ﺕﺎﻗﺪﻟﺍ ﺩﺪﻌﺘﻤﻟﺍ ﻦﺋﺎﻜﻟﺍ ﻦﻣ ﺓﺮﺷﺎﺒﻣ ﻥﺰﺧ"
 
 
 msgid "Selected to Active"
@@ -2932,10 +2972,6 @@ msgstr "ﺽﺮﻌﻟﺍ ﺯﺎﻬﺠﺑ ﺔﺼﺘﺨﻤﻟﺍ ﻥﻮﻠﻟﺍ �
 
 msgid "Display Device"
 msgstr "ﻰﻨﺤﻨﻤﻟﺍ ﺮﻬﻇﺃ"
-
-
-msgid "Display device name"
-msgstr "ﺪﻬﺸﻤﻟﺍ ﺮﻬﻇﺃ"
 
 
 msgid "Input color space settings"
@@ -5764,10 +5800,6 @@ msgid "Strength of displace when applied to the mesh"
 msgstr "ﻞﻜﺸﻟﺍ ﻰﻟﺇ ﺎﻬﻘﻴﺒﻄﺗ ﺪﻨﻋ ﻪﻳﻮﺸﺘﻟﺍ ﺓﻮﻗ"
 
 
-msgid "Displacement"
-msgstr "ﻖﺜﺒﻟﺍ"
-
-
 msgid "Approximately in how many frames should dissolve happen"
 msgstr "ﻲﺷﻼ﻿ﺘﻟﺍ ﺙﺪﺤﻳ ﻥﺃ ﺐﺠﻳ ﺮﻃﻷ﻿ﺎﺑ ﺎﺒﻳﺮﻘﺗ ﻢﻛ"
 
@@ -7363,10 +7395,6 @@ msgstr "ﺓﺪﻘﻌﻟﺍ ﺮﺠﺷ"
 
 msgid "File Select Parameters"
 msgstr "ﻒﻠﻤﻟﺍ ﺭﺎﻴﺘﺧﺍ ﺕﺍﺩﺍﺪﻋﺇ"
-
-
-msgid "Whether this path is currently reachable"
-msgstr "ﺎﻴﻟﺎﺣ ﻝﻮﺻﻮﻠﻟ ﻞﺑﺎﻗ ﺭﺎﺴﻤﻟﺍ ﻥﺎﻛ ﺎﻣ ﺍﺫﺍ"
 
 
 msgid "Save"
@@ -9756,10 +9784,6 @@ msgid "Don't fill polygons while editing"
 msgstr "ﺮﻳﺮﺤﺘﻟﺍ ءﺎﻨﺛﺍ ﻪﺟﻭﻷ﻿ﺍ ﺊﺒﻌﺗ ﻻ﻿"
 
 
-msgid "Normals"
-msgstr "ﺕﺎﻤﻇﺎﻨﻟﺍ"
-
-
 msgid "Freestyle Line Style"
 msgstr "ﻞﻳﺎﺘﺴﻳﺮﻓ ﻂﺧ ﻂﻤﻧ"
 
@@ -10766,14 +10790,6 @@ msgstr "ﺔﻌﻘﺒﻟﺍ ﺝﺎﻣﺪﻧﺍ"
 
 msgid "The softness of the spotlight edge"
 msgstr "ءﻮﻀﻟﺍ ﺔﻌﻘﺑ ﺔﻓﺎﺣ ﺔﻣﻮﻌﻧ"
-
-
-msgid "Spot Size"
-msgstr "ﺔﻌﻘﺒﻟﺍ ﻢﺠﺣ"
-
-
-msgid "Angle of the spotlight beam"
-msgstr "ﺔﻌﻘﺒﻟﺍ ءﻮﺿ ﻉﺎﻌﺷ ﺔﻳﻭﺍﺯ"
 
 
 msgid "Cast a square spot light shape"
@@ -26340,6 +26356,10 @@ msgid "Use HC method for relaxation"
 msgstr " ءﺎﺧﺭﻺ﻿ﻟ HC ﺔﻘﻳﺮﻃ ﻡﺪﺨﺘﺳﺍ"
 
 
+msgid "Allow Overlap"
+msgstr "ﻞﺧﺍﺪﺘﻟﺎﺑ ﺢﻤﺳﺍ"
+
+
 msgctxt "Operator"
 msgid "Change Effect Type"
 msgstr "ﺮﻴﻴﻐﺘﻟﺍ ﺮﺛﺆﻣ ﻉﻮﻧ"
@@ -26435,10 +26455,6 @@ msgstr "ﺖﻗﻮﻟﺍ ﻲﻓ ﻞﺴﻠﺴﺗ ﻂﻳﺮﺷ ﻖﻟﺯﺍ"
 msgctxt "Operator"
 msgid "Add Effect Strip"
 msgstr "ﺕﺍﺮﺛﺆﻣ ﻂﻳﺮﺷ ﻒﺿﺍ"
-
-
-msgid "Allow Overlap"
-msgstr "ﻞﺧﺍﺪﺘﻟﺎﺑ ﺢﻤﺳﺍ"
 
 
 msgid "Sequencer effect type"
@@ -28943,14 +28959,6 @@ msgid "The index of particle system on the target object"
 msgstr "ﻑﺪﻬﻟﺍ ﻦﺋﺎﻜﻟﺍ ﻰﻠﻋ ﺕﺎﺌﻳﺰﺠﻟﺍ ﻡﺎﻈﻧ ﺮﺷﺆﻣ"
 
 
-msgid "Cache Compression"
-msgstr "ﻖﺒﺴﻤﻟﺍ ﺏﺎﺴﺤﻟﺍ ﻂﻐﺿ"
-
-
-msgid "Fast but not so effective compression"
-msgstr "ﺎﻴﻟﺎﻌﻓ ﺎﻄﻐﺿ ﺲﻴﻟ ﻦﻜﻟ ﻊﻳﺮﺳ"
-
-
 msgid "Cache file path"
 msgstr "ﻦﻳﺰﺨﺘﻟﺍ ﻒﻠﻣ ﺭﺎﺴﻣ"
 
@@ -30183,10 +30191,6 @@ msgid "Group of ID properties"
 msgstr "ﻑﺮﻌﻣ ﺹﺍﻮﺧ ﻦﻣ ﺔﻋﻮﻤﺠﻣ"
 
 
-msgid "Homogeneous Volume"
-msgstr "ﻞﺋﺎﻤﺘﻣ ﻢﺠﺣ"
-
-
 msgid "Volume Interpolation"
 msgstr "ﻢﺠﺤﻟﺍ ﺪﻴﻟﻮﺗ"
 
@@ -30205,10 +30209,6 @@ msgstr "ﺔﻛﺮﺤﻟﺍ ﺕﺍﻮﻄﺧ"
 
 msgid "Use Motion Blur"
 msgstr "ﺔﻛﺮﺣ ﺔﻴﺑﺎﺒﺿ ﻡﺪﺨﺘﺳﺍ"
-
-
-msgid "Bake Type"
-msgstr "ﺰﺒﺨﻟﺍ ﻉﻮﻧ"
 
 
 msgid "Filter Glossy"
@@ -30317,10 +30317,6 @@ msgstr "ﺔﻘﺒﻄﻟﺍ ﺕﺎﻨﻴﻋ"
 
 msgid "Bounded"
 msgstr "ﺩﻭﺪﺤﻣ"
-
-
-msgid "Max Steps"
-msgstr "ﺕﺍﻮﻄﺧ ﺮﺒﻛﺍ"
 
 
 msgid "Diffuse Direct"
@@ -30631,26 +30627,6 @@ msgid "Rendering settings for a Scene data-block"
 msgstr "ﺪﻬﺸﻣ ﺕﺎﻧﺎﻴﺑ ﺔﻠﺘﻜﻟ ﺮﻴﻴﺼﺘﻟﺍ ﺕﺍﺩﺍﺪﻋﺇ"
 
 
-msgid "Bias"
-msgstr "ﺯﺎﻴﺤﻧﻻ﻿ﺍ"
-
-
-msgid "Number of samples used for ambient occlusion baking from multires"
-msgstr "ﺕﻮﺼﻟﺍ ﺝﺰﻣ ﻥﺰﺨﻣ ﻑﺮﻃ ﻦﻣ ﺔﻣﺪﺨﺘﺴﻤﻟﺍ ﺕﺎﻨﻴﻌﻟﺍ ﺩﺪﻋ"
-
-
-msgid "Choose shading information to bake into the image"
-msgstr "ﺓﺭﻮﺼﻟﺍ ﻰﻟﺇ ﻦﻳﺰﺨﺘﻠﻟ ﻞﻴﻠﻈﺘﻟﺍ ﺕﺎﻣﻮﻠﻌﻣ ﺭﺎﻴﺘﺧﺇ"
-
-
-msgid "Bake normals"
-msgstr "ﺕﺎﻤﻇﺎﻨﻟﺍ ﻥﺰﺧ"
-
-
-msgid "Bake displacement"
-msgstr "ﻖﺜﺒﻟﺍ ﻥﺰﺧ"
-
-
 msgid "Dither Intensity"
 msgstr "ﺔﻓﺎﺜﻜﻟﺍ ﻑﺎﺠﺗﺭﺍ"
 
@@ -30837,26 +30813,6 @@ msgstr "CPU ﺔﻋﻮﻤﺠﻣ ﻰﻠﻋ ﺍﺩﺎﻤﺘﻋﺍ ،ﺐﻌﺸﻟﺍ
 
 msgid "Manually determine the number of threads"
 msgstr "ﺐﻌﺸﻟﺍ ﺩﺪﻌﻟ ﻱﻭﺪﻳ ﺪﻳﺪﺤﺗ"
-
-
-msgid "Clear Images before baking"
-msgstr "ﻦﻳﺰﺨﺘﻟﺍ ﻞﺒﻗ ﺭﻮﺼﻟﺍ ﺢﺴﻣﺇ"
-
-
-msgid "Low Resolution Mesh"
-msgstr "ﺔﻀﻔﺨﻨﻣ ﺔﻗﺩ ﻭﺫ ﻞﻜﺷ"
-
-
-msgid "Calculate heights against unsubdivided low resolution mesh"
-msgstr " ﺎﻴﻤﻴﺴﻘﺗ ﺔﻤﻌﻨﻤﻟﺍ ﺮﻴﻐﻟﺍ ﺔﻗﺪﻟﺍ ﺔﻀﻔﺨﻨﻤﻟﺍ ﻝﺎﻜﺷﻷ﻿ﺍ ﻩﺎﺠﺗﺍ ﺕﺎﻋﺎﻔﺗﺭﻹ﻿ﺍ ﺐﺴﺣﺃ"
-
-
-msgid "Bake from Multires"
-msgstr "ﺕﺎﻗﺪﻟﺍ ﺩﺪﻌﺘﻣ ﻦﻣ ﻥﺰﺧ"
-
-
-msgid "Bake directly from multires object"
-msgstr "ﺕﺎﻗﺪﻟﺍ ﺩﺪﻌﺘﻤﻟﺍ ﻦﺋﺎﻜﻟﺍ ﻦﻣ ﺓﺮﺷﺎﺒﻣ ﻥﺰﺧ"
 
 
 msgid "Add the file format extensions to the rendered file name (eg: filename + .jpg)"
@@ -31277,6 +31233,10 @@ msgstr "ﻝﺅﺎﻀﺘﻟﺍ ﺖﺑﺎﺛ"
 
 msgid "Number of samples"
 msgstr "ﺕﺎﻨﻴﻌﻟﺍ ﺩﺪﻋ"
+
+
+msgid "Bias"
+msgstr "ﺯﺎﻴﺤﻧﻻ﻿ﺍ"
 
 
 msgid "Scene Render View"
@@ -32627,16 +32587,8 @@ msgid "Node Selected"
 msgstr "ﺓﺭﺎﺘﺨﻣ ﺓﺪﻘﻌﻟﺍ"
 
 
-msgid "Pattern Node"
-msgstr "ﻂﻤﻨﻟﺍ ﺓﺪﻘﻋ"
-
-
 msgid "Script Node"
 msgstr "ﺔﻃﻮﻄﺨﻤﻟﺍ ﺭﺪﺼﻣ"
-
-
-msgid "Selected Text"
-msgstr "ﺭﺎﺘﺨﻤﻟﺍ ﺺﻨﻟﺍ"
 
 
 msgid "Vector Node"
@@ -32661,6 +32613,10 @@ msgstr "ﺔﺻﺎﺼﻘﻟﺍ ﻂﻳﺮﺷ"
 
 msgid "Preview Background"
 msgstr "ﺔﻨﻳﺎﻌﻤﻟﺍ ﺔﻴﻔﻠﺧ"
+
+
+msgid "Selected Text"
+msgstr "ﺭﺎﺘﺨﻤﻟﺍ ﺺﻨﻟﺍ"
 
 
 msgid "Theme Space Settings"
@@ -32773,10 +32729,6 @@ msgstr "ﺩﻭﺪﺤﻟﺍ ﻢﻴﻠﻘﺗ"
 
 msgid "Edge Bevel"
 msgstr "ﺔﻓﺎﺤﻟﺍ ﺔﻔﻄﺷ"
-
-
-msgid "Edge UV Face Select"
-msgstr "ﺎﻳﺭﻮﺤﻣ ﺓﺭﺎﺘﺨﻤﻟﺍ ﻪﺟﻭﻷ﻿ﺍ ﻑﺍﻮﺣ"
 
 
 msgid "Edge Seam"
@@ -33772,10 +33724,6 @@ msgid "Cast Shadow"
 msgstr "ﻞﻈﻟﺍ ﻲﻘﻟﺍ"
 
 
-msgid "Homogeneous"
-msgstr "ﺲﻧﺎﺠﺘﻣ"
-
-
 msgid "Extrusion"
 msgstr "ﻖﺜﺑ"
 
@@ -34683,6 +34631,16 @@ msgid "Delete Keyframes..."
 msgstr "...ﺡﺎﺘﻔﻣ ﻑﺬﺣﺍ"
 
 
+msgctxt "Operator"
+msgid "Clear Keyframes..."
+msgstr "ﺢﻴﺗﺎﻔﻤﻟﺍ ﻑﺬﺣﺍ"
+
+
+msgctxt "Operator"
+msgid "Interactive Mirror"
+msgstr "ﺔﻠﻋﺎﻔﺘﻣ ﺓﺁﺮﻣ"
+
+
 msgid "Storage"
 msgstr "ﺔﻴﻄﻐﺘﻟﺍ"
 
@@ -34892,11 +34850,6 @@ msgstr ":ﻊﻗﻮﻣ"
 
 
 msgctxt "Operator"
-msgid "Interactive Mirror"
-msgstr "ﺔﻠﻋﺎﻔﺘﻣ ﺓﺁﺮﻣ"
-
-
-msgctxt "Operator"
 msgid "Cursor to Active"
 msgstr "ﻲﻟﺎﺤﻟﺍ ﻰﻟﺇ ﺮﺷﺆﻤﻟﺍ"
 
@@ -35054,11 +35007,6 @@ msgstr "ﺕﻮﺻ ﺮﺒﻜﻣ"
 msgctxt "Operator"
 msgid "Make Local..."
 msgstr "...ﻲﻠﺤﻣ ﻞﻌﺟﺍ"
-
-
-msgctxt "Operator"
-msgid "Clear Keyframes..."
-msgstr "ﺢﻴﺗﺎﻔﻤﻟﺍ ﻑﺬﺣﺍ"
 
 
 msgctxt "Operator"

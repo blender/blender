@@ -1668,7 +1668,9 @@ void ui_draw_but_CURVE(ARegion *region, uiBut *but, const uiWidgetColors *wcol, 
     grid.xmax = grid.xmin + zoomx;
     grid.ymin = rect->ymin + zoomy * (-offsy);
     grid.ymax = grid.ymin + zoomy;
-    ui_draw_gradient(&grid, col, UI_GRAD_H, 1.0f);
+
+    const ColorManagedDisplay *display = ui_block_cm_display_get(but->block);
+    ui_draw_gradient(&grid, col, UI_GRAD_H, 1.0f, display);
   }
 
   GPU_line_width(1.0f);

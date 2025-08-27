@@ -205,6 +205,64 @@ int64_t count_booleans(const VArray<bool> &varray, const IndexMask &mask)
   return value;
 }
 
+bool contains(const VArray<bool> &varray, const IndexMask &indices_to_check, const bool value)
+{
+  const CommonVArrayInfo info = varray.common_info();
+  if (info.type == CommonVArrayInfo::Type::Single) {
+    return *static_cast<const bool *>(info.data) == value;
+  }
+  if (info.type == CommonVArrayInfo::Type::Span) {
+    const Span<bool> span(static_cast<const bool *>(info.data), varray.size());
+    return threading::parallel_reduce(
+        indices_to_check.index_range(),
+        4096,
+        false,
+        [&](const IndexRange range, const bool init) {
+          if (init) {
+            return init;
+          }
+          const IndexMask sliced_mask = indices_to_check.slice(range);
+          if (std::optional<IndexRange> range = sliced_mask.to_range()) {
+            return span.slice(*range).contains(value);
+          }
+          for (const int64_t segment_i : IndexRange(sliced_mask.segments_num())) {
+            const IndexMaskSegment segment = sliced_mask.segment(segment_i);
+            for (const int i : segment) {
+              if (span[i] == value) {
+                return true;
+              }
+            }
+          }
+          return false;
+        },
+        std::logical_or());
+  }
+  return threading::parallel_reduce(
+      indices_to_check.index_range(),
+      2048,
+      false,
+      [&](const IndexRange range, const bool init) {
+        if (init) {
+          return init;
+        }
+        constexpr int64_t MaxChunkSize = 512;
+        const int64_t slice_end = range.one_after_last();
+        for (int64_t start = range.start(); start < slice_end; start += MaxChunkSize) {
+          const int64_t end = std::min<int64_t>(start + MaxChunkSize, slice_end);
+          const int64_t size = end - start;
+          const IndexMask sliced_mask = indices_to_check.slice(start, size);
+          std::array<bool, MaxChunkSize> values;
+          auto values_end = values.begin() + size;
+          varray.materialize_compressed(sliced_mask, values);
+          if (std::find(values.begin(), values_end, value) != values_end) {
+            return true;
+          }
+        }
+        return false;
+      },
+      std::logical_or());
+}
+
 int64_t count_booleans(const VArray<bool> &varray)
 {
   return count_booleans(varray, IndexMask(varray.size()));

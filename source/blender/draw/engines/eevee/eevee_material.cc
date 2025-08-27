@@ -210,8 +210,10 @@ void MaterialModule::end_sync()
       GPUMaterialTexture *tex = texture_loading_queue_[i];
       ImageUser *iuser = tex->iuser_available ? &tex->iuser : nullptr;
       BKE_image_get_tile(tex->ima, 0);
-      ImBuf *imbuf = BKE_image_acquire_ibuf(tex->ima, iuser, nullptr);
-      BKE_image_release_ibuf(tex->ima, imbuf, nullptr);
+      threading::isolate_task([&]() {
+        ImBuf *imbuf = BKE_image_acquire_ibuf(tex->ima, iuser, nullptr);
+        BKE_image_release_ibuf(tex->ima, imbuf, nullptr);
+      });
     }
   });
 

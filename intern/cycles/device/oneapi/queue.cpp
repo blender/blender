@@ -28,7 +28,7 @@ int OneapiDeviceQueue::num_concurrent_states(const size_t state_size) const
 {
   int num_states = 4 * num_concurrent_busy_states(state_size);
 
-  LOG_STATS << "GPU queue concurrent states: " << num_states << ", using up to "
+  LOG_TRACE << "GPU queue concurrent states: " << num_states << ", using up to "
             << string_human_readable_size(num_states * state_size);
 
   return num_states;

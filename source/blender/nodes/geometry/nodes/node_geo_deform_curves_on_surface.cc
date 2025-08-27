@@ -288,7 +288,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                              TIP_("Evaluated surface missing attribute: \"rest_position\""));
     return;
   }
-  if (curves.surface_uv_coords().is_empty() && curves.curves_num() > 0) {
+  if (!curves.surface_uv_coords() && curves.curves_num() > 0) {
     pass_through_input();
     params.error_message_add(NodeWarningType::Error,
                              TIP_("Curves are not attached to any UV map"));

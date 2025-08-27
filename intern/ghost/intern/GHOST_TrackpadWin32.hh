@@ -124,17 +124,17 @@ class GHOST_DirectManipulationHelper {
    */
   void registerScrollDirectionChangeListener();
 
-  HWND m_hWnd;
+  HWND h_wnd_;
 
-  HKEY m_scrollDirectionRegKey;
-  HANDLE m_scrollDirectionChangeEvent;
+  HKEY scroll_direction_reg_key_;
+  HANDLE scroll_direction_change_event_;
 
-  Microsoft::WRL::ComPtr<IDirectManipulationManager> m_directManipulationManager;
-  Microsoft::WRL::ComPtr<IDirectManipulationUpdateManager> m_directManipulationUpdateManager;
-  Microsoft::WRL::ComPtr<IDirectManipulationViewport> m_directManipulationViewport;
+  Microsoft::WRL::ComPtr<IDirectManipulationManager> direct_manipulation_manager_;
+  Microsoft::WRL::ComPtr<IDirectManipulationUpdateManager> direct_manipulation_update_manager_;
+  Microsoft::WRL::ComPtr<IDirectManipulationViewport> direct_manipulation_viewport_;
   Microsoft::WRL::ComPtr<GHOST_DirectManipulationViewportEventHandler>
-      m_directManipulationEventHandler;
-  DWORD m_directManipulationViewportHandlerCookie;
+      direct_manipulation_event_handler_;
+  DWORD direct_manipulation_viewport_handler_cookie_;
 
-  bool m_isScrollDirectionInverted;
+  bool is_scroll_direction_inverted_;
 };

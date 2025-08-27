@@ -80,7 +80,7 @@ class GHOST_ISystemPaths {
 
  private:
   /** The one and only system paths. */
-  static GHOST_ISystemPaths *m_systemPaths;
+  static GHOST_ISystemPaths *system_paths_;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_ISystemPaths")
 };

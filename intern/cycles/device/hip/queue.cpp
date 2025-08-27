@@ -40,11 +40,11 @@ int HIPDeviceQueue::num_concurrent_states(const size_t state_size) const
       num_states = max((int)(num_states * factor), 1024);
     }
     else {
-      LOG_STATS << "CYCLES_CONCURRENT_STATES_FACTOR evaluated to 0";
+      LOG_TRACE << "CYCLES_CONCURRENT_STATES_FACTOR evaluated to 0";
     }
   }
 
-  LOG_STATS << "GPU queue concurrent states: " << num_states << ", using up to "
+  LOG_TRACE << "GPU queue concurrent states: " << num_states << ", using up to "
             << string_human_readable_size(num_states * state_size);
 
   return num_states;

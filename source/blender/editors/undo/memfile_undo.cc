@@ -97,11 +97,11 @@ static int memfile_undosys_step_id_reused_cb(LibraryIDLinkCallbackData *cb_data)
   ID *self_id = cb_data->self_id;
   ID *owner_id = cb_data->owner_id;
   ID **id_pointer = cb_data->id_pointer;
-  /* Embedded IDs do not get tagged with ID_TAG_UNDO_OLD_ID_REUSED_UNCHANGED currently (could be,
+  /* Embedded IDs do not get tagged with #ID_TAG_UNDO_OLD_ID_REUSED_UNCHANGED currently (could be,
    * but would add extra processing, and by definition they always share that state with their
-   * owner, as they are stored as 'regular data' in blendfiles, not as independant IDs).
+   * owner, as they are stored as 'regular data' in blend-files, not as independent IDs).
    *
-   * NOTE: It seems that local IDs using embedded ones are never 'reused unchanged', this this was
+   * NOTE: It seems that local IDs using embedded ones are never 'reused unchanged', this was
    * never caught before. However, if using `self_id` here, this assert gets triggered with
    * upcoming packed data. Probably because while packed data remains unchanged, it is handled like
    * regular local data by undo code, and like regular linked data. */

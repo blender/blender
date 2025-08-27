@@ -70,7 +70,7 @@ class Film {
   gpu::Texture *combined_final_tx_ = nullptr;
 
   /** Are we using the compute shader/pipeline. */
-  bool use_compute_;
+  bool use_compute_ = false;
 
   /** Copy of v3d->shading properties used to detect viewport settings update. */
   eViewLayerEEVEEPassType ui_render_pass_ = eViewLayerEEVEEPassType(0);
@@ -96,7 +96,7 @@ class Film {
   PassSimple cryptomatte_post_ps_ = {"Film.Cryptomatte.Post"};
 
   FilmData &data_;
-  int2 display_extent;
+  int2 display_extent = int2(-1);
 
   eViewLayerEEVEEPassType enabled_passes_ = eViewLayerEEVEEPassType(0);
   /* Store the pass types needed by the viewport compositor separately, because some passes might

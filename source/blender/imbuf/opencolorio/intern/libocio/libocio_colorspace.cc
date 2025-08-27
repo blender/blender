@@ -131,6 +131,42 @@ LibOCIOColorSpace::LibOCIOColorSpace(const int index,
   this->index = index;
 
   is_invertible_ = color_space_is_invertible(ocio_color_space);
+
+  /* In OpenColorIO 2.5 there will be native support for this. For older configs and
+   * older OpenColorIO versions, check the first alias. This a convention used in the
+   * Blender and ACES 2.0 configs. */
+  if (ocio_color_space->getNumAliases() > 0) {
+    StringRefNull first_alias = ocio_color_space->getAlias(0);
+    if (first_alias == "srgb_display") {
+      interop_id_ = "srgb_rec709_display";
+    }
+    else if (first_alias == "displayp3_display") {
+      interop_id_ = "srgb_p3d65_display";
+    }
+    else if (first_alias == "displayp3_hdr_display") {
+      interop_id_ = "srgbx_p3d65_display";
+    }
+    else if (first_alias == "p3d65_display") {
+      interop_id_ = "g26_p3d65_display";
+    }
+    else if (first_alias == "rec1886_rec709_display") {
+      interop_id_ = "g24_rec709_display";
+    }
+    else if (first_alias == "rec2100_pq_display") {
+      interop_id_ = "pq_rec2020_display";
+    }
+    else if (first_alias == "rec2100_hlg_display") {
+      interop_id_ = "hlg_rec2020_display";
+    }
+    else if ((first_alias.startswith("lin_") || first_alias.startswith("srgb_") ||
+              first_alias.startswith("g18_") || first_alias.startswith("g22_") ||
+              first_alias.startswith("g24_") || first_alias.startswith("g26_") ||
+              first_alias.startswith("pq_") || first_alias.startswith("hlg_")) &&
+             (first_alias.endswith("_scene") || first_alias.endswith("_display")))
+    {
+      interop_id_ = first_alias;
+    }
+  }
 }
 
 bool LibOCIOColorSpace::is_scene_linear() const

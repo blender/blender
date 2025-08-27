@@ -1077,8 +1077,12 @@ std::optional<blender::Bounds<float3>> BKE_volume_grid_bounds(openvdb::GridBase:
     return std::nullopt;
   }
 
-  openvdb::BBoxd bbox = grid->transform().indexToWorld(coordbbox);
+  openvdb::BBoxd index_bbox = {
+      openvdb::BBoxd(coordbbox.min().asVec3d(), coordbbox.max().asVec3d())};
+  /* Add half voxel padding that is expected by volume rendering code. */
+  index_bbox.expand(0.5);
 
+  const openvdb::BBoxd bbox = grid->transform().indexToWorld(index_bbox);
   return blender::Bounds<float3>{float3(bbox.min().asPointer()), float3(bbox.max().asPointer())};
 }
 

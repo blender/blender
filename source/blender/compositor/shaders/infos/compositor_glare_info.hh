@@ -173,12 +173,23 @@ GPU_SHADER_CREATE_END()
  * Sun Beams
  * ----- */
 
-GPU_SHADER_CREATE_INFO(compositor_glare_sun_beams)
+GPU_SHADER_CREATE_INFO(compositor_glare_sun_beams_shared)
 LOCAL_GROUP_SIZE(16, 16)
 PUSH_CONSTANT(float2, source)
 PUSH_CONSTANT(int, max_steps)
 SAMPLER(0, sampler2D, input_tx)
 IMAGE(0, SFLOAT_16_16_16_16, write, image2D, output_img)
 COMPUTE_SOURCE("compositor_glare_sun_beams.glsl")
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(compositor_glare_sun_beams)
+ADDITIONAL_INFO(compositor_glare_sun_beams_shared)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(compositor_glare_sun_beams_jitter)
+ADDITIONAL_INFO(compositor_glare_sun_beams_shared)
+DEFINE("JITTER")
+PUSH_CONSTANT(float, jitter_factor)
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()

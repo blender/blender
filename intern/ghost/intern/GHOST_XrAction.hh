@@ -34,7 +34,7 @@ class GHOST_XrActionSpace {
   XrSpace getSpace() const;
 
  private:
-  XrSpace m_space = XR_NULL_HANDLE;
+  XrSpace space_ = XR_NULL_HANDLE;
 };
 
 /* -------------------------------------------------------------------- */
@@ -64,12 +64,12 @@ class GHOST_XrActionProfile {
                    std::map<XrPath, std::vector<XrActionSuggestedBinding>> &r_bindings) const;
 
  private:
-  XrPath m_profile = XR_NULL_PATH;
+  XrPath profile_ = XR_NULL_PATH;
 
   /** Sub-action data identified by user `subaction` path. */
-  std::map<std::string, GHOST_XrSubactionData> m_subaction_data;
+  std::map<std::string, GHOST_XrSubactionData> subaction_data_;
   /** Bindings identified by interaction (user `subaction` + component) path. */
-  std::map<std::string, XrPath> m_bindings;
+  std::map<std::string, XrPath> bindings_;
 };
 
 /* -------------------------------------------------------------------- */
@@ -105,20 +105,20 @@ class GHOST_XrAction {
  private:
   using SubactionIndexMap = std::map<std::string, uint32_t>;
 
-  XrAction m_action = XR_NULL_HANDLE;
-  GHOST_XrActionType m_type;
-  SubactionIndexMap m_subaction_indices;
-  std::vector<XrPath> m_subaction_paths;
+  XrAction action_ = XR_NULL_HANDLE;
+  GHOST_XrActionType type_;
+  SubactionIndexMap subaction_indices_;
+  std::vector<XrPath> subaction_paths_;
   /** States for each subaction path. */
-  void *m_states;
+  void *states_;
   /** Input thresholds/regions for each subaction path. */
-  float *m_float_thresholds;
-  int16_t *m_axis_flags;
+  float *float_thresholds_;
+  int16_t *axis_flags_;
 
-  std::unique_ptr<GHOST_C_CustomDataWrapper> m_custom_data_ = nullptr; /* wmXrAction */
+  std::unique_ptr<GHOST_C_CustomDataWrapper> custom_data_ = nullptr; /* wmXrAction */
 
   /** Profiles identified by interaction profile path. */
-  std::map<std::string, GHOST_XrActionProfile> m_profiles;
+  std::map<std::string, GHOST_XrActionProfile> profiles_;
 };
 
 /* -------------------------------------------------------------------- */
@@ -144,11 +144,11 @@ class GHOST_XrActionSet {
   void getBindings(std::map<XrPath, std::vector<XrActionSuggestedBinding>> &r_bindings) const;
 
  private:
-  XrActionSet m_action_set = XR_NULL_HANDLE;
+  XrActionSet action_set_ = XR_NULL_HANDLE;
 
-  std::unique_ptr<GHOST_C_CustomDataWrapper> m_custom_data_ = nullptr; /* wmXrActionSet */
+  std::unique_ptr<GHOST_C_CustomDataWrapper> custom_data_ = nullptr; /* wmXrActionSet */
 
-  std::map<std::string, GHOST_XrAction> m_actions;
+  std::map<std::string, GHOST_XrAction> actions_;
 };
 
 /* -------------------------------------------------------------------- */

@@ -107,11 +107,6 @@ private:
 	std::shared_ptr<Buffer> m_membuffer;
 
 	/**
-	 * The buffer to read with.
-	 */
-	data_t* m_membuf;
-
-	/**
 	 * Reading position of the buffer.
 	 */
 	long long m_membufferpos;

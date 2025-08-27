@@ -73,30 +73,30 @@ class GHOST_DropTargetX11 {
   char *FileUrlDecode(const char *fileUrl);
 
   /* The associated GHOST_WindowWin32. */
-  GHOST_WindowX11 *m_window;
+  GHOST_WindowX11 *window_;
   /* The System. */
-  GHOST_SystemX11 *m_system;
+  GHOST_SystemX11 *system_;
 
   /* Data type of the dragged object */
-  GHOST_TDragnDropTypes m_draggedObjectType;
+  GHOST_TDragnDropTypes dragged_object_type_;
 
   /* Is drag-and-drop stuff initialized. */
-  static bool m_xdndInitialized;
+  static bool xdnd_initialized_;
 
   /* Class holding internal stiff of `xdnd` library. */
-  static DndClass m_dndClass;
+  static DndClass dnd_class_;
 
   /* List of supported types to be dragged into. */
-  static Atom *m_dndTypes;
+  static Atom *dnd_types_;
 
   /* List of supported drag-and-drop actions. */
-  static Atom *m_dndActions;
+  static Atom *dnd_actions_;
 
   /* List of supported MIME types to be dragged into. */
-  static const char *m_dndMimeTypes[];
+  static const char *dnd_mime_types_[];
 
   /* Counter of references to global #XDND structures. */
-  static int m_refCounter;
+  static int ref_counter_;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_DropTargetX11")
 };

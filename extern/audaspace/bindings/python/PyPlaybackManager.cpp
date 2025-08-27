@@ -189,7 +189,7 @@ PyDoc_STRVAR(M_aud_PlaybackManager_get_volume_doc,
 	"   Retrieves the volume of a category.\n\n"
 	"   :arg catKey: the key of the category.\n"
 	"   :type catKey: int\n"
-	"   :return: The volume of the cateogry.\n"
+	"   :return: The volume of the category.\n"
 	"   :rtype: float\n\n");
 
 static PyObject *

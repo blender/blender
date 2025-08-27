@@ -145,7 +145,6 @@ void draw_timeline_seq_display(const bContext *C, ARegion *region);
  * region.
  */
 void sequencer_preview_region_draw(const bContext *C, ARegion *region);
-int sequencer_draw_get_transform_preview_frame(const Scene *scene);
 void sequencer_special_update_set(Strip *strip);
 
 /* UNUSED */
@@ -338,11 +337,11 @@ void sequencer_preview_add_sound(const bContext *C, const Strip *strip);
 
 /* `sequencer_add.cc` */
 
-int sequencer_image_seq_get_minmax_frame(wmOperator *op,
-                                         int sfra,
-                                         int *r_minframe,
-                                         int *r_numdigits);
-void sequencer_image_seq_reserve_frames(
+int sequencer_image_strip_get_minmax_frame(wmOperator *op,
+                                           int sfra,
+                                           int *r_minframe,
+                                           int *r_numdigits);
+void sequencer_image_strip_reserve_frames(
     wmOperator *op, StripElem *se, int len, int minframe, int numdigits);
 
 /* `sequencer_retiming.cc` */

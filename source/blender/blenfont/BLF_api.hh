@@ -30,11 +30,12 @@
 struct ListBase;
 struct ResultBLF;
 struct rcti;
+struct rctf;
 
 namespace blender::ocio {
-class Display;
+class ColorSpace;
 }  // namespace blender::ocio
-using ColorManagedDisplay = blender::ocio::Display;
+using ColorSpace = blender::ocio::ColorSpace;
 
 int BLF_init();
 void BLF_exit();
@@ -294,6 +295,17 @@ int BLF_descender(int fontid) ATTR_WARN_UNUSED_RESULT;
 int BLF_ascender(int fontid) ATTR_WARN_UNUSED_RESULT;
 
 /**
+ * Returns the minimum bounding box that can enclose all glyphs in the font at
+ * the current size. Expect negative values as Y=0 is the baseline, X=0 is normal
+ * advance position (glyphs can have negative bearing and positioning). There
+ * should be little use for this as it is best to measure the bounds of the actual
+ * text to be drawn. These values (unscaled) are set in the font file, not calculated
+ * from the actual glyphs at load time. This should be considered correct but it is
+ * possible, although very unlikely, for a defective font to contain incorrect values.
+ */
+bool BLF_bounds_max(int fontid, rctf *r_bounds) ATTR_NONNULL(2);
+
+/**
  * The following function return the width and height of the string, but
  * just in one call, so avoid extra freetype2 stuff.
  */
@@ -350,12 +362,8 @@ void BLF_shadow_offset(int fontid, int x, int y);
  * The image is assumed to have 4 color channels (RGBA) per pixel.
  * When done, call this function with null buffer pointers.
  */
-void BLF_buffer(int fontid,
-                float *fbuf,
-                unsigned char *cbuf,
-                int w,
-                int h,
-                const ColorManagedDisplay *display);
+void BLF_buffer(
+    int fontid, float *fbuf, unsigned char *cbuf, int w, int h, const ColorSpace *colorspace);
 
 /**
  * Opaque structure used to push/pop values set by the #BLF_buffer function.
@@ -379,7 +387,7 @@ void BLF_buffer_state_free(BLFBufferState *buffer_state);
 /**
  * Set the color to be used for text.
  */
-void BLF_buffer_col(int fontid, const float rgba[4]) ATTR_NONNULL(2);
+void BLF_buffer_col(int fontid, const float srgb_color[4]) ATTR_NONNULL(2);
 
 /**
  * Draw the string into the buffer, this function draw in both buffer,

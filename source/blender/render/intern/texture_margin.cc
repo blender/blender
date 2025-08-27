@@ -15,7 +15,6 @@
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_legacy_derived_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 
 #include "IMB_imbuf.hh"
@@ -594,23 +593,4 @@ void RE_generate_texturemargin_adjacentfaces(ImBuf *ibuf,
                                                   mesh->corner_verts(),
                                                   uv_map,
                                                   uv_offset);
-}
-
-void RE_generate_texturemargin_adjacentfaces_dm(
-    ImBuf *ibuf, char *mask, const int margin, DerivedMesh *dm, const float uv_offset[2])
-{
-  const blender::float2 *mloopuv = static_cast<const blender::float2 *>(
-      dm->getLoopDataArray(dm, CD_PROP_FLOAT2));
-
-  blender::render::texturemargin::generate_margin(
-      ibuf,
-      mask,
-      margin,
-      {reinterpret_cast<const blender::float3 *>(dm->getVertArray(dm)), dm->getNumVerts(dm)},
-      dm->getNumEdges(dm),
-      blender::Span(dm->getPolyArray(dm), dm->getNumPolys(dm) + 1),
-      {dm->getCornerEdgeArray(dm), dm->getNumLoops(dm)},
-      {dm->getCornerVertArray(dm), dm->getNumLoops(dm)},
-      {mloopuv, dm->getNumLoops(dm)},
-      uv_offset);
 }

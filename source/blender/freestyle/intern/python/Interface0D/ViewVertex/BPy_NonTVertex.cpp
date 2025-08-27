@@ -31,7 +31,7 @@ PyDoc_STRVAR(
     "   Builds a :class:`NonTVertex` using the default constructor or a :class:`SVertex`.\n"
     "\n"
     "   :arg svertex: An SVertex object.\n"
-    "   :type svertex: :class:`SVertex`");
+    "   :type svertex: :class:`SVertex`\n");
 
 /* NOTE: No copy constructor in Python because the C++ copy constructor is 'protected'. */
 
@@ -62,8 +62,7 @@ PyDoc_STRVAR(
     NonTVertex_svertex_doc,
     "The SVertex on top of which this NonTVertex is built.\n"
     "\n"
-    ":type: :class:`SVertex`");
-
+    ":type: :class:`SVertex`\n");
 static PyObject *NonTVertex_svertex_get(BPy_NonTVertex *self, void * /*closure*/)
 {
   SVertex *v = self->ntv->svertex();

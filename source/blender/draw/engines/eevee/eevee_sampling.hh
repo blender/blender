@@ -63,7 +63,7 @@ class Sampling {
    */
   static constexpr int interactive_mode_threshold = 3;
 
-  SamplingDataBuf data_;
+  SamplingDataBuf data_ = {"SamplingDataBuf"};
 
   ClampData &clamp_data_;
 

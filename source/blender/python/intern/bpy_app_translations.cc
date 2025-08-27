@@ -474,11 +474,10 @@ PyDoc_STRVAR(
     "   Never use a (new) context starting with \"" BLT_I18NCONTEXT_DEFAULT_BPYRNA
     "\", it would be internally\n"
     "   assimilated as the default one!\n");
-
 PyDoc_STRVAR(
     /* Wrap. */
     app_translations_contexts_C_to_py_doc,
-    "A readonly dict mapping contexts' C-identifiers to their py-identifiers.");
+    "A readonly dict mapping contexts' C-identifiers to their py-identifiers.\n");
 
 static PyMemberDef app_translations_members[] = {
     {"contexts",
@@ -616,21 +615,23 @@ static PyObject *app_translations_pgettext(BlenderAppTranslations * /*self*/,
   return _py_pgettext(args, kw, BLT_pgettext);
 }
 
-PyDoc_STRVAR(app_translations_pgettext_n_doc,
-             ".. method:: pgettext_n(msgid, msgctxt=None)\n"
-             "\n"
-             "   Extract the given msgid to translation files. This is a no-op function that will "
-             "only mark the string to extract, but not perform the actual translation.\n"
-             "\n"
-             "   .. note::\n"
-             "      See :func:`pgettext` notes.\n"
-             "\n"
-             "   :arg msgid: The string to extract.\n"
-             "   :type msgid: str\n"
-             "   :arg msgctxt: The translation context (defaults to BLT_I18NCONTEXT_DEFAULT).\n"
-             "   :type msgctxt: str | None\n"
-             "   :return: The original string.\n"
-             "\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    app_translations_pgettext_n_doc,
+    ".. method:: pgettext_n(msgid, msgctxt=None)\n"
+    "\n"
+    "   Extract the given msgid to translation files. This is a no-op function that will "
+    "only mark the string to extract, but not perform the actual translation.\n"
+    "\n"
+    "   .. note::\n"
+    "      See :func:`pgettext` notes.\n"
+    "\n"
+    "   :arg msgid: The string to extract.\n"
+    "   :type msgid: str\n"
+    "   :arg msgctxt: The translation context (defaults to BLT_I18NCONTEXT_DEFAULT).\n"
+    "   :type msgctxt: str | None\n"
+    "   :return: The original string.\n"
+    "\n");
 static PyObject *app_translations_pgettext_n(BlenderAppTranslations * /*self*/,
                                              PyObject *args,
                                              PyObject *kw)

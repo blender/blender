@@ -17,6 +17,8 @@ set(INC_GLSL
 
 set(SRC_GLSL_VERT
   draw_debug_draw_display_vert.glsl
+
+  draw_curves_test.glsl
 )
 
 set(SRC_GLSL_FRAG
@@ -24,12 +26,15 @@ set(SRC_GLSL_FRAG
 )
 
 set(SRC_GLSL_COMP
-  draw_hair_refine_comp.glsl
   draw_command_generate_comp.glsl
   # Failed because of mixed definition of ObjectInfos
   # draw_resource_finalize_comp.glsl
   draw_view_finalize_comp.glsl
   draw_visibility_comp.glsl
+
+  draw_curves_topology_comp.glsl
+  draw_curves_interpolation_comp.glsl
+  draw_curves_length_intercept_comp.glsl
 
   subdiv_ibo_lines_comp.glsl
   subdiv_ibo_tris_comp.glsl

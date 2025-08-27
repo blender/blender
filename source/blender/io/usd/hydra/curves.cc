@@ -174,14 +174,14 @@ void CurvesData::write_curves()
     widths_[i] = radii[i] * 2.0f;
   }
 
-  const Span<float2> surface_uv_coords = curves.surface_uv_coords();
-  if (surface_uv_coords.is_empty()) {
+  const std::optional<Span<float2>> surface_uv_coords = curves.surface_uv_coords();
+  if (!surface_uv_coords) {
     uvs_.clear();
     return;
   }
 
   uvs_.resize(curves.curves_num());
-  MutableSpan(uvs_.data(), uvs_.size()).copy_from(surface_uv_coords.cast<pxr::GfVec2f>());
+  MutableSpan(uvs_.data(), uvs_.size()).copy_from(surface_uv_coords->cast<pxr::GfVec2f>());
 }
 
 HairData::HairData(HydraSceneDelegate *scene_delegate,

@@ -29,7 +29,6 @@ PyDoc_STRVAR(
     "   :type inter2: :class:`freestyle.types.Interface1D`\n"
     "   :return: True.\n"
     "   :rtype: bool\n");
-
 static int TrueBP1D___init__(BPy_TrueBP1D *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {nullptr};

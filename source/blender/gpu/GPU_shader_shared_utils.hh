@@ -57,9 +57,6 @@
 #  define ATTR_FALLTHROUGH
 #  define ENUM_OPERATORS(a, b)
 #  define UNUSED_VARS(a)
-/* Incompatible keywords. */
-#  define static
-#  define inline
 /* Math function renaming. */
 #  define cosf cos
 #  define sinf sin

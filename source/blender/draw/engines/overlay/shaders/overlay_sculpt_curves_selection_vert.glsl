@@ -11,33 +11,23 @@ VERTEX_SHADER_CREATE_INFO(overlay_sculpt_curves_selection)
 #include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
 
-float retrieve_selection()
+float retrieve_selection(const curves::Point pt)
 {
   if (is_point_domain) {
-    return texelFetch(selection_tx, hair_get_base_id()).r;
+    return texelFetch(selection_tx, pt.point_id).r;
   }
-  return texelFetch(selection_tx, hair_get_strand_id()).r;
+  return texelFetch(selection_tx, pt.curve_id).r;
 }
 
 void main()
 {
-  bool is_persp = (drw_view().winmat[3][3] == 0.0f);
-  float time, thick_time, thickness;
-  float3 world_pos, tangent, binor;
-  hair_get_pos_tan_binor_time(is_persp,
-                              drw_modelinv(),
-                              drw_view().viewinv[3].xyz,
-                              drw_view().viewinv[2].xyz,
-                              world_pos,
-                              tangent,
-                              binor,
-                              time,
-                              thickness,
-                              thick_time);
+  const curves::Point ls_pt = curves::point_get(uint(gl_VertexID));
+  const curves::Point ws_pt = curves::object_to_world(ls_pt, drw_modelmat());
+  float3 world_pos = curves::shape_point_get(ws_pt, drw_world_incident_vector(ws_pt.P)).P;
 
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
-  mask_weight = 1.0f - (selection_opacity - retrieve_selection() * selection_opacity);
+  mask_weight = 1.0f - (selection_opacity - retrieve_selection(ws_pt) * selection_opacity);
 
   view_clipping_distances(world_pos);
 }

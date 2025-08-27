@@ -25,6 +25,7 @@
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_paint.hh"
+#include "BKE_paint_types.hh"
 
 #include "ED_paint.hh"
 #include "ED_view3d.hh"

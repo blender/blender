@@ -35,9 +35,9 @@ class VertBuf;
 struct GPUVertBufRaw;
 
 namespace blender::ocio {
-class Display;
+class ColorSpace;
 }  // namespace blender::ocio
-using ColorManagedDisplay = blender::ocio::Display;
+using ColorSpace = blender::ocio::ColorSpace;
 
 #include FT_MULTIPLE_MASTERS_H /* Variable font support. */
 
@@ -230,8 +230,8 @@ struct FontBufInfoBLF {
   /** Buffer size, keep signed so comparisons with negative values work. */
   int dims[2];
 
-  /** Display device used for color management. */
-  const ColorManagedDisplay *display;
+  /** Colorspace of the byte buffer (float is scene linear). */
+  const ColorSpace *colorspace;
 
   /** The color, the alphas is get from the glyph! (color is sRGB space). */
   float col_init[4];

@@ -234,7 +234,6 @@ class MTLShader : public Shader {
   ~MTLShader();
 
   void init(const shader::ShaderCreateInfo & /*info*/, bool is_batch_compilation) override;
-  void init() override {}
 
   /* Assign GLSL source. */
   void vertex_shader_from_glsl(MutableSpan<StringRefNull> sources) override;

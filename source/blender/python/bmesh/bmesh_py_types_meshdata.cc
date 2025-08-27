@@ -63,7 +63,7 @@ PyDoc_STRVAR(
     bpy_bmloopuv_uv_doc,
     "Loops UV (as a 2D Vector).\n"
     "\n"
-    ":type: :class:`mathutils.Vector`");
+    ":type: :class:`mathutils.Vector`\n");
 static PyObject *bpy_bmloopuv_uv_get(BPy_BMLoopUV *self, void * /*closure*/)
 {
   return Vector_CreatePyObject_wrap(self->uv, 2, nullptr);
@@ -85,19 +85,19 @@ PyDoc_STRVAR(
     bpy_bmloopuv_pin_uv_doc,
     "UV pin state.\n"
     "\n"
-    ":type: bool");
+    ":type: bool\n");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmloopuv_select_doc,
     "UV select state.\n"
     "\n"
-    ":type: bool");
+    ":type: bool\n");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmloopuv_select_edge_doc,
     "UV edge select state.\n"
     "\n"
-    ":type: bool");
+    ":type: bool\n");
 
 static PyObject *bpy_bmloopuv_pin_uv_get(BPy_BMLoopUV *self, void * /*closure*/)
 {
@@ -262,7 +262,7 @@ PyDoc_STRVAR(
     bpy_bmvertskin_radius_doc,
     "Vert skin radii (as a 2D Vector).\n"
     "\n"
-    ":type: :class:`mathutils.Vector`");
+    ":type: :class:`mathutils.Vector`\n");
 static PyObject *bpy_bmvertskin_radius_get(BPy_BMVertSkin *self, void * /*closure*/)
 {
   return Vector_CreatePyObject_wrap(self->data->radius, 2, nullptr);
@@ -284,13 +284,13 @@ PyDoc_STRVAR(
     bpy_bmvertskin_flag__use_root_doc,
     "Use as root vertex. Setting this flag does not clear other roots in the same mesh island.\n"
     "\n"
-    ":type: bool");
+    ":type: bool\n");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmvertskin_flag__use_loose_doc,
     "Use loose vertex.\n"
     "\n"
-    ":type: bool");
+    ":type: bool\n");
 
 static PyObject *bpy_bmvertskin_flag_get(BPy_BMVertSkin *self, void *flag_p)
 {

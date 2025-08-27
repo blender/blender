@@ -738,7 +738,7 @@ static void tree_element_strip_activate(bContext *C,
   Strip *strip = &te_strip->get_strip();
   Editing *ed = seq::editing_get(scene);
 
-  if (BLI_findindex(ed->seqbasep, strip) != -1) {
+  if (BLI_findindex(ed->current_strips(), strip) != -1) {
     if (set == OL_SETSEL_EXTEND) {
       seq::select_active_set(scene, nullptr);
     }
@@ -763,7 +763,7 @@ static void tree_element_strip_dup_activate(Scene *scene, TreeElement * /*te*/)
 #if 0
   select_single_seq(strip, 1);
 #endif
-  Strip *p = static_cast<Strip *>(ed->seqbasep->first);
+  Strip *p = static_cast<Strip *>(ed->current_strips()->first);
   while (p) {
     if ((!p->data) || (!p->data->stripdata) || (p->data->stripdata->filename[0] == '\0')) {
       p = p->next;

@@ -37,7 +37,7 @@ ListBase TreeDisplaySequencer::build_tree(const TreeSourceData &source_data)
     return tree;
   }
 
-  for (Strip *strip : List<Strip>(ed->seqbasep)) {
+  for (Strip *strip : List<Strip>(ed->current_strips())) {
     StripAddOp op = need_add_strip_dup(strip);
     if (op == StripAddOp::None) {
       add_element(&tree, nullptr, strip, nullptr, TSE_STRIP, 0);

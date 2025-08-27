@@ -2579,7 +2579,6 @@ static void cache_initial_config_set(bContext *C, wmOperator *op, Cache &expand_
   BKE_curvemapping_init(expand_cache.brush->curve);
   copy_v4_fl(expand_cache.fill_color, 1.0f);
   copy_v3_v3(expand_cache.fill_color, BKE_brush_color_get(paint, expand_cache.brush));
-  IMB_colormanagement_srgb_to_scene_linear_v3(expand_cache.fill_color, expand_cache.fill_color);
 
   expand_cache.scene = CTX_data_scene(C);
   expand_cache.texture_distortion_strength = 0.0f;

@@ -35,9 +35,6 @@ void main()
   float3 world_pos = drw_point_object_to_world(pos);
 
   gl_Position = drw_point_world_to_homogenous(world_pos);
-#ifdef USE_GEOM
-  vert.pos = drw_point_world_to_view(world_pos);
-#endif
 
   /* Small bias to always be on top of the geom. */
   gl_Position.z -= 1e-3f;

@@ -62,7 +62,6 @@
 #include "BKE_paint_types.hh"
 #include "BKE_report.hh"
 #include "BKE_subdiv_ccg.hh"
-#include "BKE_subsurf.hh"
 #include "BLI_math_rotation_legacy.hh"
 #include "BLI_math_vector.hh"
 
@@ -1355,13 +1354,20 @@ struct SampleLocalData {
   Vector<float> distances;
 };
 
+enum class AverageDataFlags : uint8_t {
+  Position = 1 << 0,
+  Normal = 1 << 1,
+
+  All = Position | Normal
+};
+ENUM_OPERATORS(AverageDataFlags, AverageDataFlags::Normal);
+
 static void calc_area_normal_and_center_node_mesh(const Object &object,
                                                   const Span<float3> vert_positions,
                                                   const Span<float3> vert_normals,
                                                   const Span<bool> hide_vert,
                                                   const Brush &brush,
-                                                  const bool use_area_nos,
-                                                  const bool use_area_cos,
+                                                  const AverageDataFlags flag,
                                                   const bke::pbvh::MeshNode &node,
                                                   SampleLocalData &tls,
                                                   AreaNormalCenterData &anctd)
@@ -1395,19 +1401,21 @@ static void calc_area_normal_and_center_node_mesh(const Object &object,
         if (!hide_vert.is_empty() && hide_vert[vert]) {
           continue;
         }
-        const bool normal_test_r = use_area_nos && distances_sq[i] <= normal_radius_sq;
-        const bool area_test_r = use_area_cos && distances_sq[i] <= position_radius_sq;
-        if (!normal_test_r && !area_test_r) {
+        const bool needs_normal = bool(flag & AverageDataFlags::Normal) &&
+                                  distances_sq[i] <= normal_radius_sq;
+        const bool needs_center = bool(flag & AverageDataFlags::Position) &&
+                                  distances_sq[i] <= position_radius_sq;
+        if (!needs_normal && !needs_center) {
           continue;
         }
         const float3 &normal = orig_normals[i];
         const float distance = std::sqrt(distances_sq[i]);
         const int flip_index = math::dot(view_normal, normal) <= 0.0f;
-        if (area_test_r) {
+        if (needs_center) {
           accumulate_area_center(
               location, orig_positions[i], distance, position_radius_inv, flip_index, anctd);
         }
-        if (normal_test_r) {
+        if (needs_normal) {
           accumulate_area_normal(normal, distance, normal_radius_inv, flip_index, anctd);
         }
       }
@@ -1425,19 +1433,21 @@ static void calc_area_normal_and_center_node_mesh(const Object &object,
     if (!hide_vert.is_empty() && hide_vert[vert]) {
       continue;
     }
-    const bool normal_test_r = distances_sq[i] <= normal_radius_sq;
-    const bool area_test_r = distances_sq[i] <= position_radius_sq;
-    if (!normal_test_r && !area_test_r) {
+    const bool needs_normal = bool(flag & AverageDataFlags::Normal) &&
+                              distances_sq[i] <= normal_radius_sq;
+    const bool needs_center = bool(flag & AverageDataFlags::Position) &&
+                              distances_sq[i] <= position_radius_sq;
+    if (!needs_normal && !needs_center) {
       continue;
     }
     const float3 &normal = vert_normals[vert];
     const float distance = std::sqrt(distances_sq[i]);
     const int flip_index = math::dot(view_normal, normal) <= 0.0f;
-    if (area_test_r) {
+    if (needs_center) {
       accumulate_area_center(
           location, vert_positions[vert], distance, position_radius_inv, flip_index, anctd);
     }
-    if (normal_test_r) {
+    if (needs_normal) {
       accumulate_area_normal(normal, distance, normal_radius_inv, flip_index, anctd);
     }
   }
@@ -1445,8 +1455,7 @@ static void calc_area_normal_and_center_node_mesh(const Object &object,
 
 static void calc_area_normal_and_center_node_grids(const Object &object,
                                                    const Brush &brush,
-                                                   const bool use_area_nos,
-                                                   const bool use_area_cos,
+                                                   const AverageDataFlags flag,
                                                    const bke::pbvh::GridsNode &node,
                                                    SampleLocalData &tls,
                                                    AreaNormalCenterData &anctd)
@@ -1488,15 +1497,17 @@ static void calc_area_normal_and_center_node_grids(const Object &object,
           }
           const int node_vert = grid_range_node[offset];
 
-          const bool normal_test_r = use_area_nos && distances_sq[node_vert] <= normal_radius_sq;
-          const bool area_test_r = use_area_cos && distances_sq[node_vert] <= position_radius_sq;
-          if (!normal_test_r && !area_test_r) {
+          const bool needs_normal = bool(flag & AverageDataFlags::Normal) &&
+                                    distances_sq[node_vert] <= normal_radius_sq;
+          const bool needs_center = bool(flag & AverageDataFlags::Position) &&
+                                    distances_sq[node_vert] <= position_radius_sq;
+          if (!needs_normal && !needs_center) {
             continue;
           }
           const float3 &normal = orig_normals[node_vert];
           const float distance = std::sqrt(distances_sq[node_vert]);
           const int flip_index = math::dot(view_normal, normal) <= 0.0f;
-          if (area_test_r) {
+          if (needs_center) {
             accumulate_area_center(location,
                                    orig_positions[node_vert],
                                    distance,
@@ -1504,7 +1515,7 @@ static void calc_area_normal_and_center_node_grids(const Object &object,
                                    flip_index,
                                    anctd);
           }
-          if (normal_test_r) {
+          if (needs_normal) {
             accumulate_area_normal(normal, distance, normal_radius_inv, flip_index, anctd);
           }
         }
@@ -1530,19 +1541,21 @@ static void calc_area_normal_and_center_node_grids(const Object &object,
       const int node_vert = grid_range_node[offset];
       const int vert = grid_range[offset];
 
-      const bool normal_test_r = use_area_nos && distances_sq[node_vert] <= normal_radius_sq;
-      const bool area_test_r = use_area_cos && distances_sq[node_vert] <= position_radius_sq;
-      if (!normal_test_r && !area_test_r) {
+      const bool needs_normal = uint8_t(flag & AverageDataFlags::Normal) != 0 &&
+                                distances_sq[node_vert] <= normal_radius_sq;
+      const bool needs_center = uint8_t(flag & AverageDataFlags::Position) != 0 &&
+                                distances_sq[node_vert] <= position_radius_sq;
+      if (!needs_normal && !needs_center) {
         continue;
       }
       const float3 &normal = normals[vert];
       const float distance = std::sqrt(distances_sq[node_vert]);
       const int flip_index = math::dot(view_normal, normal) <= 0.0f;
-      if (area_test_r) {
+      if (needs_center) {
         accumulate_area_center(
             location, positions[node_vert], distance, position_radius_inv, flip_index, anctd);
       }
-      if (normal_test_r) {
+      if (needs_normal) {
         accumulate_area_normal(normal, distance, normal_radius_inv, flip_index, anctd);
       }
     }
@@ -1551,8 +1564,7 @@ static void calc_area_normal_and_center_node_grids(const Object &object,
 
 static void calc_area_normal_and_center_node_bmesh(const Object &object,
                                                    const Brush &brush,
-                                                   const bool use_area_nos,
-                                                   const bool use_area_cos,
+                                                   const AverageDataFlags flag,
                                                    const bool has_bm_orco,
                                                    const bke::pbvh::BMeshNode &node,
                                                    SampleLocalData &tls,
@@ -1597,9 +1609,11 @@ static void calc_area_normal_and_center_node_bmesh(const Object &object,
         ss, positions, eBrushFalloffShape(brush.falloff_shape), distances_sq);
 
     for (const int i : orig_tris.index_range()) {
-      const bool normal_test_r = use_area_nos && distances_sq[i] <= normal_radius_sq;
-      const bool area_test_r = use_area_cos && distances_sq[i] <= position_radius_sq;
-      if (!normal_test_r && !area_test_r) {
+      const bool needs_normal = bool(flag & AverageDataFlags::Normal) &&
+                                distances_sq[i] <= normal_radius_sq;
+      const bool needs_center = bool(flag & AverageDataFlags::Position) &&
+                                distances_sq[i] <= position_radius_sq;
+      if (!needs_normal && !needs_center) {
         continue;
       }
       const float3 normal = math::normal_tri(float3(orig_positions[orig_tris[i][0]]),
@@ -1608,11 +1622,11 @@ static void calc_area_normal_and_center_node_bmesh(const Object &object,
 
       const float distance = std::sqrt(distances_sq[i]);
       const int flip_index = math::dot(view_normal, normal) <= 0.0f;
-      if (area_test_r) {
+      if (needs_center) {
         accumulate_area_center(
             location, positions[i], distance, position_radius_inv, flip_index, anctd);
       }
-      if (normal_test_r) {
+      if (needs_normal) {
         accumulate_area_normal(normal, distance, normal_radius_inv, flip_index, anctd);
       }
     }
@@ -1638,20 +1652,22 @@ static void calc_area_normal_and_center_node_bmesh(const Object &object,
         i++;
         continue;
       }
-      const bool normal_test_r = use_area_nos && distances_sq[i] <= normal_radius_sq;
-      const bool area_test_r = use_area_cos && distances_sq[i] <= position_radius_sq;
-      if (!normal_test_r && !area_test_r) {
+      const bool needs_normal = bool(flag & AverageDataFlags::Normal) &&
+                                distances_sq[i] <= normal_radius_sq;
+      const bool needs_center = bool(flag & AverageDataFlags::Position) &&
+                                distances_sq[i] <= position_radius_sq;
+      if (!needs_normal && !needs_center) {
         i++;
         continue;
       }
       const float3 &normal = normals[i];
       const float distance = std::sqrt(distances_sq[i]);
       const int flip_index = math::dot(view_normal, normal) <= 0.0f;
-      if (area_test_r) {
+      if (needs_center) {
         accumulate_area_center(
             location, positions[i], distance, position_radius_inv, flip_index, anctd);
       }
-      if (normal_test_r) {
+      if (needs_normal) {
         accumulate_area_normal(normal, distance, normal_radius_inv, flip_index, anctd);
       }
       i++;
@@ -1672,20 +1688,22 @@ static void calc_area_normal_and_center_node_bmesh(const Object &object,
       i++;
       continue;
     }
-    const bool normal_test_r = use_area_nos && distances_sq[i] <= normal_radius_sq;
-    const bool area_test_r = use_area_cos && distances_sq[i] <= position_radius_sq;
-    if (!normal_test_r && !area_test_r) {
+    const bool needs_normal = bool(flag & AverageDataFlags::Normal) &&
+                              distances_sq[i] <= normal_radius_sq;
+    const bool needs_center = bool(flag & AverageDataFlags::Position) &&
+                              distances_sq[i] <= position_radius_sq;
+    if (!needs_normal && !needs_center) {
       i++;
       continue;
     }
     const float3 normal = vert->no;
     const float distance = std::sqrt(distances_sq[i]);
     const int flip_index = math::dot(view_normal, normal) <= 0.0f;
-    if (area_test_r) {
+    if (needs_center) {
       accumulate_area_center(
           location, positions[i], distance, position_radius_inv, flip_index, anctd);
     }
-    if (normal_test_r) {
+    if (needs_normal) {
       accumulate_area_normal(normal, distance, normal_radius_inv, flip_index, anctd);
     }
     i++;
@@ -1743,8 +1761,7 @@ void calc_area_center(const Depsgraph &depsgraph,
                                                     vert_normals,
                                                     hide_vert,
                                                     brush,
-                                                    false,
-                                                    true,
+                                                    AverageDataFlags::Position,
                                                     nodes[i],
                                                     tls,
                                                     anctd);
@@ -1766,7 +1783,7 @@ void calc_area_center(const Depsgraph &depsgraph,
             SampleLocalData &tls = all_tls.local();
             node_mask.slice(range).foreach_index([&](const int i) {
               calc_area_normal_and_center_node_bmesh(
-                  ob, brush, false, true, has_bm_orco, nodes[i], tls, anctd);
+                  ob, brush, AverageDataFlags::Position, has_bm_orco, nodes[i], tls, anctd);
             });
             return anctd;
           },
@@ -1782,7 +1799,8 @@ void calc_area_center(const Depsgraph &depsgraph,
           [&](const IndexRange range, AreaNormalCenterData anctd) {
             SampleLocalData &tls = all_tls.local();
             node_mask.slice(range).foreach_index([&](const int i) {
-              calc_area_normal_and_center_node_grids(ob, brush, false, true, nodes[i], tls, anctd);
+              calc_area_normal_and_center_node_grids(
+                  ob, brush, AverageDataFlags::Position, nodes[i], tls, anctd);
             });
             return anctd;
           },
@@ -1843,8 +1861,7 @@ std::optional<float3> calc_area_normal(const Depsgraph &depsgraph,
                                                     vert_normals,
                                                     hide_vert,
                                                     brush,
-                                                    true,
-                                                    false,
+                                                    AverageDataFlags::Normal,
                                                     nodes[i],
                                                     tls,
                                                     anctd);
@@ -1868,8 +1885,7 @@ std::optional<float3> calc_area_normal(const Depsgraph &depsgraph,
               calc_area_normal_and_center_node_bmesh(
                   ob,
                   brush,
-                  true,
-                  false,
+                  AverageDataFlags::Normal,
                   has_bm_orco,
                   static_cast<const blender::bke::pbvh::BMeshNode &>(nodes[i]),
                   tls,
@@ -1889,7 +1905,8 @@ std::optional<float3> calc_area_normal(const Depsgraph &depsgraph,
           [&](const IndexRange range, AreaNormalCenterData anctd) {
             SampleLocalData &tls = all_tls.local();
             node_mask.slice(range).foreach_index([&](const int i) {
-              calc_area_normal_and_center_node_grids(ob, brush, true, false, nodes[i], tls, anctd);
+              calc_area_normal_and_center_node_grids(
+                  ob, brush, AverageDataFlags::Normal, nodes[i], tls, anctd);
             });
             return anctd;
           },
@@ -2042,8 +2059,7 @@ void calc_area_normal_and_center(const Depsgraph &depsgraph,
                                                     vert_normals,
                                                     hide_vert,
                                                     brush,
-                                                    true,
-                                                    true,
+                                                    AverageDataFlags::All,
                                                     nodes[i],
                                                     tls,
                                                     anctd);
@@ -2065,7 +2081,7 @@ void calc_area_normal_and_center(const Depsgraph &depsgraph,
             SampleLocalData &tls = all_tls.local();
             node_mask.slice(range).foreach_index([&](const int i) {
               calc_area_normal_and_center_node_bmesh(
-                  ob, brush, true, true, has_bm_orco, nodes[i], tls, anctd);
+                  ob, brush, AverageDataFlags::All, has_bm_orco, nodes[i], tls, anctd);
             });
             return anctd;
           },
@@ -2081,7 +2097,8 @@ void calc_area_normal_and_center(const Depsgraph &depsgraph,
           [&](const IndexRange range, AreaNormalCenterData anctd) {
             SampleLocalData &tls = all_tls.local();
             node_mask.slice(range).foreach_index([&](const int i) {
-              calc_area_normal_and_center_node_grids(ob, brush, true, true, nodes[i], tls, anctd);
+              calc_area_normal_and_center_node_grids(
+                  ob, brush, AverageDataFlags::All, nodes[i], tls, anctd);
             });
             return anctd;
           },
@@ -5770,8 +5787,8 @@ void SCULPT_OT_brush_stroke(wmOperatorType *ot)
       "override_location",
       false,
       "Override Location",
-      "Override the given `location` array by recalculating object space positions from the "
-      "provided `mouse_event` positions");
+      "Override the given \"location\" array by recalculating object space positions from the "
+      "provided \"mouse_event\" positions");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
   RNA_def_boolean(ot->srna,

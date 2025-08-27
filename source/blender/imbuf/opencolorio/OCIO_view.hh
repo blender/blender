@@ -23,6 +23,16 @@ class View {
    * The name is used to address to this view from various places of the configuration.
    */
   virtual StringRefNull name() const = 0;
+
+  /**
+   * Does this view transform output HDR colors?
+   */
+  virtual bool is_hdr() const = 0;
+
+  /**
+   * Does this view transform output wide gamut colors?
+   */
+  virtual bool is_wide_gamut() const = 0;
 };
 
 }  // namespace blender::ocio

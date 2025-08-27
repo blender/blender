@@ -17,12 +17,6 @@
 #  include "MEM_guardedalloc.h"
 #endif
 
-/*-------------------------DOC STRINGS ---------------------------*/
-PyDoc_STRVAR(
-    /* Wrap. */
-    M_Interpolate_doc,
-    "The Blender interpolate module");
-
 /* ---------------------------------WEIGHT CALCULATION ----------------------- */
 
 #ifndef MATH_STANDALONE
@@ -97,6 +91,10 @@ static PyMethodDef M_Interpolate_methods[] = {
     {nullptr, nullptr, 0, nullptr},
 };
 
+PyDoc_STRVAR(
+    /* Wrap. */
+    M_Interpolate_doc,
+    "The Blender interpolate module.");
 static PyModuleDef M_Interpolate_module_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "mathutils.interpolate",

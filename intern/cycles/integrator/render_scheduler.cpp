@@ -235,7 +235,7 @@ bool RenderScheduler::render_work_reschedule_on_idle(RenderWork &render_work)
 
 void RenderScheduler::render_work_reschedule_on_cancel(RenderWork &render_work)
 {
-  LOG_WORK << "Schedule work for cancel.";
+  LOG_DEBUG << "Schedule work for cancel.";
 
   /* Un-schedule samples: they will not be rendered and should not be counted. */
   state_.num_rendered_samples -= render_work.path_trace.num_samples;
@@ -501,7 +501,7 @@ void RenderScheduler::report_path_trace_time(const RenderWork &render_work,
 
   path_trace_time_.add_average(final_time_approx, render_work.path_trace.num_samples);
 
-  LOG_WORK << "Average path tracing time: " << path_trace_time_.get_average() << " seconds.";
+  LOG_DEBUG << "Average path tracing time: " << path_trace_time_.get_average() << " seconds.";
 }
 
 void RenderScheduler::report_path_trace_occupancy(const RenderWork &render_work,
@@ -509,7 +509,7 @@ void RenderScheduler::report_path_trace_occupancy(const RenderWork &render_work,
 {
   state_.occupancy_num_samples = render_work.path_trace.num_samples;
   state_.occupancy = occupancy;
-  LOG_WORK << "Measured path tracing occupancy: " << occupancy;
+  LOG_DEBUG << "Measured path tracing occupancy: " << occupancy;
 }
 
 void RenderScheduler::report_adaptive_filter_time(const RenderWork &render_work,
@@ -530,8 +530,8 @@ void RenderScheduler::report_adaptive_filter_time(const RenderWork &render_work,
 
   adaptive_filter_time_.add_average(final_time_approx, render_work.path_trace.num_samples);
 
-  LOG_WORK << "Average adaptive sampling filter  time: " << adaptive_filter_time_.get_average()
-           << " seconds.";
+  LOG_DEBUG << "Average adaptive sampling filter  time: " << adaptive_filter_time_.get_average()
+            << " seconds.";
 }
 
 void RenderScheduler::report_denoise_time(const RenderWork &render_work, const double time)
@@ -550,7 +550,7 @@ void RenderScheduler::report_denoise_time(const RenderWork &render_work, const d
 
   denoise_time_.add_average(final_time_approx);
 
-  LOG_WORK << "Average denoising time: " << denoise_time_.get_average() << " seconds.";
+  LOG_DEBUG << "Average denoising time: " << denoise_time_.get_average() << " seconds.";
 }
 
 void RenderScheduler::report_volume_guiding_denoise_time(const RenderWork &render_work,
@@ -566,8 +566,8 @@ void RenderScheduler::report_volume_guiding_denoise_time(const RenderWork &rende
 
   volume_guiding_denoise_time_.add_average(final_time_approx, render_work.path_trace.num_samples);
 
-  LOG_WORK << "Average volume guiding denoising time: "
-           << volume_guiding_denoise_time_.get_average() << " seconds.";
+  LOG_DEBUG << "Average volume guiding denoising time: "
+            << volume_guiding_denoise_time_.get_average() << " seconds.";
 }
 
 void RenderScheduler::report_display_update_time(const RenderWork &render_work, const double time)
@@ -586,7 +586,8 @@ void RenderScheduler::report_display_update_time(const RenderWork &render_work, 
 
   display_update_time_.add_average(final_time_approx);
 
-  LOG_WORK << "Average display update time: " << display_update_time_.get_average() << " seconds.";
+  LOG_DEBUG << "Average display update time: " << display_update_time_.get_average()
+            << " seconds.";
 
   /* Move the display update moment further in time, so that logic which checks when last update
    * did happen have more reliable point in time (without path tracing and denoising parts of the
@@ -612,7 +613,7 @@ void RenderScheduler::report_rebalance_time(const RenderWork &render_work,
 
   state_.last_rebalance_changed = balance_changed;
 
-  LOG_WORK << "Average rebalance time: " << rebalance_time_.get_average() << " seconds.";
+  LOG_DEBUG << "Average rebalance time: " << rebalance_time_.get_average() << " seconds.";
 }
 
 string RenderScheduler::full_report() const
@@ -1151,7 +1152,7 @@ void RenderScheduler::update_start_resolution_divider()
      * that we have a somewhat good initial behavior, giving a chance to collect real numbers. */
     start_resolution_divider_ = min(default_start_resolution_divider_,
                                     max_res_divider_for_desired_size);
-    LOG_WORK << "Initial resolution divider is " << start_resolution_divider_;
+    LOG_DEBUG << "Initial resolution divider is " << start_resolution_divider_;
     return;
   }
 
@@ -1180,7 +1181,7 @@ void RenderScheduler::update_start_resolution_divider()
    * unreadable viewport render. */
   start_resolution_divider_ = min(resolution_divider_for_update, max_res_divider_for_desired_size);
 
-  LOG_WORK << "Calculated resolution divider is " << start_resolution_divider_;
+  LOG_DEBUG << "Calculated resolution divider is " << start_resolution_divider_;
 }
 
 double RenderScheduler::guess_viewport_navigation_update_interval_in_seconds() const

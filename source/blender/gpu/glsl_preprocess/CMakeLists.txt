@@ -9,6 +9,7 @@ set(SRC
   glsl_preprocess.cc
 
   glsl_preprocess.hh
+  shader_parser.hh
 )
 
 if(WITH_GPU_SHADER_ASSERT)

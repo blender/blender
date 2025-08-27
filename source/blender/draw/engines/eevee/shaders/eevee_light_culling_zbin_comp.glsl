@@ -16,10 +16,6 @@ COMPUTE_SHADER_CREATE_INFO(eevee_light_culling_zbin)
 #include "eevee_light_iter_lib.glsl"
 #include "gpu_shader_math_base_lib.glsl"
 
-/* Fits the limit of 32KB. */
-shared uint zbin_max[CULLING_ZBIN_COUNT];
-shared uint zbin_min[CULLING_ZBIN_COUNT];
-
 void main()
 {
   constexpr uint zbin_iter = CULLING_ZBIN_COUNT / gl_WorkGroupSize.x;
