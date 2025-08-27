@@ -249,6 +249,14 @@ class MatrixTesting(unittest.TestCase):
         result = Matrix.LocRotScale((1, 2, 3), euler.to_matrix(), (4, 5, 6))
         self.assertAlmostEqualMatrix(result, expected, 4)
 
+    def test_matrix_freeze_is_read_only(self):
+        mat = Matrix(((1, 1, 1),) * 3)
+        mat.freeze()
+        with self.assertRaises(ValueError):
+            mat.resize_4x4()
+        with self.assertRaises(TypeError):
+            mat[0][0] = 0.0
+
     def assertAlmostEqualMatrix(self, first, second, size, *, places=6, msg=None, delta=None):
         for i in range(size):
             for j in range(size):
@@ -305,6 +313,15 @@ class VectorTesting(unittest.TestCase):
 
         vec *= 2
         self.assertEqual(vec, prod2)
+
+    def test_vector_freeze_is_read_only(self):
+        vec = Vector((1, 3, 5))
+
+        vec.freeze()
+        with self.assertRaises(ValueError):
+            vec.resize(2)
+        with self.assertRaises(TypeError):
+            vec[0] = 0.0
 
 
 class QuaternionTesting(unittest.TestCase):
