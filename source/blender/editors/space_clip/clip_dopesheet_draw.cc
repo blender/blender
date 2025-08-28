@@ -38,7 +38,7 @@
 #include "clip_intern.hh" /* own include */
 
 static void track_channel_color(MovieTrackingTrack *track,
-                                const float default_color[3],
+                                bool default_color,
                                 float color[3])
 {
   if (track->flag & TRACK_CUSTOMCOLOR) {
@@ -49,7 +49,7 @@ static void track_channel_color(MovieTrackingTrack *track,
   }
   else {
     if (default_color) {
-      copy_v3_v3(color, default_color);
+      UI_GetThemeColor4fv(TH_TRACK_SELECT, color);
     }
     else {
       UI_GetThemeColor3fv(TH_HEADER, color);
@@ -150,9 +150,8 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
         /* selection background */
         if (sel) {
           float color[4] = {0.0f, 0.0f, 0.0f, 0.3f};
-          float default_color[4] = {0.8f, 0.93f, 0.8f, 0.3f};
 
-          track_channel_color(track, default_color, color);
+          track_channel_color(track, true, color);
           immUniformColor4fv(color);
 
           immRectf(pos_id,
@@ -330,7 +329,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
     {
       MovieTrackingTrack *track = channel->track;
       float color[3];
-      track_channel_color(track, nullptr, color);
+      track_channel_color(track, false, color);
       immUniformColor3fv(color);
 
       immRectf(pos,

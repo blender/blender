@@ -793,6 +793,7 @@ const bTheme U_theme_default = {
     .path_keyframe_after = RGBA(0xc4c4ffff),
     .gp_vertex_size = 1,
     .metadatatext = RGBA(0xffffffff),
+    .track_selected = RGBA(0xe7f7e74d),
   },
   .space_topbar = {
     .back = RGBA(0x18181800),

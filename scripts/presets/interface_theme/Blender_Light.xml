@@ -1033,7 +1033,7 @@
         strips_selected="#ff8c00"
         metadatabg="#000000"
         metadatatext="#ffffff"
-        preview_range="#a14d0066"
+        track_selected="#e7f7e74d"
         >
         <space>
           <ThemeSpaceGeneric

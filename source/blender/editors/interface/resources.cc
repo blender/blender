@@ -489,6 +489,9 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_STRIP_SELECT:
           cp = ts->strip_select;
           break;
+        case TH_TRACK_SELECT:
+          cp = ts->track_selected;
+          break;
         case TH_KEYTYPE_KEYFRAME:
           cp = ts->keytype_keyframe;
           break;
