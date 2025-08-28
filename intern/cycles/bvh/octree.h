@@ -123,6 +123,9 @@ class Octree {
   /* Root node. */
   std::shared_ptr<OctreeNode> root_;
 
+  /* Bounding box min of the octree, used for computing the indices. */
+  float3 bbox_min;
+
   /* Whether the octree is already built. */
   bool is_built_;
 
