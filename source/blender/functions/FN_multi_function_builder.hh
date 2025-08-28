@@ -301,7 +301,7 @@ inline void execute_materialized(TypeSequence<ParamTags...> /*param_tags*/,
             }
             /* As a fallback, do a virtual function call to retrieve all elements in the current
              * chunk. The elements are stored in a temporary buffer reused for every chunk. */
-            varray_impl.materialize_compressed_to_uninitialized(*current_segment_mask, tmp_buffer);
+            varray_impl.materialize_compressed(*current_segment_mask, tmp_buffer, true);
             /* Remember that this parameter has been materialized, so that the values are
              * destructed properly when the chunk is done. */
             arg_info.mode = MaterializeArgMode::Materialized;
