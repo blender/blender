@@ -12,6 +12,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_vector.h"
 #include "BLI_vector.hh"
 #include "BLI_virtual_array.hh"
@@ -61,12 +62,12 @@ static void join_mesh_single(Depsgraph *depsgraph,
                              Scene *scene,
                              Object *ob_dst,
                              Object *ob_src,
-                             const float world_to_active_object[4][4],
-                             float3 **dst_positions,
-                             int2 **dst_edge,
-                             int **dst_corner_verts,
-                             int **dst_corner_edges,
-                             int *dst_face_offsets,
+                             const float4x4 &world_to_active_object,
+                             MutableSpan<float3> dst_positions,
+                             MutableSpan<int2> dst_edges,
+                             MutableSpan<int> dst_corner_verts,
+                             MutableSpan<int> dst_corner_edges,
+                             MutableSpan<int> dst_face_offsets,
                              CustomData *vert_data,
                              CustomData *edge_data,
                              CustomData *face_data,
@@ -78,28 +79,25 @@ static void join_mesh_single(Depsgraph *depsgraph,
                              Key *key,
                              Key *nkey,
                              Vector<Material *> &materials,
-                             int *vertofs,
-                             int *edgeofs,
-                             int *cornerofs,
-                             int *faceofs)
+                             const IndexRange vert_range,
+                             const IndexRange edge_range,
+                             const IndexRange face_range,
+                             const IndexRange corner_range)
 {
   int a;
 
   Mesh *mesh_src = static_cast<Mesh *>(ob_src->data);
-  float3 *vert_positions = *dst_positions;
-  int2 *edge = *dst_edge;
-  int *corner_verts = *dst_corner_verts;
-  int *corner_edges = *dst_corner_edges;
 
   if (mesh_src->verts_num) {
     /* standard data */
     CustomData_merge_layout(
         &mesh_src->vert_data, vert_data, CD_MASK_MESH.vmask, CD_SET_DEFAULT, verts_num);
-    CustomData_copy_data_named(&mesh_src->vert_data, vert_data, 0, *vertofs, mesh_src->verts_num);
+    CustomData_copy_data_named(
+        &mesh_src->vert_data, vert_data, 0, vert_range.start(), mesh_src->verts_num);
 
     /* vertex groups */
-    MDeformVert *dvert = (MDeformVert *)CustomData_get_for_write(
-        vert_data, *vertofs, CD_MDEFORMVERT, verts_num);
+    MDeformVert *dvert = (MDeformVert *)CustomData_get_layer_for_write(
+        vert_data, CD_MDEFORMVERT, verts_num);
     const MDeformVert *dvert_src = (const MDeformVert *)CustomData_get_layer(&mesh_src->vert_data,
                                                                              CD_MDEFORMVERT);
 
@@ -113,7 +111,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
       vgroup_index_map = BKE_object_defgroup_index_map_create(
           ob_src, ob_dst, &vgroup_index_map_len);
       BKE_object_defgroup_index_map_apply(
-          dvert, mesh_src->verts_num, vgroup_index_map, vgroup_index_map_len);
+          &dvert[vert_range.start()], mesh_src->verts_num, vgroup_index_map, vgroup_index_map_len);
       if (vgroup_index_map != nullptr) {
         MEM_freeN(vgroup_index_map);
       }
@@ -124,12 +122,9 @@ static void join_mesh_single(Depsgraph *depsgraph,
       float cmat[4][4];
 
       /* Watch this: switch matrix multiplication order really goes wrong. */
-      mul_m4_m4m4(cmat, world_to_active_object, ob_src->object_to_world().ptr());
+      mul_m4_m4m4(cmat, world_to_active_object.ptr(), ob_src->object_to_world().ptr());
 
-      /* transform vertex coordinates into new space */
-      for (a = 0; a < mesh_src->verts_num; a++) {
-        mul_m4_v3(cmat, vert_positions[a]);
-      }
+      math::transform_points(float4x4(cmat), dst_positions.slice(vert_range));
 
       /* For each shape-key in destination mesh:
        * - if there's a matching one, copy it across
@@ -140,26 +135,16 @@ static void join_mesh_single(Depsgraph *depsgraph,
       if (key) {
         /* if this mesh has any shape-keys, check first, otherwise just copy coordinates */
         LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
-          /* get pointer to where to write data for this mesh in shape-key's data array */
-          float(*cos)[3] = ((float(*)[3])kb->data) + *vertofs;
-
-          /* Check if this mesh has such a shape-key. */
-          KeyBlock *okb = mesh_src->key ? BKE_keyblock_find_name(mesh_src->key, kb->name) :
-                                          nullptr;
-          if (okb) {
-            /* copy this mesh's shape-key to the destination shape-key
-             * (need to transform first) */
-            float(*ocos)[3] = static_cast<float(*)[3]>(okb->data);
-            for (a = 0; a < mesh_src->verts_num; a++, cos++, ocos++) {
-              copy_v3_v3(*cos, *ocos);
-              mul_m4_v3(cmat, *cos);
-            }
+          MutableSpan<float3> key_data(static_cast<float3 *>(kb->data), kb->totelem);
+          if (const KeyBlock *src_kb = mesh_src->key ?
+                                           BKE_keyblock_find_name(mesh_src->key, kb->name) :
+                                           nullptr)
+          {
+            const Span<float3> src_kb_data(static_cast<float3 *>(src_kb->data), src_kb->totelem);
+            math::transform_points(src_kb_data, float4x4(cmat), key_data);
           }
           else {
-            /* Copy this mesh's vertex coordinates to the destination shape-key. */
-            for (a = 0; a < mesh_src->verts_num; a++, cos++) {
-              copy_v3_v3(*cos, vert_positions[a]);
-            }
+            key_data.slice(vert_range).copy_from(dst_positions.slice(vert_range));
           }
         }
       }
@@ -171,23 +156,13 @@ static void join_mesh_single(Depsgraph *depsgraph,
        */
       if (key) {
         LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
-          /* get pointer to where to write data for this mesh in shape-key's data array */
-          float(*cos)[3] = ((float(*)[3])kb->data) + *vertofs;
-
-          /* Check if this was one of the original shape-keys. */
-          KeyBlock *okb = nkey ? BKE_keyblock_find_name(nkey, kb->name) : nullptr;
-          if (okb) {
-            /* copy this mesh's shape-key to the destination shape-key */
-            float(*ocos)[3] = static_cast<float(*)[3]>(okb->data);
-            for (a = 0; a < mesh_src->verts_num; a++, cos++, ocos++) {
-              copy_v3_v3(*cos, *ocos);
-            }
+          MutableSpan<float3> key_data(static_cast<float3 *>(kb->data), kb->totelem);
+          if (const KeyBlock *src_kb = nkey ? BKE_keyblock_find_name(nkey, kb->name) : nullptr) {
+            const Span<float3> src_kb_data(static_cast<float3 *>(src_kb->data), src_kb->totelem);
+            key_data.slice(vert_range).copy_from(src_kb_data);
           }
           else {
-            /* Copy base-coordinates to the destination shape-key. */
-            for (a = 0; a < mesh_src->verts_num; a++, cos++) {
-              copy_v3_v3(*cos, vert_positions[a]);
-            }
+            key_data.slice(vert_range).copy_from(dst_positions.slice(vert_range));
           }
         }
       }
@@ -197,10 +172,11 @@ static void join_mesh_single(Depsgraph *depsgraph,
   if (mesh_src->edges_num) {
     CustomData_merge_layout(
         &mesh_src->edge_data, edge_data, CD_MASK_MESH.emask, CD_SET_DEFAULT, edges_num);
-    CustomData_copy_data_named(&mesh_src->edge_data, edge_data, 0, *edgeofs, mesh_src->edges_num);
+    CustomData_copy_data_named(
+        &mesh_src->edge_data, edge_data, 0, edge_range.start(), mesh_src->edges_num);
 
-    for (a = 0; a < mesh_src->edges_num; a++, edge++) {
-      (*edge) += *vertofs;
+    for (int2 &edge : dst_edges.slice(edge_range)) {
+      edge += vert_range.start();
     }
   }
 
@@ -218,11 +194,13 @@ static void join_mesh_single(Depsgraph *depsgraph,
     CustomData_merge_layout(
         &mesh_src->corner_data, corner_data, CD_MASK_MESH.lmask, CD_SET_DEFAULT, corners_num);
     CustomData_copy_data_named(
-        &mesh_src->corner_data, corner_data, 0, *cornerofs, mesh_src->corners_num);
+        &mesh_src->corner_data, corner_data, 0, corner_range.start(), mesh_src->corners_num);
 
-    for (a = 0; a < mesh_src->corners_num; a++) {
-      corner_verts[a] += *vertofs;
-      corner_edges[a] += *edgeofs;
+    for (int &vert : dst_corner_verts.slice(corner_range)) {
+      vert += vert_range.start();
+    }
+    for (int &edge : dst_corner_edges.slice(corner_range)) {
+      edge += edge_range.start();
     }
   }
 
@@ -261,7 +239,8 @@ static void join_mesh_single(Depsgraph *depsgraph,
 
     CustomData_merge_layout(
         &mesh_src->face_data, face_data, CD_MASK_MESH.pmask, CD_SET_DEFAULT, faces_num);
-    CustomData_copy_data_named(&mesh_src->face_data, face_data, 0, *faceofs, mesh_src->faces_num);
+    CustomData_copy_data_named(
+        &mesh_src->face_data, face_data, 0, face_range.start(), mesh_src->faces_num);
 
     /* Apply matmap. In case we don't have material indices yet, create them if more than one
      * material is the result of joining. */
@@ -274,27 +253,16 @@ static void join_mesh_single(Depsgraph *depsgraph,
     if (material_indices) {
       for (a = 0; a < mesh_src->faces_num; a++) {
         /* Clamp invalid slots, matching #BKE_object_material_get_p. */
-        const int mat_index = std::clamp(material_indices[a + *faceofs], 0, totcol - 1);
-        material_indices[a + *faceofs] = matmap[mat_index];
+        const int mat_index = std::clamp(material_indices[a + face_range.start()], 0, totcol - 1);
+        material_indices[a + face_range.start()] = matmap[mat_index];
       }
     }
 
     const Span<int> src_face_offsets = mesh_src->face_offsets();
-    int *face_offsets = dst_face_offsets + *faceofs;
-    for (const int i : IndexRange(mesh_src->faces_num)) {
-      face_offsets[i] = src_face_offsets[i] + *cornerofs;
+    for (const int i : face_range.index_range()) {
+      dst_face_offsets[face_range[i]] = src_face_offsets[i] + corner_range.start();
     }
   }
-
-  /* these are used for relinking (cannot be set earlier, or else reattaching goes wrong) */
-  *vertofs += mesh_src->verts_num;
-  *dst_positions += mesh_src->verts_num;
-  *edgeofs += mesh_src->edges_num;
-  *dst_edge += mesh_src->edges_num;
-  *cornerofs += mesh_src->corners_num;
-  *dst_corner_verts += mesh_src->corners_num;
-  *dst_corner_edges += mesh_src->corners_num;
-  *faceofs += mesh_src->faces_num;
 }
 
 /* Face Sets IDs are a sparse sequence, so this function offsets all the IDs by face_set_offset and
@@ -349,39 +317,46 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
   }
   CTX_DATA_END;
 
-  bool ok = false;
-  bool join_parent = false;
+  {
+    /* Make sure the active object is first, that way its data will be first in the new mesh. */
+    const int active_index = objects_to_join.as_span().first_index_try(active_object);
+    if (active_index == -1) {
+      BKE_report(op->reports, RPT_WARNING, "Active object is not a selected mesh");
+      return OPERATOR_CANCELLED;
+    }
+    objects_to_join.remove(active_index);
+    objects_to_join.prepend(active_object);
+  }
+
   int haskey = 0;
 
-  int verts_num = 0;
-  int edges_num = 0;
-  int corners_num = 0;
-  int faces_num = 0;
-  for (const Object *ob_iter : objects_to_join) {
-    Mesh *mesh = static_cast<Mesh *>(ob_iter->data);
-
-    verts_num += mesh->verts_num;
-    edges_num += mesh->edges_num;
-    corners_num += mesh->corners_num;
-    faces_num += mesh->faces_num;
-
-    if (ob_iter == active_object) {
-      ok = true;
-    }
-
-    if ((active_object->parent != nullptr) && (ob_iter == active_object->parent)) {
-      join_parent = true;
-    }
-
-    /* Check for shape-keys. */
-    if (mesh->key) {
+  Array<int> vert_offset_data(objects_to_join.size() + 1);
+  Array<int> edge_offset_data(objects_to_join.size() + 1);
+  Array<int> face_offset_data(objects_to_join.size() + 1);
+  Array<int> corner_offset_data(objects_to_join.size() + 1);
+  for (const int i : objects_to_join.index_range()) {
+    const Mesh &mesh = *static_cast<const Mesh *>(objects_to_join[i]->data);
+    vert_offset_data[i] = mesh.verts_num;
+    edge_offset_data[i] = mesh.edges_num;
+    face_offset_data[i] = mesh.faces_num;
+    corner_offset_data[i] = mesh.corners_num;
+    if (mesh.key) {
       haskey++;
     }
   }
 
+  const OffsetIndices<int> vert_ranges = offset_indices::accumulate_counts_to_offsets(
+      vert_offset_data);
+  const OffsetIndices<int> edge_ranges = offset_indices::accumulate_counts_to_offsets(
+      edge_offset_data);
+  const OffsetIndices<int> face_ranges = offset_indices::accumulate_counts_to_offsets(
+      face_offset_data);
+  const OffsetIndices<int> corner_ranges = offset_indices::accumulate_counts_to_offsets(
+      corner_offset_data);
+
   /* Apply parent transform if the active object's parent was joined to it.
    * NOTE: This doesn't apply recursive parenting. */
-  if (join_parent) {
+  if (objects_to_join.contains(active_object->parent)) {
     active_object->parent = nullptr;
     BKE_object_apply_mat4_ex(active_object,
                              active_object->object_to_world().ptr(),
@@ -390,27 +365,21 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
                              false);
   }
 
-  /* that way the active object is always selected */
-  if (ok == false) {
-    BKE_report(op->reports, RPT_WARNING, "Active object is not a selected mesh");
-    return OPERATOR_CANCELLED;
-  }
-
   /* Only join meshes if there are verts to join,
    * there aren't too many, and we only had one mesh selected. */
   Mesh *dst_mesh = (Mesh *)active_object->data;
   Key *key = dst_mesh->key;
 
-  if (ELEM(verts_num, 0, dst_mesh->verts_num)) {
+  if (ELEM(vert_ranges.total_size(), 0, dst_mesh->verts_num)) {
     BKE_report(op->reports, RPT_WARNING, "No mesh data to join");
     return OPERATOR_CANCELLED;
   }
 
-  if (verts_num > MESH_MAX_VERTS) {
+  if (vert_ranges.total_size() > MESH_MAX_VERTS) {
     BKE_reportf(op->reports,
                 RPT_WARNING,
                 "Joining results in %d vertices, limit is %ld",
-                verts_num,
+                vert_ranges.total_size(),
                 MESH_MAX_VERTS);
     return OPERATOR_CANCELLED;
   }
@@ -438,8 +407,8 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
       if (kb->data) {
         MEM_freeN(kb->data);
       }
-      kb->data = MEM_callocN(sizeof(float[3]) * verts_num, "join_shapekey");
-      kb->totelem = verts_num;
+      kb->data = MEM_callocN(sizeof(float[3]) * vert_ranges.total_size(), "join_shapekey");
+      kb->totelem = vert_ranges.total_size();
     }
   }
   else if (haskey) {
@@ -502,8 +471,9 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
             BKE_keyblock_copy_settings(kbn, kb);
 
             /* adjust settings to fit (allocate a new data-array) */
-            kbn->data = MEM_callocN(sizeof(float[3]) * verts_num, "joined_shapekey");
-            kbn->totelem = verts_num;
+            kbn->data = MEM_callocN(sizeof(float[3]) * vert_ranges.total_size(),
+                                    "joined_shapekey");
+            kbn->totelem = vert_ranges.total_size();
           }
 
           kb_map[i] = kbn;
@@ -533,89 +503,58 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
   CustomData_reset(&corner_data);
   CustomData_reset(&face_data);
 
-  float3 *vert_positions = (float3 *)CustomData_add_layer_named(
-      &vert_data, CD_PROP_FLOAT3, CD_SET_DEFAULT, verts_num, "position");
-  int2 *edge = (int2 *)CustomData_add_layer_named(
-      &edge_data, CD_PROP_INT32_2D, CD_CONSTRUCT, edges_num, ".edge_verts");
-  int *corner_verts = (int *)CustomData_add_layer_named(
-      &corner_data, CD_PROP_INT32, CD_CONSTRUCT, corners_num, ".corner_vert");
-  int *corner_edges = (int *)CustomData_add_layer_named(
-      &corner_data, CD_PROP_INT32, CD_CONSTRUCT, corners_num, ".corner_edge");
-  int *face_offsets = MEM_malloc_arrayN<int>(faces_num + 1, __func__);
-  face_offsets[faces_num] = corners_num;
-
-  int vertofs = 0;
-  int edgeofs = 0;
-  int cornerofs = 0;
-  int faceofs = 0;
+  MutableSpan<float3> vert_positions(
+      (float3 *)CustomData_add_layer_named(
+          &vert_data, CD_PROP_FLOAT3, CD_SET_DEFAULT, vert_ranges.total_size(), "position"),
+      vert_ranges.total_size());
+  MutableSpan<int2> edge(
+      (int2 *)CustomData_add_layer_named(
+          &edge_data, CD_PROP_INT32_2D, CD_CONSTRUCT, edge_ranges.total_size(), ".edge_verts"),
+      edge_ranges.total_size());
+  MutableSpan<int> corner_verts(
+      (int *)CustomData_add_layer_named(
+          &corner_data, CD_PROP_INT32, CD_CONSTRUCT, corner_ranges.total_size(), ".corner_vert"),
+      corner_ranges.total_size());
+  MutableSpan<int> corner_edges(
+      (int *)CustomData_add_layer_named(
+          &corner_data, CD_PROP_INT32, CD_CONSTRUCT, corner_ranges.total_size(), ".corner_edge"),
+      corner_ranges.total_size());
+  int *face_offsets = MEM_malloc_arrayN<int>(face_ranges.total_size() + 1, __func__);
+  face_offsets[face_ranges.total_size()] = corner_ranges.total_size();
 
   /* Inverse transform for all selected meshes in this object,
    * See #object_join_exec for detailed comment on why the safe version is used. */
-  float world_to_active_object[4][4];
-  invert_m4_m4_safe_ortho(world_to_active_object, active_object->object_to_world().ptr());
+  float4x4 world_to_active_object;
+  invert_m4_m4_safe_ortho(world_to_active_object.ptr(), active_object->object_to_world().ptr());
 
-  /* Add back active mesh first.
-   * This allows to keep things similar as they were, as much as possible
-   * (i.e. data from active mesh will remain first ones in new result of the merge,
-   * in same order for CD layers, etc). See also #50084.
-   */
-  join_mesh_single(depsgraph,
-                   bmain,
-                   scene,
-                   active_object,
-                   active_object,
-                   world_to_active_object,
-                   &vert_positions,
-                   &edge,
-                   &corner_verts,
-                   &corner_edges,
-                   face_offsets,
-                   &vert_data,
-                   &edge_data,
-                   &face_data,
-                   &corner_data,
-                   verts_num,
-                   edges_num,
-                   faces_num,
-                   corners_num,
-                   key,
-                   nkey,
-                   materials,
-                   &vertofs,
-                   &edgeofs,
-                   &cornerofs,
-                   &faceofs);
-
-  for (Object *ob_iter : objects_to_join) {
-    if (ob_iter == active_object) {
-      continue;
-    }
+  for (const int i : objects_to_join.index_range()) {
+    Object *ob_iter = objects_to_join[i];
     join_mesh_single(depsgraph,
                      bmain,
                      scene,
                      active_object,
                      ob_iter,
                      world_to_active_object,
-                     &vert_positions,
-                     &edge,
-                     &corner_verts,
-                     &corner_edges,
-                     face_offsets,
+                     vert_positions,
+                     edge,
+                     corner_verts,
+                     corner_edges,
+                     {face_offsets, face_ranges.total_size()},
                      &vert_data,
                      &edge_data,
                      &face_data,
                      &corner_data,
-                     verts_num,
-                     edges_num,
-                     faces_num,
-                     corners_num,
+                     vert_ranges.total_size(),
+                     edge_ranges.total_size(),
+                     face_ranges.total_size(),
+                     corner_ranges.total_size(),
                      key,
                      nkey,
                      materials,
-                     &vertofs,
-                     &edgeofs,
-                     &cornerofs,
-                     &faceofs);
+                     vert_ranges[i],
+                     edge_ranges[i],
+                     face_ranges[i],
+                     corner_ranges[i]);
 
     /* free base, now that data is merged */
     if (ob_iter != active_object) {
@@ -625,16 +564,16 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
 
   BKE_mesh_clear_geometry(dst_mesh);
 
-  if (faces_num) {
+  if (face_offsets) {
     dst_mesh->face_offset_indices = face_offsets;
     dst_mesh->runtime->face_offsets_sharing_info = implicit_sharing::info_for_mem_free(
         face_offsets);
   }
 
-  dst_mesh->verts_num = verts_num;
-  dst_mesh->edges_num = edges_num;
-  dst_mesh->corners_num = corners_num;
-  dst_mesh->faces_num = faces_num;
+  dst_mesh->verts_num = vert_ranges.total_size();
+  dst_mesh->edges_num = edge_ranges.total_size();
+  dst_mesh->faces_num = face_ranges.total_size();
+  dst_mesh->corners_num = corner_ranges.total_size();
 
   dst_mesh->vert_data = vert_data;
   dst_mesh->edge_data = edge_data;
