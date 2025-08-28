@@ -223,7 +223,12 @@ static void curve_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_struct_array(reader, CharInfo, cu->len_char32 + 1, &cu->strinfo);
   BLO_read_struct_array(reader, TextBox, cu->totbox, &cu->tb);
 
-  if (cu->ob_type != OB_FONT) {
+  /* WARNING: for old files `cu->ob_type` won't be initialized,
+   * versioning detects fonts based on `cu->vfont` (which won't have run yet)
+   * so do the same here. */
+  const bool is_font = cu->ob_type ? (cu->ob_type == OB_FONT) : (cu->vfont != nullptr);
+
+  if (is_font == false) {
     BLO_read_struct_list(reader, Nurb, &(cu->nurb));
   }
   else {
@@ -263,7 +268,7 @@ static void curve_blend_read_data(BlendDataReader *reader, ID *id)
     BLO_read_struct_array(reader, BPoint, nu->pntsu * nu->pntsv, &nu->bp);
     BLO_read_float_array(reader, KNOTSU(nu), &nu->knotsu);
     BLO_read_float_array(reader, KNOTSV(nu), &nu->knotsv);
-    if (cu->ob_type != OB_FONT) {
+    if (is_font == false) {
       nu->charidx = 0;
     }
   }
