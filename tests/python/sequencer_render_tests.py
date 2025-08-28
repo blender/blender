@@ -12,6 +12,7 @@ from pathlib import Path
 BLOCKLIST = [
     "hdr_simple_export_hlg_12bit.blend",
     "hdr_simple_export_pq_12bit.blend",
+    "sdr_simple_export_p3_aces_10bit.blend",
     "hdr_simple_still_test_file.blend",
 ]
 

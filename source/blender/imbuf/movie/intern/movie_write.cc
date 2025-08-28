@@ -212,7 +212,7 @@ static bool write_video_frame(MovieWriter *context, AVFrame *frame, ReportList *
  *
  * No color space conversion is performed. The result float buffer might be in a non-linear space
  * denoted by the float_buffer.colorspace. */
-static ImBuf *alloc_imbuf_for_hdr_transform(const ImBuf *input_ibuf)
+static ImBuf *alloc_imbuf_for_colorspace_transform(const ImBuf *input_ibuf)
 {
   if (!input_ibuf) {
     return nullptr;
@@ -261,103 +261,22 @@ static ImBuf *alloc_imbuf_for_hdr_transform(const ImBuf *input_ibuf)
   return result_ibuf;
 }
 
-static ImBuf *do_pq_transform(const ImBuf *input_ibuf)
-{
-  ImBuf *ibuf = alloc_imbuf_for_hdr_transform(input_ibuf);
-  if (!ibuf) {
-    /* Error in input or allocation has failed. */
-    return nullptr;
-  }
-
-  /* Get `Rec.2100-PQ Display` or its alias from the OpenColorIO configuration. */
-  const char *rec2100_pq_colorspace = IMB_colormanagement_get_rec2100_pq_display_colorspace();
-  if (!rec2100_pq_colorspace) {
-    /* TODO(sergey): Error reporting if the colorspace is not found. */
-    return ibuf;
-  }
-
-  /* Convert from the current floating point buffer colorspace to Rec.2100-PQ. */
-  IMB_colormanagement_transform_float(ibuf->float_buffer.data,
-                                      ibuf->x,
-                                      ibuf->y,
-                                      ibuf->channels,
-                                      IMB_colormanagement_get_float_colorspace(input_ibuf),
-                                      rec2100_pq_colorspace,
-                                      IMB_alpha_affects_rgb(ibuf));
-
-  return ibuf;
-}
-
-static ImBuf *do_hlg_transform(const ImBuf *input_ibuf)
-{
-  ImBuf *ibuf = alloc_imbuf_for_hdr_transform(input_ibuf);
-  if (!ibuf) {
-    /* Error in input or allocation has failed. */
-    return nullptr;
-  }
-
-  /* Get `Rec.2100-HLG Display` or its alias from the OpenColorIO configuration.
-   * The color space is supposed to be Rec.2100-HLG, 1000 nit. */
-  const char *rec2100_hlg_colorspace = IMB_colormanagement_get_rec2100_hlg_display_colorspace();
-  if (!rec2100_hlg_colorspace) {
-    /* TODO(sergey): Error reporting if the colorspace is not found. */
-    return ibuf;
-  }
-
-  /* Convert from the current floating point buffer colorspace to Rec.2100-HLG, 1000 nit. */
-  IMB_colormanagement_transform_float(ibuf->float_buffer.data,
-                                      ibuf->x,
-                                      ibuf->y,
-                                      ibuf->channels,
-                                      IMB_colormanagement_get_float_colorspace(input_ibuf),
-                                      rec2100_hlg_colorspace,
-                                      IMB_alpha_affects_rgb(ibuf));
-
-  return ibuf;
-}
-
-static const ImBuf *do_hdr_transform_if_needed(MovieWriter *context, const ImBuf *input_ibuf)
-{
-  if (!input_ibuf) {
-    return nullptr;
-  }
-
-  if (!context || !context->video_codec) {
-    return input_ibuf;
-  }
-
-  const AVCodecContext &codec = *context->video_codec;
-
-  const AVColorTransferCharacteristic color_trc = codec.color_trc;
-  const AVColorSpace colorspace = codec.colorspace;
-  const AVColorPrimaries color_primaries = codec.color_primaries;
-
-  if (color_trc == AVCOL_TRC_SMPTEST2084 && color_primaries == AVCOL_PRI_BT2020 &&
-      colorspace == AVCOL_SPC_BT2020_NCL)
-  {
-    return do_pq_transform(input_ibuf);
-  }
-
-  if (color_trc == AVCOL_TRC_ARIB_STD_B67 && color_primaries == AVCOL_PRI_BT2020 &&
-      colorspace == AVCOL_SPC_BT2020_NCL)
-  {
-    return do_hlg_transform(input_ibuf);
-  }
-
-  return input_ibuf;
-}
-
 /* read and encode a frame of video from the buffer */
 static AVFrame *generate_video_frame(MovieWriter *context, const ImBuf *input_ibuf)
 {
-  const ImBuf *image = do_hdr_transform_if_needed(context, input_ibuf);
+  /* Use float input if needed. */
+  const bool use_float =
+      context->img_convert_frame != nullptr &&
+      !(context->img_convert_frame->format == AV_PIX_FMT_RGBA &&
+        ELEM(context->img_convert_frame->colorspace, AVCOL_SPC_RGB, AVCOL_SPC_UNSPECIFIED));
+
+  const ImBuf *image = (use_float && input_ibuf->float_buffer.data == nullptr) ?
+                           alloc_imbuf_for_colorspace_transform(input_ibuf) :
+                           input_ibuf;
 
   const uint8_t *pixels = image->byte_buffer.data;
   const float *pixels_fl = image->float_buffer.data;
 
-  /* Use float input if needed. */
-  const bool use_float = context->img_convert_frame != nullptr &&
-                         context->img_convert_frame->format != AV_PIX_FMT_RGBA;
   if ((!use_float && (pixels == nullptr)) || (use_float && (pixels_fl == nullptr))) {
     if (image != input_ibuf) {
       IMB_freeImBuf(const_cast<ImBuf *>(image));
@@ -800,6 +719,81 @@ static void set_quality_rate_options(const MovieWriter *context,
   }
 }
 
+static void set_colorspace_options(AVCodecContext *c, blender::StringRefNull interop_id)
+{
+  const AVPixFmtDescriptor *pix_fmt_desc = av_pix_fmt_desc_get(c->pix_fmt);
+  const bool is_rgb_format = (pix_fmt_desc->flags & AV_PIX_FMT_FLAG_RGB);
+
+  /* Full range for most color spaces. */
+  c->color_range = AVCOL_RANGE_JPEG;
+
+  /* ASWF Color Interop Forum defined display spaces. The CICP codes there match the enum
+   * values defined by ffmpeg. Keep in sync with movie_read.cc. */
+  if (interop_id == "pq_rec2020_display") {
+    c->color_primaries = AVCOL_PRI_BT2020;
+    c->color_trc = AVCOL_TRC_SMPTEST2084;
+    c->colorspace = AVCOL_SPC_BT2020_NCL;
+  }
+  else if (interop_id == "hlg_rec2020_display") {
+    c->color_primaries = AVCOL_PRI_BT2020;
+    c->color_trc = AVCOL_TRC_ARIB_STD_B67;
+    c->colorspace = AVCOL_SPC_BT2020_NCL;
+  }
+  else if (interop_id == "pq_p3d65_display") {
+    c->color_primaries = AVCOL_PRI_SMPTE432;
+    c->color_trc = AVCOL_TRC_SMPTEST2084;
+    c->colorspace = AVCOL_SPC_BT2020_NCL;
+  }
+  else if (interop_id == "g26_p3d65_display") {
+    c->color_primaries = AVCOL_PRI_SMPTE432;
+    c->color_trc = AVCOL_TRC_SMPTE428;
+    c->colorspace = AVCOL_SPC_BT709;
+  }
+  else if (interop_id == "g22_rec709_display") {
+    c->color_primaries = AVCOL_PRI_BT709;
+    c->color_trc = AVCOL_TRC_GAMMA22;
+    c->colorspace = AVCOL_SPC_BT709;
+  }
+  else if (interop_id == "g24_rec2020_display") {
+    /* There is no gamma 2.4 trc, but BT.709 is supposed to be close. But it's not
+     * clear this is right, as we use the same trc for sRGB which is clearly different. */
+    c->color_primaries = AVCOL_PRI_BT2020;
+    c->color_trc = AVCOL_TRC_BT709;
+    c->colorspace = AVCOL_SPC_BT2020_NCL;
+  }
+  else if (interop_id == "g24_rec709_display") {
+    /* There is no gamma 2.4 trc, but BT.709 is supposed to be close. But now this
+     * is identical to how we write sRGB so at least of the two must be wrong? */
+    c->color_primaries = AVCOL_PRI_BT709;
+    c->color_trc = AVCOL_TRC_BT709;
+    c->colorspace = AVCOL_SPC_BT709;
+  }
+  else if (interop_id == "srgb_p3d65_display" || interop_id == "srgbx_p3d65_display") {
+    c->color_primaries = AVCOL_PRI_SMPTE432;
+    /* This should be AVCOL_TRC_IEC61966_2_1, but Quicktime refuses to open the file.
+     * And we're currently also writing srgb_rec709_display the same way. */
+    c->color_trc = AVCOL_TRC_BT709;
+    c->colorspace = AVCOL_SPC_BT709;
+  }
+  /* Don't write sRGB as we weren't doing it before either, but maybe we should. */
+#  if 0
+  else if (interop_id == "srgb_rec709_display") {
+    c->color_primaries = AVCOL_PRI_BT709;
+    c->color_trc = AVCOL_TRC_IEC61966_2_1;
+    c->colorspace = AVCOL_SPC_BT709;
+  }
+#  endif
+  /* If we're not writing RGB, we must write a colorspace to define how
+   * the conversion to YUV happens. */
+  else if (!is_rgb_format) {
+    c->color_primaries = AVCOL_PRI_BT709;
+    c->color_trc = AVCOL_TRC_BT709;
+    c->colorspace = AVCOL_SPC_BT709;
+    /* TODO(sergey): Consider making the range an option to cover more use-cases. */
+    c->color_range = AVCOL_RANGE_MPEG;
+  }
+}
+
 static AVStream *alloc_video_stream(MovieWriter *context,
                                     const RenderData *rd,
                                     const ImageFormatData *imf,
@@ -931,14 +925,6 @@ static AVStream *alloc_video_stream(MovieWriter *context,
   const bool is_10_bpp = imf->depth == R_IMF_CHAN_DEPTH_10;
   const bool is_12_bpp = imf->depth == R_IMF_CHAN_DEPTH_12;
   const bool is_16_bpp = imf->depth == R_IMF_CHAN_DEPTH_16;
-
-  eFFMpegVideoHdr hdr = eFFMpegVideoHdr(rd->ffcodecdata.video_hdr);
-  /* Never use HDR for non-10/12 bpp or grayscale outputs. */
-  if ((!is_10_bpp && !is_12_bpp) || rd->im_format.planes == R_IMF_PLANES_BW) {
-    hdr = FFM_VIDEO_HDR_NONE;
-  }
-  const bool is_hdr_pq = hdr == FFM_VIDEO_HDR_REC2100_PQ;
-  const bool is_hdr_hlg = hdr == FFM_VIDEO_HDR_REC2100_HLG;
 
   if (is_10_bpp) {
     c->pix_fmt = AV_PIX_FMT_YUV420P10LE;
@@ -1083,29 +1069,14 @@ static AVStream *alloc_video_stream(MovieWriter *context,
     c->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
   }
 
-  /* If output pixel format is not RGB(A), setup colorspace metadata. */
-  const AVPixFmtDescriptor *pix_fmt_desc = av_pix_fmt_desc_get(c->pix_fmt);
-  const bool set_bt709 = (pix_fmt_desc->flags & AV_PIX_FMT_FLAG_RGB) == 0;
-  if (is_hdr_pq) {
-    /* TODO(sergey): Consider making the range an option to cover more use-cases. */
-    c->color_range = AVCOL_RANGE_JPEG;
-    c->color_primaries = AVCOL_PRI_BT2020;
-    c->color_trc = AVCOL_TRC_SMPTEST2084;
-    c->colorspace = AVCOL_SPC_BT2020_NCL;
-  }
-  else if (is_hdr_hlg) {
-    /* TODO(sergey): Consider making the range an option to cover more use-cases. */
-    c->color_range = AVCOL_RANGE_JPEG;
-    c->color_primaries = AVCOL_PRI_BT2020;
-    c->color_trc = AVCOL_TRC_ARIB_STD_B67;
-    c->colorspace = AVCOL_SPC_BT2020_NCL;
-  }
-  else if (set_bt709) {
-    c->color_range = AVCOL_RANGE_MPEG;
-    c->color_primaries = AVCOL_PRI_BT709;
-    c->color_trc = AVCOL_TRC_BT709;
-    c->colorspace = AVCOL_SPC_BT709;
-  }
+  /* Set colorspace based on display space of image. */
+  const ColorSpace *display_colorspace = IMB_colormangement_display_get_color_space(
+      &imf->display_settings);
+  const blender::StringRefNull interop_id = (display_colorspace) ?
+                                                IMB_colormanagement_space_get_interop_id(
+                                                    display_colorspace) :
+                                                "";
+  set_colorspace_options(c, interop_id);
 
   /* xasp & yasp got float lately... */
 
@@ -1144,46 +1115,29 @@ static AVStream *alloc_video_stream(MovieWriter *context,
   /* FFMPEG expects its data in the output pixel format. */
   context->current_frame = alloc_frame(c->pix_fmt, c->width, c->height);
 
-  if (c->pix_fmt == AV_PIX_FMT_RGBA) {
-    /* Output pixel format is the same we use internally, no conversion necessary. */
+  if (c->pix_fmt == AV_PIX_FMT_RGBA && ELEM(c->colorspace, AVCOL_SPC_RGB, AVCOL_SPC_UNSPECIFIED)) {
+    /* Output pixel format and colorspace is the same we use internally, no conversion needed. */
     context->img_convert_frame = nullptr;
     context->img_convert_ctx = nullptr;
   }
   else {
     /* Output pixel format is different, allocate frame for conversion.
-     * Setup RGB->YUV conversion with proper coefficients (depending on whether it is SDR BT.709,
-     * or HDR BT.2020). */
+     * Setup RGB->YUV conversion with proper coefficients, depending on range and colorspace. */
     const AVPixelFormat src_format = is_10_bpp || is_12_bpp || is_16_bpp ? AV_PIX_FMT_GBRAPF32LE :
                                                                            AV_PIX_FMT_RGBA;
     context->img_convert_frame = alloc_frame(src_format, c->width, c->height);
-    if (is_hdr_pq || is_hdr_hlg) {
-      /* Special conversion for the Rec.2100 PQ and HLG output: the result color space is BT.2020,
-       * and also use full range. */
-      context->img_convert_ctx = ffmpeg_sws_get_context(c->width,
-                                                        c->height,
-                                                        src_format,
-                                                        true,
-                                                        -1,
-                                                        c->width,
-                                                        c->height,
-                                                        c->pix_fmt,
-                                                        true,
-                                                        AVCOL_SPC_BT2020_NCL,
-                                                        SWS_BICUBIC);
-    }
-    else {
-      context->img_convert_ctx = ffmpeg_sws_get_context(c->width,
-                                                        c->height,
-                                                        src_format,
-                                                        false,
-                                                        -1,
-                                                        c->width,
-                                                        c->height,
-                                                        c->pix_fmt,
-                                                        false,
-                                                        set_bt709 ? AVCOL_SPC_BT709 : -1,
-                                                        SWS_BICUBIC);
-    }
+    context->img_convert_ctx = ffmpeg_sws_get_context(
+        c->width,
+        c->height,
+        src_format,
+        true,
+        -1,
+        c->width,
+        c->height,
+        c->pix_fmt,
+        c->color_range == AVCOL_RANGE_JPEG,
+        c->colorspace != AVCOL_SPC_RGB ? c->colorspace : -1,
+        SWS_BICUBIC);
   }
 
   avcodec_parameters_from_context(st->codecpar, c);

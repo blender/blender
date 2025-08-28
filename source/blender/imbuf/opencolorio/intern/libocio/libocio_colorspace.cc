@@ -159,6 +159,9 @@ LibOCIOColorSpace::LibOCIOColorSpace(const int index,
     else if (alias == "rec2100_hlg_display") {
       interop_id_ = "hlg_rec2020_display";
     }
+    else if (alias == "st2084_p3d65_display") {
+      interop_id_ = "pq_p3d65_display";
+    }
     else if (alias == "lin_rec709_srgb" || alias == "lin_rec709") {
       interop_id_ = "lin_rec709_scene";
     }
