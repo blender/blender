@@ -10,17 +10,30 @@
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
-#include "UI_interface_layout.hh"
-#include "UI_resources.hh"
+#include "RNA_types.hh"
 
 #include "COM_node_operation.hh"
 #include "COM_utilities.hh"
 
 #include "node_composite_util.hh"
 
-/* **************** FILTER  ******************** */
-
 namespace blender::nodes::node_composite_filter_cc {
+
+static const EnumPropertyItem type_items[] = {
+    {CMP_NODE_FILTER_SOFT, "SOFTEN", 0, "Soften", ""},
+    {CMP_NODE_FILTER_SHARP_BOX, "SHARPEN", 0, "Box Sharpen", "An aggressive sharpening filter"},
+    {CMP_NODE_FILTER_SHARP_DIAMOND,
+     "SHARPEN_DIAMOND",
+     0,
+     "Diamond Sharpen",
+     "A moderate sharpening filter"},
+    {CMP_NODE_FILTER_LAPLACE, "LAPLACE", 0, "Laplace", ""},
+    {CMP_NODE_FILTER_SOBEL, "SOBEL", 0, "Sobel", ""},
+    {CMP_NODE_FILTER_PREWITT, "PREWITT", 0, "Prewitt", ""},
+    {CMP_NODE_FILTER_KIRSCH, "KIRSCH", 0, "Kirsch", ""},
+    {CMP_NODE_FILTER_SHADOW, "SHADOW", 0, "Shadow", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
 
 static void cmp_node_filter_declare(NodeDeclarationBuilder &b)
 {
@@ -35,13 +48,9 @@ static void cmp_node_filter_declare(NodeDeclarationBuilder &b)
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_domain_priority(0)
       .structure_type(StructureType::Dynamic);
+  b.add_input<decl::Menu>("Type").default_value(CMP_NODE_FILTER_SOFT).static_items(type_items);
 
   b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
-}
-
-static void node_composit_buts_filter(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  layout->prop(ptr, "filter_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 class SocketSearchOp {
@@ -50,7 +59,8 @@ class SocketSearchOp {
   void operator()(LinkSearchOpParams &params)
   {
     bNode &node = params.add_node("CompositorNodeFilter");
-    node.custom1 = filter_type;
+    bNodeSocket &type_socket = *blender::bke::node_find_socket(node, SOCK_IN, "Type");
+    type_socket.default_value_typed<bNodeSocketValueMenu>()->value = this->filter_type;
     params.update_and_connect_available_socket(node, "Image");
   }
 };
@@ -192,7 +202,7 @@ class FilterOperation : public NodeOperation {
 
   bool is_edge_filter()
   {
-    switch (this->get_filter_method()) {
+    switch (this->get_type()) {
       case CMP_NODE_FILTER_LAPLACE:
       case CMP_NODE_FILTER_SOBEL:
       case CMP_NODE_FILTER_PREWITT:
@@ -212,7 +222,7 @@ class FilterOperation : public NodeOperation {
     /* Initialize the kernels as arrays of rows with the top row first. Edge detection kernels
      * return the kernel in the X direction, while the kernel in the Y direction will be computed
      * inside the shader by transposing the kernel in the X direction. */
-    switch (get_filter_method()) {
+    switch (this->get_type()) {
       case CMP_NODE_FILTER_SOFT: {
         const float kernel[3][3] = {{1.0f / 16.0f, 2.0f / 16.0f, 1.0f / 16.0f},
                                     {2.0f / 16.0f, 4.0f / 16.0f, 2.0f / 16.0f},
@@ -252,16 +262,18 @@ class FilterOperation : public NodeOperation {
             {0.0f, -1.0f, 0.0f}, {-1.0f, 5.0f, -1.0f}, {0.0f, -1.0f, 0.0f}};
         return float3x3(kernel);
       }
-      default: {
-        const float kernel[3][3] = {{0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 0.0f}};
-        return float3x3(kernel);
-      }
     }
+
+    const float kernel[3][3] = {{0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 0.0f}};
+    return float3x3(kernel);
   }
 
-  CMPNodeFilterMethod get_filter_method()
+  CMPNodeFilterMethod get_type()
   {
-    return static_cast<CMPNodeFilterMethod>(bnode().custom1);
+    const Result &input = this->get_input("Type");
+    const MenuValue default_menu_value = MenuValue(CMP_NODE_FILTER_SOFT);
+    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
+    return static_cast<CMPNodeFilterMethod>(menu_value.value);
   }
 };
 
@@ -284,8 +296,6 @@ static void register_node_type_cmp_filter()
   ntype.enum_name_legacy = "FILTER";
   ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_filter_declare;
-  ntype.draw_buttons = file_ns::node_composit_buts_filter;
-  ntype.labelfunc = node_filter_label;
   ntype.flag |= NODE_PREVIEW;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
   ntype.gather_link_search_ops = file_ns::gather_link_searches;

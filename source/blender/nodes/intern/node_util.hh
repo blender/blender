@@ -45,7 +45,6 @@ void node_vector_math_label(const bNodeTree *ntree,
                             const bNode *node,
                             char *label,
                             int label_maxncpy);
-void node_filter_label(const bNodeTree *ntree, const bNode *node, char *label, int label_maxncpy);
 void node_combsep_color_label(const ListBase *sockets, NodeCombSepColorMode mode);
 
 /*** Link Handling */

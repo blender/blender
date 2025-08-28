@@ -6,23 +6,19 @@
  * \ingroup cmpnodes
  */
 
-#include "BKE_node.hh"
+#include "MEM_guardedalloc.h"
 
-#include "BLI_assert.h"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
-
-#include "DNA_node_types.h"
 
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"
 
-#include "MEM_guardedalloc.h"
+#include "DNA_node_types.h"
 
-#include "RNA_access.hh"
+#include "RNA_enum_types.hh"
 
-#include "UI_interface_layout.hh"
-#include "UI_resources.hh"
+#include "BKE_node.hh"
 
 #include "COM_algorithm_sample_pixel.hh"
 #include "COM_domain.hh"
@@ -31,14 +27,14 @@
 
 #include "node_composite_util.hh"
 
-/* **************** Map UV  ******************** */
-
 namespace blender::nodes::node_composite_map_uv_cc {
-
-NODE_STORAGE_FUNCS(NodeMapUVData)
 
 static void cmp_node_map_uv_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
+
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_realization_mode(CompositorInputRealizationMode::Transforms)
@@ -53,26 +49,24 @@ static void cmp_node_map_uv_declare(NodeDeclarationBuilder &b)
       .compositor_domain_priority(0)
       .structure_type(StructureType::Dynamic);
 
-  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
-}
-
-static void node_composit_buts_map_uv(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  uiLayout &column = layout->column(true);
-  column.prop(ptr, "interpolation", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-  if (RNA_enum_get(ptr, "interpolation") != CMP_NODE_INTERPOLATION_ANISOTROPIC) {
-    uiLayout &row = column.row(true);
-    row.prop(ptr, "extension_x", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-    row.prop(ptr, "extension_y", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-  }
+  PanelDeclarationBuilder &sampling_panel = b.add_panel("Sampling").default_closed(true);
+  sampling_panel.add_input<decl::Menu>("Interpolation")
+      .default_value(CMP_NODE_INTERPOLATION_BILINEAR)
+      .static_items(rna_enum_node_compositor_interpolation_items)
+      .description("Interpolation method");
+  sampling_panel.add_input<decl::Menu>("Extension X")
+      .default_value(CMP_NODE_EXTENSION_MODE_CLIP)
+      .static_items(rna_enum_node_compositor_extension_items)
+      .description("The extension mode applied to the X axis");
+  sampling_panel.add_input<decl::Menu>("Extension Y")
+      .default_value(CMP_NODE_EXTENSION_MODE_CLIP)
+      .static_items(rna_enum_node_compositor_extension_items)
+      .description("The extension mode applied to the Y axis");
 }
 
 static void node_composit_init_map_uv(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeMapUVData *data = MEM_callocN<NodeMapUVData>(__func__);
-  data->interpolation = CMP_NODE_INTERPOLATION_BILINEAR;
-  data->extension_x = CMP_NODE_EXTENSION_MODE_CLIP;
-  data->extension_y = CMP_NODE_EXTENSION_MODE_CLIP;
   node->storage = data;
 }
 
@@ -156,7 +150,7 @@ class MapUVOperation : public NodeOperation {
       case Interpolation::Nearest:
         return "compositor_map_uv";
     }
-    BLI_assert_unreachable();
+
     return "compositor_map_uv";
   }
 
@@ -306,26 +300,33 @@ class MapUVOperation : public NodeOperation {
     });
   }
 
-  Interpolation get_interpolation() const
+  Interpolation get_interpolation()
   {
-    switch (static_cast<CMPNodeInterpolation>(node_storage(bnode()).interpolation)) {
-      case CMP_NODE_INTERPOLATION_ANISOTROPIC:
-        return Interpolation::Anisotropic;
+    const Result &input = this->get_input("Interpolation");
+    const MenuValue default_menu_value = MenuValue(CMP_NODE_INTERPOLATION_BILINEAR);
+    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
+    const CMPNodeInterpolation interpolation = static_cast<CMPNodeInterpolation>(menu_value.value);
+    switch (interpolation) {
       case CMP_NODE_INTERPOLATION_NEAREST:
         return Interpolation::Nearest;
       case CMP_NODE_INTERPOLATION_BILINEAR:
         return Interpolation::Bilinear;
       case CMP_NODE_INTERPOLATION_BICUBIC:
         return Interpolation::Bicubic;
+      case CMP_NODE_INTERPOLATION_ANISOTROPIC:
+        return Interpolation::Anisotropic;
     }
 
-    BLI_assert_unreachable();
     return Interpolation::Nearest;
   }
 
   ExtensionMode get_extension_mode_x()
   {
-    switch (static_cast<CMPExtensionMode>(node_storage(bnode()).extension_x)) {
+    const Result &input = this->get_input("Extension X");
+    const MenuValue default_menu_value = MenuValue(CMP_NODE_EXTENSION_MODE_CLIP);
+    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
+    const CMPExtensionMode extension_x = static_cast<CMPExtensionMode>(menu_value.value);
+    switch (extension_x) {
       case CMP_NODE_EXTENSION_MODE_CLIP:
         return ExtensionMode::Clip;
       case CMP_NODE_EXTENSION_MODE_REPEAT:
@@ -334,13 +335,16 @@ class MapUVOperation : public NodeOperation {
         return ExtensionMode::Extend;
     }
 
-    BLI_assert_unreachable();
     return ExtensionMode::Clip;
   }
 
   ExtensionMode get_extension_mode_y()
   {
-    switch (static_cast<CMPExtensionMode>(node_storage(bnode()).extension_y)) {
+    const Result &input = this->get_input("Extension Y");
+    const MenuValue default_menu_value = MenuValue(CMP_NODE_EXTENSION_MODE_CLIP);
+    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
+    const CMPExtensionMode extension_y = static_cast<CMPExtensionMode>(menu_value.value);
+    switch (extension_y) {
       case CMP_NODE_EXTENSION_MODE_CLIP:
         return ExtensionMode::Clip;
       case CMP_NODE_EXTENSION_MODE_REPEAT:
@@ -349,7 +353,6 @@ class MapUVOperation : public NodeOperation {
         return ExtensionMode::Extend;
     }
 
-    BLI_assert_unreachable();
     return ExtensionMode::Clip;
   }
 };
@@ -374,7 +377,6 @@ static void register_node_type_cmp_mapuv()
   ntype.enum_name_legacy = "MAP_UV";
   ntype.nclass = NODE_CLASS_DISTORT;
   ntype.declare = file_ns::cmp_node_map_uv_declare;
-  ntype.draw_buttons = file_ns::node_composit_buts_map_uv;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
   ntype.initfunc = file_ns::node_composit_init_map_uv;
   blender::bke::node_type_storage(

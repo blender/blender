@@ -14,10 +14,7 @@
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
-#include "RNA_access.hh"
-
-#include "UI_interface_layout.hh"
-#include "UI_resources.hh"
+#include "RNA_types.hh"
 
 #include "COM_node_operation.hh"
 #include "COM_utilities.hh"
@@ -27,11 +24,17 @@
 
 #include "node_composite_util.hh"
 
-/* **************** Kuwahara ******************** */
-
 namespace blender::nodes::node_composite_kuwahara_cc {
 
-NODE_STORAGE_FUNCS(NodeKuwaharaData)
+static const EnumPropertyItem type_items[] = {
+    {CMP_NODE_KUWAHARA_CLASSIC, "CLASSIC", 0, "Classic", "Fast but less accurate variation"},
+    {CMP_NODE_KUWAHARA_ANISOTROPIC,
+     "ANISOTROPIC",
+     0,
+     "Anisotropic",
+     "Accurate but slower variation"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
 
 static void cmp_node_kuwahara_declare(NodeDeclarationBuilder &b)
 {
@@ -43,9 +46,14 @@ static void cmp_node_kuwahara_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .description("The size of the filter in pixels")
       .structure_type(StructureType::Dynamic);
+  b.add_input<decl::Menu>("Type")
+      .default_value(CMP_NODE_KUWAHARA_ANISOTROPIC)
+      .static_items(type_items);
+
   b.add_input<decl::Int>("Uniformity")
       .default_value(4)
       .min(0)
+      .usage_by_single_menu(CMP_NODE_KUWAHARA_ANISOTROPIC)
       .description(
           "Controls the uniformity of the direction of the filter. Higher values produces more "
           "uniform directions");
@@ -54,6 +62,7 @@ static void cmp_node_kuwahara_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR)
       .min(0.0f)
       .max(1.0f)
+      .usage_by_single_menu(CMP_NODE_KUWAHARA_ANISOTROPIC)
       .description(
           "Controls the sharpness of the filter. 0 means completely smooth while 1 means "
           "completely sharp");
@@ -62,11 +71,13 @@ static void cmp_node_kuwahara_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR)
       .min(0.0f)
       .max(2.0f)
+      .usage_by_single_menu(CMP_NODE_KUWAHARA_ANISOTROPIC)
       .description(
           "Controls how directional the filter is. 0 means the filter is completely "
           "omnidirectional while 2 means it is maximally directed along the edges of the image");
   b.add_input<decl::Bool>("High Precision")
       .default_value(false)
+      .usage_by_single_menu(CMP_NODE_KUWAHARA_CLASSIC)
       .description(
           "Uses a more precise but slower method. Use if the output contains undesirable noise.");
 
@@ -75,29 +86,9 @@ static void cmp_node_kuwahara_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_kuwahara(bNodeTree * /*ntree*/, bNode *node)
 {
+  /* Unused, kept for forward compatibility. */
   NodeKuwaharaData *data = MEM_callocN<NodeKuwaharaData>(__func__);
-  data->variation = CMP_NODE_KUWAHARA_ANISOTROPIC;
   node->storage = data;
-}
-
-static void node_composit_buts_kuwahara(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  layout->prop(ptr, "variation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-}
-
-static void node_update(bNodeTree *ntree, bNode *node)
-{
-  const bool is_classic = node_storage(*node).variation == CMP_NODE_KUWAHARA_CLASSIC;
-
-  bNodeSocket *high_precision_input = bke::node_find_socket(*node, SOCK_IN, "High Precision");
-  blender::bke::node_set_socket_availability(*ntree, *high_precision_input, is_classic);
-
-  bNodeSocket *uniformity_input = bke::node_find_socket(*node, SOCK_IN, "Uniformity");
-  bNodeSocket *sharpness_input = bke::node_find_socket(*node, SOCK_IN, "Sharpness");
-  bNodeSocket *eccentricity_input = bke::node_find_socket(*node, SOCK_IN, "Eccentricity");
-  blender::bke::node_set_socket_availability(*ntree, *uniformity_input, !is_classic);
-  blender::bke::node_set_socket_availability(*ntree, *sharpness_input, !is_classic);
-  blender::bke::node_set_socket_availability(*ntree, *eccentricity_input, !is_classic);
 }
 
 using namespace blender::compositor;
@@ -115,7 +106,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
       return;
     }
 
-    if (node_storage(bnode()).variation == CMP_NODE_KUWAHARA_ANISOTROPIC) {
+    if (this->get_type() == CMP_NODE_KUWAHARA_ANISOTROPIC) {
       execute_anisotropic();
     }
     else {
@@ -817,6 +808,14 @@ class ConvertKuwaharaOperation : public NodeOperation {
   {
     return math::clamp(this->get_input("Eccentricity").get_single_value_default(1.0f), 0.0f, 2.0f);
   }
+
+  CMPNodeKuwahara get_type()
+  {
+    const Result &input = this->get_input("Type");
+    const MenuValue default_menu_value = MenuValue(CMP_NODE_KUWAHARA_ANISOTROPIC);
+    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
+    return static_cast<CMPNodeKuwahara>(menu_value.value);
+  }
 };
 
 static NodeOperation *get_compositor_operation(Context &context, DNode node)
@@ -839,8 +838,6 @@ static void register_node_type_cmp_kuwahara()
   ntype.enum_name_legacy = "KUWAHARA";
   ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_kuwahara_declare;
-  ntype.updatefunc = file_ns::node_update;
-  ntype.draw_buttons = file_ns::node_composit_buts_kuwahara;
   ntype.initfunc = file_ns::node_composit_init_kuwahara;
   blender::bke::node_type_storage(
       ntype, "NodeKuwaharaData", node_free_standard_storage, node_copy_standard_storage);

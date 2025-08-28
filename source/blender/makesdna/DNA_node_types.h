@@ -1182,7 +1182,7 @@ typedef struct NodeBlurData {
   float fac DNA_DEPRECATED;
   float percentx DNA_DEPRECATED;
   float percenty DNA_DEPRECATED;
-  short filtertype;
+  short filtertype DNA_DEPRECATED;
   char bokeh DNA_DEPRECATED;
   char gamma DNA_DEPRECATED;
 } NodeBlurData;
@@ -1207,7 +1207,7 @@ typedef struct NodeBilateralBlurData {
 
 typedef struct NodeKuwaharaData {
   short size DNA_DEPRECATED;
-  short variation;
+  short variation DNA_DEPRECATED;
   int uniformity DNA_DEPRECATED;
   float sharpness DNA_DEPRECATED;
   float eccentricity DNA_DEPRECATED;
@@ -1351,8 +1351,8 @@ typedef struct NodeScriptDict {
 
 /** glare node. */
 typedef struct NodeGlare {
-  char type;
-  char quality;
+  char type DNA_DEPRECATED;
+  char quality DNA_DEPRECATED;
   char iter DNA_DEPRECATED;
   char angle DNA_DEPRECATED;
   char _pad0;
@@ -1383,7 +1383,7 @@ typedef struct NodeTonemap {
   float m DNA_DEPRECATED;
   float a DNA_DEPRECATED;
   float c DNA_DEPRECATED;
-  int type;
+  int type DNA_DEPRECATED;
 } NodeTonemap;
 
 /* Lens Distortion node. */
@@ -1392,7 +1392,7 @@ typedef struct NodeLensDist {
   short proj DNA_DEPRECATED;
   short fit DNA_DEPRECATED;
   char _pad[2];
-  int distortion_type;
+  int distortion_type DNA_DEPRECATED;
 } NodeLensDist;
 
 typedef struct NodeColorBalance {
@@ -1586,7 +1586,7 @@ typedef struct NodeKeyingData {
   float clip_white DNA_DEPRECATED;
   int dilate_distance DNA_DEPRECATED;
   int feather_distance DNA_DEPRECATED;
-  int feather_falloff;
+  int feather_falloff DNA_DEPRECATED;
   int blur_pre DNA_DEPRECATED;
   int blur_post DNA_DEPRECATED;
 } NodeKeyingData;
@@ -1597,47 +1597,47 @@ typedef struct NodeTrackPosData {
 } NodeTrackPosData;
 
 typedef struct NodeTransformData {
-  short interpolation;
-  char extension_x;
-  char extension_y;
+  short interpolation DNA_DEPRECATED;
+  char extension_x DNA_DEPRECATED;
+  char extension_y DNA_DEPRECATED;
 } NodeTransformData;
 
 typedef struct NodeTranslateData {
   char wrap_axis DNA_DEPRECATED;
   char relative DNA_DEPRECATED;
-  short extension_x;
-  short extension_y;
-  short interpolation;
+  short extension_x DNA_DEPRECATED;
+  short extension_y DNA_DEPRECATED;
+  short interpolation DNA_DEPRECATED;
 } NodeTranslateData;
 
 typedef struct NodeRotateData {
-  short interpolation;
-  char extension_x;
-  char extension_y;
+  short interpolation DNA_DEPRECATED;
+  char extension_x DNA_DEPRECATED;
+  char extension_y DNA_DEPRECATED;
 } NodeRotateData;
 
 typedef struct NodeScaleData {
-  short interpolation;
-  char extension_x;
-  char extension_y;
+  short interpolation DNA_DEPRECATED;
+  char extension_x DNA_DEPRECATED;
+  char extension_y DNA_DEPRECATED;
 } NodeScaleData;
 
 typedef struct NodeCornerPinData {
-  short interpolation;
-  char extension_x;
-  char extension_y;
+  short interpolation DNA_DEPRECATED;
+  char extension_x DNA_DEPRECATED;
+  char extension_y DNA_DEPRECATED;
 } NodeCornerPinData;
 
 typedef struct NodeDisplaceData {
-  short interpolation;
-  char extension_x;
-  char extension_y;
+  short interpolation DNA_DEPRECATED;
+  char extension_x DNA_DEPRECATED;
+  char extension_y DNA_DEPRECATED;
 } NodeDisplaceData;
 
 typedef struct NodeMapUVData {
-  short interpolation;
-  char extension_x;
-  char extension_y;
+  short interpolation DNA_DEPRECATED;
+  char extension_x DNA_DEPRECATED;
+  char extension_y DNA_DEPRECATED;
 } NodeMapUVData;
 
 typedef struct NodePlaneTrackDeformData {
@@ -1738,8 +1738,8 @@ typedef struct NodeCryptomatte {
 
 typedef struct NodeDenoise {
   char hdr DNA_DEPRECATED;
-  char prefilter;
-  char quality;
+  char prefilter DNA_DEPRECATED;
+  char quality DNA_DEPRECATED;
   char _pad[1];
 } NodeDenoise;
 

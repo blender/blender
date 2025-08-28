@@ -36,7 +36,40 @@
 
 namespace blender::nodes::node_composite_denoise_cc {
 
-NODE_STORAGE_FUNCS(NodeDenoise)
+static const EnumPropertyItem prefilter_items[] = {
+    {CMP_NODE_DENOISE_PREFILTER_NONE,
+     "NONE",
+     0,
+     "None",
+     "No prefiltering, use when guiding passes are noise-free"},
+    {CMP_NODE_DENOISE_PREFILTER_FAST,
+     "FAST",
+     0,
+     "Fast",
+     "Denoise image and guiding passes together. Improves quality when guiding passes are noisy "
+     "using least amount of extra processing time."},
+    {CMP_NODE_DENOISE_PREFILTER_ACCURATE,
+     "ACCURATE",
+     0,
+     "Accurate",
+     "Prefilter noisy guiding passes before denoising image. Improves quality when guiding "
+     "passes are noisy using extra processing time."},
+    {0, nullptr, 0, nullptr, nullptr}};
+
+static const EnumPropertyItem quality_items[] = {
+    {CMP_NODE_DENOISE_QUALITY_SCENE,
+     "FOLLOW_SCENE",
+     0,
+     "Follow Scene",
+     "Use the scene's denoising quality setting"},
+    {CMP_NODE_DENOISE_QUALITY_HIGH, "HIGH", 0, "High", "High quality"},
+    {CMP_NODE_DENOISE_QUALITY_BALANCED,
+     "BALANCED",
+     0,
+     "Balanced",
+     "Balanced between performance and quality"},
+    {CMP_NODE_DENOISE_QUALITY_FAST, "FAST", 0, "Fast", "High perfomance"},
+    {0, nullptr, 0, nullptr, nullptr}};
 
 static void cmp_node_denoise_declare(NodeDeclarationBuilder &b)
 {
@@ -57,15 +90,20 @@ static void cmp_node_denoise_declare(NodeDeclarationBuilder &b)
       .compositor_domain_priority(1)
       .structure_type(StructureType::Dynamic);
   b.add_input<decl::Bool>("HDR").default_value(true);
+  b.add_input<decl::Menu>("Prefilter")
+      .default_value(CMP_NODE_DENOISE_PREFILTER_ACCURATE)
+      .static_items(prefilter_items);
+  b.add_input<decl::Menu>("Quality")
+      .default_value(CMP_NODE_DENOISE_QUALITY_SCENE)
+      .static_items(quality_items);
 
   b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }
 
 static void node_composit_init_denonise(bNodeTree * /*ntree*/, bNode *node)
 {
+  /* Unused, kept for forward compatibility. */
   NodeDenoise *ndg = MEM_callocN<NodeDenoise>(__func__);
-  ndg->prefilter = CMP_NODE_DENOISE_PREFILTER_ACCURATE;
-  ndg->quality = CMP_NODE_DENOISE_QUALITY_SCENE;
   node->storage = ndg;
 }
 
@@ -86,7 +124,7 @@ static bool is_oidn_supported()
 #endif
 }
 
-static void node_composit_buts_denoise(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_composit_buts_denoise(uiLayout *layout, bContext * /*C*/, PointerRNA * /*ptr*/)
 {
 #ifndef WITH_OPENIMAGEDENOISE
   layout->label(RPT_("Disabled. Built without OpenImageDenoise"), ICON_ERROR);
@@ -95,11 +133,6 @@ static void node_composit_buts_denoise(uiLayout *layout, bContext * /*C*/, Point
     layout->label(RPT_("Disabled. Platform not supported"), ICON_ERROR);
   }
 #endif
-
-  layout->label(IFACE_("Prefilter:"), ICON_NONE);
-  layout->prop(ptr, "prefilter", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  layout->label(IFACE_("Quality:"), ICON_NONE);
-  layout->prop(ptr, "quality", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -288,22 +321,11 @@ class DenoiseOperation : public NodeOperation {
     return get_prefilter_mode() == CMP_NODE_DENOISE_PREFILTER_ACCURATE;
   }
 
-  bool use_hdr()
-  {
-    return this->get_input("HDR").get_single_value_default(true);
-  }
-
-  CMPNodeDenoisePrefilter get_prefilter_mode()
-  {
-    return static_cast<CMPNodeDenoisePrefilter>(node_storage(bnode()).prefilter);
-  }
-
 #ifdef WITH_OPENIMAGEDENOISE
 #  if OIDN_VERSION_MAJOR >= 2
   oidn::Quality get_quality()
   {
-    const CMPNodeDenoiseQuality node_quality = static_cast<CMPNodeDenoiseQuality>(
-        node_storage(bnode()).quality);
+    const CMPNodeDenoiseQuality node_quality = this->get_quality_mode();
 
     if (node_quality == CMP_NODE_DENOISE_QUALITY_SCENE) {
       const eCompositorDenoiseQaulity scene_quality = context().get_denoise_quality();
@@ -315,9 +337,10 @@ class DenoiseOperation : public NodeOperation {
         case SCE_COMPOSITOR_DENOISE_BALANCED:
           return oidn::Quality::Balanced;
         case SCE_COMPOSITOR_DENOISE_HIGH:
-        default:
           return oidn::Quality::High;
       }
+
+      return oidn::Quality::High;
     }
 
     switch (node_quality) {
@@ -328,9 +351,11 @@ class DenoiseOperation : public NodeOperation {
       case CMP_NODE_DENOISE_QUALITY_BALANCED:
         return oidn::Quality::Balanced;
       case CMP_NODE_DENOISE_QUALITY_HIGH:
-      default:
+      case CMP_NODE_DENOISE_QUALITY_SCENE:
         return oidn::Quality::High;
     }
+
+    return oidn::Quality::High;
   }
 #  endif /* OIDN_VERSION_MAJOR >= 2 */
 
@@ -342,6 +367,27 @@ class DenoiseOperation : public NodeOperation {
 #  endif
   }
 #endif /* WITH_OPENIMAGEDENOISE */
+
+  bool use_hdr()
+  {
+    return this->get_input("HDR").get_single_value_default(true);
+  }
+
+  CMPNodeDenoisePrefilter get_prefilter_mode()
+  {
+    const Result &input = this->get_input("Prefilter");
+    const MenuValue default_menu_value = MenuValue(CMP_NODE_DENOISE_PREFILTER_ACCURATE);
+    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
+    return static_cast<CMPNodeDenoisePrefilter>(menu_value.value);
+  }
+
+  CMPNodeDenoiseQuality get_quality_mode()
+  {
+    const Result &input = this->get_input("Quality");
+    const MenuValue default_menu_value = MenuValue(CMP_NODE_DENOISE_QUALITY_SCENE);
+    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
+    return static_cast<CMPNodeDenoiseQuality>(menu_value.value);
+  }
 };
 
 static NodeOperation *get_compositor_operation(Context &context, DNode node)

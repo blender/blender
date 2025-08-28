@@ -114,6 +114,29 @@ def add_node_type_with_searchable_enum(context, layout, node_idname, property_na
             prop.value = repr(item.identifier)
 
 
+def add_node_type_with_searchable_enum_socket(
+        context,
+        layout,
+        node_idname,
+        socket_identifier,
+        enum_names,
+        search_weight=0.0):
+    add_node_type(layout, node_idname, search_weight=search_weight)
+    if getattr(context, "is_menu_search", False):
+        node_type = getattr(bpy.types, node_idname)
+        for enum_name in enum_names:
+            label = "{} ▸ {}".format(iface_(node_type.bl_rna.name), iface_(enum_name))
+            props = add_node_type(
+                layout,
+                node_idname,
+                label=label,
+                translate=False,
+                search_weight=search_weight)
+            prop = props.settings.add()
+            prop.name = f'inputs["{socket_identifier}"].default_value'
+            prop.value = repr(enum_name)
+
+
 def add_color_mix_node(context, layout):
     label = iface_("Mix Color")
     props = node_add_menu.add_node_type(layout, "ShaderNodeMix", label=label, translate=False)

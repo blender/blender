@@ -11,10 +11,9 @@
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
-#include "RNA_access.hh"
+#include "RNA_types.hh"
 
 #include "UI_interface_layout.hh"
-#include "UI_resources.hh"
 
 #include "GPU_shader.hh"
 
@@ -28,11 +27,19 @@
 
 #include "node_composite_util.hh"
 
-/* **************** BLUR ******************** */
-
 namespace blender::nodes::node_composite_blur_cc {
 
-NODE_STORAGE_FUNCS(NodeBlurData)
+static const EnumPropertyItem type_items[] = {
+    {R_FILTER_BOX, "FLAT", 0, "Flat", ""},
+    {R_FILTER_TENT, "TENT", 0, "Tent", ""},
+    {R_FILTER_QUAD, "QUAD", 0, "Quadratic", ""},
+    {R_FILTER_CUBIC, "CUBIC", 0, "Cubic", ""},
+    {R_FILTER_GAUSS, "GAUSS", 0, "Gaussian", ""},
+    {R_FILTER_FAST_GAUSS, "FAST_GAUSS", 0, "Fast Gaussian", ""},
+    {R_FILTER_CATROM, "CATROM", 0, "Catrom", ""},
+    {R_FILTER_MITCH, "MITCH", 0, "Mitch", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
 
 static void cmp_node_blur_declare(NodeDeclarationBuilder &b)
 {
@@ -44,10 +51,10 @@ static void cmp_node_blur_declare(NodeDeclarationBuilder &b)
       .default_value({0.0f, 0.0f})
       .min(0.0f)
       .structure_type(StructureType::Dynamic);
+  b.add_input<decl::Menu>("Type").default_value(R_FILTER_GAUSS).static_items(type_items);
   b.add_input<decl::Bool>("Extend Bounds").default_value(false);
   b.add_input<decl::Bool>("Separable")
       .default_value(true)
-
       .description(
           "Use faster approximation by blurring along the horizontal and vertical directions "
           "independently");
@@ -57,14 +64,9 @@ static void cmp_node_blur_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_blur(bNodeTree * /*ntree*/, bNode *node)
 {
+  /* Unused, but allocated for forward compatibility. */
   NodeBlurData *data = MEM_callocN<NodeBlurData>(__func__);
-  data->filtertype = R_FILTER_GAUSS;
   node->storage = data;
-}
-
-static void node_composit_buts_blur(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  layout->prop(ptr, "filter_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -122,12 +124,12 @@ class BlurOperation : public NodeOperation {
     if (!size.is_single_value()) {
       this->execute_variable_size(input, size, output);
     }
-    else if (node_storage(bnode()).filtertype == R_FILTER_FAST_GAUSS) {
+    else if (this->get_type() == R_FILTER_FAST_GAUSS) {
       recursive_gaussian_blur(this->context(), input, output, this->get_blur_size());
     }
     else if (use_separable_filter()) {
       symmetric_separable_blur(
-          this->context(), input, output, this->get_blur_size(), node_storage(bnode()).filtertype);
+          this->context(), input, output, this->get_blur_size(), this->get_type());
     }
     else {
       this->execute_constant_size(input, output);
@@ -154,7 +156,7 @@ class BlurOperation : public NodeOperation {
     const float2 blur_radius = this->get_blur_size();
 
     const Result &weights = context().cache_manager().symmetric_blur_weights.get(
-        context(), node_storage(bnode()).filtertype, blur_radius);
+        context(), this->get_type(), blur_radius);
     weights.bind_as_texture(shader, "weights_tx");
 
     const Domain domain = input.domain();
@@ -173,7 +175,7 @@ class BlurOperation : public NodeOperation {
   {
     const float2 blur_radius = this->get_blur_size();
     const Result &weights = this->context().cache_manager().symmetric_blur_weights.get(
-        this->context(), node_storage(this->bnode()).filtertype, blur_radius);
+        this->context(), this->get_type(), blur_radius);
 
     const Domain domain = input.domain();
     output.allocate_texture(domain);
@@ -239,7 +241,7 @@ class BlurOperation : public NodeOperation {
   {
     const float2 blur_radius = this->compute_maximum_blur_size();
     const Result &weights = context().cache_manager().symmetric_blur_weights.get(
-        context(), node_storage(bnode()).filtertype, blur_radius);
+        context(), this->get_type(), blur_radius);
 
     gpu::Shader *shader = context().get_shader("compositor_symmetric_blur_variable_size");
     GPU_shader_bind(shader);
@@ -265,7 +267,7 @@ class BlurOperation : public NodeOperation {
   {
     const float2 blur_radius = this->compute_maximum_blur_size();
     const Result &weights = this->context().cache_manager().symmetric_blur_weights.get(
-        this->context(), node_storage(this->bnode()).filtertype, blur_radius);
+        this->context(), this->get_type(), blur_radius);
 
     const Domain domain = input.domain();
     output.allocate_texture(domain);
@@ -367,7 +369,7 @@ class BlurOperation : public NodeOperation {
     }
 
     /* Only Gaussian filters are separable. The rest is not. */
-    switch (node_storage(bnode()).filtertype) {
+    switch (this->get_type()) {
       case R_FILTER_GAUSS:
       case R_FILTER_FAST_GAUSS:
         return true;
@@ -391,6 +393,14 @@ class BlurOperation : public NodeOperation {
   {
     return this->get_input("Extend Bounds").get_single_value_default(false);
   }
+
+  int get_type()
+  {
+    const Result &input = this->get_input("Type");
+    const MenuValue default_menu_value = MenuValue(R_FILTER_GAUSS);
+    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
+    return menu_value.value;
+  }
 };
 
 static NodeOperation *get_compositor_operation(Context &context, DNode node)
@@ -412,7 +422,6 @@ static void register_node_type_cmp_blur()
   ntype.enum_name_legacy = "BLUR";
   ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_blur_declare;
-  ntype.draw_buttons = file_ns::node_composit_buts_blur;
   ntype.flag |= NODE_PREVIEW;
   ntype.initfunc = file_ns::node_composit_init_blur;
   blender::bke::node_type_storage(
