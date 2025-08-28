@@ -1591,11 +1591,7 @@ static void process_stroke_weights(const Scene &scene,
 
   /* Update the position of the stroke to undo the movement caused by the modifier. */
   MutableSpan<float3> positions = curves.positions_for_write().slice(points);
-  threading::parallel_for(positions.index_range(), 1024, [&](const IndexRange range) {
-    for (float3 &position : positions.slice(range)) {
-      position = math::transform_point(matrix, position);
-    }
-  });
+  math::transform_points(matrix, positions);
 }
 
 static bke::CurvesGeometry get_single_stroke(const bke::CurvesGeometry &src, const int curve)

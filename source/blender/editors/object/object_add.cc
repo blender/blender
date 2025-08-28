@@ -3534,10 +3534,7 @@ static Object *convert_grease_pencil_to_mesh(Base &base,
         const bke::greasepencil::Layer *layer = grease_pencil->layers()[layer_index];
         blender::float4x4 to_object = layer->to_object_space(*ob);
         bke::CurvesGeometry &new_curves = curves_id->geometry.wrap();
-        MutableSpan<blender::float3> positions = new_curves.positions_for_write();
-        for (const int point_i : new_curves.points_range()) {
-          positions[point_i] = blender::math::transform_point(to_object, positions[point_i]);
-        }
+        math::transform_points(to_object, new_curves.positions_for_write());
         geometries[i] = bke::GeometrySet::from_curves(curves_id);
       }
       if (geometries.size() > 0) {

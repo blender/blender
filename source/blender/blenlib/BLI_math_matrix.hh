@@ -1813,4 +1813,13 @@ extern template float4x4 perspective(
 void transform_normals(const float3x3 &transform, MutableSpan<float3> normals);
 void transform_normals(Span<float3> src, const float3x3 &transform, MutableSpan<float3> dst);
 
+/** Transform point vectors with matrix multiplication, optionally using multi-threading. */
+void transform_points(const float4x4 &transform,
+                      MutableSpan<float3> points,
+                      bool use_threading = true);
+void transform_points(Span<float3> src,
+                      const float4x4 &transform,
+                      MutableSpan<float3> dst,
+                      bool use_threading = true);
+
 }  // namespace blender::math

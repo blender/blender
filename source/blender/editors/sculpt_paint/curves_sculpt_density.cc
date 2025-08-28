@@ -173,9 +173,7 @@ struct DensityAddOperationExecutor {
     else {
       BLI_assert_unreachable();
     }
-    for (float3 &pos : new_positions_cu) {
-      pos = math::transform_point(transforms_.surface_to_curves, pos);
-    }
+    math::transform_points(transforms_.surface_to_curves, new_positions_cu);
 
     if (stroke_extension.is_first) {
       this->prepare_curve_roots_kdtrees();

@@ -751,14 +751,11 @@ bke::CurvesGeometry create_curves_outline(const bke::greasepencil::Drawing &draw
       "material_index", bke::AttrDomain::Curve, 0);
 
   /* Transform positions and radii. */
-  const float scale = math::average(math::to_scale(transform));
   Array<float3> transformed_positions(src_positions.size());
+  math::transform_points(src_positions, transform, transformed_positions);
+
   Array<float> transformed_radii(src_radii.size());
-  threading::parallel_for(transformed_positions.index_range(), 4096, [&](const IndexRange range) {
-    for (const int i : range) {
-      transformed_positions[i] = math::transform_point(transform, src_positions[i]);
-    }
-  });
+  const float scale = math::average(math::to_scale(transform));
   threading::parallel_for(transformed_radii.index_range(), 4096, [&](const IndexRange range) {
     for (const int i : range) {
       transformed_radii[i] = src_radii[i] * scale;
@@ -794,9 +791,8 @@ bke::CurvesGeometry create_curves_outline(const bke::greasepencil::Drawing &draw
                               data.point_indices);
 
     /* Transform perimeter positions back into object space. */
-    for (float3 &pos : data.positions.as_mutable_span().drop_front(prev_point_num)) {
-      pos = math::transform_point(transform_inv, pos);
-    }
+    math::transform_points(transform_inv,
+                           data.positions.as_mutable_span().drop_front(prev_point_num));
 
     data.curve_indices.append_n_times(curve_i, data.point_counts.size() - prev_curve_num);
   });

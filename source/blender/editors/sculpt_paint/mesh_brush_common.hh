@@ -82,9 +82,6 @@ void translations_from_new_positions(Span<float3> new_positions,
                                      Span<float3> old_positions,
                                      MutableSpan<float3> translations);
 
-void transform_positions(Span<float3> src, const float4x4 &transform, MutableSpan<float3> dst);
-void transform_positions(const float4x4 &transform, MutableSpan<float3> positions);
-
 /** Gather data from an array aligned with all geometry vertices. */
 template<typename T> void gather_data_mesh(Span<T> src, Span<int> indices, MutableSpan<T> dst);
 template<typename T>
