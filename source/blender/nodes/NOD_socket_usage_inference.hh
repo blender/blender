@@ -90,6 +90,13 @@ class InputSocketUsageParams {
   InferenceValue get_input(StringRef identifier) const;
 
   /**
+   * Returns true if any output is known to be used or false if no output is used. std::nullopt is
+   * returned if it's not known yet if any output is used. In this case, the caller should return
+   * early, it will be checked again once new information about output usages becomes available.
+   */
+  std::optional<bool> any_output_is_used() const;
+
+  /**
    * Utility for the case when the socket depends on a specific menu input to have a certain value.
    */
   bool menu_input_may_be(StringRef identifier, int enum_value) const;

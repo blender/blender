@@ -823,6 +823,17 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::usage_by_single_menu
   this->usage_inference([menu_value](const socket_usage_inference::InputSocketUsageParams &params)
                             -> std::optional<bool> {
     const bNodeSocket &socket = find_single_menu_input(params.node);
+    if (const std::optional<bool> any_output_used = params.any_output_is_used()) {
+      if (!*any_output_used) {
+        /* If no output is used, none if the inputs is used either. */
+        return false;
+      }
+    }
+    else {
+      /* It's not known if any output is used yet. This function will be called again once new
+       * information about output usages is available. */
+      return std::nullopt;
+    }
     return params.menu_input_may_be(socket.identifier, menu_value);
   });
   return *this;
