@@ -1085,6 +1085,8 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
       walk->zlock == WALK_AXISLOCK_STATE_ACTIVE || walk->gravity_state != WALK_GRAVITY_STATE_OFF ||
       walk->teleport.state == WALK_TELEPORT_STATE_ON || is_confirm)
   {
+    bool changed_viewquat = false;
+
     /* Apply the "scene" grid scale to support navigation around scenes of different sizes. */
     bool dvec_grid_scale = true;
     float dvec_tmp[3];
@@ -1157,6 +1159,7 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
         /* Rotate about the relative up vector. */
         axis_angle_to_quat(tmp_quat, upvec, -y);
         mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
+        changed_viewquat = true;
       }
 
       /* Rotate about the Y axis- look left/right. */
@@ -1193,6 +1196,7 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
         /* Rotate about the relative up vector */
         axis_angle_to_quat_single(tmp_quat, 'Z', x);
         mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
+        changed_viewquat = true;
       }
 
       if (walk->zlock == WALK_AXISLOCK_STATE_ACTIVE) {
@@ -1212,6 +1216,7 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
                              roll * time_redraw_clamped * walk->zlock_momentum *
                                  WALK_ZUP_CORRECT_FAC);
           mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
+          changed_viewquat = true;
 
           walk->zlock_momentum += WALK_ZUP_CORRECT_ACCEL;
         }
@@ -1420,6 +1425,14 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
     /* Scale the movement to the scene size. */
     mul_v3_v3fl(dvec_tmp, dvec, dvec_grid_scale ? walk->grid : 1.0f);
     add_v3_v3(rv3d->ofs, dvec_tmp);
+
+    if (changed_viewquat) {
+      /* While operations here are expected to keep the quaternion normalized,
+       * over time floating point error can accumulate error and eventually cause
+       * it not to be normalized, so - normalize when modified to avoid errors.
+       * See: #125586. */
+      normalize_qt(rv3d->viewquat);
+    }
 
     if (rv3d->persp == RV3D_CAMOB) {
       walk->need_rotation_keyframe |= (moffset[0] || moffset[1] ||

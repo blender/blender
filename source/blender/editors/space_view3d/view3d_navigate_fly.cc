@@ -839,6 +839,7 @@ static int flyApply(bContext *C, FlyInfo *fly, bool is_confirm)
   if ((fly->speed != 0.0f) || moffset[0] || moffset[1] || (fly->zlock != FLY_AXISLOCK_STATE_OFF) ||
       (fly->xlock != FLY_AXISLOCK_STATE_OFF) || dvec[0] || dvec[1] || dvec[2])
   {
+    bool changed_viewquat = false;
     float dvec_tmp[3];
 
     /* Time how fast it takes for us to redraw,
@@ -890,6 +891,7 @@ static int flyApply(bContext *C, FlyInfo *fly, bool is_confirm)
         /* Rotate about the relative up vector. */
         axis_angle_to_quat(tmp_quat, upvec, moffset[1] * time_redraw * -FLY_ROTATE_FAC);
         mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
+        changed_viewquat = true;
 
         if (fly->xlock != FLY_AXISLOCK_STATE_OFF) {
           fly->xlock = FLY_AXISLOCK_STATE_ACTIVE; /* Check for rotation. */
@@ -923,6 +925,7 @@ static int flyApply(bContext *C, FlyInfo *fly, bool is_confirm)
         /* Rotate about the relative up vector. */
         axis_angle_to_quat(tmp_quat, upvec, moffset[0] * time_redraw * FLY_ROTATE_FAC);
         mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
+        changed_viewquat = true;
 
         if (fly->xlock != FLY_AXISLOCK_STATE_OFF) {
           fly->xlock = FLY_AXISLOCK_STATE_ACTIVE; /* Check for rotation. */
@@ -949,6 +952,7 @@ static int flyApply(bContext *C, FlyInfo *fly, bool is_confirm)
                              roll * time_redraw_clamped * fly->zlock_momentum *
                                  FLY_ZUP_CORRECT_FAC);
           mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
+          changed_viewquat = true;
 
           fly->zlock_momentum += FLY_ZUP_CORRECT_ACCEL;
         }
@@ -975,6 +979,7 @@ static int flyApply(bContext *C, FlyInfo *fly, bool is_confirm)
           axis_angle_to_quat(
               tmp_quat, upvec, roll * time_redraw_clamped * fly->xlock_momentum * 0.1f);
           mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
+          changed_viewquat = true;
 
           fly->xlock_momentum += 0.05f;
         }
@@ -1012,6 +1017,14 @@ static int flyApply(bContext *C, FlyInfo *fly, bool is_confirm)
         dvec, dvec_tmp, fly->dvec_prev, (1.0f / (1.0f + (time_redraw * FLY_SMOOTH_FAC))));
 
     add_v3_v3(rv3d->ofs, dvec);
+
+    if (changed_viewquat) {
+      /* While operations here are expected to keep the quaternion normalized,
+       * over time floating point error can accumulate error and eventually cause
+       * it not to be normalized, so - normalize when modified to avoid errors.
+       * See: #125586. */
+      normalize_qt(rv3d->viewquat);
+    }
 
     if (rv3d->persp == RV3D_CAMOB) {
       const bool do_rotate = ((fly->xlock != FLY_AXISLOCK_STATE_OFF) ||
