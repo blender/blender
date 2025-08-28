@@ -118,7 +118,7 @@ void VKTexture::clear(eGPUDataFormat format, const void *data)
     float clear_depth = 0.0f;
     convert_host_to_device(
         &clear_depth, data, 1, format, GPU_DEPTH24_STENCIL8, GPU_DEPTH24_STENCIL8);
-    clear_depth_stencil(GPU_DEPTH_BIT | GPU_STENCIL_BIT, clear_depth, 0u);
+    clear_depth_stencil(GPU_DEPTH_BIT | GPU_STENCIL_BIT, clear_depth, 0u, std::nullopt);
     return;
   }
 
@@ -142,7 +142,8 @@ void VKTexture::clear(eGPUDataFormat format, const void *data)
 
 void VKTexture::clear_depth_stencil(const eGPUFrameBufferBits buffers,
                                     float clear_depth,
-                                    uint clear_stencil)
+                                    uint clear_stencil,
+                                    std::optional<int> layer)
 {
   BLI_assert(buffers & (GPU_DEPTH_BIT | GPU_STENCIL_BIT));
   VkImageAspectFlags vk_image_aspect_device = to_vk_image_aspect_flag_bits(device_format_get());
@@ -162,6 +163,10 @@ void VKTexture::clear_depth_stencil(const eGPUFrameBufferBits buffers,
   clear_depth_stencil_image.node_data.vk_image_subresource_range.aspectMask = vk_image_aspect;
   clear_depth_stencil_image.node_data.vk_image_subresource_range.layerCount =
       VK_REMAINING_ARRAY_LAYERS;
+  if (layer.has_value()) {
+    clear_depth_stencil_image.node_data.vk_image_subresource_range.baseArrayLayer = *layer;
+    clear_depth_stencil_image.node_data.vk_image_subresource_range.layerCount = 1;
+  }
   clear_depth_stencil_image.node_data.vk_image_subresource_range.levelCount =
       VK_REMAINING_MIP_LEVELS;
 
