@@ -787,7 +787,7 @@ class MeshUVs : Overlay {
     ResourceHandleRange res_handle = manager.unique_handle(ob_ref);
 
     if (show_wireframe_ && has_active_object_uvmap) {
-      gpu::Batch *geom = DRW_mesh_batch_cache_get_uv_wireframe(*ob, mesh);
+      gpu::Batch *geom = DRW_mesh_batch_cache_get_all_uv_wireframe(*ob, mesh);
       wireframe_ps_.draw_expand(geom, GPU_PRIM_TRIS, 2, 1, res_handle);
     }
     if (show_face_overlay_ && has_active_object_uvmap && space_image->uv_face_opacity > 0.0f) {
@@ -807,10 +807,17 @@ class MeshUVs : Overlay {
 
     Object &ob = *ob_ref.object;
     Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(ob);
+    const Mesh &mesh_orig = DRW_object_get_data_for_drawing<Mesh>(
+        *DEG_get_original(ob_ref.object));
 
     const SpaceImage *space_image = reinterpret_cast<const SpaceImage *>(state.space_data);
     const bool is_edit_object = DRW_object_is_in_edit_mode(&ob);
     const bool is_uv_editable = is_edit_object && space_image->mode == SI_MODE_UV;
+    /* Sculpt is left out here because selection does not exist in it. */
+    const bool is_paint_mode = ELEM(
+        state.ctx_mode, CTX_MODE_PAINT_TEXTURE, CTX_MODE_PAINT_VERTEX, CTX_MODE_PAINT_WEIGHT);
+    const bool use_face_selection = (mesh_orig.editflag & ME_EDIT_PAINT_FACE_SEL);
+    const bool is_face_selectable = (is_edit_object || (is_paint_mode && use_face_selection));
     const bool has_active_object_uvmap = CustomData_get_active_layer(&mesh.corner_data,
                                                                      CD_PROP_FLOAT2) != -1;
     const bool has_active_edit_uvmap = is_edit_object && (CustomData_get_active_layer(
@@ -819,6 +826,7 @@ class MeshUVs : Overlay {
 
     ResourceHandleRange res_handle = manager.unique_handle(ob_ref);
 
+    /* Fully editable UVs in the UV Editor. */
     if (has_active_edit_uvmap && is_uv_editable) {
       if (show_uv_edit_) {
         gpu::Batch *geom = DRW_mesh_batch_cache_get_edituv_edges(ob, mesh);
@@ -856,11 +864,28 @@ class MeshUVs : Overlay {
 
         analysis_ps_.draw(geom, res_handle);
       }
+      return;
     }
 
-    if ((has_active_object_uvmap || has_active_edit_uvmap) && !is_uv_editable) {
+    /* Selectable faces in 3D viewport that sync with image editor paint mode. */
+    if ((has_active_object_uvmap || has_active_edit_uvmap) && is_face_selectable) {
       if (show_wireframe_) {
         gpu::Batch *geom = DRW_mesh_batch_cache_get_uv_wireframe(ob, mesh);
+        wireframe_ps_.draw_expand(geom, GPU_PRIM_TRIS, 2, 1, res_handle);
+      }
+      if ((show_face_overlay_ && space_image->uv_face_opacity > 0.0f) || select_face_) {
+        gpu::Batch *geom = DRW_mesh_batch_cache_get_uv_faces(ob, mesh);
+        faces_ps_.draw(geom, res_handle);
+      }
+      return;
+    }
+
+    /* Non-selectable & non-editable faces in image editor paint mode. */
+    if ((has_active_object_uvmap || has_active_edit_uvmap) && !is_uv_editable &&
+        !is_face_selectable)
+    {
+      if (show_wireframe_) {
+        gpu::Batch *geom = DRW_mesh_batch_cache_get_all_uv_wireframe(ob, mesh);
         wireframe_ps_.draw_expand(geom, GPU_PRIM_TRIS, 2, 1, res_handle);
       }
       if (show_face_overlay_ && space_image->uv_face_opacity > 0.0f) {
