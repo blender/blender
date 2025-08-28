@@ -377,7 +377,7 @@ static void SelectControlPoints(const Mat3X& X_world,
 }
 
 // Computes the barycentric coordinates for all real points
-static void ComputeBarycentricCoordinates(const Mat3X& X_world_centered,
+static bool ComputeBarycentricCoordinates(const Mat3X& X_world_centered,
                                           const Mat34& X_control_points,
                                           Mat4X* alphas) {
   size_t num_points = X_world_centered.cols();
@@ -386,7 +386,21 @@ static void ComputeBarycentricCoordinates(const Mat3X& X_world_centered,
     C2.col(c - 1) = X_control_points.col(c) - X_control_points.col(0);
   }
 
-  Mat3 C2inv = C2.inverse();
+  // The selected basis might have correlated vectors causing inverse to produce
+  // undefined result which could lead to issues later on in SVD decomposition.
+  //
+  // Evidently, when built with MSVC it could lead to crash in SVD when the
+  // input contains NaN values:
+  //   https://projects.blender.org/blender/blender/issues/145185
+  //
+  // TODO(sergey): Look into choosing a different basis in these cases.
+  bool is_invertible;
+  Mat3 C2inv;
+  C2.computeInverseWithCheck(C2inv, is_invertible);
+  if (!is_invertible) {
+    return false;
+  }
+
   Mat3X a = C2inv * X_world_centered;
 
   alphas->resize(4, num_points);
@@ -395,6 +409,8 @@ static void ComputeBarycentricCoordinates(const Mat3X& X_world_centered,
   for (size_t c = 0; c < num_points; c++) {
     (*alphas)(0, c) = 1.0 - alphas->col(c).sum();
   }
+
+  return true;
 }
 
 // Estimates the coordinates of all real points in the camera coordinate frame
@@ -450,7 +466,9 @@ bool EuclideanResectionEPnP(const Mat2X& x_camera,
 
   // Compute the barycentric coordinates.
   Mat4X alphas(4, num_points);
-  ComputeBarycentricCoordinates(X_centered, X_control_points, &alphas);
+  if (!ComputeBarycentricCoordinates(X_centered, X_control_points, &alphas)) {
+    return false;
+  }
 
   // Estimates the M matrix with the barycentric coordinates
   Mat M(2 * num_points, 12);
