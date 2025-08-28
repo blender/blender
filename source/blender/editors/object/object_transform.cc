@@ -1683,11 +1683,12 @@ static wmOperatorStatus object_origin_set_exec(bContext *C, wmOperator *op)
                   layer, current_frame))
           {
             const bke::CurvesGeometry &curves = drawing->strokes();
+            const Span<float3> positions = curves.positions();
 
-            for (const int i : curves.points_range()) {
-              center += math::transform_point(layer_to_object, curves.positions()[i]);
+            for (const int i : positions.index_range()) {
+              center += math::transform_point(layer_to_object, positions[i]);
             }
-            total_points += curves.points_num();
+            total_points += positions.size();
           }
         }
 
