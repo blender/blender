@@ -139,6 +139,7 @@ class NODE_MT_category_compositor_filter(Menu):
         layout.menu("NODE_MT_category_compositor_filter_blur")
         layout.separator()
         node_add_menu.add_node_type(layout, "CompositorNodeAntiAliasing")
+        node_add_menu.add_node_type(layout, "CompositorNodeConvolve")
         node_add_menu.add_node_type(layout, "CompositorNodeDenoise")
         node_add_menu.add_node_type(layout, "CompositorNodeDespeckle")
         layout.separator()
