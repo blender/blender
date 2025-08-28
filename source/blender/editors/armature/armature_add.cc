@@ -307,7 +307,7 @@ static void pre_edit_bone_duplicate(ListBase *editbones)
 }
 
 /**
- * Helper function for #pose_edit_bone_duplicate,
+ * Helper function for #post_edit_bone_duplicate,
  * return the destination pchan from the original.
  */
 static bPoseChannel *pchan_duplicate_map(
@@ -329,7 +329,7 @@ static bPoseChannel *pchan_duplicate_map(
   return pchan_dst;
 }
 
-static void pose_edit_bone_duplicate(ListBase *editbones, Object *ob)
+static void post_edit_bone_duplicate(ListBase *editbones, Object *ob)
 {
   if (ob->pose == nullptr) {
     return;
@@ -1230,7 +1230,7 @@ static wmOperatorStatus armature_duplicate_selected_exec(bContext *C, wmOperator
       }
     }
 
-    pose_edit_bone_duplicate(arm->edbo, ob);
+    post_edit_bone_duplicate(arm->edbo, ob);
 
     WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
     DEG_id_tag_update(&ob->id, ID_RECALC_SELECT);
@@ -1509,7 +1509,7 @@ static wmOperatorStatus armature_symmetrize_exec(bContext *C, wmOperator *op)
       arm->act_edbone = arm->act_edbone->temp.ebone;
     }
 
-    pose_edit_bone_duplicate(arm->edbo, obedit);
+    post_edit_bone_duplicate(arm->edbo, obedit);
 
     WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
     DEG_id_tag_update(&obedit->id, ID_RECALC_SELECT);
