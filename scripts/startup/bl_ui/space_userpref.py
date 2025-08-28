@@ -2093,11 +2093,11 @@ class USERPREF_PT_ndof_settings(Panel):
     @staticmethod
     def draw_settings(layout, props, show_3dview_settings=True):
 
-        layout.separator()
+        # Include this setting as it impacts 2D views as well (inverting translation).
+        col = layout.column()
+        col.row().prop(props, "ndof_navigation_mode", text="Navigation Mode")
 
         if show_3dview_settings:
-            col = layout.column()
-            col.row().prop(props, "ndof_navigation_mode", text="Navigation Mode")
             col.prop(props, "ndof_lock_horizon", text="Lock Horizon")
 
             layout.separator()

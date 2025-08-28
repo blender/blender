@@ -6335,8 +6335,10 @@ static void rna_def_userdef_input(BlenderRNA *brna)
        "FLY",
        0,
        "Fly",
-       "Enables using the 3D Mouse as if it is a camera. Push into the scene and the camera "
-       "moves forward into the scene. You are entering the scene as if flying around in it"},
+       "Enables using the 3D Mouse as if it is a camera. "
+       "Push into the scene and the camera moves forward into the scene. "
+       "You are entering the scene as if flying around in it. "
+       "This also inverts pan & zoom for 2D views"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
