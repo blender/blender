@@ -31,7 +31,6 @@ class Shader;
 }  // namespace blender::gpu
 
 constexpr static int GPU_BATCH_VBO_MAX_LEN = 16;
-constexpr static int GPU_BATCH_INST_VBO_MAX_LEN = 2;
 constexpr static int GPU_BATCH_VAO_STATIC_LEN = 3;
 constexpr static int GPU_BATCH_VAO_DYN_ALLOC_COUNT = 16;
 
@@ -43,13 +42,8 @@ enum eGPUBatchFlag {
   GPU_BATCH_OWNS_VBO = (1 << 0),
   GPU_BATCH_OWNS_VBO_MAX = (GPU_BATCH_OWNS_VBO << (GPU_BATCH_VBO_MAX_LEN - 1)),
   GPU_BATCH_OWNS_VBO_ANY = ((GPU_BATCH_OWNS_VBO << GPU_BATCH_VBO_MAX_LEN) - 1),
-  /** Instance blender::gpu::VertBuf ownership. (One bit per vbo) */
-  GPU_BATCH_OWNS_INST_VBO = (GPU_BATCH_OWNS_VBO_MAX << 1),
-  GPU_BATCH_OWNS_INST_VBO_MAX = (GPU_BATCH_OWNS_INST_VBO << (GPU_BATCH_INST_VBO_MAX_LEN - 1)),
-  GPU_BATCH_OWNS_INST_VBO_ANY = ((GPU_BATCH_OWNS_INST_VBO << GPU_BATCH_INST_VBO_MAX_LEN) - 1) &
-                                ~GPU_BATCH_OWNS_VBO_ANY,
   /** blender::gpu::IndexBuf ownership. */
-  GPU_BATCH_OWNS_INDEX = (GPU_BATCH_OWNS_INST_VBO_MAX << 1),
+  GPU_BATCH_OWNS_INDEX = (GPU_BATCH_OWNS_VBO_MAX << 1),
 
   /** Has been initialized. At least one VBO is set. */
   GPU_BATCH_INIT = (1 << 26),
@@ -80,8 +74,6 @@ class Batch {
  public:
   /** verts[0] is required, others can be nullptr */
   blender::gpu::VertBuf *verts[GPU_BATCH_VBO_MAX_LEN];
-  /** Instance attributes. */
-  blender::gpu::VertBuf *inst[GPU_BATCH_INST_VBO_MAX_LEN];
   /** nullptr if element list not needed */
   blender::gpu::IndexBuf *elem;
   /** Number of vertices to draw for procedural drawcalls. -1 otherwise. */
@@ -118,10 +110,6 @@ class Batch {
   VertBuf *verts_(const int index) const
   {
     return verts[index];
-  }
-  VertBuf *inst_(const int index) const
-  {
-    return inst[index];
   }
 };
 
@@ -227,22 +215,6 @@ void GPU_batch_discard(blender::gpu::Batch *batch);
 int GPU_batch_vertbuf_add(blender::gpu::Batch *batch,
                           blender::gpu::VertBuf *vertex_buf,
                           bool own_vbo);
-
-/**
- * Add the given \a vertex_buf as instanced vertex buffer to a #blender::gpu::Batch.
- * \return the index of verts in the batch.
- */
-int GPU_batch_instbuf_add(blender::gpu::Batch *batch,
-                          blender::gpu::VertBuf *vertex_buf,
-                          bool own_vbo);
-
-/**
- * Set the first instanced vertex buffer of a #blender::gpu::Batch.
- * \note Override ONLY the first instance VBO (and free them if owned).
- */
-void GPU_batch_instbuf_set(blender::gpu::Batch *batch,
-                           blender::gpu::VertBuf *vertex_buf,
-                           bool own_vbo);
 
 /**
  * Set the index buffer of a #blender::gpu::Batch.

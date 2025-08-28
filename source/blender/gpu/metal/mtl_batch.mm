@@ -410,11 +410,9 @@ void MTLBatch::prepare_vertex_descriptor_and_bindings(MTLVertBuf **buffers, int 
   /* Reset vertex descriptor to default state. */
   desc.reset_vertex_descriptor();
 
-  /* Fetch Vertex and Instance Buffers. */
+  /* Fetch Vertex Buffers. */
   Span<MTLVertBuf *> mtl_verts(reinterpret_cast<MTLVertBuf **>(this->verts),
                                GPU_BATCH_VBO_MAX_LEN);
-  Span<MTLVertBuf *> mtl_inst(reinterpret_cast<MTLVertBuf **>(this->inst),
-                              GPU_BATCH_INST_VBO_MAX_LEN);
 
   /* Resolve Metal vertex buffer bindings. */
   /* Vertex Descriptors
@@ -436,14 +434,8 @@ void MTLBatch::prepare_vertex_descriptor_and_bindings(MTLVertBuf **buffers, int 
 
     for (int bid = 0; bid < GPU_BATCH_VBO_MAX_LEN; ++bid) {
       if (descriptor->bufferIds[bid].used) {
-        if (descriptor->bufferIds[bid].is_instance) {
-          buffers[bid] = mtl_inst[descriptor->bufferIds[bid].id];
-          buffer_is_instanced[bid] = true;
-        }
-        else {
-          buffers[bid] = mtl_verts[descriptor->bufferIds[bid].id];
-          buffer_is_instanced[bid] = false;
-        }
+        buffers[bid] = mtl_verts[descriptor->bufferIds[bid].id];
+        buffer_is_instanced[bid] = false;
       }
     }
   }
@@ -453,28 +445,10 @@ void MTLBatch::prepare_vertex_descriptor_and_bindings(MTLVertBuf **buffers, int 
 
     for (int i = 0; i < GPU_BATCH_VBO_MAX_LEN; ++i) {
       pair.bufferIds[i].id = -1;
-      pair.bufferIds[i].is_instance = 0;
       pair.bufferIds[i].used = 0;
     }
     /* NOTE: Attribute extraction order from buffer is the reverse of the OpenGL as we flag once an
      * attribute is found, rather than pre-setting the mask. */
-    /* Extract Instance attributes (These take highest priority). */
-    for (int v = 0; v < GPU_BATCH_INST_VBO_MAX_LEN; v++) {
-      if (mtl_inst[v]) {
-        MTL_LOG_DEBUG(" -- [Batch] Checking bindings for bound instance buffer %p", mtl_inst[v]);
-        int buffer_ind = this->prepare_vertex_binding(
-            mtl_inst[v], desc, interface, attr_mask, true);
-        if (buffer_ind >= 0) {
-          buffers[buffer_ind] = mtl_inst[v];
-          buffer_is_instanced[buffer_ind] = true;
-
-          pair.bufferIds[buffer_ind].id = v;
-          pair.bufferIds[buffer_ind].used = 1;
-          pair.bufferIds[buffer_ind].is_instance = 1;
-          num_buffers = ((buffer_ind + 1) > num_buffers) ? (buffer_ind + 1) : num_buffers;
-        }
-      }
-    }
 
     /* Extract Vertex attributes (First-bound vertex buffer takes priority). */
     for (int v = 0; v < GPU_BATCH_VBO_MAX_LEN; v++) {
@@ -488,7 +462,6 @@ void MTLBatch::prepare_vertex_descriptor_and_bindings(MTLVertBuf **buffers, int 
 
           pair.bufferIds[buffer_ind].id = v;
           pair.bufferIds[buffer_ind].used = 1;
-          pair.bufferIds[buffer_ind].is_instance = 0;
           num_buffers = ((buffer_ind + 1) > num_buffers) ? (buffer_ind + 1) : num_buffers;
         }
       }
