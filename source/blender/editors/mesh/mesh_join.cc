@@ -327,16 +327,6 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   Object *const active_object = CTX_data_active_object(C);
-  Material *ma;
-  Mesh *mesh;
-  int2 *edge = nullptr;
-  Key *key, *nkey = nullptr;
-  float world_to_active_object[4][4];
-  int a, edges_num = 0, verts_num = 0;
-  int corners_num = 0, faces_num = 0, vertofs;
-  int i, haskey = 0, edgeofs, cornerofs, faceofs;
-  bool ok = false, join_parent = false;
-  CustomData vert_data, edge_data, corner_data, face_data;
 
   if (active_object->mode & OB_MODE_EDIT) {
     BKE_report(op->reports, RPT_WARNING, "Cannot join while in edit mode");
@@ -351,31 +341,43 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
-  /* count & check */
+  Vector<Object *> objects_to_join;
   CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects) {
     if (ob_iter->type == OB_MESH) {
-      mesh = static_cast<Mesh *>(ob_iter->data);
-
-      verts_num += mesh->verts_num;
-      edges_num += mesh->edges_num;
-      corners_num += mesh->corners_num;
-      faces_num += mesh->faces_num;
-
-      if (ob_iter == active_object) {
-        ok = true;
-      }
-
-      if ((active_object->parent != nullptr) && (ob_iter == active_object->parent)) {
-        join_parent = true;
-      }
-
-      /* Check for shape-keys. */
-      if (mesh->key) {
-        haskey++;
-      }
+      objects_to_join.append(ob_iter);
     }
   }
   CTX_DATA_END;
+
+  bool ok = false;
+  bool join_parent = false;
+  int haskey = 0;
+
+  int verts_num = 0;
+  int edges_num = 0;
+  int corners_num = 0;
+  int faces_num = 0;
+  for (const Object *ob_iter : objects_to_join) {
+    Mesh *mesh = static_cast<Mesh *>(ob_iter->data);
+
+    verts_num += mesh->verts_num;
+    edges_num += mesh->edges_num;
+    corners_num += mesh->corners_num;
+    faces_num += mesh->faces_num;
+
+    if (ob_iter == active_object) {
+      ok = true;
+    }
+
+    if ((active_object->parent != nullptr) && (ob_iter == active_object->parent)) {
+      join_parent = true;
+    }
+
+    /* Check for shape-keys. */
+    if (mesh->key) {
+      haskey++;
+    }
+  }
 
   /* Apply parent transform if the active object's parent was joined to it.
    * NOTE: This doesn't apply recursive parenting. */
@@ -396,10 +398,10 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
 
   /* Only join meshes if there are verts to join,
    * there aren't too many, and we only had one mesh selected. */
-  mesh = (Mesh *)active_object->data;
-  key = mesh->key;
+  Mesh *dst_mesh = (Mesh *)active_object->data;
+  Key *key = dst_mesh->key;
 
-  if (ELEM(verts_num, 0, mesh->verts_num)) {
+  if (ELEM(verts_num, 0, dst_mesh->verts_num)) {
     BKE_report(op->reports, RPT_WARNING, "No mesh data to join");
     return OPERATOR_CANCELLED;
   }
@@ -415,7 +417,7 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
 
   /* Active object materials in new main array, is nicer start! */
   Vector<Material *> materials;
-  for (a = 0; a < active_object->totcol; a++) {
+  for (const int a : IndexRange(active_object->totcol)) {
     materials.append(BKE_object_material_get(active_object, a + 1));
     id_us_plus((ID *)materials[a]);
     /* increase id->us : will be lowered later */
@@ -426,6 +428,7 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
    * - If destination mesh didn't have shape-keys, but we encountered some in the meshes we're
    *   joining, set up a new key-block and assign to the mesh.
    */
+  Key *nkey = nullptr;
   if (key) {
     /* make a duplicate copy that will only be used here... (must remember to free it!) */
     nkey = (Key *)BKE_id_copy(bmain, &key->id);
@@ -441,87 +444,90 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
   }
   else if (haskey) {
     /* add a new key-block and add to the mesh */
-    key = mesh->key = BKE_key_add(bmain, (ID *)mesh);
+    key = dst_mesh->key = BKE_key_add(bmain, (ID *)dst_mesh);
     key->type = KEY_RELATIVE;
   }
 
   /* Update face_set_id_offset with the face set data in the active object first. This way the Face
    * Sets IDs in the active object are not the ones that are modified. */
-  Mesh *dst_mesh = BKE_mesh_from_object(active_object);
   int face_set_id_offset = 0;
   mesh_join_offset_face_sets_ID(dst_mesh, &face_set_id_offset);
 
   /* Copy materials, vertex-groups, face sets & face-maps across objects. */
-  CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects) {
-    /* only act if a mesh, and not the one we're joining to */
-    if ((active_object != ob_iter) && (ob_iter->type == OB_MESH)) {
-      mesh = static_cast<Mesh *>(ob_iter->data);
+  for (const Object *ob_iter : objects_to_join) {
+    if (ob_iter == active_object) {
+      continue;
+    }
+    Mesh *mesh = static_cast<Mesh *>(ob_iter->data);
 
-      /* Join this object's vertex groups to the base one's */
-      LISTBASE_FOREACH (bDeformGroup *, dg, &mesh->vertex_group_names) {
-        /* See if this group exists in the object (if it doesn't, add it to the end) */
-        if (!BKE_object_defgroup_find_name(active_object, dg->name)) {
-          bDeformGroup *odg = MEM_mallocN<bDeformGroup>(__func__);
-          memcpy(odg, dg, sizeof(bDeformGroup));
-          BLI_addtail(&dst_mesh->vertex_group_names, odg);
-        }
+    /* Join this object's vertex groups to the base one's */
+    LISTBASE_FOREACH (bDeformGroup *, dg, &mesh->vertex_group_names) {
+      /* See if this group exists in the object (if it doesn't, add it to the end) */
+      if (!BKE_object_defgroup_find_name(active_object, dg->name)) {
+        bDeformGroup *odg = MEM_mallocN<bDeformGroup>(__func__);
+        memcpy(odg, dg, sizeof(bDeformGroup));
+        BLI_addtail(&dst_mesh->vertex_group_names, odg);
       }
-      if (!BLI_listbase_is_empty(&dst_mesh->vertex_group_names) &&
-          mesh->vertex_group_active_index == 0)
-      {
-        mesh->vertex_group_active_index = 1;
-      }
+    }
+    if (!BLI_listbase_is_empty(&dst_mesh->vertex_group_names) &&
+        mesh->vertex_group_active_index == 0)
+    {
+      mesh->vertex_group_active_index = 1;
+    }
 
-      mesh_join_offset_face_sets_ID(mesh, &face_set_id_offset);
+    mesh_join_offset_face_sets_ID(mesh, &face_set_id_offset);
 
-      if (mesh->verts_num) {
-        /* If this mesh has shape-keys,
-         * check if destination mesh already has matching entries too. */
-        if (mesh->key && key) {
-          /* for remapping KeyBlock.relative */
-          int *index_map = MEM_malloc_arrayN<int>(mesh->key->totkey, __func__);
-          KeyBlock **kb_map = MEM_malloc_arrayN<KeyBlock *>(mesh->key->totkey, __func__);
+    if (mesh->verts_num) {
+      /* If this mesh has shape-keys,
+       * check if destination mesh already has matching entries too. */
+      if (mesh->key && key) {
+        /* for remapping KeyBlock.relative */
+        int *index_map = MEM_malloc_arrayN<int>(mesh->key->totkey, __func__);
+        KeyBlock **kb_map = MEM_malloc_arrayN<KeyBlock *>(mesh->key->totkey, __func__);
 
-          LISTBASE_FOREACH_INDEX (KeyBlock *, kb, &mesh->key->block, i) {
-            BLI_assert(i < mesh->key->totkey);
+        int i;
+        LISTBASE_FOREACH_INDEX (KeyBlock *, kb, &mesh->key->block, i) {
+          BLI_assert(i < mesh->key->totkey);
 
-            KeyBlock *kbn = BKE_keyblock_find_name(key, kb->name);
-            /* if key doesn't exist in destination mesh, add it */
-            if (kbn) {
-              index_map[i] = BLI_findindex(&key->block, kbn);
-            }
-            else {
-              index_map[i] = key->totkey;
+          KeyBlock *kbn = BKE_keyblock_find_name(key, kb->name);
+          /* if key doesn't exist in destination mesh, add it */
+          if (kbn) {
+            index_map[i] = BLI_findindex(&key->block, kbn);
+          }
+          else {
+            index_map[i] = key->totkey;
 
-              kbn = BKE_keyblock_add(key, kb->name);
+            kbn = BKE_keyblock_add(key, kb->name);
 
-              BKE_keyblock_copy_settings(kbn, kb);
+            BKE_keyblock_copy_settings(kbn, kb);
 
-              /* adjust settings to fit (allocate a new data-array) */
-              kbn->data = MEM_callocN(sizeof(float[3]) * verts_num, "joined_shapekey");
-              kbn->totelem = verts_num;
-            }
-
-            kb_map[i] = kbn;
+            /* adjust settings to fit (allocate a new data-array) */
+            kbn->data = MEM_callocN(sizeof(float[3]) * verts_num, "joined_shapekey");
+            kbn->totelem = verts_num;
           }
 
-          /* remap relative index values */
-          LISTBASE_FOREACH_INDEX (KeyBlock *, kb, &mesh->key->block, i) {
-            /* sanity check, should always be true */
-            if (LIKELY(kb->relative < mesh->key->totkey)) {
-              kb_map[i]->relative = index_map[kb->relative];
-            }
-          }
-
-          MEM_freeN(index_map);
-          MEM_freeN(kb_map);
+          kb_map[i] = kbn;
         }
+
+        /* remap relative index values */
+        LISTBASE_FOREACH_INDEX (KeyBlock *, kb, &mesh->key->block, i) {
+          /* sanity check, should always be true */
+          if (LIKELY(kb->relative < mesh->key->totkey)) {
+            kb_map[i]->relative = index_map[kb->relative];
+          }
+        }
+
+        MEM_freeN(index_map);
+        MEM_freeN(kb_map);
       }
     }
   }
-  CTX_DATA_END;
 
   /* setup new data for destination mesh */
+  CustomData vert_data;
+  CustomData edge_data;
+  CustomData face_data;
+  CustomData corner_data;
   CustomData_reset(&vert_data);
   CustomData_reset(&edge_data);
   CustomData_reset(&corner_data);
@@ -529,7 +535,7 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
 
   float3 *vert_positions = (float3 *)CustomData_add_layer_named(
       &vert_data, CD_PROP_FLOAT3, CD_SET_DEFAULT, verts_num, "position");
-  edge = (int2 *)CustomData_add_layer_named(
+  int2 *edge = (int2 *)CustomData_add_layer_named(
       &edge_data, CD_PROP_INT32_2D, CD_CONSTRUCT, edges_num, ".edge_verts");
   int *corner_verts = (int *)CustomData_add_layer_named(
       &corner_data, CD_PROP_INT32, CD_CONSTRUCT, corners_num, ".corner_vert");
@@ -538,13 +544,14 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
   int *face_offsets = MEM_malloc_arrayN<int>(faces_num + 1, __func__);
   face_offsets[faces_num] = corners_num;
 
-  vertofs = 0;
-  edgeofs = 0;
-  cornerofs = 0;
-  faceofs = 0;
+  int vertofs = 0;
+  int edgeofs = 0;
+  int cornerofs = 0;
+  int faceofs = 0;
 
   /* Inverse transform for all selected meshes in this object,
    * See #object_join_exec for detailed comment on why the safe version is used. */
+  float world_to_active_object[4][4];
   invert_m4_m4_safe_ortho(world_to_active_object, active_object->object_to_world().ptr());
 
   /* Add back active mesh first.
@@ -579,83 +586,75 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
                    &cornerofs,
                    &faceofs);
 
-  CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects) {
+  for (Object *ob_iter : objects_to_join) {
     if (ob_iter == active_object) {
       continue;
     }
-    /* only join if this is a mesh */
-    if (ob_iter->type == OB_MESH) {
-      join_mesh_single(depsgraph,
-                       bmain,
-                       scene,
-                       active_object,
-                       ob_iter,
-                       world_to_active_object,
-                       &vert_positions,
-                       &edge,
-                       &corner_verts,
-                       &corner_edges,
-                       face_offsets,
-                       &vert_data,
-                       &edge_data,
-                       &face_data,
-                       &corner_data,
-                       verts_num,
-                       edges_num,
-                       faces_num,
-                       corners_num,
-                       key,
-                       nkey,
-                       materials,
-                       &vertofs,
-                       &edgeofs,
-                       &cornerofs,
-                       &faceofs);
+    join_mesh_single(depsgraph,
+                     bmain,
+                     scene,
+                     active_object,
+                     ob_iter,
+                     world_to_active_object,
+                     &vert_positions,
+                     &edge,
+                     &corner_verts,
+                     &corner_edges,
+                     face_offsets,
+                     &vert_data,
+                     &edge_data,
+                     &face_data,
+                     &corner_data,
+                     verts_num,
+                     edges_num,
+                     faces_num,
+                     corners_num,
+                     key,
+                     nkey,
+                     materials,
+                     &vertofs,
+                     &edgeofs,
+                     &cornerofs,
+                     &faceofs);
 
-      /* free base, now that data is merged */
-      if (ob_iter != active_object) {
-        object::base_free_and_unlink(bmain, scene, ob_iter);
-      }
+    /* free base, now that data is merged */
+    if (ob_iter != active_object) {
+      object::base_free_and_unlink(bmain, scene, ob_iter);
     }
   }
-  CTX_DATA_END;
 
-  /* return to mesh we're merging to */
-  mesh = static_cast<Mesh *>(active_object->data);
-
-  BKE_mesh_clear_geometry(mesh);
+  BKE_mesh_clear_geometry(dst_mesh);
 
   if (faces_num) {
-    mesh->face_offset_indices = face_offsets;
-    mesh->runtime->face_offsets_sharing_info = implicit_sharing::info_for_mem_free(face_offsets);
+    dst_mesh->face_offset_indices = face_offsets;
+    dst_mesh->runtime->face_offsets_sharing_info = implicit_sharing::info_for_mem_free(
+        face_offsets);
   }
 
-  mesh->verts_num = verts_num;
-  mesh->edges_num = edges_num;
-  mesh->corners_num = corners_num;
-  mesh->faces_num = faces_num;
+  dst_mesh->verts_num = verts_num;
+  dst_mesh->edges_num = edges_num;
+  dst_mesh->corners_num = corners_num;
+  dst_mesh->faces_num = faces_num;
 
-  mesh->vert_data = vert_data;
-  mesh->edge_data = edge_data;
-  mesh->corner_data = corner_data;
-  mesh->face_data = face_data;
+  dst_mesh->vert_data = vert_data;
+  dst_mesh->edge_data = edge_data;
+  dst_mesh->corner_data = corner_data;
+  dst_mesh->face_data = face_data;
 
   /* old material array */
-  for (a = 1; a <= active_object->totcol; a++) {
-    ma = active_object->mat[a - 1];
-    if (ma) {
+  for (const int a : IndexRange(active_object->totcol)) {
+    if (Material *ma = active_object->mat[a]) {
       id_us_min(&ma->id);
     }
   }
-  for (a = 1; a <= mesh->totcol; a++) {
-    ma = mesh->mat[a - 1];
-    if (ma) {
+  for (const int a : IndexRange(active_object->totcol)) {
+    if (Material *ma = dst_mesh->mat[a]) {
       id_us_min(&ma->id);
     }
   }
   MEM_SAFE_FREE(active_object->mat);
   MEM_SAFE_FREE(active_object->matbits);
-  MEM_SAFE_FREE(mesh->mat);
+  MEM_SAFE_FREE(dst_mesh->mat);
 
   /* If the object had no slots, don't add an empty one. */
   if (active_object->totcol == 0 && materials.size() == 1 && materials[0] == nullptr) {
@@ -664,16 +663,16 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
 
   const int totcol = materials.size();
   if (totcol) {
-    mesh->mat = MEM_calloc_arrayN<Material *>(totcol, __func__);
-    std::copy_n(materials.data(), totcol, mesh->mat);
+    dst_mesh->mat = MEM_calloc_arrayN<Material *>(totcol, __func__);
+    std::copy_n(materials.data(), totcol, dst_mesh->mat);
     active_object->mat = MEM_calloc_arrayN<Material *>(totcol, __func__);
     active_object->matbits = MEM_calloc_arrayN<char>(totcol, __func__);
   }
 
-  active_object->totcol = mesh->totcol = totcol;
+  active_object->totcol = dst_mesh->totcol = totcol;
 
   /* other mesh users */
-  BKE_objects_materials_sync_length_all(bmain, (ID *)mesh);
+  BKE_objects_materials_sync_length_all(bmain, (ID *)dst_mesh);
 
   /* Free temporary copy of destination shape-keys (if applicable). */
   if (nkey) {
