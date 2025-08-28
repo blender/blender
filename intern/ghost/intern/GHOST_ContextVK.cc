@@ -644,7 +644,9 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
   /* Wait for previous time that the frame was used to finish rendering. Presenting can
    * still happen in parallel, but acquiring needs can only happen when the frame acquire semaphore
    * has been signaled and waited for. */
-  vkWaitForFences(device, 1, &submission_frame_data.submission_fence, true, UINT64_MAX);
+  if (submission_frame_data.submission_fence) {
+    vkWaitForFences(device, 1, &submission_frame_data.submission_fence, true, UINT64_MAX);
+  }
   submission_frame_data.discard_pile.destroy(device);
   bool use_hdr_swapchain = true;
 #ifdef WITH_GHOST_WAYLAND
@@ -1227,10 +1229,8 @@ const char *GHOST_ContextVK::getPlatformSpecificSurfaceExtension() const
 
 GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
 {
-  bool use_hdr_swapchain = false;
 #ifdef _WIN32
   const bool use_window_surface = (hwnd_ != nullptr);
-  use_hdr_swapchain = true;
 #elif defined(__APPLE__)
   const bool use_window_surface = (metal_layer_ != nullptr);
 #else /* UNIX/Linux */
@@ -1244,9 +1244,6 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
 #  ifdef WITH_GHOST_WAYLAND
     case GHOST_kVulkanPlatformWayland:
       use_window_surface = (wayland_display_ != nullptr) && (wayland_surface_ != nullptr);
-      if (wayland_window_info_) {
-        use_hdr_swapchain = wayland_window_info_->is_color_managed;
-      }
       break;
 #  endif
     case GHOST_kVulkanPlatformHeadless:
@@ -1399,9 +1396,9 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
   vulkan_device->users++;
   vulkan_device->ensure_device(required_device_extensions, optional_device_extensions);
 
-  if (use_window_surface) {
-    recreateSwapchain(use_hdr_swapchain);
-  }
+  render_extent_ = {0, 0};
+  render_extent_min_ = {0, 0};
+  surface_format_ = {VK_FORMAT_R8G8B8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
 
   active_context_ = this;
   return GHOST_kSuccess;
