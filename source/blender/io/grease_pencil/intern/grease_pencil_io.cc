@@ -567,9 +567,7 @@ std::string GreasePencilExporter::coord_to_svg_string(const float2 &screen_co) c
   if (camera_persmat_) {
     return fmt::format("{},{}", screen_co.x, camera_rect_.size().y - screen_co.y);
   }
-  else {
-    return fmt::format("{},{}", screen_co.x, screen_rect_.size().y - screen_co.y);
+      return fmt::format("{},{}", screen_co.x, screen_rect_.size().y - screen_co.y);
   }
-}
 
 }  // namespace blender::io::grease_pencil
