@@ -33,8 +33,8 @@ def node_mid_pt(node, axis):
 
 
 def autolink(node1, node2, links):
-    available_inputs = [inp for inp in node2.inputs if inp.enabled]
-    available_outputs = [outp for outp in node1.outputs if outp.enabled]
+    available_inputs = [inp for inp in node2.inputs if inp.enabled and not inp.hide]
+    available_outputs = [outp for outp in node1.outputs if outp.enabled and not outp.hide]
     for outp in available_outputs:
         for inp in available_inputs:
             if not inp.is_linked and inp.name == outp.name:
