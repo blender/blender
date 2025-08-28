@@ -56,7 +56,6 @@ enum GHOST_TVulkanPlatformType {
 
 struct GHOST_ContextVK_WindowInfo {
   int size[2];
-  bool is_color_managed;
 };
 
 struct GHOST_FrameDiscard {
@@ -245,6 +244,7 @@ class GHOST_ContextVK : public GHOST_Context {
   VkExtent2D render_extent_;
   VkExtent2D render_extent_min_;
   VkSurfaceFormatKHR surface_format_;
+  bool use_hdr_swapchain_;
 
   std::function<void(const GHOST_VulkanSwapChainData *)> swap_buffers_pre_callback_;
   std::function<void(void)> swap_buffers_post_callback_;

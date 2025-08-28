@@ -401,6 +401,10 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
         CGColorSpaceRef colorspace = CGColorSpaceCreateWithName(name);
         metal_layer_.colorspace = colorspace;
         CGColorSpaceRelease(colorspace);
+
+        /* For Blender to know if this window supports HDR. */
+        hdr_info_.hdr_enabled = true;
+        hdr_info_.sdr_white_level = 1.0f;
       }
 
       metal_view_ = [[CocoaMetalView alloc] initWithSystemCocoa:systemCocoa
@@ -898,7 +902,7 @@ GHOST_Context *GHOST_WindowCocoa::newDrawingContext(GHOST_TDrawingContextType ty
 #ifdef WITH_VULKAN_BACKEND
     case GHOST_kDrawingContextTypeVulkan: {
       GHOST_Context *context = new GHOST_ContextVK(
-          want_context_params_, metal_layer_, 1, 2, true, preferred_device_);
+          want_context_params_, metal_layer_, 1, 2, true, preferred_device_, &hdr_info_);
       if (context->initializeDrawingContext()) {
         return context;
       }

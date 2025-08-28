@@ -2361,6 +2361,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
            * another window-management function. */
         case WM_SETFOCUS: {
           /* The WM_SETFOCUS message is sent to a window after it has gained the keyboard focus. */
+          window->updateHDRInfo();
           break;
         }
         /* ============

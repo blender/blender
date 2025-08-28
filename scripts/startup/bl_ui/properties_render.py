@@ -76,12 +76,10 @@ class RENDER_PT_color_management(RenderButtonsPanel, Panel):
         col.prop(view, "view_transform")
         col.prop(view, "look")
 
-        if view.is_hdr:
-            import gpu
-            if not gpu.capabilities.hdr_support_get():
-                row = col.split(factor=0.4)
-                row.label()
-                row.label(text="HDR display not supported", icon="INFO")
+        if view.is_hdr and not context.window.support_hdr_color:
+            row = col.split(factor=0.4)
+            row.label()
+            row.label(text="HDR display not supported", icon="INFO")
 
         col = flow.column()
         col.prop(view, "exposure")

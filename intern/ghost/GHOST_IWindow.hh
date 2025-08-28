@@ -379,6 +379,12 @@ class GHOST_IWindow {
    */
   virtual uint16_t getDPIHint() = 0;
 
+  /**
+   * Returns high dynamic range color information about this window.
+   * \return HDR info.
+   * */
+  virtual GHOST_WindowHDRInfo getHDRInfo() = 0;
+
 #ifdef WITH_INPUT_IME
   /**
    * Enable IME attached to the given window, i.e. allows user-input

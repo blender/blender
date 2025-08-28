@@ -598,7 +598,8 @@ GHOST_ContextVK::GHOST_ContextVK(const GHOST_ContextParams &context_params,
       surface_(VK_NULL_HANDLE),
       swapchain_(VK_NULL_HANDLE),
       frame_data_(GHOST_FRAMES_IN_FLIGHT),
-      render_frame_(0)
+      render_frame_(0),
+      use_hdr_swapchain_(false)
 {
 }
 
@@ -648,24 +649,31 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
     vkWaitForFences(device, 1, &submission_frame_data.submission_fence, true, UINT64_MAX);
   }
   submission_frame_data.discard_pile.destroy(device);
-  bool use_hdr_swapchain = true;
-#ifdef WITH_GHOST_WAYLAND
-  /* Wayland doesn't provide a WSI with windowing capabilities, therefore cannot detect whether the
-   * swap-chain needs to be recreated. But as a side effect we can recreate the swap-chain before
-   * presenting. */
-  if (wayland_window_info_) {
-    const bool recreate_swapchain = ((wayland_window_info_->size[0] !=
-                                      std::max(render_extent_.width, render_extent_min_.width)) ||
-                                     (wayland_window_info_->size[1] !=
-                                      std::max(render_extent_.height, render_extent_min_.height)));
-    use_hdr_swapchain = wayland_window_info_->is_color_managed;
 
-    if (recreate_swapchain) {
-      /* Swap-chain is out of date. Recreate swap-chain. */
-      recreateSwapchain(use_hdr_swapchain);
-    }
+  const bool use_hdr_swapchain = hdr_info_ && hdr_info_->hdr_enabled;
+  if (use_hdr_swapchain != use_hdr_swapchain_) {
+    /* Re-create swapchain if HDR mode was toggled in the system settings. */
+    recreateSwapchain(use_hdr_swapchain);
   }
+  else {
+#ifdef WITH_GHOST_WAYLAND
+    /* Wayland doesn't provide a WSI with windowing capabilities, therefore cannot detect whether
+     * the swap-chain needs to be recreated. But as a side effect we can recreate the swap-chain
+     * before presenting. */
+    if (wayland_window_info_) {
+      const bool recreate_swapchain =
+          ((wayland_window_info_->size[0] !=
+            std::max(render_extent_.width, render_extent_min_.width)) ||
+           (wayland_window_info_->size[1] !=
+            std::max(render_extent_.height, render_extent_min_.height)));
+
+      if (recreate_swapchain) {
+        /* Swap-chain is out of date. Recreate swap-chain. */
+        recreateSwapchain(use_hdr_swapchain);
+      }
+    }
 #endif
+  }
   /* There is no valid swapchain as the previous window was minimized. User can have maximized the
    * window so we need to check if the swapchain can be created. */
   if (swapchain_ == VK_NULL_HANDLE) {
@@ -1014,6 +1022,7 @@ GHOST_TSuccess GHOST_ContextVK::recreateSwapchain(bool use_hdr_swapchain)
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical_device, surface_, &capabilities);
   }
 
+  use_hdr_swapchain_ = use_hdr_swapchain;
   render_extent_ = capabilities.currentExtent;
   render_extent_min_ = capabilities.minImageExtent;
   if (render_extent_.width == UINT32_MAX) {

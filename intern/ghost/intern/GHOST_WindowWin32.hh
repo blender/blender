@@ -415,8 +415,6 @@ class GHOST_WindowWin32 : public GHOST_Window {
 
   GHOST_DirectManipulationHelper *direct_manipulation_helper_;
 
-  GHOST_WindowHDRInfo hdr_info_ = GHOST_WINDOW_HDR_INFO_NONE;
-
 #ifdef WITH_INPUT_IME
   /** Handle input method editors event */
   GHOST_ImeWin32 ime_input_;
