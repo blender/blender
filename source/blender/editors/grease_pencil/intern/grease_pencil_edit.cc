@@ -4803,9 +4803,10 @@ static bke::greasepencil::LayerGroup &copy_layer_group_recursive(
 
 static Array<int> add_materials_to_map(Object &object, VectorSet<Material *> &materials)
 {
-  Array<int> material_index_map(*BKE_id_material_len_p(&object.id));
+  BLI_assert(object.type == OB_GREASE_PENCIL);
+  Array<int> material_index_map(*BKE_object_material_len_p(&object));
   for (const int i : material_index_map.index_range()) {
-    Material *material = BKE_object_material_get(&object, i);
+    Material *material = BKE_object_material_get(&object, i + 1);
     if (material != nullptr) {
       material_index_map[i] = materials.index_of_or_add(material);
     }
