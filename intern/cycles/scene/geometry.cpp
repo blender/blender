@@ -774,24 +774,33 @@ void GeometryManager::device_update(Device *device,
   }
 
   size_t i = 0;
-  for (Geometry *geom : scene->geometry) {
+  thread_mutex status_mutex;
+  parallel_for_each(scene->geometry.begin(), scene->geometry.end(), [&](Geometry *geom) {
+    if (progress.get_cancel()) {
+      return;
+    }
+
     if (!(geom->is_modified() && geom->is_mesh())) {
-      continue;
+      return;
     }
 
     Mesh *mesh = static_cast<Mesh *>(geom);
 
     if (num_tessellation && mesh->need_tesselation()) {
-      string msg = "Tessellating ";
-      if (mesh->name.empty()) {
-        msg += string_printf("%u/%u", (uint)(i + 1), (uint)num_tessellation);
-      }
-      else {
-        msg += string_printf(
-            "%s %u/%u", mesh->name.c_str(), (uint)(i + 1), (uint)num_tessellation);
-      }
+      {
+        const thread_scoped_lock status_lock(status_mutex);
+        string msg = "Tessellating ";
+        if (mesh->name.empty()) {
+          msg += string_printf("%u/%u", (uint)(i + 1), (uint)num_tessellation);
+        }
+        else {
+          msg += string_printf(
+              "%s %u/%u", mesh->name.c_str(), (uint)(i + 1), (uint)num_tessellation);
+        }
 
-      progress.set_status("Updating Mesh", msg);
+        progress.set_status("Updating Mesh", msg);
+        i++;
+      }
 
       SubdParams subd_params(mesh);
       subd_params.dicing_rate = mesh->get_subd_dicing_rate();
@@ -800,8 +809,6 @@ void GeometryManager::device_update(Device *device,
       subd_params.camera = dicing_camera;
 
       mesh->tessellate(subd_params);
-
-      i++;
     }
 
     /* Apply generated attribute if needed or remove if not needed */
@@ -811,11 +818,7 @@ void GeometryManager::device_update(Device *device,
     if (!mesh->has_true_displacement()) {
       mesh->update_tangents(scene, false);
     }
-
-    if (progress.get_cancel()) {
-      return;
-    }
-  }
+  });
 
   if (progress.get_cancel()) {
     return;

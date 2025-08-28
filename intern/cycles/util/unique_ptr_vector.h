@@ -104,11 +104,22 @@ template<typename T> class unique_ptr_vector {
 
   /* Basic iterators for range based for loop. */
   struct ConstIterator {
+    using iterator_category = std::random_access_iterator_tag;
+
+    using value_type = typename vector<unique_ptr<T>>::value_type;
+    using difference_type = typename vector<unique_ptr<T>>::difference_type;
+    using pointer = typename vector<unique_ptr<T>>::const_pointer;
+    using reference = typename vector<unique_ptr<T>>::reference;
+
     typename vector<unique_ptr<T>>::const_iterator it;
 
     const T *operator*() const
     {
       return it->get();
+    }
+    bool operator==(const ConstIterator &other) const
+    {
+      return it == other.it;
     }
     bool operator!=(const ConstIterator &other) const
     {
@@ -117,6 +128,21 @@ template<typename T> class unique_ptr_vector {
     void operator++()
     {
       ++it;
+    }
+    difference_type operator-(const ConstIterator &other) const noexcept
+    {
+      return static_cast<difference_type>(it - other.it);
+    }
+    ConstIterator operator+(const difference_type offset) const noexcept
+    {
+      ConstIterator temp = *this;
+      temp += offset;
+      return temp;
+    }
+    ConstIterator &operator+=(const difference_type offset) noexcept
+    {
+      it += offset;
+      return *this;
     }
   };
 
@@ -130,11 +156,22 @@ template<typename T> class unique_ptr_vector {
   }
 
   struct Iterator {
+    using iterator_category = std::random_access_iterator_tag;
+
+    using value_type = typename vector<unique_ptr<T>>::value_type;
+    using difference_type = typename vector<unique_ptr<T>>::difference_type;
+    using pointer = typename vector<unique_ptr<T>>::const_pointer;
+    using reference = typename vector<unique_ptr<T>>::reference;
+
     typename vector<unique_ptr<T>>::const_iterator it;
 
     T *operator*() const
     {
       return it->get();
+    }
+    bool operator==(const Iterator &other) const
+    {
+      return it == other.it;
     }
     bool operator!=(const Iterator &other) const
     {
@@ -143,6 +180,21 @@ template<typename T> class unique_ptr_vector {
     void operator++()
     {
       ++it;
+    }
+    difference_type operator-(const Iterator &other) const noexcept
+    {
+      return static_cast<difference_type>(it - other.it);
+    }
+    Iterator operator+(const difference_type offset) const noexcept
+    {
+      Iterator temp = *this;
+      temp += offset;
+      return temp;
+    }
+    Iterator &operator+=(const difference_type offset) noexcept
+    {
+      it += offset;
+      return *this;
     }
   };
   Iterator begin()
