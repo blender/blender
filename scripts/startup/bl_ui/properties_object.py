@@ -310,7 +310,7 @@ class OBJECT_PT_lineart(ObjectButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         ob = context.object
-        return (ob.type in {'MESH', 'FONT', 'CURVE', 'SURFACE'})
+        return (ob.type in {'MESH', 'FONT', 'CURVE', 'SURFACE', 'CURVES'})
 
     def draw(self, context):
         layout = self.layout
