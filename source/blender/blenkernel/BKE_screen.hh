@@ -641,6 +641,12 @@ enum AssetShelfTypeFlag {
   ASSET_SHELF_TYPE_FLAG_NO_ASSET_DRAG = (1 << 0),
   ASSET_SHELF_TYPE_FLAG_DEFAULT_VISIBLE = (1 << 1),
   ASSET_SHELF_TYPE_FLAG_STORE_CATALOGS_IN_PREFS = (1 << 2),
+  /**
+   * When spawning a context menu for an asset, activate the asset and call the activate operator
+   * (`bl_activate_operator`/#AssetShelfType.activate_operator) if present, rather than just
+   * highlighting the asset as active.
+   */
+  ASSET_SHELF_TYPE_FLAG_ACTIVATE_FOR_CONTEXT_MENU = (1 << 3),
 
   ASSET_SHELF_TYPE_FLAG_MAX
 };
@@ -656,6 +662,8 @@ struct AssetShelfType {
 
   /** Operator to call when activating a grid view item. */
   std::string activate_operator;
+  /** Operator to call when dragging a grid view item. */
+  std::string drag_operator;
 
   AssetShelfTypeFlag flag;
 

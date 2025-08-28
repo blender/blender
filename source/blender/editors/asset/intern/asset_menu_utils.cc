@@ -56,6 +56,13 @@ void operator_asset_reference_props_set(const asset_system::AssetRepresentation 
   RNA_string_set(&ptr, "relative_asset_identifier", weak_ref.relative_asset_identifier);
 }
 
+bool operator_asset_reference_props_is_set(PointerRNA &ptr)
+{
+  return RNA_struct_property_is_set(&ptr, "asset_library_type") &&
+         RNA_struct_property_is_set(&ptr, "asset_library_identifier") &&
+         RNA_struct_property_is_set(&ptr, "relative_asset_identifier");
+}
+
 /**
  * #AssetLibrary::resolve_asset_weak_reference_to_full_path() currently does not support local
  * assets.

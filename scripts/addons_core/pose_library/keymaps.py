@@ -21,21 +21,6 @@ def register() -> None:
     kmi = km.keymap_items.new("poselib.apply_pose_asset", "LEFTMOUSE", "DOUBLE_CLICK")
     addon_keymaps.append((km, kmi))
 
-    # Asset Shelf
-    km = wm.keyconfigs.addon.keymaps.new(name="Asset Shelf")
-    # Click to apply pose.
-    kmi = km.keymap_items.new("poselib.apply_pose_asset", "LEFTMOUSE", "CLICK")
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new("poselib.apply_pose_asset", "LEFTMOUSE", "CLICK", ctrl=True)
-    kmi.properties.flipped = True
-    addon_keymaps.append((km, kmi))
-    # Drag to blend pose.
-    kmi = km.keymap_items.new("poselib.blend_pose_asset", "LEFTMOUSE", "CLICK_DRAG")
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new("poselib.blend_pose_asset", "LEFTMOUSE", "CLICK_DRAG", ctrl=True)
-    kmi.properties.flipped = True
-    addon_keymaps.append((km, kmi))
-
 
 def unregister() -> None:
     # Clear shortcuts from the keymap.

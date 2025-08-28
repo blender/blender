@@ -31,6 +31,7 @@ void draw_menu_for_catalog(const asset_system::AssetCatalogTreeItem &item,
 
 void operator_asset_reference_props_set(const asset_system::AssetRepresentation &asset,
                                         PointerRNA &ptr);
+bool operator_asset_reference_props_is_set(PointerRNA &ptr);
 void operator_asset_reference_props_register(StructRNA &srna);
 
 const asset_system::AssetRepresentation *find_asset_from_weak_ref(

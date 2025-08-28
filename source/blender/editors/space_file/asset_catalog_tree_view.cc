@@ -104,9 +104,9 @@ class AssetCatalogDragController : public ui::AbstractViewItemDragController {
   explicit AssetCatalogDragController(AssetCatalogTreeView &tree_view,
                                       const AssetCatalogTreeItem &catalog_item);
 
-  eWM_DragDataType get_drag_type() const override;
+  std::optional<eWM_DragDataType> get_drag_type() const override;
   void *create_drag_data() const override;
-  void on_drag_start() override;
+  void on_drag_start(bContext &C) override;
 };
 
 class AssetCatalogDropTarget : public ui::TreeViewItemDropTarget {
@@ -553,7 +553,7 @@ AssetCatalogDragController::AssetCatalogDragController(AssetCatalogTreeView &tre
 {
 }
 
-eWM_DragDataType AssetCatalogDragController::get_drag_type() const
+std::optional<eWM_DragDataType> AssetCatalogDragController::get_drag_type() const
 {
   return WM_DRAG_ASSET_CATALOG;
 }
@@ -566,7 +566,7 @@ void *AssetCatalogDragController::create_drag_data() const
   return drag_catalog;
 }
 
-void AssetCatalogDragController::on_drag_start()
+void AssetCatalogDragController::on_drag_start(bContext & /*C*/)
 {
   AssetCatalogTreeView &tree_view_ = this->get_view<AssetCatalogTreeView>();
   tree_view_.activate_catalog_by_id(catalog_item_.get_catalog_id());

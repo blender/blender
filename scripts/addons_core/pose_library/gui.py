@@ -40,9 +40,8 @@ class PoseLibraryPanel:
 
 class VIEW3D_AST_pose_library(bpy.types.AssetShelf):
     bl_space_type = "VIEW_3D"
-    # We have own keymap items to add custom drag behavior (pose blending), disable the default
-    # asset dragging.
-    bl_options = {'NO_ASSET_DRAG'}
+    bl_activate_operator = "POSELIB_OT_apply_pose_asset"
+    bl_drag_operator = "POSELIB_OT_blend_pose_asset"
 
     @classmethod
     def poll(cls, context: Context) -> bool:

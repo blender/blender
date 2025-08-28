@@ -201,7 +201,7 @@ class ItemDragController : public AbstractViewItemDragController {
   {
   }
 
-  eWM_DragDataType get_drag_type() const override
+  std::optional<eWM_DragDataType> get_drag_type() const override
   {
     return WM_DRAG_ID;
   }

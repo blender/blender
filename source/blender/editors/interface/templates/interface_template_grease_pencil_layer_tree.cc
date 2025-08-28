@@ -182,7 +182,7 @@ class LayerViewItemDragController : public AbstractViewItemDragController {
   {
   }
 
-  eWM_DragDataType get_drag_type() const override
+  std::optional<eWM_DragDataType> get_drag_type() const override
   {
     if (dragged_node_.wrap().is_layer()) {
       return WM_DRAG_GREASE_PENCIL_LAYER;
@@ -198,7 +198,7 @@ class LayerViewItemDragController : public AbstractViewItemDragController {
     return drag_data;
   }
 
-  void on_drag_start() override
+  void on_drag_start(bContext & /*C*/) override
   {
     grease_pencil_.set_active_node(&dragged_node_);
   }
