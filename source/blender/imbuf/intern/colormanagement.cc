@@ -1374,6 +1374,16 @@ blender::Vector<char> IMB_colormanagement_space_icc_profile(const ColorSpace *co
   return icc_profile;
 }
 
+StringRefNull IMB_colormanagement_space_get_interop_id(const ColorSpace *colorspace)
+{
+  return colorspace->interop_id();
+}
+
+const ColorSpace *IMB_colormanagement_space_from_interop_id(StringRefNull interop_id)
+{
+  return g_config->get_color_space_by_interop_id(interop_id);
+}
+
 blender::float3x3 IMB_colormanagement_get_xyz_to_scene_linear()
 {
   return blender::float3x3(imbuf_xyz_to_scene_linear);
