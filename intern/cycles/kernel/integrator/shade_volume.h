@@ -596,7 +596,8 @@ ccl_device Spectrum volume_transmittance(KernelGlobals kg,
       sd->P = ray->P + ray->D * shade_t;
       tau_k += volume_shader_eval_extinction<shadow>(kg, state, sd, path_flag);
     }
-    return exp(-tau_k * step_size);
+    /* OneAPI has some problem with exp(-0 * FLT_MAX). */
+    return is_zero(tau_k) ? one_spectrum() : exp(-tau_k * step_size);
   }
 
   /* Estimations of optical thickness. */
