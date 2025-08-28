@@ -317,15 +317,6 @@ string HIPDevice::compile_kernel(const uint kernel_features, const char *name, c
     return string();
   }
 
-#  ifdef WITH_HIP_SDK_5
-  int hip_major_ver = hipRuntimeVersion / 10000000;
-  if (hip_major_ver > 5) {
-    set_error(string_printf(
-        "HIP Runtime version %d does not work with kernels compiled with HIP SDK 5\n",
-        hip_major_ver));
-    return string();
-  }
-#  endif
   const int hipcc_hip_version = hipewCompilerVersion();
   LOG_INFO << "Found hipcc " << hipcc << ", HIP version " << hipcc_hip_version << ".";
 

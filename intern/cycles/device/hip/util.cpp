@@ -47,7 +47,6 @@ int hipewCompilerVersion()
 bool hipSupportsDriver()
 {
 #  ifdef _WIN32
-#    ifndef WITH_HIP_SDK_5
   /* This check is only necessary if we're using HIP SDK 6 or newer. */
   int hip_driver_version = 0;
   hipError_t result = hipDriverGetVersion(&hip_driver_version);
@@ -63,7 +62,6 @@ bool hipSupportsDriver()
      * 60140252 corresponds to Adrenalin 24.6.1. */
     return false;
   }
-#    endif
 #  endif
 
   return true;
