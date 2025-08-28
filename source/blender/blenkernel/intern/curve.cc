@@ -214,12 +214,19 @@ static void curve_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Curve *cu = (Curve *)id;
 
+  BLO_read_string(reader, &cu->str);
+
+  /* Old files don't have `cu->len_char32` set. */
+  if ((cu->len_char32 == 0) && (cu->str != nullptr) && (cu->str[0] != '\0')) {
+    size_t len_bytes;
+    size_t len_char32 = BLI_strlen_utf8_ex(cu->str, &len_bytes);
+    cu->len_char32 = len_char32;
+  }
   /* Protect against integer overflow vulnerability. */
   CLAMP(cu->len_char32, 0, INT_MAX - 4);
 
   BLO_read_pointer_array(reader, cu->totcol, (void **)&cu->mat);
 
-  BLO_read_string(reader, &cu->str);
   BLO_read_struct_array(reader, CharInfo, cu->len_char32 + 1, &cu->strinfo);
   BLO_read_struct_array(reader, TextBox, cu->totbox, &cu->tb);
 
