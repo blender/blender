@@ -30,11 +30,6 @@ ListBase *channels_displayed_get(const Editing *ed)
   return ed ? ed->current_channels() : nullptr;
 }
 
-void channels_displayed_set(Editing *ed, ListBase *channels)
-{
-  ed->displayed_channels = channels;
-}
-
 void channels_ensure(ListBase *channels)
 {
   /* Allocate channels. Channel 0 is never used, but allocated to prevent off by 1 issues. */

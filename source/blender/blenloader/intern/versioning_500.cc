@@ -2126,6 +2126,20 @@ static void remove_in_and_out_node_interface(bNodeTree &node_tree)
   remove_in_and_out_node_panel_recursive(node_tree.tree_interface.root_panel);
 }
 
+static void sequencer_remove_listbase_pointers(Scene &scene)
+{
+  Editing *ed = scene.ed;
+  if (!ed) {
+    return;
+  }
+  const MetaStack *last_meta_stack = blender::seq::meta_stack_active_get(ed);
+  if (!last_meta_stack) {
+    return;
+  }
+  ed->current_meta_strip = last_meta_stack->parent_strip;
+  blender::seq::meta_stack_set(&scene, last_meta_stack->parent_strip);
+}
+
 void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
 {
   using namespace blender;
@@ -2880,6 +2894,12 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       initialize_missing_closure_and_bundle_node_storage(*ntree);
     }
     FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 68)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      sequencer_remove_listbase_pointers(*scene);
+    }
   }
 
   /**

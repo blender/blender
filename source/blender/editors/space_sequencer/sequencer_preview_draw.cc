@@ -1360,7 +1360,7 @@ static void preview_draw_all_image_overlays(const bContext *C,
 {
   ListBase *channels = seq::channels_displayed_get(&editing);
   VectorSet strips = seq::query_rendered_strips(
-      scene, channels, editing.seqbasep, timeline_frame, 0);
+      scene, channels, editing.current_strips(), timeline_frame, 0);
   Strip *active_seq = seq::select_active_get(scene);
   for (Strip *strip : strips) {
     /* TODO(sergey): Avoid having per-strip strip-independent checks. */
