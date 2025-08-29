@@ -153,6 +153,21 @@ gpu::VertBuf *draw_subdiv_build_origindex_buffer(int *vert_origindex, uint num_l
   return draw_subdiv_init_origindex_buffer(vert_origindex, num_loops, 0).release();
 }
 
+gpu::VertBufPtr draw_subdiv_init_origindex_buffer(Span<int32_t> vert_origindex, uint loose_len)
+{
+  gpu::VertBufPtr buffer = gpu::VertBufPtr(
+      GPU_vertbuf_create_with_format_ex(get_origindex_format(), GPU_USAGE_STATIC));
+  GPU_vertbuf_data_alloc(*buffer, vert_origindex.size() + loose_len);
+
+  buffer->data<int32_t>().take_front(vert_origindex.size()).copy_from(vert_origindex);
+  return buffer;
+}
+
+gpu::VertBuf *draw_subdiv_build_origindex_buffer(Span<int> vert_origindex)
+{
+  return draw_subdiv_init_origindex_buffer(vert_origindex, 0).release();
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -802,8 +817,7 @@ static bool draw_subdiv_build_cache(DRWSubdivCache &cache,
     cache.subdiv_face_offset_buffer = draw_subdiv_build_origindex_buffer(cache.subdiv_face_offset,
                                                                          faces.size());
 
-    cache.face_ptex_offset_buffer = draw_subdiv_build_origindex_buffer(cache.face_ptex_offset,
-                                                                       faces.size() + 1);
+    cache.face_ptex_offset_buffer = draw_subdiv_build_origindex_buffer(cache.face_ptex_offset);
 
     build_vertex_face_adjacency_maps(cache);
   }

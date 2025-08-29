@@ -48,7 +48,7 @@ struct MultiresDisplacementData {
   Array<PolyCornerIndex> ptex_face_corner = {};
   /* Indexed by coarse face index, returns first PTEX face index corresponding
    * to that coarse face. */
-  int *face_ptex_offset = nullptr;
+  Span<int> face_ptex_offset = {};
   /* Sanity check, is used in debug builds.
    * Controls that initialize() was called prior to eval_displacement(). */
   bool is_initialized = false;

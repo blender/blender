@@ -100,7 +100,7 @@ struct MultiresReshapeContext {
 
   /* Indexed by base face index, returns first ptex face index corresponding
    * to that base face. */
-  int *face_ptex_offset;
+  blender::Span<int> face_ptex_offset;
 
   /* Vertex crease custom data layer, empty if none is present. */
   blender::VArraySpan<float> cd_vertex_crease;

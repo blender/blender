@@ -114,7 +114,7 @@ struct DRWSubdivCache {
 
   /* Owned by #Subdiv. Indexed by coarse face index, difference between value (i + 1) and (i)
    * gives the number of ptex faces for coarse face (i). */
-  int *face_ptex_offset;
+  Span<int> face_ptex_offset;
   /* Vertex buffer for face_ptex_offset. */
   gpu::VertBuf *face_ptex_offset_buffer;
 
@@ -174,6 +174,8 @@ gpu::VertBufPtr draw_subdiv_init_origindex_buffer(int32_t *vert_origindex,
                                                   uint loose_len);
 
 gpu::VertBuf *draw_subdiv_build_origindex_buffer(int *vert_origindex, uint num_loops);
+gpu::VertBufPtr draw_subdiv_init_origindex_buffer(Span<int32_t> vert_origindex, uint loose_len);
+gpu::VertBuf *draw_subdiv_build_origindex_buffer(Span<int> vert_origindex);
 
 /* Compute shader functions. */
 
