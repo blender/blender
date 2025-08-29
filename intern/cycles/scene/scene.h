@@ -168,6 +168,7 @@ class Scene : public NodeOwner {
 
   /* mutex must be locked manually by callers */
   thread_mutex mutex;
+  bool scene_updated_while_loading_kernels = false;
 
   /* scene update statistics */
   unique_ptr<SceneUpdateStats> update_stats;
