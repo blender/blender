@@ -2281,7 +2281,7 @@ static void rna_def_ID(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "name_full", PROP_STRING, PROP_NONE);
   RNA_def_property_ui_text(
-      prop, "Full Name", "Unique data-block ID name, including library one is any");
+      prop, "Full Name", "Unique data-block ID name, including library one if any");
   RNA_def_property_string_funcs(prop, "rna_ID_name_full_get", "rna_ID_name_full_length", nullptr);
   RNA_def_property_string_maxlength(prop, MAX_ID_FULL_NAME);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
