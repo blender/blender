@@ -511,11 +511,11 @@ class TestPropArrayMultiDimensional(unittest.TestCase):
     def test_matrix_4x4(self):
         self._test_matrix(4, 4)
 
-    def _test_matrix_with_callbacks_3x3(self):
-        self._test_matrix_with_callbacks(self, 3, 3)
+    def test_matrix_with_callbacks_3x3(self):
+        self._test_matrix_with_callbacks(3, 3)
 
-    def _test_matrix_with_callbacks_4x4(self):
-        self._test_matrix_with_callbacks(self, 4, 4)
+    def test_matrix_with_callbacks_4x4(self):
+        self._test_matrix_with_callbacks(4, 4)
 
 
 class TestPropArrayDynamicAssign(unittest.TestCase):
