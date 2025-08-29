@@ -4268,7 +4268,7 @@ void RNA_property_pointer_set(PointerRNA *ptr,
       if (ELEM(old_id, new_id, current_id)) {
         BLI_assert_msg(old_id_new_refcount == old_id_old_refcount,
                        "Reassigning the same ID to a RNA pointer property, or assignment failure, "
-                       "should not modify the original ID usercount");
+                       "should not modify the original ID user-count");
       }
       else if (is_id_refcounting) {
         BLI_assert_msg(

@@ -629,7 +629,7 @@ static void pygpu_buffer_strides_calc(const eGPUDataFormat format,
 static int pygpu_buffer__bf_getbuffer(BPyGPUBuffer *self, Py_buffer *view, int flags)
 {
   if (UNLIKELY(view == nullptr)) {
-    PyErr_SetString(PyExc_ValueError, "null view in getbuffer is obsolete");
+    PyErr_SetString(PyExc_ValueError, "null view in get-buffer is obsolete");
     return -1;
   }
 

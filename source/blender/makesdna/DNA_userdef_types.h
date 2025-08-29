@@ -1049,7 +1049,7 @@ typedef enum eNdof_Navigation_Mode {
    * 3D mouse cap controls the movement of the view window
    * and allows for flying through the scene.
    *
-   * \note this also inverts navigation for for 2D views,
+   * \note this also inverts navigation for 2D views,
    * since it's confusing for users when 2D/3D navigation is inverted, see: #144751.
    */
   NDOF_NAVIGATION_MODE_FLY = 1,

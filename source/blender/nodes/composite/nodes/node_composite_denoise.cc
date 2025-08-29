@@ -68,7 +68,7 @@ static const EnumPropertyItem quality_items[] = {
      0,
      "Balanced",
      "Balanced between performance and quality"},
-    {CMP_NODE_DENOISE_QUALITY_FAST, "FAST", 0, "Fast", "High perfomance"},
+    {CMP_NODE_DENOISE_QUALITY_FAST, "FAST", 0, "Fast", "High performance"},
     {0, nullptr, 0, nullptr, nullptr}};
 
 static void cmp_node_denoise_declare(NodeDeclarationBuilder &b)
