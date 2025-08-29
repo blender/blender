@@ -45,6 +45,14 @@ struct ImportParams {
   bool recenter_bounds = false;
 };
 
+enum class ExportStatus : int8_t {
+  Ok = 0,
+  NoFramesSelected,
+  InvalidActiveObjectType,
+  FileWriteError,
+  UnknownError,
+};
+
 struct ExportParams {
   /* Object to be exported. */
   enum class SelectMode {
@@ -74,10 +82,10 @@ struct ExportParams {
 };
 
 bool import_svg(const IOContext &context, const ImportParams &params, StringRefNull filepath);
-bool export_svg(const IOContext &context,
-                const ExportParams &params,
-                Scene &scene,
-                StringRefNull filepath);
+ExportStatus export_svg(const IOContext &context,
+                        const ExportParams &params,
+                        Scene &scene,
+                        StringRefNull filepath);
 bool export_pdf(const IOContext &context,
                 const ExportParams &params,
                 Scene &scene,
