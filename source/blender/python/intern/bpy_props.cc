@@ -545,8 +545,8 @@ static bool bpy_prop_array_is_matrix_compatible_ex(int subtype,
                                                    const BPyPropArrayLength *array_len_info)
 {
   return ((subtype == PROP_MATRIX) && (array_len_info->dims_len == 2) &&
-          ((array_len_info->dims[0] >= 2) && (array_len_info->dims[0] >= 4)) &&
-          ((array_len_info->dims[1] >= 2) && (array_len_info->dims[1] >= 4)));
+          ((array_len_info->dims[0] >= 2) && (array_len_info->dims[0] <= 4)) &&
+          ((array_len_info->dims[1] >= 2) && (array_len_info->dims[1] <= 4)));
 }
 
 static bool bpy_prop_array_is_matrix_compatible(PropertyRNA *prop,
