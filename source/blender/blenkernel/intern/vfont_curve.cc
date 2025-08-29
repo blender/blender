@@ -547,7 +547,7 @@ static void textbox_scale(TextBox *tb_dst, const TextBox *tb_src, float scale)
  * \{ */
 
 struct VFontToCurveIter {
-  int iteraction;
+  int iteration;
   float scale_to_fit;
   struct {
     float min;
@@ -1663,8 +1663,8 @@ static bool vfont_to_curve(Object *ob,
         iter_data.scale_to_fit = (iter_data.bisect.max + iter_data.bisect.min) * 0.5f;
 
         /* We iterated enough or got a good enough result. */
-        if ((!iter_data.iteraction--) || ((iter_data.bisect.max - iter_data.bisect.min) <
-                                          (cu.fsize * FONT_TO_CURVE_SCALE_THRESHOLD)))
+        if ((!iter_data.iteration--) || ((iter_data.bisect.max - iter_data.bisect.min) <
+                                         (cu.fsize * FONT_TO_CURVE_SCALE_THRESHOLD)))
         {
           if (valid) {
             iter_data.status = VFONT_TO_CURVE_DONE;
@@ -1850,7 +1850,7 @@ bool BKE_vfont_to_curve_ex(Object *ob,
                            float *r_font_size_eval)
 {
   VFontToCurveIter data = {};
-  data.iteraction = cu.totbox * FONT_TO_CURVE_SCALE_ITERATIONS;
+  data.iteration = cu.totbox * FONT_TO_CURVE_SCALE_ITERATIONS;
   data.scale_to_fit = 1.0f;
   data.word_wrap = true;
   data.ok = true;
@@ -1880,7 +1880,7 @@ int BKE_vfont_cursor_to_text_index(Object *ob, const blender::float2 &cursor_loc
 
   /* TODO: iterating to calculate the scale can be avoided. */
   VFontToCurveIter data = {};
-  data.iteraction = cu.totbox * FONT_TO_CURVE_SCALE_ITERATIONS;
+  data.iteration = cu.totbox * FONT_TO_CURVE_SCALE_ITERATIONS;
   data.scale_to_fit = 1.0f;
   data.word_wrap = true;
   data.ok = true;
