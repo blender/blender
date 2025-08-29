@@ -125,6 +125,7 @@ class VKThreadData : public NonCopyable, NonMovable {
   uint32_t resource_pool_index = UINT32_MAX;
   std::array<VKResourcePool, resource_pools_count> resource_pools;
 
+  VKDescriptorPools descriptor_pools;
   /**
    * The current rendering depth.
    *

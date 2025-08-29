@@ -509,9 +509,7 @@ std::string VKDevice::driver_version() const
 
 VKThreadData::VKThreadData(VKDevice &device, pthread_t thread_id) : thread_id(thread_id)
 {
-  for (VKResourcePool &resource_pool : resource_pools) {
-    resource_pool.init(device);
-  }
+  descriptor_pools.init(device);
 }
 
 /** \} */
