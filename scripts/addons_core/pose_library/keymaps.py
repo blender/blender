@@ -15,7 +15,7 @@ def register() -> None:
         # This happens when Blender is running in the background.
         return
 
-    km = wm.keyconfigs.addon.keymaps.new(name="File Browser Main", space_type="FILE_BROWSER")
+    km = wm.keyconfigs.addon.keymaps.new(name="Asset Browser Main", space_type="FILE_BROWSER")
 
     # DblClick to apply pose.
     kmi = km.keymap_items.new("poselib.apply_pose_asset", "LEFTMOUSE", "DOUBLE_CLICK")

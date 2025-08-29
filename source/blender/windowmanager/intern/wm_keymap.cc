@@ -489,7 +489,9 @@ bool WM_keymap_poll(bContext *C, wmKeyMap *keymap)
         !STREQ(keymap->idname, "Node Tool: Tweak") &&
         /* Another exception: Asset shelf keymap is meant for add-ons to use, it's empty by
          * default. */
-        !STREQ(keymap->idname, "Asset Shelf"))
+        !STREQ(keymap->idname, "Asset Shelf") &&
+        /* Same for the asset browser keymap. */
+        !STREQ(keymap->idname, "Asset Browser Main"))
     {
       CLOG_WARN(WM_LOG_EVENTS, "empty keymap '%s'", keymap->idname);
     }
