@@ -59,9 +59,9 @@ static float brush_radius_to_pixel_radius(const RegionView3D *rv3d,
 {
   if ((brush->flag & BRUSH_LOCK_SIZE) != 0) {
     const float pixel_size = ED_view3d_pixel_size(rv3d, pos);
-    return brush->unprojected_radius / pixel_size;
+    return (brush->unprojected_size / 2.0f) / pixel_size;
   }
-  return float(brush->size);
+  return float(brush->size / 2.0f);
 }
 
 template<typename T>
@@ -160,7 +160,7 @@ static Brush *create_fill_guide_brush()
   BKE_curvemapping_init(fill_guides_brush->curve_rand_value);
 
   fill_guides_brush->flag |= BRUSH_LOCK_SIZE;
-  fill_guides_brush->unprojected_radius = 0.005f;
+  fill_guides_brush->unprojected_size = 0.01f;
 
   settings->flag &= ~GP_BRUSH_USE_PRESSURE;
 
@@ -1700,7 +1700,7 @@ void PaintOperation::on_stroke_done(const bContext &C)
       process_stroke_weights(*scene, *object, drawing, active_curve);
     }
     if ((settings->flag & GP_BRUSH_OUTLINE_STROKE) != 0) {
-      const float outline_radius = brush->unprojected_radius * settings->outline_fac * 0.5f;
+      const float outline_radius = brush->unprojected_size / 2.0f * settings->outline_fac * 0.5f;
       const int material_index = [&]() {
         Material *material = BKE_grease_pencil_object_material_alt_ensure_from_brush(
             CTX_data_main(&C), object, brush);

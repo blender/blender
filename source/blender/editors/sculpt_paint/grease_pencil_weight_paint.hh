@@ -131,7 +131,7 @@ class WeightPaintOperation : public GreasePencilStrokeOperation {
     Brush *brush = BKE_paint_brush(paint);
 
     this->brush = brush;
-    this->initial_brush_radius = BKE_brush_size_get(paint, brush);
+    this->initial_brush_radius = BKE_brush_radius_get(paint, brush);
     this->initial_brush_strength = BKE_brush_alpha_get(paint, brush);
     this->brush_weight = BKE_brush_weight_get(paint, brush);
     this->mouse_position_previous = start_sample.mouse_position;

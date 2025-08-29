@@ -190,9 +190,11 @@ void BKE_brush_color_sync_legacy(UnifiedPaintSettings *ups);
 
 int BKE_brush_size_get(const Paint *paint, const Brush *brush);
 void BKE_brush_size_set(Paint *paint, Brush *brush, int size);
+float BKE_brush_radius_get(const Paint *paint, const Brush *brush);
 
+float BKE_brush_unprojected_size_get(const Paint *paint, const Brush *brush);
+void BKE_brush_unprojected_size_set(Paint *paint, Brush *brush, float unprojected_size);
 float BKE_brush_unprojected_radius_get(const Paint *paint, const Brush *brush);
-void BKE_brush_unprojected_radius_set(Paint *paint, Brush *brush, float unprojected_radius);
 
 float BKE_brush_alpha_get(const Paint *paint, const Brush *brush);
 void BKE_brush_alpha_set(Paint *paint, Brush *brush, float alpha);
@@ -209,16 +211,16 @@ bool BKE_brush_use_size_pressure(const Brush *brush);
 /**
  * Scale unprojected radius to reflect a change in the brush's 2D size.
  */
-void BKE_brush_scale_unprojected_radius(float *unprojected_radius,
-                                        int new_brush_size,
-                                        int old_brush_size);
+void BKE_brush_scale_unprojected_size(float *unprojected_size,
+                                      int new_brush_size,
+                                      int old_brush_size);
 
 /**
  * Scale brush size to reflect a change in the brush's unprojected radius.
  */
 void BKE_brush_scale_size(int *r_brush_size,
-                          float new_unprojected_radius,
-                          float old_unprojected_radius);
+                          float new_unprojected_size,
+                          float old_unprojected_size);
 
 /* Returns true if a brush requires a cube
  * (often presented to the user as a square) tip inside a specific paint mode.

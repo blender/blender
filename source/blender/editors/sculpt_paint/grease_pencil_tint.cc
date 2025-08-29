@@ -84,7 +84,7 @@ void TintOperation::on_stroke_begin(const bContext &C, const InputSample & /*sta
 
   BKE_curvemapping_init(brush->curve);
 
-  radius_ = brush->size;
+  radius_ = brush->size / 2.0f;
   strength_ = brush->alpha;
   active_layer_only_ = ((brush->gpencil_settings->flag & GP_BRUSH_ACTIVE_LAYER_ONLY) != 0);
 

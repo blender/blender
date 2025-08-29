@@ -2588,9 +2588,11 @@ static void radial_control_update_header(wmOperator *op, bContext *C)
     switch (rc->subtype) {
       case PROP_NONE:
       case PROP_DISTANCE:
+      case PROP_DISTANCE_DIAMETER:
         SNPRINTF(msg, "%s: %0.4f", ui_name, rc->current_value);
         break;
       case PROP_PIXEL:
+      case PROP_PIXEL_DIAMETER:
         SNPRINTF(msg, "%s: %d", ui_name, int(rc->current_value)); /* XXX: round to nearest? */
         break;
       case PROP_PERCENTAGE:
@@ -2622,7 +2624,9 @@ static void radial_control_set_initial_mouse(RadialControl *rc, const wmEvent *e
   switch (rc->subtype) {
     case PROP_NONE:
     case PROP_DISTANCE:
+    case PROP_DISTANCE_DIAMETER:
     case PROP_PIXEL:
+    case PROP_PIXEL_DIAMETER:
       d[0] = rc->initial_value;
       break;
     case PROP_PERCENTAGE:
@@ -2657,10 +2661,14 @@ static void radial_control_set_tex(RadialControl *rc)
 
   switch (RNA_type_to_ID_code(rc->image_id_ptr.type)) {
     case ID_BR:
-      if ((ibuf = BKE_brush_gen_radial_control_imbuf(
-               static_cast<Brush *>(rc->image_id_ptr.data),
-               rc->use_secondary_tex,
-               !ELEM(rc->subtype, PROP_NONE, PROP_PIXEL, PROP_DISTANCE))))
+      if ((ibuf = BKE_brush_gen_radial_control_imbuf(static_cast<Brush *>(rc->image_id_ptr.data),
+                                                     rc->use_secondary_tex,
+                                                     !ELEM(rc->subtype,
+                                                           PROP_NONE,
+                                                           PROP_PIXEL,
+                                                           PROP_PIXEL_DIAMETER,
+                                                           PROP_DISTANCE,
+                                                           PROP_DISTANCE_DIAMETER))))
       {
 
         rc->texture = GPU_texture_create_2d("radial_control",
@@ -2798,6 +2806,13 @@ static void radial_control_paint_cursor(bContext * /*C*/,
     case PROP_PIXEL:
       r1 = rc->current_value;
       r2 = rc->initial_value;
+      tex_radius = r1;
+      alpha = 0.75;
+      break;
+    case PROP_DISTANCE_DIAMETER:
+    case PROP_PIXEL_DIAMETER:
+      r1 = rc->current_value / 2.0f;
+      r2 = rc->initial_value / 2.0f;
       tex_radius = r1;
       alpha = 0.75;
       break;
@@ -3175,10 +3190,12 @@ static wmOperatorStatus radial_control_invoke(bContext *C, wmOperator *op, const
   if (!ELEM(rc->subtype,
             PROP_NONE,
             PROP_DISTANCE,
+            PROP_DISTANCE_DIAMETER,
             PROP_FACTOR,
             PROP_PERCENTAGE,
             PROP_ANGLE,
-            PROP_PIXEL))
+            PROP_PIXEL,
+            PROP_PIXEL_DIAMETER))
   {
     BKE_report(op->reports,
                RPT_ERROR,
@@ -3360,7 +3377,9 @@ static wmOperatorStatus radial_control_modal(bContext *C, wmOperator *op, const 
         switch (rc->subtype) {
           case PROP_NONE:
           case PROP_DISTANCE:
+          case PROP_DISTANCE_DIAMETER:
           case PROP_PIXEL:
+          case PROP_PIXEL_DIAMETER:
             new_value = dist;
             if (snap) {
               new_value = (int(new_value) + 5) / 10 * 10;

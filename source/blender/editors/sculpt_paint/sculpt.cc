@@ -119,7 +119,7 @@ float object_space_radius_get(const ViewContext &vc,
 {
   if (!BKE_brush_use_locked_size(&paint, &brush)) {
     return paint_calc_object_space_radius(
-        vc, location, BKE_brush_size_get(&paint, &brush) * scale_factor);
+        vc, location, BKE_brush_radius_get(&paint, &brush) * scale_factor);
   }
   return BKE_brush_unprojected_radius_get(&paint, &brush) * scale_factor;
 }
@@ -4364,7 +4364,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt &sd, Object &ob, Po
     cache.initial_radius = object_space_radius_get(*cache.vc, paint, brush, cache.location);
 
     if (!BKE_brush_use_locked_size(&paint, &brush)) {
-      BKE_brush_unprojected_radius_set(&paint, &brush, cache.initial_radius);
+      BKE_brush_unprojected_size_set(&paint, &brush, cache.initial_radius);
     }
   }
 

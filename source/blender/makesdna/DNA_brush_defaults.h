@@ -26,8 +26,8 @@
  \
     /* BRUSH SCULPT BRUSH SETTINGS */ \
     .weight = 1.0f, /* weight of brush 0 - 1.0 */ \
-    .size = 35,     /* radius of the brush in pixels */ \
-    .unprojected_radius = 0.05f, /* radius of the brush in Blender units */ \
+    .size = 70,     /* diameter of the brush in pixels */ \
+    .unprojected_size = 0.10f, /* diameter of the brush in Blender units */ \
     .alpha = 1.0f,  /* brush strength/intensity probably variable should be renamed? */ \
     .autosmooth_factor = 0.0f, \
     .topology_rake_factor = 0.0f, \

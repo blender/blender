@@ -1033,12 +1033,6 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   /* direct data */
   ToolSettings *tos = sce->toolsettings;
 
-  /* In 5.0 we intend to change the brush.size value from representing radius to representing
-   * diameter. This and the corresponding code in `brush_blend_read_data` should be removed once
-   * that transition is complete. */
-  tos->unified_paint_settings.size *= 2;
-  tos->unified_paint_settings.unprojected_radius *= 2.0f;
-
   BLO_write_struct(writer, ToolSettings, tos);
 
   if (tos->unified_paint_settings.curve_rand_hue) {
@@ -1195,14 +1189,6 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 
   /* Freed on `do_versions()`. */
   BLI_assert(sce->layer_properties == nullptr);
-
-  /* Restore original values after writing, so current working file is not affected. Note that this
-   * is only needed because scene `id` is a shallow copy here, and `tool_settings` is not copied.
-   * In the case of `brush_blend_write`, the size value does not need restoring after writing
-   * because that one was directly under `Brush` id which is copied. See `brush_blend_write` in
-   * `blenkernel/intern/brush.cc`. */
-  tos->unified_paint_settings.size /= 2;
-  tos->unified_paint_settings.unprojected_radius /= 2.0f;
 }
 
 static void direct_link_paint_helper(BlendDataReader *reader, const Scene *scene, Paint **paint)
@@ -1258,13 +1244,6 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_struct(reader, ToolSettings, &sce->toolsettings);
   if (sce->toolsettings) {
     UnifiedPaintSettings *ups = &sce->toolsettings->unified_paint_settings;
-
-    /* Prior to 5.0, the brush->size value is expected to be the radius, not the diameter. To
-     * ensure correct behavior, convert this when reading newer files. */
-    if (BLO_read_fileversion_get(reader) >= 500) {
-      ups->size = std::max(ups->size / 2, 1);
-      ups->unprojected_radius = std::max(ups->unprojected_radius / 2, 0.001f);
-    }
 
     BLO_read_struct(reader, CurveMapping, &ups->curve_rand_hue);
     if (ups->curve_rand_hue) {

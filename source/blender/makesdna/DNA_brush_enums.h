@@ -602,3 +602,4 @@ typedef enum eBrushColorJitterSettings_Flag {
 } eBrushColorJitterSettings_Flag;
 
 #define MAX_BRUSH_PIXEL_RADIUS 500
+#define MAX_BRUSH_PIXEL_DIAMETER 1000

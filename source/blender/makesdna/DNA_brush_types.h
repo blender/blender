@@ -394,7 +394,7 @@ typedef struct Brush {
   int mask_overlay_alpha;
   int cursor_overlay_alpha;
 
-  float unprojected_radius;
+  float unprojected_size;
 
   /* soften/sharpen */
   float sharp_threshold;

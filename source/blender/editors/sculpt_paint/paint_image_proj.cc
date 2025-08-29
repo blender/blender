@@ -4512,7 +4512,7 @@ static void project_paint_begin(const bContext *C,
   /* At the moment this is just ps->arena_mt[0], but use this to show were not multi-threading. */
   MemArena *arena;
 
-  const int diameter = 2 * BKE_brush_size_get(ps->paint, ps->brush);
+  const int diameter = BKE_brush_size_get(ps->paint, ps->brush);
 
   bool reset_threads = false;
 
@@ -6066,6 +6066,7 @@ void *paint_proj_new_stroke(bContext *C, Object *ob, const float mouse[2], int m
     }
   }
 
+  /* TODO: Inspect this further. */
   /* Don't allow brush size below 2 */
   if (BKE_brush_size_get(&settings->imapaint.paint, ps_handle->brush) < 2) {
     BKE_brush_size_set(&settings->imapaint.paint, ps_handle->brush, 2 * U.pixelsize);

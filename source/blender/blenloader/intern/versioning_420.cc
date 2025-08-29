@@ -1172,8 +1172,8 @@ void blo_do_versions_420(FileData *fd, Library * /*lib*/, Main *bmain)
         /* Use the `Scene` radius unit by default (confusingly named `BRUSH_LOCK_SIZE`).
          * Convert the radius to be the same visual size as in GPv2. */
         brush->flag |= BRUSH_LOCK_SIZE;
-        brush->unprojected_radius = brush->size *
-                                    blender::bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
+        brush->unprojected_size = brush->size *
+                                  blender::bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
       }
     }
   }

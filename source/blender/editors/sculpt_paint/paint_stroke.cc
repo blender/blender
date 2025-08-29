@@ -356,8 +356,8 @@ bool paint_brush_update(bContext *C,
   paint_runtime.stroke_active = true;
   paint_runtime.size_pressure_value = stroke->cached_size_pressure;
 
-  paint_runtime.pixel_radius = BKE_brush_size_get(paint, &brush);
-  paint_runtime.initial_pixel_radius = BKE_brush_size_get(paint, &brush);
+  paint_runtime.pixel_radius = BKE_brush_radius_get(paint, &brush);
+  paint_runtime.initial_pixel_radius = BKE_brush_radius_get(paint, &brush);
 
   if (BKE_brush_use_size_pressure(&brush) && paint_supports_dynamic_size(brush, mode)) {
     paint_runtime.pixel_radius *= stroke->cached_size_pressure;
@@ -704,7 +704,7 @@ static float paint_space_stroke_spacing(const bContext *C,
   else {
     /* brushes can have a minimum size of 1.0 but with pressure it can be smaller than a pixel
      * causing very high step sizes, hanging blender #32381. */
-    size_clamp = max_ff(1.0f, BKE_brush_size_get(stroke->paint, stroke->brush) * size_pressure);
+    size_clamp = max_ff(1.0f, BKE_brush_radius_get(stroke->paint, stroke->brush) * size_pressure);
   }
 
   float spacing = stroke->brush->spacing;
@@ -983,7 +983,7 @@ PaintStroke *paint_stroke_new(bContext *C,
 
   BKE_paint_set_overlay_override(eOverlayFlags(br->overlay_flags));
 
-  paint_runtime->start_pixel_radius = BKE_brush_size_get(stroke->paint, br);
+  paint_runtime->start_pixel_radius = BKE_brush_radius_get(stroke->paint, br);
 
   return stroke;
 }

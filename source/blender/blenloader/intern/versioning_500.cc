@@ -172,6 +172,43 @@ static void rename_mesh_uv_seam_attribute(Mesh &mesh)
   STRNCPY_UTF8(old_seam_layer->name, new_name.c_str());
 }
 
+static void update_brush_sizes(Main &bmain)
+{
+  /* This conversion was originally done in 582c7d94b8, between subversion 1 (84bee96757) and
+   * subversion 2 (fa03c53d4a). The original change should have come with a subversion bump to be
+   * filled in later, but since it didn't, the best we can do is use subversion 1 for this check.
+   * Thankfully, this only results in a single day window in which a user would have had to
+   * download the build where this versioning was not correctly applied. */
+  LISTBASE_FOREACH (Brush *, brush, &bmain.brushes) {
+    brush->size *= 2;
+    brush->unprojected_size *= 2.0f;
+  }
+
+  auto apply_to_paint = [&](Paint *paint) {
+    if (paint == nullptr) {
+      return;
+    }
+    UnifiedPaintSettings &ups = paint->unified_paint_settings;
+
+    ups.size *= 2;
+    ups.unprojected_size *= 2.0f;
+  };
+
+  LISTBASE_FOREACH (Scene *, scene, &bmain.scenes) {
+    scene->toolsettings->unified_paint_settings.size *= 2;
+    scene->toolsettings->unified_paint_settings.unprojected_size *= 2.0f;
+    apply_to_paint(reinterpret_cast<Paint *>(scene->toolsettings->vpaint));
+    apply_to_paint(reinterpret_cast<Paint *>(scene->toolsettings->wpaint));
+    apply_to_paint(reinterpret_cast<Paint *>(scene->toolsettings->sculpt));
+    apply_to_paint(reinterpret_cast<Paint *>(scene->toolsettings->gp_paint));
+    apply_to_paint(reinterpret_cast<Paint *>(scene->toolsettings->gp_vertexpaint));
+    apply_to_paint(reinterpret_cast<Paint *>(scene->toolsettings->gp_sculptpaint));
+    apply_to_paint(reinterpret_cast<Paint *>(scene->toolsettings->gp_weightpaint));
+    apply_to_paint(reinterpret_cast<Paint *>(scene->toolsettings->curves_sculpt));
+    apply_to_paint(reinterpret_cast<Paint *>(&scene->toolsettings->imapaint));
+  }
+}
+
 static void initialize_closure_input_structure_types(bNodeTree &ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
@@ -773,7 +810,7 @@ static void copy_unified_paint_settings(Scene &scene, Paint *paint)
   UnifiedPaintSettings &ups = paint->unified_paint_settings;
 
   ups.size = scene_ups.size;
-  ups.unprojected_radius = scene_ups.unprojected_radius;
+  ups.unprojected_size = scene_ups.unprojected_size;
   ups.alpha = scene_ups.alpha;
   ups.weight = scene_ups.weight;
   copy_v3_v3(ups.color, scene_ups.color);
@@ -2149,6 +2186,8 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       bke::mesh_custom_normals_to_generic(*mesh);
       rename_mesh_uv_seam_attribute(*mesh);
     }
+
+    update_brush_sizes(*bmain);
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 2)) {

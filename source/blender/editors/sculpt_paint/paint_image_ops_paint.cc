@@ -204,7 +204,7 @@ class ProjectionPaintMode : public AbstractPaintMode {
                       paint_stroke_flipped(stroke),
                       1.0,
                       0.0,
-                      BKE_brush_size_get(paint, brush));
+                      BKE_brush_radius_get(paint, brush));
     /* two redraws, one for GPU update, one for notification */
     paint_proj_redraw(C, stroke_handle, false);
     paint_proj_redraw(C, stroke_handle, true);

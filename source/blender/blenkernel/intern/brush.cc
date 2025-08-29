@@ -210,14 +210,6 @@ static void brush_foreach_id(ID *id, LibraryForeachIDData *data)
 static void brush_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Brush *brush = reinterpret_cast<Brush *>(id);
-  /* In 5.0 we intend to change the brush.size value from representing radius to representing
-   * diameter. This and the corresponding code in `brush_blend_read_data` should be removed once
-   * that transition is complete. Note that we do not need to restore these values, because `id`
-   * is a shallow copy of the original, but any child data that's owned by the id is not copied,
-   * which means for `scene_blend_write` where it writes brush size from `tool_settings`, that
-   * value will need to be restored. See `scene_blend_write` from `blenkernel/intern/scene.cc`. */
-  brush->size *= 2;
-  brush->unprojected_radius *= 2.0;
 
   BLO_write_id_struct(writer, Brush, id_address, &brush->id);
   BKE_id_blend_write(writer, &brush->id);
@@ -393,13 +385,6 @@ static void brush_blend_read_data(BlendDataReader *reader, ID *id)
   BKE_previewimg_blend_read(reader, brush->preview);
 
   brush->has_unsaved_changes = false;
-
-  /* Prior to 5.0, the brush->size value is expected to be the radius, not the diameter. To ensure
-   * correct behavior, convert this when reading newer files. */
-  if (BLO_read_fileversion_get(reader) >= 500) {
-    brush->size = std::max(brush->size / 2, 1);
-    brush->unprojected_radius = std::max(brush->unprojected_radius / 2, 0.001f);
-  }
 }
 
 static void brush_blend_read_after_liblink(BlendLibReader * /*reader*/, ID *id)
@@ -1202,7 +1187,7 @@ void BKE_brush_size_set(Paint *paint, Brush *brush, int size)
   UnifiedPaintSettings *ups = &paint->unified_paint_settings;
 
   /* make sure range is sane */
-  CLAMP(size, 1, MAX_BRUSH_PIXEL_RADIUS);
+  CLAMP(size, 1, MAX_BRUSH_PIXEL_DIAMETER);
 
   if (ups->flag & UNIFIED_PAINT_SIZE) {
     ups->size = size;
@@ -1219,6 +1204,11 @@ int BKE_brush_size_get(const Paint *paint, const Brush *brush)
   int size = (ups->flag & UNIFIED_PAINT_SIZE) ? ups->size : brush->size;
 
   return size;
+}
+
+float BKE_brush_radius_get(const Paint *paint, const Brush *brush)
+{
+  return BKE_brush_size_get(paint, brush) / 2.0f;
 }
 
 bool BKE_brush_use_locked_size(const Paint *paint, const Brush *brush)
@@ -1239,24 +1229,29 @@ bool BKE_brush_use_alpha_pressure(const Brush *brush)
   return brush->flag & BRUSH_ALPHA_PRESSURE;
 }
 
-void BKE_brush_unprojected_radius_set(Paint *paint, Brush *brush, float unprojected_radius)
+void BKE_brush_unprojected_size_set(Paint *paint, Brush *brush, float unprojected_size)
 {
   UnifiedPaintSettings *ups = &paint->unified_paint_settings;
 
   if (ups->flag & UNIFIED_PAINT_SIZE) {
-    ups->unprojected_radius = unprojected_radius;
+    ups->unprojected_size = unprojected_size;
   }
   else {
-    brush->unprojected_radius = unprojected_radius;
+    brush->unprojected_size = unprojected_size;
     BKE_brush_tag_unsaved_changes(brush);
   }
 }
 
-float BKE_brush_unprojected_radius_get(const Paint *paint, const Brush *brush)
+float BKE_brush_unprojected_size_get(const Paint *paint, const Brush *brush)
 {
   const UnifiedPaintSettings *ups = &paint->unified_paint_settings;
 
-  return (ups->flag & UNIFIED_PAINT_SIZE) ? ups->unprojected_radius : brush->unprojected_radius;
+  return (ups->flag & UNIFIED_PAINT_SIZE) ? ups->unprojected_size : brush->unprojected_size;
+}
+
+float BKE_brush_unprojected_radius_get(const Paint *paint, const Brush *brush)
+{
+  return BKE_brush_unprojected_size_get(paint, brush) / 2.0f;
 }
 
 void BKE_brush_alpha_set(Paint *paint, Brush *brush, float alpha)
@@ -1319,26 +1314,26 @@ void BKE_brush_input_samples_set(Paint *paint, Brush *brush, int value)
   }
 }
 
-void BKE_brush_scale_unprojected_radius(float *unprojected_radius,
-                                        int new_brush_size,
-                                        int old_brush_size)
+void BKE_brush_scale_unprojected_size(float *unprojected_size,
+                                      int new_brush_size,
+                                      int old_brush_size)
 {
   float scale = new_brush_size;
   /* avoid division by zero */
   if (old_brush_size != 0) {
     scale /= float(old_brush_size);
   }
-  (*unprojected_radius) *= scale;
+  (*unprojected_size) *= scale;
 }
 
 void BKE_brush_scale_size(int *r_brush_size,
-                          float new_unprojected_radius,
-                          float old_unprojected_radius)
+                          float new_unprojected_size,
+                          float old_unprojected_size)
 {
-  float scale = new_unprojected_radius;
+  float scale = new_unprojected_size;
   /* avoid division by zero */
-  if (old_unprojected_radius != 0) {
-    scale /= new_unprojected_radius;
+  if (old_unprojected_size != 0) {
+    scale /= new_unprojected_size;
   }
   (*r_brush_size) = int(float(*r_brush_size) * scale);
 }
@@ -1362,7 +1357,7 @@ void BKE_brush_jitter_pos(const Paint &paint,
     spread = 1.0;
   }
   else {
-    diameter = 2 * BKE_brush_size_get(&paint, &brush);
+    diameter = 2 * BKE_brush_radius_get(&paint, &brush);
     spread = brush.jitter;
   }
   /* find random position within a circle of diameter 1 */

@@ -1711,7 +1711,7 @@ static void paint_init_data(Paint &paint)
   const UnifiedPaintSettings &default_ups = *DNA_struct_default_get(UnifiedPaintSettings);
   paint.unified_paint_settings.size = default_ups.size;
   paint.unified_paint_settings.input_samples = default_ups.input_samples;
-  paint.unified_paint_settings.unprojected_radius = default_ups.unprojected_radius;
+  paint.unified_paint_settings.unprojected_size = default_ups.unprojected_size;
   paint.unified_paint_settings.alpha = default_ups.alpha;
   paint.unified_paint_settings.weight = default_ups.weight;
   paint.unified_paint_settings.flag = default_ups.flag;

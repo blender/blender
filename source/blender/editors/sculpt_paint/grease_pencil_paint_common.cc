@@ -87,7 +87,7 @@ void init_brush(Brush &brush)
 
 float brush_radius(const Paint &paint, const Brush &brush, const float pressure = 1.0f)
 {
-  float radius = BKE_brush_size_get(&paint, &brush);
+  float radius = BKE_brush_radius_get(&paint, &brush);
   if (BKE_brush_use_size_pressure(&brush)) {
     radius *= BKE_curvemapping_evaluateF(brush.gpencil_settings->curve_sensitivity, 0, pressure);
   }

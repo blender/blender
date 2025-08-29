@@ -1575,8 +1575,8 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
       }
 
       /* bad radius */
-      if (brush->unprojected_radius == 0) {
-        brush->unprojected_radius = 0.125f;
+      if (brush->unprojected_size == 0) {
+        brush->unprojected_size = 0.125f;
       }
 
       /* unusable size */
