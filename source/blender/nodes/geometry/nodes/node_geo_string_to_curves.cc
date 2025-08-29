@@ -226,7 +226,7 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
 
   for (const int i : IndexRange(text_len)) {
     CharTrans &ct = chartransdata[i];
-    layout.positions.append(float2(ct.xof, ct.yof) * layout.final_font_size);
+    layout.positions.append(ct.offset * layout.final_font_size);
 
     if (ct.is_overflow && (cu.overflow == CU_OVERFLOW_TRUNCATE)) {
       const int offset = BLI_str_utf8_offset_from_index(
@@ -279,7 +279,9 @@ static Map<int, int> create_curve_instances(GeoNodeExecParams &params,
     CharInfo charinfo = {0};
     charinfo.mat_nr = 1;
 
-    BKE_vfont_char_build(cu, &cu.nurb, layout.char_codes[i], &charinfo, false, 0, 0, 0, i, 1);
+    const float2 char_offset = {0, 0};
+    BKE_vfont_char_build(
+        cu, &cu.nurb, layout.char_codes[i], &charinfo, false, char_offset, 0, i, 1);
     Curves *curves_id = bke::curve_legacy_to_curves(cu);
     if (curves_id == nullptr) {
       if (pivot_required) {

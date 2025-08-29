@@ -837,7 +837,7 @@ static void make_duplis_font(const DupliContext *ctx)
   Object *ob;
   Curve *cu = (Curve *)par->data;
   CharTrans *ct, *chartransdata = nullptr;
-  float vec[3], obmat[4][4], pmat[4][4], fsize, xof, yof;
+  float vec[3], obmat[4][4], pmat[4][4];
   int text_len, a;
   size_t family_len;
   const char32_t *text = nullptr;
@@ -854,9 +854,8 @@ static void make_duplis_font(const DupliContext *ctx)
     return;
   }
 
-  fsize = cu->fsize;
-  xof = cu->xof;
-  yof = cu->yof;
+  const float fsize = cu->fsize;
+  const blender::float2 cu_offset = {cu->xof, cu->yof};
 
   ct = chartransdata;
 
@@ -881,8 +880,8 @@ static void make_duplis_font(const DupliContext *ctx)
     }
 
     if (ob) {
-      vec[0] = fsize * (ct->xof - xof);
-      vec[1] = fsize * (ct->yof - yof);
+      vec[0] = fsize * (ct->offset.x - cu_offset.x);
+      vec[1] = fsize * (ct->offset.y - cu_offset.y);
       vec[2] = 0.0;
 
       mul_m4_v3(pmat, vec);
