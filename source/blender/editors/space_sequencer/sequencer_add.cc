@@ -1390,11 +1390,14 @@ static wmOperatorStatus sequencer_add_movie_strip_invoke(bContext *C,
   return OPERATOR_RUNNING_MODAL;
 }
 
-static bool sequencer_add_draw_check_fn(PointerRNA * /*ptr*/,
-                                        PropertyRNA *prop,
-                                        void * /*user_data*/)
+static bool sequencer_add_draw_check_fn(PointerRNA *ptr, PropertyRNA *prop, void * /*user_data*/)
 {
   const char *prop_id = RNA_property_identifier(prop);
+
+  /* Only show placeholders option if sequence detection is enabled. */
+  if (STREQ(prop_id, "use_placeholders")) {
+    return RNA_boolean_get(ptr, "use_sequence_detection");
+  }
 
   return !STR_ELEM(prop_id,
                    "filepath",
@@ -1403,9 +1406,7 @@ static bool sequencer_add_draw_check_fn(PointerRNA * /*ptr*/,
                    "frame_start",
                    "channel",
                    "length",
-                   "move_strips",
-                   "use_sequence_detection",
-                   "use_placeholders");
+                   "move_strips");
 }
 
 static void sequencer_add_draw(bContext * /*C*/, wmOperator *op)
@@ -1423,11 +1424,6 @@ static void sequencer_add_draw(bContext * /*C*/, wmOperator *op)
     }
     layout->prop(op->ptr, "channel", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     layout->separator();
-  }
-
-  layout->prop(op->ptr, "use_sequence_detection", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  if (RNA_boolean_get(op->ptr, "use_sequence_detection")) {
-    layout->prop(op->ptr, "use_placeholders", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   /* Main draw call. */
@@ -1897,18 +1893,18 @@ void SEQUENCER_OT_image_strip_add(wmOperatorType *ot)
                                     SEQPROP_STARTFRAME | SEQPROP_LENGTH | SEQPROP_FIT_METHOD |
                                         SEQPROP_VIEW_TRANSFORM | SEQPROP_MOVE);
 
-  RNA_def_boolean(ot->srna,
-                  "use_placeholders",
-                  false,
-                  "Use Placeholders",
-                  "Reserve placeholder frames for missing frames of the image sequence");
-
   RNA_def_boolean(
       ot->srna,
       "use_sequence_detection",
       true,
       "Detect Sequences",
       "Automatically detect animated sequences in selected images (based on file names)");
+
+  RNA_def_boolean(ot->srna,
+                  "use_placeholders",
+                  false,
+                  "Use Placeholders",
+                  "Reserve placeholder frames for missing frames of the image sequence");
 }
 
 /** \} */
