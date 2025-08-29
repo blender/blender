@@ -17,6 +17,7 @@
 #include "DNA_texture_types.h"
 
 #include "BKE_colorband.hh"
+#include "BKE_idtype.hh"
 #include "BKE_key.hh"
 
 void BKE_colorband_init(ColorBand *coba, bool rangetype)
@@ -646,4 +647,12 @@ bool BKE_colorband_element_remove(ColorBand *coba, int index)
     coba->cur--;
   }
   return true;
+}
+
+void BKE_colorband_foreach_working_space_color(ColorBand *coba,
+                                               const IDTypeForeachColorFunctionCallback &fn)
+{
+  for (int a = 0; a < coba->tot; a++) {
+    fn.single(&coba->data[a].r);
+  }
 }

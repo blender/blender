@@ -982,6 +982,16 @@ static void scene_foreach_path(ID *id, BPathForeachPathData *bpath_data)
   }
 }
 
+static void scene_foreach_working_space_color(ID *id, const IDTypeForeachColorFunctionCallback &fn)
+{
+  Scene *scene = (Scene *)id;
+
+  BKE_paint_settings_foreach_mode(scene->toolsettings, [&fn](Paint *paint) {
+    fn.single(paint->unified_paint_settings.color);
+    fn.single(paint->unified_paint_settings.secondary_color);
+  });
+}
+
 static void scene_foreach_cache(ID *id,
                                 IDTypeForeachCacheFunctionCallback function_callback,
                                 void *user_data)
@@ -1530,6 +1540,7 @@ constexpr IDTypeInfo get_type_info()
   info.foreach_id = scene_foreach_id;
   info.foreach_cache = scene_foreach_cache;
   info.foreach_path = scene_foreach_path;
+  info.foreach_working_space_color = scene_foreach_working_space_color;
   info.owner_pointer_get = nullptr;
 
   info.blend_write = scene_blend_write;

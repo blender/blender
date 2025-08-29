@@ -178,6 +178,14 @@ static void linestyle_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
+static void linestyle_foreach_working_space_color(ID *id,
+                                                  const IDTypeForeachColorFunctionCallback &fn)
+{
+  FreestyleLineStyle *linestyle = (FreestyleLineStyle *)id;
+
+  fn.single(&linestyle->r);
+}
+
 static void write_linestyle_color_modifiers(BlendWriter *writer, ListBase *modifiers)
 {
   LISTBASE_FOREACH (LineStyleModifier *, m, modifiers) {
@@ -666,6 +674,7 @@ IDTypeInfo IDType_ID_LS = {
     /*foreach_id*/ linestyle_foreach_id,
     /*foreach_cache*/ nullptr,
     /*foreach_path*/ nullptr,
+    /*foreach_working_space_color*/ linestyle_foreach_working_space_color,
     /*owner_pointer_get*/ nullptr,
 
     /*blend_write*/ linestyle_blend_write,

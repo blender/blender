@@ -14,6 +14,7 @@
 #include "BLT_translation.hh"
 
 #include "BKE_context.hh"
+#include "BKE_idtype.hh"
 #include "BKE_screen.hh"
 
 #include "UI_interface_layout.hh"
@@ -87,6 +88,14 @@ static void panel_register(ARegionType *region_type)
   shaderfx_subpanel_register(region_type, "blur", "Blur", nullptr, blur_panel_draw, panel_type);
 }
 
+static void foreach_working_space_color(ShaderFxData *fx,
+                                        const IDTypeForeachColorFunctionCallback &fn)
+{
+  RimShaderFxData *gpfx = (RimShaderFxData *)fx;
+  fn.single(gpfx->rim_rgb);
+  fn.single(gpfx->mask_rgb);
+}
+
 ShaderFxTypeInfo shaderfx_Type_Rim = {
     /*name*/ N_("Rim"),
     /*struct_name*/ "RimShaderFxData",
@@ -102,5 +111,6 @@ ShaderFxTypeInfo shaderfx_Type_Rim = {
     /*update_depsgraph*/ nullptr,
     /*depends_on_time*/ nullptr,
     /*foreach_ID_link*/ nullptr,
+    /*foreach_working_space_color*/ foreach_working_space_color,
     /*panel_register*/ panel_register,
 };

@@ -35,6 +35,7 @@
 #include "BLI_map.hh"
 #include "BLI_math_rotation_types.hh"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 #include "BLI_rand.hh"
 #include "BLI_set.hh"
 #include "BLI_string.h"
@@ -51,6 +52,7 @@
 #include "BKE_animsys.h"
 #include "BKE_asset.hh"
 #include "BKE_bpath.hh"
+#include "BKE_colorband.hh"
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
@@ -462,6 +464,77 @@ static void node_foreach_path(ID *id, BPathForeachPathData *bpath_data)
     }
     default:
       break;
+  }
+}
+
+static void node_foreach_working_space_color(ID *id, const IDTypeForeachColorFunctionCallback &fn)
+{
+  bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
+
+  ntree->ensure_topology_cache();
+  ntree->ensure_interface_cache();
+
+  for (bNode *node : ntree->all_nodes()) {
+    /* Hardcoded exception for some non-color data. Should ideally be a RNA property subtype,
+     * as this won't work with group nodes*/
+    if (node->type_legacy == SH_NODE_NORMAL_MAP ||
+        node->type_legacy == SH_NODE_VECTOR_DISPLACEMENT)
+    {
+      continue;
+    }
+
+    for (bNodeSocket *socket : node->input_sockets()) {
+      if (socket->type == SOCK_RGBA && socket->default_value) {
+        bNodeSocketValueRGBA *rgba = static_cast<bNodeSocketValueRGBA *>(socket->default_value);
+        fn.single(rgba->value);
+      }
+      /* Exception for subsurface radius which is color-like and may be outside the 0..1 range. */
+      else if (socket->type == SOCK_VECTOR && socket->default_value &&
+               (STREQ(socket->name, "Subsurface Radius") ||
+                STREQ(socket->name, "Subsurface Radius Scale") ||
+                (node->type_legacy == SH_NODE_SUBSURFACE_SCATTERING &&
+                 STREQ(socket->name, "Radius"))))
+      {
+        bNodeSocketValueVector *vec = static_cast<bNodeSocketValueVector *>(socket->default_value);
+        float length;
+        blender::float3 radius = blender::math::normalize_and_get_length(
+            blender::float3(vec->value), length);
+        fn.single(radius);
+        copy_v3_v3(vec->value, radius * length);
+      }
+    }
+    /* For the RGB shader node that stores color in an output socket. */
+    for (bNodeSocket *socket : node->output_sockets()) {
+      if (socket->type == SOCK_RGBA && socket->default_value) {
+        bNodeSocketValueRGBA *rgba = static_cast<bNodeSocketValueRGBA *>(socket->default_value);
+        fn.single(rgba->value);
+      }
+    }
+
+    /* Most colors are in sockets, but a few exceptions. */
+    if (node->type_legacy == FN_NODE_INPUT_COLOR) {
+      NodeInputColor *input_color_storage = static_cast<NodeInputColor *>(node->storage);
+      fn.single(input_color_storage->color);
+    }
+    else if (node->type_legacy == TEX_NODE_VALTORGB || node->type_legacy == SH_NODE_VALTORGB) {
+      ColorBand *coba = static_cast<ColorBand *>(node->storage);
+      BKE_colorband_foreach_working_space_color(coba, fn);
+    }
+  }
+
+  for (bNodeTreeInterfaceSocket *socket : ntree->interface_inputs()) {
+    const blender::bke::bNodeSocketType *typeinfo = socket->socket_typeinfo();
+    if (typeinfo && typeinfo->type == SOCK_RGBA && socket->socket_data) {
+      bNodeSocketValueRGBA *rgba = static_cast<bNodeSocketValueRGBA *>(socket->socket_data);
+      fn.single(rgba->value);
+    }
+  }
+  for (bNodeTreeInterfaceSocket *socket : ntree->interface_outputs()) {
+    const blender::bke::bNodeSocketType *typeinfo = socket->socket_typeinfo();
+    if (typeinfo && typeinfo->type == SOCK_RGBA && socket->socket_data) {
+      bNodeSocketValueRGBA *rgba = static_cast<bNodeSocketValueRGBA *>(socket->socket_data);
+      fn.single(rgba->value);
+    }
   }
 }
 
@@ -1843,6 +1916,7 @@ IDTypeInfo IDType_ID_NT = {
     /*foreach_id*/ blender::bke::node_foreach_id,
     /*foreach_cache*/ blender::bke::node_foreach_cache,
     /*foreach_path*/ blender::bke::node_foreach_path,
+    /*foreach_working_space_color*/ blender::bke::node_foreach_working_space_color,
     /*owner_pointer_get*/ blender::bke::node_owner_pointer_get,
 
     /*blend_write*/ blender::bke::ntree_blend_write,

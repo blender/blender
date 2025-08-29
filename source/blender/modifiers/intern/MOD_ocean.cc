@@ -709,4 +709,5 @@ ModifierTypeInfo modifierType_Ocean = {
     /*blend_write*/ nullptr,
     /*blend_read*/ blend_read,
     /*foreach_cache*/ nullptr,
+    /*foreach_working_space_color*/ nullptr,
 };

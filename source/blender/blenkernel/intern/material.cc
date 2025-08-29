@@ -187,6 +187,22 @@ static void material_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
+static void material_foreach_working_space_color(ID *id,
+                                                 const IDTypeForeachColorFunctionCallback &fn)
+{
+  Material *material = reinterpret_cast<Material *>(id);
+
+  fn.single(&material->r);
+  fn.single(&material->specr);
+  fn.single(material->line_col);
+
+  if (material->gp_style) {
+    fn.single(material->gp_style->stroke_rgba);
+    fn.single(material->gp_style->fill_rgba);
+    fn.single(material->gp_style->mix_rgba);
+  }
+}
+
 static void material_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Material *ma = (Material *)id;
@@ -248,6 +264,7 @@ IDTypeInfo IDType_ID_MA = {
     /*foreach_id*/ material_foreach_id,
     /*foreach_cache*/ nullptr,
     /*foreach_path*/ nullptr,
+    /*foreach_working_space_color*/ material_foreach_working_space_color,
     /*owner_pointer_get*/ nullptr,
 
     /*blend_write*/ material_blend_write,

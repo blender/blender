@@ -138,6 +138,13 @@ static void world_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
+static void world_foreach_working_space_color(ID *id, const IDTypeForeachColorFunctionCallback &fn)
+{
+  World *world = reinterpret_cast<World *>(id);
+
+  fn.single(&world->horr);
+}
+
 static void world_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   World *wrld = (World *)id;
@@ -196,6 +203,7 @@ IDTypeInfo IDType_ID_WO = {
     /*foreach_id*/ world_foreach_id,
     /*foreach_cache*/ nullptr,
     /*foreach_path*/ nullptr,
+    /*foreach_working_space_color*/ world_foreach_working_space_color,
     /*owner_pointer_get*/ nullptr,
 
     /*blend_write*/ world_blend_write,

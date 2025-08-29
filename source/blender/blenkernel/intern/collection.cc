@@ -402,6 +402,7 @@ IDTypeInfo IDType_ID_GR = {
     /*foreach_id*/ collection_foreach_id,
     /*foreach_cache*/ nullptr,
     /*foreach_path*/ nullptr,
+    /*foreach_working_space_color*/ nullptr,
     /*owner_pointer_get*/ collection_owner_pointer_get,
 
     /*blend_write*/ collection_blend_write,

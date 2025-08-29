@@ -12,6 +12,9 @@
 
 #include <optional>
 
+#include "BLI_color_types.hh"
+#include "BLI_function_ref.hh"
+#include "BLI_implicit_sharing_ptr.hh"
 #include "BLI_sys_types.h"
 
 struct AssetTypeInfo;
@@ -111,6 +114,16 @@ using IDTypeForeachCacheFunction = void (*)(ID *id,
                                             void *user_data);
 
 using IDTypeForeachPathFunction = void (*)(ID *id, BPathForeachPathData *bpath_data);
+
+/* Foreach scene linear color can do either a single color, or an implicitly shared array
+ * for geometry attributes. */
+struct IDTypeForeachColorFunctionCallback {
+  const blender::FunctionRef<void(float rgb[3])> single;
+  const blender::FunctionRef<void(
+      blender::ImplicitSharingPtr<> &sharing_info, blender::ColorGeometry4f *&data, size_t size)>
+      implicit_sharing_array;
+};
+using IDTypeForeachColorFunction = void (*)(ID *id, const IDTypeForeachColorFunctionCallback &cb);
 
 /**
  * Callback returning the address of the pointer to the owner ID,
@@ -222,6 +235,12 @@ struct IDTypeInfo {
    * Iterator over all file paths of given ID.
    */
   IDTypeForeachPathFunction foreach_path;
+
+  /**
+   * Iterator to edit all scene linear RGB colors of given ID.
+   * Alpha should not be premultiplied in the RGB values.
+   */
+  IDTypeForeachColorFunction foreach_working_space_color;
 
   /**
    * For embedded IDs, return the address of the pointer to their owner ID.
