@@ -124,12 +124,6 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
   }
 
   if (!USER_VERSION_ATLEAST(400, 27)) {
-    FROM_DEFAULT_V4_UCHAR(space_sequencer.keytype_keyframe);
-    FROM_DEFAULT_V4_UCHAR(space_sequencer.keytype_breakdown);
-    FROM_DEFAULT_V4_UCHAR(space_sequencer.keytype_movehold);
-    FROM_DEFAULT_V4_UCHAR(space_sequencer.keytype_keyframe_select);
-    FROM_DEFAULT_V4_UCHAR(space_sequencer.keytype_breakdown_select);
-    FROM_DEFAULT_V4_UCHAR(space_sequencer.keytype_movehold_select);
     FROM_DEFAULT_V4_UCHAR(space_sequencer.keyborder);
     FROM_DEFAULT_V4_UCHAR(space_sequencer.keyborder_select);
     FROM_DEFAULT_V4_UCHAR(space_sequencer.transition);
@@ -156,11 +150,6 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
         &userdef->themes, btheme, "Theme", '.', offsetof(bTheme, name), sizeof(btheme->name));
   }
 
-  if (!USER_VERSION_ATLEAST(402, 17)) {
-    FROM_DEFAULT_V4_UCHAR(space_action.keytype_generated);
-    FROM_DEFAULT_V4_UCHAR(space_action.keytype_generated_select);
-  }
-
   if (!USER_VERSION_ATLEAST(402, 21)) {
     FROM_DEFAULT_V4_UCHAR(asset_shelf.back);
     FROM_DEFAULT_V4_UCHAR(asset_shelf.header_back);
@@ -168,11 +157,6 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
 
   if (!USER_VERSION_ATLEAST(402, 47)) {
     FROM_DEFAULT_V4_UCHAR(space_view3d.time_gp_keyframe);
-  }
-
-  if (!USER_VERSION_ATLEAST(403, 1)) {
-    FROM_DEFAULT_V4_UCHAR(space_sequencer.keytype_generated);
-    FROM_DEFAULT_V4_UCHAR(space_sequencer.keytype_generated_select);
   }
 
   if (!USER_VERSION_ATLEAST(402, 62)) {
@@ -396,6 +380,23 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
 
   if (!USER_VERSION_ATLEAST(500, 68)) {
     FROM_DEFAULT_V4_UCHAR(space_clip.track_selected);
+  }
+
+  if (!USER_VERSION_ATLEAST(500, 69)) {
+    FROM_DEFAULT_V4_UCHAR(common.anim.keyframe);
+    FROM_DEFAULT_V4_UCHAR(common.anim.keyframe_extreme);
+    FROM_DEFAULT_V4_UCHAR(common.anim.keyframe_breakdown);
+    FROM_DEFAULT_V4_UCHAR(common.anim.keyframe_jitter);
+    FROM_DEFAULT_V4_UCHAR(common.anim.keyframe_moving_hold);
+    FROM_DEFAULT_V4_UCHAR(common.anim.keyframe_generated);
+    FROM_DEFAULT_V4_UCHAR(common.anim.keyframe_selected);
+    FROM_DEFAULT_V4_UCHAR(common.anim.keyframe_extreme_selected);
+    FROM_DEFAULT_V4_UCHAR(common.anim.keyframe_breakdown_selected);
+    FROM_DEFAULT_V4_UCHAR(common.anim.keyframe_jitter_selected);
+    FROM_DEFAULT_V4_UCHAR(common.anim.keyframe_moving_hold_selected);
+    FROM_DEFAULT_V4_UCHAR(common.anim.keyframe_generated_selected);
+    FROM_DEFAULT_V4_UCHAR(common.anim.long_key);
+    FROM_DEFAULT_V4_UCHAR(common.anim.long_key_selected);
   }
 
   /**
