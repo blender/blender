@@ -1716,9 +1716,9 @@ static wmOperatorStatus exec(bContext *C, wmOperator *op)
 
 static void CURVES_OT_add_bezier(wmOperatorType *ot)
 {
-  ot->name = "Add Bezier";
+  ot->name = "Add Bézier";
   ot->idname = __func__;
-  ot->description = "Add new bezier curve";
+  ot->description = "Add new Bézier curve";
 
   ot->exec = add_bezier::exec;
   ot->poll = editable_curves_in_edit_mode_poll;
