@@ -468,8 +468,8 @@ CursorSampleResult calc_node_mask(const Depsgraph &depsgraph,
   const SculptSession &ss = *object.sculpt;
 
   const bool flip = (ss.cache->bstrength < 0.0f);
-  const float offset = brush_plane_offset_get(brush, ss);
-  const float displace = ss.cache->radius * (0.18f + offset) * (flip ? -1.0f : 1.0f);
+  const float displace = ss.cache->radius * brush_plane_offset_get(brush, ss) *
+                         (flip ? -1.0f : 1.0f);
 
   /* TODO: Test to see if the sqrt2 extra factor can be removed */
   const float initial_radius_squared = math::square(ss.cache->radius * math::numbers::sqrt2);

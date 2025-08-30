@@ -166,7 +166,7 @@ void do_clay_brush(const Depsgraph &depsgraph,
   /* This implementation skips a factor calculation as it currently has
    * no user-facing impact (i.e. is effectively a constant)
    * See: #123518 */
-  float displace = fabsf(initial_radius * (0.25f + offset + 0.15f));
+  float displace = fabsf(initial_radius * offset);
 
   const bool flip = ss.cache->bstrength < 0.0f;
   if (flip) {
