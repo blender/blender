@@ -655,6 +655,11 @@ struct Scope {
     return data->scope_ranges[index];
   }
 
+  Token operator[](const int64_t index) const
+  {
+    return Token::from_position(data, range().start + index);
+  }
+
   size_t token_count() const
   {
     return range().size;
@@ -1026,6 +1031,12 @@ struct Parser {
                   [&](const Scope scope) { scope.foreach_match(pattern, callback); });
   }
 
+  void foreach_token(const TokenType token_type, std::function<void(const Token)> callback)
+  {
+    const char str[2] = {token_type, '\0'};
+    foreach_match(str, [&](const std::vector<Token> &tokens) { callback(tokens[0]); });
+  }
+
   /* Run a callback for all existing function scopes. */
   void foreach_function(
       std::function<void(
@@ -1038,6 +1049,14 @@ struct Parser {
                matches[4].scope(),
                matches[8] == Const,
                matches[10].scope());
+    });
+    foreach_match("m?ww::w(..)c?{..}", [&](const std::vector<Token> matches) {
+      callback(matches[0] == Static,
+               matches[2],
+               matches[6],
+               matches[7].scope(),
+               matches[11] == Const,
+               matches[13].scope());
     });
     foreach_match("m?ww<..>(..)c?{..}", [&](const std::vector<Token> matches) {
       callback(matches[0] == Static,
@@ -1096,9 +1115,16 @@ struct Parser {
     replace(tok.str_index_start(), tok.str_index_last(), replacement);
   }
   /* Replace Scope by string. */
-  void replace(Scope scope, const std::string &replacement)
+  void replace(Scope scope, const std::string &replacement, bool keep_trailing_whitespaces = false)
   {
-    replace(scope.start(), scope.end(), replacement);
+    if (keep_trailing_whitespaces) {
+      replace(scope.start().str_index_start(),
+              scope.end().str_index_last_no_whitespace(),
+              replacement);
+    }
+    else {
+      replace(scope.start(), scope.end(), replacement);
+    }
   }
 
   /* Replace the content from `from` to `to` (inclusive) by whitespaces without changing
