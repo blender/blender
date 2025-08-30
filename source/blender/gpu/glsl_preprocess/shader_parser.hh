@@ -55,7 +55,8 @@ enum TokenType : char {
   Dot = '.',
   Hash = '#',
   Ampersand = '&',
-  Literal = '0',
+  Number = '0',
+  String = '_',
   ParOpen = '(',
   ParClose = ')',
   BracketOpen = '{',
@@ -193,6 +194,8 @@ struct ParserData {
        * This allows to still split words on spaces. */
       bool prev_was_whitespace = (token_types[0] == NewLine || token_types[0] == Space);
       bool inside_preprocessor_directive = false;
+      bool next_character_is_escape = false;
+      bool inside_string = false;
 
       int offset = 0;
       for (const char &c : str.substr(1)) {
@@ -200,6 +203,17 @@ struct ParserData {
         TokenType type = to_type(c);
         TokenType prev = TokenType(token_types.back());
 
+        /* Merge string literal. */
+        if (inside_string) {
+          if (!next_character_is_escape && c == '\"') {
+            inside_string = false;
+          }
+          next_character_is_escape = c == '\\';
+          continue;
+        }
+        if (c == '\"') {
+          inside_string = true;
+        }
         /* Detect preprocessor directive newlines `\\\n`. */
         if (prev == Backslash && type == NewLine) {
           token_types.back() = PreprocessorNewline;
@@ -246,39 +260,39 @@ struct ParserData {
           continue;
         }
         /* If digit is part of word. */
-        if (type == Literal && prev == Word) {
+        if (type == Number && prev == Word) {
           continue;
         }
         /* If 'x' is part of hex literal. */
-        if (c == 'x' && prev == Literal) {
+        if (c == 'x' && prev == Number) {
           continue;
         }
         /* If 'A-F' is part of hex literal. */
-        if (c >= 'A' && c <= 'F' && prev == Literal) {
+        if (c >= 'A' && c <= 'F' && prev == Number) {
           continue;
         }
         /* If 'a-f' is part of hex literal. */
-        if (c >= 'a' && c <= 'f' && prev == Literal) {
+        if (c >= 'a' && c <= 'f' && prev == Number) {
           continue;
         }
         /* If 'u' is part of unsigned int literal. */
-        if (c == 'u' && prev == Literal) {
+        if (c == 'u' && prev == Number) {
           continue;
         }
         /* If dot is part of float literal. */
-        if (type == Dot && prev == Literal) {
+        if (type == Dot && prev == Number) {
           continue;
         }
         /* If 'f' suffix is part of float literal. */
-        if (c == 'f' && prev == Literal) {
+        if (c == 'f' && prev == Number) {
           continue;
         }
         /* If 'e' is part of float literal. */
-        if (c == 'e' && prev == Literal) {
+        if (c == 'e' && prev == Number) {
           continue;
         }
         /* If sign is part of float literal after exponent. */
-        if ((c == '+' || c == '-') && prev == Literal) {
+        if ((c == '+' || c == '-') && prev == Number) {
           continue;
         }
         /* Detect increment. */
@@ -292,7 +306,7 @@ struct ParserData {
           continue;
         }
         /* Only merge these token. Otherwise, always emit a token. */
-        if (type != Word && type != NewLine && type != Space && type != Literal) {
+        if (type != Word && type != NewLine && type != Space && type != Number) {
           prev = Word;
         }
         /* Split words on whitespaces even when merging. */
@@ -436,6 +450,8 @@ struct ParserData {
         return TokenType::Tilde;
       case '\\':
         return TokenType::Backslash;
+      case '\"':
+        return TokenType::String;
       case '?':
         return TokenType::Question;
       case ':':
@@ -453,7 +469,7 @@ struct ParserData {
       case '6':
       case '7':
       case '9':
-        return TokenType::Literal;
+        return TokenType::Number;
       default:
         return TokenType::Word;
     }
@@ -1110,9 +1126,14 @@ struct Parser {
     replace(from.str_index_start(), to.str_index_last(), replacement);
   }
   /* Replace token by string. */
-  void replace(Token tok, const std::string &replacement)
+  void replace(Token tok, const std::string &replacement, bool keep_trailing_whitespaces = false)
   {
-    replace(tok.str_index_start(), tok.str_index_last(), replacement);
+    if (keep_trailing_whitespaces) {
+      replace(tok.str_index_start(), tok.str_index_last_no_whitespace(), replacement);
+    }
+    else {
+      replace(tok.str_index_start(), tok.str_index_last(), replacement);
+    }
   }
   /* Replace Scope by string. */
   void replace(Scope scope, const std::string &replacement, bool keep_trailing_whitespaces = false)

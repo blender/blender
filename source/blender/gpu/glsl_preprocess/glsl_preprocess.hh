@@ -230,8 +230,8 @@ class Preprocessor {
         str = resource_guard_mutation(str, report_error);
         str = loop_unroll(str, report_error);
         str = assert_processing(str, filename);
-        static_strings_parsing(str);
-        str = static_strings_mutation(str);
+        str = static_strings_merging(str, report_error);
+        str = static_strings_parsing_and_mutation(str, report_error);
         str = printf_processing(str, report_error);
         quote_linting(str, report_error);
       }
@@ -1334,29 +1334,43 @@ class Preprocessor {
     return hash_32;
   }
 
-  void static_strings_parsing(const std::string &str)
+  std::string static_strings_merging(const std::string &str, report_callback report_error)
   {
-    using namespace metadata;
-    /* Matches any character inside a pair of un-escaped quote. */
-    std::regex regex(R"("(?:[^"])*")");
-    regex_global_search(str, regex, [&](const std::smatch &match) {
-      std::string format = match[0].str();
-      metadata.printf_formats.emplace_back(metadata::PrintfFormat{hash_string(format), format});
-    });
+    using namespace std;
+    using namespace shader::parser;
+
+    Parser parser(str, report_error);
+    do {
+      parser.foreach_match("__", [&](const std::vector<Token> &tokens) {
+        string first = tokens[0].str();
+        string second = tokens[1].str();
+        string between = parser.substr_range_inclusive(
+            tokens[0].str_index_last_no_whitespace() + 1, tokens[1].str_index_start() - 1);
+        string trailing = parser.substr_range_inclusive(
+            tokens[1].str_index_last_no_whitespace() + 1, tokens[1].str_index_last());
+        string merged = first.substr(0, first.length() - 1) + second.substr(1) + between +
+                        trailing;
+        parser.replace_try(tokens[0], tokens[1], merged);
+      });
+    } while (parser.apply_mutations());
+
+    return parser.result_get();
   }
 
-  std::string static_strings_mutation(std::string str)
+  std::string static_strings_parsing_and_mutation(const std::string &str,
+                                                  report_callback report_error)
   {
-    /* Replaces all matches by the respective string hash. */
-    for (const metadata::PrintfFormat &format : metadata.printf_formats) {
-      const std::string &str_var = format.format;
-      std::regex escape_regex(R"([\\\.\^\$\+\(\)\[\]\{\}\|\?\*])");
-      std::string str_regex = std::regex_replace(str_var, escape_regex, "\\$&");
+    using namespace std;
+    using namespace shader::parser;
 
-      std::regex regex(str_regex);
-      str = std::regex_replace(str, regex, std::to_string(hash_string(str_var)) + 'u');
-    }
-    return str;
+    Parser parser(str, report_error);
+    parser.foreach_token(String, [&](const Token &token) {
+      uint hash = hash_string(token.str());
+      metadata::PrintfFormat format = {hash, token.str()};
+      metadata.printf_formats.emplace_back(format);
+      parser.replace(token, std::to_string(hash) + 'u', true);
+    });
+    return parser.result_get();
   }
 
   /* Move all method definition outside of struct definition blocks. */
