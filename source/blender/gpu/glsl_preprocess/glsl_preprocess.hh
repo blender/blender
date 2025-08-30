@@ -229,7 +229,7 @@ class Preprocessor {
         str = stage_function_mutation(str);
         str = resource_guard_mutation(str, report_error);
         str = loop_unroll(str, report_error);
-        str = assert_processing(str, filename);
+        str = assert_processing(str, filename, report_error);
         str = static_strings_merging(str, report_error);
         str = static_strings_parsing_and_mutation(str, report_error);
         str = printf_processing(str, report_error);
@@ -1310,20 +1310,43 @@ class Preprocessor {
     return out_str;
   }
 
-  std::string assert_processing(const std::string &str, const std::string &filepath)
+  std::string assert_processing(const std::string &str,
+                                const std::string &filepath,
+                                report_callback report_error)
   {
     std::string filename = std::regex_replace(filepath, std::regex(R"((?:.*)\/(.*))"), "$1");
+
+    using namespace std;
+    using namespace shader::parser;
+
+    Parser parser(str, report_error);
     /* Example: `assert(i < 0)` > `if (!(i < 0)) { printf(...); }` */
-    std::regex regex(R"(\bassert\(([^;]*)\))");
-    std::string replacement;
+    parser.foreach_match("w(..)", [&](const vector<Token> &tokens) {
+      if (tokens[0].str() != "assert") {
+        return;
+      }
+      string replacement;
 #ifdef WITH_GPU_SHADER_ASSERT
-    replacement = "if (!($1)) { printf(\"Assertion failed: ($1), file " + filename +
-                  ", line %d, thread (%u,%u,%u).\\n\", __LINE__, GPU_THREAD.x, GPU_THREAD.y, "
-                  "GPU_THREAD.z); }";
-#else
-    (void)filename;
+      string condition = tokens[1].scope().str();
+      replacement += "if (!" + condition + ") ";
+      replacement += "{";
+      replacement += " printf(\"";
+      replacement += "Assertion failed: " + condition + ", ";
+      replacement += "file " + filename + ", ";
+      replacement += "line %d, ";
+      replacement += "thread (%u,%u,%u).\\n";
+      replacement += "\"";
+      replacement += ", __LINE__, GPU_THREAD.x, GPU_THREAD.y, GPU_THREAD.z); ";
+      replacement += "}";
 #endif
-    return std::regex_replace(str, regex, replacement);
+      parser.replace(tokens[0], tokens[4], replacement);
+    });
+#ifndef WITH_GPU_SHADER_ASSERT
+    (void)filename;
+    (void)report_error;
+#endif
+    parser.apply_mutations();
+    return parser.result_get();
   }
 
   /* String hash are outputted inside GLSL and needs to fit 32 bits. */
