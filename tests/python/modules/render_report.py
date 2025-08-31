@@ -158,7 +158,7 @@ def diff_output(test, oiiotool, fail_threshold, fail_percent, verbose, update):
     try:
         subprocess.check_output(command, stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as e:
-        if self.verbose:
+        if verbose:
             msg = e.output.decode("utf-8", 'ignore')
             for line in msg.splitlines():
                 # Ignore warnings for images without alpha channel.
