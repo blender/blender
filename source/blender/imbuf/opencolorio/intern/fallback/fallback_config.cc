@@ -116,6 +116,14 @@ const ColorSpace *FallbackConfig::get_color_space_by_interop_id(StringRefNull in
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Working space API
+ * \{ */
+
+void FallbackConfig::set_scene_linear_role(StringRefNull /*name*/) {}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Display API
  * \{ */
 

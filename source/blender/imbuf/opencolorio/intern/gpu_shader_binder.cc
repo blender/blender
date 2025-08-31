@@ -594,4 +594,10 @@ bool GPUShaderBinder::create_gpu_shader(
   return (display_shader.shader != nullptr);
 }
 
+void GPUShaderBinder::clear_caches() const
+{
+  scene_linear_cache_->clear();
+  display_cache_->clear();
+}
+
 }  // namespace blender::ocio

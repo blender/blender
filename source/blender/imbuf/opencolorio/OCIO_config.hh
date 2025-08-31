@@ -136,6 +136,14 @@ class Config {
   /** \} */
 
   /* -------------------------------------------------------------------- */
+  /** \name Working colorspace API
+   * \{ */
+
+  virtual void set_scene_linear_role(StringRefNull name) = 0;
+
+  /** \} */
+
+  /* -------------------------------------------------------------------- */
   /** \name Display API
    * \{ */
 

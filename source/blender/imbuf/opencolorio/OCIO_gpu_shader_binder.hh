@@ -97,6 +97,11 @@ class GPUShaderBinder {
    */
   void unbind() const;
 
+  /**
+   * Clear caches when configuration changes.
+   */
+  void clear_caches() const;
+
  protected:
   const Config &config_;
 

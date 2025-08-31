@@ -230,6 +230,13 @@ void LibOCIOColorSpace::ensure_srgb_scene_linear_info() const
   is_info_cached_ = true;
 }
 
+void LibOCIOColorSpace::clear_caches()
+{
+  from_scene_linear_cpu_processor_ = CPUProcessorCache();
+  to_scene_linear_cpu_processor_ = CPUProcessorCache();
+  is_info_cached_ = false;
+}
+
 }  // namespace blender::ocio
 
 #endif
