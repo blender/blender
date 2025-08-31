@@ -223,6 +223,20 @@ class NodePanelViewItem : public BasicTreeViewItem {
     return &panel_ == &other_item->panel_;
   }
 
+  std::optional<bool> should_be_collapsed() const override
+  {
+    return panel_.flag & NODE_INTERFACE_PANEL_IS_COLLAPSED;
+  }
+
+  bool set_collapsed(const bool collapsed) override
+  {
+    if (!AbstractTreeViewItem::set_collapsed(collapsed)) {
+      return false;
+    }
+    SET_FLAG_FROM_TEST(panel_.flag, collapsed, NODE_INTERFACE_PANEL_IS_COLLAPSED);
+    return true;
+  }
+
   bool supports_renaming() const override
   {
     return !ID_IS_LINKED(&nodetree_);
