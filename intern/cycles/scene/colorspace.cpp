@@ -27,10 +27,43 @@ ustring u_colorspace_srgb("__builtin_srgb");
 /* Cached data. */
 #ifdef WITH_OCIO
 static thread_mutex cache_colorspaces_mutex;
-static thread_mutex cache_processors_mutex;
 static unordered_map<ustring, ustring> cached_colorspaces;
+
+static thread_mutex cache_processors_mutex;
 static unordered_map<ustring, OCIO::ConstProcessorRcPtr> cached_processors;
+
+static thread_mutex cache_scene_linear_mutex;
+static string cache_scene_linear_name;
 #endif
+
+static void check_invalidate_caches()
+{
+  /* Invalidate cached processors and colorspace, in case Blender changed it.
+   * Note this should not happen during rendering, all render should be stopped
+   * before it is changed. */
+  const thread_scoped_lock cache_scene_linear_lock(cache_scene_linear_mutex);
+  OCIO::ConstConfigRcPtr config = nullptr;
+  try {
+    config = OCIO::GetCurrentConfig();
+  }
+  catch (const OCIO::Exception &exception) {
+    LOG_WARNING << "OCIO config error: " << exception.what();
+    return;
+  }
+
+  const OCIO::ConstColorSpaceRcPtr scene_linear_colorspace = config->getColorSpace("scene_linear");
+  if (scene_linear_colorspace && cache_scene_linear_name != scene_linear_colorspace->getName()) {
+    cache_scene_linear_name = scene_linear_colorspace->getName();
+    {
+      const thread_scoped_lock cache_processors_lock(cache_processors_mutex);
+      cached_processors.clear();
+    }
+    {
+      const thread_scoped_lock cache_lock(cache_colorspaces_mutex);
+      cached_colorspaces.clear();
+    }
+  }
+}
 
 ColorSpaceProcessor *ColorSpaceManager::get_processor(ustring colorspace)
 {
@@ -55,9 +88,12 @@ ColorSpaceProcessor *ColorSpaceManager::get_processor(ustring colorspace)
     return nullptr;
   }
 
+  check_invalidate_caches();
+
   /* Cache processor until free_memory(), memory overhead is expected to be
    * small and the processor is likely to be reused. */
   const thread_scoped_lock cache_processors_lock(cache_processors_mutex);
+
   if (cached_processors.find(colorspace) == cached_processors.end()) {
     try {
       cached_processors[colorspace] = config->getProcessor(colorspace.c_str(), "scene_linear");
@@ -138,6 +174,8 @@ ustring ColorSpaceManager::detect_known_colorspace(ustring colorspace,
 
   /* Use OpenColorIO. */
 #ifdef WITH_OCIO
+  check_invalidate_caches();
+
   {
     const thread_scoped_lock cache_lock(cache_colorspaces_mutex);
     /* Cached lookup. */
