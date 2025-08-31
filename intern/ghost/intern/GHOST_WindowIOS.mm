@@ -233,8 +233,6 @@ typedef struct UserInputEvent {
 {
   GHOST_SystemIOS *system;
   GHOST_WindowIOS *window;
-  int touch_stack;
-  std::unordered_map<uint64_t, TouchData> touchmap;
 
   GHOSTUITapGestureRecognizer *tap_gesture_recognizer;
   GHOSTUITapGestureRecognizer *tap2f_gesture_recognizer;
@@ -299,7 +297,6 @@ typedef struct UserInputEvent {
 {
   system = sys;
   window = win;
-  touch_stack = 0;
   text_field = nil;
   original_text = nil;
   onscreen_keyboard_active = false;
