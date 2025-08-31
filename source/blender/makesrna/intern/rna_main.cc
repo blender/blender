@@ -82,6 +82,18 @@ static void rna_Main_filepath_set(PointerRNA *ptr, const char *value)
 }
 #  endif
 
+static PointerRNA rna_Main_colorspace_get(PointerRNA *ptr)
+{
+  Main *bmain = (Main *)ptr->data;
+  return PointerRNA(nullptr, &RNA_BlendFileColorspace, &bmain->colorspace);
+}
+
+static bool rna_MainColorspace_is_missing_opencolorio_config_get(PointerRNA *ptr)
+{
+  MainColorspace *colorspace = ptr->data_as<MainColorspace>();
+  return colorspace->is_missing_opencolorio_config;
+}
+
 #  define RNA_MAIN_LISTBASE_FUNCS_DEF(_listbase_name) \
     static void rna_Main_##_listbase_name##_begin(CollectionPropertyIterator *iter, \
                                                   PointerRNA *ptr) \
@@ -164,6 +176,26 @@ struct MainCollectionDef {
   const char *description;
   CollectionDefFunc *func;
 };
+
+static void rna_def_main_colorspace(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "BlendFileColorspace", nullptr);
+  RNA_def_struct_ui_text(srna,
+                         "Blend-File Color Space",
+                         "Information about the color space used for datablocks in a blend file");
+
+  prop = RNA_def_property(srna, "is_missing_opencolorio_config", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_boolean_funcs(
+      prop, "rna_MainColorspace_is_missing_opencolorio_config_get", nullptr);
+  RNA_def_property_ui_text(prop,
+                           "Missing OpenColorIO Configuration",
+                           "A color space, view or display was not found, which likely means the "
+                           "OpenColorIO config used to create this blend file is missing");
+}
 
 void RNA_def_main(BlenderRNA *brna)
 {
@@ -469,6 +501,17 @@ void RNA_def_main(BlenderRNA *brna)
       func(brna, prop);
     }
   }
+
+  rna_def_main_colorspace(brna);
+
+  prop = RNA_def_property(srna, "colorspace", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  RNA_def_property_struct_type(prop, "BlendFileColorspace");
+  RNA_def_property_pointer_funcs(prop, "rna_Main_colorspace_get", nullptr, nullptr, nullptr);
+  RNA_def_property_ui_text(
+      prop,
+      "Color Space",
+      "Information about the color space used for datablocks in a blend file");
 
   RNA_api_main(srna);
 
