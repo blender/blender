@@ -98,8 +98,12 @@ float3x3 imbuf_scene_linear_to_xyz = float3x3::zero();
 float3x3 imbuf_xyz_to_scene_linear = float3x3::zero();
 float3x3 imbuf_scene_linear_to_rec709 = float3x3::zero();
 float3x3 imbuf_rec709_to_scene_linear = float3x3::zero();
+float3x3 imbuf_scene_linear_to_rec2020 = float3x3::zero();
+float3x3 imbuf_rec2020_to_scene_linear = float3x3::zero();
 float3x3 imbuf_scene_linear_to_aces = float3x3::zero();
 float3x3 imbuf_aces_to_scene_linear = float3x3::zero();
+float3x3 imbuf_scene_linear_to_acescg = float3x3::zero();
+float3x3 imbuf_acescg_to_scene_linear = float3x3::zero();
 bool imbuf_scene_linear_is_rec709 = false;
 
 /* lock used by pre-cached processors getters, so processor wouldn't
@@ -514,6 +518,31 @@ static bool colormanage_role_color_space_name_get(ocio::Config &config,
   return true;
 }
 
+static void colormanage_update_matrices()
+{
+  /* Load luminance coefficients. */
+  imbuf_luma_coefficients = g_config->get_default_luma_coefs();
+
+  /* Load standard color spaces. */
+  imbuf_xyz_to_scene_linear = g_config->get_xyz_to_scene_linear_matrix();
+  imbuf_scene_linear_to_xyz = math::invert(imbuf_xyz_to_scene_linear);
+
+  imbuf_scene_linear_to_rec709 = ocio::XYZ_TO_REC709 * imbuf_scene_linear_to_xyz;
+  imbuf_rec709_to_scene_linear = math::invert(imbuf_scene_linear_to_rec709);
+
+  imbuf_scene_linear_to_rec2020 = ocio::XYZ_TO_REC2020 * imbuf_scene_linear_to_xyz;
+  imbuf_rec2020_to_scene_linear = math::invert(imbuf_scene_linear_to_rec2020);
+
+  imbuf_aces_to_scene_linear = imbuf_xyz_to_scene_linear * ocio::ACES_TO_XYZ;
+  imbuf_scene_linear_to_aces = math::invert(imbuf_aces_to_scene_linear);
+
+  imbuf_acescg_to_scene_linear = imbuf_xyz_to_scene_linear * ocio::ACESCG_TO_XYZ;
+  imbuf_scene_linear_to_acescg = math::invert(imbuf_acescg_to_scene_linear);
+
+  imbuf_scene_linear_is_rec709 = math::is_equal(
+      imbuf_scene_linear_to_rec709, float3x3::identity(), 0.0001f);
+}
+
 static bool colormanage_load_config(ocio::Config &config)
 {
   bool ok = true;
@@ -561,21 +590,7 @@ static bool colormanage_load_config(ocio::Config &config)
     }
   }
 
-  /* Load luminance coefficients. */
-  imbuf_luma_coefficients = config.get_default_luma_coefs();
-
-  /* Load standard color spaces. */
-  imbuf_xyz_to_scene_linear = config.get_xyz_to_scene_linear_matrix();
-  imbuf_scene_linear_to_xyz = math::invert(imbuf_xyz_to_scene_linear);
-
-  imbuf_scene_linear_to_rec709 = ocio::XYZ_TO_REC709 * imbuf_scene_linear_to_xyz;
-  imbuf_rec709_to_scene_linear = math::invert(imbuf_scene_linear_to_rec709);
-
-  imbuf_aces_to_scene_linear = imbuf_xyz_to_scene_linear * ocio::ACES_TO_XYZ;
-  imbuf_scene_linear_to_aces = math::invert(imbuf_aces_to_scene_linear);
-
-  imbuf_scene_linear_is_rec709 = math::is_equal(
-      imbuf_scene_linear_to_rec709, float3x3::identity(), 0.0001f);
+  colormanage_update_matrices();
 
   return ok;
 }

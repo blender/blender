@@ -94,4 +94,24 @@ void IMB_colormanagement_scene_linear_to_aces(float aces[3], const float scene_l
   mul_v3_m3v3(aces, imbuf_scene_linear_to_aces.ptr(), scene_linear);
 }
 
+void IMB_colormanagement_acescg_to_scene_linear(float scene_linear[3], const float acescg[3])
+{
+  mul_v3_m3v3(scene_linear, imbuf_acescg_to_scene_linear.ptr(), acescg);
+}
+
+void IMB_colormanagement_scene_linear_to_acescg(float acescg[3], const float scene_linear[3])
+{
+  mul_v3_m3v3(acescg, imbuf_scene_linear_to_acescg.ptr(), scene_linear);
+}
+
+void IMB_colormanagement_rec2020_to_scene_linear(float scene_linear[3], const float rec2020[3])
+{
+  mul_v3_m3v3(scene_linear, imbuf_rec2020_to_scene_linear.ptr(), rec2020);
+}
+
+void IMB_colormanagement_scene_linear_to_rec2020(float rec2020[3], const float scene_linear[3])
+{
+  mul_v3_m3v3(rec2020, imbuf_scene_linear_to_rec2020.ptr(), scene_linear);
+}
+
 #endif /* __IMB_COLORMANAGEMENT_INLINE_H__ */

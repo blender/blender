@@ -197,6 +197,38 @@ static PyObject *Color_from_aces_to_scene_linear(ColorObject *self)
 
 PyDoc_STRVAR(
     /* Wrap. */
+    Color_from_scene_linear_to_acescg_doc,
+    ".. function:: from_scene_linear_to_acescg()\n"
+    "\n"
+    "   Convert from scene linear to ACEScg linear color space.\n"
+    "\n"
+    "   :return: A color in ACEScg linear color space.\n"
+    "   :rtype: :class:`Color`\n");
+static PyObject *Color_from_scene_linear_to_acescg(ColorObject *self)
+{
+  float col[3];
+  IMB_colormanagement_scene_linear_to_acescg(col, self->col);
+  return Color_CreatePyObject(col, Py_TYPE(self));
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    Color_from_acescg_to_scene_linear_doc,
+    ".. function:: from_acescg_to_scene_linear()\n"
+    "\n"
+    "   Convert from ACEScg linear to scene linear color space.\n"
+    "\n"
+    "   :return: A color in scene linear color space.\n"
+    "   :rtype: :class:`Color`\n");
+static PyObject *Color_from_acescg_to_scene_linear(ColorObject *self)
+{
+  float col[3];
+  IMB_colormanagement_acescg_to_scene_linear(col, self->col);
+  return Color_CreatePyObject(col, Py_TYPE(self));
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
     Color_from_scene_linear_to_rec709_linear_doc,
     ".. function:: from_scene_linear_to_rec709_linear()\n"
     "\n"
@@ -224,6 +256,38 @@ static PyObject *Color_from_rec709_linear_to_scene_linear(ColorObject *self)
 {
   float col[3];
   IMB_colormanagement_rec709_to_scene_linear(col, self->col);
+  return Color_CreatePyObject(col, Py_TYPE(self));
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    Color_from_scene_linear_to_rec2020_linear_doc,
+    ".. function:: from_scene_linear_to_rec2020_linear()\n"
+    "\n"
+    "   Convert from scene linear to Rec.2020 linear color space.\n"
+    "\n"
+    "   :return: A color in Rec.2020 linear color space.\n"
+    "   :rtype: :class:`Color`\n");
+static PyObject *Color_from_scene_linear_to_rec2020_linear(ColorObject *self)
+{
+  float col[3];
+  IMB_colormanagement_scene_linear_to_rec2020(col, self->col);
+  return Color_CreatePyObject(col, Py_TYPE(self));
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    Color_from_rec2020_linear_to_scene_linear_doc,
+    ".. function:: from_rec2020_linear_to_scene_linear()\n"
+    "\n"
+    "   Convert from Rec.2020 linear color space to scene linear color space.\n"
+    "\n"
+    "   :return: A color in scene linear color space.\n"
+    "   :rtype: :class:`Color`\n");
+static PyObject *Color_from_rec2020_linear_to_scene_linear(ColorObject *self)
+{
+  float col[3];
+  IMB_colormanagement_rec2020_to_scene_linear(col, self->col);
   return Color_CreatePyObject(col, Py_TYPE(self));
 }
 
@@ -1220,6 +1284,14 @@ static PyMethodDef Color_methods[] = {
      (PyCFunction)Color_from_aces_to_scene_linear,
      METH_NOARGS,
      Color_from_aces_to_scene_linear_doc},
+    {"from_scene_linear_to_acescg",
+     (PyCFunction)Color_from_scene_linear_to_acescg,
+     METH_NOARGS,
+     Color_from_scene_linear_to_acescg_doc},
+    {"from_acescg_to_scene_linear",
+     (PyCFunction)Color_from_acescg_to_scene_linear,
+     METH_NOARGS,
+     Color_from_acescg_to_scene_linear_doc},
     {"from_scene_linear_to_rec709_linear",
      (PyCFunction)Color_from_scene_linear_to_rec709_linear,
      METH_NOARGS,
@@ -1228,6 +1300,14 @@ static PyMethodDef Color_methods[] = {
      (PyCFunction)Color_from_rec709_linear_to_scene_linear,
      METH_NOARGS,
      Color_from_rec709_linear_to_scene_linear_doc},
+    {"from_scene_linear_to_rec2020_linear",
+     (PyCFunction)Color_from_scene_linear_to_rec2020_linear,
+     METH_NOARGS,
+     Color_from_scene_linear_to_rec2020_linear_doc},
+    {"from_rec2020_linear_to_scene_linear",
+     (PyCFunction)Color_from_rec2020_linear_to_scene_linear,
+     METH_NOARGS,
+     Color_from_rec2020_linear_to_scene_linear_doc},
 #endif /* !MATH_STANDALONE */
 
     {nullptr, nullptr, 0, nullptr},

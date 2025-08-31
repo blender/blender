@@ -110,6 +110,14 @@ BLI_INLINE void IMB_colormanagement_aces_to_scene_linear(float scene_linear[3],
                                                          const float aces[3]);
 BLI_INLINE void IMB_colormanagement_scene_linear_to_aces(float aces[3],
                                                          const float scene_linear[3]);
+BLI_INLINE void IMB_colormanagement_acescg_to_scene_linear(float scene_linear[3],
+                                                           const float acescg[3]);
+BLI_INLINE void IMB_colormanagement_scene_linear_to_acescg(float acescg[3],
+                                                           const float scene_linear[3]);
+BLI_INLINE void IMB_colormanagement_rec2020_to_scene_linear(float scene_linear[3],
+                                                            const float rec2020[3]);
+BLI_INLINE void IMB_colormanagement_scene_linear_to_rec2020(float rec2020[3],
+                                                            const float scene_linear[3]);
 blender::float3x3 IMB_colormanagement_get_xyz_to_scene_linear();
 blender::float3x3 IMB_colormanagement_get_scene_linear_to_xyz();
 
