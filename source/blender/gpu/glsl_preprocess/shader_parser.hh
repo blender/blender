@@ -105,6 +105,7 @@ enum TokenType : char {
   Private = 'v',
   Public = 'V',
   Enum = 'M',
+  Using = 'u',
 };
 
 enum class ScopeType : char {
@@ -394,6 +395,9 @@ struct ParserData {
           else if (word == "enum") {
             c = Enum;
           }
+          else if (word == "using") {
+            c = Using;
+          }
         }
       }
     }
@@ -522,6 +526,42 @@ struct Token {
   Token next() const
   {
     return from_position(data, index + 1);
+  }
+
+  Token find_next(TokenType type) const
+  {
+    Token tok = this->next();
+    while (tok.is_valid() && tok != type) {
+      tok = tok.next();
+    }
+    return tok;
+  }
+
+  /* Return start of namespace identifier is the token is part of one. */
+  Token namespace_start() const
+  {
+    if (*this != Word) {
+      return *this;
+    }
+    /* Scan back identifier that could contain namespaces. */
+    Token tok = *this;
+    while (tok.is_valid()) {
+      if (tok.prev() == ':') {
+        tok = tok.prev().prev().prev();
+      }
+      else {
+        return tok;
+      }
+    }
+    return tok;
+  }
+
+  /* For a word, return the name containing the prefix namespaces if present. */
+  std::string full_symbol_name() const
+  {
+    size_t start = this->namespace_start().str_index_start();
+    size_t end = this->str_index_last_no_whitespace();
+    return data->str.substr(start, end - start + 1);
   }
 
   /* Only usable when building with whitespace. */
@@ -791,6 +831,12 @@ struct Scope {
       pos += 1;
     }
   }
+
+  void foreach_token(const TokenType token_type, std::function<void(const Token)> callback)
+  {
+    const char str[2] = {token_type, '\0'};
+    foreach_match(str, [&](const std::vector<Token> &tokens) { callback(tokens[0]); });
+  }
 };
 
 inline Scope Token::scope() const
@@ -855,14 +901,22 @@ inline void ParserData::parse_scopes(report_callback &report_error)
           }
           enter_scope(ScopeType::Assignment, tok_id);
           break;
-        case BracketOpen:
-          if (tok_id >= 2 && token_types[tok_id - 2] == Struct) {
+        case BracketOpen: {
+          /* Scan back identifier that could contain namespaces. */
+          TokenType keyword;
+          int pos = 2;
+          do {
+            keyword = (tok_id >= pos) ? TokenType(token_types[tok_id - pos]) : TokenType::Invalid;
+            pos += 3;
+          } while (keyword != Invalid && keyword == Colon);
+
+          if (keyword == Struct) {
             enter_scope(ScopeType::Local, tok_id);
           }
-          else if (tok_id >= 2 && token_types[tok_id - 2] == Enum) {
+          else if (keyword == Enum) {
             enter_scope(ScopeType::Local, tok_id);
           }
-          else if (tok_id >= 2 && token_types[tok_id - 2] == Namespace) {
+          else if (keyword == Namespace) {
             enter_scope(ScopeType::Namespace, tok_id);
           }
           else if (scopes.top().type == ScopeType::Global) {
@@ -878,6 +932,7 @@ inline void ParserData::parse_scopes(report_callback &report_error)
             enter_scope(ScopeType::Local, tok_id);
           }
           break;
+        }
         case ParOpen:
           if (scopes.top().type == ScopeType::Global) {
             enter_scope(ScopeType::FunctionArgs, tok_id);

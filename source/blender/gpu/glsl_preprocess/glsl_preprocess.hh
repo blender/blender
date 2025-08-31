@@ -1037,105 +1037,92 @@ class Preprocessor {
   std::string using_mutation(const std::string &str, report_callback report_error)
   {
     using namespace std;
+    using namespace shader::parser;
 
-    if (str.find("using ") == string::npos) {
-      return str;
-    }
+    Parser parser(str, report_error);
 
-    if (str.find("using namespace ") != string::npos) {
-      regex_global_search(str, regex(R"(\busing namespace\b)"), [&](const smatch &match) {
-        report_error(line_number(match),
-                     char_number(match),
-                     line_str(match),
-                     "Unsupported `using namespace`. "
-                     "Add individual `using` directives for each needed symbol.");
-      });
-      return str;
-    }
+    parser.foreach_match("un", [&](const std::vector<Token> &tokens) {
+      report_error(ERROR_TOK(tokens[0]),
+                   "Unsupported `using namespace`. "
+                   "Add individual `using` directives for each needed symbol.");
+    });
 
-    string next_str = str;
+    auto process_using = [&](const Token &using_tok,
+                             const Token &from,
+                             const Token &to_start,
+                             const Token &to_end,
+                             const Token &end_tok) {
+      string to = parser.substr_range_inclusive(to_start, to_end);
+      string namespace_prefix = parser.substr_range_inclusive(to_start,
+                                                              to_end.prev().prev().prev());
+      Scope scope = from.scope();
 
-    string out_str;
-    /* Using namespace symbol. Example: `using A::B;` */
-    /* Using as type alias. Example: `using S = A::B;` */
-    regex regex_using(R"(\busing (?:(\w+) = )?(([\w\:\<\>]+)::(\w+));)");
-
-    smatch match;
-    while (regex_search(next_str, match, regex_using)) {
-      const string using_definition = match[0].str();
-      const string alias = match[1].str();
-      const string to = match[2].str();
-      const string namespace_prefix = match[3].str();
-      const string symbol = match[4].str();
-      const string prefix = match.prefix().str();
-      const string suffix = match.suffix().str();
-
-      out_str += prefix;
-      /* Assumes formatted input. */
-      if (prefix.back() == '\n') {
-        /* Using the keyword in global or at namespace scope. */
-        const string parent_scope = get_content_between_balanced_pair(
-            out_str + '}', '{', '}', true);
-        if (parent_scope.empty()) {
-          report_error(line_number(match),
-                       char_number(match),
-                       line_str(match),
-                       "The `using` keyword is not allowed in global scope.");
-          return str;
-        }
+      /* Using the keyword in global or at namespace scope. */
+      if (scope.type() == ScopeType::Global) {
+        report_error(ERROR_TOK(using_tok), "The `using` keyword is not allowed in global scope.");
+        return;
+      }
+      if (scope.type() == ScopeType::Namespace) {
         /* Ensure we are bringing symbols from the same namespace.
          * Otherwise we can have different shadowing outcome between shader and C++. */
-        const string ns_keyword = "namespace ";
-        size_t pos = out_str.rfind(ns_keyword, out_str.size() - parent_scope.size());
-        if (pos == string::npos) {
-          report_error(line_number(match),
-                       char_number(match),
-                       line_str(match),
-                       "Couldn't find `namespace` keyword at beginning of scope.");
-          return str;
-        }
-        size_t start = pos + ns_keyword.size();
-        size_t end = out_str.size() - parent_scope.size() - start - 2;
-        const string namespace_scope = out_str.substr(start, end);
-        if (namespace_scope != namespace_prefix) {
+        string namespace_name = scope.start().prev().full_symbol_name();
+        if (namespace_name != namespace_prefix) {
           report_error(
-              line_number(match),
-              char_number(match),
-              line_str(match),
+              ERROR_TOK(using_tok),
               "The `using` keyword is only allowed in namespace scope to make visible symbols "
               "from the same namespace declared in another scope, potentially from another "
               "file.");
-          return str;
+          return;
         }
       }
-      /** IMPORTANT: `match` is invalid after the assignment. */
-      next_str = using_definition + suffix;
+
       /* Assignments do not allow to alias functions symbols. */
-      const bool replace_fn = alias.empty();
-      /* Replace the alias (the left part of the assignment) or the last symbol. */
-      const string from = !alias.empty() ? alias : symbol;
-      /* Replace all occurrences of the non-namespace specified symbol.
-       * Reject symbols that contain the target symbol name. */
+      const bool use_alias = from.str() != to_end.str();
+      const bool replace_fn = !use_alias;
       /** IMPORTANT: If replace_fn is true, this can replace any symbol type if there are functions
        * and types with the same name. We could support being more explicit about the type of
        * symbol to replace using an optional attribute [[gpu::using_function]]. */
-      const regex regex(R"(([^:\w]))" + from + R"(([\s)" + (replace_fn ? R"(\()" : "") + "])");
-      const string in_scope = get_content_between_balanced_pair('{' + suffix, '{', '}');
-      const string out_scope = regex_replace(in_scope, regex, "$1" + to + "$2");
-      replace_all(next_str, using_definition + in_scope, out_scope);
-    }
-    out_str += next_str;
+
+      /* Replace all occurrences of the non-namespace specified symbol. */
+      scope.foreach_token(Word, [&](const Token &token) {
+        /* Do not replace symbols before the using statement. */
+        if (token.index <= to_end.index) {
+          return;
+        }
+        /* Reject symbols that contain the target symbol name. */
+        if (token.prev() == ':') {
+          return;
+        }
+        if (!replace_fn && token.next() == '(') {
+          return;
+        }
+        if (token.str() != from.str()) {
+          return;
+        }
+        parser.replace(token, to, true);
+      });
+
+      parser.erase(using_tok, end_tok);
+    };
+
+    parser.foreach_match("uw::w", [&](const std::vector<Token> &tokens) {
+      Token end = tokens.back().find_next(SemiColon);
+      process_using(tokens[0], end.prev(), tokens[1], end.prev(), end);
+    });
+
+    parser.foreach_match("uw=w::w", [&](const std::vector<Token> &tokens) {
+      Token end = tokens.back().find_next(SemiColon);
+      process_using(tokens[0], tokens[1], tokens[3], end.prev(), end);
+    });
+
+    parser.apply_mutations();
 
     /* Verify all using were processed. */
-    if (out_str.find("using ") != string::npos) {
-      regex_global_search(out_str, regex(R"(\busing\b)"), [&](const smatch &match) {
-        report_error(line_number(match),
-                     char_number(match),
-                     line_str(match),
-                     "Unsupported `using` keyword usage.");
-      });
-    }
-    return out_str;
+    parser.foreach_token(Using, [&](const Token &token) {
+      report_error(ERROR_TOK(token), "Unsupported `using` keyword usage.");
+    });
+
+    return parser.result_get();
   }
 
   std::string namespace_separator_mutation(const std::string &str)

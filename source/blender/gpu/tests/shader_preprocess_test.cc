@@ -1242,6 +1242,17 @@ sw{ww=0;};Sw{ww;};)";
   }
   {
     string input = R"(
+namespace T {}
+namespace T::U::V {}
+)";
+    string expect = R"(
+nw{}nw::w::w{})";
+    string expect_scopes = R"(GNN)";
+    EXPECT_EQ(Parser(input, no_err_report).data_get().token_types, expect);
+    EXPECT_EQ(Parser(input, no_err_report).data_get().scope_types, expect_scopes);
+  }
+  {
+    string input = R"(
 void f(int t = 0) {
   int i = 0, u = 2, v = {1.0f};
   {
