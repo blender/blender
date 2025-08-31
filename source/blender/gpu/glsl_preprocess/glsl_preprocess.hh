@@ -993,44 +993,58 @@ class Preprocessor {
       return str;
     }
 
+    using namespace std;
+    using namespace shader::parser;
+
+    Parser parser(str, report_error);
+
     std::string out = str;
 
     /* Parse each namespace declaration. */
-    std::regex regex(R"(namespace (\w+(?:\:\:\w+)*))");
-    regex_global_search(str, regex, [&](const std::smatch &match) {
-      std::string namespace_name = match[1].str();
-      std::string content = get_content_between_balanced_pair(match.suffix().str(), '{', '}');
-
-      if (content.find("namespace") != std::string::npos) {
-        report_error(line_number(match),
-                     char_number(match),
-                     line_str(match),
-                     "Nested namespaces are unsupported.");
-        return;
-      }
-
-      std::string out_content = content;
-
-      /* Parse all global symbols (struct / functions) inside the content. */
-      std::regex regex(R"([\n\>] ?(?:const )?(\w+) (\w+)\(?)");
-      regex_global_search(content, regex, [&](const std::smatch &match) {
-        std::string return_type = match[1].str();
-        if (return_type == "template") {
-          /* Matched a template instantiation. */
-          return;
-        }
-        std::string function = match[2].str();
-        /* Replace all occurrences of the non-namespace specified symbol.
-         * Reject symbols that contain the target symbol name. */
-        std::regex regex(R"(([^:\w]))" + function + R"(([\s\(\<]))");
-        out_content = std::regex_replace(
-            out_content, regex, "$1" + namespace_name + "::" + function + "$2");
+    parser.foreach_scope(ScopeType::Namespace, [&](const Scope &scope) {
+      /* TODO(fclem): This could be supported using multiple passes. */
+      scope.foreach_match("n", [&](const std::vector<Token> &tokens) {
+        report_error(ERROR_TOK(tokens[0]), "Nested namespaces are unsupported.");
       });
 
-      replace_all(out, "namespace " + namespace_name + " {" + content + "}", out_content);
+      string namespace_prefix = scope.start().prev().full_symbol_name() + "::";
+      auto process_symbol = [&](const Token &symbol) {
+        if (symbol.next() == '<') {
+          /* Template instantiation or specialization. */
+          return;
+        }
+        /* Replace all occurrences of the non-namespace specified symbol. */
+        scope.foreach_token(Word, [&](const Token &token) {
+          if (token.str() != symbol.str()) {
+            return;
+          }
+          /* Reject symbols that already have namespace specified. */
+          if (token.namespace_start() != token) {
+            return;
+          }
+          /* Reject method calls. */
+          if (token.prev() == '.') {
+            return;
+          }
+          parser.replace(token, namespace_prefix + token.str(), true);
+        });
+      };
+
+      scope.foreach_function(
+          [&](bool, Token, Token fn_name, Scope, bool, Scope) { process_symbol(fn_name); });
+      scope.foreach_struct([&](Token, Token struct_name, Scope) { process_symbol(struct_name); });
+
+      Token namespace_tok = scope.start().prev().namespace_start().prev();
+      if (namespace_tok == Namespace) {
+        parser.erase(namespace_tok, scope.start());
+        parser.erase(scope.end());
+      }
+      else {
+        report_error(ERROR_TOK(namespace_tok), "Expected namespace token.");
+      }
     });
 
-    return out;
+    return parser.result_get();
   }
 
   /* Needs to run before namespace mutation so that `using` have more precedence. */

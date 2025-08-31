@@ -675,6 +675,15 @@ struct Token {
   {
     return *this != TokenType(type);
   }
+
+  bool operator==(const Token &other) const
+  {
+    return this->index == other.index && this->data == other.data;
+  }
+  bool operator!=(const Token &other) const
+  {
+    return !(*this == other);
+  }
 };
 
 struct Scope {
@@ -832,10 +841,59 @@ struct Scope {
     }
   }
 
-  void foreach_token(const TokenType token_type, std::function<void(const Token)> callback)
+  void foreach_token(const TokenType token_type, std::function<void(const Token)> callback) const
   {
     const char str[2] = {token_type, '\0'};
     foreach_match(str, [&](const std::vector<Token> &tokens) { callback(tokens[0]); });
+  }
+
+  /* Run a callback for all existing function scopes. */
+  void foreach_function(
+      std::function<void(
+          bool is_static, Token type, Token name, Scope args, bool is_const, Scope body)> callback)
+      const
+  {
+    foreach_match("m?ww(..)c?{..}", [&](const std::vector<Token> matches) {
+      callback(matches[0] == Static,
+               matches[2],
+               matches[3],
+               matches[4].scope(),
+               matches[8] == Const,
+               matches[10].scope());
+    });
+    foreach_match("m?ww::w(..)c?{..}", [&](const std::vector<Token> matches) {
+      callback(matches[0] == Static,
+               matches[2],
+               matches[6],
+               matches[7].scope(),
+               matches[11] == Const,
+               matches[13].scope());
+    });
+    foreach_match("m?ww<..>(..)c?{..}", [&](const std::vector<Token> matches) {
+      callback(matches[0] == Static,
+               matches[2],
+               matches[3],
+               matches[8].scope(),
+               matches[12] == Const,
+               matches[14].scope());
+    });
+  }
+
+  /* Run a callback for all existing struct scopes. */
+  void foreach_struct(std::function<void(Token struct_tok, Token name, Scope body)> callback) const
+  {
+    foreach_match("sw{..}", [&](const std::vector<Token> matches) {
+      callback(matches[0], matches[1], matches[2].scope());
+    });
+    foreach_match("Sw{..}", [&](const std::vector<Token> matches) {
+      callback(matches[0], matches[1], matches[2].scope());
+    });
+    foreach_match("sw<..>{..}", [&](const std::vector<Token> matches) {
+      callback(matches[0], matches[1], matches[6].scope());
+    });
+    foreach_match("Sw<..>{..}", [&](const std::vector<Token> matches) {
+      callback(matches[0], matches[1], matches[6].scope());
+    });
   }
 };
 
