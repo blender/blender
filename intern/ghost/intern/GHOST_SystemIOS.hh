@@ -229,8 +229,8 @@ class GHOST_SystemIOS : public GHOST_System {
    * \param window: The window on which the event occurred.
    * \return Indication whether the event was handled.
    */
-  GHOST_TSuccess popupOnScreenKeyboard(GHOST_IWindow *window,
-                                       const GHOST_KeyboardProperties &keyboard_properties) override;
+  GHOST_TSuccess popupOnScreenKeyboard(
+      GHOST_IWindow *window, const GHOST_KeyboardProperties &keyboard_properties) override;
 
   /**
    * Hides a popup a keybaord. Called by GHOST_WindowIOS window subclass

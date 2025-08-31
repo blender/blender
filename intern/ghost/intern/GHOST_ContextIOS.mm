@@ -32,7 +32,9 @@ int GHOST_ContextIOS::s_shared_count = 0;
 
 static const MTLPixelFormat METAL_FRAMEBUFFERPIXEL_FORMAT_EDR = MTLPixelFormatRGBA16Float;
 
-GHOST_ContextIOS::GHOST_ContextIOS(const GHOST_ContextParams &context_params,UIView *uiView, MTKView *metalView)
+GHOST_ContextIOS::GHOST_ContextIOS(const GHOST_ContextParams &context_params,
+                                   UIView *uiView,
+                                   MTKView *metalView)
     : GHOST_Context(context_params),
       ui_view_(uiView),
       metal_view_(metalView),

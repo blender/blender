@@ -44,7 +44,7 @@ void WM_main_loop_body(bContext *C);
 int main_ios_callback(int argc, const char **argv);
 
 @interface IOSAppDelegate : UIResponder <UIApplicationDelegate>
-   
+
 @property(strong, nonatomic) UIWindow *window;
 
 @end
