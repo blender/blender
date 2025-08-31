@@ -1803,7 +1803,8 @@ static wmOperatorStatus wm_operator_props_popup_ex(
     const bool do_redo,
     std::optional<std::string> title = std::nullopt,
     std::optional<std::string> confirm_text = std::nullopt,
-    const bool cancel_default = false)
+    const bool cancel_default = false,
+    std::optional<std::string> message = std::nullopt)
 {
   if ((op->type->flag & OPTYPE_REGISTER) == 0) {
     BKE_reportf(op->reports,
@@ -1826,7 +1827,8 @@ static wmOperatorStatus wm_operator_props_popup_ex(
   /* If we don't have global undo, we can't do undo push for automatic redo,
    * so we require manual OK clicking in this popup. */
   if (!do_redo || !(U.uiflag & USER_GLOBALUNDO)) {
-    return WM_operator_props_dialog_popup(C, op, 300, title, confirm_text, cancel_default);
+    return WM_operator_props_dialog_popup(
+        C, op, 300, title, confirm_text, cancel_default, message);
   }
 
   UI_popup_block_ex(C, wm_block_create_redo, nullptr, wm_block_redo_cancel_cb, op, op);
@@ -1843,9 +1845,11 @@ wmOperatorStatus WM_operator_props_popup_confirm_ex(bContext *C,
                                                     const wmEvent * /*event*/,
                                                     std::optional<std::string> title,
                                                     std::optional<std::string> confirm_text,
-                                                    const bool cancel_default)
+                                                    const bool cancel_default,
+                                                    std::optional<std::string> message)
 {
-  return wm_operator_props_popup_ex(C, op, false, false, title, confirm_text, cancel_default);
+  return wm_operator_props_popup_ex(
+      C, op, false, false, title, confirm_text, cancel_default, message);
 }
 
 wmOperatorStatus WM_operator_props_popup_confirm(bContext *C,
@@ -1872,7 +1876,8 @@ wmOperatorStatus WM_operator_props_dialog_popup(bContext *C,
                                                 int width,
                                                 std::optional<std::string> title,
                                                 std::optional<std::string> confirm_text,
-                                                const bool cancel_default)
+                                                const bool cancel_default,
+                                                std::optional<std::string> message)
 {
   wmOpPopUp *data = MEM_new<wmOpPopUp>(__func__);
   data->op = op;
@@ -1881,9 +1886,10 @@ wmOperatorStatus WM_operator_props_dialog_popup(bContext *C,
   data->free_op = true; /* If this runs and gets registered we may want not to free it. */
   data->title = title ? std::move(*title) : WM_operatortype_name(op->type, op->ptr);
   data->confirm_text = confirm_text ? std::move(*confirm_text) : IFACE_("OK");
+  data->message = message ? std::move(*message) : std::string();
   data->icon = ALERT_ICON_NONE;
   data->size = WM_POPUP_SIZE_SMALL;
-  data->position = WM_POPUP_POSITION_MOUSE;
+  data->position = (message) ? WM_POPUP_POSITION_CENTER : WM_POPUP_POSITION_MOUSE;
   data->cancel_default = cancel_default;
   data->mouse_move_quit = false;
   data->include_properties = true;
@@ -4236,6 +4242,7 @@ void wm_operatortypes_register()
   WM_operatortype_append(WM_OT_previews_ensure);
   WM_operatortype_append(WM_OT_previews_clear);
   WM_operatortype_append(WM_OT_doc_view_manual_ui_context);
+  WM_operatortype_append(WM_OT_set_working_color_space);
 
 #ifdef WITH_XR_OPENXR
   wm_xr_operatortypes_register();
