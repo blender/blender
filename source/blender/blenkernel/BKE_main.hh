@@ -25,6 +25,7 @@
 #include "DNA_listBase.h"
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_sys_types.h"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector_set.hh"
@@ -141,6 +142,14 @@ enum {
 };
 
 struct MainColorspace {
+  /*
+   * File working colorspace for all scene linear colors.
+   * The name is only for the user interface and is not a unique identifier, the matrix is
+   * the XYZ colorspace is the source of truth.
+   * */
+  char scene_linear_name[64 /*MAX_COLORSPACE_NAME*/] = "";
+  blender::float3x3 scene_linear_to_xyz = blender::float3x3::zero();
+
   /*
    * A colorspace, view or display was not found, which likely means the OpenColorIO config
    * used to create this blend file is missing.

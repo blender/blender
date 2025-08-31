@@ -12,10 +12,13 @@
 #include "BLI_path_utils.hh"
 
 #include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "rna_internal.hh"
 
 #ifdef RNA_RUNTIME
+
+#  include "IMB_colormanagement.hh"
 
 #  include "DNA_windowmanager_types.h"
 
@@ -86,6 +89,28 @@ static PointerRNA rna_Main_colorspace_get(PointerRNA *ptr)
 {
   Main *bmain = (Main *)ptr->data;
   return PointerRNA(nullptr, &RNA_BlendFileColorspace, &bmain->colorspace);
+}
+
+static int rna_MainColorspace_working_space_get(PointerRNA *ptr)
+{
+  MainColorspace *colorspace = ptr->data_as<MainColorspace>();
+  return IMB_colormanagement_working_space_get_named_index(colorspace->scene_linear_name);
+}
+
+static const EnumPropertyItem *rna_MainColorspace_working_space_itemf(bContext * /*C*/,
+                                                                      PointerRNA * /*ptr*/,
+                                                                      PropertyRNA * /*prop*/,
+                                                                      bool *r_free)
+{
+  EnumPropertyItem *items = nullptr;
+  int totitem = 0;
+
+  IMB_colormanagement_working_space_items_add(&items, &totitem);
+  RNA_enum_item_end(&items, &totitem);
+
+  *r_free = true;
+
+  return items;
 }
 
 static bool rna_MainColorspace_is_missing_opencolorio_config_get(PointerRNA *ptr)
@@ -185,7 +210,20 @@ static void rna_def_main_colorspace(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "BlendFileColorspace", nullptr);
   RNA_def_struct_ui_text(srna,
                          "Blend-File Color Space",
-                         "Information about the color space used for datablocks in a blend file");
+                         "Information about the color space used for data-blocks in a blend file");
+
+  prop = RNA_def_property(srna, "working_space", PROP_ENUM, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_enum_items(prop, rna_enum_dummy_NULL_items);
+  RNA_def_property_ui_text(prop,
+                           "Working Space",
+                           "Color space used for all scene linear colors in this file, and "
+                           "for compositing, shader and geometry nodes processing");
+  RNA_def_property_enum_funcs(prop,
+                              "rna_MainColorspace_working_space_get",
+                              nullptr,
+                              "rna_MainColorspace_working_space_itemf");
 
   prop = RNA_def_property(srna, "is_missing_opencolorio_config", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -511,7 +549,7 @@ void RNA_def_main(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Color Space",
-      "Information about the color space used for datablocks in a blend file");
+      "Information about the color space used for data-blocks in a blend file");
 
   RNA_api_main(srna);
 

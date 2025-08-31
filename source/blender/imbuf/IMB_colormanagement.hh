@@ -19,6 +19,7 @@ struct ColorManagedColorspaceSettings;
 struct ColorManagedDisplaySettings;
 struct ColorManagedViewSettings;
 struct ColormanageProcessor;
+struct ID;
 struct EnumPropertyItem;
 struct ImBuf;
 struct ImageFormatData;
@@ -389,6 +390,37 @@ const char *IMB_colormanagement_view_get_raw_or_default_name(const char *display
 
 void IMB_colormanagement_colorspace_from_ibuf_ftype(
     ColorManagedColorspaceSettings *colorspace_settings, ImBuf *ibuf);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Working Space Functions
+ * \{ */
+
+const char *IMB_colormanagement_working_space_get_default();
+const char *IMB_colormanagement_working_space_get();
+
+bool IMB_colormanagement_working_space_set_from_name(const char *name);
+bool IMB_colormanagement_working_space_set_from_matrix(
+    const char *name, const blender::float3x3 &scene_linear_to_xyz);
+
+void IMB_colormanagement_working_space_check(Main *bmain,
+                                             const bool for_undo,
+                                             const bool have_editable_assets);
+
+void IMB_colormanagement_working_space_init(Main *bmain);
+void IMB_colormanagement_working_space_convert(
+    Main *bmain,
+    const blender::float3x3 &current_scene_linear_to_xyz,
+    const blender::float3x3 &new_xyz_to_scene_linear,
+    const bool depsgraph_tag = false,
+    const bool linked_only = false,
+    const bool editable_assets_only = false);
+void IMB_colormanagement_working_space_convert(Main *bmain, const Main *reference_bmain);
+
+int IMB_colormanagement_working_space_get_named_index(const char *name);
+const char *IMB_colormanagement_working_space_get_indexed_name(int index);
+void IMB_colormanagement_working_space_items_add(EnumPropertyItem **items, int *totitem);
 
 /** \} */
 

@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "libocio_colorspace.hh"
+#include "OCIO_cpu_processor.hh"
+#include "intern/cpu_processor_cache.hh"
 
 #if defined(WITH_OPENCOLORIO)
 

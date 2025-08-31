@@ -97,6 +97,7 @@
 #include "BLI_fileops.hh"
 #include "BLI_implicit_sharing.hh"
 #include "BLI_math_base.h"
+#include "BLI_math_matrix.h"
 #include "BLI_multi_value_map.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_set.hh"
@@ -1240,6 +1241,9 @@ static void write_global(WriteData *wd, const int fileflags, Main *mainvar)
   fg.curscreen = screen;
   fg.curscene = scene;
   fg.cur_view_layer = view_layer;
+
+  STRNCPY(fg.colorspace_scene_linear_name, mainvar->colorspace.scene_linear_name);
+  copy_m3_m3(fg.colorspace_scene_linear_to_xyz, mainvar->colorspace.scene_linear_to_xyz.ptr());
 
   /* Prevent to save this, is not good convention, and feature with concerns. */
   fg.fileflags = (fileflags & ~G_FILE_FLAG_ALL_RUNTIME);
