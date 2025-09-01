@@ -312,16 +312,23 @@ struct PenToolOperation {
         return;
       }
 
+      const bool is_left = !right_selected[point_i];
       if (this->move_handle) {
-        const float2 pos_right = this->layer_to_screen(layer_to_object, handles_right[point_i]);
-        handles_right[point_i] = this->screen_to_layer(
-            layer_to_world, pos_right + offset, depth_point);
+        if (is_left) {
+          const float2 pos_left = this->layer_to_screen(layer_to_object, handles_left[point_i]);
+          handles_left[point_i] = this->screen_to_layer(
+              layer_to_world, pos_left + offset, depth_point);
+        }
+        else {
+          const float2 pos_right = this->layer_to_screen(layer_to_object, handles_right[point_i]);
+          handles_right[point_i] = this->screen_to_layer(
+              layer_to_world, pos_right + offset, depth_point);
+        }
         handle_types_left[point_i] = BEZIER_HANDLE_FREE;
         handle_types_right[point_i] = BEZIER_HANDLE_FREE;
         return;
       }
 
-      const bool is_left = !right_selected[point_i];
       const float2 center_point = this->layer_to_screen(layer_to_object, depth_point);
       offset = this->mouse_co - this->center_of_mass_co;
 
