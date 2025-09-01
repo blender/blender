@@ -2254,6 +2254,195 @@ static void UV_OT_mark_seam(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "clear", false, "Clear Seams", "Clear instead of marking seams");
 }
 
+static bool uv_copy_mirrored_faces(BMesh *bm, int direction, int precision, int *r_double_warn)
+{
+  *r_double_warn = 0;
+  const float precision_scale = powf(10.0f, precision);
+  /* TODO: replace mirror look-ups with #EditMeshSymmetryHelper. */
+  Map<float3, BMVert *> mirror_gt, mirror_lt;
+  Map<BMVert *, BMVert *> vmap;
+
+  BMVert *v;
+  BMIter iter;
+  BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+    float3 pos = math::round(float3(v->co) * precision_scale);
+    if (pos.x >= 0.0f) {
+      if (mirror_gt.contains(pos)) {
+        (*r_double_warn)++;
+      }
+      mirror_gt.add(pos, v);
+    }
+    if (pos.x <= 0.0f) {
+      if (mirror_lt.contains(pos)) {
+        (*r_double_warn)++;
+      }
+      mirror_lt.add(pos, v);
+    }
+  }
+
+  for (const auto &[pos, v] : mirror_gt.items()) {
+    float3 mirror_pos = pos;
+    mirror_pos[0] = -mirror_pos[0];
+    BMVert *v_mirror = mirror_lt.lookup_default(mirror_pos, nullptr);
+    if (v_mirror) {
+      vmap.add(v, v_mirror);
+    }
+  }
+  for (const auto &[pos, v] : mirror_lt.items()) {
+    float3 mirror_pos = pos;
+    mirror_pos[0] = -mirror_pos[0];
+    BMVert *v_mirror = mirror_gt.lookup_default(mirror_pos, nullptr);
+    if (v_mirror) {
+      vmap.add(v, v_mirror);
+    }
+  }
+
+  Map<Array<BMVert *>, BMFace *> sorted_verts_to_face;
+  /* Maps faces to their corresponding mirrored face. */
+  Map<BMFace *, BMFace *> face_map;
+
+  BMFace *f;
+  BMIter iter_face;
+  BM_ITER_MESH (f, &iter_face, bm, BM_FACES_OF_MESH) {
+    Array<BMVert *> sorted_verts(f->len);
+    bool valid = true;
+    int loop_index = 0;
+    BMLoop *l;
+    BMIter liter;
+    BM_ITER_ELEM_INDEX (l, &liter, f, BM_LOOPS_OF_FACE, loop_index) {
+      if (!vmap.contains(l->v)) {
+        valid = false;
+        break;
+      }
+      sorted_verts[loop_index] = l->v;
+    }
+    if (valid) {
+      std::sort(sorted_verts.begin(), sorted_verts.end());
+      sorted_verts_to_face.add(std::move(sorted_verts), f);
+    }
+  }
+
+  for (const auto &[sorted_verts, f_dst] : sorted_verts_to_face.items()) {
+    Array<BMVert *> mirror_verts(sorted_verts.size());
+    for (int index = 0; index < sorted_verts.size(); index++) {
+      mirror_verts[index] = vmap.lookup_default(sorted_verts[index], nullptr);
+    }
+    std::sort(mirror_verts.begin(), mirror_verts.end());
+    BMFace *f_src = sorted_verts_to_face.lookup_default(mirror_verts, nullptr);
+    if (f_src) {
+      if (f_src != f_dst) {
+        face_map.add(f_dst, f_src);
+      }
+    }
+  }
+
+  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_PROP_FLOAT2);
+
+  bool changed = false;
+  for (const auto &[f_dst, f_src] : face_map.items()) {
+
+    {
+      float f_dst_center[3];
+      BM_face_calc_center_median(f_dst, f_dst_center);
+      if (direction ? (f_dst_center[0] > 0.0f) : (f_dst_center[0] < 0.0f)) {
+        continue;
+      }
+    }
+
+    BMIter liter;
+    BMLoop *l_dst;
+
+    BM_ITER_ELEM (l_dst, &liter, f_dst, BM_LOOPS_OF_FACE) {
+      BMVert *v_src = vmap.lookup_default(l_dst->v, nullptr);
+      if (!v_src) {
+        continue;
+      }
+
+      BMLoop *l_src = BM_face_vert_share_loop(f_src, v_src);
+      if (!l_src) {
+        continue;
+      }
+      const float *uv_src = BM_ELEM_CD_GET_FLOAT_P(l_src, cd_loop_uv_offset);
+      float *uv_dst = BM_ELEM_CD_GET_FLOAT_P(l_dst, cd_loop_uv_offset);
+
+      uv_dst[0] = -(uv_src[0] - 0.5f) + 0.5f;
+      uv_dst[1] = uv_src[1];
+      changed = true;
+    }
+  }
+
+  return changed;
+}
+
+static wmOperatorStatus uv_copy_mirrored_faces_exec(bContext *C, wmOperator *op)
+{
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+      scene, view_layer, nullptr);
+  const int direction = RNA_enum_get(op->ptr, "direction");
+  const int precision = RNA_int_get(op->ptr, "precision");
+
+  int total_duplicates = 0;
+  int meshes_with_duplicates = 0;
+
+  for (Object *obedit : objects) {
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+    int double_warn = 0;
+
+    bool changed = uv_copy_mirrored_faces(em->bm, direction, precision, &double_warn);
+
+    if (double_warn) {
+      total_duplicates += double_warn;
+      meshes_with_duplicates++;
+    }
+
+    if (changed) {
+      DEG_id_tag_update(static_cast<ID *>(obedit->data), 0);
+      WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+    }
+  }
+
+  if (total_duplicates) {
+    BKE_reportf(op->reports,
+                RPT_WARNING,
+                "%d duplicates found in %d mesh(es), mirror may be incomplete",
+                total_duplicates,
+                meshes_with_duplicates);
+  }
+
+  return OPERATOR_FINISHED;
+}
+void UV_OT_copy_mirrored_faces(wmOperatorType *ot)
+{
+  static const EnumPropertyItem direction_items[] = {
+      {0, "POSITIVE", 0, "Positive", ""},
+      {1, "NEGATIVE", 0, "Negative", ""},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  ot->name = "Copy Mirrored UV Coords";
+  ot->description = "Copy mirror UV coordinates on the X axis based on a mirrored mesh";
+  ot->idname = "UV_OT_copy_mirrored_faces";
+
+  ot->exec = uv_copy_mirrored_faces_exec;
+  ot->poll = ED_operator_editmesh;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_enum(ot->srna, "direction", direction_items, 0, "Axis Direction", "");
+  RNA_def_int(ot->srna,
+              "precision",
+              3,
+              1,
+              16,
+              "Precision",
+              "Tolerance for finding vertex duplicates",
+              1,
+              16);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -2314,6 +2503,7 @@ void ED_operatortypes_uvedit()
   WM_operatortype_append(UV_OT_paste);
 
   WM_operatortype_append(UV_OT_cursor_set);
+  WM_operatortype_append(UV_OT_copy_mirrored_faces);
 }
 
 void ED_operatormacros_uvedit()
