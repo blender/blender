@@ -1853,6 +1853,18 @@ static void blendfile_library_relocate_id_remap(BlendfileLinkAppendContext &lapp
       continue;
     }
     ID *new_id = item.new_id;
+    if (!new_id) {
+      if (do_reload) {
+        /* Since we asked for placeholders in case of missing IDs, we expect to always get a valid
+         * one. */
+        BLI_assert_msg(false,
+                       "On library reload, placeholders should be generated when a linked ID is "
+                       "missing, so there should never be a nullptr 'new_id' here");
+      }
+      /* If finding a valid matching ID for `old_id` in the searched library(-ies) failed, do not
+       * clear references to the current 'old_id' placeholder. */
+      continue;
+    }
     blendfile_library_relocate_id_remap_finalize(
         bmain, old_owner_id_to_shapekey, old_id, new_id, reports, do_reload);
   }
