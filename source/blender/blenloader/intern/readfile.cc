@@ -826,6 +826,7 @@ static BHead *blo_bhead_read_full(FileData *fd, BHead *thisblock)
 
 const char *blo_bhead_id_name(FileData *fd, const BHead *bhead)
 {
+  BLI_assert(blo_bhead_is_id(bhead));
   const char *id_name = reinterpret_cast<const char *>(
       POINTER_OFFSET(bhead, sizeof(*bhead) + fd->id_name_offset));
   if (std::memchr(id_name, '\0', MAX_ID_NAME)) {
