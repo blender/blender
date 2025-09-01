@@ -1838,15 +1838,6 @@ const blender::VectorSet<int> &Mesh::material_indices_used() const
 
 namespace blender::bke {
 
-static void transform_positions(MutableSpan<float3> positions, const float4x4 &matrix)
-{
-  threading::parallel_for(positions.index_range(), 1024, [&](const IndexRange range) {
-    for (float3 &position : positions.slice(range)) {
-      position = math::transform_point(matrix, position);
-    }
-  });
-}
-
 static void translate_positions(MutableSpan<float3> positions, const float3 &translation)
 {
   threading::parallel_for(positions.index_range(), 2048, [&](const IndexRange range) {
@@ -1886,11 +1877,11 @@ void mesh_translate(Mesh &mesh, const float3 &translation, const bool do_shape_k
 
 void mesh_transform(Mesh &mesh, const float4x4 &transform, bool do_shape_keys)
 {
-  transform_positions(mesh.vert_positions_for_write(), transform);
+  math::transform_points(transform, mesh.vert_positions_for_write());
 
   if (do_shape_keys && mesh.key) {
     LISTBASE_FOREACH (KeyBlock *, kb, &mesh.key->block) {
-      transform_positions(MutableSpan(static_cast<float3 *>(kb->data), kb->totelem), transform);
+      math::transform_points(transform, MutableSpan(static_cast<float3 *>(kb->data), kb->totelem));
     }
   }
   MutableAttributeAccessor attributes = mesh.attributes_for_write();

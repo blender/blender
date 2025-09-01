@@ -38,11 +38,7 @@ thipDriverGetVersion *hipDriverGetVersion;
 thipRuntimeGetVersion *hipRuntimeGetVersion;
 thipGetDevice *hipGetDevice;
 thipGetDeviceCount *hipGetDeviceCount;
-#ifdef WITH_HIP_SDK_5
-  thipGetDeviceProperties *hipGetDeviceProperties;
-#else
-  thipGetDevicePropertiesR0600 *hipGetDevicePropertiesR0600;
-#endif
+thipGetDevicePropertiesR0600 *hipGetDevicePropertiesR0600;
 thipDeviceGet* hipDeviceGet;
 thipDeviceGetName *hipDeviceGetName;
 thipDeviceGetAttribute *hipDeviceGetAttribute;
@@ -237,25 +233,22 @@ static int hipewHipInit(void) {
   /* Library paths. */
 #ifdef _WIN32
   /* Expected in C:/Windows/System32 or similar, no path needed. */
-  const char *hip_paths[] = {WIN_DRIVER, NULL};
+  const char *hip_paths[] = { "amdhip64_7.dll", "amdhip64_6.dll", NULL};
 #elif defined(__APPLE__)
   /* Default installation path. */
   const char *hip_paths[] = {"", NULL};
 #else
   /* ROCm 6 changes paths from /opt/rocm/hip/lib to /opt/rocm/lib, so
-   * search for libraries there. It still includes .so.5. */
-  #ifdef WITH_HIP_SDK_5
-      const char *hip_paths[] = {"libamdhip64.so.5",
-                               "/opt/rocm/lib/libamdhip64.so.5",
-                               "/opt/rocm/hip/lib/libamdhip64.so.5",
-                                NULL};
-  #else
-  const char *hip_paths[] = {"libamdhip64.so.6",
-                              "/opt/rocm/lib/libamdhip64.so.6",
-                              "/opt/rocm/hip/lib/libamdhip64.so.6",
-                               NULL};
+   * search for libraries there. */
 
-  #endif
+  const char* hip_paths[] = { "libamdhip64.so.7",
+                            "/opt/rocm/lib/libamdhip64.so.7",
+                            "/opt/rocm/hip/lib/libamdhip64.so.7",
+                            "libamdhip64.so.6",
+                            "/opt/rocm/lib/libamdhip64.so.6",
+                            "/opt/rocm/hip/lib/libamdhip64.so.6"
+                            "libamdhip64.so",
+                             NULL };
 #endif
   static int initialized = 0;
   static int result = 0;
@@ -290,11 +283,7 @@ static int hipewHipInit(void) {
   }
 
   /* Fetch all function pointers. */
-#ifdef WITH_HIP_SDK_5
-  HIP_LIBRARY_FIND_CHECKED(hipGetDeviceProperties);
-#else
   HIP_LIBRARY_FIND_CHECKED(hipGetDevicePropertiesR0600);
-#endif
   HIP_LIBRARY_FIND_CHECKED(hipGetErrorName);
   HIP_LIBRARY_FIND_CHECKED(hipGetErrorString);
   HIP_LIBRARY_FIND_CHECKED(hipGetLastError);

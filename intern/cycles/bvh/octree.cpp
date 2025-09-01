@@ -50,7 +50,7 @@ Extrema<float> Octree::get_extrema(const int3 index_min, const int3 index_max) c
 
 __forceinline float3 Octree::position_to_index(const float3 p) const
 {
-  return (p - root_->bbox.min) * position_to_index_scale_;
+  return (p - bbox_min) * position_to_index_scale_;
 }
 
 int3 Octree::position_to_floor_index(const float3 p) const
@@ -71,7 +71,7 @@ int3 Octree::position_to_ceil_index(const float3 p) const
 
 __forceinline float3 Octree::index_to_position(int x, int y, int z) const
 {
-  return root_->bbox.min + make_float3(x, y, z) * index_to_position_scale_;
+  return bbox_min + make_float3(x, y, z) * index_to_position_scale_;
 }
 
 __forceinline float3 Octree::voxel_size() const
@@ -380,6 +380,7 @@ void Octree::build(Device *device,
 
 Octree::Octree(const BoundBox &bbox)
 {
+  bbox_min = bbox.min;
   root_ = std::make_shared<OctreeNode>(bbox, 0);
   is_built_ = false;
   is_flattened_ = false;

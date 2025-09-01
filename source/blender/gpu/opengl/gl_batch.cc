@@ -221,7 +221,7 @@ GLuint GLVaoCache::vao_get(Batch *batch)
       /* Cache miss, create a new VAO. */
       glGenVertexArrays(1, &vao_id_);
       this->insert(interface_, vao_id_);
-      GLVertArray::update_bindings(vao_id_, batch, interface_, 0);
+      GLVertArray::update_bindings(vao_id_, batch, interface_);
     }
   }
 

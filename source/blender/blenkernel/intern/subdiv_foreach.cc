@@ -94,7 +94,7 @@ struct ForeachTaskContext {
   /* Indexed by base face index, element indicates total number of ptex faces
    * created for preceding base faces.
    */
-  int *face_ptex_offset;
+  Span<int> face_ptex_offset;
   /* Bitmap indicating whether vertex was used already or not.
    * - During patch evaluation indicates whether coarse vertex was already
    *   evaluated and its position on limit is already known.

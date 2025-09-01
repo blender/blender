@@ -70,7 +70,7 @@ bool AbstractViewItem::set_state_active()
 
 void AbstractViewItem::activate(bContext &C)
 {
-  if (set_state_active()) {
+  if (set_state_active() || reactivate_on_click_) {
     on_activate(C);
   }
 
@@ -80,9 +80,20 @@ void AbstractViewItem::activate(bContext &C)
   }
 }
 
+void AbstractViewItem::activate_for_context_menu(bContext &C)
+{
+  if (activate_for_context_menu_) {
+    this->activate(C);
+  }
+  else {
+    this->set_state_active();
+  }
+}
+
 void AbstractViewItem::deactivate()
 {
   is_active_ = false;
+  is_selected_ = false;
 }
 
 std::optional<bool> AbstractViewItem::should_be_selected() const
@@ -298,7 +309,7 @@ std::optional<std::string> AbstractViewItem::debug_name() const
 
 AbstractViewItemDragController::AbstractViewItemDragController(AbstractView &view) : view_(view) {}
 
-void AbstractViewItemDragController::on_drag_start()
+void AbstractViewItemDragController::on_drag_start(bContext & /*C*/)
 {
   /* Do nothing by default. */
 }
@@ -326,6 +337,16 @@ uiButViewItem *AbstractViewItem::view_item_button() const
 void AbstractViewItem::disable_activatable()
 {
   is_activatable_ = false;
+}
+
+void AbstractViewItem::always_reactivate_on_click()
+{
+  reactivate_on_click_ = true;
+}
+
+void AbstractViewItem::activate_for_context_menu_set()
+{
+  activate_for_context_menu_ = true;
 }
 
 void AbstractViewItem::disable_interaction()
@@ -423,7 +444,7 @@ bool UI_view_item_popup_keep_open(const AbstractViewItem &item)
   return item.get_view().get_popup_keep_open();
 }
 
-bool UI_view_item_drag_start(bContext &C, const AbstractViewItem &item)
+bool UI_view_item_drag_start(bContext &C, AbstractViewItem &item)
 {
   const std::unique_ptr<AbstractViewItemDragController> drag_controller =
       item.create_drag_controller();
@@ -431,12 +452,15 @@ bool UI_view_item_drag_start(bContext &C, const AbstractViewItem &item)
     return false;
   }
 
-  WM_event_start_drag(&C,
-                      ICON_NONE,
-                      drag_controller->get_drag_type(),
-                      drag_controller->create_drag_data(),
-                      WM_DRAG_FREE_DATA);
-  drag_controller->on_drag_start();
+  if (const std::optional<eWM_DragDataType> drag_type = drag_controller->get_drag_type()) {
+    WM_event_start_drag(
+        &C, ICON_NONE, *drag_type, drag_controller->create_drag_data(), WM_DRAG_FREE_DATA);
+  }
+  drag_controller->on_drag_start(C);
+
+  /* Make sure the view item is highlighted as active when dragging from it. This is useful user
+   * feedback. */
+  item.set_state_active();
 
   return true;
 }

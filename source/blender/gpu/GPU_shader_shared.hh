@@ -6,8 +6,9 @@
  * \ingroup gpu
  */
 
+#pragma once
+
 #ifndef USE_GPU_SHADER_CREATE_INFO
-#  pragma once
 
 #  include "GPU_shader_shared_utils.hh"
 
@@ -47,30 +48,37 @@ struct NodeSocketShaderParameters {
 };
 BLI_STATIC_ASSERT_ALIGN(NodeSocketShaderParameters, 16)
 
+/* Per link data. */
 struct NodeLinkData {
-  float4 colors[3];
-  /* bezierPts Is actually a float2, but due to std140 each element needs to be aligned to 16
-   * bytes. */
-  float4 bezierPts[4];
-  bool32_t doArrow;
-  bool32_t doMuted;
+  float4 start_color;
+  float4 end_color;
+  float2 bezier_P0;
+  float2 bezier_P1;
+  float2 bezier_P2;
+  float2 bezier_P3;
+  uint color_ids;
+  float dash_length;
+  float dash_factor;
+  float dash_alpha;
   float dim_factor;
   float thickness;
-  float4 dash_params;
-  bool32_t has_back_link;
   float aspect;
-  float arrowSize;
-  float _pad;
+  bool32_t do_arrow;
+  bool32_t do_muted;
+  bool32_t has_back_link;
+  float _pad0;
+  float _pad1;
 };
 BLI_STATIC_ASSERT_ALIGN(NodeLinkData, 16)
 
-struct NodeLinkInstanceData {
+/* Data common to all links. */
+struct NodeLinkUniformData {
   float4 colors[6];
   float aspect;
-  float arrowSize;
+  float arrow_size;
   float2 _pad;
 };
-BLI_STATIC_ASSERT_ALIGN(NodeLinkInstanceData, 16)
+BLI_STATIC_ASSERT_ALIGN(NodeLinkUniformData, 16)
 
 struct GPencilStrokeData {
   float2 viewport;
@@ -127,6 +135,16 @@ enum eGPUSeqFlags : uint32_t {
 
   GPU_SEQ_FLAG_ANY_HANDLE = GPU_SEQ_FLAG_SELECTED_LH | GPU_SEQ_FLAG_SELECTED_RH
 };
+
+/* Glyph for text rendering. */
+struct GlyphQuad {
+  int4 position;
+  float4 glyph_color; /* Cannot be name `color` because of metal macros. */
+  int2 glyph_size;
+  int offset;
+  uint flags;
+};
+BLI_STATIC_ASSERT_ALIGN(GlyphQuad, 16)
 
 /* VSE per-strip data for timeline rendering. */
 struct SeqStripDrawData {

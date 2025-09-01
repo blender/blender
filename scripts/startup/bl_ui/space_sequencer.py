@@ -9,7 +9,6 @@ from bpy.types import (
     Panel,
 )
 from bpy.app.translations import (
-    pgettext_iface as iface_,
     contexts as i18n_contexts,
     pgettext_iface as iface_,
     pgettext_rpt as rpt_,

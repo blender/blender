@@ -1326,7 +1326,10 @@ void GHOST_WindowWin32::updateHDRInfo()
     color_info.header.id = path.targetInfo.id;
 
     if (::DisplayConfigGetDeviceInfo(&color_info.header) == ERROR_SUCCESS) {
-      info.hdr_enabled = color_info.advancedColorSupported && color_info.advancedColorEnabled;
+      /* This particular combination indicates HDR mode is enabled. This is undocumented but
+       * used by WinRT. When wideColorEnforced is true we are in SDR mode with advanced color. */
+      info.hdr_enabled = color_info.advancedColorSupported && color_info.advancedColorEnabled &&
+                         !color_info.wideColorEnforced;
     }
 
     if (info.hdr_enabled) {

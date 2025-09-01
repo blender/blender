@@ -448,7 +448,8 @@ void IMB_partial_display_buffer_update_delayed(
 ColormanageProcessor *IMB_colormanagement_display_processor_new(
     const ColorManagedViewSettings *view_settings,
     const ColorManagedDisplaySettings *display_settings,
-    const ColorManagedDisplaySpace display_space = DISPLAY_SPACE_DRAW);
+    const ColorManagedDisplaySpace display_space = DISPLAY_SPACE_DRAW,
+    const bool inverse = false);
 
 ColormanageProcessor *IMB_colormanagement_display_processor_for_imbuf(
     const ImBuf *ibuf,

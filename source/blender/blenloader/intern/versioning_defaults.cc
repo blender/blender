@@ -363,7 +363,7 @@ static void blo_update_defaults_paint(Paint *paint)
   const UnifiedPaintSettings &default_ups = *DNA_struct_default_get(UnifiedPaintSettings);
   paint->unified_paint_settings.size = default_ups.size;
   paint->unified_paint_settings.input_samples = default_ups.input_samples;
-  paint->unified_paint_settings.unprojected_radius = default_ups.unprojected_radius;
+  paint->unified_paint_settings.unprojected_size = default_ups.unprojected_size;
   paint->unified_paint_settings.alpha = default_ups.alpha;
   paint->unified_paint_settings.weight = default_ups.weight;
   paint->unified_paint_settings.flag = default_ups.flag;
@@ -465,9 +465,9 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
         {0.125, 0.50}, {0.375, 0.50}, {0.375, 0.75}, {0.125, 0.75}, {0.375, 0.50}, {0.625, 0.50},
         {0.625, 0.75}, {0.375, 0.75}, {0.375, 0.25}, {0.625, 0.25}, {0.625, 0.50}, {0.375, 0.50},
     };
-    float(*mloopuv)[2] = static_cast<float(*)[2]>(
+    float(*uv_map)[2] = static_cast<float(*)[2]>(
         CustomData_get_layer_for_write(&mesh->corner_data, CD_PROP_FLOAT2, mesh->corners_num));
-    memcpy(mloopuv, uv_values, sizeof(float[2]) * mesh->corners_num);
+    memcpy(uv_map, uv_values, sizeof(float[2]) * mesh->corners_num);
   }
 
   /* Make sure that the curve profile is initialized */

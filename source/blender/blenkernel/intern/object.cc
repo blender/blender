@@ -495,6 +495,16 @@ static void object_foreach_id(ID *id, LibraryForeachIDData *data)
       BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data, chan->ipo, IDWALK_CB_USER);
     }
 
+    /* Note: This is technically _not_ needed currently, because readcode (see
+     * #object_blend_read_data) directly converts and removes these deprecated ObHook data.
+     * However, for sake of consistency, better have this ID pointer handled here nonetheless. */
+    LISTBASE_FOREACH (ObHook *, hook, &object->hooks) {
+      /* No `ObHook` data should ever exist currently at a point where 'foreach_id' code is
+       * executed. */
+      BLI_assert_unreachable();
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, hook->parent, IDWALK_CB_NOP);
+    }
+
     LISTBASE_FOREACH (bActionStrip *, strip, &object->nlastrips) {
       BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, strip->object, IDWALK_CB_NOP);
       BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, strip->act, IDWALK_CB_USER);
@@ -5268,9 +5278,6 @@ static bool object_modifier_recurse_for_update_subframe(const ObjectModifierUpda
     bool no_update = false;
     if (ob->parent) {
       no_update |= object_modifier_recurse_for_update_subframe(ctx, ob->parent, false, recursion);
-    }
-    if (ob->track) {
-      no_update |= object_modifier_recurse_for_update_subframe(ctx, ob->track, false, recursion);
     }
 
     /* Skip sub-frame if object is parented to vertex of a dynamic paint canvas. */

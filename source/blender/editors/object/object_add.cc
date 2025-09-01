@@ -3299,8 +3299,6 @@ static Object *convert_mesh_to_grease_pencil(Base &base,
     fill_colors = mesh_to_grease_pencil_get_material_list(*ob_eval, *mesh_eval, material_remap);
   }
 
-  Mesh *newob_mesh = static_cast<Mesh *>(newob->data);
-  BKE_id_material_clear(info.bmain, &newob_mesh->id);
   BKE_object_free_derived_caches(newob);
   BKE_object_free_modifiers(newob, 0);
 
@@ -3308,12 +3306,11 @@ static Object *convert_mesh_to_grease_pencil(Base &base,
   newob->data = grease_pencil;
   newob->type = OB_GREASE_PENCIL;
 
-  /* Reset `ob->totcol` and `ob->actcol` since currently the generic / grease pencil material
+  /* Reset object material array and count since currently the generic / grease pencil material
    * functions still depend on this value being coherent (The same value as
    * `GreasePencil::material_array_num`).
    */
-  newob->totcol = 0;
-  newob->actcol = 0;
+  BKE_object_material_resize(info.bmain, newob, 0, true);
 
   mesh_to_grease_pencil_add_material(
       *info.bmain, *newob, DATA_("Stroke"), float4(0.0f, 0.0f, 0.0f, 1.0f), {});
@@ -3537,10 +3534,7 @@ static Object *convert_grease_pencil_to_mesh(Base &base,
         const bke::greasepencil::Layer *layer = grease_pencil->layers()[layer_index];
         blender::float4x4 to_object = layer->to_object_space(*ob);
         bke::CurvesGeometry &new_curves = curves_id->geometry.wrap();
-        MutableSpan<blender::float3> positions = new_curves.positions_for_write();
-        for (const int point_i : new_curves.points_range()) {
-          positions[point_i] = blender::math::transform_point(to_object, positions[point_i]);
-        }
+        math::transform_points(to_object, new_curves.positions_for_write());
         geometries[i] = bke::GeometrySet::from_curves(curves_id);
       }
       if (geometries.size() > 0) {

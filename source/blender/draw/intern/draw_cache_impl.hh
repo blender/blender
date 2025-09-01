@@ -276,6 +276,7 @@ blender::gpu::Batch *DRW_mesh_batch_cache_get_edituv_facedots(Object &object, Me
  * \{ */
 
 blender::gpu::Batch *DRW_mesh_batch_cache_get_uv_faces(Object &object, Mesh &mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_all_uv_wireframe(Object &object, Mesh &mesh);
 blender::gpu::Batch *DRW_mesh_batch_cache_get_uv_wireframe(Object &object, Mesh &mesh);
 blender::gpu::Batch *DRW_mesh_batch_cache_get_edit_mesh_analysis(Mesh &mesh);
 

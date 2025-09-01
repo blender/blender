@@ -100,6 +100,14 @@ void VKFrameBuffer::render_area_update(VkRect2D &render_area) const
     render_area.extent.width = width_;
     render_area.extent.height = height_;
   }
+
+#ifndef NDEBUG
+  const VKDevice &device = VKBackend::get().device;
+  BLI_assert(render_area.offset.x + render_area.extent.width <=
+             device.physical_device_properties_get().limits.maxFramebufferWidth);
+  BLI_assert(render_area.offset.y + render_area.extent.height <=
+             device.physical_device_properties_get().limits.maxFramebufferHeight);
+#endif
 }
 
 void VKFrameBuffer::vk_render_areas_append(Vector<VkRect2D> &r_render_areas) const

@@ -56,15 +56,11 @@ VKContext::~VKContext()
   this->process_frame_timings();
 }
 
-void VKContext::sync_backbuffer(bool cycle_resource_pool)
+void VKContext::sync_backbuffer()
 {
   if (ghost_window_) {
     GHOST_VulkanSwapChainData swap_chain_data = {};
     GHOST_GetVulkanSwapChainFormat((GHOST_WindowHandle)ghost_window_, &swap_chain_data);
-    VKThreadData &thread_data = thread_data_.value().get();
-    if (cycle_resource_pool) {
-      thread_data.resource_pool_next();
-    }
 
     const bool reset_framebuffer = swap_chain_format_.format !=
                                        swap_chain_data.surface_format.format ||
@@ -85,8 +81,8 @@ void VKContext::sync_backbuffer(bool cycle_resource_pool)
       vk_extent_.height = max_uu(vk_extent_.height, 1u);
       surface_texture_ = GPU_texture_create_2d(
           "back-left",
-          swap_chain_data.extent.width,
-          swap_chain_data.extent.height,
+          vk_extent_.width,
+          vk_extent_.height,
           1,
           to_gpu_format(swap_chain_data.surface_format.format),
           GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ,
@@ -132,7 +128,7 @@ void VKContext::activate()
 
   is_active_ = true;
 
-  sync_backbuffer(false);
+  sync_backbuffer();
 
   immActivate();
 }
@@ -211,12 +207,12 @@ void VKContext::memory_statistics_get(int *r_total_mem_kb, int *r_free_mem_kb)
 
 VKDescriptorPools &VKContext::descriptor_pools_get()
 {
-  return thread_data_.value().get().resource_pool_get().descriptor_pools;
+  return thread_data_.value().get().descriptor_pools;
 }
 
 VKDescriptorSetTracker &VKContext::descriptor_set_get()
 {
-  return thread_data_.value().get().resource_pool_get().descriptor_set;
+  return thread_data_.value().get().descriptor_set;
 }
 
 VKStateManager &VKContext::state_manager_get() const
@@ -393,6 +389,12 @@ void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_c
     Shader *shader = device.vk_backbuffer_blit_sh_get();
     GPU_shader_bind(shader);
     GPU_shader_uniform_1f(shader, "sdr_scale", swap_chain_data.sdr_scale);
+    /* See display_as_extended_srgb in libocio_display_processor.cc for details on this choice. */
+#if defined(_WIN32) || defined(__APPLE__)
+    GPU_shader_uniform_1b(shader, "use_gamma22", false);
+#else
+    GPU_shader_uniform_1b(shader, "use_gamma22", true);
+#endif
     VKStateManager &state_manager = state_manager_get();
     state_manager.image_bind(color_attachment, 0);
     state_manager.image_bind(&swap_chain_texture, 1);
@@ -445,7 +447,7 @@ void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_c
 
 void VKContext::swap_buffers_post_handler()
 {
-  sync_backbuffer(true);
+  sync_backbuffer();
 }
 
 void VKContext::specialization_constants_set(

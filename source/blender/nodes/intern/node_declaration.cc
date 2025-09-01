@@ -823,8 +823,57 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::usage_by_single_menu
   this->usage_inference([menu_value](const socket_usage_inference::InputSocketUsageParams &params)
                             -> std::optional<bool> {
     const bNodeSocket &socket = find_single_menu_input(params.node);
+    if (const std::optional<bool> any_output_used = params.any_output_is_used()) {
+      if (!*any_output_used) {
+        /* If no output is used, none if the inputs is used either. */
+        return false;
+      }
+    }
+    else {
+      /* It's not known if any output is used yet. This function will be called again once new
+       * information about output usages is available. */
+      return std::nullopt;
+    }
     return params.menu_input_may_be(socket.identifier, menu_value);
   });
+  return *this;
+}
+
+BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::usage_by_menu(
+    const StringRef menu_input_identifier, const int menu_value)
+{
+  this->make_available([menu_input_identifier, menu_value](bNode &node) {
+    bNodeSocket &socket = *blender::bke::node_find_socket(node, SOCK_IN, menu_input_identifier);
+    bNodeSocketValueMenu *value = socket.default_value_typed<bNodeSocketValueMenu>();
+    value->value = menu_value;
+  });
+  this->usage_inference(
+      [menu_input_identifier, menu_value](
+          const socket_usage_inference::InputSocketUsageParams &params) -> std::optional<bool> {
+        return params.menu_input_may_be(menu_input_identifier, menu_value);
+      });
+  return *this;
+}
+
+BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::usage_by_menu(
+    const StringRef menu_input_identifier, const Array<int> menu_values)
+{
+  this->make_available([menu_input_identifier, menu_values](bNode &node) {
+    bNodeSocket &socket = *blender::bke::node_find_socket(node, SOCK_IN, menu_input_identifier);
+    bNodeSocketValueMenu *value = socket.default_value_typed<bNodeSocketValueMenu>();
+    value->value = menu_values[0];
+  });
+  this->usage_inference(
+      [menu_input_identifier, menu_values](
+          const socket_usage_inference::InputSocketUsageParams &params) -> std::optional<bool> {
+        for (const int menu_value : menu_values) {
+          const bool might_be = params.menu_input_may_be(menu_input_identifier, menu_value);
+          if (might_be) {
+            return true;
+          }
+        }
+        return false;
+      });
   return *this;
 }
 

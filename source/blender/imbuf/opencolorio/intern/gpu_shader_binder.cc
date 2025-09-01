@@ -134,7 +134,8 @@ bool GPUDisplayShader::matches(const GPUDisplayParameters &display_parameters) c
   return (this->from_colorspace == display_parameters.from_colorspace &&
           this->view == display_parameters.view && this->display == display_parameters.display &&
           this->look == display_parameters.look && this->use_curve_mapping == use_curve_mapping &&
-          this->use_hdr == display_parameters.use_hdr &&
+          this->use_hdr_buffer == display_parameters.use_hdr_buffer &&
+          this->use_hdr_display == display_parameters.use_hdr_display &&
           this->use_display_emulation == display_parameters.use_display_emulation);
 }
 
@@ -306,8 +307,8 @@ static void gpu_display_shader_parameters_update(internal::GPUDisplayShader &dis
     data.do_overlay_merge = display_parameters.do_overlay_merge;
     do_update = true;
   }
-  if (bool(data.use_hdr) != display_parameters.use_hdr) {
-    data.use_hdr = display_parameters.use_hdr;
+  if (bool(data.use_hdr_display) != display_parameters.use_hdr_display) {
+    data.use_hdr_display = display_parameters.use_hdr_display;
     do_update = true;
   }
 
@@ -396,7 +397,8 @@ bool GPUShaderBinder::display_bind(const GPUDisplayParameters &display_parameter
     display_shader->display = display_parameters.display;
     display_shader->look = display_parameters.look;
     display_shader->use_curve_mapping = (display_parameters.curve_mapping != nullptr);
-    display_shader->use_hdr = display_parameters.use_hdr;
+    display_shader->use_hdr_buffer = display_parameters.use_hdr_buffer;
+    display_shader->use_hdr_display = display_parameters.use_hdr_display;
     display_shader->use_display_emulation = display_parameters.use_display_emulation;
     display_shader->is_valid = false;
 

@@ -66,7 +66,6 @@ enum eGPUBuiltinShader {
   GPU_SHADER_2D_NODE_SOCKET_INST,
   /** Draw a node link given an input quadratic Bezier curve. */
   GPU_SHADER_2D_NODELINK,
-  GPU_SHADER_2D_NODELINK_INST,
 
   /** Draw round points with per vertex size and color. */
   GPU_SHADER_3D_POINT_VARYING_SIZE_VARYING_COLOR,

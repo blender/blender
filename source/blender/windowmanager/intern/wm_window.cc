@@ -83,6 +83,7 @@
 #include "UI_interface_layout.hh"
 
 #include "BLF_api.hh"
+#include "GPU_capabilities.hh"
 #include "GPU_context.hh"
 #include "GPU_framebuffer.hh"
 #include "GPU_init_exit.hh"
@@ -2893,6 +2894,12 @@ bool WM_window_is_main_top_level(const wmWindow *win)
     return false;
   }
   return true;
+}
+
+bool WM_window_support_hdr_color(const wmWindow *win)
+{
+  return GPU_hdr_support() && win->ghostwin &&
+         GHOST_WindowGetHDRInfo(static_cast<GHOST_WindowHandle>(win->ghostwin)).hdr_enabled;
 }
 
 /** \} */

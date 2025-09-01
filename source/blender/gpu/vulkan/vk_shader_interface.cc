@@ -132,6 +132,7 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
       input++;
     }
   }
+  set_image_formats_from_info(info);
 
   /* Push constants. */
   int32_t push_constant_location = 1024;

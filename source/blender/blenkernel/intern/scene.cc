@@ -329,7 +329,6 @@ static void scene_copy_data(Main *bmain,
   /* Copy sequencer, this is local data! */
   if (scene_src->ed) {
     scene_dst->ed = MEM_callocN<Editing>(__func__);
-    scene_dst->ed->seqbasep = &scene_dst->ed->seqbase;
     scene_dst->ed->cache_flag = scene_src->ed->cache_flag;
     scene_dst->ed->show_missing_media_flag = scene_src->ed->show_missing_media_flag;
     scene_dst->ed->proxy_storage = scene_src->ed->proxy_storage;
@@ -342,7 +341,6 @@ static void scene_copy_data(Main *bmain,
                                               blender::seq::StripDuplicate::All,
                                               flag_subdata);
     BLI_duplicatelist(&scene_dst->ed->channels, &scene_src->ed->channels);
-    scene_dst->ed->displayed_channels = &scene_dst->ed->channels;
   }
 
   if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
@@ -1035,12 +1033,6 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   /* direct data */
   ToolSettings *tos = sce->toolsettings;
 
-  /* In 5.0 we intend to change the brush.size value from representing radius to representing
-   * diameter. This and the corresponding code in `brush_blend_read_data` should be removed once
-   * that transition is complete. */
-  tos->unified_paint_settings.size *= 2;
-  tos->unified_paint_settings.unprojected_radius *= 2.0f;
-
   BLO_write_struct(writer, ToolSettings, tos);
 
   if (tos->unified_paint_settings.curve_rand_hue) {
@@ -1197,14 +1189,6 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 
   /* Freed on `do_versions()`. */
   BLI_assert(sce->layer_properties == nullptr);
-
-  /* Restore original values after writing, so current working file is not affected. Note that this
-   * is only needed because scene `id` is a shallow copy here, and `tool_settings` is not copied.
-   * In the case of `brush_blend_write`, the size value does not need restoring after writing
-   * because that one was directly under `Brush` id which is copied. See `brush_blend_write` in
-   * `blenkernel/intern/brush.cc`. */
-  tos->unified_paint_settings.size /= 2;
-  tos->unified_paint_settings.unprojected_radius /= 2.0f;
 }
 
 static void direct_link_paint_helper(BlendDataReader *reader, const Scene *scene, Paint **paint)
@@ -1260,13 +1244,6 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_struct(reader, ToolSettings, &sce->toolsettings);
   if (sce->toolsettings) {
     UnifiedPaintSettings *ups = &sce->toolsettings->unified_paint_settings;
-
-    /* Prior to 5.0, the brush->size value is expected to be the radius, not the diameter. To
-     * ensure correct behavior, convert this when reading newer files. */
-    if (BLO_read_fileversion_get(reader) >= 500) {
-      ups->size = std::max(ups->size / 2, 1);
-      ups->unprojected_radius = std::max(ups->unprojected_radius / 2, 0.001f);
-    }
 
     BLO_read_struct(reader, CurveMapping, &ups->curve_rand_hue);
     if (ups->curve_rand_hue) {
@@ -1353,14 +1330,13 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
   }
 
   if (sce->ed) {
-    ListBase *old_seqbasep = &sce->ed->seqbase;
-    ListBase *old_displayed_channels = &sce->ed->channels;
-
     BLO_read_struct(reader, Editing, &sce->ed);
     Editing *ed = sce->ed;
 
     ed->act_strip = static_cast<Strip *>(
         BLO_read_get_new_data_address_no_us(reader, ed->act_strip, sizeof(Strip)));
+    ed->current_meta_strip = static_cast<Strip *>(
+        BLO_read_get_new_data_address_no_us(reader, ed->current_meta_strip, sizeof(Strip)));
     ed->prefetch_job = nullptr;
     ed->runtime.strip_lookup = nullptr;
     ed->runtime.media_presence = nullptr;
@@ -1377,88 +1353,14 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
     blender::seq::blend_read(reader, &ed->seqbase);
     BLO_read_struct_list(reader, SeqTimelineChannel, &ed->channels);
 
-    /* link metastack, slight abuse of structs here,
-     * have to restore pointer to internal part in struct */
-    {
-      const int seqbase_offset_file = BLO_read_struct_member_offset(
-          reader, "Strip", "ListBase", "seqbase");
-      const int channels_offset_file = BLO_read_struct_member_offset(
-          reader, "Strip", "ListBase", "channels");
-      const size_t seqbase_offset_mem = offsetof(Strip, seqbase);
-      const size_t channels_offset_mem = offsetof(Strip, channels);
+    /* stack */
+    BLO_read_struct_list(reader, MetaStack, &(ed->metastack));
 
-      /* seqbase root pointer */
-      if (ed->seqbasep == old_seqbasep || seqbase_offset_file < 0) {
-        ed->seqbasep = &ed->seqbase;
-      }
-      else {
-        void *seqbase_poin = POINTER_OFFSET(ed->seqbasep, -seqbase_offset_file);
+    LISTBASE_FOREACH (MetaStack *, ms, &ed->metastack) {
+      BLO_read_struct(reader, Strip, &ms->parent_strip);
 
-        seqbase_poin = BLO_read_get_new_data_address_no_us(reader, seqbase_poin, sizeof(Strip));
-
-        if (seqbase_poin) {
-          ed->seqbasep = (ListBase *)POINTER_OFFSET(seqbase_poin, seqbase_offset_mem);
-        }
-        else {
-          ed->seqbasep = &ed->seqbase;
-        }
-      }
-
-      /* Active channels root pointer. */
-      if (ELEM(ed->displayed_channels, old_displayed_channels, nullptr) ||
-          channels_offset_file < 0)
-      {
-        ed->displayed_channels = &ed->channels;
-      }
-      else {
-        void *channels_poin = POINTER_OFFSET(ed->displayed_channels, -channels_offset_file);
-        channels_poin = BLO_read_get_new_data_address_no_us(
-            reader, channels_poin, sizeof(SeqTimelineChannel));
-
-        if (channels_poin) {
-          ed->displayed_channels = (ListBase *)POINTER_OFFSET(channels_poin, channels_offset_mem);
-        }
-        else {
-          ed->displayed_channels = &ed->channels;
-        }
-      }
-
-      /* stack */
-      BLO_read_struct_list(reader, MetaStack, &(ed->metastack));
-
-      LISTBASE_FOREACH (MetaStack *, ms, &ed->metastack) {
-        BLO_read_struct(reader, Strip, &ms->parent_strip);
-
-        if (ms->oldbasep == old_seqbasep || seqbase_offset_file < 0) {
-          ms->oldbasep = &ed->seqbase;
-        }
-        else {
-          void *seqbase_poin = POINTER_OFFSET(ms->oldbasep, -seqbase_offset_file);
-          seqbase_poin = BLO_read_get_new_data_address_no_us(reader, seqbase_poin, sizeof(Strip));
-          if (seqbase_poin) {
-            ms->oldbasep = (ListBase *)POINTER_OFFSET(seqbase_poin, seqbase_offset_mem);
-          }
-          else {
-            ms->oldbasep = &ed->seqbase;
-          }
-        }
-
-        if (ELEM(ms->old_channels, old_displayed_channels, nullptr) || channels_offset_file < 0) {
-          ms->old_channels = &ed->channels;
-        }
-        else {
-          void *channels_poin = POINTER_OFFSET(ms->old_channels, -channels_offset_file);
-          channels_poin = BLO_read_get_new_data_address_no_us(
-              reader, channels_poin, sizeof(SeqTimelineChannel));
-
-          if (channels_poin) {
-            ms->old_channels = (ListBase *)POINTER_OFFSET(channels_poin, channels_offset_mem);
-          }
-          else {
-            ms->old_channels = &ed->channels;
-          }
-        }
-      }
+      ms->old_strip = static_cast<Strip *>(
+          BLO_read_get_new_data_address_no_us(reader, ms->old_strip, sizeof(Strip)));
     }
   }
 

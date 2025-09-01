@@ -55,7 +55,8 @@ enum TokenType : char {
   Dot = '.',
   Hash = '#',
   Ampersand = '&',
-  Literal = '0',
+  Number = '0',
+  String = '_',
   ParOpen = '(',
   ParClose = ')',
   BracketOpen = '{',
@@ -104,6 +105,7 @@ enum TokenType : char {
   Private = 'v',
   Public = 'V',
   Enum = 'M',
+  Using = 'u',
 };
 
 enum class ScopeType : char {
@@ -193,6 +195,8 @@ struct ParserData {
        * This allows to still split words on spaces. */
       bool prev_was_whitespace = (token_types[0] == NewLine || token_types[0] == Space);
       bool inside_preprocessor_directive = false;
+      bool next_character_is_escape = false;
+      bool inside_string = false;
 
       int offset = 0;
       for (const char &c : str.substr(1)) {
@@ -200,6 +204,17 @@ struct ParserData {
         TokenType type = to_type(c);
         TokenType prev = TokenType(token_types.back());
 
+        /* Merge string literal. */
+        if (inside_string) {
+          if (!next_character_is_escape && c == '\"') {
+            inside_string = false;
+          }
+          next_character_is_escape = c == '\\';
+          continue;
+        }
+        if (c == '\"') {
+          inside_string = true;
+        }
         /* Detect preprocessor directive newlines `\\\n`. */
         if (prev == Backslash && type == NewLine) {
           token_types.back() = PreprocessorNewline;
@@ -246,39 +261,39 @@ struct ParserData {
           continue;
         }
         /* If digit is part of word. */
-        if (type == Literal && prev == Word) {
+        if (type == Number && prev == Word) {
           continue;
         }
         /* If 'x' is part of hex literal. */
-        if (c == 'x' && prev == Literal) {
+        if (c == 'x' && prev == Number) {
           continue;
         }
         /* If 'A-F' is part of hex literal. */
-        if (c >= 'A' && c <= 'F' && prev == Literal) {
+        if (c >= 'A' && c <= 'F' && prev == Number) {
           continue;
         }
         /* If 'a-f' is part of hex literal. */
-        if (c >= 'a' && c <= 'f' && prev == Literal) {
+        if (c >= 'a' && c <= 'f' && prev == Number) {
           continue;
         }
         /* If 'u' is part of unsigned int literal. */
-        if (c == 'u' && prev == Literal) {
+        if (c == 'u' && prev == Number) {
           continue;
         }
         /* If dot is part of float literal. */
-        if (type == Dot && prev == Literal) {
+        if (type == Dot && prev == Number) {
           continue;
         }
         /* If 'f' suffix is part of float literal. */
-        if (c == 'f' && prev == Literal) {
+        if (c == 'f' && prev == Number) {
           continue;
         }
         /* If 'e' is part of float literal. */
-        if (c == 'e' && prev == Literal) {
+        if (c == 'e' && prev == Number) {
           continue;
         }
         /* If sign is part of float literal after exponent. */
-        if ((c == '+' || c == '-') && prev == Literal) {
+        if ((c == '+' || c == '-') && prev == Number) {
           continue;
         }
         /* Detect increment. */
@@ -292,7 +307,7 @@ struct ParserData {
           continue;
         }
         /* Only merge these token. Otherwise, always emit a token. */
-        if (type != Word && type != NewLine && type != Space && type != Literal) {
+        if (type != Word && type != NewLine && type != Space && type != Number) {
           prev = Word;
         }
         /* Split words on whitespaces even when merging. */
@@ -380,6 +395,9 @@ struct ParserData {
           else if (word == "enum") {
             c = Enum;
           }
+          else if (word == "using") {
+            c = Using;
+          }
         }
       }
     }
@@ -436,6 +454,8 @@ struct ParserData {
         return TokenType::Tilde;
       case '\\':
         return TokenType::Backslash;
+      case '\"':
+        return TokenType::String;
       case '?':
         return TokenType::Question;
       case ':':
@@ -453,7 +473,7 @@ struct ParserData {
       case '6':
       case '7':
       case '9':
-        return TokenType::Literal;
+        return TokenType::Number;
       default:
         return TokenType::Word;
     }
@@ -506,6 +526,42 @@ struct Token {
   Token next() const
   {
     return from_position(data, index + 1);
+  }
+
+  Token find_next(TokenType type) const
+  {
+    Token tok = this->next();
+    while (tok.is_valid() && tok != type) {
+      tok = tok.next();
+    }
+    return tok;
+  }
+
+  /* Return start of namespace identifier is the token is part of one. */
+  Token namespace_start() const
+  {
+    if (*this != Word) {
+      return *this;
+    }
+    /* Scan back identifier that could contain namespaces. */
+    Token tok = *this;
+    while (tok.is_valid()) {
+      if (tok.prev() == ':') {
+        tok = tok.prev().prev().prev();
+      }
+      else {
+        return tok;
+      }
+    }
+    return tok;
+  }
+
+  /* For a word, return the name containing the prefix namespaces if present. */
+  std::string full_symbol_name() const
+  {
+    size_t start = this->namespace_start().str_index_start();
+    size_t end = this->str_index_last_no_whitespace();
+    return data->str.substr(start, end - start + 1);
   }
 
   /* Only usable when building with whitespace. */
@@ -619,6 +675,15 @@ struct Token {
   {
     return *this != TokenType(type);
   }
+
+  bool operator==(const Token &other) const
+  {
+    return this->index == other.index && this->data == other.data;
+  }
+  bool operator!=(const Token &other) const
+  {
+    return !(*this == other);
+  }
 };
 
 struct Scope {
@@ -653,6 +718,11 @@ struct Scope {
   IndexRange range() const
   {
     return data->scope_ranges[index];
+  }
+
+  Token operator[](const int64_t index) const
+  {
+    return Token::from_position(data, range().start + index);
   }
 
   size_t token_count() const
@@ -770,6 +840,61 @@ struct Scope {
       pos += 1;
     }
   }
+
+  void foreach_token(const TokenType token_type, std::function<void(const Token)> callback) const
+  {
+    const char str[2] = {token_type, '\0'};
+    foreach_match(str, [&](const std::vector<Token> &tokens) { callback(tokens[0]); });
+  }
+
+  /* Run a callback for all existing function scopes. */
+  void foreach_function(
+      std::function<void(
+          bool is_static, Token type, Token name, Scope args, bool is_const, Scope body)> callback)
+      const
+  {
+    foreach_match("m?ww(..)c?{..}", [&](const std::vector<Token> matches) {
+      callback(matches[0] == Static,
+               matches[2],
+               matches[3],
+               matches[4].scope(),
+               matches[8] == Const,
+               matches[10].scope());
+    });
+    foreach_match("m?ww::w(..)c?{..}", [&](const std::vector<Token> matches) {
+      callback(matches[0] == Static,
+               matches[2],
+               matches[6],
+               matches[7].scope(),
+               matches[11] == Const,
+               matches[13].scope());
+    });
+    foreach_match("m?ww<..>(..)c?{..}", [&](const std::vector<Token> matches) {
+      callback(matches[0] == Static,
+               matches[2],
+               matches[3],
+               matches[8].scope(),
+               matches[12] == Const,
+               matches[14].scope());
+    });
+  }
+
+  /* Run a callback for all existing struct scopes. */
+  void foreach_struct(std::function<void(Token struct_tok, Token name, Scope body)> callback) const
+  {
+    foreach_match("sw{..}", [&](const std::vector<Token> matches) {
+      callback(matches[0], matches[1], matches[2].scope());
+    });
+    foreach_match("Sw{..}", [&](const std::vector<Token> matches) {
+      callback(matches[0], matches[1], matches[2].scope());
+    });
+    foreach_match("sw<..>{..}", [&](const std::vector<Token> matches) {
+      callback(matches[0], matches[1], matches[6].scope());
+    });
+    foreach_match("Sw<..>{..}", [&](const std::vector<Token> matches) {
+      callback(matches[0], matches[1], matches[6].scope());
+    });
+  }
 };
 
 inline Scope Token::scope() const
@@ -834,14 +959,22 @@ inline void ParserData::parse_scopes(report_callback &report_error)
           }
           enter_scope(ScopeType::Assignment, tok_id);
           break;
-        case BracketOpen:
-          if (tok_id >= 2 && token_types[tok_id - 2] == Struct) {
+        case BracketOpen: {
+          /* Scan back identifier that could contain namespaces. */
+          TokenType keyword;
+          int pos = 2;
+          do {
+            keyword = (tok_id >= pos) ? TokenType(token_types[tok_id - pos]) : TokenType::Invalid;
+            pos += 3;
+          } while (keyword != Invalid && keyword == Colon);
+
+          if (keyword == Struct) {
             enter_scope(ScopeType::Local, tok_id);
           }
-          else if (tok_id >= 2 && token_types[tok_id - 2] == Enum) {
+          else if (keyword == Enum) {
             enter_scope(ScopeType::Local, tok_id);
           }
-          else if (tok_id >= 2 && token_types[tok_id - 2] == Namespace) {
+          else if (keyword == Namespace) {
             enter_scope(ScopeType::Namespace, tok_id);
           }
           else if (scopes.top().type == ScopeType::Global) {
@@ -857,6 +990,7 @@ inline void ParserData::parse_scopes(report_callback &report_error)
             enter_scope(ScopeType::Local, tok_id);
           }
           break;
+        }
         case ParOpen:
           if (scopes.top().type == ScopeType::Global) {
             enter_scope(ScopeType::FunctionArgs, tok_id);
@@ -1026,6 +1160,12 @@ struct Parser {
                   [&](const Scope scope) { scope.foreach_match(pattern, callback); });
   }
 
+  void foreach_token(const TokenType token_type, std::function<void(const Token)> callback)
+  {
+    const char str[2] = {token_type, '\0'};
+    foreach_match(str, [&](const std::vector<Token> &tokens) { callback(tokens[0]); });
+  }
+
   /* Run a callback for all existing function scopes. */
   void foreach_function(
       std::function<void(
@@ -1038,6 +1178,14 @@ struct Parser {
                matches[4].scope(),
                matches[8] == Const,
                matches[10].scope());
+    });
+    foreach_match("m?ww::w(..)c?{..}", [&](const std::vector<Token> matches) {
+      callback(matches[0] == Static,
+               matches[2],
+               matches[6],
+               matches[7].scope(),
+               matches[11] == Const,
+               matches[13].scope());
     });
     foreach_match("m?ww<..>(..)c?{..}", [&](const std::vector<Token> matches) {
       callback(matches[0] == Static,
@@ -1091,14 +1239,26 @@ struct Parser {
     replace(from.str_index_start(), to.str_index_last(), replacement);
   }
   /* Replace token by string. */
-  void replace(Token tok, const std::string &replacement)
+  void replace(Token tok, const std::string &replacement, bool keep_trailing_whitespaces = false)
   {
-    replace(tok.str_index_start(), tok.str_index_last(), replacement);
+    if (keep_trailing_whitespaces) {
+      replace(tok.str_index_start(), tok.str_index_last_no_whitespace(), replacement);
+    }
+    else {
+      replace(tok.str_index_start(), tok.str_index_last(), replacement);
+    }
   }
   /* Replace Scope by string. */
-  void replace(Scope scope, const std::string &replacement)
+  void replace(Scope scope, const std::string &replacement, bool keep_trailing_whitespaces = false)
   {
-    replace(scope.start(), scope.end(), replacement);
+    if (keep_trailing_whitespaces) {
+      replace(scope.start().str_index_start(),
+              scope.end().str_index_last_no_whitespace(),
+              replacement);
+    }
+    else {
+      replace(scope.start(), scope.end(), replacement);
+    }
   }
 
   /* Replace the content from `from` to `to` (inclusive) by whitespaces without changing

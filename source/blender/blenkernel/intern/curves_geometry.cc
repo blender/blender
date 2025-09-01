@@ -1249,15 +1249,6 @@ static void translate_positions(MutableSpan<float3> positions, const float3 &tra
   });
 }
 
-static void transform_positions(MutableSpan<float3> positions, const float4x4 &matrix)
-{
-  threading::parallel_for(positions.index_range(), 1024, [&](const IndexRange range) {
-    for (float3 &position : positions.slice(range)) {
-      position = math::transform_point(matrix, position);
-    }
-  });
-}
-
 void CurvesGeometry::calculate_bezier_auto_handles()
 {
   if (!this->has_curve_with_type(CURVE_TYPE_BEZIER)) {
@@ -1319,12 +1310,12 @@ void CurvesGeometry::translate(const float3 &translation)
 
 void CurvesGeometry::transform(const float4x4 &matrix)
 {
-  transform_positions(this->positions_for_write(), matrix);
+  math::transform_points(matrix, this->positions_for_write());
   if (this->handle_positions_left()) {
-    transform_positions(this->handle_positions_left_for_write(), matrix);
+    math::transform_points(matrix, this->handle_positions_left_for_write());
   }
   if (this->handle_positions_right()) {
-    transform_positions(this->handle_positions_right_for_write(), matrix);
+    math::transform_points(matrix, this->handle_positions_right_for_write());
   }
   MutableAttributeAccessor attributes = this->attributes_for_write();
   transform_custom_normal_attribute(matrix, attributes);

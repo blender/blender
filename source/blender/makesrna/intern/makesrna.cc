@@ -3621,6 +3621,8 @@ static const char *rna_property_subtypename(PropertySubType type)
       return "PROP_DIRPATH";
     case PROP_PIXEL:
       return "PROP_PIXEL";
+    case PROP_PIXEL_DIAMETER:
+      return "PROP_PIXEL_DIAMETER";
     case PROP_BYTESTRING:
       return "PROP_BYTESTRING";
     case PROP_UNSIGNED:
@@ -3637,6 +3639,8 @@ static const char *rna_property_subtypename(PropertySubType type)
       return "PROP_TIME_ABSOLUTE";
     case PROP_DISTANCE:
       return "PROP_DISTANCE";
+    case PROP_DISTANCE_DIAMETER:
+      return "PROP_DISTANCE_DIAMETER";
     case PROP_DISTANCE_CAMERA:
       return "PROP_DISTANCE_CAMERA";
     case PROP_COLOR:

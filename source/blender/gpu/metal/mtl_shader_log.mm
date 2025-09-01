@@ -35,9 +35,6 @@ const char *MTLLogParser::parse_line(const char *source_combined,
     log_line = error_line_number_end;
     log_line = skip_separators(log_line, ": ");
     log_item.cursor.column = parse_number(log_line, &error_line_number_end);
-    /* For some reason the row and column is 0 based in C++ / Metal compiler. */
-    log_item.cursor.row -= 1;
-    log_item.cursor.column -= 1;
     log_line = error_line_number_end;
     /* Simply copy the start of the error line since it is already in the format we want. */
     log_item.cursor.file_name_and_error_line = StringRef(name_start, error_line_number_end);
@@ -68,7 +65,13 @@ const char *MTLLogParser::parse_line(const char *source_combined,
             log_item.cursor.row++;
           }
         }
-        parsed_error_ = true;
+        /* The method above does not work with injected #line directives.
+         * Just output the raw error and forget about the formatting for now. */
+        log_item.cursor.row = -1;
+        log_item.cursor.file_name_and_error_line = "";
+        parsed_error_ = false;
+        wrapper_error_ = true;
+        return name_start;
       }
     }
   }

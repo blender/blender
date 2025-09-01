@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'68abaa12d581')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'61dd8a1435fb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-25 08:31+0000\n"
+"POT-Creation-Date: 2025-09-01 09:40+0000\n"
 "PO-Revision-Date: 2025-07-23 14:57+0000\n"
 "Last-Translator: Michael Tribayu Jatnika Natawiria <mike.natawiria@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -2379,6 +2379,14 @@ msgid "Object to use as cage instead of calculating the cage from the active obj
 msgstr "Benda digunakan sebagai kandang daripada menghitung kandang dari benda aktif dengan ekstrusi kandang"
 
 
+msgid "Object"
+msgstr "Benda"
+
+
+msgid "Tangent"
+msgstr "Garis Singgung"
+
+
 msgid "File Path"
 msgstr "Jalur Dokumen"
 
@@ -2479,16 +2487,8 @@ msgid "Choose normal space for baking"
 msgstr "Pilih spasi normal untuk membakar"
 
 
-msgid "Object"
-msgstr "Benda"
-
-
 msgid "Bake the normals in object space"
 msgstr "Bakar normal di spasi objek"
-
-
-msgid "Tangent"
-msgstr "Garis Singgung"
 
 
 msgid "Bake the normals in tangent space"
@@ -17550,36 +17550,6 @@ msgid "Blur an image, using several blur modes"
 msgstr "Memburamkan gambar, menggunakan beberapa mode buram"
 
 
-msgctxt "NodeTree"
-msgid "Quadratic"
-msgstr "Kuadratik"
-
-
-msgctxt "NodeTree"
-msgid "Cubic"
-msgstr "Kubik"
-
-
-msgctxt "NodeTree"
-msgid "Gaussian"
-msgstr "Gaussian"
-
-
-msgctxt "NodeTree"
-msgid "Fast Gaussian"
-msgstr "Gaussian Cepat"
-
-
-msgctxt "NodeTree"
-msgid "Catrom"
-msgstr "Catrom"
-
-
-msgctxt "NodeTree"
-msgid "Mitch"
-msgstr "Mitch"
-
-
 msgid "Bokeh Blur"
 msgstr "Buram Bokeh"
 
@@ -17598,10 +17568,6 @@ msgstr "Mengenerasi gambar dengan bentuk bokeh untuk digunakan dengan simpul fil
 
 msgid "Box Mask"
 msgstr "Masker Kotak"
-
-
-msgid "Mask Type"
-msgstr "Tipe Masker"
 
 
 msgid "Channel Key"
@@ -17682,10 +17648,6 @@ msgstr "Ruang warna yang digunakan untuk pemrosesan YCbCrA"
 
 msgid "To"
 msgstr "Ke"
-
-
-msgid "Interpolation method"
-msgstr "Metode Interpolasi"
 
 
 msgid "Cryptomatte (Legacy)"
@@ -17896,14 +17858,6 @@ msgid "Scale the Z input when not using a z-buffer, controls maximum blur design
 msgstr "Skala input Z saat tidak menggunakan penyangga-z, mengkontrol buram maksimum ditunjuk oleh warna putih atau nilai masukan 1"
 
 
-msgid "High"
-msgstr "Tinggi"
-
-
-msgid "Feather"
-msgstr "Bulu"
-
-
 msgid "Distance Key"
 msgstr "Kunci Jarak"
 
@@ -17924,28 +17878,8 @@ msgid "Ellipse Mask"
 msgstr "Hapus"
 
 
-msgid "Filter Type"
-msgstr "Tipe Filter"
-
-
 msgid "Glare"
 msgstr "Kesilauan"
-
-
-msgid "Glare Type"
-msgstr "Tipe Kesilauan"
-
-
-msgid "Ghosts"
-msgstr "Hantu"
-
-
-msgid "Sun Beams"
-msgstr "Sinar Matahari"
-
-
-msgid "Low"
-msgstr "Rendah"
 
 
 msgid "ID Mask"
@@ -17954,11 +17888,6 @@ msgstr "Masker ID"
 
 msgid "Image Info"
 msgstr "Informasi Gambar"
-
-
-msgctxt "Curve"
-msgid "Feather Falloff"
-msgstr "Jatuhan Bulu"
 
 
 msgid "Keying Screen"
@@ -17973,44 +17902,8 @@ msgid "Lens Distortion"
 msgstr "Penyunting Logika"
 
 
-msgid "Combined"
-msgstr "Terkombinasi"
-
-
-msgid "Combined RGB"
-msgstr "RGB yang Digabung"
-
-
-msgid "Red Channel"
-msgstr "Saluran Merah"
-
-
-msgid "Green Channel"
-msgstr "Saluran Hijau"
-
-
-msgid "Blue Channel"
-msgstr "Saluran Biru"
-
-
-msgid "Size Source"
-msgstr "Sumber Ukuran"
-
-
-msgid "Scene Size"
-msgstr "Ukuran Adegan"
-
-
-msgid "Fixed/Scene"
-msgstr "Tetap/Adegan"
-
-
 msgid "Movie Distortion"
 msgstr "Distorsi Film"
-
-
-msgid "Distortion to use to filter image"
-msgstr "Distorsi digunakan ke filter gambar"
 
 
 msgid "File Output"
@@ -18027,10 +17920,6 @@ msgstr "RGB ke BW"
 
 msgid "Render Layers"
 msgstr "Render Layer"
-
-
-msgid "Coordinate space to scale relative to"
-msgstr "Koordinasikan pasi ke skala relatif ke"
 
 
 msgid "Set Alpha"
@@ -18055,18 +17944,6 @@ msgstr "Saklar"
 
 msgid "Track Position"
 msgstr "Penjelasan"
-
-
-msgid "Frame to be used for relative position"
-msgstr "Orientasi Transformasi"
-
-
-msgid "Relative Start"
-msgstr "Kamera"
-
-
-msgid "Relative Frame"
-msgstr "Hapus"
 
 
 msgid "Vector Blur"
@@ -19819,10 +19696,6 @@ msgid "Move Constraint Up"
 msgstr "Konsol Python"
 
 
-msgid "Add new bezier curve"
-msgstr "Tambah kurva bezier baru"
-
-
 msgid "Add new circle curve"
 msgstr "Tambah kurva lingkaran baru"
 
@@ -20838,6 +20711,10 @@ msgid "Re-Key Points of Selected Shapes"
 msgstr "Modus Sunting"
 
 
+msgid "Feather"
+msgstr "Bulu"
+
+
 msgctxt "Operator"
 msgid "Copy Material"
 msgstr "Salin Material"
@@ -20875,6 +20752,10 @@ msgstr "Bebaskan bagian dalam"
 
 msgid "Plane Normal"
 msgstr "Bidang Normal"
+
+
+msgid "Interpolation method"
+msgstr "Metode Interpolasi"
 
 
 msgid "Blend Surface"
@@ -21583,6 +21464,10 @@ msgid "The maximum ray distance for matching points between the active and selec
 msgstr "Jarak sinar maksimal untuk titik sesuai diantara obyek aktif dan yang terseleksi. Jika nol, tidak ada batasan"
 
 
+msgid "Combined"
+msgstr "Terkombinasi"
+
+
 msgid "Split baked maps per material, using material name in output file (external only)"
 msgstr "Pisahkan peta yang dipanggang per bahan, menggunakan nama bahan di berkas keluaran (hanya eksternal)"
 
@@ -22006,6 +21891,14 @@ msgstr "Kamera"
 msgctxt "Operator"
 msgid "Update Object Paths"
 msgstr "Kamera"
+
+
+msgid "Low"
+msgstr "Rendah"
+
+
+msgid "High"
+msgstr "Tinggi"
 
 
 msgctxt "Operator"
@@ -23029,6 +22922,10 @@ msgid "Filter Color"
 msgstr "Saring Warna"
 
 
+msgid "Filter Type"
+msgstr "Tipe Filter"
+
+
 msgid "Fill with a specific color"
 msgstr "Isi dengan warna spesifik"
 
@@ -23399,12 +23296,12 @@ msgid "No Change"
 msgstr "Tidak ada Perubahan"
 
 
-msgid "Ignore Selection"
-msgstr "Abaikan Seleksi"
-
-
 msgid "Use Cursor Position"
 msgstr "Gunakan Posisi Kursor"
+
+
+msgid "Ignore Selection"
+msgstr "Abaikan Seleksi"
 
 
 msgctxt "Operator"
@@ -26714,10 +26611,6 @@ msgstr "Tata Letak"
 
 msgid "Grid Layout"
 msgstr "Tata Letak"
-
-
-msgid "Use Unified Radius"
-msgstr "Partikel"
 
 
 msgid "Use Unified Weight"
@@ -30198,6 +30091,10 @@ msgid "Lightness:"
 msgstr "Keringanan:"
 
 
+msgid "Value:"
+msgstr "Nilai:"
+
+
 msgid "Alpha:"
 msgstr "Alpha:"
 
@@ -30429,10 +30326,6 @@ msgstr "Opsi Ekspor"
 
 msgid "Unable to find valid 3D View area"
 msgstr "Tidak dapat mencari area 3D View yang valid"
-
-
-msgid "Unable to export SVG"
-msgstr "Tidak dapat mengekspor SVG"
 
 
 msgid "Unable to export PDF"
@@ -30943,10 +30836,6 @@ msgstr "Film-film"
 
 msgid "Cursor X"
 msgstr "Kursor X"
-
-
-msgid "Value:"
-msgstr "Nilai:"
 
 
 msgid "Driver:"
@@ -31597,10 +31486,6 @@ msgid "Bokeh Type:"
 msgstr "Tipe Bokeh:"
 
 
-msgid "Prefilter:"
-msgstr "Prafilter:"
-
-
 msgid "Result"
 msgstr "Hasil"
 
@@ -31609,8 +31494,16 @@ msgid "Buffer Edge:"
 msgstr "Tepi Penyangga:"
 
 
+msgid "Sun Beams"
+msgstr "Sinar Matahari"
+
+
 msgid "Color Modulation"
 msgstr "Modulasi Warna"
+
+
+msgid "Size Source"
+msgstr "Sumber Ukuran"
 
 
 msgid "Use feather information from the mask"

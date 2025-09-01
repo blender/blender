@@ -596,4 +596,62 @@ void transform_normals(Span<float3> src, const float3x3 &transform, MutableSpan<
   }
 }
 
+static bool skip_transform(const float4x4 &transform)
+{
+  return math::is_equal(transform, float4x4::identity(), 1e-6f);
+}
+
+static void transform_points_no_threading(const Span<float3> src,
+                                          const float4x4 &transform,
+                                          MutableSpan<float3> dst)
+{
+  for (const int64_t i : src.index_range()) {
+    dst[i] = math::transform_point(transform, src[i]);
+  }
+}
+
+void transform_points(const Span<float3> src,
+                      const float4x4 &transform,
+                      MutableSpan<float3> dst,
+                      const bool use_threading)
+{
+  if (skip_transform(transform)) {
+    dst.copy_from(src);
+  }
+  else {
+    if (use_threading) {
+      threading::parallel_for(src.index_range(), 1024, [&](const IndexRange range) {
+        transform_points_no_threading(src.slice(range), transform, dst.slice(range));
+      });
+    }
+    else {
+      transform_points_no_threading(src, transform, dst);
+    }
+  }
+}
+
+static void transform_points_no_threading(const float4x4 &transform, MutableSpan<float3> points)
+{
+  for (float3 &position : points) {
+    position = math::transform_point(transform, position);
+  }
+}
+
+void transform_points(const float4x4 &transform,
+                      MutableSpan<float3> points,
+                      const bool use_threading)
+{
+  if (skip_transform(transform)) {
+    return;
+  }
+  if (use_threading) {
+    threading::parallel_for(points.index_range(), 1024, [&](const IndexRange range) {
+      transform_points_no_threading(transform, points.slice(range));
+    });
+  }
+  else {
+    transform_points_no_threading(transform, points);
+  }
+}
+
 }  // namespace blender::math

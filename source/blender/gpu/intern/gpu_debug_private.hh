@@ -17,4 +17,6 @@ namespace blender::gpu {
 
 using DebugStack = Vector<StringRef>;
 
+void debug_validate_binding_image_format();
+
 }  // namespace blender::gpu

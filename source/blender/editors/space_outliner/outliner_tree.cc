@@ -1145,6 +1145,7 @@ static void outliner_clear_newid_from_main(Main *bmain)
  * \{ */
 
 void outliner_build_tree(Main *mainvar,
+                         WorkSpace *workspace,
                          Scene *scene,
                          ViewLayer *view_layer,
                          SpaceOutliner *space_outliner,
@@ -1192,7 +1193,7 @@ void outliner_build_tree(Main *mainvar,
   /* All tree displays should be created as sub-classes of AbstractTreeDisplay. */
   BLI_assert(space_outliner->runtime->tree_display != nullptr);
 
-  TreeSourceData source_data{*mainvar, *scene, *view_layer};
+  TreeSourceData source_data{*mainvar, *workspace, *scene, *view_layer};
   space_outliner->tree = space_outliner->runtime->tree_display->build_tree(source_data);
 
   if ((space_outliner->flag & SO_SKIP_SORT_ALPHA) == 0) {

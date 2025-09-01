@@ -532,8 +532,8 @@ void update_cache_variants(bContext *C, VPaint &vp, Object &ob, PointerRNA *ptr)
   /* Truly temporary data that isn't stored in properties */
   if (cache->first_time) {
     cache->initial_radius = paint_calc_object_space_radius(
-        *cache->vc, cache->location, BKE_brush_size_get(&vp.paint, &brush));
-    BKE_brush_unprojected_radius_set(&vp.paint, &brush, cache->initial_radius);
+        *cache->vc, cache->location, BKE_brush_radius_get(&vp.paint, &brush));
+    BKE_brush_unprojected_size_set(&vp.paint, &brush, cache->initial_radius);
   }
 
   if (BKE_brush_use_size_pressure(&brush) && paint_supports_dynamic_size(brush, paint_mode)) {
@@ -557,7 +557,7 @@ void get_brush_alpha_data(const SculptSession &ss,
                           float *r_brush_alpha_value,
                           float *r_brush_alpha_pressure)
 {
-  *r_brush_size_pressure = BKE_brush_size_get(&paint, &brush) *
+  *r_brush_size_pressure = BKE_brush_radius_get(&paint, &brush) *
                            (BKE_brush_use_size_pressure(&brush) ? ss.cache->pressure : 1.0f);
   *r_brush_alpha_value = BKE_brush_alpha_get(&paint, &brush);
   *r_brush_alpha_pressure = (BKE_brush_use_alpha_pressure(&brush) ? ss.cache->pressure : 1.0f);

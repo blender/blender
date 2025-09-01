@@ -538,21 +538,21 @@ static void rna_UnifiedPaintSettings_size_set(PointerRNA *ptr, int value)
 {
   UnifiedPaintSettings *ups = static_cast<UnifiedPaintSettings *>(ptr->data);
 
-  /* scale unprojected radius so it stays consistent with brush size */
-  BKE_brush_scale_unprojected_radius(&ups->unprojected_radius, value, ups->size);
+  /* scale unprojected size so it stays consistent with brush size */
+  BKE_brush_scale_unprojected_size(&ups->unprojected_size, value, ups->size);
   ups->size = value;
 }
 
-static void rna_UnifiedPaintSettings_unprojected_radius_set(PointerRNA *ptr, float value)
+static void rna_UnifiedPaintSettings_unprojected_size_set(PointerRNA *ptr, float value)
 {
   UnifiedPaintSettings *ups = static_cast<UnifiedPaintSettings *>(ptr->data);
 
-  /* scale brush size so it stays consistent with unprojected_radius */
-  BKE_brush_scale_size(&ups->size, value, ups->unprojected_radius);
-  ups->unprojected_radius = value;
+  /* scale brush size so it stays consistent with unprojected_size */
+  BKE_brush_scale_size(&ups->size, value, ups->unprojected_size);
+  ups->unprojected_size = value;
 }
 
-static void rna_UnifiedPaintSettings_radius_update(bContext *C, PointerRNA *ptr)
+static void rna_UnifiedPaintSettings_size_update(bContext *C, PointerRNA *ptr)
 {
   /* changing the unified size should invalidate the overlay but also update the brush */
   BKE_paint_invalidate_overlay_all();
@@ -788,9 +788,8 @@ static void rna_def_unified_paint_settings(BlenderRNA *brna)
   /* high-level flags to enable or disable unified paint settings */
   prop = RNA_def_property(srna, "use_unified_size", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", UNIFIED_PAINT_SIZE);
-  RNA_def_property_ui_text(prop,
-                           "Use Unified Radius",
-                           "Instead of per-brush radius, the radius is shared across brushes");
+  RNA_def_property_ui_text(
+      prop, "Use Unified Size", "Instead of per-brush size, the size is shared across brushes");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
 
   prop = RNA_def_property(srna, "use_unified_strength", PROP_BOOLEAN, PROP_NONE);
@@ -823,22 +822,22 @@ static void rna_def_unified_paint_settings(BlenderRNA *brna)
 
   /* unified paint settings that override the equivalent settings
    * from the active brush */
-  prop = RNA_def_property(srna, "size", PROP_INT, PROP_PIXEL);
+  prop = RNA_def_property(srna, "size", PROP_INT, PROP_PIXEL_DIAMETER);
   RNA_def_property_int_funcs(prop, nullptr, "rna_UnifiedPaintSettings_size_set", nullptr);
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-  RNA_def_property_range(prop, 1, MAX_BRUSH_PIXEL_RADIUS * 10);
-  RNA_def_property_ui_range(prop, 1, MAX_BRUSH_PIXEL_RADIUS, 1, -1);
-  RNA_def_property_ui_text(prop, "Radius", "Radius of the brush");
-  RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_radius_update");
+  RNA_def_property_range(prop, 1, MAX_BRUSH_PIXEL_DIAMETER * 10);
+  RNA_def_property_ui_range(prop, 1, MAX_BRUSH_PIXEL_DIAMETER, 1, -1);
+  RNA_def_property_ui_text(prop, "Size", "Diameter of the brush");
+  RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_size_update");
 
-  prop = RNA_def_property(srna, "unprojected_radius", PROP_FLOAT, PROP_DISTANCE);
+  prop = RNA_def_property(srna, "unprojected_size", PROP_FLOAT, PROP_DISTANCE_DIAMETER);
   RNA_def_property_float_funcs(
-      prop, nullptr, "rna_UnifiedPaintSettings_unprojected_radius_set", nullptr);
+      prop, nullptr, "rna_UnifiedPaintSettings_unprojected_size_set", nullptr);
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_range(prop, 0.001, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.001, 1, 1, -1);
-  RNA_def_property_ui_text(prop, "Unprojected Radius", "Radius of brush in Blender units");
-  RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_radius_update");
+  RNA_def_property_ui_text(prop, "Unprojected Size", "Diameter of brush in Blender units");
+  RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_size_update");
 
   prop = RNA_def_property(srna, "strength", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, nullptr, "alpha");
@@ -965,7 +964,7 @@ static void rna_def_unified_paint_settings(BlenderRNA *brna)
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "flag");
   RNA_def_property_enum_items(prop, brush_size_unit_items);
   RNA_def_property_ui_text(
-      prop, "Radius Unit", "Measure brush size relative to the view or the scene");
+      prop, "Size Unit", "Measure brush size relative to the view or the scene");
   RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
 }
 
@@ -1005,7 +1004,7 @@ static void rna_def_sculpt(BlenderRNA *brna)
        "BRUSH",
        0,
        "Brush Detail",
-       "Mesh detail is relative to brush radius"},
+       "Mesh detail is relative to brush size"},
       {SCULPT_DYNTOPO_DETAIL_MANUAL,
        "MANUAL",
        0,

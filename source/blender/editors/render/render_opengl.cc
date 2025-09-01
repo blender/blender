@@ -338,8 +338,6 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 
     BKE_scene_graph_evaluated_ensure(depsgraph, oglrender->bmain);
 
-    GPU_viewport_force_hdr(oglrender->viewport);
-
     if (v3d != nullptr) {
       ARegion *region = oglrender->region;
       ibuf_view = ED_view3d_draw_offscreen_imbuf(depsgraph,
@@ -1336,12 +1334,13 @@ static wmOperatorStatus screen_opengl_render_invoke(bContext *C,
                                 "Rendering viewport...",
                                 WM_JOB_EXCL_RENDER | WM_JOB_PRIORITY | WM_JOB_PROGRESS,
                                 WM_JOB_TYPE_RENDER);
+
+    oglrender->wm_job = wm_job;
+
     WM_jobs_customdata_set(wm_job, oglrender, opengl_render_freejob);
     WM_jobs_timer(wm_job, 0.01f, NC_SCENE | ND_RENDER_RESULT, 0);
     WM_jobs_callbacks(wm_job, opengl_render_startjob, nullptr, nullptr, nullptr);
     WM_jobs_start(CTX_wm_manager(C), wm_job);
-
-    oglrender->wm_job = wm_job;
   }
 
   WM_event_add_modal_handler(C, op);

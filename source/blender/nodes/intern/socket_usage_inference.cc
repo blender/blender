@@ -1553,6 +1553,28 @@ InferenceValue InputSocketUsageParams::get_input(const StringRef identifier) con
   return inferencer_.get_socket_value(input_socket);
 }
 
+std::optional<bool> InputSocketUsageParams::any_output_is_used() const
+{
+  const bNodeSocket *first_missing = nullptr;
+  for (const bNodeSocket *output_socket : this->node.output_sockets()) {
+    if (const std::optional<bool> is_used = inferencer_.all_socket_usages_.lookup_try(
+            {compute_context_, output_socket}))
+    {
+      if (*is_used) {
+        return true;
+      }
+    }
+    else {
+      first_missing = output_socket;
+    }
+  }
+  if (first_missing) {
+    inferencer_.push_usage_task({compute_context_, first_missing});
+    return std::nullopt;
+  }
+  return false;
+}
+
 bool InputSocketUsageParams::menu_input_may_be(const StringRef identifier,
                                                const int enum_value) const
 {

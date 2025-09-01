@@ -445,31 +445,6 @@ static bool skip_transform(const float4x4 &transform)
   return math::is_equal(transform, float4x4::identity(), 1e-6f);
 }
 
-static void copy_transformed_positions(const Span<float3> src,
-                                       const float4x4 &transform,
-                                       MutableSpan<float3> dst)
-{
-  if (skip_transform(transform)) {
-    dst.copy_from(src);
-  }
-  else {
-    threading::parallel_for(src.index_range(), 1024, [&](const IndexRange range) {
-      for (const int i : range) {
-        dst[i] = math::transform_point(transform, src[i]);
-      }
-    });
-  }
-}
-
-static void transform_positions(const float4x4 &transform, MutableSpan<float3> positions)
-{
-  threading::parallel_for(positions.index_range(), 1024, [&](const IndexRange range) {
-    for (const int i : range) {
-      positions[i] = math::transform_point(transform, positions[i]);
-    }
-  });
-}
-
 static void threaded_copy(const GSpan src, GMutableSpan dst)
 {
   BLI_assert(src.size() == dst.size());
@@ -1236,7 +1211,7 @@ static void execute_realize_pointcloud_task(
   const PointCloud &pointcloud = *pointcloud_info.pointcloud;
   const IndexRange point_slice{task.start_index, pointcloud.totpoint};
 
-  copy_transformed_positions(
+  math::transform_points(
       pointcloud_info.positions, task.transform, all_dst_positions.slice(point_slice));
 
   /* Create point ids. */
@@ -1294,7 +1269,7 @@ static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &opti
     const RealizePointCloudTask &task = tasks.first();
     PointCloud *new_points = BKE_pointcloud_copy_for_eval(task.pointcloud_info->pointcloud);
     if (!skip_transform(task.transform)) {
-      transform_positions(task.transform, new_points->positions_for_write());
+      math::transform_points(task.transform, new_points->positions_for_write());
       new_points->tag_positions_changed();
     }
     add_instance_attributes_to_single_geometry(
@@ -1564,11 +1539,8 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
   MutableSpan<int> dst_corner_verts = all_dst_corner_verts.slice(dst_loop_range);
   MutableSpan<int> dst_corner_edges = all_dst_corner_edges.slice(dst_loop_range);
 
-  threading::parallel_for(src_positions.index_range(), 1024, [&](const IndexRange vert_range) {
-    for (const int i : vert_range) {
-      dst_positions[i] = math::transform_point(task.transform, src_positions[i]);
-    }
-  });
+  math::transform_points(src_positions, task.transform, dst_positions);
+
   threading::parallel_for(src_edges.index_range(), 1024, [&](const IndexRange edge_range) {
     for (const int i : edge_range) {
       dst_edges[i] = src_edges[i] + task.start_indices.vertex;
@@ -1989,7 +1961,7 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
   const IndexRange dst_custom_knot_range{task.start_indices.custom_knot,
                                          curves.nurbs_custom_knots_by_curve().total_size()};
 
-  copy_transformed_positions(
+  math::transform_points(
       curves.positions(), task.transform, dst_curves.positions_for_write().slice(dst_point_range));
 
   /* Copy and transform handle positions if necessary. */
@@ -1998,14 +1970,14 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
       all_handle_left.slice(dst_point_range).fill(float3(0));
     }
     else {
-      copy_transformed_positions(
+      math::transform_points(
           curves_info.handle_left, task.transform, all_handle_left.slice(dst_point_range));
     }
     if (curves_info.handle_right.is_empty()) {
       all_handle_right.slice(dst_point_range).fill(float3(0));
     }
     else {
-      copy_transformed_positions(
+      math::transform_points(
           curves_info.handle_right, task.transform, all_handle_right.slice(dst_point_range));
     }
   }

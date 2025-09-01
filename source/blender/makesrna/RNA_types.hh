@@ -226,7 +226,7 @@ enum PropertyScaleType {
 #define RNA_STACK_ARRAY 32
 
 /**
- * \note Also update enums in `bpy_props.cc` and `rna_rna.cc` when adding items here.
+ * \note Also update enums in `rna_rna.cc` when adding items here.
  * Watch it: these values are written to files as part of node socket button sub-types!
  */
 enum PropertySubType {
@@ -290,6 +290,8 @@ enum PropertySubType {
   PROP_COLOR_TEMPERATURE = 45 | PROP_UNIT_COLOR_TEMPERATURE,
 
   PROP_FREQUENCY = 46 | PROP_UNIT_FREQUENCY,
+  PROP_PIXEL_DIAMETER = 47,
+  PROP_DISTANCE_DIAMETER = 48 | PROP_UNIT_LENGTH,
 };
 
 /* Make sure enums are updated with these */

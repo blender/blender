@@ -56,7 +56,6 @@ enum GHOST_TVulkanPlatformType {
 
 struct GHOST_ContextVK_WindowInfo {
   int size[2];
-  bool is_color_managed;
 };
 
 struct GHOST_FrameDiscard {
@@ -91,15 +90,6 @@ struct GHOST_Frame {
 
   void destroy(VkDevice vk_device);
 };
-
-/**
- * The number of frames that GHOST manages.
- *
- * This must be kept in sync with any frame-aligned resources in the
- * Vulkan backend. Notably, VKThreadData::resource_pools_count must
- * match this value.
- */
-constexpr static uint32_t GHOST_FRAMES_IN_FLIGHT = 5;
 
 class GHOST_ContextVK : public GHOST_Context {
   friend class GHOST_XrGraphicsBindingVulkan;
@@ -245,6 +235,7 @@ class GHOST_ContextVK : public GHOST_Context {
   VkExtent2D render_extent_;
   VkExtent2D render_extent_min_;
   VkSurfaceFormatKHR surface_format_;
+  bool use_hdr_swapchain_;
 
   std::function<void(const GHOST_VulkanSwapChainData *)> swap_buffers_pre_callback_;
   std::function<void(void)> swap_buffers_post_callback_;

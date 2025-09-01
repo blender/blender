@@ -1597,6 +1597,12 @@ static wmOperatorStatus sequencer_reassign_inputs_exec(bContext *C, wmOperator *
   seq::strip_lookup_invalidate(scene->ed);
   seq::time_left_handle_frame_set(scene, input1, seq::time_left_handle_frame_get(scene, input1));
 
+  Editing *ed = seq::editing_get(scene);
+  ListBase *active_seqbase = seq::active_seqbase_get(ed);
+  if (seq::transform_test_overlap(scene, active_seqbase, active_strip)) {
+    seq::transform_seqbase_shuffle(active_seqbase, active_strip, scene);
+  }
+
   seq::relations_invalidate_cache(scene, active_strip);
   seq::offset_animdata(scene, active_strip, (active_strip->start - old_start));
 

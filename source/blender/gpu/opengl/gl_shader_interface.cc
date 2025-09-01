@@ -493,6 +493,7 @@ GLShaderInterface::GLShaderInterface(GLuint program, const shader::ShaderCreateI
     input->binding = -1;
     input++;
   }
+  set_image_formats_from_info(info);
 
   /* SSBOs */
   for (const ShaderCreateInfo::Resource &res : all_resources) {

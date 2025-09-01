@@ -22,6 +22,7 @@
 #include "BLI_math_base_safe.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 #include "BLI_rect.h"
 #include "BLI_string_utf8.h"
 #include "BLI_threads.h"
@@ -376,13 +377,12 @@ static void vfont_char_build_impl(const Curve &cu,
                                   const VChar *che,
                                   const CharInfo *info,
                                   const bool is_smallcaps,
-                                  const float ofsx,
-                                  const float ofsy,
+                                  const blender::float2 &offset,
                                   const float rotate,
                                   const int charidx,
                                   const float fsize)
 {
-  /* Make a copy at distance ofsx, ofsy with shear. */
+  /* Make a copy at distance `offset` with shear. */
   float shear = cu.shear;
   float si = sinf(rotate);
   float co = cosf(rotate);
@@ -470,12 +470,12 @@ static void vfont_char_build_impl(const Curve &cu,
 
       for (int i = nu->pntsu; i > 0; i--) {
         float *fp = bezt->vec[0];
-        fp[0] = (fp[0] + ofsx) * fsize;
-        fp[1] = (fp[1] + ofsy) * fsize;
-        fp[3] = (fp[3] + ofsx) * fsize;
-        fp[4] = (fp[4] + ofsy) * fsize;
-        fp[6] = (fp[6] + ofsx) * fsize;
-        fp[7] = (fp[7] + ofsy) * fsize;
+        fp[0] = (fp[0] + offset.x) * fsize;
+        fp[1] = (fp[1] + offset.y) * fsize;
+        fp[3] = (fp[3] + offset.x) * fsize;
+        fp[4] = (fp[4] + offset.y) * fsize;
+        fp[6] = (fp[6] + offset.x) * fsize;
+        fp[7] = (fp[7] + offset.y) * fsize;
         bezt++;
       }
 
@@ -491,8 +491,7 @@ void BKE_vfont_char_build(const Curve &cu,
                           uint charcode,
                           const CharInfo *info,
                           const bool is_smallcaps,
-                          float ofsx,
-                          float ofsy,
+                          const blender::float2 &offset,
                           float rotate,
                           int charidx,
                           const float fsize)
@@ -503,7 +502,7 @@ void BKE_vfont_char_build(const Curve &cu,
   }
   VChar *che;
   vfont_char_find(vfd, charcode, &che);
-  vfont_char_build_impl(cu, nubase, che, info, is_smallcaps, ofsx, ofsy, rotate, charidx, fsize);
+  vfont_char_build_impl(cu, nubase, che, info, is_smallcaps, offset, rotate, charidx, fsize);
 }
 
 static float vfont_char_width(const Curve &cu, VChar *che, const bool is_smallcaps)
@@ -548,7 +547,7 @@ static void textbox_scale(TextBox *tb_dst, const TextBox *tb_src, float scale)
  * \{ */
 
 struct VFontToCurveIter {
-  int iteraction;
+  int iteration;
   float scale_to_fit;
   struct {
     float min;
@@ -581,7 +580,7 @@ struct VFontToCurveIter {
 /** Used when translating a mouse cursor location to a position within the string. */
 struct VFontCursor_Params {
   /** Mouse cursor location in Object coordinate space as input. */
-  float cursor_location[2];
+  blender::float2 cursor_location;
   /** Character position within #EditFont::textbuf as output. */
   int r_string_offset;
 };
@@ -683,11 +682,10 @@ static bool vfont_to_curve(Object *ob,
   EditFontSelBox *selboxes = nullptr;
   const CharInfo *info = nullptr, *custrinfo;
   TextBox tb_scale;
-  bool use_textbox;
   VChar *che;
   CharTrans *chartransdata = nullptr, *ct;
   TempLineInfo *lineinfo;
-  float xof, yof, xtrax, linedist;
+  float xtrax, linedist;
   float twidth = 0;
   int i, slen, j;
   int curbox;
@@ -700,8 +698,10 @@ static bool vfont_to_curve(Object *ob,
   /* Shift down vertically to be 25% below & 75% above baseline (before font scale is applied). */
   const float font_select_y_offset = 0.25;
   const bool word_wrap = iter_data.word_wrap;
-  const float xof_scale = safe_divide(cu.xof, font_size);
-  const float yof_scale = safe_divide(cu.yof, font_size);
+  const blender::float2 cu_offset_scale = {
+      safe_divide(cu.xof, font_size),
+      safe_divide(cu.yof, font_size),
+  };
   int last_line = -1;
   /* Length of the text disregarding \n breaks. */
   float current_line_length = 0.0f;
@@ -711,8 +711,8 @@ static bool vfont_to_curve(Object *ob,
    * We over-allocate by one to simplify logic of getting last char. */
   blender::Array<int> i_textbox_array(cu.totbox + 1, 0);
 
-#define MARGIN_X_MIN (xof_scale + tb_scale.x)
-#define MARGIN_Y_MIN (yof_scale + tb_scale.y)
+#define MARGIN_X_MIN (cu_offset_scale.x + tb_scale.x)
+#define MARGIN_Y_MIN (cu_offset_scale.y + tb_scale.y)
 
   /* NOTE: do calculations including the trailing `\0` of a string
    * because the cursor can be at that location. */
@@ -818,11 +818,12 @@ static bool vfont_to_curve(Object *ob,
 
   curbox = 0;
   textbox_scale(&tb_scale, &cu.tb[curbox], safe_divide(1.0f, font_size));
-  use_textbox = (tb_scale.w != 0.0f);
+  const bool use_textbox = (tb_scale.w != 0.0f);
 
-  xof = MARGIN_X_MIN;
-  yof = MARGIN_Y_MIN;
-
+  blender::float2 offset{
+      MARGIN_X_MIN,
+      MARGIN_Y_MIN,
+  };
   xtrax = 0.5f * cu.spacing - 0.5f;
 
   TextBoxBounds_ForCursor *tb_bounds_for_cursor = nullptr;
@@ -873,8 +874,8 @@ static bool vfont_to_curve(Object *ob,
     /* Calculate positions. */
 
     if ((tb_scale.w != 0.0f) && (ct->do_break == 0)) { /* May need wrapping. */
-      const float x_available = xof_scale + tb_scale.w;
-      const float x_used = (xof - tb_scale.x) + twidth;
+      const float x_available = cu_offset_scale.x + tb_scale.w;
+      const float x_used = (offset.x - tb_scale.x) + twidth;
 
       if (word_wrap == false) {
         /* When scale to fit is used, don't do any wrapping.
@@ -916,7 +917,7 @@ static bool vfont_to_curve(Object *ob,
               wsnr++;
             }
             i = j - 1;
-            xof = ct->xof;
+            offset.x = ct->offset.x;
             BLI_assert(&ct[1] == &chartransdata[i + 1]);
             ct[1].do_break = 1;
             ct[1].is_wrap = 1;
@@ -939,14 +940,13 @@ static bool vfont_to_curve(Object *ob,
     }
 
     if (charcode == '\n' || charcode == 0 || ct->do_break) {
-      ct->xof = xof;
-      ct->yof = yof;
+      ct->offset = offset;
       ct->linenr = lnr;
       ct->charnr = cnr;
 
-      yof -= linedist;
+      offset.y -= linedist;
 
-      lineinfo[lnr].x_min = (xof - xtrax) - tb_scale.x;
+      lineinfo[lnr].x_min = (offset.x - xtrax) - tb_scale.x;
       lineinfo[lnr].x_max = tb_scale.w;
       lineinfo[lnr].char_nr = cnr;
       lineinfo[lnr].wspace_nr = wsnr;
@@ -955,14 +955,16 @@ static bool vfont_to_curve(Object *ob,
         tb_bounds_for_cursor[curbox].char_index_last = i;
       }
 
-      if ((tb_scale.h != 0.0f) && (-(yof - tb_scale.y) > (tb_scale.h - linedist) - yof_scale)) {
+      if ((tb_scale.h != 0.0f) &&
+          (-(offset.y - tb_scale.y) > (tb_scale.h - linedist) - cu_offset_scale.y))
+      {
         if (cu.totbox > (curbox + 1)) {
           curbox++;
           i_textbox_array[curbox] = i + 1;
 
           textbox_scale(&tb_scale, &cu.tb[curbox], 1.0f / font_size);
 
-          yof = MARGIN_Y_MIN;
+          offset.y = MARGIN_Y_MIN;
         }
         else if (last_line == -1) {
           last_line = lnr + 1;
@@ -970,7 +972,7 @@ static bool vfont_to_curve(Object *ob,
         }
       }
 
-      current_line_length += xof - MARGIN_X_MIN;
+      current_line_length += offset.x - MARGIN_X_MIN;
       if (ct->do_break) {
         current_line_length += twidth;
       }
@@ -979,7 +981,7 @@ static bool vfont_to_curve(Object *ob,
         current_line_length = 0.0f;
       }
 
-      xof = MARGIN_X_MIN;
+      offset.x = MARGIN_X_MIN;
       lnr++;
       cnr = 0;
       wsnr = 0;
@@ -987,29 +989,27 @@ static bool vfont_to_curve(Object *ob,
     else if (charcode == '\t') { /* Tab character. */
       float tabfac;
 
-      ct->xof = xof;
-      ct->yof = yof;
+      ct->offset = offset;
       ct->linenr = lnr;
       ct->charnr = cnr++;
 
-      tabfac = (xof - MARGIN_X_MIN + 0.01f);
+      tabfac = (offset.x - MARGIN_X_MIN + 0.01f);
       tabfac = 2.0f * ceilf(tabfac / 2.0f);
-      xof = MARGIN_X_MIN + tabfac;
+      offset.x = MARGIN_X_MIN + tabfac;
     }
     else {
       EditFontSelBox *sb = nullptr;
       float wsfac;
 
-      ct->xof = xof;
-      ct->yof = yof;
+      ct->offset = offset;
       ct->linenr = lnr;
       ct->charnr = cnr++;
 
       if (selboxes && (i >= selstart) && (i <= selend)) {
         sb = &selboxes[i - selstart];
-        sb->y = (yof - font_select_y_offset) * font_size - linedist * font_size * 0.1f;
+        sb->y = (offset.y - font_select_y_offset) * font_size - linedist * font_size * 0.1f;
         sb->h = linedist * font_size;
-        sb->w = xof * font_size;
+        sb->w = offset.x * font_size;
       }
 
       if (charcode == ' ') { /* Space character. */
@@ -1023,17 +1023,17 @@ static bool vfont_to_curve(Object *ob,
       /* Set the width of the character. */
       twidth = vfont_char_width(cu, che, ct->is_smallcaps);
 
-      xof += (twidth * wsfac * (1.0f + (info->kern / 40.0f))) + xtrax;
+      offset.x += (twidth * wsfac * (1.0f + (info->kern / 40.0f))) + xtrax;
 
       if (sb) {
-        sb->w = (xof * font_size) - sb->w;
+        sb->w = (offset.x * font_size) - sb->w;
       }
     }
     ct++;
     i++;
   }
 
-  current_line_length += xof + twidth - MARGIN_X_MIN;
+  current_line_length += offset.x + twidth - MARGIN_X_MIN;
   longest_line_length = std::max(current_line_length, longest_line_length);
 
   if (ef && selboxes) {
@@ -1053,11 +1053,11 @@ static bool vfont_to_curve(Object *ob,
       TempLineInfo *li;
 
       for (i = 0, li = lineinfo; i < lnr; i++, li++) {
-        li->x_min = (li->x_max - li->x_min) + xof_scale;
+        li->x_min = (li->x_max - li->x_min) + cu_offset_scale.x;
       }
 
       for (i = 0; i <= slen; i++) {
-        ct->xof += lineinfo[ct->linenr].x_min;
+        ct->offset.x += lineinfo[ct->linenr].x_min;
         ct++;
       }
     }
@@ -1065,11 +1065,11 @@ static bool vfont_to_curve(Object *ob,
       TempLineInfo *li;
 
       for (i = 0, li = lineinfo; i < lnr; i++, li++) {
-        li->x_min = ((li->x_max - li->x_min) + xof_scale) / 2.0f;
+        li->x_min = ((li->x_max - li->x_min) + cu_offset_scale.x) / 2.0f;
       }
 
       for (i = 0; i <= slen; i++) {
-        ct->xof += lineinfo[ct->linenr].x_min;
+        ct->offset.x += lineinfo[ct->linenr].x_min;
         ct++;
       }
     }
@@ -1077,7 +1077,7 @@ static bool vfont_to_curve(Object *ob,
       TempLineInfo *li;
 
       for (i = 0, li = lineinfo; i < lnr; i++, li++) {
-        li->x_min = ((li->x_max - li->x_min) + xof_scale);
+        li->x_min = ((li->x_max - li->x_min) + cu_offset_scale.x);
 
         if (li->char_nr > 1) {
           li->x_min /= float(li->char_nr - 1);
@@ -1091,7 +1091,7 @@ static bool vfont_to_curve(Object *ob,
         }
 
         // if ((mem[j] != '\n') && (mem[j])) {
-        ct->xof += ct->charnr * lineinfo[ct->linenr].x_min;
+        ct->offset.x += ct->charnr * lineinfo[ct->linenr].x_min;
         // }
         ct++;
       }
@@ -1110,9 +1110,9 @@ static bool vfont_to_curve(Object *ob,
             TempLineInfo *li;
 
             li = &lineinfo[ct->linenr];
-            curofs += ((li->x_max - li->x_min) + xof_scale) / float(li->wspace_nr);
+            curofs += ((li->x_max - li->x_min) + cu_offset_scale.x) / float(li->wspace_nr);
           }
-          ct->xof += curofs;
+          ct->offset.x += curofs;
         }
         if (mem[i] == '\n' || chartransdata[i].do_break) {
           curofs = 0;
@@ -1172,7 +1172,7 @@ static bool vfont_to_curve(Object *ob,
         }
 
         for (ct = ct_first; ct <= ct_last; ct++) {
-          ct->yof += yoff;
+          ct->offset.y += yoff;
         }
 
         if (is_last_filled_textbox) {
@@ -1204,7 +1204,7 @@ static bool vfont_to_curve(Object *ob,
 
       ct = chartransdata;
       for (i = 0; i <= slen; i++) {
-        ct->yof += yoff;
+        ct->offset.y += yoff;
         ct++;
       }
     }
@@ -1225,17 +1225,17 @@ static bool vfont_to_curve(Object *ob,
       int char_idx_offset = char_beg;
 
       rctf *bounds = &tb_bounds->bounds;
-      /* In a text-box with no curves, `yof` only decrements over lines, `ymax` and `ymin`
+      /* In a text-box with no curves, `offset.y` only decrements over lines, `ymax` and `ymin`
        * can be obtained from any character in the first and last line of the text-box. */
-      bounds->ymax = chartransdata[char_beg].yof;
-      bounds->ymin = chartransdata[char_end].yof;
+      bounds->ymax = chartransdata[char_beg].offset.y;
+      bounds->ymin = chartransdata[char_end].offset.y;
 
       for (TempLineInfo *line = line_beg; line <= line_end; line++) {
         const CharTrans *first_char_line = &chartransdata[char_idx_offset];
         const CharTrans *last_char_line = &chartransdata[char_idx_offset + line->char_nr];
 
-        bounds->xmin = min_ff(bounds->xmin, first_char_line->xof);
-        bounds->xmax = max_ff(bounds->xmax, last_char_line->xof);
+        bounds->xmin = min_ff(bounds->xmin, first_char_line->offset.x);
+        bounds->xmax = max_ff(bounds->xmax, last_char_line->offset.x);
         char_idx_offset += line->char_nr + 1;
       }
       /* Move the bounds into a space compatible with `cursor_location`. */
@@ -1271,11 +1271,11 @@ static bool vfont_to_curve(Object *ob,
       sizefac = normalize_v3(cmat[0]) / font_size;
 
       ct = chartransdata;
-      minx = maxx = ct->xof;
+      minx = maxx = ct->offset.x;
       ct++;
       for (i = 1; i <= slen; i++, ct++) {
-        minx = std::min(minx, ct->xof);
-        maxx = std::max(maxx, ct->xof);
+        minx = std::min(minx, ct->offset.x);
+        maxx = std::max(maxx, ct->offset.x);
       }
 
       /* We put the x-coordinate exact at the curve, the y is rotated. */
@@ -1332,7 +1332,7 @@ static bool vfont_to_curve(Object *ob,
 
         dtime = distfac * 0.5f * twidth;
 
-        ctime = timeofs + distfac * (ct->xof - minx);
+        ctime = timeofs + distfac * (ct->offset.x - minx);
         CLAMP(ctime, 0.0f, 1.0f);
 
         /* Calculate the right loc AND the right rot separately. */
@@ -1347,10 +1347,12 @@ static bool vfont_to_curve(Object *ob,
         si = sinf(ct->rotate);
         co = cosf(ct->rotate);
 
-        yof = ct->yof;
+        offset.y = ct->offset.y;
 
-        ct->xof = vec[0] + si * yof;
-        ct->yof = vec[1] + co * yof;
+        ct->offset = {
+            vec[0] + si * offset.y,
+            vec[1] + co * offset.y,
+        };
 
         if (selboxes && (i >= selstart) && (i <= selend)) {
           EditFontSelBox *sb;
@@ -1366,8 +1368,8 @@ static bool vfont_to_curve(Object *ob,
     for (i = 0; i <= selend; i++, ct++) {
       if (i >= selstart) {
         EditFontSelBox *sb = &selboxes[i - selstart];
-        sb->x = ct->xof;
-        sb->y = ct->yof;
+        sb->x = ct->offset.x;
+        sb->y = ct->offset.y;
         if (ct->rotate != 0.0f) {
           sb->x -= sinf(ct->rotate) * font_select_y_offset;
           sb->y -= cosf(ct->rotate) * font_select_y_offset;
@@ -1453,8 +1455,6 @@ static bool vfont_to_curve(Object *ob,
     ct = &chartransdata[ef->pos];
     const float cursor_width = 0.04f;
     const float cursor_half = 0.02f;
-    const float xoffset = ct->xof;
-    const float yoffset = ct->yof;
 
     /* By default the cursor is exactly between the characters
      * and matches the rotation of the character to the right. */
@@ -1483,24 +1483,19 @@ static bool vfont_to_curve(Object *ob,
      * that the zero point before rotation, rotate, then apply offsets afterward. */
 
     /* Bottom left. */
-    ef->textcurs[0][0] = cursor_left;
-    ef->textcurs[0][1] = 0.0f - font_select_y_offset;
+    ef->textcurs[0] = blender::float2(cursor_left, 0.0f - font_select_y_offset);
     /* Bottom right. */
-    ef->textcurs[1][0] = cursor_left + cursor_width;
-    ef->textcurs[1][1] = 0.0f - font_select_y_offset;
+    ef->textcurs[1] = blender::float2(cursor_left + cursor_width, 0.0f - font_select_y_offset);
     /* Top left. */
-    ef->textcurs[3][0] = cursor_left;
-    ef->textcurs[3][1] = 1.0f - font_select_y_offset;
+    ef->textcurs[3] = blender::float2(cursor_left, 1.0f - font_select_y_offset);
     /* Top right. */
-    ef->textcurs[2][0] = cursor_left + cursor_width;
-    ef->textcurs[2][1] = 1.0f - font_select_y_offset;
+    ef->textcurs[2] = blender::float2(cursor_left + cursor_width, 1.0f - font_select_y_offset);
 
     for (int vert = 0; vert < 4; vert++) {
-      float temp_fl[2];
+      blender::float2 temp_fl;
       /* Rotate around the cursor's bottom-left corner. */
       rotate_v2_v2fl(temp_fl, &ef->textcurs[vert][0], -cursor_rotate);
-      ef->textcurs[vert][0] = font_size * (xoffset + temp_fl[0]);
-      ef->textcurs[vert][1] = font_size * (yoffset + temp_fl[1]);
+      ef->textcurs[vert] = font_size * (ct->offset + temp_fl);
     }
   }
 
@@ -1536,7 +1531,7 @@ static bool vfont_to_curve(Object *ob,
          * since character checking has been done earlier already. */
         che = vfont_char_find_or_placeholder(vfinfo_ctx.vfd, charcode, che_placeholder);
         vfont_char_build_impl(
-            cu, r_nubase, che, info, ct->is_smallcaps, ct->xof, ct->yof, ct->rotate, i, font_size);
+            cu, r_nubase, che, info, ct->is_smallcaps, ct->offset, ct->rotate, i, font_size);
 
         if (info->flag & CU_CHINFO_UNDERLINE) {
           float ulwidth, uloverlap = 0.0f;
@@ -1553,10 +1548,10 @@ static bool vfont_to_curve(Object *ob,
           twidth = vfont_char_width(cu, che, ct->is_smallcaps);
           ulwidth = (twidth * (1.0f + (info->kern / 40.0f))) + uloverlap;
 
-          rect.xmin = ct->xof;
+          rect.xmin = ct->offset.x;
           rect.xmax = rect.xmin + ulwidth;
 
-          rect.ymin = ct->yof;
+          rect.ymin = ct->offset.y;
           rect.ymax = rect.ymin - cu.ulheight;
 
           if ((ul_prev_i != -1) &&
@@ -1668,8 +1663,8 @@ static bool vfont_to_curve(Object *ob,
         iter_data.scale_to_fit = (iter_data.bisect.max + iter_data.bisect.min) * 0.5f;
 
         /* We iterated enough or got a good enough result. */
-        if ((!iter_data.iteraction--) || ((iter_data.bisect.max - iter_data.bisect.min) <
-                                          (cu.fsize * FONT_TO_CURVE_SCALE_THRESHOLD)))
+        if ((!iter_data.iteration--) || ((iter_data.bisect.max - iter_data.bisect.min) <
+                                         (cu.fsize * FONT_TO_CURVE_SCALE_THRESHOLD)))
         {
           if (valid) {
             iter_data.status = VFONT_TO_CURVE_DONE;
@@ -1684,7 +1679,7 @@ static bool vfont_to_curve(Object *ob,
   }
 
   if (cursor_params) {
-    const float *cursor_location = cursor_params->cursor_location;
+    const blender::float2 &cursor_location = cursor_params->cursor_location;
     /* Erasing all text could give `slen = 0`. */
     if (slen == 0) {
       cursor_params->r_string_offset = -1;
@@ -1695,11 +1690,8 @@ static bool vfont_to_curve(Object *ob,
       float closest_dist_sq = FLT_MAX;
 
       for (i = 0; i <= slen; i++) {
-        const float char_location[2] = {
-            chartransdata[i].xof * font_size,
-            chartransdata[i].yof * font_size,
-        };
-        const float test_dist_sq = len_squared_v2v2(cursor_location, char_location);
+        const blender::float2 char_location = chartransdata[i].offset * font_size;
+        const float test_dist_sq = blender::math::distance_squared(cursor_location, char_location);
         if (closest_dist_sq > test_dist_sq) {
           closest_char = i;
           closest_dist_sq = test_dist_sq;
@@ -1724,12 +1716,13 @@ static bool vfont_to_curve(Object *ob,
           }
           /* The closest point in the box to the `cursor_location`
            * by clamping it to the bounding box. */
-          const float cursor_location_clamped[2] = {
-              clamp_f(cursor_location[0], tb_bounds->bounds.xmin, tb_bounds->bounds.xmax),
-              clamp_f(cursor_location[1], tb_bounds->bounds.ymin, tb_bounds->bounds.ymax),
+          const blender::float2 cursor_location_clamped = {
+              clamp_f(cursor_location.x, tb_bounds->bounds.xmin, tb_bounds->bounds.xmax),
+              clamp_f(cursor_location.y, tb_bounds->bounds.ymin, tb_bounds->bounds.ymax),
           };
 
-          const float test_dist_sq = len_squared_v2v2(cursor_location, cursor_location_clamped);
+          const float test_dist_sq = blender::math::distance_squared(cursor_location,
+                                                                     cursor_location_clamped);
           if (test_dist_sq < closest_dist_sq) {
             closest_dist_sq = test_dist_sq;
             closest_box = curbox;
@@ -1747,22 +1740,22 @@ static bool vfont_to_curve(Object *ob,
       const float interline_offset = ((linedist - 0.5f) / 2.0f) * font_size;
       /* Loop until find the line where `cursor_location` is over. */
       for (i = char_beg; i <= char_end; i++) {
-        if (cursor_location[1] >= ((chartransdata[i].yof * font_size) - interline_offset)) {
+        if (cursor_location.y >= ((chartransdata[i].offset.y * font_size) - interline_offset)) {
           break;
         }
       }
 
       i = min_ii(i, char_end);
-      const float char_yof = chartransdata[i].yof;
+      const float char_yof = chartransdata[i].offset.y;
 
       /* Loop back until find the first character of the line, this because `cursor_location` can
        * be positioned further below the text, so #i can be the last character of the last line. */
-      for (; i >= char_beg + 1 && chartransdata[i - 1].yof == char_yof; i--) {
+      for (; i >= char_beg + 1 && chartransdata[i - 1].offset.y == char_yof; i--) {
         /* Pass. */
       }
       /* Loop until find the first character to the right of `cursor_location`
        * (using the character midpoint on the x-axis as a reference). */
-      for (; i <= char_end && char_yof == chartransdata[i].yof; i++) {
+      for (; i <= char_end && char_yof == chartransdata[i].offset.y; i++) {
         info = &custrinfo[i];
         const char32_t charcode = vfont_char_apply_smallcaps(mem[i], info);
 
@@ -1771,7 +1764,7 @@ static bool vfont_to_curve(Object *ob,
 
         const float charwidth = vfont_char_width(cu, che, info);
         const float charhalf = (charwidth / 2.0f);
-        if (cursor_location[0] <= ((chartransdata[i].xof + charhalf) * font_size)) {
+        if (cursor_location.x <= ((chartransdata[i].offset.y + charhalf) * font_size)) {
           break;
         }
       }
@@ -1779,7 +1772,7 @@ static bool vfont_to_curve(Object *ob,
 
       /* If there is no character to the right of the cursor we are on the next line, go back to
        * the last character of the previous line. */
-      if (i > char_beg && chartransdata[i].yof != char_yof) {
+      if (i > char_beg && chartransdata[i].offset.y != char_yof) {
         i -= 1;
       }
       cursor_params->r_string_offset = i;
@@ -1857,7 +1850,7 @@ bool BKE_vfont_to_curve_ex(Object *ob,
                            float *r_font_size_eval)
 {
   VFontToCurveIter data = {};
-  data.iteraction = cu.totbox * FONT_TO_CURVE_SCALE_ITERATIONS;
+  data.iteration = cu.totbox * FONT_TO_CURVE_SCALE_ITERATIONS;
   data.scale_to_fit = 1.0f;
   data.word_wrap = true;
   data.ok = true;
@@ -1880,22 +1873,21 @@ bool BKE_vfont_to_curve_ex(Object *ob,
   return data.ok;
 }
 
-int BKE_vfont_cursor_to_text_index(Object *ob, const float cursor_location[2])
+int BKE_vfont_cursor_to_text_index(Object *ob, const blender::float2 &cursor_location)
 {
   Curve &cu = *(Curve *)ob->data;
   ListBase *r_nubase = &cu.nurb;
 
   /* TODO: iterating to calculate the scale can be avoided. */
   VFontToCurveIter data = {};
-  data.iteraction = cu.totbox * FONT_TO_CURVE_SCALE_ITERATIONS;
+  data.iteration = cu.totbox * FONT_TO_CURVE_SCALE_ITERATIONS;
   data.scale_to_fit = 1.0f;
   data.word_wrap = true;
   data.ok = true;
   data.status = VFONT_TO_CURVE_INIT;
 
   VFontCursor_Params cursor_params = {};
-  cursor_params.cursor_location[0] = cursor_location[0];
-  cursor_params.cursor_location[1] = cursor_location[1];
+  cursor_params.cursor_location = cursor_location;
   cursor_params.r_string_offset = -1;
 
   do {

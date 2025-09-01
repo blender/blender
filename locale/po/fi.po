@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'68abaa12d581')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'61dd8a1435fb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-25 08:31+0000\n"
+"POT-Creation-Date: 2025-09-01 09:40+0000\n"
 "PO-Revision-Date: 2025-07-23 15:32+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -1307,6 +1307,14 @@ msgid "Cage Object"
 msgstr "Häkkiobjekti"
 
 
+msgid "Object"
+msgstr "Objekti"
+
+
+msgid "Tangent"
+msgstr "Tangentti"
+
+
 msgid "File Path"
 msgstr "Tiedostopolku"
 
@@ -1369,14 +1377,6 @@ msgstr "Akseli paistetaan vihreälle kanavalle"
 
 msgid "Axis to bake in red channel"
 msgstr "Akseli paistetaan punaiselle kanavalle"
-
-
-msgid "Object"
-msgstr "Objekti"
-
-
-msgid "Tangent"
-msgstr "Tangentti"
 
 
 msgid "Emit"
@@ -8020,18 +8020,6 @@ msgid "Keep In"
 msgstr "Pidä sisällä"
 
 
-msgid "Red Channel"
-msgstr "Punainen kanava"
-
-
-msgid "Green Channel"
-msgstr "Vihreä kanava"
-
-
-msgid "Blue Channel"
-msgstr "Sininen kanava"
-
-
 msgid "File Output"
 msgstr "Tiedoston ulostulo"
 
@@ -9917,14 +9905,6 @@ msgid "Custom"
 msgstr "Mukautettu"
 
 
-msgid "Join and Copy"
-msgstr "Liitä ja kopioi"
-
-
-msgid "Join"
-msgstr "Liitä"
-
-
 msgctxt "Operator"
 msgid "Add New Layer"
 msgstr "Lisää uusi taso"
@@ -10187,6 +10167,10 @@ msgstr "Isännät"
 msgctxt "Operator"
 msgid "Random"
 msgstr "Satunnainen"
+
+
+msgid "Join"
+msgstr "Liitä"
 
 
 msgid "Column"
@@ -14020,6 +14004,10 @@ msgid "Lightness:"
 msgstr "Valoisuus:"
 
 
+msgid "Value:"
+msgstr "Arvo:"
+
+
 msgid "Alpha:"
 msgstr "Alfa:"
 
@@ -14885,10 +14873,6 @@ msgstr "Avainkehys"
 
 msgid "Driver Value:"
 msgstr "Ajuriarvo:"
-
-
-msgid "Value:"
-msgstr "Arvo:"
 
 
 msgid "Driver:"

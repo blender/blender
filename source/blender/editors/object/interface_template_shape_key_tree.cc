@@ -62,7 +62,7 @@ class ShapeKeyDragController : public ui::AbstractViewItemDragController {
   {
   }
 
-  eWM_DragDataType get_drag_type() const override
+  std::optional<eWM_DragDataType> get_drag_type() const override
   {
     return WM_DRAG_SHAPE_KEY;
   }
@@ -73,7 +73,7 @@ class ShapeKeyDragController : public ui::AbstractViewItemDragController {
     *drag_data = drag_key_;
     return drag_data;
   }
-  void on_drag_start() override
+  void on_drag_start(bContext & /*C*/) override
   {
     drag_key_.object->shapenr = drag_key_.index + 1;
   }

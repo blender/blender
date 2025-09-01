@@ -1462,7 +1462,7 @@ static void draw_selected_name(
     if (blender::animrig::id_frame_has_keyframe((ID *)ob,
                                                 /* BKE_scene_ctime_get(scene) */ float(cfra)))
     {
-      UI_FontThemeColor(font_id, TH_TIME_KEYFRAME);
+      UI_FontThemeColor(font_id, TH_KEYTYPE_KEYFRAME_SELECT);
     }
   }
 

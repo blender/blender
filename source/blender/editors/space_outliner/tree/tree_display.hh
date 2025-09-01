@@ -34,6 +34,7 @@ struct Scene;
 struct Strip;
 struct SpaceOutliner;
 struct ViewLayer;
+struct WorkSpace;
 
 namespace blender::ed::outliner {
 
@@ -45,11 +46,12 @@ class TreeElementID;
  */
 struct TreeSourceData {
   Main *bmain;
+  WorkSpace *workspace;
   Scene *scene;
   ViewLayer *view_layer;
 
-  TreeSourceData(Main &bmain, Scene &scene, ViewLayer &view_layer)
-      : bmain(&bmain), scene(&scene), view_layer(&view_layer)
+  TreeSourceData(Main &bmain, WorkSpace &workspace, Scene &scene, ViewLayer &view_layer)
+      : bmain(&bmain), workspace(&workspace), scene(&scene), view_layer(&view_layer)
   {
   }
 };

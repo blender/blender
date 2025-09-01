@@ -3432,19 +3432,6 @@ blender::bke::greasepencil::Drawing *GreasePencil::get_eval_drawing(
   return this->get_drawing_at(layer, this->runtime->eval_frame);
 }
 
-static void transform_positions(const Span<blender::float3> src,
-                                const blender::float4x4 &transform,
-                                blender::MutableSpan<blender::float3> dst)
-{
-  BLI_assert(src.size() == dst.size());
-
-  blender::threading::parallel_for(src.index_range(), 4096, [&](const blender::IndexRange range) {
-    for (const int i : range) {
-      dst[i] = blender::math::transform_point(transform, src[i]);
-    }
-  });
-}
-
 std::optional<blender::Bounds<blender::float3>> GreasePencil::bounds_min_max(
     const int frame, const bool use_radius) const
 {
@@ -3471,7 +3458,7 @@ std::optional<blender::Bounds<blender::float3>> GreasePencil::bounds_min_max(
     }
     const VArray<float> radius = curves.radius();
     Array<float3> positions_world(curves.evaluated_points_num());
-    transform_positions(curves.evaluated_positions(), layer_to_object, positions_world);
+    math::transform_points(curves.evaluated_positions(), layer_to_object, positions_world);
     if (!use_radius) {
       const Bounds<float3> drawing_bounds = *bounds::min_max(positions_world.as_span());
       bounds = bounds::merge(bounds, drawing_bounds);

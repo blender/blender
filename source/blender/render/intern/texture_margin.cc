@@ -54,7 +54,7 @@ class TextureMarginMap {
 
   OffsetIndices<int> faces_;
   Span<int> corner_edges_;
-  Span<float2> mloopuv_;
+  Span<float2> uv_map_;
   int totedge_;
 
  public:
@@ -64,12 +64,12 @@ class TextureMarginMap {
                    const int totedge,
                    const OffsetIndices<int> faces,
                    const Span<int> corner_edges,
-                   const Span<float2> mloopuv)
+                   const Span<float2> uv_map)
       : w_(w),
         h_(h),
         faces_(faces),
         corner_edges_(corner_edges),
-        mloopuv_(mloopuv),
+        uv_map_(uv_map),
         totedge_(totedge)
   {
     copy_v2_v2(uv_offset_, uv_offset);
@@ -296,11 +296,11 @@ class TextureMarginMap {
   }
 
  private:
-  float2 uv_to_xy(const float2 &mloopuv) const
+  float2 uv_to_xy(const float2 &uv_map) const
   {
     float2 ret;
-    ret.x = (((mloopuv[0] - uv_offset_[0]) * w_) - (0.5f + 0.001f));
-    ret.y = (((mloopuv[1] - uv_offset_[1]) * h_) - (0.5f + 0.001f));
+    ret.x = (((uv_map[0] - uv_offset_[0]) * w_) - (0.5f + 0.001f));
+    ret.y = (((uv_map[1] - uv_offset_[1]) * h_) - (0.5f + 0.001f));
     return ret;
   }
 
@@ -406,8 +406,8 @@ class TextureMarginMap {
         l2 = faces_[src_poly].start();
       }
       /* edge points */
-      float2 edgepoint1 = uv_to_xy(mloopuv_[l1]);
-      float2 edgepoint2 = uv_to_xy(mloopuv_[l2]);
+      float2 edgepoint1 = uv_to_xy(uv_map_[l1]);
+      float2 edgepoint2 = uv_to_xy(uv_map_[l2]);
       /* Vector AB is the vector from the first edge point to the second edge point.
        * Vector AP is the vector from the first edge point to our point under investigation. */
       float2 ab = edgepoint2 - edgepoint1;
@@ -467,8 +467,8 @@ class TextureMarginMap {
       other_edge2 = faces_[dst_poly].start();
     }
 
-    float2 other_edgepoint1 = uv_to_xy(mloopuv_[other_edge]);
-    float2 other_edgepoint2 = uv_to_xy(mloopuv_[other_edge2]);
+    float2 other_edgepoint1 = uv_to_xy(uv_map_[other_edge]);
+    float2 other_edgepoint2 = uv_to_xy(uv_map_[other_edge2]);
 
     /* Calculate the vector from the order edges last point to its first point. */
     float2 other_ab = other_edgepoint1 - other_edgepoint2;
@@ -501,7 +501,7 @@ static void generate_margin(ImBuf *ibuf,
                             const OffsetIndices<int> faces,
                             const Span<int> corner_edges,
                             const Span<int> corner_verts,
-                            const Span<float2> mloopuv,
+                            const Span<float2> uv_map,
                             const float uv_offset[2])
 {
   Array<int3> corner_tris(poly_to_tri_count(faces.size(), corner_edges.size()));
@@ -510,7 +510,7 @@ static void generate_margin(ImBuf *ibuf,
   Array<int> tri_faces(corner_tris.size());
   bke::mesh::corner_tris_calc_face_indices(faces, tri_faces);
 
-  TextureMarginMap map(ibuf->x, ibuf->y, uv_offset, edges_num, faces, corner_edges, mloopuv);
+  TextureMarginMap map(ibuf->x, ibuf->y, uv_offset, edges_num, faces, corner_edges, uv_map);
 
   bool draw_new_mask = false;
   /* Now the map contains 3 sorts of values: 0xFFFFFFFF for empty pixels, `0x80000000 + polyindex`
@@ -528,7 +528,7 @@ static void generate_margin(ImBuf *ibuf,
     float vec[3][2];
 
     for (int a = 0; a < 3; a++) {
-      const float *uv = mloopuv[tri[a]];
+      const float *uv = uv_map[tri[a]];
 
       /* NOTE(@ideasman42): workaround for pixel aligned UVs which are common and can screw up
        * our intersection tests where a pixel gets in between 2 faces or the middle of a quad,

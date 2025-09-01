@@ -516,6 +516,80 @@ bool BLI_windows_get_directx_driver_version(const wchar_t *deviceSubString,
   return false;
 }
 
+bool BLI_windows_is_build_version_greater_or_equal(DWORD majorVersion,
+                                                   DWORD minorVersion,
+                                                   DWORD buildNumber)
+{
+  HMODULE hMod = ::GetModuleHandleW(L"ntdll.dll");
+  if (hMod == 0) {
+    return false;
+  }
+
+  typedef NTSTATUS(WINAPI * RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
+  RtlGetVersionPtr rtl_get_version = (RtlGetVersionPtr)::GetProcAddress(hMod, "RtlGetVersion");
+  if (rtl_get_version == nullptr) {
+    fprintf(stderr, "BLI_windows_is_build_version_greater_or_equal: RtlGetVersion not found.");
+    return false;
+  }
+
+  RTL_OSVERSIONINFOW osVersioninfo{};
+  osVersioninfo.dwOSVersionInfoSize = sizeof(RTL_OSVERSIONINFOW);
+  if (rtl_get_version(&osVersioninfo) != 0) {
+    fprintf(stderr, "BLI_windows_is_build_version_greater_or_equal: RtlGetVersion failed.");
+    return false;
+  }
+  if (majorVersion != osVersioninfo.dwMajorVersion) {
+    return osVersioninfo.dwMajorVersion > majorVersion;
+  }
+  if (minorVersion != osVersioninfo.dwMinorVersion) {
+    return osVersioninfo.dwMajorVersion > minorVersion;
+  }
+  return osVersioninfo.dwBuildNumber >= buildNumber;
+}
+
+void BLI_windows_process_set_qos(QoSMode qos_mode, QoSPrecedence qos_precedence)
+{
+  static QoSPrecedence qos_precedence_last = QoSPrecedence::JOB;
+  if (int(qos_precedence) < int(qos_precedence_last)) {
+    return;
+  }
+
+  /* Only supported on Windows build >= 10.0.22000, i.e., Windows 11 21H2:
+   * https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/ne-processthreadsapi-process_information_class
+   */
+  if (!BLI_windows_is_build_version_greater_or_equal(10, 0, 22000)) {
+    return;
+  }
+
+  PROCESS_POWER_THROTTLING_STATE processPowerThrottlingState{};
+  processPowerThrottlingState.Version = PROCESS_POWER_THROTTLING_CURRENT_VERSION;
+  switch (qos_mode) {
+    case QoSMode::DEFAULT:
+      processPowerThrottlingState.ControlMask = 0;
+      processPowerThrottlingState.StateMask = 0;
+      break;
+    case QoSMode::HIGH:
+      processPowerThrottlingState.ControlMask = PROCESS_POWER_THROTTLING_EXECUTION_SPEED;
+      processPowerThrottlingState.StateMask = 0;
+      break;
+    case QoSMode::ECO:
+      processPowerThrottlingState.ControlMask = PROCESS_POWER_THROTTLING_EXECUTION_SPEED;
+      processPowerThrottlingState.StateMask = PROCESS_POWER_THROTTLING_EXECUTION_SPEED;
+      break;
+  }
+  HANDLE hProcess = GetCurrentProcess();
+  if (!SetProcessInformation(hProcess,
+                             ProcessPowerThrottling,
+                             &processPowerThrottlingState,
+                             sizeof(PROCESS_POWER_THROTTLING_STATE)))
+  {
+    fprintf(
+        stderr, "BLI_windows_set_process_qos: SetProcessInformation failed: %d\n", GetLastError());
+    return;
+  }
+  qos_precedence_last = qos_precedence;
+}
+
 #else
 
 /* intentionally empty for UNIX */

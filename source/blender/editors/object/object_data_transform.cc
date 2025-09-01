@@ -509,17 +509,6 @@ std::unique_ptr<XFormObjectData> data_xform_create_from_edit_mode(ID *id)
   return data_xform_create_ex(id, true);
 }
 
-static void copy_transformed_positions(const Span<float3> src,
-                                       const float4x4 &transform,
-                                       MutableSpan<float3> dst)
-{
-  threading::parallel_for(src.index_range(), 1024, [&](const IndexRange range) {
-    for (const int i : range) {
-      dst[i] = math::transform_point(transform, src[i]);
-    }
-  });
-}
-
 static void copy_transformed_radii(const Span<float> src,
                                    const float4x4 &transform,
                                    MutableSpan<float> dst)
@@ -549,7 +538,7 @@ void data_xform_by_mat4(XFormObjectData &xod_base, const float4x4 &transform)
         // key_index = bm->shapenr - 1;
       }
       else {
-        copy_transformed_positions(xod.positions, transform, mesh->vert_positions_for_write());
+        math::transform_points(xod.positions, transform, mesh->vert_positions_for_write());
         mesh->tag_positions_changed();
       }
 
@@ -640,11 +629,11 @@ void data_xform_by_mat4(XFormObjectData &xod_base, const float4x4 &transform)
       bke::CurvesGeometry &curves = curves_id->geometry.wrap();
       const auto &xod = reinterpret_cast<const XFormObjectData_Curves &>(xod_base);
       if (!curves.has_curve_with_type(CURVE_TYPE_BEZIER)) {
-        copy_transformed_positions(xod.positions, transform, curves.positions_for_write());
+        math::transform_points(xod.positions, transform, curves.positions_for_write());
       }
       else {
         Array<float3> transformed_positions(xod.positions.size());
-        copy_transformed_positions(xod.positions, transform, transformed_positions);
+        math::transform_points(xod.positions, transform, transformed_positions);
         bke::curves::bezier::write_all_positions(
             curves, curves.curves_range(), transformed_positions);
       }
@@ -654,7 +643,7 @@ void data_xform_by_mat4(XFormObjectData &xod_base, const float4x4 &transform)
     case ID_PT: {
       PointCloud *pointcloud = reinterpret_cast<PointCloud *>(xod_base.id);
       const auto &xod = reinterpret_cast<const XFormObjectData_PointCloud &>(xod_base);
-      copy_transformed_positions(xod.positions, transform, pointcloud->positions_for_write());
+      math::transform_points(xod.positions, transform, pointcloud->positions_for_write());
       copy_transformed_radii(xod.radii, transform, pointcloud->radius_for_write());
       break;
     }

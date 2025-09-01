@@ -270,17 +270,17 @@ class FrameBuffer {
 };
 
 /* Syntactic sugar. */
-static inline GPUFrameBuffer *wrap(FrameBuffer *vert)
+static inline GPUFrameBuffer *wrap(FrameBuffer *framebuffer)
 {
-  return reinterpret_cast<GPUFrameBuffer *>(vert);
+  return reinterpret_cast<GPUFrameBuffer *>(framebuffer);
 }
-static inline FrameBuffer *unwrap(GPUFrameBuffer *vert)
+static inline FrameBuffer *unwrap(GPUFrameBuffer *framebuffer)
 {
-  return reinterpret_cast<FrameBuffer *>(vert);
+  return reinterpret_cast<FrameBuffer *>(framebuffer);
 }
-static inline const FrameBuffer *unwrap(const GPUFrameBuffer *vert)
+static inline const FrameBuffer *unwrap(const GPUFrameBuffer *framebuffer)
 {
-  return reinterpret_cast<const FrameBuffer *>(vert);
+  return reinterpret_cast<const FrameBuffer *>(framebuffer);
 }
 
 #undef DEBUG_NAME_LEN

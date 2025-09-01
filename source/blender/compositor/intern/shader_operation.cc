@@ -276,9 +276,12 @@ void ShaderOperation::link_node_input_constant(const DInputSocket input, const D
   ShaderNode &node = *shader_nodes_.lookup(input.node());
   GPUNodeStack &stack = node.get_input(input->identifier);
 
-  /* Create a uniform link that carry the value of the origin. */
+  /* Create a constant or a uniform link that carry the value of the origin. Use a constant for
+   * socket types that rarely change like booleans and menus, while use a uniform for socket type
+   * that might change a lot to avoid excessive shader recompilation. */
   initialize_input_stack_value(origin, stack);
-  GPUNodeLink *link = GPU_uniform(stack.vec);
+  const bool use_as_constant = ELEM(origin->type, SOCK_BOOLEAN, SOCK_MENU);
+  GPUNodeLink *link = use_as_constant ? GPU_constant(stack.vec) : GPU_uniform(stack.vec);
 
   const ResultType type = get_node_socket_result_type(origin.bsocket());
   const char *function_name = get_set_function_name(type);

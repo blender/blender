@@ -295,6 +295,7 @@ static wmOperatorStatus grease_pencil_export_svg_invoke(bContext *C,
 static wmOperatorStatus grease_pencil_export_svg_exec(bContext *C, wmOperator *op)
 {
   using blender::io::grease_pencil::ExportParams;
+  using blender::io::grease_pencil::ExportStatus;
   using blender::io::grease_pencil::IOContext;
 
   Scene *scene = CTX_data_scene(C);
@@ -337,11 +338,25 @@ static wmOperatorStatus grease_pencil_export_svg_exec(bContext *C, wmOperator *o
                                stroke_sample};
 
   WM_cursor_wait(true);
-  const bool done = blender::io::grease_pencil::export_svg(io_context, params, *scene, filepath);
+  ExportStatus status = blender::io::grease_pencil::export_svg(
+      io_context, params, *scene, filepath);
   WM_cursor_wait(false);
 
-  if (!done) {
-    BKE_report(op->reports, RPT_WARNING, "Unable to export SVG");
+  switch (status) {
+    case ExportStatus::Ok:
+      break;
+    case ExportStatus::InvalidActiveObjectType:
+      BKE_report(op->reports, RPT_WARNING, "Active object is not a Grease Pencil object");
+      break;
+    case ExportStatus::NoFramesSelected:
+      BKE_report(op->reports, RPT_WARNING, "No frames selected in the Grease Pencil object");
+      break;
+    case ExportStatus::FileWriteError:
+      BKE_reportf(op->reports, RPT_WARNING, "Error during file write for \"%s\"", filepath);
+      break;
+    case ExportStatus::UnknownError:
+      BLI_assert_unreachable();
+      break;
   }
 
   return OPERATOR_FINISHED;

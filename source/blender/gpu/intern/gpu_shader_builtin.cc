@@ -101,8 +101,6 @@ static const char *builtin_shader_create_info_name(eGPUBuiltinShader shader)
       return "gpu_shader_2D_node_socket_inst";
     case GPU_SHADER_2D_NODELINK:
       return "gpu_shader_2D_nodelink";
-    case GPU_SHADER_2D_NODELINK_INST:
-      return "gpu_shader_2D_nodelink_inst";
     case GPU_SHADER_GPENCIL_STROKE:
       return "gpu_shader_gpencil_stroke";
     case GPU_SHADER_SEQUENCER_STRIPS:

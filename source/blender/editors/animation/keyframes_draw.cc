@@ -216,8 +216,8 @@ static void channel_ui_data_init(DrawKeylistUIData *ctx,
 
   ctx->show_ipo = (saction_flag & SACTION_SHOW_INTERPOLATION) != 0;
 
-  UI_GetThemeColor4fv(TH_STRIP_SELECT, ctx->sel_color);
-  UI_GetThemeColor4fv(TH_STRIP, ctx->unsel_color);
+  UI_GetThemeColor4fv(TH_LONGKEY_SELECT, ctx->sel_color);
+  UI_GetThemeColor4fv(TH_LONGKEY, ctx->unsel_color);
   UI_GetThemeColor4fv(TH_DOPESHEET_IPOLINE, ctx->ipo_color);
 
   ctx->sel_color[3] *= ctx->alpha;

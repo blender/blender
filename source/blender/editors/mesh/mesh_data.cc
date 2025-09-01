@@ -162,12 +162,12 @@ static void mesh_uv_reset_bmface(BMFace *f, const int cd_loop_uv_offset)
   mesh_uv_reset_array(fuv.data(), f->len);
 }
 
-static void mesh_uv_reset_mface(const blender::IndexRange face, float2 *mloopuv)
+static void mesh_uv_reset_mface(const blender::IndexRange face, float2 *uv_map)
 {
   Array<float *, BM_DEFAULT_NGON_STACK_SIZE> fuv(face.size());
 
   for (int i = 0; i < face.size(); i++) {
-    fuv[i] = mloopuv[face[i]];
+    fuv[i] = uv_map[face[i]];
   }
 
   mesh_uv_reset_array(fuv.data(), face.size());
@@ -196,12 +196,12 @@ void ED_mesh_uv_loop_reset_ex(Mesh *mesh, const int layernum)
   else {
     /* Collect Mesh UVs */
     BLI_assert(CustomData_has_layer(&mesh->corner_data, CD_PROP_FLOAT2));
-    float2 *mloopuv = static_cast<float2 *>(CustomData_get_layer_n_for_write(
+    float2 *uv_map = static_cast<float2 *>(CustomData_get_layer_n_for_write(
         &mesh->corner_data, CD_PROP_FLOAT2, layernum, mesh->corners_num));
 
     const blender::OffsetIndices polys = mesh->faces();
     for (const int i : polys.index_range()) {
-      mesh_uv_reset_mface(polys[i], mloopuv);
+      mesh_uv_reset_mface(polys[i], uv_map);
     }
   }
 

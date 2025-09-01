@@ -284,11 +284,9 @@ Editing *editing_ensure(Scene *scene)
     Editing *ed;
 
     ed = scene->ed = MEM_callocN<Editing>("addseq");
-    ed->seqbasep = &ed->seqbase;
     ed->cache_flag = (SEQ_CACHE_PREFETCH_ENABLE | SEQ_CACHE_STORE_FINAL_OUT | SEQ_CACHE_STORE_RAW);
     ed->show_missing_media_flag = SEQ_EDIT_SHOW_MISSING_MEDIA;
-    ed->displayed_channels = &ed->channels;
-    channels_ensure(ed->displayed_channels);
+    channels_ensure(&ed->channels);
   }
 
   return scene->ed;
@@ -427,11 +425,6 @@ ListBase *active_seqbase_get(const Editing *ed)
   return ed ? ed->current_strips() : nullptr;
 }
 
-void active_seqbase_set(Editing *ed, ListBase *seqbase)
-{
-  ed->seqbasep = seqbase;
-}
-
 static MetaStack *seq_meta_stack_alloc(const Scene *scene, Strip *strip_meta)
 {
   Editing *ed = editing_get(scene);
@@ -441,9 +434,7 @@ static MetaStack *seq_meta_stack_alloc(const Scene *scene, Strip *strip_meta)
   ms->parent_strip = strip_meta;
 
   /* Reference to previously displayed timeline data. */
-  Strip *higher_level_meta = lookup_meta_by_strip(ed, strip_meta);
-  ms->oldbasep = higher_level_meta ? &higher_level_meta->seqbase : &ed->seqbase;
-  ms->old_channels = higher_level_meta ? &higher_level_meta->channels : &ed->channels;
+  ms->old_strip = lookup_meta_by_strip(ed, strip_meta);
 
   ms->disp_range[0] = time_left_handle_frame_get(scene, ms->parent_strip);
   ms->disp_range[1] = time_right_handle_frame_get(scene, ms->parent_strip);
@@ -473,13 +464,10 @@ void meta_stack_set(const Scene *scene, Strip *dst)
       seq_meta_stack_alloc(scene, meta_parent);
     }
 
-    active_seqbase_set(ed, &dst->seqbase);
-    channels_displayed_set(ed, &dst->channels);
+    ed->current_meta_strip = dst;
   }
   else {
-    /* Go to top level, exiting meta strip. */
-    active_seqbase_set(ed, &ed->seqbase);
-    channels_displayed_set(ed, &ed->channels);
+    ed->current_meta_strip = nullptr;
   }
 }
 
@@ -487,8 +475,7 @@ Strip *meta_stack_pop(Editing *ed)
 {
   MetaStack *ms = meta_stack_active_get(ed);
   Strip *meta_parent = ms->parent_strip;
-  active_seqbase_set(ed, ms->oldbasep);
-  channels_displayed_set(ed, ms->old_channels);
+  ed->current_meta_strip = ms->old_strip;
   BLI_remlink(&ed->metastack, ms);
   MEM_freeN(ms);
   return meta_parent;
@@ -1159,20 +1146,34 @@ void eval_strips(Depsgraph *depsgraph, Scene *scene, ListBase *seqbase)
 
 ListBase *Editing::current_strips()
 {
-  return this->seqbasep;
+  if (this->current_meta_strip) {
+    return &this->current_meta_strip->seqbase;
+  }
+  return &this->seqbase;
 }
+
 ListBase *Editing::current_strips() const
 {
+  if (this->current_meta_strip) {
+    return &this->current_meta_strip->seqbase;
+  }
   /* NOTE: Const correctness is non-existent with ListBase anyway. */
-  return this->seqbasep;
+  return &const_cast<ListBase &>(this->seqbase);
 }
 
 ListBase *Editing::current_channels()
 {
-  return this->displayed_channels;
+  if (this->current_meta_strip) {
+    return &this->current_meta_strip->channels;
+  }
+  return &this->channels;
 }
+
 ListBase *Editing::current_channels() const
 {
+  if (this->current_meta_strip) {
+    return &this->current_meta_strip->channels;
+  }
   /* NOTE: Const correctness is non-existent with ListBase anyway. */
-  return this->displayed_channels;
+  return &const_cast<ListBase &>(this->channels);
 }

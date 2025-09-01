@@ -38,15 +38,6 @@ static void translate_positions(MutableSpan<float3> positions, const float3 &tra
   });
 }
 
-static void transform_positions(MutableSpan<float3> positions, const float4x4 &matrix)
-{
-  threading::parallel_for(positions.index_range(), 1024, [&](const IndexRange range) {
-    for (float3 &position : positions.slice(range)) {
-      position = math::transform_point(matrix, position);
-    }
-  });
-}
-
 static void translate_pointcloud(PointCloud &pointcloud, const float3 translation)
 {
   if (math::is_zero(translation)) {
@@ -76,7 +67,7 @@ static void transform_pointcloud(PointCloud &pointcloud, const float4x4 &transfo
   bke::MutableAttributeAccessor attributes = pointcloud.attributes_for_write();
   bke::SpanAttributeWriter position = attributes.lookup_or_add_for_write_span<float3>(
       "position", bke::AttrDomain::Point);
-  transform_positions(position.span, transform);
+  math::transform_points(transform, position.span);
   position.finish();
 }
 
@@ -177,7 +168,7 @@ static void translate_volume(Volume &volume, const float3 translation)
 static void transform_curve_edit_hints(bke::CurvesEditHints &edit_hints, const float4x4 &transform)
 {
   if (const std::optional<MutableSpan<float3>> positions = edit_hints.positions_for_write()) {
-    transform_positions(*positions, transform);
+    math::transform_points(transform, *positions);
   }
   float3x3 deform_mat;
   copy_m3_m4(deform_mat.ptr(), transform.ptr());
@@ -203,7 +194,7 @@ static void transform_grease_pencil_edit_hints(bke::GreasePencilEditHints &edit_
 
   for (bke::GreasePencilDrawingEditHints &drawing_hints : *edit_hints.drawing_hints) {
     if (const std::optional<MutableSpan<float3>> positions = drawing_hints.positions_for_write()) {
-      transform_positions(*positions, transform);
+      math::transform_points(transform, *positions);
     }
     float3x3 deform_mat = transform.view<3, 3>();
     if (drawing_hints.deform_mats.has_value()) {

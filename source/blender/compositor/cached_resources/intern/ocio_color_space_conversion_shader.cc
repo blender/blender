@@ -24,32 +24,17 @@
 #include "COM_ocio_color_space_conversion_shader.hh"
 #include "COM_result.hh"
 
+#include "libocio_display_processor.hh"
+
+#include "CLG_log.h"
+
 #if defined(WITH_OPENCOLORIO)
 #  include <OpenColorIO/OpenColorIO.h>
 #endif
 
 namespace blender::compositor {
 
-/* ------------------------------------------------------------------------------------------------
- * OCIO Color Space Conversion Shader Key.
- */
-
-OCIOColorSpaceConversionShaderKey::OCIOColorSpaceConversionShaderKey(
-    const std::string &source, const std::string &target, const std::string &config_cache_id)
-    : source(source), target(target), config_cache_id(config_cache_id)
-{
-}
-
-uint64_t OCIOColorSpaceConversionShaderKey::hash() const
-{
-  return get_default_hash(source, target, config_cache_id);
-}
-
-bool operator==(const OCIOColorSpaceConversionShaderKey &a,
-                const OCIOColorSpaceConversionShaderKey &b)
-{
-  return a.source == b.source && a.target == b.target && a.config_cache_id == b.config_cache_id;
-}
+static CLG_LogRef LOG = {"compositor.gpu"};
 
 /* --------------------------------------------------------------------
  * GPU Shader Creator.
@@ -317,7 +302,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
                               ImageReadWriteType::Float2D,
                               output_image_name());
     shader_create_info_.compute_source("gpu_shader_compositor_ocio_processor.glsl");
-    shader_create_info_.compute_source_generated += shader_code_;
+    shader_create_info_.compute_source_generated += GPU_shader_preprocess_source(shader_code_);
 
     GPUShaderCreateInfo *info = reinterpret_cast<GPUShaderCreateInfo *>(&shader_create_info_);
     shader_ = GPU_shader_create_from_info(info);
@@ -478,6 +463,27 @@ class GPUShaderCreator {
 
 #endif
 
+/* ------------------------------------------------------------------------------------------------
+ * OCIO Color Space Conversion Shader Key.
+ */
+
+OCIOColorSpaceConversionShaderKey::OCIOColorSpaceConversionShaderKey(
+    const std::string &source, const std::string &target, const std::string &config_cache_id)
+    : source(source), target(target), config_cache_id(config_cache_id)
+{
+}
+
+uint64_t OCIOColorSpaceConversionShaderKey::hash() const
+{
+  return get_default_hash(source, target, config_cache_id);
+}
+
+bool operator==(const OCIOColorSpaceConversionShaderKey &a,
+                const OCIOColorSpaceConversionShaderKey &b)
+{
+  return a.source == b.source && a.target == b.target && a.config_cache_id == b.config_cache_id;
+}
+
 /* --------------------------------------------------------------------
  * OCIO Color Space Conversion Shader.
  */
@@ -500,7 +506,8 @@ OCIOColorSpaceConversionShader::OCIOColorSpaceConversionShader(Context &context,
     auto ocio_shader_creator = std::static_pointer_cast<OCIO::GpuShaderCreator>(shader_creator_);
     gpu_processor->extractGpuShaderInfo(ocio_shader_creator);
   }
-  catch (const OCIO::Exception &) {
+  catch (const OCIO::Exception &e) {
+    CLOG_ERROR(&LOG, "Failed to create OpenColorIO shader: %s", e.what());
   }
 #else
   UNUSED_VARS(source, target);
@@ -558,6 +565,139 @@ OCIOColorSpaceConversionShader &OCIOColorSpaceConversionShaderContainer::get(Con
 
   OCIOColorSpaceConversionShader &shader = *map_.lookup_or_add_cb(key, [&]() {
     return std::make_unique<OCIOColorSpaceConversionShader>(context, source, target);
+  });
+
+  shader.needed = true;
+  return shader;
+}
+
+/* ------------------------------------------------------------------------------------------------
+ * OCIO To Display Shader Key.
+ */
+
+OCIOToDisplayShaderKey::OCIOToDisplayShaderKey(const ColorManagedDisplaySettings &display_settings,
+                                               const ColorManagedViewSettings &view_settings,
+                                               const bool inverse,
+                                               const std::string &config_cache_id)
+    : display_device(display_settings.display_device),
+      view_transform(view_settings.view_transform),
+      look(view_settings.look),
+      inverse(inverse),
+      config_cache_id(config_cache_id)
+{
+}
+
+uint64_t OCIOToDisplayShaderKey::hash() const
+{
+  return get_default_hash(
+      get_default_hash(display_device, view_transform, look, (inverse) ? "inverse" : "forward"),
+      config_cache_id);
+}
+
+bool operator==(const OCIOToDisplayShaderKey &a, const OCIOToDisplayShaderKey &b)
+{
+  return a.display_device == b.display_device && a.view_transform == b.view_transform &&
+         a.look == b.look && a.inverse == b.inverse && a.config_cache_id == b.config_cache_id;
+}
+
+/* --------------------------------------------------------------------
+ * OCIO To Display Shader.
+ */
+
+OCIOToDisplayShader::OCIOToDisplayShader(Context &context,
+                                         const ColorManagedDisplaySettings &display_settings,
+                                         const ColorManagedViewSettings &view_settings,
+                                         const bool inverse)
+{
+  /* Create a GPU shader creator and construct it based on the transforms in the default GPU
+   * processor. */
+  shader_creator_ = GPUShaderCreator::Create(context.get_precision());
+
+#if defined(WITH_OPENCOLORIO)
+  /* Get a GPU processor that transforms the display_device color space to the view_transform color
+   * space. */
+  try {
+    OCIO::ConstConfigRcPtr config = OCIO::GetCurrentConfig();
+
+    OCIO::TransformRcPtr group = ocio::create_ocio_display_transform(
+        config,
+        display_settings.display_device,
+        view_settings.view_transform,
+        view_settings.look,
+        "scene_linear");
+
+    if (inverse) {
+      group->setDirection(OCIO::TRANSFORM_DIR_INVERSE);
+    }
+
+    OCIO::ConstProcessorRcPtr processor = config->getProcessor(group);
+    OCIO::ConstGPUProcessorRcPtr gpu_processor = processor->getDefaultGPUProcessor();
+
+    auto ocio_shader_creator = std::static_pointer_cast<OCIO::GpuShaderCreator>(shader_creator_);
+    gpu_processor->extractGpuShaderInfo(ocio_shader_creator);
+  }
+  catch (const OCIO::Exception &e) {
+    CLOG_ERROR(&LOG, "Failed to create OpenColorIO shader: %s", e.what());
+  }
+#else
+  UNUSED_VARS(display_device, view_transform);
+#endif
+}
+
+gpu::Shader *OCIOToDisplayShader::bind_shader_and_resources()
+{
+  return shader_creator_->bind_shader_and_resources();
+}
+
+void OCIOToDisplayShader::unbind_shader_and_resources()
+{
+  shader_creator_->unbind_shader_and_resources();
+}
+
+const char *OCIOToDisplayShader::input_sampler_name()
+{
+  return shader_creator_->input_sampler_name();
+}
+
+const char *OCIOToDisplayShader::output_image_name()
+{
+  return shader_creator_->output_image_name();
+}
+
+/* --------------------------------------------------------------------
+ * OCIO To Display Shader Container.
+ */
+
+void OCIOToDisplayShaderContainer::reset()
+{
+  /* First, delete all resources that are no longer needed. */
+  map_.remove_if([](auto item) { return !item.value->needed; });
+
+  /* Second, reset the needed status of the remaining resources to false to ready them to
+   * track their needed status for the next evaluation. */
+  for (auto &value : map_.values()) {
+    value->needed = false;
+  }
+}
+
+OCIOToDisplayShader &OCIOToDisplayShaderContainer::get(
+    Context &context,
+    const ColorManagedDisplaySettings &display_settings,
+    const ColorManagedViewSettings &view_settings,
+    const bool inverse)
+{
+#if defined(WITH_OPENCOLORIO)
+  /* Use the config cache ID in the cache key in case the configuration changed at runtime. */
+  std::string config_cache_id = OCIO::GetCurrentConfig()->getCacheID();
+#else
+  std::string config_cache_id;
+#endif
+
+  const OCIOToDisplayShaderKey key(display_settings, view_settings, inverse, config_cache_id);
+
+  OCIOToDisplayShader &shader = *map_.lookup_or_add_cb(key, [&]() {
+    return std::make_unique<OCIOToDisplayShader>(
+        context, display_settings, view_settings, inverse);
   });
 
   shader.needed = true;

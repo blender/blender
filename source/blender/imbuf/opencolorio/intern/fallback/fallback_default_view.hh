@@ -25,9 +25,14 @@ class FallbackDefaultView : public View {
     return false;
   }
 
-  bool is_wide_gamut() const override
+  Gamut gamut() const override
   {
-    return false;
+    return Gamut::Rec709;
+  }
+
+  TransferFunction transfer_function() const override
+  {
+    return TransferFunction::sRGB;
   }
 };
 

@@ -27,7 +27,6 @@ class MTLShaderInterface;
 
 struct VertexBufferID {
   uint32_t id : 16;
-  uint32_t is_instance : 15;
   uint32_t used : 1;
 };
 
@@ -103,10 +102,6 @@ class MTLBatch : public Batch {
   MTLVertBuf *verts_(const int index) const
   {
     return static_cast<MTLVertBuf *>(verts[index]);
-  }
-  MTLVertBuf *inst_(const int index) const
-  {
-    return static_cast<MTLVertBuf *>(inst[index]);
   }
   MTLShader *active_shader_get() const
   {

@@ -250,6 +250,12 @@ class GHOST_Window : public GHOST_IWindow {
     return 96;
   }
 
+  /** \copydoc #GHOST_IWindow::getHDRInfo */
+  GHOST_WindowHDRInfo getHDRInfo() override
+  {
+    return hdr_info_;
+  }
+
 #ifdef WITH_INPUT_IME
   void beginIME(
       int32_t /*x*/, int32_t /*y*/, int32_t /*w*/, int32_t /*h*/, bool /*completed*/) override
@@ -357,6 +363,8 @@ class GHOST_Window : public GHOST_IWindow {
 
   /* OSX only, retina screens */
   float native_pixel_size_;
+
+  GHOST_WindowHDRInfo hdr_info_ = GHOST_WINDOW_HDR_INFO_NONE;
 
  private:
   GHOST_Context *context_;

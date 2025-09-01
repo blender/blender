@@ -564,6 +564,8 @@ void Session::reset(const SessionParams &session_params, const BufferParams &buf
     delayed_reset_.session_params = session_params;
     delayed_reset_.buffer_params = buffer_params;
 
+    scene->scene_updated_while_loading_kernels = true;
+
     path_trace_->cancel();
   }
 

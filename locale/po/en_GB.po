@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'68abaa12d581')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'61dd8a1435fb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-25 08:31+0000\n"
+"POT-Creation-Date: 2025-09-01 09:40+0000\n"
 "PO-Revision-Date: 2025-07-23 14:59+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -2509,6 +2509,14 @@ msgid "Object to use as cage instead of calculating the cage from the active obj
 msgstr "Object to use as cage instead of calculating the cage from the active object with cage extrusion"
 
 
+msgid "Object"
+msgstr "Object"
+
+
+msgid "Tangent"
+msgstr "Tangent"
+
+
 msgid "File Path"
 msgstr "File Path"
 
@@ -2609,16 +2617,8 @@ msgid "Choose normal space for baking"
 msgstr "Choose normal space for baking"
 
 
-msgid "Object"
-msgstr "Object"
-
-
 msgid "Bake the normals in object space"
 msgstr "Bake the normals in object space"
-
-
-msgid "Tangent"
-msgstr "Tangent"
 
 
 msgid "Bake the normals in tangent space"
@@ -2727,6 +2727,10 @@ msgstr "Displacement"
 
 msgid "Bake displacement"
 msgstr "Bake displacement"
+
+
+msgid "Vector Displacement"
+msgstr "Vector Displacement"
 
 
 msgid "Automatic Name"
@@ -18075,10 +18079,6 @@ msgid "Full Name"
 msgstr "Full Name"
 
 
-msgid "Unique data-block ID name, including library one is any"
-msgstr "Unique data-block ID name, including library one is any"
-
-
 msgid "Original ID"
 msgstr "Original ID"
 
@@ -19889,10 +19889,6 @@ msgid "Preview the scrape planes in the cursor during the stroke"
 msgstr "Preview the scrape planes in the cursor during the stroke"
 
 
-msgid "Radius of the brush in pixels"
-msgstr "Radius of the brush in pixels"
-
-
 msgid "Laplacian"
 msgstr "Laplacian"
 
@@ -20113,14 +20109,6 @@ msgid "Automatically align edges to the brush direction to generate cleaner topo
 msgstr "Automatically align edges to the brush direction to generate cleaner topology and define sharp features. Best used on low-poly meshes as it has a performance impact."
 
 
-msgid "Unprojected Radius"
-msgstr "Unprojected Radius"
-
-
-msgid "Radius of brush in Blender units"
-msgstr "Radius of brush in Blender units"
-
-
 msgid "Accumulate"
 msgstr "Accumulate"
 
@@ -20237,10 +20225,6 @@ msgid "Lock the position of the vertices in the simulation falloff area to avoid
 msgstr "Lock the position of the vertices in the simulation falloff area to avoid artifacts and create a softer transition with unaffected areas"
 
 
-msgid "Vector Displacement"
-msgstr "Vector Displacement"
-
-
 msgid "Handle each pixel color as individual vector for displacement (area plane mapping only)"
 msgstr "Handle each pixel color as individual vector for displacement (area plane mapping only)"
 
@@ -20343,10 +20327,6 @@ msgstr "Inverse Smooth Pressure"
 
 msgid "Lighter pressure causes more smoothing to be applied"
 msgstr "Lighter pressure causes more smoothing to be applied"
-
-
-msgid "Radius Unit"
-msgstr "Radius Unit"
 
 
 msgid "Measure brush size relative to the view or the scene"
@@ -44082,51 +44062,6 @@ msgid "Blur an image, using several blur modes"
 msgstr "Blur an image, using several blur modes"
 
 
-msgctxt "NodeTree"
-msgid "Filter Type"
-msgstr "Filter Type"
-
-
-msgctxt "NodeTree"
-msgid "Flat"
-msgstr "Flat"
-
-
-msgctxt "NodeTree"
-msgid "Tent"
-msgstr "Tent"
-
-
-msgctxt "NodeTree"
-msgid "Quadratic"
-msgstr "Quadratic"
-
-
-msgctxt "NodeTree"
-msgid "Cubic"
-msgstr "Cubic"
-
-
-msgctxt "NodeTree"
-msgid "Gaussian"
-msgstr "Gaussian"
-
-
-msgctxt "NodeTree"
-msgid "Fast Gaussian"
-msgstr "Fast Gaussian"
-
-
-msgctxt "NodeTree"
-msgid "Catrom"
-msgstr "Catrom"
-
-
-msgctxt "NodeTree"
-msgid "Mitch"
-msgstr "Mitch"
-
-
 msgid "Bokeh Blur"
 msgstr "Bokeh Blur"
 
@@ -44149,14 +44084,6 @@ msgstr "Box Mask"
 
 msgid "Create rectangular mask suitable for use as a simple matte"
 msgstr "Create rectangular mask suitable for use as a simple matte"
-
-
-msgid "Mask Type"
-msgstr "Mask Type"
-
-
-msgid "Not"
-msgstr "Not"
 
 
 msgid "Brightness/Contrast"
@@ -44417,30 +44344,6 @@ msgid "Plane warp transformation using explicit corner values"
 msgstr "Plane warp transformation using explicit corner values"
 
 
-msgid "Interpolation method"
-msgstr "Interpolation method"
-
-
-msgid "Use Nearest interpolation"
-msgstr "Use Nearest interpolation"
-
-
-msgid "Use Bilinear interpolation"
-msgstr "Use Bilinear interpolation"
-
-
-msgid "Use Cubic B-Spline interpolation"
-msgstr "Use Cubic B-Spline interpolation"
-
-
-msgid "Anisotropic"
-msgstr "Anisotropic"
-
-
-msgid "Use Anisotropic interpolation"
-msgstr "Use Anisotropic interpolation"
-
-
 msgid "Crops image to a smaller region, either making the cropped area transparent or resizing the image"
 msgstr "Crops image to a smaller region, either making the cropped area transparent or resizing the image"
 
@@ -44661,50 +44564,6 @@ msgid "Denoise renders from Cycles and other ray tracing renderers"
 msgstr "Denoise renders from Cycles and other ray tracing renderers"
 
 
-msgid "Denoising prefilter"
-msgstr "Denoising prefilter"
-
-
-msgid "No prefiltering, use when guiding passes are noise-free"
-msgstr "No prefiltering, use when guiding passes are noise-free"
-
-
-msgid "Denoise image and guiding passes together. Improves quality when guiding passes are noisy using least amount of extra processing time."
-msgstr "Denoise image and guiding passes together. Improves quality when guiding passes are noisy using least amount of extra processing time."
-
-
-msgid "Prefilter noisy guiding passes before denoising image. Improves quality when guiding passes are noisy using extra processing time."
-msgstr "Prefilter noisy guiding passes before denoising image. Improves quality when guiding passes are noisy using extra processing time."
-
-
-msgid "Denoising quality"
-msgstr "Denoising quality"
-
-
-msgid "Use the scene's denoising quality setting"
-msgstr "Use the scene's denoising quality setting"
-
-
-msgid "High"
-msgstr "High"
-
-
-msgid "High quality"
-msgstr "High quality"
-
-
-msgid "Balanced"
-msgstr "Balanced"
-
-
-msgid "Balanced between performance and quality"
-msgstr "Balanced between performance and quality"
-
-
-msgid "High perfomance"
-msgstr "High perfomance"
-
-
 msgid "Despeckle"
 msgstr "Despeckle"
 
@@ -44727,14 +44586,6 @@ msgstr "Dilate/Erode"
 
 msgid "Expand and shrink masks"
 msgstr "Expand and shrink masks"
-
-
-msgid "Growing/shrinking mode"
-msgstr "Growing/shrinking mode"
-
-
-msgid "Feather"
-msgstr "Feather"
 
 
 msgid "Displace pixel position using an offset vector"
@@ -44817,50 +44668,6 @@ msgid "Apply common image enhancement filters"
 msgstr "Apply common image enhancement filters"
 
 
-msgid "Filter Type"
-msgstr "Filter Type"
-
-
-msgid "Soften"
-msgstr "Soften"
-
-
-msgid "Box Sharpen"
-msgstr "Box Sharpen"
-
-
-msgid "An aggressive sharpening filter"
-msgstr "An aggressive sharpening filter"
-
-
-msgid "Diamond Sharpen"
-msgstr "Diamond Sharpen"
-
-
-msgid "A moderate sharpening filter"
-msgstr "A moderate sharpening filter"
-
-
-msgid "Laplace"
-msgstr "Laplace"
-
-
-msgid "Sobel"
-msgstr "Sobel"
-
-
-msgid "Prewitt"
-msgstr "Prewitt"
-
-
-msgid "Kirsch"
-msgstr "Kirsch"
-
-
-msgid "Shadow"
-msgstr "Shadow"
-
-
 msgid "Flip an image along a defined axis"
 msgstr "Flip an image along a defined axis"
 
@@ -44871,42 +44678,6 @@ msgstr "Glare"
 
 msgid "Add lens flares, fog and glows around bright parts of the image"
 msgstr "Add lens flares, fog and glows around bright parts of the image"
-
-
-msgid "Glare Type"
-msgstr "Glare Type"
-
-
-msgid "Bloom"
-msgstr "Bloom"
-
-
-msgid "Ghosts"
-msgstr "Ghosts"
-
-
-msgid "Streaks"
-msgstr "Streaks"
-
-
-msgid "Fog Glow"
-msgstr "Fog Glow"
-
-
-msgid "Simple Star"
-msgstr "Simple Star"
-
-
-msgid "Sun Beams"
-msgstr "Sun Beams"
-
-
-msgid "If not set to high quality, the effect will be applied to a low-res copy of the source image"
-msgstr "If not set to high quality, the effect will be applied to a low-res copy of the source image"
-
-
-msgid "Low"
-msgstr "Low"
 
 
 msgid "Hue Correct"
@@ -44965,11 +44736,6 @@ msgid "Perform both chroma keying (to remove the backdrop) and despill (to corre
 msgstr "Perform both chroma keying (to remove the backdrop) and despill (to correct colour cast from the backdrop)"
 
 
-msgctxt "Curve"
-msgid "Feather Falloff"
-msgstr "Feather Falloff"
-
-
 msgid "Keying Screen"
 msgstr "Keying Screen"
 
@@ -44990,22 +44756,6 @@ msgid "Apply smoothing filter that preserves edges, for stylized and painterly e
 msgstr "Apply smoothing filter that preserves edges, for stylised and painterly effects"
 
 
-msgid "Variation of Kuwahara filter to use"
-msgstr "Variation of Kuwahara filter to use"
-
-
-msgid "Classic"
-msgstr "Classic"
-
-
-msgid "Fast but less accurate variation"
-msgstr "Fast but less accurate variation"
-
-
-msgid "Accurate but slower variation"
-msgstr "Accurate but slower variation"
-
-
 msgid "Lens Distortion"
 msgstr "Lens Distortion"
 
@@ -45016,34 +44766,6 @@ msgstr "Simulate distortion and dispersion from camera lenses"
 
 msgid "Compute average and standard deviation of pixel values"
 msgstr "Compute average and standard deviation of pixel values"
-
-
-msgid "Combined"
-msgstr "Combined"
-
-
-msgid "Combined RGB"
-msgstr "Combined RGB"
-
-
-msgid "Red Channel"
-msgstr "Red Channel"
-
-
-msgid "Green Channel"
-msgstr "Green Channel"
-
-
-msgid "Blue Channel"
-msgstr "Blue Channel"
-
-
-msgid "Luminance"
-msgstr "Luminance"
-
-
-msgid "Luminance Channel"
-msgstr "Luminance Channel"
 
 
 msgid "Luminance Key"
@@ -45062,40 +44784,12 @@ msgid "Map a texture using UV coordinates, to apply a texture to objects in comp
 msgstr "Map a texture using UV coordinates, to apply a texture to objects in compositing"
 
 
-msgid "Size Source"
-msgstr "Size Source"
-
-
-msgid "Where to get the mask size from for aspect/size information"
-msgstr "Where to get the mask size from for aspect/size information"
-
-
-msgid "Scene Size"
-msgstr "Scene Size"
-
-
-msgid "Use pixel size for the buffer"
-msgstr "Use pixel size for the buffer"
-
-
-msgid "Fixed/Scene"
-msgstr "Fixed/Scene"
-
-
-msgid "Pixel size scaled by scene percentage"
-msgstr "Pixel size scaled by scene percentage"
-
-
 msgid "Movie Distortion"
 msgstr "Movie Distortion"
 
 
 msgid "Remove lens distortion from footage, using motion tracking camera lens settings"
 msgstr "Remove lens distortion from footage, using motion tracking camera lens settings"
-
-
-msgid "Distortion to use to filter image"
-msgstr "Distortion to use to filter image"
 
 
 msgid "Map values to 0 to 1 range, based on the minimum and maximum pixel values"
@@ -45214,10 +44908,6 @@ msgid "Change the size of the image"
 msgstr "Change the size of the image"
 
 
-msgid "Coordinate space to scale relative to"
-msgstr "Coordinate space to scale relative to"
-
-
 msgid "Scene Time"
 msgstr "Scene Time"
 
@@ -45270,10 +44960,6 @@ msgid "Stabilize footage using 2D stabilization motion tracking settings"
 msgstr "Stabilise footage using 2D stabilisation motion tracking settings"
 
 
-msgid "Method to use to filter stabilization"
-msgstr "Method to use to filter stabilization"
-
-
 msgid "Switch"
 msgstr "Switch"
 
@@ -45306,68 +44992,12 @@ msgid "Map one set of colors to another in order to approximate the appearance o
 msgstr "Map one set of colors to another in order to approximate the appearance of high dynamic range"
 
 
-msgid "Tonemap Type"
-msgstr "Tonemap Type"
-
-
-msgid "R/D Photoreceptor"
-msgstr "R/D Photoreceptor"
-
-
-msgid "More advanced algorithm based on eye physiology, by Reinhard and Devlin"
-msgstr "More advanced algorithm based on eye physiology, by Reinhard and Devlin"
-
-
-msgid "Rh Simple"
-msgstr "Rh Simple"
-
-
-msgid "Simpler photographic algorithm by Reinhard"
-msgstr "Simpler photographic algorithm by Reinhard"
-
-
 msgid "Track Position"
 msgstr "Track Position"
 
 
 msgid "Provide information about motion tracking points, such as x and y values"
 msgstr "Provide information about motion tracking points, such as x and y values"
-
-
-msgid "Frame to be used for relative position"
-msgstr "Frame to be used for relative position"
-
-
-msgid "Which marker position to use for output"
-msgstr "Which marker position to use for output"
-
-
-msgid "Output absolute position of a marker"
-msgstr "Output absolute position of a marker"
-
-
-msgid "Relative Start"
-msgstr "Relative Start"
-
-
-msgid "Output position of a marker relative to first marker of a track"
-msgstr "Output position of a marker relative to first marker of a track"
-
-
-msgid "Relative Frame"
-msgstr "Relative Frame"
-
-
-msgid "Output position of a marker relative to marker at given frame number"
-msgstr "Output position of a marker relative to marker at given frame number"
-
-
-msgid "Absolute Frame"
-msgstr "Absolute Frame"
-
-
-msgid "Output absolute position of a marker at given frame number"
-msgstr "Output absolute position of a marker at given frame number"
 
 
 msgid "Scale, translate and rotate an image"
@@ -45492,6 +45122,10 @@ msgstr "And"
 
 msgid "Or"
 msgstr "Or"
+
+
+msgid "Not"
+msgstr "Not"
 
 
 msgid "Boolean Math"
@@ -51689,6 +51323,10 @@ msgstr "Active Constraint"
 
 msgid "Active Object constraint"
 msgstr "Active Object constraint"
+
+
+msgid "Shadow"
+msgstr "Shadow"
 
 
 msgid "Object cast shadows in the 3D viewport"
@@ -58864,12 +58502,8 @@ msgstr "Reset original length of bone for Stretch To Constraint"
 
 
 msgctxt "Operator"
-msgid "Add Bezier"
-msgstr "Add Bezier"
-
-
-msgid "Add new bezier curve"
-msgstr "Add new bezier curve"
+msgid "Add Bézier"
+msgstr "Add Bézier"
 
 
 msgid "The alignment of the new object"
@@ -59031,6 +58665,10 @@ msgstr "Set Handle Type"
 
 msgid "Set the handle type for bezier curves"
 msgstr "Set the handle type for bezier curves"
+
+
+msgid "Toggle Free/Align"
+msgstr "Toggle Free/Align"
 
 
 msgctxt "Operator"
@@ -59372,10 +59010,6 @@ msgid "Spline type"
 msgstr "Spline type"
 
 
-msgid "Toggle Free/Align"
-msgstr "Toggle Free/Align"
-
-
 msgid "Hide (un)selected control points"
 msgstr "Hide (un)selected control points"
 
@@ -59547,11 +59181,6 @@ msgstr "Add Bézier Circle"
 
 msgid "Construct a Bézier Circle"
 msgstr "Construct a Bézier Circle"
-
-
-msgctxt "Operator"
-msgid "Add Bézier"
-msgstr "Add Bézier"
 
 
 msgid "Construct a Bézier Curve"
@@ -64188,22 +63817,6 @@ msgid "Defines how the operator will behave on the selection in the active layer
 msgstr "Defines how the operator will behave on the selection in the active layer"
 
 
-msgid "Join and Copy"
-msgstr "Join and Copy"
-
-
-msgid "Copy the selection in the new stroke"
-msgstr "Copy the selection in the new stroke"
-
-
-msgid "Join"
-msgstr "Join"
-
-
-msgid "Move the selection to the new stroke"
-msgstr "Move the selection to the new stroke"
-
-
 msgctxt "Operator"
 msgid "Set Active Layer"
 msgstr "Set Active Layer"
@@ -66952,6 +66565,10 @@ msgid "Recalculate animation data on selected points for frames selected in the 
 msgstr "Recalculate animation data on selected points for frames selected in the dopesheet"
 
 
+msgid "Feather"
+msgstr "Feather"
+
+
 msgctxt "Operator"
 msgid "Slide Point"
 msgstr "Slide Point"
@@ -67234,6 +66851,10 @@ msgstr "Bridge Edge Loops"
 
 msgid "Create a bridge of faces between two or more selected edge loops"
 msgstr "Create a bridge of faces between two or more selected edge loops"
+
+
+msgid "Interpolation method"
+msgstr "Interpolation method"
 
 
 msgid "Blend Path"
@@ -71852,6 +71473,10 @@ msgid "Type of pass to bake, some of them may not be supported by the current re
 msgstr "Type of pass to bake, some of them may not be supported by the current render engine"
 
 
+msgid "Combined"
+msgstr "Combined"
+
+
 msgid "Automatically name the output file with the pass type"
 msgstr "Automatically name the output file with the pass type"
 
@@ -73863,6 +73488,14 @@ msgstr "Outwards Velocity"
 
 msgid "Apply Hair Guides"
 msgstr "Apply Hair Guides"
+
+
+msgid "Low"
+msgstr "Low"
+
+
+msgid "High"
+msgstr "High"
 
 
 msgid "Hair Radius"
@@ -76794,6 +76427,10 @@ msgid "Value, Hue, Saturation"
 msgstr "Value, Hue, Saturation"
 
 
+msgid "Luminance"
+msgstr "Luminance"
+
+
 msgctxt "Operator"
 msgid "Brush Edit"
 msgstr "Brush Edit"
@@ -79589,6 +79226,10 @@ msgid "Fill Color"
 msgstr "Fill Color"
 
 
+msgid "Filter Type"
+msgstr "Filter Type"
+
+
 msgid "Fill with a specific color"
 msgstr "Fill with a specific color"
 
@@ -80526,6 +80167,10 @@ msgstr "Use a difference boolean operation"
 
 msgid "Use a union boolean operation"
 msgstr "Use a union boolean operation"
+
+
+msgid "Join"
+msgstr "Join"
 
 
 msgid "Join the new mesh as separate geometry, without performing any boolean operation"
@@ -81533,6 +81178,10 @@ msgid "Move the keyframes alongside the media"
 msgstr "Move the keyframes alongside the media"
 
 
+msgid "Use Cursor Position"
+msgstr "Use Cursor Position"
+
+
 msgctxt "Operator"
 msgid "Snap Strips to the Current Frame"
 msgstr "Snap Strips to the Current Frame"
@@ -81585,10 +81234,6 @@ msgstr "The side that remains selected after splitting"
 
 msgid "The type of split operation to perform on strips"
 msgstr "The type of split operation to perform on strips"
-
-
-msgid "Use Cursor Position"
-msgstr "Use Cursor Position"
 
 
 msgid "Split at position of the cursor instead of current frame"
@@ -88822,10 +88467,6 @@ msgid "Brush Detail"
 msgstr "Brush Detail"
 
 
-msgid "Mesh detail is relative to brush radius"
-msgstr "Mesh detail is relative to brush radius"
-
-
 msgid "Manual Detail"
 msgstr "Manual Detail"
 
@@ -90897,6 +90538,10 @@ msgstr "Sub"
 
 msgid "Make hairs less puffy"
 msgstr "Make hairs less puffy"
+
+
+msgid "Radius of the brush in pixels"
+msgstr "Radius of the brush in pixels"
 
 
 msgid "Brush steps"
@@ -95629,6 +95274,10 @@ msgid "Prefilter noisy guiding (albedo and normal) passes to improve denoising q
 msgstr "Prefilter noisy guiding (albedo and normal) passes to improve denoising quality when using OpenImageDenoise"
 
 
+msgid "No prefiltering, use when guiding passes are noise-free"
+msgstr "No prefiltering, use when guiding passes are noise-free"
+
+
 msgid "Denoise color and guiding passes together. Improves quality when guiding passes are noisy using least amount of extra processing time"
 msgstr "Denoise color and guiding passes together. Improves quality when guiding passes are noisy using least amount of extra processing time"
 
@@ -95643,6 +95292,18 @@ msgstr "Denoising Quality"
 
 msgid "Overall denoising quality when using OpenImageDenoise"
 msgstr "Overall denoising quality when using OpenImageDenoise"
+
+
+msgid "High quality"
+msgstr "High quality"
+
+
+msgid "Balanced"
+msgstr "Balanced"
+
+
+msgid "Balanced between performance and quality"
+msgstr "Balanced between performance and quality"
 
 
 msgid "High performance"
@@ -98128,6 +97789,10 @@ msgstr "Compositor Final Denoise Quality"
 
 msgid "The quality used by denoise nodes during the compositing of final renders if the nodes' quality option is set to Follow Scene"
 msgstr "The quality used by denoise nodes during the compositing of final renders if the nodes' quality option is set to Follow Scene"
+
+
+msgid "High perfomance"
+msgstr "High perfomance"
 
 
 msgid "Compositor Preview Denoise Quality"
@@ -105469,8 +105134,20 @@ msgid "Normally always 1, but can be used as an extra control to alter the brigh
 msgstr "Normally always 1, but can be used as an extra control to alter the brightness curve"
 
 
+msgid "Tonemap Type"
+msgstr "Tonemap Type"
+
+
 msgid "Tone mapping algorithm"
 msgstr "Tone mapping algorithm"
+
+
+msgid "R/D Photoreceptor"
+msgstr "R/D Photoreceptor"
+
+
+msgid "Rh Simple"
+msgstr "Rh Simple"
 
 
 msgid "Equalize audio"
@@ -106328,10 +106005,6 @@ msgid "Settings for space list"
 msgstr "Settings for space list"
 
 
-msgid "Strips Selected"
-msgstr "Strips Selected"
-
-
 msgid "Scrubbing/Markers Region"
 msgstr "Scrubbing/Markers Region"
 
@@ -106358,6 +106031,102 @@ msgstr "Active Channel Group"
 
 msgid "Sub-channel"
 msgstr "Sub-channel"
+
+
+msgid "Breakdown Keyframe"
+msgstr "Breakdown Keyframe"
+
+
+msgid "Color of breakdown keyframe"
+msgstr "Color of breakdown keyframe"
+
+
+msgid "Breakdown Keyframe Selected"
+msgstr "Breakdown Keyframe Selected"
+
+
+msgid "Color of selected breakdown keyframe"
+msgstr "Color of selected breakdown keyframe"
+
+
+msgid "Extreme Keyframe"
+msgstr "Extreme Keyframe"
+
+
+msgid "Color of extreme keyframe"
+msgstr "Color of extreme keyframe"
+
+
+msgid "Extreme Keyframe Selected"
+msgstr "Extreme Keyframe Selected"
+
+
+msgid "Color of selected extreme keyframe"
+msgstr "Color of selected extreme keyframe"
+
+
+msgid "Generated Keyframe"
+msgstr "Generated Keyframe"
+
+
+msgid "Color of generated keyframe"
+msgstr "Color of generated keyframe"
+
+
+msgid "Generated Keyframe Selected"
+msgstr "Generated Keyframe Selected"
+
+
+msgid "Color of selected generated keyframe"
+msgstr "Color of selected generated keyframe"
+
+
+msgid "Jitter Keyframe"
+msgstr "Jitter Keyframe"
+
+
+msgid "Color of jitter keyframe"
+msgstr "Color of jitter keyframe"
+
+
+msgid "Jitter Keyframe Selected"
+msgstr "Jitter Keyframe Selected"
+
+
+msgid "Color of selected jitter keyframe"
+msgstr "Color of selected jitter keyframe"
+
+
+msgid "Moving Hold Keyframe"
+msgstr "Moving Hold Keyframe"
+
+
+msgid "Color of moving hold keyframe"
+msgstr "Color of moving hold keyframe"
+
+
+msgid "Moving Hold Keyframe Selected"
+msgstr "Moving Hold Keyframe Selected"
+
+
+msgid "Color of selected moving hold keyframe"
+msgstr "Color of selected moving hold keyframe"
+
+
+msgid "Keyframe Selected"
+msgstr "Keyframe Selected"
+
+
+msgid "Color of selected keyframe"
+msgstr "Color of selected keyframe"
+
+
+msgid "Long Key"
+msgstr "Long Key"
+
+
+msgid "Long Key Selected"
+msgstr "Long Key Selected"
 
 
 msgid "Preview Range"
@@ -106456,10 +106225,6 @@ msgid "Color of lines showing non-Bézier interpolation modes"
 msgstr "Color of lines showing non-Bézier interpolation modes"
 
 
-msgid "Color of Keyframe"
-msgstr "Color of Keyframe"
-
-
 msgid "Keyframe Border"
 msgstr "Keyframe Border"
 
@@ -106476,108 +106241,12 @@ msgid "Color of selected keyframe border"
 msgstr "Color of selected keyframe border"
 
 
-msgid "Breakdown Keyframe"
-msgstr "Breakdown Keyframe"
-
-
-msgid "Color of breakdown keyframe"
-msgstr "Color of breakdown keyframe"
-
-
-msgid "Breakdown Keyframe Selected"
-msgstr "Breakdown Keyframe Selected"
-
-
-msgid "Color of selected breakdown keyframe"
-msgstr "Color of selected breakdown keyframe"
-
-
-msgid "Extreme Keyframe"
-msgstr "Extreme Keyframe"
-
-
-msgid "Color of extreme keyframe"
-msgstr "Color of extreme keyframe"
-
-
-msgid "Extreme Keyframe Selected"
-msgstr "Extreme Keyframe Selected"
-
-
-msgid "Color of selected extreme keyframe"
-msgstr "Color of selected extreme keyframe"
-
-
-msgid "Generated Keyframe"
-msgstr "Generated Keyframe"
-
-
-msgid "Color of generated keyframe"
-msgstr "Color of generated keyframe"
-
-
-msgid "Generated Keyframe Selected"
-msgstr "Generated Keyframe Selected"
-
-
-msgid "Color of selected generated keyframe"
-msgstr "Color of selected generated keyframe"
-
-
-msgid "Jitter Keyframe"
-msgstr "Jitter Keyframe"
-
-
-msgid "Color of jitter keyframe"
-msgstr "Color of jitter keyframe"
-
-
-msgid "Jitter Keyframe Selected"
-msgstr "Jitter Keyframe Selected"
-
-
-msgid "Color of selected jitter keyframe"
-msgstr "Color of selected jitter keyframe"
-
-
-msgid "Moving Hold Keyframe"
-msgstr "Moving Hold Keyframe"
-
-
-msgid "Color of moving hold keyframe"
-msgstr "Color of moving hold keyframe"
-
-
-msgid "Moving Hold Keyframe Selected"
-msgstr "Moving Hold Keyframe Selected"
-
-
-msgid "Color of selected moving hold keyframe"
-msgstr "Color of selected moving hold keyframe"
-
-
 msgid "Keyframe Scale Factor"
 msgstr "Keyframe Scale Factor"
 
 
 msgid "Scale factor for adjusting the height of keyframes"
 msgstr "Scale factor for adjusting the height of keyframes"
-
-
-msgid "Keyframe Selected"
-msgstr "Keyframe Selected"
-
-
-msgid "Color of selected keyframe"
-msgstr "Color of selected keyframe"
-
-
-msgid "Long Key"
-msgstr "Long Key"
-
-
-msgid "Long Key Selected"
-msgstr "Long Key Selected"
 
 
 msgid "Simulated Frames"
@@ -106966,6 +106635,10 @@ msgstr "Selected Sound Strip (for timing speaker sounds)"
 
 msgid "Unselected Action-Clip Strip"
 msgstr "Unselected Action-Clip Strip"
+
+
+msgid "Strips Selected"
+msgstr "Strips Selected"
 
 
 msgid "Selected Action-Clip Strip"
@@ -107747,14 +107420,6 @@ msgstr "Grease Pencil Keyframe"
 
 msgid "Color for indicating Grease Pencil keyframes"
 msgstr "Color for indicating Grease Pencil keyframes"
-
-
-msgid "Object Keyframe"
-msgstr "Object Keyframe"
-
-
-msgid "Color for indicating object keyframes"
-msgstr "Color for indicating object keyframes"
 
 
 msgid "Vertex Bevel"
@@ -108912,10 +108577,6 @@ msgid "Overrides for some of the active brush's settings"
 msgstr "Overrides for some of the active brush's settings"
 
 
-msgid "Radius of the brush"
-msgstr "Radius of the brush"
-
-
 msgid "Use Unified Color"
 msgstr "Use Unified Color"
 
@@ -108930,14 +108591,6 @@ msgstr "Use Unified Input Samples"
 
 msgid "Instead of per-brush input samples, the value is shared across brushes"
 msgstr "Instead of per-brush input samples, the value is shared across brushes"
-
-
-msgid "Use Unified Radius"
-msgstr "Use Unified Radius"
-
-
-msgid "Instead of per-brush radius, the radius is shared across brushes"
-msgstr "Instead of per-brush radius, the radius is shared across brushes"
 
 
 msgid "Use Unified Strength"
@@ -110427,6 +110080,10 @@ msgstr "View Layer settings for EEVEE"
 
 msgid "Distance of object that contribute to the ambient occlusion effect"
 msgstr "Distance of object that contribute to the ambient occlusion effect"
+
+
+msgid "Bloom"
+msgstr "Bloom"
 
 
 msgid "Deliver bloom pass (deprecated)"
@@ -123765,11 +123422,6 @@ msgstr "Scale Thickness"
 
 
 msgctxt "Operator"
-msgid "Bezier"
-msgstr "Bezier"
-
-
-msgctxt "Operator"
 msgid "View Selected"
 msgstr "View Selected"
 
@@ -128392,6 +128044,10 @@ msgid "Lightness:"
 msgstr "Lightness:"
 
 
+msgid "Value:"
+msgstr "Value:"
+
+
 msgid "Alpha:"
 msgstr "Alpha:"
 
@@ -128400,21 +128056,12 @@ msgid "Hex"
 msgstr "Hex"
 
 
-msgid "Red, Green, Blue"
-msgstr "Red, Green, Blue"
-
-
 msgid "Hue, Saturation, Lightness"
 msgstr "Hue, Saturation, Lightness"
 
 
 msgid "Lightness"
 msgstr "Lightness"
-
-
-msgctxt "Color"
-msgid "Value:"
-msgstr "Value:"
 
 
 msgctxt "Color"
@@ -129228,10 +128875,6 @@ msgstr "Export Options"
 
 msgid "Unable to find valid 3D View area"
 msgstr "Unable to find valid 3D View area"
-
-
-msgid "Unable to export SVG"
-msgstr "Unable to export SVG"
 
 
 msgid "Unable to export PDF"
@@ -130050,10 +129693,6 @@ msgstr "Circular dependency for image \"%s\" from object \"%s\""
 
 msgid "Uninitialized image \"%s\" from object \"%s\""
 msgstr "Uninitialized image \"%s\" from object \"%s\""
-
-
-msgid "No active image found in material \"%s\" (%d) for object \"%s\""
-msgstr "No active image found in material \"%s\" (%d) for object \"%s\""
 
 
 msgid "No active image found in material slot (%d) for object \"%s\""
@@ -132599,10 +132238,6 @@ msgstr "Expression:"
 
 msgid "Add Input Variable"
 msgstr "Add Input Variable"
-
-
-msgid "Value:"
-msgstr "Value:"
 
 
 msgid "Update Dependencies"
@@ -138657,14 +138292,6 @@ msgid "Bokeh Type:"
 msgstr "Bokeh Type:"
 
 
-msgid "Prefilter:"
-msgstr "Prefilter:"
-
-
-msgid "Quality:"
-msgstr "Quality:"
-
-
 msgid "Disabled. Built without OpenImageDenoise"
 msgstr "Disabled. Built without OpenImageDenoise"
 
@@ -138701,8 +138328,48 @@ msgid "Outer Mask"
 msgstr "Outer Mask"
 
 
-msgid "Disabled, built without FFTW"
-msgstr "Disabled, built without FFTW"
+msgid "Soften"
+msgstr "Soften"
+
+
+msgid "Box Sharpen"
+msgstr "Box Sharpen"
+
+
+msgid "Laplace"
+msgstr "Laplace"
+
+
+msgid "Sobel"
+msgstr "Sobel"
+
+
+msgid "Prewitt"
+msgstr "Prewitt"
+
+
+msgid "Kirsch"
+msgstr "Kirsch"
+
+
+msgid "Diamond Sharpen"
+msgstr "Diamond Sharpen"
+
+
+msgid "Simple Star"
+msgstr "Simple Star"
+
+
+msgid "Fog Glow"
+msgstr "Fog Glow"
+
+
+msgid "Streaks"
+msgstr "Streaks"
+
+
+msgid "Sun Beams"
+msgstr "Sun Beams"
 
 
 msgid "Streaks Angle"
@@ -138811,6 +138478,10 @@ msgstr "Dispersion"
 
 msgid "Standard Deviation"
 msgstr "Standard Deviation"
+
+
+msgid "Size Source"
+msgstr "Size Source"
 
 
 msgid "Use feather information from the mask"
@@ -141465,6 +141136,10 @@ msgstr "Subsurface IOR"
 
 msgid "Subsurface Anisotropy"
 msgstr "Subsurface Anisotropy"
+
+
+msgid "Anisotropic"
+msgstr "Anisotropic"
 
 
 msgid "Anisotropic Rotation"

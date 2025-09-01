@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'68abaa12d581')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'61dd8a1435fb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-25 08:31+0000\n"
+"POT-Creation-Date: 2025-09-01 09:40+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: Balázs Füvesi <fuvesib@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -772,6 +772,14 @@ msgid "Default Color Attribute"
 msgstr "Alapértelmezett színattribútum"
 
 
+msgid "Object"
+msgstr "Objektum"
+
+
+msgid "Tangent"
+msgstr "Tangens"
+
+
 msgid "File Path"
 msgstr "Fájl útvonala"
 
@@ -816,16 +824,8 @@ msgid "Choose normal space for baking"
 msgstr "Normális terének kiválasztása a sütéshez"
 
 
-msgid "Object"
-msgstr "Objektum"
-
-
 msgid "Bake the normals in object space"
 msgstr "Nörmálisok kisütése objektum-térben"
-
-
-msgid "Tangent"
-msgstr "Tangens"
 
 
 msgid "Bake the normals in tangent space"
@@ -4177,10 +4177,6 @@ msgstr "Ráta"
 
 msgid "Interval between paints for Airbrush"
 msgstr "A festékszóró festési lépései közötti intervallum"
-
-
-msgid "Radius of the brush in pixels"
-msgstr "Az ecset mérete képpontokban mérve"
 
 
 msgid "Laplacian"
@@ -9206,10 +9202,6 @@ msgid "To"
 msgstr "Eddig"
 
 
-msgid "Interpolation method"
-msgstr "Interpoláció módja"
-
-
 msgid "Use Material layer"
 msgstr "Anyagréteg használata"
 
@@ -9222,20 +9214,8 @@ msgid "Distance Key"
 msgstr "Távolság kulcs"
 
 
-msgid "Soften"
-msgstr "Elmosás"
-
-
-msgid "Shadow"
-msgstr "Árnyék"
-
-
 msgid "Keying Screen"
 msgstr "Képernyő/háttér kulcsozás"
-
-
-msgid "Combined"
-msgstr "Kombinált"
 
 
 msgid "File Output"
@@ -9384,6 +9364,10 @@ msgstr "Helyi súgó"
 
 msgid "Object Constraints"
 msgstr "Objektum kényszerítők"
+
+
+msgid "Shadow"
+msgstr "Árnyék"
 
 
 msgctxt "Operator"
@@ -10707,6 +10691,10 @@ msgid "Add a new material"
 msgstr "Új anyag hozzáadása"
 
 
+msgid "Interpolation method"
+msgstr "Interpoláció módja"
+
+
 msgid "Remove from the selection"
 msgstr "Törlés a kiválasztásból"
 
@@ -10834,6 +10822,10 @@ msgstr "Sütés"
 
 msgid "Bake image textures of selected objects"
 msgstr "A kijelölt objektumok kép textúráinak kisütése"
+
+
+msgid "Combined"
+msgstr "Kombinált"
 
 
 msgid "UV Layer"
@@ -13024,6 +13016,10 @@ msgid "Splitting"
 msgstr "Szétválasztás"
 
 
+msgid "Radius of the brush in pixels"
+msgstr "Az ecset mérete képpontokban mérve"
+
+
 msgid "Child Particles"
 msgstr "Gyermek-részecskék"
 
@@ -14575,6 +14571,18 @@ msgid "Active Channel Group"
 msgstr "Aktív csatorna csoport"
 
 
+msgid "Keyframe Selected"
+msgstr "Kijelölt kulcsképkocka"
+
+
+msgid "Long Key"
+msgstr "Hosszú kulcs"
+
+
+msgid "Long Key Selected"
+msgstr "Kijelölt hosszú kulcs"
+
+
 msgid "Align Handle"
 msgstr "Markolat igazítása"
 
@@ -14597,18 +14605,6 @@ msgstr "Kulcstábla témája"
 
 msgid "Channels Selected"
 msgstr "Kijelölt csatornák"
-
-
-msgid "Keyframe Selected"
-msgstr "Kijelölt kulcsképkocka"
-
-
-msgid "Long Key"
-msgstr "Hosszú kulcs"
-
-
-msgid "Long Key Selected"
-msgstr "Kijelölt hosszú kulcs"
 
 
 msgid "Summary"
@@ -16282,6 +16278,10 @@ msgid "Saturation:"
 msgstr "Telítettség:"
 
 
+msgid "Value:"
+msgstr "Érték:"
+
+
 msgid "Alpha:"
 msgstr "Átlátszóság:"
 
@@ -16800,10 +16800,6 @@ msgid "Interpolation:"
 msgstr "Interpoláció:"
 
 
-msgid "Value:"
-msgstr "Érték:"
-
-
 msgid "Select Layer"
 msgstr "Réteg kijelölése"
 
@@ -17001,16 +16997,16 @@ msgid "Color Space:"
 msgstr "Színtér:"
 
 
-msgid "Prefilter:"
-msgstr "Előszűrő:"
-
-
 msgid "Image 1"
 msgstr "Kép 1"
 
 
 msgid "Image 2"
 msgstr "Kép 2"
+
+
+msgid "Soften"
+msgstr "Elmosás"
 
 
 msgid "Mesh 1"

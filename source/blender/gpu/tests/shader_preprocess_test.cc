@@ -254,7 +254,7 @@ template void func<float, 1>(float a);
 
 
 #line 3
-void func_float_1_(float a) {
+void funcTfloatT1(float a) {
   a;
 }
 #line 7
@@ -269,7 +269,7 @@ void func_float_1_(float a) {
 template<> void func<T, Q>(T a) {a}
 )";
     string expect = R"(
- void func_T_Q_(T a) {a}
+ void funcTTTQ(T a) {a}
 )";
     string error;
     string output = process_test_string(input, error);
@@ -294,7 +294,7 @@ template void func(float a);
   }
   {
     string input = R"(func<float, 1>(a);)";
-    string expect = R"(func_float_1_(a);)";
+    string expect = R"(funcTfloatT1(a);)";
     string error;
     string output = process_test_string(input, error);
     EXPECT_EQ(output, expect);
@@ -318,7 +318,7 @@ template struct A<float>;
 
 
 #line 3
-struct A_float_{ float a; };
+struct ATfloat { float a; };
 #line 4
 #line 5
 )";
@@ -334,7 +334,7 @@ template<> struct A<float>{
 };
 )";
     string expect = R"(
- struct A_float_{
+ struct ATfloat{
     float a;
 };
 #line 5
@@ -349,7 +349,7 @@ template<> struct A<float>{
 void func(A<float> a) {}
 )";
     string expect = R"(
-void func(A_float_ a) {}
+void func(ATfloat a) {}
 )";
     string error;
     string output = process_test_string(input, error);
@@ -1028,7 +1028,7 @@ template<> uint my_func<uint>(uint i) {
 }
 )";
     string expect = R"(
- uint my_func_uint_(uint i) {
+ uint my_funcTuint(uint i) {
 #if defined(CREATE_INFO_draw_resource_id)
 #line 3
   return buffer_get(draw_resource_id, resource_id_buf)[i];
@@ -1069,7 +1069,7 @@ struct U {
 
 int _pad;};
 #line 5
-  static void U_fn() {}
+   void U_fn() {}
 #line 7
 )";
     string error;
@@ -1160,7 +1160,7 @@ struct S {
 
 };
 #line 8
-  static S S_construct()
+   S S_construct()
   {
     S a;
     a.member = 0;
@@ -1239,6 +1239,17 @@ class B {
     string expect = R"(
 sw{ww=0;};Sw{ww;};)";
     EXPECT_EQ(Parser(input, no_err_report).data_get().token_types, expect);
+  }
+  {
+    string input = R"(
+namespace T {}
+namespace T::U::V {}
+)";
+    string expect = R"(
+nw{}nw::w::w{})";
+    string expect_scopes = R"(GNN)";
+    EXPECT_EQ(Parser(input, no_err_report).data_get().token_types, expect);
+    EXPECT_EQ(Parser(input, no_err_report).data_get().scope_types, expect_scopes);
   }
   {
     string input = R"(

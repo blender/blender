@@ -2008,8 +2008,8 @@ static int font_cursor_text_index_from_event(bContext *C, Object *obedit, const 
   /* Convert to object space and scale by font size. */
   mul_m4_v3(obedit->world_to_object().ptr(), mouse_loc);
 
-  float curs_loc[2] = {mouse_loc[0], mouse_loc[1]};
-  return BKE_vfont_cursor_to_text_index(obedit, curs_loc);
+  const blender::float2 cursor_location = {mouse_loc[0], mouse_loc[1]};
+  return BKE_vfont_cursor_to_text_index(obedit, cursor_location);
 }
 
 static void font_cursor_set_apply(bContext *C, const wmEvent *event)

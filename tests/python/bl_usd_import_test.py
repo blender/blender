@@ -2018,9 +2018,23 @@ class USDImportComparisonTest(unittest.TestCase):
 
         from modules import io_report
         report = io_report.Report("USD Import", self.output_dir, comparisondir, comparisondir.joinpath("reference"))
+        io_report.Report.context_lines = 8
+
+        bpy.utils.register_class(CompareTestSupportHook)
 
         for input_file in input_files:
-            with self.subTest(pathlib.Path(input_file).stem):
+            input_file_path = pathlib.Path(input_file)
+
+            io_report.Report.side_to_print_single_line = 5
+            io_report.Report.side_to_print_multi_line = 3
+
+            CompareTestSupportHook.reset_config()
+            if input_file_path.name in ("nurbs-gen-single.usda", "nurbs-gen-multiple.usda", "nurbs-custom.usda"):
+                CompareTestSupportHook.do_curve_rename = True
+                io_report.Report.side_to_print_single_line = 10
+                io_report.Report.side_to_print_multi_line = 10
+
+            with self.subTest(input_file_path.stem):
                 bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
                 ok = report.import_and_check(
                     input_file, lambda filepath, params: bpy.ops.wm.usd_import(
@@ -2028,7 +2042,30 @@ class USDImportComparisonTest(unittest.TestCase):
                 if not ok:
                     self.fail(f"{input_file.stem} import result does not match expectations")
 
+        bpy.utils.unregister_class(CompareTestSupportHook)
         report.finish("io_usd_import")
+
+
+class CompareTestSupportHook(bpy.types.USDHook):
+    bl_idname = "CompareTestSupportHook"
+    bl_label = "Support some Comparison "
+
+    do_curve_rename = False
+
+    @staticmethod
+    def reset_config():
+        CompareTestSupportHook.do_curve_rename = False
+
+    @staticmethod
+    def on_import(context):
+        prim_map = context.get_prim_map()
+
+        if CompareTestSupportHook.do_curve_rename:
+            for prim_path, objects in prim_map.items():
+                if isinstance(objects[0], bpy.types.Object):
+                    objects[0].name = prim_path.name
+                elif isinstance(objects[0], bpy.types.Curves):
+                    objects[0].name = prim_path.GetParentPath().name
 
 
 class GetPrimMapUsdImportHook(bpy.types.USDHook):

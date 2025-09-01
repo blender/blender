@@ -733,29 +733,6 @@ struct InstancesKey {
     return hash_value;
   }
 
-  bool operator<(const InstancesKey &k) const
-  {
-    if (hash_value != k.hash_value) {
-      return hash_value < k.hash_value;
-    }
-    if (object != k.object) {
-      return object < k.object;
-    }
-    if (ob_data != k.ob_data) {
-      return ob_data < k.ob_data;
-    }
-    if (flags != k.flags) {
-      return flags < k.flags;
-    }
-    if (preview_base_geometry != k.preview_base_geometry) {
-      return preview_base_geometry < k.preview_base_geometry;
-    }
-    if (preview_instance_index != k.preview_instance_index) {
-      return preview_instance_index < k.preview_instance_index;
-    }
-    return false;
-  }
-
   bool operator==(const InstancesKey &k) const
   {
     if (hash_value != k.hash_value) {
@@ -816,7 +793,9 @@ static void foreach_obref_in_scene(DRWContext &draw_ctx,
     bool ob_visible = visibility & (OB_VISIBLE_SELF | OB_VISIBLE_PARTICLES);
 
     if (ob_visible && should_draw_object_cb(*ob)) {
-      ObjectRef ob_ref(ob);
+      /* NOTE: object_duplilist_preview is still handled by DEG_OBJECT_ITER,
+       * dupli_parent and dupli_object_current won't be null for these. */
+      ObjectRef ob_ref(ob, data_.dupli_parent, data_.dupli_object_current);
       draw_object_cb(ob_ref);
     }
 
@@ -1940,11 +1919,13 @@ void DRW_draw_select_loop(Depsgraph *depsgraph,
        * as pose-bones have their own selection restriction flag. */
       const bool use_pose_exception = (draw_ctx.object_pose != nullptr);
 
-      const int object_type_exclude_select = (v3d->object_type_exclude_viewport |
-                                              v3d->object_type_exclude_select);
+      const int object_type_exclude_select = v3d->object_type_exclude_select;
       bool filter_exclude = false;
 
       auto should_draw_object = [&](Object &ob) {
+        if (!BKE_object_is_visible_in_viewport(v3d, &ob)) {
+          return false;
+        }
         if (use_pose_exception && (ob.mode & OB_MODE_POSE)) {
           if ((ob.base_flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) == 0) {
             return false;

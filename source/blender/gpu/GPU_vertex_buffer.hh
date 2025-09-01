@@ -118,13 +118,20 @@ class VertBuf {
   VertBuf();
   virtual ~VertBuf();
 
-  template<typename T> static VertBufPtr from_size(const int size)
+  template<typename FormatT>
+  static VertBufPtr from_size_with_format(const int size, GPUUsageType usage = GPU_USAGE_STATIC)
   {
     BLI_assert(size > 0);
-    VertBufPtr buf = VertBufPtr(GPU_vertbuf_create_with_format(GenericVertexFormat<T>::format()));
+    VertBufPtr buf = VertBufPtr(GPU_vertbuf_create_with_format_ex(FormatT::format(), usage));
     /* GPU formats needs to be aligned to 4 bytes. */
-    buf->allocate(ceil_to_multiple_u(size * sizeof(T), 4) / sizeof(GenericVertexFormat<T>));
+    buf->allocate(ceil_to_multiple_u(size * sizeof(FormatT), 4) / sizeof(FormatT));
     return buf;
+  }
+
+  template<typename T>
+  static VertBufPtr from_size(const int size, GPUUsageType usage = GPU_USAGE_STATIC)
+  {
+    return from_size_with_format<GenericVertexFormat<T>>(size, usage);
   }
 
   template<typename T> static VertBufPtr from_span(const Span<T> data)

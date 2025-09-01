@@ -3953,7 +3953,7 @@ static void ui_but_build_drawstr_float(uiBut *but, double value)
     const int prec = ui_but_calc_float_precision(but, value);
     but->drawstr = fmt::format("{}{:.{}f}%", but->str, value, prec);
   }
-  else if (subtype == PROP_PIXEL) {
+  else if (ELEM(subtype, PROP_PIXEL, PROP_PIXEL_DIAMETER)) {
     const int prec = ui_but_calc_float_precision(but, value);
     but->drawstr = fmt::format("{}{:.{}f} px", but->str, value, prec);
   }
@@ -3990,7 +3990,7 @@ static void ui_but_build_drawstr_int(uiBut *but, int value)
   if (subtype == PROP_PERCENTAGE) {
     but->drawstr += "%";
   }
-  else if (subtype == PROP_PIXEL) {
+  else if (ELEM(subtype, PROP_PIXEL, PROP_PIXEL_DIAMETER)) {
     but->drawstr += " px";
   }
 }

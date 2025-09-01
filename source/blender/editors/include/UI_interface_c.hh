@@ -3023,7 +3023,7 @@ bool UI_view_item_popup_keep_open(const blender::ui::AbstractViewItem &item);
  * support dragging, i.e. if it won't create a drag-controller upon request.
  * \return True if dragging started successfully, otherwise false.
  */
-bool UI_view_item_drag_start(bContext &C, const blender::ui::AbstractViewItem &item);
+bool UI_view_item_drag_start(bContext &C, blender::ui::AbstractViewItem &item);
 
 /**
  * \param xy: Coordinate to find a view item at, in window space.

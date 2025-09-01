@@ -266,14 +266,21 @@ void USDCameraReader::read_object_data(Main *bmain, const pxr::UsdTimeCode time)
     }
   }
 
+  /* The FStop controls camera focusing and values of 0.0 should disable DOF.
+   * https://openusd.org/release/api/class_usd_geom_camera.html#a335e1647b730a575e3c0565e91eb8d49
+   */
   if (read_attribute_values(usd_fstop, time, data)) {
     camera->dof.aperture_fstop = scale_default(data.initial_value, 1, camera->dof.aperture_fstop);
+    camera->dof.flag |= data.initial_value.value_or(0.0f) != 0.0f ? CAM_DOF_ENABLED : 0;
 
     if (!data.samples.is_empty()) {
-      FCurve *fcu = create_fcurve(channelbag, {"dof.aperture_fstop", 0}, data.samples.size());
+      FCurve *curve1 = create_fcurve(channelbag, {"dof.aperture_fstop", 0}, data.samples.size());
+      FCurve *curve2 = create_fcurve(channelbag, {"dof.use_dof", 0}, data.samples.size());
       for (int64_t i = 0; i < data.samples.size(); i++) {
         const SampleData<float> &sample = data.samples[i];
-        set_fcurve_sample(fcu, i, sample.frame, sample.value);
+        const bool use_dof = sample.value != 0.0f;
+        set_fcurve_sample(curve1, i, sample.frame, sample.value);
+        set_fcurve_sample(curve2, i, sample.frame, use_dof);
       }
     }
   }
@@ -327,10 +334,6 @@ void USDCameraReader::read_object_data(Main *bmain, const pxr::UsdTimeCode time)
     usd_vert_aperture.Get(&vert_aperture, time);
     camera->ortho_scale = max_ff(vert_aperture, horiz_aperture);
   }
-
-  /* Enable depth of field when needed. */
-  const bool requires_dof = usd_focus_dist.IsAuthored() || usd_fstop.IsAuthored();
-  camera->dof.flag |= requires_dof ? CAM_DOF_ENABLED : 0;
 
   /* Recalculate any animation curve handles. */
   for (FCurve *fcu : channelbag.fcurves()) {

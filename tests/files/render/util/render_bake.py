@@ -10,6 +10,13 @@ def bake(context):
     cscene = scene.cycles
     image = bpy.data.images["bake_result"]
 
+    # Make sure active texture node is selected as well, new requirement in 5.0.
+    for material in bpy.data.materials:
+        nodetree = material.node_tree
+        if nodetree:
+            for node in nodetree.nodes:
+                node.select = node.show_texture
+
     if scene.render.bake.target == 'VERTEX_COLORS':
         # Bake to the vertex group first, then bake to a image
         #

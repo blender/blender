@@ -295,17 +295,24 @@
 - Action 'CamAAction' curverange:(1.0 .. 5.0) layers:1
 - ActionLayer Layer strips:1
  - Keyframe strip channelbags:1
- - Channelbag slot 'CACamA' curves:3
-  - fcu 'dof.aperture_fstop[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4
-    - (1.000, 2.800) lh:(0.333, 2.800 AUTO) rh:(1.667, 2.800 AUTO)
-    - (3.000, 2.800) lh:(2.333, 2.145 AUTO) rh:(3.333, 3.127 AUTO)
-    - (4.000, 5.000) lh:(3.667, 3.782 AUTO) rh:(4.333, 6.218 AUTO)
+ - Channelbag slot 'CACamA' curves:4
+  - fcu 'dof.aperture_fstop[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:5
+    - (1.000, 2.800) lh:(0.667, 2.800 AUTO) rh:(1.333, 2.800 AUTO)
+    - (2.000, 2.800) lh:(1.667, 3.564 AUTO) rh:(2.333, 2.036 AUTO)
+    - (3.000, 0.000) lh:(2.667, -0.257 AUTO) rh:(3.333, 0.257 AUTO)
+    - (4.000, 5.000) lh:(3.667, 3.064 AUTO) rh:(4.333, 6.936 AUTO)
     - (5.000, 8.000) lh:(4.667, 8.000 AUTO) rh:(5.333, 8.000 AUTO)
   - fcu 'dof.focus_distance[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4
-    - (1.000, 10.000) lh:(0.333, 10.000 AUTO) rh:(1.667, 10.000 AUTO)
-    - (3.000, 10.000) lh:(2.333, 8.182 AUTO) rh:(3.333, 10.909 AUTO)
-    - (4.000, 15.000) lh:(3.667, 12.727 AUTO) rh:(4.333, 17.273 AUTO)
+    - (1.000, 10.000) lh:(0.667, 10.000 AUTO) rh:(1.333, 10.000 AUTO)
+    - (2.000, 10.000) lh:(1.667, 9.929 AUTO) rh:(2.667, 10.143 AUTO)
+    - (4.000, 15.000) lh:(3.333, 10.857 AUTO) rh:(4.333, 17.071 AUTO)
     - (5.000, 20.000) lh:(4.667, 20.000 AUTO) rh:(5.333, 20.000 AUTO)
+  - fcu 'dof.use_dof[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:5
+    - (1.000, 1.000) lh:(0.667, 1.000 AUTO) rh:(1.333, 1.000 AUTO)
+    - (2.000, 1.000) lh:(1.667, 1.250 AUTO) rh:(2.333, 0.750 AUTO)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO) rh:(3.333, 0.000 AUTO)
+    - (4.000, 1.000) lh:(3.667, 0.750 AUTO) rh:(4.333, 1.250 AUTO)
+    - (5.000, 1.000) lh:(4.667, 1.000 AUTO) rh:(5.333, 1.000 AUTO)
   - fcu 'lens[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4
     - (1.000, 50.000) lh:(0.667, 50.000 AUTO) rh:(1.333, 50.000 AUTO)
     - (2.000, 60.000) lh:(1.667, 56.000 AUTO) rh:(2.333, 64.000 AUTO)

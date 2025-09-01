@@ -1246,6 +1246,16 @@ void normals_calc_corners(const Span<float3> vert_positions,
                           CornerNormalSpaceArray *r_fan_spaces,
                           MutableSpan<float3> r_corner_normals)
 {
+  BLI_assert(corner_verts.size() == corner_edges.size());
+  BLI_assert(custom_normals.is_empty() || corner_verts.size() == custom_normals.size());
+  BLI_assert(corner_verts.size() == r_corner_normals.size());
+  BLI_assert(corner_verts.size() == vert_to_face_map.offsets.total_size());
+
+  /* Mesh is not empty, but there are no faces, so no normals. */
+  if (corner_verts.is_empty()) {
+    return;
+  }
+
   threading::EnumerableThreadSpecific<Vector<CornerSpaceGroup, 0>> space_groups;
 
   threading::parallel_for(vert_positions.index_range(), 256, [&](const IndexRange range) {
@@ -1455,16 +1465,6 @@ static void mesh_normals_corner_custom_set(const Span<float3> positions,
   }
   else {
     for (const int i : corner_verts.index_range()) {
-      if (lnors_spacearr.corner_space_indices[i] == -1) {
-        /* This should not happen in theory, but in some rare case (probably ugly geometry)
-         * we can get some missing loopspacearr at this point. :/
-         * Maybe we should set those corners' edges as sharp? */
-        done_corners[i].set();
-        if (G.debug & G_DEBUG) {
-          printf("WARNING! Getting invalid nullptr corner space for corner %d!\n", i);
-        }
-        continue;
-      }
       if (done_corners[i]) {
         continue;
       }

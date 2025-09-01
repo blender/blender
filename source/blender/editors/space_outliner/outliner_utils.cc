@@ -41,6 +41,8 @@ namespace blender::ed::outliner {
 void outliner_viewcontext_init(const bContext *C, TreeViewContext *tvc)
 {
   memset(tvc, 0, sizeof(*tvc));
+  /* Workspace. */
+  tvc->workspace = CTX_wm_workspace(C);
 
   /* Scene level. */
   tvc->scene = CTX_data_scene(C);

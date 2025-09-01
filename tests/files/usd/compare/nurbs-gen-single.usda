@@ -1,0 +1,2028 @@
+#usda 1.0
+(
+    defaultPrim = "root"
+    doc = "<version>"
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "root" (
+    customData = {
+        dictionary Blender = {
+            bool generated = 1
+        }
+    }
+)
+{
+    def Xform "C220"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (4, -5, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [3]
+            float3[] extent = [(-1.005, -0.01, -0.01), (1.01, 0.705, 0.01)]
+            double[] knots = [0, 1, 2, 3, 4]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (1, 0, 0), (-1, 0.7, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.01] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C221"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (4, -4, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [3]
+            float3[] extent = [(-1.005, -0.01, -0.01), (1.01, 0.705, 0.01)]
+            double[] knots = [0, 1, 2, 3, 4]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (1, 0, 0), (-1, 0.7, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.01] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C222"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (4, -3, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [3]
+            float3[] extent = [(-1.005, -0.01, -0.01), (1.01, 0.705, 0.01)]
+            double[] knots = [0, 1, 2, 3, 4]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (1, 0, 0), (-1, 0.7, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.01] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C223"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (4, -2, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [3]
+            float3[] extent = [(-1.005, -0.01, -0.01), (1.01, 0.705, 0.01)]
+            double[] knots = [0, 1, 2, 3, 4]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (1, 0, 0), (-1, 0.7, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.01] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C320"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (7, -5, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [4]
+            float3[] extent = [(-1.005, -0.01, -0.015), (1.015, 0.915, 0.015)]
+            double[] knots = [0, 1, 2, 3, 4, 5]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (0, 0, 0), (1, 0.90000004, 0), (-1, 0.7, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.01] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C321"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (7, -4, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [4]
+            float3[] extent = [(-1.005, -0.01, -0.015), (1.015, 0.915, 0.015)]
+            double[] knots = [0, 1, 2, 3, 4, 5]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (0, 0, 0), (1, 0.90000004, 0), (-1, 0.7, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.01] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C322"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (7, -3, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [4]
+            float3[] extent = [(-1.005, -0.01, -0.015), (1.015, 0.915, 0.015)]
+            double[] knots = [0, 1, 2, 3, 4, 5]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (0, 0, 0), (1, 0.90000004, 0), (-1, 0.7, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.01] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C323"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (7, -2, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [4]
+            float3[] extent = [(-1.005, -0.01, -0.015), (1.015, 0.915, 0.015)]
+            double[] knots = [0, 1, 2, 3, 4, 5]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (0, 0, 0), (1, 0.90000004, 0), (-1, 0.7, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.01] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C330"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (7, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [5]
+            float3[] extent = [(-0.7215866, 0.24261752, -0.013575812), (0.7287382, 0.8352093, 0.013575812)]
+            double[] knots = [0, 1, 2, 3, 4, 5, 6, 7]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (0, 0, 0), (1, 0.90000004, 0), (-1, 0.7, 0), (0, 0, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.01, 0.02] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C331"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (7, 1, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [5]
+            float3[] extent = [(-1.005, 0.33002716, -0.013324175), (0.67815953, 0.7846787, 0.013324175)]
+            double[] knots = [0, 1, 1, 2, 3, 3, 4, 4]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (0, 0, 0), (1, 0.90000004, 0), (-1, 0.7, 0), (0, 0, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.01, 0.02] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C332"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (7, 2, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [5]
+            float3[] extent = [(-1.005, -0.01, -0.015), (1.015, 0.915, 0.015)]
+            double[] knots = [0, 0, 1, 1, 1, 2, 2, 3]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (0, 0, 0), (1, 0.90000004, 0), (-1, 0.7, 0), (0, 0, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.01, 0.02] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C333"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (7, 3, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [5]
+            float3[] extent = [(-1.005, -0.01, -0.015), (1.015, 0.915, 0.015)]
+            double[] knots = [0, 1, 1, 2, 3, 3, 4, 4]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (0, 0, 0), (1, 0.90000004, 0), (-1, 0.7, 0), (0, 0, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.01, 0.02] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C420"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (10, -5, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [5]
+            float3[] extent = [(-1.005, -0.01, -0.02), (1.02, 0.915, 0.02)]
+            double[] knots = [0, 1, 2, 3, 4, 5, 6]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (-0.33339998, 0, 0), (0.3333, 0.90000004, 0), (1, 0.8, 0), (-1, 0.7, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.01] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C421"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (10, -4, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [5]
+            float3[] extent = [(-1.005, -0.01, -0.02), (1.02, 0.915, 0.02)]
+            double[] knots = [0, 1, 2, 3, 4, 5, 6]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (-0.33339998, 0, 0), (0.3333, 0.90000004, 0), (1, 0.8, 0), (-1, 0.7, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.01] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C422"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (10, -3, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [5]
+            float3[] extent = [(-1.005, -0.01, -0.02), (1.02, 0.915, 0.02)]
+            double[] knots = [0, 1, 2, 3, 4, 5, 6]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (-0.33339998, 0, 0), (0.3333, 0.90000004, 0), (1, 0.8, 0), (-1, 0.7, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.01] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C423"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (10, -2, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [5]
+            float3[] extent = [(-1.005, -0.01, -0.02), (1.02, 0.915, 0.02)]
+            double[] knots = [0, 1, 2, 3, 4, 5, 6]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (-0.33339998, 0, 0), (0.3333, 0.90000004, 0), (1, 0.8, 0), (-1, 0.7, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.01] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C430"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (10, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [6]
+            float3[] extent = [(-0.8118869, 0.24261752, -0.017652245), (0.7046068, 0.8802426, 0.017652245)]
+            double[] knots = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (-0.33339998, 0, 0), (0.3333, 0.90000004, 0), (1, 0.8, 0), (-1, 0.7, 0), (-0.33339998, 0, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.01, 0.02] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C431"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (10, 1, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [6]
+            float3[] extent = [(-1.005, 0.33002716, -0.017364832), (0.66599506, 0.8802426, 0.017364832)]
+            double[] knots = [0, 1, 1, 2, 3, 4, 4, 5, 5]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (-0.33339998, 0, 0), (0.3333, 0.90000004, 0), (1, 0.8, 0), (-1, 0.7, 0), (-0.33339998, 0, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.01, 0.02] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C432"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (10, 2, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [6]
+            float3[] extent = [(-0.5755015, -0.01, -0.02), (1.02, 0.83401394, 0.02)]
+            double[] knots = [0, 0, 1, 1, 2, 2, 3, 3, 4]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (-0.33339998, 0, 0), (0.3333, 0.90000004, 0), (1, 0.8, 0), (-1, 0.7, 0), (-0.33339998, 0, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.01, 0.02] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C433"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (10, 3, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [6]
+            float3[] extent = [(-1.005, 0.4509001, -0.015787298), (0.45407265, 0.915, 0.015787298)]
+            double[] knots = [0, 1, 1, 2, 2, 3, 3, 4, 4]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (-0.33339998, 0, 0), (0.3333, 0.90000004, 0), (1, 0.8, 0), (-1, 0.7, 0), (-0.33339998, 0, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.01, 0.02] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C440"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (10, 5, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [7]
+            float3[] extent = [(-0.7236948, 0.31736162, -0.016823994), (0.5933415, 0.8565444, 0.016823994)]
+            double[] knots = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+            int[] order = [4]
+            point3f[] points = [(-1, 0.7, 0), (-0.33339998, 0, 0), (0.3333, 0.90000004, 0), (1, 0.8, 0), (-1, 0.7, 0), (-0.33339998, 0, 0), (0.3333, 0.90000004, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.01, 0.02, 0.03] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C441"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (10, 6, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [7]
+            float3[] extent = [(-1.005, 0.3781014, -0.016453205), (0.5435281, 0.8113272, 0.016453205)]
+            double[] knots = [0, 1, 1, 1, 2, 3, 3, 3, 4, 5, 5]
+            int[] order = [4]
+            point3f[] points = [(-1, 0.7, 0), (-0.33339998, 0, 0), (0.3333, 0.90000004, 0), (1, 0.8, 0), (-1, 0.7, 0), (-0.33339998, 0, 0), (0.3333, 0.90000004, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.01, 0.02, 0.03] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C442"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (10, 7, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [7]
+            float3[] extent = [(-1.005, -0.01, -0.02), (1.02, 0.915, 0.02)]
+            double[] knots = [0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3]
+            int[] order = [4]
+            point3f[] points = [(-1, 0.7, 0), (-0.33339998, 0, 0), (0.3333, 0.90000004, 0), (1, 0.8, 0), (-1, 0.7, 0), (-0.33339998, 0, 0), (0.3333, 0.90000004, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.01, 0.02, 0.03] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C443"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (10, 8, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [7]
+            float3[] extent = [(-1.005, -0.01, -0.02), (1.02, 0.915, 0.02)]
+            double[] knots = [0, 1, 1, 1, 2, 3, 3, 3, 4, 5, 5]
+            int[] order = [4]
+            point3f[] points = [(-1, 0.7, 0), (-0.33339998, 0, 0), (0.3333, 0.90000004, 0), (1, 0.8, 0), (-1, 0.7, 0), (-0.33339998, 0, 0), (0.3333, 0.90000004, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.01, 0.02, 0.03] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C520"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (13, -5, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [6]
+            float3[] extent = [(-1.005, -0.01, -0.024999999), (1.025, 0.915, 0.024999999)]
+            double[] knots = [0, 1, 2, 3, 4, 5, 6, 7]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (-0.5, 0, 0), (0, 0.90000004, 0), (0.5, 0.8, 0), (1, 0.5, 0), (-1, 0.7, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.01] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C521"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (13, -4, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [6]
+            float3[] extent = [(-1.005, -0.01, -0.024999999), (1.025, 0.915, 0.024999999)]
+            double[] knots = [0, 1, 2, 3, 4, 5, 6, 7]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (-0.5, 0, 0), (0, 0.90000004, 0), (0.5, 0.8, 0), (1, 0.5, 0), (-1, 0.7, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.01] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C522"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (13, -3, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [6]
+            float3[] extent = [(-1.005, -0.01, -0.024999999), (1.025, 0.915, 0.024999999)]
+            double[] knots = [0, 1, 2, 3, 4, 5, 6, 7]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (-0.5, 0, 0), (0, 0.90000004, 0), (0.5, 0.8, 0), (1, 0.5, 0), (-1, 0.7, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.01] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C523"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (13, -2, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [6]
+            float3[] extent = [(-1.005, -0.01, -0.024999999), (1.025, 0.915, 0.024999999)]
+            double[] knots = [0, 1, 2, 3, 4, 5, 6, 7]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (-0.5, 0, 0), (0, 0.90000004, 0), (0.5, 0.8, 0), (1, 0.5, 0), (-1, 0.7, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.01] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C530"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (13, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [7]
+            float3[] extent = [(-0.83909357, 0.24261752, -0.023324175), (0.8557419, 0.8802426, 0.023324175)]
+            double[] knots = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (-0.5, 0, 0), (0, 0.90000004, 0), (0.5, 0.8, 0), (1, 0.5, 0), (-1, 0.7, 0), (-0.5, 0, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.01, 0.02] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C531"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (13, 1, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [7]
+            float3[] extent = [(-1.005, 0.33002716, -0.023147766), (0.8379246, 0.8802426, 0.023147766)]
+            double[] knots = [0, 1, 1, 2, 3, 4, 5, 5, 6, 6]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (-0.5, 0, 0), (0, 0.90000004, 0), (0.5, 0.8, 0), (1, 0.5, 0), (-1, 0.7, 0), (-0.5, 0, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.01, 0.02] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C532"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (13, 2, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [7]
+            float3[] extent = [(-1.005, -0.01, -0.024999999), (1.025, 0.915, 0.024999999)]
+            double[] knots = [0, 0, 1, 1, 2, 2, 2, 3, 3, 4]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (-0.5, 0, 0), (0, 0.90000004, 0), (0.5, 0.8, 0), (1, 0.5, 0), (-1, 0.7, 0), (-0.5, 0, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.01, 0.02] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C533"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (13, 3, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [7]
+            float3[] extent = [(-1.005, -0.01, -0.024999999), (1.025, 0.915, 0.024999999)]
+            double[] knots = [0, 1, 1, 2, 2, 3, 4, 4, 5, 5]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (-0.5, 0, 0), (0, 0.90000004, 0), (0.5, 0.8, 0), (1, 0.5, 0), (-1, 0.7, 0), (-0.5, 0, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.01, 0.02] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C540"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (13, 5, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [8]
+            float3[] extent = [(-0.7463334, 0.31734136, -0.022387203), (0.76110774, 0.852151, 0.022387203)]
+            double[] knots = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+            int[] order = [4]
+            point3f[] points = [(-1, 0.7, 0), (-0.5, 0, 0), (0, 0.90000004, 0), (0.5, 0.8, 0), (1, 0.5, 0), (-1, 0.7, 0), (-0.5, 0, 0), (0, 0.90000004, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.01, 0.02, 0.03] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C541"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (13, 6, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [8]
+            float3[] extent = [(-1.005, 0.37973455, -0.022024361), (0.7244607, 0.8404016, 0.022024361)]
+            double[] knots = [0, 1, 1, 1, 2, 3, 4, 4, 4, 5, 6, 6]
+            int[] order = [4]
+            point3f[] points = [(-1, 0.7, 0), (-0.5, 0, 0), (0, 0.90000004, 0), (0.5, 0.8, 0), (1, 0.5, 0), (-1, 0.7, 0), (-0.5, 0, 0), (0, 0.90000004, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.01, 0.02, 0.03] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C542"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (13, 7, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [8]
+            float3[] extent = [(-1.005, -0.01, -0.024999999), (1.025, 0.915, 0.024999999)]
+            double[] knots = [-1, 0, 1, 1, 1, 2, 2, 3, 3, 3, 4, 5]
+            int[] order = [4]
+            point3f[] points = [(-1, 0.7, 0), (-0.5, 0, 0), (0, 0.90000004, 0), (0.5, 0.8, 0), (1, 0.5, 0), (-1, 0.7, 0), (-0.5, 0, 0), (0, 0.90000004, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.01, 0.02, 0.03] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C543"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (13, 8, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [8]
+            float3[] extent = [(-1.005, -0.01, -0.024999999), (1.025, 0.915, 0.024999999)]
+            double[] knots = [1, 1, 1, 1, 2, 2, 3, 3, 3, 4, 4, 4]
+            int[] order = [4]
+            point3f[] points = [(-1, 0.7, 0), (-0.5, 0, 0), (0, 0.90000004, 0), (0.5, 0.8, 0), (1, 0.5, 0), (-1, 0.7, 0), (-0.5, 0, 0), (0, 0.90000004, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.01, 0.02, 0.03] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C620"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (16, -5, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [7]
+            float3[] extent = [(-1.005, -0.01, -0.029999997), (1.03, 0.915, 0.029999997)]
+            double[] knots = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (-0.6001, 0, 0), (-0.19999999, 0.90000004, 0), (0.19999999, 0.8, 0), (0.59999996, 0.5, 0), (1, 0.1, 0), (-1, 0.7, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.06, 0.01] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C621"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (16, -4, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [7]
+            float3[] extent = [(-1.005, -0.01, -0.029999997), (1.03, 0.915, 0.029999997)]
+            double[] knots = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (-0.6001, 0, 0), (-0.19999999, 0.90000004, 0), (0.19999999, 0.8, 0), (0.59999996, 0.5, 0), (1, 0.1, 0), (-1, 0.7, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.06, 0.01] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C622"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (16, -3, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [7]
+            float3[] extent = [(-1.005, -0.01, -0.029999997), (1.03, 0.915, 0.029999997)]
+            double[] knots = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (-0.6001, 0, 0), (-0.19999999, 0.90000004, 0), (0.19999999, 0.8, 0), (0.59999996, 0.5, 0), (1, 0.1, 0), (-1, 0.7, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.06, 0.01] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C623"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (16, -2, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [7]
+            float3[] extent = [(-1.005, -0.01, -0.029999997), (1.03, 0.915, 0.029999997)]
+            double[] knots = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (-0.6001, 0, 0), (-0.19999999, 0.90000004, 0), (0.19999999, 0.8, 0), (0.59999996, 0.5, 0), (1, 0.1, 0), (-1, 0.7, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.06, 0.01] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C630"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (16, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [8]
+            float3[] extent = [(-0.87488467, 0.22741997, -0.027437078), (0.82240325, 0.8802426, 0.027437078)]
+            double[] knots = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (-0.6001, 0, 0), (-0.19999999, 0.90000004, 0), (0.19999999, 0.8, 0), (0.59999996, 0.5, 0), (1, 0.1, 0), (-1, 0.7, 0), (-0.6001, 0, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.06, 0.01, 0.02] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C631"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (16, 1, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [8]
+            float3[] extent = [(-1.005, 0.25936726, -0.027267104), (0.8086355, 0.8802426, 0.027267104)]
+            double[] knots = [0, 1, 1, 2, 3, 4, 5, 6, 6, 7, 7]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (-0.6001, 0, 0), (-0.19999999, 0.90000004, 0), (0.19999999, 0.8, 0), (0.59999996, 0.5, 0), (1, 0.1, 0), (-1, 0.7, 0), (-0.6001, 0, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.06, 0.01, 0.02] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C632"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (16, 2, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [8]
+            float3[] extent = [(-0.7098612, -0.01, -0.029999997), (1.03, 0.83401394, 0.029999997)]
+            double[] knots = [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (-0.6001, 0, 0), (-0.19999999, 0.90000004, 0), (0.19999999, 0.8, 0), (0.59999996, 0.5, 0), (1, 0.1, 0), (-1, 0.7, 0), (-0.6001, 0, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.06, 0.01, 0.02] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C633"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (16, 3, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [8]
+            float3[] extent = [(-1.005, 0.35677534, -0.025464311), (0.66260934, 0.915, 0.025464311)]
+            double[] knots = [0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (-0.6001, 0, 0), (-0.19999999, 0.90000004, 0), (0.19999999, 0.8, 0), (0.59999996, 0.5, 0), (1, 0.1, 0), (-1, 0.7, 0), (-0.6001, 0, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.06, 0.01, 0.02] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C640"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (16, 5, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [9]
+            float3[] extent = [(-0.803325, 0.2751881, -0.02641032), (0.73923624, 0.852151, 0.02641032)]
+            double[] knots = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+            int[] order = [4]
+            point3f[] points = [(-1, 0.7, 0), (-0.6001, 0, 0), (-0.19999999, 0.90000004, 0), (0.19999999, 0.8, 0), (0.59999996, 0.5, 0), (1, 0.1, 0), (-1, 0.7, 0), (-0.6001, 0, 0), (-0.19999999, 0.90000004, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.06, 0.01, 0.02, 0.03] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C641"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (16, 6, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [9]
+            float3[] extent = [(-1.005, 0.30632252, -0.026247429), (0.72604185, 0.8440879, 0.026247429)]
+            double[] knots = [0, 1, 1, 1, 2, 3, 4, 5, 5, 5, 6, 7, 7]
+            int[] order = [4]
+            point3f[] points = [(-1, 0.7, 0), (-0.6001, 0, 0), (-0.19999999, 0.90000004, 0), (0.19999999, 0.8, 0), (0.59999996, 0.5, 0), (1, 0.1, 0), (-1, 0.7, 0), (-0.6001, 0, 0), (-0.19999999, 0.90000004, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.06, 0.01, 0.02, 0.03] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C642"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (16, 7, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [9]
+            float3[] extent = [(-0.68935716, -0.01, -0.025377944), (0.6556133, 0.73673767, 0.025377944)]
+            double[] knots = [-1, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 5]
+            int[] order = [4]
+            point3f[] points = [(-1, 0.7, 0), (-0.6001, 0, 0), (-0.19999999, 0.90000004, 0), (0.19999999, 0.8, 0), (0.59999996, 0.5, 0), (1, 0.1, 0), (-1, 0.7, 0), (-0.6001, 0, 0), (-0.19999999, 0.90000004, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.06, 0.01, 0.02, 0.03] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "C643"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (16, 8, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [9]
+            float3[] extent = [(-1.005, 0.4017877, -0.02381783), (0.5292443, 0.83164406, 0.02381783)]
+            double[] knots = [1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4]
+            int[] order = [4]
+            point3f[] points = [(-1, 0.7, 0), (-0.6001, 0, 0), (-0.19999999, 0.90000004, 0), (0.19999999, 0.8, 0), (0.59999996, 0.5, 0), (1, 0.1, 0), (-1, 0.7, 0), (-0.6001, 0, 0), (-0.19999999, 0.90000004, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.06, 0.01, 0.02, 0.03] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC220"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-12, -5, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [2]
+            float3[] extent = [(-1.005, -0.01, -0.01), (1.01, 0.705, 0.01)]
+            double[] knots = [1, 1, 2, 2]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (1, 0, 0)]
+            double[] pointWeights = [1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC221"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-12, -4, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [2]
+            float3[] extent = [(-1.005, -0.01, -0.01), (1.01, 0.705, 0.01)]
+            double[] knots = [0, 0, 1, 1]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (1, 0, 0)]
+            double[] pointWeights = [1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC222"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-12, -3, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [2]
+            float3[] extent = [(-1.005, -0.01, -0.01), (1.01, 0.705, 0.01)]
+            double[] knots = [1, 1, 2, 2]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (1, 0, 0)]
+            double[] pointWeights = [1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC223"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-12, -2, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [2]
+            float3[] extent = [(-1.005, -0.01, -0.01), (1.01, 0.705, 0.01)]
+            double[] knots = [0, 0, 1, 1]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (1, 0, 0)]
+            double[] pointWeights = [1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC320"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-9, -5, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [3]
+            float3[] extent = [(-1.005, -0.01, -0.015), (1.015, 0.915, 0.015)]
+            double[] knots = [1, 1, 2, 3, 3]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (0, 0, 0), (1, 0.90000004, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC321"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-9, -4, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [3]
+            float3[] extent = [(-1.005, -0.01, -0.015), (1.015, 0.915, 0.015)]
+            double[] knots = [0, 0, 1, 2, 2]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (0, 0, 0), (1, 0.90000004, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC322"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-9, -3, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [3]
+            float3[] extent = [(-1.005, -0.01, -0.015), (1.015, 0.915, 0.015)]
+            double[] knots = [1, 1, 2, 3, 3]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (0, 0, 0), (1, 0.90000004, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC323"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-9, -2, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [3]
+            float3[] extent = [(-1.005, -0.01, -0.015), (1.015, 0.915, 0.015)]
+            double[] knots = [0, 0, 1, 2, 2]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (0, 0, 0), (1, 0.90000004, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC330"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-9, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [3]
+            float3[] extent = [(-0.5928575, 0.24261752, -0.012928931), (0.5987153, 0.5401367, 0.012928931)]
+            double[] knots = [1, 1, 2, 3, 4, 4]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (0, 0, 0), (1, 0.90000004, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC331"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-9, 1, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [3]
+            float3[] extent = [(-1.005, 0.45090014, -0.015), (1.015, 0.915, 0.015)]
+            double[] knots = [0, 0, 0, 1, 1, 1]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (0, 0, 0), (1, 0.90000004, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC332"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-9, 2, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [3]
+            float3[] extent = [(-1.005, -0.01, -0.015), (1.015, 0.915, 0.015)]
+            double[] knots = [0, 0, 1, 1, 2, 2]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (0, 0, 0), (1, 0.90000004, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC333"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-9, 3, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [3]
+            float3[] extent = [(-1.005, 0.45090014, -0.015), (1.015, 0.915, 0.015)]
+            double[] knots = [0, 0, 0, 1, 1, 1]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (0, 0, 0), (1, 0.90000004, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC420"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-6, -5, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [4]
+            float3[] extent = [(-1.005, -0.01, -0.02), (1.02, 0.915, 0.02)]
+            double[] knots = [1, 1, 2, 3, 4, 4]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (-0.33339998, 0, 0), (0.3333, 0.90000004, 0), (1, 0.8, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC421"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-6, -4, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [4]
+            float3[] extent = [(-1.005, -0.01, -0.02), (1.02, 0.915, 0.02)]
+            double[] knots = [0, 0, 1, 2, 3, 3]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (-0.33339998, 0, 0), (0.3333, 0.90000004, 0), (1, 0.8, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC422"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-6, -3, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [4]
+            float3[] extent = [(-1.005, -0.01, -0.02), (1.02, 0.915, 0.02)]
+            double[] knots = [1, 1, 2, 3, 4, 4]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (-0.33339998, 0, 0), (0.3333, 0.90000004, 0), (1, 0.8, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC423"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-6, -2, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [4]
+            float3[] extent = [(-1.005, -0.01, -0.02), (1.02, 0.915, 0.02)]
+            double[] knots = [0, 0, 1, 2, 3, 3]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (-0.33339998, 0, 0), (0.3333, 0.90000004, 0), (1, 0.8, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC430"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-6, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [4]
+            float3[] extent = [(-0.73095626, 0.24261752, -0.017071066), (0.6265272, 0.8802426, 0.017071066)]
+            double[] knots = [1, 1, 2, 3, 4, 5, 5]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (-0.33339998, 0, 0), (0.3333, 0.90000004, 0), (1, 0.8, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC431"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-6, 1, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [4]
+            float3[] extent = [(-1.005, 0.33002716, -0.02), (1.02, 0.8450518, 0.02)]
+            double[] knots = [0, 0, 0, 1, 2, 2, 2]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (-0.33339998, 0, 0), (0.3333, 0.90000004, 0), (1, 0.8, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC432"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-6, 2, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [4]
+            float3[] extent = [(-0.34339994, -0.01, -0.02), (1.02, 0.83401394, 0.02)]
+            double[] knots = [0, 0, 1, 1, 2, 2, 2]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (-0.33339998, 0, 0), (0.3333, 0.90000004, 0), (1, 0.8, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC433"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-6, 3, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [4]
+            float3[] extent = [(-1.005, 0.45090014, -0.015), (0.34829998, 0.915, 0.015)]
+            double[] knots = [0, 0, 0, 1, 1, 1, 1]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (-0.33339998, 0, 0), (0.3333, 0.90000004, 0), (1, 0.8, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC440"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-6, 5, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [4]
+            float3[] extent = [(-0.34337923, 0.32137087, -0.014999999), (0.34829998, 0.784398, 0.014999999)]
+            double[] knots = [1, 1, 2, 3, 4, 5, 6, 6]
+            int[] order = [4]
+            point3f[] points = [(-1, 0.7, 0), (-0.33339998, 0, 0), (0.3333, 0.90000004, 0), (1, 0.8, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC441"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-6, 6, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [4]
+            float3[] extent = [(-1.005, 0.48550388, -0.02), (1.02, 0.83164406, 0.02)]
+            double[] knots = [0, 0, 0, 0, 1, 1, 1, 1]
+            int[] order = [4]
+            point3f[] points = [(-1, 0.7, 0), (-0.33339998, 0, 0), (0.3333, 0.90000004, 0), (1, 0.8, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC442"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-6, 7, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [4]
+            float3[] extent = [(-1.005, -0.01, -0.02), (1.02, 0.915, 0.02)]
+            double[] knots = [0, 0, 1, 1, 1, 2, 2, 2]
+            int[] order = [4]
+            point3f[] points = [(-1, 0.7, 0), (-0.33339998, 0, 0), (0.3333, 0.90000004, 0), (1, 0.8, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC443"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-6, 8, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [4]
+            float3[] extent = [(-1.005, 0.48550388, -0.02), (1.02, 0.83164406, 0.02)]
+            double[] knots = [0, 0, 0, 0, 1, 1, 1, 1]
+            int[] order = [4]
+            point3f[] points = [(-1, 0.7, 0), (-0.33339998, 0, 0), (0.3333, 0.90000004, 0), (1, 0.8, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC520"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-3, -5, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [5]
+            float3[] extent = [(-1.005, -0.01, -0.024999999), (1.025, 0.915, 0.024999999)]
+            double[] knots = [1, 1, 2, 3, 4, 5, 5]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (-0.5, 0, 0), (0, 0.90000004, 0), (0.5, 0.8, 0), (1, 0.5, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC521"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-3, -4, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [5]
+            float3[] extent = [(-1.005, -0.01, -0.024999999), (1.025, 0.915, 0.024999999)]
+            double[] knots = [0, 0, 1, 2, 3, 4, 4]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (-0.5, 0, 0), (0, 0.90000004, 0), (0.5, 0.8, 0), (1, 0.5, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC522"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-3, -3, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [5]
+            float3[] extent = [(-1.005, -0.01, -0.024999999), (1.025, 0.915, 0.024999999)]
+            double[] knots = [1, 1, 2, 3, 4, 5, 5]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (-0.5, 0, 0), (0, 0.90000004, 0), (0.5, 0.8, 0), (1, 0.5, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC523"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-3, -2, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [5]
+            float3[] extent = [(-1.005, -0.01, -0.024999999), (1.025, 0.915, 0.024999999)]
+            double[] knots = [0, 0, 1, 2, 3, 4, 4]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (-0.5, 0, 0), (0, 0.90000004, 0), (0.5, 0.8, 0), (1, 0.5, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC530"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-3, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [5]
+            float3[] extent = [(-0.79996425, 0.24261752, -0.022928929), (0.8158221, 0.8802426, 0.022928929)]
+            double[] knots = [1, 1, 2, 3, 4, 5, 6, 6]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (-0.5, 0, 0), (0, 0.90000004, 0), (0.5, 0.8, 0), (1, 0.5, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC531"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-3, 1, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [5]
+            float3[] extent = [(-1.005, 0.33002716, -0.024999999), (1.025, 0.8802426, 0.024999999)]
+            double[] knots = [0, 0, 0, 1, 2, 3, 3, 3]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (-0.5, 0, 0), (0, 0.90000004, 0), (0.5, 0.8, 0), (1, 0.5, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC532"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-3, 2, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [5]
+            float3[] extent = [(-0.51, -0.01, -0.02), (0.52, 0.83401394, 0.02)]
+            double[] knots = [0, 0, 1, 1, 2, 2, 3, 3]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (-0.5, 0, 0), (0, 0.90000004, 0), (0.5, 0.8, 0), (1, 0.5, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC533"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-3, 3, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [5]
+            float3[] extent = [(-1.005, 0.45090014, -0.024999999), (1.025, 0.915, 0.024999999)]
+            double[] knots = [0, 0, 0, 1, 1, 2, 2, 2]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (-0.5, 0, 0), (0, 0.90000004, 0), (0.5, 0.8, 0), (1, 0.5, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC540"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-3, 5, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [5]
+            float3[] extent = [(-0.51, 0.32137087, -0.02), (0.52, 0.852151, 0.02)]
+            double[] knots = [1, 1, 2, 3, 4, 5, 6, 7, 7]
+            int[] order = [4]
+            point3f[] points = [(-1, 0.7, 0), (-0.5, 0, 0), (0, 0.90000004, 0), (0.5, 0.8, 0), (1, 0.5, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC541"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-3, 6, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [5]
+            float3[] extent = [(-1.005, 0.37810147, -0.024999999), (1.025, 0.7980174, 0.024999999)]
+            double[] knots = [0, 0, 0, 0, 1, 2, 2, 2, 2]
+            int[] order = [4]
+            point3f[] points = [(-1, 0.7, 0), (-0.5, 0, 0), (0, 0.90000004, 0), (0.5, 0.8, 0), (1, 0.5, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC542"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-3, 7, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [5]
+            float3[] extent = [(-0.51, -0.01, -0.024999999), (1.025, 0.73673767, 0.024999999)]
+            double[] knots = [0, 0, 1, 1, 1, 2, 2, 2, 2]
+            int[] order = [4]
+            point3f[] points = [(-1, 0.7, 0), (-0.5, 0, 0), (0, 0.90000004, 0), (0.5, 0.8, 0), (1, 0.5, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC543"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-3, 8, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [5]
+            float3[] extent = [(-1.005, 0.48550388, -0.02), (0.52, 0.83164406, 0.02)]
+            double[] knots = [0, 0, 0, 0, 1, 1, 1, 1, 1]
+            int[] order = [4]
+            point3f[] points = [(-1, 0.7, 0), (-0.5, 0, 0), (0, 0.90000004, 0), (0.5, 0.8, 0), (1, 0.5, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC620"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0, -5, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [6]
+            float3[] extent = [(-1.005, -0.01, -0.029999997), (1.03, 0.915, 0.029999997)]
+            double[] knots = [1, 1, 2, 3, 4, 5, 6, 6]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (-0.6001, 0, 0), (-0.19999999, 0.90000004, 0), (0.19999999, 0.8, 0), (0.59999996, 0.5, 0), (1, 0.1, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.06] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC621"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0, -4, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [6]
+            float3[] extent = [(-1.005, -0.01, -0.029999997), (1.03, 0.915, 0.029999997)]
+            double[] knots = [0, 0, 1, 2, 3, 4, 5, 5]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (-0.6001, 0, 0), (-0.19999999, 0.90000004, 0), (0.19999999, 0.8, 0), (0.59999996, 0.5, 0), (1, 0.1, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.06] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC622"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0, -3, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [6]
+            float3[] extent = [(-1.005, -0.01, -0.029999997), (1.03, 0.915, 0.029999997)]
+            double[] knots = [1, 1, 2, 3, 4, 5, 6, 6]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (-0.6001, 0, 0), (-0.19999999, 0.90000004, 0), (0.19999999, 0.8, 0), (0.59999996, 0.5, 0), (1, 0.1, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.06] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC623"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0, -2, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [6]
+            float3[] extent = [(-1.005, -0.01, -0.029999997), (1.03, 0.915, 0.029999997)]
+            double[] knots = [0, 0, 1, 2, 3, 4, 5, 5]
+            int[] order = [2]
+            point3f[] points = [(-1, 0.7, 0), (-0.6001, 0, 0), (-0.19999999, 0.90000004, 0), (0.19999999, 0.8, 0), (0.59999996, 0.5, 0), (1, 0.1, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.06] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC630"
+    {
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [6]
+            float3[] extent = [(-0.841427, 0.24261752, -0.027071066), (0.79275644, 0.8802426, 0.027071066)]
+            double[] knots = [1, 1, 2, 3, 4, 5, 6, 7, 7]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (-0.6001, 0, 0), (-0.19999999, 0.90000004, 0), (0.19999999, 0.8, 0), (0.59999996, 0.5, 0), (1, 0.1, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.06] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC631"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0, 1, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [6]
+            float3[] extent = [(-1.005, 0.07000001, -0.029999997), (1.03, 0.8802426, 0.029999997)]
+            double[] knots = [0, 0, 0, 1, 2, 3, 4, 4, 4]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (-0.6001, 0, 0), (-0.19999999, 0.90000004, 0), (0.19999999, 0.8, 0), (0.59999996, 0.5, 0), (1, 0.1, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.06] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC632"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0, 2, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [6]
+            float3[] extent = [(-0.6101, -0.01, -0.029999997), (1.03, 0.83401394, 0.029999997)]
+            double[] knots = [0, 0, 1, 1, 2, 2, 3, 3, 3]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (-0.6001, 0, 0), (-0.19999999, 0.90000004, 0), (0.19999999, 0.8, 0), (0.59999996, 0.5, 0), (1, 0.1, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.06] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC633"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0, 3, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [6]
+            float3[] extent = [(-1.005, 0.45090014, -0.024999999), (0.62499994, 0.915, 0.024999999)]
+            double[] knots = [0, 0, 0, 1, 1, 2, 2, 2, 2]
+            int[] order = [3]
+            point3f[] points = [(-1, 0.7, 0), (-0.6001, 0, 0), (-0.19999999, 0.90000004, 0), (0.19999999, 0.8, 0), (0.59999996, 0.5, 0), (1, 0.1, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.06] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC640"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0, 5, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [6]
+            float3[] extent = [(-0.61005855, 0.32137087, -0.024999997), (0.62499994, 0.852151, 0.024999997)]
+            double[] knots = [1, 1, 2, 3, 4, 5, 6, 7, 8, 8]
+            int[] order = [4]
+            point3f[] points = [(-1, 0.7, 0), (-0.6001, 0, 0), (-0.19999999, 0.90000004, 0), (0.19999999, 0.8, 0), (0.59999996, 0.5, 0), (1, 0.1, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.06] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC641"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0, 6, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [6]
+            float3[] extent = [(-1.005, 0.07000001, -0.029999997), (1.03, 0.8404016, 0.029999997)]
+            double[] knots = [0, 0, 0, 0, 1, 2, 3, 3, 3, 3]
+            int[] order = [4]
+            point3f[] points = [(-1, 0.7, 0), (-0.6001, 0, 0), (-0.19999999, 0.90000004, 0), (0.19999999, 0.8, 0), (0.59999996, 0.5, 0), (1, 0.1, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.06] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC642"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0, 7, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [6]
+            float3[] extent = [(-0.6101, -0.01, -0.024999999), (0.62499994, 0.73673767, 0.024999999)]
+            double[] knots = [0, 0, 1, 1, 1, 2, 2, 2, 3, 3]
+            int[] order = [4]
+            point3f[] points = [(-1, 0.7, 0), (-0.6001, 0, 0), (-0.19999999, 0.90000004, 0), (0.19999999, 0.8, 0), (0.59999996, 0.5, 0), (1, 0.1, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.06] (
+                interpolation = "vertex"
+            )
+        }
+    }
+
+    def Xform "NC643"
+    {
+        float3 xformOp:rotateXYZ = (0, -0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0, 8, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def NurbsCurves "Curves"
+        {
+            int[] curveVertexCounts = [6]
+            float3[] extent = [(-1.005, 0.48550388, -0.02), (0.21999998, 0.83164406, 0.02)]
+            double[] knots = [0, 0, 0, 0, 1, 1, 1, 1, 1, 1]
+            int[] order = [4]
+            point3f[] points = [(-1, 0.7, 0), (-0.6001, 0, 0), (-0.19999999, 0.90000004, 0), (0.19999999, 0.8, 0), (0.59999996, 0.5, 0), (1, 0.1, 0)]
+            double[] pointWeights = [1, 0.7071067690849304, 1, 0.7071067690849304, 1, 0.7071067690849304]
+            float[] widths = [0.01, 0.02, 0.03, 0.04, 0.049999997, 0.06] (
+                interpolation = "vertex"
+            )
+        }
+    }
+}
+

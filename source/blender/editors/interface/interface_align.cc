@@ -11,7 +11,9 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
+#include "BLI_vector.hh"
 
 #include "interface_intern.hh"
 
@@ -47,14 +49,14 @@ struct ButAlign {
   ButAlign *neighbors[4];
 
   /* Pointers to coordinates (rctf values) of the button. */
-  float *borders[4];
+  std::array<float *, 4> borders;
 
   /* Distances to the neighbors. */
-  float dists[4];
+  blender::float4 dists;
 
   /* Flags, used to mark whether we should 'stitch'
    * the corners of this button with its neighbors' ones. */
-  char flags[4];
+  blender::char4 flags;
 };
 
 /* Side-related enums and flags. */
@@ -104,8 +106,7 @@ bool ui_but_can_align(const uiBut *but)
                                      ButType::Sepr,
                                      ButType::SeprLine,
                                      ButType::SeprSpacer);
-  return (btype_can_align && (BLI_rctf_size_x(&but->rect) > 0.0f) &&
-          (BLI_rctf_size_y(&but->rect) > 0.0f));
+  return (btype_can_align && !BLI_rctf_is_empty(&but->rect));
 }
 
 /**
@@ -299,36 +300,29 @@ static void block_align_stitch_neighbors(ButAlign *butal,
 /**
  * Helper to sort ButAlign items by:
  *   - Their align group.
- *   - Their vertical position.
+ *   - Their vertical position in descending order.
  *   - Their horizontal position.
  */
-static int ui_block_align_butal_cmp(const void *a, const void *b)
+static bool ui_block_align_butal_cmp(const ButAlign &butal, const ButAlign &butal_other)
 {
-  const ButAlign *butal = static_cast<const ButAlign *>(a);
-  const ButAlign *butal_other = static_cast<const ButAlign *>(b);
-
   /* Sort by align group. */
-  if (butal->but->alignnr != butal_other->but->alignnr) {
-    return butal->but->alignnr - butal_other->but->alignnr;
+  if (butal.but->alignnr != butal_other.but->alignnr) {
+    return butal.but->alignnr < butal_other.but->alignnr;
   }
 
-  /* Sort vertically.
-   * Note that Y of buttons is decreasing (first buttons have higher Y value than later ones). */
-  if (*butal->borders[TOP] != *butal_other->borders[TOP]) {
-    return (*butal_other->borders[TOP] > *butal->borders[TOP]) ? 1 : -1;
+  /* Sort vertically in descending order (first buttons have higher Y value than later ones). */
+  if (*butal.borders[TOP] != *butal_other.borders[TOP]) {
+    return *butal.borders[TOP] > *butal_other.borders[TOP];
   }
 
   /* Sort horizontally. */
-  if (*butal->borders[LEFT] != *butal_other->borders[LEFT]) {
-    return (*butal->borders[LEFT] > *butal_other->borders[LEFT]) ? 1 : -1;
+  if (*butal.borders[LEFT] != *butal_other.borders[LEFT]) {
+    return *butal.borders[LEFT] < *butal_other.borders[LEFT];
   }
-
-  /* XXX We cannot actually assert here, since in some very compressed space cases,
-   *     stupid UI code produces widgets which have the same TOP and LEFT positions...
-   *     We do not care really,
-   *     because this happens when UI is way too small to be usable anyway. */
-  // BLI_assert(0);
-  return 0;
+  /* In very compressed layouts or overlapping layouts, UI can produce overlapping
+   * widgets which can have the same top-left corner, so do not assert here.
+   */
+  return false;
 }
 
 static void ui_block_align_but_to_region(uiBut *but, const ARegion *region)
@@ -365,16 +359,13 @@ static void ui_block_align_but_to_region(uiBut *but, const ARegion *region)
 
 void ui_block_align_calc(uiBlock *block, const ARegion *region)
 {
-  int num_buttons = 0;
 
   const int sides_to_ui_but_align_flags[4] = SIDE_TO_UI_BUT_ALIGN;
 
-  ButAlign *butal_array;
-  ButAlign *butal, *butal_other;
-  int side;
+  blender::Vector<ButAlign, 256> butal_array(block->buttons.size());
 
-  /* First loop: we count number of buttons belonging to an align group,
-   * and clear their align flag.
+  int n = 0;
+  /* First loop: Initialize ButAlign data for each button and clear their align flag.
    * Tabs get some special treatment here, they get aligned to region border. */
   for (const std::unique_ptr<uiBut> &but : block->buttons) {
     /* special case: tabs need to be aligned to a region border, drawflag tells which one */
@@ -386,85 +377,66 @@ void ui_block_align_calc(uiBlock *block, const ARegion *region)
       but->drawflag &= ~UI_BUT_ALIGN_ALL;
     }
 
-    if (but->alignnr != 0) {
-      num_buttons++;
+    if (but->alignnr == 0) {
+      continue;
     }
+    ButAlign &butal = butal_array[n++];
+    butal = {};
+    butal.but = but.get();
+    butal.borders[LEFT] = &but->rect.xmin;
+    butal.borders[RIGHT] = &but->rect.xmax;
+    butal.borders[DOWN] = &but->rect.ymin;
+    butal.borders[TOP] = &but->rect.ymax;
+    butal.dists = blender::float4{FLT_MAX};
   }
+  butal_array.resize(n);
 
-  if (num_buttons < 2) {
+  if (butal_array.size() < 2) {
     /* No need to go further if we have nothing to align... */
     return;
-  }
-
-  /* Note that this is typically less than ~20, and almost always under ~100.
-   * Even so, we can't ensure this value won't exceed available stack memory.
-   * Fall back to allocation instead of using #alloca, see: #78636. */
-  ButAlign butal_array_buf[256];
-  if (num_buttons <= ARRAY_SIZE(butal_array_buf)) {
-    butal_array = butal_array_buf;
-  }
-  else {
-    butal_array = MEM_malloc_arrayN<ButAlign>(num_buttons, __func__);
-  }
-  memset(butal_array, 0, sizeof(*butal_array) * size_t(num_buttons));
-
-  /* Second loop: we initialize our ButAlign data for each button. */
-  butal = butal_array;
-  for (const std::unique_ptr<uiBut> &but : block->buttons) {
-    if (but->alignnr != 0) {
-      butal->but = but.get();
-      butal->borders[LEFT] = &but->rect.xmin;
-      butal->borders[RIGHT] = &but->rect.xmax;
-      butal->borders[DOWN] = &but->rect.ymin;
-      butal->borders[TOP] = &but->rect.ymax;
-      copy_v4_fl(butal->dists, FLT_MAX);
-      butal++;
-    }
   }
 
   /* This will give us ButAlign items regrouped by align group, vertical and horizontal location.
    * Note that, given how buttons are defined in UI code,
    * butal_array shall already be "nearly sorted"... */
-  qsort(butal_array, size_t(num_buttons), sizeof(*butal_array), ui_block_align_butal_cmp);
+  std::sort(butal_array.begin(), butal_array.end(), ui_block_align_butal_cmp);
 
-  /* Third loop: for each pair of buttons in the same align group,
+  /* Second loop: for each pair of buttons in the same align group,
    * we compute their potential proximity. Note that each pair is checked only once, and that we
    * break early in case we know all remaining pairs will always be too far away. */
-  int i;
-  for (i = 0, butal = butal_array; i < num_buttons; i++, butal++) {
-    const short alignnr = butal->but->alignnr;
+  for (const int i : butal_array.index_range()) {
+    ButAlign &butal = butal_array[i];
+    const short alignnr = butal.but->alignnr;
 
-    int j;
-    for (j = i + 1, butal_other = &butal_array[i + 1]; j < num_buttons; j++, butal_other++) {
+    for (ButAlign &butal_other : butal_array.as_mutable_span().drop_front(i + 1)) {
       const float max_delta = MAX_DELTA;
 
       /* Since they are sorted, buttons after current butal can only be of same or higher
        * group, and once they are not of same group, we know we can break this sub-loop and
        * start checking with next butal. */
-      if (butal_other->but->alignnr != alignnr) {
+      if (butal_other.but->alignnr != alignnr) {
         break;
       }
 
       /* Since they are sorted vertically first, buttons after current butal can only be at
        * same or lower height, and once they are lower than a given threshold, we know we can
        * break this sub-loop and start checking with next butal. */
-      if ((*butal->borders[DOWN] - *butal_other->borders[TOP]) > max_delta) {
+      if ((*butal.borders[DOWN] - *butal_other.borders[TOP]) > max_delta) {
         break;
       }
 
-      block_align_proximity_compute(butal, butal_other);
+      block_align_proximity_compute(&butal, &butal_other);
     }
   }
 
-  /* Fourth loop: we have all our 'aligned' buttons as a 'map' in butal_array. We need to:
+  /* Third loop: we have all our 'aligned' buttons as a 'map' in butal_array. We need to:
    *     - update their relevant coordinates to stitch them.
    *     - assign them valid flags.
    */
-  for (i = 0; i < num_buttons; i++) {
-    butal = &butal_array[i];
+  for (ButAlign &butal : butal_array) {
 
-    for (side = 0; side < TOTSIDES; side++) {
-      butal_other = butal->neighbors[side];
+    for (int side = 0; side < TOTSIDES; side++) {
+      ButAlign *butal_other = butal.neighbors[side];
 
       if (butal_other) {
         const int side_opp = OPPOSITE(side);
@@ -476,18 +448,18 @@ void ui_block_align_calc(uiBlock *block, const ARegion *region)
 
         float co;
 
-        butal->but->drawflag |= align;
+        butal.but->drawflag |= align;
         butal_other->but->drawflag |= align_opp;
-        if (!IS_EQF(butal->dists[side], 0.0f)) {
-          float *delta = &butal->dists[side];
+        if (!IS_EQF(butal.dists[side], 0.0f)) {
+          float *delta = &butal.dists[side];
 
-          if (*butal->borders[side] < *butal_other->borders[side_opp]) {
+          if (*butal.borders[side] < *butal_other->borders[side_opp]) {
             *delta *= 0.5f;
           }
           else {
             *delta *= -0.5f;
           }
-          co = (*butal->borders[side] += *delta);
+          co = (*butal.borders[side] += *delta);
 
           if (!IS_EQF(butal_other->dists[side_opp], 0.0f)) {
             BLI_assert(butal_other->dists[side_opp] * 0.5f == fabsf(*delta));
@@ -497,18 +469,15 @@ void ui_block_align_calc(uiBlock *block, const ARegion *region)
           *delta = 0.0f;
         }
         else {
-          co = *butal->borders[side];
+          co = *butal.borders[side];
         }
 
         block_align_stitch_neighbors(
-            butal, side, side_opp, side_s1, side_s2, align, align_opp, co);
+            &butal, side, side_opp, side_s1, side_s2, align, align_opp, co);
         block_align_stitch_neighbors(
-            butal, side, side_opp, side_s2, side_s1, align, align_opp, co);
+            &butal, side, side_opp, side_s2, side_s1, align, align_opp, co);
       }
     }
-  }
-  if (butal_array_buf != butal_array) {
-    MEM_freeN(butal_array);
   }
 }
 

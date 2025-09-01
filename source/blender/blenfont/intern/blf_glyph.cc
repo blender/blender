@@ -1465,20 +1465,18 @@ static void blf_texture_draw(const GlyphBLF *g,
                              const int x2,
                              const int y2)
 {
+  using namespace blender;
+  BLI_assert(size_t(g_batch.glyph_len) < ARRAY_SIZE(g_batch.glyph_data));
+  GlyphQuad &glyph_data = g_batch.glyph_data[g_batch.glyph_len++];
   /* One vertex per glyph, instancing expands it into a quad. */
-  copy_v4_fl4(static_cast<float *>(GPU_vertbuf_raw_step(&g_batch.pos_step)),
-              float(x1 + g_batch.ofs[0]),
-              float(y1 + g_batch.ofs[1]),
-              float(x2 + g_batch.ofs[0]),
-              float(y2 + g_batch.ofs[1]));
-  copy_v4_v4_uchar(static_cast<uchar *>(GPU_vertbuf_raw_step(&g_batch.col_step)), color);
-  copy_v2_v2_int(static_cast<int *>(GPU_vertbuf_raw_step(&g_batch.glyph_size_step)), g->dims);
-  *((int *)GPU_vertbuf_raw_step(&g_batch.offset_step)) = g->offset;
+  glyph_data.position = int4(
+      x1 + g_batch.ofs[0], y1 + g_batch.ofs[1], x2 + g_batch.ofs[0], y2 + g_batch.ofs[1]);
+  glyph_data.glyph_color = float4(UNPACK4(color)) / 255.0f;
+  glyph_data.glyph_size = int2(g->dims);
+  glyph_data.offset = g->offset;
   /* Glyph flags packs color channel count and shadow type. */
-  uint32_t flags = uint32_t(shadow) | (uint32_t(g->num_channels) << 4);
-  *((uint32_t *)GPU_vertbuf_raw_step(&g_batch.glyph_flags_step)) = flags;
+  glyph_data.flags = uint32_t(shadow) | (uint32_t(g->num_channels) << 4);
 
-  g_batch.glyph_len++;
   /* Flush cache if it's full. */
   if (g_batch.glyph_len == BLF_BATCH_DRAW_LEN_MAX) {
     blf_batch_draw();
