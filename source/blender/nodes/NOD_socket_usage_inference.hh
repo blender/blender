@@ -73,7 +73,7 @@ Array<SocketUsage> infer_all_input_sockets_usage(const bNodeTree &tree);
  * \param r_input_usages: The destination array where the inferred usages are written.
  */
 void infer_group_interface_inputs_usage(const bNodeTree &group,
-                                        Span<GPointer> group_input_values,
+                                        Span<InferenceValue> group_input_values,
                                         MutableSpan<SocketUsage> r_input_usages);
 
 /**

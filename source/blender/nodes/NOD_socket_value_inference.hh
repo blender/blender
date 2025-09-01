@@ -30,8 +30,14 @@ class InferenceValue {
    */
   const void *value_ = nullptr;
 
+  InferenceValue(const void *value) : value_(value) {}
+
  public:
-  explicit InferenceValue(const void *value) : value_(value) {}
+  static InferenceValue from_primitive(const void *value)
+  {
+    BLI_assert(value != nullptr);
+    return InferenceValue(value);
+  }
 
   static InferenceValue Unknown()
   {
@@ -43,23 +49,29 @@ class InferenceValue {
     return value_ == nullptr;
   }
 
-  const void *data() const
+  bool is_primitive_value() const
   {
+    return !this->is_unknown();
+  }
+
+  const void *get_primitive_ptr() const
+  {
+    BLI_assert(this->is_primitive_value());
     return value_;
   }
 
-  template<typename T> T get_known() const
+  template<typename T> T get_primitive() const
   {
-    BLI_assert(!this->is_unknown());
+    BLI_assert(this->is_primitive_value());
     return *static_cast<const T *>(this->value_);
   }
 
-  template<typename T> std::optional<T> get() const
+  template<typename T> std::optional<T> get_if_primitive() const
   {
-    if (this->is_unknown()) {
+    if (!this->is_primitive_value()) {
       return std::nullopt;
     }
-    return this->get_known<T>();
+    return this->get_primitive<T>();
   }
 };
 
@@ -73,7 +85,7 @@ class SocketValueInferencer {
   SocketValueInferencer(const bNodeTree &tree,
                         ResourceScope &scope,
                         bke::ComputeContextCache &compute_context_cache,
-                        const std::optional<Span<GPointer>> tree_input_values,
+                        const std::optional<Span<InferenceValue>> tree_input_values,
                         const std::optional<Span<bool>> top_level_ignored_inputs);
 
   InferenceValue get_socket_value(const SocketInContext &socket);

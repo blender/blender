@@ -56,7 +56,7 @@ struct SocketUsageInferencer {
 
  public:
   SocketUsageInferencer(const bNodeTree &tree,
-                        const std::optional<Span<GPointer>> tree_input_values,
+                        const std::optional<Span<InferenceValue>> tree_input_values,
                         ResourceScope &scope,
                         bke::ComputeContextCache &compute_context_cache,
                         const std::optional<Span<bool>> top_level_ignored_inputs = std::nullopt)
@@ -491,12 +491,12 @@ struct SocketUsageInferencer {
     for (const bNodeSocket *condition_input_ptr : condition_inputs) {
       const SocketInContext condition_input{dependent_socket_context, condition_input_ptr};
       const InferenceValue condition_value = this->get_socket_value(condition_input);
-      if (condition_value.is_unknown()) {
+      if (!condition_value.is_primitive_value()) {
         /* The condition is not known, so it may be true. */
         continue;
       }
       BLI_assert(condition_input_ptr->type == SOCK_BOOLEAN);
-      if (!condition_value.get_known<bool>()) {
+      if (!condition_value.get_primitive<bool>()) {
         all_condition_inputs_true = false;
         break;
       }
@@ -587,7 +587,7 @@ Array<SocketUsage> infer_all_input_sockets_usage(const bNodeTree &tree)
 }
 
 void infer_group_interface_inputs_usage(const bNodeTree &group,
-                                        const Span<GPointer> group_input_values,
+                                        const Span<InferenceValue> group_input_values,
                                         const MutableSpan<SocketUsage> r_input_usages)
 {
   SocketUsage default_usage;
@@ -617,15 +617,16 @@ void infer_group_interface_inputs_usage(const bNodeTree &group,
     return;
   }
   bool visibility_controlling_input_exists = false;
-  Array<GPointer, 32> inputs_all_unknown(group_input_values.size());
-  Array<GPointer, 32> inputs_only_controllers = group_input_values;
+  Array<InferenceValue, 32> inputs_all_unknown(group_input_values.size(),
+                                               InferenceValue::Unknown());
+  Array<InferenceValue, 32> inputs_only_controllers = group_input_values;
   for (const int i : group.interface_inputs().index_range()) {
     const bNodeTreeInterfaceSocket &io_socket = *group.interface_inputs()[i];
     if (input_may_affect_visibility(io_socket)) {
       visibility_controlling_input_exists = true;
     }
     else {
-      inputs_only_controllers[i] = {};
+      inputs_only_controllers[i] = InferenceValue::Unknown();
     }
   }
   if (!visibility_controlling_input_exists) {
@@ -662,10 +663,10 @@ void infer_group_interface_inputs_usage(const bNodeTree &group,
   BLI_assert(group.interface_inputs().size() == input_sockets.size());
 
   AlignedBuffer<1024, 8> allocator_buffer;
-  LinearAllocator<> allocator;
-  allocator.provide_buffer(allocator_buffer);
+  ResourceScope scope;
+  scope.allocator().provide_buffer(allocator_buffer);
 
-  Array<GPointer> input_values(input_sockets.size());
+  Array<InferenceValue> input_values(input_sockets.size(), InferenceValue::Unknown());
   for (const int i : input_sockets.index_range()) {
     const bNodeSocket &socket = *input_sockets[i];
     if (socket.is_directly_linked()) {
@@ -677,30 +678,23 @@ void infer_group_interface_inputs_usage(const bNodeTree &group,
     if (base_type == nullptr) {
       continue;
     }
-    void *value = allocator.allocate(*base_type);
+    void *value = scope.allocate_owned(*base_type);
     stype.get_base_cpp_value(socket.default_value, value);
-    input_values[i] = GPointer(base_type, value);
+    input_values[i] = InferenceValue::from_primitive(value);
   }
 
   infer_group_interface_inputs_usage(group, input_values, r_input_usages);
-
-  for (GPointer &value : input_values) {
-    if (const void *data = value.get()) {
-      value.type()->destruct(const_cast<void *>(data));
-    }
-  }
 }
 
 void infer_group_interface_inputs_usage(const bNodeTree &group,
                                         const PropertiesVectorSet &properties,
                                         MutableSpan<SocketUsage> r_input_usages)
 {
-  const int inputs_num = group.interface_inputs().size();
-  Array<GPointer> input_values(inputs_num);
   ResourceScope scope;
-  nodes::get_geometry_nodes_input_base_values(group, properties, scope, input_values);
+  const Vector<InferenceValue> group_input_values =
+      nodes::get_geometry_nodes_input_inference_values(group, properties, scope);
   nodes::socket_usage_inference::infer_group_interface_inputs_usage(
-      group, input_values, r_input_usages);
+      group, group_input_values, r_input_usages);
 }
 
 InputSocketUsageParams::InputSocketUsageParams(SocketUsageInferencer &inferencer,
@@ -749,11 +743,11 @@ bool InputSocketUsageParams::menu_input_may_be(const StringRef identifier,
 {
   BLI_assert(this->node.input_by_identifier(identifier)->type == SOCK_MENU);
   const InferenceValue value = this->get_input(identifier);
-  if (value.is_unknown()) {
+  if (!value.is_primitive_value()) {
     /* The value is unknown, so it may be the requested enum value. */
     return true;
   }
-  return value.get_known<MenuValue>().value == enum_value;
+  return value.get_primitive<MenuValue>().value == enum_value;
 }
 
 }  // namespace blender::nodes::socket_usage_inference
