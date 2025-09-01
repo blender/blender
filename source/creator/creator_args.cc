@@ -2009,6 +2009,7 @@ static int arg_handle_qos_set(int argc, const char **argv, void * /*data*/)
     }
     BLI_windows_process_set_qos(qos_mode, QoSPrecedence::CMDLINE_ARG);
 #  else
+    UNUSED_VARS(argv);
     fprintf(stderr, "\nError: '%s' is Windows only.\n", arg_id);
 #  endif
     return 1;
