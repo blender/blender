@@ -1389,7 +1389,7 @@ class Preprocessor {
 
     Parser parser(str, report_error);
     parser.foreach_token(String, [&](const Token &token) {
-      uint hash = hash_string(token.str());
+      uint32_t hash = hash_string(token.str());
       metadata::PrintfFormat format = {hash, token.str()};
       metadata.printf_formats.emplace_back(format);
       parser.replace(token, std::to_string(hash) + 'u', true);
