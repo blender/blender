@@ -172,6 +172,8 @@ static void wm_jobs_update_qos(const wmWindowManager *wm)
   }
 
   BLI_windows_process_set_qos(QoSMode::DEFAULT, QoSPrecedence::JOB);
+#else
+  UNUSED_VARS(wm);
 #endif
 }
 /**
