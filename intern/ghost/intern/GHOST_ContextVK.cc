@@ -603,10 +603,11 @@ GHOST_ContextVK::GHOST_ContextVK(const GHOST_ContextParams &context_params,
       hdr_info_(hdr_info),
       surface_(VK_NULL_HANDLE),
       swapchain_(VK_NULL_HANDLE),
-      frame_data_(GHOST_FRAMES_IN_FLIGHT),
+      frame_data_(2),
       render_frame_(0),
       use_hdr_swapchain_(false)
 {
+  frame_data_.reserve(5);
 }
 
 GHOST_ContextVK::~GHOST_ContextVK()
@@ -1160,7 +1161,11 @@ GHOST_TSuccess GHOST_ContextVK::recreateSwapchain(bool use_hdr_swapchain)
   /* Some platforms require a minimum amount of render frames that is larger than we expect. When
    * that happens we should increase the number of frames in flight. We could also consider
    * splitting the frame in flight and image specific data. */
-  assert(actual_image_count <= GHOST_FRAMES_IN_FLIGHT);
+  if (actual_image_count > frame_data_.size()) {
+    CLOG_TRACE(&LOG, "Vulkan: Increasing frame data to %u frames", actual_image_count);
+    assert(actual_image_count <= frame_data_.capacity());
+    frame_data_.resize(actual_image_count);
+  }
   swapchain_images_.resize(actual_image_count);
   std::vector<VkImage> swapchain_images(actual_image_count);
   vkGetSwapchainImagesKHR(device, swapchain_, &actual_image_count, swapchain_images.data());
@@ -1184,7 +1189,9 @@ GHOST_TSuccess GHOST_ContextVK::recreateSwapchain(bool use_hdr_swapchain)
    * to fill in where the handle is `VK_NULL_HANDLE`. */
   /* Previous handles from the frame data cannot be used and should be discarded. */
   for (GHOST_Frame &frame : frame_data_) {
-    discard_pile.semaphores.push_back(frame.acquire_semaphore);
+    if (frame.acquire_semaphore != VK_NULL_HANDLE) {
+      discard_pile.semaphores.push_back(frame.acquire_semaphore);
+    }
     frame.acquire_semaphore = VK_NULL_HANDLE;
   }
   if (old_swapchain) {

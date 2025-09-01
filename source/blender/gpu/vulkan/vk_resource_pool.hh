@@ -143,9 +143,4 @@ class VKDiscardPool {
   static VKDiscardPool &discard_pool_get();
 };
 
-class VKResourcePool {
-
- public:
-  VKDescriptorSetTracker descriptor_set;
-};
 }  // namespace blender::gpu

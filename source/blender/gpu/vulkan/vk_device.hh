@@ -106,26 +106,12 @@ struct VKWorkarounds {
  * Shared resources between contexts that run in the same thread.
  */
 class VKThreadData : public NonCopyable, NonMovable {
-  /**
-   * The number of resource pools is aligned to the number of frames
-   * in flight used by GHOST. Therefore, this constant *must* always
-   * match GHOST_ContextVK's GHOST_FRAMES_IN_FLIGHT.
-   */
-  static constexpr uint32_t resource_pools_count = 5;
-
  public:
   /** Thread ID this instance belongs to. */
   pthread_t thread_id;
-  /**
-   * Index of the active resource pool. Is in sync with the active swap-chain image or cycled when
-   * rendering.
-   *
-   * NOTE: Initialized to `UINT32_MAX` to detect first change.
-   */
-  uint32_t resource_pool_index = UINT32_MAX;
-  std::array<VKResourcePool, resource_pools_count> resource_pools;
-
   VKDescriptorPools descriptor_pools;
+  VKDescriptorSetTracker descriptor_set;
+
   /**
    * The current rendering depth.
    *
@@ -137,28 +123,6 @@ class VKThreadData : public NonCopyable, NonMovable {
   int32_t rendering_depth = 0;
 
   VKThreadData(VKDevice &device, pthread_t thread_id);
-
-  /**
-   * Get the active resource pool.
-   */
-  VKResourcePool &resource_pool_get()
-  {
-    if (resource_pool_index >= resource_pools.size()) {
-      return resource_pools[0];
-    }
-    return resource_pools[resource_pool_index];
-  }
-
-  /** Activate the next resource pool. */
-  void resource_pool_next()
-  {
-    if (resource_pool_index == UINT32_MAX) {
-      resource_pool_index = 1;
-    }
-    else {
-      resource_pool_index = (resource_pool_index + 1) % resource_pools_count;
-    }
-  }
 };
 
 class VKDevice : public NonCopyable {
