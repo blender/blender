@@ -168,10 +168,7 @@ void device_hip_info(vector<DeviceInfo> &devices)
     info.description = string(name);
     info.num = num;
 
-    /* Disable MNEE as it causes stalls or has rendering artifacts on most AMD GPU configurations
-     * due to compiler bugs. And as further adjustments have been made to other areas of Cycles,
-     * more and more AMD GPUs are affected by these issues. */
-    info.has_mnee = false;
+    info.has_mnee = true;
     info.has_nanovdb = true;
 
     info.has_gpu_queue = true;
