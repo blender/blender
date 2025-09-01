@@ -442,6 +442,9 @@ static bool node_update_basis_buttons(const bContext &C,
   if (node.is_muted()) {
     layout.active_set(false);
   }
+  if (!ID_IS_EDITABLE(&ntree.id)) {
+    layout.enabled_set(false);
+  }
 
   layout.context_ptr_set("node", &nodeptr);
 
@@ -523,6 +526,9 @@ static bool node_update_basis_socket(const bContext &C,
 
   if (node.is_muted()) {
     layout.active_set(false);
+  }
+  if (!ID_IS_EDITABLE(&ntree.id)) {
+    layout.enabled_set(false);
   }
 
   uiLayout *row = &layout.row(true);
@@ -1155,6 +1161,9 @@ static void node_update_basis_from_declaration(
                                                 UI_style_get_dpi());
             if (node.is_muted()) {
               layout.active_set(false);
+            }
+            if (!ID_IS_EDITABLE(&ntree.id)) {
+              layout.enabled_set(false);
             }
             PointerRNA node_ptr = RNA_pointer_create_discrete(&ntree.id, &RNA_Node, &node);
             layout.context_ptr_set("node", &node_ptr);
