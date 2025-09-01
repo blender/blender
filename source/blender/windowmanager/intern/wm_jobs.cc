@@ -164,7 +164,7 @@ static void wm_jobs_update_qos(const wmWindowManager *wm)
 {
   /* A QoS API is currently only available for Windows. */
 #if OS_WINDOWS
-  LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
+  LISTBASE_FOREACH (wmJob *, wm_job, &wm->runtime->jobs) {
     if (wm_job->flag & WM_JOB_PRIORITY) {
       BLI_windows_process_set_qos(QoSMode::HIGH, QoSPrecedence::JOB);
       return;
