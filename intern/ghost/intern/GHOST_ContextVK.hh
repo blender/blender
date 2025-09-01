@@ -91,15 +91,6 @@ struct GHOST_Frame {
   void destroy(VkDevice vk_device);
 };
 
-/**
- * The number of frames that GHOST manages.
- *
- * This must be kept in sync with any frame-aligned resources in the
- * Vulkan backend. Notably, VKThreadData::resource_pools_count must
- * match this value.
- */
-constexpr static uint32_t GHOST_FRAMES_IN_FLIGHT = 5;
-
 class GHOST_ContextVK : public GHOST_Context {
   friend class GHOST_XrGraphicsBindingVulkan;
   friend class GHOST_XrGraphicsBindingVulkanD3D;

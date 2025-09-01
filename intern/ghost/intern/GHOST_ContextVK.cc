@@ -603,7 +603,7 @@ GHOST_ContextVK::GHOST_ContextVK(const GHOST_ContextParams &context_params,
       hdr_info_(hdr_info),
       surface_(VK_NULL_HANDLE),
       swapchain_(VK_NULL_HANDLE),
-      frame_data_(GHOST_FRAMES_IN_FLIGHT),
+      frame_data_(2),
       render_frame_(0),
       use_hdr_swapchain_(false)
 {
@@ -1160,7 +1160,10 @@ GHOST_TSuccess GHOST_ContextVK::recreateSwapchain(bool use_hdr_swapchain)
   /* Some platforms require a minimum amount of render frames that is larger than we expect. When
    * that happens we should increase the number of frames in flight. We could also consider
    * splitting the frame in flight and image specific data. */
-  assert(actual_image_count <= GHOST_FRAMES_IN_FLIGHT);
+  if (actual_image_count > frame_data_.size()) {
+    CLOG_TRACE(&LOG, "Vulkan: Increasing frame data to %u frames", actual_image_count);
+    frame_data_.resize(actual_image_count);
+  }
   swapchain_images_.resize(actual_image_count);
   std::vector<VkImage> swapchain_images(actual_image_count);
   vkGetSwapchainImagesKHR(device, swapchain_, &actual_image_count, swapchain_images.data());

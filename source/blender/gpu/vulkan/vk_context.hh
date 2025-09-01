@@ -137,7 +137,7 @@ class VKContext : public Context, NonCopyable {
                             VKVertexAttributeObject &vao,
                             render_graph::VKPipelineData &r_pipeline_data);
 
-  void sync_backbuffer(bool cycle_resource_pool);
+  void sync_backbuffer();
 
   static VKContext *get()
   {

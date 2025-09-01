@@ -645,11 +645,6 @@ void VKDevice::debug_print()
     const bool is_main = pthread_equal(thread_data->thread_id, pthread_self());
     os << "ThreadData" << (is_main ? " (main-thread)" : "") << ")\n";
     os << " Rendering_depth: " << thread_data->rendering_depth << "\n";
-    for (int resource_pool_index : IndexRange(thread_data->resource_pools.size())) {
-      const bool is_active = thread_data->resource_pool_index == resource_pool_index;
-      os << " Resource Pool (index=" << resource_pool_index << (is_active ? " active" : "")
-         << ")\n";
-    }
   }
   os << "Discard pool\n";
   debug_print(os, orphaned_data);
