@@ -13,6 +13,8 @@
 #include "DNA_userdef_types.h"
 #include "DNA_workspace_types.h"
 
+#include "ED_screen_types.hh"
+
 #include "WM_types.hh"
 
 #include "BLI_compiler_attrs.h"
@@ -92,6 +94,10 @@ void ED_region_search_filter_update(const ScrArea *area, ARegion *region);
  * Returns the search string if the space type and region type support property search.
  */
 const char *ED_area_region_search_filter_get(const ScrArea *area, const ARegion *region);
+/**
+ * Returns the maximum size a region can grow to so it still fits in the area.
+ */
+int ED_area_max_regionsize(const ScrArea *area, const ARegion *scale_region, const AZEdge edge);
 
 void ED_region_panels_init(wmWindowManager *wm, ARegion *region);
 void ED_region_panels_ex(const bContext *C,

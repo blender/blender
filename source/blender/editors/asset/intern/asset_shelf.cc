@@ -442,9 +442,9 @@ int region_snap(const ARegion *region, const int size, const int axis)
 }
 
 /**
- * Ensure the region height matches the preferred row count (see #AssetShelf.preferred_row_count).
- * In any case, this will ensure the region height is snapped to a multiple of the row count (plus
- * region padding).
+ * Ensure the region height matches the preferred row count (see #AssetShelf.preferred_row_count)
+ * as closely as possible while still fitting within the area. In any case, this will ensure the
+ * region height is snapped to a multiple of the row count (plus region padding).
  */
 static void region_resize_to_preferred(ScrArea *area, ARegion *region)
 {
@@ -453,10 +453,17 @@ static void region_resize_to_preferred(ScrArea *area, ARegion *region)
   const AssetShelf *active_shelf = shelf_regiondata->active_shelf;
 
   BLI_assert(active_shelf->preferred_row_count > 0);
-
   const int tile_height = current_tile_draw_height(region);
+
+  /* Prevent the AssetShelf from getting too high (and thus being hidden) in case many rows are
+   * used and preview size is increased. */
+  const int size_y_avail = ED_area_max_regionsize(area, region, AE_TOP_TO_BOTTOMRIGHT);
+  const short int max_row_count = calculate_row_count_from_tile_draw_height(
+      size_y_avail * UI_SCALE_FAC, tile_height);
+
   const int new_size_y = calculate_scaled_region_height_from_row_count(
-                             active_shelf->preferred_row_count, tile_height) /
+                             std::min(max_row_count, active_shelf->preferred_row_count),
+                             tile_height) /
                          UI_SCALE_FAC;
 
   if (region->sizey != new_size_y) {
