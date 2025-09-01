@@ -56,11 +56,15 @@ VKContext::~VKContext()
   this->process_frame_timings();
 }
 
-void VKContext::sync_backbuffer()
+void VKContext::sync_backbuffer(bool cycle_resource_pool)
 {
   if (ghost_window_) {
     GHOST_VulkanSwapChainData swap_chain_data = {};
     GHOST_GetVulkanSwapChainFormat((GHOST_WindowHandle)ghost_window_, &swap_chain_data);
+    VKThreadData &thread_data = thread_data_.value().get();
+    if (cycle_resource_pool) {
+      thread_data.resource_pool_next();
+    }
 
     const bool reset_framebuffer = swap_chain_format_.format !=
                                        swap_chain_data.surface_format.format ||
@@ -128,7 +132,7 @@ void VKContext::activate()
 
   is_active_ = true;
 
-  sync_backbuffer();
+  sync_backbuffer(false);
 
   immActivate();
 }
@@ -212,7 +216,7 @@ VKDescriptorPools &VKContext::descriptor_pools_get()
 
 VKDescriptorSetTracker &VKContext::descriptor_set_get()
 {
-  return thread_data_.value().get().descriptor_set;
+  return thread_data_.value().get().resource_pool_get().descriptor_set;
 }
 
 VKStateManager &VKContext::state_manager_get() const
@@ -447,7 +451,7 @@ void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_c
 
 void VKContext::swap_buffers_post_handler()
 {
-  sync_backbuffer();
+  sync_backbuffer(true);
 }
 
 void VKContext::specialization_constants_set(
