@@ -1850,6 +1850,7 @@ void WM_jobs_callbacks_ex(wmJob *wm_job,
  *
  * If the new \a wm_job is flagged with #WM_JOB_PRIORITY, it will request other blocking jobs to
  * stop (using #WM_jobs_stop(), so this doesn't take immediate effect) rather than finish its work.
+ * Additionally, it will hint the operating system to use performance cores on hybrid CPUs.
  */
 void WM_jobs_start(wmWindowManager *wm, wmJob *wm_job);
 /**

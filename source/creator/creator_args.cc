@@ -818,6 +818,7 @@ static void print_help(bArgs *ba, bool all)
   BLI_args_print_arg_doc(ba, "--register-allusers");
   BLI_args_print_arg_doc(ba, "--unregister");
   BLI_args_print_arg_doc(ba, "--unregister-allusers");
+  BLI_args_print_arg_doc(ba, "--qos");
 
   BLI_args_print_arg_doc(ba, "--version");
 
@@ -1980,6 +1981,42 @@ static int arg_handle_unregister_extension_all(int argc, const char **argv, void
   return 0;
 }
 
+static const char arg_handle_qos_set_doc[] =
+    "<level>\n"
+    "\tSet the Quality of Service (QoS) mode for hybrid CPU architectures (Windows only).\n"
+    "\n"
+    "\tdefault: Uses the default behavior of the OS.\n"
+    "\thigh: Always makes use of performance cores.\n"
+    "\teco: Schedules Blender threads exclusively to efficiency cores.";
+static int arg_handle_qos_set(int argc, const char **argv, void * /*data*/)
+{
+  const char *arg_id = "--qos";
+  if (argc > 1) {
+#  ifdef _WIN32
+    QoSMode qos_mode;
+    if (STRCASEEQ(argv[1], "default")) {
+      qos_mode = QoSMode::DEFAULT;
+    }
+    else if (STRCASEEQ(argv[1], "high")) {
+      qos_mode = QoSMode::HIGH;
+    }
+    else if (STRCASEEQ(argv[1], "eco")) {
+      qos_mode = QoSMode::ECO;
+    }
+    else {
+      fprintf(stderr, "\nError: Invalid QoS level '%s %s'.\n", arg_id, argv[1]);
+      return 1;
+    }
+    BLI_windows_process_set_qos(qos_mode, QoSPrecedence::CMDLINE_ARG);
+#  else
+    fprintf(stderr, "\nError: '%s' is Windows only.\n", arg_id);
+#  endif
+    return 1;
+  }
+  fprintf(stderr, "\nError: '%s' no args given.\n", arg_id);
+  return 0;
+}
+
 static const char arg_handle_audio_disable_doc[] =
     "\n\t"
     "Force sound system to None.";
@@ -2834,6 +2871,8 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
   BLI_args_add(ba, "-b", "--background", CB(arg_handle_background_mode_set), nullptr);
   /* Command implies background mode (defers execution). */
   BLI_args_add(ba, "-c", "--command", CB(arg_handle_command_set), C);
+
+  BLI_args_add(ba, nullptr, "--qos", CB(arg_handle_qos_set), nullptr);
 
   BLI_args_add(ba,
                nullptr,
