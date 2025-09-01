@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'68abaa12d581')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'61dd8a1435fb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-25 08:31+0000\n"
+"POT-Creation-Date: 2025-09-01 09:40+0000\n"
 "PO-Revision-Date: 2025-07-23 15:19+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Greek <https://translate.blender.org/projects/blender-ui/ui/el/>\n"
@@ -99,12 +99,12 @@ msgid "Layer"
 msgstr "Στρώμα"
 
 
-msgid "Extend"
-msgstr "Επέκταση"
-
-
 msgid "Object"
 msgstr "Αντικείμενο"
+
+
+msgid "Extend"
+msgstr "Επέκταση"
 
 
 msgid "None"
@@ -644,10 +644,6 @@ msgid "Alpha Over"
 msgstr "Επικάλυψη βάσει διαφάνειας"
 
 
-msgid "Shadow"
-msgstr "Σκιές"
-
-
 msgid "Rotate"
 msgstr "Rotate"
 
@@ -662,6 +658,10 @@ msgstr "Φτιάξε"
 
 msgid "Linked"
 msgstr "Συνδεδεμένο/α"
+
+
+msgid "Shadow"
+msgstr "Σκιές"
 
 
 msgid "Deselect"
@@ -747,10 +747,6 @@ msgstr "Επόμενο Καρέ με Κλειδί"
 
 msgid "Flat"
 msgstr "Επίπεδο"
-
-
-msgid "Join"
-msgstr "Ένωσε"
 
 
 msgctxt "Operator"
@@ -861,6 +857,10 @@ msgstr "Render"
 
 msgid "Sync"
 msgstr "Συγχρον"
+
+
+msgid "Join"
+msgstr "Ένωσε"
 
 
 msgctxt "Operator"

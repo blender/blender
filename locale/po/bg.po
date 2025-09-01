@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'68abaa12d581')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'61dd8a1435fb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-25 08:31+0000\n"
+"POT-Creation-Date: 2025-09-01 09:40+0000\n"
 "PO-Revision-Date: 2025-07-23 15:34+0000\n"
 "Last-Translator: Just Adam <adam.abbas2009@gmail.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -172,12 +172,12 @@ msgid "Layer"
 msgstr "Слой"
 
 
-msgid "Extend"
-msgstr "Разширяване"
-
-
 msgid "Object"
 msgstr "Обект"
+
+
+msgid "Extend"
+msgstr "Разширяване"
 
 
 msgid "Emit"
@@ -1260,18 +1260,6 @@ msgid "Lines"
 msgstr "Линии"
 
 
-msgid "Soften"
-msgstr "Мекост"
-
-
-msgid "Shadow"
-msgstr "Сянка"
-
-
-msgid "Combined"
-msgstr "Комбиниран"
-
-
 msgid "Rotate"
 msgstr "Завърти"
 
@@ -1298,6 +1286,10 @@ msgstr "Подповърхностно Разпръскване"
 
 msgid "Triangle"
 msgstr "Триъгълник"
+
+
+msgid "Shadow"
+msgstr "Сянка"
 
 
 msgctxt "Operator"
@@ -1559,10 +1551,6 @@ msgid "Flat"
 msgstr "Дъска"
 
 
-msgid "Join"
-msgstr "Събери"
-
-
 msgctxt "Operator"
 msgid "Merge"
 msgstr "Слей"
@@ -1668,6 +1656,10 @@ msgstr "Направи с Единствен Потребител"
 msgctxt "Operator"
 msgid "Bake"
 msgstr "Изпечи"
+
+
+msgid "Combined"
+msgstr "Комбиниран"
 
 
 msgctxt "Operator"
@@ -1835,6 +1827,10 @@ msgstr "Име на Menu ID"
 
 msgid "ID name of the menu this was called from"
 msgstr "ID име на менюто, от което се повиква"
+
+
+msgid "Join"
+msgstr "Събери"
 
 
 msgctxt "Operator"
@@ -2346,6 +2342,10 @@ msgstr "Кадър:"
 
 msgid "Fields"
 msgstr "Полета"
+
+
+msgid "Soften"
+msgstr "Мекост"
 
 
 msgctxt "WorkSpace"

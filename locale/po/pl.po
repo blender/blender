@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'68abaa12d581')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'61dd8a1435fb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-25 08:31+0000\n"
+"POT-Creation-Date: 2025-09-01 09:40+0000\n"
 "PO-Revision-Date: 2025-07-23 15:14+0000\n"
 "Last-Translator: Kamil <uhkamil@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -1801,6 +1801,14 @@ msgid "Object to use as cage instead of calculating the cage from the active obj
 msgstr "Obiekt używany jako klatka zamiast obliczania klatki z bieżącego obiektu z rozszerzaniem klatki"
 
 
+msgid "Object"
+msgstr "Obiekt"
+
+
+msgid "Tangent"
+msgstr "Styczna"
+
+
 msgid "File Path"
 msgstr "Ścieżka pliku"
 
@@ -1885,16 +1893,8 @@ msgid "Choose normal space for baking"
 msgstr "Wybierz przestrzeń normalnych dla wyliczania"
 
 
-msgid "Object"
-msgstr "Obiekt"
-
-
 msgid "Bake the normals in object space"
 msgstr "Wypala wektory normalne w przestrzeni obiektu"
-
-
-msgid "Tangent"
-msgstr "Styczna"
 
 
 msgid "Bake the normals in tangent space"
@@ -12377,68 +12377,8 @@ msgid "Denoise"
 msgstr "Odszumiaj"
 
 
-msgid "High"
-msgstr "Wysoka"
-
-
-msgid "Balanced"
-msgstr "Balans"
-
-
-msgid "Soften"
-msgstr "Zmiękczanie"
-
-
-msgid "Laplace"
-msgstr "Laplace"
-
-
-msgid "Sobel"
-msgstr "Sobel"
-
-
-msgid "Prewitt"
-msgstr "Prewitt"
-
-
-msgid "Kirsch"
-msgstr "Kirsch"
-
-
-msgid "Shadow"
-msgstr "Cień"
-
-
 msgid "Glare"
 msgstr "Blask"
-
-
-msgid "Glare Type"
-msgstr "Rodzaj blasku"
-
-
-msgid "Bloom"
-msgstr "Poświata"
-
-
-msgid "Ghosts"
-msgstr "Widma"
-
-
-msgid "Streaks"
-msgstr "Smugi"
-
-
-msgid "Fog Glow"
-msgstr "Blask mgły"
-
-
-msgid "Simple Star"
-msgstr "Prosta gwiazda"
-
-
-msgid "Low"
-msgstr "Niska"
 
 
 msgid "Hue/Saturation/Value"
@@ -12451,10 +12391,6 @@ msgstr "Informacje o obrazie"
 
 msgid "Invert Color"
 msgstr "Odwróć kolor"
-
-
-msgid "Combined"
-msgstr "Połączone"
 
 
 msgid "Save as Render"
@@ -12475,10 +12411,6 @@ msgstr "Obróć"
 
 msgid "Time Curve"
 msgstr "Krzywa czasu"
-
-
-msgid "Tonemap Type"
-msgstr "Typ mapy tonów"
 
 
 msgid "Translate"
@@ -13240,6 +13172,10 @@ msgstr "Nazwa bloku danych"
 
 msgid "Object Constraints"
 msgstr "Ograniczniki obiektu"
+
+
+msgid "Shadow"
+msgstr "Cień"
 
 
 msgid "Blocker Collection"
@@ -14101,6 +14037,11 @@ msgid "Constraint"
 msgstr "Ogranicznik"
 
 
+msgctxt "Operator"
+msgid "Add Bézier"
+msgstr "Dodaj Béziera"
+
+
 msgid "The alignment of the new object"
 msgstr "Wyrównanie nowego obiektu"
 
@@ -14211,11 +14152,6 @@ msgstr "Dodaj okrąg Béziera"
 
 msgid "Construct a Bézier Circle"
 msgstr "Tworzy okrąg Béziera"
-
-
-msgctxt "Operator"
-msgid "Add Bézier"
-msgstr "Dodaj Béziera"
 
 
 msgid "Construct a Bézier Curve"
@@ -15280,6 +15216,10 @@ msgid "Bake"
 msgstr "Wypal"
 
 
+msgid "Combined"
+msgstr "Połączone"
+
+
 msgctxt "Operator"
 msgid "Add Camera"
 msgstr "Dodaj kamerę"
@@ -15816,6 +15756,14 @@ msgstr "Oś położenia"
 
 msgid "Rotation Axis"
 msgstr "Osie obrotu"
+
+
+msgid "Low"
+msgstr "Niska"
+
+
+msgid "High"
+msgstr "Wysoka"
 
 
 msgctxt "Operator"
@@ -18198,6 +18146,10 @@ msgid "Denoising Prefilter"
 msgstr "Filtr wstępny odszumiania"
 
 
+msgid "Balanced"
+msgstr "Balans"
+
+
 msgid "Denoise on GPU"
 msgstr "Odszumiaj przy użyciu procesora graficznego"
 
@@ -19531,6 +19483,10 @@ msgid "Angle of the transition"
 msgstr "Kąt przejścia"
 
 
+msgid "Tonemap Type"
+msgstr "Typ mapy tonów"
+
+
 msgid "Move along X axis"
 msgstr "Przesuwaj wzdłuż osi X"
 
@@ -19709,10 +19665,6 @@ msgid "Sort by Name"
 msgstr "Sortuj według nazwy"
 
 
-msgid "Radius of the brush"
-msgstr "Promień pędzla"
-
-
 msgctxt "File browser"
 msgid "URL"
 msgstr "URL"
@@ -19805,6 +19757,10 @@ msgstr "Cieniowanie rzutni"
 
 msgid "View layer"
 msgstr "Warstwa widoku"
+
+
+msgid "Bloom"
+msgstr "Poświata"
 
 
 msgid "Wireframe Detail"
@@ -24121,6 +24077,10 @@ msgid "Lightness:"
 msgstr "Jasność:"
 
 
+msgid "Value:"
+msgstr "Wartość:"
+
+
 msgid "Alpha:"
 msgstr "Przezroczystość:"
 
@@ -24129,17 +24089,8 @@ msgid "Hex"
 msgstr "Hex"
 
 
-msgid "Red, Green, Blue"
-msgstr "Czerwony, zielony, niebieski"
-
-
 msgid "Lightness"
 msgstr "Jasność"
-
-
-msgctxt "Color"
-msgid "Value:"
-msgstr "Wartość:"
 
 
 msgctxt "Color"
@@ -25029,10 +24980,6 @@ msgstr "Cykliczne zależności dla obrazu \"%s\" z obiektu \"%s\""
 
 msgid "Uninitialized image \"%s\" from object \"%s\""
 msgstr "Niezainicjowany obraz \"%s\" z obiektu \"%s\""
-
-
-msgid "No active image found in material \"%s\" (%d) for object \"%s\""
-msgstr "Nie odnaleziono aktywnego obrazu w materiale \"%s\" (%d) dla obiektu \"%s\""
 
 
 msgid "Uninitialized image %s"
@@ -26177,10 +26124,6 @@ msgstr "Wartość Sterownika:"
 
 msgid "Expression:"
 msgstr "Wyrażenie:"
-
-
-msgid "Value:"
-msgstr "Wartość:"
 
 
 msgid "Update Dependencies"
@@ -27845,16 +27788,40 @@ msgid "Despill Channel:"
 msgstr "Kanał Despill:"
 
 
-msgid "Prefilter:"
-msgstr "Filtr wstępny:"
-
-
-msgid "Quality:"
-msgstr "Jakość:"
-
-
 msgid "Result"
 msgstr "Wynik"
+
+
+msgid "Soften"
+msgstr "Zmiękczanie"
+
+
+msgid "Laplace"
+msgstr "Laplace"
+
+
+msgid "Sobel"
+msgstr "Sobel"
+
+
+msgid "Prewitt"
+msgstr "Prewitt"
+
+
+msgid "Kirsch"
+msgstr "Kirsch"
+
+
+msgid "Simple Star"
+msgstr "Prosta gwiazda"
+
+
+msgid "Fog Glow"
+msgstr "Blask mgły"
+
+
+msgid "Streaks"
+msgstr "Smugi"
 
 
 msgid "Val"

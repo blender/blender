@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'68abaa12d581')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'61dd8a1435fb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-25 08:31+0000\n"
+"POT-Creation-Date: 2025-09-01 09:40+0000\n"
 "PO-Revision-Date: 2025-08-12 06:21+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -1391,6 +1391,14 @@ msgid "The name of the default color attribute used as a fallback for rendering"
 msgstr "Namnet på standard färgattribut som används som reserv för rendering"
 
 
+msgid "Object"
+msgstr "Objekt"
+
+
+msgid "Tangent"
+msgstr "Tangent"
+
+
 msgid "File Path"
 msgstr "Sökväg"
 
@@ -1449,14 +1457,6 @@ msgstr "-Y"
 
 msgid "-Z"
 msgstr "-Z"
-
-
-msgid "Object"
-msgstr "Objekt"
-
-
-msgid "Tangent"
-msgstr "Tangent"
 
 
 msgid "None"
@@ -10561,25 +10561,6 @@ msgid "Alpha Over"
 msgstr "Alfa över"
 
 
-msgctxt "NodeTree"
-msgid "Quadratic"
-msgstr "Kvadratisk"
-
-
-msgctxt "NodeTree"
-msgid "Cubic"
-msgstr "Kubisk"
-
-
-msgctxt "NodeTree"
-msgid "Catrom"
-msgstr "Catrom"
-
-
-msgid "Not"
-msgstr "Inte"
-
-
 msgid "Brightness/Contrast"
 msgstr "Ljusstyrka/kontrast"
 
@@ -10666,10 +10647,6 @@ msgid "To"
 msgstr "Till"
 
 
-msgid "Anisotropic"
-msgstr "Anisotropisk"
-
-
 msgid "Use Object layer"
 msgstr "Använd objektlager"
 
@@ -10718,30 +10695,6 @@ msgid "Z-Scale"
 msgstr "Z-skala"
 
 
-msgid "High"
-msgstr "Hög"
-
-
-msgid "High quality"
-msgstr "Hög kvalitet"
-
-
-msgid "Balanced"
-msgstr "Balanserad"
-
-
-msgid "Kirsch"
-msgstr "Kirsch"
-
-
-msgid "Shadow"
-msgstr "Skugga"
-
-
-msgid "Low"
-msgstr "Låg"
-
-
 msgid "Apply a color transformation in the HSV color model"
 msgstr "Applicera en färgomvandling i HSV-färgmodellen"
 
@@ -10754,32 +10707,8 @@ msgid "Kuwahara"
 msgstr "Kuwahara"
 
 
-msgid "Classic"
-msgstr "Klassisk"
-
-
 msgid "Lens Distortion"
 msgstr "Linsförvrängning"
-
-
-msgid "Combined"
-msgstr "Kombinerad"
-
-
-msgid "Combined RGB"
-msgstr "Kombinerad RGB"
-
-
-msgid "Red Channel"
-msgstr "Röd kanal"
-
-
-msgid "Blue Channel"
-msgstr "Blå kanal"
-
-
-msgid "Luminance"
-msgstr "Luminans"
 
 
 msgid "Write image file to disk"
@@ -10840,6 +10769,10 @@ msgstr "Och"
 
 msgid "Or"
 msgstr "Eller"
+
+
+msgid "Not"
+msgstr "Inte"
 
 
 msgid "Opposite of the input"
@@ -12896,6 +12829,10 @@ msgid "Active Object constraint"
 msgstr "Aktiv objektbegränsning"
 
 
+msgid "Shadow"
+msgstr "Skugga"
+
+
 msgid "Object cast shadows in the 3D viewport"
 msgstr "Objekt kastar skuggor i 3D-vyn"
 
@@ -14849,8 +14786,8 @@ msgstr "Ta bort begränsning"
 
 
 msgctxt "Operator"
-msgid "Add Bezier"
-msgstr "Lägg till Bezier"
+msgid "Add Bézier"
+msgstr "Lägg till Bézier"
 
 
 msgid "Align the new object to the view"
@@ -14882,6 +14819,10 @@ msgstr "Rita kurvor"
 
 msgid "Duplicate"
 msgstr "Duplicera"
+
+
+msgid "Toggle Free/Align"
+msgstr "Växla fri/upprätad"
 
 
 msgid "(De)select all control points"
@@ -14962,10 +14903,6 @@ msgid "Bake Time"
 msgstr "Bakningstid"
 
 
-msgid "Toggle Free/Align"
-msgstr "Växla fri/upprätad"
-
-
 msgid "Delete Point"
 msgstr "Ta bort punkt"
 
@@ -14981,11 +14918,6 @@ msgstr "Växla markering"
 msgctxt "Operator"
 msgid "Add Bézier Circle"
 msgstr "Lägg till Bézier-cirkel"
-
-
-msgctxt "Operator"
-msgid "Add Bézier"
-msgstr "Lägg till Bézier"
 
 
 msgctxt "Operator"
@@ -17977,6 +17909,10 @@ msgid "-Z"
 msgstr "-Z"
 
 
+msgid "Combined"
+msgstr "Kombinerad"
+
+
 msgctxt "Operator"
 msgid "Add Camera"
 msgstr "Lägg till kamera"
@@ -18611,6 +18547,14 @@ msgid "Toggle Pose Mode"
 msgstr "Växla poseringsläge"
 
 
+msgid "Low"
+msgstr "Låg"
+
+
+msgid "High"
+msgstr "Hög"
+
+
 msgid "View Percentage"
 msgstr "Visa procent"
 
@@ -19089,6 +19033,10 @@ msgstr "Lägg till ny palett"
 
 msgid "Saturation, Value, Hue"
 msgstr "Mättnad, värde, färgton"
+
+
+msgid "Luminance"
+msgstr "Luminans"
 
 
 msgctxt "Operator"
@@ -23401,6 +23349,14 @@ msgstr "Dynamisk BVH"
 
 msgid "AVX2"
 msgstr "AVX2"
+
+
+msgid "High quality"
+msgstr "Hög kvalitet"
+
+
+msgid "Balanced"
+msgstr "Balanserad"
 
 
 msgid "Device to use for rendering"
@@ -29392,11 +29348,6 @@ msgid "Arrange"
 msgstr "Arrangera"
 
 
-msgctxt "Operator"
-msgid "Bezier"
-msgstr "Bezier"
-
-
 msgid "Toggle Overlays"
 msgstr "Växla överlägg"
 
@@ -30644,21 +30595,16 @@ msgid "Lightness:"
 msgstr "Ljushet:"
 
 
+msgid "Value:"
+msgstr "Värde:"
+
+
 msgid "Alpha:"
 msgstr "Alfa:"
 
 
-msgid "Red, Green, Blue"
-msgstr "Röd, grön, blå"
-
-
 msgid "Lightness"
 msgstr "Ljushet"
-
-
-msgctxt "Color"
-msgid "Value:"
-msgstr "Värde:"
 
 
 msgctxt "Color"
@@ -31037,10 +30983,6 @@ msgstr "Det går inte att fastställa ABC-sekvensens längd"
 
 msgid "Scene Options"
 msgstr "Scenalternativ"
-
-
-msgid "Unable to export SVG"
-msgstr "Det går inte att exportera SVG"
 
 
 msgid "Unable to export PDF"
@@ -31750,10 +31692,6 @@ msgstr "Interpolation:"
 
 msgid "Driver Value:"
 msgstr "Drivarvärde:"
-
-
-msgid "Value:"
-msgstr "Värde:"
 
 
 msgid "Update Dependencies"
@@ -33016,10 +32954,6 @@ msgid "Upper Left"
 msgstr "Övre vänster"
 
 
-msgid "Quality:"
-msgstr "Kvalitet:"
-
-
 msgid "A"
 msgstr "A"
 
@@ -33038,6 +32972,10 @@ msgstr "Bild 1"
 
 msgid "Image 2"
 msgstr "Bild 2"
+
+
+msgid "Kirsch"
+msgstr "Kirsch"
 
 
 msgid "Balance"
@@ -33402,6 +33340,10 @@ msgstr "Melanin"
 
 msgid "Color of the material"
 msgstr "Materialets färg"
+
+
+msgid "Anisotropic"
+msgstr "Anisotropisk"
 
 
 msgid "View Distance"
