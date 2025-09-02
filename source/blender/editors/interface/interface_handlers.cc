@@ -5136,7 +5136,8 @@ static int ui_do_but_VIEW_ITEM(bContext *C,
           if (UI_view_item_can_rename(*view_item_but->view_item)) {
             data->cancel = true;
             UI_view_item_begin_rename(*view_item_but->view_item);
-            ED_region_tag_redraw(CTX_wm_region(C));
+            ED_region_tag_redraw(data->region);
+            ED_region_tag_refresh_ui(data->region);
             return WM_UI_HANDLER_BREAK;
           }
           return WM_UI_HANDLER_CONTINUE;
