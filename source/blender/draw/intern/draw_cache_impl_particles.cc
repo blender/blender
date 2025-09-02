@@ -43,6 +43,8 @@
 
 #include "DEG_depsgraph_query.hh"
 
+#include "IMB_colormanagement.hh"
+
 #include "draw_attributes.hh"
 #include "draw_cache_impl.hh" /* own include */
 #include "draw_hair_private.hh"
@@ -354,9 +356,13 @@ static void ensure_seg_pt_count(PTCacheEdit *edit,
 static void particle_pack_mcol(MCol *mcol, ushort r_scol[3])
 {
   /* Convert to linear ushort and swizzle */
-  r_scol[0] = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol->b]);
-  r_scol[1] = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol->g]);
-  r_scol[2] = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol->r]);
+  float3 col = {BLI_color_from_srgb_table[mcol->r],
+                BLI_color_from_srgb_table[mcol->g],
+                BLI_color_from_srgb_table[mcol->b]};
+  IMB_colormanagement_rec709_to_scene_linear(col, col);
+  r_scol[0] = unit_float_to_ushort_clamp(col[2]);
+  r_scol[1] = unit_float_to_ushort_clamp(col[1]);
+  r_scol[2] = unit_float_to_ushort_clamp(col[0]);
 }
 
 /* Used by parent particles and simple children. */
@@ -1309,12 +1315,13 @@ static int particle_mface_index(const ChildParticle &particle, int /*face_count_
 
 static float4 particle_mcol_convert(const MCol &mcol)
 {
-  float4 col;
   /* Convert to linear ushort and swizzle */
-  col[0] = BLI_color_from_srgb_table[mcol.b];
-  col[1] = BLI_color_from_srgb_table[mcol.g];
-  col[2] = BLI_color_from_srgb_table[mcol.r];
-  col[3] = mcol.a / 255.0f;
+  float4 col = {BLI_color_from_srgb_table[mcol.r],
+                BLI_color_from_srgb_table[mcol.g],
+                BLI_color_from_srgb_table[mcol.b],
+                mcol.a / 255.0f};
+  IMB_colormanagement_rec709_to_scene_linear(col, col);
+  std::swap(col[0], col[2]);
   return col;
 }
 

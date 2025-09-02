@@ -11,8 +11,10 @@
 #include <ostream>
 
 #include "BLI_color_types.hh"
+#include "BLI_colorspace.hh"
 #include "BLI_compiler_compat.h"
 #include "BLI_math_color.h"
+#include "BLI_math_vector.h"
 
 namespace blender {
 
@@ -47,8 +49,12 @@ BLI_INLINE ColorTheme4b to_byte(const ColorTheme4b &theme4b)
 template<eAlpha Alpha>
 BLI_INLINE ColorSceneLinearByteEncoded4b<Alpha> encode(const ColorSceneLinear4f<Alpha> &color)
 {
+  float4 value = static_cast<const float *>(color);
+  if (!colorspace::scene_linear_is_rec709) {
+    copy_v3_v3(value, colorspace::scene_linear_to_rec709 * value.xyz());
+  }
   ColorSceneLinearByteEncoded4b<Alpha> encoded;
-  linearrgb_to_srgb_uchar4(encoded, color);
+  linearrgb_to_srgb_uchar4(encoded, value);
   return encoded;
 }
 
@@ -72,6 +78,9 @@ BLI_INLINE ColorSceneLinear4f<Alpha> decode(const ColorSceneLinearByteEncoded4b<
 {
   ColorSceneLinear4f<Alpha> decoded;
   srgb_to_linearrgb_uchar4(decoded, color);
+  if (!blender::colorspace::scene_linear_is_rec709) {
+    copy_v3_v3(decoded, blender::colorspace::rec709_to_scene_linear * blender::float3(decoded));
+  }
   return decoded;
 }
 
