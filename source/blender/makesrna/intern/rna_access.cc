@@ -4112,7 +4112,9 @@ void RNA_property_string_set(PointerRNA *ptr, PropertyRNA *prop, const char *val
   IDProperty *idprop = prop_rna_or_id.idprop;
   StringPropertyRNA *sprop = reinterpret_cast<StringPropertyRNA *>(prop_rna_or_id.rnaprop);
 
-  std::string value_set = value;
+  /* Value can be nullptr, see #145562. */
+  /* FIXME: unclear if this function is supposed to accept nullptr values? */
+  std::string value_set = value ? value : "";
   if (sprop->set_transform) {
     /* Get raw, untransformed (aka 'storage') value. */
     const std::string curr_value = property_string_get(ptr, prop_rna_or_id);
