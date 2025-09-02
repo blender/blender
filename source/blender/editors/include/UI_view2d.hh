@@ -244,10 +244,6 @@ void UI_view2d_draw_scale_y__values(const ARegion *region,
                                     const View2D *v2d,
                                     const rcti *rect,
                                     int colorid);
-void UI_view2d_draw_scale_y__block(const ARegion *region,
-                                   const View2D *v2d,
-                                   const rcti *rect,
-                                   int colorid);
 void UI_view2d_draw_scale_x__discrete_frames_or_seconds(const ARegion *region,
                                                         const View2D *v2d,
                                                         const rcti *rect,
