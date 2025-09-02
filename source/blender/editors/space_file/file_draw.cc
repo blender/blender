@@ -1291,7 +1291,7 @@ void file_draw_list(const bContext *C, ARegion *region)
   }
 
   offset = ED_fileselect_layout_offset(
-      layout, int(region->v2d.cur.xmin), int(-region->v2d.cur.ymax));
+      layout, int(region->v2d.cur.xmin), int(-region->v2d.cur.ymax) + layout->offset_top);
   offset = std::max(offset, 0);
 
   numfiles_layout = ED_fileselect_layout_numfiles(layout, region);
