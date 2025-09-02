@@ -759,8 +759,7 @@ int ED_fileselect_layout_numfiles(FileLayout *layout, ARegion *region)
   }
 
   const int y_item = layout->tile_h + (2 * layout->tile_border_y);
-  const int y_view = int(BLI_rctf_size_y(&region->v2d.cur)) - layout->offset_top -
-                     layout->list_padding_top;
+  const int y_view = int(BLI_rctf_size_y(&region->v2d.cur)) - layout->offset_top;
   const int y_over = y_item - (y_view % y_item);
   numfiles = int(float(y_view + y_over) / float(y_item));
   return numfiles * layout->flow_columns;
