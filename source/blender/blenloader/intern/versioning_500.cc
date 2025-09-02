@@ -73,17 +73,17 @@
 // #include "CLG_log.h"
 // static CLG_LogRef LOG = {"blend.doversion"};
 
+static void idprops_process(IDProperty *idprops, IDProperty **system_idprops)
+{
+  BLI_assert(*system_idprops == nullptr);
+  if (idprops) {
+    /* Other ID pointers have not yet been relinked, do not try to access them for refcounting. */
+    *system_idprops = IDP_CopyProperty_ex(idprops, LIB_ID_CREATE_NO_USER_REFCOUNT);
+  }
+}
+
 void version_system_idprops_generate(Main *bmain)
 {
-  auto idprops_process = [](IDProperty *idprops, IDProperty **system_idprops) -> void {
-    BLI_assert(*system_idprops == nullptr);
-    if (idprops) {
-      /* Other ID pointers have not yet been relinked, do not try to access them for refcounting.
-       */
-      *system_idprops = IDP_CopyProperty_ex(idprops, LIB_ID_CREATE_NO_USER_REFCOUNT);
-    }
-  };
-
   ID *id_iter;
   FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
     idprops_process(id_iter->properties, &id_iter->system_properties);
@@ -96,11 +96,10 @@ void version_system_idprops_generate(Main *bmain)
     }
 
     if (scene->ed != nullptr) {
-      blender::seq::for_each_callback(&scene->ed->seqbase,
-                                      [&idprops_process](Strip *strip) -> bool {
-                                        idprops_process(strip->prop, &strip->system_properties);
-                                        return true;
-                                      });
+      blender::seq::for_each_callback(&scene->ed->seqbase, [](Strip *strip) -> bool {
+        idprops_process(strip->prop, &strip->system_properties);
+        return true;
+      });
     }
   }
 
@@ -121,6 +120,16 @@ void version_system_idprops_generate(Main *bmain)
       idprops_process(bone->prop, &bone->system_properties);
     }
   }
+}
+/* Separate callback for nodes, because they had the split implemented later. */
+void version_system_idprops_nodes_generate(Main *bmain)
+{
+  FOREACH_NODETREE_BEGIN (bmain, node_tree, id_owner) {
+    LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+      idprops_process(node->prop, &node->system_properties);
+    }
+  }
+  FOREACH_NODETREE_END;
 }
 
 static CustomDataLayer *find_old_seam_layer(CustomData &custom_data, const blender::StringRef name)

@@ -8,6 +8,7 @@ from bpy.types import (
     Menu,
     Panel,
 )
+import rna_prop_ui
 from bpy.app.translations import (
     pgettext_iface as iface_,
     contexts as i18n_contexts,
@@ -790,6 +791,15 @@ class NODE_PT_active_node_properties(Panel):
         layout.template_node_inputs(node)
 
 
+class NODE_PT_active_node_custom_properties(rna_prop_ui.PropertyPanel, Panel):
+    bl_space_type = 'NODE_EDITOR'
+    bl_region_type = 'UI'
+    bl_category = "Node"
+
+    _context_path = "active_node"
+    _property_type = bpy.types.Node
+
+
 class NODE_PT_texture_mapping(Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
@@ -1227,6 +1237,7 @@ classes = (
     NODE_PT_annotation,
     NODE_PT_overlay,
     NODE_PT_active_node_properties,
+    NODE_PT_active_node_custom_properties,
     NODE_PT_gizmo_display,
     NODE_AST_compositor,
 
