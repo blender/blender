@@ -103,6 +103,9 @@ using PropCollectionAssignIntFunc = bool (*)(PointerRNA *ptr,
                                              const PointerRNA *assign_ptr);
 
 /* Extended versions with #PropertyRNA argument. */
+/* NOTE: All extended get/set callbacks will always get a 'real' PropertyRNA `prop` pointer, never
+ * an 'IDProperty as PropertyRNA' one (i.e. when called, the given `prop` is the RNA result of a
+ * call to `rna_property_rna_or_id_get` or one of its wrappers). */
 
 using PropBooleanGetFuncEx = bool (*)(PointerRNA *ptr, PropertyRNA *prop);
 using PropBooleanSetFuncEx = void (*)(PointerRNA *ptr, PropertyRNA *prop, bool value);
@@ -120,11 +123,34 @@ using PropFloatArrayGetFuncEx = void (*)(PointerRNA *ptr, PropertyRNA *prop, flo
 using PropFloatArraySetFuncEx = void (*)(PointerRNA *ptr, PropertyRNA *prop, const float *values);
 using PropFloatRangeFuncEx = void (*)(
     PointerRNA *ptr, PropertyRNA *prop, float *min, float *max, float *softmin, float *softmax);
-using PropStringGetFuncEx = void (*)(PointerRNA *ptr, PropertyRNA *prop, char *value);
+using PropStringGetFuncEx = std::string (*)(PointerRNA *ptr, PropertyRNA *prop);
 using PropStringLengthFuncEx = int (*)(PointerRNA *ptr, PropertyRNA *prop);
-using PropStringSetFuncEx = void (*)(PointerRNA *ptr, PropertyRNA *prop, const char *value);
+using PropStringSetFuncEx = void (*)(PointerRNA *ptr, PropertyRNA *prop, const std::string &value);
 using PropEnumGetFuncEx = int (*)(PointerRNA *ptr, PropertyRNA *prop);
 using PropEnumSetFuncEx = void (*)(PointerRNA *ptr, PropertyRNA *prop, int value);
+
+/* Transform step (applied after getting, or before setting the value). Currently only used by
+ * `bpy`, more details in the documentation of #BPyPropStore. */
+/* NOTE: All transform get/set callbacks will always get a 'real' PropertyRNA `prop` pointer, never
+ * an 'IDProperty as PropertyRNA' one (i.e. when called, the given `prop` is the RNA result of a
+ * call to `rna_property_rna_or_id_get` or one of its wrappers). */
+
+using PropBooleanGetTransformFunc = BooleanPropertyGetTransformFunc;
+using PropBooleanSetTransformFunc = BooleanPropertySetTransformFunc;
+using PropBooleanArrayGetTransformFunc = BooleanArrayPropertyGetTransformFunc;
+using PropBooleanArraySetTransformFunc = BooleanArrayPropertySetTransformFunc;
+using PropIntGetTransformFunc = IntPropertyGetTransformFunc;
+using PropIntSetTransformFunc = IntPropertySetTransformFunc;
+using PropIntArrayGetTransformFunc = IntArrayPropertyGetTransformFunc;
+using PropIntArraySetTransformFunc = IntArrayPropertySetTransformFunc;
+using PropFloatGetTransformFunc = FloatPropertyGetTransformFunc;
+using PropFloatSetTransformFunc = FloatPropertySetTransformFunc;
+using PropFloatArrayGetTransformFunc = FloatArrayPropertyGetTransformFunc;
+using PropFloatArraySetTransformFunc = FloatArrayPropertySetTransformFunc;
+using PropStringGetTransformFunc = StringPropertyGetTransformFunc;
+using PropStringSetTransformFunc = StringPropertySetTransformFunc;
+using PropEnumGetTransformFunc = EnumPropertyGetTransformFunc;
+using PropEnumSetTransformFunc = EnumPropertySetTransformFunc;
 
 /* Handling override operations, and also comparison. */
 
@@ -463,6 +489,11 @@ struct BoolPropertyRNA {
   PropBooleanArrayGetFuncEx getarray_ex;
   PropBooleanArraySetFuncEx setarray_ex;
 
+  PropBooleanGetTransformFunc get_transform;
+  PropBooleanSetTransformFunc set_transform;
+  PropBooleanArrayGetTransformFunc getarray_transform;
+  PropBooleanArraySetTransformFunc setarray_transform;
+
   PropBooleanGetFuncEx get_default;
   PropBooleanArrayGetFuncEx get_default_array;
   bool defaultvalue;
@@ -483,6 +514,11 @@ struct IntPropertyRNA {
   PropIntArrayGetFuncEx getarray_ex;
   PropIntArraySetFuncEx setarray_ex;
   PropIntRangeFuncEx range_ex;
+
+  PropIntGetTransformFunc get_transform;
+  PropIntSetTransformFunc set_transform;
+  PropIntArrayGetTransformFunc getarray_transform;
+  PropIntArraySetTransformFunc setarray_transform;
 
   PropertyScaleType ui_scale_type;
   int softmin, softmax;
@@ -510,6 +546,11 @@ struct FloatPropertyRNA {
   PropFloatArraySetFuncEx setarray_ex;
   PropFloatRangeFuncEx range_ex;
 
+  PropFloatGetTransformFunc get_transform;
+  PropFloatSetTransformFunc set_transform;
+  PropFloatArrayGetTransformFunc getarray_transform;
+  PropFloatArraySetTransformFunc setarray_transform;
+
   PropertyScaleType ui_scale_type;
   float softmin, softmax;
   float hardmin, hardmax;
@@ -531,8 +572,13 @@ struct StringPropertyRNA {
   PropStringSetFunc set;
 
   PropStringGetFuncEx get_ex;
+  /* This callback only returns the 'storage' length (i.e. length of string returned by `get_ex`),
+   * _not_ the final length (potentially modified by the `get_transform` callback). */
   PropStringLengthFuncEx length_ex;
   PropStringSetFuncEx set_ex;
+
+  PropStringGetTransformFunc get_transform;
+  PropStringSetTransformFunc set_transform;
 
   /**
    * Optional callback to list candidates for a string.
@@ -564,6 +610,9 @@ struct EnumPropertyRNA {
 
   PropEnumGetFuncEx get_ex;
   PropEnumSetFuncEx set_ex;
+
+  PropEnumGetTransformFunc get_transform;
+  PropEnumSetTransformFunc set_transform;
 
   PropEnumGetFuncEx get_default;
 

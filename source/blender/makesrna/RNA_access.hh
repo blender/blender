@@ -541,7 +541,8 @@ std::optional<std::string> RNA_property_string_path_filter(const bContext *C,
                                                            PropertyRNA *prop);
 
 /**
- * \return the length without `\0` terminator.
+ * \return The final length without `\0` terminator (might differ from the length of the stored
+ * string, when a `get_transform` callback is defined).
  */
 int RNA_property_string_length(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_string_get_default(PropertyRNA *prop, char *value, int value_maxncpy);

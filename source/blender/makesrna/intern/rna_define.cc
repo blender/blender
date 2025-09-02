@@ -3312,7 +3312,9 @@ void RNA_def_property_boolean_funcs(PropertyRNA *prop, const char *get, const ch
 
 void RNA_def_property_boolean_funcs_runtime(PropertyRNA *prop,
                                             BooleanPropertyGetFunc getfunc,
-                                            BooleanPropertySetFunc setfunc)
+                                            BooleanPropertySetFunc setfunc,
+                                            BooleanPropertyGetTransformFunc get_transform_fn,
+                                            BooleanPropertySetTransformFunc set_transform_fn)
 {
   BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
 
@@ -3331,11 +3333,21 @@ void RNA_def_property_boolean_funcs_runtime(PropertyRNA *prop,
       RNA_def_property_clear_flag(prop, PROP_EDITABLE);
     }
   }
+
+  if (get_transform_fn) {
+    bprop->get_transform = get_transform_fn;
+  }
+  if (set_transform_fn) {
+    bprop->set_transform = set_transform_fn;
+  }
 }
 
-void RNA_def_property_boolean_array_funcs_runtime(PropertyRNA *prop,
-                                                  BooleanArrayPropertyGetFunc getfunc,
-                                                  BooleanArrayPropertySetFunc setfunc)
+void RNA_def_property_boolean_array_funcs_runtime(
+    PropertyRNA *prop,
+    BooleanArrayPropertyGetFunc getfunc,
+    BooleanArrayPropertySetFunc setfunc,
+    BooleanArrayPropertyGetTransformFunc get_transform_fn,
+    BooleanArrayPropertySetTransformFunc set_transform_fn)
 {
   BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
 
@@ -3353,6 +3365,13 @@ void RNA_def_property_boolean_array_funcs_runtime(PropertyRNA *prop,
     if (!setfunc) {
       RNA_def_property_clear_flag(prop, PROP_EDITABLE);
     }
+  }
+
+  if (get_transform_fn) {
+    bprop->getarray_transform = get_transform_fn;
+  }
+  if (set_transform_fn) {
+    bprop->setarray_transform = set_transform_fn;
   }
 }
 
@@ -3403,7 +3422,9 @@ void RNA_def_property_int_funcs(PropertyRNA *prop,
 void RNA_def_property_int_funcs_runtime(PropertyRNA *prop,
                                         IntPropertyGetFunc getfunc,
                                         IntPropertySetFunc setfunc,
-                                        IntPropertyRangeFunc rangefunc)
+                                        IntPropertyRangeFunc rangefunc,
+                                        IntPropertyGetTransformFunc get_transform_fn,
+                                        IntPropertySetTransformFunc set_transform_fn)
 {
   IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
 
@@ -3425,12 +3446,21 @@ void RNA_def_property_int_funcs_runtime(PropertyRNA *prop,
       RNA_def_property_clear_flag(prop, PROP_EDITABLE);
     }
   }
+
+  if (get_transform_fn) {
+    iprop->get_transform = get_transform_fn;
+  }
+  if (set_transform_fn) {
+    iprop->set_transform = set_transform_fn;
+  }
 }
 
 void RNA_def_property_int_array_funcs_runtime(PropertyRNA *prop,
                                               IntArrayPropertyGetFunc getfunc,
                                               IntArrayPropertySetFunc setfunc,
-                                              IntPropertyRangeFunc rangefunc)
+                                              IntPropertyRangeFunc rangefunc,
+                                              IntArrayPropertyGetTransformFunc get_transform_fn,
+                                              IntArrayPropertySetTransformFunc set_transform_fn)
 {
   IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
 
@@ -3451,6 +3481,13 @@ void RNA_def_property_int_array_funcs_runtime(PropertyRNA *prop,
     if (!setfunc) {
       RNA_def_property_clear_flag(prop, PROP_EDITABLE);
     }
+  }
+
+  if (get_transform_fn) {
+    iprop->getarray_transform = get_transform_fn;
+  }
+  if (set_transform_fn) {
+    iprop->setarray_transform = set_transform_fn;
   }
 }
 
@@ -3501,7 +3538,9 @@ void RNA_def_property_float_funcs(PropertyRNA *prop,
 void RNA_def_property_float_funcs_runtime(PropertyRNA *prop,
                                           FloatPropertyGetFunc getfunc,
                                           FloatPropertySetFunc setfunc,
-                                          FloatPropertyRangeFunc rangefunc)
+                                          FloatPropertyRangeFunc rangefunc,
+                                          FloatPropertyGetTransformFunc get_transform_fn,
+                                          FloatPropertySetTransformFunc set_transform_fn)
 {
   FloatPropertyRNA *fprop = (FloatPropertyRNA *)prop;
 
@@ -3523,12 +3562,22 @@ void RNA_def_property_float_funcs_runtime(PropertyRNA *prop,
       RNA_def_property_clear_flag(prop, PROP_EDITABLE);
     }
   }
+
+  if (get_transform_fn) {
+    fprop->get_transform = get_transform_fn;
+  }
+  if (set_transform_fn) {
+    fprop->set_transform = set_transform_fn;
+  }
 }
 
-void RNA_def_property_float_array_funcs_runtime(PropertyRNA *prop,
-                                                FloatArrayPropertyGetFunc getfunc,
-                                                FloatArrayPropertySetFunc setfunc,
-                                                FloatPropertyRangeFunc rangefunc)
+void RNA_def_property_float_array_funcs_runtime(
+    PropertyRNA *prop,
+    FloatArrayPropertyGetFunc getfunc,
+    FloatArrayPropertySetFunc setfunc,
+    FloatPropertyRangeFunc rangefunc,
+    FloatArrayPropertyGetTransformFunc get_transform_fn,
+    FloatArrayPropertySetTransformFunc set_transform_fn)
 {
   FloatPropertyRNA *fprop = (FloatPropertyRNA *)prop;
 
@@ -3549,6 +3598,13 @@ void RNA_def_property_float_array_funcs_runtime(PropertyRNA *prop,
     if (!setfunc) {
       RNA_def_property_clear_flag(prop, PROP_EDITABLE);
     }
+  }
+
+  if (get_transform_fn) {
+    fprop->getarray_transform = get_transform_fn;
+  }
+  if (set_transform_fn) {
+    fprop->setarray_transform = set_transform_fn;
   }
 }
 
@@ -3589,7 +3645,9 @@ void RNA_def_property_enum_funcs(PropertyRNA *prop,
 void RNA_def_property_enum_funcs_runtime(PropertyRNA *prop,
                                          EnumPropertyGetFunc getfunc,
                                          EnumPropertySetFunc setfunc,
-                                         EnumPropertyItemFunc itemfunc)
+                                         EnumPropertyItemFunc itemfunc,
+                                         EnumPropertyGetTransformFunc get_transform_fn,
+                                         EnumPropertySetTransformFunc set_transform_fn)
 {
   EnumPropertyRNA *eprop = (EnumPropertyRNA *)prop;
 
@@ -3610,6 +3668,13 @@ void RNA_def_property_enum_funcs_runtime(PropertyRNA *prop,
     if (!setfunc) {
       RNA_def_property_clear_flag(prop, PROP_EDITABLE);
     }
+  }
+
+  if (get_transform_fn) {
+    eprop->get_transform = get_transform_fn;
+  }
+  if (set_transform_fn) {
+    eprop->set_transform = set_transform_fn;
   }
 }
 
@@ -3699,7 +3764,9 @@ void RNA_def_property_string_filepath_filter_func(PropertyRNA *prop, const char 
 void RNA_def_property_string_funcs_runtime(PropertyRNA *prop,
                                            StringPropertyGetFunc getfunc,
                                            StringPropertyLengthFunc lengthfunc,
-                                           StringPropertySetFunc setfunc)
+                                           StringPropertySetFunc setfunc,
+                                           StringPropertyGetTransformFunc get_transform_fn,
+                                           StringPropertySetTransformFunc set_transform_fn)
 {
   StringPropertyRNA *sprop = (StringPropertyRNA *)prop;
 
@@ -3720,6 +3787,13 @@ void RNA_def_property_string_funcs_runtime(PropertyRNA *prop,
     if (!setfunc) {
       RNA_def_property_clear_flag(prop, PROP_EDITABLE);
     }
+  }
+
+  if (get_transform_fn) {
+    sprop->get_transform = get_transform_fn;
+  }
+  if (set_transform_fn) {
+    sprop->set_transform = set_transform_fn;
   }
 }
 
