@@ -33,12 +33,6 @@ void raytrace_clip_ray_to_near_plane(inout Ray ray)
   }
 }
 
-#ifdef METAL_AMD_RAYTRACE_WORKAROUND
-#  define METAL_ATTR __attribute__((noinline))
-#else
-#  define METAL_ATTR
-#endif
-
 struct ScreenTraceHitData {
   /* Screen space hit position [0..1]. Last component is the ray depth, not the occluder depth. */
   float3 ss_hit_P;
@@ -64,14 +58,14 @@ struct ScreenTraceHitData {
  *
  * \return True if there is a valid intersection.
  */
-METAL_ATTR ScreenTraceHitData raytrace_screen(RayTraceData rt_data,
-                                              HiZData hiz_data,
-                                              sampler2D hiz_tx,
-                                              float stride_rand,
-                                              float roughness,
-                                              const bool discard_backface,
-                                              const bool allow_self_intersection,
-                                              Ray ray)
+ScreenTraceHitData raytrace_screen(RayTraceData rt_data,
+                                   HiZData hiz_data,
+                                   sampler2D hiz_tx,
+                                   float stride_rand,
+                                   float roughness,
+                                   const bool discard_backface,
+                                   const bool allow_self_intersection,
+                                   Ray ray)
 {
   /* Clip to near plane for perspective view where there is a singularity at the camera origin. */
   if (drw_view().winmat[3][3] == 0.0f) {
@@ -106,9 +100,6 @@ METAL_ATTR ScreenTraceHitData raytrace_screen(RayTraceData rt_data,
   /* Cross at least one pixel. */
   float t = 1.001f, time = 1.001f;
   bool hit = false;
-#ifdef METAL_AMD_RAYTRACE_WORKAROUND
-  bool hit_failsafe = true;
-#endif
   constexpr int max_steps = 255;
   for (int iter = 1; !hit && (time < ssray.max_time) && (iter < max_steps); iter++) {
     float stride = 1.0f + float(iter) * rt_data.quality;
@@ -128,23 +119,11 @@ METAL_ATTR ScreenTraceHitData raytrace_screen(RayTraceData rt_data,
     hit = (delta < 0.0f);
     /* ... and above it with the added thickness. */
     hit = hit && (delta > ss_p.z - ss_p.w || abs(delta) < abs(ssray.direction.z * stride * 2.0f));
-
-#ifdef METAL_AMD_RAYTRACE_WORKAROUND
-    /* For workaround, perform discard back-face and background check only within
-     * the iteration where the first successful ray intersection is registered.
-     * We flag failures to discard ray hits later. */
-    bool hit_valid = !(discard_backface && prev_delta < 0.0f) && (depth_sample != 1.0f);
-    if (hit && !hit_valid) {
-      hit_failsafe = false;
-    }
-#endif
   }
-#ifndef METAL_AMD_RAYTRACE_WORKAROUND
   /* Discard back-face hits. */
   hit = hit && !(discard_backface && prev_delta < 0.0f);
   /* Reject hit if background. */
   hit = hit && (depth_sample != 1.0f);
-#endif
   /* Refine hit using intersection between the sampled height-field and the ray.
    * This simplifies nicely to this single line. */
   time = mix(prev_time, time, saturate(prev_delta / (prev_delta - delta)));
@@ -158,16 +137,8 @@ METAL_ATTR ScreenTraceHitData raytrace_screen(RayTraceData rt_data,
   result.valid = hit &&
                  (textureLod(hiz_tx, result.ss_hit_P.xy * hiz_data.uv_scale, 0.0f).r != 1.0f);
 
-#ifdef METAL_AMD_RAYTRACE_WORKAROUND
-  /* Check failed ray flag to discard bad hits. */
-  if (!hit_failsafe) {
-    result.valid = false;
-  }
-#endif
   return result;
 }
-
-#undef METAL_ATTR
 
 #ifdef PLANAR_PROBES
 
