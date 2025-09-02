@@ -1125,7 +1125,7 @@ static void extrude_points_from_selected_vertices(const ViewContext *vc,
                                      new_last_nu,
                                      new_last_nu->bezt ? (const void *)new_last_nu->bezt :
                                                          (const void *)new_last_nu->bp);
-      new_last_nu->flagu = ~CU_NURB_CYCLIC;
+      new_last_nu->flagu &= ~CU_NURB_CYCLIC;
     }
   }
 
