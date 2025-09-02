@@ -132,6 +132,8 @@ static void update_directly_linked_links_and_sockets(const bNodeTree &ntree)
       link->fromnode->runtime->has_available_linked_outputs = true;
       link->tonode->runtime->has_available_linked_inputs = true;
     }
+    BLI_assert(link->fromsock->runtime->owner_node == link->fromnode);
+    BLI_assert(link->tosock->runtime->owner_node == link->tonode);
   }
   for (bNodeSocket *socket : tree_runtime.input_sockets) {
     if (socket->flag & SOCK_MULTI_INPUT) {

@@ -2172,6 +2172,42 @@ static void remove_in_and_out_node_interface(bNodeTree &node_tree)
   remove_in_and_out_node_panel_recursive(node_tree.tree_interface.root_panel);
 }
 
+static void repair_node_link_node_pointers(FileData &fd, bNodeTree &node_tree)
+{
+  using namespace blender;
+  Map<bNodeSocket *, bNode *> socket_to_node;
+  LISTBASE_FOREACH (bNode *, node, &node_tree.nodes) {
+    LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
+      socket_to_node.add(socket, node);
+    }
+    LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
+      socket_to_node.add(socket, node);
+    }
+  }
+  LISTBASE_FOREACH (bNodeLink *, link, &node_tree.links) {
+    bool fixed = false;
+    bNode *to_node = socket_to_node.lookup(link->tosock);
+    if (to_node != link->tonode) {
+      link->tonode = to_node;
+      fixed = true;
+    }
+    bNode *from_node = socket_to_node.lookup(link->fromsock);
+    if (from_node != link->fromnode) {
+      link->fromnode = from_node;
+      fixed = true;
+    }
+    if (fixed) {
+      BLO_reportf_wrap(fd.reports,
+                       RPT_WARNING,
+                       "Repairing invalid state in node link from %s:%s to %s:%s",
+                       link->fromnode->name,
+                       link->fromsock->identifier,
+                       link->tonode->name,
+                       link->tosock->identifier);
+    }
+  }
+}
+
 static void sequencer_remove_listbase_pointers(Scene &scene)
 {
   Editing *ed = scene.ed;
@@ -2186,7 +2222,7 @@ static void sequencer_remove_listbase_pointers(Scene &scene)
   blender::seq::meta_stack_set(&scene, last_meta_stack->parent_strip);
 }
 
-void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
+void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   using namespace blender;
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 1)) {
@@ -2947,6 +2983,12 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 68)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       sequencer_remove_listbase_pointers(*scene);
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 69)) {
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      repair_node_link_node_pointers(*fd, *ntree);
     }
   }
 
