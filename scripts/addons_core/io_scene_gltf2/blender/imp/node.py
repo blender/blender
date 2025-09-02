@@ -130,7 +130,7 @@ class BlenderNode():
                 if gltf.import_settings['import_scene_as_collection'] is True:
                     gltf.blender_collections[c].objects.link(obj)
                 else:
-                    if len(gltf.data.scenes) == 1:
+                    if len(gltf.data.scenes or []) == 1:
                         # Assign to the scene collection of the scene
                         gltf.blender_scenes[c].collection.objects.link(obj)
                     else:
