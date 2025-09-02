@@ -8,6 +8,7 @@
 
 #include "kernel/geom/attribute.h"
 #include "kernel/geom/motion_curve.h"
+#include "kernel/geom/object.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -89,30 +90,37 @@ ccl_device dual<T> curve_attribute(KernelGlobals kg,
 
 ccl_device float curve_thickness(KernelGlobals kg, const ccl_private ShaderData *sd)
 {
-  float r = 0.0f;
-
-  if (sd->type & PRIMITIVE_CURVE) {
-    const KernelCurve curve = kernel_data_fetch(curves, sd->prim);
-    const int k0 = curve.first_key + PRIMITIVE_UNPACK_SEGMENT(sd->type);
-    const int k1 = k0 + 1;
-
-    float4 P_curve[2];
-
-#  ifdef __OBJECT_MOTION__
-    if (sd->type & PRIMITIVE_MOTION) {
-      motion_curve_keys_linear(kg, sd->object, sd->time, k0, k1, P_curve);
-    }
-    else
-#  endif
-    {
-      P_curve[0] = kernel_data_fetch(curve_keys, k0);
-      P_curve[1] = kernel_data_fetch(curve_keys, k1);
-    }
-
-    r = (P_curve[1].w - P_curve[0].w) * sd->u + P_curve[0].w;
+  if (!(sd->type & PRIMITIVE_CURVE)) {
+    return 0.0f;
   }
 
-  return r * 2.0f;
+  const KernelCurve curve = kernel_data_fetch(curves, sd->prim);
+  const int k0 = curve.first_key + PRIMITIVE_UNPACK_SEGMENT(sd->type);
+  const int k1 = k0 + 1;
+
+  float4 P_curve[2];
+
+#  ifdef __OBJECT_MOTION__
+  if (sd->type & PRIMITIVE_MOTION) {
+    motion_curve_keys_linear(kg, sd->object, sd->time, k0, k1, P_curve);
+  }
+  else
+#  endif
+  {
+    P_curve[0] = kernel_data_fetch(curve_keys, k0);
+    P_curve[1] = kernel_data_fetch(curve_keys, k1);
+  }
+
+  float r = 2.0f * ((P_curve[1].w - P_curve[0].w) * sd->u + P_curve[0].w);
+
+  if (sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED) {
+    return r;
+  }
+
+  const float normalized_r = r * (1.0f / M_SQRT3_F);
+  float3 dir = make_float3(normalized_r, normalized_r, normalized_r);
+  object_dir_transform(kg, sd, &dir);
+  return len(dir);
 }
 
 /* Curve random */
