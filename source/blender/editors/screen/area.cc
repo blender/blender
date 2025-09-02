@@ -3491,6 +3491,8 @@ void ED_region_panels_layout(const bContext *C, ARegion *region)
 void ED_region_panels_draw(const bContext *C, ARegion *region)
 {
   View2D *v2d = &region->v2d;
+  const float aspect = BLI_rctf_size_y(&region->v2d.cur) /
+                       (BLI_rcti_size_y(&region->v2d.mask) + 1);
 
   if (region->alignment != RGN_ALIGN_FLOAT) {
     ED_region_clear(C,
@@ -3508,8 +3510,13 @@ void ED_region_panels_draw(const bContext *C, ARegion *region)
   /* View2D matrix might have changed due to dynamic sized regions. */
   UI_blocklist_update_window_matrix(C, &region->runtime->uiblocks);
 
-  /* draw panels */
-  UI_panels_draw(C, region);
+  /* draw panels if they are large enough. */
+  const bool has_catgories = (region->panels_category_active.first != nullptr);
+  const short min_draw_size = has_catgories ? short(UI_PANEL_CATEGORY_MIN_WIDTH) + 20 :
+                                              std::min(region->runtime->type->prefsizex, 20);
+  if (region->winx >= (min_draw_size * UI_SCALE_FAC / aspect)) {
+    UI_panels_draw(C, region);
+  }
 
   /* restore view matrix */
   UI_view2d_view_restore(C);
@@ -3541,8 +3548,6 @@ void ED_region_panels_draw(const bContext *C, ARegion *region)
   ED_region_draw_overflow_indication(CTX_wm_area(C), region, use_mask ? &mask : nullptr);
 
   /* Hide scrollbars below a threshold. */
-  const float aspect = BLI_rctf_size_y(&region->v2d.cur) /
-                       (BLI_rcti_size_y(&region->v2d.mask) + 1);
   int min_width = UI_panel_category_is_visible(region) ? 60.0f * UI_SCALE_FAC / aspect :
                                                          40.0f * UI_SCALE_FAC / aspect;
   if (BLI_rcti_size_x(&region->winrct) <= min_width) {
