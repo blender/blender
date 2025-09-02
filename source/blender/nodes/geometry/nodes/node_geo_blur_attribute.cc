@@ -39,10 +39,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   if (node != nullptr) {
     const eCustomDataType data_type = eCustomDataType(node->custom1);
     b.add_input(data_type, "Value").supports_field().hide_value().is_default_link_socket();
-    b.add_output(data_type, "Value")
-        .field_source_reference_all()
-        .dependent_field()
-        .align_with_previous();
+    b.add_output(data_type, "Value").field_source_reference_all().align_with_previous();
   }
   b.add_input<decl::Int>("Iterations")
       .default_value(1)
