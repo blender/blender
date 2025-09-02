@@ -745,11 +745,42 @@ static bool ui_rna_is_userdef(PointerRNA *ptr, PropertyRNA *prop)
   if (base == nullptr) {
     base = ptr->type;
   }
-  return ELEM(base,
-              &RNA_AddonPreferences,
-              &RNA_KeyConfigPreferences,
-              &RNA_KeyMapItem,
-              &RNA_UserAssetLibrary);
+
+  bool is_userdef = false;
+  if (ELEM(base,
+           &RNA_AddonPreferences,
+           &RNA_KeyConfigPreferences,
+           &RNA_KeyMapItem,
+           &RNA_UserAssetLibrary))
+  {
+    is_userdef = true;
+  }
+  else if (ptr->owner_id) {
+    switch (GS(ptr->owner_id->name)) {
+      case ID_WM: {
+        for (const AncestorPointerRNA &ancestor : ptr->ancestors) {
+          if (RNA_struct_is_a(ancestor.type, &RNA_KeyConfigPreferences)) {
+            is_userdef = true;
+            break;
+          }
+        }
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+  }
+  else if (ptr->owner_id == nullptr) {
+    for (const AncestorPointerRNA &ancestor : ptr->ancestors) {
+      if (RNA_struct_is_a(ancestor.type, &RNA_AddonPreferences)) {
+        is_userdef = true;
+        break;
+      }
+    }
+  }
+
+  return is_userdef;
 }
 
 bool UI_but_is_userdef(const uiBut *but)
