@@ -252,9 +252,15 @@ void GHOST_XrContext::dispatchErrorMessage(const GHOST_XrException *exception) c
   error.user_message = exception->msg_.data();
   error.customdata = s_error_handler_customdata;
 
+  char error_string_buf[XR_MAX_RESULT_STRING_SIZE];
+  xrResultToString(getInstance(), static_cast<XrResult>(exception->result_), error_string_buf);
+
   if (isDebugMode()) {
-    fprintf(
-        stderr, "Error: \t%s\n\tOpenXR error value: %i\n", error.user_message, exception->result_);
+    fprintf(stderr,
+            "Error: \t%s\n\tOpenXR error: %s (error value: %i)\n",
+            error.user_message,
+            error_string_buf,
+            exception->result_);
   }
 
   /* Potentially destroys GHOST_XrContext */
