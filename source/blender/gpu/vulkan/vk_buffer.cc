@@ -51,11 +51,9 @@ bool VKBuffer::create(size_t size_in_bytes,
   if (device.extensions_get().maintenance4 &&
       alloc_size_in_bytes_ > device.physical_device_maintenance4_properties_get().maxBufferSize)
   {
-    CLOG_WARN(&LOG,
-              "Couldn't allocate buffer, requested allocation (%ul) exceeds the maxBufferSize of "
-              "the device (%ul).",
-              uint64_t(alloc_size_in_bytes_),
-              uint64_t(device.physical_device_maintenance4_properties_get().maxBufferSize));
+    CLOG_WARN(
+        &LOG,
+        "Couldn't allocate buffer, requested allocation exceeds the maxBufferSize of the device.");
     allocation_failed_ = true;
     size_in_bytes_ = 0;
     alloc_size_in_bytes_ = 0;
