@@ -774,6 +774,13 @@ if(WITH_OPENGL_BACKEND AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
   target_link_libraries(bf_gpu PUBLIC rt)
 endif()
 
+# If `execinfo.h` exists on a *BSD system then also link in `libexecinfo`.
+# Needed for `backtrace` / `backtrace_symbols` (GNU extensions)
+# brought in by `blenlib/intern/system.cc`.
+if(HAVE_EXECINFO_H AND CMAKE_SYSTEM_NAME MATCHES "FreeBSD|NetBSD|OpenBSD|DragonFly")
+  target_link_libraries(bf_gpu PUBLIC execinfo)
+endif()
+
 if(WITH_OPENSUBDIV)
   target_link_libraries(bf_gpu PUBLIC bf_osd_shaders)
 endif()
