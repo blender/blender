@@ -2517,7 +2517,13 @@ void BKE_fmodifiers_blend_read_data(BlendDataReader *reader, ListBase *fmodifier
       fcm->data = BLO_read_struct_by_name_array(reader, fmi->struct_name, 1, fcm->data);
     }
     else {
-      BLI_assert_unreachable();
+      /* This can happen when the blend file has data for a modifier that doesn't exist in this
+       * Blender version (when the blend file is newer). */
+      BLO_reportf_wrap(BLO_read_data_reports(reader),
+                       RPT_WARNING,
+                       RPT_("F-Curve modifier lost on '%s[%d]' because it has an unknown type"),
+                       curve->rna_path,
+                       curve->array_index);
       fcm->data = nullptr;
     }
     fcm->curve = curve;
