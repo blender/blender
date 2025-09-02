@@ -1241,9 +1241,9 @@ static void rna_def_uv_sculpt(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "UV Sculpting", "");
   RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 
-  prop = RNA_def_property(srna, "size", PROP_INT, PROP_PIXEL);
-  RNA_def_property_ui_range(prop, 1, 500, 1, 1);
-  RNA_def_property_range(prop, 1, 5000);
+  prop = RNA_def_property(srna, "size", PROP_INT, PROP_PIXEL_DIAMETER);
+  RNA_def_property_ui_range(prop, 1, MAX_BRUSH_PIXEL_DIAMETER, 1, 1);
+  RNA_def_property_range(prop, 1, MAX_BRUSH_PIXEL_DIAMETER * 10);
   RNA_def_property_ui_text(prop, "Size", "");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
 
