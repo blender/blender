@@ -466,7 +466,7 @@ static void drw_shgroup_bone_custom_solid(const Armatures::DrawContext *ctx,
   Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf_unchecked(custom);
   if (mesh != nullptr) {
     drw_shgroup_bone_custom_solid_mesh(ctx,
-                                       *mesh,
+                                       DRW_mesh_get_for_drawing(*mesh),
                                        bone_mat,
                                        bone_color,
                                        hint_color,
@@ -498,7 +498,8 @@ static void drw_shgroup_bone_custom_wire(const Armatures::DrawContext *ctx,
   /* See comments in #drw_shgroup_bone_custom_solid. */
   Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf_unchecked(custom);
   if (mesh != nullptr) {
-    drw_shgroup_bone_custom_mesh_wire(ctx, *mesh, bone_mat, color, wire_width, select_id, *custom);
+    drw_shgroup_bone_custom_mesh_wire(
+        ctx, DRW_mesh_get_for_drawing(*mesh), bone_mat, color, wire_width, select_id, *custom);
     return;
   }
 
