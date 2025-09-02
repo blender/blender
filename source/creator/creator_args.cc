@@ -818,7 +818,9 @@ static void print_help(bArgs *ba, bool all)
   BLI_args_print_arg_doc(ba, "--register-allusers");
   BLI_args_print_arg_doc(ba, "--unregister");
   BLI_args_print_arg_doc(ba, "--unregister-allusers");
-  BLI_args_print_arg_doc(ba, "--qos");
+  if (defs.win32 || all) {
+    BLI_args_print_arg_doc(ba, "--qos");
+  }
 
   BLI_args_print_arg_doc(ba, "--version");
 
