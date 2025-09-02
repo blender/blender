@@ -212,6 +212,11 @@ void VKDevice::init_physical_device_properties()
         &vk_physical_device_descriptor_buffer_properties_;
   }
 
+  if (supports_extension(VK_KHR_MAINTENANCE_4_EXTENSION_NAME)) {
+    vk_physical_device_maintenance4_properties_.pNext = vk_physical_device_properties.pNext;
+    vk_physical_device_properties.pNext = &vk_physical_device_maintenance4_properties_;
+  }
+
   vkGetPhysicalDeviceProperties2(vk_physical_device_, &vk_physical_device_properties);
   vk_physical_device_properties_ = vk_physical_device_properties.properties;
 }

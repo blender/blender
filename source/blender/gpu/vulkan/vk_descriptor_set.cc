@@ -362,7 +362,12 @@ void VKDescriptorSetPoolUpdator::bind_buffer(VkDescriptorType vk_descriptor_type
                                              VkDeviceSize size_in_bytes,
                                              VKDescriptorSet::Location location)
 {
-  vk_descriptor_buffer_infos_.append({vk_buffer, buffer_offset, size_in_bytes});
+  if (vk_buffer == VK_NULL_HANDLE) {
+    vk_descriptor_buffer_infos_.append({VK_NULL_HANDLE, 0, VK_WHOLE_SIZE});
+  }
+  else {
+    vk_descriptor_buffer_infos_.append({vk_buffer, buffer_offset, size_in_bytes});
+  }
   vk_write_descriptor_sets_.append({VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                                     nullptr,
                                     vk_descriptor_set,

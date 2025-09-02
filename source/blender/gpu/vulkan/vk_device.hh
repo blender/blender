@@ -181,6 +181,8 @@ class VKDevice : public NonCopyable {
   VkPhysicalDeviceDriverProperties vk_physical_device_driver_properties_ = {};
   VkPhysicalDeviceIDProperties vk_physical_device_id_properties_ = {};
   VkPhysicalDeviceMemoryProperties vk_physical_device_memory_properties_ = {};
+  VkPhysicalDeviceMaintenance4Properties vk_physical_device_maintenance4_properties_ = {
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_PROPERTIES};
   VkPhysicalDeviceDescriptorBufferPropertiesEXT vk_physical_device_descriptor_buffer_properties_ =
       {};
   /** Features support. */
@@ -266,6 +268,12 @@ class VKDevice : public NonCopyable {
   const VkPhysicalDeviceProperties &physical_device_properties_get() const
   {
     return vk_physical_device_properties_;
+  }
+
+  inline const VkPhysicalDeviceMaintenance4Properties &
+  physical_device_maintenance4_properties_get() const
+  {
+    return vk_physical_device_maintenance4_properties_;
   }
 
   const VkPhysicalDeviceIDProperties &physical_device_id_properties_get() const
