@@ -6,7 +6,6 @@
  * \ingroup imbuf
  */
 
-#include "BLI_string_ref.hh"
 #include "IMB_colormanagement.hh"
 #include "IMB_colormanagement_intern.hh"
 
@@ -30,6 +29,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_colorspace.hh"
 #include "BLI_fileops.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_color.h"
@@ -39,6 +39,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_rect.h"
+#include "BLI_string_ref.hh"
 #include "BLI_string_utf8.h"
 #include "BLI_task.hh"
 #include "BLI_threads.h"
@@ -90,21 +91,6 @@ static char global_role_default_byte[MAX_COLORSPACE_NAME];
 static char global_role_default_float[MAX_COLORSPACE_NAME];
 static char global_role_default_sequencer[MAX_COLORSPACE_NAME];
 static char global_role_aces_interchange[MAX_COLORSPACE_NAME];
-
-/* Luma coefficients and XYZ to RGB to be initialized by OCIO. */
-
-float3 imbuf_luma_coefficients(0.0f);
-float3x3 imbuf_scene_linear_to_xyz = float3x3::zero();
-float3x3 imbuf_xyz_to_scene_linear = float3x3::zero();
-float3x3 imbuf_scene_linear_to_rec709 = float3x3::zero();
-float3x3 imbuf_rec709_to_scene_linear = float3x3::zero();
-float3x3 imbuf_scene_linear_to_rec2020 = float3x3::zero();
-float3x3 imbuf_rec2020_to_scene_linear = float3x3::zero();
-float3x3 imbuf_scene_linear_to_aces = float3x3::zero();
-float3x3 imbuf_aces_to_scene_linear = float3x3::zero();
-float3x3 imbuf_scene_linear_to_acescg = float3x3::zero();
-float3x3 imbuf_acescg_to_scene_linear = float3x3::zero();
-bool imbuf_scene_linear_is_rec709 = false;
 
 /* lock used by pre-cached processors getters, so processor wouldn't
  * be created several times
@@ -521,26 +507,35 @@ static bool colormanage_role_color_space_name_get(ocio::Config &config,
 static void colormanage_update_matrices()
 {
   /* Load luminance coefficients. */
-  imbuf_luma_coefficients = g_config->get_default_luma_coefs();
+  blender::colorspace::luma_coefficients = g_config->get_default_luma_coefs();
 
   /* Load standard color spaces. */
-  imbuf_xyz_to_scene_linear = g_config->get_xyz_to_scene_linear_matrix();
-  imbuf_scene_linear_to_xyz = math::invert(imbuf_xyz_to_scene_linear);
+  blender::colorspace::xyz_to_scene_linear = g_config->get_xyz_to_scene_linear_matrix();
+  blender::colorspace::scene_linear_to_xyz = math::invert(
+      blender::colorspace::xyz_to_scene_linear);
 
-  imbuf_scene_linear_to_rec709 = ocio::XYZ_TO_REC709 * imbuf_scene_linear_to_xyz;
-  imbuf_rec709_to_scene_linear = math::invert(imbuf_scene_linear_to_rec709);
+  blender::colorspace::scene_linear_to_rec709 = ocio::XYZ_TO_REC709 *
+                                                blender::colorspace::scene_linear_to_xyz;
+  blender::colorspace::rec709_to_scene_linear = math::invert(
+      blender::colorspace::scene_linear_to_rec709);
 
-  imbuf_scene_linear_to_rec2020 = ocio::XYZ_TO_REC2020 * imbuf_scene_linear_to_xyz;
-  imbuf_rec2020_to_scene_linear = math::invert(imbuf_scene_linear_to_rec2020);
+  blender::colorspace::scene_linear_to_rec2020 = ocio::XYZ_TO_REC2020 *
+                                                 blender::colorspace::scene_linear_to_xyz;
+  blender::colorspace::rec2020_to_scene_linear = math::invert(
+      blender::colorspace::scene_linear_to_rec2020);
 
-  imbuf_aces_to_scene_linear = imbuf_xyz_to_scene_linear * ocio::ACES_TO_XYZ;
-  imbuf_scene_linear_to_aces = math::invert(imbuf_aces_to_scene_linear);
+  blender::colorspace::aces_to_scene_linear = blender::colorspace::xyz_to_scene_linear *
+                                              ocio::ACES_TO_XYZ;
+  blender::colorspace::scene_linear_to_aces = math::invert(
+      blender::colorspace::aces_to_scene_linear);
 
-  imbuf_acescg_to_scene_linear = imbuf_xyz_to_scene_linear * ocio::ACESCG_TO_XYZ;
-  imbuf_scene_linear_to_acescg = math::invert(imbuf_acescg_to_scene_linear);
+  blender::colorspace::acescg_to_scene_linear = blender::colorspace::xyz_to_scene_linear *
+                                                ocio::ACESCG_TO_XYZ;
+  blender::colorspace::scene_linear_to_acescg = math::invert(
+      blender::colorspace::acescg_to_scene_linear);
 
-  imbuf_scene_linear_is_rec709 = math::is_equal(
-      imbuf_scene_linear_to_rec709, float3x3::identity(), 0.0001f);
+  blender::colorspace::scene_linear_is_rec709 = math::is_equal(
+      blender::colorspace::scene_linear_to_rec709, float3x3::identity(), 0.0001f);
 }
 
 static bool colormanage_load_config(ocio::Config &config)
@@ -1372,12 +1367,12 @@ const ColorSpace *IMB_colormanagement_space_from_interop_id(StringRefNull intero
 
 blender::float3x3 IMB_colormanagement_get_xyz_to_scene_linear()
 {
-  return blender::float3x3(imbuf_xyz_to_scene_linear);
+  return blender::float3x3(blender::colorspace::xyz_to_scene_linear);
 }
 
 blender::float3x3 IMB_colormanagement_get_scene_linear_to_xyz()
 {
-  return blender::float3x3(imbuf_scene_linear_to_xyz);
+  return blender::float3x3(blender::colorspace::scene_linear_to_xyz);
 }
 
 /** \} */

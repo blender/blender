@@ -21,19 +21,6 @@ using ColorSpace = blender::ocio::ColorSpace;
 
 struct ImBuf;
 
-extern blender::float3 imbuf_luma_coefficients;
-extern blender::float3x3 imbuf_scene_linear_to_xyz;
-extern blender::float3x3 imbuf_xyz_to_scene_linear;
-extern blender::float3x3 imbuf_scene_linear_to_aces;
-extern blender::float3x3 imbuf_aces_to_scene_linear;
-extern blender::float3x3 imbuf_scene_linear_to_acescg;
-extern blender::float3x3 imbuf_acescg_to_scene_linear;
-extern blender::float3x3 imbuf_scene_linear_to_rec709;
-extern blender::float3x3 imbuf_rec709_to_scene_linear;
-extern blender::float3x3 imbuf_scene_linear_to_rec2020;
-extern blender::float3x3 imbuf_rec2020_to_scene_linear;
-extern bool imbuf_scene_linear_is_rec709;
-
 #define MAX_COLORSPACE_NAME 64
 
 /* ** Initialization / De-initialization ** */
