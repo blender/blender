@@ -430,7 +430,7 @@ ccl_device_noinline void svm_node_normal_map(KernelGlobals kg,
     }
   }
 
-  /* Use simple linear linear interpolation if we can't do it in tangent space. */
+  /* Use simple linear interpolation if we can't do it in tangent space. */
   if (linear_interpolate_strength && strength != 1.0f) {
     strength = max(strength, 0.0f);
     N = safe_normalize(sd->N + (N - sd->N) * strength);
