@@ -130,7 +130,8 @@ static void register_zone_types()
   blender::bke::register_node_zone_type(simulation_zone_type);
   blender::bke::register_node_zone_type(repeat_zone_type);
   blender::bke::register_node_zone_type(foreach_geometry_element_zone_type);
-  blender::bke::register_node_zone_type(closure_zone_type);
+  /* Ignore closures zones because they were only an experimental feature in Blender 4.5. */
+  // blender::bke::register_node_zone_type(closure_zone_type);
 }
 
 void register_nodes()
