@@ -38,7 +38,7 @@ void main()
   local_direction[local_index] = sun.direction;
 
   /* Parallel sum. */
-  const uint group_size = gl_WorkGroupSize.x * gl_WorkGroupSize.y;
+  const uint group_size = gl_WorkGroupSize.x;
   uint stride = group_size / 2;
   for (int i = 0; i < 10; i++) {
     barrier();
