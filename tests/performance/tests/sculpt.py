@@ -169,7 +169,6 @@ def _run_brush_test(args: dict):
 
     min_measurements = 5
     max_measurements = 100
-
     measurements = []
     while True:
         prepare_sculpt_scene(context, args['mode'])
@@ -178,16 +177,18 @@ def _run_brush_test(args: dict):
         with context.temp_override(**context_override):
             if args.get('spatial_reorder', False):
                 bpy.ops.mesh.reorder_vertices_spatial()
+                bpy.ops.ed.undo_push()
             start = time.time()
             bpy.ops.sculpt.brush_stroke(stroke=generate_stroke(context_override), override_location=True)
+            bpy.ops.ed.undo_push()
             measurements.append(time.time() - start)
-
+            memory_info = bpy.app.undo_memory_info()
         if len(measurements) >= min_measurements and (time.time() - total_time_start) > timeout:
             break
         if len(measurements) >= max_measurements:
             break
 
-    return sum(measurements) / len(measurements)
+    return {'time': sum(measurements) / len(measurements), 'memory': memory_info}
 
 
 def _run_bvh_test(args: dict):
@@ -277,7 +278,7 @@ class SculptBrushTest(api.Test):
 
         result, _ = env.run_in_blender(_run_brush_test, args, [self.filepath])
 
-        return {'time': result}
+        return result
 
 
 class SculptBrushAfterSpatialReorderingTest(api.Test):
@@ -301,7 +302,7 @@ class SculptBrushAfterSpatialReorderingTest(api.Test):
 
         result, _ = env.run_in_blender(_run_brush_test, args, [self.filepath])
 
-        return {'time': result}
+        return result
 
 
 class SculptRebuildBVHTest(api.Test):
