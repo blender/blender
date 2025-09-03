@@ -2427,7 +2427,7 @@ static wmOperatorStatus vse_circle_select_exec(bContext *C, wmOperator *op)
   float x_radius = radius / UI_view2d_scale_get_x(v2d);
   float y_radius = radius / UI_view2d_scale_get_y(v2d);
   bool changed = false;
-  LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
+  LISTBASE_FOREACH (Strip *, strip, ed->current_strips()) {
     rctf rq;
     strip_rectf(scene, strip, &rq);
     /* Use custom function to check the distance because in timeline the circle is a ellipse. */
