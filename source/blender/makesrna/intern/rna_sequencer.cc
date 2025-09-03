@@ -2468,32 +2468,6 @@ static void rna_def_editor(BlenderRNA *brna)
 
   rna_def_strips_top_level(brna);
 
-  /* DEPRECATED */
-  prop = RNA_def_property(srna, "sequences", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_srna(prop, "StripsTopLevel");
-  RNA_def_property_collection_sdna(prop, nullptr, "seqbase", nullptr);
-  RNA_def_property_struct_type(prop, "Strip");
-  RNA_def_property_ui_text(
-      prop, "Strips", "(Deprecated: Replaced by '.strips') Top-level strips only");
-
-  /* DEPRECATED */
-  prop = RNA_def_property(srna, "sequences_all", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, nullptr, "seqbase", nullptr);
-  RNA_def_property_struct_type(prop, "Strip");
-  RNA_def_property_ui_text(prop,
-                           "All Strips",
-                           "(Deprecated: Replaced by '.strips_all') All strips, recursively "
-                           "including those inside metastrips");
-  RNA_def_property_collection_funcs(prop,
-                                    "rna_SequenceEditor_strips_all_begin",
-                                    "rna_SequenceEditor_strips_all_next",
-                                    "rna_SequenceEditor_strips_all_end",
-                                    "rna_SequenceEditor_strips_all_get",
-                                    nullptr,
-                                    nullptr,
-                                    "rna_SequenceEditor_strips_all_lookup_string",
-                                    nullptr);
-
   prop = RNA_def_property(srna, "strips", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_srna(prop, "StripsTopLevel");
   RNA_def_property_collection_sdna(prop, nullptr, "seqbase", nullptr);
@@ -2904,14 +2878,6 @@ static void rna_def_meta(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "Strip");
 
   rna_def_strips_meta(brna);
-
-  /* DEPRECATED */
-  prop = RNA_def_property(srna, "sequences", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_srna(prop, "StripsMeta");
-  RNA_def_property_collection_sdna(prop, nullptr, "seqbase", nullptr);
-  RNA_def_property_struct_type(prop, "Strip");
-  RNA_def_property_ui_text(
-      prop, "Strips", "(Deprecated: Replaced by '.strips') Strips nested in meta strip");
 
   prop = RNA_def_property(srna, "strips", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_srna(prop, "StripsMeta");

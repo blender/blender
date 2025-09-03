@@ -23,10 +23,10 @@ class SequencerLoadMetastaskTest(unittest.TestCase):
         self.assertEqual(len(meta_stack), 1)
         self.assertEqual(meta_stack[0].name, "MetaStrip")
 
-        self.assertEqual(len(meta_stack[0].sequences), 1)
-        self.assertEqual(meta_stack[0].sequences[0].name, "Color")
+        self.assertEqual(len(meta_stack[0].strips), 1)
+        self.assertEqual(meta_stack[0].strips[0].name, "Color")
 
-        # accesses ed->current_strips() through screen_ctx_selected_editable_sequences
+        # accesses ed->current_strips() through screen_ctx_selected_editable_strips
         bpy.context.copy()
 
 
