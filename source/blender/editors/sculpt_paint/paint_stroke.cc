@@ -341,6 +341,9 @@ bool paint_brush_update(bContext *C,
     copy_v2_v2(paint_runtime.tex_mouse, mouse);
     copy_v2_v2(paint_runtime.mask_tex_mouse, mouse);
     stroke->cached_size_pressure = pressure;
+    BKE_curvemapping_init(brush.curve_size);
+    BKE_curvemapping_init(brush.curve_strength);
+    BKE_curvemapping_init(brush.curve_jitter);
 
     stroke->brush_init = true;
   }
@@ -348,7 +351,7 @@ bool paint_brush_update(bContext *C,
   if (paint_supports_dynamic_size(brush, mode)) {
     copy_v2_v2(paint_runtime.tex_mouse, mouse);
     copy_v2_v2(paint_runtime.mask_tex_mouse, mouse);
-    stroke->cached_size_pressure = pressure;
+    stroke->cached_size_pressure = BKE_curvemapping_evaluateF(brush.curve_size, 0, pressure);
   }
 
   /* Truly temporary data that isn't stored in properties */
@@ -533,7 +536,7 @@ void paint_stroke_jitter_pos(const PaintStroke &stroke,
     float factor = stroke.zoom_2d;
 
     if (brush.flag & BRUSH_JITTER_PRESSURE) {
-      factor *= pressure;
+      factor *= BKE_curvemapping_evaluateF(brush.curve_jitter, 0, pressure);
     }
 
     BKE_brush_jitter_pos(*stroke.paint, brush, mval, r_mouse_out);

@@ -15,6 +15,7 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_brush.hh"
+#include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
 #include "BKE_paint.hh"
@@ -363,6 +364,7 @@ static void paint_stroke_update_step(bContext *C,
   }
 
   if (BKE_brush_use_alpha_pressure(brush)) {
+    pressure = BKE_curvemapping_evaluateF(brush->curve_strength, 0, pressure);
     BKE_brush_alpha_set(paint, brush, max_ff(0.0f, startalpha * pressure * alphafac));
   }
   else {

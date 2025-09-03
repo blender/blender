@@ -2183,7 +2183,9 @@ static float brush_strength(const Sculpt &sd,
   /* Primary strength input; square it to make lower values more sensitive. */
   const float root_alpha = BKE_brush_alpha_get(&sd.paint, &brush);
   const float alpha = root_alpha * root_alpha;
-  const float pressure = BKE_brush_use_alpha_pressure(&brush) ? cache.pressure : 1.0f;
+  const float pressure = BKE_brush_use_alpha_pressure(&brush) ?
+                             BKE_curvemapping_evaluateF(brush.curve_strength, 0, cache.pressure) :
+                             1.0f;
   float overlap = paint_runtime.overlap_factor;
   /* Spacing is integer percentage of radius, divide by 50 to get
    * normalized diameter. */
@@ -4080,17 +4082,19 @@ static float brush_dynamic_size_get(const Brush &brush,
                                     const StrokeCache &cache,
                                     float initial_size)
 {
+  const float pressure_eval = BKE_curvemapping_evaluateF(brush.curve_size, 0, cache.pressure);
   switch (brush.sculpt_brush_type) {
     case SCULPT_BRUSH_TYPE_CLAY:
-      return max_ff(initial_size * 0.20f, initial_size * pow3f(cache.pressure));
+      return max_ff(initial_size * 0.20f, initial_size * pow3f(pressure_eval));
     case SCULPT_BRUSH_TYPE_CLAY_STRIPS:
-      return max_ff(initial_size * 0.30f, initial_size * powf(cache.pressure, 1.5f));
+      return max_ff(initial_size * 0.30f, initial_size * powf(pressure_eval, 1.5f));
     case SCULPT_BRUSH_TYPE_CLAY_THUMB: {
       float clay_stabilized_pressure = brushes::clay_thumb_get_stabilized_pressure(cache);
-      return initial_size * clay_stabilized_pressure;
+      return initial_size *
+             BKE_curvemapping_evaluateF(brush.curve_size, 0, clay_stabilized_pressure);
     }
     default:
-      return initial_size * cache.pressure;
+      return initial_size * pressure_eval;
   }
 }
 

@@ -537,7 +537,8 @@ void update_cache_variants(bContext *C, VPaint &vp, Object &ob, PointerRNA *ptr)
   }
 
   if (BKE_brush_use_size_pressure(&brush) && paint_supports_dynamic_size(brush, paint_mode)) {
-    cache->radius = cache->initial_radius * cache->pressure;
+    cache->radius = cache->initial_radius *
+                    BKE_curvemapping_evaluateF(brush.curve_size, 0, cache->pressure);
   }
   else {
     cache->radius = cache->initial_radius;
@@ -558,9 +559,15 @@ void get_brush_alpha_data(const SculptSession &ss,
                           float *r_brush_alpha_pressure)
 {
   *r_brush_size_pressure = BKE_brush_radius_get(&paint, &brush) *
-                           (BKE_brush_use_size_pressure(&brush) ? ss.cache->pressure : 1.0f);
+                           (BKE_brush_use_size_pressure(&brush) ?
+                                BKE_curvemapping_evaluateF(
+                                    brush.curve_size, 0, ss.cache->pressure) :
+                                1.0f);
   *r_brush_alpha_value = BKE_brush_alpha_get(&paint, &brush);
-  *r_brush_alpha_pressure = (BKE_brush_use_alpha_pressure(&brush) ? ss.cache->pressure : 1.0f);
+  *r_brush_alpha_pressure = BKE_brush_use_alpha_pressure(&brush) ?
+                                BKE_curvemapping_evaluateF(
+                                    brush.curve_strength, 0, ss.cache->pressure) :
+                                1.0f;
 }
 
 void last_stroke_update(const float location[3], Paint &paint)
