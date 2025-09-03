@@ -1004,12 +1004,15 @@ class SEQUENCER_MT_strip_mirror(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator_context = 'INVOKE_REGION_PREVIEW'
 
         col = layout.column()
+        col.operator_context = 'INVOKE_REGION_PREVIEW'
         col.operator("transform.mirror", text="Interactive Mirror")
 
         col.separator()
+
+        # Only interactive mirror should invoke the modal, all others should immediately run.
+        col.operator_context = 'EXEC_REGION_PREVIEW'
 
         for (space_name, space_id) in (("Global", 'GLOBAL'), ("Local", 'LOCAL')):
             for axis_index, axis_name in enumerate("XY"):
