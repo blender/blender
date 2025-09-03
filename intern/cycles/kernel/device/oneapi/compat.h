@@ -72,7 +72,7 @@ void oneapi_kernel_##name(KernelGlobalsGPU *ccl_restrict kg, \
                           size_t kernel_local_size, \
                           sycl::handler &cgh, \
                           __VA_ARGS__) { \
-      (kg); \
+      (void)(kg); \
       cgh.parallel_for( \
           sycl::nd_range<1>(kernel_global_size, kernel_local_size), \
           [=](sycl::nd_item<1> item) {
@@ -90,7 +90,7 @@ void oneapi_kernel_##name(KernelGlobalsGPU *ccl_restrict kg, \
                           size_t kernel_local_size, \
                           sycl::handler &cgh, \
                           __VA_ARGS__) { \
-      (kg); \
+      (void)(kg); \
       (kernel_local_size); \
       cgh.host_task( \
           [=]() {\
