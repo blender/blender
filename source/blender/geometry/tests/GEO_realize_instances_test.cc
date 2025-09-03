@@ -44,6 +44,7 @@ static void create_test_curves(bke::CurvesGeometry &curves, Span<int> offsets)
 
   curves.resize(points_num, curves_num);
   curves.offsets_for_write().copy_from(offsets);
+  curves.update_curve_types();
 
   /* Attribute storing original indices to test point remapping. */
   SpanAttributeWriter<int> test_indices_writer =

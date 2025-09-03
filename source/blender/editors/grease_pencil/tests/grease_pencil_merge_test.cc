@@ -190,21 +190,28 @@ TEST(grease_pencil_merge, merge_keyframes)
 
   Drawing *drawing = grease_pencil.insert_frame(layer1, 0);
   drawing->strokes_for_write().resize(10, 2);
+  drawing->strokes_for_write().update_curve_types();
 
   drawing = grease_pencil.insert_frame(layer2, 0);
   drawing->strokes_for_write().resize(20, 3);
+  drawing->strokes_for_write().update_curve_types();
   drawing = grease_pencil.insert_frame(layer2, 2);
   drawing->strokes_for_write().resize(30, 4);
+  drawing->strokes_for_write().update_curve_types();
 
   drawing = grease_pencil.insert_frame(layer3, 0);
   drawing->strokes_for_write().resize(40, 5);
+  drawing->strokes_for_write().update_curve_types();
   drawing = grease_pencil.insert_frame(layer3, 3);
   drawing->strokes_for_write().resize(50, 6);
+  drawing->strokes_for_write().update_curve_types();
 
   drawing = grease_pencil.insert_frame(layer4, 1);
   drawing->strokes_for_write().resize(60, 7);
+  drawing->strokes_for_write().update_curve_types();
   drawing = grease_pencil.insert_frame(layer4, 3);
   drawing->strokes_for_write().resize(70, 8);
+  drawing->strokes_for_write().update_curve_types();
 
   GreasePencil *merged_grease_pencil = BKE_grease_pencil_new_nomain();
   BKE_grease_pencil_copy_parameters(grease_pencil, *merged_grease_pencil);
