@@ -3,12 +3,13 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import bpy
+import rna_prop_ui
+
 from bpy.types import (
     Header,
     Menu,
     Panel,
 )
-import rna_prop_ui
 from bpy.app.translations import (
     pgettext_iface as iface_,
     contexts as i18n_contexts,
