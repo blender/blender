@@ -768,7 +768,7 @@ static void slip_update_header(const Scene *scene,
 
 static SlipData *slip_data_init(bContext *C, const wmOperator *op, const wmEvent *event)
 {
-  const Scene *scene = CTX_data_scene(C);
+  const Scene *scene = CTX_data_sequencer_scene(C);
   const Editing *ed = seq::editing_get(scene);
   const View2D *v2d = UI_view2d_fromcontext(C);
 
