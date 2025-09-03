@@ -914,7 +914,7 @@ static void target_project_edge(const ShrinkwrapTreeData *tree,
 
   /* Retrieve boundary vertex IDs */
   const int *vert_boundary_id = tree->boundary->vert_boundary_id.data();
-  int bid1 = vert_boundary_id[edge[0]], bid2 = vert_boundary_id[edge[1]];
+  const int bid1 = vert_boundary_id[edge[0]], bid2 = vert_boundary_id[edge[1]];
 
   if (bid1 < 0 || bid2 < 0) {
     return;
@@ -936,35 +936,40 @@ static void target_project_edge(const ShrinkwrapTreeData *tree,
     negate_v3(vedge_dir[1]);
   }
 
-  /* Solve a quadratic equation: lerp(d0,d1,x) * (co - lerp(v0,v1,x)) = 0 */
-  float d0v0 = dot_v3v3(vedge_dir[0], vedge_co[0]), d0v1 = dot_v3v3(vedge_dir[0], vedge_co[1]);
-  float d1v0 = dot_v3v3(vedge_dir[1], vedge_co[0]), d1v1 = dot_v3v3(vedge_dir[1], vedge_co[1]);
-  float d0co = dot_v3v3(vedge_dir[0], co);
+  /* Solve a quadratic equation: `lerp(d0,d1,x) * (co - lerp(v0,v1,x)) = 0`. */
+  const float d0v0 = dot_v3v3(vedge_dir[0], vedge_co[0]),
+              d0v1 = dot_v3v3(vedge_dir[0], vedge_co[1]);
+  const float d1v0 = dot_v3v3(vedge_dir[1], vedge_co[0]),
+              d1v1 = dot_v3v3(vedge_dir[1], vedge_co[1]);
+  const float d0co = dot_v3v3(vedge_dir[0], co);
 
-  float a = d0v1 - d0v0 + d1v0 - d1v1;
-  float b = 2 * d0v0 - d0v1 - d0co - d1v0 + dot_v3v3(vedge_dir[1], co);
-  float c = d0co - d0v0;
-  float det = b * b - 4 * a * c;
+  /* Checked for non-zero prevent divide by zero when calculating `x`. */
+  const float a = d0v1 - d0v0 + d1v0 - d1v1;
+  if (a != 0.0f) {
+    const float b = 2 * d0v0 - d0v1 - d0co - d1v0 + dot_v3v3(vedge_dir[1], co);
+    const float c = d0co - d0v0;
+    const float det = b * b - 4 * a * c;
 
-  if (det >= 0 && a != 0) {
-    const float epsilon = 1e-6f;
-    float sdet = sqrtf(det);
-    float hit_co[3], hit_no[3];
+    if (det >= 0) {
+      const float epsilon = 1e-6f;
+      const float sdet = sqrtf(det);
+      float hit_co[3], hit_no[3];
 
-    for (int i = (det > 0 ? 2 : 0); i >= 0; i -= 2) {
-      float x = (-b + (float(i) - 1) * sdet) / (2 * a);
+      for (int i = (det > 0 ? 2 : 0); i >= 0; i -= 2) {
+        float x = (-b + float(i - 1) * sdet) / (2.0f * a);
 
-      if (x >= -epsilon && x <= 1.0f + epsilon) {
-        CLAMP(x, 0, 1);
+        if (x >= -epsilon && x <= 1.0f + epsilon) {
+          CLAMP(x, 0.0f, 1.0f);
 
-        float vedge_no[2][3];
-        copy_v3_v3(vedge_no[0], tree->vert_normals[edge[0]]);
-        copy_v3_v3(vedge_no[1], tree->vert_normals[edge[1]]);
+          float vedge_no[2][3];
+          copy_v3_v3(vedge_no[0], tree->vert_normals[edge[0]]);
+          copy_v3_v3(vedge_no[1], tree->vert_normals[edge[1]]);
 
-        interp_v3_v3v3(hit_co, vedge_co[0], vedge_co[1], x);
-        interp_v3_v3v3(hit_no, vedge_no[0], vedge_no[1], x);
+          interp_v3_v3v3(hit_co, vedge_co[0], vedge_co[1], x);
+          interp_v3_v3v3(hit_no, vedge_no[0], vedge_no[1], x);
 
-        update_hit(nearest, index, co, hit_co, hit_no);
+          update_hit(nearest, index, co, hit_co, hit_no);
+        }
       }
     }
   }
