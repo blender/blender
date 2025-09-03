@@ -1768,6 +1768,11 @@ static void region_rect_recursive(
   region->winx = BLI_rcti_size_x(&region->winrct) + 1;
   region->winy = BLI_rcti_size_y(&region->winrct) + 1;
 
+  if (region->winy <= int(2.0f * U.pixelsize) && !(region->flag & RGN_FLAG_HIDDEN)) {
+    /* Don't draw when just a couple pixels tall. #143617. */
+    region->flag |= RGN_FLAG_TOO_SMALL;
+  }
+
   /* If region opened normally, we store this for hide/reveal usage. */
   /* Prevent rounding errors for UI_SCALE_FAC multiply and divide. */
   if (region->winx > 1) {
