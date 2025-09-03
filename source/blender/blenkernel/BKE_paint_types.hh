@@ -108,6 +108,9 @@ struct PaintRuntime : NonCopyable, NonMovable {
   bool do_linear_conversion = false;
   const blender::ocio::ColorSpace *colorspace = nullptr;
 
+  /** WM Paint cursor. */
+  void *paint_cursor = nullptr;
+
   PaintRuntime();
   ~PaintRuntime();
 };

@@ -324,7 +324,7 @@ void mode_enter_generic(
     BKE_paint_ensure(scene.toolsettings, (Paint **)&scene.toolsettings->vpaint);
     paint = BKE_paint_get_active_from_paintmode(&scene, paint_mode);
     ED_paint_cursor_start(paint, vertex_paint_poll);
-    BKE_paint_init(&bmain, &scene, paint_mode, PAINT_CURSOR_VERTEX_PAINT);
+    BKE_paint_init(&bmain, &scene, paint_mode);
   }
   else if (mode_flag == OB_MODE_WEIGHT_PAINT) {
     const PaintMode paint_mode = PaintMode::Weight;
@@ -332,7 +332,7 @@ void mode_enter_generic(
     BKE_paint_ensure(scene.toolsettings, (Paint **)&scene.toolsettings->wpaint);
     paint = BKE_paint_get_active_from_paintmode(&scene, paint_mode);
     ED_paint_cursor_start(paint, weight_paint_poll);
-    BKE_paint_init(&bmain, &scene, paint_mode, PAINT_CURSOR_WEIGHT_PAINT);
+    BKE_paint_init(&bmain, &scene, paint_mode);
 
     /* weight paint specific */
     ED_mesh_mirror_spatial_table_end(&ob);

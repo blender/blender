@@ -306,10 +306,6 @@ static void curves_sculptmode_enter(bContext *C)
 
   BKE_paint_brushes_ensure(CTX_data_main(C), paint);
 
-  /* Setup cursor color. BKE_paint_init() could be used, but creates an additional brush. */
-  copy_v3_v3_uchar(paint->paint_cursor_col, PAINT_CURSOR_SCULPT_CURVES);
-  paint->paint_cursor_col[3] = 128;
-
   ED_paint_cursor_start(&curves_sculpt->paint, curves_sculpt_poll_view3d);
   paint_init_pivot(ob, scene, paint);
 

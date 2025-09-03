@@ -1184,10 +1184,6 @@ typedef struct Paint {
   /** Cavity curve. */
   struct CurveMapping *cavity_curve;
 
-  /** WM Paint cursor. */
-  void *paint_cursor;
-  unsigned char paint_cursor_col[4];
-
   /** Enum #ePaintFlags. */
   int flags;
 
@@ -1201,7 +1197,6 @@ typedef struct Paint {
   int symmetry_flags;
 
   float tile_offset[3];
-  char _pad2[4];
   struct UnifiedPaintSettings unified_paint_settings;
 
   PaintRuntimeHandle *runtime;

@@ -409,7 +409,7 @@ void object_sculpt_mode_enter(Main &bmain,
   }
 
   Paint *paint = BKE_paint_get_active_from_paintmode(&scene, PaintMode::Sculpt);
-  BKE_paint_init(&bmain, &scene, PaintMode::Sculpt, PAINT_CURSOR_SCULPT);
+  BKE_paint_init(&bmain, &scene, PaintMode::Sculpt);
 
   ED_paint_cursor_start(paint, SCULPT_brush_cursor_poll);
 
