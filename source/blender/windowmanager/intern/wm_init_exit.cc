@@ -165,6 +165,9 @@ void WM_init_gpu()
     GPU_shader_compile_static();
   }
 
+  /* Some part of the code assumes no context is left bound. */
+  DRW_gpu_context_disable_ex(true);
+
   gpu_is_init = true;
 }
 
