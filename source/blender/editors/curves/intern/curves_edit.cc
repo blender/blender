@@ -380,7 +380,9 @@ static bke::CurvesGeometry copy_data_to_geometry(const bke::CurvesGeometry &src_
   bke::CurvesGeometry dst_curves(offsets.last(), dst_to_src_curve.size());
   BKE_defgroup_copy_list(&dst_curves.vertex_group_names, &src_curves.vertex_group_names);
 
-  array_utils::copy(offsets, dst_curves.offsets_for_write());
+  if (!dst_curves.is_empty()) {
+    array_utils::copy(offsets, dst_curves.offsets_for_write());
+  }
   dst_curves.cyclic_for_write().copy_from(cyclic);
 
   const bke::AttributeAccessor src_attributes = src_curves.attributes();
