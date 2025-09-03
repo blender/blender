@@ -835,6 +835,9 @@ static Mesh *mesh_new_from_mesh_object_with_layers(Depsgraph *depsgraph,
         result->runtime->mesh_eval = nullptr;
         BKE_id_free(nullptr, result);
         result = result_maybe_subdiv;
+        /* Don't inherit shape keys, they are not valid anymore.
+         * See #mesh_build_data for why they are on the subdiv wrapper at all. */
+        result->key = nullptr;
       }
     }
   }
