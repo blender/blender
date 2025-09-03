@@ -36,6 +36,10 @@ static void cmp_node_stabilize2d_declare(NodeDeclarationBuilder &b)
 
   b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 
+  b.add_layout([](uiLayout *layout, bContext *context, PointerRNA *node_pointer) {
+    uiTemplateID(layout, context, node_pointer, "clip", nullptr, "CLIP_OT_open", nullptr);
+  });
+
   b.add_input<decl::Color>("Image")
       .default_value({0.8f, 0.8f, 0.8f, 1.0f})
       .compositor_realization_mode(CompositorInputRealizationMode::None)
@@ -65,11 +69,6 @@ static void init(const bContext *C, PointerRNA *ptr)
 
   node->id = (ID *)scene->clip;
   id_us_plus(node->id);
-}
-
-static void node_composit_buts_stabilize2d(uiLayout *layout, bContext *C, PointerRNA *ptr)
-{
-  uiTemplateID(layout, C, ptr, "clip", nullptr, "CLIP_OT_open", nullptr);
 }
 
 using namespace blender::compositor;
@@ -197,7 +196,6 @@ static void register_node_type_cmp_stabilize2d()
   ntype.enum_name_legacy = "STABILIZE2D";
   ntype.nclass = NODE_CLASS_DISTORT;
   ntype.declare = file_ns::cmp_node_stabilize2d_declare;
-  ntype.draw_buttons = file_ns::node_composit_buts_stabilize2d;
   ntype.initfunc_api = file_ns::init;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
