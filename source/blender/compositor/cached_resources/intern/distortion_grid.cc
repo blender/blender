@@ -52,7 +52,7 @@ bool operator==(const DistortionGridKey &a, const DistortionGridKey &b)
 
 DistortionGrid::DistortionGrid(
     Context &context, MovieClip *movie_clip, int2 size, DistortionType type, int2 calibration_size)
-    : result(context.create_result(ResultType::Float2))
+    : result(context.create_result(ResultType::Float2, ResultPrecision::Full))
 {
   MovieDistortion *distortion = BKE_tracking_distortion_new(
       &movie_clip->tracking, calibration_size.x, calibration_size.y);
