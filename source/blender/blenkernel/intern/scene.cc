@@ -1031,85 +1031,85 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   BKE_keyingsets_blend_write(writer, &sce->keyingsets);
 
   /* direct data */
-  ToolSettings *tos = sce->toolsettings;
+  ToolSettings *ts = sce->toolsettings;
 
-  BLO_write_struct(writer, ToolSettings, tos);
+  BLO_write_struct(writer, ToolSettings, ts);
 
-  if (tos->unified_paint_settings.curve_rand_hue) {
-    BKE_curvemapping_blend_write(writer, tos->unified_paint_settings.curve_rand_hue);
+  if (ts->unified_paint_settings.curve_rand_hue) {
+    BKE_curvemapping_blend_write(writer, ts->unified_paint_settings.curve_rand_hue);
   }
 
-  if (tos->unified_paint_settings.curve_rand_saturation) {
-    BKE_curvemapping_blend_write(writer, tos->unified_paint_settings.curve_rand_saturation);
+  if (ts->unified_paint_settings.curve_rand_saturation) {
+    BKE_curvemapping_blend_write(writer, ts->unified_paint_settings.curve_rand_saturation);
   }
 
-  if (tos->unified_paint_settings.curve_rand_value) {
-    BKE_curvemapping_blend_write(writer, tos->unified_paint_settings.curve_rand_value);
+  if (ts->unified_paint_settings.curve_rand_value) {
+    BKE_curvemapping_blend_write(writer, ts->unified_paint_settings.curve_rand_value);
   }
 
-  if (tos->vpaint) {
-    BLO_write_struct(writer, VPaint, tos->vpaint);
-    BKE_paint_blend_write(writer, &tos->vpaint->paint);
+  if (ts->vpaint) {
+    BLO_write_struct(writer, VPaint, ts->vpaint);
+    BKE_paint_blend_write(writer, &ts->vpaint->paint);
   }
-  if (tos->wpaint) {
-    BLO_write_struct(writer, VPaint, tos->wpaint);
-    BKE_paint_blend_write(writer, &tos->wpaint->paint);
+  if (ts->wpaint) {
+    BLO_write_struct(writer, VPaint, ts->wpaint);
+    BKE_paint_blend_write(writer, &ts->wpaint->paint);
   }
-  if (tos->sculpt) {
-    BLO_write_struct(writer, Sculpt, tos->sculpt);
-    if (tos->sculpt->automasking_cavity_curve) {
-      BKE_curvemapping_blend_write(writer, tos->sculpt->automasking_cavity_curve);
+  if (ts->sculpt) {
+    BLO_write_struct(writer, Sculpt, ts->sculpt);
+    if (ts->sculpt->automasking_cavity_curve) {
+      BKE_curvemapping_blend_write(writer, ts->sculpt->automasking_cavity_curve);
     }
-    if (tos->sculpt->automasking_cavity_curve_op) {
-      BKE_curvemapping_blend_write(writer, tos->sculpt->automasking_cavity_curve_op);
+    if (ts->sculpt->automasking_cavity_curve_op) {
+      BKE_curvemapping_blend_write(writer, ts->sculpt->automasking_cavity_curve_op);
     }
 
-    BKE_paint_blend_write(writer, &tos->sculpt->paint);
+    BKE_paint_blend_write(writer, &ts->sculpt->paint);
   }
-  if (tos->uvsculpt.strength_curve) {
-    BKE_curvemapping_blend_write(writer, tos->uvsculpt.strength_curve);
+  if (ts->uvsculpt.strength_curve) {
+    BKE_curvemapping_blend_write(writer, ts->uvsculpt.strength_curve);
   }
-  if (tos->gp_paint) {
-    BLO_write_struct(writer, GpPaint, tos->gp_paint);
-    BKE_paint_blend_write(writer, &tos->gp_paint->paint);
+  if (ts->gp_paint) {
+    BLO_write_struct(writer, GpPaint, ts->gp_paint);
+    BKE_paint_blend_write(writer, &ts->gp_paint->paint);
   }
-  if (tos->gp_vertexpaint) {
-    BLO_write_struct(writer, GpVertexPaint, tos->gp_vertexpaint);
-    BKE_paint_blend_write(writer, &tos->gp_vertexpaint->paint);
+  if (ts->gp_vertexpaint) {
+    BLO_write_struct(writer, GpVertexPaint, ts->gp_vertexpaint);
+    BKE_paint_blend_write(writer, &ts->gp_vertexpaint->paint);
   }
-  if (tos->gp_sculptpaint) {
-    BLO_write_struct(writer, GpSculptPaint, tos->gp_sculptpaint);
-    BKE_paint_blend_write(writer, &tos->gp_sculptpaint->paint);
+  if (ts->gp_sculptpaint) {
+    BLO_write_struct(writer, GpSculptPaint, ts->gp_sculptpaint);
+    BKE_paint_blend_write(writer, &ts->gp_sculptpaint->paint);
   }
-  if (tos->gp_weightpaint) {
-    BLO_write_struct(writer, GpWeightPaint, tos->gp_weightpaint);
-    BKE_paint_blend_write(writer, &tos->gp_weightpaint->paint);
+  if (ts->gp_weightpaint) {
+    BLO_write_struct(writer, GpWeightPaint, ts->gp_weightpaint);
+    BKE_paint_blend_write(writer, &ts->gp_weightpaint->paint);
   }
-  if (tos->curves_sculpt) {
-    BLO_write_struct(writer, CurvesSculpt, tos->curves_sculpt);
-    BKE_paint_blend_write(writer, &tos->curves_sculpt->paint);
+  if (ts->curves_sculpt) {
+    BLO_write_struct(writer, CurvesSculpt, ts->curves_sculpt);
+    BKE_paint_blend_write(writer, &ts->curves_sculpt->paint);
   }
   /* write grease-pencil custom ipo curve to file */
-  if (tos->gp_interpolate.custom_ipo) {
-    BKE_curvemapping_blend_write(writer, tos->gp_interpolate.custom_ipo);
+  if (ts->gp_interpolate.custom_ipo) {
+    BKE_curvemapping_blend_write(writer, ts->gp_interpolate.custom_ipo);
   }
   /* write grease-pencil multi-frame falloff curve to file */
-  if (tos->gp_sculpt.cur_falloff) {
-    BKE_curvemapping_blend_write(writer, tos->gp_sculpt.cur_falloff);
+  if (ts->gp_sculpt.cur_falloff) {
+    BKE_curvemapping_blend_write(writer, ts->gp_sculpt.cur_falloff);
   }
   /* write grease-pencil primitive curve to file */
-  if (tos->gp_sculpt.cur_primitive) {
-    BKE_curvemapping_blend_write(writer, tos->gp_sculpt.cur_primitive);
+  if (ts->gp_sculpt.cur_primitive) {
+    BKE_curvemapping_blend_write(writer, ts->gp_sculpt.cur_primitive);
   }
   /* Write the curve profile to the file. */
-  if (tos->custom_bevel_profile_preset) {
-    BKE_curveprofile_blend_write(writer, tos->custom_bevel_profile_preset);
+  if (ts->custom_bevel_profile_preset) {
+    BKE_curveprofile_blend_write(writer, ts->custom_bevel_profile_preset);
   }
-  if (tos->sequencer_tool_settings) {
-    BLO_write_struct(writer, SequencerToolSettings, tos->sequencer_tool_settings);
+  if (ts->sequencer_tool_settings) {
+    BLO_write_struct(writer, SequencerToolSettings, ts->sequencer_tool_settings);
   }
 
-  BKE_paint_blend_write(writer, &tos->imapaint.paint);
+  BKE_paint_blend_write(writer, &ts->imapaint.paint);
 
   Editing *ed = sce->ed;
   if (ed) {
