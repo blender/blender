@@ -11,6 +11,7 @@
 
 #include "NOD_geometry_nodes_execute.hh"
 #include "NOD_socket_usage_inference_fwd.hh"
+#include "NOD_socket_value_inference.hh"
 
 struct bNodeTree;
 struct bNodeSocket;
@@ -19,53 +20,6 @@ struct IDProperty;
 namespace blender::nodes::socket_usage_inference {
 
 struct SocketUsageInferencer;
-
-/**
- * During socket usage inferencing, some socket values are computed. This class represents such a
- * computed value. Not all possible values can be presented here, only "basic" once (like int, but
- * not int-field). A value can also be unknown if it can't be determined statically.
- */
-class InferenceValue {
- private:
-  /**
-   * Non-owning pointer to a value of type #bNodeSocketType.base_cpp_type of the corresponding
-   * socket. If this is null, the value is assumed to be unknown (aka, it can't be determined
-   * statically).
-   */
-  const void *value_ = nullptr;
-
- public:
-  explicit InferenceValue(const void *value) : value_(value) {}
-
-  static InferenceValue Unknown()
-  {
-    return InferenceValue(nullptr);
-  }
-
-  bool is_unknown() const
-  {
-    return value_ == nullptr;
-  }
-
-  const void *data() const
-  {
-    return value_;
-  }
-
-  template<typename T> T get_known() const
-  {
-    BLI_assert(!this->is_unknown());
-    return *static_cast<const T *>(this->value_);
-  }
-
-  template<typename T> std::optional<T> get() const
-  {
-    if (this->is_unknown()) {
-      return std::nullopt;
-    }
-    return this->get_known<T>();
-  }
-};
 
 class InputSocketUsageParams {
  private:
@@ -119,7 +73,7 @@ Array<SocketUsage> infer_all_input_sockets_usage(const bNodeTree &tree);
  * \param r_input_usages: The destination array where the inferred usages are written.
  */
 void infer_group_interface_inputs_usage(const bNodeTree &group,
-                                        Span<GPointer> group_input_values,
+                                        Span<InferenceValue> group_input_values,
                                         MutableSpan<SocketUsage> r_input_usages);
 
 /**

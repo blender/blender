@@ -35,7 +35,6 @@ class VKVertexBuffer : public VertBuf {
 
   VkBuffer vk_handle() const
   {
-    BLI_assert(buffer_.is_allocated());
     return buffer_.vk_handle();
   }
 

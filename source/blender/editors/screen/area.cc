@@ -747,6 +747,69 @@ void ED_area_tag_region_size_update(ScrArea *area, ARegion *changed_region)
 
 /* *************************************************************** */
 
+int ED_area_max_regionsize(const ScrArea *area, const ARegion *scale_region, const AZEdge edge)
+{
+  int dist;
+
+  /* regions in regions. */
+  if (scale_region->alignment & RGN_SPLIT_PREV) {
+    const int align = RGN_ALIGN_ENUM_FROM_MASK(scale_region->alignment);
+
+    if (ELEM(align, RGN_ALIGN_TOP, RGN_ALIGN_BOTTOM)) {
+      ARegion *region = scale_region->prev;
+      dist = region->winy + scale_region->winy - U.pixelsize;
+    }
+    else /* if (ELEM(align, RGN_ALIGN_LEFT, RGN_ALIGN_RIGHT)) */ {
+      ARegion *region = scale_region->prev;
+      dist = region->winx + scale_region->winx - U.pixelsize;
+    }
+  }
+  else {
+    if (ELEM(edge, AE_RIGHT_TO_TOPLEFT, AE_LEFT_TO_TOPRIGHT)) {
+      dist = BLI_rcti_size_x(&area->totrct);
+    }
+    else { /* AE_BOTTOM_TO_TOPLEFT, AE_TOP_TO_BOTTOMRIGHT */
+      dist = BLI_rcti_size_y(&area->totrct);
+    }
+
+    /* Subtract the width of regions on opposite side
+     * prevents dragging regions into other opposite regions. */
+    LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+      if (region == scale_region) {
+        continue;
+      }
+
+      if (scale_region->alignment == RGN_ALIGN_LEFT && region->alignment == RGN_ALIGN_RIGHT) {
+        dist -= region->winx;
+      }
+      else if (scale_region->alignment == RGN_ALIGN_RIGHT && region->alignment == RGN_ALIGN_LEFT) {
+        dist -= region->winx;
+      }
+      else if (scale_region->alignment == RGN_ALIGN_TOP &&
+               (region->alignment == RGN_ALIGN_BOTTOM || ELEM(region->regiontype,
+                                                              RGN_TYPE_HEADER,
+                                                              RGN_TYPE_TOOL_HEADER,
+                                                              RGN_TYPE_FOOTER,
+                                                              RGN_TYPE_ASSET_SHELF_HEADER)))
+      {
+        dist -= region->winy;
+      }
+      else if (scale_region->alignment == RGN_ALIGN_BOTTOM &&
+               (region->alignment == RGN_ALIGN_TOP || ELEM(region->regiontype,
+                                                           RGN_TYPE_HEADER,
+                                                           RGN_TYPE_TOOL_HEADER,
+                                                           RGN_TYPE_FOOTER,
+                                                           RGN_TYPE_ASSET_SHELF_HEADER)))
+      {
+        dist -= region->winy;
+      }
+    }
+  }
+
+  dist /= UI_SCALE_FAC;
+  return dist;
+}
+
 const char *ED_area_region_search_filter_get(const ScrArea *area, const ARegion *region)
 {
   /* Only the properties editor has a search string for now. */
@@ -3428,6 +3491,8 @@ void ED_region_panels_layout(const bContext *C, ARegion *region)
 void ED_region_panels_draw(const bContext *C, ARegion *region)
 {
   View2D *v2d = &region->v2d;
+  const float aspect = BLI_rctf_size_y(&region->v2d.cur) /
+                       (BLI_rcti_size_y(&region->v2d.mask) + 1);
 
   if (region->alignment != RGN_ALIGN_FLOAT) {
     ED_region_clear(C,
@@ -3445,8 +3510,13 @@ void ED_region_panels_draw(const bContext *C, ARegion *region)
   /* View2D matrix might have changed due to dynamic sized regions. */
   UI_blocklist_update_window_matrix(C, &region->runtime->uiblocks);
 
-  /* draw panels */
-  UI_panels_draw(C, region);
+  /* draw panels if they are large enough. */
+  const bool has_catgories = (region->panels_category_active.first != nullptr);
+  const short min_draw_size = has_catgories ? short(UI_PANEL_CATEGORY_MIN_WIDTH) + 20 :
+                                              std::min(region->runtime->type->prefsizex, 20);
+  if (region->winx >= (min_draw_size * UI_SCALE_FAC / aspect)) {
+    UI_panels_draw(C, region);
+  }
 
   /* restore view matrix */
   UI_view2d_view_restore(C);
@@ -3478,8 +3548,6 @@ void ED_region_panels_draw(const bContext *C, ARegion *region)
   ED_region_draw_overflow_indication(CTX_wm_area(C), region, use_mask ? &mask : nullptr);
 
   /* Hide scrollbars below a threshold. */
-  const float aspect = BLI_rctf_size_y(&region->v2d.cur) /
-                       (BLI_rcti_size_y(&region->v2d.mask) + 1);
   int min_width = UI_panel_category_is_visible(region) ? 60.0f * UI_SCALE_FAC / aspect :
                                                          40.0f * UI_SCALE_FAC / aspect;
   if (BLI_rcti_size_x(&region->winrct) <= min_width) {

@@ -2853,69 +2853,6 @@ struct RegionMoveData {
   AZEdge edge;
 };
 
-static int area_max_regionsize(ScrArea *area, ARegion *scale_region, AZEdge edge)
-{
-  int dist;
-
-  /* regions in regions. */
-  if (scale_region->alignment & RGN_SPLIT_PREV) {
-    const int align = RGN_ALIGN_ENUM_FROM_MASK(scale_region->alignment);
-
-    if (ELEM(align, RGN_ALIGN_TOP, RGN_ALIGN_BOTTOM)) {
-      ARegion *region = scale_region->prev;
-      dist = region->winy + scale_region->winy - U.pixelsize;
-    }
-    else /* if (ELEM(align, RGN_ALIGN_LEFT, RGN_ALIGN_RIGHT)) */ {
-      ARegion *region = scale_region->prev;
-      dist = region->winx + scale_region->winx - U.pixelsize;
-    }
-  }
-  else {
-    if (ELEM(edge, AE_RIGHT_TO_TOPLEFT, AE_LEFT_TO_TOPRIGHT)) {
-      dist = BLI_rcti_size_x(&area->totrct);
-    }
-    else { /* AE_BOTTOM_TO_TOPLEFT, AE_TOP_TO_BOTTOMRIGHT */
-      dist = BLI_rcti_size_y(&area->totrct);
-    }
-
-    /* Subtract the width of regions on opposite side
-     * prevents dragging regions into other opposite regions. */
-    LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-      if (region == scale_region) {
-        continue;
-      }
-
-      if (scale_region->alignment == RGN_ALIGN_LEFT && region->alignment == RGN_ALIGN_RIGHT) {
-        dist -= region->winx;
-      }
-      else if (scale_region->alignment == RGN_ALIGN_RIGHT && region->alignment == RGN_ALIGN_LEFT) {
-        dist -= region->winx;
-      }
-      else if (scale_region->alignment == RGN_ALIGN_TOP &&
-               (region->alignment == RGN_ALIGN_BOTTOM || ELEM(region->regiontype,
-                                                              RGN_TYPE_HEADER,
-                                                              RGN_TYPE_TOOL_HEADER,
-                                                              RGN_TYPE_FOOTER,
-                                                              RGN_TYPE_ASSET_SHELF_HEADER)))
-      {
-        dist -= region->winy;
-      }
-      else if (scale_region->alignment == RGN_ALIGN_BOTTOM &&
-               (region->alignment == RGN_ALIGN_TOP || ELEM(region->regiontype,
-                                                           RGN_TYPE_HEADER,
-                                                           RGN_TYPE_TOOL_HEADER,
-                                                           RGN_TYPE_FOOTER,
-                                                           RGN_TYPE_ASSET_SHELF_HEADER)))
-      {
-        dist -= region->winy;
-      }
-    }
-  }
-
-  dist /= UI_SCALE_FAC;
-  return dist;
-}
-
 static bool is_split_edge(const int alignment, const AZEdge edge)
 {
   return ((alignment == RGN_ALIGN_BOTTOM) && (edge == AE_TOP_TO_BOTTOMRIGHT)) ||
@@ -2977,7 +2914,7 @@ static wmOperatorStatus region_scale_invoke(bContext *C, wmOperator *op, const w
     rmd->area = sad->sa1;
     rmd->edge = az->edge;
     copy_v2_v2_int(rmd->orig_xy, event->xy);
-    rmd->maxsize = area_max_regionsize(rmd->area, rmd->region, rmd->edge);
+    rmd->maxsize = ED_area_max_regionsize(rmd->area, rmd->region, rmd->edge);
 
     /* if not set we do now, otherwise it uses type */
     if (rmd->region->sizex == 0) {

@@ -163,7 +163,8 @@ static void paint_draw_smooth_cursor(bContext *C,
     const uint pos = GPU_vertformat_attr_add(
         immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-    immUniformColor4ubv(paint->paint_cursor_col);
+    const uchar4 color = uchar4(255, 100, 100, 128);
+    immUniformColor4ubv(color);
 
     immBegin(GPU_PRIM_LINES, 2);
     immVertex2fv(pos, blender::float2(xy));
@@ -180,12 +181,11 @@ static void paint_draw_smooth_cursor(bContext *C,
   }
 }
 
-static void paint_draw_line_cursor(bContext *C,
+static void paint_draw_line_cursor(bContext * /*C*/,
                                    const blender::int2 &xy,
                                    const blender::float2 & /*tilt*/,
                                    void *customdata)
 {
-  const Paint *paint = BKE_paint_get_active_from_context(C);
   PaintStroke *stroke = static_cast<PaintStroke *>(customdata);
 
   GPU_line_smooth(true);
@@ -200,9 +200,8 @@ static void paint_draw_line_cursor(bContext *C,
   immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
   immUniform1i("colors_len", 2); /* "advanced" mode */
-  const float alpha = float(paint->paint_cursor_col[3]) / 255.0f;
-  immUniform4f("color", 0.0f, 0.0f, 0.0f, alpha);
-  immUniform4f("color2", 1.0f, 1.0f, 1.0f, alpha);
+  immUniform4f("color", 0.0f, 0.0f, 0.0f, 0.5);
+  immUniform4f("color2", 1.0f, 1.0f, 1.0f, 0.5);
   immUniform1f("dash_width", 6.0f);
   immUniform1f("udash_factor", 0.5f);
 
@@ -341,6 +340,9 @@ bool paint_brush_update(bContext *C,
     copy_v2_v2(paint_runtime.tex_mouse, mouse);
     copy_v2_v2(paint_runtime.mask_tex_mouse, mouse);
     stroke->cached_size_pressure = pressure;
+    BKE_curvemapping_init(brush.curve_size);
+    BKE_curvemapping_init(brush.curve_strength);
+    BKE_curvemapping_init(brush.curve_jitter);
 
     stroke->brush_init = true;
   }
@@ -348,7 +350,7 @@ bool paint_brush_update(bContext *C,
   if (paint_supports_dynamic_size(brush, mode)) {
     copy_v2_v2(paint_runtime.tex_mouse, mouse);
     copy_v2_v2(paint_runtime.mask_tex_mouse, mouse);
-    stroke->cached_size_pressure = pressure;
+    stroke->cached_size_pressure = BKE_curvemapping_evaluateF(brush.curve_size, 0, pressure);
   }
 
   /* Truly temporary data that isn't stored in properties */
@@ -533,7 +535,7 @@ void paint_stroke_jitter_pos(const PaintStroke &stroke,
     float factor = stroke.zoom_2d;
 
     if (brush.flag & BRUSH_JITTER_PRESSURE) {
-      factor *= pressure;
+      factor *= BKE_curvemapping_evaluateF(brush.curve_jitter, 0, pressure);
     }
 
     BKE_brush_jitter_pos(*stroke.paint, brush, mval, r_mouse_out);

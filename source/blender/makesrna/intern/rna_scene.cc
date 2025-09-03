@@ -6566,21 +6566,6 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  static const EnumPropertyItem ffmpeg_hdr_items[] = {
-      {FFM_VIDEO_HDR_NONE, "NONE", 0, "None", "No High Dynamic Range"},
-      {FFM_VIDEO_HDR_REC2100_PQ,
-       "REQ2100_PQ",
-       0,
-       "Rec.2100 PQ",
-       "Rec.2100 color space with Perceptual Quantizer HDR encoding"},
-      {FFM_VIDEO_HDR_REC2100_HLG,
-       "REQ2100_HLG",
-       0,
-       "Rec.2100 HLG",
-       "Rec.2100 color space with Hybrid-Log Gamma HDR encoding"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   static const EnumPropertyItem ffmpeg_audio_codec_items[] = {
       {FFMPEG_CODEC_ID_NONE,
        "NONE",
@@ -6641,14 +6626,6 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, nullptr, "video_bitrate");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Bitrate", "Video bitrate (kbit/s)");
-  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
-
-  prop = RNA_def_property(srna, "video_hdr", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "video_hdr");
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_enum_items(prop, ffmpeg_hdr_items);
-  RNA_def_property_enum_default(prop, FFM_VIDEO_HDR_NONE);
-  RNA_def_property_ui_text(prop, "HDR", "High Dynamic Range options");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 
   prop = RNA_def_property(srna, "minrate", PROP_INT, PROP_NONE);

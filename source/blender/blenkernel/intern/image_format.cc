@@ -1099,13 +1099,16 @@ void BKE_image_format_color_management_copy_from_scene(ImageFormatData *imf, con
 
 void BKE_image_format_init_for_write(ImageFormatData *imf,
                                      const Scene *scene_src,
-                                     const ImageFormatData *imf_src)
+                                     const ImageFormatData *imf_src,
+                                     const bool allow_video)
 {
   *imf = (imf_src) ? *imf_src : scene_src->r.im_format;
 
-  /* The source scene might be set to Video, so we default back to an image. */
-  if (scene_src && imf->media_type == MEDIA_TYPE_VIDEO) {
-    BKE_image_format_media_type_set(imf, const_cast<ID *>(&scene_src->id), MEDIA_TYPE_IMAGE);
+  /* For image saving we can not have use media type video. */
+  if (!allow_video) {
+    if (scene_src && imf->media_type == MEDIA_TYPE_VIDEO) {
+      BKE_image_format_media_type_set(imf, const_cast<ID *>(&scene_src->id), MEDIA_TYPE_IMAGE);
+    }
   }
 
   if (imf_src && imf_src->color_management == R_IMF_COLOR_MANAGEMENT_OVERRIDE) {

@@ -547,7 +547,8 @@ void drw_batch_cache_generate_requested_evaluated_mesh_or_curve(Object *ob, Task
    * If the curves are surfaces or have certain modifiers applied to them,
    * they will have mesh data of the final result. */
   if (mesh != nullptr) {
-    DRW_mesh_batch_cache_create_requested(task_graph, *ob, *mesh, *scene, is_paint_mode, use_hide);
+    DRW_mesh_batch_cache_create_requested(
+        task_graph, *ob, DRW_mesh_get_for_drawing(*mesh), *scene, is_paint_mode, use_hide);
   }
   else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_FONT, OB_SURF)) {
     DRW_curve_batch_cache_create_requested(ob, scene);

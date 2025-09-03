@@ -141,8 +141,12 @@ static void node_rna(StructRNA *srna)
 
   PropertyRNA *prop;
   prop = RNA_def_property(srna, "ui_shortcut", PROP_INT, PROP_NONE);
-  RNA_def_property_int_funcs_runtime(
-      prop, rna_Node_Viewer_shortcut_node_get, rna_Node_Viewer_shortcut_node_set, nullptr);
+  RNA_def_property_int_funcs_runtime(prop,
+                                     rna_Node_Viewer_shortcut_node_get,
+                                     rna_Node_Viewer_shortcut_node_set,
+                                     nullptr,
+                                     nullptr,
+                                     nullptr);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_int_default(prop, NODE_VIEWER_SHORTCUT_NONE);

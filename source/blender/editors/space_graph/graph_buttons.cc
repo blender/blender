@@ -1386,6 +1386,14 @@ static void graph_fmodifier_panel_id(void *fcm_link, char *r_name)
   FModifier *fcm = (FModifier *)fcm_link;
   eFModifier_Types type = eFModifier_Types(fcm->type);
   const FModifierTypeInfo *fmi = get_fmodifier_typeinfo(type);
+
+  if (!fmi) {
+    /* This can happen when the blend file has data for a modifier that doesn't exist in this
+     * Blender version (when the blend file is newer). */
+    r_name[0] = '\0';
+    return;
+  }
+
   BLI_snprintf_utf8(r_name, BKE_ST_MAXNAME, "%s_PT_%s", GRAPH_FMODIFIER_PANEL_PREFIX, fmi->name);
 }
 

@@ -501,6 +501,11 @@ typedef struct bNode {
    */
   IDProperty *prop;
 
+  /**
+   * System-defined properties, used e.g. to store data for custom node types.
+   */
+  IDProperty *system_properties;
+
   /** Parent node (for frame nodes). */
   struct bNode *parent;
 

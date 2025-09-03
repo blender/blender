@@ -1235,35 +1235,6 @@ const char *IMB_colormanagement_space_from_filepath_rules(const char *filepath)
   return g_config->get_color_space_from_filepath(filepath);
 }
 
-static const char *get_first_resolved_colorspace_name(const blender::Span<const char *> names)
-{
-  for (const char *name : names) {
-    const ColorSpace *colorspace = IMB_colormanagement_space_get_named(name);
-    if (colorspace) {
-      return colorspace->name().c_str();
-    }
-  }
-  return nullptr;
-}
-
-const char *IMB_colormanagement_get_rec2100_pq_display_colorspace()
-{
-  return get_first_resolved_colorspace_name({"Rec.2100-PQ",
-                                             "Rec.2100-PQ - Display",
-                                             "rec2100_pq",
-                                             "rec2100_pq_display",
-                                             "pq_rec2020_display"});
-}
-
-const char *IMB_colormanagement_get_rec2100_hlg_display_colorspace()
-{
-  return get_first_resolved_colorspace_name({"Rec.2100-HLG",
-                                             "Rec.2100-HLG - Display",
-                                             "rec2100_hlg",
-                                             "rec2100_hlg_display",
-                                             "hlg_rec2020_display"});
-}
-
 const ColorSpace *IMB_colormanagement_space_get_named(const char *name)
 {
   return g_config->get_color_space(name);
@@ -1372,6 +1343,16 @@ blender::Vector<char> IMB_colormanagement_space_icc_profile(const ColorSpace *co
   }
 
   return icc_profile;
+}
+
+StringRefNull IMB_colormanagement_space_get_interop_id(const ColorSpace *colorspace)
+{
+  return colorspace->interop_id();
+}
+
+const ColorSpace *IMB_colormanagement_space_from_interop_id(StringRefNull interop_id)
+{
+  return g_config->get_color_space_by_interop_id(interop_id);
 }
 
 blender::float3x3 IMB_colormanagement_get_xyz_to_scene_linear()

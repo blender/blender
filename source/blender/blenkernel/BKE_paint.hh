@@ -83,14 +83,6 @@ struct bContext;
 struct bToolRef;
 struct tPaletteColorHSV;
 
-extern const uchar PAINT_CURSOR_SCULPT[3];
-extern const uchar PAINT_CURSOR_VERTEX_PAINT[3];
-extern const uchar PAINT_CURSOR_WEIGHT_PAINT[3];
-extern const uchar PAINT_CURSOR_TEXTURE_PAINT[3];
-extern const uchar PAINT_CURSOR_SCULPT_CURVES[3];
-extern const uchar PAINT_CURSOR_PAINT_GREASE_PENCIL[3];
-extern const uchar PAINT_CURSOR_SCULPT_GREASE_PENCIL[3];
-
 /* overlay invalidation */
 enum ePaintOverlayControlFlags {
   PAINT_OVERLAY_INVALID_TEXTURE_PRIMARY = 1,
@@ -160,8 +152,7 @@ bool BKE_paint_ensure(ToolSettings *ts, Paint **r_paint);
 /**
  * \param ensure_brushes: Call #BKE_paint_brushes_ensure().
  */
-void BKE_paint_init(
-    Main *bmain, Scene *sce, PaintMode mode, const uchar col[3], bool ensure_brushes = true);
+void BKE_paint_init(Main *bmain, Scene *sce, PaintMode mode, bool ensure_brushes = true);
 void BKE_paint_free(Paint *paint);
 /**
  * Called when copying scene settings, so even if 'src' and 'tar' are the same still do a

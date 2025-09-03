@@ -826,6 +826,7 @@ static BHead *blo_bhead_read_full(FileData *fd, BHead *thisblock)
 
 const char *blo_bhead_id_name(FileData *fd, const BHead *bhead)
 {
+  BLI_assert(blo_bhead_is_id(bhead));
   const char *id_name = reinterpret_cast<const char *>(
       POINTER_OFFSET(bhead, sizeof(*bhead) + fd->id_name_offset));
   if (std::memchr(id_name, '\0', MAX_ID_NAME)) {
@@ -3307,6 +3308,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
      * system-defined-only storage. While not optimal (as it also duplicates actual user-defined
      * IDProperties), this seems to be the only safe and sound way to handle the migration. */
     version_system_idprops_generate(main);
+  }
+  if (!MAIN_VERSION_FILE_ATLEAST(main, 500, 70)) {
+    /* Same as above, but decision to keep user-defined (aka custom properties) in nodes was taken
+     * later during 5.0 development process. */
+    version_system_idprops_nodes_generate(main);
   }
 
   if (G.debug & G_DEBUG) {

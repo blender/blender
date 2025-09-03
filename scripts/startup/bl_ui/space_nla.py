@@ -10,13 +10,6 @@ from bl_ui.space_dopesheet import (
     dopesheet_filter,
 )
 from bl_ui.space_time import playback_controls
-from bl_ui.utils import (
-    PlayheadSnappingPanel,
-)
-
-
-class NLA_PT_playhead_snapping(PlayheadSnappingPanel, Panel):
-    bl_space_type = 'NLA_EDITOR'
 
 
 class NLA_HT_header(Header):
@@ -47,11 +40,6 @@ class NLA_HT_header(Header):
             panel="NLA_PT_snapping",
             text="",
         )
-
-        row = layout.row(align=True)
-        row.prop(tool_settings, "use_snap_playhead", text="")
-        sub = row.row(align=True)
-        sub.popover(panel="NLA_PT_playhead_snapping", text="")
 
 
 class NLA_HT_playback_controls(Header):
@@ -433,7 +421,6 @@ classes = (
     NLA_PT_filters,
     NLA_PT_action,
     NLA_PT_snapping,
-    NLA_PT_playhead_snapping,
 )
 
 if __name__ == "__main__":  # only for live edit.

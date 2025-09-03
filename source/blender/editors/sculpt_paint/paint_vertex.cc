@@ -324,7 +324,7 @@ void mode_enter_generic(
     BKE_paint_ensure(scene.toolsettings, (Paint **)&scene.toolsettings->vpaint);
     paint = BKE_paint_get_active_from_paintmode(&scene, paint_mode);
     ED_paint_cursor_start(paint, vertex_paint_poll);
-    BKE_paint_init(&bmain, &scene, paint_mode, PAINT_CURSOR_VERTEX_PAINT);
+    BKE_paint_init(&bmain, &scene, paint_mode);
   }
   else if (mode_flag == OB_MODE_WEIGHT_PAINT) {
     const PaintMode paint_mode = PaintMode::Weight;
@@ -332,7 +332,7 @@ void mode_enter_generic(
     BKE_paint_ensure(scene.toolsettings, (Paint **)&scene.toolsettings->wpaint);
     paint = BKE_paint_get_active_from_paintmode(&scene, paint_mode);
     ED_paint_cursor_start(paint, weight_paint_poll);
-    BKE_paint_init(&bmain, &scene, paint_mode, PAINT_CURSOR_WEIGHT_PAINT);
+    BKE_paint_init(&bmain, &scene, paint_mode);
 
     /* weight paint specific */
     ED_mesh_mirror_spatial_table_end(&ob);
@@ -537,7 +537,8 @@ void update_cache_variants(bContext *C, VPaint &vp, Object &ob, PointerRNA *ptr)
   }
 
   if (BKE_brush_use_size_pressure(&brush) && paint_supports_dynamic_size(brush, paint_mode)) {
-    cache->radius = cache->initial_radius * cache->pressure;
+    cache->radius = cache->initial_radius *
+                    BKE_curvemapping_evaluateF(brush.curve_size, 0, cache->pressure);
   }
   else {
     cache->radius = cache->initial_radius;
@@ -558,9 +559,15 @@ void get_brush_alpha_data(const SculptSession &ss,
                           float *r_brush_alpha_pressure)
 {
   *r_brush_size_pressure = BKE_brush_radius_get(&paint, &brush) *
-                           (BKE_brush_use_size_pressure(&brush) ? ss.cache->pressure : 1.0f);
+                           (BKE_brush_use_size_pressure(&brush) ?
+                                BKE_curvemapping_evaluateF(
+                                    brush.curve_size, 0, ss.cache->pressure) :
+                                1.0f);
   *r_brush_alpha_value = BKE_brush_alpha_get(&paint, &brush);
-  *r_brush_alpha_pressure = (BKE_brush_use_alpha_pressure(&brush) ? ss.cache->pressure : 1.0f);
+  *r_brush_alpha_pressure = BKE_brush_use_alpha_pressure(&brush) ?
+                                BKE_curvemapping_evaluateF(
+                                    brush.curve_strength, 0, ss.cache->pressure) :
+                                1.0f;
 }
 
 void last_stroke_update(const float location[3], Paint &paint)

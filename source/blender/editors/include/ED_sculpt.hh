@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 struct Depsgraph;
 struct Main;
 struct Mesh;
@@ -16,6 +18,7 @@ struct RegionView3D;
 struct ReportList;
 struct Scene;
 struct UndoType;
+struct UndoStep;
 struct bContext;
 struct wmKeyConfig;
 struct wmOperator;
@@ -73,6 +76,8 @@ void geometry_end(Object &ob);
  */
 void push_multires_mesh_begin(bContext *C, const char *str);
 void push_multires_mesh_end(bContext *C, const char *str);
+
+size_t step_memory_size_get(UndoStep *step);
 
 }  // namespace undo
 

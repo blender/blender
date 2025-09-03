@@ -109,7 +109,15 @@ void ArmatureImportContext::create_armature_bones(const ufbx_node *node,
   bArmature *arm = static_cast<bArmature *>(arm_obj->data);
 
   /* Create an EditBone. */
-  EditBone *bone = ED_armature_ebone_add(arm, get_fbx_name(node->name, "Bone"));
+  std::string name;
+  if (node->is_geometry_transform_helper) {
+    /* Name geometry transform adjustment helpers with parent name and _GeomAdjust suffix. */
+    name = get_fbx_name(node->parent->name, "Bone") + std::string("_GeomAdjust");
+  }
+  else {
+    name = get_fbx_name(node->name, "Bone");
+  }
+  EditBone *bone = ED_armature_ebone_add(arm, name.c_str());
   this->mapping.node_to_name.add(node, bone->name);
   this->mapping.node_is_blender_bone.add(node);
   this->mapping.bone_to_armature.add(node, arm_obj);

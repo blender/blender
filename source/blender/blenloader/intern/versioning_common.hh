@@ -210,6 +210,7 @@ bNode *version_eevee_output_node_get(bNodeTree *ntree, int16_t node_type);
  * Allow 5.0+ to 'convert' older blendfiles' system properties storage.
  */
 void version_system_idprops_generate(Main *bmain);
+void version_system_idprops_nodes_generate(Main *bmain);
 
 bool all_scenes_use(Main *bmain, const blender::Span<const char *> engines);
 

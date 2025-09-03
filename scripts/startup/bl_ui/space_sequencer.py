@@ -20,9 +20,6 @@ from bl_ui.properties_grease_pencil_common import (
 from bl_ui.space_toolsystem_common import (
     ToolActivePanelHelper,
 )
-from bl_ui.utils import (
-    PlayheadSnappingPanel,
-)
 
 from rna_prop_ui import PropertyPanel
 from bl_ui.space_time import playback_controls
@@ -196,11 +193,7 @@ class SEQUENCER_HT_header(Header):
             row.prop(tool_settings, "use_snap_sequencer", text="")
             sub = row.row(align=True)
             sub.popover(panel="SEQUENCER_PT_snapping")
-            if st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}:
-                row = layout.row(align=True)
-                row.prop(tool_settings, "use_snap_playhead", text="")
-                sub = row.row(align=True)
-                sub.popover(panel="SEQUENCER_PT_playhead_snapping", text="")
+
         layout.separator_spacer()
 
         if st.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'}:
@@ -3156,10 +3149,6 @@ class SEQUENCER_PT_custom_props(SequencerButtonsPanel, PropertyPanel, Panel):
     bl_category = "Strip"
 
 
-class SEQUENCER_PT_playhead_snapping(PlayheadSnappingPanel, Panel):
-    bl_space_type = 'SEQUENCE_EDITOR'
-
-
 class SEQUENCER_PT_snapping(Panel):
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'HEADER'
@@ -3325,7 +3314,6 @@ classes = (
     SEQUENCER_PT_snapping,
     SEQUENCER_PT_preview_snapping,
     SEQUENCER_PT_sequencer_snapping,
-    SEQUENCER_PT_playhead_snapping,
 )
 
 if __name__ == "__main__":  # only for live edit.

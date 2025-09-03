@@ -172,12 +172,7 @@ void DRW_gpu_context_create()
   viewport_context = MEM_new<ContextShared>(__func__);
   preview_context = MEM_new<ContextShared>(__func__);
 
-  /* Some part of the code assumes no context is left bound. */
-  GPU_context_active_set(nullptr);
-  WM_system_gpu_context_release(preview_context->system_gpu_context_);
-
-  /* Activate the window's context if any. */
-  wm_window_reset_drawable();
+  viewport_context->enable();
 }
 
 void DRW_gpu_context_destroy()

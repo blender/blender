@@ -98,6 +98,21 @@ const ColorSpace *FallbackConfig::get_sorted_color_space_by_index(const int inde
   return get_color_space_by_index(index);
 }
 
+const ColorSpace *FallbackConfig::get_color_space_by_interop_id(StringRefNull interop_id) const
+{
+  if (interop_id == "lin_rec709_scene") {
+    return &colorspace_linear_;
+  }
+  if (interop_id == "srgb_rec709_display") {
+    return &colorspace_srgb_;
+  }
+  if (interop_id == "data") {
+    return &colorspace_data_;
+  }
+
+  return nullptr;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

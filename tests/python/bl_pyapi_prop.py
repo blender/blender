@@ -45,33 +45,70 @@ class TestPropNumerical(unittest.TestCase):
         id_type.test_float = FloatProperty(default=float(self.default_value))
 
         self.test_bool_storage = bool(self.custom_value)
+        self.test_int_storage = int(self.custom_value)
+        self.test_float_storage = float(self.custom_value)
 
-        def set_(s, v):
+        def bool_set_(s, v):
             self.test_bool_storage = v
+
+        def int_set_(s, v):
+            self.test_int_storage = v
+
+        def float_set_(s, v):
+            self.test_float_storage = v
+
         id_type.test_bool_getset = BoolProperty(
             default=bool(self.default_value),
             get=lambda s: self.test_bool_storage,
-            set=set_,
+            set=bool_set_,
         )
-
-        self.test_int_storage = int(self.custom_value)
-
-        def set_(s, v):
-            self.test_int_storage = v
         id_type.test_int_getset = IntProperty(
             default=int(self.default_value),
             get=lambda s: self.test_int_storage,
-            set=set_,
+            set=int_set_,
         )
-
-        self.test_float_storage = float(self.custom_value)
-
-        def set_(s, v):
-            self.test_float_storage = v
         id_type.test_float_getset = FloatProperty(
             default=float(self.default_value),
             get=lambda s: self.test_float_storage,
-            set=set_,
+            set=float_set_,
+        )
+
+        id_type.test_bool_transform = BoolProperty(
+            default=bool(self.default_value),
+            get_transform=lambda s, c_v, isset: c_v,
+            set_transform=lambda s, n_v, c_v, isset: n_v,
+        )
+        id_type.test_int_transform = IntProperty(
+            default=int(self.default_value),
+            get_transform=lambda s, c_v, isset: c_v,
+            set_transform=lambda s, n_v, c_v, isset: n_v,
+        )
+        id_type.test_float_transform = FloatProperty(
+            default=float(self.default_value),
+            get_transform=lambda s, c_v, isset: c_v,
+            set_transform=lambda s, n_v, c_v, isset: n_v,
+        )
+
+        id_type.test_bool_getset_transform = BoolProperty(
+            default=bool(self.default_value),
+            get=lambda s: self.test_bool_storage,
+            set=bool_set_,
+            get_transform=lambda s, c_v, isset: c_v,
+            set_transform=lambda s, n_v, c_v, isset: n_v,
+        )
+        id_type.test_int_getset_transform = IntProperty(
+            default=int(self.default_value),
+            get=lambda s: self.test_int_storage,
+            set=int_set_,
+            get_transform=lambda s, c_v, isset: c_v,
+            set_transform=lambda s, n_v, c_v, isset: n_v,
+        )
+        id_type.test_float_getset_transform = FloatProperty(
+            default=float(self.default_value),
+            get=lambda s: self.test_float_storage,
+            set=float_set_,
+            get_transform=lambda s, c_v, isset: c_v,
+            set_transform=lambda s, n_v, c_v, isset: n_v,
         )
 
     def tearDown(self):
@@ -82,6 +119,14 @@ class TestPropNumerical(unittest.TestCase):
         del id_type.test_float_getset
         del id_type.test_int_getset
         del id_type.test_bool_getset
+
+        del id_type.test_float_transform
+        del id_type.test_int_transform
+        del id_type.test_bool_transform
+
+        del id_type.test_float_getset_transform
+        del id_type.test_int_getset_transform
+        del id_type.test_bool_getset_transform
 
     def do_test_access(self, prop_name, py_type, expected_value):
         v = getattr(id_inst, prop_name)
@@ -109,6 +154,24 @@ class TestPropNumerical(unittest.TestCase):
 
     def test_access_float_getset(self):
         self.do_test_access("test_float_getset", float, float(self.custom_value))
+
+    def test_access_bool_transform(self):
+        self.do_test_access("test_bool_transform", bool, bool(self.default_value))
+
+    def test_access_int_transform(self):
+        self.do_test_access("test_int_transform", int, int(self.default_value))
+
+    def test_access_float_transform(self):
+        self.do_test_access("test_float_transform", float, float(self.default_value))
+
+    def test_access_bool_getset_transform(self):
+        self.do_test_access("test_bool_getset_transform", bool, bool(self.custom_value))
+
+    def test_access_int_getset_transform(self):
+        self.do_test_access("test_int_getset_transform", int, int(self.custom_value))
+
+    def test_access_float_getset_transform(self):
+        self.do_test_access("test_float_getset_transform", float, float(self.custom_value))
 
     # TODO: Add expected failure cases (e.g. handling of out-of range values).
 
@@ -171,28 +234,63 @@ class TestPropEnum(unittest.TestCase):
         )
 
         self.test_enum_storage = self.enum_expected_values[self.custom_value]
-
-        def set_(s, v):
-            self.test_enum_storage = v
-        id_type.test_enum_getset = EnumProperty(
-            items=self.enum_items,
-            default=self.default_value,
-            get=lambda s: self.test_enum_storage,
-            set=set_,
-        )
-
         self.test_enum_bitflag_storage = functools.reduce(
             lambda a, b: a | b,
             (self.enum_expected_bitflag_values[bf] for bf in self.custom_bitflag_value))
 
-        def set_(s, v):
+        def enum_set_(s, v):
+            self.test_enum_storage = v
+
+        def bitflag_set_(s, v):
             self.test_enum_bitflag_storage = v
+
+        id_type.test_enum_getset = EnumProperty(
+            items=self.enum_items,
+            default=self.default_value,
+            get=lambda s: self.test_enum_storage,
+            set=enum_set_,
+        )
+
         id_type.test_enum_bitflag_getset = EnumProperty(
             items=self.enum_items,
             default=self.default_bitflag_value,
             options={"ENUM_FLAG"},
             get=lambda s: self.test_enum_bitflag_storage,
-            set=set_,
+            set=bitflag_set_,
+        )
+
+        id_type.test_enum_transform = EnumProperty(
+            items=self.enum_items,
+            default=self.default_value,
+            get_transform=lambda s, c_v, isset: c_v,
+            set_transform=lambda s, n_v, c_v, isset: n_v,
+        )
+
+        id_type.test_enum_bitflag_transform = EnumProperty(
+            items=self.enum_items,
+            default=self.default_bitflag_value,
+            options={"ENUM_FLAG"},
+            get_transform=lambda s, c_v, isset: c_v,
+            set_transform=lambda s, n_v, c_v, isset: n_v,
+        )
+
+        id_type.test_enum_getset_transform = EnumProperty(
+            items=self.enum_items,
+            default=self.default_value,
+            get=lambda s: self.test_enum_storage,
+            set=enum_set_,
+            get_transform=lambda s, c_v, isset: c_v,
+            set_transform=lambda s, n_v, c_v, isset: n_v,
+        )
+
+        id_type.test_enum_bitflag_getset_transform = EnumProperty(
+            items=self.enum_items,
+            default=self.default_bitflag_value,
+            options={"ENUM_FLAG"},
+            get_transform=lambda s, c_v, isset: c_v,
+            set_transform=lambda s, n_v, c_v, isset: n_v,
+            get=lambda s: self.test_enum_bitflag_storage,
+            set=bitflag_set_,
         )
 
     def tearDown(self):
@@ -200,6 +298,10 @@ class TestPropEnum(unittest.TestCase):
         del id_type.test_enum_bitflag
         del id_type.test_enum_getset
         del id_type.test_enum_bitflag_getset
+        del id_type.test_enum_transform
+        del id_type.test_enum_bitflag_transform
+        del id_type.test_enum_getset_transform
+        del id_type.test_enum_bitflag_getset_transform
 
     # Test expected generated values for enum items.
     def do_test_enum_values(self, prop_name, expected_item_values):
@@ -214,6 +316,24 @@ class TestPropEnum(unittest.TestCase):
 
     def test_enum_bitflag_item_values(self):
         self.do_test_enum_values("test_enum_bitflag", self.enum_expected_bitflag_values)
+
+    def test_enum_getset_item_values(self):
+        self.do_test_enum_values("test_enum_getset", self.enum_expected_values)
+
+    def test_enum_bitflag_getset_item_values(self):
+        self.do_test_enum_values("test_enum_bitflag_getset", self.enum_expected_bitflag_values)
+
+    def test_enum_transform_item_values(self):
+        self.do_test_enum_values("test_enum_transform", self.enum_expected_values)
+
+    def test_enum_bitflag_transform_item_values(self):
+        self.do_test_enum_values("test_enum_bitflag_transform", self.enum_expected_bitflag_values)
+
+    def test_enum_getset_transform_item_values(self):
+        self.do_test_enum_values("test_enum_getset_transform", self.enum_expected_values)
+
+    def test_enum_bitflag_getset_transform_item_values(self):
+        self.do_test_enum_values("test_enum_bitflag_getset_transform", self.enum_expected_bitflag_values)
 
     # Test basic access to enum values.
     def do_test_access(self, prop_name, py_type, expected_value):
@@ -233,6 +353,18 @@ class TestPropEnum(unittest.TestCase):
 
     def test_access_enum_bitflag_getset(self):
         self.do_test_access("test_enum_bitflag_getset", set, self.custom_bitflag_value)
+
+    def test_access_enum_transform(self):
+        self.do_test_access("test_enum_transform", str, self.default_value)
+
+    def test_access_enum_bitflag_transform(self):
+        self.do_test_access("test_enum_bitflag_transform", set, self.default_bitflag_value)
+
+    def test_access_enum_getset_transform(self):
+        self.do_test_access("test_enum_getset_transform", str, self.custom_value)
+
+    def test_access_enum_bitflag_getset_transform(self):
+        self.do_test_access("test_enum_bitflag_getset_transform", set, self.custom_bitflag_value)
 
     # TODO: Add expected failure cases (e.g. handling of invalid items identifiers).
 

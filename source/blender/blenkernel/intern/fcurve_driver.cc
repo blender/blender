@@ -1020,14 +1020,13 @@ DriverVar *driver_add_new_variable(ChannelDriver *driver)
   dvar = MEM_callocN<DriverVar>("DriverVar");
   BLI_addtail(&driver->variables, dvar);
 
+  /* Don't use translations as this is referenced as a literal in #ChannelDriver::expression. */
+  const char *name_default = "var";
+
   /* Give the variable a 'unique' name. */
-  STRNCPY_UTF8(dvar->name, CTX_DATA_(BLT_I18NCONTEXT_ID_ACTION, "var"));
-  BLI_uniquename(&driver->variables,
-                 dvar,
-                 CTX_DATA_(BLT_I18NCONTEXT_ID_ACTION, "var"),
-                 '_',
-                 offsetof(DriverVar, name),
-                 sizeof(dvar->name));
+  STRNCPY_UTF8(dvar->name, name_default);
+  BLI_uniquename(
+      &driver->variables, dvar, name_default, '_', offsetof(DriverVar, name), sizeof(dvar->name));
 
   /* Set the default type to 'single prop'. */
   driver_change_variable_type(dvar, DVAR_TYPE_SINGLE_PROP);

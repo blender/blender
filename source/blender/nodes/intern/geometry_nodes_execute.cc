@@ -1065,13 +1065,12 @@ void update_output_properties_from_node_tree(const bNodeTree &tree,
   }
 }
 
-void get_geometry_nodes_input_base_values(const bNodeTree &btree,
-                                          const PropertiesVectorSet &properties,
-                                          ResourceScope &scope,
-                                          MutableSpan<GPointer> r_values)
+Vector<InferenceValue> get_geometry_nodes_input_inference_values(
+    const bNodeTree &btree, const PropertiesVectorSet &properties, ResourceScope &scope)
 {
   /* Assume that all inputs have unknown values by default. */
-  r_values.fill(nullptr);
+  Vector<InferenceValue> inference_values(btree.interface_inputs().size(),
+                                          InferenceValue::Unknown());
 
   btree.ensure_interface_cache();
   for (const int input_i : btree.interface_inputs().index_range()) {
@@ -1107,8 +1106,9 @@ void get_geometry_nodes_input_base_values(const bNodeTree &btree,
     }
     const GPointer single_value = value.get_single_ptr();
     BLI_assert(single_value.type() == stype->base_cpp_type);
-    r_values[input_i] = single_value;
+    inference_values[input_i] = InferenceValue::from_primitive(single_value.get());
   }
+  return inference_values;
 }
 
 }  // namespace blender::nodes

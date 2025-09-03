@@ -359,6 +359,11 @@ void node_node_foreach_id(bNode *node, LibraryForeachIDData *data)
       data, IDP_foreach_property(node->prop, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
         BKE_lib_query_idpropertiesForeachIDLink_callback(prop, data);
       }));
+  BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+      data,
+      IDP_foreach_property(node->system_properties, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
+        BKE_lib_query_idpropertiesForeachIDLink_callback(prop, data);
+      }));
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
     BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, library_foreach_node_socket(sock, data));
   }
@@ -1163,6 +1168,9 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
     if (node->prop) {
       IDP_BlendWrite(writer, node->prop);
     }
+    if (node->system_properties) {
+      IDP_BlendWrite(writer, node->system_properties);
+    }
 
     LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
       write_node_socket(writer, sock);
@@ -1881,6 +1889,8 @@ void node_tree_blend_read_data(BlendDataReader *reader, ID *owner_id, bNodeTree 
 
     BLO_read_struct(reader, IDProperty, &node->prop);
     IDP_BlendDataRead(reader, &node->prop);
+    BLO_read_struct(reader, IDProperty, &node->system_properties);
+    IDP_BlendDataRead(reader, &node->system_properties);
 
     node_blend_read_data_storage(reader, ntree, node);
   }
@@ -3586,6 +3596,9 @@ bNode *node_copy_with_mapping(bNodeTree *dst_tree,
   if (node_src.prop) {
     node_dst->prop = IDP_CopyProperty_ex(node_src.prop, flag);
   }
+  if (node_src.system_properties) {
+    node_dst->system_properties = IDP_CopyProperty_ex(node_src.system_properties, flag);
+  }
 
   node_dst->panel_states_array = static_cast<bNodePanelState *>(
       MEM_dupallocN(node_src.panel_states_array));
@@ -4310,6 +4323,11 @@ void node_free_node(bNodeTree *ntree, bNode &node)
     /* Remember, no ID user refcount management here! */
     IDP_FreePropertyContent_ex(node.prop, false);
     MEM_freeN(node.prop);
+  }
+  if (node.system_properties) {
+    /* Remember, no ID user refcount management here! */
+    IDP_FreePropertyContent_ex(node.system_properties, false);
+    MEM_freeN(node.system_properties);
   }
 
   if (node.runtime->declaration) {

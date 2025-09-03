@@ -684,30 +684,93 @@ struct EnumPropertyItem {
 /** Separator for RNA enum that begins a new column in menus (shown in the UI). */
 #define RNA_ENUM_ITEM_SEPR_COLUMN RNA_ENUM_ITEM_HEADING("", NULL)
 
-/* extended versions with PropertyRNA argument */
+/* Extended versions with PropertyRNA argument. Used in particular by the bpy code to wrap all the
+ * py-defined callbacks when defining a property using `bpy.props` module.
+ *
+ * The 'Transform' ones allow to add a transform step (applied after getting, or before setting the
+ * value), which only modifies the value, but does not handle actual storage. Currently only used
+ * by `bpy`, more details in the documentation of #BPyPropStore.
+ */
 using BooleanPropertyGetFunc = bool (*)(PointerRNA *ptr, PropertyRNA *prop);
 using BooleanPropertySetFunc = void (*)(PointerRNA *ptr, PropertyRNA *prop, bool value);
-using BooleanArrayPropertyGetFunc = void (*)(PointerRNA *ptr, PropertyRNA *prop, bool *values);
+using BooleanPropertyGetTransformFunc = bool (*)(PointerRNA *ptr,
+                                                 PropertyRNA *prop,
+                                                 bool value,
+                                                 bool is_set);
+using BooleanPropertySetTransformFunc =
+    bool (*)(PointerRNA *ptr, PropertyRNA *prop, bool new_value, bool curr_value, bool is_set);
+
+using BooleanArrayPropertyGetFunc = void (*)(PointerRNA *ptr, PropertyRNA *prop, bool *r_values);
 using BooleanArrayPropertySetFunc = void (*)(PointerRNA *ptr,
                                              PropertyRNA *prop,
-                                             const bool *values);
+                                             const bool *r_values);
+using BooleanArrayPropertyGetTransformFunc = void (*)(
+    PointerRNA *ptr, PropertyRNA *prop, const bool *curr_values, bool is_set, bool *r_values);
+using BooleanArrayPropertySetTransformFunc = void (*)(PointerRNA *ptr,
+                                                      PropertyRNA *prop,
+                                                      const bool *new_values,
+                                                      const bool *curr_values,
+                                                      bool is_set,
+                                                      bool *r_values);
+
 using IntPropertyGetFunc = int (*)(PointerRNA *ptr, PropertyRNA *prop);
 using IntPropertySetFunc = void (*)(PointerRNA *ptr, PropertyRNA *prop, int value);
+using IntPropertyGetTransformFunc = int (*)(PointerRNA *ptr,
+                                            PropertyRNA *prop,
+                                            int value,
+                                            bool is_set);
+using IntPropertySetTransformFunc =
+    int (*)(PointerRNA *ptr, PropertyRNA *prop, int new_value, int curr_value, bool is_set);
 using IntArrayPropertyGetFunc = void (*)(PointerRNA *ptr, PropertyRNA *prop, int *values);
 using IntArrayPropertySetFunc = void (*)(PointerRNA *ptr, PropertyRNA *prop, const int *values);
+using IntArrayPropertyGetTransformFunc = void (*)(
+    PointerRNA *ptr, PropertyRNA *prop, const int *curr_values, bool is_set, int *r_values);
+using IntArrayPropertySetTransformFunc = void (*)(PointerRNA *ptr,
+                                                  PropertyRNA *prop,
+                                                  const int *new_values,
+                                                  const int *curr_values,
+                                                  bool is_set,
+                                                  int *r_values);
 using IntPropertyRangeFunc =
     void (*)(PointerRNA *ptr, PropertyRNA *prop, int *min, int *max, int *softmin, int *softmax);
+
 using FloatPropertyGetFunc = float (*)(PointerRNA *ptr, PropertyRNA *prop);
 using FloatPropertySetFunc = void (*)(PointerRNA *ptr, PropertyRNA *prop, float value);
+using FloatPropertyGetTransformFunc = float (*)(PointerRNA *ptr,
+                                                PropertyRNA *prop,
+                                                float value,
+                                                bool is_set);
+using FloatPropertySetTransformFunc =
+    float (*)(PointerRNA *ptr, PropertyRNA *prop, float new_value, float curr_value, bool is_set);
 using FloatArrayPropertyGetFunc = void (*)(PointerRNA *ptr, PropertyRNA *prop, float *values);
 using FloatArrayPropertySetFunc = void (*)(PointerRNA *ptr,
                                            PropertyRNA *prop,
                                            const float *values);
+using FloatArrayPropertyGetTransformFunc = void (*)(
+    PointerRNA *ptr, PropertyRNA *prop, const float *curr_values, bool is_set, float *r_values);
+using FloatArrayPropertySetTransformFunc = void (*)(PointerRNA *ptr,
+                                                    PropertyRNA *prop,
+                                                    const float *new_values,
+                                                    const float *curr_values,
+                                                    bool is_set,
+                                                    float *r_values);
 using FloatPropertyRangeFunc = void (*)(
     PointerRNA *ptr, PropertyRNA *prop, float *min, float *max, float *softmin, float *softmax);
-using StringPropertyGetFunc = void (*)(PointerRNA *ptr, PropertyRNA *prop, char *value);
+
+using StringPropertyGetFunc = std::string (*)(PointerRNA *ptr, PropertyRNA *prop);
 using StringPropertyLengthFunc = int (*)(PointerRNA *ptr, PropertyRNA *prop);
-using StringPropertySetFunc = void (*)(PointerRNA *ptr, PropertyRNA *prop, const char *value);
+using StringPropertySetFunc = void (*)(PointerRNA *ptr,
+                                       PropertyRNA *prop,
+                                       const std::string &value);
+using StringPropertyGetTransformFunc = std::string (*)(PointerRNA *ptr,
+                                                       PropertyRNA *prop,
+                                                       const std::string &value,
+                                                       bool is_set);
+using StringPropertySetTransformFunc = std::string (*)(PointerRNA *ptr,
+                                                       PropertyRNA *prop,
+                                                       const std::string &new_value,
+                                                       const std::string &curr_value,
+                                                       bool is_set);
 
 struct StringPropertySearchVisitParams {
   /** Text being searched for. */
@@ -763,6 +826,12 @@ using StringPropertyPathFilterFunc = std::optional<std::string> (*)(const bConte
 
 using EnumPropertyGetFunc = int (*)(PointerRNA *ptr, PropertyRNA *prop);
 using EnumPropertySetFunc = void (*)(PointerRNA *ptr, PropertyRNA *prop, int value);
+using EnumPropertyGetTransformFunc = int (*)(PointerRNA *ptr,
+                                             PropertyRNA *prop,
+                                             int value,
+                                             bool is_set);
+using EnumPropertySetTransformFunc =
+    int (*)(PointerRNA *ptr, PropertyRNA *prop, int new_value, int curr_value, bool is_set);
 /* same as PropEnumItemFunc */
 using EnumPropertyItemFunc = const EnumPropertyItem *(*)(bContext *C,
                                                          PointerRNA *ptr,

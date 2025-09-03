@@ -127,6 +127,12 @@ class Config {
    */
   virtual const ColorSpace *get_sorted_color_space_by_index(int index) const = 0;
 
+  /**
+   * Get color space for the given interop ID.
+   * If not found a nullptr is returned.
+   */
+  virtual const ColorSpace *get_color_space_by_interop_id(StringRefNull interop_id) const = 0;
+
   /** \} */
 
   /* -------------------------------------------------------------------- */

@@ -14,6 +14,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_bvhutils.hh"
+#include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_modifier.hh"
@@ -91,7 +92,7 @@ bool curves_sculpt_poll_view3d(bContext *C)
 float brush_radius_factor(const Brush &brush, const StrokeExtension &stroke_extension)
 {
   if (BKE_brush_use_size_pressure(&brush)) {
-    return stroke_extension.pressure;
+    return BKE_curvemapping_evaluateF(brush.curve_size, 0, stroke_extension.pressure);
   }
   return 1.0f;
 }
@@ -106,7 +107,7 @@ float brush_radius_get(const Paint &paint,
 float brush_strength_factor(const Brush &brush, const StrokeExtension &stroke_extension)
 {
   if (BKE_brush_use_alpha_pressure(&brush)) {
-    return stroke_extension.pressure;
+    return BKE_curvemapping_evaluateF(brush.curve_strength, 0, stroke_extension.pressure);
   }
   return 1.0f;
 }
@@ -304,10 +305,6 @@ static void curves_sculptmode_enter(bContext *C)
   Paint *paint = BKE_paint_get_active_from_paintmode(scene, PaintMode::SculptCurves);
 
   BKE_paint_brushes_ensure(CTX_data_main(C), paint);
-
-  /* Setup cursor color. BKE_paint_init() could be used, but creates an additional brush. */
-  copy_v3_v3_uchar(paint->paint_cursor_col, PAINT_CURSOR_SCULPT_CURVES);
-  paint->paint_cursor_col[3] = 128;
 
   ED_paint_cursor_start(&curves_sculpt->paint, curves_sculpt_poll_view3d);
   paint_init_pivot(ob, scene, paint);

@@ -511,6 +511,7 @@ OCIOColorSpaceConversionShader::OCIOColorSpaceConversionShader(Context &context,
   }
 #else
   UNUSED_VARS(source, target);
+  UNUSED_VARS(LOG);
 #endif
 }
 
@@ -640,7 +641,7 @@ OCIOToDisplayShader::OCIOToDisplayShader(Context &context,
     CLOG_ERROR(&LOG, "Failed to create OpenColorIO shader: %s", e.what());
   }
 #else
-  UNUSED_VARS(display_device, view_transform);
+  UNUSED_VARS(display_settings, view_settings, inverse);
 #endif
 }
 

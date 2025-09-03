@@ -577,8 +577,8 @@ set(GLSL_SRC
 
   intern/draw_attribute_shader_shared.hh
   intern/draw_command_shared.hh
-  intern/draw_defines.hh
   intern/draw_curves_defines.hh
+  intern/draw_defines.hh
   intern/draw_pointcloud_private.hh
   intern/draw_shader_shared.hh
   intern/draw_subdiv_defines.hh
@@ -831,8 +831,8 @@ add_library(bf::draw ALIAS bf_draw)
 if(WITH_GTESTS)
   if(WITH_GPU_DRAW_TESTS)
     set(TEST_SRC
-      tests/draw_pass_test.cc
       tests/draw_curves_test.cc
+      tests/draw_pass_test.cc
       tests/draw_testing.cc
       tests/eevee_test.cc
 

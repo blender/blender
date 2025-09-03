@@ -7765,9 +7765,16 @@ static wmOperatorStatus mesh_symmetrize_exec(bContext *C, wmOperator *op)
     if (!EDBM_op_finish(em, &bmop, op, true)) {
       continue;
     }
+
+    bool calc_normals = false;
+    if (scene->toolsettings->automerge & AUTO_MERGE) {
+      calc_normals = EDBM_automerge_connected(
+          obedit, false, BM_ELEM_SELECT, scene->toolsettings->doublimit);
+    }
+
     EDBMUpdate_Params params{};
     params.calc_looptris = true;
-    params.calc_normals = false;
+    params.calc_normals = calc_normals;
     params.is_destructive = true;
     EDBM_update(static_cast<Mesh *>(obedit->data), &params);
     EDBM_selectmode_flush(em);

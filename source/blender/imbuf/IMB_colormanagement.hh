@@ -9,9 +9,9 @@
  */
 
 #include "BLI_compiler_compat.h"
-#include "BLI_vector.hh"
-
 #include "BLI_math_matrix_types.hh"
+#include "BLI_string_ref.hh"
+#include "BLI_vector.hh"
 
 #define BCM_CONFIG_FILE "config.ocio"
 
@@ -62,18 +62,6 @@ const char *IMB_colormanagement_get_float_colorspace(const ImBuf *ibuf);
 const char *IMB_colormanagement_get_rect_colorspace(const ImBuf *ibuf);
 const char *IMB_colormanagement_space_from_filepath_rules(const char *filepath);
 
-/* Get colorspace name used for Rec.2100 PQ Display conversion.
- *
- * Searches for one of the color spaces or aliases: Rec.2100-PQ, Rec.2100-PQ - Display, rec2100_pq,
- * rec2100_pq_display. If none found returns nullptr. */
-const char *IMB_colormanagement_get_rec2100_pq_display_colorspace();
-
-/* Get colorspace name used for Rec.2100 HLG Display conversion.
- *
- * Searches for one of the color spaces or aliases: Rec.2100-HLG, Rec.2100-HLG - Display,
- * rec2100_hlg, rec2100_hlg_display. If none found returns nullptr. */
-const char *IMB_colormanagement_get_rec2100_hlg_display_colorspace();
-
 const ColorSpace *IMB_colormanagement_space_get_named(const char *name);
 bool IMB_colormanagement_space_is_data(const ColorSpace *colorspace);
 bool IMB_colormanagement_space_is_scene_linear(const ColorSpace *colorspace);
@@ -82,7 +70,13 @@ bool IMB_colormanagement_space_name_is_data(const char *name);
 bool IMB_colormanagement_space_name_is_scene_linear(const char *name);
 bool IMB_colormanagement_space_name_is_srgb(const char *name);
 
+/* Get binary ICC profile contents for a colorspace. */
 blender::Vector<char> IMB_colormanagement_space_icc_profile(const ColorSpace *colorspace);
+
+/* Get identifier for colorspaces that works with multiple OpenColorIO configurations,
+ * as defined by the ASWF Color Interop Forum. */
+blender::StringRefNull IMB_colormanagement_space_get_interop_id(const ColorSpace *colorspace);
+const ColorSpace *IMB_colormanagement_space_from_interop_id(blender::StringRefNull interop_id);
 
 BLI_INLINE void IMB_colormanagement_get_luminance_coefficients(float r_rgb[3]);
 

@@ -11,6 +11,10 @@
 #include "vk_context.hh"
 #include <vulkan/vulkan_core.h>
 
+#include "CLG_log.h"
+
+static CLG_LogRef LOG = {"gpu.vulkan"};
+
 namespace blender::gpu {
 
 VKBuffer::~VKBuffer()
@@ -42,6 +46,19 @@ bool VKBuffer::create(size_t size_in_bytes,
    */
   alloc_size_in_bytes_ = ceil_to_multiple_ul(max_ulul(size_in_bytes_, 16), 16);
   VKDevice &device = VKBackend::get().device;
+
+  /* Precheck max buffer size. */
+  if (device.extensions_get().maintenance4 &&
+      alloc_size_in_bytes_ > device.physical_device_maintenance4_properties_get().maxBufferSize)
+  {
+    CLOG_WARN(
+        &LOG,
+        "Couldn't allocate buffer, requested allocation exceeds the maxBufferSize of the device.");
+    allocation_failed_ = true;
+    size_in_bytes_ = 0;
+    alloc_size_in_bytes_ = 0;
+    return false;
+  }
 
   VmaAllocator allocator = device.mem_allocator_get();
   VkBufferCreateInfo create_info = {};

@@ -53,6 +53,7 @@
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_paint.hh"
 #include "BKE_pointcache.h"
 #include "BKE_report.hh"
 
@@ -73,17 +74,17 @@
 // #include "CLG_log.h"
 // static CLG_LogRef LOG = {"blend.doversion"};
 
+static void idprops_process(IDProperty *idprops, IDProperty **system_idprops)
+{
+  BLI_assert(*system_idprops == nullptr);
+  if (idprops) {
+    /* Other ID pointers have not yet been relinked, do not try to access them for refcounting. */
+    *system_idprops = IDP_CopyProperty_ex(idprops, LIB_ID_CREATE_NO_USER_REFCOUNT);
+  }
+}
+
 void version_system_idprops_generate(Main *bmain)
 {
-  auto idprops_process = [](IDProperty *idprops, IDProperty **system_idprops) -> void {
-    BLI_assert(*system_idprops == nullptr);
-    if (idprops) {
-      /* Other ID pointers have not yet been relinked, do not try to access them for refcounting.
-       */
-      *system_idprops = IDP_CopyProperty_ex(idprops, LIB_ID_CREATE_NO_USER_REFCOUNT);
-    }
-  };
-
   ID *id_iter;
   FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
     idprops_process(id_iter->properties, &id_iter->system_properties);
@@ -96,11 +97,10 @@ void version_system_idprops_generate(Main *bmain)
     }
 
     if (scene->ed != nullptr) {
-      blender::seq::for_each_callback(&scene->ed->seqbase,
-                                      [&idprops_process](Strip *strip) -> bool {
-                                        idprops_process(strip->prop, &strip->system_properties);
-                                        return true;
-                                      });
+      blender::seq::for_each_callback(&scene->ed->seqbase, [](Strip *strip) -> bool {
+        idprops_process(strip->prop, &strip->system_properties);
+        return true;
+      });
     }
   }
 
@@ -121,6 +121,16 @@ void version_system_idprops_generate(Main *bmain)
       idprops_process(bone->prop, &bone->system_properties);
     }
   }
+}
+/* Separate callback for nodes, because they had the split implemented later. */
+void version_system_idprops_nodes_generate(Main *bmain)
+{
+  FOREACH_NODETREE_BEGIN (bmain, node_tree, id_owner) {
+    LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+      idprops_process(node->prop, &node->system_properties);
+    }
+  }
+  FOREACH_NODETREE_END;
 }
 
 static CustomDataLayer *find_old_seam_layer(CustomData &custom_data, const blender::StringRef name)
@@ -2163,6 +2173,42 @@ static void remove_in_and_out_node_interface(bNodeTree &node_tree)
   remove_in_and_out_node_panel_recursive(node_tree.tree_interface.root_panel);
 }
 
+static void repair_node_link_node_pointers(FileData &fd, bNodeTree &node_tree)
+{
+  using namespace blender;
+  Map<bNodeSocket *, bNode *> socket_to_node;
+  LISTBASE_FOREACH (bNode *, node, &node_tree.nodes) {
+    LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
+      socket_to_node.add(socket, node);
+    }
+    LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
+      socket_to_node.add(socket, node);
+    }
+  }
+  LISTBASE_FOREACH (bNodeLink *, link, &node_tree.links) {
+    bool fixed = false;
+    bNode *to_node = socket_to_node.lookup(link->tosock);
+    if (to_node != link->tonode) {
+      link->tonode = to_node;
+      fixed = true;
+    }
+    bNode *from_node = socket_to_node.lookup(link->fromsock);
+    if (from_node != link->fromnode) {
+      link->fromnode = from_node;
+      fixed = true;
+    }
+    if (fixed) {
+      BLO_reportf_wrap(fd.reports,
+                       RPT_WARNING,
+                       "Repairing invalid state in node link from %s:%s to %s:%s",
+                       link->fromnode->name,
+                       link->fromsock->identifier,
+                       link->tonode->name,
+                       link->tosock->identifier);
+    }
+  }
+}
+
 static void sequencer_remove_listbase_pointers(Scene &scene)
 {
   Editing *ed = scene.ed;
@@ -2177,7 +2223,7 @@ static void sequencer_remove_listbase_pointers(Scene &scene)
   blender::seq::meta_stack_set(&scene, last_meta_stack->parent_strip);
 }
 
-void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
+void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   using namespace blender;
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 1)) {
@@ -2938,6 +2984,32 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 68)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       sequencer_remove_listbase_pointers(*scene);
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 69)) {
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      repair_node_link_node_pointers(*fd, *ntree);
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 71)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      scene->toolsettings->uvsculpt.size *= 2;
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 72)) {
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (brush->curve_size == nullptr) {
+        brush->curve_size = BKE_paint_default_curve();
+      }
+      if (brush->curve_strength == nullptr) {
+        brush->curve_strength = BKE_paint_default_curve();
+      }
+      if (brush->curve_jitter == nullptr) {
+        brush->curve_jitter = BKE_paint_default_curve();
+      }
     }
   }
 
