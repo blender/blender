@@ -61,6 +61,15 @@ CryptomatteSession::CryptomatteSession(const Main *bmain)
     LISTBASE_FOREACH (ID *, id, &bmain->objects) {
       objects.add_ID(*id);
     }
+
+    blender::bke::cryptomatte::CryptomatteLayer &assets = add_layer(RE_PASSNAME_CRYPTOMATTE_ASSET);
+    LISTBASE_FOREACH (ID *, id, &bmain->objects) {
+      const Object *asset_object = reinterpret_cast<Object *>(id);
+      while (asset_object->parent != nullptr) {
+        asset_object = asset_object->parent;
+      }
+      assets.add_ID(asset_object->id);
+    }
   }
   if (!BLI_listbase_is_empty(&bmain->materials)) {
     blender::bke::cryptomatte::CryptomatteLayer &materials = add_layer(
@@ -128,7 +137,18 @@ void CryptomatteSession::init(const ViewLayer *view_layer, bool build_meta_data)
   }
 
   if (cryptoflags & VIEW_LAYER_CRYPTOMATTE_ASSET) {
-    add_layer(blender::StringRefNull(view_layer->name) + "." + RE_PASSNAME_CRYPTOMATTE_ASSET);
+    blender::bke::cryptomatte::CryptomatteLayer &assets = add_layer(
+        blender::StringRefNull(view_layer->name) + "." + RE_PASSNAME_CRYPTOMATTE_ASSET);
+
+    if (build_meta_data) {
+      LISTBASE_FOREACH (Base *, base, object_bases) {
+        const Object *asset_object = base->object;
+        while (asset_object->parent != nullptr) {
+          asset_object = asset_object->parent;
+        }
+        assets.add_ID(asset_object->id);
+      }
+    }
   }
 
   if (cryptoflags & VIEW_LAYER_CRYPTOMATTE_MATERIAL) {
