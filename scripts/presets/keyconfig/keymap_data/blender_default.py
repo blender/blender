@@ -8450,6 +8450,7 @@ def km_sequencer_tool_generic_select_box(params, *, fallback):
         ]},
     )
 
+
 def km_sequencer_tool_generic_select_circle(params, *, fallback):
     return (
         _fallback_id("Sequencer Tool: Select Circle", fallback),
@@ -8462,6 +8463,7 @@ def km_sequencer_tool_generic_select_circle(params, *, fallback):
                 properties=[("wait_for_input", False)])),
         ]},
     )
+
 
 def km_sequencer_preview_tool_generic_select(params, *, fallback):
     return (
