@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_rect.h"
+
 #include "DNA_ID.h"
 #include "DNA_colorband_types.h"
 #include "DNA_listBase.h"
@@ -194,11 +196,16 @@ typedef struct UserDef_FileSpaceData {
   int flag;           /* FileSelectParams.flag */
   int _pad0;
   uint64_t filter_id; /* FileSelectParams.filter_id */
-
-  /** Info used when creating the file browser in a temporary window. */
-  int temp_win_sizex;
-  int temp_win_sizey;
 } UserDef_FileSpaceData;
+
+typedef struct UserDef_TempWinBounds {
+  rctf file;
+  rctf userpref;
+  rctf image;
+  rctf graph;
+  rctf info;
+  rctf outliner;
+} UserDef_TempWinBounds;
 
 /**
  * Checking experimental members must use the #USER_EXPERIMENTAL_TEST() macro
@@ -613,6 +620,8 @@ typedef struct UserDef {
   /** The UI for the user preferences. */
   UserDef_SpaceData space_data;
   UserDef_FileSpaceData file_space_data;
+
+  UserDef_TempWinBounds stored_bounds;
 
   UserDef_Experimental experimental;
 

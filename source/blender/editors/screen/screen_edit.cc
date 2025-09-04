@@ -1891,26 +1891,12 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, const
   return static_cast<ScrArea *>(screen->areabase.first);
 }
 
-ScrArea *ED_screen_temp_space_open(bContext *C,
-                                   const char *title,
-                                   const rcti *rect_unscaled,
-                                   eSpace_Type space_type,
-                                   int display_type,
-                                   bool dialog)
+ScrArea *ED_screen_temp_space_open(
+    bContext *C, const char *title, eSpace_Type space_type, int display_type, bool dialog)
 {
   switch (display_type) {
     case USER_TEMP_SPACE_DISPLAY_WINDOW:
-      if (WM_window_open(C,
-                         title,
-                         rect_unscaled,
-                         int(space_type),
-                         false,
-                         dialog,
-                         true,
-                         WIN_ALIGN_LOCATION_CENTER,
-                         nullptr,
-                         nullptr))
-      {
+      if (WM_window_open_temp(C, title, space_type, dialog)) {
         return CTX_wm_area(C);
       }
       break;

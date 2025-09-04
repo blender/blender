@@ -9074,6 +9074,8 @@ GHOST_TCapabilityFlag GHOST_SystemWayland::getCapabilities() const
       ~(
           /* WAYLAND doesn't support accessing the window position. */
           GHOST_kCapabilityWindowPosition |
+          /* WAYLAND cannot precisely place windows among multiple monitors. */
+          GHOST_kCapabilityMultiMonitorPlacement |
           /* WAYLAND doesn't support setting the cursor position directly,
            * this is an intentional choice, forcing us to use a software cursor in this case. */
           GHOST_kCapabilityCursorWarp |
