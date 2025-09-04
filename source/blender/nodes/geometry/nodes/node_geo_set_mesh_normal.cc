@@ -36,14 +36,14 @@ static void node_declare(NodeDeclarationBuilder &b)
     switch (Mode(node->custom1)) {
       case Mode::Sharpness:
         b.add_input<decl::Bool>("Remove Custom").default_value(true);
-        b.add_input<decl::Bool>("Edge Sharpness").supports_field();
-        b.add_input<decl::Bool>("Face Sharpness").supports_field();
+        b.add_input<decl::Bool>("Edge Sharpness").field_on_all();
+        b.add_input<decl::Bool>("Face Sharpness").field_on_all();
         break;
       case Mode::Free:
       case Mode::CornerFanSpace:
         b.add_input<decl::Vector>("Custom Normal")
             .subtype(PROP_XYZ)
-            .implicit_field(NODE_DEFAULT_INPUT_NORMAL_FIELD)
+            .implicit_field_on_all(NODE_DEFAULT_INPUT_NORMAL_FIELD)
             .hide_value();
         break;
     }
