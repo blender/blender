@@ -410,6 +410,11 @@ if(TEST_SRC_DIR_EXISTS)
   )
 
   add_blender_test(
+    mesh_join
+    --python ${TEST_PYTHON_DIR}/mesh_join.py
+  )
+
+  add_blender_test(
     object_conversion
     ${TEST_SRC_DIR}/modeling/object_conversion.blend
     --python ${TEST_PYTHON_DIR}/object_conversion.py
