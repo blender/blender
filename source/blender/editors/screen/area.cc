@@ -1227,6 +1227,10 @@ static bool region_azone_edge_poll(const ScrArea *area,
     return false;
   }
 
+  if (area->winy < int(float(ED_area_headersize()) * 1.5f)) {
+    return false;
+  }
+
   /* Don't use edge if the region hides with previous region which is now hidden. See #116196. */
   if ((region->alignment & (RGN_SPLIT_PREV | RGN_ALIGN_HIDE_WITH_PREV) && region->prev) &&
       region->prev->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL))
