@@ -1118,6 +1118,9 @@ class USERPREF_PT_theme_interface_panel(ThemePanel, CenterAlignMixIn, Panel):
         col.prop(ui, "panel_back", text="Background")
         col.prop(ui, "panel_sub_back", text="Sub-Panel")
 
+        col = col.column()
+        col.prop(ui, "panel_active", text="Active")
+
         col = flow.column(align=True)
         col.prop(ui, "panel_title", text="Title")
         col.prop(ui, "panel_text", text="Text")

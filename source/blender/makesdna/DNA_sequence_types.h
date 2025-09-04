@@ -560,7 +560,11 @@ typedef struct StripModifierData {
   struct Mask *mask_id;
 
   int persistent_uid;
-  char _pad[4];
+  /**
+   * Bits that can be used for open-states of layout panels in the modifier.
+   */
+  uint16_t layout_panel_open_flag;
+  char _pad[2];
 
   StripModifierDataRuntime runtime;
 } StripModifierData;
@@ -872,14 +876,15 @@ enum {
 
 /** #StripModifierData.type */
 typedef enum eStripModifierType {
-  seqModifierType_ColorBalance = 1,
-  seqModifierType_Curves = 2,
-  seqModifierType_HueCorrect = 3,
-  seqModifierType_BrightContrast = 4,
-  seqModifierType_Mask = 5,
-  seqModifierType_WhiteBalance = 6,
-  seqModifierType_Tonemap = 7,
-  seqModifierType_SoundEqualizer = 8,
+  eSeqModifierType_None = 0,
+  eSeqModifierType_ColorBalance = 1,
+  eSeqModifierType_Curves = 2,
+  eSeqModifierType_HueCorrect = 3,
+  eSeqModifierType_BrightContrast = 4,
+  eSeqModifierType_Mask = 5,
+  eSeqModifierType_WhiteBalance = 6,
+  eSeqModifierType_Tonemap = 7,
+  eSeqModifierType_SoundEqualizer = 8,
   /* Keep last. */
   NUM_STRIP_MODIFIER_TYPES,
 } eStripModifierType;
@@ -888,6 +893,7 @@ typedef enum eStripModifierType {
 typedef enum eStripModifierFlag {
   STRIP_MODIFIER_FLAG_MUTE = (1 << 0),
   STRIP_MODIFIER_FLAG_EXPANDED = (1 << 1),
+  STRIP_MODIFIER_FLAG_ACTIVE = (1 << 2),
 } eStripModifierFlag;
 
 typedef enum eModMaskInput {

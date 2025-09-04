@@ -69,6 +69,8 @@
 
 #include "ED_datafiles.h"
 
+#include "SEQ_modifier.hh"
+
 #include "WM_api.hh"
 
 #include "RNA_define.hh"
@@ -449,6 +451,7 @@ int main(int argc,
   BKE_cpp_types_init();
   BKE_idtype_init();
   BKE_modifier_init();
+  blender::seq::modifiers_init();
   BKE_shaderfx_init();
   BKE_volumes_init();
   DEG_register_node_types();

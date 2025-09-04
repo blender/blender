@@ -1790,6 +1790,10 @@ void RNA_api_ui_layout(StructRNA *srna)
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   RNA_def_function_ui_description(func, "Generates the UI layout for the modifier stack");
 
+  func = RNA_def_function(srna, "template_strip_modifiers", "uiTemplateStripModifiers");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+  RNA_def_function_ui_description(func, "Generates the UI layout for the strip modifier stack");
+
   func = RNA_def_function(srna, "template_collection_exporters", "uiTemplateCollectionExporters");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   RNA_def_function_ui_description(func, "Generates the UI layout for collection exporters");

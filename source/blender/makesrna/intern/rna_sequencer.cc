@@ -42,16 +42,16 @@ struct EffectInfo {
 /* These wrap strangely, disable formatting for fixed indentation and wrapping. */
 /* clang-format off */
 #define RNA_ENUM_SEQUENCER_VIDEO_MODIFIER_TYPE_ITEMS \
-  {seqModifierType_BrightContrast, "BRIGHT_CONTRAST", ICON_NONE, "Brightness/Contrast", ""}, \
-  {seqModifierType_ColorBalance, "COLOR_BALANCE", ICON_NONE, "Color Balance", ""}, \
-  {seqModifierType_Curves, "CURVES", ICON_NONE, "Curves", ""}, \
-  {seqModifierType_HueCorrect, "HUE_CORRECT", ICON_NONE, "Hue Correct", ""}, \
-  {seqModifierType_Mask, "MASK", ICON_NONE, "Mask", ""}, \
-  {seqModifierType_Tonemap, "TONEMAP", ICON_NONE, "Tone Map", ""}, \
-  {seqModifierType_WhiteBalance, "WHITE_BALANCE", ICON_NONE, "White Balance", ""}
+  {eSeqModifierType_BrightContrast, "BRIGHT_CONTRAST", ICON_NONE, "Brightness/Contrast", ""}, \
+  {eSeqModifierType_ColorBalance, "COLOR_BALANCE", ICON_NONE, "Color Balance", ""}, \
+  {eSeqModifierType_Curves, "CURVES", ICON_NONE, "Curves", ""}, \
+  {eSeqModifierType_HueCorrect, "HUE_CORRECT", ICON_NONE, "Hue Correct", ""}, \
+  {eSeqModifierType_Mask, "MASK", ICON_NONE, "Mask", ""}, \
+  {eSeqModifierType_Tonemap, "TONEMAP", ICON_NONE, "Tone Map", ""}, \
+  {eSeqModifierType_WhiteBalance, "WHITE_BALANCE", ICON_NONE, "White Balance", ""}
 
 #define RNA_ENUM_SEQUENCER_AUDIO_MODIFIER_TYPE_ITEMS \
-  {seqModifierType_SoundEqualizer, "SOUND_EQUALIZER", ICON_NONE, "Sound Equalizer", ""}
+  {eSeqModifierType_SoundEqualizer, "SOUND_EQUALIZER", ICON_NONE, "Sound Equalizer", ""}
 /* clang-format on */
 
 const EnumPropertyItem rna_enum_strip_modifier_type_items[] = {
@@ -663,6 +663,34 @@ static void rna_Strip_use_proxy_set(PointerRNA *ptr, bool value)
   blender::seq::proxy_set(strip, value != 0);
 }
 
+static PointerRNA rna_Strip_active_modifier_get(PointerRNA *ptr)
+{
+  const Strip *strip = ptr->data_as<Strip>();
+  StripModifierData *smd = blender::seq::modifier_get_active(strip);
+  return RNA_pointer_create_with_parent(*ptr, &RNA_StripModifier, smd);
+}
+
+static void rna_Strip_active_modifier_set(PointerRNA *ptr, PointerRNA value, ReportList *reports)
+{
+  Strip *strip = ptr->data_as<Strip>();
+  StripModifierData *smd = value.data_as<StripModifierData>();
+
+  WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, ptr->owner_id);
+
+  if (RNA_pointer_is_null(&value)) {
+    blender::seq::modifier_set_active(strip, nullptr);
+    return;
+  }
+
+  if (BLI_findindex(&strip->modifiers, smd) == -1) {
+    BKE_reportf(
+        reports, RPT_ERROR, "Modifier \"%s\" is not in the strip's modifier list", smd->name);
+    return;
+  }
+
+  blender::seq::modifier_set_active(strip, smd);
+}
+
 static bool transform_strip_cmp_fn(Strip *strip, void *arg_pt)
 {
   StripSearchData *data = static_cast<StripSearchData *>(arg_pt);
@@ -1207,7 +1235,7 @@ static bool colbalance_seq_cmp_fn(Strip *strip, void *arg_pt)
   for (StripModifierData *smd = static_cast<StripModifierData *>(strip->modifiers.first); smd;
        smd = smd->next)
   {
-    if (smd->type == seqModifierType_ColorBalance) {
+    if (smd->type == eSeqModifierType_ColorBalance) {
       ColorBalanceModifierData *cbmd = (ColorBalanceModifierData *)smd;
 
       if (&cbmd->color_balance == data->data) {
@@ -1400,19 +1428,19 @@ static StructRNA *rna_StripModifier_refine(PointerRNA *ptr)
   StripModifierData *smd = (StripModifierData *)ptr->data;
 
   switch (smd->type) {
-    case seqModifierType_ColorBalance:
+    case eSeqModifierType_ColorBalance:
       return &RNA_ColorBalanceModifier;
-    case seqModifierType_Curves:
+    case eSeqModifierType_Curves:
       return &RNA_CurvesModifier;
-    case seqModifierType_HueCorrect:
+    case eSeqModifierType_HueCorrect:
       return &RNA_HueCorrectModifier;
-    case seqModifierType_BrightContrast:
+    case eSeqModifierType_BrightContrast:
       return &RNA_BrightContrastModifier;
-    case seqModifierType_WhiteBalance:
+    case eSeqModifierType_WhiteBalance:
       return &RNA_WhiteBalanceModifier;
-    case seqModifierType_Tonemap:
+    case eSeqModifierType_Tonemap:
       return &RNA_SequencerTonemapModifierData;
-    case seqModifierType_SoundEqualizer:
+    case eSeqModifierType_SoundEqualizer:
       return &RNA_SoundEqualizerModifier;
     default:
       return &RNA_StripModifier;
@@ -1467,6 +1495,24 @@ static void rna_StripModifier_name_set(PointerRNA *ptr, const char *value)
     SNPRINTF(rna_path_prefix, "sequence_editor.strips_all[\"%s\"].modifiers", strip_name_esc);
     BKE_animdata_fix_paths_rename(
         &scene->id, adt, nullptr, rna_path_prefix, oldname, smd->name, 0, 0, 1);
+  }
+}
+
+static void rna_StripModifier_is_active_set(PointerRNA *ptr, bool value)
+{
+  StripModifierData *smd = ptr->data_as<StripModifierData>();
+
+  if (value) {
+    /* Disable the active flag of all other modifiers. */
+    for (StripModifierData *prev_smd = smd->prev; prev_smd != nullptr; prev_smd = prev_smd->prev) {
+      prev_smd->flag &= ~STRIP_MODIFIER_FLAG_ACTIVE;
+    }
+    for (StripModifierData *next_smd = smd->next; next_smd != nullptr; next_smd = next_smd->next) {
+      next_smd->flag &= ~STRIP_MODIFIER_FLAG_ACTIVE;
+    }
+
+    smd->flag |= STRIP_MODIFIER_FLAG_ACTIVE;
+    WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, ptr->owner_id);
   }
 }
 
@@ -2124,6 +2170,7 @@ static const EnumPropertyItem blend_mode_items[] = {
 static void rna_def_strip_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 {
   StructRNA *srna;
+  PropertyRNA *prop;
 
   FunctionRNA *func;
   PropertyRNA *parm;
@@ -2143,7 +2190,7 @@ static void rna_def_strip_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
   parm = RNA_def_enum(func,
                       "type",
                       rna_enum_strip_modifier_type_items,
-                      seqModifierType_ColorBalance,
+                      eSeqModifierType_ColorBalance,
                       "",
                       "Modifier type to add");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
@@ -2164,6 +2211,17 @@ static void rna_def_strip_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
   func = RNA_def_function(srna, "clear", "rna_Strip_modifier_clear");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   RNA_def_function_ui_description(func, "Remove all modifiers from the strip");
+
+  /* Active modifier. */
+  prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "StripModifier");
+  RNA_def_property_pointer_funcs(
+      prop, "rna_Strip_active_modifier_get", "rna_Strip_active_modifier_set", nullptr, nullptr);
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(prop, "Active Modifier", "The active strip modifier in the list");
+  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, nullptr);
 }
 
 static void rna_def_strip(BlenderRNA *brna)
@@ -3710,6 +3768,19 @@ static void rna_def_effects(BlenderRNA *brna)
   }
 }
 
+static void rna_def_modifier_panel_open_prop(StructRNA *srna, const char *identifier, const int id)
+{
+  BLI_assert(id >= 0);
+  BLI_assert(id < sizeof(StripModifierData::layout_panel_open_flag) * 8);
+
+  PropertyRNA *prop;
+  prop = RNA_def_property(srna, identifier, PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "modifier.layout_panel_open_flag", (int64_t(1) << id));
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, nullptr);
+}
+
 static void rna_def_modifier(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -3759,17 +3830,23 @@ static void rna_def_modifier(BlenderRNA *brna)
   RNA_def_property_ui_icon(prop, ICON_HIDE_OFF, -1);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_StripModifier_update");
 
+  prop = RNA_def_property(srna, "enable", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, nullptr, "flag", STRIP_MODIFIER_FLAG_MUTE);
+  RNA_def_property_ui_text(prop, "Enable", "Enable this modifier");
+  RNA_def_property_ui_icon(prop, ICON_HIDE_ON, 1);
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_StripModifier_update");
+
   prop = RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", STRIP_MODIFIER_FLAG_EXPANDED);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "layout_panel_open_flag", UI_PANEL_DATA_EXPAND_ROOT);
   RNA_def_property_ui_text(prop, "Expanded", "Mute expanded settings for the modifier");
-  RNA_def_property_ui_icon(prop, ICON_RIGHTARROW, 1);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, nullptr);
 
   prop = RNA_def_property(srna, "input_mask_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "mask_input_type");
   RNA_def_property_enum_items(prop, mask_input_type_items);
-  RNA_def_property_ui_text(prop, "Mask Input Type", "Type of input data used for mask");
+  RNA_def_property_ui_text(prop, "Type", "Type of input data used for mask");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_StripModifier_update");
 
   prop = RNA_def_property(srna, "mask_time", PROP_ENUM, PROP_NONE);
@@ -3790,6 +3867,15 @@ static void rna_def_modifier(BlenderRNA *brna)
   RNA_def_property_pointer_sdna(prop, nullptr, "mask_id");
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Mask", "Mask ID used as mask input for the modifier");
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_StripModifier_update");
+
+  prop = RNA_def_property(srna, "is_active", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", STRIP_MODIFIER_FLAG_ACTIVE);
+  RNA_def_property_boolean_funcs(prop, nullptr, "rna_StripModifier_is_active_set");
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(prop, "Is Active", "This modifier is active");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_StripModifier_update");
 }
 
@@ -3812,6 +3898,8 @@ static void rna_def_colorbalance_modifier(BlenderRNA *brna)
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_ui_text(prop, "Multiply Colors", "Multiply the intensity of each pixel");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_StripModifier_update");
+
+  rna_def_modifier_panel_open_prop(srna, "open_mask_input_panel", 1);
 }
 
 static void rna_def_whitebalance_modifier(BlenderRNA *brna)
@@ -3829,6 +3917,8 @@ static void rna_def_whitebalance_modifier(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, nullptr, "white_value");
   RNA_def_property_ui_text(prop, "White Value", "This color defines white in the strip");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_StripModifier_update");
+
+  rna_def_modifier_panel_open_prop(srna, "open_mask_input_panel", 1);
 }
 
 static void rna_def_curves_modifier(BlenderRNA *brna)
@@ -3845,6 +3935,8 @@ static void rna_def_curves_modifier(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "CurveMapping");
   RNA_def_property_ui_text(prop, "Curve Mapping", "");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_StripModifier_update");
+
+  rna_def_modifier_panel_open_prop(srna, "open_mask_input_panel", 1);
 }
 
 static void rna_def_hue_modifier(BlenderRNA *brna)
@@ -3861,6 +3953,8 @@ static void rna_def_hue_modifier(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "CurveMapping");
   RNA_def_property_ui_text(prop, "Curve Mapping", "");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_StripModifier_update");
+
+  rna_def_modifier_panel_open_prop(srna, "open_mask_input_panel", 1);
 }
 
 static void rna_def_brightcontrast_modifier(BlenderRNA *brna)
@@ -3884,6 +3978,8 @@ static void rna_def_brightcontrast_modifier(BlenderRNA *brna)
   RNA_def_property_range(prop, -100.0f, 100.0f);
   RNA_def_property_ui_text(prop, "Contrast", "Adjust the difference in luminosity between pixels");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_StripModifier_update");
+
+  rna_def_modifier_panel_open_prop(srna, "open_mask_input_panel", 1);
 }
 
 static void rna_def_tonemap_modifier(BlenderRNA *brna)
@@ -3946,6 +4042,8 @@ static void rna_def_tonemap_modifier(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Color Correction", "If 0, same for all channels; if 1, each independent");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_StripModifier_update");
+
+  rna_def_modifier_panel_open_prop(srna, "open_mask_input_panel", 1);
 }
 
 static void rna_def_modifiers(BlenderRNA *brna)

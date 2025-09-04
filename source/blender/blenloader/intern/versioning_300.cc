@@ -499,7 +499,7 @@ static bool do_versions_sequencer_color_tags(Strip *strip, void * /*user_data*/)
 static bool do_versions_sequencer_color_balance_sop(Strip *strip, void * /*user_data*/)
 {
   LISTBASE_FOREACH (StripModifierData *, smd, &strip->modifiers) {
-    if (smd->type == seqModifierType_ColorBalance) {
+    if (smd->type == eSeqModifierType_ColorBalance) {
       StripColorBalance *cb = &((ColorBalanceModifierData *)smd)->color_balance;
       cb->method = SEQ_COLOR_BALANCE_METHOD_LIFTGAMMAGAIN;
       for (int i = 0; i < 3; i++) {

@@ -247,7 +247,7 @@ typedef struct ThemeUI {
   unsigned char panel_outline[4];
   unsigned char panel_title[4];
   unsigned char panel_text[4];
-  char _pad2[4];
+  unsigned char panel_active[4];
 
 } ThemeUI;
 
