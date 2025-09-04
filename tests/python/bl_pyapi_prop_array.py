@@ -7,6 +7,11 @@
 # the underlying IDProperty storage, and the property data exposed in Python.
 
 # ./blender.bin --background --python tests/python/bl_pyapi_prop_array.py -- --verbose
+
+__all__ = (
+    "main",
+)
+
 import bpy
 from bpy.props import (
     BoolVectorProperty,
@@ -51,7 +56,7 @@ def seq_items_as_dims(data):
 
 def matrix_with_repeating_digits(dims_x, dims_y):
     """
-    Create an array with easily identifier able unique elements:
+    Create an 2D matrix with easily identifiable unique elements:
     When: dims_x=4, dims_y=3 results in:
        ((1, 2, 3, 4), (11, 22, 33, 44), (111, 222, 333, 444))
     """
@@ -74,7 +79,7 @@ class TestPropArrayIndex(unittest.TestCase):
     )
     invalid_indices_1d = (
         (
-            # Wrong slice indices are clamped to valid values, and therfore return smaller-than-expected arrays
+            # Wrong slice indices are clamped to valid values, and therefore return smaller-than-expected arrays
             (..., (slice(7, 11),)),
             (IndexError, (-11, 10)),
             # Slices with step are not supported currently - although the 'inlined' [x:y:z] syntax does work?
@@ -89,14 +94,14 @@ class TestPropArrayIndex(unittest.TestCase):
     )
     invalid_indices_2d = (
         (
-            # Wrong slice indices are clamped to valid values, and therfore return smaller-than-expected arrays
+            # Wrong slice indices are clamped to valid values, and therefore return smaller-than-expected arrays
             (..., (slice(0, 5),)),
             (IndexError, (-5, 4)),
             # Slices with step are not supported currently - although the 'inlined' [x:y:z] syntax does work?
             (TypeError, (slice(0, 4, 2),)),
         ),
         (
-            # Wrong slice indices are clamped to valid values, and therfore return smaller-than-expected arrays
+            # Wrong slice indices are clamped to valid values, and therefore return smaller-than-expected arrays
             (..., (slice(1, 2),)),
             (IndexError, (-2, 1)),
             # Slices with step are not supported currently - although the 'inlined' [x:y:z] syntax does work?
@@ -112,21 +117,21 @@ class TestPropArrayIndex(unittest.TestCase):
     )
     invalid_indices_3d = (
         (
-            # Wrong slice indices are clamped to valid values, and therfore return smaller-than-expected arrays
+            # Wrong slice indices are clamped to valid values, and therefore return smaller-than-expected arrays
             (..., (slice(0, 5),)),
             (IndexError, (-4, 3)),
             # Slices with step are not supported currently - although the 'inlined' [x:y:z] syntax does work?
             (TypeError, (slice(0, 3, 2),)),
         ),
         (
-            # Wrong slice indices are clamped to valid values, and therfore return smaller-than-expected arrays
+            # Wrong slice indices are clamped to valid values, and therefore return smaller-than-expected arrays
             (..., (slice(1, 3),)),
             (IndexError, (-3, 2)),
             # Slices with step are not supported currently - although the 'inlined' [x:y:z] syntax does work?
             (TypeError, (slice(0, 1, 2),)),
         ),
         (
-            # Wrong slice indices are clamped to valid values, and therfore return smaller-than-expected arrays
+            # Wrong slice indices are clamped to valid values, and therefore return smaller-than-expected arrays
             (..., (slice(2, 7),)),
             (IndexError, (-5, 4)),
             # Slices with step are not supported currently - although the 'inlined' [x:y:z] syntax does work?
@@ -753,7 +758,11 @@ class TestPropArrayInvalidForeachGetSet(unittest.TestCase):
             me.vertices.foreach_set("co", invalid_3f_list)
 
 
-if __name__ == '__main__':
+def main():
     import sys
     sys.argv = [__file__] + (sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
     unittest.main()
+
+
+if __name__ == '__main__':
+    main()
