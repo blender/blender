@@ -25,7 +25,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Curve").supported_type(
       {GeometryComponent::Type::Curve, GeometryComponent::Type::GreasePencil});
-  b.add_input<decl::Bool>("Selection").default_value(true).hide_value().supports_field();
+  b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
   b.add_input<decl::Float>("Start")
       .min(0.0f)
       .max(1.0f)
