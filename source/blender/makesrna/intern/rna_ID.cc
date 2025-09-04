@@ -2182,7 +2182,7 @@ static void rna_def_ID_override_library(BlenderRNA *brna)
                   "",
                   "Enforce restoring the dependency hierarchy between data-blocks to match the "
                   "one from the reference linked hierarchy (WARNING: if some ID pointers have "
-                  "been purposedly overridden, these will be reset to their default value)");
+                  "been purposely overridden, these will be reset to their default value)");
   RNA_def_boolean(
       func,
       "do_whole_hierarchy",
@@ -2211,19 +2211,19 @@ static void rna_def_ID(BlenderRNA *brna)
        "NEVER",
        0,
        "Never Rename",
-       "Never rename an exisitng ID whose name would conflict, the currently renamed ID will get "
+       "Never rename an existing ID whose name would conflict, the currently renamed ID will get "
        "a numeric suffix appended to its new name"},
       {int(IDNewNameMode::RenameExistingAlways),
        "ALWAYS",
        0,
        "Always Rename",
-       "Always rename an exisitng ID whose name would conflict, ensuring that the currently "
+       "Always rename an existing ID whose name would conflict, ensuring that the currently "
        "renamed ID will get requested name"},
       {int(IDNewNameMode::RenameExistingSameRoot),
        "SAME_ROOT",
        0,
        "Rename If Same Root",
-       "Only rename an exisitng ID whose name would conflict if its name root (everything besides "
+       "Only rename an existing ID whose name would conflict if its name root (everything besides "
        "the numerical suffix) is the same as the existing name of the currently renamed ID"},
       {0, nullptr, 0, nullptr, nullptr},
   };
@@ -2249,7 +2249,7 @@ static void rna_def_ID(BlenderRNA *brna)
        "RENAMED_COLLISION_ADJUSTED",
        0,
        "Renamed With Collision",
-       "The ID was renamed with adjustement of the requested name, to avoid a name collision"},
+       "The ID was renamed with adjustment of the requested name, to avoid a name collision"},
       {int(IDNewNameResult::Action::RENAMED_COLLISION_FORCED),
        "RENAMED_COLLISION_FORCED",
        0,

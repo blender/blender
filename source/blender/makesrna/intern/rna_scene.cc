@@ -6896,7 +6896,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
        0,
        "Balanced",
        "Balanced between performance and quality"},
-      {SCE_COMPOSITOR_DENOISE_FAST, "FAST", 0, "Fast", "High perfomance"},
+      {SCE_COMPOSITOR_DENOISE_FAST, "FAST", 0, "Fast", "High performance"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 

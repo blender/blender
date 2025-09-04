@@ -1240,7 +1240,7 @@ void RNA_api_ui_layout(StructRNA *srna)
   func = RNA_def_function(srna, "panel", "rna_uiLayoutPanel");
   RNA_def_function_ui_description(
       func,
-      "Creates a collapsable panel. Whether it is open or closed is stored in the region using "
+      "Creates a collapsible panel. Whether it is open or closed is stored in the region using "
       "the given idname. This can only be used when the panel has the full width of the panel "
       "region available to it. So it can't be used in e.g. in a box or columns.");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);

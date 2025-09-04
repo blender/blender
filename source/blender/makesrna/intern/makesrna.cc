@@ -3549,7 +3549,7 @@ static void rna_auto_types()
             pprop->type = (StructRNA *)rna_find_type(dp->dnatype);
           }
 
-          /* Only automatically define `PROP_ID_REFCOUNT` if it was not already explicitely set or
+          /* Only automatically define `PROP_ID_REFCOUNT` if it was not already explicitly set or
            * cleared by calls to `RNA_def_property_flag` or `RNA_def_property_clear_flag`. */
           if ((pprop->property.flag_internal & PROP_INTERN_PTR_ID_REFCOUNT_FORCED) == 0 &&
               pprop->type)

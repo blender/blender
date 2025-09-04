@@ -220,7 +220,7 @@ const EnumPropertyItem *rna_WorkSpaceTool_brush_type_itemf(bContext *C,
   int totitem = 0;
 
   EnumPropertyItem unset_item = {
-      -1, "ANY", 0, "Any", "Donnot limit this tool to a specific brush type"};
+      -1, "ANY", 0, "Any", "Do not limit this tool to a specific brush type"};
   RNA_enum_item_add(&items, &totitem, &unset_item);
 
   if (paint_mode != PaintMode::Invalid) {

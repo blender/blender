@@ -2440,7 +2440,7 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
                          "asset_reference",
                          "AssetWeakReference",
                          "",
-                         "The weak reference to the asset to be hightlighted as active, or None");
+                         "The weak reference to the asset to be highlighted as active, or None");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "draw_context_menu", nullptr);
