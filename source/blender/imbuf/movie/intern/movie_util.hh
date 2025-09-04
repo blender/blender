@@ -40,4 +40,9 @@ bool MOV_codec_supports_crf(AVCodecID codec_id);
  */
 int MOV_codec_valid_bit_depths(AVCodecID codec_id);
 
+/**
+ * Returns thread count to be used for ffmpeg.
+ */
+int MOV_thread_count();
+
 #endif /* WITH_FFMPEG */

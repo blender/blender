@@ -7,6 +7,7 @@
  */
 
 #include "BLI_path_utils.hh"
+#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
 #include "CLG_log.h"
@@ -639,4 +640,10 @@ bool MOV_codec_supports_crf(IMB_Ffmpeg_Codec_ID codec_id)
   UNUSED_VARS(codec_id);
   return false;
 #endif
+}
+
+int MOV_thread_count()
+{
+  /* ffmpeg does not recommend thread counts above 16. */
+  return std::min(BLI_system_thread_count(), 16);
 }

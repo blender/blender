@@ -27,7 +27,6 @@
 #  include "BLI_path_utils.hh"
 #  include "BLI_string.h"
 #  include "BLI_string_utf8.h"
-#  include "BLI_threads.h"
 #  include "BLI_utildefines.h"
 
 #  include "BKE_image.hh"
@@ -1088,7 +1087,7 @@ static AVStream *alloc_video_stream(MovieWriter *context,
     c->thread_count = 0;
   }
   else {
-    c->thread_count = BLI_system_thread_count();
+    c->thread_count = MOV_thread_count();
   }
 
   if (codec->capabilities & AV_CODEC_CAP_FRAME_THREADS) {

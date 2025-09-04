@@ -29,7 +29,6 @@
 #  include "DNA_scene_types.h"
 
 #  include "BLI_string.h"
-#  include "BLI_threads.h"
 #  include "BLI_utildefines.h"
 
 #  include "BKE_report.hh"
@@ -238,7 +237,7 @@ AVStream *alloc_audio_stream(MovieWriter *context,
 
   context->audio_codec = avcodec_alloc_context3(codec);
   AVCodecContext *c = context->audio_codec;
-  c->thread_count = BLI_system_thread_count();
+  c->thread_count = MOV_thread_count();
   c->thread_type = FF_THREAD_SLICE;
 
   c->sample_rate = audio_mixrate;
