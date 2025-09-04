@@ -256,12 +256,17 @@ struct GeometrySet {
                          bool include_instances,
                          AttributeForeachCallback callback) const;
 
-  void gather_attributes_for_propagation(
-      Span<GeometryComponent::Type> component_types,
-      GeometryComponent::Type dst_component_type,
-      bool include_instances,
-      const AttributeFilter &attribute_filter,
-      Map<StringRef, AttributeDomainAndType> &r_attributes) const;
+  struct GatheredAttributes {
+    VectorSet<StringRef, 16> names;
+    Vector<AttributeDomainAndType, 16> kinds;
+    void add(const StringRef name, const AttributeDomainAndType &kind);
+  };
+
+  void gather_attributes_for_propagation(Span<GeometryComponent::Type> component_types,
+                                         GeometryComponent::Type dst_component_type,
+                                         bool include_instances,
+                                         const AttributeFilter &attribute_filter,
+                                         GatheredAttributes &r_attributes) const;
 
   Vector<GeometryComponent::Type> gather_component_types(bool include_instances,
                                                          bool ignore_empty) const;

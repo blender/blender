@@ -290,7 +290,7 @@ BLI_NOINLINE static void interpolate_attribute(const Mesh &mesh,
 
 BLI_NOINLINE static void propagate_existing_attributes(
     const Mesh &mesh,
-    const Map<StringRef, AttributeDomainAndType> &attributes,
+    const GeometrySet::GatheredAttributes &attributes,
     PointCloud &points,
     const Span<float3> bary_coords,
     const Span<int> tri_indices)
@@ -298,9 +298,12 @@ BLI_NOINLINE static void propagate_existing_attributes(
   const AttributeAccessor mesh_attributes = mesh.attributes();
   MutableAttributeAccessor point_attributes = points.attributes_for_write();
 
-  for (MapItem<StringRef, AttributeDomainAndType> entry : attributes.items()) {
-    const StringRef attribute_id = entry.key;
-    const bke::AttrType output_data_type = entry.value.data_type;
+  for (const int i : attributes.names.index_range()) {
+    const StringRef attribute_id = attributes.names[i];
+    const bke::AttrType output_data_type = attributes.kinds[i].data_type;
+    if (attribute_id == "position") {
+      continue;
+    }
 
     GAttributeReader src = mesh_attributes.lookup(attribute_id);
     if (!src) {
@@ -559,15 +562,12 @@ static void point_distribution_calculate(GeometrySet &geometry_set,
 
   geometry_set.replace_pointcloud(pointcloud);
 
-  Map<StringRef, AttributeDomainAndType> attributes;
+  GeometrySet::GatheredAttributes attributes;
   geometry_set.gather_attributes_for_propagation({GeometryComponent::Type::Mesh},
                                                  GeometryComponent::Type::PointCloud,
                                                  false,
                                                  params.get_attribute_filter("Points"),
                                                  attributes);
-
-  /* Position is set separately. */
-  attributes.remove("position");
 
   propagate_existing_attributes(mesh, attributes, *pointcloud, bary_coords, tri_indices);
 

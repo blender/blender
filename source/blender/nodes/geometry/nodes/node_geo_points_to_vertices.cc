@@ -45,7 +45,7 @@ static void geometry_set_points_to_vertices(GeometrySet &geometry_set,
   selection_evaluator.evaluate();
   const IndexMask selection = selection_evaluator.get_evaluated_as_mask(0);
 
-  Map<StringRef, AttributeDomainAndType> attributes;
+  bke::GeometrySet::GatheredAttributes attributes;
   geometry_set.gather_attributes_for_propagation({GeometryComponent::Type::PointCloud},
                                                  GeometryComponent::Type::Mesh,
                                                  false,
@@ -66,9 +66,9 @@ static void geometry_set_points_to_vertices(GeometrySet &geometry_set,
   const AttributeAccessor src_attributes = points->attributes();
   MutableAttributeAccessor dst_attributes = mesh->attributes_for_write();
 
-  for (MapItem<StringRef, AttributeDomainAndType> entry : attributes.items()) {
-    const StringRef id = entry.key;
-    const bke::AttrType data_type = entry.value.data_type;
+  for (const int i : attributes.names.index_range()) {
+    const StringRef id = attributes.names[i];
+    const bke::AttrType data_type = attributes.kinds[i].data_type;
     const GAttributeReader src = src_attributes.lookup(id);
     if (selection.size() == points->totpoint && src.sharing_info && src.varray.is_span()) {
       const bke::AttributeInitShared init(src.varray.get_internal_span().data(),

@@ -701,12 +701,26 @@ bool attribute_is_builtin_on_component_type(const GeometryComponent::Type type,
   return false;
 }
 
+void GeometrySet::GatheredAttributes::add(const StringRef name, const AttributeDomainAndType &kind)
+{
+  const int index = this->names.index_of_or_add(name);
+  if (index >= this->kinds.size()) {
+    this->kinds.append(AttributeDomainAndType{kind.domain, kind.data_type});
+  }
+  else {
+    this->kinds[index].domain = bke::attribute_domain_highest_priority(
+        {this->kinds[index].domain, kind.domain});
+    this->kinds[index].data_type = bke::attribute_data_type_highest_complexity(
+        {this->kinds[index].data_type, kind.data_type});
+  }
+}
+
 void GeometrySet::gather_attributes_for_propagation(
     const Span<GeometryComponent::Type> component_types,
     const GeometryComponent::Type dst_component_type,
     bool include_instances,
     const AttributeFilter &attribute_filter,
-    Map<StringRef, AttributeDomainAndType> &r_attributes) const
+    GatheredAttributes &r_attributes) const
 {
   this->attribute_foreach(
       component_types,
@@ -735,17 +749,7 @@ void GeometrySet::gather_attributes_for_propagation(
           domain = AttrDomain::Point;
         }
 
-        auto add_info = [&](AttributeDomainAndType *attribute_kind) {
-          attribute_kind->domain = domain;
-          attribute_kind->data_type = meta_data.data_type;
-        };
-        auto modify_info = [&](AttributeDomainAndType *attribute_kind) {
-          attribute_kind->domain = bke::attribute_domain_highest_priority(
-              {attribute_kind->domain, domain});
-          attribute_kind->data_type = bke::attribute_data_type_highest_complexity(
-              {attribute_kind->data_type, meta_data.data_type});
-        };
-        r_attributes.add_or_modify(attribute_id, add_info, modify_info);
+        r_attributes.add(attribute_id, AttributeDomainAndType{domain, meta_data.data_type});
       });
 }
 
