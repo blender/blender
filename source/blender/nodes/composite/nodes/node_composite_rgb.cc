@@ -24,7 +24,7 @@ namespace blender::nodes::node_composite_rgb_cc {
 
 static void cmp_node_rgb_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Color>("RGBA")
+  b.add_output<decl::Color>("Color")
       .default_value({0.5f, 0.5f, 0.5f, 1.0f})
       .custom_draw([](CustomSocketDrawParams &params) {
         params.layout.alignment_set(ui::LayoutAlign::Expand);
@@ -47,7 +47,7 @@ class RGBOperation : public NodeOperation {
 
   void execute() override
   {
-    Result &result = get_result("RGBA");
+    Result &result = get_result("Color");
     result.allocate_single_value();
 
     const bNodeSocket *socket = static_cast<const bNodeSocket *>(bnode().outputs.first);
@@ -71,7 +71,7 @@ static void register_node_type_cmp_rgb()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeRGB", CMP_NODE_RGB);
-  ntype.ui_name = "RGB";
+  ntype.ui_name = "Color";
   ntype.ui_description = "A color picker";
   ntype.enum_name_legacy = "RGB";
   ntype.nclass = NODE_CLASS_INPUT;
