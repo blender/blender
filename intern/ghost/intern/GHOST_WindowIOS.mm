@@ -1819,13 +1819,7 @@ GHOST_TSuccess GHOST_WindowIOS::setWindowCustomCursorShape(const uint8_t * /*bit
 
 uint16_t GHOST_WindowIOS::getDPIHint()
 {
-  /* IOS_FIXME: 96 is the default but the UI is too small to see
-   * easily - especially on smaller iPads.
-   * 192 looks good but cannot fit all the menus in so this value
-   * is the compromise. It's possible we should look at the size of
-   * screen and adjust this value dynamically. 192 might be OK for
-   * the larger iPads but for now 144 seems to work OK. */
-  return 144;
+  return 288;
 }
 
 GHOST_TSuccess GHOST_WindowIOS::popupOnscreenKeyboard(
