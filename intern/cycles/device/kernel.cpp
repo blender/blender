@@ -155,6 +155,8 @@ const char *device_kernel_as_string(DeviceKernel kernel)
       return "filter_color_preprocess";
     case DEVICE_KERNEL_FILTER_COLOR_POSTPROCESS:
       return "filter_color_postprocess";
+    case DEVICE_KERNEL_FILTER_COLOR_FLIP_Y:
+      return "filter_color_flip_y";
 
     /* Volume Scattering Probability Guiding. */
     case DEVICE_KERNEL_VOLUME_GUIDING_FILTER_X:
