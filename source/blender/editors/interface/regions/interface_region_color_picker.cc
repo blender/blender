@@ -797,7 +797,8 @@ static void ui_block_colorpicker(const bContext * /*C*/,
     add_hsv_slider(IFACE_("Lightness:"), TIP_("Lightness"), 2, yco -= UI_UNIT_Y);
   }
   else {
-    add_hsv_slider(IFACE_("Value:"), TIP_("Value"), 2, yco -= UI_UNIT_Y);
+    add_hsv_slider(
+        IFACE_("Value:"), CTX_TIP_(BLT_I18NCONTEXT_COLOR, "Value"), 2, yco -= UI_UNIT_Y);
   }
 
   if (cpicker->has_alpha) {
