@@ -12,6 +12,7 @@
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_curves_utils.hh"
+#include "BKE_deform.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_material.hh"
@@ -1522,6 +1523,10 @@ Array<PointTransferData> compute_topology_change(
   dst.resize(dst_points_num, dst_curves_num);
   array_utils::copy(dst_curves_offset.as_span(), dst.offsets_for_write());
   const OffsetIndices<int> dst_points_by_curve = dst.points_by_curve();
+
+  /* Vertex group names. */
+  BLI_assert(BLI_listbase_count(&dst.vertex_group_names) == 0);
+  BKE_defgroup_copy_list(&dst.vertex_group_names, &src.vertex_group_names);
 
   /* Attributes. */
   const bke::AttributeAccessor src_attributes = src.attributes();
