@@ -239,7 +239,7 @@ std::optional<int64_t> CTX_store_int_lookup(const bContextStore *store,
 
 /* is python initialized? */
 
-bool CTX_py_init_get(bContext *C)
+bool CTX_py_init_get(const bContext *C)
 {
   return C->data.py_init;
 }
