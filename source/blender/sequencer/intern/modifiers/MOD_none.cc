@@ -24,6 +24,8 @@ StripModifierTypeInfo seqModifierType_None = {
     /*copy_data*/ nullptr,
     /*apply*/ nullptr,
     /*panel_register*/ nullptr,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ nullptr,
 };
 
 };  // namespace blender::seq

@@ -366,6 +366,8 @@ StripModifierTypeInfo seqModifierType_ColorBalance = {
     /*copy_data*/ nullptr,
     /*apply*/ colorBalance_apply,
     /*panel_register*/ colorBalance_register,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ nullptr,
 };
 
 };  // namespace blender::seq

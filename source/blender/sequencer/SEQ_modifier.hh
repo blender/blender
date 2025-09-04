@@ -57,6 +57,12 @@ struct StripModifierTypeInfo {
 
   /** Register the panel types for the modifier's UI. */
   void (*panel_register)(ARegionType *region_type);
+
+  /* Callback to read custom strip modifier data. */
+  void (*blend_write)(BlendWriter *writer, const StripModifierData *smd);
+
+  /* Callback to write custom strip modifier data. */
+  void (*blend_read)(BlendDataReader *reader, StripModifierData *smd);
 };
 
 void modifiers_init();

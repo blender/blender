@@ -103,6 +103,8 @@ StripModifierTypeInfo seqModifierType_WhiteBalance = {
     /*copy_data*/ nullptr,
     /*apply*/ whiteBalance_apply,
     /*panel_register*/ whiteBalance_register,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ nullptr,
 };
 
 };  // namespace blender::seq

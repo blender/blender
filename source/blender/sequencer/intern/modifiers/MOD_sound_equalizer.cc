@@ -8,6 +8,9 @@
 
 #include <fmt/format.h>
 
+#include "BKE_colortools.hh"
+#include "BLI_listbase.h"
+#include "BLO_read_write.hh"
 #include "BLT_translation.hh"
 
 #include "DNA_sequence_types.h"
@@ -57,6 +60,25 @@ static void sound_equalizermodifier_register(ARegionType *region_type)
       region_type, eSeqModifierType_SoundEqualizer, sound_equalizermodifier_draw);
 }
 
+static void sound_equalizermodifier_write(BlendWriter *writer, const StripModifierData *smd)
+{
+  const SoundEqualizerModifierData *semd = reinterpret_cast<const SoundEqualizerModifierData *>(
+      smd);
+  LISTBASE_FOREACH (EQCurveMappingData *, eqcmd, &semd->graphics) {
+    BLO_write_struct_by_name(writer, "EQCurveMappingData", eqcmd);
+    BKE_curvemapping_blend_write(writer, &eqcmd->curve_mapping);
+  }
+}
+
+static void sound_equalizermodifier_read(BlendDataReader *reader, StripModifierData *smd)
+{
+  SoundEqualizerModifierData *semd = reinterpret_cast<SoundEqualizerModifierData *>(smd);
+  BLO_read_struct_list(reader, EQCurveMappingData, &semd->graphics);
+  LISTBASE_FOREACH (EQCurveMappingData *, eqcmd, &semd->graphics) {
+    BKE_curvemapping_blend_read(reader, &eqcmd->curve_mapping);
+  }
+}
+
 StripModifierTypeInfo seqModifierType_SoundEqualizer = {
     /*idname*/ "SoundEqualizer",
     /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Equalizer"),
@@ -67,6 +89,8 @@ StripModifierTypeInfo seqModifierType_SoundEqualizer = {
     /*copy_data*/ sound_equalizermodifier_copy_data,
     /*apply*/ nullptr,
     /*panel_register*/ sound_equalizermodifier_register,
+    /*blend_write*/ sound_equalizermodifier_write,
+    /*blend_read*/ sound_equalizermodifier_read,
 };
 
 };  // namespace blender::seq

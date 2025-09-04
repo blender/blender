@@ -110,6 +110,8 @@ StripModifierTypeInfo seqModifierType_BrightContrast = {
     /*copy_data*/ nullptr,
     /*apply*/ brightcontrast_apply,
     /*panel_register*/ brightcontrast_register,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ nullptr,
 };
 
 };  // namespace blender::seq

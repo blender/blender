@@ -133,6 +133,18 @@ static void hue_correct_register(ARegionType *region_type)
   modifier_panel_register(region_type, eSeqModifierType_HueCorrect, hue_correct_panel_draw);
 }
 
+static void hue_correct_write(BlendWriter *writer, const StripModifierData *smd)
+{
+  const HueCorrectModifierData *hmd = reinterpret_cast<const HueCorrectModifierData *>(smd);
+  BKE_curvemapping_blend_write(writer, &hmd->curve_mapping);
+}
+
+static void hue_correct_read(BlendDataReader *reader, StripModifierData *smd)
+{
+  HueCorrectModifierData *hmd = reinterpret_cast<HueCorrectModifierData *>(smd);
+  BKE_curvemapping_blend_read(reader, &hmd->curve_mapping);
+}
+
 StripModifierTypeInfo seqModifierType_HueCorrect = {
     /*idname*/ "HueCorrect",
     /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Hue Correct"),
@@ -143,6 +155,8 @@ StripModifierTypeInfo seqModifierType_HueCorrect = {
     /*copy_data*/ hue_correct_copy_data,
     /*apply*/ hue_correct_apply,
     /*panel_register*/ hue_correct_register,
+    /*blend_write*/ hue_correct_write,
+    /*blend_read*/ hue_correct_read,
 };
 
 };  // namespace blender::seq

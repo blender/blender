@@ -106,6 +106,18 @@ static void curves_register(ARegionType *region_type)
   modifier_panel_register(region_type, eSeqModifierType_Curves, curves_panel_draw);
 }
 
+static void curves_write(BlendWriter *writer, const StripModifierData *smd)
+{
+  const CurvesModifierData *cmd = reinterpret_cast<const CurvesModifierData *>(smd);
+  BKE_curvemapping_blend_write(writer, &cmd->curve_mapping);
+}
+
+static void curves_read(BlendDataReader *reader, StripModifierData *smd)
+{
+  CurvesModifierData *cmd = reinterpret_cast<CurvesModifierData *>(smd);
+  BKE_curvemapping_blend_read(reader, &cmd->curve_mapping);
+}
+
 StripModifierTypeInfo seqModifierType_Curves = {
     /*idname*/ "Curves",
     /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Curves"),
@@ -116,6 +128,8 @@ StripModifierTypeInfo seqModifierType_Curves = {
     /*copy_data*/ curves_copy_data,
     /*apply*/ curves_apply,
     /*panel_register*/ curves_register,
+    /*blend_write*/ curves_write,
+    /*blend_read*/ curves_read,
 };
 
 };  // namespace blender::seq

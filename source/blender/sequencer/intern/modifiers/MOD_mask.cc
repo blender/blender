@@ -103,6 +103,8 @@ StripModifierTypeInfo seqModifierType_Mask = {
     /*copy_data*/ nullptr,
     /*apply*/ maskmodifier_apply,
     /*panel_register*/ maskmodifier_register,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ nullptr,
 };
 
 };  // namespace blender::seq

@@ -388,6 +388,8 @@ StripModifierTypeInfo seqModifierType_Tonemap = {
     /*copy_data*/ nullptr,
     /*apply*/ tonemapmodifier_apply,
     /*panel_register*/ tonemapmodifier_register,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ nullptr,
 };
 
 };  // namespace blender::seq
