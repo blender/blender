@@ -1644,7 +1644,7 @@ static void region_rect_recursive(
   else if (ELEM(alignment, RGN_ALIGN_TOP, RGN_ALIGN_BOTTOM)) {
     rcti *winrct = (region->overlap) ? overlap_remainder : remainder;
 
-    if ((prefsizey == 0) || (rct_fits(winrct, SCREEN_AXIS_V, prefsizey) < 0)) {
+    if ((prefsizey == 0) || (rct_fits(winrct, SCREEN_AXIS_V, prefsizey) < (U.pixelsize * -2))) {
       region->flag |= RGN_FLAG_TOO_SMALL;
     }
     else {
@@ -1772,7 +1772,7 @@ static void region_rect_recursive(
   region->winx = BLI_rcti_size_x(&region->winrct) + 1;
   region->winy = BLI_rcti_size_y(&region->winrct) + 1;
 
-  if (region->winy <= int(2.0f * U.pixelsize) && !(region->flag & RGN_FLAG_HIDDEN)) {
+  if (region->winy <= U.border_width && !(region->flag & RGN_FLAG_HIDDEN)) {
     /* Don't draw when just a couple pixels tall. #143617. */
     region->flag |= RGN_FLAG_TOO_SMALL;
   }
