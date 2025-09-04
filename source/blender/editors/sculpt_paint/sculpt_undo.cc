@@ -1964,7 +1964,7 @@ void push_end_ex(Object &ob, const bool use_nested_undo)
    * just one positions array that has a different semantic meaning depending on whether there are
    * deform modifiers. */
 
-  if (step_data->type == Type::Position) {
+  if (step_data->type == Type::Position && !use_multires_undo(*step_data, *ob.sculpt)) {
     step_data->position_step_storage = std::make_unique<PositionUndoStorage>(*step_data);
   }
   else {
