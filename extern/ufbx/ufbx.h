@@ -257,7 +257,7 @@ struct ufbx_converter { };
 // -- Version
 
 // Packing/unpacking for `UFBX_HEADER_VERSION` and `ufbx_source_version`.
-#define ufbx_pack_version(major, minor, patch) ((uint32_t)(major)*1000000u + (uint32_t)(minor)*1000u + (uint32_t)(patch))
+#define ufbx_pack_version(major, minor, patch) ((major)*1000000u + (minor)*1000u + (patch))
 #define ufbx_version_major(version) ((uint32_t)(version)/1000000u%1000u)
 #define ufbx_version_minor(version) ((uint32_t)(version)/1000u%1000u)
 #define ufbx_version_patch(version) ((uint32_t)(version)%1000u)
@@ -267,7 +267,7 @@ struct ufbx_converter { };
 // `ufbx_source_version` contains the version of the corresponding source file.
 // HINT: The version can be compared numerically to the result of `ufbx_pack_version()`,
 // for example `#if UFBX_VERSION >= ufbx_pack_version(0, 12, 0)`.
-#define UFBX_HEADER_VERSION ufbx_pack_version(0, 19, 0)
+#define UFBX_HEADER_VERSION ufbx_pack_version(0, 20, 0)
 #define UFBX_VERSION UFBX_HEADER_VERSION
 
 // -- Basic types
