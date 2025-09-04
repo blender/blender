@@ -491,6 +491,11 @@ class WorkspaceStatus {
   void item(std::string text, int icon1, int icon2 = 0);
 
   /**
+   * Add extra (or negative) space between items.
+   */
+  void separator(float factor = 1.0f);
+
+  /**
    * Add a dynamic status entry with up to two icons that change appearance.
    * Example:
    *   [CTRL] Tweak

@@ -961,6 +961,11 @@ void WorkspaceStatus::item(std::string text, const int icon1, const int icon2)
   ed_workspace_status_text_item(workspace_, std::move(text));
 }
 
+void WorkspaceStatus::separator(float factor)
+{
+  ed_workspace_status_space(workspace_, factor);
+}
+
 void WorkspaceStatus::range(std::string text, const int icon1, const int icon2)
 {
   ed_workspace_status_item(workspace_, {}, icon1);
