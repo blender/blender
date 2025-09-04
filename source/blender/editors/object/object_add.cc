@@ -32,6 +32,7 @@
 #include "BLI_array_utils.hh"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
+#include "BLI_math_color.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_rotation.h"

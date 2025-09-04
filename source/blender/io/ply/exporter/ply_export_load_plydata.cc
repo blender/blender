@@ -271,7 +271,7 @@ static void load_custom_attributes(const Mesh *mesh,
         float *attr_a = find_or_add_attribute(iter.name + "_a", size, vertex_offset, r_attributes);
         auto typed = attribute.typed<ColorGeometry4b>();
         for (const int64_t i : ply_to_vertex.index_range()) {
-          ColorGeometry4f col = typed[ply_to_vertex[i]].decode();
+          ColorGeometry4f col = color::decode(typed[ply_to_vertex[i]]);
           attr_r[i] = col.r;
           attr_g[i] = col.g;
           attr_b[i] = col.b;

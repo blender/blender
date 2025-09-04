@@ -14,6 +14,7 @@
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
 
+#include "BLI_math_base.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 

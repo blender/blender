@@ -11,7 +11,7 @@
 #include "BLI_utildefines.h"
 
 #ifdef __cplusplus
-#  include "BLI_color.hh"
+#  include "BLI_color_types.hh"
 #  include "BLI_function_ref.hh"
 #  include "BLI_span.hh"
 #  include "BLI_string_ref.hh"

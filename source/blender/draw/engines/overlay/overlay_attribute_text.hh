@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BLI_color.hh"
 #include "BLI_math_quaternion_types.hh"
 #include "BLI_string_utf8.h"
 
@@ -16,7 +17,6 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"
-#include "BKE_duplilist.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_instances.hh"
 
@@ -215,7 +215,7 @@ class AttributeTexts : Overlay {
           add_text_to_cache(dt, position, StringRef(numstr, numstr_len), col);
         }
         else if constexpr (std::is_same_v<T, ColorGeometry4b>) {
-          const ColorGeometry4f color = value.decode();
+          const ColorGeometry4f color = color::decode(value);
           char numstr[64];
           const size_t numstr_len = SNPRINTF_UTF8_RLEN(
               numstr, "(%.3f, %.3f, %.3f, %.3f)", color.r, color.g, color.b, color.a);

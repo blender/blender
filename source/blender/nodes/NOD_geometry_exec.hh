@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "BLI_color.hh"
+#include "BLI_color_types.hh"
 #include "BLI_math_quaternion_types.hh"
 
 #include "FN_field.hh"

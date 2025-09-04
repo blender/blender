@@ -24,6 +24,7 @@
 #include "BLI_dynstr.h"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
+#include "BLI_math_base.h"
 #include "BLI_mutex.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"

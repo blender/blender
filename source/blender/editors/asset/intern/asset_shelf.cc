@@ -9,6 +9,7 @@
  */
 
 #include <algorithm>
+#include <cfloat>
 
 #include "AS_asset_catalog_path.hh"
 #include "AS_asset_library.hh"

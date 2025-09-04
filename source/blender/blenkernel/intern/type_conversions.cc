@@ -81,7 +81,7 @@ static ColorGeometry4f float_to_color(const float &a)
 }
 static ColorGeometry4b float_to_byte_color(const float &a)
 {
-  return float_to_color(a).encode();
+  return color::encode(float_to_color(a));
 }
 static math::Quaternion float_to_quaternion(const float &a)
 {
@@ -126,7 +126,7 @@ static ColorGeometry4f float2_to_color(const float2 &a)
 }
 static ColorGeometry4b float2_to_byte_color(const float2 &a)
 {
-  return float2_to_color(a).encode();
+  return color::encode(float2_to_color(a));
 }
 
 static bool float3_to_bool(const float3 &a)
@@ -167,7 +167,7 @@ static ColorGeometry4f float3_to_color(const float3 &a)
 }
 static ColorGeometry4b float3_to_byte_color(const float3 &a)
 {
-  return float3_to_color(a).encode();
+  return color::encode(float3_to_color(a));
 }
 static math::Quaternion float3_to_quaternion(const float3 &a)
 {
@@ -212,7 +212,7 @@ static ColorGeometry4f float4_to_color(const float4 &a)
 }
 static ColorGeometry4b float4_to_byte_color(const float4 &a)
 {
-  return float4_to_color(a).encode();
+  return color::encode(float4_to_color(a));
 }
 static math::Quaternion float4_to_quaternion(const float4 &a)
 {
@@ -258,7 +258,7 @@ static ColorGeometry4f int_to_color(const int32_t &a)
 }
 static ColorGeometry4b int_to_byte_color(const int32_t &a)
 {
-  return int_to_color(a).encode();
+  return color::encode(int_to_color(a));
 }
 
 static bool short2_to_bool(const short2 &a)
@@ -299,7 +299,7 @@ static ColorGeometry4f short2_to_color(const short2 &a)
 }
 static ColorGeometry4b short2_to_byte_color(const short2 &a)
 {
-  return short2_to_color(a).encode();
+  return color::encode(short2_to_color(a));
 }
 
 static bool int2_to_bool(const int2 &a)
@@ -340,7 +340,7 @@ static ColorGeometry4f int2_to_color(const int2 &a)
 }
 static ColorGeometry4b int2_to_byte_color(const int2 &a)
 {
-  return int2_to_color(a).encode();
+  return color::encode(int2_to_color(a));
 }
 
 static bool int8_to_bool(const int8_t &a)
@@ -381,7 +381,7 @@ static ColorGeometry4f int8_to_color(const int8_t &a)
 }
 static ColorGeometry4b int8_to_byte_color(const int8_t &a)
 {
-  return int8_to_color(a).encode();
+  return color::encode(int8_to_color(a));
 }
 
 static float bool_to_float(const bool &a)
@@ -422,7 +422,7 @@ static ColorGeometry4f bool_to_color(const bool &a)
 }
 static ColorGeometry4b bool_to_byte_color(const bool &a)
 {
-  return bool_to_color(a).encode();
+  return color::encode(bool_to_color(a));
 }
 
 static bool color_to_bool(const ColorGeometry4f &a)
@@ -463,7 +463,7 @@ static float4 color_to_float4(const ColorGeometry4f &a)
 }
 static ColorGeometry4b color_to_byte_color(const ColorGeometry4f &a)
 {
-  return a.encode();
+  return color::encode(a);
 }
 
 static bool byte_color_to_bool(const ColorGeometry4b &a)
@@ -472,11 +472,11 @@ static bool byte_color_to_bool(const ColorGeometry4b &a)
 }
 static float byte_color_to_float(const ColorGeometry4b &a)
 {
-  return color_to_float(a.decode());
+  return color_to_float(color::decode(a));
 }
 static int32_t byte_color_to_int(const ColorGeometry4b &a)
 {
-  return color_to_int(a.decode());
+  return color_to_int(color::decode(a));
 }
 static short2 byte_color_to_short2(const ColorGeometry4b &a)
 {
@@ -488,23 +488,23 @@ static int2 byte_color_to_int2(const ColorGeometry4b &a)
 }
 static int8_t byte_color_to_int8(const ColorGeometry4b &a)
 {
-  return color_to_int8(a.decode());
+  return color_to_int8(color::decode(a));
 }
 static float2 byte_color_to_float2(const ColorGeometry4b &a)
 {
-  return color_to_float2(a.decode());
+  return color_to_float2(color::decode(a));
 }
 static float3 byte_color_to_float3(const ColorGeometry4b &a)
 {
-  return color_to_float3(a.decode());
+  return color_to_float3(color::decode(a));
 }
 static float4 byte_color_to_float4(const ColorGeometry4b &a)
 {
-  return color_to_float4(a.decode());
+  return color_to_float4(color::decode(a));
 }
 static ColorGeometry4f byte_color_to_color(const ColorGeometry4b &a)
 {
-  return a.decode();
+  return color::decode(a);
 }
 
 static math::Quaternion float4x4_to_quaternion(const float4x4 &a)

@@ -136,7 +136,7 @@ GPointer rna_property_for_attribute_type_retrieve_value(PointerRNA &ptr,
     case bke::AttrType::ColorByte: {
       ColorGeometry4f value;
       RNA_float_get_array(&ptr, prop_name.c_str(), value);
-      *static_cast<ColorGeometry4b *>(buffer) = value.encode();
+      *static_cast<ColorGeometry4b *>(buffer) = color::encode(value);
       break;
     }
     case bke::AttrType::Bool:
@@ -179,7 +179,7 @@ void rna_property_for_attribute_type_set_value(PointerRNA &ptr,
       RNA_property_float_set_array(&ptr, &prop, *value.get<float3>());
       break;
     case bke::AttrType::ColorByte:
-      RNA_property_float_set_array(&ptr, &prop, value.get<ColorGeometry4b>()->decode());
+      RNA_property_float_set_array(&ptr, &prop, color::decode(*value.get<ColorGeometry4b>()));
       break;
     case bke::AttrType::ColorFloat:
       RNA_property_float_set_array(&ptr, &prop, *value.get<ColorGeometry4f>());

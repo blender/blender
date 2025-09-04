@@ -8,8 +8,10 @@
 
 #pragma once
 
-#include "BKE_vfont.hh"
+#include "BLI_math_color.h"
 #include "BLI_math_matrix.hh"
+
+#include "BKE_vfont.hh"
 
 #include "overlay_base.hh"
 

@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "BLI_color.hh"
+#include "BLI_color_types.hh"
 #include "BLI_string_ref.hh"
 #include "GPU_vertex_buffer.hh"
 

@@ -4,6 +4,8 @@
 
 #include "node_shader_util.hh"
 
+#include "BLI_math_base.h"
+
 namespace blender::nodes::node_shader_eevee_specular_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)

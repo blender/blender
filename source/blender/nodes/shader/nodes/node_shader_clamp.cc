@@ -8,6 +8,8 @@
 
 #include "node_shader_util.hh"
 
+#include "BLI_math_base.h"
+
 #include "FN_multi_function_builder.hh"
 
 #include "NOD_multi_function.hh"

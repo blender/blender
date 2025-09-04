@@ -6,6 +6,8 @@
  * \ingroup edgreasepencil
  */
 
+#include "BLI_math_color.h"
+
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
 #include "BKE_curves.hh"

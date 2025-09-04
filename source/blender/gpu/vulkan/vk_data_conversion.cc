@@ -865,12 +865,12 @@ void convert(DestinationType &dst, const SourceType &src)
 
 static void convert(SRGBA8 &dst, const FLOAT4 &src)
 {
-  dst.value = src.value.encode();
+  dst.value = color::encode(src.value);
 }
 
 static void convert(FLOAT4 &dst, const SRGBA8 &src)
 {
-  dst.value = src.value.decode();
+  dst.value = color::decode(src.value);
 }
 
 static void convert(FLOAT3 &dst, const HALF4 &src)

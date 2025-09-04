@@ -6,6 +6,7 @@
  * \ingroup spclip
  */
 
+#include <cfloat>
 #include <cstring>
 
 #include "DNA_defaults.h"
