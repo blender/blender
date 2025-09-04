@@ -1730,7 +1730,7 @@ bool MOV_write_append(MovieWriter *writer,
       writer, scene, rd, imf, start_frame, frame, image, suffix, reports);
   return ok;
 #else
-  UNUSED_VARS(scene, rd, start_frame, frame, image, suffix, reports);
+  UNUSED_VARS(scene, rd, imf, start_frame, frame, image, suffix, reports);
   return false;
 #endif
 }
