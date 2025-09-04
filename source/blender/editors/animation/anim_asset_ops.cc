@@ -443,15 +443,6 @@ void POSELIB_OT_create_pose_asset(wmOperatorType *ot)
       ot->srna, "catalog_path", nullptr, MAX_NAME, "Catalog", "Catalog to use for the new asset");
   RNA_def_property_string_search_func_runtime(
       prop, visit_library_prop_catalogs_catalog_for_search_fn, PROP_STRING_SEARCH_SUGGESTION);
-
-  /* This property is just kept to have backwards compatibility and has no functionality. It should
-   * be removed in the 5.0 release. */
-  prop = RNA_def_boolean(ot->srna,
-                         "activate_new_action",
-                         false,
-                         "Activate New Action",
-                         "This property is deprecated and will be removed in the future");
-  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 enum AssetModifyMode {
