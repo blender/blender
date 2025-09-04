@@ -2207,7 +2207,8 @@ void UI_update_text_styles();
 #define UI_UNIT_X ((void)0, U.widget_unit)
 #define UI_UNIT_Y ((void)0, U.widget_unit)
 
-#define UI_HEADER_OFFSET ((void)0, 0.4f * UI_UNIT_X)
+#define UI_HEADER_OFFSET \
+  ((void)0, ((U.uiflag & USER_AREA_CORNER_HANDLE) ? 16.0f : 8.0f) * UI_SCALE_FAC)
 
 #define UI_AZONESPOTW UI_HEADER_OFFSET       /* Width of corner action zone #AZone. */
 #define UI_AZONESPOTH (0.6f * U.widget_unit) /* Height of corner action zone #AZone. */
