@@ -96,12 +96,6 @@ enum class LayoutSeparatorType : int8_t {
  */
 struct uiLayout : public uiItem, blender::NonCopyable, blender::NonMovable {
   // protected:
-  uiLayoutRoot *root_ = nullptr;
-  bContextStore *context_ = nullptr;
-  uiLayout *parent_ = nullptr;
-  blender::Vector<uiItem *> items_;
-
-  std::string heading_;
 
   /** Sub layout to add child items, if not the layout itself. */
   uiLayout *child_items_layout_ = nullptr;
@@ -124,8 +118,16 @@ struct uiLayout : public uiItem, blender::NonCopyable, blender::NonMovable {
   /** Is copied to uiButs created in this layout. */
   float search_weight_ = 0.0f;
 
+ protected:
+  uiLayoutRoot *root_ = nullptr;
+  bContextStore *context_ = nullptr;
+  uiLayout *parent_ = nullptr;
+  std::string heading_;
+
+  blender::Vector<uiItem *> items_;
+
  public:
-  uiLayout(blender::ui::ItemType type);
+  uiLayout(blender::ui::ItemType type, uiLayoutRoot *root);
 
   [[nodiscard]] bool active() const;
   /**
@@ -677,6 +679,13 @@ struct uiLayout : public uiItem, blender::NonCopyable, blender::NonMovable {
   void separator_spacer();
 
   friend struct blender::ui::LayoutInternal;
+
+  [[nodiscard]] uiLayoutRoot *root() const;
+  [[nodiscard]] const bContextStore *context() const;
+  [[nodiscard]] uiLayout *parent() const;
+  [[nodiscard]] blender::StringRef heading() const;
+  void heading_reset();
+  [[nodiscard]] blender::Span<uiItem *> items() const;
 };
 
 inline bool uiLayout::active() const
