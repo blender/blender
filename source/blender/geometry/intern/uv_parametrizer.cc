@@ -4271,7 +4271,7 @@ void uv_parametrizer_average(ParamHandle *phandle, bool ignore_pinned, bool scal
           s[0][1] = va->uv[1] - vc->uv[1];
           s[1][0] = vb->uv[0] - vc->uv[0];
           s[1][1] = vb->uv[1] - vc->uv[1];
-          /* Find the "U" axis and "V" axis in triangle co-ordinates. Normally this would require
+          /* Find the "U" axis and "V" axis in triangle coordinates. Normally this would require
            * SVD, but in 2D we can use a cheaper matrix inversion instead. */
           if (!invert_m2_m2(m, s)) {
             continue;
