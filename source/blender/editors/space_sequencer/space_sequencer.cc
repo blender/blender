@@ -49,6 +49,7 @@
 #include "WM_message.hh"
 
 #include "SEQ_channels.hh"
+#include "SEQ_modifier.hh"
 #include "SEQ_offscreen.hh"
 #include "SEQ_preview_cache.hh"
 #include "SEQ_retiming.hh"
@@ -1210,6 +1211,15 @@ void ED_spacetype_sequencer()
   art->snap_size = ED_region_generic_panel_region_snap_size;
   art->draw = sequencer_buttons_region_draw;
   BLI_addhead(&st->regiontypes, art);
+
+  /* Register the panel types from strip modifiers. The actual panels are built per strip modifier
+   * rather than per modifier type. */
+  for (int i = 0; i < NUM_STRIP_MODIFIER_TYPES; i++) {
+    const seq::StripModifierTypeInfo *mti = seq::modifier_type_info_get(i);
+    if (mti != nullptr && mti->panel_register != nullptr) {
+      mti->panel_register(art);
+    }
+  }
 
   sequencer_buttons_register(art);
   /* Toolbar. */

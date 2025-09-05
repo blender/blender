@@ -1055,12 +1055,12 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
   if (guiding_pass_albedo != PASS_UNUSED) {
     kernel_assert(render_pass_denoising_albedo != PASS_UNUSED);
 
-    const ccl_global float *aledo_in = buffer + render_pass_denoising_albedo;
+    const ccl_global float *albedo_in = buffer + render_pass_denoising_albedo;
     ccl_global float *albedo_out = guiding_pixel + guiding_pass_albedo;
 
-    albedo_out[0] = aledo_in[0] * pixel_scale;
-    albedo_out[1] = aledo_in[1] * pixel_scale;
-    albedo_out[2] = aledo_in[2] * pixel_scale;
+    albedo_out[0] = albedo_in[0] * pixel_scale;
+    albedo_out[1] = albedo_in[1] * pixel_scale;
+    albedo_out[2] = albedo_in[2] * pixel_scale;
   }
 
   /* Normal pass. */
@@ -1174,6 +1174,43 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
      * is an opaque pixel for 4 component passes. */
     denoised_pixel[3] = 0;
   }
+}
+ccl_gpu_kernel_postfix
+
+ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
+    ccl_gpu_kernel_signature(filter_color_flip_y,
+                             ccl_global float *render_buffer,
+                             const int full_x,
+                             const int full_y,
+                             const int width,
+                             const int height,
+                             const int offset,
+                             const int stride,
+                             const int pass_stride,
+                             const int pass_denoised)
+{
+  const int work_index = ccl_gpu_global_id_x();
+  const int y = work_index / width;
+  const int x = work_index - y * width;
+
+  if (x >= width || y >= height / 2) {
+    return;
+  }
+
+  const uint64_t render_pixel_index = offset + (x + full_x) + (y + full_y) * stride;
+  ccl_global float *buffer = render_buffer + render_pixel_index * pass_stride + pass_denoised;
+  ccl_global float *buffer_flipped = buffer + (height - 1 - y * 2) * stride * pass_stride;
+
+  float3 temp;
+  temp.x = buffer[0];
+  temp.y = buffer[1];
+  temp.z = buffer[2];
+  buffer[0] = buffer_flipped[0];
+  buffer[1] = buffer_flipped[1];
+  buffer[2] = buffer_flipped[2];
+  buffer_flipped[0] = temp.x;
+  buffer_flipped[1] = temp.y;
+  buffer_flipped[2] = temp.z;
 }
 ccl_gpu_kernel_postfix
 

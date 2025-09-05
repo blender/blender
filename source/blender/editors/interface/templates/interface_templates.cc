@@ -9,6 +9,7 @@
 #include "BKE_library.hh"
 #include "BKE_screen.hh"
 
+#include "BLI_math_color.h"
 #include "BLI_string_ref.hh"
 
 #include "ED_fileselect.hh"

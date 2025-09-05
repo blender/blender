@@ -466,7 +466,7 @@ enum PropertyFlagIntern {
    */
   PROP_INTERN_PTR_OWNERSHIP_FORCED = (1 << 5),
   /**
-   * Indicates that #PROP_ID_REFCOUNT has been explicitely set (using `RNA_def_property_flag`) or
+   * Indicates that #PROP_ID_REFCOUNT has been explicitly set (using `RNA_def_property_flag`) or
    * cleared (using `RNA_def_property_clear_flag`) by property definition code, and should
    * therefore not be automatically defined based on #STRUCT_ID_REFCOUNT of the property type (in
    * #rna_auto_types or #RNA_def_property_struct_runtime).

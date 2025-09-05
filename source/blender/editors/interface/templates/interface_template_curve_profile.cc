@@ -10,6 +10,7 @@
 #include "BKE_curveprofile.h"
 #include "BKE_library.hh"
 
+#include "BLI_math_base.h"
 #include "BLI_rect.h"
 #include "BLI_string_ref.hh"
 

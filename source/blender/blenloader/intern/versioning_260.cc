@@ -1143,7 +1143,7 @@ static bool strip_colorbalance_update_cb(Strip *strip, void * /*user_data*/)
 
   if (data && data->color_balance_legacy) {
     StripModifierData *smd = blender::seq::modifier_new(
-        strip, nullptr, seqModifierType_ColorBalance);
+        strip, nullptr, eSeqModifierType_ColorBalance);
     ColorBalanceModifierData *cbmd = (ColorBalanceModifierData *)smd;
 
     cbmd->color_balance = *data->color_balance_legacy;

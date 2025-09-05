@@ -319,7 +319,7 @@ static void ui_update_flexible_spacing(const ARegion *region, uiBlock *block)
 
   rcti rect;
   ui_but_to_pixelrect(&rect, region, block, block->buttons.last().get());
-  const float buttons_width = std::ceil(float(rect.xmax) + UI_HEADER_OFFSET);
+  const float buttons_width = std::ceil(float(rect.xmax) + 8.0f * UI_SCALE_FAC);
   const float region_width = float(region->winx);
 
   if (region_width <= buttons_width) {

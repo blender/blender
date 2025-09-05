@@ -28,7 +28,7 @@ void StripModifierDataBackup::reset()
 
 void StripModifierDataBackup::init_from_modifier(StripModifierData *smd)
 {
-  if (smd->type == seqModifierType_SoundEqualizer) {
+  if (smd->type == eSeqModifierType_SoundEqualizer) {
     sound_in = smd->runtime.last_sound_in;
     sound_out = smd->runtime.last_sound_out;
     last_buf = smd->runtime.last_buf;
@@ -41,7 +41,7 @@ void StripModifierDataBackup::init_from_modifier(StripModifierData *smd)
 
 void StripModifierDataBackup::restore_to_modifier(StripModifierData *smd)
 {
-  if (smd->type == seqModifierType_SoundEqualizer) {
+  if (smd->type == eSeqModifierType_SoundEqualizer) {
     smd->runtime.last_sound_in = sound_in;
     smd->runtime.last_sound_out = sound_out;
     smd->runtime.last_buf = last_buf;

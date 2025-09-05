@@ -286,6 +286,9 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_PANEL_OUTLINE:
           cp = btheme->tui.panel_outline;
           break;
+        case TH_PANEL_ACTIVE:
+          cp = btheme->tui.panel_active;
+          break;
 
         case TH_BUTBACK:
           cp = ts->button;

@@ -8,7 +8,7 @@
  * Contains color mixing utilities.
  */
 
-#include "BLI_color.hh"
+#include "BLI_color_types.hh"
 #include "BLI_math_base.h"
 #include "BLI_math_color.h"
 #include "BLI_sys_types.h"

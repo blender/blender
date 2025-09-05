@@ -2641,7 +2641,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Upper Bound", "Upper bound of the highlighting range");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, nullptr);
 
-  prop = RNA_def_property(srna, "gridlines_range_color", PROP_FLOAT, PROP_COLOR);
+  prop = RNA_def_property(srna, "gridlines_range_color", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_float_sdna(prop, nullptr, "gridlines_range_color");
   RNA_def_property_array(prop, 4);
   RNA_def_property_ui_text(prop, "Color", "Color used to highlight the range");

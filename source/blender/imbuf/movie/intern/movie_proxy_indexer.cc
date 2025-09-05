@@ -30,6 +30,7 @@
 #include "ffmpeg_swscale.hh"
 #include "movie_proxy_indexer.hh"
 #include "movie_read.hh"
+#include "movie_util.hh"
 
 static CLG_LogRef LOG = {"video.proxy"};
 
@@ -456,7 +457,7 @@ static proxy_output_ctx *alloc_proxy_output_ffmpeg(MovieReader *anim,
     rv->c->thread_count = 0;
   }
   else {
-    rv->c->thread_count = BLI_system_thread_count();
+    rv->c->thread_count = MOV_thread_count();
   }
 
   if (rv->codec->capabilities & AV_CODEC_CAP_FRAME_THREADS) {
@@ -776,7 +777,7 @@ static MovieProxyBuilder *index_ffmpeg_create_context(MovieReader *anim,
     context->iCodecCtx->thread_count = 0;
   }
   else {
-    context->iCodecCtx->thread_count = BLI_system_thread_count();
+    context->iCodecCtx->thread_count = MOV_thread_count();
   }
 
   if (context->iCodec->capabilities & AV_CODEC_CAP_FRAME_THREADS) {

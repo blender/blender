@@ -9,6 +9,7 @@
 #include "BLI_fileops.h"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
+#include "BLI_math_base.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"

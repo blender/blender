@@ -24,6 +24,7 @@
 #include "BLI_dynstr.h"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
+#include "BLI_math_base.h"
 #include "BLI_mutex.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -1202,7 +1203,7 @@ bool RNA_struct_bl_idname_ok_or_report(ReportList *reports,
     {
       BKE_reportf(reports,
                   eReportType(report_level),
-                  "'%s' does not have upper case alpha-numeric prefix",
+                  "'%s' does not have upper case alphanumeric prefix",
                   identifier);
       return failure;
     }
@@ -1217,7 +1218,7 @@ bool RNA_struct_bl_idname_ok_or_report(ReportList *reports,
     {
       BKE_reportf(reports,
                   eReportType(report_level),
-                  "'%s' does not have an alpha-numeric suffix",
+                  "'%s' does not have an alphanumeric suffix",
                   identifier);
       return failure;
     }
@@ -4094,7 +4095,7 @@ int RNA_property_string_length(PointerRNA *ptr, PropertyRNA *prop)
   StringPropertyRNA *sprop = reinterpret_cast<StringPropertyRNA *>(prop_rna_or_id.rnaprop);
 
   /* If there is a `get_transform` callback, no choice but get that final string to find out its
-   * length. Otherwise, get the 'storage length', whcih is typically more efficient to compute. */
+   * length. Otherwise, get the 'storage length', which is typically more efficient to compute. */
   if (sprop->get_transform) {
     std::string string_final = property_string_get(ptr, prop_rna_or_id);
     return int(string_final.size());

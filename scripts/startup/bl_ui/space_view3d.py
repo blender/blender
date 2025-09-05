@@ -12,7 +12,6 @@ from bpy.types import (
 from bl_ui.properties_paint_common import (
     UnifiedPaintPanel,
     brush_basic_texpaint_settings,
-    brush_basic_gpencil_weight_settings,
     brush_basic_grease_pencil_weight_settings,
     brush_basic_grease_pencil_vertex_settings,
     BrushAssetShelf,
@@ -432,24 +431,6 @@ class _draw_tool_settings_context_mode:
 
         # Brush falloff
         layout.popover("VIEW3D_PT_tools_brush_falloff")
-
-        return True
-
-    @staticmethod
-    def WEIGHT_GPENCIL(context, layout, tool):
-        if (tool is None) or (not tool.use_brushes):
-            return False
-
-        tool_settings = context.tool_settings
-        paint = tool_settings.gpencil_weight_paint
-        brush = paint.brush
-
-        BrushAssetShelf.draw_popup_selector(layout, context, brush)
-
-        brush_basic_gpencil_weight_settings(layout, context, brush, compact=True)
-
-        layout.popover("VIEW3D_PT_tools_grease_pencil_weight_options", text="Options")
-        layout.popover("VIEW3D_PT_tools_grease_pencil_brush_weight_falloff", text="Falloff")
 
         return True
 

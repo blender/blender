@@ -11,6 +11,7 @@
 #include <cstring>
 
 #include "BLI_listbase.h"
+#include "BLI_math_color.h"
 #include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string_utf8.h"

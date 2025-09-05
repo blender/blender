@@ -672,6 +672,7 @@ class NWMergeNodes(Operator, NWBase):
         selected_z = []  # entry = [index, loc]
         selected_alphaover = []  # entry = [index, loc]
         selected_boolean = [] # entry = [index, loc]
+        selected_string = [] # entry = [index, loc]
 
         for i, node in enumerate(nodes):
             if node.select and node.outputs:
@@ -683,6 +684,8 @@ class NWMergeNodes(Operator, NWBase):
                         mode = 'MIX'
                     if merge_type == 'AUTO' and mode == 'ADD':
                         mode = 'MIX'
+                if output_type == 'STRING':
+                    merge_type = 'AUTO'
                 if merge_type == 'AUTO':
                     for (type, types_list, dst) in (
                             ('SHADER', ('MIX', 'ADD'), selected_shader),
@@ -691,6 +694,7 @@ class NWMergeNodes(Operator, NWBase):
                             ('VALUE', [t[0] for t in operations], selected_math),
                             ('VECTOR', [], selected_vector),
                             ('BOOLEAN', [], selected_boolean),
+                            ('STRING', [], selected_string),
                     ):
                         valid_mode = mode in types_list
                         # When mode is 'MIX' we have to cheat since the mix node is not used in
@@ -703,7 +707,7 @@ class NWMergeNodes(Operator, NWBase):
                                     valid_mode = True
                                 elif type == 'GEOMETRY':
                                     valid_mode = True
-                                elif type == 'BOOLEAN':
+                                elif type in ('BOOLEAN', 'STRING'):
                                     valid_mode = True
                         # When mode is 'MIX' use mix node for both 'RGBA' and 'VALUE' output types.
                         # Cheat that output type is 'RGBA',
@@ -737,7 +741,7 @@ class NWMergeNodes(Operator, NWBase):
 
         # If no nodes are selected, do nothing and pass through.
         if not (selected_mix + selected_shader + selected_geometry + selected_math
-                + selected_vector + selected_z + selected_alphaover + selected_boolean):
+                + selected_vector + selected_z + selected_alphaover + selected_boolean + selected_string):
             return {'PASS_THROUGH'}
 
         for nodes_list in [
@@ -748,7 +752,8 @@ class NWMergeNodes(Operator, NWBase):
                 selected_vector,
                 selected_z,
                 selected_alphaover,
-                selected_boolean]:
+                selected_boolean,
+                selected_string]:
             if not nodes_list:
                 continue
             count_before = len(nodes)
@@ -864,6 +869,12 @@ class NWMergeNodes(Operator, NWBase):
                         loc_y = loc_y - 50
                     first = 0
                     second = 1
+                elif nodes_list == selected_string:
+                    add_type = node_type + 'StringJoin'
+                    add = self.merge_with_multi_input(
+                        nodes_list, merge_position, do_hide, loc_x, links, nodes, add_type, [1])
+                    was_multi = True
+                    break # this line is here in case more types get added in the future
                 add.location = loc_x, loc_y
                 loc_y += offset_y
                 add.select = True

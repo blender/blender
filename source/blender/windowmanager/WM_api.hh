@@ -207,6 +207,8 @@ enum eWM_CapabilitiesFlag {
   WM_CAPABILITY_CURSOR_RGBA = (1 << 10),
   /** Support on demand cursor generation. */
   WM_CAPABILITY_CURSOR_GENERATOR = (1 << 11),
+  /** Ability to save/restore windows among multiple monitors. */
+  WM_CAPABILITY_MULTIMONITOR_PLACEMENT = (1 << 12),
   /** The initial value, indicates the value needs to be set by inspecting GHOST. */
   WM_CAPABILITY_INITIALIZED = (1u << 31),
 };
@@ -397,6 +399,8 @@ wmWindow *WM_window_open(bContext *C,
                          eWindowAlignment alignment,
                          void (*area_setup_fn)(bScreen *screen, ScrArea *area, void *user_data),
                          void *area_setup_user_data) ATTR_NONNULL(1, 3);
+
+wmWindow *WM_window_open_temp(bContext *C, const char *title, int space_type, bool dialog);
 
 void WM_window_dpi_set_userdef(const wmWindow *win);
 /**

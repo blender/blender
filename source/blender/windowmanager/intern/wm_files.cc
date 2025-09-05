@@ -37,6 +37,7 @@
 #include "BLI_filereader.h"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
+#include "BLI_math_base.h"
 #include "BLI_math_time.h"
 #include "BLI_memory_cache.hh"
 #include "BLI_string.h"
@@ -3791,6 +3792,7 @@ static wmOperatorStatus wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
     /* If saved file is the active one, there are technically no more compatibility issues, the
      * file on disk now matches the currently opened data version-wise. */
     bmain->has_forward_compatibility_issues = false;
+    bmain->colorspace.is_missing_opencolorio_config = false;
 
     /* If saved file is the active one, notify WM so that saved status and window title can be
      * updated. */
@@ -4382,6 +4384,14 @@ static void file_overwrite_detailed_info_show(uiLayout *parent_layout, Main *bma
                   ICON_NONE);
     layout->label(RPT_("saved as a new, regular file."), ICON_NONE);
   }
+
+  if (bmain->colorspace.is_missing_opencolorio_config) {
+    layout->label(
+        RPT_("Displays, views or color spaces in this file were missing and have been changed."),
+        ICON_NONE);
+    layout->label(RPT_("Saving it with this OpenColorIO configuration may cause loss of data."),
+                  ICON_NONE);
+  }
 }
 
 static void save_file_overwrite_cancel(bContext *C, void *arg_block, void * /*arg_data*/)
@@ -4487,8 +4497,16 @@ static uiBlock *block_create_save_file_overwrite_dialog(bContext *C, ARegion *re
                true,
                false);
   }
-  else {
+  else if (!bmain->colorspace.is_missing_opencolorio_config) {
     BLI_assert_unreachable();
+  }
+
+  if (bmain->colorspace.is_missing_opencolorio_config) {
+    uiItemL_ex(layout,
+               RPT_("Overwrite file with current OpenColorIO configuration?"),
+               ICON_NONE,
+               true,
+               false);
   }
 
   /* Filename. */
@@ -4604,7 +4622,8 @@ static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_dat
   bool file_has_been_saved_before = BKE_main_blendfile_path(bmain)[0] != '\0';
 
   if (file_has_been_saved_before) {
-    if (bmain->has_forward_compatibility_issues) {
+    if (bmain->has_forward_compatibility_issues || bmain->colorspace.is_missing_opencolorio_config)
+    {
       /* Need to invoke to get the file-browser and choose where to save the new file.
        * This also makes it impossible to keep on going with current operation, which is why
        * callback cannot be executed anymore.

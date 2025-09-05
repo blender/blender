@@ -124,7 +124,7 @@ bool OSLManager::need_update() const
 void OSLManager::device_update_pre(Device *device, Scene *scene)
 {
   if (scene->shader_manager->use_osl() || !scene->camera->script_name.empty()) {
-    shading_system_init();
+    shading_system_init(scene->shader_manager->get_scene_linear_space());
   }
 
   if (!need_update()) {
@@ -343,7 +343,7 @@ void OSLManager::texture_system_free()
   }
 }
 
-void OSLManager::shading_system_init()
+void OSLManager::shading_system_init(ShaderManager::SceneLinearSpace colorspace)
 {
   /* No need to do anything if we already have shading systems. */
   if (!ss_map.empty()) {
@@ -353,7 +353,7 @@ void OSLManager::shading_system_init()
   /* create shading system, shared between different renders to reduce memory usage */
   const thread_scoped_lock lock(ss_shared_mutex);
 
-  foreach_osl_device(device_, [this](Device *sub_device, OSLGlobals *) {
+  foreach_osl_device(device_, [this, colorspace](Device *sub_device, OSLGlobals *) {
     const DeviceType device_type = sub_device->info.type;
 
     if (!ss_shared[device_type]) {
@@ -380,6 +380,21 @@ void OSLManager::shading_system_init()
       ss->attribute("commonspace", "world");
       ss->attribute("searchpath:shader", shader_path);
       ss->attribute("greedyjit", 1);
+
+      /* OSL doesn't accept an arbitrary space, so support a few specific spaces. */
+      switch (colorspace) {
+        case ShaderManager::SceneLinearSpace::Rec709:
+          ss->attribute("colorspace", OSL::Strings::Rec709);
+          break;
+        case ShaderManager::SceneLinearSpace::Rec2020:
+          ss->attribute("colorspace", OSL::Strings::HDTV);
+          break;
+        case ShaderManager::SceneLinearSpace::ACEScg:
+          ss->attribute("colorspace", OSL::Strings::ACEScg);
+          break;
+        case ShaderManager::SceneLinearSpace::Unknown:
+          break;
+      }
 
       const char *groupdata_alloc_str = getenv("CYCLES_OSL_GROUPDATA_ALLOC");
       if (groupdata_alloc_str) {
@@ -582,8 +597,6 @@ const char *OSLManager::shader_load_filepath(string filepath)
 
 const char *OSLManager::shader_load_bytecode(const string &hash, const string &bytecode)
 {
-  shading_system_init();
-
   foreach_shading_system(
       [hash, bytecode](OSL::ShadingSystem *ss) { ss->LoadMemoryCompiledShader(hash, bytecode); });
 
@@ -740,7 +753,10 @@ OSLNode *OSLShaderManager::osl_node(ShaderGraph *graph,
     return nullptr;
   }
 
-  /* create query */
+  /* Ensure shading system exists before we try to load a shader. */
+  scene->osl_manager->shading_system_init(scene->shader_manager->get_scene_linear_space());
+
+  /* Load shader code. */
   const char *hash;
 
   if (!filepath.empty()) {

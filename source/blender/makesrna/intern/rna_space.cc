@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "BLI_math_constants.h"
 #include "BLI_string_ref.hh"
 #include "BLT_translation.hh"
 

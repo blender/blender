@@ -126,7 +126,7 @@ static gpu::IndexBufPtr extract_edituv_tris_mesh(const MeshRenderData &mr,
       selection = IndexMask::from_bools_inverse(faces.index_range(), mr.hide_poly, memory);
     }
 
-    if (sync_selection) {
+    if (sync_selection && !mr.select_poly.is_empty()) {
       selection = IndexMask::from_bools(selection, mr.select_poly, memory);
     }
   }

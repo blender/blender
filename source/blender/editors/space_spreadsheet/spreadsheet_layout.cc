@@ -9,6 +9,7 @@
 
 #include "BLF_api.hh"
 
+#include "BLI_color.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_quaternion_types.hh"
 #include "BLI_math_vector_types.hh"
@@ -362,7 +363,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
 
   void draw_byte_color(const CellDrawParams &params, const ColorGeometry4b color) const
   {
-    const ColorGeometry4f float_color = color.decode();
+    const ColorGeometry4f float_color = color::decode(color);
     Span<float> values(&float_color.r, 4);
     const float segment_width = float(params.width) / values.size();
     for (const int i : values.index_range()) {

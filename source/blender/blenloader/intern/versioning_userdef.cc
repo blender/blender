@@ -399,6 +399,10 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(common.anim.long_key_selected);
   }
 
+  if (!USER_VERSION_ATLEAST(500, 74)) {
+    FROM_DEFAULT_V4_UCHAR(tui.panel_active);
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a USER_VERSION_ATLEAST check.
@@ -1278,7 +1282,7 @@ void blo_do_versions_userdef(UserDef *userdef)
       userdef->pixelsize = 1.0f;
     }
     /* Clear old userdef flag for "Camera Parent Lock". */
-    userdef->uiflag &= ~USER_UIFLAG_UNUSED_3;
+    userdef->uiflag &= ~USER_AREA_CORNER_HANDLE;
   }
 
   if (!USER_VERSION_ATLEAST(292, 9)) {
@@ -1664,6 +1668,12 @@ void blo_do_versions_userdef(UserDef *userdef)
 
   if (!USER_VERSION_ATLEAST(500, 59)) {
     userdef->preferences_display_type = USER_TEMP_SPACE_DISPLAY_WINDOW;
+  }
+
+  if (!USER_VERSION_ATLEAST(500, 76)) {
+    if (userdef->stored_bounds.file.xmin == userdef->stored_bounds.file.xmax) {
+      memcpy(&userdef->stored_bounds, &U_default.stored_bounds, sizeof(userdef->stored_bounds));
+    }
   }
 
   /**

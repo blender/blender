@@ -18,10 +18,8 @@
 #include "BLI_color.hh"
 #include "BLI_color_mix.hh"
 #include "BLI_enumerable_thread_specific.hh"
-#include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.hh"
-#include "BLI_math_rotation.h"
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
 
@@ -100,7 +98,7 @@ static bool isZero(ColorPaint4b c)
 template<typename Color> static ColorPaint4f toFloat(const Color &c)
 {
   if constexpr (std::is_same_v<Color, ColorPaint4b>) {
-    return c.decode();
+    return blender::color::decode(c);
   }
   else {
     return c;
@@ -110,7 +108,7 @@ template<typename Color> static ColorPaint4f toFloat(const Color &c)
 template<typename Color> static Color fromFloat(const ColorPaint4f &c)
 {
   if constexpr (std::is_same_v<Color, ColorPaint4b>) {
-    return c.encode();
+    return blender::color::encode(c);
   }
   else {
     return c;
@@ -2284,7 +2282,7 @@ static void fill_mesh_color(Mesh &mesh,
     }
     else if (layer->type == CD_PROP_BYTE_COLOR) {
       fill_bm_face_or_corner_attribute<ColorPaint4b>(
-          *bm, color.encode(), domain, layer->offset, use_vert_sel);
+          *bm, blender::color::encode(color), domain, layer->offset, use_vert_sel);
     }
   }
   else {
@@ -2303,7 +2301,7 @@ static void fill_mesh_color(Mesh &mesh,
     else if (attribute.span.type().is<ColorGeometry4b>()) {
       fill_mesh_face_or_corner_attribute<ColorPaint4b>(
           mesh,
-          color.encode(),
+          blender::color::encode(color),
           attribute.domain,
           attribute.span.typed<ColorGeometry4b>().cast<ColorPaint4b>(),
           use_vert_sel,

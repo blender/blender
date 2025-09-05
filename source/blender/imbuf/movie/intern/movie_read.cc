@@ -19,7 +19,6 @@
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_task.hh"
-#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_scene_types.h"
@@ -433,7 +432,7 @@ static int startffmpeg(MovieReader *anim)
     pCodecCtx->thread_count = 0;
   }
   else {
-    pCodecCtx->thread_count = BLI_system_thread_count();
+    pCodecCtx->thread_count = MOV_thread_count();
   }
 
   if (pCodec->capabilities & AV_CODEC_CAP_FRAME_THREADS) {

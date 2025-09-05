@@ -178,6 +178,10 @@ typedef enum {
    * Setting cursors via #GHOST_SetCursorGenerator is supported.
    */
   GHOST_kCapabilityCursorGenerator = (1 << 11),
+  /**
+   * Support accurately placing windows on multiple monitors.
+   */
+  GHOST_kCapabilityMultiMonitorPlacement = (1 << 12),
 
 } GHOST_TCapabilityFlag;
 
@@ -191,7 +195,7 @@ typedef enum {
    GHOST_kCapabilityClipboardImage | GHOST_kCapabilityDesktopSample | GHOST_kCapabilityInputIME | \
    GHOST_kCapabilityTrackpadPhysicalDirection | GHOST_kCapabilityWindowDecorationStyles | \
    GHOST_kCapabilityKeyboardHyperKey | GHOST_kCapabilityCursorRGBA | \
-   GHOST_kCapabilityCursorGenerator)
+   GHOST_kCapabilityCursorGenerator | GHOST_kCapabilityMultiMonitorPlacement)
 
 /* Xtilt and Ytilt represent how much the pen is tilted away from
  * vertically upright in either the X or Y direction, with X and Y the

@@ -899,6 +899,9 @@ void Camera::set_osl_camera(Scene *scene,
                             const std::string &bytecode)
 {
 #ifdef WITH_OSL
+  /* Ensure shading system exists before we try to load a shader. */
+  scene->osl_manager->shading_system_init(scene->shader_manager->get_scene_linear_space());
+
   /* Load the shader. */
   const char *hash;
 

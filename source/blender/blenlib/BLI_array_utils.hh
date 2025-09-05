@@ -155,7 +155,7 @@ inline void gather(const VArray<T> &src,
 /**
  * Fill the destination span by gathering indexed values from the `src` array.
  */
-template<typename T, typename IndexT>
+template<typename T>
 inline void gather(const Span<T> src,
                    const IndexMask &indices,
                    MutableSpan<T> dst,

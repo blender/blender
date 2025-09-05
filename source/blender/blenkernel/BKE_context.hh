@@ -175,8 +175,8 @@ std::optional<blender::StringRefNull> CTX_store_string_lookup(const bContextStor
                                                               blender::StringRef name);
 std::optional<int64_t> CTX_store_int_lookup(const bContextStore *store, blender::StringRef name);
 
-/* need to store if python is initialized or not */
-bool CTX_py_init_get(bContext *C);
+/** Needed to store if Python is initialized or not. */
+bool CTX_py_init_get(const bContext *C);
 void CTX_py_init_set(bContext *C, bool value);
 
 void *CTX_py_dict_get(const bContext *C);

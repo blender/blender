@@ -280,6 +280,7 @@ class USERPREF_PT_interface_editors(InterfacePanel, CenterAlignMixIn, Panel):
 
         col = layout.column()
         col.prop(system, "use_region_overlap")
+        col.prop(view, "show_area_handle")
         col.prop(view, "show_navigate_ui")
         col.prop(view, "border_width")
         col.prop(view, "color_picker_type")
@@ -1117,6 +1118,9 @@ class USERPREF_PT_theme_interface_panel(ThemePanel, CenterAlignMixIn, Panel):
         col = col.column(align=True)
         col.prop(ui, "panel_back", text="Background")
         col.prop(ui, "panel_sub_back", text="Sub-Panel")
+
+        col = col.column()
+        col.prop(ui, "panel_active", text="Active")
 
         col = flow.column(align=True)
         col.prop(ui, "panel_title", text="Title")

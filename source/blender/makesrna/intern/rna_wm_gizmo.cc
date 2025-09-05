@@ -1140,7 +1140,7 @@ static void rna_def_gizmo(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_ui_text(prop, "", "Gizmo group this gizmo is a member of");
 
   /* Color & Alpha */
-  prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
+  prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_array(prop, 3);
   RNA_def_property_float_funcs(prop, "rna_Gizmo_color_get", "rna_Gizmo_color_set", nullptr);
 
@@ -1151,7 +1151,7 @@ static void rna_def_gizmo(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_update(prop, 0, "rna_Gizmo_update_redraw");
 
   /* Color & Alpha (highlight) */
-  prop = RNA_def_property(srna, "color_highlight", PROP_FLOAT, PROP_COLOR);
+  prop = RNA_def_property(srna, "color_highlight", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_array(prop, 3);
   RNA_def_property_float_funcs(prop, "rna_Gizmo_color_hi_get", "rna_Gizmo_color_hi_set", nullptr);
 

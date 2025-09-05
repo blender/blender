@@ -30,7 +30,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .supported_type({GeometryComponent::Type::Curve, GeometryComponent::Type::GreasePencil})
       .description("Curves to shorten");
   b.add_output<decl::Geometry>("Curve").propagate_all().align_with_previous();
-  b.add_input<decl::Bool>("Selection").default_value(true).hide_value().supports_field();
+  b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
   auto &start_fac = b.add_input<decl::Float>("Start")
                         .min(0.0f)
                         .max(1.0f)

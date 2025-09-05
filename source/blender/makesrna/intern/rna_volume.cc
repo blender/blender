@@ -51,6 +51,8 @@ struct DummyVolumeGridData;
 
 #ifdef RNA_RUNTIME
 
+#  include "BLI_math_base.h"
+
 #  include "BKE_volume.hh"
 
 #  include "DEG_depsgraph.hh"

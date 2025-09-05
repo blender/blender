@@ -203,6 +203,8 @@ const EnumPropertyItem rna_enum_attribute_curves_domain_items[] = {
 
 #  include "BLT_translation.hh"
 
+#  include "IMB_colormanagement.hh"
+
 #  include "WM_api.hh"
 
 using blender::StringRef;
@@ -577,11 +579,15 @@ static void rna_ByteColorAttributeValue_color_get(PointerRNA *ptr, float *values
 {
   MLoopCol *mlcol = (MLoopCol *)ptr->data;
   srgb_to_linearrgb_uchar4(values, &mlcol->r);
+  IMB_colormanagement_rec709_to_scene_linear(values, values);
 }
 
 static void rna_ByteColorAttributeValue_color_set(PointerRNA *ptr, const float *values)
 {
   MLoopCol *mlcol = (MLoopCol *)ptr->data;
+  float rec709[4];
+  IMB_colormanagement_scene_linear_to_rec709(rec709, values);
+  rec709[3] = values[3];
   linearrgb_to_srgb_uchar4(&mlcol->r, values);
 }
 
@@ -606,13 +612,15 @@ static void rna_ByteColorAttributeValue_color_srgb_set(PointerRNA *ptr, const fl
 static void rna_FloatColorAttributeValue_color_srgb_get(PointerRNA *ptr, float *values)
 {
   MPropCol *col = (MPropCol *)ptr->data;
-  linearrgb_to_srgb_v4(values, col->color);
+  IMB_colormanagement_scene_linear_to_srgb_v3(values, col->color);
+  values[3] = col->color[3];
 }
 
 static void rna_FloatColorAttributeValue_color_srgb_set(PointerRNA *ptr, const float *values)
 {
   MPropCol *col = (MPropCol *)ptr->data;
-  srgb_to_linearrgb_v4(col->color, values);
+  IMB_colormanagement_srgb_to_scene_linear_v3(col->color, values);
+  col->color[3] = values[3];
 }
 
 /* String Attribute */

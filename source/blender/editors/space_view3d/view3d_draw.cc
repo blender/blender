@@ -9,6 +9,7 @@
 #include <cmath>
 
 #include "BLI_listbase.h"
+#include "BLI_math_color.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_half.hh"
 #include "BLI_math_matrix.h"

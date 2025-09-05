@@ -9,7 +9,7 @@
 #include "BKE_node_socket_value.hh"
 #include "BKE_volume_grid_fwd.hh"
 
-#include "BLI_color.hh"
+#include "BLI_color_types.hh"
 #include "BLI_math_quaternion_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_memory_utils.hh"

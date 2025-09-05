@@ -6,6 +6,7 @@
 
 #include "kernel/globals.h"
 #include "kernel/types.h"
+#include "kernel/util/colorspace.h"
 
 #include "util/color.h"
 
@@ -123,8 +124,9 @@ ccl_device_inline T attribute_data_fetch_bytecolor(KernelGlobals /*kg*/, int /*o
 
 ccl_device_template_spec float4 attribute_data_fetch_bytecolor(KernelGlobals kg, int offset)
 {
-  return color_srgb_to_linear_v4(
+  const float4 rec709 = color_srgb_to_linear_v4(
       color_uchar4_to_float4(kernel_data_fetch(attributes_uchar4, offset)));
+  return make_float4(rec709_to_rgb(kg, make_float3(rec709)), rec709.w);
 }
 
 ccl_device_template_spec Transform attribute_data_fetch(KernelGlobals kg, int offset)

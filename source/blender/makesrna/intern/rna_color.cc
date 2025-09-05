@@ -81,7 +81,7 @@ static bool seq_update_modifier_curve(Strip *strip, void *user_data)
    * curve mapping. */
   SeqCurveMappingUpdateData *data = static_cast<SeqCurveMappingUpdateData *>(user_data);
   LISTBASE_FOREACH (StripModifierData *, smd, &strip->modifiers) {
-    if (smd->type == seqModifierType_Curves) {
+    if (smd->type == eSeqModifierType_Curves) {
       CurvesModifierData *cmd = reinterpret_cast<CurvesModifierData *>(smd);
       if (&cmd->curve_mapping == data->curve) {
         blender::seq::relations_invalidate_cache(data->scene, strip);

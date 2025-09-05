@@ -6,7 +6,6 @@
  * \ingroup imbuf
  */
 
-#include "BLI_string_ref.hh"
 #include "IMB_colormanagement.hh"
 #include "IMB_colormanagement_intern.hh"
 
@@ -30,6 +29,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_colorspace.hh"
 #include "BLI_fileops.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_color.h"
@@ -39,6 +39,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_rect.h"
+#include "BLI_string_ref.hh"
 #include "BLI_string_utf8.h"
 #include "BLI_task.hh"
 #include "BLI_threads.h"
@@ -90,17 +91,6 @@ static char global_role_default_byte[MAX_COLORSPACE_NAME];
 static char global_role_default_float[MAX_COLORSPACE_NAME];
 static char global_role_default_sequencer[MAX_COLORSPACE_NAME];
 static char global_role_aces_interchange[MAX_COLORSPACE_NAME];
-
-/* Luma coefficients and XYZ to RGB to be initialized by OCIO. */
-
-float3 imbuf_luma_coefficients(0.0f);
-float3x3 imbuf_scene_linear_to_xyz = float3x3::zero();
-float3x3 imbuf_xyz_to_scene_linear = float3x3::zero();
-float3x3 imbuf_scene_linear_to_rec709 = float3x3::zero();
-float3x3 imbuf_rec709_to_scene_linear = float3x3::zero();
-float3x3 imbuf_scene_linear_to_aces = float3x3::zero();
-float3x3 imbuf_aces_to_scene_linear = float3x3::zero();
-bool imbuf_scene_linear_is_rec709 = false;
 
 /* lock used by pre-cached processors getters, so processor wouldn't
  * be created several times
@@ -514,6 +504,40 @@ static bool colormanage_role_color_space_name_get(ocio::Config &config,
   return true;
 }
 
+static void colormanage_update_matrices()
+{
+  /* Load luminance coefficients. */
+  blender::colorspace::luma_coefficients = g_config->get_default_luma_coefs();
+
+  /* Load standard color spaces. */
+  blender::colorspace::xyz_to_scene_linear = g_config->get_xyz_to_scene_linear_matrix();
+  blender::colorspace::scene_linear_to_xyz = math::invert(
+      blender::colorspace::xyz_to_scene_linear);
+
+  blender::colorspace::scene_linear_to_rec709 = ocio::XYZ_TO_REC709 *
+                                                blender::colorspace::scene_linear_to_xyz;
+  blender::colorspace::rec709_to_scene_linear = math::invert(
+      blender::colorspace::scene_linear_to_rec709);
+
+  blender::colorspace::scene_linear_to_rec2020 = ocio::XYZ_TO_REC2020 *
+                                                 blender::colorspace::scene_linear_to_xyz;
+  blender::colorspace::rec2020_to_scene_linear = math::invert(
+      blender::colorspace::scene_linear_to_rec2020);
+
+  blender::colorspace::aces_to_scene_linear = blender::colorspace::xyz_to_scene_linear *
+                                              ocio::ACES_TO_XYZ;
+  blender::colorspace::scene_linear_to_aces = math::invert(
+      blender::colorspace::aces_to_scene_linear);
+
+  blender::colorspace::acescg_to_scene_linear = blender::colorspace::xyz_to_scene_linear *
+                                                ocio::ACESCG_TO_XYZ;
+  blender::colorspace::scene_linear_to_acescg = math::invert(
+      blender::colorspace::acescg_to_scene_linear);
+
+  blender::colorspace::scene_linear_is_rec709 = math::is_equal(
+      blender::colorspace::scene_linear_to_rec709, float3x3::identity(), 0.0001f);
+}
+
 static bool colormanage_load_config(ocio::Config &config)
 {
   bool ok = true;
@@ -561,21 +585,7 @@ static bool colormanage_load_config(ocio::Config &config)
     }
   }
 
-  /* Load luminance coefficients. */
-  imbuf_luma_coefficients = config.get_default_luma_coefs();
-
-  /* Load standard color spaces. */
-  imbuf_xyz_to_scene_linear = config.get_xyz_to_scene_linear_matrix();
-  imbuf_scene_linear_to_xyz = math::invert(imbuf_xyz_to_scene_linear);
-
-  imbuf_scene_linear_to_rec709 = ocio::XYZ_TO_REC709 * imbuf_scene_linear_to_xyz;
-  imbuf_rec709_to_scene_linear = math::invert(imbuf_scene_linear_to_rec709);
-
-  imbuf_aces_to_scene_linear = imbuf_xyz_to_scene_linear * ocio::ACES_TO_XYZ;
-  imbuf_scene_linear_to_aces = math::invert(imbuf_aces_to_scene_linear);
-
-  imbuf_scene_linear_is_rec709 = math::is_equal(
-      imbuf_scene_linear_to_rec709, float3x3::identity(), 0.0001f);
+  colormanage_update_matrices();
 
   return ok;
 }
@@ -884,7 +894,7 @@ void colormanage_imbuf_make_linear(ImBuf *ibuf, const char *from_colorspace)
 /** \name Generic Functions
  * \{ */
 
-static void colormanage_check_display_settings(ColorManagedDisplaySettings *display_settings,
+static bool colormanage_check_display_settings(ColorManagedDisplaySettings *display_settings,
                                                const char *what,
                                                const ocio::Display *default_display)
 {
@@ -892,12 +902,12 @@ static void colormanage_check_display_settings(ColorManagedDisplaySettings *disp
 
   if (display_name.is_empty()) {
     STRNCPY_UTF8(display_settings->display_device, default_display->name().c_str());
-    return;
+    return true;
   }
 
   const ocio::Display *display = g_config->get_display_by_name(display_name);
   if (display) {
-    return;
+    return true;
   }
 
   StringRefNull new_display_name = default_display->name();
@@ -919,6 +929,7 @@ static void colormanage_check_display_settings(ColorManagedDisplaySettings *disp
             new_display_name.c_str());
 
   STRNCPY_UTF8(display_settings->display_device, new_display_name.c_str());
+  return false;
 }
 
 static StringRefNull colormanage_find_matching_view_name(const ocio::Display *display,
@@ -948,14 +959,17 @@ static StringRefNull colormanage_find_matching_view_name(const ocio::Display *di
   return "";
 }
 
-static void colormanage_check_view_settings(ColorManagedDisplaySettings *display_settings,
+static bool colormanage_check_view_settings(ColorManagedDisplaySettings *display_settings,
                                             ColorManagedViewSettings *view_settings,
                                             const char *what)
 {
   const ocio::Display *display = g_config->get_display_by_name(display_settings->display_device);
   if (!display) {
-    return;
+    return false;
   }
+
+  bool ok = true;
+
   const char *default_look_name = IMB_colormanagement_look_get_default_name();
   StringRefNull view_name = view_settings->view_transform;
 
@@ -976,6 +990,7 @@ static void colormanage_check_view_settings(ColorManagedDisplaySettings *display
                   view_settings->view_transform,
                   new_view_name.c_str());
         STRNCPY_UTF8(view_settings->view_transform, new_view_name.c_str());
+        ok = false;
       }
     }
   }
@@ -993,6 +1008,7 @@ static void colormanage_check_view_settings(ColorManagedDisplaySettings *display
                 default_look_name);
 
       STRNCPY_UTF8(view_settings->look, default_look_name);
+      ok = false;
     }
     else if (!colormanage_compatible_look(look, view_settings->view_transform)) {
       CLOG_INFO(&LOG,
@@ -1005,6 +1021,7 @@ static void colormanage_check_view_settings(ColorManagedDisplaySettings *display
                 default_look_name);
 
       STRNCPY_UTF8(view_settings->look, default_look_name);
+      ok = false;
     }
   }
 
@@ -1013,10 +1030,13 @@ static void colormanage_check_view_settings(ColorManagedDisplaySettings *display
     view_settings->exposure = 0.0f;
     view_settings->gamma = 1.0f;
   }
+
+  return ok;
 }
 
-static void colormanage_check_colorspace_name(char *name, const char *what)
+static bool colormanage_check_colorspace_name(char *name, const char *what)
 {
+  bool ok = true;
   if (name[0] == '\0') {
     /* pass */
   }
@@ -1026,24 +1046,18 @@ static void colormanage_check_colorspace_name(char *name, const char *what)
     if (!colorspace) {
       CLOG_WARN(&LOG, "%s colorspace \"%s\" not found, will use default instead.", what, name);
       name[0] = '\0';
+      ok = false;
     }
   }
 
   (void)what;
+  return ok;
 }
 
-static void colormanage_check_colorspace_settings(ColorManagedColorspaceSettings *settings,
+static bool colormanage_check_colorspace_settings(ColorManagedColorspaceSettings *settings,
                                                   const char *what)
 {
-  colormanage_check_colorspace_name(settings->name, what);
-}
-
-static bool strip_callback(Strip *strip, void * /*user_data*/)
-{
-  if (strip->data) {
-    colormanage_check_colorspace_name(strip->data->colorspace_settings.name, "sequencer strip");
-  }
-  return true;
+  return colormanage_check_colorspace_name(settings->name, what);
 }
 
 void IMB_colormanagement_check_file_config(Main *bmain)
@@ -1054,17 +1068,22 @@ void IMB_colormanagement_check_file_config(Main *bmain)
     return;
   }
 
+  /* Check display, view and colorspace names in datablocks. */
+  bool is_missing_opencolorio_config = false;
+
   /* Check scenes. */
   LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
     ColorManagedColorspaceSettings *sequencer_colorspace_settings;
+    bool ok = true;
 
     /* check scene color management settings */
-    colormanage_check_display_settings(&scene->display_settings, "scene", default_display);
-    colormanage_check_view_settings(&scene->display_settings, &scene->view_settings, "scene");
+    ok &= colormanage_check_display_settings(&scene->display_settings, "scene", default_display);
+    ok &= colormanage_check_view_settings(
+        &scene->display_settings, &scene->view_settings, "scene");
 
     sequencer_colorspace_settings = &scene->sequencer_colorspace_settings;
 
-    colormanage_check_colorspace_settings(sequencer_colorspace_settings, "sequencer");
+    ok &= colormanage_check_colorspace_settings(sequencer_colorspace_settings, "sequencer");
 
     if (sequencer_colorspace_settings->name[0] == '\0') {
       STRNCPY_UTF8(sequencer_colorspace_settings->name, global_role_default_sequencer);
@@ -1072,36 +1091,57 @@ void IMB_colormanagement_check_file_config(Main *bmain)
 
     /* Check sequencer strip input colorspace. */
     if (scene->ed != nullptr) {
-      blender::seq::for_each_callback(&scene->ed->seqbase, strip_callback, nullptr);
+      blender::seq::for_each_callback(&scene->ed->seqbase, [&](Strip *strip) {
+        if (strip->data) {
+          ok &= colormanage_check_colorspace_settings(&strip->data->colorspace_settings,
+                                                      "sequencer strip");
+        }
+        return true;
+      });
     }
+
+    is_missing_opencolorio_config |= (!ok && !ID_IS_LINKED(&scene->id));
   }
 
   /* Check image and movie input colorspace. */
   LISTBASE_FOREACH (Image *, image, &bmain->images) {
-    colormanage_check_colorspace_settings(&image->colorspace_settings, "image");
+    const bool ok = colormanage_check_colorspace_settings(&image->colorspace_settings, "image");
+    is_missing_opencolorio_config |= (!ok && !ID_IS_LINKED(&image->id));
   }
 
   LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
-    colormanage_check_colorspace_settings(&clip->colorspace_settings, "clip");
+    const bool ok = colormanage_check_colorspace_settings(&clip->colorspace_settings, "clip");
+    is_missing_opencolorio_config |= (!ok && !ID_IS_LINKED(&clip->id));
   }
 
   /* Check compositing nodes. */
   LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
     if (ntree->type == NTREE_COMPOSIT) {
+      bool ok = true;
       LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
         if (node->type_legacy == CMP_NODE_CONVERT_TO_DISPLAY) {
           NodeConvertToDisplay *nctd = static_cast<NodeConvertToDisplay *>(node->storage);
-          colormanage_check_display_settings(&nctd->display_settings, "node", default_display);
-          colormanage_check_view_settings(&nctd->display_settings, &nctd->view_settings, "node");
+          ok &= colormanage_check_display_settings(
+              &nctd->display_settings, "node", default_display);
+          ok &= colormanage_check_view_settings(
+              &nctd->display_settings, &nctd->view_settings, "node");
         }
         else if (node->type_legacy == CMP_NODE_CONVERT_COLOR_SPACE) {
           NodeConvertColorSpace *ncs = static_cast<NodeConvertColorSpace *>(node->storage);
-          colormanage_check_colorspace_name(ncs->from_color_space, "node");
-          colormanage_check_colorspace_name(ncs->to_color_space, "node");
+          ok &= colormanage_check_colorspace_name(ncs->from_color_space, "node");
+          ok &= colormanage_check_colorspace_name(ncs->to_color_space, "node");
         }
       }
+      is_missing_opencolorio_config |= (!ok && !ID_IS_LINKED(&ntree->id));
     }
   }
+
+  /* Inform users about mismatch, but not for new files. Linked datablocks are also ignored,
+   * as we are not overwriting them on blend file save which is the main purpose of this
+   * warning. */
+  bmain->colorspace.is_missing_opencolorio_config = (bmain->filepath[0] == '\0') ?
+                                                        false :
+                                                        is_missing_opencolorio_config;
 }
 
 void IMB_colormanagement_validate_settings(const ColorManagedDisplaySettings *display_settings,
@@ -1357,12 +1397,12 @@ const ColorSpace *IMB_colormanagement_space_from_interop_id(StringRefNull intero
 
 blender::float3x3 IMB_colormanagement_get_xyz_to_scene_linear()
 {
-  return blender::float3x3(imbuf_xyz_to_scene_linear);
+  return blender::float3x3(blender::colorspace::xyz_to_scene_linear);
 }
 
 blender::float3x3 IMB_colormanagement_get_scene_linear_to_xyz()
 {
-  return blender::float3x3(imbuf_scene_linear_to_xyz);
+  return blender::float3x3(blender::colorspace::scene_linear_to_xyz);
 }
 
 /** \} */
