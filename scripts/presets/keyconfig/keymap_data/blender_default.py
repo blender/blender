@@ -3246,6 +3246,10 @@ def km_sequencer_preview(params):
          {"properties": [("unselected", False)]}),
         ("sequencer.delete", {"type": 'X', "value": 'PRESS'}, None),
         ("sequencer.delete", {"type": 'DEL', "value": 'PRESS'}, None),
+        ("sequencer.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "ctrl": True},
+         {"properties": [("mode", 'ADD')]}),
+        ("sequencer.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "shift": True, "ctrl": True},
+         {"properties": [("mode", 'SUB')]}),
         ("sequencer.copy", {"type": 'C', "value": 'PRESS', "ctrl": True}, None),
         ("sequencer.paste", {"type": 'V', "value": 'PRESS', "ctrl": True}, None),
         ("sequencer.paste", {"type": 'V', "value": 'PRESS', "ctrl": True, "shift": True},
@@ -8451,6 +8455,19 @@ def km_sequencer_tool_generic_select_box(params, *, fallback):
     )
 
 
+def km_sequencer_tool_generic_select_lasso(params, *, fallback):
+    return (
+        _fallback_id("Sequencer Tool: Select Lasso", fallback),
+        {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
+        {"items": [
+            *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple(
+                "sequencer.select_lasso",
+                **(params.select_tweak_event if (fallback and params.use_fallback_tool_select_mouse) else
+                   params.tool_tweak_event))),
+        ]},
+    )
+
+
 def km_sequencer_tool_generic_select_circle(params, *, fallback):
     return (
         _fallback_id("Sequencer Tool: Select Circle", fallback),
@@ -8492,6 +8509,19 @@ def km_sequencer_preview_tool_generic_select_box(params, *, fallback):
             # Don't use `tool_maybe_tweak_event`, see comment for this slot.
             *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple(
                 "sequencer.select_box",
+                **(params.select_tweak_event if (fallback and params.use_fallback_tool_select_mouse) else
+                   params.tool_tweak_event))),
+        ]},
+    )
+
+
+def km_sequencer_preview_tool_generic_select_lasso(params, *, fallback):
+    return (
+        _fallback_id("Preview Tool: Select Lasso", fallback),
+        {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
+        {"items": [
+            *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple(
+                "sequencer.select_lasso",
                 **(params.select_tweak_event if (fallback and params.use_fallback_tool_select_mouse) else
                    params.tool_tweak_event))),
         ]},
@@ -8896,6 +8926,10 @@ def generate_keymaps(params=None):
         *(km_sequencer_preview_tool_generic_select(params, fallback=fallback)
           for fallback in (False, True)),
         *(km_sequencer_preview_tool_generic_select_box(params, fallback=fallback)
+          for fallback in (False, True)),
+        *(km_sequencer_tool_generic_select_lasso(params, fallback=fallback)
+          for fallback in (False, True)),
+        *(km_sequencer_preview_tool_generic_select_lasso(params, fallback=fallback)
           for fallback in (False, True)),
         *(km_sequencer_preview_tool_generic_select_circle(params, fallback=fallback)
           for fallback in (False, True)),

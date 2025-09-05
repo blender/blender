@@ -3273,6 +3273,38 @@ class _defs_sequencer_select:
         )
 
     @ToolDef.from_fn
+    def lasso_timeline():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("sequencer.select_lasso")
+            row = layout.row()
+            row.use_property_split = False
+            row.prop(props, "mode", text="", expand=True, icon_only=True)
+        return dict(
+            idname="sequencer.select_lasso",
+            label="Select Lasso",
+            icon="ops.generic.select_lasso",
+            widget=None,
+            keymap="Sequencer Tool: Select Lasso",
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
+    def lasso_preview():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("sequencer.select_lasso")
+            row = layout.row()
+            row.use_property_split = False
+            row.prop(props, "mode", text="", expand=True, icon_only=True)
+        return dict(
+            idname="sequencer.select_lasso",
+            label="Select Lasso",
+            icon="ops.generic.select_lasso",
+            widget=None,
+            keymap="Preview Tool: Select Lasso",
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
     def circle_timeline():
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("sequencer.select_circle")
@@ -4006,6 +4038,7 @@ class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
             (
                 _defs_sequencer_select.select_preview,
                 _defs_sequencer_select.box_preview,
+                _defs_sequencer_select.lasso_preview,
                 _defs_sequencer_select.circle_preview,
             ),
             _defs_sequencer_generic.cursor,
@@ -4021,6 +4054,7 @@ class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
         'SEQUENCER': [
             (
                 _defs_sequencer_select.box_timeline,
+                _defs_sequencer_select.lasso_timeline,
                 _defs_sequencer_select.circle_timeline,
             ),
             _defs_sequencer_generic.blade,
