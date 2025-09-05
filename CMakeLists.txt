@@ -1779,7 +1779,7 @@ Keep at '0' to automatically compute optimal values for each build."
   endif()
   if(${_link_jobs} LESS 1)
     # Heuristics: Maximum amount of memory needed per linking task.
-    # Note: These values are purposedly over-estimated by 10-15% at least, to account
+    # Note: These values are purposely over-estimated by 10-15% at least, to account
     #       for other types of jobs' memory usage, other system memory usages, etc.
     set(_link_mem 10000)
     if(WITH_COMPILER_ASAN)
@@ -1826,7 +1826,7 @@ Keep at '0' to automatically compute optimal values for each build."
   endif()
   if(${_compile_heavy_jobs} LESS 1)
     # Heuristics: Maximum amount of memory needed per heavy compile task.
-    # Note: These values are purposedly over-estimated by 10-15% at least, to account
+    # Note: These values are purposely over-estimated by 10-15% at least, to account
     #       for other types of jobs' memory usage, other system memory usages, etc.
     set(_compile_heavy_mem 2000)
     if(WITH_COMPILER_ASAN)
@@ -2150,7 +2150,7 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
     CXX_WARN_ERROR_UNGUARDED_AVAILABILITY_NEW -Werror=unguarded-availability-new
   )
   if(MSVC_CLANG)
-    # clang-cl produces an unhealthy ammount of warnings in its default
+    # clang-cl produces an unhealthy amount of warnings in its default
     # configuration as it for reasons unknown decided to enable all
     # warnings known to mankind. Resulting in a 5.5GB build log containing
     # well over 11 million warnings. The code below disables every single
@@ -2165,7 +2165,7 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
     # /W3 is being removed, then added back again, this is because order
     # matters for clang and these flags are being placed before the
     # CMAKE_[LANGUAGE]_FLAGS which normally contain /W3, so we would
-    # disable certain warings here only for them to be re-enabled by /W3
+    # disable certain warnings here only for them to be re-enabled by /W3
     # later on.
     remove_cc_flag("/W3")
 
