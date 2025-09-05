@@ -1892,9 +1892,9 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
       /* Unfortunate, but with some types (e.g. meshes), an object is considered in Edit mode if
        * its obdata contains edit mode runtime data. This can be the case of all newly duplicated
        * objects, as even though duplicate code move the object back in Object mode, they are still
-       * using the original obdata ID, leading to them being falsely detected as being in Edit mode,
-       * and therefore not remapping their obdata to the newly duplicated one.
-       * See #139715. */
+       * using the original obdata ID, leading to them being falsely detected as being in Edit
+       * mode, and therefore not remapping their obdata to the newly duplicated one. See #139715.
+       */
       BKE_libblock_relink_to_newid(
           bmain, &sce_copy->id, ID_REMAP_FORCE_OBDATA_IN_EDITMODE | ID_REMAP_SKIP_USER_CLEAR);
 
