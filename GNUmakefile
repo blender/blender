@@ -564,7 +564,9 @@ check_spelling_cmake: .FORCE
 	    $(CHECK_SPELLING_EXTRA_ARGS) \
 	    "$(BLENDER_DIR)/build_files/" \
 	    "$(BLENDER_DIR)/intern/" \
-	    "$(BLENDER_DIR)/source/"
+	    "$(BLENDER_DIR)/source/" \
+	    "$(BLENDER_DIR)/CMakeLists.txt" \
+	    "$(BLENDER_DIR)/tests/CMakeLists.txt"
 
 check_descriptions: .FORCE
 	@$(BLENDER_BIN) --background --factory-startup --python \
