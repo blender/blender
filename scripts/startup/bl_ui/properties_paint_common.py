@@ -1178,7 +1178,7 @@ def brush_shared_settings(layout, context, brush, popover=False):
             slider=True,
         )
         if mode in {'PAINT_TEXTURE', 'PAINT_2D', 'SCULPT', 'PAINT_VERTEX', 'PAINT_WEIGHT', 'SCULPT_CURVES'}:
-            if brush.use_pressure_strength:
+            if strength_pressure and brush.use_pressure_strength:
                 layout.template_curve_mapping(brush, "curve_strength", brush=True, use_negative_slope=True)
         layout.separator()
 
