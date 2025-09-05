@@ -455,8 +455,8 @@ struct GHOST_InstanceVK {
   }
 
   bool create_device(const bool use_vk_ext_swapchain_maintenance1,
-                     vector<const char *> required_device_extensions,
-                     vector<const char *> optional_device_extensions)
+                     vector<const char *> &required_device_extensions,
+                     vector<const char *> &optional_device_extensions)
   {
     device.emplace(vk_physical_device, use_vk_ext_swapchain_maintenance1);
     GHOST_DeviceVK &device = *this->device;
