@@ -2279,6 +2279,10 @@ struct FileListReadJob {
   std::atomic<bool> is_asset_library_metafiles_in_place = false;
   RemoteLibraryLoadingStatus::TimePoint last_new_pages_time;
   std::atomic<bool> is_asset_library_new_pages_available = false;
+  /** When downloading remote library pages, ignore pages older than this. They are from a previous
+   * download still. Use the system clock since this is compared against file time-stamps. */
+  std::optional<RemoteLibraryLoadingStatus::FileSystemTimePoint> remote_library_request_time =
+      std::nullopt;
 
   std::optional<std::function<void(const asset_system::AssetRepresentation &)>> on_asset_added =
       std::nullopt;
@@ -3338,8 +3342,9 @@ static void filelist_readjob_remote_asset_library_index_read(
     }
   };
 
-  /* TODO: Somehow ignore old pages. */
-  if (!index::read_remote_listing(dirpath, process_asset_fn, wait_for_pages_fn)) {
+  if (!index::read_remote_listing(
+          dirpath, process_asset_fn, wait_for_pages_fn, job_params->remote_library_request_time))
+  {
     return;
   }
 }
@@ -3453,6 +3458,8 @@ static void filelist_start_job_remote_asset_library(FileListReadJob *job_params)
     if (!BLI_is_dir(library->dirpath)) {
       blender::asset_system::remote_library_request_download(*job_params->current_main, *library);
     }
+    job_params->remote_library_request_time = RemoteLibraryLoadingStatus::loading_start_time(
+        library->remote_url);
   }
   filelist_remote_asset_library_update_loading_flags(job_params);
 }

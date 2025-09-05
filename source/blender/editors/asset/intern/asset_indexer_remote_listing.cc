@@ -6,15 +6,22 @@
  * \ingroup edasset
  */
 
+#include <chrono>
+#include <filesystem>
 #include <fstream>
+#include <optional>
 #include <string>
 
 #include "BLI_fileops.h"
 #include "BLI_path_utils.hh"
 #include "BLI_serialize.hh"
 
+#include "CLG_log.h"
+
 #include "ED_asset_indexer.hh"
 #include "asset_index.hh"
+
+static CLG_LogRef LOG = {"asset.remote_listing"};
 
 namespace blender::ed::asset::index {
 
@@ -78,13 +85,32 @@ struct AssetLibraryMeta {
   /** Map of API version string ("v1", "v2", ...) to path relative to root directory. */
   Map<std::string, std::string> api_versions;
 
-  static std::optional<AssetLibraryMeta> read(const StringRefNull root_dirpath);
+  static std::optional<AssetLibraryMeta> read(const StringRefNull root_dirpath,
+                                              std::optional<Timestamp> ignore_before_timestamp);
 };
+
+/**
+ * Note that this uses `std::filesystem::file_time_type` to get
+ * \return true if the file is older than the timestamp, or no value if the file was not found.
+ */
+std::optional<bool> file_older_than_timestamp(const char *filepath, Timestamp timestamp)
+{
+  std::error_code error;
+  Timestamp file_timestamp = std::filesystem::last_write_time(filepath, error);
+  /** TODO better report error message? */
+  if (error) {
+    printf("Can't find file at path %s: %s\n", filepath, error.message().c_str());
+    return {};
+  }
+
+  return file_timestamp < timestamp;
+}
 
 /**
  * \return the supported API versions read from the `_asset-library-meta.json` file.
  */
-std::optional<AssetLibraryMeta> AssetLibraryMeta::read(const StringRefNull root_dirpath)
+std::optional<AssetLibraryMeta> AssetLibraryMeta::read(
+    const StringRefNull root_dirpath, const std::optional<Timestamp> ignore_before_timestamp)
 {
   char filepath[FILE_MAX];
   BLI_path_join(filepath, sizeof(filepath), root_dirpath.c_str(), "_asset-library-meta.json");
@@ -92,6 +118,18 @@ std::optional<AssetLibraryMeta> AssetLibraryMeta::read(const StringRefNull root_
   if (!BLI_exists(filepath)) {
     /** TODO report error message? */
     return {};
+  }
+
+  if (ignore_before_timestamp) {
+    std::optional<bool> is_older = file_older_than_timestamp(filepath, *ignore_before_timestamp);
+    if (!is_older) {
+      CLOG_ERROR(&LOG, "Couldn't find meta file %s\n", filepath);
+      return {};
+    }
+    if (*is_older) {
+      CLOG_ERROR(&LOG, "Meta file too old %s\n", filepath);
+      return {};
+    }
   }
 
   const std::unique_ptr<Value> contents = read_contents(filepath);
@@ -157,11 +195,13 @@ static std::optional<ApiVersionInfo> choose_api_version(const AssetLibraryMeta &
 
 bool read_remote_listing(const StringRefNull root_dirpath,
                          const RemoteListingEntryProcessFn process_fn,
-                         const RemoteListingWaitForPagesFn wait_fn)
+                         const RemoteListingWaitForPagesFn wait_fn,
+                         const std::optional<Timestamp> ignore_before_timestamp)
 {
   /* TODO: Error reporting for all false return branches. */
 
-  const std::optional<AssetLibraryMeta> meta = AssetLibraryMeta::read(root_dirpath);
+  const std::optional<AssetLibraryMeta> meta = AssetLibraryMeta::read(root_dirpath,
+                                                                      ignore_before_timestamp);
   if (!meta) {
     printf("Couldn't read meta\n");
     return false;
@@ -176,7 +216,8 @@ bool read_remote_listing(const StringRefNull root_dirpath,
   /* Path to the listing meta-file is version-dependent. */
   switch (api_version_info->version_nr) {
     case 1: {
-      const ReadingResult result = read_remote_listing_v1(root_dirpath, process_fn, wait_fn);
+      const ReadingResult result = read_remote_listing_v1(
+          root_dirpath, process_fn, wait_fn, ignore_before_timestamp);
       if (result == ReadingResult::Failure) {
         return false;
       }

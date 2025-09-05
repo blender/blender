@@ -35,12 +35,16 @@ enum class ReadingResult {
   Cancelled,
 };
 
+std::optional<bool> file_older_than_timestamp(const char *filepath, Timestamp timestamp);
+
 /**
  * Reading of API schema version 1. See #read_remote_listing() on \a process_fn.
  * \param version_root_dirpath: Absolute path to the remote listing root directory.
  */
-ReadingResult read_remote_listing_v1(StringRefNull listing_root_dirpath,
-                                     RemoteListingEntryProcessFn process_fn,
-                                     RemoteListingWaitForPagesFn wait_fn = nullptr);
+ReadingResult read_remote_listing_v1(
+    StringRefNull listing_root_dirpath,
+    RemoteListingEntryProcessFn process_fn,
+    RemoteListingWaitForPagesFn wait_fn = nullptr,
+    const std::optional<Timestamp> ignore_before_timestamp = std::nullopt);
 
 }  // namespace blender::ed::asset::index

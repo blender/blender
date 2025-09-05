@@ -6,6 +6,8 @@
  * \ingroup asset_system
  */
 
+#include <filesystem>
+
 #include <fmt/format.h>
 
 #include "BLI_fileops.h"
@@ -105,6 +107,7 @@ void RemoteLibraryLoadingStatus::begin_loading(const StringRef url, const float 
   new_status.timeout_ = timeout;
   new_status.status_ = RemoteLibraryLoadingStatus::Loading;
   new_status.reset_timeout();
+  new_status.loading_start_time_point_ = FileSystemTimePoint::clock::now();
   new_status.last_new_pages_time_point_ = std::chrono::steady_clock::now();
   library_to_status_map().add_overwrite(url, new_status);
 }
@@ -181,6 +184,20 @@ std::optional<bool> RemoteLibraryLoadingStatus::metafiles_in_place(const StringR
   }
 
   return status->metafiles_in_place_;
+}
+
+std::optional<RemoteLibraryLoadingStatus::FileSystemTimePoint> RemoteLibraryLoadingStatus::
+    loading_start_time(const StringRef url)
+{
+  const RemoteLibraryLoadingStatus *status = library_to_status_map().lookup_ptr(url);
+  if (!status) {
+    return {};
+  }
+  if (status->status_ != Loading) {
+    return {};
+  }
+
+  return status->loading_start_time_point_;
 }
 
 std::optional<RemoteLibraryLoadingStatus::TimePoint> RemoteLibraryLoadingStatus::

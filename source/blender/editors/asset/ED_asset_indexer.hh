@@ -8,6 +8,9 @@
 
 #pragma once
 
+#include <filesystem>
+#include <optional>
+
 #include "BLI_function_ref.hh"
 
 #include "ED_file_indexer.hh"
@@ -57,6 +60,9 @@ struct RemoteListingAssetEntry {
 
 using RemoteListingEntryProcessFn = FunctionRef<bool(RemoteListingAssetEntry &)>;
 using RemoteListingWaitForPagesFn = FunctionRef<bool()>;
+/* Uses #std::filesystem::file_time_type because it needs to be compared against file time-stamps,
+ * which may have low precision (often just 1 sec). */
+using Timestamp = std::filesystem::file_time_type;
 /**
  * \param process_fn: Called for each asset entry read from the listing. It's fine to move out the
  *   passed #RemoteListingAssetEntry. Returning false will cancel the whole reading process and not
@@ -67,6 +73,7 @@ using RemoteListingWaitForPagesFn = FunctionRef<bool()>;
  */
 bool read_remote_listing(StringRefNull root_dirpath,
                          RemoteListingEntryProcessFn process_fn,
-                         RemoteListingWaitForPagesFn wait_fn = nullptr);
+                         RemoteListingWaitForPagesFn wait_fn = nullptr,
+                         const std::optional<Timestamp> ignore_before_timestamp = std::nullopt);
 
 }  // namespace blender::ed::asset::index

@@ -9,6 +9,7 @@
 #pragma once
 
 #include <chrono>
+#include <filesystem>
 #include <optional>
 
 #include "BLI_string_ref.hh"
@@ -54,18 +55,20 @@ class RemoteLibraryLoadingStatus {
     Cancelled,
   };
   using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
+  using FileSystemTimePoint = std::filesystem::file_time_type;
 
  private:
-  float timeout_;
-  TimePoint last_updated_time_point_;
+  float timeout_ = 0.0f;
+  FileSystemTimePoint loading_start_time_point_ = {};
+  TimePoint last_updated_time_point_ = {};
   /* See #RemoteLibraryLoadingStatus::handle_timeout(). */
-  TimePoint last_timeout_handled_time_point_;
-  TimePoint last_new_pages_time_point_;
-  TimePoint last_new_previews_time_point_;
+  TimePoint last_timeout_handled_time_point_ = {};
+  TimePoint last_new_pages_time_point_ = {};
+  TimePoint last_new_previews_time_point_ = {};
 
-  Status status_;
-  std::optional<StringRefNull> failure_message_;
-  bool metafiles_in_place_;
+  std::optional<Status> status_ = std::nullopt;
+  std::optional<StringRefNull> failure_message_ = std::nullopt;
+  bool metafiles_in_place_ = false;
 
  public:
   static void begin_loading(StringRef url, float timeout);
@@ -81,6 +84,7 @@ class RemoteLibraryLoadingStatus {
   static std::optional<StringRefNull> failure_message(StringRef url);
   static std::optional<RemoteLibraryLoadingStatus::Status> status(StringRef url);
   static std::optional<bool> metafiles_in_place(StringRef url);
+  static std::optional<FileSystemTimePoint> loading_start_time(const StringRef url);
   static std::optional<TimePoint> last_new_pages_time(StringRef url);
   static std::optional<TimePoint> last_new_previews_time(StringRef url);
 

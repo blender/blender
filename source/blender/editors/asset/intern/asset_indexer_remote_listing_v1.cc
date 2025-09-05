@@ -16,8 +16,12 @@
 #include "BKE_asset.hh"
 #include "BKE_idtype.hh"
 
+#include "CLG_log.h"
+
 #include "ED_asset_indexer.hh"
 #include "asset_index.hh"
+
+static CLG_LogRef LOG = {"asset.remote_listing"};
 
 namespace blender::ed::asset::index {
 
@@ -206,7 +210,8 @@ std::optional<AssetLibraryListingV1> AssetLibraryListingV1::read(
 
 ReadingResult read_remote_listing_v1(const StringRefNull listing_root_dirpath,
                                      const RemoteListingEntryProcessFn process_fn,
-                                     const RemoteListingWaitForPagesFn wait_fn)
+                                     const RemoteListingWaitForPagesFn wait_fn,
+                                     const std::optional<Timestamp> ignore_before_timestamp)
 {
   /* Version 1 asset indices are always stored in this path by RemoteAssetListingDownloader. */
   constexpr const char *asset_index_relpath = "_v1/asset-index.processed.json";
@@ -216,6 +221,22 @@ ReadingResult read_remote_listing_v1(const StringRefNull listing_root_dirpath,
                 sizeof(asset_index_abspath),
                 listing_root_dirpath.c_str(),
                 asset_index_relpath);
+
+  if (ignore_before_timestamp) {
+    std::optional<bool> is_older = file_older_than_timestamp(asset_index_abspath,
+                                                             *ignore_before_timestamp);
+    if (!is_older) {
+      CLOG_ERROR(&LOG, "Couldn't find index file %s\n", asset_index_abspath);
+      return {};
+    }
+    /* TODO the .processed.json file doesn't get touched by the downloader to indicate it's up to
+     * date. Should this be done, or should we just note compare the timestamps for meta-files? The
+     * downloader notifies about them being in place already anyway. */
+    // if (*is_older) {
+    //   CLOG_ERROR(&LOG, "Index file too old %s\n", asset_index_abspath);
+    //   return {};
+    // }
+  }
 
   const std::optional<AssetLibraryListingV1> listing = AssetLibraryListingV1::read(
       asset_index_abspath);
@@ -236,8 +257,16 @@ ReadingResult read_remote_listing_v1(const StringRefNull listing_root_dirpath,
       }
 
       BLI_path_join(filepath, sizeof(filepath), listing_root_dirpath.c_str(), page_path.c_str());
-      if (wait_fn && !BLI_exists(filepath)) {
-        continue;
+      if (wait_fn) {
+        if (!BLI_exists(filepath)) {
+          continue;
+        }
+        if (ignore_before_timestamp &&
+            file_older_than_timestamp(filepath, *ignore_before_timestamp).value_or(true))
+        {
+          CLOG_DEBUG(&LOG, "Ignoring old listing file %s - waiting for a new version\n", filepath);
+          continue;
+        }
       }
 
       const ReadingResult result = AssetLibraryListingPageV1::read_asset_entries(filepath,
