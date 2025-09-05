@@ -12,6 +12,7 @@
 #include "node_item.h"
 
 #include "BLI_map.hh"
+#include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 
 struct bNode;
@@ -61,6 +62,7 @@ struct NodeGraph {
   MaterialX::GraphElement *graph_element_ = nullptr;
   Map<NodeKey, const std::string> root_key_to_name_map_;
   Map<NodeKey, const std::string> &key_to_name_map_;
+  Set<std::string> used_node_names_;
   std::string node_name_prefix_;
 };
 
