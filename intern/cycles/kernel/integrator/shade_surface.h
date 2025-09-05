@@ -853,8 +853,8 @@ ccl_device_forceinline void integrator_shade_surface(KernelGlobals kg,
 
 #ifdef __SHADOW_LINKING__
   /* No need to cast shadow linking rays at a transparent bounce: the lights will be accumulated
-   * via the main path in this case. */
-  if ((continue_path_label & LABEL_TRANSPARENT) == 0) {
+   * via the main path in this case. BSSRDF bounces continue with intersect_subsurface. */
+  if ((continue_path_label & (LABEL_TRANSPARENT | LABEL_SUBSURFACE_SCATTER)) == 0) {
     if (shadow_linking_schedule_intersection_kernel<current_kernel>(kg, state)) {
       return;
     }
