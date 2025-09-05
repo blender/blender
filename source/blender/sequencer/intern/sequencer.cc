@@ -154,10 +154,10 @@ Strip *strip_alloc(ListBase *lb, int timeline_frame, int channel, int type)
   strip->speed_factor = 1.0f;
 
   if (strip->type == STRIP_TYPE_ADJUSTMENT) {
-    strip->blend_mode = STRIP_TYPE_CROSS;
+    strip->blend_mode = STRIP_BLEND_CROSS;
   }
   else {
-    strip->blend_mode = STRIP_TYPE_ALPHAOVER;
+    strip->blend_mode = STRIP_BLEND_ALPHAOVER;
   }
 
   strip->data = seq_strip_alloc(type);
@@ -186,7 +186,7 @@ static void seq_strip_free_ex(Scene *scene,
 
   relations_strip_free_anim(strip);
 
-  if (strip->type & STRIP_TYPE_EFFECT) {
+  if (strip->is_effect()) {
     EffectHandle sh = strip_effect_handle_get(strip);
     sh.free(strip, do_id_user);
   }
@@ -324,7 +324,7 @@ void editing_free(Scene *scene, const bool do_id_user)
 
 static void seq_new_fix_links_recursive(Strip *strip, blender::Map<Strip *, Strip *> strip_map)
 {
-  if (strip->type & STRIP_TYPE_EFFECT) {
+  if (strip->is_effect()) {
     strip->input1 = strip_map.lookup_default(strip->input1, strip->input1);
     strip->input2 = strip_map.lookup_default(strip->input2, strip->input2);
   }
@@ -594,7 +594,7 @@ static Strip *strip_duplicate(Main *bmain,
   else if (strip->type == STRIP_TYPE_IMAGE) {
     strip_new->data->stripdata = static_cast<StripElem *>(MEM_dupallocN(strip->data->stripdata));
   }
-  else if (strip->type & STRIP_TYPE_EFFECT) {
+  else if (strip->is_effect()) {
     EffectHandle sh;
     sh = strip_effect_handle_get(strip);
     if (sh.copy) {
@@ -903,7 +903,7 @@ static bool strip_read_data_cb(Strip *strip, void *user_data)
 
   BLO_read_struct(reader, Stereo3dFormat, &strip->stereo3d_format);
 
-  if (strip->type & STRIP_TYPE_EFFECT) {
+  if (strip->is_effect()) {
     strip->runtime.flag |= STRIP_EFFECT_NOT_LOADED;
   }
 
@@ -1176,4 +1176,11 @@ ListBase *Editing::current_channels() const
   }
   /* NOTE: Const correctness is non-existent with ListBase anyway. */
   return &const_cast<ListBase &>(this->channels);
+}
+
+bool Strip::is_effect() const
+{
+  return (this->type >= STRIP_TYPE_CROSS && this->type <= STRIP_TYPE_OVERDROP_REMOVED) ||
+         (this->type >= STRIP_TYPE_WIPE && this->type <= STRIP_TYPE_ADJUSTMENT) ||
+         (this->type >= STRIP_TYPE_GAUSSIAN_BLUR && this->type <= STRIP_TYPE_COLORMIX);
 }

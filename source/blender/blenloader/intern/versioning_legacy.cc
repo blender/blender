@@ -447,7 +447,7 @@ static bool strip_set_alpha_mode_cb(Strip *strip, void * /*user_data*/)
 
 static bool strip_set_blend_mode_cb(Strip *strip, void * /*user_data*/)
 {
-  if (strip->blend_mode == 0) {
+  if (strip->blend_mode == STRIP_BLEND_REPLACE) {
     strip->blend_opacity = 100.0f;
   }
   return true;

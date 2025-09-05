@@ -24,7 +24,7 @@ struct Strip;
 
 namespace blender::seq {
 
-EffectHandle strip_effect_get_sequence_blend(Strip *strip);
+EffectHandle strip_blend_mode_handle_get(Strip *strip);
 /**
  * Build frame map when speed in mode #SEQ_SPEED_MULTIPLY is animated.
  * This is, because `target_frame` value is integrated over time.
@@ -91,7 +91,7 @@ void get_default_fac_fade(const Scene *scene,
                           float timeline_frame,
                           float *fac);
 
-EffectHandle effect_handle_get(int strip_type);
+EffectHandle effect_handle_get(StripType strip_type);
 
 void add_effect_get_handle(EffectHandle &rval);
 void adjustment_effect_get_handle(EffectHandle &rval);
