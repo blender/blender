@@ -15,6 +15,7 @@
 #include <fmt/format.h>
 
 #include "AS_asset_library.hh"
+#include "AS_asset_representation.hh"
 
 #include "DNA_listBase.h"
 #include "DNA_scene_types.h"
@@ -3509,6 +3510,16 @@ static eHandlerActionFlag wm_handlers_do_intern(bContext *C,
               ED_undo_group_begin(C);
               ListBase *lb = (ListBase *)event->customdata;
               LISTBASE_FOREACH_MUTABLE (wmDrag *, drag, lb) {
+                if (wmDragAsset *asset_data = WM_drag_get_asset_data(drag, 0)) {
+                  if (asset_data->asset->is_online()) {
+                    BKE_reportf(CTX_wm_reports(C),
+                                RPT_ERROR,
+                                "Asset '%s' is still downloading",
+                                asset_data->asset->get_name().c_str());
+                    continue;
+                  }
+                }
+
                 if (drop->poll(C, drag, event)) {
                   wm_drop_prepare(C, drag, drop);
 

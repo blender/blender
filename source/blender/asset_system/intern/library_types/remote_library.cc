@@ -153,6 +153,12 @@ void RemoteLibraryLoadingStatus::ping_new_previews(const StringRef url)
 void RemoteLibraryLoadingStatus::ping_new_assets(const bContext &C, const StringRef url)
 {
   WM_msg_publish_remote_io(CTX_wm_message_bus(&C), url);
+
+  /* Redraw drags, they may show some "asset being downloaded" info. */
+  const wmWindowManager *wm = CTX_wm_manager(&C);
+  if (!BLI_listbase_is_empty(&wm->runtime->drags)) {
+    WM_event_add_mousemove(CTX_wm_window(&C));
+  }
 }
 
 void RemoteLibraryLoadingStatus::ping_metafiles_in_place(const StringRef url)
