@@ -152,7 +152,7 @@ struct Main : blender::NonCopyable, blender::NonMovable {
   /**
    * Runtime vector storing all split Mains (one Main for each library data), during readfile or
    * linking process.
-   * Shared accross all of the split mains when defined.
+   * Shared across all of the split mains when defined.
    */
   std::shared_ptr<blender::VectorSet<Main *>> split_mains = {};
   /**

@@ -1957,7 +1957,7 @@ static const char *unit_find_str(const char *str, const char *substr, bool case_
            * since non ASCII UTF8 values will NEVER return true. */
           isalpha_or_utf8(*BLI_str_find_prev_char_utf8(str_found, str)) == 0)
       {
-        /* Next char cannot be alpha-numeric. */
+        /* Next char cannot be alphanumeric. */
         int len_name = strlen(substr);
 
         if (!isalpha_or_utf8(*(str_found + len_name))) {

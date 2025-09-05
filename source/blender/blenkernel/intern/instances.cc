@@ -468,7 +468,7 @@ static Array<int> generate_unique_instance_ids(Span<int> original_ids)
         break;
       }
       if (iteration == max_iteration) {
-        /* The likelyhood of running into this case is very low even if there is a huge number of
+        /* The likelihood of running into this case is very low even if there is a huge number of
          * instances. For correctness, it's still good to systematically find an unused id instead
          * of purely relying on randomness. */
         for (const int generated_id : IndexRange(INT32_MAX)) {

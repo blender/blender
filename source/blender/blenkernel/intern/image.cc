@@ -938,7 +938,7 @@ int BKE_image_find_nearest_tile_with_offset(const Image *image,
                                             const float co[2],
                                             float r_uv_offset[2])
 {
-  /* NOTE: If the co-ordinates are integers, take special care to break ties. */
+  /* NOTE: If the coordinates are integers, take special care to break ties. */
 
   zero_v2(r_uv_offset);
   int tile_number_best = -1;

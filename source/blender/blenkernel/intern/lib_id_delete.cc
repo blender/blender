@@ -278,7 +278,7 @@ static size_t id_delete(Main *bmain,
    * of other deleted IDs.
    * This gives tremendous speed-up when deleting a large amount of IDs from a Main
    * containing thousands of these.
-   * This also means that we have to be very careful here, as we by-pass many 'common'
+   * This also means that we have to be very careful here, as we bypass many 'common'
    * processing, hence risking to 'corrupt' at least user counts, if not IDs themselves. */
   bool keep_looping = true;
   while (keep_looping) {
