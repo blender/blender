@@ -808,7 +808,7 @@ typedef enum eUserpref_UI_Flag {
  * \note don't add new flags here, use 'uiflag' which has flags free.
  */
 typedef enum eUserpref_UI_Flag2 {
-  USER_UIFLAG2_UNUSED_0 = (1 << 0), /* cleared */
+  USER_ALWAYS_SHOW_NUMBER_ARROWS = (1 << 0), /* cleared */
   USER_REGION_OVERLAP = (1 << 1),
   USER_UIFLAG2_UNUSED_2 = (1 << 2),
   USER_UIFLAG2_UNUSED_3 = (1 << 3), /* dirty */

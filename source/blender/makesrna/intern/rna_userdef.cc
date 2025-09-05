@@ -4944,6 +4944,14 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Corner Handles", "Show visible area maintenance corner handles");
   RNA_def_property_update(prop, 0, "rna_userdef_gpu_update");
 
+  prop = RNA_def_property(srna, "show_number_arrows", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "uiflag2", USER_ALWAYS_SHOW_NUMBER_ARROWS);
+  RNA_def_property_ui_text(
+      prop,
+      "Show Numeric Input Arrows",
+      "Display arrows in numeric input fields for increasing or decreasing values");
+  RNA_def_property_update(prop, 0, "rna_userdef_update");
+
   prop = RNA_def_property(srna, "show_object_info", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "uiflag", USER_DRAWVIEWINFO);
   RNA_def_property_ui_text(prop,
