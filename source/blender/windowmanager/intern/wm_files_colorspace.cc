@@ -72,7 +72,7 @@ static bool wm_set_working_space_check_safe(bContext *C, wmOperator *op)
 
   if (WM_jobs_test(wm, scene, WM_JOB_TYPE_ANY)) {
     BKE_report(
-        op->reports, RPT_WARNING, RPT_("Can't change working space while josb are running"));
+        op->reports, RPT_WARNING, RPT_("Can't change working space while jobs are running"));
     return false;
   }
 

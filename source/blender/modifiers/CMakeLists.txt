@@ -197,7 +197,7 @@ if(WITH_BULLET)
   add_definitions(-DWITH_BULLET)
 endif()
 
-# To disable adaptive subdivision test in subsurf UI without cycles
+# To disable adaptive subdivision test in subdivision-surface UI without cycles.
 if(WITH_CYCLES)
   add_definitions(-DWITH_CYCLES)
 endif()

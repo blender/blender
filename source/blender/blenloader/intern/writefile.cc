@@ -1309,7 +1309,7 @@ BLO_Write_IDBuffer::BLO_Write_IDBuffer(ID &id, const bool is_undo, const bool is
   /* Copy ID data itself into buffer, to be able to freely modify it. */
 
   if (is_placeholder) {
-    /* For placeholders (references to linked data), zero-initialize, and only explicitely copy the
+    /* For placeholders (references to linked data), zero-initialize, and only explicitly copy the
      * very small subset of required data. */
     *temp_id = ID{};
     temp_id->lib = id.lib;
@@ -1473,8 +1473,8 @@ static blender::Vector<ID *> gather_local_ids_to_write(Main *bmain, const bool i
         continue;
       }
 
-      /* XXX Special handling for ShapeKeys, as having unused shapekeys is not a good thing
-       * (and reported as error by e.g. `BLO_main_validate_shapekeys`), skip writing shapekeys
+      /* XXX Special handling for ShapeKeys, as having unused shape-keys is not a good thing
+       * (and reported as error by e.g. `BLO_main_validate_shapekeys`), skip writing shape-keys
        * when their 'owner' is not written.
        *
        * NOTE: Since ShapeKeys are conceptually embedded IDs (like root node trees e.g.), this
