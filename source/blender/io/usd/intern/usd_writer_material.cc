@@ -784,6 +784,14 @@ static std::string get_in_memory_texture_filename(Image *ima)
   BKE_image_release_ibuf(ima, imbuf, nullptr);
 
   char file_name[FILE_MAX];
+
+  /* NOTE: Any changes in packed filepath handling here should be considered alongside potential
+   * changes in `export_packed_texture`. The file name returned needs to match. */
+  if (is_packed && ima->filepath[0] != '\0') {
+    BLI_path_split_file_part(ima->filepath, file_name, FILE_MAX);
+    return file_name;
+  }
+
   /* Use the image name for the file name. */
   STRNCPY(file_name, ima->id.name + 2);
 
