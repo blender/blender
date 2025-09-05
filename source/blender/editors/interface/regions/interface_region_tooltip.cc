@@ -1897,7 +1897,7 @@ static void ui_tooltip_from_vfont(const VFont &font, uiTooltipData &data)
   float color[4];
   const uiWidgetColors *theme = ui_tooltip_get_theme();
   rgba_uchar_to_float(color, theme->text);
-  ImBuf *ibuf = IMB_font_preview(filepath_abs, 200 * UI_SCALE_FAC, color);
+  ImBuf *ibuf = IMB_font_preview(filepath_abs, 256 * UI_SCALE_FAC, color, "ABCDabefg&0123");
   if (ibuf) {
     uiTooltipImage image_data;
     image_data.width = ibuf->x;

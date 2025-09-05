@@ -93,7 +93,10 @@ ImBuf *IMB_thumb_load_blend(const char *blen_path, const char *blen_group, const
 ImBuf *IMB_thumb_load_font(const char *filepath, unsigned int x, unsigned int y);
 bool IMB_thumb_load_font_get_hash(char *r_hash);
 
-ImBuf *IMB_font_preview(const char *filepath, unsigned int width, const float color[4]);
+ImBuf *IMB_font_preview(const char *filepath,
+                        unsigned int width,
+                        const float color[4],
+                        const char *sample_text = nullptr);
 
 /* Threading */
 
