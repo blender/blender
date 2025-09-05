@@ -11558,7 +11558,9 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 
         /* handle animation */
         if (!(block->pie_data.flags & UI_PIE_ANIMATION_FINISHED)) {
-          const double final_time = 0.01 * U.pie_animation_timeout;
+          const double final_time = (U.uiflag & USER_REDUCE_MOTION) ?
+                                        0.0f :
+                                        0.01 * U.pie_animation_timeout;
           float fac = duration / final_time;
           const float pie_radius = U.pie_menu_radius * UI_SCALE_FAC;
 

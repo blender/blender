@@ -1080,7 +1080,7 @@ void WM_operator_view3d_unit_defaults(bContext *C, wmOperator *op)
 
 int WM_operator_smooth_viewtx_get(const wmOperator *op)
 {
-  return (op->flag & OP_IS_INVOKE) ? U.smooth_viewtx : 0;
+  return (op->flag & OP_IS_INVOKE && !(U.uiflag & USER_REDUCE_MOTION)) ? U.smooth_viewtx : 0;
 }
 
 wmOperatorStatus WM_menu_invoke_ex(bContext *C,
