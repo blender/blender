@@ -120,7 +120,7 @@ void process_scene_graph_instances(const USDExportParams &export_params, pxr::Us
     pxr::UsdPrim dest_prim = stage->DefinePrim(copy_path, xform_type_tok);
     if (!dest_prim) {
       CLOG_ERROR(&LOG,
-                 "Couldn't create destination prim %s for copying protoype %s",
+                 "Couldn't create destination prim %s for copying prototype %s",
                  copy_path.GetAsString().c_str(),
                  proto_path.GetAsString().c_str());
       continue;
