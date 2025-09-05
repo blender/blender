@@ -1764,10 +1764,14 @@ class GeometryNodesLazyFunctionLogger : public lf::GraphExecutor::Logger {
       return;
     }
 
-    const Span<const bNodeSocket *> bsockets =
-        lf_graph_info_.mapping.bsockets_by_lf_socket_map.lookup(&lf_socket);
+    Span<const bNodeSocket *> bsockets = lf_graph_info_.mapping.bsockets_by_lf_socket_map.lookup(
+        &lf_socket);
     if (bsockets.is_empty()) {
       return;
+    }
+    if (bsockets[0]->owner_node().is_group_input()) {
+      /* Only log a group input once instead of for every group input node separately. */
+      bsockets = bsockets.take_front(1);
     }
 
     for (const bNodeSocket *bsocket : bsockets) {
