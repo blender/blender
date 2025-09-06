@@ -1404,7 +1404,7 @@ static bool vfont_to_curve(Object *ob,
     }
     else if (mode == FO_LINE_END) {
       /* Line wrap aware line end. */
-      while ((ef->pos + 1 < slen) && (chartransdata[ef->pos + 1].linenr == ct->linenr)) {
+      while ((ef->pos < slen) && (chartransdata[ef->pos + 1].linenr == ct->linenr)) {
         ef->pos += 1;
       }
     }
