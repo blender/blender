@@ -66,6 +66,11 @@ static const char *bli_windows_get_exception_description(const DWORD exceptionco
       return "EXCEPTION_SINGLE_STEP";
     case EXCEPTION_STACK_OVERFLOW:
       return "EXCEPTION_STACK_OVERFLOW";
+      /* This one does not have a known define, but the MSVC runtime raises this for uncaught C++
+       * exceptions. See https://devblogs.microsoft.com/oldnewthing/20100730-00/?p=13273 for
+       * details. */
+    case 0xe06d7363:
+      return "Microsoft C++ Exception";
     default:
       return "UNKNOWN EXCEPTION";
   }
@@ -122,8 +127,9 @@ static void bli_windows_system_backtrace_exception_record(FILE *fp, PEXCEPTION_R
   char module[MAX_PATH];
   fprintf(fp, "Exception Record:\n\n");
   fprintf(fp,
-          "ExceptionCode         : %s\n",
-          bli_windows_get_exception_description(record->ExceptionCode));
+          "ExceptionCode         : %s (0x%.8x)\n",
+          bli_windows_get_exception_description(record->ExceptionCode),
+          record->ExceptionCode);
   fprintf(fp, "Exception Address     : 0x%p\n", record->ExceptionAddress);
   bli_windows_get_module_name(record->ExceptionAddress, module, sizeof(module));
   fprintf(fp, "Exception Module      : %s\n", module);
