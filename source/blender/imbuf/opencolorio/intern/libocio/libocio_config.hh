@@ -60,6 +60,7 @@ class LibOCIOConfig : public Config {
   const ColorSpace *get_color_space_by_index(int index) const override;
   const ColorSpace *get_sorted_color_space_by_index(int index) const override;
   const ColorSpace *get_color_space_by_interop_id(StringRefNull interop_id) const override;
+  const ColorSpace *get_color_space_for_hdr_image(StringRefNull name) const override;
 
   /* Working space API. */
   void set_scene_linear_role(StringRefNull name) override;
@@ -103,6 +104,7 @@ class LibOCIOConfig : public Config {
    * OpenColorIO configuration. */
   void initialize_active_color_spaces();
   void initialize_inactive_color_spaces();
+  void initialize_hdr_color_spaces();
   void initialize_looks();
   void initialize_displays();
 };

@@ -819,6 +819,7 @@ static std::shared_ptr<const ocio::CPUProcessor> get_display_buffer_processor(
   display_parameters.use_hdr_buffer = GPU_hdr_support();
   display_parameters.use_hdr_display = IMB_colormanagement_display_is_hdr(&display_settings,
                                                                           view_transform);
+  display_parameters.is_image_output = (target == DISPLAY_SPACE_IMAGE_OUTPUT);
   display_parameters.use_display_emulation = (target == DISPLAY_SPACE_DRAW) ?
                                                  get_display_emulation(display_settings) :
                                                  false;
@@ -870,7 +871,7 @@ void colormanage_imbuf_set_default_spaces(ImBuf *ibuf)
   ibuf->byte_buffer.colorspace = g_config->get_color_space(global_role_default_byte);
 }
 
-void colormanage_imbuf_make_linear(ImBuf *ibuf, const char *from_colorspace)
+void colormanage_imbuf_make_linear(ImBuf *ibuf, const char *from_colorspace, bool video)
 {
   const ColorSpace *colorspace = g_config->get_color_space(from_colorspace);
 
@@ -885,6 +886,14 @@ void colormanage_imbuf_make_linear(ImBuf *ibuf, const char *from_colorspace)
 
     if (ibuf->byte_buffer.data) {
       IMB_free_byte_pixels(ibuf);
+    }
+
+    if (!video) {
+      const ColorSpace *image_colorspace = g_config->get_color_space_for_hdr_image(
+          from_colorspace);
+      if (image_colorspace) {
+        from_colorspace = image_colorspace->name().c_str();
+      }
     }
 
     IMB_colormanagement_transform_float(ibuf->float_buffer.data,
@@ -2720,7 +2729,9 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
     colormanagement_imbuf_make_display_space(colormanaged_ibuf,
                                              &image_format->view_settings,
                                              &image_format->display_settings,
-                                             DISPLAY_SPACE_FILE_OUTPUT,
+                                             image_format->media_type == MEDIA_TYPE_VIDEO ?
+                                                 DISPLAY_SPACE_VIDEO_OUTPUT :
+                                                 DISPLAY_SPACE_IMAGE_OUTPUT,
                                              byte_output);
 
     if (colormanaged_ibuf->float_buffer.data) {
@@ -2750,6 +2761,14 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
                                       global_role_default_byte;
 
     const char *to_colorspace = image_format->linear_colorspace_settings.name;
+
+    /* to_colorspace may need to modified to compensate for 100 vs 203 nits conventions. */
+    if (image_format->media_type != MEDIA_TYPE_VIDEO) {
+      const ColorSpace *image_colorspace = g_config->get_color_space_for_hdr_image(to_colorspace);
+      if (image_colorspace) {
+        to_colorspace = image_colorspace->name().c_str();
+      }
+    }
 
     /* TODO: can we check with OCIO if color spaces are the same but have different names? */
     if (to_colorspace[0] == '\0' || STREQ(from_colorspace, to_colorspace)) {

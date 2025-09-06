@@ -34,4 +34,4 @@ const ColorSpace *colormanage_colorspace_get_named(const char *name);
 const ColorSpace *colormanage_colorspace_get_roled(int role);
 
 void colormanage_imbuf_set_default_spaces(ImBuf *ibuf);
-void colormanage_imbuf_make_linear(ImBuf *ibuf, const char *from_colorspace);
+void colormanage_imbuf_make_linear(ImBuf *ibuf, const char *from_colorspace, bool video);

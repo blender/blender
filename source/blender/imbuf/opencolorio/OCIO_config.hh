@@ -34,6 +34,8 @@ struct DisplayParameters {
   bool use_hdr_buffer = false;
   /* Chosen display is HDR. */
   bool use_hdr_display = false;
+  /* Display transform is being used for image output. */
+  bool is_image_output = false;
   /* Rather than outputting colors for the specified display, output extended
    * sRGB colors emulating the specified display. */
   bool use_display_emulation = false;
@@ -132,6 +134,12 @@ class Config {
    * If not found a nullptr is returned.
    */
   virtual const ColorSpace *get_color_space_by_interop_id(StringRefNull interop_id) const = 0;
+
+  /**
+   * Get colorspace to be used for saving and loading HDR image files, which
+   * may need adjustments compared to the colorspace as chosen by the user.
+   **/
+  virtual const ColorSpace *get_color_space_for_hdr_image(StringRefNull name) const = 0;
 
   /** \} */
 

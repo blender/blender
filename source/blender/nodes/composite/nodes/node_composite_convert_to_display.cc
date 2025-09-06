@@ -156,7 +156,7 @@ class ConvertToDisplayOperation : public NodeOperation {
   {
     const NodeConvertToDisplay &nctd = node_storage(bnode());
     ColormanageProcessor *color_processor = IMB_colormanagement_display_processor_new(
-        &nctd.view_settings, &nctd.display_settings, DISPLAY_SPACE_FILE_OUTPUT, do_inverse());
+        &nctd.view_settings, &nctd.display_settings, DISPLAY_SPACE_VIDEO_OUTPUT, do_inverse());
 
     Result &input_image = get_input("Image");
 
@@ -181,7 +181,7 @@ class ConvertToDisplayOperation : public NodeOperation {
   {
     const NodeConvertToDisplay &nctd = node_storage(bnode());
     ColormanageProcessor *color_processor = IMB_colormanagement_display_processor_new(
-        &nctd.view_settings, &nctd.display_settings, DISPLAY_SPACE_FILE_OUTPUT, do_inverse());
+        &nctd.view_settings, &nctd.display_settings, DISPLAY_SPACE_VIDEO_OUTPUT, do_inverse());
 
     Result &input_image = get_input("Image");
     float4 color = input_image.get_single_value<float4>();
