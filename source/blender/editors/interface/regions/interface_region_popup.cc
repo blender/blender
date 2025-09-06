@@ -1123,7 +1123,11 @@ static uiBlock *ui_alert_create(bContext *C, ARegion *region, void *user_data)
   return block;
 }
 
-void UI_alert(bContext *C, std::string title, std::string message, eAlertIcon icon, bool compact)
+void UI_alert(bContext *C,
+              const std::string &title,
+              const std::string &message,
+              const eAlertIcon icon,
+              const bool compact)
 {
   uiAlertData *data = MEM_new<uiAlertData>(__func__);
   data->title = title;
