@@ -2,6 +2,20 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+__all__ = (
+    "add_closure_zone",
+    "add_color_mix_node",
+    "add_foreach_geometry_element_zone",
+    "add_node_type",
+    "add_node_type_with_outputs",
+    "add_node_type_with_searchable_enum",
+    "add_node_type_with_searchable_enum_socket",
+    "add_repeat_zone",
+    "add_simulation_zone",
+    "draw_node_group_add_menu",
+    "draw_root_assets",
+)
+
 import bpy
 from bpy.types import Menu
 from bl_ui import node_add_menu
