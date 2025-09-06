@@ -41,8 +41,13 @@ def add_node_type_with_outputs(context, layout, node_type, subnames, *, label=No
     props.append(add_node_type(layout, node_type, label=label, search_weight=search_weight))
     if getattr(context, "is_menu_search", False):
         for subname in subnames:
-            sublabel = "{} ▸ {}".format(iface_(label), iface_(subname))
-            item_props = add_node_type(layout, node_type, label=sublabel, search_weight=search_weight, translate=False)
+            item_props = add_node_type(
+                layout,
+                node_type,
+                label="{:s} \u25B8 {:s}".format(iface_(label), iface_(subname)),
+                search_weight=search_weight,
+                translate=False,
+            )
             item_props.visible_output = subname
             props.append(item_props)
     return props
@@ -102,13 +107,13 @@ def add_node_type_with_searchable_enum(context, layout, node_idname, property_na
         node_type = getattr(bpy.types, node_idname)
         translation_context = node_type.bl_rna.properties[property_name].translation_context
         for item in node_type.bl_rna.properties[property_name].enum_items_static:
-            label = "{} ▸ {}".format(iface_(node_type.bl_rna.name), iface_(item.name, translation_context))
             props = add_node_type(
                 layout,
                 node_idname,
-                label=label,
+                label="{:s} \u25B8 {:s}".format(iface_(node_type.bl_rna.name), iface_(item.name, translation_context)),
                 translate=False,
-                search_weight=search_weight)
+                search_weight=search_weight,
+            )
             prop = props.settings.add()
             prop.name = property_name
             prop.value = repr(item.identifier)
@@ -120,16 +125,16 @@ def add_node_type_with_searchable_enum_socket(
         node_idname,
         socket_identifier,
         enum_names,
-        search_weight=0.0):
+        search_weight=0.0,
+):
     add_node_type(layout, node_idname, search_weight=search_weight)
     if getattr(context, "is_menu_search", False):
         node_type = getattr(bpy.types, node_idname)
         for enum_name in enum_names:
-            label = "{} ▸ {}".format(iface_(node_type.bl_rna.name), iface_(enum_name))
             props = add_node_type(
                 layout,
                 node_idname,
-                label=label,
+                label="{:s} \u25B8 {:s}".format(iface_(node_type.bl_rna.name), iface_(enum_name)),
                 translate=False,
                 search_weight=search_weight)
             prop = props.settings.add()
@@ -147,8 +152,12 @@ def add_color_mix_node(context, layout):
     if getattr(context, "is_menu_search", False):
         translation_context = bpy.types.ShaderNodeMix.bl_rna.properties["blend_type"].translation_context
         for item in bpy.types.ShaderNodeMix.bl_rna.properties["blend_type"].enum_items_static:
-            sublabel = "{} ▸ {}".format(label, iface_(item.name, translation_context))
-            props = node_add_menu.add_node_type(layout, "ShaderNodeMix", label=sublabel, translate=False)
+            props = node_add_menu.add_node_type(
+                layout,
+                "ShaderNodeMix",
+                label="{:s} \u25B8 {:s}".format(label, iface_(item.name, translation_context)),
+                translate=False,
+            )
             prop = props.settings.add()
             prop.name = "data_type"
             prop.value = "'RGBA'"
