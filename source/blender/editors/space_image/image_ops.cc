@@ -2089,7 +2089,7 @@ static bool image_save_as_poll(bContext *C)
     Image *ima = image_from_context(C);
 
     if (ima->source == IMA_SRC_VIEWER) {
-      CTX_wm_operator_poll_msg_set(C, "cannot save image while rendering");
+      CTX_wm_operator_poll_msg_set(C, "Cannot save image while rendering");
       return false;
     }
   }

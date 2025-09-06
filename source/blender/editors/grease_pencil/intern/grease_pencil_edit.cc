@@ -4063,7 +4063,7 @@ static void GREASE_PENCIL_OT_set_handle_type(wmOperatorType *ot)
 {
   ot->name = "Set Handle Type";
   ot->idname = "GREASE_PENCIL_OT_set_handle_type";
-  ot->description = "Set the handle type for bezier curves";
+  ot->description = "Set the handle type for Bézier curves";
 
   ot->invoke = WM_menu_invoke;
   ot->exec = grease_pencil_set_handle_type_exec;

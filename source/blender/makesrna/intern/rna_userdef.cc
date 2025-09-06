@@ -5759,7 +5759,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "dupflag", USER_DUP_GPENCIL);
   RNA_def_property_ui_text(prop,
                            "Duplicate Grease Pencil",
-                           "Causes grease pencil data to be duplicated with the object");
+                           "Causes Grease Pencil data to be duplicated with the object");
 
   prop = RNA_def_property(srna, "use_duplicate_curves", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "dupflag", USER_DUP_CURVES);
