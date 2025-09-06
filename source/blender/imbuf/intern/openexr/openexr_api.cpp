@@ -88,6 +88,7 @@
 #include "BLI_string_utf8.h"
 #include "BLI_threads.h"
 
+#include "BKE_blender_version.h"
 #include "BKE_idprop.hh"
 #include "BKE_image.hh"
 
@@ -502,6 +503,10 @@ static int openexr_header_get_compression(const Header &header)
 
 static void openexr_header_metadata(Header *header, ImBuf *ibuf)
 {
+  header->insert(
+      "Software",
+      TypedAttribute<std::string>(std::string("Blender ") + BKE_blender_version_string()));
+
   if (ibuf->metadata) {
     LISTBASE_FOREACH (IDProperty *, prop, &ibuf->metadata->data.group) {
       if (prop->type == IDP_STRING && !STREQ(prop->name, "compression")) {
