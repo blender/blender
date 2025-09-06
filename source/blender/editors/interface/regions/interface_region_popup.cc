@@ -35,6 +35,8 @@
 #include "interface_intern.hh"
 #include "interface_regions_intern.hh"
 
+using blender::StringRef;
+
 /* -------------------------------------------------------------------- */
 /** \name Utility Functions
  * \{ */
@@ -1124,8 +1126,8 @@ static uiBlock *ui_alert_create(bContext *C, ARegion *region, void *user_data)
 }
 
 void UI_alert(bContext *C,
-              const std::string &title,
-              const std::string &message,
+              const StringRef title,
+              const StringRef message,
               const eAlertIcon icon,
               const bool compact)
 {
