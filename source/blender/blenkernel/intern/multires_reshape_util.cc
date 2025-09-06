@@ -531,10 +531,11 @@ ReshapeConstGridElement multires_reshape_orig_grid_element_for_grid_coord(
 /** \name Sample limit surface of the base mesh
  * \{ */
 
-void multires_reshape_evaluate_limit_at_grid(const MultiresReshapeContext *reshape_context,
-                                             const GridCoord *grid_coord,
-                                             blender::float3 &r_P,
-                                             blender::float3x3 &r_tangent_matrix)
+void multires_reshape_evaluate_base_mesh_limit_at_grid(
+    const MultiresReshapeContext *reshape_context,
+    const GridCoord *grid_coord,
+    blender::float3 &r_P,
+    blender::float3x3 &r_tangent_matrix)
 {
   blender::float3 dPdu;
   blender::float3 dPdv;
@@ -733,7 +734,8 @@ static void object_grid_element_to_tangent_displacement(
 {
   blender::float3 P;
   blender::float3x3 tangent_matrix;
-  multires_reshape_evaluate_limit_at_grid(reshape_context, grid_coord, P, tangent_matrix);
+  multires_reshape_evaluate_base_mesh_limit_at_grid(
+      reshape_context, grid_coord, P, tangent_matrix);
 
   const blender::float3x3 inv_tangent_matrix = blender::math::invert(tangent_matrix);
 
@@ -771,7 +773,8 @@ static void assign_final_coords_from_mdisps(const MultiresReshapeContext *reshap
 {
   blender::float3 P;
   blender::float3x3 tangent_matrix;
-  multires_reshape_evaluate_limit_at_grid(reshape_context, grid_coord, P, tangent_matrix);
+  multires_reshape_evaluate_base_mesh_limit_at_grid(
+      reshape_context, grid_coord, P, tangent_matrix);
 
   ReshapeGridElement grid_element = multires_reshape_grid_element_for_grid_coord(reshape_context,
                                                                                  grid_coord);
@@ -794,7 +797,8 @@ static void assign_final_elements_from_orig_mdisps(const MultiresReshapeContext 
 {
   blender::float3 P;
   blender::float3x3 tangent_matrix;
-  multires_reshape_evaluate_limit_at_grid(reshape_context, grid_coord, P, tangent_matrix);
+  multires_reshape_evaluate_base_mesh_limit_at_grid(
+      reshape_context, grid_coord, P, tangent_matrix);
 
   const ReshapeConstGridElement orig_grid_element =
       multires_reshape_orig_grid_element_for_grid_coord(reshape_context, grid_coord);
