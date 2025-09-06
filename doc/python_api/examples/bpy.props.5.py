@@ -106,7 +106,7 @@ print("test_array:", tuple(scene.test_array))
 
 # Boolean array, using 'transform' accessors.
 # Note how the same result is achieved as with previous get/set example, but using default RNA storage.
-# Transform accessors also have access to more informations.
+# Transform accessors also have access to more information.
 # Also note how the stored data _is_ a two-items array.
 # - Set function stores a single boolean value, returned as the second component.
 # - Array getters must return a list or tuple.
