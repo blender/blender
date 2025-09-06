@@ -50,6 +50,7 @@
 
 using blender::StringRef;
 using blender::StringRefNull;
+struct uiButtonItem;
 
 /* Show an icon button after each RNA button to use to quickly set keyframes,
  * this is a way to display animation/driven/override status, see #54951. */
@@ -172,6 +173,8 @@ struct LayoutInternal {
 
   static void layout_add_but(uiLayout *layout, uiBut *but);
   static void layout_remove_but(uiLayout *layout, const uiBut *but);
+  static uiButtonItem *ui_layout_find_button_item(const uiLayout *layout, const uiBut *but);
+  static uiLayout *ui_item_prop_split_layout_hack(uiLayout *layout_parent, uiLayout *layout_split);
 };
 
 }  // namespace blender::ui
@@ -321,7 +324,7 @@ static int ui_layout_vary_direction(uiLayout *layout)
   return ((ELEM(layout->root()->type,
                 blender::ui::LayoutType::Header,
                 blender::ui::LayoutType::PieMenu) ||
-           (layout->alignment_ != blender::ui::LayoutAlign::Expand)) ?
+           (layout->alignment() != blender::ui::LayoutAlign::Expand)) ?
               UI_ITEM_VARY_X :
               UI_ITEM_VARY_Y);
 }
@@ -331,7 +334,7 @@ static bool ui_layout_variable_size(uiLayout *layout)
   /* Note that this code is probably a bit unreliable, we'd probably want to know whether it's
    * variable in X and/or Y, etc. But for now it mimics previous one,
    * with addition of variable flag set for children of grid-flow layouts. */
-  return ui_layout_vary_direction(layout) == UI_ITEM_VARY_X || layout->variable_size_;
+  return ui_layout_vary_direction(layout) == UI_ITEM_VARY_X || layout->variable_size();
 }
 
 /**
@@ -369,7 +372,7 @@ static int ui_text_icon_width_ex(uiLayout *layout,
                                  const uiTextIconPadFactor &pad_factor,
                                  const uiFontStyle *fstyle)
 {
-  const int unit_x = UI_UNIT_X * (layout->scale_[0] ? layout->scale_[0] : 1.0f);
+  const int unit_x = UI_UNIT_X * (layout->scale_x() ? layout->scale_x() : 1.0f);
 
   /* When there is no text, always behave as if this is an icon-only button
    * since it's not useful to return empty space. */
@@ -382,7 +385,7 @@ static int ui_text_icon_width_ex(uiLayout *layout,
       return unit_x * (1.0f + pad_factor.icon_only);
     }
 
-    if (layout->alignment_ != blender::ui::LayoutAlign::Expand) {
+    if (layout->alignment() != blender::ui::LayoutAlign::Expand) {
       layout->fixed_size_set(true);
     }
 
@@ -1072,7 +1075,7 @@ static uiBut *ui_item_with_label(uiLayout *layout,
     /* Also avoid setting 'align' if possible. Set the space to zero instead as aligning a large
      * number of labels can end up aligning thousands of buttons when displaying key-map search (a
      * heavy operation), see: #78636. */
-    sub = &layout->row(layout->align_);
+    sub = &layout->row(layout->align());
     sub->space_ = 0;
   }
 
@@ -1320,9 +1323,9 @@ static uiBut *uiItemFullO_ptr_ex(uiLayout *layout,
 
   const int w = ui_text_icon_width(layout, *name, icon, false);
 
-  const blender::ui::EmbossType prev_emboss = layout->emboss_;
+  const blender::ui::EmbossType prev_emboss = layout->emboss_or_undefined();
   if (flag & UI_ITEM_R_NO_BG) {
-    layout->emboss_ = blender::ui::EmbossType::NoneOrStatus;
+    layout->emboss_set(blender::ui::EmbossType::NoneOrStatus);
   }
 
   /* create the button */
@@ -1344,7 +1347,7 @@ static uiBut *uiItemFullO_ptr_ex(uiLayout *layout,
   BLI_assert(but->optype != nullptr);
 
   if (flag & UI_ITEM_R_NO_BG) {
-    layout->emboss_ = prev_emboss;
+    layout->emboss_set(prev_emboss);
   }
 
   if (flag & UI_ITEM_O_DEPRESS) {
@@ -1355,11 +1358,11 @@ static uiBut *uiItemFullO_ptr_ex(uiLayout *layout,
     UI_but_drawflag_disable(but, UI_BUT_ICON_LEFT);
   }
 
-  if (layout->redalert_) {
+  if (layout->red_alert()) {
     UI_but_flag_enable(but, UI_BUT_REDALERT);
   }
 
-  if (layout->active_default_) {
+  if (layout->active_default()) {
     UI_but_flag_enable(but, UI_BUT_ACTIVE_DEFAULT);
   }
 
@@ -1501,7 +1504,7 @@ void uiLayout::op_enum_items(wmOperatorType *ot,
   }
   else {
     split = &this->split(0.0f, false);
-    target = &split->column(align_);
+    target = &split->column(this->align());
   }
 
   bool last_iter = false;
@@ -1552,7 +1555,7 @@ void uiLayout::op_enum_items(wmOperatorType *ot,
     else {
       if (item->name) {
         if (item != item_array && !radial && split != nullptr) {
-          target = &split->column(align_);
+          target = &split->column(this->align());
         }
 
         uiBut *but;
@@ -1819,7 +1822,7 @@ static void ui_layout_heading_label_add(uiLayout *layout,
                                         bool right_align,
                                         bool respect_prop_split)
 {
-  const blender::ui::LayoutAlign prev_alignment = layout->alignment_;
+  const blender::ui::LayoutAlign prev_alignment = layout->alignment();
 
   if (right_align) {
     layout->alignment_set(blender::ui::LayoutAlign::Right);
@@ -1835,7 +1838,7 @@ static void ui_layout_heading_label_add(uiLayout *layout,
    * for other items in this layout. For now just clear it. */
   heading_layout->heading_reset();
 
-  layout->alignment_ = prev_alignment;
+  layout->alignment_set(prev_alignment);
 }
 
 /**
@@ -1843,7 +1846,8 @@ static void ui_layout_heading_label_add(uiLayout *layout,
  * keeps a fixed size.
  * \return The layout to place further items in for the split layout.
  */
-static uiLayout *ui_item_prop_split_layout_hack(uiLayout *layout_parent, uiLayout *layout_split)
+uiLayout *LayoutInternal::ui_item_prop_split_layout_hack(uiLayout *layout_parent,
+                                                         uiLayout *layout_split)
 {
   /* Tag item as using property split layout, this is inherited to children so they can get special
    * treatment if needed. */
@@ -2089,7 +2093,7 @@ void uiLayout::prop(PointerRNA *ptr,
         ui_layout_heading_label_add(layout_sub, heading_layout, true, false);
       }
 
-      layout_split = ui_item_prop_split_layout_hack(layout_parent, layout_split);
+      layout_split = LayoutInternal::ui_item_prop_split_layout_hack(layout_parent, layout_split);
 
       /* Watch out! We can only write into the new layout now. */
       if ((type == PROP_ENUM) && (flag & UI_ITEM_R_EXPAND)) {
@@ -2197,11 +2201,11 @@ void uiLayout::prop(PointerRNA *ptr,
     }
     but = ui_but_add_search(but, ptr, prop, nullptr, nullptr, results_are_suggestions);
 
-    if (layout->redalert_) {
+    if (layout->red_alert()) {
       UI_but_flag_enable(but, UI_BUT_REDALERT);
     }
 
-    if (layout->activate_init_) {
+    if (layout->activate_init()) {
       UI_but_flag_enable(but, UI_BUT_ACTIVATE_ON_INIT);
     }
   }
@@ -2234,11 +2238,11 @@ void uiLayout::prop(PointerRNA *ptr,
       but->type = ButType::Toggle;
     }
 
-    if (layout->redalert_) {
+    if (layout->red_alert()) {
       UI_but_flag_enable(but, UI_BUT_REDALERT);
     }
 
-    if (layout->activate_init_) {
+    if (layout->activate_init()) {
       UI_but_flag_enable(but, UI_BUT_ACTIVATE_ON_INIT);
     }
   }
@@ -3071,7 +3075,7 @@ static uiBut *uiItem_simple(uiLayout *layout,
     but->flag |= UI_BUT_LIST_ITEM;
   }
 
-  if (layout->redalert_) {
+  if (layout->red_alert()) {
     UI_but_flag_enable(but, UI_BUT_REDALERT);
   }
 
@@ -3108,8 +3112,9 @@ uiPropertySplitWrapper uiItemPropertySplitWrapperCreate(uiLayout *parent_layout)
   uiLayout *layout_split = &layout_row->split(UI_ITEM_PROP_SEP_DIVIDE, true);
 
   split_wrapper.label_column = &layout_split->column(true);
-  split_wrapper.label_column->alignment_ = blender::ui::LayoutAlign::Right;
-  split_wrapper.property_row = ui_item_prop_split_layout_hack(parent_layout, layout_split);
+  split_wrapper.label_column->alignment_set(blender::ui::LayoutAlign::Right);
+  split_wrapper.property_row = LayoutInternal::ui_item_prop_split_layout_hack(parent_layout,
+                                                                              layout_split);
   split_wrapper.decorate_column = parent_layout->use_property_decorate() ?
                                       &layout_row->column(true) :
                                       nullptr;
@@ -3571,7 +3576,7 @@ static void ui_litem_layout_row(uiLayout *litem)
 
       if (w - lastw > 0) {
         neww = ui_item_fit(
-            itemw, x, totw, w - lastw, is_item_last, litem->alignment_, &extra_pixel);
+            itemw, x, totw, w - lastw, is_item_last, litem->alignment(), &extra_pixel);
       }
       else {
         neww = 0; /* no space left, all will need clamping to minimum size */
@@ -3582,10 +3587,10 @@ static void ui_litem_layout_row(uiLayout *litem)
       bool min_flag = item->fixed_size();
       /* ignore min flag for rows with right or center alignment */
       if (item->type() != uiItemType::Button &&
-          ELEM((static_cast<uiLayout *>(item))->alignment_,
+          ELEM((static_cast<uiLayout *>(item))->alignment(),
                blender::ui::LayoutAlign::Right,
                blender::ui::LayoutAlign::Center) &&
-          litem->alignment_ == blender::ui::LayoutAlign::Expand && litem->fixed_size())
+          litem->alignment() == blender::ui::LayoutAlign::Expand && litem->fixed_size())
       {
         min_flag = false;
       }
@@ -3629,25 +3634,25 @@ static void ui_litem_layout_row(uiLayout *litem)
         minw = itemw;
       }
       itemw = ui_item_fit(
-          minw, fixedx, fixedw, min_ii(w, fixedw), is_item_last, litem->alignment_, &extra_pixel);
+          minw, fixedx, fixedw, min_ii(w, fixedw), is_item_last, litem->alignment(), &extra_pixel);
       fixedx += itemw;
     }
     else {
       /* free size item */
       itemw = ui_item_fit(
-          itemw, freex, freew, w - fixedw, is_item_last, litem->alignment_, &extra_pixel);
+          itemw, freex, freew, w - fixedw, is_item_last, litem->alignment(), &extra_pixel);
       freex += itemw;
       last_free_item_idx = item_idx;
     }
 
     /* align right/center */
     offset = 0;
-    if (litem->alignment_ == blender::ui::LayoutAlign::Right) {
+    if (litem->alignment() == blender::ui::LayoutAlign::Right) {
       if (freew + fixedw > 0 && freew + fixedw < w) {
         offset = w - (fixedw + freew);
       }
     }
-    else if (litem->alignment_ == blender::ui::LayoutAlign::Center) {
+    else if (litem->alignment() == blender::ui::LayoutAlign::Center) {
       if (freew + fixedw > 0 && freew + fixedw < w) {
         offset = (w - (fixedw + freew)) / 2;
       }
@@ -3664,7 +3669,7 @@ static void ui_litem_layout_row(uiLayout *litem)
 
   /* add extra pixel */
   int extra_pixel_move = litem->w_ - (x - litem->x_);
-  if (extra_pixel_move > 0 && litem->alignment_ == blender::ui::LayoutAlign::Expand &&
+  if (extra_pixel_move > 0 && litem->alignment() == blender::ui::LayoutAlign::Expand &&
       last_free_item_idx >= 0 && item_last && ItemInternal::auto_fixed_size(item_last))
   {
     ui_item_move(litem->items()[last_free_item_idx], 0, extra_pixel_move);
@@ -4117,7 +4122,7 @@ static void ui_litem_layout_column_flow(uiLayout *litem)
   for (uiItem *item : litem->items()) {
     ui_item_size(item, &itemw, &itemh);
 
-    itemw = (litem->alignment_ == blender::ui::LayoutAlign::Expand) ? w : min_ii(w, itemw);
+    itemw = (litem->alignment() == blender::ui::LayoutAlign::Expand) ? w : min_ii(w, itemw);
 
     y -= itemh;
     emy -= itemh;
@@ -4487,8 +4492,8 @@ static void ui_litem_layout_grid_flow(uiLayout *litem)
     const int w = widths[col];
     const int h = heights[row];
 
-    item_w = (litem->alignment_ == blender::ui::LayoutAlign::Expand) ? w : min_ii(w, item_w);
-    item_h = (litem->alignment_ == blender::ui::LayoutAlign::Expand) ? h : min_ii(h, item_h);
+    item_w = (litem->alignment() == blender::ui::LayoutAlign::Expand) ? w : min_ii(w, item_w);
+    item_h = (litem->alignment() == blender::ui::LayoutAlign::Expand) ? h : min_ii(h, item_h);
 
     ui_item_position(item, cos_x[col], cos_y[row], item_w, item_h);
     i++;
@@ -4836,7 +4841,7 @@ uiLayout &uiLayout::column_flow(int number, bool align)
   uiLayoutItemFlow *flow = MEM_new<uiLayoutItemFlow>(__func__);
   LayoutInternal::init_from_parent(flow, this, align);
 
-  flow->space_ = (flow->align_) ? 0 : root_->style->columnspace;
+  flow->space_ = (flow->align()) ? 0 : root_->style->columnspace;
   flow->number = number;
 
   blender::ui::block_layout_set_current(this->block(), flow);
@@ -4850,7 +4855,7 @@ uiLayout &uiLayout::grid_flow(
   uiLayoutItemGridFlow *flow = MEM_new<uiLayoutItemGridFlow>(__func__);
   LayoutInternal::init_from_parent(flow, this, align);
 
-  flow->space_ = (flow->align_) ? 0 : root_->style->columnspace;
+  flow->space_ = (flow->align()) ? 0 : root_->style->columnspace;
   flow->row_major = row_major;
   flow->columns_len = columns_len;
   flow->even_columns = even_columns;
@@ -5235,8 +5240,8 @@ static void ui_item_estimate(uiItem *item)
       ui_item_estimate(subitem);
     }
 
-    if (litem->scale_[0] != 0.0f || litem->scale_[1] != 0.0f) {
-      ui_item_scale(litem, litem->scale_);
+    if (litem->scale_x() != 0.0f || litem->scale_y() != 0.0f) {
+      ui_item_scale(litem, blender::float2{litem->scale_x(), litem->scale_y()});
     }
 
     switch (litem->type()) {
@@ -5278,11 +5283,11 @@ static void ui_item_estimate(uiItem *item)
     }
 
     /* Force fixed size. */
-    if (litem->units_[0] > 0) {
-      litem->w_ = UI_UNIT_X * litem->units_[0];
+    if (litem->ui_units_x() > 0) {
+      litem->w_ = UI_UNIT_X * litem->ui_units_x();
     }
-    if (litem->units_[1] > 0) {
-      litem->h_ = UI_UNIT_Y * litem->units_[1];
+    if (litem->ui_units_y() > 0) {
+      litem->h_ = UI_UNIT_Y * litem->ui_units_y();
     }
   }
 }
@@ -5316,7 +5321,7 @@ static void ui_item_align(uiLayout *litem, short nr)
     }
     else {
       uiLayout *litem = static_cast<uiLayout *>(item);
-      if (litem->align_) {
+      if (litem->align()) {
         ui_item_align(litem, nr);
       }
     }
@@ -5346,13 +5351,13 @@ static void ui_item_layout(uiItem *item)
       return;
     }
 
-    if (litem->align_) {
+    if (litem->align()) {
       ui_item_align(litem, ++litem->block()->alignnr);
     }
-    if (!litem->active_) {
+    if (!litem->active()) {
       ui_item_flag(litem, UI_BUT_INACTIVE);
     }
-    if (!litem->enabled_) {
+    if (!litem->enabled()) {
       ui_item_flag(litem, UI_BUT_DISABLED);
     }
 
@@ -5482,9 +5487,9 @@ uiLayout &block_layout(uiBlock *block,
   layout->x_ = x;
   layout->y_ = y;
   layout->space_ = style->templatespace;
-  layout->active_ = true;
-  layout->enabled_ = true;
-  layout->emboss_ = EmbossType::Undefined;
+  layout->active_set(true);
+  layout->enabled_set(true);
+  layout->emboss_set(EmbossType::Undefined);
 
   if (ELEM(type, LayoutType::Menu, LayoutType::PieMenu)) {
     layout->space_ = 0;
@@ -5559,7 +5564,7 @@ void ui_layout_add_but(uiLayout *layout, uiBut *but)
   LayoutInternal::layout_add_but(layout, but);
 };
 
-static uiButtonItem *ui_layout_find_button_item(const uiLayout *layout, const uiBut *but)
+uiButtonItem *LayoutInternal::ui_layout_find_button_item(const uiLayout *layout, const uiBut *but)
 {
   const blender::Vector<uiItem *> &child_list = layout->child_items_layout_ ?
                                                     layout->child_items_layout_->items() :
@@ -5574,7 +5579,8 @@ static uiButtonItem *ui_layout_find_button_item(const uiLayout *layout, const ui
       }
     }
     else {
-      uiButtonItem *nested_item = ui_layout_find_button_item(static_cast<uiLayout *>(item), but);
+      uiButtonItem *nested_item = LayoutInternal::ui_layout_find_button_item(
+          static_cast<uiLayout *>(item), but);
       if (nested_item) {
         return nested_item;
       }
@@ -5608,8 +5614,8 @@ void ui_layout_remove_but(uiLayout *layout, const uiBut *but)
 
 bool ui_layout_replace_but_ptr(uiLayout *layout, const void *old_but_ptr, uiBut *new_but)
 {
-  uiButtonItem *bitem = ui_layout_find_button_item(layout,
-                                                   static_cast<const uiBut *>(old_but_ptr));
+  uiButtonItem *bitem = LayoutInternal::ui_layout_find_button_item(
+      layout, static_cast<const uiBut *>(old_but_ptr));
   if (!bitem) {
     return false;
   }
@@ -6192,3 +6198,15 @@ blender::Span<uiItem *> uiLayout::items() const
 {
   return items_;
 };
+bool uiLayout::align() const
+{
+  return align_;
+}
+[[nodiscard]] bool uiLayout::variable_size() const
+{
+  return variable_size_;
+}
+[[nodiscard]] blender::ui::EmbossType uiLayout::emboss_or_undefined() const
+{
+  return emboss_;
+}
