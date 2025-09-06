@@ -526,6 +526,7 @@ void blf_draw_svg_icon(FontBLF *font,
                        bool multicolor,
                        blender::FunctionRef<void(std::string &)> edit_source_cb)
 {
+  BLI_assert(outline_alpha <= 1.0f); /* Higher values overflow, caller must ensure. */
   blf_font_size(font, size);
   font->pos[0] = int(x);
   font->pos[1] = int(y);
