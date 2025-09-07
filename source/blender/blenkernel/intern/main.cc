@@ -89,7 +89,7 @@ Main::~Main()
 Main *BKE_main_new()
 {
   Main *bmain = MEM_new<Main>(__func__);
-  IMB_colormanagement_working_space_init(bmain);
+  IMB_colormanagement_working_space_init_default(bmain);
   return bmain;
 }
 

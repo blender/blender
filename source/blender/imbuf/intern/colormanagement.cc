@@ -85,6 +85,7 @@ namespace math = blender::math;
  * \{ */
 
 static std::unique_ptr<ocio::Config> g_config = nullptr;
+static bool g_config_is_custom = false;
 static blender::VectorSet<blender::StringRefNull> g_all_view_names;
 
 #define DISPLAY_BUFFER_CHANNELS 4
@@ -631,7 +632,10 @@ void colormanagement_init()
       CLOG_INFO_NOCHECK(&LOG, "Using %s as a configuration file", ocio_env);
       const bool ok = colormanage_load_config(*g_config);
 
-      if (!ok) {
+      if (ok) {
+        g_config_is_custom = true;
+      }
+      else {
         CLOG_ERROR(&LOG, "Failed to load config from environment");
         colormanage_free_config();
       }
@@ -650,7 +654,6 @@ void colormanagement_init()
 
       if (g_config != nullptr) {
         const bool ok = colormanage_load_config(*g_config);
-
         if (!ok) {
           CLOG_ERROR(&LOG, "Failed to load bundled config");
           colormanage_free_config();
@@ -3475,10 +3478,19 @@ void IMB_colormanagement_working_space_convert(Main *bmain, const Main *referenc
   bmain->colorspace.scene_linear_to_xyz = reference_bmain->colorspace.scene_linear_to_xyz;
 }
 
-void IMB_colormanagement_working_space_init(Main *bmain)
+void IMB_colormanagement_working_space_init_default(Main *bmain)
 {
   STRNCPY(bmain->colorspace.scene_linear_name, global_role_scene_linear_default);
   bmain->colorspace.scene_linear_to_xyz = global_scene_linear_to_xyz_default;
+}
+
+void IMB_colormanagement_working_space_init_startup(Main *bmain)
+{
+  /* If using the default config, keep the one saved in the startup blend.
+   * If using the non-default OCIO config, assume we want the working space from that config. */
+  if (blender::math::is_zero(bmain->colorspace.scene_linear_to_xyz) || g_config_is_custom) {
+    IMB_colormanagement_working_space_init_default(bmain);
+  }
 }
 
 /** \} */

@@ -1232,6 +1232,9 @@ static void setup_app_data(bContext *C,
   /* Setting scene might require having a dependency graph, with copy-on-eval
    * we need to make sure we ensure scene has correct color management before
    * constructing dependency graph. */
+  if (params->is_startup) {
+    IMB_colormanagement_working_space_init_startup(bmain);
+  }
   IMB_colormanagement_working_space_check(bmain, mode == LOAD_UNDO, reuse_editable_assets);
   IMB_colormanagement_check_file_config(bmain);
 

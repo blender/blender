@@ -405,7 +405,8 @@ void IMB_colormanagement_working_space_check(Main *bmain,
                                              const bool for_undo,
                                              const bool have_editable_assets);
 
-void IMB_colormanagement_working_space_init(Main *bmain);
+void IMB_colormanagement_working_space_init_default(Main *bmain);
+void IMB_colormanagement_working_space_init_startup(Main *bmain);
 void IMB_colormanagement_working_space_convert(
     Main *bmain,
     const blender::float3x3 &current_scene_linear_to_xyz,
