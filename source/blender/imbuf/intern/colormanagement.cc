@@ -616,6 +616,12 @@ static void colormanage_free_config()
 
 void colormanagement_init()
 {
+  /* Handle Blender specific override. */
+  const char *blender_ocio_env = BLI_getenv("BLENDER_OCIO");
+  if (blender_ocio_env) {
+    BLI_setenv("OCIO", blender_ocio_env);
+  }
+
   /* First try config from environment variable. */
   const char *ocio_env = BLI_getenv("OCIO");
 
