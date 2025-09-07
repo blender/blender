@@ -645,10 +645,15 @@ void curve_populate_trans_data_structs(const TransInfo &t,
 
           td.extra = extra;
 
-          if (value_attribute) {
+          /* Set #TransData.val to nullptr for handles since those values are only tweaked on
+           * control points. Logic in e.g. #initCurveShrinkFatten() also relies on this. */
+          if (value_attribute && (selection_i == 0)) {
             float *value = &((*value_attribute)[domain_i]);
             td.val = value;
             td.ival = *value;
+          }
+          else {
+            td.val = nullptr;
           }
 
           if (deformation.deform_mats.is_empty()) {
