@@ -2401,7 +2401,7 @@ static void move_to_collection_menu_draw(const bContext *C, Menu *menu)
   move_to_collection_menu_draw(menu, scene->master_collection, ICON_SCENE_DATA);
 }
 
-void move_to_colletion_menu_register()
+void move_to_collection_menu_register()
 {
   /* Add recursive sub-menu type, to avoid each sub-menu from showing the main menu shortcut. */
   MenuType *mt = MEM_callocN<MenuType>("OBJECT_MT_move_to_collection_recursive");
@@ -2421,7 +2421,7 @@ void move_to_colletion_menu_register()
   WM_menutype_add(mt);
 }
 
-void link_to_colletion_menu_register()
+void link_to_collection_menu_register()
 {
   /* Add recursive sub-menu type, to avoid each sub-menu from showing the main menu shortcut. */
   MenuType *mt = MEM_callocN<MenuType>("OBJECT_MT_link_to_collection_recursive");

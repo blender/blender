@@ -220,8 +220,8 @@ void operatortypes_object()
 
   WM_operatortype_append(OBJECT_OT_move_to_collection);
   WM_operatortype_append(OBJECT_OT_link_to_collection);
-  move_to_colletion_menu_register();
-  link_to_colletion_menu_register();
+  move_to_collection_menu_register();
+  link_to_collection_menu_register();
 
   WM_operatortype_append(OBJECT_OT_shape_key_add);
   WM_operatortype_append(OBJECT_OT_shape_key_copy);
