@@ -88,20 +88,22 @@ displays:
     - !<View> {name: ACES 2.0 - HDR 1000 nits, colorspace: ACES 2.0 Rec.2100-PQ - HDR 1000 nits}
     - !<View> {name: ACES 2.0 - HDR 2000 nits, colorspace: ACES 2.0 Rec.2100-PQ - HDR 2000 nits}
     - !<View> {name: ACES 2.0 - HDR 4000 nits, colorspace: ACES 2.0 Rec.2100-PQ - HDR 4000 nits}
-    - !<View> {name: AgX, colorspace: AgX Rec.2100-PQ - SDR}
+    - !<View> {name: ACES 2.0 - SDR, colorspace: ACES 2.0 Rec.2100-PQ - SDR}
     - !<View> {name: AgX - HDR 1000 nits, colorspace: AgX Rec.2100-PQ - HDR 1000 nits (P3 D65)}
+    - !<View> {name: AgX - SDR, colorspace: AgX Rec.2100-PQ - SDR}
     - !<View> {name: False Color, colorspace: AgX False Color Rec.2100-PQ}
     - !<View> {name: Raw, colorspace: Non-Color}
   Rec.2100-HLG:
     - !<View> {name: Standard, colorspace: Rec.2100-HLG}
     - !<View> {name: ACES 2.0 - HDR 1000 nits, colorspace: ACES 2.0 Rec.2100-HLG - HDR 1000 nits}
-    - !<View> {name: AgX, colorspace: AgX Rec.2100-HLG - SDR}
+    - !<View> {name: ACES 2.0 - SDR, colorspace: ACES 2.0 Rec.2100-HLG - SDR}
     - !<View> {name: AgX - HDR 1000 nits, colorspace: AgX Rec.2100-HLG - HDR 1000 nits (P3 D65)}
+    - !<View> {name: AgX - SDR, colorspace: AgX Rec.2100-HLG - SDR}
     - !<View> {name: False Color, colorspace: AgX False Color Rec.2100-HLG}
     - !<View> {name: Raw, colorspace: Non-Color}
 active_displays: [sRGB, Display P3, Rec.1886, Rec.2020, Rec.2100-PQ, Rec.2100-HLG]
-active_views: [Standard, ACES 2.0, ACES 2.0 - HDR 500 nits, ACES 2.0 - HDR 1000 nits, ACES 2.0 - HDR 2000 nits, ACES 2.0 - HDR 4000 nits, Khronos PBR Neutral, AgX, AgX - HDR 1000 nits, Filmic, Filmic Log, False Color, Raw]
-inactive_colorspaces: [Luminance Compensation Rec.2020, AgX False Color Rec.709, AgX False Color P3, AgX False Color Rec.2020, AgX False Color Rec.2100-HLG, AgX False Color Rec.2100-PQ, ACES 2.0 Rec.2100-PQ - HDR 500 nits, ACES 2.0 Rec.2100-PQ - HDR 1000 nits, ACES 2.0 Rec.2100-PQ - HDR 2000 nits, ACES 2.0 Rec.2100-PQ - HDR 4000 nits, ACES 2.0 Rec.2020, AgX Rec.2100-HLG - HDR 1000 nits (P3 D65), AgX Rec.2100-PQ - HDR 1000 nits (P3 D65), AgX Rec.2100-HLG - SDR, AgX Rec.2100-PQ - SDR, ACES 2.0 Rec.2100-HLG - HDR 1000 nits]
+active_views: [Standard, ACES 2.0, ACES 2.0 - HDR 500 nits, ACES 2.0 - HDR 1000 nits, ACES 2.0 - HDR 2000 nits, ACES 2.0 - HDR 4000 nits, ACES 2.0 - SDR, Khronos PBR Neutral, AgX, AgX - HDR 1000 nits, AgX - SDR, Filmic, Filmic Log, False Color, Raw,]
+inactive_colorspaces: [Luminance Compensation Rec.2020, AgX False Color Rec.709, AgX False Color P3, AgX False Color Rec.2020, AgX False Color Rec.2100-HLG, AgX False Color Rec.2100-PQ, ACES 2.0 Rec.2100-PQ - HDR 500 nits, ACES 2.0 Rec.2100-PQ - HDR 1000 nits, ACES 2.0 Rec.2100-PQ - HDR 2000 nits, ACES 2.0 Rec.2100-PQ - HDR 4000 nits, ACES 2.0 Rec.2100-PQ - SDR, ACES 2.0 Rec.2020, AgX Rec.2100-HLG - HDR 1000 nits (P3 D65), AgX Rec.2100-PQ - HDR 1000 nits (P3 D65), AgX Rec.2100-HLG - SDR, AgX Rec.2100-PQ - SDR, ACES 2.0 Rec.2100-HLG - HDR 1000 nits, ACES 2.0 Rec.2100-HLG - SDR, AgX Base Rec.2020, AgX Base Display P3, AgX Base Rec.1886, ACES 2.0 sRGB, ACES 2.0 Display P3, ACES 2.0 Rec.1886, ACES 2.0 Rec.2020]
 
 colorspaces:
   - !<ColorSpace>
@@ -635,6 +637,21 @@ colorspaces:
         - !<BuiltinTransform> {style: DISPLAY - CIE-XYZ-D65_to_REC.2100-PQ}
 
   - !<ColorSpace>
+    name: ACES 2.0 Rec.2100-PQ - SDR
+    family: ACES
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+       ACES 2 Output Transform for 100 nit SDR Rec709
+    encoding: hdr-video
+    isdata: false
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: ACES2065-1}
+        - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - SDR-100nit-REC709_2.0}
+        - !<BuiltinTransform> {style: DISPLAY - CIE-XYZ-D65_to_REC.2100-PQ}
+
+  - !<ColorSpace>
     name: ACES 2.0 Rec.2100-HLG - HDR 1000 nits
     family: ACES
     equalitygroup:
@@ -647,6 +664,21 @@ colorspaces:
       children:
         - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: ACES2065-1}
         - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - HDR-1000nit-REC2020_2.0}
+        - !<BuiltinTransform> {style: DISPLAY - CIE-XYZ-D65_to_REC.2100-HLG-1000nit}
+
+  - !<ColorSpace>
+    name: ACES 2.0 Rec.2100-HLG - SDR
+    family: ACES
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+       ACES 2 Output Transform for 100 nit SDR Rec709
+    encoding: hdr-video
+    isdata: false
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: ACES2065-1}
+        - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - SDR-100nit-REC709_2.0}
         - !<BuiltinTransform> {style: DISPLAY - CIE-XYZ-D65_to_REC.2100-HLG-1000nit}
 
   - !<ColorSpace>
@@ -998,3 +1030,9 @@ looks:
           contrast: {rgb: [0.7, 0.7, 0.7], master: 1}
           saturation: 1.15
           pivot: {contrast: -0.2}
+
+  - !<Look>
+    name: ACES 2.0 - Reference Gamut Compression
+    process_space: ACES2065-1
+    description: Compress scene-referred values from common cameras into the ACEScg gamut
+    transform: !<BuiltinTransform> {style: ACES-LMT - ACES 1.3 Reference Gamut Compression}
