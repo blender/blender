@@ -27,7 +27,7 @@ inline bool skip_bm_face(const BMFace &face, const bool sync_selection)
   if (BM_elem_flag_test(&face, BM_ELEM_HIDDEN)) {
     return true;
   }
-  if (sync_selection) {
+  if (!sync_selection) {
     if (!BM_elem_flag_test_bool(&face, BM_ELEM_SELECT)) {
       return true;
     }
@@ -126,7 +126,7 @@ static gpu::IndexBufPtr extract_edituv_tris_mesh(const MeshRenderData &mr,
       selection = IndexMask::from_bools_inverse(faces.index_range(), mr.hide_poly, memory);
     }
 
-    if (sync_selection && !mr.select_poly.is_empty()) {
+    if (!sync_selection && !mr.select_poly.is_empty()) {
       selection = IndexMask::from_bools(selection, mr.select_poly, memory);
     }
   }
@@ -164,7 +164,7 @@ static gpu::IndexBufPtr extract_edituv_tris_mesh(const MeshRenderData &mr,
 
 gpu::IndexBufPtr extract_edituv_tris(const MeshRenderData &mr, const bool edit_uvs)
 {
-  const bool sync_selection = ((mr.toolsettings->uv_flag & UV_FLAG_SYNC_SELECT) != 0) || !edit_uvs;
+  const bool sync_selection = edit_uvs ? (mr.toolsettings->uv_flag & UV_FLAG_SYNC_SELECT) : false;
   if (mr.extract_type == MeshExtractType::BMesh) {
     return extract_edituv_tris_bm(mr, sync_selection);
   }
@@ -329,7 +329,7 @@ static gpu::IndexBufPtr extract_edituv_lines_mesh(const MeshRenderData &mr,
     if (!mr.hide_poly.is_empty()) {
       visible = IndexMask::from_bools_inverse(visible, mr.hide_poly, memory);
     }
-    if (sync_selection) {
+    if (!sync_selection) {
       if (mr.select_poly.is_empty()) {
         visible = {};
       }
@@ -363,16 +363,16 @@ static gpu::IndexBufPtr extract_edituv_lines_mesh(const MeshRenderData &mr,
 
 gpu::IndexBufPtr extract_edituv_lines(const MeshRenderData &mr, const UvExtractionMode mode)
 {
-  bool sync_selection = true;
+  bool sync_selection = false;
   switch (mode) {
     case UvExtractionMode::All:
-      sync_selection = false;
+      sync_selection = true;
       break;
     case UvExtractionMode::Edit:
       sync_selection = ((mr.toolsettings->uv_flag & UV_FLAG_SYNC_SELECT) != 0);
       break;
     case UvExtractionMode::Selection:
-      sync_selection = true;
+      sync_selection = false;
       break;
   }
 
@@ -478,16 +478,16 @@ gpu::IndexBufPtr extract_edituv_lines_subdiv(const MeshRenderData &mr,
                                              const DRWSubdivCache &subdiv_cache,
                                              const UvExtractionMode mode)
 {
-  bool sync_selection = true;
+  bool sync_selection = false;
   switch (mode) {
     case UvExtractionMode::All:
-      sync_selection = false;
+      sync_selection = true;
       break;
     case UvExtractionMode::Edit:
       sync_selection = ((mr.toolsettings->uv_flag & UV_FLAG_SYNC_SELECT) != 0);
       break;
     case UvExtractionMode::Selection:
-      sync_selection = true;
+      sync_selection = false;
       break;
   }
 
