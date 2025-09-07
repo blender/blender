@@ -7836,6 +7836,35 @@ def km_3d_view_tool_edit_curve_pen(params):
     )
 
 
+def km_3d_view_tool_edit_curves_pen(params):
+    return (
+        "3D View Tool: Edit Curves, Pen",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("curves.pen", {"type": params.tool_mouse, "value": 'PRESS'},
+             {"properties": [
+                 ("extrude_point", True),
+                 ("move_segment", True),
+                 ("select_point", True),
+                 ("move_point", True),
+                 ("extrude_handle", "VECTOR"),
+             ]}),
+            ("curves.pen", {"type": params.tool_mouse, "value": 'PRESS', "shift": True},
+             {"properties": [
+                 ("extrude_point", True),
+                 ("move_segment", True),
+                 ("select_point", True),
+                 ("move_point", True),
+                 ("extrude_handle", "AUTO"),
+             ]}),
+            ("curves.pen", {"type": params.tool_mouse, "value": 'PRESS', "ctrl": True},
+             {"properties": [("insert_point", True), ("delete_point", True)]}),
+            ("curves.pen", {"type": params.tool_mouse, "value": 'DOUBLE_CLICK'},
+             {"properties": [("cycle_handle_type", True)]}),
+        ]},
+    )
+
+
 def km_3d_view_tool_edit_curve_tilt(params):
     return (
         "3D View Tool: Edit Curve, Tilt",
@@ -8346,7 +8375,7 @@ def km_grease_pencil_interpolate_tool_modal_map(_params):
     return keymap
 
 
-def km_grease_pencil_pen_tool_modal_map(_params):
+def km_pen_tool_modal_map(_params):
     items = []
     keymap = (
         "Pen Tool Modal Map",
@@ -8783,10 +8812,10 @@ def generate_keymaps(params=None):
         km_sculpt_expand_modal(params),
         km_sculpt_mesh_filter_modal_map(params),
         km_curve_pen_modal_map(params),
+        km_pen_tool_modal_map(params),
         km_node_link_modal_map(params),
         km_node_resize_modal_map(params),
         km_grease_pencil_primitive_tool_modal_map(params),
-        km_grease_pencil_pen_tool_modal_map(params),
         km_grease_pencil_fill_tool_modal_map(params),
         km_grease_pencil_interpolate_tool_modal_map(params),
         km_sequencer_slip_modal_map(params),
@@ -8890,6 +8919,7 @@ def generate_keymaps(params=None):
         km_3d_view_tool_edit_curve_extrude(params),
         km_3d_view_tool_edit_curve_extrude_to_cursor(params),
         km_3d_view_tool_edit_curves_draw(params),
+        km_3d_view_tool_edit_curves_pen(params),
         km_3d_view_tool_sculpt_box_mask(params),
         km_3d_view_tool_sculpt_lasso_mask(params),
         km_3d_view_tool_sculpt_line_mask(params),

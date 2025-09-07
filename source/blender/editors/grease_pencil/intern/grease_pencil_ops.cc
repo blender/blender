@@ -16,6 +16,7 @@
 #include "DNA_object_enums.h"
 #include "DNA_scene_types.h"
 
+#include "ED_curves.hh"
 #include "ED_grease_pencil.hh"
 #include "ED_screen.hh"
 
@@ -371,7 +372,7 @@ void ED_keymap_grease_pencil(wmKeyConfig *keyconf)
   keymap_grease_pencil_fill_tool(keyconf);
 
   ED_primitivetool_modal_keymap(keyconf);
-  ED_pentool_modal_keymap(keyconf);
   ED_filltool_modal_keymap(keyconf);
   ED_interpolatetool_modal_keymap(keyconf);
+  ED_grease_pencil_pentool_modal_keymap(keyconf);
 }

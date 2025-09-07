@@ -1335,6 +1335,21 @@ class _defs_edit_curves:
             draw_settings=curve_draw,
         )
 
+    @ToolDef.from_fn
+    def pen():
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("curves.pen")
+            layout.prop(props, "radius")
+        return dict(
+            idname="builtin.pen",
+            label="Pen",
+            cursor='CROSSHAIR',
+            icon="ops.curve.pen",
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
+        )
+
 
 class _defs_edit_text:
 
@@ -3754,6 +3769,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             *_tools_default,
             None,
             _defs_edit_curves.draw,
+            _defs_edit_curves.pen,
             None,
             _defs_edit_curve.curve_radius,
             _defs_edit_curve.tilt,
