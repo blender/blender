@@ -3177,7 +3177,7 @@ bool IMB_colormanagement_working_space_set_from_name(const char *name)
   return true;
 }
 
-bool IMB_colormanagement_working_space_set_from_matrix(
+static bool imb_colormanagement_working_space_set_from_matrix(
     const char *name, const blender::float3x3 &scene_linear_to_xyz)
 {
   StringRefNull interop_id;
@@ -3239,8 +3239,10 @@ void IMB_colormanagement_working_space_check(Main *bmain,
   const blender::float3x3 current_scene_linear_to_xyz = blender::colorspace::scene_linear_to_xyz;
 
   /* Change the working space to the one from the blend file. */
-  const bool working_space_changed = IMB_colormanagement_working_space_set_from_matrix(
+  const bool working_space_changed = imb_colormanagement_working_space_set_from_matrix(
       bmain->colorspace.scene_linear_name, bmain->colorspace.scene_linear_to_xyz);
+  /* Update scene linear name in case it is different for this config. */
+  STRNCPY(bmain->colorspace.scene_linear_name, global_role_scene_linear);
   if (!working_space_changed) {
     return;
   }

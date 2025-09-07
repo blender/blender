@@ -401,9 +401,6 @@ const char *IMB_colormanagement_working_space_get_default();
 const char *IMB_colormanagement_working_space_get();
 
 bool IMB_colormanagement_working_space_set_from_name(const char *name);
-bool IMB_colormanagement_working_space_set_from_matrix(
-    const char *name, const blender::float3x3 &scene_linear_to_xyz);
-
 void IMB_colormanagement_working_space_check(Main *bmain,
                                              const bool for_undo,
                                              const bool have_editable_assets);
