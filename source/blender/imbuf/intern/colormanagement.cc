@@ -3164,7 +3164,10 @@ bool IMB_colormanagement_working_space_set_from_name(const char *name)
   STRNCPY(global_role_scene_linear, name);
   g_config->set_scene_linear_role(name);
 
+  global_color_picking_state.cpu_processor_from.reset();
+  global_color_picking_state.cpu_processor_to.reset();
   colormanage_update_matrices();
+
   return true;
 }
 
