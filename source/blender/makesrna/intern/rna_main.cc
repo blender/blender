@@ -11,6 +11,7 @@
 
 #include "BLI_path_utils.hh"
 
+#include "BLI_string_ref.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
@@ -111,6 +112,24 @@ static const EnumPropertyItem *rna_MainColorspace_working_space_itemf(bContext *
   *r_free = true;
 
   return items;
+}
+
+static void rna_MainColorspace_working_space_interop_id_get(PointerRNA *ptr, char *value)
+{
+  MainColorspace *main_colorspace = ptr->data_as<MainColorspace>();
+  const ColorSpace *colorspace = IMB_colormanagement_space_get_named(
+      main_colorspace->scene_linear_name);
+  const auto interop_id = (colorspace) ? IMB_colormanagement_space_get_interop_id(colorspace) : "";
+  strcpy(value, interop_id.c_str());
+}
+
+static int rna_MainColorspace_working_space_interop_id_length(PointerRNA *ptr)
+{
+  MainColorspace *main_colorspace = ptr->data_as<MainColorspace>();
+  const ColorSpace *colorspace = IMB_colormanagement_space_get_named(
+      main_colorspace->scene_linear_name);
+  const auto interop_id = (colorspace) ? IMB_colormanagement_space_get_interop_id(colorspace) : "";
+  return interop_id.size();
 }
 
 static bool rna_MainColorspace_is_missing_opencolorio_config_get(PointerRNA *ptr)
@@ -225,6 +244,18 @@ static void rna_def_main_colorspace(BlenderRNA *brna)
                               nullptr,
                               "rna_MainColorspace_working_space_itemf");
 
+  prop = RNA_def_property(srna, "working_space_interop_id", PROP_STRING, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(
+      prop,
+      "Working Space Interop ID",
+      "Unique identifier for common color spaces, as defined by the Color Interop Forum. May be "
+      "empty if there is no interop ID for the working space. Common values are lin_rec709_scene, "
+      "lin_rec2020_scene and lin_ap1_scene (for ACEScg)");
+  RNA_def_property_string_funcs(prop,
+                                "rna_MainColorspace_working_space_interop_id_get",
+                                "rna_MainColorspace_working_space_interop_id_length",
+                                nullptr);
   prop = RNA_def_property(srna, "is_missing_opencolorio_config", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_boolean_funcs(
