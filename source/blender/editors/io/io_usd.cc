@@ -1027,6 +1027,7 @@ static wmOperatorStatus wm_usd_import_exec(bContext *C, wmOperator *op)
   params.is_sequence = is_sequence;
   params.sequence_len = sequence_len;
   params.offset = offset;
+  params.relative_path = RNA_boolean_get(op->ptr, "relative_path");
 
   params.import_visible_only = import_visible_only;
   params.import_defined_only = import_defined_only;
