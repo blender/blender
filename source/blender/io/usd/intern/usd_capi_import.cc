@@ -217,6 +217,9 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
       data->cache_file->is_sequence = data->params.is_sequence;
       data->cache_file->scale = scene_scale;
       STRNCPY(data->cache_file->filepath, data->filepath);
+      if (data->params.relative_path && !BLI_path_is_rel(data->cache_file->filepath)) {
+        BLI_path_rel(data->cache_file->filepath, BKE_main_blendfile_path_from_global());
+      }
     }
     return data->cache_file;
   };
