@@ -36,8 +36,8 @@ ccl_device_inline uint3 make_uint3(const uint x, const uint y, uint z)
 
 #if defined(__KERNEL_METAL__)
 /* Metal has native packed_float3. */
-#elif defined(__KERNEL_CUDA__)
-/* CUDA uint3 is already packed. */
+#elif defined(__KERNEL_CUDA__) || defined(__KERNEL_ONEAPI__)
+/* CUDA/oneAPI uint3 is already packed. */
 using packed_uint3 = uint3;
 #else
 /* HIP uint3 is not packed (https://github.com/ROCm-Developer-Tools/HIP/issues/706). */
