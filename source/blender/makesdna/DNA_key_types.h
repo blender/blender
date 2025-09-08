@@ -16,7 +16,6 @@
 #include "DNA_listBase.h"
 
 struct AnimData;
-struct Ipo;
 
 /**
  * The struct that holds the data for an individual Shape Key. Depending on which object owns the
@@ -90,8 +89,6 @@ typedef struct Key {
 
   /** A list of KeyBlock's. */
   ListBase block;
-  /** Old animation system, deprecated for 2.5. */
-  struct Ipo *ipo DNA_DEPRECATED;
 
   ID *from;
 

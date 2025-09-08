@@ -23,7 +23,6 @@ struct Curves;
 struct CurveProfile;
 struct EditFont;
 struct GHash;
-struct Ipo;
 struct Key;
 struct Material;
 struct Object;
@@ -219,8 +218,6 @@ typedef struct Curve {
   EditNurb *editnurb;
 
   struct Object *bevobj, *taperobj, *textoncurve;
-  /** Old animation system, deprecated for 2.5. */
-  struct Ipo *ipo DNA_DEPRECATED;
   struct Key *key;
   struct Material **mat;
 

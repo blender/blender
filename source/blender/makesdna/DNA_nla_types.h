@@ -10,7 +10,6 @@
 
 #include "DNA_listBase.h"
 
-struct Ipo;
 struct Object;
 struct bAction;
 
@@ -43,8 +42,6 @@ typedef struct bActionStrip {
   /** Current modifier for buttons. */
   short curmod;
 
-  /** Blending ipo - was used for some old NAN era experiments. Non-functional currently. */
-  struct Ipo *ipo;
   /** The action referenced by this strip. */
   struct bAction *act;
   /** For groups, the actual object being nla'ed. */

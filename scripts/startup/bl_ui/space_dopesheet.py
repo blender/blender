@@ -376,20 +376,21 @@ class DOPESHEET_MT_editor_menus(Menu):
     def draw(self, context):
         layout = self.layout
         st = context.space_data
+        active_action = context.active_action
 
         layout.menu("DOPESHEET_MT_view")
         layout.menu("DOPESHEET_MT_select")
         if st.show_markers:
             layout.menu("DOPESHEET_MT_marker")
 
-        if st.mode == 'DOPESHEET' or (st.mode == 'ACTION' and st.action is not None):
+        if st.mode == 'DOPESHEET' or (st.mode == 'ACTION' and active_action is not None):
             layout.menu("DOPESHEET_MT_channel")
         elif st.mode == 'GPENCIL':
             layout.menu("DOPESHEET_MT_gpencil_channel")
 
         layout.menu("DOPESHEET_MT_key")
 
-        if st.mode in {'ACTION', 'SHAPEKEY'} and st.action is not None:
+        if st.mode in {'ACTION', 'SHAPEKEY'} and active_action is not None:
             layout.menu("DOPESHEET_MT_action")
 
 
@@ -544,7 +545,7 @@ class DOPESHEET_MT_marker(Menu):
 
         st = context.space_data
 
-        if st.mode in {'ACTION', 'SHAPEKEY'} and st.action:
+        if st.mode in {'ACTION', 'SHAPEKEY'} and context.active_action:
             layout.separator()
             layout.prop(st, "show_pose_markers")
 
@@ -902,26 +903,6 @@ class DOPESHEET_MT_snap_pie(Menu):
         pie.operator("action.snap", text="Selection to Nearest Frame").type = 'NEAREST_FRAME'
         pie.operator("action.snap", text="Selection to Nearest Second").type = 'NEAREST_SECOND'
         pie.operator("action.snap", text="Selection to Nearest Marker").type = 'NEAREST_MARKER'
-
-
-class LayersDopeSheetPanel:
-    bl_space_type = 'DOPESHEET_EDITOR'
-    bl_region_type = 'UI'
-    bl_category = "View"
-
-    @classmethod
-    def poll(cls, context):
-        st = context.space_data
-        ob = context.object
-        if st.mode != 'GPENCIL' or ob is None or ob.type != 'GREASEPENCIL':
-            return False
-
-        gpd = ob.data
-        gpl = gpd.layers.active
-        if gpl:
-            return True
-
-        return False
 
 
 class GreasePencilLayersDopeSheetPanel:

@@ -486,15 +486,7 @@ static void object_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 
   if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
-    BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data, object->ipo, IDWALK_CB_USER);
-    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->action, IDWALK_CB_USER);
-
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->poselib, IDWALK_CB_USER);
-
-    LISTBASE_FOREACH (bConstraintChannel *, chan, &object->constraintChannels) {
-      BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data, chan->ipo, IDWALK_CB_USER);
-    }
-
     /* Note: This is technically _not_ needed currently, because readcode (see
      * #object_blend_read_data) directly converts and removes these deprecated ObHook data.
      * However, for sake of consistency, better have this ID pointer handled here nonetheless. */
@@ -503,15 +495,6 @@ static void object_foreach_id(ID *id, LibraryForeachIDData *data)
        * executed. */
       BLI_assert_unreachable();
       BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, hook->parent, IDWALK_CB_NOP);
-    }
-
-    LISTBASE_FOREACH (bActionStrip *, strip, &object->nlastrips) {
-      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, strip->object, IDWALK_CB_NOP);
-      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, strip->act, IDWALK_CB_USER);
-      BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data, strip->ipo, IDWALK_CB_USER);
-      LISTBASE_FOREACH (bActionModifier *, amod, &strip->modifiers) {
-        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, amod->ob, IDWALK_CB_NOP);
-      }
     }
 
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->gpd, IDWALK_CB_USER);
@@ -524,12 +507,6 @@ static void object_foreach_id(ID *id, LibraryForeachIDData *data)
     PartEff *paf = BKE_object_do_version_give_parteff_245(object);
     if (paf && paf->group) {
       BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, paf->group, IDWALK_CB_USER);
-    }
-
-    FluidsimModifierData *fluidmd = reinterpret_cast<FluidsimModifierData *>(
-        BKE_modifiers_findby_type(object, eModifierType_Fluidsim));
-    if (fluidmd && fluidmd->fss) {
-      BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data, fluidmd->fss->ipo, IDWALK_CB_USER);
     }
   }
 }
@@ -716,16 +693,6 @@ static void object_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   }
 }
 
-/* XXX deprecated - old animation system */
-static void direct_link_nlastrips(BlendDataReader *reader, ListBase *strips)
-{
-  BLO_read_struct_list(reader, bActionStrip, strips);
-
-  LISTBASE_FOREACH (bActionStrip *, strip, strips) {
-    BLO_read_struct_list(reader, bActionModifier, &strip->modifiers);
-  }
-}
-
 static void object_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Object *ob = (Object *)id;
@@ -762,11 +729,6 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
   /* Only for versioning, vertex group names are now stored on object data. */
   BLO_read_struct_list(reader, bDeformGroup, &ob->defbase);
   BLO_read_struct_list(reader, bFaceMap, &ob->fmaps);
-
-  /* XXX deprecated - old animation system <<< */
-  direct_link_nlastrips(reader, &ob->nlastrips);
-  BLO_read_struct_list(reader, bConstraintChannel, &ob->constraintChannels);
-  /* >>> XXX deprecated - old animation system */
 
   BLO_read_pointer_array(reader, ob->totcol, (void **)&ob->mat);
   BLO_read_char_array(reader, ob->totcol, &ob->matbits);

@@ -182,8 +182,13 @@ struct SocketUsageInferencer {
         break;
       }
       case GEO_NODE_MENU_SWITCH: {
-        this->usage_task__input__generic_switch(
-            socket, switch_node_inference_utils::is_socket_selected__menu_switch);
+        if (socket->index() == 0) {
+          this->usage_task__input__fallback(socket);
+        }
+        else {
+          this->usage_task__input__generic_switch(
+              socket, switch_node_inference_utils::is_socket_selected__menu_switch);
+        }
         break;
       }
       case SH_NODE_MIX: {

@@ -5466,15 +5466,16 @@ static wmOperatorStatus slot_channels_move_to_new_action_exec(bContext *C, wmOpe
 
 static bool slot_channels_move_to_new_action_poll(bContext *C)
 {
-  SpaceAction *space_action = CTX_wm_space_action(C);
-  if (!space_action) {
-    return false;
-  }
-  if (!space_action->action) {
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  ScrArea *area = CTX_wm_area(C);
+  bAction *action = ANIM_active_action_from_area(scene, view_layer, area);
+
+  if (!action) {
     CTX_wm_operator_poll_msg_set(C, "No active action to operate on");
     return false;
   }
-  if (!space_action->action->wrap().is_action_layered()) {
+  if (!action->wrap().is_action_layered()) {
     CTX_wm_operator_poll_msg_set(C, "Active action is not layered");
     return false;
   }

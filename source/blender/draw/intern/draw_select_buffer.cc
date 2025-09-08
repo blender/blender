@@ -413,20 +413,20 @@ bool DRW_select_buffer_elem_get(const uint sel_id,
     if (ranges.face.contains(sel_id)) {
       r_elem = sel_id - ranges.face.start();
       r_elem_type = SCE_SELECT_FACE;
-      r_base_index = select_ctx->objects.first_index_of(ob);
-      return true;
+      r_base_index = select_ctx->objects.first_index_of_try(ob);
+      return r_base_index != -1;
     }
     if (ranges.edge.contains(sel_id)) {
       r_elem = sel_id - ranges.edge.start();
       r_elem_type = SCE_SELECT_EDGE;
-      r_base_index = select_ctx->objects.first_index_of(ob);
-      return true;
+      r_base_index = select_ctx->objects.first_index_of_try(ob);
+      return r_base_index != -1;
     }
     if (ranges.vert.contains(sel_id)) {
       r_elem = sel_id - ranges.vert.start();
       r_elem_type = SCE_SELECT_VERTEX;
-      r_base_index = select_ctx->objects.first_index_of(ob);
-      return true;
+      r_base_index = select_ctx->objects.first_index_of_try(ob);
+      return r_base_index != -1;
     }
   }
   return false;

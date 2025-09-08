@@ -102,6 +102,55 @@ using namespace blender;
 /* ************************************************************ */
 /* Blender Context <-> Animation Context mapping */
 
+bAction *ANIM_active_action_from_area(Scene *scene,
+                                      ViewLayer *view_layer,
+                                      const ScrArea *area,
+                                      ID **r_action_user)
+{
+  if (area->spacetype != SPACE_ACTION) {
+    return nullptr;
+  }
+
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
+  if (!ob) {
+    return nullptr;
+  }
+
+  const SpaceAction *saction = static_cast<const SpaceAction *>(area->spacedata.first);
+  switch (eAnimEdit_Context(saction->mode)) {
+    case SACTCONT_ACTION: {
+      bAction *active_action = ob->adt ? ob->adt->action : nullptr;
+      if (r_action_user) {
+        *r_action_user = &ob->id;
+      }
+      return active_action;
+    }
+
+    case SACTCONT_SHAPEKEY: {
+      Key *active_key = BKE_key_from_object(ob);
+      bAction *active_action = (active_key && active_key->adt) ? active_key->adt->action : nullptr;
+      if (r_action_user) {
+        *r_action_user = &active_key->id;
+      }
+      return active_action;
+    }
+
+    case SACTCONT_GPENCIL:
+    case SACTCONT_DOPESHEET:
+    case SACTCONT_MASK:
+    case SACTCONT_CACHEFILE:
+    case SACTCONT_TIMELINE:
+      if (r_action_user) {
+        *r_action_user = nullptr;
+      }
+      return nullptr;
+  }
+
+  BLI_assert_unreachable();
+  return nullptr;
+}
+
 /* ----------- Private Stuff - Action Editor ------------- */
 
 /* Get shapekey data being edited (for Action Editor -> ShapeKey mode) */
@@ -132,21 +181,18 @@ static bool actedit_get_context(bAnimContext *ac, SpaceAction *saction)
   ac->ads = &saction->ads;
   ac->dopesheet_mode = eAnimEdit_Context(saction->mode);
 
+  ac->active_action = ANIM_active_action_from_area(
+      ac->scene, ac->view_layer, ac->area, &ac->active_action_user);
+
   /* sync settings with current view status, then return appropriate data */
   switch (saction->mode) {
     case SACTCONT_ACTION: /* 'Action Editor' */
-      /* if not pinned, sync with active object */
-      if (/* `saction->pin == 0` */ true) {
-        if (ac->obact && ac->obact->adt) {
-          saction->action = ac->obact->adt->action;
-        }
-        else {
-          saction->action = nullptr;
-        }
-      }
-
       ac->datatype = ANIMCONT_ACTION;
-      ac->data = saction->action;
+      ac->data = ac->active_action;
+
+      if (saction->flag & SACTION_POSEMARKERS_SHOW) {
+        ac->markers = &ac->active_action->markers;
+      }
 
       return true;
 
@@ -154,17 +200,10 @@ static bool actedit_get_context(bAnimContext *ac, SpaceAction *saction)
       ac->datatype = ANIMCONT_SHAPEKEY;
       ac->data = actedit_get_shapekeys(ac);
 
-      /* if not pinned, sync with active object */
-      if (/* `saction->pin == 0` */ true) {
-        Key *key = static_cast<Key *>(ac->data);
-
-        if (key && key->adt) {
-          saction->action = key->adt->action;
-        }
-        else {
-          saction->action = nullptr;
-        }
+      if (saction->flag & SACTION_POSEMARKERS_SHOW) {
+        ac->markers = &ac->active_action->markers;
       }
+
       return true;
 
     case SACTCONT_GPENCIL: /* Grease Pencil */ /* XXX review how this mode is handled... */
@@ -377,8 +416,8 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
   ac->scene = scene;
   ac->view_layer = CTX_data_view_layer(C);
   if (scene) {
-    ac->markers = ED_context_get_markers(C);
-    BKE_view_layer_synced_ensure(ac->scene, ac->view_layer);
+    /* This may be overwritten by actedit_get_context() when pose markers should be shown. */
+    ac->markers = &scene->markers;
   }
   ac->depsgraph = CTX_data_depsgraph_pointer(C);
   ac->obact = BKE_view_layer_active_object_get(ac->view_layer);

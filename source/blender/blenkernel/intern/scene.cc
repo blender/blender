@@ -777,7 +777,6 @@ static void scene_foreach_layer_collection(LibraryForeachIDData *data,
 static bool strip_foreach_member_id_cb(Strip *strip, void *user_data)
 {
   LibraryForeachIDData *data = static_cast<LibraryForeachIDData *>(user_data);
-  const int flag = BKE_lib_query_foreachid_process_flags_get(data);
 
 /* Only for deprecated data. */
 #define FOREACHID_PROCESS_ID_NOCHECK(_data, _id_super, _cb_flag) \
@@ -814,10 +813,6 @@ static bool strip_foreach_member_id_cb(Strip *strip, void *user_data)
   if (strip->type == STRIP_TYPE_TEXT && strip->effectdata) {
     TextVars *text_data = static_cast<TextVars *>(strip->effectdata);
     FOREACHID_PROCESS_IDSUPER(data, text_data->text_font, IDWALK_CB_USER);
-  }
-
-  if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
-    FOREACHID_PROCESS_ID_NOCHECK(data, strip->ipo_legacy, IDWALK_CB_USER);
   }
 
 #undef FOREACHID_PROCESS_IDSUPER

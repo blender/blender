@@ -279,8 +279,6 @@ typedef struct ParticleSettings {
   struct Collection *force_group DNA_DEPRECATED; /* deprecated */
   struct Object *instance_object;
   struct Object *bb_ob;
-  /** Old animation system, deprecated for 2.5. */
-  struct Ipo *ipo DNA_DEPRECATED;
   struct PartDeflect *pd;
   struct PartDeflect *pd2;
 

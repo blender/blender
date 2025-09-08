@@ -62,30 +62,6 @@ class VIEW3D_MT_brush_context_menu(Menu):
         layout.operator("brush.asset_revert", text="Revert to Asset")
 
 
-class VIEW3D_MT_brush_gpencil_context_menu(Menu):
-    bl_label = "Brush Specials"
-
-    def draw(self, context):
-        layout = self.layout
-        tool_settings = context.tool_settings
-
-        settings = None
-        if context.mode == 'PAINT_GPENCIL':
-            settings = tool_settings.gpencil_paint
-        if context.mode == 'SCULPT_GPENCIL':
-            settings = tool_settings.gpencil_sculpt_paint
-        elif context.mode in {'WEIGHT_GPENCIL', 'WEIGHT_GREASE_PENCIL'}:
-            settings = tool_settings.gpencil_weight_paint
-        elif context.mode == 'VERTEX_GPENCIL':
-            settings = tool_settings.gpencil_vertex_paint
-
-        brush = getattr(settings, "brush", None)
-        # skip if no active brush
-        if not brush:
-            layout.label(text="No Brushes currently available", icon='INFO')
-            return
-
-
 class View3DPanel:
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -2374,7 +2350,6 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_gap_closure(View3DPanel, Panel):
 
 classes = (
     VIEW3D_MT_brush_context_menu,
-    VIEW3D_MT_brush_gpencil_context_menu,
     VIEW3D_PT_tools_object_options,
     VIEW3D_PT_tools_object_options_transform,
     VIEW3D_PT_tools_meshedit_options,

@@ -169,7 +169,6 @@ static void material_free_data(ID *id)
 static void material_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   Material *material = reinterpret_cast<Material *>(id);
-  const int flag = BKE_lib_query_foreachid_process_flags_get(data);
 
   /* Node-trees **are owned by IDs**, treat them as mere sub-data and not real ID! */
   BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
@@ -180,10 +179,6 @@ static void material_foreach_id(ID *id, LibraryForeachIDData *data)
   if (material->gp_style != nullptr) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, material->gp_style->sima, IDWALK_CB_USER);
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, material->gp_style->ima, IDWALK_CB_USER);
-  }
-
-  if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
-    BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data, material->ipo, IDWALK_CB_USER);
   }
 }
 

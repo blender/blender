@@ -18,7 +18,6 @@
 
 struct AnimData;
 struct Image;
-struct Ipo;
 struct bNodeTree;
 
 /* WATCH IT: change type? also make changes in ipo.h */
@@ -200,8 +199,6 @@ typedef struct Material {
   short index;
 
   struct bNodeTree *nodetree;
-  /** Old animation system, deprecated for 2.5. */
-  struct Ipo *ipo DNA_DEPRECATED;
   struct PreviewImage *preview;
 
   /* Freestyle line settings. */

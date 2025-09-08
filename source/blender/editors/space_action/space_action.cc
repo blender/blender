@@ -239,10 +239,9 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
   }
 
   /* Draw the manually set intended playback frame range highlight in the Action editor. */
-  if (ELEM(saction->mode, SACTCONT_ACTION, SACTCONT_SHAPEKEY) && saction->action) {
-    AnimData *adt = ED_actedit_animdata_from_context(C, nullptr);
-
-    ANIM_draw_action_framerange(adt, saction->action, v2d, -FLT_MAX, FLT_MAX);
+  if (ac.active_action) {
+    AnimData *adt = BKE_animdata_from_id(ac.active_action_user);
+    ANIM_draw_action_framerange(adt, ac.active_action, v2d, -FLT_MAX, FLT_MAX);
   }
 
   /* data */
@@ -877,7 +876,6 @@ static void action_id_remap(ScrArea * /*area*/,
 {
   SpaceAction *sact = (SpaceAction *)slink;
 
-  mappings.apply(reinterpret_cast<ID **>(&sact->action), ID_REMAP_APPLY_DEFAULT);
   mappings.apply(reinterpret_cast<ID **>(&sact->ads.filter_grp), ID_REMAP_APPLY_DEFAULT);
   mappings.apply(&sact->ads.source, ID_REMAP_APPLY_DEFAULT);
 }
@@ -887,8 +885,6 @@ static void action_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
   SpaceAction *sact = reinterpret_cast<SpaceAction *>(space_link);
   const int data_flags = BKE_lib_query_foreachid_process_flags_get(data);
   const bool is_readonly = (data_flags & IDWALK_READONLY) != 0;
-
-  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sact->action, IDWALK_CB_DIRECT_WEAK_LINK);
 
   /* NOTE: Could be deduplicated with the #bDopeSheet handling of #SpaceNla and #SpaceGraph. */
   BKE_LIB_FOREACHID_PROCESS_ID(data, sact->ads.source, IDWALK_CB_DIRECT_WEAK_LINK);
