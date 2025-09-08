@@ -1376,7 +1376,7 @@ void file_draw_list(const bContext *C, ARegion *region)
 
   if (numfiles > 0) {
     const bool success = filelist_file_cache_block(
-        files, min_ii(offset + (numfiles_layout / 2), numfiles - 1));
+        const_cast<bContext *>(C), files, min_ii(offset + (numfiles_layout / 2), numfiles - 1));
     BLI_assert(success);
     UNUSED_VARS_NDEBUG(success);
 

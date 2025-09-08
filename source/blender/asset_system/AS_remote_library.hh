@@ -33,6 +33,9 @@ void remote_library_request_download(Main &bmain, bUserAssetLibrary &library_def
 void remote_library_request_asset_download(bContext &C,
                                            const AssetRepresentation &asset,
                                            ReportList *reports);
+void remote_library_request_preview_download(bContext &C,
+                                             const AssetRepresentation &asset,
+                                             ReportList *reports);
 
 /**
  * Status information about an externally loaded asset library listing, stored globally.
@@ -64,7 +67,6 @@ class RemoteLibraryLoadingStatus {
   /* See #RemoteLibraryLoadingStatus::handle_timeout(). */
   TimePoint last_timeout_handled_time_point_ = {};
   TimePoint last_new_pages_time_point_ = {};
-  TimePoint last_new_previews_time_point_ = {};
 
   std::optional<Status> status_ = std::nullopt;
   std::optional<StringRefNull> failure_message_ = std::nullopt;
@@ -75,7 +77,7 @@ class RemoteLibraryLoadingStatus {
   /** Let the state know that the loading is still ongoing, resetting the timeout. */
   static void ping_still_loading(StringRef url);
   static void ping_new_pages(StringRef url);
-  static void ping_new_previews(StringRef url);
+  static void ping_new_preview(const bContext &C, StringRef library_url, StringRef preview_url);
   static void ping_new_assets(const bContext &C, StringRef url);
   static void ping_metafiles_in_place(StringRef url);
   static void set_finished(StringRef url);
@@ -86,7 +88,6 @@ class RemoteLibraryLoadingStatus {
   static std::optional<bool> metafiles_in_place(StringRef url);
   static std::optional<FileSystemTimePoint> loading_start_time(const StringRef url);
   static std::optional<TimePoint> last_new_pages_time(StringRef url);
-  static std::optional<TimePoint> last_new_previews_time(StringRef url);
 
   /**
    * Checks if the status storage timed out, because it hasn't received status updates for the

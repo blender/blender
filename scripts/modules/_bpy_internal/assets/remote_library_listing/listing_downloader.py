@@ -532,7 +532,7 @@ class RemoteAssetListingDownloader:
 
             # Poke Blender so it knows there's a thumbnail update.
             wm: bpy.types.WindowManager = bpy.context.window_manager
-            wm.asset_library_status_ping_loaded_new_previews(self.remote_url)
+            wm.asset_library_status_ping_loaded_new_preview(self.remote_url, http_req_descr.url)
         finally:
             self._shutdown_if_done()
 

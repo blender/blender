@@ -65,6 +65,10 @@ def download_asset(asset_library_url: str, asset_library_local_path: Path, asset
     downloader.download_asset(asset_url, save_to)
 
 
+def download_preview(asset_library_url: str, asset_library_local_path: Path, preview_url: str, asset_full_path: Path) -> None:
+    print(f"Requested preview: {preview_url}")
+
+
 def _download_done(downloader: AssetDownloader) -> None:
     wm = bpy.context.window_manager
     wm.asset_library_status_ping_loaded_new_assets(downloader.remote_url)

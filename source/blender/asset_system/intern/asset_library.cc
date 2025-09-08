@@ -234,10 +234,17 @@ std::weak_ptr<AssetRepresentation> AssetLibrary::add_external_online_asset(
     StringRef name,
     const int id_type,
     std::unique_ptr<AssetMetaData> metadata,
-    StringRef download_dst_filepath)
+    StringRef download_dst_filepath,
+    std::optional<StringRef> preview_url)
 {
-  return asset_storage_.external_assets.lookup_key_or_add(std::make_shared<AssetRepresentation>(
-      relative_asset_path, name, id_type, std::move(metadata), *this, download_dst_filepath));
+  return asset_storage_.external_assets.lookup_key_or_add(
+      std::make_shared<AssetRepresentation>(relative_asset_path,
+                                            name,
+                                            id_type,
+                                            std::move(metadata),
+                                            *this,
+                                            download_dst_filepath,
+                                            preview_url));
 }
 
 std::weak_ptr<AssetRepresentation> AssetLibrary::add_local_id_asset(StringRef relative_asset_path,

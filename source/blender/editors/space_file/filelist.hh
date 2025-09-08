@@ -65,6 +65,9 @@ void filelist_setfilter_options(FileList *filelist,
 void filelist_setindexer(FileList *filelist, const FileIndexerType *indexer);
 void filelist_remote_asset_library_refresh_online_assets_status(const FileList *filelist,
                                                                 blender::StringRef remote_url);
+
+void filelist_remote_asset_library_preview_loaded(
+    FileList *filelist, const blender::StringRef remote_url, const blender::StringRef preview_url);
 void filelist_set_asset_include_online(FileList *filelist, const bool show_online_assets);
 /**
  * \param catalog_id: The catalog that should be filtered by if \a catalog_visibility is
@@ -179,7 +182,7 @@ void filelist_file_cache_slidingwindow_set(FileList *filelist, size_t window_siz
 /**
  * Load in cache all entries "around" given index (as much as block cache may hold).
  */
-bool filelist_file_cache_block(FileList *filelist, int index);
+bool filelist_file_cache_block(bContext *C, FileList *filelist, int index);
 
 bool filelist_needs_force_reset(const FileList *filelist);
 void filelist_tag_force_reset(FileList *filelist);

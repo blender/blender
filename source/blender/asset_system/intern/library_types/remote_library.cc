@@ -6,8 +6,6 @@
  * \ingroup asset_system
  */
 
-#include <filesystem>
-
 #include <fmt/format.h>
 
 #include "BLI_fileops.h"
@@ -137,17 +135,11 @@ void RemoteLibraryLoadingStatus::ping_new_pages(const StringRef url)
   }
 }
 
-void RemoteLibraryLoadingStatus::ping_new_previews(const StringRef url)
+void RemoteLibraryLoadingStatus::ping_new_preview(const bContext &C,
+                                                  const StringRef library_url,
+                                                  const StringRef preview_url)
 {
-  RemoteLibraryLoadingStatus *status = library_to_status_map().lookup_ptr(url);
-  if (!status) {
-    return;
-  }
-
-  if (status->status_ == RemoteLibraryLoadingStatus::Loading) {
-    status->reset_timeout();
-    status->last_new_previews_time_point_ = std::chrono::steady_clock::now();
-  }
+  WM_msg_publish_remote_io(CTX_wm_message_bus(&C), library_url, preview_url);
 }
 
 void RemoteLibraryLoadingStatus::ping_new_assets(const bContext &C, const StringRef url)
@@ -215,17 +207,6 @@ std::optional<RemoteLibraryLoadingStatus::TimePoint> RemoteLibraryLoadingStatus:
   }
 
   return status->last_new_pages_time_point_;
-}
-
-std::optional<RemoteLibraryLoadingStatus::TimePoint> RemoteLibraryLoadingStatus::
-    last_new_previews_time(const StringRef url)
-{
-  const RemoteLibraryLoadingStatus *status = library_to_status_map().lookup_ptr(url);
-  if (!status) {
-    return {};
-  }
-
-  return status->last_new_previews_time_point_;
 }
 
 void RemoteLibraryLoadingStatus::set_finished(const StringRef url)
@@ -363,6 +344,53 @@ void remote_library_request_asset_download(bContext &C,
         library_path,
         *dst_filepath,
         *dst_filepath);
+
+    BPY_run_string_exec(&C, expr_imports, expr.c_str());
+  }
+#else
+  UNUSED_VARS(C, asset, reports);
+#endif
+}
+
+void remote_library_request_preview_download(bContext &C,
+                                             const AssetRepresentation &asset,
+                                             ReportList *reports)
+{
+  /* Ensure we don't attempt to download anything when online access is disabled. */
+  if ((G.f & G_FLAG_INTERNET_ALLOW) == 0) {
+    BKE_report(reports, RPT_ERROR, "Internet access is disabled");
+    return;
+  }
+
+#ifdef WITH_PYTHON
+  const std::optional<StringRef> preview_url = asset.online_asset_preview_url();
+  if (!preview_url) {
+    return;
+  }
+  const asset_system::AssetLibrary &library = asset.owner_asset_library();
+  const std::optional<StringRef> library_url = library.remote_url();
+  if (!library_url) {
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "Could not find asset library URL for asset '%s'",
+                asset.get_name().c_str());
+    return;
+  }
+
+  const StringRef library_path = library.root_path();
+
+  {
+    const char *expr_imports[] = {"_bpy_internal",
+                                  "_bpy_internal.assets.remote_library_listing.asset_downloader",
+                                  "pathlib",
+                                  nullptr};
+    const std::string expr = fmt::format(
+        "_bpy_internal.assets.remote_library_listing.asset_downloader.download_preview('{}', "
+        "pathlib.Path('{}'), '{}', pathlib.Path('{}'))",
+        *library_url,
+        library_path,
+        *preview_url,
+        asset.full_path());
 
     BPY_run_string_exec(&C, expr_imports, expr.c_str());
   }

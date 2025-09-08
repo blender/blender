@@ -125,7 +125,7 @@ static void filelist_readjob_all_asset_library(FileListReadJob *job_params,
                                                bool *stop,
                                                bool *do_update,
                                                float *progress);
-
+static bool filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry, const int index);
 /* helper, could probably go in BKE actually? */
 static int groupname_to_code(const char *group);
 
@@ -169,6 +169,41 @@ void filelist_remote_asset_library_refresh_online_assets_status(
       (filelist->asset_library->remote_url() == remote_url))
   {
     remote_asset_library_refresh_online_assets_status(filelist);
+  }
+}
+
+void filelist_remote_asset_library_preview_loaded(FileList *filelist,
+                                                  const blender::StringRef remote_url,
+                                                  const blender::StringRef preview_url)
+{
+  if (!filelist->asset_library || !filelist->asset_library_ref) {
+    return;
+  }
+  if (remote_url.is_empty()) {
+    return;
+  }
+
+  if (!(filelist->asset_library_ref->type == ASSET_LIBRARY_ALL) ||
+      (filelist->asset_library->remote_url() == remote_url))
+  {
+    return;
+  }
+
+  const int num_files_filtered = filelist_files_ensure(filelist);
+
+  for (int file_index = 0; file_index < num_files_filtered; file_index++) {
+    FileDirEntry *entry = filelist_file_ex(filelist, file_index, false);
+    if (!entry) {
+      continue;
+    }
+    if ((entry->typeflag & FILE_TYPE_ASSET_ONLINE) == 0) {
+      continue;
+    }
+
+    if (entry->asset->online_asset_preview_url() == preview_url) {
+      entry->flags &= ~FILE_ENTRY_PREVIEW_LOADING;
+      filelist_cache_previews_push(filelist, entry, file_index);
+    }
   }
 }
 
@@ -813,6 +848,28 @@ static bool filelist_file_preview_load_poll(const FileDirEntry *entry)
   }
 
   return true;
+}
+
+static void filelist_online_asset_preview_request(bContext *C, FileDirEntry *entry)
+{
+  BLI_assert(entry->asset);
+  BLI_assert(entry->asset->is_online());
+
+  if (entry->preview_icon_id) {
+    return;
+  }
+
+  if (!filelist_file_preview_load_poll(entry)) {
+    return;
+  }
+
+  /* Request online preview if needed. */
+  if ((entry->flags & FILE_ENTRY_PREVIEW_ONLINE_REQUESTED) == 0) {
+    if (std::optional preview_url = entry->asset->online_asset_preview_url()) {
+      asset_system::remote_library_request_preview_download(*C, *entry->asset, nullptr);
+      entry->flags |= (FILE_ENTRY_PREVIEW_ONLINE_REQUESTED | FILE_ENTRY_PREVIEW_LOADING);
+    }
+  }
 }
 
 /**
@@ -1546,7 +1603,7 @@ static void filelist_file_cache_block_release(FileList *filelist, const int size
   }
 }
 
-bool filelist_file_cache_block(FileList *filelist, const int index)
+bool filelist_file_cache_block(bContext *C, FileList *filelist, const int index)
 {
   FileListEntryCache *cache = filelist->filelist_cache;
   const size_t cache_size = cache->size;
@@ -1749,7 +1806,16 @@ bool filelist_file_cache_block(FileList *filelist, const int index)
         int offs_idx = index + offs;
         if (start_index <= offs_idx && offs_idx < end_index) {
           int offs_block_idx = (block_index + offs) % int(cache_size);
-          filelist_cache_previews_push(filelist, cache->block_entries[offs_block_idx], offs_idx);
+          FileDirEntry *entry = cache->block_entries[offs_block_idx];
+
+          if ((entry->typeflag & FILE_TYPE_ASSET_ONLINE) &&
+              !(entry->flags & FILE_ENTRY_PREVIEW_ONLINE_REQUESTED))
+          {
+            filelist_online_asset_preview_request(C, entry);
+          }
+          else {
+            filelist_cache_previews_push(filelist, entry, offs_idx);
+          }
         }
       } while ((offs = -offs) < 0); /* Switch between negative and positive offset. */
     }
@@ -1799,10 +1865,6 @@ bool filelist_cache_previews_update(FileList *filelist)
 
   //  printf("%s: Update Previews...\n", __func__);
 
-  /* Used to update #FileListEntryCache.remote_loading.last_new_previews_time_by_url once all
-   * previews are processed. */
-  std::map<std::string, TimePoint> last_new_previews_time_by_url;
-
   while (!BLI_thread_queue_is_empty(cache->previews_done)) {
     FileListEntryPreview *preview = static_cast<FileListEntryPreview *>(
         BLI_thread_queue_pop(cache->previews_done));
@@ -1821,12 +1883,7 @@ bool filelist_cache_previews_update(FileList *filelist)
     // printf("%s: %d - %s - %p\n", __func__, preview->index, preview->filepath, preview->img);
 
     if (entry) {
-      bool preview_done = false;
-
-      if (preview->is_invalid) {
-        preview_done = true;
-      }
-      else if (preview->icon_id) {
+      if (preview->icon_id) {
         /* The FILE_ENTRY_PREVIEW_LOADING flag should have prevented any other asynchronous
          * process from trying to generate the same preview icon. */
         BLI_assert_msg(!entry->preview_icon_id, "Preview icon should not have been generated yet");
@@ -1834,57 +1891,15 @@ bool filelist_cache_previews_update(FileList *filelist)
         /* Move ownership over icon. */
         entry->preview_icon_id = preview->icon_id;
         preview->icon_id = 0;
-        preview_done = true;
       }
-      else if (entry->asset && ((entry->typeflag & FILE_TYPE_ASSET_ONLINE) != 0)) {
-        preview_done = true;
-
-        const asset_system::AssetLibrary &library = entry->asset->owner_asset_library();
-        if (std::optional remote_url = library.remote_url()) {
-          const std::optional new_time = RemoteLibraryLoadingStatus::last_new_previews_time(
-              *remote_url);
-          const bool is_still_loading = RemoteLibraryLoadingStatus::status(*remote_url) ==
-                                        RemoteLibraryLoadingStatus::Loading;
-          const bool has_new_previews =
-              cache->remote_preview_loading.last_new_previews_time_by_url[*remote_url] < new_time;
-          const bool should_retry_preview = is_still_loading || has_new_previews;
-
-          /* Couldn't find a preview but remote library is still loading or we've been notified
-           * that there are new previews meanwhile. */
-          if (should_retry_preview) {
-            auto &seen_time = last_new_previews_time_by_url[*remote_url];
-            if (new_time && (new_time > seen_time)) {
-              seen_time = *new_time;
-            }
-            preview_done = false;
-            entry->flags &= ~FILE_ENTRY_PREVIEW_LOADING;
-            filelist_cache_previews_push(filelist, entry, preview->index);
-
-            // printf("Remote preview: Re-trying missing preview (still loading) for entry %s\n",
-            //        entry->name);
-          }
-          // else {
-          //   printf("Remote preview: No new previews, not retrying for entry %s (local: %" PRIu64
-          //          ", remote: %" PRIu64 ")\n",
-          //          entry->name,
-          //          cache->remote_preview_loading.last_new_previews_time_by_url[*remote_url]
-          //              .time_since_epoch()
-          //              .count(),
-          //          new_time.has_value() ? new_time->time_since_epoch().count() : 0);
-          // }
-        }
+      else {
+        /* We want to avoid re-processing this entry continuously!
+         * Note that, since entries only live in cache,
+         * preview will be retried quite often anyway. */
+        entry->flags |= FILE_ENTRY_INVALID_PREVIEW;
       }
-
-      if (preview_done) {
-        if (!entry->preview_icon_id) {
-          /* We want to avoid re-processing this entry continuously!
-           * Note that, since entries only live in cache,
-           * preview will be retried quite often anyway. */
-          entry->flags |= FILE_ENTRY_INVALID_PREVIEW;
-        }
-        entry->flags &= ~FILE_ENTRY_PREVIEW_LOADING;
-        changed = true;
-      }
+      entry->flags &= ~FILE_ENTRY_PREVIEW_LOADING;
+      changed = true;
     }
     else {
       BKE_icon_delete(preview->icon_id);
@@ -1892,11 +1907,6 @@ bool filelist_cache_previews_update(FileList *filelist)
 
     MEM_freeN(preview);
     cache->previews_todo_count--;
-  }
-
-  for (const auto &[url, new_time] : last_new_previews_time_by_url) {
-    cache->remote_preview_loading.last_new_previews_time_by_url[url] = new_time;
-    // printf("Remote preview: Local timestamp updated for %s\n", url.c_str());
   }
 
   return changed;
@@ -2240,8 +2250,6 @@ struct TodoDir {
   char *dir;
 };
 
-using RemoteLibraryLoadingStatus = blender::asset_system::RemoteLibraryLoadingStatus;
-
 struct FileListReadJob {
   blender::Mutex lock;
   char main_filepath[FILE_MAX] = "";
@@ -2461,7 +2469,8 @@ static void filelist_readjob_list_lib_add_datablock(
     const bool prefix_relpath_with_group_name,
     const int idcode,
     const char *group_name,
-    const std::optional<std::string> download_dst_filepath = std::nullopt)
+    const std::optional<std::string> asset_download_dst_filepath = std::nullopt,
+    const std::optional<std::string> asset_preview_url = std::nullopt)
 {
   FileListInternEntry *entry = MEM_new<FileListInternEntry>(__func__);
   if (prefix_relpath_with_group_name) {
@@ -2480,7 +2489,7 @@ static void filelist_readjob_list_lib_add_datablock(
     }
 
     if (datablock_info->asset_data) {
-      const bool is_online_asset = download_dst_filepath.has_value();
+      const bool is_online_asset = asset_download_dst_filepath.has_value();
 
       entry->typeflag |= FILE_TYPE_ASSET;
       if (is_online_asset) {
@@ -2504,7 +2513,8 @@ static void filelist_readjob_list_lib_add_datablock(
                                datablock_info->name,
                                idcode,
                                std::move(metadata),
-                               *download_dst_filepath) :
+                               *asset_download_dst_filepath,
+                               asset_preview_url) :
                            job_params->load_asset_library->add_external_on_disk_asset(
                                entry->relpath, datablock_info->name, idcode, std::move(metadata));
         if (job_params->on_asset_added) {
@@ -3303,7 +3313,8 @@ static void filelist_readjob_remote_asset_library_index_read(
                                             true,
                                             entry.idcode,
                                             group_name,
-                                            entry.file_path);
+                                            entry.file_path,
+                                            entry.thumbnail_url);
 
     int entries_num = 0;
     LISTBASE_FOREACH (FileListInternEntry *, entry, &entries) {

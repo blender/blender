@@ -178,6 +178,9 @@ void WM_msg_subscribe_static(wmMsgBus *mbus,
 struct wmMsgParams_RemoteIO {
   /* Owned, needs freeing with `MEM_freeN()`. */
   const char *remote_url;
+  /* Optional identifier of some sub-resource accessed via the remote. Owned, needs freeing with
+   * `MEM_freeN()`. */
+  const char *subresource_url;
 };
 
 struct wmMsg_RemoteIO {
@@ -195,13 +198,21 @@ void WM_msgtypeinfo_init_remote_io(wmMsgTypeInfo *msgtype_info);
 wmMsgSubscribeKey_RemoteIO *WM_msg_lookup_remote_io(wmMsgBus *mbus,
                                                     const wmMsgParams_RemoteIO *msg_key_params);
 void WM_msg_publish_remote_io_params(wmMsgBus *mbus, const wmMsgParams_RemoteIO *msg_key_params);
-void WM_msg_publish_remote_io(wmMsgBus *mbus, blender::StringRef remote_url);
+void WM_msg_publish_remote_io(
+    wmMsgBus *mbus,
+    blender::StringRef remote_url,
+    const std::optional<blender::StringRef> subresource_url = std::nullopt);
 void WM_msg_subscribe_remote_io_params(wmMsgBus *mbus,
                                        const wmMsgParams_RemoteIO *msg_key_params,
                                        const wmMsgSubscribeValue *msg_val_params,
                                        const char *id_repr);
 void WM_msg_subscribe_remote_io(wmMsgBus *mbus,
                                 blender::StringRef remote_url,
+                                const wmMsgSubscribeValue *msg_val_params,
+                                const char *id_repr);
+void WM_msg_subscribe_remote_io(wmMsgBus *mbus,
+                                const blender::StringRef remote_url,
+                                const blender::StringRef subresource_url,
                                 const wmMsgSubscribeValue *msg_val_params,
                                 const char *id_repr);
 

@@ -40,7 +40,8 @@ AssetRepresentation::AssetRepresentation(StringRef relative_asset_path,
                                          const int id_type,
                                          std::unique_ptr<AssetMetaData> metadata,
                                          AssetLibrary &owner_asset_library,
-                                         StringRef download_dst_filepath)
+                                         StringRef download_dst_filepath,
+                                         std::optional<StringRef> preview_url)
     : owner_asset_library_(owner_asset_library),
       relative_identifier_(relative_asset_path),
       asset_(AssetRepresentation::ExternalAsset{
@@ -48,7 +49,7 @@ AssetRepresentation::AssetRepresentation(StringRef relative_asset_path,
           id_type,
           std::move(metadata),
           nullptr,
-          std::make_unique<OnlineAssetInfo>(OnlineAssetInfo{download_dst_filepath})})
+          std::make_unique<OnlineAssetInfo>(OnlineAssetInfo{download_dst_filepath, preview_url})})
 {
 }
 
@@ -165,6 +166,14 @@ std::optional<StringRef> AssetRepresentation::download_dst_filepath() const
     return {};
   }
   return std::get<ExternalAsset>(asset_).online_info_->download_dst_filepath_;
+}
+
+std::optional<StringRef> AssetRepresentation::online_asset_preview_url() const
+{
+  if (!this->is_online()) {
+    return {};
+  }
+  return std::get<ExternalAsset>(asset_).online_info_->preview_url_;
 }
 
 void AssetRepresentation::online_asset_mark_downloaded()
