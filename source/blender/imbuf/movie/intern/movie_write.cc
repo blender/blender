@@ -144,6 +144,76 @@ static const char **get_file_extensions(int format)
   }
 }
 
+static void add_hdr_mastering_display_metadata(AVCodecParameters *codecpar,
+                                               AVCodecContext *c,
+                                               const ImageFormatData *imf)
+{
+  if (c->color_primaries != AVCOL_PRI_BT2020) {
+    return;
+  }
+
+  int max_luminance = 0;
+  if (c->color_trc == AVCOL_TRC_ARIB_STD_B67) {
+    /* HLG is always 1000 nits. */
+    max_luminance = 1000;
+  }
+  else if (c->color_trc == AVCOL_TRC_SMPTEST2084) {
+    /* PQ uses heuristic based on view transform name. In the future this could become
+     * a user control, but this solves the common cases. */
+    blender::StringRefNull view_name = imf->view_settings.view_transform;
+    if (view_name.find("HDR 500 nits")) {
+      max_luminance = 500;
+    }
+    else if (view_name.find("HDR 1000 nits")) {
+      max_luminance = 1000;
+    }
+    else if (view_name.find("HDR 2000 nits")) {
+      max_luminance = 2000;
+    }
+    else if (view_name.find("HDR 4000 nits")) {
+      max_luminance = 4000;
+    }
+    else if (view_name.find("HDR 10000 nits")) {
+      max_luminance = 10000;
+    }
+  }
+
+  /* If we don't know anything, don't write metadata. The video player will make some
+   * default assumption, often 1000 nits. */
+  if (max_luminance == 0) {
+    return;
+  }
+
+  AVPacketSideData *side_data = av_packet_side_data_new(&codecpar->coded_side_data,
+                                                        &codecpar->nb_coded_side_data,
+                                                        AV_PKT_DATA_MASTERING_DISPLAY_METADATA,
+                                                        sizeof(AVMasteringDisplayMetadata),
+                                                        0);
+  if (side_data == nullptr) {
+    CLOG_ERROR(&LOG, "Failed to attached mastering display metadata to stream");
+    return;
+  }
+
+  AVMasteringDisplayMetadata *mastering_metadata = reinterpret_cast<AVMasteringDisplayMetadata *>(
+      side_data->data);
+
+  /* Rec.2020 primaries and D65 white point. */
+  mastering_metadata->has_primaries = 1;
+  mastering_metadata->display_primaries[0][0] = av_make_q(34000, 50000);
+  mastering_metadata->display_primaries[0][1] = av_make_q(16000, 50000);
+  mastering_metadata->display_primaries[1][0] = av_make_q(13250, 50000);
+  mastering_metadata->display_primaries[1][1] = av_make_q(34500, 50000);
+  mastering_metadata->display_primaries[2][0] = av_make_q(7500, 50000);
+  mastering_metadata->display_primaries[2][1] = av_make_q(3000, 50000);
+
+  mastering_metadata->white_point[0] = av_make_q(15635, 50000);
+  mastering_metadata->white_point[1] = av_make_q(16450, 50000);
+
+  mastering_metadata->has_luminance = 1;
+  mastering_metadata->min_luminance = av_make_q(1, 10000);
+  mastering_metadata->max_luminance = av_make_q(max_luminance, 1);
+}
+
 /* Write a frame to the output file */
 static bool write_video_frame(MovieWriter *context, AVFrame *frame, ReportList *reports)
 {
@@ -1140,6 +1210,8 @@ static AVStream *alloc_video_stream(MovieWriter *context,
   }
 
   avcodec_parameters_from_context(st->codecpar, c);
+
+  add_hdr_mastering_display_metadata(st->codecpar, c, imf);
 
   context->video_time = 0.0f;
 
