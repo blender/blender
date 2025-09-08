@@ -3599,12 +3599,13 @@ struct GeometryNodesLazyFunctionBuilder {
         input_index++;
       }
     }
+    int output_index = 0;
     for (const bNodeSocket *bsocket : bnode.output_sockets()) {
       if (bsocket->is_available()) {
-        lf::OutputSocket &lf_socket = lf_node.output(0);
+        lf::OutputSocket &lf_socket = lf_node.output(output_index);
         graph_params.lf_output_by_bsocket.add(bsocket, &lf_socket);
         mapping_->bsockets_by_lf_socket_map.add(&lf_socket, bsocket);
-        break;
+        output_index++;
       }
     }
 
