@@ -100,8 +100,6 @@ TEST_F(ActionFilterTest, slots_expanded_or_not)
 
   /* Mock an bAnimContext for the Animation editor, with the above Animation showing. */
   SpaceAction saction = {nullptr};
-  saction.action = action;
-  saction.action_slot_handle = slot_cube.handle;
   saction.ads.filterflag = eDopeSheet_FilterFlag(0);
 
   bAnimContext ac = {nullptr};
@@ -111,6 +109,8 @@ TEST_F(ActionFilterTest, slots_expanded_or_not)
   ac.spacetype = SPACE_ACTION;
   ac.sl = reinterpret_cast<SpaceLink *>(&saction);
   ac.obact = cube;
+  ac.active_action = action;
+  ac.active_action_user = &cube->id;
   ac.ads = &saction.ads;
 
   { /* Test with collapsed slots. */
@@ -257,8 +257,6 @@ TEST_F(ActionFilterTest, layered_action_active_fcurves)
 
   /* Mock an bAnimContext for the Action editor. */
   SpaceAction saction = {nullptr};
-  saction.action = action;
-  saction.action_slot_handle = slot_cube.handle;
   saction.ads.filterflag = eDopeSheet_FilterFlag(0);
 
   bAnimContext ac = {nullptr};
@@ -268,6 +266,8 @@ TEST_F(ActionFilterTest, layered_action_active_fcurves)
   ac.spacetype = SPACE_ACTION;
   ac.sl = reinterpret_cast<SpaceLink *>(&saction);
   ac.obact = cube;
+  ac.active_action = action;
+  ac.active_action_user = &cube->id;
   ac.ads = &saction.ads;
 
   {

@@ -51,6 +51,7 @@
 #include "UI_interface.hh"
 #include "WM_api.hh"
 
+#include "ANIM_action.hh"
 #include "ANIM_armature.hh"
 #include "ANIM_bone_collections.hh"
 
@@ -840,12 +841,14 @@ static eContextResult screen_ctx_sel_actions_impl(const bContext *C,
     SpaceAction *saction = (SpaceAction *)ac.sl;
 
     if (ELEM(saction->mode, SACTCONT_ACTION, SACTCONT_SHAPEKEY)) {
+      ID *active_action_id = ac.active_action ? &ac.active_action->id : nullptr;
+
       if (active_only) {
-        CTX_data_id_pointer_set(result, (ID *)saction->action);
+        CTX_data_id_pointer_set(result, active_action_id);
       }
       else {
-        if (saction->action && !(editable && !ID_IS_EDITABLE(saction->action))) {
-          CTX_data_id_list_add(result, &saction->action->id);
+        if (active_action_id && !(editable && !ID_IS_EDITABLE(active_action_id))) {
+          CTX_data_id_list_add(result, active_action_id);
         }
 
         CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);

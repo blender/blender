@@ -63,28 +63,38 @@
 /** \name Marker API
  * \{ */
 
-ListBase *ED_scene_markers_get(Scene *scene, ScrArea *area)
+ListBase *ED_scene_markers_get(const bContext *C, Scene *scene)
 {
   if (!scene) {
     return nullptr;
   }
-  /* local marker sets... */
-  if (area) {
-    if (area->spacetype == SPACE_ACTION) {
-      SpaceAction *saction = static_cast<SpaceAction *>(area->spacedata.first);
 
-      /* local markers can only be shown when there's only a single active action to grab them from
-       * - flag only takes effect when there's an action, otherwise it can get too confusing?
-       */
-      if (ELEM(saction->mode, SACTCONT_ACTION, SACTCONT_SHAPEKEY) && (saction->action)) {
-        if (saction->flag & SACTION_POSEMARKERS_SHOW) {
-          return &saction->action->markers;
-        }
-      }
+  bAnimContext ac;
+  if (!ANIM_animdata_get_context(C, &ac)) {
+    return &scene->markers;
+  }
+  return ac.markers;
+}
+
+ListBase *ED_scene_markers_get_from_area(Scene *scene, ViewLayer *view_layer, const ScrArea *area)
+{
+  if (!scene) {
+    return nullptr;
+  }
+
+  /* If the area is the dopesheet, AND it is configured to show scene markers (instead of
+   * pose/action markers), directly go for the scene markers. */
+  if (area->spacetype == SPACE_ACTION) {
+    const SpaceAction *saction = static_cast<SpaceAction *>(area->spacedata.first);
+    if (!(saction->flag & SACTION_POSEMARKERS_SHOW)) {
+      return &scene->markers;
     }
   }
 
-  /* default to using the scene's markers */
+  bAction *active_action = ANIM_active_action_from_area(scene, view_layer, area);
+  if (active_action) {
+    return &active_action->markers;
+  }
   return &scene->markers;
 }
 
@@ -92,20 +102,12 @@ ListBase *ED_scene_markers_get(Scene *scene, ScrArea *area)
 
 ListBase *ED_context_get_markers(const bContext *C)
 {
-  return ED_scene_markers_get(CTX_data_scene(C), CTX_wm_area(C));
+  return ED_scene_markers_get(C, CTX_data_scene(C));
 }
 
 ListBase *ED_sequencer_context_get_markers(const bContext *C)
 {
-  return ED_scene_markers_get(CTX_data_sequencer_scene(C), CTX_wm_area(C));
-}
-
-ListBase *ED_animcontext_get_markers(const bAnimContext *ac)
-{
-  if (ac) {
-    return ED_scene_markers_get(ac->scene, ac->area);
-  }
-  return nullptr;
+  return ED_scene_markers_get(C, CTX_data_sequencer_scene(C));
 }
 
 /* --------------------------------- */

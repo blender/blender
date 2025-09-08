@@ -2294,127 +2294,6 @@ static void rna_ConsoleLine_current_character_set(PointerRNA *ptr, const int ind
 
 /* Space Dope-sheet */
 
-static void rna_SpaceDopeSheetEditor_action_set(PointerRNA *ptr,
-                                                PointerRNA value,
-                                                ReportList * /*reports*/)
-{
-  SpaceAction *saction = (SpaceAction *)(ptr->data);
-  bAction *act = (bAction *)value.data;
-
-  if ((act == nullptr) || (act->idroot == 0)) {
-    /* just set if we're clearing the action or if the action is "amorphous" still */
-    saction->action = act;
-  }
-  else {
-    /* action to set must strictly meet the mode criteria... */
-    if (saction->mode == SACTCONT_ACTION) {
-      /* currently, this is "object-level" only, until we have some way of specifying this */
-      if (act->idroot == ID_OB) {
-        saction->action = act;
-      }
-      else {
-        printf(
-            "ERROR: cannot assign Action '%s' to Action Editor, as action is not object-level "
-            "animation\n",
-            act->id.name + 2);
-      }
-    }
-    else if (saction->mode == SACTCONT_SHAPEKEY) {
-      /* As the name says, "shape-key level" only. */
-      if (act->idroot == ID_KE) {
-        saction->action = act;
-      }
-      else {
-        printf(
-            "ERROR: cannot assign Action '%s' to Shape Key Editor, as action doesn't animate "
-            "Shape Keys\n",
-            act->id.name + 2);
-      }
-    }
-    else {
-      printf(
-          "ACK: who's trying to set an action while not in a mode displaying a single Action "
-          "only?\n");
-    }
-  }
-}
-
-static void rna_SpaceDopeSheetEditor_action_update(bContext *C, PointerRNA *ptr)
-{
-  SpaceAction *saction = (SpaceAction *)(ptr->data);
-  const Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer = CTX_data_view_layer(C);
-  Main *bmain = CTX_data_main(C);
-
-  BKE_view_layer_synced_ensure(scene, view_layer);
-  Object *obact = BKE_view_layer_active_object_get(view_layer);
-  if (obact == nullptr) {
-    return;
-  }
-
-  AnimData *adt = nullptr;
-  ID *id = nullptr;
-  switch (saction->mode) {
-    case SACTCONT_ACTION:
-      /* TODO: context selector could help decide this with more control? */
-      adt = BKE_animdata_ensure_id(&obact->id);
-      id = &obact->id;
-      break;
-    case SACTCONT_SHAPEKEY: {
-      Key *key = BKE_key_from_object(obact);
-      if (key == nullptr) {
-        return;
-      }
-      adt = BKE_animdata_ensure_id(&key->id);
-      id = &key->id;
-      break;
-    }
-    case SACTCONT_GPENCIL:
-    case SACTCONT_DOPESHEET:
-    case SACTCONT_MASK:
-    case SACTCONT_CACHEFILE:
-    case SACTCONT_TIMELINE:
-      return;
-  }
-
-  if (adt == nullptr) {
-    /* No animdata was added, so the depsgraph also doesn't need tagging. */
-    return;
-  }
-
-  /* Don't do anything if old and new actions are the same... */
-  if (adt->action == saction->action) {
-    return;
-  }
-
-  /* Exit editmode first - we cannot change actions while in tweak-mode. */
-  BKE_nla_tweakmode_exit({*id, *adt});
-
-  /* To prevent data loss (i.e. if users flip between actions using the Browse menu),
-   * stash this action if nothing else uses it.
-   *
-   * EXCEPTION:
-   * This callback runs when unlinking actions. In that case, we don't want to
-   * stash the action, as the user is signaling that they want to detach it.
-   * This can be reviewed again later,
-   * but it could get annoying if we keep these instead.
-   */
-  if (adt->action != nullptr && adt->action->id.us <= 0 && saction->action != nullptr) {
-    /* XXX: Things here get dodgy if this action is only partially completed,
-     *      and the user then uses the browse menu to get back to this action,
-     *      assigning it as the active action (i.e. the stash strip gets out of sync)
-     */
-    BKE_nla_action_stash({*id, *adt}, ID_IS_OVERRIDE_LIBRARY(id));
-  }
-
-  BKE_animdata_set_action(nullptr, id, saction->action);
-
-  DEG_id_tag_update(&obact->id, ID_RECALC_ANIMATION | ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-
-  /* Update relations as well, so new time source dependency is added. */
-  DEG_relations_tag_update(bmain);
-}
-
 static void rna_SpaceDopeSheetEditor_mode_update(bContext *C, PointerRNA *ptr)
 {
   SpaceAction *saction = (SpaceAction *)(ptr->data);
@@ -2422,31 +2301,6 @@ static void rna_SpaceDopeSheetEditor_mode_update(bContext *C, PointerRNA *ptr)
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
-  Object *obact = BKE_view_layer_active_object_get(view_layer);
-
-  /* special exceptions for ShapeKey Editor mode */
-  if (saction->mode == SACTCONT_SHAPEKEY) {
-    Key *key = BKE_key_from_object(obact);
-
-    /* 1) update the action stored for the editor */
-    if (key) {
-      saction->action = (key->adt) ? key->adt->action : nullptr;
-    }
-    else {
-      saction->action = nullptr;
-    }
-  }
-  /* make sure action stored is valid */
-  else if (saction->mode == SACTCONT_ACTION) {
-    /* 1) update the action stored for the editor */
-    /* TODO: context selector could help decide this with more control? */
-    if (obact) {
-      saction->action = (obact->adt) ? obact->adt->action : nullptr;
-    }
-    else {
-      saction->action = nullptr;
-    }
-  }
 
   /* Collapse (and show) summary channel and hide channel list for timeline */
   if (saction->mode == SACTCONT_TIMELINE) {
@@ -6762,19 +6616,6 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
   rna_def_space_generic_show_region_toggles(srna,
                                             (1 << RGN_TYPE_FOOTER) | (1 << RGN_TYPE_UI) |
                                                 (1 << RGN_TYPE_HUD) | (1 << RGN_TYPE_CHANNELS));
-
-  /* data */
-  prop = RNA_def_property(srna, "action", PROP_POINTER, PROP_NONE);
-  RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_pointer_funcs(prop,
-                                 nullptr,
-                                 "rna_SpaceDopeSheetEditor_action_set",
-                                 nullptr,
-                                 "rna_Action_actedit_assign_poll");
-  RNA_def_property_ui_text(prop, "Action", "Action displayed and edited in this space");
-  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-  RNA_def_property_update(
-      prop, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, "rna_SpaceDopeSheetEditor_action_update");
 
   /* mode (hidden in the UI, see 'ui_mode') */
   prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);

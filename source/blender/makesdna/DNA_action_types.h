@@ -1001,10 +1001,8 @@ typedef struct SpaceAction {
   /** Copied to region. */
   View2D v2d DNA_DEPRECATED;
 
-  /** The currently active action and its slot. */
-  bAction *action;
-  int32_t action_slot_handle;
-  char _pad2[4];
+  /** The currently active action (deprecated). */
+  bAction *action DNA_DEPRECATED;
 
   /** The currently active context (when not showing action). */
   bDopeSheet ads;
@@ -1299,6 +1297,4 @@ typedef struct ActionChannelbag {
 static_assert(std::is_same_v<decltype(ActionSlot::handle), decltype(bAction::last_slot_handle)>);
 static_assert(
     std::is_same_v<decltype(ActionSlot::handle), decltype(ActionChannelbag::slot_handle)>);
-static_assert(
-    std::is_same_v<decltype(ActionSlot::handle), decltype(SpaceAction::action_slot_handle)>);
 #endif

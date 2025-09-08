@@ -4980,8 +4980,8 @@ bool WM_event_handler_region_marker_poll(const wmWindow *win,
       break;
   }
 
-  const ListBase *markers = ED_scene_markers_get(WM_window_get_active_scene(win),
-                                                 const_cast<ScrArea *>(area));
+  const ListBase *markers = ED_scene_markers_get_from_area(
+      WM_window_get_active_scene(win), WM_window_get_active_view_layer(win), area);
   if (BLI_listbase_is_empty(markers)) {
     return false;
   }
@@ -5002,8 +5002,8 @@ bool WM_event_handler_region_v2d_mask_no_marker_poll(const wmWindow *win,
     return false;
   }
   /* Casting away `const` is only needed for a non-constant return value. */
-  const ListBase *markers = ED_scene_markers_get(WM_window_get_active_scene(win),
-                                                 const_cast<ScrArea *>(area));
+  const ListBase *markers = ED_scene_markers_get_from_area(
+      WM_window_get_active_scene(win), WM_window_get_active_view_layer(win), area);
   if (markers && !BLI_listbase_is_empty(markers)) {
     return !WM_event_handler_region_marker_poll(win, area, region, event);
   }

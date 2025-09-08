@@ -376,20 +376,21 @@ class DOPESHEET_MT_editor_menus(Menu):
     def draw(self, context):
         layout = self.layout
         st = context.space_data
+        active_action = context.active_action
 
         layout.menu("DOPESHEET_MT_view")
         layout.menu("DOPESHEET_MT_select")
         if st.show_markers:
             layout.menu("DOPESHEET_MT_marker")
 
-        if st.mode == 'DOPESHEET' or (st.mode == 'ACTION' and st.action is not None):
+        if st.mode == 'DOPESHEET' or (st.mode == 'ACTION' and active_action is not None):
             layout.menu("DOPESHEET_MT_channel")
         elif st.mode == 'GPENCIL':
             layout.menu("DOPESHEET_MT_gpencil_channel")
 
         layout.menu("DOPESHEET_MT_key")
 
-        if st.mode in {'ACTION', 'SHAPEKEY'} and st.action is not None:
+        if st.mode in {'ACTION', 'SHAPEKEY'} and active_action is not None:
             layout.menu("DOPESHEET_MT_action")
 
 
@@ -544,7 +545,7 @@ class DOPESHEET_MT_marker(Menu):
 
         st = context.space_data
 
-        if st.mode in {'ACTION', 'SHAPEKEY'} and st.action:
+        if st.mode in {'ACTION', 'SHAPEKEY'} and context.active_action:
             layout.separator()
             layout.prop(st, "show_pose_markers")
 
