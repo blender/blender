@@ -1661,7 +1661,15 @@ elseif(APPLE)
 
     set(allresources ${storyboards})
     set_target_properties(blender PROPERTIES RESOURCE "${allresources}")
-    
+
+    # Xcode Archiving support (Testflight, App Store, etc...)
+    # This includes the Blender.app in the archive, and targets the local app dir (/Applications) as an install
+    # destination for archiving to pick-up the bundle.
+    set_target_properties(blender PROPERTIES
+      XCODE_ATTRIBUTE_SKIP_INSTALL "NO"
+      XCODE_ATTRIBUTE_INSTALL_PATH "$(LOCAL_APPS_DIR)"
+    )
+
   else()
     set_target_properties(blender PROPERTIES
       MACOSX_BUNDLE_INFO_PLIST ${OSX_APP_SOURCEDIR}/Contents/Info.plist
