@@ -256,7 +256,6 @@ static void action_foreach_id(ID *id, LibraryForeachIDData *data)
    * NOTE: early-returns by BKE_LIB_FOREACHID_PROCESS_... macros are forbidden in non-readonly
    * cases (see #IDWALK_RET_STOP_ITER documentation). */
 
-  const LibraryForeachIDFlag flag = BKE_lib_query_foreachid_process_flags_get(data);
   constexpr LibraryForeachIDCallbackFlag idwalk_flags = IDWALK_CB_NEVER_SELF | IDWALK_CB_LOOPBACK;
 
   /* Note that `bmain` can be `nullptr`. An example is in
@@ -291,6 +290,7 @@ static void action_foreach_id(ID *id, LibraryForeachIDData *data)
     }
 
 #ifndef NDEBUG
+    const LibraryForeachIDFlag flag = BKE_lib_query_foreachid_process_flags_get(data);
     const bool is_readonly = flag & IDWALK_READONLY;
     if (is_readonly) {
       BLI_assert_msg(!should_invalidate,
@@ -305,16 +305,6 @@ static void action_foreach_id(ID *id, LibraryForeachIDData *data)
 
   LISTBASE_FOREACH (TimeMarker *, marker, &action.markers) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, marker->camera, IDWALK_CB_NOP);
-  }
-
-  /* Legacy IPO curves. */
-  if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
-    LISTBASE_FOREACH (bActionChannel *, chan, &action.chanbase) {
-      BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data, chan->ipo, IDWALK_CB_USER);
-      LISTBASE_FOREACH (bConstraintChannel *, chan_constraint, &chan->constraintChannels) {
-        BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data, chan_constraint->ipo, IDWALK_CB_USER);
-      }
-    }
   }
 }
 
@@ -698,10 +688,6 @@ static void action_blend_read_data(BlendDataReader *reader, ID *id)
     BLI_listbase_clear(&action.curves);
     BLI_listbase_clear(&action.groups);
 
-    /* Should never be stored as part of the forward-compatible data in a
-     * layered action, and thus should always be empty here. */
-    BLI_assert(BLI_listbase_is_empty(&action.chanbase));
-
     /* Layered actions should always have `idroot == 0`, but when writing an
      * action to a blend file `idroot` is typically set otherwise for forward
      * compatibility reasons (see `action_blend_write()`). So we set it to zero
@@ -710,14 +696,8 @@ static void action_blend_read_data(BlendDataReader *reader, ID *id)
   }
   else {
     /* Read legacy data. */
-    BLO_read_struct_list(reader, bActionChannel, &action.chanbase);
     BLO_read_struct_list(reader, FCurve, &action.curves);
     BLO_read_struct_list(reader, bActionGroup, &action.groups);
-
-    LISTBASE_FOREACH (bActionChannel *, achan, &action.chanbase) {
-      BLO_read_struct(reader, bActionGroup, &achan->grp);
-      BLO_read_struct_list(reader, bConstraintChannel, &achan->constraintChannels);
-    }
 
     BKE_fcurve_blend_read_data_listbase(reader, &action.curves);
 

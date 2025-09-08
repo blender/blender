@@ -814,8 +814,6 @@ typedef struct bAction {
 
   /** Legacy F-Curves (FCurve), introduced in Blender 2.5. */
   ListBase curves;
-  /** Legacy Action Channels (bActionChannel) from pre-2.5 animation system. */
-  ListBase chanbase DNA_DEPRECATED;
   /** Legacy Groups of function-curves (bActionGroup), introduced in Blender 2.5. */
   ListBase groups;
 
@@ -1108,38 +1106,6 @@ typedef enum eTimeline_Cache_Flag {
   TIME_CACHE_RIGIDBODY = (1 << 6),
   TIME_CACHE_SIMULATION_NODES = (1 << 7),
 } eTimeline_Cache_Flag;
-
-/* ************************************************ */
-/* Legacy Data */
-
-/* WARNING: Action Channels are now deprecated... they were part of the old animation system!
- *        (ONLY USED FOR DO_VERSIONS...)
- *
- * Action Channels belong to Actions. They are linked with an IPO block, and can also own
- * Constraint Channels in certain situations.
- *
- * Action-Channels can only belong to one group at a time, but they still live the Action's
- * list of achans (to preserve backwards compatibility, and also minimize the code
- * that would need to be recoded). Grouped achans are stored at the start of the list, according
- * to the position of the group in the list, and their position within the group.
- */
-typedef struct bActionChannel {
-  struct bActionChannel *next, *prev;
-  /** Action Group this Action Channel belongs to. */
-  bActionGroup *grp;
-
-  /** IPO block this action channel references. */
-  struct Ipo *ipo;
-  /** Constraint Channels (when Action Channel represents an Object or Bone). */
-  ListBase constraintChannels;
-
-  /** Settings accessed via bitmapping. */
-  int flag;
-  /** Channel name. */
-  char name[/*MAX_NAME*/ 64];
-  /** Temporary setting - may be used to indicate group that channel belongs to during syncing. */
-  int temp;
-} bActionChannel;
 
 /* ************************************************ */
 /* Layered Animation data-types. */

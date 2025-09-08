@@ -666,13 +666,15 @@ typedef struct PreviewImage {
 
 /* Check whether datablock type is covered by copy-on-evaluation. */
 #define ID_TYPE_USE_COPY_ON_EVAL(_id_type) \
-  (!ELEM(_id_type, ID_LI, ID_IP, ID_SCR, ID_VF, ID_BR, ID_WM, ID_PAL, ID_PC, ID_WS, ID_IM))
+  (!ELEM(_id_type, ID_LI, ID_SCR, ID_VF, ID_BR, ID_WM, ID_PAL, ID_PC, ID_WS, ID_IM))
 
 /* Check whether data-block type requires copy-on-evaluation from #ID_RECALC_PARAMETERS.
  * Keep in sync with #BKE_id_eval_properties_copy. */
 #define ID_TYPE_SUPPORTS_PARAMS_WITHOUT_COW(id_type) ELEM(id_type, ID_ME)
 
-#define ID_TYPE_IS_DEPRECATED(id_type) ELEM(id_type, ID_IP)
+/* This used to be ELEM(id_type, ID_IP), currently there is no deprecated ID
+ * type. ID_IP was removed in Blender 5.0. */
+#define ID_TYPE_IS_DEPRECATED(id_type) false
 
 #ifdef GS
 #  undef GS
@@ -1202,7 +1204,6 @@ typedef enum eID_Index {
   INDEX_ID_LI = 0,
 
   /* Animation types, might be used by almost all other types. */
-  INDEX_ID_IP, /* Deprecated. */
   INDEX_ID_AC,
 
   /* Grease Pencil, special case, should be with the other obdata, but it can also be used by many

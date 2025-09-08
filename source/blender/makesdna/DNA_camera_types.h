@@ -15,7 +15,6 @@
 #include "DNA_movieclip_types.h"
 
 struct AnimData;
-struct Ipo;
 struct Object;
 
 /* ------------------------------------------- */
@@ -124,9 +123,6 @@ typedef struct Camera {
   char *custom_bytecode;
   int custom_mode;
   int _pad3;
-
-  /** Old animation system, deprecated for 2.5. */
-  struct Ipo *ipo DNA_DEPRECATED;
 
   struct Object *dof_ob DNA_DEPRECATED;
   struct GPUDOFSettings gpu_dof DNA_DEPRECATED;

@@ -2120,7 +2120,6 @@ int UI_icon_from_idcode(const int idcode)
 
     /* No icons for these ID-types. */
     case ID_LI:
-    case ID_IP:
     case ID_SCR:
     case ID_WM:
       break;

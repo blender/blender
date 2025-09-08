@@ -208,7 +208,6 @@ DNA_STRUCT_RENAME_MEMBER(SpaceNode, geometry_nodes_tool_tree, selected_node_grou
 DNA_STRUCT_RENAME_MEMBER(SpaceSeq, overlay_type, overlay_frame_type)
 DNA_STRUCT_RENAME_MEMBER(SpeedControlVars, globalSpeed, globalSpeed_legacy)
 DNA_STRUCT_RENAME_MEMBER(Strip, endstill, endstill_legacy)
-DNA_STRUCT_RENAME_MEMBER(Strip, ipo, ipo_legacy)
 DNA_STRUCT_RENAME_MEMBER(Strip, machine, channel)
 DNA_STRUCT_RENAME_MEMBER(Strip, pitch, pitch_legacy)
 DNA_STRUCT_RENAME_MEMBER(Strip, retiming_handle_num, retiming_keys_num)

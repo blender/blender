@@ -139,7 +139,6 @@ static void get_element_operation_type(
       case ID_SPK:
       case ID_MA:
       case ID_TE:
-      case ID_IP:
       case ID_IM:
       case ID_SO:
       case ID_KE:
