@@ -239,19 +239,9 @@ class UnifiedPaintPanel:
         # 2D paint settings
         elif mode == 'PAINT_2D':
             return tool_settings.image_paint
-        # Grease Pencil settings
-        elif mode == 'PAINT_GPENCIL':
-            return tool_settings.gpencil_paint
-        elif mode == 'SCULPT_GPENCIL':
-            return tool_settings.gpencil_sculpt_paint
-        elif mode == 'WEIGHT_GPENCIL':
-            return tool_settings.gpencil_weight_paint
-        elif mode == 'VERTEX_GPENCIL':
-            return tool_settings.gpencil_vertex_paint
-        elif mode == 'PAINT_GREASE_PENCIL':
-            return tool_settings.gpencil_paint
         elif mode == 'SCULPT_CURVES':
             return tool_settings.curves_sculpt
+        # Grease Pencil settings
         elif mode == 'PAINT_GREASE_PENCIL':
             return tool_settings.gpencil_paint
         elif mode == 'SCULPT_GREASE_PENCIL':

@@ -904,26 +904,6 @@ class DOPESHEET_MT_snap_pie(Menu):
         pie.operator("action.snap", text="Selection to Nearest Marker").type = 'NEAREST_MARKER'
 
 
-class LayersDopeSheetPanel:
-    bl_space_type = 'DOPESHEET_EDITOR'
-    bl_region_type = 'UI'
-    bl_category = "View"
-
-    @classmethod
-    def poll(cls, context):
-        st = context.space_data
-        ob = context.object
-        if st.mode != 'GPENCIL' or ob is None or ob.type != 'GREASEPENCIL':
-            return False
-
-        gpd = ob.data
-        gpl = gpd.layers.active
-        if gpl:
-            return True
-
-        return False
-
-
 class GreasePencilLayersDopeSheetPanel:
     bl_space_type = 'DOPESHEET_EDITOR'
     bl_region_type = 'UI'
