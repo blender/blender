@@ -859,7 +859,7 @@ if(WITH_CYCLES_CUDA_BINARIES AND WITH_CYCLES_DEVICE_OPTIX)
     set(cuda_version ${CUDA_VERSION})
     if("${CUDA_VERSION}" GREATER_EQUAL 130) # Support for Maxwell, Pascal and Volta was dropped in CUDA 13
       if(DEFINED CUDA11_NVCC_EXECUTABLE)
-        # Use CUDA 11 for the OptiX PTX kernel, to retain support for older achitectures
+        # Use CUDA 11 for the OptiX PTX kernel, to retain support for older architectures.
         set(cuda_nvcc_executable ${CUDA11_NVCC_EXECUTABLE})
         set(cuda_version 110)
       else()

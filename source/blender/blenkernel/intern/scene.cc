@@ -698,7 +698,7 @@ static void scene_foreach_toolsettings(LibraryForeachIDData *data,
       toolsett->sculpt->gravity_object = gravity_object;
     }
     /* Do not re-assign `gravity_object_old` object if both current and old data are the same
-     * (foreach_id case), that would nullify assignement above, making remapping cases fail. */
+     * (foreach_id case), that would nullify assignment above, making remapping cases fail. */
     if (toolsett_old != toolsett) {
       toolsett_old->sculpt->gravity_object = gravity_object_old;
     }
@@ -980,6 +980,16 @@ static void scene_foreach_path(ID *id, BPathForeachPathData *bpath_data)
   if (scene->ed != nullptr) {
     blender::seq::for_each_callback(&scene->ed->seqbase, strip_foreach_path_callback, bpath_data);
   }
+}
+
+static void scene_foreach_working_space_color(ID *id, const IDTypeForeachColorFunctionCallback &fn)
+{
+  Scene *scene = (Scene *)id;
+
+  BKE_paint_settings_foreach_mode(scene->toolsettings, [&fn](Paint *paint) {
+    fn.single(paint->unified_paint_settings.color);
+    fn.single(paint->unified_paint_settings.secondary_color);
+  });
 }
 
 static void scene_foreach_cache(ID *id,
@@ -1530,6 +1540,7 @@ constexpr IDTypeInfo get_type_info()
   info.foreach_id = scene_foreach_id;
   info.foreach_cache = scene_foreach_cache;
   info.foreach_path = scene_foreach_path;
+  info.foreach_working_space_color = scene_foreach_working_space_color;
   info.owner_pointer_get = nullptr;
 
   info.blend_write = scene_blend_write;
@@ -1892,9 +1903,9 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
       /* Unfortunate, but with some types (e.g. meshes), an object is considered in Edit mode if
        * its obdata contains edit mode runtime data. This can be the case of all newly duplicated
        * objects, as even though duplicate code move the object back in Object mode, they are still
-       * using the original obdata ID, leading to them being falsly detected as being in Edit mode,
-       * and therefore not remapping their obdata to the newly duplicated one.
-       * See #139715. */
+       * using the original obdata ID, leading to them being falsely detected as being in Edit
+       * mode, and therefore not remapping their obdata to the newly duplicated one. See #139715.
+       */
       BKE_libblock_relink_to_newid(
           bmain, &sce_copy->id, ID_REMAP_FORCE_OBDATA_IN_EDITMODE | ID_REMAP_SKIP_USER_CLEAR);
 

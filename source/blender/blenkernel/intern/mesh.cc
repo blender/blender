@@ -296,6 +296,32 @@ static void mesh_foreach_path(ID *id, BPathForeachPathData *bpath_data)
   }
 }
 
+static void mesh_foreach_working_space_color(ID *id, const IDTypeForeachColorFunctionCallback &fn)
+{
+  Mesh *mesh = reinterpret_cast<Mesh *>(id);
+#if 0
+  /* In the future we'll be able to use just this. */
+  mesh->attribute_storage.wrap().foreach_working_space_color(fn);
+#else
+  auto convert_domain = [&fn](CustomData *customdata, size_t size) {
+    for (int i = 0; i < customdata->totlayer; i++) {
+      CustomDataLayer *layer = &customdata->layers[i];
+      if (layer->data && layer->type == CD_PROP_COLOR) {
+        fn.implicit_sharing_array(
+            *reinterpret_cast<blender::ImplicitSharingPtr<> *>(&layer->sharing_info),
+            reinterpret_cast<blender::ColorGeometry4f *&>(layer->data),
+            size);
+      }
+    }
+  };
+
+  convert_domain(&mesh->vert_data, mesh->verts_num);
+  convert_domain(&mesh->edge_data, mesh->edges_num);
+  convert_domain(&mesh->face_data, mesh->faces_num);
+  convert_domain(&mesh->corner_data, mesh->corners_num);
+#endif
+}
+
 static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   using namespace blender;
@@ -492,6 +518,7 @@ IDTypeInfo IDType_ID_ME = {
     /*foreach_id*/ mesh_foreach_id,
     /*foreach_cache*/ nullptr,
     /*foreach_path*/ mesh_foreach_path,
+    /*foreach_working_space_color*/ mesh_foreach_working_space_color,
     /*owner_pointer_get*/ nullptr,
 
     /*blend_write*/ mesh_blend_write,

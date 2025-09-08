@@ -199,7 +199,7 @@ static bool detect_knot_mode_cyclic(const int8_t degree,
   }
 
   if (is_clamped) {
-    /* Clamped curves are discontinous at the ends and have no overlapping spans. */
+    /* Clamped curves are discontinuous at the ends and have no overlapping spans. */
     return true;
   }
 

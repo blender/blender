@@ -22,6 +22,7 @@ set(SRC
   intern/curves_extrude.cc
   intern/curves_masks.cc
   intern/curves_ops.cc
+  intern/curves_pen.cc
   intern/curves_selection.cc
   intern/curves_undo.cc
   intern/join.cc

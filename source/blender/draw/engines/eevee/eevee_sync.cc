@@ -279,6 +279,7 @@ void SyncModule::sync_pointcloud(Object *ob, ObjectHandle &ob_handle, const Obje
       object_pass.draw(geometry, res_handle);
     }
     else {
+      object_pass.push_constant("ptcloud_backface", false);
       object_pass.draw(geometry, res_handle);
     }
   };

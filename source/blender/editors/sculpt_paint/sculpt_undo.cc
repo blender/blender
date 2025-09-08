@@ -321,8 +321,12 @@ template<typename T> Array<T> decompress(const Span<std::byte> src)
 
 struct PositionUndoStorage : NonMovable {
   Vector<std::unique_ptr<Node>> nodes_to_compress;
+  bool multires_undo;
 
   Array<Array<std::byte>> compressed_indices;
+
+  /* As undo and redo happen, the data in these arrays is swapped (an undo step becomes a redo
+   * step, and vice versa). */
   Array<Array<std::byte>> compressed_positions;
 
   Array<int> unique_verts_nums;
@@ -335,15 +339,18 @@ struct PositionUndoStorage : NonMovable {
   explicit PositionUndoStorage(StepData &step_data)
       : nodes_to_compress(std::move(step_data.nodes)), owner_step_data(&step_data)
   {
-    unique_verts_nums.reinitialize(nodes_to_compress.size());
-    for (const int i : nodes_to_compress.index_range()) {
-      unique_verts_nums[i] = nodes_to_compress[i]->unique_verts_num;
+    this->multires_undo = step_data.grids.grids_num != 0;
+    if (!multires_undo) {
+      this->unique_verts_nums.reinitialize(this->nodes_to_compress.size());
+      for (const int i : this->nodes_to_compress.index_range()) {
+        this->unique_verts_nums[i] = this->nodes_to_compress[i]->unique_verts_num;
+      }
     }
 
-    compression_task_pool = BLI_task_pool_create_background(this, TASK_PRIORITY_LOW);
-    compression_started = true;
+    this->compression_task_pool = BLI_task_pool_create_background(this, TASK_PRIORITY_LOW);
+    this->compression_started = true;
 
-    BLI_task_pool_push(compression_task_pool, compress_fn, this, false, nullptr);
+    BLI_task_pool_push(this->compression_task_pool, compress_fn, this, false, nullptr);
   }
 
   ~PositionUndoStorage()
@@ -375,10 +382,10 @@ struct PositionUndoStorage : NonMovable {
     threading::isolate_task([&]() {
       threading::parallel_for(IndexRange(nodes_num), 1, [&](const IndexRange range) {
         for (const int i : range) {
-          Array<std::byte> verts = zstd::compress<int>(nodes[i]->vert_indices);
-          Array<std::byte> positions = zstd::compress<float3>(nodes[i]->position);
-          new (&compressed_indices[i]) Array<std::byte>(std::move(verts));
-          new (&compressed_data[i]) Array<std::byte>(std::move(positions));
+          const Span<int> indices = data->multires_undo ? nodes[i]->grids : nodes[i]->vert_indices;
+          const Span<float3> positions = nodes[i]->position;
+          new (&compressed_indices[i]) Array<std::byte>(zstd::compress(indices));
+          new (&compressed_data[i]) Array<std::byte>(zstd::compress(positions));
           nodes[i].reset();
         }
       });
@@ -562,7 +569,6 @@ static void restore_position_mesh(Object &object,
 
       modified_verts.fill_indices(verts, true);
 
-      undo_data.compressed_indices[i] = zstd::compress<int>(indices);
       undo_data.compressed_positions[i] = zstd::compress<float3>(node_positions);
     }
   });
@@ -570,21 +576,30 @@ static void restore_position_mesh(Object &object,
 
 static void restore_position_grids(const MutableSpan<float3> positions,
                                    const CCGKey &key,
-                                   Node &unode,
+                                   PositionUndoStorage &undo_data,
                                    const MutableSpan<bool> modified_grids)
 {
-  const Span<int> grids = unode.grids;
-  const MutableSpan<float3> undo_position = unode.position;
+  const int nodes_num = undo_data.compressed_indices.size();
 
-  for (const int i : grids.index_range()) {
-    MutableSpan data = positions.slice(bke::ccg::grid_range(key, grids[i]));
-    MutableSpan undo_data = undo_position.slice(bke::ccg::grid_range(key, i));
-    for (const int offset : data.index_range()) {
-      std::swap(data[offset], undo_data[offset]);
+  threading::parallel_for(IndexRange(nodes_num), 1, [&](const IndexRange range) {
+    for (const int i : range) {
+      Array<int> grids = zstd::decompress<int>(undo_data.compressed_indices[i]);
+      Array<float3> node_positions = zstd::decompress<float3>(undo_data.compressed_positions[i]);
+
+      for (const int i : grids.index_range()) {
+        MutableSpan data = positions.slice(bke::ccg::grid_range(key, grids[i]));
+        MutableSpan undo_data = node_positions.as_mutable_span().slice(
+            bke::ccg::grid_range(key, i));
+        for (const int offset : data.index_range()) {
+          std::swap(data[offset], undo_data[offset]);
+        }
+      }
+
+      modified_grids.fill_indices(grids.as_span(), true);
+
+      undo_data.compressed_positions[i] = zstd::compress<float3>(node_positions);
     }
-  }
-
-  modified_grids.fill_indices(grids, true);
+  });
 }
 
 static void restore_vert_visibility_mesh(Object &object,
@@ -1033,9 +1048,9 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
         Array<bool> modified_grids(subdiv_ccg.grids_num, false);
-        for (std::unique_ptr<Node> &unode : step_data.nodes) {
-          restore_position_grids(subdiv_ccg.positions, key, *unode, modified_grids);
-        }
+        restore_position_grids(
+            subdiv_ccg.positions, key, *step_data.position_step_storage, modified_grids);
+
         const IndexMask changed_nodes = IndexMask::from_predicate(
             node_mask, GrainSize(1), memory, [&](const int i) {
               return indices_contain_true(modified_grids, nodes[i].grids());
@@ -1964,7 +1979,7 @@ void push_end_ex(Object &ob, const bool use_nested_undo)
    * just one positions array that has a different semantic meaning depending on whether there are
    * deform modifiers. */
 
-  if (step_data->type == Type::Position && !use_multires_undo(*step_data, *ob.sculpt)) {
+  if (step_data->type == Type::Position) {
     step_data->position_step_storage = std::make_unique<PositionUndoStorage>(*step_data);
   }
   else {

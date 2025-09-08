@@ -81,6 +81,8 @@ class LibOCIODisplay : public Display {
     return is_hdr_;
   }
 
+  void clear_caches();
+
   MEM_CXX_CLASS_ALLOC_FUNCS("LibOCIOConfig");
 
  protected:

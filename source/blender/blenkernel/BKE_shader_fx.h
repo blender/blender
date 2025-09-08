@@ -16,6 +16,7 @@ struct ARegionType;
 struct BlendDataReader;
 struct BlendWriter;
 struct ID;
+struct IDTypeForeachColorFunctionCallback;
 struct ListBase;
 struct ModifierUpdateDepsgraphContext;
 struct Object;
@@ -127,6 +128,10 @@ typedef struct ShaderFxTypeInfo {
                           struct Object *ob,
                           ShaderFxIDWalkFunc walk,
                           void *user_data);
+
+  /* Should iterate over every working space color. */
+  void (*foreach_working_space_color)(ShaderFxData *fx,
+                                      const IDTypeForeachColorFunctionCallback &func);
 
   /* Register the panel types for the effect's UI. */
   void (*panel_register)(struct ARegionType *region_type);

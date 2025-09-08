@@ -293,7 +293,7 @@ static bool sequencer_effect_poll(bContext *C)
 
   if (ed) {
     Strip *active_strip = seq::select_active_get(scene);
-    if (active_strip && (active_strip->type & STRIP_TYPE_EFFECT)) {
+    if (active_strip && active_strip->is_effect()) {
       return true;
     }
   }
@@ -380,7 +380,7 @@ void sync_active_scene_and_time_with_scene_strip(bContext &C)
       sequence_scene, seqbase, sequence_scene->r.cfra);
   /* Ignore effect strips, sound strips and muted strips. */
   query_strips.remove_if([&](const Strip *strip) {
-    return (strip->type & STRIP_TYPE_EFFECT) != 0 || strip->type == STRIP_TYPE_SOUND_RAM ||
+    return strip->is_effect() || strip->type == STRIP_TYPE_SOUND_RAM ||
            seq::render_is_muted(channels, strip);
   });
   Vector<Strip *> strips = query_strips.extract_vector();
@@ -588,7 +588,7 @@ static wmOperatorStatus sequencer_snap_exec(bContext *C, wmOperator *op)
 
   /* Recalculate bounds of effect strips, offsetting the keyframes if not snapping any handle. */
   LISTBASE_FOREACH (Strip *, strip, ed->current_strips()) {
-    if (strip->type & STRIP_TYPE_EFFECT) {
+    if (strip->is_effect()) {
       const bool either_handle_selected = (strip->flag & (SEQ_LEFTSEL | SEQ_RIGHTSEL)) != 0;
 
       if (strip->input1 && (strip->input1->flag & SELECT)) {
@@ -1637,7 +1637,7 @@ static wmOperatorStatus sequencer_swap_inputs_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_sequencer_scene(C);
   Strip *active_strip = seq::select_active_get(scene);
 
-  if (!(active_strip->type & STRIP_TYPE_EFFECT)) {
+  if (!active_strip->is_effect()) {
     BKE_report(op->reports, RPT_ERROR, "Active strip is not an effect strip");
     return OPERATOR_CANCELLED;
   }
@@ -2160,7 +2160,7 @@ static wmOperatorStatus sequencer_offset_clear_exec(bContext *C, wmOperator * /*
       continue;
     }
 
-    if ((strip->type & STRIP_TYPE_EFFECT) == 0 && (strip->flag & SELECT)) {
+    if (!strip->is_effect() && (strip->flag & SELECT)) {
       strip->startofs = strip->endofs = 0;
     }
   }
@@ -2175,7 +2175,7 @@ static wmOperatorStatus sequencer_offset_clear_exec(bContext *C, wmOperator * /*
   for (strip = static_cast<Strip *>(ed->current_strips()->first); strip;
        strip = static_cast<Strip *>(strip->next))
   {
-    if ((strip->type & STRIP_TYPE_EFFECT) == 0 && (strip->flag & SELECT)) {
+    if (!strip->is_effect() && (strip->flag & SELECT)) {
       if (seq::transform_test_overlap(scene, ed->current_strips(), strip)) {
         seq::transform_seqbase_shuffle(ed->current_strips(), strip, scene);
       }
@@ -2725,7 +2725,7 @@ static wmOperatorStatus sequencer_swap_exec(bContext *C, wmOperator *op)
 
     /* Do this in a new loop since both effects need to be calculated first. */
     LISTBASE_FOREACH (Strip *, istrip, seqbase) {
-      if ((istrip->type & STRIP_TYPE_EFFECT) &&
+      if (istrip->is_effect() &&
           (strip_is_parent(istrip, active_strip) || strip_is_parent(istrip, strip)))
       {
         /* This may now overlap. */
@@ -2860,6 +2860,7 @@ void SEQUENCER_OT_paste(wmOperatorType *ot)
   ot->description = "Paste strips from the internal clipboard";
 
   /* API callbacks. */
+  ot->invoke = sequencer_clipboard_paste_invoke;
   ot->exec = sequencer_clipboard_paste_exec;
   ot->poll = ED_operator_sequencer_active;
 
@@ -2874,6 +2875,10 @@ void SEQUENCER_OT_paste(wmOperatorType *ot)
       "Keep Offset",
       "Keep strip offset relative to the current frame when pasting");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+  prop = RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /** \} */
@@ -2977,7 +2982,7 @@ static wmOperatorStatus sequencer_change_effect_type_exec(bContext *C, wmOperato
   /* Free previous effect and init new effect. */
   seq::EffectHandle sh;
 
-  if ((strip->type & STRIP_TYPE_EFFECT) == 0) {
+  if (!strip->is_effect()) {
     return OPERATOR_CANCELLED;
   }
 

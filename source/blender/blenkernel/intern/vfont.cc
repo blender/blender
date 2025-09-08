@@ -181,6 +181,7 @@ IDTypeInfo IDType_ID_VF = {
     /*foreach_id*/ nullptr,
     /*foreach_cache*/ nullptr,
     /*foreach_path*/ vfont_foreach_path,
+    /*foreach_working_space_color*/ nullptr,
     /*owner_pointer_get*/ nullptr,
 
     /*blend_write*/ vfont_blend_write,

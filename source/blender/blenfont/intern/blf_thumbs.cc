@@ -215,7 +215,7 @@ static const UnicodeSample unicode_samples[] = {
     {U"\u0533\u0537\u0539", 1, TT_UCR_ARMENIAN},
 };
 
-static const char32_t *blf_get_sample_text(FT_Face face)
+static const char32_t *blf_get_sample_text(const FT_Face face)
 {
   /* First check for fonts with MS Symbol character map. */
   if (face->charmap->encoding == FT_ENCODING_MS_SYMBOL) {
@@ -299,7 +299,8 @@ static const char32_t *blf_get_sample_text(FT_Face face)
   return sample;
 }
 
-bool BLF_thumb_preview(const char *filepath, uchar *buf, int w, int h, int /*channels*/)
+bool BLF_thumb_preview(
+    const char *filepath, uchar *buf, const int w, const int h, const int /*channels*/)
 {
   /* Use own FT_Library and direct FreeType calls as this is called from multiple threads. */
   FT_Library ft_lib = nullptr;

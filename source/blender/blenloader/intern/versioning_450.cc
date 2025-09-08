@@ -4830,8 +4830,8 @@ static bool strip_effect_overdrop_to_alphaover(Strip *strip, void * /*user_data*
   if (strip->type == STRIP_TYPE_OVERDROP_REMOVED) {
     strip->type = STRIP_TYPE_ALPHAOVER;
   }
-  if (strip->blend_mode == STRIP_TYPE_OVERDROP_REMOVED) {
-    strip->blend_mode = STRIP_TYPE_ALPHAOVER;
+  if (strip->blend_mode == STRIP_BLEND_OVERDROP_REMOVED) {
+    strip->blend_mode = STRIP_BLEND_ALPHAOVER;
   }
   return true;
 }

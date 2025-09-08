@@ -1019,7 +1019,8 @@ static void reshape_subdiv_refine_orig_P(
 
   blender::float3 limit_P;
   blender::float3x3 tangent_matrix;
-  multires_reshape_evaluate_limit_at_grid(reshape_context, grid_coord, limit_P, tangent_matrix);
+  multires_reshape_evaluate_base_mesh_limit_at_grid(
+      reshape_context, grid_coord, limit_P, tangent_matrix);
 
   const ReshapeConstGridElement orig_grid_element =
       multires_reshape_orig_grid_element_for_grid_coord(reshape_context, grid_coord);
@@ -1250,7 +1251,7 @@ static void evaluate_final_original_point(
   /* Limit surface of the base mesh. */
   blender::float3 base_mesh_limit_P;
   blender::float3x3 base_mesh_tangent_matrix;
-  multires_reshape_evaluate_limit_at_grid(
+  multires_reshape_evaluate_base_mesh_limit_at_grid(
       reshape_context, grid_coord, base_mesh_limit_P, base_mesh_tangent_matrix);
 
   /* Convert original displacement from tangent space to object space. */

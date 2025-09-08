@@ -140,6 +140,7 @@ IDTypeInfo IDType_ID_CF = {
     /*foreach_id*/ nullptr,
     /*foreach_cache*/ nullptr,
     /*foreach_path*/ cache_file_foreach_path,
+    /*foreach_working_space_color*/ nullptr,
     /*owner_pointer_get*/ nullptr,
 
     /*blend_write*/ cache_file_blend_write,

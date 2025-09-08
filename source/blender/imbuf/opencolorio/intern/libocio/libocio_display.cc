@@ -230,6 +230,14 @@ const CPUProcessor *LibOCIODisplay::get_from_scene_linear_cpu_processor(
       [&] { return create_scene_linear_cpu_processor(use_display_emulation, false); });
 }
 
+void LibOCIODisplay::clear_caches()
+{
+  to_scene_linear_cpu_processor_ = CPUProcessorCache();
+  to_scene_linear_emulation_cpu_processor_ = CPUProcessorCache();
+  from_scene_linear_cpu_processor_ = CPUProcessorCache();
+  from_scene_linear_emulation_cpu_processor_ = CPUProcessorCache();
+}
+
 }  // namespace blender::ocio
 
 #endif

@@ -27,7 +27,7 @@ TreeElementStrip::TreeElementStrip(TreeElement &legacy_te, Strip &strip)
 
 bool TreeElementStrip::expand_poll(const SpaceOutliner & /*space_outliner*/) const
 {
-  return !(strip_.type & STRIP_TYPE_EFFECT);
+  return !strip_.is_effect();
 }
 
 void TreeElementStrip::expand(SpaceOutliner & /*space_outliner*/) const

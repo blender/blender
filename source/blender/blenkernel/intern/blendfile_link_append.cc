@@ -930,7 +930,7 @@ static bool foreach_libblock_link_append_common_processing(
     /* While we do not want to add non-linkable ID (shape keys...) to the list of linked items,
      * unfortunately they can use fully linkable valid IDs too, like actions. Those need to be
      * processed, so we need to recursively deal with them here. */
-    /* NOTE: Since we are by-passing checks in `BKE_library_foreach_ID_link` by manually calling it
+    /* NOTE: Since we are bypassing checks in `BKE_library_foreach_ID_link` by manually calling it
      * recursively, we need to take care of potential recursion cases ourselves (e.g.anim-data of
      * shape-key referencing the shape-key itself). */
     /* NOTE: in case both IDs (owner and 'used' ones) are non-linkable, we can assume we can break

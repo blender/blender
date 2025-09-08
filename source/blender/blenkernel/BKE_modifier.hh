@@ -29,6 +29,7 @@ struct CustomData_MeshMasks;
 struct DepsNodeHandle;
 struct Depsgraph;
 struct ID;
+struct IDTypeForeachColorFunctionCallback;
 struct ListBase;
 struct Main;
 struct Mesh;
@@ -410,6 +411,12 @@ struct ModifierTypeInfo {
       Object *object,
       ModifierData *md,
       blender::FunctionRef<void(const IDCacheKey &cache_key, void **cache_p, uint flags)> fn);
+
+  /**
+   * Iterate over all working space colors.
+   */
+  void (*foreach_working_space_color)(ModifierData *md,
+                                      const IDTypeForeachColorFunctionCallback &fn);
 };
 
 /** Used to set a modifier's panel type. */

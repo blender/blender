@@ -445,7 +445,7 @@ bool write_to_path(const void *data, size_t size, const std::string &path, Repor
   if (!ar.CanWriteAssetToPath(resolved_path, &why_not)) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "Cannot write to asset %s:  %s",
+                "Cannot write to asset %s: %s",
                 resolved_path.GetPathString().c_str(),
                 why_not.c_str());
     return false;

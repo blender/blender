@@ -769,7 +769,7 @@ typedef enum eWalkNavigation_Flag {
 /** #UserDef.uiflag */
 typedef enum eUserpref_UI_Flag {
   USER_NO_MULTITOUCH_GESTURES = (1 << 0),
-  USER_UIFLAG_UNUSED_1 = (1 << 1), /* cleared */
+  USER_REDUCE_MOTION = (1 << 1),
   USER_WHEELZOOMDIR = (1 << 2),
   USER_FILTERFILEEXTS = (1 << 3),
   USER_DRAWVIEWINFO = (1 << 4),
@@ -814,7 +814,7 @@ typedef enum eUserpref_UI_Flag {
  * \note don't add new flags here, use 'uiflag' which has flags free.
  */
 typedef enum eUserpref_UI_Flag2 {
-  USER_UIFLAG2_UNUSED_0 = (1 << 0), /* cleared */
+  USER_ALWAYS_SHOW_NUMBER_ARROWS = (1 << 0), /* cleared */
   USER_REGION_OVERLAP = (1 << 1),
   USER_UIFLAG2_UNUSED_2 = (1 << 2),
   USER_UIFLAG2_UNUSED_3 = (1 << 3), /* dirty */

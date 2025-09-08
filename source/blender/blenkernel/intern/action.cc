@@ -782,6 +782,7 @@ IDTypeInfo IDType_ID_AC = {
     /*foreach_id*/ blender::bke::action_foreach_id,
     /*foreach_cache*/ nullptr,
     /*foreach_path*/ nullptr,
+    /*foreach_working_space_color*/ nullptr,
     /*owner_pointer_get*/ nullptr,
 
     /*blend_write*/ blender::bke::action_blend_write,

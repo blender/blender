@@ -50,7 +50,7 @@ issue: https://projects.blender.org/blender/blender/issues/137983
 
 ### How the script works
 - First the script gathers all commits that contain `Fix #NUMBER` that
-occured between the two versions of Blender you're interested in.
+occurred between the two versions of Blender you're interested in.
   - This is done using:
   `git --no-pager log PREVIOUS_VERSION..CURRENT_VERSION --oneline -i -P --grep "Fix.*#+\d+"`
 - The script then extracts all report numbers (`#NUMBER`)
@@ -1033,7 +1033,7 @@ def validate_arguments(args: argparse.Namespace) -> bool:
     if len(args.backport_tasks) == 0:
         print("WARNING: (Optional) -bpt/--backport-tasks is not defined.")
         if not (args.silence or should_quit):
-            yes_no = input("Do you want to proceeed without it? (y/n)")
+            yes_no = input("Do you want to proceed without it? (y/n)")
             if yes_no.lower() == "n":
                 should_quit = True
 

@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "libocio_colorspace.hh"
+#include "OCIO_cpu_processor.hh"
+#include "intern/cpu_processor_cache.hh"
 
 #if defined(WITH_OPENCOLORIO)
 
@@ -183,6 +185,14 @@ LibOCIOColorSpace::LibOCIOColorSpace(const int index,
       break;
     }
   }
+
+  /* Special case that we can not handle as an alias, because it's a role too. */
+  if (interop_id_.is_empty()) {
+    const char *data_name = ocio_config->getRoleColorSpace(OCIO_NAMESPACE::ROLE_DATA);
+    if (data_name && STREQ(ocio_color_space->getName(), data_name)) {
+      interop_id_ = "data";
+    }
+  }
 }
 
 bool LibOCIOColorSpace::is_scene_linear() const
@@ -228,6 +238,13 @@ void LibOCIOColorSpace::ensure_srgb_scene_linear_info() const
   }
   color_space_is_builtin(ocio_config_, ocio_color_space_, is_scene_linear_, is_srgb_);
   is_info_cached_ = true;
+}
+
+void LibOCIOColorSpace::clear_caches()
+{
+  from_scene_linear_cpu_processor_ = CPUProcessorCache();
+  to_scene_linear_cpu_processor_ = CPUProcessorCache();
+  is_info_cached_ = false;
 }
 
 }  // namespace blender::ocio

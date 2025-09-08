@@ -307,7 +307,7 @@ DEPS_CRITICAL_SUBPACKAGES = (
 )
 
 
-# Basic mandatory set of common libraries to build Blender, which are also available as pre-conmpiled libraries.
+# Basic mandatory set of common libraries to build Blender, which are also available as pre-compiled libraries.
 DEPS_MANDATORY_SUBPACKAGES = (
     Package(name="JPEG Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libjpeg-dev",
@@ -403,7 +403,7 @@ DEPS_MANDATORY_SUBPACKAGES = (
 )
 
 
-# Basic optional set of common libraries to build Blender, which are also available as pre-conmpiled libraries.
+# Basic optional set of common libraries to build Blender, which are also available as pre-compiled libraries.
 DEPS_OPTIONAL_SUBPACKAGES = (
     Package(name="OpenJPG Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libopenjp2-7-dev",

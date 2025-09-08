@@ -85,7 +85,34 @@ class RENDER_PT_color_management(RenderButtonsPanel, Panel):
         col.prop(view, "exposure")
         col.prop(view, "gamma")
 
-        col.separator()
+
+class RENDER_PT_color_management_working_space(RenderButtonsPanel, Panel):
+    bl_label = "Working Space"
+    bl_parent_id = "RENDER_PT_color_management"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE',
+        'BLENDER_WORKBENCH',
+    }
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        scene = context.scene
+        blend_colorspace = context.blend_data.colorspace
+
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=False, even_rows=False, align=True)
+
+        col = flow.column()
+
+        split = col.split(factor=0.4)
+        row = split.row()
+        row.label(text="File")
+        row.alignment = 'RIGHT'
+        split.operator_menu_enum("wm.set_working_color_space", "working_space", text=blend_colorspace.working_space)
 
         col.prop(scene.sequencer_colorspace_settings, "name", text="Sequencer")
 
@@ -1112,6 +1139,7 @@ classes = (
     RENDER_PT_opengl_film,
     RENDER_PT_hydra_debug,
     RENDER_PT_color_management,
+    RENDER_PT_color_management_working_space,
     RENDER_PT_color_management_curves,
     RENDER_PT_color_management_white_balance_presets,
     RENDER_PT_color_management_white_balance,

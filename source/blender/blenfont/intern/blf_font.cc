@@ -145,7 +145,7 @@ static void blf_size_finalizer(void *object)
 /** \name FreeType Utilities (Internal)
  * \{ */
 
-uint blf_get_char_index(FontBLF *font, uint charcode)
+uint blf_get_char_index(FontBLF *font, const uint charcode)
 {
   if (font->flags & BLF_CACHED) {
     /* Use char-map cache for much faster lookup. */
@@ -156,7 +156,7 @@ uint blf_get_char_index(FontBLF *font, uint charcode)
 }
 
 /* Convert a FreeType 26.6 value representing an unscaled design size to fractional pixels. */
-static ft_pix blf_unscaled_F26Dot6_to_pixels(FontBLF *font, FT_Pos value)
+static ft_pix blf_unscaled_F26Dot6_to_pixels(FontBLF *font, const FT_Pos value)
 {
   /* Make sure we have a valid font->ft_size. */
   blf_ensure_size(font);
@@ -386,7 +386,7 @@ BLI_INLINE GlyphBLF *blf_glyph_from_utf8_and_step(FontBLF *font,
                                                   GlyphCacheBLF *gc,
                                                   const GlyphBLF *g_prev,
                                                   const char *str,
-                                                  size_t str_len,
+                                                  const size_t str_len,
                                                   size_t *i_p,
                                                   int32_t *pen_x)
 {
@@ -481,7 +481,7 @@ void blf_font_draw(FontBLF *font, const char *str, const size_t str_len, ResultB
 }
 
 int blf_font_draw_mono(
-    FontBLF *font, const char *str, const size_t str_len, int cwidth, int tab_columns)
+    FontBLF *font, const char *str, const size_t str_len, const int cwidth, const int tab_columns)
 {
   GlyphBLF *g;
   int columns = 0;
@@ -517,15 +517,16 @@ int blf_font_draw_mono(
 
 #ifndef WITH_HEADLESS
 void blf_draw_svg_icon(FontBLF *font,
-                       uint icon_id,
-                       float x,
-                       float y,
-                       float size,
+                       const uint icon_id,
+                       const float x,
+                       const float y,
+                       const float size,
                        const float color[4],
-                       float outline_alpha,
-                       bool multicolor,
+                       const float outline_alpha,
+                       const bool multicolor,
                        blender::FunctionRef<void(std::string &)> edit_source_cb)
 {
+  BLI_assert(outline_alpha <= 1.0f); /* Higher values overflow, caller must ensure. */
   blf_font_size(font, size);
   font->pos[0] = int(x);
   font->pos[1] = int(y);
@@ -563,11 +564,11 @@ void blf_draw_svg_icon(FontBLF *font,
 }
 
 blender::Array<uchar> blf_svg_icon_bitmap(FontBLF *font,
-                                          uint icon_id,
-                                          float size,
+                                          const uint icon_id,
+                                          const float size,
                                           int *r_width,
                                           int *r_height,
-                                          bool multicolor,
+                                          const bool multicolor,
                                           blender::FunctionRef<void(std::string &)> edit_source_cb)
 {
   blf_font_size(font, size);
@@ -725,8 +726,8 @@ static void blf_font_draw_buffer_ex(FontBLF *font,
                                     GlyphCacheBLF *gc,
                                     const char *str,
                                     const size_t str_len,
-                                    ResultBLF *r_info,
-                                    ft_pix pen_y)
+                                    const ft_pix pen_y,
+                                    ResultBLF *r_info)
 {
   GlyphBLF *g = nullptr;
   ft_pix pen_x = ft_pix_from_int(font->pos[0]);
@@ -757,7 +758,7 @@ static void blf_font_draw_buffer_ex(FontBLF *font,
 void blf_font_draw_buffer(FontBLF *font, const char *str, const size_t str_len, ResultBLF *r_info)
 {
   GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
-  blf_font_draw_buffer_ex(font, gc, str, str_len, r_info, 0);
+  blf_font_draw_buffer_ex(font, gc, str, str_len, 0, r_info);
   blf_glyph_cache_release(font);
 }
 
@@ -1466,10 +1467,10 @@ static void blf_font_draw_buffer__wrap_cb(FontBLF *font,
                                           GlyphCacheBLF *gc,
                                           const char *str,
                                           const size_t str_len,
-                                          ft_pix pen_y,
+                                          const ft_pix pen_y,
                                           void * /*userdata*/)
 {
-  blf_font_draw_buffer_ex(font, gc, str, str_len, nullptr, pen_y);
+  blf_font_draw_buffer_ex(font, gc, str, str_len, pen_y, nullptr);
 }
 void blf_font_draw_buffer__wrap(FontBLF *font,
                                 const char *str,
@@ -1491,7 +1492,7 @@ static void blf_font_string_wrap_cb(FontBLF * /*font*/,
                                     GlyphCacheBLF * /*gc*/,
                                     const char *str,
                                     const size_t str_len,
-                                    ft_pix /*pen_y*/,
+                                    const ft_pix /*pen_y*/,
                                     void *str_list_ptr)
 {
   blender::Vector<blender::StringRef> *list = static_cast<blender::Vector<blender::StringRef> *>(

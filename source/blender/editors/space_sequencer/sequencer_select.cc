@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "BLI_lasso_2d.hh"
 #include "BLI_rect.h"
 #include "MEM_guardedalloc.h"
 
@@ -18,6 +19,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
+#include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -1335,7 +1337,7 @@ wmOperatorStatus sequencer_select_exec(bContext *C, wmOperator *op)
   if (copy_handles_to_sel) {
     copy_to = seq::query_selected_strips(seq::active_seqbase_get(scene->ed));
     copy_to.remove(selection.strip1);
-    copy_to.remove_if([](Strip *strip) { return (strip->type & STRIP_TYPE_EFFECT); });
+    copy_to.remove_if([](Strip *strip) { return strip->is_effect(); });
   }
 
   bool changed = false;
@@ -2325,7 +2327,176 @@ void SEQUENCER_OT_select_box(wmOperatorType *ot)
                          "Select strips individually whether or not they are connected");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
+/** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Lasso Select Operator
+ * \{ */
+static bool do_lasso_select_is_origin_inside(const ARegion *region,
+                                             const rcti *clip_rect,
+                                             const Span<int2> mcoords,
+                                             const float co_test[2])
+{
+  int co_screen[2];
+  if (UI_view2d_view_to_region_clip(
+          &region->v2d, co_test[0], co_test[1], &co_screen[0], &co_screen[1]) &&
+      BLI_rcti_isect_pt_v(clip_rect, co_screen) &&
+      BLI_lasso_is_point_inside(mcoords, co_screen[0], co_screen[1], V2D_IS_CLIPPED))
+  {
+    return true;
+  }
+  return false;
+}
+
+static bool rcti_in_lasso(const rcti rect, const Span<int2> mcoords)
+{
+  rcti lasso_rect;
+  BLI_lasso_boundbox(&lasso_rect, mcoords);
+  /* Check if edge of strip is in the lasso. */
+  if (BLI_lasso_is_edge_inside(
+          mcoords, rect.xmin, rect.ymin, rect.xmax, rect.ymin, V2D_IS_CLIPPED) ||
+      BLI_lasso_is_edge_inside(
+          mcoords, rect.xmax, rect.ymin, rect.xmax, rect.ymax, V2D_IS_CLIPPED) ||
+      BLI_lasso_is_edge_inside(
+          mcoords, rect.xmax, rect.ymax, rect.xmin, rect.ymax, V2D_IS_CLIPPED) ||
+      BLI_lasso_is_edge_inside(
+          mcoords, rect.xmin, rect.ymax, rect.xmin, rect.ymin, V2D_IS_CLIPPED))
+  {
+    return true;
+  }
+
+  /* Check if lasso is in the strip rect. Used when the lasso is only inside one strip. */
+  if (BLI_rcti_inside_rcti(&rect, &lasso_rect)) {
+    return true;
+  }
+  return false;
+}
+
+static bool do_lasso_select_timeline(bContext *C,
+                                     const Span<int2> mcoords,
+                                     ARegion *region,
+                                     const eSelectOp sel_op)
+{
+  Scene *scene = CTX_data_scene(C);
+  Editing *ed = seq::editing_get(scene);
+
+  bool changed = false;
+  const bool select = (sel_op != SEL_OP_SUB);
+
+  LISTBASE_FOREACH (Strip *, strip, &ed->seqbase) {
+    rctf strip_rct;
+    rcti region_rct;
+    strip_rectf(scene, strip, &strip_rct);
+    UI_view2d_view_to_region_clip(
+        &region->v2d, strip_rct.xmin, strip_rct.ymin, &region_rct.xmin, &region_rct.ymin);
+    UI_view2d_view_to_region_clip(
+        &region->v2d, strip_rct.xmax, strip_rct.ymax, &region_rct.xmax, &region_rct.ymax);
+
+    if (rcti_in_lasso(region_rct, mcoords)) {
+      SET_FLAG_FROM_TEST(strip->flag, select, SELECT);
+      changed = true;
+    }
+  }
+  return changed;
+}
+
+static bool do_lasso_select_preview(bContext *C,
+                                    Editing *ed,
+                                    const Span<int2> mcoords,
+                                    const eSelectOp sel_op)
+{
+  Scene *scene = CTX_data_scene(C);
+  const ARegion *region = CTX_wm_region(C);
+
+  bool changed = false;
+  rcti rect;
+  BLI_lasso_boundbox(&rect, mcoords);
+
+  ListBase *seqbase = seq::active_seqbase_get(ed);
+  ListBase *channels = seq::channels_displayed_get(ed);
+  SpaceSeq *sseq = CTX_wm_space_seq(C);
+
+  blender::VectorSet strips = seq::query_rendered_strips(
+      scene, channels, seqbase, scene->r.cfra, sseq->chanshown);
+  for (Strip *strip : strips) {
+    float2 origin = seq::image_transform_origin_offset_pixelspace_get(scene, strip);
+    if (do_lasso_select_is_origin_inside(region, &rect, mcoords, origin)) {
+      changed = true;
+      if (ELEM(sel_op, SEL_OP_ADD, SEL_OP_SET)) {
+        strip->flag |= SELECT;
+      }
+      else {
+        BLI_assert(sel_op == SEL_OP_SUB);
+        strip->flag &= ~SELECT;
+      }
+    }
+  }
+
+  return changed;
+}
+
+static wmOperatorStatus vse_lasso_select_exec(bContext *C, wmOperator *op)
+{
+  Scene *scene = CTX_data_scene(C);
+  ARegion *region = CTX_wm_region(C);
+  Array<int2> mcoords = WM_gesture_lasso_path_to_array(C, op);
+  Editing *ed = seq::editing_get(scene);
+
+  if (ed == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+
+  if (mcoords.is_empty()) {
+    return OPERATOR_PASS_THROUGH;
+  }
+
+  const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
+  const bool use_pre_deselect = SEL_OP_USE_PRE_DESELECT(sel_op);
+  bool changed = false;
+
+  if (use_pre_deselect) {
+    changed |= deselect_all_strips(scene);
+  }
+
+  if (region->regiontype == RGN_TYPE_PREVIEW) {
+    changed = do_lasso_select_preview(C, ed, mcoords, sel_op);
+  }
+  else {
+    changed = do_lasso_select_timeline(C, mcoords, region, sel_op);
+  }
+
+  if (changed) {
+    sequencer_select_do_updates(C, scene);
+    return OPERATOR_FINISHED;
+  }
+
+  return OPERATOR_CANCELLED;
+}
+
+void SEQUENCER_OT_select_lasso(wmOperatorType *ot)
+{
+  ot->name = "Lasso Select";
+  ot->description = "Select strips using lasso selection";
+  ot->idname = "SEQUENCER_OT_select_lasso";
+
+  ot->invoke = WM_gesture_lasso_invoke;
+  ot->modal = WM_gesture_lasso_modal;
+  ot->exec = vse_lasso_select_exec;
+  ot->poll = ED_operator_sequencer_active;
+  ot->cancel = WM_gesture_lasso_cancel;
+
+  /* flags */
+  ot->flag = OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
+
+  /* properties */
+  WM_operator_properties_gesture_lasso(ot);
+  WM_operator_properties_select_operation_simple(ot);
+}
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Circle Select Operator
+ * \{ */
 static bool strip_circle_select_radius_image_isect(const Scene *scene,
                                                    const Strip *strip,
                                                    const int *radius,
@@ -2528,10 +2699,7 @@ static const EnumPropertyItem sequencer_prop_select_grouped_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-#define STRIP_IS_SOUND(_strip) \
-  ((_strip->type & STRIP_TYPE_SOUND_RAM) && !(_strip->type & STRIP_TYPE_EFFECT))
-
-#define STRIP_IS_EFFECT(_strip) ((_strip->type & STRIP_TYPE_EFFECT) != 0)
+#define STRIP_IS_SOUND(_strip) (_strip->type == STRIP_TYPE_SOUND_RAM)
 
 #define STRIP_USE_DATA(_strip) \
   (ELEM(_strip->type, STRIP_TYPE_SCENE, STRIP_TYPE_MOVIECLIP, STRIP_TYPE_MASK) || \
@@ -2582,11 +2750,11 @@ static bool select_grouped_type_effect(blender::Span<Strip *> strips,
                                        const int channel)
 {
   bool changed = false;
-  const bool is_effect = STRIP_IS_EFFECT(act_strip);
+  const bool is_effect = act_strip->is_effect();
 
   for (Strip *strip : strips) {
     if (STRIP_CHANNEL_CHECK(strip, channel) &&
-        (is_effect ? STRIP_IS_EFFECT(strip) : !STRIP_IS_EFFECT(strip)))
+        (is_effect ? strip->is_effect() : !strip->is_effect()))
     {
       strip->flag |= SELECT;
       changed = true;
@@ -2661,22 +2829,18 @@ static bool select_grouped_effect(blender::Span<Strip *> strips,
                                   const int channel)
 {
   bool changed = false;
-  bool effects[STRIP_TYPE_MAX + 1];
+  blender::Set<StripType> effects;
 
-  for (int i = 0; i <= STRIP_TYPE_MAX; i++) {
-    effects[i] = false;
-  }
-
-  for (Strip *strip : strips) {
-    if (STRIP_CHANNEL_CHECK(strip, channel) && (strip->type & STRIP_TYPE_EFFECT) &&
+  for (const Strip *strip : strips) {
+    if (STRIP_CHANNEL_CHECK(strip, channel) && strip->is_effect() &&
         seq::relation_is_effect_of_strip(strip, act_strip))
     {
-      effects[strip->type] = true;
+      effects.add(StripType(strip->type));
     }
   }
 
   for (Strip *strip : strips) {
-    if (STRIP_CHANNEL_CHECK(strip, channel) && effects[strip->type]) {
+    if (STRIP_CHANNEL_CHECK(strip, channel) && effects.contains(StripType(strip->type))) {
       if (strip->input1) {
         strip->input1->flag |= SELECT;
       }
@@ -2760,7 +2924,6 @@ static bool select_grouped_effect_link(const Scene *scene,
 }
 
 #undef STRIP_IS_SOUND
-#undef STRIP_IS_EFFECT
 #undef STRIP_USE_DATA
 
 static wmOperatorStatus sequencer_select_grouped_exec(bContext *C, wmOperator *op)

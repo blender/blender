@@ -3246,6 +3246,10 @@ def km_sequencer_preview(params):
          {"properties": [("unselected", False)]}),
         ("sequencer.delete", {"type": 'X', "value": 'PRESS'}, None),
         ("sequencer.delete", {"type": 'DEL', "value": 'PRESS'}, None),
+        ("sequencer.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "ctrl": True},
+         {"properties": [("mode", 'ADD')]}),
+        ("sequencer.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "shift": True, "ctrl": True},
+         {"properties": [("mode", 'SUB')]}),
         ("sequencer.copy", {"type": 'C', "value": 'PRESS', "ctrl": True}, None),
         ("sequencer.paste", {"type": 'V', "value": 'PRESS', "ctrl": True}, None),
         ("sequencer.paste", {"type": 'V', "value": 'PRESS', "ctrl": True, "shift": True},
@@ -7832,6 +7836,35 @@ def km_3d_view_tool_edit_curve_pen(params):
     )
 
 
+def km_3d_view_tool_edit_curves_pen(params):
+    return (
+        "3D View Tool: Edit Curves, Pen",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("curves.pen", {"type": params.tool_mouse, "value": 'PRESS'},
+             {"properties": [
+                 ("extrude_point", True),
+                 ("move_segment", True),
+                 ("select_point", True),
+                 ("move_point", True),
+                 ("extrude_handle", "VECTOR"),
+             ]}),
+            ("curves.pen", {"type": params.tool_mouse, "value": 'PRESS', "shift": True},
+             {"properties": [
+                 ("extrude_point", True),
+                 ("move_segment", True),
+                 ("select_point", True),
+                 ("move_point", True),
+                 ("extrude_handle", "AUTO"),
+             ]}),
+            ("curves.pen", {"type": params.tool_mouse, "value": 'PRESS', "ctrl": True},
+             {"properties": [("insert_point", True), ("delete_point", True)]}),
+            ("curves.pen", {"type": params.tool_mouse, "value": 'DOUBLE_CLICK'},
+             {"properties": [("cycle_handle_type", True)]}),
+        ]},
+    )
+
+
 def km_3d_view_tool_edit_curve_tilt(params):
     return (
         "3D View Tool: Edit Curve, Tilt",
@@ -8342,7 +8375,7 @@ def km_grease_pencil_interpolate_tool_modal_map(_params):
     return keymap
 
 
-def km_grease_pencil_pen_tool_modal_map(_params):
+def km_pen_tool_modal_map(_params):
     items = []
     keymap = (
         "Pen Tool Modal Map",
@@ -8451,6 +8484,19 @@ def km_sequencer_tool_generic_select_box(params, *, fallback):
     )
 
 
+def km_sequencer_tool_generic_select_lasso(params, *, fallback):
+    return (
+        _fallback_id("Sequencer Tool: Select Lasso", fallback),
+        {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
+        {"items": [
+            *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple(
+                "sequencer.select_lasso",
+                **(params.select_tweak_event if (fallback and params.use_fallback_tool_select_mouse) else
+                   params.tool_tweak_event))),
+        ]},
+    )
+
+
 def km_sequencer_tool_generic_select_circle(params, *, fallback):
     return (
         _fallback_id("Sequencer Tool: Select Circle", fallback),
@@ -8492,6 +8538,19 @@ def km_sequencer_preview_tool_generic_select_box(params, *, fallback):
             # Don't use `tool_maybe_tweak_event`, see comment for this slot.
             *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple(
                 "sequencer.select_box",
+                **(params.select_tweak_event if (fallback and params.use_fallback_tool_select_mouse) else
+                   params.tool_tweak_event))),
+        ]},
+    )
+
+
+def km_sequencer_preview_tool_generic_select_lasso(params, *, fallback):
+    return (
+        _fallback_id("Preview Tool: Select Lasso", fallback),
+        {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
+        {"items": [
+            *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple(
+                "sequencer.select_lasso",
                 **(params.select_tweak_event if (fallback and params.use_fallback_tool_select_mouse) else
                    params.tool_tweak_event))),
         ]},
@@ -8753,10 +8812,10 @@ def generate_keymaps(params=None):
         km_sculpt_expand_modal(params),
         km_sculpt_mesh_filter_modal_map(params),
         km_curve_pen_modal_map(params),
+        km_pen_tool_modal_map(params),
         km_node_link_modal_map(params),
         km_node_resize_modal_map(params),
         km_grease_pencil_primitive_tool_modal_map(params),
-        km_grease_pencil_pen_tool_modal_map(params),
         km_grease_pencil_fill_tool_modal_map(params),
         km_grease_pencil_interpolate_tool_modal_map(params),
         km_sequencer_slip_modal_map(params),
@@ -8860,6 +8919,7 @@ def generate_keymaps(params=None):
         km_3d_view_tool_edit_curve_extrude(params),
         km_3d_view_tool_edit_curve_extrude_to_cursor(params),
         km_3d_view_tool_edit_curves_draw(params),
+        km_3d_view_tool_edit_curves_pen(params),
         km_3d_view_tool_sculpt_box_mask(params),
         km_3d_view_tool_sculpt_lasso_mask(params),
         km_3d_view_tool_sculpt_line_mask(params),
@@ -8896,6 +8956,10 @@ def generate_keymaps(params=None):
         *(km_sequencer_preview_tool_generic_select(params, fallback=fallback)
           for fallback in (False, True)),
         *(km_sequencer_preview_tool_generic_select_box(params, fallback=fallback)
+          for fallback in (False, True)),
+        *(km_sequencer_tool_generic_select_lasso(params, fallback=fallback)
+          for fallback in (False, True)),
+        *(km_sequencer_preview_tool_generic_select_lasso(params, fallback=fallback)
           for fallback in (False, True)),
         *(km_sequencer_preview_tool_generic_select_circle(params, fallback=fallback)
           for fallback in (False, True)),

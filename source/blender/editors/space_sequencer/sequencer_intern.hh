@@ -274,6 +274,7 @@ void SEQUENCER_OT_select_linked_pick(wmOperatorType *ot);
 void SEQUENCER_OT_select_handles(wmOperatorType *ot);
 void SEQUENCER_OT_select_side(wmOperatorType *ot);
 void SEQUENCER_OT_select_box(wmOperatorType *ot);
+void SEQUENCER_OT_select_lasso(wmOperatorType *ot);
 void SEQUENCER_OT_select_circle(wmOperatorType *ot);
 void SEQUENCER_OT_select_inverse(wmOperatorType *ot);
 void SEQUENCER_OT_select_grouped(wmOperatorType *ot);
@@ -406,6 +407,9 @@ blender::Vector<Strip *> sequencer_visible_strips_get(const Scene *scene, const 
 /* `sequencer_clipboard.cc` */
 wmOperatorStatus sequencer_clipboard_copy_exec(bContext *C, wmOperator *op);
 wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op);
+wmOperatorStatus sequencer_clipboard_paste_invoke(bContext *C,
+                                                  wmOperator *op,
+                                                  const wmEvent *event);
 
 /* `sequencer_add_menu_scene_assets.cc` */
 MenuType add_catalog_assets_menu_type();

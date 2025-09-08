@@ -567,8 +567,18 @@ static void curvemap_buttons_layout(uiLayout *layout,
   /* Curve itself. */
   const int size = max_ii(layout->width(), UI_UNIT_X);
   row = &layout->row(false);
-  uiButCurveMapping *curve_but = (uiButCurveMapping *)uiDefBut(
-      block, ButType::Curve, 0, "", 0, 0, size, 8.0f * UI_UNIT_X, cumap, 0.0f, 1.0f, "");
+  uiButCurveMapping *curve_but = (uiButCurveMapping *)uiDefBut(block,
+                                                               ButType::Curve,
+                                                               0,
+                                                               IFACE_("Edit Curve Map"),
+                                                               0,
+                                                               0,
+                                                               size,
+                                                               8.0f * UI_UNIT_X,
+                                                               cumap,
+                                                               0.0f,
+                                                               1.0f,
+                                                               "");
   curve_but->gradient_type = bg;
 
   /* Sliders for selected curve point. */

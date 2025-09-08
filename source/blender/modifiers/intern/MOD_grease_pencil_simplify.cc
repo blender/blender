@@ -272,4 +272,5 @@ ModifierTypeInfo modifierType_GreasePencilSimplify = {
     /*blend_write*/ blender::blend_write,
     /*blend_read*/ blender::blend_read,
     /*foreach_cache*/ nullptr,
+    /*foreach_working_space_color*/ nullptr,
 };

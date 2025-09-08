@@ -280,6 +280,9 @@ def main():
     if (test_dir_name in {'volume', 'openvdb'}):
         report.set_fail_threshold(0.048)
         report.set_fail_percent(3)
+    # OSL blackbody output is a little different.
+    if (test_dir_name in {'colorspace'}):
+        report.set_fail_threshold(0.05)
 
     ok = report.run(args.testdir, args.blender, get_arguments, batch=args.batch)
 

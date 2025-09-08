@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <cstring>
 
+#include "BLI_math_vector_types.hh"
 #include "BLO_readfile.hh"
 #include "BLO_writefile.hh"
 #include "MEM_guardedalloc.h"
@@ -42,6 +43,7 @@
 
 #include "SEQ_animation.hh"
 #include "SEQ_iterator.hh"
+#include "SEQ_relations.hh"
 #include "SEQ_select.hh"
 #include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
@@ -55,6 +57,7 @@
 #include "ANIM_action_legacy.hh"
 #include "ANIM_animdata.hh"
 
+#include "UI_view2d.hh"
 #include "WM_api.hh"
 #include "WM_types.hh"
 
@@ -396,6 +399,15 @@ static bool sequencer_paste_animation(Main *bmain_dst, Scene *scene_dst, Scene *
   return true;
 }
 
+wmOperatorStatus sequencer_clipboard_paste_invoke(bContext *C,
+                                                  wmOperator *op,
+                                                  const wmEvent *event)
+{
+  RNA_int_set(op->ptr, "x", event->mval[0]);
+  RNA_int_set(op->ptr, "y", event->mval[1]);
+  return sequencer_clipboard_paste_exec(C, op);
+}
+
 wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
 {
   char filepath[FILE_MAX];
@@ -403,6 +415,14 @@ wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
   const BlendFileReadParams params{};
   BlendFileReadReport bf_reports{};
   BlendFileData *bfd = BKE_blendfile_read(filepath, &params, &bf_reports);
+  const int mval[2] = {RNA_int_get(op->ptr, "x"), RNA_int_get(op->ptr, "y")};
+  float2 view_mval;
+  View2D *v2d = UI_view2d_fromcontext(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
+  UI_view2d_region_to_view(v2d, mval[0], mval[1], &view_mval[0], &view_mval[1]);
+
+  /* For checking if region type is Preview. */
+  ARegion *region = CTX_wm_region(C);
 
   if (bfd == nullptr) {
     BKE_report(op->reports, RPT_INFO, "No data to paste");
@@ -440,7 +460,7 @@ wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
   int ofs;
 
   deselect_all_strips(scene_dst);
-  if (RNA_boolean_get(op->ptr, "keep_offset")) {
+  if (RNA_boolean_get(op->ptr, "keep_offset") || (region->regiontype == RGN_TYPE_PREVIEW)) {
     ofs = scene_dst->r.cfra - scene_src->r.cfra;
   }
   else {
@@ -501,6 +521,7 @@ wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
   /* Restore "first" pointer as BLI_movelisttolist sets it to nullptr */
   nseqbase.first = iseq_first;
 
+  int2 strip_mean_pos = {0, 0};
   LISTBASE_FOREACH (Strip *, istrip, &nseqbase) {
     if (istrip->name == active_seq_name) {
       seq::select_active_set(scene_dst, istrip);
@@ -508,7 +529,12 @@ wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
     /* Make sure, that pasted strips have unique names. This has to be done after
      * adding strips to seqbase, for lookup cache to work correctly. */
     seq::ensure_unique_name(istrip, scene_dst);
+
+    strip_mean_pos += static_cast<int2>(
+        seq::image_transform_origin_offset_pixelspace_get(scene, istrip));
   }
+
+  strip_mean_pos /= BLI_listbase_count(&nseqbase);
 
   LISTBASE_FOREACH (Strip *, istrip, &nseqbase) {
     /* Translate after name has been changed, otherwise this will affect animdata of original
@@ -517,6 +543,14 @@ wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
     /* Ensure, that pasted strips don't overlap. */
     if (seq::transform_test_overlap(scene_dst, ed_dst->current_strips(), istrip)) {
       seq::transform_seqbase_shuffle(ed_dst->current_strips(), istrip, scene_dst);
+    }
+    if (region->regiontype == RGN_TYPE_PREVIEW && !(RNA_boolean_get(op->ptr, "keep_offset"))) {
+      StripTransform *transform = istrip->data->transform;
+      const float2 mirror = seq::image_transform_mirror_factor_get(istrip);
+      const float2 origin = seq::image_transform_origin_offset_pixelspace_get(scene, istrip);
+      transform->xofs = (view_mval[0] - (strip_mean_pos[0] - origin[0])) * mirror[0];
+      transform->yofs = (view_mval[1] - (strip_mean_pos[1] - origin[1])) * mirror[1];
+      seq::relations_invalidate_cache(scene, istrip);
     }
   }
 

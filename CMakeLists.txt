@@ -51,7 +51,7 @@ if(NOT DEFINED CMAKE_INSTALL_MESSAGE)
   set(CMAKE_INSTALL_MESSAGE "LAZY")
 endif()
 
-# quiet output for Makefiles, 'make -s' helps too
+# quiet output for Makefiles, `make -s` helps too
 # set_property(GLOBAL PROPERTY RULE_MESSAGES OFF)
 
 # -----------------------------------------------------------------------------
@@ -533,7 +533,7 @@ option(WITH_LIBMV "Enable Libmv structure from motion library" ON)
 option(WITH_LIBMV_SCHUR_SPECIALIZATIONS "Enable fixed-size schur specializations." ON)
 mark_as_advanced(WITH_LIBMV_SCHUR_SPECIALIZATIONS)
 
-# Logging/unbit test libraries.
+# Logging/unit test libraries.
 option(WITH_SYSTEM_GFLAGS "Use system-wide Gflags instead of a bundled one" OFF)
 option(WITH_SYSTEM_GLOG "Use system-wide Glog instead of a bundled one" OFF)
 mark_as_advanced(WITH_SYSTEM_GFLAGS)
@@ -908,7 +908,7 @@ mark_as_advanced(WITH_SYSTEM_PYTHON_TESTS)
 # We could use `find_package (Python3 COMPONENTS Interpreter)` to set that value automatically.
 # However, on some buildbots this will give the default Python version of the current virtual
 # environment, which may differ from the OS default Python version.
-# And it would set that global 'python3 exec path' CMake value for all CMake scripts,
+# And it would set that global `python3 exec path` CMake value for all CMake scripts,
 # which could have unexpected and dangerous side effects.
 # So this has to be set explicitly for all builders.
 set(TEST_SYSTEM_PYTHON_EXE "" CACHE PATH "Python executable used to run 'system python' tests")
@@ -1348,7 +1348,7 @@ set_and_warn_dependency(WITH_TBB WITH_MOD_FLUID         OFF)
 # NanoVDB requires OpenVDB to convert the data structure
 set_and_warn_dependency(WITH_OPENVDB WITH_NANOVDB       OFF)
 
-# OpenVDB, Alembic and OSL uses 'half' or 'imath' from OpenEXR
+# OpenVDB, Alembic and OSL uses `half` or `imath` from OpenEXR
 set_and_warn_dependency(WITH_IMAGE_OPENEXR WITH_OPENVDB OFF)
 set_and_warn_dependency(WITH_IMAGE_OPENEXR WITH_ALEMBIC OFF)
 set_and_warn_dependency(WITH_IMAGE_OPENEXR WITH_CYCLES_OSL OFF)
@@ -1653,8 +1653,8 @@ if(WITH_METAL_BACKEND)
   add_definitions(-DWITH_METAL_BACKEND)
 
   # No need to add frameworks here, all the ones we need for Metal and
-  # Metal-OpenGL Interop are already being added by
-  # build_files/cmake/platform/platform_apple.cmake
+  # Metal-OpenGL Interoperability are already being added by
+  # `build_files/cmake/platform/platform_apple.cmake`.
 endif()
 
 
@@ -1729,7 +1729,7 @@ include(dependency_targets)
 # -----------------------------------------------------------------------------
 # Ninja Job Limiting
 
-# Extra limits to number of jobs running in parallel for some kind os tasks.
+# Extra limits to number of jobs running in parallel for some kind OS tasks.
 # Only supported by Ninja build system currently.
 
 if("${CMAKE_GENERATOR}" MATCHES "Ninja" AND WITH_NINJA_POOL_JOBS)
@@ -1779,7 +1779,7 @@ Keep at '0' to automatically compute optimal values for each build."
   endif()
   if(${_link_jobs} LESS 1)
     # Heuristics: Maximum amount of memory needed per linking task.
-    # Note: These values are purposedly over-estimated by 10-15% at least, to account
+    # Note: These values are purposely over-estimated by 10-15% at least, to account
     #       for other types of jobs' memory usage, other system memory usages, etc.
     set(_link_mem 10000)
     if(WITH_COMPILER_ASAN)
@@ -1826,7 +1826,7 @@ Keep at '0' to automatically compute optimal values for each build."
   endif()
   if(${_compile_heavy_jobs} LESS 1)
     # Heuristics: Maximum amount of memory needed per heavy compile task.
-    # Note: These values are purposedly over-estimated by 10-15% at least, to account
+    # Note: These values are purposely over-estimated by 10-15% at least, to account
     #       for other types of jobs' memory usage, other system memory usages, etc.
     set(_compile_heavy_mem 2000)
     if(WITH_COMPILER_ASAN)
@@ -1977,8 +1977,8 @@ if(CMAKE_COMPILER_IS_GNUCC)
     C_WARN_REDUNDANT_DECLS -Wredundant-decls
     C_WARN_SHADOW -Wshadow
 
-    # Disable because it gives warnings for printf() & friends.
-    # C_WARN_DOUBLE_PROMOTION "-Wdouble-promotion -Wno-error=double-promotion"
+    # Disable because it gives warnings for `printf()` & friends.
+    # C_WARN_DOUBLE_PROMOTION `-Wdouble-promotion -Wno-error=double-promotion`
 
     # Use `ATTR_FALLTHROUGH` macro to suppress.
     C_WARN_IMPLICIT_FALLTHROUGH -Wimplicit-fallthrough=5
@@ -2127,7 +2127,7 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
     CXX_WARN_NO_UNKNOWN_PRAGMAS -Wno-unknown-pragmas
     CXX_WARN_NO_CHAR_SUBSCRIPTS -Wno-char-subscripts
 
-    # We get a lot of these, if its a problem a dev needs to look into it.
+    # We get a lot of these, if its a problem a developer needs to look into it.
     CXX_WARN_NO_OVERLOADED_VIRTUAL -Wno-overloaded-virtual
 
     CXX_WARN_NO_SIGN_COMPARE -Wno-sign-compare
@@ -2150,7 +2150,7 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
     CXX_WARN_ERROR_UNGUARDED_AVAILABILITY_NEW -Werror=unguarded-availability-new
   )
   if(MSVC_CLANG)
-    # clang-cl produces an unhealthy ammount of warnings in its default
+    # clang-cl produces an unhealthy amount of warnings in its default
     # configuration as it for reasons unknown decided to enable all
     # warnings known to mankind. Resulting in a 5.5GB build log containing
     # well over 11 million warnings. The code below disables every single
@@ -2165,7 +2165,7 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
     # /W3 is being removed, then added back again, this is because order
     # matters for clang and these flags are being placed before the
     # CMAKE_[LANGUAGE]_FLAGS which normally contain /W3, so we would
-    # disable certain warings here only for them to be re-enabled by /W3
+    # disable certain warnings here only for them to be re-enabled by /W3
     # later on.
     remove_cc_flag("/W3")
 
@@ -2623,7 +2623,7 @@ if(CMAKE_COMPILER_IS_GNUCC OR
 endif()
 
 if(WITH_COMPILER_SHORT_FILE_MACRO)
-  # Use '-fmacro-prefix-map' for Clang and GCC (MSVC doesn't support this).
+  # Use `-fmacro-prefix-map` for Clang and GCC (MSVC doesn't support this).
   set(C_PREFIX_MAP_FLAGS "")
   set(CXX_PREFIX_MAP_FLAGS "")
   add_check_c_compiler_flags(

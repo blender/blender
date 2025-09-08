@@ -161,6 +161,12 @@ void BKE_paint_free(Paint *paint);
  */
 void BKE_paint_copy(const Paint *src, Paint *dst, int flag);
 
+/**
+ * Iterate over all paint settings in a scene.
+ */
+void BKE_paint_settings_foreach_mode(ToolSettings *ts,
+                                     blender::FunctionRef<void(Paint *paint)> fn);
+
 void BKE_paint_cavity_curve_preset(Paint *paint, int preset);
 
 eObjectMode BKE_paint_object_mode_from_paintmode(PaintMode mode);

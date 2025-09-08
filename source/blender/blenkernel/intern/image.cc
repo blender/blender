@@ -938,7 +938,7 @@ int BKE_image_find_nearest_tile_with_offset(const Image *image,
                                             const float co[2],
                                             float r_uv_offset[2])
 {
-  /* NOTE: If the co-ordinates are integers, take special care to break ties. */
+  /* NOTE: If the coordinates are integers, take special care to break ties. */
 
   zero_v2(r_uv_offset);
   int tile_number_best = -1;
@@ -1527,6 +1527,10 @@ void BKE_image_packfiles_from_mem(ReportList *reports,
     imapf->view = 0;
     imapf->tile_number = 1001;
     STRNCPY(imapf->filepath, ima->filepath);
+
+    /* The image should not be marked as "generated" since image data was provided. */
+    ImageTile *base_tile = BKE_image_get_tile(ima, 0);
+    base_tile->gen_flag &= ~IMA_GEN_TILE;
   }
 }
 

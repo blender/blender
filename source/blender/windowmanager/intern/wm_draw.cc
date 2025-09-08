@@ -988,17 +988,8 @@ static void wm_draw_area_offscreen(bContext *C, wmWindow *win, ScrArea *area, bo
 
   if (area->flag & AREA_FLAG_ACTIVE_TOOL_UPDATE) {
     if ((1 << area->spacetype) & WM_TOOLSYSTEM_SPACE_MASK) {
-      if (area->spacetype == SPACE_SEQ) {
-        Scene *scene = CTX_data_sequencer_scene(C);
-        if (scene) {
-          WM_toolsystem_update_from_context(
-              C, CTX_wm_workspace(C), scene, BKE_view_layer_default_render(scene), area);
-        }
-      }
-      else {
-        WM_toolsystem_update_from_context(
-            C, CTX_wm_workspace(C), CTX_data_scene(C), CTX_data_view_layer(C), area);
-      }
+      WM_toolsystem_update_from_context(
+          C, CTX_wm_workspace(C), CTX_data_scene(C), CTX_data_view_layer(C), area);
     }
     area->flag &= ~AREA_FLAG_ACTIVE_TOOL_UPDATE;
   }

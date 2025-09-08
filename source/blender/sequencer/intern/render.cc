@@ -402,7 +402,7 @@ static bool seq_input_have_to_preprocess(const RenderData *context,
 
   mul = strip->mul;
 
-  if (strip->blend_mode == SEQ_BLEND_REPLACE) {
+  if (strip->blend_mode == STRIP_BLEND_REPLACE) {
     mul *= strip->blend_opacity / 100.0f;
   }
 
@@ -432,8 +432,7 @@ static bool seq_need_scale_to_render_size(const Strip *strip, bool is_proxy_imag
   if (is_proxy_image) {
     return false;
   }
-  if ((strip->type & STRIP_TYPE_EFFECT) != 0 || strip->type == STRIP_TYPE_MASK ||
-      strip->type == STRIP_TYPE_META ||
+  if (strip->is_effect() || strip->type == STRIP_TYPE_MASK || strip->type == STRIP_TYPE_META ||
       (strip->type == STRIP_TYPE_SCENE && ((strip->flag & SEQ_SCENE_STRIPS) != 0)))
   {
     return false;
@@ -682,7 +681,7 @@ static ImBuf *input_preprocess(const RenderData *context,
   }
 
   float mul = strip->mul;
-  if (strip->blend_mode == SEQ_BLEND_REPLACE) {
+  if (strip->blend_mode == STRIP_BLEND_REPLACE) {
     mul *= strip->blend_opacity / 100.0f;
   }
 
@@ -712,7 +711,7 @@ static ImBuf *seq_render_preprocess_ibuf(const RenderData *context,
   }
 
   /* Proxies and non-generator effect strips are not stored in cache. */
-  const bool is_effect_with_inputs = (strip->type & STRIP_TYPE_EFFECT) != 0 &&
+  const bool is_effect_with_inputs = strip->is_effect() &&
                                      (effect_get_num_inputs(strip->type) != 0 ||
                                       (strip->type == STRIP_TYPE_ADJUSTMENT));
   if (!is_proxy_image && !is_effect_with_inputs) {
@@ -1658,20 +1657,14 @@ static ImBuf *do_render_strip_uncached(const RenderData *context,
 {
   ImBuf *ibuf = nullptr;
   float frame_index = give_frame_index(context->scene, strip, timeline_frame);
-  int type = (strip->type & STRIP_TYPE_EFFECT) ? STRIP_TYPE_EFFECT : strip->type;
-  switch (type) {
-    case STRIP_TYPE_META: {
-      ibuf = do_render_strip_seqbase(context, state, strip, frame_index);
-      break;
-    }
-
-    case STRIP_TYPE_SCENE: {
-      if (strip->flag & SEQ_SCENE_STRIPS) {
-        if (strip->scene && (context->scene != strip->scene)) {
-          /* recursive check */
-          if (BLI_linklist_index(state->scene_parents, strip->scene) != -1) {
-            break;
-          }
+  if (strip->type == STRIP_TYPE_META) {
+    ibuf = do_render_strip_seqbase(context, state, strip, frame_index);
+  }
+  else if (strip->type == STRIP_TYPE_SCENE) {
+    if (strip->flag & SEQ_SCENE_STRIPS) {
+      if (strip->scene && (context->scene != strip->scene)) {
+        /* recursive check */
+        if (BLI_linklist_index(state->scene_parents, strip->scene) == -1) {
           LinkNode scene_parent{};
           scene_parent.next = state->scene_parents;
           scene_parent.link = strip->scene;
@@ -1690,52 +1683,39 @@ static ImBuf *do_render_strip_uncached(const RenderData *context,
           state->scene_parents = state->scene_parents->next;
         }
       }
-      else {
-        /* scene can be nullptr after deletions */
-        ibuf = seq_render_scene_strip(context, strip, frame_index, timeline_frame);
+    }
+    else {
+      /* scene can be nullptr after deletions */
+      ibuf = seq_render_scene_strip(context, strip, frame_index, timeline_frame);
+    }
+  }
+  else if (strip->is_effect()) {
+    ibuf = seq_render_effect_strip_impl(context, state, strip, timeline_frame);
+  }
+  else if (strip->type == STRIP_TYPE_IMAGE) {
+    ibuf = seq_render_image_strip(context, strip, timeline_frame, r_is_proxy_image);
+  }
+  else if (strip->type == STRIP_TYPE_MOVIE) {
+    ibuf = seq_render_movie_strip(context, strip, timeline_frame, r_is_proxy_image);
+  }
+  else if (strip->type == STRIP_TYPE_MOVIECLIP) {
+    ibuf = seq_render_movieclip_strip(
+        context, strip, round_fl_to_int(frame_index), r_is_proxy_image);
+
+    if (ibuf) {
+      /* duplicate frame so movie cache wouldn't be confused by sequencer's stuff */
+      ImBuf *i = IMB_dupImBuf(ibuf);
+      IMB_freeImBuf(ibuf);
+      ibuf = i;
+
+      if (ibuf->float_buffer.data) {
+        seq_imbuf_to_sequencer_space(context->scene, ibuf, false);
       }
-
-      break;
     }
-
-    case STRIP_TYPE_EFFECT: {
-      ibuf = seq_render_effect_strip_impl(context, state, strip, timeline_frame);
-      break;
-    }
-
-    case STRIP_TYPE_IMAGE: {
-      ibuf = seq_render_image_strip(context, strip, timeline_frame, r_is_proxy_image);
-      break;
-    }
-
-    case STRIP_TYPE_MOVIE: {
-      ibuf = seq_render_movie_strip(context, strip, timeline_frame, r_is_proxy_image);
-      break;
-    }
-
-    case STRIP_TYPE_MOVIECLIP: {
-      ibuf = seq_render_movieclip_strip(
-          context, strip, round_fl_to_int(frame_index), r_is_proxy_image);
-
-      if (ibuf) {
-        /* duplicate frame so movie cache wouldn't be confused by sequencer's stuff */
-        ImBuf *i = IMB_dupImBuf(ibuf);
-        IMB_freeImBuf(ibuf);
-        ibuf = i;
-
-        if (ibuf->float_buffer.data) {
-          seq_imbuf_to_sequencer_space(context->scene, ibuf, false);
-        }
-      }
-
-      break;
-    }
-
-    case STRIP_TYPE_MASK: {
-      /* ibuf is always new */
-      ibuf = seq_render_mask_strip(context, strip, frame_index);
-      break;
-    }
+  }
+  else if (strip->type == STRIP_TYPE_MASK) {
+    /* ibuf is always new */
+    ibuf = seq_render_mask_strip(context, strip, frame_index);
   }
 
   if (ibuf) {
@@ -1784,12 +1764,12 @@ ImBuf *seq_render_strip(const RenderData *context,
 
 static bool seq_must_swap_input_in_blend_mode(Strip *strip)
 {
-  return ELEM(strip->blend_mode, STRIP_TYPE_ALPHAOVER, STRIP_TYPE_ALPHAUNDER);
+  return ELEM(strip->blend_mode, STRIP_BLEND_ALPHAOVER, STRIP_BLEND_ALPHAUNDER);
 }
 
 static StripEarlyOut strip_get_early_out_for_blend_mode(Strip *strip)
 {
-  EffectHandle sh = strip_effect_get_sequence_blend(strip);
+  EffectHandle sh = strip_blend_mode_handle_get(strip);
   float fac = strip->blend_opacity / 100.0f;
   StripEarlyOut early_out = sh.early_out(strip, fac);
 
@@ -1812,7 +1792,7 @@ static ImBuf *seq_render_strip_stack_apply_effect(
     const RenderData *context, Strip *strip, float timeline_frame, ImBuf *ibuf1, ImBuf *ibuf2)
 {
   ImBuf *out;
-  EffectHandle sh = strip_effect_get_sequence_blend(strip);
+  EffectHandle sh = strip_blend_mode_handle_get(strip);
   BLI_assert(sh.execute != nullptr);
   float fac = strip->blend_opacity / 100.0f;
   int swap_input = seq_must_swap_input_in_blend_mode(strip);
@@ -1829,7 +1809,7 @@ static ImBuf *seq_render_strip_stack_apply_effect(
 
 static bool is_opaque_alpha_over(const Strip *strip)
 {
-  if (strip->blend_mode != STRIP_TYPE_ALPHAOVER) {
+  if (strip->blend_mode != STRIP_BLEND_ALPHAOVER) {
     return false;
   }
   if (strip->blend_opacity < 100.0f) {
@@ -1871,7 +1851,7 @@ static ImBuf *seq_render_strip_stack(const RenderData *context,
     if (out) {
       break;
     }
-    if (strip->blend_mode == SEQ_BLEND_REPLACE) {
+    if (strip->blend_mode == STRIP_BLEND_REPLACE) {
       out = seq_render_strip(context, state, strip, timeline_frame);
       break;
     }

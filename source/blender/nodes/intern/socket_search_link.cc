@@ -98,8 +98,7 @@ void LinkSearchOpParams::connect_socket(bNode &new_node, bNodeSocket &new_socket
 
 bNode &LinkSearchOpParams::add_node(StringRef idname)
 {
-  std::string idname_str = idname;
-  bNode *node = bke::node_add_node(&C, node_tree, idname_str.c_str());
+  bNode *node = bke::node_add_node(&C, node_tree, idname);
   BLI_assert(node != nullptr);
   added_nodes_.append(node);
   return *node;

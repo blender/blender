@@ -7,6 +7,7 @@
  */
 
 #include "BKE_context.hh"
+#include "BKE_idtype.hh"
 #include "BKE_screen.hh"
 
 #include "BLI_utildefines.h"
@@ -69,6 +70,14 @@ static void panel_register(ARegionType *region_type)
   shaderfx_panel_register(region_type, eShaderFxType_Colorize, panel_draw);
 }
 
+static void foreach_working_space_color(ShaderFxData *fx,
+                                        const IDTypeForeachColorFunctionCallback &fn)
+{
+  ColorizeShaderFxData *gpfx = (ColorizeShaderFxData *)fx;
+  fn.single(gpfx->low_color);
+  fn.single(gpfx->high_color);
+}
+
 ShaderFxTypeInfo shaderfx_Type_Colorize = {
     /*name*/ N_("Colorize"),
     /*struct_name*/ "ColorizeShaderFxData",
@@ -84,5 +93,6 @@ ShaderFxTypeInfo shaderfx_Type_Colorize = {
     /*update_depsgraph*/ nullptr,
     /*depends_on_time*/ nullptr,
     /*foreach_ID_link*/ nullptr,
+    /*foreach_working_space_color*/ foreach_working_space_color,
     /*panel_register*/ panel_register,
 };

@@ -29,6 +29,7 @@
 #include "BKE_asset.hh"
 #include "BKE_bpath.hh"
 #include "BKE_brush.hh"
+#include "BKE_colorband.hh"
 #include "BKE_colortools.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_idprop.hh"
@@ -213,6 +214,19 @@ static void brush_foreach_id(ID *id, LibraryForeachIDData *data)
   BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, BKE_texture_mtex_foreach_id(data, &brush->mtex));
   BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
                                           BKE_texture_mtex_foreach_id(data, &brush->mask_mtex));
+}
+
+static void brush_foreach_working_space_color(ID *id, const IDTypeForeachColorFunctionCallback &fn)
+{
+  Brush *brush = reinterpret_cast<Brush *>(id);
+
+  fn.single(brush->color);
+  fn.single(brush->secondary_color);
+  if (brush->gradient) {
+    BKE_colorband_foreach_working_space_color(brush->gradient, fn);
+  }
+
+  BKE_brush_color_sync_legacy(brush);
 }
 
 static void brush_blend_write(BlendWriter *writer, ID *id, const void *id_address)
@@ -515,6 +529,7 @@ IDTypeInfo IDType_ID_BR = {
     /*foreach_id*/ brush_foreach_id,
     /*foreach_cache*/ nullptr,
     /*foreach_path*/ nullptr,
+    /*foreach_working_space_color*/ brush_foreach_working_space_color,
     /*owner_pointer_get*/ nullptr,
 
     /*blend_write*/ brush_blend_write,

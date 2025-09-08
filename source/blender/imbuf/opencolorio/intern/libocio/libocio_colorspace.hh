@@ -70,6 +70,8 @@ class LibOCIOColorSpace : public ColorSpace {
   const CPUProcessor *get_to_scene_linear_cpu_processor() const override;
   const CPUProcessor *get_from_scene_linear_cpu_processor() const override;
 
+  void clear_caches();
+
   MEM_CXX_CLASS_ALLOC_FUNCS("LibOCIOColorSpace");
 
  private:

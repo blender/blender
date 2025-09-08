@@ -883,7 +883,9 @@ static void print_help(bArgs *ba, bool all)
       "  $BLENDER_CUSTOM_SPLASH_BANNER Full path to an image to overlay on the splash screen.\n");
 
   if (defs.with_opencolorio) {
-    PRINT("  $OCIO                      Path to override the OpenColorIO configuration file.\n");
+    PRINT(
+        "  $BLENDER_OCIO              Path to override the OpenColorIO configuration file.\n"
+        "                             If not set, the $OCIO environment variable is used.\n");
   }
   if (defs.win32 || all) {
     PRINT("  $TEMP                      Store temporary files here (MS-Windows).\n");

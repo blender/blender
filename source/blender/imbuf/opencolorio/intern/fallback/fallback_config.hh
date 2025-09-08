@@ -51,6 +51,9 @@ class FallbackConfig : public Config {
   const ColorSpace *get_sorted_color_space_by_index(int index) const override;
   const ColorSpace *get_color_space_by_interop_id(StringRefNull interop_id) const override;
 
+  /* Working space API. */
+  void set_scene_linear_role(StringRefNull name) override;
+
   /* Display API. */
   const Display *get_default_display() const override;
   const Display *get_display_by_name(StringRefNull name) const override;

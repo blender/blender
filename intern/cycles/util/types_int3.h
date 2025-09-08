@@ -9,7 +9,12 @@
 CCL_NAMESPACE_BEGIN
 
 #ifndef __KERNEL_NATIVE_VECTOR_TYPES__
+#  ifdef __KERNEL_ONEAPI__
+/* Keep structure packed for oneAPI. */
+struct int3
+#  else
 struct ccl_try_align(16) int3
+#  endif
 {
 #  ifdef __KERNEL_GPU__
   /* Compact structure on the GPU. */
@@ -98,8 +103,8 @@ ccl_device_inline void print_int3(const ccl_private char *label, const int3 a)
 
 #if defined(__KERNEL_METAL__)
 /* Metal has native packed_int3. */
-#elif defined(__KERNEL_CUDA__)
-/* CUDA is already packed. */
+#elif defined(__KERNEL_CUDA__) || defined(__KERNEL_ONEAPI__)
+/* CUDA/oneAPI int3 is already packed. */
 typedef int3 packed_int3;
 #else
 /* HIP int3 is not packed (https://github.com/ROCm-Developer-Tools/HIP/issues/706). */

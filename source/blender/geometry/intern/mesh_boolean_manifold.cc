@@ -1248,7 +1248,7 @@ static void merge_out_faces(Vector<OutFace> &faces)
   }
 }
 
-/** Return true if the ponts p0, p1, p2 are approximately in a straight line. */
+/** Return true if the points p0, p1, p2 are approximately in a straight line. */
 static inline bool approx_in_line(const float3 &p0, const float3 &p1, const float3 &p2)
 {
   float cos_ang = math::dot(math::normalize(p1 - p0), math::normalize(p2 - p1));

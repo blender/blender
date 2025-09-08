@@ -36,7 +36,7 @@ static void createTransSculpt(bContext *C, TransInfo *t)
 
   Scene *scene = t->scene;
   if (!BKE_id_is_editable(CTX_data_main(C), &scene->id)) {
-    BKE_report(t->reports, RPT_ERROR, "Linked data cannot text-space transform");
+    BKE_report(t->reports, RPT_ERROR, "Cannot create transform on linked data");
     return;
   }
 

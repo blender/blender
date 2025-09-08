@@ -1335,6 +1335,21 @@ class _defs_edit_curves:
             draw_settings=curve_draw,
         )
 
+    @ToolDef.from_fn
+    def pen():
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("curves.pen")
+            layout.prop(props, "radius")
+        return dict(
+            idname="builtin.pen",
+            label="Pen",
+            cursor='CROSSHAIR',
+            icon="ops.curve.pen",
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
+        )
+
 
 class _defs_edit_text:
 
@@ -3273,6 +3288,38 @@ class _defs_sequencer_select:
         )
 
     @ToolDef.from_fn
+    def lasso_timeline():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("sequencer.select_lasso")
+            row = layout.row()
+            row.use_property_split = False
+            row.prop(props, "mode", text="", expand=True, icon_only=True)
+        return dict(
+            idname="sequencer.select_lasso",
+            label="Select Lasso",
+            icon="ops.generic.select_lasso",
+            widget=None,
+            keymap="Sequencer Tool: Select Lasso",
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
+    def lasso_preview():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("sequencer.select_lasso")
+            row = layout.row()
+            row.use_property_split = False
+            row.prop(props, "mode", text="", expand=True, icon_only=True)
+        return dict(
+            idname="sequencer.select_lasso",
+            label="Select Lasso",
+            icon="ops.generic.select_lasso",
+            widget=None,
+            keymap="Preview Tool: Select Lasso",
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
     def circle_timeline():
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("sequencer.select_circle")
@@ -3722,6 +3769,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             *_tools_default,
             None,
             _defs_edit_curves.draw,
+            _defs_edit_curves.pen,
             None,
             _defs_edit_curve.curve_radius,
             _defs_edit_curve.tilt,
@@ -4006,6 +4054,7 @@ class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
             (
                 _defs_sequencer_select.select_preview,
                 _defs_sequencer_select.box_preview,
+                _defs_sequencer_select.lasso_preview,
                 _defs_sequencer_select.circle_preview,
             ),
             _defs_sequencer_generic.cursor,
@@ -4021,6 +4070,7 @@ class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
         'SEQUENCER': [
             (
                 _defs_sequencer_select.box_timeline,
+                _defs_sequencer_select.lasso_timeline,
                 _defs_sequencer_select.circle_timeline,
             ),
             _defs_sequencer_generic.blade,

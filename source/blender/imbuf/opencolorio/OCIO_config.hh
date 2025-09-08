@@ -9,6 +9,7 @@
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string_ref.hh"
+#include "DNA_windowmanager_types.h"
 
 namespace blender::ocio {
 
@@ -132,6 +133,14 @@ class Config {
    * If not found a nullptr is returned.
    */
   virtual const ColorSpace *get_color_space_by_interop_id(StringRefNull interop_id) const = 0;
+
+  /** \} */
+
+  /* -------------------------------------------------------------------- */
+  /** \name Working colorspace API
+   * \{ */
+
+  virtual void set_scene_linear_role(StringRefNull name) = 0;
 
   /** \} */
 

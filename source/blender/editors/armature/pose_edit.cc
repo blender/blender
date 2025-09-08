@@ -302,7 +302,7 @@ void POSE_OT_paths_calculate(wmOperatorType *ot)
                "display_type",
                rna_enum_motionpath_display_type_items,
                MOTIONPATH_TYPE_RANGE,
-               "Display type",
+               "Display Type",
                "");
   RNA_def_enum(ot->srna,
                "range",

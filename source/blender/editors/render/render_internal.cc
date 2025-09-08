@@ -469,7 +469,7 @@ static void make_renderinfo_string(const RenderStats *rs,
     else {
       if (rs->mem_peak == 0.0f) {
         SNPRINTF_UTF8(info_buffers.statistics,
-                      RPT_("Mem:%dM, Peak %dM"),
+                      RPT_("Mem:%dM, Peak: %dM"),
                       megs_used_memory,
                       megs_peak_memory);
       }

@@ -227,8 +227,7 @@ static wmOperatorStatus wm_link_append_exec(bContext *C, wmOperator *op)
       if (BLI_path_cmp(blendfile_path, filepath) == 0 ||
           BLI_path_cmp(blendfile_path, libname) == 0)
       {
-        BKE_reportf(
-            op->reports, RPT_ERROR, "'%s': A cannot use current file as library", filepath);
+        BKE_reportf(op->reports, RPT_ERROR, "'%s': cannot use current file as library", filepath);
         return OPERATOR_CANCELLED;
       }
     }

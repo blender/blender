@@ -250,7 +250,7 @@ void calculate_basis_cache(const int points_num,
   /* Find the 'span index' for each breakpoint that defines the 'evaluated spans'.
    * An evaluated span (or 'segment') in this context is the parameter interval
    * between two consecutive knots [i, i + 1], where the knot at index `i` is a
-   * breakpoint and is stricly less than the value of following knot. For repeated
+   * breakpoint and is strictly less than the value of following knot. For repeated
    * knots, with multiplicity > 1, only the rightmost is considered a breakpoint
    * as the spans between repeated knot values are zero length!
    */

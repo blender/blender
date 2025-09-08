@@ -131,3 +131,7 @@ void WM_OT_id_linked_relocate(wmOperatorType *ot);
 
 void WM_OT_lib_relocate(wmOperatorType *ot);
 void WM_OT_lib_reload(wmOperatorType *ot);
+
+/* `wm_files_colorspace.cc` */
+
+void WM_OT_set_working_color_space(wmOperatorType *ot);
