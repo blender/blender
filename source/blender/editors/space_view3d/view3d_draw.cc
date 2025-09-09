@@ -2384,7 +2384,7 @@ void ED_view3d_select_id_validate(const ViewContext *vc)
 
 int ED_view3d_backbuf_sample_size_clamp(ARegion *region, const float dist)
 {
-  return int(min_ff(ceilf(dist), float(max_ii(region->winx, region->winx))));
+  return int(min_ff(ceilf(dist), float(max_ii(region->winx, region->winy))));
 }
 
 /** \} */
