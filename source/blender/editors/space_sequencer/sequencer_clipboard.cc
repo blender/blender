@@ -511,7 +511,7 @@ wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
   /* BKE_main_merge will copy the scene_src and its action into bmain_dst. Remove them as
    * we merge the data from these manually.
    */
-  if (has_animation) {
+  if (has_animation && scene_src->adt->action != nullptr) {
     BKE_id_delete(bmain_dst, scene_src->adt->action);
   }
   BKE_id_delete(bmain_dst, scene_src);
