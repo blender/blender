@@ -34,12 +34,15 @@ uint outline_colorid_get()
 void main()
 {
   const curves::Point ls_pt = curves::point_get(uint(gl_VertexID));
-  const curves::Point ws_pt = curves::object_to_world(ls_pt, drw_modelmat());
-#if 0 /* TODO(fclem) Unsure what it does. Verify if we can get rid of it. */
-  /* Calculate the thickness, thick-time, world-position taken into account the outline. */
-  float outline_width = drw_point_world_to_homogenous(ws_pt.P).w * 1.25f *
-                        uniform_buf.size_viewport_inv.y * drw_view().wininv[1][1];
-#endif
+  curves::Point ws_pt = curves::object_to_world(ls_pt, drw_modelmat());
+
+  const float min_width_px = 1.25f;
+  const float min_width_ws = drw_point_world_to_homogenous(ws_pt.P).w * min_width_px *
+                             uniform_buf.size_viewport_inv.y * drw_view().wininv[1][1];
+  /* Make sure that we ribbon and cylinder topology span at least a small amount of pixel to avoid
+   * aliasing artifacts. */
+  ws_pt.radius = max(ws_pt.radius, min_width_ws);
+
   float3 world_pos = curves::shape_point_get(ws_pt, drw_world_incident_vector(ws_pt.P)).P;
 
   gl_Position = drw_point_world_to_homogenous(world_pos);
