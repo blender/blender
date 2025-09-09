@@ -1399,7 +1399,7 @@ class VIEW3D_PT_tools_imagepaint_options_cavity(Panel):
 
         col = layout.column()
         col.active = ipaint.use_cavity
-        col.template_curve_mapping(ipaint, "cavity_curve", brush=True, use_negative_slope=True)
+        col.template_curve_mapping(ipaint, "cavity_curve", brush=True)
 
 
 # TODO, move to space_view3d.py
@@ -2092,21 +2092,21 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_random(View3DPanel, Panel):
         row.prop(gp_settings, "use_stroke_random_radius", text="", icon='GP_SELECT_STROKES')
         row.prop(gp_settings, "use_random_press_radius", text="", icon='STYLUS_PRESSURE')
         if gp_settings.use_random_press_radius and self.is_popover is False:
-            col.template_curve_mapping(gp_settings, "curve_random_pressure", brush=True, use_negative_slope=True)
+            col.template_curve_mapping(gp_settings, "curve_random_pressure", brush=True)
 
         row = col.row(align=True)
         row.prop(gp_settings, "random_strength", text="Strength", slider=True, text_ctxt=i18n_contexts.id_gpencil)
         row.prop(gp_settings, "use_stroke_random_strength", text="", icon='GP_SELECT_STROKES')
         row.prop(gp_settings, "use_random_press_strength", text="", icon='STYLUS_PRESSURE')
         if gp_settings.use_random_press_strength and self.is_popover is False:
-            col.template_curve_mapping(gp_settings, "curve_random_strength", brush=True, use_negative_slope=True)
+            col.template_curve_mapping(gp_settings, "curve_random_strength", brush=True)
 
         row = col.row(align=True)
         row.prop(gp_settings, "uv_random", text="Rotation", slider=True)
         row.prop(gp_settings, "use_stroke_random_uv", text="", icon='GP_SELECT_STROKES')
         row.prop(gp_settings, "use_random_press_uv", text="", icon='STYLUS_PRESSURE')
         if gp_settings.use_random_press_uv and self.is_popover is False:
-            col.template_curve_mapping(gp_settings, "curve_random_uv", brush=True, use_negative_slope=True)
+            col.template_curve_mapping(gp_settings, "curve_random_uv", brush=True)
 
         col.separator()
 
@@ -2117,21 +2117,21 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_random(View3DPanel, Panel):
         row.prop(brush, "use_stroke_random_hue", text="", icon='GP_SELECT_STROKES')
         row.prop(brush, "use_random_press_hue", text="", icon='STYLUS_PRESSURE')
         if brush.use_random_press_hue and self.is_popover is False:
-            col1.template_curve_mapping(brush, "curve_random_hue", brush=True, use_negative_slope=True)
+            col1.template_curve_mapping(brush, "curve_random_hue", brush=True)
 
         row = col1.row(align=True)
         row.prop(brush, "saturation_jitter", slider=True)
         row.prop(brush, "use_stroke_random_sat", text="", icon='GP_SELECT_STROKES')
         row.prop(brush, "use_random_press_sat", text="", icon='STYLUS_PRESSURE')
         if brush.use_random_press_sat and self.is_popover is False:
-            col1.template_curve_mapping(brush, "curve_random_saturation", brush=True, use_negative_slope=True)
+            col1.template_curve_mapping(brush, "curve_random_saturation", brush=True)
 
         row = col1.row(align=True)
         row.prop(brush, "value_jitter", slider=True)
         row.prop(brush, "use_stroke_random_val", text="", icon='GP_SELECT_STROKES')
         row.prop(brush, "use_random_press_val", text="", icon='STYLUS_PRESSURE')
         if brush.use_random_press_val and self.is_popover is False:
-            col1.template_curve_mapping(brush, "curve_random_value", brush=True, use_negative_slope=True)
+            col1.template_curve_mapping(brush, "curve_random_value", brush=True)
 
         col.separator()
 
@@ -2139,7 +2139,7 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_random(View3DPanel, Panel):
         row.prop(gp_settings, "pen_jitter", slider=True)
         row.prop(gp_settings, "use_jitter_pressure", text="", icon='STYLUS_PRESSURE')
         if gp_settings.use_jitter_pressure and self.is_popover is False:
-            col.template_curve_mapping(gp_settings, "curve_jitter", brush=True, use_negative_slope=True)
+            col.template_curve_mapping(gp_settings, "curve_jitter", brush=True)
 
 
 class VIEW3D_PT_tools_grease_pencil_v3_brush_stabilizer(Panel, View3DPanel):

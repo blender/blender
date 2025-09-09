@@ -182,7 +182,7 @@ class GreasePencilBrushFalloff:
                 col.prop(brush, "curve_preset", text="")
 
             if brush.curve_preset == 'CUSTOM':
-                layout.template_curve_mapping(brush, "curve", brush=True)
+                layout.template_curve_mapping(brush, "curve", brush=True, use_negative_slope=True)
 
                 col = layout.column(align=True)
                 row = col.row(align=True)

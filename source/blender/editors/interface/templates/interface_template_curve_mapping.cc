@@ -310,7 +310,7 @@ static uiBlock *curvemap_brush_tools_func(bContext *C, ARegion *region, void *cb
 static uiBlock *curvemap_brush_tools_negslope_func(bContext *C, ARegion *region, void *cb_v)
 {
   return curvemap_tools_func(
-      C, region, *static_cast<RNAUpdateCb *>(cb_v), false, CURVEMAP_SLOPE_POSITIVE);
+      C, region, *static_cast<RNAUpdateCb *>(cb_v), false, CURVEMAP_SLOPE_NEGATIVE);
 }
 
 static void curvemap_buttons_redraw(bContext &C)
