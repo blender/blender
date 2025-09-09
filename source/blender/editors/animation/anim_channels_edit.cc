@@ -2905,6 +2905,54 @@ static bool animchannels_delete_containers(const bContext *C, bAnimContext *ac)
   return has_skipped_group;
 }
 
+void ED_anim_ale_fcurve_delete(bAnimContext &ac, bAnimListElem &ale)
+{
+  BLI_assert(ELEM(ale.type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE));
+
+  switch (ale.type) {
+    case ANIMTYPE_FCURVE: {
+      AnimData *adt = ale.adt;
+      FCurve *fcu = static_cast<FCurve *>(ale.data);
+
+      BLI_assert_msg((fcu->driver != nullptr) == (ac.datatype == ANIMCONT_DRIVERS),
+                     "Expecting only driver F-Curves in the drivers editor");
+
+      if (ale.fcurve_owner_id && GS(ale.fcurve_owner_id->name) == ID_AC) {
+        /* F-Curves can be owned by Actions assigned to NLA strips, which
+         * `animrig::animdata_fcurve_delete()` (below) cannot handle. */
+        BLI_assert_msg(!fcu->driver, "Drivers are not expected to be owned by Actions");
+        blender::animrig::Action &action =
+            reinterpret_cast<bAction *>(ale.fcurve_owner_id)->wrap();
+        BLI_assert(!action.is_action_legacy());
+        action_fcurve_remove(action, *fcu);
+      }
+      else if (fcu->driver || adt->action) {
+        /* This function only works for drivers & directly-assigned Actions: */
+        blender::animrig::animdata_fcurve_delete(adt, fcu);
+      }
+      else {
+        BLI_assert_unreachable();
+      }
+      break;
+    }
+    case ANIMTYPE_NLACURVE: {
+      /* NLA Control Curve. */
+      NlaStrip *strip = static_cast<NlaStrip *>(ale.owner);
+      FCurve *fcu = static_cast<FCurve *>(ale.data);
+      if (!BKE_nlastrip_controlcurve_remove(strip, fcu)) {
+        printf("ERROR: Trying to delete NLA Control Curve for unknown property '%s'\n",
+               fcu->rna_path);
+      }
+      break;
+    }
+
+    default:
+      BLI_assert_unreachable();
+  }
+
+  tag_update_animation_element(&ale);
+}
+
 static wmOperatorStatus animchannels_delete_exec(bContext *C, wmOperator * /*op*/)
 {
   bAnimContext ac;
@@ -2941,55 +2989,11 @@ static wmOperatorStatus animchannels_delete_exec(bContext *C, wmOperator * /*op*
   /* delete selected data channels */
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     switch (ale->type) {
-      case ANIMTYPE_FCURVE: {
-        /* F-Curves if we can identify its parent */
-        AnimData *adt = ale->adt;
-        FCurve *fcu = static_cast<FCurve *>(ale->data);
-
-        /* try to free F-Curve */
-        BLI_assert_msg((fcu->driver != nullptr) == (ac.datatype == ANIMCONT_DRIVERS),
-                       "Expecting only driver F-Curves in the drivers editor");
-        if (ale->fcurve_owner_id && GS(ale->fcurve_owner_id->name) == ID_AC) {
-          /* F-Curves can be owned by Actions assigned to NLA strips, which
-           * `animrig::animdata_fcurve_delete()` (below) cannot handle. */
-          BLI_assert_msg(!fcu->driver, "Drivers are not expected to be owned by Actions");
-          blender::animrig::Action &action =
-              reinterpret_cast<bAction *>(ale->fcurve_owner_id)->wrap();
-          BLI_assert(!action.is_action_legacy());
-          action_fcurve_remove(action, *fcu);
-        }
-        else if (fcu->driver || adt->action) {
-          /* This function only works for drivers & directly-assigned Actions: */
-          blender::animrig::animdata_fcurve_delete(adt, fcu);
-        }
-        else {
-          BLI_assert_unreachable();
-        }
-        tag_update_animation_element(ale);
+      case ANIMTYPE_FCURVE:
+      case ANIMTYPE_NLACURVE:
+        ED_anim_ale_fcurve_delete(ac, *ale);
         break;
-      }
-      case ANIMTYPE_NLACURVE: {
-        /* NLA Control Curve - Deleting it should disable the corresponding setting... */
-        NlaStrip *strip = static_cast<NlaStrip *>(ale->owner);
-        FCurve *fcu = static_cast<FCurve *>(ale->data);
 
-        if (STREQ(fcu->rna_path, "strip_time")) {
-          strip->flag &= ~NLASTRIP_FLAG_USR_TIME;
-        }
-        else if (STREQ(fcu->rna_path, "influence")) {
-          strip->flag &= ~NLASTRIP_FLAG_USR_INFLUENCE;
-        }
-        else {
-          printf("ERROR: Trying to delete NLA Control Curve for unknown property '%s'\n",
-                 fcu->rna_path);
-        }
-
-        /* unlink and free the F-Curve */
-        BLI_remlink(&strip->fcurves, fcu);
-        BKE_fcurve_free(fcu);
-        tag_update_animation_element(ale);
-        break;
-      }
       case ANIMTYPE_GPLAYER: {
         /* Grease Pencil layer */
         bGPdata *gpd = reinterpret_cast<bGPdata *>(ale->id);

@@ -1231,6 +1231,14 @@ void ED_animedit_unlink_action(
  */
 void ED_drivers_editor_init(bContext *C, ScrArea *area);
 
+/**
+ * Delete an F-Curve from its owner.
+ *
+ * This can delete an F-Curve from an Action (both directly assigned and via an
+ * NLA strip), Drivers, and NLA control curves.
+ */
+void ED_anim_ale_fcurve_delete(bAnimContext &ac, bAnimListElem &ale);
+
 /* ************************************************ */
 
 enum eAnimvizCalcRange {
