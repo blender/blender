@@ -522,6 +522,7 @@ wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
   nseqbase.first = iseq_first;
 
   int2 strip_mean_pos = {0, 0};
+  int image_strip_count = 0;
   LISTBASE_FOREACH (Strip *, istrip, &nseqbase) {
     if (istrip->name == active_seq_name) {
       seq::select_active_set(scene_dst, istrip);
@@ -530,27 +531,38 @@ wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
      * adding strips to seqbase, for lookup cache to work correctly. */
     seq::ensure_unique_name(istrip, scene_dst);
 
-    strip_mean_pos += static_cast<int2>(
-        seq::image_transform_origin_offset_pixelspace_get(scene, istrip));
+    if (region->regiontype == RGN_TYPE_PREVIEW && istrip->type != STRIP_TYPE_SOUND_RAM &&
+        seq::must_render_strip(seq::query_all_strips(&nseqbase), istrip))
+    {
+      strip_mean_pos += static_cast<int2>(
+          seq::image_transform_origin_offset_pixelspace_get(scene, istrip));
+      image_strip_count++;
+    }
   }
 
-  strip_mean_pos /= BLI_listbase_count(&nseqbase);
+  if (image_strip_count > 0) {
+    strip_mean_pos /= image_strip_count;
+  }
 
   LISTBASE_FOREACH (Strip *, istrip, &nseqbase) {
-    /* Translate after name has been changed, otherwise this will affect animdata of original
-     * strip. */
-    seq::transform_translate_strip(scene_dst, istrip, ofs);
-    /* Ensure, that pasted strips don't overlap. */
-    if (seq::transform_test_overlap(scene_dst, ed_dst->current_strips(), istrip)) {
-      seq::transform_seqbase_shuffle(ed_dst->current_strips(), istrip, scene_dst);
-    }
-    if (region->regiontype == RGN_TYPE_PREVIEW && !(RNA_boolean_get(op->ptr, "keep_offset"))) {
+    /* Place strips that generate an image at the mouse cursor. */
+    if (region->regiontype == RGN_TYPE_PREVIEW && !(RNA_boolean_get(op->ptr, "keep_offset")) &&
+        istrip->type != STRIP_TYPE_SOUND_RAM &&
+        seq::must_render_strip(seq::query_all_strips(&nseqbase), istrip))
+    {
       StripTransform *transform = istrip->data->transform;
       const float2 mirror = seq::image_transform_mirror_factor_get(istrip);
       const float2 origin = seq::image_transform_origin_offset_pixelspace_get(scene, istrip);
       transform->xofs = (view_mval[0] - (strip_mean_pos[0] - origin[0])) * mirror[0];
       transform->yofs = (view_mval[1] - (strip_mean_pos[1] - origin[1])) * mirror[1];
       seq::relations_invalidate_cache(scene, istrip);
+    }
+    /* Translate after name has been changed, otherwise this will affect animdata of original
+     * strip. */
+    seq::transform_translate_strip(scene_dst, istrip, ofs);
+    /* Ensure, that pasted strips don't overlap. */
+    if (seq::transform_test_overlap(scene_dst, ed_dst->current_strips(), istrip)) {
+      seq::transform_seqbase_shuffle(ed_dst->current_strips(), istrip, scene_dst);
     }
   }
 

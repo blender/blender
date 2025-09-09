@@ -181,7 +181,7 @@ static void collection_filter_channel_up_to_incl(VectorSet<Strip *> &strips, con
 
 /* Check if strip must be rendered. This depends on whole stack in some cases, not only strip
  * itself. Order of applying these conditions is important. */
-static bool must_render_strip(const VectorSet<Strip *> &strips, Strip *strip)
+bool must_render_strip(const VectorSet<Strip *> &strips, Strip *strip)
 {
   bool strip_have_effect_in_stack = false;
   for (Strip *strip_iter : strips) {
