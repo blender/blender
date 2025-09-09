@@ -54,17 +54,27 @@ struct SocketUsageInferencer {
    */
   Map<SocketInContext, bool> all_socket_usages_;
 
+  /**
+   * Treat top-level nodes as if they are never muted for usage-inferencing. This is used when
+   * computing the socket usage that is displayed in the node editor (through grayed out or hidden
+   * sockets). Which inputs/outputs of a node is visible should never depend on whether it is muted
+   * or not.
+   */
+  bool ignore_top_level_node_muting_ = false;
+
  public:
   SocketUsageInferencer(const bNodeTree &tree,
                         const std::optional<Span<InferenceValue>> tree_input_values,
                         ResourceScope &scope,
                         bke::ComputeContextCache &compute_context_cache,
-                        const std::optional<Span<bool>> top_level_ignored_inputs = std::nullopt)
+                        const std::optional<Span<bool>> top_level_ignored_inputs = std::nullopt,
+                        const bool ignore_top_level_node_muting = false)
       : scope_(scope),
         compute_context_cache_(compute_context_cache),
         value_inferencer_(
             tree, scope_, compute_context_cache_, tree_input_values, top_level_ignored_inputs),
-        root_tree_(tree)
+        root_tree_(tree),
+        ignore_top_level_node_muting_(ignore_top_level_node_muting)
   {
     root_tree_.ensure_topology_cache();
     root_tree_.ensure_interface_cache();
@@ -157,8 +167,11 @@ struct SocketUsageInferencer {
     const NodeInContext node = socket.owner_node();
 
     if (node->is_muted()) {
-      this->usage_task__input__muted_node(socket);
-      return;
+      const bool is_top_level = socket.context == nullptr;
+      if (!this->ignore_top_level_node_muting_ || !is_top_level) {
+        this->usage_task__input__muted_node(socket);
+        return;
+      }
     }
 
     switch (node->type_legacy) {
@@ -544,9 +557,16 @@ Array<SocketUsage> infer_all_input_sockets_usage(const bNodeTree &tree)
   ResourceScope scope;
   bke::ComputeContextCache compute_context_cache;
 
+  const bool ignore_top_level_node_muting = true;
+
   {
     /* Find actual socket usages. */
-    SocketUsageInferencer inferencer{tree, std::nullopt, scope, compute_context_cache};
+    SocketUsageInferencer inferencer{tree,
+                                     std::nullopt,
+                                     scope,
+                                     compute_context_cache,
+                                     std::nullopt,
+                                     ignore_top_level_node_muting};
     inferencer.mark_top_level_node_outputs_as_used();
     for (const int i : all_input_sockets.index_range()) {
       const bNodeSocket &socket = *all_input_sockets[i];
@@ -563,10 +583,18 @@ Array<SocketUsage> infer_all_input_sockets_usage(const bNodeTree &tree)
       only_controllers_used[i] = !input_may_affect_visibility(socket);
     }
   });
-  SocketUsageInferencer inferencer_all_unknown{
-      tree, std::nullopt, scope, compute_context_cache, all_ignored_inputs};
-  SocketUsageInferencer inferencer_only_controllers{
-      tree, std::nullopt, scope, compute_context_cache, only_controllers_used};
+  SocketUsageInferencer inferencer_all_unknown{tree,
+                                               std::nullopt,
+                                               scope,
+                                               compute_context_cache,
+                                               all_ignored_inputs,
+                                               ignore_top_level_node_muting};
+  SocketUsageInferencer inferencer_only_controllers{tree,
+                                                    std::nullopt,
+                                                    scope,
+                                                    compute_context_cache,
+                                                    only_controllers_used,
+                                                    ignore_top_level_node_muting};
   inferencer_all_unknown.mark_top_level_node_outputs_as_used();
   inferencer_only_controllers.mark_top_level_node_outputs_as_used();
   for (const int i : all_input_sockets.index_range()) {
