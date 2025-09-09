@@ -36,7 +36,12 @@ Buffer::~Buffer()
 	std::free(m_buffer);
 }
 
-sample_t* Buffer::getBuffer() const
+const sample_t* Buffer::getBuffer() const
+{
+	return (sample_t*) ALIGN(m_buffer);
+}
+
+sample_t* Buffer::getBuffer()
 {
 	return (sample_t*) ALIGN(m_buffer);
 }

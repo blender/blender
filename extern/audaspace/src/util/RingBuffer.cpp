@@ -32,7 +32,12 @@ RingBuffer::RingBuffer(int size) :
 {
 }
 
-sample_t* RingBuffer::getBuffer() const
+const sample_t* RingBuffer::getBuffer() const
+{
+	return m_buffer.getBuffer();
+}
+
+sample_t* RingBuffer::getBuffer()
 {
 	return m_buffer.getBuffer();
 }

@@ -58,7 +58,12 @@ public:
 	/**
 	 * Returns the pointer to the buffer in memory.
 	 */
-	sample_t* getBuffer() const;
+	const sample_t* getBuffer() const;
+
+	/**
+	 * Returns the pointer to the buffer in memory.
+	 */
+	sample_t* getBuffer();
 
 	/**
 	 * Returns the size of the buffer in bytes.
