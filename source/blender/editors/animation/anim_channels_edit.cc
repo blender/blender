@@ -2907,6 +2907,7 @@ static bool animchannels_delete_containers(const bContext *C, bAnimContext *ac)
 
 void ED_anim_ale_fcurve_delete(bAnimContext &ac, bAnimListElem &ale)
 {
+  UNUSED_VARS_NDEBUG(ac);
   BLI_assert(ELEM(ale.type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE));
 
   switch (ale.type) {
