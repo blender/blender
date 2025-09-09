@@ -1199,12 +1199,6 @@ wmOperatorStatus sequencer_select_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (STREQ(area->runtime.tool->idname, "builtin.blade")) {
-    /* Blade tool overrides select operator everywhere except the padded part of handles. We
-     * should not be able to select these with this tool active, so return. */
-    return OPERATOR_CANCELLED;
-  }
-
   if (region->regiontype == RGN_TYPE_PREVIEW) {
     if (!sequencer_view_preview_only_poll(C)) {
       return OPERATOR_CANCELLED;

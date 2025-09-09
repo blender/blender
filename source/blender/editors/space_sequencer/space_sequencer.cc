@@ -710,7 +710,12 @@ static void sequencer_main_cursor(wmWindow *win, ScrArea *area, ARegion *region)
     if (strip != nullptr) {
       ListBase *channels = seq::channels_displayed_get(ed);
       const bool locked = seq::transform_is_locked(channels, strip);
-      if (STREQ(tref->idname, "builtin.blade")) {
+      const int frame = round_fl_to_int(mouse_co_view[0]);
+      /* We cannot split the first and last frame, so blade cursor should not appear then. */
+      if (STREQ(tref->idname, "builtin.blade") &&
+          frame != seq::time_left_handle_frame_get(scene, strip) &&
+          frame != seq::time_right_handle_frame_get(scene, strip))
+      {
         wmcursor = locked ? WM_CURSOR_STOP : WM_CURSOR_BLADE;
       }
       else if (STREQ(tref->idname, "builtin.slip")) {
