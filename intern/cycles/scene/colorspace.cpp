@@ -34,7 +34,6 @@ static unordered_map<ustring, OCIO::ConstProcessorRcPtr> cached_processors;
 
 static thread_mutex cache_scene_linear_mutex;
 static string cache_scene_linear_name;
-#endif
 
 static void check_invalidate_caches()
 {
@@ -64,6 +63,7 @@ static void check_invalidate_caches()
     }
   }
 }
+#endif
 
 ColorSpaceProcessor *ColorSpaceManager::get_processor(ustring colorspace)
 {
