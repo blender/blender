@@ -1914,6 +1914,7 @@ static void nodelink_batch_init()
 
   /* Instances data */
   g_batch_link.link_buf = GPU_storagebuf_create(sizeof(NodeLinkData) * NODELINK_GROUP_SIZE);
+  gpu_batch_storage_buffer_register(g_batch_link.link_buf);
 
   nodelink_batch_reset();
 }
