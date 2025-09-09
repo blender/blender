@@ -510,6 +510,7 @@ class NodeTreeMainUpdater {
 
     ntree.runtime->link_errors.clear();
     ntree.runtime->invalid_zone_output_node_ids.clear();
+    ntree.runtime->shader_node_errors.clear();
 
     if (this->update_panel_toggle_names(ntree)) {
       result.interface_changed = true;

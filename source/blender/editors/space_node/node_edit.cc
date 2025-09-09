@@ -47,6 +47,7 @@
 #include "DEG_depsgraph_debug.hh"
 #include "DEG_depsgraph_query.hh"
 
+#include "NOD_shader_nodes_inline.hh"
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
@@ -1847,6 +1848,41 @@ void NODE_OT_activate_viewer(wmOperatorType *ot)
   ot->idname = "NODE_OT_activate_viewer";
 
   ot->exec = node_activate_viewer_exec;
+  ot->poll = ED_operator_node_active;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static wmOperatorStatus test_inline_shader_nodes_exec(bContext *C, wmOperator * /*op*/)
+{
+  SpaceNode &snode = *CTX_wm_space_node(C);
+  bNodeTree &ntree = *snode.edittree;
+  Main &bmain = *CTX_data_main(C);
+
+  bNodeTree *new_tree = bke::node_tree_add_tree(
+      &bmain, (StringRef(ntree.id.name) + " Inlined").c_str(), ntree.idname);
+
+  nodes::InlineShaderNodeTreeParams params;
+  params.allow_preserving_repeat_zones = false;
+  nodes::inline_shader_node_tree(ntree, *new_tree, params);
+  bNode *group_node = bke::node_add_node(C, ntree, ntree.typeinfo->group_idname);
+  group_node->id = &new_tree->id;
+  node_deselect_all(ntree);
+  bke::node_set_selected(*group_node, true);
+  bke::node_set_active(ntree, *group_node);
+
+  BKE_main_ensure_invariants(bmain);
+
+  return OPERATOR_FINISHED;
+}
+
+void NODE_OT_test_inlining_shader_nodes(wmOperatorType *ot)
+{
+  ot->name = "Test Inlining Shader Nodes";
+  ot->description = "Create a new inlined shader node tree as is consumed by renderers";
+  ot->idname = "NODE_OT_test_inlining_shader_nodes";
+
+  ot->exec = test_inline_shader_nodes_exec;
   ot->poll = ED_operator_node_active;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

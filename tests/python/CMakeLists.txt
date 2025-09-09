@@ -681,6 +681,7 @@ if((WITH_CYCLES OR WITH_GPU_RENDER_TESTS) AND TEST_SRC_DIR_EXISTS)
     light_group
     light_linking
     mesh
+    node_inlining
     pointcloud
     principled_bsdf
     shader

@@ -8,6 +8,7 @@
 
 #include "AS_asset_representation.hh"
 
+#include "BKE_node_socket_value.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_stack.hh"
@@ -475,18 +476,24 @@ static std::optional<const ComputeContext *> compute_context_for_tree_path(
 static const ComputeContext *get_node_editor_root_compute_context(
     const SpaceNode &snode, bke::ComputeContextCache &compute_context_cache)
 {
-  switch (SpaceNodeGeometryNodesType(snode.node_tree_sub_type)) {
-    case SNODE_GEOMETRY_MODIFIER: {
-      std::optional<ed::space_node::ObjectAndModifier> object_and_modifier =
-          ed::space_node::get_modifier_for_node_editor(snode);
-      if (!object_and_modifier) {
-        return nullptr;
+  if (snode.nodetree->type == NTREE_GEOMETRY) {
+    switch (SpaceNodeGeometryNodesType(snode.node_tree_sub_type)) {
+      case SNODE_GEOMETRY_MODIFIER: {
+        std::optional<ed::space_node::ObjectAndModifier> object_and_modifier =
+            ed::space_node::get_modifier_for_node_editor(snode);
+        if (!object_and_modifier) {
+          return nullptr;
+        }
+        return &compute_context_cache.for_modifier(nullptr, *object_and_modifier->nmd);
       }
-      return &compute_context_cache.for_modifier(nullptr, *object_and_modifier->nmd);
+      case SNODE_GEOMETRY_TOOL: {
+        return &compute_context_cache.for_operator(nullptr);
+      }
     }
-    case SNODE_GEOMETRY_TOOL: {
-      return &compute_context_cache.for_operator(nullptr);
-    }
+    return nullptr;
+  }
+  if (snode.nodetree->type == NTREE_SHADER) {
+    return &compute_context_cache.for_shader(nullptr, snode.nodetree);
   }
   return nullptr;
 }
@@ -497,7 +504,7 @@ static const ComputeContext *get_node_editor_root_compute_context(
   if (!snode.edittree) {
     return nullptr;
   }
-  if (snode.edittree->type != NTREE_GEOMETRY) {
+  if (!ELEM(snode.edittree->type, NTREE_GEOMETRY, NTREE_SHADER)) {
     return nullptr;
   }
   const ComputeContext *root_context = get_node_editor_root_compute_context(snode,

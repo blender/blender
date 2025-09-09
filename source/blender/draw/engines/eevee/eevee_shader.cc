@@ -12,6 +12,8 @@
 #include "GPU_capabilities.hh"
 
 #include "BKE_material.hh"
+#include "BKE_node_runtime.hh"
+
 #include "DNA_world_types.h"
 
 #include "gpu_shader_create_info.hh"
@@ -1161,6 +1163,25 @@ static GPUPass *pass_replacement_cb(void *void_thunk, GPUMaterial *mat)
   return nullptr;
 }
 
+static void store_node_tree_errors(GPUMaterialFromNodeTreeResult &material_from_tree)
+{
+  Depsgraph *depsgraph = DRW_context_get()->depsgraph;
+  if (!depsgraph) {
+    return;
+  }
+  if (!DEG_is_active(depsgraph)) {
+    return;
+  }
+  for (const GPUMaterialFromNodeTreeResult::Error &error : material_from_tree.errors) {
+    const bNodeTree &tree = error.node->owner_tree();
+    if (const bNodeTree *tree_orig = DEG_get_original(&tree)) {
+      std::lock_guard lock(tree_orig->runtime->shader_node_errors_mutex);
+      tree_orig->runtime->shader_node_errors.lookup_or_add_default(error.node->identifier)
+          .add(error.message);
+    }
+  }
+}
+
 GPUMaterial *ShaderModule::material_shader_get(::Material *blender_mat,
                                                bNodeTree *nodetree,
                                                eMaterialPipeline pipeline_type,
@@ -1179,16 +1200,19 @@ GPUMaterial *ShaderModule::material_shader_get(::Material *blender_mat,
 
   CallbackThunk thunk = {this, default_mat};
 
-  return GPU_material_from_nodetree(blender_mat,
-                                    nodetree,
-                                    &blender_mat->gpumaterial,
-                                    blender_mat->id.name,
-                                    GPU_MAT_EEVEE,
-                                    shader_uuid,
-                                    deferred_compilation,
-                                    codegen_callback,
-                                    &thunk,
-                                    is_default_material ? nullptr : pass_replacement_cb);
+  GPUMaterialFromNodeTreeResult material_from_tree = GPU_material_from_nodetree(
+      blender_mat,
+      nodetree,
+      &blender_mat->gpumaterial,
+      blender_mat->id.name,
+      GPU_MAT_EEVEE,
+      shader_uuid,
+      deferred_compilation,
+      codegen_callback,
+      &thunk,
+      is_default_material ? nullptr : pass_replacement_cb);
+  store_node_tree_errors(material_from_tree);
+  return material_from_tree.material;
 }
 
 GPUMaterial *ShaderModule::world_shader_get(::World *blender_world,
@@ -1200,15 +1224,18 @@ GPUMaterial *ShaderModule::world_shader_get(::World *blender_world,
 
   CallbackThunk thunk = {this, nullptr};
 
-  return GPU_material_from_nodetree(nullptr,
-                                    nodetree,
-                                    &blender_world->gpumaterial,
-                                    blender_world->id.name,
-                                    GPU_MAT_EEVEE,
-                                    shader_uuid,
-                                    deferred_compilation,
-                                    codegen_callback,
-                                    &thunk);
+  GPUMaterialFromNodeTreeResult material_from_tree = GPU_material_from_nodetree(
+      nullptr,
+      nodetree,
+      &blender_world->gpumaterial,
+      blender_world->id.name,
+      GPU_MAT_EEVEE,
+      shader_uuid,
+      deferred_compilation,
+      codegen_callback,
+      &thunk);
+  store_node_tree_errors(material_from_tree);
+  return material_from_tree.material;
 }
 
 /** \} */

@@ -3326,12 +3326,21 @@ void node_unique_id(bNodeTree &ntree, bNode &node)
   BLI_assert(node.runtime->index_in_tree == ntree.runtime->nodes_by_id.index_of(&node));
 }
 
-bNode *node_add_node(const bContext *C, bNodeTree &ntree, const StringRef idname)
+bNode *node_add_node(const bContext *C,
+                     bNodeTree &ntree,
+                     const StringRef idname,
+                     std::optional<int> unique_identifier)
 {
   bNode *node = MEM_callocN<bNode>(__func__);
   node->runtime = MEM_new<bNodeRuntime>(__func__);
   BLI_addtail(&ntree.nodes, node);
-  node_unique_id(ntree, *node);
+  if (unique_identifier) {
+    node->identifier = *unique_identifier;
+    ntree.runtime->nodes_by_id.add_new(node);
+  }
+  else {
+    node_unique_id(ntree, *node);
+  }
   node->ui_order = ntree.all_nodes().size();
 
   idname.copy_utf8_truncated(node->idname);
@@ -3887,7 +3896,7 @@ static bNodeTree *node_tree_add_tree_do(Main *bmain,
    */
   int flag = 0;
   if (is_embedded || bmain == nullptr) {
-    flag |= LIB_ID_CREATE_NO_MAIN;
+    flag |= LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT;
   }
   BLI_assert_msg(!owner_library || !owner_id,
                  "Embedded NTrees should never have a defined owner library here");
@@ -4291,17 +4300,6 @@ void node_tree_free_embedded_tree(bNodeTree *ntree)
   node_tree_free_tree(*ntree);
   BKE_libblock_free_data(&ntree->id, true);
   BKE_libblock_free_data_py(&ntree->id);
-}
-
-void node_tree_free_local_tree(bNodeTree *ntree)
-{
-  if (ntree->id.tag & ID_TAG_LOCALIZED) {
-    node_tree_free_tree(*ntree);
-  }
-  else {
-    node_tree_free_tree(*ntree);
-    BKE_libblock_free_data(&ntree->id, true);
-  }
 }
 
 void node_tree_set_output(bNodeTree &ntree)

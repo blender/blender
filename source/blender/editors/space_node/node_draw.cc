@@ -155,6 +155,8 @@ struct TreeDrawContext {
    */
   Array<Vector<NodeExtraInfoRow>> extra_info_rows_per_node;
 
+  Map<int32_t, VectorSet<std::string>> shader_node_errors;
+
   ~TreeDrawContext()
   {
     for (MutableSpan<NodeExtraInfoRow> rows : this->extra_info_rows_per_node) {
@@ -2082,6 +2084,28 @@ static void node_add_error_message_button(const TreeDrawContext &tree_draw_ctx,
           return node_errors_tooltip_fn(warnings);
         });
     return;
+  }
+  if (ntree.type == NTREE_SHADER) {
+    const VectorSet<std::string> *errors = tree_draw_ctx.shader_node_errors.lookup_ptr(
+        node.identifier);
+    if (!errors) {
+      return;
+    }
+    if (errors->is_empty()) {
+      return;
+    }
+    uiBut *but = add_error_message_button(block, rect, ICON_ERROR, icon_offset);
+    UI_but_func_quick_tooltip_set(but, [errors = *errors](const uiBut * /*but*/) {
+      std::string tooltip;
+      for (const int i : errors.index_range()) {
+        const StringRefNull error = errors[i];
+        tooltip += error.c_str();
+        if (i + 1 < errors.size()) {
+          tooltip += ".\n";
+        }
+      }
+      return tooltip;
+    });
   }
 }
 
@@ -4615,12 +4639,20 @@ static void draw_nodetree(const bContext &C,
     tree_draw_ctx.compositor_per_node_execution_time =
         &scene->runtime->compositor.per_node_execution_time;
   }
-  else if (ntree.type == NTREE_SHADER && USER_EXPERIMENTAL_TEST(&U, use_shader_node_previews) &&
-           BKE_scene_uses_shader_previews(CTX_data_scene(&C)) &&
-           snode->overlay.flag & SN_OVERLAY_SHOW_OVERLAYS &&
-           snode->overlay.flag & SN_OVERLAY_SHOW_PREVIEWS)
-  {
-    tree_draw_ctx.nested_group_infos = get_nested_previews(C, *snode);
+  else if (ntree.type == NTREE_SHADER) {
+    if (USER_EXPERIMENTAL_TEST(&U, use_shader_node_previews) &&
+        BKE_scene_uses_shader_previews(CTX_data_scene(&C)) &&
+        snode->overlay.flag & SN_OVERLAY_SHOW_OVERLAYS &&
+        snode->overlay.flag & SN_OVERLAY_SHOW_PREVIEWS)
+    {
+      tree_draw_ctx.nested_group_infos = get_nested_previews(C, *snode);
+    }
+    {
+      std::lock_guard lock(ntree.runtime->shader_node_errors_mutex);
+      /* Make a local copy to avoid mutex access for each node. Typically, there are only very few
+       * error message. */
+      tree_draw_ctx.shader_node_errors = ntree.runtime->shader_node_errors;
+    }
   }
 
   for (const int i : nodes.index_range()) {

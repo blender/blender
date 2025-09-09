@@ -59,6 +59,7 @@ set(LIB
   PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::intern::clog
+  PRIVATE bf::nodes
   PRIVATE bf::render
   cycles_bvh
   cycles_device

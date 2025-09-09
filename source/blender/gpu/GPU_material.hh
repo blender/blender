@@ -95,8 +95,18 @@ using GPUCodegenCallbackFn = void (*)(void *thunk,
  */
 using GPUMaterialPassReplacementCallbackFn = GPUPass *(*)(void *thunk, GPUMaterial *mat);
 
+struct GPUMaterialFromNodeTreeResult {
+  GPUMaterial *material = nullptr;
+
+  struct Error {
+    const bNode *node;
+    std::string message;
+  };
+  blender::Vector<Error> errors;
+};
+
 /** WARNING: gpumaterials thread safety must be ensured by the caller. */
-GPUMaterial *GPU_material_from_nodetree(
+GPUMaterialFromNodeTreeResult GPU_material_from_nodetree(
     Material *ma,
     bNodeTree *ntree,
     ListBase *gpumaterials,
