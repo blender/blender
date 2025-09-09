@@ -419,8 +419,11 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
     /* This may be overwritten by actedit_get_context() when pose markers should be shown. */
     ac->markers = &scene->markers;
   }
+  if (scene && ac->view_layer) {
+    BKE_view_layer_synced_ensure(scene, ac->view_layer);
+    ac->obact = BKE_view_layer_active_object_get(ac->view_layer);
+  }
   ac->depsgraph = CTX_data_depsgraph_pointer(C);
-  ac->obact = BKE_view_layer_active_object_get(ac->view_layer);
   ac->area = area;
   ac->region = region;
   ac->sl = sl;
