@@ -8,8 +8,6 @@
 
 #include <filesystem>
 
-#include <fmt/format.h>
-
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
 
@@ -17,6 +15,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_global.hh"
+#include "BKE_idprop.hh"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern_run.hh"
@@ -340,7 +339,7 @@ void remote_library_request_asset_download(bContext &C,
     return;
   }
   const asset_system::AssetLibrary &library = asset.owner_asset_library();
-  const std::optional<StringRef> library_url = library.remote_url();
+  const std::optional<StringRefNull> library_url = library.remote_url();
   if (!library_url) {
     BKE_reportf(reports,
                 RPT_WARNING,
@@ -349,25 +348,29 @@ void remote_library_request_asset_download(bContext &C,
     return;
   }
 
-  const StringRef library_path = library.root_path();
-
   {
-    const char *expr_imports[] = {"_bpy_internal",
-                                  "_bpy_internal.assets.remote_library_listing.asset_downloader",
-                                  "pathlib",
-                                  nullptr};
-    const std::string expr = fmt::format(
-        "_bpy_internal.assets.remote_library_listing.asset_downloader.download_asset('{}', "
-        "pathlib.Path('{}'), '{}', pathlib.Path('{}'))",
-        *library_url,
-        library_path,
-        *dst_filepath,
-        *dst_filepath);
+    std::string script =
+        "import _bpy_internal.assets.remote_library_listing.asset_downloader as asset_dl\n"
+        "from pathlib import Path\n"
+        "\n"
+        "asset_dl.download_asset(\n"
+        "    library_url, Path(library_path),\n"
+        "    dst_filepath, Path(dst_filepath),\n"
+        ")\n";
 
-    BPY_run_string_exec(&C, expr_imports, expr.c_str());
+    /* Construct local variables for the above script. */
+    std::unique_ptr locals = bke::idprop::create_group("locals");
+    IDP_AddToGroup(locals.get(), IDP_NewString(*library_url, "library_url"));
+    IDP_AddToGroup(locals.get(), IDP_NewString(library.root_path(), "library_path"));
+    IDP_AddToGroup(locals.get(), IDP_NewString(*dst_filepath, "dst_filepath"));
+
+    /* TODO: report errors in the UI somehow. */
+    BPY_run_string_with_locals(&C, script, *locals);
   }
 #else
-  UNUSED_VARS(C, asset, reports);
+  UNUSED_VARS(C, asset);
+  BKE_report(
+      reports, RPT_ERROR, "Downloading assets requires Python, and this Blender is built without");
 #endif
 }
 
