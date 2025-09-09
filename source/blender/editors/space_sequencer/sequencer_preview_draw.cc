@@ -96,6 +96,10 @@ Strip *special_preview_get()
 void special_preview_set(bContext *C, const int mval[2])
 {
   Scene *scene = CTX_data_sequencer_scene(C);
+  if (!seq::editing_get(scene)) {
+    return;
+  }
+
   ARegion *region = CTX_wm_region(C);
   Strip *strip = strip_under_mouse_get(scene, &region->v2d, mval);
   if (strip != nullptr && strip->type != STRIP_TYPE_SOUND_RAM) {
