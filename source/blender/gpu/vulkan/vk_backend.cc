@@ -472,7 +472,7 @@ void VKBackend::detect_workarounds(VKDevice &device)
     extensions.descriptor_buffer = false;
   }
 
-  /* Running render tests fails consistenly in some scenes. The cause is that too many descriptor
+  /* Running render tests fails consistently in some scenes. The cause is that too many descriptor
    * sets are required for rendering resulting in failing allocations of the descriptor buffer. We
    * work around this issue by not using descriptor buffers on these platforms.
    *

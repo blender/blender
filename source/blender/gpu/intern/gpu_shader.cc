@@ -1022,7 +1022,7 @@ void ShaderCompiler::do_work(void *work_payload)
 
 bool ShaderCompiler::is_compiling_impl()
 {
-  /* The mutex should be locked befor calling this function. */
+  /* The mutex should be locked before calling this function. */
   BLI_assert(!mutex_.try_lock());
 
   if (!compilation_queue_.is_empty()) {
