@@ -78,6 +78,10 @@ Sequence *ED_sequencer_special_preview_get()
 void ED_sequencer_special_preview_set(bContext *C, const int mval[2])
 {
   Scene *scene = CTX_data_scene(C);
+  if (!SEQ_editing_get(scene)) {
+    return;
+  }
+
   ARegion *region = CTX_wm_region(C);
   eSeqHandle hand_dummy;
   Sequence *seq = find_nearest_seq(scene, &region->v2d, mval, &hand_dummy);
