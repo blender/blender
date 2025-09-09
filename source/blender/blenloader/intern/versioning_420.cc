@@ -1397,4 +1397,29 @@ void blo_do_versions_420(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
   }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 65)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type != NTREE_COMPOSIT) {
+        continue;
+      }
+      LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+        if (node->type_legacy == CMP_NODE_DENOISE) {
+          if (node->storage == nullptr) {
+            /* Some known files were saved without a valid storage. These are likely corrupt files
+             * that have been produced by a non official blender release. The node type will be set
+             * to Undefined during linking, see #ntree_set_typeinfo. However, a valid storage might
+             * be needed for future versioning (before linking), see
+             * #do_version_denoise_menus_to_inputs so we set a valid storage at this stage such
+             * that the node becomes well defined. */
+            NodeDenoise *ndg = MEM_callocN<NodeDenoise>(__func__);
+            ndg->hdr = true;
+            ndg->prefilter = CMP_NODE_DENOISE_PREFILTER_ACCURATE;
+            node->storage = ndg;
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
 }
