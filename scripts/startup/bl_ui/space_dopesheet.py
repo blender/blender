@@ -17,6 +17,7 @@ from bl_ui.properties_data_grease_pencil import (
     GreasePencil_LayerDisplayPanel,
 )
 from bl_ui.space_time import playback_controls
+from bl_ui.properties_data_mesh import draw_shape_key_properties
 
 from rna_prop_ui import PropertyPanel
 
@@ -994,6 +995,31 @@ class DOPESHEET_PT_grease_pencil_layer_display(
     bl_options = {'DEFAULT_CLOSED'}
 
 
+class DOPESHEET_PT_ShapeKey(Panel):
+    bl_space_type = 'DOPESHEET_EDITOR'
+    bl_region_type = 'UI'
+    bl_category = "Shape Key"
+    bl_label = "Shape Key"
+
+    @classmethod
+    def poll(cls, context):
+        st = context.space_data
+        if st.mode != 'SHAPEKEY':
+            return False
+
+        object = context.object
+        if object is None or object.active_shape_key is None:
+            return False
+
+        if not object.data.shape_keys.use_relative:
+            return False
+
+        return object.active_shape_key_index > 0
+
+    def draw(self, context):
+        draw_shape_key_properties(context, self.layout)
+
+
 classes = (
     DOPESHEET_HT_header,
     DOPESHEET_HT_playback_controls,
@@ -1024,6 +1050,7 @@ classes = (
     DOPESHEET_PT_grease_pencil_layer_adjustments,
     DOPESHEET_PT_grease_pencil_layer_relations,
     DOPESHEET_PT_grease_pencil_layer_display,
+    DOPESHEET_PT_ShapeKey,
 )
 
 if __name__ == "__main__":  # only for live edit.
