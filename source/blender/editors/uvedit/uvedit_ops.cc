@@ -564,13 +564,17 @@ struct UVAlignIslandBounds {
   int index;
 };
 
-static bool uvedit_uv_island_arrange(const Scene *scene,
-                                     BMesh *bm,
-                                     const UVAlignIslandAxis axis,
-                                     const UVAlignIslandMode align,
-                                     const UVAlignIslandOrder order,
-                                     const float margin,
-                                     float2 &position)
+/**
+ * \param position: The position to begin placing islands on,
+ * this is written to so multiple objects will placing non-overlapping islands.
+ */
+static bool uvedit_uv_islands_arrange(const Scene *scene,
+                                      BMesh *bm,
+                                      const UVAlignIslandAxis axis,
+                                      const UVAlignIslandMode align,
+                                      const UVAlignIslandOrder order,
+                                      const float margin,
+                                      float2 &position)
 {
   bool changed = false;
   UvElementMap *element_map = BM_uv_element_map_create(bm, scene, true, false, true, true);
@@ -625,7 +629,7 @@ static bool uvedit_uv_island_arrange(const Scene *scene,
   return changed;
 }
 
-static wmOperatorStatus uv_arrange_island_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_arrange_islands_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -695,7 +699,7 @@ static wmOperatorStatus uv_arrange_island_exec(bContext *C, wmOperator *op)
     if (em->bm->totvertsel == 0) {
       continue;
     }
-    if (uvedit_uv_island_arrange(scene, em->bm, axis, align, order, margin, position)) {
+    if (uvedit_uv_islands_arrange(scene, em->bm, axis, align, order, margin, position)) {
       uvedit_live_unwrap_update(sima, scene, obedit);
       DEG_id_tag_update(static_cast<ID *>(obedit->data), 0);
       WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
@@ -772,7 +776,7 @@ static void UV_OT_arrange_islands(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* API callbacks. */
-  ot->exec = uv_arrange_island_exec;
+  ot->exec = uv_arrange_islands_exec;
   ot->poll = ED_operator_uvedit;
 
   /* properties */
