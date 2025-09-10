@@ -305,7 +305,7 @@ static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
   MeshSeqCacheModifierData *mcmd = reinterpret_cast<MeshSeqCacheModifierData *>(md);
   return (mcmd->cache_file != nullptr);
 #else
-  UNUSED_VARS(scene, md);
+  UNUSED_VARS(md);
   return false;
 #endif
 }
