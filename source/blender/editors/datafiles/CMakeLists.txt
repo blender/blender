@@ -566,10 +566,13 @@ if(WITH_BLENDER)
       mod_array
       mod_bevel
       mod_boolean
+      mod_brightness_contrast
       mod_build
       mod_cast
       mod_cloth
+      mod_color_balance
       mod_curve
+      mod_curves
       mod_dash
       mod_data_transfer
       mod_decim
@@ -580,6 +583,7 @@ if(WITH_BLENDER)
       mod_explode
       mod_fluid
       mod_fluidsim
+      mod_hue_correct
       mod_hue_saturation
       mod_instance
       mod_lattice
@@ -611,11 +615,13 @@ if(WITH_BLENDER)
       mod_thickness
       mod_time
       mod_tint
+      mod_tonemap
       mod_triangulate
       mod_uvproject
       mod_vertex_weight
       mod_warp
       mod_wave
+      mod_white_balance
       mod_wireframe
       monkey
       mouse_lmb

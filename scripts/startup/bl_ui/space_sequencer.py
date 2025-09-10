@@ -1546,6 +1546,10 @@ class SEQUENCER_MT_modifier_add(Menu):
     bl_label = "Add Modifier"
     bl_options = {'SEARCH_ON_KEY_PRESS'}
 
+    MODIFIER_TYPES_TO_ICONS = {
+        enum_it.identifier: enum_it.icon
+        for enum_it in bpy.types.StripModifier.bl_rna.properties["type"].enum_items_static
+    }
     MODIFIER_TYPES_TO_LABELS = {
         enum_it.identifier: enum_it.name
         for enum_it in bpy.types.StripModifier.bl_rna.properties["type"].enum_items_static
@@ -1560,7 +1564,7 @@ class SEQUENCER_MT_modifier_add(Menu):
             # Although these are operators, the label actually comes from an (enum) property,
             # so the property's translation context must be used here.
             text_ctxt=cls.MODIFIER_TYPES_I18N_CONTEXT,
-            icon='NONE',
+            icon=cls.MODIFIER_TYPES_TO_ICONS[mod_type],
         ).type = mod_type
 
     def draw(self, context):
