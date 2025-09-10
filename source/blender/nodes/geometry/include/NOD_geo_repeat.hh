@@ -94,7 +94,6 @@ struct RepeatItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
                     SOCK_CLOSURE,
                     SOCK_INT);
       default:
-        BLI_assert_unreachable();
         return false;
     }
   }

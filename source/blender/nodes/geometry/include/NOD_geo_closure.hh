@@ -41,7 +41,6 @@ inline bool socket_type_supported_in_closure(const eNodeSocketDatatype socket_ty
                   SOCK_CLOSURE,
                   SOCK_INT);
     default:
-      BLI_assert_unreachable();
       return false;
   }
 }
