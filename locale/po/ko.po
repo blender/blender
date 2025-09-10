@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'61dd8a1435fb')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-01 09:40+0000\n"
+"POT-Creation-Date: 2025-09-10 07:24+0000\n"
 "PO-Revision-Date: 2025-07-23 15:30+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -1823,6 +1823,10 @@ msgstr "컬렉션"
 
 msgid "Collection data-blocks"
 msgstr "컬렉션 데이터-블럭"
+
+
+msgid "Color Space"
+msgstr "컬러 공간"
 
 
 msgid "Curves"
@@ -4782,10 +4786,6 @@ msgstr "이미지 파일을 저장하고 불러올 때 변환할 컬러 공간"
 
 msgid "Do not perform any color transform on load, treat colors as in scene linear space already"
 msgstr "불러올 때 컬러 변환을 수행하지 말고, 씬 선형 공간에서 처럼 컬러를 처리합니다"
-
-
-msgid "Color Space"
-msgstr "컬러 공간"
 
 
 msgid "Color space that the sequencer operates in"
@@ -9493,10 +9493,6 @@ msgstr "최대 B-프레임을 사용"
 
 msgid "Set a maximum number of B-frames"
 msgstr "B 최대 프레임 수를 설정"
-
-
-msgid "HDR"
-msgstr "HDR"
 
 
 msgid "F-Modifier"
@@ -23677,6 +23673,22 @@ msgid "Material slot name"
 msgstr "매테리얼 슬롯 이름"
 
 
+msgid "Show/Hide"
+msgstr "표시/숨기기"
+
+
+msgid "Names"
+msgstr "이름"
+
+
+msgid "Bone Roll"
+msgstr "본 롤"
+
+
+msgid "Clean Up"
+msgstr "정리"
+
+
 msgid "Pivot Point"
 msgstr "피벗 포인트"
 
@@ -23691,6 +23703,10 @@ msgstr "비례 편집 감소"
 
 msgid "Mask Edit"
 msgstr "마스크 편집"
+
+
+msgid "Metaball"
+msgstr "메타볼"
 
 
 msgid "Mirror"
@@ -23749,10 +23765,6 @@ msgid "Assign Material"
 msgstr "매테리얼을 할당"
 
 
-msgid "Metaball"
-msgstr "메타볼"
-
-
 msgid "Light"
 msgstr "라이트"
 
@@ -23785,14 +23797,6 @@ msgid "Quick Effects"
 msgstr "빠른 이펙트"
 
 
-msgid "Show/Hide"
-msgstr "표시/숨기기"
-
-
-msgid "Clean Up"
-msgstr "정리"
-
-
 msgid "Asset"
 msgstr "에셋"
 
@@ -23819,10 +23823,6 @@ msgstr "사이에서"
 
 msgid "Propagate"
 msgstr "전파"
-
-
-msgid "Names"
-msgstr "이름"
 
 
 msgid "Toggle Bone Options"
@@ -23867,10 +23867,6 @@ msgstr "자간"
 
 msgid "Text"
 msgstr "텍스트"
-
-
-msgid "Bone Roll"
-msgstr "본 롤"
 
 
 msgid "Basic"
@@ -23954,13 +23950,13 @@ msgid "Files"
 msgstr "파일"
 
 
-msgid "Material Specials"
-msgstr "매테리얼 지정"
-
-
 msgctxt "Operator"
 msgid "Smooth"
 msgstr "스무스"
+
+
+msgid "Material Specials"
+msgstr "매테리얼 지정"
 
 
 msgid "Move to Layer"
@@ -32372,15 +32368,6 @@ msgid "Import glTF 2.0"
 msgstr "glTF 2.0를 가져 오기"
 
 
-msgid "Copy mirror UV coordinates on the X axis based on a mirrored mesh"
-msgstr "미러된 메쉬에 따라 X 축에 미러 UV 좌표를 복사합니다"
-
-
-msgctxt "Operator"
-msgid "Copy Mirrored UV Coords"
-msgstr "미러된 UV 좌표를 복사"
-
-
 msgid "Construct a torus mesh"
 msgstr "토러스 메쉬를 작성"
 
@@ -32863,10 +32850,6 @@ msgstr "스타일 모듈 파일을 열기"
 msgctxt "Operator"
 msgid "Open Style Module File"
 msgstr "오픈 스타일 모듈 파일"
-
-
-msgid "Add or remove grease pencil brush preset"
-msgstr "그리이스 펜슬 브러시 프리셋을 추가 또는 제거"
 
 
 msgctxt "Operator"
@@ -36454,6 +36437,18 @@ msgid "Toggle Free/Align"
 msgstr "자유/정렬을 토글"
 
 
+msgid "Remove from selection"
+msgstr "선택에서 제거"
+
+
+msgid "Toggle Selection"
+msgstr "선택을 토글"
+
+
+msgid "Toggle the selection"
+msgstr "선택을 토글"
+
+
 msgid "(De)select all control points"
 msgstr "모든 컨트롤 포인트를 선택(취소)"
 
@@ -36668,18 +36663,6 @@ msgstr "선택된 핸들의 방향을 재계산"
 
 msgid "Recalculate handle length"
 msgstr "핸들 길이를 재계산"
-
-
-msgid "Remove from selection"
-msgstr "선택에서 제거"
-
-
-msgid "Toggle Selection"
-msgstr "선택을 토글"
-
-
-msgid "Toggle the selection"
-msgstr "선택을 토글"
 
 
 msgctxt "Operator"
@@ -41058,14 +41041,6 @@ msgid "Weld loose edges into faces (splitting them into new faces)"
 msgstr "루즈 에지를 페이스에 용접 (새로운 페이스로 분할)"
 
 
-msgid "Axis Direction"
-msgstr "축 방향"
-
-
-msgid "Tolerance for finding vertex duplicates"
-msgstr "버텍스 중복 찾기에 대한 허용 오차"
-
-
 msgctxt "Operator"
 msgid "Select Linked Flat Faces"
 msgstr "연결된 플랫 페이스를 선택"
@@ -43323,6 +43298,10 @@ msgstr "오버레이 모드"
 
 msgid "Current"
 msgstr "현재"
+
+
+msgid "HDR"
+msgstr "HDR"
 
 
 msgctxt "Operator"
@@ -50687,6 +50666,18 @@ msgid "Correct Aspect"
 msgstr "보정 측면"
 
 
+msgid "2D Cursor"
+msgstr "2D 커서"
+
+
+msgid "Space between islands"
+msgstr "아일랜드 사이 공간"
+
+
+msgid "Order"
+msgstr "순서"
+
+
 msgctxt "Operator"
 msgid "Average Islands Scale"
 msgstr "평균 아일랜드 축적"
@@ -50694,6 +50685,23 @@ msgstr "평균 아일랜드 축적"
 
 msgid "Average the size of separate UV islands, based on their area in 3D space"
 msgstr "3D 공간에서의 면적을 기준으로 분리된 UV 아일렌드의 평균 크기"
+
+
+msgctxt "Operator"
+msgid "Copy Mirrored UV Coords"
+msgstr "미러된 UV 좌표를 복사"
+
+
+msgid "Copy mirror UV coordinates on the X axis based on a mirrored mesh"
+msgstr "미러된 메쉬에 따라 X 축에 미러 UV 좌표를 복사합니다"
+
+
+msgid "Axis Direction"
+msgstr "축 방향"
+
+
+msgid "Tolerance for finding vertex duplicates"
+msgstr "버텍스 중복 찾기에 대한 허용 오차"
 
 
 msgctxt "Operator"
@@ -50918,10 +50926,6 @@ msgstr "실행할 반복 횟수, 대화식으로 실행될 때 0은 무제한입
 msgctxt "Operator"
 msgid "Pack Islands"
 msgstr "아일랜드를 포장"
-
-
-msgid "Space between islands"
-msgstr "아일랜드 사이 공간"
 
 
 msgid "Fraction"
@@ -53538,10 +53542,6 @@ msgid "Camera Presets"
 msgstr "카메라 프리셋"
 
 
-msgid "2D Cursor"
-msgstr "2D 커서"
-
-
 msgid "Footage"
 msgstr "푸티지"
 
@@ -53752,6 +53752,10 @@ msgstr "이펙트"
 
 msgid "Text Boxes"
 msgstr "텍스트 박스"
+
+
+msgid "Shape Key"
+msgstr "셰이프 키"
 
 
 msgid "Filters"
@@ -55922,10 +55926,6 @@ msgstr "아마튜어 데이터가 오브젝트와 함께 복제되도록 합니�
 
 msgid "Causes curve data to be duplicated with the object"
 msgstr "커브 데이터가 오브젝트와 함께 복제되도록 합니다"
-
-
-msgid "Causes grease pencil data to be duplicated with the object"
-msgstr "그리이스 연필 데이터가 오브젝트와 함께 복제되도록 합니다"
 
 
 msgid "Duplicate Light"
@@ -60512,10 +60512,6 @@ msgid "Wave Deformation effect"
 msgstr "웨이브 변형 이펙트"
 
 
-msgid "Shape Key"
-msgstr "셰이프 키"
-
-
 msgid "Shape key in a shape keys data-block"
 msgstr "셰이프 키 데이터 블록에서 셰이프 키"
 
@@ -61224,10 +61220,6 @@ msgstr "공간 도프시트 에디터"
 
 msgid "Dope Sheet space data"
 msgstr "도프시트 공간 데이터"
-
-
-msgid "Action displayed and edited in this space"
-msgstr "이 공간에 표시 및 편집된 액션"
 
 
 msgid "Show the active object's cloth point cache"
@@ -63137,10 +63129,6 @@ msgid "Sequence strip to control the speed of other strips"
 msgstr "다른 스트립의 속력를 컨트롤하는 시퀀스 스트립"
 
 
-msgid "Multiply the current speed of the sequence with this number or remap current frame to this frame"
-msgstr "시퀀스의 현재 속력에 이 숫자를 곱하거나 현재 프레임을 이 프레임으로 다시 맵"
-
-
 msgid "Text Strip"
 msgstr "텍스트 스트립"
 
@@ -63294,10 +63282,6 @@ msgid "Sequence strip to load a video from a mask"
 msgstr "마스크에서 비디오를 불러오는 시퀀스 스트립"
 
 
-msgid "Mask that this sequence uses"
-msgstr "이 시퀀스가 사용하는 마스크"
-
-
 msgid "Meta Strip"
 msgstr "메타 스트립"
 
@@ -63350,10 +63334,6 @@ msgid "Scene Strip"
 msgstr "씬 스트립"
 
 
-msgid "Scene that this sequence uses"
-msgstr "이 시퀀스가 사용하는 씬"
-
-
 msgid "Camera Override"
 msgstr "카메라 재정의"
 
@@ -63388,10 +63368,6 @@ msgstr "파형을 표시"
 
 msgid "Display the audio waveform inside the strip"
 msgstr "스트립 안에 오디오 파형을 표시"
-
-
-msgid "Sound data-block used by this sequence"
-msgstr "이 시퀀스로 사용되는 사운드 데이터 블록"
 
 
 msgid "Color balance gain (highlights)"
@@ -63496,10 +63472,6 @@ msgstr "모디파이어에 대한 마스크 입력으로 사용된 마스크 ID"
 
 msgid "Strip used as mask input for the modifier"
 msgstr "수정을 위해 마스크 입력으로 사용할 스트립"
-
-
-msgid "Mask Input Type"
-msgstr "마스크 입력 유형"
 
 
 msgid "Type of input data used for mask"
@@ -67737,10 +67709,6 @@ msgid "Animate Path"
 msgstr "애니메이트 경로"
 
 
-msgid "Order"
-msgstr "순서"
-
-
 msgid "Volume Min"
 msgstr "볼륨 최소"
 
@@ -70092,11 +70060,6 @@ msgid "Unmute Deselected Strips"
 msgstr "선택 해제된 스트립 음소거를 해제"
 
 
-msgctxt "Operator"
-msgid "Copy Modifiers to Selection"
-msgstr "모디파이어를 선택 항목에 복사"
-
-
 msgid "Strip Offset Start"
 msgstr "스트립 오프셋 시작"
 
@@ -71785,10 +71748,6 @@ msgid "Path Steps"
 msgstr "경로 단계"
 
 
-msgid "No Brushes currently available"
-msgstr "현재 사용할 수있는 브러쉬가 없음"
-
-
 msgid "UV Map Needed"
 msgstr "필요한 UV 맵"
 
@@ -72013,11 +71972,6 @@ msgstr "이미지 저장 실패: 메모리가 충분하지 않음"
 msgctxt "Brush"
 msgid "Surface"
 msgstr "표면"
-
-
-msgctxt "Action"
-msgid "var"
-msgstr "var"
 
 
 msgid "Untitled"
@@ -74884,10 +74838,6 @@ msgid "Click on the mesh to set the detail"
 msgstr "디테일을 설정하려면 메쉬를 클릭하십시오"
 
 
-msgid "Warning!"
-msgstr "경고!"
-
-
 msgid "Generative Modifiers Detected!"
 msgstr "생성 모디파이어 감지됨!"
 
@@ -76195,10 +76145,6 @@ msgstr "'레스트 위치'가 활성화 되면 포즈를 바꿀 수 없습니다
 
 msgid "Bone selection count error"
 msgstr "본 선택 개수 오류"
-
-
-msgid "Unsupported object type for text-space transform"
-msgstr "텍스트 변환에 대한 지원되지 않는 오브젝트 유형"
 
 
 msgid "(Sharp)"
@@ -77667,13 +77613,13 @@ msgstr "색조 보정"
 
 
 msgctxt "Sequence"
-msgid "White Balance"
-msgstr "화이트 밸런스"
+msgid "Tonemap"
+msgstr "톤맵"
 
 
 msgctxt "Sequence"
-msgid "Tonemap"
-msgstr "톤맵"
+msgid "White Balance"
+msgstr "화이트 밸런스"
 
 
 msgid "Strips must be the same length"
@@ -77768,16 +77714,16 @@ msgid "Nothing indicated"
 msgstr "아무것도 표시하지 않음"
 
 
+msgid "'%s': cannot use current file as library"
+msgstr "'%s': 라이브러리로 현재 파일을 사용 할 수 없습니다"
+
+
 msgid "'%s': nothing indicated"
 msgstr "'%s': 아무것도 표시하지 않음"
 
 
 msgid "'%s': not a library"
 msgstr "'%s': 라이브러리가 아닙니다"
-
-
-msgid "'%s': cannot use current file as library"
-msgstr "'%s': 라이브러리로 현재 파일을 사용 할 수 없습니다"
 
 
 msgid "'%s' is not a valid library filepath"

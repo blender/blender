@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'61dd8a1435fb')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-01 09:40+0000\n"
+"POT-Creation-Date: 2025-09-10 07:24+0000\n"
 "PO-Revision-Date: 2025-07-23 14:53+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
@@ -1258,6 +1258,10 @@ msgstr "ﻲﺷﺍﺮﻔﻟﺍ"
 
 msgid "Cameras"
 msgstr "ﺕﺍﺮﻴﻤﻜﻟﺍ"
+
+
+msgid "Color Space"
+msgstr "ﻥﻮﻠﻟﺍ ءﺎﻀﻓ"
 
 
 msgid "Curves"
@@ -2979,10 +2983,6 @@ msgstr "ﻥﻮﻠﻟﺍ ﻂﻴﻄﺨﺗ ﺕﺍﺩﺍﺪﻋﺇ"
 
 
 msgid "Input Color Space"
-msgstr "ﻥﻮﻠﻟﺍ ءﺎﻀﻓ"
-
-
-msgid "Color Space"
 msgstr "ﻥﻮﻠﻟﺍ ءﺎﻀﻓ"
 
 
@@ -15687,12 +15687,24 @@ msgid "Material slot name"
 msgstr "ﺔﻣﺎﺨﻟﺍ ﺔﺤﺘﻓ ﻢﺳﺇ"
 
 
+msgid "Names"
+msgstr "ءﺎﻤﺳﺃ"
+
+
+msgid "Bone Roll"
+msgstr "ﺔﻤﻈﻌﻟﺍ ءﺍﻮﺘﻟﺍ"
+
+
 msgid "Snap"
 msgstr "ﻱﺫﺎﺣ"
 
 
 msgid "Proportional Editing Falloff"
 msgstr "ﻲﺒﺴﻨﻟﺍ ﺮﻳﺮﺤﺘﻟﺍ ﻲﺷﻼ﻿ﺗ"
+
+
+msgid "Metaball"
+msgstr "ﺔﻠﻋﺎﻔﺘﻣ ﺓﺮﻛ"
 
 
 msgid "Mirror"
@@ -15729,10 +15741,6 @@ msgstr "ﺔﻤﺴﻟﺍ ﺐﺴﺣ ﻞﻛ ﺭﺎﻴﺘﺧﺍ"
 
 msgid "Select Linked"
 msgstr "ﺔﻄﺒﺗﺮﻤﻟﺍ ﺭﺎﺘﺧﺇ"
-
-
-msgid "Metaball"
-msgstr "ﺔﻠﻋﺎﻔﺘﻣ ﺓﺮﻛ"
 
 
 msgid "Light"
@@ -15775,10 +15783,6 @@ msgid "Propagate"
 msgstr "ﻢﻤﻋ"
 
 
-msgid "Names"
-msgstr "ءﺎﻤﺳﺃ"
-
-
 msgid "Face Data"
 msgstr "ﻪﺟﻮﻟﺍ ﺕﺎﻧﺎﻴﺑ"
 
@@ -15793,10 +15797,6 @@ msgstr "ﺔﺻﺎﺧ ﻑﺮﺣﺃ"
 
 msgid "Text"
 msgstr "ﺺﻧ"
-
-
-msgid "Bone Roll"
-msgstr "ﺔﻤﻈﻌﻟﺍ ءﺍﻮﺘﻟﺍ"
 
 
 msgctxt "MovieClip"
@@ -15840,13 +15840,13 @@ msgid "Marker"
 msgstr "ﺔﻣﻼ﻿ﻋ"
 
 
-msgid "Material Specials"
-msgstr "ﺕﺎﻣﺎﺨﻟﺍ ﺕﺎﻓﺎﺿﺇ"
-
-
 msgctxt "Operator"
 msgid "Smooth"
 msgstr "ﻢﻋﺎﻧ"
+
+
+msgid "Material Specials"
+msgstr "ﺕﺎﻣﺎﺨﻟﺍ ﺕﺎﻓﺎﺿﺇ"
 
 
 msgid "UV"
@@ -21561,6 +21561,18 @@ msgid "Toggle Free/Align"
 msgstr "ﻱﺫﺎﺣ/ﺮﺣ ﺐﻠﻗﺍ"
 
 
+msgid "Remove from selection"
+msgstr "ﺭﺎﻴﺘﺧﻻ﻿ﺍ ﻦﻣ ﻑﺬﺣﺍ"
+
+
+msgid "Toggle Selection"
+msgstr "ﺭﺎﻴﺘﺧﻻ﻿ﺍ ﺐﻠﻗﺍ"
+
+
+msgid "Toggle the selection"
+msgstr "ﺭﺎﻴﺘﺧﻻ﻿ﺍ ﺐﻠﻗﺍ"
+
+
 msgid "(De)select all control points"
 msgstr "ﻢﻜﺤﺘﻟﺍ ﻁﺎﻘﻧ ﻞﻛ ﺮﺘﺨﺗ ﻻ﻿/ﺮﺘﺧﺍ"
 
@@ -21662,18 +21674,6 @@ msgstr "ﺞﻴﺴﻨﻟﺍ ﻝﺎﺠﻣ ﻖﺑﺎﻃ"
 
 msgid "Recalculate the direction of selected handles"
 msgstr "ﺓﺭﺎﺘﺨﻤﻟﺍ ﺾﺑﺎﻘﻤﻟﺍ ﻩﺎﺠﺗﺇ ﺏﺎﺴﺣ ﺪﻋﺃ"
-
-
-msgid "Remove from selection"
-msgstr "ﺭﺎﻴﺘﺧﻻ﻿ﺍ ﻦﻣ ﻑﺬﺣﺍ"
-
-
-msgid "Toggle Selection"
-msgstr "ﺭﺎﻴﺘﺧﻻ﻿ﺍ ﺐﻠﻗﺍ"
-
-
-msgid "Toggle the selection"
-msgstr "ﺭﺎﻴﺘﺧﻻ﻿ﺍ ﺐﻠﻗﺍ"
 
 
 msgctxt "Operator"
@@ -31942,10 +31942,6 @@ msgid "Strip used as mask input for the modifier"
 msgstr "ﺮﻴّﻐﻤﻠﻟ ﻉﺎﻨﻘﻟﺍ ﻞﺧﺪﻛ ﻡﺪﺨﺘﺴﻤﻟﺍ ﻂﻳﺮﺸﻟﺍ"
 
 
-msgid "Mask Input Type"
-msgstr "ﻉﺎﻨﻘﻟﺍ ﻞﺧﺩ ﻉﻮﻧ"
-
-
 msgid "Type of input data used for mask"
 msgstr "ﻉﺎﻨﻘﻠﻟ ﺔﻣﺪﺨﺘﺴﻤﻟﺍ ﻝﺎﺧﺩﻻ﻿ﺍ ﺕﺎﻧﺎﻴﺑ ﻉﻮﻧ"
 
@@ -36267,10 +36263,6 @@ msgstr "ﻞﻌﻔﻣ ﺭﺎﺴﻣ ﻻ﻿"
 
 msgid "No active vertex group for painting, aborting"
 msgstr "ﻂﻘﻨﻟﺍ ﺖﻴﺒﺜﺘﻟ ﻂﻘﻨﻟﺍ ﺔﻋﻮﻤﺠﻣ"
-
-
-msgid "Warning!"
-msgstr "!ﺮﻳﺬﺤﺗ"
 
 
 msgid "Active F-Curve"

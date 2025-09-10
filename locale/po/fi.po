@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'61dd8a1435fb')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-01 09:40+0000\n"
+"POT-Creation-Date: 2025-09-10 07:24+0000\n"
 "PO-Revision-Date: 2025-07-23 15:32+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -1585,6 +1585,10 @@ msgstr "Kokoelmat"
 
 msgid "Collection data-blocks"
 msgstr "Kokoelman data-palikat"
+
+
+msgid "Color Space"
+msgstr "Väriavaruus"
 
 
 msgid "Curves"
@@ -3501,10 +3505,6 @@ msgid "Non-Color"
 msgstr "Väritön"
 
 
-msgid "Color Space"
-msgstr "Väriavaruus"
-
-
 msgid "Color space that the sequencer operates in"
 msgstr "Väriavaruus, jossa sekvensseri toimii"
 
@@ -5195,10 +5195,6 @@ msgstr "Ogg"
 
 msgid "QuickTime"
 msgstr "QuickTime"
-
-
-msgid "HDR"
-msgstr "HDR"
 
 
 msgid "F-Modifier"
@@ -7268,6 +7264,18 @@ msgid "Mask"
 msgstr "Maski"
 
 
+msgid "Show/Hide"
+msgstr "Näytä/Piilota"
+
+
+msgid "Names"
+msgstr "Nimet"
+
+
+msgid "Metaball"
+msgstr "Metapallo"
+
+
 msgid "UV Mapping"
 msgstr "UV-kartoittaminen"
 
@@ -7288,10 +7296,6 @@ msgid "Select Loops"
 msgstr "Valitse silmukat"
 
 
-msgid "Metaball"
-msgstr "Metapallo"
-
-
 msgid "Light"
 msgstr "Valo"
 
@@ -7308,20 +7312,12 @@ msgid "Track"
 msgstr "Raide"
 
 
-msgid "Show/Hide"
-msgstr "Näytä/Piilota"
-
-
 msgid "Hooks"
 msgstr "Koukut"
 
 
 msgid "Random Mask"
 msgstr "Satunnainen maski"
-
-
-msgid "Names"
-msgstr "Nimet"
 
 
 msgid "Mesh Select Mode"
@@ -10130,6 +10126,10 @@ msgid "DPX"
 msgstr "DPX"
 
 
+msgid "HDR"
+msgstr "HDR"
+
+
 msgid "TIFF"
 msgstr "TIFF"
 
@@ -10175,6 +10175,10 @@ msgstr "Liitä"
 
 msgid "Column"
 msgstr "Sarake"
+
+
+msgid "Order"
+msgstr "Järjestys"
 
 
 msgid "Remove"
@@ -12614,10 +12618,6 @@ msgid "Before"
 msgstr "Ennen"
 
 
-msgid "Order"
-msgstr "Järjestys"
-
-
 msgctxt "Constraint"
 msgid "Mix"
 msgstr "Sekoita"
@@ -14673,10 +14673,6 @@ msgstr "Kuvaa ei kyetty löytämään"
 
 msgid "No active camera set"
 msgstr "Ei aktiivista kamerasarjaa"
-
-
-msgid "Warning!"
-msgstr "Varoitus!"
 
 
 msgid "Attribute Data Detected"
@@ -16770,6 +16766,11 @@ msgstr "Kaikki renderöintitasot on poistettu käytöstä"
 
 
 msgctxt "Sequence"
+msgid "Brightness/Contrast"
+msgstr "Kirkkaus/Kontrasti"
+
+
+msgctxt "Sequence"
 msgid "Color Balance"
 msgstr "Väritasapaino"
 
@@ -16785,18 +16786,13 @@ msgstr "Sävykorjaus"
 
 
 msgctxt "Sequence"
-msgid "Brightness/Contrast"
-msgstr "Kirkkaus/Kontrasti"
+msgid "Tonemap"
+msgstr "Sävykartta"
 
 
 msgctxt "Sequence"
 msgid "White Balance"
 msgstr "Valkotasapaino"
-
-
-msgctxt "Sequence"
-msgid "Tonemap"
-msgstr "Sävykartta"
 
 
 msgctxt "Sequence"

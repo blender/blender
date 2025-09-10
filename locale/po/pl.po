@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'61dd8a1435fb')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-01 09:40+0000\n"
+"POT-Creation-Date: 2025-09-10 07:24+0000\n"
 "PO-Revision-Date: 2025-07-23 15:14+0000\n"
 "Last-Translator: Kamil <uhkamil@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -2203,6 +2203,10 @@ msgstr "Kolekcje"
 
 msgid "Collection data-blocks"
 msgstr "Bloki danych dla kolekcji"
+
+
+msgid "Color Space"
+msgstr "Przestrzeń kolorów"
 
 
 msgid "Curves"
@@ -4481,10 +4485,6 @@ msgstr "Ustawienia wejściowej przestrzeni kolorów"
 
 msgid "Input Color Space"
 msgstr "Wejściowa przestrzeń kolorów"
-
-
-msgid "Color Space"
-msgstr "Przestrzeń kolorów"
 
 
 msgid "Color space that the sequencer operates in"
@@ -11584,12 +11584,24 @@ msgid "Mask"
 msgstr "Maska"
 
 
+msgid "Show/Hide"
+msgstr "Pokaż/Ukryj"
+
+
+msgid "Clean Up"
+msgstr "Sprzątanie"
+
+
 msgid "Snap"
 msgstr "Przyciągnij"
 
 
 msgid "Proportional Editing Falloff"
 msgstr "Proporcjonalne edytowanie spadku"
+
+
+msgid "Metaball"
+msgstr "Metakula"
 
 
 msgid "Mirror"
@@ -11616,10 +11628,6 @@ msgid "Assign Material"
 msgstr "Przypisanie materiału"
 
 
-msgid "Metaball"
-msgstr "Metakula"
-
-
 msgid "Light"
 msgstr "Światło"
 
@@ -11642,14 +11650,6 @@ msgstr "Ścieżka"
 
 msgid "Quick Effects"
 msgstr "Szybkie efekty"
-
-
-msgid "Show/Hide"
-msgstr "Pokaż/Ukryj"
-
-
-msgid "Clean Up"
-msgstr "Sprzątanie"
 
 
 msgid "Asset"
@@ -13252,11 +13252,6 @@ msgid "Export glTF 2.0"
 msgstr "Eksportuj glTF 2.0"
 
 
-msgctxt "Operator"
-msgid "Flip Colors"
-msgstr "Zamień kolory"
-
-
 msgid "Create mesh plane(s) from image files with the appropriate aspect ratio"
 msgstr "Tworzy siatki płaszczyzny z plików obrazów o odpowiednich proporcjach"
 
@@ -14100,27 +14095,6 @@ msgid "Curve 2D"
 msgstr "Krzywa 2D"
 
 
-msgctxt "Operator"
-msgid "Select Random"
-msgstr "Wybierz losowo"
-
-
-msgid "To Sphere"
-msgstr "Do sfery"
-
-
-msgid "Bake Time"
-msgstr "Czas wypalania"
-
-
-msgid "Grease Pencil Opacity"
-msgstr "Krycie narzędzia Grease Pencil"
-
-
-msgid "On Click"
-msgstr "Po kliknięciu"
-
-
 msgid "Delete Point"
 msgstr "Usuń punkt"
 
@@ -14143,6 +14117,27 @@ msgstr "Przesuń punkt"
 
 msgid "Select Point"
 msgstr "Zaznacz punkt"
+
+
+msgctxt "Operator"
+msgid "Select Random"
+msgstr "Wybierz losowo"
+
+
+msgid "To Sphere"
+msgstr "Do sfery"
+
+
+msgid "Bake Time"
+msgstr "Czas wypalania"
+
+
+msgid "Grease Pencil Opacity"
+msgstr "Krycie narzędzia Grease Pencil"
+
+
+msgid "On Click"
+msgstr "Po kliknięciu"
 
 
 msgctxt "Operator"
@@ -16539,6 +16534,10 @@ msgstr "Wyrównaj"
 
 msgid "Only selected edges"
 msgstr "Tylko zaznaczone krawędzie"
+
+
+msgid "Order"
+msgstr "Kolejność"
 
 
 msgctxt "Operator"
@@ -20740,10 +20739,6 @@ msgid "Add Object Constraint"
 msgstr "Dodaj ogranicznik obiektu"
 
 
-msgid "Order"
-msgstr "Kolejność"
-
-
 msgctxt "Constraint"
 msgid "Mix"
 msgstr "Mieszanie"
@@ -21791,14 +21786,6 @@ msgstr "Rozpakuj"
 
 msgid "Pack"
 msgstr "Pakuj"
-
-
-msgid "Hz"
-msgstr "Hz"
-
-
-msgid "dB"
-msgstr "dB"
 
 
 msgid "Source Channel"
@@ -23105,11 +23092,6 @@ msgstr "Zapis obrazu nie powiódł się: Za mało wolnej pamięci"
 msgctxt "Brush"
 msgid "Surface"
 msgstr "Powierzchnia"
-
-
-msgctxt "Action"
-msgid "var"
-msgstr "var"
 
 
 msgid "True Normal"
@@ -25762,10 +25744,6 @@ msgid "No active vertex group for painting, aborting"
 msgstr "Brak aktywnej grupy wierzchołków do malowania, rezygnuję"
 
 
-msgid "Warning!"
-msgstr "Uwaga!"
-
-
 msgid "Attribute Data Detected"
 msgstr "Wykryto dane atrybutów"
 
@@ -26888,10 +26866,6 @@ msgstr "Nie można zmienić pozy gdy 'Pozycja Spoczynku' jest aktywna"
 
 msgid "Bone selection count error"
 msgstr "Błąd ilości kości w selekcji"
-
-
-msgid "Unsupported object type for text-space transform"
-msgstr "Nieobsługiwany format dla transformacji text-space"
 
 
 msgid "(Sharp)"

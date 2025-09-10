@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'61dd8a1435fb')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-01 09:40+0000\n"
+"POT-Creation-Date: 2025-09-10 07:24+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: Balázs Füvesi <fuvesib@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -968,6 +968,10 @@ msgid "Collection data-blocks"
 msgstr "Kollekció adatblokkok"
 
 
+msgid "Color Space"
+msgstr "Színtér"
+
+
 msgid "Curve data-blocks"
 msgstr "Görbe adatblokkok"
 
@@ -1320,10 +1324,6 @@ msgstr "Kijelző"
 
 msgid "Input Color Space"
 msgstr "Bemeneti színtér"
-
-
-msgid "Color Space"
-msgstr "Színtér"
 
 
 msgid "Color space that the sequencer operates in"
@@ -6581,6 +6581,18 @@ msgid "Mask"
 msgstr "Maszk"
 
 
+msgid "Show/Hide"
+msgstr "Mutat/Rejt"
+
+
+msgid "Clean Up"
+msgstr "Tisztítás"
+
+
+msgid "Metaball"
+msgstr "Meta test"
+
+
 msgid "Mirror"
 msgstr "Tükrözés"
 
@@ -6595,10 +6607,6 @@ msgstr "Navigáció"
 
 msgid "Align View"
 msgstr "Nézet igazítása"
-
-
-msgid "Metaball"
-msgstr "Meta test"
 
 
 msgid "Light"
@@ -6619,14 +6627,6 @@ msgstr "Elfogadás"
 
 msgid "Track"
 msgstr "Nyom"
-
-
-msgid "Show/Hide"
-msgstr "Mutat/Rejt"
-
-
-msgid "Clean Up"
-msgstr "Tisztítás"
 
 
 msgid "Merge"
@@ -12873,6 +12873,10 @@ msgid "Texture Space"
 msgstr "Textúratér"
 
 
+msgid "Shape Key"
+msgstr "Formakulcs"
+
+
 msgid "Bookmarks"
 msgstr "Könyvjelzők"
 
@@ -14138,10 +14142,6 @@ msgstr "Gyorsítótár megjelenítése"
 
 msgid "Show Source"
 msgstr "Forrás megjelenítése"
-
-
-msgid "Shape Key"
-msgstr "Formakulcs"
 
 
 msgid "Shape key in a shape keys data-block"
@@ -16738,10 +16738,6 @@ msgstr " Anyagok,"
 
 msgid "No active camera set"
 msgstr "Nincs beállítva aktív kamera"
-
-
-msgid "Warning!"
-msgstr "Figyelmeztetés!"
 
 
 msgid "Fields"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'61dd8a1435fb')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-01 09:40+0000\n"
+"POT-Creation-Date: 2025-09-10 07:24+0000\n"
 "PO-Revision-Date: 2025-07-23 15:10+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -917,6 +917,10 @@ msgstr "Четкице"
 
 msgid "Cameras"
 msgstr "Камере"
+
+
+msgid "Color Space"
+msgstr "Простор боја"
 
 
 msgid "Curves"
@@ -1947,10 +1951,6 @@ msgstr "Прикажи криве"
 
 msgid "Input Color Space"
 msgstr "Простор боја улаза"
-
-
-msgid "Color Space"
-msgstr "Простор боја"
 
 
 msgid "Curve"
@@ -8509,8 +8509,24 @@ msgid "Material slot name"
 msgstr "Назив слота материјала"
 
 
+msgid "Show/Hide"
+msgstr "Прикажи/сакриј"
+
+
+msgid "Names"
+msgstr "Имена"
+
+
+msgid "Bone Roll"
+msgstr "Ролна костију"
+
+
 msgid "Snap"
 msgstr "Лепљење"
+
+
+msgid "Metaball"
+msgstr "Мета лопта"
 
 
 msgid "Mirror"
@@ -8537,10 +8553,6 @@ msgid "Select Linked"
 msgstr "Изабери повезано"
 
 
-msgid "Metaball"
-msgstr "Мета лопта"
-
-
 msgid "Light"
 msgstr "Светлост"
 
@@ -8565,10 +8577,6 @@ msgid "Quick Effects"
 msgstr "Брзи ефекти"
 
 
-msgid "Show/Hide"
-msgstr "Прикажи/сакриј"
-
-
 msgid "Hooks"
 msgstr "Удице"
 
@@ -8583,10 +8591,6 @@ msgstr "У међувремену"
 
 msgid "Propagate"
 msgstr "Пренеси"
-
-
-msgid "Names"
-msgstr "Имена"
 
 
 msgid "Toggle Bone Options"
@@ -8611,10 +8615,6 @@ msgstr "Сједини"
 
 msgid "Special Characters"
 msgstr "Специјални знаци"
-
-
-msgid "Bone Roll"
-msgstr "Ролна костију"
 
 
 msgid "Basic"
@@ -8670,13 +8670,13 @@ msgid "Files"
 msgstr "Датотеке"
 
 
-msgid "Material Specials"
-msgstr "Специјални материјали"
-
-
 msgctxt "Operator"
 msgid "Smooth"
 msgstr "Умекшано"
+
+
+msgid "Material Specials"
+msgstr "Специјални материјали"
 
 
 msgid "UV"
@@ -13039,6 +13039,18 @@ msgid "Set Handle Type"
 msgstr "Постави врсту ручица"
 
 
+msgid "Remove from selection"
+msgstr "Уклони из избора"
+
+
+msgid "Toggle Selection"
+msgstr "Изабери/поништи избор"
+
+
+msgid "Toggle the selection"
+msgstr "Бира или поништава избор"
+
+
 msgctxt "Operator"
 msgid "Select Random"
 msgstr "Изабери насумично"
@@ -13149,18 +13161,6 @@ msgstr "Копира материјал на остале изабране об�
 msgctxt "Operator"
 msgid "Match Texture Space"
 msgstr "Препознај простор текстуре"
-
-
-msgid "Remove from selection"
-msgstr "Уклони из избора"
-
-
-msgid "Toggle Selection"
-msgstr "Изабери/поништи избор"
-
-
-msgid "Toggle the selection"
-msgstr "Бира или поништава избор"
 
 
 msgctxt "Operator"
@@ -14744,10 +14744,6 @@ msgstr "Извуци само индивидуална темена"
 msgctxt "Operator"
 msgid "Extrude Only Vertices"
 msgstr "Извуци само темена"
-
-
-msgid "Axis Direction"
-msgstr "Смер оса"
 
 
 msgctxt "Operator"
@@ -18293,9 +18289,17 @@ msgid "Align Auto"
 msgstr "Ауто поравнање"
 
 
+msgid "2D Cursor"
+msgstr "2D курсор"
+
+
 msgctxt "Operator"
 msgid "Average Islands Scale"
 msgstr "Просечна величина острва"
+
+
+msgid "Axis Direction"
+msgstr "Смер оса"
 
 
 msgctxt "Operator"
@@ -19192,10 +19196,6 @@ msgid "Camera Presets"
 msgstr "Предефинисане камере"
 
 
-msgid "2D Cursor"
-msgstr "2D курсор"
-
-
 msgid "Footage Settings"
 msgstr "Подешавање видеа"
 
@@ -19302,6 +19302,10 @@ msgstr "Путања анимације"
 
 msgid "Text Boxes"
 msgstr "Блок текста"
+
+
+msgid "Shape Key"
+msgstr "Кључ облика"
 
 
 msgid "Filters"
@@ -20921,10 +20925,6 @@ msgstr "Сиви тонови"
 
 msgid "Sepia"
 msgstr "Старинско"
-
-
-msgid "Shape Key"
-msgstr "Кључ облика"
 
 
 msgid "Relative Key"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'61dd8a1435fb')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-01 09:40+0000\n"
+"POT-Creation-Date: 2025-09-10 07:24+0000\n"
 "PO-Revision-Date: 2025-07-23 15:14+0000\n"
 "Last-Translator: Jan Vavřínek <janvavrinek1@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -601,14 +601,6 @@ msgstr "Distribuce paměti mezi zařízeními"
 
 msgid "Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it"
 msgstr "Udělejte více místa pro velké scény tím, že rozložíte paměť mezi propojená zařízení (např. přes NVLink), spíše než že ji duplikujete"
-
-
-msgid "HIP RT"
-msgstr "HIP RT"
-
-
-msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above"
-msgstr "HIP RT umožňuje AMD hardwarový ray tracing (sledování paprsků světla) na RDNA2 a novější"
 
 
 msgid "Embree on GPU"
@@ -2230,6 +2222,10 @@ msgstr "Kolekce"
 
 msgid "Collection data-blocks"
 msgstr "Sběr datových bloků"
+
+
+msgid "Color Space"
+msgstr "Barevný prostor"
 
 
 msgid "Curves"
@@ -4321,10 +4317,6 @@ msgstr "Zacházejte s obrazem jako s nebarevnými daty bez správy barev, jako j
 
 msgid "Input Color Space"
 msgstr "Vstupní barevný prostor"
-
-
-msgid "Color Space"
-msgstr "Barevný prostor"
 
 
 msgid "Color space that the sequencer operates in"
@@ -13878,6 +13870,22 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
+msgid "Show/Hide"
+msgstr "Zobrazit/skrýt"
+
+
+msgid "Names"
+msgstr "Názvy"
+
+
+msgid "Bone Roll"
+msgstr "Kost"
+
+
+msgid "Clean Up"
+msgstr "Vyčistit"
+
+
 msgid "Pivot Point"
 msgstr "Bod pro pivot"
 
@@ -13888,6 +13896,10 @@ msgstr "Přichytit"
 
 msgid "Proportional Editing Falloff"
 msgstr "Způsob útlumu"
+
+
+msgid "Metaball"
+msgstr "Meta objekt"
 
 
 msgid "Mirror"
@@ -13918,10 +13930,6 @@ msgid "Assign Material"
 msgstr "Přiřadit Materiál"
 
 
-msgid "Metaball"
-msgstr "Meta objekt"
-
-
 msgid "Light"
 msgstr "Světlo"
 
@@ -13946,14 +13954,6 @@ msgid "Quick Effects"
 msgstr "Rychlé Efekty"
 
 
-msgid "Show/Hide"
-msgstr "Zobrazit/skrýt"
-
-
-msgid "Clean Up"
-msgstr "Vyčistit"
-
-
 msgid "Make Single User"
 msgstr "Přivlastnit"
 
@@ -13968,10 +13968,6 @@ msgstr "Vyčistit transformaci"
 
 msgid "Propagate"
 msgstr "Vložit"
-
-
-msgid "Names"
-msgstr "Názvy"
 
 
 msgid "Mesh Select Mode"
@@ -13992,10 +13988,6 @@ msgstr "Speciální Znaky"
 
 msgid "Text"
 msgstr "Text"
-
-
-msgid "Bone Roll"
-msgstr "Kost"
 
 
 msgid "Basic"
@@ -14059,13 +14051,13 @@ msgid "Files"
 msgstr "Soubory"
 
 
-msgid "Material Specials"
-msgstr "Materiál"
-
-
 msgctxt "Operator"
 msgid "Smooth"
 msgstr "Hladké"
+
+
+msgid "Material Specials"
+msgstr "Materiál"
 
 
 msgid "Align"
@@ -18016,11 +18008,6 @@ msgstr "Přidat předvolbu pro látku"
 
 
 msgctxt "Operator"
-msgid "Flip Colors"
-msgstr "Překlopit Barvy"
-
-
-msgctxt "Operator"
 msgid "Image Edit Externally"
 msgstr "UV/obrázkový editor"
 
@@ -18057,11 +18044,6 @@ msgstr "Importovat FBX"
 msgctxt "Operator"
 msgid "Import glTF 2.0"
 msgstr "Importovat glTF 2.0"
-
-
-msgctxt "Operator"
-msgid "Copy Mirrored UV Coords"
-msgstr "Kopírovat Zrcadlené UV Souřadnice"
 
 
 msgctxt "Operator"
@@ -20792,6 +20774,18 @@ msgid "Toggle Free/Align"
 msgstr "Zachytit obrazovku"
 
 
+msgid "Remove from selection"
+msgstr "Odstranit ze všech"
+
+
+msgid "Toggle Selection"
+msgstr "Přepnout označené"
+
+
+msgid "Toggle the selection"
+msgstr "Mód vybírání hran"
+
+
 msgid "(De)select all control points"
 msgstr "O(d)značit vše"
 
@@ -20938,18 +20932,6 @@ msgstr "Odstranit označené Objekt(y)"
 msgctxt "Operator"
 msgid "Recalculate Handles"
 msgstr "Přepočítat Úchyty"
-
-
-msgid "Remove from selection"
-msgstr "Odstranit ze všech"
-
-
-msgid "Toggle Selection"
-msgstr "Přepnout označené"
-
-
-msgid "Toggle the selection"
-msgstr "Mód vybírání hran"
 
 
 msgctxt "Operator"
@@ -23309,10 +23291,6 @@ msgstr "Vytvořit Rovné Plochy"
 msgctxt "Operator"
 msgid "Weld Edges into Faces"
 msgstr "Svařit Hrany do Ploch"
-
-
-msgid "Axis Direction"
-msgstr "Odznačit spojené"
 
 
 msgid "Select linked faces by angle"
@@ -29039,9 +29017,26 @@ msgid "Align Auto"
 msgstr "Automatické zarovnání"
 
 
+msgid "2D Cursor"
+msgstr "2D Kursor"
+
+
+msgid "Order"
+msgstr "Pořadí"
+
+
 msgctxt "Operator"
 msgid "Average Islands Scale"
 msgstr "Průměrná hodnota"
+
+
+msgctxt "Operator"
+msgid "Copy Mirrored UV Coords"
+msgstr "Kopírovat Zrcadlené UV Souřadnice"
+
+
+msgid "Axis Direction"
+msgstr "Odznačit spojené"
 
 
 msgctxt "Operator"
@@ -30704,10 +30699,6 @@ msgid "Camera Presets"
 msgstr "Přednastavení kamery"
 
 
-msgid "2D Cursor"
-msgstr "2D Kursor"
-
-
 msgid "Footage"
 msgstr "Záběr"
 
@@ -30894,6 +30885,10 @@ msgstr "Textury"
 
 msgid "OpenVDB File"
 msgstr "OpenVDB Soubor"
+
+
+msgid "Shape Key"
+msgstr "Samochytavé Klíče"
 
 
 msgid "Filters"
@@ -34245,10 +34240,6 @@ msgid "Angle of rotation"
 msgstr "Úhel rotace"
 
 
-msgid "Shape Key"
-msgstr "Samochytavé Klíče"
-
-
 msgid "Interpolation type for absolute shape keys"
 msgstr "Mód Interpolace"
 
@@ -35587,10 +35578,6 @@ msgid "Sequence strip to load a video from a mask"
 msgstr "Uložit změněný obrázek"
 
 
-msgid "Mask that this sequence uses"
-msgstr "Přidat vazbu aktivní kosti"
-
-
 msgid "Meta Strip"
 msgstr "Zarovnat NLA proužky"
 
@@ -35625,10 +35612,6 @@ msgstr "Materiálové uzly"
 
 msgid "Scene Strip"
 msgstr "Přidat action strip"
-
-
-msgid "Scene that this sequence uses"
-msgstr "Přidat vazbu aktivní kosti"
 
 
 msgid "Inverse Gain"
@@ -35669,10 +35652,6 @@ msgstr "Původní šířka obrázku"
 
 msgid "Modifier for sequence strip"
 msgstr "První frame animace"
-
-
-msgid "Mask Input Type"
-msgstr "Vrstvy masky"
 
 
 msgid "Use sequencer strip as mask input"
@@ -37749,10 +37728,6 @@ msgstr "Přidat Vazbu Kosti"
 msgctxt "Operator"
 msgid "Animate Path"
 msgstr "Animovat Cestu"
-
-
-msgid "Order"
-msgstr "Pořadí"
 
 
 msgid "Min/Max"
@@ -40741,11 +40716,6 @@ msgid "Surface"
 msgstr "Povrch"
 
 
-msgctxt "Action"
-msgid "var"
-msgstr "var"
-
-
 msgid "True Normal"
 msgstr "Dle normály"
 
@@ -42333,10 +42303,6 @@ msgstr "Přidat primitivum"
 
 msgid "No active vertex group for painting, aborting"
 msgstr "Odstranit skupinu vertexů"
-
-
-msgid "Warning!"
-msgstr "Upozornění!"
 
 
 msgid "edge data"

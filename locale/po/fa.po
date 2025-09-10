@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'61dd8a1435fb')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-01 09:40+0000\n"
+"POT-Creation-Date: 2025-09-10 07:24+0000\n"
 "PO-Revision-Date: 2025-07-23 15:03+0000\n"
 "Last-Translator: Nooby Noober <iamanoobynoober@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
@@ -1103,6 +1103,10 @@ msgid "Cache Files"
 msgstr "ﺶﮐ ﯼﺎﻫ ﻞﯾﺎﻓ"
 
 
+msgid "Color Space"
+msgstr "ﮓﻧﺭ ﯼﺎﻀﻓ"
+
+
 msgid "Grease Pencil"
 msgstr "ﯽﻨﻏﻭﺭ ﺩﺍﺪﻣ"
 
@@ -1518,10 +1522,6 @@ msgstr "ﺕﺍﺭﺫ ﻦﺘﺸﮐ"
 
 msgid "Kill collided particles"
 msgstr "ﺩﺭﻮﺧﺮﺑ ﺕﺍﺭﺫ ﻦﺘﺸﮐ"
-
-
-msgid "Color Space"
-msgstr "ﮓﻧﺭ ﯼﺎﻀﻓ"
 
 
 msgid "Curve"

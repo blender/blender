@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'61dd8a1435fb')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-09-01 09:40+0000\n"
+"POT-Creation-Date: 2025-09-10 07:24+0000\n"
 "PO-Revision-Date: 2025-07-23 15:03+0000\n"
 "Last-Translator: Amy Lily <lillya.assist@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -2553,6 +2553,10 @@ msgid "Camera data-blocks"
 msgstr "Blocos de dados de câmeras."
 
 
+msgid "Color Space"
+msgstr "Espaço de cor"
+
+
 msgid "Curves"
 msgstr "Curvas"
 
@@ -5010,10 +5014,6 @@ msgstr "Não-Cor"
 
 msgid "Do not perform any color transform on load, treat colors as in scene linear space already"
 msgstr "Não perfaz quaisquer transformações de cores durante o carregamento, e trata as cores como já estando no espaço linear de cores da cena."
-
-
-msgid "Color Space"
-msgstr "Espaço de cor"
 
 
 msgid "Color space that the sequencer operates in"
@@ -21304,6 +21304,22 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
+
+
+msgid "Names"
+msgstr "Nomes"
+
+
+msgid "Bone Roll"
+msgstr "Rolagem dos ossos"
+
+
+msgid "Clean Up"
+msgstr "Limpeza"
+
+
 msgid "Pivot Point"
 msgstr "Pontos de pivô"
 
@@ -21314,6 +21330,10 @@ msgstr "Atrair"
 
 msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
+
+
+msgid "Metaball"
+msgstr "Meta-esfera"
 
 
 msgid "Mirror"
@@ -21368,10 +21388,6 @@ msgid "Select Loops"
 msgstr "Selecionar anéis"
 
 
-msgid "Metaball"
-msgstr "Meta-esfera"
-
-
 msgid "Light"
 msgstr "Luz"
 
@@ -21404,14 +21420,6 @@ msgid "Quick Effects"
 msgstr "Efeitos instantâneos"
 
 
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
-
-
-msgid "Clean Up"
-msgstr "Limpeza"
-
-
 msgid "Make Single User"
 msgstr "Tornar usuário único"
 
@@ -21438,10 +21446,6 @@ msgstr "Entre as continuidades"
 
 msgid "Propagate"
 msgstr "Propagar"
-
-
-msgid "Names"
-msgstr "Nomes"
 
 
 msgid "Toggle Bone Options"
@@ -21474,10 +21478,6 @@ msgstr "Caracteres especiais"
 
 msgid "Text"
 msgstr "Texto"
-
-
-msgid "Bone Roll"
-msgstr "Rolagem dos ossos"
 
 
 msgid "Basic"
@@ -21545,13 +21545,13 @@ msgid "Files"
 msgstr "Arquivos"
 
 
-msgid "Material Specials"
-msgstr "Especiais para materiais"
-
-
 msgctxt "Operator"
 msgid "Smooth"
 msgstr "Suavizar"
+
+
+msgid "Material Specials"
+msgstr "Especiais para materiais"
 
 
 msgid "UV"
@@ -28847,11 +28847,6 @@ msgid "Add Fluid Preset"
 msgstr "Adicionar predefinição de fluido"
 
 
-msgctxt "Operator"
-msgid "Flip Colors"
-msgstr "Inverter Cores"
-
-
 msgid "Edit image in an external application"
 msgstr "Permite a edição de imagem em um aplicativo externo."
 
@@ -28905,10 +28900,6 @@ msgstr "Importar FBX"
 msgctxt "Operator"
 msgid "Import glTF 2.0"
 msgstr "Importar glTF 2.0"
-
-
-msgid "Copy mirror UV coordinates on the X axis based on a mirrored mesh"
-msgstr "Copia as coordenadas de espelhamento de UV no eixo X com base em uma malha espelhada."
 
 
 msgctxt "Operator"
@@ -32894,6 +32885,18 @@ msgid "Toggle Free/Align"
 msgstr "Alternar entre livres ou alinhados"
 
 
+msgid "Remove from selection"
+msgstr "Remove da seleção"
+
+
+msgid "Toggle Selection"
+msgstr "Alternar seleção"
+
+
+msgid "Toggle the selection"
+msgstr "Permite alternar a seleção"
+
+
 msgid "(De)select all control points"
 msgstr "(De)seleciona todos os pontos de controle."
 
@@ -33101,18 +33104,6 @@ msgstr "Recalcula a direção das hastes selecionadas."
 
 msgid "Recalculate handle length"
 msgstr "Recalcula o comprimento do manípulo."
-
-
-msgid "Remove from selection"
-msgstr "Remove da seleção"
-
-
-msgid "Toggle Selection"
-msgstr "Alternar seleção"
-
-
-msgid "Toggle the selection"
-msgstr "Permite alternar a seleção"
 
 
 msgctxt "Operator"
@@ -37139,14 +37130,6 @@ msgstr "Soldar arestas criando faces"
 
 msgid "Weld loose edges into faces (splitting them into new faces)"
 msgstr "Solda as arestas desconectadas criando faces (dividindo-as em novas faces)."
-
-
-msgid "Axis Direction"
-msgstr "Direção do eixo"
-
-
-msgid "Tolerance for finding vertex duplicates"
-msgstr "Tolerância para pesquisa de vértices duplicados."
 
 
 msgctxt "Operator"
@@ -42688,10 +42671,6 @@ msgid "Apply Flipped"
 msgstr "Aplicar Virado"
 
 
-msgid "Activate New Action"
-msgstr "Ativar Nova Ação"
-
-
 msgid "Pose Name"
 msgstr "Nome da pose"
 
@@ -46034,6 +46013,14 @@ msgid "Correct Aspect"
 msgstr "Corrigir aspecto"
 
 
+msgid "2D Cursor"
+msgstr "Cursor 2D"
+
+
+msgid "Space between islands"
+msgstr "Espaço entre ilhas."
+
+
 msgctxt "Operator"
 msgid "Average Islands Scale"
 msgstr "Escalonar as ilhas por uma média"
@@ -46041,6 +46028,18 @@ msgstr "Escalonar as ilhas por uma média"
 
 msgid "Average the size of separate UV islands, based on their area in 3D space"
 msgstr "Escalona as ilhas para uma média das faces UV separadas, com base em sua área no espaço 3D."
+
+
+msgid "Copy mirror UV coordinates on the X axis based on a mirrored mesh"
+msgstr "Copia as coordenadas de espelhamento de UV no eixo X com base em uma malha espelhada."
+
+
+msgid "Axis Direction"
+msgstr "Direção do eixo"
+
+
+msgid "Tolerance for finding vertex duplicates"
+msgstr "Tolerância para pesquisa de vértices duplicados."
 
 
 msgctxt "Operator"
@@ -46265,10 +46264,6 @@ msgstr "Número de interações para a execução, zero significa ilimitado dura
 msgctxt "Operator"
 msgid "Pack Islands"
 msgstr "Empacotar ilhas"
-
-
-msgid "Space between islands"
-msgstr "Espaço entre ilhas."
 
 
 msgctxt "Operator"
@@ -48571,10 +48566,6 @@ msgid "Camera Presets"
 msgstr "Predefinições de câmera"
 
 
-msgid "2D Cursor"
-msgstr "Cursor 2D"
-
-
 msgid "Predefined tracking camera intrinsics"
 msgstr "Intrínsecos de câmera de rastreamento predefinidos."
 
@@ -48725,6 +48716,10 @@ msgstr "Animação de caminho"
 
 msgid "Text Boxes"
 msgstr "Caixas de texto"
+
+
+msgid "Shape Key"
+msgstr "Chave de formato"
 
 
 msgid "Filters"
@@ -54355,10 +54350,6 @@ msgid "Shadow Color"
 msgstr "Cor de sombras"
 
 
-msgid "Shape Key"
-msgstr "Chave de formato"
-
-
 msgid "Shape key in a shape keys data-block"
 msgstr "Chave de formato em um bloco de dados de chaves de formato."
 
@@ -55024,10 +55015,6 @@ msgstr "Espaço do editor da tabela de animação"
 
 msgid "Dope Sheet space data"
 msgstr "Espaço de dados da tabela de animação."
-
-
-msgid "Action displayed and edited in this space"
-msgstr "Ação mostrada e editada neste espaço."
 
 
 msgid "Show the active object's cloth point cache"
@@ -56538,10 +56525,6 @@ msgid "Sequence strip to control the speed of other strips"
 msgstr "Faixa de sequência para controlar a velocidade de outras faixas."
 
 
-msgid "Multiply the current speed of the sequence with this number or remap current frame to this frame"
-msgstr "Multiplica a velocidade atual da sequência com este número ou remapear o quadro atual para este quadro."
-
-
 msgid "Text Strip"
 msgstr "Faixa de texto"
 
@@ -56687,10 +56670,6 @@ msgid "Sequence strip to load a video from a mask"
 msgstr "Faixa de sequencia para carregar um vídeo a partir de uma máscara."
 
 
-msgid "Mask that this sequence uses"
-msgstr "Máscara que esta sequência usa."
-
-
 msgid "Meta Strip"
 msgstr "Faixa meta"
 
@@ -56739,10 +56718,6 @@ msgid "Scene Strip"
 msgstr "Faixa de cena"
 
 
-msgid "Scene that this sequence uses"
-msgstr "Cena que esta sequência usa."
-
-
 msgid "Camera Override"
 msgstr "Sobrepor câmera"
 
@@ -56757,10 +56732,6 @@ msgstr "Faixa de sequência definindo um som para ser reproduzido sobre um perí
 
 msgid "Playback panning of the sound (only for Mono sources)"
 msgstr "Arrasto panorâmico ao reproduzir som (somente para fontes monaurais)."
-
-
-msgid "Sound data-block used by this sequence"
-msgstr "Blocos de dados de sons usados por esta sequência."
 
 
 msgid "Color balance gain (highlights)"
@@ -56861,10 +56832,6 @@ msgstr "Identificador da máscara usado como entrada de máscara para o modifica
 
 msgid "Strip used as mask input for the modifier"
 msgstr "Faixa usada como entrada de máscara para o modificador."
-
-
-msgid "Mask Input Type"
-msgstr "Tipo de entrada de máscara"
 
 
 msgid "Type of input data used for mask"
@@ -63124,10 +63091,6 @@ msgid "Strand Lengths"
 msgstr "Comprimento do fio"
 
 
-msgid "No Brushes currently available"
-msgstr "Não há pincéis disponíveis atualmente."
-
-
 msgid "Point cache must be baked"
 msgstr "Cache de pontos deve ser gerado e gravado"
 
@@ -63332,11 +63295,6 @@ msgstr "Falha ao salvar imagem: sem memória suficiente disponível."
 msgctxt "Brush"
 msgid "Surface"
 msgstr "Superfície"
-
-
-msgctxt "Action"
-msgid "var"
-msgstr "variável"
 
 
 msgid "Untitled"
@@ -65869,10 +65827,6 @@ msgid "Multipaint group is locked, aborting"
 msgstr "O grupo de múltipla pintura está bloqueado, abortando."
 
 
-msgid "Warning!"
-msgstr "Aviso !"
-
-
 msgid "Attribute Data Detected"
 msgstr "Dados de atributo detectados"
 
@@ -67032,10 +66986,6 @@ msgstr "Não é possível alterar a pose quando a \"Posição de descanso\" est�
 
 msgid "Bone selection count error"
 msgstr "Erro de contagem de seleção de ossos."
-
-
-msgid "Unsupported object type for text-space transform"
-msgstr "Tipo de objeto não suportado para transformações do espaço de textura."
 
 
 msgid "(Sharp)"
@@ -68413,13 +68363,13 @@ msgstr "Correção de matiz"
 
 
 msgctxt "Sequence"
-msgid "White Balance"
-msgstr "Balanço dos tons brancos"
+msgid "Tonemap"
+msgstr "Mapa de tonalidades"
 
 
 msgctxt "Sequence"
-msgid "Tonemap"
-msgstr "Mapa de tonalidades"
+msgid "White Balance"
+msgstr "Balanço dos tons brancos"
 
 
 msgid "Strips must be the same length"
@@ -68502,16 +68452,16 @@ msgid "Nothing indicated"
 msgstr "Sem indicação de dados."
 
 
+msgid "'%s': cannot use current file as library"
+msgstr "'%s': não é possível usar o arquivo atual como biblioteca"
+
+
 msgid "'%s': nothing indicated"
 msgstr "'%s': nada indicado"
 
 
 msgid "'%s': not a library"
 msgstr "'%s': não é uma biblioteca"
-
-
-msgid "'%s': cannot use current file as library"
-msgstr "'%s': não é possível usar o arquivo atual como biblioteca"
 
 
 msgid "'%s' is not a valid library filepath"

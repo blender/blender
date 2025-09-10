@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'61dd8a1435fb')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-01 09:40+0000\n"
+"POT-Creation-Date: 2025-09-10 07:24+0000\n"
 "PO-Revision-Date: 2025-07-23 15:18+0000\n"
 "Last-Translator: Aras Pranckevičius <aras@nesnausk.org>\n"
 "Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
@@ -997,6 +997,10 @@ msgid "Cameras"
 msgstr "Kameros/Fotoaparatai"
 
 
+msgid "Color Space"
+msgstr "Spalvų erdvė"
+
+
 msgid "Filename"
 msgstr "Failo pavadinimas"
 
@@ -1043,6 +1047,10 @@ msgstr "Garsumai"
 
 msgid "Worlds"
 msgstr "Pasauliai"
+
+
+msgid "ACEScg"
+msgstr "„ACEScg“"
 
 
 msgid "Not yet defined"
@@ -1407,10 +1415,6 @@ msgid "ACES2065-1"
 msgstr "„ACES2065-1“"
 
 
-msgid "ACEScg"
-msgstr "„ACEScg“"
-
-
 msgid "AgX Log"
 msgstr "„AgX“ žurnalas"
 
@@ -1421,10 +1425,6 @@ msgstr "„Rec.1886“"
 
 msgid "Rec.2020"
 msgstr "„Rec.2020“"
-
-
-msgid "Color Space"
-msgstr "Spalvų erdvė"
 
 
 msgid "Color space that the sequencer operates in"
@@ -3101,16 +3101,16 @@ msgid "Dots"
 msgstr "Taškai"
 
 
+msgid "Show/Hide"
+msgstr "Rodyti/Slėpti"
+
+
 msgid "Apply"
 msgstr "Pritaikyti"
 
 
 msgid "Track"
 msgstr "Sekti"
-
-
-msgid "Show/Hide"
-msgstr "Rodyti/Slėpti"
 
 
 msgid "Text"

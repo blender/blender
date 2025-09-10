@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'61dd8a1435fb')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-01 09:40+0000\n"
+"POT-Creation-Date: 2025-09-10 07:24+0000\n"
 "PO-Revision-Date: 2025-07-23 15:13+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Basque <https://translate.blender.org/projects/blender-ui/ui/eu/>\n"
@@ -553,12 +553,12 @@ msgid "Min Angle"
 msgstr "Angelu Minimoa"
 
 
-msgid "Relations"
-msgstr "Loturak"
-
-
 msgid "Show/Hide"
 msgstr "Erakutsi/Ezkutatu"
+
+
+msgid "Relations"
+msgstr "Loturak"
 
 
 msgid "Text"
@@ -884,6 +884,18 @@ msgid "Reset Original Length"
 msgstr "Jatorrizko Luzera Berrasieratu"
 
 
+msgid "Remove from selection"
+msgstr "Hautaketatik ezabatu"
+
+
+msgid "Toggle Selection"
+msgstr "Hautaketa txandakatu"
+
+
+msgid "Toggle the selection"
+msgstr "Hautaketa txandakatu"
+
+
 msgctxt "Operator"
 msgid "(De)select First"
 msgstr "(Ez)hautatu Lehena"
@@ -902,18 +914,6 @@ msgstr "Kurba Bikoiztu"
 msgctxt "Operator"
 msgid "Add Duplicate"
 msgstr "Bikoizketa Gehitu"
-
-
-msgid "Remove from selection"
-msgstr "Hautaketatik ezabatu"
-
-
-msgid "Toggle Selection"
-msgstr "Hautaketa txandakatu"
-
-
-msgid "Toggle the selection"
-msgstr "Hautaketa txandakatu"
 
 
 msgid "Object Types"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'61dd8a1435fb')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-01 09:40+0000\n"
+"POT-Creation-Date: 2025-09-10 07:24+0000\n"
 "PO-Revision-Date: 2025-08-12 06:21+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -516,14 +516,6 @@ msgstr "Välj automatiskt den snabbaste intersektionsmetoden"
 
 msgid "Distribute memory across devices"
 msgstr "Fördela minne över enheter"
-
-
-msgid "HIP RT"
-msgstr "HIP RT"
-
-
-msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above"
-msgstr "HIP RT möjliggör AMD-hårdvarustrålspårning på RDNA2 och högre"
 
 
 msgid "Embree on GPU"
@@ -1655,6 +1647,10 @@ msgid "Collection data-blocks"
 msgstr "Samling datablock"
 
 
+msgid "Color Space"
+msgstr "Färgrymd"
+
+
 msgid "Curves"
 msgstr "Kurvor"
 
@@ -2177,6 +2173,10 @@ msgstr "Huvudvärldar"
 
 msgid "Collection of worlds"
 msgstr "Samling av världar"
+
+
+msgid "ACEScg"
+msgstr "ACEScg"
 
 
 msgid "Current stage of the import process"
@@ -2891,10 +2891,6 @@ msgid "ACES2065-1"
 msgstr "ACES2065-1"
 
 
-msgid "ACEScg"
-msgstr "ACEScg"
-
-
 msgid "Display P3"
 msgstr "Display P3"
 
@@ -2905,10 +2901,6 @@ msgstr "Rec.1886"
 
 msgid "Rec.2020"
 msgstr "Rec.2020"
-
-
-msgid "Color Space"
-msgstr "Färgrymd"
 
 
 msgid "Curve"
@@ -9291,12 +9283,28 @@ msgid "Mask"
 msgstr "Mask"
 
 
+msgid "Show/Hide"
+msgstr "Visa/dölj"
+
+
+msgid "Names"
+msgstr "Namn"
+
+
+msgid "Clean Up"
+msgstr "Städa upp"
+
+
 msgid "Pivot Point"
 msgstr "Fast punkt"
 
 
 msgid "Snap"
 msgstr "Snäpp"
+
+
+msgid "Metaball"
+msgstr "Metaboll"
 
 
 msgid "Mirror"
@@ -9331,10 +9339,6 @@ msgid "Assign Material"
 msgstr "Tilldela material"
 
 
-msgid "Metaball"
-msgstr "Metaboll"
-
-
 msgid "Light"
 msgstr "Ljus"
 
@@ -9367,14 +9371,6 @@ msgid "Quick Effects"
 msgstr "Snabbeffekter"
 
 
-msgid "Show/Hide"
-msgstr "Visa/dölj"
-
-
-msgid "Clean Up"
-msgstr "Städa upp"
-
-
 msgid "Asset"
 msgstr "Tillgång"
 
@@ -9389,10 +9385,6 @@ msgstr "Länka/överför data"
 
 msgid "Propagate"
 msgstr "Propagera"
-
-
-msgid "Names"
-msgstr "Namn"
 
 
 msgid "Merge"
@@ -9572,10 +9564,6 @@ msgstr "Konstant"
 
 msgid "Instances"
 msgstr "Instanser"
-
-
-msgid "To Socket"
-msgstr "Till uttag"
 
 
 msgid "Copy Label"
@@ -14825,6 +14813,18 @@ msgid "Toggle Free/Align"
 msgstr "Växla fri/upprätad"
 
 
+msgid "Delete Point"
+msgstr "Ta bort punkt"
+
+
+msgid "Delete an existing point"
+msgstr "Ta bort en befintlig punkt"
+
+
+msgid "Toggle Selection"
+msgstr "Växla markering"
+
+
 msgid "(De)select all control points"
 msgstr "(Av)markera alla kontrollpunkter"
 
@@ -14901,18 +14901,6 @@ msgstr "Benstorlek"
 
 msgid "Bake Time"
 msgstr "Bakningstid"
-
-
-msgid "Delete Point"
-msgstr "Ta bort punkt"
-
-
-msgid "Delete an existing point"
-msgstr "Ta bort en befintlig punkt"
-
-
-msgid "Toggle Selection"
-msgstr "Växla markering"
 
 
 msgctxt "Operator"
@@ -19069,10 +19057,6 @@ msgid "Overwrite Mode"
 msgstr "Överskrivningsläge"
 
 
-msgid "Activate New Action"
-msgstr "Aktivera ny åtgärd"
-
-
 msgid "Rotation only"
 msgstr "Endast rotation"
 
@@ -20325,6 +20309,14 @@ msgid "Align to Geometry axis"
 msgstr "Justera till geometriaxel"
 
 
+msgid "Active UDIM"
+msgstr "Aktiv UDIM"
+
+
+msgid "2D Cursor"
+msgstr "2D-pekare"
+
+
 msgctxt "Operator"
 msgid "Cube Projection"
 msgstr "Kubprojektion"
@@ -20365,10 +20357,6 @@ msgstr "Fraktion"
 
 msgid "Rotation and Scale"
 msgstr "Rotation och skala"
-
-
-msgid "Active UDIM"
-msgstr "Aktiv UDIM"
 
 
 msgctxt "Mesh"
@@ -21361,10 +21349,6 @@ msgstr "Anpassad form"
 
 msgid "Camera Presets"
 msgstr "Kameraförval"
-
-
-msgid "2D Cursor"
-msgstr "2D-pekare"
 
 
 msgid "Transforms"
@@ -25777,17 +25761,8 @@ msgid "Paste and Bake"
 msgstr "Klistra in och baka"
 
 
-msgid "HIP has known stability issues"
-msgstr "HIP har kända stabilitetsproblem"
-
-
 msgid "Do not use compute device"
 msgstr "Använd inte beräkningsenhet"
-
-
-msgctxt "Operator"
-msgid "#140278"
-msgstr "#140278"
 
 
 msgid "Use CUDA for GPU acceleration"
@@ -25969,6 +25944,10 @@ msgstr "Lägg till texturinställning"
 
 msgid "(Quick access: Shift+W)"
 msgstr "(Snabbåtkomst: Shift+W)"
+
+
+msgid "To Socket"
+msgstr "Till uttag"
 
 
 msgctxt "Operator"
@@ -28406,10 +28385,6 @@ msgid "{:d} MB"
 msgstr "{:d} MB"
 
 
-msgid "dB"
-msgstr "dB"
-
-
 msgid "Cut To"
 msgstr "Klipp till"
 
@@ -29985,10 +29960,6 @@ msgid "\"{}\" attribute from geometry"
 msgstr "\"{}\" attribut från geometri"
 
 
-msgid "ipos"
-msgstr "ipos"
-
-
 msgid "Basis"
 msgstr "Bas"
 
@@ -31340,10 +31311,6 @@ msgid "Time:"
 msgstr "Tid:"
 
 
-msgid "Mem:%dM, Peak %dM"
-msgstr "Minne:%dM, Högsta %dM"
-
-
 msgid "Mem:%dM, Peak: %dM"
 msgstr "Minne:%dM, Högsta: %dM"
 
@@ -31452,10 +31419,6 @@ msgstr "Palett skapad"
 
 msgid "Brush. Use Left Click to sample for palette instead"
 msgstr "Pensel. Använd vänsterklick för palettprov istället"
-
-
-msgid "Warning!"
-msgstr "Varning!"
 
 
 msgid "Unknown boolean error"
@@ -33439,6 +33402,11 @@ msgstr "%s: misslyckades med att läsa in '%s'"
 
 
 msgctxt "Sequence"
+msgid "Brightness/Contrast"
+msgstr "Ljusstyrka/kontrast"
+
+
+msgctxt "Sequence"
 msgid "Color Balance"
 msgstr "Färgbalans"
 
@@ -33446,11 +33414,6 @@ msgstr "Färgbalans"
 msgctxt "Sequence"
 msgid "Curves"
 msgstr "Kurvor"
-
-
-msgctxt "Sequence"
-msgid "Brightness/Contrast"
-msgstr "Ljusstyrka/kontrast"
 
 
 msgctxt "Sequence"

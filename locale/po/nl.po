@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'61dd8a1435fb')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-01 09:40+0000\n"
+"POT-Creation-Date: 2025-09-10 07:24+0000\n"
 "PO-Revision-Date: 2025-07-23 14:52+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -2702,6 +2702,14 @@ msgid "Mask"
 msgstr "Mask"
 
 
+msgid "Show/Hide"
+msgstr "Toon/Verberg"
+
+
+msgid "Names"
+msgstr "Namen"
+
+
 msgid "Mirror"
 msgstr "Spiegel"
 
@@ -2742,10 +2750,6 @@ msgid "Quick Effects"
 msgstr "Snelle Effecten"
 
 
-msgid "Show/Hide"
-msgstr "Toon/Verberg"
-
-
 msgid "Convert"
 msgstr "Converteer"
 
@@ -2756,10 +2760,6 @@ msgstr "Haken"
 
 msgid "Clear Transform"
 msgstr "Maak Transformatie Leeg"
-
-
-msgid "Names"
-msgstr "Namen"
 
 
 msgid "Text"
@@ -3936,6 +3936,10 @@ msgid "Duplicate"
 msgstr "Dupliceren"
 
 
+msgid "Toggle Selection"
+msgstr "Selectie Aan/Uit"
+
+
 msgctxt "Operator"
 msgid "Dissolve Vertices"
 msgstr "Los Punten Op"
@@ -3969,10 +3973,6 @@ msgstr "Buig"
 
 msgid "Edge Slide"
 msgstr "Glij over Rand"
-
-
-msgid "Toggle Selection"
-msgstr "Selectie Aan/Uit"
 
 
 msgctxt "Operator"
@@ -6360,6 +6360,10 @@ msgid "Custom Distance"
 msgstr "Aangepaste Afstand"
 
 
+msgid "Shape Key"
+msgstr "Sleutelvorm"
+
+
 msgctxt "Operator"
 msgid "Annotate"
 msgstr "Annotatie"
@@ -6678,10 +6682,6 @@ msgstr "Toon Annotaties"
 
 msgid "Shadow Color"
 msgstr "Schaduwkleur"
-
-
-msgid "Shape Key"
-msgstr "Sleutelvorm"
 
 
 msgid "Where the annotation comes from"
@@ -8423,11 +8423,6 @@ msgid "Surface"
 msgstr "Oppervlak"
 
 
-msgctxt "Action"
-msgid "var"
-msgstr "var"
-
-
 msgid "%i frames found!"
 msgstr "%i frames gevonden!"
 
@@ -8896,10 +8891,6 @@ msgstr "Snelle Favorieten"
 
 msgid "File not found '%s'"
 msgstr "Bestand niet gevonden '%s'"
-
-
-msgid "Warning!"
-msgstr "Waarschuwing!"
 
 
 msgid "Active Keyframe"

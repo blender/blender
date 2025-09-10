@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'61dd8a1435fb')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-01 09:40+0000\n"
+"POT-Creation-Date: 2025-09-10 07:24+0000\n"
 "PO-Revision-Date: 2025-07-23 15:34+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -2584,6 +2584,18 @@ msgid "Mask"
 msgstr "आवरण"
 
 
+msgid "Show/Hide"
+msgstr "छुपाएँ / दिखाएँ"
+
+
+msgid "Names"
+msgstr "नाम"
+
+
+msgid "Bone Roll"
+msgstr "हड्डी पंजी"
+
+
 msgid "Snap"
 msgstr "स्नैप"
 
@@ -2612,20 +2624,12 @@ msgid "Quick Effects"
 msgstr "त्वरित प्रभाव"
 
 
-msgid "Show/Hide"
-msgstr "छुपाएँ / दिखाएँ"
-
-
 msgid "Make Single User"
 msgstr "एकल प्रयोक्ता बनाएँ"
 
 
 msgid "Hooks"
 msgstr "खूँटी"
-
-
-msgid "Names"
-msgstr "नाम"
 
 
 msgid "Toggle Bone Options"
@@ -2642,10 +2646,6 @@ msgstr "विलय करें"
 
 msgid "Text"
 msgstr "पाठ"
-
-
-msgid "Bone Roll"
-msgstr "हड्डी पंजी"
 
 
 msgid "Basic"
@@ -3751,10 +3751,6 @@ msgid "Extrude Region"
 msgstr "क्षेत्र बिहर्वेधन"
 
 
-msgid "Axis Direction"
-msgstr "अक्ष दिशा"
-
-
 msgctxt "Operator"
 msgid "Fill"
 msgstr "भरण"
@@ -4257,6 +4253,10 @@ msgstr "मान मूलभूत पर पूर्ववत करें"
 msgctxt "Operator"
 msgid "Align"
 msgstr "संरेखित करें"
+
+
+msgid "Axis Direction"
+msgstr "अक्ष दिशा"
 
 
 msgctxt "Operator"
