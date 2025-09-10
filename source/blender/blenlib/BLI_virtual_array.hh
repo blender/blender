@@ -914,6 +914,15 @@ template<typename T> class VArray : public VArrayCommon<T> {
   }
 
   /**
+   * Same as #from_func, but uses a std::function instead of a template. This is slower, but
+   * requires less code generation. Therefore this should be used in non-performance critical code.
+   */
+  static VArray from_std_func(const int64_t size, std::function<T(int64_t index)> get_func)
+  {
+    return VArray::from_func(size, get_func);
+  }
+
+  /**
    * Construct a new virtual array for an existing span with a mapping function. This does not take
    * ownership of the span.
    */

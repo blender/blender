@@ -139,7 +139,7 @@ static std::unique_ptr<ColumnValues> build_mesh_debug_columns(const Mesh &mesh,
       if (name == "Corner Size") {
         const OffsetIndices faces = mesh.faces();
         return std::make_unique<ColumnValues>(
-            name, VArray<int>::from_func(faces.size(), [faces](int64_t index) {
+            name, VArray<int>::from_std_func(faces.size(), [faces](int64_t index) {
               return faces[index].size();
             }));
       }
@@ -244,7 +244,7 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
         Span<bke::InstanceReference> references = instances->references();
         return std::make_unique<ColumnValues>(
             column_id.name,
-            VArray<bke::InstanceReference>::from_func(
+            VArray<bke::InstanceReference>::from_std_func(
                 domain_num, [reference_handles, references](int64_t index) {
                   return references[reference_handles[index]];
                 }));
@@ -252,19 +252,19 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
       Span<float4x4> transforms = instances->transforms();
       if (STREQ(column_id.name, "Position")) {
         return std::make_unique<ColumnValues>(
-            column_id.name, VArray<float3>::from_func(domain_num, [transforms](int64_t index) {
+            column_id.name, VArray<float3>::from_std_func(domain_num, [transforms](int64_t index) {
               return transforms[index].location();
             }));
       }
       if (STREQ(column_id.name, "Rotation")) {
         return std::make_unique<ColumnValues>(
-            column_id.name, VArray<float3>::from_func(domain_num, [transforms](int64_t index) {
+            column_id.name, VArray<float3>::from_std_func(domain_num, [transforms](int64_t index) {
               return float3(math::to_euler(math::normalize(transforms[index])));
             }));
       }
       if (STREQ(column_id.name, "Scale")) {
         return std::make_unique<ColumnValues>(
-            column_id.name, VArray<float3>::from_func(domain_num, [transforms](int64_t index) {
+            column_id.name, VArray<float3>::from_std_func(domain_num, [transforms](int64_t index) {
               return math::to_scale<true>(transforms[index]);
             }));
       }
@@ -277,7 +277,8 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
       if (domain_ == bke::AttrDomain::Layer && STREQ(column_id.name, "Name")) {
         const Span<const bke::greasepencil::Layer *> layers = grease_pencil->layers();
         return std::make_unique<ColumnValues>(
-            column_id.name, VArray<std::string>::from_func(domain_num, [layers](int64_t index) {
+            column_id.name,
+            VArray<std::string>::from_std_func(domain_num, [layers](int64_t index) {
               StringRefNull name = layers[index]->name();
               if (name.is_empty()) {
                 name = IFACE_("(Layer)");
@@ -562,14 +563,14 @@ std::unique_ptr<ColumnValues> VolumeDataSource::get_column_values(
   const int size = this->tot_rows();
   if (STREQ(column_id.name, "Grid Name")) {
     return std::make_unique<ColumnValues>(
-        IFACE_("Grid Name"), VArray<std::string>::from_func(size, [volume](int64_t index) {
+        IFACE_("Grid Name"), VArray<std::string>::from_std_func(size, [volume](int64_t index) {
           const bke::VolumeGridData *volume_grid = BKE_volume_grid_get(volume, index);
           return volume_grid->name();
         }));
   }
   if (STREQ(column_id.name, "Data Type")) {
     return std::make_unique<ColumnValues>(
-        IFACE_("Data Type"), VArray<std::string>::from_func(size, [volume](int64_t index) {
+        IFACE_("Data Type"), VArray<std::string>::from_std_func(size, [volume](int64_t index) {
           const bke::VolumeGridData *volume_grid = BKE_volume_grid_get(volume, index);
           const VolumeGridType type = volume_grid->grid_type();
           const char *name = nullptr;
@@ -579,7 +580,7 @@ std::unique_ptr<ColumnValues> VolumeDataSource::get_column_values(
   }
   if (STREQ(column_id.name, "Class")) {
     return std::make_unique<ColumnValues>(
-        IFACE_("Class"), VArray<std::string>::from_func(size, [volume](int64_t index) {
+        IFACE_("Class"), VArray<std::string>::from_std_func(size, [volume](int64_t index) {
           const bke::VolumeGridData *volume_grid = BKE_volume_grid_get(volume, index);
           openvdb::GridClass grid_class = volume_grid->grid_class();
           if (grid_class == openvdb::GridClass::GRID_FOG_VOLUME) {
