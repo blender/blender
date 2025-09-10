@@ -47,7 +47,6 @@ class CyclesRender(bpy.types.RenderEngine):
     bl_use_exclude_layers = True
     bl_use_spherical_stereo = True
     bl_use_custom_freestyle = True
-    bl_use_alembic_procedural = True
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

@@ -325,14 +325,6 @@ if(WITH_OPENIMAGEDENOISE)
   )
 endif()
 
-if(WITH_ALEMBIC)
-  add_definitions(-DWITH_ALEMBIC)
-  include_directories(
-    SYSTEM
-    ${ALEMBIC_INCLUDE_DIRS}
-  )
-endif()
-
 # Includes that might be overrides by USD last, to avoid compiling
 # against the wrong versions of other libraries.
 include_directories(

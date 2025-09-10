@@ -110,19 +110,6 @@ bool RE_engine_is_external(const Render *re)
   return (re->engine && re->engine->type && re->engine->type->render);
 }
 
-bool RE_engine_supports_alembic_procedural(const RenderEngineType *render_type, Scene *scene)
-{
-  if ((render_type->flag & RE_USE_ALEMBIC_PROCEDURAL) == 0) {
-    return false;
-  }
-
-  if (BKE_scene_uses_cycles(scene) && !BKE_scene_uses_cycles_experimental_features(scene)) {
-    return false;
-  }
-
-  return true;
-}
-
 /* Create, Free */
 
 RenderEngine *RE_engine_create(RenderEngineType *type)

@@ -8,7 +8,6 @@
 
 #include "device/device.h"
 
-#include "scene/alembic.h"
 #include "scene/background.h"
 #include "scene/bake.h"
 #include "scene/camera.h"
@@ -895,20 +894,6 @@ template<> Shader *Scene::create_node<Shader>()
   return node_ptr;
 }
 
-template<> AlembicProcedural *Scene::create_node<AlembicProcedural>()
-{
-#ifdef WITH_ALEMBIC
-  unique_ptr<AlembicProcedural> node = make_unique<AlembicProcedural>();
-  AlembicProcedural *node_ptr = node.get();
-  node->set_owner(this);
-  procedurals.push_back(std::move(node));
-  procedural_manager->tag_update();
-  return node_ptr;
-#else
-  return nullptr;
-#endif
-}
-
 template<> Pass *Scene::create_node<Pass>()
 {
   unique_ptr<Pass> node = make_unique<Pass>();
@@ -1041,15 +1026,6 @@ template<> void Scene::delete_node(Procedural *node)
   assert(node->get_owner() == this);
   procedurals.erase_by_swap(node);
   procedural_manager->tag_update();
-}
-
-template<> void Scene::delete_node(AlembicProcedural *node)
-{
-#ifdef WITH_ALEMBIC
-  delete_node(static_cast<Procedural *>(node));
-#else
-  (void)node;
-#endif
 }
 
 template<> void Scene::delete_node(Pass *node)

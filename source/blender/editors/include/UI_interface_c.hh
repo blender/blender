@@ -2551,11 +2551,6 @@ bool uiTemplateCacheFilePointer(PointerRNA *ptr,
 void uiTemplateCacheFileVelocity(uiLayout *layout, PointerRNA *fileptr);
 
 /**
- * Draw the render procedural related properties of the CacheFile.
- */
-void uiTemplateCacheFileProcedural(uiLayout *layout, const bContext *C, PointerRNA *fileptr);
-
-/**
  * Draw the time related properties of the CacheFile.
  */
 void uiTemplateCacheFileTimeSettings(uiLayout *layout, PointerRNA *fileptr);

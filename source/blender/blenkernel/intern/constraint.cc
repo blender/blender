@@ -5366,11 +5366,6 @@ static void transformcache_evaluate(bConstraint *con, bConstraintOb *cob, ListBa
     return;
   }
 
-  /* Do not process data if using a render time procedural. */
-  if (BKE_cache_file_uses_render_procedural(cache_file, scene)) {
-    return;
-  }
-
   const float frame = DEG_get_ctime(cob->depsgraph);
   const double time = BKE_cachefile_time_offset(
       cache_file, double(frame), scene->frames_per_second());
