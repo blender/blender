@@ -67,6 +67,13 @@ void IDNode::init_copy_on_write(Depsgraph &depsgraph, ID *id_cow_hint)
     // BLI_assert(deg_eval_copy_is_needed(id_orig));
     if (deg_eval_copy_is_needed(id_orig)) {
       id_cow = id_cow_hint;
+
+      /* While `id_cow->orig_id == id` should be `true` most of the time (a same 'orig' ID should
+       * keep a same pointer in most cases), in can happen that the same 'orig' ID got a new
+       * address, e.g. after being deleted and re-loaded from memfile undo, without any update of
+       * the depsgraph in-between (e.g. when the depsgraph belongs to an inactive viewlayer).
+       * Ref. #145848. */
+      id_cow->orig_id = this->id_orig;
     }
     else {
       id_cow = id_orig;
