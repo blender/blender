@@ -151,7 +151,7 @@ struct Layers {
         return this->layer[2];
 #endif
     }
-    assert(0);
+    assert(false);
     return this->layer[0];
   }
 

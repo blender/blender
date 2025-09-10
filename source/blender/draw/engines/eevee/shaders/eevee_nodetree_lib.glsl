@@ -87,7 +87,7 @@ ClosureUndetermined g_closure_get(uchar i)
 #endif
   }
   /* Unreachable. */
-  assert(0);
+  assert(false);
   return g_closure_bins[0];
 }
 

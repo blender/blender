@@ -98,7 +98,7 @@ void main()
         specular_indirect += closure_indirect_light;
         break;
       case CLOSURE_NONE_ID:
-        assert(0);
+        assert(false);
         break;
     }
 
