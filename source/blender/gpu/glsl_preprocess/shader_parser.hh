@@ -197,7 +197,7 @@ struct ParserData {
       /* When doing whitespace merging, keep knowledge about whether previous char was whitespace.
        * This allows to still split words on spaces. */
       bool prev_was_whitespace = (token_types[0] == NewLine || token_types[0] == Space);
-      bool inside_preprocessor_directive = false;
+      bool inside_preprocessor_directive = token_types[0] == Hash;
       bool next_character_is_escape = false;
       bool inside_string = false;
 
@@ -264,7 +264,7 @@ struct ParserData {
           continue;
         }
         /* If digit is part of word. */
-        if (type == Number && prev == Word) {
+        if (type == Number && prev == Word && !prev_was_whitespace) {
           continue;
         }
         /* If 'x' is part of hex literal. */
@@ -619,6 +619,16 @@ struct Token {
   {
     std::string str = this->str_with_whitespace();
     return str.substr(0, str.find_last_not_of(" \n") + 1);
+  }
+
+  /* Return the content without the first and last characters. */
+  std::string str_exclusive() const
+  {
+    std::string str = this->str();
+    if (str.length() < 2) {
+      return "";
+    }
+    return str.substr(1, str.length() - 2);
   }
 
   /* Return the line number this token is found at. Take into account the #line directives. */

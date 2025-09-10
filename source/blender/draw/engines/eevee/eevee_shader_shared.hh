@@ -8,6 +8,8 @@
  * language.
  */
 
+#pragma once
+
 /* __cplusplus is true when compiling with MSL, so ensure we are not inside a shader. */
 #if defined(GPU_SHADER) || defined(GLSL_CPP_STUBS)
 #  define IS_CPP 0
@@ -16,12 +18,10 @@
 #endif
 
 #if IS_CPP || defined(GLSL_CPP_STUBS)
-#  pragma once
-
 #  include "eevee_defines.hh"
 #endif
 
-#if IS_CPP
+#if !defined(GPU_SHADER) && !defined(GLSL_CPP_STUBS)
 #  include "BLI_math_bits.h"
 #  include "BLI_memory_utils.hh"
 
@@ -31,6 +31,9 @@
 #  include "draw_pass.hh"
 
 #  include "GPU_shader_shared.hh"
+#endif
+
+#if IS_CPP
 
 namespace blender::eevee {
 

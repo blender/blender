@@ -214,8 +214,9 @@ class Preprocessor {
       if (do_parse_function) {
         parse_library_functions(str);
       }
+      str = disabled_code_mutation(str, report_error);
+      str = include_parse_and_remove(str, report_error);
       if (language == BLENDER_GLSL) {
-        include_parse(str, report_error);
         pragma_runtime_generated_parsing(str);
         pragma_once_linting(str, filename, report_error);
       }
@@ -697,21 +698,18 @@ class Preprocessor {
     return std::regex_replace(str, std::regex(R"(["'])"), " ");
   }
 
-  void include_parse(const std::string &str, report_callback report_error)
+  std::string include_parse_and_remove(const std::string &str, report_callback report_error)
   {
-    /* Parse include directive before removing them. */
-    std::regex regex(R"(#(\s*)include\s*\"(\w+\.\w+)\")");
+    using namespace std;
+    using namespace shader::parser;
 
-    regex_global_search(str, regex, [&](const std::smatch &match) {
-      std::string indent = match[1].str();
-      /* Assert that includes are not nested in other preprocessor directives. */
-      if (!indent.empty()) {
-        report_error(line_number(match),
-                     char_number(match),
-                     line_str(match),
-                     "#include directives must not be inside #if clause");
+    Parser parser(str, report_error);
+
+    parser.foreach_match("#w_", [&](const std::vector<Token> &tokens) {
+      if (tokens[1].str() != "include") {
+        return;
       }
-      std::string dependency_name = match[2].str();
+      string dependency_name = tokens[2].str_exclusive();
       /* Assert that includes are at the top of the file. */
       if (dependency_name == "gpu_glsl_cpp_stubs.hh") {
         /* Skip GLSL-C++ stubs. They are only for IDE linting. */
@@ -722,7 +720,10 @@ class Preprocessor {
         return;
       }
       metadata.dependencies.emplace_back(dependency_name);
+      parser.erase(tokens.front(), tokens.back());
     });
+
+    return parser.result_get();
   }
 
   void pragma_runtime_generated_parsing(const std::string &str)
@@ -736,15 +737,11 @@ class Preprocessor {
                            const std::string &filename,
                            report_callback report_error)
   {
-    if (filename.find("_lib.") == std::string::npos) {
+    if (filename.find("_lib.") == std::string::npos && filename.find(".hh") == std::string::npos) {
       return;
     }
     if (str.find("\n#pragma once") == std::string::npos) {
-      std::smatch match;
-      report_error(line_number(match),
-                   char_number(match),
-                   line_str(match),
-                   "Library files must contain #pragma once directive.");
+      report_error(0, 0, "", "Header files must contain #pragma once directive.");
     }
   }
 
@@ -1148,6 +1145,54 @@ class Preprocessor {
      * Cannot use `__` because of some compilers complaining about reserved symbols. */
     replace_all(out, "::", "_");
     return out;
+  }
+
+  std::string disabled_code_mutation(const std::string &str, report_callback &report_error)
+  {
+    using namespace std;
+    using namespace shader::parser;
+
+    Parser parser(str, report_error);
+
+    auto process_disabled_scope = [&](Token start_tok) {
+      /* Search for endif with the same indentation. Assume formatted input. */
+      string end_str = start_tok.str_with_whitespace() + "endif";
+      size_t scope_end = parser.data_get().str.find(end_str, start_tok.str_index_start());
+      if (scope_end == string::npos) {
+        report_error(ERROR_TOK(start_tok), "Couldn't find end of disabled scope.");
+        return;
+      }
+      /* Search for else/elif with the same indentation. Assume formatted input. */
+      string else_str = start_tok.str_with_whitespace() + "el";
+      size_t scope_else = parser.data_get().str.find(else_str, start_tok.str_index_start());
+      if (scope_else != string::npos && scope_else < scope_end) {
+        /* Only erase the content and keep the preprocessor directives. */
+        parser.erase(start_tok.line_end() + 1, scope_else - 1);
+      }
+      else {
+        /* Erase the content and the preprocessor directives. */
+        parser.erase(start_tok.str_index_start(), scope_end + end_str.size());
+      }
+    };
+
+    parser.foreach_match("#ww", [&](const std::vector<Token> &tokens) {
+      if (tokens[1].str() == "ifndef" && tokens[2].str() == "GPU_SHADER") {
+        process_disabled_scope(tokens[0]);
+      }
+    });
+    parser.foreach_match("#i!w(w)", [&](const std::vector<Token> &tokens) {
+      if (tokens[1].str() == "if" && tokens[3].str() == "defined" &&
+          tokens[5].str() == "GPU_SHADER")
+      {
+        process_disabled_scope(tokens[0]);
+      }
+    });
+    parser.foreach_match("#i0", [&](const std::vector<Token> &tokens) {
+      if (tokens[1].str() == "if" && tokens[2].str() == "0") {
+        process_disabled_scope(tokens[0]);
+      }
+    });
+    return parser.result_get();
   }
 
   std::string preprocessor_directive_mutation(const std::string &str)

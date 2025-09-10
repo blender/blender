@@ -28,9 +28,9 @@
  * NOTE: You can use bool type using bool32_t a int boolean type matching the GLSL type.
  */
 
-#ifdef GLSL_CPP_STUBS
-#  pragma once
+#pragma once
 
+#ifdef GLSL_CPP_STUBS
 /* Silence macros when compiling for shaders. */
 #  define BLI_STATIC_ASSERT(cond, msg)
 #  define BLI_STATIC_ASSERT_ALIGN(type_, align_)
@@ -69,14 +69,14 @@
 #  define sqrtf sqrt
 #  define expf exp
 
-#else /* C / C++ */
-#  pragma once
+#else                /* C / C++ */
+#  ifndef GPU_SHADER /* Avoid parsing this into shader code. */
 
-#  include "BLI_assert.h"
-#  include "BLI_sys_types.h"
+#    include "BLI_assert.h"
+#    include "BLI_sys_types.h"
 
-#  include "BLI_math_matrix_types.hh"
-#  include "BLI_math_vector_types.hh"
+#    include "BLI_math_matrix_types.hh"
+#    include "BLI_math_vector_types.hh"
 
 using bool32_t = int32_t;
 // using bool2 = blender::int2; /* Size is not consistent across backend. */
@@ -109,15 +109,16 @@ using blender::float2x4;
 using blender::float3x4;
 using blender::float4x4;
 
-#endif
+#  endif
 
 /* For assert support. */
-#if defined(GPU_VERTEX_SHADER)
-#  define GPU_THREAD uint3(gl_VertexID, gl_InstanceID, 0)
-#elif defined(GPU_FRAGMENT_SHADER)
-#  define GPU_THREAD uint3(gl_FragCoord.x, gl_FragCoord.y, 0)
-#elif defined(GPU_COMPUTE_SHADER)
-#  define GPU_THREAD gl_GlobalInvocationID
-#else
-#  define GPU_THREAD error_not_in_a_shader_question_mark
+#  if defined(GPU_VERTEX_SHADER)
+#    define GPU_THREAD uint3(gl_VertexID, gl_InstanceID, 0)
+#  elif defined(GPU_FRAGMENT_SHADER)
+#    define GPU_THREAD uint3(gl_FragCoord.x, gl_FragCoord.y, 0)
+#  elif defined(GPU_COMPUTE_SHADER)
+#    define GPU_THREAD gl_GlobalInvocationID
+#  else
+#    define GPU_THREAD error_not_in_a_shader_question_mark
+#  endif
 #endif
