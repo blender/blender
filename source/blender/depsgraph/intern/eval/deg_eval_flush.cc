@@ -155,7 +155,7 @@ inline void flush_handle_component_node(IDNode *id_node,
 
 /* Schedule children of the given operation node for traversal.
  *
- * One of the children will by-pass the queue and will be returned as a function
+ * One of the children will bypass the queue and will be returned as a function
  * return value, so it can start being handled right away, without building too
  * much of a queue.
  */
