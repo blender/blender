@@ -404,7 +404,10 @@ bool GeometrySet::has_realized_data() const
 {
   for (const GeometryComponentPtr &component_ptr : components_) {
     if (component_ptr) {
-      if (component_ptr->type() != GeometryComponent::Type::Instance) {
+      if (!ELEM(component_ptr->type(),
+                GeometryComponent::Type::Instance,
+                GeometryComponent::Type::Edit))
+      {
         return true;
       }
     }
