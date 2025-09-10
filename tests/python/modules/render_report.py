@@ -9,6 +9,7 @@ a HTML report showing the differences, for regression testing.
 
 import glob
 import os
+import sys
 import pathlib
 import shutil
 import subprocess
@@ -502,30 +503,46 @@ class Report:
 
         remaining_filepaths = filepaths[:]
         test_results = []
+        arguments_suffix = self._get_arguments_suffix()
 
         while len(remaining_filepaths) > 0:
             command = [blender]
             running_tests = []
 
+            # On Windows, there is a maximum length of 32,767 characters (including the terminating null character)
+            # for process command line commands, see:
+            # https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessa
+            command_line_length = len(blender)
+            for suffix in arguments_suffix:
+                # Add 3 for taking into account spaces and quotation marks potentially added by Python.
+                command_line_length += len(suffix) + 3
+
             # Construct output filepaths and command to run
             for filepath in remaining_filepaths:
-                running_tests.append(filepath)
-
                 testname = test_get_name(filepath)
-                print_message(testname, 'SUCCESS', 'RUN')
 
                 base_output_filepath = os.path.join(self.output_dir, "tmp_" + testname)
+                command_filepath = self._get_render_arguments(arguments_cb, filepath, base_output_filepath)
+
+                # Check if we have surpassed the command line limit.
+                for cmd in command_filepath:
+                    command_line_length += len(cmd) + 3
+                if sys.platform == 'win32' and command_line_length > 32766 and len(running_tests) > 0:
+                    break
+
+                print_message(testname, 'SUCCESS', 'RUN')
+                running_tests.append(filepath)
+                command.extend(command_filepath)
+
                 output_filepath = base_output_filepath + '0001.png'
                 if os.path.exists(output_filepath):
                     os.remove(output_filepath)
-
-                command.extend(self._get_render_arguments(arguments_cb, filepath, base_output_filepath))
 
                 # Only chain multiple commands for batch
                 if not batch:
                     break
 
-            command.extend(self._get_arguments_suffix())
+            command.extend(arguments_suffix)
 
             # Run process
             crash = False
