@@ -1007,14 +1007,14 @@ class DOPESHEET_PT_ShapeKey(Panel):
         if st.mode != 'SHAPEKEY':
             return False
 
-        object = context.object
-        if object is None or object.active_shape_key is None:
+        ob = context.object
+        if ob is None or ob.active_shape_key is None:
             return False
 
-        if not object.data.shape_keys.use_relative:
+        if not ob.data.shape_keys.use_relative:
             return False
 
-        return object.active_shape_key_index > 0
+        return ob.active_shape_key_index > 0
 
     def draw(self, context):
         draw_shape_key_properties(context, self.layout)
