@@ -262,7 +262,7 @@ string HIPDevice::compile_kernel(const uint kernel_features, const char *name, c
   const string kernel_md5 = util_md5_string(source_md5 + common_cflags);
 
   const char *const kernel_ext = "genco";
-  std::string options = "-Wno-parentheses-equality -Wno-unused-value -ffast-math";
+  std::string options = "-Wno-parentheses-equality -Wno-unused-value -ffast-math -std=c++17";
 
 #  ifndef NDEBUG
   options.append(" -save-temps");
@@ -332,7 +332,7 @@ string HIPDevice::compile_kernel(const uint kernel_features, const char *name, c
                                  common_cflags.c_str());
 
   LOG_INFO_IMPORTANT << "Compiling " << ((use_adaptive_compilation()) ? "adaptive " : "")
-                     << "HIP kernel ...";
+                     << "HIP kernel ... " << command;
 
 #  ifdef _WIN32
   command = "call " + command;
