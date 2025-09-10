@@ -1054,7 +1054,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         name="Tile Size",
         default=2048,
         description="Render high resolution images in tiles of this size, to reduce memory usage. Tiles are cached to disk while rendering to save memory",
-        min=8, max=8192,
+        min=8,
+        max=8192,
     )
 
     # Various fine-tuning debug flags
