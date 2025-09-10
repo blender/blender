@@ -114,6 +114,7 @@ enum class ScopeType : char {
   Namespace = 'N',
   Struct = 'S',
   Function = 'F',
+  LoopArgs = 'l',
   FunctionArgs = 'f',
   FunctionCall = 'c',
   Template = 'T',
@@ -125,6 +126,9 @@ enum class ScopeType : char {
   Local = 'L',
   /* Added scope inside FunctionArgs. */
   FunctionArg = 'g',
+  /* Added scope inside LoopArgs. */
+  LoopArg = 'r',
+
 };
 
 /* Poor man's IndexRange. */
@@ -321,6 +325,7 @@ struct ParserData {
           token_offsets.offsets.emplace_back(offset);
         }
       }
+      offset++;
       token_offsets.offsets.emplace_back(offset);
     }
     {
@@ -741,10 +746,37 @@ struct Scope {
     return start().prev().scope();
   }
 
+  static Scope invalid()
+  {
+    return {"", "", nullptr, size_t(-1)};
+  }
+
+  bool is_valid() const
+  {
+    return data != nullptr && index >= 0;
+  }
+  bool is_invalid() const
+  {
+    return !is_valid();
+  }
+
   std::string str() const
   {
+    if (this->is_invalid()) {
+      return "";
+    }
     return data->str.substr(start().str_index_start(),
                             end().str_index_last() - start().str_index_start() + 1);
+  }
+
+  /* Return the content without the first and last characters. */
+  std::string str_exclusive() const
+  {
+    if (this->is_invalid()) {
+      return "";
+    }
+    return data->str.substr(start().str_index_start() + 1,
+                            end().str_index_last() - start().str_index_start() - 1);
   }
 
   Token find_token(const char token_type) const
@@ -992,7 +1024,12 @@ inline void ParserData::parse_scopes(report_callback &report_error)
           break;
         }
         case ParOpen:
-          if (scopes.top().type == ScopeType::Global) {
+          if ((tok_id >= 1 && token_types[tok_id - 1] == For) ||
+              (tok_id >= 1 && token_types[tok_id - 1] == While))
+          {
+            enter_scope(ScopeType::LoopArgs, tok_id);
+          }
+          else if (scopes.top().type == ScopeType::Global) {
             enter_scope(ScopeType::FunctionArgs, tok_id);
           }
           else if (scopes.top().type == ScopeType::Struct) {
@@ -1043,12 +1080,28 @@ inline void ParserData::parse_scopes(report_callback &report_error)
           if (scopes.top().type == ScopeType::FunctionArg) {
             exit_scope(tok_id - 1);
           }
+          if (scopes.top().type == ScopeType::LoopArg) {
+            exit_scope(tok_id - 1);
+          }
           exit_scope(tok_id);
           break;
         case SquareClose:
           exit_scope(tok_id);
           break;
         case SemiColon:
+          if (scopes.top().type == ScopeType::Assignment) {
+            exit_scope(tok_id - 1);
+          }
+          if (scopes.top().type == ScopeType::FunctionArg) {
+            exit_scope(tok_id - 1);
+          }
+          if (scopes.top().type == ScopeType::TemplateArg) {
+            exit_scope(tok_id - 1);
+          }
+          if (scopes.top().type == ScopeType::LoopArg) {
+            exit_scope(tok_id - 1);
+          }
+          break;
         case Comma:
           if (scopes.top().type == ScopeType::Assignment) {
             exit_scope(tok_id - 1);
@@ -1063,6 +1116,9 @@ inline void ParserData::parse_scopes(report_callback &report_error)
         default:
           if (scopes.top().type == ScopeType::FunctionArgs) {
             enter_scope(ScopeType::FunctionArg, tok_id);
+          }
+          if (scopes.top().type == ScopeType::LoopArgs) {
+            enter_scope(ScopeType::LoopArg, tok_id);
           }
           if (scopes.top().type == ScopeType::Template) {
             enter_scope(ScopeType::TemplateArg, tok_id);
@@ -1221,8 +1277,14 @@ struct Parser {
   }
   /* Replace everything from `from` to `to` (inclusive).
    * Return true on success. */
-  bool replace_try(Token from, Token to, const std::string &replacement)
+  bool replace_try(Token from,
+                   Token to,
+                   const std::string &replacement,
+                   bool keep_trailing_whitespaces = false)
   {
+    if (keep_trailing_whitespaces) {
+      return replace_try(from.str_index_start(), to.str_index_last_no_whitespace(), replacement);
+    }
     return replace_try(from.str_index_start(), to.str_index_last(), replacement);
   }
 
@@ -1306,6 +1368,10 @@ struct Parser {
   void insert_line_number(size_t at, int line)
   {
     insert_after(at, "#line " + std::to_string(line) + "\n");
+  }
+  void insert_line_number(Token at, int line)
+  {
+    insert_line_number(at.str_index_last(), line);
   }
 
   void insert_before(size_t at, const std::string &content)
