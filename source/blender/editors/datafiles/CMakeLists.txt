@@ -118,7 +118,9 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.mesh.rip_edge
   ops.mesh.spin
   ops.mesh.vertices_smooth
+  ops.node.add_reroute
   ops.node.links_cut
+  ops.node.links_mute
   ops.paint.eyedropper_add
   ops.paint.vertex_color_fill
   ops.paint.weight_fill
