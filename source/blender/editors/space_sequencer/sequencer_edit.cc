@@ -796,6 +796,7 @@ static SlipData *slip_data_init(bContext *C, const wmOperator *op, const wmEvent
     return (seq::transform_single_image_check(strip) || seq::transform_is_locked(channels, strip));
   });
   if (strips.is_empty()) {
+    MEM_SAFE_DELETE(data);
     return nullptr;
   }
   data->strips = strips;
