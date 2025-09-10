@@ -174,8 +174,8 @@ void main()
   float noise_offset = sampling_rng_1D_get(SAMPLING_TIME);
   /** TODO(fclem) Blue noise. */
   float2 rand = float2(
-      interlieved_gradient_noise(float2(gl_GlobalInvocationID.xy), 0, noise_offset),
-      interlieved_gradient_noise(float2(gl_GlobalInvocationID.xy), 1, noise_offset));
+      interleaved_gradient_noise(float2(gl_GlobalInvocationID.xy), 0, noise_offset),
+      interleaved_gradient_noise(float2(gl_GlobalInvocationID.xy), 1, noise_offset));
 
   /* Randomize tile boundary to avoid ugly discontinuities. Randomize 1/4th of the tile.
    * Note this randomize only in one direction but in practice it's enough. */

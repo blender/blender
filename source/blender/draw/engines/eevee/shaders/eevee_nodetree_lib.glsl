@@ -400,7 +400,7 @@ float ambient_occlusion_eval(float3 normal,
 
   int2 texel = int2(gl_FragCoord.xy);
   float2 noise;
-  noise.x = interlieved_gradient_noise(float2(texel), 3.0f, 0.0f);
+  noise.x = interleaved_gradient_noise(float2(texel), 3.0f, 0.0f);
   noise.y = utility_tx_fetch(utility_tx, float2(texel), UTIL_BLUE_NOISE_LAYER).r;
   noise = fract(noise + sampling_rng_2D_get(SAMPLING_AO_U));
 

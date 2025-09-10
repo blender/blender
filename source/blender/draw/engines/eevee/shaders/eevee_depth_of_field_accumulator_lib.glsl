@@ -435,8 +435,8 @@ void dof_gather_accumulator(sampler2D color_tx,
   float2 noise_offset = sampling_rng_2D_get(SAMPLING_LENS_U);
   float2 noise = no_gather_random ?
                      float2(0.0f, 0.0f) :
-                     float2(interlieved_gradient_noise(frag_coord, 0, noise_offset.x),
-                            interlieved_gradient_noise(frag_coord, 1, noise_offset.y));
+                     float2(interleaved_gradient_noise(frag_coord, 0, noise_offset.x),
+                            interleaved_gradient_noise(frag_coord, 1, noise_offset.y));
 
   if (!do_fast_gather) {
     /* Jitter the radius to reduce noticeable density changes. */
@@ -603,8 +603,8 @@ void dof_slight_focus_gather(sampler2DDepth depth_tx,
   float2 noise_offset = sampling_rng_2D_get(SAMPLING_LENS_U);
   float2 noise = no_gather_random ?
                      float2(0.0f) :
-                     float2(interlieved_gradient_noise(frag_coord, 3, noise_offset.x),
-                            interlieved_gradient_noise(frag_coord, 5, noise_offset.y));
+                     float2(interleaved_gradient_noise(frag_coord, 3, noise_offset.x),
+                            interleaved_gradient_noise(frag_coord, 5, noise_offset.y));
 
   DofGatherData fg_accum = GATHER_DATA_INIT;
   DofGatherData bg_accum = GATHER_DATA_INIT;

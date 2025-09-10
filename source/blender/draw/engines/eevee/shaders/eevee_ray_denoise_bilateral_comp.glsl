@@ -77,7 +77,7 @@ void main()
     return;
   }
 
-  float2 noise = interlieved_gradient_noise(
+  float2 noise = interleaved_gradient_noise(
       float2(texel_fullres) + 0.5f, float2(3, 5), float2(0.0f));
   noise += sampling_rng_2D_get(SAMPLING_RAYTRACE_W);
 

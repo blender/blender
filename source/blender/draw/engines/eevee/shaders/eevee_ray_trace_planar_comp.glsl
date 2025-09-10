@@ -79,7 +79,7 @@ void main()
 
   float3 radiance = float3(0.0f);
   float noise_offset = sampling_rng_1D_get(SAMPLING_RAYTRACE_W);
-  float rand_trace = interlieved_gradient_noise(float2(texel), 5.0f, noise_offset);
+  float rand_trace = interleaved_gradient_noise(float2(texel), 5.0f, noise_offset);
 
   /* TODO(fclem): Take IOR into account in the roughness LOD bias. */
   /* TODO(fclem): pdf to roughness mapping is a crude approximation. Find something better. */

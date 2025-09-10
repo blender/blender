@@ -81,7 +81,7 @@ void main()
 
   float3 radiance = float3(0.0f);
   float noise_offset = sampling_rng_1D_get(SAMPLING_RAYTRACE_W);
-  float rand_trace = interlieved_gradient_noise(float2(texel), 5.0f, noise_offset);
+  float rand_trace = interleaved_gradient_noise(float2(texel), 5.0f, noise_offset);
 
   ClosureUndetermined cl = gbuffer::read_bin(texel_fullres, closure_index);
   float roughness = closure_apparent_roughness_get(cl);

@@ -11,7 +11,7 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_debug_surfels)
 
 float3 debug_random_color(int v)
 {
-  float r = interlieved_gradient_noise(float2(v, 0), 0.0f, 0.0f);
+  float r = interleaved_gradient_noise(float2(v, 0), 0.0f, 0.0f);
   return hue_gradient(r);
 }
 
