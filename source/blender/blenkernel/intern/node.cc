@@ -3585,9 +3585,6 @@ void node_socket_move_default_value(Main & /*bmain*/,
   bNode &dst_node = dst.owner_node();
   bNode &src_node = src.owner_node();
 
-  const CPPType &src_type = *src.typeinfo->base_cpp_type;
-  const CPPType &dst_type = *dst.typeinfo->base_cpp_type;
-
   const bke::DataTypeConversions &convert = bke::get_implicit_type_conversions();
 
   if (src.is_multi_input()) {
@@ -3598,10 +3595,29 @@ void node_socket_move_default_value(Main & /*bmain*/,
     /* Reroute node can't have ownership of socket value directly. */
     return;
   }
+
+  const CPPType &src_type = *src.typeinfo->base_cpp_type;
+  const CPPType &dst_type = *dst.typeinfo->base_cpp_type;
   if (&src_type != &dst_type) {
     if (!convert.is_convertible(src_type, dst_type)) {
       return;
     }
+  }
+
+  void *src_value = socket_value_storage(src);
+  if (!src_value) {
+    return;
+  }
+
+  BUFFER_FOR_CPP_TYPE_VALUE(dst_type, dst_buffer);
+  convert.convert_to_uninitialized(src_type, dst_type, src_value, dst_buffer);
+
+  if (dst_node.is_type("ShaderNodeCombineXYZ")) {
+    const float3 &src_value = *static_cast<float3 *>(dst_buffer);
+    dst_node.input_socket(0).default_value_typed<bNodeSocketValueFloat>()->value = src_value.x;
+    dst_node.input_socket(1).default_value_typed<bNodeSocketValueFloat>()->value = src_value.y;
+    dst_node.input_socket(2).default_value_typed<bNodeSocketValueFloat>()->value = src_value.z;
+    return;
   }
 
   /* Special handling for strings because the generic code below can't handle them. */
@@ -3615,13 +3631,12 @@ void node_socket_move_default_value(Main & /*bmain*/,
     return;
   }
 
-  void *src_value = socket_value_storage(src);
   void *dst_value = node_static_value_storage_for(dst_node, dst);
-  if (!dst_value || !src_value) {
+  if (!dst_value) {
     return;
   }
 
-  convert.convert_to_uninitialized(src_type, dst_type, src_value, dst_value);
+  dst_type.move_assign(dst_buffer, dst_value);
 
   src_type.destruct(src_value);
   if (ELEM(eNodeSocketDatatype(src.type),
