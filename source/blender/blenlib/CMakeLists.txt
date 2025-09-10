@@ -22,6 +22,7 @@ set(INC_SYS
 set(SRC
   intern/BLI_assert.cc
   intern/BLI_color.cc
+  intern/BLI_colorspace.cc
   intern/BLI_dial_2d.cc
   intern/BLI_dynstr.cc
   intern/BLI_filelist.cc
@@ -204,6 +205,7 @@ set(SRC
   BLI_cache_mutex.hh
   BLI_color.hh
   BLI_color_mix.hh
+  BLI_colorspace.hh
   BLI_compiler_attrs.h
   BLI_compiler_compat.h
   BLI_compiler_typecheck.h

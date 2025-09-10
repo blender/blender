@@ -98,5 +98,6 @@ ShaderFxTypeInfo shaderfx_Type_Swirl = {
     /*update_depsgraph*/ update_depsgraph,
     /*depends_on_time*/ nullptr,
     /*foreach_ID_link*/ foreach_ID_link,
+    /*foreach_working_space_color*/ nullptr,
     /*panel_register*/ panel_register,
 };

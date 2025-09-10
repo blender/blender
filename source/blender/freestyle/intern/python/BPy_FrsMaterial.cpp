@@ -66,8 +66,7 @@ PyDoc_STRVAR(
     "   :arg shininess: The shininess coefficient.\n"
     "   :type shininess: float\n"
     "   :arg priority: The line color priority.\n"
-    "   :type priority: int");
-
+    "   :type priority: int\n");
 static int FrsMaterial_init(BPy_FrsMaterial *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist_1[] = {"brother", nullptr};
@@ -305,8 +304,7 @@ PyDoc_STRVAR(
     FrsMaterial_line_doc,
     "RGBA components of the line color of the material.\n"
     "\n"
-    ":type: :class:`mathutils.Vector`");
-
+    ":type: :class:`mathutils.Vector`\n");
 static PyObject *FrsMaterial_line_get(BPy_FrsMaterial *self, void * /*closure*/)
 {
   return Vector_CreatePyObject_cb(
@@ -328,8 +326,7 @@ PyDoc_STRVAR(
     FrsMaterial_diffuse_doc,
     "RGBA components of the diffuse color of the material.\n"
     "\n"
-    ":type: :class:`mathutils.Vector`");
-
+    ":type: :class:`mathutils.Vector`\n");
 static PyObject *FrsMaterial_diffuse_get(BPy_FrsMaterial *self, void * /*closure*/)
 {
   return Vector_CreatePyObject_cb(
@@ -351,8 +348,7 @@ PyDoc_STRVAR(
     FrsMaterial_specular_doc,
     "RGBA components of the specular color of the material.\n"
     "\n"
-    ":type: :class:`mathutils.Vector`");
-
+    ":type: :class:`mathutils.Vector`\n");
 static PyObject *FrsMaterial_specular_get(BPy_FrsMaterial *self, void * /*closure*/)
 {
   return Vector_CreatePyObject_cb(
@@ -374,8 +370,7 @@ PyDoc_STRVAR(
     FrsMaterial_ambient_doc,
     "RGBA components of the ambient color of the material.\n"
     "\n"
-    ":type: :class:`mathutils.Color`");
-
+    ":type: :class:`mathutils.Color`\n");
 static PyObject *FrsMaterial_ambient_get(BPy_FrsMaterial *self, void * /*closure*/)
 {
   return Vector_CreatePyObject_cb(
@@ -397,8 +392,7 @@ PyDoc_STRVAR(
     FrsMaterial_emission_doc,
     "RGBA components of the emissive color of the material.\n"
     "\n"
-    ":type: :class:`mathutils.Color`");
-
+    ":type: :class:`mathutils.Color`\n");
 static PyObject *FrsMaterial_emission_get(BPy_FrsMaterial *self, void * /*closure*/)
 {
   return Vector_CreatePyObject_cb(
@@ -420,8 +414,7 @@ PyDoc_STRVAR(
     FrsMaterial_shininess_doc,
     "Shininess coefficient of the material.\n"
     "\n"
-    ":type: float");
-
+    ":type: float\n");
 static PyObject *FrsMaterial_shininess_get(BPy_FrsMaterial *self, void * /*closure*/)
 {
   return PyFloat_FromDouble(self->m->shininess());
@@ -444,8 +437,7 @@ PyDoc_STRVAR(
     FrsMaterial_priority_doc,
     "Line color priority of the material.\n"
     "\n"
-    ":type: int");
-
+    ":type: int\n");
 static PyObject *FrsMaterial_priority_get(BPy_FrsMaterial *self, void * /*closure*/)
 {
   return PyLong_FromLong(self->m->priority());

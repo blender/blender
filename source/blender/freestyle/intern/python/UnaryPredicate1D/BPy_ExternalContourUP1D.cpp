@@ -30,7 +30,6 @@ PyDoc_STRVAR(
     "   :return: True if the Interface1D is an external contour, false\n"
     "      otherwise.\n"
     "   :rtype: bool\n");
-
 static int ExternalContourUP1D___init__(BPy_ExternalContourUP1D *self,
                                         PyObject *args,
                                         PyObject *kwds)

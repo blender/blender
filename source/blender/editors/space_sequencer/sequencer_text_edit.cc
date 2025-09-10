@@ -42,8 +42,12 @@ static bool sequencer_text_editing_poll(bContext *C)
   if (!sequencer_editing_initialized_and_active(C)) {
     return false;
   }
+  const Scene *scene = CTX_data_sequencer_scene(C);
+  if (!scene) {
+    return false;
+  }
 
-  const Strip *strip = seq::select_active_get(CTX_data_sequencer_scene(C));
+  const Strip *strip = seq::select_active_get(scene);
   if (strip == nullptr || strip->type != STRIP_TYPE_TEXT || !seq::effects_can_render_text(strip)) {
     return false;
   }
@@ -58,7 +62,11 @@ static bool sequencer_text_editing_poll(bContext *C)
 
 bool sequencer_text_editing_active_poll(bContext *C)
 {
-  const Strip *strip = seq::select_active_get(CTX_data_sequencer_scene(C));
+  const Scene *scene = CTX_data_sequencer_scene(C);
+  if (!scene) {
+    return false;
+  }
+  const Strip *strip = seq::select_active_get(scene);
   if (strip == nullptr || !sequencer_text_editing_poll(C)) {
     return false;
   }
@@ -66,8 +74,6 @@ bool sequencer_text_editing_active_poll(bContext *C)
   if (ED_screen_animation_no_scrub(CTX_wm_manager(C))) {
     return false;
   }
-
-  const Scene *scene = CTX_data_sequencer_scene(C);
 
   if (!seq::time_strip_intersects_frame(scene, strip, BKE_scene_frame_get(scene))) {
     return false;

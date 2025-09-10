@@ -76,10 +76,10 @@ struct ShadowTileMap : public ShadowTileMapData {
   /** Cube face index. */
   eCubeFace cubeface = Z_NEG;
   /** Cached, used for detecting updates. */
-  float4x4 object_mat;
+  float4x4 object_mat = float4x4::identity();
 
  public:
-  ShadowTileMap(int tiles_index_)
+  ShadowTileMap(int tiles_index_) : ShadowTileMapData{}
   {
     tiles_index = tiles_index_;
     /* For now just the same index. */

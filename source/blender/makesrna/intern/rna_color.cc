@@ -81,7 +81,7 @@ static bool seq_update_modifier_curve(Strip *strip, void *user_data)
    * curve mapping. */
   SeqCurveMappingUpdateData *data = static_cast<SeqCurveMappingUpdateData *>(user_data);
   LISTBASE_FOREACH (StripModifierData *, smd, &strip->modifiers) {
-    if (smd->type == seqModifierType_Curves) {
+    if (smd->type == eSeqModifierType_Curves) {
       CurvesModifierData *cmd = reinterpret_cast<CurvesModifierData *>(smd);
       if (&cmd->curve_mapping == data->curve) {
         blender::seq::relations_invalidate_cache(data->scene, strip);
@@ -504,6 +504,26 @@ static const EnumPropertyItem *rna_ColorManagedDisplaySettings_display_device_it
   return items;
 }
 
+static void rna_display_and_view_settings_node_update(Main *bmain, PointerRNA *ptr)
+{
+  ID *id = ptr->owner_id;
+
+  if (id && GS(id->name) == ID_NT) {
+    /* Find a node ancestor and tag it. */
+    PointerRNA node_ptr = ptr->parent();
+    while (node_ptr.data && !RNA_struct_is_a(node_ptr.type, &RNA_Node)) {
+      node_ptr = ptr->parent();
+    }
+
+    if (node_ptr.data) {
+      bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
+      bNode *node = node_ptr.data_as<bNode>();
+      BKE_ntree_update_tag_node_property(ntree, node);
+      BKE_main_ensure_invariants(*bmain, ntree->id);
+    }
+  }
+}
+
 static void rna_ColorManagedDisplaySettings_display_device_update(Main *bmain,
                                                                   Scene * /*scene*/,
                                                                   PointerRNA *ptr)
@@ -534,6 +554,8 @@ static void rna_ColorManagedDisplaySettings_display_device_update(Main *bmain,
         DEG_id_tag_update(ptr->owner_id, 0);
       }
     }
+
+    rna_display_and_view_settings_node_update(bmain, ptr);
   }
 }
 
@@ -636,6 +658,34 @@ static void rna_ColorManagedViewSettings_whitepoint_set(PointerRNA *ptr, const f
 {
   ColorManagedViewSettings *view_settings = (ColorManagedViewSettings *)ptr->data;
   IMB_colormanagement_set_whitepoint(value, view_settings->temperature, view_settings->tint);
+}
+
+static bool rna_ColorManagedViewSettings_is_hdr_get(PointerRNA *ptr)
+{
+  ColorManagedViewSettings *view_settings = (ColorManagedViewSettings *)ptr->data;
+  if (GS(ptr->owner_id->name) != ID_SCE) {
+    return false;
+  }
+  const Scene *scene = reinterpret_cast<const Scene *>(ptr->owner_id);
+  if (&scene->view_settings != view_settings) {
+    return false;
+  }
+  return IMB_colormanagement_display_is_hdr(&scene->display_settings,
+                                            view_settings->view_transform);
+}
+
+static int rna_ViewSettings_only_view_look_editable(const PointerRNA *ptr, const char **r_info)
+{
+  ColorManagedViewSettings *view_settings = (ColorManagedViewSettings *)ptr->data;
+
+  if (view_settings->flag & COLORMANAGE_VIEW_ONLY_VIEW_LOOK) {
+    if (r_info) {
+      *r_info = N_("Only view transform and look can be edited for these settings");
+    }
+    return 0;
+  }
+
+  return PROP_EDITABLE;
 }
 
 static bool rna_ColorManagedColorspaceSettings_is_data_get(PointerRNA *ptr)
@@ -778,7 +828,7 @@ static std::optional<std::string> rna_ColorManagedSequencerColorspaceSettings_pa
   return "sequencer_colorspace_settings";
 }
 
-static void rna_ColorManagement_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
+static void rna_ColorManagement_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
   ID *id = ptr->owner_id;
 
@@ -788,6 +838,9 @@ static void rna_ColorManagement_update(Main * /*bmain*/, Scene * /*scene*/, Poin
 
   if (GS(id->name) == ID_SCE) {
     WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, nullptr);
+  }
+  else {
+    rna_display_and_view_settings_node_update(bmain, ptr);
   }
 }
 
@@ -1327,7 +1380,12 @@ static void rna_def_colormanage(BlenderRNA *brna)
                               "rna_ColorManagedDisplaySettings_display_device_get",
                               "rna_ColorManagedDisplaySettings_display_device_set",
                               "rna_ColorManagedDisplaySettings_display_device_itemf");
-  RNA_def_property_ui_text(prop, "Display Device", "Display device name");
+  RNA_def_property_ui_text(
+      prop,
+      "Display Device",
+      "Display device name. For viewing, this is the display that will be emulated by limiting "
+      "the gamut and HDR colors. For image and video output, this is the display space used for "
+      "writing.");
   RNA_def_property_update(
       prop, NC_WINDOW, "rna_ColorManagedDisplaySettings_display_device_update");
 
@@ -1368,6 +1426,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
       "Exposure",
       "Exposure (stops) applied before display transform, multiplying by 2^exposure");
   RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
+  RNA_def_property_editable_func(prop, "rna_ViewSettings_only_view_look_editable");
 
   prop = RNA_def_property(srna, "gamma", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, nullptr, "gamma");
@@ -1378,6 +1437,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
       "Gamma",
       "Additional gamma encoding after display transform, for output with custom gamma");
   RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
+  RNA_def_property_editable_func(prop, "rna_ViewSettings_only_view_look_editable");
 
   prop = RNA_def_property(srna, "curve_mapping", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, nullptr, "curve_mapping");
@@ -1389,12 +1449,14 @@ static void rna_def_colormanage(BlenderRNA *brna)
   RNA_def_property_boolean_funcs(prop, nullptr, "rna_ColorManagedViewSettings_use_curves_set");
   RNA_def_property_ui_text(prop, "Use Curves", "Use RGB curved for pre-display transformation");
   RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
+  RNA_def_property_editable_func(prop, "rna_ViewSettings_only_view_look_editable");
 
   prop = RNA_def_property(srna, "use_white_balance", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", COLORMANAGE_VIEW_USE_WHITE_BALANCE);
   RNA_def_property_ui_text(
       prop, "Use White Balance", "Perform chromatic adaption from a different white point");
   RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
+  RNA_def_property_editable_func(prop, "rna_ViewSettings_only_view_look_editable");
 
   prop = RNA_def_property(srna, "white_balance_temperature", PROP_FLOAT, PROP_COLOR_TEMPERATURE);
   RNA_def_property_float_sdna(prop, nullptr, "temperature");
@@ -1403,6 +1465,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
   RNA_def_property_ui_range(prop, 2000.0f, 11000.0f, 100, 0);
   RNA_def_property_ui_text(prop, "Temperature", "Color temperature of the scene's white point");
   RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
+  RNA_def_property_editable_func(prop, "rna_ViewSettings_only_view_look_editable");
 
   prop = RNA_def_property(srna, "white_balance_tint", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, nullptr, "tint");
@@ -1412,6 +1475,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Tint", "Color tint of the scene's white point (the default of 10 matches daylight)");
   RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
+  RNA_def_property_editable_func(prop, "rna_ViewSettings_only_view_look_editable");
 
   prop = RNA_def_property(srna, "white_balance_whitepoint", PROP_FLOAT, PROP_COLOR);
   RNA_def_property_array(prop, 3);
@@ -1424,16 +1488,13 @@ static void rna_def_colormanage(BlenderRNA *brna)
                            "The color which gets mapped to white "
                            "(automatically converted to/from temperature and tint)");
   RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
+  RNA_def_property_editable_func(prop, "rna_ViewSettings_only_view_look_editable");
 
-  prop = RNA_def_property(srna, "use_hdr_view", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", COLORMANAGE_VIEW_USE_HDR);
+  prop = RNA_def_property(srna, "is_hdr", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(
-      prop,
-      "High Dynamic Range",
-      "Enable high dynamic range display in rendered viewport, uncapping display brightness. This "
-      "requires a monitor with HDR support and a view transform designed for HDR. "
-      "'Filmic' and 'AgX' do not generate HDR colors.");
-  RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagedColorspaceSettings_reload_update");
+      prop, "Is HDR", "The display and view transform supports high dynamic range colors");
+  RNA_def_property_boolean_funcs(prop, "rna_ColorManagedViewSettings_is_hdr_get", nullptr);
 
   /* ** Color-space ** */
   srna = RNA_def_struct(brna, "ColorManagedInputColorspaceSettings", nullptr);
@@ -1464,7 +1525,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
       prop,
       "Is Data",
       "Treat image as non-color data without color management, like normal or displacement maps");
-  RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
+  RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagedColorspaceSettings_reload_update");
 
   //
   srna = RNA_def_struct(brna, "ColorManagedSequencerColorspaceSettings", nullptr);

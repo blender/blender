@@ -81,8 +81,7 @@ static uint16_t vbo_bind(const ShaderInterface *interface,
 
 void GLVertArray::update_bindings(const GLuint vao,
                                   const Batch *batch_, /* Should be GLBatch. */
-                                  const ShaderInterface *interface,
-                                  const int base_instance)
+                                  const ShaderInterface *interface)
 {
   const GLBatch *batch = static_cast<const GLBatch *>(batch_);
   uint16_t attr_mask = interface->enabled_attr_mask_;
@@ -95,14 +94,6 @@ void GLVertArray::update_bindings(const GLuint vao,
     if (vbo) {
       vbo->bind();
       attr_mask &= ~vbo_bind(interface, &vbo->format, 0, vbo->vertex_len, false);
-    }
-  }
-
-  for (int v = GPU_BATCH_INST_VBO_MAX_LEN - 1; v > -1; v--) {
-    GLVertBuf *vbo = batch->inst_(v);
-    if (vbo) {
-      vbo->bind();
-      attr_mask &= ~vbo_bind(interface, &vbo->format, base_instance, vbo->vertex_len, true);
     }
   }
 

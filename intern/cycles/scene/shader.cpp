@@ -696,7 +696,7 @@ void ShaderManager::device_update_common(Device * /*device*/,
   kfilm->rec709_to_r = make_float4(rec709_to_r);
   kfilm->rec709_to_g = make_float4(rec709_to_g);
   kfilm->rec709_to_b = make_float4(rec709_to_b);
-  kfilm->is_rec709 = is_rec709;
+  kfilm->is_rec709 = scene_linear_space == SceneLinearSpace::Rec709;
 }
 
 void ShaderManager::device_free_common(Device * /*device*/, DeviceScene *dscene, Scene *scene)
@@ -1011,7 +1011,7 @@ void ShaderManager::init_xyz_transforms()
   rec709_to_r = make_float3(1.0f, 0.0f, 0.0f);
   rec709_to_g = make_float3(0.0f, 1.0f, 0.0f);
   rec709_to_b = make_float3(0.0f, 0.0f, 1.0f);
-  is_rec709 = true;
+  scene_linear_space = SceneLinearSpace::Rec709;
 
   compute_thin_film_table(xyz_to_rec709);
 
@@ -1079,9 +1079,46 @@ void ShaderManager::init_xyz_transforms()
   rec709_to_r = make_float3(rec709_to_rgb.x);
   rec709_to_g = make_float3(rec709_to_rgb.y);
   rec709_to_b = make_float3(rec709_to_rgb.z);
-  is_rec709 = transform_equal_threshold(xyz_to_rgb, xyz_to_rec709, 0.0001f);
 
   compute_thin_film_table(xyz_to_rgb);
+
+  const Transform xyz_to_rec2020 = make_transform(1.7166512f,
+                                                  -0.3556708f,
+                                                  -0.2533663f,
+                                                  0.0f,
+                                                  -0.6666844,
+                                                  1.6164812f,
+                                                  0.0157685f,
+                                                  0.0f,
+                                                  0.0176399f,
+                                                  -0.0427706f,
+                                                  0.9421031f,
+                                                  0.0f);
+  const Transform acescg_to_xyz = make_transform(0.652238f,
+                                                 0.128237f,
+                                                 0.169983f,
+                                                 0.0f,
+                                                 0.267672f,
+                                                 0.674340f,
+                                                 0.057988f,
+                                                 0.0f,
+                                                 -0.005382f,
+                                                 0.001369f,
+                                                 1.093071f,
+                                                 0.0f);
+
+  if (transform_equal_threshold(xyz_to_rgb, xyz_to_rec709, 0.001f)) {
+    scene_linear_space = SceneLinearSpace::Rec709;
+  }
+  else if (transform_equal_threshold(xyz_to_rgb, xyz_to_rec2020, 0.001f)) {
+    scene_linear_space = SceneLinearSpace::Rec2020;
+  }
+  else if (transform_equal_threshold(rgb_to_xyz, acescg_to_xyz, 0.001f)) {
+    scene_linear_space = SceneLinearSpace::ACEScg;
+  }
+  else {
+    scene_linear_space = SceneLinearSpace::Unknown;
+  }
 #endif
 }
 

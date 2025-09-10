@@ -19,10 +19,7 @@ namespace GLVertArray {
 /**
  * Update the Attribute Binding of the currently bound VAO.
  */
-void update_bindings(const GLuint vao,
-                     const Batch *batch,
-                     const ShaderInterface *interface,
-                     int base_instance);
+void update_bindings(const GLuint vao, const Batch *batch, const ShaderInterface *interface);
 
 /**
  * Another version of update_bindings for Immediate mode.

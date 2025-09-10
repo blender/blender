@@ -2207,7 +2207,8 @@ void UI_update_text_styles();
 #define UI_UNIT_X ((void)0, U.widget_unit)
 #define UI_UNIT_Y ((void)0, U.widget_unit)
 
-#define UI_HEADER_OFFSET ((void)0, 0.4f * UI_UNIT_X)
+#define UI_HEADER_OFFSET \
+  ((void)0, ((U.uiflag & USER_AREA_CORNER_HANDLE) ? 16.0f : 8.0f) * UI_SCALE_FAC)
 
 #define UI_AZONESPOTW UI_HEADER_OFFSET       /* Width of corner action zone #AZone. */
 #define UI_AZONESPOTH (0.6f * U.widget_unit) /* Height of corner action zone #AZone. */
@@ -2380,6 +2381,7 @@ void uiTemplatePathBuilder(uiLayout *layout,
                            PointerRNA *root_ptr,
                            std::optional<blender::StringRefNull> text);
 void uiTemplateModifiers(uiLayout *layout, bContext *C);
+void uiTemplateStripModifiers(uiLayout *layout, bContext *C);
 /**
  * Check if the shader effect panels don't match the data and rebuild the panels if so.
  */
@@ -3023,7 +3025,7 @@ bool UI_view_item_popup_keep_open(const blender::ui::AbstractViewItem &item);
  * support dragging, i.e. if it won't create a drag-controller upon request.
  * \return True if dragging started successfully, otherwise false.
  */
-bool UI_view_item_drag_start(bContext &C, const blender::ui::AbstractViewItem &item);
+bool UI_view_item_drag_start(bContext &C, blender::ui::AbstractViewItem &item);
 
 /**
  * \param xy: Coordinate to find a view item at, in window space.

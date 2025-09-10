@@ -41,7 +41,6 @@ PyDoc_STRVAR(
     "   :type inter: :class:`freestyle.types.Interface1D`\n"
     "   :return: True if the density is lower than a threshold.\n"
     "   :rtype: bool\n");
-
 static int DensityLowerThanUP1D___init__(BPy_DensityLowerThanUP1D *self,
                                          PyObject *args,
                                          PyObject *kwds)

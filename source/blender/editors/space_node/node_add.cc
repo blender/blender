@@ -82,9 +82,7 @@ bNode *add_node(const bContext &C, const StringRef idname, const float2 &locatio
 
   node_deselect_all(node_tree);
 
-  const std::string idname_str = idname;
-
-  bNode *node = bke::node_add_node(&C, node_tree, idname_str.c_str());
+  bNode *node = bke::node_add_node(&C, node_tree, idname);
   BLI_assert(node && node->typeinfo);
 
   position_node_based_on_mouse(*node, location);

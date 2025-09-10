@@ -176,7 +176,8 @@ void cache_init(bContext *C,
       radius = object_space_radius_get(vc, sd.paint, *brush, co, area_normal_radius);
     }
     else {
-      radius = paint_calc_object_space_radius(vc, co, float(ups->size) * area_normal_radius);
+      radius = paint_calc_object_space_radius(
+          vc, co, float(ups->size / 2.0f) * area_normal_radius);
     }
 
     const float radius_sq = math::square(radius);

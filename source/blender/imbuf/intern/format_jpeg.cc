@@ -621,6 +621,19 @@ static void write_jpeg(jpeg_compress_struct *cinfo, ImBuf *ibuf)
     }
   }
 
+  /* Write ICC profile if there is one associated with the colorspace. */
+  const ColorSpace *colorspace = ibuf->byte_buffer.colorspace;
+  if (colorspace) {
+    blender::Vector<char> icc_profile = IMB_colormanagement_space_icc_profile(colorspace);
+    if (!icc_profile.is_empty()) {
+      icc_profile.prepend({'I', 'C', 'C', '_', 'P', 'R', 'O', 'F', 'I', 'L', 'E', 0, 0, 1});
+      jpeg_write_marker(cinfo,
+                        JPEG_APP0 + 2,
+                        reinterpret_cast<const JOCTET *>(icc_profile.data()),
+                        icc_profile.size());
+    }
+  }
+
   row_pointer[0] = MEM_malloc_arrayN<std::remove_pointer_t<JSAMPROW>>(
       size_t(cinfo->input_components) * size_t(cinfo->image_width), "jpeg row_pointer");
 

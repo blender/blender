@@ -32,11 +32,11 @@
 
 namespace blender::gpu::shader {
 
-using CreateInfoDictionnary = Map<StringRef, ShaderCreateInfo *>;
-using InterfaceDictionnary = Map<StringRef, StageInterfaceInfo *>;
+using CreateInfoDictionary = Map<StringRef, ShaderCreateInfo *>;
+using InterfaceDictionary = Map<StringRef, StageInterfaceInfo *>;
 
-static CreateInfoDictionnary *g_create_infos = nullptr;
-static InterfaceDictionnary *g_interfaces = nullptr;
+static CreateInfoDictionary *g_create_infos = nullptr;
+static InterfaceDictionary *g_interfaces = nullptr;
 
 /* -------------------------------------------------------------------- */
 /** \name Check Backend Support
@@ -149,6 +149,8 @@ void ShaderCreateInfo::finalize(const bool recursive)
     subpass_inputs_.extend_non_duplicates(info.subpass_inputs_);
     specialization_constants_.extend_non_duplicates(info.specialization_constants_);
     compilation_constants_.extend_non_duplicates(info.compilation_constants_);
+
+    shared_variables_.extend(info.shared_variables_);
 
     validate_vertex_attributes(&info);
 
@@ -360,6 +362,16 @@ std::string ShaderCreateInfo::check_error() const
     }
   }
 
+  /* Validate shared variables. */
+  for (int i = 0; i < shared_variables_.size(); i++) {
+    for (int j = i + 1; j < shared_variables_.size(); j++) {
+      if (shared_variables_[i].name == shared_variables_[j].name) {
+        error += this->name_ + " contains two specialization constants with the name: " +
+                 std::string(shared_variables_[i].name);
+      }
+    }
+  }
+
   return error;
 }
 
@@ -488,8 +500,8 @@ using namespace blender::gpu::shader;
 #endif
 void gpu_shader_create_info_init()
 {
-  g_create_infos = new CreateInfoDictionnary();
-  g_interfaces = new InterfaceDictionnary();
+  g_create_infos = new CreateInfoDictionary();
+  g_interfaces = new InterfaceDictionary();
 
 #define GPU_SHADER_NAMED_INTERFACE_INFO(_interface, _inst_name) \
   StageInterfaceInfo *ptr_##_interface = new StageInterfaceInfo(#_interface, #_inst_name); \
@@ -523,6 +535,8 @@ void gpu_shader_create_info_init()
   }
 
   for (ShaderCreateInfo *info : g_create_infos->values()) {
+    info->is_generated_ = false;
+
     info->builtins_ |= gpu_shader_dependency_get_builtins(info->vertex_source_);
     info->builtins_ |= gpu_shader_dependency_get_builtins(info->fragment_source_);
     info->builtins_ |= gpu_shader_dependency_get_builtins(info->geometry_source_);

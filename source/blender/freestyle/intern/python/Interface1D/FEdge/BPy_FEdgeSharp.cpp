@@ -43,8 +43,7 @@ PyDoc_STRVAR(
     "   :arg first_vertex: The first SVertex object.\n"
     "   :type first_vertex: :class:`SVertex`\n"
     "   :arg second_vertex: The second SVertex object.\n"
-    "   :type second_vertex: :class:`SVertex`");
-
+    "   :type second_vertex: :class:`SVertex`\n");
 static int FEdgeSharp_init(BPy_FEdgeSharp *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist_1[] = {"brother", nullptr};
@@ -198,8 +197,7 @@ PyDoc_STRVAR(
     "The normal to the face lying on the right of the FEdge. If this FEdge\n"
     "is a border, it has no Face on its right and therefore no normal.\n"
     "\n"
-    ":type: :class:`mathutils.Vector`");
-
+    ":type: :class:`mathutils.Vector`\n");
 static PyObject *FEdgeSharp_normal_right_get(BPy_FEdgeSharp *self, void * /*closure*/)
 {
   return Vector_CreatePyObject_cb(
@@ -222,8 +220,7 @@ PyDoc_STRVAR(
     FEdgeSharp_normal_left_doc,
     "The normal to the face lying on the left of the FEdge.\n"
     "\n"
-    ":type: :class:`mathutils.Vector`");
-
+    ":type: :class:`mathutils.Vector`\n");
 static PyObject *FEdgeSharp_normal_left_get(BPy_FEdgeSharp *self, void * /*closure*/)
 {
   return Vector_CreatePyObject_cb(
@@ -248,8 +245,7 @@ PyDoc_STRVAR(
     "If this FEdge is a border, it has no Face on its right and therefore\n"
     "no material.\n"
     "\n"
-    ":type: int");
-
+    ":type: int\n");
 static PyObject *FEdgeSharp_material_index_right_get(BPy_FEdgeSharp *self, void * /*closure*/)
 {
   return PyLong_FromLong(self->fes->aFrsMaterialIndex());
@@ -272,8 +268,7 @@ PyDoc_STRVAR(
     FEdgeSharp_material_index_left_doc,
     "The index of the material of the face lying on the left of the FEdge.\n"
     "\n"
-    ":type: int");
-
+    ":type: int\n");
 static PyObject *FEdgeSharp_material_index_left_get(BPy_FEdgeSharp *self, void * /*closure*/)
 {
   return PyLong_FromLong(self->fes->bFrsMaterialIndex());
@@ -297,8 +292,7 @@ PyDoc_STRVAR(
     "The material of the face lying on the right of the FEdge. If this FEdge\n"
     "is a border, it has no Face on its right and therefore no material.\n"
     "\n"
-    ":type: :class:`Material`");
-
+    ":type: :class:`Material`\n");
 static PyObject *FEdgeSharp_material_right_get(BPy_FEdgeSharp *self, void * /*closure*/)
 {
   return BPy_FrsMaterial_from_FrsMaterial(self->fes->aFrsMaterial());
@@ -309,8 +303,7 @@ PyDoc_STRVAR(
     FEdgeSharp_material_left_doc,
     "The material of the face lying on the left of the FEdge.\n"
     "\n"
-    ":type: :class:`Material`");
-
+    ":type: :class:`Material`\n");
 static PyObject *FEdgeSharp_material_left_get(BPy_FEdgeSharp *self, void * /*closure*/)
 {
   return BPy_FrsMaterial_from_FrsMaterial(self->fes->bFrsMaterial());
@@ -323,8 +316,7 @@ PyDoc_STRVAR(
     "is a border, it has no face on the right and thus this property is set to\n"
     "false.\n"
     "\n"
-    ":type: bool");
-
+    ":type: bool\n");
 static PyObject *FEdgeSharp_face_mark_right_get(BPy_FEdgeSharp *self, void * /*closure*/)
 {
   return PyBool_from_bool(self->fes->aFaceMark());
@@ -346,8 +338,7 @@ PyDoc_STRVAR(
     FEdgeSharp_face_mark_left_doc,
     "The face mark of the face lying on the left of the FEdge.\n"
     "\n"
-    ":type: bool");
-
+    ":type: bool\n");
 static PyObject *FEdgeSharp_face_mark_left_get(BPy_FEdgeSharp *self, void * /*closure*/)
 {
   return PyBool_from_bool(self->fes->bFaceMark());

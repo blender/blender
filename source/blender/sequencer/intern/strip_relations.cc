@@ -25,6 +25,7 @@
 
 #include "SEQ_iterator.hh"
 #include "SEQ_prefetch.hh"
+#include "SEQ_preview_cache.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_sequencer.hh"
 #include "SEQ_thumbnail_cache.hh"
@@ -51,6 +52,7 @@ void cache_cleanup(Scene *scene)
   source_image_cache_clear(scene);
   final_image_cache_clear(scene);
   intra_frame_cache_invalidate(scene);
+  preview_cache_invalidate(scene);
 }
 
 void cache_settings_changed(Scene *scene)
@@ -151,6 +153,7 @@ void relations_invalidate_cache(Scene *scene, Strip *strip)
 
   invalidate_final_cache_strip_range(scene, strip);
   intra_frame_cache_invalidate(scene, strip);
+  preview_cache_invalidate(scene);
   invalidate_raw_cache_of_parent_meta(scene, strip);
 
   /* Needed to update VSE sound. */

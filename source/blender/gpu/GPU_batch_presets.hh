@@ -15,7 +15,8 @@
 
 namespace blender::gpu {
 class Batch;
-}
+class StorageBuf;
+}  // namespace blender::gpu
 
 /* `gpu_batch_presets.cc` */
 
@@ -30,6 +31,8 @@ blender::gpu::Batch *GPU_batch_preset_sphere_wire(int lod) ATTR_WARN_UNUSED_RESU
 blender::gpu::Batch *GPU_batch_preset_quad();
 
 void gpu_batch_presets_init();
+/* Registers batch to be destroyed at exit time. */
 void gpu_batch_presets_register(blender::gpu::Batch *preset_batch);
-bool gpu_batch_presets_unregister(blender::gpu::Batch *preset_batch);
+/* Registers buffer to be destroyed at exit time. */
+void gpu_batch_storage_buffer_register(blender::gpu::StorageBuf *preset_buffer);
 void gpu_batch_presets_exit();

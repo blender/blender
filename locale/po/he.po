@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-18 09:16+0000\n"
+"POT-Creation-Date: 2025-09-10 07:24+0000\n"
 "PO-Revision-Date: 2025-07-23 15:33+0000\n"
 "Last-Translator: Eitan Traurig <eitant13@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
@@ -587,20 +587,20 @@ msgid "Mask"
 msgstr "הכסמ"
 
 
-msgid "Face Data"
-msgstr "האפ ינותנ"
+msgid "Mirror"
+msgstr "הארמ"
 
 
 msgid "Apply"
 msgstr "לחה"
 
 
-msgid "Mirror"
-msgstr "הארמ"
-
-
 msgid "Convert"
 msgstr "רמה"
+
+
+msgid "Face Data"
+msgstr "האפ ינותנ"
 
 
 msgid "Languages..."
@@ -645,10 +645,6 @@ msgstr "םלוע"
 
 msgid "Combine Color"
 msgstr "עבצ בלש"
-
-
-msgid "Combined"
-msgstr "בלשמ"
 
 
 msgid "Background"
@@ -718,6 +714,10 @@ msgstr "הנומת םש"
 msgctxt "Mesh"
 msgid "Vertex Groups"
 msgstr "דוקדוק תוצובק"
+
+
+msgid "Combined"
+msgstr "בלשמ"
 
 
 msgctxt "Operator"
@@ -929,6 +929,10 @@ msgid "Saturation:"
 msgstr ":היוור"
 
 
+msgid "Value:"
+msgstr ":ךרע"
+
+
 msgid "Movie"
 msgstr "טרס"
 
@@ -979,10 +983,6 @@ msgstr "ץבוק םש"
 
 msgid "Movies"
 msgstr "םיטרס"
-
-
-msgid "Value:"
-msgstr ":ךרע"
 
 
 msgid "Select Layer"

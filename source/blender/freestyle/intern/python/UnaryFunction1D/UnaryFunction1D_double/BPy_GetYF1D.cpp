@@ -40,7 +40,6 @@ PyDoc_STRVAR(
     "   :type inter: :class:`freestyle.types.Interface1D`\n"
     "   :return: The Y 3D coordinate of the Interface1D.\n"
     "   :rtype: float\n");
-
 static int GetYF1D___init__(BPy_GetYF1D *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {"integration_type", nullptr};

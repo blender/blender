@@ -11,8 +11,7 @@
 
 #include "DNA_scene_types.h"
 
-#include "UI_interface_layout.hh"
-#include "UI_resources.hh"
+#include "RNA_enum_types.hh"
 
 #include "GPU_shader.hh"
 
@@ -24,11 +23,7 @@
 
 #include "node_composite_util.hh"
 
-/* **************** Keying  ******************** */
-
 namespace blender::nodes::node_composite_keying_cc {
-
-NODE_STORAGE_FUNCS(NodeKeyingData)
 
 static void cmp_node_keying_declare(NodeDeclarationBuilder &b)
 {
@@ -136,9 +131,9 @@ static void cmp_node_keying_declare(NodeDeclarationBuilder &b)
           "Dilate or erode the computed matte using an inverse distance operation evaluated at "
           "the given falloff of the specified size. Negative sizes means erosion while positive "
           "means dilation");
-  postprocess_panel.add_layout([](uiLayout *layout, bContext * /*C*/, PointerRNA *ptr) {
-    layout->prop(ptr, "feather_falloff", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  });
+  postprocess_panel.add_input<decl::Menu>("Feather Falloff")
+      .default_value(PROP_SMOOTH)
+      .static_items(rna_enum_proportional_falloff_curve_only_items);
 
   PanelDeclarationBuilder &despill_panel = b.add_panel("Despill").default_closed(true);
   despill_panel.add_input<decl::Float>("Strength", "Despill Strength")
@@ -160,6 +155,7 @@ static void cmp_node_keying_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_keying(bNodeTree * /*ntree*/, bNode *node)
 {
+  /* Unused, only kept for forward compatibility. */
   NodeKeyingData *data = MEM_callocN<NodeKeyingData>(__func__);
   node->storage = data;
 }
@@ -704,7 +700,7 @@ class KeyingOperation : public NodeOperation {
 
     Result feathered_matte = context().create_result(ResultType::Float);
     morphological_distance_feather(
-        context(), input_matte, feathered_matte, distance, node_storage(bnode()).feather_falloff);
+        context(), input_matte, feathered_matte, distance, this->get_feather_falloff());
 
     return feathered_matte;
   }
@@ -712,6 +708,14 @@ class KeyingOperation : public NodeOperation {
   int get_postprocess_feather_size()
   {
     return this->get_input("Postprocess Feather Size").get_single_value_default(0);
+  }
+
+  int get_feather_falloff()
+  {
+    const Result &input = this->get_input("Feather Falloff");
+    const MenuValue default_menu_value = MenuValue(PROP_SMOOTH);
+    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
+    return menu_value.value;
   }
 
   void compute_image(Result &matte)

@@ -11,7 +11,7 @@
 
 #include <atomic>
 
-#include "BLI_color.hh"
+#include "BLI_color_types.hh"
 #include "BLI_implicit_sharing_ptr.hh"
 #include "BLI_map.hh"
 #include "BLI_math_matrix_types.hh"

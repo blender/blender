@@ -232,7 +232,7 @@ void USDHierarchyIterator::determine_point_instancers(const HierarchyContext *co
           "base geometry input itself. Both cases prevent valid point instancer export. If it's "
           "the former, enable 'As Instance' to avoid incorrect self-referencing.");
 
-      /* Clear any paths which had already been accumlated. */
+      /* Clear any paths which had already been accumulated. */
       Set<std::pair<pxr::SdfPath, Object *>> *paths = prototype_paths_.lookup_ptr(instancer_path);
       if (paths) {
         paths->clear();

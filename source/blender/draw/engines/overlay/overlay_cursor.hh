@@ -86,7 +86,6 @@ class Cursor : Overlay {
     pass.init();
     pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA);
     pass.shader_set(GPU_shader_get_builtin_shader(GPU_SHADER_3D_POLYLINE_FLAT_COLOR));
-    pass.push_constant("ModelViewProjectionMatrix", mvp);
     pass.push_constant("viewportSize", float2(state.region->winx, state.region->winy));
     pass.push_constant("lineWidth", U.pixelsize);
     pass.push_constant("lineSmooth", true);
@@ -99,8 +98,17 @@ class Cursor : Overlay {
     int3 vert_stride_count_circle = {1, 9999 /* Doesn't matter. */, 0};
 
     if (state.is_space_v3d()) {
+      const View3DCursor *cursor = &state.scene->cursor;
+      const float scale = ED_view3d_pixel_size_no_ui_scale(state.rv3d, cursor->location);
+      /* Only draw the axes lines in 3D with the correct perspective. */
+      float4x4 cursor_mat = math::from_loc_rot_scale<float4x4>(
+          cursor->location, cursor->rotation(), float3(scale * U.widget_unit));
+
+      float4x4 mvp_lines = float4x4(state.rv3d->winmat) * float4x4(state.rv3d->viewmat) *
+                           cursor_mat;
+
       /* Render line first to avoid Z fighting. */
-      pass.push_constant("ModelViewProjectionMatrix", mvp * float4x4(rotation));
+      pass.push_constant("ModelViewProjectionMatrix", mvp_lines);
       pass.push_constant("gpu_vert_stride_count_offset", vert_stride_count_line);
       pass.draw_expand(res.shapes.cursor_lines.get(), GPU_PRIM_TRIS, 2, 1);
       pass.push_constant("ModelViewProjectionMatrix", mvp);

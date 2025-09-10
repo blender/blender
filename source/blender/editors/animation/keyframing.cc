@@ -12,7 +12,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
+#include "BLI_math_base.h"
 #include "BLI_string.h"
 
 #include "BLT_translation.hh"
@@ -930,7 +930,7 @@ void ANIM_OT_keyframe_clear_vse(wmOperatorType *ot)
   ot->invoke = clear_anim_vse_invoke;
   ot->exec = clear_anim_vse_exec;
 
-  ot->poll = ED_operator_areaactive;
+  ot->poll = ED_operator_sequencer_scene_editable;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1120,7 +1120,7 @@ void ANIM_OT_keyframe_delete_vse(wmOperatorType *ot)
   ot->invoke = delete_key_vse_invoke;
   ot->exec = delete_key_vse_exec;
 
-  ot->poll = ED_operator_areaactive;
+  ot->poll = ED_operator_sequencer_scene_editable;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

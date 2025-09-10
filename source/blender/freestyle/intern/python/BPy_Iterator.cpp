@@ -101,8 +101,7 @@ PyDoc_STRVAR(
     "\n"
     ".. method:: __init__()\n"
     "\n"
-    "   Default constructor.");
-
+    "   Default constructor.\n");
 static int Iterator_init(BPy_Iterator *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {nullptr};
@@ -130,8 +129,7 @@ PyDoc_STRVAR(
     Iterator_increment_doc,
     ".. method:: increment()\n"
     "\n"
-    "   Makes the iterator point the next element.");
-
+    "   Makes the iterator point the next element.\n");
 static PyObject *Iterator_increment(BPy_Iterator *self)
 {
   if (self->it->isEnd()) {
@@ -147,8 +145,7 @@ PyDoc_STRVAR(
     Iterator_decrement_doc,
     ".. method:: decrement()\n"
     "\n"
-    "   Makes the iterator point the previous element.");
-
+    "   Makes the iterator point the previous element.\n");
 static PyObject *Iterator_decrement(BPy_Iterator *self)
 {
   if (self->it->isBegin()) {
@@ -190,8 +187,7 @@ PyDoc_STRVAR(
     Iterator_name_doc,
     "The string of the name of this iterator.\n"
     "\n"
-    ":type: str");
-
+    ":type: str\n");
 static PyObject *Iterator_name_get(BPy_Iterator *self, void * /*closure*/)
 {
   return PyUnicode_FromString(Py_TYPE(self)->tp_name);
@@ -202,8 +198,7 @@ PyDoc_STRVAR(
     Iterator_is_begin_doc,
     "True if the iterator points to the first element.\n"
     "\n"
-    ":type: bool");
-
+    ":type: bool\n");
 static PyObject *Iterator_is_begin_get(BPy_Iterator *self, void * /*closure*/)
 {
   return PyBool_from_bool(self->it->isBegin());
@@ -214,8 +209,7 @@ PyDoc_STRVAR(
     Iterator_is_end_doc,
     "True if the iterator points to the last element.\n"
     "\n"
-    ":type: bool");
-
+    ":type: bool\n");
 static PyObject *Iterator_is_end_get(BPy_Iterator *self, void * /*closure*/)
 {
   return PyBool_from_bool(self->it->isEnd());

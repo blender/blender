@@ -16,6 +16,7 @@
 
 struct BlendDataReader;
 struct BlendWriter;
+struct IDTypeForeachColorFunctionCallback;
 namespace blender {
 class GPointer;
 class CPPType;
@@ -208,6 +209,11 @@ class AttributeStorage : public ::AttributeStorage {
    * the #AttributeStorage struct.
    */
   void blend_write(BlendWriter &writer, const BlendWriteData &write_data);
+
+  /**
+   * Iterate over every color to change it to another colorspace.
+   */
+  void foreach_working_space_color(const IDTypeForeachColorFunctionCallback &fn);
 
   void count_memory(MemoryCounter &memory) const;
 };

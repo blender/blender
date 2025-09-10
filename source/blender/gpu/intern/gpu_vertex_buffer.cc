@@ -41,6 +41,12 @@ VertBuf::~VertBuf()
 
 void VertBuf::init(const GPUVertFormat &format, GPUUsageType usage)
 {
+#if 0 /* Disabled until Grease pencil. Comply to this. */
+  if (usage & GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY) {
+    BLI_assert_msg(format.attr_len == 1,
+                   "Only single attribute format are supported for buffer textures");
+  }
+#endif
   /* Strip extended usage flags. */
   usage_ = usage & ~GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY;
 #ifndef NDEBUG

@@ -141,7 +141,7 @@ static void bm_loop_interp_from_grid_boundary_4(BMesh *bm,
   const void *l_cdata[4] = {
       l_bound[0]->head.data, l_bound[1]->head.data, l_bound[2]->head.data, l_bound[3]->head.data};
 
-  CustomData_bmesh_interp(&bm->ldata, l_cdata, w, nullptr, 4, l->head.data);
+  CustomData_bmesh_interp(&bm->ldata, l_cdata, w, 4, l->head.data);
 }
 
 static void bm_loop_interp_from_grid_boundary_2(BMesh *bm,
@@ -153,7 +153,7 @@ static void bm_loop_interp_from_grid_boundary_2(BMesh *bm,
 
   const float w[2] = {1.0f - t, t};
 
-  CustomData_bmesh_interp(&bm->ldata, l_cdata, w, nullptr, 2, l->head.data);
+  CustomData_bmesh_interp(&bm->ldata, l_cdata, w, 2, l->head.data);
 }
 
 /** \} */
@@ -328,7 +328,7 @@ static void bm_grid_fill_array(BMesh *bm,
             v_grid[XY(xtot - 1, y)]->head.data,
         };
 
-        CustomData_bmesh_interp(&bm->vdata, v_cdata, w, nullptr, 4, v->head.data);
+        CustomData_bmesh_interp(&bm->vdata, v_cdata, w, 4, v->head.data);
       }
     }
   }

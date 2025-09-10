@@ -209,10 +209,16 @@ static bool screen_geom_vertices_scale_pass(const wmWindow *win,
      * during resize operations. */
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       const int border_width = int(ceil(float(U.border_width) * UI_SCALE_FAC));
-      int min = ED_area_headersize() + border_width;
-      if (area->v1->vec.y > screen_rect->ymin) {
-        min += border_width;
+      int min = ED_area_headersize() + border_width + border_width - U.pixelsize;
+      if (area->v3->vec.y >= (screen_rect->ymax - 1)) {
+        /* Area aligned to top screen edge. */
+        min = ED_area_headersize() + border_width;
       }
+      else if (area->v4->vec.y <= (screen_rect->ymin + 1)) {
+        /* Area aligned to bottom screen edge. */
+        min = ED_area_headersize() + border_width + 1;
+      }
+
       if (area->winy && (area->winy < min)) {
         /* lower edge */
         ScrEdge *se = BKE_screen_find_edge(screen, area->v4, area->v1);

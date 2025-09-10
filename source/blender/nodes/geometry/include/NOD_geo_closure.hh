@@ -10,24 +10,40 @@
 
 namespace blender::nodes {
 
-inline bool socket_type_supported_in_closure(const eNodeSocketDatatype socket_type)
+inline bool socket_type_supported_in_closure(const eNodeSocketDatatype socket_type,
+                                             const int ntree_type)
 {
-  return ELEM(socket_type,
-              SOCK_FLOAT,
-              SOCK_VECTOR,
-              SOCK_RGBA,
-              SOCK_BOOLEAN,
-              SOCK_ROTATION,
-              SOCK_MATRIX,
-              SOCK_INT,
-              SOCK_STRING,
-              SOCK_GEOMETRY,
-              SOCK_OBJECT,
-              SOCK_MATERIAL,
-              SOCK_IMAGE,
-              SOCK_COLLECTION,
-              SOCK_BUNDLE,
-              SOCK_CLOSURE);
+  switch (ntree_type) {
+    case NTREE_GEOMETRY:
+      return ELEM(socket_type,
+                  SOCK_FLOAT,
+                  SOCK_VECTOR,
+                  SOCK_RGBA,
+                  SOCK_BOOLEAN,
+                  SOCK_ROTATION,
+                  SOCK_MATRIX,
+                  SOCK_INT,
+                  SOCK_STRING,
+                  SOCK_GEOMETRY,
+                  SOCK_OBJECT,
+                  SOCK_MATERIAL,
+                  SOCK_IMAGE,
+                  SOCK_COLLECTION,
+                  SOCK_BUNDLE,
+                  SOCK_CLOSURE);
+    case NTREE_SHADER:
+      return ELEM(socket_type,
+                  SOCK_FLOAT,
+                  SOCK_VECTOR,
+                  SOCK_RGBA,
+                  SOCK_SHADER,
+                  SOCK_BUNDLE,
+                  SOCK_CLOSURE,
+                  SOCK_INT);
+    default:
+      BLI_assert_unreachable();
+      return false;
+  }
 }
 
 struct ClosureInputItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
@@ -82,9 +98,9 @@ struct ClosureInputItemsAccessor : public socket_items::SocketItemsAccessorDefau
     return &item.name;
   }
 
-  static bool supports_socket_type(const eNodeSocketDatatype socket_type, const int /*ntree_type*/)
+  static bool supports_socket_type(const eNodeSocketDatatype socket_type, const int ntree_type)
   {
-    return socket_type_supported_in_closure(socket_type);
+    return socket_type_supported_in_closure(socket_type, ntree_type);
   }
 
   static void init_with_socket_type_and_name(bNode &node,
@@ -156,9 +172,9 @@ struct ClosureOutputItemsAccessor : public socket_items::SocketItemsAccessorDefa
     return &item.name;
   }
 
-  static bool supports_socket_type(const eNodeSocketDatatype socket_type, const int /*ntree_type*/)
+  static bool supports_socket_type(const eNodeSocketDatatype socket_type, const int ntree_type)
   {
-    return socket_type_supported_in_closure(socket_type);
+    return socket_type_supported_in_closure(socket_type, ntree_type);
   }
 
   static void init_with_socket_type_and_name(bNode &node,
@@ -230,9 +246,9 @@ struct EvaluateClosureInputItemsAccessor : public socket_items::SocketItemsAcces
     return &item.name;
   }
 
-  static bool supports_socket_type(const eNodeSocketDatatype socket_type, const int /*ntree_type*/)
+  static bool supports_socket_type(const eNodeSocketDatatype socket_type, const int ntree_type)
   {
-    return socket_type_supported_in_closure(socket_type);
+    return socket_type_supported_in_closure(socket_type, ntree_type);
   }
 
   static void init_with_socket_type_and_name(bNode &node,
@@ -306,9 +322,9 @@ struct EvaluateClosureOutputItemsAccessor : public socket_items::SocketItemsAcce
     return &item.name;
   }
 
-  static bool supports_socket_type(const eNodeSocketDatatype socket_type, const int /*ntree_type*/)
+  static bool supports_socket_type(const eNodeSocketDatatype socket_type, const int ntree_type)
   {
-    return socket_type_supported_in_closure(socket_type);
+    return socket_type_supported_in_closure(socket_type, ntree_type);
   }
 
   static void init_with_socket_type_and_name(bNode &node,

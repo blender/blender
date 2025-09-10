@@ -9,6 +9,7 @@
 /* Allow using deprecated functionality for .blend file I/O. */
 #define DNA_DEPRECATED_ALLOW
 
+#include <cfloat>
 #include <cstring>
 
 #include "MEM_guardedalloc.h"

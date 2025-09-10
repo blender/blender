@@ -524,7 +524,15 @@ void import_meshes(Main &bmain,
 
     /* Create objects that use this mesh. */
     for (const ufbx_node *node : fmesh->instances) {
-      Object *obj = BKE_object_add_only_object(&bmain, OB_MESH, get_fbx_name(node->name));
+      std::string name;
+      if (node->is_geometry_transform_helper) {
+        /* Name geometry transform adjustment helpers with parent name and _GeomAdjust suffix. */
+        name = get_fbx_name(node->parent->name) + std::string("_GeomAdjust");
+      }
+      else {
+        name = get_fbx_name(node->name);
+      }
+      Object *obj = BKE_object_add_only_object(&bmain, OB_MESH, name.c_str());
       obj->data = mesh_main;
       if (!node->visible) {
         obj->visibility_flag |= OB_HIDE_VIEWPORT;

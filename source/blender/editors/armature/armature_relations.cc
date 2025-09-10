@@ -1139,7 +1139,7 @@ static wmOperatorStatus armature_parent_clear_invoke(bContext *C,
 
   uiLayout *row_disconnect = &layout->row(false);
   row_disconnect->enabled_set(enable_disconnect);
-  op_ptr = row_clear->op("ARMATURE_OT_parent_clear", IFACE_("Disconnect Bone"), ICON_NONE);
+  op_ptr = row_disconnect->op("ARMATURE_OT_parent_clear", IFACE_("Disconnect Bone"), ICON_NONE);
   RNA_enum_set(&op_ptr, "type", ARM_PAR_CLEAR_DISCONNECT);
 
   UI_popup_menu_end(C, pup);

@@ -35,7 +35,7 @@ struct OCIO_GPUParameters {
   float exponent;
   bool32_t use_predivide;
   bool32_t do_overlay_merge;
-  bool32_t use_hdr;
+  bool32_t use_hdr_display;
   int _pad0;
   int _pad1;
   int _pad2;

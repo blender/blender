@@ -5,6 +5,7 @@
 set(INC
   ../include
   ../../makesrna
+  ../curves
   ../../../../extern/curve_fit_nd
   ../sculpt_paint
   ../../modifiers/intern/lineart

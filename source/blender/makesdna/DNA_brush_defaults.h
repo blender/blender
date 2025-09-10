@@ -26,8 +26,8 @@
  \
     /* BRUSH SCULPT BRUSH SETTINGS */ \
     .weight = 1.0f, /* weight of brush 0 - 1.0 */ \
-    .size = 35,     /* radius of the brush in pixels */ \
-    .unprojected_radius = 0.05f, /* radius of the brush in Blender units */ \
+    .size = 70,     /* diameter of the brush in pixels */ \
+    .unprojected_size = 0.10f, /* diameter of the brush in Blender units */ \
     .alpha = 1.0f,  /* brush strength/intensity probably variable should be renamed? */ \
     .autosmooth_factor = 0.0f, \
     .topology_rake_factor = 0.0f, \
@@ -48,9 +48,12 @@
     .fill_threshold = 0.2f, \
  \
     /* BRUSH PAINT BRUSH SETTINGS */ \
-    /* Default rgb color of the brush when painting - white. */ \
+    /* Default rgb color of the brush when painting - white. Initialize both
+     * linear and deprecated sRGB values. */ \
+    .color = {1.0f, 1.0f, 1.0f}, \
     .rgb = {1.0f, 1.0f, 1.0f}, \
  \
+    .secondary_color = {0, 0, 0}, \
     .secondary_rgb = {0, 0, 0}, \
  \
     /* BRUSH STROKE SETTINGS */ \

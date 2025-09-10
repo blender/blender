@@ -660,6 +660,7 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
 
   using namespace blender::gpu::shader;
   const_cast<ShaderCreateInfo &>(info).finalize();
+  BLI_assert(info.do_static_compilation_ || info.is_generated_);
 
   TimePoint start_time;
 
@@ -1021,7 +1022,7 @@ void ShaderCompiler::do_work(void *work_payload)
 
 bool ShaderCompiler::is_compiling_impl()
 {
-  /* The mutex should be locked befor calling this function. */
+  /* The mutex should be locked before calling this function. */
   BLI_assert(!mutex_.try_lock());
 
   if (!compilation_queue_.is_empty()) {

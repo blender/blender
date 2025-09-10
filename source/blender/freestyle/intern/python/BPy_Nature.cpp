@@ -59,7 +59,7 @@ static PyNumberMethods nature_as_number = {
     /*nb_inplace_matrix_multiply*/ nullptr,
 };
 
-/*-----------------------BPy_Nature doc-string -----------------------------------*/
+/*-----------------------BPy_Nature type definition ------------------------------*/
 
 PyDoc_STRVAR(
     /* Wrap. */
@@ -88,10 +88,7 @@ PyDoc_STRVAR(
     "* Nature.VALLEY: True for valleys.\n"
     "* Nature.SUGGESTIVE_CONTOUR: True for suggestive contours.\n"
     "* Nature.MATERIAL_BOUNDARY: True for edges at material boundaries.\n"
-    "* Nature.EDGE_MARK: True for edges having user-defined edge marks.");
-
-/*-----------------------BPy_Nature type definition ------------------------------*/
-
+    "* Nature.EDGE_MARK: True for edges having user-defined edge marks.\n");
 PyTypeObject Nature_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "Nature",

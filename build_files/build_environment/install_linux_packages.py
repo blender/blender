@@ -307,7 +307,7 @@ DEPS_CRITICAL_SUBPACKAGES = (
 )
 
 
-# Basic mandatory set of common libraries to build Blender, which are also available as pre-conmpiled libraries.
+# Basic mandatory set of common libraries to build Blender, which are also available as pre-compiled libraries.
 DEPS_MANDATORY_SUBPACKAGES = (
     Package(name="JPEG Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libjpeg-dev",
@@ -403,7 +403,7 @@ DEPS_MANDATORY_SUBPACKAGES = (
 )
 
 
-# Basic optional set of common libraries to build Blender, which are also available as pre-conmpiled libraries.
+# Basic optional set of common libraries to build Blender, which are also available as pre-compiled libraries.
 DEPS_OPTIONAL_SUBPACKAGES = (
     Package(name="OpenJPG Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libopenjp2-7-dev",
@@ -1090,7 +1090,7 @@ class PackageInstaller:
         return self.version_match(version, ref_version)
 
     def package_query_version_ge_lt(self, package_distro_name, ref_version_min, ref_version_mex):
-        """Check if given package name fits inbetween given minimal and maximal excluded versions."""
+        """Check if given package name fits in between given minimal and maximal excluded versions."""
         version = self.package_query_version_get(package_distro_name)
         if version is None:
             return False

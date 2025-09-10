@@ -312,10 +312,10 @@ struct SelectMap {
             hit_result.depth = select_output_buf[i];
             if (in_front_map[i]) {
               /* Divide "In Front" objects depth so they go first. */
-              const uint32_t depth_mask = 0x00FFFFFFu;
-              uint32_t offset_depth = (hit_result.depth & depth_mask) / 100;
+              const uint32_t depth_mask = 0x00FFFFFFu << 8u;
+              uint32_t offset_depth = ((hit_result.depth & depth_mask) >> 8u) / 100;
               hit_result.depth &= ~depth_mask;
-              hit_result.depth |= offset_depth;
+              hit_result.depth |= offset_depth << 8u;
             }
             if (hit_results.is_empty() || hit_result.depth < hit_results[0].depth) {
               hit_results = {hit_result};

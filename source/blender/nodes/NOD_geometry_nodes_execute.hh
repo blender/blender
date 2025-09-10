@@ -13,6 +13,8 @@
 
 #include "BKE_idprop.hh"
 
+#include "NOD_socket_value_inference.hh"
+
 struct bNodeTree;
 struct bNodeTreeInterfaceSocket;
 namespace blender::bke {
@@ -84,14 +86,11 @@ void update_output_properties_from_node_tree(const bNodeTree &tree,
                                              IDProperty &properties);
 
 /**
- * Get the "base" input values that are passed into geometry nodes. In this context, "base" means
- * that the retrieved input types are #bNodeSocketType::base_cpp_type (e.g. `float` for float
- * sockets). If the input value can't be represented as base value, null is returned instead (e.g.
- * for attribute inputs).
+ * Get input values for the node tree for static value/usage inferencing. Inferencing does not
+ * fully evaluate the node tree (would be way to slow), and does not support all socket types. So
+ * this function may return #InferenceValue::Unknown for some sockets.
  */
-void get_geometry_nodes_input_base_values(const bNodeTree &btree,
-                                          const PropertiesVectorSet &properties,
-                                          ResourceScope &scope,
-                                          MutableSpan<GPointer> r_values);
+Vector<InferenceValue> get_geometry_nodes_input_inference_values(
+    const bNodeTree &btree, const PropertiesVectorSet &properties, ResourceScope &scope);
 
 }  // namespace blender::nodes

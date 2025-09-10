@@ -645,11 +645,11 @@ static void initVertSlide(TransInfo *t, wmOperator *op)
   if (op) {
     PropertyRNA *prop;
     prop = RNA_struct_find_property(op->ptr, "use_even");
-    use_even = (prop) ? !RNA_property_boolean_get(op->ptr, prop) : false;
+    use_even = (prop) ? RNA_property_boolean_get(op->ptr, prop) : false;
     prop = RNA_struct_find_property(op->ptr, "flipped");
-    flipped = (prop) ? !RNA_property_boolean_get(op->ptr, prop) : false;
+    flipped = (prop) ? RNA_property_boolean_get(op->ptr, prop) : false;
     prop = RNA_struct_find_property(op->ptr, "use_clamp");
-    use_clamp = (prop) ? !RNA_property_boolean_get(op->ptr, prop) : true;
+    use_clamp = (prop) ? RNA_property_boolean_get(op->ptr, prop) : true;
   }
   initVertSlide_ex(t, op, use_even, flipped, use_clamp);
 }

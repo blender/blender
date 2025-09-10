@@ -24,12 +24,8 @@ class MetalDevice : public Device {
  public:
   id<MTLDevice> mtlDevice = nil;
   id<MTLLibrary> mtlLibrary[PSO_NUM] = {nil};
-  id<MTLArgumentEncoder> mtlBufferKernelParamsEncoder =
-      nil; /* encoder used for fetching device pointers from MTLBuffers */
   id<MTLCommandQueue> mtlComputeCommandQueue = nil;
   id<MTLCommandQueue> mtlGeneralCommandQueue = nil;
-  id<MTLArgumentEncoder> mtlAncillaryArgEncoder =
-      nil; /* encoder used for fetching device pointers from MTLBuffers */
   id<MTLCounterSampleBuffer> mtlCounterSampleBuffer = nil;
   string source[PSO_NUM];
   string kernels_md5[PSO_NUM];
@@ -37,21 +33,23 @@ class MetalDevice : public Device {
 
   bool capture_enabled = false;
 
-  KernelParamsMetal launch_params = {nullptr};
+  /* Argument buffer for static data. */
+  id<MTLBuffer> launch_params_buffer = nil;
+  KernelParamsMetal *launch_params = nullptr;
 
   /* MetalRT members ----------------------------------*/
   bool use_metalrt = false;
   bool use_metalrt_extended_limits = false;
   bool motion_blur = false;
   bool use_pcmi = false;
-  id<MTLArgumentEncoder> mtlASArgEncoder =
-      nil; /* encoder used for fetching device pointers from MTLAccelerationStructure */
 
-  id<MTLArgumentEncoder> mtlBlasArgEncoder = nil;
   id<MTLBuffer> blas_buffer = nil;
 
   API_AVAILABLE(macos(11.0))
   vector<id<MTLAccelerationStructure>> unique_blas_array;
+
+  API_AVAILABLE(macos(11.0))
+  vector<id<MTLAccelerationStructure>> blas_array;
 
   API_AVAILABLE(macos(11.0))
   id<MTLAccelerationStructure> accel_struct = nil;
@@ -81,12 +79,8 @@ class MetalDevice : public Device {
   /* Bindless Textures */
   bool is_texture(const TextureInfo &tex);
   device_vector<TextureInfo> texture_info;
-  bool need_texture_info = false;
-  id<MTLArgumentEncoder> mtlTextureArgEncoder = nil;
-  id<MTLArgumentEncoder> mtlBufferArgEncoder = nil;
-  id<MTLBuffer> buffer_bindings_1d = nil;
-  id<MTLBuffer> texture_bindings_2d = nil;
-  std::vector<id<MTLTexture>> texture_slot_map;
+  id<MTLBuffer> texture_bindings = nil;
+  std::vector<id<MTLResource>> texture_slot_map;
 
   MetalPipelineType kernel_specialization_level = PSO_GENERIC;
 

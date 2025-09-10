@@ -17,7 +17,6 @@ struct AnimData;
 struct ColorBand;
 struct CurveMapping;
 struct Image;
-struct Ipo;
 struct Object;
 struct PreviewImage;
 struct Tex;
@@ -128,16 +127,12 @@ typedef struct Tex {
   struct ImageUser iuser;
 
   struct bNodeTree *nodetree;
-  /* old animation system, deprecated for 2.5 */
-  struct Ipo *ipo DNA_DEPRECATED;
   struct Image *ima;
   struct ColorBand *coba;
   struct PreviewImage *preview;
 
   char use_nodes;
   char _pad[7];
-
-  void *_pad3;
 
   Tex_Runtime runtime;
 } Tex;

@@ -1764,10 +1764,14 @@ class GeometryNodesLazyFunctionLogger : public lf::GraphExecutor::Logger {
       return;
     }
 
-    const Span<const bNodeSocket *> bsockets =
-        lf_graph_info_.mapping.bsockets_by_lf_socket_map.lookup(&lf_socket);
+    Span<const bNodeSocket *> bsockets = lf_graph_info_.mapping.bsockets_by_lf_socket_map.lookup(
+        &lf_socket);
     if (bsockets.is_empty()) {
       return;
+    }
+    if (bsockets[0]->owner_node().is_group_input()) {
+      /* Only log a group input once instead of for every group input node separately. */
+      bsockets = bsockets.take_front(1);
     }
 
     for (const bNodeSocket *bsocket : bsockets) {
@@ -3595,12 +3599,13 @@ struct GeometryNodesLazyFunctionBuilder {
         input_index++;
       }
     }
+    int output_index = 0;
     for (const bNodeSocket *bsocket : bnode.output_sockets()) {
       if (bsocket->is_available()) {
-        lf::OutputSocket &lf_socket = lf_node.output(0);
+        lf::OutputSocket &lf_socket = lf_node.output(output_index);
         graph_params.lf_output_by_bsocket.add(bsocket, &lf_socket);
         mapping_->bsockets_by_lf_socket_map.add(&lf_socket, bsocket);
-        break;
+        output_index++;
       }
     }
 

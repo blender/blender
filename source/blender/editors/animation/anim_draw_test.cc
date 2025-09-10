@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_math_constants.h"
+
 #include "ED_anim_api.hh"
 
 #include "DNA_anim_types.h"

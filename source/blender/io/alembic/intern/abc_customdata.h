@@ -45,7 +45,7 @@ struct CDStreamConfig {
   float3 *positions = nullptr;
   int totvert = 0;
 
-  float2 *mloopuv = nullptr;
+  float2 *uv_map = nullptr;
 
   CustomData *loopdata = nullptr;
 

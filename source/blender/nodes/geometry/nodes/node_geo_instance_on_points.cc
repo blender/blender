@@ -49,7 +49,7 @@ static void add_instances_from_component(
     const GeometrySet &instance,
     const fn::FieldContext &field_context,
     const GeoNodeExecParams &params,
-    const Map<StringRef, AttributeDomainAndType> &attributes_to_propagate)
+    const bke::GeometrySet::GatheredAttributes &attributes_to_propagate)
 {
   const AttrDomain domain = AttrDomain::Point;
   const int domain_num = src_attributes.domain_size(domain);
@@ -154,9 +154,12 @@ static void add_instances_from_component(
   }
 
   bke::MutableAttributeAccessor dst_attributes = dst_component.attributes_for_write();
-  for (const auto item : attributes_to_propagate.items()) {
-    const StringRef id = item.key;
-    const bke::AttrType data_type = item.value.data_type;
+  for (const int i : attributes_to_propagate.names.index_range()) {
+    if (ELEM(attributes_to_propagate.names[i], "position", ".reference_index")) {
+      continue;
+    }
+    const StringRef id = attributes_to_propagate.names[i];
+    const bke::AttrType data_type = attributes_to_propagate.kinds[i].data_type;
     const bke::GAttributeReader src = src_attributes.lookup(id, AttrDomain::Point, data_type);
     if (!src) {
       /* Domain interpolation can fail if the source domain is empty. */
@@ -195,14 +198,12 @@ static void node_geo_exec(GeoNodeExecParams params)
                                                GeometryComponent::Type::PointCloud,
                                                GeometryComponent::Type::Curve};
 
-    Map<StringRef, AttributeDomainAndType> attributes_to_propagate;
+    bke::GeometrySet::GatheredAttributes attributes_to_propagate;
     geometry_set.gather_attributes_for_propagation(types,
                                                    GeometryComponent::Type::Instance,
                                                    false,
                                                    attribute_filter,
                                                    attributes_to_propagate);
-    attributes_to_propagate.remove("position");
-    attributes_to_propagate.remove(".reference_index");
 
     for (const GeometryComponent::Type type : types) {
       if (geometry_set.has(type)) {

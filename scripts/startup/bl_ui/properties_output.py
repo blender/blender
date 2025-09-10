@@ -536,12 +536,30 @@ class RENDER_PT_encoding_video(RenderOutputButtonsPanel, Panel):
         if use_bpp:
             layout.prop(image_settings, "color_depth", expand=True)
 
-        # HDR options.
-        use_hdr = needs_codec and ffmpeg.codec in {
-            'H265', 'AV1'} and image_settings.color_depth in {
-            '10', '12'} and image_settings.color_mode != 'BW'
-        if use_hdr:
-            layout.prop(ffmpeg, "video_hdr")
+        # Color space
+        if image_settings.color_management == 'OVERRIDE':
+            display_settings = image_settings.display_settings
+            view_settings = image_settings.view_settings
+        else:
+            display_settings = context.scene.display_settings
+            view_settings = context.scene.view_settings
+
+        split = layout.split(factor=0.4)
+        col = split.column()
+        col.alignment = 'RIGHT'
+        col.label(text="Color Space")
+
+        col = split.column()
+        row = col.row()
+        row.enabled = False
+        row.prop(display_settings, "display_device", text="")
+
+        # HDR compatibility
+        if view_settings.is_hdr:
+            if not needs_codec or ffmpeg.codec not in {'H265', 'AV1'}:
+                col.label(text="HDR needs H.265 or AV1", icon='ERROR')
+            elif image_settings.color_depth not in {'10', '12'}:
+                col.label(text="HDR needs 10 or 12 bits", icon='ERROR')
 
         if ffmpeg.codec == 'DNXHD':
             layout.prop(ffmpeg, "use_lossless_output")

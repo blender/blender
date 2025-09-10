@@ -11,7 +11,7 @@
 #include "BLI_utildefines.h"
 
 #ifdef __cplusplus
-#  include "BLI_color.hh"
+#  include "BLI_color_types.hh"
 #  include "BLI_function_ref.hh"
 #  include "BLI_span.hh"
 #  include "BLI_string_ref.hh"
@@ -149,8 +149,10 @@ typedef enum NodeTreeInterfacePanelFlag {
   NODE_INTERFACE_PANEL_ALLOW_CHILD_PANELS_LEGACY = 1 << 1,
   /* Allow adding sockets after panels. */
   NODE_INTERFACE_PANEL_ALLOW_SOCKETS_AFTER_PANELS = 1 << 2,
+  /* Whether the panel is collapsed in the node group interface tree view. */
+  NODE_INTERFACE_PANEL_IS_COLLAPSED = 1 << 3,
 } NodeTreeInterfacePanelFlag;
-ENUM_OPERATORS(NodeTreeInterfacePanelFlag, NODE_INTERFACE_PANEL_DEFAULT_CLOSED);
+ENUM_OPERATORS(NodeTreeInterfacePanelFlag, NODE_INTERFACE_PANEL_IS_COLLAPSED);
 
 typedef enum NodeDefaultInputType {
   NODE_DEFAULT_INPUT_VALUE = 0,

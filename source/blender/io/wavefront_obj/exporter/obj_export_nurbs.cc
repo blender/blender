@@ -26,7 +26,7 @@ namespace blender::io::obj {
 /** \name Utility
  * \{ */
 
-/* Find the multiplicity entry with the valid span occuring on the right side of the related
+/* Find the multiplicity entry with the valid span occurring on the right side of the related
  * breakpoint/knot. */
 static int find_leftmost_span(const int8_t order, const Span<int> multiplicity)
 {
@@ -39,7 +39,7 @@ static int find_leftmost_span(const int8_t order, const Span<int> multiplicity)
   return index;
 }
 
-/* Find the multiplicity entry with the valid span occuring on the left side of the related
+/* Find the multiplicity entry with the valid span occurring on the left side of the related
  * breakpoint/knot. */
 static int find_rightmost_span(const int8_t order, const Span<int> multiplicity)
 {

@@ -43,7 +43,6 @@ void VKResourceStateTracker::add_image(VkImage vk_image, uint32_t layer_count, c
   resource.type = VKResourceType::IMAGE;
   resource.image.vk_image = vk_image;
   resource.image.layer_count = layer_count;
-  resource.stamp = 0;
 #ifndef NDEBUG
   resource.name = name;
 #endif

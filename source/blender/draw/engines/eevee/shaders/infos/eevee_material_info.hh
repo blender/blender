@@ -15,7 +15,7 @@
 #  include "eevee_common_info.hh"
 #  include "eevee_volume_info.hh"
 
-#  define HAIR_SHADER
+#  define CURVES_SHADER
 #  define DRW_HAIR_INFO
 
 #  define POINTCLOUD_SHADER
@@ -90,25 +90,13 @@ ADDITIONAL_INFO(draw_volume_infos)
 ADDITIONAL_INFO(draw_view)
 GPU_SHADER_CREATE_END()
 
-GPU_SHADER_CREATE_INFO(eevee_geom_gpencil)
-ADDITIONAL_INFO(eevee_shared)
-DEFINE("MAT_GEOM_GPENCIL")
-VERTEX_SOURCE("eevee_geom_gpencil_vert.glsl")
-VERTEX_OUT(eevee_surf_iface)
-ADDITIONAL_INFO(draw_gpencil)
-ADDITIONAL_INFO(draw_modelmat)
-ADDITIONAL_INFO(draw_object_infos)
-ADDITIONAL_INFO(draw_resource_id_varying)
-ADDITIONAL_INFO(draw_resource_id)
-GPU_SHADER_CREATE_END()
-
 GPU_SHADER_NAMED_INTERFACE_INFO(eevee_surf_curve_iface, curve_interp)
-SMOOTH(float2, barycentric_coords)
 SMOOTH(float3, tangent)
 SMOOTH(float3, binormal)
 SMOOTH(float, time)
 SMOOTH(float, time_width)
-SMOOTH(float, thickness)
+SMOOTH(float, radius)
+SMOOTH(float, point_id) /* Smooth to be used for barycentric. */
 GPU_SHADER_NAMED_INTERFACE_END(curve_interp)
 GPU_SHADER_NAMED_INTERFACE_INFO(eevee_surf_curve_flat_iface, curve_interp_flat)
 FLAT(int, strand_id)
@@ -125,7 +113,7 @@ ADDITIONAL_INFO(draw_modelmat)
 ADDITIONAL_INFO(draw_object_infos)
 ADDITIONAL_INFO(draw_resource_id_varying)
 ADDITIONAL_INFO(draw_view)
-ADDITIONAL_INFO(draw_hair)
+ADDITIONAL_INFO(draw_curves)
 ADDITIONAL_INFO(draw_curves_infos)
 GPU_SHADER_CREATE_END()
 
@@ -358,8 +346,6 @@ GPU_SHADER_CREATE_END()
 
 #  define EEVEE_MAT_GEOM_VARIATIONS(prefix, ...) \
     CREATE_INFO_VARIANT(prefix##_world, eevee_geom_world, __VA_ARGS__) \
-    /* Turned off until dependency on common_view/math_lib are sorted out. */ \
-    /* CREATE_INFO_VARIANT(prefix##_gpencil, eevee_geom_gpencil, __VA_ARGS__) */ \
     CREATE_INFO_VARIANT(prefix##_curves, eevee_geom_curves, __VA_ARGS__) \
     CREATE_INFO_VARIANT(prefix##_mesh, eevee_geom_mesh, __VA_ARGS__) \
     CREATE_INFO_VARIANT(prefix##_pointcloud, eevee_geom_pointcloud, __VA_ARGS__) \

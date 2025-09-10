@@ -28,7 +28,7 @@ class AmbientOcclusion {
  private:
   class Instance &inst_;
 
-  bool render_pass_enabled_;
+  bool render_pass_enabled_ = false;
   int ray_count_ = 0;
   int step_count_ = 0;
 

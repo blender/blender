@@ -1240,7 +1240,7 @@ void RNA_api_ui_layout(StructRNA *srna)
   func = RNA_def_function(srna, "panel", "rna_uiLayoutPanel");
   RNA_def_function_ui_description(
       func,
-      "Creates a collapsable panel. Whether it is open or closed is stored in the region using "
+      "Creates a collapsible panel. Whether it is open or closed is stored in the region using "
       "the given idname. This can only be used when the panel has the full width of the panel "
       "region available to it. So it can't be used in e.g. in a box or columns.");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
@@ -1263,7 +1263,7 @@ void RNA_api_ui_layout(StructRNA *srna)
   func = RNA_def_function(srna, "panel_prop", "rna_uiLayoutPanelProp");
   RNA_def_function_ui_description(
       func,
-      "Similar to `.panel(...)` but instead of storing whether it is open or closed in the "
+      "Similar to ``.panel(...)`` but instead of storing whether it is open or closed in the "
       "region, it is stored in the provided boolean property. This should be used when multiple "
       "instances of the same panel can exist. For example one for every item in a collection "
       "property or list. This can only be used when the panel has the full width of the panel "
@@ -1789,6 +1789,10 @@ void RNA_api_ui_layout(StructRNA *srna)
   func = RNA_def_function(srna, "template_modifiers", "uiTemplateModifiers");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   RNA_def_function_ui_description(func, "Generates the UI layout for the modifier stack");
+
+  func = RNA_def_function(srna, "template_strip_modifiers", "uiTemplateStripModifiers");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+  RNA_def_function_ui_description(func, "Generates the UI layout for the strip modifier stack");
 
   func = RNA_def_function(srna, "template_collection_exporters", "uiTemplateCollectionExporters");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);

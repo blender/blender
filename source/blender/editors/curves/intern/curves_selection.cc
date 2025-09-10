@@ -16,6 +16,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
+#include "BKE_curves_utils.hh"
 
 #include "ED_curves.hh"
 #include "ED_select_utils.hh"
@@ -78,26 +79,43 @@ IndexMask retrieve_selected_curves(const Curves &curves_id, IndexMaskMemory &mem
 
 IndexMask retrieve_selected_points(const bke::CurvesGeometry &curves, IndexMaskMemory &memory)
 {
-  return retrieve_selected_points(curves, ".selection", memory);
+  return IndexMask::from_bools(
+      *curves.attributes().lookup_or_default<bool>(".selection", bke::AttrDomain::Point, true),
+      memory);
 }
 
-IndexMask retrieve_all_selected_points(const bke::CurvesGeometry &curves, IndexMaskMemory &memory)
+IndexMask retrieve_all_selected_points(const bke::CurvesGeometry &curves,
+                                       const int handle_display,
+                                       IndexMaskMemory &memory)
 {
+  const IndexMask bezier_points = bke::curves::curve_type_point_selection(
+      curves, CURVE_TYPE_BEZIER, memory);
+
   Vector<IndexMask> selection_by_attribute;
   for (const StringRef selection_name : ed::curves::get_curves_selection_attribute_names(curves)) {
+    if (selection_name != ".selection" && handle_display == CURVE_HANDLE_NONE) {
+      continue;
+    }
+
     selection_by_attribute.append(
-        ed::curves::retrieve_selected_points(curves, selection_name, memory));
+        ed::curves::retrieve_selected_points(curves, selection_name, bezier_points, memory));
   }
   return IndexMask::from_union(selection_by_attribute, memory);
 }
 
 IndexMask retrieve_selected_points(const bke::CurvesGeometry &curves,
                                    StringRef attribute_name,
+                                   const IndexMask &bezier_points,
                                    IndexMaskMemory &memory)
 {
-  return IndexMask::from_bools(
-      *curves.attributes().lookup_or_default<bool>(attribute_name, bke::AttrDomain::Point, true),
-      memory);
+  const VArray<bool> selected = *curves.attributes().lookup_or_default<bool>(
+      attribute_name, bke::AttrDomain::Point, true);
+
+  if (attribute_name == ".selection") {
+    return IndexMask::from_bools(selected, memory);
+  }
+
+  return IndexMask::from_bools(bezier_points, selected, memory);
 }
 
 IndexMask retrieve_selected_points(const Curves &curves_id, IndexMaskMemory &memory)
@@ -381,85 +399,20 @@ void fill_selection_true(GMutableSpan selection, const IndexMask &mask)
   }
 }
 
-static bool contains(const VArray<bool> &varray,
-                     const IndexMask &indices_to_check,
-                     const bool value)
-{
-  const CommonVArrayInfo info = varray.common_info();
-  if (info.type == CommonVArrayInfo::Type::Single) {
-    return *static_cast<const bool *>(info.data) == value;
-  }
-  if (info.type == CommonVArrayInfo::Type::Span) {
-    const Span<bool> span(static_cast<const bool *>(info.data), varray.size());
-    return threading::parallel_reduce(
-        indices_to_check.index_range(),
-        4096,
-        false,
-        [&](const IndexRange range, const bool init) {
-          if (init) {
-            return init;
-          }
-          const IndexMask sliced_mask = indices_to_check.slice(range);
-          if (std::optional<IndexRange> range = sliced_mask.to_range()) {
-            return span.slice(*range).contains(value);
-          }
-          for (const int64_t segment_i : IndexRange(sliced_mask.segments_num())) {
-            const IndexMaskSegment segment = sliced_mask.segment(segment_i);
-            for (const int i : segment) {
-              if (span[i] == value) {
-                return true;
-              }
-            }
-          }
-          return false;
-        },
-        std::logical_or());
-  }
-  return threading::parallel_reduce(
-      indices_to_check.index_range(),
-      2048,
-      false,
-      [&](const IndexRange range, const bool init) {
-        if (init) {
-          return init;
-        }
-        constexpr int64_t MaxChunkSize = 512;
-        const int64_t slice_end = range.one_after_last();
-        for (int64_t start = range.start(); start < slice_end; start += MaxChunkSize) {
-          const int64_t end = std::min<int64_t>(start + MaxChunkSize, slice_end);
-          const int64_t size = end - start;
-          const IndexMask sliced_mask = indices_to_check.slice(start, size);
-          std::array<bool, MaxChunkSize> values;
-          auto values_end = values.begin() + size;
-          varray.materialize_compressed(sliced_mask, values);
-          if (std::find(values.begin(), values_end, value) != values_end) {
-            return true;
-          }
-        }
-        return false;
-      },
-      std::logical_or());
-}
-
-static bool contains(const VArray<bool> &varray, const IndexRange range_to_check, const bool value)
-{
-  return contains(varray, IndexMask(range_to_check), value);
-}
-
 bool has_anything_selected(const VArray<bool> &varray, const IndexRange range_to_check)
 {
-  return contains(varray, range_to_check, true);
+  return array_utils::contains(varray, range_to_check, true);
 }
 
 bool has_anything_selected(const VArray<bool> &varray, const IndexMask &indices_to_check)
 {
-  return contains(varray, indices_to_check, true);
+  return array_utils::contains(varray, indices_to_check, true);
 }
 
 bool has_anything_selected(const bke::CurvesGeometry &curves)
 {
   const VArray<bool> selection = *curves.attributes().lookup<bool>(".selection");
-  return !selection || contains(selection, selection.index_range(), true);
+  return !selection || array_utils::contains(selection, selection.index_range(), true);
 }
 
 bool has_anything_selected(const bke::CurvesGeometry &curves, bke::AttrDomain selection_domain)
@@ -475,7 +428,7 @@ bool has_anything_selected(const bke::CurvesGeometry &curves,
   for (const StringRef selection_name : get_curves_selection_attribute_names(curves)) {
     const VArray<bool> selection = *curves.attributes().lookup<bool>(selection_name,
                                                                      selection_domain);
-    if (!selection || contains(selection, mask, true)) {
+    if (!selection || array_utils::contains(selection, mask, true)) {
       return true;
     }
   }

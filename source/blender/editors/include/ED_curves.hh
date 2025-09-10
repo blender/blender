@@ -19,15 +19,17 @@
 #include "DNA_windowmanager_enums.h"
 
 #include "ED_select_utils.hh"
+#include "ED_view3d.hh"
 
 struct bContext;
 struct Curves;
 struct UndoType;
-struct ViewContext;
 struct rcti;
 struct TransVertStore;
 struct wmKeyConfig;
 struct wmOperator;
+struct wmKeyMap;
+struct EnumPropertyItem;
 namespace blender::bke {
 enum class AttrDomain : int8_t;
 struct GSpanAttributeWriter;
@@ -39,6 +41,101 @@ void operatortypes_curves();
 void operatormacros_curves();
 void undosys_type_register(UndoType *ut);
 void keymap_curves(wmKeyConfig *keyconf);
+
+void ED_operatortypes_curves_pen();
+void ED_curves_pentool_modal_keymap(wmKeyConfig *keyconf);
+
+namespace pen_tool {
+
+enum class ElementMode : int8_t {
+  None = 0,
+  Point = 1,
+  Edge = 2,
+  HandleLeft = 3,
+  HandleRight = 4,
+};
+
+struct ClosestElement {
+  float distance_squared = std::numeric_limits<float>::max();
+  ElementMode element_mode;
+  int point_index = -1;
+  int curve_index = -1;
+  float edge_t = -1.0f;
+  int drawing_index = -1;
+
+  bool is_closer(const float new_distance_squared,
+                 const ElementMode new_element_mode,
+                 const float threshold_distance) const;
+};
+
+class PenToolOperation {
+ public:
+  ViewContext vc;
+
+  float threshold_distance;
+  float threshold_distance_edge;
+
+  bool extrude_point;
+  bool delete_point;
+  bool insert_point;
+  bool move_seg;
+  bool select_point;
+  bool move_point;
+  bool cycle_handle_type;
+  int extrude_handle;
+  float radius;
+
+  bool move_entire;
+  bool snap_angle;
+  bool move_handle;
+
+  bool point_added;
+  bool point_removed;
+
+  float4x4 projection;
+  float2 mouse_co;
+  float2 xy;
+  float2 prev_xy;
+  float2 center_of_mass_co;
+  ClosestElement closest_element;
+
+  std::optional<int> active_drawing_index;
+  Vector<float4x4> layer_to_world_per_curves;
+  /* Only used for Grease Pencil. */
+  Vector<float4x4> layer_to_object_per_curves;
+
+  virtual float3 project(const float2 &screen_co) const = 0;
+  virtual IndexMask all_selected_points(int curves_index, IndexMaskMemory &memory) const = 0;
+  virtual IndexMask visible_bezier_handle_points(int curves_index,
+                                                 IndexMaskMemory &memory) const = 0;
+  virtual IndexMask editable_curves(int curves_index, IndexMaskMemory &memory) const = 0;
+  virtual void tag_curve_changed(int curves_index) const = 0;
+  virtual bke::CurvesGeometry &get_curves(int curves_index) const = 0;
+  virtual IndexRange curves_range() const = 0;
+  virtual void single_point_attributes(bke::CurvesGeometry &curves, int curves_index) const = 0;
+  /**
+   * Will return true if a new curve can be created, and report any errors.
+   */
+  virtual bool can_create_new_curve(wmOperator *op) const = 0;
+  virtual void update_view(bContext *C) const = 0;
+  virtual std::optional<wmOperatorStatus> initialize(bContext *C,
+                                                     wmOperator *op,
+                                                     const wmEvent *event) = 0;
+
+  float2 layer_to_screen(const float4x4 &layer_to_object, const float3 &point) const;
+
+  float3 screen_to_layer(const float4x4 &layer_to_world,
+                         const float2 &screen_co,
+                         const float3 &depth_point_layer) const;
+
+  wmOperatorStatus invoke(bContext *C, wmOperator *op, const wmEvent *event);
+  wmOperatorStatus modal(bContext *C, wmOperator *op, const wmEvent *event);
+};
+
+void pen_tool_common_props(wmOperatorType *ot);
+wmKeyMap *ensure_keymap(wmKeyConfig *keyconf);
+
+}  // namespace pen_tool
 
 /**
  * Return an owning pointer to an array of point normals the same size as the number of control
@@ -233,16 +330,24 @@ IndexMask retrieve_selected_curves(const Curves &curves_id, IndexMaskMemory &mem
  * or points in curves with a selection factor greater than zero).
  */
 IndexMask retrieve_selected_points(const bke::CurvesGeometry &curves, IndexMaskMemory &memory);
+IndexMask retrieve_selected_points(const Curves &curves_id, IndexMaskMemory &memory);
+/**
+ * Find points that are selected, for a given attribute_name, requires mask of all Bezier points.
+ * Note: When retrieving ".selection_handle_left" or ".selection_handle_right" all non-Bezier
+ * points will be deselected even if the raw attribute is selected.
+ */
 IndexMask retrieve_selected_points(const bke::CurvesGeometry &curves,
                                    StringRef attribute_name,
+                                   const IndexMask &bezier_points,
                                    IndexMaskMemory &memory);
-IndexMask retrieve_selected_points(const Curves &curves_id, IndexMaskMemory &memory);
 
 /**
  * Find points that are selected (a selection factor greater than zero) or have
  * any of their Bezier handle selected.
  */
-IndexMask retrieve_all_selected_points(const bke::CurvesGeometry &curves, IndexMaskMemory &memory);
+IndexMask retrieve_all_selected_points(const bke::CurvesGeometry &curves,
+                                       int handle_display,
+                                       IndexMaskMemory &memory);
 
 /**
  * If the selection_id attribute doesn't exist, create it with the requested type (bool or float).
@@ -465,6 +570,16 @@ void resize_curves(bke::CurvesGeometry &curves,
 void reorder_curves(bke::CurvesGeometry &curves, Span<int> old_by_new_indices_map);
 
 wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op);
+
+enum class SetHandleType : uint8_t {
+  Free = 0,
+  Auto = 1,
+  Vector = 2,
+  Align = 3,
+  Toggle = 4,
+};
+
+extern const EnumPropertyItem rna_enum_set_handle_type_items[];
 
 /** \} */
 

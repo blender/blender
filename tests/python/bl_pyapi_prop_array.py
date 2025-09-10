@@ -2,7 +2,16 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+# NOTE: See also `bl_pyapi_prop.py` for the non-`Vector` bpy.props similar tests,
+# and `bl_pyapi_idprop.py` for some deeper testing of the consistency between
+# the underlying IDProperty storage, and the property data exposed in Python.
+
 # ./blender.bin --background --python tests/python/bl_pyapi_prop_array.py -- --verbose
+
+__all__ = (
+    "main",
+)
+
 import bpy
 from bpy.props import (
     BoolVectorProperty,
@@ -11,6 +20,7 @@ from bpy.props import (
 )
 import unittest
 import numpy as np
+import math
 
 id_inst = bpy.context.scene
 id_type = bpy.types.Scene
@@ -44,23 +54,352 @@ def seq_items_as_dims(data):
     return ((len(data),) + seq_items_as_dims(data[0])) if hasattr(data, "__len__") else ()
 
 
+def matrix_with_repeating_digits(dims_x, dims_y):
+    """
+    Create an 2D matrix with easily identifiable unique elements:
+    When: dims_x=4, dims_y=3 results in:
+       ((1, 2, 3, 4), (11, 22, 33, 44), (111, 222, 333, 444))
+    """
+    prev = (0,) * dims_x
+    return tuple([
+        (prev := tuple(((10 ** yi) * xi) + prev[i] for i, xi in enumerate(range(1, dims_x + 1))))
+        for yi in range(dims_y)
+    ])
+
+
 # -----------------------------------------------------------------------------
 # Tests
 
-class TestPropArray(unittest.TestCase):
+class TestPropArrayIndex(unittest.TestCase):
+    # Test index and slice access of 'vector' (aka array) properties.
+
+    size_1d = 10
+    valid_indices_1d = (
+        (4, 9, -5, slice(7, 9)),
+    )
+    invalid_indices_1d = (
+        (
+            # Wrong slice indices are clamped to valid values, and therefore return smaller-than-expected arrays
+            (..., (slice(7, 11),)),
+            (IndexError, (-11, 10)),
+            # Slices with step are not supported currently - although the 'inlined' [x:y:z] syntax does work?
+            (TypeError, (slice(2, 9, 3),)),
+        ),
+    )
+
+    size_2d = (4, 1)
+    valid_indices_2d = (
+        (1, 3, -2, slice(0, 3)),
+        (0, -1, slice(0, 1)),
+    )
+    invalid_indices_2d = (
+        (
+            # Wrong slice indices are clamped to valid values, and therefore return smaller-than-expected arrays
+            (..., (slice(0, 5),)),
+            (IndexError, (-5, 4)),
+            # Slices with step are not supported currently - although the 'inlined' [x:y:z] syntax does work?
+            (TypeError, (slice(0, 4, 2),)),
+        ),
+        (
+            # Wrong slice indices are clamped to valid values, and therefore return smaller-than-expected arrays
+            (..., (slice(1, 2),)),
+            (IndexError, (-2, 1)),
+            # Slices with step are not supported currently - although the 'inlined' [x:y:z] syntax does work?
+            (TypeError, (slice(0, 1, 2),)),
+        ),
+    )
+
+    size_3d = (3, 2, 4)
+    valid_indices_3d = (
+        (1, 2, -2, slice(0, 3)),
+        (0, -2, slice(0, 1)),
+        (3, -4, slice(1, 3)),
+    )
+    invalid_indices_3d = (
+        (
+            # Wrong slice indices are clamped to valid values, and therefore return smaller-than-expected arrays
+            (..., (slice(0, 5),)),
+            (IndexError, (-4, 3)),
+            # Slices with step are not supported currently - although the 'inlined' [x:y:z] syntax does work?
+            (TypeError, (slice(0, 3, 2),)),
+        ),
+        (
+            # Wrong slice indices are clamped to valid values, and therefore return smaller-than-expected arrays
+            (..., (slice(1, 3),)),
+            (IndexError, (-3, 2)),
+            # Slices with step are not supported currently - although the 'inlined' [x:y:z] syntax does work?
+            (TypeError, (slice(0, 1, 2),)),
+        ),
+        (
+            # Wrong slice indices are clamped to valid values, and therefore return smaller-than-expected arrays
+            (..., (slice(2, 7),)),
+            (IndexError, (-5, 4)),
+            # Slices with step are not supported currently - although the 'inlined' [x:y:z] syntax does work?
+            (TypeError, (slice(1, 4, 2),)),
+        ),
+    )
+
     def setUp(self):
-        id_type.test_array_f = FloatVectorProperty(size=10)
-        id_type.test_array_f_2d = FloatVectorProperty(size=(4, 1))
-        id_type.test_array_f_3d = FloatVectorProperty(size=(3, 2, 4))
-        id_type.test_array_i = IntVectorProperty(size=10)
-        id_type.test_array_i_2d = IntVectorProperty(size=(4, 1))
-        id_type.test_array_i_3d = IntVectorProperty(size=(3, 2, 4))
+        id_type.test_array_b_1d = BoolVectorProperty(size=self.size_1d)
+        id_type.test_array_b_2d = BoolVectorProperty(size=self.size_2d)
+        id_type.test_array_b_3d = BoolVectorProperty(size=self.size_3d)
+        id_type.test_array_i_1d = IntVectorProperty(size=self.size_1d)
+        id_type.test_array_i_2d = IntVectorProperty(size=self.size_2d)
+        id_type.test_array_i_3d = IntVectorProperty(size=self.size_3d)
+        id_type.test_array_f_1d = FloatVectorProperty(size=self.size_1d)
+        id_type.test_array_f_2d = FloatVectorProperty(size=self.size_2d)
+        id_type.test_array_f_3d = FloatVectorProperty(size=self.size_3d)
+
+        self.test_array_b_2d_storage = [[bool(v) for v in range(self.size_2d[1])] for i in range(self.size_2d[0])]
+
+        def bool_set_(s, v):
+            self.test_array_b_2d_storage = v
+
+        self.test_array_i_2d_storage = [[int(v) for v in range(self.size_2d[1])] for i in range(self.size_2d[0])]
+
+        def int_set_(s, v):
+            self.test_array_i_2d_storage = v
+
+        self.test_array_f_2d_storage = [[float(v) for v in range(self.size_2d[1])] for i in range(self.size_2d[0])]
+
+        def float_set_(s, v):
+            self.test_array_f_2d_storage = v
+
+        id_type.test_array_b_2d_getset = BoolVectorProperty(
+            size=self.size_2d,
+            get=lambda s: self.test_array_b_2d_storage,
+            set=bool_set_,
+        )
+        id_type.test_array_i_2d_getset = IntVectorProperty(
+            size=self.size_2d,
+            get=lambda s: self.test_array_i_2d_storage,
+            set=int_set_,
+        )
+        id_type.test_array_f_2d_getset = FloatVectorProperty(
+            size=self.size_2d,
+            get=lambda s: self.test_array_f_2d_storage,
+            set=float_set_,
+        )
+
+        id_type.test_array_b_3d_transform = BoolVectorProperty(
+            size=self.size_3d,
+            get_transform=lambda s, c_v, isset: seq_items_xform(c_v, lambda v: not v),
+            set_transform=lambda s, n_v, c_v, isset: seq_items_xform(n_v, lambda v: not v),
+        )
+        id_type.test_array_i_3d_transform = IntVectorProperty(
+            size=self.size_3d,
+            get_transform=lambda s, c_v, isset: seq_items_xform(c_v, lambda v: v + 1),
+            set_transform=lambda s, n_v, c_v, isset: seq_items_xform(n_v, lambda v: v - 1),
+        )
+        id_type.test_array_f_3d_transform = FloatVectorProperty(
+            size=self.size_3d,
+            get_transform=lambda s, c_v, isset: seq_items_xform(c_v, lambda v: v * 2.0),
+            set_transform=lambda s, n_v, c_v, isset: seq_items_xform(n_v, lambda v: v / 2.0),
+        )
+
+        id_type.test_array_b_2d_getset_transform = BoolVectorProperty(
+            size=self.size_2d,
+            get=lambda s: self.test_array_b_2d_storage,
+            set=bool_set_,
+            get_transform=lambda s, c_v, isset: seq_items_xform(c_v, lambda v: not v),
+            set_transform=lambda s, n_v, c_v, isset: seq_items_xform(n_v, lambda v: not v),
+        )
+        id_type.test_array_i_2d_getset_transform = IntVectorProperty(
+            size=self.size_2d,
+            get=lambda s: self.test_array_i_2d_storage,
+            set=int_set_,
+            get_transform=lambda s, c_v, isset: seq_items_xform(c_v, lambda v: v + 1),
+            set_transform=lambda s, n_v, c_v, isset: seq_items_xform(n_v, lambda v: v - 1),
+        )
+        id_type.test_array_f_2d_getset_transform = FloatVectorProperty(
+            size=self.size_2d,
+            get=lambda s: self.test_array_f_2d_storage,
+            set=float_set_,
+            get_transform=lambda s, c_v, isset: seq_items_xform(c_v, lambda v: v * 2.0),
+            set_transform=lambda s, n_v, c_v, isset: seq_items_xform(n_v, lambda v: v / 2.0),
+        )
 
     def tearDown(self):
-        del id_type.test_array_f
+        del id_type.test_array_f_1d
         del id_type.test_array_f_2d
         del id_type.test_array_f_3d
-        del id_type.test_array_i
+        del id_type.test_array_i_1d
+        del id_type.test_array_i_2d
+        del id_type.test_array_i_3d
+        del id_type.test_array_b_1d
+        del id_type.test_array_b_2d
+        del id_type.test_array_b_3d
+
+        del id_type.test_array_f_2d_getset
+        del id_type.test_array_i_2d_getset
+        del id_type.test_array_b_2d_getset
+
+        del id_type.test_array_f_3d_transform
+        del id_type.test_array_i_3d_transform
+        del id_type.test_array_b_3d_transform
+
+        del id_type.test_array_f_2d_getset_transform
+        del id_type.test_array_i_2d_getset_transform
+        del id_type.test_array_b_2d_getset_transform
+
+    @staticmethod
+    def compute_slice_len(s):
+        if not isinstance(s, slice):
+            return ...
+        return math.ceil((abs(s.stop) - (abs(s.start or 0))) / (abs(s.step or 1)))
+
+    def do_test_indices_access_current_dimension(
+            self, prop_array, prop_size, valid_indices, invalid_indices, current_dimension
+    ):
+        self.assertEqual(len(prop_array), prop_size[current_dimension])
+        for idx in valid_indices[current_dimension]:
+            expected_len = self.compute_slice_len(idx)
+            data = prop_array[idx]
+            if expected_len is not ...:
+                self.assertEqual(len(data), expected_len)
+            prop_array[idx] = data
+
+        for error, indices in invalid_indices[current_dimension]:
+            for idx in indices:
+                if error is ...:
+                    self.assertTrue(isinstance(idx, slice))
+                    expected_len = self.compute_slice_len(idx)
+                    data = prop_array[idx]
+                    self.assertLess(len(data), expected_len)
+                else:
+                    with self.assertRaises(error):
+                        data = prop_array[idx]
+
+    def do_test_indices_access(self, prop_array, prop_size, valid_indices, invalid_indices):
+        if not isinstance(prop_size, (tuple, list)):
+            prop_size = (prop_size,)
+        num_dimensions = len(prop_size)
+
+        self.do_test_indices_access_current_dimension(
+            prop_array, prop_size, valid_indices, invalid_indices, 0
+        )
+        if num_dimensions > 1:
+            for sub_prop_array in prop_array:
+                self.do_test_indices_access_current_dimension(
+                    sub_prop_array, prop_size, valid_indices, invalid_indices, 1
+                )
+                if num_dimensions > 2:
+                    for sub_sub_prop_array in sub_prop_array:
+                        self.do_test_indices_access_current_dimension(
+                            sub_sub_prop_array, prop_size, valid_indices, invalid_indices, 2
+                        )
+
+    def test_indices_access_b_1d(self):
+        self.do_test_indices_access(
+            id_inst.test_array_b_1d, self.size_1d, self.valid_indices_1d, self.invalid_indices_1d
+        )
+
+    def test_indices_access_b_2d(self):
+        self.do_test_indices_access(
+            id_inst.test_array_b_2d, self.size_2d, self.valid_indices_2d, self.invalid_indices_2d
+        )
+
+    def test_indices_access_b_3d(self):
+        self.do_test_indices_access(
+            id_inst.test_array_b_3d, self.size_3d, self.valid_indices_3d, self.invalid_indices_3d
+        )
+
+    def test_indices_access_i_1d(self):
+        self.do_test_indices_access(
+            id_inst.test_array_i_1d, self.size_1d, self.valid_indices_1d, self.invalid_indices_1d
+        )
+
+    def test_indices_access_i_2d(self):
+        self.do_test_indices_access(
+            id_inst.test_array_i_2d, self.size_2d, self.valid_indices_2d, self.invalid_indices_2d
+        )
+
+    def test_indices_access_i_3d(self):
+        self.do_test_indices_access(
+            id_inst.test_array_i_3d, self.size_3d, self.valid_indices_3d, self.invalid_indices_3d
+        )
+
+    def test_indices_access_f_1d(self):
+        self.do_test_indices_access(
+            id_inst.test_array_f_1d, self.size_1d, self.valid_indices_1d, self.invalid_indices_1d
+        )
+
+    def test_indices_access_f_2d(self):
+        self.do_test_indices_access(
+            id_inst.test_array_f_2d, self.size_2d, self.valid_indices_2d, self.invalid_indices_2d
+        )
+
+    def test_indices_access_f_3d(self):
+        self.do_test_indices_access(
+            id_inst.test_array_f_3d, self.size_3d, self.valid_indices_3d, self.invalid_indices_3d
+        )
+
+    def test_indices_access_b_2d_getset(self):
+        self.do_test_indices_access(
+            id_inst.test_array_b_2d_getset, self.size_2d, self.valid_indices_2d, self.invalid_indices_2d
+        )
+
+    def test_indices_access_i_2d_getset(self):
+        self.do_test_indices_access(
+            id_inst.test_array_i_2d_getset, self.size_2d, self.valid_indices_2d, self.invalid_indices_2d
+        )
+
+    def test_indices_access_f_2d_getset(self):
+        self.do_test_indices_access(
+            id_inst.test_array_f_2d_getset, self.size_2d, self.valid_indices_2d, self.invalid_indices_2d
+        )
+
+    def test_indices_access_b_3d_transform(self):
+        self.do_test_indices_access(
+            id_inst.test_array_b_3d_transform, self.size_3d, self.valid_indices_3d, self.invalid_indices_3d
+        )
+
+    def test_indices_access_i_3d_transform(self):
+        self.do_test_indices_access(
+            id_inst.test_array_i_3d_transform, self.size_3d, self.valid_indices_3d, self.invalid_indices_3d
+        )
+
+    def test_indices_access_f_3d_transform(self):
+        self.do_test_indices_access(
+            id_inst.test_array_f_3d_transform, self.size_3d, self.valid_indices_3d, self.invalid_indices_3d
+        )
+
+    def test_indices_access_b_2d_getset_transform(self):
+        self.do_test_indices_access(
+            id_inst.test_array_b_2d_getset_transform, self.size_2d, self.valid_indices_2d, self.invalid_indices_2d
+        )
+
+    def test_indices_access_i_2d_getset_transform(self):
+        self.do_test_indices_access(
+            id_inst.test_array_i_2d_getset_transform, self.size_2d, self.valid_indices_2d, self.invalid_indices_2d
+        )
+
+    def test_indices_access_f_2d_getset_transform(self):
+        self.do_test_indices_access(
+            id_inst.test_array_f_2d_getset_transform, self.size_2d, self.valid_indices_2d, self.invalid_indices_2d
+        )
+
+
+class TestPropArrayForeach(unittest.TestCase):
+    # Test foreach_get/_set access of Int and Float vector properties (bool ones do not support this).
+
+    size_1d = 10
+    size_2d = (4, 1)
+    size_3d = (3, 2, 4)
+
+    def setUp(self):
+        id_type.test_array_f_1d = FloatVectorProperty(size=self.size_1d)
+        id_type.test_array_f_2d = FloatVectorProperty(size=self.size_2d)
+        id_type.test_array_f_3d = FloatVectorProperty(size=self.size_3d)
+        id_type.test_array_i_1d = IntVectorProperty(size=self.size_1d)
+        id_type.test_array_i_2d = IntVectorProperty(size=self.size_2d)
+        id_type.test_array_i_3d = IntVectorProperty(size=self.size_3d)
+
+    def tearDown(self):
+        del id_type.test_array_f_1d
+        del id_type.test_array_f_2d
+        del id_type.test_array_f_3d
+        del id_type.test_array_i_1d
         del id_type.test_array_i_2d
         del id_type.test_array_i_3d
 
@@ -157,23 +496,23 @@ class TestPropArray(unittest.TestCase):
                     for j in range(prop_size[1]):
                         self.do_test_foreach_getset_current_dimension(prop_array[i][j], *test_args)
 
-    def test_foreach_getset_i(self):
-        self.do_test_foreach_getset(id_inst.test_array_i, 'INT', 10)
+    def test_foreach_getset_i_1d(self):
+        self.do_test_foreach_getset(id_inst.test_array_i_1d, 'INT', self.size_1d)
 
-    def test_foreach_getset_f(self):
-        self.do_test_foreach_getset(id_inst.test_array_f, 'FLOAT', 10)
+    def test_foreach_getset_f_1d(self):
+        self.do_test_foreach_getset(id_inst.test_array_f_1d, 'FLOAT', self.size_1d)
 
     def test_foreach_getset_i_2d(self):
-        self.do_test_foreach_getset(id_inst.test_array_i_2d, 'INT', (4, 1))
+        self.do_test_foreach_getset(id_inst.test_array_i_2d, 'INT', self.size_2d)
 
     def test_foreach_getset_f_2d(self):
-        self.do_test_foreach_getset(id_inst.test_array_f_2d, 'FLOAT', (4, 1))
+        self.do_test_foreach_getset(id_inst.test_array_f_2d, 'FLOAT', self.size_2d)
 
     def test_foreach_getset_i_3d(self):
-        self.do_test_foreach_getset(id_inst.test_array_i_3d, 'INT', (3, 2, 4))
+        self.do_test_foreach_getset(id_inst.test_array_i_3d, 'INT', self.size_3d)
 
     def test_foreach_getset_f_3d(self):
-        self.do_test_foreach_getset(id_inst.test_array_f_3d, 'FLOAT', (3, 2, 4))
+        self.do_test_foreach_getset(id_inst.test_array_f_3d, 'FLOAT', self.size_3d)
 
 
 class TestPropArrayMultiDimensional(unittest.TestCase):
@@ -219,20 +558,20 @@ class TestPropArrayMultiDimensional(unittest.TestCase):
                 self.assertEqual(data_as_tuple, data_native)
                 del id_type.temp
 
-    def test_matrix(self):
-        data = ((1, 2, 3, 4), (11, 22, 33, 44), (111, 222, 333, 444), (1111, 2222, 3333, 4444),)
+    def _test_matrix(self, dim_x, dim_y):
+        data = matrix_with_repeating_digits(dim_x, dim_y)
         data_native = seq_items_xform(data, lambda v: float(v))
-        id_type.temp = FloatVectorProperty(size=(4, 4), subtype='MATRIX', default=data_native)
+        id_type.temp = FloatVectorProperty(size=(dim_x, dim_y), subtype='MATRIX', default=data_native)
         data_as_tuple = seq_items_as_tuple(id_inst.temp)
         self.assertEqual(data_as_tuple, data_native)
         del id_type.temp
 
-    def test_matrix_with_callbacks(self):
+    def _test_matrix_with_callbacks(self, dim_x, dim_y):
         # """
         # Internally matrices have rows/columns swapped,
         # This test ensures this is being done properly.
         # """
-        data = ((1, 2, 3, 4), (11, 22, 33, 44), (111, 222, 333, 444), (1111, 2222, 3333, 4444),)
+        data = matrix_with_repeating_digits(dim_x, dim_y)
         data_native = seq_items_xform(data, lambda v: float(v))
         local_data = {"array": data}
 
@@ -242,11 +581,48 @@ class TestPropArrayMultiDimensional(unittest.TestCase):
         def set_fn(id_arg, value):
             local_data["array"] = value
 
-        id_type.temp = FloatVectorProperty(size=(4, 4), subtype='MATRIX', get=get_fn, set=set_fn)
+        def get_tx_fn(id_arg, curr_value, is_set):
+            return seq_items_xform(curr_value, lambda v: v + 1.0)
+
+        def set_tx_fn(id_arg, new_value, curr_value, is_set):
+            return seq_items_xform(new_value, lambda v: v - 1.0)
+
+        id_type.temp = FloatVectorProperty(size=(dim_x, dim_y), subtype='MATRIX', get=get_fn, set=set_fn)
         id_inst.temp = data_native
         data_as_tuple = seq_items_as_tuple(id_inst.temp)
         self.assertEqual(data_as_tuple, data_native)
         del id_type.temp
+
+        id_type.temp = FloatVectorProperty(
+            size=(dim_x, dim_y), subtype='MATRIX', get_transform=get_tx_fn, set_transform=set_tx_fn)
+        id_inst.temp = data_native
+        data_as_tuple = seq_items_as_tuple(id_inst.temp)
+        self.assertEqual(data_as_tuple, data_native)
+        del id_type.temp
+
+        id_type.temp = FloatVectorProperty(
+            size=(dim_x, dim_y),
+            subtype='MATRIX',
+            get=get_fn,
+            set=set_fn,
+            get_transform=get_tx_fn,
+            set_transform=set_tx_fn)
+        id_inst.temp = data_native
+        data_as_tuple = seq_items_as_tuple(id_inst.temp)
+        self.assertEqual(data_as_tuple, data_native)
+        del id_type.temp
+
+    def test_matrix_3x3(self):
+        self._test_matrix(3, 3)
+
+    def test_matrix_4x4(self):
+        self._test_matrix(4, 4)
+
+    def test_matrix_with_callbacks_3x3(self):
+        self._test_matrix_with_callbacks(3, 3)
+
+    def test_matrix_with_callbacks_4x4(self):
+        self._test_matrix_with_callbacks(4, 4)
 
 
 class TestPropArrayDynamicAssign(unittest.TestCase):
@@ -382,7 +758,11 @@ class TestPropArrayInvalidForeachGetSet(unittest.TestCase):
             me.vertices.foreach_set("co", invalid_3f_list)
 
 
-if __name__ == '__main__':
+def main():
     import sys
     sys.argv = [__file__] + (sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
     unittest.main()
+
+
+if __name__ == '__main__':
+    main()

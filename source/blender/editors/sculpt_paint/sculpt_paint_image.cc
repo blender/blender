@@ -210,11 +210,7 @@ template<typename ImageBuffer> class PaintingKernel {
       return;
     }
 
-    /* NOTE: Brush colors are stored in sRGB. We use math color to follow other areas that
-     * use brush colors. From there on we use IMB_colormanagement to convert the brush color to the
-     * colorspace of the texture. This isn't ideal, but would need more refactoring to make sure
-     * that brush colors are stored in scene linear by default. */
-    srgb_to_linearrgb_v3_v3(brush_color_, in_brush_color);
+    copy_v3_v3(brush_color_, in_brush_color);
     brush_color_[3] = 1.0f;
 
     const char *from_colorspace = IMB_colormanagement_role_colorspace_name_get(

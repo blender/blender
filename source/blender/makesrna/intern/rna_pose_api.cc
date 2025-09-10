@@ -243,7 +243,7 @@ void RNA_api_pose(StructRNA *srna)
       func,
       "Create a backup of the current pose. Only those bones that are animated in the Action are "
       "backed up. The object owns the backup, and each object can have only one backup at a time. "
-      "When you no longer need it, it must be freed use `backup_clear()`.");
+      "When you no longer need it, it must be freed use ``backup_clear()``.");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_NO_SELF);
   parm = RNA_def_pointer(func,
                          "action",
@@ -258,19 +258,19 @@ void RNA_api_pose(StructRNA *srna)
   RNA_def_function_ui_description(
       func,
       "Restore the previously made pose backup. "
-      "This can be called multiple times. See `Pose.backup_create()` for more info.");
+      "This can be called multiple times. See ``Pose.backup_create()`` for more info.");
   /* return value */
   parm = RNA_def_boolean(
       func,
       "success",
       false,
       "",
-      "`True` when the backup was restored, `False` if there was no backup to restore");
+      "``True`` when the backup was restored, ``False`` if there was no backup to restore");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "backup_clear", "rna_Pose_backup_clear");
   RNA_def_function_ui_description(
-      func, "Free a previously made pose backup. See `Pose.backup_create()` for more info.");
+      func, "Free a previously made pose backup. See ``Pose.backup_create()`` for more info.");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_NO_SELF);
 }
 

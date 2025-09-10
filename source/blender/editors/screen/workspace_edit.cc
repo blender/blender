@@ -244,6 +244,7 @@ WorkSpace *ED_workspace_duplicate(WorkSpace *workspace_old, Main *bmain, wmWindo
 
   workspace_new->flags = workspace_old->flags;
   workspace_new->pin_scene = workspace_old->pin_scene;
+  workspace_new->sequencer_scene = workspace_old->sequencer_scene;
   workspace_new->object_mode = workspace_old->object_mode;
   workspace_new->order = workspace_old->order;
   BLI_duplicatelist(&workspace_new->owner_ids, &workspace_old->owner_ids);
@@ -404,13 +405,14 @@ static wmOperatorStatus workspace_append_activate_exec(bContext *C, wmOperator *
   RNA_string_get(op->ptr, "filepath", filepath);
 
   WorkSpace *appended_workspace = nullptr;
-  /* NOTE: Need to check filepath, in the rare case where the usual source of workspaces (the
-   * startup blendfile) is the one currently open (see #144305). */
-  if (BLI_path_cmp(BKE_main_blendfile_path(bmain), filepath) == 0) {
+  /* NOTE: Need to check `filepath`, in the rare case where the usual source of work-spaces
+   * (the startup blend-file) is the one currently open (see #144305). */
+  const char *blendfile_path = BKE_main_blendfile_path(bmain);
+  if ((blendfile_path[0] != '\0') && (BLI_path_cmp(blendfile_path, filepath) == 0)) {
     appended_workspace = reinterpret_cast<WorkSpace *>(
         BKE_libblock_find_name(bmain, ID_WS, idname, nullptr));
     if (appended_workspace) {
-      /* Copy, to mimmic behavior when appending from another file (which always creates a new copy
+      /* Copy, to mimic behavior when appending from another file (which always creates a new copy
        * of the data). */
       appended_workspace = ED_workspace_duplicate(appended_workspace, bmain, CTX_wm_window(C));
     }

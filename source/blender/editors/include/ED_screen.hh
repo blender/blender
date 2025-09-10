@@ -13,6 +13,8 @@
 #include "DNA_userdef_types.h"
 #include "DNA_workspace_types.h"
 
+#include "ED_screen_types.hh"
+
 #include "WM_types.hh"
 
 #include "BLI_compiler_attrs.h"
@@ -92,6 +94,10 @@ void ED_region_search_filter_update(const ScrArea *area, ARegion *region);
  * Returns the search string if the space type and region type support property search.
  */
 const char *ED_area_region_search_filter_get(const ScrArea *area, const ARegion *region);
+/**
+ * Returns the maximum size a region can grow to so it still fits in the area.
+ */
+int ED_area_max_regionsize(const ScrArea *area, const ARegion *scale_region, const AZEdge edge);
 
 void ED_region_panels_init(wmWindowManager *wm, ARegion *region);
 void ED_region_panels_ex(const bContext *C,
@@ -342,7 +348,8 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen);
  * redraws: uses defines from `stime->redraws`
  * \param enable: 1 - forward on, -1 - backwards on, 0 - off.
  */
-void ED_screen_animation_timer(bContext *C, int redraws, int sync, int enable);
+void ED_screen_animation_timer(
+    bContext *C, Scene *scene, ViewLayer *view_layer, int redraws, int sync, int enable);
 void ED_screen_animation_timer_update(bScreen *screen, int redraws);
 void ED_screen_restore_temp_type(bContext *C, ScrArea *area);
 ScrArea *ED_screen_full_newspace(bContext *C, ScrArea *area, int type);
@@ -382,10 +389,9 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, short
  */
 ScrArea *ED_screen_temp_space_open(bContext *C,
                                    const char *title,
-                                   const rcti *rect_unscaled,
                                    eSpace_Type space_type,
                                    int display_type,
-                                   bool dialog) ATTR_NONNULL(1, 3);
+                                   bool dialog) ATTR_NONNULL(1);
 void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void *arg);
 void ED_screens_footer_tools_menu_create(bContext *C, uiLayout *layout, void *arg);
 void ED_screens_region_flip_menu_create(bContext *C, uiLayout *layout, void *arg);
@@ -484,6 +490,11 @@ class WorkspaceStatus {
   void item(std::string text, int icon1, int icon2 = 0);
 
   /**
+   * Add extra (or negative) space between items.
+   */
+  void separator(float factor = 1.0f);
+
+  /**
    * Add a dynamic status entry with up to two icons that change appearance.
    * Example:
    *   [CTRL] Tweak
@@ -547,6 +558,9 @@ bool ED_operator_regionactive(bContext *C);
 
 bool ED_operator_scene(bContext *C);
 bool ED_operator_scene_editable(bContext *C);
+bool ED_operator_sequencer_scene(bContext *C);
+bool ED_operator_sequencer_scene_editable(bContext *C);
+
 bool ED_operator_objectmode(bContext *C);
 /**
  * Same as #ED_operator_objectmode() but additionally sets a "disabled hint". That is, a message

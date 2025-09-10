@@ -501,8 +501,8 @@ void Film::update_passes(Scene *scene)
   const ObjectManager *object_manager = scene->object_manager.get();
   Integrator *integrator = scene->integrator;
 
-  if (!object_manager->need_update() && !integrator->is_modified() && !background->is_modified() &&
-      !scene->has_volume_modified())
+  if (!is_modified() && !object_manager->need_update() && !integrator->is_modified() &&
+      !background->is_modified() && !scene->has_volume_modified())
   {
     return;
   }

@@ -54,7 +54,6 @@ PyDoc_STRVAR(
     "   :return: The density evaluated for the Interface1D in the complete\n"
     "      viewmap image.\n"
     "   :rtype: float\n");
-
 static int GetCompleteViewMapDensityF1D___init__(BPy_GetCompleteViewMapDensityF1D *self,
                                                  PyObject *args,
                                                  PyObject *kwds)

@@ -36,7 +36,7 @@ struct MultiresDisplacementData {
   Subdiv *subdiv = nullptr;
   int grid_size = 0;
   /* Mesh is used to read external displacement. */
-  Mesh *mesh = nullptr;
+  const Mesh *mesh = nullptr;
   const MultiresModifierData *mmd = nullptr;
   OffsetIndices<int> faces = {};
   const MDisps *mdisps = nullptr;
@@ -48,7 +48,7 @@ struct MultiresDisplacementData {
   Array<PolyCornerIndex> ptex_face_corner = {};
   /* Indexed by coarse face index, returns first PTEX face index corresponding
    * to that coarse face. */
-  int *face_ptex_offset = nullptr;
+  Span<int> face_ptex_offset = {};
   /* Sanity check, is used in debug builds.
    * Controls that initialize() was called prior to eval_displacement(). */
   bool is_initialized = false;
@@ -322,7 +322,7 @@ static void initialize(Displacement *displacement)
 {
   MultiresDisplacementData &data = *static_cast<MultiresDisplacementData *>(
       displacement->user_data);
-  multiresModifier_ensure_external_read(data.mesh, data.mmd);
+  multiresModifier_ensure_external_read(const_cast<Mesh *>(data.mesh), data.mmd);
   data.is_initialized = true;
 }
 
@@ -406,7 +406,7 @@ static void displacement_data_init_mapping(Displacement &displacement, const Mes
 
 static void displacement_init_data(Displacement &displacement,
                                    Subdiv &subdiv,
-                                   Mesh &mesh,
+                                   const Mesh &mesh,
                                    const MultiresModifierData &mmd)
 {
   MultiresDisplacementData &data = *static_cast<MultiresDisplacementData *>(
@@ -429,7 +429,9 @@ static void displacement_init_functions(Displacement *displacement)
   displacement->free = free_displacement;
 }
 
-void displacement_attach_from_multires(Subdiv *subdiv, Mesh *mesh, const MultiresModifierData *mmd)
+void displacement_attach_from_multires(Subdiv *subdiv,
+                                       const Mesh *mesh,
+                                       const MultiresModifierData *mmd)
 {
   /* Make sure we don't have previously assigned displacement. */
   displacement_detach(subdiv);

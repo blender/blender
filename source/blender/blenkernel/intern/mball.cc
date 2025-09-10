@@ -95,14 +95,8 @@ static void metaball_free_data(ID *id)
 static void metaball_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   MetaBall *metaball = reinterpret_cast<MetaBall *>(id);
-  const int flag = BKE_lib_query_foreachid_process_flags_get(data);
-
   for (int i = 0; i < metaball->totcol; i++) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, metaball->mat[i], IDWALK_CB_USER);
-  }
-
-  if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
-    BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data, metaball->ipo, IDWALK_CB_USER);
   }
 }
 
@@ -162,6 +156,7 @@ IDTypeInfo IDType_ID_MB = {
     /*foreach_id*/ metaball_foreach_id,
     /*foreach_cache*/ nullptr,
     /*foreach_path*/ nullptr,
+    /*foreach_working_space_color*/ nullptr,
     /*owner_pointer_get*/ nullptr,
 
     /*blend_write*/ metaball_blend_write,

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-18 09:16+0000\n"
+"POT-Creation-Date: 2025-09-10 07:24+0000\n"
 "PO-Revision-Date: 2025-07-23 15:19+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Greek <https://translate.blender.org/projects/blender-ui/ui/el/>\n"
@@ -99,12 +99,12 @@ msgid "Layer"
 msgstr "Στρώμα"
 
 
-msgid "Extend"
-msgstr "Επέκταση"
-
-
 msgid "Object"
 msgstr "Αντικείμενο"
+
+
+msgid "Extend"
+msgstr "Επέκταση"
 
 
 msgid "None"
@@ -519,44 +519,44 @@ msgid "Snap"
 msgstr "Προσκόλληση"
 
 
-msgid "Apply"
-msgstr "Εφαρμογή"
+msgid "Metaball"
+msgstr "Μετα-σφαίρα"
 
 
 msgid "Mirror"
 msgstr "Καθρέφτισμα"
 
 
-msgid "Make Single User"
-msgstr "Ορισμός Ενός Χρήστη"
-
-
-msgid "Track"
-msgstr "Ανίχνευση"
-
-
-msgid "Rigid Body"
-msgstr "Rigid Body"
+msgid "Select Linked"
+msgstr "Επιλογή Συνδεδεμένων"
 
 
 msgid "Light"
 msgstr "Φως"
 
 
-msgid "Metaball"
-msgstr "Μετα-σφαίρα"
+msgid "Rigid Body"
+msgstr "Rigid Body"
 
 
-msgid "Text"
-msgstr "Κείμενο"
+msgid "Apply"
+msgstr "Εφαρμογή"
 
 
-msgid "Select Linked"
-msgstr "Επιλογή Συνδεδεμένων"
+msgid "Track"
+msgstr "Ανίχνευση"
+
+
+msgid "Make Single User"
+msgstr "Ορισμός Ενός Χρήστη"
 
 
 msgid "Merge"
 msgstr "Συγχώνευση"
+
+
+msgid "Text"
+msgstr "Κείμενο"
 
 
 msgid "Cache"
@@ -644,10 +644,6 @@ msgid "Alpha Over"
 msgstr "Επικάλυψη βάσει διαφάνειας"
 
 
-msgid "Shadow"
-msgstr "Σκιές"
-
-
 msgid "Rotate"
 msgstr "Rotate"
 
@@ -662,6 +658,10 @@ msgstr "Φτιάξε"
 
 msgid "Linked"
 msgstr "Συνδεδεμένο/α"
+
+
+msgid "Shadow"
+msgstr "Σκιές"
 
 
 msgid "Deselect"
@@ -747,10 +747,6 @@ msgstr "Επόμενο Καρέ με Κλειδί"
 
 msgid "Flat"
 msgstr "Επίπεδο"
-
-
-msgid "Join"
-msgstr "Ένωσε"
 
 
 msgctxt "Operator"
@@ -861,6 +857,10 @@ msgstr "Render"
 
 msgid "Sync"
 msgstr "Συγχρον"
+
+
+msgid "Join"
+msgstr "Ένωσε"
 
 
 msgctxt "Operator"

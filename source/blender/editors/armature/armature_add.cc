@@ -307,7 +307,7 @@ static void pre_edit_bone_duplicate(ListBase *editbones)
 }
 
 /**
- * Helper function for #pose_edit_bone_duplicate,
+ * Helper function for #post_edit_bone_duplicate,
  * return the destination pchan from the original.
  */
 static bPoseChannel *pchan_duplicate_map(
@@ -329,7 +329,7 @@ static bPoseChannel *pchan_duplicate_map(
   return pchan_dst;
 }
 
-static void pose_edit_bone_duplicate(ListBase *editbones, Object *ob)
+static void post_edit_bone_duplicate(ListBase *editbones, Object *ob)
 {
   if (ob->pose == nullptr) {
     return;
@@ -1230,7 +1230,7 @@ static wmOperatorStatus armature_duplicate_selected_exec(bContext *C, wmOperator
       }
     }
 
-    pose_edit_bone_duplicate(arm->edbo, ob);
+    post_edit_bone_duplicate(arm->edbo, ob);
 
     WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
     DEG_id_tag_update(&ob->id, ID_RECALC_SELECT);
@@ -1286,6 +1286,7 @@ static wmOperatorStatus armature_symmetrize_exec(bContext *C, wmOperator *op)
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   const int direction = RNA_enum_get(op->ptr, "direction");
+  const bool copy_bone_colors = RNA_boolean_get(op->ptr, "copy_bone_colors");
   const int axis = 0;
 
   /* cancel if nothing selected */
@@ -1425,6 +1426,16 @@ static wmOperatorStatus armature_symmetrize_exec(bContext *C, wmOperator *op)
         /* Copy flags in case bone is pre-existing data. */
         ebone->flag = (ebone->flag & ~flag_copy) | (ebone_iter->flag & flag_copy);
 
+        /* Copy Viewport Display. */
+        ebone->drawtype = ebone_iter->drawtype;
+        if (copy_bone_colors) {
+          ebone->color.palette_index = ebone_iter->color.palette_index;
+          copy_v4_v4_uchar(ebone->color.custom.active, ebone_iter->color.custom.active);
+          copy_v4_v4_uchar(ebone->color.custom.select, ebone_iter->color.custom.select);
+          copy_v4_v4_uchar(ebone->color.custom.solid, ebone_iter->color.custom.solid);
+          ebone->color.custom.flag = ebone_iter->color.custom.flag;
+        }
+
         if (ebone_iter->parent == nullptr) {
           /* If this bone has no parent,
            * Set the duplicate->parent to nullptr
@@ -1509,7 +1520,7 @@ static wmOperatorStatus armature_symmetrize_exec(bContext *C, wmOperator *op)
       arm->act_edbone = arm->act_edbone->temp.ebone;
     }
 
-    pose_edit_bone_duplicate(arm->edbo, obedit);
+    post_edit_bone_duplicate(arm->edbo, obedit);
 
     WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
     DEG_id_tag_update(&obedit->id, ID_RECALC_SELECT);
@@ -1547,6 +1558,8 @@ void ARMATURE_OT_symmetrize(wmOperatorType *ot)
                           -1,
                           "Direction",
                           "Which sides to copy from and to (when both are selected)");
+  ot->prop = RNA_def_boolean(
+      ot->srna, "copy_bone_colors", false, "Bone Colors", "Copy colors to existing bones");
 }
 
 /* ------------------------------------------ */

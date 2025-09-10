@@ -54,6 +54,7 @@ class StaticCacheManager {
   CachedMaskContainer cached_masks;
   SMAAPrecomputedTexturesContainer smaa_precomputed_textures;
   OCIOColorSpaceConversionShaderContainer ocio_color_space_conversion_shaders;
+  OCIOToDisplayShaderContainer ocio_to_display_shaders;
   DistortionGridContainer distortion_grids;
   KeyingScreenContainer keying_screens;
   CachedShaderContainer cached_shaders;

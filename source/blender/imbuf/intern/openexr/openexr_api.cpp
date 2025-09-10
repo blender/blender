@@ -85,9 +85,11 @@
 #include "BLI_mmap.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
+#include "BLI_string_ref.hh"
 #include "BLI_string_utf8.h"
 #include "BLI_threads.h"
 
+#include "BKE_blender_version.h"
 #include "BKE_idprop.hh"
 #include "BKE_image.hh"
 
@@ -502,9 +504,17 @@ static int openexr_header_get_compression(const Header &header)
 
 static void openexr_header_metadata(Header *header, ImBuf *ibuf)
 {
+  header->insert(
+      "Software",
+      TypedAttribute<std::string>(std::string("Blender ") + BKE_blender_version_string()));
+
   if (ibuf->metadata) {
     LISTBASE_FOREACH (IDProperty *, prop, &ibuf->metadata->data.group) {
-      if (prop->type == IDP_STRING && !STREQ(prop->name, "compression")) {
+      /* Do not blindly pass along compression or colorInteropID, as they might have
+       * changed and will already be written when appropriate. */
+      if (prop->type == IDP_STRING &&
+          !(STREQ(prop->name, "compression") || STREQ(prop->name, "colorInteropID")))
+      {
         header->insert(prop->name, StringAttribute(IDP_String(prop)));
       }
     }
@@ -516,18 +526,34 @@ static void openexr_header_metadata(Header *header, ImBuf *ibuf)
     header->pixelAspectRatio() = blender::math::safe_divide(ibuf->ppm[1], ibuf->ppm[0]);
   }
 
-  /* Write chromaticities for ACES-2065-1, as required by ACES container format. */
-  const ColorSpace *colorspace = (ibuf->float_buffer.data) ? ibuf->float_buffer.colorspace :
-                                 (ibuf->byte_buffer.data)  ? ibuf->byte_buffer.colorspace :
-                                                             nullptr;
+  /* Get colorspace from image buffer. */
+  const ColorSpace *colorspace = nullptr;
+  if (ibuf->float_buffer.data) {
+    colorspace = ibuf->float_buffer.colorspace;
+    if (colorspace == nullptr) {
+      colorspace = IMB_colormanagement_space_get_named(
+          IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR));
+    }
+  }
+  else if (ibuf->byte_buffer.data) {
+    colorspace = ibuf->byte_buffer.colorspace;
+  }
+
   if (colorspace) {
     const char *aces_colorspace = IMB_colormanagement_role_colorspace_name_get(
         COLOR_ROLE_ACES_INTERCHANGE);
     const char *ibuf_colorspace = IMB_colormanagement_colorspace_get_name(colorspace);
 
+    /* Write chromaticities for ACES-2065-1, as required by ACES container format. */
     if (aces_colorspace && STREQ(aces_colorspace, ibuf_colorspace)) {
       header->insert("chromaticities", TypedAttribute<Chromaticities>(CHROMATICITIES_ACES_2065_1));
       header->insert("adoptedNeutral", TypedAttribute<V2f>(CHROMATICITIES_ACES_2065_1.white));
+    }
+
+    /* Write interop ID if available. */
+    blender::StringRefNull interop_id = IMB_colormanagement_space_get_interop_id(colorspace);
+    if (!interop_id.is_empty()) {
+      header->insert("colorInteropID", TypedAttribute<std::string>(interop_id));
     }
   }
 }
@@ -2026,9 +2052,26 @@ static void imb_exr_set_known_colorspace(const Header &header, ImFileColorSpace 
     if (known_colorspace) {
       STRNCPY_UTF8(r_colorspace.metadata_colorspace, known_colorspace);
     }
+    return;
   }
-  else if (header_chromaticities &&
-           (imb_check_chromaticity_matches(header_chromaticities->value(), CHROMATICITIES_XYZ_E)))
+
+  const StringAttribute *header_interop_id = header.findTypedAttribute<StringAttribute>(
+      "colorInteropID");
+
+  /* Next try interop ID. */
+  if (header_interop_id && !header_interop_id->value().empty()) {
+    const ColorSpace *colorspace = IMB_colormanagement_space_from_interop_id(
+        header_interop_id->value());
+    if (colorspace) {
+      STRNCPY_UTF8(r_colorspace.metadata_colorspace,
+                   IMB_colormanagement_colorspace_get_name(colorspace));
+      return;
+    }
+  }
+
+  /* Try chromaticities. */
+  if (header_chromaticities &&
+      (imb_check_chromaticity_matches(header_chromaticities->value(), CHROMATICITIES_XYZ_E)))
   {
     /* Only works for the Blender default configuration due to fixed name. */
     STRNCPY_UTF8(r_colorspace.metadata_colorspace, "Linear CIE-XYZ E");

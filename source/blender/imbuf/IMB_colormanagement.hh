@@ -9,8 +9,9 @@
  */
 
 #include "BLI_compiler_compat.h"
-
 #include "BLI_math_matrix_types.hh"
+#include "BLI_string_ref.hh"
+#include "BLI_vector.hh"
 
 #define BCM_CONFIG_FILE "config.ocio"
 
@@ -18,6 +19,7 @@ struct ColorManagedColorspaceSettings;
 struct ColorManagedDisplaySettings;
 struct ColorManagedViewSettings;
 struct ColormanageProcessor;
+struct ID;
 struct EnumPropertyItem;
 struct ImBuf;
 struct ImageFormatData;
@@ -30,6 +32,16 @@ class Display;
 }  // namespace blender::ocio
 using ColorSpace = blender::ocio::ColorSpace;
 using ColorManagedDisplay = blender::ocio::Display;
+
+enum ColorManagedDisplaySpace {
+  /* Convert to display space for drawing. This will included emulation of the
+   * chosen display for an extended sRGB buffer. */
+  DISPLAY_SPACE_DRAW,
+  /* Convert to display space for file output. */
+  DISPLAY_SPACE_FILE_OUTPUT,
+  /* Convert to display space for inspecting color values as text in the UI. */
+  DISPLAY_SPACE_COLOR_INSPECTION,
+};
 
 /* -------------------------------------------------------------------- */
 /** \name Generic Functions
@@ -51,18 +63,6 @@ const char *IMB_colormanagement_get_float_colorspace(const ImBuf *ibuf);
 const char *IMB_colormanagement_get_rect_colorspace(const ImBuf *ibuf);
 const char *IMB_colormanagement_space_from_filepath_rules(const char *filepath);
 
-/* Get colorspace name used for Rec.2100 PQ Display conversion.
- *
- * Searches for one of the color spaces or aliases: Rec.2100-PQ, Rec.2100-PQ - Display, rec2100_pq,
- * rec2100_pq_display. If none found returns nullptr. */
-const char *IMB_colormanagement_get_rec2100_pq_display_colorspace();
-
-/* Get colorspace name used for Rec.2100 HLG Display conversion.
- *
- * Searches for one of the color spaces or aliases: Rec.2100-HLG, Rec.2100-HLG - Display,
- * rec2100_hlg, rec2100_hlg_display. If none found returns nullptr. */
-const char *IMB_colormanagement_get_rec2100_hlg_display_colorspace();
-
 const ColorSpace *IMB_colormanagement_space_get_named(const char *name);
 bool IMB_colormanagement_space_is_data(const ColorSpace *colorspace);
 bool IMB_colormanagement_space_is_scene_linear(const ColorSpace *colorspace);
@@ -70,6 +70,14 @@ bool IMB_colormanagement_space_is_srgb(const ColorSpace *colorspace);
 bool IMB_colormanagement_space_name_is_data(const char *name);
 bool IMB_colormanagement_space_name_is_scene_linear(const char *name);
 bool IMB_colormanagement_space_name_is_srgb(const char *name);
+
+/* Get binary ICC profile contents for a colorspace. */
+blender::Vector<char> IMB_colormanagement_space_icc_profile(const ColorSpace *colorspace);
+
+/* Get identifier for colorspaces that works with multiple OpenColorIO configurations,
+ * as defined by the ASWF Color Interop Forum. */
+blender::StringRefNull IMB_colormanagement_space_get_interop_id(const ColorSpace *colorspace);
+const ColorSpace *IMB_colormanagement_space_from_interop_id(blender::StringRefNull interop_id);
 
 BLI_INLINE void IMB_colormanagement_get_luminance_coefficients(float r_rgb[3]);
 
@@ -103,6 +111,14 @@ BLI_INLINE void IMB_colormanagement_aces_to_scene_linear(float scene_linear[3],
                                                          const float aces[3]);
 BLI_INLINE void IMB_colormanagement_scene_linear_to_aces(float aces[3],
                                                          const float scene_linear[3]);
+BLI_INLINE void IMB_colormanagement_acescg_to_scene_linear(float scene_linear[3],
+                                                           const float acescg[3]);
+BLI_INLINE void IMB_colormanagement_scene_linear_to_acescg(float acescg[3],
+                                                           const float scene_linear[3]);
+BLI_INLINE void IMB_colormanagement_rec2020_to_scene_linear(float scene_linear[3],
+                                                            const float rec2020[3]);
+BLI_INLINE void IMB_colormanagement_scene_linear_to_rec2020(float rec2020[3],
+                                                            const float scene_linear[3]);
 blender::float3x3 IMB_colormanagement_get_xyz_to_scene_linear();
 blender::float3x3 IMB_colormanagement_get_scene_linear_to_xyz();
 
@@ -238,25 +254,31 @@ BLI_INLINE void IMB_colormanagement_srgb_to_scene_linear_v3(float scene_linear[3
  * used by performance-critical areas such as color-related widgets where we want to reduce
  * amount of per-widget allocations.
  */
-void IMB_colormanagement_scene_linear_to_display_v3(float pixel[3],
-                                                    const ColorManagedDisplay *display);
+void IMB_colormanagement_scene_linear_to_display_v3(
+    float pixel[3],
+    const ColorManagedDisplay *display,
+    const ColorManagedDisplaySpace display_space = DISPLAY_SPACE_DRAW);
 /**
  * Same as #IMB_colormanagement_scene_linear_to_display_v3,
  * but converts color in opposite direction.
  */
-void IMB_colormanagement_display_to_scene_linear_v3(float pixel[3],
-                                                    const ColorManagedDisplay *display);
+void IMB_colormanagement_display_to_scene_linear_v3(
+    float pixel[3],
+    const ColorManagedDisplay *display,
+    const ColorManagedDisplaySpace display_space = DISPLAY_SPACE_DRAW);
 
 void IMB_colormanagement_pixel_to_display_space_v4(
     float result[4],
     const float pixel[4],
     const ColorManagedViewSettings *view_settings,
-    const ColorManagedDisplaySettings *display_settings);
+    const ColorManagedDisplaySettings *display_settings,
+    const ColorManagedDisplaySpace display_space = DISPLAY_SPACE_DRAW);
 
 void IMB_colormanagement_imbuf_make_display_space(
     ImBuf *ibuf,
     const ColorManagedViewSettings *view_settings,
-    const ColorManagedDisplaySettings *display_settings);
+    const ColorManagedDisplaySettings *display_settings,
+    const ColorManagedDisplaySpace display_space = DISPLAY_SPACE_DRAW);
 
 /**
  * Prepare image buffer to be saved on disk, applying color management if needed
@@ -326,6 +348,13 @@ const char *IMB_colormanagement_display_get_none_name();
 const char *IMB_colormanagement_display_get_default_view_transform_name(
     const ColorManagedDisplay *display);
 
+const ColorSpace *IMB_colormangement_display_get_color_space(
+    const ColorManagedDisplaySettings *display_settings);
+bool IMB_colormanagement_display_is_hdr(const ColorManagedDisplaySettings *display_settings,
+                                        const char *view_name);
+bool IMB_colormanagement_display_is_wide_gamut(const ColorManagedDisplaySettings *display_settings,
+                                               const char *view_name);
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -361,6 +390,35 @@ const char *IMB_colormanagement_view_get_raw_or_default_name(const char *display
 
 void IMB_colormanagement_colorspace_from_ibuf_ftype(
     ColorManagedColorspaceSettings *colorspace_settings, ImBuf *ibuf);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Working Space Functions
+ * \{ */
+
+const char *IMB_colormanagement_working_space_get_default();
+const char *IMB_colormanagement_working_space_get();
+
+bool IMB_colormanagement_working_space_set_from_name(const char *name);
+void IMB_colormanagement_working_space_check(Main *bmain,
+                                             const bool for_undo,
+                                             const bool have_editable_assets);
+
+void IMB_colormanagement_working_space_init_default(Main *bmain);
+void IMB_colormanagement_working_space_init_startup(Main *bmain);
+void IMB_colormanagement_working_space_convert(
+    Main *bmain,
+    const blender::float3x3 &current_scene_linear_to_xyz,
+    const blender::float3x3 &new_xyz_to_scene_linear,
+    const bool depsgraph_tag = false,
+    const bool linked_only = false,
+    const bool editable_assets_only = false);
+void IMB_colormanagement_working_space_convert(Main *bmain, const Main *reference_bmain);
+
+int IMB_colormanagement_working_space_get_named_index(const char *name);
+const char *IMB_colormanagement_working_space_get_indexed_name(int index);
+void IMB_colormanagement_working_space_items_add(EnumPropertyItem **items, int *totitem);
 
 /** \} */
 
@@ -421,9 +479,17 @@ void IMB_partial_display_buffer_update_delayed(
 
 ColormanageProcessor *IMB_colormanagement_display_processor_new(
     const ColorManagedViewSettings *view_settings,
-    const ColorManagedDisplaySettings *display_settings);
+    const ColorManagedDisplaySettings *display_settings,
+    const ColorManagedDisplaySpace display_space = DISPLAY_SPACE_DRAW,
+    const bool inverse = false);
 
 ColormanageProcessor *IMB_colormanagement_display_processor_for_imbuf(
+    const ImBuf *ibuf,
+    const ColorManagedViewSettings *view_settings,
+    const ColorManagedDisplaySettings *display_settings,
+    const ColorManagedDisplaySpace display_space = DISPLAY_SPACE_DRAW);
+
+bool IMB_colormanagement_display_processor_needed(
     const ImBuf *ibuf,
     const ColorManagedViewSettings *view_settings,
     const ColorManagedDisplaySettings *display_settings);

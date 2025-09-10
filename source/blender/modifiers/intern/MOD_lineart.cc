@@ -141,7 +141,7 @@ static void add_this_collection(Collection &collection,
     default_add = false;
   }
   FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN (&collection, ob, mode) {
-    if (ELEM(ob->type, OB_MESH, OB_MBALL, OB_CURVES_LEGACY, OB_SURF, OB_FONT)) {
+    if (ELEM(ob->type, OB_MESH, OB_MBALL, OB_CURVES_LEGACY, OB_SURF, OB_FONT, OB_CURVES)) {
       if ((ob->lineart.usage == OBJECT_LRT_INHERIT && default_add) ||
           ob->lineart.usage != OBJECT_LRT_EXCLUDE)
       {

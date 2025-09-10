@@ -632,7 +632,7 @@ static bool idprop_ui_data_update_id(IDProperty *idprop, PyObject *args, PyObjec
 PyDoc_STRVAR(
     /* Wrap. */
     BPy_IDPropertyUIManager_update_doc,
-    ".. method:: update( "
+    ".. method:: update(*, "
     "subtype=None, "
     "min=None, "
     "max=None, "
@@ -647,7 +647,7 @@ PyDoc_STRVAR(
     "\n"
     "   Update the RNA information of the IDProperty used for interaction and\n"
     "   display in the user interface. The required types for many of the keyword\n"
-    "   arguments depend on the type of the property.\n ");
+    "   arguments depend on the type of the property.\n");
 static PyObject *BPy_IDPropertyUIManager_update(BPy_IDPropertyUIManager *self,
                                                 PyObject *args,
                                                 PyObject *kwargs)

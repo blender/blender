@@ -4681,7 +4681,8 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 76)) {
-    ToolSettings toolsettings_default = *DNA_struct_default_get(ToolSettings);
+    ToolSettings toolsettings_default = blender::dna::shallow_copy(
+        *DNA_struct_default_get(ToolSettings));
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       scene->toolsettings->snap_playhead_mode = toolsettings_default.snap_playhead_mode;
       scene->toolsettings->snap_step_frames = toolsettings_default.snap_step_frames;
@@ -4829,8 +4830,8 @@ static bool strip_effect_overdrop_to_alphaover(Strip *strip, void * /*user_data*
   if (strip->type == STRIP_TYPE_OVERDROP_REMOVED) {
     strip->type = STRIP_TYPE_ALPHAOVER;
   }
-  if (strip->blend_mode == STRIP_TYPE_OVERDROP_REMOVED) {
-    strip->blend_mode = STRIP_TYPE_ALPHAOVER;
+  if (strip->blend_mode == STRIP_BLEND_OVERDROP_REMOVED) {
+    strip->blend_mode = STRIP_BLEND_ALPHAOVER;
   }
   return true;
 }

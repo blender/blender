@@ -18,7 +18,7 @@ using OpenSubdiv::Osd::PatchArrayVector;
 namespace blender::opensubdiv {
 
 // TODO: use Blenlib NonCopyable.
-class GPUPatchTable : private NonCopyable<GPUPatchTable> {
+class GPUPatchTable : private OpenSubdiv::Osd::NonCopyable<GPUPatchTable> {
  public:
   ~GPUPatchTable();
 

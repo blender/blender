@@ -168,7 +168,7 @@ static void sample_node_surface_mesh(const Depsgraph &depsgraph,
 
   tls.local_positions.resize(verts.size());
   MutableSpan<float3> local_positions = tls.local_positions;
-  transform_positions(positions, mat, local_positions);
+  math::transform_points(positions, mat, local_positions, false);
 
   const MutableSpan normals = gather_data_mesh(vert_normals, verts, tls.normals);
 
@@ -211,7 +211,7 @@ static void sample_node_surface_grids(const Depsgraph &depsgraph,
 
   tls.local_positions.resize(positions.size());
   MutableSpan<float3> local_positions = tls.local_positions;
-  transform_positions(positions, mat, local_positions);
+  math::transform_points(positions, mat, local_positions, false);
 
   tls.normals.resize(positions.size());
   MutableSpan<float3> normals = tls.normals;
@@ -257,7 +257,7 @@ static void sample_node_surface_bmesh(const Depsgraph &depsgraph,
 
   tls.local_positions.resize(verts.size());
   MutableSpan<float3> local_positions = tls.local_positions;
-  transform_positions(positions, mat, local_positions);
+  math::transform_points(positions, mat, local_positions, false);
 
   tls.normals.resize(verts.size());
   MutableSpan<float3> normals = tls.normals;
@@ -385,7 +385,7 @@ static void calc_faces(const Depsgraph &depsgraph,
 
   tls.local_positions.resize(verts.size());
   MutableSpan<float3> local_positions = tls.local_positions;
-  transform_positions(positions, mat, local_positions);
+  math::transform_points(positions, mat, local_positions, false);
 
   if (angle >= 0.0f) {
     filter_plane_side_factors(positions, local_positions, scrape_planes, factors);
@@ -447,7 +447,7 @@ static void calc_grids(const Depsgraph &depsgraph,
 
   tls.local_positions.resize(positions.size());
   MutableSpan<float3> local_positions = tls.local_positions;
-  transform_positions(positions, mat, local_positions);
+  math::transform_points(positions, mat, local_positions, false);
 
   if (angle >= 0.0f) {
     filter_plane_side_factors(positions, local_positions, scrape_planes, factors);
@@ -508,7 +508,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
 
   tls.local_positions.resize(verts.size());
   MutableSpan<float3> local_positions = tls.local_positions;
-  transform_positions(positions, mat, local_positions);
+  math::transform_points(positions, mat, local_positions, false);
 
   if (angle >= 0.0f) {
     filter_plane_side_factors(positions, local_positions, scrape_planes, factors);

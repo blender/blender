@@ -37,6 +37,7 @@
 #include "ED_outliner.hh"
 #include "ED_render.hh"
 #include "ED_screen.hh"
+#include "ED_sculpt.hh"
 #include "ED_undo.hh"
 
 #include "WM_api.hh"
@@ -910,6 +911,27 @@ Vector<Base *> ED_undo_editmode_bases_from_view_layer(const Scene *scene, ViewLa
   BLI_assert(!object_data.is_empty());
   BLI_assert(bases[0] == baseact);
   return bases;
+}
+
+size_t ED_get_total_undo_memory()
+{
+  UndoStack *ustack = ED_undo_stack_get();
+  if (!ustack) {
+    return 0;
+  }
+
+  size_t total_memory = 0;
+
+  for (UndoStep *us = static_cast<UndoStep *>(ustack->steps.first); us != nullptr; us = us->next) {
+    if (us->type == BKE_UNDOSYS_TYPE_SCULPT) {
+      total_memory += blender::ed::sculpt_paint::undo::step_memory_size_get(us);
+    }
+    else if (us->data_size > 0) {
+      total_memory += us->data_size;
+    }
+  }
+
+  return total_memory;
 }
 
 /** \} */

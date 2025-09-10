@@ -510,6 +510,7 @@ class NodeTreeMainUpdater {
 
     ntree.runtime->link_errors.clear();
     ntree.runtime->invalid_zone_output_node_ids.clear();
+    ntree.runtime->shader_node_errors.clear();
 
     if (this->update_panel_toggle_names(ntree)) {
       result.interface_changed = true;
@@ -1032,7 +1033,8 @@ class NodeTreeMainUpdater {
         }
         locally_defined_enums.append(&enum_input);
       }
-      else {
+      else if (!node->is_group()) {
+        /* Gather built-in menus defined by this node. */
         for (bNodeSocket *input_socket : node->input_sockets()) {
           if (!input_socket->is_available()) {
             continue;
@@ -1174,7 +1176,7 @@ class NodeTreeMainUpdater {
         }
       }
       if (found_conflict) {
-        /* Make sure that all group input sockets know that there is a socket. */
+        /* Make sure that all group input sockets know that there is a conflict. */
         for (bNode *input_node : group_input_nodes) {
           bNodeSocket &socket = input_node->output_socket(interface_input_i);
           auto &socket_value = *socket.default_value_typed<bNodeSocketValueMenu>();

@@ -161,6 +161,7 @@ class StringRef : public StringRefBase {
   constexpr StringRef drop_prefix(int64_t n) const;
   constexpr StringRef drop_known_prefix(StringRef prefix) const;
   constexpr StringRef drop_suffix(int64_t n) const;
+  constexpr StringRef drop_known_suffix(StringRef suffix) const;
 
   constexpr char operator[](int64_t index) const;
 };
@@ -540,6 +541,16 @@ constexpr StringRef StringRef::drop_suffix(const int64_t n) const
   BLI_assert(n >= 0);
   const int64_t new_size = std::max<int64_t>(0, size_ - n);
   return StringRef(data_, new_size);
+}
+
+/**
+ * Return a new StringRef with the given suffix being skipped. This invokes undefined behavior if
+ * the string does not begin with the given suffix.
+ */
+constexpr StringRef StringRef::drop_known_suffix(StringRef suffix) const
+{
+  BLI_assert(this->endswith(suffix));
+  return this->drop_suffix(suffix.size());
 }
 
 /**

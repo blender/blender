@@ -520,6 +520,7 @@ IDTypeInfo IDType_ID_AR = {
     /*foreach_id*/ armature_foreach_id,
     /*foreach_cache*/ nullptr,
     /*foreach_path*/ nullptr,
+    /*foreach_working_space_color*/ nullptr,
     /*owner_pointer_get*/ nullptr,
 
     /*blend_write*/ armature_blend_write,

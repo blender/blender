@@ -204,6 +204,7 @@ PyDoc_STRVAR(
     bpy_lib_load_doc,
     ".. method:: load("
     "filepath, "
+    "*, "
     "link=False, "
     "relative=False, "
     "set_fake=False, "

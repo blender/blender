@@ -13,309 +13,272 @@
  * of data the CPU has to precompute and transfer for each update.
  */
 
+#include "gpu_shader_math_matrix_lib.glsl"
+
 /* Avoid including hair functionality for shaders and materials which do not require hair.
  * Required to prevent compilation failure for missing shader inputs and uniforms when hair library
  * is included via other libraries. These are only specified in the ShaderCreateInfo when needed.
  */
-#ifdef HAIR_SHADER
-#  define COMMON_HAIR_LIB
-
+#ifdef CURVES_SHADER
 #  ifndef DRW_HAIR_INFO
-#    error Ensure createInfo includes draw_hair for general use or eevee_legacy_hair_lib for EEVEE.
+#    error Ensure createInfo includes draw_hair.
 #  endif
 
-struct CurvePoint {
-  float3 position;
-  /* Position along the curve length. O at root, 1 at the tip. */
-  float time;
+namespace curves {
+
+struct Segment {
+  /* Index of this segment. Used to load indirection buffer. */
+  uint id;
+  /* Vertex index inside this segment. */
+  uint v_idx;
+  /* Restart triangle strip if true. Only for cylinder topology. */
+  bool is_end_of_segment;
 };
 
-CurvePoint hair_get_point(int point_id)
+/* Indirection buffer indexing. */
+Segment segment_get(uint vertex_id)
 {
-  SHADER_LIBRARY_CREATE_INFO(draw_hair)
+  const auto &drw_curves = buffer_get(draw_curves_infos, drw_curves);
 
-  float4 data = texelFetch(hairPointBuffer, point_id);
-  CurvePoint pt;
-  pt.position = data.xyz;
-  pt.time = data.w;
+  const bool is_cylinder = drw_curves.half_cylinder_face_count > 1u;
+  Segment segment;
+  segment.id = vertex_id / drw_curves.vertex_per_segment;
+  segment.v_idx = vertex_id % drw_curves.vertex_per_segment;
+  segment.is_end_of_segment = is_cylinder && (segment.v_idx == drw_curves.vertex_per_segment - 1);
+  if (is_cylinder && !segment.is_end_of_segment && (segment.id & 1u) == 0u) {
+    /* The topology is not actually restarted and the winding order changes (because we skip an odd
+     * number of triangles). So we have to manually reverse the winding so that is stays
+     * consistent.
+     */
+    segment.v_idx ^= 1u;
+  }
+  return segment;
+}
+
+/* Result of interpreting the indirection buffer.
+ * The indirection buffer maps drawn segments back to their curves and curve segments.
+ * This is needed for attribute loading. */
+struct Indirection {
+  /* Can be equal to INT_MAX with ribbon draw type. */
+  int curve_id;
+  /* Segment ID starting at 0 at curve start. */
+  int curve_segment;
+  /* Restart triangle strip if true. Only for ribbon topology. */
+  bool is_end_of_curve;
+  /* Does these vertices correspond to the last point of a cyclic curve (duplicate of start). */
+  bool is_cyclic_point;
+};
+
+Indirection indirection_get(Segment segment)
+{
+  const auto &curves_indirection_buf = sampler_get(draw_curves, curves_indirection_buf);
+  const auto &drw_curves = buffer_get(draw_curves_infos, drw_curves);
+
+  Indirection ind;
+  ind.is_cyclic_point = false;
+  ind.is_end_of_curve = false;
+  ind.curve_id = 0;
+
+  constexpr int cyclic_endpoint_pivot = INT_MAX / 2;
+  constexpr int end_of_curve = INT_MAX;
+
+  int indirection_value = texelFetch(curves_indirection_buf, int(segment.id)).r;
+  if (indirection_value == end_of_curve) {
+    ind.curve_segment = 0;
+    ind.is_end_of_curve = true;
+  }
+  else if (indirection_value >= 0) {
+    /* This is start of curve. The indirection value is the curve ID. */
+    ind.curve_segment = 0;
+    ind.curve_id = indirection_value;
+  }
+  else if (indirection_value <= -cyclic_endpoint_pivot) {
+    /* This is the last segment of a cyclic curve. The indirection value is the offset to the start
+     * of the curve offsetted by cyclic_endpoint_pivot. */
+    ind.curve_segment = -indirection_value - cyclic_endpoint_pivot;
+    ind.is_cyclic_point = true;
+  }
+  else {
+    /* This is a normal segment. The indirection value is the offset to the start of the curve. */
+    ind.curve_segment = -indirection_value;
+  }
+
+  if (ind.curve_segment != 0) {
+    ind.curve_id = texelFetch(curves_indirection_buf, int(segment.id) - ind.curve_segment).r;
+  }
+
+  const bool is_cylinder = drw_curves.half_cylinder_face_count > 1u;
+  if (is_cylinder) {
+    bool is_end_of_segment = (segment.v_idx & 1u) != 0u;
+    ind.curve_segment += int(is_end_of_segment);
+    /* Only the end of the segment is to be considered the cyclic point. */
+    if (!is_end_of_segment) {
+      ind.is_cyclic_point = false;
+    }
+  }
+  return ind;
+}
+
+int point_id_get(Segment segment, Indirection indirection)
+{
+  const auto &drw_curves = buffer_get(draw_curves_infos, drw_curves);
+
+  const bool is_cylinder = drw_curves.half_cylinder_face_count > 1u;
+  if (is_cylinder) {
+    return int(segment.id) + indirection.curve_id + int(segment.v_idx & 1u);
+  }
+  return int(segment.id) - indirection.curve_id;
+}
+
+float azimuthal_offset_get(Segment segment)
+{
+  const auto &drw_curves = buffer_get(draw_curves_infos, drw_curves);
+
+  float offset;
+  const bool is_strand = drw_curves.half_cylinder_face_count == 0u;
+  const bool is_cylinder = drw_curves.half_cylinder_face_count > 1u;
+  if (is_strand) {
+    offset = 0.5f;
+  }
+  else if (is_cylinder) {
+    offset = float(segment.v_idx >> 1) / float(drw_curves.half_cylinder_face_count);
+  }
+  else {
+    offset = float(segment.v_idx);
+  }
+  return offset * 2.0f - 1.0f;
+}
+
+float4 point_position_and_radius_get(uint point_id)
+{
+  const auto &curves_pos_rad_buf = buffer_get(draw_curves, curves_pos_rad_buf);
+
+  return texelFetch(curves_pos_rad_buf, int(point_id));
+}
+
+float3 point_position_get(uint point_id)
+{
+  const auto &curves_pos_rad_buf = buffer_get(draw_curves, curves_pos_rad_buf);
+
+  return texelFetch(curves_pos_rad_buf, int(point_id)).rgb;
+}
+
+struct Point {
+  /* Position of the evaluated curve point (not the shape / cylinder point). */
+  float3 P;
+  /* Tangent vector going from the root to the tip of the curve. */
+  float3 T;
+
+  float radius;
+  /* Lateral/Azimuthal offset from the center of the curve's width. Range [-1..1]. */
+  float azimuthal_offset;
+
+  int point_id;
+  int curve_id;
+  int curve_segment;
+};
+
+/* Return data about the curve point. */
+Point point_get(uint vertex_id)
+{
+  Segment segment = segment_get(vertex_id);
+  Indirection indirection = indirection_get(segment);
+
+  Point pt;
+  pt.point_id = point_id_get(segment, indirection);
+  pt.curve_id = indirection.curve_id;
+  pt.curve_segment = indirection.curve_segment;
+
+  float4 pos_rad = point_position_and_radius_get(pt.point_id);
+
+  bool restart_strip = indirection.is_end_of_curve || segment.is_end_of_segment;
+  pt.P = (restart_strip) ? float3(NAN_FLT) : pos_rad.xyz;
+  pt.radius = pos_rad.w;
+  pt.azimuthal_offset = azimuthal_offset_get(segment);
+
+  if (pt.curve_segment == 0) {
+    /* Hair root. */
+    pt.T = point_position_get(pt.point_id + 1) - pt.P;
+  }
+  else if (indirection.is_cyclic_point) {
+    /* Cyclic end point must match start point. */
+    pt.T = point_position_get(pt.point_id - pt.curve_segment + 1) - pt.P;
+  }
+  else {
+    pt.T = pt.P - point_position_get(pt.point_id - 1);
+  }
   return pt;
 }
 
-/* -- Subdivision stage -- */
+Point object_to_world(Point pt, float4x4 object_to_world)
+{
+  pt.P = transform_point(object_to_world, pt.P);
+  pt.T = normalize(transform_direction(object_to_world, pt.T));
+  pt.radius *= length(to_scale(object_to_world)) * M_SQRT1_3;
+  return pt;
+}
+
+struct ShapePoint {
+  /* Curve tangent space. */
+  float3 curve_N;
+  float3 curve_T;
+  float3 curve_B;
+  /* Position on the curve shape. */
+  float3 P;
+  /* Shading normal at the position on the curve shape. */
+  float3 N;
+};
+
 /**
- * We use a transform feedback or compute shader to preprocess the strands and add more subdivision
- * to it. For the moment these are simple smooth interpolation but one could hope to see the full
- * children particle modifiers being evaluated at this stage.
- *
- * If no more subdivision is needed, we can skip this step.
+ * Return the position of the expanded position in world-space.
+ * \arg pt : world space curve point.
+ * \arg V : world space view vector (toward viewer) at `pt.P`.
  */
-
-float hair_get_local_time()
+ShapePoint shape_point_get(const Point pt, const float3 V)
 {
-#  ifdef GPU_VERTEX_SHADER
-  VERTEX_SHADER_CREATE_INFO(draw_hair)
-  return float(gl_VertexID % hairStrandsRes) / float(hairStrandsRes - 1);
-#  elif defined(GPU_COMPUTE_SHADER)
-  COMPUTE_SHADER_CREATE_INFO(draw_hair_refine_compute)
-  return float(gl_GlobalInvocationID.y) / float(hairStrandsRes - 1);
-#  else
-  return 0;
-#  endif
+  const bool is_strand = buffer_get(draw_curves_infos, drw_curves).half_cylinder_face_count == 0u;
+
+  ShapePoint shape;
+  /* Shading tangent is inverted because of legacy reason. */
+  /* TODO(fclem): Change user code. */
+  shape.curve_T = -pt.T;
+  shape.curve_B = normalize(cross(pt.T, V));
+  shape.curve_N = cross(shape.curve_B, pt.T);
+  /* Point in curve azimuthal space. */
+  const float2 lP = float2(pt.azimuthal_offset, sin_from_cos(abs(pt.azimuthal_offset)));
+  shape.N = shape.curve_B * lP.x + shape.curve_N * lP.y;
+  shape.P = pt.P + shape.N * (is_strand ? 0.0f : pt.radius);
+  return shape;
 }
 
-int hair_get_id()
+float get_customdata_float(const int curve_id, const samplerBuffer cd_buf)
 {
-#  ifdef GPU_VERTEX_SHADER
-  VERTEX_SHADER_CREATE_INFO(draw_hair)
-  return gl_VertexID / hairStrandsRes;
-#  elif defined(GPU_COMPUTE_SHADER)
-  COMPUTE_SHADER_CREATE_INFO(draw_hair_refine_compute)
-  return int(gl_GlobalInvocationID.x) + hairStrandOffset;
-#  else
-  return 0;
-#  endif
+  return texelFetch(cd_buf, curve_id).x;
 }
 
-#  ifdef HAIR_PHASE_SUBDIV
-COMPUTE_SHADER_CREATE_INFO(draw_hair_refine_compute)
-
-int hair_get_base_id(float local_time, int strand_segments, out float interp_time)
+float2 get_customdata_vec2(const int curve_id, const samplerBuffer cd_buf)
 {
-  float time_per_strand_seg = 1.0f / float(strand_segments);
-
-  float ratio = local_time / time_per_strand_seg;
-  interp_time = fract(ratio);
-
-  return int(ratio);
+  return texelFetch(cd_buf, curve_id).xy;
 }
 
-void hair_get_interp_attrs(
-    out float4 data0, out float4 data1, out float4 data2, out float4 data3, out float interp_time)
+float3 get_customdata_vec3(const int curve_id, const samplerBuffer cd_buf)
 {
-  float local_time = hair_get_local_time();
-
-  int hair_id = hair_get_id();
-  int strand_offset = int(texelFetch(hairStrandBuffer, hair_id).x);
-  int strand_segments = int(texelFetch(hairStrandSegBuffer, hair_id).x);
-
-  int id = hair_get_base_id(local_time, strand_segments, interp_time);
-
-  int ofs_id = id + strand_offset;
-
-  data0 = texelFetch(hairPointBuffer, ofs_id - 1);
-  data1 = texelFetch(hairPointBuffer, ofs_id);
-  data2 = texelFetch(hairPointBuffer, ofs_id + 1);
-  data3 = texelFetch(hairPointBuffer, ofs_id + 2);
-
-  if (id <= 0) {
-    /* root points. Need to reconstruct previous data. */
-    data0 = data1 * 2.0f - data2;
-  }
-  if (id + 1 >= strand_segments) {
-    /* tip points. Need to reconstruct next data. */
-    data3 = data2 * 2.0f - data1;
-  }
-}
-#  endif
-
-/* -- Drawing stage -- */
-/**
- * For final drawing, the vertex index and the number of vertex per segment
- */
-
-#  if !defined(HAIR_PHASE_SUBDIV) && defined(GPU_VERTEX_SHADER)
-VERTEX_SHADER_CREATE_INFO(draw_hair)
-
-int hair_get_strand_id()
-{
-  return gl_VertexID / (hairStrandsRes * hairThicknessRes);
+  return texelFetch(cd_buf, curve_id).xyz;
 }
 
-int hair_get_base_id()
+float4 get_customdata_vec4(const int curve_id, const samplerBuffer cd_buf)
 {
-  return gl_VertexID / hairThicknessRes;
+  return texelFetch(cd_buf, curve_id).xyzw;
 }
 
-/* Copied from cycles. */
-float hair_shaperadius(float shape, float root, float tip, float time)
+float3 get_curve_root_pos(const int point_id, const int curve_segment)
 {
-  float radius = 1.0f - time;
+  const auto &curves_pos_rad_buf = buffer_get(draw_curves, curves_pos_rad_buf);
 
-  if (shape < 0.0f) {
-    radius = pow(radius, 1.0f + shape);
-  }
-  else {
-    radius = pow(radius, 1.0f / (1.0f - shape));
-  }
-
-  if (hairCloseTip && (time > 0.99f)) {
-    return 0.0f;
-  }
-
-  return (radius * (root - tip)) + tip;
+  int curve_start = point_id - curve_segment;
+  return texelFetch(curves_pos_rad_buf, curve_start).xyz;
 }
 
-#    if defined(OS_MAC) && defined(GPU_OPENGL)
-in float dummy;
-#    endif
+}  // namespace curves
 
-void hair_get_center_pos_tan_binor_time(bool is_persp,
-                                        float3 camera_pos,
-                                        float3 camera_z,
-                                        out float3 wpos,
-                                        out float3 wtan,
-                                        out float3 wbinor,
-                                        out float time,
-                                        out float thickness)
-{
-  int id = hair_get_base_id();
-  CurvePoint data = hair_get_point(id);
-  wpos = data.position;
-  time = data.time;
-
-#    if defined(OS_MAC) && defined(GPU_OPENGL)
-  /* Generate a dummy read to avoid the driver bug with shaders having no
-   * vertex reads on macOS (#60171) */
-  wpos.y += dummy * 0.0f;
-#    endif
-
-  if (time == 0.0f) {
-    /* Hair root */
-    wtan = hair_get_point(id + 1).position - wpos;
-  }
-  else {
-    wtan = wpos - hair_get_point(id - 1).position;
-  }
-
-  float4x4 obmat = hairDupliMatrix;
-  wpos = (obmat * float4(wpos, 1.0f)).xyz;
-  wtan = -normalize(to_float3x3(obmat) * wtan);
-
-  float3 camera_vec = (is_persp) ? camera_pos - wpos : camera_z;
-  wbinor = normalize(cross(camera_vec, wtan));
-
-  thickness = hair_shaperadius(hairRadShape, hairRadRoot, hairRadTip, time);
-}
-
-void hair_get_pos_tan_binor_time(bool is_persp,
-                                 float4x4 invmodel_mat,
-                                 float3 camera_pos,
-                                 float3 camera_z,
-                                 out float3 wpos,
-                                 out float3 wtan,
-                                 out float3 wbinor,
-                                 out float time,
-                                 out float thickness,
-                                 out float thick_time)
-{
-  hair_get_center_pos_tan_binor_time(
-      is_persp, camera_pos, camera_z, wpos, wtan, wbinor, time, thickness);
-  if (hairThicknessRes > 1) {
-    thick_time = float(gl_VertexID % hairThicknessRes) / float(hairThicknessRes - 1);
-    thick_time = thickness * (thick_time * 2.0f - 1.0f);
-    /* Take object scale into account.
-     * NOTE: This only works fine with uniform scaling. */
-    float scale = 1.0f / length(to_float3x3(invmodel_mat) * wbinor);
-    wpos += wbinor * thick_time * scale;
-  }
-  else {
-    /* NOTE: Ensures 'hairThickTime' is initialized -
-     * avoids undefined behavior on certain macOS configurations. */
-    thick_time = 0.0f;
-  }
-}
-
-float hair_get_customdata_float(const samplerBuffer cd_buf)
-{
-  int id = hair_get_strand_id();
-  return texelFetch(cd_buf, id).r;
-}
-
-float2 hair_get_customdata_vec2(const samplerBuffer cd_buf)
-{
-  int id = hair_get_strand_id();
-  return texelFetch(cd_buf, id).rg;
-}
-
-float3 hair_get_customdata_vec3(const samplerBuffer cd_buf)
-{
-  int id = hair_get_strand_id();
-  return texelFetch(cd_buf, id).rgb;
-}
-
-float4 hair_get_customdata_vec4(const samplerBuffer cd_buf)
-{
-  int id = hair_get_strand_id();
-  return texelFetch(cd_buf, id).rgba;
-}
-
-float3 hair_get_strand_pos()
-{
-  int id = hair_get_strand_id() * hairStrandsRes;
-  return hair_get_point(id).position;
-}
-
-float2 hair_get_barycentric()
-{
-  /* To match cycles without breaking into individual segment we encode if we need to invert
-   * the first component into the second component. We invert if the barycentricTexCo.y
-   * is NOT 0.0 or 1.0. */
-  int id = hair_get_base_id();
-  return float2(float((id % 2) == 1), float(((id % 4) % 3) > 0));
-}
-
-#  endif
-
-/* To be fed the result of hair_get_barycentric from vertex shader. */
-float2 hair_resolve_barycentric(float2 vert_barycentric)
-{
-  if (fract(vert_barycentric.y) != 0.0f) {
-    return float2(vert_barycentric.x, 0.0f);
-  }
-  else {
-    return float2(1.0f - vert_barycentric.x, 0.0f);
-  }
-}
-
-/* Hair interpolation functions. */
-float4 hair_get_weights_cardinal(float t)
-{
-  float t2 = t * t;
-  float t3 = t2 * t;
-#  if defined(CARDINAL)
-  float fc = 0.71f;
-#  else /* defined(CATMULL_ROM) */
-  float fc = 0.5f;
-#  endif
-
-  float4 weights;
-  /* GLSL Optimized version of key_curve_position_weights() */
-  float fct = t * fc;
-  float fct2 = t2 * fc;
-  float fct3 = t3 * fc;
-  weights.x = (fct2 * 2.0f - fct3) - fct;
-  weights.y = (t3 * 2.0f - fct3) + (-t2 * 3.0f + fct2) + 1.0f;
-  weights.z = (-t3 * 2.0f + fct3) + (t2 * 3.0f - (2.0f * fct2)) + fct;
-  weights.w = fct3 - fct2;
-  return weights;
-}
-
-/* TODO(fclem): This one is buggy, find why. (it's not the optimization!!) */
-float4 hair_get_weights_bspline(float t)
-{
-  float t2 = t * t;
-  float t3 = t2 * t;
-
-  float4 weights;
-  /* GLSL Optimized version of key_curve_position_weights() */
-  weights.xz = float2(-0.16666666f, -0.5f) * t3 + (0.5f * t2 + 0.5f * float2(-t, t) + 0.16666666f);
-  weights.y = (0.5f * t3 - t2 + 0.66666666f);
-  weights.w = (0.16666666f * t3);
-  return weights;
-}
-
-float4 hair_interp_data(float4 v0, float4 v1, float4 v2, float4 v3, float4 w)
-{
-  return v0 * w.x + v1 * w.y + v2 * w.z + v3 * w.w;
-}
 #endif

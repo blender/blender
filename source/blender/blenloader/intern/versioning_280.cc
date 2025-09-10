@@ -780,11 +780,11 @@ static void do_version_curvemapping_walker(Main *bmain, void (*callback)(CurveMa
               smd->type);
 
           if (smti) {
-            if (smd->type == seqModifierType_Curves) {
+            if (smd->type == eSeqModifierType_Curves) {
               CurvesModifierData *cmd = (CurvesModifierData *)smd;
               callback(&cmd->curve_mapping);
             }
-            else if (smd->type == seqModifierType_HueCorrect) {
+            else if (smd->type == eSeqModifierType_HueCorrect) {
               HueCorrectModifierData *hcmd = (HueCorrectModifierData *)smd;
               callback(&hcmd->curve_mapping);
             }
@@ -3292,8 +3292,6 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       if (STR_ELEM(scene->r.engine, "BLENDER_RENDER", "BLENDER_GAME")) {
         STRNCPY_UTF8(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
       }
-
-      scene->r.bake_mode = 0;
     }
 
     LISTBASE_FOREACH (Tex *, tex, &bmain->textures) {

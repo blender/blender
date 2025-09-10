@@ -28,6 +28,7 @@
 #include "BLI_function_ref.hh"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
+#include "BLI_math_color.h"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_string.h"
@@ -153,6 +154,8 @@ struct TreeDrawContext {
    * during drawing. The array is indexed by `bNode::index()`.
    */
   Array<Vector<NodeExtraInfoRow>> extra_info_rows_per_node;
+
+  Map<int32_t, VectorSet<std::string>> shader_node_errors;
 
   ~TreeDrawContext()
   {
@@ -442,6 +445,9 @@ static bool node_update_basis_buttons(const bContext &C,
   if (node.is_muted()) {
     layout.active_set(false);
   }
+  if (!ID_IS_EDITABLE(&ntree.id)) {
+    layout.enabled_set(false);
+  }
 
   layout.context_ptr_set("node", &nodeptr);
 
@@ -523,6 +529,9 @@ static bool node_update_basis_socket(const bContext &C,
 
   if (node.is_muted()) {
     layout.active_set(false);
+  }
+  if (!ID_IS_EDITABLE(&ntree.id)) {
+    layout.enabled_set(false);
   }
 
   uiLayout *row = &layout.row(true);
@@ -1155,6 +1164,9 @@ static void node_update_basis_from_declaration(
                                                 UI_style_get_dpi());
             if (node.is_muted()) {
               layout.active_set(false);
+            }
+            if (!ID_IS_EDITABLE(&ntree.id)) {
+              layout.enabled_set(false);
             }
             PointerRNA node_ptr = RNA_pointer_create_discrete(&ntree.id, &RNA_Node, &node);
             layout.context_ptr_set("node", &node_ptr);
@@ -1867,6 +1879,8 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, uiBlock &block
     if (!panel_runtime.header_center_y.has_value()) {
       continue;
     }
+    const bool only_inactive_inputs = panel_has_only_inactive_inputs(node, panel_decl);
+    const bool panel_is_inactive = node.is_muted() || only_inactive_inputs;
 
     const rctf header_rect = {draw_bounds.xmin,
                               draw_bounds.xmax,
@@ -1946,6 +1960,9 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, uiBlock &block
           },
           POINTER_FROM_INT(input_socket->index_in_tree()),
           nullptr);
+      if (panel_is_inactive) {
+        UI_but_flag_enable(panel_toggle_but, UI_BUT_INACTIVE);
+      }
       offsetx += UI_UNIT_X;
     }
 
@@ -1967,8 +1984,7 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, uiBlock &block
         0,
         "");
 
-    const bool only_inactive_inputs = panel_has_only_inactive_inputs(node, panel_decl);
-    if (node.is_muted() || only_inactive_inputs) {
+    if (panel_is_inactive) {
       UI_but_flag_enable(label_but, UI_BUT_INACTIVE);
     }
   }
@@ -2072,6 +2088,28 @@ static void node_add_error_message_button(const TreeDrawContext &tree_draw_ctx,
           return node_errors_tooltip_fn(warnings);
         });
     return;
+  }
+  if (ntree.type == NTREE_SHADER) {
+    const VectorSet<std::string> *errors = tree_draw_ctx.shader_node_errors.lookup_ptr(
+        node.identifier);
+    if (!errors) {
+      return;
+    }
+    if (errors->is_empty()) {
+      return;
+    }
+    uiBut *but = add_error_message_button(block, rect, ICON_ERROR, icon_offset);
+    UI_but_func_quick_tooltip_set(but, [errors = *errors](const uiBut * /*but*/) {
+      std::string tooltip;
+      for (const int i : errors.index_range()) {
+        const StringRefNull error = errors[i];
+        tooltip += error.c_str();
+        if (i + 1 < errors.size()) {
+          tooltip += ".\n";
+        }
+      }
+      return tooltip;
+    });
   }
 }
 
@@ -2694,8 +2732,10 @@ static void node_header_custom_tooltip(const bNode &node, uiBut &but)
         const std::string description = node.typeinfo->ui_description_fn ?
                                             node.typeinfo->ui_description_fn(node) :
                                             node.typeinfo->ui_description;
-        UI_tooltip_text_field_add(
-            data, std::move(description), "", UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL);
+        if (!description.empty()) {
+          UI_tooltip_text_field_add(
+              data, std::move(description), "", UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL);
+        }
         if (U.flag & USER_TOOLTIPS_PYTHON) {
           UI_tooltip_text_field_add(data,
                                     fmt::format("Python: {}", node.idname),
@@ -4603,12 +4643,20 @@ static void draw_nodetree(const bContext &C,
     tree_draw_ctx.compositor_per_node_execution_time =
         &scene->runtime->compositor.per_node_execution_time;
   }
-  else if (ntree.type == NTREE_SHADER && USER_EXPERIMENTAL_TEST(&U, use_shader_node_previews) &&
-           BKE_scene_uses_shader_previews(CTX_data_scene(&C)) &&
-           snode->overlay.flag & SN_OVERLAY_SHOW_OVERLAYS &&
-           snode->overlay.flag & SN_OVERLAY_SHOW_PREVIEWS)
-  {
-    tree_draw_ctx.nested_group_infos = get_nested_previews(C, *snode);
+  else if (ntree.type == NTREE_SHADER) {
+    if (USER_EXPERIMENTAL_TEST(&U, use_shader_node_previews) &&
+        BKE_scene_uses_shader_previews(CTX_data_scene(&C)) &&
+        snode->overlay.flag & SN_OVERLAY_SHOW_OVERLAYS &&
+        snode->overlay.flag & SN_OVERLAY_SHOW_PREVIEWS)
+    {
+      tree_draw_ctx.nested_group_infos = get_nested_previews(C, *snode);
+    }
+    {
+      std::lock_guard lock(ntree.runtime->shader_node_errors_mutex);
+      /* Make a local copy to avoid mutex access for each node. Typically, there are only very few
+       * error message. */
+      tree_draw_ctx.shader_node_errors = ntree.runtime->shader_node_errors;
+    }
   }
 
   for (const int i : nodes.index_range()) {

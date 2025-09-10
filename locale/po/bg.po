@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-18 09:16+0000\n"
+"POT-Creation-Date: 2025-09-10 07:24+0000\n"
 "PO-Revision-Date: 2025-07-23 15:34+0000\n"
 "Last-Translator: Just Adam <adam.abbas2009@gmail.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -172,12 +172,12 @@ msgid "Layer"
 msgstr "Слой"
 
 
-msgid "Extend"
-msgstr "Разширяване"
-
-
 msgid "Object"
 msgstr "Обект"
+
+
+msgid "Extend"
+msgstr "Разширяване"
 
 
 msgid "Emit"
@@ -1136,40 +1136,40 @@ msgid "Mask"
 msgstr "Маскиране"
 
 
-msgid "Apply"
-msgstr "Прилагане"
-
-
-msgid "In-Betweens"
-msgstr "Междинни Кадри"
-
-
 msgid "UV Mapping"
 msgstr "UV Картиране"
-
-
-msgid "Hooks"
-msgstr "Куки"
-
-
-msgid "Make Single User"
-msgstr "Направи с Единствен Потребител"
-
-
-msgid "Rigid Body"
-msgstr "Твърдо тяло"
 
 
 msgid "Light"
 msgstr "Светлина"
 
 
-msgid "Text"
-msgstr "Текст"
+msgid "Rigid Body"
+msgstr "Твърдо тяло"
+
+
+msgid "Apply"
+msgstr "Прилагане"
+
+
+msgid "Make Single User"
+msgstr "Направи с Единствен Потребител"
+
+
+msgid "Hooks"
+msgstr "Куки"
+
+
+msgid "In-Betweens"
+msgstr "Междинни Кадри"
 
 
 msgid "Merge"
 msgstr "Слей"
+
+
+msgid "Text"
+msgstr "Текст"
 
 
 msgid "Languages..."
@@ -1260,18 +1260,6 @@ msgid "Lines"
 msgstr "Линии"
 
 
-msgid "Soften"
-msgstr "Мекост"
-
-
-msgid "Shadow"
-msgstr "Сянка"
-
-
-msgid "Combined"
-msgstr "Комбиниран"
-
-
 msgid "Rotate"
 msgstr "Завърти"
 
@@ -1298,6 +1286,10 @@ msgstr "Подповърхностно Разпръскване"
 
 msgid "Triangle"
 msgstr "Триъгълник"
+
+
+msgid "Shadow"
+msgstr "Сянка"
 
 
 msgctxt "Operator"
@@ -1559,10 +1551,6 @@ msgid "Flat"
 msgstr "Дъска"
 
 
-msgid "Join"
-msgstr "Събери"
-
-
 msgctxt "Operator"
 msgid "Merge"
 msgstr "Слей"
@@ -1668,6 +1656,10 @@ msgstr "Направи с Единствен Потребител"
 msgctxt "Operator"
 msgid "Bake"
 msgstr "Изпечи"
+
+
+msgid "Combined"
+msgstr "Комбиниран"
 
 
 msgctxt "Operator"
@@ -1835,6 +1827,10 @@ msgstr "Име на Menu ID"
 
 msgid "ID name of the menu this was called from"
 msgstr "ID име на менюто, от което се повиква"
+
+
+msgid "Join"
+msgstr "Събери"
 
 
 msgctxt "Operator"
@@ -2199,16 +2195,16 @@ msgid "Strand"
 msgstr "Нишка"
 
 
-msgid "Bias"
-msgstr "Отклонение"
-
-
 msgid "FPS"
 msgstr "FPS"
 
 
 msgid "Viscosity"
 msgstr "Вискозитет"
+
+
+msgid "Bias"
+msgstr "Отклонение"
 
 
 msgid "Edge spring friction"
@@ -2346,6 +2342,10 @@ msgstr "Кадър:"
 
 msgid "Fields"
 msgstr "Полета"
+
+
+msgid "Soften"
+msgstr "Мекост"
 
 
 msgctxt "WorkSpace"

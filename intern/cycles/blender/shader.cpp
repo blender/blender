@@ -20,6 +20,9 @@
 #include "util/task.h"
 
 #include "BKE_duplilist.hh"
+#include "BKE_node.hh"
+
+#include "NOD_shader_nodes_inline.hh"
 
 CCL_NAMESPACE_BEGIN
 
@@ -1241,7 +1244,16 @@ static void add_nodes(Scene *scene,
                       ShaderGraph *graph,
                       BL::ShaderNodeTree &b_ntree,
                       const ProxyMap &proxy_input_map,
-                      const ProxyMap &proxy_output_map)
+                      const ProxyMap &proxy_output_map);
+
+static void add_nodes_inlined(Scene *scene,
+                              BL::RenderEngine &b_engine,
+                              BL::BlendData &b_data,
+                              BL::Scene &b_scene,
+                              ShaderGraph *graph,
+                              BL::ShaderNodeTree &b_ntree,
+                              const ProxyMap &proxy_input_map,
+                              const ProxyMap &proxy_output_map)
 {
   /* add nodes */
   PtrInputMap input_map;
@@ -1360,6 +1372,7 @@ static void add_nodes(Scene *scene,
         }
       }
     }
+    /* TODO: All the previous cases can be removed? */
     else {
       ShaderNode *node = nullptr;
 
@@ -1435,6 +1448,29 @@ static void add_nodes(Scene *scene,
       }
     }
   }
+}
+
+static void add_nodes(Scene *scene,
+                      BL::RenderEngine &b_engine,
+                      BL::BlendData &b_data,
+                      BL::Scene &b_scene,
+                      ShaderGraph *graph,
+                      BL::ShaderNodeTree &b_ntree,
+                      const ProxyMap &proxy_input_map,
+                      const ProxyMap &proxy_output_map)
+{
+  bNodeTree *ntree = b_ntree.ptr.data_as<bNodeTree>();
+  bNodeTree *localtree = blender::bke::node_tree_add_tree(
+      nullptr, (blender::StringRef(ntree->id.name) + " Inlined").c_str(), ntree->idname);
+  blender::nodes::InlineShaderNodeTreeParams inline_params;
+  inline_params.allow_preserving_repeat_zones = false;
+  blender::nodes::inline_shader_node_tree(*ntree, *localtree, inline_params);
+
+  BL::ShaderNodeTree b_localtree(RNA_id_pointer_create(&localtree->id));
+  add_nodes_inlined(
+      scene, b_engine, b_data, b_scene, graph, b_localtree, proxy_input_map, proxy_output_map);
+
+  BKE_id_free(nullptr, &localtree->id);
 }
 
 static void add_nodes(Scene *scene,

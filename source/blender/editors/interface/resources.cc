@@ -286,6 +286,9 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_PANEL_OUTLINE:
           cp = btheme->tui.panel_outline;
           break;
+        case TH_PANEL_ACTIVE:
+          cp = btheme->tui.panel_active;
+          break;
 
         case TH_BUTBACK:
           cp = ts->button;
@@ -483,47 +486,56 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_BONE_LOCKED_WEIGHT:
           cp = ts->bone_locked_weight;
           break;
+        case TH_LONGKEY:
+          cp = btheme->common.anim.long_key;
+          break;
+        case TH_LONGKEY_SELECT:
+          cp = btheme->common.anim.long_key_selected;
+          break;
         case TH_STRIP:
           cp = ts->strip;
           break;
         case TH_STRIP_SELECT:
           cp = ts->strip_select;
           break;
+        case TH_TRACK_SELECT:
+          cp = ts->track_selected;
+          break;
         case TH_KEYTYPE_KEYFRAME:
-          cp = ts->keytype_keyframe;
+          cp = btheme->common.anim.keyframe;
           break;
         case TH_KEYTYPE_KEYFRAME_SELECT:
-          cp = ts->keytype_keyframe_select;
+          cp = btheme->common.anim.keyframe_selected;
           break;
         case TH_KEYTYPE_EXTREME:
-          cp = ts->keytype_extreme;
+          cp = btheme->common.anim.keyframe_extreme;
           break;
         case TH_KEYTYPE_EXTREME_SELECT:
-          cp = ts->keytype_extreme_select;
+          cp = btheme->common.anim.keyframe_extreme_selected;
           break;
         case TH_KEYTYPE_BREAKDOWN:
-          cp = ts->keytype_breakdown;
+          cp = btheme->common.anim.keyframe_breakdown;
           break;
         case TH_KEYTYPE_BREAKDOWN_SELECT:
-          cp = ts->keytype_breakdown_select;
+          cp = btheme->common.anim.keyframe_breakdown_selected;
           break;
         case TH_KEYTYPE_JITTER:
-          cp = ts->keytype_jitter;
+          cp = btheme->common.anim.keyframe_jitter;
           break;
         case TH_KEYTYPE_JITTER_SELECT:
-          cp = ts->keytype_jitter_select;
+          cp = btheme->common.anim.keyframe_jitter_selected;
           break;
         case TH_KEYTYPE_MOVEHOLD:
-          cp = ts->keytype_movehold;
+          cp = btheme->common.anim.keyframe_moving_hold;
           break;
         case TH_KEYTYPE_MOVEHOLD_SELECT:
-          cp = ts->keytype_movehold_select;
+          cp = btheme->common.anim.keyframe_moving_hold_selected;
           break;
         case TH_KEYTYPE_GENERATED:
-          cp = ts->keytype_generated;
+          cp = btheme->common.anim.keyframe_generated;
           break;
         case TH_KEYTYPE_GENERATED_SELECT:
-          cp = ts->keytype_generated_select;
+          cp = btheme->common.anim.keyframe_generated_selected;
           break;
         case TH_KEYBORDER:
           cp = ts->keyborder;
@@ -539,9 +551,6 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           break;
         case TH_FRAME_AFTER:
           cp = ts->after_current_frame;
-          break;
-        case TH_TIME_KEYFRAME:
-          cp = ts->time_keyframe;
           break;
         case TH_TIME_GP_KEYFRAME:
           cp = ts->time_gp_keyframe;

@@ -144,7 +144,6 @@ static void curve_free_data(ID *id)
 static void curve_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   Curve *curve = reinterpret_cast<Curve *>(id);
-  const int flag = BKE_lib_query_foreachid_process_flags_get(data);
 
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, curve->bevobj, IDWALK_CB_NOP);
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, curve->taperobj, IDWALK_CB_NOP);
@@ -157,10 +156,6 @@ static void curve_foreach_id(ID *id, LibraryForeachIDData *data)
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, curve->vfontb, IDWALK_CB_USER);
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, curve->vfonti, IDWALK_CB_USER);
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, curve->vfontbi, IDWALK_CB_USER);
-
-  if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
-    BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data, curve->ipo, IDWALK_CB_USER);
-  }
 }
 
 static void curve_blend_write(BlendWriter *writer, ID *id, const void *id_address)
@@ -214,20 +209,40 @@ static void curve_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Curve *cu = (Curve *)id;
 
+  BLO_read_string(reader, &cu->str);
+
+  /* Old files don't have `cu->len_char32` set. */
+  if ((cu->len_char32 == 0) && (cu->str != nullptr) && (cu->str[0] != '\0')) {
+    size_t len_bytes;
+    size_t len_char32 = BLI_strlen_utf8_ex(cu->str, &len_bytes);
+    cu->len_char32 = len_char32;
+  }
   /* Protect against integer overflow vulnerability. */
   CLAMP(cu->len_char32, 0, INT_MAX - 4);
 
   BLO_read_pointer_array(reader, cu->totcol, (void **)&cu->mat);
 
-  BLO_read_string(reader, &cu->str);
   BLO_read_struct_array(reader, CharInfo, cu->len_char32 + 1, &cu->strinfo);
   BLO_read_struct_array(reader, TextBox, cu->totbox, &cu->tb);
 
-  if (cu->ob_type != OB_FONT) {
+  /* WARNING: for old files `cu->ob_type` won't be initialized,
+   * versioning detects fonts based on `cu->vfont` (which won't have run yet)
+   * so do the same here. */
+  const bool is_font = cu->ob_type ? (cu->ob_type == OB_FONT) : (cu->vfont != nullptr);
+
+  if (is_font == false) {
     BLO_read_struct_list(reader, Nurb, &(cu->nurb));
   }
   else {
     cu->nurb.first = cu->nurb.last = nullptr;
+
+    if (UNLIKELY(cu->str == nullptr)) {
+      cu->len_char32 = 0;
+      cu->str = MEM_calloc_arrayN<char>(cu->len_char32 + 1, "str new");
+    }
+    if (UNLIKELY(cu->strinfo == nullptr)) {
+      cu->strinfo = MEM_calloc_arrayN<CharInfo>(cu->len_char32 + 1, "strinfo new");
+    }
 
     TextBox *tb = MEM_calloc_arrayN<TextBox>(MAXTEXTBOX, "TextBoxread");
     if (cu->tb) {
@@ -255,7 +270,7 @@ static void curve_blend_read_data(BlendDataReader *reader, ID *id)
     BLO_read_struct_array(reader, BPoint, nu->pntsu * nu->pntsv, &nu->bp);
     BLO_read_float_array(reader, KNOTSU(nu), &nu->knotsu);
     BLO_read_float_array(reader, KNOTSV(nu), &nu->knotsv);
-    if (cu->ob_type != OB_FONT) {
+    if (is_font == false) {
       nu->charidx = 0;
     }
   }
@@ -286,6 +301,7 @@ IDTypeInfo IDType_ID_CU_LEGACY = {
     /*foreach_id*/ curve_foreach_id,
     /*foreach_cache*/ nullptr,
     /*foreach_path*/ nullptr,
+    /*foreach_working_space_color*/ nullptr,
     /*owner_pointer_get*/ nullptr,
 
     /*blend_write*/ curve_blend_write,
@@ -5089,14 +5105,8 @@ std::optional<blender::Bounds<blender::float3>> BKE_curve_minmax(const Curve *cu
    */
   if (is_font) {
     ListBase temp_nurb_lb{};
-    BKE_vfont_to_curve_ex(nullptr,
-                          const_cast<Curve *>(cu),
-                          FO_EDIT,
-                          &temp_nurb_lb,
-                          nullptr,
-                          nullptr,
-                          nullptr,
-                          nullptr);
+    BKE_vfont_to_curve_ex(
+        nullptr, *cu, FO_EDIT, &temp_nurb_lb, nullptr, nullptr, nullptr, nullptr, nullptr);
     BLI_SCOPED_DEFER([&]() { BKE_nurbList_free(&temp_nurb_lb); });
     return calc_nurblist_bounds(&temp_nurb_lb, false);
   }

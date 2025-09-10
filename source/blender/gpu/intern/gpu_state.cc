@@ -380,6 +380,8 @@ StateManager::StateManager()
   mutable_state.stencil_write_mask = 0x00;
   mutable_state.stencil_compare_mask = 0x00;
   mutable_state.stencil_reference = 0x00;
+
+  image_formats.fill(TextureWriteFormat::Invalid);
 }
 
 /** \} */

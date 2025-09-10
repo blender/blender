@@ -518,6 +518,11 @@ static bool bake_object_check(const Scene *scene,
       Image *image;
       ED_object_get_active_image(ob, mat_nr, &image, nullptr, &node, &ntree);
 
+      /* Don't bake to unselected images. */
+      if (node && !(node->flag & NODE_SELECT)) {
+        image = nullptr;
+      }
+
       if (image) {
 
         if (node) {
@@ -561,7 +566,8 @@ static bool bake_object_check(const Scene *scene,
         if (mat != nullptr) {
           BKE_reportf(reports,
                       RPT_INFO,
-                      "No active image found in material \"%s\" (%d) for object \"%s\"",
+                      "No active and selected image texture node found in material \"%s\" (%d) "
+                      "for object \"%s\"",
                       mat->id.name + 2,
                       i,
                       ob->id.name + 2);
@@ -756,7 +762,13 @@ static bool bake_targets_init_image_textures(const BakeAPIRender *bkr,
 
   for (int i = 0; i < materials_num; i++) {
     Image *image;
-    ED_object_get_active_image(ob, i + 1, &image, nullptr, nullptr, nullptr);
+    const bNode *node = nullptr;
+    ED_object_get_active_image(ob, i + 1, &image, nullptr, &node, nullptr);
+
+    /* Don't bake to unselected images. */
+    if (node && !(node->flag & NODE_SELECT)) {
+      image = nullptr;
+    }
 
     targets->material_to_image[i] = image;
 

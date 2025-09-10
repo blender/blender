@@ -4,6 +4,7 @@
 
 #include <cstring>
 
+#include "BLI_color.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.hh"
 
@@ -274,7 +275,7 @@ static IndexMask apply_row_filter(const SpreadsheetRowFilter &row_filter,
         return apply_filter_operation(
             column_data.typed<ColorGeometry4b>(),
             [&](const ColorGeometry4b cell_bytes) {
-              const ColorGeometry4f cell = cell_bytes.decode();
+              const ColorGeometry4f cell = color::decode(cell_bytes);
               const float4 cell_floats = {
                   float(cell.r), float(cell.g), float(cell.b), float(cell.a)};
               return math::distance_squared(value_floats, cell_floats) <= threshold_sq;
@@ -286,7 +287,7 @@ static IndexMask apply_row_filter(const SpreadsheetRowFilter &row_filter,
         return apply_filter_operation(
             column_data.typed<ColorGeometry4b>(),
             [&](const ColorGeometry4b cell_bytes) {
-              const ColorGeometry4f cell = cell_bytes.decode();
+              const ColorGeometry4f cell = color::decode(cell_bytes);
               return cell.r > value.r && cell.g > value.g && cell.b > value.b && cell.a > value.a;
             },
             prev_mask,
@@ -296,7 +297,7 @@ static IndexMask apply_row_filter(const SpreadsheetRowFilter &row_filter,
         return apply_filter_operation(
             column_data.typed<ColorGeometry4b>(),
             [&](const ColorGeometry4b cell_bytes) {
-              const ColorGeometry4f cell = cell_bytes.decode();
+              const ColorGeometry4f cell = color::decode(cell_bytes);
               return cell.r < value.r && cell.g < value.g && cell.b < value.b && cell.a < value.a;
             },
             prev_mask,

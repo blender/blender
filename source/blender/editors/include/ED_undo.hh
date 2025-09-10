@@ -148,3 +148,13 @@ MemFile *ED_undosys_stack_memfile_get_if_active(UndoStack *ustack);
  * (currently we only do that in #MemFileWriteData when writing a new step).
  */
 void ED_undosys_stack_memfile_id_changed_tag(UndoStack *ustack, ID *id);
+/**
+ * Get the total memory usage of all undo steps in the current undo stack.
+ *
+ * This function iterates through all undo steps and calculates their memory consumption.
+ * For sculpt undo steps, it uses the specialized sculpt memory calculation function.
+ * For other undo step types, it uses the generic `data_size` field.
+ *
+ * \return Total memory usage in bytes, or 0 if no undo stack is available.
+ */
+size_t ED_get_total_undo_memory();

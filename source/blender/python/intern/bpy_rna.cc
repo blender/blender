@@ -3079,7 +3079,6 @@ static PyObject *prop_subscript_ass_array_slice__as_seq_fast(PyObject *value, in
     PyErr_SetString(PyExc_ValueError,
                     "bpy_prop_array[slice] = value: "
                     "re-sizing bpy_struct element in arrays isn't supported");
-
     return nullptr;
   }
 
@@ -3230,6 +3229,12 @@ static int prop_subscript_ass_array_slice(PointerRNA *ptr,
     }
   }
 
+  /* Assigning as subset of the whole array.
+   *
+   * When false, the whole array is being assigned, otherwise the array be read into `values`,
+   * the subset updated & the whole array written back (since RNA doesn't support sub-ranges). */
+  const bool is_subset = start != 0 || stop != length || arrayoffset != 0 || arraydim != 0;
+
   PyObject **value_items = PySequence_Fast_ITEMS(value);
   switch (RNA_property_type(prop)) {
     case PROP_FLOAT: {
@@ -3238,8 +3243,7 @@ static int prop_subscript_ass_array_slice(PointerRNA *ptr,
           (length_flat > PYRNA_STACK_ARRAY) ?
               (values_alloc = PyMem_MALLOC(sizeof(*values) * length_flat)) :
               values_stack);
-      if (start != 0 || stop != length) {
-        /* Partial assignment? - need to get the array. */
+      if (is_subset) {
         RNA_property_float_get_array(ptr, prop, values);
       }
 
@@ -3267,8 +3271,7 @@ static int prop_subscript_ass_array_slice(PointerRNA *ptr,
           (length_flat > PYRNA_STACK_ARRAY) ?
               (values_alloc = PyMem_MALLOC(sizeof(*values) * length_flat)) :
               values_stack);
-      if (start != 0 || stop != length) {
-        /* Partial assignment? - need to get the array. */
+      if (is_subset) {
         RNA_property_int_get_array(ptr, prop, values);
       }
 
@@ -3297,8 +3300,7 @@ static int prop_subscript_ass_array_slice(PointerRNA *ptr,
               (values_alloc = PyMem_MALLOC(sizeof(bool) * length_flat)) :
               values_stack);
 
-      if (start != 0 || stop != length) {
-        /* Partial assignment? - need to get the array. */
+      if (is_subset) {
         RNA_property_boolean_get_array(ptr, prop, values);
       }
 
@@ -5183,7 +5185,7 @@ static PyObject *pyrna_struct_get_data(BPy_DummyPointerRNA *self, void * /*closu
 PyDoc_STRVAR(
     /* Wrap. */
     pyrna_struct_get_rna_type_doc,
-    "The property type for introspection");
+    "The property type for introspection.");
 static PyObject *pyrna_struct_get_rna_type(BPy_PropertyRNA *self, void * /*closure*/)
 {
   PointerRNA tptr = RNA_pointer_create_discrete(nullptr, &RNA_Property, self->prop);
@@ -8776,7 +8778,7 @@ static void bpy_types_module_free(void *self)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_types_module_doc,
-    "Access to internal Blender types");
+    "Access to internal Blender types.");
 static PyModuleDef bpy_types_module_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "bpy.types",
@@ -9013,14 +9015,12 @@ static int deferred_register_prop(StructRNA *srna, PyObject *key, PyObject *item
    * are for sure types, save some time with error */
   PyObject *py_func = static_cast<PyObject *>(((BPy_PropDeferred *)item)->fn);
   PyObject *py_kw = ((BPy_PropDeferred *)item)->kw;
-  PyObject *py_srna_cobject, *py_ret;
 
   /* Show the function name in errors to help give context. */
   BLI_assert(PyCFunction_CheckExact(py_func));
   PyMethodDef *py_func_method_def = ((PyCFunctionObject *)py_func)->m_ml;
   const char *func_name = py_func_method_def->ml_name;
 
-  PyObject *args_fake;
   const char *key_str = PyUnicode_AsUTF8(key);
 
   if (*key_str == '_') {
@@ -9032,13 +9032,6 @@ static int deferred_register_prop(StructRNA *srna, PyObject *key, PyObject *item
                  func_name);
     return -1;
   }
-  py_srna_cobject = PyCapsule_New(srna, nullptr, nullptr);
-
-  /* Not 100% nice :/, modifies the dict passed, should be ok. */
-  PyDict_SetItem(py_kw, bpy_intern_str_attr, key);
-
-  args_fake = PyTuple_New(1);
-  PyTuple_SET_ITEM(args_fake, 0, py_srna_cobject);
 
   PyObject *type = PyDict_GetItemString(py_kw, "type");
   StructRNA *type_srna = srna_from_self(type, "");
@@ -9062,7 +9055,15 @@ static int deferred_register_prop(StructRNA *srna, PyObject *key, PyObject *item
     }
   }
 
-  py_ret = PyObject_Call(py_func, args_fake, py_kw);
+  PyObject *py_srna_cobject = PyCapsule_New(srna, nullptr, nullptr);
+
+  /* Not 100% nice :/, modifies the dict passed, should be ok. */
+  PyDict_SetItem(py_kw, bpy_intern_str_attr, key);
+
+  PyObject *args_fake = PyTuple_New(1);
+  PyTuple_SET_ITEM(args_fake, 0, py_srna_cobject);
+
+  PyObject *py_ret = PyObject_Call(py_func, args_fake, py_kw);
 
   if (py_ret) {
     Py_DECREF(py_ret);

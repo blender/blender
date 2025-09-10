@@ -75,7 +75,10 @@ void VKDevice::deinit()
 
   dummy_buffer.free();
   samplers_.free();
+  GPU_SHADER_FREE_SAFE(vk_backbuffer_blit_sh_);
 
+  orphaned_data_render.deinit(*this);
+  orphaned_data.deinit(*this);
   {
     while (!thread_data_.is_empty()) {
       VKThreadData *thread_data = thread_data_.pop_last();
@@ -86,8 +89,6 @@ void VKDevice::deinit()
   pipelines.write_to_disk();
   pipelines.free_data();
   descriptor_set_layouts_.deinit();
-  orphaned_data_render.deinit(*this);
-  orphaned_data.deinit(*this);
   vmaDestroyPool(mem_allocator_, vma_pools.external_memory);
   vmaDestroyAllocator(mem_allocator_);
   mem_allocator_ = VK_NULL_HANDLE;
@@ -209,6 +210,11 @@ void VKDevice::init_physical_device_properties()
         vk_physical_device_driver_properties_.pNext;
     vk_physical_device_driver_properties_.pNext =
         &vk_physical_device_descriptor_buffer_properties_;
+  }
+
+  if (supports_extension(VK_KHR_MAINTENANCE_4_EXTENSION_NAME)) {
+    vk_physical_device_maintenance4_properties_.pNext = vk_physical_device_properties.pNext;
+    vk_physical_device_properties.pNext = &vk_physical_device_maintenance4_properties_;
   }
 
   vkGetPhysicalDeviceProperties2(vk_physical_device_, &vk_physical_device_properties);
@@ -508,9 +514,7 @@ std::string VKDevice::driver_version() const
 
 VKThreadData::VKThreadData(VKDevice &device, pthread_t thread_id) : thread_id(thread_id)
 {
-  for (VKResourcePool &resource_pool : resource_pools) {
-    resource_pool.init(device);
-  }
+  descriptor_pools.init(device);
 }
 
 /** \} */
@@ -646,11 +650,6 @@ void VKDevice::debug_print()
     const bool is_main = pthread_equal(thread_data->thread_id, pthread_self());
     os << "ThreadData" << (is_main ? " (main-thread)" : "") << ")\n";
     os << " Rendering_depth: " << thread_data->rendering_depth << "\n";
-    for (int resource_pool_index : IndexRange(thread_data->resource_pools.size())) {
-      const bool is_active = thread_data->resource_pool_index == resource_pool_index;
-      os << " Resource Pool (index=" << resource_pool_index << (is_active ? " active" : "")
-         << ")\n";
-    }
   }
   os << "Discard pool\n";
   debug_print(os, orphaned_data);

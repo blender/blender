@@ -7,6 +7,7 @@
  * \ingroup imbuf
  */
 
+#include "BLI_array.hh"
 #include "BLI_rect.h"
 #include "BLI_task.hh"
 
@@ -603,14 +604,16 @@ void IMB_buffer_byte_from_byte(uchar *rect_to,
 
 void IMB_byte_from_float(ImBuf *ibuf)
 {
-  /* verify we have a float buffer */
+  using namespace blender;
+
+  /* Nothing to do if there's no float buffer */
   if (ibuf->float_buffer.data == nullptr) {
     return;
   }
 
-  /* create byte rect if it didn't exist yet */
+  /* Allocate byte buffer if needed. */
   if (ibuf->byte_buffer.data == nullptr) {
-    if (IMB_alloc_byte_pixels(ibuf, false) == 0) {
+    if (!IMB_alloc_byte_pixels(ibuf, false)) {
       return;
     }
   }
@@ -623,33 +626,49 @@ void IMB_byte_from_float(ImBuf *ibuf)
                                   IMB_colormanagement_role_colorspace_name_get(
                                       COLOR_ROLE_DEFAULT_BYTE) :
                                   ibuf->byte_buffer.colorspace->name().c_str();
-
-  float *buffer = static_cast<float *>(MEM_dupallocN(ibuf->float_buffer.data));
-
-  /* first make float buffer in byte space */
   const bool predivide = IMB_alpha_affects_rgb(ibuf);
-  IMB_colormanagement_transform_float(
-      buffer, ibuf->x, ibuf->y, ibuf->channels, from_colorspace, to_colorspace, predivide);
-
-  /* convert from float's premul alpha to byte's straight alpha */
-  if (IMB_alpha_affects_rgb(ibuf)) {
-    IMB_unpremultiply_rect_float(buffer, ibuf->channels, ibuf->x, ibuf->y);
+  ColormanageProcessor *processor = STREQ(from_colorspace, to_colorspace) ?
+                                        nullptr :
+                                        IMB_colormanagement_colorspace_processor_new(
+                                            from_colorspace, to_colorspace);
+  if (processor && IMB_colormanagement_processor_is_noop(processor)) {
+    IMB_colormanagement_processor_free(processor);
+    processor = nullptr;
   }
 
-  /* convert float to byte */
-  IMB_buffer_byte_from_float(ibuf->byte_buffer.data,
-                             buffer,
-                             ibuf->channels,
-                             ibuf->dither,
-                             IB_PROFILE_SRGB,
-                             IB_PROFILE_SRGB,
-                             false,
-                             ibuf->x,
-                             ibuf->y,
-                             ibuf->x,
-                             ibuf->x);
-
-  MEM_freeN(buffer);
+  /* At 4 floats per pixel, this is 32KB of data, and fits into typical CPU L1 cache. */
+  static constexpr int grain_size = 2048;
+  threading::parallel_for(
+      IndexRange(IMB_get_pixel_count(ibuf)), grain_size, [&](const IndexRange range) {
+        /* Copy chunk of source float pixels into a local buffer. */
+        Array<float, grain_size * 4> buffer(range.size() * ibuf->channels);
+        buffer.as_mutable_span().copy_from(
+            Span(ibuf->float_buffer.data + range.first() * ibuf->channels, buffer.size()));
+        /* Unpremultiply alpha if needed. */
+        if (predivide) {
+          IMB_unpremultiply_rect_float(buffer.data(), ibuf->channels, range.size(), 1);
+        }
+        /* Convert to byte color space if needed. */
+        if (processor) {
+          IMB_colormanagement_processor_apply(
+              processor, buffer.data(), range.size(), 1, ibuf->channels, false);
+        }
+        /* Convert to bytes. */
+        IMB_buffer_byte_from_float(ibuf->byte_buffer.data + range.first() * 4,
+                                   buffer.data(),
+                                   ibuf->channels,
+                                   ibuf->dither,
+                                   IB_PROFILE_SRGB,
+                                   IB_PROFILE_SRGB,
+                                   false,
+                                   range.size(),
+                                   1,
+                                   ibuf->x,
+                                   ibuf->x);
+      });
+  if (processor != nullptr) {
+    IMB_colormanagement_processor_free(processor);
+  }
 
   /* ensure user flag is reset */
   ibuf->userflags &= ~IB_RECT_INVALID;
@@ -657,6 +676,8 @@ void IMB_byte_from_float(ImBuf *ibuf)
 
 void IMB_float_from_byte_ex(ImBuf *dst, const ImBuf *src, const rcti *region_to_update)
 {
+  using namespace blender;
+
   BLI_assert_msg(dst->float_buffer.data != nullptr,
                  "Destination buffer should have a float buffer assigned.");
   BLI_assert_msg(src->byte_buffer.data != nullptr,
@@ -673,64 +694,53 @@ void IMB_float_from_byte_ex(ImBuf *dst, const ImBuf *src, const rcti *region_to_
   BLI_assert_msg(region_to_update->ymax <= dst->y,
                  "Region to update should be clipped to the given buffers.");
 
-  float *rect_float = dst->float_buffer.data;
-  rect_float += (region_to_update->xmin + region_to_update->ymin * dst->x) * 4;
-  uchar *rect = src->byte_buffer.data;
-  rect += (region_to_update->xmin + region_to_update->ymin * dst->x) * 4;
   const int region_width = BLI_rcti_size_x(region_to_update);
   const int region_height = BLI_rcti_size_y(region_to_update);
+  const bool premultiply_alpha = IMB_alpha_affects_rgb(src);
 
-  /* Convert byte buffer to float buffer without color or alpha conversion. */
-  IMB_buffer_float_from_byte(rect_float,
-                             rect,
-                             IB_PROFILE_SRGB,
-                             IB_PROFILE_SRGB,
-                             false,
-                             region_width,
-                             region_height,
-                             src->x,
-                             dst->x);
+  threading::parallel_for(
+      IndexRange(region_to_update->ymin, region_height), 64, [&](const IndexRange y_range) {
+        const uchar *src_ptr = src->byte_buffer.data;
+        src_ptr += (region_to_update->xmin + y_range.first() * dst->x) * 4;
+        float *dst_ptr = dst->float_buffer.data;
+        dst_ptr += (region_to_update->xmin + y_range.first() * dst->x) * 4;
 
-  /* Perform color space conversion from rect color space to linear. */
-  float *float_ptr = rect_float;
-  for (int i = 0; i < region_height; i++) {
-    IMB_colormanagement_colorspace_to_scene_linear(
-        float_ptr, region_width, 1, dst->channels, src->byte_buffer.colorspace, false);
-    float_ptr += 4 * dst->x;
-  }
+        /* Convert byte -> float without color or alpha conversions. */
+        IMB_buffer_float_from_byte(dst_ptr,
+                                   src_ptr,
+                                   IB_PROFILE_SRGB,
+                                   IB_PROFILE_SRGB,
+                                   false,
+                                   region_width,
+                                   y_range.size(),
+                                   src->x,
+                                   dst->x);
 
-  /* Perform alpha conversion. */
-  if (IMB_alpha_affects_rgb(src)) {
-    float_ptr = rect_float;
-    for (int i = 0; i < region_height; i++) {
-      IMB_premultiply_rect_float(float_ptr, dst->channels, region_width, 1);
-      float_ptr += 4 * dst->x;
-    }
-  }
+        /* Convert to scene linear color space, and premultiply alpha if needed. */
+        float *dst_ptr_line = dst_ptr;
+        for ([[maybe_unused]] const int64_t y : y_range) {
+          IMB_colormanagement_colorspace_to_scene_linear(
+              dst_ptr_line, region_width, 1, dst->channels, src->byte_buffer.colorspace, false);
+          if (premultiply_alpha) {
+            IMB_premultiply_rect_float(dst_ptr_line, dst->channels, region_width, 1);
+          }
+          dst_ptr_line += 4 * dst->x;
+        }
+      });
 }
 
 void IMB_float_from_byte(ImBuf *ibuf)
 {
-  /* verify if we byte and float buffers */
+  /* Nothing to do if there's no byte buffer. */
   if (ibuf->byte_buffer.data == nullptr) {
     return;
   }
 
-  /* allocate float buffer outside of image buffer,
-   * so work-in-progress color space conversion doesn't
-   * interfere with other parts of blender
-   */
-  float *rect_float = ibuf->float_buffer.data;
-  if (rect_float == nullptr) {
-    rect_float = MEM_calloc_arrayN<float>(4 * IMB_get_pixel_count(ibuf), "IMB_float_from_byte");
-
-    if (rect_float == nullptr) {
+  /* Allocate float buffer if needed. */
+  if (ibuf->float_buffer.data == nullptr) {
+    if (!IMB_alloc_float_pixels(ibuf, 4, false)) {
       return;
     }
-
-    ibuf->channels = 4;
-
-    IMB_assign_float_buffer(ibuf, rect_float, IB_TAKE_OWNERSHIP);
   }
 
   rcti region_to_update;

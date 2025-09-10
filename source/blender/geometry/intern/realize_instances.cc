@@ -445,31 +445,6 @@ static bool skip_transform(const float4x4 &transform)
   return math::is_equal(transform, float4x4::identity(), 1e-6f);
 }
 
-static void copy_transformed_positions(const Span<float3> src,
-                                       const float4x4 &transform,
-                                       MutableSpan<float3> dst)
-{
-  if (skip_transform(transform)) {
-    dst.copy_from(src);
-  }
-  else {
-    threading::parallel_for(src.index_range(), 1024, [&](const IndexRange range) {
-      for (const int i : range) {
-        dst[i] = math::transform_point(transform, src[i]);
-      }
-    });
-  }
-}
-
-static void transform_positions(const float4x4 &transform, MutableSpan<float3> positions)
-{
-  threading::parallel_for(positions.index_range(), 1024, [&](const IndexRange range) {
-    for (const int i : range) {
-      positions[i] = math::transform_point(transform, positions[i]);
-    }
-  });
-}
-
 static void threaded_copy(const GSpan src, GMutableSpan dst)
 {
   BLI_assert(src.size() == dst.size());
@@ -936,7 +911,7 @@ static void gather_attribute_propagation_components_with_custom_depths(
   }
 }
 
-static Map<StringRef, AttributeDomainAndType> gather_attributes_to_propagate(
+static bke::GeometrySet::GatheredAttributes gather_attributes_to_propagate(
     const bke::GeometrySet &geometry,
     const bke::GeometryComponent::Type component_type,
     const RealizeInstancesOptions &options,
@@ -966,7 +941,7 @@ static Map<StringRef, AttributeDomainAndType> gather_attributes_to_propagate(
   }
 
   /* Actually gather the attributes to propagate from the found components. */
-  Map<StringRef, AttributeDomainAndType> attributes_to_propagate;
+  bke::GeometrySet::GatheredAttributes attributes_to_propagate;
   for (const bke::GeometryComponentPtr &component : components) {
     const bke::AttributeAccessor attributes = *component->attributes();
     attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
@@ -1005,16 +980,7 @@ static Map<StringRef, AttributeDomainAndType> gather_attributes_to_propagate(
           dst_domain = AttrDomain::Point;
         }
       }
-      auto add = [&](AttributeDomainAndType *kind) {
-        kind->domain = dst_domain;
-        kind->data_type = iter.data_type;
-      };
-      auto modify = [&](AttributeDomainAndType *kind) {
-        kind->domain = bke::attribute_domain_highest_priority({kind->domain, dst_domain});
-        kind->data_type = bke::attribute_data_type_highest_complexity(
-            {kind->data_type, iter.data_type});
-      };
-      attributes_to_propagate.add_or_modify(iter.name, add, modify);
+      attributes_to_propagate.add(iter.name, AttributeDomainAndType{dst_domain, iter.data_type});
     });
   }
 
@@ -1032,13 +998,15 @@ static OrderedAttributes gather_generic_instance_attributes_to_propagate(
     const RealizeInstancesOptions &options,
     const VariedDepthOptions &varied_depth_option)
 {
-  Map<StringRef, AttributeDomainAndType> attributes_to_propagate = gather_attributes_to_propagate(
+  bke::GeometrySet::GatheredAttributes attributes_to_propagate = gather_attributes_to_propagate(
       in_geometry_set, bke::GeometryComponent::Type::Instance, options, varied_depth_option);
-  attributes_to_propagate.pop_try("id");
   OrderedAttributes ordered_attributes;
-  for (const auto item : attributes_to_propagate.items()) {
-    ordered_attributes.ids.add_new(item.key);
-    ordered_attributes.kinds.append(item.value);
+  for (const int i : attributes_to_propagate.names.index_range()) {
+    if (attributes_to_propagate.names[i] == "id") {
+      continue;
+    }
+    ordered_attributes.ids.add_new(attributes_to_propagate.names[i]);
+    ordered_attributes.kinds.append(attributes_to_propagate.kinds[i]);
   }
   return ordered_attributes;
 }
@@ -1148,15 +1116,23 @@ static OrderedAttributes gather_generic_pointcloud_attributes_to_propagate(
     bool &r_create_radii,
     bool &r_create_id)
 {
-  Map<StringRef, AttributeDomainAndType> attributes_to_propagate = gather_attributes_to_propagate(
+  bke::GeometrySet::GatheredAttributes attributes_to_propagate = gather_attributes_to_propagate(
       in_geometry_set, bke::GeometryComponent::Type::PointCloud, options, varied_depth_option);
-  attributes_to_propagate.remove("position");
-  r_create_id = attributes_to_propagate.pop_try("id").has_value();
-  r_create_radii = attributes_to_propagate.pop_try("radius").has_value();
   OrderedAttributes ordered_attributes;
-  for (const auto item : attributes_to_propagate.items()) {
-    ordered_attributes.ids.add_new(item.key);
-    ordered_attributes.kinds.append(item.value);
+  for (const int i : attributes_to_propagate.names.index_range()) {
+    if (attributes_to_propagate.names[i] == "position") {
+      continue;
+    }
+    if (attributes_to_propagate.names[i] == "id") {
+      r_create_id = true;
+      continue;
+    }
+    if (attributes_to_propagate.names[i] == "radius") {
+      r_create_radii = true;
+      continue;
+    }
+    ordered_attributes.ids.add_new(attributes_to_propagate.names[i]);
+    ordered_attributes.kinds.append(attributes_to_propagate.kinds[i]);
   }
   return ordered_attributes;
 }
@@ -1236,7 +1212,7 @@ static void execute_realize_pointcloud_task(
   const PointCloud &pointcloud = *pointcloud_info.pointcloud;
   const IndexRange point_slice{task.start_index, pointcloud.totpoint};
 
-  copy_transformed_positions(
+  math::transform_points(
       pointcloud_info.positions, task.transform, all_dst_positions.slice(point_slice));
 
   /* Create point ids. */
@@ -1294,7 +1270,7 @@ static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &opti
     const RealizePointCloudTask &task = tasks.first();
     PointCloud *new_points = BKE_pointcloud_copy_for_eval(task.pointcloud_info->pointcloud);
     if (!skip_transform(task.transform)) {
-      transform_positions(task.transform, new_points->positions_for_write());
+      math::transform_points(task.transform, new_points->positions_for_write());
       new_points->tag_positions_changed();
     }
     add_instance_attributes_to_single_geometry(
@@ -1377,19 +1353,29 @@ static OrderedAttributes gather_generic_mesh_attributes_to_propagate(
     bool &r_create_id,
     bool &r_create_material_index)
 {
-  Map<StringRef, AttributeDomainAndType> attributes_to_propagate = gather_attributes_to_propagate(
+  bke::GeometrySet::GatheredAttributes attributes_to_propagate = gather_attributes_to_propagate(
       in_geometry_set, bke::GeometryComponent::Type::Mesh, options, varied_depth_option);
-  attributes_to_propagate.remove("position");
-  attributes_to_propagate.remove(".edge_verts");
-  attributes_to_propagate.remove(".corner_vert");
-  attributes_to_propagate.remove(".corner_edge");
-  attributes_to_propagate.remove("custom_normal");
-  r_create_id = attributes_to_propagate.pop_try("id").has_value();
-  r_create_material_index = attributes_to_propagate.pop_try("material_index").has_value();
   OrderedAttributes ordered_attributes;
-  for (const auto item : attributes_to_propagate.items()) {
-    ordered_attributes.ids.add_new(item.key);
-    ordered_attributes.kinds.append(item.value);
+  for (const int i : attributes_to_propagate.names.index_range()) {
+    if (ELEM(attributes_to_propagate.names[i],
+             "position",
+             ".edge_verts",
+             ".corner_vert",
+             ".corner_edge",
+             "custom_normal"))
+    {
+      continue;
+    }
+    if (attributes_to_propagate.names[i] == "id") {
+      r_create_id = true;
+      continue;
+    }
+    if (attributes_to_propagate.names[i] == "material_index") {
+      r_create_material_index = true;
+      continue;
+    }
+    ordered_attributes.ids.add_new(attributes_to_propagate.names[i]);
+    ordered_attributes.kinds.append(attributes_to_propagate.kinds[i]);
   }
   return ordered_attributes;
 }
@@ -1564,11 +1550,8 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
   MutableSpan<int> dst_corner_verts = all_dst_corner_verts.slice(dst_loop_range);
   MutableSpan<int> dst_corner_edges = all_dst_corner_edges.slice(dst_loop_range);
 
-  threading::parallel_for(src_positions.index_range(), 1024, [&](const IndexRange vert_range) {
-    for (const int i : vert_range) {
-      dst_positions[i] = math::transform_point(task.transform, src_positions[i]);
-    }
-  });
+  math::transform_points(src_positions, task.transform, dst_positions);
+
   threading::parallel_for(src_edges.index_range(), 1024, [&](const IndexRange edge_range) {
     for (const int i : edge_range) {
       dst_edges[i] = src_edges[i] + task.start_indices.vertex;
@@ -1864,18 +1847,25 @@ static OrderedAttributes gather_generic_curve_attributes_to_propagate(
     const VariedDepthOptions &varied_depth_option,
     bool &r_create_id)
 {
-  Map<StringRef, AttributeDomainAndType> attributes_to_propagate = gather_attributes_to_propagate(
+  bke::GeometrySet::GatheredAttributes attributes_to_propagate = gather_attributes_to_propagate(
       in_geometry_set, bke::GeometryComponent::Type::Curve, options, varied_depth_option);
-  attributes_to_propagate.remove("position");
-  attributes_to_propagate.remove("radius");
-  attributes_to_propagate.remove("handle_right");
-  attributes_to_propagate.remove("handle_left");
-  attributes_to_propagate.remove("custom_normal");
-  r_create_id = attributes_to_propagate.pop_try("id").has_value();
   OrderedAttributes ordered_attributes;
-  for (const auto item : attributes_to_propagate.items()) {
-    ordered_attributes.ids.add_new(item.key);
-    ordered_attributes.kinds.append(item.value);
+  for (const int i : attributes_to_propagate.names.index_range()) {
+    if (ELEM(attributes_to_propagate.names[i],
+             "position",
+             "radius",
+             "handle_left",
+             "handle_right",
+             "custom_normal"))
+    {
+      continue;
+    }
+    if (attributes_to_propagate.names[i] == "id") {
+      r_create_id = true;
+      continue;
+    }
+    ordered_attributes.ids.add_new(attributes_to_propagate.names[i]);
+    ordered_attributes.kinds.append(attributes_to_propagate.kinds[i]);
   }
   return ordered_attributes;
 }
@@ -1989,7 +1979,7 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
   const IndexRange dst_custom_knot_range{task.start_indices.custom_knot,
                                          curves.nurbs_custom_knots_by_curve().total_size()};
 
-  copy_transformed_positions(
+  math::transform_points(
       curves.positions(), task.transform, dst_curves.positions_for_write().slice(dst_point_range));
 
   /* Copy and transform handle positions if necessary. */
@@ -1998,14 +1988,14 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
       all_handle_left.slice(dst_point_range).fill(float3(0));
     }
     else {
-      copy_transformed_positions(
+      math::transform_points(
           curves_info.handle_left, task.transform, all_handle_left.slice(dst_point_range));
     }
     if (curves_info.handle_right.is_empty()) {
       all_handle_right.slice(dst_point_range).fill(float3(0));
     }
     else {
-      copy_transformed_positions(
+      math::transform_points(
           curves_info.handle_right, task.transform, all_handle_right.slice(dst_point_range));
     }
   }
@@ -2219,12 +2209,12 @@ static OrderedAttributes gather_generic_grease_pencil_attributes_to_propagate(
     const RealizeInstancesOptions &options,
     const VariedDepthOptions &varied_depth_options)
 {
-  Map<StringRef, AttributeDomainAndType> attributes_to_propagate = gather_attributes_to_propagate(
+  bke::GeometrySet::GatheredAttributes attributes_to_propagate = gather_attributes_to_propagate(
       in_geometry_set, bke::GeometryComponent::Type::GreasePencil, options, varied_depth_options);
   OrderedAttributes ordered_attributes;
-  for (auto &&item : attributes_to_propagate.items()) {
-    ordered_attributes.ids.add_new(item.key);
-    ordered_attributes.kinds.append(item.value);
+  for (const int i : attributes_to_propagate.names.index_range()) {
+    ordered_attributes.ids.add_new(attributes_to_propagate.names[i]);
+    ordered_attributes.kinds.append(attributes_to_propagate.kinds[i]);
   }
   return ordered_attributes;
 }

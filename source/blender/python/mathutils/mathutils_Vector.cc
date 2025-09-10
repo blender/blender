@@ -2550,25 +2550,25 @@ PyDoc_STRVAR(
     Vector_axis_x_doc,
     "Vector X axis.\n"
     "\n"
-    ":type: float");
+    ":type: float\n");
 PyDoc_STRVAR(
     /* Wrap. */
     Vector_axis_y_doc,
     "Vector Y axis.\n"
     "\n"
-    ":type: float");
+    ":type: float\n");
 PyDoc_STRVAR(
     /* Wrap. */
     Vector_axis_z_doc,
     "Vector Z axis (3D Vectors only).\n"
     "\n"
-    ":type: float");
+    ":type: float\n");
 PyDoc_STRVAR(
     /* Wrap. */
     Vector_axis_w_doc,
     "Vector W axis (4D Vectors only).\n"
     "\n"
-    ":type: float");
+    ":type: float\n");
 
 static PyObject *Vector_axis_get(VectorObject *self, void *type)
 {
@@ -2587,7 +2587,7 @@ PyDoc_STRVAR(
     Vector_length_doc,
     "Vector Length.\n"
     "\n"
-    ":type: float");
+    ":type: float\n");
 static PyObject *Vector_length_get(VectorObject *self, void * /*closure*/)
 {
   if (BaseMath_ReadCallback(self) == -1) {
@@ -2647,7 +2647,7 @@ PyDoc_STRVAR(
     Vector_length_squared_doc,
     "Vector length squared (v.dot(v)).\n"
     "\n"
-    ":type: float");
+    ":type: float\n");
 static PyObject *Vector_length_squared_get(VectorObject *self, void * /*closure*/)
 {
   if (BaseMath_ReadCallback(self) == -1) {
@@ -2662,7 +2662,6 @@ PyDoc_STRVAR(
     /* Wrap. */
     Vector_swizzle_doc,
     ":type: :class:`Vector`");
-
 /**
  * Python script used to make swizzle array:
  *

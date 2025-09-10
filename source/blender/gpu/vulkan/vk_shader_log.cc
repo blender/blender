@@ -16,13 +16,8 @@ const char *VKLogParser::parse_line(const char *source_combined,
                                     const char *log_line,
                                     GPULogItem &log_item)
 {
-  if (at_number(log_line)) {
-    /* Parse error file. */
-    const char *error_line_number_end;
-    log_item.cursor.source = parse_number(log_line, &error_line_number_end);
-    log_line = error_line_number_end;
-  }
-
+  /* Shader name. */
+  log_line = skip_name(log_line);
   log_line = skip_separators(log_line, ":");
 
   /* Parse error line & char numbers. */
@@ -30,6 +25,12 @@ const char *VKLogParser::parse_line(const char *source_combined,
     const char *error_line_number_end;
     log_item.cursor.row = parse_number(log_line, &error_line_number_end);
     log_line = error_line_number_end;
+    log_line = skip_separators(log_line, ": ");
+  }
+  if (at_number(log_line)) {
+    const char *number_end;
+    log_item.cursor.column = parse_number(log_line, &number_end);
+    log_line = number_end;
   }
   log_line = skip_separators(log_line, ": ");
 
@@ -37,24 +38,15 @@ const char *VKLogParser::parse_line(const char *source_combined,
   log_line = skip_severity_keyword(log_line, log_item);
   log_line = skip_separators(log_line, ": ");
 
-  /* TODO: Temporary fix for new line directive. Eventually this whole parsing should be done in
-   * C++ with regex for simplicity. */
-  if (log_item.cursor.source != -1) {
-    StringRefNull src(source_combined);
-    std::string needle = std::string("#line 1 ") + std::to_string(log_item.cursor.source);
-
-    int64_t file_start = src.find(needle);
-    if (file_start == -1) {
-      /* Can be generated code or wrapper code outside of the main sources. */
-      log_item.cursor.row = -1;
-    }
-    else {
-      StringRef previous_sources(source_combined, file_start);
-      for (const char c : previous_sources) {
-        if (c == '\n') {
-          log_item.cursor.row++;
-        }
-      }
+  if (log_item.cursor.row != -1) {
+    /* Get to the wanted line. */
+    size_t line_start_character = line_start_get(source_combined, log_item.cursor.row);
+    StringRef filename = filename_get(source_combined, line_start_character);
+    size_t line_number = source_line_get(source_combined, line_start_character);
+    log_item.cursor.file_name_and_error_line = std::string(filename) + ':' +
+                                               std::to_string(line_number);
+    if (log_item.cursor.column != -1) {
+      log_item.cursor.file_name_and_error_line += ':' + std::to_string(log_item.cursor.column + 1);
     }
   }
 

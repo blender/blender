@@ -10,6 +10,8 @@
 #include <cfloat>
 #include <cmath>
 
+#include "fmt/format.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_matrix.h"
@@ -29,6 +31,7 @@
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
+#include "BKE_global.hh"
 #include "BKE_image.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_types.hh"
@@ -160,7 +163,8 @@ static void paint_draw_smooth_cursor(bContext *C,
     const uint pos = GPU_vertformat_attr_add(
         immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-    immUniformColor4ubv(paint->paint_cursor_col);
+    const uchar4 color = uchar4(255, 100, 100, 128);
+    immUniformColor4ubv(color);
 
     immBegin(GPU_PRIM_LINES, 2);
     immVertex2fv(pos, blender::float2(xy));
@@ -177,12 +181,11 @@ static void paint_draw_smooth_cursor(bContext *C,
   }
 }
 
-static void paint_draw_line_cursor(bContext *C,
+static void paint_draw_line_cursor(bContext * /*C*/,
                                    const blender::int2 &xy,
                                    const blender::float2 & /*tilt*/,
                                    void *customdata)
 {
-  const Paint *paint = BKE_paint_get_active_from_context(C);
   PaintStroke *stroke = static_cast<PaintStroke *>(customdata);
 
   GPU_line_smooth(true);
@@ -197,9 +200,8 @@ static void paint_draw_line_cursor(bContext *C,
   immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
   immUniform1i("colors_len", 2); /* "advanced" mode */
-  const float alpha = float(paint->paint_cursor_col[3]) / 255.0f;
-  immUniform4f("color", 0.0f, 0.0f, 0.0f, alpha);
-  immUniform4f("color2", 1.0f, 1.0f, 1.0f, alpha);
+  immUniform4f("color", 0.0f, 0.0f, 0.0f, 0.5);
+  immUniform4f("color2", 1.0f, 1.0f, 1.0f, 0.5);
   immUniform1f("dash_width", 6.0f);
   immUniform1f("udash_factor", 0.5f);
 
@@ -338,6 +340,9 @@ bool paint_brush_update(bContext *C,
     copy_v2_v2(paint_runtime.tex_mouse, mouse);
     copy_v2_v2(paint_runtime.mask_tex_mouse, mouse);
     stroke->cached_size_pressure = pressure;
+    BKE_curvemapping_init(brush.curve_size);
+    BKE_curvemapping_init(brush.curve_strength);
+    BKE_curvemapping_init(brush.curve_jitter);
 
     stroke->brush_init = true;
   }
@@ -345,7 +350,7 @@ bool paint_brush_update(bContext *C,
   if (paint_supports_dynamic_size(brush, mode)) {
     copy_v2_v2(paint_runtime.tex_mouse, mouse);
     copy_v2_v2(paint_runtime.mask_tex_mouse, mouse);
-    stroke->cached_size_pressure = pressure;
+    stroke->cached_size_pressure = BKE_curvemapping_evaluateF(brush.curve_size, 0, pressure);
   }
 
   /* Truly temporary data that isn't stored in properties */
@@ -353,8 +358,8 @@ bool paint_brush_update(bContext *C,
   paint_runtime.stroke_active = true;
   paint_runtime.size_pressure_value = stroke->cached_size_pressure;
 
-  paint_runtime.pixel_radius = BKE_brush_size_get(paint, &brush);
-  paint_runtime.initial_pixel_radius = BKE_brush_size_get(paint, &brush);
+  paint_runtime.pixel_radius = BKE_brush_radius_get(paint, &brush);
+  paint_runtime.initial_pixel_radius = BKE_brush_radius_get(paint, &brush);
 
   if (BKE_brush_use_size_pressure(&brush) && paint_supports_dynamic_size(brush, mode)) {
     paint_runtime.pixel_radius *= stroke->cached_size_pressure;
@@ -530,7 +535,7 @@ void paint_stroke_jitter_pos(const PaintStroke &stroke,
     float factor = stroke.zoom_2d;
 
     if (brush.flag & BRUSH_JITTER_PRESSURE) {
-      factor *= pressure;
+      factor *= BKE_curvemapping_evaluateF(brush.curve_jitter, 0, pressure);
     }
 
     BKE_brush_jitter_pos(*stroke.paint, brush, mval, r_mouse_out);
@@ -701,7 +706,7 @@ static float paint_space_stroke_spacing(const bContext *C,
   else {
     /* brushes can have a minimum size of 1.0 but with pressure it can be smaller than a pixel
      * causing very high step sizes, hanging blender #32381. */
-    size_clamp = max_ff(1.0f, BKE_brush_size_get(stroke->paint, stroke->brush) * size_pressure);
+    size_clamp = max_ff(1.0f, BKE_brush_radius_get(stroke->paint, stroke->brush) * size_pressure);
   }
 
   float spacing = stroke->brush->spacing;
@@ -891,6 +896,11 @@ static int paint_space_stroke(bContext *C,
   return count;
 }
 
+static bool print_pressure_status_enabled()
+{
+  return (G.debug_value == 887);
+}
+
 /**** Public API ****/
 
 PaintStroke *paint_stroke_new(bContext *C,
@@ -975,7 +985,7 @@ PaintStroke *paint_stroke_new(bContext *C,
 
   BKE_paint_set_overlay_override(eOverlayFlags(br->overlay_flags));
 
-  paint_runtime->start_pixel_radius = BKE_brush_size_get(stroke->paint, br);
+  paint_runtime->start_pixel_radius = BKE_brush_radius_get(stroke->paint, br);
 
   return stroke;
 }
@@ -1009,6 +1019,9 @@ void paint_stroke_free(bContext *C, wmOperator * /*op*/, PaintStroke *stroke)
 
 static void stroke_done(bContext *C, wmOperator *op, PaintStroke *stroke)
 {
+  if (print_pressure_status_enabled()) {
+    ED_workspace_status_text(C, nullptr);
+  }
   bke::PaintRuntime *paint_runtime = stroke->paint->runtime;
 
   /* reset rotation here to avoid doing so in cursor display */
@@ -1478,6 +1491,11 @@ wmOperatorStatus paint_stroke_modal(bContext *C,
   const float tablet_pressure = WM_event_tablet_data(event, &stroke->pen_flip, nullptr);
   float pressure = ((br->flag & (BRUSH_LINE | BRUSH_ANCHORED | BRUSH_DRAG_DOT)) ? 1.0f :
                                                                                   tablet_pressure);
+
+  if (print_pressure_status_enabled() && WM_event_is_tablet(event)) {
+    std::string msg = fmt::format("Tablet Pressure: {:.4f}", pressure);
+    ED_workspace_status_text(C, msg.c_str());
+  }
 
   /* When processing a timer event the pressure from the event is 0, so use the last valid
    * pressure. */

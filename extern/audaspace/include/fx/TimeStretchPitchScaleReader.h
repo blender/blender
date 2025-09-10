@@ -39,16 +39,6 @@ class AUD_API TimeStretchPitchScaleReader : public EffectReader
 {
 private:
 	/**
-	 * The current position.
-	 */
-	int m_position;
-
-	/**
-	 * Whether the reader has reached the end of stream.
-	 */
-	bool m_finishedReader;
-
-	/**
 	 * The input buffer for the reader.
 	 */
 	Buffer m_buffer;
@@ -64,11 +54,6 @@ private:
 	std::vector<sample_t*> m_channelData;
 
 	/**
-	 * Rubberband stretcher.
-	 */
-	std::unique_ptr<RubberBandStretcher> m_stretcher;
-
-	/**
 	 * Number of samples that need to be dropped at the beginning or after a seek.
 	 */
 	int m_samplesToDrop;
@@ -77,10 +62,26 @@ private:
 	TimeStretchPitchScaleReader(const TimeStretchPitchScaleReader&) = delete;
 	TimeStretchPitchScaleReader& operator=(const TimeStretchPitchScaleReader&) = delete;
 
+protected:
 	/**
-	 * Feeds the number of required zeo samples to the stretcher and queries the amount of samples to drop.
+	 * Feeds the number of required zero samples to the stretcher and queries the amount of samples to drop.
 	 */
 	void reset();
+
+	/**
+	 * Rubberband stretcher.
+	 */
+	std::unique_ptr<RubberBandStretcher> m_stretcher;
+
+	/**
+	 * The current position.
+	 */
+	int m_position;
+
+	/**
+	 * Whether the reader has reached the end of stream.
+	 */
+	bool m_finishedReader;
 
 public:
 	/**

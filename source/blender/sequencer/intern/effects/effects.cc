@@ -156,7 +156,7 @@ void get_default_fac_fade(const Scene *scene, const Strip *strip, float timeline
   *fac = math::clamp(*fac, 0.0f, 1.0f);
 }
 
-EffectHandle effect_handle_get(int strip_type)
+EffectHandle effect_handle_get(StripType strip_type)
 {
   EffectHandle rval;
 
@@ -184,26 +184,6 @@ EffectHandle effect_handle_get(int strip_type)
       break;
     case STRIP_TYPE_MUL:
       mul_effect_get_handle(rval);
-      break;
-    case STRIP_TYPE_SCREEN:
-    case STRIP_TYPE_OVERLAY:
-    case STRIP_TYPE_COLOR_BURN:
-    case STRIP_TYPE_LINEAR_BURN:
-    case STRIP_TYPE_DARKEN:
-    case STRIP_TYPE_LIGHTEN:
-    case STRIP_TYPE_DODGE:
-    case STRIP_TYPE_SOFT_LIGHT:
-    case STRIP_TYPE_HARD_LIGHT:
-    case STRIP_TYPE_PIN_LIGHT:
-    case STRIP_TYPE_LIN_LIGHT:
-    case STRIP_TYPE_VIVID_LIGHT:
-    case STRIP_TYPE_BLEND_COLOR:
-    case STRIP_TYPE_HUE:
-    case STRIP_TYPE_SATURATION:
-    case STRIP_TYPE_VALUE:
-    case STRIP_TYPE_DIFFERENCE:
-    case STRIP_TYPE_EXCLUSION:
-      blend_mode_effect_get_handle(rval);
       break;
     case STRIP_TYPE_COLORMIX:
       color_mix_effect_get_handle(rval);
@@ -241,6 +221,70 @@ EffectHandle effect_handle_get(int strip_type)
     case STRIP_TYPE_TEXT:
       text_effect_get_handle(rval);
       break;
+    default:
+      break;
+  }
+
+  return rval;
+}
+
+static EffectHandle effect_handle_for_blend_mode_get(StripBlendMode blend)
+{
+  EffectHandle rval;
+
+  rval.init = init_noop;
+  rval.num_inputs = num_inputs_default;
+  rval.load = load_noop;
+  rval.free = free_noop;
+  rval.early_out = early_out_noop;
+  rval.get_default_fac = get_default_fac_noop;
+  rval.execute = nullptr;
+  rval.copy = nullptr;
+
+  switch (blend) {
+    case STRIP_BLEND_CROSS:
+      cross_effect_get_handle(rval);
+      break;
+    case STRIP_BLEND_ADD:
+      add_effect_get_handle(rval);
+      break;
+    case STRIP_BLEND_SUB:
+      sub_effect_get_handle(rval);
+      break;
+    case STRIP_BLEND_ALPHAOVER:
+      alpha_over_effect_get_handle(rval);
+      break;
+    case STRIP_BLEND_ALPHAUNDER:
+      alpha_under_effect_get_handle(rval);
+      break;
+    case STRIP_BLEND_GAMCROSS:
+      gamma_cross_effect_get_handle(rval);
+      break;
+    case STRIP_BLEND_MUL:
+      mul_effect_get_handle(rval);
+      break;
+    case STRIP_BLEND_SCREEN:
+    case STRIP_BLEND_LIGHTEN:
+    case STRIP_BLEND_DODGE:
+    case STRIP_BLEND_DARKEN:
+    case STRIP_BLEND_COLOR_BURN:
+    case STRIP_BLEND_LINEAR_BURN:
+    case STRIP_BLEND_OVERLAY:
+    case STRIP_BLEND_HARD_LIGHT:
+    case STRIP_BLEND_SOFT_LIGHT:
+    case STRIP_BLEND_PIN_LIGHT:
+    case STRIP_BLEND_LIN_LIGHT:
+    case STRIP_BLEND_VIVID_LIGHT:
+    case STRIP_BLEND_HUE:
+    case STRIP_BLEND_SATURATION:
+    case STRIP_BLEND_VALUE:
+    case STRIP_BLEND_BLEND_COLOR:
+    case STRIP_BLEND_DIFFERENCE:
+    case STRIP_BLEND_EXCLUSION:
+      blend_mode_effect_get_handle(rval);
+      break;
+    default:
+      break;
   }
 
   return rval;
@@ -250,8 +294,8 @@ EffectHandle strip_effect_handle_get(Strip *strip)
 {
   EffectHandle rval = {};
 
-  if (strip->type & STRIP_TYPE_EFFECT) {
-    rval = effect_handle_get(strip->type);
+  if (strip->is_effect()) {
+    rval = effect_handle_get(StripType(strip->type));
     if ((strip->runtime.flag & STRIP_EFFECT_NOT_LOADED) != 0) {
       rval.load(strip);
       strip->runtime.flag &= ~STRIP_EFFECT_NOT_LOADED;
@@ -261,18 +305,18 @@ EffectHandle strip_effect_handle_get(Strip *strip)
   return rval;
 }
 
-EffectHandle strip_effect_get_sequence_blend(Strip *strip)
+EffectHandle strip_blend_mode_handle_get(Strip *strip)
 {
   EffectHandle rval = {};
 
-  if (strip->blend_mode != 0) {
+  if (strip->blend_mode != STRIP_BLEND_REPLACE) {
     if ((strip->runtime.flag & STRIP_EFFECT_NOT_LOADED) != 0) {
       /* load the effect first */
-      rval = effect_handle_get(strip->type);
+      rval = effect_handle_get(StripType(strip->type));
       rval.load(strip);
     }
 
-    rval = effect_handle_get(strip->blend_mode);
+    rval = effect_handle_for_blend_mode_get(StripBlendMode(strip->blend_mode));
     if ((strip->runtime.flag & STRIP_EFFECT_NOT_LOADED) != 0) {
       /* now load the blend and unset unloaded flag */
       rval.load(strip);
@@ -285,13 +329,11 @@ EffectHandle strip_effect_get_sequence_blend(Strip *strip)
 
 int effect_get_num_inputs(int strip_type)
 {
-  EffectHandle rval = effect_handle_get(strip_type);
-
-  int count = rval.num_inputs();
-  if (rval.execute) {
-    return count;
+  EffectHandle rval = effect_handle_get(StripType(strip_type));
+  if (rval.execute == nullptr) {
+    return 0;
   }
-  return 0;
+  return rval.num_inputs();
 }
 
 }  // namespace blender::seq

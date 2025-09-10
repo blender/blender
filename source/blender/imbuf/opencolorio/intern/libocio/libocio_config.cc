@@ -263,12 +263,13 @@ float3x3 LibOCIOConfig::get_xyz_to_scene_linear_matrix() const
 
 const char *LibOCIOConfig::get_color_space_from_filepath(const char *filepath) const
 {
-  /* If Blender specific default_byte or default_float roles exist, don't use the default rule
-   * which can't distinguish between these two cases automatically. */
-  if (ocio_config_->filepathOnlyMatchesDefaultRule(filepath) &&
-      (ocio_config_->hasRole(OCIO_ROLE_DEFAULT_BYTE) ||
-       ocio_config_->hasRole(OCIO_ROLE_DEFAULT_FLOAT)))
-  {
+  /* Ignore the default rule, same behavior as for example OpenImageIO and xStudio.
+   * The ACES studio config has only a default rule set to ACES2065-1, which works
+   * poorly if we assign it to every file as default.
+   *
+   * It's unclear if the default rule should be used for anything, and if not why
+   * it even exists. */
+  if (ocio_config_->filepathOnlyMatchesDefaultRule(filepath)) {
     return nullptr;
   }
 
@@ -315,9 +316,11 @@ const ColorSpace *LibOCIOConfig::get_color_space(const StringRefNull name) const
     }
   }
 
-  report_error(
-      fmt::format("Invalid OpenColorIO configuration: color space {} not found on Blender side",
-                  ocio_color_space->getName()));
+  if (!ocio_config_->isInactiveColorSpace(ocio_color_space->getName())) {
+    report_error(
+        fmt::format("Invalid OpenColorIO configuration: color space {} not found on Blender side",
+                    ocio_color_space->getName()));
+  }
 
   return nullptr;
 }
@@ -342,6 +345,53 @@ const ColorSpace *LibOCIOConfig::get_sorted_color_space_by_index(const int index
     return nullptr;
   }
   return get_color_space_by_index(sorted_color_space_index_[index]);
+}
+
+const ColorSpace *LibOCIOConfig::get_color_space_by_interop_id(StringRefNull interop_id) const
+{
+  for (const LibOCIOColorSpace &color_space : color_spaces_) {
+    if (color_space.interop_id() == interop_id) {
+      return &color_space;
+    }
+  }
+
+  for (const LibOCIOColorSpace &color_space : inactive_color_spaces_) {
+    if (color_space.interop_id() == interop_id) {
+      return &color_space;
+    }
+  }
+
+  return nullptr;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Working space API
+ * \{ */
+
+void LibOCIOConfig::set_scene_linear_role(StringRefNull name)
+{
+  if (ocio_config_->getRoleColorSpace(OCIO_NAMESPACE::ROLE_SCENE_LINEAR) == name) {
+    return;
+  }
+
+  /* This is a bad const cast, but seems to work ok, and reloading the whole config is
+   * something we don't support yet. When we do this could be changed. */
+  OCIO_NAMESPACE::Config *mutable_ocio_config = const_cast<OCIO_NAMESPACE::Config *>(
+      ocio_config_.get());
+  mutable_ocio_config->setRole(OCIO_NAMESPACE::ROLE_SCENE_LINEAR, name.c_str());
+
+  for (LibOCIOColorSpace &color_space : color_spaces_) {
+    color_space.clear_caches();
+  }
+  for (LibOCIOColorSpace &color_space : inactive_color_spaces_) {
+    color_space.clear_caches();
+  }
+  for (LibOCIODisplay &display : displays_) {
+    display.clear_caches();
+  }
+  gpu_shader_binder_.clear_caches();
 }
 
 /** \} */

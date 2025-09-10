@@ -13,12 +13,16 @@
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
 
+#include "gpu_shader_create_info.hh"
 #include "gpu_shader_interface.hh"
 
 namespace blender::gpu {
 
 /* TODO(fclem): add unique ID for debugging. */
-ShaderInterface::ShaderInterface() = default;
+ShaderInterface::ShaderInterface()
+{
+  image_formats_.fill(TextureWriteFormat::Invalid);
+}
 
 ShaderInterface::~ShaderInterface()
 {
@@ -66,6 +70,25 @@ void ShaderInterface::sort_inputs()
   offset += ssbo_len_;
   sort_input_list(MutableSpan<ShaderInput>(inputs_ + offset, constant_len_));
   offset += constant_len_;
+}
+
+void ShaderInterface::set_image_formats_from_info(const shader::ShaderCreateInfo &info)
+{
+  for (const shader::ShaderCreateInfo::Resource &res : info.pass_resources_) {
+    if (res.bind_type == shader::ShaderCreateInfo::Resource::BindType::IMAGE) {
+      image_formats_[res.slot] = TextureWriteFormat(res.image.format);
+    }
+  }
+  for (const shader::ShaderCreateInfo::Resource &res : info.batch_resources_) {
+    if (res.bind_type == shader::ShaderCreateInfo::Resource::BindType::IMAGE) {
+      image_formats_[res.slot] = TextureWriteFormat(res.image.format);
+    }
+  }
+  for (const shader::ShaderCreateInfo::Resource &res : info.geometry_resources_) {
+    if (res.bind_type == shader::ShaderCreateInfo::Resource::BindType::IMAGE) {
+      image_formats_[res.slot] = TextureWriteFormat(res.image.format);
+    }
+  }
 }
 
 void ShaderInterface::debug_print() const

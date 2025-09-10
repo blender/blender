@@ -26,31 +26,6 @@
  * see #CLG_type_filter_include, #CLG_type_filter_exclude
  *
  * There is currently no functionality to remove a category once it's created.
- *
- * Severity
- * --------
- *
- * - `INFO`: Simply log events, uses verbosity levels to control how much information to show.
- * - `WARN`: General warnings (which aren't necessary to show to users).
- * - `ERROR`: An error we can recover from, should not happen.
- * - `FATAL`: Similar to assert. This logs the message, then a stack trace and abort.
- * Verbosity Level
- * ---------------
- *
- * Usage:
- *
- * - 0: Always show (used for warnings, errors).
- *   Should never get in the way or become annoying.
- *
- * - 1: Top level module actions (eg: load a file, create a new window .. etc).
- *
- * - 2: Actions within a module (steps which compose an action, but don't flood output).
- *   Running a tool, full data recalculation.
- *
- * - 3: Detailed actions which may be of interest when debugging internal logic of a module
- *   These *may* flood the log with details.
- *
- * - 4+: May be used for more details than 3, should be avoided but not prevented.
  */
 
 #pragma once
@@ -75,12 +50,18 @@
 struct CLogContext;
 
 enum CLG_Level {
-  CLG_LEVEL_FATAL = 0, /* Fatal errors */
-  CLG_LEVEL_ERROR = 1, /* Errors */
-  CLG_LEVEL_WARN = 2,  /* Warnings */
-  CLG_LEVEL_INFO = 3,  /* Information about devices, files, configuration, user operations */
-  CLG_LEVEL_DEBUG = 4, /* Debugging information for developers */
-  CLG_LEVEL_TRACE = 5, /* Very verbose code execution tracing */
+  /* Similar to assert. This logs the message, then a stack trace and abort. */
+  CLG_LEVEL_FATAL = 0,
+  /* An error we can recover from, should not happen. */
+  CLG_LEVEL_ERROR = 1,
+  /* General warnings (which aren't necessary to show to users). */
+  CLG_LEVEL_WARN = 2,
+  /* Information about devices, files, configuration, user operations. */
+  CLG_LEVEL_INFO = 3,
+  /* Debugging information for developers. */
+  CLG_LEVEL_DEBUG = 4,
+  /* Very verbose code execution tracing. */
+  CLG_LEVEL_TRACE = 5,
 };
 #define CLG_LEVEL_LEN (CLG_LEVEL_TRACE + 1)
 

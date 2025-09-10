@@ -18,6 +18,7 @@
 #include "node_util.hh"  // IWYU pragma: export
 
 #include "NOD_composite.hh"            // IWYU pragma: export
+#include "NOD_menu_value.hh"           // IWYU pragma: export
 #include "NOD_register.hh"             // IWYU pragma: export
 #include "NOD_socket.hh"               // IWYU pragma: export
 #include "NOD_socket_declarations.hh"  // IWYU pragma: export

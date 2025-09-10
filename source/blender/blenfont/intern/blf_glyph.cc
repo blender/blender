@@ -64,7 +64,7 @@
 /**
  * Convert a floating point value to a FreeType 16.16 fixed point value.
  */
-static FT_Fixed to_16dot16(double val)
+static FT_Fixed to_16dot16(const double val)
 {
   return (FT_Fixed)lround(val * 65536.0);
 }
@@ -72,7 +72,7 @@ static FT_Fixed to_16dot16(double val)
 /**
  * Convert a floating point value to a FreeType 16.16 fixed point value.
  */
-static float from_16dot16(FT_Fixed value)
+static float from_16dot16(const FT_Fixed value)
 {
   return float(value) / 65536.0f;
 }
@@ -171,8 +171,8 @@ void blf_glyph_cache_clear(FontBLF *font)
  * \return nullptr if not found.
  */
 static GlyphBLF *blf_glyph_cache_find_glyph(const GlyphCacheBLF *gc,
-                                            uint charcode,
-                                            uint8_t subpixel)
+                                            const uint charcode,
+                                            const uint8_t subpixel)
 {
   const std::unique_ptr<GlyphBLF> *ptr = gc->glyphs.lookup_ptr_as(
       GlyphCacheKey{charcode, subpixel});
@@ -195,7 +195,7 @@ static GlyphBLF *blf_glyph_cache_find_glyph(const GlyphCacheBLF *gc,
  * heavy."
  * https://www.puredevsoftware.com/blog/2019/01/22/sub-pixel-gamma-correct-font-rendering/
  */
-static uchar blf_glyph_gamma(uchar c)
+static uchar blf_glyph_gamma(const uchar c)
 {
   /* The following is `char(powf(c / 256.0f, 1.0f / 1.43f) * 256.0f)`. */
   static const uchar gamma[256] = {
@@ -222,8 +222,11 @@ static uchar blf_glyph_gamma(uchar c)
 /**
  * Add a rendered glyph to a cache.
  */
-static GlyphBLF *blf_glyph_cache_add_glyph(
-    GlyphCacheBLF *gc, FT_GlyphSlot glyph, uint charcode, FT_UInt glyph_index, uint8_t subpixel)
+static GlyphBLF *blf_glyph_cache_add_glyph(GlyphCacheBLF *gc,
+                                           const FT_GlyphSlot glyph,
+                                           const uint charcode,
+                                           const FT_UInt glyph_index,
+                                           const uint8_t subpixel)
 {
   std::unique_ptr<GlyphBLF> g = std::make_unique<GlyphBLF>();
   g->c = charcode;
@@ -338,7 +341,7 @@ static GlyphBLF *blf_glyph_cache_add_glyph(
 }
 
 #ifndef WITH_HEADLESS
-static GlyphBLF *blf_glyph_cache_add_blank(GlyphCacheBLF *gc, uint charcode)
+static GlyphBLF *blf_glyph_cache_add_blank(GlyphCacheBLF *gc, const uint charcode)
 {
   /* Add an empty GlyphBLF to the cache and return it. With
    * zero dimensions it will be skipped by blf_glyph_draw. */
@@ -352,8 +355,8 @@ static GlyphBLF *blf_glyph_cache_add_blank(GlyphCacheBLF *gc, uint charcode)
 
 static GlyphBLF *blf_glyph_cache_add_svg(
     GlyphCacheBLF *gc,
-    uint charcode,
-    bool color,
+    const uint charcode,
+    const bool color,
     blender::FunctionRef<void(std::string &)> edit_source_cb = nullptr)
 {
   std::string svg_source = blf_get_icon_svg(int(charcode) - BLF_ICON_OFFSET);
@@ -751,7 +754,7 @@ static const UnicodeBlock *blf_charcode_to_unicode_block(const uint charcode)
   return nullptr;
 }
 
-static int blf_charcode_to_coverage_bit(uint charcode)
+static int blf_charcode_to_coverage_bit(const uint charcode)
 {
   int coverage_bit = -1;
   const UnicodeBlock *block = blf_charcode_to_unicode_block(charcode);
@@ -768,7 +771,7 @@ static int blf_charcode_to_coverage_bit(uint charcode)
   return coverage_bit;
 }
 
-static bool blf_font_has_coverage_bit(const FontBLF *font, int coverage_bit)
+static bool blf_font_has_coverage_bit(const FontBLF *font, const int coverage_bit)
 {
   if (coverage_bit < 0) {
     return false;
@@ -842,7 +845,9 @@ static FT_UInt blf_glyph_index_from_charcode(FontBLF **font, const uint charcode
 /**
  * Load a glyph into the glyph slot of a font's face object.
  */
-static FT_GlyphSlot blf_glyph_load(FontBLF *font, FT_UInt glyph_index, bool outline_only)
+static FT_GlyphSlot blf_glyph_load(FontBLF *font,
+                                   const FT_UInt glyph_index,
+                                   const bool outline_only)
 {
   int load_flags;
 
@@ -1465,20 +1470,18 @@ static void blf_texture_draw(const GlyphBLF *g,
                              const int x2,
                              const int y2)
 {
+  using namespace blender;
+  BLI_assert(size_t(g_batch.glyph_len) < ARRAY_SIZE(g_batch.glyph_data));
+  GlyphQuad &glyph_data = g_batch.glyph_data[g_batch.glyph_len++];
   /* One vertex per glyph, instancing expands it into a quad. */
-  copy_v4_fl4(static_cast<float *>(GPU_vertbuf_raw_step(&g_batch.pos_step)),
-              float(x1 + g_batch.ofs[0]),
-              float(y1 + g_batch.ofs[1]),
-              float(x2 + g_batch.ofs[0]),
-              float(y2 + g_batch.ofs[1]));
-  copy_v4_v4_uchar(static_cast<uchar *>(GPU_vertbuf_raw_step(&g_batch.col_step)), color);
-  copy_v2_v2_int(static_cast<int *>(GPU_vertbuf_raw_step(&g_batch.glyph_size_step)), g->dims);
-  *((int *)GPU_vertbuf_raw_step(&g_batch.offset_step)) = g->offset;
+  glyph_data.position = int4(
+      x1 + g_batch.ofs[0], y1 + g_batch.ofs[1], x2 + g_batch.ofs[0], y2 + g_batch.ofs[1]);
+  glyph_data.glyph_color = float4(UNPACK4(color)) / 255.0f;
+  glyph_data.glyph_size = int2(g->dims);
+  glyph_data.offset = g->offset;
   /* Glyph flags packs color channel count and shadow type. */
-  uint32_t flags = uint32_t(shadow) | (uint32_t(g->num_channels) << 4);
-  *((uint32_t *)GPU_vertbuf_raw_step(&g_batch.glyph_flags_step)) = flags;
+  glyph_data.flags = uint32_t(shadow) | (uint32_t(g->num_channels) << 4);
 
-  g_batch.glyph_len++;
   /* Flush cache if it's full. */
   if (g_batch.glyph_len == BLF_BATCH_DRAW_LEN_MAX) {
     blf_batch_draw();

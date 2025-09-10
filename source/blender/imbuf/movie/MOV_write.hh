@@ -9,15 +9,16 @@
  * \ingroup imbuf
  */
 
+struct ImageFormatData;
 struct ImBuf;
 struct MovieWriter;
 struct RenderData;
 struct ReportList;
 struct Scene;
 
-MovieWriter *MOV_write_begin(const char imtype,
-                             const Scene *scene,
+MovieWriter *MOV_write_begin(const Scene *scene,
                              const RenderData *rd,
+                             const ImageFormatData *imf,
                              int rectx,
                              int recty,
                              ReportList *reports,
@@ -26,6 +27,7 @@ MovieWriter *MOV_write_begin(const char imtype,
 bool MOV_write_append(MovieWriter *writer,
                       const Scene *scene,
                       const RenderData *rd,
+                      const ImageFormatData *imf,
                       int start_frame,
                       int frame,
                       const ImBuf *image,

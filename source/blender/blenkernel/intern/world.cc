@@ -125,17 +125,19 @@ static void world_copy_data(Main *bmain,
 static void world_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   World *world = reinterpret_cast<World *>(id);
-  const int flag = BKE_lib_query_foreachid_process_flags_get(data);
 
   if (world->nodetree) {
     /* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
     BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
         data, BKE_library_foreach_ID_embedded(data, (ID **)&world->nodetree));
   }
+}
 
-  if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
-    BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data, world->ipo, IDWALK_CB_USER);
-  }
+static void world_foreach_working_space_color(ID *id, const IDTypeForeachColorFunctionCallback &fn)
+{
+  World *world = reinterpret_cast<World *>(id);
+
+  fn.single(&world->horr);
 }
 
 static void world_blend_write(BlendWriter *writer, ID *id, const void *id_address)
@@ -196,6 +198,7 @@ IDTypeInfo IDType_ID_WO = {
     /*foreach_id*/ world_foreach_id,
     /*foreach_cache*/ nullptr,
     /*foreach_path*/ nullptr,
+    /*foreach_working_space_color*/ world_foreach_working_space_color,
     /*owner_pointer_get*/ nullptr,
 
     /*blend_write*/ world_blend_write,

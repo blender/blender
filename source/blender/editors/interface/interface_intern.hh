@@ -507,11 +507,19 @@ struct ColorPicker {
   bool is_init;
 
   /**
-   * HSV or HSL color in scene linear color space value used for number
-   * buttons. This is scene linear so that there is a clear correspondence
-   * to the scene linear RGB values.
+   * HSV or HSL in color picker space used for number sliders. This is the same
+   * colorspace as the rgb slider for a clear correspondence.
    */
-  float hsv_scene_linear[3];
+  float hsv_slider[3];
+
+  /*
+   * RGB in color picker used for number sliders, when the space is not scene linear.
+   * When it is linear, the RNA property is used directly so that keyframing works.
+   */
+  float rgb_slider[3];
+
+  /* Hex Color string */
+  char hexcol[128];
 
   /** Cubic saturation for the color wheel. */
   bool use_color_cubic;
@@ -1143,7 +1151,11 @@ void ui_layout_panel_popup_scroll_apply(Panel *panel, const float dy);
 /**
  * Draws in resolution of 48x4 colors.
  */
-void ui_draw_gradient(const rcti *rect, const float hsv[3], eButGradientType type, float alpha);
+void ui_draw_gradient(const rcti *rect,
+                      const float hsv[3],
+                      eButGradientType type,
+                      float alpha,
+                      const ColorManagedDisplay *display);
 
 /**
  * Draws rounded corner segments but inverted. Imagine each corner like a filled right triangle,

@@ -11,11 +11,15 @@
 
 #include "BLI_path_utils.hh"
 
+#include "BLI_string_ref.hh"
 #include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "rna_internal.hh"
 
 #ifdef RNA_RUNTIME
+
+#  include "IMB_colormanagement.hh"
 
 #  include "DNA_windowmanager_types.h"
 
@@ -81,6 +85,58 @@ static void rna_Main_filepath_set(PointerRNA *ptr, const char *value)
   STRNCPY(bmain->filepath, value);
 }
 #  endif
+
+static PointerRNA rna_Main_colorspace_get(PointerRNA *ptr)
+{
+  Main *bmain = (Main *)ptr->data;
+  return PointerRNA(nullptr, &RNA_BlendFileColorspace, &bmain->colorspace);
+}
+
+static int rna_MainColorspace_working_space_get(PointerRNA *ptr)
+{
+  MainColorspace *colorspace = ptr->data_as<MainColorspace>();
+  return IMB_colormanagement_working_space_get_named_index(colorspace->scene_linear_name);
+}
+
+static const EnumPropertyItem *rna_MainColorspace_working_space_itemf(bContext * /*C*/,
+                                                                      PointerRNA * /*ptr*/,
+                                                                      PropertyRNA * /*prop*/,
+                                                                      bool *r_free)
+{
+  EnumPropertyItem *items = nullptr;
+  int totitem = 0;
+
+  IMB_colormanagement_working_space_items_add(&items, &totitem);
+  RNA_enum_item_end(&items, &totitem);
+
+  *r_free = true;
+
+  return items;
+}
+
+static void rna_MainColorspace_working_space_interop_id_get(PointerRNA *ptr, char *value)
+{
+  MainColorspace *main_colorspace = ptr->data_as<MainColorspace>();
+  const ColorSpace *colorspace = IMB_colormanagement_space_get_named(
+      main_colorspace->scene_linear_name);
+  const auto interop_id = (colorspace) ? IMB_colormanagement_space_get_interop_id(colorspace) : "";
+  strcpy(value, interop_id.c_str());
+}
+
+static int rna_MainColorspace_working_space_interop_id_length(PointerRNA *ptr)
+{
+  MainColorspace *main_colorspace = ptr->data_as<MainColorspace>();
+  const ColorSpace *colorspace = IMB_colormanagement_space_get_named(
+      main_colorspace->scene_linear_name);
+  const auto interop_id = (colorspace) ? IMB_colormanagement_space_get_interop_id(colorspace) : "";
+  return interop_id.size();
+}
+
+static bool rna_MainColorspace_is_missing_opencolorio_config_get(PointerRNA *ptr)
+{
+  MainColorspace *colorspace = ptr->data_as<MainColorspace>();
+  return colorspace->is_missing_opencolorio_config;
+}
 
 #  define RNA_MAIN_LISTBASE_FUNCS_DEF(_listbase_name) \
     static void rna_Main_##_listbase_name##_begin(CollectionPropertyIterator *iter, \
@@ -164,6 +220,51 @@ struct MainCollectionDef {
   const char *description;
   CollectionDefFunc *func;
 };
+
+static void rna_def_main_colorspace(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "BlendFileColorspace", nullptr);
+  RNA_def_struct_ui_text(srna,
+                         "Blend-File Color Space",
+                         "Information about the color space used for data-blocks in a blend file");
+
+  prop = RNA_def_property(srna, "working_space", PROP_ENUM, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_enum_items(prop, rna_enum_dummy_NULL_items);
+  RNA_def_property_ui_text(prop,
+                           "Working Space",
+                           "Color space used for all scene linear colors in this file, and "
+                           "for compositing, shader and geometry nodes processing");
+  RNA_def_property_enum_funcs(prop,
+                              "rna_MainColorspace_working_space_get",
+                              nullptr,
+                              "rna_MainColorspace_working_space_itemf");
+
+  prop = RNA_def_property(srna, "working_space_interop_id", PROP_STRING, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(
+      prop,
+      "Working Space Interop ID",
+      "Unique identifier for common color spaces, as defined by the Color Interop Forum. May be "
+      "empty if there is no interop ID for the working space. Common values are lin_rec709_scene, "
+      "lin_rec2020_scene and lin_ap1_scene (for ACEScg)");
+  RNA_def_property_string_funcs(prop,
+                                "rna_MainColorspace_working_space_interop_id_get",
+                                "rna_MainColorspace_working_space_interop_id_length",
+                                nullptr);
+  prop = RNA_def_property(srna, "is_missing_opencolorio_config", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_boolean_funcs(
+      prop, "rna_MainColorspace_is_missing_opencolorio_config_get", nullptr);
+  RNA_def_property_ui_text(prop,
+                           "Missing OpenColorIO Configuration",
+                           "A color space, view or display was not found, which likely means the "
+                           "OpenColorIO config used to create this blend file is missing");
+}
 
 void RNA_def_main(BlenderRNA *brna)
 {
@@ -469,6 +570,17 @@ void RNA_def_main(BlenderRNA *brna)
       func(brna, prop);
     }
   }
+
+  rna_def_main_colorspace(brna);
+
+  prop = RNA_def_property(srna, "colorspace", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  RNA_def_property_struct_type(prop, "BlendFileColorspace");
+  RNA_def_property_pointer_funcs(prop, "rna_Main_colorspace_get", nullptr, nullptr, nullptr);
+  RNA_def_property_ui_text(
+      prop,
+      "Color Space",
+      "Information about the color space used for data-blocks in a blend file");
 
   RNA_api_main(srna);
 

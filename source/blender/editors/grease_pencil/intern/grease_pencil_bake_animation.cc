@@ -263,11 +263,7 @@ static wmOperatorStatus bake_grease_pencil_animation_exec(bContext *C, wmOperato
 
         target_material_indices.finish();
         MutableSpan<float3> positions = target_strokes.positions_for_write();
-        threading::parallel_for(positions.index_range(), 4096, [&](IndexRange range) {
-          for (const int i : range) {
-            positions[i] = math::transform_point(to_target, positions[i]);
-          }
-        });
+        math::transform_points(to_target, positions);
         if (drawing_placement) {
           threading::parallel_for(positions.index_range(), 4096, [&](IndexRange range) {
             for (const int i : range) {

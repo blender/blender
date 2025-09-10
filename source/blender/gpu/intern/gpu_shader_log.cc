@@ -143,7 +143,8 @@ void Shader::print_log(Span<StringRefNull> sources,
     {
       const char *src_line_end;
       found_line_id = false;
-      int src_line_index = 0;
+      /* Lines are 1 based. */
+      int src_line_index = 1;
       while ((src_line_end = strchr(src_line, '\n'))) {
         if (src_line_index >= log_item.cursor.row) {
           found_line_id = true;
@@ -208,10 +209,11 @@ void Shader::print_log(Span<StringRefNull> sources,
       row_in_file -= sources_end_line[source_index - 1];
     }
     /* Print the filename the error line is coming from. */
-    if (!log_item.cursor.file_name_and_error_line.is_empty()) {
+    if (!log_item.cursor.file_name_and_error_line.empty()) {
       char name_buf[256];
-      log_item.cursor.file_name_and_error_line.substr(0, sizeof(name_buf) - 1)
-          .copy_utf8_truncated(name_buf);
+      std::string string = log_item.cursor.file_name_and_error_line.substr(0,
+                                                                           sizeof(name_buf) - 1);
+      StringRefNull(string).copy_utf8_truncated(name_buf);
       BLI_dynstr_appendf(dynstr, "%s%s: %s", info_col, name_buf, reset_col);
     }
     else if (source_index > 0) {
@@ -316,6 +318,50 @@ int GPULogParser::parse_number(const char *log_line, const char **r_new_position
   return int(strtol(log_line, const_cast<char **>(r_new_position), 10));
 }
 
+size_t GPULogParser::line_start_get(StringRefNull source_combined, size_t target_line)
+{
+  size_t cursor = 0;
+  size_t current_line = 1;
+  for (char c : source_combined) {
+    if (current_line >= target_line) {
+      return cursor + 1;
+    }
+    if (c == '\n') {
+      current_line++;
+    }
+    cursor++;
+  }
+  return -1;
+}
+
+StringRef GPULogParser::filename_get(StringRefNull source_combined, size_t pos)
+{
+  StringRef sub_str = source_combined.substr(0, pos);
+  StringRefNull directive = "#line 1 \"";
+  size_t nearest_line_directive = sub_str.rfind(directive);
+  if (nearest_line_directive != std::string::npos) {
+    size_t start_of_file_name = nearest_line_directive + directive.size();
+    size_t end_of_file_name = sub_str.find('\"', start_of_file_name);
+    if (end_of_file_name != std::string::npos) {
+      return sub_str.substr(start_of_file_name, end_of_file_name - start_of_file_name);
+    }
+  }
+  return {};
+}
+
+/* Original source file line. Found by looking up #line directives. */
+size_t GPULogParser::source_line_get(StringRefNull source_combined, size_t pos)
+{
+  StringRef sub_str = source_combined.substr(0, pos);
+  StringRefNull directive = "#line ";
+  size_t nearest_line_directive = sub_str.rfind(directive);
+  size_t line_count = 1;
+  if (nearest_line_directive != std::string::npos) {
+    sub_str = sub_str.substr(nearest_line_directive + directive.size());
+    line_count = std::stoll(sub_str) - 1;
+  }
+  return line_count + std::count(sub_str.begin(), sub_str.end(), '\n');
+}
 /** \} */
 
 /* -------------------------------------------------------------------- */

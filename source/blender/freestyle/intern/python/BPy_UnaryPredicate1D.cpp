@@ -118,7 +118,6 @@ PyDoc_STRVAR(
     "   :type inter: :class:`Interface1D`\n"
     "   :return: True if the condition is satisfied, false otherwise.\n"
     "   :rtype: bool\n");
-
 static int UnaryPredicate1D___init__(BPy_UnaryPredicate1D *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {nullptr};
@@ -182,8 +181,7 @@ PyDoc_STRVAR(
     UnaryPredicate1D_name_doc,
     "The name of the unary 1D predicate.\n"
     "\n"
-    ":type: str");
-
+    ":type: str\n");
 static PyObject *UnaryPredicate1D_name_get(BPy_UnaryPredicate1D *self, void * /*closure*/)
 {
   return PyUnicode_FromString(Py_TYPE(self)->tp_name);

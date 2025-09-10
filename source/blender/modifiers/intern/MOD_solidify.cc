@@ -279,4 +279,5 @@ ModifierTypeInfo modifierType_Solidify = {
     /*blend_write*/ nullptr,
     /*blend_read*/ nullptr,
     /*foreach_cache*/ nullptr,
+    /*foreach_working_space_color*/ nullptr,
 };

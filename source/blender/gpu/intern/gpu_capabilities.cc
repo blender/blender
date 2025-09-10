@@ -19,7 +19,7 @@
 
 namespace blender::gpu {
 
-GPUCapabilities GCaps;
+GPUCapabilities GCaps = {};
 
 }
 
@@ -165,11 +165,6 @@ bool GPU_use_hq_normals_workaround()
 bool GPU_stencil_clasify_buffer_workaround()
 {
   return GCaps.stencil_clasify_buffer_workaround;
-}
-
-bool GPU_node_link_instancing_workaround()
-{
-  return GCaps.node_link_instancing_workaround;
 }
 
 bool GPU_geometry_shader_support()

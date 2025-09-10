@@ -1612,14 +1612,16 @@ static void uvedit_pack_islands_multi(const Scene *scene,
     invert_m2_m2(matrix_inverse, matrix);
 
     /* Add base_offset, post transform. */
-    mul_v2_m2v2(pre_translate, matrix_inverse, base_offset);
+    if (!pinned_vector[i] || params->pin_method != ED_UVPACK_PIN_LOCK_ALL) {
+      mul_v2_m2v2(pre_translate, matrix_inverse, base_offset);
 
-    /* Add pre-translation from #pack_islands. */
-    pre_translate[0] += pack_island->pre_translate.x;
-    pre_translate[1] += pack_island->pre_translate.y;
+      /* Add pre-translation from #pack_islands. */
+      pre_translate[0] += pack_island->pre_translate.x;
+      pre_translate[1] += pack_island->pre_translate.y;
 
-    /* Perform the transformation. */
-    island_uv_transform(island, matrix, pre_translate);
+      /* Perform the transformation. */
+      island_uv_transform(island, matrix, pre_translate);
+    }
   }
 
   for (const int64_t i : pack_island_vector.index_range()) {

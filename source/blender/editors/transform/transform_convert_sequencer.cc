@@ -480,7 +480,7 @@ static void create_trans_seq_clamp_data(TransInfo *t, const Scene *scene)
 
   VectorSet<Strip *> strips = seq::query_selected_strips(seq::active_seqbase_get(ed));
   for (Strip *strip : strips) {
-    if (!(strip->type & STRIP_TYPE_EFFECT) || seq::effect_get_num_inputs(strip->type) == 0) {
+    if (!strip->is_effect() || seq::effect_get_num_inputs(strip->type) == 0) {
       continue;
     }
     /* If there is an effect strip with no inputs selected, prevent any x-direction movement,
@@ -560,9 +560,12 @@ static void create_trans_seq_clamp_data(TransInfo *t, const Scene *scene)
   }
 }
 
-static void createTransSeqData(bContext * /*C*/, TransInfo *t)
+static void createTransSeqData(bContext *C, TransInfo *t)
 {
-  Scene *scene = CTX_data_sequencer_scene(t->context);
+  Scene *scene = CTX_data_sequencer_scene(C);
+  if (!scene) {
+    return;
+  }
   Editing *ed = seq::editing_get(scene);
   TransData *td = nullptr;
   TransData2D *td2d = nullptr;
@@ -705,7 +708,7 @@ static void flushTransSeq(TransInfo *t)
     if (tdsq->sel_flag & SEQ_RIGHTSEL) {
       strip->runtime.flag &= ~STRIP_CLAMPED_RH;
     }
-    if (!seq::transform_single_image_check(strip) && !(strip->type & STRIP_TYPE_EFFECT)) {
+    if (!seq::transform_single_image_check(strip) && !strip->is_effect()) {
       if (offset_clamped[0] > offset[0] && new_frame == seq::time_start_frame_get(strip)) {
         strip->runtime.flag |= STRIP_CLAMPED_LH;
       }

@@ -50,7 +50,6 @@ PyDoc_STRVAR(
     "\n"
     "   :arg stroke: A Stroke object.\n"
     "   :type stroke: :class:`freestyle.types.Stroke`\n");
-
 static int CalligraphicShader___init__(BPy_CalligraphicShader *self,
                                        PyObject *args,
                                        PyObject *kwds)

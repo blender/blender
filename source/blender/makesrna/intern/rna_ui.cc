@@ -1311,6 +1311,24 @@ static void rna_AssetShelf_activate_operator_set(PointerRNA *ptr, const char *va
   shelf->type->activate_operator = value;
 }
 
+static void rna_AssetShelf_drag_operator_get(PointerRNA *ptr, char *value)
+{
+  AssetShelf *shelf = static_cast<AssetShelf *>(ptr->data);
+  strcpy(value, shelf->type->drag_operator.c_str());
+}
+
+static int rna_AssetShelf_drag_operator_length(PointerRNA *ptr)
+{
+  AssetShelf *shelf = static_cast<AssetShelf *>(ptr->data);
+  return shelf->type->drag_operator.size();
+}
+
+static void rna_AssetShelf_drag_operator_set(PointerRNA *ptr, const char *value)
+{
+  AssetShelf *shelf = static_cast<AssetShelf *>(ptr->data);
+  shelf->type->drag_operator = value;
+}
+
 static StructRNA *rna_AssetShelf_refine(PointerRNA *shelf_ptr)
 {
   AssetShelf *shelf = (AssetShelf *)shelf_ptr->data;
@@ -2320,6 +2338,12 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
        "Store Enabled Catalogs in Preferences",
        "Store the shelf's enabled catalogs in the preferences rather than the local asset shelf "
        "settings"},
+      {ASSET_SHELF_TYPE_FLAG_ACTIVATE_FOR_CONTEXT_MENU,
+       "ACTIVATE_FOR_CONTEXT_MENU",
+       0,
+       "",
+       "When spawning a context menu for an asset, activate the asset and call "
+       "`bl_activate_operator` if present, rather than just highlighting the asset"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -2367,6 +2391,17 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
       "Activate Operator",
       "Operator to call when activating an item with asset reference properties");
 
+  prop = RNA_def_property(srna, "bl_drag_operator", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_funcs(prop,
+                                "rna_AssetShelf_drag_operator_get",
+                                "rna_AssetShelf_drag_operator_length",
+                                "rna_AssetShelf_drag_operator_set");
+  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+  RNA_def_property_ui_text(
+      prop,
+      "Drag Operator",
+      "Operator to call when dragging an item with asset reference properties");
+
   prop = RNA_def_property(srna, "bl_default_preview_size", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, nullptr, "type->default_preview_size");
   RNA_def_property_range(prop, 32, 256);
@@ -2405,7 +2440,7 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
                          "asset_reference",
                          "AssetWeakReference",
                          "",
-                         "The weak reference to the asset to be hightlighted as active, or None");
+                         "The weak reference to the asset to be highlighted as active, or None");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "draw_context_menu", nullptr);
@@ -2505,7 +2540,7 @@ static void rna_def_file_handler(BlenderRNA *brna)
       "File Extensions",
       "Formatted string of file extensions supported by the file handler, each extension should "
       "start with a \".\" and be separated by \";\"."
-      "\nFor Example: `\".blend;.ble\"`");
+      "\nFor Example: ``\".blend;.ble\"``");
 
   PropertyRNA *parm;
   FunctionRNA *func;

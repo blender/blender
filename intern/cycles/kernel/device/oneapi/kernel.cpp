@@ -673,6 +673,10 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
               kg, cgh, global_size, local_size, args, oneapi_kernel_filter_color_postprocess);
           break;
         }
+        case DEVICE_KERNEL_FILTER_COLOR_FLIP_Y: {
+          oneapi_call(kg, cgh, global_size, local_size, args, oneapi_kernel_filter_color_flip_y);
+          break;
+        }
         case DEVICE_KERNEL_CRYPTOMATTE_POSTPROCESS: {
           oneapi_call(
               kg, cgh, global_size, local_size, args, oneapi_kernel_cryptomatte_postprocess);

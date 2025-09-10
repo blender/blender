@@ -355,6 +355,16 @@ class Array {
     return IndexRange(size_);
   }
 
+  uint64_t hash() const
+  {
+    return this->as_span().hash();
+  }
+
+  static uint64_t hash_as(const Span<T> values)
+  {
+    return values.hash();
+  }
+
   friend bool operator==(const Array &a, const Array &b)
   {
     return a.as_span() == b.as_span();

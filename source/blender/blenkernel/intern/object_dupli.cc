@@ -827,37 +827,35 @@ static Object *find_family_object(
 
 static void make_duplis_font(const DupliContext *ctx)
 {
-  Object *par = ctx->object;
-  GHash *family_gh;
-  Object *ob;
-  Curve *cu;
-  CharTrans *ct, *chartransdata = nullptr;
-  float vec[3], obmat[4][4], pmat[4][4], fsize, xof, yof;
-  int text_len, a;
-  size_t family_len;
-  const char32_t *text = nullptr;
-  bool text_free = false;
-
   /* Font dupli-verts not supported inside collections. */
   if (ctx->collection) {
     return;
   }
+
+  Object *par = ctx->object;
+  GHash *family_gh;
+  Object *ob;
+  Curve *cu = (Curve *)par->data;
+  CharTrans *ct, *chartransdata = nullptr;
+  float vec[3], obmat[4][4], pmat[4][4];
+  int text_len, a;
+  size_t family_len;
+  const char32_t *text = nullptr;
+  bool text_free = false;
 
   copy_m4_m4(pmat, par->object_to_world().ptr());
 
   /* In `par` the family name is stored, use this to find the other objects. */
 
   BKE_vfont_to_curve_ex(
-      par, (Curve *)par->data, FO_DUPLI, nullptr, &text, &text_len, &text_free, &chartransdata);
+      par, *cu, FO_DUPLI, nullptr, &text, &text_len, &text_free, &chartransdata, nullptr);
 
   if (text == nullptr || chartransdata == nullptr) {
     return;
   }
 
-  cu = (Curve *)par->data;
-  fsize = cu->fsize;
-  xof = cu->xof;
-  yof = cu->yof;
+  const float fsize = cu->fsize;
+  const blender::float2 cu_offset = {cu->xof, cu->yof};
 
   ct = chartransdata;
 
@@ -882,19 +880,19 @@ static void make_duplis_font(const DupliContext *ctx)
     }
 
     if (ob) {
-      vec[0] = fsize * (ct->xof - xof);
-      vec[1] = fsize * (ct->yof - yof);
+      vec[0] = fsize * (ct->offset.x - cu_offset.x);
+      vec[1] = fsize * (ct->offset.y - cu_offset.y);
       vec[2] = 0.0;
 
       mul_m4_v3(pmat, vec);
 
       copy_m4_m4(obmat, par->object_to_world().ptr());
 
-      if (UNLIKELY(ct->rot != 0.0f)) {
+      if (UNLIKELY(ct->rotate != 0.0f)) {
         float rmat[4][4];
 
         zero_v3(obmat[3]);
-        axis_angle_to_mat4_single(rmat, 'Z', -ct->rot);
+        axis_angle_to_mat4_single(rmat, 'Z', -ct->rotate);
         mul_m4_m4m4(obmat, obmat, rmat);
       }
 
@@ -1114,7 +1112,7 @@ struct FaceDupliData_Mesh {
   Span<int> corner_verts;
   Span<float3> vert_positions;
   const float (*orco)[3];
-  const float2 *mloopuv;
+  const float2 *uv_map;
 };
 
 struct FaceDupliData_EditMesh {
@@ -1258,7 +1256,7 @@ static void make_child_duplis_faces_from_mesh(const DupliContext *ctx,
 {
   FaceDupliData_Mesh *fdd = (FaceDupliData_Mesh *)userdata;
   const float(*orco)[3] = fdd->orco;
-  const float2 *mloopuv = fdd->mloopuv;
+  const float2 *uv_map = fdd->uv_map;
   const int totface = fdd->totface;
   const bool use_scale = fdd->params.use_scale;
 
@@ -1287,9 +1285,9 @@ static void make_child_duplis_faces_from_mesh(const DupliContext *ctx,
         madd_v3_v3fl(dob->orco, orco[face_verts[j]], w);
       }
     }
-    if (mloopuv) {
+    if (uv_map) {
       for (int j = 0; j < face.size(); j++) {
-        madd_v2_v2fl(dob->uv, mloopuv[face[j]], w);
+        madd_v2_v2fl(dob->uv, uv_map[face[j]], w);
       }
     }
   }
@@ -1370,9 +1368,9 @@ static void make_duplis_faces(const DupliContext *ctx)
     fdd.faces = mesh_eval->faces();
     fdd.corner_verts = mesh_eval->corner_verts();
     fdd.vert_positions = mesh_eval->vert_positions();
-    fdd.mloopuv = (uv_idx != -1) ? (const float2 *)CustomData_get_layer_n(
-                                       &mesh_eval->corner_data, CD_PROP_FLOAT2, uv_idx) :
-                                   nullptr;
+    fdd.uv_map = (uv_idx != -1) ? (const float2 *)CustomData_get_layer_n(
+                                      &mesh_eval->corner_data, CD_PROP_FLOAT2, uv_idx) :
+                                  nullptr;
     fdd.orco = (const float(*)[3])CustomData_get_layer(&mesh_eval->vert_data, CD_ORCO);
 
     make_child_duplis(ctx, &fdd, make_child_duplis_faces_from_mesh);

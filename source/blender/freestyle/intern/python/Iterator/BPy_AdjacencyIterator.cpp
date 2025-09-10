@@ -43,8 +43,7 @@ PyDoc_STRVAR(
     "   :type restrict_to_selection: bool\n"
     "   :arg restrict_to_unvisited: Indicates whether a ViewEdge that has\n"
     "      already been chained must be ignored ot not.\n"
-    "   :type restrict_to_unvisited: bool");
-
+    "   :type restrict_to_unvisited: bool\n");
 static int AdjacencyIterator_init(BPy_AdjacencyIterator *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist_1[] = {"brother", nullptr};
@@ -125,8 +124,7 @@ PyDoc_STRVAR(
     AdjacencyIterator_object_doc,
     "The ViewEdge object currently pointed to by this iterator.\n"
     "\n"
-    ":type: :class:`ViewEdge`");
-
+    ":type: :class:`ViewEdge`\n");
 static PyObject *AdjacencyIterator_object_get(BPy_AdjacencyIterator *self, void * /*closure*/)
 {
   if (self->a_it->isEnd()) {
@@ -146,8 +144,7 @@ PyDoc_STRVAR(
     "True if the current ViewEdge is coming towards the iteration vertex, and\n"
     "False otherwise.\n"
     "\n"
-    ":type: bool");
-
+    ":type: bool\n");
 static PyObject *AdjacencyIterator_is_incoming_get(BPy_AdjacencyIterator *self, void * /*closure*/)
 {
   if (self->a_it->isEnd()) {

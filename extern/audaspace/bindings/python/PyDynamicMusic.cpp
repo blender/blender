@@ -98,7 +98,7 @@ PyDoc_STRVAR(M_aud_DynamicMusic_addTransition_doc,
 	"   :type end: int\n"
 	"   :arg transition: The transition sound.\n"
 	"   :type transition: :class:`Sound`\n"
-	"   :return: false if the ini or end scenes don't exist, true othrwise.\n"
+	"   :return: false if the ini or end scenes don't exist, true otherwise.\n"
 	"   :rtype: bool");
 
 static PyObject *

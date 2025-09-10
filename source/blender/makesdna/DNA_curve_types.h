@@ -23,7 +23,6 @@ struct Curves;
 struct CurveProfile;
 struct EditFont;
 struct GHash;
-struct Ipo;
 struct Key;
 struct Material;
 struct Object;
@@ -219,8 +218,6 @@ typedef struct Curve {
   EditNurb *editnurb;
 
   struct Object *bevobj, *taperobj, *textoncurve;
-  /** Old animation system, deprecated for 2.5. */
-  struct Ipo *ipo DNA_DEPRECATED;
   struct Key *key;
   struct Material **mat;
 
@@ -265,10 +262,9 @@ typedef struct Curve {
    * specified. The effective radius is a function of the bevel point radius and the taper radius.
    */
   char taper_radius_mode;
-  char _pad;
+  char _pad[3];
 
   /* font part */
-  short lines;
   float spacing, linedist, shear, fsize, wordspace, ulpos, ulheight;
   float xof, yof;
   float linewidth;
@@ -307,8 +303,14 @@ typedef struct Curve {
   float bevfac1, bevfac2;
   char bevfac1_mapping, bevfac2_mapping;
 
-  char _pad2[6];
-  float fsize_realtime;
+  char _pad2[1];
+
+  /**
+   * If non-zero, the #editfont and #editnurb pointers are not owned by this #Curve. That means
+   * this curve is a container for the result of object geometry evaluation. This only works
+   * because evaluated object data never outlives original data.
+   */
+  char edit_data_from_original;
 
   /**
    * A pointer to curve data from evaluation. Owned by the object's #geometry_set_eval, either as a
@@ -318,13 +320,6 @@ typedef struct Curve {
    * original object data.
    */
   const struct Curves *curve_eval;
-  /**
-   * If non-zero, the #editfont and #editnurb pointers are not owned by this #Curve. That means
-   * this curve is a container for the result of object geometry evaluation. This only works
-   * because evaluated object data never outlives original data.
-   */
-  char edit_data_from_original;
-  char _pad3[7];
 
   void *batch_cache;
 

@@ -11,6 +11,7 @@ set(INC
   ../gpu/intern
   ../makesrna
   ../render/intern
+  ../imbuf/opencolorio/intern/libocio
 )
 
 set(INC_SYS
@@ -69,6 +70,7 @@ set(SRC
   intern/utilities.cc
 
   algorithms/intern/compute_preview.cc
+  algorithms/intern/convolve.cc
   algorithms/intern/deriche_gaussian_blur.cc
   algorithms/intern/extract_alpha.cc
   algorithms/intern/jump_flooding.cc
@@ -86,6 +88,7 @@ set(SRC
   algorithms/intern/van_vliet_gaussian_blur.cc
 
   algorithms/COM_algorithm_compute_preview.hh
+  algorithms/COM_algorithm_convolve.hh
   algorithms/COM_algorithm_deriche_gaussian_blur.hh
   algorithms/COM_algorithm_extract_alpha.hh
   algorithms/COM_algorithm_jump_flooding.hh
@@ -159,6 +162,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::intern::clog
   PRIVATE bf::dependencies::optional::opencolorio
 )
 

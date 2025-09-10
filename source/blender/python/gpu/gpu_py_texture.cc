@@ -313,7 +313,7 @@ PyDoc_STRVAR(
     pygpu_texture_width_doc,
     "Width of the texture.\n"
     "\n"
-    ":type: int");
+    ":type: int\n");
 static PyObject *pygpu_texture_width_get(BPyGPUTexture *self, void * /*type*/)
 {
   BPYGPU_TEXTURE_CHECK_OBJ(self);
@@ -325,7 +325,7 @@ PyDoc_STRVAR(
     pygpu_texture_height_doc,
     "Height of the texture.\n"
     "\n"
-    ":type: int");
+    ":type: int\n");
 static PyObject *pygpu_texture_height_get(BPyGPUTexture *self, void * /*type*/)
 {
   BPYGPU_TEXTURE_CHECK_OBJ(self);
@@ -337,7 +337,7 @@ PyDoc_STRVAR(
     pygpu_texture_format_doc,
     "Format of the texture.\n"
     "\n"
-    ":type: str");
+    ":type: str\n");
 static PyObject *pygpu_texture_format_get(BPyGPUTexture *self, void * /*type*/)
 {
   BPYGPU_TEXTURE_CHECK_OBJ(self);
@@ -354,8 +354,9 @@ PyDoc_STRVAR(
     "   Fill texture with specific value.\n"
     "\n"
     "   :arg format: The format that describes the content of a single item.\n"
-    "      Possible values are `FLOAT`, `INT`, `UINT`, `UBYTE`, `UINT_24_8` and `10_11_11_REV`.\n"
-    "      `UINT_24_8` is deprecated, use `FLOAT` instead.\n"
+    "      Possible values are ``FLOAT``, ``INT``, ``UINT``, ``UBYTE``, ``UINT_24_8`` & "
+    "``10_11_11_REV``.\n"
+    "      ``UINT_24_8`` is deprecated, use ``FLOAT`` instead.\n"
     "   :type format: str\n"
     "   :arg value: Sequence each representing the value to fill. Sizes 1..4 are supported.\n"
     "   :type value: Sequence[float]\n");
@@ -564,7 +565,7 @@ static PyMethodDef pygpu_texture__tp_methods[] = {
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_texture__tp_doc,
-    ".. class:: GPUTexture(size, layers=0, is_cubemap=False, format='RGBA8', "
+    ".. class:: GPUTexture(size, *, layers=0, is_cubemap=False, format='RGBA8', "
     "data=None)\n"
     "\n"
     "   This object gives access to off GPU textures.\n"
@@ -576,50 +577,50 @@ PyDoc_STRVAR(
     "   :arg is_cubemap: Indicates the creation of a cubemap texture.\n"
     "   :type is_cubemap: int\n"
     "   :arg format: Internal data format inside GPU memory. Possible values are:\n"
-    "      `RGBA8UI`,\n"
-    "      `RGBA8I`,\n"
-    "      `RGBA8`,\n"
-    "      `RGBA32UI`,\n"
-    "      `RGBA32I`,\n"
-    "      `RGBA32F`,\n"
-    "      `RGBA16UI`,\n"
-    "      `RGBA16I`,\n"
-    "      `RGBA16F`,\n"
-    "      `RGBA16`,\n"
-    "      `RG8UI`,\n"
-    "      `RG8I`,\n"
-    "      `RG8`,\n"
-    "      `RG32UI`,\n"
-    "      `RG32I`,\n"
-    "      `RG32F`,\n"
-    "      `RG16UI`,\n"
-    "      `RG16I`,\n"
-    "      `RG16F`,\n"
-    "      `RG16`,\n"
-    "      `R8UI`,\n"
-    "      `R8I`,\n"
-    "      `R8`,\n"
-    "      `R32UI`,\n"
-    "      `R32I`,\n"
-    "      `R32F`,\n"
-    "      `R16UI`,\n"
-    "      `R16I`,\n"
-    "      `R16F`,\n"
-    "      `R16`,\n"
-    "      `R11F_G11F_B10F`,\n"
-    "      `DEPTH32F_STENCIL8`,\n"
-    "      `DEPTH24_STENCIL8` (deprecated, use `DEPTH32F_STENCIL8`),\n"
-    "      `SRGB8_A8`,\n"
-    "      `RGB16F`,\n"
-    "      `SRGB8_A8_DXT1`,\n"
-    "      `SRGB8_A8_DXT3`,\n"
-    "      `SRGB8_A8_DXT5`,\n"
-    "      `RGBA8_DXT1`,\n"
-    "      `RGBA8_DXT3`,\n"
-    "      `RGBA8_DXT5`,\n"
-    "      `DEPTH_COMPONENT32F`,\n"
-    "      `DEPTH_COMPONENT24`, (deprecated, use `DEPTH_COMPONENT32F`),\n"
-    "      `DEPTH_COMPONENT16`,\n"
+    "      ``RGBA8UI``,\n"
+    "      ``RGBA8I``,\n"
+    "      ``RGBA8``,\n"
+    "      ``RGBA32UI``,\n"
+    "      ``RGBA32I``,\n"
+    "      ``RGBA32F``,\n"
+    "      ``RGBA16UI``,\n"
+    "      ``RGBA16I``,\n"
+    "      ``RGBA16F``,\n"
+    "      ``RGBA16``,\n"
+    "      ``RG8UI``,\n"
+    "      ``RG8I``,\n"
+    "      ``RG8``,\n"
+    "      ``RG32UI``,\n"
+    "      ``RG32I``,\n"
+    "      ``RG32F``,\n"
+    "      ``RG16UI``,\n"
+    "      ``RG16I``,\n"
+    "      ``RG16F``,\n"
+    "      ``RG16``,\n"
+    "      ``R8UI``,\n"
+    "      ``R8I``,\n"
+    "      ``R8``,\n"
+    "      ``R32UI``,\n"
+    "      ``R32I``,\n"
+    "      ``R32F``,\n"
+    "      ``R16UI``,\n"
+    "      ``R16I``,\n"
+    "      ``R16F``,\n"
+    "      ``R16``,\n"
+    "      ``R11F_G11F_B10F``,\n"
+    "      ``DEPTH32F_STENCIL8``,\n"
+    "      ``DEPTH24_STENCIL8`` (deprecated, use ``DEPTH32F_STENCIL8``),\n"
+    "      ``SRGB8_A8``,\n"
+    "      ``RGB16F``,\n"
+    "      ``SRGB8_A8_DXT1``,\n"
+    "      ``SRGB8_A8_DXT3``,\n"
+    "      ``SRGB8_A8_DXT5``,\n"
+    "      ``RGBA8_DXT1``,\n"
+    "      ``RGBA8_DXT3``,\n"
+    "      ``RGBA8_DXT5``,\n"
+    "      ``DEPTH_COMPONENT32F``,\n"
+    "      ``DEPTH_COMPONENT24``, (deprecated, use ``DEPTH_COMPONENT32F``),\n"
+    "      ``DEPTH_COMPONENT16``.\n"
     "   :type format: str\n"
     "   :arg data: Buffer object to fill the texture.\n"
     "   :type data: :class:`gpu.types.Buffer`\n");
@@ -718,7 +719,7 @@ static PyMethodDef pygpu_texture__m_methods[] = {
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_texture__m_doc,
-    "This module provides utils for textures.");
+    "This module provides utilities for textures.");
 static PyModuleDef pygpu_texture_module_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "gpu.texture",

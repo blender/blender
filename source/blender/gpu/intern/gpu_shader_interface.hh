@@ -18,9 +18,11 @@
 #include "BLI_hash.h"
 #include "BLI_sys_types.h"
 
+#include "GPU_format.hh"
 #include "GPU_shader.hh"
 #include "GPU_vertex_format.hh" /* GPU_VERT_ATTR_MAX_LEN */
 #include "gpu_shader_create_info.hh"
+#include "gpu_texture_private.hh"
 
 namespace blender::gpu {
 
@@ -76,6 +78,9 @@ class ShaderInterface {
    * Use `ShaderInput::location` to identify the `Type`.
    */
   uint8_t attr_types_[GPU_VERT_ATTR_MAX_LEN];
+
+  /* Formats of all image units. */
+  std::array<TextureWriteFormat, GPU_MAX_IMAGE> image_formats_;
 
   ShaderInterface();
   virtual ~ShaderInterface();
@@ -160,6 +165,8 @@ class ShaderInterface {
    * Finalize interface construction by sorting the #ShaderInputs for faster lookups.
    */
   void sort_inputs();
+
+  void set_image_formats_from_info(const shader::ShaderCreateInfo &info);
 
  private:
   inline const ShaderInput *input_lookup(const ShaderInput *const inputs,

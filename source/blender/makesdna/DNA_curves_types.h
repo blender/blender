@@ -68,6 +68,7 @@ typedef enum HandleType {
   /** The location is constrained to point in the opposite direction as the other handle. */
   BEZIER_HANDLE_ALIGN = 3,
 } HandleType;
+#define BEZIER_HANDLES_NUM 4
 
 /** Method used to calculate a NURBS curve's knot vector. */
 typedef enum KnotsMode {

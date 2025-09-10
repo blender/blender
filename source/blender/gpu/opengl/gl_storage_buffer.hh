@@ -10,6 +10,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "GPU_vertex_buffer.hh"
+
 #include "gpu_storage_buffer_private.hh"
 
 namespace blender {
@@ -25,7 +27,7 @@ class GLStorageBuf : public StorageBuf {
   /** OpenGL Object handle. */
   GLuint ssbo_id_ = 0;
   /** Usage type. */
-  GPUUsageType usage_;
+  GPUUsageType usage_ = GPUUsageType(-1);
   /* Read */
   GLuint read_ssbo_id_ = 0;
   GLsync read_fence_ = 0;

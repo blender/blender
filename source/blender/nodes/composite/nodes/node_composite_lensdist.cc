@@ -12,10 +12,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_noise.hh"
 
-#include "RNA_access.hh"
-
-#include "UI_interface_layout.hh"
-#include "UI_resources.hh"
+#include "RNA_types.hh"
 
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"
@@ -36,18 +33,34 @@
 
 namespace blender::nodes::node_composite_lensdist_cc {
 
-NODE_STORAGE_FUNCS(NodeLensDist)
+static const EnumPropertyItem type_items[] = {
+    {CMP_NODE_LENS_DISTORTION_RADIAL,
+     "RADIAL",
+     0,
+     "Radial",
+     "Radially distorts the image to create a barrel or a Pincushion distortion"},
+    {CMP_NODE_LENS_DISTORTION_HORIZONTAL,
+     "HORIZONTAL",
+     0,
+     "Horizontal",
+     "Horizontally distorts the image to create a channel/color shifting effect"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
 
 static void cmp_node_lensdist_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .structure_type(StructureType::Dynamic);
+  b.add_input<decl::Menu>("Type")
+      .default_value(CMP_NODE_LENS_DISTORTION_RADIAL)
+      .static_items(type_items);
   b.add_input<decl::Float>("Distortion")
       .default_value(0.0f)
       .subtype(PROP_FACTOR)
       .min(MINIMUM_DISTORTION)
       .max(1.0f)
+      .usage_by_single_menu(CMP_NODE_LENS_DISTORTION_RADIAL)
       .description(
           "The amount of distortion. 0 means no distortion, -1 means full Pincushion distortion, "
           "and 1 means full Barrel distortion");
@@ -57,44 +70,27 @@ static void cmp_node_lensdist_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(1.0f)
       .description("The amount of chromatic aberration to add to the distortion");
-  b.add_input<decl::Bool>("Jitter").default_value(false).description(
-      "Introduces jitter while doing distortion, which can be faster but can produce grainy "
-      "or noisy results");
-  b.add_input<decl::Bool>("Fit").default_value(false).description(
-      "Scales the image such that it fits entirely in the frame, leaving no empty spaces at "
-      "the corners");
+  b.add_input<decl::Bool>("Jitter")
+      .default_value(false)
+      .usage_by_single_menu(CMP_NODE_LENS_DISTORTION_RADIAL)
+      .description(
+          "Introduces jitter while doing distortion, which can be faster but can produce grainy "
+          "or noisy results");
+  b.add_input<decl::Bool>("Fit")
+      .default_value(false)
+      .usage_by_single_menu(CMP_NODE_LENS_DISTORTION_RADIAL)
+      .description(
+          "Scales the image such that it fits entirely in the frame, leaving no empty spaces at "
+          "the corners");
 
   b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }
 
 static void node_composit_init_lensdist(bNodeTree * /*ntree*/, bNode *node)
 {
+  /* Unused, kept for forward compatibility. */
   NodeLensDist *data = MEM_callocN<NodeLensDist>(__func__);
-  data->distortion_type = CMP_NODE_LENS_DISTORTION_RADIAL;
   node->storage = data;
-}
-
-static void node_composit_buts_lensdist(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  layout->prop(ptr, "distortion_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-}
-
-static void node_update(bNodeTree *ntree, bNode *node)
-{
-  const CMPNodeLensDistortionType distortion_type = CMPNodeLensDistortionType(
-      node_storage(*node).distortion_type);
-
-  bNodeSocket *distortion_input = bke::node_find_socket(*node, SOCK_IN, "Distortion");
-  blender::bke::node_set_socket_availability(
-      *ntree, *distortion_input, distortion_type == CMP_NODE_LENS_DISTORTION_RADIAL);
-
-  bNodeSocket *jitter_input = bke::node_find_socket(*node, SOCK_IN, "Jitter");
-  blender::bke::node_set_socket_availability(
-      *ntree, *jitter_input, distortion_type == CMP_NODE_LENS_DISTORTION_RADIAL);
-
-  bNodeSocket *fit_input = bke::node_find_socket(*node, SOCK_IN, "Fit");
-  blender::bke::node_set_socket_availability(
-      *ntree, *fit_input, distortion_type == CMP_NODE_LENS_DISTORTION_RADIAL);
 }
 
 using namespace blender::compositor;
@@ -302,9 +298,10 @@ class LensDistortionOperation : public NodeOperation {
 
   void execute() override
   {
+    const Result &input = this->get_input("Image");
+    Result &output = this->get_result("Image");
+
     if (this->is_identity()) {
-      const Result &input = this->get_input("Image");
-      Result &output = this->get_result("Image");
       output.share_data(input);
       return;
     }
@@ -312,11 +309,13 @@ class LensDistortionOperation : public NodeOperation {
     switch (this->get_type()) {
       case CMP_NODE_LENS_DISTORTION_RADIAL:
         this->execute_radial_distortion();
-        break;
+        return;
       case CMP_NODE_LENS_DISTORTION_HORIZONTAL:
         this->execute_horizontal_distortion();
-        break;
+        return;
     }
+
+    output.share_data(input);
   }
 
   void execute_horizontal_distortion()
@@ -487,7 +486,10 @@ class LensDistortionOperation : public NodeOperation {
 
   CMPNodeLensDistortionType get_type()
   {
-    return CMPNodeLensDistortionType(node_storage(bnode()).distortion_type);
+    const Result &input = this->get_input("Type");
+    const MenuValue default_menu_value = MenuValue(CMP_NODE_LENS_DISTORTION_RADIAL);
+    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
+    return CMPNodeLensDistortionType(menu_value.value);
   }
 
   bool get_use_jitter()
@@ -544,8 +546,6 @@ static void register_node_type_cmp_lensdist()
   ntype.enum_name_legacy = "LENSDIST";
   ntype.nclass = NODE_CLASS_DISTORT;
   ntype.declare = file_ns::cmp_node_lensdist_declare;
-  ntype.updatefunc = file_ns::node_update;
-  ntype.draw_buttons = file_ns::node_composit_buts_lensdist;
   ntype.initfunc = file_ns::node_composit_init_lensdist;
   blender::bke::node_type_storage(
       ntype, "NodeLensDist", node_free_standard_storage, node_copy_standard_storage);

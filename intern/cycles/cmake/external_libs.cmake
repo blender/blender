@@ -45,7 +45,7 @@ endif()
 if(WITH_CYCLES_DEVICE_HIP)
   if(WITH_CYCLES_HIP_BINARIES)
     # Need at least HIP 5.5 to solve compiler bug affecting the kernel.
-    find_package(HIP 5.5.0)
+    find_package(HIP 6.0.0)
     set_and_warn_library_found("HIP compiler" HIP_FOUND WITH_CYCLES_HIP_BINARIES)
 
     if(HIP_FOUND)

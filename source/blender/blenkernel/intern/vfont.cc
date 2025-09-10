@@ -181,6 +181,7 @@ IDTypeInfo IDType_ID_VF = {
     /*foreach_id*/ nullptr,
     /*foreach_cache*/ nullptr,
     /*foreach_path*/ vfont_foreach_path,
+    /*foreach_working_space_color*/ nullptr,
     /*owner_pointer_get*/ nullptr,
 
     /*blend_write*/ vfont_blend_write,
@@ -404,13 +405,12 @@ VFont *BKE_vfont_builtin_ensure()
 /** \name VFont Selection
  * \{ */
 
-int BKE_vfont_select_get(Object *ob, int *r_start, int *r_end)
+int BKE_vfont_select_get(const Curve *cu, int *r_start, int *r_end)
 {
-  Curve *cu = static_cast<Curve *>(ob->data);
   EditFont *ef = cu->editfont;
   int start, end, direction;
 
-  if ((ob->type != OB_FONT) || (ef == nullptr)) {
+  if (ef == nullptr || (cu->ob_type != OB_FONT)) {
     return 0;
   }
 
@@ -444,12 +444,11 @@ int BKE_vfont_select_get(Object *ob, int *r_start, int *r_end)
   return direction;
 }
 
-void BKE_vfont_select_clamp(Object *ob)
+void BKE_vfont_select_clamp(Curve *cu)
 {
-  Curve *cu = static_cast<Curve *>(ob->data);
   EditFont *ef = cu->editfont;
 
-  BLI_assert((ob->type == OB_FONT) && ef);
+  BLI_assert((cu->ob_type == OB_FONT) && ef);
 
   CLAMP_MAX(ef->pos, ef->len);
   CLAMP_MAX(ef->selstart, ef->len + 1);

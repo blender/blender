@@ -71,5 +71,6 @@ ShaderFxTypeInfo shaderfx_Type_Wave = {
     /*update_depsgraph*/ nullptr,
     /*depends_on_time*/ nullptr,
     /*foreach_ID_link*/ nullptr,
+    /*foreach_working_space_color*/ nullptr,
     /*panel_register*/ panel_register,
 };

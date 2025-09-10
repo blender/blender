@@ -7,6 +7,7 @@
  */
 
 #include "BLI_path_utils.hh"
+#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
 #include "CLG_log.h"
@@ -66,12 +67,10 @@ static void ffmpeg_log_callback(void * /*ptr*/, int level, const char *format, v
       clg_level = CLG_LEVEL_FATAL;
       break;
     case AV_LOG_ERROR:
-      clg_level = CLG_LEVEL_ERROR;
-      break;
     case AV_LOG_WARNING:
-      clg_level = CLG_LEVEL_WARN;
-      break;
     case AV_LOG_INFO:
+      /* Note: most ffmpeg internal errors/warnings are not actionable; treat them as "info"
+       * log level. */
       clg_level = CLG_LEVEL_INFO;
       break;
     case AV_LOG_VERBOSE:
@@ -87,7 +86,7 @@ static void ffmpeg_log_callback(void * /*ptr*/, int level, const char *format, v
   static std::mutex mutex;
   std::scoped_lock lock(mutex);
 
-  if (ELEM(clg_level, CLG_LEVEL_FATAL, CLG_LEVEL_ERROR)) {
+  if (ELEM(level, AV_LOG_PANIC, AV_LOG_FATAL, AV_LOG_ERROR)) {
     const size_t n = ffmpeg_log_to_buffer(
         ffmpeg_last_error_buffer, sizeof(ffmpeg_last_error_buffer), format, arg);
     /* Strip trailing \n. */
@@ -543,6 +542,12 @@ bool MOV_codec_supports_crf(AVCodecID av_codec_id)
               AV_CODEC_ID_MPEG4,
               AV_CODEC_ID_VP9,
               AV_CODEC_ID_AV1);
+}
+
+int MOV_thread_count()
+{
+  /* ffmpeg does not recommend thread counts above 16. */
+  return std::min(BLI_system_thread_count(), 16);
 }
 
 #endif /* WITH_FFMPEG */

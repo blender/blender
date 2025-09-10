@@ -613,7 +613,7 @@ bool BM_face_split_edgenet(BMesh *bm,
                 mul_v2_m3v3(co, axis_mat, v->co);
                 interp_weights_poly_v2(w, cos_2d, f->len, co);
                 CustomData_bmesh_interp(
-                    &bm->ldata, (const void **)blocks, w, nullptr, f->len, l_iter->head.data);
+                    &bm->ldata, (const void **)blocks, w, f->len, l_iter->head.data);
                 l_first = l_iter;
               }
               else {

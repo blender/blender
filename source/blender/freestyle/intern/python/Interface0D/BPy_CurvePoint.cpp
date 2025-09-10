@@ -54,7 +54,6 @@ PyDoc_STRVAR(
     "   :arg t2d: A 2D interpolation parameter used to linearly interpolate\n"
     "             first_vertex and second_vertex or first_point and second_point.\n"
     "   :type t2d: float\n");
-
 static int CurvePoint_init(BPy_CurvePoint *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist_1[] = {"brother", nullptr};
@@ -125,8 +124,7 @@ PyDoc_STRVAR(
     CurvePoint_first_svertex_doc,
     "The first SVertex upon which the CurvePoint is built.\n"
     "\n"
-    ":type: :class:`SVertex`");
-
+    ":type: :class:`SVertex`\n");
 static PyObject *CurvePoint_first_svertex_get(BPy_CurvePoint *self, void * /*closure*/)
 {
   SVertex *A = self->cp->A();
@@ -151,8 +149,7 @@ PyDoc_STRVAR(
     CurvePoint_second_svertex_doc,
     "The second SVertex upon which the CurvePoint is built.\n"
     "\n"
-    ":type: :class:`SVertex`");
-
+    ":type: :class:`SVertex`\n");
 static PyObject *CurvePoint_second_svertex_get(BPy_CurvePoint *self, void * /*closure*/)
 {
   SVertex *B = self->cp->B();
@@ -178,8 +175,7 @@ PyDoc_STRVAR(
     "Gets the FEdge for the two SVertices that given CurvePoints consists out of.\n"
     "A shortcut for CurvePoint.first_svertex.get_fedge(CurvePoint.second_svertex).\n"
     "\n"
-    ":type: :class:`FEdge`");
-
+    ":type: :class:`FEdge`\n");
 static PyObject *CurvePoint_fedge_get(BPy_CurvePoint *self, void * /*closure*/)
 {
   SVertex *A = self->cp->A();
@@ -196,8 +192,7 @@ PyDoc_STRVAR(
     CurvePoint_t2d_doc,
     "The 2D interpolation parameter.\n"
     "\n"
-    ":type: float");
-
+    ":type: float\n");
 static PyObject *CurvePoint_t2d_get(BPy_CurvePoint *self, void * /*closure*/)
 {
   return PyFloat_FromDouble(self->cp->t2d());

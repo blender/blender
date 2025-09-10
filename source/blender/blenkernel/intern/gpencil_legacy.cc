@@ -57,6 +57,8 @@
 
 #include "BLO_read_write.hh"
 
+#include "IMB_colormanagement.hh"
+
 static CLG_LogRef LOG = {"geom.gpencil"};
 
 static void greasepencil_copy_data(Main * /*bmain*/,
@@ -280,6 +282,7 @@ IDTypeInfo IDType_ID_GD_LEGACY = {
     /*foreach_id*/ greasepencil_foreach_id,
     /*foreach_cache*/ nullptr,
     /*foreach_path*/ nullptr,
+    /*foreach_working_space_color*/ nullptr,
     /*owner_pointer_get*/ nullptr,
 
     /*blend_write*/ greasepencil_blend_write,
@@ -1197,7 +1200,8 @@ void BKE_gpencil_palette_ensure(Main *bmain, Scene *scene)
     /* Create Colors. */
     for (int i = 0; i < ARRAY_SIZE(hexcol); i++) {
       PaletteColor *palcol = BKE_palette_color_add(palette);
-      hex_to_rgb(hexcol[i], palcol->rgb, palcol->rgb + 1, palcol->rgb + 2);
+      hex_to_rgb(hexcol[i], palcol->color, palcol->color + 1, palcol->color + 2);
+      IMB_colormanagement_srgb_to_scene_linear_v3(palcol->color, palcol->color);
     }
   }
 

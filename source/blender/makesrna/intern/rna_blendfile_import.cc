@@ -536,7 +536,7 @@ static void rna_def_blendfile_import_context(BlenderRNA *brna)
        "DONE",
        0,
        "",
-       "All data has been imported and is available in the list of ``import_items``"},
+       "All data has been imported and is available in the list of \"import_items\""},
       {0, nullptr, 0, nullptr, nullptr},
   };
   prop = RNA_def_property(srna, "process_stage", PROP_ENUM, PROP_NONE);

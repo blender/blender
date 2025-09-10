@@ -35,7 +35,6 @@ PyDoc_STRVAR(
     "   :type it: :class:`freestyle.types.Interface0DIterator`\n"
     "   :return: The X 3D projected coordinate of the pointed Interface0D.\n"
     "   :rtype: float\n");
-
 static int GetProjectedXF0D___init__(BPy_GetProjectedXF0D *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {nullptr};

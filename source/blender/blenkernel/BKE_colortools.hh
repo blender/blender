@@ -219,7 +219,7 @@ void BKE_color_managed_view_settings_copy_keep_curve_mapping(
 void BKE_color_managed_view_settings_free(ColorManagedViewSettings *settings);
 
 void BKE_color_managed_view_settings_blend_write(BlendWriter *writer,
-                                                 ColorManagedViewSettings *settings);
+                                                 const ColorManagedViewSettings *settings);
 void BKE_color_managed_view_settings_blend_read_data(BlendDataReader *reader,
                                                      ColorManagedViewSettings *settings);
 

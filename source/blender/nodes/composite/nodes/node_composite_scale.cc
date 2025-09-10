@@ -6,7 +6,6 @@
  * \ingroup cmpnodes
  */
 
-#include "BLI_assert.h"
 #include "BLI_listbase.h"
 #include "BLI_math_angle_types.hh"
 #include "BLI_math_base.hh"
@@ -18,10 +17,7 @@
 
 #include "DNA_node_types.h"
 
-#include "RNA_access.hh"
-
-#include "UI_interface_layout.hh"
-#include "UI_resources.hh"
+#include "RNA_enum_types.hh"
 
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"
@@ -32,73 +28,73 @@
 
 #include "node_composite_util.hh"
 
-/* **************** Scale  ******************** */
-
 namespace blender::nodes::node_composite_scale_cc {
 
-NODE_STORAGE_FUNCS(NodeScaleData)
+static const EnumPropertyItem type_items[] = {
+    {CMP_NODE_SCALE_RELATIVE, "RELATIVE", 0, "Relative", ""},
+    {CMP_NODE_SCALE_ABSOLUTE, "ABSOLUTE", 0, "Absolute", ""},
+    {CMP_NODE_SCALE_RENDER_PERCENT, "SCENE_SIZE", 0, "Scene Size", ""},
+    {CMP_NODE_SCALE_RENDER_SIZE, "RENDER_SIZE", 0, "Render Size", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+/* Matches bgpic_camera_frame_items[]. */
+static const EnumPropertyItem frame_type_items[] = {
+    {CMP_NODE_SCALE_RENDER_SIZE_STRETCH, "STRETCH", 0, "Stretch", ""},
+    {CMP_NODE_SCALE_RENDER_SIZE_FIT, "FIT", 0, "Fit", ""},
+    {CMP_NODE_SCALE_RENDER_SIZE_CROP, "CROP", 0, "Crop", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
 
 static void cmp_node_scale_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
+
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_realization_mode(CompositorInputRealizationMode::None)
       .structure_type(StructureType::Dynamic);
+  b.add_input<decl::Menu>("Type").default_value(CMP_NODE_SCALE_RELATIVE).static_items(type_items);
   b.add_input<decl::Float>("X")
       .default_value(1.0f)
       .min(0.0001f)
       .max(CMP_SCALE_MAX)
-      .structure_type(StructureType::Dynamic);
+      .structure_type(StructureType::Dynamic)
+      .usage_by_menu("Type", {CMP_NODE_SCALE_RELATIVE, CMP_NODE_SCALE_ABSOLUTE});
   b.add_input<decl::Float>("Y")
       .default_value(1.0f)
       .min(0.0001f)
       .max(CMP_SCALE_MAX)
-      .structure_type(StructureType::Dynamic);
+      .structure_type(StructureType::Dynamic)
+      .usage_by_menu("Type", {CMP_NODE_SCALE_RELATIVE, CMP_NODE_SCALE_ABSOLUTE});
+  b.add_input<decl::Menu>("Frame Type")
+      .default_value(CMP_NODE_SCALE_RENDER_SIZE_STRETCH)
+      .static_items(frame_type_items)
+      .usage_by_menu("Type", CMP_NODE_SCALE_RENDER_SIZE)
+      .description("How the image fits in the camera frame");
 
-  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
+  PanelDeclarationBuilder &sampling_panel = b.add_panel("Sampling").default_closed(true);
+  sampling_panel.add_input<decl::Menu>("Interpolation")
+      .default_value(CMP_NODE_INTERPOLATION_BILINEAR)
+      .static_items(rna_enum_node_compositor_interpolation_items)
+      .description("Interpolation method");
+  sampling_panel.add_input<decl::Menu>("Extension X")
+      .default_value(CMP_NODE_EXTENSION_MODE_CLIP)
+      .static_items(rna_enum_node_compositor_extension_items)
+      .description("The extension mode applied to the X axis");
+  sampling_panel.add_input<decl::Menu>("Extension Y")
+      .default_value(CMP_NODE_EXTENSION_MODE_CLIP)
+      .static_items(rna_enum_node_compositor_extension_items)
+      .description("The extension mode applied to the Y axis");
 }
 
 static void node_composit_init_scale(bNodeTree * /*ntree*/, bNode *node)
 {
+  /* Unused, kept for forward compatibility. */
   NodeScaleData *data = MEM_callocN<NodeScaleData>(__func__);
-  data->interpolation = CMP_NODE_INTERPOLATION_BILINEAR;
-  data->extension_x = CMP_NODE_EXTENSION_MODE_CLIP;
-  data->extension_y = CMP_NODE_EXTENSION_MODE_CLIP;
   node->storage = data;
-}
-
-static void node_composite_update_scale(bNodeTree *ntree, bNode *node)
-{
-  bool use_xy_scale = ELEM(node->custom1, CMP_NODE_SCALE_RELATIVE, CMP_NODE_SCALE_ABSOLUTE);
-
-  /* Only show X/Y scale factor inputs for modes using them! */
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-    if (STR_ELEM(sock->name, "X", "Y")) {
-      bke::node_set_socket_availability(*ntree, *sock, use_xy_scale);
-    }
-  }
-}
-
-static void node_composit_buts_scale(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  uiLayout &column = layout->column(true);
-  column.prop(ptr, "space", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-
-  if (RNA_enum_get(ptr, "space") == CMP_NODE_SCALE_RENDER_SIZE) {
-    column.prop(ptr,
-                "frame_method",
-                UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND,
-                std::nullopt,
-                ICON_NONE);
-  }
-
-  uiLayout &column_interpolation_extension_modes = layout->column(true);
-
-  column_interpolation_extension_modes.prop(
-      ptr, "interpolation", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-  uiLayout &row = column_interpolation_extension_modes.row(true);
-  row.prop(ptr, "extension_x", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-  row.prop(ptr, "extension_y", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -219,39 +215,13 @@ class ScaleOperation : public NodeOperation {
     return "compositor_scale_variable";
   }
 
-  ExtensionMode get_extension_mode_x()
-  {
-    switch (static_cast<CMPExtensionMode>(node_storage(bnode()).extension_x)) {
-      case CMP_NODE_EXTENSION_MODE_CLIP:
-        return ExtensionMode::Clip;
-      case CMP_NODE_EXTENSION_MODE_REPEAT:
-        return ExtensionMode::Repeat;
-      case CMP_NODE_EXTENSION_MODE_EXTEND:
-        return ExtensionMode::Extend;
-    }
-
-    BLI_assert_unreachable();
-    return ExtensionMode::Clip;
-  }
-
-  ExtensionMode get_extension_mode_y()
-  {
-    switch (static_cast<CMPExtensionMode>(node_storage(bnode()).extension_y)) {
-      case CMP_NODE_EXTENSION_MODE_CLIP:
-        return ExtensionMode::Clip;
-      case CMP_NODE_EXTENSION_MODE_REPEAT:
-        return ExtensionMode::Repeat;
-      case CMP_NODE_EXTENSION_MODE_EXTEND:
-        return ExtensionMode::Extend;
-    }
-
-    BLI_assert_unreachable();
-    return ExtensionMode::Clip;
-  }
-
   Interpolation get_interpolation() const
   {
-    switch (static_cast<CMPNodeInterpolation>(node_storage(bnode()).interpolation)) {
+    const Result &input = this->get_input("Interpolation");
+    const MenuValue default_menu_value = MenuValue(CMP_NODE_INTERPOLATION_BILINEAR);
+    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
+    const CMPNodeInterpolation interpolation = static_cast<CMPNodeInterpolation>(menu_value.value);
+    switch (interpolation) {
       case CMP_NODE_INTERPOLATION_NEAREST:
         return Interpolation::Nearest;
       case CMP_NODE_INTERPOLATION_BILINEAR:
@@ -261,13 +231,48 @@ class ScaleOperation : public NodeOperation {
         return Interpolation::Bicubic;
     }
 
-    BLI_assert_unreachable();
     return Interpolation::Nearest;
+  }
+
+  ExtensionMode get_extension_mode_x() const
+  {
+    const Result &input = this->get_input("Extension X");
+    const MenuValue default_menu_value = MenuValue(CMP_NODE_EXTENSION_MODE_CLIP);
+    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
+    const CMPExtensionMode extension_x = static_cast<CMPExtensionMode>(menu_value.value);
+    switch (extension_x) {
+      case CMP_NODE_EXTENSION_MODE_CLIP:
+        return ExtensionMode::Clip;
+      case CMP_NODE_EXTENSION_MODE_REPEAT:
+        return ExtensionMode::Repeat;
+      case CMP_NODE_EXTENSION_MODE_EXTEND:
+        return ExtensionMode::Extend;
+    }
+
+    return ExtensionMode::Clip;
+  }
+
+  ExtensionMode get_extension_mode_y() const
+  {
+    const Result &input = this->get_input("Extension Y");
+    const MenuValue default_menu_value = MenuValue(CMP_NODE_EXTENSION_MODE_CLIP);
+    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
+    const CMPExtensionMode extension_y = static_cast<CMPExtensionMode>(menu_value.value);
+    switch (extension_y) {
+      case CMP_NODE_EXTENSION_MODE_CLIP:
+        return ExtensionMode::Clip;
+      case CMP_NODE_EXTENSION_MODE_REPEAT:
+        return ExtensionMode::Repeat;
+      case CMP_NODE_EXTENSION_MODE_EXTEND:
+        return ExtensionMode::Extend;
+    }
+
+    return ExtensionMode::Clip;
   }
 
   float2 get_scale()
   {
-    switch (get_scale_method()) {
+    switch (get_type()) {
       case CMP_NODE_SCALE_RELATIVE:
         return get_scale_relative();
       case CMP_NODE_SCALE_ABSOLUTE:
@@ -276,10 +281,9 @@ class ScaleOperation : public NodeOperation {
         return get_scale_render_percent();
       case CMP_NODE_SCALE_RENDER_SIZE:
         return get_scale_render_size();
-      default:
-        BLI_assert_unreachable();
-        return float2(1.0f);
     }
+
+    return float2(1.0f);
   }
 
   /* Scale by the input factors. */
@@ -310,17 +314,16 @@ class ScaleOperation : public NodeOperation {
       return float2(1.0f);
     }
 
-    switch (get_scale_render_size_method()) {
+    switch (get_frame_type()) {
       case CMP_NODE_SCALE_RENDER_SIZE_STRETCH:
         return get_scale_render_size_stretch();
       case CMP_NODE_SCALE_RENDER_SIZE_FIT:
         return get_scale_render_size_fit();
       case CMP_NODE_SCALE_RENDER_SIZE_CROP:
         return get_scale_render_size_crop();
-      default:
-        BLI_assert_unreachable();
-        return float2(1.0f);
     }
+
+    return float2(1.0f);
   }
 
   /* Scale such that the new size matches the render size. Since the input is freely scaled, it is
@@ -359,21 +362,27 @@ class ScaleOperation : public NodeOperation {
   bool is_variable_size()
   {
     /* Only relative scaling can be variable. */
-    if (get_scale_method() != CMP_NODE_SCALE_RELATIVE) {
+    if (get_type() != CMP_NODE_SCALE_RELATIVE) {
       return false;
     }
 
     return !get_input("X").is_single_value() || !get_input("Y").is_single_value();
   }
 
-  CMPNodeScaleMethod get_scale_method()
+  CMPNodeScaleMethod get_type()
   {
-    return static_cast<CMPNodeScaleMethod>(bnode().custom1);
+    const Result &input = this->get_input("Type");
+    const MenuValue default_menu_value = MenuValue(CMP_NODE_SCALE_RELATIVE);
+    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
+    return static_cast<CMPNodeScaleMethod>(menu_value.value);
   }
 
-  CMPNodeScaleRenderSizeMethod get_scale_render_size_method()
+  CMPNodeScaleRenderSizeMethod get_frame_type()
   {
-    return static_cast<CMPNodeScaleRenderSizeMethod>(bnode().custom2);
+    const Result &input = this->get_input("Frame Type");
+    const MenuValue default_menu_value = MenuValue(CMP_NODE_SCALE_RENDER_SIZE_STRETCH);
+    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
+    return static_cast<CMPNodeScaleRenderSizeMethod>(menu_value.value);
   }
 };
 
@@ -396,9 +405,7 @@ static void register_node_type_cmp_scale()
   ntype.enum_name_legacy = "SCALE";
   ntype.nclass = NODE_CLASS_DISTORT;
   ntype.declare = file_ns::cmp_node_scale_declare;
-  ntype.draw_buttons = file_ns::node_composit_buts_scale;
   ntype.initfunc = file_ns::node_composit_init_scale;
-  ntype.updatefunc = file_ns::node_composite_update_scale;
   blender::bke::node_type_storage(
       ntype, "NodeScaleData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;

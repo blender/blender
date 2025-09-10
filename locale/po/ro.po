@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-18 09:16+0000\n"
-"PO-Revision-Date: 2025-07-23 14:58+0000\n"
-"Last-Translator: Pastean_Narcis_Dan <dedeye1001@gmail.com>\n"
+"POT-Creation-Date: 2025-09-10 07:24+0000\n"
+"PO-Revision-Date: 2025-09-04 22:59+0000\n"
+"Last-Translator: Dominic Iastrebschi <domjotebit@gmail.com>\n"
 "Language-Team: Romanian <https://translate.blender.org/projects/blender-ui/ui/ro/>\n"
 "Language: ro\n"
 "MIME-Version: 1.0\n"
@@ -68,15 +68,15 @@ msgstr "Colecție de canale de animație, de obicei asociate cu un slot de acți
 
 
 msgid "F-Curves"
-msgstr "Curbe-F"
+msgstr "Curbe F"
 
 
 msgid "The individual F-Curves that animate the slot"
-msgstr "Curbele-F individuale care animează slotul"
+msgstr "Curbele F individuale care animează slotul"
 
 
 msgid "F-Curve Groups"
-msgstr "Grupuri de curbe-F"
+msgstr "Grupuri de curbele F"
 
 
 msgid "Slot"
@@ -88,7 +88,7 @@ msgstr "Pentru fiecare slot de acțiune, o listă a canalelor de animație care 
 
 
 msgid "Action F-Curves"
-msgstr "Curbe-F de acțiune"
+msgstr "Curbe F de acțiune"
 
 
 msgid "Action Group"
@@ -96,7 +96,7 @@ msgstr "Grup de acțiune"
 
 
 msgid "Groups of F-Curves"
-msgstr "Grup de curbe-F"
+msgstr "Grup de curbe F"
 
 
 msgid "Channels"
@@ -104,7 +104,7 @@ msgstr "Canale"
 
 
 msgid "F-Curves in this group"
-msgstr "Curbe-F în acest grup"
+msgstr "Curbe F în acest grup"
 
 
 msgid "Color Set"
@@ -1198,6 +1198,14 @@ msgid "Object to use as cage instead of calculating the cage from the active obj
 msgstr "Obiectul care va fi folosit ca o colivie în loc de calcularea cuștii din obiectul activ cu extrudarea coliviei"
 
 
+msgid "Object"
+msgstr "Obiect"
+
+
+msgid "Tangent"
+msgstr "Tangenta"
+
+
 msgid "File Path"
 msgstr "Calea Fișierului"
 
@@ -1270,16 +1278,8 @@ msgid "Choose normal space for baking"
 msgstr "Alegeți spațiul normal pentru copt"
 
 
-msgid "Object"
-msgstr "Obiect"
-
-
 msgid "Bake the normals in object space"
 msgstr "Coaceți normalele în spațiul obiectelor"
-
-
-msgid "Tangent"
-msgstr "Tangenta"
 
 
 msgid "Bake the normals in tangent space"
@@ -2070,6 +2070,10 @@ msgid "Edit"
 msgstr "Editare"
 
 
+msgid "Sculpt"
+msgstr "Sculptare"
+
+
 msgid "Tool"
 msgstr "Instrument"
 
@@ -2122,6 +2126,10 @@ msgid "Animation"
 msgstr "Animație"
 
 
+msgid "Simulation"
+msgstr "Simulare"
+
+
 msgid "Color Management"
 msgstr "Gestionarea Culorii"
 
@@ -2144,20 +2152,20 @@ msgid "Sampling"
 msgstr "Eșantionare"
 
 
-msgid "Apply"
-msgstr "Aplicare"
-
-
-msgid "Convert"
-msgstr "Convertire"
+msgid "Light"
+msgstr "Lumină"
 
 
 msgid "Add Image"
 msgstr "Adăugare Imagine"
 
 
-msgid "Light"
-msgstr "Lumină"
+msgid "Apply"
+msgstr "Aplicare"
+
+
+msgid "Convert"
+msgstr "Convertire"
 
 
 msgid "Marker"
@@ -2231,10 +2239,6 @@ msgstr "Lume"
 
 msgid "Starting"
 msgstr "Pornire"
-
-
-msgid "Combined"
-msgstr "Combinat"
 
 
 msgid "Rotate"
@@ -2426,6 +2430,10 @@ msgstr "Adăugare Obiect"
 
 msgid "The maximum ray distance for matching points between the active and selected objects. If zero, there is no limit"
 msgstr "Distanța razei maxime pentru punctele potrivite între obiectele active și selectate. Dacă este zero, nu există limită"
+
+
+msgid "Combined"
+msgstr "Combinat"
 
 
 msgid "Object Data"
@@ -3229,6 +3237,10 @@ msgid "%d items"
 msgstr "%d obiecte"
 
 
+msgid "Value:"
+msgstr "Valoare:"
+
+
 msgid "Hex"
 msgstr "Hex"
 
@@ -3609,10 +3621,6 @@ msgstr "Nume fișier"
 
 msgid "Driver Value:"
 msgstr "Valoare Driver:"
-
-
-msgid "Value:"
-msgstr "Valoare:"
 
 
 msgid "Delete target variable"

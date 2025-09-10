@@ -83,14 +83,6 @@ struct bContext;
 struct bToolRef;
 struct tPaletteColorHSV;
 
-extern const uchar PAINT_CURSOR_SCULPT[3];
-extern const uchar PAINT_CURSOR_VERTEX_PAINT[3];
-extern const uchar PAINT_CURSOR_WEIGHT_PAINT[3];
-extern const uchar PAINT_CURSOR_TEXTURE_PAINT[3];
-extern const uchar PAINT_CURSOR_SCULPT_CURVES[3];
-extern const uchar PAINT_CURSOR_PAINT_GREASE_PENCIL[3];
-extern const uchar PAINT_CURSOR_SCULPT_GREASE_PENCIL[3];
-
 /* overlay invalidation */
 enum ePaintOverlayControlFlags {
   PAINT_OVERLAY_INVALID_TEXTURE_PRIMARY = 1,
@@ -140,11 +132,14 @@ bool BKE_palette_is_empty(const Palette *palette);
 void BKE_palette_color_remove(Palette *palette, PaletteColor *color);
 void BKE_palette_clear(Palette *palette);
 
+void BKE_palette_color_set(PaletteColor *color, const float rgb[3]);
+void BKE_palette_color_sync_legacy(PaletteColor *color);
+
 void BKE_palette_sort_hsv(tPaletteColorHSV *color_array, int totcol);
 void BKE_palette_sort_svh(tPaletteColorHSV *color_array, int totcol);
 void BKE_palette_sort_vhs(tPaletteColorHSV *color_array, int totcol);
 void BKE_palette_sort_luminance(tPaletteColorHSV *color_array, int totcol);
-bool BKE_palette_from_hash(Main *bmain, GHash *color_table, const char *name, bool linear);
+bool BKE_palette_from_hash(Main *bmain, GHash *color_table, const char *name);
 
 /* Paint curves. */
 
@@ -157,8 +152,7 @@ bool BKE_paint_ensure(ToolSettings *ts, Paint **r_paint);
 /**
  * \param ensure_brushes: Call #BKE_paint_brushes_ensure().
  */
-void BKE_paint_init(
-    Main *bmain, Scene *sce, PaintMode mode, const uchar col[3], bool ensure_brushes = true);
+void BKE_paint_init(Main *bmain, Scene *sce, PaintMode mode, bool ensure_brushes = true);
 void BKE_paint_free(Paint *paint);
 /**
  * Called when copying scene settings, so even if 'src' and 'tar' are the same still do a
@@ -166,6 +160,12 @@ void BKE_paint_free(Paint *paint);
  * value should decrease the existing user count as with #paint_brush_set()
  */
 void BKE_paint_copy(const Paint *src, Paint *dst, int flag);
+
+/**
+ * Iterate over all paint settings in a scene.
+ */
+void BKE_paint_settings_foreach_mode(ToolSettings *ts,
+                                     blender::FunctionRef<void(Paint *paint)> fn);
 
 void BKE_paint_cavity_curve_preset(Paint *paint, int preset);
 

@@ -20,6 +20,7 @@
 #include "BKE_curves.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_grease_pencil.hh"
+#include "BKE_idtype.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_material.hh"
 #include "BKE_modifier.hh"
@@ -102,6 +103,14 @@ static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void 
   auto *tmd = reinterpret_cast<GreasePencilTintModifierData *>(md);
   modifier::greasepencil::foreach_influence_ID_link(&tmd->influence, ob, walk, user_data);
   walk(user_data, ob, (ID **)&tmd->object, IDWALK_CB_NOP);
+}
+
+static void foreach_working_space_color(ModifierData *md,
+                                        const IDTypeForeachColorFunctionCallback &fn)
+{
+  auto *tmd = reinterpret_cast<GreasePencilTintModifierData *>(md);
+  fn.single(tmd->color);
+  BKE_colorband_foreach_working_space_color(tmd->color_ramp, fn);
 }
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
@@ -517,4 +526,6 @@ ModifierTypeInfo modifierType_GreasePencilTint = {
     /*panel_register*/ blender::panel_register,
     /*blend_write*/ blender::blend_write,
     /*blend_read*/ blender::blend_read,
+    /*foreach_cache*/ nullptr,
+    /*foreach_working_space_color*/ blender::foreach_working_space_color,
 };

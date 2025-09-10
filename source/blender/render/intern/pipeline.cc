@@ -1425,10 +1425,7 @@ static void renderresult_stampinfo(Render *re)
       BKE_image_stamp_buf(re->scene,
                           ob_camera_eval,
                           (re->scene->r.stamp & R_STAMP_STRIPMETA) ? rres.stamp_data : nullptr,
-                          rres.ibuf->byte_buffer.data,
-                          rres.ibuf->float_buffer.data,
-                          rres.rectx,
-                          rres.recty);
+                          rres.ibuf);
     }
 
     RE_ReleaseResultImage(re);
@@ -2206,7 +2203,7 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
   }
 
   ImageFormatData image_format;
-  BKE_image_format_init_for_write(&image_format, scene, nullptr);
+  BKE_image_format_init_for_write(&image_format, scene, nullptr, true);
 
   const bool is_mono = !RE_ResultIsMultiView(rr);
   const float dither = scene->r.dither_intensity;
@@ -2223,6 +2220,7 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
       if (!MOV_write_append(movie_writers[view_id],
                             scene,
                             rd,
+                            &image_format,
                             preview ? scene->r.psfra : scene->r.sfra,
                             scene->r.cfra,
                             ibuf,
@@ -2258,6 +2256,7 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
       if (!MOV_write_append(movie_writers[0],
                             scene,
                             rd,
+                            &image_format,
                             preview ? scene->r.psfra : scene->r.sfra,
                             scene->r.cfra,
                             ibuf_arr[2],
@@ -2373,6 +2372,7 @@ static bool do_write_image_or_movie(
 
 static void get_videos_dimensions(const Render *re,
                                   const RenderData *rd,
+                                  const ImageFormatData *imf,
                                   size_t *r_width,
                                   size_t *r_height)
 {
@@ -2392,7 +2392,7 @@ static void get_videos_dimensions(const Render *re,
     height = re->recty;
   }
 
-  BKE_scene_multiview_videos_dimensions_get(rd, width, height, r_width, r_height);
+  BKE_scene_multiview_videos_dimensions_get(rd, imf, width, height, r_width, r_height);
 }
 
 static void re_movie_free_all(Render *re)
@@ -2401,6 +2401,22 @@ static void re_movie_free_all(Render *re)
     MOV_write_end(writer);
   }
   re->movie_writers.clear_and_shrink();
+}
+
+static void touch_file(const char *filepath)
+{
+  if (BLI_exists(filepath)) {
+    return;
+  }
+
+  if (!BLI_file_ensure_parent_dir_exists(filepath)) {
+    CLOG_ERROR(&LOG, "Couldn't create directory for file %s: %s", filepath, std::strerror(errno));
+    return;
+  }
+  if (!BLI_file_touch(filepath)) {
+    CLOG_ERROR(&LOG, "Couldn't touch file %s: %s", filepath, std::strerror(errno));
+    return;
+  }
 }
 
 void RE_RenderAnim(Render *re,
@@ -2428,10 +2444,6 @@ void RE_RenderAnim(Render *re,
   const int cfra_old = rd.cfra;
   const float subframe_old = rd.subframe;
   int nfra, totrendered = 0, totskipped = 0;
-  const int totvideos = BKE_scene_multiview_num_videos_get(&rd);
-  const bool is_movie = BKE_imtype_is_movie(rd.im_format.imtype);
-  const bool is_multiview_name = ((rd.scemode & R_MULTIVIEW) != 0 &&
-                                  (rd.im_format.views_format == R_IMF_VIEWS_INDIVIDUAL));
 
   /* do not fully call for each frame, it initializes & pops output window */
   if (!render_init_from_main(re, &rd, bmain, scene, single_layer, camera_override, false, true)) {
@@ -2439,6 +2451,15 @@ void RE_RenderAnim(Render *re,
   }
 
   RenderEngineType *re_type = RE_engines_find(re->r.engine);
+
+  /* Image format for writing. */
+  ImageFormatData image_format;
+  BKE_image_format_init_for_write(&image_format, scene, nullptr, true);
+
+  const int totvideos = BKE_scene_multiview_num_videos_get(&rd, &image_format);
+  const bool is_movie = BKE_imtype_is_movie(image_format.imtype);
+  const bool is_multiview_name = ((rd.scemode & R_MULTIVIEW) != 0 &&
+                                  (image_format.views_format == R_IMF_VIEWS_INDIVIDUAL));
 
   /* Only disable file writing if postprocessing is also disabled. */
   const bool do_write_file = !(re_type->flag & RE_USE_NO_IMAGE_SAVE) ||
@@ -2448,15 +2469,15 @@ void RE_RenderAnim(Render *re,
 
   if (is_movie && do_write_file) {
     size_t width, height;
-    get_videos_dimensions(re, &rd, &width, &height);
+    get_videos_dimensions(re, &rd, &image_format, &width, &height);
 
     bool is_error = false;
     re->movie_writers.reserve(totvideos);
     for (int i = 0; i < totvideos; i++) {
       const char *suffix = BKE_scene_multiview_view_id_suffix_get(&re->r, i);
-      MovieWriter *writer = MOV_write_begin(rd.im_format.imtype,
-                                            re->pipeline_scene_eval,
+      MovieWriter *writer = MOV_write_begin(re->pipeline_scene_eval,
                                             &re->r,
+                                            &image_format,
                                             width,
                                             height,
                                             re->reports,
@@ -2471,6 +2492,7 @@ void RE_RenderAnim(Render *re,
 
     if (is_error) {
       re_movie_free_all(re);
+      BKE_image_format_free(&image_format);
       render_pipeline_free(re);
       return;
     }
@@ -2533,7 +2555,7 @@ void RE_RenderAnim(Render *re,
           BKE_main_blendfile_path(bmain),
           &template_variables,
           scene->r.cfra,
-          &rd.im_format,
+          &image_format,
           (rd.scemode & R_EXTENSION) != 0,
           true,
           nullptr);
@@ -2584,10 +2606,7 @@ void RE_RenderAnim(Render *re,
 
       if (rd.mode & R_TOUCH) {
         if (!is_multiview_name) {
-          if (!BLI_exists(filepath)) {
-            BLI_file_ensure_parent_dir_exists(filepath);
-            BLI_file_touch(filepath);
-          }
+          touch_file(filepath);
         }
         else {
           char filepath_view[FILE_MAX];
@@ -2599,10 +2618,7 @@ void RE_RenderAnim(Render *re,
 
             BKE_scene_multiview_filepath_get(srv, filepath, filepath_view);
 
-            if (!BLI_exists(filepath_view)) {
-              BLI_file_ensure_parent_dir_exists(filepath_view);
-              BLI_file_touch(filepath_view);
-            }
+            touch_file(filepath);
           }
         }
       }
@@ -2674,6 +2690,8 @@ void RE_RenderAnim(Render *re,
   if (is_movie && do_write_file) {
     re_movie_free_all(re);
   }
+
+  BKE_image_format_free(&image_format);
 
   if (totskipped && totrendered == 0) {
     BKE_report(re->reports, RPT_INFO, "No frames rendered, skipped to not overwrite");

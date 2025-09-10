@@ -17,8 +17,7 @@ class Shader;
 
 /* draw_shader.cc */
 
-blender::gpu::Shader *DRW_shader_hair_refine_get(ParticleRefineShader refinement);
-
+blender::gpu::Shader *DRW_shader_curves_topology_get();
 blender::gpu::Shader *DRW_shader_curves_refine_get(blender::draw::CurvesEvalShader type);
 
 blender::gpu::Shader *DRW_shader_debug_draw_display_get();

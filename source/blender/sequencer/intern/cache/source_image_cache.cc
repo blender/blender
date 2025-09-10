@@ -136,9 +136,7 @@ ImBuf *source_image_cache_get(const RenderData *context, const Strip *strip, flo
 
     /* For effect and scene strips, check if the cached result matches our current
      * render resolution. If it does not, remove stale source entries for this strip. */
-    if (res != nullptr &&
-        ((strip->type & STRIP_TYPE_EFFECT) != 0 || strip->type == STRIP_TYPE_SCENE))
-    {
+    if (res != nullptr && (strip->is_effect() || strip->type == STRIP_TYPE_SCENE)) {
       if (res->x != context->rectx || res->y != context->recty) {
         cache->remove_entry(strip);
         return nullptr;
@@ -296,7 +294,7 @@ bool source_image_cache_evict(Scene *scene)
   const int cur_frame = prefetch_loops_around ? timeline_start : scene->r.cfra;
 
   SourceImageCache::StripEntry *best_strip = nullptr;
-  std::pair<int, int> best_key = {};
+  std::pair<float, int> best_key = {};
   int best_score = 0;
   for (const auto &strip : cache->map_.items()) {
     for (const auto &entry : strip.value.frames.items()) {

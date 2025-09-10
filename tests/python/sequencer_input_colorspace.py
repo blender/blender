@@ -37,6 +37,11 @@ class FFmpegHDRColorspace(MovieInputTest):
 
         self.assertEqual(self.get_movie_colorspace(prefix / "hdr_simple_export_hlg_12bit.mov"), "Rec.2100-HLG")
 
+    def test_p3(self):
+        prefix = TEST_DIR / Path("ffmpeg") / "media"
+
+        self.assertEqual(self.get_movie_colorspace(prefix / "sdr_simple_export_p3_aces_10bit.mov"), "Display P3")
+
 
 def main():
     global TEST_DIR

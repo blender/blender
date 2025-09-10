@@ -8,6 +8,7 @@
 
 #include <optional>
 
+#include "BLI_function_ref.hh"
 #include "MEM_guardedalloc.h"
 
 #include "DNA_defaults.h"
@@ -112,6 +113,13 @@ static void pointcloud_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
+static void pointcloud_foreach_working_space_color(ID *id,
+                                                   const IDTypeForeachColorFunctionCallback &fn)
+{
+  PointCloud *pointcloud = (PointCloud *)id;
+  pointcloud->attribute_storage.wrap().foreach_working_space_color(fn);
+}
+
 static void pointcloud_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   using namespace blender;
@@ -176,6 +184,7 @@ IDTypeInfo IDType_ID_PT = {
     /*foreach_id*/ pointcloud_foreach_id,
     /*foreach_cache*/ nullptr,
     /*foreach_path*/ nullptr,
+    /*foreach_working_space_color*/ pointcloud_foreach_working_space_color,
     /*owner_pointer_get*/ nullptr,
 
     /*blend_write*/ pointcloud_blend_write,

@@ -669,7 +669,6 @@ static void copy_or_interp_loop_attributes(Mesh *dest_mesh,
         CustomData_bmesh_interp_n(target_cd,
                                   src_blocks_ofs.data(),
                                   weights.data(),
-                                  nullptr,
                                   orig_face.size(),
                                   dst_block_ofs,
                                   target_layer_i);

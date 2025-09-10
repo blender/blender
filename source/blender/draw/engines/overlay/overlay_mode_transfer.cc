@@ -2,9 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "ED_object.hh"
-
 #include "overlay_mode_transfer.hh"
+
+#include "BLI_math_color.h"
+
+#include "ED_object.hh"
 
 namespace blender::draw::overlay {
 

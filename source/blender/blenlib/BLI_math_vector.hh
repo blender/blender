@@ -517,6 +517,11 @@ template<typename T, int Size>
   return normalize_and_get_length(v, len);
 }
 
+template<typename T> [[nodiscard]] inline T cross(const VecBase<T, 2> &a, const VecBase<T, 2> &b)
+{
+  return a.x * b.y - a.y * b.x;
+}
+
 /**
  * \return cross perpendicular vector to \a a and \a b.
  * \note Return zero vector if \a a and \a b are collinear.

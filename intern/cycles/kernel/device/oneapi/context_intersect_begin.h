@@ -11,7 +11,7 @@
                               sycl::handler &cgh, \
                               __VA_ARGS__) \
     { \
-      (kg); \
+      (void)(kg); \
       cgh.parallel_for( \
           sycl::nd_range<1>(kernel_global_size, kernel_local_size), \
           [=](sycl::nd_item<1> item, sycl::kernel_handler oneapi_kernel_handler) { \

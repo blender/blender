@@ -100,7 +100,7 @@ struct MultiresReshapeContext {
 
   /* Indexed by base face index, returns first ptex face index corresponding
    * to that base face. */
-  int *face_ptex_offset;
+  blender::Span<int> face_ptex_offset;
 
   /* Vertex crease custom data layer, empty if none is present. */
   blender::VArraySpan<float> cd_vertex_crease;
@@ -254,10 +254,11 @@ ReshapeConstGridElement multires_reshape_orig_grid_element_for_grid_coord(
  * Evaluate limit surface created from base mesh.
  * This is the limit surface which defines tangent space for MDisps.
  */
-void multires_reshape_evaluate_limit_at_grid(const MultiresReshapeContext *reshape_context,
-                                             const GridCoord *grid_coord,
-                                             blender::float3 &r_P,
-                                             blender::float3x3 &r_tangent_matrix);
+void multires_reshape_evaluate_base_mesh_limit_at_grid(
+    const MultiresReshapeContext *reshape_context,
+    const GridCoord *grid_coord,
+    blender::float3 &r_P,
+    blender::float3x3 &r_tangent_matrix);
 
 /* --------------------------------------------------------------------
  * Custom data preparation.

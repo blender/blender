@@ -326,6 +326,9 @@ class GHOST_WindowWin32 : public GHOST_Window {
 
   GHOST_TTrackpadInfo getTrackpadInfo();
 
+  /* Update HDR info on initialization and window changes. */
+  void updateHDRInfo();
+
  private:
   /**
    * \param type: The type of rendering context create.

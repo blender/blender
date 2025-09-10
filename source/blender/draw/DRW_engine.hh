@@ -159,6 +159,10 @@ void DRW_gpu_context_enable();
  * Returns true on success, false if the draw GPU context does not exists.
  */
 bool DRW_gpu_context_try_enable();
+/**
+ * Returns true if the DRW_gpu_context is enabled on the calling thread.
+ */
+bool DRW_gpu_context_is_enabled();
 void DRW_gpu_context_disable();
 
 #ifdef WITH_XR_OPENXR

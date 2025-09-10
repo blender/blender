@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-18 09:16+0000\n"
+"POT-Creation-Date: 2025-09-10 07:24+0000\n"
 "PO-Revision-Date: 2025-07-23 15:18+0000\n"
 "Last-Translator: Aras Pranckevičius <aras@nesnausk.org>\n"
 "Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
@@ -901,6 +901,10 @@ msgid "Default Color Attribute"
 msgstr "Numatytasis spalvos atributas"
 
 
+msgid "Object"
+msgstr "Objektas"
+
+
 msgid "File Path"
 msgstr "Failo kelias"
 
@@ -941,10 +945,6 @@ msgid "-Z"
 msgstr "- Z"
 
 
-msgid "Object"
-msgstr "Objektas"
-
-
 msgid "None"
 msgstr "Joks/-ia"
 
@@ -973,6 +973,10 @@ msgid "External"
 msgstr "Išorinis/-ė"
 
 
+msgid "Normals"
+msgstr "Normalės"
+
+
 msgid "Free"
 msgstr "Laisva/-s"
 
@@ -991,6 +995,10 @@ msgstr "Veiksmai"
 
 msgid "Cameras"
 msgstr "Kameros/Fotoaparatai"
+
+
+msgid "Color Space"
+msgstr "Spalvų erdvė"
 
 
 msgid "Filename"
@@ -1039,6 +1047,10 @@ msgstr "Garsumai"
 
 msgid "Worlds"
 msgstr "Pasauliai"
+
+
+msgid "ACEScg"
+msgstr "„ACEScg“"
 
 
 msgid "Not yet defined"
@@ -1403,10 +1415,6 @@ msgid "ACES2065-1"
 msgstr "„ACES2065-1“"
 
 
-msgid "ACEScg"
-msgstr "„ACEScg“"
-
-
 msgid "AgX Log"
 msgstr "„AgX“ žurnalas"
 
@@ -1417,10 +1425,6 @@ msgstr "„Rec.1886“"
 
 msgid "Rec.2020"
 msgstr "„Rec.2020“"
-
-
-msgid "Color Space"
-msgstr "Spalvų erdvė"
 
 
 msgid "Color space that the sequencer operates in"
@@ -2465,10 +2469,6 @@ msgid "Textboxes"
 msgstr "Teksto laukai"
 
 
-msgid "Normals"
-msgstr "Normalės"
-
-
 msgid "Active Texture"
 msgstr "Aktyvi tekstūra"
 
@@ -3101,12 +3101,12 @@ msgid "Dots"
 msgstr "Taškai"
 
 
-msgid "Apply"
-msgstr "Pritaikyti"
-
-
 msgid "Show/Hide"
 msgstr "Rodyti/Slėpti"
+
+
+msgid "Apply"
+msgstr "Pritaikyti"
 
 
 msgid "Track"
@@ -3225,10 +3225,6 @@ msgstr "pks."
 
 msgid "JPEG"
 msgstr "„JPEG“"
-
-
-msgid "Growing/shrinking mode"
-msgstr "Augimo/Susitraukimo veiksena"
 
 
 msgctxt "NodeTree"
@@ -3914,6 +3910,10 @@ msgid "Display warnings"
 msgstr "Rodyti/Vaizduoti įspėjimus/perspėjimus"
 
 
+msgid "ID From"
+msgstr "ID iš"
+
+
 msgctxt "ID"
 msgid "Modifier"
 msgstr "Keitiklis"
@@ -3922,10 +3922,6 @@ msgstr "Keitiklis"
 msgctxt "ID"
 msgid "Tool"
 msgstr "Įrankis"
-
-
-msgid "ID From"
-msgstr "ID iš"
 
 
 msgid "Blender File"

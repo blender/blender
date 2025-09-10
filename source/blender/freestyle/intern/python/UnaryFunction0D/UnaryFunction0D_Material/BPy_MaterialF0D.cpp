@@ -45,7 +45,6 @@ PyDoc_STRVAR(
     "   :return: The material of the object evaluated at the pointed\n"
     "      Interface0D.\n"
     "   :rtype: :class:`freestyle.types.Material`\n");
-
 static int MaterialF0D___init__(BPy_MaterialF0D *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {nullptr};

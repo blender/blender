@@ -468,8 +468,8 @@ CursorSampleResult calc_node_mask(const Depsgraph &depsgraph,
   const SculptSession &ss = *object.sculpt;
 
   const bool flip = (ss.cache->bstrength < 0.0f);
-  const float offset = brush_plane_offset_get(brush, ss);
-  const float displace = ss.cache->radius * (0.18f + offset) * (flip ? -1.0f : 1.0f);
+  const float displace = ss.cache->radius * brush_plane_offset_get(brush, ss) *
+                         (flip ? -1.0f : 1.0f);
 
   /* TODO: Test to see if the sqrt2 extra factor can be removed */
   const float initial_radius_squared = math::square(ss.cache->radius * math::numbers::sqrt2);
@@ -484,22 +484,14 @@ CursorSampleResult calc_node_mask(const Depsgraph &depsgraph,
                                                    memory);
 
   float3 plane_center;
-  float3 sculpt_plane_normal;
-  calc_brush_plane(depsgraph, brush, object, initial_node_mask, sculpt_plane_normal, plane_center);
-
-  float3 plane_normal = sculpt_plane_normal;
-  /* Ignore brush settings and recalculate the area normal. */
-  if (brush.sculpt_plane != SCULPT_DISP_DIR_AREA || (brush.flag & BRUSH_ORIGINAL_NORMAL)) {
-    plane_normal =
-        calc_area_normal(depsgraph, brush, object, initial_node_mask).value_or(float3(0));
-  }
-
+  float3 plane_normal;
+  calc_brush_plane(depsgraph, brush, object, initial_node_mask, plane_normal, plane_center);
   plane_normal = tilt_apply_to_normal(plane_normal, *ss.cache, brush.tilt_strength_factor);
   plane_center += plane_normal * ss.cache->scale * displace;
 
   if (math::is_zero(ss.cache->grab_delta_symm) || math::is_zero(plane_normal)) {
     /* The brush local matrix is degenerate: return an empty index mask. */
-    return {IndexMask(), plane_normal, plane_center};
+    return {IndexMask(), plane_center, plane_normal};
   }
 
   const float4x4 mat = calc_local_matrix(brush, *ss.cache, plane_normal, plane_center, flip);

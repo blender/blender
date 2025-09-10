@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <cfloat>
+
 #include "NOD_menu_value.hh"
 #include "NOD_node_declaration.hh"
 
@@ -11,7 +13,7 @@
 
 #include "BKE_node_enum.hh"
 
-#include "BLI_color.hh"
+#include "BLI_color_types.hh"
 #include "BLI_implicit_sharing_ptr.hh"
 #include "BLI_math_euler_types.hh"
 #include "BLI_math_vector_types.hh"

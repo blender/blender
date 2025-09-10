@@ -52,7 +52,6 @@ enum eMaterialGeometry {
   MAT_GEOM_MESH = 0,
   MAT_GEOM_POINTCLOUD,
   MAT_GEOM_CURVES,
-  MAT_GEOM_GPENCIL,
   MAT_GEOM_VOLUME,
 
   /* These maps to special shader. */
@@ -185,6 +184,38 @@ static inline eClosureBits shader_closure_bits_from_flag(const GPUMaterial *gpum
   return closure_bits;
 }
 
+/* Count the number of closure bins required for the given combination of closure types. */
+static inline int to_gbuffer_bin_count(const eClosureBits closure_bits)
+{
+  int closure_data_slots = 0;
+  if (closure_bits & CLOSURE_DIFFUSE) {
+    if ((closure_bits & CLOSURE_TRANSLUCENT) && !(closure_bits & CLOSURE_CLEARCOAT)) {
+      /* Special case to allow translucent with diffuse without noise.
+       * Revert back to noise if clear coat is present. */
+      closure_data_slots |= (1 << 2);
+    }
+    else {
+      closure_data_slots |= (1 << 0);
+    }
+  }
+  if (closure_bits & CLOSURE_SSS) {
+    closure_data_slots |= (1 << 0);
+  }
+  if (closure_bits & CLOSURE_REFRACTION) {
+    closure_data_slots |= (1 << 0);
+  }
+  if (closure_bits & CLOSURE_TRANSLUCENT) {
+    closure_data_slots |= (1 << 0);
+  }
+  if (closure_bits & CLOSURE_REFLECTION) {
+    closure_data_slots |= (1 << 1);
+  }
+  if (closure_bits & CLOSURE_CLEARCOAT) {
+    closure_data_slots |= (1 << 2);
+  }
+  return count_bits_i(closure_data_slots);
+};
+
 static inline eMaterialGeometry to_material_geometry(const Object *ob)
 {
   switch (ob->type) {
@@ -192,8 +223,6 @@ static inline eMaterialGeometry to_material_geometry(const Object *ob)
       return MAT_GEOM_CURVES;
     case OB_VOLUME:
       return MAT_GEOM_VOLUME;
-    case OB_GREASE_PENCIL:
-      return MAT_GEOM_GPENCIL;
     case OB_POINTCLOUD:
       return MAT_GEOM_POINTCLOUD;
     default:
@@ -231,14 +260,6 @@ struct MaterialKey {
     return uint64_t(mat) + options;
   }
 
-  bool operator<(const MaterialKey &k) const
-  {
-    if (mat == k.mat) {
-      return options < k.options;
-    }
-    return mat < k.mat;
-  }
-
   bool operator==(const MaterialKey &k) const
   {
     return (mat == k.mat) && (options == k.options);
@@ -273,11 +294,6 @@ struct ShaderKey {
   uint64_t hash() const
   {
     return uint64_t(shader) + options;
-  }
-
-  bool operator<(const ShaderKey &k) const
-  {
-    return (shader == k.shader) ? (options < k.options) : (shader < k.shader);
   }
 
   bool operator==(const ShaderKey &k) const

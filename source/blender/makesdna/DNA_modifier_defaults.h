@@ -615,8 +615,6 @@
     .uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES, \
     .quality = 3, \
     .boundary_smooth = SUBSURF_BOUNDARY_SMOOTH_ALL, \
-    .emCache = NULL, \
-    .mCache = NULL, \
   }
 
 #define _DNA_DEFAULT_SurfaceModifierData \

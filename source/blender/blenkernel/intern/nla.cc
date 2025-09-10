@@ -1862,6 +1862,23 @@ void BKE_nlastrip_validate_fcurves(NlaStrip *strip)
   }
 }
 
+bool BKE_nlastrip_controlcurve_remove(NlaStrip *strip, FCurve *fcurve)
+{
+  if (STREQ(fcurve->rna_path, "strip_time")) {
+    strip->flag &= ~NLASTRIP_FLAG_USR_TIME;
+  }
+  else if (STREQ(fcurve->rna_path, "influence")) {
+    strip->flag &= ~NLASTRIP_FLAG_USR_INFLUENCE;
+  }
+  else {
+    return false;
+  }
+
+  BLI_remlink(&strip->fcurves, fcurve);
+  BKE_fcurve_free(fcurve);
+  return true;
+}
+
 bool BKE_nlastrip_has_curves_for_property(const PointerRNA *ptr, const PropertyRNA *prop)
 {
   /* sanity checks */

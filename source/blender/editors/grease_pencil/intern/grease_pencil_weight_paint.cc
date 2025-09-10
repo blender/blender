@@ -340,14 +340,10 @@ void add_armature_envelope_weights(Scene &scene, Object &object, const Object &o
     const float4x4 layer_to_world = layer.to_world_space(object);
 
     CurvesGeometry &curves = info.drawing.strokes_for_write();
-    const Span<float3> src_positions = curves.positions();
+
     /* Get all the positions in world space. */
     Array<float3> positions(curves.points_num());
-    threading::parallel_for(positions.index_range(), 4096, [&](const IndexRange range) {
-      for (const int i : range) {
-        positions[i] = math::transform_point(layer_to_world, src_positions[i]);
-      }
-    });
+    math::transform_points(curves.positions(), layer_to_world, positions);
 
     for (const int bone_i : skinnable_bones.index_range()) {
       const Bone *bone = skinnable_bones[bone_i];
@@ -411,14 +407,10 @@ void add_armature_automatic_weights(Scene &scene, Object &object, const Object &
     const float4x4 layer_to_world = layer.to_world_space(object);
 
     CurvesGeometry &curves = info.drawing.strokes_for_write();
-    const Span<float3> src_positions = curves.positions();
+
     /* Get all the positions in world space. */
     Array<float3> positions(curves.points_num());
-    threading::parallel_for(positions.index_range(), 4096, [&](const IndexRange range) {
-      for (const int i : range) {
-        positions[i] = math::transform_point(layer_to_world, src_positions[i]);
-      }
-    });
+    math::transform_points(curves.positions(), layer_to_world, positions);
 
     for (const int bone_i : skinnable_bones.index_range()) {
       const char *deform_group_name = deform_group_names[bone_i].c_str();

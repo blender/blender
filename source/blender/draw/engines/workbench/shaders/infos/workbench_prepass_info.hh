@@ -20,7 +20,7 @@
 #  define WORKBENCH_COLOR_VERTEX
 #  define WORKBENCH_LIGHTING_MATCAP
 
-#  define HAIR_SHADER
+#  define CURVES_SHADER
 #  define DRW_HAIR_INFO
 
 #  define POINTCLOUD_SHADER
@@ -49,7 +49,8 @@ SAMPLER_FREQ(WB_CURVES_UV_SLOT, samplerBuffer, au, BATCH)
 PUSH_CONSTANT(int, emitter_object_id)
 VERTEX_SOURCE("workbench_prepass_hair_vert.glsl")
 ADDITIONAL_INFO(draw_modelmat_with_custom_id)
-ADDITIONAL_INFO(draw_hair)
+ADDITIONAL_INFO(draw_curves)
+ADDITIONAL_INFO(draw_curves_infos)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_pointcloud)

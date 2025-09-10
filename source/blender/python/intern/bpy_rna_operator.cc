@@ -96,7 +96,6 @@ PyDoc_STRVAR(
     "   :arg args: A sequence of arguments to pass to ``message``, if it's a callable, "
     "otherwise argument is not available.\n"
     "   :type args: Any\n");
-
 static PyObject *BPY_rna_operator_poll_message_set(PyObject * /*self*/, PyObject *args)
 {
   const Py_ssize_t args_len = PyTuple_GET_SIZE(args);

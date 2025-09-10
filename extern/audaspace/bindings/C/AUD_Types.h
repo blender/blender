@@ -210,3 +210,15 @@ typedef enum
 	AUD_STRETCHER_QUALITY_FAST = 1,      /// Prioritize speed over audio quality
 	AUD_STRETCHER_QUALITY_CONSISTENT = 2 /// Prioritize consistency for dynamic pitch changes
 } AUD_StretcherQuality;
+
+/// Possible animatable properties for Sequence Factories and Entries.
+typedef enum
+{
+	AUD_AP_VOLUME,
+	AUD_AP_PANNING,
+	AUD_AP_PITCH,
+	AUD_AP_LOCATION,
+	AUD_AP_ORIENTATION,
+	AUD_AP_TIME_STRETCH,
+	AUD_AP_PITCH_SCALE
+} AUD_AnimateablePropertyType;

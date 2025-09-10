@@ -17,6 +17,7 @@
 #include "BLO_read_write.hh"
 
 #include "node_geometry_util.hh"
+#include "shader/node_shader_util.hh"
 
 namespace blender::nodes::node_geo_evaluate_closure_cc {
 
@@ -198,7 +199,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, "NodeEvaluateClosure", NODE_EVALUATE_CLOSURE);
+  common_node_type_base(&ntype, "NodeEvaluateClosure", NODE_EVALUATE_CLOSURE);
   ntype.ui_name = "Evaluate Closure";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;

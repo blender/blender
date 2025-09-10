@@ -36,7 +36,8 @@ void multires_reshape_apply_base_update_mesh_coords(MultiresReshapeContext *resh
 
     blender::float3 P;
     blender::float3x3 tangent_matrix;
-    multires_reshape_evaluate_limit_at_grid(reshape_context, &grid_coord, P, tangent_matrix);
+    multires_reshape_evaluate_base_mesh_limit_at_grid(
+        reshape_context, &grid_coord, P, tangent_matrix);
 
     ReshapeConstGridElement grid_element = multires_reshape_orig_grid_element_for_grid_coord(
         reshape_context, &grid_coord);

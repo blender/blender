@@ -28,15 +28,22 @@
 
 #include "node_composite_util.hh"
 
-/* **************** Translate  ******************** */
-
 namespace blender::nodes::node_composite_moviedistortion_cc {
+
+static const EnumPropertyItem type_items[] = {
+    {int(compositor::DistortionType::Distort), "UNDISTORT", 0, "Undistort", ""},
+    {int(compositor::DistortionType::Undistort), "DISTORT", 0, "Distort", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
 
 static void cmp_node_moviedistortion_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image")
       .default_value({0.8f, 0.8f, 0.8f, 1.0f})
       .structure_type(StructureType::Dynamic);
+  b.add_input<decl::Menu>("Type")
+      .default_value(compositor::DistortionType::Distort)
+      .static_items(type_items);
 
   b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }
@@ -68,15 +75,7 @@ static void storage_copy(bNodeTree * /*dst_ntree*/, bNode *dest_node, const bNod
 
 static void node_composit_buts_moviedistortion(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-  bNode *node = (bNode *)ptr->data;
-
   uiTemplateID(layout, C, ptr, "clip", nullptr, "CLIP_OT_open", nullptr);
-
-  if (!node->id) {
-    return;
-  }
-
-  layout->prop(ptr, "distortion_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -149,7 +148,10 @@ class MovieDistortionOperation : public NodeOperation {
 
   DistortionType get_distortion_type()
   {
-    return bnode().custom1 == 0 ? DistortionType::Distort : DistortionType::Undistort;
+    const Result &input = this->get_input("Type");
+    const MenuValue default_menu_value = MenuValue(DistortionType::Distort);
+    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
+    return static_cast<DistortionType>(menu_value.value);
   }
 
   MovieClip *get_movie_clip()

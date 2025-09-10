@@ -111,6 +111,9 @@ static bool change_frame_poll(bContext *C)
       return true;
     }
     if (area->spacetype == SPACE_SEQ) {
+      if (!CTX_data_sequencer_scene(C)) {
+        return false;
+      }
       /* Check the region type so tools (which are shared between preview/strip view)
        * don't conflict with actions which can have the same key bound (2D cursor for example). */
       const ARegion *region = CTX_wm_region(C);
@@ -153,7 +156,10 @@ static void ensure_change_frame_keylist(bContext *C, FrameChangeModalData &op_da
     /* Special case for the sequencer since it has retiming keys, but those have no bAnimListElem
      * representation. Need to manually add entries to keylist. */
     op_data.keylist = ED_keylist_create();
-    Scene *scene = CTX_data_scene(C);
+    Scene *scene = CTX_data_sequencer_scene(C);
+    if (!scene) {
+      return;
+    }
 
     ListBase *seqbase = blender::seq::active_seqbase_get(blender::seq::editing_get(scene));
     LISTBASE_FOREACH (Strip *, strip, seqbase) {
@@ -352,13 +358,22 @@ static blender::Vector<SnapTarget> seq_get_snap_targets(bContext *C,
                                                         FrameChangeModalData &op_data,
                                                         const float timeline_frame)
 {
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
+  if (!scene) {
+    return {};
+  }
+
   ToolSettings *tool_settings = scene->toolsettings;
+  Editing *ed = blender::seq::editing_get(scene);
+
+  if (ed == nullptr) {
+    return {};
+  }
 
   blender::Vector<SnapTarget> targets;
 
   if (tool_settings->snap_playhead_mode & SCE_SNAP_TO_STRIPS) {
-    ListBase *seqbase = blender::seq::active_seqbase_get(blender::seq::editing_get(scene));
+    ListBase *seqbase = blender::seq::active_seqbase_get(ed);
     append_sequencer_strip_snap_target(
         blender::seq::query_all_strips(seqbase), scene, timeline_frame, targets);
   }
@@ -473,7 +488,12 @@ static float apply_frame_snap(bContext *C, FrameChangeModalData &op_data, const 
   ScrArea *area = CTX_wm_area(C);
 
   blender::Vector<SnapTarget> targets;
-  Scene *scene = CTX_data_scene(C);
+  const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
+  Scene *scene = is_sequencer ? CTX_data_sequencer_scene(C) : CTX_data_scene(C);
+  if (!scene) {
+    return frame;
+  }
+
   switch (area->spacetype) {
     case SPACE_SEQ:
       targets = seq_get_snap_targets(C, op_data, frame);
@@ -527,7 +547,11 @@ static float apply_frame_snap(bContext *C, FrameChangeModalData &op_data, const 
 /* Set the new frame number */
 static void change_frame_apply(bContext *C, wmOperator *op, const bool always_update)
 {
-  Scene *scene = CTX_data_scene(C);
+  const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
+  Scene *scene = is_sequencer ? CTX_data_sequencer_scene(C) : CTX_data_scene(C);
+  if (!scene) {
+    return;
+  }
   float frame = RNA_float_get(op->ptr, "frame");
   bool do_snap = RNA_boolean_get(op->ptr, "snap");
 
@@ -549,6 +573,8 @@ static void change_frame_apply(bContext *C, wmOperator *op, const bool always_up
     scene->r.subframe = 0.0f;
   }
   FRAMENUMBER_MIN_CLAMP(scene->r.cfra);
+
+  blender::ed::vse::sync_active_scene_and_time_with_scene_strip(*C);
 
   /* do updates */
   const bool frame_changed = (old_frame != scene->r.cfra) || (old_subframe != scene->r.subframe);
@@ -574,7 +600,8 @@ static wmOperatorStatus change_frame_exec(bContext *C, wmOperator *op)
 static float frame_from_event(bContext *C, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
-  Scene *scene = CTX_data_scene(C);
+  const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
+  Scene *scene = is_sequencer ? CTX_data_sequencer_scene(C) : CTX_data_scene(C);
   float frame;
 
   /* convert from region coordinates to View2D 'tot' space */
@@ -608,7 +635,12 @@ static void change_frame_seq_preview_end(SpaceSeq *sseq)
 
 static bool use_playhead_snapping(bContext *C)
 {
-  Scene *scene = CTX_data_scene(C);
+  const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
+  Scene *scene = is_sequencer ? CTX_data_sequencer_scene(C) : CTX_data_scene(C);
+  if (!scene) {
+    return false;
+  }
+
   ScrArea *area = CTX_wm_area(C);
 
   if (area->spacetype == SPACE_GRAPH) {
@@ -625,7 +657,7 @@ static bool use_playhead_snapping(bContext *C)
 
 static bool sequencer_skip_for_handle_tweak(const bContext *C, const wmEvent *event)
 {
-  const Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
   if (!blender::seq::editing_get(scene)) {
     return false;
   }
@@ -859,7 +891,8 @@ static bool anim_set_end_frames_poll(bContext *C)
 
 static wmOperatorStatus anim_set_sfra_exec(bContext *C, wmOperator *op)
 {
-  Scene *scene = CTX_data_scene(C);
+  const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
+  Scene *scene = is_sequencer ? CTX_data_sequencer_scene(C) : CTX_data_scene(C);
   int frame;
 
   if (scene == nullptr) {
@@ -914,7 +947,8 @@ static void ANIM_OT_start_frame_set(wmOperatorType *ot)
 
 static wmOperatorStatus anim_set_efra_exec(bContext *C, wmOperator *op)
 {
-  Scene *scene = CTX_data_scene(C);
+  const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
+  Scene *scene = is_sequencer ? CTX_data_sequencer_scene(C) : CTX_data_scene(C);
   int frame;
 
   if (scene == nullptr) {
@@ -975,7 +1009,11 @@ static void ANIM_OT_end_frame_set(wmOperatorType *ot)
 
 static wmOperatorStatus previewrange_define_exec(bContext *C, wmOperator *op)
 {
-  Scene *scene = CTX_data_scene(C);
+  const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
+  Scene *scene = is_sequencer ? CTX_data_sequencer_scene(C) : CTX_data_scene(C);
+  if (!scene) {
+    return OPERATOR_CANCELLED;
+  }
   ARegion *region = CTX_wm_region(C);
   float sfra, efra;
   rcti rect;
@@ -1039,7 +1077,8 @@ static void ANIM_OT_previewrange_set(wmOperatorType *ot)
 
 static wmOperatorStatus previewrange_clear_exec(bContext *C, wmOperator * /*op*/)
 {
-  Scene *scene = CTX_data_scene(C);
+  const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
+  Scene *scene = is_sequencer ? CTX_data_sequencer_scene(C) : CTX_data_scene(C);
   ScrArea *curarea = CTX_wm_area(C);
 
   /* sanity checks */
@@ -1134,10 +1173,13 @@ static void ANIM_OT_debug_channel_list(wmOperatorType *ot)
 
 static wmOperatorStatus scene_range_frame_exec(bContext *C, wmOperator * /*op*/)
 {
+  const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
+  const Scene *scene = is_sequencer ? CTX_data_sequencer_scene(C) : CTX_data_scene(C);
+  if (!scene) {
+    return OPERATOR_CANCELLED;
+  }
   ARegion *region = CTX_wm_region(C);
-  const Scene *scene = CTX_data_scene(C);
   BLI_assert(region);
-  BLI_assert(scene);
 
   View2D &v2d = region->v2d;
   v2d.cur.xmin = PSFRA;

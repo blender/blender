@@ -12,6 +12,7 @@ SHADER_LIBRARY_CREATE_INFO(draw_modelmat)
 
 #include "draw_model_lib.glsl"
 #include "draw_object_infos_lib.glsl"
+#include "eevee_nodetree_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_matrix_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
@@ -23,7 +24,7 @@ SHADER_LIBRARY_CREATE_INFO(draw_modelmat)
  * \{ */
 
 #ifdef OBINFO_LIB
-float3 attr_load_orco(float4 orco)
+float3 attr_load_orco(MeshVertex vert, float4 orco, int index)
 {
 #  ifdef GPU_VERTEX_SHADER
   /* We know when there is no orco layer when orco.w is 1.0 because it uses the generic vertex
@@ -37,32 +38,32 @@ float3 attr_load_orco(float4 orco)
   return orco.xyz * 0.5f + 0.5f;
 }
 #endif
-float4 attr_load_tangent(float4 tangent)
+float4 attr_load_tangent(MeshVertex vert, float4 tangent, int index)
 {
   tangent.xyz = safe_normalize(drw_normal_object_to_world(tangent.xyz));
   return tangent;
 }
-float4 attr_load_vec4(float4 attr)
+float4 attr_load_vec4(MeshVertex vert, float4 attr, int index)
 {
   return attr;
 }
-float3 attr_load_vec3(float3 attr)
+float3 attr_load_vec3(MeshVertex vert, float3 attr, int index)
 {
   return attr;
 }
-float2 attr_load_vec2(float2 attr)
+float2 attr_load_vec2(MeshVertex vert, float2 attr, int index)
 {
   return attr;
 }
-float attr_load_float(float attr)
+float attr_load_float(MeshVertex vert, float attr, int index)
 {
   return attr;
 }
-float4 attr_load_color(float4 attr)
+float4 attr_load_color(MeshVertex vert, float4 attr, int index)
 {
   return attr;
 }
-float3 attr_load_uv(float3 attr)
+float3 attr_load_uv(MeshVertex vert, float3 attr, int index)
 {
   return attr;
 }

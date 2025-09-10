@@ -18,6 +18,39 @@ SHADER_LIBRARY_CREATE_INFO(eevee_utility_texture)
 #include "gpu_shader_math_vector_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
+struct MeshVertex {
+  int _pad; /* TODO(fclem): Add explicit attribute loading for mesh. */
+  METAL_CONSTRUCTOR_1(MeshVertex, int, _pad)
+};
+
+struct PointCloudPoint {
+  int _pad; /* TODO(fclem): Add explicit attribute loading for mesh. */
+  METAL_CONSTRUCTOR_1(PointCloudPoint, int, _pad)
+};
+
+struct CurvesPoint {
+  int curve_id;
+  int point_id;
+  int curve_segment;
+
+  METAL_CONSTRUCTOR_3(CurvesPoint, int, curve_id, int, point_id, int, curve_segment)
+};
+
+struct WorldPoint {
+  int _pad;
+  METAL_CONSTRUCTOR_1(WorldPoint, int, _pad)
+};
+
+struct VolumePoint {
+  int _pad; /* TODO(fclem): Add explicit attribute loading for volumes. */
+  METAL_CONSTRUCTOR_1(VolumePoint, int, _pad)
+};
+
+struct GPencilPoint {
+  int _pad;
+  METAL_CONSTRUCTOR_1(GPencilPoint, int, _pad)
+};
+
 packed_float3 g_emission;
 packed_float3 g_transmittance;
 float g_holdout;
@@ -53,9 +86,9 @@ ClosureUndetermined g_closure_get(uchar i)
       return g_closure_bins[2];
 #endif
   }
-  /* TODO: this should be unreachable, better to have an assert. */
-  ClosureUndetermined cl_empty;
-  return cl_empty;
+  /* Unreachable. */
+  assert(false);
+  return g_closure_bins[0];
 }
 
 ClosureUndetermined g_closure_get_resolved(uchar i, float weight_fac)
@@ -367,7 +400,7 @@ float ambient_occlusion_eval(float3 normal,
 
   int2 texel = int2(gl_FragCoord.xy);
   float2 noise;
-  noise.x = interlieved_gradient_noise(float2(texel), 3.0f, 0.0f);
+  noise.x = interleaved_gradient_noise(float2(texel), 3.0f, 0.0f);
   noise.y = utility_tx_fetch(utility_tx, float2(texel), UTIL_BLUE_NOISE_LAYER).r;
   noise = fract(noise + sampling_rng_2D_get(SAMPLING_AO_U));
 
@@ -412,7 +445,6 @@ float ambient_occlusion_eval(float3 normal,
 }
 
 #ifndef GPU_METAL
-void attrib_load();
 Closure nodetree_surface(float closure_rand);
 Closure nodetree_volume();
 float3 nodetree_displacement();

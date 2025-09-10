@@ -204,23 +204,31 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
   int text_len;
   bool text_free;
   const char32_t *r_text = nullptr;
+  float final_font_size = 0.0f;
   /* Mode FO_DUPLI used because it doesn't create curve splines. */
-  BKE_vfont_to_curve_ex(
-      nullptr, &cu, FO_DUPLI, nullptr, &r_text, &text_len, &text_free, &chartransdata);
+  BKE_vfont_to_curve_ex(nullptr,
+                        cu,
+                        FO_DUPLI,
+                        nullptr,
+                        &r_text,
+                        &text_len,
+                        &text_free,
+                        &chartransdata,
+                        &final_font_size);
 
   if (text_free) {
     MEM_freeN(r_text);
   }
 
   Span<CharInfo> info{cu.strinfo, text_len};
-  layout.final_font_size = cu.fsize_realtime;
+  layout.final_font_size = final_font_size;
   layout.positions.reserve(text_len);
 
   for (const int i : IndexRange(text_len)) {
     CharTrans &ct = chartransdata[i];
-    layout.positions.append(float2(ct.xof, ct.yof) * layout.final_font_size);
+    layout.positions.append(ct.offset * layout.final_font_size);
 
-    if ((info[i].flag & CU_CHINFO_OVERFLOW) && (cu.overflow == CU_OVERFLOW_TRUNCATE)) {
+    if (ct.is_overflow && (cu.overflow == CU_OVERFLOW_TRUNCATE)) {
       const int offset = BLI_str_utf8_offset_from_index(
           layout.text.c_str(), layout.text.size(), i + 1);
       layout.truncated_text = layout.text.substr(offset);
@@ -271,7 +279,9 @@ static Map<int, int> create_curve_instances(GeoNodeExecParams &params,
     CharInfo charinfo = {0};
     charinfo.mat_nr = 1;
 
-    BKE_vfont_char_build(&cu, &cu.nurb, layout.char_codes[i], &charinfo, 0, 0, 0, i, 1);
+    const float2 char_offset = {0, 0};
+    BKE_vfont_char_build(
+        cu, &cu.nurb, layout.char_codes[i], &charinfo, false, char_offset, 0, i, 1);
     Curves *curves_id = bke::curve_legacy_to_curves(cu);
     if (curves_id == nullptr) {
       if (pivot_required) {

@@ -178,6 +178,10 @@ typedef enum {
    * Setting cursors via #GHOST_SetCursorGenerator is supported.
    */
   GHOST_kCapabilityCursorGenerator = (1 << 11),
+  /**
+   * Support accurately placing windows on multiple monitors.
+   */
+  GHOST_kCapabilityMultiMonitorPlacement = (1 << 12),
 
 } GHOST_TCapabilityFlag;
 
@@ -191,7 +195,7 @@ typedef enum {
    GHOST_kCapabilityClipboardImage | GHOST_kCapabilityDesktopSample | GHOST_kCapabilityInputIME | \
    GHOST_kCapabilityTrackpadPhysicalDirection | GHOST_kCapabilityWindowDecorationStyles | \
    GHOST_kCapabilityKeyboardHyperKey | GHOST_kCapabilityCursorRGBA | \
-   GHOST_kCapabilityCursorGenerator)
+   GHOST_kCapabilityCursorGenerator | GHOST_kCapabilityMultiMonitorPlacement)
 
 /* Xtilt and Ytilt represent how much the pen is tilted away from
  * vertically upright in either the X or Y direction, with X and Y the
@@ -439,6 +443,7 @@ typedef enum {
   GHOST_kStandardCursorHandClosed,
   GHOST_kStandardCursorHandPoint,
   GHOST_kStandardCursorBlade,
+  GHOST_kStandardCursorSlip,
   GHOST_kStandardCursorCustom,
 
 #define GHOST_kStandardCursorNumCursors (int(GHOST_kStandardCursorCustom) + 1)
@@ -888,6 +893,18 @@ typedef struct {
   float colored_titlebar_bg_color[3];
 } GHOST_WindowDecorationStyleSettings;
 
+typedef struct {
+  /* Is HDR enabled for this Window? */
+  bool hdr_enabled;
+  /* Scale factor to display SDR content in HDR. */
+  float sdr_white_level;
+} GHOST_WindowHDRInfo;
+
+#define GHOST_WINDOW_HDR_INFO_NONE \
+  { \
+    /*hdr_enabled*/ false, /*sdr_white_level*/ 1.0f, \
+  }
+
 #ifdef WITH_VULKAN_BACKEND
 typedef struct {
   /** Image handle to the image that will be presented to the user. */
@@ -902,6 +919,8 @@ typedef struct {
   VkSemaphore present_semaphore;
   /** Fence to signal after the image has been updated. */
   VkFence submission_fence;
+  /* Factor to scale SDR content to HDR. */
+  float sdr_scale;
 } GHOST_VulkanSwapChainData;
 
 typedef enum {

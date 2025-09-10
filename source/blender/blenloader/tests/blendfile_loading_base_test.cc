@@ -41,6 +41,8 @@
 
 #include "RNA_define.hh"
 
+#include "SEQ_modifier.hh"
+
 #include "WM_api.hh"
 #include "wm.hh"
 
@@ -62,6 +64,7 @@ void BlendfileLoadingBaseTest::SetUpTestCase()
   BKE_appdir_init();
   IMB_init();
   BKE_modifier_init();
+  blender::seq::modifiers_init();
   DEG_register_node_types();
   RNA_init();
   blender::bke::node_system_init();

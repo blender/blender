@@ -160,9 +160,9 @@ def init_vnodes(gltf):
     # If we have only 1 scene, we can use the active collection
     # If we have multiple scenes, we create a collection for each scene (as child of active collection)
     # And if some nodes are orphan, we create a collection for them too
-    if len(gltf.data.scenes) == 1:
+    if len(gltf.data.scenes or []) == 1:
         gltf.blender_collections[gltf.data.scene or 0] = bpy.context.collection
-    elif len(gltf.data.scenes) > 1:
+    elif len(gltf.data.scenes or []) > 1:
         for idx_scene, scene in enumerate(gltf.data.scenes or []):
             if gltf.import_settings['import_scene_as_collection'] is True:
                 # Create a new collection for the scene

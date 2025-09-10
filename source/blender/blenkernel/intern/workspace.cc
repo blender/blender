@@ -71,6 +71,7 @@ static void workspace_foreach_id(ID *id, LibraryForeachIDData *data)
   WorkSpace *workspace = (WorkSpace *)id;
 
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, workspace->pin_scene, IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, workspace->sequencer_scene, IDWALK_CB_NOP);
 
   LISTBASE_FOREACH (WorkSpaceLayout *, layout, &workspace->layouts) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, layout->screen, IDWALK_CB_USER);
@@ -194,6 +195,7 @@ IDTypeInfo IDType_ID_WS = {
     /*foreach_id*/ workspace_foreach_id,
     /*foreach_cache*/ nullptr,
     /*foreach_path*/ nullptr,
+    /*foreach_working_space_color*/ nullptr,
     /*owner_pointer_get*/ nullptr,
 
     /*blend_write*/ workspace_blend_write,

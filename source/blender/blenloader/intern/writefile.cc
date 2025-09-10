@@ -97,6 +97,7 @@
 #include "BLI_fileops.hh"
 #include "BLI_implicit_sharing.hh"
 #include "BLI_math_base.h"
+#include "BLI_math_matrix.h"
 #include "BLI_multi_value_map.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_set.hh"
@@ -1241,6 +1242,9 @@ static void write_global(WriteData *wd, const int fileflags, Main *mainvar)
   fg.curscene = scene;
   fg.cur_view_layer = view_layer;
 
+  STRNCPY(fg.colorspace_scene_linear_name, mainvar->colorspace.scene_linear_name);
+  copy_m3_m3(fg.colorspace_scene_linear_to_xyz, mainvar->colorspace.scene_linear_to_xyz.ptr());
+
   /* Prevent to save this, is not good convention, and feature with concerns. */
   fg.fileflags = (fileflags & ~G_FILE_FLAG_ALL_RUNTIME);
 
@@ -1305,7 +1309,7 @@ BLO_Write_IDBuffer::BLO_Write_IDBuffer(ID &id, const bool is_undo, const bool is
   /* Copy ID data itself into buffer, to be able to freely modify it. */
 
   if (is_placeholder) {
-    /* For placeholders (references to linked data), zero-initialize, and only explicitely copy the
+    /* For placeholders (references to linked data), zero-initialize, and only explicitly copy the
      * very small subset of required data. */
     *temp_id = ID{};
     temp_id->lib = id.lib;
@@ -1469,8 +1473,8 @@ static blender::Vector<ID *> gather_local_ids_to_write(Main *bmain, const bool i
         continue;
       }
 
-      /* XXX Special handling for ShapeKeys, as having unused shapekeys is not a good thing
-       * (and reported as error by e.g. `BLO_main_validate_shapekeys`), skip writing shapekeys
+      /* XXX Special handling for ShapeKeys, as having unused shape-keys is not a good thing
+       * (and reported as error by e.g. `BLO_main_validate_shapekeys`), skip writing shape-keys
        * when their 'owner' is not written.
        *
        * NOTE: Since ShapeKeys are conceptually embedded IDs (like root node trees e.g.), this

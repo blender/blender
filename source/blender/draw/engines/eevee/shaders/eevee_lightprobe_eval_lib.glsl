@@ -31,7 +31,7 @@ struct LightProbeSample {
  */
 LightProbeSample lightprobe_load(float3 P, float3 Ng, float3 V)
 {
-  float noise = interlieved_gradient_noise(UTIL_TEXEL, 0.0f, 0.0f);
+  float noise = interleaved_gradient_noise(UTIL_TEXEL, 0.0f, 0.0f);
   noise = fract(noise + sampling_rng_1D_get(SAMPLING_LIGHTPROBE));
 
   LightProbeSample result;

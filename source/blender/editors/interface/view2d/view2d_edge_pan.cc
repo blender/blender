@@ -8,6 +8,7 @@
 
 #include "BKE_context.hh"
 
+#include "BLI_math_base.h"
 #include "BLI_rect.h"
 #include "BLI_time.h"
 

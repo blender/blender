@@ -198,7 +198,7 @@ static int py_find_nearest_cb(void *user_data, int index, const float co[3], flo
 PyDoc_STRVAR(
     /* Wrap. */
     py_kdtree_find_doc,
-    ".. method:: find(co, filter=None)\n"
+    ".. method:: find(co, *, filter=None)\n"
     "\n"
     "   Find nearest point to ``co``.\n"
     "\n"
@@ -409,7 +409,6 @@ PyDoc_STRVAR(
     "\n"
     "   :class:`KDTree.balance` must have been called before using any of the ``find`` "
     "methods.\n");
-
 PyTypeObject PyKDTree_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "KDTree",

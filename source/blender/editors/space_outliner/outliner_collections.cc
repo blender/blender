@@ -242,6 +242,7 @@ static TreeTraversalAction collection_find_selected_to_add(TreeElement *te, void
 
 static wmOperatorStatus collection_new_exec(bContext *C, wmOperator *op)
 {
+  WorkSpace *workspace = CTX_wm_workspace(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   ARegion *region = CTX_wm_region(C);
   Main *bmain = CTX_data_main(C);
@@ -251,7 +252,7 @@ static wmOperatorStatus collection_new_exec(bContext *C, wmOperator *op)
   CollectionNewData data{};
 
   if (RNA_boolean_get(op->ptr, "nested")) {
-    outliner_build_tree(bmain, scene, view_layer, space_outliner, region);
+    outliner_build_tree(bmain, workspace, scene, view_layer, space_outliner, region);
 
     outliner_tree_traverse(space_outliner,
                            &space_outliner->tree,

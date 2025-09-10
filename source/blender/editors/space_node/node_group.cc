@@ -1321,6 +1321,7 @@ static bNodeTree *node_group_make_wrapper(const bContext &C,
 
   bNodeTree *dst_group = bke::node_tree_add_tree(
       &bmain, bke::node_label(src_tree, src_node), src_tree.idname);
+  dst_group->color_tag = int(bke::node_color_tag(src_node));
 
   const nodes::NodeDeclaration &node_decl = *src_node.declaration();
   for (const nodes::ItemDeclaration *item_decl : node_decl.root_items) {

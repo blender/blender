@@ -114,7 +114,7 @@ Subdiv *new_from_converter(const Settings *settings, OpenSubdiv_Converter *conve
      * The thing here is: OpenSubdiv can only deal with faces, but our
      * side of subdiv also deals with loose vertices and edges. */
   }
-  Subdiv *subdiv = MEM_callocN<Subdiv>(__func__);
+  Subdiv *subdiv = MEM_new<Subdiv>(__func__);
   subdiv->settings = *settings;
   subdiv->topology_refiner = osd_topology_refiner;
   subdiv->evaluator = nullptr;
@@ -201,10 +201,7 @@ void free(Subdiv *subdiv)
   }
   delete subdiv->topology_refiner;
   displacement_detach(subdiv);
-  if (subdiv->cache_.face_ptex_offset != nullptr) {
-    MEM_freeN(subdiv->cache_.face_ptex_offset);
-  }
-  MEM_freeN(subdiv);
+  MEM_delete(subdiv);
 #else
   UNUSED_VARS(subdiv);
 #endif
@@ -214,18 +211,18 @@ void free(Subdiv *subdiv)
  * Topology helpers.
  */
 
-int *face_ptex_offset_get(Subdiv *subdiv)
+Span<int> face_ptex_offset_get(Subdiv *subdiv)
 {
 #ifdef WITH_OPENSUBDIV
-  if (subdiv->cache_.face_ptex_offset != nullptr) {
+  if (!subdiv->cache_.face_ptex_offset.is_empty()) {
     return subdiv->cache_.face_ptex_offset;
   }
   const blender::opensubdiv::TopologyRefinerImpl *topology_refiner = subdiv->topology_refiner;
   if (topology_refiner == nullptr) {
-    return nullptr;
+    return Span<int>();
   }
   const int num_coarse_faces = topology_refiner->base_level().GetNumFaces();
-  subdiv->cache_.face_ptex_offset = MEM_malloc_arrayN<int>(size_t(num_coarse_faces) + 1, __func__);
+  subdiv->cache_.face_ptex_offset.reinitialize(num_coarse_faces + 1);
   int ptex_offset = 0;
   for (int face_index = 0; face_index < num_coarse_faces; face_index++) {
     const int face_size = topology_refiner->base_level().GetFaceVertices(face_index).size();
@@ -237,7 +234,7 @@ int *face_ptex_offset_get(Subdiv *subdiv)
   return subdiv->cache_.face_ptex_offset;
 #else
   UNUSED_VARS(subdiv);
-  return nullptr;
+  return Span<int>();
 #endif
 }
 

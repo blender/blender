@@ -35,6 +35,7 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_bounds.hh"
+#include "BLI_color_types.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
@@ -275,6 +276,21 @@ static void grease_pencil_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
+static void grease_pencil_foreach_working_space_color(ID *id,
+                                                      const IDTypeForeachColorFunctionCallback &fn)
+{
+  GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(id);
+
+  fn.single(grease_pencil->onion_skinning_settings.color_after);
+  fn.single(grease_pencil->onion_skinning_settings.color_before);
+
+  for (blender::bke::greasepencil::TreeNode *node : grease_pencil->nodes_for_write()) {
+    fn.single(node->color);
+  }
+
+  grease_pencil->attribute_storage.wrap().foreach_working_space_color(fn);
+}
+
 static void grease_pencil_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   using namespace blender;
@@ -354,6 +370,7 @@ IDTypeInfo IDType_ID_GP = {
     /*foreach_id*/ grease_pencil_foreach_id,
     /*foreach_cache*/ nullptr,
     /*foreach_path*/ nullptr,
+    /*foreach_working_space_color*/ grease_pencil_foreach_working_space_color,
     /*owner_pointer_get*/ nullptr,
 
     /*blend_write*/ grease_pencil_blend_write,
@@ -366,7 +383,6 @@ IDTypeInfo IDType_ID_GP = {
 };
 
 namespace blender::bke::greasepencil {
-
 constexpr StringRef ATTR_RADIUS = "radius";
 constexpr StringRef ATTR_OPACITY = "opacity";
 constexpr StringRef ATTR_VERTEX_COLOR = "vertex_color";
@@ -3432,19 +3448,6 @@ blender::bke::greasepencil::Drawing *GreasePencil::get_eval_drawing(
   return this->get_drawing_at(layer, this->runtime->eval_frame);
 }
 
-static void transform_positions(const Span<blender::float3> src,
-                                const blender::float4x4 &transform,
-                                blender::MutableSpan<blender::float3> dst)
-{
-  BLI_assert(src.size() == dst.size());
-
-  blender::threading::parallel_for(src.index_range(), 4096, [&](const blender::IndexRange range) {
-    for (const int i : range) {
-      dst[i] = blender::math::transform_point(transform, src[i]);
-    }
-  });
-}
-
 std::optional<blender::Bounds<blender::float3>> GreasePencil::bounds_min_max(
     const int frame, const bool use_radius) const
 {
@@ -3471,7 +3474,7 @@ std::optional<blender::Bounds<blender::float3>> GreasePencil::bounds_min_max(
     }
     const VArray<float> radius = curves.radius();
     Array<float3> positions_world(curves.evaluated_points_num());
-    transform_positions(curves.evaluated_positions(), layer_to_object, positions_world);
+    math::transform_points(curves.evaluated_positions(), layer_to_object, positions_world);
     if (!use_radius) {
       const Bounds<float3> drawing_bounds = *bounds::min_max(positions_world.as_span());
       bounds = bounds::merge(bounds, drawing_bounds);

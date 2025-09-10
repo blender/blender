@@ -73,6 +73,9 @@ ENUM_OPERATORS(eGPUSamplerFormat, GPU_SAMPLER_TYPE_UINT)
 #  define DEBUG_NAME_LEN 8
 #endif
 
+/* Maximum number of image units. */
+#define GPU_MAX_IMAGE 8
+
 /* Maximum number of FBOs a texture can be attached to. */
 #define GPU_TEX_MAX_FBO_ATTACHED 32
 

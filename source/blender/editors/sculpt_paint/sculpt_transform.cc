@@ -560,7 +560,7 @@ void update_modal_transform(bContext *C, Object &ob)
         ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
         transform_radius = paint_calc_object_space_radius(
-            vc, ss.init_pivot_pos, BKE_brush_size_get(&sd.paint, &brush));
+            vc, ss.init_pivot_pos, BKE_brush_radius_get(&sd.paint, &brush));
       }
 
       transform_radius_elastic(*depsgraph, sd, ob, transform_radius);

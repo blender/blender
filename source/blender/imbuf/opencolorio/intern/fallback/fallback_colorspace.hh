@@ -36,6 +36,19 @@ class FallbackColorSpace : public ColorSpace {
   {
     return "";
   }
+  StringRefNull interop_id() const override
+  {
+    switch (type_) {
+      case Type::LINEAR:
+        return "lin_rec709_scene";
+      case Type::SRGB:
+        return "srgb_rec709_display";
+      case Type::DATA:
+        return "data";
+    }
+
+    return "";
+  }
 
   bool is_invertible() const override
   {

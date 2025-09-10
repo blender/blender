@@ -115,7 +115,6 @@ static void camera_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 
   if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
-    BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data, camera->ipo, IDWALK_CB_USER);
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, camera->dof_ob, IDWALK_CB_NOP);
   }
 
@@ -270,6 +269,7 @@ IDTypeInfo IDType_ID_CA = {
     /*foreach_id*/ camera_foreach_id,
     /*foreach_cache*/ nullptr,
     /*foreach_path*/ camera_foreach_path,
+    /*foreach_working_space_color*/ nullptr,
     /*owner_pointer_get*/ nullptr,
 
     /*blend_write*/ camera_blend_write,

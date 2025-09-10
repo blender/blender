@@ -8,38 +8,48 @@
 
 #pragma once
 
+#include "DNA_scene_types.h"
+
 #include "BLI_set.hh"
 #include "BLI_vector.hh"
 
+#include "RE_pipeline.h"
+
 struct Image;
-struct DerivedMesh;
+struct Mesh;
 struct MultiresBakeRender;
-struct Scene;
+struct MultiresModifierData;
 
 struct MultiresBakeRender {
-  Scene *scene;
-  DerivedMesh *lores_dm, *hires_dm;
-  int bake_margin;
-  char bake_margin_type;
-  int lvl, tot_lvl;
-  short mode;
-  bool use_lores_mesh; /* Use low-resolution mesh when baking displacement maps */
+  /* Base mesh at the input of the multiresolution modifier and data of the modifier which is being
+   * baked. */
+  Mesh *base_mesh = nullptr;
+  MultiresModifierData *multires_modifier = nullptr;
 
-  /* material aligned image array (for per-face bake image) */
+  int bake_margin = 0;
+  eBakeMarginType bake_margin_type = R_BAKE_ADJACENT_FACES;
+  eBakeType type = R_BAKE_NORMALS;
+  eBakeSpace displacement_space = R_BAKE_SPACE_OBJECT;
+
+  /* Use low-resolution mesh when baking displacement maps.
+   * When true displacement is calculated between the final position in the SubdivCCG and the
+   * corresponding location on the base mesh.
+   * When false displacement is calculated between the final position in the SubdivCCG and the
+   * multiresolution modifier calculated at the bake level, further subdivided (without adding
+   * displacement) to the final multi-resolution level. */
+  bool use_low_resolution_mesh = false;
+
+  /* Material aligned image array (for per-face bake image), */
   blender::Vector<Image *> ob_image;
 
-  float bias; /* Bias between object and start ray point when doing AO baking */
-
-  int tot_obj;
   blender::Set<Image *> images;
 
-  int baked_objects, baked_faces;
+  int num_total_objects = 0;
+  int num_baked_objects = 0;
 
-  int threads; /* Number of threads to be used for baking */
-
-  bool *stop;
-  bool *do_update;
-  float *progress;
+  bool *stop = nullptr;
+  bool *do_update = nullptr;
+  float *progress = nullptr;
 };
 
-void RE_multires_bake_images(struct MultiresBakeRender *bkr);
+void RE_multires_bake_images(MultiresBakeRender &bake);

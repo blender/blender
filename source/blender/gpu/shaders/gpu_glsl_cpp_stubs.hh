@@ -922,9 +922,11 @@ const int gpu_ViewportIndex = 0;
 
 }  // namespace gl_FragmentShader
 
+/* Outside of namespace to be used in create infos. */
+constexpr uint3 gl_WorkGroupSize = uint3(16, 16, 16);
+
 namespace gl_ComputeShader {
 
-constexpr uint3 gl_WorkGroupSize = uint3(16, 16, 16);
 extern const uint3 gl_NumWorkGroups;
 extern const uint3 gl_WorkGroupID;
 extern const uint3 gl_LocalInvocationID;
@@ -1049,18 +1051,19 @@ void groupMemoryBarrier() {}
 #define common common_is_reserved_glsl_keyword_do_not_use
 #define partition partition_is_reserved_glsl_keyword_do_not_use
 #define active active_is_reserved_glsl_keyword_do_not_use
-#define class class_is_reserved_glsl_keyword_do_not_use
+// #define class /* Supported. */
 #define union union_is_reserved_glsl_keyword_do_not_use
 // #define enum /* Supported. */
 #define typedef typedef_is_reserved_glsl_keyword_do_not_use
 // #define template /* Needed for Stubs. */
-#define this this_is_reserved_glsl_keyword_do_not_use
+// #define this /* Needed for Stubs. */
 #define packed packed_is_reserved_glsl_keyword_do_not_use
 #define resource resource_is_reserved_glsl_keyword_do_not_use
 #define goto goto_is_reserved_glsl_keyword_do_not_use
 // #define inline  /* Supported. */
 #define noinline noinline_is_reserved_glsl_keyword_do_not_use
-#define public public_is_reserved_glsl_keyword_do_not_use
+// #define public /* Supported. */
+// #define private /* Supported. */
 // #define static /* Supported. */
 // #define extern /* Needed for Stubs. */
 #define external external_is_reserved_glsl_keyword_do_not_use
@@ -1094,13 +1097,14 @@ void groupMemoryBarrier() {}
 #endif
 
 /* Resource accessor. */
-#define specialization_constant_get(create_info, _res) _res
-#define push_constant_get(create_info, _res) _res
-#define interface_get(create_info, _res) _res
-#define attribute_get(create_info, _res) _res
-#define buffer_get(create_info, _res) _res
-#define sampler_get(create_info, _res) _res
-#define image_get(create_info, _res) _res
+#define specialization_constant_get(create_info, _res) create_info::_res
+#define shared_variable_get(create_info, _res) create_info::_res
+#define push_constant_get(create_info, _res) create_info::_res
+#define interface_get(create_info, _res) create_info::_res
+#define attribute_get(create_info, _res) create_info::_res
+#define buffer_get(create_info, _res) create_info::_res
+#define sampler_get(create_info, _res) create_info::_res
+#define image_get(create_info, _res) create_info::_res
 
 #include "GPU_shader_shared_utils.hh"
 

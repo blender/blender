@@ -13,6 +13,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
+#include "BLI_math_base.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -65,8 +66,8 @@
 
 /* ensure that there is:
  * 1) an active action editor
- * 2) that the mode will have an active action available
- * 3) that the set of markers being shown are the scene markers, not the list we're merging
+ * 2) that the set of markers being shown are the scene markers, not the list we're merging
+ * 3) that the mode will have an active action available
  * 4) that there are some selected markers
  */
 static bool act_markers_make_local_poll(bContext *C)
@@ -79,15 +80,14 @@ static bool act_markers_make_local_poll(bContext *C)
   }
 
   /* 2) */
-  if (ELEM(sact->mode, SACTCONT_ACTION, SACTCONT_SHAPEKEY) == 0) {
-    return false;
-  }
-  if (sact->action == nullptr) {
+  if (sact->flag & SACTION_POSEMARKERS_SHOW) {
     return false;
   }
 
   /* 3) */
-  if (sact->flag & SACTION_POSEMARKERS_SHOW) {
+  bAction *active_action = ANIM_active_action_from_area(
+      CTX_data_scene(C), CTX_data_view_layer(C), CTX_wm_area(C));
+  if (!active_action) {
     return false;
   }
 
@@ -98,9 +98,8 @@ static bool act_markers_make_local_poll(bContext *C)
 static wmOperatorStatus act_markers_make_local_exec(bContext *C, wmOperator * /*op*/)
 {
   ListBase *markers = ED_context_get_markers(C);
-
-  SpaceAction *sact = CTX_wm_space_action(C);
-  bAction *act = (sact) ? sact->action : nullptr;
+  bAction *act = ANIM_active_action_from_area(
+      CTX_data_scene(C), CTX_data_view_layer(C), CTX_wm_area(C));
 
   TimeMarker *marker, *markern = nullptr;
 
@@ -122,6 +121,7 @@ static wmOperatorStatus act_markers_make_local_exec(bContext *C, wmOperator * /*
 
   /* Now enable the "show pose-markers only" setting,
    * so that we can see that something did happen. */
+  SpaceAction *sact = CTX_wm_space_action(C);
   sact->flag |= SACTION_POSEMARKERS_SHOW;
 
   /* notifiers - both sets, as this change affects both */
@@ -1144,15 +1144,11 @@ static bool delete_action_keys(bAnimContext *ac)
       changed = ED_masklayer_frames_delete((MaskLayer *)ale->data);
     }
     else {
-      FCurve *fcu = (FCurve *)ale->key_data;
-      AnimData *adt = ale->adt;
-
-      /* delete selected keyframes only */
+      FCurve *fcu = static_cast<FCurve *>(ale->key_data);
       changed = BKE_fcurve_delete_keys_selected(fcu);
 
-      /* Only delete curve too if it won't be doing anything anymore */
-      if (BKE_fcurve_is_empty(fcu)) {
-        blender::animrig::animdata_fcurve_delete(adt, fcu);
+      if (changed && BKE_fcurve_is_empty(fcu)) {
+        ED_anim_ale_fcurve_delete(*ac, *ale);
         ale->key_data = nullptr;
       }
     }

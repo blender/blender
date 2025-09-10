@@ -70,12 +70,12 @@ static const EnumPropertyItem node_default_input_items[] = {
      "HANDLE_LEFT",
      0,
      "Left Handle",
-     "The left Bezier control point handle from the context"},
+     "The left Bézier control point handle from the context"},
     {NODE_DEFAULT_INPUT_HANDLE_RIGHT_FIELD,
      "HANDLE_RIGHT",
      0,
      "Right Handle",
-     "The right Bezier control point handle from the context"},
+     "The right Bézier control point handle from the context"},
     {0, nullptr, 0, nullptr, nullptr}};
 
 #ifdef RNA_RUNTIME

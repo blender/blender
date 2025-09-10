@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-18 09:16+0000\n"
+"POT-Creation-Date: 2025-09-10 07:24+0000\n"
 "PO-Revision-Date: 2025-07-23 15:34+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -395,6 +395,10 @@ msgid "Array"
 msgstr "सरणी"
 
 
+msgid "Object"
+msgstr "वस्तु"
+
+
 msgid "Image Format"
 msgstr "छवि प्रारूप"
 
@@ -423,10 +427,6 @@ msgid "-Z"
 msgstr "-Z"
 
 
-msgid "Object"
-msgstr "वस्तु"
-
-
 msgid "None"
 msgstr "कोई नहीं"
 
@@ -445,6 +445,14 @@ msgstr "आंतरिक"
 
 msgid "Target"
 msgstr "लक्ष्य"
+
+
+msgid "Displacement"
+msgstr "विस्थापन"
+
+
+msgid "Bake displacement"
+msgstr "विस्थापन भर्जन"
 
 
 msgid "Clear"
@@ -1156,10 +1164,6 @@ msgstr "प्रभाव प्रमाण"
 
 msgid "Radius Scale"
 msgstr "त्रिज्या प्रंमाण"
-
-
-msgid "Displacement"
-msgstr "विस्थापन"
 
 
 msgid "Velocity"
@@ -2580,68 +2584,68 @@ msgid "Mask"
 msgstr "आवरण"
 
 
-msgid "Snap"
-msgstr "स्नैप"
-
-
-msgid "Enable Bone Options"
-msgstr "हड्डी विकल्प को सक्षम करें"
-
-
-msgid "Toggle Bone Options"
-msgstr "हड्डी विकल्प बंद/बुझ"
-
-
-msgid "Apply"
-msgstr "लागू करें"
+msgid "Show/Hide"
+msgstr "छुपाएँ / दिखाएँ"
 
 
 msgid "Names"
 msgstr "नाम"
 
 
-msgid "Show/Hide"
-msgstr "छुपाएँ / दिखाएँ"
+msgid "Bone Roll"
+msgstr "हड्डी पंजी"
+
+
+msgid "Snap"
+msgstr "स्नैप"
 
 
 msgid "Mirror"
 msgstr "दर्पण"
 
 
-msgid "Hooks"
-msgstr "खूँटी"
-
-
-msgid "Make Single User"
-msgstr "एकल प्रयोक्ता बनाएँ"
-
-
-msgid "Quick Effects"
-msgstr "त्वरित प्रभाव"
-
-
-msgid "Track"
-msgstr "ट्रैक"
+msgid "Light"
+msgstr "प्रकाश"
 
 
 msgid "Rigid Body"
 msgstr "कठोर-पदार्थ"
 
 
-msgid "Light"
-msgstr "प्रकाश"
+msgid "Apply"
+msgstr "लागू करें"
 
 
-msgid "Bone Roll"
-msgstr "हड्डी पंजी"
+msgid "Track"
+msgstr "ट्रैक"
 
 
-msgid "Text"
-msgstr "पाठ"
+msgid "Quick Effects"
+msgstr "त्वरित प्रभाव"
+
+
+msgid "Make Single User"
+msgstr "एकल प्रयोक्ता बनाएँ"
+
+
+msgid "Hooks"
+msgstr "खूँटी"
+
+
+msgid "Toggle Bone Options"
+msgstr "हड्डी विकल्प बंद/बुझ"
+
+
+msgid "Enable Bone Options"
+msgstr "हड्डी विकल्प को सक्षम करें"
 
 
 msgid "Merge"
 msgstr "विलय करें"
+
+
+msgid "Text"
+msgstr "पाठ"
 
 
 msgid "Basic"
@@ -3037,40 +3041,12 @@ msgid "Height of the node"
 msgstr "ग्रन्थि की ऊंचाई"
 
 
-msgid "Not"
-msgstr "नहीं"
-
-
 msgid "To"
 msgstr "करने के लिए"
 
 
-msgid "High"
-msgstr "उच्च"
-
-
-msgid "Soften"
-msgstr "मॄदु"
-
-
-msgid "Shadow"
-msgstr "छाया"
-
-
-msgid "Low"
-msgstr "कम"
-
-
 msgid "Keying Screen"
 msgstr "चित्रपट कुंजीयन"
-
-
-msgid "Combined RGB"
-msgstr "संयुक्त ला.ह.नी."
-
-
-msgid "Red Channel"
-msgstr "लाल सरणि"
 
 
 msgid "Rotate"
@@ -3083,6 +3059,10 @@ msgstr "स्थानांतर"
 
 msgid "Viewer"
 msgstr "प्रदर्शक"
+
+
+msgid "Not"
+msgstr "नहीं"
 
 
 msgid "Equal"
@@ -3159,6 +3139,10 @@ msgstr "पर"
 
 msgid "Bricks"
 msgstr "ईंटें"
+
+
+msgid "Shadow"
+msgstr "छाया"
 
 
 msgctxt "Operator"
@@ -3508,6 +3492,10 @@ msgid "Duplicate"
 msgstr "अनुकृति"
 
 
+msgid "Toggle Free/Align"
+msgstr "बंद/बुझ मुक्त/संरेखण"
+
+
 msgctxt "Operator"
 msgid "Duplicate Curve"
 msgstr "अनुकृति वक्र"
@@ -3531,10 +3519,6 @@ msgstr "सिकोड़ें/मोटा करें"
 
 msgid "Edge Slide"
 msgstr "किनारी सरकाएँ"
-
-
-msgid "Toggle Free/Align"
-msgstr "बंद/बुझ मुक्त/संरेखण"
 
 
 msgctxt "Operator"
@@ -3767,10 +3751,6 @@ msgid "Extrude Region"
 msgstr "क्षेत्र बिहर्वेधन"
 
 
-msgid "Axis Direction"
-msgstr "अक्ष दिशा"
-
-
 msgctxt "Operator"
 msgid "Fill"
 msgstr "भरण"
@@ -3971,6 +3951,14 @@ msgstr "हड्डी सापेक्ष"
 
 msgid "Remove the selected particle system"
 msgstr "चयनित कण प्रणाली हटाएँ"
+
+
+msgid "Low"
+msgstr "कम"
+
+
+msgid "High"
+msgstr "उच्च"
 
 
 msgid "Child"
@@ -4265,6 +4253,10 @@ msgstr "मान मूलभूत पर पूर्ववत करें"
 msgctxt "Operator"
 msgid "Align"
 msgstr "संरेखित करें"
+
+
+msgid "Axis Direction"
+msgstr "अक्ष दिशा"
 
 
 msgctxt "Operator"
@@ -4673,14 +4665,6 @@ msgid "Sky"
 msgstr "आकाश"
 
 
-msgid "Bias"
-msgstr "पूर्वाग्रह"
-
-
-msgid "Bake displacement"
-msgstr "विस्थापन भर्जन"
-
-
 msgid "FPS"
 msgstr "एफपीएस"
 
@@ -4739,6 +4723,10 @@ msgstr "शेष घनत्व"
 
 msgid "Factor Rest Length"
 msgstr "कारक शेष लंबाई"
+
+
+msgid "Bias"
+msgstr "पूर्वाग्रह"
 
 
 msgid "Active Strip"
@@ -5955,6 +5943,10 @@ msgid "%d items"
 msgstr "%d वस्तु"
 
 
+msgid "Value:"
+msgstr "मान:"
+
+
 msgid "Hex"
 msgstr "हेक्स"
 
@@ -6354,10 +6346,6 @@ msgid "File name"
 msgstr "संचिका का नाम"
 
 
-msgid "Value:"
-msgstr "मान:"
-
-
 msgid "Unsupported audio format"
 msgstr "असमर्थित श्रव्य स्वरूप"
 
@@ -6542,6 +6530,10 @@ msgstr "कुंजी"
 
 msgid "Fac"
 msgstr "एफ़एसी"
+
+
+msgid "Soften"
+msgstr "मॄदु"
 
 
 msgid "Old"

@@ -36,7 +36,6 @@ PyDoc_STRVAR(
     "\n"
     "   :arg stroke: A Stroke object.\n"
     "   :type stroke: :class:`freestyle.types.Stroke`\n");
-
 static int StrokeTextureStepShader___init__(BPy_StrokeTextureStepShader *self,
                                             PyObject *args,
                                             PyObject *kwds)

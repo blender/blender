@@ -149,6 +149,16 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
     sizex = std::max(sizex, 320);
     sizey = std::max(sizey, 256);
 
+    WM_window_dpi_set_userdef(CTX_wm_window(C));
+    rctf *stored_bounds = &U.stored_bounds.image;
+    const bool bounds_valid = (stored_bounds && (BLI_rctf_size_x(stored_bounds) > 150.0f) &&
+                               (BLI_rctf_size_y(stored_bounds) > 100.0f));
+    const bool mm_placement = WM_capabilities_flag() & WM_CAPABILITY_MULTIMONITOR_PLACEMENT;
+    if (bounds_valid && mm_placement) {
+      mx = int(stored_bounds->xmin * UI_SCALE_FAC);
+      my = int(stored_bounds->ymin * UI_SCALE_FAC);
+    }
+
     const rcti window_rect = {
         /*xmin*/ mx,
         /*xmax*/ mx + sizex,
@@ -164,7 +174,7 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
                        true,
                        false,
                        true,
-                       WIN_ALIGN_LOCATION_CENTER,
+                       WIN_ALIGN_ABSOLUTE,
                        nullptr,
                        nullptr) == nullptr)
     {

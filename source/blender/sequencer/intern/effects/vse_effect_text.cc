@@ -575,7 +575,6 @@ static void text_draw(const char *text_ptr, const TextVarsRuntime *runtime, floa
 static rcti draw_text_outline(const RenderData *context,
                               const TextVars *data,
                               const TextVarsRuntime *runtime,
-                              const ColorManagedDisplay *display,
                               ImBuf *out)
 {
   /* Outline width of 1.0 maps to half of text line height. */
@@ -591,7 +590,12 @@ static rcti draw_text_outline(const RenderData *context,
   /* Draw white text into temporary buffer. */
   const size_t pixel_count = size_t(size.x) * size.y;
   Array<uchar4> tmp_buf(pixel_count, uchar4(0));
-  BLF_buffer(runtime->font, nullptr, (uchar *)tmp_buf.data(), size.x, size.y, display);
+  BLF_buffer(runtime->font,
+             nullptr,
+             (uchar *)tmp_buf.data(),
+             size.x,
+             size.y,
+             out->byte_buffer.colorspace);
 
   text_draw(data->text_ptr, runtime, float4(1.0f));
 
@@ -691,7 +695,8 @@ static rcti draw_text_outline(const RenderData *context,
       }
     }
   });
-  BLF_buffer(runtime->font, nullptr, out->byte_buffer.data, size.x, size.y, display);
+  BLF_buffer(
+      runtime->font, nullptr, out->byte_buffer.data, size.x, size.y, out->byte_buffer.colorspace);
 
   return outline_rect;
 }
@@ -1027,8 +1032,6 @@ static ImBuf *do_text_effect(const RenderData *context,
   ImBuf *out = prepare_effect_imbufs(context, nullptr, nullptr, false);
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
 
-  const char *display_device = context->scene->display_settings.display_device;
-  const ColorManagedDisplay *display = IMB_colormanagement_display_get_named(display_device);
   const FontFlags font_flags = ((data->flag & SEQ_TEXT_BOLD) ? BLF_BOLD : BLF_NONE) |
                                ((data->flag & SEQ_TEXT_ITALIC) ? BLF_ITALIC : BLF_NONE);
 
@@ -1044,8 +1047,8 @@ static ImBuf *do_text_effect(const RenderData *context,
   TextVarsRuntime *runtime = text_effect_calc_runtime(strip, font, {out->x, out->y});
   data->runtime = runtime;
 
-  rcti outline_rect = draw_text_outline(context, data, runtime, display, out);
-  BLF_buffer(font, nullptr, out->byte_buffer.data, out->x, out->y, display);
+  rcti outline_rect = draw_text_outline(context, data, runtime, out);
+  BLF_buffer(font, nullptr, out->byte_buffer.data, out->x, out->y, out->byte_buffer.colorspace);
   text_draw(data->text_ptr, runtime, data->color);
   BLF_buffer(font, nullptr, nullptr, 0, 0, nullptr);
   BLF_disable(font, font_flags);

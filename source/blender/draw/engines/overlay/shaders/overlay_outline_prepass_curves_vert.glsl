@@ -33,40 +33,19 @@ uint outline_colorid_get()
 
 void main()
 {
-  bool is_persp = (drw_view().winmat[3][3] == 0.0f);
-  float time, thickness;
-  float3 center_wpos, tangent, binor;
+  const curves::Point ls_pt = curves::point_get(uint(gl_VertexID));
+  curves::Point ws_pt = curves::object_to_world(ls_pt, drw_modelmat());
 
-  hair_get_center_pos_tan_binor_time(is_persp,
-                                     drw_view().viewinv[3].xyz,
-                                     drw_view().viewinv[2].xyz,
-                                     center_wpos,
-                                     tangent,
-                                     binor,
-                                     time,
-                                     thickness);
-  float3 world_pos;
-  if (hairThicknessRes > 1) {
-    /* Calculate the thickness, thick-time, world-position taken into account the outline. */
-    float outline_width = drw_point_world_to_homogenous(center_wpos).w * 1.25f *
-                          uniform_buf.size_viewport_inv.y * drw_view().wininv[1][1];
-    thickness += outline_width;
-    float thick_time = float(gl_VertexID % hairThicknessRes) / float(hairThicknessRes - 1);
-    thick_time = thickness * (thick_time * 2.0f - 1.0f);
-    /* Take object scale into account.
-     * NOTE: This only works fine with uniform scaling. */
-    float scale = 1.0f / length(to_float3x3(drw_modelinv()) * binor);
-    world_pos = center_wpos + binor * thick_time * scale;
-  }
-  else {
-    world_pos = center_wpos;
-  }
+  const float min_width_px = 1.25f;
+  const float min_width_ws = drw_point_world_to_homogenous(ws_pt.P).w * min_width_px *
+                             uniform_buf.size_viewport_inv.y * drw_view().wininv[1][1];
+  /* Make sure that we ribbon and cylinder topology span at least a small amount of pixel to avoid
+   * aliasing artifacts. */
+  ws_pt.radius = max(ws_pt.radius, min_width_ws);
+
+  float3 world_pos = curves::shape_point_get(ws_pt, drw_world_incident_vector(ws_pt.P)).P;
 
   gl_Position = drw_point_world_to_homogenous(world_pos);
-
-#ifdef USE_GEOM
-  vert.pos = drw_point_world_to_view(world_pos);
-#endif
 
   /* Small bias to always be on top of the geom. */
   gl_Position.z -= 1e-3f;

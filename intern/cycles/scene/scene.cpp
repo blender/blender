@@ -176,60 +176,74 @@ void Scene::device_update(Device *device_, Progress &progress)
   }
 
   const bool print_stats = need_data_update();
+  bool kernels_reloaded = false;
 
-  if (update_stats) {
-    update_stats->clear();
-  }
-
-  const scoped_callback_timer timer([this, print_stats](double time) {
+  while (true) {
     if (update_stats) {
-      update_stats->scene.times.add_entry({"device_update", time});
-
-      if (print_stats) {
-        printf("Update statistics:\n%s\n", update_stats->full_report().c_str());
-      }
+      update_stats->clear();
     }
-  });
 
-  /* The order of updates is important, because there's dependencies between
-   * the different managers, using data computed by previous managers. */
+    const scoped_callback_timer timer([this, print_stats](double time) {
+      if (update_stats) {
+        update_stats->scene.times.add_entry({"device_update", time});
 
-  if (film->update_lightgroups(this)) {
-    light_manager->tag_update(this, ccl::LightManager::LIGHT_MODIFIED);
-    object_manager->tag_update(this, ccl::ObjectManager::OBJECT_MODIFIED);
-    background->tag_modified();
-  }
-  if (film->exposure_is_modified()) {
-    integrator->tag_modified();
-  }
+        if (print_stats) {
+          printf("Update statistics:\n%s\n", update_stats->full_report().c_str());
+        }
+      }
+    });
 
-  /* Compile shaders and get information about features they used. */
-  progress.set_status("Updating Shaders");
-  osl_manager->device_update_pre(device, this);
-  shader_manager->device_update_pre(device, &dscene, this, progress);
+    /* The order of updates is important, because there's dependencies between
+     * the different managers, using data computed by previous managers. */
 
-  if (progress.get_cancel() || device->have_error()) {
-    return;
-  }
+    if (film->update_lightgroups(this)) {
+      light_manager->tag_update(this, ccl::LightManager::LIGHT_MODIFIED);
+      object_manager->tag_update(this, ccl::ObjectManager::OBJECT_MODIFIED);
+      background->tag_modified();
+    }
+    if (film->exposure_is_modified()) {
+      integrator->tag_modified();
+    }
 
-  /* Passes. After shader manager as this depends on the shaders. */
-  film->update_passes(this);
+    /* Compile shaders and get information about features they used. */
+    progress.set_status("Updating Shaders");
+    osl_manager->device_update_pre(device, this);
+    shader_manager->device_update_pre(device, &dscene, this, progress);
 
-  /* Update kernel features. After shaders and passes since those affect features. */
-  update_kernel_features();
+    if (progress.get_cancel() || device->have_error()) {
+      return;
+    }
 
-  /* Load render kernels, before uploading most data to the GPU, and before displacement and
-   * background light need to run kernels.
-   *
-   * Do it outside of the scene mutex since the heavy part of the loading (i.e. kernel
-   * compilation) does not depend on the scene and some other functionality (like display
-   * driver) might be waiting on the scene mutex to synchronize display pass. */
-  mutex.unlock();
-  const bool kernels_reloaded = load_kernels(progress);
-  mutex.lock();
+    /* Passes. After shader manager as this depends on the shaders. */
+    film->update_passes(this);
 
-  if (progress.get_cancel() || device->have_error()) {
-    return;
+    /* Update kernel features. After shaders and passes since those affect features. */
+    update_kernel_features();
+
+    /* Load render kernels, before uploading most data to the GPU, and before displacement and
+     * background light need to run kernels.
+     *
+     * Do it outside of the scene mutex since the heavy part of the loading (i.e. kernel
+     * compilation) does not depend on the scene and some other functionality (like display
+     * driver) might be waiting on the scene mutex to synchronize display pass.
+     *
+     * This does mean the scene might have gotten updated in the meantime, in which case
+     * we have to redo the first part of the scene update. */
+    const uint kernel_features = dscene.data.kernel_features;
+    scene_updated_while_loading_kernels = false;
+    if (!kernels_loaded || loaded_kernel_features != kernel_features) {
+      mutex.unlock();
+      kernels_reloaded |= load_kernels(progress);
+      mutex.lock();
+    }
+
+    if (progress.get_cancel() || device->have_error()) {
+      return;
+    }
+
+    if (!scene_updated_while_loading_kernels) {
+      break;
+    }
   }
 
   /* Upload shaders to GPU and compile OSL kernels, after kernels have been loaded. */
@@ -658,31 +672,27 @@ static void log_kernel_features(const uint features)
 
 bool Scene::load_kernels(Progress &progress)
 {
+  progress.set_status("Loading render kernels (may take a few minutes the first time)");
+
+  const scoped_timer timer;
+
   const uint kernel_features = dscene.data.kernel_features;
-
-  if (!kernels_loaded || loaded_kernel_features != kernel_features) {
-    progress.set_status("Loading render kernels (may take a few minutes the first time)");
-
-    const scoped_timer timer;
-
-    log_kernel_features(kernel_features);
-    if (!device->load_kernels(kernel_features)) {
-      string message = device->error_message();
-      if (message.empty()) {
-        message = "Failed loading render kernel, see console for errors";
-      }
-
-      progress.set_error(message);
-      progress.set_status(message);
-      progress.set_update();
-      return false;
+  log_kernel_features(kernel_features);
+  if (!device->load_kernels(kernel_features)) {
+    string message = device->error_message();
+    if (message.empty()) {
+      message = "Failed loading render kernel, see console for errors";
     }
 
-    kernels_loaded = true;
-    loaded_kernel_features = kernel_features;
-    return true;
+    progress.set_error(message);
+    progress.set_status(message);
+    progress.set_update();
+    return false;
   }
-  return false;
+
+  kernels_loaded = true;
+  loaded_kernel_features = kernel_features;
+  return true;
 }
 
 int Scene::get_max_closure_count()

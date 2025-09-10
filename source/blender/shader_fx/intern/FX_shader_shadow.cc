@@ -13,6 +13,7 @@
 #include "BLT_translation.hh"
 
 #include "BKE_context.hh"
+#include "BKE_idtype.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_modifier.hh"
 #include "BKE_screen.hh"
@@ -153,6 +154,13 @@ static void panel_register(ARegionType *region_type)
       region_type, "wave", "", wave_header_draw, wave_panel_draw, panel_type);
 }
 
+static void foreach_working_space_color(ShaderFxData *fx,
+                                        const IDTypeForeachColorFunctionCallback &fn)
+{
+  ShadowShaderFxData *fxd = (ShadowShaderFxData *)fx;
+  fn.single(fxd->shadow_rgba);
+}
+
 ShaderFxTypeInfo shaderfx_Type_Shadow = {
     /*name*/ N_("Shadow"),
     /*struct_name*/ "ShadowShaderFxData",
@@ -168,5 +176,6 @@ ShaderFxTypeInfo shaderfx_Type_Shadow = {
     /*update_depsgraph*/ update_depsgraph,
     /*depends_on_time*/ nullptr,
     /*foreach_ID_link*/ foreach_ID_link,
+    /*foreach_working_space_color*/ foreach_working_space_color,
     /*panel_register*/ panel_register,
 };

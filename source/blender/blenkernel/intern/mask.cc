@@ -202,6 +202,7 @@ IDTypeInfo IDType_ID_MSK = {
     /*foreach_id*/ mask_foreach_id,
     /*foreach_cache*/ nullptr,
     /*foreach_path*/ nullptr,
+    /*foreach_working_space_color*/ nullptr,
     /*owner_pointer_get*/ nullptr,
 
     /*blend_write*/ mask_blend_write,

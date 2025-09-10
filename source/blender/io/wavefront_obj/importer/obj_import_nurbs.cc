@@ -6,6 +6,7 @@
  * \ingroup obj
  */
 
+#include "BKE_curve_legacy_convert.hh"
 #include "BKE_curves.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_object.hh"
@@ -24,23 +25,14 @@
 
 namespace blender::io::obj {
 
-Curve *blender::io::obj::CurveFromGeometry::create_curve(const OBJImportParams &import_params)
+Curves *blender::io::obj::CurveFromGeometry::create_curve(const OBJImportParams &import_params)
 {
   BLI_assert(!curve_geometry_.nurbs_element_.curv_indices.is_empty());
 
-  /* Use of #BKE_id_new_nomain<Curve>(nullptr) limits use for the Curve, see #BKE_curve_add. */
-  Curve *curve = BKE_id_new_nomain<Curve>(nullptr);
-
-  curve->flag = CU_3D;
-  curve->resolu = curve->resolv = 12;
-  /* Only one NURBS spline will be created in the curve object. */
-  curve->actnu = 0;
-
-  Nurb *nurb = MEM_callocN<Nurb>(__func__);
-  BLI_addtail(BKE_curve_nurbs_get(curve), nurb);
-  this->create_nurbs(curve, import_params);
-
-  return curve;
+  Curves *curves_id = bke::curves_new_nomain(0, 0);
+  bke::CurvesGeometry &curves = curves_id->geometry.wrap();
+  this->create_nurbs(curves, import_params);
+  return curves_id;
 }
 
 Object *CurveFromGeometry::create_curve_object(Main *bmain, const OBJImportParams &import_params)
@@ -146,6 +138,60 @@ void CurveFromGeometry::create_nurbs(Curve *curve, const OBJImportParams &import
   }
 }
 
+void CurveFromGeometry::create_nurbs(bke::CurvesGeometry &curves,
+                                     const OBJImportParams &import_params)
+{
+  const NurbsElement &nurbs_geometry = curve_geometry_.nurbs_element_;
+  const int8_t degree = get_valid_nurbs_degree(nurbs_geometry);
+  const int8_t order = degree + 1;
+
+  const Vector<int> multiplicity = bke::curves::nurbs::calculate_multiplicity_sequence(
+      nurbs_geometry.parm);
+  const short knot_flag = this->detect_knot_mode(
+      import_params, degree, nurbs_geometry.curv_indices, nurbs_geometry.parm, multiplicity);
+
+  const bool is_cyclic = knot_flag & CU_NURB_CYCLIC;
+  const int repeated_points = is_cyclic ? repeating_cyclic_point_num(order, nurbs_geometry.parm) :
+                                          0;
+  const Span<int> indices = nurbs_geometry.curv_indices.as_span().slice(
+      nurbs_geometry.curv_indices.index_range().drop_back(repeated_points));
+
+  const int points_num = indices.size();
+  const int curve_index = 0;
+  curves.resize(points_num, 1);
+
+  MutableSpan<int8_t> types = curves.curve_types_for_write();
+  MutableSpan<bool> cyclic = curves.cyclic_for_write();
+  MutableSpan<int8_t> orders = curves.nurbs_orders_for_write();
+  MutableSpan<int8_t> modes = curves.nurbs_knots_modes_for_write();
+  types.first() = CURVE_TYPE_NURBS;
+  cyclic.first() = is_cyclic;
+  orders.first() = order;
+  modes.first() = bke::knots_mode_from_legacy(knot_flag);
+  curves.update_curve_types();
+
+  const OffsetIndices points_by_curve = curves.points_by_curve();
+  const IndexRange point_range = points_by_curve[curve_index];
+
+  MutableSpan<float3> positions = curves.positions_for_write().slice(point_range);
+  MutableSpan<float> weights = curves.nurbs_weights_for_write().slice(point_range);
+  for (const int i : indices.index_range()) {
+    positions[i] = global_vertices_.vertices[indices[i]];
+    weights[i] = (global_vertices_.vertex_weights.size() > indices[i]) ?
+                     global_vertices_.vertex_weights[indices[i]] :
+                     1.0f;
+  }
+
+  if (modes.first() == NURBS_KNOT_MODE_CUSTOM) {
+    OffsetIndices<int> knot_offsets = curves.nurbs_custom_knots_by_curve();
+    curves.nurbs_custom_knots_update_size();
+    MutableSpan<float> knots = curves.nurbs_custom_knots_for_write().slice(
+        knot_offsets[curve_index]);
+
+    array_utils::copy<float>(nurbs_geometry.parm, knots);
+  }
+}
+
 static bool detect_clamped_endpoint(const int8_t degree, const Span<int> multiplicity)
 {
   const int8_t order = degree + 1;
@@ -199,7 +245,7 @@ static bool detect_knot_mode_cyclic(const int8_t degree,
   }
 
   if (is_clamped) {
-    /* Clamped curves are discontinous at the ends and have no overlapping spans. */
+    /* Clamped curves are discontinuous at the ends and have no overlapping spans. */
     return true;
   }
 

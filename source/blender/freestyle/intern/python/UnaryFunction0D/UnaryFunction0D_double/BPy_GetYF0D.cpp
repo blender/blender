@@ -35,7 +35,6 @@ PyDoc_STRVAR(
     "   :type it: :class:`freestyle.types.Interface0DIterator`\n"
     "   :return: The Y 3D coordinate of the pointed Interface0D.\n"
     "   :rtype: float\n");
-
 static int GetYF0D___init__(BPy_GetYF0D *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {nullptr};

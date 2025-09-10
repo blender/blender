@@ -755,19 +755,26 @@ static bool WIDGETGROUP_node_glare_poll(const bContext *C, wmGizmoGroupType * /*
   SpaceNode *snode = CTX_wm_space_node(C);
   bNode *node = bke::node_get_active(*snode->edittree);
 
-  if ((node && node->is_type("CompositorNodeGlare")) &&
-      static_cast<NodeGlare *>(node->storage)->type == CMP_NODE_GLARE_SUN_BEAMS)
-  {
-    snode->edittree->ensure_topology_cache();
-    LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
-      if (STR_ELEM(input->name, "Sun Position") && input->is_directly_linked()) {
-        return false;
-      }
-    }
-    return true;
+  if (!node || !node->is_type("CompositorNodeGlare")) {
+    return false;
   }
 
-  return false;
+  bNodeSocket &type_socket = *blender::bke::node_find_socket(*node, SOCK_IN, "Type");
+  snode->edittree->ensure_topology_cache();
+  if (type_socket.is_directly_linked()) {
+    return false;
+  }
+
+  if (type_socket.default_value_typed<bNodeSocketValueMenu>()->value != CMP_NODE_GLARE_SUN_BEAMS) {
+    return false;
+  }
+
+  LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
+    if (STR_ELEM(input->name, "Sun Position") && input->is_directly_linked()) {
+      return false;
+    }
+  }
+  return true;
 }
 
 static void WIDGETGROUP_node_glare_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)

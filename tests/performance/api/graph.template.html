@@ -39,6 +39,33 @@
       return ndt;
     }
 
+    function drawChart(chartsQueue, index) {
+      index = index || 0;
+      if (index === chartsQueue.length)
+        return;
+
+      var chartData = chartsQueue[index];
+      var chart;
+      
+      if (chartData.chart_type == 'line') {
+        chart = new google.charts.Line(document.getElementById(chartData.id));
+      } else {
+        chart = new google.charts.Bar(document.getElementById(chartData.id));
+      }
+      
+      google.visualization.events.addOneTimeListener(chart, 'ready', function() {
+        /* Auto scale chart elements to display full SVG. */
+        var allSvg = document.getElementsByTagName("svg");
+        for (var svgIndex = 0; svgIndex < allSvg.length; svgIndex++) {
+          allSvg[svgIndex].setAttribute('height', allSvg[svgIndex].getBBox().height);
+        }
+        
+        drawChart(chartsQueue, index + 1);
+      });
+      
+      chart.draw(chartData.data, chartData.options);
+    }
+
     function draw_charts()
     {
       /* Load JSON data. */
@@ -54,7 +81,9 @@
         charts_content_elem.removeChild(charts_content_elem.firstChild);
       }
 
-      /* Draw charts for each device. */
+      var chartsQueue = [];
+
+      /* Prepare UI and charts queue for each device. */
       for (var i = 0; i < json_data.length; i++)
       {
         benchmark = json_data[i];
@@ -104,6 +133,7 @@
 
         /* Create chart div. */
         chart_div = document.createElement('div');
+        chart_div.id = "chart-" + i;
         tab_div.appendChild(chart_div)
 
         /* Chart drawing options. */
@@ -113,25 +143,20 @@
           height: 500,
         };
 
-        /* Create chart. */
+        /* Prepare chart data for queue. */
         var data = new google.visualization.DataTable(benchmark["data"]);
-        if (benchmark['chart_type'] == 'line') {
-          var chart = new google.charts.Line(chart_div);
-          chart.draw(data, options);
-        }
-        else {
-          var chart = new google.charts.Bar(chart_div);
-          chart.draw(transposeDataTable(data), options);
-        }
-
-        /* Auto scale chart elements to display full SVG. */
-        google.visualization.events.addListener(chart, 'ready', function () {
-          var allSvg = document.getElementsByTagName("svg");
-          for (var index = 0; index < allSvg.length; index++) {
-            allSvg[index].setAttribute('height', allSvg[index].getBBox().height);
-          }
-        });
+        var chartData = {
+          id: chart_div.id,
+          data: benchmark['chart_type'] == 'line' ? data : transposeDataTable(data),
+          options: options,
+          chart_type: benchmark['chart_type']
+        };
+        
+        chartsQueue.push(chartData);
       }
+      
+      /* Start drawing charts sequentially. */
+      drawChart(chartsQueue, 0);
     }
   </script>
 </head>

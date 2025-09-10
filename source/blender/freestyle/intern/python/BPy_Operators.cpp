@@ -49,8 +49,7 @@ PyDoc_STRVAR(
     "Class defining the operators used in a style module. There are five\n"
     "types of operators: Selection, chaining, splitting, sorting and\n"
     "creation. All these operators are user controlled through functors,\n"
-    "predicates and shaders that are taken as arguments.");
-
+    "predicates and shaders that are taken as arguments.\n");
 static void Operators_dealloc(BPy_Operators *self)
 {
   Py_TYPE(self)->tp_free((PyObject *)self);
@@ -65,8 +64,7 @@ PyDoc_STRVAR(
     "   condition.\n"
     "\n"
     "   :arg pred: The predicate expressing this condition.\n"
-    "   :type pred: :class:`UnaryPredicate1D`");
-
+    "   :type pred: :class:`UnaryPredicate1D`\n");
 static PyObject *Operators_select(BPy_Operators * /*self*/, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {"pred", nullptr};
@@ -114,7 +112,6 @@ PyDoc_STRVAR(
     "      timestamp incrementation is a typical illustration of such a modifier).\n"
     "      If this argument is not given, the time stamp is automatically managed.\n"
     "   :type modifier: :class:`UnaryFunction1DVoid`\n");
-
 static PyObject *Operators_chain(BPy_Operators * /*self*/, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {"it", "pred", "modifier", nullptr};
@@ -197,7 +194,6 @@ PyDoc_STRVAR(
     "      This parameter is optional, you make not want to pass a stopping criterion\n"
     "      when the stopping criterion is already contained in the iterator definition.\n"
     "   :type pred: :class:`UnaryPredicate1D`\n");
-
 static PyObject *Operators_bidirectional_chain(BPy_Operators * /*self*/,
                                                PyObject *args,
                                                PyObject *kwds)
@@ -281,7 +277,6 @@ PyDoc_STRVAR(
     "      a virtual point only progresses along the curve using this\n"
     "      resolution.)\n"
     "   :type sampling: float\n");
-
 static PyObject *Operators_sequential_split(BPy_Operators * /*self*/,
                                             PyObject *args,
                                             PyObject *kwds)
@@ -384,7 +379,6 @@ PyDoc_STRVAR(
     "      virtual point only progresses along the curve using this\n"
     "      resolution.)\n"
     "   :type sampling: float\n");
-
 static PyObject *Operators_recursive_split(BPy_Operators * /*self*/,
                                            PyObject *args,
                                            PyObject *kwds)
@@ -485,8 +479,7 @@ PyDoc_STRVAR(
     "   comparison predicate given as argument.\n"
     "\n"
     "   :arg pred: The binary predicate used for the comparison.\n"
-    "   :type pred: :class:`BinaryPredicate1D`");
-
+    "   :type pred: :class:`BinaryPredicate1D`\n");
 static PyObject *Operators_sort(BPy_Operators * /*self*/, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {"pred", nullptr};
@@ -523,8 +516,7 @@ PyDoc_STRVAR(
     "      transform as a stroke.\n"
     "   :type pred: :class:`UnaryPredicate1D`\n"
     "   :arg shaders: The list of shaders used to shade the strokes.\n"
-    "   :type shaders: list[:class:`StrokeShader`]");
-
+    "   :type shaders: list[:class:`StrokeShader`]\n");
 static PyObject *Operators_create(BPy_Operators * /*self*/, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {"pred", "shaders", nullptr};
@@ -579,7 +571,6 @@ PyDoc_STRVAR(
     "\n"
     "   :arg delete_strokes: Delete the strokes that are currently stored.\n"
     "   :type delete_strokes: bool\n");
-
 static PyObject *Operators_reset(BPy_Operators * /*self*/, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {"delete_strokes", nullptr};
@@ -605,8 +596,7 @@ PyDoc_STRVAR(
     "   :arg i: index (0 <= i < Operators.get_view_edges_size()).\n"
     "   :type i: int\n"
     "   :return: The ViewEdge object.\n"
-    "   :rtype: :class:`ViewEdge`");
-
+    "   :rtype: :class:`ViewEdge`\n");
 static PyObject *Operators_get_viewedge_from_index(BPy_Operators * /*self*/,
                                                    PyObject *args,
                                                    PyObject *kwds)
@@ -634,8 +624,7 @@ PyDoc_STRVAR(
     "   :arg i: index (0 <= i < Operators.get_chains_size()).\n"
     "   :type i: int\n"
     "   :return: The Chain object.\n"
-    "   :rtype: :class:`Chain`");
-
+    "   :rtype: :class:`Chain`\n");
 static PyObject *Operators_get_chain_from_index(BPy_Operators * /*self*/,
                                                 PyObject *args,
                                                 PyObject *kwds)
@@ -663,8 +652,7 @@ PyDoc_STRVAR(
     "   :arg i: index (0 <= i < Operators.get_strokes_size()).\n"
     "   :type i: int\n"
     "   :return: The Stroke object.\n"
-    "   :rtype: :class:`Stroke`");
-
+    "   :rtype: :class:`Stroke`\n");
 static PyObject *Operators_get_stroke_from_index(BPy_Operators * /*self*/,
                                                  PyObject *args,
                                                  PyObject *kwds)
@@ -690,8 +678,7 @@ PyDoc_STRVAR(
     "   Returns the number of ViewEdges.\n"
     "\n"
     "   :return: The number of ViewEdges.\n"
-    "   :rtype: int");
-
+    "   :rtype: int\n");
 static PyObject *Operators_get_view_edges_size(BPy_Operators * /*self*/)
 {
   return PyLong_FromLong(Operators::getViewEdgesSize());
@@ -705,8 +692,7 @@ PyDoc_STRVAR(
     "   Returns the number of Chains.\n"
     "\n"
     "   :return: The number of Chains.\n"
-    "   :rtype: int");
-
+    "   :rtype: int\n");
 static PyObject *Operators_get_chains_size(BPy_Operators * /*self*/)
 {
   return PyLong_FromLong(Operators::getChainsSize());
@@ -720,8 +706,7 @@ PyDoc_STRVAR(
     "   Returns the number of Strokes.\n"
     "\n"
     "   :return: The number of Strokes.\n"
-    "   :rtype: int");
-
+    "   :rtype: int\n");
 static PyObject *Operators_get_strokes_size(BPy_Operators * /*self*/)
 {
   return PyLong_FromLong(Operators::getStrokesSize());

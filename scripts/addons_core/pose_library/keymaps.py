@@ -15,25 +15,10 @@ def register() -> None:
         # This happens when Blender is running in the background.
         return
 
-    km = wm.keyconfigs.addon.keymaps.new(name="File Browser Main", space_type="FILE_BROWSER")
+    km = wm.keyconfigs.addon.keymaps.new(name="Asset Browser Main", space_type="FILE_BROWSER")
 
     # DblClick to apply pose.
     kmi = km.keymap_items.new("poselib.apply_pose_asset", "LEFTMOUSE", "DOUBLE_CLICK")
-    addon_keymaps.append((km, kmi))
-
-    # Asset Shelf
-    km = wm.keyconfigs.addon.keymaps.new(name="Asset Shelf")
-    # Click to apply pose.
-    kmi = km.keymap_items.new("poselib.apply_pose_asset", "LEFTMOUSE", "CLICK")
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new("poselib.apply_pose_asset", "LEFTMOUSE", "CLICK", ctrl=True)
-    kmi.properties.flipped = True
-    addon_keymaps.append((km, kmi))
-    # Drag to blend pose.
-    kmi = km.keymap_items.new("poselib.blend_pose_asset", "LEFTMOUSE", "CLICK_DRAG")
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new("poselib.blend_pose_asset", "LEFTMOUSE", "CLICK_DRAG", ctrl=True)
-    kmi.properties.flipped = True
     addon_keymaps.append((km, kmi))
 
 

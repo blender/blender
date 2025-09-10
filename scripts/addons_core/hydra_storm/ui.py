@@ -191,7 +191,7 @@ class STORM_HYDRA_LIGHT_PT_light(Panel):
 
         elif light.type == 'SPOT':
             col = main_col.column(align=True)
-            col.prop(light, 'spot_size', slider=True)
+            col.prop(light, 'spot_size', text="Angle", slider=True)
             col.prop(light, 'spot_blend', slider=True)
 
             main_col.prop(light, 'show_cone')

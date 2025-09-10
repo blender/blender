@@ -1243,6 +1243,9 @@ def _wm_doc_get_id(doc_id, *, do_url=True, url_prefix="", report=None):
                 rna_class = bpy.types.PropertyGroup.bl_rna_get_subclass_py(class_name)
 
             if rna_class is None:
+                rna_class = bpy.types.AddonPreferences.bl_rna_get_subclass_py(class_name)
+
+            if rna_class is None:
                 if report is not None:
                     report({'ERROR'}, rpt_("Type \"{:s}\" cannot be found").format(class_name))
                 return None

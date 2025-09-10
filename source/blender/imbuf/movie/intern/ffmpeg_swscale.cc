@@ -13,8 +13,9 @@
 #  include <mutex>
 
 #  include "BLI_mutex.hh"
-#  include "BLI_threads.h"
 #  include "BLI_vector.hh"
+
+#  include "movie_util.hh"
 
 extern "C" {
 #  include <libavutil/opt.h>
@@ -68,7 +69,7 @@ static SwsContext *sws_create_context(int src_width,
   av_opt_set_int(c, "dsth", dst_height, 0);
   av_opt_set_int(c, "dst_format", av_dst_format, 0);
   av_opt_set_int(c, "sws_flags", sws_flags, 0);
-  av_opt_set_int(c, "threads", BLI_system_thread_count(), 0);
+  av_opt_set_int(c, "threads", MOV_thread_count(), 0);
 
   if (sws_init_context(c, nullptr, nullptr) < 0) {
     sws_freeContext(c);

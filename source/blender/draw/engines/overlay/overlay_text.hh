@@ -8,8 +8,10 @@
 
 #pragma once
 
-#include "BKE_vfont.hh"
+#include "BLI_math_color.h"
 #include "BLI_math_matrix.hh"
+
+#include "BKE_vfont.hh"
 
 #include "overlay_base.hh"
 
@@ -177,13 +179,13 @@ class Text : Overlay {
       }
       float4x2 box;
       /* NOTE: v2_quad_corners_to_mat4 don't need the 3rd corner. */
-      if (sb->rot == 0.0f) {
+      if (sb->rotate == 0.0f) {
         box[0] = float2(sb->x, sb->y);
         box[1] = float2(sb->x + selboxw, sb->y);
         box[3] = float2(sb->x, sb->y + sb->h);
       }
       else {
-        float2x2 mat = math::from_rotation<float2x2>(sb->rot);
+        float2x2 mat = math::from_rotation<float2x2>(sb->rotate);
         box[0] = float2(sb->x, sb->y);
         box[1] = mat[0] * selboxw + float2(&sb->x);
         box[3] = mat[1] * sb->h + float2(&sb->x);
@@ -213,13 +215,15 @@ class Text : Overlay {
 
   void add_boxes(const Resources &res, const Curve &cu, const float4x4 &ob_to_world)
   {
+    const EditFont *edit_font = cu.editfont;
     for (const int i : IndexRange(cu.totbox)) {
       const TextBox &tb = cu.tb[i];
       const bool is_active = (i == (cu.actbox - 1));
       const float4 &color = is_active ? res.theme.colors.active_object : res.theme.colors.wire;
 
       if ((tb.w != 0.0f) || (tb.h != 0.0f)) {
-        const float3 top_left = float3(cu.xof + tb.x, cu.yof + tb.y + cu.fsize_realtime, 0.001);
+        const float3 top_left = float3(
+            cu.xof + tb.x, cu.yof + tb.y + edit_font->font_size_eval, 0.001);
         const float3 w = float3(tb.w, 0.0f, 0.0f);
         const float3 h = float3(0.0f, tb.h, 0.0f);
         float4x3 vecs = float4x3(top_left, top_left + w, top_left + w - h, top_left - h);

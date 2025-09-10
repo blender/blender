@@ -115,17 +115,19 @@ static void light_free_data(ID *id)
 static void light_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   Light *lamp = reinterpret_cast<Light *>(id);
-  const int flag = BKE_lib_query_foreachid_process_flags_get(data);
 
   if (lamp->nodetree) {
     /* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
     BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
         data, BKE_library_foreach_ID_embedded(data, (ID **)&lamp->nodetree));
   }
+}
 
-  if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
-    BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data, lamp->ipo, IDWALK_CB_USER);
-  }
+static void light_foreach_working_space_color(ID *id, const IDTypeForeachColorFunctionCallback &fn)
+{
+  Light *la = (Light *)id;
+
+  fn.single(&la->r);
 }
 
 static void light_blend_write(BlendWriter *writer, ID *id, const void *id_address)
@@ -180,6 +182,7 @@ IDTypeInfo IDType_ID_LA = {
     /*foreach_id*/ light_foreach_id,
     /*foreach_cache*/ nullptr,
     /*foreach_path*/ nullptr,
+    /*foreach_working_space_color*/ light_foreach_working_space_color,
     /*owner_pointer_get*/ nullptr,
 
     /*blend_write*/ light_blend_write,

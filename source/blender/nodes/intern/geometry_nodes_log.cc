@@ -688,6 +688,7 @@ ValueLog *GeoTreeLog::find_socket_value_log(const bNodeSocket &query_socket)
   Stack<const bNodeSocket *> sockets_to_check;
   sockets_to_check.push(&query_socket);
   added_sockets.add(&query_socket);
+  const bNodeTree &tree = query_socket.owner_tree();
 
   while (!sockets_to_check.is_empty()) {
     const bNodeSocket &socket = *sockets_to_check.pop();
@@ -735,6 +736,16 @@ ValueLog *GeoTreeLog::find_socket_value_log(const bNodeSocket &query_socket)
             if (added_sockets.add(&from_socket)) {
               sockets_to_check.push(&from_socket);
             }
+          }
+        }
+      }
+      else if (node.is_group_input()) {
+        const int index = socket.index();
+        /* Check if the value is stored for any other group input node. */
+        for (const bNode *other_group_input : tree.group_input_nodes()) {
+          const bNodeSocket &other_socket = other_group_input->output_socket(index);
+          if (added_sockets.add(&other_socket)) {
+            sockets_to_check.push(&other_socket);
           }
         }
       }

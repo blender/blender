@@ -783,7 +783,8 @@ void OBJECT_OT_data_transfer(wmOperatorType *ot)
                       DT_LAYERS_ACTIVE_SRC,
                       "Source Layers Selection",
                       "Which layers to transfer, in case of multi-layers types");
-  RNA_def_property_enum_funcs_runtime(prop, nullptr, nullptr, dt_layers_select_itemf);
+  RNA_def_property_enum_funcs_runtime(
+      prop, nullptr, nullptr, dt_layers_select_itemf, nullptr, nullptr);
 
   prop = RNA_def_enum(ot->srna,
                       "layers_select_dst",
@@ -791,7 +792,8 @@ void OBJECT_OT_data_transfer(wmOperatorType *ot)
                       DT_LAYERS_ACTIVE_DST,
                       "Destination Layers Matching",
                       "How to match source and destination layers");
-  RNA_def_property_enum_funcs_runtime(prop, nullptr, nullptr, dt_layers_select_itemf);
+  RNA_def_property_enum_funcs_runtime(
+      prop, nullptr, nullptr, dt_layers_select_itemf, nullptr, nullptr);
 
   prop = RNA_def_enum(ot->srna,
                       "mix_mode",
@@ -799,7 +801,7 @@ void OBJECT_OT_data_transfer(wmOperatorType *ot)
                       CDT_MIX_TRANSFER,
                       "Mix Mode",
                       "How to affect destination elements with source values");
-  RNA_def_property_enum_funcs_runtime(prop, nullptr, nullptr, dt_mix_mode_itemf);
+  RNA_def_property_enum_funcs_runtime(prop, nullptr, nullptr, dt_mix_mode_itemf, nullptr, nullptr);
   RNA_def_float(
       ot->srna,
       "mix_factor",
@@ -948,7 +950,8 @@ void OBJECT_OT_datalayout_transfer(wmOperatorType *ot)
                       DT_LAYERS_ACTIVE_SRC,
                       "Source Layers Selection",
                       "Which layers to transfer, in case of multi-layers types");
-  RNA_def_property_enum_funcs_runtime(prop, nullptr, nullptr, dt_layers_select_src_itemf);
+  RNA_def_property_enum_funcs_runtime(
+      prop, nullptr, nullptr, dt_layers_select_src_itemf, nullptr, nullptr);
 
   prop = RNA_def_enum(ot->srna,
                       "layers_select_dst",
@@ -956,7 +959,8 @@ void OBJECT_OT_datalayout_transfer(wmOperatorType *ot)
                       DT_LAYERS_ACTIVE_DST,
                       "Destination Layers Matching",
                       "How to match source and destination layers");
-  RNA_def_property_enum_funcs_runtime(prop, nullptr, nullptr, dt_layers_select_dst_itemf);
+  RNA_def_property_enum_funcs_runtime(
+      prop, nullptr, nullptr, dt_layers_select_dst_itemf, nullptr, nullptr);
 }
 
 }  // namespace blender::ed::object

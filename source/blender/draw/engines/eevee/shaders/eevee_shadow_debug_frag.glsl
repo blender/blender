@@ -29,7 +29,7 @@ ShadowSamplingTile shadow_tile_data_get(usampler2D tilemaps_tx, ShadowCoordinate
 
 float3 debug_random_color(int2 v)
 {
-  float r = interlieved_gradient_noise(float2(v), 0.0f, 0.0f);
+  float r = interleaved_gradient_noise(float2(v), 0.0f, 0.0f);
   return hue_gradient(r);
 }
 

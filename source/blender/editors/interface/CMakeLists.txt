@@ -87,6 +87,7 @@ set(SRC
   templates/interface_template_search_operator.cc
   templates/interface_template_shader_fx.cc
   templates/interface_template_status.cc
+  templates/interface_template_strip_modifiers.cc
   templates/interface_templates.cc
   interface_undo.cc
   interface_utils.cc
@@ -133,6 +134,7 @@ set(LIB
   PRIVATE bf::animrig
   PRIVATE bf::nodes
   PRIVATE bf::render
+  PRIVATE bf::sequencer
   PRIVATE bf::windowmanager
 )
 

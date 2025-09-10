@@ -7,6 +7,8 @@
 #include "BKE_grease_pencil.hh"
 #include "BKE_scene.hh"
 
+#include "BLI_math_color.h"
+
 #include "DEG_depsgraph_query.hh"
 
 #include "DNA_grease_pencil_types.h"

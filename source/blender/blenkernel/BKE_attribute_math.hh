@@ -9,7 +9,7 @@
 #pragma once
 
 #include "BLI_array.hh"
-#include "BLI_color.hh"
+#include "BLI_color_types.hh"
 #include "BLI_cpp_type.hh"
 #include "BLI_generic_span.hh"
 #include "BLI_math_axis_angle.hh"

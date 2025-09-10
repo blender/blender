@@ -59,9 +59,9 @@ static void get_uvs(const CDStreamConfig &config,
                     std::vector<uint32_t> &uvidx,
                     const void *cd_data)
 {
-  const float2 *mloopuv_array = static_cast<const float2 *>(cd_data);
+  const float2 *uv_map_array = static_cast<const float2 *>(cd_data);
 
-  if (!mloopuv_array) {
+  if (!uv_map_array) {
     return;
   }
 
@@ -76,7 +76,7 @@ static void get_uvs(const CDStreamConfig &config,
     /* Iterate in reverse order to match exported polygons. */
     for (const int i : faces.index_range()) {
       const IndexRange face = faces[i];
-      const float2 *loopuv = mloopuv_array + face.start() + face.size();
+      const float2 *loopuv = uv_map_array + face.start() + face.size();
 
       for (int j = 0; j < face.size(); j++, count++) {
         loopuv--;
@@ -95,7 +95,7 @@ static void get_uvs(const CDStreamConfig &config,
     for (const int i : faces.index_range()) {
       const IndexRange face = faces[i];
       int *face_verts = corner_verts + face.start() + face.size();
-      const float2 *loopuv = mloopuv_array + face.start() + face.size();
+      const float2 *loopuv = uv_map_array + face.start() + face.size();
 
       for (int j = 0; j < face.size(); j++) {
         face_verts--;
@@ -325,7 +325,7 @@ static void read_uvs(const CDStreamConfig &config,
 {
   const OffsetIndices faces = config.mesh->faces();
   const int *corner_verts = config.corner_verts;
-  float2 *mloopuvs = static_cast<float2 *>(data);
+  float2 *uv_map = static_cast<float2 *>(data);
 
   uint uv_index, loop_index, rev_loop_index;
 
@@ -342,7 +342,7 @@ static void read_uvs(const CDStreamConfig &config,
       uv_index = (*indices)[loop_index];
       const Imath::V2f &uv = (*uvs)[uv_index];
 
-      float2 &loopuv = mloopuvs[rev_loop_index];
+      float2 &loopuv = uv_map[rev_loop_index];
       loopuv[0] = uv[0];
       loopuv[1] = uv[1];
     }

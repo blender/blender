@@ -629,7 +629,7 @@ static void pygpu_buffer_strides_calc(const eGPUDataFormat format,
 static int pygpu_buffer__bf_getbuffer(BPyGPUBuffer *self, Py_buffer *view, int flags)
 {
   if (UNLIKELY(view == nullptr)) {
-    PyErr_SetString(PyExc_ValueError, "null view in getbuffer is obsolete");
+    PyErr_SetString(PyExc_ValueError, "null view in get-buffer is obsolete");
     return -1;
   }
 
@@ -678,8 +678,9 @@ PyDoc_STRVAR(
     "   For Python access to GPU functions requiring a pointer.\n"
     "\n"
     "   :arg format: Format type to interpret the buffer.\n"
-    "      Possible values are `FLOAT`, `INT`, `UINT`, `UBYTE`, `UINT_24_8` and `10_11_11_REV`.\n"
-    "      `UINT_24_8` is deprecated, use `FLOAT` instead.\n"
+    "      Possible values are ``FLOAT``, ``INT``, ``UINT``, ``UBYTE``, ``UINT_24_8`` & "
+    "``10_11_11_REV``.\n"
+    "      ``UINT_24_8`` is deprecated, use ``FLOAT`` instead.\n"
     "   :type format: str\n"
     "   :arg dimensions: Array describing the dimensions.\n"
     "   :type dimensions: int\n"

@@ -1090,7 +1090,7 @@ void blo_do_versions_410(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       Sculpt *sculpt = scene->toolsettings->sculpt;
       if (sculpt != nullptr) {
-        Sculpt default_sculpt = *DNA_struct_default_get(Sculpt);
+        Sculpt default_sculpt = blender::dna::shallow_copy(*DNA_struct_default_get(Sculpt));
         sculpt->automasking_boundary_edges_propagation_steps =
             default_sculpt.automasking_boundary_edges_propagation_steps;
       }

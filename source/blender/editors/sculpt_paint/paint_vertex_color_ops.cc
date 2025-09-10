@@ -10,6 +10,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_array.hh"
+#include "BLI_color.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
@@ -284,9 +285,10 @@ static void transform_active_color_data(
               color_attribute.varray.set_by_copy(i, &color);
             }
             else if constexpr (std::is_same_v<T, ColorGeometry4b>) {
-              ColorGeometry4f color = color_attribute.varray.get<ColorGeometry4b>(i).decode();
+              ColorGeometry4f color = color::decode(
+                  color_attribute.varray.get<ColorGeometry4b>(i));
               transform_fn(color);
-              ColorGeometry4b color_encoded = color.encode();
+              ColorGeometry4b color_encoded = color::encode(color);
               color_attribute.varray.set_by_copy(i, &color_encoded);
             }
           }

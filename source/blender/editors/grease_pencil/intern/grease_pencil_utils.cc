@@ -12,6 +12,7 @@
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_curves_utils.hh"
+#include "BKE_deform.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_material.hh"
@@ -1376,6 +1377,21 @@ IndexMask retrieve_editable_and_selected_elements(Object &object,
   return {};
 }
 
+IndexMask retrieve_editable_and_all_selected_points(Object &object,
+                                                    const bke::greasepencil::Drawing &drawing,
+                                                    int layer_index,
+                                                    int handle_display,
+                                                    IndexMaskMemory &memory)
+{
+  const bke::CurvesGeometry &curves = drawing.strokes();
+
+  const IndexMask editable_points = retrieve_editable_points(object, drawing, layer_index, memory);
+  const IndexMask selected_points = ed::curves::retrieve_all_selected_points(
+      curves, handle_display, memory);
+
+  return IndexMask::from_intersection(editable_points, selected_points, memory);
+}
+
 bool has_editable_layer(const GreasePencil &grease_pencil)
 {
   using namespace blender::bke::greasepencil;
@@ -1508,6 +1524,10 @@ Array<PointTransferData> compute_topology_change(
   array_utils::copy(dst_curves_offset.as_span(), dst.offsets_for_write());
   const OffsetIndices<int> dst_points_by_curve = dst.points_by_curve();
 
+  /* Vertex group names. */
+  BLI_assert(BLI_listbase_count(&dst.vertex_group_names) == 0);
+  BKE_defgroup_copy_list(&dst.vertex_group_names, &src.vertex_group_names);
+
   /* Attributes. */
   const bke::AttributeAccessor src_attributes = src.attributes();
   bke::MutableAttributeAccessor dst_attributes = dst.attributes_for_write();
@@ -1612,9 +1632,10 @@ static float brush_radius_at_location(const RegionView3D *rv3d,
                                       const float4x4 to_world)
 {
   if ((brush->flag & BRUSH_LOCK_SIZE) == 0) {
-    return pixel_radius_to_world_space_radius(rv3d, region, location, to_world, brush->size);
+    return pixel_radius_to_world_space_radius(
+        rv3d, region, location, to_world, float(brush->size) / 2.0f);
   }
-  return brush->unprojected_radius;
+  return brush->unprojected_size / 2.0f;
 }
 
 float radius_from_input_sample(const RegionView3D *rv3d,

@@ -105,7 +105,7 @@ class Camera {
     float radius;
   } bound_sphere;
 
-  float overscan_;
+  float overscan_ = -1.0f;
   bool overscan_changed_;
   /** Whether or not the camera was synced from a camera object. */
   bool is_camera_object_ = false;

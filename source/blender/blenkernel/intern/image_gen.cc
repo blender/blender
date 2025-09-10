@@ -302,10 +302,8 @@ static void checker_board_text(
 
   BLF_size(mono, 54.0f); /* hard coded size! */
 
-  /* OCIO_TODO: using nullptr as display will assume using sRGB display
-   *            this is correct since currently generated images are assumed to be in sRGB space,
-   *            but this would probably needed to be fixed in some way
-   */
+  /* Using nullptr will assume the byte buffer has sRGB colorspace, which currently
+   * matches the default colorspace of new images. */
   BLF_buffer(mono, rect_float, rect, width, height, nullptr);
 
   const float text_color[4] = {0.0, 0.0, 0.0, 1.0};

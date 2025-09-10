@@ -47,8 +47,7 @@ PyDoc_STRVAR(
     "      value type is float if func is of the :class:`UnaryFunction0DDouble`\n"
     "      or :class:`UnaryFunction0DFloat` type, and int if func is of the\n"
     "      :class:`UnaryFunction0DUnsigned` type.\n"
-    "   :rtype: int | float");
-
+    "   :rtype: int | float\n");
 static PyObject *Integrator_integrate(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {"func", "it", "it_end", "integration_type", nullptr};
@@ -165,8 +164,7 @@ PyDoc_STRVAR(
     "* IntegrationType.FIRST: The value computed for the 1D element is the\n"
     "  first of the values obtained for the 0D elements.\n"
     "* IntegrationType.LAST: The value computed for the 1D element is the\n"
-    "  last of the values obtained for the 0D elements.");
-
+    "  last of the values obtained for the 0D elements.\n");
 PyTypeObject IntegrationType_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "IntegrationType",

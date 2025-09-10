@@ -450,6 +450,11 @@ static void file_main_region_init(wmWindowManager *wm, ARegion *region)
   keymap = WM_keymap_ensure(
       wm->runtime->defaultconf, "File Browser Main", SPACE_FILE, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->runtime->handlers, keymap);
+
+  keymap = WM_keymap_ensure(
+      wm->runtime->defaultconf, "Asset Browser Main", SPACE_FILE, RGN_TYPE_WINDOW);
+  WM_event_add_keymap_handler_v2d_mask(&region->runtime->handlers, keymap);
+  keymap->poll = [](bContext *C) { return ED_operator_asset_browsing_active(C); };
 }
 
 static void file_main_region_listener(const wmRegionListenerParams *listener_params)

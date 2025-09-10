@@ -176,8 +176,8 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
   }
 
   int offset[2];
-  offset[0] = image->runtime->backdrop_offset[0];
-  offset[1] = image->runtime->backdrop_offset[1];
+  offset[0] = int(image->runtime->backdrop_offset[0]);
+  offset[1] = int(image->runtime->backdrop_offset[1]);
 
   int x = int(uv[0] * ibuf->x), y = int(uv[1] * ibuf->y);
 
@@ -198,12 +198,11 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
     info->use_default_view = (image->flag & IMA_VIEW_AS_RENDER) ? false : true;
 
     rcti sample_rect;
-    sample_rect.xmin = max_ii(0, x - image->runtime->backdrop_offset[0] - info->sample_size / 2);
-    sample_rect.ymin = max_ii(0, y - image->runtime->backdrop_offset[1] - info->sample_size / 2);
-    /* image_sample_rect_color_*() expects a rect, but we only want to retrieve a single value, so
-     * create a sample rect with size 1. */
-    sample_rect.xmax = sample_rect.xmin;
-    sample_rect.ymax = sample_rect.ymin;
+    sample_rect.xmin = max_ii(0, x - offset[0] - info->sample_size / 2);
+    sample_rect.ymin = max_ii(0, y - offset[1] - info->sample_size / 2);
+
+    sample_rect.xmax = min_ii(ibuf->x - 1, x - offset[0] + info->sample_size / 2);
+    sample_rect.ymax = min_ii(ibuf->y - 1, y - offset[1] + info->sample_size / 2);
 
     if (ibuf->byte_buffer.data) {
       image_sample_rect_color_ubyte(ibuf, &sample_rect, info->col, info->linearcol);

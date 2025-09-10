@@ -158,6 +158,7 @@ IDTypeInfo IDType_ID_LI = {
     /*foreach_id*/ library_foreach_id,
     /*foreach_cache*/ nullptr,
     /*foreach_path*/ library_foreach_path,
+    /*foreach_working_space_color*/ nullptr,
     /*owner_pointer_get*/ nullptr,
 
     /*blend_write*/ library_blend_write_data,

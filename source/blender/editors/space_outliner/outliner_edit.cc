@@ -762,7 +762,7 @@ void OUTLINER_OT_id_remap(wmOperatorType *ot)
 
   prop = RNA_def_enum(
       ot->srna, "old_id", rna_enum_dummy_NULL_items, 0, "Old ID", "Old ID to replace");
-  RNA_def_property_enum_funcs_runtime(prop, nullptr, nullptr, outliner_id_itemf);
+  RNA_def_property_enum_funcs_runtime(prop, nullptr, nullptr, outliner_id_itemf, nullptr, nullptr);
   RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE | PROP_HIDDEN);
 
   ot->prop = RNA_def_enum(ot->srna,
@@ -771,7 +771,8 @@ void OUTLINER_OT_id_remap(wmOperatorType *ot)
                           0,
                           "New ID",
                           "New ID to remap all selected IDs' users to");
-  RNA_def_property_enum_funcs_runtime(ot->prop, nullptr, nullptr, outliner_id_itemf);
+  RNA_def_property_enum_funcs_runtime(
+      ot->prop, nullptr, nullptr, outliner_id_itemf, nullptr, nullptr);
   RNA_def_property_flag(ot->prop, PROP_ENUM_NO_TRANSLATE);
 }
 
@@ -2494,28 +2495,9 @@ void OUTLINER_OT_orphans_purge(wmOperatorType *ot)
 
 static wmOperatorStatus outliner_orphans_manage_invoke(bContext *C,
                                                        wmOperator * /*op*/,
-                                                       const wmEvent *event)
+                                                       const wmEvent * /*event*/)
 {
-  const int sizex = int(450.0f * UI_SCALE_FAC);
-  const int sizey = int(450.0f * UI_SCALE_FAC);
-  const rcti window_rect = {
-      /*xmin*/ event->xy[0],
-      /*xmax*/ event->xy[0] + sizex,
-      /*ymin*/ event->xy[1],
-      /*ymax*/ event->xy[1] + sizey,
-  };
-
-  if (WM_window_open(C,
-                     IFACE_("Manage Unused Data"),
-                     &window_rect,
-                     SPACE_OUTLINER,
-                     false,
-                     false,
-                     true,
-                     WIN_ALIGN_LOCATION_CENTER,
-                     nullptr,
-                     nullptr) != nullptr)
-  {
+  if (WM_window_open_temp(C, IFACE_("Manage Unused Data"), SPACE_OUTLINER, false)) {
     SpaceOutliner *soutline = CTX_wm_space_outliner(C);
     soutline->outlinevis = SO_ID_ORPHANS;
     return OPERATOR_FINISHED;

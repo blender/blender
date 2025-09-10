@@ -33,7 +33,7 @@ void main()
   }
 
   float offset = sampling_rng_1D_get(SAMPLING_VOLUME_W);
-  float jitter = interlieved_gradient_noise(float2(froxel.xy), 0.0f, offset);
+  float jitter = interleaved_gradient_noise(float2(froxel.xy), 0.0f, offset);
 
   float3 uvw = (float3(froxel) + float3(0.5f, 0.5f, jitter)) * uniform_buf.volumes.inv_tex_size;
   float3 ss_P = volume_resolve_to_screen(uvw);

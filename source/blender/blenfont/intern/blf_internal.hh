@@ -20,6 +20,7 @@ struct GlyphCacheBLF;
 struct ListBase;
 struct ResultBLF;
 struct rcti;
+struct rctf;
 enum class BLFWrapMode;
 
 /**
@@ -100,6 +101,9 @@ bool blf_font_size(FontBLF *font, float size);
 void blf_font_draw(FontBLF *font, const char *str, size_t str_len, ResultBLF *r_info);
 void blf_font_draw__wrap(FontBLF *font, const char *str, size_t str_len, ResultBLF *r_info);
 
+/**
+ * \param outline_alpha: Alpha value between 0 and 1.
+ */
 void blf_draw_svg_icon(FontBLF *font,
                        uint icon_id,
                        float x,
@@ -153,6 +157,7 @@ int blf_font_height_max(FontBLF *font);
 int blf_font_width_max(FontBLF *font);
 int blf_font_descender(FontBLF *font);
 int blf_font_ascender(FontBLF *font);
+bool blf_font_bounds_max(FontBLF *font, rctf *r_bounds);
 
 char *blf_display_name(FontBLF *font);
 

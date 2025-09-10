@@ -1373,6 +1373,13 @@ int parse_driver_build_version(const sycl::device &device)
           driver_build_version = std::stoi(third_number_substr) * 10000 +
                                  std::stoi(forth_number_substr);
         }
+        /* This is actually not a correct version string (Major.Minor.Patch.Optional), see blender
+         * bug report #137277, but there are several driver versions with this Intel bug existing
+         * at this point, so it is worth working around this issue in Blender source code, allowing
+         * users to actually use Intel GPU when it is possible. */
+        else if (third_number_substr.length() == 5 && forth_number_substr.length() == 6) {
+          driver_build_version = std::stoi(third_number_substr);
+        }
       }
       else {
         const std::string &third_number_substr = driver_version.substr(second_dot_position + 1);

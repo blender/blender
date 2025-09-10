@@ -18,7 +18,7 @@
 COMPUTE_SHADER_CREATE_INFO(eevee_subsurface_convolve)
 
 #include "draw_view_lib.glsl"
-#include "eevee_gbuffer_lib.glsl"
+#include "eevee_gbuffer_read_lib.glsl"
 #include "eevee_reverse_z_lib.glsl"
 #include "eevee_sampling_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"
@@ -98,14 +98,14 @@ void main()
   float depth = reverse_z::read(texelFetch(depth_tx, texel, 0).r);
   float3 vP = drw_point_screen_to_view(float3(center_uv, depth));
 
-  GBufferReader gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel);
-  if (gbuffer_closure_get(gbuf, 0).type != CLOSURE_BSSRDF_BURLEY_ID) {
+  const gbuffer::Layers gbuf = gbuffer::read_layers(texel);
+  if (gbuf.layer[0].type != CLOSURE_BSSRDF_BURLEY_ID) {
     return;
   }
 
-  uint object_id = texelFetch(gbuf_header_tx, int3(texel, 1), 0).x;
+  const uint object_id = gbuffer::read_object_id(texel);
 
-  ClosureSubsurface closure = to_closure_subsurface(gbuffer_closure_get(gbuf, 0));
+  const ClosureSubsurface closure = to_closure_subsurface(gbuf.layer[0]);
   float max_radius = reduce_max(closure.sss_radius);
 
   float homcoord = drw_view().winmat[2][3] * vP.z + drw_view().winmat[3][3];
@@ -128,7 +128,7 @@ void main()
 
   /* Do not rotate too much to avoid too much cache misses. */
   float golden_angle = M_PI * (3.0f - sqrt(5.0f));
-  float theta = interlieved_gradient_noise(float2(texel), 0, 0.0f) * golden_angle;
+  float theta = interleaved_gradient_noise(float2(texel), 0, 0.0f) * golden_angle;
 
   float2x2 sample_space = from_scale(sample_scale) * from_rotation(Angle(theta));
 

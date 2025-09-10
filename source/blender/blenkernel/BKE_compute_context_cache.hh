@@ -31,6 +31,7 @@ class ComputeContextCache {
   Map<std::pair<const ComputeContext *, int>, const ModifierComputeContext *>
       modifier_contexts_cache_;
   Map<const ComputeContext *, const OperatorComputeContext *> operator_contexts_cache_;
+  Map<const ComputeContext *, const ShaderComputeContext *> shader_contexts_cache_;
   Map<std::pair<const ComputeContext *, int32_t>, const GroupNodeComputeContext *>
       group_node_contexts_cache_;
   Map<std::pair<const ComputeContext *, int32_t>, const SimulationZoneComputeContext *>
@@ -50,6 +51,8 @@ class ComputeContextCache {
 
   const OperatorComputeContext &for_operator(const ComputeContext *parent);
   const OperatorComputeContext &for_operator(const ComputeContext *parent, const bNodeTree &tree);
+
+  const ShaderComputeContext &for_shader(const ComputeContext *parent, const bNodeTree *tree);
 
   const GroupNodeComputeContext &for_group_node(const ComputeContext *parent,
                                                 int32_t node_id,

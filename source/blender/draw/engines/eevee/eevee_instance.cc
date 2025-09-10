@@ -272,9 +272,12 @@ void Instance::init_light_bake(Depsgraph *depsgraph, draw::Manager *manager)
   rcti empty_rect{0, 0, 0, 0};
   film.init(int2(1), &empty_rect);
   render_buffers.init();
+  ambient_occlusion.init();
   velocity.init();
+  raytracing.init();
   depth_of_field.init();
   shadows.init();
+  motion_blur.init();
   main_view.init();
   light_probes.init();
   planar_probes.init();

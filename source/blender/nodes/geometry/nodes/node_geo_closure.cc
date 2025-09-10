@@ -16,6 +16,7 @@
 #include "NOD_sync_sockets.hh"
 
 #include "BLO_read_write.hh"
+#include "shader/node_shader_util.hh"
 
 namespace blender::nodes::node_geo_closure_cc {
 
@@ -116,7 +117,7 @@ static bool node_insert_link(bke::NodeInsertLinkParams &params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, "NodeClosureInput", NODE_CLOSURE_INPUT);
+  common_node_type_base(&ntype, "NodeClosureInput", NODE_CLOSURE_INPUT);
   ntype.ui_name = "Closure Input";
   ntype.nclass = NODE_CLASS_INTERFACE;
   ntype.declare = node_declare;
@@ -244,7 +245,7 @@ static void node_blend_read(bNodeTree & /*tree*/, bNode &node, BlendDataReader &
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, "NodeClosureOutput", NODE_CLOSURE_OUTPUT);
+  common_node_type_base(&ntype, "NodeClosureOutput", NODE_CLOSURE_OUTPUT);
   ntype.ui_name = "Closure Output";
   ntype.nclass = NODE_CLASS_INTERFACE;
   ntype.declare = node_declare;

@@ -214,36 +214,6 @@ static wmOperatorStatus sculpt_dynamic_topology_toggle_exec(bContext *C, wmOpera
   return OPERATOR_FINISHED;
 }
 
-static wmOperatorStatus dyntopo_warning_popup(bContext *C, wmOperatorType *ot, enum WarnFlag flag)
-{
-  uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Warning!"), ICON_ERROR);
-  uiLayout *layout = UI_popup_menu_layout(pup);
-
-  if (flag & (VDATA | EDATA | LDATA)) {
-    const char *msg_error = RPT_("Attribute Data Detected");
-    const char *msg = RPT_("Dyntopo will not preserve colors, UVs, or other attributes");
-    layout->label(msg_error, ICON_INFO);
-    layout->label(msg, ICON_NONE);
-    layout->separator();
-  }
-
-  if (flag & MODIFIER) {
-    const char *msg_error = RPT_("Generative Modifiers Detected!");
-    const char *msg = RPT_(
-        "Keeping the modifiers will increase polycount when returning to object mode");
-
-    layout->label(msg_error, ICON_INFO);
-    layout->label(msg, ICON_NONE);
-    layout->separator();
-  }
-
-  layout->op(ot, IFACE_("OK"), ICON_NONE, wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
-
-  UI_popup_menu_end(C, pup);
-
-  return OPERATOR_INTERFACE;
-}
-
 static bool dyntopo_supports_layer(const CustomDataLayer &layer)
 {
   if (layer.type == CD_PROP_FLOAT && STREQ(layer.name, ".sculpt_mask")) {
@@ -318,9 +288,26 @@ static wmOperatorStatus sculpt_dynamic_topology_toggle_invoke(bContext *C,
     Scene &scene = *CTX_data_scene(C);
     const WarnFlag flag = check_attribute_warning(scene, ob);
 
-    if (flag) {
-      /* The mesh has customdata that will be lost, let the user confirm this is OK. */
-      return dyntopo_warning_popup(C, op->type, flag);
+    if (flag & (VDATA | EDATA | LDATA)) {
+      return WM_operator_confirm_ex(
+          C,
+          op,
+          RPT_("Attribute Data Detected"),
+          RPT_("Dyntopo will not preserve colors, UVs, or other attributes"),
+          IFACE_("Enable"),
+          ALERT_ICON_WARNING,
+          false);
+    }
+
+    if (flag & MODIFIER) {
+      return WM_operator_confirm_ex(
+          C,
+          op,
+          RPT_("Generative Modifiers Detected!"),
+          RPT_("Keeping the modifiers will increase polycount when returning to object mode"),
+          IFACE_("Enable"),
+          ALERT_ICON_WARNING,
+          false);
     }
   }
 

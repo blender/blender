@@ -141,6 +141,7 @@ void SEQUENCER_OT_rebuild_proxy(wmOperatorType *ot)
   /* API callbacks. */
   ot->invoke = sequencer_rebuild_proxy_invoke;
   ot->exec = sequencer_rebuild_proxy_exec;
+  ot->poll = sequencer_edit_poll;
 
   /* Flags. */
   ot->flag = OPTYPE_REGISTER;
@@ -236,6 +237,7 @@ void SEQUENCER_OT_enable_proxies(wmOperatorType *ot)
   /* API callbacks. */
   ot->invoke = sequencer_enable_proxies_invoke;
   ot->exec = sequencer_enable_proxies_exec;
+  ot->poll = sequencer_edit_poll;
 
   /* Flags. */
   ot->flag = OPTYPE_REGISTER;

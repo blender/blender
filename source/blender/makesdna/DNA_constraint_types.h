@@ -13,17 +13,7 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
-struct Ipo;
 struct Text;
-
-/* channels reside in Object or Action (ListBase) constraintChannels */
-/* XXX: deprecated... old AnimSys. */
-typedef struct bConstraintChannel {
-  struct bConstraintChannel *next, *prev;
-  struct Ipo *ipo;
-  short flag;
-  char name[30];
-} bConstraintChannel;
 
 /** A Constraint. */
 typedef struct bConstraint {
@@ -56,10 +46,6 @@ typedef struct bConstraint {
   float enforce;
   /** Point along `subtarget` bone where the actual target is. 0=head (default for all), 1=tail. */
   float headtail;
-
-  /* old animation system, deprecated for 2.5. */
-  /** Local influence ipo or driver */
-  struct Ipo *ipo DNA_DEPRECATED;
 
   /* Below are read-only fields that are set at runtime
    * by the solver for use in the GE (only IK at the moment). */

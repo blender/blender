@@ -67,7 +67,7 @@ Contents
   serve as permanent little button-fields in Blender windows. Think for example of having
   an (optional) extra field in the 3d window displaying object loc/rot/size.
   After that, the existing button windows can be reorganized in such blocks as well, allowing
-  a user to configure the genereal buttons layout (make vertical for example).
+  a user to configure the general buttons layout (make vertical for example).
   
 
 --------------1.1 C and H files
@@ -263,10 +263,10 @@ uiBut *UiDefBut[CSIF](	uiBlock *block, int type, int retval, char *str,
 				short x1, short y1, short x2, short y2, xxxx *poin, 
 				float min, float max, float a1, float a2,  char *tip)
 
-UiDefButC	operatates on char
-UiDefButS	operatates on short
-UiDefButI	operatates on int
-UiDefButF	operatates on float
+UiDefButC	operates on char
+UiDefButS	operates on short
+UiDefButI	operates on int
+UiDefButF	operates on float
 
 *block:		current uiBlock pointer
 type:		see below

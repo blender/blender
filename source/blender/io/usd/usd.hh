@@ -198,6 +198,7 @@ struct USDImportParams {
   bool is_sequence;
   int sequence_len;
   int offset;
+  bool relative_path;
 
   bool import_defined_only;
   bool import_visible_only;

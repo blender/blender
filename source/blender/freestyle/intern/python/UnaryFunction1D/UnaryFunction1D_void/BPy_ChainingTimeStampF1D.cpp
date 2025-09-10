@@ -34,7 +34,6 @@ PyDoc_STRVAR(
     "\n"
     "   :arg inter: An Interface1D object.\n"
     "   :type inter: :class:`freestyle.types.Interface1D`\n");
-
 static int ChainingTimeStampF1D___init__(BPy_ChainingTimeStampF1D *self,
                                          PyObject *args,
                                          PyObject *kwds)

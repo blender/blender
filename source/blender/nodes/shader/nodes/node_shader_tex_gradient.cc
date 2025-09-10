@@ -7,6 +7,7 @@
 
 #include "BKE_texture.h"
 
+#include "BLI_math_constants.h"
 #include "BLI_math_vector.hh"
 
 #include "NOD_multi_function.hh"

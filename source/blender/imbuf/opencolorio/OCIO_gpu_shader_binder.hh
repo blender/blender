@@ -36,10 +36,12 @@ class GPUShaderCache;
 }  // namespace internal
 
 struct GPUDisplayParameters {
+  /* Convert from a colorspace to a display, using the view transform and look. */
   StringRefNull from_colorspace;
   StringRefNull view;
   StringRefNull display;
   StringRefNull look;
+  /* Artistic controls. */
   CurveMapping *curve_mapping = nullptr;
   float scale = 1.0f;
   float exponent = 1.0f;
@@ -47,9 +49,17 @@ struct GPUDisplayParameters {
   float temperature = 6500.0f;
   float tint = 10.0f;
   bool use_white_balance = false;
+  /* Divide RGB by alpha before performing the transform. */
   bool use_predivide = false;
+  /* Composite an overlay buffer on top of the image. */
   bool do_overlay_merge = false;
-  bool use_hdr = false;
+  /* Writing to a HDR buffer. */
+  bool use_hdr_buffer = false;
+  /* Chosen display is a HDR display. */
+  bool use_hdr_display = false;
+  /* Rather than outputting colors for the specified display, output extended
+   * sRGB colors emulating the specified display. */
+  bool use_display_emulation = false;
 };
 
 class GPUShaderBinder {
@@ -86,6 +96,11 @@ class GPUShaderBinder {
    * to_scene_linear_bind() the behavior is undefined.
    */
   void unbind() const;
+
+  /**
+   * Clear caches when configuration changes.
+   */
+  void clear_caches() const;
 
  protected:
   const Config &config_;

@@ -50,12 +50,12 @@ static void createTransTexspace(bContext * /*C*/, TransInfo *t)
 
   id = static_cast<ID *>(ob->data);
   if (id == nullptr || !ELEM(GS(id->name), ID_ME, ID_CU_LEGACY, ID_MB)) {
-    BKE_report(t->reports, RPT_ERROR, "Unsupported object type for text-space transform");
+    BKE_report(t->reports, RPT_ERROR, "Unsupported object type for texture space transform");
     return;
   }
 
   if (BKE_object_obdata_is_libdata(ob)) {
-    BKE_report(t->reports, RPT_ERROR, "Linked data cannot text-space transform");
+    BKE_report(t->reports, RPT_ERROR, "Cannot create transform on linked data");
     return;
   }
 

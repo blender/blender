@@ -37,7 +37,9 @@ enum AnimateablePropertyType
 	AP_PANNING,
 	AP_PITCH,
 	AP_LOCATION,
-	AP_ORIENTATION
+	AP_ORIENTATION,
+	AP_TIME_STRETCH,
+	AP_PITCH_SCALE
 };
 
 /**
@@ -128,10 +130,22 @@ public:
 	void read(float position, float* out);
 
 	/**
+	 * Reads the property's value at the specified position, assuming there is exactly one value.
+	 * \param position The position in the animation in frames.
+	 * \return The value at the position.
+	 */
+	float readSingle(float position);
+
+	/**
 	 * Returns whether the property is animated.
 	 * \return Whether the property is animated.
 	 */
 	bool isAnimated() const;
+
+	/**
+	 * Returns this object cast as a Buffer.
+	 */
+	const Buffer& getBuffer();
 };
 
 AUD_NAMESPACE_END

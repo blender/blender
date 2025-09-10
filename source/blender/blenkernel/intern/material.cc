@@ -169,7 +169,6 @@ static void material_free_data(ID *id)
 static void material_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   Material *material = reinterpret_cast<Material *>(id);
-  const int flag = BKE_lib_query_foreachid_process_flags_get(data);
 
   /* Node-trees **are owned by IDs**, treat them as mere sub-data and not real ID! */
   BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
@@ -181,9 +180,21 @@ static void material_foreach_id(ID *id, LibraryForeachIDData *data)
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, material->gp_style->sima, IDWALK_CB_USER);
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, material->gp_style->ima, IDWALK_CB_USER);
   }
+}
 
-  if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
-    BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data, material->ipo, IDWALK_CB_USER);
+static void material_foreach_working_space_color(ID *id,
+                                                 const IDTypeForeachColorFunctionCallback &fn)
+{
+  Material *material = reinterpret_cast<Material *>(id);
+
+  fn.single(&material->r);
+  fn.single(&material->specr);
+  fn.single(material->line_col);
+
+  if (material->gp_style) {
+    fn.single(material->gp_style->stroke_rgba);
+    fn.single(material->gp_style->fill_rgba);
+    fn.single(material->gp_style->mix_rgba);
   }
 }
 
@@ -248,6 +259,7 @@ IDTypeInfo IDType_ID_MA = {
     /*foreach_id*/ material_foreach_id,
     /*foreach_cache*/ nullptr,
     /*foreach_path*/ nullptr,
+    /*foreach_working_space_color*/ material_foreach_working_space_color,
     /*owner_pointer_get*/ nullptr,
 
     /*blend_write*/ material_blend_write,

@@ -24,51 +24,23 @@
 using blender::bke::AttrDomain;
 
 const EnumPropertyItem rna_enum_attribute_type_items[] = {
-    {CD_PROP_FLOAT, "FLOAT", ICON_NODE_SOCKET_FLOAT, "Float", "Floating-point value"},
-    {CD_PROP_INT32, "INT", ICON_NODE_SOCKET_INT, "Integer", "32-bit integer"},
-    {CD_PROP_FLOAT3,
-     "FLOAT_VECTOR",
-     ICON_NODE_SOCKET_VECTOR,
-     "Vector",
-     "3D vector with floating-point values"},
-    {CD_PROP_COLOR,
-     "FLOAT_COLOR",
-     ICON_NODE_SOCKET_RGBA,
-     "Color",
-     "RGBA color with 32-bit floating-point values"},
+    {CD_PROP_FLOAT, "FLOAT", 0, "Float", "Floating-point value"},
+    {CD_PROP_INT32, "INT", 0, "Integer", "32-bit integer"},
+    {CD_PROP_FLOAT3, "FLOAT_VECTOR", 0, "Vector", "3D vector with floating-point values"},
+    {CD_PROP_COLOR, "FLOAT_COLOR", 0, "Color", "RGBA color with 32-bit floating-point values"},
     {CD_PROP_BYTE_COLOR,
      "BYTE_COLOR",
-     ICON_NODE_SOCKET_RGBA,
+     0,
      "Byte Color",
      "RGBA color with 8-bit positive integer values"},
-    {CD_PROP_STRING, "STRING", ICON_NODE_SOCKET_STRING, "String", "Text string"},
-    {CD_PROP_BOOL, "BOOLEAN", ICON_NODE_SOCKET_BOOLEAN, "Boolean", "True or false"},
-    {CD_PROP_FLOAT2,
-     "FLOAT2",
-     ICON_NODE_SOCKET_VECTOR,
-     "2D Vector",
-     "2D vector with floating-point values"},
-    {CD_PROP_INT8,
-     "INT8",
-     ICON_NODE_SOCKET_INT,
-     "8-Bit Integer",
-     "Smaller integer with a range from -128 to 127"},
-    {CD_PROP_INT16_2D,
-     "INT16_2D",
-     ICON_NODE_SOCKET_VECTOR,
-     "2D 16-Bit Integer Vector",
-     "16-bit signed integer vector"},
-    {CD_PROP_INT32_2D,
-     "INT32_2D",
-     ICON_NODE_SOCKET_VECTOR,
-     "2D Integer Vector",
-     "32-bit signed integer vector"},
-    {CD_PROP_QUATERNION,
-     "QUATERNION",
-     ICON_NODE_SOCKET_ROTATION,
-     "Quaternion",
-     "Floating point quaternion rotation"},
-    {CD_PROP_FLOAT4X4, "FLOAT4X4", ICON_NODE_SOCKET_MATRIX, "4x4 Matrix", "Floating point matrix"},
+    {CD_PROP_STRING, "STRING", 0, "String", "Text string"},
+    {CD_PROP_BOOL, "BOOLEAN", 0, "Boolean", "True or false"},
+    {CD_PROP_FLOAT2, "FLOAT2", 0, "2D Vector", "2D vector with floating-point values"},
+    {CD_PROP_INT8, "INT8", 0, "8-Bit Integer", "Smaller integer with a range from -128 to 127"},
+    {CD_PROP_INT16_2D, "INT16_2D", 0, "2D 16-Bit Integer Vector", "16-bit signed integer vector"},
+    {CD_PROP_INT32_2D, "INT32_2D", 0, "2D Integer Vector", "32-bit signed integer vector"},
+    {CD_PROP_QUATERNION, "QUATERNION", 0, "Quaternion", "Floating point quaternion rotation"},
+    {CD_PROP_FLOAT4X4, "FLOAT4X4", 0, "4x4 Matrix", "Floating point matrix"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -230,6 +202,8 @@ const EnumPropertyItem rna_enum_attribute_curves_domain_items[] = {
 #  include "DEG_depsgraph.hh"
 
 #  include "BLT_translation.hh"
+
+#  include "IMB_colormanagement.hh"
 
 #  include "WM_api.hh"
 
@@ -605,11 +579,15 @@ static void rna_ByteColorAttributeValue_color_get(PointerRNA *ptr, float *values
 {
   MLoopCol *mlcol = (MLoopCol *)ptr->data;
   srgb_to_linearrgb_uchar4(values, &mlcol->r);
+  IMB_colormanagement_rec709_to_scene_linear(values, values);
 }
 
 static void rna_ByteColorAttributeValue_color_set(PointerRNA *ptr, const float *values)
 {
   MLoopCol *mlcol = (MLoopCol *)ptr->data;
+  float rec709[4];
+  IMB_colormanagement_scene_linear_to_rec709(rec709, values);
+  rec709[3] = values[3];
   linearrgb_to_srgb_uchar4(&mlcol->r, values);
 }
 
@@ -634,13 +612,15 @@ static void rna_ByteColorAttributeValue_color_srgb_set(PointerRNA *ptr, const fl
 static void rna_FloatColorAttributeValue_color_srgb_get(PointerRNA *ptr, float *values)
 {
   MPropCol *col = (MPropCol *)ptr->data;
-  linearrgb_to_srgb_v4(values, col->color);
+  IMB_colormanagement_scene_linear_to_srgb_v3(values, col->color);
+  values[3] = col->color[3];
 }
 
 static void rna_FloatColorAttributeValue_color_srgb_set(PointerRNA *ptr, const float *values)
 {
   MPropCol *col = (MPropCol *)ptr->data;
-  srgb_to_linearrgb_v4(col->color, values);
+  IMB_colormanagement_srgb_to_scene_linear_v3(col->color, values);
+  col->color[3] = values[3];
 }
 
 /* String Attribute */

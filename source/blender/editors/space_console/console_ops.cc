@@ -18,6 +18,7 @@
 
 #include "BLI_dynstr.h"
 #include "BLI_listbase.h"
+#include "BLI_math_base.h"
 #include "BLI_string.h"
 #include "BLI_string_cursor_utf8.h"
 #include "BLI_string_utf8.h"
@@ -444,7 +445,7 @@ static wmOperatorStatus console_move_exec(bContext *C, wmOperator *op)
   if (select) {
     if (had_select) {
       if (select_side != 0) {
-        /* Modify the current selection if either side was was positioned at the cursor. */
+        /* Modify the current selection if either side was positioned at the cursor. */
         if (select_side == -1) {
           sc->sel_start = ci->len - pos;
         }

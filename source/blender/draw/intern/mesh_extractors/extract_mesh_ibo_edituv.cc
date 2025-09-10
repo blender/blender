@@ -104,17 +104,32 @@ static gpu::IndexBufPtr extract_edituv_tris_mesh(const MeshRenderData &mr,
   const Span<int3> corner_tris = mr.mesh->corner_tris();
 
   IndexMaskMemory memory;
-  const IndexMask selection = IndexMask::from_predicate(
-      faces.index_range(), GrainSize(4096), memory, [&](const int face) {
-        const BMFace *face_orig = bm_original_face_get(mr, face);
-        if (!face_orig) {
-          return false;
-        }
-        if (skip_bm_face(*face_orig, sync_selection)) {
-          return false;
-        }
-        return true;
-      });
+  IndexMask selection;
+  if (mr.bm) {
+    selection = IndexMask::from_predicate(
+        faces.index_range(), GrainSize(4096), memory, [&](const int face) {
+          const BMFace *face_orig = bm_original_face_get(mr, face);
+          if (!face_orig) {
+            return false;
+          }
+          if (skip_bm_face(*face_orig, sync_selection)) {
+            return false;
+          }
+          return true;
+        });
+  }
+  else {
+    if (mr.hide_poly.is_empty()) {
+      selection = faces.index_range();
+    }
+    else {
+      selection = IndexMask::from_bools_inverse(faces.index_range(), mr.hide_poly, memory);
+    }
+
+    if (!sync_selection && !mr.select_poly.is_empty()) {
+      selection = IndexMask::from_bools(selection, mr.select_poly, memory);
+    }
+  }
 
   if (selection.size() == faces.size()) {
     return gpu::IndexBufPtr(GPU_indexbuf_build_from_memory(GPU_PRIM_TRIS,
@@ -147,9 +162,9 @@ static gpu::IndexBufPtr extract_edituv_tris_mesh(const MeshRenderData &mr,
   return gpu::IndexBufPtr(GPU_indexbuf_build_ex(&builder, 0, mr.corners_num, false));
 }
 
-gpu::IndexBufPtr extract_edituv_tris(const MeshRenderData &mr)
+gpu::IndexBufPtr extract_edituv_tris(const MeshRenderData &mr, const bool edit_uvs)
 {
-  const bool sync_selection = (mr.toolsettings->uv_flag & UV_FLAG_SYNC_SELECT) != 0;
+  const bool sync_selection = edit_uvs ? (mr.toolsettings->uv_flag & UV_FLAG_SYNC_SELECT) : false;
   if (mr.extract_type == MeshExtractType::BMesh) {
     return extract_edituv_tris_bm(mr, sync_selection);
   }
@@ -346,9 +361,20 @@ static gpu::IndexBufPtr extract_edituv_lines_mesh(const MeshRenderData &mr,
   return result;
 }
 
-gpu::IndexBufPtr extract_edituv_lines(const MeshRenderData &mr, bool edit_uvs)
+gpu::IndexBufPtr extract_edituv_lines(const MeshRenderData &mr, const UvExtractionMode mode)
 {
-  const bool sync_selection = ((mr.toolsettings->uv_flag & UV_FLAG_SYNC_SELECT) != 0) || !edit_uvs;
+  bool sync_selection = false;
+  switch (mode) {
+    case UvExtractionMode::All:
+      sync_selection = true;
+      break;
+    case UvExtractionMode::Edit:
+      sync_selection = ((mr.toolsettings->uv_flag & UV_FLAG_SYNC_SELECT) != 0);
+      break;
+    case UvExtractionMode::Selection:
+      sync_selection = false;
+      break;
+  }
 
   if (mr.extract_type == MeshExtractType::BMesh) {
     return extract_edituv_lines_bm(mr, sync_selection);
@@ -450,9 +476,20 @@ static gpu::IndexBufPtr extract_edituv_lines_subdiv_mesh(const MeshRenderData &m
 
 gpu::IndexBufPtr extract_edituv_lines_subdiv(const MeshRenderData &mr,
                                              const DRWSubdivCache &subdiv_cache,
-                                             bool edit_uvs)
+                                             const UvExtractionMode mode)
 {
-  const bool sync_selection = ((mr.toolsettings->uv_flag & UV_FLAG_SYNC_SELECT) != 0) || !edit_uvs;
+  bool sync_selection = false;
+  switch (mode) {
+    case UvExtractionMode::All:
+      sync_selection = true;
+      break;
+    case UvExtractionMode::Edit:
+      sync_selection = ((mr.toolsettings->uv_flag & UV_FLAG_SYNC_SELECT) != 0);
+      break;
+    case UvExtractionMode::Selection:
+      sync_selection = false;
+      break;
+  }
 
   if (mr.extract_type == MeshExtractType::BMesh) {
     return extract_edituv_lines_subdiv_bm(mr, subdiv_cache, sync_selection);

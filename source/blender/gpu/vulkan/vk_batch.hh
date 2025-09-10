@@ -25,7 +25,6 @@ class VKBatch : public Batch {
   void multi_draw_indirect(VkBuffer indirect_buf, int count, intptr_t offset, intptr_t stride);
 
   VKVertexBuffer *vertex_buffer_get(int index);
-  VKVertexBuffer *instance_buffer_get(int index);
   VKIndexBuffer *index_buffer_get();
 };
 
@@ -37,11 +36,6 @@ inline VKBatch *unwrap(Batch *batch)
 inline VKVertexBuffer *VKBatch::vertex_buffer_get(int index)
 {
   return unwrap(verts_(index));
-}
-
-inline VKVertexBuffer *VKBatch::instance_buffer_get(int index)
-{
-  return unwrap(inst_(index));
 }
 
 inline VKIndexBuffer *VKBatch::index_buffer_get()

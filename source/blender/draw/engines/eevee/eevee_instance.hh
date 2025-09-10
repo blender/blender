@@ -55,7 +55,7 @@ namespace blender::eevee {
 
 /* Combines data from several modules to avoid wasting binding slots. */
 struct UniformDataModule {
-  UniformDataBuf data;
+  UniformDataBuf data = {"UniformDataBuf"};
 
   void push_update()
   {

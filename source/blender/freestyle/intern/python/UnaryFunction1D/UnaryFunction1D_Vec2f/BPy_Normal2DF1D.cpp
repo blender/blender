@@ -40,7 +40,6 @@ PyDoc_STRVAR(
     "   :type inter: :class:`freestyle.types.Interface1D`\n"
     "   :return: The 2D normal for the Interface1D.\n"
     "   :rtype: :class:`mathutils.Vector`\n");
-
 static int Normal2DF1D___init__(BPy_Normal2DF1D *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {"integration_type", nullptr};

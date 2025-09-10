@@ -98,6 +98,7 @@ void RealizeOnDomainOperation::realize_on_domain_gpu(const float3x3 &inverse_tra
   const bool use_bilinear = ELEM(
       realization_options.interpolation, Interpolation::Bilinear, Interpolation::Bicubic);
   GPU_texture_filter_mode(input, use_bilinear);
+  GPU_texture_anisotropic_filter(input, false);
 
   GPU_texture_extend_mode_x(input,
                             map_extension_mode_to_extend_mode(realization_options.extension_x));

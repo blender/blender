@@ -26,7 +26,7 @@ def test_data():
             assert isinstance(value[0], str)
             assert isinstance(value[1], str)
         except:
-            print("Expected a tuple of 2 strings, instead item %d is a %s: %r" % (i, type(value), value))
+            print("Expected a tuple of 2 strings, instead item {:d} is a {:s}: {!r}".format(i, str(type(value)), value))
             import traceback
             traceback.print_exc()
             raise
@@ -55,15 +55,15 @@ def test_lookup_coverage():
         struct = rna_info.BuildRNAInfo()[0]
         for struct_id, v in sorted(struct.items()):
             props = [(prop.identifier, prop) for prop in v.properties]
-            struct_path = "bpy.types.%s" % struct_id[1]
-            yield (struct_path, "%s" % struct_path)
+            struct_path = "bpy.types.{:s}".format(struct_id[1])
+            yield (struct_path, struct_path)
             for prop_id, prop in props:
-                yield (struct_path, "%s.%s" % (struct_path, prop_id))
+                yield (struct_path, "{:s}.{:s}".format(struct_path, prop_id))
 
         for submod_id in dir(bpy.ops):
-            op_path = "bpy.ops.%s" % submod_id
+            op_path = "bpy.ops.{:s}".format(submod_id)
             for op_id in dir(getattr(bpy.ops, submod_id)):
-                yield (op_path, "%s.%s" % (op_path, op_id))
+                yield (op_path, "{:s}.{:s}".format(op_path, op_id))
 
     # Check coverage:
     # from bl_operators import wm
@@ -108,7 +108,7 @@ def test_lookup_coverage():
 
     for rna_group in sorted(set_group_all):
         if rna_group not in set_group_doc:
-            print("%s.*" % rna_group)
+            print("{:s}.*".format(rna_group))
 
 
 def test_language_coverage():
@@ -130,10 +130,10 @@ def test_urls():
 
     urls = {suffix for (rna_id, suffix) in rna_manual_reference.url_manual_mapping}
 
-    urls_len = "%d" % len(urls)
+    urls_len = "{:d}".format(len(urls))
     print("")
     print("-------------" + "-" * len(urls_len))
-    print("Testing URLS %s" % urls_len)
+    print("Testing URLS {:s}".format(urls_len))
     print("")
 
     color_red = '\033[0;31m'
@@ -147,17 +147,17 @@ def test_urls():
             url_full = os.path.join(LOCAL_PREFIX, url.partition("#")[0])
             if os.path.exists(url_full):
                 if VERBOSE:
-                    print("  %s ... " % url_full, end="")
+                    print("  {:s} ... ".format(url_full), end="")
                     print(color_green + "OK" + color_normal)
             else:
-                print("  %s ... " % url_full, end="")
+                print("  {:s} ... ".format(url_full), end="")
                 print(color_red + "FAIL!" + color_normal)
                 urls_fail.append(url)
     elif False:
         # URL lookups are too slow to be practical.
         for url in sorted(urls):
             url_full = prefix + url
-            print("  %s ... " % url_full, end="")
+            print("  {:s} ... ".format(url_full), end="")
             sys.stdout.flush()
             try:
                 urlopen(url_full)
@@ -169,13 +169,13 @@ def test_urls():
         print("Skipping URL lookups, define LOCAL_PREFIX env variable, and point it to a manual build!")
 
     if urls_fail:
-        urls_len = "%d" % len(urls_fail)
+        urls_len = "{:d}".format(len(urls_fail))
         print("")
         print("------------" + "-" * len(urls_len))
-        print("Failed URLS %s" % urls_len)
+        print("Failed URLS {:s}".format(urls_len))
         print("")
         for url in urls_fail:
-            print("  %s%s%s" % (color_red, url, color_normal))
+            print("  {:s}{:s}{:s}".format(color_red, url, color_normal))
 
 
 def main():

@@ -128,16 +128,17 @@ class Sculpts : Overlay {
     if (show_mask_ && !everything_selected(curves)) {
       /* Retrieve the location of the texture. */
       bool is_point_domain;
-      gpu::VertBuf **select_attr_buf = DRW_curves_texture_for_evaluated_attribute(
-          &curves, ".selection", &is_point_domain);
-      if (select_attr_buf) {
+      bool is_valid;
+      gpu::VertBufPtr &select_attr_buf = DRW_curves_texture_for_evaluated_attribute(
+          &curves, ".selection", is_point_domain, is_valid);
+      if (is_valid) {
         /* Evaluate curves and their attributes if necessary. */
         gpu::Batch *geometry = curves_sub_pass_setup(*curves_ps_, state.scene, ob_ref.object);
-        if (*select_attr_buf) {
+        if (select_attr_buf.get()) {
           ResourceHandleRange handle = manager.unique_handle(ob_ref);
 
           curves_ps_->push_constant("is_point_domain", is_point_domain);
-          curves_ps_->bind_texture("selection_tx", *select_attr_buf);
+          curves_ps_->bind_texture("selection_tx", select_attr_buf);
           curves_ps_->draw(geometry, handle);
         }
       }

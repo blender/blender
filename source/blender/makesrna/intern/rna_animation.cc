@@ -233,7 +233,7 @@ static void rna_AnimData_tmpact_set(PointerRNA *ptr, PointerRNA value, ReportLis
 
   bAction *action = static_cast<bAction *>(value.data);
   if (!blender::animrig::assign_tmpaction(action, {*owner_id, *adt})) {
-    BKE_report(reports, RPT_WARNING, "Failed to set tmpact");
+    BKE_report(reports, RPT_WARNING, "Failed to set temporary action");
   }
 }
 

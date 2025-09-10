@@ -2893,6 +2893,8 @@ static std::optional<wp_cursor_shape_device_v1_shape> gwl_seat_cursor_find_wl_sh
       return std::nullopt;
     case GHOST_kStandardCursorBlade:
       return std::nullopt;
+    case GHOST_kStandardCursorSlip:
+      return std::nullopt;
     case GHOST_kStandardCursorCustom:
       return std::nullopt;
   }
@@ -9072,6 +9074,8 @@ GHOST_TCapabilityFlag GHOST_SystemWayland::getCapabilities() const
       ~(
           /* WAYLAND doesn't support accessing the window position. */
           GHOST_kCapabilityWindowPosition |
+          /* WAYLAND cannot precisely place windows among multiple monitors. */
+          GHOST_kCapabilityMultiMonitorPlacement |
           /* WAYLAND doesn't support setting the cursor position directly,
            * this is an intentional choice, forcing us to use a software cursor in this case. */
           GHOST_kCapabilityCursorWarp |

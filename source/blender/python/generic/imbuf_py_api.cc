@@ -72,7 +72,7 @@ static int py_imbuf_valid_check(Py_ImBuf *self)
 PyDoc_STRVAR(
     /* Wrap. */
     py_imbuf_resize_doc,
-    ".. method:: resize(size, method='FAST')\n"
+    ".. method:: resize(size, *, method='FAST')\n"
     "\n"
     "   Resize the image.\n"
     "\n"
@@ -257,7 +257,7 @@ PyDoc_STRVAR(
     py_imbuf_size_doc,
     "size of the image in pixels.\n"
     "\n"
-    ":type: pair of ints");
+    ":type: tuple[int, int]\n");
 static PyObject *py_imbuf_size_get(Py_ImBuf *self, void * /*closure*/)
 {
   PY_IMBUF_CHECK_OBJ(self);
@@ -270,7 +270,7 @@ PyDoc_STRVAR(
     py_imbuf_ppm_doc,
     "pixels per meter.\n"
     "\n"
-    ":type: pair of floats");
+    ":type: tuple[float, float]\n");
 static PyObject *py_imbuf_ppm_get(Py_ImBuf *self, void * /*closure*/)
 {
   PY_IMBUF_CHECK_OBJ(self);
@@ -303,7 +303,7 @@ PyDoc_STRVAR(
     py_imbuf_filepath_doc,
     "filepath associated with this image.\n"
     "\n"
-    ":type: str");
+    ":type: str\n");
 static PyObject *py_imbuf_filepath_get(Py_ImBuf *self, void * /*closure*/)
 {
   PY_IMBUF_CHECK_OBJ(self);
@@ -340,7 +340,7 @@ PyDoc_STRVAR(
     py_imbuf_planes_doc,
     "Number of bits associated with this image.\n"
     "\n"
-    ":type: int");
+    ":type: int\n");
 static PyObject *py_imbuf_planes_get(Py_ImBuf *self, void * /*closure*/)
 {
   PY_IMBUF_CHECK_OBJ(self);
@@ -353,7 +353,7 @@ PyDoc_STRVAR(
     py_imbuf_channels_doc,
     "Number of bit-planes.\n"
     "\n"
-    ":type: int");
+    ":type: int\n");
 static PyObject *py_imbuf_channels_get(Py_ImBuf *self, void * /*closure*/)
 {
   PY_IMBUF_CHECK_OBJ(self);
@@ -653,7 +653,7 @@ static PyObject *imbuf_write_impl(ImBuf *ibuf, const char *filepath)
 PyDoc_STRVAR(
     /* Wrap. */
     M_imbuf_write_doc,
-    ".. function:: write(image, filepath=image.filepath)\n"
+    ".. function:: write(image, *, filepath=image.filepath)\n"
     "\n"
     "   Write an image.\n"
     "\n"
@@ -784,7 +784,6 @@ PyDoc_STRVAR(
     "\n"
     "   Image buffer is also the structure used by :class:`bpy.types.Image`\n"
     "   ID type to store and manipulate image data at runtime.\n");
-
 static PyModuleDef IMB_types_module_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "imbuf.types",

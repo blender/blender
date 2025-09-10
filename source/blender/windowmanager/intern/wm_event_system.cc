@@ -40,6 +40,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_global.hh"
 #include "BKE_idprop.hh"
+#include "BKE_layer.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
@@ -510,6 +511,19 @@ void wm_event_do_depsgraph(bContext *C, bool is_after_open_file)
     Scene *scene = WM_window_get_active_scene(win);
     ViewLayer *view_layer = WM_window_get_active_view_layer(win);
     Main *bmain = CTX_data_main(C);
+
+    /* Update dependency graph of sequencer scene. */
+    Scene *sequencer_scene = CTX_data_sequencer_scene(C);
+    if (sequencer_scene && sequencer_scene != scene) {
+      Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(
+          bmain, sequencer_scene, BKE_view_layer_default_render(sequencer_scene));
+      if (is_after_open_file) {
+        DEG_graph_relations_update(depsgraph);
+        DEG_tag_on_visible_update(bmain, depsgraph);
+      }
+      BKE_scene_graph_update_tagged(depsgraph, bmain);
+    }
+
     /* Copied to set's in #scene_update_tagged_recursive(). */
     scene->customdata_mask = win_combine_v3d_datamask;
     /* XXX, hack so operators can enforce data-masks #26482, GPU render. */
@@ -731,7 +745,9 @@ void wm_event_do_notifiers(bContext *C)
       {
         /* Pass. */
       }
-      else if (note->category == NC_SCENE && note->reference && note->reference != scene) {
+      else if (note->category == NC_SCENE && note->reference &&
+               (note->reference != scene && note->reference != workspace->sequencer_scene))
+      {
         /* Pass. */
       }
       else {
@@ -2801,42 +2817,25 @@ static eHandlerActionFlag wm_handler_fileselect_do(bContext *C,
 
   switch (val) {
     case EVT_FILESELECT_FULL_OPEN: {
-      wmWindow *win = CTX_wm_window(C);
-      const blender::int2 window_size = WM_window_native_pixel_size(win);
-      const blender::int2 window_center = window_size / 2;
-
-      const rcti window_rect = {
-          /*xmin*/ window_center[0],
-          /*xmax*/ window_center[0] + int(U.file_space_data.temp_win_sizex * UI_SCALE_FAC),
-          /*ymin*/ window_center[1],
-          /*ymax*/ window_center[1] + int(U.file_space_data.temp_win_sizey * UI_SCALE_FAC),
-      };
-
-      if (ScrArea *area = ED_screen_temp_space_open(C,
-                                                    IFACE_("Blender File View"),
-                                                    &window_rect,
-                                                    SPACE_FILE,
-                                                    U.filebrowser_display_type,
-                                                    true))
-      {
-        ARegion *region_header = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
-
-        BLI_assert(area->spacetype == SPACE_FILE);
-
-        region_header->flag |= RGN_FLAG_HIDDEN;
-        /* Header on bottom, #AZone triangle to toggle header looks misplaced at the top. */
-        region_header->alignment = RGN_ALIGN_BOTTOM;
-
-        /* Settings for file-browser, #sfile is not operator owner but sends events. */
-        SpaceFile *sfile = (SpaceFile *)area->spacedata.first;
-        sfile->op = handler->op;
-
-        ED_fileselect_set_params_from_userdef(sfile);
-      }
-      else {
-        BKE_report(&wm->runtime->reports, RPT_ERROR, "Failed to open window!");
+      ScrArea *area = ED_screen_temp_space_open(
+          C, IFACE_("Blender File View"), SPACE_FILE, U.filebrowser_display_type, true);
+      if (!area) {
+        BKE_report(&wm->runtime->reports, RPT_ERROR, "Failed to open file browser!");
         return WM_HANDLER_BREAK;
       }
+
+      ARegion *region_header = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
+      BLI_assert(area->spacetype == SPACE_FILE);
+
+      region_header->flag |= RGN_FLAG_HIDDEN;
+      /* Header on bottom, #AZone triangle to toggle header looks misplaced at the top. */
+      region_header->alignment = RGN_ALIGN_BOTTOM;
+
+      /* Settings for file-browser, #sfile is not operator owner but sends events. */
+      SpaceFile *sfile = (SpaceFile *)area->spacedata.first;
+      sfile->op = handler->op;
+
+      ED_fileselect_set_params_from_userdef(sfile);
 
       action = WM_HANDLER_BREAK;
       break;
@@ -2878,11 +2877,7 @@ static eHandlerActionFlag wm_handler_fileselect_do(bContext *C,
             continue;
           }
 
-          int win_size[2];
-          bool is_maximized;
-          ED_fileselect_window_params_get(win, win_size, &is_maximized);
-          ED_fileselect_params_to_userdef(
-              static_cast<SpaceFile *>(file_area->spacedata.first), win_size, is_maximized);
+          ED_fileselect_params_to_userdef(static_cast<SpaceFile *>(file_area->spacedata.first));
 
           if (BLI_listbase_is_single(&file_area->spacedata)) {
             BLI_assert(root_win != win);
@@ -2914,8 +2909,7 @@ static eHandlerActionFlag wm_handler_fileselect_do(bContext *C,
         }
 
         if (!temp_win && ctx_area->full) {
-          ED_fileselect_params_to_userdef(
-              static_cast<SpaceFile *>(ctx_area->spacedata.first), nullptr, false);
+          ED_fileselect_params_to_userdef(static_cast<SpaceFile *>(ctx_area->spacedata.first));
           ED_screen_full_prevspace(C, ctx_area);
         }
       }
@@ -4986,8 +4980,8 @@ bool WM_event_handler_region_marker_poll(const wmWindow *win,
       break;
   }
 
-  const ListBase *markers = ED_scene_markers_get(WM_window_get_active_scene(win),
-                                                 const_cast<ScrArea *>(area));
+  const ListBase *markers = ED_scene_markers_get_from_area(
+      WM_window_get_active_scene(win), WM_window_get_active_view_layer(win), area);
   if (BLI_listbase_is_empty(markers)) {
     return false;
   }
@@ -5008,8 +5002,8 @@ bool WM_event_handler_region_v2d_mask_no_marker_poll(const wmWindow *win,
     return false;
   }
   /* Casting away `const` is only needed for a non-constant return value. */
-  const ListBase *markers = ED_scene_markers_get(WM_window_get_active_scene(win),
-                                                 const_cast<ScrArea *>(area));
+  const ListBase *markers = ED_scene_markers_get_from_area(
+      WM_window_get_active_scene(win), WM_window_get_active_view_layer(win), area);
   if (markers && !BLI_listbase_is_empty(markers)) {
     return !WM_event_handler_region_marker_poll(win, area, region, event);
   }
@@ -5154,7 +5148,7 @@ wmEventHandler_Dropbox *WM_event_add_dropbox_handler(ListBase *handlers, ListBas
   return handler;
 }
 
-void WM_event_remove_area_handler(ListBase *handlers, void *area)
+void WM_event_remove_handlers_by_area(ListBase *handlers, const ScrArea *area)
 {
   /* XXX(@ton): solution works, still better check the real cause. */
 

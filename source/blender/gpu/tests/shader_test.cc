@@ -323,8 +323,9 @@ static std::string print_test_data(const TestOutputRawData &raw, TestType type)
 
 static StringRef print_test_line(StringRefNull test_src, int64_t test_line)
 {
-  /* Start at line one like the line report scheme. */
-  int64_t line = 1;
+  /* Start at line one like the line report scheme.
+   * However, the our preprocessor adds a line directive at the top of the file. Skip it. */
+  int64_t line = 1 - 1;
   int64_t last_pos = 0;
   int64_t pos = 0;
   while ((pos = test_src.find('\n', pos)) != std::string::npos) {

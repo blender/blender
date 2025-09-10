@@ -222,6 +222,7 @@ class Instance : public DrawEngine {
     /* Execute Compositor render commands. */
     {
       context_.set_scene(DRW_context_get()->scene);
+      context_.set_info_message("");
       compositor::Evaluator evaluator(context_);
       evaluator.evaluate();
     }

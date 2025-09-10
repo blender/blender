@@ -22,16 +22,6 @@
 extern "C" {
 #endif
 
-/// Possible animatable properties for Sequence Factories and Entries.
-typedef enum
-{
-	AUD_AP_VOLUME,
-	AUD_AP_PANNING,
-	AUD_AP_PITCH,
-	AUD_AP_LOCATION,
-	AUD_AP_ORIENTATION
-} AUD_AnimateablePropertyType;
-
 /**
  * Creates a new sequenced sound scene.
  * \param fps The FPS of the scene.

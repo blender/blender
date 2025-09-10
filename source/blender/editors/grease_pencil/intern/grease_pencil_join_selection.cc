@@ -40,7 +40,7 @@ struct PointsRange {
 
 enum class ActionOnNextRange { Nothing, ReverseExisting, ReverseAddition, ReverseBoth };
 
-enum class ActiveLayerBehavior { JoinAndCopySelection, JoinSelection };
+enum class ActiveLayerBehavior { JoinStrokes, SplitAndCopy, SplitPoints };
 
 /**
  * Iterates over \a drawings and returns a vector with all the selected ranges of points.
@@ -50,6 +50,7 @@ enum class ActiveLayerBehavior { JoinAndCopySelection, JoinSelection };
  */
 Vector<PointsRange> retrieve_selection_ranges(Object &object,
                                               const Span<MutableDrawingInfo> drawings,
+                                              const ActiveLayerBehavior active_layer_behavior,
                                               int64_t &r_total_points_selected,
                                               IndexMaskMemory &memory)
 {
@@ -57,6 +58,23 @@ Vector<PointsRange> retrieve_selection_ranges(Object &object,
   r_total_points_selected = 0;
 
   for (const MutableDrawingInfo &info : drawings) {
+    if (active_layer_behavior == ActiveLayerBehavior::JoinStrokes) {
+      IndexMask curves_selection = retrieve_editable_and_selected_strokes(
+          object, info.drawing, info.layer_index, memory);
+      if (curves_selection.is_empty()) {
+        continue;
+      }
+
+      const OffsetIndices<int> points_by_curve = info.drawing.strokes().points_by_curve();
+      curves_selection.foreach_index([&](const int curve_i) {
+        const IndexRange points = points_by_curve[curve_i];
+        selected_ranges.append({&info.drawing, points});
+        r_total_points_selected += points.size();
+      });
+
+      continue;
+    }
+
     IndexMask points_selection = retrieve_editable_and_selected_points(
         object, info.drawing, info.layer_index, memory);
     if (points_selection.is_empty()) {
@@ -71,7 +89,6 @@ Vector<PointsRange> retrieve_selection_ranges(Object &object,
      * i.e, if both the end of an stroke and the beginning of the next are selected, all the
      * indices end up in the same range. Let's refine the splitting
      */
-    Vector<IndexRange> ranges{};
     const Array<int> points_map = info.drawing.strokes().point_to_curve_map();
     for (const IndexRange initial_range : initial_ranges) {
       if (points_map[initial_range.first()] == points_map[initial_range.last()]) {
@@ -390,6 +407,16 @@ void clear_selection_attribute(Span<PointsRange> ranges_selected)
       ed::curves::fill_selection_false(selection.span);
       selection.finish();
     }
+    if (bke::GSpanAttributeWriter selection = attributes.lookup_for_write_span(".selection_left"))
+    {
+      ed::curves::fill_selection_false(selection.span);
+      selection.finish();
+    }
+    if (bke::GSpanAttributeWriter selection = attributes.lookup_for_write_span(".selection_right"))
+    {
+      ed::curves::fill_selection_false(selection.span);
+      selection.finish();
+    }
   }
 }
 
@@ -489,7 +516,7 @@ wmOperatorStatus grease_pencil_join_selection_exec(bContext *C, wmOperator *op)
   const Vector<MutableDrawingInfo> editable_drawings = retrieve_editable_drawings(*scene,
                                                                                   grease_pencil);
   Vector<PointsRange> ranges_selected = retrieve_selection_ranges(
-      *object, editable_drawings, selected_points_count, memory);
+      *object, editable_drawings, active_layer_behavior, selected_points_count, memory);
   if (ranges_selected.size() <= 1) {
     /* Nothing to join */
     return OPERATOR_FINISHED;
@@ -497,10 +524,12 @@ wmOperatorStatus grease_pencil_join_selection_exec(bContext *C, wmOperator *op)
 
   /* Temporary geometry where to perform the logic
    * Once it gets stable, it is appended all at once to the destination curves */
-  bke::CurvesGeometry tmp_curves(selected_points_count, 1);
+  Drawing tmp_drawing;
+  tmp_drawing.strokes_for_write() = bke::CurvesGeometry(selected_points_count, 1);
+  bke::CurvesGeometry &tmp_curves = tmp_drawing.strokes_for_write();
 
   const PointsRange working_range = copy_point_attributes(
-      ranges_selected, tmp_curves, *dst_drawing);
+      ranges_selected, tmp_curves, tmp_drawing);
   copy_curve_attributes(ranges_selected, tmp_curves, *dst_drawing);
 
   clear_selection_attribute(ranges_selected);
@@ -509,22 +538,27 @@ wmOperatorStatus grease_pencil_join_selection_exec(bContext *C, wmOperator *op)
   clear_selection_attribute(working_range_collection);
 
   bke::CurvesGeometry &dst_curves = dst_drawing->strokes_for_write();
-  if (active_layer_behavior == ActiveLayerBehavior::JoinSelection) {
+  if (ELEM(active_layer_behavior,
+           ActiveLayerBehavior::SplitPoints,
+           ActiveLayerBehavior::JoinStrokes))
+  {
     remove_selected_points(ranges_selected);
   }
 
   append_strokes_from(std::move(tmp_curves), dst_curves);
 
-  bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
-      dst_curves, selection_domain, bke::AttrType::Bool);
+  if (active_layer_behavior != ActiveLayerBehavior::JoinStrokes) {
+    bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
+        dst_curves, selection_domain, bke::AttrType::Bool);
 
-  if (selection_domain == bke::AttrDomain::Curve) {
-    ed::curves::fill_selection_true(selection.span.take_back(tmp_curves.curves_num()));
+    if (selection_domain == bke::AttrDomain::Curve) {
+      ed::curves::fill_selection_true(selection.span.take_back(tmp_curves.curves_num()));
+    }
+    else {
+      ed::curves::fill_selection_true(selection.span.take_back(tmp_curves.points_num()));
+    }
+    selection.finish();
   }
-  else {
-    ed::curves::fill_selection_true(selection.span.take_back(tmp_curves.points_num()));
-  }
-  selection.finish();
 
   dst_curves.update_curve_types();
   dst_curves.tag_topology_changed();
@@ -539,16 +573,21 @@ wmOperatorStatus grease_pencil_join_selection_exec(bContext *C, wmOperator *op)
 void GREASE_PENCIL_OT_join_selection(wmOperatorType *ot)
 {
   static const EnumPropertyItem active_layer_behavior[] = {
-      {int(ActiveLayerBehavior::JoinAndCopySelection),
-       "JOINCOPY",
+      {int(ActiveLayerBehavior::JoinStrokes),
+       "JOINSTROKES",
        0,
-       "Join and Copy",
-       "Copy the selection in the new stroke"},
-      {int(ActiveLayerBehavior::JoinSelection),
-       "JOIN",
+       "Join Strokes",
+       "Join the selected strokes into one stroke"},
+      {int(ActiveLayerBehavior::SplitAndCopy),
+       "SPLITCOPY",
        0,
-       "Join",
-       "Move the selection to the new stroke"},
+       "Split and Copy",
+       "Copy the selected points to a new stroke"},
+      {int(ActiveLayerBehavior::SplitPoints),
+       "SPLIT",
+       0,
+       "Split",
+       "Split the selected point to a new stroke"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -568,7 +607,7 @@ void GREASE_PENCIL_OT_join_selection(wmOperatorType *ot)
       ot->srna,
       "type",
       active_layer_behavior,
-      int(ActiveLayerBehavior::JoinSelection),
+      int(ActiveLayerBehavior::JoinStrokes),
       "Type",
       "Defines how the operator will behave on the selection in the active layer");
 }

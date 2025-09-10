@@ -293,6 +293,7 @@ IDTypeInfo IDType_ID_VO = {
     /*foreach_id*/ volume_foreach_id,
     /*foreach_cache*/ volume_foreach_cache,
     /*foreach_path*/ volume_foreach_path,
+    /*foreach_working_space_color*/ nullptr,
     /*owner_pointer_get*/ nullptr,
 
     /*blend_write*/ volume_blend_write,
@@ -1077,8 +1078,12 @@ std::optional<blender::Bounds<float3>> BKE_volume_grid_bounds(openvdb::GridBase:
     return std::nullopt;
   }
 
-  openvdb::BBoxd bbox = grid->transform().indexToWorld(coordbbox);
+  openvdb::BBoxd index_bbox = {
+      openvdb::BBoxd(coordbbox.min().asVec3d(), coordbbox.max().asVec3d())};
+  /* Add half voxel padding that is expected by volume rendering code. */
+  index_bbox.expand(0.5);
 
+  const openvdb::BBoxd bbox = grid->transform().indexToWorld(index_bbox);
   return blender::Bounds<float3>{float3(bbox.min().asPointer()), float3(bbox.max().asPointer())};
 }
 

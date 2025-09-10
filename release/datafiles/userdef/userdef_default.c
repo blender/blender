@@ -221,9 +221,16 @@ const UserDef U_default = {
             .details_flags = FILE_DETAILS_SIZE | FILE_DETAILS_DATETIME,
             .flag = FILE_HIDE_DOT,
             .filter_id = FILTER_ID_ALL,
+        },
 
-            .temp_win_sizex = 1060,
-            .temp_win_sizey = 600,
+    .stored_bounds =
+        {
+            .file = {100.0f, 1160.0f, 350.0f, 950.0f},
+            .userpref = {100.0f, 940.0f, 350.0f, 900.0f},
+            .image = {50.0f, 1360.0f, 50.0f, 830.0f},
+            .graph = {50.0f, 950.0f, 200.0f, 780.0f},
+            .info = {100.0f, 1000.0f, 300.0f, 880.0f},
+            .outliner = {100.0f, 550.0f, 350.0f, 800.0f},
         },
 
     .sequencer_proxy_setup = USER_SEQ_PROXY_SETUP_AUTOMATIC,

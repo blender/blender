@@ -246,16 +246,6 @@ BLI_INLINE int32_t pack_rotation_aspect_hardness(float rot, float asp, float sof
   return packed;
 }
 
-static void copy_transformed_positions(const Span<float3> src_positions,
-                                       const IndexRange range,
-                                       const float4x4 &transform,
-                                       MutableSpan<float3> dst_positions)
-{
-  for (const int point_i : range) {
-    dst_positions[point_i] = math::transform_point(transform, src_positions[point_i]);
-  }
-}
-
 [[maybe_unused]] static bool grease_pencil_batch_cache_is_edit_discarded(
     GreasePencilBatchCache *cache)
 {
@@ -334,11 +324,8 @@ static void grease_pencil_weight_batch_ensure(Object &object,
         object, info.drawing, memory);
 
     const IndexRange points(drawing_start_offset, curves.points_num());
-    const Span<float3> positions = curves.positions();
-    MutableSpan<float3> positions_slice = points_pos.slice(points);
-    threading::parallel_for(curves.points_range(), 1024, [&](const IndexRange range) {
-      copy_transformed_positions(positions, range, layer_space_to_object_space, positions_slice);
-    });
+    math::transform_points(
+        curves.positions(), layer_space_to_object_space, points_pos.slice(points));
 
     /* Get vertex weights of the active vertex group in this drawing. */
     const VArray<float> weights = *curves.attributes().lookup_or_default<float>(
@@ -532,14 +519,8 @@ static void grease_pencil_cache_add_nurbs(Object &object,
 
   MutableSpan<float3> positions_eval_slice = edit_line_points.slice(eval_slice);
 
-  /* This will copy over the position but without the layer transform. */
   array_utils::gather(positions, nurbs_points, positions_eval_slice);
-
-  /* Go through the position and apply the layer transform. */
-  threading::parallel_for(nurbs_points.index_range(), 1024, [&](const IndexRange range) {
-    copy_transformed_positions(
-        positions_eval_slice, range, layer_space_to_object_space, positions_eval_slice);
-  });
+  math::transform_points(layer_space_to_object_space, positions_eval_slice);
 
   MutableSpan<float> selection_eval_slice = edit_line_selection.slice(eval_slice);
 
@@ -844,22 +825,14 @@ static void grease_pencil_edit_batch_ensure(Object &object,
     const IndexRange points(drawing_start_offset, curves.points_num());
     const IndexRange points_eval(drawing_line_start_offset, curves.evaluated_points_num());
 
-    const Span<float3> positions = curves.positions();
     if (!layer.is_locked()) {
-      MutableSpan<float3> positions_slice = edit_points.slice(points);
-      threading::parallel_for(curves.points_range(), 1024, [&](const IndexRange range) {
-        copy_transformed_positions(positions, range, layer_space_to_object_space, positions_slice);
-      });
+      math::transform_points(
+          curves.positions(), layer_space_to_object_space, edit_points.slice(points));
     }
 
-    const Span<float3> positions_eval = curves.evaluated_positions();
-
-    MutableSpan<float3> positions_eval_slice = edit_line_points.slice(points_eval);
-    threading::parallel_for(
-        IndexRange(curves.evaluated_points_num()), 1024, [&](const IndexRange range) {
-          copy_transformed_positions(
-              positions_eval, range, layer_space_to_object_space, positions_eval_slice);
-        });
+    math::transform_points(curves.evaluated_positions(),
+                           layer_space_to_object_space,
+                           edit_line_points.slice(points_eval));
 
     /* Do not show selection for locked layers. */
     if (!layer.is_locked()) {
@@ -944,17 +917,11 @@ static void grease_pencil_edit_batch_ensure(Object &object,
     const Span<float3> handles_left = *curves.handle_positions_left();
     const Span<float3> handles_right = *curves.handle_positions_right();
 
-    /* This will copy over the position but without the layer transform. */
     array_utils::gather(handles_left, bezier_points, positions_slice_left);
     array_utils::gather(handles_right, bezier_points, positions_slice_right);
 
-    /* Go through the position and apply the layer transform. */
-    threading::parallel_for(bezier_points.index_range(), 1024, [&](const IndexRange range) {
-      copy_transformed_positions(
-          positions_slice_left, range, layer_space_to_object_space, positions_slice_left);
-      copy_transformed_positions(
-          positions_slice_right, range, layer_space_to_object_space, positions_slice_right);
-    });
+    math::transform_points(layer_space_to_object_space, positions_slice_left);
+    math::transform_points(layer_space_to_object_space, positions_slice_right);
 
     const VArray<float> selected_left = *curves.attributes().lookup_or_default<float>(
         ".selection_handle_left", bke::AttrDomain::Point, true);

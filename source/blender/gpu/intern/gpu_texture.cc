@@ -891,6 +891,7 @@ const char *GPU_texture_format_name(TextureFormat texture_format)
 
     case TextureFormat::Invalid:
       BLI_assert_unreachable();
+      return "Invalid";
   }
   BLI_assert_unreachable();
   return "";

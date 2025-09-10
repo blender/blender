@@ -242,16 +242,14 @@ void ED_image_draw_info(Scene *scene,
         rgba[3] = linearcol[3];
       }
 
-      if (use_default_view) {
-        IMB_colormanagement_pixel_to_display_space_v4(
-            rgba, rgba, nullptr, &scene->display_settings);
-      }
-      else {
-        IMB_colormanagement_pixel_to_display_space_v4(
-            rgba, rgba, &scene->view_settings, &scene->display_settings);
-      }
+      IMB_colormanagement_pixel_to_display_space_v4(rgba,
+                                                    rgba,
+                                                    (use_default_view) ? nullptr :
+                                                                         &scene->view_settings,
+                                                    &scene->display_settings,
+                                                    DISPLAY_SPACE_COLOR_INSPECTION);
 
-      SNPRINTF_UTF8(str, "  |  CM  R:%-.4f  G:%-.4f  B:%-.4f", rgba[0], rgba[1], rgba[2]);
+      SNPRINTF_UTF8(str, "  |  Display  R:%-.4f  G:%-.4f  B:%-.4f", rgba[0], rgba[1], rgba[2]);
       BLF_position(blf_mono_font, dx, dy, 0);
       BLF_draw(blf_mono_font, str, sizeof(str));
       dx += BLF_width(blf_mono_font, str, sizeof(str));
@@ -284,14 +282,11 @@ void ED_image_draw_info(Scene *scene,
   }
 
   if (color_manage) {
-    if (use_default_view) {
-      IMB_colormanagement_pixel_to_display_space_v4(
-          finalcol, col, nullptr, &scene->display_settings);
-    }
-    else {
-      IMB_colormanagement_pixel_to_display_space_v4(
-          finalcol, col, &scene->view_settings, &scene->display_settings);
-    }
+    IMB_colormanagement_pixel_to_display_space_v4(finalcol,
+                                                  col,
+                                                  (use_default_view) ? nullptr :
+                                                                       &scene->view_settings,
+                                                  &scene->display_settings);
   }
   else {
     copy_v4_v4(finalcol, col);

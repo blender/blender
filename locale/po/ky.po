@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-18 09:16+0000\n"
+"POT-Creation-Date: 2025-09-10 07:24+0000\n"
 "PO-Revision-Date: 2025-07-23 15:20+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Kyrgyz <https://translate.blender.org/projects/blender-ui/ui/ky/>\n"
@@ -180,6 +180,10 @@ msgid "Array"
 msgstr "Массив"
 
 
+msgid "Object"
+msgstr "Объект"
+
+
 msgid "Margin"
 msgstr "Кемтиги"
 
@@ -208,10 +212,6 @@ msgid "-Z"
 msgstr "-Z"
 
 
-msgid "Object"
-msgstr "Объект"
-
-
 msgid "None"
 msgstr "Жок"
 
@@ -222,6 +222,10 @@ msgstr "Жаркыроосу"
 
 msgid "Target"
 msgstr "Максат"
+
+
+msgid "Bake normals"
+msgstr "Нормалдарды бышыруу"
 
 
 msgid "Clear"
@@ -1286,12 +1290,12 @@ msgid "Mask"
 msgstr "Маска"
 
 
-msgid "Apply"
-msgstr "Колдонуу"
-
-
 msgid "Mirror"
 msgstr "Чагылтуу"
+
+
+msgid "Apply"
+msgstr "Колдонуу"
 
 
 msgid "Text"
@@ -1512,22 +1516,6 @@ msgid "To"
 msgstr "Кимге"
 
 
-msgid "Shadow"
-msgstr "Көлөкө"
-
-
-msgid "Red Channel"
-msgstr "Кызыл каналы"
-
-
-msgid "Green Channel"
-msgstr "Жашыл каналы"
-
-
-msgid "Blue Channel"
-msgstr "Көк каналы"
-
-
 msgid "Render Layers"
 msgstr "Визуалдаштыруу каттары"
 
@@ -1570,6 +1558,10 @@ msgstr "Z-огу"
 
 msgid "Active Node"
 msgstr "Активдүү түйүн"
+
+
+msgid "Shadow"
+msgstr "Көлөкө"
 
 
 msgctxt "Operator"
@@ -2720,10 +2712,6 @@ msgid "Sky"
 msgstr "Асман"
 
 
-msgid "Bake normals"
-msgstr "Нормалдарды бышыруу"
-
-
 msgid "Engine"
 msgstr "Кыймылдаткыч"
 
@@ -3354,6 +3342,10 @@ msgid "%s: %s"
 msgstr "%s: %s"
 
 
+msgid "Value:"
+msgstr "Мааниси:"
+
+
 msgid "Hex"
 msgstr "Hex"
 
@@ -3601,10 +3593,6 @@ msgstr "Файлга жол"
 
 msgid "File name"
 msgstr "Файл аты"
-
-
-msgid "Value:"
-msgstr "Мааниси:"
 
 
 msgid "<No ID>"

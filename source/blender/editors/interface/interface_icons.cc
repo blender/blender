@@ -13,8 +13,8 @@
 
 #include "BLF_api.hh"
 
+#include "BLI_math_color.h"
 #include "BLI_math_vector.h"
-#include "BLI_rect.h"
 #include "BLI_string.h"
 
 #include "BLT_translation.hh"
@@ -25,7 +25,6 @@
 #include "DNA_grease_pencil_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
-#include "DNA_space_types.h"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
@@ -2121,7 +2120,6 @@ int UI_icon_from_idcode(const int idcode)
 
     /* No icons for these ID-types. */
     case ID_LI:
-    case ID_IP:
     case ID_SCR:
     case ID_WM:
       break;

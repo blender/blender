@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'066280446c16')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-18 09:16+0000\n"
+"POT-Creation-Date: 2025-09-10 07:24+0000\n"
 "PO-Revision-Date: 2025-07-23 15:32+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -1307,6 +1307,14 @@ msgid "Cage Object"
 msgstr "Häkkiobjekti"
 
 
+msgid "Object"
+msgstr "Objekti"
+
+
+msgid "Tangent"
+msgstr "Tangentti"
+
+
 msgid "File Path"
 msgstr "Tiedostopolku"
 
@@ -1371,14 +1379,6 @@ msgid "Axis to bake in red channel"
 msgstr "Akseli paistetaan punaiselle kanavalle"
 
 
-msgid "Object"
-msgstr "Objekti"
-
-
-msgid "Tangent"
-msgstr "Tangentti"
-
-
 msgid "Emit"
 msgstr "Säteily"
 
@@ -1417,6 +1417,10 @@ msgstr "Kohde"
 
 msgid "Image Textures"
 msgstr "Kuvatekstuurit"
+
+
+msgid "Normals"
+msgstr "Normaalit"
 
 
 msgid "Automatic Name"
@@ -1581,6 +1585,10 @@ msgstr "Kokoelmat"
 
 msgid "Collection data-blocks"
 msgstr "Kokoelman data-palikat"
+
+
+msgid "Color Space"
+msgstr "Väriavaruus"
 
 
 msgid "Curves"
@@ -3497,10 +3505,6 @@ msgid "Non-Color"
 msgstr "Väritön"
 
 
-msgid "Color Space"
-msgstr "Väriavaruus"
-
-
 msgid "Color space that the sequencer operates in"
 msgstr "Väriavaruus, jossa sekvensseri toimii"
 
@@ -5193,10 +5197,6 @@ msgid "QuickTime"
 msgstr "QuickTime"
 
 
-msgid "HDR"
-msgstr "HDR"
-
-
 msgid "F-Modifier"
 msgstr "F-muunnin"
 
@@ -6298,10 +6298,6 @@ msgid "Small Caps"
 msgstr "Pienet kirjaimet"
 
 
-msgid "Normals"
-msgstr "Normaalit"
-
-
 msgid "Node Tree"
 msgstr "Noodipuu"
 
@@ -7268,68 +7264,68 @@ msgid "Mask"
 msgstr "Maski"
 
 
-msgid "Mesh Select Mode"
-msgstr "Muodon valintatila"
-
-
-msgid "Random Mask"
-msgstr "Satunnainen maski"
+msgid "Show/Hide"
+msgstr "Näytä/Piilota"
 
 
 msgid "Names"
 msgstr "Nimet"
 
 
-msgid "Show/Hide"
-msgstr "Näytä/Piilota"
+msgid "Metaball"
+msgstr "Metapallo"
 
 
 msgid "UV Mapping"
 msgstr "UV-kartoittaminen"
 
 
-msgid "Hooks"
-msgstr "Koukut"
+msgid "Select More/Less"
+msgstr "Valitse enemmän/vähemmän"
 
 
 msgid "Select Similar"
 msgstr "Valitse samankaltainen"
 
 
-msgid "Select More/Less"
-msgstr "Valitse enemmän/vähemmän"
-
-
-msgid "Track"
-msgstr "Raide"
-
-
-msgid "Add Image"
-msgstr "Lisää kuva"
-
-
-msgid "Light Probe"
-msgstr "Valoluotain"
-
-
-msgid "Light"
-msgstr "Valo"
-
-
-msgid "Metaball"
-msgstr "Metapallo"
-
-
-msgid "Text"
-msgstr "Teksti"
+msgid "Select All by Trait"
+msgstr "Valitse kaikki piirteen mukaan"
 
 
 msgid "Select Loops"
 msgstr "Valitse silmukat"
 
 
-msgid "Select All by Trait"
-msgstr "Valitse kaikki piirteen mukaan"
+msgid "Light"
+msgstr "Valo"
+
+
+msgid "Light Probe"
+msgstr "Valoluotain"
+
+
+msgid "Add Image"
+msgstr "Lisää kuva"
+
+
+msgid "Track"
+msgstr "Raide"
+
+
+msgid "Hooks"
+msgstr "Koukut"
+
+
+msgid "Random Mask"
+msgstr "Satunnainen maski"
+
+
+msgid "Mesh Select Mode"
+msgstr "Muodon valintatila"
+
+
+msgid "Text"
+msgstr "Teksti"
 
 
 msgid "Basic"
@@ -8018,18 +8014,6 @@ msgstr "Z-skaala"
 
 msgid "Keep In"
 msgstr "Pidä sisällä"
-
-
-msgid "Red Channel"
-msgstr "Punainen kanava"
-
-
-msgid "Green Channel"
-msgstr "Vihreä kanava"
-
-
-msgid "Blue Channel"
-msgstr "Sininen kanava"
 
 
 msgid "File Output"
@@ -9917,14 +9901,6 @@ msgid "Custom"
 msgstr "Mukautettu"
 
 
-msgid "Join and Copy"
-msgstr "Liitä ja kopioi"
-
-
-msgid "Join"
-msgstr "Liitä"
-
-
 msgctxt "Operator"
 msgid "Add New Layer"
 msgstr "Lisää uusi taso"
@@ -10150,6 +10126,10 @@ msgid "DPX"
 msgstr "DPX"
 
 
+msgid "HDR"
+msgstr "HDR"
+
+
 msgid "TIFF"
 msgstr "TIFF"
 
@@ -10189,8 +10169,16 @@ msgid "Random"
 msgstr "Satunnainen"
 
 
+msgid "Join"
+msgstr "Liitä"
+
+
 msgid "Column"
 msgstr "Sarake"
+
+
+msgid "Order"
+msgstr "Järjestys"
 
 
 msgid "Remove"
@@ -10528,15 +10516,6 @@ msgstr "Kursorin sijainti"
 
 msgid "Edit Tree"
 msgstr "Muokkaa puuta"
-
-
-msgid "Node Tool Tree"
-msgstr "Noodityökalupuu"
-
-
-msgctxt "ID"
-msgid "Geometry Nodes Type"
-msgstr "Geometrianoodien tyyppi"
 
 
 msgctxt "ID"
@@ -12639,10 +12618,6 @@ msgid "Before"
 msgstr "Ennen"
 
 
-msgid "Order"
-msgstr "Järjestys"
-
-
 msgctxt "Constraint"
 msgid "Mix"
 msgstr "Sekoita"
@@ -14029,6 +14004,10 @@ msgid "Lightness:"
 msgstr "Valoisuus:"
 
 
+msgid "Value:"
+msgstr "Arvo:"
+
+
 msgid "Alpha:"
 msgstr "Alfa:"
 
@@ -14696,10 +14675,6 @@ msgid "No active camera set"
 msgstr "Ei aktiivista kamerasarjaa"
 
 
-msgid "Warning!"
-msgstr "Varoitus!"
-
-
 msgid "Attribute Data Detected"
 msgstr "Attribuutti-data havaittu"
 
@@ -14894,10 +14869,6 @@ msgstr "Avainkehys"
 
 msgid "Driver Value:"
 msgstr "Ajuriarvo:"
-
-
-msgid "Value:"
-msgstr "Arvo:"
 
 
 msgid "Driver:"
@@ -16795,6 +16766,11 @@ msgstr "Kaikki renderöintitasot on poistettu käytöstä"
 
 
 msgctxt "Sequence"
+msgid "Brightness/Contrast"
+msgstr "Kirkkaus/Kontrasti"
+
+
+msgctxt "Sequence"
 msgid "Color Balance"
 msgstr "Väritasapaino"
 
@@ -16810,18 +16786,13 @@ msgstr "Sävykorjaus"
 
 
 msgctxt "Sequence"
-msgid "Brightness/Contrast"
-msgstr "Kirkkaus/Kontrasti"
+msgid "Tonemap"
+msgstr "Sävykartta"
 
 
 msgctxt "Sequence"
 msgid "White Balance"
 msgstr "Valkotasapaino"
-
-
-msgctxt "Sequence"
-msgid "Tonemap"
-msgstr "Sävykartta"
 
 
 msgctxt "Sequence"

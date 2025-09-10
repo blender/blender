@@ -5,6 +5,7 @@
 #include "CLG_log.h"
 
 #include "BLI_assert.h"
+#include "BLI_color_types.hh"
 #include "BLI_implicit_sharing.hh"
 #include "BLI_memory_counter.hh"
 #include "BLI_resource_scope.hh"
@@ -21,6 +22,7 @@
 #include "BKE_attribute_legacy_convert.hh"
 #include "BKE_attribute_storage.hh"
 #include "BKE_attribute_storage_blend_write.hh"
+#include "BKE_idtype.hh"
 
 static CLG_LogRef LOG = {"geom.attribute"};
 
@@ -652,6 +654,23 @@ void AttributeStorage::blend_write(BlendWriter &writer,
 
   this->dna_attributes = nullptr;
   this->dna_attributes_num = 0;
+}
+
+void AttributeStorage::foreach_working_space_color(const IDTypeForeachColorFunctionCallback &fn)
+{
+  for (const std::unique_ptr<Attribute> &attribute : this->runtime->attributes) {
+    if (attribute->type_ == blender::bke::AttrType::ColorFloat) {
+      if (auto *data = std::get_if<Attribute::ArrayData>(&attribute->data_)) {
+        fn.implicit_sharing_array(
+            data->sharing_info, reinterpret_cast<ColorGeometry4f *&>(data->data), data->size);
+      }
+      else if (auto *data = std::get_if<Attribute::SingleData>(&attribute->data_)) {
+        fn.implicit_sharing_array(
+            data->sharing_info, reinterpret_cast<ColorGeometry4f *&>(data->value), 1);
+      }
+    }
+    /* Byte colors are always Rec.709 sRGB, no conversion needed. */
+  };
 }
 
 }  // namespace blender::bke

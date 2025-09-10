@@ -14,6 +14,7 @@
  * limitations under the License.
  ******************************************************************************/
 
+#include "PyAnimateableProperty.h"
 #include "PyAPI.h"
 #include "PySound.h"
 #include "PyHandle.h"
@@ -104,6 +105,9 @@ PyInit_aud()
 	if(!initializeSource())
 		return nullptr;
 
+	if(!initializeAnimateableProperty())
+		return nullptr;
+
 #ifdef WITH_CONVOLUTION
 	if(!initializeImpulseResponse())
 		return nullptr;
@@ -116,6 +120,7 @@ PyInit_aud()
 	if(module == nullptr)
 		return nullptr;
 
+	addAnimateablePropertyToModule(module);
 	addSoundToModule(module);
 	addHandleToModule(module);
 	addDeviceToModule(module);
@@ -141,6 +146,8 @@ PyInit_aud()
 	PY_MODULE_ADD_CONSTANT(module, AP_PITCH);
 	PY_MODULE_ADD_CONSTANT(module, AP_LOCATION);
 	PY_MODULE_ADD_CONSTANT(module, AP_ORIENTATION);
+	PY_MODULE_ADD_CONSTANT(module, AP_TIME_STRETCH);
+	PY_MODULE_ADD_CONSTANT(module, AP_PITCH_SCALE);
 	// channels constants
 	PY_MODULE_ADD_CONSTANT(module, CHANNELS_INVALID);
 	PY_MODULE_ADD_CONSTANT(module, CHANNELS_MONO);

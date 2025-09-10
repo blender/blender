@@ -31,8 +31,7 @@ PyDoc_STRVAR(
     ":class:`NonTVertex` when it corresponds to a vertex of the initial\n"
     "input mesh (it is the case for vertices such as corners for example).\n"
     "Thus, this class can be specialized into two classes, the\n"
-    ":class:`TVertex` class and the :class:`NonTVertex` class.");
-
+    ":class:`TVertex` class and the :class:`NonTVertex` class.\n");
 static int ViewVertex_init(BPy_ViewVertex * /*self*/, PyObject * /*args*/, PyObject * /*kwds*/)
 {
   PyErr_SetString(PyExc_TypeError, "cannot instantiate abstract class");
@@ -51,8 +50,7 @@ PyDoc_STRVAR(
     "   (incoming/outgoing).\n"
     "\n"
     "   :return: An orientedViewEdgeIterator pointing to the first ViewEdge.\n"
-    "   :rtype: :class:`orientedViewEdgeIterator`");
-
+    "   :rtype: :class:`orientedViewEdgeIterator`\n");
 static PyObject *ViewVertex_edges_begin(BPy_ViewVertex *self)
 {
   ViewVertexInternal::orientedViewEdgeIterator ove_it(self->vv->edgesBegin());
@@ -68,8 +66,7 @@ PyDoc_STRVAR(
     "   ViewVertex, pointing after the last ViewEdge.\n"
     "\n"
     "   :return: An orientedViewEdgeIterator pointing after the last ViewEdge.\n"
-    "   :rtype: :class:`orientedViewEdgeIterator`");
-
+    "   :rtype: :class:`orientedViewEdgeIterator`\n");
 static PyObject *ViewVertex_edges_end(BPy_ViewVertex * /*self*/)
 {
 #if 0
@@ -92,8 +89,7 @@ PyDoc_STRVAR(
     "   :arg edge: A ViewEdge object.\n"
     "   :type edge: :class:`ViewEdge`\n"
     "   :return: An orientedViewEdgeIterator pointing to the given ViewEdge.\n"
-    "   :rtype: :class:`orientedViewEdgeIterator`");
-
+    "   :rtype: :class:`orientedViewEdgeIterator`\n");
 static PyObject *ViewVertex_edges_iterator(BPy_ViewVertex *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {"edge", nullptr};
@@ -142,8 +138,7 @@ PyDoc_STRVAR(
     ViewVertex_nature_doc,
     "The nature of this ViewVertex.\n"
     "\n"
-    ":type: :class:`Nature`");
-
+    ":type: :class:`Nature`\n");
 static PyObject *ViewVertex_nature_get(BPy_ViewVertex *self, void * /*closure*/)
 {
   Nature::VertexNature nature = self->vv->getNature();

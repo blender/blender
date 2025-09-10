@@ -1063,381 +1063,391 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
   }
 #endif
 
+  /* Mouse offset from the center. */
+  copy_v2_v2_int(moffset, walk->moffset);
+
+  /* Apply `moffset` so we can re-accumulate. */
+  walk->moffset[0] = 0;
+  walk->moffset[1] = 0;
+
+  /* Revert mouse. */
+  if (walk->is_reversed) {
+    moffset[1] = -moffset[1];
+  }
+
+  /* Update jump height. */
+  if (walk->gravity_state != WALK_GRAVITY_STATE_JUMP) {
+    walk->jump_height = WALK_JUMP_HEIGHT;
+  }
+
+  /* Should we redraw? */
+  if ((walk->active_directions) || moffset[0] || moffset[1] ||
+      walk->zlock == WALK_AXISLOCK_STATE_ACTIVE || walk->gravity_state != WALK_GRAVITY_STATE_OFF ||
+      walk->teleport.state == WALK_TELEPORT_STATE_ON || is_confirm)
   {
-    /* Mouse offset from the center. */
-    copy_v2_v2_int(moffset, walk->moffset);
+    bool changed_viewquat = false;
 
-    /* Apply `moffset` so we can re-accumulate. */
-    walk->moffset[0] = 0;
-    walk->moffset[1] = 0;
+    /* Apply the "scene" grid scale to support navigation around scenes of different sizes. */
+    bool dvec_grid_scale = true;
+    float dvec_tmp[3];
 
-    /* Revert mouse. */
-    if (walk->is_reversed) {
-      moffset[1] = -moffset[1];
-    }
-
-    /* Update jump height. */
-    if (walk->gravity_state != WALK_GRAVITY_STATE_JUMP) {
-      walk->jump_height = WALK_JUMP_HEIGHT;
-    }
-
-    /* Should we redraw? */
-    if ((walk->active_directions) || moffset[0] || moffset[1] ||
-        walk->zlock == WALK_AXISLOCK_STATE_ACTIVE ||
-        walk->gravity_state != WALK_GRAVITY_STATE_OFF ||
-        walk->teleport.state == WALK_TELEPORT_STATE_ON || is_confirm)
-    {
-      /* Apply the "scene" grid scale to support navigation around scenes of different sizes. */
-      bool dvec_grid_scale = true;
-      float dvec_tmp[3];
-
-      /* Time how fast it takes for us to redraw,
-       * this is so simple scenes don't walk too fast. */
-      double time_current;
-      float time_redraw;
-      float time_redraw_clamped;
+    /* Time how fast it takes for us to redraw,
+     * this is so simple scenes don't walk too fast. */
+    double time_current;
+    float time_redraw;
+    float time_redraw_clamped;
 #ifdef NDOF_WALK_DRAW_TOOMUCH
-      walk->redraw = true;
+    walk->redraw = true;
 #endif
-      time_current = BLI_time_now_seconds();
-      time_redraw = float(time_current - walk->time_lastdraw);
+    time_current = BLI_time_now_seconds();
+    time_redraw = float(time_current - walk->time_lastdraw);
 
-      /* Clamp redraw time to avoid jitter in roll correction. */
-      time_redraw_clamped = min_ff(0.05f, time_redraw);
+    /* Clamp redraw time to avoid jitter in roll correction. */
+    time_redraw_clamped = min_ff(0.05f, time_redraw);
 
-      walk->time_lastdraw = time_current;
+    walk->time_lastdraw = time_current;
 
-      /* Base speed in m/s. */
-      walk->speed = WALK_MOVE_SPEED;
+    /* Base speed in m/s. */
+    walk->speed = WALK_MOVE_SPEED;
 
-      if (walk->is_fast) {
-        walk->speed *= WALK_BOOST_FACTOR;
-      }
-      else if (walk->is_slow) {
-        walk->speed *= 1.0f / WALK_BOOST_FACTOR;
-      }
+    if (walk->is_fast) {
+      walk->speed *= WALK_BOOST_FACTOR;
+    }
+    else if (walk->is_slow) {
+      walk->speed *= 1.0f / WALK_BOOST_FACTOR;
+    }
 
-      copy_m3_m4(mat, rv3d->viewinv);
+    copy_m3_m4(mat, rv3d->viewinv);
 
-      {
-        /* Rotate about the X axis- look up/down. */
-        if (moffset[1]) {
-          float upvec[3];
-          float angle;
-          float y;
+    {
+      /* Rotate about the X axis- look up/down. */
+      if (moffset[1]) {
+        float upvec[3];
+        float angle;
+        float y;
 
-          /* Relative offset. */
-          y = float(moffset[1]);
+        /* Relative offset. */
+        y = float(moffset[1]);
 
-          /* Speed factor. */
+        /* Speed factor. */
 #ifdef USE_TABLET_SUPPORT
-          if (walk->is_cursor_absolute) {
-            y /= region->winy;
-            y *= WALK_ROTATE_TABLET_FAC;
-          }
-          else
+        if (walk->is_cursor_absolute) {
+          y /= region->winy;
+          y *= WALK_ROTATE_TABLET_FAC;
+        }
+        else
 #endif
-          {
-            y *= WALK_ROTATE_CONSTANT_FAC;
-          }
+        {
+          y *= WALK_ROTATE_CONSTANT_FAC;
+        }
 
-          /* User adjustment factor. */
-          y *= walk->mouse_speed;
+        /* User adjustment factor. */
+        y *= walk->mouse_speed;
 
-          /* Clamp the angle limits: it ranges from 90.0f to -90.0f. */
-          angle = -asinf(rv3d->viewmat[2][2]);
+        /* Clamp the angle limits: it ranges from 90.0f to -90.0f. */
+        angle = -asinf(rv3d->viewmat[2][2]);
 
-          if (angle > WALK_TOP_LIMIT && y > 0.0f) {
-            y = 0.0f;
-          }
-          else if (angle < WALK_BOTTOM_LIMIT && y < 0.0f) {
-            y = 0.0f;
-          }
+        if (angle > WALK_TOP_LIMIT && y > 0.0f) {
+          y = 0.0f;
+        }
+        else if (angle < WALK_BOTTOM_LIMIT && y < 0.0f) {
+          y = 0.0f;
+        }
 
-          copy_v3_fl3(upvec, 1.0f, 0.0f, 0.0f);
+        copy_v3_fl3(upvec, 1.0f, 0.0f, 0.0f);
+        mul_m3_v3(mat, upvec);
+        /* Rotate about the relative up vector. */
+        axis_angle_to_quat(tmp_quat, upvec, -y);
+        mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
+        changed_viewquat = true;
+      }
+
+      /* Rotate about the Y axis- look left/right. */
+      if (moffset[0]) {
+        float upvec[3];
+        float x;
+
+        /* If we're upside down invert the `moffset`. */
+        copy_v3_fl3(upvec, 0.0f, 1.0f, 0.0f);
+        mul_m3_v3(mat, upvec);
+
+        if (upvec[2] < 0.0f) {
+          moffset[0] = -moffset[0];
+        }
+
+        /* Relative offset. */
+        x = float(moffset[0]);
+
+        /* Speed factor. */
+#ifdef USE_TABLET_SUPPORT
+        if (walk->is_cursor_absolute) {
+          x /= region->winx;
+          x *= WALK_ROTATE_TABLET_FAC;
+        }
+        else
+#endif
+        {
+          x *= WALK_ROTATE_CONSTANT_FAC;
+        }
+
+        /* User adjustment factor. */
+        x *= walk->mouse_speed;
+
+        /* Rotate about the relative up vector */
+        axis_angle_to_quat_single(tmp_quat, 'Z', x);
+        mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
+        changed_viewquat = true;
+      }
+
+      if (walk->zlock == WALK_AXISLOCK_STATE_ACTIVE) {
+        float upvec[3];
+        copy_v3_fl3(upvec, 1.0f, 0.0f, 0.0f);
+        mul_m3_v3(mat, upvec);
+
+        /* Make sure we have some Z rolling. */
+        if (fabsf(upvec[2]) > 0.00001f) {
+          float roll = upvec[2] * 5.0f;
+          /* Rotate the view about this axis. */
+          copy_v3_fl3(upvec, 0.0f, 0.0f, 1.0f);
           mul_m3_v3(mat, upvec);
           /* Rotate about the relative up vector. */
-          axis_angle_to_quat(tmp_quat, upvec, -y);
+          axis_angle_to_quat(tmp_quat,
+                             upvec,
+                             roll * time_redraw_clamped * walk->zlock_momentum *
+                                 WALK_ZUP_CORRECT_FAC);
           mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
+          changed_viewquat = true;
+
+          walk->zlock_momentum += WALK_ZUP_CORRECT_ACCEL;
         }
-
-        /* Rotate about the Y axis- look left/right. */
-        if (moffset[0]) {
-          float upvec[3];
-          float x;
-
-          /* If we're upside down invert the `moffset`. */
-          copy_v3_fl3(upvec, 0.0f, 1.0f, 0.0f);
-          mul_m3_v3(mat, upvec);
-
-          if (upvec[2] < 0.0f) {
-            moffset[0] = -moffset[0];
-          }
-
-          /* Relative offset. */
-          x = float(moffset[0]);
-
-          /* Speed factor. */
-#ifdef USE_TABLET_SUPPORT
-          if (walk->is_cursor_absolute) {
-            x /= region->winx;
-            x *= WALK_ROTATE_TABLET_FAC;
-          }
-          else
-#endif
-          {
-            x *= WALK_ROTATE_CONSTANT_FAC;
-          }
-
-          /* User adjustment factor. */
-          x *= walk->mouse_speed;
-
-          /* Rotate about the relative up vector */
-          axis_angle_to_quat_single(tmp_quat, 'Z', x);
-          mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
-        }
-
-        if (walk->zlock == WALK_AXISLOCK_STATE_ACTIVE) {
-          float upvec[3];
-          copy_v3_fl3(upvec, 1.0f, 0.0f, 0.0f);
-          mul_m3_v3(mat, upvec);
-
-          /* Make sure we have some Z rolling. */
-          if (fabsf(upvec[2]) > 0.00001f) {
-            float roll = upvec[2] * 5.0f;
-            /* Rotate the view about this axis. */
-            copy_v3_fl3(upvec, 0.0f, 0.0f, 1.0f);
-            mul_m3_v3(mat, upvec);
-            /* Rotate about the relative up vector. */
-            axis_angle_to_quat(tmp_quat,
-                               upvec,
-                               roll * time_redraw_clamped * walk->zlock_momentum *
-                                   WALK_ZUP_CORRECT_FAC);
-            mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
-
-            walk->zlock_momentum += WALK_ZUP_CORRECT_ACCEL;
-          }
-          else {
-            /* Lock fixed, don't need to check it ever again. */
-            walk->zlock = WALK_AXISLOCK_STATE_DONE;
-          }
+        else {
+          /* Lock fixed, don't need to check it ever again. */
+          walk->zlock = WALK_AXISLOCK_STATE_DONE;
         }
       }
+    }
 
-      /* WASD - 'move' translation code. */
-      if ((walk->active_directions) && (walk->gravity_state == WALK_GRAVITY_STATE_OFF)) {
+    /* WASD - 'move' translation code. */
+    if ((walk->active_directions) && (walk->gravity_state == WALK_GRAVITY_STATE_OFF)) {
 
-        short direction;
-        zero_v3(dvec);
+      short direction;
+      zero_v3(dvec);
 
-        if ((walk->active_directions & WALK_BIT_LOCAL_FORWARD) ||
-            (walk->active_directions & WALK_BIT_LOCAL_BACKWARD))
-        {
+      if ((walk->active_directions & WALK_BIT_LOCAL_FORWARD) ||
+          (walk->active_directions & WALK_BIT_LOCAL_BACKWARD))
+      {
+
+        direction = 0;
+
+        if (walk->active_directions & WALK_BIT_LOCAL_FORWARD) {
+          direction += 1;
+        }
+
+        if (walk->active_directions & WALK_BIT_LOCAL_BACKWARD) {
+          direction -= 1;
+        }
+
+        copy_v3_fl3(dvec_tmp, 0.0f, 0.0f, direction);
+        mul_m3_v3(mat, dvec_tmp);
+
+        if (walk->navigation_mode == WALK_MODE_GRAVITY) {
+          dvec_tmp[2] = 0.0f;
+        }
+
+        add_v3_v3(dvec, dvec_tmp);
+      }
+
+      if ((walk->active_directions & WALK_BIT_LOCAL_LEFT) ||
+          (walk->active_directions & WALK_BIT_LOCAL_RIGHT))
+      {
+
+        direction = 0;
+
+        if (walk->active_directions & WALK_BIT_LOCAL_LEFT) {
+          direction += 1;
+        }
+
+        if (walk->active_directions & WALK_BIT_LOCAL_RIGHT) {
+          direction -= 1;
+        }
+
+        dvec_tmp[0] = direction * rv3d->viewinv[0][0];
+        dvec_tmp[1] = direction * rv3d->viewinv[0][1];
+        dvec_tmp[2] = 0.0f;
+
+        add_v3_v3(dvec, dvec_tmp);
+      }
+
+      /* Up and down movement is only available in free mode, not gravity mode. */
+      if (walk->navigation_mode == WALK_MODE_FREE) {
+
+        if (walk->active_directions & (WALK_BIT_GLOBAL_UP | WALK_BIT_GLOBAL_DOWN)) {
 
           direction = 0;
 
-          if (walk->active_directions & WALK_BIT_LOCAL_FORWARD) {
-            direction += 1;
+          if (walk->active_directions & WALK_BIT_GLOBAL_UP) {
+            direction -= 1;
           }
 
-          if (walk->active_directions & WALK_BIT_LOCAL_BACKWARD) {
-            direction -= 1;
+          if (walk->active_directions & WALK_BIT_GLOBAL_DOWN) {
+            direction += 1;
           }
 
           copy_v3_fl3(dvec_tmp, 0.0f, 0.0f, direction);
-          mul_m3_v3(mat, dvec_tmp);
-
-          if (walk->navigation_mode == WALK_MODE_GRAVITY) {
-            dvec_tmp[2] = 0.0f;
-          }
-
           add_v3_v3(dvec, dvec_tmp);
         }
 
-        if ((walk->active_directions & WALK_BIT_LOCAL_LEFT) ||
-            (walk->active_directions & WALK_BIT_LOCAL_RIGHT))
-        {
+        if (walk->active_directions & (WALK_BIT_LOCAL_UP | WALK_BIT_LOCAL_DOWN)) {
 
           direction = 0;
 
-          if (walk->active_directions & WALK_BIT_LOCAL_LEFT) {
-            direction += 1;
-          }
-
-          if (walk->active_directions & WALK_BIT_LOCAL_RIGHT) {
+          if (walk->active_directions & WALK_BIT_LOCAL_UP) {
             direction -= 1;
           }
 
-          dvec_tmp[0] = direction * rv3d->viewinv[0][0];
-          dvec_tmp[1] = direction * rv3d->viewinv[0][1];
-          dvec_tmp[2] = 0.0f;
-
-          add_v3_v3(dvec, dvec_tmp);
-        }
-
-        /* Up and down movement is only available in free mode, not gravity mode. */
-        if (walk->navigation_mode == WALK_MODE_FREE) {
-
-          if (walk->active_directions & (WALK_BIT_GLOBAL_UP | WALK_BIT_GLOBAL_DOWN)) {
-
-            direction = 0;
-
-            if (walk->active_directions & WALK_BIT_GLOBAL_UP) {
-              direction -= 1;
-            }
-
-            if (walk->active_directions & WALK_BIT_GLOBAL_DOWN) {
-              direction += 1;
-            }
-
-            copy_v3_fl3(dvec_tmp, 0.0f, 0.0f, direction);
-            add_v3_v3(dvec, dvec_tmp);
+          if (walk->active_directions & WALK_BIT_LOCAL_DOWN) {
+            direction += 1;
           }
 
-          if (walk->active_directions & (WALK_BIT_LOCAL_UP | WALK_BIT_LOCAL_DOWN)) {
-
-            direction = 0;
-
-            if (walk->active_directions & WALK_BIT_LOCAL_UP) {
-              direction -= 1;
-            }
-
-            if (walk->active_directions & WALK_BIT_LOCAL_DOWN) {
-              direction += 1;
-            }
-
-            madd_v3_v3fl(dvec, rv3d->viewinv[1], direction);
-          }
+          madd_v3_v3fl(dvec, rv3d->viewinv[1], direction);
         }
-
-        normalize_v3(dvec);
-
-        /* Apply movement. */
-        mul_v3_fl(dvec, walk->speed * time_redraw);
       }
 
-      /* Stick to the floor. */
-      if (walk->navigation_mode == WALK_MODE_GRAVITY &&
-          ELEM(walk->gravity_state, WALK_GRAVITY_STATE_OFF, WALK_GRAVITY_STATE_START))
-      {
-        float ray_distance;
-        float difference = -100.0f;
+      normalize_v3(dvec);
 
+      /* Apply movement. */
+      mul_v3_fl(dvec, walk->speed * time_redraw);
+    }
+
+    /* Stick to the floor. */
+    if (walk->navigation_mode == WALK_MODE_GRAVITY &&
+        ELEM(walk->gravity_state, WALK_GRAVITY_STATE_OFF, WALK_GRAVITY_STATE_START))
+    {
+      float ray_distance;
+      float difference = -100.0f;
+
+      if (walk_floor_distance_get(rv3d, walk, dvec, &ray_distance)) {
+        difference = walk->view_height - ray_distance;
+      }
+
+      /* The distance we would fall naturally smoothly enough that we
+       * can manually drop the object without activating gravity. */
+      const float fall_distance = time_redraw * walk->speed * WALK_BOOST_FACTOR;
+
+      if (fabsf(difference) < fall_distance) {
+        /* slope/stairs */
+        dvec[2] -= difference;
+
+        /* In case we switched from FREE to GRAVITY too close to the ground. */
+        if (walk->gravity_state == WALK_GRAVITY_STATE_START) {
+          walk->gravity_state = WALK_GRAVITY_STATE_OFF;
+        }
+      }
+      else {
+        /* Hijack the teleport variables. */
+        walk->teleport.initial_time = BLI_time_now_seconds();
+        walk->gravity_state = WALK_GRAVITY_STATE_ON;
+        walk->teleport.duration = 0.0f;
+
+        copy_v3_v3(walk->teleport.origin, walk->rv3d->viewinv[3]);
+        copy_v2_v2(walk->teleport.direction, dvec);
+      }
+    }
+
+    /* Falling or jumping). */
+    if (ELEM(walk->gravity_state, WALK_GRAVITY_STATE_ON, WALK_GRAVITY_STATE_JUMP)) {
+      float ray_distance, difference = -100.0f;
+      /* Delta time. */
+      const float t = float(BLI_time_now_seconds() - walk->teleport.initial_time);
+
+      /* Keep moving if we were moving. */
+      copy_v2_v2(dvec, walk->teleport.direction);
+
+      const float z_cur = walk->rv3d->viewinv[3][2] / walk->grid;
+      const float z_new = ((walk->teleport.origin[2] / walk->grid) -
+                           walk_calc_free_fall_distance(walk->gravity, t)) +
+                          /* Jump. */
+                          (t * walk->speed_jump);
+
+      /* Duration is the jump duration. */
+      if (t > walk->teleport.duration) {
+
+        /* Check to see if we are landing. */
         if (walk_floor_distance_get(rv3d, walk, dvec, &ray_distance)) {
           difference = walk->view_height - ray_distance;
         }
 
-        /* The distance we would fall naturally smoothly enough that we
-         * can manually drop the object without activating gravity. */
-        const float fall_distance = time_redraw * walk->speed * WALK_BOOST_FACTOR;
-
-        if (fabsf(difference) < fall_distance) {
-          /* slope/stairs */
+        if (difference > 0.0f) {
+          /* Quit falling, lands at "view_height" from the floor. */
           dvec[2] -= difference;
-
-          /* In case we switched from FREE to GRAVITY too close to the ground. */
-          if (walk->gravity_state == WALK_GRAVITY_STATE_START) {
-            walk->gravity_state = WALK_GRAVITY_STATE_OFF;
-          }
+          walk->gravity_state = WALK_GRAVITY_STATE_OFF;
+          walk->speed_jump = 0.0f;
         }
         else {
-          /* Hijack the teleport variables. */
-          walk->teleport.initial_time = BLI_time_now_seconds();
-          walk->gravity_state = WALK_GRAVITY_STATE_ON;
-          walk->teleport.duration = 0.0f;
-
-          copy_v3_v3(walk->teleport.origin, walk->rv3d->viewinv[3]);
-          copy_v2_v2(walk->teleport.direction, dvec);
-        }
-      }
-
-      /* Falling or jumping). */
-      if (ELEM(walk->gravity_state, WALK_GRAVITY_STATE_ON, WALK_GRAVITY_STATE_JUMP)) {
-        float ray_distance, difference = -100.0f;
-        /* Delta time. */
-        const float t = float(BLI_time_now_seconds() - walk->teleport.initial_time);
-
-        /* Keep moving if we were moving. */
-        copy_v2_v2(dvec, walk->teleport.direction);
-
-        const float z_cur = walk->rv3d->viewinv[3][2] / walk->grid;
-        const float z_new = ((walk->teleport.origin[2] / walk->grid) -
-                             walk_calc_free_fall_distance(walk->gravity, t)) +
-                            /* Jump. */
-                            (t * walk->speed_jump);
-
-        /* Duration is the jump duration. */
-        if (t > walk->teleport.duration) {
-
-          /* Check to see if we are landing. */
-          if (walk_floor_distance_get(rv3d, walk, dvec, &ray_distance)) {
-            difference = walk->view_height - ray_distance;
-          }
-
-          if (difference > 0.0f) {
-            /* Quit falling, lands at "view_height" from the floor. */
-            dvec[2] -= difference;
-            walk->gravity_state = WALK_GRAVITY_STATE_OFF;
-            walk->speed_jump = 0.0f;
-          }
-          else {
-            /* Keep falling. */
-            dvec[2] = z_cur - z_new;
-          }
-        }
-        else {
-          /* Keep going up (jump). */
+          /* Keep falling. */
           dvec[2] = z_cur - z_new;
         }
       }
-
-      /* Teleport. */
-      else if (walk->teleport.state == WALK_TELEPORT_STATE_ON) {
-        float t; /* factor */
-        float new_loc[3];
-        float cur_loc[3];
-
-        /* Linear interpolation. */
-        t = float(BLI_time_now_seconds() - walk->teleport.initial_time);
-        t /= walk->teleport.duration;
-
-        /* Clamp so we don't go past our limit. */
-        if (t >= 1.0f) {
-          t = 1.0f;
-          walk->teleport.state = WALK_TELEPORT_STATE_OFF;
-          walk_navigation_mode_set(walk, walk->teleport.navigation_mode);
-        }
-
-        mul_v3_v3fl(new_loc, walk->teleport.direction, t);
-        add_v3_v3(new_loc, walk->teleport.origin);
-
-        copy_v3_v3(cur_loc, walk->rv3d->viewinv[3]);
-        sub_v3_v3v3(dvec, cur_loc, new_loc);
-
-        /* It doesn't make sense to scale the direction for teleport
-         * as this value is interpolate between two points. */
-        dvec_grid_scale = false;
-      }
-
-      /* Scale the movement to the scene size. */
-      mul_v3_v3fl(dvec_tmp, dvec, dvec_grid_scale ? walk->grid : 1.0f);
-      add_v3_v3(rv3d->ofs, dvec_tmp);
-
-      if (rv3d->persp == RV3D_CAMOB) {
-        walk->need_rotation_keyframe |= (moffset[0] || moffset[1] ||
-                                         walk->zlock == WALK_AXISLOCK_STATE_ACTIVE);
-        walk->need_translation_keyframe |= (len_squared_v3(dvec_tmp) > FLT_EPSILON);
-        walkMoveCamera(
-            C, walk, walk->need_rotation_keyframe, walk->need_translation_keyframe, is_confirm);
+      else {
+        /* Keep going up (jump). */
+        dvec[2] = z_cur - z_new;
       }
     }
-    else {
-      /* We're not redrawing but we need to update the time else the view will jump. */
-      walk->time_lastdraw = BLI_time_now_seconds();
+
+    /* Teleport. */
+    else if (walk->teleport.state == WALK_TELEPORT_STATE_ON) {
+      float t; /* factor */
+      float new_loc[3];
+      float cur_loc[3];
+
+      /* Linear interpolation. */
+      t = float(BLI_time_now_seconds() - walk->teleport.initial_time);
+      t /= walk->teleport.duration;
+
+      /* Clamp so we don't go past our limit. */
+      if (t >= 1.0f) {
+        t = 1.0f;
+        walk->teleport.state = WALK_TELEPORT_STATE_OFF;
+        walk_navigation_mode_set(walk, walk->teleport.navigation_mode);
+      }
+
+      mul_v3_v3fl(new_loc, walk->teleport.direction, t);
+      add_v3_v3(new_loc, walk->teleport.origin);
+
+      copy_v3_v3(cur_loc, walk->rv3d->viewinv[3]);
+      sub_v3_v3v3(dvec, cur_loc, new_loc);
+
+      /* It doesn't make sense to scale the direction for teleport
+       * as this value is interpolate between two points. */
+      dvec_grid_scale = false;
     }
-    /* End drawing. */
-    copy_v3_v3(walk->dvec_prev, dvec);
+
+    /* Scale the movement to the scene size. */
+    mul_v3_v3fl(dvec_tmp, dvec, dvec_grid_scale ? walk->grid : 1.0f);
+    add_v3_v3(rv3d->ofs, dvec_tmp);
+
+    if (changed_viewquat) {
+      /* While operations here are expected to keep the quaternion normalized,
+       * over time floating point error can accumulate error and eventually cause
+       * it not to be normalized, so - normalize when modified to avoid errors.
+       * See: #125586. */
+      normalize_qt(rv3d->viewquat);
+    }
+
+    if (rv3d->persp == RV3D_CAMOB) {
+      walk->need_rotation_keyframe |= (moffset[0] || moffset[1] ||
+                                       walk->zlock == WALK_AXISLOCK_STATE_ACTIVE);
+      walk->need_translation_keyframe |= (len_squared_v3(dvec_tmp) > FLT_EPSILON);
+      walkMoveCamera(
+          C, walk, walk->need_rotation_keyframe, walk->need_translation_keyframe, is_confirm);
+    }
   }
+  else {
+    /* We're not redrawing but we need to update the time else the view will jump. */
+    walk->time_lastdraw = BLI_time_now_seconds();
+  }
+  /* End drawing. */
+  copy_v3_v3(walk->dvec_prev, dvec);
 
   return OPERATOR_FINISHED;
 #undef WALK_ROTATE_TABLET_FAC

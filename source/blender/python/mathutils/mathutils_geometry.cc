@@ -31,12 +31,6 @@
 #include "../generic/py_capi_utils.hh"
 #include "../generic/python_utildefines.hh"
 
-/*-------------------------DOC STRINGS ---------------------------*/
-PyDoc_STRVAR(
-    /* Wrap. */
-    M_Geometry_doc,
-    "The Blender geometry module");
-
 /* ---------------------------------INTERSECTION FUNCTIONS-------------------- */
 
 PyDoc_STRVAR(
@@ -246,8 +240,8 @@ PyDoc_STRVAR(
     "   :arg radius_b: Radius of the second circle\n"
     "   :type radius_b: float\n"
     "   :return: 2 points on between intersecting circles or None when there is no intersection.\n"
-    "   :rtype: tuple[:class:`mathutils.Vector`, :class:`mathutils.Vector`] | tuple[None, "
-    "None]\n");
+    "   :rtype: tuple[:class:`mathutils.Vector`, :class:`mathutils.Vector`] | "
+    "tuple[None, None]\n");
 static PyObject *M_Geometry_intersect_sphere_sphere_2d(PyObject * /*self*/, PyObject *args)
 {
   const char *error_prefix = "intersect_sphere_sphere_2d";
@@ -579,8 +573,8 @@ PyDoc_STRVAR(
     "   :type plane_b_no: :class:`mathutils.Vector`\n"
     "   :return: The line of the intersection represented as a point and a vector or None if the "
     "intersection can't be calculated\n"
-    "   :rtype: tuple[:class:`mathutils.Vector`, :class:`mathutils.Vector`] | tuple[None, "
-    "None]\n");
+    "   :rtype: tuple[:class:`mathutils.Vector`, :class:`mathutils.Vector`] | "
+    "tuple[None, None]\n");
 static PyObject *M_Geometry_intersect_plane_plane(PyObject * /*self*/, PyObject *args)
 {
   const char *error_prefix = "intersect_plane_plane";
@@ -1640,7 +1634,7 @@ PyDoc_STRVAR(
     "   :type vert_coords: Sequence[:class:`mathutils.Vector`]\n"
     "   :arg edges: Edges, as pairs of indices in ``vert_coords``\n"
     "   :type edges: Sequence[Sequence[int, int]]\n"
-    "   :arg faces: Faces, each sublist is a face, as indices in `vert_coords` (CCW oriented)\n"
+    "   :arg faces: Faces, each sublist is a face, as indices in ``vert_coords`` (CCW oriented).\n"
     "   :type faces: Sequence[Sequence[int]]\n"
     "   :arg output_type: What output looks like. 0 => triangles with convex hull. "
     "1 => triangles inside constraints. "
@@ -1660,8 +1654,7 @@ PyDoc_STRVAR(
     "list[list[int]], "
     "list[list[int]], "
     "list[list[int]], "
-    "list[list[int]]]\n"
-    "\n");
+    "list[list[int]]]\n");
 static PyObject *M_Geometry_delaunay_2d_cdt(PyObject * /*self*/, PyObject *args)
 {
   using namespace blender;
@@ -1872,6 +1865,10 @@ static PyMethodDef M_Geometry_methods[] = {
     {nullptr, nullptr, 0, nullptr},
 };
 
+PyDoc_STRVAR(
+    /* Wrap. */
+    M_Geometry_doc,
+    "The Blender geometry module.");
 static PyModuleDef M_Geometry_module_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "mathutils.geometry",

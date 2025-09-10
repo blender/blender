@@ -3034,7 +3034,11 @@ static void filelist_readjob_asset_library(FileListReadJob *job_params,
   filelist_readjob_load_asset_library_data(job_params, do_update);
 
   if (filelist_contains_main(filelist, job_params->current_main)) {
+    asset_system::AssetLibrary *original_file_library = job_params->load_asset_library;
+    job_params->load_asset_library = AS_asset_library_load(
+        job_params->current_main, asset_system::current_file_library_reference());
     filelist_readjob_main_assets_add_items(job_params, stop, do_update, progress);
+    job_params->load_asset_library = original_file_library;
   }
   if (!job_params->only_main_data) {
     filelist_readjob_recursive_dir_add_items(true, job_params, stop, do_update, progress);

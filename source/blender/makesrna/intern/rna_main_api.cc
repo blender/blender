@@ -179,15 +179,28 @@ static void rna_Main_scenes_remove(
   if (BKE_scene_can_be_removed(bmain, scene)) {
     Scene *scene_new = static_cast<Scene *>(scene->id.prev ? scene->id.prev : scene->id.next);
     if (do_unlink) {
-      wmWindow *win = CTX_wm_window(C);
+      /* Don't rely on `CTX_wm_window(C)` as it may have been cleared,
+       * yet windows may still be open that reference this scene. */
+      wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+      LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+        if (WM_window_get_active_scene(win) == scene) {
+#  ifdef WITH_PYTHON
+          BPy_BEGIN_ALLOW_THREADS;
+#  endif
 
-      if (WM_window_get_active_scene(win) == scene) {
+          WM_window_set_active_scene(bmain, C, win, scene_new);
 
+#  ifdef WITH_PYTHON
+          BPy_END_ALLOW_THREADS;
+#  endif
+        }
+      }
+      if (CTX_data_scene(C) == scene) {
 #  ifdef WITH_PYTHON
         BPy_BEGIN_ALLOW_THREADS;
 #  endif
 
-        WM_window_set_active_scene(bmain, C, win, scene_new);
+        CTX_data_scene_set(C, scene_new);
 
 #  ifdef WITH_PYTHON
         BPy_END_ALLOW_THREADS;

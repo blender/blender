@@ -242,6 +242,7 @@ IDTypeInfo IDType_ID_WM = {
     /*foreach_id*/ window_manager_foreach_id,
     /*foreach_cache*/ nullptr,
     /*foreach_path*/ nullptr,
+    /*foreach_working_space_color*/ nullptr,
     /*owner_pointer_get*/ nullptr,
 
     /*blend_write*/ window_manager_blend_write,

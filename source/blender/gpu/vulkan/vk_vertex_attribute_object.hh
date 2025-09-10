@@ -63,8 +63,7 @@ class VKVertexAttributeObject {
                        VKBufferWithOffset *immediate_vertex_buffer,
                        const int64_t vertex_len,
                        const VKShaderInterface &interface,
-                       AttributeMask &r_occupied_attributes,
-                       const bool use_instancing);
+                       AttributeMask &r_occupied_attributes);
 };
 
 }  // namespace blender::gpu

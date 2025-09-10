@@ -87,12 +87,10 @@ Context::~Context()
   BLI_assert(back_right == nullptr);
   BLI_assert(texture_pool == nullptr);
 
+  /** IMPORTANT: Do not free resources (texture, batch, buffers) in this function. These objects
+   * are likely to reference the GL/VK/MTLContext which is already destroyed at this point. */
+
   GPU_matrix_state_discard(matrix_state);
-  GPU_BATCH_DISCARD_SAFE(procedural_points_batch);
-  GPU_BATCH_DISCARD_SAFE(procedural_lines_batch);
-  GPU_BATCH_DISCARD_SAFE(procedural_triangles_batch);
-  GPU_BATCH_DISCARD_SAFE(procedural_triangle_strips_batch);
-  GPU_VERTBUF_DISCARD_SAFE(dummy_vbo);
   delete state_manager;
   delete imm;
 }
@@ -107,6 +105,12 @@ void Context::free_resources()
   back_left = nullptr;
   front_right = nullptr;
   back_right = nullptr;
+
+  GPU_BATCH_DISCARD_SAFE(procedural_points_batch);
+  GPU_BATCH_DISCARD_SAFE(procedural_lines_batch);
+  GPU_BATCH_DISCARD_SAFE(procedural_triangles_batch);
+  GPU_BATCH_DISCARD_SAFE(procedural_triangle_strips_batch);
+  GPU_VERTBUF_DISCARD_SAFE(dummy_vbo);
 
   delete texture_pool;
   texture_pool = nullptr;

@@ -104,6 +104,13 @@ static void curves_foreach_id(ID *id, LibraryForeachIDData *data)
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, curves->surface, IDWALK_CB_NOP);
 }
 
+static void curves_foreach_working_space_color(ID *id,
+                                               const IDTypeForeachColorFunctionCallback &fn)
+{
+  Curves *curves = reinterpret_cast<Curves *>(id);
+  curves->geometry.wrap().attribute_storage.wrap().foreach_working_space_color(fn);
+}
+
 static void curves_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Curves *curves = (Curves *)id;
@@ -159,6 +166,7 @@ IDTypeInfo IDType_ID_CV = {
     /*foreach_id*/ curves_foreach_id,
     /*foreach_cache*/ nullptr,
     /*foreach_path*/ nullptr,
+    /*foreach_working_space_color*/ curves_foreach_working_space_color,
     /*owner_pointer_get*/ nullptr,
 
     /*blend_write*/ curves_blend_write,

@@ -37,9 +37,7 @@
 
 #include "clip_intern.hh" /* own include */
 
-static void track_channel_color(MovieTrackingTrack *track,
-                                const float default_color[3],
-                                float color[3])
+static void track_channel_color(MovieTrackingTrack *track, bool default_color, float color[3])
 {
   if (track->flag & TRACK_CUSTOMCOLOR) {
     float bg[3];
@@ -49,7 +47,7 @@ static void track_channel_color(MovieTrackingTrack *track,
   }
   else {
     if (default_color) {
-      copy_v3_v3(color, default_color);
+      UI_GetThemeColor4fv(TH_TRACK_SELECT, color);
     }
     else {
       UI_GetThemeColor3fv(TH_HEADER, color);
@@ -60,10 +58,14 @@ static void track_channel_color(MovieTrackingTrack *track,
 static void draw_keyframe_shape(
     float x, float y, bool sel, float alpha, uint pos_id, uint color_id)
 {
-  float color[4] = {0.91f, 0.91f, 0.91f, alpha};
+  float color[4];
   if (sel) {
-    UI_GetThemeColorShadeAlpha4fv(TH_STRIP_SELECT, 50, -255 * (1.0f - alpha), color);
+    UI_GetThemeColor4fv(TH_KEYTYPE_KEYFRAME_SELECT, color);
   }
+  else {
+    UI_GetThemeColor4fv(TH_KEYTYPE_KEYFRAME, color);
+  }
+  color[3] = alpha;
 
   immAttr4fv(color_id, color);
   immVertex2f(pos_id, x, y);
@@ -125,11 +127,8 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
     float y = (CHANNEL_FIRST);
 
     /* setup colors for regular and selected strips */
-    UI_GetThemeColor3fv(TH_STRIP, strip);
-    UI_GetThemeColor3fv(TH_STRIP_SELECT, selected_strip);
-
-    strip[3] = 0.5f;
-    selected_strip[3] = 1.0f;
+    UI_GetThemeColor4fv(TH_LONGKEY, strip);
+    UI_GetThemeColor4fv(TH_LONGKEY_SELECT, selected_strip);
 
     GPU_blend(GPU_BLEND_ALPHA);
 
@@ -150,9 +149,8 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
         /* selection background */
         if (sel) {
           float color[4] = {0.0f, 0.0f, 0.0f, 0.3f};
-          float default_color[4] = {0.8f, 0.93f, 0.8f, 0.3f};
 
-          track_channel_color(track, default_color, color);
+          track_channel_color(track, true, color);
           immUniformColor4fv(color);
 
           immRectf(pos_id,
@@ -330,7 +328,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
     {
       MovieTrackingTrack *track = channel->track;
       float color[3];
-      track_channel_color(track, nullptr, color);
+      track_channel_color(track, false, color);
       immUniformColor3fv(color);
 
       immRectf(pos,

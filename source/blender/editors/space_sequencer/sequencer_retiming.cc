@@ -42,8 +42,12 @@ namespace blender::ed::vse {
 
 bool sequencer_retiming_mode_is_active(const bContext *C)
 {
-  Editing *ed = seq::editing_get(CTX_data_sequencer_scene(C));
-  if (ed == nullptr) {
+  Scene *scene = CTX_data_sequencer_scene(C);
+  if (!scene) {
+    return false;
+  }
+  Editing *ed = seq::editing_get(scene);
+  if (!ed) {
     return false;
   }
   return seq::retiming_selection_get(ed).size() > 0;
@@ -129,8 +133,12 @@ void SEQUENCER_OT_retiming_show(wmOperatorType *ot)
 
 static bool retiming_poll(bContext *C)
 {
-  const Editing *ed = seq::editing_get(CTX_data_sequencer_scene(C));
-  if (ed == nullptr) {
+  Scene *scene = CTX_data_sequencer_scene(C);
+  if (!scene) {
+    return false;
+  }
+  Editing *ed = seq::editing_get(scene);
+  if (!ed) {
     return false;
   }
   Strip *strip = ed->act_strip;

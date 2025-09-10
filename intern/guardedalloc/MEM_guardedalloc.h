@@ -382,8 +382,8 @@ inline T *MEM_new(const char *allocation_name, Args &&...args)
  *
  * \note This function uses 'default initialization' on zero-initialized memory, _not_ 'value
  * initialization'. This means that even if a user-defined default constructor is provided,
- * non-explicitely initialized data will be zero-initialized. For POD types (e.g. pure C-style
- * structs), its behavior is functionnally identical to using `MEM_callocN<T>()`.
+ * non-explicitly initialized data will be zero-initialized. For POD types (e.g. pure C-style
+ * structs), its behavior is functionally identical to using `MEM_callocN<T>()`.
  *
  * \warning This function is intended as a temporary work-around during the process of converting
  * Blender data management from C-style (alloc/free) to C++-style (new/delete). It will be removed

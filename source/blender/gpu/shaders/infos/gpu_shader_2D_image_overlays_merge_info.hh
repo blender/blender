@@ -24,7 +24,7 @@ FRAGMENT_OUT(0, float4, fragColor)
 PUSH_CONSTANT(float4x4, ModelViewProjectionMatrix)
 PUSH_CONSTANT(bool, display_transform)
 PUSH_CONSTANT(bool, overlay)
-PUSH_CONSTANT(bool, use_hdr)
+PUSH_CONSTANT(bool, use_hdr_display)
 /* Sampler slots should match OCIO's. */
 SAMPLER(0, sampler2D, image_texture)
 SAMPLER(1, sampler2D, overlays_texture)

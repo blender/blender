@@ -84,7 +84,7 @@ void main()
       return;
     case BG_SOLID_CHECKER:
       /* Unreachable. */
-      assert(0);
+      assert(false);
       return;
   }
 

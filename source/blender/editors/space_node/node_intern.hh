@@ -253,8 +253,8 @@ void UI_node_socket_draw_cache_flush();
 void nodesocket_batch_start();
 void nodesocket_batch_end();
 
-void nodelink_batch_start(SpaceNode &snode);
-void nodelink_batch_end(SpaceNode &snode);
+void nodelink_batch_start(const SpaceNode &snode);
+void nodelink_batch_end(const SpaceNode &snode);
 
 /**
  * \note this is used for fake links in groups too.
@@ -385,6 +385,8 @@ void NODE_OT_options_toggle(wmOperatorType *ot);
 void NODE_OT_node_copy_color(wmOperatorType *ot);
 void NODE_OT_deactivate_viewer(wmOperatorType *ot);
 void NODE_OT_activate_viewer(wmOperatorType *ot);
+void NODE_OT_toggle_viewer(wmOperatorType *ot);
+void NODE_OT_test_inlining_shader_nodes(wmOperatorType *ot);
 
 void NODE_OT_read_viewlayers(wmOperatorType *ot);
 void NODE_OT_render_changed(wmOperatorType *ot);

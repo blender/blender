@@ -12,7 +12,6 @@
 #include "DNA_defs.h"
 
 struct AnimData;
-struct Ipo;
 struct LightgroupMembership;
 struct bNodeTree;
 
@@ -76,8 +75,6 @@ typedef struct World {
   float sun_shadow_filter_radius;
   char _pad4[4];
 
-  /** Old animation system, deprecated for 2.5. */
-  struct Ipo *ipo DNA_DEPRECATED;
   short pr_texture;
   short use_nodes DNA_DEPRECATED;
   char _pad[4];
@@ -90,8 +87,6 @@ typedef struct World {
 
   /** Light-group membership information. */
   struct LightgroupMembership *lightgroup;
-
-  void *_pad1;
 
   /** Runtime. */
   ListBase gpumaterial;

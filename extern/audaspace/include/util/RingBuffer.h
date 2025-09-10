@@ -59,7 +59,12 @@ public:
 	/**
 	 * Returns the pointer to the ring buffer in memory.
 	 */
-	sample_t* getBuffer() const;
+	const sample_t* getBuffer() const;
+
+	/**
+	 * Returns the pointer to the ring buffer in memory.
+	 */
+	sample_t* getBuffer();
 
 	/**
 	 * Returns the size of the ring buffer in bytes.

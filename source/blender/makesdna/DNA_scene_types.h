@@ -155,12 +155,6 @@ typedef enum IMB_Ffmpeg_Codec_ID {
   FFMPEG_CODEC_ID_OPUS = 86076,
 } IMB_Ffmpeg_Codec_ID;
 
-typedef enum eFFMpegVideoHdr {
-  FFM_VIDEO_HDR_NONE = 0,
-  FFM_VIDEO_HDR_REC2100_HLG = 1,
-  FFM_VIDEO_HDR_REC2100_PQ = 2,
-} eFFMpegVideoHdr;
-
 typedef struct FFMpegCodecData {
   int type;
   int codec;       /* Use `codec_id_get()` instead! IMB_Ffmpeg_Codec_ID */
@@ -184,7 +178,7 @@ typedef struct FFMpegCodecData {
   int rc_buffer_size;
   int mux_packet_size;
   int mux_rate;
-  int video_hdr; /* eFFMpegVideoHdr */
+  int _pad;
 
 #ifdef __cplusplus
   IMB_Ffmpeg_Codec_ID codec_id_get() const
@@ -653,6 +647,8 @@ typedef struct BakeData {
 
   char filepath[/*FILE_MAX*/ 1024];
 
+  int type;
+
   short width, height;
   short margin, flag;
 
@@ -663,14 +659,40 @@ typedef struct BakeData {
   char normal_swizzle[3];
   char normal_space;
 
+  char displacement_space;
+
   char target;
   char save_mode;
   char margin_type;
   char view_from;
-  char _pad[4];
+
+  char _pad[7];
 
   struct Object *cage_object;
 } BakeData;
+
+/** #BakeData::type */
+typedef enum eBakeType {
+  R_BAKE_NORMALS = 0,
+  R_BAKE_DISPLACEMENT = 1,
+  R_BAKE_AO = 2,
+  R_BAKE_VECTOR_DISPLACEMENT = 3,
+} eBakeType;
+
+/** #BakeData::flag */
+enum {
+  R_BAKE_CLEAR = 1 << 0,
+  // R_BAKE_OSA = 1 << 1, /* Deprecated. */
+  R_BAKE_TO_ACTIVE = 1 << 2,
+  // R_BAKE_NORMALIZE = 1 << 3, /* Deprecated. */
+  R_BAKE_MULTIRES = 1 << 4,
+  R_BAKE_LORES_MESH = 1 << 5,
+  // R_BAKE_VCOL = 1 << 6, /* Deprecated. */
+  // R_BAKE_USERSCALE = 1 << 7, /* Deprecated. */
+  R_BAKE_CAGE = 1 << 8,
+  R_BAKE_SPLIT_MAT = 1 << 9,
+  R_BAKE_AUTO_NAME = 1 << 10,
+};
 
 /** #BakeData::margin_type (char). */
 typedef enum eBakeMarginType {
@@ -719,6 +741,14 @@ typedef enum eBakePassFilter {
   R_BAKE_PASS_FILTER_INDIRECT = (1 << 7),
   R_BAKE_PASS_FILTER_COLOR = (1 << 8),
 } eBakePassFilter;
+
+/** #BakeData::normal_space and #BakeData::displacement_space */
+typedef enum eBakeSpace {
+  R_BAKE_SPACE_CAMERA = 0,
+  R_BAKE_SPACE_WORLD = 1,
+  R_BAKE_SPACE_OBJECT = 2,
+  R_BAKE_SPACE_TANGENT = 3,
+} eBakeSpace;
 
 #define R_BAKE_PASS_FILTER_ALL (~0)
 
@@ -849,13 +879,11 @@ typedef struct RenderData {
   /** Dither noise intensity. */
   float dither_intensity;
 
-  /* Bake Render options. */
-  short bake_mode, bake_flag;
-  short bake_margin, bake_samples;
-  short bake_margin_type;
-  char _pad9[6];
-  float bake_biasdist;
-  char _pad10[4];
+  /** Legacy Bake Render options. */
+  short bake_mode DNA_DEPRECATED;
+  short bake_flag DNA_DEPRECATED;
+  short bake_margin DNA_DEPRECATED;
+  short bake_margin_type DNA_DEPRECATED;
 
   /**
    * Path to render output.
@@ -904,7 +932,7 @@ typedef struct RenderData {
   /** Performance Options. */
   short perf_flag;
 
-  /** Cycles baking. */
+  /** Baking. */
   struct BakeData bake;
 
   int _pad8;
@@ -951,6 +979,7 @@ typedef enum eQualityOption {
 typedef enum eHairType {
   SCE_HAIR_SHAPE_STRAND = 0,
   SCE_HAIR_SHAPE_STRIP = 1,
+  SCE_HAIR_SHAPE_CYLINDER = 2,
 } eHairType;
 
 /** #RenderData::motion_blur_position */
@@ -1041,11 +1070,13 @@ typedef struct TimeMarker {
  * values are used
  */
 typedef struct UnifiedPaintSettings {
-  /** Unified radius of brush in pixels. */
+  DNA_DEFINE_CXX_METHODS(UnifiedPaintSettings)
+
+  /** Unified diameter of brush in pixels. */
   int size;
 
-  /** Unified radius of brush in Blender units. */
-  float unprojected_radius;
+  /** Unified diameter of brush in Blender units. */
+  float unprojected_size;
 
   /** Unified strength of brush. */
   float alpha;
@@ -1054,9 +1085,13 @@ typedef struct UnifiedPaintSettings {
   float weight;
 
   /** Unified brush color. */
-  float rgb[3];
+  float color[3];
   /** Unified brush secondary color. */
-  float secondary_rgb[3];
+  float secondary_color[3];
+
+  /* Deprecated sRGB color for forward compatibility. */
+  float rgb[3] DNA_DEPRECATED;
+  float secondary_rgb[3] DNA_DEPRECATED;
 
   /** Unified color jitter settings */
   int color_jitter_flag;
@@ -1118,6 +1153,8 @@ typedef struct ToolSystemBrushBindings {
 
 /** Paint Tool Base. */
 typedef struct Paint {
+  DNA_DEFINE_CXX_METHODS(Paint)
+
   /**
    * The active brush. Possibly null. Possibly stored in a separate #Main data-base and not user-
    * counted.
@@ -1141,10 +1178,6 @@ typedef struct Paint {
   /** Cavity curve. */
   struct CurveMapping *cavity_curve;
 
-  /** WM Paint cursor. */
-  void *paint_cursor;
-  unsigned char paint_cursor_col[4];
-
   /** Enum #ePaintFlags. */
   int flags;
 
@@ -1158,7 +1191,6 @@ typedef struct Paint {
   int symmetry_flags;
 
   float tile_offset[3];
-  char _pad2[4];
   struct UnifiedPaintSettings unified_paint_settings;
 
   PaintRuntimeHandle *runtime;
@@ -1268,6 +1300,8 @@ typedef struct ParticleEditSettings {
 
 /** Sculpt. */
 typedef struct Sculpt {
+  DNA_DEFINE_CXX_METHODS(Sculpt)
+
   Paint paint;
 
   /** For rotating around a pivot point. */
@@ -1367,9 +1401,7 @@ typedef struct GpWeightPaint {
 typedef struct VPaint {
   Paint paint;
   char flag;
-  char _pad[3];
-  /** For mirrored painting. */
-  int radial_symm[3] DNA_DEPRECATED;
+  char _pad[7];
 } VPaint;
 
 /** #VPaint::flag */
@@ -1612,6 +1644,8 @@ enum {
 };
 
 typedef struct ToolSettings {
+  DNA_DEFINE_CXX_METHODS(ToolSettings)
+
   /** Vertex paint. */
   VPaint *vpaint;
   /** Weight paint. */
@@ -1722,9 +1756,6 @@ typedef struct ToolSettings {
   /** Keyframe type (see DNA_curve_types.h). */
   char keyframe_type;
 
-  /** Multi-resolution meshes. */
-  char multires_subdiv_type;
-
   /** Edge tagging, store operator settings (no UI access). */
   char edge_mode;
 
@@ -1736,6 +1767,9 @@ typedef struct ToolSettings {
   char transform_flag;
   /** Snap elements (per space-type), #eSnapMode. */
   char snap_node_mode;
+
+  char _pad;
+
   short snap_mode;
   short snap_uv_mode;
   short snap_anim_mode;
@@ -2327,30 +2361,6 @@ enum {
   /** Deprecated, should only be used in versioning code only. */
   R_COLOR_MANAGEMENT = (1 << 0),
   R_COLOR_MANAGEMENT_UNUSED_1 = (1 << 1),
-};
-
-/* bake_mode: same as RE_BAKE_xxx defines. */
-/** #RenderData::bake_flag */
-enum {
-  R_BAKE_CLEAR = 1 << 0,
-  // R_BAKE_OSA = 1 << 1, /* Deprecated. */
-  R_BAKE_TO_ACTIVE = 1 << 2,
-  // R_BAKE_NORMALIZE = 1 << 3, /* Deprecated. */
-  R_BAKE_MULTIRES = 1 << 4,
-  R_BAKE_LORES_MESH = 1 << 5,
-  // R_BAKE_VCOL = 1 << 6, /* Deprecated. */
-  // R_BAKE_USERSCALE = 1 << 7, /* Deprecated. */
-  R_BAKE_CAGE = 1 << 8,
-  R_BAKE_SPLIT_MAT = 1 << 9,
-  R_BAKE_AUTO_NAME = 1 << 10,
-};
-
-/** #RenderData::bake_normal_space */
-enum {
-  R_BAKE_SPACE_CAMERA = 0,
-  R_BAKE_SPACE_WORLD = 1,
-  R_BAKE_SPACE_OBJECT = 2,
-  R_BAKE_SPACE_TANGENT = 3,
 };
 
 /** #RenderData::line_thickness_mode */

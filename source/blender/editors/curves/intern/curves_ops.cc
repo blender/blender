@@ -1135,11 +1135,13 @@ namespace split {
 
 static wmOperatorStatus split_exec(bContext *C, wmOperator * /*op*/)
 {
+  View3D *v3d = CTX_wm_view3d(C);
   VectorSet<Curves *> unique_curves = get_unique_editable_curves(*C);
   for (Curves *curves_id : unique_curves) {
     CurvesGeometry &curves = curves_id->geometry.wrap();
     IndexMaskMemory memory;
-    const IndexMask points_to_split = retrieve_all_selected_points(curves, memory);
+    const IndexMask points_to_split = retrieve_all_selected_points(
+        curves, v3d->overlay.handle_display, memory);
     if (points_to_split.is_empty()) {
       continue;
     }
@@ -1714,9 +1716,9 @@ static wmOperatorStatus exec(bContext *C, wmOperator *op)
 
 static void CURVES_OT_add_bezier(wmOperatorType *ot)
 {
-  ot->name = "Add Bezier";
+  ot->name = "Add Bézier";
   ot->idname = __func__;
-  ot->description = "Add new bezier curve";
+  ot->description = "Add new Bézier curve";
 
   ot->exec = add_bezier::exec;
   ot->poll = editable_curves_in_edit_mode_poll;
@@ -1731,7 +1733,25 @@ namespace set_handle_type {
 
 static wmOperatorStatus exec(bContext *C, wmOperator *op)
 {
-  const HandleType dst_handle_type = HandleType(RNA_enum_get(op->ptr, "type"));
+  const SetHandleType dst_type = SetHandleType(RNA_enum_get(op->ptr, "type"));
+
+  auto new_handle_type = [&](const int8_t handle_type) {
+    switch (dst_type) {
+      case SetHandleType::Free:
+        return int8_t(BEZIER_HANDLE_FREE);
+      case SetHandleType::Auto:
+        return int8_t(BEZIER_HANDLE_AUTO);
+      case SetHandleType::Vector:
+        return int8_t(BEZIER_HANDLE_VECTOR);
+      case SetHandleType::Align:
+        return int8_t(BEZIER_HANDLE_ALIGN);
+      case SetHandleType::Toggle:
+        return int8_t(handle_type == BEZIER_HANDLE_FREE ? BEZIER_HANDLE_ALIGN :
+                                                          BEZIER_HANDLE_FREE);
+    }
+    BLI_assert_unreachable();
+    return int8_t(0);
+  };
 
   for (Curves *curves_id : get_unique_editable_curves(*C)) {
     bke::CurvesGeometry &curves = curves_id->geometry.wrap();
@@ -1750,10 +1770,10 @@ static wmOperatorStatus exec(bContext *C, wmOperator *op)
     threading::parallel_for(curves.points_range(), 4096, [&](const IndexRange range) {
       for (const int point_i : range) {
         if (selection_left[point_i] || selection[point_i]) {
-          handle_types_left[point_i] = int8_t(dst_handle_type);
+          handle_types_left[point_i] = new_handle_type(handle_types_left[point_i]);
         }
         if (selection_right[point_i] || selection[point_i]) {
-          handle_types_right[point_i] = int8_t(dst_handle_type);
+          handle_types_right[point_i] = new_handle_type(handle_types_right[point_i]);
         }
       }
     });
@@ -1769,6 +1789,35 @@ static wmOperatorStatus exec(bContext *C, wmOperator *op)
 
 }  // namespace set_handle_type
 
+const EnumPropertyItem rna_enum_set_handle_type_items[] = {
+    {int(SetHandleType::Auto),
+     "AUTO",
+     0,
+     "Auto",
+     "The location is automatically calculated to be smooth"},
+    {int(SetHandleType::Vector),
+     "VECTOR",
+     0,
+     "Vector",
+     "The location is calculated to point to the next/previous control point"},
+    {int(SetHandleType::Align),
+     "ALIGN",
+     0,
+     "Align",
+     "The location is constrained to point in the opposite direction as the other handle"},
+    {int(SetHandleType::Free),
+     "FREE_ALIGN",
+     0,
+     "Free",
+     "The handle can be moved anywhere, and does not influence the point's other handle"},
+    {int(SetHandleType::Toggle),
+     "TOGGLE_FREE_ALIGN",
+     0,
+     "Toggle Free/Align",
+     "Replace Free handles with Align, and all Align with Free handles"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 static void CURVES_OT_handle_type_set(wmOperatorType *ot)
 {
   ot->name = "Set Handle Type";
@@ -1781,8 +1830,12 @@ static void CURVES_OT_handle_type_set(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  ot->prop = RNA_def_enum(
-      ot->srna, "type", rna_enum_curves_handle_type_items, CURVE_TYPE_POLY, "Type", nullptr);
+  ot->prop = RNA_def_enum(ot->srna,
+                          "type",
+                          rna_enum_set_handle_type_items,
+                          int(ed::curves::SetHandleType::Auto),
+                          "Type",
+                          nullptr);
 }
 
 void operatortypes_curves()
@@ -1814,6 +1867,8 @@ void operatortypes_curves()
   WM_operatortype_append(CURVES_OT_add_circle);
   WM_operatortype_append(CURVES_OT_add_bezier);
   WM_operatortype_append(CURVES_OT_handle_type_set);
+
+  ED_operatortypes_curves_pen();
 }
 
 void operatormacros_curves()
@@ -1845,6 +1900,8 @@ void keymap_curves(wmKeyConfig *keyconf)
   /* Only set in editmode curves, by space_view3d listener. */
   wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Curves", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = editable_curves_in_edit_mode_poll;
+
+  ED_curves_pentool_modal_keymap(keyconf);
 }
 
 }  // namespace blender::ed::curves

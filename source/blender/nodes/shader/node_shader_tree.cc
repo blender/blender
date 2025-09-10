@@ -157,6 +157,9 @@ static bool shader_validate_link(eNodeSocketDatatype from, eNodeSocketDatatype t
   if (from == SOCK_SHADER) {
     return to == SOCK_SHADER;
   }
+  if (ELEM(to, SOCK_BUNDLE, SOCK_CLOSURE) || ELEM(from, SOCK_BUNDLE, SOCK_CLOSURE)) {
+    return from == to;
+  }
   return true;
 }
 
@@ -169,7 +172,9 @@ static bool shader_node_tree_socket_type_valid(blender::bke::bNodeTreeType * /*n
                                                                         SOCK_BOOLEAN,
                                                                         SOCK_VECTOR,
                                                                         SOCK_RGBA,
-                                                                        SOCK_SHADER);
+                                                                        SOCK_SHADER,
+                                                                        SOCK_BUNDLE,
+                                                                        SOCK_CLOSURE);
 }
 
 blender::bke::bNodeTreeType *ntreeType_Shader;
@@ -280,178 +285,6 @@ static bNodeSocket *ntree_shader_node_output_get(bNode *node, int n)
   return reinterpret_cast<bNodeSocket *>(BLI_findlink(&node->outputs, n));
 }
 
-/* Return true on success. */
-static bool ntree_shader_expand_socket_default(bNodeTree *localtree,
-                                               bNode *node,
-                                               bNodeSocket *socket)
-{
-  bNode *value_node;
-  bNodeSocket *value_socket;
-  bNodeSocketValueVector *src_vector;
-  bNodeSocketValueRGBA *src_rgba, *dst_rgba;
-  bNodeSocketValueFloat *src_float, *dst_float;
-  bNodeSocketValueInt *src_int;
-  bNodeSocketValueBoolean *src_bool;
-
-  switch (socket->type) {
-    case SOCK_VECTOR:
-      value_node = blender::bke::node_add_static_node(nullptr, *localtree, SH_NODE_RGB);
-      value_socket = ntree_shader_node_find_output(value_node, "Color");
-      BLI_assert(value_socket != nullptr);
-      src_vector = static_cast<bNodeSocketValueVector *>(socket->default_value);
-      dst_rgba = static_cast<bNodeSocketValueRGBA *>(value_socket->default_value);
-      copy_v3_v3(dst_rgba->value, src_vector->value);
-      dst_rgba->value[3] = 1.0f; /* should never be read */
-      break;
-    case SOCK_RGBA:
-      value_node = blender::bke::node_add_static_node(nullptr, *localtree, SH_NODE_RGB);
-      value_socket = ntree_shader_node_find_output(value_node, "Color");
-      BLI_assert(value_socket != nullptr);
-      src_rgba = static_cast<bNodeSocketValueRGBA *>(socket->default_value);
-      dst_rgba = static_cast<bNodeSocketValueRGBA *>(value_socket->default_value);
-      copy_v4_v4(dst_rgba->value, src_rgba->value);
-      break;
-    case SOCK_BOOLEAN:
-      /* HACK: Support as float. */
-      value_node = blender::bke::node_add_static_node(nullptr, *localtree, SH_NODE_VALUE);
-      value_socket = ntree_shader_node_find_output(value_node, "Value");
-      BLI_assert(value_socket != nullptr);
-      src_bool = static_cast<bNodeSocketValueBoolean *>(socket->default_value);
-      dst_float = static_cast<bNodeSocketValueFloat *>(value_socket->default_value);
-      dst_float->value = float(src_bool->value);
-      break;
-    case SOCK_INT:
-      /* HACK: Support as float. */
-      value_node = blender::bke::node_add_static_node(nullptr, *localtree, SH_NODE_VALUE);
-      value_socket = ntree_shader_node_find_output(value_node, "Value");
-      BLI_assert(value_socket != nullptr);
-      src_int = static_cast<bNodeSocketValueInt *>(socket->default_value);
-      dst_float = static_cast<bNodeSocketValueFloat *>(value_socket->default_value);
-      dst_float->value = float(src_int->value);
-      break;
-    case SOCK_FLOAT:
-      value_node = blender::bke::node_add_static_node(nullptr, *localtree, SH_NODE_VALUE);
-      value_socket = ntree_shader_node_find_output(value_node, "Value");
-      BLI_assert(value_socket != nullptr);
-      src_float = static_cast<bNodeSocketValueFloat *>(socket->default_value);
-      dst_float = static_cast<bNodeSocketValueFloat *>(value_socket->default_value);
-      dst_float->value = src_float->value;
-      break;
-    default:
-      return false;
-  }
-  blender::bke::node_add_link(*localtree, *value_node, *value_socket, *node, *socket);
-  return true;
-}
-
-static void ntree_shader_unlink_hidden_value_sockets(bNode *group_node, bNodeSocket *isock)
-{
-  bNodeTree *group_ntree = (bNodeTree *)group_node->id;
-  bool removed_link = false;
-
-  LISTBASE_FOREACH (bNode *, node, &group_ntree->nodes) {
-    const bool is_group = node->is_group() && (node->id != nullptr);
-
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-      if (!is_group && (sock->flag & SOCK_HIDE_VALUE) == 0) {
-        continue;
-      }
-      /* If socket is linked to a group input node and sockets id match. */
-      if (sock && sock->link && sock->link->fromnode->is_group_input()) {
-        if (STREQ(isock->identifier, sock->link->fromsock->identifier)) {
-          if (is_group) {
-            /* Recursively unlink sockets within the nested group. */
-            ntree_shader_unlink_hidden_value_sockets(node, sock);
-          }
-          else {
-            blender::bke::node_remove_link(group_ntree, *sock->link);
-            removed_link = true;
-          }
-        }
-      }
-    }
-  }
-
-  if (removed_link) {
-    BKE_ntree_update_after_single_tree_change(*G.main, *group_ntree);
-  }
-}
-
-/* Node groups once expanded looses their input sockets values.
- * To fix this, link value/rgba nodes into the sockets and copy the group sockets values. */
-static void ntree_shader_groups_expand_inputs(bNodeTree *localtree)
-{
-  bool link_added = false;
-
-  LISTBASE_FOREACH (bNode *, node, &localtree->nodes) {
-    const bool is_group = node->is_group() && (node->id != nullptr);
-    const bool is_group_output = node->is_group_output() && (node->flag & NODE_DO_OUTPUT);
-
-    if (is_group) {
-      /* Do it recursively. */
-      ntree_shader_groups_expand_inputs((bNodeTree *)node->id);
-    }
-
-    if (is_group || is_group_output) {
-      LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-        if (socket->link != nullptr && !(socket->link->flag & NODE_LINK_MUTED)) {
-          bNodeLink *link = socket->link;
-          /* Fix the case where the socket is actually converting the data. (see #71374)
-           * We only do the case of lossy conversion to float. */
-          if ((socket->type == SOCK_FLOAT) && (link->fromsock->type != link->tosock->type)) {
-            if (link->fromsock->type == SOCK_RGBA) {
-              bNode *tmp = blender::bke::node_add_static_node(
-                  nullptr, *localtree, SH_NODE_RGBTOBW);
-              blender::bke::node_add_link(*localtree,
-                                          *link->fromnode,
-                                          *link->fromsock,
-                                          *tmp,
-                                          *static_cast<bNodeSocket *>(tmp->inputs.first));
-              blender::bke::node_add_link(*localtree,
-                                          *tmp,
-                                          *static_cast<bNodeSocket *>(tmp->outputs.first),
-                                          *node,
-                                          *socket);
-            }
-            else if (link->fromsock->type == SOCK_VECTOR) {
-              bNode *tmp = blender::bke::node_add_static_node(
-                  nullptr, *localtree, SH_NODE_VECTOR_MATH);
-              tmp->custom1 = NODE_VECTOR_MATH_DOT_PRODUCT;
-              bNodeSocket *dot_input1 = static_cast<bNodeSocket *>(tmp->inputs.first);
-              bNodeSocket *dot_input2 = static_cast<bNodeSocket *>(dot_input1->next);
-              bNodeSocketValueVector *input2_socket_value = static_cast<bNodeSocketValueVector *>(
-                  dot_input2->default_value);
-              copy_v3_fl(input2_socket_value->value, 1.0f / 3.0f);
-              blender::bke::node_add_link(
-                  *localtree, *link->fromnode, *link->fromsock, *tmp, *dot_input1);
-              blender::bke::node_add_link(*localtree,
-                                          *tmp,
-                                          *static_cast<bNodeSocket *>(tmp->outputs.last),
-                                          *node,
-                                          *socket);
-            }
-          }
-          continue;
-        }
-
-        if (is_group) {
-          /* Detect the case where an input is plugged into a hidden value socket.
-           * In this case we should just remove the link to trigger the socket default override. */
-          ntree_shader_unlink_hidden_value_sockets(node, socket);
-        }
-
-        if (ntree_shader_expand_socket_default(localtree, node, socket)) {
-          link_added = true;
-        }
-      }
-    }
-  }
-
-  if (link_added) {
-    BKE_ntree_update_after_single_tree_change(*G.main, *localtree);
-  }
-}
-
 static void ntree_shader_unlink_script_nodes(bNodeTree *ntree)
 {
   /* To avoid more trouble in the node tree processing (especially inside
@@ -465,133 +298,6 @@ static void ntree_shader_unlink_script_nodes(bNodeTree *ntree)
     }
   }
 }
-
-static void ntree_shader_groups_remove_muted_links(bNodeTree *ntree)
-{
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->is_group()) {
-      if (node->id != nullptr) {
-        ntree_shader_groups_remove_muted_links(reinterpret_cast<bNodeTree *>(node->id));
-      }
-    }
-  }
-  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {
-    if (link->flag & NODE_LINK_MUTED) {
-      blender::bke::node_remove_link(ntree, *link);
-    }
-  }
-}
-
-static void flatten_group_do(bNodeTree *ntree, bNode *gnode)
-{
-  LinkNode *group_interface_nodes = nullptr;
-  bNodeTree *ngroup = (bNodeTree *)gnode->id;
-
-  /* Add the nodes into the ntree */
-  LISTBASE_FOREACH_MUTABLE (bNode *, node, &ngroup->nodes) {
-    /* Remove interface nodes.
-     * This also removes remaining links to and from interface nodes.
-     * We must delay removal since sockets will reference this node. see: #52092 */
-    if (node->is_group_input() || node->is_group_output()) {
-      BLI_linklist_prepend(&group_interface_nodes, node);
-    }
-    /* migrate node */
-    BLI_remlink(&ngroup->nodes, node);
-    BLI_addtail(&ntree->nodes, node);
-    blender::bke::node_unique_id(*ntree, *node);
-    /* ensure unique node name in the node tree */
-    /* This is very slow and it has no use for GPU nodetree. (see #70609) */
-    // blender::bke::node_unique_name(ntree, node);
-  }
-  ngroup->runtime->nodes_by_id.clear();
-
-  /* Save first and last link to iterate over flattened group links. */
-  bNodeLink *glinks_first = static_cast<bNodeLink *>(ntree->links.last);
-
-  /* Add internal links to the ntree */
-  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ngroup->links) {
-    BLI_remlink(&ngroup->links, link);
-    BLI_addtail(&ntree->links, link);
-  }
-
-  bNodeLink *glinks_last = static_cast<bNodeLink *>(ntree->links.last);
-
-  /* restore external links to and from the gnode */
-  if (glinks_first != nullptr) {
-    /* input links */
-    for (bNodeLink *link = glinks_first->next; link != glinks_last->next; link = link->next) {
-      if (link->fromnode->is_group_input()) {
-        const char *identifier = link->fromsock->identifier;
-        /* find external links to this input */
-        for (bNodeLink *tlink = static_cast<bNodeLink *>(ntree->links.first);
-             tlink != glinks_first->next;
-             tlink = tlink->next)
-        {
-          if (tlink->tonode == gnode && STREQ(tlink->tosock->identifier, identifier)) {
-            blender::bke::node_add_link(
-                *ntree, *tlink->fromnode, *tlink->fromsock, *link->tonode, *link->tosock);
-          }
-        }
-      }
-    }
-    /* Also iterate over the new links to cover passthrough links. */
-    glinks_last = static_cast<bNodeLink *>(ntree->links.last);
-    /* output links */
-    for (bNodeLink *tlink = static_cast<bNodeLink *>(ntree->links.first);
-         tlink != glinks_first->next;
-         tlink = tlink->next)
-    {
-      if (tlink->fromnode == gnode) {
-        const char *identifier = tlink->fromsock->identifier;
-        /* find internal links to this output */
-        for (bNodeLink *link = glinks_first->next; link != glinks_last->next; link = link->next) {
-          /* only use active output node */
-          if (link->tonode->is_group_output() && (link->tonode->flag & NODE_DO_OUTPUT)) {
-            if (STREQ(link->tosock->identifier, identifier)) {
-              blender::bke::node_add_link(
-                  *ntree, *link->fromnode, *link->fromsock, *tlink->tonode, *tlink->tosock);
-            }
-          }
-        }
-      }
-    }
-  }
-
-  while (group_interface_nodes) {
-    bNode *node = static_cast<bNode *>(BLI_linklist_pop(&group_interface_nodes));
-    blender::bke::node_tree_free_local_node(*ntree, *node);
-  }
-
-  BKE_ntree_update_tag_all(ntree);
-}
-
-/* Flatten group to only have a simple single tree */
-static void ntree_shader_groups_flatten(bNodeTree *localtree)
-{
-  /* This is effectively recursive as the flattened groups will add
-   * nodes at the end of the list, which will also get evaluated. */
-  for (bNode *node = static_cast<bNode *>(localtree->nodes.first), *node_next; node;
-       node = node_next)
-  {
-    if (node->is_group() && node->id != nullptr) {
-      flatten_group_do(localtree, node);
-      /* Continue even on new flattened nodes. */
-      node_next = node->next;
-      /* delete the group instance and its localtree. */
-      bNodeTree *ngroup = (bNodeTree *)node->id;
-      blender::bke::node_tree_free_local_node(*localtree, *node);
-      blender::bke::node_tree_free_tree(*ngroup);
-      BLI_assert(!ngroup->id.py_instance); /* Or call #BKE_libblock_free_data_py. */
-      MEM_freeN(ngroup);
-    }
-    else {
-      node_next = node->next;
-    }
-  }
-
-  BKE_ntree_update_after_single_tree_change(*G.main, *localtree);
-}
-
 struct branchIterData {
   bool (*node_filter)(const bNode *node);
   int node_count;
@@ -1234,7 +940,8 @@ static void ntree_shader_pruned_unused(bNodeTree *ntree, bNode *output_node)
 
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
     if (node->runtime->tmp_flag == 0) {
-      blender::bke::node_tree_free_local_node(*ntree, *node);
+      blender::bke::node_unlink_node(*ntree, *node);
+      blender::bke::node_free_node(ntree, *node);
       changed = true;
     }
   }
@@ -1249,10 +956,6 @@ void ntreeGPUMaterialNodes(bNodeTree *localtree, GPUMaterial *mat)
   bNodeTreeExec *exec;
 
   ntree_shader_unlink_script_nodes(localtree);
-  ntree_shader_groups_remove_muted_links(localtree);
-  ntree_shader_groups_expand_inputs(localtree);
-  ntree_shader_groups_flatten(localtree);
-
   bNode *output = ntreeShaderOutputNode(localtree, SHD_OUTPUT_EEVEE);
 
   /* Tree is valid if it contains no undefined implicit socket type cast. */

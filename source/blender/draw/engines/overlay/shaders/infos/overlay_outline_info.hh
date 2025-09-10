@@ -15,7 +15,7 @@
 
 #  include "overlay_shader_shared.hh"
 
-#  define HAIR_SHADER
+#  define CURVES_SHADER
 #  define DRW_HAIR_INFO
 
 #  define POINTCLOUD_SHADER
@@ -65,7 +65,8 @@ VERTEX_SOURCE("overlay_outline_prepass_curves_vert.glsl")
 ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_modelmat)
 ADDITIONAL_INFO(draw_globals)
-ADDITIONAL_INFO(draw_hair)
+ADDITIONAL_INFO(draw_curves)
+ADDITIONAL_INFO(draw_curves_infos)
 ADDITIONAL_INFO(draw_object_infos)
 ADDITIONAL_INFO(overlay_outline_prepass)
 GPU_SHADER_CREATE_END()

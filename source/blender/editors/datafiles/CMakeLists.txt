@@ -118,7 +118,9 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.mesh.rip_edge
   ops.mesh.spin
   ops.mesh.vertices_smooth
+  ops.node.add_reroute
   ops.node.links_cut
+  ops.node.links_mute
   ops.paint.eyedropper_add
   ops.paint.vertex_color_fill
   ops.paint.weight_fill
@@ -152,6 +154,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.sculpt.polyline_trim
   ops.sequencer.blade
   ops.sequencer.retime
+  ops.sequencer.slip
   ops.transform.bone_envelope
   ops.transform.bone_size
   ops.transform.edge_slide
@@ -965,6 +968,7 @@ if(WITH_BLENDER)
       cursor_pointer
       cursor_right_handle
       cursor_s_arrow
+      cursor_slip
       cursor_stop
       cursor_swap_area
       cursor_text_edit

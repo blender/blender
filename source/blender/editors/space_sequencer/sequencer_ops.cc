@@ -105,6 +105,8 @@ void sequencer_operatortypes()
   WM_operatortype_append(SEQUENCER_OT_select_side);
   WM_operatortype_append(SEQUENCER_OT_select_side_of_frame);
   WM_operatortype_append(SEQUENCER_OT_select_box);
+  WM_operatortype_append(SEQUENCER_OT_select_lasso);
+  WM_operatortype_append(SEQUENCER_OT_select_circle);
   WM_operatortype_append(SEQUENCER_OT_select_grouped);
 
   /* `sequencer_add.cc` */
@@ -123,6 +125,8 @@ void sequencer_operatortypes()
   WM_operatortype_append(SEQUENCER_OT_strip_modifier_remove);
   WM_operatortype_append(SEQUENCER_OT_strip_modifier_move);
   WM_operatortype_append(SEQUENCER_OT_strip_modifier_copy);
+  WM_operatortype_append(SEQUENCER_OT_strip_modifier_move_to_index);
+  WM_operatortype_append(SEQUENCER_OT_strip_modifier_set_active);
   WM_operatortype_append(SEQUENCER_OT_strip_modifier_equalizer_redefine);
 
   /* sequencer_view.h */
