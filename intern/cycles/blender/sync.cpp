@@ -1005,7 +1005,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine &b_engine,
                          BlenderSession::print_render_stats;
 
   if (background) {
-    params.use_auto_tile = RNA_boolean_get(&cscene, "use_auto_tile");
+    params.use_auto_tile = true;
     params.tile_size = max(get_int(cscene, "tile_size"), 8);
   }
   else {

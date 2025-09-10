@@ -375,6 +375,7 @@ class CYCLES_RENDER_PT_sampling_path_guiding(CyclesButtonsPanel, Panel):
         cscene = scene.cycles
 
         layout = self.layout
+
         layout.use_property_split = True
         layout.use_property_decorate = False
         layout.active = cscene.use_guiding
@@ -384,6 +385,24 @@ class CYCLES_RENDER_PT_sampling_path_guiding(CyclesButtonsPanel, Panel):
         col = layout.column(align=True)
         col.prop(cscene, "use_surface_guiding", text="Surface")
         col.prop(cscene, "use_volume_guiding", text="Volume", text_ctxt=i18n_contexts.id_id)
+
+        if cscene.use_guiding:
+            # Calculation matches TileManager::compute_render_tile_size and
+            # Session::get_effective_tile_size
+            if cscene.tile_size < 128:
+                tile_size = cscene.tile_size
+            else:
+                tile_size = (cscene.tile_size + 128 - 1) & ~(128 - 1)
+                tile_size = min(tile_size, 8192)
+            tile_area = tile_size ** 2
+
+            render_scale = scene.render.resolution_percentage / 100.0
+            render_size_x = int(scene.render.resolution_x * render_scale)
+            render_size_y = int(scene.render.resolution_y * render_scale)
+            render_area = render_size_x * render_size_y
+
+            if render_area > tile_area and render_size_x <= 8192 and render_size_y <= 8192:
+                layout.label(text="May work poorly with render tiling", icon='INFO')
 
 
 class CYCLES_RENDER_PT_sampling_path_guiding_debug(CyclesDebugButtonsPanel, Panel):
@@ -855,11 +874,7 @@ class CYCLES_RENDER_PT_performance_memory(CyclesButtonsPanel, Panel):
         scene = context.scene
         cscene = scene.cycles
 
-        col = layout.column()
-        col.prop(cscene, "use_auto_tile")
-        sub = col.column()
-        sub.active = cscene.use_auto_tile
-        sub.prop(cscene, "tile_size")
+        layout.prop(cscene, "tile_size")
 
 
 class CYCLES_RENDER_PT_performance_acceleration_structure(CyclesButtonsPanel, Panel):

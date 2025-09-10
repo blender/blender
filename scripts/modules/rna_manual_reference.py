@@ -820,7 +820,6 @@ url_manual_mapping = (
     ("bpy.types.cyclesrendersettings.film_exposure*", "render/cycles/render_settings/film.html#bpy-types-cyclesrendersettings-film-exposure"),
     ("bpy.types.cyclesrendersettings.sample_offset*", "render/cycles/render_settings/sampling.html#bpy-types-cyclesrendersettings-sample-offset"),
     ("bpy.types.cyclesrendersettings.texture_limit*", "render/cycles/render_settings/simplify.html#bpy-types-cyclesrendersettings-texture-limit"),
-    ("bpy.types.cyclesrendersettings.use_auto_tile*", "render/cycles/render_settings/performance.html#bpy-types-cyclesrendersettings-use-auto-tile"),
     ("bpy.types.cyclesrendersettings.use_denoising*", "render/cycles/render_settings/sampling.html#bpy-types-cyclesrendersettings-use-denoising"),
     ("bpy.types.editbone.bbone_custom_handle_start*", "animation/armatures/bones/properties/bendy_bones.html#bpy-types-editbone-bbone-custom-handle-start"),
     ("bpy.types.editbone.bbone_handle_use_ease_end*", "animation/armatures/bones/properties/bendy_bones.html#bpy-types-editbone-bbone-handle-use-ease-end"),
