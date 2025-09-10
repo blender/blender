@@ -98,7 +98,7 @@ ENUM_OPERATORS(StickBoneFlag, POS_BONE)
 #define EDGE_UV_SELECT (1u << 5)
 #define FACE_UV_ACTIVE (1u << 6)
 #define FACE_UV_SELECT (1u << 7)
-/* data[1] (2st byte flags) */
+/* data[1] (2nd byte flags) */
 #define VERT_ACTIVE (1u << 0)
 #define VERT_SELECTED (1u << 1)
 #define VERT_SELECTED_BEZT_HANDLE (1u << 2)
