@@ -35,7 +35,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cctype>
 #include <chrono>
 #include <cstdint>
 #include <functional>
@@ -697,9 +696,9 @@ struct Scope {
   std::string_view str_view;
 
   const ParserData *data;
-  size_t index;
+  int64_t index;
 
-  static Scope from_position(const ParserData *data, size_t index)
+  static Scope from_position(const ParserData *data, int64_t index)
   {
     IndexRange index_range = data->scope_ranges[index];
     int str_start = data->token_offsets[index_range.start].start;
@@ -748,7 +747,7 @@ struct Scope {
 
   static Scope invalid()
   {
-    return {"", "", nullptr, size_t(-1)};
+    return {"", "", nullptr, -1};
   }
 
   bool is_valid() const
