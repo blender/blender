@@ -690,7 +690,7 @@ class NODE_OT_viewer_shortcut_set(Operator):
 
 
 class NODE_OT_viewer_shortcut_get(Operator):
-    """Activate a specific viewer node using 1,2,..,9 keys"""
+    """Toggle a specific viewer node using 1,2,..,9 keys"""
     bl_idname = "node.viewer_shortcut_get"
     bl_label = "Fast Preview"
     bl_options = {'REGISTER', 'UNDO'}
@@ -724,7 +724,7 @@ class NODE_OT_viewer_shortcut_get(Operator):
             return {'CANCELLED'}
 
         with bpy.context.temp_override(node=viewer_node):
-            bpy.ops.node.activate_viewer()
+            bpy.ops.node.toggle_viewer()
 
         return {'FINISHED'}
 

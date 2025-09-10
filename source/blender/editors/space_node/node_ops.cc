@@ -45,6 +45,7 @@ void node_operatortypes()
   WM_operatortype_append(NODE_OT_node_copy_color);
   WM_operatortype_append(NODE_OT_deactivate_viewer);
   WM_operatortype_append(NODE_OT_activate_viewer);
+  WM_operatortype_append(NODE_OT_toggle_viewer);
   WM_operatortype_append(NODE_OT_test_inlining_shader_nodes);
 
   WM_operatortype_append(NODE_OT_duplicate);
