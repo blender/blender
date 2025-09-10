@@ -1879,6 +1879,8 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, uiBlock &block
     if (!panel_runtime.header_center_y.has_value()) {
       continue;
     }
+    const bool only_inactive_inputs = panel_has_only_inactive_inputs(node, panel_decl);
+    const bool panel_is_inactive = node.is_muted() || only_inactive_inputs;
 
     const rctf header_rect = {draw_bounds.xmin,
                               draw_bounds.xmax,
@@ -1958,6 +1960,9 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, uiBlock &block
           },
           POINTER_FROM_INT(input_socket->index_in_tree()),
           nullptr);
+      if (panel_is_inactive) {
+        UI_but_flag_enable(panel_toggle_but, UI_BUT_INACTIVE);
+      }
       offsetx += UI_UNIT_X;
     }
 
@@ -1979,8 +1984,7 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, uiBlock &block
         0,
         "");
 
-    const bool only_inactive_inputs = panel_has_only_inactive_inputs(node, panel_decl);
-    if (node.is_muted() || only_inactive_inputs) {
+    if (panel_is_inactive) {
       UI_but_flag_enable(label_but, UI_BUT_INACTIVE);
     }
   }
