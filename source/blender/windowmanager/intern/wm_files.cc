@@ -2319,8 +2319,12 @@ static void wm_autosave_location(char filepath[FILE_MAX])
 
 static bool wm_autosave_write_try(Main *bmain, wmWindowManager *wm)
 {
-  char filepath[FILE_MAX];
+  if (wm->file_saved) {
+    /* When file is already saved, skip creating an auto-save file, see: #146003 */
+    return true;
+  }
 
+  char filepath[FILE_MAX];
   wm_autosave_location(filepath);
 
   /* Technically, we could always just save here, but that would cause performance regressions
