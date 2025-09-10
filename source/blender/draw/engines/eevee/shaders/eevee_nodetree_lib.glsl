@@ -86,9 +86,9 @@ ClosureUndetermined g_closure_get(uchar i)
       return g_closure_bins[2];
 #endif
   }
-  /* TODO: this should be unreachable, better to have an assert. */
-  ClosureUndetermined cl_empty;
-  return cl_empty;
+  /* Unreachable. */
+  assert(0);
+  return g_closure_bins[0];
 }
 
 ClosureUndetermined g_closure_get_resolved(uchar i, float weight_fac)

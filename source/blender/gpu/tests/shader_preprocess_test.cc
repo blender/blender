@@ -825,6 +825,47 @@ float NS_write(float a){ return a; }
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
+  {
+    /* Struct with member function inside namespace. */
+    string input = R"(
+namespace NS {
+struct S {
+  static S static_method(S s) {
+    return S(0);
+  }
+  S other_method(int s) {
+    return S(0);
+  }
+};
+} // End of namespace
+)";
+
+    string expect = R"(
+
+struct NS_S {
+
+
+
+
+
+
+int _pad;};
+#line 4
+   NS_S NS_S_static_method(NS_S s) {
+    return NS_S(0);
+  }
+#line 7
+  NS_S other_method(inout NS_S _inout_sta this_ _inout_end, int s) {
+    return NS_S(0);
+  }
+#line 11
+
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
 }
 GPU_TEST(preprocess_namespace);
 

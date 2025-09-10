@@ -1236,7 +1236,9 @@ GLuint GLShader::create_shader_stage(GLenum gl_stage,
         sources[SOURCES_INDEX_SPECIALIZATION_CONSTANTS]);
   }
 
-  if (DEBUG_LOG_SHADER_SRC_ON_ERROR) {
+  if (DEBUG_LOG_SHADER_SRC_ON_ERROR ||
+      (this->name_get().startswith("MADefault Material") && gl_stage == GL_FRAGMENT_SHADER))
+  {
     /* Store the generated source for printing in case the link fails. */
     StringRefNull source_type;
     switch (gl_stage) {

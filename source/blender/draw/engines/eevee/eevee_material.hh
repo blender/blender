@@ -184,6 +184,38 @@ static inline eClosureBits shader_closure_bits_from_flag(const GPUMaterial *gpum
   return closure_bits;
 }
 
+/* Count the number of closure bins required for the given combination of closure types. */
+static inline int to_gbuffer_bin_count(const eClosureBits closure_bits)
+{
+  int closure_data_slots = 0;
+  if (closure_bits & CLOSURE_DIFFUSE) {
+    if ((closure_bits & CLOSURE_TRANSLUCENT) && !(closure_bits & CLOSURE_CLEARCOAT)) {
+      /* Special case to allow translucent with diffuse without noise.
+       * Revert back to noise if clear coat is present. */
+      closure_data_slots |= (1 << 2);
+    }
+    else {
+      closure_data_slots |= (1 << 0);
+    }
+  }
+  if (closure_bits & CLOSURE_SSS) {
+    closure_data_slots |= (1 << 0);
+  }
+  if (closure_bits & CLOSURE_REFRACTION) {
+    closure_data_slots |= (1 << 0);
+  }
+  if (closure_bits & CLOSURE_TRANSLUCENT) {
+    closure_data_slots |= (1 << 0);
+  }
+  if (closure_bits & CLOSURE_REFLECTION) {
+    closure_data_slots |= (1 << 1);
+  }
+  if (closure_bits & CLOSURE_CLEARCOAT) {
+    closure_data_slots |= (1 << 2);
+  }
+  return count_bits_i(closure_data_slots);
+};
+
 static inline eMaterialGeometry to_material_geometry(const Object *ob)
 {
   switch (ob->type) {

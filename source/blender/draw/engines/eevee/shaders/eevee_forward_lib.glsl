@@ -95,7 +95,7 @@ void forward_lighting_eval(float thickness, out float3 radiance, out float3 tran
   float3 radiance_indirect = float3(0.0f);
   for (uchar i = 0; i < LIGHT_CLOSURE_EVAL_COUNT; i++) {
     ClosureUndetermined cl = g_closure_get_resolved(i, 1.0f);
-    if (cl.weight > 1e-5f) {
+    if (cl.weight > CLOSURE_WEIGHT_CUTOFF) {
       float3 direct_light = closure_light_get(stack, i).light_shadowed;
       float3 indirect_light = lightprobe_eval(samp, cl, g_data.P, V, thickness);
 
