@@ -206,10 +206,16 @@ class GHOST_IWindow {
   virtual GHOST_TSuccess setOrder(GHOST_TWindowOrder order) = 0;
 
   /**
+   * Acquire the next buffer of the swap chain.
+   * \return A boolean success indicator.
+   */
+  virtual GHOST_TSuccess swapBufferAcquire() = 0;
+
+  /**
    * Swaps front and back buffers of a window.
    * \return A boolean success indicator.
    */
-  virtual GHOST_TSuccess swapBuffers() = 0;
+  virtual GHOST_TSuccess swapBufferRelease() = 0;
 
   /**
    * Sets the swap interval for #swapBuffers.

@@ -1645,6 +1645,7 @@ void wm_draw_update(bContext *C)
     if (wm_draw_update_test_window(bmain, C, win)) {
       /* Sets context window+screen. */
       wm_window_make_drawable(wm, win);
+      wm_window_swap_buffer_acquire(win);
 
       /* Notifiers for screen redraw. */
       ED_screen_ensure_updated(C, wm, win);
@@ -1652,7 +1653,7 @@ void wm_draw_update(bContext *C)
       wm_draw_window(C, win);
       wm_draw_update_clear_window(C, win);
 
-      wm_window_swap_buffers(win);
+      wm_window_swap_buffer_release(win);
     }
   }
 

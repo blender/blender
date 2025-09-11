@@ -138,7 +138,7 @@ GHOST_ContextMTL::~GHOST_ContextMTL()
   }
 }
 
-GHOST_TSuccess GHOST_ContextMTL::swapBuffers()
+GHOST_TSuccess GHOST_ContextMTL::swapBufferRelease()
 {
   if (metal_view_) {
     metalSwapBuffers();

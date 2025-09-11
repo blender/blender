@@ -141,6 +141,7 @@ static void mainwindow_log(MainWindow *mw, char *str)
 static void mainwindow_do_draw(MainWindow *mw)
 {
   GHOST_ActivateWindowDrawingContext(mw->win);
+  GHOST_SwapWindowBufferAcquire(mw->win);
   GPU_context_active_set(mw->gpu_context);
 
   if (mw->lmbut[0]) {
@@ -154,7 +155,7 @@ static void mainwindow_do_draw(MainWindow *mw)
   glColor3f(0.5, 0.6, 0.8);
   glRecti(mw->tmouse[0] - 5, mw->tmouse[1] - 5, mw->tmouse[0] + 5, mw->tmouse[1] + 5);
 
-  GHOST_SwapWindowBuffers(mw->win);
+  GHOST_SwapWindowBufferRelease(mw->win);
 }
 
 static void mainwindow_do_reshape(MainWindow *mw)
@@ -432,6 +433,7 @@ static void loggerwindow_do_draw(LoggerWindow *lw)
   int sb_rect[2][2], sb_thumb[2][2];
 
   GHOST_ActivateWindowDrawingContext(lw->win);
+  GHOST_SwapWindowBufferAcquire(lw->win);
   GPU_context_active_set(lw->gpu_context);
 
   glClearColor(1, 1, 1, 1);
@@ -468,7 +470,7 @@ static void loggerwindow_do_draw(LoggerWindow *lw)
     BLF_draw(lw->font, line, 256);  // XXX
   }
 
-  GHOST_SwapWindowBuffers(lw->win);
+  GHOST_SwapWindowBufferRelease(lw->win);
 
   immDeactivate();
 }
@@ -657,6 +659,7 @@ typedef struct {
 static void extrawindow_do_draw(ExtraWindow *ew)
 {
   GHOST_ActivateWindowDrawingContext(ew->win);
+  GHOST_SwapWindowBufferAcquire(eq->win);
   GPU_context_active_set(ew->gpu_context);
 
   glClearColor(1, 1, 1, 1);
@@ -665,7 +668,7 @@ static void extrawindow_do_draw(ExtraWindow *ew)
   glColor3f(0.8, 0.8, 0.8);
   glRecti(10, 10, ew->size[0] - 10, ew->size[1] - 10);
 
-  GHOST_SwapWindowBuffers(ew->win);
+  GHOST_SwapWindowBufferRelease(ew->win);
 }
 
 static void extrawindow_do_reshape(ExtraWindow *ew)

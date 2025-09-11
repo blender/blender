@@ -33,6 +33,7 @@
 #  endif
 #endif
 
+#include <optional>
 #include <vector>
 
 #ifndef GHOST_OPENGL_VK_CONTEXT_FLAGS
@@ -125,11 +126,13 @@ class GHOST_ContextVK : public GHOST_Context {
    */
   ~GHOST_ContextVK() override;
 
+  /** \copydoc #GHOST_IContext::swapBuffersAcquire */
+  GHOST_TSuccess swapBufferAcquire() override;
   /**
    * Swaps front and back buffers of a window.
    * \return  A boolean success indicator.
    */
-  GHOST_TSuccess swapBuffers() override;
+  GHOST_TSuccess swapBufferRelease() override;
 
   /**
    * Activates the drawing context of this window.
@@ -165,8 +168,8 @@ class GHOST_ContextVK : public GHOST_Context {
   GHOST_TSuccess getVulkanSwapChainFormat(GHOST_VulkanSwapChainData *r_swap_chain_data) override;
 
   GHOST_TSuccess setVulkanSwapBuffersCallbacks(
-      std::function<void(const GHOST_VulkanSwapChainData *)> swap_buffers_pre_callback,
-      std::function<void(void)> swap_buffers_post_callback,
+      std::function<void(const GHOST_VulkanSwapChainData *)> swap_buffer_draw_callback,
+      std::function<void(void)> swap_buffer_acquired_callback,
       std::function<void(GHOST_VulkanOpenXRData *)> openxr_acquire_framebuffer_image_callback,
       std::function<void(GHOST_VulkanOpenXRData *)> openxr_release_framebuffer_image_callback)
       override;
@@ -237,8 +240,10 @@ class GHOST_ContextVK : public GHOST_Context {
   VkSurfaceFormatKHR surface_format_;
   bool use_hdr_swapchain_;
 
-  std::function<void(const GHOST_VulkanSwapChainData *)> swap_buffers_pre_callback_;
-  std::function<void(void)> swap_buffers_post_callback_;
+  std::optional<uint32_t> acquired_swapchain_image_index_;
+
+  std::function<void(const GHOST_VulkanSwapChainData *)> swap_buffer_draw_callback_;
+  std::function<void(void)> swap_buffer_acquired_callback_;
   std::function<void(GHOST_VulkanOpenXRData *)> openxr_acquire_framebuffer_image_callback_;
   std::function<void(GHOST_VulkanOpenXRData *)> openxr_release_framebuffer_image_callback_;
 

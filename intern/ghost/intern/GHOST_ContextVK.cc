@@ -696,8 +696,13 @@ GHOST_ContextVK::~GHOST_ContextVK()
   }
 }
 
-GHOST_TSuccess GHOST_ContextVK::swapBuffers()
+GHOST_TSuccess GHOST_ContextVK::swapBufferAcquire()
 {
+  if (acquired_swapchain_image_index_.has_value()) {
+    assert(false);
+    return GHOST_kFailure;
+  }
+
   GHOST_DeviceVK &device_vk = vulkan_instance->device.value();
   VkDevice vk_device = device_vk.vk_device;
 
@@ -708,7 +713,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
    * submission fence to be signaled, to ensure the invariant holds for the next call to
    * `swapBuffers`.
    *
-   * We will pass the current GHOST_Frame to the swap_buffers_pre_callback_ for command buffer
+   * We will pass the current GHOST_Frame to the swap_buffer_draw_callback_ for command buffer
    * submission, and it is the responsibility of that callback to use the current GHOST_Frame's
    * fence for it's submission fence. Since the callback is called after we wait for the next frame
    * to be complete, it is also safe in the callback to clean up resources associated with the next
@@ -749,8 +754,8 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
     }
 #endif
   }
-  /* There is no valid swapchain as the previous window was minimized. User can have maximized the
-   * window so we need to check if the swapchain can be created. */
+  /* there is no valid swapchain when the previous window was minimized. User can have maximized
+   * the window so we need to check if the swapchain has to be created. */
   if (swapchain_ == VK_NULL_HANDLE) {
     recreateSwapchain(use_hdr_swapchain);
   }
@@ -776,21 +781,22 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
     }
   }
 
-  /* Fast path for invalid swapchains. When not valid we don't acquire/present, but we do render to
-   * make sure the render graphs don't keep memory allocated that isn't used. */
-  if (swapchain_ == VK_NULL_HANDLE) {
-    CLOG_TRACE(
-        &LOG,
-        "Swap-chain invalid (due to minimized window), perform rendering to reduce render graph "
-        "resources.");
-    GHOST_VulkanSwapChainData swap_chain_data = {};
-    if (swap_buffers_pre_callback_) {
-      swap_buffers_pre_callback_(&swap_chain_data);
-    }
-    if (swap_buffers_post_callback_) {
-      swap_buffers_post_callback_();
-    }
+  /* Acquired callback is also called when there is no swapchain.
+   *
+   * When acquiring swap chain (image) and the swap chain is discarded (window has been minimized).
+   * We have trigger a last acquired callback to reduce the attachments of the GPUFramebuffer.
+   * Vulkan backend will retrieve the data (getVulkanSwapChainFormat) containing a render extent of
+   * 0,0.
+   *
+   * The next frame window manager will detect that the window is minimized and doesn't draw the
+   * window at all.
+   */
+  if (swap_buffer_acquired_callback_) {
+    swap_buffer_acquired_callback_();
+  }
 
+  if (swapchain_ == VK_NULL_HANDLE) {
+    CLOG_TRACE(&LOG, "Swap-chain unavailable (minimized window).");
     return GHOST_kSuccess;
   }
 
@@ -798,7 +804,35 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
              "Acquired swap-chain image (render_frame=%lu, image_index=%u)",
              render_frame_,
              image_index);
+  acquired_swapchain_image_index_ = image_index;
+
+  return GHOST_kSuccess;
+}
+
+GHOST_TSuccess GHOST_ContextVK::swapBufferRelease()
+{
+  /* Minimized windows don't have a swapchain and swapchain image. In this case we perform the draw
+   * to release render graph and discarded resources. */
+  if (swapchain_ == VK_NULL_HANDLE) {
+    GHOST_VulkanSwapChainData swap_chain_data = {};
+    if (swap_buffer_draw_callback_) {
+      swap_buffer_draw_callback_(&swap_chain_data);
+    }
+    return GHOST_kSuccess;
+  }
+
+  if (!acquired_swapchain_image_index_.has_value()) {
+    assert(false);
+    return GHOST_kFailure;
+  }
+  GHOST_DeviceVK &device_vk = vulkan_instance->device.value();
+  VkDevice vk_device = device_vk.vk_device;
+
+  uint32_t image_index = acquired_swapchain_image_index_.value();
   GHOST_SwapchainImage &swapchain_image = swapchain_images_[image_index];
+  GHOST_Frame &submission_frame_data = frame_data_[render_frame_];
+  const bool use_hdr_swapchain = hdr_info_ && hdr_info_->hdr_enabled &&
+                                 device_vk.use_vk_ext_swapchain_colorspace;
 
   GHOST_VulkanSwapChainData swap_chain_data;
   swap_chain_data.image = swapchain_image.vk_image;
@@ -810,8 +844,8 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
   swap_chain_data.sdr_scale = (hdr_info_) ? hdr_info_->sdr_white_level : 1.0f;
 
   vkResetFences(vk_device, 1, &submission_frame_data.submission_fence);
-  if (swap_buffers_pre_callback_) {
-    swap_buffers_pre_callback_(&swap_chain_data);
+  if (swap_buffer_draw_callback_) {
+    swap_buffer_draw_callback_(&swap_chain_data);
   }
 
   VkPresentInfoKHR present_info = {};
@@ -828,22 +862,17 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
     std::scoped_lock lock(device_vk.queue_mutex);
     present_result = vkQueuePresentKHR(device_vk.generic_queue, &present_info);
   }
+  acquired_swapchain_image_index_.reset();
 
   if (present_result == VK_ERROR_OUT_OF_DATE_KHR || present_result == VK_SUBOPTIMAL_KHR) {
     recreateSwapchain(use_hdr_swapchain);
-    if (swap_buffers_post_callback_) {
-      swap_buffers_post_callback_();
-    }
     return GHOST_kSuccess;
   }
   if (present_result != VK_SUCCESS) {
     CLOG_ERROR(&LOG,
                "Vulkan: failed to present swap-chain image : %s",
                vulkan_error_as_string(present_result));
-  }
-
-  if (swap_buffers_post_callback_) {
-    swap_buffers_post_callback_();
+    return GHOST_kFailure;
   }
 
   return GHOST_kSuccess;
@@ -888,13 +917,13 @@ GHOST_TSuccess GHOST_ContextVK::getVulkanHandles(GHOST_VulkanHandles &r_handles)
 }
 
 GHOST_TSuccess GHOST_ContextVK::setVulkanSwapBuffersCallbacks(
-    std::function<void(const GHOST_VulkanSwapChainData *)> swap_buffers_pre_callback,
-    std::function<void(void)> swap_buffers_post_callback,
+    std::function<void(const GHOST_VulkanSwapChainData *)> swap_buffer_draw_callback,
+    std::function<void(void)> swap_buffer_acquired_callback,
     std::function<void(GHOST_VulkanOpenXRData *)> openxr_acquire_framebuffer_image_callback,
     std::function<void(GHOST_VulkanOpenXRData *)> openxr_release_framebuffer_image_callback)
 {
-  swap_buffers_pre_callback_ = swap_buffers_pre_callback;
-  swap_buffers_post_callback_ = swap_buffers_post_callback;
+  swap_buffer_draw_callback_ = swap_buffer_draw_callback;
+  swap_buffer_acquired_callback_ = swap_buffer_acquired_callback;
   openxr_acquire_framebuffer_image_callback_ = openxr_acquire_framebuffer_image_callback;
   openxr_release_framebuffer_image_callback_ = openxr_release_framebuffer_image_callback;
   return GHOST_kSuccess;

@@ -376,8 +376,9 @@ bool processEvent(GHOST_EventHandle hEvent, GHOST_TUserDataPtr user_data)
         break;
       }
       setViewPortGL(window2);
+      GHOST_SwapWindowBufferAcquire(window2);
       drawGL();
-      GHOST_SwapWindowBuffers(window2);
+      GHOST_SwapWindowBufferRelease(window2);
       break;
     }
     default:

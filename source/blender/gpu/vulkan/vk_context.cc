@@ -348,21 +348,26 @@ render_graph::VKResourceAccessInfo &VKContext::reset_and_get_access_info()
 /** \name Graphics pipeline
  * \{ */
 
-void VKContext::swap_buffers_pre_callback(const GHOST_VulkanSwapChainData *swap_chain_data)
+void VKContext::swap_buffer_acquired_callback()
 {
   VKContext *context = VKContext::get();
   BLI_assert(context);
-  context->swap_buffers_pre_handler(*swap_chain_data);
+  context->swap_buffer_acquired_handler();
 }
 
-void VKContext::swap_buffers_post_callback()
+void VKContext::swap_buffer_draw_callback(const GHOST_VulkanSwapChainData *swap_chain_data)
 {
   VKContext *context = VKContext::get();
   BLI_assert(context);
-  context->swap_buffers_post_handler();
+  context->swap_buffer_draw_handler(*swap_chain_data);
 }
 
-void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_chain_data)
+void VKContext::swap_buffer_acquired_handler()
+{
+  sync_backbuffer();
+}
+
+void VKContext::swap_buffer_draw_handler(const GHOST_VulkanSwapChainData &swap_chain_data)
 {
   const bool do_blit_to_swapchain = swap_chain_data.image != VK_NULL_HANDLE;
   const bool use_shader = swap_chain_data.surface_format.colorSpace ==
@@ -443,11 +448,6 @@ void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_c
 #if 0
   device.debug_print();
 #endif
-}
-
-void VKContext::swap_buffers_post_handler()
-{
-  sync_backbuffer();
 }
 
 void VKContext::specialization_constants_set(

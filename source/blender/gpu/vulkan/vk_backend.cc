@@ -589,8 +589,8 @@ Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
   VKContext *context = new VKContext(ghost_window, ghost_context);
   device.context_register(*context);
   GHOST_SetVulkanSwapBuffersCallbacks((GHOST_ContextHandle)ghost_context,
-                                      VKContext::swap_buffers_pre_callback,
-                                      VKContext::swap_buffers_post_callback,
+                                      VKContext::swap_buffer_draw_callback,
+                                      VKContext::swap_buffer_acquired_callback,
                                       VKContext::openxr_acquire_framebuffer_image_callback,
                                       VKContext::openxr_release_framebuffer_image_callback);
 

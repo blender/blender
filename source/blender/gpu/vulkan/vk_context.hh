@@ -148,16 +148,16 @@ class VKContext : public Context, NonCopyable {
   VKDescriptorSetTracker &descriptor_set_get();
   VKStateManager &state_manager_get() const;
 
-  static void swap_buffers_pre_callback(const GHOST_VulkanSwapChainData *data);
-  static void swap_buffers_post_callback();
+  static void swap_buffer_draw_callback(const GHOST_VulkanSwapChainData *data);
+  static void swap_buffer_acquired_callback();
   static void openxr_acquire_framebuffer_image_callback(GHOST_VulkanOpenXRData *data);
   static void openxr_release_framebuffer_image_callback(GHOST_VulkanOpenXRData *data);
 
   void specialization_constants_set(const shader::SpecializationConstants *constants_state);
 
  private:
-  void swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &data);
-  void swap_buffers_post_handler();
+  void swap_buffer_draw_handler(const GHOST_VulkanSwapChainData &data);
+  void swap_buffer_acquired_handler();
 
   void openxr_acquire_framebuffer_image_handler(GHOST_VulkanOpenXRData &data);
   void openxr_release_framebuffer_image_handler(GHOST_VulkanOpenXRData &data);
