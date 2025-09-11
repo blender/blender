@@ -159,7 +159,7 @@ class ViewMapBuilder {
    *    ioViewMap
    *      The view map. It is modified by the method.
    *      The list of all features edges of the scene.
-   *      Each time an intersection is found, the 2 intersecting edges are splitted (creating 2 new
+   *      Each time an intersection is found, the 2 intersecting edges are split (creating 2 new
    * vertices) At the end, this list is updated with the adding of all new created edges (resulting
    * from splitting). iAlgo The algo to use for computing the intersections
    */
@@ -208,8 +208,8 @@ class ViewMapBuilder {
   /** Computes the 2D scene silhouette edges visibility using a ray casting. On each edge, a ray is
    * cast to check its quantitative invisibility. The list of occluders are each time stored in the
    * tested edge. ioViewMap The view map. The 2D scene silhouette edges as FEdges. These edges have
-   * already been splitted at their intersections points. Thus, these edges do not intersect
-   * anymore. The visibility corresponding to each edge of ioScene is set is this edge.
+   * already been split at their intersections points. Thus, these edges do not intersect anymore.
+   * The visibility corresponding to each edge of ioScene is set is this edge.
    */
   void ComputeRayCastingVisibility(ViewMap *ioViewMap, real epsilon = 1.0e-6);
   void ComputeFastRayCastingVisibility(ViewMap *ioViewMap, real epsilon = 1.0e-6);

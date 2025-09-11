@@ -1676,8 +1676,8 @@ class SShape {
   }
 
   /* splits an edge into 2 edges. The new vertex and edge are added to the sshape list of vertices
-   * and edges a new chain is also created. returns the new edge. ioEdge The edge that gets
-   * splitted newpoint x,y,z coordinates of the new point.
+   * and edges a new chain is also created. returns the new edge. ioEdge The edge that gets split
+   * newpoint x,y,z coordinates of the new point.
    */
   inline FEdge *SplitEdgeIn2(FEdge *ioEdge, SVertex *ioNewVertex)
   {

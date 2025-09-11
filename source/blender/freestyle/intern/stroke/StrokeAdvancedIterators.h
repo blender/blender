@@ -120,7 +120,7 @@ class vertex_iterator_base : public IteratorBase<Traits, BidirectionalIteratorTa
     return tmp;
   }
 
-  // comparibility
+  // comparability
   virtual bool operator!=(const Self &b) const
   {
     return (_it != b._it);
