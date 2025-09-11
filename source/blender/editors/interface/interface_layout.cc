@@ -2317,7 +2317,7 @@ void uiLayout::prop(PointerRNA *ptr,
 #endif /* UI_PROP_DECORATE */
 
   if (no_bg) {
-    layout->emboss_ = prev_emboss;
+    emboss_ = prev_emboss;
   }
 
   /* ensure text isn't added to icon_only buttons */
