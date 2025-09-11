@@ -2917,7 +2917,7 @@ bool IMB_colormanagement_display_is_wide_gamut(const ColorManagedDisplaySettings
 
 int IMB_colormanagement_view_get_id_by_name(const char *name)
 {
-  return g_all_view_names.index_of(name);
+  return g_all_view_names.index_of_try(name);
 }
 
 const char *IMB_colormanagement_view_get_name_by_id(const int index)
