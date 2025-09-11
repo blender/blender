@@ -3835,7 +3835,7 @@ static void rna_def_modifier(BlenderRNA *brna)
   prop = RNA_def_property(srna, "enable", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, nullptr, "flag", STRIP_MODIFIER_FLAG_MUTE);
   RNA_def_property_ui_text(prop, "Enable", "Enable this modifier");
-  RNA_def_property_ui_icon(prop, ICON_HIDE_ON, 1);
+  RNA_def_property_ui_icon(prop, ICON_RESTRICT_RENDER_ON, 1);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_StripModifier_update");
 
   prop = RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);
