@@ -71,6 +71,14 @@ if NOT "%1" == "" (
 	) else if "%1" == "2022b" (
 		set BUILD_VS_YEAR=2022
 		set VSWHERE_ARGS=-products Microsoft.VisualStudio.Product.BuildTools
+	) else if "%1" == "2026" (
+		set BUILD_VS_YEAR=2026
+	) else if "%1" == "2026i" (
+		set BUILD_VS_YEAR=2026
+		set VSWHERE_ARGS=-prerelease
+	) else if "%1" == "2026b" (
+		set BUILD_VS_YEAR=2026
+		set VSWHERE_ARGS=-products Microsoft.VisualStudio.Product.BuildTools
 	) else if "%1" == "packagename" (
 		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% -DCPACK_OVERRIDE_PACKAGENAME="%2"
 		shift /1
