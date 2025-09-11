@@ -4,7 +4,10 @@
 
 import bpy
 from bpy.types import Menu, Panel
-from bpy.app.translations import contexts as i18n_contexts
+from bpy.app.translations import (
+    pgettext_n as n_,
+    contexts as i18n_contexts,
+)
 
 
 class TIME_PT_playhead_snapping(Panel):
@@ -42,15 +45,16 @@ def playback_controls(layout, context):
     tool_settings = context.tool_settings
     screen = context.screen
 
-    row = layout.row(align=True)
-    row.popover(
+    layout.popover(
         panel="TIME_PT_playback",
         text="Playback",
     )
-    row.popover(
+
+    icon_keytype = 'KEYTYPE_{:s}_VEC'.format(context.tool_settings.keyframe_type)
+    layout.popover(
         panel="TIME_PT_keyframing_settings",
-        text="Keying",
         text_ctxt=i18n_contexts.id_windowmanager,
+        icon=icon_keytype,
     )
 
     if is_sequencer:
@@ -284,6 +288,24 @@ class TIME_PT_keyframing_settings(TimelinePanelButtons, Panel):
     bl_label = "Keyframing Settings"
     bl_options = {'HIDE_HEADER'}
     bl_region_type = 'HEADER'
+    bl_description = "Active keying set and keyframing settings"
+
+    def draw_header(self, context):
+        st = context.space_data
+        is_sequencer = st.type == 'SEQUENCE_EDITOR' and st.view_type == 'SEQUENCER'
+        scene = context.scene if not is_sequencer else context.sequencer_scene
+        if scene.keying_sets_all.active:
+            self.bl_label = scene.keying_sets_all.active.bl_label
+            if scene.keying_sets_all.active.bl_label in scene.keying_sets:
+                # Do not translate, this keying set is user-defined.
+                self.bl_translation_context = "Do not translate"
+            else:
+                # Use the keying set's translation context (default).
+                self.bl_translation_context = scene.keying_sets_all.active.bl_rna.translation_context
+        else:
+            # Use a custom translation context to differentiate from compositing keying.
+            self.bl_label = n_("Keying", i18n_contexts.id_windowmanager)
+            self.bl_translation_context = i18n_contexts.id_windowmanager
 
     def draw(self, context):
         layout = self.layout
