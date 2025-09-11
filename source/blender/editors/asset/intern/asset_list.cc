@@ -133,7 +133,7 @@ void AssetList::setup()
       "",
       "");
 
-  const bool use_asset_indexer = !USER_EXPERIMENTAL_TEST(&U, no_asset_indexing);
+  const bool use_asset_indexer = !USER_DEVELOPER_TOOL_TEST(&U, no_asset_indexing);
   filelist_setindexer(files, use_asset_indexer ? &index::file_indexer_asset : &file_indexer_noop);
 
   char dirpath[FILE_MAX_LIBEXTRA] = "";

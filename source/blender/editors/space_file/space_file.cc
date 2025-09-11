@@ -254,7 +254,7 @@ static void file_refresh(const bContext *C, ScrArea *area)
   }
 
   if (ED_fileselect_is_asset_browser(sfile)) {
-    const bool use_asset_indexer = !USER_EXPERIMENTAL_TEST(&U, no_asset_indexing);
+    const bool use_asset_indexer = !USER_DEVELOPER_TOOL_TEST(&U, no_asset_indexing);
     filelist_setindexer(
         sfile->files, use_asset_indexer ? &asset::index::file_indexer_asset : &file_indexer_noop);
   }

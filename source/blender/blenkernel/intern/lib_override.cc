@@ -86,7 +86,7 @@ namespace blender::bke::liboverride {
 
 bool is_auto_resync_enabled()
 {
-  return !USER_EXPERIMENTAL_TEST(&U, no_override_auto_resync) &&
+  return !USER_DEVELOPER_TOOL_TEST(&U, no_override_auto_resync) &&
          (G.fileflags & G_LIBOVERRIDE_NO_AUTO_RESYNC) == 0;
 }
 
