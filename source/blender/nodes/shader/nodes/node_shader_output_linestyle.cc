@@ -46,6 +46,8 @@ void register_node_type_sh_output_linestyle()
 
   sh_node_type_base(&ntype, "ShaderNodeOutputLineStyle", SH_NODE_OUTPUT_LINESTYLE);
   ntype.ui_name = "Line Style Output";
+  ntype.ui_description =
+      "Control the mixing of texture information into the base color of line styles";
   ntype.enum_name_legacy = "OUTPUT_LINESTYLE";
   ntype.nclass = NODE_CLASS_OUTPUT;
   ntype.declare = file_ns::node_declare;

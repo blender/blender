@@ -219,6 +219,7 @@ static void node_register()
 
   fn_node_type_base(&ntype, "FunctionNodeSeparateColor", FN_NODE_SEPARATE_COLOR);
   ntype.ui_name = "Separate Color";
+  ntype.ui_description = "Split a color into separate channels, based on a particular color model";
   ntype.enum_name_legacy = "SEPARATE_COLOR";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;

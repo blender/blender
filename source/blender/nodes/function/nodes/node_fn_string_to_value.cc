@@ -130,6 +130,7 @@ static void node_register()
 
   fn_node_type_base(&ntype, "FunctionNodeStringToValue");
   ntype.ui_name = "String to Value";
+  ntype.ui_description = "Derive a numeric value from a given string representation";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
   ntype.initfunc = node_init;

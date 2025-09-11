@@ -29,6 +29,8 @@ static void node_register()
   static blender::bke::bNodeType ntype;
   fn_node_type_base(&ntype, "FunctionNodeTransposeMatrix", FN_NODE_TRANSPOSE_MATRIX);
   ntype.ui_name = "Transpose Matrix";
+  ntype.ui_description =
+      "Flip a matrix over its diagonal, turning columns into rows and vice-versa";
   ntype.enum_name_legacy = "TRANSPOSE_MATRIX";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;

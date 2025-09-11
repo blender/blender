@@ -52,6 +52,7 @@ static void node_register()
   static blender::bke::bNodeType ntype;
   fn_node_type_base(&ntype, "FunctionNodeMatrixMultiply", FN_NODE_MATRIX_MULTIPLY);
   ntype.ui_name = "Multiply Matrices";
+  ntype.ui_description = "Perform a matrix multiplication on two input matrices";
   ntype.enum_name_legacy = "MATRIX_MULTIPLY";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;

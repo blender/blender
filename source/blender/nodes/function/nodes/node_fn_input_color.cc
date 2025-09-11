@@ -43,6 +43,7 @@ static void node_register()
 
   fn_node_type_base(&ntype, "FunctionNodeInputColor", FN_NODE_INPUT_COLOR);
   ntype.ui_name = "Color";
+  ntype.ui_description = "Output a color value chosen with the color picker widget";
   ntype.enum_name_legacy = "INPUT_COLOR";
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = node_declare;

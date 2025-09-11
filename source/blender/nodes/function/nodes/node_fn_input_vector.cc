@@ -42,6 +42,7 @@ static void node_register()
 
   fn_node_type_base(&ntype, "FunctionNodeInputVector", FN_NODE_INPUT_VECTOR);
   ntype.ui_name = "Vector";
+  ntype.ui_description = "Provide a vector value that can be connected to other nodes in the tree";
   ntype.enum_name_legacy = "INPUT_VECTOR";
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = node_declare;

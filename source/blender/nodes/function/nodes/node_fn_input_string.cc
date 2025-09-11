@@ -113,6 +113,7 @@ static void node_register()
 
   fn_node_type_base(&ntype, "FunctionNodeInputString", FN_NODE_INPUT_STRING);
   ntype.ui_name = "String";
+  ntype.ui_description = "Provide a string value that can be connected to other nodes in the tree";
   ntype.enum_name_legacy = "INPUT_STRING";
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = node_declare;

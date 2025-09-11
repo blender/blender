@@ -95,7 +95,7 @@ static void node_register()
   static blender::bke::bNodeType ntype;
   geo_node_type_base(&ntype, "GeometryNodeListLength");
   ntype.ui_name = "List Length";
-  ntype.ui_description = "Return the length of a list";
+  ntype.ui_description = "Count how many items are in a given list";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
