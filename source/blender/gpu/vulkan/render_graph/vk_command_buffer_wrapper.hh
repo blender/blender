@@ -17,7 +17,6 @@ struct VKExtensions;
 namespace blender::gpu::render_graph {
 class VKCommandBufferInterface {
  public:
-  bool use_dynamic_rendering = true;
   bool use_dynamic_rendering_local_read = true;
 
   VKCommandBufferInterface() {}
@@ -133,8 +132,6 @@ class VKCommandBufferInterface {
   virtual void set_viewport(const Vector<VkViewport> viewports) = 0;
   virtual void set_scissor(const Vector<VkRect2D> scissors) = 0;
 
-  virtual void begin_render_pass(const VkRenderPassBeginInfo *render_pass_begin_info) = 0;
-  virtual void end_render_pass() = 0;
   /* VK_KHR_dynamic_rendering */
   virtual void begin_rendering(const VkRenderingInfo *p_rendering_info) = 0;
   virtual void end_rendering() = 0;
@@ -265,8 +262,6 @@ class VKCommandBufferWrapper : public VKCommandBufferInterface {
                    VkQueryControlFlags vk_query_control_flags) override;
   void end_query(VkQueryPool vk_query_pool, uint32_t query_index) override;
   void reset_query_pool(VkQueryPool, uint32_t first_query, uint32_t query_count) override;
-  void begin_render_pass(const VkRenderPassBeginInfo *vk_render_pass) override;
-  void end_render_pass() override;
   void begin_rendering(const VkRenderingInfo *p_rendering_info) override;
   void end_rendering() override;
   void begin_debug_utils_label(const VkDebugUtilsLabelEXT *vk_debug_utils_label) override;

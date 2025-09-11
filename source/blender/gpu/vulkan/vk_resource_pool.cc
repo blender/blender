@@ -26,8 +26,6 @@ void VKDiscardPool::move_data(VKDiscardPool &src_pool, TimelineValue timeline)
   src_pool.shader_modules_.update_timeline(timeline);
   src_pool.pipelines_.update_timeline(timeline);
   src_pool.pipeline_layouts_.update_timeline(timeline);
-  src_pool.framebuffers_.update_timeline(timeline);
-  src_pool.render_passes_.update_timeline(timeline);
   src_pool.descriptor_pools_.update_timeline(timeline);
   buffer_views_.extend(std::move(src_pool.buffer_views_));
   buffers_.extend(std::move(src_pool.buffers_));
@@ -36,8 +34,6 @@ void VKDiscardPool::move_data(VKDiscardPool &src_pool, TimelineValue timeline)
   shader_modules_.extend(std::move(src_pool.shader_modules_));
   pipelines_.extend(std::move(src_pool.pipelines_));
   pipeline_layouts_.extend(std::move(src_pool.pipeline_layouts_));
-  framebuffers_.extend(std::move(src_pool.framebuffers_));
-  render_passes_.extend(std::move(src_pool.render_passes_));
   descriptor_pools_.extend(std::move(src_pool.descriptor_pools_));
 }
 
@@ -81,18 +77,6 @@ void VKDiscardPool::discard_pipeline_layout(VkPipelineLayout vk_pipeline_layout)
   pipeline_layouts_.append_timeline(timeline_, vk_pipeline_layout);
 }
 
-void VKDiscardPool::discard_framebuffer(VkFramebuffer vk_framebuffer)
-{
-  std::scoped_lock mutex(mutex_);
-  framebuffers_.append_timeline(timeline_, vk_framebuffer);
-}
-
-void VKDiscardPool::discard_render_pass(VkRenderPass vk_render_pass)
-{
-  std::scoped_lock mutex(mutex_);
-  render_passes_.append_timeline(timeline_, vk_render_pass);
-}
-
 void VKDiscardPool::discard_descriptor_pool_for_reuse(VkDescriptorPool vk_descriptor_pool,
                                                       VKDescriptorPools *descriptor_pools)
 {
@@ -133,14 +117,6 @@ void VKDiscardPool::destroy_discarded_resources(VKDevice &device, bool force)
 
   shader_modules_.remove_old(current_timeline, [&](VkShaderModule vk_shader_module) {
     vkDestroyShaderModule(device.vk_handle(), vk_shader_module, nullptr);
-  });
-
-  framebuffers_.remove_old(current_timeline, [&](VkFramebuffer vk_framebuffer) {
-    vkDestroyFramebuffer(device.vk_handle(), vk_framebuffer, nullptr);
-  });
-
-  render_passes_.remove_old(current_timeline, [&](VkRenderPass vk_render_pass) {
-    vkDestroyRenderPass(device.vk_handle(), vk_render_pass, nullptr);
   });
 
   descriptor_pools_.remove_old(
