@@ -1144,20 +1144,9 @@ float BKE_brush_sample_masktex(
   return intensity;
 }
 
-/* Unified Size / Strength / Color */
-
-/* XXX: be careful about setting size and unprojected radius
- * because they depend on one another
- * these functions do not set the other corresponding value
- * this can lead to odd behavior if size and unprojected
- * radius become inconsistent.
- * the biggest problem is that it isn't possible to change
- * unprojected radius because a view context is not
- * available.  my usual solution to this is to use the
- * ratio of change of the size to change the unprojected
- * radius.  Not completely convinced that is correct.
- * In any case, a better solution is needed to prevent
- * inconsistency. */
+/* -------------------------------------------------------------------- */
+/** \name Unified Settings
+ * \{ */
 
 const float *BKE_brush_color_get(const Paint *paint, const Brush *brush)
 {
@@ -1239,6 +1228,13 @@ void BKE_brush_color_sync_legacy(UnifiedPaintSettings *ups)
   linearrgb_to_srgb_v3_v3(ups->secondary_rgb, ups->secondary_color);
 }
 
+/* Be careful about setting size and unprojected size because they depend on one another these
+ * functions do not set the other corresponding value this can lead to odd behavior if size and
+ * unprojected radius become inconsistent. The biggest problem is that it isn't possible to change
+ * unprojected radius because a view context is not available. My usual solution to this is to use
+ * the ratio of change of the size to change the unprojected radius. Not completely convinced that
+ * is correct. In any case, a better solution is needed to prevent inconsistency. */
+
 void BKE_brush_size_set(Paint *paint, Brush *brush, int size)
 {
   UnifiedPaintSettings *ups = &paint->unified_paint_settings;
@@ -1311,6 +1307,30 @@ float BKE_brush_unprojected_radius_get(const Paint *paint, const Brush *brush)
   return BKE_brush_unprojected_size_get(paint, brush) / 2.0f;
 }
 
+void BKE_brush_scale_unprojected_size(float *unprojected_size,
+                                      int new_brush_size,
+                                      int old_brush_size)
+{
+  float scale = new_brush_size;
+  /* avoid division by zero */
+  if (old_brush_size != 0) {
+    scale /= float(old_brush_size);
+  }
+  (*unprojected_size) *= scale;
+}
+
+void BKE_brush_scale_size(int *r_brush_size,
+                          float new_unprojected_size,
+                          float old_unprojected_size)
+{
+  float scale = new_unprojected_size;
+  /* avoid division by zero */
+  if (old_unprojected_size != 0) {
+    scale /= new_unprojected_size;
+  }
+  (*r_brush_size) = int(float(*r_brush_size) * scale);
+}
+
 void BKE_brush_alpha_set(Paint *paint, Brush *brush, float alpha)
 {
   UnifiedPaintSettings *ups = &paint->unified_paint_settings;
@@ -1371,29 +1391,7 @@ void BKE_brush_input_samples_set(Paint *paint, Brush *brush, int value)
   }
 }
 
-void BKE_brush_scale_unprojected_size(float *unprojected_size,
-                                      int new_brush_size,
-                                      int old_brush_size)
-{
-  float scale = new_brush_size;
-  /* avoid division by zero */
-  if (old_brush_size != 0) {
-    scale /= float(old_brush_size);
-  }
-  (*unprojected_size) *= scale;
-}
-
-void BKE_brush_scale_size(int *r_brush_size,
-                          float new_unprojected_size,
-                          float old_unprojected_size)
-{
-  float scale = new_unprojected_size;
-  /* avoid division by zero */
-  if (old_unprojected_size != 0) {
-    scale /= new_unprojected_size;
-  }
-  (*r_brush_size) = int(float(*r_brush_size) * scale);
-}
+/** \} */
 
 void BKE_brush_jitter_pos(const Paint &paint,
                           const Brush &brush,
