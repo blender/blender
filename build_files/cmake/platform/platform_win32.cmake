@@ -295,9 +295,13 @@ endif()
 string(APPEND PLATFORM_LINKFLAGS " /SUBSYSTEM:CONSOLE /STACK:2097152")
 set(PLATFORM_LINKFLAGS_RELEASE "/NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib")
 
-if(NOT WITH_COMPILER_ASAN)
-  # ASAN is incompatible with `fastlink`, it will appear to work,
-  # but will not resolve symbols which makes it somewhat useless.
+if(
+    (NOT WITH_COMPILER_ASAN) AND
+    # ASAN is incompatible with `fastlink`, it will appear to work,
+    # but will not resolve symbols which makes it somewhat useless.
+    MSVC_VERSION LESS 1950
+    # /debug:fastlink is no longer supported in vs2026
+  )
   string(APPEND PLATFORM_LINKFLAGS_DEBUG "/debug:fastlink ")
 endif()
 string(APPEND PLATFORM_LINKFLAGS_DEBUG " /IGNORE:4099 /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:libcmtd.lib")
