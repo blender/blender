@@ -35,6 +35,7 @@ void VKPixelBuffer::create(bool memory_export)
                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                  VmaAllocationCreateFlags(0),
+                 0.8f,
                  memory_export);
   debug::object_label(buffer_.vk_handle(), "PixelBuffer");
 
