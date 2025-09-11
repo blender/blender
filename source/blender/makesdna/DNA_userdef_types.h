@@ -208,8 +208,8 @@ typedef struct UserDef_TempWinBounds {
 } UserDef_TempWinBounds;
 
 /**
- * Checking experimental members must use the #USER_EXPERIMENTAL_TEST() macro
- * unless the #USER_DEVELOPER_UI is known to be enabled.
+ * Checking experimental members must use either the #USER_EXPERIMENTAL_TEST() macro
+ * or the #USER_DEVELOPER_TOOL_TEST() macro.
  */
 typedef struct UserDef_Experimental {
   /* Debug options, always available. */
@@ -236,7 +236,9 @@ typedef struct UserDef_Experimental {
   char _pad[6];
 } UserDef_Experimental;
 
-#define USER_EXPERIMENTAL_TEST(userdef, member) \
+#define USER_EXPERIMENTAL_TEST(userdef, member) (((userdef)->experimental).member)
+
+#define USER_DEVELOPER_TOOL_TEST(userdef, member) \
   (((userdef)->flag & USER_DEVELOPER_UI) && ((userdef)->experimental).member)
 
 /**
