@@ -198,9 +198,6 @@ class ShaderNodesInliner {
         params_(params),
         data_type_conversions_(bke::get_implicit_type_conversions())
   {
-    if (dst_tree.id.tag & ID_TAG_NO_MAIN) {
-      BLI_assert(src_tree.id.tag & ID_TAG_NO_MAIN);
-    }
   }
 
   bool do_inline()
