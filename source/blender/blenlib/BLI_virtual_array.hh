@@ -25,6 +25,7 @@
  * see if the increased compile time and binary size is worth it.
  */
 
+#include <functional>
 #include <optional>
 
 #include "BLI_any.hh"
