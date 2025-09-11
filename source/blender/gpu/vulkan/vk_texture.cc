@@ -711,12 +711,8 @@ bool VKTexture::allocate()
 
   if (bool(texture_usage & GPU_TEXTURE_USAGE_MEMORY_EXPORT)) {
     image_info.pNext = &external_memory_create_info;
-#ifdef _WIN32
-    external_memory_create_info.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT;
-#else
-    external_memory_create_info.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
-#endif
-    allocCreateInfo.pool = device.vma_pools.external_memory;
+    external_memory_create_info.handleTypes = vk_external_memory_handle_type();
+    allocCreateInfo.pool = device.vma_pools.external_memory_image.pool;
   }
   result = vmaCreateImage(device.mem_allocator_get(),
                           &image_info,

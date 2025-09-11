@@ -85,14 +85,11 @@ bool VKBuffer::create(size_t size_in_bytes,
 
   if (export_memory) {
     create_info.pNext = &external_memory_create_info;
-#ifdef _WIN32
-    external_memory_create_info.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT;
-#else
-    external_memory_create_info.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
-#endif
+    external_memory_create_info.handleTypes = vk_external_memory_handle_type();
+
     /* Dedicated allocation for zero offset. */
     vma_create_info.flags |= VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
-    vma_create_info.pool = device.vma_pools.external_memory;
+    vma_create_info.pool = device.vma_pools.external_memory_pixel_buffer.pool;
   }
 
   const bool use_descriptor_buffer = device.extensions_get().descriptor_buffer;
