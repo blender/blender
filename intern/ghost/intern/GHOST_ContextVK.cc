@@ -729,7 +729,8 @@ GHOST_TSuccess GHOST_ContextVK::swapBufferAcquire()
   }
   submission_frame_data.discard_pile.destroy(vk_device);
 
-  const bool use_hdr_swapchain = hdr_info_ && hdr_info_->hdr_enabled &&
+  const bool use_hdr_swapchain = hdr_info_ &&
+                                 (hdr_info_->wide_gamut_enabled || hdr_info_->hdr_enabled) &&
                                  device_vk.use_vk_ext_swapchain_colorspace;
   if (use_hdr_swapchain != use_hdr_swapchain_) {
     /* Re-create swapchain if HDR mode was toggled in the system settings. */

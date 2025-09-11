@@ -1996,6 +1996,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
      * consider it always enabled. But may still get disabled if Vulkan has no
      * appropriate surface format. */
     hdr_info_.hdr_enabled = true;
+    hdr_info_.wide_gamut_enabled = true;
     hdr_info_.sdr_white_level = 1.0f;
   }
 #endif
