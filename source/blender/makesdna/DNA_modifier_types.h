@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BLI_implicit_sharing.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_defs.h"
@@ -1069,20 +1070,26 @@ typedef struct MeshDeformModifierData {
   /* result of static binding */
   /** Influences. */
   MDefInfluence *bindinfluences;
+  const ImplicitSharingInfoHandle *bindinfluences_sharing_info;
   /** Offsets into influences array. */
   int *bindoffsets;
+  const ImplicitSharingInfoHandle *bindoffsets_sharing_info;
   /** Coordinates that cage was bound with. */
   float *bindcagecos;
+  const ImplicitSharingInfoHandle *bindcagecos_sharing_info;
   /** Total vertices in mesh and cage. */
   int verts_num, cage_verts_num;
 
   /* result of dynamic binding */
   /** Grid with dynamic binding cell points. */
   MDefCell *dyngrid;
+  const ImplicitSharingInfoHandle *dyngrid_sharing_info;
   /** Dynamic binding vertex influences. */
   MDefInfluence *dyninfluences;
+  const ImplicitSharingInfoHandle *dyninfluences_sharing_info;
   /** Is this vertex bound or not? */
   int *dynverts;
+  const ImplicitSharingInfoHandle *dynverts_sharing_info;
   /** Size of the dynamic bind grid. */
   int dyngridsize;
   /** Total number of vertex influences. */
@@ -1969,6 +1976,7 @@ typedef struct CorrectiveSmoothModifierData {
   /* positions set during 'bind' operator
    * use for MOD_CORRECTIVESMOOTH_RESTSOURCE_BIND */
   float (*bind_coords)[3];
+  const ImplicitSharingInfoHandle *bind_coords_sharing_info;
 
   /* NOTE: -1 is used to bind. */
   unsigned int bind_coords_num;
@@ -2123,6 +2131,7 @@ typedef struct LaplacianDeformModifierData {
   char anchor_grp_name[/*MAX_VGROUP_NAME*/ 64];
   int verts_num, repeat;
   float *vertexco;
+  const ImplicitSharingInfoHandle *vertexco_sharing_info;
   /** Runtime only. */
   void *cache_system;
   /** #LaplacianDeformModifierFlag. */
@@ -2335,7 +2344,7 @@ typedef struct SurfaceDeformModifierData {
   struct Object *target;
   /** Vertex bind data. */
   SDefVert *verts;
-  void *_pad1;
+  const ImplicitSharingInfoHandle *verts_sharing_info;
   float falloff;
   /* Number of vertices on the deformed mesh upon the bind process. */
   unsigned int mesh_verts_num;

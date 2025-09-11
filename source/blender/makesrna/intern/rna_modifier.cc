@@ -1814,7 +1814,7 @@ static void rna_CorrectiveSmoothModifier_rest_source_update(Main *bmain,
   CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)ptr->data;
 
   if (csmd->rest_source != MOD_CORRECTIVESMOOTH_RESTSOURCE_BIND) {
-    MEM_SAFE_FREE(csmd->bind_coords);
+    blender::implicit_sharing::free_shared_data(&csmd, &csmd->bind_coords_sharing_info);
     csmd->bind_coords_num = 0;
   }
 
