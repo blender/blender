@@ -136,10 +136,10 @@ static float smootherstep(const float domain_max, float x)
   return x * x * x * (x * (x * 6.0 - 15.0) + 10.0);
 }
 
-static float edge_pan_speed(View2DEdgePanData *vpd,
-                            int event_loc,
-                            bool x_dir,
-                            const double current_time)
+static float view2d_edge_pan_speed(View2DEdgePanData *vpd,
+                                   int event_loc,
+                                   bool x_dir,
+                                   const double current_time)
 {
   ARegion *region = vpd->region;
 
@@ -256,11 +256,11 @@ void UI_view2d_edge_pan_apply(bContext *C, View2DEdgePanData *vpd, const int xy[
   const float dtime = float(current_time - vpd->edge_pan_last_time);
   float dx = 0.0f, dy = 0.0f;
   if (pan_dir_x != 0) {
-    const float speed = edge_pan_speed(vpd, xy[0], true, current_time);
+    const float speed = view2d_edge_pan_speed(vpd, xy[0], true, current_time);
     dx = dtime * speed * float(pan_dir_x);
   }
   if (pan_dir_y != 0) {
-    const float speed = edge_pan_speed(vpd, xy[1], false, current_time);
+    const float speed = view2d_edge_pan_speed(vpd, xy[1], false, current_time);
     dy = dtime * speed * float(pan_dir_y);
   }
   vpd->edge_pan_last_time = current_time;
