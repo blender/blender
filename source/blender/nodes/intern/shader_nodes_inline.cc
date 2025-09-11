@@ -175,6 +175,11 @@ class ShaderNodesInliner {
   InlineShaderNodeTreeParams &params_;
   /** Simplifies building the all the compute contexts for nodes in zones and groups. */
   bke::ComputeContextCache compute_context_cache_;
+  /**
+   * Stores compute context of the direct parent of each zone. In most cases, this is just the
+   * parent compute context directly, except for closures.
+   */
+  Map<const ComputeContext *, const ComputeContext *> parent_zone_contexts_;
   /** Stores the computed value for each socket. The final value for each socket may be constant */
   Map<SocketInContext, SocketValue> value_by_socket_;
   /**
@@ -329,9 +334,8 @@ class ShaderNodesInliner {
       return;
     }
 
-    /* TODO: Find the correct context for the origin socket. It should work fine without but
-     * results in a larger generated node tree. */
-    const SocketInContext origin_socket = {socket.context, used_link->fromsock};
+    const ComputeContext *from_context = this->get_link_source_context(*used_link, socket);
+    const SocketInContext origin_socket = {from_context, used_link->fromsock};
     if (const auto *value = value_by_socket_.lookup_ptr(origin_socket)) {
       /* If the socket linked to the input has a value already, copy that value to the current
        * socket, potentially with an implicit conversion. */
@@ -343,6 +347,23 @@ class ShaderNodesInliner {
     }
     /* If the origin socket does not have a value yet, only schedule it for evaluation for now.*/
     this->schedule_socket(origin_socket);
+  }
+
+  const ComputeContext *get_link_source_context(const bNodeLink &link,
+                                                const SocketInContext &to_socket)
+  {
+    const bNodeTree &tree = to_socket->owner_tree();
+    const bke::bNodeTreeZones *zones = tree.zones();
+    if (!zones) {
+      return nullptr;
+    }
+    const bke::bNodeTreeZone *to_zone = zones->get_zone_by_socket(*to_socket);
+    const bke::bNodeTreeZone *from_zone = zones->get_zone_by_socket(*link.fromsock);
+    const ComputeContext *context = to_socket.context;
+    for (const bke::bNodeTreeZone *zone = to_zone; zone != from_zone; zone = zone->parent_zone) {
+      context = parent_zone_contexts_.lookup(context);
+    }
+    return context;
   }
 
   void handle_output_socket(const SocketInContext &socket)
@@ -546,6 +567,7 @@ class ShaderNodesInliner {
     /* Otherwise, the value is copied from the output of the last iteration. */
     const ComputeContext &last_iteration_context = compute_context_cache_.for_repeat_zone(
         socket.context, repeat_output_node, iterations - 1);
+    parent_zone_contexts_.add(&last_iteration_context, socket.context);
     const SocketInContext origin_socket = {&last_iteration_context,
                                            &repeat_output_node.input_socket(socket->index())};
     this->forward_value_or_schedule(socket, origin_socket);
@@ -583,6 +605,7 @@ class ShaderNodesInliner {
     const int previous_iteration = iteration - 1;
     const ComputeContext &previous_iteration_context = compute_context_cache_.for_repeat_zone(
         repeat_zone_context->parent(), repeat_output_node, previous_iteration);
+    parent_zone_contexts_.add(&previous_iteration_context, repeat_zone_context->parent());
     const SocketInContext origin_socket = {&previous_iteration_context,
                                            &repeat_output_node.input_socket(socket->index() - 1)};
     this->forward_value_or_schedule(socket, origin_socket);
@@ -640,6 +663,7 @@ class ShaderNodesInliner {
                                                     evaluate_closure_node->identifier,
                                                     &socket->owner_tree(),
                                                     closure_source_location);
+    parent_zone_contexts_.add(&closure_eval_context, closure_zone_value->closure_creation_context);
 
     if (closure_eval_context.is_recursive()) {
       this->store_socket_value_fallback(socket);
