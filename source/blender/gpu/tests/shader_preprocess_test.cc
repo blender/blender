@@ -271,6 +271,27 @@ static void test_preprocess_unroll()
     string output = process_test_string(input, error);
     EXPECT_EQ(error, "Unsupported condition in unrolled loop.");
   }
+  {
+    string input = R"(
+[[gpu::unroll_define(2)]] for (int i = 0; i < DEFINE; i++) { a = i; })";
+    string expect = R"(
+
+{
+#if DEFINE > 0
+#line 2
+                                                           { a = 0; }
+#endif
+#if DEFINE > 1
+#line 2
+                                                           { a = 1; }
+#endif
+#line 2
+                                                                    })";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
 }
 GPU_TEST(preprocess_unroll);
 
