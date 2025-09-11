@@ -182,7 +182,7 @@ def _run_brush_test(args: dict):
             bpy.ops.sculpt.brush_stroke(stroke=generate_stroke(context_override), override_location=True)
             bpy.ops.ed.undo_push()
             measurements.append(time.time() - start)
-            memory_info = bpy.app.undo_memory_info()
+            memory_info = bpy.app.memory_usage_undo()
         if len(measurements) >= min_measurements and (time.time() - total_time_start) > timeout:
             break
         if len(measurements) >= max_measurements:
