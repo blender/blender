@@ -919,7 +919,7 @@ class VExportTree:
             # If not found, keep current material as default
 
     def break_bone_hierarchy(self):
-        # Can be usefull when matrix is not decomposable
+        # Can be useful when matrix is not decomposable
         for arma in self.get_all_node_of_type(VExportNode.ARMATURE):
             bones = self.get_all_bones(arma)
             for bone in bones:
@@ -931,7 +931,7 @@ class VExportTree:
                     self.nodes[bone].parent_bone_uuid = None
 
     def break_obj_hierarchy(self):
-        # Can be usefull when matrix is not decomposable
+        # Can be useful when matrix is not decomposable
         # TODO: if we get real collection one day, we probably need to adapt this code
         for obj in self.get_all_objects():
             if self.nodes[obj].armature is not None and self.nodes[obj].parent_uuid == self.nodes[obj].armature:

@@ -83,7 +83,7 @@ class UI_OT_i18n_updatetranslation_work_repo(Operator):
         #       on Windows and OSX they are `spawn`ed.
         #       See https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods
         #       This is a problem because spawned processes do not inherit the whole environment
-        #       of the current (Blender-customized) python. In pratice, the `bpy` module won't load e.g.
+        #       of the current (Blender-customized) python. In practice, the `bpy` module won't load e.g.
         #       So care must be taken that the callback passed to the executor does not rely on any
         #       Blender-specific modules etc. This is why it is using a class method from `bl_i18n_utils`
         #       module, rather than a local function of this current Blender-only module.

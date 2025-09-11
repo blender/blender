@@ -207,7 +207,7 @@ def __convert_keyframes(armature_uuid, bone_name, channel, keyframes, action_nam
 def __gather_interpolation(node_channel_is_animated, node_channel_interpolation, keyframes, export_settings):
 
     if len(keyframes) > 2:
-        # keep STEP as STEP, other become the interpolation choosen by the user
+        # keep STEP as STEP, other become the interpolation chosen by the user
         return {
             "STEP": "STEP"
         }.get(node_channel_interpolation, export_settings['gltf_sampling_interpolation_fallback'])

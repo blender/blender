@@ -22,7 +22,7 @@ The JSON data is formatted into a list of nested lists of 4 items:
 Where each list may be empty, and the items in
 the subtree are formatted the same way.
 
-data_types is a string, aligned with data that spesifies a type
+data_types is a string, aligned with data that specifies a type
 for each property.
 
 The types are as follows:

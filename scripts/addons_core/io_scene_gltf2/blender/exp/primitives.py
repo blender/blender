@@ -316,7 +316,7 @@ def __gather_extensions(blender_mesh,
                 # Avoid duplicates
                 export_settings['log'].warning(
                     'Variant ' + str(v.variant.variant_idx) +
-                    ' has 2 differents materials for a single slot. Skipping it.')
+                    ' has 2 different materials for a single slot. Skipping it.')
                 continue
 
             vari = ext_variants.gather_variant(v.variant.variant_idx, export_settings)

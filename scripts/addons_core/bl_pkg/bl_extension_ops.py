@@ -3419,7 +3419,7 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
             *,
             remote_url,
     ):
-        # Skip the URL prefix scheme, e.g. `https://` for less "noisy" outpout.
+        # Skip the URL prefix scheme, e.g. `https://` for less "noisy" output.
         url_split = remote_url.partition("://")
         url_for_display = url_split[2] if url_split[2] else remote_url
 
