@@ -21,8 +21,6 @@ COMPUTE_SHADER_CREATE_INFO(eevee_shadow_tilemap_amend)
 
 #include "eevee_light_iter_lib.glsl"
 #include "eevee_shadow_tilemap_lib.glsl"
-#include "gpu_shader_math_matrix_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
 
 shared ShadowSamplingTilePacked tiles_local[SHADOW_TILEMAP_RES][SHADOW_TILEMAP_RES];
 

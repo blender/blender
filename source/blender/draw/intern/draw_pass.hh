@@ -67,6 +67,9 @@ namespace blender::draw {
 using namespace blender::draw;
 using namespace blender::draw::command;
 
+using DispatchIndirectBuf = draw::StorageBuffer<DispatchCommand>;
+using DrawIndirectBuf = draw::StorageBuffer<DrawCommand, true>;
+
 class Manager;
 
 namespace command {

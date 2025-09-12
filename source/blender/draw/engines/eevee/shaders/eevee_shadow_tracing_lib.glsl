@@ -15,7 +15,6 @@ SHADER_LIBRARY_CREATE_INFO(eevee_shadow_data)
 
 #include "draw_math_geom_lib.glsl"
 #include "draw_view_lib.glsl"
-#include "eevee_bxdf_sampling_lib.glsl"
 #include "eevee_light_lib.glsl"
 #include "eevee_sampling_lib.glsl"
 #include "eevee_shadow_lib.glsl"
@@ -438,21 +437,16 @@ float shadow_eval(LightData light,
                   int ray_count,
                   int ray_step_count)
 {
-#if defined(EEVEE_SAMPLING_DATA) && defined(EEVEE_UTILITY_TX)
-#  ifdef GPU_FRAGMENT_SHADER
-  float2 pixel = floor(gl_FragCoord.xy);
-#  elif defined(GPU_COMPUTE_SHADER)
-  float2 pixel = float2(gl_GlobalInvocationID.xy);
-#  else
-  float2 pixel = UTIL_TEXEL;
-#  endif
-  float3 blue_noise_3d = utility_tx_fetch(utility_tx, pixel, UTIL_BLUE_NOISE_LAYER).rgb;
-  float3 random_shadow_3d = fract(blue_noise_3d + sampling_rng_3D_get(SAMPLING_SHADOW_U));
-  float2 random_pcf_2d = fract(blue_noise_3d.xy + sampling_rng_2D_get(SAMPLING_SHADOW_X));
-#else
   /* Case of surfel light eval. */
   float3 random_shadow_3d = float3(0.5f);
   float2 random_pcf_2d = float2(0.0f);
+#if defined(EEVEE_SAMPLING_DATA) && !defined(GLSL_CPP_STUBS)
+  if (true) {
+    auto &util_tx = sampler_get(eevee_utility_texture, utility_tx);
+    float3 blue_noise_3d = utility_tx_fetch(util_tx, UTIL_TEXEL, UTIL_BLUE_NOISE_LAYER).rgb;
+    random_shadow_3d = fract(blue_noise_3d + sampling_rng_3D_get(SAMPLING_SHADOW_U));
+    random_pcf_2d = fract(blue_noise_3d.xy + sampling_rng_2D_get(SAMPLING_SHADOW_X));
+  }
 #endif
 
   float distance_to_shadow;

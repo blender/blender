@@ -20,7 +20,6 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_deferred_thickness_amend)
 #include "eevee_light_lib.glsl"
 #include "eevee_sampling_lib.glsl"
 #include "eevee_shadow_tracing_lib.glsl"
-#include "eevee_thickness_lib.glsl"
 
 void thickness_from_shadow_single(uint l_idx,
                                   const bool is_directional,

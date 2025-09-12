@@ -14,6 +14,7 @@
 
 COMPUTE_SHADER_CREATE_INFO(eevee_surfel_light)
 
+#include "eevee_closure_lib.glsl"
 #include "eevee_light_eval_lib.glsl"
 
 #ifndef LIGHT_ITER_FORCE_NO_CULLING

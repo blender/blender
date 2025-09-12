@@ -13,7 +13,7 @@
 
 #include "BKE_camera.h"
 
-#include "eevee_shader_shared.hh"
+#include "eevee_camera_shared.hh"
 
 namespace blender::eevee {
 

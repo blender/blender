@@ -9,7 +9,7 @@
 #  include "draw_object_infos_info.hh"
 #  include "draw_view_info.hh"
 #  include "eevee_common_info.hh"
-#  include "eevee_shader_shared.hh"
+#  include "eevee_volume_shared.hh"
 #  include "gpu_shader_fullscreen_info.hh"
 
 #  define SPHERE_PROBE
@@ -21,7 +21,7 @@
 
 /* Used for shaders that need the final accumulated volume transmittance and scattering. */
 GPU_SHADER_CREATE_INFO(eevee_volume_lib)
-ADDITIONAL_INFO(eevee_shared)
+TYPEDEF_SOURCE("eevee_defines.hh")
 ADDITIONAL_INFO(eevee_global_ubo)
 ADDITIONAL_INFO(draw_view)
 SAMPLER(VOLUME_SCATTERING_TEX_SLOT, sampler3D, volume_scattering_tx)
@@ -30,7 +30,7 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_volume_scatter)
 LOCAL_GROUP_SIZE(VOLUME_GROUP_SIZE, VOLUME_GROUP_SIZE, VOLUME_GROUP_SIZE)
-ADDITIONAL_INFO(eevee_shared)
+TYPEDEF_SOURCE("eevee_defines.hh")
 ADDITIONAL_INFO(eevee_global_ubo)
 ADDITIONAL_INFO(draw_resource_id_varying)
 ADDITIONAL_INFO(draw_view)
@@ -58,7 +58,7 @@ DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_volume_occupancy_convert)
-ADDITIONAL_INFO(eevee_shared)
+TYPEDEF_SOURCE("eevee_defines.hh")
 ADDITIONAL_INFO(eevee_global_ubo)
 ADDITIONAL_INFO(gpu_fullscreen)
 BUILTINS(BuiltinBits::TEXTURE_ATOMIC)
@@ -70,7 +70,7 @@ DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_volume_integration)
-ADDITIONAL_INFO(eevee_shared)
+TYPEDEF_SOURCE("eevee_defines.hh")
 ADDITIONAL_INFO(eevee_global_ubo)
 ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(eevee_sampling_data)
@@ -86,7 +86,7 @@ DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_volume_resolve)
-ADDITIONAL_INFO(eevee_shared)
+TYPEDEF_SOURCE("eevee_defines.hh")
 ADDITIONAL_INFO(eevee_volume_lib)
 ADDITIONAL_INFO(gpu_fullscreen)
 ADDITIONAL_INFO(eevee_render_pass_out)

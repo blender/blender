@@ -12,7 +12,6 @@ COMPUTE_SHADER_CREATE_INFO(eevee_horizon_resolve)
 #include "eevee_gbuffer_read_lib.glsl"
 #include "eevee_lightprobe_eval_lib.glsl"
 #include "eevee_reverse_z_lib.glsl"
-#include "eevee_sampling_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 

@@ -11,9 +11,10 @@
 FRAGMENT_SHADER_CREATE_INFO(eevee_deferred_planar_eval)
 
 #include "draw_view_lib.glsl"
+#include "eevee_closure_lib.glsl"
 #include "eevee_gbuffer_read_lib.glsl"
 #include "eevee_light_eval_lib.glsl"
-#include "eevee_lightprobe_eval_lib.glsl"
+#include "eevee_lightprobe_volume_eval_lib.glsl"
 
 void main()
 {

@@ -75,6 +75,8 @@
 #    include "BLI_assert.h"
 #    include "BLI_sys_types.h"
 
+#    include <math.h>
+
 #    include "BLI_math_matrix_types.hh"
 #    include "BLI_math_vector_types.hh"
 

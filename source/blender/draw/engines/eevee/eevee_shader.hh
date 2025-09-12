@@ -12,17 +12,15 @@
 #pragma once
 
 #include <array>
-#include <string>
 
+#include "BLI_map.hh"
 #include "BLI_mutex.hh"
-#include "BLI_string_ref.hh"
 
 #include "DRW_render.hh"
 #include "GPU_material.hh"
 #include "GPU_shader.hh"
 
-#include "eevee_material.hh"
-#include "eevee_sync.hh"
+#include "eevee_material_shared.hh"
 
 namespace blender::eevee {
 
@@ -164,6 +162,38 @@ enum eShaderType {
 
   MAX_SHADER_TYPE,
 };
+
+/**
+ * Bitmask representing the shader categories.
+ * This allows the loading of certain parts of the engine to kick-in as soon as the shaders that
+ * depends on it are compiled.
+ */
+enum ShaderGroups : uint32_t {
+  NONE = 0,
+  DEFERRED_LIGHTING_SHADERS = 1 << 0,
+  DEFERRED_CAPTURE_SHADERS = 1 << 1,
+  DEFERRED_PLANAR_SHADERS = 1 << 2,
+  DEPTH_OF_FIELD_SHADERS = 1 << 3,
+  HIZ_SHADERS = 1 << 4,
+  HORIZON_SCAN_SHADERS = 1 << 5,
+  LIGHT_CULLING_SHADERS = 1 << 6,
+  IRRADIANCE_BAKE_SHADERS = 1 << 7,
+  SPHERE_PROBE_SHADERS = 1 << 8,
+  SHADOW_SHADERS = 1 << 9,
+  AMBIENT_OCCLUSION_SHADERS = 1 << 10,
+  MOTION_BLUR_SHADERS = 1 << 11,
+  RAYTRACING_SHADERS = 1 << 12,
+  FILM_SHADERS = 1 << 13,
+  SUBSURFACE_SHADERS = 1 << 14,
+  SURFEL_SHADERS = 1 << 15,
+  VERTEX_COPY_SHADERS = 1 << 16,
+  VOLUME_EVAL_SHADERS = 1 << 17,
+  DEFAULT_MATERIALS = 1 << 18,
+  WORLD_SHADERS = 1 << 19,
+  MATERIAL_SHADERS = 1 << 20,
+  VOLUME_PROBE_SHADERS = 1 << 21,
+};
+ENUM_OPERATORS(ShaderGroups, VOLUME_PROBE_SHADERS)
 
 /**
  * Shader module. shared between instances.

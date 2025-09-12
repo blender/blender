@@ -13,6 +13,7 @@ SHADER_LIBRARY_CREATE_INFO(eevee_utility_texture)
 #include "draw_object_infos_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "eevee_renderpass_lib.glsl"
+#include "eevee_utility_tx_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
@@ -488,11 +489,8 @@ float3 F_brdf_multi_scatter(float3 f0, float3 f90, float2 lut)
 
 float2 brdf_lut(float cos_theta, float roughness)
 {
-#ifdef EEVEE_UTILITY_TX
+  auto &utility_tx = sampler_get(eevee_utility_texture, utility_tx);
   return utility_tx_sample_lut(utility_tx, cos_theta, roughness, UTIL_BSDF_LAYER).rg;
-#else
-  return float2(1.0f, 0.0f);
-#endif
 }
 
 void brdf_f82_tint_lut(float3 F0,
@@ -502,11 +500,8 @@ void brdf_f82_tint_lut(float3 F0,
                        bool do_multiscatter,
                        out float3 reflectance)
 {
-#ifdef EEVEE_UTILITY_TX
+  auto &utility_tx = sampler_get(eevee_utility_texture, utility_tx);
   float3 split_sum = utility_tx_sample_lut(utility_tx, cos_theta, roughness, UTIL_BSDF_LAYER).rgb;
-#else
-  float3 split_sum = float3(1.0f, 0.0f, 0.0f);
-#endif
 
   reflectance = do_multiscatter ? F_brdf_multi_scatter(F0, float3(1.0f), split_sum.xy) :
                                   F_brdf_single_scatter(F0, float3(1.0f), split_sum.xy);
@@ -561,7 +556,7 @@ void bsdf_lut(float3 F0,
               out float3 reflectance,
               out float3 transmittance)
 {
-#ifdef EEVEE_UTILITY_TX
+  auto &utility_tx = sampler_get(eevee_utility_texture, utility_tx);
   if (ior == 1.0f) {
     reflectance = float3(0.0f);
     transmittance = transmission_tint;
@@ -603,11 +598,6 @@ void bsdf_lut(float3 F0,
     reflectance *= scale;
     transmittance *= scale;
   }
-#else
-  reflectance = float3(0.0f);
-  transmittance = float3(0.0f);
-#endif
-  return;
 }
 
 /* Computes the reflectance and transmittance based on the BSDF LUT. */

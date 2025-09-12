@@ -8,7 +8,7 @@
 
 #  include "draw_view_info.hh"
 #  include "eevee_common_info.hh"
-#  include "eevee_shader_shared.hh"
+#  include "eevee_film_shared.hh"
 #  include "eevee_velocity_info.hh"
 #  include "gpu_shader_fullscreen_info.hh"
 #endif
@@ -34,7 +34,7 @@ SPECIALIZATION_CONSTANT(int, scaling_factor, 1)
 SPECIALIZATION_CONSTANT(int, combined_id, 0)
 SPECIALIZATION_CONSTANT(int, display_id, -1)
 SPECIALIZATION_CONSTANT(int, normal_id, -1)
-ADDITIONAL_INFO(eevee_shared)
+TYPEDEF_SOURCE("eevee_defines.hh")
 ADDITIONAL_INFO(eevee_global_ubo)
 ADDITIONAL_INFO(eevee_velocity_camera)
 ADDITIONAL_INFO(draw_view)
@@ -75,7 +75,7 @@ PUSH_CONSTANT(int, cryptomatte_samples_per_layer)
 LOCAL_GROUP_SIZE(FILM_GROUP_SIZE, FILM_GROUP_SIZE)
 COMPUTE_SOURCE("eevee_film_cryptomatte_post_comp.glsl")
 ADDITIONAL_INFO(eevee_global_ubo)
-ADDITIONAL_INFO(eevee_shared)
+TYPEDEF_SOURCE("eevee_defines.hh")
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_film_copy_frag)

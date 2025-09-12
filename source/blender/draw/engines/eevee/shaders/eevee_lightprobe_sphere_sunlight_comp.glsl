@@ -9,10 +9,6 @@
 
 COMPUTE_SHADER_CREATE_INFO(eevee_lightprobe_sphere_sunlight)
 
-#include "eevee_lightprobe_sphere_lib.glsl"
-#include "eevee_lightprobe_sphere_mapping_lib.glsl"
-#include "eevee_sampling_lib.glsl"
-#include "eevee_spherical_harmonics_lib.glsl"
 #include "gpu_shader_math_matrix_lib.glsl"
 
 shared float3 local_radiance[gl_WorkGroupSize.x];

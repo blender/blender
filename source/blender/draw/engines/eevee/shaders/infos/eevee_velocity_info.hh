@@ -8,7 +8,8 @@
 
 #  include "draw_object_infos_info.hh"
 #  include "draw_view_info.hh"
-#  include "eevee_shader_shared.hh"
+#  include "eevee_camera_shared.hh"
+#  include "eevee_velocity_shared.hh"
 
 #  define VELOCITY_CAMERA
 #endif
@@ -33,6 +34,8 @@ GPU_SHADER_NAMED_INTERFACE_END(motion)
 
 GPU_SHADER_CREATE_INFO(eevee_velocity_camera)
 DEFINE("VELOCITY_CAMERA")
+TYPEDEF_SOURCE("eevee_velocity_shared.hh")
+TYPEDEF_SOURCE("eevee_camera_shared.hh")
 UNIFORM_BUF(VELOCITY_CAMERA_PREV_BUF, CameraData, camera_prev)
 UNIFORM_BUF(VELOCITY_CAMERA_CURR_BUF, CameraData, camera_curr)
 UNIFORM_BUF(VELOCITY_CAMERA_NEXT_BUF, CameraData, camera_next)
@@ -40,6 +43,7 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_velocity_geom)
 DEFINE("MAT_VELOCITY")
+TYPEDEF_SOURCE("eevee_velocity_shared.hh")
 STORAGE_BUF(VELOCITY_OBJ_PREV_BUF_SLOT, read, float4x4, velocity_obj_prev_buf[])
 STORAGE_BUF(VELOCITY_OBJ_NEXT_BUF_SLOT, read, float4x4, velocity_obj_next_buf[])
 STORAGE_BUF(VELOCITY_GEO_PREV_BUF_SLOT, read, float4, velocity_geo_prev_buf[])

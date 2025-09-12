@@ -13,7 +13,6 @@
 #include "BLI_math_quaternion_types.hh"
 
 #include "eevee_lightprobe.hh"
-#include "eevee_shader_shared.hh"
 
 namespace blender::eevee {
 
@@ -25,6 +24,12 @@ class CapturePipeline;
 class ShadowModule;
 class Camera;
 class SphereProbeModule;
+
+using CaptureInfoBuf = draw::StorageBuffer<CaptureInfoData>;
+using IrradianceBrickBuf = draw::StorageVectorBuffer<IrradianceBrickPacked, 16>;
+using SurfelBuf = draw::StorageArrayBuffer<Surfel, 64>;
+using SurfelListInfoBuf = draw::StorageBuffer<SurfelListInfoData>;
+using VolumeProbeDataBuf = draw::UniformArrayBuffer<VolumeProbeData, IRRADIANCE_GRID_MAX>;
 
 /**
  * Baking related pass and data. Not used at runtime.

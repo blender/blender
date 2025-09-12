@@ -16,8 +16,6 @@
 
 COMPUTE_SHADER_CREATE_INFO(eevee_surfel_list_sort)
 
-#include "gpu_shader_utildefines_lib.glsl"
-
 /**
  * A doubly-linked list implementation.
  * IMPORTANT: It is not general purpose as it only cover the cases needed by this shader.

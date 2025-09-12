@@ -11,7 +11,6 @@
 COMPUTE_SHADER_CREATE_INFO(eevee_light_culling_select)
 
 #include "draw_intersect_lib.glsl"
-#include "draw_math_geom_lib.glsl"
 #include "draw_view_lib.glsl"
 
 void main()

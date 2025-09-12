@@ -492,6 +492,7 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_surfel_ray_comp.glsl
   engines/eevee/shaders/eevee_thickness_lib.glsl
   engines/eevee/shaders/eevee_transparency_lib.glsl
+  engines/eevee/shaders/eevee_utility_tx_lib.glsl
   engines/eevee/shaders/eevee_velocity_lib.glsl
   engines/eevee/shaders/eevee_vertex_copy_comp.glsl
   engines/eevee/shaders/eevee_volume_integration_comp.glsl
@@ -499,8 +500,25 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_volume_resolve_frag.glsl
   engines/eevee/shaders/eevee_volume_scatter_comp.glsl
 
+  engines/eevee/eevee_camera_shared.hh
   engines/eevee/eevee_defines.hh
-  engines/eevee/eevee_shader_shared.hh
+  engines/eevee/eevee_debug_shared.hh
+  engines/eevee/eevee_depth_of_field_shared.hh
+  engines/eevee/eevee_film_shared.hh
+  engines/eevee/eevee_hizbuffer_shared.hh
+  engines/eevee/eevee_light_shared.hh
+  engines/eevee/eevee_lightprobe_shared.hh
+  engines/eevee/eevee_motion_blur_shared.hh
+  engines/eevee/eevee_precompute_shared.hh
+  engines/eevee/eevee_raytrace_shared.hh
+  engines/eevee/eevee_renderbuffers_shared.hh
+  engines/eevee/eevee_sampling_shared.hh
+  engines/eevee/eevee_shadow_shared.hh
+  engines/eevee/eevee_subsurface_shared.hh
+  engines/eevee/eevee_transform.hh
+  engines/eevee/eevee_uniform_shared.hh
+  engines/eevee/eevee_velocity_shared.hh
+  engines/eevee/eevee_volume_shared.hh
 
   engines/workbench/shaders/workbench_cavity_lib.glsl
   engines/workbench/shaders/workbench_common_lib.glsl

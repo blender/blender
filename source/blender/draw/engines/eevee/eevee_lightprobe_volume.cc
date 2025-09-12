@@ -11,8 +11,8 @@
 
 #include "GPU_debug.hh"
 
+#include "eevee_debug_shared.hh"
 #include "eevee_instance.hh"
-
 #include "eevee_lightprobe_volume.hh"
 
 #include <cstdio>

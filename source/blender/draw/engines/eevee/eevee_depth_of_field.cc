@@ -31,7 +31,7 @@
 #include "eevee_instance.hh"
 #include "eevee_sampling.hh"
 #include "eevee_shader.hh"
-#include "eevee_shader_shared.hh"
+#include "eevee_velocity_shared.hh"
 
 #include "eevee_depth_of_field.hh"
 

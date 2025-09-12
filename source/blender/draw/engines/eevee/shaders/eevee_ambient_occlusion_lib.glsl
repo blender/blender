@@ -6,14 +6,13 @@
 
 #include "infos/eevee_common_info.hh"
 
-SHADER_LIBRARY_CREATE_INFO(eevee_utility_texture)
 SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
 SHADER_LIBRARY_CREATE_INFO(eevee_hiz_data)
 
-#include "draw_math_geom_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "eevee_ray_types_lib.glsl"
 #include "eevee_sampling_lib.glsl"
+#include "eevee_utility_tx_lib.glsl"
 #include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_math_fast_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
@@ -74,7 +73,8 @@ OcclusionData ambient_occlusion_unpack_data(float4 v)
 
 float2 ambient_occlusion_get_noise(int2 texel)
 {
-  float2 noise = utility_tx_fetch(utility_tx, float2(texel), UTIL_BLUE_NOISE_LAYER).xy;
+  auto &tx = sampler_get(eevee_utility_texture, utility_tx);
+  float2 noise = utility_tx_fetch(tx, float2(texel), UTIL_BLUE_NOISE_LAYER).xy;
   return fract(noise + sampling_rng_2D_get(SAMPLING_AO_U));
 }
 

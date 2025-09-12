@@ -8,16 +8,10 @@
 
 SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
 
-/**
- * The resources expected to be defined are:
- * - uniform_buf.volumes
- */
-
 #include "draw_view_lib.glsl"
-#include "eevee_light_lib.glsl"
 #include "eevee_sampling_lib.glsl"
-#include "eevee_shadow_lib.glsl"
 #include "eevee_spherical_harmonics_lib.glsl"
+#include "gpu_shader_math_matrix_lib.glsl"
 
 /* Based on Frosbite Unified Volumetric.
  * https://www.ea.com/frostbite/news/physically-based-unified-volumetric-rendering-in-frostbite */
@@ -184,77 +178,6 @@ SphericalHarmonicL1 volume_phase_function_as_sh_L1(float3 V, float g)
   sh.L1.M0 = spherical_harmonics_L1_M0(V) * float4(g);
   sh.L1.Mp1 = spherical_harmonics_L1_Mp1(V) * float4(g);
   return sh;
-}
-
-float3 volume_light(LightData light, const bool is_directional, LightVector lv)
-{
-  float power = 1.0f;
-  if (!is_directional) {
-    float light_radius = light_local_data_get(light).shape_radius;
-    /**
-     * Using "Point Light Attenuation Without Singularity" from Cem Yuksel
-     * http://www.cemyuksel.com/research/pointlightattenuation/pointlightattenuation.pdf
-     * http://www.cemyuksel.com/research/pointlightattenuation/
-     */
-    float d = lv.dist;
-    float d_sqr = square(d);
-    float r_sqr = square(light_radius);
-
-    /* Using reformulation that has better numerical precision. */
-    power = 2.0f / (d_sqr + r_sqr + d * sqrt(d_sqr + r_sqr));
-
-    if (light.type == LIGHT_RECT || light.type == LIGHT_ELLIPSE) {
-      /* Modulate by light plane orientation / solid angle. */
-      power *= saturate(dot(light_z_axis(light), lv.L));
-    }
-  }
-  return light.color * light.power[LIGHT_VOLUME] * power;
-}
-
-#define VOLUMETRIC_SHADOW_MAX_STEP 128.0f
-
-float3 volume_shadow(
-    LightData ld, const bool is_directional, float3 P, LightVector lv, sampler3D extinction_tx)
-{
-#if defined(VOLUME_SHADOW)
-  if (uniform_buf.volumes.shadow_steps == 0) {
-    return float3(1.0f);
-  }
-
-  /* Heterogeneous volume shadows. */
-  float dd = lv.dist / uniform_buf.volumes.shadow_steps;
-  float3 L = lv.L * lv.dist / uniform_buf.volumes.shadow_steps;
-
-  if (is_directional) {
-    /* For sun light we scan the whole frustum. So we need to get the correct endpoints. */
-    float3 ndcP = drw_point_world_to_ndc(P);
-    float3 ndcL = drw_point_world_to_ndc(P + lv.L * lv.dist) - ndcP;
-
-    float3 ndc_frustum_isect = ndcP + ndcL * line_unit_box_intersect_dist_safe(ndcP, ndcL);
-
-    L = drw_point_ndc_to_world(ndc_frustum_isect) - P;
-    L /= uniform_buf.volumes.shadow_steps;
-    dd = length(L);
-  }
-
-  /* TODO use shadow maps instead. */
-  float3 shadow = float3(1.0f);
-  for (float t = 1.0f; t < VOLUMETRIC_SHADOW_MAX_STEP && t <= uniform_buf.volumes.shadow_steps;
-       t += 1.0f)
-  {
-    float3 w_pos = P + L * t;
-
-    float3 v_pos = drw_point_world_to_view(w_pos);
-    float3 volume_co = volume_view_to_jitter(v_pos);
-    /* Let the texture be clamped to edge. This reduce visual glitches. */
-    float3 s_extinction = texture(extinction_tx, volume_co).rgb;
-
-    shadow *= exp(-s_extinction * dd);
-  }
-  return shadow;
-#else
-  return float3(1.0f);
-#endif /* VOLUME_SHADOW */
 }
 
 struct VolumeResolveSample {

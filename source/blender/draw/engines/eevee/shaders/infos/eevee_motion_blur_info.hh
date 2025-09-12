@@ -8,6 +8,7 @@
 
 #  include "draw_view_info.hh"
 #  include "eevee_common_info.hh"
+#  include "eevee_motion_blur_shared.hh"
 #  include "eevee_velocity_info.hh"
 #endif
 
@@ -16,7 +17,8 @@
 
 GPU_SHADER_CREATE_INFO(eevee_motion_blur_tiles_flatten)
 LOCAL_GROUP_SIZE(MOTION_BLUR_GROUP_SIZE, MOTION_BLUR_GROUP_SIZE)
-ADDITIONAL_INFO(eevee_shared)
+TYPEDEF_SOURCE("eevee_defines.hh")
+TYPEDEF_SOURCE("eevee_motion_blur_shared.hh")
 ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(eevee_velocity_camera)
 UNIFORM_BUF(6, MotionBlurData, motion_blur_buf)
@@ -41,7 +43,8 @@ GPU_SHADER_CREATE_END()
 GPU_SHADER_CREATE_INFO(eevee_motion_blur_tiles_dilate)
 DO_STATIC_COMPILATION()
 LOCAL_GROUP_SIZE(MOTION_BLUR_GROUP_SIZE, MOTION_BLUR_GROUP_SIZE)
-ADDITIONAL_INFO(eevee_shared)
+TYPEDEF_SOURCE("eevee_defines.hh")
+TYPEDEF_SOURCE("eevee_motion_blur_shared.hh")
 /* NOTE: See MotionBlurTileIndirection. */
 STORAGE_BUF(0, read_write, uint, tile_indirection_buf[])
 IMAGE(1, SFLOAT_16_16_16_16, read, image2D, in_tiles_img)
@@ -51,7 +54,9 @@ GPU_SHADER_CREATE_END()
 GPU_SHADER_CREATE_INFO(eevee_motion_blur_gather)
 DO_STATIC_COMPILATION()
 LOCAL_GROUP_SIZE(MOTION_BLUR_GROUP_SIZE, MOTION_BLUR_GROUP_SIZE)
-ADDITIONAL_INFO(eevee_shared)
+TYPEDEF_SOURCE("eevee_defines.hh")
+TYPEDEF_SOURCE("eevee_motion_blur_shared.hh")
+TYPEDEF_SOURCE("eevee_camera_shared.hh")
 ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(eevee_sampling_data)
 UNIFORM_BUF(6, MotionBlurData, motion_blur_buf)

@@ -9,7 +9,7 @@
 #  include "draw_object_infos_info.hh"
 #  include "draw_view_info.hh"
 #  include "eevee_common_info.hh"
-#  include "eevee_shader_shared.hh"
+#  include "eevee_light_shared.hh"
 #  include "gpu_shader_fullscreen_info.hh"
 
 #  define SPHERE_PROBE
@@ -24,7 +24,7 @@
 
 GPU_SHADER_CREATE_INFO(eevee_light_culling_select)
 DO_STATIC_COMPILATION()
-ADDITIONAL_INFO(eevee_shared)
+TYPEDEF_SOURCE("eevee_light_shared.hh")
 ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_view_culling)
 LOCAL_GROUP_SIZE(CULLING_SELECT_GROUP_SIZE)
@@ -39,7 +39,7 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_light_culling_sort)
 DO_STATIC_COMPILATION()
-ADDITIONAL_INFO(eevee_shared)
+TYPEDEF_SOURCE("eevee_light_shared.hh")
 ADDITIONAL_INFO(draw_view)
 STORAGE_BUF(0, read, LightCullingData, light_cull_buf)
 STORAGE_BUF(1, read, LightData, in_light_buf[])
@@ -52,7 +52,7 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_light_culling_zbin)
 DO_STATIC_COMPILATION()
-ADDITIONAL_INFO(eevee_shared)
+TYPEDEF_SOURCE("eevee_light_shared.hh")
 ADDITIONAL_INFO(draw_view)
 LOCAL_GROUP_SIZE(CULLING_ZBIN_GROUP_SIZE)
 /* Fits the limit of 32KB. */
@@ -66,7 +66,7 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_light_culling_tile)
 DO_STATIC_COMPILATION()
-ADDITIONAL_INFO(eevee_shared)
+TYPEDEF_SOURCE("eevee_light_shared.hh")
 ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_view_culling)
 LOCAL_GROUP_SIZE(CULLING_TILE_GROUP_SIZE)
@@ -78,7 +78,8 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_light_shadow_setup)
 DO_STATIC_COMPILATION()
-ADDITIONAL_INFO(eevee_shared)
+TYPEDEF_SOURCE("eevee_light_shared.hh")
+TYPEDEF_SOURCE("eevee_shadow_shared.hh")
 ADDITIONAL_INFO(eevee_sampling_data)
 ADDITIONAL_INFO(eevee_global_ubo)
 LOCAL_GROUP_SIZE(CULLING_SELECT_GROUP_SIZE)
@@ -100,7 +101,7 @@ DO_STATIC_COMPILATION()
 FRAGMENT_OUT_DUAL(0, float4, out_debug_color_add, SRC_0)
 FRAGMENT_OUT_DUAL(0, float4, out_debug_color_mul, SRC_1)
 FRAGMENT_SOURCE("eevee_light_culling_debug_frag.glsl")
-ADDITIONAL_INFO(eevee_shared)
+TYPEDEF_SOURCE("eevee_defines.hh")
 ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(gpu_fullscreen)
 ADDITIONAL_INFO(eevee_light_data)

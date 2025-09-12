@@ -1046,6 +1046,9 @@ void groupMemoryBarrier() {}
   void _fake_main()
 
 #define GLSL_CPP_STUBS
+#ifndef GPU_SHADER
+#  define GPU_SHADER
+#endif
 
 /* List of reserved keywords in GLSL. */
 #define common common_is_reserved_glsl_keyword_do_not_use

@@ -10,9 +10,9 @@
 
 #  include "draw_object_infos_info.hh"
 #  include "draw_view_info.hh"
-#  include "eevee_shader_shared.hh"
 
 #  include "eevee_common_info.hh"
+#  include "eevee_shadow_shared.hh"
 #  include "eevee_volume_info.hh"
 
 #  define CURVES_SHADER
@@ -42,7 +42,7 @@ SMOOTH(float3, N)
 GPU_SHADER_NAMED_INTERFACE_END(interp)
 
 GPU_SHADER_CREATE_INFO(eevee_geom_mesh)
-ADDITIONAL_INFO(eevee_shared)
+TYPEDEF_SOURCE("eevee_defines.hh")
 DEFINE("MAT_GEOM_MESH")
 VERTEX_IN(0, float3, pos)
 VERTEX_IN(1, float3, nor)
@@ -63,7 +63,7 @@ FLAT(int, id)
 GPU_SHADER_NAMED_INTERFACE_END(pointcloud_interp_flat)
 
 GPU_SHADER_CREATE_INFO(eevee_geom_pointcloud)
-ADDITIONAL_INFO(eevee_shared)
+TYPEDEF_SOURCE("eevee_defines.hh")
 PUSH_CONSTANT(bool, ptcloud_backface)
 DEFINE("MAT_GEOM_POINTCLOUD")
 VERTEX_SOURCE("eevee_geom_pointcloud_vert.glsl")
@@ -78,7 +78,7 @@ ADDITIONAL_INFO(draw_view)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_geom_volume)
-ADDITIONAL_INFO(eevee_shared)
+TYPEDEF_SOURCE("eevee_defines.hh")
 DEFINE("MAT_GEOM_VOLUME")
 VERTEX_IN(0, float3, pos)
 VERTEX_OUT(eevee_surf_iface)
@@ -103,7 +103,7 @@ FLAT(int, strand_id)
 GPU_SHADER_NAMED_INTERFACE_END(curve_interp_flat)
 
 GPU_SHADER_CREATE_INFO(eevee_geom_curves)
-ADDITIONAL_INFO(eevee_shared)
+TYPEDEF_SOURCE("eevee_defines.hh")
 DEFINE("MAT_GEOM_CURVES")
 VERTEX_SOURCE("eevee_geom_curves_vert.glsl")
 VERTEX_OUT(eevee_surf_iface)
@@ -118,7 +118,7 @@ ADDITIONAL_INFO(draw_curves_infos)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_geom_world)
-ADDITIONAL_INFO(eevee_shared)
+TYPEDEF_SOURCE("eevee_defines.hh")
 DEFINE("MAT_GEOM_WORLD")
 BUILTINS(BuiltinBits::VERTEX_ID)
 VERTEX_SOURCE("eevee_geom_world_vert.glsl")
@@ -202,6 +202,7 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_surf_capture)
 DEFINE("MAT_CAPTURE")
+TYPEDEF_SOURCE("eevee_lightprobe_shared.hh")
 STORAGE_BUF(SURFEL_BUF_SLOT, write, Surfel, surfel_buf[])
 STORAGE_BUF(CAPTURE_BUF_SLOT, read_write, CaptureInfoData, capture_info_buf)
 PUSH_CONSTANT(bool, is_double_sided)
@@ -242,7 +243,7 @@ ADDITIONAL_INFO(gpu_fullscreen)
 ADDITIONAL_INFO(eevee_global_ubo)
 ADDITIONAL_INFO(eevee_render_pass_out)
 ADDITIONAL_INFO(eevee_cryptomatte_out)
-ADDITIONAL_INFO(eevee_shared)
+TYPEDEF_SOURCE("eevee_defines.hh")
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
 
@@ -258,6 +259,7 @@ GPU_SHADER_NAMED_INTERFACE_END(shadow_clip)
 GPU_SHADER_CREATE_INFO(eevee_surf_shadow)
 DEFINE_VALUE("DRW_VIEW_LEN", STRINGIFY(SHADOW_VIEW_MAX))
 DEFINE("MAT_SHADOW")
+TYPEDEF_SOURCE("eevee_shadow_shared.hh")
 BUILTINS(BuiltinBits::VIEWPORT_INDEX)
 VERTEX_OUT(eevee_surf_shadow_clipping_iface)
 STORAGE_BUF(SHADOW_RENDER_VIEW_BUF_SLOT, read, ShadowRenderView, render_view_buf[SHADOW_VIEW_MAX])
@@ -309,7 +311,7 @@ IMAGE(VOLUME_OCCUPANCY_SLOT, UINT_32, read, uimage3DAtomic, occupancy_img)
 FRAGMENT_SOURCE("eevee_surf_volume_frag.glsl")
 ADDITIONAL_INFO(draw_modelmat_common)
 ADDITIONAL_INFO(draw_view)
-ADDITIONAL_INFO(eevee_shared)
+TYPEDEF_SOURCE("eevee_defines.hh")
 ADDITIONAL_INFO(eevee_global_ubo)
 ADDITIONAL_INFO(eevee_sampling_data)
 ADDITIONAL_INFO(eevee_utility_texture)

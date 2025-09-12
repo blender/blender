@@ -10,10 +10,6 @@
  * BxDF evaluation functions.
  */
 
-#include "gpu_shader_math_base_lib.glsl"
-#include "gpu_shader_math_fast_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
-
 struct BsdfSample {
   packed_float3 direction;
   float pdf;
@@ -36,6 +32,23 @@ struct ClosureLight {
   /* Output both shadowed and unshadowed for shadow denoising. */
   packed_float3 light_shadowed;
   packed_float3 light_unshadowed;
+
+  METAL_CONSTRUCTOR_5(ClosureLight,
+                      packed_float4,
+                      ltc_mat,
+                      packed_float3,
+                      N,
+                      LightingType,
+                      type,
+                      packed_float3,
+                      light_shadowed,
+                      packed_float3,
+                      light_unshadowed)
+
+  static ClosureLight zero()
+  {
+    return ClosureLight(float4(0), float3(0), LIGHT_DIFFUSE, float3(0), float3(0));
+  }
 };
 
 /* Represent an approximation of a bunch of rays from a BSDF. */

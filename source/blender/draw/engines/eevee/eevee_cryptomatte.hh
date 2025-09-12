@@ -15,15 +15,21 @@
 
 #pragma once
 
-#include "eevee_shader_shared.hh"
+#include "DRW_gpu_wrapper.hh"
 
 #include "BKE_cryptomatte.hh"
+
+#include "draw_handle.hh"
+
+#include "eevee_defines.hh"
 
 extern "C" {
 struct Material;
 }
 
 namespace blender::eevee {
+
+using namespace draw;
 
 class Instance;
 
@@ -34,6 +40,8 @@ class Instance;
 class Cryptomatte {
  private:
   class Instance &inst_;
+
+  using CryptomatteObjectBuf = draw::StorageArrayBuffer<float2, 16>;
 
   bke::cryptomatte::CryptomatteSessionPtr session_;
 

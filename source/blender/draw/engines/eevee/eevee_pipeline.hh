@@ -17,8 +17,10 @@
 #include "DRW_render.hh"
 
 #include "eevee_lut.hh"
+#include "eevee_material.hh"
 #include "eevee_raytrace.hh"
 #include "eevee_subsurface.hh"
+#include "eevee_uniform_shared.hh"
 
 struct Camera;
 

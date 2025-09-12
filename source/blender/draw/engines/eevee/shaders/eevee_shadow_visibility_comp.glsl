@@ -13,8 +13,6 @@
 COMPUTE_SHADER_CREATE_INFO(eevee_shadow_view_visibility)
 
 #include "draw_intersect_lib.glsl"
-#include "draw_view_lib.glsl"
-#include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
 bool shadow_linking_affects_caster(uint view_id, uint resource_id)

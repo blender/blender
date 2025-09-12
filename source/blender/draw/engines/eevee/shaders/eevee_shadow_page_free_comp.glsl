@@ -15,7 +15,6 @@
 COMPUTE_SHADER_CREATE_INFO(eevee_shadow_page_free)
 
 #include "eevee_shadow_page_ops_lib.glsl"
-#include "eevee_shadow_tilemap_lib.glsl"
 
 void main()
 {

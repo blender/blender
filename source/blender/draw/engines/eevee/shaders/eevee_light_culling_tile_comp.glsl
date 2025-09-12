@@ -14,7 +14,6 @@ COMPUTE_SHADER_CREATE_INFO(eevee_light_culling_tile)
 
 #include "draw_intersect_lib.glsl"
 #include "draw_view_lib.glsl"
-#include "eevee_light_iter_lib.glsl"
 #include "gpu_shader_math_matrix_lib.glsl"
 
 /* ---------------------------------------------------------------------- */
