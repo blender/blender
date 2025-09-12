@@ -1185,7 +1185,7 @@ TEST_F(ArmatureBoneCollections, bcoll_move_to_parent__within_siblings)
   EXPECT_EQ(0, arm.collection_array[5]->child_count);
   EXPECT_EQ(0, arm.collection_array[6]->child_count);
 
-  /* Move r0_child1 to become the 3nd child of root_0. */
+  /* Move r0_child1 to become the 3rd child of root_0. */
   EXPECT_EQ(5,
             armature_bonecoll_move_to_parent(&arm,
                                              2, /* From index. */
