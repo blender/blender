@@ -515,7 +515,7 @@ static void openexr_header_metadata(Header *header, ImBuf *ibuf)
       if (prop->type == IDP_STRING &&
           !(STREQ(prop->name, "compression") || STREQ(prop->name, "colorInteropID")))
       {
-        header->insert(prop->name, StringAttribute(IDP_String(prop)));
+        header->insert(prop->name, StringAttribute(IDP_string_get(prop)));
       }
     }
   }

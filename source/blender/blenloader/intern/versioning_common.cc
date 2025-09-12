@@ -521,19 +521,19 @@ IDProperty *version_cycles_properties_from_render_layer(SceneRenderLayer *render
 float version_cycles_property_float(IDProperty *idprop, const char *name, float default_value)
 {
   IDProperty *prop = IDP_GetPropertyTypeFromGroup(idprop, name, IDP_FLOAT);
-  return (prop) ? IDP_Float(prop) : default_value;
+  return (prop) ? IDP_float_get(prop) : default_value;
 }
 
 int version_cycles_property_int(IDProperty *idprop, const char *name, int default_value)
 {
   IDProperty *prop = IDP_GetPropertyTypeFromGroup(idprop, name, IDP_INT);
-  return (prop) ? IDP_Int(prop) : default_value;
+  return (prop) ? IDP_int_get(prop) : default_value;
 }
 
 void version_cycles_property_int_set(IDProperty *idprop, const char *name, int value)
 {
   if (IDProperty *prop = IDP_GetPropertyTypeFromGroup(idprop, name, IDP_INT)) {
-    IDP_Int(prop) = value;
+    IDP_int_set(prop, value);
   }
   else {
     IDP_AddToGroup(idprop, blender::bke::idprop::create(name, value).release());

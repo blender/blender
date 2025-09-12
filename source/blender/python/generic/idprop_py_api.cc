@@ -56,34 +56,34 @@ static int BPy_IDGroup_Contains(BPy_IDProperty *self, PyObject *value);
 static PyObject *idprop_py_from_idp_string(const IDProperty *prop)
 {
   if (prop->subtype == IDP_STRING_SUB_BYTE) {
-    return PyBytes_FromStringAndSize(IDP_String(prop), prop->len);
+    return PyBytes_FromStringAndSize(IDP_string_get(prop), prop->len);
   }
 
 #ifdef USE_STRING_COERCE
-  return PyC_UnicodeFromBytesAndSize(static_cast<const char *>(IDP_Array(prop)), prop->len - 1);
+  return PyC_UnicodeFromBytesAndSize(IDP_string_get(prop), prop->len - 1);
 #else
-  return PyUnicode_FromStringAndSize(IDP_String(prop), prop->len - 1);
+  return PyUnicode_FromStringAndSize(IDP_string_get(prop), prop->len - 1);
 #endif
 }
 
 static PyObject *idprop_py_from_idp_int(const IDProperty *prop)
 {
-  return PyLong_FromLong(long(IDP_Int(prop)));
+  return PyLong_FromLong(long(IDP_int_get(prop)));
 }
 
 static PyObject *idprop_py_from_idp_float(const IDProperty *prop)
 {
-  return PyFloat_FromDouble(double(IDP_Float(prop)));
+  return PyFloat_FromDouble(double(IDP_float_get(prop)));
 }
 
 static PyObject *idprop_py_from_idp_double(const IDProperty *prop)
 {
-  return PyFloat_FromDouble(IDP_Double(prop));
+  return PyFloat_FromDouble(IDP_double_get(prop));
 }
 
 static PyObject *idprop_py_from_idp_bool(const IDProperty *prop)
 {
-  return PyBool_FromLong(IDP_Bool(prop));
+  return PyBool_FromLong(IDP_bool_get(prop));
 }
 
 static PyObject *idprop_py_from_idp_group(ID *id, IDProperty *prop, IDProperty *parent)
@@ -111,7 +111,7 @@ static PyObject *idprop_py_from_idp_array(ID *id, IDProperty *prop)
 static PyObject *idprop_py_from_idp_idparray(ID *id, IDProperty *prop)
 {
   PyObject *seq = PyList_New(prop->len);
-  IDProperty *array = IDP_IDPArray(prop);
+  IDProperty *array = IDP_property_array_get(prop);
   int i;
 
   if (!seq) {
@@ -203,14 +203,14 @@ static int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject 
 
         st = PyUnicode_AsUTF8(value);
         IDP_ResizeArray(prop, alloc_len);
-        memcpy(IDP_Array(prop), st, alloc_len);
+        memcpy(IDP_string_get(prop), st, alloc_len);
         Py_XDECREF(value_coerce);
       }
 #  else
       length_ssize_t st_len;
       st = PyUnicode_AsUTF8AndSize(value, &st_len);
       IDP_ResizeArray(prop, st_len + 1);
-      memcpy(IDP_Array(prop), st, st_len + 1);
+      memcpy(IDP_string_get(prop), st, st_len + 1);
 #  endif
 
       return 0;
@@ -222,7 +222,7 @@ static int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject 
         PyErr_SetString(PyExc_TypeError, "expected an int type");
         return -1;
       }
-      IDP_Int(prop) = ivalue;
+      IDP_int_set(prop, ivalue);
       break;
     }
     case IDP_FLOAT: {
@@ -231,7 +231,7 @@ static int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject 
         PyErr_SetString(PyExc_TypeError, "expected a float");
         return -1;
       }
-      IDP_Float(self->prop) = fvalue;
+      IDP_float_set(self->prop, fvalue);
       break;
     }
     case IDP_DOUBLE: {
@@ -240,7 +240,7 @@ static int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject 
         PyErr_SetString(PyExc_TypeError, "expected a float");
         return -1;
       }
-      IDP_Double(self->prop) = dvalue;
+      IDP_double_set(self->prop, value);
       break;
     }
     default:
@@ -440,13 +440,13 @@ static IDProperty *idp_from_PyFloat(IDProperty *prop_exist,
   const double value = PyFloat_AsDouble(ob);
   if (prop_exist) {
     if (prop_exist->type == IDP_DOUBLE) {
-      IDP_Double(prop_exist) = value;
+      IDP_double_set(prop_exist, value);
       prop = prop_exist;
     }
     else if (do_conversion) {
       switch (prop_exist->type) {
         case IDP_FLOAT:
-          IDP_Float(prop_exist) = float(value);
+          IDP_float_set(prop_exist, float(value));
           prop = prop_exist;
           break;
         case IDP_STRING:
@@ -477,13 +477,13 @@ static IDProperty *idp_from_PyBool(IDProperty *prop_exist,
   const bool value = PyC_Long_AsBool(ob);
   if (prop_exist) {
     if (prop_exist->type == IDP_BOOLEAN) {
-      IDP_Bool(prop_exist) = value;
+      IDP_bool_set(prop_exist, value);
       prop = prop_exist;
     }
     else if (do_conversion) {
       switch (prop_exist->type) {
         case IDP_INT:
-          IDP_Int(prop_exist) = int(value);
+          IDP_int_set(prop_exist, int(value));
           prop = prop_exist;
           break;
         case IDP_STRING:
@@ -517,7 +517,7 @@ static IDProperty *idp_from_PyLong(IDProperty *prop_exist,
       if (value == -1 && PyErr_Occurred()) {
         return prop;
       }
-      IDP_Int(prop_exist) = value;
+      IDP_int_set(prop_exist, value);
       prop = prop_exist;
     }
     else if (do_conversion) {
@@ -527,11 +527,11 @@ static IDProperty *idp_from_PyLong(IDProperty *prop_exist,
       }
       switch (prop_exist->type) {
         case IDP_FLOAT:
-          IDP_Float(prop_exist) = float(value);
+          IDP_float_set(prop_exist, float(value));
           prop = prop_exist;
           break;
         case IDP_DOUBLE:
-          IDP_Double(prop_exist) = double(value);
+          IDP_double_set(prop_exist, double(value));
           prop = prop_exist;
           break;
         case IDP_STRING:
@@ -676,7 +676,7 @@ static IDProperty *idp_from_PySequence_Buffer(IDProperty *prop_exist,
   if (prop_exist) {
     if (prop_exist->type == IDP_ARRAY && prop_exist->subtype == idp_type) {
       BLI_assert(buffer.len == prop_exist->len);
-      memcpy(IDP_Array(prop_exist), buffer.buf, buffer.len);
+      memcpy(IDP_array_voidp_get(prop_exist), buffer.buf, buffer.len);
       prop = prop_exist;
     }
     /* No conversion. */
@@ -686,7 +686,7 @@ static IDProperty *idp_from_PySequence_Buffer(IDProperty *prop_exist,
     val.array.type = idp_type;
     val.array.len = buffer.len / buffer.itemsize;
     prop = IDP_New(IDP_ARRAY, &val, name);
-    memcpy(IDP_Array(prop), buffer.buf, buffer.len);
+    memcpy(IDP_array_voidp_get(prop), buffer.buf, buffer.len);
   }
   return prop;
 }
@@ -738,7 +738,7 @@ static IDProperty *idp_from_PySequence_Fast(IDProperty *prop_exist,
           break;
         }
         prop = prop_exist;
-        void *prop_data = IDP_Array(prop);
+        void *prop_data = IDP_array_voidp_get(prop);
         for (i = 0; i < val.array.len; i++) {
           item = ob_seq_fast_items[i];
           const double value = PyFloat_AsDouble(item);
@@ -763,7 +763,7 @@ static IDProperty *idp_from_PySequence_Fast(IDProperty *prop_exist,
           break;
         }
         prop = prop_exist;
-        void *prop_data = IDP_Array(prop);
+        void *prop_data = IDP_array_voidp_get(prop);
         for (i = 0; i < val.array.len; i++) {
           item = ob_seq_fast_items[i];
           if (to_float || to_double) {
@@ -796,7 +796,7 @@ static IDProperty *idp_from_PySequence_Fast(IDProperty *prop_exist,
           break;
         }
         prop = prop_exist;
-        void *prop_data = IDP_Array(prop);
+        void *prop_data = IDP_array_voidp_get(prop);
         for (i = 0; i < val.array.len; i++) {
           item = ob_seq_fast_items[i];
           const int value = PyC_Long_AsBool(item);
@@ -827,7 +827,7 @@ static IDProperty *idp_from_PySequence_Fast(IDProperty *prop_exist,
     case IDP_DOUBLE: {
       double *prop_data;
       prop = IDP_New(IDP_ARRAY, &val, name);
-      prop_data = static_cast<double *>(IDP_Array(prop));
+      prop_data = IDP_array_double_get(prop);
       for (i = 0; i < val.array.len; i++) {
         item = ob_seq_fast_items[i];
         if (((prop_data[i] = PyFloat_AsDouble(item)) == -1.0) && PyErr_Occurred()) {
@@ -840,7 +840,7 @@ static IDProperty *idp_from_PySequence_Fast(IDProperty *prop_exist,
     case IDP_INT: {
       int *prop_data;
       prop = IDP_New(IDP_ARRAY, &val, name);
-      prop_data = static_cast<int *>(IDP_Array(prop));
+      prop_data = IDP_array_int_get(prop);
       for (i = 0; i < val.array.len; i++) {
         item = ob_seq_fast_items[i];
         if (((prop_data[i] = PyC_Long_AsI32(item)) == -1) && PyErr_Occurred()) {
@@ -863,7 +863,7 @@ static IDProperty *idp_from_PySequence_Fast(IDProperty *prop_exist,
     }
     case IDP_BOOLEAN: {
       prop = IDP_New(IDP_ARRAY, &val, name);
-      bool *prop_data = static_cast<bool *>(IDP_Array(prop));
+      int8_t *prop_data = IDP_array_bool_get(prop);
       for (i = 0; i < val.array.len; i++) {
         item = ob_seq_fast_items[i];
         const int value = PyC_Long_AsBool(item);
@@ -1200,28 +1200,28 @@ PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 
       switch (prop->subtype) {
         case IDP_FLOAT: {
-          const float *array = (float *)IDP_Array(prop);
+          const float *array = IDP_array_float_get(prop);
           for (i = 0; i < prop->len; i++) {
             PyList_SET_ITEM(seq, i, PyFloat_FromDouble(array[i]));
           }
           break;
         }
         case IDP_DOUBLE: {
-          const double *array = (double *)IDP_Array(prop);
+          const double *array = IDP_array_double_get(prop);
           for (i = 0; i < prop->len; i++) {
             PyList_SET_ITEM(seq, i, PyFloat_FromDouble(array[i]));
           }
           break;
         }
         case IDP_INT: {
-          const int *array = (int *)IDP_Array(prop);
+          const int *array = IDP_array_int_get(prop);
           for (i = 0; i < prop->len; i++) {
             PyList_SET_ITEM(seq, i, PyLong_FromLong(array[i]));
           }
           break;
         }
         case IDP_BOOLEAN: {
-          const int8_t *array = (const int8_t *)IDP_Array(prop);
+          const int8_t *array = IDP_array_bool_get(prop);
           for (i = 0; i < prop->len; i++) {
             PyList_SET_ITEM(seq, i, PyBool_FromLong(array[i]));
           }
@@ -1238,7 +1238,7 @@ PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
     }
     case IDP_IDPARRAY: {
       PyObject *seq = PyList_New(prop->len);
-      IDProperty *array = IDP_IDPArray(prop);
+      IDProperty *array = IDP_property_array_get(prop);
       int i;
 
       if (!seq) {
@@ -2201,13 +2201,13 @@ static PyObject *BPy_IDArray_GetItem(BPy_IDArray *self, Py_ssize_t index)
 
   switch (self->prop->subtype) {
     case IDP_FLOAT:
-      return PyFloat_FromDouble(((float *)IDP_Array(self->prop))[index]);
+      return PyFloat_FromDouble(IDP_array_float_get(self->prop)[index]);
     case IDP_DOUBLE:
-      return PyFloat_FromDouble(((double *)IDP_Array(self->prop))[index]);
+      return PyFloat_FromDouble(IDP_array_double_get(self->prop)[index]);
     case IDP_INT:
-      return PyLong_FromLong(long(((int *)IDP_Array(self->prop))[index]));
+      return PyLong_FromLong(long(IDP_array_int_get(self->prop)[index]));
     case IDP_BOOLEAN:
-      return PyBool_FromLong(long(((int8_t *)IDP_Array(self->prop))[index]));
+      return PyBool_FromLong(long(IDP_array_bool_get(self->prop)[index]));
   }
 
   PyErr_Format(
@@ -2229,7 +2229,7 @@ static int BPy_IDArray_SetItem(BPy_IDArray *self, Py_ssize_t index, PyObject *va
       if (f == -1 && PyErr_Occurred()) {
         return -1;
       }
-      ((float *)IDP_Array(self->prop))[index] = f;
+      IDP_array_float_get(self->prop)[index] = f;
       break;
     }
     case IDP_DOUBLE: {
@@ -2237,7 +2237,7 @@ static int BPy_IDArray_SetItem(BPy_IDArray *self, Py_ssize_t index, PyObject *va
       if (d == -1 && PyErr_Occurred()) {
         return -1;
       }
-      ((double *)IDP_Array(self->prop))[index] = d;
+      IDP_array_double_get(self->prop)[index] = d;
       break;
     }
     case IDP_INT: {
@@ -2246,7 +2246,7 @@ static int BPy_IDArray_SetItem(BPy_IDArray *self, Py_ssize_t index, PyObject *va
         return -1;
       }
 
-      ((int *)IDP_Array(self->prop))[index] = i;
+      IDP_array_int_get(self->prop)[index] = i;
       break;
     }
     case IDP_BOOLEAN: {
@@ -2255,7 +2255,7 @@ static int BPy_IDArray_SetItem(BPy_IDArray *self, Py_ssize_t index, PyObject *va
         return -1;
       }
 
-      ((int8_t *)IDP_Array(self->prop))[index] = i;
+      IDP_array_bool_get(self->prop)[index] = i;
       break;
     }
   }
@@ -2293,28 +2293,28 @@ static PyObject *BPy_IDArray_slice(BPy_IDArray *self, int begin, int end)
 
   switch (prop->subtype) {
     case IDP_FLOAT: {
-      const float *array = (float *)IDP_Array(prop);
+      const float *array = IDP_array_float_get(prop);
       for (count = begin; count < end; count++) {
         PyTuple_SET_ITEM(tuple, count - begin, PyFloat_FromDouble(array[count]));
       }
       break;
     }
     case IDP_DOUBLE: {
-      const double *array = (double *)IDP_Array(prop);
+      const double *array = IDP_array_double_get(prop);
       for (count = begin; count < end; count++) {
         PyTuple_SET_ITEM(tuple, count - begin, PyFloat_FromDouble(array[count]));
       }
       break;
     }
     case IDP_INT: {
-      const int *array = (int *)IDP_Array(prop);
+      const int *array = IDP_array_int_get(prop);
       for (count = begin; count < end; count++) {
         PyTuple_SET_ITEM(tuple, count - begin, PyLong_FromLong(array[count]));
       }
       break;
     }
     case IDP_BOOLEAN: {
-      const int8_t *array = (const int8_t *)IDP_Array(prop);
+      const int8_t *array = IDP_array_bool_get(prop);
       for (count = begin; count < end; count++) {
         PyTuple_SET_ITEM(tuple, count - begin, PyBool_FromLong(long(array[count])));
       }
@@ -2349,7 +2349,7 @@ static int BPy_IDArray_ass_slice(BPy_IDArray *self, int begin, int end, PyObject
     return -1;
   }
 
-  memcpy((void *)(((char *)IDP_Array(prop)) + (begin * elem_size)), vec, alloc_len);
+  memcpy((void *)(((char *)IDP_array_voidp_get(prop)) + (begin * elem_size)), vec, alloc_len);
 
   MEM_freeN(vec);
   return 0;
@@ -2454,7 +2454,9 @@ static int BPy_IDArray_getbuffer(BPy_IDArray *self, Py_buffer *view, int flags)
   const int itemsize = itemsize_by_idarray_type(prop->subtype);
   const int length = itemsize * prop->len;
 
-  if (PyBuffer_FillInfo(view, (PyObject *)self, IDP_Array(prop), length, false, flags) == -1) {
+  if (PyBuffer_FillInfo(view, (PyObject *)self, IDP_array_voidp_get(prop), length, false, flags) ==
+      -1)
+  {
     return -1;
   }
 

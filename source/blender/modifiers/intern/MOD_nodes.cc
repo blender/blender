@@ -114,7 +114,7 @@ static void find_dependencies_from_settings(const NodesModifierSettings &setting
                                             nodes::GeometryNodesEvalDependencies &deps)
 {
   IDP_foreach_property(settings.properties, IDP_TYPE_FILTER_ID, [&](IDProperty *property) {
-    if (ID *id = IDP_Id(property)) {
+    if (ID *id = IDP_ID_get(property)) {
       deps.add_generic_id_full(id);
     }
   });

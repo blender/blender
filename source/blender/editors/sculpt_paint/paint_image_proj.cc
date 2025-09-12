@@ -3759,7 +3759,7 @@ static void proj_paint_state_viewport_init(ProjPaintState *ps, const char symmet
       IDProperty *idgroup = IDP_GetProperties(&ps->reproject_image->id);
       IDProperty *view_data = IDP_GetPropertyFromGroup(idgroup, PROJ_VIEW_DATA_ID);
 
-      const float *array = (float *)IDP_Array(view_data);
+      const float *array = IDP_array_float_get(view_data);
 
       /* use image array, written when creating image */
       memcpy(winmat, array, sizeof(winmat));

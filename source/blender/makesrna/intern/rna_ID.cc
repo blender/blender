@@ -1152,7 +1152,7 @@ static void rna_IDPArray_begin(CollectionPropertyIterator *iter, PointerRNA *ptr
 {
   IDProperty *prop = (IDProperty *)ptr->data;
   rna_iterator_array_begin(
-      iter, ptr, IDP_IDPArray(prop), sizeof(IDProperty), prop->len, 0, nullptr);
+      iter, ptr, IDP_property_array_get(prop), sizeof(IDProperty), prop->len, 0, nullptr);
 }
 
 static int rna_IDPArray_length(PointerRNA *ptr)

@@ -432,7 +432,7 @@ ImageSpec imb_create_write_spec(const WriteContext &ctx, int file_channels, Type
           }
         }
 
-        file_spec.attribute(prop->name, IDP_String(prop));
+        file_spec.attribute(prop->name, IDP_string_get(prop));
       }
     }
   }

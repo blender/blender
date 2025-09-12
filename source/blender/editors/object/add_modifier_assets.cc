@@ -56,12 +56,12 @@ static asset::AssetItemTree build_catalog_tree(const bContext &C)
   type_filter.id_types = FILTER_ID_NT;
   auto meta_data_filter = [&](const AssetMetaData &meta_data) {
     const IDProperty *tree_type = BKE_asset_metadata_idprop_find(&meta_data, "type");
-    if (tree_type == nullptr || IDP_Int(tree_type) != NTREE_GEOMETRY) {
+    if (tree_type == nullptr || IDP_int_get(tree_type) != NTREE_GEOMETRY) {
       return false;
     }
     const IDProperty *traits_flag = BKE_asset_metadata_idprop_find(
         &meta_data, "geometry_node_asset_traits_flag");
-    if (traits_flag == nullptr || !(IDP_Int(traits_flag) & GEO_NODE_ASSET_MODIFIER)) {
+    if (traits_flag == nullptr || !(IDP_int_get(traits_flag) & GEO_NODE_ASSET_MODIFIER)) {
       return false;
     }
     return true;

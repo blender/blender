@@ -821,7 +821,7 @@ static void idprop_ui_data_to_dict_id(IDProperty *property, PyObject *dict)
     /* While UI exposed custom properties do not allow the 'all ID types' `0` value, in
      * py-defined IDProperties it is accepted. So force defining a valid id_type value when this
      * function is called. */
-    ID *id = IDP_Id(property);
+    ID *id = IDP_ID_get(property);
     id_type_value = id ? GS(id->name) : ID_OB;
   }
 

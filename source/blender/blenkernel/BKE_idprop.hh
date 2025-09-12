@@ -293,38 +293,85 @@ void IDP_ClearProperty(IDProperty *prop);
 
 void IDP_Reset(IDProperty *prop, const IDProperty *reference);
 
-#define IDP_Int(prop) ((prop)->data.val)
-#define IDP_Bool(prop) ((prop)->data.val)
-#define IDP_Array(prop) ((prop)->data.pointer)
-/* C11 const correctness for casts */
-#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
-#  define IDP_Float(prop) \
-    _Generic((prop), \
-        IDProperty *: (*(float *)&(prop)->data.val), \
-        const IDProperty *: (*(const float *)&(prop)->data.val))
-#  define IDP_Double(prop) \
-    _Generic((prop), \
-        IDProperty *: (*(double *)&(prop)->data.val), \
-        const IDProperty *: (*(const double *)&(prop)->data.val))
-#  define IDP_String(prop) \
-    _Generic((prop), \
-        IDProperty *: ((char *)(prop)->data.pointer), \
-        const IDProperty *: ((const char *)(prop)->data.pointer))
-#  define IDP_IDPArray(prop) \
-    _Generic((prop), \
-        IDProperty *: ((IDProperty *)(prop)->data.pointer), \
-        const IDProperty *: ((const IDProperty *)(prop)->data.pointer))
-#  define IDP_Id(prop) \
-    _Generic((prop), \
-        IDProperty *: ((ID *)(prop)->data.pointer), \
-        const IDProperty *: ((const ID *)(prop)->data.pointer))
+#ifndef NDEBUG
+const IDProperty *_IDP_assert_type(const IDProperty *prop, char ty);
+const IDProperty *_IDP_assert_type_and_subtype(const IDProperty *prop, char ty, char sub_ty);
+const IDProperty *_IDP_assert_type_mask(const IDProperty *prop, int ty_mask);
+
 #else
-#  define IDP_Float(prop) (*(float *)&(prop)->data.val)
-#  define IDP_Double(prop) (*(double *)&(prop)->data.val)
-#  define IDP_String(prop) ((char *)(prop)->data.pointer)
-#  define IDP_IDPArray(prop) ((IDProperty *)(prop)->data.pointer)
-#  define IDP_Id(prop) ((ID *)(prop)->data.pointer)
+#  define _IDP_assert_type(prop, ty) (prop)
+#  define _IDP_assert_type_and_subtype(prop, ty, sub_ty) (prop)
+#  define _IDP_assert_type_mask(prop, ty_mask) (prop)
 #endif
+
+#define IDP_int_get(prop) (_IDP_assert_type(prop, IDP_INT)->data.val)
+#define IDP_int_set(prop, value) \
+  { \
+    IDProperty *prop_ = (prop); \
+    BLI_assert(prop_->type == IDP_INT); \
+    prop_->data.val = value; \
+  } \
+  ((void)0)
+
+#define IDP_bool_get(prop) ((_IDP_assert_type(prop, IDP_BOOLEAN))->data.val)
+#define IDP_bool_set(prop, value) \
+  { \
+    IDProperty *prop_ = (prop); \
+    BLI_assert(prop_->type == IDP_BOOLEAN); \
+    prop_->data.val = value; \
+  } \
+  ((void)0)
+
+#define IDP_int_or_bool_get(prop) \
+  (_IDP_assert_type_mask(prop, (1 << IDP_INT) | (1 << IDP_BOOLEAN))->data.val)
+#define IDP_int_or_bool_set(prop, value) \
+  { \
+    IDProperty *prop_ = (prop); \
+    BLI_assert(ELEM(prop_->type, IDP_INT, IDP_BOOLEAN)); \
+    prop_->data.val = value; \
+  } \
+  ((void)0)
+
+#define IDP_float_get(prop) (*(const float *)&(_IDP_assert_type(prop, IDP_FLOAT)->data.val))
+#define IDP_float_set(prop, value) \
+  { \
+    IDProperty *prop_ = (prop); \
+    BLI_assert(prop_->type == IDP_FLOAT); \
+    (*(float *)&(prop_)->data.val) = value; \
+  } \
+  ((void)0)
+
+#define IDP_double_get(prop) (*(const double *)&(_IDP_assert_type(prop, IDP_DOUBLE)->data.val))
+#define IDP_double_set(prop, value) \
+  { \
+    IDProperty *prop_ = (prop); \
+    BLI_assert(prop_->type == IDP_DOUBLE); \
+    (*(double *)&(prop_)->data.val) = value; \
+  } \
+  ((void)0)
+
+/**
+ * Use when the type of the array is not known.
+ *
+ * Avoid using this where possible.
+ */
+#define IDP_array_voidp_get(prop) (_IDP_assert_type(prop, IDP_ARRAY)->data.pointer)
+
+#define IDP_array_int_get(prop) \
+  static_cast<int *>(_IDP_assert_type_and_subtype(prop, IDP_ARRAY, IDP_INT)->data.pointer)
+#define IDP_array_bool_get(prop) \
+  static_cast<int8_t *>(_IDP_assert_type_and_subtype(prop, IDP_ARRAY, IDP_BOOLEAN)->data.pointer)
+#define IDP_array_float_get(prop) \
+  static_cast<float *>(_IDP_assert_type_and_subtype(prop, IDP_ARRAY, IDP_FLOAT)->data.pointer)
+#define IDP_array_double_get(prop) \
+  static_cast<double *>(_IDP_assert_type_and_subtype(prop, IDP_ARRAY, IDP_DOUBLE)->data.pointer)
+#define IDP_property_array_get(prop) \
+  static_cast<IDProperty *>(_IDP_assert_type(prop, IDP_IDPARRAY)->data.pointer)
+
+#define IDP_string_get(prop) ((char *)_IDP_assert_type(prop, IDP_STRING)->data.pointer)
+/* No `IDP_string_set` needed. */
+#define IDP_ID_get(prop) ((void)0, ((ID *)_IDP_assert_type(prop, IDP_ID)->data.pointer))
+/* No `IDP_ID_set` needed. */
 
 /**
  * Return an int from an #IDProperty with a compatible type. This should be avoided, but

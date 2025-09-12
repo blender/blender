@@ -573,7 +573,7 @@ static Map<StringRef, ID *> gather_input_ids(const Main &bmain,
         if (!id_type) {
           return;
         }
-        const char *id_name = IDP_String(prop);
+        const char *id_name = IDP_string_get(prop);
         ID *id = BKE_libblock_find_name(&const_cast<Main &>(bmain), *id_type, id_name);
         if (!id) {
           return;
@@ -613,7 +613,7 @@ static void replace_inputs_evaluated_data_blocks(
     IDProperty &properties, const nodes::GeoNodesOperatorDepsgraphs &depsgraphs)
 {
   IDP_foreach_property(&properties, IDP_TYPE_FILTER_ID, [&](IDProperty *property) {
-    if (ID *id = IDP_Id(property)) {
+    if (ID *id = IDP_ID_get(property)) {
       if (ID_TYPE_USE_COPY_ON_EVAL(GS(id->name))) {
         property->data.pointer = const_cast<ID *>(depsgraphs.get_evaluated_id(*id));
       }
@@ -945,7 +945,7 @@ static bool run_node_group_depends_on_cursor(bContext &C, wmOperatorType & /*ot*
   }
   const IDProperty *traits_flag = BKE_asset_metadata_idprop_find(
       &asset->get_metadata(), "geometry_node_asset_traits_flag");
-  if (traits_flag == nullptr || !(IDP_Int(traits_flag) & GEO_NODE_ASSET_WAIT_FOR_CURSOR)) {
+  if (traits_flag == nullptr || !(IDP_int_get(traits_flag) & GEO_NODE_ASSET_WAIT_FOR_CURSOR)) {
     return false;
   }
   return true;
@@ -1223,12 +1223,12 @@ static asset::AssetItemTree build_catalog_tree(const bContext &C, const Object &
   const GeometryNodeAssetTraitFlag flag = asset_flag_for_context(active_object);
   auto meta_data_filter = [&](const AssetMetaData &meta_data) {
     const IDProperty *tree_type = BKE_asset_metadata_idprop_find(&meta_data, "type");
-    if (tree_type == nullptr || IDP_Int(tree_type) != NTREE_GEOMETRY) {
+    if (tree_type == nullptr || IDP_int_get(tree_type) != NTREE_GEOMETRY) {
       return false;
     }
     const IDProperty *traits_flag = BKE_asset_metadata_idprop_find(
         &meta_data, "geometry_node_asset_traits_flag");
-    if (traits_flag == nullptr || (IDP_Int(traits_flag) & flag) != flag) {
+    if (traits_flag == nullptr || (IDP_int_get(traits_flag) & flag) != flag) {
       return false;
     }
     return true;

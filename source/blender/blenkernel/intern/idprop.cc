@@ -62,7 +62,7 @@ static size_t idp_size_table[] = {
 /** \name Array Functions (IDP Array API)
  * \{ */
 
-#define GETPROP(prop, i) &(IDP_IDPArray(prop)[i])
+#define GETPROP(prop, i) &(IDP_property_array_get(prop)[i])
 
 IDProperty *IDP_NewIDPArray(const blender::StringRef name)
 {
@@ -362,7 +362,7 @@ IDProperty *IDP_NewStringMaxSize(const char *st,
   if (st == nullptr) {
     prop->data.pointer = MEM_malloc_arrayN<char>(DEFAULT_ALLOC_FOR_NULL_STRINGS,
                                                  "id property string 1");
-    *IDP_String(prop) = '\0';
+    *IDP_string_get(prop) = '\0';
     prop->totallen = DEFAULT_ALLOC_FOR_NULL_STRINGS;
     prop->len = 1; /* nullptr string, has len of 1 to account for null byte. */
   }
@@ -378,7 +378,7 @@ IDProperty *IDP_NewStringMaxSize(const char *st,
     if (stlen > 1) {
       memcpy(prop->data.pointer, st, size_t(stlen));
     }
-    IDP_String(prop)[stlen - 1] = '\0';
+    IDP_string_get(prop)[stlen - 1] = '\0';
   }
 
   prop->type = IDP_STRING;
@@ -423,7 +423,7 @@ void IDP_AssignStringMaxSize(IDProperty *prop, const char *st, const size_t st_m
   if (stlen > 0) {
     memcpy(prop->data.pointer, st, size_t(stlen));
     if (is_byte == false) {
-      IDP_String(prop)[stlen - 1] = '\0';
+      IDP_string_get(prop)[stlen - 1] = '\0';
     }
   }
 }
@@ -466,7 +466,7 @@ const IDPropertyUIDataEnumItem *IDP_EnumItemFind(const IDProperty *prop)
   const IDPropertyUIDataInt *ui_data = reinterpret_cast<const IDPropertyUIDataInt *>(
       prop->ui_data);
 
-  const int value = IDP_Int(prop);
+  const int value = IDP_int_get(prop);
   for (const IDPropertyUIDataEnumItem &item :
        blender::Span(ui_data->enum_items, ui_data->enum_items_num))
   {
@@ -529,7 +529,7 @@ static IDProperty *IDP_CopyID(const IDProperty *prop, const int flag)
 
   newp->data.pointer = prop->data.pointer;
   if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
-    id_us_plus(IDP_Id(newp));
+    id_us_plus(IDP_ID_get(newp));
   }
 
   return newp;
@@ -541,14 +541,14 @@ void IDP_AssignID(IDProperty *prop, ID *id, const int flag)
   /* Do not assign embedded IDs to IDProperties. */
   BLI_assert(!id || (id->flag & ID_FLAG_EMBEDDED_DATA) == 0);
 
-  if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0 && IDP_Id(prop) != nullptr) {
-    id_us_min(IDP_Id(prop));
+  if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0 && IDP_ID_get(prop) != nullptr) {
+    id_us_min(IDP_ID_get(prop));
   }
 
   prop->data.pointer = id;
 
   if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
-    id_us_plus(IDP_Id(prop));
+    id_us_plus(IDP_ID_get(prop));
   }
 }
 
@@ -808,13 +808,13 @@ int IDP_coerce_to_int_or_zero(const IDProperty *prop)
 {
   switch (prop->type) {
     case IDP_INT:
-      return IDP_Int(prop);
+      return IDP_int_get(prop);
     case IDP_DOUBLE:
-      return int(IDP_Double(prop));
+      return int(IDP_double_get(prop));
     case IDP_FLOAT:
-      return int(IDP_Float(prop));
+      return int(IDP_float_get(prop));
     case IDP_BOOLEAN:
-      return int(IDP_Bool(prop));
+      return int(IDP_bool_get(prop));
     default:
       return 0;
   }
@@ -824,13 +824,13 @@ double IDP_coerce_to_double_or_zero(const IDProperty *prop)
 {
   switch (prop->type) {
     case IDP_DOUBLE:
-      return IDP_Double(prop);
+      return IDP_double_get(prop);
     case IDP_FLOAT:
-      return double(IDP_Float(prop));
+      return double(IDP_float_get(prop));
     case IDP_INT:
-      return double(IDP_Int(prop));
+      return double(IDP_int_get(prop));
     case IDP_BOOLEAN:
-      return double(IDP_Bool(prop));
+      return double(IDP_bool_get(prop));
     default:
       return 0.0;
   }
@@ -840,13 +840,13 @@ float IDP_coerce_to_float_or_zero(const IDProperty *prop)
 {
   switch (prop->type) {
     case IDP_FLOAT:
-      return IDP_Float(prop);
+      return IDP_float_get(prop);
     case IDP_DOUBLE:
-      return float(IDP_Double(prop));
+      return float(IDP_double_get(prop));
     case IDP_INT:
-      return float(IDP_Int(prop));
+      return float(IDP_int_get(prop));
     case IDP_BOOLEAN:
-      return float(IDP_Bool(prop));
+      return float(IDP_bool_get(prop));
     default:
       return 0.0f;
   }
@@ -936,12 +936,12 @@ bool IDP_EqualsProperties_ex(const IDProperty *prop1,
 
   switch (prop1->type) {
     case IDP_INT:
-      return (IDP_Int(prop1) == IDP_Int(prop2));
+      return (IDP_int_get(prop1) == IDP_int_get(prop2));
     case IDP_FLOAT:
 #if !defined(NDEBUG) && defined(WITH_PYTHON)
     {
-      float p1 = IDP_Float(prop1);
-      float p2 = IDP_Float(prop2);
+      float p1 = IDP_float_get(prop1);
+      float p2 = IDP_float_get(prop2);
       if ((p1 != p2) && ((fabsf(p1 - p2) / max_ff(fabsf(p1), fabsf(p2))) < 0.001f)) {
         printf(
             "WARNING: Comparing two float properties that have nearly the same value (%f vs. "
@@ -955,19 +955,19 @@ bool IDP_EqualsProperties_ex(const IDProperty *prop1,
       }
     }
 #endif
-      return (IDP_Float(prop1) == IDP_Float(prop2));
+      return (IDP_float_get(prop1) == IDP_float_get(prop2));
     case IDP_DOUBLE:
-      return (IDP_Double(prop1) == IDP_Double(prop2));
+      return (IDP_double_get(prop1) == IDP_double_get(prop2));
     case IDP_BOOLEAN:
-      return (IDP_Bool(prop1) == IDP_Bool(prop2));
+      return (IDP_bool_get(prop1) == IDP_bool_get(prop2));
     case IDP_STRING: {
       return ((prop1->len == prop2->len) &&
-              STREQLEN(IDP_String(prop1), IDP_String(prop2), size_t(prop1->len)));
+              STREQLEN(IDP_string_get(prop1), IDP_string_get(prop2), size_t(prop1->len)));
     }
     case IDP_ARRAY:
       if (prop1->len == prop2->len && prop1->subtype == prop2->subtype) {
-        return (memcmp(IDP_Array(prop1),
-                       IDP_Array(prop2),
+        return (memcmp(IDP_array_voidp_get(prop1),
+                       IDP_array_voidp_get(prop2),
                        idp_size_table[int(prop1->subtype)] * size_t(prop1->len)) == 0);
       }
       return false;
@@ -987,8 +987,8 @@ bool IDP_EqualsProperties_ex(const IDProperty *prop1,
       return true;
     }
     case IDP_IDPARRAY: {
-      const IDProperty *array1 = IDP_IDPArray(prop1);
-      const IDProperty *array2 = IDP_IDPArray(prop2);
+      const IDProperty *array1 = IDP_property_array_get(prop1);
+      const IDProperty *array2 = IDP_property_array_get(prop2);
 
       if (prop1->len != prop2->len) {
         return false;
@@ -1002,7 +1002,7 @@ bool IDP_EqualsProperties_ex(const IDProperty *prop1,
       return true;
     }
     case IDP_ID:
-      return (IDP_Id(prop1) == IDP_Id(prop2));
+      return (IDP_ID_get(prop1) == IDP_ID_get(prop2));
     default:
       BLI_assert_unreachable();
       break;
@@ -1066,7 +1066,7 @@ IDProperty *IDP_New(const char type,
         if (st == nullptr) {
           prop->data.pointer = MEM_malloc_arrayN<char>(DEFAULT_ALLOC_FOR_NULL_STRINGS,
                                                        "id property string 1");
-          *IDP_String(prop) = '\0';
+          *IDP_string_get(prop) = '\0';
           prop->totallen = DEFAULT_ALLOC_FOR_NULL_STRINGS;
           prop->len = 0;
         }
@@ -1082,7 +1082,7 @@ IDProperty *IDP_New(const char type,
         if (st == nullptr || val->string.len <= 1) {
           prop->data.pointer = MEM_malloc_arrayN<char>(DEFAULT_ALLOC_FOR_NULL_STRINGS,
                                                        "id property string 1");
-          *IDP_String(prop) = '\0';
+          *IDP_string_get(prop) = '\0';
           prop->totallen = DEFAULT_ALLOC_FOR_NULL_STRINGS;
           /* nullptr string, has len of 1 to account for null byte. */
           prop->len = 1;
@@ -1092,7 +1092,7 @@ IDProperty *IDP_New(const char type,
           prop->data.pointer = MEM_malloc_arrayN<char>(size_t(val->string.len),
                                                        "id property string 3");
           memcpy(prop->data.pointer, st, size_t(val->string.len) - 1);
-          IDP_String(prop)[val->string.len - 1] = '\0';
+          IDP_string_get(prop)[val->string.len - 1] = '\0';
           prop->len = prop->totallen = val->string.len;
         }
         prop->subtype = IDP_STRING_SUB_UTF8;
@@ -1108,7 +1108,7 @@ IDProperty *IDP_New(const char type,
       prop = MEM_callocN<IDProperty>("IDProperty datablock");
       prop->data.pointer = (void *)val->id;
       prop->type = IDP_ID;
-      id_us_plus(IDP_Id(prop));
+      id_us_plus(IDP_ID_get(prop));
       break;
     }
     default: {
@@ -1237,7 +1237,7 @@ void IDP_FreePropertyContent_ex(IDProperty *prop, const bool do_id_user)
       break;
     case IDP_ID:
       if (do_id_user) {
-        id_us_min(IDP_Id(prop));
+        id_us_min(IDP_ID_get(prop));
       }
       break;
   }
@@ -1303,7 +1303,7 @@ void IDP_foreach_property(IDProperty *id_property_root,
       break;
     }
     case IDP_IDPARRAY: {
-      IDProperty *loop = static_cast<IDProperty *>(IDP_Array(id_property_root));
+      IDProperty *loop = IDP_property_array_get(id_property_root);
       for (int i = 0; i < id_property_root->len; i++) {
         IDP_foreach_property(&loop[i], type_filter, callback);
       }
@@ -1666,7 +1666,7 @@ static void IDP_DirectLinkProperty(IDProperty *prop, BlendDataReader *reader)
       /* NOTE: we do not attempt to free unknown prop, we have no way to know how to do that! */
       prop->type = IDP_INT;
       prop->subtype = 0;
-      IDP_Int(prop) = 0;
+      IDP_int_set(prop, 0);
   }
 
   if (prop->ui_data != nullptr) {
@@ -1974,5 +1974,32 @@ IDPropertyUIData *IDP_TryConvertUIData(IDPropertyUIData *src,
   ui_data_free(src, src_type);
   return nullptr;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Debugging
+ * \{ */
+
+#ifndef NDEBUG
+const IDProperty *_IDP_assert_type(const IDProperty *prop, const char ty)
+{
+  BLI_assert(prop->type == ty);
+  return prop;
+}
+const IDProperty *_IDP_assert_type_and_subtype(const IDProperty *prop,
+                                               const char ty,
+                                               const char sub_ty)
+{
+  BLI_assert((prop->type == ty) && (prop->subtype == sub_ty));
+  return prop;
+}
+
+const IDProperty *_IDP_assert_type_mask(const IDProperty *prop, const int ty_mask)
+{
+  BLI_assert(1 << int(prop->type) & ty_mask);
+  return prop;
+}
+#endif /* !NDEBUG */
 
 /** \} */

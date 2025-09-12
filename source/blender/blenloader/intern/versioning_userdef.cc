@@ -516,7 +516,7 @@ static void keymap_update_brushes_handle_add_item(
   if (STREQ(kmi->idname, "WM_OT_tool_set_by_id")) {
     IDProperty *idprop = IDP_GetPropertyFromGroup(kmi->properties, "name");
     if (idprop && (idprop->type == IDP_STRING)) {
-      const blender::StringRef prop_val = IDP_String(idprop);
+      const blender::StringRef prop_val = IDP_string_get(idprop);
       if (!prop_val.startswith("builtin_brush.")) {
         return;
       }
@@ -531,7 +531,7 @@ static void keymap_update_brushes_handle_add_item(
   else if (STREQ(kmi->idname, "PAINT_OT_brush_select")) {
     IDProperty *idprop = IDP_GetPropertyFromGroup(kmi->properties, tool_property);
     if (idprop && (idprop->type == IDP_INT)) {
-      const int prop_val = IDP_Int(idprop);
+      const int prop_val = IDP_int_get(idprop);
       if (id_asset_map.contains(prop_val)) {
         asset_id = id_asset_map.lookup(prop_val);
       }
@@ -567,7 +567,7 @@ static void keymap_update_brushes_handle_remove_item(
   if (STREQ(kmi->idname, "PAINT_OT_brush_select")) {
     IDProperty *idprop = IDP_GetPropertyFromGroup(kmi->properties, tool_property);
     if (idprop && (idprop->type == IDP_INT)) {
-      const int prop_val = IDP_Int(idprop);
+      const int prop_val = IDP_int_get(idprop);
       if (id_asset_map.contains(prop_val)) {
         asset_id = id_asset_map.lookup(prop_val);
       }

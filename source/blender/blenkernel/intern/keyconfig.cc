@@ -117,7 +117,7 @@ void BKE_keyconfig_pref_set_select_mouse(UserDef *userdef, int value, bool overr
     IDP_AddToGroup(kpt->prop, blender::bke::idprop::create("select_mouse", value).release());
   }
   else if (override) {
-    IDP_Int(idprop) = value;
+    IDP_int_set(idprop, value);
   }
 }
 

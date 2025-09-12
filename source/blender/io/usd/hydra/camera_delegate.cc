@@ -18,13 +18,13 @@ static pxr::VtValue vt_value(const IDProperty *prop)
 {
   switch (prop->type) {
     case IDP_INT:
-      return pxr::VtValue{IDP_Int(prop)};
+      return pxr::VtValue{IDP_int_get(prop)};
     case IDP_FLOAT:
-      return pxr::VtValue{IDP_Float(prop)};
+      return pxr::VtValue{IDP_float_get(prop)};
     case IDP_DOUBLE:
-      return pxr::VtValue{IDP_Double(prop)};
+      return pxr::VtValue{IDP_double_get(prop)};
     case IDP_BOOLEAN:
-      return pxr::VtValue{bool(IDP_Bool(prop))};
+      return pxr::VtValue{bool(IDP_bool_get(prop))};
   }
   return pxr::VtValue{};
 }

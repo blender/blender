@@ -45,7 +45,7 @@ static asset::AssetItemTree build_catalog_tree(const bContext &C, const bNodeTre
   type_filter.id_types = FILTER_ID_NT;
   auto meta_data_filter = [&](const AssetMetaData &meta_data) {
     const IDProperty *tree_type = BKE_asset_metadata_idprop_find(&meta_data, "type");
-    if (tree_type == nullptr || IDP_Int(tree_type) != node_tree.type) {
+    if (tree_type == nullptr || IDP_int_get(tree_type) != node_tree.type) {
       return false;
     }
     return true;
