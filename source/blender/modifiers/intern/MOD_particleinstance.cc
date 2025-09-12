@@ -197,7 +197,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   int totvert, faces_num, totloop, totedge;
   int maxvert, maxpoly, maxloop, maxedge, part_end = 0, part_start;
   int k, p, p_skip;
-  short track = ctx->object->trackflag % 3, trackneg, axis = pimd->axis;
+  const uint track = uint(ctx->object->trackflag) % 3;
+  short trackneg, axis = pimd->axis;
   float max_co = 0.0, min_co = 0.0, temp_co[3];
   float *size = nullptr;
   float spacemat[4][4];

@@ -1101,7 +1101,7 @@ static void text_selection_draw(const bContext *C, const Strip *strip, uint pos)
     const blender::float2 view_offs{-scene->r.xsch / 2.0f, -scene->r.ysch / 2.0f};
     const float view_aspect = scene->r.xasp / scene->r.yasp;
     blender::float3x3 transform_mat = seq::image_transform_matrix_get(scene, strip);
-    blender::float4x2 selection_quad{
+    blender::float2 selection_quad[4] = {
         {character_start.position.x, line_y},
         {character_start.position.x, line_y + text->line_height},
         {character_end.position.x + character_end.advance_x, line_y + text->line_height},
@@ -1160,7 +1160,7 @@ static void text_edit_draw_cursor(const bContext *C, const Strip *strip, uint po
 
   cursor_coords = coords_region_view_align(UI_view2d_fromcontext(C), cursor_coords);
 
-  blender::float4x2 cursor_quad{
+  blender::float2 cursor_quad[4] = {
       {cursor_coords.x, cursor_coords.y},
       {cursor_coords.x, cursor_coords.y + text->line_height},
       {cursor_coords.x + cursor_width, cursor_coords.y + text->line_height},
