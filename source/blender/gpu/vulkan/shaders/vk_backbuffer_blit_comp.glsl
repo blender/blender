@@ -17,12 +17,11 @@ float srgb_to_linearrgb(float c)
 
 vec3 nonlinear_to_linear_scrgb(vec3 c)
 {
-  if (use_gamma22) {
-    return pow(c, vec3(2.2f));
-  }
-  else {
-    return vec3(srgb_to_linearrgb(c.r), srgb_to_linearrgb(c.g), srgb_to_linearrgb(c.b));
-  }
+#ifdef USE_GAMMA22
+  return pow(c, vec3(2.2f));
+#else
+  return vec3(srgb_to_linearrgb(c.r), srgb_to_linearrgb(c.g), srgb_to_linearrgb(c.b));
+#endif
 }
 
 void main()
