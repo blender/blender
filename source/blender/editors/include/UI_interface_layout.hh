@@ -690,6 +690,10 @@ struct uiLayout : public uiItem, blender::NonCopyable, blender::NonMovable {
   [[nodiscard]] bool align() const;
   [[nodiscard]] bool variable_size() const;
   [[nodiscard]] blender::ui::EmbossType emboss_or_undefined() const;
+
+ protected:
+  void estimate();
+  virtual void estimate_impl();
 };
 
 inline bool uiLayout::active() const
