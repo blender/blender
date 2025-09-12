@@ -1047,10 +1047,8 @@ static void outliner_restrict_properties_enable_layer_collection_set(
         layer_collection_ptr, props->layer_collection_holdout);
   }
 
-  if (props_active->layer_collection_indirect_only) {
-    props_active->layer_collection_indirect_only = RNA_property_boolean_get(
-        layer_collection_ptr, props->layer_collection_indirect_only);
-  }
+  props_active->layer_collection_indirect_only = RNA_property_boolean_get(
+      layer_collection_ptr, props->layer_collection_indirect_only);
 
   if (props_active->layer_collection_hide_viewport) {
     props_active->layer_collection_hide_viewport = !RNA_property_boolean_get(
