@@ -209,7 +209,7 @@ class FileOutputTest(unittest.TestCase):
         # Set output directory for all existing file output nodes.
         set_directory(bpy.data.scenes[0].compositing_node_group, f'{curr_out_dir}/')
         bpy.data.scenes[0].render.compositor_device = f'{self.execution_device}'
-        bpy.ops.render.render()
+        bpy.ops.render.render(animation=True, start_frame=1, end_frame=1)
 
 
 if __name__ == "__main__":

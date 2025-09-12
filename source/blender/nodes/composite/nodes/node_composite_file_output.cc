@@ -169,6 +169,7 @@ static Vector<path_templates::Error> compute_image_path(const StringRefNull dire
                                                         const ImageFormatData &format,
                                                         const Scene &scene,
                                                         const bNode &node,
+                                                        const bool is_animation_render,
                                                         char *r_image_path)
 {
   char base_path[FILE_MAX] = "";
@@ -188,7 +189,7 @@ static Vector<path_templates::Error> compute_image_path(const StringRefNull dire
                                       frame_number,
                                       &format,
                                       scene.r.scemode & R_EXTENSION,
-                                      true,
+                                      is_animation_render,
                                       BKE_scene_multiview_view_suffix_get(&scene.r, view));
 }
 
@@ -238,8 +239,16 @@ static void output_path_layout(uiLayout *layout,
 {
 
   char image_path[FILE_MAX];
-  const Vector<path_templates::Error> path_errors = compute_image_path(
-      directory, file_name, file_name_suffix, view, scene.r.cfra, format, scene, node, image_path);
+  const Vector<path_templates::Error> path_errors = compute_image_path(directory,
+                                                                       file_name,
+                                                                       file_name_suffix,
+                                                                       view,
+                                                                       scene.r.cfra,
+                                                                       format,
+                                                                       scene,
+                                                                       node,
+                                                                       false,
+                                                                       image_path);
 
   if (path_errors.is_empty()) {
     layout->label(image_path, ICON_FILE_IMAGE);
@@ -729,6 +738,7 @@ class FileOutputOperation : public NodeOperation {
         format,
         this->context().get_scene(),
         this->bnode(),
+        this->is_animation_render(),
         r_image_path);
 
     if (!path_errors.is_empty()) {
@@ -781,6 +791,14 @@ class FileOutputOperation : public NodeOperation {
      * this will result in clipping but is more expected for the user. */
     domain.transformation.location() = float2(0.0f);
     return domain;
+  }
+
+  bool is_animation_render()
+  {
+    if (!this->context().render_context()) {
+      return false;
+    }
+    return this->context().render_context()->is_animation_render;
   }
 };
 
