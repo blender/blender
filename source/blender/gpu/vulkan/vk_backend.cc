@@ -428,6 +428,7 @@ void VKBackend::detect_workarounds(VKDevice &device)
     extensions.dynamic_rendering_unused_attachments = false;
     extensions.descriptor_buffer = false;
     extensions.pageable_device_local_memory = false;
+    GCaps.stencil_export_support = false;
 
     device.workarounds_ = workarounds;
     device.extensions_ = extensions;
