@@ -78,8 +78,6 @@ enum ThemeColorID {
   TH_PANEL_OUTLINE,
   TH_PANEL_ACTIVE,
 
-  TH_BUTBACK,
-
   TH_SHADE1,
   TH_SHADE2,
   TH_HILITE,

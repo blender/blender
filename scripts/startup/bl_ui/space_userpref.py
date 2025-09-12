@@ -963,7 +963,6 @@ class USERPREF_MT_interface_theme_presets(Menu):
     # Prevent untrusted XML files "escaping" from these types.
     preset_xml_secure_types = {
         "Theme",
-        "ThemeAssetShelf",
         "ThemeBoneColorSet",
         "ThemeClipEditor",
         "ThemeCollectionColor",
@@ -983,11 +982,14 @@ class USERPREF_MT_interface_theme_presets(Menu):
         "ThemeOutliner",
         "ThemePreferences",
         "ThemeProperties",
+        "ThemeRegions",
+        "ThemeRegionsAssetShelf",
+        "ThemeRegionsChannels",
+        "ThemeRegionsSidebars",
         "ThemeSequenceEditor",
         "ThemeSpaceGeneric",
         "ThemeSpaceGradient",
         "ThemeSpaceListGeneric",
-        "ThemeSpaceRegionGeneric",
         "ThemeSpreadsheet",
         "ThemeStatusBar",
         "ThemeStripColor",
