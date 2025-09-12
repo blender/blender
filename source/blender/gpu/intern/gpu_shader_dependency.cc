@@ -61,7 +61,6 @@ struct GPUSource {
   shader::BuiltinBits builtins = shader::BuiltinBits::NONE;
   /* True if this file content is supposed to be generated at runtime. */
   bool generated = false;
-  int d[sizeof(shader::ShaderCreateInfo::dependencies_generated)];
 
   /* NOTE: The next few functions are needed to keep isolation of the preprocessor.
    * Eventually, this should be revisited and the preprocessor should output

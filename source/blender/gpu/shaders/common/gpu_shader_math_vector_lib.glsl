@@ -6,12 +6,8 @@
 
 #include "gpu_shader_math_base_lib.glsl"
 
-/* WORKAROUND: to guard against double include in EEVEE. */
-#ifndef GPU_SHADER_MATH_VECTOR_LIB_GLSL
-#  define GPU_SHADER_MATH_VECTOR_LIB_GLSL
-
 /* Metal does not need prototypes. */
-#  ifndef GPU_METAL
+#ifndef GPU_METAL
 
 /**
  * Return true if all components is equal to zero.
@@ -260,7 +256,7 @@ float average(float2 a);
 float average(float3 a);
 float average(float4 a);
 
-#  endif /* !GPU_METAL */
+#endif /* !GPU_METAL */
 
 /* ---------------------------------------------------------------------- */
 /** \name Implementation
@@ -714,7 +710,7 @@ float average(float4 a)
   return reduce_add(a) * (1.0f / 4.0f);
 }
 
-#  define ASSERT_UNIT_EPSILON 0.0002f
+#define ASSERT_UNIT_EPSILON 0.0002f
 
 /* Checks are flipped so NAN doesn't assert because we're making sure the value was
  * normalized and in the case we don't want NAN to be raising asserts since there
@@ -739,5 +735,3 @@ bool is_unit_scale(float4 v)
 }
 
 /** \} */
-
-#endif /* GPU_SHADER_MATH_VECTOR_LIB_GLSL */
