@@ -177,8 +177,8 @@ static void draw_backdrops(bAnimContext *ac, ListBase &anim_data, View2D *v2d, u
   uchar col_summary[4];
 
   /* get theme colors */
-  UI_GetThemeColor4ubv(TH_SHADE2, col2);
-  UI_GetThemeColor4ubv(TH_HILITE, col1);
+  UI_GetThemeColor4ubv(TH_CHANNEL, col2);
+  UI_GetThemeColor4ubv(TH_CHANNEL_SELECT, col1);
   UI_GetThemeColor4ubv(TH_ANIM_ACTIVE, col_summary);
 
   UI_GetThemeColor4ubv(TH_GROUP, col2a);

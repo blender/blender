@@ -417,10 +417,12 @@
             preview_range="#a14d0066"
             time_marker="#00000060"
             time_marker_selected="#ffffff60"
-            channel="#2e639924"
-            channel_sub="#7aa4cc24"
+            channels="#2e639924"
+            channels_sub="#7aa4cc24"
             channel_group="#278c0e37"
             channel_group_active="#4eb33555"
+            channel="#999999ff"
+            channels_selected="#60c04044"
             keyframe="#e8e8e8"
             keyframe_selected="#ffbe33"
             keyframe_extreme="#e8b3cc"
@@ -551,7 +553,6 @@
       <ThemeGraphEditor
         grid="#5e5e5e"
         time_scrub_background="#808080e6"
-        channels_region="#999999"
         vertex="#000000"
         vertex_select="#ff8500"
         vertex_active="#ffffff"
@@ -593,7 +594,6 @@
     <nla_editor>
       <ThemeNLAEditor
         grid="#5e5e5e"
-        nla_track="#424242"
         active_action="#cc701a66"
         active_action_unset="#9987614d"
         strips="#0c0a0a"
@@ -628,8 +628,6 @@
       <ThemeDopeSheet
         grid="#4d4d4d"
         time_scrub_background="#808080e6"
-        channels="#707070ff"
-        channels_selected="#60c04044"
         keyframe_border="#000000ff"
         keyframe_border_selected="#000000ff"
         keyframe_scale_factor="1"
@@ -933,7 +931,6 @@
         time_scrub_background="#292929e6"
         metadatabg="#000000"
         metadatatext="#ffffff"
-        track_selected="#e7f7e74d"
         >
         <space>
           <ThemeSpaceGeneric
