@@ -148,9 +148,6 @@ extern const short ui_radial_dir_to_angle[8];
 /** Split number-buttons by ':' and align left/right. */
 #define USE_NUMBUTS_LR_ALIGN
 
-/** Use new 'align' computation code. */
-#define USE_UIBUT_SPATIAL_ALIGN
-
 /** #PieMenuData.flags */
 enum {
   /** Use initial center of pie menu to calculate direction. */
