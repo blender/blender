@@ -306,7 +306,6 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           cp = btheme->tui.wcol_tab.outline_sel;
           break;
         case TH_TAB_BACK:
-          /* Tab background is set per editor. */
           cp = btheme->regions.sidebars.tab_back;
           break;
 
