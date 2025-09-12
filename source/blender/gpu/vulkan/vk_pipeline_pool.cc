@@ -809,6 +809,6 @@ void VKPipelinePool::write_to_disk()
 #endif
 }
 
-/* \} */
+/** \} */
 
 }  // namespace blender::gpu

@@ -474,7 +474,7 @@ static void rna_PaintModeSettings_canvas_source_update(bContext *C, PointerRNA *
   }
 }
 
-/* \} */
+/** \} */
 
 static bool rna_ImaPaint_detect_data(ImagePaintSettings *imapaint)
 {

@@ -156,6 +156,6 @@ std::unique_ptr<IDProperty, IDPropertyDeleter> create_group(const StringRef prop
   return std::unique_ptr<IDProperty, IDPropertyDeleter>(property);
 }
 
-/* \} */
+/** \} */
 
 }  // namespace blender::bke::idprop

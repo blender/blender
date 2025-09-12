@@ -679,7 +679,7 @@ static ConversionType reversed(ConversionType type)
   return ConversionType::UNSUPPORTED;
 }
 
-/* \} */
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Data Conversion
@@ -945,7 +945,7 @@ static void convert(B10F_G11G_R11F &dst, const FLOAT3 &src)
   dst.value = r << SHIFT_R | g << SHIFT_G | b << SHIFT_B;
 }
 
-/* \} */
+/** \} */
 
 static void convert(UI32 &dst, const Depth32fStencil8 &src)
 {
@@ -1173,6 +1173,6 @@ void convert_device_to_host(void *dst_buffer,
   convert_buffer(dst_buffer, src_buffer, buffer_size, device_format, conversion_type);
 }
 
-/* \} */
+/** \} */
 
 }  // namespace blender::gpu

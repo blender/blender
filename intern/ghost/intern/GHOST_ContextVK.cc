@@ -136,7 +136,7 @@ void GHOST_Frame::destroy(VkDevice vk_device)
   discard_pile.destroy(vk_device);
 }
 
-/* \} */
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Extension list
@@ -207,7 +207,7 @@ struct GHOST_ExtensionsVK {
   }
 };
 
-/* \} */
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Vulkan Device
@@ -317,6 +317,8 @@ class GHOST_DeviceVK {
     vkGetDeviceQueue(vk_device, generic_queue_family, 0, &generic_queue);
   }
 };
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Vulkan Instance
@@ -616,7 +618,7 @@ struct GHOST_InstanceVK {
   }
 };
 
-/* \} */
+/** \} */
 
 /**
  * A shared device between multiple contexts.

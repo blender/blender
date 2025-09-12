@@ -788,11 +788,12 @@ static const IDPropertySerializer &serializer_for(StringRef idprop_typename)
   return IDP_SERIALIZER_UNKNOWN;
 }
 
-/* \} */
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name IDProperty to Value
  * \{ */
+
 std::unique_ptr<ArrayValue> convert_to_serialize_values(const IDProperty *properties)
 {
   BLI_assert(properties != nullptr);
@@ -810,7 +811,7 @@ std::unique_ptr<ArrayValue> convert_to_serialize_values(const IDProperty *proper
   return result;
 }
 
-/* \} */
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name IDProperty from Value
@@ -866,6 +867,6 @@ IDProperty *convert_from_serialize_value(const Value &value)
   return idprop_from_value(*value.as_array_value());
 }
 
-/* \} */
+/** \} */
 
 }  // namespace blender::bke::idprop

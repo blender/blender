@@ -631,7 +631,7 @@ class AnimDataConvertor {
   }
 };
 
-/* \} */
+/** \} */
 
 /**
  * Find vertex groups that have assigned vertices in this drawing.
