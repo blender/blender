@@ -48,6 +48,9 @@ struct DupliObject {
    * objects with motion blur, or inter-update matching for syncing. */
   int persistent_id[MAX_DUPLI_RECUR];
 
+  /* Random ID for shading */
+  unsigned int random_id;
+
   /* Particle this dupli was generated from. */
   ParticleSystem *particle_system;
 
@@ -61,9 +64,6 @@ struct DupliObject {
    */
   int instance_idx[4];
   const blender::bke::GeometrySet *instance_data[4];
-
-  /* Random ID for shading */
-  unsigned int random_id;
 };
 
 using DupliList = blender::VectorList<DupliObject>;
