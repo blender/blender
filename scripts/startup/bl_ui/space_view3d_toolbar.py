@@ -1772,6 +1772,10 @@ class VIEW3D_PT_tools_grease_pencil_sculpt_appearance(GreasePencilDisplayPanel, 
     bl_label = "Cursor"
     bl_category = "Tool"
 
+    @classmethod
+    def poll(cls, context):
+        return context.mode == 'SCULPT_GREASE_PENCIL'
+
 
 class VIEW3D_PT_tools_grease_pencil_weight_appearance(GreasePencilDisplayPanel, Panel, View3DPanel):
     bl_context = ".greasepencil_weight"
