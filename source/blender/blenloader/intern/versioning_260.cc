@@ -8,15 +8,15 @@
 
 #include <algorithm>
 
-#include "BKE_idprop.hh"
-#include "BLI_listbase.h"
-#include "BLI_utildefines.h"
-
 /* allow readfile to use deprecated functionality */
 #define DNA_DEPRECATED_ALLOW
 
 /* Define macros in `DNA_genfile.h`. */
 #define DNA_GENFILE_VERSIONING_MACROS
+
+#include "BKE_idprop.hh"
+#include "BLI_listbase.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_brush_types.h"
