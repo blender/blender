@@ -901,7 +901,7 @@ static void find_socket_log_contexts(const NodesModifierData &nmd,
  * the object as a parameter, so it's likely better to this check as a separate step.
  */
 static void check_property_socket_sync(const Object *ob,
-                                       const nodes::PropertiesVectorSet &properties,
+                                       const IDProperty *properties,
                                        ModifierData *md)
 {
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
@@ -926,7 +926,7 @@ static void check_property_socket_sync(const Object *ob,
       continue;
     }
 
-    IDProperty *property = properties.lookup_key_default_as(socket->identifier, nullptr);
+    IDProperty *property = IDP_GetPropertyFromGroup_null(properties, socket->identifier);
     if (property == nullptr) {
       if (!ELEM(type, SOCK_GEOMETRY, SOCK_MATRIX, SOCK_BUNDLE, SOCK_CLOSURE)) {
         BKE_modifier_set_error(
@@ -1823,11 +1823,8 @@ static void modifyGeometry(ModifierData *md,
     return;
   }
 
-  nodes::PropertiesVectorSet properties = nodes::build_properties_vector_set(
-      nmd->settings.properties);
-
   const bNodeTree &tree = *nmd->node_group;
-  check_property_socket_sync(ctx->object, properties, md);
+  check_property_socket_sync(ctx->object, nmd->settings.properties, md);
 
   tree.ensure_topology_cache();
   const bNode *output_node = tree.group_output_node();
@@ -1895,8 +1892,11 @@ static void modifyGeometry(ModifierData *md,
 
   bke::ModifierComputeContext modifier_compute_context{nullptr, *nmd};
 
-  geometry_set = nodes::execute_geometry_nodes_on_geometry(
-      tree, properties, modifier_compute_context, call_data, std::move(geometry_set));
+  geometry_set = nodes::execute_geometry_nodes_on_geometry(tree,
+                                                           nmd->settings.properties,
+                                                           modifier_compute_context,
+                                                           call_data,
+                                                           std::move(geometry_set));
 
   if (logging_enabled(ctx)) {
     nmd_orig->runtime->eval_log = std::move(eval_log);

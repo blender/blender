@@ -757,6 +757,14 @@ IDProperty *IDP_GetPropertyFromGroup(const IDProperty *prop, const blender::Stri
   return prop->data.children_map->children.lookup_key_default_as(name, nullptr);
 }
 
+IDProperty *IDP_GetPropertyFromGroup_null(const IDProperty *prop, const blender::StringRef name)
+{
+  if (!prop) {
+    return nullptr;
+  }
+  return IDP_GetPropertyFromGroup(prop, name);
+}
+
 IDProperty *IDP_GetPropertyTypeFromGroup(const IDProperty *prop,
                                          const blender::StringRef name,
                                          const char type)

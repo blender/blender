@@ -778,11 +778,7 @@ static wmOperatorStatus run_node_group_exec(bContext *C, wmOperator *op)
         *depsgraph_active, *object, operator_eval_data, orig_mesh_states);
 
     bke::GeometrySet new_geometry = nodes::execute_geometry_nodes_on_geometry(
-        *node_tree,
-        nodes::build_properties_vector_set(properties),
-        compute_context,
-        call_data,
-        std::move(geometry_orig));
+        *node_tree, properties, compute_context, call_data, std::move(geometry_orig));
 
     store_result_geometry(
         *C, *op, *depsgraph_active, *bmain, *scene, *object, rv3d, std::move(new_geometry));
