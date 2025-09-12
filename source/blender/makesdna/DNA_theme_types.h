@@ -118,6 +118,12 @@ typedef struct ThemeRegionsChannels {
   char _pad0[4];
 } ThemeRegionsChannels;
 
+typedef struct ThemeRegionsScrubbing {
+  unsigned char back[4];
+  unsigned char text[4];
+  unsigned char time_marker[4], time_marker_selected[4];
+} ThemeRegionsScrubbing;
+
 typedef struct ThemeRegionsSidebars {
   unsigned char back[4];
   unsigned char tab_back[4];
@@ -126,14 +132,13 @@ typedef struct ThemeRegionsSidebars {
 typedef struct ThemeRegions {
   ThemeRegionsAssetShelf asset_shelf;
   ThemeRegionsChannels channels;
+  ThemeRegionsScrubbing scrubbing;
   ThemeRegionsSidebars sidebars;
 } ThemeRegions;
 
 typedef struct ThemeCommonAnim {
   unsigned char playhead[4];
   unsigned char preview_range[4];
-
-  unsigned char time_marker[4], time_marker_selected[4];
 
   unsigned char channels[4], channels_sub[4];
   unsigned char channel_group[4], channel_group_active[4];
@@ -301,8 +306,6 @@ typedef struct ThemeSpace {
   char _pad2[4];
 
   /* button/tool regions */
-  unsigned char _pad3[4];
-
   unsigned char shade1[4];
   unsigned char shade2[4];
 
@@ -332,7 +335,6 @@ typedef struct ThemeSpace {
   unsigned char before_current_frame[4], after_current_frame[4];
   unsigned char time_gp_keyframe[4];
   unsigned char freestyle_edge_mark[4], freestyle_face_mark[4];
-  unsigned char time_scrub_background[4];
 
   unsigned char nurb_uline[4], nurb_vline[4];
   unsigned char act_spline[4], nurb_sel_uline[4], nurb_sel_vline[4];
@@ -380,7 +382,7 @@ typedef struct ThemeSpace {
   float keyframe_scale_fac;
 
   unsigned char editmesh_active[4];
-  char _pad6[1];
+  char _pad3[1];
 
   unsigned char clipping_border_3d[4];
 

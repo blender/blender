@@ -323,13 +323,16 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           cp = ts->grid;
           break;
         case TH_TIME_SCRUB_BACKGROUND:
-          cp = ts->time_scrub_background;
+          cp = btheme->regions.scrubbing.back;
+          break;
+        case TH_TIME_SCRUB_TEXT:
+          cp = btheme->regions.scrubbing.text;
           break;
         case TH_TIME_MARKER_LINE:
-          cp = btheme->common.anim.time_marker;
+          cp = btheme->regions.scrubbing.time_marker;
           break;
         case TH_TIME_MARKER_LINE_SELECTED:
-          cp = btheme->common.anim.time_marker_selected;
+          cp = btheme->regions.scrubbing.time_marker_selected;
           break;
         case TH_VIEW_OVERLAY:
           cp = ts->view_overlay;

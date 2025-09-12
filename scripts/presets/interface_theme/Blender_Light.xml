@@ -400,6 +400,15 @@
             >
           </ThemeRegionsChannels>
         </channels>
+        <scrubbing>
+          <ThemeRegionsScrubbing
+            back="#808080E6"
+            text="#272727"
+            time_marker="#00000060"
+            time_marker_selected="#ffffff60"
+            >
+          </ThemeRegionsScrubbing>
+        </scrubbing>
         <sidebars>
           <ThemeRegionsSidebars
             back="#b3b3b300"
@@ -415,8 +424,6 @@
           <ThemeCommonAnim
             playhead="#5680c2"
             preview_range="#a14d0066"
-            time_marker="#00000060"
-            time_marker_selected="#ffffff60"
             channels="#2e639924"
             channels_sub="#7aa4cc24"
             channel_group="#278c0e37"
@@ -552,7 +559,6 @@
     <graph_editor>
       <ThemeGraphEditor
         grid="#5e5e5e"
-        time_scrub_background="#808080e6"
         vertex="#000000"
         vertex_select="#ff8500"
         vertex_active="#ffffff"
@@ -608,7 +614,6 @@
         tweak_duplicate="#d90000"
         keyframe_border="#000000ff"
         keyframe_border_selected="#000000ff"
-        time_scrub_background="#808080e6"
         >
         <space>
           <ThemeSpaceGeneric
@@ -627,7 +632,6 @@
     <dopesheet_editor>
       <ThemeDopeSheet
         grid="#4d4d4d"
-        time_scrub_background="#808080e6"
         keyframe_border="#000000ff"
         keyframe_border_selected="#000000ff"
         keyframe_scale_factor="1"
@@ -707,7 +711,6 @@
         text_strip="#824c8f"
         active_strip="#ffffff"
         selected_strip="#ff6a00"
-        time_scrub_background="#292929e6"
         preview_back="#000000"
         metadatabg="#000000"
         metadatatext="#ffffff"
@@ -928,7 +931,6 @@
         path_after="#0000ff"
         path_keyframe_before="#ffc4c4"
         path_keyframe_after="#c4c4ff"
-        time_scrub_background="#292929e6"
         metadatabg="#000000"
         metadatatext="#ffffff"
         >

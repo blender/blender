@@ -985,6 +985,7 @@ class USERPREF_MT_interface_theme_presets(Menu):
         "ThemeRegions",
         "ThemeRegionsAssetShelf",
         "ThemeRegionsChannels",
+        "ThemeRegionsScrubbing",
         "ThemeRegionsSidebars",
         "ThemeSequenceEditor",
         "ThemeSpaceGeneric",
