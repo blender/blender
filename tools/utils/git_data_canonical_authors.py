@@ -867,6 +867,7 @@ def canonical_author_map() -> dict[str, str]:
             "RiverIntheSky <itsnotrj@hotmail.com>",
             "Weizhen Huang <itsnotrj@gmail.com>",
             "Weizhen Huang <weizhen@noreply.localhost>",
+            "weizhen <weizhen@blender.org>",
         ),
         "Welp <jtf515@gmail.com>": (
             "Jake <Welp>",
