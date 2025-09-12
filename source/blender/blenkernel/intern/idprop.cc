@@ -142,6 +142,14 @@ void IDP_AppendArray(IDProperty *prop, IDProperty *item)
   IDP_SetIndexArray(prop, prop->len - 1, item);
 }
 
+static void idp_group_children_map_ensure(IDProperty &prop)
+{
+  BLI_assert(prop.type == IDP_GROUP);
+  if (!prop.data.children_map) {
+    prop.data.children_map = MEM_new<IDPropertyGroupChildrenSet>(__func__);
+  }
+}
+
 void IDP_ResizeIDPArray(IDProperty *prop, int newlen)
 {
   BLI_assert(prop->type == IDP_IDPARRAY);
@@ -565,11 +573,10 @@ static IDProperty *IDP_CopyGroup(const IDProperty *prop, const int flag)
 {
   BLI_assert(prop->type == IDP_GROUP);
   IDProperty *newp = idp_generic_copy(prop, flag);
-  newp->len = prop->len;
   newp->subtype = prop->subtype;
 
   LISTBASE_FOREACH (IDProperty *, link, &prop->data.group) {
-    BLI_addtail(&newp->data.group, IDP_CopyProperty_ex(link, flag));
+    IDP_AddToGroup(newp, IDP_CopyProperty_ex(link, flag));
   }
 
   return newp;
@@ -581,8 +588,7 @@ void IDP_SyncGroupValues(IDProperty *dest, const IDProperty *src)
   BLI_assert(src->type == IDP_GROUP);
 
   LISTBASE_FOREACH (IDProperty *, prop, &src->data.group) {
-    IDProperty *other = static_cast<IDProperty *>(
-        BLI_findstring(&dest->data.group, prop->name, offsetof(IDProperty, name)));
+    IDProperty *other = IDP_GetPropertyFromGroup(dest, prop->name);
     if (other && prop->type == other->type) {
       switch (prop->type) {
         case IDP_INT:
@@ -595,8 +601,7 @@ void IDP_SyncGroupValues(IDProperty *dest, const IDProperty *src)
           IDP_SyncGroupValues(other, prop);
           break;
         default: {
-          BLI_insertlinkreplace(&dest->data.group, other, IDP_CopyProperty(prop));
-          IDP_FreeProperty(other);
+          IDP_ReplaceInGroup_ex(dest, IDP_CopyProperty(prop), other, 0);
           break;
         }
       }
@@ -614,8 +619,7 @@ void IDP_SyncGroupTypes(IDProperty *dest, const IDProperty *src, const bool do_a
           (do_arraylen && ELEM(prop_dst->type, IDP_ARRAY, IDP_IDPARRAY) &&
            (prop_src->len != prop_dst->len)))
       {
-        BLI_insertlinkreplace(&dest->data.group, prop_dst, IDP_CopyProperty(prop_src));
-        IDP_FreeProperty(prop_dst);
+        IDP_ReplaceInGroup_ex(dest, IDP_CopyProperty(prop_src), prop_dst, 0);
       }
       else if (prop_dst->type == IDP_GROUP) {
         IDP_SyncGroupTypes(prop_dst, prop_src, do_arraylen);
@@ -633,21 +637,8 @@ void IDP_ReplaceGroupInGroup(IDProperty *dest, const IDProperty *src)
   BLI_assert(src->type == IDP_GROUP);
 
   LISTBASE_FOREACH (IDProperty *, prop, &src->data.group) {
-    IDProperty *loop;
-    for (loop = static_cast<IDProperty *>(dest->data.group.first); loop; loop = loop->next) {
-      if (STREQ(loop->name, prop->name)) {
-        BLI_insertlinkreplace(&dest->data.group, loop, IDP_CopyProperty(prop));
-        IDP_FreeProperty(loop);
-        break;
-      }
-    }
-
-    /* only add at end if not added yet */
-    if (loop == nullptr) {
-      IDProperty *copy = IDP_CopyProperty(prop);
-      dest->len++;
-      BLI_addtail(&dest->data.group, copy);
-    }
+    IDProperty *old_dest_prop = IDP_GetPropertyFromGroup(dest, prop->name);
+    IDP_ReplaceInGroup_ex(dest, IDP_CopyProperty(prop), old_dest_prop, 0);
   }
 }
 
@@ -660,12 +651,15 @@ void IDP_ReplaceInGroup_ex(IDProperty *group,
   BLI_assert(prop_exist == IDP_GetPropertyFromGroup(group, prop->name));
 
   if (prop_exist != nullptr) {
+    /* Insert the new property at the same position as the old one in the linked list. */
     BLI_insertlinkreplace(&group->data.group, prop_exist, prop);
+    BLI_assert(group->data.children_map);
+    group->data.children_map->children.remove_contained(prop_exist);
+    group->data.children_map->children.add_new(prop);
     IDP_FreeProperty_ex(prop_exist, (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0);
   }
   else {
-    group->len++;
-    BLI_addtail(&group->data.group, prop);
+    IDP_AddToGroup(group, prop);
   }
 }
 
@@ -709,9 +703,7 @@ void IDP_MergeGroup_ex(IDProperty *dest,
         }
       }
       else {
-        IDProperty *copy = IDP_CopyProperty_ex(prop, flag);
-        dest->len++;
-        BLI_addtail(&dest->data.group, copy);
+        IDP_AddToGroup(dest, IDP_CopyProperty_ex(prop, flag));
       }
     }
   }
@@ -726,25 +718,12 @@ bool IDP_AddToGroup(IDProperty *group, IDProperty *prop)
 {
   BLI_assert(group->type == IDP_GROUP);
 
-  if (IDP_GetPropertyFromGroup(group, prop->name) == nullptr) {
+  idp_group_children_map_ensure(*group);
+  if (group->data.children_map->children.add(prop)) {
     group->len++;
     BLI_addtail(&group->data.group, prop);
     return true;
   }
-
-  return false;
-}
-
-bool IDP_InsertToGroup(IDProperty *group, IDProperty *previous, IDProperty *pnew)
-{
-  BLI_assert(group->type == IDP_GROUP);
-
-  if (IDP_GetPropertyFromGroup(group, pnew->name) == nullptr) {
-    group->len++;
-    BLI_insertlinkafter(&group->data.group, previous, pnew);
-    return true;
-  }
-
   return false;
 }
 
@@ -755,6 +734,8 @@ void IDP_RemoveFromGroup(IDProperty *group, IDProperty *prop)
 
   group->len--;
   BLI_remlink(&group->data.group, prop);
+  BLI_assert(group->data.children_map);
+  group->data.children_map->children.remove_contained(prop);
 }
 
 void IDP_FreeFromGroup(IDProperty *group, IDProperty *prop)
@@ -766,14 +747,14 @@ void IDP_FreeFromGroup(IDProperty *group, IDProperty *prop)
 IDProperty *IDP_GetPropertyFromGroup(const IDProperty *prop, const blender::StringRef name)
 {
   BLI_assert(prop->type == IDP_GROUP);
-  return BLI_listbase_find<IDProperty>(prop->data.group,
-                                       [&](const IDProperty &elem) { return elem.name == name; });
-}
-
-IDProperty *IDP_GetPropertyFromGroup(const IDProperty *prop, const char *name)
-{
-  BLI_assert(prop->type == IDP_GROUP);
-  return (IDProperty *)BLI_findstring(&prop->data.group, name, offsetof(IDProperty, name));
+  if (prop->len == 0) {
+    BLI_assert(prop->data.children_map == nullptr || prop->data.children_map->children.is_empty());
+    return nullptr;
+  }
+  /* If there is at least one item, the map is expected to exist. */
+  BLI_assert(prop->data.children_map);
+  BLI_assert(prop->data.children_map->children.size() == prop->len);
+  return prop->data.children_map->children.lookup_key_default_as(name, nullptr);
 }
 
 IDProperty *IDP_GetPropertyTypeFromGroup(const IDProperty *prop,
@@ -792,6 +773,7 @@ static void IDP_FreeGroup(IDProperty *prop, const bool do_id_user)
 {
   BLI_assert(prop->type == IDP_GROUP);
 
+  MEM_SAFE_DELETE(prop->data.children_map);
   LISTBASE_FOREACH (IDProperty *, loop, &prop->data.group) {
     IDP_FreePropertyContent_ex(loop, do_id_user);
   }
@@ -1621,12 +1603,20 @@ static void IDP_DirectLinkString(IDProperty *prop, BlendDataReader *reader)
 static void IDP_DirectLinkGroup(IDProperty *prop, BlendDataReader *reader)
 {
   ListBase *lb = &prop->data.group;
+  prop->data.children_map = nullptr;
 
   BLO_read_struct_list(reader, IDProperty, lb);
+
+  if (!BLI_listbase_is_empty(&prop->data.group)) {
+    idp_group_children_map_ensure(*prop);
+  }
 
   /* Link child id properties now. */
   LISTBASE_FOREACH (IDProperty *, loop, &prop->data.group) {
     IDP_DirectLinkProperty(loop, reader);
+    if (!prop->data.children_map->children.add(loop)) {
+      CLOG_WARN(&LOG, "duplicate ID property '%s' in group", loop->name);
+    }
   }
 }
 

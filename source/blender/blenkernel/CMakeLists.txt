@@ -825,6 +825,7 @@ if(WITH_GTESTS)
     intern/file_handler_test.cc
     intern/grease_pencil_test.cc
     intern/idprop_serialize_test.cc
+    intern/idprop_test.cc
     intern/image_partial_update_test.cc
     intern/image_test.cc
     intern/lattice_deform_test.cc

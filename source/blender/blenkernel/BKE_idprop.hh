@@ -10,6 +10,7 @@
 
 #include <memory>
 
+#include "DNA_ID.h"
 #include "DNA_ID_enums.h"
 
 #include "BLI_compiler_attrs.h"
@@ -17,6 +18,7 @@
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_sys_types.h"
+#include "BLI_vector_set.hh"
 
 struct BlendDataReader;
 struct BlendWriter;
@@ -171,12 +173,6 @@ void IDP_MergeGroup_ex(IDProperty *dest, const IDProperty *src, bool do_overwrit
  */
 bool IDP_AddToGroup(IDProperty *group, IDProperty *prop) ATTR_NONNULL();
 /**
- * This is the same as IDP_AddToGroup, only you pass an item
- * in the group list to be inserted after.
- */
-bool IDP_InsertToGroup(IDProperty *group, IDProperty *previous, IDProperty *pnew)
-    ATTR_NONNULL(1 /*group*/, 3 /*pnew*/);
-/**
  * \note this does not free the property!
  *
  * To free the property, you have to do:
@@ -191,13 +187,6 @@ void IDP_FreeFromGroup(IDProperty *group, IDProperty *prop) ATTR_NONNULL();
 IDProperty *IDP_GetPropertyFromGroup(const IDProperty *prop,
                                      blender::StringRef name) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
-/**
- * This is a slightly more efficient version of the function above in the when there are lots of
- * properties. It can be faster because it avoids computing the length of everything that the
- * string is compared to. Also see #140706.
- */
-IDProperty *IDP_GetPropertyFromGroup(const IDProperty *prop,
-                                     const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 /**
  * Same as #IDP_GetPropertyFromGroup but ensure the `type` matches.
  */
@@ -476,6 +465,17 @@ class IDPropertyDeleter {
   {
     IDP_FreeProperty(id_prop);
   }
+};
+
+struct IDPropertyGroupChildrenSet {
+  struct IDPropNameGetter {
+    StringRef operator()(const IDProperty *value) const
+    {
+      return StringRef(value->name);
+    }
+  };
+
+  CustomIDVectorSet<IDProperty *, IDPropNameGetter, 8> children;
 };
 
 /** \brief Allocate a new IDProperty of type IDP_BOOLEAN, set its name and value. */

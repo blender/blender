@@ -23,14 +23,19 @@
 namespace blender::bke {
 struct PreviewImageRuntime;
 }
+namespace blender::bke::idprop {
+struct IDPropertyGroupChildrenSet;
+}
 namespace blender::bke::library {
 struct LibraryRuntime;
 }
 using PreviewImageRuntimeHandle = blender::bke::PreviewImageRuntime;
 using LibraryRuntimeHandle = blender::bke::library::LibraryRuntime;
+using IDPropertyGroupChildrenSet = blender::bke::idprop::IDPropertyGroupChildrenSet;
 #else
 typedef struct PreviewImageRuntimeHandle PreviewImageRuntimeHandle;
 typedef struct LibraryRuntimeHandle LibraryRuntimeHandle;
+typedef struct IDPropertyGroupChildrenSet IDPropertyGroupChildrenSet;
 #endif
 
 #ifdef __cplusplus
@@ -136,6 +141,11 @@ typedef struct IDPropertyUIDataID {
 typedef struct IDPropertyData {
   void *pointer;
   ListBase group;
+  /**
+   * Allows constant time lookup by name of the children in this group. This may be null if the
+   * group is empty. The order may not be exactly the same as in #group.
+   */
+  IDPropertyGroupChildrenSet *children_map;
   /** NOTE: a `double` is written into two 32bit integers. */
   int val, val2;
 } IDPropertyData;
