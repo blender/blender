@@ -16,6 +16,8 @@
 
 #include "BLI_path_utils.hh"
 
+#include "BLT_translation.hh"
+
 #include "UI_interface_c.hh"
 #include "UI_interface_icons.hh"
 #include "UI_resources.hh"
@@ -62,12 +64,12 @@ void asset_tooltip(const asset_system::AssetRepresentation &asset,
     case ASSET_LIBRARY_LOCAL:
       UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL, false);
       UI_tooltip_text_field_add(
-          tip, "Asset Library: Current File", {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_VALUE);
+          tip, TIP_("Asset Library: Current File"), {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_VALUE);
       break;
     case ASSET_LIBRARY_ESSENTIALS:
       UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL, false);
       UI_tooltip_text_field_add(
-          tip, "Asset Library: Essentials", {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_VALUE);
+          tip, TIP_("Asset Library: Essentials"), {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_VALUE);
       break;
     default:
       /* Intentionally empty. */
