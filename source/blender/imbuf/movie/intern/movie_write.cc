@@ -161,19 +161,19 @@ static void add_hdr_mastering_display_metadata(AVCodecParameters *codecpar,
     /* PQ uses heuristic based on view transform name. In the future this could become
      * a user control, but this solves the common cases. */
     blender::StringRefNull view_name = imf->view_settings.view_transform;
-    if (view_name.find("HDR 500 nits")) {
+    if (view_name.find("HDR 500 nits") != blender::StringRef::not_found) {
       max_luminance = 500;
     }
-    else if (view_name.find("HDR 1000 nits")) {
+    else if (view_name.find("HDR 1000 nits") != blender::StringRef::not_found) {
       max_luminance = 1000;
     }
-    else if (view_name.find("HDR 2000 nits")) {
+    else if (view_name.find("HDR 2000 nits") != blender::StringRef::not_found) {
       max_luminance = 2000;
     }
-    else if (view_name.find("HDR 4000 nits")) {
+    else if (view_name.find("HDR 4000 nits") != blender::StringRef::not_found) {
       max_luminance = 4000;
     }
-    else if (view_name.find("HDR 10000 nits")) {
+    else if (view_name.find("HDR 10000 nits") != blender::StringRef::not_found) {
       max_luminance = 10000;
     }
   }
