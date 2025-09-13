@@ -265,8 +265,8 @@ void clip_draw_graph(SpaceClip *sc, ARegion *region, Scene *scene)
   View2D *v2d = &region->v2d;
 
   /* grid */
-  UI_view2d_draw_lines_x__values(v2d);
-  UI_view2d_draw_lines_y__values(v2d);
+  UI_view2d_draw_lines_x__values(v2d, 10);
+  UI_view2d_draw_lines_y__values(v2d, 10);
 
   if (clip) {
     uint pos = GPU_vertformat_attr_add(

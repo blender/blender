@@ -1893,7 +1893,8 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
   draw_timeline_gizmos(&ctx);
   draw_timeline_post_view_callbacks(&ctx);
   if (ctx.scene) {
-    ED_time_scrub_draw(region, ctx.scene, !(ctx.sseq->flag & SEQ_DRAWFRAMES), true);
+    const int fps = round_db_to_int(ctx.scene->frames_per_second());
+    ED_time_scrub_draw(region, ctx.scene, !(ctx.sseq->flag & SEQ_DRAWFRAMES), true, fps);
   }
 
   if (ctx.scene) {
