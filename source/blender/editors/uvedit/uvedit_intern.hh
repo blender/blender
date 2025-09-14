@@ -157,5 +157,7 @@ void UV_OT_select_more(wmOperatorType *ot);
 void UV_OT_select_less(wmOperatorType *ot);
 void UV_OT_select_overlap(wmOperatorType *ot);
 void UV_OT_select_similar(wmOperatorType *ot);
+void UV_OT_custom_region_set(wmOperatorType *ot);
+
 /* Used only when UV sync select is disabled. */
 void UV_OT_select_mode(wmOperatorType *ot);

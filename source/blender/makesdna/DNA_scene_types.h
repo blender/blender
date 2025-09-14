@@ -1684,6 +1684,8 @@ typedef struct ToolSettings {
   char uv_selectmode;
   char uv_sticky;
 
+  rctf uv_custom_region;
+
   float uvcalc_margin;
 
   int uvcalc_iterations;
@@ -2800,6 +2802,7 @@ enum {
    * selection should be used - since not all combinations of options support it.
    */
   UV_FLAG_ISLAND_SELECT = 1 << 2,
+  UV_FLAG_CUSTOM_REGION = 1 << 3,
 };
 
 /** #ToolSettings::uv_selectmode */

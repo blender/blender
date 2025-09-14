@@ -5873,4 +5873,38 @@ void UV_OT_select_mode(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
+static wmOperatorStatus uv_custom_region_set_exec(bContext *C, wmOperator *op)
+{
+  const Scene *scene = CTX_data_scene(C);
+  const ARegion *region = CTX_wm_region(C);
+  ToolSettings *ts = scene->toolsettings;
+
+  WM_operator_properties_border_to_rctf(op, &ts->uv_custom_region);
+  UI_view2d_region_to_view_rctf(&region->v2d, &ts->uv_custom_region, &ts->uv_custom_region);
+  ts->uv_flag |= UV_FLAG_CUSTOM_REGION;
+
+  return OPERATOR_FINISHED;
+}
+
+void UV_OT_custom_region_set(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Set User Region";
+  ot->description = "Set the boundaries of the user region";
+  ot->idname = "UV_OT_custom_region_set";
+
+  /* API callbacks. */
+  ot->invoke = WM_gesture_box_invoke;
+  ot->exec = uv_custom_region_set_exec;
+  ot->modal = WM_gesture_box_modal;
+  ot->poll = ED_operator_uvedit_space_image;
+  ot->cancel = WM_gesture_box_cancel;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* properties */
+  WM_operator_properties_gesture_box(ot);
+}
+
 /** \} */
