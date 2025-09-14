@@ -453,7 +453,7 @@ struct Instance : public DrawEngine {
 
   short get_object_select_mode(Scene *scene, Object *ob)
   {
-    short r_select_mode = 0;
+    short select_mode = 0;
     if (ob->mode & (OB_MODE_WEIGHT_PAINT | OB_MODE_VERTEX_PAINT | OB_MODE_TEXTURE_PAINT)) {
       /* In order to sample flat colors for vertex weights / texture-paint / vertex-paint
        * we need to be in SCE_SELECT_FACE mode so select_cache_init() correctly sets up
@@ -463,17 +463,17 @@ struct Instance : public DrawEngine {
        * So OB_MODE_VERTEX_PAINT is already included here [required for P1032 I guess]. */
       Mesh *me_orig = static_cast<Mesh *>(DEG_get_original(ob)->data);
       if (me_orig->editflag & ME_EDIT_PAINT_VERT_SEL) {
-        r_select_mode = SCE_SELECT_VERTEX;
+        select_mode = SCE_SELECT_VERTEX;
       }
       else {
-        r_select_mode = SCE_SELECT_FACE;
+        select_mode = SCE_SELECT_FACE;
       }
     }
     else {
-      r_select_mode = scene->toolsettings->selectmode;
+      select_mode = scene->toolsettings->selectmode;
     }
 
-    return r_select_mode;
+    return select_mode;
   }
 
   bool check_ob_drawface_dot(short select_mode, const View3D *v3d, eDrawType dt)

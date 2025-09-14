@@ -3714,8 +3714,8 @@ static PointerRNA rna_Node_paired_output_get(PointerRNA *ptr)
   const blender::bke::bNodeZoneType &zone_type = *blender::bke::zone_type_by_node_type(
       node->type_legacy);
   bNode *output_node = zone_type.get_corresponding_output(*ntree, *node);
-  PointerRNA r_ptr = RNA_pointer_create_discrete(&ntree->id, &RNA_Node, output_node);
-  return r_ptr;
+  PointerRNA ptr_result = RNA_pointer_create_discrete(&ntree->id, &RNA_Node, output_node);
+  return ptr_result;
 }
 
 static bool rna_Node_pair_with_output(

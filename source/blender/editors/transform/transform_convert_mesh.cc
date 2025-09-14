@@ -2179,10 +2179,10 @@ Array<TransDataVertSlideVert> transform_mesh_vert_slide_data_create(
   int td_selected_len = 0;
   tc->foreach_index_selected([&](const int /*i*/) { td_selected_len++; });
 
-  Array<TransDataVertSlideVert> r_sv(td_selected_len);
+  Array<TransDataVertSlideVert> sv_array(td_selected_len);
 
-  r_loc_dst_buffer.reserve(r_sv.size() * 4);
-  int r_sv_index = 0;
+  r_loc_dst_buffer.reserve(sv_array.size() * 4);
+  int sv_array_index = 0;
   tc->foreach_index_selected([&](const int i) {
     TransData *td = &tc->data[i];
     const int size_prev = r_loc_dst_buffer.size();
@@ -2203,7 +2203,7 @@ Array<TransDataVertSlideVert> transform_mesh_vert_slide_data_create(
       }
     }
 
-    TransDataVertSlideVert &sv = r_sv[r_sv_index];
+    TransDataVertSlideVert &sv = sv_array[sv_array_index];
     sv.td = &tc->data[i];
     /* The buffer address may change as the vector is resized. Avoid setting #Span. */
     // sv.targets = r_loc_dst_buffer.as_span().drop_front(size_prev);
@@ -2211,18 +2211,18 @@ Array<TransDataVertSlideVert> transform_mesh_vert_slide_data_create(
     /* Store the buffer size temporarily in `target_curr`. */
     sv.co_link_curr = r_loc_dst_buffer.size() - size_prev;
 
-    r_sv_index++;
+    sv_array_index++;
   });
 
   int start = 0;
-  for (TransDataVertSlideVert &sv : r_sv) {
+  for (TransDataVertSlideVert &sv : sv_array) {
     int size = sv.co_link_curr;
     sv.co_link_orig_3d = r_loc_dst_buffer.as_span().slice(start, size);
     sv.co_link_curr = 0;
     start += size;
   }
 
-  return r_sv;
+  return sv_array;
 }
 
 /** \} */
@@ -2339,8 +2339,8 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
 
   /* Alloc and initialize the #TransDataEdgeSlideVert. */
 
-  Array<TransDataEdgeSlideVert> r_sv(td_selected_len);
-  TransDataEdgeSlideVert *sv = r_sv.data();
+  Array<TransDataEdgeSlideVert> sv_array(td_selected_len);
+  TransDataEdgeSlideVert *sv = sv_array.data();
   int sv_index = 0;
   tc->foreach_index_selected([&](const int i) {
     TransData *td = &tc->data[i];
@@ -2380,8 +2380,8 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
 
   /* Compute the sliding groups. */
   int loop_nr = 0;
-  for (int i : r_sv.index_range()) {
-    TransDataEdgeSlideVert *sv = &r_sv[i];
+  for (int i : sv_array.index_range()) {
+    TransDataEdgeSlideVert *sv = &sv_array[i];
     if (sv->loop_nr != -1) {
       /* This vertex has already been computed. */
       continue;
@@ -2502,14 +2502,14 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
 
     next.i = td_connected[i_curr][0] != i_prev ? td_connected[i_curr][0] : td_connected[i_curr][1];
     if (next.i != -1) {
-      next.sv = &r_sv[next.i];
+      next.sv = &sv_array[next.i];
       next.v = static_cast<BMVert *>(next.sv->td->extra);
       next.vert_is_edge_pair = mesh_vert_is_inner(next.v);
     }
 
     curr.i = i_curr;
     if (curr.i != -1) {
-      curr.sv = &r_sv[curr.i];
+      curr.sv = &sv_array[curr.i];
       curr.v = static_cast<BMVert *>(curr.sv->td->extra);
       curr.vert_is_edge_pair = mesh_vert_is_inner(curr.v);
       if (next.i != -1) {
@@ -2525,7 +2525,7 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
         next_next.i = td_connected[next.i][0] != curr.i ? td_connected[next.i][0] :
                                                           td_connected[next.i][1];
         if (next_next.i != -1) {
-          next_next.sv = &r_sv[next_next.i];
+          next_next.sv = &sv_array[next_next.i];
           next_next.v = static_cast<BMVert *>(next_next.sv->td->extra);
           next_next.vert_is_edge_pair = mesh_vert_is_inner(next_next.v);
           next.e = BM_edge_exists(next.v, next_next.v);
@@ -2738,7 +2738,7 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
     loop_nr++;
   }
   *r_group_len = loop_nr;
-  return r_sv;
+  return sv_array;
 }
 
 /** \} */

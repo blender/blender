@@ -792,12 +792,12 @@ short transform_orientation_matrix_get(bContext *C,
     }
   }
 
-  short r_orient_index = calc_orientation_from_type_ex(
+  const short orient_index_result = calc_orientation_from_type_ex(
       scene, t->view_layer, v3d, rv3d, ob, obedit, orient_index, t->around, r_spacemtx);
 
   if (rv3d && (t->options & CTX_PAINT_CURVE)) {
     /* Screen space in the 3d region. */
-    if (r_orient_index == V3D_ORIENT_VIEW) {
+    if (orient_index_result == V3D_ORIENT_VIEW) {
       unit_m3(r_spacemtx);
     }
     else {
@@ -806,7 +806,7 @@ short transform_orientation_matrix_get(bContext *C,
     }
   }
 
-  return r_orient_index;
+  return orient_index_result;
 }
 
 const char *transform_orientations_spacename_get(TransInfo *t, const short orient_type)

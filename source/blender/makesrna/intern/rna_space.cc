@@ -3182,9 +3182,9 @@ static void rna_FileBrowser_FSMenu_begin(CollectionPropertyIterator *iter, FSMen
 static PointerRNA rna_FileBrowser_FSMenu_get(CollectionPropertyIterator *iter)
 {
   ListBaseIterator *internal = &iter->internal.listbase;
-  PointerRNA r_ptr = RNA_pointer_create_with_parent(
+  PointerRNA ptr_result = RNA_pointer_create_with_parent(
       iter->parent, &RNA_FileBrowserFSMenuEntry, internal->link);
-  return r_ptr;
+  return ptr_result;
 }
 
 static void rna_FileBrowser_FSMenu_end(CollectionPropertyIterator * /*iter*/) {}

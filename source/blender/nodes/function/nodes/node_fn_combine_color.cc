@@ -53,10 +53,10 @@ static const mf::MultiFunction *get_multi_function(const bNode &bnode)
       "RGB", [](float r, float g, float b, float a) { return ColorGeometry4f(r, g, b, a); });
   static auto hsva_fn = mf::build::SI4_SO<float, float, float, float, ColorGeometry4f>(
       "HSV", [](float h, float s, float v, float a) {
-        ColorGeometry4f r_color;
-        hsv_to_rgb(h, s, v, &r_color.r, &r_color.g, &r_color.b);
-        r_color.a = a;
-        return r_color;
+        ColorGeometry4f color;
+        hsv_to_rgb(h, s, v, &color.r, &color.g, &color.b);
+        color.a = a;
+        return color;
       });
   static auto hsla_fn = mf::build::SI4_SO<float, float, float, float, ColorGeometry4f>(
       "HSL", [](float h, float s, float l, float a) {

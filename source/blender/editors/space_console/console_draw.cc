@@ -247,9 +247,9 @@ int console_textview_height(SpaceConsole *sc, const ARegion *region)
 
 int console_char_pick(SpaceConsole *sc, const ARegion *region, const int mval[2])
 {
-  int r_mval_pick_offset = 0;
+  int mval_pick_offset = 0;
   void *mval_pick_item = nullptr;
 
-  console_textview_main__internal(sc, region, false, mval, &mval_pick_item, &r_mval_pick_offset);
-  return r_mval_pick_offset;
+  console_textview_main__internal(sc, region, false, mval, &mval_pick_item, &mval_pick_offset);
+  return mval_pick_offset;
 }

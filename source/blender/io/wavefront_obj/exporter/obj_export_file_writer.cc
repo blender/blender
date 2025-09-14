@@ -773,25 +773,25 @@ void MTLWriter::write_materials(const char *blen_filepath,
 
 Vector<int> MTLWriter::add_materials(const OBJMesh &mesh_to_export)
 {
-  Vector<int> r_mtl_indices;
-  r_mtl_indices.resize(mesh_to_export.tot_materials());
+  Vector<int> mtl_indices;
+  mtl_indices.resize(mesh_to_export.tot_materials());
   for (int16_t i = 0; i < mesh_to_export.tot_materials(); i++) {
     const Material *material = mesh_to_export.materials[i];
     if (!material) {
-      r_mtl_indices[i] = -1;
+      mtl_indices[i] = -1;
       continue;
     }
     int mtlmat_index = material_map_.lookup_default(material, -1);
     if (mtlmat_index != -1) {
-      r_mtl_indices[i] = mtlmat_index;
+      mtl_indices[i] = mtlmat_index;
     }
     else {
       mtlmaterials_.append(mtlmaterial_for_material(material));
-      r_mtl_indices[i] = mtlmaterials_.size() - 1;
-      material_map_.add_new(material, r_mtl_indices[i]);
+      mtl_indices[i] = mtlmaterials_.size() - 1;
+      material_map_.add_new(material, mtl_indices[i]);
     }
   }
-  return r_mtl_indices;
+  return mtl_indices;
 }
 
 const char *MTLWriter::mtlmaterial_name(int index)

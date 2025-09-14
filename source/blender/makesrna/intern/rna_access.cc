@@ -258,12 +258,12 @@ PointerRNA RNA_pointer_recast(PointerRNA *ptr)
 #if 0 /* works but this case if covered by more general code below. */
   if (RNA_struct_is_ID(ptr->type)) {
     /* simple case */
-    *r_ptr = RNA_id_pointer_create(ptr->owner_id);
+    return RNA_id_pointer_create(ptr->owner_id);
   }
   else
 #endif
   {
-    PointerRNA r_ptr{*ptr};
+    PointerRNA ptr_result{*ptr};
     PointerRNA t_ptr{*ptr};
     StructRNA *base;
 
@@ -271,10 +271,10 @@ PointerRNA RNA_pointer_recast(PointerRNA *ptr)
       t_ptr.type = base;
       rna_pointer_refine(t_ptr);
       if (t_ptr.type && t_ptr.type != ptr->type) {
-        r_ptr = t_ptr;
+        ptr_result = t_ptr;
       }
     }
-    return r_ptr;
+    return ptr_result;
   }
 }
 
@@ -841,12 +841,12 @@ PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier)
 {
   if (identifier[0] == '[' && identifier[1] == '"') {
     /* id prop lookup, not so common */
-    PropertyRNA *r_prop = nullptr;
-    PointerRNA r_ptr; /* only support single level props */
-    if (RNA_path_resolve_property(ptr, identifier, &r_ptr, &r_prop) && (r_ptr.type == ptr->type) &&
-        (r_ptr.data == ptr->data))
+    PropertyRNA *prop_test = nullptr;
+    PointerRNA ptr_test; /* only support single level props */
+    if (RNA_path_resolve_property(ptr, identifier, &ptr_test, &prop_test) &&
+        (ptr_test.type == ptr->type) && (ptr_test.data == ptr->data))
     {
-      return r_prop;
+      return prop_test;
     }
   }
   else {
@@ -2421,12 +2421,12 @@ bool RNA_property_path_from_ID_check(PointerRNA *ptr, PropertyRNA *prop)
   bool ret = false;
 
   if (path) {
-    PointerRNA r_ptr;
-    PropertyRNA *r_prop;
+    PointerRNA ptr_test;
+    PropertyRNA *prop_test;
 
     PointerRNA id_ptr = RNA_id_pointer_create(ptr->owner_id);
-    if (RNA_path_resolve(&id_ptr, path->c_str(), &r_ptr, &r_prop) == true) {
-      ret = (prop == r_prop);
+    if (RNA_path_resolve(&id_ptr, path->c_str(), &ptr_test, &prop_test) == true) {
+      ret = (prop == prop_test);
     }
   }
 

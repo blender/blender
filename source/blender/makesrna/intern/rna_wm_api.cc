@@ -625,8 +625,8 @@ static PointerRNA rna_PopMenuBegin(bContext *C,
   }
 
   void *data = (void *)UI_popup_menu_begin(C, title, icon);
-  PointerRNA r_ptr = RNA_pointer_create_discrete(nullptr, &RNA_UIPopupMenu, data);
-  return r_ptr;
+  PointerRNA ptr_result = RNA_pointer_create_discrete(nullptr, &RNA_UIPopupMenu, data);
+  return ptr_result;
 }
 
 static void rna_PopMenuEnd(bContext *C, PointerRNA *handle)
@@ -645,8 +645,8 @@ static PointerRNA rna_PopoverBegin(bContext *C,
   }
 
   void *data = (void *)UI_popover_begin(C, U.widget_unit * ui_units_x, from_active_button);
-  PointerRNA r_ptr = RNA_pointer_create_discrete(nullptr, &RNA_UIPopover, data);
-  return r_ptr;
+  PointerRNA ptr_result = RNA_pointer_create_discrete(nullptr, &RNA_UIPopover, data);
+  return ptr_result;
 }
 
 static void rna_PopoverEnd(bContext *C, PointerRNA *handle, wmKeyMap *keymap)
@@ -665,8 +665,8 @@ static PointerRNA rna_PieMenuBegin(
   void *data = (void *)UI_pie_menu_begin(
       C, title, icon, static_cast<const wmEvent *>(event->data));
 
-  PointerRNA r_ptr = RNA_pointer_create_discrete(nullptr, &RNA_UIPieMenu, data);
-  return r_ptr;
+  PointerRNA ptr_result = RNA_pointer_create_discrete(nullptr, &RNA_UIPieMenu, data);
+  return ptr_result;
 }
 
 static void rna_PieMenuEnd(bContext *C, PointerRNA *handle)

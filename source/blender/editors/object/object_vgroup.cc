@@ -1468,8 +1468,8 @@ static void vgroup_normalize_all_deform_if_active_is_deform(Object *ob,
                                                             ReportList *reports,
                                                             std::optional<int> current_frame = {})
 {
-  int r_defgroup_tot = BKE_object_defgroup_count(ob);
-  bool *defgroup_validmap = BKE_object_defgroup_validmap_get(ob, r_defgroup_tot);
+  const int defgroup_tot = BKE_object_defgroup_count(ob);
+  bool *defgroup_validmap = BKE_object_defgroup_validmap_get(ob, defgroup_tot);
   const int def_nr = BKE_object_defgroup_active_index_get(ob) - 1;
 
   /* Only auto-normalize if the active group is bone-deforming. */
