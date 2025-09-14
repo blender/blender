@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 from bpy.types import Panel
+from bpy.app.translations import contexts as i18n_contexts
 from bl_ui.properties_grease_pencil_common import GreasePencilSimplifyPanel
 from bl_ui.space_view3d import (
     VIEW3D_PT_shading_lighting,
@@ -112,7 +113,12 @@ class RENDER_PT_color_management_working_space(RenderButtonsPanel, Panel):
         row = split.row()
         row.label(text="File")
         row.alignment = 'RIGHT'
-        split.operator_menu_enum("wm.set_working_color_space", "working_space", text=blend_colorspace.working_space)
+        split.operator_menu_enum(
+            "wm.set_working_color_space",
+            "working_space",
+            text=blend_colorspace.working_space,
+            text_ctxt=i18n_contexts.default,
+        )
 
         col.prop(scene.sequencer_colorspace_settings, "name", text="Sequencer")
 
