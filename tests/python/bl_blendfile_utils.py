@@ -77,10 +77,11 @@ class TestBlendLibLinkHelper(TestHelper):
 
         ma = bpy.data.materials.new("LibMaterial")
         ma.use_fake_user = True
-        ma.use_nodes = True
+        out_node = ma.node_tree.nodes.new("ShaderNodeOutputMaterial")
+        bsdf_node = ma.node_tree.nodes.new("ShaderNodeBsdfPrincipled")
+        ma.node_tree.links.new(bsdf_node.outputs["BSDF"], out_node.inputs["Surface"])
         teximage_node = ma.node_tree.nodes.new("ShaderNodeTexImage")
         teximage_node.image = im
-        bsdf_node = ma.node_tree.nodes["Principled BSDF"]
         ma.node_tree.links.new(bsdf_node.inputs["Base Color"], teximage_node.outputs["Color"])
 
     def gen_library_data_(self):

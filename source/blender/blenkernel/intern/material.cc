@@ -206,6 +206,9 @@ static void material_blend_write(BlendWriter *writer, ID *id, const void *id_add
   ma->texpaintslot = nullptr;
   BLI_listbase_clear(&ma->gpumaterial);
 
+  /* Set deprecated #use_nodes for forward compatibility. */
+  ma->use_nodes = true;
+
   /* write LibData */
   BLO_write_id_struct(writer, Material, id_address, &ma->id);
   BKE_id_blend_write(writer, &ma->id);
@@ -2071,7 +2074,6 @@ static void material_default_surface_init(Material **ma_p)
 
   bNodeTree *ntree = blender::bke::node_tree_add_tree_embedded(
       nullptr, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
-  ma->use_nodes = true;
 
   bNode *principled = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_BSDF_PRINCIPLED);
   bNodeSocket *base_color = blender::bke::node_find_socket(*principled, SOCK_IN, "Base Color");
@@ -2099,7 +2101,6 @@ static void material_default_volume_init(Material **ma_p)
 
   bNodeTree *ntree = blender::bke::node_tree_add_tree_embedded(
       nullptr, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
-  ma->use_nodes = true;
 
   bNode *principled = blender::bke::node_add_static_node(
       nullptr, *ntree, SH_NODE_VOLUME_PRINCIPLED);
@@ -2125,7 +2126,6 @@ static void material_default_holdout_init(Material **ma_p)
 
   bNodeTree *ntree = blender::bke::node_tree_add_tree_embedded(
       nullptr, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
-  ma->use_nodes = true;
 
   bNode *holdout = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_HOLDOUT);
   bNode *output = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_OUTPUT_MATERIAL);

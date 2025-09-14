@@ -2870,7 +2870,7 @@ static void image_walk_id_all_users(
     }
     case ID_MA: {
       Material *ma = (Material *)id;
-      if (ma->nodetree && ma->use_nodes && !skip_nested_nodes) {
+      if (ma->nodetree && !skip_nested_nodes) {
         image_walk_ntree_all_users(ma->nodetree, &ma->id, customdata, callback);
       }
       image_walk_gpu_materials(id, &ma->gpumaterial, customdata, callback);

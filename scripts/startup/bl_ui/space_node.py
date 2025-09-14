@@ -65,16 +65,17 @@ class NODE_HT_header(Header):
                 ob_type = ob.type
 
                 NODE_MT_editor_menus.draw_collapsible(context, layout)
-
-                if snode_id:
-                    row = layout.row()
-                    row.prop(snode_id, "use_nodes")
-
-                layout.separator_spacer()
-
                 types_that_support_material = {
                     'MESH', 'CURVE', 'SURFACE', 'FONT', 'META', 'GPENCIL', 'VOLUME', 'CURVES', 'POINTCLOUD',
                 }
+
+                if snode_id:
+                    row = layout.row()
+                    if ob_type not in types_that_support_material:
+                        row.prop(snode_id, "use_nodes")
+
+                layout.separator_spacer()
+
                 # disable material slot buttons when pinned, cannot find correct slot within id_from (#36589)
                 # disable also when the selected object does not support materials
                 has_material_slots = not snode.pin and ob_type in types_that_support_material

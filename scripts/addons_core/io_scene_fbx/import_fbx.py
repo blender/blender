@@ -2064,7 +2064,7 @@ def blen_read_material(fbx_tmpl, fbx_obj, settings):
                  elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
     fbx_props_no_template = (fbx_props[0], fbx_elem_nil)
 
-    ma_wrap = node_shader_utils.PrincipledBSDFWrapper(ma, is_readonly=False, use_nodes=True)
+    ma_wrap = node_shader_utils.PrincipledBSDFWrapper(ma, is_readonly=False)
     ma_wrap.base_color = elem_props_get_color_rgb(fbx_props, b'DiffuseColor', const_color_white)
     # No specular color in Principled BSDF shader, assumed to be either white or take some tint from diffuse one...
     # TODO: add way to handle tint option (guesstimate from spec color + intensity...)?

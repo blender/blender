@@ -785,9 +785,7 @@ void ED_node_set_active(
     if (node->flag & NODE_ACTIVE_TEXTURE) {
       /* If active texture changed, free GLSL materials. */
       LISTBASE_FOREACH (Material *, ma, &bmain->materials) {
-        if (ma->nodetree && ma->use_nodes &&
-            blender::bke::node_tree_contains_tree(*ma->nodetree, *ntree))
-        {
+        if (ma->nodetree && blender::bke::node_tree_contains_tree(*ma->nodetree, *ntree)) {
           GPU_material_free(&ma->gpumaterial);
 
           /* Sync to active texpaint slot, otherwise we can end up painting on a different slot

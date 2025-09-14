@@ -1702,7 +1702,7 @@ pxr::UsdShadeMaterial create_usd_material(const USDExporterContext &usd_export_c
   pxr::UsdShadeMaterial usd_material = pxr::UsdShadeMaterial::Define(usd_export_context.stage,
                                                                      usd_path);
 
-  if (material->use_nodes && usd_export_context.export_params.generate_preview_surface) {
+  if (usd_export_context.export_params.generate_preview_surface) {
     create_usd_preview_surface_material(
         usd_export_context, material, usd_material, active_uvmap_name, reports);
   }
@@ -1711,7 +1711,7 @@ pxr::UsdShadeMaterial create_usd_material(const USDExporterContext &usd_export_c
   }
 
 #ifdef WITH_MATERIALX
-  if (material->use_nodes && usd_export_context.export_params.generate_materialx_network) {
+  if (usd_export_context.export_params.generate_materialx_network) {
     create_usd_materialx_material(
         usd_export_context, usd_path, material, active_uvmap_name, usd_material);
   }

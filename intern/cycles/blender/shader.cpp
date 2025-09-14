@@ -1594,7 +1594,7 @@ void BlenderSync::sync_materials(BL::Depsgraph &b_depsgraph, bool update_all)
       shader->set_pass_id(b_mat.pass_index());
 
       /* create nodes */
-      if (b_mat.use_nodes() && b_mat.node_tree()) {
+      if (b_mat.node_tree()) {
         BL::ShaderNodeTree b_ntree(b_mat.node_tree());
 
         add_nodes(scene, b_engine, b_data, b_scene, graph.get(), b_ntree);

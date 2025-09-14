@@ -384,7 +384,6 @@ class ShaderNodeGroupInterfaceTest(AbstractNodeGroupInterfaceTest, NodeGroupInte
     def setUp(self):
         super().setUp()
         self.material = bpy.data.materials.new("test")
-        self.material.use_nodes = True
         self.main_tree = self.material.node_tree
 
     def test_invalid_socket_type(self):
@@ -476,7 +475,6 @@ class NodeTreeItemsIteratorTest(AbstractNodeGroupInterfaceTest, NodeGroupInterfa
     def setUp(self):
         super().setUp()
         self.material = bpy.data.materials.new("test")
-        self.material.use_nodes = True
         self.main_tree = self.material.node_tree
 
     # Regression test for changes while iterating over tree interface items (#143551).

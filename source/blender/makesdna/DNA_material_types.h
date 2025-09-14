@@ -188,7 +188,7 @@ typedef struct Material {
   float metallic;
 
   /** Nodes */
-  char use_nodes;
+  char use_nodes DNA_DEPRECATED;
 
   /** Preview render. */
   char pr_type;

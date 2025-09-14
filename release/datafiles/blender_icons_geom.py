@@ -94,7 +94,7 @@ def object_material_colors(ob):
     for slot in ob.material_slots:
         material = slot.material
         color = color_default
-        if material is not None and material.use_nodes:
+        if material is not None:
             node_tree = material.node_tree
             if node_tree is not None:
                 color = next((

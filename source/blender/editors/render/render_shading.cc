@@ -854,7 +854,6 @@ static wmOperatorStatus new_material_exec(bContext *C, wmOperator * /*op*/)
       ma = BKE_gpencil_material_add(bmain, name);
     }
     ED_node_shader_default(C, &ma->id);
-    ma->use_nodes = true;
   }
 
   if (prop) {
@@ -2900,7 +2899,6 @@ static wmOperatorStatus paste_material_exec(bContext *C, wmOperator *op)
   SWAP_MEMBER(spec);
   SWAP_MEMBER(roughness);
   SWAP_MEMBER(metallic);
-  SWAP_MEMBER(use_nodes);
   SWAP_MEMBER(index);
   SWAP_MEMBER(nodetree);
   SWAP_MEMBER(line_col);
