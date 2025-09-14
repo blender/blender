@@ -219,8 +219,10 @@ void UI_view2d_dot_grid_draw(const View2D *v2d,
                              int grid_subdivisions);
 
 /**
- * Draw horizontal lines. The \param base defines in what step the lines are drawn. Depending on
- * the zoom level of the `v2d` the step is a full fraction of the given base.
+ * Draw horizontal lines.
+ *
+ * \param base: Defines in what step the lines are drawn.
+ * Depending on the zoom level of the `v2d` the step is a full fraction of the given base.
  */
 void UI_view2d_draw_lines_y__values(const View2D *v2d, int base);
 void UI_view2d_draw_lines_x__values(const View2D *v2d, int base);

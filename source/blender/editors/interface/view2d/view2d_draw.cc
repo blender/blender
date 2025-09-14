@@ -76,9 +76,11 @@ static int get_divisor(const int distance)
 }
 
 /**
- * Calculates the distance in frames between major lines. The lowest value it can return is 1.
- * The \param base defines how the step is calculated. The returned step is either a full fraction
- * or a multiple of that number.
+ * Calculates the distance in frames between major lines.
+ * The lowest value it can return is 1.
+ *
+ * \param base: Defines how the step is calculated.
+ * The returned step is either a full fraction or a multiple of that number.
  */
 static int calculate_grid_step(const int base, const float pixel_width, const float view_width)
 {

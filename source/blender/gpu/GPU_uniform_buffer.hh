@@ -28,9 +28,9 @@ blender::gpu::UniformBuf *GPU_uniformbuf_create_ex(size_t size,
                                                    const char *name);
 /**
  * Create UBO from inputs list.
- * Return nullptr if failed to create or if \param inputs: is empty.
  *
  * \param inputs: ListBase of #BLI_genericNodeN(#GPUInput).
+ * \return nullptr if failed to create or if `inputs` is empty.
  */
 blender::gpu::UniformBuf *GPU_uniformbuf_create_from_list(ListBase *inputs, const char *name);
 

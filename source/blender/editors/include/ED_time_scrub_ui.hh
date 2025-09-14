@@ -23,9 +23,9 @@ void ED_time_scrub_draw_current_frame(const ARegion *region,
                                       bool display_stalk = true);
 /**
  * Draw the scrub area with numbers inside.
- * \param display_seconds defines if the display is in seconds or in frames.
- * \param base defines the base number from which the number distance is calculated. The distance
- * is always a simple fraction or a multiple of that number.
+ * \param display_seconds: Defines if the display is in seconds or in frames.
+ * \param base: Defines the base number from which the number distance is calculated.
+ * The distance is always a simple fraction or a multiple of that number.
  */
 void ED_time_scrub_draw(const ARegion *region,
                         const Scene *scene,

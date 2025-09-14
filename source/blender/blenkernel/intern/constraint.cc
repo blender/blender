@@ -5537,8 +5537,8 @@ static void con_unlink_refs_cb(bConstraint * /*con*/,
 /**
  * Helper function to invoke the id_looper callback, including custom space.
  *
- * \param flag is unused right now, but it's kept as a reminder that new code may need to check
- * flags as well. See enum LibraryForeachIDFlag in BKE_lib_query.hh.
+ * \param flag: is unused right now, but it's kept as a reminder that new code may need to check
+ * flags as well. See enum #LibraryForeachIDFlag in `BKE_lib_query.hh`.
  */
 static void con_invoke_id_looper(const bConstraintTypeInfo *cti,
                                  bConstraint *con,
