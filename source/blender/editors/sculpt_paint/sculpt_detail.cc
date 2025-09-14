@@ -637,7 +637,11 @@ static void dyntopo_detail_size_sample_from_surface(Object &ob,
                                                     DyntopoDetailSizeEditCustomData *cd)
 {
   SculptSession &ss = *ob.sculpt;
-  BMVert *active_vertex = std::get<BMVert *>(ss.active_vert());
+  const ActiveVert active_vert = ss.active_vert();
+  if (std::holds_alternative<std::monostate>(active_vert)) {
+    return;
+  }
+  BMVert *active_vertex = std::get<BMVert *>(active_vert);
 
   float len_accum = 0;
   BMeshNeighborVerts neighbors;
