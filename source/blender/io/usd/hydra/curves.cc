@@ -265,7 +265,7 @@ void HairData::write_curves()
       ParticleSystemModifierData *psmd = psys_get_modifier(object, particle_system_);
       int num = ELEM(pa.num_dmcache, DMCACHE_ISCHILD, DMCACHE_NOTFOUND) ? pa.num : pa.num_dmcache;
 
-      float r_uv[2] = {0.0f, 0.0f};
+      float uv[2] = {0.0f, 0.0f};
       if (ELEM(psmd->psys->part->from, PART_FROM_FACE, PART_FROM_VOLUME) &&
           !ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD))
       {
@@ -276,10 +276,10 @@ void HairData::write_curves()
 
         if (mface && mtface) {
           mtface += num;
-          psys_interpolate_uvs(mtface, mface->v4, pa.fuv, r_uv);
+          psys_interpolate_uvs(mtface, mface->v4, pa.fuv, uv);
         }
       }
-      uvs_.push_back(pxr::GfVec2f(r_uv[0], r_uv[1]));
+      uvs_.push_back(pxr::GfVec2f(uv[0], uv[1]));
     }
   }
 }
