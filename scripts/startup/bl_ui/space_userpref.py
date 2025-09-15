@@ -87,8 +87,12 @@ class USERPREF_MT_editor_menus(Menu):
 class USERPREF_MT_view(Menu):
     bl_label = "View"
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
+        view = context.space_data
+
+        layout.prop(view, "show_region_ui")
+        layout.separator()
 
         layout.menu("INFO_MT_area")
 

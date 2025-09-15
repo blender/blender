@@ -53,6 +53,7 @@ static SpaceLink *userpref_create(const ScrArea *area, const Scene * /*scene*/)
   BLI_addtail(&spref->regionbase, region);
   region->regiontype = RGN_TYPE_UI;
   region->alignment = RGN_ALIGN_LEFT;
+  region->flag &= ~RGN_FLAG_HIDDEN;
 
   /* Use smaller size when opened in area like properties editor. */
   if (area->winx && area->winx < 3.0f * UI_NAVIGATION_REGION_WIDTH * UI_SCALE_FAC) {

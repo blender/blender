@@ -7708,6 +7708,8 @@ static void rna_def_space_userpref(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "SpaceUserPref");
   RNA_def_struct_ui_text(srna, "Space Preferences", "Blender preferences space data");
 
+  rna_def_space_generic_show_region_toggles(srna, (1 << RGN_TYPE_UI));
+
   prop = RNA_def_property(srna, "filter_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "filter_type");
   RNA_def_property_enum_items(prop, filter_type_items);
