@@ -2238,6 +2238,21 @@ static void do_version_color_spill_menus_to_inputs(bNodeTree &ntree, bNode &node
   limit_channel_socket.default_value_typed<bNodeSocketValueMenu>()->value = storage.limchan;
 }
 
+static void do_version_double_edge_mask_options_to_inputs(bNodeTree &ntree, bNode &node)
+{
+  if (blender::bke::node_find_socket(node, SOCK_IN, "Image Edges")) {
+    return;
+  }
+
+  bNodeSocket &image_edges_socket = version_node_add_socket(
+      ntree, node, SOCK_IN, "NodeSocketBool", "Image Edges");
+  image_edges_socket.default_value_typed<bNodeSocketValueBoolean>()->value = bool(node.custom2);
+  bNodeSocket &only_inside_outer_socket = version_node_add_socket(
+      ntree, node, SOCK_IN, "NodeSocketBool", "Only Inside Outer");
+  only_inside_outer_socket.default_value_typed<bNodeSocketValueBoolean>()->value = bool(
+      node.custom1);
+}
+
 void do_versions_after_linking_500(FileData *fd, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 9)) {
@@ -3304,6 +3319,20 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
         }
         else if (node->type_legacy == CMP_NODE_COLOR_SPILL) {
           do_version_color_spill_menus_to_inputs(*node_tree, *node);
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 83)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type != NTREE_COMPOSIT) {
+        continue;
+      }
+      LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+        if (node->type_legacy == CMP_NODE_DOUBLEEDGEMASK) {
+          do_version_double_edge_mask_options_to_inputs(*node_tree, *node);
         }
       }
     }

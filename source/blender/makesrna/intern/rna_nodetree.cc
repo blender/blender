@@ -6437,40 +6437,6 @@ static void def_cmp_convert_to_display(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_ui_text(prop, "Display Settings", "Color management display device settings");
 }
 
-static void def_cmp_double_edge_mask(BlenderRNA * /*brna*/, StructRNA *srna)
-{
-  PropertyRNA *prop;
-
-  static const EnumPropertyItem BufEdgeMode_items[] = {
-      {0, "BLEED_OUT", 0, "Bleed Out", "Allow mask pixels to bleed along edges"},
-      {1, "KEEP_IN", 0, "Keep In", "Restrict mask pixels from touching edges"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
-  static const EnumPropertyItem InnerEdgeMode_items[] = {
-      {0, "ALL", 0, "All", "All pixels on inner mask edge are considered during mask calculation"},
-      {1,
-       "ADJACENT_ONLY",
-       0,
-       "Adjacent Only",
-       "Only inner mask pixels adjacent to outer mask pixels are considered during mask "
-       "calculation"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
-  prop = RNA_def_property(srna, "inner_mode", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "custom1");
-  RNA_def_property_enum_items(prop, InnerEdgeMode_items);
-  RNA_def_property_ui_text(prop, "Inner Edge Mode", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-
-  prop = RNA_def_property(srna, "edge_mode", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "custom2");
-  RNA_def_property_enum_items(prop, BufEdgeMode_items);
-  RNA_def_property_ui_text(prop, "Buffer Edge Mode", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-}
-
 static void def_cmp_defocus(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   PropertyRNA *prop;
@@ -9686,7 +9652,7 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("CompositorNode", "CompositorNodeDilateErode");
   define("CompositorNode", "CompositorNodeDisplace");
   define("CompositorNode", "CompositorNodeDistanceMatte");
-  define("CompositorNode", "CompositorNodeDoubleEdgeMask", def_cmp_double_edge_mask);
+  define("CompositorNode", "CompositorNodeDoubleEdgeMask");
   define("CompositorNode", "CompositorNodeEllipseMask");
   define("CompositorNode", "CompositorNodeExposure");
   define("CompositorNode", "CompositorNodeFilter");

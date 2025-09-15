@@ -940,6 +940,16 @@ static void write_legacy_properties(bNodeTree &ntree)
           storage.limchan =
               limit_channel_socket->default_value_typed<bNodeSocketValueMenu>()->value;
         }
+        else if (node->type_legacy == CMP_NODE_DOUBLEEDGEMASK) {
+          bNodeSocket *image_edges_socket = node_find_socket(*node, SOCK_IN, "Image Edges");
+          node->custom2 = bool(
+              image_edges_socket->default_value_typed<bNodeSocketValueBoolean>()->value);
+
+          bNodeSocket *only_inside_outer_socket = node_find_socket(
+              *node, SOCK_IN, "Only Inside Outer");
+          node->custom1 = bool(
+              only_inside_outer_socket->default_value_typed<bNodeSocketValueBoolean>()->value);
+        }
       }
     }
     default:
