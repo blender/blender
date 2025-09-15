@@ -1466,7 +1466,7 @@ typedef struct NodeTexSky {
   float sun_rotation;
   float altitude;
   float air_density;
-  float dust_density;
+  float aerosol_density;
   float ozone_density;
   char sun_disc;
   char _pad[11];
@@ -2677,7 +2677,7 @@ enum {
 };
 
 /* sky texture */
-enum { SHD_SKY_NISHITA = 0 };
+enum { SHD_SKY_SINGLE_SCATTERING = 0, SHD_SKY_MULTIPLE_SCATTERING = 1 };
 
 /* environment texture */
 enum {

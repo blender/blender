@@ -10,104 +10,69 @@
 
 #include "kernel/util/colorspace.h"
 
-#include "util/color.h"
-
 CCL_NAMESPACE_BEGIN
 
 /* Sky texture */
 
-ccl_device float sky_angle_between(const float thetav,
-                                   const float phiv,
-                                   const float theta,
-                                   const float phi)
+ccl_device float3 sky_radiance(KernelGlobals kg,
+                               const bool multiple_scattering,
+                               const float3 dir,
+                               const uint32_t path_flag,
+                               const ccl_private float *sky_data,
+                               const uint texture_id)
 {
-  const float cospsi = sinf(thetav) * sinf(theta) * cosf(phi - phiv) + cosf(thetav) * cosf(theta);
-  return safe_acosf(cospsi);
-}
-
-/* Nishita improved sky model */
-ccl_device float3 geographical_to_direction(const float lat, const float lon)
-{
-  return spherical_to_direction(lat - M_PI_2_F, lon - M_PI_2_F);
-}
-
-ccl_device float3 sky_radiance_nishita(KernelGlobals kg,
-                                       const float3 dir,
-                                       const uint32_t path_flag,
-                                       const float3 pixel_bottom,
-                                       const float3 pixel_top,
-                                       const ccl_private float *nishita_data,
-                                       const uint texture_id)
-{
-  /* definitions */
-  const float sun_elevation = nishita_data[0];
-  const float sun_rotation = nishita_data[1];
-  const float angular_diameter = nishita_data[2];
-  const float sun_intensity = nishita_data[3];
+  float3 pixel_bottom = make_float3(sky_data[0], sky_data[1], sky_data[2]);
+  float3 pixel_top = make_float3(sky_data[3], sky_data[4], sky_data[5]);
+  const float sun_elevation = sky_data[6];
+  const float sun_rotation = sky_data[7];
+  const float angular_diameter = sky_data[8];
+  const float sun_intensity = sky_data[9];
+  const float earth_intersection_angle = sky_data[10];
   const bool sun_disc = (angular_diameter >= 0.0f);
-  float3 xyz;
-  /* convert dir to spherical coordinates */
   const float2 direction = direction_to_spherical(dir);
-  /* render above the horizon */
-  if (dir.z >= 0.0f) {
-    /* definitions */
-    const float3 sun_dir = geographical_to_direction(sun_elevation, sun_rotation);
-    const float sun_dir_angle = precise_angle(dir, sun_dir);
-    const float half_angular = angular_diameter * 0.5f;
-    const float dir_elevation = M_PI_2_F - direction.x;
+  const float3 sun_dir = spherical_to_direction(sun_elevation - M_PI_2_F, sun_rotation - M_PI_2_F);
+  const float sun_dir_angle = precise_angle(dir, sun_dir);
+  const float half_angular = angular_diameter * 0.5f;
+  const float dir_elevation = M_PI_2_F - direction.x;
+  float3 rgb_sun = make_float3(0.0f, 0.0f, 0.0f);
 
-    /* If the ray is inside the sun disc, render it, otherwise render the sky.
-     * Alternatively, ignore the sun if we're evaluating the background texture. */
-    if (sun_disc && sun_dir_angle < half_angular &&
-        !((path_flag & PATH_RAY_IMPORTANCE_BAKE) && kernel_data.background.use_sun_guiding))
-    {
-      /* get 2 pixels data */
-      float y;
-
-      /* sun interpolation */
-      if (sun_elevation - half_angular > 0.0f) {
-        if (sun_elevation + half_angular > 0.0f) {
-          y = ((dir_elevation - sun_elevation) / angular_diameter) + 0.5f;
-          xyz = interp(pixel_bottom, pixel_top, y) * sun_intensity;
-        }
-      }
-      else {
-        if (sun_elevation + half_angular > 0.0f) {
-          y = dir_elevation / (sun_elevation + half_angular);
-          xyz = interp(pixel_bottom, pixel_top, y) * sun_intensity;
-        }
-      }
-      /* limb darkening, coefficient is 0.6f */
-      const float limb_darkening = (1.0f - 0.6f * (1.0f - sqrtf(1.0f - sqr(sun_dir_angle /
-                                                                           half_angular))));
-      xyz *= limb_darkening;
-    }
-    /* sky */
-    else {
-      /* sky interpolation */
-      const float x = fractf((-direction.y - M_PI_2_F + sun_rotation) / M_2PI_F);
-      /* more pixels toward horizon compensation */
-      const float y = safe_sqrtf(dir_elevation / M_PI_2_F);
-      xyz = make_float3(kernel_tex_image_interp(kg, texture_id, x, y));
-    }
+  /* If the ray is inside the Sun disc and is not occluded by Earth's surface, render it, otherwise
+   * render the sky. Alternatively, ignore the Sun if we're evaluating the background texture. */
+  if (sun_disc && sun_dir_angle < half_angular &&
+      !((path_flag & PATH_RAY_IMPORTANCE_BAKE) && kernel_data.background.use_sun_guiding) &&
+      dir_elevation > earth_intersection_angle)
+  {
+    const float y = ((dir_elevation - sun_elevation) / angular_diameter) + 0.5f;
+    const float3 xyz = interp(pixel_bottom, pixel_top, y);
+    /* Limb darkening, coefficient is 0.6 */
+    const float limb_darkening = (1.0f -
+                                  0.6f * (1.0f - sqrtf(1.0f - sqr(sun_dir_angle / half_angular))));
+    rgb_sun = xyz_to_rgb_clamped(kg, xyz) * limb_darkening;
   }
-  /* ground */
-  else {
+  const float x = fractf((-direction.y - M_PI_2_F + sun_rotation) / M_2PI_F);
+  float3 rgb_sky;
+  if (!multiple_scattering && dir.z < 0.0f) {
+    /* Fade ground to black for Single Scattering model and disable Sun disc below horizon */
+    rgb_sun = make_float3(0.0f, 0.0f, 0.0f);
     if (dir.z < -0.4f) {
-      xyz = make_float3(0.0f, 0.0f, 0.0f);
+      rgb_sky = make_float3(0.0f, 0.0f, 0.0f);
     }
     else {
-      /* black ground fade */
-      float fade = 1.0f + dir.z * 2.5f;
-      fade = sqr(fade) * fade;
-      /* interpolation */
-      const float x = fractf((-direction.y - M_PI_2_F + sun_rotation) / M_2PI_F);
-      xyz = make_float3(kernel_tex_image_interp(kg, texture_id, x, -0.5)) * fade;
+      float fade = powf(1.0f + dir.z * 2.5f, 3.0f);
+      const float3 xyz = make_float3(kernel_tex_image_interp(kg, texture_id, x, 0.508f));
+      rgb_sky = xyz_to_rgb_clamped(kg, xyz) * fade;
     }
   }
+  else {
+    /* Undo the non-linear transformation from the sky LUT */
+    const float dir_elevation_abs = (dir_elevation < 0.0f) ? -dir_elevation : dir_elevation;
+    const float y = sqrtf(dir_elevation_abs / M_PI_2_F) * copysignf(1.0f, dir_elevation) * 0.5f +
+                    0.5f;
+    const float3 xyz = make_float3(kernel_tex_image_interp(kg, texture_id, x, y));
+    rgb_sky = xyz_to_rgb_clamped(kg, xyz);
+  }
 
-  /* convert to RGB */
-  return xyz_to_rgb_clamped(kg, xyz);
+  return rgb_sun * sun_intensity + rgb_sky;
 }
 
 ccl_device_noinline int svm_node_tex_sky(KernelGlobals kg,
@@ -119,34 +84,29 @@ ccl_device_noinline int svm_node_tex_sky(KernelGlobals kg,
   /* Load data */
   const uint dir_offset = node.y;
   const uint out_offset = node.z;
-
+  const bool multiple_scattering = node.w;
+  float sky_data[11];
   const float3 dir = stack_load_float3(stack, dir_offset);
-  float3 f;
-
-  /* Nishita */
-  /* Define variables */
-  float nishita_data[4];
-
   float4 data = read_node_float(kg, &offset);
-  const float3 pixel_bottom = make_float3(data.x, data.y, data.z);
-  float3 pixel_top;
-  pixel_top.x = data.w;
-
+  sky_data[0] = data.x;
+  sky_data[1] = data.y;
+  sky_data[2] = data.z;
+  sky_data[3] = data.w;
   data = read_node_float(kg, &offset);
-  pixel_top.y = data.x;
-  pixel_top.z = data.y;
-  nishita_data[0] = data.z;
-  nishita_data[1] = data.w;
-
+  sky_data[4] = data.x;
+  sky_data[5] = data.y;
+  sky_data[6] = data.z;
+  sky_data[7] = data.w;
   data = read_node_float(kg, &offset);
-  nishita_data[2] = data.x;
-  nishita_data[3] = data.y;
-  const uint texture_id = __float_as_uint(data.z);
+  sky_data[8] = data.x;
+  sky_data[9] = data.y;
+  sky_data[10] = data.z;
+  const uint texture_id = __float_as_uint(data.w);
 
   /* Compute Sky */
-  f = sky_radiance_nishita(kg, dir, path_flag, pixel_bottom, pixel_top, nishita_data, texture_id);
+  float3 rgb = sky_radiance(kg, multiple_scattering, dir, path_flag, sky_data, texture_id);
 
-  stack_store_float3(stack, out_offset, f);
+  stack_store_float3(stack, out_offset, rgb);
   return offset;
 }
 

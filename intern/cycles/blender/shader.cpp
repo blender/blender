@@ -1041,7 +1041,7 @@ static ShaderNode *add_node(Scene *scene,
     sky->set_sun_rotation(b_sky_node.sun_rotation());
     sky->set_altitude(b_sky_node.altitude());
     sky->set_air_density(b_sky_node.air_density());
-    sky->set_dust_density(b_sky_node.dust_density());
+    sky->set_aerosol_density(b_sky_node.aerosol_density());
     sky->set_ozone_density(b_sky_node.ozone_density());
     BL::TexMapping b_texture_mapping(b_sky_node.texture_mapping());
     get_tex_mapping(sky, b_texture_mapping);
