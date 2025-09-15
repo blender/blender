@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-10 07:24+0000\n"
-"PO-Revision-Date: 2025-08-12 06:21+0000\n"
+"POT-Creation-Date: 2025-09-15 07:14+0000\n"
+"PO-Revision-Date: 2025-09-15 07:20+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
 "Language: sv\n"
@@ -1293,10 +1293,6 @@ msgstr "Huruvida attributen kan tas bort eller byta namn"
 
 msgid "Name of the Attribute"
 msgstr "Namn på attributen"
-
-
-msgid "Array"
-msgstr "Array"
 
 
 msgid "Store a value for every element"
@@ -2905,6 +2901,10 @@ msgstr "Rec.2020"
 
 msgid "Curve"
 msgstr "Bana"
+
+
+msgid "Is HDR"
+msgstr "Är HDR"
 
 
 msgid "Use Curves"
@@ -6041,6 +6041,10 @@ msgid "Clip Start"
 msgstr "Beskärningsstart"
 
 
+msgid "Custom File Path"
+msgstr "Anpassad filsökväg"
+
+
 msgid "Use internal text data-block"
 msgstr "Använd internt text-datablock"
 
@@ -6352,6 +6356,10 @@ msgstr "Resultatbild som pixelbild"
 
 msgid "Output image in Cineon format"
 msgstr "Resultatbild i Cineon-format"
+
+
+msgid "DPX (.dpx)"
+msgstr "DPX (.dpx)"
 
 
 msgid "Output image in DPX format"
@@ -9283,16 +9291,32 @@ msgid "Mask"
 msgstr "Mask"
 
 
+msgid "Clean Up"
+msgstr "Städa upp"
+
+
+msgid "Merge"
+msgstr "Sammanfoga"
+
+
 msgid "Show/Hide"
 msgstr "Visa/dölj"
 
 
+msgid "Special Characters"
+msgstr "Specialtecken"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Metaball"
+msgstr "Metaboll"
+
+
 msgid "Names"
 msgstr "Namn"
-
-
-msgid "Clean Up"
-msgstr "Städa upp"
 
 
 msgid "Pivot Point"
@@ -9301,10 +9325,6 @@ msgstr "Fast punkt"
 
 msgid "Snap"
 msgstr "Snäpp"
-
-
-msgid "Metaball"
-msgstr "Metaboll"
 
 
 msgid "Mirror"
@@ -9385,18 +9405,6 @@ msgstr "Länka/överför data"
 
 msgid "Propagate"
 msgstr "Propagera"
-
-
-msgid "Merge"
-msgstr "Sammanfoga"
-
-
-msgid "Special Characters"
-msgstr "Specialtecken"
-
-
-msgid "Text"
-msgstr "Text"
 
 
 msgid "Animals"
@@ -9826,6 +9834,10 @@ msgid "Offset keyframes"
 msgstr "Förskjut keyframes"
 
 
+msgid "Array"
+msgstr "Array"
+
+
 msgid "Bevel"
 msgstr "Avfasning"
 
@@ -10000,6 +10012,22 @@ msgid "Dead"
 msgstr "Död"
 
 
+msgid "Invert Material"
+msgstr "Invertera material"
+
+
+msgid "Layer Pass"
+msgstr "Lagerpass"
+
+
+msgid "Material Pass"
+msgstr "Materialpass"
+
+
+msgid "Material pass"
+msgstr "Materialpass"
+
+
 msgid "Use Object Offset"
 msgstr "Använd objektförskjutning"
 
@@ -10051,6 +10079,11 @@ msgid "None"
 msgstr "Ingen"
 
 
+msgctxt "GPencil"
+msgid "Shaded"
+msgstr "Skuggad"
+
+
 msgid "Select contour or silhouette"
 msgstr "Välj kontur eller silhuett"
 
@@ -10077,6 +10110,15 @@ msgstr "Använd lätt kontur"
 
 msgid "Use Material"
 msgstr "Använd material"
+
+
+msgid "Position Factor"
+msgstr "Positionsfaktor"
+
+
+msgctxt "GPencil"
+msgid "Steps"
+msgstr "Steg"
 
 
 msgid "Start Offset"
@@ -10267,6 +10309,10 @@ msgid "Complex"
 msgstr "Komplex"
 
 
+msgid "Keep Normals"
+msgstr "Behåll normaler"
+
+
 msgid "Beauty"
 msgstr "Skönhet"
 
@@ -10444,10 +10490,6 @@ msgid "Opacity of the image"
 msgstr "Bildens opacitet"
 
 
-msgid "Markers"
-msgstr "Markörer"
-
-
 msgid "Delete Track"
 msgstr "Ta bort spår"
 
@@ -10520,8 +10562,20 @@ msgid "Custom Color"
 msgstr "Anpassad färg"
 
 
+msgid "Progress"
+msgstr "Förlopp"
+
+
 msgid "Starting"
 msgstr "Påbörjad"
+
+
+msgid "In progress"
+msgstr "Påbörjad"
+
+
+msgid "Finishing"
+msgstr "Färdigställer"
 
 
 msgid "Meta"
@@ -10635,6 +10689,14 @@ msgid "To"
 msgstr "Till"
 
 
+msgid "Convolve"
+msgstr "Konvolvera"
+
+
+msgid "Convolves an image with a kernel"
+msgstr "Konvolverar en bild med en kärna"
+
+
 msgid "Use Object layer"
 msgstr "Använd objektlager"
 
@@ -10703,6 +10765,10 @@ msgid "Write image file to disk"
 msgstr "Skriv bildfil till disk"
 
 
+msgid "The directory where the image will be written"
+msgstr "Katalogen där bilden kommer att skrivas"
+
+
 msgid "Save as Render"
 msgstr "Spara som rendering"
 
@@ -10717,6 +10783,10 @@ msgstr "RGB till BW"
 
 msgid "Vector value"
 msgstr "Vektorvärde"
+
+
+msgid "Per Dimension"
+msgstr "Per dimension"
 
 
 msgid "Rotate"
@@ -12131,10 +12201,6 @@ msgstr "Använd vågtextur i ringar"
 
 msgid "White Noise Texture"
 msgstr "Vitbrustextur"
-
-
-msgid "Return a random value or color based on an input seed"
-msgstr "Returnera slumpvis värde eller färg baserat på input-frö"
 
 
 msgid "Use Tips"
@@ -21671,10 +21737,6 @@ msgid "New Objects"
 msgstr "Nya objekt"
 
 
-msgid "Debugging"
-msgstr "Felsökning"
-
-
 msgid "New Features"
 msgstr "Nya funktioner"
 
@@ -23779,6 +23841,10 @@ msgid "Borders"
 msgstr "Ramar"
 
 
+msgid "Markers"
+msgstr "Markörer"
+
+
 msgid "Duotone"
 msgstr "Duotone"
 
@@ -24250,6 +24316,11 @@ msgstr "Ingång 1"
 
 msgid "Input 2"
 msgstr "Ingång 2"
+
+
+msgctxt "Color"
+msgid "Value"
+msgstr "Värde"
 
 
 msgid "Speed Control"
@@ -25522,14 +25593,6 @@ msgid "Legacy Add-on"
 msgstr "Föråldrat tillägg"
 
 
-msgid "Name: {:s}"
-msgstr "Namn: {:s}"
-
-
-msgid "Repository: {:s}"
-msgstr "Förråd: {:s}"
-
-
 msgctxt "Operator"
 msgid "Add Repository..."
 msgstr "Lägg till förråd..."
@@ -25571,6 +25634,10 @@ msgid "Theme \"{:s}\" is already installed!"
 msgstr "Temat \"{:s}\" är redan installerat!"
 
 
+msgid "Name: {:s}"
+msgstr "Namn: {:s}"
+
+
 msgid "URL: {:s}"
 msgstr "URL: {:s}"
 
@@ -25581,6 +25648,10 @@ msgstr "Det går inte att installera från en relativ sökväg"
 
 msgid "Unable to install a directory"
 msgstr "Det går inte att installera en katalog"
+
+
+msgid "Repository: {:s}"
+msgstr "Förråd: {:s}"
 
 
 msgid "Age: {:s}"
@@ -26206,12 +26277,12 @@ msgid "(Unassigned)"
 msgstr "(Inte tilldelad)"
 
 
-msgid "{:s} (unavailable)"
-msgstr "{:s} (inte tillgänglig)"
-
-
 msgid "{:s} (Global)"
 msgstr "{:s} (Global)"
+
+
+msgid "{:s} (unavailable)"
+msgstr "{:s} (inte tillgänglig)"
 
 
 msgctxt "Operator"
@@ -28508,12 +28579,12 @@ msgid "Active Editor"
 msgstr "Aktiv redigerare"
 
 
-msgid "Weight: {:.3f}"
-msgstr "Vikt: {:.3f}"
-
-
 msgid "Annotation:"
 msgstr "Anteckning:"
+
+
+msgid "Weight: {:.3f}"
+msgstr "Vikt: {:.3f}"
 
 
 msgctxt "Operator"
@@ -30533,10 +30604,6 @@ msgid "Autocomplete"
 msgstr "Automatisk komplettering"
 
 
-msgid "R"
-msgstr "R"
-
-
 msgid "Generating StudioLight icon..."
 msgstr "Genererar StudioLight-ikon..."
 
@@ -30576,11 +30643,6 @@ msgstr "Alfa:"
 
 msgid "Lightness"
 msgstr "Ljushet"
-
-
-msgctxt "Color"
-msgid "Value"
-msgstr "Värde"
 
 
 msgid "Redo"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-10 07:24+0000\n"
+"POT-Creation-Date: 2025-09-15 07:14+0000\n"
 "PO-Revision-Date: 2025-07-23 15:02+0000\n"
 "Last-Translator: Thomas Radeke <rahdick@gmx.de>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -1494,14 +1494,6 @@ msgstr "Ist Intern"
 
 msgid "Name of the Attribute"
 msgstr "Name der Einstellung"
-
-
-msgid "Array"
-msgstr "Array"
-
-
-msgid "Single"
-msgstr "Einzelner"
 
 
 msgid "Bool Attribute"
@@ -18739,16 +18731,44 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Show/Hide"
-msgstr "Zeigen/Verbergen"
+msgid "Mesh Select Mode"
+msgstr "Maschenauswahlmodus"
 
 
-msgid "Names"
-msgstr "Namen"
+msgid "Face Data"
+msgstr "Flächendaten"
 
 
 msgid "Clean Up"
 msgstr "Aufräumen"
+
+
+msgid "Merge"
+msgstr "Zusammenführen"
+
+
+msgid "Show/Hide"
+msgstr "Zeigen/Verbergen"
+
+
+msgid "Special Characters"
+msgstr "Sonderzeichen"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Names"
+msgstr "Namen"
 
 
 msgid "Pivot Point"
@@ -18769,10 +18789,6 @@ msgstr "Maskenbearbeitung"
 
 msgid "Vertex Group Locks"
 msgstr "Punktgruppen sperren"
-
-
-msgid "Metaball"
-msgstr "Metaball"
 
 
 msgid "Mirror"
@@ -18897,30 +18913,6 @@ msgstr "Knochen-Optionen einschalten"
 
 msgid "Disable Bone Options"
 msgstr "Knochen-Optionen ausschalten"
-
-
-msgid "Mesh Select Mode"
-msgstr "Maschenauswahlmodus"
-
-
-msgid "Face Data"
-msgstr "Flächendaten"
-
-
-msgid "Merge"
-msgstr "Zusammenführen"
-
-
-msgid "Special Characters"
-msgstr "Sonderzeichen"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Text"
-msgstr "Text"
 
 
 msgid "Assets"
@@ -19606,6 +19598,10 @@ msgstr "Schlüsselbildversatz"
 
 msgid "Texture Mapping"
 msgstr "Textur-Mapping"
+
+
+msgid "Array"
+msgstr "Array"
 
 
 msgid "Bevel"
@@ -22389,10 +22385,6 @@ msgid "Opacity of the image"
 msgstr "Opazität des Bildes"
 
 
-msgid "Markers"
-msgstr "Marker"
-
-
 msgid "Collection of markers in track"
 msgstr "Sammlung von Markierungen in Spur"
 
@@ -22967,6 +22959,10 @@ msgstr "Algorithmus"
 
 msgid "Algorithm to use to limit channel"
 msgstr "Algorithmus, der verwendet wird um den Kanal zu begrenzen"
+
+
+msgid "Single"
+msgstr "Einzelner"
 
 
 msgid "Limit by single channel"
@@ -39773,10 +39769,6 @@ msgid "New Objects"
 msgstr "Neue Objekte"
 
 
-msgid "Debugging"
-msgstr "Debuggen"
-
-
 msgid "New Features"
 msgstr "Neue Funktionen"
 
@@ -39876,10 +39868,6 @@ msgstr "Knochen-Farbpalette"
 
 msgid "Theme Space"
 msgstr "Texturraum"
-
-
-msgid "Theme Space List"
-msgstr "Raumlisten-Thema"
 
 
 msgid "Collection Colors"
@@ -42686,10 +42674,6 @@ msgid "Transparent Max Bounces"
 msgstr "Transparenz"
 
 
-msgid "Use Tiling"
-msgstr "Kacheln verwenden"
-
-
 msgid "Layer Samples"
 msgstr "Ebenenabtastwerte"
 
@@ -44352,6 +44336,10 @@ msgstr "Am aktuellen Einzelbild einrasten"
 
 msgid "Hold Offset"
 msgstr "Versatz halten"
+
+
+msgid "Markers"
+msgstr "Marker"
 
 
 msgid "Effect name"
@@ -46540,14 +46528,6 @@ msgid "Preview Range"
 msgstr "Vorschaubereich"
 
 
-msgid "Marker Line"
-msgstr "Linie markieren"
-
-
-msgid "Marker Line Selected"
-msgstr "Markiere Linie selektiert"
-
-
 msgid "Align Handle"
 msgstr "Griffe ausrichten"
 
@@ -46614,10 +46594,6 @@ msgstr "DopeSheet-Thema"
 
 msgid "Theme settings for the Dope Sheet"
 msgstr "Themeneinstellungen für das DopeSheet"
-
-
-msgid "Channels Selected"
-msgstr "Ausgewählte Kanäle"
 
 
 msgid "Interpolation Line"
@@ -46984,16 +46960,16 @@ msgid "Search Match"
 msgstr "Suchübereinstimmung"
 
 
+msgid "Selected Text"
+msgstr "Ausgewählter Text"
+
+
 msgid "Theme Sequence Editor"
 msgstr "Sequenzeditor-Thema"
 
 
 msgid "Theme settings for the Sequence Editor"
 msgstr "Themeneinstellungen für den Sequenzeditor"
-
-
-msgid "Active Modifier Outline"
-msgstr "Aktiver Modifikator-Umriss"
 
 
 msgid "Audio Strip"
@@ -47012,10 +46988,6 @@ msgid "Selected Strips"
 msgstr "Selektierter Streifen"
 
 
-msgid "Selected Text"
-msgstr "Ausgewählter Text"
-
-
 msgid "Theme Space Settings"
 msgstr "Raumeinstellung-Thema"
 
@@ -47030,30 +47002,6 @@ msgstr "Kopfleistentext-Hervorhebung"
 
 msgid "Text Highlight"
 msgstr "Texthervorhebung"
-
-
-msgid "Theme Space List Settings"
-msgstr "Raumlisteneinstellungen-Thema"
-
-
-msgid "Source List"
-msgstr "Quellliste"
-
-
-msgid "Source List Text"
-msgstr "Quelllistentext"
-
-
-msgid "Source List Text Highlight"
-msgstr "Quelllistentext-Hervorhebung"
-
-
-msgid "Source List Title"
-msgstr "Quelllistentitel"
-
-
-msgid "Region Background"
-msgstr "Panelhintergrund"
 
 
 msgid "Theme Status Bar"
@@ -51228,6 +51176,10 @@ msgstr "Ordner"
 msgctxt "Operator"
 msgid "Cleanup"
 msgstr "Aufräumen"
+
+
+msgid "Source List"
+msgstr "Quellliste"
 
 
 msgctxt "Operator"

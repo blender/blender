@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-10 07:24+0000\n"
+"POT-Creation-Date: 2025-09-15 07:14+0000\n"
 "PO-Revision-Date: 2025-07-23 15:10+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -685,10 +685,6 @@ msgstr "Крива"
 
 msgid "Layer"
 msgstr "Слој"
-
-
-msgid "Array"
-msgstr "Низ"
 
 
 msgid "Cage Object"
@@ -8509,8 +8505,24 @@ msgid "Material slot name"
 msgstr "Назив слота материјала"
 
 
+msgid "Mesh Select Mode"
+msgstr "Мод избора мреже"
+
+
+msgid "Merge"
+msgstr "Сједини"
+
+
 msgid "Show/Hide"
 msgstr "Прикажи/сакриј"
+
+
+msgid "Special Characters"
+msgstr "Специјални знаци"
+
+
+msgid "Metaball"
+msgstr "Мета лопта"
 
 
 msgid "Names"
@@ -8523,10 +8535,6 @@ msgstr "Ролна костију"
 
 msgid "Snap"
 msgstr "Лепљење"
-
-
-msgid "Metaball"
-msgstr "Мета лопта"
 
 
 msgid "Mirror"
@@ -8603,18 +8611,6 @@ msgstr "Омогући опције костију"
 
 msgid "Disable Bone Options"
 msgstr "Онемогући опције костију"
-
-
-msgid "Mesh Select Mode"
-msgstr "Мод избора мреже"
-
-
-msgid "Merge"
-msgstr "Сједини"
-
-
-msgid "Special Characters"
-msgstr "Специјални знаци"
 
 
 msgid "Basic"
@@ -9035,6 +9031,10 @@ msgstr "Временски помак"
 
 msgid "Texture Mapping"
 msgstr "Мапирање текстуре"
+
+
+msgid "Array"
+msgstr "Низ"
 
 
 msgid "Bevel"
@@ -10306,10 +10306,6 @@ msgstr "Провидност слике"
 
 msgid "Opacity of the image"
 msgstr "Провидност слике"
-
-
-msgid "Markers"
-msgstr "Маркери"
 
 
 msgid "Collection of markers in track"
@@ -20919,6 +20915,10 @@ msgid "Individual Origins"
 msgstr "Индивидуални центри"
 
 
+msgid "Markers"
+msgstr "Маркери"
+
+
 msgid "Gray Scale"
 msgstr "Сиви тонови"
 
@@ -21887,10 +21887,6 @@ msgid "Settings for space"
 msgstr "Подешавања формата слика"
 
 
-msgid "Settings for space list"
-msgstr "Подешавања коришћена за течности."
-
-
 msgid "Channel Group"
 msgstr "Група канала"
 
@@ -21905,10 +21901,6 @@ msgstr "Тема конзоле"
 
 msgid "Theme settings for the Console"
 msgstr "Подешавање теме конзоле"
-
-
-msgid "Channels Selected"
-msgstr "Изабрани канали"
 
 
 msgid "Keyframe Border"
@@ -21957,10 +21949,6 @@ msgstr "Светлина сенке"
 
 msgid "Theme Background Color"
 msgstr "Боја позадине теме"
-
-
-msgid "Channels Region"
-msgstr "Регион канала"
 
 
 msgid "Vertex Select"
@@ -22071,6 +22059,10 @@ msgid "Theme Properties"
 msgstr "Особине теме"
 
 
+msgid "Selected Text"
+msgstr "Изабрани текст"
+
+
 msgid "Theme Sequence Editor"
 msgstr "Тема уређивача секвенци"
 
@@ -22087,10 +22079,6 @@ msgid "Preview Background"
 msgstr "Позадина прегледа"
 
 
-msgid "Selected Text"
-msgstr "Изабрани текст"
-
-
 msgid "Window Background"
 msgstr "Позадина прозора"
 
@@ -22101,26 +22089,6 @@ msgstr "Текст истакнутог наслова"
 
 msgid "Text Highlight"
 msgstr "Истакнут текст"
-
-
-msgid "Theme Space List Settings"
-msgstr "Запамти корисничке поставке"
-
-
-msgid "Source List"
-msgstr "Изворна листа"
-
-
-msgid "Source List Text"
-msgstr "Текст изворне листе"
-
-
-msgid "Source List Title"
-msgstr "Наслов изворне листе"
-
-
-msgid "Region Background"
-msgstr "Позадина региона"
 
 
 msgid "Widget Style"
@@ -23288,6 +23256,10 @@ msgstr "Настави"
 msgctxt "Operator"
 msgid "Slide"
 msgstr "Клизај"
+
+
+msgid "Source List"
+msgstr "Изворна листа"
 
 
 msgctxt "Operator"

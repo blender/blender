@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-10 07:24+0000\n"
-"PO-Revision-Date: 2025-09-02 11:59+0000\n"
+"POT-Creation-Date: 2025-09-15 07:14+0000\n"
+"PO-Revision-Date: 2025-09-11 10:59+0000\n"
 "Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
 "Language: sl\n"
@@ -2325,24 +2325,12 @@ msgid "Name of the Attribute"
 msgstr "Ime atributa"
 
 
-msgid "Storage Type"
-msgstr "Tip shrambe"
-
-
 msgid "Method used to store the data"
 msgstr "Metoda shranjevanja podatkov"
 
 
-msgid "Array"
-msgstr "Vrsta"
-
-
 msgid "Store a value for every element"
 msgstr "Shrani vrednost za vsak element"
-
-
-msgid "Single"
-msgstr "Ena sama"
 
 
 msgid "Store a single value for the entire domain"
@@ -3647,6 +3635,10 @@ msgstr "Glavni svetovi"
 
 msgid "Collection of worlds"
 msgstr "Zbirka svetov"
+
+
+msgid "Working Space"
+msgstr "Delovni prostor"
 
 
 msgid "Linear Rec.709"
@@ -16634,6 +16626,10 @@ msgid "Constant"
 msgstr "Konstantno"
 
 
+msgid "Pressure Size Mapping"
+msgstr "Preslikava pritiska na velikost"
+
+
 msgctxt "Curves"
 msgid "Brush Type"
 msgstr "Tip čopiča"
@@ -17557,20 +17553,8 @@ msgid "Override Frame"
 msgstr "Povozi okvir"
 
 
-msgid "Prefetch Cache Size"
-msgstr "Velikost vnaprej naloženega predpomnilnika"
-
-
 msgid "Up"
 msgstr "Navzgor"
-
-
-msgid "Use Prefetch"
-msgstr "Uporabi nalaganje vnaprej"
-
-
-msgid "Display boxes in the viewport as placeholders for the objects, Cycles will use a procedural to load the objects during viewport rendering in experimental mode, other render engines will also receive a placeholder and should take care of loading the Alembic data themselves if possible"
-msgstr "Prikaže nadomestne kocke namesto objektov. Cycles bo v poskusnem načinu s proceduro naložil objekte med upodabljanjem 3D pogleda. Drugi upodabljalni pogoni bodo prav tako prejeli nadomestno kocko, vendar naj, če je le mogoče, sami poskrbijo za nalaganje podatkov Alembic"
 
 
 msgid "Velocity Attribute"
@@ -24593,8 +24577,44 @@ msgid "Mask"
 msgstr "Maska"
 
 
+msgid "Face Data"
+msgstr "Podatki lic"
+
+
+msgid "Select by Face Strength"
+msgstr "Izberi glede na moč lica"
+
+
+msgid "Set Face Strength"
+msgstr "Nastavi moč lica"
+
+
+msgid "Clean Up"
+msgstr "Počisti"
+
+
+msgid "Merge"
+msgstr "Združi"
+
+
 msgid "Show/Hide"
 msgstr "Pokaži / skrij"
+
+
+msgid "Special Characters"
+msgstr "Posebni znaki"
+
+
+msgid "Kerning"
+msgstr "Spodsekavanje"
+
+
+msgid "Text"
+msgstr "Besedilo"
+
+
+msgid "Metaball"
+msgstr "Metažoga"
 
 
 msgid "Names"
@@ -24603,10 +24623,6 @@ msgstr "Imena"
 
 msgid "Bone Roll"
 msgstr "Zasukaj kost"
-
-
-msgid "Clean Up"
-msgstr "Počisti"
 
 
 msgid "Pivot Point"
@@ -24623,10 +24639,6 @@ msgstr "Urejanje maske"
 
 msgid "Automasking"
 msgstr "Samodejno maskiranje"
-
-
-msgid "Metaball"
-msgstr "Metažoga"
 
 
 msgid "Mirror"
@@ -24759,34 +24771,6 @@ msgstr "Razširjanje"
 
 msgid "Bone Collections"
 msgstr "Zbirke kosti"
-
-
-msgid "Face Data"
-msgstr "Podatki lic"
-
-
-msgid "Select by Face Strength"
-msgstr "Izberi glede na moč lica"
-
-
-msgid "Set Face Strength"
-msgstr "Nastavi moč lica"
-
-
-msgid "Merge"
-msgstr "Združi"
-
-
-msgid "Special Characters"
-msgstr "Posebni znaki"
-
-
-msgid "Kerning"
-msgstr "Spodsekavanje"
-
-
-msgid "Text"
-msgstr "Besedilo"
 
 
 msgid "Animals"
@@ -25596,6 +25580,10 @@ msgstr "Zamakne ključne okvirje"
 
 msgid "Texture Mapping"
 msgstr "Teksturiranje"
+
+
+msgid "Array"
+msgstr "Vrsta"
 
 
 msgid "Bevel"
@@ -28357,10 +28345,6 @@ msgid "Image Opacity"
 msgstr "Neprosojnost slike"
 
 
-msgid "Markers"
-msgstr "Oznake"
-
-
 msgid "Auto Keyframe"
 msgstr "Samodejno vstavi ključe"
 
@@ -28903,6 +28887,10 @@ msgid "Algorithm"
 msgstr "Algoritem"
 
 
+msgid "Single"
+msgstr "Ena sama"
+
+
 msgctxt "Color"
 msgid "Channel"
 msgstr "Kanal"
@@ -28966,6 +28954,10 @@ msgstr "Izvirni"
 
 msgid "To"
 msgstr "Končni"
+
+
+msgid "Convert to Display"
+msgstr "Pretvori v prikaz"
 
 
 msgid "Convolve"
@@ -29830,6 +29822,10 @@ msgstr "Prereži niz"
 
 msgid "String Length"
 msgstr "Dolžina niza"
+
+
+msgid "String to Value"
+msgstr "Niz v vrednost"
 
 
 msgid "Transform Direction"
@@ -32532,10 +32528,6 @@ msgid "Merge Images"
 msgstr "Združi slike"
 
 
-msgid "Enable nodes on a material or light"
-msgstr "Omogoči vozlišča v materialu ali luči"
-
-
 msgctxt "Operator"
 msgid "Use Nodes"
 msgstr "Uporabi vozlišča"
@@ -33509,6 +33501,10 @@ msgstr "Prenese animacijo IK na PK"
 msgctxt "Operator"
 msgid "Refresh action list"
 msgstr "Osveži seznam akcij"
+
+
+msgid "Add or remove Grease Pencil brush preset"
+msgstr "Doda ali odstrani predlogo čopiča Grease Pencil"
 
 
 msgctxt "Operator"
@@ -35698,6 +35694,11 @@ msgstr "Nastavi tip ročice"
 
 msgid "Toggle Free/Align"
 msgstr "Sprosti / poravnaj"
+
+
+msgctxt "Operator"
+msgid "Curves Pen"
+msgstr "Krivuljni nalivnik"
 
 
 msgid "Delete Point"
@@ -44178,6 +44179,11 @@ msgid "Triplet"
 msgstr "Trojček"
 
 
+msgctxt "Operator"
+msgid "Set Active Strip Modifier"
+msgstr "Nastavi aktivni modifikator traku"
+
+
 msgid "Property"
 msgstr "Lastnost"
 
@@ -45026,8 +45032,16 @@ msgid "Align Horizontally"
 msgstr "Poravnaj vodoravno"
 
 
+msgid "Position Mode"
+msgstr "Računanje poravnave"
+
+
 msgid "Correct Aspect"
 msgstr "Popravi razmerje"
+
+
+msgid "Initial Position"
+msgstr "Izhodiščni položaj"
 
 
 msgid "Active UDIM"
@@ -46782,6 +46796,10 @@ msgid "Right eye should see left image and vice versa"
 msgstr "Desno oko naj vidi levo sliko in obratno"
 
 
+msgid "Color space to set"
+msgstr "Nastavljeni barvni prostor"
+
+
 msgctxt "Operator"
 msgid "Splash Screen"
 msgstr "Pozdravno okno"
@@ -47680,20 +47698,20 @@ msgid "Panel containing UI elements"
 msgstr "Plošča, ki vsebuje elemente uporabniškega vmesnika"
 
 
-msgid "Active Tool"
-msgstr "Aktivno orodje"
-
-
-msgid "View Lock"
-msgstr "Zaklep pogleda"
-
-
 msgid "glTF"
 msgstr "glTF"
 
 
 msgid "glTF Animations"
 msgstr "Animacije glTF"
+
+
+msgid "Active Tool"
+msgstr "Aktivno orodje"
+
+
+msgid "View Lock"
+msgstr "Zaklep pogleda"
 
 
 msgid "Selectability & Visibility"
@@ -47822,10 +47840,6 @@ msgstr "Prileganje"
 
 msgid "Override Layers"
 msgstr "Povozi plasti"
-
-
-msgid "Render Procedural"
-msgstr "Upodobi proceduralno"
 
 
 msgid "Bone Constraints"
@@ -48772,10 +48786,6 @@ msgid "New Objects"
 msgstr "Novi objekti"
 
 
-msgid "Debugging"
-msgstr "Razhroščevanje"
-
-
 msgid "New Features"
 msgstr "Nove funkcionalnosti"
 
@@ -48818,6 +48828,10 @@ msgstr "Tablica"
 
 msgid "Touchpad"
 msgstr "Sledilna ploščica"
+
+
+msgid "Accessibility"
+msgstr "Dostopnost"
 
 
 msgid "Editors"
@@ -50494,6 +50508,10 @@ msgid "Only show enabled add-ons. Un-check to see all installed add-ons."
 msgstr "Prikaže le omogočene dodatke. Izklopite, če želite videti vse nameščene dodatke."
 
 
+msgid "Corner Handles"
+msgstr "Vogalne ročice"
+
+
 msgid "Developer Extras"
 msgstr "Razvijalske možnosti"
 
@@ -50572,6 +50590,10 @@ msgstr "Tanka"
 
 msgid "Thick"
 msgstr "Debela"
+
+
+msgid "Reduce Motion"
+msgstr "Okrni gibanje elementov"
 
 
 msgid "Save Prompt"
@@ -51380,10 +51402,6 @@ msgstr "Velikost kosov"
 
 msgid "Transmission Bounces"
 msgstr "Odboji prepustnosti"
-
-
-msgid "Use Tiling"
-msgstr "Po kosih"
 
 
 msgid "Deterministic"
@@ -52860,6 +52878,10 @@ msgstr "Robovi"
 
 msgid "Hold Offset"
 msgstr "Zadržni odmik"
+
+
+msgid "Markers"
+msgstr "Oznake"
 
 
 msgid "Retiming Keys"
@@ -54604,6 +54626,11 @@ msgid "Color Mix Strip"
 msgstr "Trak mešanja barve"
 
 
+msgctxt "Color"
+msgid "Value"
+msgstr "Vrednost"
+
+
 msgid "Color Strip"
 msgstr "Barvni trak"
 
@@ -55173,10 +55200,6 @@ msgid "Clip Editor"
 msgstr "Urejevalnik izrezkov"
 
 
-msgid "Header Background"
-msgstr "Ozadje glave"
-
-
 msgid "Colored Constraints"
 msgstr "Obarvani omejevalniki"
 
@@ -55197,16 +55220,8 @@ msgid "Path Keyframe Before"
 msgstr "Pot ključnih okvirjev prej"
 
 
-msgid "Selected Tracks"
-msgstr "Izbrane steze"
-
-
 msgid "Common Theme Properties"
 msgstr "Lastnosti običajne teme"
-
-
-msgid "Sub-channel"
-msgstr "Podkanal"
 
 
 msgid "Common Curve Properties"
@@ -55267,10 +55282,6 @@ msgstr "Preliv nizko"
 
 msgid "Gradient High/Off"
 msgstr "Preliv visoko / brez"
-
-
-msgid "Channels Region"
-msgstr "Področje kanalov"
 
 
 msgid "Vertex Select"
@@ -55421,6 +55432,14 @@ msgid "Theme Properties"
 msgstr "Lastnosti teme"
 
 
+msgid "Header Background"
+msgstr "Ozadje glave"
+
+
+msgid "Selected Text"
+msgstr "Izbrano besedilo"
+
+
 msgid "Audio Strip"
 msgstr "Zvočni trak"
 
@@ -55437,10 +55456,6 @@ msgid "Selected Strips"
 msgstr "Izbrani trakovi"
 
 
-msgid "Selected Text"
-msgstr "Izbrano besedilo"
-
-
 msgid "Transition Strip"
 msgstr "Prehodni trak"
 
@@ -55451,14 +55466,6 @@ msgstr "Ozadje okna"
 
 msgid "Text Highlight"
 msgstr "Poudarek besedila"
-
-
-msgid "Source List"
-msgstr "Hitri seznam"
-
-
-msgid "Region Background"
-msgstr "Ozadje področja"
 
 
 msgid "Theme Spreadsheet"
@@ -55535,6 +55542,10 @@ msgstr "Obroba ikone"
 
 msgid "File Folders"
 msgstr "Datotečni imeniki"
+
+
+msgid "Active Panel Outline"
+msgstr "Obroba aktivne plošče"
 
 
 msgid "Panel Background"
@@ -56959,6 +56970,16 @@ msgstr "Orodje predogleda: Cukanje (rezerva)"
 
 
 msgctxt "WindowManager"
+msgid "Preview Tool: Select Lasso (fallback)"
+msgstr "Orodje predogleda: Izbiranje z lasom (rezerva)"
+
+
+msgctxt "WindowManager"
+msgid "Preview Tool: Select Circle (fallback)"
+msgstr "Orodje predogleda: Krožno izbiranje (rezerva)"
+
+
+msgctxt "WindowManager"
 msgid "Preview Tool: Cursor"
 msgstr "Orodje predogleda: Kazalec"
 
@@ -57276,22 +57297,6 @@ msgid "Legacy Add-on"
 msgstr "Zastarel dodatek"
 
 
-msgid "Do you want to install the following {:s}?"
-msgstr "Ali želite namestiti naslednje {:s}?"
-
-
-msgid "Name: {:s}"
-msgstr "Ime: {:s}"
-
-
-msgid "Repository: {:s}"
-msgstr "Repozitorij: {:s}"
-
-
-msgid "Size: {:s}"
-msgstr "Velikost: {:s}"
-
-
 msgid "The dropped extension comes from an unknown repository."
 msgstr "Umaknjena razširitev prihaja iz neznanega repozitorija."
 
@@ -57453,6 +57458,10 @@ msgid "Theme \"{:s}\" is already installed!"
 msgstr "Tema \"{:s}\" je že nameščena!"
 
 
+msgid "Name: {:s}"
+msgstr "Ime: {:s}"
+
+
 msgid "URL: {:s}"
 msgstr "URL: {:s}"
 
@@ -57467,6 +57476,18 @@ msgstr "Ni mogoče namestiti prek relativne poti"
 
 msgid "Unable to install a directory"
 msgstr "Ni mogoče namestiti imenika"
+
+
+msgid "Do you want to install the following {:s}?"
+msgstr "Ali želite namestiti naslednje {:s}?"
+
+
+msgid "Repository: {:s}"
+msgstr "Repozitorij: {:s}"
+
+
+msgid "Size: {:s}"
+msgstr "Velikost: {:s}"
 
 
 msgid "Age: {:s}"
@@ -58271,10 +58292,6 @@ msgid "Reloaded images"
 msgstr "Ponovno naložene slike"
 
 
-msgid "Ignored {}, "
-msgstr "Ne upoštevam {}, "
-
-
 msgid "Ignored {}"
 msgstr "Ne upoštevam {}"
 
@@ -58591,12 +58608,12 @@ msgid "(Unassigned)"
 msgstr "(Neuvrščeno)"
 
 
-msgid "{:s} (unavailable)"
-msgstr "{:s} (ni na voljo)"
-
-
 msgid "{:s} (Global)"
 msgstr "{:s} (globalno)"
+
+
+msgid "{:s} (unavailable)"
+msgstr "{:s} (ni na voljo)"
 
 
 msgctxt "Operator"
@@ -61621,6 +61638,10 @@ msgid "Clear Recent Items"
 msgstr "Počisti nedavne elemente"
 
 
+msgid "Source List"
+msgstr "Hitri seznam"
+
+
 msgctxt "Operator"
 msgid "Back"
 msgstr "Nazaj"
@@ -61743,18 +61764,6 @@ msgid "Simple Name"
 msgstr "Preprosto ime"
 
 
-msgid "Driver: {:s} ({:s})"
-msgstr "Krmilo: {:s} ({:s})"
-
-
-msgid "Variables: {:d}"
-msgstr "Spremenljivke: {:d}"
-
-
-msgid "Expression: {:s}"
-msgstr "Izraz: {:s}"
-
-
 msgctxt "Operator"
 msgid "Toggle Dope Sheet"
 msgstr "Preklopi animacijski načrt"
@@ -61857,6 +61866,18 @@ msgstr "Splošči ročice"
 msgctxt "Operator"
 msgid "Decimate (Allowed Change)"
 msgstr "Decimiraj (dovoljeno spreminjanje)"
+
+
+msgid "Driver: {:s} ({:s})"
+msgstr "Krmilo: {:s} ({:s})"
+
+
+msgid "Variables: {:d}"
+msgstr "Spremenljivke: {:d}"
+
+
+msgid "Expression: {:s}"
+msgstr "Izraz: {:s}"
 
 
 msgctxt "Operator"
@@ -62708,6 +62729,11 @@ msgstr "Zamenjaj podatke"
 
 
 msgctxt "Operator"
+msgid "Copy to Selected Strips..."
+msgstr "Kopiraj na izbrane trakove ..."
+
+
+msgctxt "Operator"
 msgid "Toggle Retiming Keys"
 msgstr "Preklopi časovne ključe"
 
@@ -63020,11 +63046,6 @@ msgstr "Odstrani vrzeli (vse)"
 
 
 msgctxt "Operator"
-msgid "Hold Split"
-msgstr "Razcepi nerazširljivo"
-
-
-msgctxt "Operator"
 msgid "Delete Strip & Data"
 msgstr "Izbriši trak in podatke"
 
@@ -63196,11 +63217,6 @@ msgid "File: {:s}"
 msgstr "Datoteka: {:s}"
 
 
-msgctxt "WindowManager"
-msgid "Keying"
-msgstr "Ključenje"
-
-
 msgctxt "Operator"
 msgid "Move Marker"
 msgstr "Premakni oznako"
@@ -63267,6 +63283,11 @@ msgid "Only Active Keying Set"
 msgstr "Samo aktivna množica ključev"
 
 
+msgctxt "WindowManager"
+msgid "Keying"
+msgstr "Ključenje"
+
+
 msgid "Layered Recording"
 msgstr "Večplastno snemanje"
 
@@ -63277,10 +63298,6 @@ msgstr "Ne najdem skupine orodne vrstice"
 
 msgid "Taper Start"
 msgstr "Začetek zoženja"
-
-
-msgid "Weight: {:.3f}"
-msgstr "Teža: {:.3f}"
 
 
 msgid "Style Start"
@@ -63361,6 +63378,10 @@ msgstr "Interaktivno doda valj v mrežo"
 
 msgid "Add sphere to mesh interactively"
 msgstr "Interaktivno doda sfero v mrežo"
+
+
+msgid "Weight: {:.3f}"
+msgstr "Teža: {:.3f}"
 
 
 msgctxt "Operator"
@@ -68086,6 +68107,10 @@ msgid "Snap Angle"
 msgstr "Kot pritrjevanja"
 
 
+msgid "No active Curves Object"
+msgstr "Ni aktivnega krivuljnega objekta"
+
+
 msgid "Add Color Attribute"
 msgstr "Dodaj barvni atribut"
 
@@ -68535,14 +68560,6 @@ msgid "Autocomplete"
 msgstr "Samodejno dopolni"
 
 
-msgid "R"
-msgstr "R"
-
-
-msgid "G"
-msgstr "G"
-
-
 msgid "OS"
 msgstr "OS"
 
@@ -68618,11 +68635,6 @@ msgstr "Niansa, nasičenost, svetlost"
 
 msgid "Lightness"
 msgstr "Svetlost"
-
-
-msgctxt "Color"
-msgid "Value"
-msgstr "Vrednost"
 
 
 msgid "Redo"
@@ -70040,6 +70052,10 @@ msgid "Focus Mode"
 msgstr "Način fokusa"
 
 
+msgid "Close Area"
+msgstr "Zapri območje"
+
+
 msgid "Move/Split Area"
 msgstr "Premakni / razcepi območje"
 
@@ -70195,6 +70211,26 @@ msgstr "Zaznani podatki o atributih"
 
 msgid "Dyntopo will not preserve colors, UVs, or other attributes"
 msgstr "Dinatopo ne ohrani barv, preslikav UV ali drugih atributov"
+
+
+msgid "Brush Gradient"
+msgstr "Preliv čopiča"
+
+
+msgid "Diagonals"
+msgstr "Diagonale"
+
+
+msgid "Geodesic Step"
+msgstr "Zemljemerski korak"
+
+
+msgid "Topology Step"
+msgstr "Topološki korak"
+
+
+msgid "Texture Distortion"
+msgstr "Teksturno popačenje"
 
 
 msgid "non-triangle face"
@@ -70740,6 +70776,10 @@ msgstr "%d slik bo shranjenih v %s"
 
 msgid "Saved %s"
 msgstr "Shranjevanje %s uspelo"
+
+
+msgid "Cannot save image while rendering"
+msgstr "Med upodabljanjem ne morem shraniti slike"
 
 
 msgid "No images available"
@@ -71894,6 +71934,10 @@ msgstr "To polje ne pripada tej akciji"
 
 msgid "Cannot add slots to a legacy Action '%s'. Convert it to a layered Action first."
 msgstr "Zastareli akciji '%s' ni mogoče dodati polj. Najprej jo pretvorite v akcijo v plasteh."
+
+
+msgid "Failed to set temporary action"
+msgstr "Ni bilo mogoče nastaviti začasne akcije"
 
 
 msgid "Cannot set slot without an assigned Action."
@@ -73360,10 +73404,6 @@ msgid "Main Geometry"
 msgstr "Glavna geometrija"
 
 
-msgid "For Each Element  Main"
-msgstr "Za vsak element  Glavno"
-
-
 msgctxt "NodeTree"
 msgid "For Each Element"
 msgstr "Za vsak element"
@@ -73948,6 +73988,11 @@ msgstr "Krivulje"
 
 
 msgctxt "Sequence"
+msgid "None"
+msgstr "Brez"
+
+
+msgctxt "Sequence"
 msgid "Equalizer"
 msgstr "Izenačevalnik"
 
@@ -74019,6 +74064,10 @@ msgstr "Vlečem {} datotek"
 
 msgid "Blender File View"
 msgstr "Datotečni pogled Blender"
+
+
+msgid "Failed to open file browser!"
+msgstr "Ni bilo mogoče odpreti datotečnega brskalnika!"
 
 
 msgid "Overwrite Startup File"

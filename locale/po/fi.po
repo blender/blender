@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-10 07:24+0000\n"
+"POT-Creation-Date: 2025-09-15 07:14+0000\n"
 "PO-Revision-Date: 2025-07-23 15:32+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -7264,16 +7264,24 @@ msgid "Mask"
 msgstr "Maski"
 
 
+msgid "Mesh Select Mode"
+msgstr "Muodon valintatila"
+
+
 msgid "Show/Hide"
 msgstr "Näytä/Piilota"
 
 
-msgid "Names"
-msgstr "Nimet"
+msgid "Text"
+msgstr "Teksti"
 
 
 msgid "Metaball"
 msgstr "Metapallo"
+
+
+msgid "Names"
+msgstr "Nimet"
 
 
 msgid "UV Mapping"
@@ -7318,14 +7326,6 @@ msgstr "Koukut"
 
 msgid "Random Mask"
 msgstr "Satunnainen maski"
-
-
-msgid "Mesh Select Mode"
-msgstr "Muodon valintatila"
-
-
-msgid "Text"
-msgstr "Teksti"
 
 
 msgid "Basic"
@@ -12171,16 +12171,16 @@ msgid "Name: {:s}"
 msgstr "Nimi: {:s}"
 
 
-msgid "Size: {:s}"
-msgstr "Koko: {:s}"
-
-
 msgid "URL: {:s}"
 msgstr "URL: {:s}"
 
 
 msgid "Path: {:s}"
 msgstr "Polku: {:s}"
+
+
+msgid "Size: {:s}"
+msgstr "Koko: {:s}"
 
 
 msgid "Age: {:s}"

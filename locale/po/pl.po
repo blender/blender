@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-10 07:24+0000\n"
+"POT-Creation-Date: 2025-09-15 07:14+0000\n"
 "PO-Revision-Date: 2025-07-23 15:14+0000\n"
 "Last-Translator: Kamil <uhkamil@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -1755,14 +1755,6 @@ msgstr "Jest wymagany"
 
 msgid "Name of the Attribute"
 msgstr "Nazwa atrybutu"
-
-
-msgid "Array"
-msgstr "Szereg"
-
-
-msgid "Single"
-msgstr "Pojedyńczy"
 
 
 msgid "Active Attribute Index"
@@ -11584,12 +11576,28 @@ msgid "Mask"
 msgstr "Maska"
 
 
-msgid "Show/Hide"
-msgstr "Pokaż/Ukryj"
+msgid "Face Data"
+msgstr "Dane ściany"
 
 
 msgid "Clean Up"
 msgstr "Sprzątanie"
+
+
+msgid "Merge"
+msgstr "Scal"
+
+
+msgid "Show/Hide"
+msgstr "Pokaż/Ukryj"
+
+
+msgid "Text"
+msgstr "Tekst"
+
+
+msgid "Metaball"
+msgstr "Metakula"
 
 
 msgid "Snap"
@@ -11598,10 +11606,6 @@ msgstr "Przyciągnij"
 
 msgid "Proportional Editing Falloff"
 msgstr "Proporcjonalne edytowanie spadku"
-
-
-msgid "Metaball"
-msgstr "Metakula"
 
 
 msgid "Mirror"
@@ -11662,18 +11666,6 @@ msgstr "Konwertuj"
 
 msgid "Bone Collections"
 msgstr "Kolekcja kości"
-
-
-msgid "Face Data"
-msgstr "Dane ściany"
-
-
-msgid "Merge"
-msgstr "Scal"
-
-
-msgid "Text"
-msgstr "Tekst"
 
 
 msgid "Catalog"
@@ -11969,6 +11961,10 @@ msgstr "Wyświetla modyfikator w rzutni"
 
 msgid "Hue/Saturation"
 msgstr "Barwa/nasycenie"
+
+
+msgid "Array"
+msgstr "Szereg"
 
 
 msgid "Create copies of the shape with offsets"
@@ -12367,6 +12363,10 @@ msgstr "Pokaż podgląd"
 
 msgid "Brightness/Contrast"
 msgstr "Jasność/kontrast"
+
+
+msgid "Single"
+msgstr "Pojedyńczy"
 
 
 msgid "To"
@@ -17584,10 +17584,6 @@ msgid "New Objects"
 msgstr "Nowe obiekty"
 
 
-msgid "Debugging"
-msgstr "Debugowanie"
-
-
 msgid "New Features"
 msgstr "Nowe funkcje"
 
@@ -19450,6 +19446,11 @@ msgid "Scene"
 msgstr "Scena"
 
 
+msgctxt "Color"
+msgid "Value"
+msgstr "Wartość"
+
+
 msgid "Anchor X"
 msgstr "Kotwica X"
 
@@ -19535,10 +19536,6 @@ msgstr "Pojedyńczy kolor"
 
 msgid "Texture Paint/Modifier UVs"
 msgstr "Rysowanie tekstur/Modyfikator UV"
-
-
-msgid "Source List"
-msgstr "Lista źródeł"
 
 
 msgid "Panel Title"
@@ -21221,6 +21218,10 @@ msgid "Clear Recent Items"
 msgstr "Wyczyść ostatnie przedmioty"
 
 
+msgid "Source List"
+msgstr "Lista źródeł"
+
+
 msgctxt "Operator"
 msgid "Back"
 msgstr "Tył"
@@ -21879,11 +21880,6 @@ msgid "Text: Internal"
 msgstr "Tekst: Wewnętrzny"
 
 
-msgctxt "WindowManager"
-msgid "Keying"
-msgstr "Kluczowanie"
-
-
 msgctxt "Operator"
 msgid "Move Marker"
 msgstr "Przesuń znacznik"
@@ -21900,6 +21896,11 @@ msgstr "Zagraj"
 
 msgid "Active Editor"
 msgstr "Aktywny edytor"
+
+
+msgctxt "WindowManager"
+msgid "Keying"
+msgstr "Kluczowanie"
 
 
 msgid "Gizmos:"
@@ -24073,11 +24074,6 @@ msgstr "Hex"
 
 msgid "Lightness"
 msgstr "Jasność"
-
-
-msgctxt "Color"
-msgid "Value"
-msgstr "Wartość"
 
 
 msgid "Redo"

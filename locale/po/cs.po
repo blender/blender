@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-10 07:24+0000\n"
+"POT-Creation-Date: 2025-09-15 07:14+0000\n"
 "PO-Revision-Date: 2025-07-23 15:14+0000\n"
 "Last-Translator: Jan Vavřínek <janvavrinek1@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -1810,14 +1810,6 @@ msgstr "Zda je možné atribut odstranit či přejmenovat"
 
 msgid "Name of the Attribute"
 msgstr "Název atributu"
-
-
-msgid "Array"
-msgstr "Řada"
-
-
-msgid "Single"
-msgstr "Úhel"
 
 
 msgid "Bool Attribute"
@@ -13870,8 +13862,36 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
+msgid "Mesh Select Mode"
+msgstr "Síťový mód výběru"
+
+
+msgid "Face Data"
+msgstr "Data Ploch"
+
+
+msgid "Clean Up"
+msgstr "Vyčistit"
+
+
+msgid "Merge"
+msgstr "Sloučit"
+
+
 msgid "Show/Hide"
 msgstr "Zobrazit/skrýt"
+
+
+msgid "Special Characters"
+msgstr "Speciální Znaky"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Metaball"
+msgstr "Meta objekt"
 
 
 msgid "Names"
@@ -13880,10 +13900,6 @@ msgstr "Názvy"
 
 msgid "Bone Roll"
 msgstr "Kost"
-
-
-msgid "Clean Up"
-msgstr "Vyčistit"
 
 
 msgid "Pivot Point"
@@ -13896,10 +13912,6 @@ msgstr "Přichytit"
 
 msgid "Proportional Editing Falloff"
 msgstr "Způsob útlumu"
-
-
-msgid "Metaball"
-msgstr "Meta objekt"
 
 
 msgid "Mirror"
@@ -13968,26 +13980,6 @@ msgstr "Vyčistit transformaci"
 
 msgid "Propagate"
 msgstr "Vložit"
-
-
-msgid "Mesh Select Mode"
-msgstr "Síťový mód výběru"
-
-
-msgid "Face Data"
-msgstr "Data Ploch"
-
-
-msgid "Merge"
-msgstr "Sloučit"
-
-
-msgid "Special Characters"
-msgstr "Speciální Znaky"
-
-
-msgid "Text"
-msgstr "Text"
 
 
 msgid "Basic"
@@ -14469,6 +14461,10 @@ msgstr "Časové odsazení"
 
 msgid "Texture Mapping"
 msgstr "Mapování textur"
+
+
+msgid "Array"
+msgstr "Řada"
 
 
 msgid "Bevel"
@@ -16471,10 +16467,6 @@ msgid "Unique name of object"
 msgstr "Přidá pojmenovaý objekt"
 
 
-msgid "Markers"
-msgstr "Značky"
-
-
 msgid "Collection of markers in track"
 msgstr "Vybrat řádek"
 
@@ -16837,6 +16829,10 @@ msgstr "Nastavit poloměr"
 
 msgid "Channel Key"
 msgstr "Kanál"
+
+
+msgid "Single"
+msgstr "Úhel"
 
 
 msgid "Chroma Key"
@@ -31340,10 +31336,6 @@ msgid "Theme Space"
 msgstr "Prostor textury"
 
 
-msgid "Theme Space List"
-msgstr "Nelineární video editor"
-
-
 msgid "Collection Colors"
 msgstr "Barvy kolekce"
 
@@ -34212,6 +34204,10 @@ msgid "Individual Origins"
 msgstr "Jednotlivé Původní Body"
 
 
+msgid "Markers"
+msgstr "Značky"
+
+
 msgid "Gray Scale"
 msgstr "Stupnice šedi"
 
@@ -35998,10 +35994,6 @@ msgid "Settings for space"
 msgstr "Nastavení fyziky pro hejno"
 
 
-msgid "Settings for space list"
-msgstr "Nastavení fyziky pro hejno"
-
-
 msgid "Channel Group"
 msgstr "Nelze vytvořit skupinu"
 
@@ -36052,10 +36044,6 @@ msgstr "Vstup"
 
 msgid "Line Output"
 msgstr "Výstup Řádku"
-
-
-msgid "Channels Selected"
-msgstr "Skrýt označené"
 
 
 msgid "Summary"
@@ -36148,10 +36136,6 @@ msgstr "UV/obrázkový editor"
 
 msgid "Theme settings for the graph editor"
 msgstr "Nastavení vzhledu pro editor diagramů"
-
-
-msgid "Channels Region"
-msgstr "Změnit pruh"
 
 
 msgid "Vertex Select"
@@ -36306,6 +36290,10 @@ msgid "Theme settings for the Properties"
 msgstr "Zobrazit nastavení vláken pro statické částice"
 
 
+msgid "Selected Text"
+msgstr "Vybrat další"
+
+
 msgid "Theme Sequence Editor"
 msgstr "Nelineární video editor"
 
@@ -36326,10 +36314,6 @@ msgid "Preview Background"
 msgstr "Pozadí okna"
 
 
-msgid "Selected Text"
-msgstr "Vybrat další"
-
-
 msgid "Theme Space Settings"
 msgstr "Nastavení částic"
 
@@ -36344,22 +36328,6 @@ msgstr "Zvýrazněný Text Záhlaví"
 
 msgid "Text Highlight"
 msgstr "Zvýrazěný Text"
-
-
-msgid "Theme Space List Settings"
-msgstr "Uložit uživatelské nastavení"
-
-
-msgid "Source List"
-msgstr "Seznam Zdrojů"
-
-
-msgid "Source List Title"
-msgstr "Zhranatit"
-
-
-msgid "Region Background"
-msgstr "Pozadí Regionu"
 
 
 msgid "Theme settings for the Spreadsheet"
@@ -38768,6 +38736,10 @@ msgstr "Složky"
 msgctxt "Operator"
 msgid "Cleanup"
 msgstr "Vyčistit"
+
+
+msgid "Source List"
+msgstr "Seznam Zdrojů"
 
 
 msgctxt "Operator"

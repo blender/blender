@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-10 07:24+0000\n"
+"POT-Creation-Date: 2025-09-15 07:14+0000\n"
 "PO-Revision-Date: 2025-07-23 15:18+0000\n"
 "Last-Translator: Aras Pranckevičius <aras@nesnausk.org>\n"
 "Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
@@ -3105,16 +3105,16 @@ msgid "Show/Hide"
 msgstr "Rodyti/Slėpti"
 
 
+msgid "Text"
+msgstr "Tekstas"
+
+
 msgid "Apply"
 msgstr "Pritaikyti"
 
 
 msgid "Track"
 msgstr "Sekti"
-
-
-msgid "Text"
-msgstr "Tekstas"
 
 
 msgid "Animals"

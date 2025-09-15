@@ -22,13 +22,13 @@
 11:Czech - Čeština:cs_CZ:28%
 53:Danish - Dansk:da:3%
 3:Dutch - Nederlands:nl_NL:6%
-57:English (UK):en_GB:96%
+57:English (UK):en_GB:95%
 1:English (US):en_US:100%
 35:Esperanto - Esperanto:eo:0%
 # Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #34:Estonian - Eesti keel:et_EE:0%
 6:Finnish - Suomi:fi_FI:12%
 8:French - Français:fr_FR:100%
-48:Georgian - ქართული:ka:100%
+48:Georgian - ქართული:ka:99%
 5:German - Deutsch:de_DE:39%
 23:Greek - Ελληνικά:el_GR:1%
 43:Hausa - Hausa:ha:0%
@@ -37,7 +37,7 @@
 31:Hungarian - Magyar:hu_HU:11%
 27:Indonesian - Bahasa indonesia:id_ID:21%
 4:Italian - Italiano:it_IT:46%
-2:Japanese - 日本語:ja_JP:98%
+2:Japanese - 日本語:ja_JP:97%
 # Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #44:Kazakh - Қазақша:kk_KZ:0%
 50:Khmer - ខ្មែរ:km:0%
 24:Korean - 한국어:ko_KR:52%
@@ -49,7 +49,7 @@
 19:Polish - Polski:pl_PL:19%
 32:Portuguese (Brazil) - Português brasileiro:pt_BR:45%
 12:Portuguese (Portugal) - Português europeu:pt_PT:71%
-20:Romanian - Român:ro_RO:3%
+20:Romanian - Român:ro_RO:2%
 15:Russian - Русский:ru_RU:99%
 17:Serbian (Cyrillic) - Српски:sr_RS:17%
 28:Serbian (Latin) - Srpski latinica:sr_RS@latin:17%
@@ -58,7 +58,7 @@
 9:Spanish - Español:es:100%
 51:Swahili - Kiswahili:sw:76%
 7:Swedish - Svenska:sv_SE:22%
-49:Tamil - தமிழ்:ta:99%
+49:Tamil - தமிழ்:ta:98%
 46:Thai - ภาษาไทย:th_TH:3%
 30:Turkish - Türkçe:tr_TR:83%
 18:Ukrainian - Українська:uk_UA:60%

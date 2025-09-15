@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-10 07:24+0000\n"
+"POT-Creation-Date: 2025-09-15 07:14+0000\n"
 "PO-Revision-Date: 2025-07-27 17:01+0000\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -1881,14 +1881,6 @@ msgstr "該屬性是否可以被刪除或重新命名"
 
 msgid "Name of the Attribute"
 msgstr "特性的名稱"
-
-
-msgid "Array"
-msgstr "陣列"
-
-
-msgid "Single"
-msgstr "單一"
 
 
 msgid "Bool Attribute"
@@ -22464,8 +22456,40 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
+msgid "Mesh Select Mode"
+msgstr "網格選取模式"
+
+
+msgid "Face Data"
+msgstr "面資料"
+
+
+msgid "Clean Up"
+msgstr "清理"
+
+
+msgid "Merge"
+msgstr "合併"
+
+
 msgid "Show/Hide"
 msgstr "顯示/隱藏"
+
+
+msgid "Special Characters"
+msgstr "特殊字元"
+
+
+msgid "Kerning"
+msgstr "字間微調"
+
+
+msgid "Text"
+msgstr "文字"
+
+
+msgid "Metaball"
+msgstr "變幻球"
 
 
 msgid "Names"
@@ -22474,10 +22498,6 @@ msgstr "名稱"
 
 msgid "Bone Roll"
 msgstr "骨骼滾動"
-
-
-msgid "Clean Up"
-msgstr "清理"
 
 
 msgid "Pivot Point"
@@ -22498,10 +22518,6 @@ msgstr "自動遮罩"
 
 msgid "Face Sets Edit"
 msgstr "面集編輯"
-
-
-msgid "Metaball"
-msgstr "變幻球"
 
 
 msgid "Mirror"
@@ -22630,30 +22646,6 @@ msgstr "啟用骨骼設定"
 
 msgid "Disable Bone Options"
 msgstr "停用骨骼設定"
-
-
-msgid "Mesh Select Mode"
-msgstr "網格選取模式"
-
-
-msgid "Face Data"
-msgstr "面資料"
-
-
-msgid "Merge"
-msgstr "合併"
-
-
-msgid "Special Characters"
-msgstr "特殊字元"
-
-
-msgid "Kerning"
-msgstr "字間微調"
-
-
-msgid "Text"
-msgstr "文字"
 
 
 msgid "Basic"
@@ -23494,6 +23486,10 @@ msgstr "偏移關鍵影格"
 
 msgid "Texture Mapping"
 msgstr "紋理映射處理"
+
+
+msgid "Array"
+msgstr "陣列"
 
 
 msgid "Bevel"
@@ -27312,10 +27308,6 @@ msgid "Opacity of the image"
 msgstr "影像的不透明度"
 
 
-msgid "Markers"
-msgstr "標記"
-
-
 msgid "Collection of markers in track"
 msgstr "軌道中標記的集盒"
 
@@ -28070,6 +28062,10 @@ msgstr "演算法"
 
 msgid "Algorithm to use to limit channel"
 msgstr "要用來限制通道的演算法"
+
+
+msgid "Single"
+msgstr "單一"
 
 
 msgid "Limit by single channel"
@@ -49299,10 +49295,6 @@ msgid "New Objects"
 msgstr "新增物體"
 
 
-msgid "Debugging"
-msgstr "除錯"
-
-
 msgid "Prototypes"
 msgstr "原型"
 
@@ -49430,10 +49422,6 @@ msgstr "骨骼色彩集"
 
 msgid "Theme Space"
 msgstr "主題空間"
-
-
-msgid "Theme Space List"
-msgstr "主題空間清單"
 
 
 msgid "Axis & Gizmo Colors"
@@ -54437,6 +54425,10 @@ msgid "Snap to current frame"
 msgstr "吸附至目前幀"
 
 
+msgid "Markers"
+msgstr "標記"
+
+
 msgid "Retiming Keys"
 msgstr "重定鍵時"
 
@@ -56818,6 +56810,11 @@ msgid "Animation start offset (trim start)"
 msgstr "動畫起始偏移 (修剪起始)"
 
 
+msgctxt "Color"
+msgid "Value"
+msgstr "明度"
+
+
 msgid "Color Strip"
 msgstr "色彩片段"
 
@@ -57689,10 +57686,6 @@ msgid "Amount texture affects particle initial velocity"
 msgstr "紋理影響粒子初始速度的量"
 
 
-msgid "Settings for asset shelf"
-msgstr "素材架設定"
-
-
 msgid "Clip Editor"
 msgstr "剪輯編輯器"
 
@@ -57703,10 +57696,6 @@ msgstr "主題的名稱"
 
 msgid "Active Theme Area"
 msgstr "作用中主題區域"
-
-
-msgid "Theme Asset Shelf Color"
-msgstr "主題素材架色彩"
 
 
 msgid "Theme Bone Color Set"
@@ -57817,10 +57806,6 @@ msgid "Settings for space"
 msgstr "空間的設定"
 
 
-msgid "Settings for space list"
-msgstr "空間清單的設定"
-
-
 msgid "Channel Group"
 msgstr "通道群組"
 
@@ -57893,10 +57878,6 @@ msgid "Long Key Selected"
 msgstr "選取的長鍵"
 
 
-msgid "Marker Line"
-msgstr "標記線"
-
-
 msgid "Align Handle"
 msgstr "對齊控制桿"
 
@@ -57943,10 +57924,6 @@ msgstr "律表主題"
 
 msgid "Theme settings for the Dope Sheet"
 msgstr "律表主題設定"
-
-
-msgid "Channels Selected"
-msgstr "選取的通道"
 
 
 msgid "Keyframe Border"
@@ -58065,10 +58042,6 @@ msgid "Theme settings for the graph editor"
 msgstr "主題設定中的圖表編輯器選項"
 
 
-msgid "Channels Region"
-msgstr "通道區塊"
-
-
 msgid "Vertex Select"
 msgstr "頂點選取"
 
@@ -58151,10 +58124,6 @@ msgstr "後設片段"
 
 msgid "Meta Strips Selected"
 msgstr "選取的後設片段"
-
-
-msgid "Nonlinear Animation Track"
-msgstr "非線性動畫軌道"
 
 
 msgid "Sound Strips"
@@ -58313,6 +58282,10 @@ msgid "Search Match"
 msgstr "搜尋符合"
 
 
+msgid "Selected Text"
+msgstr "已選取文字"
+
+
 msgid "Theme Sequence Editor"
 msgstr "主題設定中的序段編輯器選項"
 
@@ -58337,10 +58310,6 @@ msgid "Selected Strips"
 msgstr "選取的片段"
 
 
-msgid "Selected Text"
-msgstr "已選取文字"
-
-
 msgid "Theme Space Settings"
 msgstr "主題空間設定"
 
@@ -58355,30 +58324,6 @@ msgstr "標頭文字標明"
 
 msgid "Text Highlight"
 msgstr "文字標明"
-
-
-msgid "Theme Space List Settings"
-msgstr "主題空間清單設定"
-
-
-msgid "Source List"
-msgstr "來源清單"
-
-
-msgid "Source List Text"
-msgstr "來源清單文字"
-
-
-msgid "Source List Text Highlight"
-msgstr "來源清單文字標明"
-
-
-msgid "Source List Title"
-msgstr "來源清單文字標題"
-
-
-msgid "Region Background"
-msgstr "區塊背景"
 
 
 msgid "Theme Status Bar"
@@ -62824,6 +62769,10 @@ msgid "Cleanup"
 msgstr "清理"
 
 
+msgid "Source List"
+msgstr "來源清單"
+
+
 msgctxt "Operator"
 msgid "Back"
 msgstr "後"
@@ -63555,11 +63504,6 @@ msgid "File: {:s}"
 msgstr "檔案：{:s}"
 
 
-msgctxt "WindowManager"
-msgid "Keying"
-msgstr "鍵處理"
-
-
 msgctxt "Operator"
 msgid "Move Marker"
 msgstr "移動標記"
@@ -63604,6 +63548,11 @@ msgstr "作用中編輯器"
 
 msgid "Properties and Sidebars"
 msgstr "屬性與側邊欄"
+
+
+msgctxt "WindowManager"
+msgid "Keying"
+msgstr "鍵處理"
 
 
 msgid "Miter Outer"
@@ -66790,11 +66739,6 @@ msgstr "十六進位"
 
 msgid "Lightness"
 msgstr "亮度"
-
-
-msgctxt "Color"
-msgid "Value"
-msgstr "明度"
 
 
 msgid "Redo"

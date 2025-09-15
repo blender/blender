@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-10 07:24+0000\n"
+"POT-Creation-Date: 2025-09-15 07:14+0000\n"
 "PO-Revision-Date: 2025-07-23 15:06+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -1865,6 +1865,22 @@ msgid "Mask"
 msgstr "หน้ากาก"
 
 
+msgid "Face Data"
+msgstr "ข้อมูลด้าน"
+
+
+msgid "Merge"
+msgstr "ผสาน"
+
+
+msgid "Text"
+msgstr "ช้อความ"
+
+
+msgid "Metaball"
+msgstr "เมตาบอล"
+
+
 msgid "Names"
 msgstr "ชื่อ"
 
@@ -1883,10 +1899,6 @@ msgstr "แก้ไข"
 
 msgid "Mask Edit"
 msgstr "การแก้ไขหน้ากาก"
-
-
-msgid "Metaball"
-msgstr "เมตาบอล"
 
 
 msgid "Mirror"
@@ -1935,18 +1947,6 @@ msgstr "แทร็ค"
 
 msgid "Hooks"
 msgstr "ตะขอ"
-
-
-msgid "Face Data"
-msgstr "ข้อมูลด้าน"
-
-
-msgid "Merge"
-msgstr "ผสาน"
-
-
-msgid "Text"
-msgstr "ช้อความ"
 
 
 msgid "Zoom"
@@ -3666,12 +3666,12 @@ msgid "Text color"
 msgstr "สีข้อความ"
 
 
-msgid "Preview Background"
-msgstr "พื้นหลังตัวอย่าง"
-
-
 msgid "Selected Text"
 msgstr "ข้อความที่ถูกเลือก"
+
+
+msgid "Preview Background"
+msgstr "พื้นหลังตัวอย่าง"
 
 
 msgid "Panel Title"

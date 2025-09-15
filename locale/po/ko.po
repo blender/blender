@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-10 07:24+0000\n"
+"POT-Creation-Date: 2025-09-15 07:14+0000\n"
 "PO-Revision-Date: 2025-07-23 15:30+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -1375,14 +1375,6 @@ msgstr "스플라인"
 
 msgid "Layer"
 msgstr "레이어"
-
-
-msgid "Array"
-msgstr "배열"
-
-
-msgid "Single"
-msgstr "싱글"
 
 
 msgid "Bake Data"
@@ -23673,8 +23665,48 @@ msgid "Material slot name"
 msgstr "매테리얼 슬롯 이름"
 
 
+msgid "Mesh Select Mode"
+msgstr "메쉬 선택 모드"
+
+
+msgid "Face Data"
+msgstr "페이스 데이터"
+
+
+msgid "Select by Face Strength"
+msgstr "페이스 강도로 선택"
+
+
+msgid "Set Face Strength"
+msgstr "페이스 강도를 설정"
+
+
+msgid "Clean Up"
+msgstr "정리"
+
+
+msgid "Merge"
+msgstr "병합"
+
+
 msgid "Show/Hide"
 msgstr "표시/숨기기"
+
+
+msgid "Special Characters"
+msgstr "특수 문자"
+
+
+msgid "Kerning"
+msgstr "자간"
+
+
+msgid "Text"
+msgstr "텍스트"
+
+
+msgid "Metaball"
+msgstr "메타볼"
 
 
 msgid "Names"
@@ -23683,10 +23715,6 @@ msgstr "이름"
 
 msgid "Bone Roll"
 msgstr "본 롤"
-
-
-msgid "Clean Up"
-msgstr "정리"
 
 
 msgid "Pivot Point"
@@ -23703,10 +23731,6 @@ msgstr "비례 편집 감소"
 
 msgid "Mask Edit"
 msgstr "마스크 편집"
-
-
-msgid "Metaball"
-msgstr "메타볼"
 
 
 msgid "Mirror"
@@ -23835,38 +23859,6 @@ msgstr "본 옵션을 사용"
 
 msgid "Disable Bone Options"
 msgstr "본 옵션을 사용 중지"
-
-
-msgid "Mesh Select Mode"
-msgstr "메쉬 선택 모드"
-
-
-msgid "Face Data"
-msgstr "페이스 데이터"
-
-
-msgid "Select by Face Strength"
-msgstr "페이스 강도로 선택"
-
-
-msgid "Set Face Strength"
-msgstr "페이스 강도를 설정"
-
-
-msgid "Merge"
-msgstr "병합"
-
-
-msgid "Special Characters"
-msgstr "특수 문자"
-
-
-msgid "Kerning"
-msgstr "자간"
-
-
-msgid "Text"
-msgstr "텍스트"
 
 
 msgid "Basic"
@@ -24724,6 +24716,10 @@ msgstr "오프셋 키 프레임"
 
 msgid "Texture Mapping"
 msgstr "텍스처 맵핑"
+
+
+msgid "Array"
+msgstr "배열"
 
 
 msgid "Create copies of the shape with offsets"
@@ -29311,10 +29307,6 @@ msgid "Opacity of the image"
 msgstr "이미지의 불투명도"
 
 
-msgid "Markers"
-msgstr "마커"
-
-
 msgid "Collection of markers in track"
 msgstr "트랙에서 마커의 컬렉션"
 
@@ -30213,6 +30205,10 @@ msgstr "연산"
 
 msgid "Algorithm to use to limit channel"
 msgstr "채널을 제한하는 데 사용하는 알고리즘"
+
+
+msgid "Single"
+msgstr "싱글"
 
 
 msgid "Limit by single channel"
@@ -54318,10 +54314,6 @@ msgid "Theme Space"
 msgstr "테마 공간"
 
 
-msgid "Theme Space List"
-msgstr "테마 공백 목록"
-
-
 msgid "Axis & Gizmo Colors"
 msgstr "축 & 기즈모 컬러"
 
@@ -60252,6 +60244,10 @@ msgid "Individual Origins"
 msgstr "개별 오리진"
 
 
+msgid "Markers"
+msgstr "마커"
+
+
 msgid "Effect name"
 msgstr "이펙트 이름"
 
@@ -64238,14 +64234,6 @@ msgid "Settings for space"
 msgstr "공간에 대한 설정"
 
 
-msgid "Settings for space list"
-msgstr "공간 목록에 대한 설정"
-
-
-msgid "Scrubbing/Markers Region"
-msgstr "스크러빙/마커 지역"
-
-
 msgid "Channel Group"
 msgstr "채널 그룹"
 
@@ -64386,10 +64374,6 @@ msgid "Theme settings for the Dope Sheet"
 msgstr "도프시트에 대한 테마 설정"
 
 
-msgid "Channels Selected"
-msgstr "채널 선택됨"
-
-
 msgid "Interpolation Line"
 msgstr "보간 라인"
 
@@ -64506,10 +64490,6 @@ msgid "Theme settings for the graph editor"
 msgstr "그래프 에디터에 대한 테마 설정"
 
 
-msgid "Channels Region"
-msgstr "채널 지역"
-
-
 msgid "Vertex Select"
 msgstr "버텍스 선택"
 
@@ -64588,10 +64568,6 @@ msgstr "메타 스트립"
 
 msgid "Meta Strips Selected"
 msgstr "메타 스트립 선택됨"
-
-
-msgid "Nonlinear Animation Track"
-msgstr "논리니어 애니메이션 트랙"
 
 
 msgid "Sound Strips"
@@ -64738,6 +64714,10 @@ msgid "Theme settings for the Properties"
 msgstr "속성에 대한 테마 설정"
 
 
+msgid "Selected Text"
+msgstr "선택된 텍스트"
+
+
 msgid "Theme Sequence Editor"
 msgstr "테마 시퀀스 에디터"
 
@@ -64758,10 +64738,6 @@ msgid "Preview Background"
 msgstr "미리보기 배경"
 
 
-msgid "Selected Text"
-msgstr "선택된 텍스트"
-
-
 msgid "Theme Space Settings"
 msgstr "테마 공백 설정"
 
@@ -64776,30 +64752,6 @@ msgstr "헤더 텍스트 강조"
 
 msgid "Text Highlight"
 msgstr "텍스트 강조"
-
-
-msgid "Theme Space List Settings"
-msgstr "테마 공백 목록 설정"
-
-
-msgid "Source List"
-msgstr "소스 목록"
-
-
-msgid "Source List Text"
-msgstr "소스 목록 텍스트"
-
-
-msgid "Source List Text Highlight"
-msgstr "소스 목록 텍스트 강조"
-
-
-msgid "Source List Title"
-msgstr "소스 목록 타이틀"
-
-
-msgid "Region Background"
-msgstr "지역 배경"
 
 
 msgid "Theme Status Bar"
@@ -69340,6 +69292,10 @@ msgstr "폴더"
 msgctxt "Operator"
 msgid "Cleanup"
 msgstr "정리"
+
+
+msgid "Source List"
+msgstr "소스 목록"
 
 
 msgctxt "Operator"

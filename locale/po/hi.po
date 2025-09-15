@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-10 07:24+0000\n"
+"POT-Creation-Date: 2025-09-15 07:14+0000\n"
 "PO-Revision-Date: 2025-07-23 15:34+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -389,10 +389,6 @@ msgstr "फलक"
 
 msgid "Layer"
 msgstr "परत"
-
-
-msgid "Array"
-msgstr "सरणी"
 
 
 msgid "Object"
@@ -2584,8 +2580,16 @@ msgid "Mask"
 msgstr "आवरण"
 
 
+msgid "Merge"
+msgstr "विलय करें"
+
+
 msgid "Show/Hide"
 msgstr "छुपाएँ / दिखाएँ"
+
+
+msgid "Text"
+msgstr "पाठ"
 
 
 msgid "Names"
@@ -2638,14 +2642,6 @@ msgstr "हड्डी विकल्प बंद/बुझ"
 
 msgid "Enable Bone Options"
 msgstr "हड्डी विकल्प को सक्षम करें"
-
-
-msgid "Merge"
-msgstr "विलय करें"
-
-
-msgid "Text"
-msgstr "पाठ"
 
 
 msgid "Basic"
@@ -2801,6 +2797,10 @@ msgstr "नकारात्मक"
 
 msgid "Mesh Cache"
 msgstr "जाल द्रुतिका"
+
+
+msgid "Array"
+msgstr "सरणी"
 
 
 msgid "Bevel"

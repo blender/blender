@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-10 07:24+0000\n"
+"POT-Creation-Date: 2025-09-15 07:14+0000\n"
 "PO-Revision-Date: 2025-07-23 14:52+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -607,10 +607,6 @@ msgstr "Vlak"
 
 msgid "Layer"
 msgstr "Laag"
-
-
-msgid "Array"
-msgstr "Reeks"
 
 
 msgid "Object"
@@ -2706,6 +2702,10 @@ msgid "Show/Hide"
 msgstr "Toon/Verberg"
 
 
+msgid "Text"
+msgstr "Tekst"
+
+
 msgid "Names"
 msgstr "Namen"
 
@@ -2760,10 +2760,6 @@ msgstr "Haken"
 
 msgid "Clear Transform"
 msgstr "Maak Transformatie Leeg"
-
-
-msgid "Text"
-msgstr "Tekst"
 
 
 msgctxt "MovieClip"
@@ -2905,6 +2901,10 @@ msgstr "Gegevens Overdracht"
 
 msgid "Time Offset"
 msgstr "Tijdsverschuiving"
+
+
+msgid "Array"
+msgstr "Reeks"
 
 
 msgid "Build"

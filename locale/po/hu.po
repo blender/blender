@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-10 07:24+0000\n"
+"POT-Creation-Date: 2025-09-15 07:14+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: Balázs Füvesi <fuvesib@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -738,10 +738,6 @@ msgstr "Tulajdonság a zsírkréta rétegen"
 
 msgid "Name of the Attribute"
 msgstr "Az attribútum neve"
-
-
-msgid "Array"
-msgstr "Sorozat"
 
 
 msgid "8-bit Integer Attribute"
@@ -6581,12 +6577,20 @@ msgid "Mask"
 msgstr "Maszk"
 
 
+msgid "Clean Up"
+msgstr "Tisztítás"
+
+
+msgid "Merge"
+msgstr "Összefésülés"
+
+
 msgid "Show/Hide"
 msgstr "Mutat/Rejt"
 
 
-msgid "Clean Up"
-msgstr "Tisztítás"
+msgid "Text"
+msgstr "Szöveg"
 
 
 msgid "Metaball"
@@ -6627,14 +6631,6 @@ msgstr "Elfogadás"
 
 msgid "Track"
 msgstr "Nyom"
-
-
-msgid "Merge"
-msgstr "Összefésülés"
-
-
-msgid "Text"
-msgstr "Szöveg"
 
 
 msgctxt "MovieClip"
@@ -6834,6 +6830,10 @@ msgstr "Két csúcspot-csoport súlyainak keverése"
 
 msgid "Time Offset"
 msgstr "Idő eltolás"
+
+
+msgid "Array"
+msgstr "Sorozat"
 
 
 msgid "Bevel"
@@ -9160,10 +9160,6 @@ msgstr "Vonalak"
 
 msgid "Units"
 msgstr "Egységek"
-
-
-msgid "Markers"
-msgstr "Markerek"
 
 
 msgid "Starting"
@@ -14144,6 +14140,10 @@ msgid "Show Source"
 msgstr "Forrás megjelenítése"
 
 
+msgid "Markers"
+msgstr "Markerek"
+
+
 msgid "Shape key in a shape keys data-block"
 msgstr "Formakulcs egy formakulcsok adatblokkban"
 
@@ -14603,10 +14603,6 @@ msgid "Theme Dope Sheet"
 msgstr "Kulcstábla témája"
 
 
-msgid "Channels Selected"
-msgstr "Kijelölt csatornák"
-
-
 msgid "Summary"
 msgstr "Összegzés"
 
@@ -14655,10 +14651,6 @@ msgid "Theme Graph Editor"
 msgstr "Gráfszerkesztő témája"
 
 
-msgid "Channels Region"
-msgstr "Csatornák területe"
-
-
 msgid "Vertex Select"
 msgstr "Kijelölt csúcspont"
 
@@ -14701,30 +14693,6 @@ msgstr "Fejléc kiemelt szöveg"
 
 msgid "Text Highlight"
 msgstr "Kiemelt szöveg"
-
-
-msgid "Theme Space List Settings"
-msgstr "Terület témájának listabeállításai"
-
-
-msgid "Source List"
-msgstr "Forráslista"
-
-
-msgid "Source List Text"
-msgstr "Forráslista szöveg"
-
-
-msgid "Source List Text Highlight"
-msgstr "Forráslista kiemelt szöveg"
-
-
-msgid "Source List Title"
-msgstr "Forráslista cím"
-
-
-msgid "Region Background"
-msgstr "Terület háttér"
 
 
 msgid "Syntax Special"
@@ -15598,6 +15566,10 @@ msgstr "Csúszás"
 msgctxt "Operator"
 msgid "Cleanup"
 msgstr "Tisztítás"
+
+
+msgid "Source List"
+msgstr "Forráslista"
 
 
 msgctxt "Operator"

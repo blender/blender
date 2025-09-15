@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-10 07:24+0000\n"
+"POT-Creation-Date: 2025-09-15 07:14+0000\n"
 "PO-Revision-Date: 2025-07-23 14:59+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -2303,14 +2303,6 @@ msgstr "Whether the attribute can be removed or renamed"
 
 msgid "Name of the Attribute"
 msgstr "Name of the Attribute"
-
-
-msgid "Array"
-msgstr "Array"
-
-
-msgid "Single"
-msgstr "Single"
 
 
 msgid "Bool Attribute"
@@ -20613,36 +20605,12 @@ msgid "Whether to use a custom frame for looking up data in the cache file, inst
 msgstr "Whether to use a custom frame for looking up data in the cache file, instead of using the current scene frame"
 
 
-msgid "Prefetch Cache Size"
-msgstr "Prefetch Cache Size"
-
-
-msgid "Memory usage limit in megabytes for the Cycles Procedural cache, if the data does not fit within the limit, rendering is aborted"
-msgstr "Memory usage limit in megabytes for the Cycles Procedural cache, if the data does not fit within the limit, rendering is aborted"
-
-
 msgid "Value by which to enlarge or shrink the object with respect to the world's origin (only applicable through a Transform Cache constraint)"
 msgstr "Value by which to enlarge or shrink the object with respect to the world's origin (only applicable through a Transform Cache constraint)"
 
 
 msgid "Up"
 msgstr "Up"
-
-
-msgid "Use Prefetch"
-msgstr "Use Prefetch"
-
-
-msgid "When enabled, the Cycles Procedural will preload animation data for faster updates"
-msgstr "When enabled, the Cycles Procedural will preload animation data for faster updates"
-
-
-msgid "Use Render Engine Procedural"
-msgstr "Use Render Engine Procedural"
-
-
-msgid "Display boxes in the viewport as placeholders for the objects, Cycles will use a procedural to load the objects during viewport rendering in experimental mode, other render engines will also receive a placeholder and should take care of loading the Alembic data themselves if possible"
-msgstr "Display boxes in the viewport as placeholders for the objects, Cycles will use a procedural to load the objects during viewport rendering in experimental mode, other render engines will also receive a placeholder and should take care of loading the Alembic data themselves if possible"
 
 
 msgid "Velocity Attribute"
@@ -34129,8 +34097,48 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
+msgid "Mesh Select Mode"
+msgstr "Mesh Select Mode"
+
+
+msgid "Face Data"
+msgstr "Face Data"
+
+
+msgid "Select by Face Strength"
+msgstr "Select by Face Strength"
+
+
+msgid "Set Face Strength"
+msgstr "Set Face Strength"
+
+
+msgid "Clean Up"
+msgstr "Clean Up"
+
+
+msgid "Merge"
+msgstr "Merge"
+
+
 msgid "Show/Hide"
 msgstr "Show/Hide"
+
+
+msgid "Special Characters"
+msgstr "Special Characters"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Metaball"
+msgstr "Metaball"
 
 
 msgid "Names"
@@ -34139,10 +34147,6 @@ msgstr "Names"
 
 msgid "Bone Roll"
 msgstr "Bone Roll"
-
-
-msgid "Clean Up"
-msgstr "Clean Up"
 
 
 msgid "Pivot Point"
@@ -34171,10 +34175,6 @@ msgstr "Face Sets Edit"
 
 msgid "Vertex Group Locks"
 msgstr "Vertex Group Locks"
-
-
-msgid "Metaball"
-msgstr "Metaball"
 
 
 msgid "Mirror"
@@ -34327,38 +34327,6 @@ msgstr "Enable Bone Options"
 
 msgid "Disable Bone Options"
 msgstr "Disable Bone Options"
-
-
-msgid "Mesh Select Mode"
-msgstr "Mesh Select Mode"
-
-
-msgid "Face Data"
-msgstr "Face Data"
-
-
-msgid "Select by Face Strength"
-msgstr "Select by Face Strength"
-
-
-msgid "Set Face Strength"
-msgstr "Set Face Strength"
-
-
-msgid "Merge"
-msgstr "Merge"
-
-
-msgid "Special Characters"
-msgstr "Special Characters"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Text"
-msgstr "Text"
 
 
 msgid "Keyframe Insert Pie"
@@ -35784,6 +35752,10 @@ msgstr "Texture Mapping"
 
 msgid "Change stroke UV texture values"
 msgstr "Change stroke UV texture values"
+
+
+msgid "Array"
+msgstr "Array"
 
 
 msgid "Create copies of the shape with offsets"
@@ -42969,10 +42941,6 @@ msgid "Opacity of the image"
 msgstr "Opacity of the image"
 
 
-msgid "Markers"
-msgstr "Markers"
-
-
 msgid "Collection of markers in track"
 msgstr "Collection of markers in track"
 
@@ -44097,6 +44065,10 @@ msgstr "Algorithm"
 
 msgid "Algorithm to use to limit channel"
 msgstr "Algorithm to use to limit channel"
+
+
+msgid "Single"
+msgstr "Single"
 
 
 msgid "Limit by single channel"
@@ -49867,10 +49839,6 @@ msgstr "Use wave texture in rings"
 
 msgid "White Noise Texture"
 msgstr "White Noise Texture"
-
-
-msgid "Return a random value or color based on an input seed"
-msgstr "Return a random value or color based on an input seed"
 
 
 msgid "UV Along Stroke"
@@ -88530,20 +88498,20 @@ msgid "glTF Material Variants"
 msgstr "glTF Material Variants"
 
 
-msgid "Active Tool"
-msgstr "Active Tool"
-
-
-msgid "View Lock"
-msgstr "View Lock"
-
-
 msgid "glTF"
 msgstr "glTF"
 
 
 msgid "glTF Animations"
 msgstr "glTF Animations"
+
+
+msgid "Active Tool"
+msgstr "Active Tool"
+
+
+msgid "View Lock"
+msgstr "View Lock"
 
 
 msgid "Selectability & Visibility"
@@ -88680,10 +88648,6 @@ msgstr "Fitting"
 
 msgid "Override Layers"
 msgstr "Override Layers"
-
-
-msgid "Render Procedural"
-msgstr "Render Procedural"
 
 
 msgid "Bone Constraints"
@@ -89663,10 +89627,6 @@ msgid "New Objects"
 msgstr "New Objects"
 
 
-msgid "Debugging"
-msgstr "Debugging"
-
-
 msgid "New Features"
 msgstr "New Features"
 
@@ -89818,10 +89778,6 @@ msgstr "Bone Color Sets"
 
 msgid "Theme Space"
 msgstr "Theme Space"
-
-
-msgid "Theme Space List"
-msgstr "Theme Space List"
 
 
 msgid "Collection Colors"
@@ -95793,14 +95749,6 @@ msgid "Use different seed values (and hence noise patterns) at different frames"
 msgstr "Use different seed values (and hence noise patterns) at different frames"
 
 
-msgid "Use Tiling"
-msgstr "Use Tiling"
-
-
-msgid "Render high resolution images in tiles to reduce memory usage, using the specified tile size. Tiles are cached to disk while rendering to save memory"
-msgstr "Render high resolution images in tiles to reduce memory usage, using the specified tile size. Tiles are cached to disk while rendering to save memory"
-
-
 msgid "Allow objects to be culled based on the camera frustum"
 msgstr "Allow objects to be culled based on the camera frustum"
 
@@ -100272,6 +100220,10 @@ msgid "Snap to strip hold offsets"
 msgstr "Snap to strip hold offsets"
 
 
+msgid "Markers"
+msgstr "Markers"
+
+
 msgid "Snap to markers"
 msgstr "Snap to markers"
 
@@ -104202,6 +104154,11 @@ msgid "Color Mix Strip"
 msgstr "Color Mix Strip"
 
 
+msgctxt "Color"
+msgid "Value"
+msgstr "Value"
+
+
 msgid "Color Strip"
 msgstr "Color Strip"
 
@@ -105732,10 +105689,6 @@ msgid "User interface styling and color settings"
 msgstr "User interface styling and color settings"
 
 
-msgid "Settings for asset shelf"
-msgstr "Settings for asset shelf"
-
-
 msgid "Clip Editor"
 msgstr "Clip Editor"
 
@@ -105750,22 +105703,6 @@ msgstr "Name of the theme"
 
 msgid "Active Theme Area"
 msgstr "Active Theme Area"
-
-
-msgid "Theme Asset Shelf Color"
-msgstr "Theme Asset Shelf Color"
-
-
-msgid "Theme settings for asset shelves"
-msgstr "Theme settings for asset shelves"
-
-
-msgid "Main Region Background"
-msgstr "Main Region Background"
-
-
-msgid "Header Background"
-msgstr "Header Background"
 
 
 msgid "Theme Bone Color Set"
@@ -105892,14 +105829,6 @@ msgid "Settings for space"
 msgstr "Settings for space"
 
 
-msgid "Settings for space list"
-msgstr "Settings for space list"
-
-
-msgid "Scrubbing/Markers Region"
-msgstr "Scrubbing/Markers Region"
-
-
 msgid "Theme Collection Color"
 msgstr "Theme Collection Color"
 
@@ -105918,10 +105847,6 @@ msgstr "Channel Group"
 
 msgid "Active Channel Group"
 msgstr "Active Channel Group"
-
-
-msgid "Sub-channel"
-msgstr "Sub-channel"
 
 
 msgid "Breakdown Keyframe"
@@ -106028,14 +105953,6 @@ msgid "Color of preview range overlay"
 msgstr "Color of preview range overlay"
 
 
-msgid "Marker Line"
-msgstr "Marker Line"
-
-
-msgid "Marker Line Selected"
-msgstr "Marker Line Selected"
-
-
 msgid "Align Handle"
 msgstr "Align Handle"
 
@@ -106102,10 +106019,6 @@ msgstr "Theme Dope Sheet"
 
 msgid "Theme settings for the Dope Sheet"
 msgstr "Theme settings for the Dope Sheet"
-
-
-msgid "Channels Selected"
-msgstr "Channels Selected"
 
 
 msgid "Interpolation Line"
@@ -106278,10 +106191,6 @@ msgstr "Theme Graph Editor"
 
 msgid "Theme settings for the graph editor"
 msgstr "Theme settings for the graph editor"
-
-
-msgid "Channels Region"
-msgstr "Channels Region"
 
 
 msgid "Vertex Select"
@@ -106504,10 +106413,6 @@ msgid "Selected Meta Strip (for grouping related strips)"
 msgstr "Selected Meta Strip (for grouping related strips)"
 
 
-msgid "Nonlinear Animation Track"
-msgstr "Nonlinear Animation Track"
-
-
 msgid "Sound Strips"
 msgstr "Sound Strips"
 
@@ -106724,16 +106629,24 @@ msgid "Search Match"
 msgstr "Search Match"
 
 
+msgid "Theme settings for asset shelves"
+msgstr "Theme settings for asset shelves"
+
+
+msgid "Header Background"
+msgstr "Header Background"
+
+
+msgid "Selected Text"
+msgstr "Selected Text"
+
+
 msgid "Theme Sequence Editor"
 msgstr "Theme Sequence Editor"
 
 
 msgid "Theme settings for the Sequence Editor"
 msgstr "Theme settings for the Sequence Editor"
-
-
-msgid "Active Modifier Outline"
-msgstr "Active Modifier Outline"
 
 
 msgid "Audio Strip"
@@ -106750,10 +106663,6 @@ msgstr "Preview Background"
 
 msgid "Selected Strips"
 msgstr "Selected Strips"
-
-
-msgid "Selected Text"
-msgstr "Selected Text"
 
 
 msgid "Text strip editing selection"
@@ -106786,30 +106695,6 @@ msgstr "Header Text Highlight"
 
 msgid "Text Highlight"
 msgstr "Text Highlight"
-
-
-msgid "Theme Space List Settings"
-msgstr "Theme Space List Settings"
-
-
-msgid "Source List"
-msgstr "Source List"
-
-
-msgid "Source List Text"
-msgstr "Source List Text"
-
-
-msgid "Source List Text Highlight"
-msgstr "Source List Text Highlight"
-
-
-msgid "Source List Title"
-msgstr "Source List Title"
-
-
-msgid "Region Background"
-msgstr "Region Background"
 
 
 msgid "Theme Spreadsheet"
@@ -114018,22 +113903,6 @@ msgid "Legacy Add-on"
 msgstr "Legacy Add-on"
 
 
-msgid "Do you want to install the following {:s}?"
-msgstr "Do you want to install the following {:s}?"
-
-
-msgid "Name: {:s}"
-msgstr "Name: {:s}"
-
-
-msgid "Repository: {:s}"
-msgstr "Repository: {:s}"
-
-
-msgid "Size: {:s}"
-msgstr "Size: {:s}"
-
-
 msgid "The dropped extension comes from an unknown repository."
 msgstr "The dropped extension comes from an unknown repository."
 
@@ -114191,6 +114060,10 @@ msgid "Theme \"{:s}\" is already installed!"
 msgstr "Theme \"{:s}\" is already installed!"
 
 
+msgid "Name: {:s}"
+msgstr "Name: {:s}"
+
+
 msgid "URL: {:s}"
 msgstr "URL: {:s}"
 
@@ -114205,6 +114078,18 @@ msgstr "Unable to install from relative path"
 
 msgid "Unable to install a directory"
 msgstr "Unable to install a directory"
+
+
+msgid "Do you want to install the following {:s}?"
+msgstr "Do you want to install the following {:s}?"
+
+
+msgid "Repository: {:s}"
+msgstr "Repository: {:s}"
+
+
+msgid "Size: {:s}"
+msgstr "Size: {:s}"
 
 
 msgid "Age: {:s}"
@@ -115278,10 +115163,6 @@ msgid "{} does not seem to be part of a sequence"
 msgstr "{} does not seem to be part of a sequence"
 
 
-msgid "Ignored {}, "
-msgstr "Ignored {}, "
-
-
 msgid "Deleted {} nodes"
 msgstr "Deleted {} nodes"
 
@@ -115330,16 +115211,16 @@ msgid "This node has no inputs to swap"
 msgstr "This node has no inputs to swap"
 
 
+msgid "Ignored {}"
+msgstr "Ignored {}"
+
+
 msgid "This node has no input connections to swap"
 msgstr "This node has no input connections to swap"
 
 
 msgid "Ignored {} (not of the same type as {})"
 msgstr "Ignored {} (not of the same type as {})"
-
-
-msgid "Ignored {}"
-msgstr "Ignored {}"
 
 
 msgid "Some connections have been lost due to differing numbers of output sockets"
@@ -119880,6 +119761,10 @@ msgid "Clear Recent Items"
 msgstr "Clear Recent Items"
 
 
+msgid "Source List"
+msgstr "Source List"
+
+
 msgctxt "Operator"
 msgid "Back"
 msgstr "Back"
@@ -121185,11 +121070,6 @@ msgstr "Remove Gaps (All)"
 
 
 msgctxt "Operator"
-msgid "Hold Split"
-msgstr "Hold Split"
-
-
-msgctxt "Operator"
 msgid "Delete Strip & Data"
 msgstr "Delete Strip & Data"
 
@@ -121357,11 +121237,6 @@ msgid "File: {:s}"
 msgstr "File: {:s}"
 
 
-msgctxt "WindowManager"
-msgid "Keying"
-msgstr "Keying"
-
-
 msgctxt "Operator"
 msgid "Move Marker"
 msgstr "Move Marker"
@@ -121424,6 +121299,11 @@ msgid "Only Active Keying Set"
 msgstr "Only Active Keying Set"
 
 
+msgctxt "WindowManager"
+msgid "Keying"
+msgstr "Keying"
+
+
 msgid "Layered Recording"
 msgstr "Layered Recording"
 
@@ -121434,10 +121314,6 @@ msgstr "Unable to find toolbar group"
 
 msgid "Taper Start"
 msgstr "Taper Start"
-
-
-msgid "Weight: {:.3f}"
-msgstr "Weight: {:.3f}"
 
 
 msgid "Style Start"
@@ -121518,6 +121394,10 @@ msgstr "Add cylinder to mesh interactively"
 
 msgid "Add sphere to mesh interactively"
 msgstr "Add sphere to mesh interactively"
+
+
+msgid "Weight: {:.3f}"
+msgstr "Weight: {:.3f}"
 
 
 msgctxt "Operator"
@@ -127804,14 +127684,6 @@ msgid "Autocomplete"
 msgstr "Autocomplete"
 
 
-msgid "R"
-msgstr "R"
-
-
-msgid "G"
-msgstr "G"
-
-
 msgid "OS"
 msgstr "OS"
 
@@ -127903,11 +127775,6 @@ msgstr "Hue, Saturation, Lightness"
 
 msgid "Lightness"
 msgstr "Lightness"
-
-
-msgctxt "Color"
-msgid "Value"
-msgstr "Value"
 
 
 msgid "Redo"
@@ -128034,18 +127901,6 @@ msgstr "Move {} below {}"
 
 msgid "Manual Scale"
 msgstr "Manual Scale"
-
-
-msgid "Only Alembic Procedurals supported"
-msgstr "Only Alembic Procedurals supported"
-
-
-msgid "The Cycles Alembic Procedural is only available with the experimental feature set"
-msgstr "The Cycles Alembic Procedural is only available with the experimental feature set"
-
-
-msgid "The active render engine does not have an Alembic Procedural"
-msgstr "The active render engine does not have an Alembic Procedural"
 
 
 msgid "Sort By:"
@@ -139283,10 +139138,6 @@ msgid "The middle value in each group when all values are sorted from lowest to 
 msgstr "The middle value in each group when all values are sorted from lowest to highest"
 
 
-msgid "The values the mininum and maximum will be calculated from"
-msgstr "The values the mininum and maximum will be calculated from"
-
-
 msgid "The lowest value in each group"
 msgstr "The lowest value in each group"
 
@@ -141288,10 +141139,6 @@ msgid "Strength of the light source"
 msgstr "Strength of the light source"
 
 
-msgid "Color input on which invertion will be applied"
-msgstr "Color input on which invertion will be applied"
-
-
 msgid "Facing"
 msgstr "Facing"
 
@@ -141680,10 +141527,6 @@ msgstr "Angle to rotate the input vector by"
 
 msgid "The amount of rotation on each axis, around the X, Y, then Z axes in that order"
 msgstr "The amount of rotation on each axis, around the X, Y, then Z axes in that order"
-
-
-msgid "Vector, point, or normal which will be used for convertion between spaces"
-msgstr "Vector, point, or normal which will be used for convertion between spaces"
 
 
 msgid "No mesh in active object"

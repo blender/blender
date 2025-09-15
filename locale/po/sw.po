@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-10 07:24+0000\n"
+"POT-Creation-Date: 2025-09-15 07:14+0000\n"
 "PO-Revision-Date: 2025-07-23 15:16+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -1861,14 +1861,6 @@ msgstr "Kama sifa inaweza kuondolewa au kubadilishwa jina"
 
 msgid "Name of the Attribute"
 msgstr "Jina la Sifa"
-
-
-msgid "Array"
-msgstr "Safu"
-
-
-msgid "Single"
-msgstr "Sijaoa"
 
 
 msgid "Bool Attribute"
@@ -17426,32 +17418,8 @@ msgid "Whether to use a custom frame for looking up data in the cache file, inst
 msgstr "Kama kutumia fremu maalum kutafuta data kwenye faili ya kache, badala ya kutumia fremu ya onyesho la sasa."
 
 
-msgid "Prefetch Cache Size"
-msgstr "Leta Ukubwa wa Akiba"
-
-
-msgid "Memory usage limit in megabytes for the Cycles Procedural cache, if the data does not fit within the limit, rendering is aborted"
-msgstr "Kikomo cha matumizi ya kumbukumbu katika megabaiti kwa akiba ya Kitaratibu ya Mizunguko, ikiwa data haitoshei ndani ya kikomo, uwasilishaji umesitishwa."
-
-
 msgid "Value by which to enlarge or shrink the object with respect to the world's origin (only applicable through a Transform Cache constraint)"
 msgstr "Thamani ya kukuza au kupunguza kitu kuhusiana na asili ya ulimwengu (inatumika tu kupitia kikwazo cha Kubadilisha Akiba)"
-
-
-msgid "Use Prefetch"
-msgstr "Tumia Prefetch"
-
-
-msgid "When enabled, the Cycles Procedural will preload animation data for faster updates"
-msgstr "Ikiwezeshwa, Utaratibu wa Mizunguko utapakia mapema data ya uhuishaji kwa masasisho ya haraka zaidi."
-
-
-msgid "Use Render Engine Procedural"
-msgstr "Tumia Taratibu za Injini ya Kutoa"
-
-
-msgid "Display boxes in the viewport as placeholders for the objects, Cycles will use a procedural to load the objects during viewport rendering in experimental mode, other render engines will also receive a placeholder and should take care of loading the Alembic data themselves if possible"
-msgstr "Onyesha visanduku katika eneo la kutazama kama vishikilia nafasi vya vitu, Mizunguko itatumia utaratibu wa kupakia vitu wakati wa uwasilishaji wa kituo cha kutazama katika hali ya majaribio, injini zingine za uwasilishaji pia zitapokea kishikilia nafasi na zinapaswa kutunza upakiaji wa data ya Alembic yenyewe ikiwezekana."
 
 
 msgid "Velocity Attribute"
@@ -28518,12 +28486,24 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
+msgid "Clean Up"
+msgstr "Safisha"
+
+
+msgid "Merge"
+msgstr "Unganisha"
+
+
 msgid "Show/Hide"
 msgstr "Onyesha/Ficha"
 
 
-msgid "Clean Up"
-msgstr "Safisha"
+msgid "Text"
+msgstr "Maandishi"
+
+
+msgid "Metaball"
+msgstr "Mpira wa miguu"
 
 
 msgid "Pivot Point"
@@ -28532,10 +28512,6 @@ msgstr "Egemeo"
 
 msgid "Snap"
 msgstr "Picha"
-
-
-msgid "Metaball"
-msgstr "Mpira wa miguu"
 
 
 msgid "Mirror"
@@ -28568,14 +28544,6 @@ msgstr "Mali"
 
 msgid "Bone Collections"
 msgstr "Mikusanyo ya Mifupa"
-
-
-msgid "Merge"
-msgstr "Unganisha"
-
-
-msgid "Text"
-msgstr "Maandishi"
 
 
 msgid "Keyframe Insert Pie"
@@ -29754,6 +29722,10 @@ msgstr "Uchoraji Ramani"
 
 msgid "Change stroke UV texture values"
 msgstr "Badilisha maadili ya muundo wa UV ya kiharusi"
+
+
+msgid "Array"
+msgstr "Safu"
 
 
 msgid "Create copies of the shape with offsets"
@@ -36260,10 +36232,6 @@ msgid "Opacity of the image"
 msgstr "Uwazi wa picha"
 
 
-msgid "Markers"
-msgstr "Alama"
-
-
 msgid "Collection of markers in track"
 msgstr "Mkusanyiko wa alama kwenye wimbo"
 
@@ -37243,6 +37211,10 @@ msgstr "Kanuni"
 
 msgid "Algorithm to use to limit channel"
 msgstr "Algorithm ya kutumia kuweka kikomo cha kituo"
+
+
+msgid "Single"
+msgstr "Sijaoa"
 
 
 msgid "Limit by single channel"
@@ -41475,10 +41447,6 @@ msgstr "Tumia muundo wa wimbi katika pete"
 
 msgid "White Noise Texture"
 msgstr "Mchanganyiko wa Kelele Nyeupe"
-
-
-msgid "Return a random value or color based on an input seed"
-msgstr "Rejesha thamani nasibu au rangi kulingana na mbegu ya kuingiza"
 
 
 msgid "UV Along Stroke"
@@ -78807,14 +78775,6 @@ msgid "Use different seed values (and hence noise patterns) at different frames"
 msgstr "Tumia thamani tofauti za mbegu (na hivyo ruwaza za kelele) katika fremu tofauti"
 
 
-msgid "Use Tiling"
-msgstr "Tumia Tiling"
-
-
-msgid "Render high resolution images in tiles to reduce memory usage, using the specified tile size. Tiles are cached to disk while rendering to save memory"
-msgstr "Toa picha za mwonekano wa juu katika vigae ili kupunguza matumizi ya kumbukumbu, kwa kutumia ukubwa wa kigae uliobainishwa."
-
-
 msgid "Allow objects to be culled based on the camera frustum"
 msgstr "Ruhusu vitu kukatwa kulingana na mkanganyiko wa kamera"
 
@@ -81876,6 +81836,10 @@ msgstr "Shikilia Offset"
 
 msgid "Snap to strip hold offsets"
 msgstr "Snap ili kuvua vifaa vya kushikilia"
+
+
+msgid "Markers"
+msgstr "Alama"
 
 
 msgid "Retiming Keys"
@@ -86630,10 +86594,6 @@ msgid "User interface styling and color settings"
 msgstr "Mtindo wa kiolesura cha mtumiaji na mipangilio ya rangi"
 
 
-msgid "Settings for asset shelf"
-msgstr "Mipangilio ya rafu ya mali"
-
-
 msgid "Clip Editor"
 msgstr "Mhariri wa Klipu"
 
@@ -86644,22 +86604,6 @@ msgstr "Jina la mada"
 
 msgid "Active Theme Area"
 msgstr "Eneo la Mandhari Inayotumika"
-
-
-msgid "Theme Asset Shelf Color"
-msgstr "Rangi ya Rafu ya Kipengee cha Mandhari"
-
-
-msgid "Theme settings for asset shelves"
-msgstr "Mipangilio ya mandhari ya rafu za mali"
-
-
-msgid "Main Region Background"
-msgstr "Usuli Mkuu wa Mkoa"
-
-
-msgid "Header Background"
-msgstr "Usuli wa Kichwa"
 
 
 msgid "Theme Bone Color Set"
@@ -86770,14 +86714,6 @@ msgid "Settings for space"
 msgstr "Mipangilio ya nafasi"
 
 
-msgid "Settings for space list"
-msgstr "Mipangilio ya orodha ya nafasi"
-
-
-msgid "Scrubbing/Markers Region"
-msgstr "Kanda ya Kusafisha/Alama"
-
-
 msgid "Theme Collection Color"
 msgstr "Rangi ya Mkusanyiko wa Mandhari"
 
@@ -86796,10 +86732,6 @@ msgstr "Kikundi cha Kituo"
 
 msgid "Active Channel Group"
 msgstr "Kikundi Inayotumika cha Idhaa"
-
-
-msgid "Sub-channel"
-msgstr "Idhaa ndogo"
 
 
 msgid "Breakdown Keyframe"
@@ -86886,14 +86818,6 @@ msgid "Color of preview range overlay"
 msgstr "Rangi ya safu ya onyesho la kuchungulia"
 
 
-msgid "Marker Line"
-msgstr "Mstari wa Alama"
-
-
-msgid "Marker Line Selected"
-msgstr "Mstari wa Alama Umechaguliwa"
-
-
 msgid "Align Handle"
 msgstr "Pangilia Kishikio"
 
@@ -86960,10 +86884,6 @@ msgstr "Karatasi ya Mandhari"
 
 msgid "Theme settings for the Dope Sheet"
 msgstr "Mipangilio ya mandhari ya Laha ya Dope"
-
-
-msgid "Channels Selected"
-msgstr "Vituo Vilivyochaguliwa"
 
 
 msgid "Interpolation Line"
@@ -87124,10 +87044,6 @@ msgstr "Mhariri wa Grafu ya Mandhari"
 
 msgid "Theme settings for the graph editor"
 msgstr "Mipangilio ya mandhari ya kihariri cha grafu"
-
-
-msgid "Channels Region"
-msgstr "Mkoa wa Njia"
 
 
 msgid "Vertex Select"
@@ -87350,10 +87266,6 @@ msgid "Selected Meta Strip (for grouping related strips)"
 msgstr "Ukanda wa Meta Uliochaguliwa (kwa upangaji wa vipande vinavyohusiana)"
 
 
-msgid "Nonlinear Animation Track"
-msgstr "Wimbo wa Uhuishaji usio na Mistari"
-
-
 msgid "Sound Strips"
 msgstr "Vipande vya Sauti"
 
@@ -87562,16 +87474,24 @@ msgid "Search Match"
 msgstr "Tafuta Mechi"
 
 
+msgid "Theme settings for asset shelves"
+msgstr "Mipangilio ya mandhari ya rafu za mali"
+
+
+msgid "Header Background"
+msgstr "Usuli wa Kichwa"
+
+
+msgid "Selected Text"
+msgstr "Maandishi Uliochaguliwa"
+
+
 msgid "Theme Sequence Editor"
 msgstr "Mhariri wa Mfuatano wa Mandhari"
 
 
 msgid "Theme settings for the Sequence Editor"
 msgstr "Mipangilio ya mandhari ya Kihariri cha Mfuatano"
-
-
-msgid "Active Modifier Outline"
-msgstr "Muhtasari Amilifu wa Kirekebishaji"
 
 
 msgid "Audio Strip"
@@ -87588,10 +87508,6 @@ msgstr "Hakiki Mandharinyuma"
 
 msgid "Selected Strips"
 msgstr "Sehemu Zilizochaguliwa"
-
-
-msgid "Selected Text"
-msgstr "Maandishi Uliochaguliwa"
 
 
 msgid "Transition Strip"
@@ -87612,30 +87528,6 @@ msgstr "Angazia Maandishi ya Kichwa"
 
 msgid "Text Highlight"
 msgstr "Angazia Maandishi"
-
-
-msgid "Theme Space List Settings"
-msgstr "Mipangilio ya Orodha ya Nafasi ya Mandhari"
-
-
-msgid "Source List"
-msgstr "Orodha ya Chanzo"
-
-
-msgid "Source List Text"
-msgstr "Maandishi ya Orodha ya Chanzo"
-
-
-msgid "Source List Text Highlight"
-msgstr "Orodha ya Chanzo Angazia Maandishi"
-
-
-msgid "Source List Title"
-msgstr "Jina la Orodha ya Chanzo"
-
-
-msgid "Region Background"
-msgstr "Asili ya Mkoa"
 
 
 msgid "Theme Spreadsheet"
@@ -96953,6 +96845,10 @@ msgid "Clear Recent Items"
 msgstr "Futa Vipengee vya Hivi Karibuni"
 
 
+msgid "Source List"
+msgstr "Orodha ya Chanzo"
+
+
 msgctxt "Operator"
 msgid "Back"
 msgstr "Nyuma"
@@ -98135,11 +98031,6 @@ msgstr "Klipu"
 msgctxt "Operator"
 msgid "Move/Extend from Current Frame"
 msgstr "Sogeza/Panua kutoka kwa Fremu ya Sasa"
-
-
-msgctxt "Operator"
-msgid "Hold Split"
-msgstr "Shikilia Mgawanyiko"
 
 
 msgctxt "Operator"
@@ -102903,18 +102794,6 @@ msgstr "Buruta"
 
 msgid "Manual Scale"
 msgstr "Kiwango cha Mwongozo"
-
-
-msgid "Only Alembic Procedurals supported"
-msgstr "Taratibu za Alembi pekee ndizo zinazotumika"
-
-
-msgid "The Cycles Alembic Procedural is only available with the experimental feature set"
-msgstr "The Cycles Alembic Procedural inapatikana tu kwa seti ya kipengele cha majaribio"
-
-
-msgid "The active render engine does not have an Alembic Procedural"
-msgstr "Injini inayotumika ya kutoa haina Utaratibu wa Alembi"
 
 
 msgid "Sort By:"

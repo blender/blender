@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-10 07:24+0000\n"
+"POT-Creation-Date: 2025-09-15 07:14+0000\n"
 "PO-Revision-Date: 2025-07-23 14:53+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
@@ -894,14 +894,6 @@ msgstr "ﻲﺑ-ﻰﻨﺤﻨﻣ"
 
 msgid "Layer"
 msgstr "ﺔﻘﺒﻃ"
-
-
-msgid "Array"
-msgstr "ﻒﻴﻔﺻ"
-
-
-msgid "Single"
-msgstr "ﻱﺩﺮﻓ"
 
 
 msgid "Bake Data"
@@ -15687,6 +15679,26 @@ msgid "Material slot name"
 msgstr "ﺔﻣﺎﺨﻟﺍ ﺔﺤﺘﻓ ﻢﺳﺇ"
 
 
+msgid "Face Data"
+msgstr "ﻪﺟﻮﻟﺍ ﺕﺎﻧﺎﻴﺑ"
+
+
+msgid "Merge"
+msgstr "ﺞﻣﺩﺇ"
+
+
+msgid "Special Characters"
+msgstr "ﺔﺻﺎﺧ ﻑﺮﺣﺃ"
+
+
+msgid "Text"
+msgstr "ﺺﻧ"
+
+
+msgid "Metaball"
+msgstr "ﺔﻠﻋﺎﻔﺘﻣ ﺓﺮﻛ"
+
+
 msgid "Names"
 msgstr "ءﺎﻤﺳﺃ"
 
@@ -15701,10 +15713,6 @@ msgstr "ﻱﺫﺎﺣ"
 
 msgid "Proportional Editing Falloff"
 msgstr "ﻲﺒﺴﻨﻟﺍ ﺮﻳﺮﺤﺘﻟﺍ ﻲﺷﻼ﻿ﺗ"
-
-
-msgid "Metaball"
-msgstr "ﺔﻠﻋﺎﻔﺘﻣ ﺓﺮﻛ"
 
 
 msgid "Mirror"
@@ -15781,22 +15789,6 @@ msgstr "ﻦﻴﺑ ﺎﻣ"
 
 msgid "Propagate"
 msgstr "ﻢﻤﻋ"
-
-
-msgid "Face Data"
-msgstr "ﻪﺟﻮﻟﺍ ﺕﺎﻧﺎﻴﺑ"
-
-
-msgid "Merge"
-msgstr "ﺞﻣﺩﺇ"
-
-
-msgid "Special Characters"
-msgstr "ﺔﺻﺎﺧ ﻑﺮﺣﺃ"
-
-
-msgid "Text"
-msgstr "ﺺﻧ"
 
 
 msgctxt "MovieClip"
@@ -16285,6 +16277,10 @@ msgstr "ﺰﻴﻛﺮﺘﻟﺍ/ﺯﺎﻴﺤﻧﻻ﻿ﺍ"
 
 msgid "Time Offset"
 msgstr "ﺖﻗﻮﻟﺍ ﺔﺣﺍﺯﺍ"
+
+
+msgid "Array"
+msgstr "ﻒﻴﻔﺻ"
 
 
 msgid "Bevel"
@@ -18660,6 +18656,10 @@ msgstr "ﻕﻭﺪﻨﺻ ﻉﺎﻨﻗ"
 
 msgid "Channel Key"
 msgstr "ﺓﺎﻨﻘﻟﺍ ﺡﺎﺘﻔﻣ"
+
+
+msgid "Single"
+msgstr "ﻱﺩﺮﻓ"
 
 
 msgid "Channel used to determine matte"
@@ -28150,10 +28150,6 @@ msgid "Theme Space"
 msgstr "ﻂﻤﻨﻟﺍ ءﺎﻀﻓ"
 
 
-msgid "Theme Space List"
-msgstr "ﻂﻤﻨﻟﺍ ءﺎﻀﻓ ﺔﻤﺋﺎﻗ"
-
-
 msgid "Shaded"
 msgstr "ﻞﻠﻈﻣ"
 
@@ -32278,10 +32274,6 @@ msgid "Settings for space"
 msgstr "ءﺎﻀﻔﻟﺍ ﺕﺩﺍﺪﻋﺇ"
 
 
-msgid "Settings for space list"
-msgstr "ءﺎﻀﻔﻟﺍ ﺔﻤﺋﺎﻗ ﺕﺍﺩﺍﺪﻋﺍ"
-
-
 msgid "Channel Group"
 msgstr "ﺕﺍﻮﻨﻗ ﺔﻋﻮﻤﺠﻣ"
 
@@ -32498,6 +32490,10 @@ msgid "Selected Highlight"
 msgstr "ﺭﺎﺘﺨﻤﻟﺍ ﺪﻳﺪﺤﺗ"
 
 
+msgid "Selected Text"
+msgstr "ﺭﺎﺘﺨﻤﻟﺍ ﺺﻨﻟﺍ"
+
+
 msgid "Clip Strip"
 msgstr "ﺔﺻﺎﺼﻘﻟﺍ ﻂﻳﺮﺷ"
 
@@ -32506,24 +32502,12 @@ msgid "Preview Background"
 msgstr "ﺔﻨﻳﺎﻌﻤﻟﺍ ﺔﻴﻔﻠﺧ"
 
 
-msgid "Selected Text"
-msgstr "ﺭﺎﺘﺨﻤﻟﺍ ﺺﻨﻟﺍ"
-
-
 msgid "Theme Space Settings"
 msgstr "ﻂﻤﻨﻟﺍ ءﺎﻀﻓ ﺕﺍﺩﺍﺪﻋﺇ"
 
 
 msgid "Text Highlight"
 msgstr "ﺺﻨﻟﺍ ﻥﺎﻌﻤﻟ"
-
-
-msgid "Theme Space List Settings"
-msgstr "ﻂﻤﻨﻟﺍ ءﺎﻀﻓ ﺔﻤﺋﺎﻗ ﺕﺍﺩﺍﺪﻋﺇ"
-
-
-msgid "Source List Title"
-msgstr "ﺭﺪﺼﻤﻟﺍ ﺔﻤﺋﺎﻗ ﻥﺍﻮﻨﻋ"
 
 
 msgid "Theme settings for style sets"

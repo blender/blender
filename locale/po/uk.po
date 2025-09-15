@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-10 07:24+0000\n"
+"POT-Creation-Date: 2025-09-15 07:14+0000\n"
 "PO-Revision-Date: 2025-07-23 15:08+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -1509,14 +1509,6 @@ msgstr "Шар"
 
 msgid "Name of the Attribute"
 msgstr "Назва атрибута"
-
-
-msgid "Array"
-msgstr "Масив"
-
-
-msgid "Single"
-msgstr "Один"
 
 
 msgid "Bool Attribute"
@@ -26411,8 +26403,48 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
+msgid "Mesh Select Mode"
+msgstr "Режим Вибору Сіті"
+
+
+msgid "Face Data"
+msgstr "Дані граней"
+
+
+msgid "Select by Face Strength"
+msgstr "Вибрати за Силою Грані"
+
+
+msgid "Set Face Strength"
+msgstr "Задати Силу Грані"
+
+
+msgid "Clean Up"
+msgstr "Вичищення"
+
+
+msgid "Merge"
+msgstr "Об'єднання"
+
+
 msgid "Show/Hide"
 msgstr "Показати/приховати"
+
+
+msgid "Special Characters"
+msgstr "Спеціальні символи"
+
+
+msgid "Kerning"
+msgstr "Кернінг"
+
+
+msgid "Text"
+msgstr "Текст"
+
+
+msgid "Metaball"
+msgstr "Метакуля"
 
 
 msgid "Names"
@@ -26421,10 +26453,6 @@ msgstr "Назви"
 
 msgid "Bone Roll"
 msgstr "Прокручення Кістки"
-
-
-msgid "Clean Up"
-msgstr "Вичищення"
 
 
 msgid "Pivot Point"
@@ -26453,10 +26481,6 @@ msgstr "Редагування Наборів Граней"
 
 msgid "Vertex Group Locks"
 msgstr "Блокування Груп Вершин"
-
-
-msgid "Metaball"
-msgstr "Метакуля"
 
 
 msgid "Mirror"
@@ -26597,38 +26621,6 @@ msgstr "Увімкнути параметри кісток"
 
 msgid "Disable Bone Options"
 msgstr "Відключити параметри кісток"
-
-
-msgid "Mesh Select Mode"
-msgstr "Режим Вибору Сіті"
-
-
-msgid "Face Data"
-msgstr "Дані граней"
-
-
-msgid "Select by Face Strength"
-msgstr "Вибрати за Силою Грані"
-
-
-msgid "Set Face Strength"
-msgstr "Задати Силу Грані"
-
-
-msgid "Merge"
-msgstr "Об'єднання"
-
-
-msgid "Special Characters"
-msgstr "Спеціальні символи"
-
-
-msgid "Kerning"
-msgstr "Кернінг"
-
-
-msgid "Text"
-msgstr "Текст"
 
 
 msgid "Basic"
@@ -27558,6 +27550,10 @@ msgstr "Зсув ключкадрів"
 
 msgid "Texture Mapping"
 msgstr "Розкладання текстури"
+
+
+msgid "Array"
+msgstr "Масив"
 
 
 msgid "Create copies of the shape with offsets"
@@ -33013,10 +33009,6 @@ msgid "Opacity of the image"
 msgstr "Непрозорість зображення"
 
 
-msgid "Markers"
-msgstr "Мітки"
-
-
 msgid "Collection of markers in track"
 msgstr "Колекція міток доріжки"
 
@@ -33955,6 +33947,10 @@ msgstr "Алгоритм"
 
 msgid "Algorithm to use to limit channel"
 msgstr "Алгоритм обмеження каналу"
+
+
+msgid "Single"
+msgstr "Один"
 
 
 msgid "Limit by single channel"
@@ -62178,10 +62174,6 @@ msgid "New Objects"
 msgstr "Нові Об'єкти"
 
 
-msgid "Debugging"
-msgstr "Зневаджування"
-
-
 msgid "New Features"
 msgstr "Нові Функціональності"
 
@@ -62296,10 +62288,6 @@ msgstr "Набори кольорів кісток"
 
 msgid "Theme Space"
 msgstr "Тема простору"
-
-
-msgid "Theme Space List"
-msgstr "Тема списку просторів"
 
 
 msgid "Collection Colors"
@@ -68864,6 +68852,10 @@ msgid "Individual Origins"
 msgstr "Індивідуальні опорні точки"
 
 
+msgid "Markers"
+msgstr "Мітки"
+
+
 msgid "Effect name"
 msgstr "Назва ефекту"
 
@@ -73132,14 +73124,6 @@ msgid "Settings for space"
 msgstr "Параметри простору"
 
 
-msgid "Settings for space list"
-msgstr "Параметри списку просторів"
-
-
-msgid "Scrubbing/Markers Region"
-msgstr "Регіон Міток/Шкряботіння"
-
-
 msgid "Theme Collection Color"
 msgstr "Колір Колекції з Теми"
 
@@ -73248,14 +73232,6 @@ msgid "Color of preview range overlay"
 msgstr "Колір накладки діапазону передогляду"
 
 
-msgid "Marker Line"
-msgstr "Лінія Мітки"
-
-
-msgid "Marker Line Selected"
-msgstr "Лінія Мітки Вибрано"
-
-
 msgid "Align Handle"
 msgstr "Вирівняний Держак"
 
@@ -73322,10 +73298,6 @@ msgstr "Тема Аркуша експозицій"
 
 msgid "Theme settings for the Dope Sheet"
 msgstr "Параметри теми Аркуша експозицій"
-
-
-msgid "Channels Selected"
-msgstr "Канали вибрані"
 
 
 msgid "Interpolation Line"
@@ -73478,10 +73450,6 @@ msgstr "Тема для редактора графіків"
 
 msgid "Theme settings for the graph editor"
 msgstr "Параметри теми для редактора графіків"
-
-
-msgid "Channels Region"
-msgstr "Область каналів"
 
 
 msgid "Vertex Select"
@@ -73692,10 +73660,6 @@ msgid "Selected Meta Strip (for grouping related strips)"
 msgstr "Вибрана Мета Смужка (для групування смужок)"
 
 
-msgid "Nonlinear Animation Track"
-msgstr "Стежка Нелінійної Анімації"
-
-
 msgid "Sound Strips"
 msgstr "Звукові смужки"
 
@@ -73884,16 +73848,16 @@ msgid "Search Match"
 msgstr "Пошук Відповідностей"
 
 
+msgid "Selected Text"
+msgstr "Вибраний текст"
+
+
 msgid "Theme Sequence Editor"
 msgstr "Тема редактора відеоряду"
 
 
 msgid "Theme settings for the Sequence Editor"
 msgstr "Параметри теми для редактора відеоряду"
-
-
-msgid "Active Modifier Outline"
-msgstr "Активний Модифікатор Контур"
 
 
 msgid "Audio Strip"
@@ -73912,10 +73876,6 @@ msgid "Selected Strips"
 msgstr "Вибрані Смужки"
 
 
-msgid "Selected Text"
-msgstr "Вибраний текст"
-
-
 msgid "Theme Space Settings"
 msgstr "Параметри теми простору"
 
@@ -73930,30 +73890,6 @@ msgstr "Підсвітка Тексту Заголовка"
 
 msgid "Text Highlight"
 msgstr "Підсвітка Тексту"
-
-
-msgid "Theme Space List Settings"
-msgstr "Устави Списку Простору Теми"
-
-
-msgid "Source List"
-msgstr "Список джерел"
-
-
-msgid "Source List Text"
-msgstr "Текст списку"
-
-
-msgid "Source List Text Highlight"
-msgstr "Підсвітка тексту списку"
-
-
-msgid "Source List Title"
-msgstr "Заголовок списку"
-
-
-msgid "Region Background"
-msgstr "Фон Регіону"
 
 
 msgid "Theme Status Bar"
@@ -79713,6 +79649,10 @@ msgid "Cleanup"
 msgstr "Вичищення"
 
 
+msgid "Source List"
+msgstr "Список джерел"
+
+
 msgctxt "Operator"
 msgid "Back"
 msgstr "Взад"
@@ -80569,11 +80509,6 @@ msgstr "Кліп"
 msgctxt "Operator"
 msgid "Move/Extend from Current Frame"
 msgstr "Перемістити/Розширити з Поточного Кадру"
-
-
-msgctxt "Operator"
-msgid "Hold Split"
-msgstr "Тримати Розділ"
 
 
 msgctxt "Operator"

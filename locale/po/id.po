@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-10 07:24+0000\n"
+"POT-Creation-Date: 2025-09-15 07:14+0000\n"
 "PO-Revision-Date: 2025-07-23 14:57+0000\n"
 "Last-Translator: Michael Tribayu Jatnika Natawiria <mike.natawiria@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -2173,14 +2173,6 @@ msgstr "Apakah atribut dapat dihapus atau diganti namanya"
 
 msgid "Name of the Attribute"
 msgstr "Nama Atribut"
-
-
-msgid "Array"
-msgstr "Larik"
-
-
-msgid "Single"
-msgstr "Tunggal"
 
 
 msgid "Bool Attribute"
@@ -15307,16 +15299,24 @@ msgid "Mask"
 msgstr "Masker"
 
 
+msgid "Merge"
+msgstr "Menggabungkan"
+
+
+msgid "Text"
+msgstr "Teks"
+
+
+msgid "Metaball"
+msgstr "Metabola"
+
+
 msgid "Names"
 msgstr "Nama"
 
 
 msgid "Snap"
 msgstr "Jepret"
-
-
-msgid "Metaball"
-msgstr "Metabola"
 
 
 msgid "Mirror"
@@ -15361,14 +15361,6 @@ msgstr "Aset"
 
 msgid "Hooks"
 msgstr "Kait"
-
-
-msgid "Merge"
-msgstr "Menggabungkan"
-
-
-msgid "Text"
-msgstr "Teks"
 
 
 msgctxt "MovieClip"
@@ -15733,6 +15725,10 @@ msgstr "Menghaluskan warna sapuan"
 
 msgid "Time Offset"
 msgstr "Kamera"
+
+
+msgid "Array"
+msgstr "Larik"
 
 
 msgid "Build"
@@ -17576,6 +17572,10 @@ msgstr "Algoritma"
 
 msgid "Algorithm to use to limit channel"
 msgstr "Algoritma menggunakan batas saluran"
+
+
+msgid "Single"
+msgstr "Tunggal"
 
 
 msgid "Limit by single channel"
@@ -25045,10 +25045,6 @@ msgid "New Objects"
 msgstr "Objek Baru"
 
 
-msgid "Debugging"
-msgstr "Debugging"
-
-
 msgid "New Features"
 msgstr "Fitur Baru"
 
@@ -25111,10 +25107,6 @@ msgstr "Editor"
 
 msgid "Theme Space"
 msgstr "Ruang Tema"
-
-
-msgid "Theme Space List"
-msgstr "Daftar Ruang Tema"
 
 
 msgid "Collection Colors"

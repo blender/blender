@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-10 07:24+0000\n"
+"POT-Creation-Date: 2025-09-15 07:14+0000\n"
 "PO-Revision-Date: 2025-09-09 13:59+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -2183,18 +2183,6 @@ msgstr "Se l'attributo può essere rimosso o rinominato"
 
 msgid "Name of the Attribute"
 msgstr "Nome dell'Attributo"
-
-
-msgid "Storage Type"
-msgstr "Tipo di Archiviazione"
-
-
-msgid "Array"
-msgstr "Sequenza"
-
-
-msgid "Single"
-msgstr "Singolo"
 
 
 msgid "Bool Attribute"
@@ -15442,10 +15430,6 @@ msgid "Up"
 msgstr "Su"
 
 
-msgid "Use Prefetch"
-msgstr "Utilizza Pre-Carica"
-
-
 msgctxt "Unit"
 msgid "Velocity Unit"
 msgstr "Unità di Velocità"
@@ -24608,8 +24592,48 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
+msgid "Mesh Select Mode"
+msgstr "Modalità Selezione Mesh"
+
+
+msgid "Face Data"
+msgstr "Dati Faccia"
+
+
+msgid "Select by Face Strength"
+msgstr "Seleziona per Intensità delle Facce"
+
+
+msgid "Set Face Strength"
+msgstr "Imposta Intensità Faccia"
+
+
+msgid "Clean Up"
+msgstr "Ripulisci"
+
+
+msgid "Merge"
+msgstr "Unisci"
+
+
 msgid "Show/Hide"
 msgstr "Mostra/Nascondi"
+
+
+msgid "Special Characters"
+msgstr "Caratteri Speciali"
+
+
+msgid "Kerning"
+msgstr "Crenatura"
+
+
+msgid "Text"
+msgstr "Testo"
+
+
+msgid "Metaball"
+msgstr "Metaball"
 
 
 msgid "Names"
@@ -24618,10 +24642,6 @@ msgstr "Nomi"
 
 msgid "Bone Roll"
 msgstr "Rollio Osso"
-
-
-msgid "Clean Up"
-msgstr "Ripulisci"
 
 
 msgid "Pivot Point"
@@ -24650,10 +24670,6 @@ msgstr "Modifica Sets di Facce"
 
 msgid "Vertex Group Locks"
 msgstr "Blocchi del Gruppo di Vertici"
-
-
-msgid "Metaball"
-msgstr "Metaball"
 
 
 msgid "Mirror"
@@ -24798,38 +24814,6 @@ msgstr "Abilita Opzioni Osso"
 
 msgid "Disable Bone Options"
 msgstr "Disabilita Opzioni Osso"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modalità Selezione Mesh"
-
-
-msgid "Face Data"
-msgstr "Dati Faccia"
-
-
-msgid "Select by Face Strength"
-msgstr "Seleziona per Intensità delle Facce"
-
-
-msgid "Set Face Strength"
-msgstr "Imposta Intensità Faccia"
-
-
-msgid "Merge"
-msgstr "Unisci"
-
-
-msgid "Special Characters"
-msgstr "Caratteri Speciali"
-
-
-msgid "Kerning"
-msgstr "Crenatura"
-
-
-msgid "Text"
-msgstr "Testo"
 
 
 msgid "Keyframe Insert Pie"
@@ -25842,6 +25826,10 @@ msgstr "Keyframes di offset"
 
 msgid "Texture Mapping"
 msgstr "Mappatura Texture"
+
+
+msgid "Array"
+msgstr "Sequenza"
 
 
 msgid "Bevel"
@@ -30302,10 +30290,6 @@ msgid "Opacity of the image"
 msgstr "Opacità dell'immagine"
 
 
-msgid "Markers"
-msgstr "Marcatori"
-
-
 msgid "Collection of markers in track"
 msgstr "Raccolta di marcatori nella traccia"
 
@@ -30913,6 +30897,10 @@ msgstr "Algoritmo"
 
 msgid "Algorithm to use to limit channel"
 msgstr "Algoritmo da utilizzare per limitare il canale"
+
+
+msgid "Single"
+msgstr "Singolo"
 
 
 msgctxt "Color"
@@ -51055,10 +51043,6 @@ msgid "Theme Space"
 msgstr "Tema Spazio"
 
 
-msgid "Theme Space List"
-msgstr "Lista degli Spazi Tema"
-
-
 msgid "Axis & Gizmo Colors"
 msgstr "Colori Assi & Gizmo"
 
@@ -53906,10 +53890,6 @@ msgid "Use different seed values (and hence noise patterns) at different frames"
 msgstr "Utilizza seme diverso (e quindi schemi di rumore) per i diversi fotogrammi"
 
 
-msgid "Use Tiling"
-msgstr "Utilizza Piastrellatura"
-
-
 msgid "Guiding"
 msgstr "Guidare"
 
@@ -55409,6 +55389,10 @@ msgstr "Origini Individuali"
 
 msgid "Hold Offset"
 msgstr "Mantieni l'Offset"
+
+
+msgid "Markers"
+msgstr "Marcatori"
 
 
 msgid "Use effect during render"
@@ -57968,10 +57952,6 @@ msgid "Amount texture affects particle initial velocity"
 msgstr "Quanto la texture influenza la velocità iniziale della particella"
 
 
-msgid "Settings for asset shelf"
-msgstr "Impostazioni per lo scaffale delle risorse"
-
-
 msgid "Clip Editor"
 msgstr "Editor Filmato"
 
@@ -58088,10 +58068,6 @@ msgid "Settings for space"
 msgstr "Impostazioni per dispositivi di input"
 
 
-msgid "Settings for space list"
-msgstr "Impostazioni per la fisica delle particelle dei fluidi"
-
-
 msgid "Channel Group"
 msgstr "Gruppo Canale"
 
@@ -58184,10 +58160,6 @@ msgid "Theme settings for the Dope Sheet"
 msgstr "Impostazioni del tema per il DopeSheet"
 
 
-msgid "Channels Selected"
-msgstr "Canali Selezionati"
-
-
 msgid "Keyframe Border"
 msgstr "Bordo Keyframe"
 
@@ -58270,10 +58242,6 @@ msgstr "Tema Editor Grafi"
 
 msgid "Theme settings for the graph editor"
 msgstr "Impostazioni del tema per l'editor grafi"
-
-
-msgid "Channels Region"
-msgstr "Regione Canali"
 
 
 msgid "Vertex Select"
@@ -58496,6 +58464,10 @@ msgid "Theme settings for the Properties"
 msgstr "Impostazioni del tema per le Proprietà"
 
 
+msgid "Selected Text"
+msgstr "Testo Selezionato"
+
+
 msgid "Theme Sequence Editor"
 msgstr "Tema Editor Sequenze"
 
@@ -58516,10 +58488,6 @@ msgid "Preview Background"
 msgstr "Sfondo Finestra"
 
 
-msgid "Selected Text"
-msgstr "Testo Selezionato"
-
-
 msgid "Theme Space Settings"
 msgstr "Tema Spazio delle Impostazioni"
 
@@ -58534,30 +58502,6 @@ msgstr "Testo Evidenziato Intestazione"
 
 msgid "Text Highlight"
 msgstr "Testo Evidenziato"
-
-
-msgid "Theme Space List Settings"
-msgstr "Tema Spazio Lista delle Impostazioni"
-
-
-msgid "Source List"
-msgstr "Lista Sorgente"
-
-
-msgid "Source List Text"
-msgstr "Testo Lista Sorgente"
-
-
-msgid "Source List Text Highlight"
-msgstr "Testo Evidenziato Lista Sorgente"
-
-
-msgid "Source List Title"
-msgstr "Titolo Lista Sorgente"
-
-
-msgid "Region Background"
-msgstr "Sfondo Regione"
 
 
 msgid "Theme settings for style sets"
@@ -62066,6 +62010,10 @@ msgstr "Ripulisci"
 msgctxt "Operator"
 msgid "Clear Recent Items"
 msgstr "Cancella Elementi Recenti"
+
+
+msgid "Source List"
+msgstr "Lista Sorgente"
 
 
 msgctxt "Operator"

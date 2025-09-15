@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-10 07:24+0000\n"
+"POT-Creation-Date: 2025-09-15 07:14+0000\n"
 "PO-Revision-Date: 2025-07-23 15:24+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -2299,14 +2299,6 @@ msgstr "Liệu thuộc tính có thể xóa đi hoặc đổi tên được hay 
 
 msgid "Name of the Attribute"
 msgstr "Tên của Thuộc Tính"
-
-
-msgid "Array"
-msgstr "Mảng"
-
-
-msgid "Single"
-msgstr "Đơn/Một"
 
 
 msgid "Bool Attribute"
@@ -20457,36 +20449,12 @@ msgid "Whether to use a custom frame for looking up data in the cache file, inst
 msgstr "Dùng khung hình tùy chọn để tìm kiếm dữ liệu trong tập tin bộ nhớ đệm, thay vì dùng khung hình cảnh hiện tại, hay không"
 
 
-msgid "Prefetch Cache Size"
-msgstr "Kích Thước Bộ Nhớ Đệm Nạp Sẵn"
-
-
-msgid "Memory usage limit in megabytes for the Cycles Procedural cache, if the data does not fit within the limit, rendering is aborted"
-msgstr "Giới hạn sử dụng bộ nhớ (MB) cho đệm chứa Qúa Trình Cycles; nếu dữ liệu không vừa giới hạn, hủy kết xuất"
-
-
 msgid "Value by which to enlarge or shrink the object with respect to the world's origin (only applicable through a Transform Cache constraint)"
 msgstr "Giá trị để tỷ lệ hay thu nhỏ đối tượng đối với tọa độ thế giới (chỉ có tác dụng với ràng buộc Bộ Nhớ Đệm Biến Hóa thôi)"
 
 
 msgid "Up"
 msgstr "Lên"
-
-
-msgid "Use Prefetch"
-msgstr "Sử Dụng Nạp Sẵn"
-
-
-msgid "When enabled, the Cycles Procedural will preload animation data for faster updates"
-msgstr "Khi bật, Qúa Trình Cycles sẽ nạp trước dữ liệu hoạt họa để nâng cấp nhanh hơn"
-
-
-msgid "Use Render Engine Procedural"
-msgstr "Sử Dụng Thủ Tục Động Cơ Kết Xuất"
-
-
-msgid "Display boxes in the viewport as placeholders for the objects, Cycles will use a procedural to load the objects during viewport rendering in experimental mode, other render engines will also receive a placeholder and should take care of loading the Alembic data themselves if possible"
-msgstr "Hiển thị hình hộp trong cổng nhìn với tư cách là chỗ dành sẵn cho các đối tượng. Cycles sẽ sử dụng một thủ tục để nạp các đối tượng trong quá trình kết xuất cổng nhìn, ở chế độ thử nghiệm, các động cơ kết xuất khác cũng sẽ được nhận một chỗ dành sẵn cho chúng, và nên tự bản thân lo việc nạp dữ liệu Alembic, nếu có thể"
 
 
 msgid "Velocity Attribute"
@@ -33894,8 +33862,48 @@ msgid "Editor menu containing buttons"
 msgstr "Trình đơn của trình biên soạn có chứa các nút"
 
 
+msgid "Mesh Select Mode"
+msgstr "Chế Độ Chọn Khung Lưới"
+
+
+msgid "Face Data"
+msgstr "Dữ Liệu Mặt"
+
+
+msgid "Select by Face Strength"
+msgstr "Chọn theo Cường Độ Mặt"
+
+
+msgid "Set Face Strength"
+msgstr "Đặt Cường Độ Mặt"
+
+
+msgid "Clean Up"
+msgstr "Dọn Dẹp"
+
+
+msgid "Merge"
+msgstr "Hợp Nhất"
+
+
 msgid "Show/Hide"
 msgstr "Hiện/Ẩn Giấu"
+
+
+msgid "Special Characters"
+msgstr "Các Ký Tự Đặc Biệt"
+
+
+msgid "Kerning"
+msgstr "Tinh Chỉnh Khoảng Cách Ký Tự"
+
+
+msgid "Text"
+msgstr "Văn Bản"
+
+
+msgid "Metaball"
+msgstr "Siêu Cầu"
 
 
 msgid "Names"
@@ -33904,10 +33912,6 @@ msgstr "Tên"
 
 msgid "Bone Roll"
 msgstr "Lăn Xương"
-
-
-msgid "Clean Up"
-msgstr "Dọn Dẹp"
 
 
 msgid "Pivot Point"
@@ -33936,10 +33940,6 @@ msgstr "Biên Soạn các Mặt Ấn Định"
 
 msgid "Vertex Group Locks"
 msgstr "Khóa của Nhóm Điểm Đỉnh"
-
-
-msgid "Metaball"
-msgstr "Siêu Cầu"
 
 
 msgid "Mirror"
@@ -34092,38 +34092,6 @@ msgstr "Bật các Tùy Chọn về Xương"
 
 msgid "Disable Bone Options"
 msgstr "Tắt các Tùy Chọn về Xương"
-
-
-msgid "Mesh Select Mode"
-msgstr "Chế Độ Chọn Khung Lưới"
-
-
-msgid "Face Data"
-msgstr "Dữ Liệu Mặt"
-
-
-msgid "Select by Face Strength"
-msgstr "Chọn theo Cường Độ Mặt"
-
-
-msgid "Set Face Strength"
-msgstr "Đặt Cường Độ Mặt"
-
-
-msgid "Merge"
-msgstr "Hợp Nhất"
-
-
-msgid "Special Characters"
-msgstr "Các Ký Tự Đặc Biệt"
-
-
-msgid "Kerning"
-msgstr "Tinh Chỉnh Khoảng Cách Ký Tự"
-
-
-msgid "Text"
-msgstr "Văn Bản"
 
 
 msgid "Keyframe Insert Pie"
@@ -35545,6 +35513,10 @@ msgstr "Ánh Xạ Chất Liệu"
 
 msgid "Change stroke UV texture values"
 msgstr "Đổi các giá trị chất liệu UV của nét vẽ"
+
+
+msgid "Array"
+msgstr "Mảng"
 
 
 msgid "Create copies of the shape with offsets"
@@ -42742,10 +42714,6 @@ msgid "Opacity of the image"
 msgstr "Độ đục của hình ảnh"
 
 
-msgid "Markers"
-msgstr "Các Dấu Mốc"
-
-
 msgid "Collection of markers in track"
 msgstr "Bộ sưu tập các dấu mốc trong giám sát"
 
@@ -43870,6 +43838,10 @@ msgstr "Thuật Toán"
 
 msgid "Algorithm to use to limit channel"
 msgstr "Thuật toán sử dụng để hạn chế kênh"
+
+
+msgid "Single"
+msgstr "Đơn/Một"
 
 
 msgid "Limit by single channel"
@@ -49707,10 +49679,6 @@ msgstr "Dùng chất liệu sóng hình vòng tròn"
 
 msgid "White Noise Texture"
 msgstr "Chất Liệu Nhiễu Trắng"
-
-
-msgid "Return a random value or color based on an input seed"
-msgstr "Cung cấp giá trị hoặc màu ngẫu nhiên dựa trên nhân cung cấp ở đầu vào"
 
 
 msgid "UV Along Stroke"
@@ -88493,16 +88461,16 @@ msgid "glTF Material Variants"
 msgstr "Biến Thể Nguyên Vật Liệu glTF"
 
 
+msgid "glTF Animations"
+msgstr "Hoạt Họa glTF"
+
+
 msgid "Active Tool"
 msgstr "Công Cụ đang Hoạt Động"
 
 
 msgid "View Lock"
 msgstr "Khóa Góc Nhìn"
-
-
-msgid "glTF Animations"
-msgstr "Hoạt Họa glTF"
 
 
 msgid "Selectability & Visibility"
@@ -88643,10 +88611,6 @@ msgstr "Khít Vừa"
 
 msgid "Override Layers"
 msgstr "Tầng Lớp Vượt Quyền"
-
-
-msgid "Render Procedural"
-msgstr "Kết Xuất Thủ Tục Hóa"
 
 
 msgid "Bone Constraints"
@@ -89642,10 +89606,6 @@ msgid "New Objects"
 msgstr "Đối Tượng Mới"
 
 
-msgid "Debugging"
-msgstr "Điều Tra Lỗi"
-
-
 msgid "New Features"
 msgstr "Tính Năng Mới"
 
@@ -89797,10 +89757,6 @@ msgstr "Bộ Màu Sắc của Xương"
 
 msgid "Theme Space"
 msgstr "Kiểu Mẫu của Không Gian"
-
-
-msgid "Theme Space List"
-msgstr "Kiểu Mẫu của Không Gian Danh Sách"
 
 
 msgid "Collection Colors"
@@ -95512,14 +95468,6 @@ msgid "Use different seed values (and hence noise patterns) at different frames"
 msgstr "Dùng các giá trị mầm khác nhau (và do đó đổi các mô hình nhiễu) cho các khung hình khác nhau"
 
 
-msgid "Use Tiling"
-msgstr "Sử Dụng Phân Ô"
-
-
-msgid "Render high resolution images in tiles to reduce memory usage, using the specified tile size. Tiles are cached to disk while rendering to save memory"
-msgstr "Kết xuất các hình ảnh có độ phân giải cao, trong từng ô, để giảm mức sử dụng bộ nhớ, dùng kích thước ô chỉ định. Các ô sẽ được lưu bộ đệm nhớ ra đĩa trong quá trình kết xuất, để tiết kiệm bộ nhớ"
-
-
 msgid "Allow objects to be culled based on the camera frustum"
 msgstr "Cho phép các đối tượng được loại trừ ra khỏi dựa trên hình cụt phóng chiếu của máy quay phim"
 
@@ -99999,6 +99947,10 @@ msgid "Snap to strip hold offsets"
 msgstr "Bám dính vào dịch chuyển cắt"
 
 
+msgid "Markers"
+msgstr "Các Dấu Mốc"
+
+
 msgid "Snap to markers"
 msgstr "Bám dính vào các dấu đánh"
 
@@ -103993,6 +103945,11 @@ msgid "Color Mix Strip"
 msgstr "Dải Pha Trộn Màu"
 
 
+msgctxt "Color"
+msgid "Value"
+msgstr "Giá Trị"
+
+
 msgid "Color Strip"
 msgstr "Dải Màu Sắc"
 
@@ -105515,10 +105472,6 @@ msgid "User interface styling and color settings"
 msgstr "Các cài đặt về phong cách giao diện người dùng và màu sắc"
 
 
-msgid "Settings for asset shelf"
-msgstr "Các cài đặt cho giá tài sản"
-
-
 msgid "Clip Editor"
 msgstr "Trình Biên Soạn Đoạn Phim"
 
@@ -105533,22 +105486,6 @@ msgstr "Tên Kiểu Mẫu"
 
 msgid "Active Theme Area"
 msgstr "Kiểu Mẫu đang Hoạt Động cho Diện Tích"
-
-
-msgid "Theme Asset Shelf Color"
-msgstr "Màu Kiểu Mẫu của Kệ Tài Sản"
-
-
-msgid "Theme settings for asset shelves"
-msgstr "Các cài đặt kiểu mẫu cho kệ tài sản"
-
-
-msgid "Main Region Background"
-msgstr "Nền Sau Khu Vực Chính"
-
-
-msgid "Header Background"
-msgstr "Nền Đầu Đề"
 
 
 msgid "Theme Bone Color Set"
@@ -105675,14 +105612,6 @@ msgid "Settings for space"
 msgstr "Sắp đặt cho không gian"
 
 
-msgid "Settings for space list"
-msgstr "Sắp đặt cho không gian danh sách"
-
-
-msgid "Scrubbing/Markers Region"
-msgstr "Vùng Rà Quét/Dấu Mốc"
-
-
 msgid "Theme Collection Color"
 msgstr "Kiểu Mẫu về Màu của Bộ Sưu Tập"
 
@@ -105701,10 +105630,6 @@ msgstr "Nhóm Kênh"
 
 msgid "Active Channel Group"
 msgstr "Nhóm Kênh đang Hoạt Động"
-
-
-msgid "Sub-channel"
-msgstr "Kênh Phụ"
 
 
 msgid "Breakdown Keyframe"
@@ -105811,14 +105736,6 @@ msgid "Color of preview range overlay"
 msgstr "Màu vẽ lồng phân khoảng xem trước"
 
 
-msgid "Marker Line"
-msgstr "Đường Đánh Dấu"
-
-
-msgid "Marker Line Selected"
-msgstr "Đường Đánh Dấu Được Chọn"
-
-
 msgid "Align Handle"
 msgstr "Tay Cầm Thẳng Hàng"
 
@@ -105885,10 +105802,6 @@ msgstr "Kiểu Mẫu của Bảng Hành Động"
 
 msgid "Theme settings for the Dope Sheet"
 msgstr "Sắp đặt kiểu mẫu cho Bảng Hành Động"
-
-
-msgid "Channels Selected"
-msgstr "Kênh được Chọn"
 
 
 msgid "Interpolation Line"
@@ -106061,10 +105974,6 @@ msgstr "Kiểu Mẫu của Trình Biên Soạn Đồ Thị"
 
 msgid "Theme settings for the graph editor"
 msgstr "Sắp đặt kiểu mẫu cho trình biên soạn đồ thị"
-
-
-msgid "Channels Region"
-msgstr "Vùng Kênh"
 
 
 msgid "Vertex Select"
@@ -106287,10 +106196,6 @@ msgid "Selected Meta Strip (for grouping related strips)"
 msgstr "Dải Siêu Được Chọn (để nhóm các dải có liên quan với nhau lại)"
 
 
-msgid "Nonlinear Animation Track"
-msgstr "Rãnh Hoạt Họa Phi tuyến tính"
-
-
 msgid "Sound Strips"
 msgstr "Dải Âm Thanh"
 
@@ -106507,16 +106412,24 @@ msgid "Search Match"
 msgstr "Kết Quả Tìm Thấy"
 
 
+msgid "Theme settings for asset shelves"
+msgstr "Các cài đặt kiểu mẫu cho kệ tài sản"
+
+
+msgid "Header Background"
+msgstr "Nền Đầu Đề"
+
+
+msgid "Selected Text"
+msgstr "Văn Bản được Chọn"
+
+
 msgid "Theme Sequence Editor"
 msgstr "Kiểu Mẫu của Trình Phối Hình"
 
 
 msgid "Theme settings for the Sequence Editor"
 msgstr "Sắp đặt kiểu mẫu của Trình Phối Hình"
-
-
-msgid "Active Modifier Outline"
-msgstr "Đường Viền của Bộ Điều Chỉnh đang Hoạt Động"
 
 
 msgid "Audio Strip"
@@ -106533,10 +106446,6 @@ msgstr "Nền Xem Trước"
 
 msgid "Selected Strips"
 msgstr "Dải Được Chọn"
-
-
-msgid "Selected Text"
-msgstr "Văn Bản được Chọn"
 
 
 msgid "Text strip editing selection"
@@ -106569,30 +106478,6 @@ msgstr "Nêu Bật Văn Bản của Tiêu Đề"
 
 msgid "Text Highlight"
 msgstr "Văn Bản Nêu Bật"
-
-
-msgid "Theme Space List Settings"
-msgstr "Sắp Đặt về Kiểu Mẫu của Không Gian Danh Sách"
-
-
-msgid "Source List"
-msgstr "Danh Sách Nguồn"
-
-
-msgid "Source List Text"
-msgstr "Văn Bản trong Danh Sách Nguồn"
-
-
-msgid "Source List Text Highlight"
-msgstr "Nêu Bật Văn Bản trong Danh Sách Nguồn"
-
-
-msgid "Source List Title"
-msgstr "Tựa Đề cho Danh Sách Nguồn"
-
-
-msgid "Region Background"
-msgstr "Nền của Vùng"
 
 
 msgid "Theme Spreadsheet"
@@ -113804,22 +113689,6 @@ msgid "Legacy Add-on"
 msgstr "Trình Bổ Sung Cũ"
 
 
-msgid "Do you want to install the following {:s}?"
-msgstr "Bạn có muốn cài đặt cái sau đây không {:s}?"
-
-
-msgid "Name: {:s}"
-msgstr "Tên: {:s}"
-
-
-msgid "Repository: {:s}"
-msgstr "Kho lưu trữ: {:s}"
-
-
-msgid "Size: {:s}"
-msgstr "Kích thước: {:s}"
-
-
 msgid "The dropped extension comes from an unknown repository."
 msgstr "Trình mở rộng được thả vào là đến từ một kho lưu trữ chưa biết đến."
 
@@ -113977,6 +113846,10 @@ msgid "Theme \"{:s}\" is already installed!"
 msgstr "Chủ đề \"{:s}\" đã được cài đặt rồi!"
 
 
+msgid "Name: {:s}"
+msgstr "Tên: {:s}"
+
+
 msgid "Path: {:s}"
 msgstr "Đường dẫn: {:s}"
 
@@ -113987,6 +113860,18 @@ msgstr "Không thể cài đặt từ đường dẫn tương đối được"
 
 msgid "Unable to install a directory"
 msgstr "Không thể cài đặt một thư mục được"
+
+
+msgid "Do you want to install the following {:s}?"
+msgstr "Bạn có muốn cài đặt cái sau đây không {:s}?"
+
+
+msgid "Repository: {:s}"
+msgstr "Kho lưu trữ: {:s}"
+
+
+msgid "Size: {:s}"
+msgstr "Kích thước: {:s}"
 
 
 msgid "Age: {:s}"
@@ -115058,10 +114943,6 @@ msgid "{} does not seem to be part of a sequence"
 msgstr "{} có vẻ như không phải là một phần của trình tự"
 
 
-msgid "Ignored {}, "
-msgstr "Bỏ qua {}, "
-
-
 msgid "Deleted {} nodes"
 msgstr "Đã xóa {} nút"
 
@@ -115110,16 +114991,16 @@ msgid "This node has no inputs to swap"
 msgstr "Nút này không có đầu vào để hoán đổi được"
 
 
+msgid "Ignored {}"
+msgstr "Bỏ qua {}"
+
+
 msgid "This node has no input connections to swap"
 msgstr "Nút này không có kết nối đầu vào nào để hoán đổi được cả"
 
 
 msgid "Ignored {} (not of the same type as {})"
 msgstr "Bỏ qua {} (bất đồng thể loại với {})"
-
-
-msgid "Ignored {}"
-msgstr "Bỏ qua {}"
 
 
 msgid "Some connections have been lost due to differing numbers of output sockets"
@@ -116028,12 +115909,12 @@ msgid "(Unassigned)"
 msgstr "(Chưa Ấn Định)"
 
 
-msgid "{:s} (unavailable)"
-msgstr "{:s} (không có sẵn để sử dụng)"
-
-
 msgid "{:s} (Global)"
 msgstr "{:s} (Toàn cầu)"
+
+
+msgid "{:s} (unavailable)"
+msgstr "{:s} (không có sẵn để sử dụng)"
 
 
 msgctxt "Operator"
@@ -119628,6 +119509,10 @@ msgid "Clear Recent Items"
 msgstr "Xóa Mục Gần Đây"
 
 
+msgid "Source List"
+msgstr "Danh Sách Nguồn"
+
+
 msgctxt "Operator"
 msgid "Back"
 msgstr "Sau"
@@ -120960,11 +120845,6 @@ msgstr "Xóa Khoảng Cách Trống (Toàn Bộ)"
 
 
 msgctxt "Operator"
-msgid "Hold Split"
-msgstr "Tách Phân có Duy Trì"
-
-
-msgctxt "Operator"
 msgid "Delete Strip & Data"
 msgstr "Xóa Dải & Dữ Liệu"
 
@@ -121132,11 +121012,6 @@ msgid "File: {:s}"
 msgstr "Tập tin: {:s}"
 
 
-msgctxt "WindowManager"
-msgid "Keying"
-msgstr "Khóa Hóa"
-
-
 msgctxt "Operator"
 msgid "Move Marker"
 msgstr "Di Chuyển Dấu Mốc"
@@ -121199,6 +121074,11 @@ msgid "Only Active Keying Set"
 msgstr "Duy Bộ Khóa đang Hoạt Động"
 
 
+msgctxt "WindowManager"
+msgid "Keying"
+msgstr "Khóa Hóa"
+
+
 msgid "Layered Recording"
 msgstr "Thu Ghi Phân Tầng"
 
@@ -121209,10 +121089,6 @@ msgstr "Không tìm thấy nhóm thanh công cụ"
 
 msgid "Taper Start"
 msgstr "Vuốt Thon Khởi Đầu"
-
-
-msgid "Weight: {:.3f}"
-msgstr "Trọng lượng: {:.3f}"
 
 
 msgid "Style Start"
@@ -121293,6 +121169,10 @@ msgstr "Thêm hình trụ vào khung lưới một cách tương tác"
 
 msgid "Add sphere to mesh interactively"
 msgstr "Thêm hình cầu vào khung lưới một cách tương tác"
+
+
+msgid "Weight: {:.3f}"
+msgstr "Trọng lượng: {:.3f}"
 
 
 msgctxt "Operator"
@@ -127635,11 +127515,6 @@ msgid "Lightness"
 msgstr "Độ Sáng"
 
 
-msgctxt "Color"
-msgid "Value"
-msgstr "Giá Trị"
-
-
 msgid "Redo"
 msgstr "Tái Tác"
 
@@ -127760,18 +127635,6 @@ msgstr "Di chuyển {} xuống dưới {}"
 
 msgid "Manual Scale"
 msgstr "Tỷ Lệ Thủ Công"
-
-
-msgid "Only Alembic Procedurals supported"
-msgstr "Duy hỗ trợ Thủ Tục Alembic mà thôi"
-
-
-msgid "The Cycles Alembic Procedural is only available with the experimental feature set"
-msgstr "Thủ tục Alembic của Cycles chỉ có sẵn để sử dụng trong bộ tính năng thử nghiệm mà thôi"
-
-
-msgid "The active render engine does not have an Alembic Procedural"
-msgstr "Động cơ kết xuất đang hoạt động không có Thủ Tục Alembic (Alembic Procedural)"
 
 
 msgid "Sort By:"
@@ -139602,10 +139465,6 @@ msgid "The middle value in each group when all values are sorted from lowest to 
 msgstr "Giá trị giữa trong mỗi nhóm khi toàn bộ các giá trị được sắp xếp theo thứ tự tăng dần"
 
 
-msgid "The values the mininum and maximum will be calculated from"
-msgstr "Các giá trị dùng để tính giá trị nhỏ nhất và lớn nhất"
-
-
 msgid "The lowest value in each group"
 msgstr "Giá trị thấp nhất trong mỗi nhóm"
 
@@ -139636,14 +139495,6 @@ msgstr "Hình Học Chính"
 
 msgid "Generated Geometry"
 msgstr "Hình Học Sinh Tạo"
-
-
-msgid "For Each Element  Main"
-msgstr "Đối Với Mỗi Phần Tử  Chính"
-
-
-msgid "For Each Element  Generated"
-msgstr "Đối Với Mỗi Phần Tử  Sinh Tạo"
 
 
 msgid "Each output field has to correspond to a geometry that is above it"
@@ -141647,10 +141498,6 @@ msgid "Strength of the light source"
 msgstr "Cường độ của nguồn sáng"
 
 
-msgid "Color input on which invertion will be applied"
-msgstr "Đầu vào màu dùng để đảo ngược"
-
-
 msgid "Facing"
 msgstr "Đối Mặt"
 
@@ -142039,10 +141886,6 @@ msgstr "Góc độ dùng để xoay chiều véctơ đầu vào"
 
 msgid "The amount of rotation on each axis, around the X, Y, then Z axes in that order"
 msgstr "Lượng xoay chiều trên mỗi trục, xung quanh các trục X, Y, rồi Z trong thứ tự đó"
-
-
-msgid "Vector, point, or normal which will be used for convertion between spaces"
-msgstr "Véctơ, điểm, hoặc pháp tuyến, tức những cái sẽ được sử dụng để chuyển đổi giữa các không gian"
 
 
 msgid "No mesh in active object"
