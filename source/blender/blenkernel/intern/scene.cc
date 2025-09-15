@@ -1840,6 +1840,10 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
     if (!is_subprocess) {
       BKE_main_id_newptr_and_tag_clear(bmain);
     }
+
+    /* Usages of the duplicated scene also need to be remapped in new duplicated IDs. */
+    ID_NEW_SET(sce, sce_copy);
+
     if (is_root_id) {
       /* In case root duplicated ID is linked, assume we want to get a local copy of it and
        * duplicate all expected linked data. */
