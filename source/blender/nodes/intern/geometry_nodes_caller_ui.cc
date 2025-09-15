@@ -805,13 +805,14 @@ static void draw_property_for_output_socket(DrawGroupInputsContext &ctx,
 
 static void draw_output_attributes_panel(DrawGroupInputsContext &ctx, uiLayout *layout)
 {
-  if (ctx.tree != nullptr && !ctx.properties) {
-    for (const bNodeTreeInterfaceSocket *socket : ctx.tree->interface_outputs()) {
-      const bke::bNodeSocketType *typeinfo = socket->socket_typeinfo();
-      const eNodeSocketDatatype type = typeinfo ? typeinfo->type : SOCK_CUSTOM;
-      if (nodes::socket_type_has_attribute_toggle(type)) {
-        draw_property_for_output_socket(ctx, layout, *socket);
-      }
+  if (!ctx.tree || !ctx.properties) {
+    return;
+  }
+  for (const bNodeTreeInterfaceSocket *socket : ctx.tree->interface_outputs()) {
+    const bke::bNodeSocketType *typeinfo = socket->socket_typeinfo();
+    const eNodeSocketDatatype type = typeinfo ? typeinfo->type : SOCK_CUSTOM;
+    if (nodes::socket_type_has_attribute_toggle(type)) {
+      draw_property_for_output_socket(ctx, layout, *socket);
     }
   }
 }
