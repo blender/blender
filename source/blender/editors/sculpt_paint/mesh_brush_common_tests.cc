@@ -12,6 +12,8 @@
 
 #include "GEO_mesh_primitive_cuboid.hh"
 
+#include "CLG_log.h"
+
 #include "testing/testing.h"
 
 namespace blender::ed::sculpt_paint::tests {
@@ -21,7 +23,13 @@ class MeshTests : public testing::Test {
 
   static void SetUpTestSuite()
   {
+    CLG_init();
     BKE_idtype_init();
+  }
+
+  static void TearDownTestSuite()
+  {
+    CLG_exit();
   }
 
   void SetUp() override
