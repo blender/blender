@@ -12,18 +12,25 @@
 
 #include "NOD_multi_function.hh"
 
-#include "UI_interface_layout.hh"
-#include "UI_resources.hh"
-
 #include "GPU_material.hh"
 
 #include "node_composite_util.hh"
 
-/* **************** SET ALPHA ******************** */
-
 namespace blender::nodes::node_composite_setalpha_cc {
 
-NODE_STORAGE_FUNCS(NodeSetAlpha)
+static const EnumPropertyItem type_items[] = {
+    {CMP_NODE_SETALPHA_MODE_APPLY,
+     "APPLY",
+     0,
+     "Apply Mask",
+     "Multiply the input image's RGBA channels by the alpha input value"},
+    {CMP_NODE_SETALPHA_MODE_REPLACE_ALPHA,
+     "REPLACE_ALPHA",
+     0,
+     "Replace Alpha",
+     "Replace the input image's alpha channel by the alpha input value"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
 
 static void cmp_node_setalpha_declare(NodeDeclarationBuilder &b)
 {
@@ -36,27 +43,20 @@ static void cmp_node_setalpha_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(1.0f)
       .compositor_domain_priority(1);
+  b.add_input<decl::Menu>("Type")
+      .default_value(CMP_NODE_SETALPHA_MODE_APPLY)
+      .static_items(type_items);
   b.add_output<decl::Color>("Image");
 }
 
 static void node_composit_init_setalpha(bNodeTree * /*ntree*/, bNode *node)
 {
+  /* Unused, but allocated for forward compatibility. */
   NodeSetAlpha *settings = MEM_callocN<NodeSetAlpha>(__func__);
   node->storage = settings;
-  settings->mode = CMP_NODE_SETALPHA_MODE_APPLY;
-}
-
-static void node_composit_buts_set_alpha(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  layout->prop(ptr, "mode", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 using namespace blender::compositor;
-
-static CMPNodeSetAlphaMode get_mode(const bNode &node)
-{
-  return static_cast<CMPNodeSetAlphaMode>(node_storage(node).mode);
-}
 
 static int node_gpu_material(GPUMaterial *material,
                              bNode *node,
@@ -64,36 +64,25 @@ static int node_gpu_material(GPUMaterial *material,
                              GPUNodeStack *inputs,
                              GPUNodeStack *outputs)
 {
-  switch (get_mode(*node)) {
-    case CMP_NODE_SETALPHA_MODE_APPLY:
-      return GPU_stack_link(material, node, "node_composite_set_alpha_apply", inputs, outputs);
-    case CMP_NODE_SETALPHA_MODE_REPLACE_ALPHA:
-      return GPU_stack_link(material, node, "node_composite_set_alpha_replace", inputs, outputs);
-  }
-
-  return false;
+  return GPU_stack_link(material, node, "node_composite_set_alpha", inputs, outputs);
 }
 
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  static auto apply_function = mf::build::SI2_SO<float4, float, float4>(
-      "Set Alpha Apply",
-      [](const float4 &color, const float alpha) -> float4 { return color * alpha; },
+  static auto function = mf::build::SI3_SO<float4, float, MenuValue, float4>(
+      "Set Alpha",
+      [](const float4 &color, const float alpha, const MenuValue type) -> float4 {
+        switch (CMPNodeSetAlphaMode(type.value)) {
+          case CMP_NODE_SETALPHA_MODE_APPLY:
+            return color * alpha;
+          case CMP_NODE_SETALPHA_MODE_REPLACE_ALPHA:
+            return float4(color.xyz(), alpha);
+        }
+        return color;
+      },
       mf::build::exec_presets::AllSpanOrSingle());
 
-  static auto replace_function = mf::build::SI2_SO<float4, float, float4>(
-      "Set Alpha Replace",
-      [](const float4 &color, const float alpha) -> float4 { return float4(color.xyz(), alpha); },
-      mf::build::exec_presets::AllSpanOrSingle());
-
-  switch (get_mode(builder.node())) {
-    case CMP_NODE_SETALPHA_MODE_APPLY:
-      builder.set_matching_fn(apply_function);
-      break;
-    case CMP_NODE_SETALPHA_MODE_REPLACE_ALPHA:
-      builder.set_matching_fn(replace_function);
-      break;
-  }
+  builder.set_matching_fn(function);
 }
 
 }  // namespace blender::nodes::node_composite_setalpha_cc
@@ -110,7 +99,6 @@ static void register_node_type_cmp_setalpha()
   ntype.enum_name_legacy = "SETALPHA";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::cmp_node_setalpha_declare;
-  ntype.draw_buttons = file_ns::node_composit_buts_set_alpha;
   ntype.initfunc = file_ns::node_composit_init_setalpha;
   blender::bke::node_type_storage(
       ntype, "NodeSetAlpha", node_free_standard_storage, node_copy_standard_storage);

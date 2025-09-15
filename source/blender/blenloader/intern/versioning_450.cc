@@ -2732,13 +2732,15 @@ static void do_version_composite_viewer_remove_alpha(bNodeTree *node_tree)
       set_alpha_node->location[0] = node->location[0] - node->width - 20.0f;
       set_alpha_node->location[1] = node->location[1];
 
-      NodeSetAlpha *data = static_cast<NodeSetAlpha *>(set_alpha_node->storage);
-      data->mode = CMP_NODE_SETALPHA_MODE_REPLACE_ALPHA;
-
       bNodeSocket *set_alpha_input = blender::bke::node_find_socket(
           *set_alpha_node, SOCK_IN, "Image");
+      bNodeSocket *set_alpha_type = blender::bke::node_find_socket(
+          *set_alpha_node, SOCK_IN, "Type");
       bNodeSocket *set_alpha_output = blender::bke::node_find_socket(
           *set_alpha_node, SOCK_OUT, "Image");
+
+      set_alpha_type->default_value_typed<bNodeSocketValueMenu>()->value =
+          CMP_NODE_SETALPHA_MODE_REPLACE_ALPHA;
 
       version_node_add_link(*node_tree,
                             *image_link->fromnode,
@@ -2766,15 +2768,16 @@ static void do_version_composite_viewer_remove_alpha(bNodeTree *node_tree)
     set_alpha_node->location[0] = node->location[0] - node->width - 20.0f;
     set_alpha_node->location[1] = node->location[1];
 
-    NodeSetAlpha *data = static_cast<NodeSetAlpha *>(set_alpha_node->storage);
-    data->mode = CMP_NODE_SETALPHA_MODE_REPLACE_ALPHA;
-
     bNodeSocket *set_alpha_input = blender::bke::node_find_socket(
         *set_alpha_node, SOCK_IN, "Image");
     bNodeSocket *set_alpha_alpha = blender::bke::node_find_socket(
         *set_alpha_node, SOCK_IN, "Alpha");
+    bNodeSocket *set_alpha_type = blender::bke::node_find_socket(*set_alpha_node, SOCK_IN, "Type");
     bNodeSocket *set_alpha_output = blender::bke::node_find_socket(
         *set_alpha_node, SOCK_OUT, "Image");
+
+    set_alpha_type->default_value_typed<bNodeSocketValueMenu>()->value =
+        CMP_NODE_SETALPHA_MODE_REPLACE_ALPHA;
 
     version_node_add_link(*node_tree,
                           *alpha_link->fromnode,
@@ -2822,12 +2825,16 @@ static void do_version_bright_contrast_remove_premultiplied(bNodeTree *node_tree
     convert_alpha_node->parent = link->tonode->parent;
     convert_alpha_node->location[0] = link->tonode->location[0] - link->tonode->width - 20.0f;
     convert_alpha_node->location[1] = link->tonode->location[1];
-    convert_alpha_node->custom1 = CMP_NODE_ALPHA_CONVERT_UNPREMULTIPLY;
 
     bNodeSocket *convert_alpha_input = blender::bke::node_find_socket(
         *convert_alpha_node, SOCK_IN, "Image");
+    bNodeSocket *convert_alpha_type = blender::bke::node_find_socket(
+        *convert_alpha_node, SOCK_IN, "Type");
     bNodeSocket *convert_alpha_output = blender::bke::node_find_socket(
         *convert_alpha_node, SOCK_OUT, "Image");
+
+    convert_alpha_type->default_value_typed<bNodeSocketValueMenu>()->value =
+        CMP_NODE_ALPHA_CONVERT_UNPREMULTIPLY;
 
     version_node_add_link(
         *node_tree, *link->fromnode, *link->fromsock, *convert_alpha_node, *convert_alpha_input);
@@ -2851,12 +2858,16 @@ static void do_version_bright_contrast_remove_premultiplied(bNodeTree *node_tree
     convert_alpha_node->parent = link->fromnode->parent;
     convert_alpha_node->location[0] = link->fromnode->location[0] + link->fromnode->width + 20.0f;
     convert_alpha_node->location[1] = link->fromnode->location[1];
-    convert_alpha_node->custom1 = CMP_NODE_ALPHA_CONVERT_PREMULTIPLY;
 
     bNodeSocket *convert_alpha_input = blender::bke::node_find_socket(
         *convert_alpha_node, SOCK_IN, "Image");
+    bNodeSocket *convert_alpha_type = blender::bke::node_find_socket(
+        *convert_alpha_node, SOCK_IN, "Type");
     bNodeSocket *convert_alpha_output = blender::bke::node_find_socket(
         *convert_alpha_node, SOCK_OUT, "Image");
+
+    convert_alpha_type->default_value_typed<bNodeSocketValueMenu>()->value =
+        CMP_NODE_ALPHA_CONVERT_PREMULTIPLY;
 
     version_node_add_link(
         *node_tree, *link->fromnode, *link->fromsock, *convert_alpha_node, *convert_alpha_input);
@@ -2907,12 +2918,16 @@ static void do_version_alpha_over_remove_premultiply(bNodeTree *node_tree)
     to_straight_node->parent = link->tonode->parent;
     to_straight_node->location[0] = mix_node->location[0] - mix_node->width - 20.0f;
     to_straight_node->location[1] = mix_node->location[1];
-    to_straight_node->custom1 = CMP_NODE_ALPHA_CONVERT_UNPREMULTIPLY;
 
     bNodeSocket *to_straight_input = blender::bke::node_find_socket(
         *to_straight_node, SOCK_IN, "Image");
+    bNodeSocket *to_straight_type = blender::bke::node_find_socket(
+        *to_straight_node, SOCK_IN, "Type");
     bNodeSocket *to_straight_output = blender::bke::node_find_socket(
         *to_straight_node, SOCK_OUT, "Image");
+
+    to_straight_type->default_value_typed<bNodeSocketValueMenu>()->value =
+        CMP_NODE_ALPHA_CONVERT_UNPREMULTIPLY;
 
     bNode *to_premultiplied_node = blender::bke::node_add_static_node(
         nullptr, *node_tree, CMP_NODE_PREMULKEY);
@@ -2920,12 +2935,16 @@ static void do_version_alpha_over_remove_premultiply(bNodeTree *node_tree)
     to_premultiplied_node->location[0] = to_straight_node->location[0] - to_straight_node->width -
                                          20.0f;
     to_premultiplied_node->location[1] = to_straight_node->location[1];
-    to_premultiplied_node->custom1 = CMP_NODE_ALPHA_CONVERT_PREMULTIPLY;
 
     bNodeSocket *to_premultiplied_input = blender::bke::node_find_socket(
         *to_premultiplied_node, SOCK_IN, "Image");
+    bNodeSocket *to_premultiplied_type = blender::bke::node_find_socket(
+        *to_premultiplied_node, SOCK_IN, "Type");
     bNodeSocket *to_premultiplied_output = blender::bke::node_find_socket(
         *to_premultiplied_node, SOCK_OUT, "Image");
+
+    to_premultiplied_type->default_value_typed<bNodeSocketValueMenu>()->value =
+        CMP_NODE_ALPHA_CONVERT_PREMULTIPLY;
 
     version_node_add_link(*node_tree,
                           *link->fromnode,

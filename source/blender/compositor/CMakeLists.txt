@@ -286,6 +286,7 @@ set(GLSL_SRC
   shaders/library/gpu_shader_compositor_color_matte.glsl
   shaders/library/gpu_shader_compositor_color_spill.glsl
   shaders/library/gpu_shader_compositor_color_to_luminance.glsl
+  shaders/library/gpu_shader_compositor_convert_alpha.glsl
   shaders/library/gpu_shader_compositor_difference_matte.glsl
   shaders/library/gpu_shader_compositor_distance_matte.glsl
   shaders/library/gpu_shader_compositor_eval.glsl

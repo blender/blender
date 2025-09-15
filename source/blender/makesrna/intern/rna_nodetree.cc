@@ -3424,83 +3424,6 @@ static void rna_Node_view_layer_update(Main *bmain, Scene *scene, PointerRNA *pt
   }
 }
 
-static const EnumPropertyItem *rna_Node_channel_itemf(bContext * /*C*/,
-                                                      PointerRNA *ptr,
-                                                      PropertyRNA * /*prop*/,
-                                                      bool *r_free)
-{
-  bNode *node = ptr->data_as<bNode>();
-  EnumPropertyItem *item = nullptr;
-  EnumPropertyItem tmp = {0};
-  int totitem = 0;
-
-  switch (node->custom1) {
-    case CMP_NODE_CHANNEL_MATTE_CS_RGB:
-      tmp.identifier = "R";
-      tmp.name = "R";
-      tmp.value = 1;
-      RNA_enum_item_add(&item, &totitem, &tmp);
-      tmp.identifier = "G";
-      tmp.name = "G";
-      tmp.value = 2;
-      RNA_enum_item_add(&item, &totitem, &tmp);
-      tmp.identifier = "B";
-      tmp.name = "B";
-      tmp.value = 3;
-      RNA_enum_item_add(&item, &totitem, &tmp);
-      break;
-    case CMP_NODE_CHANNEL_MATTE_CS_HSV:
-      tmp.identifier = "H";
-      tmp.name = "H";
-      tmp.value = 1;
-      RNA_enum_item_add(&item, &totitem, &tmp);
-      tmp.identifier = "S";
-      tmp.name = "S";
-      tmp.value = 2;
-      RNA_enum_item_add(&item, &totitem, &tmp);
-      tmp.identifier = "V";
-      tmp.name = "V";
-      tmp.value = 3;
-      RNA_enum_item_add(&item, &totitem, &tmp);
-      break;
-    case CMP_NODE_CHANNEL_MATTE_CS_YUV:
-      tmp.identifier = "Y";
-      tmp.name = "Y";
-      tmp.value = 1;
-      RNA_enum_item_add(&item, &totitem, &tmp);
-      tmp.identifier = "G";
-      tmp.name = "U";
-      tmp.value = 2;
-      RNA_enum_item_add(&item, &totitem, &tmp);
-      tmp.identifier = "V";
-      tmp.name = "V";
-      tmp.value = 3;
-      RNA_enum_item_add(&item, &totitem, &tmp);
-      break;
-    case CMP_NODE_CHANNEL_MATTE_CS_YCC:
-      tmp.identifier = "Y";
-      tmp.name = "Y";
-      tmp.value = 1;
-      RNA_enum_item_add(&item, &totitem, &tmp);
-      tmp.identifier = "CB";
-      tmp.name = "Cr";
-      tmp.value = 2;
-      RNA_enum_item_add(&item, &totitem, &tmp);
-      tmp.identifier = "CR";
-      tmp.name = "Cb";
-      tmp.value = 3;
-      RNA_enum_item_add(&item, &totitem, &tmp);
-      break;
-    default:
-      return rna_enum_dummy_NULL_items;
-  }
-
-  RNA_enum_item_end(&item, &totitem);
-  *r_free = true;
-
-  return item;
-}
-
 static void rna_Image_Node_update_id(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   bNode *node = ptr->data_as<bNode>();
@@ -4213,13 +4136,6 @@ static const EnumPropertyItem prop_image_view_items[] = {
 
 static const EnumPropertyItem prop_view_layer_items[] = {
     {0, "PLACEHOLDER", 0, "Placeholder", ""},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-
-static const EnumPropertyItem prop_tri_channel_items[] = {
-    {1, "R", 0, "R", "Red"},
-    {2, "G", 0, "G", "Green"},
-    {3, "B", 0, "B", "Blue"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -6286,32 +6202,6 @@ static void def_sh_script(BlenderRNA * /*brna*/, StructRNA *srna)
 
 /* -- Compositor Nodes ------------------------------------------------------ */
 
-static void def_cmp_set_alpha(BlenderRNA * /*brna*/, StructRNA *srna)
-{
-  PropertyRNA *prop;
-
-  static const EnumPropertyItem mode_items[] = {
-      {CMP_NODE_SETALPHA_MODE_APPLY,
-       "APPLY",
-       0,
-       "Apply Mask",
-       "Multiply the input image's RGBA channels by the alpha input value"},
-      {CMP_NODE_SETALPHA_MODE_REPLACE_ALPHA,
-       "REPLACE_ALPHA",
-       0,
-       "Replace Alpha",
-       "Replace the input image's alpha channel by the alpha input value"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
-  RNA_def_struct_sdna_from(srna, "NodeSetAlpha", "storage");
-
-  prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, mode_items);
-  RNA_def_property_ui_text(prop, "Mode", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-}
-
 static void def_node_image_user(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   PropertyRNA *prop;
@@ -6505,23 +6395,6 @@ static void def_cmp_file_output(BlenderRNA *brna, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, nullptr);
 }
 
-static void def_cmp_distance_matte(BlenderRNA * /*brna*/, StructRNA *srna)
-{
-  static const EnumPropertyItem color_space_items[] = {
-      {CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_RGBA, "RGB", 0, "RGB", "RGB color space"},
-      {CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_YCCA, "YCC", 0, "YCC", "YCbCr suppression"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
-  RNA_def_struct_sdna_from(srna, "NodeChroma", "storage");
-
-  PropertyRNA *prop = RNA_def_property(srna, "channel", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "channel");
-  RNA_def_property_enum_items(prop, color_space_items);
-  RNA_def_property_ui_text(prop, "Channel", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-}
-
 static void def_cmp_convert_color_space(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   PropertyRNA *prop;
@@ -6562,105 +6435,6 @@ static void def_cmp_convert_to_display(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_pointer_sdna(prop, nullptr, "display_settings");
   RNA_def_property_struct_type(prop, "ColorManagedDisplaySettings");
   RNA_def_property_ui_text(prop, "Display Settings", "Color management display device settings");
-}
-
-static void def_cmp_color_spill(BlenderRNA * /*brna*/, StructRNA *srna)
-{
-  PropertyRNA *prop;
-
-  static const EnumPropertyItem channel_items[] = {
-      {1, "R", 0, "R", "Red spill suppression"},
-      {2, "G", 0, "G", "Green spill suppression"},
-      {3, "B", 0, "B", "Blue spill suppression"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
-  static const EnumPropertyItem limit_channel_items[] = {
-      {0, "R", 0, "R", "Limit by red"},
-      {1, "G", 0, "G", "Limit by green"},
-      {2, "B", 0, "B", "Limit by blue"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
-  static const EnumPropertyItem algorithm_items[] = {
-      {0, "SIMPLE", 0, "Simple", "Simple limit algorithm"},
-      {1, "AVERAGE", 0, "Average", "Average limit algorithm"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
-  prop = RNA_def_property(srna, "channel", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "custom1");
-  RNA_def_property_enum_items(prop, channel_items);
-  RNA_def_property_ui_text(prop, "Channel", "");
-  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_COLOR);
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-
-  prop = RNA_def_property(srna, "limit_method", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "custom2");
-  RNA_def_property_enum_items(prop, algorithm_items);
-  RNA_def_property_ui_text(prop, "Algorithm", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-
-  RNA_def_struct_sdna_from(srna, "NodeColorspill", "storage");
-
-  prop = RNA_def_property(srna, "limit_channel", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "limchan");
-  RNA_def_property_enum_items(prop, limit_channel_items);
-  RNA_def_property_ui_text(prop, "Limit Channel", "");
-  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_COLOR);
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-}
-
-static void def_cmp_channel_matte(BlenderRNA * /*brna*/, StructRNA *srna)
-{
-  PropertyRNA *prop;
-  static const EnumPropertyItem color_space_items[] = {
-      {CMP_NODE_CHANNEL_MATTE_CS_RGB, "RGB", 0, "RGB", "RGB (Red, Green, Blue) color space"},
-      {CMP_NODE_CHANNEL_MATTE_CS_HSV, "HSV", 0, "HSV", "HSV (Hue, Saturation, Value) color space"},
-      {CMP_NODE_CHANNEL_MATTE_CS_YUV, "YUV", 0, "YUV", "YUV (Y - luma, U V - chroma) color space"},
-      {CMP_NODE_CHANNEL_MATTE_CS_YCC,
-       "YCC",
-       0,
-       "YCbCr",
-       "YCbCr (Y - luma, Cb - blue-difference chroma, Cr - red-difference chroma) color space"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
-  static const EnumPropertyItem algorithm_items[] = {
-      {0, "SINGLE", 0, "Single", "Limit by single channel"},
-      {1, "MAX", 0, "Max", "Limit by maximum of other channels"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
-  prop = RNA_def_property(srna, "color_space", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "custom1");
-  RNA_def_property_enum_items(prop, color_space_items);
-  RNA_def_property_ui_text(prop, "Color Space", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-
-  prop = RNA_def_property(srna, "matte_channel", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "custom2");
-  RNA_def_property_enum_items(prop, prop_tri_channel_items);
-  RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_Node_channel_itemf");
-  RNA_def_property_ui_text(prop, "Channel", "Channel used to determine matte");
-  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_COLOR);
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-
-  RNA_def_struct_sdna_from(srna, "NodeChroma", "storage");
-
-  prop = RNA_def_property(srna, "limit_method", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "algorithm");
-  RNA_def_property_enum_items(prop, algorithm_items);
-  RNA_def_property_ui_text(prop, "Algorithm", "Algorithm to use to limit channel");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-
-  prop = RNA_def_property(srna, "limit_channel", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "channel");
-  RNA_def_property_enum_items(prop, prop_tri_channel_items);
-  RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_Node_channel_itemf");
-  RNA_def_property_ui_text(prop, "Limit Channel", "Limit by this channel's value");
-  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_COLOR);
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
 static void def_cmp_double_edge_mask(BlenderRNA * /*brna*/, StructRNA *srna)
@@ -6771,48 +6545,9 @@ static void def_cmp_defocus(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
-static void def_cmp_premul_key(BlenderRNA * /*brna*/, StructRNA *srna)
-{
-  PropertyRNA *prop;
-
-  static const EnumPropertyItem type_items[] = {
-      {0, "STRAIGHT_TO_PREMUL", 0, "To Premultiplied", "Convert straight to premultiplied"},
-      {1, "PREMUL_TO_STRAIGHT", 0, "To Straight", "Convert premultiplied to straight"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
-  prop = RNA_def_property(srna, "mapping", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "custom1");
-  RNA_def_property_enum_items(prop, type_items);
-  RNA_def_property_ui_text(
-      prop, "Mapping", "Conversion between premultiplied alpha and key alpha");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-}
-
 static void def_cmp_colorbalance(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   PropertyRNA *prop;
-
-  static const EnumPropertyItem type_items[] = {
-      {CMP_NODE_COLOR_BALANCE_LGG, "LIFT_GAMMA_GAIN", 0, "Lift/Gamma/Gain", ""},
-      {CMP_NODE_COLOR_BALANCE_ASC_CDL,
-       "OFFSET_POWER_SLOPE",
-       0,
-       "Offset/Power/Slope (ASC-CDL)",
-       "ASC-CDL standard color correction"},
-      {CMP_NODE_COLOR_BALANCE_WHITEPOINT,
-       "WHITEPOINT",
-       0,
-       "White Point",
-       "Chromatic adaption from a different white point"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
-  prop = RNA_def_property(srna, "correction_method", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "custom1");
-  RNA_def_property_enum_items(prop, type_items);
-  RNA_def_property_ui_text(prop, "Correction Formula", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "input_whitepoint", PROP_FLOAT, PROP_COLOR);
   RNA_def_property_array(prop, 3);
@@ -9924,12 +9659,12 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("CompositorNode", "CompositorNodeBokehImage");
   define("CompositorNode", "CompositorNodeBoxMask");
   define("CompositorNode", "CompositorNodeBrightContrast");
-  define("CompositorNode", "CompositorNodeChannelMatte", def_cmp_channel_matte);
+  define("CompositorNode", "CompositorNodeChannelMatte");
   define("CompositorNode", "CompositorNodeChromaMatte");
   define("CompositorNode", "CompositorNodeColorBalance", def_cmp_colorbalance);
   define("CompositorNode", "CompositorNodeColorCorrection");
   define("CompositorNode", "CompositorNodeColorMatte");
-  define("CompositorNode", "CompositorNodeColorSpill", def_cmp_color_spill);
+  define("CompositorNode", "CompositorNodeColorSpill");
   define("CompositorNode", "CompositorNodeConvolve");
   define("CompositorNode", "CompositorNodeCombHSVA");
   define("CompositorNode", "CompositorNodeCombineColor", def_cmp_combsep_color);
@@ -9950,7 +9685,7 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("CompositorNode", "CompositorNodeDiffMatte");
   define("CompositorNode", "CompositorNodeDilateErode");
   define("CompositorNode", "CompositorNodeDisplace");
-  define("CompositorNode", "CompositorNodeDistanceMatte", def_cmp_distance_matte);
+  define("CompositorNode", "CompositorNodeDistanceMatte");
   define("CompositorNode", "CompositorNodeDoubleEdgeMask", def_cmp_double_edge_mask);
   define("CompositorNode", "CompositorNodeEllipseMask");
   define("CompositorNode", "CompositorNodeExposure");
@@ -9982,7 +9717,7 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("CompositorNode", "CompositorNodePixelate");
   define("CompositorNode", "CompositorNodePlaneTrackDeform", def_cmp_planetrackdeform);
   define("CompositorNode", "CompositorNodePosterize");
-  define("CompositorNode", "CompositorNodePremulKey", def_cmp_premul_key);
+  define("CompositorNode", "CompositorNodePremulKey");
   define("CompositorNode", "CompositorNodeRelativeToPixel");
   define("CompositorNode", "CompositorNodeRGB");
   define("CompositorNode", "CompositorNodeRGBToBW");
@@ -9995,7 +9730,7 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("CompositorNode", "CompositorNodeSepRGBA");
   define("CompositorNode", "CompositorNodeSepYCCA", def_cmp_ycc);
   define("CompositorNode", "CompositorNodeSepYUVA");
-  define("CompositorNode", "CompositorNodeSetAlpha", def_cmp_set_alpha);
+  define("CompositorNode", "CompositorNodeSetAlpha");
   define("CompositorNode", "CompositorNodeSplit");
   define("CompositorNode", "CompositorNodeStabilize", def_cmp_stabilize2d);
   define("CompositorNode", "CompositorNodeSwitch");
