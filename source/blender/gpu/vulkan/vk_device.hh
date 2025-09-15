@@ -345,8 +345,8 @@ class VKDevice : public NonCopyable {
     return is_initialized_;
   }
 
-  eGPUDeviceType device_type() const;
-  eGPUDriverType driver_type() const;
+  GPUDeviceType device_type() const;
+  GPUDriverType driver_type() const;
   std::string vendor_name() const;
   std::string driver_version() const;
 

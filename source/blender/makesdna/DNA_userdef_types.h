@@ -502,7 +502,7 @@ typedef struct UserDef {
 
   char _pad16[2];
 
-  /** #eGPUBackendType */
+  /** #GPUBackendType */
   short gpu_backend;
 
   /** Number of samples for FPS display calculations. */
@@ -827,7 +827,7 @@ typedef enum eUserpref_GPU_Flag {
 } eUserpref_GPU_Flag;
 
 /** #UserDef.gpu_backend
- * NOTE: Keep in sync with eGPUBackendType. */
+ * NOTE: Keep in sync with GPUBackendType. */
 enum eUserPref_GPUBackendType {
   USER_GPU_BACKEND_OPENGL = 1 << 0,
   USER_GPU_BACKEND_METAL = 1 << 1,

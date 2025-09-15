@@ -126,7 +126,7 @@ struct MTLShaderUniform {
   /* Index of `MTLShaderBufferBlock` this uniform belongs to. */
   uint32_t size_in_bytes;
   uint32_t byte_offset;
-  eMTLDataType type;
+  MTLInterfaceDataType type;
   uint32_t array_len;
 };
 
@@ -141,8 +141,8 @@ struct MTLShaderTexture {
   int slot_index;
   /* Explicit bind location for texture. */
   int location;
-  eGPUTextureType type;
-  eGPUSamplerFormat sampler_format;
+  GPUTextureType type;
+  GPUSamplerFormat sampler_format;
   ShaderStage stage_mask;
   /* Whether texture resource is expected to be image or sampler. */
   bool is_texture_sampler;
@@ -159,7 +159,7 @@ struct MTLShaderSampler {
 };
 
 /* Utility Functions. */
-MTLVertexFormat mtl_datatype_to_vertex_type(eMTLDataType type);
+MTLVertexFormat mtl_datatype_to_vertex_type(MTLInterfaceDataType type);
 
 /**
  * Implementation of Shader interface for Metal Back-end.
@@ -239,12 +239,12 @@ class MTLShaderInterface : public ShaderInterface {
                              uint32_t location,
                              uint32_t size,
                              ShaderStage stage_mask = ShaderStage::ANY);
-  void add_uniform(uint32_t name_offset, eMTLDataType type, int array_len = 1);
+  void add_uniform(uint32_t name_offset, MTLInterfaceDataType type, int array_len = 1);
   void add_texture(uint32_t name_offset,
                    uint32_t texture_slot,
                    uint32_t location,
-                   eGPUTextureType tex_binding_type,
-                   eGPUSamplerFormat sampler_format,
+                   GPUTextureType tex_binding_type,
+                   GPUSamplerFormat sampler_format,
                    bool is_texture_sampler,
                    ShaderStage stage_mask = ShaderStage::FRAGMENT,
                    int tex_buffer_ssbo_location = -1);

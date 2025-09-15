@@ -39,7 +39,7 @@ struct GPUPass {
   GPUCodegenCreateInfo *create_info = nullptr;
   BatchHandle compilation_handle = 0;
   std::atomic<blender::gpu::Shader *> shader = nullptr;
-  std::atomic<eGPUPassStatus> status = GPU_PASS_QUEUED;
+  std::atomic<GPUPassStatus> status = GPU_PASS_QUEUED;
   /* Orphaned GPUPasses gets freed by the garbage collector. */
   std::atomic<int> refcount = 1;
   double creation_timestamp = 0.0f;
@@ -158,7 +158,7 @@ struct GPUPass {
   }
 };
 
-eGPUPassStatus GPU_pass_status(GPUPass *pass)
+GPUPassStatus GPU_pass_status(GPUPass *pass)
 {
   return pass->status;
 }

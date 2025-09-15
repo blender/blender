@@ -24,7 +24,7 @@ enum GPUFunctionQual {
 
 struct GPUFunction {
   char name[MAX_FUNCTION_NAME];
-  eGPUType paramtype[MAX_PARAMETER];
+  GPUType paramtype[MAX_PARAMETER];
   GPUFunctionQual paramqual[MAX_PARAMETER];
   int totparam;
   /* TODO(@fclem): Clean that void pointer. */

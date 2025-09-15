@@ -281,7 +281,7 @@ VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(VKGraphicsInfo &graph
                                                                VK_FRONT_FACE_COUNTER_CLOCKWISE :
                                                                VK_FRONT_FACE_CLOCKWISE;
   vk_pipeline_rasterization_state_create_info_.cullMode = to_vk_cull_mode_flags(
-      static_cast<eGPUFaceCullTest>(graphics_info.state.culling_test));
+      static_cast<GPUFaceCullTest>(graphics_info.state.culling_test));
   if (graphics_info.state.shadow_bias) {
     vk_pipeline_rasterization_state_create_info_.depthBiasEnable = VK_TRUE;
     vk_pipeline_rasterization_state_create_info_.depthBiasSlopeFactor = 2.0f;

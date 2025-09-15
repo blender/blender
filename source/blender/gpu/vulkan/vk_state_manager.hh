@@ -230,7 +230,7 @@ class VKStateManager : public StateManager {
   void apply_state() override;
   void force_state() override;
 
-  void issue_barrier(eGPUBarrier barrier_bits) override;
+  void issue_barrier(GPUBarrier barrier_bits) override;
 
   void texture_bind(Texture *tex, GPUSamplerState sampler, int unit) override;
   void texture_unbind(Texture *tex) override;

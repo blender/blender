@@ -64,7 +64,7 @@ class GLStateManager : public StateManager {
    */
   void force_state() override;
 
-  void issue_barrier(eGPUBarrier barrier_bits) override;
+  void issue_barrier(GPUBarrier barrier_bits) override;
 
   void texture_bind(Texture *tex, GPUSamplerState sampler, int unit) override;
   /**
@@ -84,18 +84,18 @@ class GLStateManager : public StateManager {
   uint8_t bound_image_slots();
 
  private:
-  static void set_write_mask(eGPUWriteMask value);
-  static void set_depth_test(eGPUDepthTest value);
-  static void set_stencil_test(eGPUStencilTest test, eGPUStencilOp operation);
-  static void set_stencil_mask(eGPUStencilTest test, const GPUStateMutable &state);
+  static void set_write_mask(GPUWriteMask value);
+  static void set_depth_test(GPUDepthTest value);
+  static void set_stencil_test(GPUStencilTest test, GPUStencilOp operation);
+  static void set_stencil_mask(GPUStencilTest test, const GPUStateMutable &state);
   static void set_clip_distances(int new_dist_len, int old_dist_len);
   static void set_logic_op(bool enable);
   static void set_facing(bool invert);
-  static void set_backface_culling(eGPUFaceCullTest test);
-  static void set_provoking_vert(eGPUProvokingVertex vert);
+  static void set_backface_culling(GPUFaceCullTest test);
+  static void set_provoking_vert(GPUProvokingVertex vert);
   static void set_shadow_bias(bool enable);
   static void set_clip_control(bool enable);
-  static void set_blend(eGPUBlend value);
+  static void set_blend(GPUBlend value);
 
   void set_state(const GPUState &state);
   void set_mutable_state(const GPUStateMutable &state);
@@ -121,7 +121,7 @@ class GLFence : public Fence {
   MEM_CXX_CLASS_ALLOC_FUNCS("GLFence")
 };
 
-static inline GLbitfield to_gl(eGPUBarrier barrier_bits)
+static inline GLbitfield to_gl(GPUBarrier barrier_bits)
 {
   GLbitfield barrier = 0;
   if (barrier_bits & GPU_BARRIER_SHADER_IMAGE_ACCESS) {

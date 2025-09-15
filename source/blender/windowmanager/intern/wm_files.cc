@@ -503,7 +503,7 @@ static void wm_gpu_backend_override_from_userdef()
     return;
   }
 
-  GPU_backend_type_selection_set_override(eGPUBackendType(U.gpu_backend));
+  GPU_backend_type_selection_set_override(GPUBackendType(U.gpu_backend));
 }
 
 /**

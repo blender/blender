@@ -299,7 +299,7 @@ bool VKBackend::is_supported()
   return false;
 }
 
-static eGPUOSType determine_os_type()
+static GPUOSType determine_os_type()
 {
 #ifdef _WIN32
   return GPU_OS_WIN;
@@ -364,10 +364,10 @@ void VKBackend::platform_init(const VKDevice &device)
 {
   const VkPhysicalDeviceProperties &properties = device.physical_device_properties_get();
 
-  eGPUDeviceType device_type = device.device_type();
-  eGPUDriverType driver = device.driver_type();
-  eGPUOSType os = determine_os_type();
-  eGPUSupportLevel support_level = GPU_SUPPORT_LEVEL_SUPPORTED;
+  GPUDeviceType device_type = device.device_type();
+  GPUDriverType driver = device.driver_type();
+  GPUOSType os = determine_os_type();
+  GPUSupportLevel support_level = GPU_SUPPORT_LEVEL_SUPPORTED;
 
   std::string vendor_name = device.vendor_name();
   std::string driver_version = device.driver_version();

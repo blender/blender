@@ -374,7 +374,7 @@ constexpr int32_t PCI_ID_AMD = 0x1002;
 constexpr int32_t PCI_ID_ATI = 0x1022;
 constexpr int32_t PCI_ID_APPLE = 0x106b;
 
-eGPUDeviceType VKDevice::device_type() const
+GPUDeviceType VKDevice::device_type() const
 {
   switch (vk_physical_device_driver_properties_.driverID) {
     case VK_DRIVER_ID_AMD_PROPRIETARY:
@@ -406,7 +406,7 @@ eGPUDeviceType VKDevice::device_type() const
   return GPU_DEVICE_UNKNOWN;
 }
 
-eGPUDriverType VKDevice::driver_type() const
+GPUDriverType VKDevice::driver_type() const
 {
   switch (vk_physical_device_driver_properties_.driverID) {
     case VK_DRIVER_ID_AMD_PROPRIETARY:

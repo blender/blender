@@ -106,7 +106,7 @@ bool WM_platform_support_perform_checks()
 
   bool result = true;
 
-  eGPUSupportLevel support_level = GPU_platform_support_level();
+  GPUSupportLevel support_level = GPU_platform_support_level();
   const char *platform_key = GPU_platform_support_level_key();
 
   CLOG_INFO(&LOG, "Using GPU \"%s\"", GPU_platform_gpu_name());

@@ -188,10 +188,10 @@ void MTLBackend::platform_init(MTLContext *ctx)
     return;
   }
 
-  eGPUDeviceType device = GPU_DEVICE_UNKNOWN;
-  eGPUOSType os = GPU_OS_MAC;
-  eGPUDriverType driver = GPU_DRIVER_ANY;
-  eGPUSupportLevel support_level = GPU_SUPPORT_LEVEL_SUPPORTED;
+  GPUDeviceType device = GPU_DEVICE_UNKNOWN;
+  GPUOSType os = GPU_OS_MAC;
+  GPUDriverType driver = GPU_DRIVER_ANY;
+  GPUSupportLevel support_level = GPU_SUPPORT_LEVEL_SUPPORTED;
 
   BLI_assert(ctx);
   id<MTLDevice> mtl_device = ctx->device;

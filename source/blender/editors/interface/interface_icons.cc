@@ -1456,7 +1456,7 @@ static void icon_draw_rect(float x,
   }
 
   /* draw */
-  eGPUBuiltinShader shader;
+  GPUBuiltinShader shader;
   if (desaturate != 0.0f) {
     shader = GPU_SHADER_2D_IMAGE_DESATURATE_COLOR;
   }

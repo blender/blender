@@ -72,7 +72,7 @@ gpu::MTLTexture::MTLTexture(const char *name) : Texture(name)
 
 gpu::MTLTexture::MTLTexture(const char *name,
                             TextureFormat format,
-                            eGPUTextureType type,
+                            GPUTextureType type,
                             id<MTLTexture> metal_texture)
     : Texture(name)
 {
@@ -402,10 +402,10 @@ void gpu::MTLTexture::blit(gpu::MTLTexture *dst,
   /* Caching previous pipeline state. */
   bool depth_write_prev = GPU_depth_mask_get();
   uint stencil_mask_prev = GPU_stencil_mask_get();
-  eGPUStencilTest stencil_test_prev = GPU_stencil_test_get();
-  eGPUFaceCullTest culling_test_prev = GPU_face_culling_get();
-  eGPUBlend blend_prev = GPU_blend_get();
-  eGPUDepthTest depth_test_prev = GPU_depth_test_get();
+  GPUStencilTest stencil_test_prev = GPU_stencil_test_get();
+  GPUFaceCullTest culling_test_prev = GPU_face_culling_get();
+  GPUBlend blend_prev = GPU_blend_get();
+  GPUDepthTest depth_test_prev = GPU_depth_test_get();
   GPU_scissor_test(false);
 
   /* Apply state for blit draw call. */

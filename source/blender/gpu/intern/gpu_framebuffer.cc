@@ -271,7 +271,7 @@ void GPU_framebuffer_bind_no_srgb(GPUFrameBuffer *fb)
   unwrap(fb)->bind(enable_srgb);
 }
 
-void GPU_backbuffer_bind(eGPUBackBuffer back_buffer_type)
+void GPU_backbuffer_bind(GPUBackBuffer back_buffer_type)
 {
   Context *ctx = Context::get();
 
@@ -412,7 +412,7 @@ void GPU_framebuffer_viewport_reset(GPUFrameBuffer *gpu_fb)
 /* ---------- Frame-buffer Operations ----------- */
 
 void GPU_framebuffer_clear(GPUFrameBuffer *gpu_fb,
-                           eGPUFrameBufferBits buffers,
+                           GPUFrameBufferBits buffers,
                            const float clear_col[4],
                            float clear_depth,
                            uint clear_stencil)
@@ -518,7 +518,7 @@ void GPU_framebuffer_blit(GPUFrameBuffer *gpu_fb_read,
                           int read_slot,
                           GPUFrameBuffer *gpu_fb_write,
                           int write_slot,
-                          eGPUFrameBufferBits blit_buffers)
+                          GPUFrameBufferBits blit_buffers)
 {
   FrameBuffer *fb_read = unwrap(gpu_fb_read);
   FrameBuffer *fb_write = unwrap(gpu_fb_write);

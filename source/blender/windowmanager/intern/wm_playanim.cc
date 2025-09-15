@@ -1593,7 +1593,7 @@ static GHOST_WindowHandle playanim_window_open(
     GHOST_SystemHandle ghost_system, const char *title, int posx, int posy, int sizex, int sizey)
 {
   GHOST_GPUSettings gpu_settings = {0};
-  const eGPUBackendType gpu_backend = GPU_backend_type_selection_get();
+  const GPUBackendType gpu_backend = GPU_backend_type_selection_get();
   gpu_settings.context_type = wm_ghost_drawing_context_type(gpu_backend);
   gpu_settings.preferred_device.index = U.gpu_preferred_index;
   gpu_settings.preferred_device.vendor_id = U.gpu_preferred_vendor_id;

@@ -14,7 +14,7 @@
  * IMPORTANT:
  * - Always use `u` suffix for enum values. GLSL do not support implicit cast.
  * - Define all values. This is in order to simplify custom pre-processor code.
- * - (C++ only) Always use `uint32_t` as underlying type (`enum eMyEnum : uint32_t`).
+ * - (C++ only) Always use `uint32_t` as underlying type (`enum MyEnum : uint32_t`).
  * - (C only) do NOT use the enum type inside UBO/SSBO structs and use `uint` instead.
  * - Use float suffix by default for float literals to avoid double promotion in C++.
  * - Pack one float or int after a vec3/ivec3 to fulfill alignment rules.

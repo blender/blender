@@ -132,7 +132,7 @@ struct GPUSource {
     return FUNCTION_QUAL_IN;
   }
 
-  eGPUType convert_type(shader::metadata::Type type)
+  GPUType convert_type(shader::metadata::Type type)
   {
     using namespace blender::gpu::shader;
     switch (type) {

@@ -82,7 +82,7 @@ class VKTexture : public Texture {
   void copy_to(Texture *tex) override;
   void copy_to(VKTexture &dst_texture, VkImageAspectFlags vk_image_aspect);
   void clear(eGPUDataFormat format, const void *data) override;
-  void clear_depth_stencil(const eGPUFrameBufferBits buffer,
+  void clear_depth_stencil(const GPUFrameBufferBits buffer,
                            float clear_depth,
                            uint clear_stencil,
                            std::optional<int> layer);

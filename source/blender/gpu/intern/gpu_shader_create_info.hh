@@ -335,7 +335,7 @@ struct GPUSource;
 namespace blender::gpu::shader {
 
 /* All of these functions is a bit out of place */
-static inline Type to_type(const eGPUType type)
+static inline Type to_type(const GPUType type)
 {
   switch (type) {
     case GPU_FLOAT:
@@ -351,7 +351,7 @@ static inline Type to_type(const eGPUType type)
     case GPU_MAT4:
       return Type::float4x4_t;
     default:
-      BLI_assert_msg(0, "Error: Cannot convert eGPUType to shader::Type.");
+      BLI_assert_msg(0, "Error: Cannot convert GPUType to shader::Type.");
       return Type::float_t;
   }
 }
@@ -429,7 +429,7 @@ static inline std::ostream &operator<<(std::ostream &stream, const Type type)
   }
 }
 
-static inline std::ostream &operator<<(std::ostream &stream, const eGPUType type)
+static inline std::ostream &operator<<(std::ostream &stream, const GPUType type)
 {
   switch (type) {
     case GPU_CLOSURE:

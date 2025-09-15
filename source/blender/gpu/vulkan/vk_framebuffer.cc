@@ -124,7 +124,7 @@ bool VKFrameBuffer::check(char /*err_out*/[256])
 }
 
 void VKFrameBuffer::build_clear_attachments_depth_stencil(
-    const eGPUFrameBufferBits buffers,
+    const GPUFrameBufferBits buffers,
     float clear_depth,
     uint32_t clear_stencil,
     render_graph::VKClearAttachmentsNode::CreateInfo &clear_attachments) const
@@ -174,7 +174,7 @@ void VKFrameBuffer::clear(render_graph::VKClearAttachmentsNode::CreateInfo &clea
   context.render_graph().add_node(clear_attachments);
 }
 
-void VKFrameBuffer::clear(const eGPUFrameBufferBits buffers,
+void VKFrameBuffer::clear(const GPUFrameBufferBits buffers,
                           const float clear_color[4],
                           float clear_depth,
                           uint clear_stencil)
@@ -186,7 +186,7 @@ void VKFrameBuffer::clear(const eGPUFrameBufferBits buffers,
 
   if (buffers & (GPU_DEPTH_BIT | GPU_STENCIL_BIT)) {
     VKContext &context = *VKContext::get();
-    eGPUWriteMask needed_mask = GPU_WRITE_NONE;
+    GPUWriteMask needed_mask = GPU_WRITE_NONE;
     if (buffers & GPU_DEPTH_BIT) {
       needed_mask |= GPU_WRITE_DEPTH;
     }
@@ -262,7 +262,7 @@ void VKFrameBuffer::attachment_set_loadstore_op(GPUAttachmentType type, GPULoadS
   load_stores[type] = ls;
 }
 
-static VkAttachmentLoadOp to_vk_attachment_load_op(eGPULoadOp load_op)
+static VkAttachmentLoadOp to_vk_attachment_load_op(GPULoadOp load_op)
 {
   switch (load_op) {
     case GPU_LOADACTION_DONT_CARE:
@@ -276,7 +276,7 @@ static VkAttachmentLoadOp to_vk_attachment_load_op(eGPULoadOp load_op)
   return VK_ATTACHMENT_LOAD_OP_LOAD;
 }
 
-static VkAttachmentStoreOp to_vk_attachment_store_op(eGPUStoreOp store_op)
+static VkAttachmentStoreOp to_vk_attachment_store_op(GPUStoreOp store_op)
 {
   switch (store_op) {
     case GPU_STOREACTION_DONT_CARE:
@@ -359,7 +359,7 @@ void VKFrameBuffer::subpass_transition_impl(const GPUAttachmentState depth_attac
 /** \name Read back
  * \{ */
 
-void VKFrameBuffer::read(eGPUFrameBufferBits plane,
+void VKFrameBuffer::read(GPUFrameBufferBits plane,
                          eGPUDataFormat format,
                          const int area[4],
                          int /*channel_len*/,
@@ -453,7 +453,7 @@ static void blit_aspect(VKContext &context,
   context.render_graph().add_node(blit_image);
 }
 
-void VKFrameBuffer::blit_to(eGPUFrameBufferBits planes,
+void VKFrameBuffer::blit_to(GPUFrameBufferBits planes,
                             int src_slot,
                             FrameBuffer *dst,
                             int dst_slot,

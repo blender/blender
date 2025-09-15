@@ -17,7 +17,7 @@ struct GPUNodeGraph;
 
 struct GPUPass;
 
-enum eGPUPassStatus {
+enum GPUPassStatus {
   GPU_PASS_FAILED = 0,
   GPU_PASS_QUEUED,
   GPU_PASS_SUCCESS,
@@ -32,7 +32,7 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
                            void *thunk,
                            bool optimize_graph);
 
-eGPUPassStatus GPU_pass_status(GPUPass *pass);
+GPUPassStatus GPU_pass_status(GPUPass *pass);
 bool GPU_pass_should_optimize(GPUPass *pass);
 void GPU_pass_ensure_its_ready(GPUPass *pass);
 blender::gpu::Shader *GPU_pass_shader_get(GPUPass *pass);

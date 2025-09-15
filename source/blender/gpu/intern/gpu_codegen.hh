@@ -97,10 +97,10 @@ class GPUCodegen {
   void set_unique_ids();
 
   void node_serialize(std::stringstream &eval_ss, const GPUNode *node);
-  std::string graph_serialize(eGPUNodeTag tree_tag,
+  std::string graph_serialize(GPUNodeTag tree_tag,
                               GPUNodeLink *output_link,
                               const char *output_default = nullptr);
-  std::string graph_serialize(eGPUNodeTag tree_tag);
+  std::string graph_serialize(GPUNodeTag tree_tag);
 };
 
 }  // namespace blender::gpu::shader

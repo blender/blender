@@ -98,7 +98,7 @@ static void standard_defines(Vector<StringRefNull> &sources)
     sources.append("#define OS_UNIX\n");
   }
   /* API Definition */
-  eGPUBackendType backend = GPU_backend_get_type();
+  GPUBackendType backend = GPU_backend_get_type();
   switch (backend) {
     case GPU_BACKEND_OPENGL:
       sources.append("#define GPU_OPENGL\n");

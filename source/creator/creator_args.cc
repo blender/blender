@@ -1587,7 +1587,7 @@ static int arg_handle_gpu_backend_set(int argc, const char **argv, void * /*data
   const char *backends_supported[3] = {nullptr};
   int backends_supported_num = 0;
 
-  eGPUBackendType gpu_backend = GPU_BACKEND_NONE;
+  GPUBackendType gpu_backend = GPU_BACKEND_NONE;
 
   /* NOLINTBEGIN: bugprone-assignment-in-if-condition */
   if (false) {

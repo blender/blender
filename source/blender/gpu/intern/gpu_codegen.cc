@@ -82,7 +82,7 @@ static std::ostream &operator<<(std::ostream &stream, const GPUOutput *output)
 /* Print data constructor (i.e: vec2(1.0f, 1.0f)). */
 static std::ostream &operator<<(std::ostream &stream, const Span<float> &span)
 {
-  stream << (eGPUType)span.size() << "(";
+  stream << (GPUType)span.size() << "(";
   /* Use uint representation to allow exact same bit pattern even if NaN. This is
    * because we can pass UINTs as floats for constants. */
   const Span<uint32_t> uint_span = span.cast<uint32_t>();
@@ -184,7 +184,7 @@ void GPUCodegen::generate_attribs()
     StringRefNull attr_name = info.name_buffer.attr_names[slot];
     StringRefNull var_name = info.name_buffer.var_names[slot];
 
-    eGPUType input_type, iface_type;
+    GPUType input_type, iface_type;
 
     load_ss << "var_attrs." << var_name;
     if (attr->is_hair_length || attr->is_hair_intercept) {
@@ -346,9 +346,9 @@ void GPUCodegen::node_serialize(std::stringstream &eval_ss, const GPUNode *node)
       case GPU_SOURCE_OUTPUT:
       case GPU_SOURCE_ATTR: {
         /* These inputs can have non matching types. Do conversion. */
-        eGPUType to = input->type;
-        eGPUType from = (input->source == GPU_SOURCE_ATTR) ? input->attr->gputype :
-                                                             input->link->output->type;
+        GPUType to = input->type;
+        GPUType from = (input->source == GPU_SOURCE_ATTR) ? input->attr->gputype :
+                                                            input->link->output->type;
         if (from != to) {
           /* Use defines declared inside codegen_lib (i.e: vec4_from_float). */
           eval_ss << to << "_from_" << from << "(";
@@ -392,7 +392,7 @@ void GPUCodegen::node_serialize(std::stringstream &eval_ss, const GPUNode *node)
   nodes_total_++;
 }
 
-std::string GPUCodegen::graph_serialize(eGPUNodeTag tree_tag,
+std::string GPUCodegen::graph_serialize(GPUNodeTag tree_tag,
                                         GPUNodeLink *output_link,
                                         const char *output_default)
 {
@@ -429,7 +429,7 @@ std::string GPUCodegen::graph_serialize(eGPUNodeTag tree_tag,
   return str;
 }
 
-std::string GPUCodegen::graph_serialize(eGPUNodeTag tree_tag)
+std::string GPUCodegen::graph_serialize(GPUNodeTag tree_tag)
 {
   std::stringstream eval_ss;
   LISTBASE_FOREACH (GPUNode *, node, &graph.nodes) {

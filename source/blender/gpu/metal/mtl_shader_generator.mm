@@ -70,7 +70,7 @@ static void split_array(StringRefNull input, std::string &r_name, std::string &r
   }
 }
 
-static eMTLDataType to_mtl_type(Type type)
+static MTLInterfaceDataType to_mtl_type(Type type)
 {
   switch (type) {
     case Type::float_t:
@@ -2855,7 +2855,7 @@ MTLShaderInterface *MSLGeneratorInterface::bake_shader_interface(
      * components. */
     if (is_matrix_type(this->vertex_input_attributes[attribute].type)) {
 
-      eMTLDataType mtl_type = to_mtl_type(
+      MTLInterfaceDataType mtl_type = to_mtl_type(
           get_matrix_subtype(this->vertex_input_attributes[attribute].type));
       int size = mtl_get_data_type_size(mtl_type);
       for (int elem = 0;
@@ -2894,7 +2894,7 @@ MTLShaderInterface *MSLGeneratorInterface::bake_shader_interface(
     else {
 
       /* Normal attribute types. */
-      eMTLDataType mtl_type = to_mtl_type(this->vertex_input_attributes[attribute].type);
+      MTLInterfaceDataType mtl_type = to_mtl_type(this->vertex_input_attributes[attribute].type);
       int size = mtl_get_data_type_size(mtl_type);
       interface->add_input_attribute(
           name_buffer_copystr(&interface->name_buffer_,
@@ -3333,7 +3333,7 @@ std::string MSLTextureResource::get_msl_return_type_str() const
   };
 }
 
-eGPUTextureType MSLTextureResource::get_texture_binding_type() const
+GPUTextureType MSLTextureResource::get_texture_binding_type() const
 {
   /* Add Types as needed */
   switch (this->type) {
@@ -3446,7 +3446,7 @@ eGPUTextureType MSLTextureResource::get_texture_binding_type() const
   };
 }
 
-eGPUSamplerFormat MSLTextureResource::get_sampler_format() const
+GPUSamplerFormat MSLTextureResource::get_sampler_format() const
 {
   switch (this->type) {
     case ImageType::FloatBuffer:

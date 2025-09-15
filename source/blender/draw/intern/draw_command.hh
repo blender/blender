@@ -441,14 +441,14 @@ struct DispatchIndirect {
 };
 
 struct Barrier {
-  eGPUBarrier type;
+  GPUBarrier type;
 
   void execute() const;
   std::string serialize() const;
 };
 
 struct Clear {
-  uint8_t clear_channels; /* #eGPUFrameBufferBits. But want to save some bits. */
+  uint8_t clear_channels; /* #GPUFrameBufferBits. But want to save some bits. */
   uint8_t stencil;
   float depth;
   float4 color;

@@ -39,22 +39,22 @@ struct GPUSelectQueryState {
   /** Cache on initialization. */
   GPUSelectBuffer *buffer;
   /** Mode of operation. */
-  eGPUSelectMode mode;
+  GPUSelectMode mode;
   uint index;
   int oldhits;
 
   /** Previous state to restore after drawing. */
   int viewport[4];
   int scissor[4];
-  eGPUWriteMask write_mask;
-  eGPUDepthTest depth_test;
+  GPUWriteMask write_mask;
+  GPUDepthTest depth_test;
 };
 
 static GPUSelectQueryState g_query_state = {false};
 
 void gpu_select_query_begin(GPUSelectBuffer *buffer,
                             const rcti *input,
-                            const eGPUSelectMode mode,
+                            const GPUSelectMode mode,
                             int oldhits)
 {
   GPU_debug_group_begin("Selection Queries");

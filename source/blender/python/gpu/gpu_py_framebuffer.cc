@@ -455,7 +455,7 @@ static PyObject *pygpu_framebuffer_clear(BPyGPUFrameBuffer *self, PyObject *args
     return nullptr;
   }
 
-  eGPUFrameBufferBits buffers = eGPUFrameBufferBits(0);
+  GPUFrameBufferBits buffers = GPUFrameBufferBits(0);
   float col[4] = {0.0f, 0.0f, 0.0f, 1.0f};
   float depth = 1.0f;
   uint stencil = 0;

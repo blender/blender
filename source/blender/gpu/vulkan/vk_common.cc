@@ -102,7 +102,7 @@ VkImageAspectFlags to_vk_image_aspect_flag_bits(const TextureFormat format)
   return 0;
 }
 
-VkImageAspectFlags to_vk_image_aspect_flag_bits(const eGPUFrameBufferBits buffers)
+VkImageAspectFlags to_vk_image_aspect_flag_bits(const GPUFrameBufferBits buffers)
 {
   VkImageAspectFlags result = 0;
   if (buffers & GPU_COLOR_BIT) {
@@ -472,7 +472,7 @@ VkQueryType to_vk_query_type(const GPUQueryType query_type)
   return VK_QUERY_TYPE_OCCLUSION;
 }
 
-VkImageType to_vk_image_type(const eGPUTextureType type)
+VkImageType to_vk_image_type(const GPUTextureType type)
 {
   /* See
    * https://vulkan.lunarg.com/doc/view/1.3.243.0/linux/1.3-extensions/vkspec.html#resources-image-views-compatibility
@@ -501,7 +501,7 @@ VkImageType to_vk_image_type(const eGPUTextureType type)
   return VK_IMAGE_TYPE_1D;
 }
 
-VkImageViewType to_vk_image_view_type(const eGPUTextureType type,
+VkImageViewType to_vk_image_view_type(const GPUTextureType type,
                                       const eImageViewUsage view_type,
                                       VKImageViewArrayed arrayed)
 {
@@ -676,7 +676,7 @@ VkPrimitiveTopology to_vk_primitive_topology(const GPUPrimType prim_type)
   return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
 }
 
-VkCullModeFlags to_vk_cull_mode_flags(const eGPUFaceCullTest cull_test)
+VkCullModeFlags to_vk_cull_mode_flags(const GPUFaceCullTest cull_test)
 {
   switch (cull_test) {
     case GPU_CULL_FRONT:

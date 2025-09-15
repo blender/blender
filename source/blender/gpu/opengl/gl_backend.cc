@@ -124,10 +124,10 @@ void GLBackend::platform_init()
   const char *vendor = (const char *)glGetString(GL_VENDOR);
   const char *renderer = (const char *)glGetString(GL_RENDERER);
   const char *version = (const char *)glGetString(GL_VERSION);
-  eGPUDeviceType device = GPU_DEVICE_ANY;
-  eGPUOSType os = GPU_OS_ANY;
-  eGPUDriverType driver = GPU_DRIVER_ANY;
-  eGPUSupportLevel support_level = GPU_SUPPORT_LEVEL_SUPPORTED;
+  GPUDeviceType device = GPU_DEVICE_ANY;
+  GPUOSType os = GPU_OS_ANY;
+  GPUDriverType driver = GPU_DRIVER_ANY;
+  GPUSupportLevel support_level = GPU_SUPPORT_LEVEL_SUPPORTED;
 
 #ifdef _WIN32
   os = GPU_OS_WIN;

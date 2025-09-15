@@ -162,7 +162,7 @@ inline GLenum to_gl_internal_format(TextureFormat format)
   return 0;
 }
 
-inline GLenum to_gl_target(eGPUTextureType type)
+inline GLenum to_gl_target(GPUTextureType type)
 {
   switch (type) {
     case GPU_TEXTURE_1D:
@@ -187,7 +187,7 @@ inline GLenum to_gl_target(eGPUTextureType type)
   }
 }
 
-inline GLenum to_gl_proxy(eGPUTextureType type)
+inline GLenum to_gl_proxy(GPUTextureType type)
 {
   switch (type) {
     case GPU_TEXTURE_1D:

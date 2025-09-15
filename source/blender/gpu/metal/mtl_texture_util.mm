@@ -258,7 +258,7 @@ id<MTLComputePipelineState> gpu::MTLTexture::mtl_texture_update_impl(
     TextureUpdateRoutineSpecialisation specialization_params,
     blender::Map<TextureUpdateRoutineSpecialisation, id<MTLComputePipelineState>>
         &specialization_cache,
-    eGPUTextureType texture_type)
+    GPUTextureType texture_type)
 {
   /* Check whether the Kernel exists. */
   id<MTLComputePipelineState> *result = specialization_cache.lookup_ptr(specialization_params);
@@ -509,8 +509,8 @@ void gpu::MTLTexture::update_sub_depth_2d(
 
   bool depth_write_prev = GPU_depth_mask_get();
   uint stencil_mask_prev = GPU_stencil_mask_get();
-  eGPUDepthTest depth_test_prev = GPU_depth_test_get();
-  eGPUStencilTest stencil_test_prev = GPU_stencil_test_get();
+  GPUDepthTest depth_test_prev = GPU_depth_test_get();
+  GPUStencilTest stencil_test_prev = GPU_stencil_test_get();
   GPU_scissor_test(true);
   GPU_scissor(offset[0], offset[1], extent[0], extent[1]);
 
@@ -546,7 +546,7 @@ id<MTLComputePipelineState> gpu::MTLTexture::mtl_texture_read_impl(
     TextureReadRoutineSpecialisation specialization_params,
     blender::Map<TextureReadRoutineSpecialisation, id<MTLComputePipelineState>>
         &specialization_cache,
-    eGPUTextureType texture_type)
+    GPUTextureType texture_type)
 {
   /* Check whether the Kernel exists. */
   id<MTLComputePipelineState> *result = specialization_cache.lookup_ptr(specialization_params);

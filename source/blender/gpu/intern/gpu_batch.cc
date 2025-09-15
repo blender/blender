@@ -35,7 +35,7 @@ void GPU_batch_zero(Batch *batch)
 {
   std::fill_n(batch->verts, ARRAY_SIZE(batch->verts), nullptr);
   batch->elem = nullptr;
-  batch->flag = eGPUBatchFlag(0);
+  batch->flag = GPUBatchFlag(0);
   batch->prim_type = GPUPrimType(0);
   batch->shader = nullptr;
   batch->procedural_vertices = -1;
@@ -51,7 +51,7 @@ Batch *GPU_batch_calloc()
 Batch *GPU_batch_create_ex(GPUPrimType primitive_type,
                            VertBuf *vertex_buf,
                            IndexBuf *index_buf,
-                           eGPUBatchFlag owns_flag)
+                           GPUBatchFlag owns_flag)
 {
   Batch *batch = GPU_batch_calloc();
   GPU_batch_init_ex(batch, primitive_type, vertex_buf, index_buf, owns_flag);
@@ -62,7 +62,7 @@ void GPU_batch_init_ex(Batch *batch,
                        GPUPrimType primitive_type,
                        VertBuf *vertex_buf,
                        IndexBuf *index_buf,
-                       eGPUBatchFlag owns_flag)
+                       GPUBatchFlag owns_flag)
 {
   /* Do not pass any other flag */
   BLI_assert((owns_flag & ~(GPU_BATCH_OWNS_VBO | GPU_BATCH_OWNS_INDEX)) == 0);
@@ -161,7 +161,7 @@ int GPU_batch_vertbuf_add(Batch *batch, VertBuf *vertex_buf, bool own_vbo)
         // BLI_assert(verts->vertex_len == batch->verts[0]->vertex_len);
       }
       batch->verts[v] = vertex_buf;
-      SET_FLAG_FROM_TEST(batch->flag, own_vbo, (eGPUBatchFlag)(GPU_BATCH_OWNS_VBO << v));
+      SET_FLAG_FROM_TEST(batch->flag, own_vbo, (GPUBatchFlag)(GPU_BATCH_OWNS_VBO << v));
       return v;
     }
   }
@@ -489,14 +489,14 @@ void GPU_batch_multi_draw_indirect(Batch *batch,
  * \{ */
 
 void GPU_batch_program_set_builtin_with_config(Batch *batch,
-                                               eGPUBuiltinShader shader_id,
-                                               eGPUShaderConfig sh_cfg)
+                                               GPUBuiltinShader shader_id,
+                                               GPUShaderConfig sh_cfg)
 {
   blender::gpu::Shader *shader = GPU_shader_get_builtin_shader_with_config(shader_id, sh_cfg);
   GPU_batch_set_shader(batch, shader);
 }
 
-void GPU_batch_program_set_builtin(Batch *batch, eGPUBuiltinShader shader_id)
+void GPU_batch_program_set_builtin(Batch *batch, GPUBuiltinShader shader_id)
 {
   GPU_batch_program_set_builtin_with_config(batch, shader_id, GPU_SHADER_CFG_DEFAULT);
 }

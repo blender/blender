@@ -45,7 +45,7 @@ enum eGPUMaterialEngine {
   GPU_MAT_ENGINE_MAX,
 };
 
-enum eGPUMaterialStatus {
+enum GPUMaterialStatus {
   GPU_MAT_FAILED = 0,
   GPU_MAT_QUEUED,
   GPU_MAT_SUCCESS,
@@ -147,7 +147,7 @@ Material *GPU_material_get_material(GPUMaterial *material);
 /**
  * Return true if the material compilation has not yet begin or begin.
  */
-eGPUMaterialStatus GPU_material_status(GPUMaterial *mat);
+GPUMaterialStatus GPU_material_status(GPUMaterial *mat);
 
 /**
  * Return status for asynchronous optimization jobs.
@@ -188,7 +188,7 @@ const ListBase *GPU_material_layer_attributes(const GPUMaterial *material);
 
 /* Requested Material Attributes and Textures */
 
-enum eGPUType {
+enum GPUType {
   /* Keep in sync with GPU_DATATYPE_STR */
   /* The value indicates the number of elements in each type */
   GPU_NONE = 0,
@@ -213,7 +213,7 @@ enum eGPUType {
   GPU_ATTR = 3001,
 };
 
-enum eGPUDefaultValue {
+enum GPUDefaultValue {
   GPU_DEFAULT_0 = 0,
   GPU_DEFAULT_1,
 };
@@ -223,8 +223,8 @@ struct GPUMaterialAttribute {
   int type; /* eCustomDataType */
   char name[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
   char input_name[/*GPU_MAX_SAFE_ATTR_NAME + 1*/ 12 + 1];
-  eGPUType gputype;
-  eGPUDefaultValue default_value; /* Only for volumes attributes. */
+  GPUType gputype;
+  GPUDefaultValue default_value; /* Only for volumes attributes. */
   int id;
   int users;
   /**
@@ -286,7 +286,7 @@ const GPUUniformAttrList *GPU_material_uniform_attributes(const GPUMaterial *mat
 /* TODO: Move to its own header. */
 
 struct GPUNodeStack {
-  eGPUType type;
+  GPUType type;
   float vec[4];
   GPUNodeLink *link;
   bool hasinput;
@@ -324,7 +324,7 @@ GPUNodeLink *GPU_attribute_hair_intercept(GPUMaterial *mat);
 GPUNodeLink *GPU_attribute_with_default(GPUMaterial *mat,
                                         eCustomDataType type,
                                         const char *name,
-                                        eGPUDefaultValue default_value);
+                                        GPUDefaultValue default_value);
 GPUNodeLink *GPU_uniform_attribute(GPUMaterial *mat,
                                    const char *name,
                                    bool use_dupli,
@@ -381,7 +381,7 @@ void GPU_material_add_output_link_composite(GPUMaterial *material, GPUNodeLink *
  * \return the name of the generated function.
  */
 char *GPU_material_split_sub_function(GPUMaterial *material,
-                                      eGPUType return_type,
+                                      GPUType return_type,
                                       GPUNodeLink **link);
 
 void GPU_material_flag_set(GPUMaterial *mat, eGPUMaterialFlag flag);

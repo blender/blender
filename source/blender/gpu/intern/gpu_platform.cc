@@ -30,7 +30,7 @@ namespace blender::gpu {
 
 GPUPlatformGlobal GPG;
 
-static char *create_key(eGPUSupportLevel support_level,
+static char *create_key(GPUSupportLevel support_level,
                         const char *vendor,
                         const char *renderer,
                         const char *version)
@@ -66,11 +66,11 @@ static char *create_gpu_name(const char *vendor, const char *renderer, const cha
   return gpu_name;
 }
 
-void GPUPlatformGlobal::init(eGPUDeviceType gpu_device,
-                             eGPUOSType os_type,
-                             eGPUDriverType driver_type,
-                             eGPUSupportLevel gpu_support_level,
-                             eGPUBackendType backend,
+void GPUPlatformGlobal::init(GPUDeviceType gpu_device,
+                             GPUOSType os_type,
+                             GPUDriverType driver_type,
+                             GPUSupportLevel gpu_support_level,
+                             GPUBackendType backend,
                              const char *vendor_str,
                              const char *renderer_str,
                              const char *version_str,
@@ -122,7 +122,7 @@ void GPUPlatformGlobal::clear()
 
 using namespace blender::gpu;
 
-eGPUSupportLevel GPU_platform_support_level()
+GPUSupportLevel GPU_platform_support_level()
 {
   BLI_assert(GPG.initialized);
   return GPG.support_level;
@@ -164,15 +164,15 @@ GPUArchitectureType GPU_platform_architecture()
   return GPG.architecture_type;
 }
 
-bool GPU_type_matches(eGPUDeviceType device, eGPUOSType os, eGPUDriverType driver)
+bool GPU_type_matches(GPUDeviceType device, GPUOSType os, GPUDriverType driver)
 {
   return GPU_type_matches_ex(device, os, driver, GPU_BACKEND_ANY);
 }
 
-bool GPU_type_matches_ex(eGPUDeviceType device,
-                         eGPUOSType os,
-                         eGPUDriverType driver,
-                         eGPUBackendType backend)
+bool GPU_type_matches_ex(GPUDeviceType device,
+                         GPUOSType os,
+                         GPUDriverType driver,
+                         GPUBackendType backend)
 {
   BLI_assert(GPG.initialized);
   return (GPG.device & device) && (GPG.os & os) && (GPG.driver & driver) &&

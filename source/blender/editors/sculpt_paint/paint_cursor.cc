@@ -831,8 +831,8 @@ static bool paint_draw_alpha_overlay(
   bool alpha_overlay_active = false;
 
   ePaintOverlayControlFlags flags = BKE_paint_get_overlay_flags();
-  eGPUBlend blend_state = GPU_blend_get();
-  eGPUDepthTest depth_test = GPU_depth_test_get();
+  GPUBlend blend_state = GPU_blend_get();
+  GPUDepthTest depth_test = GPU_depth_test_get();
 
   /* Translate to region. */
   GPU_matrix_push();
@@ -1209,7 +1209,7 @@ static void sculpt_geometry_preview_lines_draw(const Depsgraph &depsgraph,
   immUniformColor4f(1.0f, 1.0f, 1.0f, 0.6f);
 
   /* Cursor normally draws on top, but for this part we need depth tests. */
-  const eGPUDepthTest depth_test = GPU_depth_test_get();
+  const GPUDepthTest depth_test = GPU_depth_test_get();
   if (!depth_test) {
     GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
   }

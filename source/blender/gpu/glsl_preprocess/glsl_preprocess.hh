@@ -1850,7 +1850,7 @@ class Preprocessor {
      * Transform C,C++ enum declaration into GLSL compatible defines and constants:
      *
      * \code{.cpp}
-     * enum eMyEnum : uint {
+     * enum MyEnum : uint {
      *   ENUM_1 = 0u,
      *   ENUM_2 = 1u,
      *   ENUM_3 = 2u,
@@ -1860,7 +1860,7 @@ class Preprocessor {
      * becomes
      *
      * \code{.glsl}
-     * #define eMyEnum uint
+     * #define MyEnum uint
      * constant static constexpr uint ENUM_1 = 0u;
      * constant static constexpr uint ENUM_2 = 1u;
      * constant static constexpr uint ENUM_3 = 2u;

@@ -229,7 +229,7 @@ struct GPUPickState {
   /** Cache on initialization. */
   GPUSelectBuffer *buffer;
   /** Mode of this operation. */
-  eGPUSelectMode mode;
+  GPUSelectMode mode;
 
   /** GPU drawing, never use when `is_cached == true`. */
   struct {
@@ -287,13 +287,13 @@ struct GPUPickState {
   /** Previous state to restore after drawing. */
   int viewport[4];
   int scissor[4];
-  eGPUWriteMask write_mask;
-  eGPUDepthTest depth_test;
+  GPUWriteMask write_mask;
+  GPUDepthTest depth_test;
 };
 
 static GPUPickState g_pick_state{};
 
-void gpu_select_pick_begin(GPUSelectBuffer *buffer, const rcti *input, eGPUSelectMode mode)
+void gpu_select_pick_begin(GPUSelectBuffer *buffer, const rcti *input, GPUSelectMode mode)
 {
   GPUPickState *ps = &g_pick_state;
 

@@ -1770,7 +1770,7 @@ void DRW_custom_pipeline_end(DRWContext &draw_ctx)
    * resources as the main thread (viewport) may lead to data
    * races and undefined behavior on certain drivers. Using
    * GPU_finish to sync seems to fix the issue. (see #62997) */
-  eGPUBackendType type = GPU_backend_get_type();
+  GPUBackendType type = GPU_backend_get_type();
   if (type == GPU_BACKEND_OPENGL) {
     GPU_finish();
   }

@@ -14,7 +14,7 @@
 /**
  * Describes the load operation of a frame-buffer attachment at the start of a render pass.
  */
-enum eGPULoadOp {
+enum GPULoadOp {
   /**
    * Clear the frame-buffer attachment using the clear value.
    */
@@ -36,7 +36,7 @@ enum eGPULoadOp {
 /**
  * Describes the store operation of a frame-buffer attachment at the end of a render pass.
  */
-enum eGPUStoreOp {
+enum GPUStoreOp {
   /**
    * Do not care about the content of the attachment when the render pass ends.
    * Useful if only the values being written are important.
@@ -69,7 +69,7 @@ enum GPUAttachmentState {
   GPU_ATTACHMENT_READ,
 };
 
-enum eGPUFrontFace {
+enum GPUFrontFace {
   GPU_CLOCKWISE,
   GPU_COUNTERCLOCKWISE,
 };

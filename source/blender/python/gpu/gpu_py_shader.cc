@@ -961,8 +961,7 @@ static PyObject *pygpu_shader_from_builtin(PyObject * /*self*/, PyObject *args, 
   }
 
   blender::gpu::Shader *shader = GPU_shader_get_builtin_shader_with_config(
-      eGPUBuiltinShader(pygpu_bultinshader.value_found),
-      eGPUShaderConfig(pygpu_config.value_found));
+      GPUBuiltinShader(pygpu_bultinshader.value_found), GPUShaderConfig(pygpu_config.value_found));
 
   if (shader == nullptr) {
     PyErr_SetString(PyExc_ValueError, "Builtin shader doesn't exist in the requested config");

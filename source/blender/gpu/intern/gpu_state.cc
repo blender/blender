@@ -39,20 +39,20 @@ using namespace blender::gpu;
 /** \name Immutable state Setters
  * \{ */
 
-void GPU_blend(eGPUBlend blend)
+void GPU_blend(GPUBlend blend)
 {
   SET_IMMUTABLE_STATE(blend, blend);
 }
 
-void GPU_face_culling(eGPUFaceCullTest culling)
+void GPU_face_culling(GPUFaceCullTest culling)
 {
   SET_IMMUTABLE_STATE(culling_test, culling);
 }
 
-eGPUFaceCullTest GPU_face_culling_get()
+GPUFaceCullTest GPU_face_culling_get()
 {
   GPUState &state = Context::get()->state_manager->state;
-  return (eGPUFaceCullTest)state.culling_test;
+  return (GPUFaceCullTest)state.culling_test;
 }
 
 void GPU_front_facing(bool invert)
@@ -60,17 +60,17 @@ void GPU_front_facing(bool invert)
   SET_IMMUTABLE_STATE(invert_facing, invert);
 }
 
-void GPU_provoking_vertex(eGPUProvokingVertex vert)
+void GPU_provoking_vertex(GPUProvokingVertex vert)
 {
   SET_IMMUTABLE_STATE(provoking_vert, vert);
 }
 
-void GPU_depth_test(eGPUDepthTest test)
+void GPU_depth_test(GPUDepthTest test)
 {
   SET_IMMUTABLE_STATE(depth_test, test);
 }
 
-void GPU_stencil_test(eGPUStencilTest test)
+void GPU_stencil_test(GPUStencilTest test)
 {
   SET_IMMUTABLE_STATE(stencil_test, test);
 }
@@ -90,7 +90,7 @@ void GPU_logic_op_xor_set(bool enable)
   SET_IMMUTABLE_STATE(logic_op_xor, enable);
 }
 
-void GPU_write_mask(eGPUWriteMask mask)
+void GPU_write_mask(GPUWriteMask mask)
 {
   SET_IMMUTABLE_STATE(write_mask, mask);
 }
@@ -126,13 +126,13 @@ void GPU_clip_distances(int distances_enabled)
   SET_IMMUTABLE_STATE(clip_distances, distances_enabled);
 }
 
-void GPU_state_set(eGPUWriteMask write_mask,
-                   eGPUBlend blend,
-                   eGPUFaceCullTest culling_test,
-                   eGPUDepthTest depth_test,
-                   eGPUStencilTest stencil_test,
-                   eGPUStencilOp stencil_op,
-                   eGPUProvokingVertex provoking_vert)
+void GPU_state_set(GPUWriteMask write_mask,
+                   GPUBlend blend,
+                   GPUFaceCullTest culling_test,
+                   GPUDepthTest depth_test,
+                   GPUStencilTest stencil_test,
+                   GPUStencilOp stencil_op,
+                   GPUProvokingVertex provoking_vert)
 {
   StateManager *stack = Context::get()->state_manager;
   auto &state = stack->state;
@@ -223,16 +223,16 @@ void GPU_stencil_compare_mask_set(uint compare_mask)
 /** \name State Getters
  * \{ */
 
-eGPUBlend GPU_blend_get()
+GPUBlend GPU_blend_get()
 {
   GPUState &state = Context::get()->state_manager->state;
-  return (eGPUBlend)state.blend;
+  return (GPUBlend)state.blend;
 }
 
-eGPUWriteMask GPU_write_mask_get()
+GPUWriteMask GPU_write_mask_get()
 {
   GPUState &state = Context::get()->state_manager->state;
-  return (eGPUWriteMask)state.write_mask;
+  return (GPUWriteMask)state.write_mask;
 }
 
 uint GPU_stencil_mask_get()
@@ -241,16 +241,16 @@ uint GPU_stencil_mask_get()
   return state.stencil_write_mask;
 }
 
-eGPUDepthTest GPU_depth_test_get()
+GPUDepthTest GPU_depth_test_get()
 {
   GPUState &state = Context::get()->state_manager->state;
-  return (eGPUDepthTest)state.depth_test;
+  return (GPUDepthTest)state.depth_test;
 }
 
-eGPUStencilTest GPU_stencil_test_get()
+GPUStencilTest GPU_stencil_test_get()
 {
   GPUState &state = Context::get()->state_manager->state;
-  return (eGPUStencilTest)state.stencil_test;
+  return (GPUStencilTest)state.stencil_test;
 }
 
 float GPU_line_width_get()
@@ -323,7 +323,7 @@ void GPU_apply_state()
 /** \name Synchronization Utils
  * \{ */
 
-void GPU_memory_barrier(eGPUBarrier barrier)
+void GPU_memory_barrier(GPUBarrier barrier)
 {
   Context::get()->state_manager->issue_barrier(barrier);
 }

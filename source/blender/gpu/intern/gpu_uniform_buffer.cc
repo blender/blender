@@ -58,10 +58,10 @@ UniformBuf::~UniformBuf()
  * We need to pad some data types (vec3) on the C side
  * To match the GPU expected memory block alignment.
  */
-static eGPUType get_padded_gpu_type(LinkData *link)
+static GPUType get_padded_gpu_type(LinkData *link)
 {
   GPUInput *input = (GPUInput *)link->data;
-  eGPUType gputype = input->type;
+  GPUType gputype = input->type;
   /* Metal cannot pack floats after vec3. */
   if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
     return (gputype == GPU_VEC3) ? GPU_VEC4 : gputype;
@@ -107,7 +107,7 @@ static void buffer_from_list_inputs_sort(ListBase *inputs)
 
   /* Creates a lookup table for the different types. */
   LinkData *inputs_lookup[MAX_UBO_GPU_TYPE + 1] = {nullptr};
-  eGPUType cur_type = static_cast<eGPUType>(MAX_UBO_GPU_TYPE + 1);
+  GPUType cur_type = static_cast<GPUType>(MAX_UBO_GPU_TYPE + 1);
 
   LISTBASE_FOREACH (LinkData *, link, inputs) {
     GPUInput *input = (GPUInput *)link->data;
@@ -162,7 +162,7 @@ static inline size_t buffer_size_from_list(ListBase *inputs)
 {
   size_t buffer_size = 0;
   LISTBASE_FOREACH (LinkData *, link, inputs) {
-    const eGPUType gputype = get_padded_gpu_type(link);
+    const GPUType gputype = get_padded_gpu_type(link);
     buffer_size += gputype * sizeof(float);
   }
   /* Round up to size of vec4. (Opengl Requirement) */

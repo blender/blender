@@ -16,7 +16,7 @@
 
 namespace blender::gpu {
 
-enum eGPUTextureFormatFlag {
+enum GPUTextureFormatFlag {
   /* The format has a depth component and can be used as depth attachment. */
   GPU_FORMAT_DEPTH = (1 << 0),
   /* The format has a stencil component and can be used as stencil attachment. */
@@ -37,9 +37,9 @@ enum eGPUTextureFormatFlag {
   GPU_FORMAT_DEPTH_STENCIL = (GPU_FORMAT_DEPTH | GPU_FORMAT_STENCIL),
 };
 
-ENUM_OPERATORS(eGPUTextureFormatFlag, GPU_FORMAT_SIGNED)
+ENUM_OPERATORS(GPUTextureFormatFlag, GPU_FORMAT_SIGNED)
 
-enum eGPUTextureType {
+enum GPUTextureType {
   GPU_TEXTURE_1D = (1 << 0),
   GPU_TEXTURE_2D = (1 << 1),
   GPU_TEXTURE_3D = (1 << 2),
@@ -52,11 +52,11 @@ enum eGPUTextureType {
   GPU_TEXTURE_CUBE_ARRAY = (GPU_TEXTURE_CUBE | GPU_TEXTURE_ARRAY),
 };
 
-ENUM_OPERATORS(eGPUTextureType, GPU_TEXTURE_BUFFER)
+ENUM_OPERATORS(GPUTextureType, GPU_TEXTURE_BUFFER)
 
 /* Format types for samplers within the shader.
  * This covers the sampler format type permutations within GLSL/MSL. */
-enum eGPUSamplerFormat {
+enum GPUSamplerFormat {
   GPU_SAMPLER_TYPE_FLOAT = 0,
   GPU_SAMPLER_TYPE_INT = 1,
   GPU_SAMPLER_TYPE_UINT = 2,
@@ -65,7 +65,7 @@ enum eGPUSamplerFormat {
   GPU_SAMPLER_TYPE_MAX = 4
 };
 
-ENUM_OPERATORS(eGPUSamplerFormat, GPU_SAMPLER_TYPE_UINT)
+ENUM_OPERATORS(GPUSamplerFormat, GPU_SAMPLER_TYPE_UINT)
 
 #ifndef NDEBUG
 #  define DEBUG_NAME_LEN 64
@@ -106,9 +106,9 @@ class Texture {
   /** Internal data format. */
   TextureFormat format_;
   /** Format characteristics. */
-  eGPUTextureFormatFlag format_flag_;
+  GPUTextureFormatFlag format_flag_;
   /** Texture type. */
-  eGPUTextureType type_;
+  GPUTextureType type_;
   /** Texture usage flags. */
   eGPUTextureUsage gpu_image_usage_flags_;
 
@@ -137,7 +137,7 @@ class Texture {
   bool init_buffer(VertBuf *vbo, TextureFormat format);
   bool init_view(Texture *src,
                  TextureFormat format,
-                 eGPUTextureType type,
+                 GPUTextureType type,
                  int mip_start,
                  int mip_len,
                  int layer_start,
@@ -258,11 +258,11 @@ class Texture {
   {
     return format_;
   }
-  eGPUTextureFormatFlag format_flag_get() const
+  GPUTextureFormatFlag format_flag_get() const
   {
     return format_flag_;
   }
-  eGPUTextureType type_get() const
+  GPUTextureType type_get() const
   {
     return type_;
   }
@@ -373,7 +373,7 @@ inline size_t to_block_size(TextureFormat data_type)
   }
 }
 
-inline eGPUTextureFormatFlag to_format_flag(TextureFormat format)
+inline GPUTextureFormatFlag to_format_flag(TextureFormat format)
 {
   switch (format) {
     /* Formats texture & render-buffer */
@@ -775,7 +775,7 @@ inline eGPUDataFormat to_texture_data_format(TextureFormat tex_format)
   return GPU_DATA_FLOAT;
 }
 
-inline eGPUFrameBufferBits to_framebuffer_bits(TextureFormat tex_format)
+inline GPUFrameBufferBits to_framebuffer_bits(TextureFormat tex_format)
 {
   switch (tex_format) {
     /* Formats texture & render-buffer */

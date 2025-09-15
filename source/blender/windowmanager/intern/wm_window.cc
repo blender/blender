@@ -918,7 +918,7 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
     gpu_settings.flags |= GHOST_gpuDebugContext;
   }
 
-  eGPUBackendType gpu_backend = GPU_backend_type_selection_get();
+  GPUBackendType gpu_backend = GPU_backend_type_selection_get();
   gpu_settings.context_type = wm_ghost_drawing_context_type(gpu_backend);
   gpu_settings.preferred_device.index = U.gpu_preferred_index;
   gpu_settings.preferred_device.vendor_id = U.gpu_preferred_vendor_id;
@@ -2188,7 +2188,7 @@ const char *WM_ghost_backend()
 #endif
 }
 
-GHOST_TDrawingContextType wm_ghost_drawing_context_type(const eGPUBackendType gpu_backend)
+GHOST_TDrawingContextType wm_ghost_drawing_context_type(const GPUBackendType gpu_backend)
 {
   switch (gpu_backend) {
     case GPU_BACKEND_NONE:
@@ -3226,7 +3226,7 @@ void *WM_system_gpu_context_create()
   BLI_assert(GPU_framebuffer_active_get() == GPU_framebuffer_back_get());
 
   GHOST_GPUSettings gpu_settings = {0};
-  const eGPUBackendType gpu_backend = GPU_backend_type_selection_get();
+  const GPUBackendType gpu_backend = GPU_backend_type_selection_get();
   gpu_settings.context_type = wm_ghost_drawing_context_type(gpu_backend);
   if (G.debug & G_DEBUG_GPU) {
     gpu_settings.flags |= GHOST_gpuDebugContext;

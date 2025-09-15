@@ -344,8 +344,8 @@ void GPU_render_step(bool force_resource_release)
 /** \name Backend selection
  * \{ */
 
-static eGPUBackendType g_backend_type = GPU_BACKEND_OPENGL;
-static std::optional<eGPUBackendType> g_backend_type_override = std::nullopt;
+static GPUBackendType g_backend_type = GPU_BACKEND_OPENGL;
+static std::optional<GPUBackendType> g_backend_type_override = std::nullopt;
 static std::optional<bool> g_backend_type_supported = std::nullopt;
 static std::optional<int> g_vsync_override = std::nullopt;
 static GPUBackend *g_backend = nullptr;
@@ -361,7 +361,7 @@ void *GPU_backend_ghost_system_get()
   return g_ghost_system;
 }
 
-void GPU_backend_type_selection_set(const eGPUBackendType backend)
+void GPU_backend_type_selection_set(const GPUBackendType backend)
 {
   g_backend_type = backend;
   g_backend_type_supported = std::nullopt;
@@ -382,12 +382,12 @@ bool GPU_backend_vsync_is_overridden()
   return g_vsync_override.has_value();
 }
 
-eGPUBackendType GPU_backend_type_selection_get()
+GPUBackendType GPU_backend_type_selection_get()
 {
   return g_backend_type;
 }
 
-void GPU_backend_type_selection_set_override(const eGPUBackendType backend_type)
+void GPU_backend_type_selection_set_override(const GPUBackendType backend_type)
 {
   g_backend_type_override = backend_type;
 }
@@ -399,7 +399,7 @@ bool GPU_backend_type_selection_is_overridden()
 
 bool GPU_backend_type_selection_detect()
 {
-  blender::VectorSet<eGPUBackendType> backends_to_check;
+  blender::VectorSet<GPUBackendType> backends_to_check;
   if (g_backend_type_override.has_value()) {
     backends_to_check.add(*g_backend_type_override);
   }
@@ -413,7 +413,7 @@ bool GPU_backend_type_selection_detect()
   backends_to_check.add(GPU_BACKEND_VULKAN);
 #endif
 
-  for (const eGPUBackendType backend_type : backends_to_check) {
+  for (const GPUBackendType backend_type : backends_to_check) {
     GPU_backend_type_selection_set(backend_type);
     if (GPU_backend_supported()) {
       return true;
@@ -511,7 +511,7 @@ void gpu_backend_discard()
   g_backend = nullptr;
 }
 
-eGPUBackendType GPU_backend_get_type()
+GPUBackendType GPU_backend_get_type()
 {
 
 #ifdef WITH_OPENGL_BACKEND
