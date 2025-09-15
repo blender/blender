@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "gpu_glsl_cpp_stubs.hh"
+#include "gpu_shader_compat.hh"
 
 void invert_z(float3 v, out float3 outv)
 {

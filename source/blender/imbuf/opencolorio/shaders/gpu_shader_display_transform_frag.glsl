@@ -238,7 +238,7 @@ float4 OCIO_ProcessColor(float4 col, float4 col_overlay)
   }
 
   if (parameters.dither > 0.0) {
-    uint2 texel = get_pixel_coord(image_texture, texCoord_interp.st);
+    uint2 texel = get_pixel_coord(image_texture, texCoord_interp.xy);
     col = apply_dither(col, texel);
   }
 #endif
@@ -250,8 +250,8 @@ float4 OCIO_ProcessColor(float4 col, float4 col_overlay)
 
 void main()
 {
-  float4 col = texture(image_texture, texCoord_interp.st);
-  float4 col_overlay = texture(overlay_texture, texCoord_interp.st);
+  float4 col = texture(image_texture, texCoord_interp.xy);
+  float4 col_overlay = texture(overlay_texture, texCoord_interp.xy);
 
   fragColor = OCIO_ProcessColor(col, col_overlay);
 }

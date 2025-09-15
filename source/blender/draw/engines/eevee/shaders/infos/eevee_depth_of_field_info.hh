@@ -6,7 +6,7 @@
 #  pragma once
 #  include "BLI_utildefines_variadic.h"
 
-#  include "gpu_glsl_cpp_stubs.hh"
+#  include "gpu_shader_compat.hh"
 
 #  include "draw_view_info.hh"
 #  include "eevee_common_info.hh"

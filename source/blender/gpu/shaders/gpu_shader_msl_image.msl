@@ -1,0 +1,108 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
+#pragma once
+
+#include "gpu_shader_msl_sampler.msl"
+
+/** Image functions */
+
+#define IMAGE_FN \
+  template<typename SamplerT, \
+           typename IntCoord = typename SamplerT::IntCoord, \
+           typename IntDeriv = typename SamplerT::IntDeriv, \
+           typename UintCoord = typename SamplerT::UintCoord, \
+           typename UintDeriv = typename SamplerT::UintDeriv, \
+           typename SizeVec = typename SamplerT::SizeVec, \
+           typename DataVec = typename SamplerT::DataVec, \
+           typename AtomicT = typename SamplerT::AtomicT>
+
+IMAGE_FN SizeVec imageSize(SamplerT texture)
+{
+  return texture.size();
+}
+
+IMAGE_FN void imageFence(SamplerT texture)
+{
+  return texture.fence();
+}
+
+IMAGE_FN DataVec imageLoad(SamplerT texture, IntCoord coord)
+{
+  if (any(UintCoord(coord) >= UintCoord(texture.size()))) {
+    return DataVec(0);
+  }
+  return texture.load(coord);
+}
+
+IMAGE_FN DataVec imageLoadFast(SamplerT texture, IntCoord coord)
+{
+  return texture.load(coord);
+}
+
+IMAGE_FN void imageStore(SamplerT texture, IntCoord coord, DataVec data)
+{
+  if (any(UintCoord(coord) >= UintCoord(texture.size()))) {
+    return;
+  }
+  texture.store(data, coord);
+}
+
+IMAGE_FN
+void imageStoreFast(SamplerT texture, IntCoord coord, DataVec data)
+{
+  texture.store(data, coord);
+}
+
+IMAGE_FN AtomicT imageAtomicMin(SamplerT texture, IntCoord coord, AtomicT data)
+{
+  if (any(UintCoord(coord) >= UintCoord(texture.size()))) {
+    return AtomicT(0);
+  }
+  return texture.atomic_min(coord, data);
+}
+IMAGE_FN AtomicT imageAtomicMax(SamplerT texture, IntCoord coord, AtomicT data)
+{
+  if (any(UintCoord(coord) >= UintCoord(texture.size()))) {
+    return AtomicT(0);
+  }
+  return texture.atomic_max(coord, data);
+}
+IMAGE_FN AtomicT imageAtomicAdd(SamplerT texture, IntCoord coord, AtomicT data)
+{
+  if (any(UintCoord(coord) >= UintCoord(texture.size()))) {
+    return AtomicT(0);
+  }
+  return texture.atomic_add(coord, data);
+}
+IMAGE_FN AtomicT imageAtomicAnd(SamplerT texture, IntCoord coord, AtomicT data)
+{
+  if (any(UintCoord(coord) >= UintCoord(texture.size()))) {
+    return AtomicT(0);
+  }
+  return texture.atomic_and(coord, data);
+}
+IMAGE_FN AtomicT imageAtomicOr(SamplerT texture, IntCoord coord, AtomicT data)
+{
+  if (any(UintCoord(coord) >= UintCoord(texture.size()))) {
+    return AtomicT(0);
+  }
+  return texture.atomic_or(coord, data);
+}
+IMAGE_FN AtomicT imageAtomicXor(SamplerT texture, IntCoord coord, AtomicT data)
+{
+  if (any(UintCoord(coord) >= UintCoord(texture.size()))) {
+    return AtomicT(0);
+  }
+  return texture.atomic_xor(coord, data);
+}
+IMAGE_FN AtomicT imageAtomicExchange(SamplerT texture, IntCoord coord, AtomicT data)
+{
+  if (any(UintCoord(coord) >= UintCoord(texture.size()))) {
+    return AtomicT(0);
+  }
+  return texture.atomic_exchange(coord, data);
+}
+
+#undef IMAGE_FN

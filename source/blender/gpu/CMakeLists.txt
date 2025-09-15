@@ -449,10 +449,6 @@ if(WITH_VULKAN_BACKEND)
   add_definitions(-DWITH_VULKAN_BACKEND)
 endif()
 
-set(GLSL_SRC_RAW
-  shaders/opengl/glsl_shader_defines.glsl
-)
-
 set(GLSL_SRC
   GPU_shader_shared.hh
 
@@ -667,6 +663,10 @@ set(GLSL_SRC
   shaders/gpu_shader_index_2d_array_lines.glsl
   shaders/gpu_shader_index_2d_array_tris.glsl
 
+  shaders/gpu_shader_compat_glsl.glsl
+
+  shaders/gpu_shader_glsl_extension.glsl
+
   GPU_shader_shared_utils.hh
 )
 
@@ -692,6 +692,17 @@ set(MTL_BACKEND_GLSL_SRC
   metal/kernels/depth_2d_update_vert.glsl
   metal/kernels/gpu_shader_fullscreen_blit_vert.glsl
   metal/kernels/gpu_shader_fullscreen_blit_frag.glsl
+
+  shaders/gpu_shader_msl_atomic.msl
+  shaders/gpu_shader_msl_attribute.msl
+  shaders/gpu_shader_msl_builtin.msl
+  shaders/gpu_shader_msl_image.msl
+  shaders/gpu_shader_msl_matrix_legacy.msl
+  shaders/gpu_shader_msl_matrix.msl
+  shaders/gpu_shader_msl_sampler.msl
+  shaders/gpu_shader_msl_types_legacy.msl
+  shaders/gpu_shader_msl_defines.msl
+  shaders/gpu_shader_compat_msl.msl
 )
 
 set(MSL_SRC
@@ -699,9 +710,6 @@ set(MSL_SRC
 
   metal/kernels/compute_texture_update.msl
   metal/kernels/compute_texture_read.msl
-
-  shaders/metal/mtl_shader_defines.msl
-  shaders/metal/mtl_shader_common.msl
 )
 
 set(VULKAN_BACKEND_GLSL_SRC
@@ -730,10 +738,6 @@ endif()
 set(GLSL_C)
 foreach(GLSL_FILE ${GLSL_SRC})
   glsl_to_c(${GLSL_FILE} GLSL_C)
-endforeach()
-
-foreach(GLSL_FILE ${GLSL_SRC_RAW})
-  data_to_c_simple(${GLSL_FILE} GLSL_C)
 endforeach()
 
 set(SHADER_C)

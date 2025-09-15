@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "gpu_glsl_cpp_stubs.hh"
+#include "gpu_shader_compat.hh"
 
 #ifndef FLT_MAX
 #  define FLT_MAX uintBitsToFloat(0x7F7FFFFFu)

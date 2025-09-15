@@ -8,7 +8,7 @@
 
 #ifdef GPU_SHADER
 #  pragma once
-#  include "gpu_glsl_cpp_stubs.hh"
+#  include "gpu_shader_compat.hh"
 
 #  define widgetID 0
 #endif

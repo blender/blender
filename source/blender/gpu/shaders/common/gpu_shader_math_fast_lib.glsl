@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "gpu_glsl_cpp_stubs.hh"
+#include "gpu_shader_compat.hh"
 #include "gpu_shader_math_constants_lib.glsl"
 
 /* [Drobot2014a] Low Level Optimizations for GCN. */

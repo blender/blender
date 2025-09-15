@@ -1,0 +1,120 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
+#pragma once
+
+using namespace metal;
+
+/* Matrix compare operators. */
+#define EQ_OP(type, ...) \
+  inline bool operator==(type a, type b) \
+  { \
+    return __VA_ARGS__; \
+  }
+EQ_OP(float2x2, all(a[0] == b[0]) && all(a[1] == b[1]))
+EQ_OP(float2x3, all(a[0] == b[0]) && all(a[1] == b[1]))
+EQ_OP(float2x4, all(a[0] == b[0]) && all(a[1] == b[1]))
+EQ_OP(float3x2, all(a[0] == b[0]) && all(a[1] == b[1]) && all(a[2] == b[2]))
+EQ_OP(float3x3, all(a[0] == b[0]) && all(a[1] == b[1]) && all(a[2] == b[2]))
+EQ_OP(float3x4, all(a[0] == b[0]) && all(a[1] == b[1]) && all(a[2] == b[2]))
+EQ_OP(float4x2, all(a[0] == b[0]) && all(a[1] == b[1]) && all(a[2] == b[2]) && all(a[3] == b[3]))
+EQ_OP(float4x3, all(a[0] == b[0]) && all(a[1] == b[1]) && all(a[2] == b[2]) && all(a[3] == b[3]))
+EQ_OP(float4x4, all(a[0] == b[0]) && all(a[1] == b[1]) && all(a[2] == b[2]) && all(a[3] == b[3]))
+#undef EQ_OP
+
+template<int N, int M> inline bool operator!=(matrix<float, N, M> a, matrix<float, N, M> b)
+{
+  return !(a == b);
+}
+
+/* Matrix unary minus operator. */
+template<int N, int M> inline matrix<float, N, M> operator-(matrix<float, N, M> a)
+{
+  return a * -1.0f;
+}
+
+/* Matrix Inverse. */
+float4x4 inverse(float4x4 a)
+{
+  float b00 = a[0][0] * a[1][1] - a[0][1] * a[1][0];
+  float b01 = a[0][0] * a[1][2] - a[0][2] * a[1][0];
+  float b02 = a[0][0] * a[1][3] - a[0][3] * a[1][0];
+  float b03 = a[0][1] * a[1][2] - a[0][2] * a[1][1];
+  float b04 = a[0][1] * a[1][3] - a[0][3] * a[1][1];
+  float b05 = a[0][2] * a[1][3] - a[0][3] * a[1][2];
+  float b06 = a[2][0] * a[3][1] - a[2][1] * a[3][0];
+  float b07 = a[2][0] * a[3][2] - a[2][2] * a[3][0];
+  float b08 = a[2][0] * a[3][3] - a[2][3] * a[3][0];
+  float b09 = a[2][1] * a[3][2] - a[2][2] * a[3][1];
+  float b10 = a[2][1] * a[3][3] - a[2][3] * a[3][1];
+  float b11 = a[2][2] * a[3][3] - a[2][3] * a[3][2];
+  float4x4 adjoint;
+  adjoint[0][0] = a[1][1] * b11 - a[1][2] * b10 + a[1][3] * b09;
+  adjoint[0][1] = a[0][2] * b10 - a[0][1] * b11 - a[0][3] * b09;
+  adjoint[0][2] = a[3][1] * b05 - a[3][2] * b04 + a[3][3] * b03;
+  adjoint[0][3] = a[2][2] * b04 - a[2][1] * b05 - a[2][3] * b03;
+  adjoint[1][0] = a[1][2] * b08 - a[1][0] * b11 - a[1][3] * b07;
+  adjoint[1][1] = a[0][0] * b11 - a[0][2] * b08 + a[0][3] * b07;
+  adjoint[1][2] = a[3][2] * b02 - a[3][0] * b05 - a[3][3] * b01;
+  adjoint[1][3] = a[2][0] * b05 - a[2][2] * b02 + a[2][3] * b01;
+  adjoint[2][0] = a[1][0] * b10 - a[1][1] * b08 + a[1][3] * b06;
+  adjoint[2][1] = a[0][1] * b08 - a[0][0] * b10 - a[0][3] * b06;
+  adjoint[2][2] = a[3][0] * b04 - a[3][1] * b02 + a[3][3] * b00;
+  adjoint[2][3] = a[2][1] * b02 - a[2][0] * b04 - a[2][3] * b00;
+  adjoint[3][0] = a[1][1] * b07 - a[1][0] * b09 - a[1][2] * b06;
+  adjoint[3][1] = a[0][0] * b09 - a[0][1] * b07 + a[0][2] * b06;
+  adjoint[3][2] = a[3][1] * b01 - a[3][0] * b03 - a[3][2] * b00;
+  adjoint[3][3] = a[2][0] * b03 - a[2][1] * b01 + a[2][2] * b00;
+  float determinant = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
+  /* Multiplying by inverse since matrix types don't have divide operators. */
+  return adjoint * (1.0f / determinant);
+}
+
+float3x3 inverse(float3x3 m)
+{
+  float3x3 adjoint;
+  adjoint[0][0] = +(m[1][1] * m[2][2] - m[2][1] * m[1][2]);
+  adjoint[0][1] = -(m[0][1] * m[2][2] - m[2][1] * m[0][2]);
+  adjoint[0][2] = +(m[0][1] * m[1][2] - m[1][1] * m[0][2]);
+  adjoint[1][0] = -(m[1][0] * m[2][2] - m[2][0] * m[1][2]);
+  adjoint[1][1] = +(m[0][0] * m[2][2] - m[2][0] * m[0][2]);
+  adjoint[1][2] = -(m[0][0] * m[1][2] - m[1][0] * m[0][2]);
+  adjoint[2][0] = +(m[1][0] * m[2][1] - m[2][0] * m[1][1]);
+  adjoint[2][1] = -(m[0][0] * m[2][1] - m[2][0] * m[0][1]);
+  adjoint[2][2] = +(m[0][0] * m[1][1] - m[1][0] * m[0][1]);
+  float determinant = m[0][0] * adjoint[0][0] + m[1][0] * adjoint[0][1] + m[2][0] * adjoint[0][2];
+  /* Multiplying by inverse since matrix types don't have divide operators. */
+  return adjoint * (1.0f / determinant);
+}
+
+float2x2 inverse(float2x2 m)
+{
+  float2x2 adjoint;
+  adjoint[0][0] = +m[1][1];
+  adjoint[1][0] = -m[1][0];
+  adjoint[0][1] = -m[0][1];
+  adjoint[1][1] = +m[0][0];
+  float determinant = m[0][0] * m[1][1] - m[1][0] * m[0][1];
+  /* Multiplying by inverse since matrix types don't have divide operators. */
+  return adjoint * (1.0f / determinant);
+}
+
+/* Matrix reshaping functions. */
+#define RESHAPE(mat_to, mat_from, ...) \
+  mat_to to_##mat_to(mat_from m) \
+  { \
+    return mat_to(__VA_ARGS__); \
+  }
+
+/* clang-format off */
+RESHAPE(float2x2, float3x3, m[0].xy, m[1].xy)
+RESHAPE(float2x2, float4x4, m[0].xy, m[1].xy)
+RESHAPE(float3x3, float4x4, m[0].xyz, m[1].xyz, m[2].xyz)
+RESHAPE(float3x3, float2x2, m[0].x, m[0].y, 0, m[1].x, m[1].y, 0, 0, 0, 1)
+RESHAPE(float4x4, float2x2, m[0].x, m[0].y, 0, 0, m[1].x, m[1].y, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)
+RESHAPE(float4x4, float3x3, m[0].x, m[0].y, m[0].z, 0, m[1].x, m[1].y, m[1].z, 0, m[2].x, m[2].y, m[2].z, 0, 0, 0, 0, 1)
+/* clang-format on */
+/* TODO(fclem): Remove. Use Transform instead. */
+RESHAPE(float3x3, float3x4, m[0].xyz, m[1].xyz, m[2].xyz)
+#undef RESHAPE

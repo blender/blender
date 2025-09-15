@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "gpu_glsl_cpp_stubs.hh"
+#include "gpu_shader_compat.hh"
 
 /**
  * Returns \a a if it is a multiple of \a b or the next multiple or \a b after \b a .

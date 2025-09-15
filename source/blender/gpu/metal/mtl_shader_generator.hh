@@ -74,7 +74,7 @@
  *
  * \code{.cc}
  * -- Shader defines --
- * #define USE_ARGUMENT_BUFFER_FOR_SAMPLERS 0
+ * #define MTL_ARGUMENT_BUFFER_NUM_SAMPLERS 0
  * ... etc ...;
  *
  * class MetalShaderVertexImp {

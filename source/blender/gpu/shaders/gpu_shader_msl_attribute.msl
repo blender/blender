@@ -5,6 +5,8 @@
 /* Common Metal header to be included in all compiled Metal shaders.
  * Both native MSL shaders and GLSL shaders. */
 
+#pragma once
+
 using namespace metal;
 
 /* Should match GPUVertFetchMode. */

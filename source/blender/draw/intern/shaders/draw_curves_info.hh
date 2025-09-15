@@ -8,7 +8,7 @@
 
 #ifdef GPU_SHADER
 #  pragma once
-#  include "gpu_glsl_cpp_stubs.hh"
+#  include "gpu_shader_compat.hh"
 
 #  include "draw_attribute_shader_shared.hh"
 #  include "draw_object_infos_info.hh"

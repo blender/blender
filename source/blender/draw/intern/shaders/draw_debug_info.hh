@@ -4,7 +4,7 @@
 
 #ifdef GPU_SHADER
 #  pragma once
-#  include "gpu_glsl_cpp_stubs.hh"
+#  include "gpu_shader_compat.hh"
 
 #  include "draw_shader_shared.hh"
 #  define DRW_DEBUG_DRAW

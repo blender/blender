@@ -7,7 +7,7 @@
 
 #  include "BLI_utildefines_variadic.h"
 
-#  include "gpu_glsl_cpp_stubs.hh"
+#  include "gpu_shader_compat.hh"
 
 #  include "draw_object_infos_info.hh"
 #  include "draw_view_info.hh"

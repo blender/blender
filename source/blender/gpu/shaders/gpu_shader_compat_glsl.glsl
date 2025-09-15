@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
+#include "gpu_shader_glsl_extension.glsl"
+
 /** Type aliases. */
 /** IMPORTANT: Be wary of size and alignment matching for types that are present
  * in C++ shared code. */
@@ -158,11 +162,6 @@ RESHAPE(float3x3, mat3x3, mat3x4)
 #define _inout_end
 #define _shared_sta
 #define _shared_end
-
-#define _enum_dummy /* Needed to please `glslang`. */
-#define _enum_type(name) uint
-#define _enum_decl(name) constexpr uint
-#define _enum_end _enum_dummy;
 
 /* Resource accessor. */
 #define specialization_constant_get(create_info, _res) _res

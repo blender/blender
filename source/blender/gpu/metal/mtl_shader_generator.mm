@@ -35,7 +35,6 @@
 #include "mtl_shader_interface.hh"
 #include "mtl_texture.hh"
 
-extern char datatoc_mtl_shader_defines_msl[];
 extern char datatoc_mtl_shader_shared_hh[];
 
 using namespace blender;
@@ -50,8 +49,6 @@ char *MSLGeneratorInterface::msl_patch_default = nullptr;
 /* Generator names. */
 #define FRAGMENT_OUT_STRUCT_NAME "FragmentOut"
 #define FRAGMENT_TILE_IN_STRUCT_NAME "FragmentTileIn"
-
-#define ATOMIC_DEFINE_STR "#define MTL_SUPPORTS_TEXTURE_ATOMICS 1\n"
 
 /* -------------------------------------------------------------------- */
 /** \name Shader Translation utility functions.
@@ -357,7 +354,6 @@ char *MSLGeneratorInterface::msl_patch_default_get()
   }
 
   std::stringstream ss_patch;
-  ss_patch << datatoc_mtl_shader_defines_msl << std::endl;
   ss_patch << datatoc_mtl_shader_shared_hh << std::endl;
   size_t len = strlen(ss_patch.str().c_str()) + 1;
 
@@ -580,13 +576,6 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
   ss_vertex << "#line " STRINGIFY(__LINE__) " \"" __FILE__ "\"" << std::endl;
   ss_fragment << "#line " STRINGIFY(__LINE__) " \"" __FILE__ "\"" << std::endl;
 
-  if (bool(info->builtins_ & BuiltinBits::TEXTURE_ATOMIC) &&
-      MTLBackend::get_capabilities().supports_texture_atomics)
-  {
-    ss_vertex << ATOMIC_DEFINE_STR;
-    ss_fragment << ATOMIC_DEFINE_STR;
-  }
-
   /* Generate specialization constants. */
   generate_specialization_constant_declarations(info, ss_vertex);
   generate_specialization_constant_declarations(info, ss_fragment);
@@ -597,11 +586,9 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
 
   /*** Generate VERTEX Stage ***/
   /* Conditional defines. */
-  if (msl_iface.use_argument_buffer_for_samplers()) {
-    ss_vertex << "#define USE_ARGUMENT_BUFFER_FOR_SAMPLERS 1" << std::endl;
-    ss_vertex << "#define ARGUMENT_BUFFER_NUM_SAMPLERS "
-              << msl_iface.max_sampler_index_for_stage(ShaderStage::VERTEX) + 1 << std::endl;
-  }
+  arg_buf_samplers_vert_ = msl_iface.use_argument_buffer_for_samplers() ?
+                               msl_iface.max_sampler_index_for_stage(ShaderStage::VERTEX) + 1 :
+                               0;
 
   /* Inject common Metal header. */
   ss_vertex << msl_iface.msl_patch_default_get() << std::endl << std::endl;
@@ -742,11 +729,9 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
   {
 
     /* Conditional defines. */
-    if (msl_iface.use_argument_buffer_for_samplers()) {
-      ss_fragment << "#define USE_ARGUMENT_BUFFER_FOR_SAMPLERS 1" << std::endl;
-      ss_fragment << "#define ARGUMENT_BUFFER_NUM_SAMPLERS "
-                  << msl_iface.max_sampler_index_for_stage(ShaderStage::FRAGMENT) + 1 << std::endl;
-    }
+    arg_buf_samplers_frag_ = msl_iface.use_argument_buffer_for_samplers() ?
+                                 msl_iface.max_sampler_index_for_stage(ShaderStage::FRAGMENT) + 1 :
+                                 0;
 
     /* Inject common Metal header. */
     ss_fragment << msl_iface.msl_patch_default_get() << std::endl << std::endl;
@@ -966,36 +951,14 @@ bool MTLShader::generate_msl_from_glsl_compute(const shader::ShaderCreateInfo *i
 
   ss_compute << "#define GPU_ARB_shader_draw_parameters 1\n";
   ss_compute << "#define GPU_ARB_clip_control 1\n";
-  if (bool(info->builtins_ & BuiltinBits::TEXTURE_ATOMIC) &&
-      MTLBackend::get_capabilities().supports_texture_atomics)
-  {
-    ss_compute << ATOMIC_DEFINE_STR;
-  }
 
   generate_specialization_constant_declarations(info, ss_compute);
   generate_compilation_constant_declarations(info, ss_compute);
 
   /* Conditional defines. */
-  if (msl_iface.use_argument_buffer_for_samplers()) {
-    ss_compute << "#define USE_ARGUMENT_BUFFER_FOR_SAMPLERS 1" << std::endl;
-    ss_compute << "#define ARGUMENT_BUFFER_NUM_SAMPLERS "
-               << msl_iface.max_sampler_index_for_stage(ShaderStage::COMPUTE) + 1 << std::endl;
-  }
-
-  /* Inject static workgroup sizes. */
-  if (msl_iface.uses_gl_WorkGroupSize) {
-  }
-
-  /* Inject constant work group sizes. */
-  if (msl_iface.uses_gl_WorkGroupSize) {
-    ss_compute << "#define MTL_USE_WORKGROUP_SIZE 1" << std::endl;
-    ss_compute << "#define MTL_WORKGROUP_SIZE_X " << info->compute_layout_.local_size_x
-               << std::endl;
-    ss_compute << "#define MTL_WORKGROUP_SIZE_Y " << info->compute_layout_.local_size_y
-               << std::endl;
-    ss_compute << "#define MTL_WORKGROUP_SIZE_Z " << info->compute_layout_.local_size_z
-               << std::endl;
-  }
+  arg_buf_samplers_comp_ = msl_iface.use_argument_buffer_for_samplers() ?
+                               msl_iface.max_sampler_index_for_stage(ShaderStage::COMPUTE) + 1 :
+                               0;
 
   /* Inject common Metal header. */
   ss_compute << msl_iface.msl_patch_default_get() << std::endl << std::endl;

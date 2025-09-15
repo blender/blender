@@ -255,6 +255,11 @@ class Preprocessor {
       }
       str = template_call_mutation(str, report_error);
     }
+    else if (language == MSL) {
+      pragma_runtime_generated_parsing(str);
+      str = include_parse_and_remove(str, report_error);
+      str = preprocessor_directive_mutation(str);
+    }
 #ifdef __APPLE__ /* Limiting to Apple hardware since GLSL compilers might have issues. */
     if (language == GLSL) {
       str = matrix_constructor_mutation(str);
@@ -711,7 +716,7 @@ class Preprocessor {
       }
       string dependency_name = tokens[2].str_exclusive();
       /* Assert that includes are at the top of the file. */
-      if (dependency_name == "gpu_glsl_cpp_stubs.hh") {
+      if (dependency_name == "gpu_shader_compat.hh") {
         /* Skip GLSL-C++ stubs. They are only for IDE linting. */
         return;
       }

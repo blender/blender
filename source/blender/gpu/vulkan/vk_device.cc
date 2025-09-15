@@ -6,6 +6,7 @@
  * \ingroup gpu
  */
 
+#include <fmt/format.h>
 #include <sstream>
 
 #include "CLG_log.h"
@@ -18,13 +19,13 @@
 #include "vk_texture.hh"
 #include "vk_vertex_buffer.hh"
 
+#include "gpu_shader_dependency_private.hh"
+
 #include "GPU_capabilities.hh"
 
 #include "BLI_math_matrix_types.hh"
 
 #include "GHOST_C-api.h"
-
-extern "C" char datatoc_glsl_shader_defines_glsl[];
 
 static CLG_LogRef LOG = {"gpu.vulkan"};
 
@@ -142,7 +143,6 @@ void VKDevice::init(void *ghost_context)
 
   debug::object_label(vk_handle(), "LogicalDevice");
   debug::object_label(vk_queue_, "GenericQueue");
-  init_glsl_patch();
 
   resources.use_dynamic_rendering_local_read = extensions_.dynamic_rendering_local_read;
   orphaned_data.timeline_ = 0;
@@ -302,7 +302,7 @@ void VKDevice::init_dummy_buffer()
   dummy_buffer.update_immediately(static_cast<void *>(data));
 }
 
-void VKDevice::init_glsl_patch()
+shader::GeneratedSource VKDevice::extensions_define(StringRefNull stage_define) const
 {
   std::stringstream ss;
 
@@ -329,37 +329,37 @@ void VKDevice::init_glsl_patch()
     ss << "#define gpu_BaryCoord gl_BaryCoordEXT\n";
     ss << "#define gpu_BaryCoordNoPersp gl_BaryCoordNoPerspEXT\n";
   }
+  ss << stage_define;
 
-  /* GLSL Backend Lib. */
-
-  glsl_vert_patch_ = ss.str() + "#define GPU_VERTEX_SHADER\n" + datatoc_glsl_shader_defines_glsl;
-  glsl_geom_patch_ = ss.str() + "#define GPU_GEOMETRY_SHADER\n" + datatoc_glsl_shader_defines_glsl;
-  glsl_frag_patch_ = ss.str() + "#define GPU_FRAGMENT_SHADER\n" + datatoc_glsl_shader_defines_glsl;
-  glsl_comp_patch_ = ss.str() + "#define GPU_COMPUTE_SHADER\n" + datatoc_glsl_shader_defines_glsl;
+  return shader::GeneratedSource{"gpu_shader_glsl_extension.glsl", {}, ss.str()};
 }
 
-const char *VKDevice::glsl_vertex_patch_get() const
+std::string VKDevice::glsl_vertex_patch_get() const
 {
-  BLI_assert(!glsl_vert_patch_.empty());
-  return glsl_vert_patch_.c_str();
+  shader::GeneratedSourceList sources{extensions_define("#define GPU_VERTEX_SHADER\n")};
+  return fmt::to_string(fmt::join(
+      gpu_shader_dependency_get_resolved_source("gpu_shader_compat_glsl.glsl", sources), ""));
 }
 
-const char *VKDevice::glsl_geometry_patch_get() const
+std::string VKDevice::glsl_geometry_patch_get() const
 {
-  BLI_assert(!glsl_geom_patch_.empty());
-  return glsl_geom_patch_.c_str();
+  shader::GeneratedSourceList sources{extensions_define("#define GPU_GEOMETRY_SHADER\n")};
+  return fmt::to_string(fmt::join(
+      gpu_shader_dependency_get_resolved_source("gpu_shader_compat_glsl.glsl", sources), ""));
 }
 
-const char *VKDevice::glsl_fragment_patch_get() const
+std::string VKDevice::glsl_fragment_patch_get() const
 {
-  BLI_assert(!glsl_frag_patch_.empty());
-  return glsl_frag_patch_.c_str();
+  shader::GeneratedSourceList sources{extensions_define("#define GPU_FRAGMENT_SHADER\n")};
+  return fmt::to_string(fmt::join(
+      gpu_shader_dependency_get_resolved_source("gpu_shader_compat_glsl.glsl", sources), ""));
 }
 
-const char *VKDevice::glsl_compute_patch_get() const
+std::string VKDevice::glsl_compute_patch_get() const
 {
-  BLI_assert(!glsl_comp_patch_.empty());
-  return glsl_comp_patch_.c_str();
+  shader::GeneratedSourceList sources{extensions_define("#define GPU_COMPUTE_SHADER\n")};
+  return fmt::to_string(fmt::join(
+      gpu_shader_dependency_get_resolved_source("gpu_shader_compat_glsl.glsl", sources), ""));
 }
 
 /* -------------------------------------------------------------------- */
