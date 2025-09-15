@@ -136,6 +136,15 @@ SPECIALIZATION_CONSTANT(bool, use_split_radiance, true)
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
 
+GPU_SHADER_CREATE_INFO(eevee_deferred_aov_clear)
+/* Early fragment test is needed to avoid processing fragments without correct GBuffer data. */
+EARLY_FRAGMENT_TEST(true)
+ADDITIONAL_INFO(eevee_render_pass_out)
+ADDITIONAL_INFO(gpu_fullscreen)
+FRAGMENT_SOURCE("eevee_deferred_aov_clear_frag.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
+
 GPU_SHADER_CREATE_INFO(eevee_deferred_capture_eval)
 /* Early fragment test is needed to avoid processing fragments without correct GBuffer data. */
 EARLY_FRAGMENT_TEST(true)

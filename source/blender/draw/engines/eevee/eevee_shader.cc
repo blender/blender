@@ -114,6 +114,7 @@ ShaderGroups ShaderModule::static_shaders_load(const ShaderGroups request_bits,
                                        DEFERRED_LIGHT_SINGLE,
                                        DEFERRED_LIGHT_DOUBLE,
                                        DEFERRED_COMBINE,
+                                       DEFERRED_AOV_CLEAR,
                                        DEFERRED_TILE_CLASSIFY};
     request(DEFERRED_LIGHTING_SHADERS, AS_SPAN(shader_list));
   }
@@ -350,6 +351,8 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_deferred_light_double";
     case DEFERRED_LIGHT_TRIPLE:
       return "eevee_deferred_light_triple";
+    case DEFERRED_AOV_CLEAR:
+      return "eevee_deferred_aov_clear";
     case DEFERRED_CAPTURE_EVAL:
       return "eevee_deferred_capture_eval";
     case DEFERRED_PLANAR_EVAL:

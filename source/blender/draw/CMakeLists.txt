@@ -333,6 +333,7 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_debug_surfels_frag.glsl
   engines/eevee/shaders/eevee_debug_irradiance_grid_vert.glsl
   engines/eevee/shaders/eevee_debug_irradiance_grid_frag.glsl
+  engines/eevee/shaders/eevee_deferred_aov_clear_frag.glsl
   engines/eevee/shaders/eevee_deferred_capture_frag.glsl
   engines/eevee/shaders/eevee_deferred_combine_frag.glsl
   engines/eevee/shaders/eevee_deferred_thickness_amend_frag.glsl
