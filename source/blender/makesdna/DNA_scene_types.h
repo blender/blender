@@ -1189,6 +1189,12 @@ typedef struct Paint {
 
   /** Flags used for symmetry. */
   int symmetry_flags;
+  /**
+   * Collapsed state of a given pressure curve
+   * See #PaintCurveVisibilityFlags
+   */
+  int curve_visibility_flags;
+  char _pad[4];
 
   float tile_offset[3];
   struct UnifiedPaintSettings unified_paint_settings;

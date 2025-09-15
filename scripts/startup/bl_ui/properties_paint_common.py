@@ -261,6 +261,7 @@ class UnifiedPaintPanel:
             unified_paint_settings_override=None,
             unified_name=None,
             pressure_name=None,
+            curve_visibility_name=None,
             icon='NONE',
             text=None,
             slider=False,
@@ -272,6 +273,7 @@ class UnifiedPaintPanel:
             :param unified_paint_settings_override allows a caller to pass in a specific object for usage. Needed for
             some 'brush-like' tools."""
         row = layout.row(align=True)
+        paint = UnifiedPaintPanel.paint_settings(context)
         if unified_paint_settings_override:
             ups = unified_paint_settings_override
         else:
@@ -282,13 +284,21 @@ class UnifiedPaintPanel:
 
         row.prop(prop_owner, prop_name, icon=icon, text=text, slider=slider)
 
-        if pressure_name:
-            row.prop(brush, pressure_name, text="")
-
         if unified_name and not header:
             # NOTE: We don't draw UnifiedPaintSettings in the header to reduce clutter. D5928#136281
             row.prop(ups, unified_name, text="", icon='BRUSHES_ALL')
 
+        if pressure_name:
+            row.prop(brush, pressure_name, text="")
+
+        if curve_visibility_name and not header:
+            is_active = getattr(paint, curve_visibility_name)
+            row.prop(
+                paint,
+                curve_visibility_name,
+                text="",
+                icon='DOWNARROW_HLT' if is_active else 'RIGHTARROW',
+                emboss=False)
         return row
 
     @staticmethod
@@ -551,10 +561,19 @@ class StrokePanel(BrushPanel):
             else:
                 row.prop(brush, "jitter_absolute")
             row.prop(brush, "use_pressure_jitter", toggle=True, text="")
-            col.row().prop(brush, "jitter_unit", expand=True)
+            if self.is_popover is False:
+                row.prop(
+                    settings,
+                    "show_jitter_curve",
+                    icon='DOWNARROW_HLT' if settings.show_jitter_curve else 'RIGHTARROW',
+                    text="",
+                    emboss=False)
             # Pen pressure mapping curve for Jitter.
-            if brush.use_pressure_jitter and self.is_popover is False:
-                col.template_curve_mapping(brush, "curve_jitter", brush=True)
+            if settings.show_jitter_curve and self.is_popover is False:
+                subcol = col.column()
+                subcol.active = brush.use_pressure_jitter
+                subcol.template_curve_mapping(brush, "curve_jitter", brush=True)
+            col.row().prop(brush, "jitter_unit", expand=True)
 
         col.separator()
         UnifiedPaintPanel.prop_unified(
@@ -1052,6 +1071,7 @@ def brush_settings(layout, context, brush, popover=False):
 def brush_shared_settings(layout, context, brush, popover=False):
     """ Draw simple brush settings that are shared between different paint modes. """
 
+    paint = UnifiedPaintPanel.paint_settings(context)
     mode = UnifiedPaintPanel.get_brush_mode(context)
 
     ### Determine which settings to draw. ###
@@ -1146,18 +1166,22 @@ def brush_shared_settings(layout, context, brush, popover=False):
                 size_prop,
                 unified_name="use_unified_size",
                 pressure_name="use_pressure_size",
+                curve_visibility_name="show_size_curve",
                 text="Size",
                 slider=True,
             )
         if mode in {'PAINT_TEXTURE', 'PAINT_2D', 'SCULPT', 'PAINT_VERTEX', 'PAINT_WEIGHT', 'SCULPT_CURVES'}:
-            if brush.use_pressure_size:
-                layout.template_curve_mapping(brush, "curve_size", brush=True)
+            if paint.show_size_curve and not popover:
+                subcol = layout.column()
+                subcol.active = brush.use_pressure_size
+                subcol.template_curve_mapping(brush, "curve_size", brush=True)
         if size_mode:
             layout.row().prop(size_owner, "use_locked_size", expand=True)
             layout.separator()
 
     if strength:
         pressure_name = "use_pressure_strength" if strength_pressure else None
+        curve_visibility_name = "show_strength_curve" if strength_pressure else None
         UnifiedPaintPanel.prop_unified(
             layout,
             context,
@@ -1165,11 +1189,14 @@ def brush_shared_settings(layout, context, brush, popover=False):
             "strength",
             unified_name="use_unified_strength",
             pressure_name=pressure_name,
+            curve_visibility_name=curve_visibility_name,
             slider=True,
         )
         if mode in {'PAINT_TEXTURE', 'PAINT_2D', 'SCULPT', 'PAINT_VERTEX', 'PAINT_WEIGHT', 'SCULPT_CURVES'}:
-            if strength_pressure and brush.use_pressure_strength:
-                layout.template_curve_mapping(brush, "curve_strength", brush=True)
+            if paint.show_strength_curve and not popover:
+                subcol = layout.column()
+                subcol.active = brush.use_pressure_strength
+                subcol.template_curve_mapping(brush, "curve_strength", brush=True)
         layout.separator()
 
     if direction:

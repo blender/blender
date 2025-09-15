@@ -580,6 +580,9 @@ static void curvemap_buttons_layout(uiLayout *layout,
                                                                1.0f,
                                                                "");
   curve_but->gradient_type = bg;
+  if (!layout->active()) {
+    UI_but_flag_enable(curve_but, UI_BUT_INACTIVE);
+  }
 
   /* Sliders for selected curve point. */
   int i;
