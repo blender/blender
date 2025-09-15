@@ -522,8 +522,6 @@ void wm_add_default(Main *bmain, bContext *C)
   WorkSpace *workspace;
   WorkSpaceLayout *layout = BKE_workspace_layout_find_global(bmain, screen, &workspace);
 
-  BKE_reports_init(&wm->runtime->reports, RPT_STORE);
-
   CTX_wm_manager_set(C, wm);
   win = wm_window_new(bmain, wm, nullptr, false);
   win->scene = CTX_data_scene(C);
@@ -532,9 +530,9 @@ void wm_add_default(Main *bmain, bContext *C)
   BKE_workspace_active_layout_set(win->workspace_hook, win->winid, workspace, layout);
   screen->winid = win->winid;
 
+  wm->runtime = MEM_new<blender::bke::WindowManagerRuntime>(__func__);
   wm->runtime->winactive = win;
   wm->file_saved = 1;
-  wm->runtime = MEM_new<blender::bke::WindowManagerRuntime>(__func__);
   wm_window_make_drawable(wm, win);
 }
 
