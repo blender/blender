@@ -4,7 +4,8 @@
 
 #pragma once
 
-#include "gpu_shader_math_base_lib.glsl"
+#include "gpu_glsl_cpp_stubs.hh"
+#include "gpu_shader_math_constants_lib.glsl"
 
 /* [Drobot2014a] Low Level Optimizations for GCN. */
 float sqrt_fast(float v)

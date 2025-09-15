@@ -25,6 +25,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_ray_denoise_spatial)
 #include "eevee_reverse_z_lib.glsl"
 #include "eevee_sampling_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"
+#include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
 void transmission_thickness_amend_closure(inout ClosureUndetermined cl,

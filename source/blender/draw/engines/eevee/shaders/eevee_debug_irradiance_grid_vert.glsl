@@ -8,7 +8,7 @@ VERTEX_SHADER_CREATE_INFO(eevee_debug_irradiance_grid)
 
 #include "draw_view_lib.glsl"
 #include "eevee_lightprobe_lib.glsl"
-#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_math_vector_compare_lib.glsl"
 
 void main()
 {

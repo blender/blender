@@ -20,7 +20,8 @@
 COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_reduce)
 
 #include "eevee_depth_of_field_lib.glsl"
-#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_math_safe_lib.glsl"
+#include "gpu_shader_math_vector_reduce_lib.glsl"
 
 /* NOTE: Do not compare alpha as it is not scattered by the scatter pass. */
 float dof_scatter_neighborhood_rejection(float3 color)

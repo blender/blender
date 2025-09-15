@@ -16,6 +16,7 @@ VERTEX_SHADER_CREATE_INFO(eevee_shadow_tag_usage_transparent)
 #include "draw_model_lib.glsl"
 #include "draw_shape_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_math_vector_reduce_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
 /* Inflate bounds by half a pixel as a conservative rasterization alternative,

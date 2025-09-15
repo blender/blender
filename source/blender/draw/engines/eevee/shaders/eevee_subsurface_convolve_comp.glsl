@@ -22,8 +22,10 @@ COMPUTE_SHADER_CREATE_INFO(eevee_subsurface_convolve)
 #include "eevee_reverse_z_lib.glsl"
 #include "eevee_sampling_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"
-#include "gpu_shader_math_matrix_lib.glsl"
-#include "gpu_shader_math_rotation_lib.glsl"
+
+#include "gpu_shader_math_angle_lib.glsl"
+#include "gpu_shader_math_matrix_construct_lib.glsl"
+#include "gpu_shader_math_vector_safe_lib.glsl"
 #include "gpu_shader_shared_exponent_lib.glsl"
 
 /* Produces NaN tile artifacts on Metal (M1). */
@@ -130,7 +132,7 @@ void main()
   float golden_angle = M_PI * (3.0f - sqrt(5.0f));
   float theta = interleaved_gradient_noise(float2(texel), 0, 0.0f) * golden_angle;
 
-  float2x2 sample_space = from_scale(sample_scale) * from_rotation(Angle(theta));
+  float2x2 sample_space = from_scale(sample_scale) * from_rotation(AngleRadian(theta));
 
   float3 accum_weight = float3(0.0f);
   float3 accum_radiance = float3(0.0f);

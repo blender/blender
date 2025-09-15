@@ -22,7 +22,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_setup)
 #include "eevee_colorspace_lib.glsl"
 #include "eevee_depth_of_field_lib.glsl"
 #include "eevee_reverse_z_lib.glsl"
-#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_math_safe_lib.glsl"
 
 void main()
 {

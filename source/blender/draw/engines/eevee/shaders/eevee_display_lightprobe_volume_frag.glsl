@@ -8,7 +8,7 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_display_lightprobe_volume)
 
 #include "draw_view_lib.glsl"
 #include "eevee_spherical_harmonics_lib.glsl"
-#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_math_matrix_transform_lib.glsl"
 
 void main()
 {

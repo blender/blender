@@ -4,6 +4,8 @@
 
 #include "gpu_shader_common_math.glsl"
 #include "gpu_shader_math_fast_lib.glsl"
+#include "gpu_shader_math_vector_safe_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 float3 tint_from_color(float3 color)
 {

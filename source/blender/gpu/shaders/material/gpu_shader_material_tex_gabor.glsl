@@ -19,7 +19,7 @@
  */
 
 #include "gpu_shader_common_hash.glsl"
-#include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_math_constants_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
 
 #define SHD_GABOR_TYPE_2D 0.0f

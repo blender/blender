@@ -16,7 +16,8 @@ COMPUTE_SHADER_CREATE_INFO(eevee_horizon_setup)
 #include "eevee_colorspace_lib.glsl"
 #include "eevee_gbuffer_read_lib.glsl"
 #include "eevee_reverse_z_lib.glsl"
-#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_math_matrix_transform_lib.glsl"
+#include "gpu_shader_math_vector_compare_lib.glsl"
 
 void main()
 {

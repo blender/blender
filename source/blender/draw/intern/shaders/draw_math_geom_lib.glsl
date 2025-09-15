@@ -9,6 +9,7 @@
  */
 
 #include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_math_vector_reduce_lib.glsl"
 
 /* ---------------------------------------------------------------------- */
 /** \name Math intersection & projection functions.

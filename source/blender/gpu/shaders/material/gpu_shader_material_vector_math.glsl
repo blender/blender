@@ -2,12 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_math_vector_safe_lib.glsl"
 
 float3 vector_math_safe_normalize(float3 a)
 {
   /* Match the safe normalize function in Cycles by defaulting to float3(0.0f) */
-  float length_sqr = length_squared(a);
+  float length_sqr = dot(a, a);
   return (length_sqr > 1e-35f) ? a * inversesqrt(length_sqr) : float3(0.0f);
 }
 

@@ -4,6 +4,7 @@
 
 #include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_math_vector_safe_lib.glsl"
 
 /* If straight_alpha is true, then the foreground is in straight alpha form and would need to be
  * premultiplied. */

@@ -15,6 +15,8 @@
 COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_bokeh_lut)
 
 #include "eevee_depth_of_field_lib.glsl"
+#include "gpu_shader_math_constants_lib.glsl"
+#include "gpu_shader_math_safe_lib.glsl"
 
 void main()
 {

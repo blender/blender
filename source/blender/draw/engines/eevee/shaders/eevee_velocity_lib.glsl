@@ -9,7 +9,7 @@
 SHADER_LIBRARY_CREATE_INFO(eevee_velocity_camera)
 
 #include "draw_view_lib.glsl"
-#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_math_matrix_transform_lib.glsl"
 
 float4 velocity_pack(float4 data)
 {

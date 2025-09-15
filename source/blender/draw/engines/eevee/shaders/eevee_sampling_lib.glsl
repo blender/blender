@@ -14,6 +14,8 @@
 SHADER_LIBRARY_CREATE_INFO(eevee_sampling_data)
 
 #include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_math_constants_lib.glsl"
+#include "gpu_shader_math_safe_lib.glsl"
 
 /* -------------------------------------------------------------------- */
 /** \name Sampling data.

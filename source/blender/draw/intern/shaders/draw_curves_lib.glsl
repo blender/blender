@@ -6,14 +6,16 @@
 
 #include "draw_object_infos_info.hh"
 
+#include "gpu_shader_math_constants_lib.glsl"
+#include "gpu_shader_math_matrix_conversion_lib.glsl"
+#include "gpu_shader_math_matrix_transform_lib.glsl"
+
 /**
  * Library to create hairs dynamically from control points.
  * This is less bandwidth intensive than fetching the vertex attributes
  * but does more ALU work per vertex. This also reduces the amount
  * of data the CPU has to precompute and transfer for each update.
  */
-
-#include "gpu_shader_math_matrix_lib.glsl"
 
 /* Avoid including hair functionality for shaders and materials which do not require hair.
  * Required to prevent compilation failure for missing shader inputs and uniforms when hair library

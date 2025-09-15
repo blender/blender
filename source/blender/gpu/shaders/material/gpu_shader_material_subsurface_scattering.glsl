@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "gpu_shader_math_vector_safe_lib.glsl"
+
 void node_subsurface_scattering(float4 color,
                                 float scale,
                                 float3 radius,

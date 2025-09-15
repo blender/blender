@@ -7,8 +7,20 @@
  * Comment out for correct compilation error line. */
 #line 9
 
-#include "gpu_shader_math_matrix_lib.glsl"
 #include "gpu_shader_test_lib.glsl"
+
+#include "gpu_shader_math_axis_angle_lib.glsl"
+#include "gpu_shader_math_euler_lib.glsl"
+#include "gpu_shader_math_matrix_adjoint_lib.glsl"
+#include "gpu_shader_math_matrix_construct_lib.glsl"
+#include "gpu_shader_math_matrix_interpolate_lib.glsl"
+#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_math_matrix_normalize_lib.glsl"
+#include "gpu_shader_math_matrix_projection_lib.glsl"
+#include "gpu_shader_math_matrix_transform_lib.glsl"
+#include "gpu_shader_math_quaternion_lib.glsl"
+#include "gpu_shader_math_rotation_conversion_lib.glsl"
+#include "gpu_shader_math_rotation_lib.glsl"
 
 #define TEST(a, b) if (true)
 
@@ -188,8 +200,8 @@ void main()
     float3 expect_scale = float3(3, 2, 2);
     float3 expect_location = float3(0, 1, 0);
 
-    EXPECT_NEAR(as_vec3(to_euler(m)), as_vec3(expect_eul), 0.0002f);
-    EXPECT_NEAR(as_vec4(to_quaternion(m)), as_vec4(expect_qt), 0.0002f);
+    EXPECT_NEAR(to_euler(m).as_float3(), expect_eul.as_float3(), 0.0002f);
+    EXPECT_NEAR(to_quaternion(m).as_float4(), expect_qt.as_float4(), 0.0002f);
     EXPECT_NEAR(to_scale(m), expect_scale, 0.00001f);
 
     float4 expect_size = float4(3, 2, 2, M_SQRT2);
@@ -207,16 +219,16 @@ void main()
     to_rot_scale(to_float3x3(m), eul, scale);
     to_rot_scale(to_float3x3(m), qt, scale);
     EXPECT_NEAR(scale, expect_scale, 0.00001f);
-    EXPECT_NEAR(as_vec4(qt), as_vec4(expect_qt), 0.0002f);
-    EXPECT_NEAR(as_vec3(eul), as_vec3(expect_eul), 0.0002f);
+    EXPECT_NEAR(qt.as_float4(), expect_qt.as_float4(), 0.0002f);
+    EXPECT_NEAR(eul.as_float3(), expect_eul.as_float3(), 0.0002f);
 
     float3 loc;
     to_loc_rot_scale(m, loc, eul, scale);
     to_loc_rot_scale(m, loc, qt, scale);
     EXPECT_NEAR(scale, expect_scale, 0.00001f);
     EXPECT_NEAR(loc, expect_location, 0.00001f);
-    EXPECT_NEAR(as_vec4(qt), as_vec4(expect_qt), 0.0002f);
-    EXPECT_NEAR(as_vec3(eul), as_vec3(expect_eul), 0.0002f);
+    EXPECT_NEAR(qt.as_float4(), expect_qt.as_float4(), 0.0002f);
+    EXPECT_NEAR(eul.as_float3(), expect_eul.as_float3(), 0.0002f);
   }
 
   TEST(math_matrix, MatrixTranspose)

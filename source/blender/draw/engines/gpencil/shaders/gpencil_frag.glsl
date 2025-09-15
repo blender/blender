@@ -8,6 +8,7 @@ FRAGMENT_SHADER_CREATE_INFO(gpencil_geometry)
 
 #include "draw_colormanagement_lib.glsl"
 #include "draw_grease_pencil_lib.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
 
 float3 gpencil_lighting()
 {

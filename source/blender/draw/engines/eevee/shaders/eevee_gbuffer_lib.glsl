@@ -20,6 +20,7 @@
  * without dealing with none-closures.
  */
 
+#include "gpu_shader_math_vector_reduce_lib.glsl"
 #include "infos/eevee_common_info.hh"
 
 #include "gpu_shader_codegen_lib.glsl"

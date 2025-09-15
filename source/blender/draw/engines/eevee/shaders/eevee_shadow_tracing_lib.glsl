@@ -20,7 +20,8 @@ SHADER_LIBRARY_CREATE_INFO(eevee_shadow_data)
 #include "eevee_shadow_lib.glsl"
 #include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_math_fast_lib.glsl"
-#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_math_vector_safe_lib.glsl"
+#include "gpu_shader_ray_utils_lib.glsl"
 
 /* ---------------------------------------------------------------------- */
 /** \name Shadow Map Tracing loop

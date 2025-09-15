@@ -5,7 +5,7 @@
 #pragma once
 
 #include "draw_view_lib.glsl"
-#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_math_matrix_transform_lib.glsl"
 
 /**
  * Return the corresponding list index in the `list_start_buf` for a given world position.

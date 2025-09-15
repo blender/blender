@@ -18,6 +18,7 @@ SHADER_LIBRARY_CREATE_INFO(eevee_film)
 #include "eevee_cryptomatte_lib.glsl"
 #include "eevee_reverse_z_lib.glsl"
 #include "eevee_velocity_lib.glsl"
+#include "gpu_shader_math_safe_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
 
 /* Return scene linear Z depth from the camera or radial depth for panoramic cameras. */

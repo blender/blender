@@ -7,7 +7,7 @@
  * interactive techniques. 2002. */
 
 #include "gpu_shader_compositor_texture_utilities.glsl"
-#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_math_vector_safe_lib.glsl"
 
 void main()
 {

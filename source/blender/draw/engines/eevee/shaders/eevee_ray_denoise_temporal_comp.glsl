@@ -23,7 +23,10 @@ COMPUTE_SHADER_CREATE_INFO(eevee_ray_denoise_temporal)
 #include "eevee_colorspace_lib.glsl"
 #include "eevee_reverse_z_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"
-#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_math_matrix_transform_lib.glsl"
+#include "gpu_shader_math_safe_lib.glsl"
+
 #include "gpu_shader_utildefines_lib.glsl"
 
 struct LocalStatistics {

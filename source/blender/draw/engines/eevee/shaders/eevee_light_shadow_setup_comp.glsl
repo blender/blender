@@ -13,7 +13,9 @@ COMPUTE_SHADER_CREATE_INFO(eevee_light_shadow_setup)
 
 #include "eevee_sampling_lib.glsl"
 #include "gpu_shader_math_fast_lib.glsl"
+#include "gpu_shader_math_matrix_construct_lib.glsl"
 #include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_math_matrix_projection_lib.glsl"
 
 int shadow_directional_coverage_get(int level)
 {

@@ -13,7 +13,9 @@ VERTEX_SHADER_CREATE_INFO(overlay_particle_shape)
 #include "draw_model_lib.glsl"
 #include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
-#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_math_constants_lib.glsl"
+#include "gpu_shader_math_matrix_transform_lib.glsl"
+
 #include "select_lib.glsl"
 
 float3 rotate(float3 vec, float4 quat)

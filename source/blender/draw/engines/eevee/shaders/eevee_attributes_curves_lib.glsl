@@ -19,7 +19,7 @@ SHADER_LIBRARY_CREATE_INFO(draw_curves)
 #include "draw_object_infos_lib.glsl"
 #include "eevee_nodetree_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"
-#include "gpu_shader_math_matrix_lib.glsl"
+
 #include "gpu_shader_math_vector_lib.glsl"
 
 /* -------------------------------------------------------------------- */

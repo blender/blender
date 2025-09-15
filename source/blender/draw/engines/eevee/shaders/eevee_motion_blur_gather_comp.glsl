@@ -22,6 +22,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_motion_blur_gather)
 #include "eevee_reverse_z_lib.glsl"
 #include "eevee_sampling_lib.glsl"
 #include "eevee_velocity_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 #define gather_sample_count 8
 

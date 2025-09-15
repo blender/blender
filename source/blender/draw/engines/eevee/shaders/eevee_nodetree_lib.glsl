@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "gpu_shader_math_vector_reduce_lib.glsl"
 #include "infos/eevee_common_info.hh"
 
 SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
@@ -16,7 +17,7 @@ SHADER_LIBRARY_CREATE_INFO(eevee_utility_texture)
 #include "eevee_utility_tx_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_base_lib.glsl"
-#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_math_safe_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
 struct MeshVertex {

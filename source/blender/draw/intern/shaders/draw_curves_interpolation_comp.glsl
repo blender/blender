@@ -12,8 +12,8 @@
 #include "draw_curves_info.hh"
 
 #include "gpu_shader_attribute_load_lib.glsl"
-#include "gpu_shader_math_base_lib.glsl"
-#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_math_matrix_transform_lib.glsl"
+#include "gpu_shader_math_safe_lib.glsl"
 #include "gpu_shader_offset_indices_lib.glsl"
 
 /* We workaround the lack of function pointers by using different type to overload the attribute

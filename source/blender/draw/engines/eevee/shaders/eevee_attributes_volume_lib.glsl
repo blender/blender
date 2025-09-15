@@ -14,7 +14,7 @@ SHADER_LIBRARY_CREATE_INFO(draw_modelmat)
 #include "draw_object_infos_lib.glsl"
 #include "eevee_nodetree_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"
-#include "gpu_shader_math_matrix_lib.glsl"
+
 #include "gpu_shader_math_vector_lib.glsl"
 
 /* All attributes are loaded in order. This allow us to use a global counter to retrieve the

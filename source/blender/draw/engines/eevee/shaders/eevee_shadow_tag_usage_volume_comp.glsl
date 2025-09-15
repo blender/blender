@@ -16,6 +16,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_shadow_tag_usage_volume)
 #include "eevee_sampling_lib.glsl"
 #include "eevee_shadow_tag_usage_lib.glsl"
 #include "eevee_volume_lib.glsl"
+#include "gpu_shader_math_vector_compare_lib.glsl"
 
 void main()
 {

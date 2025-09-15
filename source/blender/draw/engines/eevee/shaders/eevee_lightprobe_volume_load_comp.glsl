@@ -20,9 +20,9 @@ COMPUTE_SHADER_CREATE_INFO(eevee_lightprobe_volume_load)
 #include "eevee_lightprobe_volume_eval_lib.glsl"
 #include "eevee_spherical_harmonics_lib.glsl"
 #include "gpu_shader_math_base_lib.glsl"
-#include "gpu_shader_math_matrix_lib.glsl"
+
+#include "gpu_shader_math_matrix_normalize_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
 
 void atlas_store(float4 sh_coefficient, int2 atlas_coord, int layer)
 {
