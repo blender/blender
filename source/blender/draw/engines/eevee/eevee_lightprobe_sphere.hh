@@ -118,7 +118,7 @@ class SphereProbeModule {
   void begin_sync();
   void end_sync();
 
-  void viewport_draw(View &view, GPUFrameBuffer *view_fb);
+  void viewport_draw(View &view, gpu::FrameBuffer *view_fb);
 
   template<typename PassType> void bind_resources(PassType &pass)
   {

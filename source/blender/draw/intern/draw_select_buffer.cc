@@ -99,7 +99,7 @@ uint *DRW_select_buffer_read(
       buf_len = BLI_rcti_size_x(rect) * BLI_rcti_size_y(rect);
       buf = MEM_malloc_arrayN<uint>(buf_len, __func__);
 
-      GPUFrameBuffer *select_id_fb = DRW_engine_select_framebuffer_get();
+      blender::gpu::FrameBuffer *select_id_fb = DRW_engine_select_framebuffer_get();
       GPU_framebuffer_bind(select_id_fb);
       GPU_framebuffer_read_color(select_id_fb,
                                  rect_clamp.xmin,

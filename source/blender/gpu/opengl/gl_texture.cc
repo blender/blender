@@ -40,7 +40,7 @@ GLTexture::GLTexture(const char *name) : Texture(name)
 GLTexture::~GLTexture()
 {
   if (framebuffer_) {
-    GPU_framebuffer_free(wrap(framebuffer_));
+    GPU_framebuffer_free(framebuffer_);
   }
   GLContext *ctx = GLContext::get();
   if (ctx != nullptr && is_bound_) {
@@ -331,7 +331,7 @@ void GLTexture::clear(eGPUDataFormat data_format, const void *data)
    * "pixel data" to exist which is then uploaded CPU -> GPU at bind
    * time. */
 
-  GPUFrameBuffer *prev_fb = GPU_framebuffer_active_get();
+  gpu::FrameBuffer *prev_fb = GPU_framebuffer_active_get();
 
   FrameBuffer *fb = this->framebuffer_get();
   fb->bind(true);
@@ -456,7 +456,7 @@ FrameBuffer *GLTexture::framebuffer_get()
     return framebuffer_;
   }
   BLI_assert(!(type_ & GPU_TEXTURE_1D));
-  framebuffer_ = unwrap(GPU_framebuffer_create(name_));
+  framebuffer_ = GPU_framebuffer_create(name_);
   framebuffer_->attachment_set(this->attachment_type(0), GPU_ATTACHMENT_TEXTURE(this));
   has_pixels_ = true;
   return framebuffer_;

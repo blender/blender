@@ -4700,7 +4700,7 @@ void node_draw_space(const bContext &C, ARegion &region)
   /* Setup off-screen buffers. */
   GPUViewport *viewport = WM_draw_region_get_viewport(&region);
 
-  GPUFrameBuffer *framebuffer_overlay = GPU_viewport_framebuffer_overlay_get(viewport);
+  blender::gpu::FrameBuffer *framebuffer_overlay = GPU_viewport_framebuffer_overlay_get(viewport);
   GPU_framebuffer_bind_no_srgb(framebuffer_overlay);
 
   UI_view2d_view_ortho(&v2d);

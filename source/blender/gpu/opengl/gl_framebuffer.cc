@@ -127,7 +127,7 @@ bool GLFrameBuffer::check(char err_out[256])
 
 #undef FORMAT_STATUS
 
-  const char *format = "GPUFrameBuffer: %s status %s\n";
+  const char *format = "gpu::FrameBuffer: %s status %s\n";
 
   if (err_out) {
     BLI_snprintf(err_out, 256, format, this->name_, err);

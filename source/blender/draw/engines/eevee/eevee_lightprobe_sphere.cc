@@ -335,7 +335,7 @@ void SphereProbeModule::sync_display(Vector<SphereProbe *> &probe_active)
   display_data_buf_.push_update();
 }
 
-void SphereProbeModule::viewport_draw(View &view, GPUFrameBuffer *view_fb)
+void SphereProbeModule::viewport_draw(View &view, gpu::FrameBuffer *view_fb)
 {
   if (!do_display_draw_) {
     return;

@@ -67,7 +67,7 @@ class PlanarProbeModule {
 
   void set_view(const draw::View &main_view, int2 main_view_extent);
 
-  void viewport_draw(View &view, GPUFrameBuffer *view_fb);
+  void viewport_draw(View &view, gpu::FrameBuffer *view_fb);
 
   template<typename PassType> void bind_resources(PassType &pass)
   {

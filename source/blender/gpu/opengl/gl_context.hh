@@ -79,7 +79,7 @@ class GLContext : public Context {
    * context is destroyed, we need to remove any reference to it.
    */
   Set<GLVaoCache *> vao_caches_;
-  Set<GPUFrameBuffer *> framebuffers_;
+  Set<gpu::FrameBuffer *> framebuffers_;
   /** Mutex for the below structures. */
   std::mutex lists_mutex_;
   /** VertexArrays and framebuffers are not shared across context. */

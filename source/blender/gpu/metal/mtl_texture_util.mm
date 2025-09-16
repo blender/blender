@@ -486,8 +486,8 @@ void gpu::MTLTexture::update_sub_depth_2d(
   gpu::MTLTexture *mtl_tex = static_cast<gpu::MTLTexture *>(r32_tex_tmp);
   mtl_tex->update_sub(mip, offset, extent, type, data);
 
-  GPUFrameBuffer *restore_fb = GPU_framebuffer_active_get();
-  GPUFrameBuffer *depth_fb_temp = GPU_framebuffer_create("depth_intermediate_copy_fb");
+  gpu::FrameBuffer *restore_fb = GPU_framebuffer_active_get();
+  gpu::FrameBuffer *depth_fb_temp = GPU_framebuffer_create("depth_intermediate_copy_fb");
   GPU_framebuffer_texture_attach(depth_fb_temp, this, 0, mip);
   GPU_framebuffer_bind(depth_fb_temp);
   if (extent[0] == w_ && extent[1] == h_) {

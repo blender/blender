@@ -278,7 +278,7 @@ class RayTraceModule {
   RayTraceResult alloc_dummy(RayTraceBuffer &rt_buffer);
 
   void debug_pass_sync();
-  void debug_draw(View &view, GPUFrameBuffer *view_fb);
+  void debug_draw(View &view, gpu::FrameBuffer *view_fb);
 
   bool use_raytracing() const
   {

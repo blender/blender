@@ -43,7 +43,7 @@ class ImagePrepass : Overlay {
     ps_.draw(res.shapes.image_quad.get());
   }
 
-  void draw_on_render(GPUFrameBuffer *framebuffer, Manager &manager, View &view) final
+  void draw_on_render(gpu::FrameBuffer *framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;

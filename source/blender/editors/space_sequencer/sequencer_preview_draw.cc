@@ -146,7 +146,7 @@ ImBuf *sequencer_ibuf_get(const bContext *C, const int timeline_frame, const cha
   G.is_break = false;
 
   GPUViewport *viewport = WM_draw_region_get_bound_viewport(region);
-  GPUFrameBuffer *fb = GPU_framebuffer_active_get();
+  blender::gpu::FrameBuffer *fb = GPU_framebuffer_active_get();
   if (viewport) {
     /* Unbind viewport to release the DRW context. */
     GPU_viewport_unbind(viewport);
@@ -909,7 +909,7 @@ static void update_gpu_scopes(const ImBuf *input_ibuf,
   GPU_matrix_ortho_set(0.0f, 1.0f, 0.0f, 1.0f, -1.0, 1.0f);
   GPU_matrix_identity_set();
 
-  GPUFrameBuffer *fb = nullptr;
+  blender::gpu::FrameBuffer *fb = nullptr;
   GPU_framebuffer_ensure_config(&fb,
                                 {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(display_texture)});
   GPU_framebuffer_bind(fb);
@@ -1217,7 +1217,7 @@ static void sequencer_preview_draw_empty(ARegion &region)
   GPUViewport *viewport = WM_draw_region_get_bound_viewport(&region);
   BLI_assert(viewport);
 
-  GPUFrameBuffer *overlay_fb = GPU_viewport_framebuffer_overlay_get(viewport);
+  blender::gpu::FrameBuffer *overlay_fb = GPU_viewport_framebuffer_overlay_get(viewport);
   GPU_framebuffer_bind_no_srgb(overlay_fb);
 
   sequencer_preview_clear();
@@ -1274,7 +1274,7 @@ static void preview_draw_color_render_begin(ARegion &region)
   GPUViewport *viewport = WM_draw_region_get_bound_viewport(&region);
   BLI_assert(viewport);
 
-  GPUFrameBuffer *render_fb = GPU_viewport_framebuffer_render_get(viewport);
+  blender::gpu::FrameBuffer *render_fb = GPU_viewport_framebuffer_render_get(viewport);
   GPU_framebuffer_bind(render_fb);
 
   float col[4] = {0, 0, 0, 0};
@@ -1287,7 +1287,7 @@ static void preview_draw_overlay_begin(ARegion &region)
   GPUViewport *viewport = WM_draw_region_get_bound_viewport(&region);
   BLI_assert(viewport);
 
-  GPUFrameBuffer *overlay_fb = GPU_viewport_framebuffer_overlay_get(viewport);
+  blender::gpu::FrameBuffer *overlay_fb = GPU_viewport_framebuffer_overlay_get(viewport);
   GPU_framebuffer_bind_no_srgb(overlay_fb);
 
   sequencer_preview_clear();
@@ -1599,7 +1599,7 @@ static void draw_registered_callbacks(const bContext *C, ARegion &region)
   GPUViewport *viewport = WM_draw_region_get_bound_viewport(&region);
   BLI_assert(viewport);
 
-  GPUFrameBuffer *overlay_fb = GPU_viewport_framebuffer_overlay_get(viewport);
+  blender::gpu::FrameBuffer *overlay_fb = GPU_viewport_framebuffer_overlay_get(viewport);
 
   GPU_framebuffer_bind(overlay_fb);
   ED_region_draw_cb_draw(C, &region, REGION_DRAW_POST_VIEW);

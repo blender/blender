@@ -122,7 +122,7 @@ struct TimelineDrawContext {
   Editing *ed;
   ListBase *channels;
   GPUViewport *viewport;
-  GPUFrameBuffer *framebuffer_overlay;
+  blender::gpu::FrameBuffer *framebuffer_overlay;
   float pixelx, pixely; /* Width and height of pixel in timeline space. */
   blender::Map<SeqRetimingKey *, Strip *> retiming_selection;
 

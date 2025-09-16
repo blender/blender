@@ -379,8 +379,8 @@ void gpu::MTLTexture::blit(gpu::MTLTexture *dst,
   BLI_assert(MTLContext::get());
 
   /* Fetch restore framebuffer and blit target framebuffer from destination texture. */
-  GPUFrameBuffer *restore_fb = GPU_framebuffer_active_get();
-  GPUFrameBuffer *blit_target_fb = dst->get_blit_framebuffer(dst_slice, dst_mip);
+  gpu::FrameBuffer *restore_fb = GPU_framebuffer_active_get();
+  gpu::FrameBuffer *blit_target_fb = dst->get_blit_framebuffer(dst_slice, dst_mip);
   BLI_assert(blit_target_fb);
   GPU_framebuffer_bind(blit_target_fb);
 
@@ -436,7 +436,7 @@ void gpu::MTLTexture::blit(gpu::MTLTexture *dst,
   }
 }
 
-GPUFrameBuffer *gpu::MTLTexture::get_blit_framebuffer(int dst_slice, uint dst_mip)
+gpu::FrameBuffer *gpu::MTLTexture::get_blit_framebuffer(int dst_slice, uint dst_mip)
 {
 
   /* Check if layer has changed. */
@@ -1376,8 +1376,8 @@ void gpu::MTLTexture::clear(eGPUDataFormat data_format, const void *data)
 
   if (do_render_pass_clear) {
     /* Create clear frame-buffer for fast clear. */
-    GPUFrameBuffer *prev_fb = GPU_framebuffer_active_get();
-    FrameBuffer *fb = unwrap(this->get_blit_framebuffer(-1, 0));
+    gpu::FrameBuffer *prev_fb = GPU_framebuffer_active_get();
+    FrameBuffer *fb = this->get_blit_framebuffer(-1, 0);
     fb->bind(true);
     fb->clear_attachment(this->attachment_type(0), data_format, data);
     GPU_framebuffer_bind(prev_fb);

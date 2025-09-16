@@ -486,7 +486,7 @@ bool gpu_select_pick_load_id(uint id, bool end)
     }
 
     const uint rect_len = ps->src.rect_len;
-    GPUFrameBuffer *fb = GPU_framebuffer_active_get();
+    blender::gpu::FrameBuffer *fb = GPU_framebuffer_active_get();
     GPU_framebuffer_read_depth(
         fb, UNPACK4(ps->gpu.clip_readpixels), GPU_DATA_UINT, ps->gpu.rect_depth_test->buf);
     /* Perform initial check since most cases the array remains unchanged. */

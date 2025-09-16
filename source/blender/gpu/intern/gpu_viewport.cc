@@ -66,14 +66,14 @@ struct GPUViewport {
   /** Depth buffer. Can be shared with GPUOffscreen. */
   blender::gpu::Texture *depth_tx;
   /** Compositing framebuffer for stereo viewport. */
-  GPUFrameBuffer *stereo_comp_fb;
+  blender::gpu::FrameBuffer *stereo_comp_fb;
   /** Color render and overlay frame-buffers for drawing outside of DRW module.
    * The render framebuffer is expected to be in the linear space and viewport will perform color
    * management on it to bring it to the display space.
    * The overlay frame-buffer is expected to be in the display space and viewport does not do any
    * color management on it. */
-  GPUFrameBuffer *render_fb;
-  GPUFrameBuffer *overlay_fb;
+  blender::gpu::FrameBuffer *render_fb;
+  blender::gpu::FrameBuffer *overlay_fb;
 
   /* Color management. */
   ColorManagedViewSettings view_settings;
@@ -229,7 +229,7 @@ void GPU_viewport_bind(GPUViewport *viewport, int view, const rcti *rect)
 void GPU_viewport_bind_from_offscreen(GPUViewport *viewport, GPUOffScreen *ofs, bool is_xr_surface)
 {
   blender::gpu::Texture *color, *depth;
-  GPUFrameBuffer *fb;
+  blender::gpu::FrameBuffer *fb;
   viewport->size[0] = GPU_offscreen_width(ofs);
   viewport->size[1] = GPU_offscreen_height(ofs);
 
@@ -611,7 +611,7 @@ blender::gpu::Texture *GPU_viewport_depth_texture(GPUViewport *viewport)
   return viewport->depth_tx;
 }
 
-GPUFrameBuffer *GPU_viewport_framebuffer_render_get(GPUViewport *viewport)
+blender::gpu::FrameBuffer *GPU_viewport_framebuffer_render_get(GPUViewport *viewport)
 {
   GPU_framebuffer_ensure_config(
       &viewport->render_fb,
@@ -622,7 +622,7 @@ GPUFrameBuffer *GPU_viewport_framebuffer_render_get(GPUViewport *viewport)
   return viewport->render_fb;
 }
 
-GPUFrameBuffer *GPU_viewport_framebuffer_overlay_get(GPUViewport *viewport)
+blender::gpu::FrameBuffer *GPU_viewport_framebuffer_overlay_get(GPUViewport *viewport)
 {
   GPU_framebuffer_ensure_config(
       &viewport->overlay_fb,

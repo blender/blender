@@ -1506,7 +1506,7 @@ void draw_nodespace_back_pix(const bContext &C,
   GPU_matrix_push();
 
   /* The draw manager is used to draw the backdrop image. */
-  GPUFrameBuffer *old_fb = GPU_framebuffer_active_get();
+  blender::gpu::FrameBuffer *old_fb = GPU_framebuffer_active_get();
   GPU_framebuffer_restore();
   BLI_thread_lock(LOCK_DRAW_IMAGE);
   DRW_draw_view(&C);

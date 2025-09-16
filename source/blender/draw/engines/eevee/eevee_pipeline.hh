@@ -398,7 +398,7 @@ class DeferredPipeline {
     return max_ii(opaque_layer_.normal_layer_count(), refraction_layer_.normal_layer_count());
   }
 
-  void debug_draw(draw::View &view, GPUFrameBuffer *combined_fb);
+  void debug_draw(draw::View &view, gpu::FrameBuffer *combined_fb);
 
   bool is_empty() const
   {

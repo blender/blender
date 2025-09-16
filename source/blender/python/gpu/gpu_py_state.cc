@@ -500,7 +500,7 @@ static PyObject *pygpu_state_active_framebuffer_get(PyObject * /*self*/)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
 
-  GPUFrameBuffer *fb = GPU_framebuffer_active_get();
+  blender::gpu::FrameBuffer *fb = GPU_framebuffer_active_get();
   return BPyGPUFrameBuffer_CreatePyObject(fb, true);
 }
 

@@ -1282,7 +1282,7 @@ void ShadowModule::set_view(View &view, int2 extent)
 
   input_depth_extent_ = extent;
 
-  GPUFrameBuffer *prev_fb = GPU_framebuffer_active_get();
+  gpu::FrameBuffer *prev_fb = GPU_framebuffer_active_get();
 
   dispatch_depth_scan_size_ = int3(math::divide_ceil(extent, int2(SHADOW_DEPTH_SCAN_GROUP_SIZE)),
                                    1);
@@ -1399,7 +1399,7 @@ void ShadowModule::set_view(View &view, int2 extent)
   }
 }
 
-void ShadowModule::debug_draw(View &view, GPUFrameBuffer *view_fb)
+void ShadowModule::debug_draw(View &view, gpu::FrameBuffer *view_fb)
 {
   if (!ELEM(inst_.debug_mode,
             eDebugMode::DEBUG_SHADOW_TILEMAPS,

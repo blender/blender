@@ -147,7 +147,7 @@ class VKFrameBuffer : public FrameBuffer {
   void clear(render_graph::VKClearAttachmentsNode::CreateInfo &clear_attachments);
 };
 
-static inline VKFrameBuffer *unwrap(FrameBuffer *framebuffer)
+static inline VKFrameBuffer *unwrap(gpu::FrameBuffer *framebuffer)
 {
   return static_cast<VKFrameBuffer *>(framebuffer);
 }

@@ -72,7 +72,7 @@ struct tVfx {
   struct tVfx *next = nullptr;
   std::unique_ptr<PassSimple> vfx_ps = std::make_unique<PassSimple>("vfx");
   /* Frame-buffer reference since it may not be allocated yet. */
-  GPUFrameBuffer **target_fb = nullptr;
+  gpu::FrameBuffer **target_fb = nullptr;
 };
 
 /* Temporary gpencil layer reflection used by the gpencil::Instance. */
@@ -210,7 +210,7 @@ struct Instance final : public DrawEngine {
   bool is_sorted;
   /* Pointer to dtxl->depth */
   gpu::Texture *scene_depth_tx;
-  GPUFrameBuffer *scene_fb;
+  gpu::FrameBuffer *scene_fb;
   /* Used for render accumulation antialiasing. */
   Texture accumulation_tx = {"gp_accumulation_tx"};
   Framebuffer accumulation_fb = {"gp_accumulation_fb"};
@@ -352,7 +352,7 @@ struct Instance final : public DrawEngine {
 
   struct VfxFramebufferRef {
     /* These may not be allocated yet, use address of future pointer. */
-    GPUFrameBuffer **fb;
+    gpu::FrameBuffer **fb;
     gpu::Texture **color_tx;
     gpu::Texture **reveal_tx;
   };

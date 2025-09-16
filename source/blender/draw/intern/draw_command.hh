@@ -142,7 +142,7 @@ struct ShaderBind {
 };
 
 struct FramebufferBind {
-  GPUFrameBuffer **framebuffer;
+  gpu::FrameBuffer **framebuffer;
 
   void execute() const;
   std::string serialize() const;

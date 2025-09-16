@@ -334,7 +334,7 @@ void GPU_shader_batch_specializations_cancel(SpecializationBatchHandle &handle);
  * prime compilations.
  *
  * Shaders do not necessarily have to be similar in functionality to be used as a parent, so long
- * as the #GPUVertFormt and #GPUFrameBuffer which they are used with remain the same.
+ * as the #GPUVertFormat and #gpu::FrameBuffer which they are used with remain the same.
  * Other bindings such as textures, uniforms and UBOs are all assigned independently as dynamic
  * state.
  *

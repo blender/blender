@@ -12,7 +12,9 @@
 
 #include "BLI_compiler_attrs.h"
 
-struct GPUFrameBuffer;
+namespace blender::gpu {
+class FrameBuffer;
+}  // namespace blender::gpu
 
 extern PyTypeObject BPyGPUFrameBuffer_Type;
 
@@ -20,12 +22,12 @@ extern PyTypeObject BPyGPUFrameBuffer_Type;
 
 struct BPyGPUFrameBuffer {
   PyObject_HEAD
-  GPUFrameBuffer *fb;
+  blender::gpu::FrameBuffer *fb;
 
 #ifndef GPU_NO_USE_PY_REFERENCES
   bool shared_reference;
 #endif
 };
 
-[[nodiscard]] PyObject *BPyGPUFrameBuffer_CreatePyObject(GPUFrameBuffer *fb, bool shared_reference)
-    ATTR_NONNULL(1);
+[[nodiscard]] PyObject *BPyGPUFrameBuffer_CreatePyObject(blender::gpu::FrameBuffer *fb,
+                                                         bool shared_reference) ATTR_NONNULL(1);

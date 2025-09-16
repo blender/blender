@@ -971,7 +971,7 @@ void DeferredPipeline::debug_pass_sync()
   pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
 }
 
-void DeferredPipeline::debug_draw(draw::View &view, GPUFrameBuffer *combined_fb)
+void DeferredPipeline::debug_draw(draw::View &view, gpu::FrameBuffer *combined_fb)
 {
   Instance &inst = opaque_layer_.inst_;
   if (!ELEM(inst.debug_mode,

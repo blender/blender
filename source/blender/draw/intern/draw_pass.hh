@@ -231,7 +231,7 @@ class PassBase {
    * \note Changes the global GPU state (outside of DRW).
    * \note Capture reference to the framebuffer so it can be initialized later.
    */
-  void framebuffer_set(GPUFrameBuffer **framebuffer);
+  void framebuffer_set(gpu::FrameBuffer **framebuffer);
 
   /**
    * Start a new sub-pass and change framebuffer attachments status.
@@ -1109,7 +1109,7 @@ template<class T> inline void PassBase<T>::shader_set(gpu::Shader *shader)
   create_command(Type::ShaderBind).shader_bind = {shader};
 }
 
-template<class T> inline void PassBase<T>::framebuffer_set(GPUFrameBuffer **framebuffer)
+template<class T> inline void PassBase<T>::framebuffer_set(gpu::FrameBuffer **framebuffer)
 {
   create_command(Type::FramebufferBind).framebuffer_bind = {framebuffer};
 }

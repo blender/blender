@@ -18,8 +18,10 @@
 
 struct DRWData;
 struct GPUViewport;
-struct GPUFrameBuffer;
 struct GPUOffScreen;
+namespace blender::gpu {
+class FrameBuffer;
+}  // namespace blender::gpu
 
 GPUViewport *GPU_viewport_create();
 GPUViewport *GPU_viewport_stereo_create();
@@ -86,5 +88,5 @@ blender::gpu::Texture *GPU_viewport_depth_texture(GPUViewport *viewport);
 /**
  * Color render and overlay frame-buffers for drawing outside of DRW module.
  */
-GPUFrameBuffer *GPU_viewport_framebuffer_render_get(GPUViewport *viewport);
-GPUFrameBuffer *GPU_viewport_framebuffer_overlay_get(GPUViewport *viewport);
+blender::gpu::FrameBuffer *GPU_viewport_framebuffer_render_get(GPUViewport *viewport);
+blender::gpu::FrameBuffer *GPU_viewport_framebuffer_overlay_get(GPUViewport *viewport);

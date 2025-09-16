@@ -2024,7 +2024,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
     ofs = nullptr;
   }
 
-  GPUFrameBuffer *old_fb = GPU_framebuffer_active_get();
+  blender::gpu::FrameBuffer *old_fb = GPU_framebuffer_active_get();
 
   if (old_fb) {
     GPU_framebuffer_restore();
@@ -2356,7 +2356,7 @@ static void view3d_gpu_read_Z_pixels(GPUViewport *viewport, rcti *rect, void *da
 {
   blender::gpu::Texture *depth_tx = GPU_viewport_depth_texture(viewport);
 
-  GPUFrameBuffer *depth_read_fb = nullptr;
+  blender::gpu::FrameBuffer *depth_read_fb = nullptr;
   GPU_framebuffer_ensure_config(&depth_read_fb,
                                 {
                                     GPU_ATTACHMENT_TEXTURE(depth_tx),

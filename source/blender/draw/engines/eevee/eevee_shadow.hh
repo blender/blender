@@ -378,7 +378,7 @@ class ShadowModule {
   void set_view(View &view, int2 extent);
 
   void debug_end_sync();
-  void debug_draw(View &view, GPUFrameBuffer *view_fb);
+  void debug_draw(View &view, gpu::FrameBuffer *view_fb);
 
   template<typename PassType> void bind_resources(PassType &pass)
   {

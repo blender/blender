@@ -240,7 +240,7 @@ class Sculpts : Overlay {
     manager.submit(sculpt_curve_cage_, view);
   }
 
-  void draw_on_render(GPUFrameBuffer *framebuffer, Manager &manager, View &view) final
+  void draw_on_render(gpu::FrameBuffer *framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;

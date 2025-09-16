@@ -269,20 +269,6 @@ class FrameBuffer {
   }
 };
 
-/* Syntactic sugar. */
-static inline GPUFrameBuffer *wrap(FrameBuffer *framebuffer)
-{
-  return reinterpret_cast<GPUFrameBuffer *>(framebuffer);
-}
-static inline FrameBuffer *unwrap(GPUFrameBuffer *framebuffer)
-{
-  return reinterpret_cast<FrameBuffer *>(framebuffer);
-}
-static inline const FrameBuffer *unwrap(const GPUFrameBuffer *framebuffer)
-{
-  return reinterpret_cast<const FrameBuffer *>(framebuffer);
-}
-
 #undef DEBUG_NAME_LEN
 
 }  // namespace blender::gpu
