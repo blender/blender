@@ -127,6 +127,8 @@ static bool can_use_mesh_for_orco_evaluation(MeshSeqCacheModifierData *mcmd,
       if (!ABC_mesh_topology_changed(mcmd->reader, ctx->object, mesh, time_offset, r_err_str)) {
         return true;
       }
+#  else
+      UNUSED_VARS(time_offset);
 #  endif
       break;
     case CACHEFILE_TYPE_USD:
