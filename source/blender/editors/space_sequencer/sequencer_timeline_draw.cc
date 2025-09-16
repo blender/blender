@@ -20,6 +20,7 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_defaults.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
@@ -1828,8 +1829,15 @@ static void draw_timeline_grid(TimelineDrawContext *ctx)
   }
 
   U.v2d_min_gridsize *= 3;
+
+  const Scene *scene = ctx->scene;
+  if (scene == nullptr) {
+    /* If we don't have a scene available, pick what we defined as default for framerate to show
+     * *something*. */
+    scene = DNA_struct_default_get(Scene);
+  }
   UI_view2d_draw_lines_x__discrete_frames_or_seconds(
-      ctx->v2d, ctx->scene, (ctx->sseq->flag & SEQ_DRAWFRAMES) == 0, false);
+      ctx->v2d, scene, (ctx->sseq->flag & SEQ_DRAWFRAMES) == 0, false);
   U.v2d_min_gridsize /= 3;
 }
 
