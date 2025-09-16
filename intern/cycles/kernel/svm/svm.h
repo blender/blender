@@ -102,7 +102,8 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
                                const uint32_t path_flag)
 {
   float stack[SVM_STACK_SIZE];
-  Spectrum closure_weight;
+  /* Initialiez to silence (false positive?) warning about uninitialzied use on Windows. */
+  Spectrum closure_weight = zero_spectrum();
   int offset = sd->shader & SHADER_MASK;
 
   while (true) {
