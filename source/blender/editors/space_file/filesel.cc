@@ -619,6 +619,7 @@ void ED_fileselect_activate_by_relpath(SpaceFile *sfile, const char *relative_pa
 
 void ED_fileselect_deselect_all(SpaceFile *sfile)
 {
+  BLI_assert(sfile->files);
   file_select_deselect_all(sfile, FILE_SEL_SELECTED);
   WM_main_add_notifier(NC_SPACE | ND_SPACE_FILE_PARAMS, nullptr);
 }
