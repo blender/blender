@@ -988,7 +988,7 @@ void update_input_properties_from_node_tree(const bNodeTree &tree,
       if (old_properties == nullptr) {
         if (socket.default_attribute_name && socket.default_attribute_name[0] != '\0') {
           IDP_AssignStringMaxSize(attribute_prop, socket.default_attribute_name, MAX_NAME);
-          IDP_int_set(use_attribute_prop, 1);
+          IDP_bool_set(use_attribute_prop, true);
         }
       }
       else {
