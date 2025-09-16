@@ -66,12 +66,6 @@
 /* For versioning we only ever want to manipulate preferences passed in. */
 #define U BLI_STATIC_ASSERT(false, "Global 'U' not allowed, only use arguments passed in!")
 
-static void version_bone_color_theme(bTheme *btheme)
-{
-  /* Reset the bone colors to the new default values. */
-  memcpy(btheme->tarm, &U_theme_default.tarm, sizeof(*btheme->tarm) * 20);
-}
-
 static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
 {
 
@@ -386,7 +380,7 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
    */
   {
     /* Keep this block, even when empty. */
-    version_bone_color_theme(btheme);
+    memcpy(btheme->tarm, &U_theme_default.tarm, sizeof(*btheme->tarm) * 20);
   }
 
 #undef FROM_DEFAULT_V4_UCHAR
