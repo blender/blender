@@ -607,9 +607,9 @@ static PyObject *Matrix_vectorcall(PyObject *type,
   }
 
   switch (PyVectorcall_NARGS(nargsf)) {
-    case 0:
+    case 0: {
       return Matrix_CreatePyObject(nullptr, 4, 4, (PyTypeObject *)type);
-
+    }
     case 1: {
       PyObject *arg = args[0];
 
@@ -1596,9 +1596,10 @@ static bool matrix_invert_is_compat(const MatrixObject *self)
 static bool matrix_invert_args_check(const MatrixObject *self, PyObject *args, bool check_type)
 {
   switch (PyTuple_GET_SIZE(args)) {
-    case 0:
+    case 0: {
       return true;
-    case 1:
+    }
+    case 1: {
       if (check_type) {
         const MatrixObject *fallback = (const MatrixObject *)PyTuple_GET_ITEM(args, 0);
         if (!MatrixObject_Check(fallback)) {
@@ -1617,11 +1618,13 @@ static bool matrix_invert_args_check(const MatrixObject *self, PyObject *args, b
       }
 
       return true;
-    default:
+    }
+    default: {
       PyErr_SetString(PyExc_ValueError,
                       "Matrix.invert(ed): "
                       "takes at most one argument");
       return false;
+    }
   }
 }
 
@@ -2302,14 +2305,14 @@ static PyObject *Matrix_repr(MatrixObject *self)
     }
   }
   switch (self->row_num) {
-    case 2:
+    case 2: {
       return PyUnicode_FromFormat(
           "Matrix((%R,\n"
           "        %R))",
           rows[0],
           rows[1]);
-
-    case 3:
+    }
+    case 3: {
       return PyUnicode_FromFormat(
           "Matrix((%R,\n"
           "        %R,\n"
@@ -2317,8 +2320,8 @@ static PyObject *Matrix_repr(MatrixObject *self)
           rows[0],
           rows[1],
           rows[2]);
-
-    case 4:
+    }
+    case 4: {
       return PyUnicode_FromFormat(
           "Matrix((%R,\n"
           "        %R,\n"
@@ -2328,6 +2331,7 @@ static PyObject *Matrix_repr(MatrixObject *self)
           rows[1],
           rows[2],
           rows[3]);
+    }
   }
 
   Py_FatalError("Matrix(): invalid row size!");
@@ -2464,22 +2468,25 @@ static PyObject *Matrix_richcmpr(PyObject *a, PyObject *b, int op)
   }
 
   switch (op) {
-    case Py_NE:
+    case Py_NE: {
       ok = !ok;
       ATTR_FALLTHROUGH;
-    case Py_EQ:
+    }
+    case Py_EQ: {
       res = ok ? Py_False : Py_True;
       break;
-
+    }
     case Py_LT:
     case Py_LE:
     case Py_GT:
-    case Py_GE:
+    case Py_GE: {
       res = Py_NotImplemented;
       break;
-    default:
+    }
+    default: {
       PyErr_BadArgument();
       return nullptr;
+    }
   }
 
   return Py_NewRef(res);

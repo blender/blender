@@ -43,18 +43,24 @@ short euler_order_from_string(const char *str, const char *error_prefix)
 #define MAKE_ID3(a, b, c) ((a) | ((b) << 8) | ((c) << 16))
 
     switch (*((const PY_INT32_T *)str)) {
-      case MAKE_ID3('X', 'Y', 'Z'):
+      case MAKE_ID3('X', 'Y', 'Z'): {
         return EULER_ORDER_XYZ;
-      case MAKE_ID3('X', 'Z', 'Y'):
+      }
+      case MAKE_ID3('X', 'Z', 'Y'): {
         return EULER_ORDER_XZY;
-      case MAKE_ID3('Y', 'X', 'Z'):
+      }
+      case MAKE_ID3('Y', 'X', 'Z'): {
         return EULER_ORDER_YXZ;
-      case MAKE_ID3('Y', 'Z', 'X'):
+      }
+      case MAKE_ID3('Y', 'Z', 'X'): {
         return EULER_ORDER_YZX;
-      case MAKE_ID3('Z', 'X', 'Y'):
+      }
+      case MAKE_ID3('Z', 'X', 'Y'): {
         return EULER_ORDER_ZXY;
-      case MAKE_ID3('Z', 'Y', 'X'):
+      }
+      case MAKE_ID3('Z', 'Y', 'X'): {
         return EULER_ORDER_ZYX;
+      }
     }
 
 #undef MAKE_ID3
@@ -99,9 +105,6 @@ static PyObject *Euler_vectorcall(PyObject *type,
                                   const size_t nargsf,
                                   PyObject *kwnames)
 {
-  float eul[EULER_SIZE] = {0.0f, 0.0f, 0.0f};
-  short order = EULER_ORDER_XYZ;
-
   if (UNLIKELY(kwnames && PyDict_Size(kwnames))) {
     PyErr_SetString(PyExc_TypeError,
                     "mathutils.Euler(): "
@@ -109,10 +112,14 @@ static PyObject *Euler_vectorcall(PyObject *type,
     return nullptr;
   }
 
+  float eul[EULER_SIZE] = {0.0f, 0.0f, 0.0f};
+  short order = EULER_ORDER_XYZ;
+
   const size_t nargs = PyVectorcall_NARGS(nargsf);
   switch (nargs) {
-    case 0:
+    case 0: {
       break;
+    }
     case 2: {
       const char *order_str;
 
@@ -123,11 +130,12 @@ static PyObject *Euler_vectorcall(PyObject *type,
       }
       ATTR_FALLTHROUGH;
     }
-    case 1:
+    case 1: {
       if (mathutils_array_parse(eul, EULER_SIZE, EULER_SIZE, args[0], "mathutils.Euler()") == -1) {
         return nullptr;
       }
       break;
+    }
     default: {
       PyErr_Format(PyExc_TypeError,
                    "mathutils.Euler(): "
@@ -469,22 +477,25 @@ static PyObject *Euler_richcmpr(PyObject *a, PyObject *b, int op)
   }
 
   switch (op) {
-    case Py_NE:
+    case Py_NE: {
       ok = !ok;
       ATTR_FALLTHROUGH;
-    case Py_EQ:
+    }
+    case Py_EQ: {
       res = ok ? Py_False : Py_True;
       break;
-
+    }
     case Py_LT:
     case Py_LE:
     case Py_GT:
-    case Py_GE:
+    case Py_GE: {
       res = Py_NotImplemented;
       break;
-    default:
+    }
+    default: {
       PyErr_BadArgument();
       return nullptr;
+    }
   }
 
   return Py_NewRef(res);
@@ -831,8 +842,7 @@ static PyGetSetDef Euler_getseters[] = {
      (setter) nullptr,
      BaseMathObject_owner_doc,
      nullptr},
-    {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
-};
+    {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */};
 
 /** \} */
 
@@ -891,7 +901,8 @@ PyDoc_STRVAR(
     "\n"
     "   This object gives access to Eulers in Blender.\n"
     "\n"
-    "   .. seealso:: `Euler angles <https://en.wikipedia.org/wiki/Euler_angles>`__ on Wikipedia.\n"
+    "   .. seealso:: `Euler angles <https://en.wikipedia.org/wiki/Euler_angles>`__ on "
+    "Wikipedia.\n"
     "\n"
     "   :arg angles: (X, Y, Z) angles in radians.\n"
     "   :type angles: Sequence[float]\n"
