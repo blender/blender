@@ -1631,7 +1631,7 @@ static void unit_dual_convert(double value,
   const bUnitDef *unit = (main_unit) ? main_unit : unit_best_fit(value, usys, nullptr, 1);
 
   const double scaled_value = value / unit->scalar;
-  *r_value_a = (value < 0.0 ? ceil(scaled_value) : floor(scaled_value)) * unit->scalar;
+  *r_value_a = std::trunc(scaled_value) * unit->scalar;
   *r_value_b = value - (*r_value_a);
 
   *r_unit_a = unit;
