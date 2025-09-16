@@ -18,7 +18,7 @@
  */
 
 #include "gpu_shader_common_hash.glsl"
-#include <cfloat>
+#include "gpu_shader_utildefines_lib.glsl"
 
 #define SHD_VORONOI_EUCLIDEAN 0
 #define SHD_VORONOI_MANHATTAN 1
