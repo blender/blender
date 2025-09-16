@@ -351,6 +351,22 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
     flag |= GPU_MATFLAG_COAT;
   }
 
+  /* Make constant link for the cases we optimize. This allows the driver to constant fold.
+   * Note that doing so specialize the final tree topology, and thus the shader becomes less
+   * reusable. So to be used with care.
+   * Also note that we do note override existing links. This is because it would leak the current
+   * nodes otherwise. */
+  const float zero = 0.0f;
+  if (!use_coat && in[SOCK_COAT_WEIGHT_ID].link == nullptr) {
+    in[SOCK_COAT_WEIGHT_ID].link = GPU_constant(&zero);
+  }
+  if (!use_subsurf && in[SOCK_SUBSURFACE_WEIGHT_ID].link == nullptr) {
+    in[SOCK_SUBSURFACE_WEIGHT_ID].link = GPU_constant(&zero);
+  }
+  if (!use_refract && in[SOCK_TRANSMISSION_WEIGHT_ID].link == nullptr) {
+    in[SOCK_TRANSMISSION_WEIGHT_ID].link = GPU_constant(&zero);
+  }
+
   float use_multi_scatter = (node->custom1 == SHD_GLOSSY_MULTI_GGX) ? 1.0f : 0.0f;
 
   GPU_material_flag_set(mat, flag);

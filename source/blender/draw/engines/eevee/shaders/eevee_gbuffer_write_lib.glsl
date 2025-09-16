@@ -24,6 +24,21 @@
 
 #include "eevee_gbuffer_lib.glsl"
 
+/* Allows to reduce shader complexity and compilation time.
+ * Prefer removing the defines to let the loading lib have all cases by default. */
+#ifndef MAT_REFLECTION
+#  undef GBUFFER_HAS_REFLECTION
+#endif
+#ifndef MAT_REFRACTION
+#  undef GBUFFER_HAS_REFRACTION
+#endif
+#ifndef MAT_SUBSURFACE
+#  undef GBUFFER_HAS_SUBSURFACE
+#endif
+#ifndef MAT_TRANSLUCENT
+#  undef GBUFFER_HAS_TRANSLUCENT
+#endif
+
 namespace gbuffer {
 
 using ClosurePacking = gbuffer::ClosurePacking;
