@@ -9835,6 +9835,13 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 
     /* Also print in the console for Python. */
     PyErr_Print();
+    /* Print a small line at ERROR level so that tests that rely on --debug-exit-on-error can
+     * fail. This assumes that the majority of the information is already seen in the console via
+     * PyErr_Print and should not be duplicated */
+    CLOG_ERROR(BPY_LOG_RNA,
+               "Python script error in %.200s.%.200s",
+               RNA_struct_identifier(ptr->type),
+               RNA_function_identifier(func));
   }
 
   bpy_context_clear(C, &gilstate);
