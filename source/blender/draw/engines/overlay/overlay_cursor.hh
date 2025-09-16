@@ -62,6 +62,7 @@ class Cursor : Overlay {
           state.region, cursor->location, pixel_coord, V3D_PROJ_TEST_CLIP_NEAR);
       if (status != V3D_PROJ_RET_OK) {
         /* Clipped. */
+        enabled_ = false;
         return;
       }
     }
