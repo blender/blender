@@ -138,19 +138,22 @@ static PyObject *Vector_to_tuple_ex(VectorObject *self, int ndigits)
  * Supports 2D, 3D, and 4D vector objects both int and float values
  * accepted. Mixed float and int values accepted. Ints are parsed to float
  */
-static PyObject *Vector_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+static PyObject *Vector_vectorcall(PyObject *type,
+                                   PyObject *const *args,
+                                   const size_t nargsf,
+                                   PyObject *kwnames)
 {
   float *vec = nullptr;
   int vec_num = 3; /* default to a 3D vector */
 
-  if (kwds && PyDict_Size(kwds)) {
+  if (UNLIKELY(kwnames && PyDict_Size(kwnames))) {
     PyErr_SetString(PyExc_TypeError,
                     "Vector(): "
                     "takes no keyword args");
     return nullptr;
   }
-
-  switch (PyTuple_GET_SIZE(args)) {
+  const size_t nargs = PyVectorcall_NARGS(nargsf);
+  switch (nargs) {
     case 0:
       vec = static_cast<float *>(PyMem_Malloc(vec_num * sizeof(float)));
 
@@ -164,19 +167,18 @@ static PyObject *Vector_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
       copy_vn_fl(vec, vec_num, 0.0f);
       break;
     case 1:
-      if ((vec_num = mathutils_array_parse_alloc(
-               &vec, 2, PyTuple_GET_ITEM(args, 0), "mathutils.Vector()")) == -1)
-      {
+      if ((vec_num = mathutils_array_parse_alloc(&vec, 2, args[0], "mathutils.Vector()")) == -1) {
         return nullptr;
       }
       break;
     default:
-      PyErr_SetString(PyExc_TypeError,
-                      "mathutils.Vector(): "
-                      "more than a single arg given");
+      PyErr_Format(PyExc_TypeError,
+                   "mathutils.Vector(): "
+                   "takes at most 1 argument (%zd given)",
+                   nargs);
       return nullptr;
   }
-  return Vector_CreatePyObject_alloc(vec, vec_num, type);
+  return Vector_CreatePyObject_alloc(vec, vec_num, (PyTypeObject *)type);
 }
 
 /** \} */
@@ -3483,7 +3485,7 @@ PyTypeObject vector_Type = {
     /*tp_dictoffset*/ 0,
     /*tp_init*/ nullptr,
     /*tp_alloc*/ nullptr,
-    /*tp_new*/ Vector_new,
+    /*tp_new*/ nullptr,
     /*tp_free*/ nullptr,
     /*tp_is_gc*/ (inquiry)BaseMathObject_is_gc,
     /*tp_bases*/ nullptr,
@@ -3494,7 +3496,7 @@ PyTypeObject vector_Type = {
     /*tp_del*/ nullptr,
     /*tp_version_tag*/ 0,
     /*tp_finalize*/ nullptr,
-    /*tp_vectorcall*/ nullptr,
+    /*tp_vectorcall*/ Vector_vectorcall,
 };
 
 #ifdef MATH_STANDALONE

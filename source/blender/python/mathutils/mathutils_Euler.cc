@@ -94,40 +94,49 @@ static PyObject *Euler_to_tuple_ex(EulerObject *self, int ndigits)
 /** \name Euler Type: `__new__` / `mathutils.Euler()`
  * \{ */
 
-static PyObject *Euler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+static PyObject *Euler_vectorcall(PyObject *type,
+                                  PyObject *const *args,
+                                  const size_t nargsf,
+                                  PyObject *kwnames)
 {
-  PyObject *seq = nullptr;
-  const char *order_str = nullptr;
-
   float eul[EULER_SIZE] = {0.0f, 0.0f, 0.0f};
   short order = EULER_ORDER_XYZ;
 
-  if (kwds && PyDict_Size(kwds)) {
+  if (UNLIKELY(kwnames && PyDict_Size(kwnames))) {
     PyErr_SetString(PyExc_TypeError,
                     "mathutils.Euler(): "
                     "takes no keyword args");
     return nullptr;
   }
 
-  if (!PyArg_ParseTuple(args, "|Os:mathutils.Euler", &seq, &order_str)) {
-    return nullptr;
-  }
-
-  switch (PyTuple_GET_SIZE(args)) {
+  const size_t nargs = PyVectorcall_NARGS(nargsf);
+  switch (nargs) {
     case 0:
       break;
-    case 2:
-      if ((order = euler_order_from_string(order_str, "mathutils.Euler()")) == -1) {
+    case 2: {
+      const char *order_str;
+
+      if (((order_str = PyUnicode_AsUTF8(args[1])) == nullptr) ||
+          ((order = euler_order_from_string(order_str, "mathutils.Euler()")) == -1))
+      {
         return nullptr;
       }
       ATTR_FALLTHROUGH;
+    }
     case 1:
-      if (mathutils_array_parse(eul, EULER_SIZE, EULER_SIZE, seq, "mathutils.Euler()") == -1) {
+      if (mathutils_array_parse(eul, EULER_SIZE, EULER_SIZE, args[0], "mathutils.Euler()") == -1) {
         return nullptr;
       }
       break;
+    default: {
+      PyErr_Format(PyExc_TypeError,
+                   "mathutils.Euler(): "
+                   "takes at most 2 arguments (%zd given)",
+                   nargs);
+      return nullptr;
+    }
   }
-  return Euler_CreatePyObject(eul, order, type);
+  return Euler_CreatePyObject(eul, order, (PyTypeObject *)type);
 }
 
 /** \} */
@@ -926,7 +935,7 @@ PyTypeObject euler_Type = {
     /*tp_dictoffset*/ 0,
     /*tp_init*/ nullptr,
     /*tp_alloc*/ nullptr,
-    /*tp_new*/ Euler_new,
+    /*tp_new*/ nullptr,
     /*tp_free*/ nullptr,
     /*tp_is_gc*/ (inquiry)BaseMathObject_is_gc,
     /*tp_bases*/ nullptr,
@@ -937,7 +946,7 @@ PyTypeObject euler_Type = {
     /*tp_del*/ nullptr,
     /*tp_version_tag*/ 0,
     /*tp_finalize*/ nullptr,
-    /*tp_vectorcall*/ nullptr,
+    /*tp_vectorcall*/ Euler_vectorcall,
 };
 
 #ifdef MATH_STANDALONE

@@ -594,20 +594,24 @@ Mathutils_Callback mathutils_matrix_translation_cb = {
 /** \name Matrix Type: `__new__` / `mathutils.Matrix()`
  * \{ */
 
-static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+static PyObject *Matrix_vectorcall(PyObject *type,
+                                   PyObject *const *args,
+                                   const size_t nargsf,
+                                   PyObject *kwnames)
 {
-  if (kwds && PyDict_Size(kwds)) {
+  if (UNLIKELY(kwnames && PyDict_Size(kwnames))) {
     PyErr_SetString(PyExc_TypeError,
                     "Matrix(): "
                     "takes no keyword args");
     return nullptr;
   }
 
-  switch (PyTuple_GET_SIZE(args)) {
+  switch (PyVectorcall_NARGS(nargsf)) {
     case 0:
-      return Matrix_CreatePyObject(nullptr, 4, 4, type);
+      return Matrix_CreatePyObject(nullptr, 4, 4, (PyTypeObject *)type);
+
     case 1: {
-      PyObject *arg = PyTuple_GET_ITEM(args, 0);
+      PyObject *arg = args[0];
 
       /* Input is now as a sequence of rows so length of sequence
        * is the number of rows */
@@ -623,7 +627,8 @@ static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
         if (col_num >= 2 && col_num <= 4) {
           /* Sane row & col size, new matrix and assign as slice. */
-          PyObject *matrix = Matrix_CreatePyObject(nullptr, col_num, row_num, type);
+          PyObject *matrix = Matrix_CreatePyObject(
+              nullptr, col_num, row_num, (PyTypeObject *)type);
           if (Matrix_ass_slice((MatrixObject *)matrix, 0, INT_MAX, arg) == 0) {
             return matrix;
           }
@@ -637,7 +642,7 @@ static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
   /* will overwrite error */
   PyErr_SetString(PyExc_TypeError,
-                  "Matrix(): "
+                  "mathutils.Matrix(): "
                   "expects no args or a single arg containing 2-4 numeric sequences");
   return nullptr;
 }
@@ -3564,7 +3569,7 @@ PyTypeObject matrix_Type = {
     /*tp_dictoffset*/ 0,
     /*tp_init*/ nullptr,
     /*tp_alloc*/ nullptr,
-    /*tp_new*/ Matrix_new,
+    /*tp_new*/ nullptr,
     /*tp_free*/ nullptr,
     /*tp_is_gc*/ (inquiry)BaseMathObject_is_gc,
     /*tp_bases*/ nullptr,
@@ -3575,7 +3580,7 @@ PyTypeObject matrix_Type = {
     /*tp_del*/ nullptr,
     /*tp_version_tag*/ 0,
     /*tp_finalize*/ nullptr,
-    /*tp_vectorcall*/ nullptr,
+    /*tp_vectorcall*/ Matrix_vectorcall,
 };
 
 #ifdef MATH_STANDALONE

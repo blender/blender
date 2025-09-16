@@ -61,34 +61,37 @@ static PyObject *Color_to_tuple_ex(ColorObject *self, int ndigits)
 /** \name Color Type: `__new__` / `mathutils.Color()`
  * \{ */
 
-static PyObject *Color_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+static PyObject *Color_vectorcall(PyObject *type,
+                                  PyObject *const *args,
+                                  const size_t nargsf,
+                                  PyObject *kwnames)
 {
   float col[3] = {0.0f, 0.0f, 0.0f};
 
-  if (kwds && PyDict_Size(kwds)) {
+  if (UNLIKELY(kwnames && PyDict_Size(kwnames))) {
     PyErr_SetString(PyExc_TypeError,
                     "mathutils.Color(): "
                     "takes no keyword args");
     return nullptr;
   }
 
-  switch (PyTuple_GET_SIZE(args)) {
+  const size_t nargs = PyVectorcall_NARGS(nargsf);
+  switch (nargs) {
     case 0:
       break;
     case 1:
-      if (mathutils_array_parse(
-              col, COLOR_SIZE, COLOR_SIZE, PyTuple_GET_ITEM(args, 0), "mathutils.Color()") == -1)
-      {
+      if (mathutils_array_parse(col, COLOR_SIZE, COLOR_SIZE, args[0], "mathutils.Color()") == -1) {
         return nullptr;
       }
       break;
     default:
-      PyErr_SetString(PyExc_TypeError,
-                      "mathutils.Color(): "
-                      "more than a single arg given");
+      PyErr_Format(PyExc_TypeError,
+                   "mathutils.Color(): "
+                   "takes at most 1 argument (%zd given)",
+                   nargs);
       return nullptr;
   }
-  return Color_CreatePyObject(col, type);
+  return Color_CreatePyObject(col, (PyTypeObject *)type);
 }
 
 /** \} */
@@ -1382,7 +1385,7 @@ PyTypeObject color_Type = {
     /*tp_dictoffset*/ 0,
     /*tp_init*/ nullptr,
     /*tp_alloc*/ nullptr,
-    /*tp_new*/ Color_new,
+    /*tp_new*/ nullptr,
     /*tp_free*/ nullptr,
     /*tp_is_gc*/ (inquiry)BaseMathObject_is_gc,
     /*tp_bases*/ nullptr,
@@ -1393,7 +1396,7 @@ PyTypeObject color_Type = {
     /*tp_del*/ nullptr,
     /*tp_version_tag*/ 0,
     /*tp_finalize*/ nullptr,
-    /*tp_vectorcall*/ nullptr,
+    /*tp_vectorcall*/ Color_vectorcall,
 };
 
 #ifdef MATH_STANDALONE
