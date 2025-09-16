@@ -457,6 +457,17 @@ class SEQUENCER_MT_proxy(Menu):
         layout.prop(st, "proxy_render_size", text="")
 
 
+class SEQUENCER_MT_view_render(Menu):
+    bl_label = "Render Preview"
+
+    def draw(self, _context):
+        layout = self.layout
+        layout.operator("render.opengl", text="Render Sequencer Image", icon='RENDER_STILL').sequencer = True
+        props = layout.operator("render.opengl", text="Render Sequencer Animation", icon='RENDER_ANIMATION')
+        props.animation = True
+        props.sequencer = True
+
+
 class SEQUENCER_MT_view(Menu):
     bl_label = "View"
 
@@ -536,10 +547,7 @@ class SEQUENCER_MT_view(Menu):
             layout.menu("SEQUENCER_MT_range")
             layout.separator()
 
-        layout.operator("render.opengl", text="Sequence Render Image", icon='RENDER_STILL').sequencer = True
-        props = layout.operator("render.opengl", text="Sequence Render Animation", icon='RENDER_ANIMATION')
-        props.animation = True
-        props.sequencer = True
+        layout.menu("SEQUENCER_MT_view_render")
         layout.separator()
 
         layout.operator("sequencer.export_subtitles", text="Export Subtitles", icon='EXPORT')
@@ -3191,6 +3199,7 @@ classes = (
     SEQUENCER_HT_playback_controls,
     SEQUENCER_MT_editor_menus,
     SEQUENCER_MT_range,
+    SEQUENCER_MT_view_render,
     SEQUENCER_MT_view,
     SEQUENCER_MT_preview_zoom,
     SEQUENCER_MT_proxy,
