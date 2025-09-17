@@ -54,7 +54,6 @@ struct GPUCapabilities {
   /* OpenGL related workarounds. */
   bool depth_blitting_workaround = false;
   bool use_main_context_workaround = false;
-  bool broken_amd_driver = false;
   bool use_hq_normals_workaround = false;
   bool stencil_clasify_buffer_workaround = false;
 

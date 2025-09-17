@@ -151,12 +151,6 @@ bool GPU_use_main_context_workaround()
   return GCaps.use_main_context_workaround;
 }
 
-bool GPU_crappy_amd_driver()
-{
-  /* Currently are the same drivers with the `unused_fb_slot` problem. */
-  return GCaps.broken_amd_driver;
-}
-
 bool GPU_use_hq_normals_workaround()
 {
   return GCaps.use_hq_normals_workaround;

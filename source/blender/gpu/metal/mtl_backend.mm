@@ -556,7 +556,6 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
   GCaps.extension_get = mtl_extensions_get_null;
   GCaps.depth_blitting_workaround = false;
   GCaps.use_main_context_workaround = false;
-  GCaps.broken_amd_driver = false;
 
   /* Metal related workarounds. */
   /* Minimum per-vertex stride is 4 bytes in Metal.
