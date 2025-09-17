@@ -106,7 +106,7 @@ macro(file_list_suffix
   fp_list_new fp_list fn_suffix
   )
 
-  # incase of empty list
+  # in case of empty list
   set(_fp)
   set(_fp_suffixed)
 
@@ -350,7 +350,7 @@ function(blender_link_libraries
   # CMake have a native way of dealing with this, which is specifying what build type the
   # libraries are provided for:
   #
-  #   target_link_libraries(tagret optimized|debug|general <libraries>)
+  #   target_link_libraries(target optimized|debug|general <libraries>)
   #
   # The build type is to be provided as a separate argument to the function.
   #

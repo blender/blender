@@ -53,7 +53,7 @@ else()
   set(LLVM_GENERATOR "Unix Makefiles")
 endif()
 
-# LLVM does not switch over to cpp17 until llvm 16 and building ealier versions with
+# LLVM does not switch over to cpp17 until llvm 16 and building earlier versions with
 # MSVC is leading to some crashes in ISPC. Switch back to their default on all platforms
 # for now.
 string(REPLACE "-DCMAKE_CXX_STANDARD=17" " " LLVM_CMAKE_FLAGS "${DEFAULT_CMAKE_FLAGS}")

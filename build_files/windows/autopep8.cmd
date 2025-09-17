@@ -11,7 +11,7 @@ for %%a in (%PYTHON%) do (
 
 REM Use -B to avoid writing __pycache__ in lib directory and causing update conflicts.
 REM While we run with --no-subprocess a sub process is still used to get the version
-REM information, so we stil have to supply a valid --autopep8-command here.
+REM information, so we still have to supply a valid --autopep8-command here.
 %PYTHON% -B %FORMAT_PATHS%  --autopep8-command "%PEP8_LOCATION%" --no-subprocess %FORMAT_ARGS%
 
 :EOF

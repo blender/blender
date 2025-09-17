@@ -56,7 +56,7 @@ if "%WITH_CLANG%" == "1" (
 	)
 )
 
-REM This needs to be in a seperate block, due to no delayed expansion (which breaks other things if enabled)
+REM This needs to be in a separate block, due to no delayed expansion (which breaks other things if enabled)
 if "%WITH_CLANG%" == "1" (
 	if NOT "%BUILD_WITH_NINJA%" == "1" (
 		if "%VSWhere_ClangFound%"=="" (
