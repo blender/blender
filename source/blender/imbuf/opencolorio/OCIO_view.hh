@@ -44,6 +44,11 @@ class View {
   virtual StringRefNull name() const = 0;
 
   /**
+   * Description of the view from the OpenColorIO config.
+   */
+  virtual StringRefNull description() const = 0;
+
+  /**
    * Does this view transform output HDR colors?
    */
   virtual bool is_hdr() const = 0;

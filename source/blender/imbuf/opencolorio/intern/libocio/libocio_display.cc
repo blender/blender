@@ -43,6 +43,7 @@ LibOCIODisplay::LibOCIODisplay(const int index, const LibOCIOConfig &config) : c
   this->index = index;
 
   name_ = ocio_config->getDisplay(index);
+  description_ = ocio_config->getColorSpace(name_.c_str())->getDescription();
 
   /* Initialize views. */
   const int num_views = ocio_config->getNumViews(name_.c_str());
@@ -56,6 +57,20 @@ LibOCIODisplay::LibOCIODisplay(const int index, const LibOCIOConfig &config) : c
 
     OCIO_NAMESPACE::ConstColorSpaceRcPtr ocio_display_colorspace = get_display_view_colorspace(
         ocio_config, name_.c_str(), view_name);
+
+    const char *view_description = nullptr;
+    const char *view_transform_name = ocio_config->getDisplayViewTransformName(name_.c_str(),
+                                                                               view_name);
+    if (view_transform_name) {
+      const OCIO_NAMESPACE::ConstViewTransformRcPtr view_transform = ocio_config->getViewTransform(
+          view_transform_name);
+      if (view_transform) {
+        view_description = view_transform->getDescription();
+      }
+    }
+    if (view_description == nullptr) {
+      view_description = "";
+    }
 
     /* Detect if view is HDR, through encoding of display colorspace. */
     bool view_is_hdr = false;
@@ -122,7 +137,8 @@ LibOCIODisplay::LibOCIODisplay(const int index, const LibOCIOConfig &config) : c
       }
     }
 
-    views_.append_as(view_index, view_name, view_is_hdr, gamut, transfer_function);
+    views_.append_as(
+        view_index, view_name, view_description, view_is_hdr, gamut, transfer_function);
   }
 
   /* Detect untonemppaed view transform. */

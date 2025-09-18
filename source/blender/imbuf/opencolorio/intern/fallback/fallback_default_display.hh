@@ -34,6 +34,11 @@ class FallbackDefaultDisplay : public Display {
     return name();
   }
 
+  StringRefNull description() const override
+  {
+    return description();
+  }
+
   const View *get_default_view() const override
   {
     return &default_view_;

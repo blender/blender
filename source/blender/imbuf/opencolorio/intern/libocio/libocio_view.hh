@@ -16,6 +16,7 @@ namespace blender::ocio {
 
 class LibOCIOView : public View {
   StringRefNull name_;
+  StringRefNull description_;
   bool is_hdr_ = false;
   Gamut gamut_ = Gamut::Unknown;
   TransferFunction transfer_function_ = TransferFunction::Unknown;
@@ -23,10 +24,15 @@ class LibOCIOView : public View {
  public:
   LibOCIOView(const int index,
               const StringRefNull name,
+              const StringRefNull description,
               const bool is_hdr,
               const Gamut gamut,
               const TransferFunction transfer_function)
-      : name_(name), is_hdr_(is_hdr), gamut_(gamut), transfer_function_(transfer_function)
+      : name_(name),
+        description_(description),
+        is_hdr_(is_hdr),
+        gamut_(gamut),
+        transfer_function_(transfer_function)
   {
     this->index = index;
   }
@@ -34,6 +40,11 @@ class LibOCIOView : public View {
   StringRefNull name() const override
   {
     return name_;
+  }
+
+  StringRefNull description() const override
+  {
+    return description_;
   }
 
   bool is_hdr() const override

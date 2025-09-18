@@ -43,6 +43,14 @@ class LibOCIOLook : public Look {
     return ui_name_;
   }
 
+  StringRefNull description() const override
+  {
+    if (ocio_look_) {
+      return ocio_look_->getDescription();
+    }
+    return "";
+  }
+
   StringRefNull view() const override
   {
     return view_;

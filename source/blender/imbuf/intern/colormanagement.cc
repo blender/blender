@@ -3545,7 +3545,7 @@ void IMB_colormanagement_display_items_add(EnumPropertyItem **items, int *totite
       item.name = display->ui_name().c_str();
       item.identifier = display->name().c_str();
       item.icon = 0;
-      item.description = "";
+      item.description = display->description().c_str();
 
       RNA_enum_item_add(items, totitem, &item);
     }
@@ -3570,7 +3570,7 @@ void IMB_colormanagement_view_items_add(EnumPropertyItem **items,
     item.name = view->name().c_str();
     item.identifier = view->name().c_str();
     item.icon = 0;
-    item.description = "";
+    item.description = view->description().c_str();
 
     RNA_enum_item_add(items, totitem, &item);
   }
@@ -3594,7 +3594,7 @@ void IMB_colormanagement_look_items_add(EnumPropertyItem **items,
     item.name = look->ui_name().c_str();
     item.identifier = look->name().c_str();
     item.icon = 0;
-    item.description = "";
+    item.description = look->description().c_str();
 
     RNA_enum_item_add(items, totitem, &item);
   }

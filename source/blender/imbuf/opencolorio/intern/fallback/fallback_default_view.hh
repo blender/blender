@@ -20,6 +20,11 @@ class FallbackDefaultView : public View {
     return "Standard";
   }
 
+  StringRefNull description() const override
+  {
+    return "";
+  }
+
   bool is_hdr() const override
   {
     return false;
