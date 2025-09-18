@@ -6552,17 +6552,6 @@ static void def_cmp_huecorrect(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
-static void def_cmp_ycc(BlenderRNA * /*brna*/, StructRNA *srna)
-{
-  PropertyRNA *prop;
-
-  prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "custom1");
-  RNA_def_property_enum_items(prop, node_ycc_items);
-  RNA_def_property_ui_text(prop, "Mode", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-}
-
 static void def_cmp_combsep_color(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   static const EnumPropertyItem mode_items[] = {
@@ -9633,11 +9622,7 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("CompositorNode", "CompositorNodeColorMatte");
   define("CompositorNode", "CompositorNodeColorSpill");
   define("CompositorNode", "CompositorNodeConvolve");
-  define("CompositorNode", "CompositorNodeCombHSVA");
   define("CompositorNode", "CompositorNodeCombineColor", def_cmp_combsep_color);
-  define("CompositorNode", "CompositorNodeCombRGBA");
-  define("CompositorNode", "CompositorNodeCombYCCA", def_cmp_ycc);
-  define("CompositorNode", "CompositorNodeCombYUVA");
   define("CompositorNode", "CompositorNodeConvertColorSpace", def_cmp_convert_color_space);
   define("CompositorNode", "CompositorNodeConvertToDisplay", def_cmp_convert_to_display);
   define("CompositorNode", "CompositorNodeCornerPin");
@@ -9693,10 +9678,6 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("CompositorNode", "CompositorNodeScale");
   define("CompositorNode", "CompositorNodeSceneTime");
   define("CompositorNode", "CompositorNodeSeparateColor", def_cmp_combsep_color);
-  define("CompositorNode", "CompositorNodeSepHSVA");
-  define("CompositorNode", "CompositorNodeSepRGBA");
-  define("CompositorNode", "CompositorNodeSepYCCA", def_cmp_ycc);
-  define("CompositorNode", "CompositorNodeSepYUVA");
   define("CompositorNode", "CompositorNodeSetAlpha");
   define("CompositorNode", "CompositorNodeSplit");
   define("CompositorNode", "CompositorNodeStabilize", def_cmp_stabilize2d);
