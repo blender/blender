@@ -8,6 +8,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <limits>
 
 #include "MEM_guardedalloc.h"
 
@@ -315,8 +316,8 @@ void area_getoffsets(
     ScrArea *sa_a, ScrArea *sa_b, const eScreenDir dir, int *r_offset1, int *r_offset2)
 {
   if (sa_a == nullptr || sa_b == nullptr) {
-    *r_offset1 = INT_MAX;
-    *r_offset2 = INT_MAX;
+    *r_offset1 = std::numeric_limits<int>::max();
+    *r_offset2 = std::numeric_limits<int>::max();
   }
   else if (dir == SCREEN_DIR_W) { /* West: sa on right and sa_b to the left. */
     *r_offset1 = sa_b->v3->vec.y - sa_a->v2->vec.y;
@@ -336,8 +337,8 @@ void area_getoffsets(
   }
   else {
     BLI_assert(dir == SCREEN_DIR_NONE);
-    *r_offset1 = INT_MAX;
-    *r_offset2 = INT_MAX;
+    *r_offset1 = std::numeric_limits<int>::max();
+    *r_offset2 = std::numeric_limits<int>::max();
   }
 }
 
