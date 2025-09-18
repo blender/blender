@@ -3193,7 +3193,7 @@ static bool imb_colormanagement_working_space_set_from_matrix(
                               imb_working_space_compare_threshold))
   {
     /* Update scene linear name in case it is different for this config. */
-    STRNCPY(bmain->colorspace.scene_linear_name, global_role_scene_linear);
+    STRNCPY(bmain->colorspace.scene_linear_name, global_role_scene_linear_default);
     return IMB_colormanagement_working_space_set_from_name(global_role_scene_linear_default);
   }
 
@@ -3221,7 +3221,7 @@ static bool imb_colormanagement_working_space_set_from_matrix(
     const ColorSpace *colorspace = g_config->get_color_space_by_interop_id(interop_id);
     if (colorspace) {
       /* Update scene linear name in case it is different for this config. */
-      STRNCPY(bmain->colorspace.scene_linear_name, global_role_scene_linear);
+      STRNCPY(bmain->colorspace.scene_linear_name, colorspace->name().c_str());
       return IMB_colormanagement_working_space_set_from_name(colorspace->name().c_str());
     }
   }
