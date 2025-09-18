@@ -1432,7 +1432,7 @@ static int /*eContextResult*/ node_context(const bContext *C,
         }
       }
     }
-    CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+    CTX_data_type_set(result, ContextDataType::Collection);
     return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "active_node")) {
@@ -1441,7 +1441,7 @@ static int /*eContextResult*/ node_context(const bContext *C,
       CTX_data_pointer_set(result, &snode->edittree->id, &RNA_Node, node);
     }
 
-    CTX_data_type_set(result, CTX_DATA_TYPE_POINTER);
+    CTX_data_type_set(result, ContextDataType::Pointer);
     return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "node_previews")) {
@@ -1452,7 +1452,7 @@ static int /*eContextResult*/ node_context(const bContext *C,
                            &snode->nodetree->runtime->previews);
     }
 
-    CTX_data_type_set(result, CTX_DATA_TYPE_POINTER);
+    CTX_data_type_set(result, ContextDataType::Pointer);
     return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "material")) {

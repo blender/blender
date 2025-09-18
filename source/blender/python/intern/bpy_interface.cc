@@ -798,7 +798,7 @@ bool BPY_context_member_get(bContext *C, const char *member, bContextDataResult 
 
     // result->ptr = ((BPy_StructRNA *)item)->ptr;
     CTX_data_pointer_set_ptr(result, ptr);
-    CTX_data_type_set(result, CTX_DATA_TYPE_POINTER);
+    CTX_data_type_set(result, ContextDataType::Pointer);
     done = true;
   }
   else if (PySequence_Check(item)) {
@@ -826,7 +826,7 @@ bool BPY_context_member_get(bContext *C, const char *member, bContextDataResult 
         }
       }
       Py_DECREF(seq_fast);
-      CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+      CTX_data_type_set(result, ContextDataType::Collection);
       done = true;
     }
   }

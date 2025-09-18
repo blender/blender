@@ -281,7 +281,7 @@ struct bContextDataResult {
   blender::StringRefNull str;
   std::optional<int64_t> int_value;
   const char **dir;
-  short type; /* 0: normal, 1: seq */
+  ContextDataType type;
 };
 
 static void *ctx_wm_python_context_get(const bContext *C,
@@ -360,12 +360,12 @@ static eContextResult ctx_data_get(bContext *C, const char *member, bContextData
                                                                                  member))
     {
       result->str = *str;
-      result->type = CTX_DATA_TYPE_STRING;
+      result->type = ContextDataType::String;
       done = 1;
     }
     else if (std::optional<int64_t> int_value = CTX_store_int_lookup(C->wm.store, member)) {
       result->int_value = int_value;
-      result->type = CTX_DATA_TYPE_INT64;
+      result->type = ContextDataType::Int64;
       done = 1;
     }
   }
@@ -408,7 +408,7 @@ static void *ctx_data_pointer_get(const bContext *C, const char *member)
 {
   bContextDataResult result;
   if (C && ctx_data_get((bContext *)C, member, &result) == CTX_RESULT_OK) {
-    BLI_assert(result.type == CTX_DATA_TYPE_POINTER);
+    BLI_assert(result.type == ContextDataType::Pointer);
     return result.ptr.data;
   }
 
@@ -425,7 +425,7 @@ static bool ctx_data_pointer_verify(const bContext *C, const char *member, void 
 
   bContextDataResult result;
   if (ctx_data_get((bContext *)C, member, &result) == CTX_RESULT_OK) {
-    BLI_assert(result.type == CTX_DATA_TYPE_POINTER);
+    BLI_assert(result.type == ContextDataType::Pointer);
     *pointer = result.ptr.data;
     return true;
   }
@@ -440,7 +440,7 @@ static bool ctx_data_collection_get(const bContext *C,
 {
   bContextDataResult result;
   if (ctx_data_get((bContext *)C, member, &result) == CTX_RESULT_OK) {
-    BLI_assert(result.type == CTX_DATA_TYPE_COLLECTION);
+    BLI_assert(result.type == ContextDataType::Collection);
     *list = std::move(result.list);
     return true;
   }
@@ -477,7 +477,7 @@ static bool ctx_data_base_collection_get(const bContext *C,
       ok = true;
     }
   }
-  CTX_data_type_set(&result, CTX_DATA_TYPE_COLLECTION);
+  CTX_data_type_set(&result, ContextDataType::Collection);
 
   *list = std::move(result.list);
   return ok;
@@ -487,7 +487,7 @@ PointerRNA CTX_data_pointer_get(const bContext *C, const char *member)
 {
   bContextDataResult result;
   if (ctx_data_get((bContext *)C, member, &result) == CTX_RESULT_OK) {
-    BLI_assert(result.type == CTX_DATA_TYPE_POINTER);
+    BLI_assert(result.type == ContextDataType::Pointer);
     return result.ptr;
   }
 
@@ -528,7 +528,7 @@ Vector<PointerRNA> CTX_data_collection_get(const bContext *C, const char *member
 {
   bContextDataResult result;
   if (ctx_data_get((bContext *)C, member, &result) == CTX_RESULT_OK) {
-    BLI_assert(result.type == CTX_DATA_TYPE_COLLECTION);
+    BLI_assert(result.type == ContextDataType::Collection);
     return result.list;
   }
   return {};
@@ -546,7 +546,7 @@ std::optional<blender::StringRefNull> CTX_data_string_get(const bContext *C, con
 {
   bContextDataResult result;
   if (ctx_data_get((bContext *)C, member, &result) == CTX_RESULT_OK) {
-    BLI_assert(result.type == CTX_DATA_TYPE_STRING);
+    BLI_assert(result.type == ContextDataType::String);
     return result.str;
   }
 
@@ -557,7 +557,7 @@ std::optional<int64_t> CTX_data_int_get(const bContext *C, const char *member)
 {
   bContextDataResult result;
   if (ctx_data_get((bContext *)C, member, &result) == CTX_RESULT_OK) {
-    BLI_assert(result.type == CTX_DATA_TYPE_INT64);
+    BLI_assert(result.type == ContextDataType::Int64);
     return result.int_value;
   }
 
@@ -572,7 +572,7 @@ int /*eContextResult*/ CTX_data_get(const bContext *C,
                                     int *r_index,
                                     blender::StringRef *r_str,
                                     std::optional<int64_t> *r_int_value,
-                                    short *r_type)
+                                    ContextDataType *r_type)
 {
   bContextDataResult result;
   eContextResult ret = ctx_data_get((bContext *)C, member, &result);
@@ -591,7 +591,7 @@ int /*eContextResult*/ CTX_data_get(const bContext *C,
     r_lb->clear();
     *r_str = "";
     *r_int_value = {};
-    *r_type = 0;
+    *r_type = ContextDataType::Pointer;
   }
 
   return ret;
@@ -749,12 +749,12 @@ void CTX_data_dir_set(bContextDataResult *result, const char **dir)
   result->dir = dir;
 }
 
-void CTX_data_type_set(bContextDataResult *result, short type)
+void CTX_data_type_set(bContextDataResult *result, ContextDataType type)
 {
   result->type = type;
 }
 
-short CTX_data_type_get(bContextDataResult *result)
+ContextDataType CTX_data_type_get(bContextDataResult *result)
 {
   return result->type;
 }
