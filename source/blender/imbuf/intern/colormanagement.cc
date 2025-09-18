@@ -780,14 +780,6 @@ void IMB_colormanagement_display_settings_from_ctx(
   }
 }
 
-static const ColorSpace *get_display_colorspace(
-    const ColorManagedViewSettings *view_settings,
-    const ColorManagedDisplaySettings *display_settings)
-{
-  return g_config->get_display_view_color_space(display_settings->display_device,
-                                                view_settings->view_transform);
-}
-
 static const ColorSpace *get_untonemapped_display_colorspace(
     const ColorManagedDisplaySettings *display_settings)
 {
@@ -829,13 +821,14 @@ static std::shared_ptr<const ocio::CPUProcessor> get_display_buffer_processor(
   return g_config->get_display_cpu_processor(display_parameters);
 }
 
-void IMB_colormanagement_init_untonemapped_view_settings(
-    ColorManagedViewSettings *view_settings, const ColorManagedDisplaySettings *display_settings)
+static const ocio::View *imb_get_untonemapped_view(
+    const ColorManagedDisplaySettings *display_settings)
 {
   const ocio::Display *display = g_config->get_display_by_name(display_settings->display_device);
   if (!display) {
-    return;
+    return nullptr;
   }
+
   /* Try to guess what the untonemapped view is. */
   const ocio::View *default_view = display->get_untonemapped_view();
   /* If that fails, we fall back to the default view transform of the display
@@ -843,6 +836,15 @@ void IMB_colormanagement_init_untonemapped_view_settings(
   if (default_view == nullptr) {
     default_view = display->get_default_view();
   }
+
+  return default_view;
+}
+
+void IMB_colormanagement_init_untonemapped_view_settings(
+    ColorManagedViewSettings *view_settings, const ColorManagedDisplaySettings *display_settings)
+{
+  /* Try to guess what the untonemapped view is. */
+  const ocio::View *default_view = imb_get_untonemapped_view(display_settings);
   if (default_view != nullptr) {
     STRNCPY_UTF8(view_settings->view_transform, default_view->name().c_str());
   }
@@ -1805,12 +1807,13 @@ static bool is_colorspace_same_as_display(const ColorSpace *colorspace,
     return false;
   }
 
-  const ColorSpace *display_colorspace = get_display_colorspace(view_settings, display_settings);
-  if (display_colorspace == colorspace) {
-    return true;
+  const ColorSpace *display_colorspace = get_untonemapped_display_colorspace(display_settings);
+  if (display_colorspace != colorspace) {
+    return false;
   }
 
-  return false;
+  const ocio::View *default_view = imb_get_untonemapped_view(display_settings);
+  return default_view && default_view->name() == view_settings->view_transform;
 }
 
 bool IMB_colormanagement_display_processor_needed(
@@ -3984,7 +3987,7 @@ ColormanageProcessor *IMB_colormanagement_display_processor_new(
     applied_view_settings = &untonemapped_view_settings;
   }
 
-  display_colorspace = get_display_colorspace(applied_view_settings, display_settings);
+  display_colorspace = get_untonemapped_display_colorspace(display_settings);
   if (display_colorspace) {
     cm_processor->is_data_result = display_colorspace->is_data();
   }

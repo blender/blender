@@ -291,15 +291,15 @@ static void image_save_post(ReportList *reports,
       blender::StringRefNull colorspace_name = IMB_colormanagement_colorspace_get_name(colorspace);
       if (colorspace_name != ima->colorspace_settings.name) {
         STRNCPY(ima->colorspace_settings.name, colorspace_name.c_str());
-        *r_colorspace_changed = true;
       }
     }
 
     /* View transform is now baked in, so don't apply it a second time for viewing. */
     if (ima->flag & IMA_VIEW_AS_RENDER) {
       ima->flag &= ~IMA_VIEW_AS_RENDER;
-      *r_colorspace_changed = true;
     }
+
+    *r_colorspace_changed = true;
   }
 }
 
@@ -689,6 +689,7 @@ bool BKE_image_save(
 
   if (colorspace_changed) {
     BKE_image_signal(bmain, ima, nullptr, IMA_SIGNAL_COLORMANAGE);
+    BKE_image_partial_update_mark_full_update(ima);
   }
 
   return ok;
