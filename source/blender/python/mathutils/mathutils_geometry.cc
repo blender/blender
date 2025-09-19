@@ -868,6 +868,58 @@ static PyObject *M_Geometry_intersect_point_line(PyObject * /*self*/,
 
 PyDoc_STRVAR(
     /* Wrap. */
+    M_Geometry_intersect_point_line_segment_doc,
+    ".. function:: intersect_point_line_segment(pt, seg_p1, seg_p2, /)\n"
+    "\n"
+    "   Takes a point and a segment and returns the closest point on the segment "
+    "and the distance to the segment.\n"
+    "\n"
+    "   :arg pt: Point\n"
+    "   :type pt: :class:`mathutils.Vector`\n"
+    "   :arg seg_p1: First point of the segment\n"
+    "   :type seg_p1: :class:`mathutils.Vector`\n"
+    "   :arg seg_p2: Second point of the segment\n"
+    "   :type seg_p2: :class:`mathutils.Vector`\n"
+    "   :rtype: tuple[:class:`mathutils.Vector`, float]\n");
+static PyObject *M_Geometry_intersect_point_line_segment(PyObject * /*self*/,
+                                                         PyObject *const *args,
+                                                         Py_ssize_t nargs)
+{
+  const char *error_prefix = "intersect_point_line_segment";
+  float pt[3], pt_out[3], seg_a[3], seg_b[3];
+  int pt_num = 2;
+
+  if (!_PyArg_CheckPositional(error_prefix, nargs, 3, 3)) {
+    return nullptr;
+  }
+
+  PyObject *py_pt = args[0];
+  PyObject *py_seq_a = args[1];
+  PyObject *py_seg_b = args[2];
+
+  /* Accept 2D verts. */
+  if ((((pt_num = mathutils_array_parse(
+             pt, 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_pt, error_prefix)) != -1) &&
+       (mathutils_array_parse(
+            seg_a, 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_seq_a, error_prefix) != -1) &&
+       (mathutils_array_parse(
+            seg_b, 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_seg_b, error_prefix) != -1)) == 0)
+  {
+    return nullptr;
+  }
+
+  /* Do the calculation. */
+  closest_to_line_segment_v3(pt_out, pt, seg_a, seg_b);
+  const float lambda = len_v3v3(pt_out, pt);
+
+  PyObject *ret = PyTuple_New(2);
+  PyTuple_SET_ITEMS(
+      ret, Vector_CreatePyObject(pt_out, pt_num, nullptr), PyFloat_FromDouble(lambda));
+  return ret;
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
     M_Geometry_intersect_point_tri_doc,
     ".. function:: intersect_point_tri(pt, tri_p1, tri_p2, tri_p3, /)\n"
     "\n"
@@ -1779,6 +1831,10 @@ static PyMethodDef M_Geometry_methods[] = {
      (PyCFunction)M_Geometry_intersect_point_line,
      METH_FASTCALL,
      M_Geometry_intersect_point_line_doc},
+    {"intersect_point_line_segment",
+     (PyCFunction)M_Geometry_intersect_point_line_segment,
+     METH_FASTCALL,
+     M_Geometry_intersect_point_line_segment_doc},
     {"intersect_point_tri",
      (PyCFunction)M_Geometry_intersect_point_tri,
      METH_VARARGS,
