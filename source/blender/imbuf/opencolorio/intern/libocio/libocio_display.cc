@@ -10,12 +10,16 @@
 
 #  include "OCIO_config.hh"
 
+#  include "CLG_log.h"
+
 #  include "../opencolorio.hh"
 
 #  include "error_handling.hh"
 #  include "libocio_config.hh"
 #  include "libocio_cpu_processor.hh"
 #  include "libocio_display_processor.hh"
+
+static CLG_LogRef LOG = {"color_management"};
 
 namespace blender::ocio {
 
@@ -43,6 +47,8 @@ LibOCIODisplay::LibOCIODisplay(const int index, const LibOCIOConfig &config) : c
   this->index = index;
 
   name_ = ocio_config->getDisplay(index);
+
+  CLOG_TRACE(&LOG, "Add display: %s", name_.c_str());
 
   /* Initialize views. */
   const int num_views = ocio_config->getNumViews(name_.c_str());
@@ -162,6 +168,12 @@ LibOCIODisplay::LibOCIODisplay(const int index, const LibOCIOConfig &config) : c
         transfer_function = TransferFunction::Gamma26;
       }
     }
+
+    CLOG_TRACE(&LOG,
+               "  Add view: %s (colorspace: %s, %s)",
+               view_name,
+               display_colorspace ? display_colorspace->name().c_str() : "<none>",
+               view_is_hdr ? "HDR" : "SDR");
 
     views_.append_as(view_index,
                      view_name,
