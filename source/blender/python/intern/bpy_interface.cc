@@ -12,6 +12,7 @@
 
 #include <Python.h>
 #include <frameobject.h>
+#include <optional>
 
 #ifdef WITH_PYTHON_MODULE
 #  include "pylifecycle.h" /* For `Py_Version`. */
@@ -21,6 +22,7 @@
 #include "CLG_log.h"
 
 #include "BLI_path_utils.hh"
+#include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -848,6 +850,37 @@ bool BPY_context_member_get(bContext *C, const char *member, bContextDataResult 
   }
 
   return done;
+}
+
+std::optional<std::string> BPY_python_current_file_and_line()
+{
+  /* Early return if Python is not initialized, usually during startup.
+   * This function shouldn't operate if Python isn't initialized yet.
+   *
+   * In most cases this shouldn't be done, make an exception as it's needed for logging. */
+  if (!Py_IsInitialized()) {
+    return std::nullopt;
+  }
+
+  PyGILState_STATE gilstate;
+  const bool use_gil = !PyC_IsInterpreterActive();
+  std::optional<std::string> result = std::nullopt;
+  if (use_gil) {
+    gilstate = PyGILState_Ensure();
+  }
+
+  const char *filename = nullptr;
+  int lineno = -1;
+  PyC_FileAndNum_Safe(&filename, &lineno);
+
+  if (filename) {
+    result = std::string(filename) + ":" + std::to_string(lineno);
+  }
+
+  if (use_gil) {
+    PyGILState_Release(gilstate);
+  }
+  return result;
 }
 
 #ifdef WITH_PYTHON_MODULE

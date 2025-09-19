@@ -471,3 +471,13 @@ Depsgraph *CTX_data_ensure_evaluated_depsgraph(const bContext *C);
  * Only used by handful of operators which are run on file load.
  */
 Depsgraph *CTX_data_depsgraph_on_load(const bContext *C);
+
+/**
+ * Enable or disable logging of context members.
+ */
+void CTX_member_logging_set(bContext *C, bool enable);
+
+/**
+ * Check if logging is enabled of context members.
+ */
+bool CTX_member_logging_get(const bContext *C);

@@ -10,6 +10,8 @@
 #include <cstdlib>
 #include <cstring>
 
+#include <fmt/format.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_collection_types.h"
@@ -44,6 +46,9 @@
 #include "RNA_prototypes.hh"
 
 #include "CLG_log.h"
+
+/* Logging. */
+CLG_LOGREF_DECLARE_GLOBAL(BKE_LOG_CONTEXT, "context");
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern.hh"
@@ -96,6 +101,8 @@ struct bContext {
      * (keep this to check if the copy needs freeing).
      */
     void *py_context_orig;
+    /** True if logging is enabled for context members (can be set programmatically). */
+    bool log_access;
   } data;
 };
 
@@ -284,38 +291,178 @@ struct bContextDataResult {
   ContextDataType type;
 };
 
+/** Create a brief string representation of a context data result. */
+static std::string ctx_result_brief_repr(const bContextDataResult &result)
+{
+  switch (result.type) {
+    case ContextDataType::Pointer:
+      if (result.ptr.data) {
+        const char *rna_type_name = result.ptr.type ? RNA_struct_identifier(result.ptr.type) :
+                                                      "Unknown";
+        /* Try to get the name property if it exists. */
+        std::string member_name;
+        if (result.ptr.type) {
+          PropertyRNA *name_prop = RNA_struct_name_property(result.ptr.type);
+          if (name_prop) {
+            char name_buf[256];
+            PointerRNA ptr_copy = result.ptr; /* Make a non-const copy. */
+            char *name = RNA_property_string_get_alloc(
+                &ptr_copy, name_prop, name_buf, sizeof(name_buf), nullptr);
+            if (name && name[0] != '\0') {
+              member_name = name;
+              if (name != name_buf) {
+                MEM_freeN(name);
+              }
+            }
+          }
+        }
+        /* Format like PyRNA: '<Type("name") at 0xAddress>' or '<Type at 0xAddress>'. */
+        if (!member_name.empty()) {
+          return fmt::format("<{}(\"{}\") at 0x{:x}>",
+                             rna_type_name,
+                             member_name,
+                             reinterpret_cast<uintptr_t>(result.ptr.data));
+        }
+        else {
+          return fmt::format(
+              "<{} at 0x{:x}>", rna_type_name, reinterpret_cast<uintptr_t>(result.ptr.data));
+        }
+      }
+      else {
+        return "None";
+      }
+
+    case ContextDataType::Collection:
+      return fmt::format("[{} item(s)]", result.list.size());
+
+    case ContextDataType::String:
+      if (!result.str.is_empty()) {
+        return "\"" + result.str + "\"";
+      }
+      else {
+        return "\"\"";
+      }
+
+    case ContextDataType::Property:
+      if (result.prop && result.ptr.data) {
+        const char *prop_name = RNA_property_identifier(result.prop);
+        const char *rna_type_name = result.ptr.type ? RNA_struct_identifier(result.ptr.type) :
+                                                      "Unknown";
+        if (result.index >= 0) {
+          return fmt::format("<Property({}.{}[{}])>", rna_type_name, prop_name, result.index);
+        }
+        else {
+          return fmt::format("<Property({}.{})>", rna_type_name, prop_name);
+        }
+      }
+      else {
+        return "<Property(None)>";
+      }
+
+    case ContextDataType::Int64:
+      if (result.int_value.has_value()) {
+        return std::to_string(result.int_value.value());
+      }
+      else {
+        return "None";
+      }
+  }
+  /* Unhandled context type. Update if new types are added. */
+  BLI_assert_unreachable();
+  return "<UNKNOWN>";
+}
+
+/** Simple logging for context data results. */
+static void ctx_member_log_access(const bContext *C,
+                                  const char *member,
+                                  const bContextDataResult &result)
+{
+  const bool use_logging = CLOG_CHECK(BKE_LOG_CONTEXT, CLG_LEVEL_TRACE) ||
+                           (C && CTX_member_logging_get(C));
+
+  if (!use_logging) {
+    return;
+  }
+
+  std::string value_repr = ctx_result_brief_repr(result);
+  const char *value_desc = value_repr.c_str();
+
+#ifdef WITH_PYTHON
+  /* Get current Python location if available and Python is properly initialized. */
+  std::optional<std::string> python_location;
+  if (C && CTX_py_init_get(C)) {
+    python_location = BPY_python_current_file_and_line();
+  }
+  const char *location = python_location ? python_location->c_str() : "unknown:0";
+#else
+  const char *location = "unknown:0";
+#endif
+
+  /* Use TRACE level when available, otherwise force output when Python logging is enabled. */
+  const char *format = "%s: %s=%s";
+  if (CLOG_CHECK(BKE_LOG_CONTEXT, CLG_LEVEL_TRACE)) {
+    CLOG_TRACE(BKE_LOG_CONTEXT, format, location, member, value_desc);
+  }
+  else if (C && CTX_member_logging_get(C)) {
+    /* Force output at TRACE level even if not enabled via command line. */
+    CLOG_AT_LEVEL_NOCHECK(BKE_LOG_CONTEXT, CLG_LEVEL_TRACE, format, location, member, value_desc);
+  }
+}
+
 static void *ctx_wm_python_context_get(const bContext *C,
                                        const char *member,
                                        const StructRNA *member_type,
                                        void *fall_through)
 {
+  void *return_data = nullptr;
+  bool found_member = false;
+
 #ifdef WITH_PYTHON
   if (UNLIKELY(C && CTX_py_dict_get(C))) {
     bContextDataResult result{};
     if (BPY_context_member_get((bContext *)C, member, &result)) {
+      found_member = true;
+
       if (result.ptr.data) {
         if (RNA_struct_is_a(result.ptr.type, member_type)) {
-          return result.ptr.data;
+          return_data = result.ptr.data;
         }
-
-        CLOG_WARN(&LOG,
-                  "PyContext '%s' is a '%s', expected a '%s'",
-                  member,
-                  RNA_struct_identifier(result.ptr.type),
-                  RNA_struct_identifier(member_type));
+        else {
+          CLOG_WARN(&LOG,
+                    "PyContext '%s' is a '%s', expected a '%s'",
+                    member,
+                    RNA_struct_identifier(result.ptr.type),
+                    RNA_struct_identifier(member_type));
+        }
       }
+
+      /* Log context member access directly without storing a copy. */
+      ctx_member_log_access(C, member, result);
     }
   }
 #else
   UNUSED_VARS(C, member, member_type);
 #endif
 
-  /* don't allow UI context access from non-main threads */
+  /* If no member was found, use the fallback value and create a simple result for logging. */
+  if (!found_member) {
+    bContextDataResult fallback_result{};
+    fallback_result.ptr.data = fall_through;
+    fallback_result.ptr.type = const_cast<StructRNA *>(
+        member_type); /* Use the expected RNA type */
+    fallback_result.type = ContextDataType::Pointer;
+    return_data = fall_through;
+
+    /* Log fallback context member access. */
+    ctx_member_log_access(C, member, fallback_result);
+  }
+
+  /* Don't allow UI context access from non-main threads. */
   if (!BLI_thread_is_main()) {
     return nullptr;
   }
 
-  return fall_through;
+  return return_data;
 }
 
 static eContextResult ctx_data_get(bContext *C, const char *member, bContextDataResult *result)
@@ -327,15 +474,20 @@ static eContextResult ctx_data_get(bContext *C, const char *member, bContextData
   int ret = 0;
 
   *result = {};
+
+  /* NOTE: We'll log access when we have actual results. */
+
 #ifdef WITH_PYTHON
   if (CTX_py_dict_get(C)) {
     if (BPY_context_member_get(C, member, result)) {
+      /* Log the Python context result if we're in a temp_override. */
+      ctx_member_log_access(C, member, *result);
       return CTX_RESULT_OK;
     }
   }
 #endif
 
-  /* don't allow UI context access from non-main threads */
+  /* Don't allow UI context access from non-main threads. */
   if (!BLI_thread_is_main()) {
     return CTX_RESULT_MEMBER_NOT_FOUND;
   }
@@ -401,7 +553,14 @@ static eContextResult ctx_data_get(bContext *C, const char *member, bContextData
 
   C->data.recursion = recursion;
 
-  return eContextResult(done);
+  eContextResult final_result = eContextResult(done);
+
+  /* Log context result if we're in a temp_override and we got a successful or no-data result. */
+  if (ELEM(final_result, CTX_RESULT_OK, CTX_RESULT_NO_DATA)) {
+    ctx_member_log_access(C, member, *result);
+  }
+
+  return final_result;
 }
 
 static void *ctx_data_pointer_get(const bContext *C, const char *member)
@@ -1588,4 +1747,14 @@ Depsgraph *CTX_data_depsgraph_on_load(const bContext *C)
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   return BKE_scene_get_depsgraph(scene, view_layer);
+}
+
+void CTX_member_logging_set(bContext *C, bool enable)
+{
+  C->data.log_access = enable;
+}
+
+bool CTX_member_logging_get(const bContext *C)
+{
+  return C->data.log_access;
 }
