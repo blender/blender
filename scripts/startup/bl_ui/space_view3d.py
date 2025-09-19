@@ -2618,6 +2618,20 @@ class VIEW3D_MT_grease_pencil_add(Menu):
         layout.operator("object.grease_pencil_add", text="Object Line Art", icon='OBJECT_DATA').type = 'LINEART_OBJECT'
 
 
+class VIEW3D_MT_lattice_add(Menu):
+    bl_idname = "VIEW3D_MT_lattice_add"
+    bl_label = "Lattice"
+    bl_translation_context = i18n_contexts.operator_default
+    bl_options = {'SEARCH_ON_KEY_PRESS'}
+
+    def draw(self, _context):
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_WIN'
+
+        layout.operator("object.add", text="Lattice", icon='OUTLINER_OB_LATTICE').type = 'LATTICE'
+        layout.operator("object.lattice_add_to_selected", text="Lattice Deform Selected", icon='OUTLINER_OB_LATTICE')
+
+
 class VIEW3D_MT_empty_add(Menu):
     bl_idname = "VIEW3D_MT_empty_add"
     bl_label = "Empty"
@@ -2676,7 +2690,7 @@ class VIEW3D_MT_add(Menu):
         else:
             layout.operator("object.armature_add", text="Armature", icon='OUTLINER_OB_ARMATURE')
 
-        layout.operator("object.add", text="Lattice", icon='OUTLINER_OB_LATTICE').type = 'LATTICE'
+        layout.menu("VIEW3D_MT_lattice_add", icon='OUTLINER_OB_LATTICE')
 
         layout.separator()
 
@@ -9166,6 +9180,7 @@ classes = (
     VIEW3D_MT_camera_add,
     VIEW3D_MT_volume_add,
     VIEW3D_MT_grease_pencil_add,
+    VIEW3D_MT_lattice_add,
     VIEW3D_MT_empty_add,
     VIEW3D_MT_add,
     VIEW3D_MT_image_add,
