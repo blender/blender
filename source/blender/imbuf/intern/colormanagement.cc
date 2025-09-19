@@ -821,30 +821,17 @@ static std::shared_ptr<const ocio::CPUProcessor> get_display_buffer_processor(
   return g_config->get_display_cpu_processor(display_parameters);
 }
 
-static const ocio::View *imb_get_untonemapped_view(
-    const ColorManagedDisplaySettings *display_settings)
-{
-  const ocio::Display *display = g_config->get_display_by_name(display_settings->display_device);
-  if (!display) {
-    return nullptr;
-  }
-
-  /* Try to guess what the untonemapped view is. */
-  const ocio::View *default_view = display->get_untonemapped_view();
-  /* If that fails, we fall back to the default view transform of the display
-   * as per OCIO configuration. */
-  if (default_view == nullptr) {
-    default_view = display->get_default_view();
-  }
-
-  return default_view;
-}
-
 void IMB_colormanagement_init_untonemapped_view_settings(
     ColorManagedViewSettings *view_settings, const ColorManagedDisplaySettings *display_settings)
 {
-  /* Try to guess what the untonemapped view is. */
-  const ocio::View *default_view = imb_get_untonemapped_view(display_settings);
+  /* Get untonemapped view from the display. */
+  const ocio::Display *display = g_config->get_display_by_name(display_settings->display_device);
+  const ocio::View *default_view = (display) ? display->get_untonemapped_view() : nullptr;
+  /* If that fails, we fall back to the default view transform of the display
+   * as per OCIO configuration. */
+  if (default_view == nullptr) {
+    default_view = (display) ? display->get_default_view() : nullptr;
+  }
   if (default_view != nullptr) {
     STRNCPY_UTF8(view_settings->view_transform, default_view->name().c_str());
   }
@@ -1968,13 +1955,15 @@ static bool is_colorspace_same_as_display(const ColorSpace *colorspace,
     return false;
   }
 
-  const ColorSpace *display_colorspace = get_untonemapped_display_colorspace(display_settings);
+  const ColorSpace *display_colorspace = IMB_colormangement_display_get_color_space(
+      view_settings, display_settings);
   if (display_colorspace != colorspace) {
     return false;
   }
 
-  const ocio::View *default_view = imb_get_untonemapped_view(display_settings);
-  return default_view && default_view->name() == view_settings->view_transform;
+  const ocio::Display *display = g_config->get_display_by_name(display_settings->display_device);
+  const ocio::View *untonemapped_view = (display) ? display->get_untonemapped_view() : nullptr;
+  return untonemapped_view && untonemapped_view->name() == view_settings->view_transform;
 }
 
 bool IMB_colormanagement_display_processor_needed(
@@ -2744,12 +2733,9 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
     if (colormanaged_ibuf->float_buffer.data) {
       /* Float buffer isn't linear anymore.
        * - Image format write callback checks for this flag and assumes no space
-       *   conversion should happen if ibuf->float_buffer.colorspace != nullptr.
-       * - Video HDR write will convert from this colorspace to the appropriate
-       *   HDR display colorspace. Note this is the untonemapped colorspace
-       *   so that tone mapping is preserved. */
-      colormanaged_ibuf->float_buffer.colorspace = get_untonemapped_display_colorspace(
-          &image_format->display_settings);
+       *   conversion should happen if ibuf->float_buffer.colorspace != nullptr. */
+      colormanaged_ibuf->float_buffer.colorspace = IMB_colormangement_display_get_color_space(
+          &image_format->view_settings, &image_format->display_settings);
       if (byte_output) {
         colormanaged_ibuf->byte_buffer.colorspace = colormanaged_ibuf->float_buffer.colorspace;
       }
@@ -3046,9 +3032,21 @@ const char *IMB_colormanagement_display_get_default_view_transform_name(
 }
 
 const ColorSpace *IMB_colormangement_display_get_color_space(
+    const ColorManagedViewSettings *view_settings,
     const ColorManagedDisplaySettings *display_settings)
 {
-  return get_untonemapped_display_colorspace(display_settings);
+  /* Get the colorspace that the image is in after applying this view and display
+   * transform. If we are going to a display referred colorspace we can use that.
+   * However this is not always available, especially in v1 configs. We then rely
+   * on guessing what the untonemapped view transform is. */
+  const ColorSpace *colorspace = g_config->get_display_view_color_space(
+      display_settings->display_device, view_settings->view_transform);
+  if (colorspace && colorspace->is_display_referred()) {
+    return colorspace;
+  }
+  const ColorSpace *untonemapped_colorspace = get_untonemapped_display_colorspace(
+      display_settings);
+  return (untonemapped_colorspace) ? untonemapped_colorspace : colorspace;
 }
 
 bool IMB_colormanagement_display_is_hdr(const ColorManagedDisplaySettings *display_settings,
@@ -4148,7 +4146,7 @@ ColormanageProcessor *IMB_colormanagement_display_processor_new(
     applied_view_settings = &untonemapped_view_settings;
   }
 
-  display_colorspace = get_untonemapped_display_colorspace(display_settings);
+  display_colorspace = IMB_colormangement_display_get_color_space(view_settings, display_settings);
   if (display_colorspace) {
     cm_processor->is_data_result = display_colorspace->is_data();
   }

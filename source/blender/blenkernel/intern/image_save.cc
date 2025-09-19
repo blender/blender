@@ -286,7 +286,7 @@ static void image_save_post(ReportList *reports,
   else if (opts->save_as_render) {
     /* Set the display colorspace that we converted to. */
     const ColorSpace *colorspace = IMB_colormangement_display_get_color_space(
-        &opts->im_format.display_settings);
+        &opts->im_format.view_settings, &opts->im_format.display_settings);
     if (colorspace) {
       blender::StringRefNull colorspace_name = IMB_colormanagement_colorspace_get_name(colorspace);
       if (colorspace_name != ima->colorspace_settings.name) {

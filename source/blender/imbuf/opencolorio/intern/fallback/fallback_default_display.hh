@@ -13,12 +13,14 @@
 
 namespace blender::ocio {
 
+class ColorSpace;
+
 class FallbackDefaultDisplay : public Display {
   std::string name_;
   FallbackDefaultView default_view_;
 
  public:
-  FallbackDefaultDisplay()
+  FallbackDefaultDisplay(const ColorSpace *display_colorspace) : default_view_(display_colorspace)
   {
     this->index = 0;
     name_ = "sRGB";

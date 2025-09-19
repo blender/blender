@@ -2,21 +2,22 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "libocio_display_processor.hh"
-
 #if defined(WITH_OPENCOLORIO)
 
 #  include <cfloat>
+#  include <optional>
 #  include <sstream>
 
 #  include "BLI_math_matrix.hh"
 
 #  include "OCIO_config.hh"
+#  include "OCIO_matrix.hh"
 #  include "OCIO_view.hh"
 
 #  include "error_handling.hh"
 #  include "libocio_config.hh"
 #  include "libocio_display.hh"
+#  include "libocio_display_processor.hh"
 
 #  include "../white_point.hh"
 
@@ -35,7 +36,7 @@ static void display_as_extended_srgb(const LibOCIOConfig &config,
   /* Emulate the user specified display on an extended sRGB display, conceptually:
    * - Apply the view and display transform
    * - Clamp colors to be within gamut
-   * - Apply the inverse untonemapped display transform
+   * - Convert to cie_xyz_d65_interchange
    * - Convert to extended sRGB or gamma 2.2 scRGB
    *
    * When possible, we do equivalent but faster transforms. */
@@ -117,40 +118,46 @@ static void display_as_extended_srgb(const LibOCIOConfig &config,
     return;
   }
 
-  /* Find linear Rec.709 colorspace, needed for the sRGB gamut. */
-  const ColorSpace *lin_rec709 = config.get_color_space_by_interop_id("lin_rec709_scene");
-  if (lin_rec709 == nullptr) {
-    CLOG_WARN(&LOG, "Failed to find lin_rec709_scene colorspace, display may be incorrect");
+  const LibOCIOColorSpace *lin_cie_xyz_d65 = static_cast<const LibOCIOColorSpace *>(
+      config.get_color_space(OCIO_NAMESPACE::ROLE_INTERCHANGE_DISPLAY));
+  const LibOCIOColorSpace *display_colorspace = static_cast<const LibOCIOColorSpace *>(
+      view->display_colorspace());
+
+  /* Verify if all conditions are met to do automatic display color management. */
+  if (lin_cie_xyz_d65 == nullptr) {
+    CLOG_DEBUG(&LOG,
+               "Failed to find %s colorspace, disabling automatic display color management",
+               OCIO_NAMESPACE::ROLE_INTERCHANGE_DISPLAY);
+    return;
+  }
+  if (display_colorspace == nullptr) {
+    CLOG_DEBUG(&LOG,
+               "Failed to find display colorspace for view %s, disabling automatic display color "
+               "management",
+               view_name.c_str());
+    return;
+  }
+  if (!display_colorspace->is_display_referred()) {
+    CLOG_DEBUG(&LOG,
+               "Color space %s is not a display color space, disabling automatic display color "
+               "management",
+               display_colorspace->name().c_str());
     return;
   }
 
-  /* Find the untonemapped view.
-   * TODO: It would be better to do this based on cie_xyz_d65_interchange for configs
-   * that support it. */
-  const View *untonemapped_view = display->get_untonemapped_view();
-  if (untonemapped_view == nullptr) {
-    CLOG_WARN(&LOG,
-              "Failed to find untonemapped view for \"%s\", display may be incorrect",
-              display->name().c_str());
-    return;
-  }
-
-  const ColorSpace *display_colorspace = config.get_display_view_color_space(
-      display->name().c_str(), untonemapped_view->name().c_str());
-
-  /* Find the linear colorspace with the gamut of the display colorspace. */
-  const ColorSpace *lin_gamut = nullptr;
+  /* Find the matrix to convert to linear colorspace with gamut of the display colorspace. */
+  std::optional<double4x4> xyz_to_display_gamut;
   switch (view->gamut()) {
     case Gamut::Rec709: {
-      lin_gamut = config.get_color_space_by_interop_id("lin_rec709_scene");
+      xyz_to_display_gamut = OCIO_XYZ_TO_REC709;
       break;
     }
     case Gamut::P3D65: {
-      lin_gamut = config.get_color_space_by_interop_id("lin_p3d65_scene");
+      xyz_to_display_gamut = OCIO_XYZ_TO_P3;
       break;
     }
     case Gamut::Rec2020: {
-      lin_gamut = config.get_color_space_by_interop_id("lin_rec2020_scene");
+      xyz_to_display_gamut = OCIO_XYZ_TO_REC2020;
       break;
     }
     case Gamut::Unknown: {
@@ -158,7 +165,7 @@ static void display_as_extended_srgb(const LibOCIOConfig &config,
     }
   }
 
-  if (lin_gamut && view->transfer_function() != TransferFunction::Unknown) {
+  if (xyz_to_display_gamut.has_value() && view->transfer_function() != TransferFunction::Unknown) {
     /* Optimized path for known gamut and transfer function. We want OpenColorIO to cancel out
      * out the transfer function of the chosen display, but this is not possible when clamping
      * happens in the middle of it.
@@ -166,9 +173,13 @@ static void display_as_extended_srgb(const LibOCIOConfig &config,
      * So here we transform to the linear colorspace with the gamut of the display colorspace,
      * and clamp there. This means there will be only matrix multiplications, or nothing at
      * all for Rec.709. */
-    auto to_lin_gamut = OCIO_NAMESPACE::ColorSpaceTransform::Create();
-    to_lin_gamut->setSrc(display_colorspace->name().c_str());
-    to_lin_gamut->setDst(lin_gamut->name().c_str());
+    auto to_cie_xyz_d65 = OCIO_NAMESPACE::ColorSpaceTransform::Create();
+    to_cie_xyz_d65->setSrc(display_colorspace->name().c_str());
+    to_cie_xyz_d65->setDst(lin_cie_xyz_d65->name().c_str());
+    group->appendTransform(to_cie_xyz_d65);
+
+    auto to_lin_gamut = OCIO_NAMESPACE::MatrixTransform::Create();
+    to_lin_gamut->setMatrix(math::transpose(xyz_to_display_gamut.value()).base_ptr());
     group->appendTransform(to_lin_gamut);
 
     /* Clamp colors to the chosen display colorspace, to emulate it on the actual display that
@@ -206,10 +217,11 @@ static void display_as_extended_srgb(const LibOCIOConfig &config,
     group->appendTransform(clamp);
 
     /* Transform to linear Rec.709. */
-    if (lin_gamut != lin_rec709) {
-      auto to_rec709 = OCIO_NAMESPACE::ColorSpaceTransform::Create();
-      to_rec709->setSrc(lin_gamut->name().c_str());
-      to_rec709->setDst(lin_rec709->name().c_str());
+    if (view->gamut() != Gamut::Rec709) {
+      auto to_rec709 = OCIO_NAMESPACE::MatrixTransform::Create();
+      to_rec709->setMatrix(
+          math::transpose(OCIO_XYZ_TO_REC709 * math::invert(xyz_to_display_gamut.value()))
+              .base_ptr());
       group->appendTransform(to_rec709);
     }
   }
@@ -230,9 +242,13 @@ static void display_as_extended_srgb(const LibOCIOConfig &config,
     }
 
     /* Convert from display colorspace to linear Rec.709. */
-    auto to_rec709 = OCIO_NAMESPACE::ColorSpaceTransform::Create();
-    to_rec709->setSrc(display_colorspace->name().c_str());
-    to_rec709->setDst(lin_rec709->name().c_str());
+    auto to_cie_xyz_d65 = OCIO_NAMESPACE::ColorSpaceTransform::Create();
+    to_cie_xyz_d65->setSrc(display_colorspace->name().c_str());
+    to_cie_xyz_d65->setDst(lin_cie_xyz_d65->name().c_str());
+    group->appendTransform(to_cie_xyz_d65);
+
+    auto to_rec709 = OCIO_NAMESPACE::MatrixTransform::Create();
+    to_rec709->setMatrix(math::transpose(OCIO_XYZ_TO_REC709).base_ptr());
     group->appendTransform(to_rec709);
   }
 

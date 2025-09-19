@@ -50,12 +50,32 @@ LibOCIODisplay::LibOCIODisplay(const int index, const LibOCIOConfig &config) : c
     report_error("Invalid OpenColorIO configuration: negative number of views");
     return;
   }
+
+  /* Try to assign a display colorspace to every view even if missing. In particular for
+   * Raw we still want to set the colorspace. */
+  OCIO_NAMESPACE::ConstColorSpaceRcPtr ocio_fallback_display_colorspace;
+  for (const int view_index : IndexRange(num_views)) {
+    const char *view_name = ocio_config->getView(name_.c_str(), view_index);
+    ocio_fallback_display_colorspace = get_display_view_colorspace(
+        ocio_config, name_.c_str(), view_name);
+    if (ocio_fallback_display_colorspace &&
+        ocio_fallback_display_colorspace->getReferenceSpaceType() ==
+            OCIO_NAMESPACE::REFERENCE_SPACE_DISPLAY)
+    {
+      break;
+    }
+    ocio_fallback_display_colorspace.reset();
+  }
+
   views_.reserve(num_views);
   for (const int view_index : IndexRange(num_views)) {
     const char *view_name = ocio_config->getView(name_.c_str(), view_index);
 
     OCIO_NAMESPACE::ConstColorSpaceRcPtr ocio_display_colorspace = get_display_view_colorspace(
         ocio_config, name_.c_str(), view_name);
+    if (!ocio_display_colorspace) {
+      ocio_display_colorspace = ocio_fallback_display_colorspace;
+    }
 
     /* There does not exist a description for displays, if there is an associated display
      * colorspace it's likely to be a useful description. */
@@ -93,14 +113,12 @@ LibOCIODisplay::LibOCIODisplay(const int index, const LibOCIOConfig &config) : c
     Gamut gamut = Gamut::Unknown;
     TransferFunction transfer_function = TransferFunction::Unknown;
 
-    StringRefNull display_interop_id;
-    if (ocio_display_colorspace) {
-      const ColorSpace *display_colorspace = config.get_color_space(
-          ocio_display_colorspace->getName());
-      if (display_colorspace) {
-        display_interop_id = display_colorspace->interop_id();
-      }
-    }
+    const LibOCIOColorSpace *display_colorspace =
+        (ocio_display_colorspace) ? static_cast<const LibOCIOColorSpace *>(config.get_color_space(
+                                        ocio_display_colorspace->getName())) :
+                                    nullptr;
+    StringRefNull display_interop_id = (display_colorspace) ? display_colorspace->interop_id() :
+                                                              "";
 
     if (!display_interop_id.is_empty()) {
       if (display_interop_id.endswith("_rec709_display") ||
@@ -145,8 +163,13 @@ LibOCIODisplay::LibOCIODisplay(const int index, const LibOCIOConfig &config) : c
       }
     }
 
-    views_.append_as(
-        view_index, view_name, view_description, view_is_hdr, gamut, transfer_function);
+    views_.append_as(view_index,
+                     view_name,
+                     view_description,
+                     view_is_hdr,
+                     gamut,
+                     transfer_function,
+                     display_colorspace);
   }
 
   /* Detect untonemppaed view transform. */

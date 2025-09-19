@@ -8,6 +8,8 @@
 
 namespace blender::ocio {
 
+class ColorSpace;
+
 enum class Gamut {
   Unknown,
   Rec709,  /* sRGB primaries + D65 white point. */
@@ -62,6 +64,12 @@ class View {
    * Transfer function of the display colorspace.
    */
   virtual TransferFunction transfer_function() const = 0;
+
+  /**
+   * Display colorspace that this view transform transforms into.
+   * Not guaranteed to be display referred.
+   */
+  virtual const ColorSpace *display_colorspace() const = 0;
 };
 
 }  // namespace blender::ocio

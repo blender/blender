@@ -797,7 +797,7 @@ static void set_colorspace_options(AVCodecContext *c, const ColorSpace *colorspa
   const bool for_video = true;
 
   int cicp[4];
-  if (IMB_colormanagement_space_to_cicp(colorspace, for_video, cicp)) {
+  if (colorspace && IMB_colormanagement_space_to_cicp(colorspace, for_video, cicp)) {
     /* Note ffmpeg enums are documented to match CICP. */
     c->color_primaries = AVColorPrimaries(cicp[0]);
     c->color_trc = AVColorTransferCharacteristic(cicp[1]);
@@ -1096,7 +1096,7 @@ static AVStream *alloc_video_stream(MovieWriter *context,
 
   /* Set colorspace based on display space of image. */
   const ColorSpace *display_colorspace = IMB_colormangement_display_get_color_space(
-      &imf->display_settings);
+      &imf->view_settings, &imf->display_settings);
   set_colorspace_options(c, display_colorspace);
 
   /* xasp & yasp got float lately... */
