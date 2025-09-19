@@ -68,18 +68,6 @@ int BLI_kdtree_nd_(calc_duplicates_fast)(const KDTree *tree,
                                          bool use_index_order,
                                          int *duplicates);
 
-/**
- * Stable clustering and centroid computation to ensure consistent survivor selection.
- *
- * \param tree: A tree, all indices *must* be unique.
- *
- * \note ~1.1x-1.5x slower than `calc_duplicates_fast` depending on the distribution of points.
- */
-int BLI_kdtree_nd_(calc_duplicates_and_center)(const KDTree *tree,
-                                               const float range,
-                                               int *duplicates,
-                                               float (*r_cluster_center)[KD_DIMS]);
-
 int BLI_kdtree_nd_(deduplicate)(KDTree *tree);
 
 /** Versions of find/range search that take a squared distance callback to support bias. */
