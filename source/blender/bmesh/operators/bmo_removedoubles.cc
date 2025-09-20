@@ -33,8 +33,8 @@ static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op, BMOpSlot 
 
   BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
     BMVert *v_tar = static_cast<BMVert *>(BMO_slot_map_elem_get(slot_targetmap, l->v));
-    /* ok: if v_tar is nullptr (e.g. not in the map) then it's
-     *     a target vert, otherwise it's a double */
+    /* Ok: if `v_tar` is nullptr (e.g. not in the map) then it's
+     *     a target vert, otherwise it's a double. */
     if (v_tar) {
       l_tar = BM_face_vert_share_loop(f, v_tar);
 
@@ -62,7 +62,7 @@ static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op, BMOpSlot 
 #define VERT_IN_FACE 4
 
 /**
- * helper function for bmo_weld_verts_exec so we can use stack memory
+ * Helper function for #bmo_weld_verts_exec so we can use stack memory.
  */
 static BMFace *remdoubles_createface(BMesh *bm,
                                      BMFace *f,
@@ -111,21 +111,21 @@ static BMFace *remdoubles_createface(BMesh *bm,
       l_next = l_curr->next;
       LOOP_MAP_VERT_INIT(l_next, v_next, is_del_v_next);
 
-      /* only search for a new edge if one of the verts is mapped */
+      /* Only search for a new edge if one of the verts is mapped. */
       if ((is_del_v_curr || is_del_v_next) == 0) {
         e_new = l_curr->e;
       }
       else if (v_curr == v_next) {
-        e_new = nullptr; /* skip */
+        e_new = nullptr; /* Skip. */
       }
       else {
         e_new = BM_edge_exists(v_curr, v_next);
-        BLI_assert(e_new); /* never fails */
+        BLI_assert(e_new); /* Never fails. */
       }
 
       if (e_new) {
         if (UNLIKELY(BMO_vert_flag_test(bm, v_curr, VERT_IN_FACE))) {
-          /* we can't make the face, bail out */
+          /* We can't make the face, bail out. */
           STACK_CLEAR(edges);
           goto finally;
         }
@@ -200,7 +200,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 
   GHash *clusters = use_centroid ? BLI_ghash_ptr_new(__func__) : nullptr;
 
-  /* mark merge verts for deletion */
+  /* Mark merge verts for deletion. */
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
     BMVert *v_dst = static_cast<BMVert *>(BMO_slot_map_elem_get(slot_targetmap, v));
     if (v_dst == nullptr) {
@@ -209,7 +209,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 
     BMO_vert_flag_enable(bm, v, ELE_DEL);
 
-    /* merge the vertex flags, else we get randomly selected/unselected verts */
+    /* Merge the vertex flags, else we get randomly selected/unselected verts. */
     BM_elem_flag_merge_ex(v, v_dst, BM_ELEM_HIDDEN);
 
     if (use_targetmap_all) {
@@ -218,7 +218,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
     }
 
     /* Group vertices by their survivor. */
-    if (use_centroid && UNLIKELY(v_dst != v)) {
+    if (use_centroid && LIKELY(v_dst != v)) {
       void **cluster_p;
       if (!BLI_ghash_ensure_p(clusters, v_dst, &cluster_p)) {
         *cluster_p = MEM_new<blender::Vector<BMVert *>>(__func__);
@@ -255,8 +255,8 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
     clusters = nullptr;
   }
 
-  /* check if any faces are getting their own corners merged
-   * together, split face if so */
+  /* Check if any faces are getting their own corners merged
+   * together, split face if so. */
   BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
     remdoubles_splitface(f, bm, op, slot_targetmap);
   }
@@ -278,7 +278,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
         BMO_edge_flag_enable(bm, e, EDGE_COL);
       }
       else {
-        /* always merge flags, even for edges we already created */
+        /* Always merge flags, even for edges we already created. */
         BMEdge *e_new = BM_edge_exists(v1, v2);
         if (e_new == nullptr) {
           e_new = BM_edge_create(bm, v1, v2, e, BM_CREATE_NOP);
@@ -294,8 +294,8 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
     }
   }
 
-  /* faces get "modified" by creating new faces here, then at the
-   * end the old faces are deleted */
+  /* Faces get "modified" by creating new faces here, then at the
+   * end the old faces are deleted. */
   BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
     bool vert_delete = false;
     int edge_collapse = 0;
@@ -317,7 +317,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
       if (f->len - edge_collapse >= 3) {
         bool created;
         f_new = remdoubles_createface(bm, f, slot_targetmap, &created);
-        /* do this so we don't need to return a list of created faces */
+        /* Do this so we don't need to return a list of created faces. */
         if (f_new) {
           if (created) {
             bmesh_face_swap_data(f_new, f);
@@ -507,7 +507,7 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
            BMW_MASK_NOP,
            EDGE_MARK,
            BMW_MASK_NOP,
-           BMW_FLAG_NOP, /* no need to use BMW_FLAG_TEST_HIDDEN, already marked data */
+           BMW_FLAG_NOP, /* No need to use #BMW_FLAG_TEST_HIDDEN, already marked data. */
            BMW_NIL_LAY);
 
   edge_stack = BLI_stack_new(sizeof(BMEdge *), __func__);
@@ -535,7 +535,7 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 
       count += 2;
 
-      /* prevent adding to slot_targetmap multiple times */
+      /* Prevent adding to `slot_targetmap` multiple times. */
       BM_elem_flag_disable(e->v1, BM_ELEM_TAG);
       BM_elem_flag_disable(e->v2, BM_ELEM_TAG);
     }
@@ -543,7 +543,7 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
     if (!BLI_stack_is_empty(edge_stack)) {
       mul_v3_fl(center, 1.0f / count);
 
-      /* snap edges to a point.  for initial testing purposes anyway */
+      /* Snap edges to a point.  for initial testing purposes anyway. */
       e = *(BMEdge **)BLI_stack_peek(edge_stack);
       v_tar = e->v1;
 
@@ -572,7 +572,7 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
   BMW_end(&walker);
 }
 
-/* uv collapse function */
+/** UV collapse function. */
 static void bmo_collapsecon_do_layer(BMesh *bm, const int layer, const short oflag)
 {
   const int type = bm->ldata.layers[layer].type;
@@ -590,7 +590,7 @@ static void bmo_collapsecon_do_layer(BMesh *bm, const int layer, const short ofl
            BMW_MASK_NOP,
            oflag,
            BMW_MASK_NOP,
-           BMW_FLAG_NOP, /* no need to use BMW_FLAG_TEST_HIDDEN, already marked data */
+           BMW_FLAG_NOP, /* No need to use #BMW_FLAG_TEST_HIDDEN, already marked data. */
            layer);
 
   block_stack = BLI_stack_new(sizeof(void *), __func__);
@@ -598,7 +598,7 @@ static void bmo_collapsecon_do_layer(BMesh *bm, const int layer, const short ofl
   BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
     BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
       if (BMO_edge_flag_test(bm, l->e, oflag)) {
-        /* walk */
+        /* Walk. */
         BLI_assert(BLI_stack_is_empty(block_stack));
 
         CustomData_data_initminmax(eCustomDataType(type), &min, &max);
@@ -849,13 +849,13 @@ static void bmesh_find_doubles_common(BMesh *bm,
 
   const float dist = BMO_slot_float_get(op->slots_in, "dist");
 
-  /* Test whether keep_verts arg exists and is non-empty */
+  /* Test whether keep_verts arg exists and is non-empty. */
   if (BMO_slot_exists(op->slots_in, "keep_verts")) {
     BMOIter oiter;
     has_keep_vert = BMO_iter_new(&oiter, op->slots_in, "keep_verts", BM_VERT) != nullptr;
   }
 
-  /* Flag keep_verts */
+  /* Flag keep_verts. */
   if (has_keep_vert) {
     BMO_slot_buffer_flag_enable(bm, op->slots_in, "keep_verts", BM_VERT, VERT_KEEP);
   }
