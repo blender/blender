@@ -232,12 +232,8 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 
       mul_v3_fl(centroid, 1.0f / float(count));
       copy_v3_v3(v_dst->co, centroid);
-    }
 
-    /* Free temporary cluster storage. */
-    GHASH_ITER (gh_iter, clusters) {
-      blender::Vector<BMVert *> *cluster = static_cast<blender::Vector<BMVert *> *>(
-          BLI_ghashIterator_getValue(&gh_iter));
+      /* Free temporary cluster storage. */
       MEM_delete(cluster);
     }
     BLI_ghash_free(clusters, nullptr, nullptr);
