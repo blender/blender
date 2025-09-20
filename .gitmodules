@@ -21,3 +21,15 @@
 [submodule "lib/linux_x64_collada"]
 	path = lib/linux_x64_collada
 	url = https://github.com/Blenux/lib-linux_x64-collada.git
+
+[submodule "lib/windows_x64_collada"]
+	path = lib/windows_x64_collada
+	url = https://github.com/Blenux/lib-windows_x64-collada.git
+
+[submodule "lib/windows_arm64_collada"]
+	path = lib/windows_arm64_collada
+	url = https://github.com/Blenux/lib-windows_arm64-collada.git
+
+[submodule "lib/macos_arm64_collada"]
+	path = lib/macos_arm64_collada
+	url = https://github.com/Blenux/lib-macos_arm64-collada.git

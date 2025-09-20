@@ -15,6 +15,15 @@ git fetch upstream main --prune
 echo "==> Rebasing onto upstream/main (skipping LFS smudge)"
 GIT_LFS_SKIP_SMUDGE=1 git rebase upstream/main
 
+echo "==> Initializing/updating COLLADA submodules (all platforms if present)"
+for sm in lib/linux_x64_collada lib/windows_x64_collada lib/windows_arm64_collada lib/macos_arm64_collada; do
+  if git config --file .gitmodules --get-regexp ".*${sm}" >/dev/null 2>&1; then
+    echo "  -> updating ${sm}"
+    GIT_LFS_SKIP_SMUDGE=1 git submodule update --init --progress "${sm}" || true
+    git -C "${sm}" lfs pull || true
+  fi
+done
+
 echo "==> Pushing to origin (skipping pre-push LFS hook)"
 git push --no-verify origin "${branch}" --force-with-lease
 
