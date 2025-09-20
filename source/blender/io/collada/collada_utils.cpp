@@ -689,16 +689,16 @@ float bc_get_property(Bone *bone, const std::string &key, float def)
   if (property) {
     switch (property->type) {
       case IDP_INT:
-        result = float(IDP_Int(property));
+        result = float(IDP_int_get(property));
         break;
       case IDP_FLOAT:
-        result = IDP_Float(property);
+        result = IDP_float_get(property);
         break;
       case IDP_DOUBLE:
-        result = float(IDP_Double(property));
+        result = float(IDP_double_get(property));
         break;
       case IDP_BOOLEAN:
-        result = float(IDP_Bool(property));
+        result = float(IDP_bool_get(property));
         break;
       default:
         result = def;
@@ -711,7 +711,7 @@ bool bc_get_property_matrix(Bone *bone, const std::string &key, float mat[4][4])
 {
   IDProperty *property = bc_get_IDProperty(bone, key);
   if (property && property->type == IDP_ARRAY && property->len == 16) {
-    float *array = (float *)IDP_Array(property);
+    const float *array = IDP_array_float_get(property);
     for (int i = 0; i < 4; i++) {
       for (int j = 0; j < 4; j++) {
         mat[i][j] = array[4 * i + j];
