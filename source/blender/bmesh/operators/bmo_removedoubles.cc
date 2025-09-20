@@ -648,7 +648,48 @@ static int *bmesh_find_doubles_by_distance_impl(BMesh *bm,
   }
 
   BLI_kdtree_3d_balance(tree);
-  found_duplicates = BLI_kdtree_3d_calc_duplicates_fast(tree, dist, false, duplicates) != 0;
+
+  /* Given a cluster of duplicates, pick the index to keep. */
+  auto deduplicate_target_calc_fn = [&verts](const int *cluster, const int cluster_num) -> int {
+    if (cluster_num == 2) {
+      /* Special case, no use in calculating centroid.
+       * Use the lowest index for stability. */
+      return (cluster[0] < cluster[1]) ? 0 : 1;
+    }
+    BLI_assert(cluster_num > 2);
+
+    blender::float3 centroid{0.0f};
+    for (int i = 0; i < cluster_num; i++) {
+      centroid += blender::float3(verts[cluster[i]]->co);
+    }
+    centroid /= float(cluster_num);
+
+    /* Now pick the most "central" index (with lowest index as a tie breaker). */
+    const int cluster_end = cluster_num - 1;
+    /* Assign `i_best` from the last index as this is the index where the search originated
+     * so it's most likely to be the best. */
+    int i_best = cluster_end;
+    float dist_sq_best = len_squared_v3v3(centroid, verts[cluster[i_best]]->co);
+    for (int i = 0; i < cluster_end; i++) {
+      const float dist_sq_test = len_squared_v3v3(centroid, verts[cluster[i]]->co);
+
+      if (dist_sq_test > dist_sq_best) {
+        continue;
+      }
+      if (dist_sq_test == dist_sq_best) {
+        if (cluster[i] > cluster[i_best]) {
+          continue;
+        }
+      }
+      i_best = i;
+      dist_sq_best = dist_sq_test;
+    }
+    return i_best;
+  };
+
+  found_duplicates = BLI_kdtree_3d_calc_duplicates_cb_cpp(
+                         tree, dist, duplicates, deduplicate_target_calc_fn) != 0;
+
   BLI_kdtree_3d_free(tree);
 
   if (!found_duplicates) {

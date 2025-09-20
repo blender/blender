@@ -68,6 +68,29 @@ int BLI_kdtree_nd_(calc_duplicates_fast)(const KDTree *tree,
                                          bool use_index_order,
                                          int *duplicates);
 
+/**
+ * De-duplicate utility where the callback can evaluate duplicates and select the target
+ * which other indices are merged into.
+ *
+ * \param tree: A tree, all indices *must* be unique.
+ * \param deduplicate_cb: A function which receives duplicate indices,
+ * it must choose the the "target" index to keep which is returned.
+ * The return value is an index in the `cluster` array (a value from `0..cluster_num`).
+ * The last item in `cluster` is the index from which the search began.
+ *
+ * \note ~1.1x-1.5x slower than `calc_duplicates_fast` depending on the distribution of points.
+ *
+ * \note The duplicate search is performed in an order defined by the tree-nodes index,
+ * the index of the input (first to last) for predictability.
+ */
+int BLI_kdtree_nd_(calc_duplicates_cb)(const KDTree *tree,
+                                       const float range,
+                                       int *duplicates,
+                                       int (*deduplicate_cb)(void *user_data,
+                                                             const int *cluster,
+                                                             int cluster_num),
+                                       void *user_data);
+
 int BLI_kdtree_nd_(deduplicate)(KDTree *tree);
 
 /** Versions of find/range search that take a squared distance callback to support bias. */
@@ -122,6 +145,23 @@ inline int BLI_kdtree_nd_(find_nearest_cb_cpp)(const KDTree *tree,
       },
       &fn,
       r_nearest);
+}
+
+template<typename Fn>
+inline int BLI_kdtree_nd_(calc_duplicates_cb_cpp)(const KDTree *tree,
+                                                  float distance,
+                                                  int *duplicates,
+                                                  const Fn &fn)
+{
+  return BLI_kdtree_nd_(calc_duplicates_cb)(
+      tree,
+      distance,
+      duplicates,
+      [](void *user_data, const int *cluster, int cluster_num) -> int {
+        const Fn &fn = *static_cast<const Fn *>(user_data);
+        return fn(cluster, cluster_num);
+      },
+      const_cast<Fn *>(&fn));
 }
 
 #undef _BLI_CONCAT_AUX
