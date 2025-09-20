@@ -23,6 +23,12 @@ ccl_device_forceinline VolumeStack volume_stack_read(const IntegratorGenericStat
   else {
     return integrator_state_read_volume_stack(state, i);
   }
+
+#  ifdef __KERNEL_GPU__
+  /* Silence false positive warning with some GPU compilers. */
+  VolumeStack stack = {};
+  return stack;
+#  endif
 }
 
 template<const bool shadow, typename IntegratorGenericState>
