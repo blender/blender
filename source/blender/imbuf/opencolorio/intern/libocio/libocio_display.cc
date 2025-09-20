@@ -43,7 +43,6 @@ LibOCIODisplay::LibOCIODisplay(const int index, const LibOCIOConfig &config) : c
   this->index = index;
 
   name_ = ocio_config->getDisplay(index);
-  description_ = ocio_config->getColorSpace(name_.c_str())->getDescription();
 
   /* Initialize views. */
   const int num_views = ocio_config->getNumViews(name_.c_str());
@@ -57,6 +56,15 @@ LibOCIODisplay::LibOCIODisplay(const int index, const LibOCIOConfig &config) : c
 
     OCIO_NAMESPACE::ConstColorSpaceRcPtr ocio_display_colorspace = get_display_view_colorspace(
         ocio_config, name_.c_str(), view_name);
+
+    /* There does not exist a description for displays, if there is an associated display
+     * colorspace it's likely to be a useful description. */
+    if (description_.is_empty() && ocio_display_colorspace &&
+        ocio_display_colorspace->getReferenceSpaceType() ==
+            OCIO_NAMESPACE::REFERENCE_SPACE_DISPLAY)
+    {
+      description_ = ocio_display_colorspace->getDescription();
+    }
 
     const char *view_description = nullptr;
     const char *view_transform_name = ocio_config->getDisplayViewTransformName(name_.c_str(),
