@@ -780,15 +780,6 @@ void IMB_colormanagement_display_settings_from_ctx(
   }
 }
 
-static const ColorSpace *get_untonemapped_display_colorspace(
-    const ColorManagedDisplaySettings *display_settings)
-{
-  ColorManagedViewSettings view_settings = {};
-  IMB_colormanagement_init_untonemapped_view_settings(&view_settings, display_settings);
-  return g_config->get_display_view_color_space(display_settings->display_device,
-                                                view_settings.view_transform);
-}
-
 static std::shared_ptr<const ocio::CPUProcessor> get_display_buffer_processor(
     const ColorManagedDisplaySettings &display_settings,
     const char *look,
@@ -822,22 +813,11 @@ static std::shared_ptr<const ocio::CPUProcessor> get_display_buffer_processor(
 }
 
 void IMB_colormanagement_init_untonemapped_view_settings(
-    ColorManagedViewSettings *view_settings, const ColorManagedDisplaySettings *display_settings)
+    ColorManagedViewSettings *view_settings,
+    const ColorManagedDisplaySettings * /*display_settings*/)
 {
-  /* Get untonemapped view from the display. */
-  const ocio::Display *display = g_config->get_display_by_name(display_settings->display_device);
-  const ocio::View *default_view = (display) ? display->get_untonemapped_view() : nullptr;
-  /* If that fails, we fall back to the default view transform of the display
-   * as per OCIO configuration. */
-  if (default_view == nullptr) {
-    default_view = (display) ? display->get_default_view() : nullptr;
-  }
-  if (default_view != nullptr) {
-    STRNCPY_UTF8(view_settings->view_transform, default_view->name().c_str());
-  }
-  else {
-    view_settings->view_transform[0] = '\0';
-  }
+  /* Empty view transform name means skip tone mapping. */
+  view_settings->view_transform[0] = '\0';
   /* TODO(sergey): Find a way to safely/reliable un-hardcode this. */
   STRNCPY_UTF8(view_settings->look, "None");
   /* Initialize rest of the settings. */
@@ -3036,16 +3016,22 @@ const ColorSpace *IMB_colormangement_display_get_color_space(
     const ColorManagedDisplaySettings *display_settings)
 {
   /* Get the colorspace that the image is in after applying this view and display
-   * transform. If we are going to a display referred colorspace we can use that.
-   * However this is not always available, especially in v1 configs. We then rely
-   * on guessing what the untonemapped view transform is. */
-  const ColorSpace *colorspace = g_config->get_display_view_color_space(
-      display_settings->display_device, view_settings->view_transform);
+   * transform. If we are going to a display referred colorspace we can use that. */
+  const ocio::Display *display = g_config->get_display_by_name(display_settings->display_device);
+  const ocio::View *view = (display) ? display->get_view_by_name(view_settings->view_transform) :
+                                       nullptr;
+  const ColorSpace *colorspace = (view) ? view->display_colorspace() : nullptr;
   if (colorspace && colorspace->is_display_referred()) {
     return colorspace;
   }
-  const ColorSpace *untonemapped_colorspace = get_untonemapped_display_colorspace(
-      display_settings);
+  /* If not available, try to guess what the untonemapped view is and use its colorspace.
+   * This is especially needed for v1 configs. */
+  const ocio::View *untonemapped_view = (display) ? display->get_untonemapped_view() : nullptr;
+  const ocio::ColorSpace *untonemapped_colorspace = (untonemapped_view) ?
+                                                        g_config->get_display_view_color_space(
+                                                            display_settings->display_device,
+                                                            untonemapped_view->name()) :
+                                                        nullptr;
   return (untonemapped_colorspace) ? untonemapped_colorspace : colorspace;
 }
 
@@ -4146,7 +4132,8 @@ ColormanageProcessor *IMB_colormanagement_display_processor_new(
     applied_view_settings = &untonemapped_view_settings;
   }
 
-  display_colorspace = IMB_colormangement_display_get_color_space(view_settings, display_settings);
+  display_colorspace = IMB_colormangement_display_get_color_space(applied_view_settings,
+                                                                  display_settings);
   if (display_colorspace) {
     cm_processor->is_data_result = display_colorspace->is_data();
   }
