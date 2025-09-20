@@ -1382,8 +1382,8 @@ static void rna_def_colormanage(BlenderRNA *brna)
                               "rna_ColorManagedDisplaySettings_display_device_itemf");
   RNA_def_property_ui_text(
       prop,
-      "Display Device",
-      "Display device name. For viewing, this is the display that will be emulated by limiting "
+      "Display",
+      "Display name. For viewing, this is the display device that will be emulated by limiting "
       "the gamut and HDR colors. For image and video output, this is the display space used for "
       "writing.");
   RNA_def_property_update(
@@ -1412,8 +1412,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
                               "rna_ColorManagedViewSettings_view_transform_get",
                               "rna_ColorManagedViewSettings_view_transform_set",
                               "rna_ColorManagedViewSettings_view_transform_itemf");
-  RNA_def_property_ui_text(
-      prop, "View Transform", "View used when converting image to a display space");
+  RNA_def_property_ui_text(prop, "View", "View used when converting image to a display space");
   RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
 
   prop = RNA_def_property(srna, "exposure", PROP_FLOAT, PROP_FACTOR);
