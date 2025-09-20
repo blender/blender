@@ -164,13 +164,13 @@ LibOCIOColorSpace::LibOCIOColorSpace(const int index,
     else if (alias == "st2084_p3d65_display") {
       interop_id_ = "pq_p3d65_display";
     }
-    else if (alias == "lin_rec709_srgb" || alias == "lin_rec709") {
+    else if (ELEM(alias, "lin_rec709_srgb", "lin_rec709")) {
       interop_id_ = "lin_rec709_scene";
     }
     else if (alias == "lin_rec2020") {
       interop_id_ = "lin_rec2020_scene";
     }
-    else if (alias == "lin_p3d65" || alias == "lin_displayp3") {
+    else if (ELEM(alias, "lin_p3d65", "lin_displayp3")) {
       interop_id_ = "lin_p3d65_scene";
     }
     else if ((alias.startswith("lin_") || alias.startswith("srgb_") || alias.startswith("g18_") ||

@@ -746,7 +746,7 @@ void wm_event_do_notifiers(bContext *C)
         /* Pass. */
       }
       else if (note->category == NC_SCENE && note->reference &&
-               (note->reference != scene && note->reference != workspace->sequencer_scene))
+               (!ELEM(note->reference, scene, workspace->sequencer_scene)))
       {
         /* Pass. */
       }

@@ -837,7 +837,7 @@ static void set_colorspace_options(AVCodecContext *c, blender::StringRefNull int
     c->color_trc = AVCOL_TRC_BT709;
     c->colorspace = AVCOL_SPC_BT709;
   }
-  else if (interop_id == "srgb_p3d65_display" || interop_id == "srgbx_p3d65_display") {
+  else if (ELEM(interop_id, "srgb_p3d65_display", "srgbx_p3d65_display")) {
     c->color_primaries = AVCOL_PRI_SMPTE432;
     /* This should be AVCOL_TRC_IEC61966_2_1, but Quicktime refuses to open the file.
      * And we're currently also writing srgb_rec709_display the same way. */

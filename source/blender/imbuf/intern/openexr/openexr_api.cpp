@@ -512,9 +512,7 @@ static void openexr_header_metadata(Header *header, ImBuf *ibuf)
     LISTBASE_FOREACH (IDProperty *, prop, &ibuf->metadata->data.group) {
       /* Do not blindly pass along compression or colorInteropID, as they might have
        * changed and will already be written when appropriate. */
-      if (prop->type == IDP_STRING &&
-          !(STREQ(prop->name, "compression") || STREQ(prop->name, "colorInteropID")))
-      {
+      if ((prop->type == IDP_STRING) && !STR_ELEM(prop->name, "compression", "colorInteropID")) {
         header->insert(prop->name, StringAttribute(IDP_string_get(prop)));
       }
     }

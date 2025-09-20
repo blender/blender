@@ -4706,8 +4706,7 @@ static void touch_seat_handle_frame(void *data, wl_touch * /*touch*/)
       seat->touch.wl.surface_window = nullptr;
     }
 
-    GHOST_ASSERT(touch_events_num <= sizeof(touch_events) / sizeof(touch_events[0]),
-                 "Buffer overflow");
+    GHOST_ASSERT(touch_events_num <= ARRAY_SIZE(touch_events), "Buffer overflow");
 
     /* Ensure events are ordered in time. */
     if (UNLIKELY(touch_events_num > 1)) {

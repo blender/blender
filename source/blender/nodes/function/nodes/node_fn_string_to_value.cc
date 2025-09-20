@@ -79,7 +79,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     }
   }
   else if (params.in_out() == SOCK_OUT) {
-    if (socket_type == SOCK_INT || socket_type == SOCK_BOOLEAN) {
+    if (ELEM(socket_type, SOCK_INT, SOCK_BOOLEAN)) {
       params.add_item(IFACE_("Value"), [](LinkSearchOpParams &params) {
         bNode &node = params.add_node("FunctionNodeStringToValue");
         node.custom1 = SOCK_INT;

@@ -4633,7 +4633,7 @@ static void walker_deselect_nth_vertex_chain(BMEditMesh *em,
 
     /* Find next vertex in the loop. */
     BMVert *v_next = bm_step_to_next_selected_vert_in_chain(v_curr, v_prev);
-    if (v_next == nullptr || v_next == v_start) {
+    if (ELEM(v_next, nullptr, v_start)) {
       break;
     }
 
@@ -4666,7 +4666,7 @@ static void walker_deselect_nth_edge_chain(BMEditMesh *em,
 
     /* Find next edge in the loop. */
     BMEdge *e_next = bm_step_over_vert_to_next_selected_edge_in_chain(e_curr, v_through);
-    if (e_next == nullptr || e_next == e_start) {
+    if (ELEM(e_next, nullptr, e_start)) {
       break;
     }
 
@@ -4698,7 +4698,7 @@ static void walker_deselect_nth_face_chain(BMEditMesh *em,
       BM_elem_select_set(bm, (BMElem *)f_curr, false);
     }
 
-    if (f_next == nullptr || f_next == f_start) {
+    if (ELEM(f_next, nullptr, f_start)) {
       break;
     }
 
