@@ -512,7 +512,7 @@ static void rna_display_and_view_settings_node_update(Main *bmain, PointerRNA *p
     /* Find a node ancestor and tag it. */
     PointerRNA node_ptr = ptr->parent();
     while (node_ptr.data && !RNA_struct_is_a(node_ptr.type, &RNA_Node)) {
-      node_ptr = ptr->parent();
+      node_ptr = node_ptr.parent();
     }
 
     if (node_ptr.data) {
