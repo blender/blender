@@ -9,8 +9,8 @@ branch="keep-collada"
 echo "==> Ensuring branch: ${branch}"
 git checkout "${branch}"
 
-echo "==> Fetching upstream"
-git fetch upstream --tags --prune
+echo "==> Fetching upstream/main"
+git fetch upstream main --prune
 
 echo "==> Rebasing onto upstream/main (skipping LFS smudge)"
 GIT_LFS_SKIP_SMUDGE=1 git rebase upstream/main
