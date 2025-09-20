@@ -339,13 +339,13 @@ string CUDADevice::compile_kernel(const string &common_cflags,
   const int nvcc_cuda_version = cuewCompilerVersion();
   LOG_INFO << "Found nvcc " << nvcc << ", CUDA version " << nvcc_cuda_version << ".";
   if (nvcc_cuda_version < 101) {
-    LOG_WARNING << "Unsupported CUDA version " << nvcc_cuda_version / 10 << "."
-                << nvcc_cuda_version % 10 << ", you need CUDA 10.1 or newer";
+    LOG_ERROR << "Unsupported CUDA version " << nvcc_cuda_version / 10 << "."
+              << nvcc_cuda_version % 10 << ", you need CUDA 10.1 or newer";
     return string();
   }
   if (!(nvcc_cuda_version >= 102 && nvcc_cuda_version < 130)) {
-    LOG_WARNING << "CUDA version " << nvcc_cuda_version / 10 << "." << nvcc_cuda_version % 10
-                << "CUDA 10.1 to 12 are officially supported.";
+    LOG_ERROR << "CUDA version " << nvcc_cuda_version / 10 << "." << nvcc_cuda_version % 10
+              << "CUDA 10.1 to 12 are officially supported.";
   }
 
   double starttime = time_dt();
