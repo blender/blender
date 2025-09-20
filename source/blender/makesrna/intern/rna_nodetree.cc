@@ -4995,7 +4995,11 @@ static void def_sh_tex_sky(BlenderRNA *brna, StructRNA *srna)
        0,
        "Multiple Scattering",
        "Multiple scattering sky model (more accurate)"},
-      {0, nullptr, 0, nullptr, nullptr}};
+      {SHD_SKY_PREETHAM, "PREETHAM", 0, "Preetham", "Preetham 1999 (Legacy)"},
+      {SHD_SKY_HOSEK, "HOSEK_WILKIE", 0, "Hosek / Wilkie", "Hosek / Wilkie 2012 (Legacy)"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+  static float default_dir[3] = {0.0f, 0.0f, 1.0f};
 
   PropertyRNA *prop;
 
@@ -5008,6 +5012,7 @@ static void def_sh_tex_sky(BlenderRNA *brna, StructRNA *srna)
   RNA_def_property_ui_text(prop, "Sky Type", "Which sky model should be used");
   RNA_def_property_update(prop, 0, "rna_ShaderNode_socket_update");
 
+  /* Nishita parameters. */
   prop = RNA_def_property(srna, "sun_disc", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_ui_text(prop, "Sun Disc", "Include the sun itself in the output");
   RNA_def_property_boolean_sdna(prop, nullptr, "sun_disc", 1);
@@ -5068,6 +5073,25 @@ static void def_sh_tex_sky(BlenderRNA *brna, StructRNA *srna)
                            "0 means no ozone, 1 means urban city ozone");
   RNA_def_property_range(prop, 0.0f, 1000.0f);
   RNA_def_property_float_default(prop, 1.0f);
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  /* Legacy parameters. */
+  prop = RNA_def_property(srna, "sun_direction", PROP_FLOAT, PROP_DIRECTION);
+  RNA_def_property_ui_text(prop, "Sun Direction", "Direction from where the sun is shining");
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_float_array_default(prop, default_dir);
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "turbidity", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_range(prop, 1.0f, 10.0f);
+  RNA_def_property_ui_range(prop, 1.0f, 10.0f, 10, 3);
+  RNA_def_property_ui_text(prop, "Turbidity", "Atmospheric turbidity");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "ground_albedo", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_ui_text(
+      prop, "Ground Albedo", "Ground color that is subtly reflected in the sky");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 

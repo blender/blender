@@ -2597,21 +2597,6 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_END;
   }
 
-  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 23)) {
-    /* Change default Sky Texture to Nishita (after removal of old sky models) */
-    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-      if (ntree->type == NTREE_SHADER) {
-        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type_legacy == SH_NODE_TEX_SKY && node->storage) {
-            NodeTexSky *tex = (NodeTexSky *)node->storage;
-            tex->sky_model = 0;
-          }
-        }
-      }
-    }
-    FOREACH_NODETREE_END;
-  }
-
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 25)) {
     version_seq_text_from_legacy(bmain);
   }
@@ -3357,6 +3342,27 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
         }
       }
     }
+  }
+
+  if (MAIN_VERSION_FILE_ATLEAST(bmain, 500, 23) && !MAIN_VERSION_FILE_ATLEAST(bmain, 500, 85)) {
+    /* Old sky textures were temporarily removed and restored. */
+    /* Change default Sky Texture to Nishita (after removal of old sky models) */
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_SHADER) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          if (node->type_legacy == SH_NODE_TEX_SKY && node->storage) {
+            NodeTexSky *tex = (NodeTexSky *)node->storage;
+            if (tex->sky_model == 0) {
+              tex->sky_model = SHD_SKY_SINGLE_SCATTERING;
+            }
+            if (tex->sky_model == 1) {
+              tex->sky_model = SHD_SKY_MULTIPLE_SCATTERING;
+            }
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
   }
 
   /**

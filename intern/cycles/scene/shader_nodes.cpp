@@ -17,7 +17,8 @@
 #include "scene/scene.h"
 #include "scene/svm.h"
 
-#include "sky_model.h"
+#include "sky_hosek.h"
+#include "sky_nishita.h"
 
 #include "util/color.h"
 
@@ -632,21 +633,144 @@ void EnvironmentTextureNode::compile(OSLCompiler &compiler)
 
 /* Sky Texture */
 
+static float2 sky_spherical_coordinates(const float3 dir)
+{
+  return make_float2(acosf(dir.z), atan2f(dir.x, dir.y));
+}
+
 struct SunSky {
-  float sky_data[11];
+  /* sun direction in spherical and cartesian */
+  float theta, phi;
+
+  /* Parameter */
+  float radiance_x, radiance_y, radiance_z;
+  float config_x[9], config_y[9], config_z[9], nishita_data[11];
 };
 
-static void sky_texture_precompute(SunSky *sunsky,
-                                   bool multiple_scattering,
-                                   bool sun_disc,
-                                   const float sun_size,
-                                   const float sun_intensity,
-                                   const float sun_elevation,
-                                   const float sun_rotation,
-                                   const float altitude,
-                                   const float air_density,
-                                   const float aerosol_density,
-                                   const float ozone_density)
+/* Preetham model */
+static float sky_perez_function(const float lam[6], float theta, const float gamma)
+{
+  return (1.0f + lam[0] * expf(lam[1] / cosf(theta))) *
+         (1.0f + lam[2] * expf(lam[3] * gamma) + lam[4] * cosf(gamma) * cosf(gamma));
+}
+
+static void sky_texture_precompute_preetham(SunSky *sunsky,
+                                            const float3 dir,
+                                            const float turbidity)
+{
+  /*
+   * We re-use the SunSky struct of the new model, to avoid extra variables
+   * zenith_Y/x/y is now radiance_x/y/z
+   * perez_Y/x/y is now config_x/y/z
+   */
+
+  const float2 spherical = sky_spherical_coordinates(dir);
+  const float theta = spherical.x;
+  const float phi = spherical.y;
+
+  sunsky->theta = theta;
+  sunsky->phi = phi;
+
+  const float theta2 = theta * theta;
+  const float theta3 = theta2 * theta;
+  const float T = turbidity;
+  const float T2 = T * T;
+
+  const float chi = (4.0f / 9.0f - T / 120.0f) * (M_PI_F - 2.0f * theta);
+  sunsky->radiance_x = (4.0453f * T - 4.9710f) * tanf(chi) - 0.2155f * T + 2.4192f;
+  sunsky->radiance_x *= 0.06f;
+
+  sunsky->radiance_y = (0.00166f * theta3 - 0.00375f * theta2 + 0.00209f * theta) * T2 +
+                       (-0.02903f * theta3 + 0.06377f * theta2 - 0.03202f * theta + 0.00394f) * T +
+                       (0.11693f * theta3 - 0.21196f * theta2 + 0.06052f * theta + 0.25886f);
+
+  sunsky->radiance_z = (0.00275f * theta3 - 0.00610f * theta2 + 0.00317f * theta) * T2 +
+                       (-0.04214f * theta3 + 0.08970f * theta2 - 0.04153f * theta + 0.00516f) * T +
+                       (0.15346f * theta3 - 0.26756f * theta2 + 0.06670f * theta + 0.26688f);
+
+  sunsky->config_x[0] = (0.1787f * T - 1.4630f);
+  sunsky->config_x[1] = (-0.3554f * T + 0.4275f);
+  sunsky->config_x[2] = (-0.0227f * T + 5.3251f);
+  sunsky->config_x[3] = (0.1206f * T - 2.5771f);
+  sunsky->config_x[4] = (-0.0670f * T + 0.3703f);
+
+  sunsky->config_y[0] = (-0.0193f * T - 0.2592f);
+  sunsky->config_y[1] = (-0.0665f * T + 0.0008f);
+  sunsky->config_y[2] = (-0.0004f * T + 0.2125f);
+  sunsky->config_y[3] = (-0.0641f * T - 0.8989f);
+  sunsky->config_y[4] = (-0.0033f * T + 0.0452f);
+
+  sunsky->config_z[0] = (-0.0167f * T - 0.2608f);
+  sunsky->config_z[1] = (-0.0950f * T + 0.0092f);
+  sunsky->config_z[2] = (-0.0079f * T + 0.2102f);
+  sunsky->config_z[3] = (-0.0441f * T - 1.6537f);
+  sunsky->config_z[4] = (-0.0109f * T + 0.0529f);
+
+  /* unused for old sky model */
+  for (int i = 5; i < 9; i++) {
+    sunsky->config_x[i] = 0.0f;
+    sunsky->config_y[i] = 0.0f;
+    sunsky->config_z[i] = 0.0f;
+  }
+
+  sunsky->radiance_x /= sky_perez_function(sunsky->config_x, 0, theta);
+  sunsky->radiance_y /= sky_perez_function(sunsky->config_y, 0, theta);
+  sunsky->radiance_z /= sky_perez_function(sunsky->config_z, 0, theta);
+}
+
+/* Hosek / Wilkie */
+static void sky_texture_precompute_hosek(SunSky *sunsky,
+                                         const float3 dir,
+                                         float turbidity,
+                                         const float ground_albedo)
+{
+  /* Calculate Sun Direction and save coordinates */
+  const float2 spherical = sky_spherical_coordinates(dir);
+  float theta = spherical.x;
+  const float phi = spherical.y;
+
+  /* Clamp Turbidity */
+  turbidity = clamp(turbidity, 0.0f, 10.0f);
+
+  /* Clamp to Horizon */
+  theta = clamp(theta, 0.0f, M_PI_2_F);
+
+  sunsky->theta = theta;
+  sunsky->phi = phi;
+
+  const float solarElevation = M_PI_2_F - theta;
+
+  /* Initialize Sky Model */
+  SKY_ArHosekSkyModelState *sky_state;
+  sky_state = SKY_arhosek_xyz_skymodelstate_alloc_init(
+      (double)turbidity, (double)ground_albedo, (double)solarElevation);
+
+  /* Copy values from sky_state to SunSky */
+  for (int i = 0; i < 9; ++i) {
+    sunsky->config_x[i] = (float)sky_state->configs[0][i];
+    sunsky->config_y[i] = (float)sky_state->configs[1][i];
+    sunsky->config_z[i] = (float)sky_state->configs[2][i];
+  }
+  sunsky->radiance_x = (float)sky_state->radiances[0];
+  sunsky->radiance_y = (float)sky_state->radiances[1];
+  sunsky->radiance_z = (float)sky_state->radiances[2];
+
+  /* Free sky_state */
+  SKY_arhosekskymodelstate_free(sky_state);
+}
+
+/* Nishita improved */
+static void sky_texture_precompute_nishita(SunSky *sunsky,
+                                           bool multiple_scattering,
+                                           bool sun_disc,
+                                           const float sun_size,
+                                           const float sun_intensity,
+                                           const float sun_elevation,
+                                           const float sun_rotation,
+                                           const float altitude,
+                                           const float air_density,
+                                           const float aerosol_density,
+                                           const float ozone_density)
 {
   /* Sample 2 Sun pixels */
   float pixel_bottom[3];
@@ -670,17 +794,17 @@ static void sky_texture_precompute(SunSky *sunsky,
   float earth_intersection_angle = SKY_earth_intersection_angle(altitude);
 
   /* Send data to sky.h */
-  sunsky->sky_data[0] = pixel_bottom[0];
-  sunsky->sky_data[1] = pixel_bottom[1];
-  sunsky->sky_data[2] = pixel_bottom[2];
-  sunsky->sky_data[3] = pixel_top[0];
-  sunsky->sky_data[4] = pixel_top[1];
-  sunsky->sky_data[5] = pixel_top[2];
-  sunsky->sky_data[6] = sun_elevation;
-  sunsky->sky_data[7] = sun_rotation;
-  sunsky->sky_data[8] = sun_disc ? sun_size : -1.0f;
-  sunsky->sky_data[9] = sun_intensity;
-  sunsky->sky_data[10] = -earth_intersection_angle;
+  sunsky->nishita_data[0] = pixel_bottom[0];
+  sunsky->nishita_data[1] = pixel_bottom[1];
+  sunsky->nishita_data[2] = pixel_bottom[2];
+  sunsky->nishita_data[3] = pixel_top[0];
+  sunsky->nishita_data[4] = pixel_top[1];
+  sunsky->nishita_data[5] = pixel_top[2];
+  sunsky->nishita_data[6] = sun_elevation;
+  sunsky->nishita_data[7] = sun_rotation;
+  sunsky->nishita_data[8] = sun_disc ? sun_size : -1.0f;
+  sunsky->nishita_data[9] = sun_intensity;
+  sunsky->nishita_data[10] = -earth_intersection_angle;
 }
 
 float SkyTextureNode::get_sun_average_radiance()
@@ -744,9 +868,13 @@ NODE_DEFINE(SkyTextureNode)
   NodeType *type = NodeType::add("sky_texture", create, NodeType::SHADER);
   TEXTURE_MAPPING_DEFINE(SkyTextureNode);
   static NodeEnum type_enum;
+  type_enum.insert("preetham", NODE_SKY_PREETHAM);
+  type_enum.insert("hosek_wilkie", NODE_SKY_HOSEK);
   type_enum.insert("single_scattering", NODE_SKY_SINGLE_SCATTERING);
   type_enum.insert("multiple_scattering", NODE_SKY_MULTIPLE_SCATTERING);
   SOCKET_ENUM(sky_type, "Type", type_enum, NODE_SKY_MULTIPLE_SCATTERING);
+
+  /* Nishita parameters. */
   SOCKET_BOOLEAN(sun_disc, "Sun Disc", true);
   SOCKET_FLOAT(sun_size, "Sun Size", 0.009512f);
   SOCKET_FLOAT(sun_intensity, "Sun Intensity", 1.0f);
@@ -758,6 +886,11 @@ NODE_DEFINE(SkyTextureNode)
   SOCKET_FLOAT(ozone_density, "Ozone", 1.0f);
   SOCKET_IN_POINT(vector, "Vector", zero_float3(), SocketType::LINK_TEXTURE_GENERATED);
   SOCKET_OUT_COLOR(color, "Color");
+
+  /* Legacy parameters. */
+  SOCKET_VECTOR(sun_direction, "Sun Direction", make_float3(0.0f, 0.0f, 1.0f));
+  SOCKET_FLOAT(turbidity, "Turbidity", 2.2f);
+  SOCKET_FLOAT(ground_albedo, "Ground Albedo", 0.3f);
 
   return type;
 }
@@ -799,48 +932,97 @@ void SkyTextureNode::compile(SVMCompiler &compiler)
 {
   ShaderInput *vector_in = input("Vector");
   ShaderOutput *color_out = output("Color");
-  SunSky sunsky;
-  bool multiple_scattering = (sky_type == NODE_SKY_SINGLE_SCATTERING) ? false : true;
-  sky_texture_precompute(&sunsky,
-                         multiple_scattering,
-                         sun_disc,
-                         get_sun_size(),
-                         sun_intensity,
-                         sun_elevation,
-                         sun_rotation,
-                         altitude,
-                         air_density,
-                         aerosol_density,
-                         ozone_density);
-  /* Sky texture image parameters */
-  ImageManager *image_manager = compiler.scene->image_manager.get();
-  ImageParams impar;
-  impar.interpolation = INTERPOLATION_LINEAR;
-  impar.extension = EXTENSION_EXTEND;
+  SunSky sunsky = {};
 
-  /* Precompute sky texture */
-  if (handle.empty()) {
-    unique_ptr<SkyLoader> loader = make_unique<SkyLoader>(
-        multiple_scattering, sun_elevation, altitude, air_density, aerosol_density, ozone_density);
-    handle = image_manager->add_image(std::move(loader), impar);
+  if (sky_type == NODE_SKY_PREETHAM) {
+    sky_texture_precompute_preetham(&sunsky, sun_direction, turbidity);
+  }
+  else if (sky_type == NODE_SKY_HOSEK) {
+    sky_texture_precompute_hosek(&sunsky, sun_direction, turbidity, ground_albedo);
+  }
+  else {
+    sky_texture_precompute_nishita(&sunsky,
+                                   sky_type == NODE_SKY_MULTIPLE_SCATTERING,
+                                   sun_disc,
+                                   get_sun_size(),
+                                   sun_intensity,
+                                   sun_elevation,
+                                   sun_rotation,
+                                   altitude,
+                                   air_density,
+                                   aerosol_density,
+                                   ozone_density);
+    /* Sky texture image parameters */
+    ImageManager *image_manager = compiler.scene->image_manager.get();
+    ImageParams impar;
+    impar.interpolation = INTERPOLATION_LINEAR;
+    impar.extension = EXTENSION_EXTEND;
+
+    /* Precompute sky texture */
+    if (handle.empty()) {
+      unique_ptr<SkyLoader> loader = make_unique<SkyLoader>(sky_type ==
+                                                                NODE_SKY_MULTIPLE_SCATTERING,
+                                                            sun_elevation,
+                                                            altitude,
+                                                            air_density,
+                                                            aerosol_density,
+                                                            ozone_density);
+      handle = image_manager->add_image(std::move(loader), impar);
+    }
   }
 
   const int vector_offset = tex_mapping.compile_begin(compiler, vector_in);
 
   compiler.stack_assign(color_out);
   compiler.add_node(NODE_TEX_SKY, vector_offset, compiler.stack_assign(color_out), sky_type);
-  compiler.add_node(__float_as_uint(sunsky.sky_data[0]),
-                    __float_as_uint(sunsky.sky_data[1]),
-                    __float_as_uint(sunsky.sky_data[2]),
-                    __float_as_uint(sunsky.sky_data[3]));
-  compiler.add_node(__float_as_uint(sunsky.sky_data[4]),
-                    __float_as_uint(sunsky.sky_data[5]),
-                    __float_as_uint(sunsky.sky_data[6]),
-                    __float_as_uint(sunsky.sky_data[7]));
-  compiler.add_node(__float_as_uint(sunsky.sky_data[8]),
-                    __float_as_uint(sunsky.sky_data[9]),
-                    __float_as_uint(sunsky.sky_data[10]),
-                    handle.svm_slot());
+  if (sky_type == NODE_SKY_PREETHAM || sky_type == NODE_SKY_HOSEK) {
+    compiler.add_node(__float_as_uint(sunsky.phi),
+                      __float_as_uint(sunsky.theta),
+                      __float_as_uint(sunsky.radiance_x),
+                      __float_as_uint(sunsky.radiance_y));
+    compiler.add_node(__float_as_uint(sunsky.radiance_z),
+                      __float_as_uint(sunsky.config_x[0]),
+                      __float_as_uint(sunsky.config_x[1]),
+                      __float_as_uint(sunsky.config_x[2]));
+    compiler.add_node(__float_as_uint(sunsky.config_x[3]),
+                      __float_as_uint(sunsky.config_x[4]),
+                      __float_as_uint(sunsky.config_x[5]),
+                      __float_as_uint(sunsky.config_x[6]));
+    compiler.add_node(__float_as_uint(sunsky.config_x[7]),
+                      __float_as_uint(sunsky.config_x[8]),
+                      __float_as_uint(sunsky.config_y[0]),
+                      __float_as_uint(sunsky.config_y[1]));
+    compiler.add_node(__float_as_uint(sunsky.config_y[2]),
+                      __float_as_uint(sunsky.config_y[3]),
+                      __float_as_uint(sunsky.config_y[4]),
+                      __float_as_uint(sunsky.config_y[5]));
+    compiler.add_node(__float_as_uint(sunsky.config_y[6]),
+                      __float_as_uint(sunsky.config_y[7]),
+                      __float_as_uint(sunsky.config_y[8]),
+                      __float_as_uint(sunsky.config_z[0]));
+    compiler.add_node(__float_as_uint(sunsky.config_z[1]),
+                      __float_as_uint(sunsky.config_z[2]),
+                      __float_as_uint(sunsky.config_z[3]),
+                      __float_as_uint(sunsky.config_z[4]));
+    compiler.add_node(__float_as_uint(sunsky.config_z[5]),
+                      __float_as_uint(sunsky.config_z[6]),
+                      __float_as_uint(sunsky.config_z[7]),
+                      __float_as_uint(sunsky.config_z[8]));
+  }
+  else {
+    compiler.add_node(__float_as_uint(sunsky.nishita_data[0]),
+                      __float_as_uint(sunsky.nishita_data[1]),
+                      __float_as_uint(sunsky.nishita_data[2]),
+                      __float_as_uint(sunsky.nishita_data[3]));
+    compiler.add_node(__float_as_uint(sunsky.nishita_data[4]),
+                      __float_as_uint(sunsky.nishita_data[5]),
+                      __float_as_uint(sunsky.nishita_data[6]),
+                      __float_as_uint(sunsky.nishita_data[7]));
+    compiler.add_node(__float_as_uint(sunsky.nishita_data[8]),
+                      __float_as_uint(sunsky.nishita_data[9]),
+                      __float_as_uint(sunsky.nishita_data[10]),
+                      handle.svm_slot());
+  }
 
   tex_mapping.compile_end(compiler, vector_in, vector_offset);
 }
@@ -848,37 +1030,56 @@ void SkyTextureNode::compile(SVMCompiler &compiler)
 void SkyTextureNode::compile(OSLCompiler &compiler)
 {
   tex_mapping.compile(compiler);
-  SunSky sunsky;
-  int sky_model = (sky_type == NODE_SKY_SINGLE_SCATTERING) ? 0 : 1;
-  bool multiple_scattering = (sky_type == NODE_SKY_SINGLE_SCATTERING) ? false : true;
+  SunSky sunsky = {};
 
-  sky_texture_precompute(&sunsky,
-                         multiple_scattering,
-                         sun_disc,
-                         get_sun_size(),
-                         sun_intensity,
-                         sun_elevation,
-                         sun_rotation,
-                         altitude,
-                         air_density,
-                         aerosol_density,
-                         ozone_density);
-  /* Sky texture image parameters */
-  ImageManager *image_manager = compiler.scene->image_manager.get();
-  ImageParams impar;
-  impar.interpolation = INTERPOLATION_LINEAR;
-  impar.extension = EXTENSION_EXTEND;
+  if (sky_type == NODE_SKY_PREETHAM) {
+    sky_texture_precompute_preetham(&sunsky, sun_direction, turbidity);
+  }
+  else if (sky_type == NODE_SKY_HOSEK) {
+    sky_texture_precompute_hosek(&sunsky, sun_direction, turbidity, ground_albedo);
+  }
+  else {
+    sky_texture_precompute_nishita(&sunsky,
+                                   sky_type == NODE_SKY_MULTIPLE_SCATTERING,
+                                   sun_disc,
+                                   get_sun_size(),
+                                   sun_intensity,
+                                   sun_elevation,
+                                   sun_rotation,
+                                   altitude,
+                                   air_density,
+                                   aerosol_density,
+                                   ozone_density);
+    /* Sky texture image parameters */
+    ImageManager *image_manager = compiler.scene->image_manager.get();
+    ImageParams impar;
+    impar.interpolation = INTERPOLATION_LINEAR;
+    impar.extension = EXTENSION_EXTEND;
 
-  /* Precompute sky texture */
-  {
-    unique_ptr<SkyLoader> loader = make_unique<SkyLoader>(
-        multiple_scattering, sun_elevation, altitude, air_density, aerosol_density, ozone_density);
-    handle = image_manager->add_image(std::move(loader), impar);
+    /* Precompute sky texture */
+    {
+      unique_ptr<SkyLoader> loader = make_unique<SkyLoader>(sky_type ==
+                                                                NODE_SKY_MULTIPLE_SCATTERING,
+                                                            sun_elevation,
+                                                            altitude,
+                                                            air_density,
+                                                            aerosol_density,
+                                                            ozone_density);
+      handle = image_manager->add_image(std::move(loader), impar);
+    }
+
+    compiler.parameter_texture("filename", handle);
   }
 
-  compiler.parameter("sky_type", sky_model);
-  compiler.parameter_array("sky_data", sunsky.sky_data, 11);
-  compiler.parameter_texture("filename", handle);
+  compiler.parameter(this, "sky_type");
+  compiler.parameter("theta", sunsky.theta);
+  compiler.parameter("phi", sunsky.phi);
+  compiler.parameter_color("radiance",
+                           make_float3(sunsky.radiance_x, sunsky.radiance_y, sunsky.radiance_z));
+  compiler.parameter_array("config_x", sunsky.config_x, 9);
+  compiler.parameter_array("config_y", sunsky.config_y, 9);
+  compiler.parameter_array("config_z", sunsky.config_z, 9);
+  compiler.parameter_array("nishita_data", sunsky.nishita_data, 11);
   compiler.add(this, "node_sky_texture");
 }
 
@@ -2249,7 +2450,8 @@ GlossyBsdfNode::GlossyBsdfNode() : BsdfNode(get_node_type())
 bool GlossyBsdfNode::is_isotropic()
 {
   ShaderInput *anisotropy_input = input("Anisotropy");
-  /* Keep in sync with the thresholds in OSL's node_glossy_bsdf and SVM's svm_node_closure_bsdf. */
+  /* Keep in sync with the thresholds in OSL's node_glossy_bsdf and SVM's svm_node_closure_bsdf.
+   */
   return (!anisotropy_input->link && fabsf(anisotropy) <= 1e-4f);
 }
 

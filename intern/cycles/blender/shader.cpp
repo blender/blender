@@ -1034,6 +1034,9 @@ static ShaderNode *add_node(Scene *scene,
     BL::ShaderNodeTexSky b_sky_node(b_node);
     SkyTextureNode *sky = graph->create_node<SkyTextureNode>();
     sky->set_sky_type((NodeSkyType)b_sky_node.sky_type());
+    sky->set_sun_direction(normalize(get_float3(b_sky_node.sun_direction())));
+    sky->set_turbidity(b_sky_node.turbidity());
+    sky->set_ground_albedo(b_sky_node.ground_albedo());
     sky->set_sun_disc(b_sky_node.sun_disc());
     sky->set_sun_size(b_sky_node.sun_size());
     sky->set_sun_intensity(b_sky_node.sun_intensity());

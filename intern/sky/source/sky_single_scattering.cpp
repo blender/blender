@@ -9,7 +9,7 @@
 #include <algorithm>
 
 #include "sky_math.h"
-#include "sky_model.h"
+#include "sky_nishita.h"
 
 /* Constants. */
 static const float RAYLEIGH_SCALE = 8e3f;       /* Rayleigh scale height (m). */

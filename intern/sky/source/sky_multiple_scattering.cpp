@@ -32,7 +32,7 @@
 #include <algorithm>
 
 #include "sky_math.h"
-#include "sky_model.h"
+#include "sky_nishita.h"
 
 using std::min;
 

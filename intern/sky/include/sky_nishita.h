@@ -6,12 +6,7 @@
  * \ingroup intern_sky_modal
  */
 
-#ifndef __SKY_MODEL_H__
-#define __SKY_MODEL_H__
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#pragma once
 
 void SKY_single_scattering_precompute_texture(float *pixels,
                                               int stride,
@@ -51,9 +46,3 @@ void SKY_multiple_scattering_precompute_sun(float sun_elevation,
                                             float r_pixel_top[3]);
 
 float SKY_earth_intersection_angle(float altitude);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif  // __SKY_MODEL_H__
