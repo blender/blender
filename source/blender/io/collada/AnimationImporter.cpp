@@ -100,7 +100,10 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
   COLLADAFW::FloatOrDoubleArray &input = curve->getInputValues();
   COLLADAFW::FloatOrDoubleArray &output = curve->getOutputValues();
 
-  float fps = float(FPS);
+  /* Blender no longer defines FPS as a macro; derive it from the active scene. */
+  const float fps = (scene && scene->r.frs_sec_base != 0) ?
+                        (float(scene->r.frs_sec) / float(scene->r.frs_sec_base)) :
+                        float(scene ? scene->r.frs_sec : 24);
   size_t dim = curve->getOutDimension();
   uint i;
 
