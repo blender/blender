@@ -981,6 +981,17 @@ static StringRefNull colormanage_find_matching_view_name(const ocio::Display *di
     }
   }
 
+  const int64_t separator_offset = view_name.find(" - ");
+  if (separator_offset != -1) {
+    const StringRef view_short_name = view_name.substr(0, separator_offset);
+    for (const int view_index : blender::IndexRange(display->get_num_views())) {
+      const ocio::View *view = display->get_view_by_index(view_index);
+      if (view->name().startswith(view_short_name)) {
+        return view->name();
+      }
+    }
+  }
+
   if (const ocio::View *view = display->get_default_view()) {
     return view->name();
   }
