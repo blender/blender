@@ -198,22 +198,37 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
     targetmap_all = BLI_ghash_ptr_new(__func__);
   }
 
-  if (use_centroid) {
-    GHash *clusters = BLI_ghash_ptr_new(__func__);
+  GHash *clusters = use_centroid ? BLI_ghash_ptr_new(__func__) : nullptr;
 
-    /* Group vertices by their survivor. */
-    BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-      BMVert *v_dst = static_cast<BMVert *>(BMO_slot_map_elem_get(slot_targetmap, v));
-      if (v_dst && v_dst != v) {
-        void **cluster_p;
-        if (!BLI_ghash_ensure_p(clusters, v_dst, &cluster_p)) {
-          *cluster_p = MEM_new<blender::Vector<BMVert *>>(__func__);
-        }
-        blender::Vector<BMVert *> *cluster = static_cast<blender::Vector<BMVert *> *>(*cluster_p);
-        cluster->append(v);
-      }
+  /* mark merge verts for deletion */
+  BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+    BMVert *v_dst = static_cast<BMVert *>(BMO_slot_map_elem_get(slot_targetmap, v));
+    if (v_dst == nullptr) {
+      continue;
     }
 
+    BMO_vert_flag_enable(bm, v, ELE_DEL);
+
+    /* merge the vertex flags, else we get randomly selected/unselected verts */
+    BM_elem_flag_merge_ex(v, v_dst, BM_ELEM_HIDDEN);
+
+    if (use_targetmap_all) {
+      BLI_assert(v != v_dst);
+      BLI_ghash_insert(targetmap_all, v, v_dst);
+    }
+
+    /* Group vertices by their survivor. */
+    if (use_centroid && UNLIKELY(v_dst != v)) {
+      void **cluster_p;
+      if (!BLI_ghash_ensure_p(clusters, v_dst, &cluster_p)) {
+        *cluster_p = MEM_new<blender::Vector<BMVert *>>(__func__);
+      }
+      blender::Vector<BMVert *> *cluster = static_cast<blender::Vector<BMVert *> *>(*cluster_p);
+      cluster->append(v);
+    }
+  }
+
+  if (use_centroid) {
     /* Compute centroid for each survivor. */
     GHashIterator gh_iter;
     GHASH_ITER (gh_iter, clusters) {
@@ -237,22 +252,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
       MEM_delete(cluster);
     }
     BLI_ghash_free(clusters, nullptr, nullptr);
-  }
-
-  /* mark merge verts for deletion */
-  BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-    BMVert *v_dst = static_cast<BMVert *>(BMO_slot_map_elem_get(slot_targetmap, v));
-    if (v_dst != nullptr) {
-      BMO_vert_flag_enable(bm, v, ELE_DEL);
-
-      /* merge the vertex flags, else we get randomly selected/unselected verts */
-      BM_elem_flag_merge_ex(v, v_dst, BM_ELEM_HIDDEN);
-
-      if (use_targetmap_all) {
-        BLI_assert(v != v_dst);
-        BLI_ghash_insert(targetmap_all, v, v_dst);
-      }
-    }
+    clusters = nullptr;
   }
 
   /* check if any faces are getting their own corners merged
