@@ -112,7 +112,7 @@ static void node_init(const bContext *C, PointerRNA *node_pointer)
   data->save_as_render = true;
   data->file_name = BLI_strdup("file_name");
 
-  BKE_image_format_init(&data->format, false);
+  BKE_image_format_init(&data->format);
   BKE_image_format_media_type_set(
       &data->format, node_pointer->owner_id, MEDIA_TYPE_MULTI_LAYER_IMAGE);
   BKE_image_format_update_color_space_for_type(&data->format);

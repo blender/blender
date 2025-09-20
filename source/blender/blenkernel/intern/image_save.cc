@@ -69,7 +69,7 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
   opts->scene = scene;
   opts->save_as_render = ima->source == IMA_SRC_VIEWER || save_as_render;
 
-  BKE_image_format_init(&opts->im_format, false);
+  BKE_image_format_init(&opts->im_format);
 
   void *lock;
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);

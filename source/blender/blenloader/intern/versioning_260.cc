@@ -347,7 +347,7 @@ static bNodeSocket *ntreeCompositOutputFileAddSocket(bNodeTree *ntree,
     }
   }
   else {
-    BKE_image_format_init(&sockdata->format, false);
+    BKE_image_format_init(&sockdata->format);
   }
   BKE_image_format_update_color_space_for_type(&sockdata->format);
 

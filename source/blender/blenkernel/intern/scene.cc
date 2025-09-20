@@ -229,12 +229,11 @@ static void scene_init_data(ID *id)
   colorspace_name = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_SEQUENCER);
 
   BKE_color_managed_display_settings_init(&scene->display_settings);
-  BKE_color_managed_view_settings_init_render(
-      &scene->view_settings, &scene->display_settings, "AgX");
+  BKE_color_managed_view_settings_init(&scene->view_settings, &scene->display_settings, "AgX");
   STRNCPY_UTF8(scene->sequencer_colorspace_settings.name, colorspace_name);
 
-  BKE_image_format_init(&scene->r.im_format, true);
-  BKE_image_format_init(&scene->r.bake.im_format, true);
+  BKE_image_format_init(&scene->r.im_format);
+  BKE_image_format_init(&scene->r.bake.im_format);
 
   /* Curve Profile */
   scene->toolsettings->custom_bevel_profile_preset = BKE_curveprofile_add(PROF_PRESET_LINE);

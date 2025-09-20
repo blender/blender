@@ -4847,15 +4847,15 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
        * properly initialized previously. This is mere copy of #scene_init_data code. */
       if (scene->r.im_format.view_settings.look[0] == '\0') {
         BKE_color_managed_display_settings_init(&scene->r.im_format.display_settings);
-        BKE_color_managed_view_settings_init_render(
+        BKE_color_managed_view_settings_init(
             &scene->r.im_format.view_settings, &scene->r.im_format.display_settings, "Filmic");
       }
 
       if (scene->r.bake.im_format.view_settings.look[0] == '\0') {
         BKE_color_managed_display_settings_init(&scene->r.bake.im_format.display_settings);
-        BKE_color_managed_view_settings_init_render(&scene->r.bake.im_format.view_settings,
-                                                    &scene->r.bake.im_format.display_settings,
-                                                    "Filmic");
+        BKE_color_managed_view_settings_init(&scene->r.bake.im_format.view_settings,
+                                             &scene->r.bake.im_format.display_settings,
+                                             "Filmic");
       }
     }
   }

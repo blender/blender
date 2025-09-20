@@ -23,7 +23,7 @@ struct RenderData;
 
 /* Init/Copy/Free */
 
-void BKE_image_format_init(ImageFormatData *imf, const bool render);
+void BKE_image_format_init(ImageFormatData *imf);
 void BKE_image_format_copy(ImageFormatData *imf_dst, const ImageFormatData *imf_src);
 void BKE_image_format_free(ImageFormatData *imf);
 

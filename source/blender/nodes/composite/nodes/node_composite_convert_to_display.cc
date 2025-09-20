@@ -47,8 +47,7 @@ static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeConvertToDisplay *nctd = MEM_callocN<NodeConvertToDisplay>(__func__);
   BKE_color_managed_display_settings_init(&nctd->display_settings);
-  BKE_color_managed_view_settings_init_render(
-      &nctd->view_settings, &nctd->display_settings, nullptr);
+  BKE_color_managed_view_settings_init(&nctd->view_settings, &nctd->display_settings, nullptr);
   nctd->view_settings.flag |= COLORMANAGE_VIEW_ONLY_VIEW_LOOK;
   node->storage = nctd;
 }
