@@ -187,6 +187,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
   BMLoop *l;
   BMFace *f;
   BMOpSlot *slot_targetmap = BMO_slot_get(op->slots_in, "targetmap");
+  const bool use_centroid = BMO_slot_bool_get(op->slots_in, "use_centroid");
 
   /* Maintain selection history. */
   const bool has_selected = !BLI_listbase_is_empty(&bm->selected);
@@ -195,6 +196,51 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
   if (use_targetmap_all) {
     /* Map deleted to keep elem. */
     targetmap_all = BLI_ghash_ptr_new(__func__);
+  }
+
+  if (use_centroid) {
+    GHash *clusters = BLI_ghash_ptr_new(__func__);
+
+    /* Group vertices by their survivor. */
+    BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+      BMVert *v_dst = static_cast<BMVert *>(BMO_slot_map_elem_get(slot_targetmap, v));
+      if (v_dst && v_dst != v) {
+        void **cluster_p;
+        if (!BLI_ghash_ensure_p(clusters, v_dst, &cluster_p)) {
+          *cluster_p = MEM_new<blender::Vector<BMVert *>>(__func__);
+        }
+        blender::Vector<BMVert *> *cluster = static_cast<blender::Vector<BMVert *> *>(*cluster_p);
+        cluster->append(v);
+      }
+    }
+
+    /* Compute centroid for each survivor. */
+    GHashIterator gh_iter;
+    GHASH_ITER (gh_iter, clusters) {
+      BMVert *v_dst = static_cast<BMVert *>(BLI_ghashIterator_getKey(&gh_iter));
+      blender::Vector<BMVert *> *cluster = static_cast<blender::Vector<BMVert *> *>(
+          BLI_ghashIterator_getValue(&gh_iter));
+
+      float centroid[3];
+      copy_v3_v3(centroid, v_dst->co);
+      int count = 1; /* Include `v_dst`. */
+
+      for (BMVert *v_duplicate : *cluster) {
+        add_v3_v3(centroid, v_duplicate->co);
+        count++;
+      }
+
+      mul_v3_fl(centroid, 1.0f / float(count));
+      copy_v3_v3(v_dst->co, centroid);
+    }
+
+    /* Free temporary cluster storage. */
+    GHASH_ITER (gh_iter, clusters) {
+      blender::Vector<BMVert *> *cluster = static_cast<blender::Vector<BMVert *> *>(
+          BLI_ghashIterator_getValue(&gh_iter));
+      MEM_delete(cluster);
+    }
+    BLI_ghash_free(clusters, nullptr, nullptr);
   }
 
   /* mark merge verts for deletion */

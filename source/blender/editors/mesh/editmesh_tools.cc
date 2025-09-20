@@ -3581,7 +3581,13 @@ static wmOperatorStatus edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 
       BMO_op_exec(em->bm, &bmop);
 
-      if (!EDBM_op_callf(em, op, "weld_verts targetmap=%S", &bmop, "targetmap.out")) {
+      if (!EDBM_op_callf(em,
+                         op,
+                         "weld_verts targetmap=%S use_centroid=%b",
+                         &bmop,
+                         "targetmap.out",
+                         RNA_boolean_get(op->ptr, "use_centroid")))
+      {
         BMO_op_finish(em->bm, &bmop);
         continue;
       }
@@ -3640,6 +3646,13 @@ void MESH_OT_remove_doubles(wmOperatorType *ot)
                          "Maximum distance between elements to merge",
                          1e-5f,
                          10.0f);
+  RNA_def_boolean(ot->srna,
+                  "use_centroid",
+                  true,
+                  "Centroid Merge",
+                  "Move vertices to the centroid of the duplicate cluster, "
+                  "otherwise the vertex closest to the centroid is used.");
+
   RNA_def_boolean(ot->srna,
                   "use_unselected",
                   false,
