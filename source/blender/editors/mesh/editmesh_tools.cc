@@ -1832,7 +1832,7 @@ static bool edbm_edge_split_selected_edges(wmOperator *op, Object *obedit, BMEdi
 
   BM_custom_loop_normals_from_vector_layer(em->bm, false);
 
-  EDBM_select_flush(em);
+  EDBM_select_flush(em, true);
   EDBMUpdate_Params params{};
   params.calc_looptris = true;
   params.calc_normals = false;
@@ -1907,7 +1907,7 @@ static bool edbm_edge_split_selected_verts(wmOperator *op, Object *obedit, BMEdi
 
   BM_custom_loop_normals_from_vector_layer(em->bm, false);
 
-  EDBM_select_flush(em);
+  EDBM_select_flush(em, true);
   EDBMUpdate_Params params{};
   params.calc_looptris = true;
   params.calc_normals = false;
@@ -6289,7 +6289,7 @@ static wmOperatorStatus edbm_dissolve_degenerate_exec(bContext *C, wmOperator *o
     }
 
     /* tricky to maintain correct selection here, so just flush up from verts */
-    EDBM_select_flush(em);
+    EDBM_select_flush(em, true);
 
     EDBMUpdate_Params params{};
     params.calc_looptris = true;

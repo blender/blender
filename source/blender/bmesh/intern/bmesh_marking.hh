@@ -108,13 +108,12 @@ void BM_mesh_select_mode_flush_ex(BMesh *bm, short selectmode, eBMSelectionFlush
 void BM_mesh_select_mode_flush(BMesh *bm);
 
 /**
- * Mode independent de-selection flush (up/down).
+ * Mode independent UV selection/de-selection flush.
+ *
+ * \param select: When true, flush the selection state to de-selected elements,
+ * otherwise perform the opposite, flushing de-selection.
  */
-void BM_mesh_deselect_flush(BMesh *bm);
-/**
- * Mode independent selection flush (up/down).
- */
-void BM_mesh_select_flush(BMesh *bm);
+void BM_mesh_select_flush(BMesh *bm, bool select);
 
 int BM_mesh_elem_hflag_count_enabled(BMesh *bm, char htype, char hflag, bool respecthide);
 int BM_mesh_elem_hflag_count_disabled(BMesh *bm, char htype, char hflag, bool respecthide);

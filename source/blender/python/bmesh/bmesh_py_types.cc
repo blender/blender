@@ -1472,14 +1472,7 @@ static PyObject *bpy_bmesh_select_flush(BPy_BMesh *self, PyObject *value)
   if ((param = PyC_Long_AsBool(value)) == -1) {
     return nullptr;
   }
-
-  if (param) {
-    BM_mesh_select_flush(self->bm);
-  }
-  else {
-    BM_mesh_deselect_flush(self->bm);
-  }
-
+  BM_mesh_select_flush(self->bm, param);
   Py_RETURN_NONE;
 }
 
