@@ -16,6 +16,7 @@
 #include "IMB_imbuf_enums.h"
 
 struct ColormanageCache;
+struct ExrHandle;
 namespace blender::gpu {
 class Texture;
 }
@@ -228,8 +229,8 @@ struct ImBuf {
   int userflags;
   /** image metadata */
   IDProperty *metadata;
-  /** temporary storage */
-  void *userdata;
+  /** OpenEXR handle. */
+  ExrHandle *exrhandle;
 
   /* file information */
   /** file type we are going to save as */

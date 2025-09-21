@@ -765,7 +765,7 @@ static float *image_exr_opaque_alpha_buffer(int width,
   return alpha_output;
 }
 
-static void add_exr_compositing_result(void *exr_handle,
+static void add_exr_compositing_result(ExrHandle *exr_handle,
                                        const RenderResult *render_result,
                                        const ImageFormatData *imf,
                                        bool save_as_render,
@@ -816,18 +816,14 @@ static void add_exr_compositing_result(void *exr_handle,
     /* For multi-layer EXRs, we write the buffer as is with all its 4 channels. */
     const bool half_float = (imf && imf->depth == R_IMF_CHAN_DEPTH_16);
     if (is_multi_layer) {
-      for (int i = 0; i < channels_count_in_buffer; i++) {
-        char passname[EXR_PASS_MAXNAME];
-        RE_render_result_full_channel_name(passname, nullptr, "Combined", nullptr, "RGBA", i);
-        IMB_exr_add_channel(exr_handle,
-                            "Composite",
-                            passname,
-                            render_view_name,
-                            channels_count_in_buffer,
-                            channels_count_in_buffer * render_result->rectx,
-                            output_buffer + i,
-                            half_float);
-      }
+      IMB_exr_add_channels(exr_handle,
+                           "Composite.Combined",
+                           "RGBA",
+                           render_view_name,
+                           channels_count_in_buffer,
+                           channels_count_in_buffer * render_result->rectx,
+                           output_buffer,
+                           half_float);
       continue;
     }
 
@@ -842,29 +838,28 @@ static void add_exr_compositing_result(void *exr_handle,
                                                           render_result->recty,
                                                           channels_count_in_buffer,
                                                           temporary_buffers);
-      IMB_exr_add_channel(exr_handle,
-                          "",
-                          "V",
-                          render_view_name,
-                          1,
-                          render_result->rectx,
-                          gray_scale_output,
-                          half_float);
+      IMB_exr_add_channels(exr_handle,
+                           "",
+                           "V",
+                           render_view_name,
+                           1,
+                           render_result->rectx,
+                           gray_scale_output,
+                           half_float);
       continue;
     }
 
     /* Add RGB[A] channels. This will essentially skip the alpha channel if only three channels
      * were required. */
-    for (int i = 0; i < required_channels; i++) {
-      IMB_exr_add_channel(exr_handle,
-                          "",
-                          std::string(1, "RGBA"[i]).c_str(),
-                          render_view_name,
-                          channels_count_in_buffer,
-                          channels_count_in_buffer * render_result->rectx,
-                          output_buffer + i,
-                          half_float);
-    }
+    std::string channelnames = blender::StringRef("RGBA").substr(0, required_channels);
+    IMB_exr_add_channels(exr_handle,
+                         "",
+                         channelnames,
+                         render_view_name,
+                         channels_count_in_buffer,
+                         channels_count_in_buffer * render_result->rectx,
+                         output_buffer,
+                         half_float);
   }
 }
 
@@ -876,7 +871,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
                                 const char *view,
                                 int layer)
 {
-  void *exrhandle = IMB_exr_get_handle();
+  ExrHandle *exrhandle = IMB_exr_get_handle();
   const bool multi_layer = !(imf && imf->imtype == R_IMF_IMTYPE_OPENEXR);
 
   /* Write first layer if not multilayer and no layer was specified. */
@@ -884,7 +879,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
     layer = 0;
   }
 
-  /* First add views since IMB_exr_add_channel checks number of views. */
+  /* First add views since IMB_exr_add_channels checks number of views. */
   const RenderView *first_rview = (const RenderView *)rr->views.first;
   if (first_rview && (first_rview->next || first_rview->name[0])) {
     LISTBASE_FOREACH (RenderView *, rview, &rr->views) {
@@ -943,32 +938,22 @@ bool BKE_image_render_write_exr(ReportList *reports,
 
       /* For multi-layer EXRs, we write the pass as is with all of its channels. */
       if (multi_layer) {
-        for (int i = 0; i < render_pass->channels; i++) {
-          char passname[EXR_PASS_MAXNAME];
-          char layname[EXR_PASS_MAXNAME];
+        std::string layer_pass_name = render_pass->name;
 
-          /* A single unnamed layer indicates that the pass name should be used as the layer name,
-           * while the pass name should be the channel ID. */
-          if (!has_multiple_layers && rl->name[0] == '\0') {
-            passname[0] = render_pass->chan_id[i];
-            passname[1] = '\0';
-            STRNCPY(layname, render_pass->name);
-          }
-          else {
-            RE_render_result_full_channel_name(
-                passname, nullptr, render_pass->name, nullptr, render_pass->chan_id, i);
-            STRNCPY(layname, rl->name);
-          }
-
-          IMB_exr_add_channel(exrhandle,
-                              layname,
-                              passname,
-                              viewname,
-                              render_pass->channels,
-                              render_pass->channels * rr->rectx,
-                              output_rect + i,
-                              pass_half_float);
+        /* Unless we have a single unnamed layer, include the layer name. */
+        if (has_multiple_layers || rl->name[0] != '\0') {
+          layer_pass_name = rl->name + ("." + layer_pass_name);
         }
+
+        std::string channelnames = blender::StringRef(render_pass->chan_id, render_pass->channels);
+        IMB_exr_add_channels(exrhandle,
+                             layer_pass_name,
+                             channelnames,
+                             viewname,
+                             render_pass->channels,
+                             render_pass->channels * rr->rectx,
+                             output_rect,
+                             pass_half_float);
         continue;
       }
 
@@ -982,47 +967,47 @@ bool BKE_image_render_write_exr(ReportList *reports,
       if (required_channels == render_pass->channels ||
           (required_channels != 1 && render_pass->channels != 1))
       {
-        for (int i = 0; i < std::min(required_channels, render_pass->channels); i++) {
-          IMB_exr_add_channel(exrhandle,
-                              "",
-                              std::string(1, render_pass->chan_id[i]).c_str(),
-                              viewname,
-                              render_pass->channels,
-                              render_pass->channels * rr->rectx,
-                              output_rect + i,
-                              pass_half_float);
-        }
+        std::string channelnames = blender::StringRef(
+            render_pass->chan_id, std::min(required_channels, render_pass->channels));
+        IMB_exr_add_channels(exrhandle,
+                             "",
+                             channelnames,
+                             viewname,
+                             render_pass->channels,
+                             render_pass->channels * rr->rectx,
+                             output_rect,
+                             pass_half_float);
       }
       else if (required_channels == 1) {
-        /* In case of a single required channel, we need to do RGB[A] to BW conversion. We know the
-         * input is RGB[A] and not single channel because it filed the condition above. */
+        /* In case of a single required channel, we need to do RGB[A] to BW conversion. We know
+         * the input is RGB[A] and not single channel because it filed the condition above. */
         float *gray_scale_output = image_exr_from_rgb_to_bw(
             output_rect, rr->rectx, rr->recty, render_pass->channels, tmp_output_rects);
-        IMB_exr_add_channel(
+        IMB_exr_add_channels(
             exrhandle, "", "V", viewname, 1, rr->rectx, gray_scale_output, pass_half_float);
       }
       else if (render_pass->channels == 1) {
-        /* In case of a single channel pass, we need to broadcast the same channel for each of the
-         * RGB channels that are required. We know the RGB is required because single channel
+        /* In case of a single channel pass, we need to broadcast the same channel for each of
+         * the RGB channels that are required. We know the RGB is required because single channel
          * requirement was handled above. The alpha channel will be added later. */
         for (int i = 0; i < 3; i++) {
-          IMB_exr_add_channel(exrhandle,
-                              "",
-                              std::string(1, "RGB"[i]).c_str(),
-                              viewname,
-                              1,
-                              rr->rectx,
-                              output_rect,
-                              pass_half_float);
+          IMB_exr_add_channels(exrhandle,
+                               "",
+                               std::string(1, "RGB"[i]).c_str(),
+                               viewname,
+                               1,
+                               rr->rectx,
+                               output_rect,
+                               pass_half_float);
         }
       }
 
-      /* Add an opaque alpha channel if the pass contains no alpha channel but an alpha channel is
-       * required. */
+      /* Add an opaque alpha channel if the pass contains no alpha channel but an alpha channel
+       * is required. */
       if (required_channels == 4 && render_pass->channels < 4) {
         float *alpha_output = image_exr_opaque_alpha_buffer(
             rr->rectx, rr->recty, tmp_output_rects);
-        IMB_exr_add_channel(
+        IMB_exr_add_channels(
             exrhandle, "", "A", viewname, 1, rr->rectx, alpha_output, pass_half_float);
       }
     }

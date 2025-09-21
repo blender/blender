@@ -15,6 +15,7 @@
 namespace blender::gpu {
 class Texture;
 }
+struct ExrHandle;
 struct ImBuf;
 struct Image;
 struct ImageFormatData;
@@ -89,9 +90,6 @@ struct RenderLayer {
   int layflag, passflag, pass_xor;
 
   int rectx, recty;
-
-  /** Optional saved end-result on disk. */
-  void *exrhandle;
 
   ListBase passes;
 };
@@ -416,7 +414,7 @@ void RE_PreviewRender(struct Render *re, struct Main *bmain, struct Scene *scene
 bool RE_ReadRenderResult(struct Scene *scene, struct Scene *scenode);
 
 struct RenderResult *RE_MultilayerConvert(
-    void *exrhandle, const char *colorspace, bool predivide, int rectx, int recty);
+    ExrHandle *exrhandle, const char *colorspace, bool predivide, int rectx, int recty);
 
 /* Display and event callbacks. */
 

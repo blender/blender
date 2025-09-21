@@ -356,13 +356,13 @@ static void studiolight_load_equirect_image(StudioLight *sl)
     const bool failed = (ibuf == nullptr);
 
     if (ibuf) {
-      if (ibuf->ftype == IMB_FTYPE_OPENEXR && ibuf->userdata) {
-        /* the read file is a multilayered openexr file (userdata != nullptr)
+      if (ibuf->ftype == IMB_FTYPE_OPENEXR && ibuf->exrhandle) {
+        /* the read file is a multilayered openexr file (exrhandle != nullptr)
          * This file is currently only supported for MATCAPS where
          * the first found 'diffuse' pass will be used for diffuse lighting
          * and the first found 'specular' pass will be used for specular lighting */
         MultilayerConvertContext ctx = {0};
-        IMB_exr_multilayer_convert(ibuf->userdata,
+        IMB_exr_multilayer_convert(ibuf->exrhandle,
                                    &ctx,
                                    &studiolight_multilayer_addview,
                                    &studiolight_multilayer_addlayer,
@@ -388,8 +388,8 @@ static void studiolight_load_equirect_image(StudioLight *sl)
               nullptr, converted_pass, ibuf->x, ibuf->y, ctx.num_specular_channels);
         }
 
-        IMB_exr_close(ibuf->userdata);
-        ibuf->userdata = nullptr;
+        IMB_exr_close(ibuf->exrhandle);
+        ibuf->exrhandle = nullptr;
         IMB_freeImBuf(ibuf);
         ibuf = nullptr;
       }
