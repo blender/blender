@@ -571,17 +571,15 @@ void RE_generate_texturemargin_adjacentfaces(ImBuf *ibuf,
                                              char *mask,
                                              const int margin,
                                              const Mesh *mesh,
-                                             char const *uv_layer,
+                                             blender::StringRef uv_layer,
                                              const float uv_offset[2])
 {
   using namespace blender;
-  const blender::StringRef uv_map_name = (uv_layer && uv_layer[0]) ?
-                                             uv_layer :
-                                             CustomData_get_active_layer_name(&mesh->corner_data,
-                                                                              CD_PROP_FLOAT2);
+  const StringRef name = uv_layer.is_empty() ?
+                             CustomData_get_active_layer_name(&mesh->corner_data, CD_PROP_FLOAT2) :
+                             uv_layer;
   const blender::bke::AttributeAccessor attributes = mesh->attributes();
-  const VArraySpan<float2> uv_map = *attributes.lookup<float2>(uv_map_name,
-                                                               bke::AttrDomain::Corner);
+  const VArraySpan<float2> uv_map = *attributes.lookup<float2>(name, bke::AttrDomain::Corner);
 
   blender::render::texturemargin::generate_margin(ibuf,
                                                   mask,
