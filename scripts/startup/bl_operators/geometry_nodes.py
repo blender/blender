@@ -92,7 +92,10 @@ def get_context_modifier(context):
 
 
 def edit_geometry_nodes_modifier_poll(context):
-    return get_context_modifier(context) is not None
+    modifier = get_context_modifier(context)
+    if modifier is None:
+        return False
+    return modifier.id_data.is_editable
 
 
 def socket_idname_to_attribute_type(idname):
