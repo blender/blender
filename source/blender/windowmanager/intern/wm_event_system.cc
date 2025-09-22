@@ -521,6 +521,7 @@ void wm_event_do_depsgraph(bContext *C, bool is_after_open_file)
         DEG_graph_relations_update(depsgraph);
         DEG_tag_on_visible_update(bmain, depsgraph);
       }
+      DEG_make_active(depsgraph);
       BKE_scene_graph_update_tagged(depsgraph, bmain);
     }
 
