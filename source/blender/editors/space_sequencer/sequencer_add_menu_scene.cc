@@ -7,6 +7,7 @@
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
 
+#include "BLI_listbase.h"
 #include "BLI_multi_value_map.hh"
 #include "BLI_string.h"
 
@@ -15,6 +16,7 @@
 
 #include "BKE_asset.hh"
 #include "BKE_idprop.hh"
+#include "BKE_main.hh"
 #include "BKE_screen.hh"
 
 #include "BLT_translation.hh"
@@ -130,43 +132,81 @@ static void sequencer_add_unassigned_assets_draw(const bContext *C, Menu *menu)
   }
 }
 
-static void sequencer_add_root_catalogs_draw(const bContext *C, Menu *menu)
+static void sequencer_add_scene_draw(const bContext *C, Menu *menu)
 {
   SpaceSeq *sseq = CTX_wm_space_seq(C);
   if (!sseq || !ELEM(sseq->view, SEQ_VIEW_SEQUENCE, SEQ_VIEW_SEQUENCE_PREVIEW)) {
     return;
   }
 
+  uiLayout *layout = menu->layout;
+  layout->operator_context_set(blender::wm::OpCallContext::InvokeRegionWin);
+
+  /* New scene. */
+  {
+    PointerRNA op_ptr = layout->op(
+        "SEQUENCER_OT_scene_strip_add_new", IFACE_("Empty Scene"), ICON_ADD);
+    RNA_string_set(&op_ptr, "type", "EMPTY");
+  }
+
+  /* Handle the assets. */
   sseq->runtime->assets_for_menu = std::make_shared<asset::AssetItemTree>(build_catalog_tree(*C));
   const bool loading_finished = all_loading_finished();
 
   asset::AssetItemTree &tree = *sseq->runtime->assets_for_menu;
-  if (tree.catalogs.is_empty() && loading_finished && tree.unassigned_assets.is_empty()) {
-    return;
-  }
-
-  uiLayout *layout = menu->layout;
-
-  layout->separator();
-
-  layout->label(IFACE_("Assets"), ICON_NONE);
-
-  if (!loading_finished) {
-    layout->label(IFACE_("Loading Asset Libraries"), ICON_INFO);
-  }
-
-  tree.catalogs.foreach_root_item([&](const asset_system::AssetCatalogTreeItem &item) {
-    asset::draw_menu_for_catalog(item, "SEQUENCER_MT_scene_add_catalog_assets", *layout);
-  });
-
-  if (!tree.unassigned_assets.is_empty()) {
+  const bool show_assets = !(tree.catalogs.is_empty() && loading_finished &&
+                             tree.unassigned_assets.is_empty());
+  if (show_assets) {
     layout->separator();
-    layout->menu(
-        "SEQUENCER_MT_scene_add_unassigned_assets", IFACE_("Unassigned"), ICON_FILE_HIDDEN);
+
+    layout->label(IFACE_("Assets"), ICON_ASSET_MANAGER);
+
+    if (!loading_finished) {
+      layout->label(IFACE_("Loading Asset Libraries"), ICON_INFO);
+    }
+
+    tree.catalogs.foreach_root_item([&](const asset_system::AssetCatalogTreeItem &item) {
+      asset::draw_menu_for_catalog(item, "SEQUENCER_MT_scene_add_catalog_assets", *layout);
+    });
+
+    if (!tree.unassigned_assets.is_empty()) {
+      layout->menu_contents("SEQUENCER_MT_scene_add_unassigned_assets");
+    }
+
+    layout->separator();
   }
 
-  /* We expect this to be drawn before another section in the menu. */
-  layout->separator();
+  /* Show existing scenes. */
+  Main *bmain = CTX_data_main(C);
+  const int scenes_len = BLI_listbase_count(&bmain->scenes);
+  if (scenes_len > 10) {
+    layout->op("SEQUENCER_OT_scene_strip_add",
+               IFACE_("Scenes..."),
+               ICON_SCENE_DATA,
+               blender::wm::OpCallContext::InvokeDefault,
+               UI_ITEM_NONE);
+  }
+  else if (scenes_len > 1) {
+    if (show_assets) {
+      layout->label(IFACE_("Scenes"), ICON_SCENE_DATA);
+    }
+    const Scene *active_scene = CTX_data_scene(C);
+    int i = 0;
+    LISTBASE_FOREACH_INDEX (Scene *, scene, &bmain->scenes, i) {
+      if (scene == active_scene) {
+        continue;
+      }
+      if (scene->id.asset_data) {
+        continue;
+      }
+      PointerRNA op_ptr = layout->op("SEQUENCER_OT_scene_strip_add",
+                                     scene->id.name + 2,
+                                     ICON_NONE,
+                                     blender::wm::OpCallContext::InvokeRegionWin,
+                                     UI_ITEM_NONE);
+      RNA_enum_set(&op_ptr, "scene", i);
+    }
+  }
 }
 
 MenuType add_catalog_assets_menu_type()
@@ -194,12 +234,12 @@ MenuType add_unassigned_assets_menu_type()
   return type;
 }
 
-MenuType add_root_catalogs_menu_type()
+MenuType add_scene_menu_type()
 {
   MenuType type{};
-  STRNCPY(type.idname, "SEQUENCER_MT_scene_add_root_catalogs");
+  STRNCPY(type.idname, "SEQUENCER_MT_add_scene");
   type.poll = sequencer_add_menu_poll;
-  type.draw = sequencer_add_root_catalogs_draw;
+  type.draw = sequencer_add_scene_draw;
   type.listener = asset::list::asset_reading_region_listen_fn;
   return type;
 }

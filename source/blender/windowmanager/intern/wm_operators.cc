@@ -4498,6 +4498,17 @@ static bool rna_id_enum_filter_single(const ID *id, void *user_data)
   return (id != user_data);
 }
 
+static bool rna_id_enum_filter_single_and_assets(const ID *id, void *user_data)
+{
+  if (!rna_id_enum_filter_single(id, user_data)) {
+    return false;
+  }
+  if (id->asset_data != nullptr) {
+    return false;
+  }
+  return true;
+}
+
 /* Generic itemf's for operators that take library args. */
 static const EnumPropertyItem *rna_id_itemf(bool *r_free,
                                             ID *id,
@@ -4616,7 +4627,7 @@ const EnumPropertyItem *RNA_scene_without_sequencer_scene_itemf(bContext *C,
   return rna_id_itemf(r_free,
                       C ? (ID *)CTX_data_main(C)->scenes.first : nullptr,
                       false,
-                      rna_id_enum_filter_single,
+                      rna_id_enum_filter_single_and_assets,
                       sequencer_scene);
 }
 const EnumPropertyItem *RNA_movieclip_itemf(bContext *C,

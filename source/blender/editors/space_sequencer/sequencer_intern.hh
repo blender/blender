@@ -424,6 +424,6 @@ wmOperatorStatus sequencer_clipboard_paste_invoke(bContext *C,
 /* `sequencer_add_menu_scene_assets.cc` */
 MenuType add_catalog_assets_menu_type();
 MenuType add_unassigned_assets_menu_type();
-MenuType add_root_catalogs_menu_type();
+MenuType add_scene_menu_type();
 
 }  // namespace blender::ed::vse
