@@ -158,7 +158,7 @@ static bool sequencer_write_copy_paste_file(Main *bmain_src,
   /* NOTE: Setting the same current file path as G_MAIN is necessary for now to get correct
    * external filepaths when writing the partial write context on disk. otherwise, filepaths from
    * the scene's sequencer strips (e.g. image ones) would also need to be remapped in this code. */
-  PartialWriteContext copy_buffer{bmain_src->filepath};
+  PartialWriteContext copy_buffer{*bmain_src};
   const char *scene_name = "copybuffer_vse_scene";
 
   /* Add a dummy empty scene to the temporary Main copy buffer. */

@@ -58,7 +58,7 @@ static wmOperatorStatus view3d_copybuffer_exec(bContext *C, wmOperator *op)
   using namespace blender::bke::blendfile;
 
   Main *bmain = CTX_data_main(C);
-  PartialWriteContext copybuffer{BKE_main_blendfile_path(bmain)};
+  PartialWriteContext copybuffer{*bmain};
 
   Object *obact = CTX_data_active_object(C);
   Object *obact_copy = nullptr;

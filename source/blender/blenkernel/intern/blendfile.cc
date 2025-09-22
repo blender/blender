@@ -1741,12 +1741,13 @@ static CLG_LogRef LOG_PARTIALWRITE = {"blend.partial_write"};
 
 namespace blender::bke::blendfile {
 
-PartialWriteContext::PartialWriteContext(StringRefNull reference_root_filepath)
-    : reference_root_filepath_(reference_root_filepath)
+PartialWriteContext::PartialWriteContext(Main &reference_main)
+    : reference_root_filepath_(BKE_main_blendfile_path(&reference_main))
 {
   if (!reference_root_filepath_.empty()) {
     STRNCPY(this->bmain.filepath, reference_root_filepath_.c_str());
   }
+  this->bmain.colorspace = reference_main.colorspace;
   /* Only for IDs matching existing data in current G_MAIN. */
   matching_uid_map_ = BKE_main_idmap_create(&this->bmain, false, nullptr, MAIN_IDMAP_TYPE_UID);
   /* For all IDs existing in the context. */

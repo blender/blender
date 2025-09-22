@@ -2718,7 +2718,7 @@ static wmOperatorStatus copy_material_exec(bContext *C, wmOperator *op)
   }
 
   Main *bmain = CTX_data_main(C);
-  PartialWriteContext copybuffer{BKE_main_blendfile_path(bmain)};
+  PartialWriteContext copybuffer{*bmain};
 
   /* Add the material to the copybuffer (and all of its dependencies). */
   copybuffer.id_add(
