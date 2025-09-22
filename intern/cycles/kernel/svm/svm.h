@@ -62,6 +62,7 @@
 #include "kernel/svm/mix.h"
 #include "kernel/svm/noisetex.h"
 #include "kernel/svm/normal.h"
+#include "kernel/svm/radial_tiling.h"
 #include "kernel/svm/ramp.h"
 #include "kernel/svm/sepcomb_color.h"
 #include "kernel/svm/sepcomb_vector.h"
@@ -404,6 +405,9 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       break;
       SVM_CASE(NODE_NORMAL_MAP)
       svm_node_normal_map(kg, sd, stack, node);
+      break;
+      SVM_CASE(NODE_RADIAL_TILING)
+      offset = svm_node_radial_tiling<node_feature_mask>(stack, node, offset);
       break;
       SVM_CASE(NODE_INVERT)
       svm_node_invert(stack, node.y, node.z, node.w);

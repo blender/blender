@@ -2,6 +2,11 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include "vector2.h"
+#include "vector4.h"
+
+#define vector3 point
+
 float safe_divide(float a, float b)
 {
   return (b != 0.0) ? a / b : 0.0;
@@ -22,6 +27,33 @@ float safe_modulo(float a, float b)
 float safe_floored_modulo(float a, float b)
 {
   return (b != 0.0) ? a - floor(a / b) * b : 0.0;
+}
+
+float sqr(float a)
+{
+  return a * a;
+}
+
+/* The float and vector3 overloads are already defined in stdosl.h.
+ *
+ * float round(float a)
+ * {
+ *   return floor(a + 0.5);
+ * }
+ *
+ * vector3 round(vector3 a)
+ * {
+ *   return vector3(floor(a.x + 0.5), floor(a.y + 0.5), floor(a.z + 0.5));
+ * } */
+
+vector2 round(vector2 a)
+{
+  return vector2(floor(a.x + 0.5), floor(a.y + 0.5));
+}
+
+vector4 round(vector4 a)
+{
+  return vector4(floor(a.x + 0.5), floor(a.y + 0.5), floor(a.z + 0.5), floor(a.w + 0.5));
 }
 
 float fract(float a)

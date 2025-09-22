@@ -376,6 +376,7 @@ class NODE_MT_category_shader_vector(Menu):
         node_add_menu.add_node_type(layout, "ShaderNodeMapping")
         node_add_menu.add_node_type(layout, "ShaderNodeNormal")
         node_add_menu.add_node_type(layout, "ShaderNodeNormalMap")
+        node_add_menu.add_node_type(layout, "ShaderNodeRadialTiling")
         node_add_menu.add_node_type(layout, "ShaderNodeVectorCurve")
         node_add_menu.add_node_type(layout, "ShaderNodeVectorDisplacement")
         node_add_menu.add_node_type(layout, "ShaderNodeVectorRotate")

@@ -1080,6 +1080,12 @@ static ShaderNode *add_node(Scene *scene,
     nmap->set_attribute(ustring(b_normal_map_node.uv_map()));
     node = nmap;
   }
+  else if (b_node.is_a(&RNA_ShaderNodeRadialTiling)) {
+    BL::ShaderNodeRadialTiling b_radial_tiling_node(b_node);
+    RadialTilingNode *radial_tiling = graph->create_node<RadialTilingNode>();
+    radial_tiling->set_use_normalize(b_radial_tiling_node.normalize());
+    node = radial_tiling;
+  }
   else if (b_node.is_a(&RNA_ShaderNodeTangent)) {
     BL::ShaderNodeTangent b_tangent_node(b_node);
     TangentNode *tangent = graph->create_node<TangentNode>();

@@ -1683,6 +1683,11 @@ typedef struct NodeShaderNormalMap {
   char uv_map[/*MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX*/ 64];
 } NodeShaderNormalMap;
 
+typedef struct NodeRadialTiling {
+  uint8_t normalize;
+  char _pad[7];
+} NodeRadialTiling;
+
 typedef struct NodeShaderUVMap {
   char uv_map[/*MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX*/ 64];
 } NodeShaderUVMap;
