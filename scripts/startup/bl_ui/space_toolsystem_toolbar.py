@@ -12,7 +12,14 @@
 # so avoid making changes all over the place.
 
 import bpy
-from bpy.types import Panel
+
+from bpy.types import (
+    Panel,
+)
+from bpy.app.translations import (
+    pgettext_iface as iface_,
+    pgettext_tip as tip_,
+)
 
 from bl_ui.space_toolsystem_common import (
     ToolSelectPanelHelper,
@@ -20,10 +27,6 @@ from bl_ui.space_toolsystem_common import (
 )
 from bl_ui.properties_paint_common import (
     BrushAssetShelf,
-)
-from bpy.app.translations import (
-    pgettext_iface as iface_,
-    pgettext_tip as tip_,
 )
 
 
