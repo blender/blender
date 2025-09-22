@@ -4443,6 +4443,12 @@ static int expand_cb(LibraryIDLinkCallbackData *cb_data)
     return IDWALK_RET_NOP;
   }
 
+  /* Do not expand weak links. These are used when the user interface links to scene data,
+   * but we don't want to bring along such datablocks with a workspace. */
+  if (cb_data->cb_flag & IDWALK_CB_DIRECT_WEAK_LINK) {
+    return IDWALK_RET_NOP;
+  }
+
   /* Explicitly requested to be ignored during readfile processing. Means the read_data code
    * already handled this pointer. Typically, the 'owner_id' pointer of an embedded ID. */
   if (cb_data->cb_flag & IDWALK_CB_READFILE_IGNORE) {
