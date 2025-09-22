@@ -20,6 +20,8 @@ typedef struct bSound {
 
   ID id;
 
+  void *_pad1;
+
   /**
    * The path to the sound file.
    */

@@ -1336,6 +1336,7 @@ BLO_Write_IDBuffer::BLO_Write_IDBuffer(ID &id, const bool is_undo, const bool is
   }
   temp_id->us = 0;
   temp_id->icon_id = 0;
+  temp_id->runtime = nullptr;
   /* Those listbase data change every time we add/remove an ID, and also often when
    * renaming one (due to re-sorting). This avoids generating a lot of false 'is changed'
    * detections between undo steps. */
@@ -1349,8 +1350,6 @@ BLO_Write_IDBuffer::BLO_Write_IDBuffer(ID &id, const bool is_undo, const bool is
    * when we need to re-read the ID into its original address, this is currently cleared in
    * #direct_link_id_common in `readfile.cc` anyway. */
   temp_id->py_instance = nullptr;
-  /* Clear runtime data struct. */
-  temp_id->runtime = ID_Runtime{};
 }
 
 BLO_Write_IDBuffer::BLO_Write_IDBuffer(ID &id, BlendWriter *writer)

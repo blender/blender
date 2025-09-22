@@ -43,8 +43,6 @@ typedef struct Mask {
   int flag;
   char _pad[4];
 
-  void *_pad1;
-
   Mask_Runtime runtime;
 } Mask;
 

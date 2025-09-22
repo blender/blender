@@ -20,6 +20,9 @@
 #ifdef __cplusplus
 #  include <type_traits>
 
+namespace blender::bke::id {
+struct ID_Runtime;
+}
 namespace blender::bke {
 struct PreviewImageRuntime;
 }
@@ -29,6 +32,7 @@ struct IDPropertyGroupChildrenSet;
 namespace blender::bke::library {
 struct LibraryRuntime;
 }
+using ID_RuntimeHandle = blender::bke::id::ID_Runtime;
 using PreviewImageRuntimeHandle = blender::bke::PreviewImageRuntime;
 using LibraryRuntimeHandle = blender::bke::library::LibraryRuntime;
 using IDPropertyGroupChildrenSet = blender::bke::idprop::IDPropertyGroupChildrenSet;
@@ -36,6 +40,7 @@ using IDPropertyGroupChildrenSet = blender::bke::idprop::IDPropertyGroupChildren
 typedef struct PreviewImageRuntimeHandle PreviewImageRuntimeHandle;
 typedef struct LibraryRuntimeHandle LibraryRuntimeHandle;
 typedef struct IDPropertyGroupChildrenSet IDPropertyGroupChildrenSet;
+typedef struct ID_RuntimeHandle ID_RuntimeHandle;
 #endif
 
 #ifdef __cplusplus
@@ -45,11 +50,9 @@ extern "C" {
 struct FileData;
 struct GHash;
 struct ID;
-struct ID_Readfile_Data;
 struct Library;
 struct PackedFile;
 struct UniqueName_Map;
-struct Depsgraph;
 
 typedef struct IDPropertyUIData {
   /** Tool-tip / property description pointer. Owned by the #IDProperty. */
@@ -380,37 +383,6 @@ enum {
   ID_REMAP_IS_USER_ONE_SKIPPED = 1 << 1,
 };
 
-/** Status used and counters created during id-remapping. */
-typedef struct ID_Runtime_Remap {
-  /** Status during ID remapping. */
-  int status;
-  /** During ID remapping the number of skipped use cases that refcount the data-block. */
-  int skipped_refcounted;
-  /**
-   * During ID remapping the number of direct use cases that could be remapped
-   * (e.g. obdata when in edit mode).
-   */
-  int skipped_direct;
-  /** During ID remapping, the number of indirect use cases that could not be remapped. */
-  int skipped_indirect;
-} ID_Runtime_Remap;
-
-typedef struct ID_Runtime {
-  ID_Runtime_Remap remap;
-  /**
-   * The depsgraph that owns this data block. This is only set on data-blocks which are
-   * copied-on-eval by the depsgraph. Additional data-blocks created during depsgraph evaluation
-   * are not owned by any specific depsgraph and thus this pointer is null for those.
-   */
-  struct Depsgraph *depsgraph;
-
-  /**
-   * This data is only allocated & used during the readfile process. After that, the memory is
-   * freed and the pointer set to `nullptr`.
-   */
-  struct ID_Readfile_Data *readfile_data;
-} ID_Runtime;
-
 typedef struct ID {
   /* There's a nasty circular dependency here.... 'void *' to the rescue! I
    * really wonder why this is needed. */
@@ -513,7 +485,17 @@ typedef struct ID {
    */
   struct LibraryWeakReference *library_weak_reference;
 
-  struct ID_Runtime runtime;
+  /**
+   * Allocated runtime data, never written on disk or in undo steps.
+   *
+   * _Always_ valid for code handling IDs managed by the `BKE_lib_id` API.
+   *
+   * Internal low-level implementation of ID creation/copying/deletion, and code handling IDs
+   * themselves in non-standard ways (mainly the CoW IDs in depsgraph, and some temporary IDs in
+   * readfile) may have to manage this pointer themselves (see also #BKE_libblock_runtime_ensure
+   * and #BKE_libblock_free_runtime_data).
+   */
+  ID_RuntimeHandle *runtime;
 } ID;
 
 /**

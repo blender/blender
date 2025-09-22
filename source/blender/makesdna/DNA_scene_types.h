@@ -2113,7 +2113,6 @@ typedef struct Scene {
   ListBase base DNA_DEPRECATED;
   /** Active base. */
   struct Base *basact DNA_DEPRECATED;
-  void *_pad1;
 
   /** 3d cursor location. */
   View3DCursor cursor;
@@ -2138,7 +2137,6 @@ typedef struct Scene {
 
   /** Default allocated now. */
   struct ToolSettings *toolsettings;
-  void *_pad4;
   struct DisplaySafeAreas safe_areas;
 
   /* Migrate or replace? depends on some internal things... */
@@ -2186,7 +2184,6 @@ typedef struct Scene {
   /** Physics simulation settings. */
   struct PhysicsSettings physics_settings;
 
-  void *_pad8;
   /**
    * XXX: runtime flag for drawing, actually belongs in the window,
    * only used by #BKE_object_handle_update()

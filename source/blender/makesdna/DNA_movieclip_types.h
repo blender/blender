@@ -90,8 +90,6 @@ typedef struct MovieClip {
   /** Grease pencil data. */
   struct bGPdata *gpd;
 
-  void *_pad1;
-
   /** Data for SfM tracking. */
   struct MovieTracking tracking;
   /**

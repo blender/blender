@@ -18,6 +18,7 @@
 #include "DNA_action_defaults.h"
 #include "DNA_action_types.h"
 
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_report.hh"
@@ -138,7 +139,7 @@ void convert_legacy_animato_action(bAction &dna_action)
 
 void tag_action_user_for_slotted_actions_conversion(ID &animated_id)
 {
-  animated_id.runtime.readfile_data->tags.action_assignment_needs_slot = true;
+  animated_id.runtime->readfile_data->tags.action_assignment_needs_slot = true;
 }
 
 void tag_action_users_for_slotted_actions_conversion(Main &bmain)
