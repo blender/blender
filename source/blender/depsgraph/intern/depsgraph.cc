@@ -110,7 +110,7 @@ IDNode *Depsgraph::add_id_node(ID *id, ID *id_cow_hint)
   if (!id_node) {
     DepsNodeFactory *factory = type_get_factory(NodeType::ID_REF);
     id_node = (IDNode *)factory->create_node(id, "", id->name);
-    id_node->init_copy_on_write(*this, id_cow_hint);
+    id_node->init_copy_on_write(id_cow_hint);
     /* Register node in ID hash.
      *
      * NOTE: We address ID nodes by the original ID pointer they are

@@ -680,9 +680,6 @@ ID *BKE_id_copy_in_lib(Main *bmain,
       /* Invalid case, already caught by the assert above. */
       return nullptr;
     }
-    /* Allow some garbage non-initialized memory to go in, and clean it up here. */
-    const size_t size = BKE_libblock_get_alloc_info(GS(id->name), nullptr);
-    memset(newid, 0, size);
   }
 
   /* Early output if source is nullptr. */
@@ -1549,13 +1546,16 @@ void BKE_libblock_copy_in_lib(Main *bmain,
       ((owner_library && *owner_library) ? (ID_TAG_EXTERN | ID_TAG_INDIRECT) : 0);
 
   if ((flag & LIB_ID_CREATE_NO_ALLOCATE) != 0) {
-    /* `new_id_p` already contains pointer to allocated memory. */
-    /* TODO: do we want to memset(0) whole mem before filling it? */
+    /* `new_id_p` already contains pointer to allocated memory.
+     * Clear and initialize it similar to BKE_libblock_alloc_in_lib. */
+    const size_t size = BKE_libblock_get_alloc_info(GS(id->name), nullptr);
+    memset(new_id, 0, size);
     STRNCPY(new_id->name, id->name);
     new_id->us = 0;
     new_id->tag |= ID_TAG_NOT_ALLOCATED | ID_TAG_NO_MAIN | ID_TAG_NO_USER_REFCOUNT;
     new_id->lib = owner_library ? *owner_library : id->lib;
-    /* TODO: Do we want/need to copy more from ID struct itself? */
+    /* TODO: Is this entirely consistent with BKE_libblock_alloc_in_lib, and can we
+     * deduplicate the initialization code? */
   }
   else {
     new_id = static_cast<ID *>(
