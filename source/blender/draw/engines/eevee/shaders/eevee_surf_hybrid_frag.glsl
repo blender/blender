@@ -116,7 +116,6 @@ void main()
         cryptomatte_object_buf[drw_resource_id()], node_tree.crypto_hash, 0.0f);
     imageStoreFast(rp_cryptomatte_img, out_texel, cryptomatte_output);
   }
-  output_renderpass_color(uniform_buf.render_pass.position_id, float4(g_data.P, 1.0f));
   output_renderpass_color(uniform_buf.render_pass.emission_id, float4(g_emission, 1.0f));
 #endif
 

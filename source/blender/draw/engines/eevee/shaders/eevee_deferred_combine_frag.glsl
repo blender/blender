@@ -11,6 +11,7 @@
 
 FRAGMENT_SHADER_CREATE_INFO(eevee_deferred_combine)
 
+#include "draw_view_lib.glsl"
 #include "eevee_colorspace_lib.glsl"
 #include "eevee_gbuffer_read_lib.glsl"
 #include "eevee_renderpass_lib.glsl"
@@ -150,6 +151,11 @@ void main()
     /* Normalize or fallback to default normal. */
     average_normal = (normal_len < 1e-5f) ? gbuf.surface_N() : (average_normal / normal_len);
     output_renderpass_color(uniform_buf.render_pass.normal_id, float4(average_normal, 1.0f));
+  }
+  if (render_pass_position_enabled) {
+    float depth = texelFetch(hiz_tx, texel, 0).r;
+    float3 P = drw_point_screen_to_world(float3(screen_uv, depth));
+    output_renderpass_color(uniform_buf.render_pass.position_id, float4(P, 1.0f));
   }
 
   out_combined = float4(out_direct + out_indirect, 0.0f);
