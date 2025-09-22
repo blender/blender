@@ -38,6 +38,7 @@
 #include "BKE_compute_context_cache_fwd.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_node.hh"
+#include "BKE_node_socket_value.hh"
 #include "BKE_node_tree_zones.hh"
 #include "BKE_volume_grid_fwd.hh"
 
@@ -235,12 +236,26 @@ class ListInfoLog : public ValueLog {
 };
 
 /**
- * Data logged by a viewer node when it is executed. In this case, we do want to log the entire
- * geometry.
+ * Data logged by a viewer node when it is executed.
  */
 class ViewerNodeLog {
  public:
-  bke::GeometrySet geometry;
+  struct Item {
+    int identifier;
+    std::string name;
+    bke::SocketValueVariant value;
+  };
+
+  struct ItemIdentifierGetter {
+    int operator()(const Item &item) const
+    {
+      return item.identifier;
+    }
+  };
+
+  CustomIDVectorSet<Item, ItemIdentifierGetter> items;
+
+  std::optional<bke::GeometrySet> main_geometry() const;
 };
 
 using Clock = std::chrono::steady_clock;
@@ -310,7 +325,6 @@ class GeoTreeLogger {
   ~GeoTreeLogger();
 
   void log_value(const bNode &node, const bNodeSocket &socket, GPointer value);
-  void log_viewer_node(const bNode &viewer_node, bke::GeometrySet geometry);
 };
 
 /**

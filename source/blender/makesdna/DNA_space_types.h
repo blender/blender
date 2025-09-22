@@ -1137,6 +1137,20 @@ typedef struct SpreadsheetTableID {
   int type;
 } SpreadsheetTableID;
 
+typedef struct SpreadsheetBundlePathElem {
+  char *identifier;
+#ifdef __cplusplus
+  friend bool operator==(const SpreadsheetBundlePathElem &a, const SpreadsheetBundlePathElem &b);
+  friend bool operator!=(const SpreadsheetBundlePathElem &a, const SpreadsheetBundlePathElem &b);
+#endif
+} SpreadsheetBundlePathElem;
+
+typedef enum SpreadsheetClosureInputOutput {
+  SPREADSHEET_CLOSURE_NONE = 0,
+  SPREADSHEET_CLOSURE_INPUT = 1,
+  SPREADSHEET_CLOSURE_OUTPUT = 2,
+} SpreadsheetClosureInputOutput;
+
 typedef struct SpreadsheetTableIDGeometry {
   SpreadsheetTableID base;
   char _pad0[4];
@@ -1146,6 +1160,17 @@ typedef struct SpreadsheetTableIDGeometry {
    * can be pinned so that it stays constant even when the active node changes.
    */
   ViewerPath viewer_path;
+
+  int viewer_item_identifier;
+
+  int bundle_path_num;
+  SpreadsheetBundlePathElem *bundle_path;
+
+  /** #SpreadsheetClosureInputOutput. */
+  int8_t closure_input_output;
+
+  char _pad3[7];
+
   /**
    * The "path" to the currently active instance reference. This is needed when viewing nested
    * instances.

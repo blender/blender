@@ -67,6 +67,21 @@ inline bNode *find_node_by_item(bNodeTree &ntree, const typename Accessor::ItemT
   return nullptr;
 }
 
+/** Find the item with the given identifier. */
+template<typename Accessor>
+inline typename Accessor::ItemT *find_item_by_identifier(bNode &node, const StringRef identifier)
+{
+
+  SocketItemsRef array = Accessor::get_items_from_node(node);
+  for (const int i : IndexRange(*array.items_num)) {
+    typename Accessor::ItemT &item = (*array.items)[i];
+    if (Accessor::socket_identifier_for_item(item) == identifier) {
+      return &item;
+    }
+  }
+  return nullptr;
+}
+
 /**
  * Destruct all the items and the free the array itself.
  */
@@ -267,11 +282,13 @@ inline std::string get_socket_identifier(const typename Accessor::ItemT &item,
  * \return False if the link should be removed.
  */
 template<typename Accessor>
-[[nodiscard]] inline bool try_add_item_via_extend_socket(bNodeTree &ntree,
-                                                         bNode &extend_node,
-                                                         bNodeSocket &extend_socket,
-                                                         bNode &storage_node,
-                                                         bNodeLink &link)
+[[nodiscard]] inline bool try_add_item_via_extend_socket(
+    bNodeTree &ntree,
+    bNode &extend_node,
+    bNodeSocket &extend_socket,
+    bNode &storage_node,
+    bNodeLink &link,
+    typename Accessor::ItemT **r_new_item = nullptr)
 {
   using ItemT = typename Accessor::ItemT;
   bNodeSocket *src_socket = nullptr;
@@ -285,7 +302,7 @@ template<typename Accessor>
     return false;
   }
 
-  const ItemT *item = nullptr;
+  ItemT *item = nullptr;
   if constexpr (Accessor::has_name && Accessor::has_type) {
     const eNodeSocketDatatype socket_type = eNodeSocketDatatype(src_socket->type);
     if (!Accessor::supports_socket_type(socket_type, ntree.type)) {
@@ -310,6 +327,9 @@ template<typename Accessor>
   }
   if (item == nullptr) {
     return false;
+  }
+  if (r_new_item) {
+    *r_new_item = item;
   }
 
   update_node_declaration_and_sockets(ntree, extend_node);
@@ -338,7 +358,8 @@ template<typename Accessor>
     bNode &extend_node,
     bNode &storage_node,
     bNodeLink &link,
-    const std::optional<StringRef> socket_identifier = std::nullopt)
+    const std::optional<StringRef> socket_identifier = std::nullopt,
+    typename Accessor::ItemT **r_new_item = nullptr)
 {
   bNodeSocket *possible_extend_socket = nullptr;
   if (link.fromnode == &extend_node) {
@@ -359,7 +380,7 @@ template<typename Accessor>
     }
   }
   return try_add_item_via_extend_socket<Accessor>(
-      ntree, extend_node, *possible_extend_socket, storage_node, link);
+      ntree, extend_node, *possible_extend_socket, storage_node, link, r_new_item);
 }
 
 }  // namespace blender::nodes::socket_items

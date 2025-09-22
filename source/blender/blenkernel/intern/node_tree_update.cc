@@ -33,6 +33,7 @@
 
 #include "MOD_nodes.hh"
 
+#include "NOD_geo_viewer.hh"
 #include "NOD_geometry_nodes_dependencies.hh"
 #include "NOD_geometry_nodes_gizmos.hh"
 #include "NOD_geometry_nodes_lazy_function.hh"
@@ -622,6 +623,9 @@ class NodeTreeMainUpdater {
       bke::node_declaration_ensure(ntree, *node);
       if (this->should_update_individual_node(ntree, *node)) {
         bke::bNodeType &ntype = *node->typeinfo;
+        if (ntype.type_legacy == GEO_NODE_VIEWER) {
+          this->remove_unused_geometry_nodes_viewer_sockets(ntree, *node);
+        }
         if (ntype.declare) {
           /* Should have been created when the node was registered. */
           BLI_assert(ntype.static_declaration != nullptr);
@@ -675,6 +679,35 @@ class NodeTreeMainUpdater {
       }
     }
     return false;
+  }
+
+  void remove_unused_geometry_nodes_viewer_sockets(bNodeTree &ntree, bNode &viewer_node)
+  {
+    ntree.ensure_topology_cache();
+    Vector<int> item_indices_to_remove;
+    auto &storage = *static_cast<NodeGeometryViewer *>(viewer_node.storage);
+    for (const int i : IndexRange(storage.items_num)) {
+      const NodeGeometryViewerItem &item = storage.items[i];
+      if (!(item.flag & NODE_GEO_VIEWER_ITEM_FLAG_AUTO_REMOVE)) {
+        continue;
+      }
+      const std::string identifier_str = GeoViewerItemsAccessor::socket_identifier_for_item(item);
+      const bNodeSocket *socket = viewer_node.input_by_identifier(identifier_str.c_str());
+      if (!socket) {
+        continue;
+      }
+      if (!socket->is_directly_linked()) {
+        item_indices_to_remove.append(i);
+      }
+    }
+    std::reverse(item_indices_to_remove.begin(), item_indices_to_remove.end());
+    for (const int i : item_indices_to_remove) {
+      dna::array::remove_index(&storage.items,
+                               &storage.items_num,
+                               &storage.active_index,
+                               i,
+                               GeoViewerItemsAccessor::destruct_item);
+    }
   }
 
   struct InternalLink {

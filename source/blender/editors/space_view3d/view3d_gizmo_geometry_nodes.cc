@@ -888,7 +888,9 @@ static bke::GeometrySet find_geometry_for_gizmo(const Object &object_eval,
     if (const geo_eval_log::ViewerNodeLog *viewer_log =
             nmd_orig.runtime->eval_log->find_viewer_node_log_for_path(viewer_path))
     {
-      return viewer_log->geometry;
+      if (std::optional<bke::GeometrySet> viewer_geometry = viewer_log->main_geometry()) {
+        return *viewer_geometry;
+      }
     }
   }
   return bke::object_get_evaluated_geometry_set(object_eval);

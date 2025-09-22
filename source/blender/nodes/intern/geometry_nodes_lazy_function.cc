@@ -20,6 +20,7 @@
  * complexity. So far, this does not seem to be a performance issue.
  */
 
+#include "NOD_geo_viewer.hh"
 #include "NOD_geometry_exec.hh"
 #include "NOD_geometry_nodes_lazy_function.hh"
 #include "NOD_geometry_nodes_list.hh"
@@ -811,28 +812,14 @@ class LazyFunctionForImplicitInput : public LazyFunction {
 class LazyFunctionForViewerNode : public LazyFunction {
  private:
   const bNode &bnode_;
-  /** The field is only logged when it is linked. */
-  bool use_field_input_ = true;
+  Span<int> lf_index_by_bsocket_;
 
  public:
   LazyFunctionForViewerNode(const bNode &bnode, MutableSpan<int> r_lf_index_by_bsocket)
-      : bnode_(bnode)
+      : bnode_(bnode), lf_index_by_bsocket_(r_lf_index_by_bsocket)
   {
     debug_name_ = "Viewer";
     lazy_function_interface_from_node(bnode, inputs_, outputs_, r_lf_index_by_bsocket);
-
-    /* Remove field input if it is not used. */
-    for (const bNodeSocket *bsocket : bnode.input_sockets().drop_front(1)) {
-      if (!bsocket->is_available()) {
-        continue;
-      }
-      const Span<const bNodeLink *> links = bsocket->directly_linked_links();
-      if (links.is_empty() || links.first()->fromnode->is_dangling_reroute()) {
-        use_field_input_ = false;
-        inputs_.pop_last();
-        r_lf_index_by_bsocket[bsocket->index_in_tree()] = -1;
-      }
-    }
   }
 
   void execute_impl(lf::Params &params, const lf::Context &context) const override
@@ -844,53 +831,21 @@ class LazyFunctionForViewerNode : public LazyFunction {
       return;
     }
 
-    GeometrySet geometry = params.extract_input<SocketValueVariant>(0).extract<GeometrySet>();
-    const NodeGeometryViewer *storage = static_cast<NodeGeometryViewer *>(bnode_.storage);
+    LinearAllocator<> &allocator = *tree_logger->allocator;
 
-    if (use_field_input_) {
-      SocketValueVariant *value_variant = params.try_get_input_data_ptr<SocketValueVariant>(1);
-      BLI_assert(value_variant != nullptr);
-      GField field = value_variant->extract<GField>();
-      const AttrDomain domain = AttrDomain(storage->domain);
-      const StringRefNull viewer_attribute_name = ".viewer";
-      if (domain == AttrDomain::Instance) {
-        if (geometry.has_instances()) {
-          GeometryComponent &component = geometry.get_component_for_write(
-              bke::GeometryComponent::Type::Instance);
-          bke::try_capture_field_on_geometry(
-              component, viewer_attribute_name, AttrDomain::Instance, field);
-        }
-      }
-      else {
-        geometry::foreach_real_geometry(geometry, [&](GeometrySet &geometry) {
-          for (const bke::GeometryComponent::Type type :
-               {bke::GeometryComponent::Type::Mesh,
-                bke::GeometryComponent::Type::PointCloud,
-                bke::GeometryComponent::Type::Curve,
-                bke::GeometryComponent::Type::GreasePencil})
-          {
-            if (geometry.has(type)) {
-              GeometryComponent &component = geometry.get_component_for_write(type);
-              AttrDomain used_domain = domain;
-              if (used_domain == AttrDomain::Auto) {
-                if (const std::optional<AttrDomain> detected_domain = bke::try_detect_field_domain(
-                        component, field))
-                {
-                  used_domain = *detected_domain;
-                }
-                else {
-                  used_domain = AttrDomain::Point;
-                }
-              }
-              bke::try_capture_field_on_geometry(
-                  component, viewer_attribute_name, used_domain, field);
-            }
-          }
-        });
-      }
+    const NodeGeometryViewer &storage = *static_cast<const NodeGeometryViewer *>(bnode_.storage);
+
+    Vector<bke::SocketValueVariant *> values(storage.items_num, nullptr);
+
+    for (const int i : IndexRange(storage.items_num)) {
+      const bNodeSocket &bsocket = bnode_.input_socket(i);
+      const int param_index = lf_index_by_bsocket_[bsocket.index_in_tree()];
+      values[i] = params.try_get_input_data_ptr<bke::SocketValueVariant>(param_index);
     }
 
-    tree_logger->log_viewer_node(bnode_, std::move(geometry));
+    auto log = allocator.construct<geo_eval_log::ViewerNodeLog>();
+    geo_viewer_node_log(bnode_, values, *log);
+    tree_logger->viewer_node_logs.append(allocator, {bnode_.identifier, std::move(log)});
   }
 };
 
@@ -3287,11 +3242,8 @@ struct GeometryNodesLazyFunctionBuilder {
         bnode, mapping_->lf_index_by_bsocket);
     lf::FunctionNode &lf_viewer_node = graph_params.lf_graph.add_function(lazy_function);
 
-    for (const bNodeSocket *bsocket : bnode.input_sockets()) {
+    for (const bNodeSocket *bsocket : bnode.input_sockets().drop_back(1)) {
       const int lf_index = mapping_->lf_index_by_bsocket[bsocket->index_in_tree()];
-      if (lf_index == -1) {
-        continue;
-      }
       lf::InputSocket &lf_socket = lf_viewer_node.input(lf_index);
       graph_params.lf_inputs_by_bsocket.add(bsocket, &lf_socket);
       mapping_->bsockets_by_lf_socket_map.add(&lf_socket, bsocket);
@@ -3304,10 +3256,8 @@ struct GeometryNodesLazyFunctionBuilder {
           lf_viewer_node);
       lf::FunctionNode &lf_usage_node = graph_params.lf_graph.add_function(usage_lazy_function);
 
-      for (const bNodeSocket *bsocket : bnode.input_sockets()) {
-        if (bsocket->is_available()) {
-          graph_params.usage_by_bsocket.add(bsocket, &lf_usage_node.output(0));
-        }
+      for (const bNodeSocket *bsocket : bnode.input_sockets().drop_back(1)) {
+        graph_params.usage_by_bsocket.add(bsocket, &lf_usage_node.output(0));
       }
     }
   }

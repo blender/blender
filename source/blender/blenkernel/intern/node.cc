@@ -1073,6 +1073,26 @@ static void node_blend_write_storage(BlendWriter *writer, bNodeTree *ntree, bNod
       }
     }
   }
+  else if (node->type_legacy == GEO_NODE_VIEWER) {
+    /* Forward compatibility for older Blender versionins where the viewer node only had a geometry
+     * and field input. */
+    auto &storage = *static_cast<NodeGeometryViewer *>(node->storage);
+    for (const NodeGeometryViewerItem &item : Span{storage.items, storage.items_num}) {
+      if (ELEM(item.socket_type,
+               SOCK_FLOAT,
+               SOCK_INT,
+               SOCK_VECTOR,
+               SOCK_RGBA,
+               SOCK_BOOLEAN,
+               SOCK_ROTATION,
+               SOCK_MATRIX))
+      {
+        storage.data_type_legacy = *socket_type_to_custom_data_type(
+            eNodeSocketDatatype(item.socket_type));
+        break;
+      }
+    }
+  }
 
   const bNodeType *ntype = node->typeinfo;
   if (!ntype->storagename.empty()) {

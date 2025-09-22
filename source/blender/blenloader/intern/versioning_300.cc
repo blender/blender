@@ -2977,7 +2977,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         if (node->type_legacy == GEO_NODE_VIEWER) {
           if (node->storage == nullptr) {
             NodeGeometryViewer *data = MEM_callocN<NodeGeometryViewer>(__func__);
-            data->data_type = CD_PROP_FLOAT;
+            data->data_type_legacy = CD_PROP_FLOAT;
             node->storage = data;
           }
         }
