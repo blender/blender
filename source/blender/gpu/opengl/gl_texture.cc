@@ -747,13 +747,6 @@ void GLTexture::check_feedback_loop()
   }
 }
 
-uint GLTexture::gl_bindcode_get() const
-{
-  /* TODO(fclem): Legacy. Should be removed at some point. */
-
-  return tex_id_;
-}
-
 /* -------------------------------------------------------------------- */
 /** \name Pixel Buffer
  * \{ */

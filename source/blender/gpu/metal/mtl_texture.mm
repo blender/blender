@@ -2027,12 +2027,6 @@ void gpu::MTLTexture::read_internal(int mip,
   }
 }
 
-/* Remove once no longer required -- will just return 0 for now in MTL path. */
-uint gpu::MTLTexture::gl_bindcode_get() const
-{
-  return 0;
-}
-
 bool gpu::MTLTexture::init_internal()
 {
   this->prepare_internal();

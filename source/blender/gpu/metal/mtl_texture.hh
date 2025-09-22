@@ -288,9 +288,6 @@ class MTLTexture : public Texture {
   void mip_range_set(int min, int max) override;
   void *read(int mip, eGPUDataFormat type) override;
 
-  /* Remove once no longer required -- will just return 0 for now in MTL path. */
-  uint gl_bindcode_get() const override;
-
   bool is_format_srgb();
   bool texture_is_baked();
   const char *get_name()

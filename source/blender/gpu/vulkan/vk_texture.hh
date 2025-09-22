@@ -105,8 +105,6 @@ class VKTexture : public Texture {
                   eGPUDataFormat format,
                   GPUPixelBuffer *pixbuf) override;
 
-  /* TODO(fclem): Legacy. Should be removed at some point. */
-  uint gl_bindcode_get() const override;
   /**
    * Export the memory associated with this texture to be imported by a different
    * API/Process/Instance.

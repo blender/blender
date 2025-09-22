@@ -165,8 +165,6 @@ class Texture {
                           eGPUDataFormat format,
                           GPUPixelBuffer *pixbuf) = 0;
 
-  /* TODO(fclem): Legacy. Should be removed at some point. */
-  virtual uint gl_bindcode_get() const = 0;
   int width_get() const
   {
     return w_;

@@ -472,13 +472,6 @@ void VKTexture::update_sub(int offset[3],
   update_sub(0, offset, extent, format, nullptr, &pixel_buffer);
 }
 
-uint VKTexture::gl_bindcode_get() const
-{
-  /* TODO(fclem): Legacy. Should be removed at some point. */
-
-  return 0;
-}
-
 VKMemoryExport VKTexture::export_memory(VkExternalMemoryHandleTypeFlagBits handle_type)
 {
   const VKDevice &device = VKBackend::get().device;
