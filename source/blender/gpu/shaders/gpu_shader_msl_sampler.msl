@@ -352,62 +352,70 @@ struct _mtl_sampler {
              ENABLE_IF(sizeof(U) == 4), \
              ENABLE_IF(Ar == 1)>
 
+/* A compiler bug only inserts memory safety if there is another load after the write.
+ * This can happen in any shader. Until this is fixed upstream, use this workaround. */
+#  define SYNC_FIX(...) \
+    __VA_ARGS__; \
+    if (coord.x == -99999 /* Condition that will never be met. */) { \
+      this->store(DataVec(0), IntCoord(coord)); \
+    }
+
   NON_ARRAY_ATOMIC AtomicT atomic_min(IntCoord coord, AtomicT data) const
   {
-    return texture->atomic_fetch_min(UintCoord(coord), data).x;
+    return SYNC_FIX(texture->atomic_fetch_min(UintCoord(coord), data).x);
   }
   NON_ARRAY_ATOMIC AtomicT atomic_max(IntCoord coord, AtomicT data) const
   {
-    return texture->atomic_fetch_max(UintCoord(coord), data).x;
+    return SYNC_FIX(texture->atomic_fetch_max(UintCoord(coord), data).x);
   }
   NON_ARRAY_ATOMIC AtomicT atomic_add(IntCoord coord, AtomicT data) const
   {
-    return texture->atomic_fetch_add(UintCoord(coord), data).x;
+    return SYNC_FIX(texture->atomic_fetch_add(UintCoord(coord), data).x);
   }
   NON_ARRAY_ATOMIC AtomicT atomic_and(IntCoord coord, AtomicT data) const
   {
-    return texture->atomic_fetch_and(UintCoord(coord), data).x;
+    return SYNC_FIX(texture->atomic_fetch_and(UintCoord(coord), data).x);
   }
   NON_ARRAY_ATOMIC AtomicT atomic_or(IntCoord coord, AtomicT data) const
   {
-    return texture->atomic_fetch_or(UintCoord(coord), data).x;
+    return SYNC_FIX(texture->atomic_fetch_or(UintCoord(coord), data).x);
   }
   NON_ARRAY_ATOMIC AtomicT atomic_xor(IntCoord coord, AtomicT data) const
   {
-    return texture->atomic_fetch_xor(UintCoord(coord), data).x;
+    return SYNC_FIX(texture->atomic_fetch_xor(UintCoord(coord), data).x);
   }
   NON_ARRAY_ATOMIC AtomicT atomic_exchange(IntCoord coord, AtomicT data) const
   {
-    return texture->atomic_exchange(UintCoord(coord), data).x;
+    return SYNC_FIX(texture->atomic_exchange(UintCoord(coord), data).x);
   }
 
   ARRAY_ATOMIC AtomicT atomic_min(IntCoord coord, AtomicT data) const
   {
-    return texture->atomic_fetch_min(uv_mask_img(coord), layer_mask_img(coord), data).x;
+    return SYNC_FIX(texture->atomic_fetch_min(uv_mask_img(coord), layer_mask_img(coord), data).x);
   }
   ARRAY_ATOMIC AtomicT atomic_max(IntCoord coord, AtomicT data) const
   {
-    return texture->atomic_fetch_max(uv_mask_img(coord), layer_mask_img(coord), data).x;
+    return SYNC_FIX(texture->atomic_fetch_max(uv_mask_img(coord), layer_mask_img(coord), data).x);
   }
   ARRAY_ATOMIC AtomicT atomic_add(IntCoord coord, AtomicT data) const
   {
-    return texture->atomic_fetch_add(uv_mask_img(coord), layer_mask_img(coord), data).x;
+    return SYNC_FIX(texture->atomic_fetch_add(uv_mask_img(coord), layer_mask_img(coord), data).x);
   }
   ARRAY_ATOMIC AtomicT atomic_and(IntCoord coord, AtomicT data) const
   {
-    return texture->atomic_fetch_and(uv_mask_img(coord), layer_mask_img(coord), data).x;
+    return SYNC_FIX(texture->atomic_fetch_and(uv_mask_img(coord), layer_mask_img(coord), data).x);
   }
   ARRAY_ATOMIC AtomicT atomic_or(IntCoord coord, AtomicT data) const
   {
-    return texture->atomic_fetch_or(uv_mask_img(coord), layer_mask_img(coord), data).x;
+    return SYNC_FIX(texture->atomic_fetch_or(uv_mask_img(coord), layer_mask_img(coord), data).x);
   }
   ARRAY_ATOMIC AtomicT atomic_xor(IntCoord coord, AtomicT data) const
   {
-    return texture->atomic_fetch_xor(uv_mask_img(coord), layer_mask_img(coord), data).x;
+    return SYNC_FIX(texture->atomic_fetch_xor(uv_mask_img(coord), layer_mask_img(coord), data).x);
   }
   ARRAY_ATOMIC AtomicT atomic_exchange(IntCoord coord, AtomicT data) const
   {
-    return texture->atomic_exchange(uv_mask_img(coord), layer_mask_img(coord), data).x;
+    return SYNC_FIX(texture->atomic_exchange(uv_mask_img(coord), layer_mask_img(coord), data).x);
   }
 
 #  undef NON_ARRAY_ATOMIC
