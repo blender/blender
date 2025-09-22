@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-15 07:14+0000\n"
+"POT-Creation-Date: 2025-09-22 08:45+0000\n"
 "PO-Revision-Date: 2025-07-23 15:24+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -2047,10 +2047,6 @@ msgstr "Lưu trữ các danh mục đã được bật lên của kệ trong cà
 
 msgid "Space Type"
 msgstr "Thể Loại Không Gian"
-
-
-msgid "The space where the asset shelf is going to be used in"
-msgstr "Không gian mà giá kệ tài sản sẽ được sử dụng ở trong đó"
 
 
 msgid "Preview Size"
@@ -7260,8 +7256,8 @@ msgid "Color management specific to display device"
 msgstr "Quản lý màu sắc theo đặc thù của thiết bị hiển thị"
 
 
-msgid "Display Device"
-msgstr "Thiết bị Hiển Thị"
+msgid "Display"
+msgstr "Hiển Thị"
 
 
 msgid "Input color space settings"
@@ -7452,8 +7448,8 @@ msgid "Perform chromatic adaption from a different white point"
 msgstr "Thực hiện điều chỉnh sắc độ từ một điểm trắng khác"
 
 
-msgid "View Transform"
-msgstr "Góc Nhìn Biến Hóa"
+msgid "View"
+msgstr "Góc Nhìn"
 
 
 msgid "View used when converting image to a display space"
@@ -10361,10 +10357,6 @@ msgstr "Tiếp Tuyến với Bề Mặt"
 
 msgid "Draw in the surface plane"
 msgstr "Vẽ trên mặt phẳng bề mặt"
-
-
-msgid "View"
-msgstr "Góc Nhìn"
 
 
 msgid "Draw in a plane aligned to the viewport"
@@ -26196,10 +26188,6 @@ msgid "Axis"
 msgstr "Trục"
 
 
-msgid "Display"
-msgstr "Hiển Thị"
-
-
 msgid "Percentage of particles to display in 3D view"
 msgstr "Lượng phần trăm của các hạt cho hiển thị trong khung nhìn 3D"
 
@@ -33862,6 +33850,18 @@ msgid "Editor menu containing buttons"
 msgstr "Trình đơn của trình biên soạn có chứa các nút"
 
 
+msgid "Toggle Bone Options"
+msgstr "Bật/Tắt Tùy Chọn về Xương"
+
+
+msgid "Enable Bone Options"
+msgstr "Bật các Tùy Chọn về Xương"
+
+
+msgid "Disable Bone Options"
+msgstr "Tắt các Tùy Chọn về Xương"
+
+
 msgid "Mesh Select Mode"
 msgstr "Chế Độ Chọn Khung Lưới"
 
@@ -34080,18 +34080,6 @@ msgstr "Lan Truyền"
 
 msgid "Bone Collections"
 msgstr "Bộ Sưu Tập Xương"
-
-
-msgid "Toggle Bone Options"
-msgstr "Bật/Tắt Tùy Chọn về Xương"
-
-
-msgid "Enable Bone Options"
-msgstr "Bật các Tùy Chọn về Xương"
-
-
-msgid "Disable Bone Options"
-msgstr "Tắt các Tùy Chọn về Xương"
 
 
 msgid "Keyframe Insert Pie"
@@ -34712,6 +34700,11 @@ msgstr "Phụ Huynh"
 msgctxt "Operator"
 msgid "Empty"
 msgstr "Trống Rỗng"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Lưới Rào"
 
 
 msgctxt "Constraint"
@@ -43803,64 +43796,6 @@ msgid "Create matte based on differences in color channels"
 msgstr "Tạo màn chắn vẽ lồng dựa trên sự khác biệt trong các kênh màu"
 
 
-msgid "RGB (Red, Green, Blue) color space"
-msgstr "Không gian màu RGB (Đỏ, Lục, Lam)"
-
-
-msgid "HSV (Hue, Saturation, Value) color space"
-msgstr "Không gian màu HSV (Sắc Độ, Độ Bão Hòa, Giá Trị)"
-
-
-msgid "YUV"
-msgstr "YUV"
-
-
-msgid "YUV (Y - luma, U V - chroma) color space"
-msgstr "Không gian màu YUV (Y - Độ Sáng, U V - Sắc Độ)"
-
-
-msgid "YCbCr (Y - luma, Cb - blue-difference chroma, Cr - red-difference chroma) color space"
-msgstr "Không gian màu YCbCr (Y - độ sáng, Cb - chênh lệch lam, Cr - chênh lệch đỏ)"
-
-
-msgctxt "Color"
-msgid "Limit Channel"
-msgstr "Giới Hạn Kênh"
-
-
-msgid "Limit by this channel's value"
-msgstr "Hạn chế bởi giá trị của kênh này"
-
-
-msgid "Algorithm"
-msgstr "Thuật Toán"
-
-
-msgid "Algorithm to use to limit channel"
-msgstr "Thuật toán sử dụng để hạn chế kênh"
-
-
-msgid "Single"
-msgstr "Đơn/Một"
-
-
-msgid "Limit by single channel"
-msgstr "Chỉ sử dụng một kênh mà thôi"
-
-
-msgid "Limit by maximum of other channels"
-msgstr "Giới hạn bởi tối đa của các kênh khác"
-
-
-msgctxt "Color"
-msgid "Channel"
-msgstr "Kênh"
-
-
-msgid "Channel used to determine matte"
-msgstr "Kênh sử dụng để xác định lớp vẽ lồng"
-
-
 msgid "Chroma Key"
 msgstr "Lọc Màu"
 
@@ -43875,26 +43810,6 @@ msgstr "Cân Bằng Màu"
 
 msgid "Adjust color and values"
 msgstr "Điều chỉnh màu sắc và giá trị"
-
-
-msgid "Correction Formula"
-msgstr "Công Thức Chỉnh Sửa"
-
-
-msgid "Lift/Gamma/Gain"
-msgstr "Nâng/Gamma/Khuếch Đại"
-
-
-msgid "Offset/Power/Slope (ASC-CDL)"
-msgstr "Dịch Chuyển/Lũy Thừa/Độ Dốc (ASC-CDL)"
-
-
-msgid "ASC-CDL standard color correction"
-msgstr "Chỉnh sửa màu theo tiêu chuẩn ASC-CDL (American Society of Cinematographers - Color Decision List : Hội Các nhà quay phim Mỹ - Bảng Liệt Kê Quyết Định về Màu Sắc)"
-
-
-msgid "Chromatic adaption from a different white point"
-msgstr "Phỏng theo màu sắc từ một điểm trắng khác"
 
 
 msgid "Input White Point"
@@ -43933,50 +43848,6 @@ msgid "Remove colors from a blue or green screen, by reducing one RGB channel co
 msgstr "Loại bỏ các màu khỏi phông xanh lam hoặc phông xanh lục, bằng cách giảm thiểu một kênh RGB đi trong khi so sánh với các kênh khác"
 
 
-msgid "Red spill suppression"
-msgstr "Ngăn chặn sự tràn vãi màu đỏ"
-
-
-msgid "Green spill suppression"
-msgstr "Ngăn chặn sự tràn vãi màu lục"
-
-
-msgid "Blue spill suppression"
-msgstr "Ngăn chặn sự tràn vãi màu lam"
-
-
-msgid "Limit by red"
-msgstr "Giới hạn bởi màu đỏ"
-
-
-msgid "Limit by green"
-msgstr "Giới hạn bởi màu lục"
-
-
-msgid "Limit by blue"
-msgstr "Giới hạn bởi màu lam"
-
-
-msgid "Simple limit algorithm"
-msgstr "Thuật toán hạn chế đơn giản"
-
-
-msgid "Average limit algorithm"
-msgstr "Thuật toán hạn chế trung bình"
-
-
-msgid "ITU 601"
-msgstr "ITU 601"
-
-
-msgid "ITU 709"
-msgstr "ITU 709"
-
-
-msgid "JPEG"
-msgstr "JPEG"
-
-
 msgid "Combine Color"
 msgstr "Kết Hợp Màu"
 
@@ -44005,12 +43876,28 @@ msgid "Use YCbCr (Y - luma, Cb - blue-difference chroma, Cr - red-difference chr
 msgstr "Sử dụng xử lý màu YCbCr (Y - độ sáng, Cb - chênh lệch lam, Cr - chênh lệch đỏ)"
 
 
+msgid "YUV"
+msgstr "YUV"
+
+
 msgid "Use YUV (Y - luma, U V - chroma) color processing"
 msgstr "Sử dụng xử lý màu YUV (Y - độ sáng, U V - sắc độ)"
 
 
 msgid "Color space used for YCbCrA processing"
 msgstr "Không gian màu được sử dụng để xử lý YCbCrA"
+
+
+msgid "ITU 601"
+msgstr "ITU 601"
+
+
+msgid "ITU 709"
+msgstr "ITU 709"
+
+
+msgid "JPEG"
+msgstr "JPEG"
 
 
 msgid "Convert Colorspace"
@@ -44301,56 +44188,12 @@ msgid "Create matte based on 3D distance between colors"
 msgstr "Tạo màn chắn vẽ lồng dựa trên khoảng cách 3D giữa các màu"
 
 
-msgid "RGB color space"
-msgstr "Không gian RGB"
-
-
-msgid "YCbCr suppression"
-msgstr "Ức chế YCbCr"
-
-
 msgid "Double Edge Mask"
 msgstr "Màn Chắn Lọc Đôi Cạnh"
 
 
 msgid "Create a gradient between two masks"
 msgstr "Tạo một dốc màu giữa hai màn chắn"
-
-
-msgid "Buffer Edge Mode"
-msgstr "Chế Độ Đệm Cạnh"
-
-
-msgid "Bleed Out"
-msgstr "Tràn Ra"
-
-
-msgid "Allow mask pixels to bleed along edges"
-msgstr "Cho phép các điểm ảnh màn chắn lọc tràn ra dọc theo các cạnh"
-
-
-msgid "Keep In"
-msgstr "Giữ Nằm Trong"
-
-
-msgid "Restrict mask pixels from touching edges"
-msgstr "Hạn chế các điểm ảnh màn chắn lọc chạm vào các cạnh"
-
-
-msgid "Inner Edge Mode"
-msgstr "Chế Độ Cạnh Trong"
-
-
-msgid "All pixels on inner mask edge are considered during mask calculation"
-msgstr "Toàn bộ các điểm ảnh tại cạnh trong của màn chắn lọc là được cân nhắc trong khi tính toán màn chắn lọc"
-
-
-msgid "Adjacent Only"
-msgstr "Duy Kề Cạnh"
-
-
-msgid "Only inner mask pixels adjacent to outer mask pixels are considered during mask calculation"
-msgstr "Chỉ các điểm ảnh của màn chắn lọc trong nằm kề cạnh các điểm ảnh của màn chắn lọc ngoài là được cân nhắc trong khi tính toán màn chắn lọc"
 
 
 msgid "Ellipse Mask"
@@ -44557,26 +44400,6 @@ msgid "Convert to and from premultiplied (associated) alpha"
 msgstr "Chuyển đổi sang và từ alpha nhân trước (liên quan)"
 
 
-msgid "Conversion between premultiplied alpha and key alpha"
-msgstr "Chuyển đổi giữa alpha nhân trước và alpha khóa (key alpha)"
-
-
-msgid "To Premultiplied"
-msgstr "Thành Alpha Nhân Trước"
-
-
-msgid "Convert straight to premultiplied"
-msgstr "Biến đổi alpha thẳng sang alpha nhân trước"
-
-
-msgid "To Straight"
-msgstr "Thành Alpha Thẳng"
-
-
-msgid "Convert premultiplied to straight"
-msgstr "Chuyển đổi alpha nhân trước sang alpha thẳng"
-
-
 msgid "A color picker"
 msgstr "Trình chọn màu"
 
@@ -44695,22 +44518,6 @@ msgstr "Đặt Alpha"
 
 msgid "Add an alpha channel to an image"
 msgstr "Thêm kênh alpha vào một hình ảnh"
-
-
-msgid "Apply Mask"
-msgstr "Áp Dụng Chắn Lọc"
-
-
-msgid "Multiply the input image's RGBA channels by the alpha input value"
-msgstr "Nhân các kênh của hình ảnh RGBA ở đầu vào với giá trị alpha cung cấp"
-
-
-msgid "Replace Alpha"
-msgstr "Thay Thế Alpha"
-
-
-msgid "Replace the input image's alpha channel by the alpha input value"
-msgstr "Thay thế kênh alpha của hình ảnh đầu vào bằng giá trị đầu vào alpha"
 
 
 msgid "Combine two images for side-by-side display. Typically used in combination with a Viewer node"
@@ -49399,18 +49206,6 @@ msgid "Air"
 msgstr "Không Khí"
 
 
-msgid ""
-"Density of air molecules.\n"
-"• 0 - No air.\n"
-"• 1 - Clear day atmosphere.\n"
-"• 2 - Highly polluted day"
-msgstr ""
-"Mật độ phân tử không khí.\n"
-"• 0 - Không có không khí.\n"
-"• 1 - Khí quyển ngày trong vắt.\n"
-"• 2 - Ngày ô nhiễm cao"
-
-
 msgid "Altitude"
 msgstr "Biên Độ"
 
@@ -49419,38 +49214,8 @@ msgid "Height from sea level"
 msgstr "Chiều cao từ mực nước biển"
 
 
-msgid "Dust"
-msgstr "Bụi"
-
-
-msgid ""
-"Density of dust molecules and water droplets.\n"
-"• 0 - No dust.\n"
-"• 1 - Clear day atmosphere.\n"
-"• 5 - City like atmosphere.\n"
-"• 10 - Hazy day"
-msgstr ""
-"Mật độ của các phân tử bụi và giọt nước.\n"
-"• 0 - Không có bụi.\n"
-"• 1 - Khí quyển ngày trong vắt.\n"
-"• 5 - Khí quyển của thành phố.\n"
-"• 10 - Ngày mù sương"
-
-
 msgid "Ozone"
 msgstr "Ôzôn"
-
-
-msgid ""
-"Density of ozone layer.\n"
-"• 0 - No ozone.\n"
-"• 1 - Clear day atmosphere.\n"
-"• 2 - City like atmosphere"
-msgstr ""
-"Mật độ tầng ôzôn.\n"
-"• 0 - Không có ôzôn.\n"
-"• 1 - Khí quyển ngày trong vắt.\n"
-"• 2 - Khí quyển của thành phố"
 
 
 msgid "Sky Type"
@@ -49459,10 +49224,6 @@ msgstr "Loại Bầu Trời"
 
 msgid "Which sky model should be used"
 msgstr "Mô hình bầu trời nào nên sử dụng"
-
-
-msgid "Nishita 1993 improved"
-msgstr "Nishita 1993 cải tiến"
 
 
 msgid "Sun Disc"
@@ -49483,10 +49244,6 @@ msgstr "Góc độ của mặt trời từ đường chân trời"
 
 msgid "Sun Intensity"
 msgstr "Cường Độ của Mặt Trời"
-
-
-msgid "Strength of sun"
-msgstr "Độ chói sáng của mặt trời"
 
 
 msgid "Sun Rotation"
@@ -50102,6 +49859,10 @@ msgstr "Giá Trị thành Pháp Tuyến"
 
 msgid "Closure Input Item"
 msgstr "Mục Đầu Vào Đóng Kín"
+
+
+msgid "Single"
+msgstr "Đơn/Một"
 
 
 msgid "Closure Input Items"
@@ -104492,6 +104253,18 @@ msgid "Correction Method"
 msgstr "Phương Pháp Chỉnh Sửa"
 
 
+msgid "Lift/Gamma/Gain"
+msgstr "Nâng/Gamma/Khuếch Đại"
+
+
+msgid "Offset/Power/Slope (ASC-CDL)"
+msgstr "Dịch Chuyển/Lũy Thừa/Độ Dốc (ASC-CDL)"
+
+
+msgid "ASC-CDL standard color correction"
+msgstr "Chỉnh sửa màu theo tiêu chuẩn ASC-CDL (American Society of Cinematographers - Color Decision List : Hội Các nhà quay phim Mỹ - Bảng Liệt Kê Quyết Định về Màu Sắc)"
+
+
 msgid "Color balance gain (highlights)"
 msgstr "Khuếch đại cân bằng màu (vùng nêu bật)"
 
@@ -120484,11 +120257,6 @@ msgstr "Vẽ Lại Toàn Bộ"
 
 
 msgctxt "Operator"
-msgid "Sequence Render Animation"
-msgstr "Kết Xuất Phân Đoạn Hoạt Họa trong Trình Tự"
-
-
-msgctxt "Operator"
 msgid "Toggle Sequencer/Preview"
 msgstr "Bật/Tắt Trình Phối Hình/Xem Trước"
 
@@ -120632,11 +120400,6 @@ msgstr "Đặt Khung Hình Xem Trước khít vừa Cửa Sổ"
 
 msgid "Auto Zoom"
 msgstr "Tự Động Thu Phóng"
-
-
-msgctxt "Operator"
-msgid "Sequence Render Image"
-msgstr "Hình Ảnh Kết Xuất của Trình Tự"
 
 
 msgctxt "Operator"
@@ -121890,16 +121653,6 @@ msgstr "Phối Cảnh/Trực Giao"
 
 
 msgctxt "Operator"
-msgid "Viewport Render Image"
-msgstr "Kết Xuất Hình Ảnh trong Cổng Nhìn"
-
-
-msgctxt "Operator"
-msgid "Viewport Render Keyframes"
-msgstr "Những Khung Khóa Kết Xuất của Cổng Nhìn"
-
-
-msgctxt "Operator"
 msgid "Toggle Local View"
 msgstr "Bật/Tắt Góc Nhìn Cục Bộ"
 
@@ -123079,11 +122832,6 @@ msgstr "Đóng Khung Nét Cuối Cùng"
 
 
 msgctxt "Operator"
-msgid "Viewport Render Animation"
-msgstr "Kết Xuất Hoạt Họa trong Cổng Nhìn"
-
-
-msgctxt "Operator"
 msgid "Roll Left"
 msgstr "Lăn Trái"
 
@@ -123121,11 +122869,6 @@ msgstr "Khối Tiếp Theo"
 msgctxt "Operator"
 msgid "Armature"
 msgstr "Khung Rối"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Lưới Rào"
 
 
 msgctxt "Operator"
@@ -128801,6 +128544,10 @@ msgid "No mesh data to join"
 msgstr "Không có dữ liệu khung lưới để hội nhập"
 
 
+msgid "Joining results in %d vertices, limit is %ld"
+msgstr "Sự hòa nhập đạt được kết quả là %d điểm đỉnh, giới hạn là %ld"
+
+
 msgid "No source mesh objects selected"
 msgstr "Không có đối tượng khung lưới nguồn nào đã được chọn cả"
 
@@ -128811,10 +128558,6 @@ msgstr "Không còn khung lưới nào đã chọn có số lượng điểm đ�
 
 msgid "No name matches between selected objects and shape keys"
 msgstr "Không có tên nào giữa các đối tượng đã chọn xứng khớp và các hình mẫu cả"
-
-
-msgid "Joining results in %d vertices, limit is %ld"
-msgstr "Sự hòa nhập đạt được kết quả là %d điểm đỉnh, giới hạn là %ld"
 
 
 msgid "Updated %d shape key(s)"
@@ -137739,18 +137482,6 @@ msgid "Bright"
 msgstr "Độ Sáng"
 
 
-msgid "Color Space:"
-msgstr "Không Gian Màu Sắc:"
-
-
-msgid "Key Channel:"
-msgstr "Kênh Khóa:"
-
-
-msgid "Limiting Channel:"
-msgstr "Kênh để Hạn Chế:"
-
-
 msgid "Channel values lower than this minimum are keyed"
 msgstr "Các giá trị kênh thấp hơn mức tối thiểu này sẽ được khóa hóa"
 
@@ -137785,10 +137516,6 @@ msgstr "Nếu sự khác biệt về độ bão hòa giữa màu sắc và màu 
 
 msgid "If the difference in value between the color and key color is less than this threshold, it is keyed"
 msgstr "Nếu sự khác biệt về giá trị giữa màu sắc và màu khóa hóa nhỏ hơn ngưỡng này, thì nó sẽ được khóa hóa."
-
-
-msgid "Despill Channel:"
-msgstr "Kênh Chống Tràn Vãi:"
 
 
 msgid "Limit Strength"
@@ -138113,14 +137840,6 @@ msgstr "Nếu khoảng cách giữa màu sắc và màu khóa trong không gian 
 
 msgid "If the distance between the color and the key color in the given color space is less than this threshold, it is partially keyed, otherwise, it is not keyed"
 msgstr "Nếu khoảng cách giữa màu sắc và màu khóa trong không gian màu đã cho nhỏ hơn ngưỡng này, thì nó được khóa hóa một phần, nếu không, thì nó không được khóa hóa."
-
-
-msgid "Inner Edge:"
-msgstr "Cạnh Trong:"
-
-
-msgid "Buffer Edge:"
-msgstr "Cạnh của Vùng Đệm:"
 
 
 msgid "Inner Mask"

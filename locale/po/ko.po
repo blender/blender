@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-15 07:14+0000\n"
+"POT-Creation-Date: 2025-09-22 08:45+0000\n"
 "PO-Revision-Date: 2025-07-23 15:30+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -4752,8 +4752,8 @@ msgid "Color management specific to display device"
 msgstr "디스플레이 장치별 고유의 컬러 매니지먼트"
 
 
-msgid "Display Device"
-msgstr "디스플레이 장치"
+msgid "Display"
+msgstr "표시"
 
 
 msgid "Input color space settings"
@@ -4820,8 +4820,8 @@ msgid "Use RGB curved for pre-display transformation"
 msgstr "사전 표시 변환에 대한 커브된 RGB를 사용"
 
 
-msgid "View Transform"
-msgstr "뷰 변환"
+msgid "View"
+msgstr "뷰"
 
 
 msgid "View used when converting image to a display space"
@@ -7384,10 +7384,6 @@ msgstr "평면"
 
 msgid "Plane for projected stroke"
 msgstr "투사된 스트로크에 대한 평면"
-
-
-msgid "View"
-msgstr "뷰"
 
 
 msgid "Detect Corners"
@@ -17795,10 +17791,6 @@ msgid "Display Color"
 msgstr "표시 컬러"
 
 
-msgid "Display"
-msgstr "표시"
-
-
 msgid "Percentage of particles to display in 3D view"
 msgstr "3D 뷰에서 표시하는 파티클의 퍼센트"
 
@@ -23665,6 +23657,18 @@ msgid "Material slot name"
 msgstr "매테리얼 슬롯 이름"
 
 
+msgid "Toggle Bone Options"
+msgstr "본 옵션을 토글"
+
+
+msgid "Enable Bone Options"
+msgstr "본 옵션을 사용"
+
+
+msgid "Disable Bone Options"
+msgstr "본 옵션을 사용 중지"
+
+
 msgid "Mesh Select Mode"
 msgstr "메쉬 선택 모드"
 
@@ -23847,18 +23851,6 @@ msgstr "사이에서"
 
 msgid "Propagate"
 msgstr "전파"
-
-
-msgid "Toggle Bone Options"
-msgstr "본 옵션을 토글"
-
-
-msgid "Enable Bone Options"
-msgstr "본 옵션을 사용"
-
-
-msgid "Disable Bone Options"
-msgstr "본 옵션을 사용 중지"
 
 
 msgid "Basic"
@@ -24164,6 +24156,11 @@ msgstr "브러쉬 특정"
 msgctxt "Operator"
 msgid "Parent"
 msgstr "부모"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "래티스"
 
 
 msgid "Clone Layer"
@@ -30191,56 +30188,12 @@ msgid "Channel Key"
 msgstr "채널 키"
 
 
-msgid "YCbCr"
-msgstr "YCbCr"
-
-
-msgid "Limit by this channel's value"
-msgstr "이 채널의 값으로 제한"
-
-
-msgid "Algorithm"
-msgstr "연산"
-
-
-msgid "Algorithm to use to limit channel"
-msgstr "채널을 제한하는 데 사용하는 알고리즘"
-
-
-msgid "Single"
-msgstr "싱글"
-
-
-msgid "Limit by single channel"
-msgstr "싱글 채널로 제한"
-
-
-msgid "Channel used to determine matte"
-msgstr "매트을 결정하는 사용된 채널"
-
-
 msgid "Chroma Key"
 msgstr "크로마 키"
 
 
 msgid "Color Balance"
 msgstr "컬러 균형"
-
-
-msgid "Correction Formula"
-msgstr "보정 공식"
-
-
-msgid "Lift/Gamma/Gain"
-msgstr "상승/감마/이득"
-
-
-msgid "Offset/Power/Slope (ASC-CDL)"
-msgstr "오프셋/파워/경사 (ASC-CDL)"
-
-
-msgid "ASC-CDL standard color correction"
-msgstr "ASC-CDL 표준 컬러 보정"
 
 
 msgid "Color Correction"
@@ -30253,6 +30206,10 @@ msgstr "컬러 키"
 
 msgid "Color Spill"
 msgstr "컬러 스필"
+
+
+msgid "YCbCr"
+msgstr "YCbCr"
 
 
 msgid "ITU 601"
@@ -30435,48 +30392,8 @@ msgid "Distance Key"
 msgstr "거리 키"
 
 
-msgid "RGB color space"
-msgstr "RGB 컬러 공간"
-
-
 msgid "Double Edge Mask"
 msgstr "이중 에지 마스크"
-
-
-msgid "Buffer Edge Mode"
-msgstr "버퍼 에지 모드"
-
-
-msgid "Bleed Out"
-msgstr "번짐 Out"
-
-
-msgid "Allow mask pixels to bleed along edges"
-msgstr "에지를 따라 마스크 픽셀이 번지도록 허용"
-
-
-msgid "Keep In"
-msgstr "유지 In"
-
-
-msgid "Restrict mask pixels from touching edges"
-msgstr "에지 접촉에서 마스크 픽셀을 제한"
-
-
-msgid "Inner Edge Mode"
-msgstr "안쪽 에지 모드"
-
-
-msgid "All pixels on inner mask edge are considered during mask calculation"
-msgstr "안쪽 마스크 에지에 모든 픽셀은 마스크 계산하는 동안 고려됨"
-
-
-msgid "Adjacent Only"
-msgstr "인접 만"
-
-
-msgid "Only inner mask pixels adjacent to outer mask pixels are considered during mask calculation"
-msgstr "마스크 계산시 외부 마스크 픽셀에 인접한 내부 마스크 픽셀 만 고려됩니다"
 
 
 msgid "Ellipse Mask"
@@ -30541,10 +30458,6 @@ msgstr "플레인 트랙 변형"
 
 msgid "Alpha Convert"
 msgstr "알파 변환"
-
-
-msgid "Conversion between premultiplied alpha and key alpha"
-msgstr "사전 곱셈된 알파와 키 알파 사이를 전환"
 
 
 msgid "RGB to BW"
@@ -31694,6 +31607,10 @@ msgstr "노드 기반 텍스처의 경우 사용할 노드를 출력합니다"
 
 msgid "Value to Normal"
 msgstr "값을 노멀로 변환"
+
+
+msgid "Single"
+msgstr "싱글"
 
 
 msgid "Node Inputs"
@@ -63366,6 +63283,18 @@ msgid "Display the audio waveform inside the strip"
 msgstr "스트립 안에 오디오 파형을 표시"
 
 
+msgid "Lift/Gamma/Gain"
+msgstr "상승/감마/이득"
+
+
+msgid "Offset/Power/Slope (ASC-CDL)"
+msgstr "오프셋/파워/경사 (ASC-CDL)"
+
+
+msgid "ASC-CDL standard color correction"
+msgstr "ASC-CDL 표준 컬러 보정"
+
+
 msgid "Color balance gain (highlights)"
 msgstr "컬러 균형 이득 (강조)"
 
@@ -69802,11 +69731,6 @@ msgstr "모두 새로 고침"
 
 
 msgctxt "Operator"
-msgid "Sequence Render Animation"
-msgstr "시퀀스 렌더 애니메이션"
-
-
-msgctxt "Operator"
 msgid "Path/Files"
 msgstr "경로/파일"
 
@@ -69915,11 +69839,6 @@ msgstr "미리보기 범위를 스트립으로 설정"
 msgctxt "Operator"
 msgid "Fit Preview in Window"
 msgstr "창에서 미리보기를 맞추기"
-
-
-msgctxt "Operator"
-msgid "Sequence Render Image"
-msgstr "시퀀스 렌더 이미지"
 
 
 msgctxt "Operator"
@@ -70534,16 +70453,6 @@ msgstr "커서를 활성에 스냅"
 msgctxt "Operator"
 msgid "Perspective/Orthographic"
 msgstr "원근법/정사법"
-
-
-msgctxt "Operator"
-msgid "Viewport Render Image"
-msgstr "뷰포트 렌더 이미지"
-
-
-msgctxt "Operator"
-msgid "Viewport Render Keyframes"
-msgstr "뷰포트 렌더 키 프레임"
 
 
 msgctxt "Operator"
@@ -71192,11 +71101,6 @@ msgstr "뷰에서 투사 (경계)"
 
 
 msgctxt "Operator"
-msgid "Viewport Render Animation"
-msgstr "애니메이션을 뷰포트 렌더"
-
-
-msgctxt "Operator"
 msgid "Roll Left"
 msgstr "롤 왼쪽"
 
@@ -71219,11 +71123,6 @@ msgstr "에지 링"
 msgctxt "Operator"
 msgid "Armature"
 msgstr "아마튜어"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "래티스"
 
 
 msgctxt "Operator"
@@ -73714,12 +73613,12 @@ msgid "No mesh data to join"
 msgstr "합치는 메쉬 데이터가 없음"
 
 
-msgid "No additional selected meshes with equal vertex count to join"
-msgstr "합치는 동일한 버텍스 계산과 함께 추가적인 선택된 메쉬가 없음"
-
-
 msgid "Joining results in %d vertices, limit is %ld"
 msgstr "결과를 %d개의 버텍스에 합치기, 한계는 %ld"
+
+
+msgid "No additional selected meshes with equal vertex count to join"
+msgstr "합치는 동일한 버텍스 계산과 함께 추가적인 선택된 메쉬가 없음"
 
 
 msgid "SoundTrack"

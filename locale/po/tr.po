@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-15 07:14+0000\n"
+"POT-Creation-Date: 2025-09-22 08:45+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: VertexSelection <amacsizk2021@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -1817,10 +1817,6 @@ msgstr "Tercihlerde Etkinleştirilmiş Katalogları Sakla"
 
 msgid "Space Type"
 msgstr "Uzay Türü"
-
-
-msgid "The space where the asset shelf is going to be used in"
-msgstr "Varlık rafının kullanılacağı alan"
 
 
 msgid "Preview Size"
@@ -6687,8 +6683,8 @@ msgid "Color management specific to display device"
 msgstr "Görüntüleme aygıtına özgü renk yönetimi"
 
 
-msgid "Display Device"
-msgstr "Görüntüleme Aygıtı"
+msgid "Display"
+msgstr "Görüntülemek"
 
 
 msgid "Input color space settings"
@@ -6841,6 +6837,10 @@ msgstr "Beyaz Dengesini Kullan"
 
 msgid "Perform chromatic adaption from a different white point"
 msgstr "Farklı bir beyaz noktadan kromatik adaptasyon gerçekleştirin"
+
+
+msgid "View"
+msgstr "Görünüm"
 
 
 msgid "View used when converting image to a display space"
@@ -8692,10 +8692,6 @@ msgstr "Yüzeye Teğet"
 
 msgid "Draw in the surface plane"
 msgstr "Yüzey düzleminde çizin"
-
-
-msgid "View"
-msgstr "Görünüm"
 
 
 msgid "Draw in a plane aligned to the viewport"
@@ -21964,10 +21960,6 @@ msgid "How particles are displayed in viewport"
 msgstr "Parçacıklar görünüm alanında nasıl görüntülenir"
 
 
-msgid "Display"
-msgstr "Görüntülemek"
-
-
 msgid "Percentage of particles to display in 3D view"
 msgstr "3B görünümde görüntülenecek parçacıkların yüzdesi"
 
@@ -29042,6 +29034,18 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
+msgid "Toggle Bone Options"
+msgstr "Kemik Seçeneklerini Değiştir"
+
+
+msgid "Enable Bone Options"
+msgstr "Kemik Seçeneklerini Etkinleştir"
+
+
+msgid "Disable Bone Options"
+msgstr "Kemik Seçeneklerini Devre Dışı Bırak"
+
+
 msgid "Mesh Select Mode"
 msgstr "Örgü Seçim Kipi"
 
@@ -29260,18 +29264,6 @@ msgstr "Yaymak"
 
 msgid "Bone Collections"
 msgstr "Kemik Koleksiyonları"
-
-
-msgid "Toggle Bone Options"
-msgstr "Kemik Seçeneklerini Değiştir"
-
-
-msgid "Enable Bone Options"
-msgstr "Kemik Seçeneklerini Etkinleştir"
-
-
-msgid "Disable Bone Options"
-msgstr "Kemik Seçeneklerini Devre Dışı Bırak"
 
 
 msgid "Keyframe Insert Pie"
@@ -29826,6 +29818,11 @@ msgstr "Ebeveyn"
 msgctxt "Operator"
 msgid "Empty"
 msgstr "Boş"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Dış Kafes"
 
 
 msgid "Clone Layer"
@@ -37944,47 +37941,6 @@ msgid "Create matte based on differences in color channels"
 msgstr "Renk kanallarındaki farklılıklara dayalı mat yaratın"
 
 
-msgid "YUV"
-msgstr "YUV"
-
-
-msgid "YCbCr"
-msgstr "YCbCr"
-
-
-msgctxt "Color"
-msgid "Limit Channel"
-msgstr "Sınır Kanalı"
-
-
-msgid "Limit by this channel's value"
-msgstr "Bu kanalın değeriyle sınırla"
-
-
-msgid "Algorithm"
-msgstr "Algoritma"
-
-
-msgid "Algorithm to use to limit channel"
-msgstr "Kanalı sınırlamak için kullanılacak algoritma"
-
-
-msgid "Single"
-msgstr "Bekar"
-
-
-msgid "Limit by single channel"
-msgstr "Tek kanalla sınırla"
-
-
-msgid "Limit by maximum of other channels"
-msgstr "Diğer kanalların maksimum limiti"
-
-
-msgid "Channel used to determine matte"
-msgstr "Matı belirlemek için kullanılan kanal"
-
-
 msgid "Chroma Key"
 msgstr "Kroma Anahtarı"
 
@@ -37999,26 +37955,6 @@ msgstr "Renk Dengesi"
 
 msgid "Adjust color and values"
 msgstr "Renk ve değerleri ayarlayın"
-
-
-msgid "Correction Formula"
-msgstr "Düzeltme Formülü"
-
-
-msgid "Lift/Gamma/Gain"
-msgstr "Kaldırma/Gama/Kazanç"
-
-
-msgid "Offset/Power/Slope (ASC-CDL)"
-msgstr "Ofset/Güç/Eğim (ASC-CDL)"
-
-
-msgid "ASC-CDL standard color correction"
-msgstr "ASC-CDL standart renk düzeltmesi"
-
-
-msgid "Chromatic adaption from a different white point"
-msgstr "Farklı bir beyaz noktadan kromatik adaptasyon"
 
 
 msgid "Input White Point"
@@ -38041,50 +37977,6 @@ msgid "Color Spill"
 msgstr "Renk Dökülmesi"
 
 
-msgid "Red spill suppression"
-msgstr "Kırmızı dökülme bastırma"
-
-
-msgid "Green spill suppression"
-msgstr "Yeşil sızıntının bastırılması"
-
-
-msgid "Blue spill suppression"
-msgstr "Mavi sızıntının bastırılması"
-
-
-msgid "Limit by red"
-msgstr "Kırmızı ile sınırla"
-
-
-msgid "Limit by green"
-msgstr "Yeşil ile sınırla"
-
-
-msgid "Limit by blue"
-msgstr "Mavi ile sınırla"
-
-
-msgid "Simple limit algorithm"
-msgstr "Basit limit algoritması"
-
-
-msgid "Average limit algorithm"
-msgstr "Ortalama limit algoritması"
-
-
-msgid "ITU 601"
-msgstr "İTÜ 601"
-
-
-msgid "ITU 709"
-msgstr "İTÜ 709"
-
-
-msgid "JPEG"
-msgstr "JPEG"
-
-
 msgid "Combine Color"
 msgstr "Renkleri Birleştir"
 
@@ -38097,8 +37989,28 @@ msgid "Mode of color processing"
 msgstr "Renk işleme modu"
 
 
+msgid "YCbCr"
+msgstr "YCbCr"
+
+
+msgid "YUV"
+msgstr "YUV"
+
+
 msgid "Color space used for YCbCrA processing"
 msgstr "YCbCrA işleme için kullanılan renk uzayı"
+
+
+msgid "ITU 601"
+msgstr "İTÜ 601"
+
+
+msgid "ITU 709"
+msgstr "İTÜ 709"
+
+
+msgid "JPEG"
+msgstr "JPEG"
 
 
 msgid "Convert Colorspace"
@@ -38349,52 +38261,12 @@ msgid "Create matte based on 3D distance between colors"
 msgstr "Renkler arasındaki 3B mesafeye dayalı mat oluşturun"
 
 
-msgid "RGB color space"
-msgstr "RGB renk uzayı"
-
-
-msgid "YCbCr suppression"
-msgstr "YCbCr baskılanması"
-
-
 msgid "Double Edge Mask"
 msgstr "Çift Kenarlı Maske"
 
 
 msgid "Create a gradient between two masks"
 msgstr "İki maske arasında bir degrade oluşturun"
-
-
-msgid "Buffer Edge Mode"
-msgstr "Arabellek Kenar Modu"
-
-
-msgid "Bleed Out"
-msgstr "Kanama"
-
-
-msgid "Allow mask pixels to bleed along edges"
-msgstr "Maske piksellerinin kenarlar boyunca sızmasına izin ver"
-
-
-msgid "Keep In"
-msgstr "İçeride Tut"
-
-
-msgid "Restrict mask pixels from touching edges"
-msgstr "Maske piksellerinin kenarlara dokunmasını kısıtla"
-
-
-msgid "Inner Edge Mode"
-msgstr "İç Kenar Modu"
-
-
-msgid "All pixels on inner mask edge are considered during mask calculation"
-msgstr "Maske hesaplaması sırasında iç maske kenarındaki tüm pikseller dikkate alınır"
-
-
-msgid "Adjacent Only"
-msgstr "Sadece bitişik"
 
 
 msgid "Ellipse Mask"
@@ -38549,26 +38421,6 @@ msgid "Convert to and from premultiplied (associated) alpha"
 msgstr "Önceden çarpılmış (ilişkili) alfa'ya dönüştür ve ondan al"
 
 
-msgid "Conversion between premultiplied alpha and key alpha"
-msgstr "Önceden çarpılmış alfa ile anahtar alfa arasındaki dönüşüm"
-
-
-msgid "To Premultiplied"
-msgstr "Önceden çarpılmış"
-
-
-msgid "Convert straight to premultiplied"
-msgstr "Doğrudan önceden çarpılmışa dönüştür"
-
-
-msgid "To Straight"
-msgstr "Düz"
-
-
-msgid "Convert premultiplied to straight"
-msgstr "Ön çarpımı düz sayıya dönüştür"
-
-
 msgid "A color picker"
 msgstr "Bir renk seçici"
 
@@ -38627,22 +38479,6 @@ msgstr "Alfa Ayarı"
 
 msgid "Add an alpha channel to an image"
 msgstr "Bir görüntüye alfa kanalı ekleyin"
-
-
-msgid "Apply Mask"
-msgstr "Maske Uygula"
-
-
-msgid "Multiply the input image's RGBA channels by the alpha input value"
-msgstr "Giriş görüntüsünün RGBA kanallarını alfa giriş değeriyle çarpın"
-
-
-msgid "Replace Alpha"
-msgstr "Alfa'yı Değiştir"
-
-
-msgid "Replace the input image's alpha channel by the alpha input value"
-msgstr "Giriş görüntüsünün alfa kanalını alfa giriş değeriyle değiştirin"
 
 
 msgid "Stabilize 2D"
@@ -42333,10 +42169,6 @@ msgid "Height from sea level"
 msgstr "Deniz seviyesinden yüksekliği"
 
 
-msgid "Dust"
-msgstr "Toz"
-
-
 msgid "Ozone"
 msgstr "Ozon"
 
@@ -42347,14 +42179,6 @@ msgstr "Gökyüzü Tipi"
 
 msgid "Which sky model should be used"
 msgstr "Hangi gökyüzü modeli kullanılmalı"
-
-
-msgid "Nishita"
-msgstr "Nishita"
-
-
-msgid "Nishita 1993 improved"
-msgstr "Nishita 1993 geliştirildi"
 
 
 msgid "Sun Disc"
@@ -42375,10 +42199,6 @@ msgstr "Güneşin ufuktan açısı"
 
 msgid "Sun Intensity"
 msgstr "Güneş Yoğunluğu"
-
-
-msgid "Strength of sun"
-msgstr "Güneşin gücü"
 
 
 msgid "Sun Rotation"
@@ -42918,6 +42738,10 @@ msgstr "Düğüm tabanlı dokular için, hangi düğümün kullanılacağını �
 
 msgid "Value to Normal"
 msgstr "Değer Normal"
+
+
+msgid "Single"
+msgstr "Bekar"
 
 
 msgid "Enum Item"
@@ -90913,6 +90737,18 @@ msgid "Correction Method"
 msgstr "Düzeltme Yöntemi"
 
 
+msgid "Lift/Gamma/Gain"
+msgstr "Kaldırma/Gama/Kazanç"
+
+
+msgid "Offset/Power/Slope (ASC-CDL)"
+msgstr "Ofset/Güç/Eğim (ASC-CDL)"
+
+
+msgid "ASC-CDL standard color correction"
+msgstr "ASC-CDL standart renk düzeltmesi"
+
+
 msgid "Color balance gain (highlights)"
 msgstr "Renk dengesi kazanımı (vurgular)"
 
@@ -105300,11 +105136,6 @@ msgstr "Tümünü Yenile"
 
 
 msgctxt "Operator"
-msgid "Sequence Render Animation"
-msgstr "Sekans Sunumu Canlandırması"
-
-
-msgctxt "Operator"
 msgid "Toggle Sequencer/Preview"
 msgstr "Sıralayıcıyı/Önizlemeyi Değiştir"
 
@@ -105444,11 +105275,6 @@ msgstr "Pencerede Önizleme Sığdır"
 
 msgid "Auto Zoom"
 msgstr "Otomatik Yakınlaştırma"
-
-
-msgctxt "Operator"
-msgid "Sequence Render Image"
-msgstr "Sekans Görseli Sun"
 
 
 msgctxt "Operator"
@@ -106600,16 +106426,6 @@ msgstr "Perspektif/Ortografik"
 
 
 msgctxt "Operator"
-msgid "Viewport Render Image"
-msgstr "Görüş Alanı Görseli Sun"
-
-
-msgctxt "Operator"
-msgid "Viewport Render Keyframes"
-msgstr "Görünüm Alanı Render Anahtar Kareleri"
-
-
-msgctxt "Operator"
 msgid "Toggle Local View"
 msgstr "Yerel Görünümü Değiştir"
 
@@ -107727,11 +107543,6 @@ msgstr "Görünümden Proje (Sınırlar)"
 
 
 msgctxt "Operator"
-msgid "Viewport Render Animation"
-msgstr "Görüş Alanı Sunumu Canlandırması"
-
-
-msgctxt "Operator"
 msgid "Roll Left"
 msgstr "Sola doğru yuvarla"
 
@@ -107769,11 +107580,6 @@ msgstr "Sonraki Blok"
 msgctxt "Operator"
 msgid "Armature"
 msgstr "Armatür"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Dış Kafes"
 
 
 msgctxt "Operator"
@@ -112392,12 +112198,12 @@ msgid "No mesh data to join"
 msgstr "Birleştirilecek ağ verisi yok"
 
 
-msgid "No additional selected meshes with equal vertex count to join"
-msgstr "Birleştirilecek eşit tepe noktası sayısına sahip ek seçili ağ yok"
-
-
 msgid "Joining results in %d vertices, limit is %ld"
 msgstr "Birleştirme sonuçları %d köşeye ulaşır, sınır %ld'dir"
+
+
+msgid "No additional selected meshes with equal vertex count to join"
+msgstr "Birleştirilecek eşit tepe noktası sayısına sahip ek seçili ağ yok"
 
 
 msgid "Delete selected metaball elements?"
@@ -119649,24 +119455,8 @@ msgid "Bright"
 msgstr "Parlak"
 
 
-msgid "Color Space:"
-msgstr "Renk uzayı:"
-
-
-msgid "Key Channel:"
-msgstr "Ana Kanal:"
-
-
-msgid "Limiting Channel:"
-msgstr "Sınırlayıcı Kanal:"
-
-
 msgid "Key Color"
 msgstr "Anahtar Renk"
-
-
-msgid "Despill Channel:"
-msgstr "Despill Kanalı:"
 
 
 msgid "Correction for shadows"
@@ -119755,14 +119545,6 @@ msgstr "Resim 1"
 
 msgid "Image 2"
 msgstr "Resim 2"
-
-
-msgid "Inner Edge:"
-msgstr "İç Kenar:"
-
-
-msgid "Buffer Edge:"
-msgstr "Arabellek Kenarı:"
 
 
 msgid "Inner Mask"

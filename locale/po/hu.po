@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-15 07:14+0000\n"
+"POT-Creation-Date: 2025-09-22 08:45+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: Balázs Füvesi <fuvesib@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -1314,7 +1314,7 @@ msgid "Enabled"
 msgstr "Engedélyezett"
 
 
-msgid "Display Device"
+msgid "Display"
 msgstr "Kijelző"
 
 
@@ -1348,6 +1348,10 @@ msgstr "Görbék használata"
 
 msgid "Use RGB curved for pre-display transformation"
 msgstr "RGB görbék használata az előzetes-megjelenítés taranszformációhoz"
+
+
+msgid "View"
+msgstr "Nézet"
 
 
 msgid "Mix"
@@ -2945,10 +2949,6 @@ msgstr "Felosztás"
 
 msgid "Plane"
 msgstr "Síklap"
-
-
-msgid "View"
-msgstr "Nézet"
 
 
 msgid "Radius"
@@ -5244,10 +5244,6 @@ msgid "Simple"
 msgstr "Egyszerű"
 
 
-msgid "Display"
-msgstr "Kijelző"
-
-
 msgid "Steps"
 msgstr "Lépések"
 
@@ -6738,6 +6734,11 @@ msgstr "Mentés & Betöltés"
 msgctxt "Operator"
 msgid "Parent"
 msgstr "Szülő"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Ketrec"
 
 
 msgid "Operator Presets"
@@ -16087,11 +16088,6 @@ msgstr "Éles"
 
 
 msgctxt "Operator"
-msgid "Lattice"
-msgstr "Ketrec"
-
-
-msgctxt "Operator"
 msgid "Add Active"
 msgstr "Aktív hozzáadása"
 
@@ -16959,10 +16955,6 @@ msgstr "Élek domborítása"
 
 msgid "Bright"
 msgstr "Fényerő"
-
-
-msgid "Color Space:"
-msgstr "Színtér:"
 
 
 msgid "Image 1"

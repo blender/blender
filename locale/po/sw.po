@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-15 07:14+0000\n"
+"POT-Creation-Date: 2025-09-22 08:45+0000\n"
 "PO-Revision-Date: 2025-07-23 15:16+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -1641,10 +1641,6 @@ msgstr "Hakuna Kuburuta Mali"
 
 msgid "Space Type"
 msgstr "Aina ya Nafasi"
-
-
-msgid "The space where the asset shelf is going to be used in"
-msgstr "Nafasi ambayo rafu ya mali itatumika"
 
 
 msgid "Preview Size"
@@ -6058,8 +6054,8 @@ msgid "Color management specific to display device"
 msgstr "Udhibiti wa rangi maalum wa kuonyesha kifaa"
 
 
-msgid "Display Device"
-msgstr "Onyesha Kifaa"
+msgid "Display"
+msgstr "Onyesho"
 
 
 msgid "Input color space settings"
@@ -6198,8 +6194,8 @@ msgid "Use RGB curved for pre-display transformation"
 msgstr "Tumia RGB iliyopinda kwa mabadiliko ya onyesho la awali"
 
 
-msgid "View Transform"
-msgstr "Tazama Mabadiliko"
+msgid "View"
+msgstr "Tazama"
 
 
 msgid "View used when converting image to a display space"
@@ -8858,10 +8854,6 @@ msgstr "Tanji kwa uso"
 
 msgid "Draw in the surface plane"
 msgstr "Chora kwenye bapa ya uso"
-
-
-msgid "View"
-msgstr "Tazama"
 
 
 msgid "Draw in a plane aligned to the viewport"
@@ -22386,10 +22378,6 @@ msgid "How particles are displayed in viewport"
 msgstr "Jinsi chembe zinavyoonyeshwa kwenye kituo cha kutazama"
 
 
-msgid "Display"
-msgstr "Onyesho"
-
-
 msgid "Percentage of particles to display in 3D view"
 msgstr "Asilimia ya chembe za kuonyesha katika mwonekano wa 3D"
 
@@ -28990,6 +28978,11 @@ msgstr "Mzazi"
 msgctxt "Operator"
 msgid "Empty"
 msgstr "Tupu"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Lati"
 
 
 msgid "Lightgroup Sync"
@@ -37201,56 +37194,12 @@ msgid "Channel Key"
 msgstr "Kitufe cha Chaneli"
 
 
-msgid "Limit by this channel's value"
-msgstr "Kikomo kwa thamani ya kituo hiki"
-
-
-msgid "Algorithm"
-msgstr "Kanuni"
-
-
-msgid "Algorithm to use to limit channel"
-msgstr "Algorithm ya kutumia kuweka kikomo cha kituo"
-
-
-msgid "Single"
-msgstr "Sijaoa"
-
-
-msgid "Limit by single channel"
-msgstr "Kikomo kwa chaneli moja"
-
-
-msgid "Limit by maximum of other channels"
-msgstr "Punguza kwa upeo wa chaneli zingine"
-
-
-msgid "Channel used to determine matte"
-msgstr "Chaneli inayotumika kubainisha matte"
-
-
 msgid "Chroma Key"
 msgstr "Ufunguo wa Chroma"
 
 
 msgid "Color Balance"
 msgstr "Mizani ya Rangi"
-
-
-msgid "Correction Formula"
-msgstr "Mfumo wa Kusahihisha"
-
-
-msgid "Lift/Gamma/Gain"
-msgstr "Lift/Gamma/Gein"
-
-
-msgid "Offset/Power/Slope (ASC-CDL)"
-msgstr "Kupunguza/Nguvu/Mteremko (ASC-CDL)"
-
-
-msgid "ASC-CDL standard color correction"
-msgstr "Marekebisho ya kawaida ya rangi ya ASC-CDL"
 
 
 msgid "Color Correction"
@@ -37263,38 +37212,6 @@ msgstr "Ufunguo wa Rangi"
 
 msgid "Color Spill"
 msgstr "Kumwagika kwa Rangi"
-
-
-msgid "Red spill suppression"
-msgstr "Ukandamizaji wa kumwagika nyekundu"
-
-
-msgid "Green spill suppression"
-msgstr "Ukandamizaji wa kumwagika kwa kijani"
-
-
-msgid "Blue spill suppression"
-msgstr "Ukandamizaji wa kumwagika kwa bluu"
-
-
-msgid "Limit by red"
-msgstr "Kikomo kwa nyekundu"
-
-
-msgid "Limit by green"
-msgstr "Kikomo kwa kijani"
-
-
-msgid "Limit by blue"
-msgstr "Kikomo kwa bluu"
-
-
-msgid "Simple limit algorithm"
-msgstr "Kanuni rahisi ya kikomo"
-
-
-msgid "Average limit algorithm"
-msgstr "Kiwango cha wastani cha kanuni"
 
 
 msgid "Combine Color"
@@ -37517,52 +37434,8 @@ msgid "Distance Key"
 msgstr "Ufunguo wa Umbali"
 
 
-msgid "RGB color space"
-msgstr "Nafasi ya rangi ya RGB"
-
-
-msgid "YCbCr suppression"
-msgstr "Ukandamizaji wa YCbCr"
-
-
 msgid "Double Edge Mask"
 msgstr "Mask ya Makali Mawili"
-
-
-msgid "Buffer Edge Mode"
-msgstr "Hali ya Buffer Edge"
-
-
-msgid "Bleed Out"
-msgstr "Kutokwa na damu"
-
-
-msgid "Allow mask pixels to bleed along edges"
-msgstr "Ruhusu pikseli za barakoa zimwage damu kingo"
-
-
-msgid "Keep In"
-msgstr "Endelea"
-
-
-msgid "Restrict mask pixels from touching edges"
-msgstr "Zuia saizi za barakoa kutoka kwa kingo za kugusa"
-
-
-msgid "Inner Edge Mode"
-msgstr "Njia ya Ukingo wa Ndani"
-
-
-msgid "All pixels on inner mask edge are considered during mask calculation"
-msgstr "Pikseli zote kwenye ukingo wa mask ya ndani huzingatiwa wakati wa kuhesabu mask"
-
-
-msgid "Adjacent Only"
-msgstr "Karibu Pekee"
-
-
-msgid "Only inner mask pixels adjacent to outer mask pixels are considered during mask calculation"
-msgstr "Ni saizi za kinyago cha ndani pekee zilizo karibu na saizi za kinyago cha nje ndizo huzingatiwa wakati wa kuhesabu barakoa."
 
 
 msgid "Ellipse Mask"
@@ -37653,26 +37526,6 @@ msgid "Alpha Convert"
 msgstr "Badilisha Alpha"
 
 
-msgid "Conversion between premultiplied alpha and key alpha"
-msgstr "Ubadilishaji kati ya alfa iliyozidishwa na alfa muhimu"
-
-
-msgid "To Premultiplied"
-msgstr "Kuzidisha Awali"
-
-
-msgid "Convert straight to premultiplied"
-msgstr "Geuza moja kwa moja hadi kuzidishwa"
-
-
-msgid "To Straight"
-msgstr "Kwa Moja kwa Moja"
-
-
-msgid "Convert premultiplied to straight"
-msgstr "Badilisha iliyozidishwa kuwa moja kwa moja"
-
-
 msgid "A color picker"
 msgstr "Kiteua rangi"
 
@@ -37703,22 +37556,6 @@ msgstr "Rangi Tofauti"
 
 msgid "Set Alpha"
 msgstr "Weka Alfa"
-
-
-msgid "Apply Mask"
-msgstr "Weka Mask"
-
-
-msgid "Multiply the input image's RGBA channels by the alpha input value"
-msgstr "Zidisha chaneli za RGBA za taswira kwa thamani ya ingizo ya alpha"
-
-
-msgid "Replace Alpha"
-msgstr "Badilisha Alfa"
-
-
-msgid "Replace the input image's alpha channel by the alpha input value"
-msgstr "Badilisha chaneli ya alfa ya taswira kwa thamani ya ingizo ya alfa"
 
 
 msgid "Stabilize 2D"
@@ -41233,10 +41070,6 @@ msgid "Height from sea level"
 msgstr "Urefu kutoka usawa wa bahari"
 
 
-msgid "Dust"
-msgstr "Vumbi"
-
-
 msgid "Ozone"
 msgstr "Ozoni"
 
@@ -41247,10 +41080,6 @@ msgstr "Aina ya Anga"
 
 msgid "Which sky model should be used"
 msgstr "Ni mfano gani wa anga unapaswa kutumika"
-
-
-msgid "Nishita 1993 improved"
-msgstr "Nishita 1993 kuboreshwa"
 
 
 msgid "Sun Disc"
@@ -41271,10 +41100,6 @@ msgstr "Pembe ya jua kutoka kwenye upeo wa macho"
 
 msgid "Sun Intensity"
 msgstr "Ukali wa Jua"
-
-
-msgid "Strength of sun"
-msgstr "Nguvu ya jua"
 
 
 msgid "Sun Rotation"
@@ -41801,6 +41626,10 @@ msgstr "Kwa maandishi ya msingi wa nodi, ambayo nodi ya pato la kutumia"
 
 msgid "Value to Normal"
 msgstr "Thamani kwa Kawaida"
+
+
+msgid "Single"
+msgstr "Sijaoa"
 
 
 msgid "Enum Item"
@@ -85731,6 +85560,18 @@ msgid "Correction Method"
 msgstr "Njia ya Kurekebisha"
 
 
+msgid "Lift/Gamma/Gain"
+msgstr "Lift/Gamma/Gein"
+
+
+msgid "Offset/Power/Slope (ASC-CDL)"
+msgstr "Kupunguza/Nguvu/Mteremko (ASC-CDL)"
+
+
+msgid "ASC-CDL standard color correction"
+msgstr "Marekebisho ya kawaida ya rangi ya ASC-CDL"
+
+
 msgid "Color balance gain (highlights)"
 msgstr "Faida ya usawa wa rangi (mambo muhimu)"
 
@@ -97716,11 +97557,6 @@ msgstr "Onyesha upya Wote"
 
 
 msgctxt "Operator"
-msgid "Sequence Render Animation"
-msgstr "Mfuatano wa Kutoa Uhuishaji"
-
-
-msgctxt "Operator"
 msgid "Toggle Sequencer/Preview"
 msgstr "Geuza Sequencer/Preview"
 
@@ -97856,11 +97692,6 @@ msgstr "Hakiki Wakati wa Kubadilisha"
 msgctxt "Operator"
 msgid "Fit Preview in Window"
 msgstr "Onyesho la Kuchungulia la Fit kwenye Dirisha"
-
-
-msgctxt "Operator"
-msgid "Sequence Render Image"
-msgstr "Taswira ya Utoaji wa Mfuatano"
 
 
 msgctxt "Operator"
@@ -98630,16 +98461,6 @@ msgstr "Mshale kwa Active"
 msgctxt "Operator"
 msgid "Perspective/Orthographic"
 msgstr "Mtazamo/Othografia"
-
-
-msgctxt "Operator"
-msgid "Viewport Render Image"
-msgstr "Taswira ya Kutoa Viewport"
-
-
-msgctxt "Operator"
-msgid "Viewport Render Keyframes"
-msgstr "Fremu Muhimu za Kutoa Viewport"
 
 
 msgctxt "Operator"
@@ -99440,11 +99261,6 @@ msgstr "Mradi kutoka kwa Mwonekano (Mipaka)"
 
 
 msgctxt "Operator"
-msgid "Viewport Render Animation"
-msgstr "Uhuishaji wa Kutoa Mtazamo"
-
-
-msgctxt "Operator"
 msgid "Roll Left"
 msgstr "Pindisha Kushoto"
 
@@ -99482,11 +99298,6 @@ msgstr "Block Inayofuata"
 msgctxt "Operator"
 msgid "Armature"
 msgstr "Kukomaa"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Lati"
 
 
 msgctxt "Operator"
@@ -103675,12 +103486,12 @@ msgid "No mesh data to join"
 msgstr "Hakuna data ya matundu ya kujiunga"
 
 
-msgid "No additional selected meshes with equal vertex count to join"
-msgstr "Hakuna matundu ya ziada yaliyochaguliwa yenye hesabu sawa ya kipeo cha kujiunga"
-
-
 msgid "Joining results in %d vertices, limit is %ld"
 msgstr "Kuunganisha matokeo katika wima %d, kikomo ni %ld"
+
+
+msgid "No additional selected meshes with equal vertex count to join"
+msgstr "Hakuna matundu ya ziada yaliyochaguliwa yenye hesabu sawa ya kipeo cha kujiunga"
 
 
 msgid "Loading Asset Libraries"
@@ -110439,18 +110250,6 @@ msgid "Bright"
 msgstr "Mkali"
 
 
-msgid "Color Space:"
-msgstr "Nafasi ya Rangi:"
-
-
-msgid "Key Channel:"
-msgstr "Mkondo Muhimu:"
-
-
-msgid "Limiting Channel:"
-msgstr "Mkondo wa Kupunguza:"
-
-
 msgid "Key Color"
 msgstr "Rangi Muhimu"
 
@@ -110509,14 +110308,6 @@ msgstr "Picha ya 1"
 
 msgid "Image 2"
 msgstr "Picha ya 2"
-
-
-msgid "Inner Edge:"
-msgstr "Ukingo wa Ndani:"
-
-
-msgid "Buffer Edge:"
-msgstr "Ukingo wa Buffer:"
 
 
 msgid "Inner Mask"

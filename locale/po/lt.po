@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-15 07:14+0000\n"
+"POT-Creation-Date: 2025-09-22 08:45+0000\n"
 "PO-Revision-Date: 2025-07-23 15:18+0000\n"
 "Last-Translator: Aras Pranckevičius <aras@nesnausk.org>\n"
 "Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
@@ -789,10 +789,6 @@ msgid "Space Type"
 msgstr "Zonos tipas"
 
 
-msgid "The space where the asset shelf is going to be used in"
-msgstr "Zona kur naudojama išteklių lentyna"
-
-
 msgid "Display Filter"
 msgstr "Rodymo filtras"
 
@@ -1431,6 +1427,10 @@ msgid "Color space that the sequencer operates in"
 msgstr "Vaizdo montavimo spalvų erdvė"
 
 
+msgid "View"
+msgstr "Rodymas"
+
+
 msgid "Temperature"
 msgstr "Temperatūra"
 
@@ -1550,10 +1550,6 @@ msgstr "Gylis"
 
 msgid "Surface"
 msgstr "Paviršius"
-
-
-msgid "View"
-msgstr "Rodymas"
 
 
 msgid "Radius"

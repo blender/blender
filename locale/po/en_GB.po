@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-15 07:14+0000\n"
+"POT-Creation-Date: 2025-09-22 08:45+0000\n"
 "PO-Revision-Date: 2025-07-23 14:59+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -2051,10 +2051,6 @@ msgstr "Store the shelf's enabled catalogs in the preferences rather than the lo
 
 msgid "Space Type"
 msgstr "Space Type"
-
-
-msgid "The space where the asset shelf is going to be used in"
-msgstr "The space where the asset shelf is going to be used in"
 
 
 msgid "Preview Size"
@@ -7248,8 +7244,8 @@ msgid "Color management specific to display device"
 msgstr "Colour management specific to display device"
 
 
-msgid "Display Device"
-msgstr "Display Device"
+msgid "Display"
+msgstr "Display"
 
 
 msgid "Input color space settings"
@@ -7452,8 +7448,8 @@ msgid "Perform chromatic adaption from a different white point"
 msgstr "Perform chromatic adaption from a different white point"
 
 
-msgid "View Transform"
-msgstr "View Transform"
+msgid "View"
+msgstr "View"
 
 
 msgid "View used when converting image to a display space"
@@ -10353,10 +10349,6 @@ msgstr "Tangent to Surface"
 
 msgid "Draw in the surface plane"
 msgstr "Draw in the surface plane"
-
-
-msgid "View"
-msgstr "View"
 
 
 msgid "Draw in a plane aligned to the viewport"
@@ -26255,10 +26247,6 @@ msgid "Axis"
 msgstr "Axis"
 
 
-msgid "Display"
-msgstr "Display"
-
-
 msgid "Percentage of particles to display in 3D view"
 msgstr "Percentage of particles to display in 3D view"
 
@@ -34097,6 +34085,18 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
+msgid "Toggle Bone Options"
+msgstr "Toggle Bone Options"
+
+
+msgid "Enable Bone Options"
+msgstr "Enable Bone Options"
+
+
+msgid "Disable Bone Options"
+msgstr "Disable Bone Options"
+
+
 msgid "Mesh Select Mode"
 msgstr "Mesh Select Mode"
 
@@ -34315,18 +34315,6 @@ msgstr "Propagate"
 
 msgid "Bone Collections"
 msgstr "Bone Collections"
-
-
-msgid "Toggle Bone Options"
-msgstr "Toggle Bone Options"
-
-
-msgid "Enable Bone Options"
-msgstr "Enable Bone Options"
-
-
-msgid "Disable Bone Options"
-msgstr "Disable Bone Options"
 
 
 msgid "Keyframe Insert Pie"
@@ -34947,6 +34935,11 @@ msgstr "Parent"
 msgctxt "Operator"
 msgid "Empty"
 msgstr "Empty"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Lattice"
 
 
 msgctxt "Constraint"
@@ -44026,68 +44019,6 @@ msgid "Create matte based on differences in color channels"
 msgstr "Create matte based on differences in color channels"
 
 
-msgid "RGB (Red, Green, Blue) color space"
-msgstr "RGB (Red, Green, Blue) color space"
-
-
-msgid "HSV (Hue, Saturation, Value) color space"
-msgstr "HSV (Hue, Saturation, Value) color space"
-
-
-msgid "YUV"
-msgstr "YUV"
-
-
-msgid "YUV (Y - luma, U V - chroma) color space"
-msgstr "YUV (Y - luma, U V - chroma) color space"
-
-
-msgid "YCbCr"
-msgstr "YCbCr"
-
-
-msgid "YCbCr (Y - luma, Cb - blue-difference chroma, Cr - red-difference chroma) color space"
-msgstr "YCbCr (Y - luma, Cb - blue-difference chroma, Cr - red-difference chroma) color space"
-
-
-msgctxt "Color"
-msgid "Limit Channel"
-msgstr "Limit Channel"
-
-
-msgid "Limit by this channel's value"
-msgstr "Limit by this channel's value"
-
-
-msgid "Algorithm"
-msgstr "Algorithm"
-
-
-msgid "Algorithm to use to limit channel"
-msgstr "Algorithm to use to limit channel"
-
-
-msgid "Single"
-msgstr "Single"
-
-
-msgid "Limit by single channel"
-msgstr "Limit by single channel"
-
-
-msgid "Limit by maximum of other channels"
-msgstr "Limit by maximum of other channels"
-
-
-msgctxt "Color"
-msgid "Channel"
-msgstr "Channel"
-
-
-msgid "Channel used to determine matte"
-msgstr "Channel used to determine matte"
-
-
 msgid "Chroma Key"
 msgstr "Chroma Key"
 
@@ -44102,26 +44033,6 @@ msgstr "Color Balance"
 
 msgid "Adjust color and values"
 msgstr "Adjust color and values"
-
-
-msgid "Correction Formula"
-msgstr "Correction Formula"
-
-
-msgid "Lift/Gamma/Gain"
-msgstr "Lift/Gamma/Gain"
-
-
-msgid "Offset/Power/Slope (ASC-CDL)"
-msgstr "Offset/Power/Slope (ASC-CDL)"
-
-
-msgid "ASC-CDL standard color correction"
-msgstr "ASC-CDL standard color correction"
-
-
-msgid "Chromatic adaption from a different white point"
-msgstr "Chromatic adaption from a different white point"
 
 
 msgid "Input White Point"
@@ -44160,50 +44071,6 @@ msgid "Remove colors from a blue or green screen, by reducing one RGB channel co
 msgstr "Remove colours from a blue or green screen, by reducing one RGB channel compared to the others"
 
 
-msgid "Red spill suppression"
-msgstr "Red spill suppression"
-
-
-msgid "Green spill suppression"
-msgstr "Green spill suppression"
-
-
-msgid "Blue spill suppression"
-msgstr "Blue spill suppression"
-
-
-msgid "Limit by red"
-msgstr "Limit by red"
-
-
-msgid "Limit by green"
-msgstr "Limit by green"
-
-
-msgid "Limit by blue"
-msgstr "Limit by blue"
-
-
-msgid "Simple limit algorithm"
-msgstr "Simple limit algorithm"
-
-
-msgid "Average limit algorithm"
-msgstr "Average limit algorithm"
-
-
-msgid "ITU 601"
-msgstr "ITU 601"
-
-
-msgid "ITU 709"
-msgstr "ITU 709"
-
-
-msgid "JPEG"
-msgstr "JPEG"
-
-
 msgid "Combine Color"
 msgstr "Combine Color"
 
@@ -44228,8 +44095,16 @@ msgid "Use HSL (Hue, Saturation, Lightness) color processing"
 msgstr "Use HSL (Hue, Saturation, Lightness) color processing"
 
 
+msgid "YCbCr"
+msgstr "YCbCr"
+
+
 msgid "Use YCbCr (Y - luma, Cb - blue-difference chroma, Cr - red-difference chroma) color processing"
 msgstr "Use YCbCr (Y - luma, Cb - blue-difference chroma, Cr - red-difference chroma) color processing"
+
+
+msgid "YUV"
+msgstr "YUV"
 
 
 msgid "Use YUV (Y - luma, U V - chroma) color processing"
@@ -44238,6 +44113,18 @@ msgstr "Use YUV (Y - luma, U V - chroma) color processing"
 
 msgid "Color space used for YCbCrA processing"
 msgstr "Color space used for YCbCrA processing"
+
+
+msgid "ITU 601"
+msgstr "ITU 601"
+
+
+msgid "ITU 709"
+msgstr "ITU 709"
+
+
+msgid "JPEG"
+msgstr "JPEG"
 
 
 msgid "Convert Colorspace"
@@ -44528,56 +44415,12 @@ msgid "Create matte based on 3D distance between colors"
 msgstr "Create matte based on 3D distance between colors"
 
 
-msgid "RGB color space"
-msgstr "RGB color space"
-
-
-msgid "YCbCr suppression"
-msgstr "YCbCr suppression"
-
-
 msgid "Double Edge Mask"
 msgstr "Double Edge Mask"
 
 
 msgid "Create a gradient between two masks"
 msgstr "Create a gradient between two masks"
-
-
-msgid "Buffer Edge Mode"
-msgstr "Buffer Edge Mode"
-
-
-msgid "Bleed Out"
-msgstr "Bleed Out"
-
-
-msgid "Allow mask pixels to bleed along edges"
-msgstr "Allow mask pixels to bleed along edges"
-
-
-msgid "Keep In"
-msgstr "Keep In"
-
-
-msgid "Restrict mask pixels from touching edges"
-msgstr "Restrict mask pixels from touching edges"
-
-
-msgid "Inner Edge Mode"
-msgstr "Inner Edge Mode"
-
-
-msgid "All pixels on inner mask edge are considered during mask calculation"
-msgstr "All pixels on inner mask edge are considered during mask calculation"
-
-
-msgid "Adjacent Only"
-msgstr "Adjacent Only"
-
-
-msgid "Only inner mask pixels adjacent to outer mask pixels are considered during mask calculation"
-msgstr "Only inner mask pixels adjacent to outer mask pixels are considered during mask calculation"
 
 
 msgid "Ellipse Mask"
@@ -44780,26 +44623,6 @@ msgid "Convert to and from premultiplied (associated) alpha"
 msgstr "Convert to and from premultiplied (associated) alpha"
 
 
-msgid "Conversion between premultiplied alpha and key alpha"
-msgstr "Conversion between premultiplied alpha and key alpha"
-
-
-msgid "To Premultiplied"
-msgstr "To Premultiplied"
-
-
-msgid "Convert straight to premultiplied"
-msgstr "Convert straight to premultiplied"
-
-
-msgid "To Straight"
-msgstr "To Straight"
-
-
-msgid "Convert premultiplied to straight"
-msgstr "Convert premultiplied to straight"
-
-
 msgid "A color picker"
 msgstr "A color picker"
 
@@ -44858,22 +44681,6 @@ msgstr "Set Alpha"
 
 msgid "Add an alpha channel to an image"
 msgstr "Add an alpha channel to an image"
-
-
-msgid "Apply Mask"
-msgstr "Apply Mask"
-
-
-msgid "Multiply the input image's RGBA channels by the alpha input value"
-msgstr "Multiply the input image's RGBA channels by the alpha input value"
-
-
-msgid "Replace Alpha"
-msgstr "Replace Alpha"
-
-
-msgid "Replace the input image's alpha channel by the alpha input value"
-msgstr "Replace the input image's alpha channel by the alpha input value"
 
 
 msgid "Combine two images for side-by-side display. Typically used in combination with a Viewer node"
@@ -49555,18 +49362,6 @@ msgid "Air"
 msgstr "Air"
 
 
-msgid ""
-"Density of air molecules.\n"
-"• 0 - No air.\n"
-"• 1 - Clear day atmosphere.\n"
-"• 2 - Highly polluted day"
-msgstr ""
-"Density of air molecules.\n"
-"• 0 - No air.\n"
-"• 1 - Clear day atmosphere.\n"
-"• 2 - Highly polluted day"
-
-
 msgid "Altitude"
 msgstr "Altitude"
 
@@ -49575,38 +49370,8 @@ msgid "Height from sea level"
 msgstr "Height from sea level"
 
 
-msgid "Dust"
-msgstr "Dust"
-
-
-msgid ""
-"Density of dust molecules and water droplets.\n"
-"• 0 - No dust.\n"
-"• 1 - Clear day atmosphere.\n"
-"• 5 - City like atmosphere.\n"
-"• 10 - Hazy day"
-msgstr ""
-"Density of dust molecules and water droplets.\n"
-"• 0 - No dust.\n"
-"• 1 - Clear day atmosphere.\n"
-"• 5 - City like atmosphere.\n"
-"• 10 - Hazy day"
-
-
 msgid "Ozone"
 msgstr "Ozone"
-
-
-msgid ""
-"Density of ozone layer.\n"
-"• 0 - No ozone.\n"
-"• 1 - Clear day atmosphere.\n"
-"• 2 - City like atmosphere"
-msgstr ""
-"Density of ozone layer.\n"
-"• 0 - No ozone.\n"
-"• 1 - Clear day atmosphere.\n"
-"• 2 - City like atmosphere"
 
 
 msgid "Sky Type"
@@ -49615,14 +49380,6 @@ msgstr "Sky Type"
 
 msgid "Which sky model should be used"
 msgstr "Which sky model should be used"
-
-
-msgid "Nishita"
-msgstr "Nishita"
-
-
-msgid "Nishita 1993 improved"
-msgstr "Nishita 1993 improved"
 
 
 msgid "Sun Disc"
@@ -49643,10 +49400,6 @@ msgstr "Sun angle from horizon"
 
 msgid "Sun Intensity"
 msgstr "Sun Intensity"
-
-
-msgid "Strength of sun"
-msgstr "Strength of sun"
 
 
 msgid "Sun Rotation"
@@ -50270,6 +50023,10 @@ msgstr "Value to Normal"
 
 msgid "Closure Input Item"
 msgstr "Closure Input Item"
+
+
+msgid "Single"
+msgstr "Single"
 
 
 msgid "Closure Input Items"
@@ -104701,6 +104458,18 @@ msgid "Correction Method"
 msgstr "Correction Method"
 
 
+msgid "Lift/Gamma/Gain"
+msgstr "Lift/Gamma/Gain"
+
+
+msgid "Offset/Power/Slope (ASC-CDL)"
+msgstr "Offset/Power/Slope (ASC-CDL)"
+
+
+msgid "ASC-CDL standard color correction"
+msgstr "ASC-CDL standard color correction"
+
+
 msgid "Color balance gain (highlights)"
 msgstr "Color balance gain (highlights)"
 
@@ -120723,11 +120492,6 @@ msgstr "Refresh All"
 
 
 msgctxt "Operator"
-msgid "Sequence Render Animation"
-msgstr "Sequence Render Animation"
-
-
-msgctxt "Operator"
 msgid "Toggle Sequencer/Preview"
 msgstr "Toggle Sequencer/Preview"
 
@@ -120871,11 +120635,6 @@ msgstr "Fit Preview in Window"
 
 msgid "Auto Zoom"
 msgstr "Auto Zoom"
-
-
-msgctxt "Operator"
-msgid "Sequence Render Image"
-msgstr "Sequence Render Image"
 
 
 msgctxt "Operator"
@@ -122135,16 +121894,6 @@ msgstr "Perspective/Orthographic"
 
 
 msgctxt "Operator"
-msgid "Viewport Render Image"
-msgstr "Viewport Render Image"
-
-
-msgctxt "Operator"
-msgid "Viewport Render Keyframes"
-msgstr "Viewport Render Keyframes"
-
-
-msgctxt "Operator"
 msgid "Toggle Local View"
 msgstr "Toggle Local View"
 
@@ -123320,11 +123069,6 @@ msgstr "Frame Last Stroke"
 
 
 msgctxt "Operator"
-msgid "Viewport Render Animation"
-msgstr "Viewport Render Animation"
-
-
-msgctxt "Operator"
 msgid "Roll Left"
 msgstr "Roll Left"
 
@@ -123362,11 +123106,6 @@ msgstr "Next Block"
 msgctxt "Operator"
 msgid "Armature"
 msgstr "Armature"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Lattice"
 
 
 msgctxt "Operator"
@@ -129062,12 +128801,12 @@ msgid "No mesh data to join"
 msgstr "No mesh data to join"
 
 
-msgid "No additional selected meshes with equal vertex count to join"
-msgstr "No additional selected meshes with equal vertex count to join"
-
-
 msgid "Joining results in %d vertices, limit is %ld"
 msgstr "Joining results in %d vertices, limit is %ld"
+
+
+msgid "No additional selected meshes with equal vertex count to join"
+msgstr "No additional selected meshes with equal vertex count to join"
 
 
 msgid "Delete selected metaball elements?"
@@ -137876,24 +137615,8 @@ msgid "Bright"
 msgstr "Bright"
 
 
-msgid "Color Space:"
-msgstr "Color Space:"
-
-
-msgid "Key Channel:"
-msgstr "Key Channel:"
-
-
-msgid "Limiting Channel:"
-msgstr "Limiting Channel:"
-
-
 msgid "Key Color"
 msgstr "Key Color"
-
-
-msgid "Despill Channel:"
-msgstr "Despill Channel:"
 
 
 msgid "Correction for shadows"
@@ -137998,14 +137721,6 @@ msgstr "Image 1"
 
 msgid "Image 2"
 msgstr "Image 2"
-
-
-msgid "Inner Edge:"
-msgstr "Inner Edge:"
-
-
-msgid "Buffer Edge:"
-msgstr "Buffer Edge:"
 
 
 msgid "Inner Mask"

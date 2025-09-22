@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-15 07:14+0000\n"
+"POT-Creation-Date: 2025-09-22 08:45+0000\n"
 "PO-Revision-Date: 2025-07-23 15:02+0000\n"
 "Last-Translator: Thomas Radeke <rahdick@gmx.de>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -5307,8 +5307,8 @@ msgid "Color management specific to display device"
 msgstr "Farbmanagement spezifisch für das Anzeigegerät"
 
 
-msgid "Display Device"
-msgstr "Darstellungsgerät"
+msgid "Display"
+msgstr "Anzeige"
 
 
 msgid "Input color space settings"
@@ -5379,8 +5379,8 @@ msgid "Use RGB curved for pre-display transformation"
 msgstr "RGB Kurven für die Vor-Darstellungstransformation verwenden"
 
 
-msgid "View Transform"
-msgstr "Anzeigetransformation"
+msgid "View"
+msgstr "Ansicht"
 
 
 msgid "View used when converting image to a display space"
@@ -7363,10 +7363,6 @@ msgstr "Radius Minimum"
 
 msgid "Plane"
 msgstr "Fläche"
-
-
-msgid "View"
-msgstr "Ansicht"
 
 
 msgid "Detect Corners"
@@ -14731,10 +14727,6 @@ msgid "Display Color"
 msgstr "Anzeigefarbe"
 
 
-msgid "Display"
-msgstr "Anzeige"
-
-
 msgid "Size of particles on viewport"
 msgstr "Größe der Partikel im Ansichtsfenster"
 
@@ -18731,6 +18723,18 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
+msgid "Toggle Bone Options"
+msgstr "Knochen-Optionen umschalten"
+
+
+msgid "Enable Bone Options"
+msgstr "Knochen-Optionen einschalten"
+
+
+msgid "Disable Bone Options"
+msgstr "Knochen-Optionen ausschalten"
+
+
 msgid "Mesh Select Mode"
 msgstr "Maschenauswahlmodus"
 
@@ -18901,18 +18905,6 @@ msgstr "Transformation löschen"
 
 msgid "In-Betweens"
 msgstr "Dazwischen"
-
-
-msgid "Toggle Bone Options"
-msgstr "Knochen-Optionen umschalten"
-
-
-msgid "Enable Bone Options"
-msgstr "Knochen-Optionen einschalten"
-
-
-msgid "Disable Bone Options"
-msgstr "Knochen-Optionen ausschalten"
 
 
 msgid "Assets"
@@ -19222,6 +19214,11 @@ msgstr "Speichern & Laden"
 msgctxt "Operator"
 msgid "Parent"
 msgstr "Elternteil"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Gitter"
 
 
 msgid "Clone Layer"
@@ -22941,52 +22938,12 @@ msgid "Channel Key"
 msgstr "Schlüsselkanal"
 
 
-msgid "YUV"
-msgstr "YUV"
-
-
-msgid "YCbCr"
-msgstr "YCbCr"
-
-
-msgid "Limit by this channel's value"
-msgstr "Begrenzung durch diesen Kanalwert"
-
-
-msgid "Algorithm"
-msgstr "Algorithmus"
-
-
-msgid "Algorithm to use to limit channel"
-msgstr "Algorithmus, der verwendet wird um den Kanal zu begrenzen"
-
-
-msgid "Single"
-msgstr "Einzelner"
-
-
-msgid "Limit by single channel"
-msgstr "Limitierung durch einzelnen Kanal"
-
-
-msgid "Limit by maximum of other channels"
-msgstr "Limitierung durch Maximum anderer Kanäle"
-
-
-msgid "Channel used to determine matte"
-msgstr "Kanal der verwendet wird, um die Maske zu bestimmen"
-
-
 msgid "Chroma Key"
 msgstr "Chroma Key"
 
 
 msgid "Color Balance"
 msgstr "Farbraum"
-
-
-msgid "Correction Formula"
-msgstr "Korrektion Formular"
 
 
 msgid "Color Correction"
@@ -23001,36 +22958,12 @@ msgid "Color Spill"
 msgstr "Farbüberfüllung"
 
 
-msgid "Red spill suppression"
-msgstr "Rot-Überlauf unterdrücken"
+msgid "YCbCr"
+msgstr "YCbCr"
 
 
-msgid "Green spill suppression"
-msgstr "Grün-Überlauf unterdrücken"
-
-
-msgid "Blue spill suppression"
-msgstr "Blau-Überlauf unterdrücken"
-
-
-msgid "Limit by red"
-msgstr "Limitiert durch Roth"
-
-
-msgid "Limit by green"
-msgstr "Limitiert durch Grün"
-
-
-msgid "Limit by blue"
-msgstr "Limitiert durch Blau"
-
-
-msgid "Simple limit algorithm"
-msgstr "Einfaches Limit Algorythmus"
-
-
-msgid "Average limit algorithm"
-msgstr "Durchschnittliches Limit Algorythmus"
+msgid "YUV"
+msgstr "YUV"
 
 
 msgid "ITU 601"
@@ -23173,44 +23106,8 @@ msgid "Distance Key"
 msgstr "Abstand"
 
 
-msgid "RGB color space"
-msgstr "RGB Farbraum"
-
-
-msgid "YCbCr suppression"
-msgstr "YCbCr Unterdrückung"
-
-
 msgid "Double Edge Mask"
 msgstr "Doppelte Kantenmaske"
-
-
-msgid "Buffer Edge Mode"
-msgstr "Pufferkanten-Modus"
-
-
-msgid "Bleed Out"
-msgstr "Außen auslaufen"
-
-
-msgid "Allow mask pixels to bleed along edges"
-msgstr "Erlaubt Maskenpixel entlang der Kante auszulaufen"
-
-
-msgid "Keep In"
-msgstr "Innen erhalten"
-
-
-msgid "Restrict mask pixels from touching edges"
-msgstr "Maskenpixel auf Kantenberührung begrenzen"
-
-
-msgid "Inner Edge Mode"
-msgstr "Innere-Kanten-Modus"
-
-
-msgid "Adjacent Only"
-msgstr "Nur angrenzende"
 
 
 msgid "Ellipse Mask"
@@ -23269,14 +23166,6 @@ msgid "Alpha Convert"
 msgstr "Umwandeln"
 
 
-msgid "Conversion between premultiplied alpha and key alpha"
-msgstr "Wechseln zwischen Premultply Alpha und Schlüsselfarben Alpha"
-
-
-msgid "To Straight"
-msgstr "Zur Geraden"
-
-
 msgid "RGB to BW"
 msgstr "RGB zu S/W"
 
@@ -23299,14 +23188,6 @@ msgstr "Szenenzeit"
 
 msgid "Set Alpha"
 msgstr "Alpha setzen"
-
-
-msgid "Apply Mask"
-msgstr "Maske anwenden"
-
-
-msgid "Replace Alpha"
-msgstr "Alpha ersetzen"
 
 
 msgid "Stabilize 2D"
@@ -24339,20 +24220,12 @@ msgid "Altitude"
 msgstr "Höhenlage"
 
 
-msgid "Dust"
-msgstr "Staub"
-
-
 msgid "Sky Type"
 msgstr "Himmeltyp"
 
 
 msgid "Sun Intensity"
 msgstr "Sonnenintensität"
-
-
-msgid "Strength of sun"
-msgstr "Sonnenstärke"
 
 
 msgid "Sun Rotation"
@@ -24577,6 +24450,10 @@ msgstr "Knotenausgabe"
 
 msgid "Value to Normal"
 msgstr "Wert zu Normale"
+
+
+msgid "Single"
+msgstr "Einzelner"
 
 
 msgid "Attribute Domain"
@@ -51721,11 +51598,6 @@ msgstr "Alles Aktualisieren"
 
 
 msgctxt "Operator"
-msgid "Sequence Render Animation"
-msgstr "Sequenzanimation rendern"
-
-
-msgctxt "Operator"
 msgid "Toggle Sequencer/Preview"
 msgstr "Sequenzer/Vorschau umschalten"
 
@@ -51824,11 +51696,6 @@ msgstr "Vorschaubereich auf Streifen festlegen"
 msgctxt "Operator"
 msgid "Fit Preview in Window"
 msgstr "Vorschau in Fenster einpassen"
-
-
-msgctxt "Operator"
-msgid "Sequence Render Image"
-msgstr "Sequenzrender Bild"
 
 
 msgctxt "Operator"
@@ -52574,16 +52441,6 @@ msgstr "Selektion zum aktiv"
 msgctxt "Operator"
 msgid "Cursor to Active"
 msgstr "Cursor an Aktivem"
-
-
-msgctxt "Operator"
-msgid "Viewport Render Image"
-msgstr "Viewport Render Bild"
-
-
-msgctxt "Operator"
-msgid "Viewport Render Keyframes"
-msgstr "Viewport Render Schlüsselbild"
 
 
 msgctxt "Operator"
@@ -53344,11 +53201,6 @@ msgstr "Projektion aus Ansicht (Begrenzungen)"
 
 
 msgctxt "Operator"
-msgid "Viewport Render Animation"
-msgstr "Ansichtsfenster Renderanimation"
-
-
-msgctxt "Operator"
 msgid "Roll Left"
 msgstr "Links scrollen"
 
@@ -53381,11 +53233,6 @@ msgstr "Vorheriger Bereich"
 msgctxt "Operator"
 msgid "Next Block"
 msgstr "Nächster Bereich"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Gitter"
 
 
 msgctxt "Operator"
@@ -57680,18 +57527,6 @@ msgid "Bright"
 msgstr "Helligkeit"
 
 
-msgid "Color Space:"
-msgstr "Farbraum:"
-
-
-msgid "Key Channel:"
-msgstr "Schlüsselkanal:"
-
-
-msgid "Limiting Channel:"
-msgstr "Kanal begrenzen:"
-
-
 msgid "Correction for shadows"
 msgstr "Korrektur für Tiefen"
 
@@ -57734,14 +57569,6 @@ msgstr "Bild 1"
 
 msgid "Image 2"
 msgstr "Bild 2"
-
-
-msgid "Inner Edge:"
-msgstr "Innenkante:"
-
-
-msgid "Buffer Edge:"
-msgstr "Pufferkante:"
 
 
 msgid "Soften"

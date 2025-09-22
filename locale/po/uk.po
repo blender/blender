@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-15 07:14+0000\n"
+"POT-Creation-Date: 2025-09-22 08:45+0000\n"
 "PO-Revision-Date: 2025-07-23 15:08+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -5218,8 +5218,8 @@ msgid "Color management specific to display device"
 msgstr "Керування кольором для пристроїв відображення"
 
 
-msgid "Display Device"
-msgstr "Пристрій показу"
+msgid "Display"
+msgstr "Показати"
 
 
 msgid "Input color space settings"
@@ -5290,8 +5290,8 @@ msgid "Use RGB curved for pre-display transformation"
 msgstr "Вжити криві RGB для трансформації перед-показу"
 
 
-msgid "View Transform"
-msgstr "Трансформа Огляду"
+msgid "View"
+msgstr "Огляд"
 
 
 msgid "View used when converting image to a display space"
@@ -7942,10 +7942,6 @@ msgstr "Площина"
 
 msgid "Plane for projected stroke"
 msgstr "Площина для проєктованого штриха"
-
-
-msgid "View"
-msgstr "Огляд"
 
 
 msgid "Detect Corners"
@@ -20133,10 +20129,6 @@ msgid "Display Color"
 msgstr "Колір Показу"
 
 
-msgid "Display"
-msgstr "Показати"
-
-
 msgid "Percentage of particles to display in 3D view"
 msgstr "Відсоток частинок для показу у 3D-вікні"
 
@@ -26403,6 +26395,18 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
+msgid "Toggle Bone Options"
+msgstr "Перемкнути параметри кісток"
+
+
+msgid "Enable Bone Options"
+msgstr "Увімкнути параметри кісток"
+
+
+msgid "Disable Bone Options"
+msgstr "Відключити параметри кісток"
+
+
 msgid "Mesh Select Mode"
 msgstr "Режим Вибору Сіті"
 
@@ -26609,18 +26613,6 @@ msgstr "У проміжках"
 
 msgid "Propagate"
 msgstr "Поширити"
-
-
-msgid "Toggle Bone Options"
-msgstr "Перемкнути параметри кісток"
-
-
-msgid "Enable Bone Options"
-msgstr "Увімкнути параметри кісток"
-
-
-msgid "Disable Bone Options"
-msgstr "Відключити параметри кісток"
 
 
 msgid "Basic"
@@ -26958,6 +26950,11 @@ msgstr "Спеціальне Пензля"
 msgctxt "Operator"
 msgid "Parent"
 msgstr "Приріднення"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Решітка"
 
 
 msgid "Clone Layer"
@@ -33933,60 +33930,12 @@ msgid "Channel Key"
 msgstr "Ключ каналу"
 
 
-msgid "YCbCr"
-msgstr "YCbCr"
-
-
-msgid "Limit by this channel's value"
-msgstr "Обмежити значеннями цього каналу"
-
-
-msgid "Algorithm"
-msgstr "Алгоритм"
-
-
-msgid "Algorithm to use to limit channel"
-msgstr "Алгоритм обмеження каналу"
-
-
-msgid "Single"
-msgstr "Один"
-
-
-msgid "Limit by single channel"
-msgstr "Обмежити одним каналом"
-
-
-msgid "Limit by maximum of other channels"
-msgstr "Лімітувати за максимумом інших каналів"
-
-
-msgid "Channel used to determine matte"
-msgstr "Канал, який визначає маску"
-
-
 msgid "Chroma Key"
 msgstr "Ключ колірності"
 
 
 msgid "Color Balance"
 msgstr "Колірний баланс"
-
-
-msgid "Correction Formula"
-msgstr "Формула корекції"
-
-
-msgid "Lift/Gamma/Gain"
-msgstr "Темні/середні/світлі"
-
-
-msgid "Offset/Power/Slope (ASC-CDL)"
-msgstr "Зсув/потужність/cхил (ASC-CDL)"
-
-
-msgid "ASC-CDL standard color correction"
-msgstr "Колірна корекція за стандартом ASC-CDL"
 
 
 msgid "Color Correction"
@@ -34001,36 +33950,8 @@ msgid "Color Spill"
 msgstr "Розтікання кольору"
 
 
-msgid "Red spill suppression"
-msgstr "Задавлення розтікання червоного"
-
-
-msgid "Green spill suppression"
-msgstr "Задавлення розтікання зеленого"
-
-
-msgid "Blue spill suppression"
-msgstr "Задавлення розтікання синього"
-
-
-msgid "Limit by red"
-msgstr "Лімітувати за червоним"
-
-
-msgid "Limit by green"
-msgstr "Лімітувати за зеленим"
-
-
-msgid "Limit by blue"
-msgstr "Лімітувати за синім"
-
-
-msgid "Simple limit algorithm"
-msgstr "Простий алгоритм лімітування"
-
-
-msgid "Average limit algorithm"
-msgstr "Усереднений алгоритм лімітування"
+msgid "YCbCr"
+msgstr "YCbCr"
 
 
 msgid "ITU 601"
@@ -34217,52 +34138,8 @@ msgid "Distance Key"
 msgstr "Ключ відстані"
 
 
-msgid "RGB color space"
-msgstr "Колірний простір RGB"
-
-
-msgid "YCbCr suppression"
-msgstr "Задавлення YCbCr"
-
-
 msgid "Double Edge Mask"
 msgstr "Двомежова маска"
-
-
-msgid "Buffer Edge Mode"
-msgstr "Режим Буферного Краю"
-
-
-msgid "Bleed Out"
-msgstr "З просоченням"
-
-
-msgid "Allow mask pixels to bleed along edges"
-msgstr "Дозволити просочування пікселів маски по краях"
-
-
-msgid "Keep In"
-msgstr "Утримувати всередині"
-
-
-msgid "Restrict mask pixels from touching edges"
-msgstr "Обмежити дотикання пікселів маски та ребер"
-
-
-msgid "Inner Edge Mode"
-msgstr "Режим Краю Зсередини"
-
-
-msgid "All pixels on inner mask edge are considered during mask calculation"
-msgstr "При розрахунку маски враховувати всі пікселі на краю внутрішньої маски"
-
-
-msgid "Adjacent Only"
-msgstr "Лише прилеглі"
-
-
-msgid "Only inner mask pixels adjacent to outer mask pixels are considered during mask calculation"
-msgstr "При розрахунку маски враховувати лише пікселі внутрішньої маски, прилеглі до пікселів зовнішньої маски"
 
 
 msgid "Ellipse Mask"
@@ -34333,26 +34210,6 @@ msgid "Alpha Convert"
 msgstr "Конвертація альфа"
 
 
-msgid "Conversion between premultiplied alpha and key alpha"
-msgstr "Перетворення між альфа-каналом з  передмноженням та ключовим альфа-каналом"
-
-
-msgid "To Premultiplied"
-msgstr "У Передмножене"
-
-
-msgid "Convert straight to premultiplied"
-msgstr "Конвертувати пряме у передмножене"
-
-
-msgid "To Straight"
-msgstr "У Пряме"
-
-
-msgid "Convert premultiplied to straight"
-msgstr "Конвертувати передмножене у пряме"
-
-
 msgid "RGB to BW"
 msgstr "RGB в BW"
 
@@ -34371,18 +34228,6 @@ msgstr "Оберт"
 
 msgid "Set Alpha"
 msgstr "Задання альфа"
-
-
-msgid "Apply Mask"
-msgstr "Застосувати Маску"
-
-
-msgid "Multiply the input image's RGBA channels by the alpha input value"
-msgstr "Помножити канали RGBA увідного зображення на увідне значення альфа"
-
-
-msgid "Replace Alpha"
-msgstr "Замінити Альфа"
 
 
 msgid "Stabilize 2D"
@@ -35566,10 +35411,6 @@ msgid "Height from sea level"
 msgstr "Висота над рівнем моря"
 
 
-msgid "Dust"
-msgstr "Пил"
-
-
 msgid "Ozone"
 msgstr "Озон"
 
@@ -35580,14 +35421,6 @@ msgstr "Тип неба"
 
 msgid "Which sky model should be used"
 msgstr "Яка модель неба повинна використовуватися"
-
-
-msgid "Nishita"
-msgstr "Нішіта"
-
-
-msgid "Nishita 1993 improved"
-msgstr "Нішіта 1993 покращено"
 
 
 msgid "Sun Disc"
@@ -35608,10 +35441,6 @@ msgstr "Кут до сонця від горизонту"
 
 msgid "Sun Intensity"
 msgstr "Інтенсивність Сонця"
-
-
-msgid "Strength of sun"
-msgstr "Сила сонця"
 
 
 msgid "Sun Rotation"
@@ -36012,6 +35841,10 @@ msgstr "Для текстур на основі вузлів: який вузо�
 
 msgid "Value to Normal"
 msgstr "Значення в нормаль"
+
+
+msgid "Single"
+msgstr "Один"
 
 
 msgid "Node Inputs"
@@ -72224,6 +72057,18 @@ msgid "Color balance parameters for a sequence strip and its modifiers"
 msgstr "Параметри балансу кольорів для смужки послідовності та її модифікаторів"
 
 
+msgid "Lift/Gamma/Gain"
+msgstr "Темні/середні/світлі"
+
+
+msgid "Offset/Power/Slope (ASC-CDL)"
+msgstr "Зсув/потужність/cхил (ASC-CDL)"
+
+
+msgid "ASC-CDL standard color correction"
+msgstr "Колірна корекція за стандартом ASC-CDL"
+
+
 msgid "Color balance gain (highlights)"
 msgstr "Підсилення балансу кольорів (світле)"
 
@@ -80227,11 +80072,6 @@ msgstr "Освіжити Все"
 
 
 msgctxt "Operator"
-msgid "Sequence Render Animation"
-msgstr "Рендер Анімації Послідовності"
-
-
-msgctxt "Operator"
 msgid "Toggle Sequencer/Preview"
 msgstr "Перемкнути Секвенсер/Передогляд"
 
@@ -80349,11 +80189,6 @@ msgstr "Задати Діапазон Передогляду для Смужок
 msgctxt "Operator"
 msgid "Fit Preview in Window"
 msgstr "Підігнати Передогляд під Вікно"
-
-
-msgctxt "Operator"
-msgid "Sequence Render Image"
-msgstr "Рендер Зображення Послідовності"
 
 
 msgctxt "Operator"
@@ -81168,16 +81003,6 @@ msgstr "Курсор до Активного"
 msgctxt "Operator"
 msgid "Perspective/Orthographic"
 msgstr "Перспектива/Ортогонально"
-
-
-msgctxt "Operator"
-msgid "Viewport Render Image"
-msgstr "Рендер Оглядвікна Зображення"
-
-
-msgctxt "Operator"
-msgid "Viewport Render Keyframes"
-msgstr "Рендер Оглядвікна Ключкадри"
 
 
 msgctxt "Operator"
@@ -81998,11 +81823,6 @@ msgstr "Проєктувати з Огляду (Межі)"
 
 
 msgctxt "Operator"
-msgid "Viewport Render Animation"
-msgstr "Рендер Оглядвікна Анімація"
-
-
-msgctxt "Operator"
 msgid "Roll Left"
 msgstr "Прокручення Вліво"
 
@@ -82040,11 +81860,6 @@ msgstr "Наступний Блок"
 msgctxt "Operator"
 msgid "Armature"
 msgstr "Арматура"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Решітка"
 
 
 msgctxt "Operator"
@@ -84910,12 +84725,12 @@ msgid "No mesh data to join"
 msgstr "Немає даних сіті для сполучення"
 
 
-msgid "No additional selected meshes with equal vertex count to join"
-msgstr "Немає іншої виділеної сіті з такою ж кількістю вершин для сполучення"
-
-
 msgid "Joining results in %d vertices, limit is %ld"
 msgstr "Результат сполучення - %d вершин, межа - %ld"
+
+
+msgid "No additional selected meshes with equal vertex count to join"
+msgstr "Немає іншої виділеної сіті з такою ж кількістю вершин для сполучення"
 
 
 msgid "SoundTrack"

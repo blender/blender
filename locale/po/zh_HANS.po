@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-15 07:14+0000\n"
-"PO-Revision-Date: 2025-09-13 07:59+0000\n"
+"POT-Creation-Date: 2025-09-22 08:45+0000\n"
+"PO-Revision-Date: 2025-09-21 09:59+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hans/>\n"
 "Language: zh_HANS\n"
@@ -2087,10 +2087,6 @@ msgid "Space Type"
 msgstr "空间类型"
 
 
-msgid "The space where the asset shelf is going to be used in"
-msgstr "资产架将要使用的空间"
-
-
 msgid "Preview Size"
 msgstr "预览尺寸"
 
@@ -2339,12 +2335,22 @@ msgid "Name of the Attribute"
 msgstr "属性名称"
 
 
+msgctxt "Amount"
+msgid "Storage Type"
+msgstr "存储类型"
+
+
 msgid "Method used to store the data"
 msgstr "用于存储数据的方法"
 
 
 msgid "Store a value for every element"
 msgstr "为每个元素存储一个值"
+
+
+msgctxt "Amount"
+msgid "Single"
+msgstr "单一"
 
 
 msgid "Store a single value for the entire domain"
@@ -7394,12 +7400,8 @@ msgid "Color management specific to display device"
 msgstr "针对显示设备的色彩管理"
 
 
-msgid "Display Device"
-msgstr "显示设备"
-
-
-msgid "Display device name. For viewing, this is the display that will be emulated by limiting the gamut and HDR colors. For image and video output, this is the display space used for writing."
-msgstr "显示设备名称。用于视图显示时，这是通过限制色域和 HDR 颜色来模拟的显示效果。用于图像和视频输出时，这是用于写入的显示色彩空间。"
+msgid "Display"
+msgstr "显示"
 
 
 msgid "Input color space settings"
@@ -7420,6 +7422,10 @@ msgstr "输入色彩空间"
 
 msgid "Color space in the image file, to convert to and from when saving and loading the image"
 msgstr "图像文件中的色彩空间，用于在保存和加载图像时转换"
+
+
+msgid "ACES 2.0 sRGB"
+msgstr "ACES 2.0 sRGB"
 
 
 msgid "ACES2065-1"
@@ -7626,8 +7632,8 @@ msgid "Perform chromatic adaption from a different white point"
 msgstr "从不同的白点执行色度自适应"
 
 
-msgid "View Transform"
-msgstr "查看变换"
+msgid "View"
+msgstr "视图"
 
 
 msgid "View used when converting image to a display space"
@@ -10539,10 +10545,6 @@ msgstr "表面切向"
 
 msgid "Draw in the surface plane"
 msgstr "在曲面的平面上绘制"
-
-
-msgid "View"
-msgstr "视图"
 
 
 msgid "Draw in a plane aligned to the viewport"
@@ -14433,11 +14435,11 @@ msgstr "环境"
 
 
 msgid "Show worlds, lights, cameras and speakers"
-msgstr "显示世界、灯光、摄像机和扬声器"
+msgstr "显示世界、灯光、摄像机、扬声器"
 
 
 msgid "Show meshes, curves, lattice, armatures and metaballs data"
-msgstr "显示网格、曲线、晶格、骨架和融球数据"
+msgstr "显示网格、曲线、晶格、骨架、融球数据"
 
 
 msgid "Images & Sounds"
@@ -14445,7 +14447,7 @@ msgstr "图像 & 声音"
 
 
 msgid "Show images, movie clips, sounds and masks"
-msgstr "显示图像、影片剪辑、声音和遮罩"
+msgstr "显示图像、影片剪辑、声音、遮罩"
 
 
 msgid "Miscellaneous"
@@ -26786,10 +26788,6 @@ msgid "Axis"
 msgstr "轴向"
 
 
-msgid "Display"
-msgstr "显示"
-
-
 msgid "Percentage of particles to display in 3D view"
 msgstr "在 3D 视图中所显示的粒子百分比"
 
@@ -34698,6 +34696,18 @@ msgid "Editor menu containing buttons"
 msgstr "包含按钮的编辑器菜单"
 
 
+msgid "Toggle Bone Options"
+msgstr "切换骨骼设置"
+
+
+msgid "Enable Bone Options"
+msgstr "启用骨骼设置"
+
+
+msgid "Disable Bone Options"
+msgstr "禁用骨骼设置"
+
+
 msgid "Mesh Select Mode"
 msgstr "网格选择模式"
 
@@ -34916,18 +34926,6 @@ msgstr "传导"
 
 msgid "Bone Collections"
 msgstr "骨骼集合"
-
-
-msgid "Toggle Bone Options"
-msgstr "切换骨骼设置"
-
-
-msgid "Enable Bone Options"
-msgstr "启用骨骼设置"
-
-
-msgid "Disable Bone Options"
-msgstr "禁用骨骼设置"
 
 
 msgid "Keyframe Insert Pie"
@@ -35564,6 +35562,11 @@ msgstr "父级"
 msgctxt "Operator"
 msgid "Empty"
 msgstr "空物体"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "晶格"
 
 
 msgctxt "Constraint"
@@ -43598,6 +43601,11 @@ msgid "Opacity of the image"
 msgstr "图片的不透明度"
 
 
+msgctxt "MovieClip"
+msgid "Markers"
+msgstr "标记"
+
+
 msgid "Collection of markers in track"
 msgstr "轨迹中的标记集合"
 
@@ -44120,6 +44128,11 @@ msgstr "此轨迹的标注数据"
 
 msgid "Average error of re-projection"
 msgstr "二次投射的平均误差"
+
+
+msgctxt "MovieClip"
+msgid "Bundle"
+msgstr "点束"
 
 
 msgid "Position of bundle reconstructed from this track"
@@ -44675,38 +44688,6 @@ msgid "Overlay a foreground image onto a background image"
 msgstr "将前景图像叠加到背景图像之上"
 
 
-msgid "Operation Type"
-msgstr "操作类型"
-
-
-msgid "The type of alpha over operation"
-msgstr "Alpha 上叠操作的类型"
-
-
-msgid "Over"
-msgstr "覆盖"
-
-
-msgid "The foreground goes over the background according to the alpha of the foreground"
-msgstr "前景会根据其 alpha 覆盖背景"
-
-
-msgid "Disjoint Over"
-msgstr "分离覆盖"
-
-
-msgid "The foreground goes over the background according to the alpha of the foreground while assuming the background is being held out by the foreground"
-msgstr "在假设背景由前景支撑的前提下，前景会根据其 alpha 值覆盖背景"
-
-
-msgid "Conjoint Over"
-msgstr "联合覆盖"
-
-
-msgid "The foreground goes over the background according to the alpha of the foreground but the foreground completely covers the background if it is more opaque"
-msgstr "前景会根据其 alpha 覆盖背景，但如果前景的不透明度更高，则前景会完全覆盖背景"
-
-
 msgid "Smooth away jagged edges"
 msgstr "平滑掉锯齿状边缘"
 
@@ -44763,68 +44744,6 @@ msgid "Create matte based on differences in color channels"
 msgstr "基于颜色通道的差异创建蒙版"
 
 
-msgid "RGB (Red, Green, Blue) color space"
-msgstr "RGB (红, 绿, 蓝) 色彩空间"
-
-
-msgid "HSV (Hue, Saturation, Value) color space"
-msgstr "HSV (色相, 饱和度, 明度) 色彩空间"
-
-
-msgid "YUV"
-msgstr "YUV"
-
-
-msgid "YUV (Y - luma, U V - chroma) color space"
-msgstr "YUV (Y - 亮度, U V - 色度) 色彩空间"
-
-
-msgid "YCbCr"
-msgstr "YCbCr"
-
-
-msgid "YCbCr (Y - luma, Cb - blue-difference chroma, Cr - red-difference chroma) color space"
-msgstr "YCbCr (Y - 亮度, Cb - 蓝色色度分量, Cr - 红色色度分量) 色彩空间"
-
-
-msgctxt "Color"
-msgid "Limit Channel"
-msgstr "限定通道"
-
-
-msgid "Limit by this channel's value"
-msgstr "以此通道的值限定"
-
-
-msgid "Algorithm"
-msgstr "算法"
-
-
-msgid "Algorithm to use to limit channel"
-msgstr "用于限定通道的算法"
-
-
-msgid "Single"
-msgstr "单一"
-
-
-msgid "Limit by single channel"
-msgstr "单一通道限定"
-
-
-msgid "Limit by maximum of other channels"
-msgstr "以其他通道的最大值限定"
-
-
-msgctxt "Color"
-msgid "Channel"
-msgstr "通道"
-
-
-msgid "Channel used to determine matte"
-msgstr "用于决定蒙版的通道"
-
-
 msgid "Chroma Key"
 msgstr "色度抠像"
 
@@ -44839,26 +44758,6 @@ msgstr "色彩平衡"
 
 msgid "Adjust color and values"
 msgstr "调整颜色和明度"
-
-
-msgid "Correction Formula"
-msgstr "校正规则"
-
-
-msgid "Lift/Gamma/Gain"
-msgstr "提升/伽玛/增益"
-
-
-msgid "Offset/Power/Slope (ASC-CDL)"
-msgstr "偏移/能量/斜率 (ASC-CDL)"
-
-
-msgid "ASC-CDL standard color correction"
-msgstr "ASC-CDL 标准颜色校正"
-
-
-msgid "Chromatic adaption from a different white point"
-msgstr "来自一个不同白点的色度自适应"
 
 
 msgid "Input White Point"
@@ -44897,50 +44796,6 @@ msgid "Remove colors from a blue or green screen, by reducing one RGB channel co
 msgstr "通过与其他通道相比减少一个RGB通道，从蓝色或绿色屏幕上删除颜色"
 
 
-msgid "Red spill suppression"
-msgstr "红色溢出抑制"
-
-
-msgid "Green spill suppression"
-msgstr "绿色溢出抑制"
-
-
-msgid "Blue spill suppression"
-msgstr "蓝色溢出抑制"
-
-
-msgid "Limit by red"
-msgstr "以红色限定"
-
-
-msgid "Limit by green"
-msgstr "以绿色限定"
-
-
-msgid "Limit by blue"
-msgstr "以蓝色限定"
-
-
-msgid "Simple limit algorithm"
-msgstr "简单限定算法"
-
-
-msgid "Average limit algorithm"
-msgstr "均衡限定算法"
-
-
-msgid "ITU 601"
-msgstr "ITU 601"
-
-
-msgid "ITU 709"
-msgstr "ITU 709"
-
-
-msgid "JPEG"
-msgstr "JPEG"
-
-
 msgid "Combine Color"
 msgstr "合并颜色"
 
@@ -44965,8 +44820,16 @@ msgid "Use HSL (Hue, Saturation, Lightness) color processing"
 msgstr "使用 HSL (色相, 饱和度, 亮度) 颜色处理"
 
 
+msgid "YCbCr"
+msgstr "YCbCr"
+
+
 msgid "Use YCbCr (Y - luma, Cb - blue-difference chroma, Cr - red-difference chroma) color processing"
 msgstr "使用 YCbCr (Y - 亮度, Cb - 蓝色色度分量, Cr - 红色色度分量) 颜色处理"
+
+
+msgid "YUV"
+msgstr "YUV"
 
 
 msgid "Use YUV (Y - luma, U V - chroma) color processing"
@@ -44975,6 +44838,18 @@ msgstr "使用 YUV (Y - 亮度, U V - 色度) 颜色处理"
 
 msgid "Color space used for YCbCrA processing"
 msgstr "用于YCbCrA处理的色彩空间"
+
+
+msgid "ITU 601"
+msgstr "ITU 601"
+
+
+msgid "ITU 709"
+msgstr "ITU 709"
+
+
+msgid "JPEG"
+msgstr "JPEG"
 
 
 msgid "Convert Colorspace"
@@ -45289,56 +45164,12 @@ msgid "Create matte based on 3D distance between colors"
 msgstr "基于颜色之间的3D距离创建蒙版"
 
 
-msgid "RGB color space"
-msgstr "RGB 色彩空间"
-
-
-msgid "YCbCr suppression"
-msgstr "YCbCr 抑制"
-
-
 msgid "Double Edge Mask"
 msgstr "双边遮罩"
 
 
 msgid "Create a gradient between two masks"
 msgstr "在两组遮罩之间创建渐变"
-
-
-msgid "Buffer Edge Mode"
-msgstr "缓冲边线模式"
-
-
-msgid "Bleed Out"
-msgstr "溢出"
-
-
-msgid "Allow mask pixels to bleed along edges"
-msgstr "允许遮罩像素, 以沿边线溢出"
-
-
-msgid "Keep In"
-msgstr "抑制"
-
-
-msgid "Restrict mask pixels from touching edges"
-msgstr "约束遮罩像素, 使之远离边缘"
-
-
-msgid "Inner Edge Mode"
-msgstr "内边模式"
-
-
-msgid "All pixels on inner mask edge are considered during mask calculation"
-msgstr "在执行遮罩计算时, 将考虑到内侧遮罩边上的所有像素"
-
-
-msgid "Adjacent Only"
-msgstr "仅相邻项"
-
-
-msgid "Only inner mask pixels adjacent to outer mask pixels are considered during mask calculation"
-msgstr "在执行双边计算时, 仅考虑到与外侧遮罩像素相邻的内侧遮罩像素"
 
 
 msgid "Ellipse Mask"
@@ -45569,26 +45400,6 @@ msgid "Convert to and from premultiplied (associated) alpha"
 msgstr "转换至和来自预乘型 (关联的) alpha"
 
 
-msgid "Conversion between premultiplied alpha and key alpha"
-msgstr "在预乘alpha与键值alpha之间进行转换"
-
-
-msgid "To Premultiplied"
-msgstr "转为预乘型"
-
-
-msgid "Convert straight to premultiplied"
-msgstr "将直通型转换为预乘型"
-
-
-msgid "To Straight"
-msgstr "转为直通型"
-
-
-msgid "Convert premultiplied to straight"
-msgstr "将预乘型转换为直通型"
-
-
 msgid "A color picker"
 msgstr "拾色器"
 
@@ -45707,22 +45518,6 @@ msgstr "设置 Alpha"
 
 msgid "Add an alpha channel to an image"
 msgstr "添加alpha通道到图像"
-
-
-msgid "Apply Mask"
-msgstr "应用遮罩"
-
-
-msgid "Multiply the input image's RGBA channels by the alpha input value"
-msgstr "将输入图像的 RGBA 通道与 alpha 输入值相乘"
-
-
-msgid "Replace Alpha"
-msgstr "替换Alpha"
-
-
-msgid "Replace the input image's alpha channel by the alpha input value"
-msgstr "用 Alpha 输入值替换输入图像的 Alpha 通道"
 
 
 msgid "Combine two images for side-by-side display. Typically used in combination with a Viewer node"
@@ -45945,6 +45740,10 @@ msgid "Boolean Math"
 msgstr "布尔运算"
 
 
+msgid "Perform a logical operation on the given boolean inputs"
+msgstr "对给定的布尔输入执行逻辑运算"
+
+
 msgid "True when both inputs are true"
 msgstr "当两个输入值均为真时输出真值"
 
@@ -46001,6 +45800,10 @@ msgid "True when the first input is true and the second is false (not imply)"
 msgstr "当第一个输入为真，第二个输入为假时输出真值 (非蕴含)"
 
 
+msgid "Combine four channels into a single color, based on a particular color model"
+msgstr "根据指定的颜色模型，将四个通道合并为单个颜色"
+
+
 msgid "Combine Matrix"
 msgstr "合并矩阵"
 
@@ -46013,8 +45816,16 @@ msgid "Combine Transform"
 msgstr "合并变换"
 
 
+msgid "Combine a translation vector, a rotation, and a scale vector into a transformation matrix"
+msgstr "将平移矢量、旋转、缩放矢量组合成一个变换矩阵"
+
+
 msgid "Compare"
 msgstr "比较"
+
+
+msgid "Perform a comparison operation on the two given inputs"
+msgstr "对两个给定输入执行比较操作"
 
 
 msgid "Input Type"
@@ -46113,6 +45924,10 @@ msgid "Find in String"
 msgstr "在字符串中查找"
 
 
+msgid "Find the number of times a given string occurs in another string and the position of the first match"
+msgstr "查找给定字符串在另一个字符串中出现的次数以及首个匹配位置"
+
+
 msgid "Float to Integer"
 msgstr "浮点数 转 整数"
 
@@ -46174,12 +45989,44 @@ msgid "Hash Value"
 msgstr "哈希值"
 
 
+msgid "Generate a randomized integer using the given input value as a seed"
+msgstr "以给定输入值作为种子生成随机整数"
+
+
+msgid "Provide a True/False value that can be connected to other nodes in the tree"
+msgstr "提供一个可连接到树中其他节点的真/假值"
+
+
 msgid "Input value used for unconnected socket"
 msgstr "用于未连接接口的输入值"
 
 
+msgid "Output a color value chosen with the color picker widget"
+msgstr "输出通过拾色器部件所选的颜色值"
+
+
+msgid "Provide an integer value that can be connected to other nodes in the tree"
+msgstr "提供一个可连接到树中其他节点的整数值"
+
+
+msgid "Provide a rotation value that can be connected to other nodes in the tree"
+msgstr "提供一个可连接到树中其他节点的旋转值"
+
+
+msgid "Provide a string value that can be connected to other nodes in the tree"
+msgstr "提供一个可连接到树中其他节点的字符串值"
+
+
+msgid "Provide a vector value that can be connected to other nodes in the tree"
+msgstr "提供一个可连接到树中其他节点的矢量值"
+
+
 msgid "Integer Math"
 msgstr "整数运算"
+
+
+msgid "Perform various math operations on the given integer inputs"
+msgstr "对给定整数输入执行各种数学运算"
 
 
 msgctxt "NodeTree"
@@ -46361,12 +46208,24 @@ msgid "Match String"
 msgstr "匹配字符串"
 
 
+msgid "Check if a given string exists within another string"
+msgstr "检查给定字符串是否存在于另一个字符串中"
+
+
 msgid "Matrix Determinant"
 msgstr "矩阵行列式"
 
 
+msgid "Compute the determinant of the given matrix"
+msgstr "计算给定矩阵的行列式"
+
+
 msgid "Multiply Matrices"
 msgstr "矩阵相乘"
+
+
+msgid "Perform a matrix multiplication on two input matrices"
+msgstr "对两个输入矩阵执行矩阵乘法"
 
 
 msgid "Project Point"
@@ -46381,16 +46240,32 @@ msgid "Quaternion to Rotation"
 msgstr "四元数 转换为 旋转"
 
 
+msgid "Build a rotation from quaternion components"
+msgstr "根据四元数分量生成旋转"
+
+
 msgid "Random Value"
 msgstr "随机值"
+
+
+msgid "Output a randomized value"
+msgstr "输出一个随机值"
 
 
 msgid "Replace String"
 msgstr "替换字符串"
 
 
+msgid "Replace a given string segment with another"
+msgstr "将指定的字符串段落替换为另一个"
+
+
 msgid "Rotate Euler"
 msgstr "旋转欧拉"
+
+
+msgid "Apply a secondary Euler rotation to a given Euler rotation"
+msgstr "对指定的欧拉旋转应用二次欧拉旋转"
 
 
 msgid "Method used to describe the rotation"
@@ -46421,6 +46296,10 @@ msgid "Rotate Rotation"
 msgstr "累加旋转"
 
 
+msgid "Apply a secondary rotation to a given rotation value"
+msgstr "对指定的旋转值应用二次旋转"
+
+
 msgid "Base orientation for the rotation"
 msgstr "旋转的基础朝向"
 
@@ -46433,16 +46312,32 @@ msgid "Rotate Vector"
 msgstr "旋转矢量"
 
 
+msgid "Apply a rotation to a given vector"
+msgstr "对指定的矢量应用旋转"
+
+
 msgid "Rotation to Axis Angle"
 msgstr "旋转 转换为 轴角度"
+
+
+msgid "Convert a rotation to axis angle components"
+msgstr "将旋转值转换为轴角度分量"
 
 
 msgid "Rotation to Euler"
 msgstr "旋转 转换为 欧拉"
 
 
+msgid "Convert a standard rotation value to an Euler rotation"
+msgstr "将标准旋转值转换为欧拉旋转"
+
+
 msgid "Rotation to Quaternion"
 msgstr "旋转 转换为 四元数"
+
+
+msgid "Split a color into separate channels, based on a particular color model"
+msgstr "根据指定的颜色模型将颜色分割为单独的通道"
 
 
 msgid "Separate Matrix"
@@ -46457,12 +46352,24 @@ msgid "Separate Transform"
 msgstr "分离变换"
 
 
+msgid "Split a transformation matrix into a translation vector, a rotation, and a scale vector"
+msgstr "将变换矩阵拆分为平移矢量、旋转、缩放矢量"
+
+
 msgid "Slice String"
 msgstr "字符串切片"
 
 
+msgid "Extract a string segment from a larger string"
+msgstr "从较大的字符串中提取一个字符串段落"
+
+
 msgid "String Length"
 msgstr "字符串长度"
+
+
+msgid "Output the number of characters in the given string"
+msgstr "输出指定字符串中的字符数量"
 
 
 msgid "String to Value"
@@ -46477,8 +46384,16 @@ msgid "Transform Point"
 msgstr "变换点"
 
 
+msgid "Apply a transformation matrix to the given vector"
+msgstr "将变换矩阵应用于给定的矢量"
+
+
 msgid "Transpose Matrix"
 msgstr "转置矩阵"
+
+
+msgid "Flip a matrix over its diagonal, turning columns into rows and vice-versa"
+msgstr "将矩阵沿对角线翻转，将列变为行，行变为列"
 
 
 msgid "Value to String"
@@ -47726,6 +47641,10 @@ msgid "List Length"
 msgstr "列表长度"
 
 
+msgid "Count how many items are in a given list"
+msgstr "统计给定列表中的项目数量"
+
+
 msgid "Material Selection"
 msgstr "材质选择"
 
@@ -48180,6 +48099,10 @@ msgstr "基于所有曲线总长度的采样长度，而非使用每个选定曲
 
 msgid "Sample Grid"
 msgstr "采样栅格"
+
+
+msgid "Retrieve values from the specified volume grid"
+msgstr "检索指定体积栅格中的值"
 
 
 msgid "Node socket data type"
@@ -48884,6 +48807,10 @@ msgstr "将多个接口值合并为一个。"
 
 msgid "Evaluate Closure"
 msgstr "解算闭包"
+
+
+msgid "Execute a given closure"
+msgstr "执行指定的闭包"
 
 
 msgid "Input Items"
@@ -50050,6 +49977,10 @@ msgid "Line Style Output"
 msgstr "线条样式输出"
 
 
+msgid "Control the mixing of texture information into the base color of line styles"
+msgstr "控制纹理信息在线条样式基础色中的混合"
+
+
 msgid "Material Output"
 msgstr "材质输出"
 
@@ -50508,18 +50439,6 @@ msgid "Air"
 msgstr "空气"
 
 
-msgid ""
-"Density of air molecules.\n"
-"• 0 - No air.\n"
-"• 1 - Clear day atmosphere.\n"
-"• 2 - Highly polluted day"
-msgstr ""
-"空气分子密度.\n"
-"• 0 - 没有空气.\n"
-"• 1 - 晴朗大气.\n"
-"• 2 - 严重污染"
-
-
 msgid "Altitude"
 msgstr "海拔"
 
@@ -50528,38 +50447,8 @@ msgid "Height from sea level"
 msgstr "距离海平面的高度"
 
 
-msgid "Dust"
-msgstr "灰尘"
-
-
-msgid ""
-"Density of dust molecules and water droplets.\n"
-"• 0 - No dust.\n"
-"• 1 - Clear day atmosphere.\n"
-"• 5 - City like atmosphere.\n"
-"• 10 - Hazy day"
-msgstr ""
-"灰尘颗粒和水滴分子的密度.\n"
-"• 0 - 没有灰尘.\n"
-"• 1 - 晴朗大气.\n"
-"• 5 - 城市大气.\n"
-"• 10 - 雾霾天"
-
-
 msgid "Ozone"
 msgstr "臭氧"
-
-
-msgid ""
-"Density of ozone layer.\n"
-"• 0 - No ozone.\n"
-"• 1 - Clear day atmosphere.\n"
-"• 2 - City like atmosphere"
-msgstr ""
-"臭氧层密度.\n"
-"• 0 - 没有臭氧.\n"
-"• 1 - 晴朗大气.\n"
-"• 2 - 城市大气"
 
 
 msgid "Sky Type"
@@ -50568,14 +50457,6 @@ msgstr "天空类型"
 
 msgid "Which sky model should be used"
 msgstr "应该使用哪种天空模型"
-
-
-msgid "Nishita"
-msgstr "Nishita"
-
-
-msgid "Nishita 1993 improved"
-msgstr "改进后的 Nishita 1993"
 
 
 msgid "Sun Disc"
@@ -50596,10 +50477,6 @@ msgstr "相对地平面的太阳角度"
 
 msgid "Sun Intensity"
 msgstr "太阳强度"
-
-
-msgid "Strength of sun"
-msgstr "阳光的强度"
 
 
 msgid "Sun Rotation"
@@ -50792,6 +50669,10 @@ msgstr "使用环状波纹理"
 
 msgid "White Noise Texture"
 msgstr "白噪波纹理"
+
+
+msgid "Calculate a random value or color based on an input seed"
+msgstr "基于输入种子计算随机值或颜色"
 
 
 msgid "UV Along Stroke"
@@ -51271,6 +51152,10 @@ msgstr "接口预计为栅格"
 
 msgid "Socket expects a list"
 msgstr "接口预计为列表"
+
+
+msgid "Single"
+msgstr "单一"
 
 
 msgid "Socket expects a single value"
@@ -52947,6 +52832,10 @@ msgid "Merge Images"
 msgstr "合并图像"
 
 
+msgid "Enable nodes on a light"
+msgstr "在灯光上启用节点"
+
+
 msgctxt "Operator"
 msgid "Use Nodes"
 msgstr "使用节点"
@@ -53673,6 +53562,10 @@ msgstr "回到父级节点树"
 msgctxt "Operator"
 msgid "Parent Node Tree"
 msgstr "父级节点树"
+
+
+msgid "Toggle a specific viewer node using 1,2,..,9 keys"
+msgstr "使用 1,2,..,9 键来切换特定的预览器节点"
 
 
 msgctxt "Operator"
@@ -60840,7 +60733,7 @@ msgstr "应用缩放"
 
 
 msgid "How to apply custom and units scalings in generated FBX file (Blender uses FBX scale to detect units on import, but many other applications do not handle the same way)"
-msgstr "如何在生成的 FBX 文件应用自定义和单位缩放 (Blender 导入时使用 FBX 比例来检测单位，但是其它程序处理方式不一样)"
+msgstr "如何在生成的 FBX 文件应用自定义和单位缩放 (Blender 导入时使用 FBX 缩放来检测单位，但是其它程序处理方式不一样)"
 
 
 msgid "All Local"
@@ -61020,7 +60913,7 @@ msgstr "分批模式"
 
 
 msgid "Active scene to file"
-msgstr "激活场景至文件"
+msgstr "活动场景至文件"
 
 
 msgid "Each scene as a file"
@@ -72660,6 +72553,15 @@ msgstr "创建一个新的内联着色器节点树供渲染器使用"
 
 
 msgctxt "Operator"
+msgid "Toggle Viewer Node"
+msgstr "切换预览器节点"
+
+
+msgid "Toggle selected viewer node in compositor and geometry nodes"
+msgstr "切换合成器与几何节点中选定的预览器节点"
+
+
+msgctxt "Operator"
 msgid "Move and Attach"
 msgstr "移动并附加"
 
@@ -80525,6 +80427,10 @@ msgid "File Paths"
 msgstr "文件路径"
 
 
+msgid "Developer Tools"
+msgstr "开发者工具"
+
+
 msgid "Experimental"
 msgstr "试验特性"
 
@@ -85164,16 +85070,8 @@ msgid "Largest to Smallest"
 msgstr "从大到小"
 
 
-msgid "Sort Islands from Largest to Smallest"
-msgstr "从大到小排列孤岛"
-
-
 msgid "Smallest to Largest"
 msgstr "从小到大"
-
-
-msgid "Sort Islands from Smallest to Largest"
-msgstr "从小到大排列孤岛"
 
 
 msgid "Preserve island order"
@@ -85258,6 +85156,15 @@ msgstr "缩放至边界框"
 
 msgid "Scale UV coordinates to bounds after unwrapping"
 msgstr "展开后将 UV 缩放至边界框的尺寸"
+
+
+msgctxt "Operator"
+msgid "Set User Region"
+msgstr "设置用户区域"
+
+
+msgid "Set the boundaries of the user region"
+msgstr "设置用户区域的边界"
 
 
 msgctxt "Operator"
@@ -85682,6 +85589,14 @@ msgstr "原始边界框"
 
 msgid "Pack to starting bounding box of islands"
 msgstr "打包到孤岛的起始边界框"
+
+
+msgid "Custom Region"
+msgstr "自定义区域"
+
+
+msgid "Pack islands to custom region"
+msgstr "将孤岛排布到自定义区域"
 
 
 msgctxt "Operator"
@@ -90884,6 +90799,11 @@ msgid "Footage Settings"
 msgstr "素材设置"
 
 
+msgctxt "MovieClip"
+msgid "Marker"
+msgstr "标记"
+
+
 msgid "Marker Display"
 msgstr "标记显示"
 
@@ -92089,6 +92009,14 @@ msgstr "选项卡"
 
 msgid "Toolbar Item"
 msgstr "工具栏条目"
+
+
+msgid "Scrubbing / Markers"
+msgstr "拖拽 / 标记"
+
+
+msgid "Toolbar / Sidebar"
+msgstr "工具栏 / 侧栏"
 
 
 msgid "Strip Color Tags"
@@ -98220,6 +98148,10 @@ msgstr "限制用于最终渲染的纹理尺寸"
 
 msgid "Tile Size"
 msgstr "平铺尺寸"
+
+
+msgid "Render high resolution images in tiles of this size, to reduce memory usage. Tiles are cached to disk while rendering to save memory"
+msgstr "使用此分块大小来渲染高分辨率的图像，以降低内存占用。渲染时分块将缓存至磁盘以节约内存"
 
 
 msgid "Limit the render time (excluding synchronization time). Zero disables the limit"
@@ -106093,7 +106025,7 @@ msgstr "显示转接点自动标签"
 
 
 msgid "Label reroute nodes based on the label of connected reroute nodes"
-msgstr "基于转接点相连节点的标签对转接点标记标签"
+msgstr "基于相连转接点的已有标签对转接点进行标记"
 
 
 msgid "Show Timing"
@@ -106898,6 +106830,111 @@ msgstr "颜色混合片段"
 
 
 msgctxt "Color"
+msgid "Blending Mode"
+msgstr "混合模式"
+
+
+msgctxt "Color"
+msgid "Darken"
+msgstr "变暗"
+
+
+msgctxt "Color"
+msgid "Multiply"
+msgstr "正片叠底 (相乘)"
+
+
+msgctxt "Color"
+msgid "Color Burn"
+msgstr "颜色加深"
+
+
+msgctxt "Color"
+msgid "Linear Burn"
+msgstr "线性加深"
+
+
+msgctxt "Color"
+msgid "Lighten"
+msgstr "变亮"
+
+
+msgctxt "Color"
+msgid "Screen"
+msgstr "滤色"
+
+
+msgctxt "Color"
+msgid "Color Dodge"
+msgstr "颜色减淡"
+
+
+msgctxt "Color"
+msgid "Add"
+msgstr "相加"
+
+
+msgctxt "Color"
+msgid "Overlay"
+msgstr "叠加"
+
+
+msgctxt "Color"
+msgid "Soft Light"
+msgstr "柔光"
+
+
+msgctxt "Color"
+msgid "Hard Light"
+msgstr "强光"
+
+
+msgctxt "Color"
+msgid "Vivid Light"
+msgstr "亮光"
+
+
+msgctxt "Color"
+msgid "Linear Light"
+msgstr "线性光"
+
+
+msgctxt "Color"
+msgid "Pin Light"
+msgstr "点光"
+
+
+msgctxt "Color"
+msgid "Difference"
+msgstr "差值"
+
+
+msgctxt "Color"
+msgid "Exclusion"
+msgstr "排除"
+
+
+msgctxt "Color"
+msgid "Subtract"
+msgstr "相减"
+
+
+msgctxt "Color"
+msgid "Hue"
+msgstr "色相"
+
+
+msgctxt "Color"
+msgid "Saturation"
+msgstr "饱和度"
+
+
+msgctxt "Color"
+msgid "Color"
+msgstr "颜色"
+
+
+msgctxt "Color"
 msgid "Value"
 msgstr "明度"
 
@@ -107472,6 +107509,18 @@ msgid "Correction Method"
 msgstr "校正方法"
 
 
+msgid "Lift/Gamma/Gain"
+msgstr "提升/伽玛/增益"
+
+
+msgid "Offset/Power/Slope (ASC-CDL)"
+msgstr "偏移/能量/斜率 (ASC-CDL)"
+
+
+msgid "ASC-CDL standard color correction"
+msgstr "ASC-CDL 标准颜色校正"
+
+
 msgid "Color balance gain (highlights)"
 msgstr "色彩平衡增益值 (亮调)"
 
@@ -107723,6 +107772,10 @@ msgstr "序列片段的色彩曲线修改器"
 
 msgid "Hue correction modifier for sequence strip"
 msgstr "序列片段的色相校正修改器"
+
+
+msgid "Mask modifier for sequence strip"
+msgstr "序列片段的遮罩修改器"
 
 
 msgid "Tone mapping modifier"
@@ -108488,6 +108541,10 @@ msgid "Name of the theme"
 msgstr "主题名称"
 
 
+msgid "Theme properties for common editor regions"
+msgstr "公共编辑器区块的主题属性"
+
+
 msgid "Active Theme Area"
 msgstr "激活的主题区域"
 
@@ -108646,6 +108703,14 @@ msgstr "通道组"
 
 msgid "Active Channel Group"
 msgstr "激活的通道组"
+
+
+msgid "Selected Channel"
+msgstr "选中的通道"
+
+
+msgid "Sub-channels"
+msgstr "子通道"
 
 
 msgid "Color of regular keyframe"
@@ -109444,6 +109509,18 @@ msgid "Search Match"
 msgstr "搜索匹配"
 
 
+msgid "Shared Region Properties"
+msgstr "共享的区块属性"
+
+
+msgid "Theme settings for regions that are common among editors"
+msgstr "编辑器中公共的区块主题设置"
+
+
+msgid "Asset Shelf Region Theme"
+msgstr "资产架区块主题"
+
+
 msgid "Theme settings for asset shelves"
 msgstr "资产架的主题设置"
 
@@ -109452,8 +109529,28 @@ msgid "Header Background"
 msgstr "标题栏背景"
 
 
+msgid "Source List Region Settings"
+msgstr "源列表区块设置"
+
+
 msgid "Selected Text"
 msgstr "选中的文本"
+
+
+msgid "Scrubbing & Markers Region Settings"
+msgstr "拖拽/标记区块设置"
+
+
+msgid "Timestamp"
+msgstr "时间戳"
+
+
+msgid "Marker Selected"
+msgstr "选中的标记"
+
+
+msgid "Sidebar & Toolbar Region Settings"
+msgstr "侧栏与工具栏区块设置"
 
 
 msgid "Navigation/Tabs Background"
@@ -110989,6 +111086,14 @@ msgstr "变换父级"
 
 msgid "Transform the parents, leaving the children in place"
 msgstr "变换父级，保持子级位置不变"
+
+
+msgid "UV Custom Region"
+msgstr "UV 自定义区域"
+
+
+msgid "Custom defined region"
+msgstr "自定义区域"
 
 
 msgid "UV Island Selection"
@@ -124121,11 +124226,6 @@ msgstr "全部刷新"
 
 
 msgctxt "Operator"
-msgid "Sequence Render Animation"
-msgstr "序列渲染动画"
-
-
-msgctxt "Operator"
 msgid "Toggle Sequencer/Preview"
 msgstr "切换序列编辑器/预览"
 
@@ -124274,11 +124374,6 @@ msgstr "在窗口中匹配预览"
 
 msgid "Auto Zoom"
 msgstr "自动缩放"
-
-
-msgctxt "Operator"
-msgid "Sequence Render Image"
-msgstr "序列渲染图像"
 
 
 msgctxt "Operator"
@@ -125636,16 +125731,6 @@ msgstr "透视/正交"
 
 
 msgctxt "Operator"
-msgid "Viewport Render Image"
-msgstr "视图渲染图像"
-
-
-msgctxt "Operator"
-msgid "Viewport Render Keyframes"
-msgstr "视图渲染关键帧"
-
-
-msgctxt "Operator"
 msgid "Toggle Local View"
 msgstr "切换局部视图"
 
@@ -126835,11 +126920,6 @@ msgstr "框显最后的笔画"
 
 
 msgctxt "Operator"
-msgid "Viewport Render Animation"
-msgstr "视图渲染动画"
-
-
-msgctxt "Operator"
 msgid "Roll Left"
 msgstr "左倾"
 
@@ -126892,11 +126972,6 @@ msgstr "单向箭头"
 msgctxt "Operator"
 msgid "Armature"
 msgstr "骨架"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "晶格"
 
 
 msgctxt "Operator"
@@ -132902,6 +132977,10 @@ msgid "No mesh data to join"
 msgstr "没有可供合并的网格数据 (请检查要合并的物体是否都是网格，比如有一个物体是曲线。此功能仅能合并网格物体)"
 
 
+msgid "Joining results in %d vertices, limit is %ld"
+msgstr "%d 个顶点的接合结果, 上限为 %ld"
+
+
 msgid "No source mesh objects selected"
 msgstr "未选择源网格物体"
 
@@ -132924,10 +133003,6 @@ msgstr "在动态拓扑雕刻中不受支持"
 
 msgid "Mesh faces and vertices reordered spatially"
 msgstr "网格面和顶点在空间上重新排序"
-
-
-msgid "Joining results in %d vertices, limit is %ld"
-msgstr "%d 个顶点的接合结果, 上限为 %ld"
 
 
 msgid "Updated %d shape key(s)"
@@ -134665,6 +134740,10 @@ msgstr "正在渲染序列..."
 
 msgid "Rendering..."
 msgstr "正在渲染..."
+
+
+msgid "Start frame is larger than end frame"
+msgstr "起始帧大于结束帧"
 
 
 msgid "Cannot write a single file with an animation format selected"
@@ -142684,18 +142763,6 @@ msgid "Bright"
 msgstr "亮度"
 
 
-msgid "Color Space:"
-msgstr "色彩空间:"
-
-
-msgid "Key Channel:"
-msgstr "关键通道:"
-
-
-msgid "Limiting Channel:"
-msgstr "限定通道:"
-
-
 msgid "Channel values lower than this minimum are keyed"
 msgstr "低于此最小值的通道值将进行抠像"
 
@@ -142730,10 +142797,6 @@ msgstr "如果颜色与关键色彩的饱和度差异小于这个阈值，则会
 
 msgid "If the difference in value between the color and key color is less than this threshold, it is keyed"
 msgstr "如果颜色与关键色彩的明度差异小于这个阈值，则会被抠像"
-
-
-msgid "Despill Channel:"
-msgstr "去溢出通道:"
 
 
 msgid "Limit Strength"
@@ -143122,14 +143185,6 @@ msgstr "如果给定颜色空间中颜色和关键色彩之间的色距小于此
 
 msgid "If the distance between the color and the key color in the given color space is less than this threshold, it is partially keyed, otherwise, it is not keyed"
 msgstr "如果给定颜色空间中颜色和关键色彩之间的色距小于此阈值，则部分抠像，否则不抠像"
-
-
-msgid "Inner Edge:"
-msgstr "内侧边:"
-
-
-msgid "Buffer Edge:"
-msgstr "缓冲边线:"
 
 
 msgid "Inner Mask"
@@ -144808,6 +144863,10 @@ msgstr "每组所有数值的总和除以该组的数目"
 
 msgid "The middle value in each group when all values are sorted from lowest to highest"
 msgstr "所有数值从低到高排序时每组的中间值"
+
+
+msgid "The values the minimum and maximum will be calculated from"
+msgstr "最大值和最小值将由此数值计算得出"
 
 
 msgid "The lowest value in each group"
@@ -146614,6 +146673,10 @@ msgid " (Deprecated)"
 msgstr " (已弃用)"
 
 
+msgid "Update based on linked bundle signature"
+msgstr "基于链接捆包标识的更新"
+
+
 msgid "Add Inputs"
 msgstr "添加输入"
 
@@ -146636,6 +146699,10 @@ msgstr "移除输出"
 
 msgid "Change Outputs"
 msgstr "更改输出"
+
+
+msgid "Update based on linked closure signature"
+msgstr "基于链接闭包标识的更新"
 
 
 msgid "No bundle signature found"
@@ -147211,6 +147278,10 @@ msgid "Strength of the light source"
 msgstr "光源的强度"
 
 
+msgid "Color input on which inversion will be applied"
+msgstr "将应用反转的颜色输入"
+
+
 msgid "Facing"
 msgstr "面朝向"
 
@@ -147603,6 +147674,10 @@ msgstr "输入端矢量的旋转角度"
 
 msgid "The amount of rotation on each axis, around the X, Y, then Z axes in that order"
 msgstr "每个轴上的旋转量，依次围绕X、Y和Z轴"
+
+
+msgid "Vector, point, or normal which will be used for conversion between spaces"
+msgstr "用于空间之间转换的矢量、点或法线"
 
 
 msgid "No mesh in active object"

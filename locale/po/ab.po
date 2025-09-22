@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
 "Report-Msgid-Bugs-To: \n"
 "PO-Revision-Date: 2025-07-23 15:29+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
@@ -119,6 +119,10 @@ msgid "Curve"
 msgstr "Архәара"
 
 
+msgid "View"
+msgstr "Аԥшра"
+
+
 msgid "Difference"
 msgstr "Аиԥшымра"
 
@@ -141,10 +145,6 @@ msgstr "Ахырхага"
 
 msgid "Plane"
 msgstr "Аҟьаҟьа"
-
-
-msgid "View"
-msgstr "Аԥшра"
 
 
 msgid "Render"
@@ -292,6 +292,11 @@ msgstr "Ашәҟәы"
 
 msgid "Help"
 msgstr "Аилыркаа"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Аҭыџьеихац"
 
 
 msgid "Intersect"
@@ -501,11 +506,6 @@ msgstr "Абжьы Ахыҵхырҭа"
 msgctxt "Operator"
 msgid "Armature"
 msgstr "Абаҩ"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Аҭыџьеихац"
 
 
 msgctxt "Action"

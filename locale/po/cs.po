@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-15 07:14+0000\n"
+"POT-Creation-Date: 2025-09-22 08:45+0000\n"
 "PO-Revision-Date: 2025-07-23 15:14+0000\n"
 "Last-Translator: Jan Vavřínek <janvavrinek1@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -1578,10 +1578,6 @@ msgstr "Žádné přetahování objektů"
 
 msgid "Space Type"
 msgstr "Stejné typy"
-
-
-msgid "The space where the asset shelf is going to be used in"
-msgstr "Prostor ve kterém bude tato objektová přihrádka používána"
 
 
 msgid "Preview Size"
@@ -4291,8 +4287,8 @@ msgid "Color management specific to display device"
 msgstr "Správa barev specifická pro zobrazovací zařízení"
 
 
-msgid "Display Device"
-msgstr "Zobrazovací Nástroj"
+msgid "Display"
+msgstr "Zobrazit"
 
 
 msgid "Input color space settings"
@@ -4351,8 +4347,8 @@ msgid "Use RGB curved for pre-display transformation"
 msgstr "Použití zakřiveného RGB pro transformaci před zobrazením"
 
 
-msgid "View Transform"
-msgstr "Transformovat Pohled"
+msgid "View"
+msgstr "Pohled"
 
 
 msgid "Temperature"
@@ -5915,10 +5911,6 @@ msgstr "Rozdělit"
 
 msgid "Plane"
 msgstr "Plocha"
-
-
-msgid "View"
-msgstr "Pohled"
 
 
 msgid "Only First"
@@ -10925,10 +10917,6 @@ msgid "Amount of damping"
 msgstr "Historie vracení"
 
 
-msgid "Display"
-msgstr "Zobrazit"
-
-
 msgid "Percentage of particles to display in 3D view"
 msgstr "Úhel čočky v perspektivním pohledu"
 
@@ -14219,6 +14207,11 @@ msgid "Parent"
 msgstr "Rodič"
 
 
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Mříž"
+
+
 msgid "Clone Layer"
 msgstr "Vyberte renderovanou vrstvu"
 
@@ -16831,20 +16824,12 @@ msgid "Channel Key"
 msgstr "Kanál"
 
 
-msgid "Single"
-msgstr "Úhel"
-
-
 msgid "Chroma Key"
 msgstr "Samochytavé Klíče"
 
 
 msgid "Color Balance"
 msgstr "Nelineární video editor"
-
-
-msgid "Correction Formula"
-msgstr "Odznačit spojené"
 
 
 msgid "Color Correction"
@@ -16947,32 +16932,8 @@ msgid "Distance Key"
 msgstr "Vzdálenost"
 
 
-msgid "RGB color space"
-msgstr "Barevný prostor RGB"
-
-
 msgid "Double Edge Mask"
 msgstr "Dvojklik"
-
-
-msgid "Buffer Edge Mode"
-msgstr "Orientace manipulátorů (Klávesová zkratka: Alt Space)"
-
-
-msgid "Bleed Out"
-msgstr "Přechod"
-
-
-msgid "Keep In"
-msgstr "Vstupy"
-
-
-msgid "Inner Edge Mode"
-msgstr "Otevřít editační mód"
-
-
-msgid "Adjacent Only"
-msgstr "Skrýt neoznačené"
 
 
 msgid "Ellipse Mask"
@@ -17600,24 +17561,12 @@ msgid "Height from sea level"
 msgstr "Výška od hladiny moře"
 
 
-msgid "Dust"
-msgstr "Prach"
-
-
 msgid "Ozone"
 msgstr "Ozón"
 
 
 msgid "Which sky model should be used"
 msgstr "Který model oblohy by měl být použit"
-
-
-msgid "Nishita"
-msgstr "Nishita"
-
-
-msgid "Nishita 1993 improved"
-msgstr "Nishita 1993 improved"
 
 
 msgid "Sun Disc"
@@ -17758,6 +17707,10 @@ msgstr "Výstup uzlu"
 
 msgid "Value to Normal"
 msgstr "Hodnota k Normále"
+
+
+msgid "Single"
+msgstr "Úhel"
 
 
 msgid "Node Inputs"
@@ -40299,11 +40252,6 @@ msgstr "Vybrat non-manifold"
 msgctxt "Operator"
 msgid "Armature"
 msgstr "Kostra"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Mříž"
 
 
 msgctxt "Operator"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-15 07:14+0000\n"
+"POT-Creation-Date: 2025-09-22 08:45+0000\n"
 "PO-Revision-Date: 2025-07-23 14:53+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
@@ -2966,8 +2966,8 @@ msgid "Color management specific to display device"
 msgstr "ﺽﺮﻌﻟﺍ ﺯﺎﻬﺠﺑ ﺔﺼﺘﺨﻤﻟﺍ ﻥﻮﻠﻟﺍ ﺓﺭﺍﺩﺍ"
 
 
-msgid "Display Device"
-msgstr "ﻰﻨﺤﻨﻤﻟﺍ ﺮﻬﻇﺃ"
+msgid "Display"
+msgstr "ﺽﺮﻋ"
 
 
 msgid "Input color space settings"
@@ -3018,8 +3018,8 @@ msgid "Use RGB curved for pre-display transformation"
 msgstr "ﺽﺮﻌﻟﺍ-ﻞﺒﻗ ﻝﻮﺤﺘﻟ ﻲﻨﺤﻨﻣ ﻥﻮﻟ ﻡﺪﺨﺘﺳﺍ"
 
 
-msgid "View Transform"
-msgstr "ﻲﺋﺮﻤﻟﺍ ﻞﻳﻮﺤﺘﻟﺍ"
+msgid "View"
+msgstr "ﺮﻈﻨﻣ"
 
 
 msgid "View used when converting image to a display space"
@@ -5014,10 +5014,6 @@ msgstr "ﻢﺴﻗﺍ"
 
 msgid "Plane"
 msgstr "ﺢﻄﺳ"
-
-
-msgid "View"
-msgstr "ﺮﻈﻨﻣ"
 
 
 msgid "Radius"
@@ -11928,10 +11924,6 @@ msgid "Amount of damping"
 msgstr "ﻝﺅﺎﻀﺘﻟﺍ ﺔﻴﻤﻛ"
 
 
-msgid "Display"
-msgstr "ﺽﺮﻋ"
-
-
 msgid "Percentage of particles to display in 3D view"
 msgstr "ﻲﺛﻼ﻿ﺜﻟﺍ ﺬﻔﻨﻣ ﻲﻓ ﺔﺿﻭﺮﻌﻤﻟﺍ ﺕﺎﺌﻳﺰﺠﻟﺍ ﺔﺒﺴﻧ"
 
@@ -15979,6 +15971,11 @@ msgid "Parent"
 msgstr "ﻞﺻﺃ"
 
 
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "ﺔﻜﺒﺷ"
+
+
 msgid "Operator Presets"
 msgstr "ﻞﻣﺎﻌﻠﻟ ﺔﻘﺒﺴﻣ ﺕﺍﺩﺍﺪﻋﺇ"
 
@@ -18658,24 +18655,12 @@ msgid "Channel Key"
 msgstr "ﺓﺎﻨﻘﻟﺍ ﺡﺎﺘﻔﻣ"
 
 
-msgid "Single"
-msgstr "ﻱﺩﺮﻓ"
-
-
-msgid "Channel used to determine matte"
-msgstr "ءﺎﻄﻐﻟﺍ ﺪﻳﺪﺤﺘﻟ ﺔﻣﺪﺨﺘﺴﻤﻟﺍ ﺓﺎﻨﻘﻟﺍ"
-
-
 msgid "Chroma Key"
 msgstr "ﻥﻮﻠﻟﺍ ﺡﺎﺘﻔﻣ"
 
 
 msgid "Color Balance"
 msgstr "ﻥﻮﻠﻟﺍ ﺔﻧﺯﺍﻮﻣ"
-
-
-msgid "Correction Formula"
-msgstr "ﺢﻴﺤﺼﺘﻟﺍ ﺔﻟﺩﺎﻌﻣ"
 
 
 msgid "Color Correction"
@@ -18774,32 +18759,8 @@ msgid "Distance Key"
 msgstr "ﺪﻌﺑ"
 
 
-msgid "RGB color space"
-msgstr "RGB ﻥﻮﻟ ﻝﺎﺠﻣ"
-
-
 msgid "Double Edge Mask"
 msgstr "ﺔﻓﺎﺤﻟﺍ ﻲﺋﺎﻨﺛ ﻉﺎﻨﻗ"
-
-
-msgid "Buffer Edge Mode"
-msgstr "ﺔﻧﺰﺨﻤﻟﺍ ﺔﻓﺎﺤﻟﺍ ﻂﻤﻧ"
-
-
-msgid "Bleed Out"
-msgstr "ﻊﻴﻣﺪﺗ"
-
-
-msgid "Keep In"
-msgstr "ﻞﺧﺍﺪﻟﺍ ءﺎﻘﺑﺇ"
-
-
-msgid "Inner Edge Mode"
-msgstr "ﺔﻴﻠﺧﺍﺪﻟﺍ ﺔﻓﺎﺤﻟﺍ ﻂﻤﻧ"
-
-
-msgid "Adjacent Only"
-msgstr "ﻂﻘﻓ ﻂﻴﺤﻤﻟﺍ"
 
 
 msgid "Ellipse Mask"
@@ -19288,6 +19249,10 @@ msgstr "ﺓﺪﻘﻌﻟﺍ ﺝﺮﺧ"
 
 msgid "Value to Normal"
 msgstr "ﻢﻇﺎﻨﻠﻟ ﺔﻤﻴﻘﻟﺍ"
+
+
+msgid "Single"
+msgstr "ﻱﺩﺮﻓ"
 
 
 msgid "Socket Template"
@@ -35019,11 +34984,6 @@ msgstr "ﺐﻌﺸﻣ ﺮﻴﻏ"
 msgctxt "Operator"
 msgid "Edge Rings"
 msgstr "ﺔﻓﺎﺣ ﺕﺎﻘﻠﺣ"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "ﺔﻜﺒﺷ"
 
 
 msgctxt "Operator"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-09-15 07:14+0000\n"
+"POT-Creation-Date: 2025-09-22 08:45+0000\n"
 "PO-Revision-Date: 2025-07-23 15:03+0000\n"
 "Last-Translator: Amy Lily <lillya.assist@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -1735,10 +1735,6 @@ msgstr "Sem arrastar ativos"
 
 msgid "Space Type"
 msgstr "Tipo de espaço"
-
-
-msgid "The space where the asset shelf is going to be used in"
-msgstr "O espaço no qual a prateleira de ativos será utilizada"
 
 
 msgid "Preview Size"
@@ -4984,8 +4980,8 @@ msgid "Color management specific to display device"
 msgstr "Gerenciamento de cores específica para o dispositivo de exibição."
 
 
-msgid "Display Device"
-msgstr "Dispositivo de exibição"
+msgid "Display"
+msgstr "Mostrar"
 
 
 msgid "Input color space settings"
@@ -5048,8 +5044,8 @@ msgid "Use RGB curved for pre-display transformation"
 msgstr "Permite usar curvas RGB para transformações da pré-amostragem."
 
 
-msgid "View Transform"
-msgstr "Transformação visual"
+msgid "View"
+msgstr "Visualizar"
 
 
 msgid "View used when converting image to a display space"
@@ -7252,10 +7248,6 @@ msgstr "Plano"
 
 msgid "Plane for projected stroke"
 msgstr "O plano para a projeção dos traços."
-
-
-msgid "View"
-msgstr "Visualizar"
 
 
 msgid "Detect Corners"
@@ -15581,10 +15573,6 @@ msgid "Amount of damping"
 msgstr "A quantidade de amortecimento."
 
 
-msgid "Display"
-msgstr "Mostrar"
-
-
 msgid "Percentage of particles to display in 3D view"
 msgstr "Porcentagem das partículas para mostrar na janela de visualização 3D."
 
@@ -21280,6 +21268,18 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
+msgid "Toggle Bone Options"
+msgstr "Alternar opções de ossos"
+
+
+msgid "Enable Bone Options"
+msgstr "Habilitar opções de ossos"
+
+
+msgid "Disable Bone Options"
+msgstr "Desabilitar as opções de ossos"
+
+
 msgid "Mesh Select Mode"
 msgstr "Modo de seleção de malhas"
 
@@ -21442,18 +21442,6 @@ msgstr "Entre as continuidades"
 
 msgid "Propagate"
 msgstr "Propagar"
-
-
-msgid "Toggle Bone Options"
-msgstr "Alternar opções de ossos"
-
-
-msgid "Enable Bone Options"
-msgstr "Habilitar opções de ossos"
-
-
-msgid "Disable Bone Options"
-msgstr "Desabilitar as opções de ossos"
 
 
 msgid "Basic"
@@ -21707,6 +21695,11 @@ msgstr "Predefinições de chave"
 msgctxt "Operator"
 msgid "Parent"
 msgstr "Parente"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Treliça"
 
 
 msgid "Clone Layer"
@@ -26910,56 +26903,12 @@ msgid "Channel Key"
 msgstr "Chave de canal"
 
 
-msgid "YCbCr"
-msgstr "YCbCr"
-
-
-msgid "Limit by this channel's value"
-msgstr "Limita por este valor de canal."
-
-
-msgid "Algorithm"
-msgstr "Algoritmo"
-
-
-msgid "Algorithm to use to limit channel"
-msgstr "Algoritmo a ser usado para limitar o canal."
-
-
-msgid "Single"
-msgstr "Único"
-
-
-msgid "Limit by single channel"
-msgstr "Limita por um único canal."
-
-
-msgid "Channel used to determine matte"
-msgstr "Canal usado para determinar a tela."
-
-
 msgid "Chroma Key"
 msgstr "Chave de crominância"
 
 
 msgid "Color Balance"
 msgstr "Balanço de cor"
-
-
-msgid "Correction Formula"
-msgstr "Fórmula de correção"
-
-
-msgid "Lift/Gamma/Gain"
-msgstr "Realce, gama e ganho"
-
-
-msgid "Offset/Power/Slope (ASC-CDL)"
-msgstr "Deslocamento, potência e inclinação (ASC-CDL)"
-
-
-msgid "ASC-CDL standard color correction"
-msgstr "Correção de cores padrão ASC-CDL."
 
 
 msgid "Color Correction"
@@ -26972,6 +26921,10 @@ msgstr "Chave de cor"
 
 msgid "Color Spill"
 msgstr "Derramamento de cor"
+
+
+msgid "YCbCr"
+msgstr "YCbCr"
 
 
 msgid "ITU 601"
@@ -27122,48 +27075,8 @@ msgid "Distance Key"
 msgstr "Chave de distância"
 
 
-msgid "RGB color space"
-msgstr "Espaço de cores (RGB)"
-
-
 msgid "Double Edge Mask"
 msgstr "Máscara de aresta dupla"
-
-
-msgid "Buffer Edge Mode"
-msgstr "Modo de contingenciamento de arestas"
-
-
-msgid "Bleed Out"
-msgstr "Sangrar para fora"
-
-
-msgid "Allow mask pixels to bleed along edges"
-msgstr "Permite que os pixeis da máscara sangrem ao longo das arestas."
-
-
-msgid "Keep In"
-msgstr "Manter dentro"
-
-
-msgid "Restrict mask pixels from touching edges"
-msgstr "Restringe os pixeis da máscara de arestas que podem tocá-lo."
-
-
-msgid "Inner Edge Mode"
-msgstr "Modo de arestas internas"
-
-
-msgid "All pixels on inner mask edge are considered during mask calculation"
-msgstr "Todos os pixeis na aresta da máscara interna são considerados durante os cálculos da máscara."
-
-
-msgid "Adjacent Only"
-msgstr "Somente adjacentes"
-
-
-msgid "Only inner mask pixels adjacent to outer mask pixels are considered during mask calculation"
-msgstr "Somente os pixeis de máscara internos adjacentes para os pixeis da máscara externa são considerados durante os cálculos da máscara."
 
 
 msgid "Ellipse Mask"
@@ -27232,14 +27145,6 @@ msgstr "Posterizar"
 
 msgid "Alpha Convert"
 msgstr "Conversão de alfa"
-
-
-msgid "Conversion between premultiplied alpha and key alpha"
-msgstr "Conversão entre o alfa pré-multiplicado e o alfa principal."
-
-
-msgid "To Straight"
-msgstr "Para Reta"
 
 
 msgid "RGB to BW"
@@ -28008,20 +27913,8 @@ msgid "Sky Type"
 msgstr "Tipo de céu"
 
 
-msgid "Nishita"
-msgstr "Nishita"
-
-
-msgid "Nishita 1993 improved"
-msgstr "Nishita 1993 melhorado"
-
-
 msgid "Sun Intensity"
 msgstr "Intensidade do Sol"
-
-
-msgid "Strength of sun"
-msgstr "Força do sol"
 
 
 msgid "Sun Rotation"
@@ -28214,6 +28107,10 @@ msgstr "Para texturas que usam nós como base, permite definir o nó de saída u
 
 msgid "Value to Normal"
 msgstr "Valor para as normais"
+
+
+msgid "Single"
+msgstr "Único"
 
 
 msgid "Enum Item"
@@ -56714,6 +56611,18 @@ msgid "Playback panning of the sound (only for Mono sources)"
 msgstr "Arrasto panorâmico ao reproduzir som (somente para fontes monaurais)."
 
 
+msgid "Lift/Gamma/Gain"
+msgstr "Realce, gama e ganho"
+
+
+msgid "Offset/Power/Slope (ASC-CDL)"
+msgstr "Deslocamento, potência e inclinação (ASC-CDL)"
+
+
+msgid "ASC-CDL standard color correction"
+msgstr "Correção de cores padrão ASC-CDL."
+
+
 msgid "Color balance gain (highlights)"
 msgstr "Balanço de cor de ganho (realces)."
 
@@ -62029,16 +61938,6 @@ msgstr "Perspectiva/Ortográfico"
 
 
 msgctxt "Operator"
-msgid "Viewport Render Image"
-msgstr "Imagem renderizada da janela de visualização"
-
-
-msgctxt "Operator"
-msgid "Viewport Render Keyframes"
-msgstr "Quadros-chave renderizados da janela de visualização"
-
-
-msgctxt "Operator"
 msgid "Toggle Local View"
 msgstr "Alternar Visualização Local"
 
@@ -62567,11 +62466,6 @@ msgstr "Projetar a partir da vista (nos limites)"
 
 
 msgctxt "Operator"
-msgid "Viewport Render Animation"
-msgstr "Animação renderizada da janela de visualização"
-
-
-msgctxt "Operator"
 msgid "Roll Left"
 msgstr "Rolar à esquerda"
 
@@ -62609,11 +62503,6 @@ msgstr "Próximo Bloco"
 msgctxt "Operator"
 msgid "Armature"
 msgstr "Armação"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Treliça"
 
 
 msgctxt "Operator"
@@ -64791,12 +64680,12 @@ msgid "No mesh data to join"
 msgstr "Sem dados adicionais de malha para juntar."
 
 
-msgid "No additional selected meshes with equal vertex count to join"
-msgstr "Sem malhas adicionais selecionadas com número igual de vértices para juntar."
-
-
 msgid "Joining results in %d vertices, limit is %ld"
 msgstr "Juntando resultados em %d vértices, limite é %ld ."
+
+
+msgid "No additional selected meshes with equal vertex count to join"
+msgstr "Sem malhas adicionais selecionadas com número igual de vértices para juntar."
 
 
 msgid "SoundTrack"
@@ -67849,10 +67738,6 @@ msgstr "Início dos meios tons"
 
 msgid "Midtones End"
 msgstr "Final dos meios tons"
-
-
-msgid "Inner Edge:"
-msgstr "Aresta Interna:"
 
 
 msgid "Soften"

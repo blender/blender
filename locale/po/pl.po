@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-15 07:14+0000\n"
+"POT-Creation-Date: 2025-09-22 08:45+0000\n"
 "PO-Revision-Date: 2025-07-23 15:14+0000\n"
 "Last-Translator: Kamil <uhkamil@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -1567,10 +1567,6 @@ msgstr "Brak przeciągania prefabrykatu"
 
 msgid "Space Type"
 msgstr "Typ przestrzeni"
-
-
-msgid "The space where the asset shelf is going to be used in"
-msgstr "Przestrzeń, w której będzie używana półka prefabrykatów"
 
 
 msgid "Preview Size"
@@ -4467,8 +4463,8 @@ msgid "Color management specific to display device"
 msgstr "Zarządzaniem kolorem zależne od urządzenia wyświetlającego"
 
 
-msgid "Display Device"
-msgstr "Urządzenie wyświetlające"
+msgid "Display"
+msgstr "Wyświetlanie"
 
 
 msgid "Input color space settings"
@@ -4519,8 +4515,8 @@ msgid "Use RGB curved for pre-display transformation"
 msgstr "Użyj zakrzywionego RGB dla transformacji obrazu przed wyświetleniem"
 
 
-msgid "View Transform"
-msgstr "Transformacje widoku"
+msgid "View"
+msgstr "Widok"
 
 
 msgid "View used when converting image to a display space"
@@ -6623,10 +6619,6 @@ msgstr "Płaszczyzna"
 
 msgid "Normal to Surface"
 msgstr "Wektor normalny do powierzchni"
-
-
-msgid "View"
-msgstr "Widok"
 
 
 msgid "Radius"
@@ -10376,10 +10368,6 @@ msgid "Simple"
 msgstr "Prosty"
 
 
-msgid "Display"
-msgstr "Wyświetlanie"
-
-
 msgid "Steps"
 msgstr "Kroki"
 
@@ -11862,6 +11850,11 @@ msgid "Empty"
 msgstr "Pusty"
 
 
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Kratownica"
+
+
 msgctxt "Constraint"
 msgid "Track"
 msgstr "Ścieżka"
@@ -12363,10 +12356,6 @@ msgstr "Pokaż podgląd"
 
 msgid "Brightness/Contrast"
 msgstr "Jasność/kontrast"
-
-
-msgid "Single"
-msgstr "Pojedyńczy"
 
 
 msgid "To"
@@ -13124,6 +13113,10 @@ msgstr "Węzeł tekstury"
 
 msgid "Node Output"
 msgstr "Wyjście węzła"
+
+
+msgid "Single"
+msgstr "Pojedyńczy"
 
 
 msgid "Bake Item"
@@ -21696,11 +21689,6 @@ msgstr "Pozycja X"
 
 
 msgctxt "Operator"
-msgid "Sequence Render Image"
-msgstr "Renderuj sekwencję obrazów"
-
-
-msgctxt "Operator"
 msgid "Left"
 msgstr "Lewo"
 
@@ -22353,16 +22341,6 @@ msgstr "Perspektywiczny/prostokątny"
 
 
 msgctxt "Operator"
-msgid "Viewport Render Image"
-msgstr "Renderuj obraz rzutni"
-
-
-msgctxt "Operator"
-msgid "Viewport Render Keyframes"
-msgstr "Renderuj klatki kluczowe rzutni"
-
-
-msgctxt "Operator"
 msgid "Toggle Local View"
 msgstr "Przełącz lokalny widok"
 
@@ -22800,18 +22778,8 @@ msgstr "Tekst atrybutu"
 
 
 msgctxt "Operator"
-msgid "Viewport Render Animation"
-msgstr "Renderuj animację rzutni"
-
-
-msgctxt "Operator"
 msgid "Armature"
 msgstr "Szkielet"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Kratownica"
 
 
 msgctxt "Operator"
@@ -24770,12 +24738,12 @@ msgid "No mesh data to join"
 msgstr "Brak danych siatki do złączenia"
 
 
-msgid "No additional selected meshes with equal vertex count to join"
-msgstr "Brak zaznaczonych dodatkowych siatek z równą liczbą wierzchołków do złączenia"
-
-
 msgid "Joining results in %d vertices, limit is %ld"
 msgstr "Łączenie rezultatów w %d wierzchołkach, ograniczenie wynosi %ld"
+
+
+msgid "No additional selected meshes with equal vertex count to join"
+msgstr "Brak zaznaczonych dodatkowych siatek z równą liczbą wierzchołków do złączenia"
 
 
 msgid "Unassigned"
@@ -27744,18 +27712,6 @@ msgstr "Współczynnik"
 
 msgid "Bounding box"
 msgstr "Prostopadłościan brzegowy"
-
-
-msgid "Color Space:"
-msgstr "Przestrzeń kolorów:"
-
-
-msgid "Key Channel:"
-msgstr "Kanał klucza:"
-
-
-msgid "Despill Channel:"
-msgstr "Kanał Despill:"
 
 
 msgid "Result"

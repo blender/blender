@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-15 07:14+0000\n"
+"POT-Creation-Date: 2025-09-22 08:45+0000\n"
 "PO-Revision-Date: 2025-07-23 14:57+0000\n"
 "Last-Translator: Michael Tribayu Jatnika Natawiria <mike.natawiria@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -1921,10 +1921,6 @@ msgstr "Menyimpan katalog yang diaktifkan di rak dalam preferensi, bukan pengatu
 
 msgid "Space Type"
 msgstr "Tipe Spasi"
-
-
-msgid "The space where the asset shelf is going to be used in"
-msgstr "Ruang dimana rak aset akan digunakan"
 
 
 msgid "Preview Size"
@@ -6392,10 +6388,6 @@ msgid "Color management specific to display device"
 msgstr "Manajemen warna spesifik ke perangkat tampilan"
 
 
-msgid "Display Device"
-msgstr "Perangkat Tampilan"
-
-
 msgid "Input color space settings"
 msgstr "Pengaturan spasi warna masukan"
 
@@ -6476,8 +6468,8 @@ msgid "Use RGB curved for pre-display transformation"
 msgstr "Gunakan RGB kurva untuk pra-tampilkan transformasi"
 
 
-msgid "View Transform"
-msgstr "Lihat Transformasi"
+msgid "View"
+msgstr "Pandangan"
 
 
 msgid "View used when converting image to a display space"
@@ -8308,10 +8300,6 @@ msgstr "Normal ke Permukaan"
 
 msgid "Tangent to Surface"
 msgstr "Tangen ke Permukaan"
-
-
-msgid "View"
-msgstr "Pandangan"
 
 
 msgid "Project the strokes only onto selected objects"
@@ -17562,40 +17550,12 @@ msgid "Channel Key"
 msgstr "Kunci Saluran"
 
 
-msgid "YCbCr"
-msgstr "YCbCr"
-
-
-msgid "Algorithm"
-msgstr "Algoritma"
-
-
-msgid "Algorithm to use to limit channel"
-msgstr "Algoritma menggunakan batas saluran"
-
-
-msgid "Single"
-msgstr "Tunggal"
-
-
-msgid "Limit by single channel"
-msgstr "Batasi oleh saluran tunggal"
-
-
-msgid "Limit by maximum of other channels"
-msgstr "Batasi oleh maksimum saluran lain"
-
-
 msgid "Chroma Key"
 msgstr "Kunci Chroma"
 
 
 msgid "Color Balance"
 msgstr "Keseimbangan Warna"
-
-
-msgid "Correction Formula"
-msgstr "Rumus Koreksi"
 
 
 msgid "The color which gets white gets mapped to (automatically converted to/from temperature and tint)"
@@ -17610,28 +17570,12 @@ msgid "Color Key"
 msgstr "Kunci Warna"
 
 
-msgid "Limit by red"
-msgstr "Batasi oleh merah"
-
-
-msgid "Limit by green"
-msgstr "Batasi oleh hijau"
-
-
-msgid "Limit by blue"
-msgstr "Batasi oleh biru"
-
-
-msgid "Simple limit algorithm"
-msgstr "Algoritma batas sederhana"
-
-
-msgid "Average limit algorithm"
-msgstr "Algoritma batas rata-rata"
-
-
 msgid "Mode of color processing"
 msgstr "Mode pemrosesan warna"
+
+
+msgid "YCbCr"
+msgstr "YCbCr"
 
 
 msgid "Color space used for YCbCrA processing"
@@ -17854,18 +17798,6 @@ msgid "Distance Key"
 msgstr "Kunci Jarak"
 
 
-msgid "RGB color space"
-msgstr "Spasi warna RGB"
-
-
-msgid "Buffer Edge Mode"
-msgstr "Modus Sunting"
-
-
-msgid "Adjacent Only"
-msgstr "Hanya Garis"
-
-
 msgid "Ellipse Mask"
 msgstr "Hapus"
 
@@ -17902,10 +17834,6 @@ msgid "File Output"
 msgstr "Keluaran Dokumen"
 
 
-msgid "To Straight"
-msgstr "Ke Lurus"
-
-
 msgid "RGB to BW"
 msgstr "RGB ke BW"
 
@@ -17916,14 +17844,6 @@ msgstr "Render Layer"
 
 msgid "Set Alpha"
 msgstr "Set Alpha"
-
-
-msgid "Apply Mask"
-msgstr "Terapkan Masker"
-
-
-msgid "Replace Alpha"
-msgstr "Gantikan Alpha"
 
 
 msgid "Stabilize 2D"
@@ -18494,6 +18414,10 @@ msgstr "Tekstur"
 
 msgid "Node Output"
 msgstr "Keluaran Node"
+
+
+msgid "Single"
+msgstr "Tunggal"
 
 
 msgid "Node Instance Hash"
@@ -29301,16 +29225,6 @@ msgstr "Perspektif/Ortografik"
 
 
 msgctxt "Operator"
-msgid "Viewport Render Image"
-msgstr "Jendela Tampilan Render Gambar"
-
-
-msgctxt "Operator"
-msgid "Viewport Render Keyframes"
-msgstr "Jendela Tampilan Render Keyframe"
-
-
-msgctxt "Operator"
 msgid "Toggle Local View"
 msgstr "Toggle View Lokal"
 
@@ -31410,22 +31324,6 @@ msgid "Bright"
 msgstr "Kanan"
 
 
-msgid "Color Space:"
-msgstr "Ruang Warna:"
-
-
-msgid "Key Channel:"
-msgstr "Saluran Kunci:"
-
-
-msgid "Limiting Channel:"
-msgstr "Membatasi Saluran:"
-
-
-msgid "Despill Channel:"
-msgstr "Saluran Despill:"
-
-
 msgid "Correction for shadows"
 msgstr "Koreksi untuk bayangan"
 
@@ -31452,10 +31350,6 @@ msgstr "Tipe Bokeh:"
 
 msgid "Result"
 msgstr "Hasil"
-
-
-msgid "Buffer Edge:"
-msgstr "Tepi Penyangga:"
 
 
 msgid "Sun Beams"

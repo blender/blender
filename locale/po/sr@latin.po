@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-15 07:14+0000\n"
+"POT-Creation-Date: 2025-09-22 08:45+0000\n"
 "PO-Revision-Date: 2025-07-23 14:56+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -1941,8 +1941,8 @@ msgid "Kill collided particles"
 msgstr "Ubi čestice pri sudaru"
 
 
-msgid "Display Device"
-msgstr "Prikaži krive"
+msgid "Display"
+msgstr "Prikaz"
 
 
 msgid "Input Color Space"
@@ -1969,8 +1969,8 @@ msgid "Use Curves"
 msgstr "Koristi krive"
 
 
-msgid "View Transform"
-msgstr "Transformacija pogleda"
+msgid "View"
+msgstr "Pogled"
 
 
 msgid "Temperature"
@@ -3005,10 +3005,6 @@ msgstr "Metoda"
 
 msgid "Plane"
 msgstr "Ploča"
-
-
-msgid "View"
-msgstr "Pogled"
 
 
 msgid "Radius"
@@ -6714,10 +6710,6 @@ msgid "Amount of damping"
 msgstr "Vrednost vlaženja"
 
 
-msgid "Display"
-msgstr "Prikaz"
-
-
 msgid "Percentage of particles to display in 3D view"
 msgstr "Postavlja kraj raspona u kome će se prikazivati 3D objekti (u perspektivi)"
 
@@ -8505,6 +8497,18 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
+msgid "Toggle Bone Options"
+msgstr "Manje/više informacija"
+
+
+msgid "Enable Bone Options"
+msgstr "Omogući opcije kostiju"
+
+
+msgid "Disable Bone Options"
+msgstr "Onemogući opcije kostiju"
+
+
 msgid "Mesh Select Mode"
 msgstr "Mod izbora mreže"
 
@@ -8599,18 +8603,6 @@ msgstr "U međuvremenu"
 
 msgid "Propagate"
 msgstr "Prenesi"
-
-
-msgid "Toggle Bone Options"
-msgstr "Manje/više informacija"
-
-
-msgid "Enable Bone Options"
-msgstr "Omogući opcije kostiju"
-
-
-msgid "Disable Bone Options"
-msgstr "Onemogući opcije kostiju"
 
 
 msgid "Basic"
@@ -8807,6 +8799,11 @@ msgstr "Postavke"
 msgctxt "Operator"
 msgid "Parent"
 msgstr "Roditelj"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Kavez"
 
 
 msgid "Clone Layer"
@@ -10552,16 +10549,8 @@ msgid "Channel Key"
 msgstr "Ključ kanala"
 
 
-msgid "Algorithm"
-msgstr "Algoritam"
-
-
 msgid "Color Balance"
 msgstr "Balans boje"
-
-
-msgid "Correction Formula"
-msgstr "Formula ispravke"
 
 
 msgid "Color Correction"
@@ -10650,10 +10639,6 @@ msgstr "Ključ razlike"
 
 msgid "Distance Key"
 msgstr "Ključ razdaljine"
-
-
-msgid "Keep In"
-msgstr "Zadrži u"
 
 
 msgid "Ellipse Mask"
@@ -23890,11 +23875,6 @@ msgstr "Projektuj iz pogleda"
 msgctxt "Operator"
 msgid "Non Manifold"
 msgstr "Nepovezani"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Kavez"
 
 
 msgctxt "Operator"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-15 07:14+0000\n"
+"POT-Creation-Date: 2025-09-22 08:45+0000\n"
 "PO-Revision-Date: 2025-07-23 15:32+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -3525,6 +3525,10 @@ msgid "Use Curves"
 msgstr "Käytä käyriä"
 
 
+msgid "View"
+msgstr "Näkymä"
+
+
 msgid "Mix"
 msgstr "Sekoita"
 
@@ -4268,10 +4272,6 @@ msgstr "Pinta"
 
 msgid "Plane"
 msgstr "Taso"
-
-
-msgid "View"
-msgstr "Näkymä"
 
 
 msgid "Detect Corners"
@@ -7451,6 +7451,11 @@ msgid "Parent"
 msgstr "Isäntä"
 
 
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Säleikkö"
+
+
 msgid "Sharp"
 msgstr "Terävä"
 
@@ -7932,28 +7937,12 @@ msgid "Custom Group"
 msgstr "Mukautettu ryhmä"
 
 
-msgid "Algorithm"
-msgstr "Algoritmi"
-
-
 msgid "Color Balance"
 msgstr "Väritasapaino"
 
 
-msgid "Limit by red"
-msgstr "Rajoita punaisen mukaan"
-
-
-msgid "Limit by green"
-msgstr "Rajoita vihreän mukaan"
-
-
-msgid "Limit by blue"
-msgstr "Rajoita sinisen mukaan"
-
-
-msgid "Simple limit algorithm"
-msgstr "Yksinkertainen rajoitusalgoritmi"
+msgid "Combine Color"
+msgstr "Yhdistä väri"
 
 
 msgid "ITU 601"
@@ -7966,10 +7955,6 @@ msgstr "ITU 709"
 
 msgid "JPEG"
 msgstr "JPEG"
-
-
-msgid "Combine Color"
-msgstr "Yhdistä väri"
 
 
 msgid "Use Object layer"
@@ -8010,10 +7995,6 @@ msgstr "3 sivua"
 
 msgid "Z-Scale"
 msgstr "Z-skaala"
-
-
-msgid "Keep In"
-msgstr "Pidä sisällä"
 
 
 msgid "File Output"
@@ -9258,16 +9239,8 @@ msgid "Height from sea level"
 msgstr "Korkeus merenpinnasta"
 
 
-msgid "Dust"
-msgstr "Pöly"
-
-
 msgid "Sky Type"
 msgstr "Taivastyyppi"
-
-
-msgid "Strength of sun"
-msgstr "Auringon voimakkuus"
 
 
 msgid "Sun Rotation"
@@ -13635,11 +13608,6 @@ msgstr "Lokaalikamera"
 
 
 msgctxt "Operator"
-msgid "Lattice"
-msgstr "Säleikkö"
-
-
-msgctxt "Operator"
 msgid "Reference"
 msgstr "Referenssi"
 
@@ -15702,18 +15670,6 @@ msgid "Bounding box"
 msgstr "Rajaava laatikko"
 
 
-msgid "Color Space:"
-msgstr "Väriavaruus:"
-
-
-msgid "Key Channel:"
-msgstr "Avainkanava:"
-
-
-msgid "Limiting Channel:"
-msgstr "Rajoittava kanava:"
-
-
 msgid "Key Color"
 msgstr "Avainväri"
 
@@ -15752,10 +15708,6 @@ msgstr "Kuva 1"
 
 msgid "Image 2"
 msgstr "Kuva 2"
-
-
-msgid "Inner Edge:"
-msgstr "Sisäreuna:"
 
 
 msgid "Inner Mask"

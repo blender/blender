@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-15 07:14+0000\n"
+"POT-Creation-Date: 2025-09-22 08:45+0000\n"
 "PO-Revision-Date: 2025-09-09 13:59+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -1931,10 +1931,6 @@ msgstr "Memorizza i Cataloghi Abilitati nelle Preferenze"
 
 msgid "Space Type"
 msgstr "Tipo Spazio"
-
-
-msgid "The space where the asset shelf is going to be used in"
-msgstr "Lo spazio dove lo scaffale delle risorse verrà utilizzato"
 
 
 msgid "Preview Size"
@@ -6480,8 +6476,8 @@ msgid "Kill collided particles"
 msgstr "Uccide le particelle collise"
 
 
-msgid "Display Device"
-msgstr "Dispositivo di Visualizzazione"
+msgid "Display"
+msgstr "Visualizza"
 
 
 msgid "Input color space settings"
@@ -6560,8 +6556,8 @@ msgid "Perform chromatic adaption from a different white point"
 msgstr "Effettua l'adattamento cromatico da un diverso punto del bianco"
 
 
-msgid "View Transform"
-msgstr "Trasformazione Visuale"
+msgid "View"
+msgstr "Vista"
 
 
 msgid "Temperature"
@@ -8893,10 +8889,6 @@ msgstr "Disegna in un piano perpendicolare alla superficie"
 
 msgid "Tangent to Surface"
 msgstr "Tangente alla Superficie"
-
-
-msgid "View"
-msgstr "Vista"
 
 
 msgid "Draw in a plane aligned to the viewport"
@@ -18944,10 +18936,6 @@ msgid "Axis"
 msgstr "Asse"
 
 
-msgid "Display"
-msgstr "Visualizza"
-
-
 msgid "Percentage of particles to display in 3D view"
 msgstr "Percentuale di particelle da visualizzare nella vista 3D"
 
@@ -24592,6 +24580,18 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
+msgid "Toggle Bone Options"
+msgstr "Attiva/disattiva Opzioni Osso"
+
+
+msgid "Enable Bone Options"
+msgstr "Abilita Opzioni Osso"
+
+
+msgid "Disable Bone Options"
+msgstr "Disabilita Opzioni Osso"
+
+
 msgid "Mesh Select Mode"
 msgstr "Modalità Selezione Mesh"
 
@@ -24802,18 +24802,6 @@ msgstr "Propaga"
 
 msgid "Bone Collections"
 msgstr "Raccolte di Ossa"
-
-
-msgid "Toggle Bone Options"
-msgstr "Attiva/disattiva Opzioni Osso"
-
-
-msgid "Enable Bone Options"
-msgstr "Abilita Opzioni Osso"
-
-
-msgid "Disable Bone Options"
-msgstr "Disabilita Opzioni Osso"
 
 
 msgid "Keyframe Insert Pie"
@@ -25289,6 +25277,11 @@ msgstr "Genitore"
 msgctxt "Operator"
 msgid "Empty"
 msgstr "Vuoto"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Reticolo"
 
 
 msgctxt "Constraint"
@@ -30878,54 +30871,12 @@ msgid "Channel Key"
 msgstr "Canale Chiave"
 
 
-msgid "YUV"
-msgstr "YUV"
-
-
-msgid "YCbCr"
-msgstr "YCbCr"
-
-
-msgctxt "Color"
-msgid "Limit Channel"
-msgstr "Limita Canale"
-
-
-msgid "Algorithm"
-msgstr "Algoritmo"
-
-
-msgid "Algorithm to use to limit channel"
-msgstr "Algoritmo da utilizzare per limitare il canale"
-
-
-msgid "Single"
-msgstr "Singolo"
-
-
-msgctxt "Color"
-msgid "Channel"
-msgstr "Canale"
-
-
 msgid "Chroma Key"
 msgstr "Chiave Chroma"
 
 
 msgid "Color Balance"
 msgstr "Bilanciamento Colore"
-
-
-msgid "Correction Formula"
-msgstr "Formula Correzione"
-
-
-msgid "Lift/Gamma/Gain"
-msgstr "Lift/Gamma/Gain"
-
-
-msgid "Offset/Power/Slope (ASC-CDL)"
-msgstr "Offset/Potenza/Pendenza (ASC-CDL)"
 
 
 msgid "Input White Point"
@@ -30948,16 +30899,16 @@ msgid "Color Spill"
 msgstr "Versamento Colore"
 
 
-msgid "Red spill suppression"
-msgstr "Soppressione versamento rosso"
+msgid "Combine Color"
+msgstr "Combina Colore"
 
 
-msgid "Green spill suppression"
-msgstr "Soppressione versamento verde"
+msgid "YCbCr"
+msgstr "YCbCr"
 
 
-msgid "Blue spill suppression"
-msgstr "Soppressione versamento blu"
+msgid "YUV"
+msgstr "YUV"
 
 
 msgid "ITU 601"
@@ -30966,10 +30917,6 @@ msgstr "ITU 601"
 
 msgid "ITU 709"
 msgstr "ITU 709"
-
-
-msgid "Combine Color"
-msgstr "Combina Colore"
 
 
 msgid "Convert Colorspace"
@@ -31116,36 +31063,8 @@ msgid "Distance Key"
 msgstr "Chiave Distanza"
 
 
-msgid "RGB color space"
-msgstr "Spazio Colore RGB"
-
-
-msgid "YCbCr suppression"
-msgstr "Soppressione YCbCr"
-
-
 msgid "Double Edge Mask"
 msgstr "Maschera Doppio Lato"
-
-
-msgid "Buffer Edge Mode"
-msgstr "Modalità Buffer Edge"
-
-
-msgid "Bleed Out"
-msgstr "Sfuma in Uscita"
-
-
-msgid "Keep In"
-msgstr "Mantieni Dentro"
-
-
-msgid "Inner Edge Mode"
-msgstr "Modalità Spigolo Interno"
-
-
-msgid "Adjacent Only"
-msgstr "Solo Adiacente"
 
 
 msgid "Ellipse Mask"
@@ -31248,22 +31167,6 @@ msgid "Convert to and from premultiplied (associated) alpha"
 msgstr "Converti da e verso alpha premoltiplicato (associato)"
 
 
-msgid "To Premultiplied"
-msgstr "A Premoltiplicato"
-
-
-msgid "Convert straight to premultiplied"
-msgstr "Converti diretto in premoltiplicato"
-
-
-msgid "To Straight"
-msgstr "A Diretto"
-
-
-msgid "Convert premultiplied to straight"
-msgstr "Converti premoltiplicato in diretto"
-
-
 msgid "A color picker"
 msgstr "Un Selettore Colori"
 
@@ -31322,14 +31225,6 @@ msgstr "Separa Colori"
 
 msgid "Set Alpha"
 msgstr "Imposta Alfa"
-
-
-msgid "Apply Mask"
-msgstr "Applica Maschera"
-
-
-msgid "Replace Alpha"
-msgstr "Sostituisci Alpha"
 
 
 msgid "Stabilize 2D"
@@ -32622,10 +32517,6 @@ msgid "Sun Intensity"
 msgstr "Intensità Sole"
 
 
-msgid "Strength of sun"
-msgstr "Forza del Sole"
-
-
 msgid "Sun Rotation"
 msgstr "Rotazione Sole"
 
@@ -32903,6 +32794,10 @@ msgstr "Uscita Nodo"
 
 msgid "Value to Normal"
 msgstr "Valore a Normale"
+
+
+msgid "Single"
+msgstr "Singolo"
 
 
 msgid "Bake Item"
@@ -57427,6 +57322,14 @@ msgid "Playback panning of the sound (only for Mono sources)"
 msgstr "Scorrimento (pan) della riproduzione del suono (solo sorgenti Mono)"
 
 
+msgid "Lift/Gamma/Gain"
+msgstr "Lift/Gamma/Gain"
+
+
+msgid "Offset/Power/Slope (ASC-CDL)"
+msgstr "Offset/Potenza/Pendenza (ASC-CDL)"
+
+
 msgid "Color balance gain (highlights)"
 msgstr "Guadagno bilanciamento colore (alte luci)"
 
@@ -63203,11 +63106,6 @@ msgstr "Prospettiva/Ortogonale"
 
 
 msgctxt "Operator"
-msgid "Viewport Render Image"
-msgstr "Renderizza Immagine del Viewport"
-
-
-msgctxt "Operator"
 msgid "Toggle Local View"
 msgstr "Attiva/disattiva Vista Locale"
 
@@ -63831,11 +63729,6 @@ msgstr "Proietta da Vista (Limiti)"
 
 
 msgctxt "Operator"
-msgid "Viewport Render Animation"
-msgstr "Renderizza Animazione del Viewport"
-
-
-msgctxt "Operator"
 msgid "Roll Left"
 msgstr "Inclina a Sinistra"
 
@@ -63863,11 +63756,6 @@ msgstr "Fascia di Spigoli (ring)"
 msgctxt "Operator"
 msgid "Armature"
 msgstr "Armatura"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Reticolo"
 
 
 msgctxt "Operator"
@@ -68490,18 +68378,6 @@ msgid "Bright"
 msgstr "Luminosità"
 
 
-msgid "Color Space:"
-msgstr "Spazio Colore:"
-
-
-msgid "Limiting Channel:"
-msgstr "Canale Limitatore:"
-
-
-msgid "Despill Channel:"
-msgstr "Canale Dispersione:"
-
-
 msgid "Correction for shadows"
 msgstr "Correzione per le ombre"
 
@@ -68540,10 +68416,6 @@ msgstr "Immagine 1"
 
 msgid "Image 2"
 msgstr "Immagine 2"
-
-
-msgid "Inner Edge:"
-msgstr "Spigolo Interno:"
 
 
 msgid "Soften"

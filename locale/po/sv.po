@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-15 07:14+0000\n"
+"POT-Creation-Date: 2025-09-22 08:45+0000\n"
 "PO-Revision-Date: 2025-09-15 07:20+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -2879,6 +2879,10 @@ msgid "Kill collided particles"
 msgstr "Ta bort krockade partiklar"
 
 
+msgid "Display"
+msgstr "Visa"
+
+
 msgid "Is Data"
 msgstr "Är data"
 
@@ -2913,6 +2917,10 @@ msgstr "Använd kurvor"
 
 msgid "Use White Balance"
 msgstr "Använd vitbalans"
+
+
+msgid "View"
+msgstr "Visning"
 
 
 msgid "White Point"
@@ -3603,10 +3611,6 @@ msgstr "Metod"
 
 msgid "Plane"
 msgstr "Plan"
-
-
-msgid "View"
-msgstr "Visning"
 
 
 msgid "Detect Corners"
@@ -7017,10 +7021,6 @@ msgstr "Cirkel"
 msgctxt "ParticleSettings"
 msgid "Axis"
 msgstr "Axel"
-
-
-msgid "Display"
-msgstr "Visa"
 
 
 msgid "Size of particles on viewport"
@@ -10615,32 +10615,6 @@ msgid "Channel Key"
 msgstr "Kanalnyckel"
 
 
-msgid "YUV"
-msgstr "YUV"
-
-
-msgid "YCbCr"
-msgstr "YCbCr"
-
-
-msgctxt "Color"
-msgid "Limit Channel"
-msgstr "Begränsa kanal"
-
-
-msgid "Algorithm"
-msgstr "Algoritm"
-
-
-msgid "Limit by single channel"
-msgstr "Begränsa med enstaka kanal"
-
-
-msgctxt "Color"
-msgid "Channel"
-msgstr "Kanal"
-
-
 msgid "Chroma Key"
 msgstr "Chroma-nyckel"
 
@@ -10653,16 +10627,16 @@ msgid "Adjust color and values"
 msgstr "Justera färg och värden"
 
 
-msgid "Limit by red"
-msgstr "Begränsa med rött"
+msgid "Combine Color"
+msgstr "Kombinera färg"
 
 
-msgid "Limit by green"
-msgstr "Begränsa med grönt"
+msgid "YCbCr"
+msgstr "YCbCr"
 
 
-msgid "Limit by blue"
-msgstr "Begränsa med blått"
+msgid "YUV"
+msgstr "YUV"
 
 
 msgid "ITU 601"
@@ -10675,10 +10649,6 @@ msgstr "ITU 709"
 
 msgid "JPEG"
 msgstr "JPEG"
-
-
-msgid "Combine Color"
-msgstr "Kombinera färg"
 
 
 msgid "From"
@@ -10795,14 +10765,6 @@ msgstr "Rotera"
 
 msgid "Scene Time"
 msgstr "Scentid"
-
-
-msgid "Apply Mask"
-msgstr "Tillämpa mask"
-
-
-msgid "Replace Alpha"
-msgstr "Ersätt alfa"
 
 
 msgid "Switch View"
@@ -12039,10 +12001,6 @@ msgid "Height from sea level"
 msgstr "Höjd över havsnivån"
 
 
-msgid "Dust"
-msgstr "Damm"
-
-
 msgid "Ozone"
 msgstr "Ozon"
 
@@ -12053,14 +12011,6 @@ msgstr "Himmel typ"
 
 msgid "Which sky model should be used"
 msgstr "Vilken modell för himmel som ska användas"
-
-
-msgid "Nishita"
-msgstr "Nishita"
-
-
-msgid "Nishita 1993 improved"
-msgstr "Nishita 1993 förbättrad"
 
 
 msgid "Sun Disc"
@@ -12081,10 +12031,6 @@ msgstr "Solens vinkel från horisonten"
 
 msgid "Sun Intensity"
 msgstr "Sol intensitet"
-
-
-msgid "Strength of sun"
-msgstr "Solens styrka"
 
 
 msgid "Sun Rotation"
@@ -32961,10 +32907,6 @@ msgstr "Ersätt original"
 
 msgid "Bright"
 msgstr "Ljus"
-
-
-msgid "Color Space:"
-msgstr "Färgrymd:"
 
 
 msgid "Limit Strength"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-15 07:14+0000\n"
+"POT-Creation-Date: 2025-09-22 08:45+0000\n"
 "PO-Revision-Date: 2025-07-27 17:01+0000\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -1681,10 +1681,6 @@ msgstr "將素材架所啟用的編目存於偏好設定內，而非素材架本
 
 msgid "Space Type"
 msgstr "空間類型"
-
-
-msgid "The space where the asset shelf is going to be used in"
-msgstr "素材架將使用的空間"
 
 
 msgid "Preview Size"
@@ -5660,8 +5656,8 @@ msgid "Color management specific to display device"
 msgstr "針對指定顯示裝置的色彩管理"
 
 
-msgid "Display Device"
-msgstr "顯示裝置"
+msgid "Display"
+msgstr "顯示"
 
 
 msgid "Input color space settings"
@@ -5756,8 +5752,8 @@ msgid "Use RGB curved for pre-display transformation"
 msgstr "為預顯示轉換使用 RGB 曲線"
 
 
-msgid "View Transform"
-msgstr "檢視轉換"
+msgid "View"
+msgstr "檢視"
 
 
 msgid "View used when converting image to a display space"
@@ -7964,10 +7960,6 @@ msgstr "最小半徑"
 
 msgid "Plane"
 msgstr "平面"
-
-
-msgid "View"
-msgstr "檢視"
 
 
 msgid "Detect Corners"
@@ -17285,10 +17277,6 @@ msgid "Display Color"
 msgstr "顯示色彩"
 
 
-msgid "Display"
-msgstr "顯示"
-
-
 msgid "Percentage of particles to display in 3D view"
 msgstr "在 3D 檢視中顯示的粒子百分比"
 
@@ -22456,6 +22444,18 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
+msgid "Toggle Bone Options"
+msgstr "開關骨骼選項"
+
+
+msgid "Enable Bone Options"
+msgstr "啟用骨骼設定"
+
+
+msgid "Disable Bone Options"
+msgstr "停用骨骼設定"
+
+
 msgid "Mesh Select Mode"
 msgstr "網格選取模式"
 
@@ -22634,18 +22634,6 @@ msgstr "增生"
 
 msgid "Bone Collections"
 msgstr "骨骼集盒"
-
-
-msgid "Toggle Bone Options"
-msgstr "開關骨骼選項"
-
-
-msgid "Enable Bone Options"
-msgstr "啟用骨骼設定"
-
-
-msgid "Disable Bone Options"
-msgstr "停用骨骼設定"
 
 
 msgid "Basic"
@@ -23053,6 +23041,11 @@ msgstr "親子"
 msgctxt "Operator"
 msgid "Empty"
 msgstr "空體"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "晶格"
 
 
 msgctxt "Constraint"
@@ -28044,64 +28037,12 @@ msgid "Channel Key"
 msgstr "通道鍵"
 
 
-msgid "YUV"
-msgstr "YUV"
-
-
-msgid "YCbCr"
-msgstr "YCbCr"
-
-
-msgid "Limit by this channel's value"
-msgstr "受此通道的值限制"
-
-
-msgid "Algorithm"
-msgstr "演算法"
-
-
-msgid "Algorithm to use to limit channel"
-msgstr "要用來限制通道的演算法"
-
-
-msgid "Single"
-msgstr "單一"
-
-
-msgid "Limit by single channel"
-msgstr "受單一通道限制"
-
-
-msgid "Limit by maximum of other channels"
-msgstr "依其他通道的最大值限制"
-
-
-msgid "Channel used to determine matte"
-msgstr "用來決定遮景片的通道"
-
-
 msgid "Chroma Key"
 msgstr "彩度鍵"
 
 
 msgid "Color Balance"
 msgstr "色彩平衡"
-
-
-msgid "Correction Formula"
-msgstr "校正公式"
-
-
-msgid "Lift/Gamma/Gain"
-msgstr "抬升/伽瑪/增益"
-
-
-msgid "Offset/Power/Slope (ASC-CDL)"
-msgstr "偏移/次方/斜率 (ASC-CDL)"
-
-
-msgid "ASC-CDL standard color correction"
-msgstr "ASC-CDL 色彩校正"
 
 
 msgid "Color Correction"
@@ -28114,6 +28055,14 @@ msgstr "色彩鍵"
 
 msgid "Color Spill"
 msgstr "色彩溢灑"
+
+
+msgid "YCbCr"
+msgstr "YCbCr"
+
+
+msgid "YUV"
+msgstr "YUV"
 
 
 msgid "ITU 601"
@@ -28264,48 +28213,8 @@ msgid "Distance Key"
 msgstr "距離鍵"
 
 
-msgid "RGB color space"
-msgstr "RGB 色彩空間"
-
-
 msgid "Double Edge Mask"
 msgstr "雙邊線遮罩"
-
-
-msgid "Buffer Edge Mode"
-msgstr "緩衝邊線模式"
-
-
-msgid "Bleed Out"
-msgstr "出血"
-
-
-msgid "Allow mask pixels to bleed along edges"
-msgstr "允許遮罩像素沿邊線出血"
-
-
-msgid "Keep In"
-msgstr "內留"
-
-
-msgid "Restrict mask pixels from touching edges"
-msgstr "限制遮罩像素不要碰觸邊線"
-
-
-msgid "Inner Edge Mode"
-msgstr "內部邊線模式"
-
-
-msgid "All pixels on inner mask edge are considered during mask calculation"
-msgstr "所有內部遮罩邊線上的像素在遮罩計算時會都考慮進去"
-
-
-msgid "Adjacent Only"
-msgstr "僅相鄰"
-
-
-msgid "Only inner mask pixels adjacent to outer mask pixels are considered during mask calculation"
-msgstr "僅相鄰於外部遮罩像素的內部遮罩像素在遮罩計算時會被考慮進去"
 
 
 msgid "Ellipse Mask"
@@ -28378,26 +28287,6 @@ msgstr "色調分離"
 
 msgid "Alpha Convert"
 msgstr "Alpha 轉換"
-
-
-msgid "Conversion between premultiplied alpha and key alpha"
-msgstr "在預乘模式 alpha 與 key alpha 之間轉換"
-
-
-msgid "To Premultiplied"
-msgstr "轉為預乘"
-
-
-msgid "Convert straight to premultiplied"
-msgstr "由直出 (R, G, B, A) 轉為，預乘 (R × A, G × A, B × A, A)"
-
-
-msgid "To Straight"
-msgstr "直出"
-
-
-msgid "Convert premultiplied to straight"
-msgstr "由預乘 (R × A, G × A, B × A, A) 轉為，直出 (R, G, B, A)"
 
 
 msgid "RGB to BW"
@@ -29554,36 +29443,12 @@ msgid "Altitude"
 msgstr "海拔"
 
 
-msgid "Dust"
-msgstr "灰塵"
-
-
 msgid "Ozone"
 msgstr "臭氧"
 
 
-msgid ""
-"Density of ozone layer.\n"
-"• 0 - No ozone.\n"
-"• 1 - Clear day atmosphere.\n"
-"• 2 - City like atmosphere"
-msgstr ""
-"臭氧層的密度。\n"
-"• 0 - 無臭氧\n"
-"• 1 - 晴天大氣氛圍\n"
-"• 2 - 城市類大氣氛圍"
-
-
 msgid "Sky Type"
 msgstr "天空類型"
-
-
-msgid "Nishita"
-msgstr "西田"
-
-
-msgid "Nishita 1993 improved"
-msgstr "西田 1993 改良版"
 
 
 msgid "Sun Disc"
@@ -29880,6 +29745,10 @@ msgstr "供基於節點的紋理使用，要使用的輸出節點"
 
 msgid "Value to Normal"
 msgstr "值至法線"
+
+
+msgid "Single"
+msgstr "單一"
 
 
 msgid "Enum Item"
@@ -57049,6 +56918,18 @@ msgid "Playback panning of the sound (only for Mono sources)"
 msgstr "聲音的播放控制平展 (僅適用於單聲道來源)"
 
 
+msgid "Lift/Gamma/Gain"
+msgstr "抬升/伽瑪/增益"
+
+
+msgid "Offset/Power/Slope (ASC-CDL)"
+msgstr "偏移/次方/斜率 (ASC-CDL)"
+
+
+msgid "ASC-CDL standard color correction"
+msgstr "ASC-CDL 色彩校正"
+
+
 msgid "Color balance gain (highlights)"
 msgstr "色彩平衡增益 (突顯)"
 
@@ -64114,16 +63995,6 @@ msgstr "切換透視法 / 正視法"
 
 
 msgctxt "Operator"
-msgid "Viewport Render Image"
-msgstr "視圖區算繪影像"
-
-
-msgctxt "Operator"
-msgid "Viewport Render Keyframes"
-msgstr "視圖區算繪關鍵影格"
-
-
-msgctxt "Operator"
 msgid "Active Camera"
 msgstr "作用中攝影機"
 
@@ -64847,11 +64718,6 @@ msgstr "從視角投射（界限）"
 
 
 msgctxt "Operator"
-msgid "Viewport Render Animation"
-msgstr "視圖區算繪動畫"
-
-
-msgctxt "Operator"
 msgid "Roll Left"
 msgstr "向左捲動"
 
@@ -64879,11 +64745,6 @@ msgstr "環形線"
 msgctxt "Operator"
 msgid "Armature"
 msgstr "骨架"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "晶格"
 
 
 msgctxt "Operator"
@@ -67498,12 +67359,12 @@ msgid "No mesh data to join"
 msgstr "無可結合的網格資料"
 
 
-msgid "No additional selected meshes with equal vertex count to join"
-msgstr "無其他有相同頂點數的選取網格可結合"
-
-
 msgid "Joining results in %d vertices, limit is %ld"
 msgstr "結合結果為 %d 個頂點，限制為 %ld"
+
+
+msgid "No additional selected meshes with equal vertex count to join"
+msgstr "無其他有相同頂點數的選取網格可結合"
 
 
 msgid "Unassigned"
@@ -70702,24 +70563,8 @@ msgid "Bright"
 msgstr "明亮"
 
 
-msgid "Color Space:"
-msgstr "色彩空間："
-
-
-msgid "Key Channel:"
-msgstr "鍵通道："
-
-
-msgid "Limiting Channel:"
-msgstr "限制通道："
-
-
 msgid "Key Color"
 msgstr "鍵色"
-
-
-msgid "Despill Channel:"
-msgstr "溢灑通道："
 
 
 msgid "Midtones Start"
@@ -70768,14 +70613,6 @@ msgstr "影像 1"
 
 msgid "Image 2"
 msgstr "影像 2"
-
-
-msgid "Inner Edge:"
-msgstr "內邊線："
-
-
-msgid "Buffer Edge:"
-msgstr "緩衝邊線："
 
 
 msgid "Soften"

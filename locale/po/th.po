@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-15 07:14+0000\n"
+"POT-Creation-Date: 2025-09-22 08:45+0000\n"
 "PO-Revision-Date: 2025-07-23 15:06+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -743,8 +743,16 @@ msgid "Status"
 msgstr "สถิติ"
 
 
+msgid "Display"
+msgstr "แสดง"
+
+
 msgid "Curve"
 msgstr "เส้นโค้ง"
+
+
+msgid "View"
+msgstr "มุมมอง"
 
 
 msgid "Mix"
@@ -882,10 +890,6 @@ msgstr "พื้นผิว"
 
 msgid "Plane"
 msgstr "ระนาบ"
-
-
-msgid "View"
-msgstr "มุมมอง"
 
 
 msgid "Radius"
@@ -1612,10 +1616,6 @@ msgstr "ง่าย ๆ"
 
 msgid "Display Color"
 msgstr "สีที่แสดง"
-
-
-msgid "Display"
-msgstr "แสดง"
 
 
 msgid "Particle"

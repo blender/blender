@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'68bccbaeeefe')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-15 07:14+0000\n"
+"POT-Creation-Date: 2025-09-22 08:45+0000\n"
 "PO-Revision-Date: 2025-07-23 14:52+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -1091,12 +1091,20 @@ msgid "Stickiness"
 msgstr "Kleverigheid"
 
 
+msgid "Display"
+msgstr "Weergave"
+
+
 msgid "Curve"
 msgstr "Kromme"
 
 
 msgid "Exposure"
 msgstr "Belichting"
+
+
+msgid "View"
+msgstr "Weergave"
 
 
 msgid "Temperature"
@@ -1274,10 +1282,6 @@ msgstr "Splits"
 
 msgid "Plane"
 msgstr "Vlak"
-
-
-msgid "View"
-msgstr "Weergave"
 
 
 msgid "Segments"
@@ -2323,10 +2327,6 @@ msgid "Simple"
 msgstr "Simpel"
 
 
-msgid "Display"
-msgstr "Weergave"
-
-
 msgid "Distribution"
 msgstr "Verdeling"
 
@@ -3108,14 +3108,6 @@ msgstr "Ruisonderdrukking"
 
 msgid "Distance Key"
 msgstr "Afstand Sleutel"
-
-
-msgid "Buffer Edge Mode"
-msgstr "Buffer Rand Modus"
-
-
-msgid "Keep In"
-msgstr "Blijf Binnen"
 
 
 msgid "Hue Correct"
