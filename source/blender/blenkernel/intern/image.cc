@@ -2569,7 +2569,7 @@ bool BKE_imbuf_write(ImBuf *ibuf, const char *filepath, const ImageFormatData *i
   BKE_image_format_to_imbuf(ibuf, imf);
 
   const bool ok = IMB_save_image(ibuf, filepath, IB_byte_data);
-  if (ok == 0) {
+  if (!ok && errno != 0) {
     perror(filepath);
   }
 
