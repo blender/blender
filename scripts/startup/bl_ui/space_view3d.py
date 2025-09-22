@@ -9099,6 +9099,16 @@ class VIEW3D_AST_brush_texture_paint(View3DAssetShelf, bpy.types.AssetShelf):
     mode_prop = "use_paint_image"
     brush_type_prop = "image_brush_type"
 
+    @classmethod
+    def poll(cls, context):
+        if not super().poll(context):
+            return False
+        # bl_space_type from #View3DAssetShelf is ignored for popup asset shelves.
+        # Avoid this to be called from the Image Editor (both
+        # #IMAGE_AST_brush_paint and #VIEW3D_AST_brush_texture_paint are included
+        # in the #km_image_paint keymap). See #145987.
+        return context.space_data.type != 'IMAGE_EDITOR'
+
 
 class VIEW3D_AST_brush_gpencil_paint(View3DAssetShelf, bpy.types.AssetShelf):
     mode = 'PAINT_GREASE_PENCIL'
