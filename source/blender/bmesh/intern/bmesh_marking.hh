@@ -108,7 +108,7 @@ void BM_mesh_select_mode_flush_ex(BMesh *bm, short selectmode, eBMSelectionFlush
 void BM_mesh_select_mode_flush(BMesh *bm);
 
 /**
- * Mode independent UV selection/de-selection flush.
+ * Mode independent selection/de-selection flush.
  *
  * \param select: When true, flush the selection state to de-selected elements,
  * otherwise perform the opposite, flushing de-selection.

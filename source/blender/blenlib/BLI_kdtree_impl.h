@@ -108,7 +108,7 @@ int BLI_kdtree_nd_(calc_duplicates_fast)(const KDTree *tree,
  *
  * \param tree: A tree, all indices *must* be unique.
  * \param deduplicate_cb: A function which receives duplicate indices,
- * it must choose the the "target" index to keep which is returned.
+ * it must choose the "target" index to keep which is returned.
  * The return value is an index in the `cluster` array (a value from `0..cluster_num`).
  * The last item in `cluster` is the index from which the search began.
  *

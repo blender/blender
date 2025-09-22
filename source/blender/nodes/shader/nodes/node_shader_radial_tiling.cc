@@ -33,8 +33,8 @@ static void sh_node_radial_tiling_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("Segment Width")
       .no_muted_links()
       .description(
-          "Relatve width of each angular segment. May be used to scale textures to fit into each "
-          "segment");
+          "Relative width of each angular segment. "
+          "May be used to scale textures to fit into each segment");
   b.add_output<decl::Float>("Segment Rotation")
       .no_muted_links()
       .description(
