@@ -71,8 +71,15 @@ bool IMB_colormanagement_space_name_is_data(const char *name);
 bool IMB_colormanagement_space_name_is_scene_linear(const char *name);
 bool IMB_colormanagement_space_name_is_srgb(const char *name);
 
-/* Get binary ICC profile contents for a colorspace. */
-blender::Vector<char> IMB_colormanagement_space_icc_profile(const ColorSpace *colorspace);
+/* Get binary ICC profile contents for a colorspace.
+ * For describing the colorspace for standard dynamic range image files. */
+blender::Vector<char> IMB_colormanagement_space_to_icc_profile(const ColorSpace *colorspace);
+/* Get CICP code for colorspace.
+ * For describing the colorspace of videos and high dynamic range image files. */
+bool IMB_colormanagement_space_to_cicp(const ColorSpace *colorspace,
+                                       const bool video,
+                                       int cicp[4]);
+const ColorSpace *IMB_colormanagement_space_from_cicp(const int cicp[4], const bool video);
 
 /* Get identifier for colorspaces that works with multiple OpenColorIO configurations,
  * as defined by the ASWF Color Interop Forum. */

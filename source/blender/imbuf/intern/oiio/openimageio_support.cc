@@ -457,7 +457,7 @@ ImageSpec imb_create_write_spec(const WriteContext &ctx, int file_channels, Type
                                      ctx.ibuf->float_buffer.colorspace :
                                      ctx.ibuf->byte_buffer.colorspace;
   if (colorspace) {
-    Vector<char> icc_profile = IMB_colormanagement_space_icc_profile(colorspace);
+    Vector<char> icc_profile = IMB_colormanagement_space_to_icc_profile(colorspace);
     if (!icc_profile.is_empty()) {
       file_spec.attribute("ICCProfile",
                           OIIO::TypeDesc(OIIO::TypeDesc::UINT8, icc_profile.size()),

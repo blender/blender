@@ -224,7 +224,7 @@ bool imb_savewebp(ImBuf *ibuf, const char *filepath, int /*flags*/)
   /* Write ICC profile if there is one associated with the colorspace. */
   const ColorSpace *colorspace = ibuf->byte_buffer.colorspace;
   if (colorspace) {
-    blender::Vector<char> icc_profile = IMB_colormanagement_space_icc_profile(colorspace);
+    blender::Vector<char> icc_profile = IMB_colormanagement_space_to_icc_profile(colorspace);
     if (!icc_profile.is_empty()) {
       WebPData icc_chunk = {reinterpret_cast<const uint8_t *>(icc_profile.data()),
                             size_t(icc_profile.size())};

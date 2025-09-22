@@ -1373,7 +1373,7 @@ const char *IMB_colormanagement_srgb_colorspace_name_get()
   return global_role_default_byte;
 }
 
-blender::Vector<char> IMB_colormanagement_space_icc_profile(const ColorSpace *colorspace)
+blender::Vector<char> IMB_colormanagement_space_to_icc_profile(const ColorSpace *colorspace)
 {
   /* ICC profiles shipped with Blender are named after the OpenColorIO interop ID. */
   blender::Vector<char> icc_profile;
@@ -1423,6 +1423,156 @@ blender::Vector<char> IMB_colormanagement_space_icc_profile(const ColorSpace *co
   }
 
   return icc_profile;
+}
+
+/* Primaries */
+static const int CICP_PRI_REC709 = 1;
+static const int CICP_PRI_REC2020 = 9;
+static const int CICP_PRI_P3D65 = 12;
+/* Transfer functions */
+static const int CICP_TRC_BT709 = 1;
+static const int CICP_TRC_G22 = 4;
+static const int CICP_TRC_SRGB = 13;
+static const int CICP_TRC_PQ = 16;
+static const int CICP_TRC_G26 = 17;
+static const int CICP_TRC_HLG = 18;
+/* Matrix */
+static const int CICP_MATRIX_RGB = 0;
+static const int CICP_MATRIX_BT709 = 1;
+static const int CICP_MATRIX_REC2020_NCL = 9;
+/* Range */
+static const int CICP_RANGE_FULL = 1;
+
+bool IMB_colormanagement_space_to_cicp(const ColorSpace *colorspace, const bool video, int cicp[4])
+{
+  const StringRefNull interop_id = colorspace->interop_id();
+  if (interop_id.is_empty()) {
+    return false;
+  }
+
+  /* References:
+   * ASWF Color Interop Forum defined display spaces.
+   * https://en.wikipedia.org/wiki/Coding-independent_code_points
+   * https://www.w3.org/TR/png-3/#cICP-chunk
+   *
+   * For images we always use RGB matrix as that is the only thing supported for PNG.
+   * For video we specify an appropriate matrix to YUV or similar. This should also
+   * be used for HEIF and AVIF which are based on video codecs. */
+
+  if (interop_id == "pq_rec2020_display") {
+    cicp[0] = CICP_PRI_REC2020;
+    cicp[1] = CICP_TRC_PQ;
+    cicp[2] = (video) ? CICP_MATRIX_REC2020_NCL : CICP_MATRIX_RGB;
+    cicp[3] = CICP_RANGE_FULL;
+    return true;
+  }
+  if (interop_id == "hlg_rec2020_display") {
+    cicp[0] = CICP_PRI_REC2020;
+    cicp[1] = CICP_TRC_HLG;
+    cicp[2] = (video) ? CICP_MATRIX_REC2020_NCL : CICP_MATRIX_RGB;
+    cicp[3] = CICP_RANGE_FULL;
+    return true;
+  }
+  if (interop_id == "pq_p3d65_display") {
+    /* Rec.2020 matrix may seem odd, but follows Color Interop Forum recommendation. */
+    cicp[0] = CICP_PRI_P3D65;
+    cicp[1] = CICP_TRC_PQ;
+    cicp[2] = (video) ? CICP_MATRIX_REC2020_NCL : CICP_MATRIX_RGB;
+    cicp[3] = CICP_RANGE_FULL;
+    return true;
+  }
+  if (interop_id == "g26_p3d65_display") {
+    /* BT.709 matrix may seem odd, but follows Color Interop Forum recommendation. */
+    cicp[0] = CICP_PRI_P3D65;
+    cicp[1] = CICP_TRC_G26;
+    cicp[2] = (video) ? CICP_MATRIX_BT709 : CICP_MATRIX_RGB;
+    cicp[3] = CICP_RANGE_FULL;
+    return true;
+  }
+  if (interop_id == "g22_rec709_display") {
+    cicp[0] = CICP_PRI_REC709;
+    cicp[1] = CICP_TRC_G22;
+    cicp[2] = (video) ? CICP_MATRIX_BT709 : CICP_MATRIX_RGB;
+    cicp[3] = CICP_RANGE_FULL;
+    return true;
+  }
+  if (interop_id == "g24_rec2020_display") {
+    /* There is no gamma 2.4 trc, but BT.709 is close. */
+    cicp[0] = CICP_PRI_REC2020;
+    cicp[1] = CICP_TRC_BT709;
+    cicp[2] = (video) ? CICP_MATRIX_REC2020_NCL : CICP_MATRIX_RGB;
+    cicp[3] = CICP_RANGE_FULL;
+    return true;
+  }
+  if (interop_id == "g24_rec709_display") {
+    /* There is no gamma 2.4 trc, but BT.709 is close. */
+    cicp[0] = CICP_PRI_REC709;
+    cicp[1] = CICP_TRC_BT709;
+    cicp[2] = (video) ? CICP_MATRIX_BT709 : CICP_MATRIX_RGB;
+    cicp[3] = CICP_RANGE_FULL;
+    return true;
+  }
+  if (interop_id == "srgb_p3d65_display" || interop_id == "srgbx_p3d65_display") {
+    /* For video we use BT.709 to match default sRGB writing, even though it is wrong.
+     * But we have been writing sRGB like this forever, and there is the so called
+     * "Quicktime gamma shift bug" that complicates things. */
+    cicp[0] = CICP_PRI_P3D65;
+    cicp[1] = (video) ? CICP_TRC_BT709 : CICP_TRC_SRGB;
+    cicp[2] = (video) ? CICP_MATRIX_BT709 : CICP_MATRIX_RGB;
+    cicp[3] = CICP_RANGE_FULL;
+    return true;
+  }
+  if (interop_id == "srgb_rec709_display") {
+    /* Don't write anything for backwards compatibility. Is fine for PNG
+     * and video but may reconsider when JXL or AVIF get added. */
+    return false;
+  }
+
+  return false;
+}
+
+const ColorSpace *IMB_colormanagement_space_from_cicp(const int cicp[4], const bool video)
+{
+  StringRefNull interop_id;
+
+  /* We don't care about matrix or range, we assume decoding handles that and we get
+   * full range RGB values out. */
+  if (cicp[0] == CICP_PRI_REC2020 && cicp[1] == CICP_TRC_PQ) {
+    interop_id = "pq_rec2020_display";
+  }
+  else if (cicp[0] == CICP_PRI_REC2020 && cicp[1] == CICP_TRC_HLG) {
+    interop_id = "hlg_rec2020_display";
+  }
+  else if (cicp[0] == CICP_PRI_P3D65 && cicp[1] == CICP_TRC_PQ) {
+    interop_id = "pq_p3d65_display";
+  }
+  else if (cicp[0] == CICP_PRI_P3D65 && cicp[1] == CICP_TRC_G26) {
+    interop_id = "g26_p3d65_display";
+  }
+  else if (cicp[0] == CICP_PRI_REC709 && cicp[1] == CICP_TRC_G22) {
+    interop_id = "g22_rec709_display";
+  }
+  else if (cicp[0] == CICP_PRI_REC2020 && cicp[1] == CICP_TRC_BT709) {
+    interop_id = "g24_rec2020_display";
+  }
+  else if (cicp[0] == CICP_PRI_REC709 && cicp[1] == CICP_TRC_BT709) {
+    if (video) {
+      /* Arguably this should be g24_rec709_display, but we write sRGB like this.
+       * So there is an exception for now. */
+      interop_id = "srgb_rec709_display";
+    }
+    else {
+      interop_id = "g24_rec709_display";
+    }
+  }
+  else if (cicp[0] == CICP_PRI_P3D65 && (cicp[1] == CICP_TRC_SRGB || cicp[1] == CICP_TRC_BT709)) {
+    interop_id = "srgb_p3d65_display";
+  }
+  else if (cicp[0] == CICP_PRI_REC709 && cicp[1] == CICP_TRC_SRGB) {
+    interop_id = "srgb_rec709_display";
+  }
+
+  return (interop_id.is_empty()) ? nullptr : g_config->get_color_space_by_interop_id(interop_id);
 }
 
 StringRefNull IMB_colormanagement_space_get_interop_id(const ColorSpace *colorspace)
