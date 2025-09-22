@@ -549,12 +549,13 @@ void ShaderOperation::generate_code(void *thunk,
 
   eval_code += operation->generate_code_for_inputs(material, shader_create_info);
 
-  eval_code += code_generator_output->composite;
+  eval_code += code_generator_output->composite.serialized;
 
   eval_code += "}\n";
 
-  shader_create_info.generated_sources.append(
-      {"gpu_shader_compositor_eval.glsl", shader_create_info.dependencies_generated, eval_code});
+  shader_create_info.generated_sources.append({"gpu_shader_compositor_eval.glsl",
+                                               code_generator_output->composite.dependencies,
+                                               eval_code});
 }
 
 /* Texture storers in the shader always take a [i]vec4 as an argument, so encode each type in an

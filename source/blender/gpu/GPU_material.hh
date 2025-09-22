@@ -10,6 +10,8 @@
 
 #include <string>
 
+#include "BLI_set.hh"
+
 #include "DNA_customdata_types.h" /* for eCustomDataType */
 #include "DNA_image_types.h"
 #include "DNA_listBase.h"
@@ -295,15 +297,30 @@ struct GPUNodeStack {
   bool end;
 };
 
+struct GPUGraphOutput {
+  std::string serialized;
+  blender::Vector<blender::StringRefNull> dependencies;
+
+  bool empty() const
+  {
+    return serialized.empty();
+  }
+
+  std::string serialized_or_default(std::string value) const
+  {
+    return serialized.empty() ? value : serialized;
+  }
+};
+
 struct GPUCodegenOutput {
   std::string attr_load;
   /* Node-tree functions calls. */
-  std::string displacement;
-  std::string surface;
-  std::string volume;
-  std::string thickness;
-  std::string composite;
-  std::string material_functions;
+  GPUGraphOutput displacement;
+  GPUGraphOutput surface;
+  GPUGraphOutput volume;
+  GPUGraphOutput thickness;
+  GPUGraphOutput composite;
+  blender::Vector<GPUGraphOutput> material_functions;
 
   GPUShaderCreateInfo *create_info;
 };

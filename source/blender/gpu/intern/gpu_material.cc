@@ -99,11 +99,7 @@ struct GPUMaterial {
 
   std::string name;
 
-  GPUMaterial(eGPUMaterialEngine engine) : engine(engine)
-  {
-    graph.used_libraries = BLI_gset_new(
-        BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "GPUNodeGraph.used_libraries");
-  };
+  GPUMaterial(eGPUMaterialEngine engine) : engine(engine){};
 
   ~GPUMaterial()
   {

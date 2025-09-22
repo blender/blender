@@ -9,12 +9,11 @@
 
 #pragma once
 
+#include "BLI_set.hh"
 #include "GPU_material.hh"
 
 #define MAX_FUNCTION_NAME 64
 #define MAX_PARAMETER 36
-
-struct GSet;
 
 enum GPUFunctionQual {
   FUNCTION_QUAL_IN,
@@ -31,4 +30,6 @@ struct GPUFunction {
   void *source; /* GPUSource */
 };
 
-GPUFunction *gpu_material_library_use_function(GSet *used_libraries, const char *name);
+GPUFunction *gpu_material_library_get_function(const char *name);
+void gpu_material_library_use_function(blender::Set<blender::StringRefNull> &used_libraries,
+                                       const char *name);

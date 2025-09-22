@@ -177,9 +177,6 @@ struct GPUNodeGraph {
 
   /* The list of layer attributes. */
   ListBase layer_attrs;
-
-  /** Set of all the GLSL lib code blocks. */
-  GSet *used_libraries;
 };
 
 /* Node Graph */

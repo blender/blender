@@ -510,13 +510,19 @@ void gpu_shader_dependency_exit()
   g_functions = nullptr;
 }
 
-GPUFunction *gpu_material_library_use_function(GSet *used_libraries, const char *name)
+GPUFunction *gpu_material_library_get_function(const char *name)
 {
   GPUFunction *function = g_functions->lookup_default(name, nullptr);
   BLI_assert_msg(function != nullptr, "Requested function not in the function library");
-  GPUSource *source = reinterpret_cast<GPUSource *>(function->source);
-  BLI_gset_add(used_libraries, const_cast<char *>(source->filename.c_str()));
   return function;
+}
+
+void gpu_material_library_use_function(blender::Set<blender::StringRefNull> &used_libraries,
+                                       const char *name)
+{
+  GPUFunction *function = g_functions->lookup_default(name, nullptr);
+  GPUSource *source = reinterpret_cast<GPUSource *>(function->source);
+  used_libraries.add(source->filename.c_str());
 }
 
 namespace blender::gpu::shader {

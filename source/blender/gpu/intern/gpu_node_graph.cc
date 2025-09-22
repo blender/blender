@@ -747,7 +747,7 @@ bool GPU_link(GPUMaterial *mat, const char *name, ...)
   va_list params;
   int i;
 
-  function = gpu_material_library_use_function(graph->used_libraries, name);
+  function = gpu_material_library_get_function(name);
   if (!function) {
     fprintf(stderr, "GPU failed to find function %s\n", name);
     return false;
@@ -786,7 +786,7 @@ static bool gpu_stack_link_v(GPUMaterial *material,
   GPUNodeLink *link, **linkptr;
   int i, totin, totout;
 
-  function = gpu_material_library_use_function(graph->used_libraries, name);
+  function = gpu_material_library_get_function(name);
   if (!function) {
     fprintf(stderr, "GPU failed to find function %s\n", name);
     return false;
@@ -930,11 +930,6 @@ void gpu_node_graph_free(GPUNodeGraph *graph)
   BLI_freelistN(&graph->attributes);
   GPU_uniform_attr_list_free(&graph->uniform_attrs);
   BLI_freelistN(&graph->layer_attrs);
-
-  if (graph->used_libraries) {
-    BLI_gset_free(graph->used_libraries, nullptr);
-    graph->used_libraries = nullptr;
-  }
 }
 
 /* Prune Unused Nodes */

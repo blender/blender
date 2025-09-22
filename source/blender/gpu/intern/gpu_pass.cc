@@ -383,7 +383,6 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
   /* The shader is not compiled, continue generating the shader strings. */
   codegen.generate_attribs();
   codegen.generate_resources();
-  codegen.generate_library();
 
   /* Make engine add its own code and implement the generated functions. */
   finalize_source_cb(thunk, material, &codegen.output);
