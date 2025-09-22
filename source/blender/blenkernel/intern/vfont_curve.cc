@@ -1764,7 +1764,7 @@ static bool vfont_to_curve(Object *ob,
 
         const float charwidth = vfont_char_width(cu, che, info);
         const float charhalf = (charwidth / 2.0f);
-        if (cursor_location.x <= ((chartransdata[i].offset.y + charhalf) * font_size)) {
+        if (cursor_location.x <= ((chartransdata[i].offset.x + charhalf) * font_size)) {
           break;
         }
       }
