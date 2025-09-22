@@ -540,6 +540,7 @@ enum PassType {
   PASS_DENOISING_ALBEDO,
   PASS_DENOISING_DEPTH,
   PASS_DENOISING_PREVIOUS,
+  PASS_RENDER_TIME,
 
   /* PASS_SHADOW_CATCHER accumulates contribution of shadow catcher object which is not affected by
    * any other object. The pass accessor will divide the combined pass by the shadow catcher. The

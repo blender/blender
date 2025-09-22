@@ -1480,6 +1480,12 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
         default=False,
         update=update_render_passes,
     )
+    pass_render_time: BoolProperty(
+        name="Render Time",
+        description="Pass containing an estimate for how long each pixel took to render",
+        default=False,
+        update=update_render_passes,
+    )
     use_pass_volume_direct: BoolProperty(
         name="Volume Direct",
         description="Deliver direct volumetric scattering pass",

@@ -711,6 +711,7 @@ static bool get_known_pass_type(BL::RenderPass &b_pass, PassType &type, PassMode
 
   MAP_PASS("AdaptiveAuxBuffer", PASS_ADAPTIVE_AUX_BUFFER, false);
   MAP_PASS("Debug Sample Count", PASS_SAMPLE_COUNT, false);
+  MAP_PASS("Render Time", PASS_RENDER_TIME, false);
 
   MAP_PASS("Guiding Color", PASS_GUIDING_COLOR, false);
   MAP_PASS("Guiding Probability", PASS_GUIDING_PROBABILITY, false);
