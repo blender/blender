@@ -58,17 +58,21 @@ ClosurePacking pack_closure(ClosureUndetermined cl)
   /* Some closures require additional packing. */
   switch (cl_packed.mode) {
 #ifdef GBUFFER_HAS_REFLECTION
+#  ifndef MAT_REFLECTION_COLORLESS
     case GBUF_REFLECTION:
       gbuffer::Reflection::pack_additional(cl_packed, cl);
       break;
+#  endif
     case GBUF_REFLECTION_COLORLESS:
       gbuffer::ReflectionColorless::pack_additional(cl_packed, cl);
       break;
 #endif
 #ifdef GBUFFER_HAS_REFRACTION
+#  ifndef MAT_REFRACTION_COLORLESS
     case GBUF_REFRACTION:
       gbuffer::Refraction::pack_additional(cl_packed, cl);
       break;
+#  endif
     case GBUF_REFRACTION_COLORLESS:
       gbuffer::RefractionColorless::pack_additional(cl_packed, cl);
       break;
@@ -214,10 +218,12 @@ struct Packer {
       case 2u:
         data.closure[0] = this->closures[0].data0;
         data.closure[1] = this->closures[1].data0;
+#  ifndef GBUFFER_SIMPLE_CLOSURE_LAYOUT
         data.closure[2] = this->closures[0].data1;
         data.closure[3] = this->closures[1].data1;
         set_flag_from_test(used_layers, this->closures[0].use_data1(), CLOSURE_DATA_2);
         set_flag_from_test(used_layers, this->closures[1].use_data1(), CLOSURE_DATA_3);
+#  endif
         break;
 #endif
 #if GBUFFER_LAYER_MAX > 2

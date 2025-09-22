@@ -694,8 +694,14 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_COAT)) {
     info.define("MAT_CLEARCOAT");
   }
+  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_REFLECTION_MAYBE_COLORED) == false) {
+    info.define("MAT_REFLECTION_COLORLESS");
+  }
+  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_REFRACTION_MAYBE_COLORED) == false) {
+    info.define("MAT_REFRACTION_COLORLESS");
+  }
 
-  eClosureBits closure_bits = shader_closure_bits_from_flag(gpumat);
+  const eClosureBits closure_bits = shader_closure_bits_from_flag(gpumat);
 
   int32_t closure_bin_count = to_gbuffer_bin_count(closure_bits);
   switch (closure_bin_count) {
@@ -731,6 +737,38 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
       default:
         BLI_assert_unreachable();
         break;
+    }
+
+    if (closure_bin_count == 2) {
+      /* In a lot of cases, we can predict that we do not need the extra GBuffer layers. This
+       * simplifies the shader code and improves compilation time (see #145347). */
+      const bool colorless_reflection = !GPU_material_flag_get(
+          gpumat, GPU_MATFLAG_REFLECTION_MAYBE_COLORED);
+      const bool colorless_refraction = !GPU_material_flag_get(
+          gpumat, GPU_MATFLAG_REFRACTION_MAYBE_COLORED);
+      int closure_layer_count = 0;
+      if (closure_bits & CLOSURE_DIFFUSE) {
+        closure_layer_count += 1;
+      }
+      if (closure_bits & CLOSURE_SSS) {
+        closure_layer_count += 2;
+      }
+      if (closure_bits & CLOSURE_REFLECTION) {
+        closure_layer_count += colorless_reflection ? 1 : 2;
+      }
+      if (closure_bits & CLOSURE_REFRACTION) {
+        closure_layer_count += colorless_refraction ? 1 : 2;
+      }
+      if (closure_bits & CLOSURE_TRANSLUCENT) {
+        closure_layer_count += 1;
+      }
+      if (closure_bits & CLOSURE_CLEARCOAT) {
+        closure_layer_count += colorless_reflection ? 1 : 2;
+      }
+
+      if (closure_layer_count <= 2) {
+        info.define("GBUFFER_SIMPLE_CLOSURE_LAYOUT");
+      }
     }
   }
 

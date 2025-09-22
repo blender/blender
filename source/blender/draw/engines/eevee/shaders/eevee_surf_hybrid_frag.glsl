@@ -141,7 +141,7 @@ void main()
   out_gbuf_normal = gbuf.normal[0];
 
   /* Output remaining closures using image store. */
-#if GBUFFER_LAYER_MAX >= 2
+#if GBUFFER_LAYER_MAX >= 2 && !defined(GBUFFER_SIMPLE_CLOSURE_LAYOUT)
   if (flag_test(gbuf.used_layers, CLOSURE_DATA_2)) {
     write_closure_data(out_texel, 2, gbuf.closure[2]);
   }
