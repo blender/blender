@@ -1598,13 +1598,21 @@ static std::vector<MultiViewChannelName> exr_channels_in_multi_part_file(
   for (int p = 0; p < file.parts(); p++) {
     const ChannelList &c = file.header(p).channels();
 
-    std::string part_view;
+    blender::StringRef part_view;
     if (file.header(p).hasView()) {
       part_view = file.header(p).view();
     }
-    std::string part_name;
+    blender::StringRef part_name;
     if (file.header(p).hasName()) {
       part_name = file.header(p).name();
+    }
+
+    /* Strip part suffix from name. */
+    if (part_name.endswith("." + part_view)) {
+      part_name = part_name.drop_known_suffix("." + part_view);
+    }
+    else if (part_name.endswith("-" + part_view)) {
+      part_name = part_name.drop_known_suffix("-" + part_view);
     }
 
     for (ChannelList::ConstIterator i = c.begin(); i != c.end(); i++) {
@@ -1620,8 +1628,9 @@ static std::vector<MultiViewChannelName> exr_channels_in_multi_part_file(
         m.view = part_view;
       }
 
-      /* Prepend part name as potential layer or pass name. */
-      if (!part_name.empty()) {
+      /* Prepend part name as potential layer or pass name. According to OpenEXR docs
+       * this should not be needed, but Houdini writes files like this. */
+      if (!part_name.is_empty() && !blender::StringRef(m.name).startswith(part_name + ".")) {
         m.name = part_name + "." + m.name;
       }
 
