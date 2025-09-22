@@ -454,11 +454,28 @@ float nodetree_thickness();
 float4 closure_to_rgba(Closure cl);
 #endif
 
-/* Simplified form of F_eta(eta, 1.0). */
+/**
+ * Used for packing.
+ * This is the reflection coefficient also denoted r.
+ * https://en.wikipedia.org/wiki/Fresnel_equations#Complex_amplitude_reflection_and_transmission_coefficients
+ */
+float f0_from_ior(float eta)
+{
+  return (eta - 1.0f) / (eta + 1.0f);
+}
+
+/**
+ * Simplified form of F_eta(eta, 1.0).
+ * This is the power reflection coefficient also denoted R.
+ * https://en.wikipedia.org/wiki/Fresnel_equations#Complex_amplitude_reflection_and_transmission_coefficients
+ */
 float F0_from_ior(float eta)
 {
-  float A = (eta - 1.0f) / (eta + 1.0f);
-  return A * A;
+  return square(f0_from_ior(eta));
+}
+float F0_from_f0(float f0)
+{
+  return square(f0);
 }
 
 /* Return the fresnel color from a precomputed LUT value (from brdf_lut). */
@@ -540,9 +557,9 @@ float3 lut_coords_bsdf(float cos_theta, float roughness, float ior)
 }
 
 /* Return texture coordinates to sample Surface LUT. */
-float3 lut_coords_btdf(float cos_theta, float roughness, float ior)
+float3 lut_coords_btdf(float cos_theta, float roughness, float f0)
 {
-  return float3(sqrt((ior - 1.0f) / (ior + 1.0f)), sqrt(1.0f - cos_theta), roughness);
+  return float3(sqrt(f0), sqrt(1.0f - cos_theta), roughness);
 }
 
 /* Computes the reflectance and transmittance based on the tint (`f0`, `f90`, `transmission_tint`)
@@ -567,19 +584,22 @@ void bsdf_lut(float3 F0,
   float2 split_sum;
   float transmission_factor;
 
+  const float f0 = f0_from_ior(ior);
+
   if (ior > 1.0f) {
-    split_sum = brdf_lut(cos_theta, roughness);
-    float3 coords = lut_coords_btdf(cos_theta, roughness, ior);
-    transmission_factor = utility_tx_sample_bsdf_lut(utility_tx, coords.xy, coords.z).a;
     /* Gradually increase `f90` from 0 to 1 when IOR is in the range of [1.0f, 1.33f], to avoid
      * harsh transition at `IOR == 1`. */
     if (all(equal(F90, float3(1.0f)))) {
-      F90 = float3(saturate(2.33f / 0.33f * (ior - 1.0f) / (ior + 1.0f)));
+      F90 = float3(saturate(2.33f / 0.33f * f0));
     }
+    const float3 coords = lut_coords_btdf(cos_theta, roughness, f0);
+    const float4 bsdf = utility_tx_sample_bsdf_lut(utility_tx, coords.xy, coords.z);
+    split_sum = brdf_lut(cos_theta, roughness);
+    transmission_factor = bsdf.a;
   }
   else {
-    float3 coords = lut_coords_bsdf(cos_theta, roughness, ior);
-    float3 bsdf = utility_tx_sample_bsdf_lut(utility_tx, coords.xy, coords.z).rgb;
+    const float3 coords = lut_coords_bsdf(cos_theta, roughness, ior);
+    const float3 bsdf = utility_tx_sample_bsdf_lut(utility_tx, coords.xy, coords.z).rgb;
     split_sum = bsdf.rg;
     transmission_factor = bsdf.b;
   }
@@ -588,12 +608,12 @@ void bsdf_lut(float3 F0,
   transmittance = (float3(1.0f) - F0) * transmission_factor * transmission_tint;
 
   if (do_multiscatter) {
-    float real_F0 = F0_from_ior(ior);
-    float Ess = real_F0 * split_sum.x + split_sum.y + (1.0f - real_F0) * transmission_factor;
-    float Ems = 1.0f - Ess;
+    const float real_F0 = F0_from_f0(f0);
+    const float Ess = real_F0 * split_sum.x + split_sum.y + (1.0f - real_F0) * transmission_factor;
+    const float Ems = 1.0f - Ess;
     /* Assume that the transmissive tint makes up most of the overall color if it's not zero. */
-    float3 Favg = all(equal(transmission_tint, float3(0.0f))) ? F0 + (F90 - F0) / 21.0f :
-                                                                transmission_tint;
+    const float3 Favg = all(equal(transmission_tint, float3(0.0f))) ? F0 + (F90 - F0) / 21.0f :
+                                                                      transmission_tint;
 
     float3 scale = 1.0f / (1.0f - Ems * Favg);
     reflectance *= scale;
