@@ -554,6 +554,7 @@ set(GLSL_SRC
   shaders/common/gpu_shader_offset_indices_lib.glsl
   shaders/common/gpu_shader_print_lib.glsl
   shaders/common/gpu_shader_ray_utils_lib.glsl
+  shaders/common/gpu_shader_ray_lib.glsl
   shaders/common/gpu_shader_sequencer_lib.glsl
   shaders/common/gpu_shader_shared_exponent_lib.glsl
   shaders/common/gpu_shader_smaa_lib.glsl

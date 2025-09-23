@@ -5,6 +5,7 @@
 #pragma once
 
 #include "eevee_bxdf_lib.glsl"
+#include "gpu_shader_ray_lib.glsl"
 
 /* -------------------------------------------------------------------- */
 /** \name Oren Nayar BSDF

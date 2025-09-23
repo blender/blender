@@ -12,7 +12,7 @@
 /* This file must replaced at runtime. The following content is only a possible implementation. */
 #pragma runtime_generated
 
-#include "gpu_shader_compat_cxx.hh"
+#include "gpu_shader_compat_cxx.hh"  // IWYU pragma: export
 /* Other possible implementation. */
 // #include "gpu_shader_compat_glsl.hh"
 // #include "gpu_shader_compat_msl.hh"

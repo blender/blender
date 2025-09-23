@@ -8,6 +8,6 @@
  * Sampling of Normal Distribution Function for various BxDF.
  */
 
-#include "eevee_bxdf_diffuse_lib.glsl"
-#include "eevee_bxdf_lib.glsl"
-#include "eevee_bxdf_microfacet_lib.glsl"
+#include "eevee_bxdf_diffuse_lib.glsl"     // IWYU pragma: export
+#include "eevee_bxdf_lib.glsl"             // IWYU pragma: export
+#include "eevee_bxdf_microfacet_lib.glsl"  // IWYU pragma: export

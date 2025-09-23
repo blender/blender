@@ -21,7 +21,6 @@ SHADER_LIBRARY_CREATE_INFO(eevee_horizon_scan)
 
 #include "draw_shape_lib.glsl"
 #include "draw_view_lib.glsl"
-#include "eevee_bxdf_lib.glsl"
 #include "eevee_horizon_scan_lib.glsl"
 #include "eevee_ray_types_lib.glsl"
 #include "eevee_sampling_lib.glsl"

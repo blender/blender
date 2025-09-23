@@ -62,13 +62,6 @@ struct LightProbeRay {
   float perceptual_roughness;
 };
 
-/* General purpose 3D ray. */
-struct Ray {
-  packed_float3 direction;
-  float max_time;
-  packed_float3 origin;
-};
-
 /* -------------------------------------------------------------------- */
 /** \name Utils
  * \{ */

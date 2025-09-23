@@ -8,6 +8,7 @@
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_math_safe_lib.glsl"
+#include "gpu_shader_ray_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
 /* -------------------------------------------------------------------- */

@@ -377,6 +377,7 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_geom_curves_vert.glsl
   engines/eevee/shaders/eevee_geom_mesh_vert.glsl
   engines/eevee/shaders/eevee_geom_pointcloud_vert.glsl
+  engines/eevee/shaders/eevee_geom_types_lib.glsl
   engines/eevee/shaders/eevee_geom_volume_vert.glsl
   engines/eevee/shaders/eevee_geom_world_vert.glsl
   engines/eevee/shaders/eevee_hiz_debug_frag.glsl

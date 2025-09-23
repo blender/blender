@@ -4,10 +4,8 @@
 
 #pragma once
 
-#include "eevee_nodetree_lib.glsl"
+#include "eevee_geom_types_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"
-
-#include "gpu_shader_math_vector_lib.glsl"
 
 /* -------------------------------------------------------------------- */
 /** \name World

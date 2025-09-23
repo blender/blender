@@ -26,12 +26,12 @@
 
 #pragma once
 
-#include "gpu_shader_cxx_builtin.hh"
-#include "gpu_shader_cxx_global.hh"
-#include "gpu_shader_cxx_image.hh"
-#include "gpu_shader_cxx_matrix.hh"
-#include "gpu_shader_cxx_sampler.hh"
-#include "gpu_shader_cxx_vector.hh"
+#include "gpu_shader_cxx_builtin.hh"  // IWYU pragma: export
+#include "gpu_shader_cxx_global.hh"   // IWYU pragma: export
+#include "gpu_shader_cxx_image.hh"    // IWYU pragma: export
+#include "gpu_shader_cxx_matrix.hh"   // IWYU pragma: export
+#include "gpu_shader_cxx_sampler.hh"  // IWYU pragma: export
+#include "gpu_shader_cxx_vector.hh"   // IWYU pragma: export
 
 #define assert(assertion)
 #define printf(...)

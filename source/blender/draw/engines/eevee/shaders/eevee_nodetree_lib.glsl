@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "gpu_shader_math_vector_reduce_lib.glsl"
 #include "infos/eevee_common_info.hh"
 
 SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
@@ -18,40 +17,8 @@ SHADER_LIBRARY_CREATE_INFO(eevee_utility_texture)
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_math_safe_lib.glsl"
+#include "gpu_shader_math_vector_reduce_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
-
-struct MeshVertex {
-  int _pad; /* TODO(fclem): Add explicit attribute loading for mesh. */
-  METAL_CONSTRUCTOR_1(MeshVertex, int, _pad)
-};
-
-struct PointCloudPoint {
-  int _pad; /* TODO(fclem): Add explicit attribute loading for mesh. */
-  METAL_CONSTRUCTOR_1(PointCloudPoint, int, _pad)
-};
-
-struct CurvesPoint {
-  int curve_id;
-  int point_id;
-  int curve_segment;
-
-  METAL_CONSTRUCTOR_3(CurvesPoint, int, curve_id, int, point_id, int, curve_segment)
-};
-
-struct WorldPoint {
-  int _pad;
-  METAL_CONSTRUCTOR_1(WorldPoint, int, _pad)
-};
-
-struct VolumePoint {
-  int _pad; /* TODO(fclem): Add explicit attribute loading for volumes. */
-  METAL_CONSTRUCTOR_1(VolumePoint, int, _pad)
-};
-
-struct GPencilPoint {
-  int _pad;
-  METAL_CONSTRUCTOR_1(GPencilPoint, int, _pad)
-};
 
 packed_float3 g_emission;
 packed_float3 g_transmittance;

@@ -35,15 +35,9 @@
 FRAGMENT_SHADER_CREATE_INFO(eevee_geom_mesh)
 FRAGMENT_SHADER_CREATE_INFO(eevee_surf_occupancy)
 
-#include "eevee_nodetree_lib.glsl"
 #include "eevee_occupancy_lib.glsl"
 #include "eevee_sampling_lib.glsl"
 #include "eevee_volume_lib.glsl"
-
-float4 closure_to_rgba(Closure cl)
-{
-  return float4(0.0f);
-}
 
 void main()
 {

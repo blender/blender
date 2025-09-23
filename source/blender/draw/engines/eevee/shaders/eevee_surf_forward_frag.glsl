@@ -15,7 +15,6 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_surf_forward)
 
 #include "draw_curves_lib.glsl"
 #include "draw_view_lib.glsl"
-#include "eevee_ambient_occlusion_lib.glsl"
 #include "eevee_forward_lib.glsl"
 #include "eevee_nodetree_frag_lib.glsl"
 #include "eevee_reverse_z_lib.glsl"
