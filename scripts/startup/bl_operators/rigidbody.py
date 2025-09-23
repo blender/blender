@@ -8,6 +8,7 @@ from bpy.props import (
     EnumProperty,
     IntProperty,
 )
+from bpy_extras import anim_utils
 
 
 class CopyRigidbodySettings(Operator):
@@ -167,8 +168,13 @@ class BakeToKeyframes(Operator):
 
             # clean up keyframes
             for obj in objects:
-                action = obj.animation_data.action
-                for fcu in action.fcurves:
+                channelbag = anim_utils.action_get_channelbag_for_slot(
+                    obj.animation_data.action,
+                    obj.animation_data.action_slot,
+                )
+                if not channelbag:
+                    continue
+                for fcu in channelbag.fcurves:
                     keyframe_points = fcu.keyframe_points
                     i = 1
                     # remove unneeded keyframes
