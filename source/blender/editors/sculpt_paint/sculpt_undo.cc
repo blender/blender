@@ -421,7 +421,9 @@ struct PositionUndoStorage : NonMovable {
         CompressLocalData &local_data = all_tls.local();
         for (const int i : range) {
           const Span<int> indices = data->multires_undo ? nodes[i]->grids : nodes[i]->vert_indices;
-          const Span<float3> positions = nodes[i]->position;
+          const Span<float3> positions = !nodes[i]->orig_position.is_empty() ?
+                                             nodes[i]->orig_position :
+                                             nodes[i]->position;
           compression::filter_compress(indices, local_data.filtered, local_data.compressed);
           new (&compressed_indices[i]) Array<std::byte>(local_data.compressed.as_span());
           compression::filter_compress(positions, local_data.filtered, local_data.compressed);
