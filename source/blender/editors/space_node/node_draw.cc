@@ -2730,8 +2730,8 @@ static void node_header_custom_tooltip(const bNode &node, uiBut &but)
       [](bContext & /*C*/, uiTooltipData &data, uiBut * /*but*/, void *argN) {
         const bNode &node = *static_cast<const bNode *>(argN);
         const std::string description = node.typeinfo->ui_description_fn ?
-                                            node.typeinfo->ui_description_fn(node) :
-                                            node.typeinfo->ui_description;
+                                            TIP_(node.typeinfo->ui_description_fn(node)) :
+                                            TIP_(node.typeinfo->ui_description);
         if (!description.empty()) {
           UI_tooltip_text_field_add(
               data, std::move(description), "", UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL);
@@ -2742,7 +2742,7 @@ static void node_header_custom_tooltip(const bNode &node, uiBut &but)
                                     "",
                                     UI_TIP_STYLE_MONO,
                                     UI_TIP_LC_PYTHON,
-                                    true);
+                                    !description.empty());
         }
       },
       &const_cast<bNode &>(node),
@@ -3068,7 +3068,7 @@ static void node_draw_basis(const bContext &C,
                         nullptr,
                         0,
                         0,
-                        TIP_(node.typeinfo->ui_description.c_str()));
+                        std::nullopt);
   node_header_custom_tooltip(node, *but);
 
   if (node.is_muted()) {
@@ -3308,7 +3308,7 @@ static void node_draw_collapsed(const bContext &C,
                         nullptr,
                         0,
                         0,
-                        TIP_(node.typeinfo->ui_description.c_str()));
+                        std::nullopt);
   node_header_custom_tooltip(node, *but);
 
   /* Outline. */
