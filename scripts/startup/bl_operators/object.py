@@ -14,6 +14,7 @@ from bpy.app.translations import (
     pgettext_rpt as rpt_,
     contexts as i18n_contexts,
 )
+from bpy_extras import anim_utils
 
 
 class SelectPattern(Operator):
@@ -843,7 +844,10 @@ class TransformsToDeltasAnim(Operator):
             # first pass over F-Curves: ensure that we don't have conflicting
             # transforms already (e.g. if this was applied already) #29110.
             existingFCurves = {}
-            for fcu in adt.action.fcurves:
+            channelbag = anim_utils.action_get_channelbag_for_slot(adt.action, adt.action_slot)
+            if not channelbag:
+                continue
+            for fcu in channelbag.fcurves:
                 # get "delta" path - i.e. the final paths which may clash
                 path = fcu.data_path
                 if path in STANDARD_TO_DELTA_PATHS:
@@ -878,7 +882,7 @@ class TransformsToDeltasAnim(Operator):
 
             # if F-Curve uses standard transform path
             # just append "delta_" to this path
-            for fcu in adt.action.fcurves:
+            for fcu in channelbag.fcurves:
                 if fcu.data_path == "location":
                     fcu.data_path = "delta_location"
                     obj.location.zero()
