@@ -426,9 +426,23 @@ template<typename T> inline void MEM_delete(const T *ptr)
   if (ptr == nullptr) {
     return;
   }
+  const void *complete_ptr = [ptr]() {
+    if constexpr (std::is_polymorphic_v<T>) {
+      /* Polymorphic objects lifetime can be managed with pointers to their most derived type or
+       * with pointers to any of their ancestor types in their hierarchy tree that define a virtual
+       * destructor, however ancestor pointers may differ in a offset from the same derived object.
+       * For freeing the correct memory allocated with #MEM_new, we need to ensure that the given
+       * pointer is equal to the pointer to the most derived object, which can be obtained with
+       * `dynamic_cast<void *>(ptr)`. */
+      return dynamic_cast<const void *>(ptr);
+    }
+    else {
+      return static_cast<const void *>(ptr);
+    }
+  }();
   /* C++ allows destruction of `const` objects, so the pointer is allowed to be `const`. */
   ptr->~T();
-  mem_guarded::internal::mem_freeN_ex(const_cast<T *>(ptr),
+  mem_guarded::internal::mem_freeN_ex(const_cast<void *>(complete_ptr),
                                       mem_guarded::internal::AllocationType::NEW_DELETE);
 }
 
