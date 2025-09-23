@@ -1453,32 +1453,40 @@ static void screen_set_3dview_camera(Scene *scene,
                                      ScrArea *area,
                                      View3D *v3d)
 {
-  /* fix any cameras that are used in the 3d view but not in the scene */
+  /* Fix any cameras that are used in the 3d view but not in the scene. */
   BKE_screen_view3d_sync(v3d, scene);
 
   BKE_view_layer_synced_ensure(scene, view_layer);
   if (!v3d->camera || !BKE_view_layer_base_find(view_layer, v3d->camera)) {
     v3d->camera = BKE_view_layer_camera_find(scene, view_layer);
-    // XXX if (screen == curscreen) handle_view3d_lock();
+  }
+  ListBase *regionbase;
+
+  /* regionbase is in different place depending if space is active. */
+  if (v3d == area->spacedata.first) {
+    regionbase = &area->regionbase;
+  }
+  else {
+    regionbase = &v3d->regionbase;
+  }
+
+  LISTBASE_FOREACH (ARegion *, region, regionbase) {
+    if (region->regiontype != RGN_TYPE_WINDOW) {
+      continue;
+    }
+    RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
+    /* Keep the information about RV3D_CAMOB even when no camera can be found.
+     * This prevents jumping off the camera view while scrubbing through the
+     * Sequencer with some Scene strips without scene. */
     if (!v3d->camera) {
-      ListBase *regionbase;
-
-      /* regionbase is in different place depending if space is active */
-      if (v3d == area->spacedata.first) {
-        regionbase = &area->regionbase;
+      if (rv3d->persp == RV3D_CAMOB) {
+        rv3d->persp = RV3D_PERSP;
+        rv3d->rflag |= RV3D_WAS_CAMOB;
       }
-      else {
-        regionbase = &v3d->regionbase;
-      }
-
-      LISTBASE_FOREACH (ARegion *, region, regionbase) {
-        if (region->regiontype == RGN_TYPE_WINDOW) {
-          RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
-          if (rv3d->persp == RV3D_CAMOB) {
-            rv3d->persp = RV3D_PERSP;
-          }
-        }
-      }
+    }
+    else if ((rv3d->rflag & RV3D_WAS_CAMOB) != 0) {
+      rv3d->persp = RV3D_CAMOB;
+      rv3d->rflag &= ~RV3D_WAS_CAMOB;
     }
   }
 }

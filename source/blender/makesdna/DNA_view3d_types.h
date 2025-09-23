@@ -445,12 +445,12 @@ enum {
   RV3D_NAVIGATING = 1 << 3,
   RV3D_GPULIGHT_UPDATE = 1 << 4,
   RV3D_PAINTING = 1 << 5,
-  // RV3D_IS_GAME_ENGINE = 1 << 5, /* UNUSED */
   /**
    * Disable Z-buffer offset, skip calls to #ED_view3d_polygon_offset.
    * Use when precise surface depth is needed and picking bias isn't, see #45434).
    */
   RV3D_ZOFFSET_DISABLED = 1 << 6,
+  RV3D_WAS_CAMOB = 1 << 7,
 };
 
 /** #RegionView3D.viewlock */
