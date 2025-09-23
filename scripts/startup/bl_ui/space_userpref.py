@@ -2839,7 +2839,7 @@ class USERPREF_PT_studiolight_light_editor(StudioLightPanel, Panel):
 # Experimental Panels
 
 # Also used for "Developer Tools" which are stored in `preferences.experimental` too.
-def _draw_experimental_items(layout, preferences, items, url_prefix="https://projects.blender.org"):
+def _draw_experimental_items(layout, preferences, items, url_prefix="https://projects.blender.org/"):
     experimental = preferences.experimental
 
     layout.use_property_split = False
