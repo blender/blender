@@ -180,51 +180,11 @@ def get_texture_node_types():
 
 def nice_hotkey_name(punc):
     # convert the ugly string name into the actual character
+    from bpy.types import KeyMapItem
     nice_name = {
-        'LEFTMOUSE': "LMB",
-        'MIDDLEMOUSE': "MMB",
-        'RIGHTMOUSE': "RMB",
-        'WHEELUPMOUSE': "Wheel Up",
-        'WHEELDOWNMOUSE': "Wheel Down",
-        'WHEELINMOUSE': "Wheel In",
-        'WHEELOUTMOUSE': "Wheel Out",
-        'ZERO': "0",
-        'ONE': "1",
-        'TWO': "2",
-        'THREE': "3",
-        'FOUR': "4",
-        'FIVE': "5",
-        'SIX': "6",
-        'SEVEN': "7",
-        'EIGHT': "8",
-        'NINE': "9",
-        'OSKEY': "Super",
-        'RET': "Enter",
-        'LINE_FEED': "Enter",
-        'SEMI_COLON': ";",
-        'PERIOD': ".",
-        'COMMA': ",",
-        'QUOTE': '"',
-        'MINUS': "-",
-        'SLASH': "/",
-        'BACK_SLASH': "\\",
-        'EQUAL': "=",
-        'NUMPAD_1': "Numpad 1",
-        'NUMPAD_2': "Numpad 2",
-        'NUMPAD_3': "Numpad 3",
-        'NUMPAD_4': "Numpad 4",
-        'NUMPAD_5': "Numpad 5",
-        'NUMPAD_6': "Numpad 6",
-        'NUMPAD_7': "Numpad 7",
-        'NUMPAD_8': "Numpad 8",
-        'NUMPAD_9': "Numpad 9",
-        'NUMPAD_0': "Numpad 0",
-        'NUMPAD_PERIOD': "Numpad .",
-        'NUMPAD_SLASH': "Numpad /",
-        'NUMPAD_ASTERIX': "Numpad *",
-        'NUMPAD_MINUS': "Numpad -",
-        'NUMPAD_ENTER': "Numpad Enter",
-        'NUMPAD_PLUS': "Numpad +",
+        enum_item.identifier:
+        enum_item.name
+        for enum_item in KeyMapItem.bl_rna.properties['type'].enum_items
     }
     try:
         return nice_name[punc]
