@@ -23,11 +23,14 @@ else:
 import bpy
 from bpy.types import (
     Action,
+    ActionChannelbag,
+    ActionSlot,
     Bone,
     Context,
     FCurve,
     Keyframe,
 )
+from bpy_extras import anim_utils
 
 FCurveValue = Union[float, int]
 
@@ -39,6 +42,7 @@ pose_bone_re = re.compile(r'pose.bones\["([^"]+)"\]')
 class PoseCreationParams:
     armature_ob: bpy.types.Object
     src_action: Optional[Action]
+    src_action_slot: Optional[ActionSlot]
     src_frame_nr: float
     bone_names: FrozenSet[str]
     new_asset_name: str
@@ -77,13 +81,15 @@ class PoseActionCreator:
 
         try:
             dst_action = self._create_new_action()
-            self._store_pose(dst_action)
+            slot = dst_action.slots.new(self.params.armature_ob.id_type, self.params.armature_ob.name)
+            channelbag = anim_utils.action_ensure_channelbag_for_slot(dst_action, slot)
+            self._store_pose(channelbag)
         finally:
             # Prevent next instantiations of this class from reusing pointers to
             # bones. They may not be valid by then any more.
             self._find_bone.cache_clear()
 
-        if len(dst_action.fcurves) == 0:
+        if len(channelbag.fcurves) == 0:
             bpy.data.actions.remove(dst_action)
             return None
 
@@ -94,27 +100,30 @@ class PoseActionCreator:
         dst_action.user_clear()  # actions.new() sets users=1, but marking as asset also increments user count.
         return dst_action
 
-    def _store_pose(self, dst_action: Action) -> None:
+    def _store_pose(self, dst_channelbag: ActionChannelbag) -> None:
         """Store the current pose into the given action."""
-        self._store_bone_pose_parameters(dst_action)
-        self._store_animated_parameters(dst_action)
+        self._store_bone_pose_parameters(dst_channelbag)
+        self._store_animated_parameters(dst_channelbag)
 
-    def _store_bone_pose_parameters(self, dst_action: Action) -> None:
+    def _store_bone_pose_parameters(self, dst_channelbag: ActionChannelbag) -> None:
         """Store loc/rot/scale/bbone values in the Action."""
 
         for bone_name in sorted(self.params.bone_names):
-            self._store_location(dst_action, bone_name)
-            self._store_rotation(dst_action, bone_name)
-            self._store_scale(dst_action, bone_name)
-            self._store_bbone(dst_action, bone_name)
+            self._store_location(dst_channelbag, bone_name)
+            self._store_rotation(dst_channelbag, bone_name)
+            self._store_scale(dst_channelbag, bone_name)
+            self._store_bbone(dst_channelbag, bone_name)
 
-    def _store_animated_parameters(self, dst_action: Action) -> None:
+    def _store_animated_parameters(self, dst_channelbag: ActionChannelbag) -> None:
         """Store the current value of any animated bone properties."""
         if self.params.src_action is None:
             return
+        src_channelbag = anim_utils.action_get_channelbag_for_slot(self.params.src_action, self.params.src_action_slot)
+        if not src_channelbag:
+            return
 
         armature_ob = self.params.armature_ob
-        for fcurve in self.params.src_action.fcurves:
+        for fcurve in src_channelbag.fcurves:
             match = pose_bone_re.match(fcurve.data_path)
             if not match:
                 # Not animating a bone property.
@@ -125,7 +134,7 @@ class PoseActionCreator:
                 # Bone is not our export set.
                 continue
 
-            if dst_action.fcurves.find(fcurve.data_path, index=fcurve.array_index):
+            if dst_channelbag.fcurves.find(fcurve.data_path, index=fcurve.array_index):
                 # This property is already handled by a previous _store_xxx() call.
                 continue
 
@@ -139,44 +148,49 @@ class PoseActionCreator:
                 # A once-animated property no longer exists.
                 continue
 
-            dst_fcurve = dst_action.fcurves.new(fcurve.data_path, index=fcurve.array_index, action_group=bone_name)
+            dst_fcurve = dst_channelbag.fcurves.new(fcurve.data_path, index=fcurve.array_index, group_name=bone_name)
             dst_fcurve.keyframe_points.insert(self.params.src_frame_nr, value=value)
             dst_fcurve.update()
 
-    def _store_location(self, dst_action: Action, bone_name: str) -> None:
+    def _store_location(self, dst_channelbag: ActionChannelbag, bone_name: str) -> None:
         """Store bone location."""
-        self._store_bone_array(dst_action, bone_name, "location", 3)
+        self._store_bone_array(dst_channelbag, bone_name, "location", 3)
 
-    def _store_rotation(self, dst_action: Action, bone_name: str) -> None:
+    def _store_rotation(self, dst_channelbag: ActionChannelbag, bone_name: str) -> None:
         """Store bone rotation given current rotation mode."""
         bone = self._find_bone(bone_name)
         if bone.rotation_mode == "QUATERNION":
-            self._store_bone_array(dst_action, bone_name, "rotation_quaternion", 4)
+            self._store_bone_array(dst_channelbag, bone_name, "rotation_quaternion", 4)
         elif bone.rotation_mode == "AXIS_ANGLE":
-            self._store_bone_array(dst_action, bone_name, "rotation_axis_angle", 4)
+            self._store_bone_array(dst_channelbag, bone_name, "rotation_axis_angle", 4)
         else:
-            self._store_bone_array(dst_action, bone_name, "rotation_euler", 3)
+            self._store_bone_array(dst_channelbag, bone_name, "rotation_euler", 3)
 
-    def _store_scale(self, dst_action: Action, bone_name: str) -> None:
+    def _store_scale(self, dst_channelbag: ActionChannelbag, bone_name: str) -> None:
         """Store bone scale."""
-        self._store_bone_array(dst_action, bone_name, "scale", 3)
+        self._store_bone_array(dst_channelbag, bone_name, "scale", 3)
 
-    def _store_bbone(self, dst_action: Action, bone_name: str) -> None:
+    def _store_bbone(self, dst_channelbag: ActionChannelbag, bone_name: str) -> None:
         """Store bendy-bone parameters."""
         for prop_name, array_length in self._bbone_props:
             if array_length:
-                self._store_bone_array(dst_action, bone_name, prop_name, array_length)
+                self._store_bone_array(dst_channelbag, bone_name, prop_name, array_length)
             else:
-                self._store_bone_property(dst_action, bone_name, prop_name)
+                self._store_bone_property(dst_channelbag, bone_name, prop_name)
 
-    def _store_bone_array(self, dst_action: Action, bone_name: str, property_name: str, array_length: int) -> None:
+    def _store_bone_array(
+            self,
+            dst_channelbag: ActionChannelbag,
+            bone_name: str,
+            property_name: str,
+            array_length: int) -> None:
         """Store all elements of an array property."""
         for array_index in range(array_length):
-            self._store_bone_property(dst_action, bone_name, property_name, array_index)
+            self._store_bone_property(dst_channelbag, bone_name, property_name, array_index)
 
     def _store_bone_property(
         self,
-        dst_action: Action,
+        dst_channelbag: ActionChannelbag,
         bone_name: str,
         property_path: str,
         array_index: int = -1,
@@ -189,9 +203,10 @@ class PoseActionCreator:
         # Get the full 'pose.bones["bone_name"].blablabla' path suitable for FCurves.
         rna_path = bone.path_from_id(property_path)
 
-        fcurve: Optional[FCurve] = dst_action.fcurves.find(rna_path, index=array_index)
+        fcurve: Optional[FCurve] = dst_channelbag.fcurves.find(rna_path, index=array_index)
         if fcurve is None:
-            fcurve = dst_action.fcurves.new(rna_path, index=array_index, action_group=bone_name)
+            fcurve = dst_channelbag.fcurves.new(rna_path, index=array_index, group_name=bone_name)
+            assert fcurve is not None
 
         fcurve.keyframe_points.insert(self.params.src_frame_nr, value=value)
         fcurve.update()
@@ -305,6 +320,7 @@ def create_pose_asset_from_context(context: Context, new_asset_name: str) -> Opt
     params = PoseCreationParams(
         context.object,
         getattr(context.object.animation_data, "action", None),
+        getattr(context.object.animation_data, "action_slot", None),
         context.scene.frame_current,
         frozenset(bone_names),
         new_asset_name,
@@ -313,22 +329,25 @@ def create_pose_asset_from_context(context: Context, new_asset_name: str) -> Opt
     return create_pose_asset(params)
 
 
-def create_single_key_fcurve(dst_action: Action, src_fcurve: FCurve, src_keyframe: Keyframe) -> FCurve:
+def create_single_key_fcurve(dst_channelbag: ActionChannelbag, src_fcurve: FCurve, src_keyframe: Keyframe) -> FCurve:
     """Create a copy of the source FCurve, but only for the given keyframe.
 
     Returns a new FCurve with just one keyframe.
     """
 
-    dst_fcurve = copy_fcurve_without_keys(dst_action, src_fcurve)
+    dst_fcurve = copy_fcurve_without_keys(dst_channelbag, src_fcurve)
     copy_keyframe(dst_fcurve, src_keyframe)
     return dst_fcurve
 
 
-def copy_fcurve_without_keys(dst_action: Action, src_fcurve: FCurve) -> FCurve:
+def copy_fcurve_without_keys(dst_channelbag: ActionChannelbag, src_fcurve: FCurve) -> FCurve:
     """Create a new FCurve and copy some properties."""
 
     src_group_name = src_fcurve.group.name if src_fcurve.group else ""
-    dst_fcurve = dst_action.fcurves.new(src_fcurve.data_path, index=src_fcurve.array_index, action_group=src_group_name)
+    dst_fcurve = dst_channelbag.fcurves.new(
+        src_fcurve.data_path,
+        index=src_fcurve.array_index,
+        group_name=src_group_name)
     for propname in {"auto_smoothing", "color", "color_mode", "extrapolation"}:
         setattr(dst_fcurve, propname, getattr(src_fcurve, propname))
     return dst_fcurve
