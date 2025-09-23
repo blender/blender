@@ -4975,6 +4975,24 @@ StringRefNull node_socket_label(const bNodeSocket &sock)
   return (sock.label[0] != '\0') ? sock.label : sock.name;
 }
 
+const char *node_socket_translation_context(const bNodeSocket &sock)
+{
+  /* The node is not explicitly defined. */
+  if (sock.runtime->declaration == nullptr) {
+    return nullptr;
+  }
+
+  const std::optional<std::string> &translation_context =
+      sock.runtime->declaration->translation_context;
+
+  /* Default context. */
+  if (!translation_context.has_value()) {
+    return nullptr;
+  }
+
+  return translation_context->c_str();
+}
+
 NodeColorTag node_color_tag(const bNode &node)
 {
   const int nclass = node.typeinfo->ui_class == nullptr ? node.typeinfo->nclass :

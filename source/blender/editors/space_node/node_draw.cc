@@ -248,24 +248,6 @@ void tag_update_id(ID *id)
   }
 }
 
-static const char *node_socket_get_translation_context(const bNodeSocket &socket)
-{
-  /* The node is not explicitly defined. */
-  if (socket.runtime->declaration == nullptr) {
-    return nullptr;
-  }
-
-  const std::optional<std::string> &translation_context =
-      socket.runtime->declaration->translation_context;
-
-  /* Default context. */
-  if (!translation_context.has_value()) {
-    return nullptr;
-  }
-
-  return translation_context->c_str();
-}
-
 static void node_socket_add_tooltip_in_node_editor(const bNodeSocket &sock, uiLayout &layout);
 
 /** Return true when \a a should be behind \a b and false otherwise. */
@@ -473,7 +455,7 @@ const char *node_socket_get_label(const bNodeSocket *socket, const char *panel_l
   /* Get the short label if possible. This is used when grouping sockets under panels,
    * to avoid redundancy in the label. */
   const std::optional<StringRefNull> socket_short_label = bke::node_socket_short_label(*socket);
-  const char *socket_translation_context = node_socket_get_translation_context(*socket);
+  const char *socket_translation_context = bke::node_socket_translation_context(*socket);
 
   if (socket_short_label.has_value()) {
     return CTX_IFACE_(socket_translation_context, socket_short_label->c_str());
