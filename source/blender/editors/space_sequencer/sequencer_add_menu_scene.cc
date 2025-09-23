@@ -190,7 +190,7 @@ static void sequencer_add_scene_draw(const bContext *C, Menu *menu)
     if (show_assets) {
       layout->label(IFACE_("Scenes"), ICON_SCENE_DATA);
     }
-    const Scene *active_scene = CTX_data_scene(C);
+    const Scene *active_scene = CTX_data_sequencer_scene(C);
     int i = 0;
     LISTBASE_FOREACH_INDEX (Scene *, scene, &bmain->scenes, i) {
       if (scene == active_scene) {
