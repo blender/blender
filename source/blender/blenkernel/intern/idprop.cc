@@ -158,7 +158,7 @@ void IDP_ResizeIDPArray(IDProperty *prop, int newlen)
   if (newlen <= prop->totallen) {
     if (newlen < prop->len && prop->totallen - newlen < IDP_ARRAY_REALLOC_LIMIT) {
       for (int i = newlen; i < prop->len; i++) {
-        IDP_FreePropertyContent(GETPROP(prop, i));
+        IDP_ClearProperty(GETPROP(prop, i));
       }
 
       prop->len = newlen;
@@ -174,7 +174,7 @@ void IDP_ResizeIDPArray(IDProperty *prop, int newlen)
   if (newlen < prop->len) {
     /* newlen is smaller */
     for (int i = newlen; i < prop->len; i++) {
-      IDP_FreePropertyContent(GETPROP(prop, i));
+      IDP_ClearProperty(GETPROP(prop, i));
     }
   }
 
