@@ -308,25 +308,20 @@ void SKY_single_scattering_precompute_texture(float *pixels,
   const float longitude_step = M_2PI_F / width;
   const int rows_per_task = std::max(1024 / width, 1);
 
-  SKY_parallel_for(0, height, rows_per_task, [=](const size_t begin, const size_t end) {
+  /* Compute Sky in the upper hemisphere. */
+  SKY_parallel_for(half_height, height, rows_per_task, [=](const size_t begin, const size_t end) {
     for (int y = begin; y < end; y++) {
       /* Sample more pixels toward the horizon. */
       float latitude = M_PI_2_F * sqr(float(y) / half_height - 1.0f);
       float *pixel_row = pixels + (y * width * stride);
 
       for (int x = 0; x < half_width; x++) {
-        float3 xyz;
-        if (y > half_height) {
-          float longitude = longitude_step * x - M_PI_F;
-          float3 dir = geographical_to_direction(latitude, longitude);
-          float spectrum[NUM_WAVELENGTHS];
-          single_scattering(
-              dir, sun_dir, cam_pos, air_density, aerosol_density, ozone_density, spectrum);
-          xyz = spec_to_xyz(spectrum);
-        }
-        else {
-          xyz = make_float3(0.0f, 0.0f, 0.0f);
-        }
+        float longitude = longitude_step * x - M_PI_F;
+        float3 dir = geographical_to_direction(latitude, longitude);
+        float spectrum[NUM_WAVELENGTHS];
+        single_scattering(
+            dir, sun_dir, cam_pos, air_density, aerosol_density, ozone_density, spectrum);
+        const float3 xyz = spec_to_xyz(spectrum);
 
         /* Store pixels. */
         int pos_x = x * stride;
@@ -341,6 +336,26 @@ void SKY_single_scattering_precompute_texture(float *pixels,
       }
     }
   });
+
+  /* Fill in the lower hemisphere by fading out the horizon. */
+  for (int y = 0; y < half_height; y++) {
+    /* Sample more pixels toward the horizon. */
+    float latitude = M_PI_2_F * sqr(float(y) / half_height - 1.0f);
+    float3 dir = geographical_to_direction(latitude, 0.0f);
+    float fade = 0.0f;
+    if (dir.z < 0.4f) {
+      fade = 1.0f - dir.z * 2.5f;
+      fade = sqr(fade) * fade;
+    }
+    float *pixel_row = pixels + (y * width * stride);
+    float *horizon_row = pixels + (half_height * width * stride);
+
+    for (int x = 0, offset = 0; x < width; x++, offset += stride) {
+      pixel_row[offset + 0] = horizon_row[offset + 0] * fade;
+      pixel_row[offset + 1] = horizon_row[offset + 1] * fade;
+      pixel_row[offset + 2] = horizon_row[offset + 2] * fade;
+    }
+  }
 }
 
 /*********** Sun ***********/
