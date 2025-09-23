@@ -31,7 +31,7 @@ static void node_shader_buts_attribute(uiLayout *layout, bContext * /*C*/, Point
                UI_ITEM_NONE,
                "",
                ICON_NONE,
-               "Name");
+               IFACE_("Name"));
 }
 
 static void node_shader_init_attribute(bNodeTree * /*ntree*/, bNode *node)
