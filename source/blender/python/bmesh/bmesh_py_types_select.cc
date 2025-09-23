@@ -86,15 +86,18 @@ PyDoc_STRVAR(
     "   Add an element to the selection history (no action taken if its already added).\n");
 static PyObject *bpy_bmeditselseq_add(BPy_BMEditSelSeq *self, BPy_BMElem *value)
 {
+  const char *error_prefix = "select_history.add(...)";
   BPY_BM_CHECK_OBJ(self);
 
   if ((BPy_BMVert_Check(value) || BPy_BMEdge_Check(value) || BPy_BMFace_Check(value)) == false) {
-    PyErr_Format(
-        PyExc_TypeError, "Expected a BMVert/BMedge/BMFace not a %.200s", Py_TYPE(value)->tp_name);
+    PyErr_Format(PyExc_TypeError,
+                 "%s: expected a BMVert/BMedge/BMFace not a %.200s",
+                 error_prefix,
+                 Py_TYPE(value)->tp_name);
     return nullptr;
   }
 
-  BPY_BM_CHECK_SOURCE_OBJ(self->bm, "select_history.add()", value);
+  BPY_BM_CHECK_SOURCE_OBJ(self->bm, error_prefix, value);
 
   BM_select_history_store(self->bm, value->ele);
 
@@ -109,18 +112,21 @@ PyDoc_STRVAR(
     "   Remove an element from the selection history.\n");
 static PyObject *bpy_bmeditselseq_remove(BPy_BMEditSelSeq *self, BPy_BMElem *value)
 {
+  const char *error_prefix = "select_history.remove(...)";
   BPY_BM_CHECK_OBJ(self);
 
   if ((BPy_BMVert_Check(value) || BPy_BMEdge_Check(value) || BPy_BMFace_Check(value)) == false) {
-    PyErr_Format(
-        PyExc_TypeError, "Expected a BMVert/BMedge/BMFace not a %.200s", Py_TYPE(value)->tp_name);
+    PyErr_Format(PyExc_TypeError,
+                 "%s: expected a BMVert/BMedge/BMFace not a %.200s",
+                 error_prefix,
+                 Py_TYPE(value)->tp_name);
     return nullptr;
   }
 
-  BPY_BM_CHECK_SOURCE_OBJ(self->bm, "select_history.remove()", value);
+  BPY_BM_CHECK_SOURCE_OBJ(self->bm, error_prefix, value);
 
   if (BM_select_history_remove(self->bm, value->ele) == false) {
-    PyErr_SetString(PyExc_ValueError, "Element not found in selection history");
+    PyErr_Format(PyExc_ValueError, "%s: element not found in selection history", error_prefix);
     return nullptr;
   }
 
@@ -137,15 +143,18 @@ PyDoc_STRVAR(
     "   Like remove but doesn't raise an error when the elements not in the selection list.\n");
 static PyObject *bpy_bmeditselseq_discard(BPy_BMEditSelSeq *self, BPy_BMElem *value)
 {
+  const char *error_prefix = "select_history.discard()";
   BPY_BM_CHECK_OBJ(self);
 
   if ((BPy_BMVert_Check(value) || BPy_BMEdge_Check(value) || BPy_BMFace_Check(value)) == false) {
-    PyErr_Format(
-        PyExc_TypeError, "Expected a BMVert/BMedge/BMFace not a %.200s", Py_TYPE(value)->tp_name);
+    PyErr_Format(PyExc_TypeError,
+                 "%s: expected a BMVert/BMedge/BMFace not a %.200s",
+                 error_prefix,
+                 Py_TYPE(value)->tp_name);
     return nullptr;
   }
 
-  BPY_BM_CHECK_SOURCE_OBJ(self->bm, "select_history.discard()", value);
+  BPY_BM_CHECK_SOURCE_OBJ(self->bm, error_prefix, value);
 
   BM_select_history_remove(self->bm, value->ele);
 
@@ -427,24 +436,22 @@ void BPy_BM_init_types_select()
 
 int BPy_BMEditSel_Assign(BPy_BMesh *self, PyObject *value)
 {
-  BMesh *bm;
-  Py_ssize_t value_len;
-  Py_ssize_t i;
-  BMElem **value_array = nullptr;
-
+  const char *error_prefix = "BMesh.select_history = value";
   BPY_BM_CHECK_INT(self);
 
-  bm = self->bm;
+  BMesh *bm = self->bm;
 
-  value_array = static_cast<BMElem **>(BPy_BMElem_PySeq_As_Array(&bm,
-                                                                 value,
-                                                                 0,
-                                                                 PY_SSIZE_T_MAX,
-                                                                 &value_len,
-                                                                 BM_VERT | BM_EDGE | BM_FACE,
-                                                                 true,
-                                                                 true,
-                                                                 "BMesh.select_history = value"));
+  Py_ssize_t value_num;
+  BMElem **value_array = static_cast<BMElem **>(
+      BPy_BMElem_PySeq_As_Array(&bm,
+                                value,
+                                0,
+                                PY_SSIZE_T_MAX,
+                                &value_num,
+                                BM_VERT | BM_EDGE | BM_FACE,
+                                true,
+                                true,
+                                error_prefix));
 
   if (value_array == nullptr) {
     return -1;
@@ -452,7 +459,7 @@ int BPy_BMEditSel_Assign(BPy_BMesh *self, PyObject *value)
 
   BM_select_history_clear(bm);
 
-  for (i = 0; i < value_len; i++) {
+  for (Py_ssize_t i = 0; i < value_num; i++) {
     BM_select_history_store_notest(bm, value_array[i]);
   }
 

@@ -768,20 +768,22 @@ static PyObject *bpy_bmfaceseq_active_get(BPy_BMElemSeq *self, void * /*closure*
 
 static int bpy_bmfaceseq_active_set(BPy_BMElem *self, PyObject *value, void * /*closure*/)
 {
+  const char *error_prefix = "faces.active = f";
   BMesh *bm = self->bm;
   if (value == Py_None) {
     bm->act_face = nullptr;
     return 0;
   }
   if (BPy_BMFace_Check(value)) {
-    BPY_BM_CHECK_SOURCE_INT(bm, "faces.active = f", value);
+    BPY_BM_CHECK_SOURCE_INT(bm, error_prefix, value);
 
     bm->act_face = ((BPy_BMFace *)value)->f;
     return 0;
   }
 
   PyErr_Format(PyExc_TypeError,
-               "faces.active = f: expected BMFace or None, not %.200s",
+               "%s: expected BMFace or None, not %.200s",
+               error_prefix,
                Py_TYPE(value)->tp_name);
   return -1;
 }
@@ -1143,14 +1145,10 @@ PyDoc_STRVAR(
     "   :rtype: :class:`BMesh`\n");
 static PyObject *bpy_bmesh_copy(BPy_BMesh *self)
 {
-  BMesh *bm;
-  BMesh *bm_copy;
-
   BPY_BM_CHECK_OBJ(self);
 
-  bm = self->bm;
-
-  bm_copy = BM_mesh_copy(bm);
+  BMesh *bm = self->bm;
+  BMesh *bm_copy = BM_mesh_copy(bm);
 
   if (bm_copy) {
     return BPy_BMesh_CreatePyObject(bm_copy, BPY_BMFLAG_NOP);
@@ -1168,11 +1166,9 @@ PyDoc_STRVAR(
     "   Clear all mesh data.\n");
 static PyObject *bpy_bmesh_clear(BPy_BMesh *self)
 {
-  BMesh *bm;
-
   BPY_BM_CHECK_OBJ(self);
 
-  bm = self->bm;
+  BMesh *bm = self->bm;
 
   BM_mesh_clear(bm);
 
@@ -1225,7 +1221,6 @@ static PyObject *bpy_bmesh_to_mesh(BPy_BMesh *self, PyObject *args)
 {
   PyObject *py_mesh;
   Mesh *mesh;
-  BMesh *bm;
 
   BPY_BM_CHECK_OBJ(self);
 
@@ -1241,7 +1236,7 @@ static PyObject *bpy_bmesh_to_mesh(BPy_BMesh *self, PyObject *args)
     return nullptr;
   }
 
-  bm = self->bm;
+  BMesh *bm = self->bm;
 
   Main *bmain = nullptr;
   BMeshToMeshParams params{};
@@ -1293,7 +1288,6 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
   Depsgraph *depsgraph;
   Scene *scene_eval;
   const Mesh *mesh_eval;
-  BMesh *bm;
   bool use_cage = false;
   bool use_fnorm = true;
   bool use_vert_normal = true;
@@ -1358,7 +1352,7 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
     return nullptr;
   }
 
-  bm = self->bm;
+  BMesh *bm = self->bm;
 
   BMeshFromMeshParams params{};
   params.calc_face_normal = use_fnorm;
@@ -1400,7 +1394,6 @@ static PyObject *bpy_bmesh_from_mesh(BPy_BMesh *self, PyObject *args, PyObject *
 {
   static const char *kwlist[] = {
       "mesh", "face_normals", "vertex_normals", "use_shape_key", "shape_key_index", nullptr};
-  BMesh *bm;
   PyObject *py_mesh;
   Mesh *mesh;
   bool use_fnorm = true;
@@ -1427,7 +1420,7 @@ static PyObject *bpy_bmesh_from_mesh(BPy_BMesh *self, PyObject *args, PyObject *
     return nullptr;
   }
 
-  bm = self->bm;
+  BMesh *bm = self->bm;
 
   BMeshFromMeshParams params{};
   params.calc_face_normal = use_fnorm;
@@ -1598,23 +1591,20 @@ PyDoc_STRVAR(
     "   :rtype: list[tuple[:class:`BMLoop`, :class:`BMLoop`, :class:`BMLoop`]]\n");
 static PyObject *bpy_bmesh_calc_loop_triangles(BPy_BMElem *self)
 {
-  BMesh *bm;
-
   int corner_tris_tot;
 
   PyObject *ret;
-  int i;
 
   BPY_BM_CHECK_OBJ(self);
 
-  bm = self->bm;
+  BMesh *bm = self->bm;
 
   corner_tris_tot = poly_to_tri_count(bm->totface, bm->totloop);
   blender::Array<std::array<BMLoop *, 3>> corner_tris(corner_tris_tot);
   BM_mesh_calc_tessellation(bm, corner_tris);
 
   ret = PyList_New(corner_tris_tot);
-  for (i = 0; i < corner_tris_tot; i++) {
+  for (int i = 0; i < corner_tris_tot; i++) {
     PyList_SET_ITEM(ret, i, BPy_BMLoop_Array_As_Tuple(bm, corner_tris[i].data(), 3));
   }
 
@@ -1760,6 +1750,7 @@ PyDoc_STRVAR(
     "   :type fac: float\n");
 static PyObject *bpy_bmvert_copy_from_vert_interp(BPy_BMVert *self, PyObject *args)
 {
+  const char *error_prefix = "BMVert.copy_from_vert_interp(...)";
   PyObject *vert_seq;
   float fac;
 
@@ -1770,19 +1761,10 @@ static PyObject *bpy_bmvert_copy_from_vert_interp(BPy_BMVert *self, PyObject *ar
   }
 
   BMesh *bm = self->bm;
-  BMVert **vert_array = nullptr;
-  Py_ssize_t vert_seq_len; /* always 2 */
 
-  vert_array = static_cast<BMVert **>(
-      BPy_BMElem_PySeq_As_Array(&bm,
-                                vert_seq,
-                                2,
-                                2,
-                                &vert_seq_len,
-                                BM_VERT,
-                                true,
-                                true,
-                                "BMVert.copy_from_vert_interp(...)"));
+  Py_ssize_t vert_seq_num; /* Always 2. */
+  BMVert **vert_array = BPy_BMVert_PySeq_As_Array(
+      &bm, vert_seq, 2, 2, &vert_seq_num, true, true, error_prefix);
 
   if (vert_array == nullptr) {
     return nullptr;
@@ -1806,6 +1788,7 @@ PyDoc_STRVAR(
     "   :type face: :class:`BMFace`\n");
 static PyObject *bpy_bmvert_copy_from_face_interp(BPy_BMVert *self, PyObject *args)
 {
+  const char *error_prefix = "copy_from_face_interp(...)";
   BPy_BMFace *py_face = nullptr;
 
   BPY_BM_CHECK_OBJ(self);
@@ -1816,7 +1799,7 @@ static PyObject *bpy_bmvert_copy_from_face_interp(BPy_BMVert *self, PyObject *ar
 
   BMesh *bm = self->bm;
 
-  BPY_BM_CHECK_SOURCE_OBJ(bm, "copy_from_face_interp()", py_face);
+  BPY_BM_CHECK_SOURCE_OBJ(bm, error_prefix, py_face);
 
   BM_vert_interp_from_face(bm, self->v, py_face->f);
 
@@ -2039,17 +2022,19 @@ PyDoc_STRVAR(
     "   :rtype: :class:`BMVert` | None\n");
 static PyObject *bpy_bmedge_other_vert(BPy_BMEdge *self, BPy_BMVert *value)
 {
+  const char *error_prefix = "BMEdge.other_vert(...)";
   BMVert *other;
   BPY_BM_CHECK_OBJ(self);
 
   if (!BPy_BMVert_Check(value)) {
     PyErr_Format(PyExc_TypeError,
-                 "BMEdge.other_vert(vert): BMVert expected, not '%.200s'",
+                 "%s: BMVert expected, not '%.200s'",
+                 error_prefix,
                  Py_TYPE(value)->tp_name);
     return nullptr;
   }
 
-  BPY_BM_CHECK_SOURCE_OBJ(self->bm, "BMEdge.other_vert(vert)", value);
+  BPY_BM_CHECK_SOURCE_OBJ(self->bm, error_prefix, value);
 
   other = BM_edge_other_vert(self->e, value->v);
 
@@ -2096,6 +2081,7 @@ PyDoc_STRVAR(
     "   :type vert: bool\n");
 static PyObject *bpy_bmface_copy_from_face_interp(BPy_BMFace *self, PyObject *args)
 {
+  const char *error_prefix = "BMFace.copy_from_face_interp(...)";
   BPy_BMFace *py_face = nullptr;
   bool do_vertex = true;
 
@@ -2113,7 +2099,7 @@ static PyObject *bpy_bmface_copy_from_face_interp(BPy_BMFace *self, PyObject *ar
 
   BMesh *bm = self->bm;
 
-  BPY_BM_CHECK_SOURCE_OBJ(bm, "BMFace.copy_from_face_interp(face)", py_face);
+  BPY_BM_CHECK_SOURCE_OBJ(bm, error_prefix, py_face);
 
   BM_face_interp_from_face(bm, self->f, py_face->f, do_vertex);
 
@@ -2376,6 +2362,7 @@ PyDoc_STRVAR(
     "   :type multires: bool\n");
 static PyObject *bpy_bmloop_copy_from_face_interp(BPy_BMLoop *self, PyObject *args)
 {
+  const char *error_prefix = "BMLoop.copy_from_face_interp(face)";
   BPy_BMFace *py_face = nullptr;
   bool do_vertex = true;
   bool do_multires = true;
@@ -2396,7 +2383,7 @@ static PyObject *bpy_bmloop_copy_from_face_interp(BPy_BMLoop *self, PyObject *ar
 
   BMesh *bm = self->bm;
 
-  BPY_BM_CHECK_SOURCE_OBJ(bm, "BMLoop.copy_from_face_interp(face)", py_face);
+  BPY_BM_CHECK_SOURCE_OBJ(bm, error_prefix, py_face);
 
   BM_loop_interp_from_face(bm, self->l, py_face->f, do_vertex, do_multires);
 
@@ -2532,6 +2519,7 @@ PyDoc_STRVAR(
     "   :rtype: :class:`BMEdge`\n");
 static PyObject *bpy_bmedgeseq_new(BPy_BMElemSeq *self, PyObject *args)
 {
+  const char *error_prefix = "edges.new(...)";
   PyObject *vert_seq;
   BPy_BMEdge *py_edge_example = nullptr; /* optional */
 
@@ -2543,17 +2531,15 @@ static PyObject *bpy_bmedgeseq_new(BPy_BMElemSeq *self, PyObject *args)
 
   BMesh *bm = self->bm;
   BMEdge *e;
-  BMVert **vert_array = nullptr;
-  Py_ssize_t vert_seq_len; /* always 2 */
   PyObject *ret = nullptr;
 
   if (py_edge_example) {
     BPY_BM_CHECK_OBJ(py_edge_example);
   }
 
-  vert_array = static_cast<BMVert **>(BPy_BMElem_PySeq_As_Array(
-      &bm, vert_seq, 2, 2, &vert_seq_len, BM_VERT, true, true, "edges.new(...)"));
-
+  Py_ssize_t vert_seq_num; /* Always 2. */
+  BMVert **vert_array = BPy_BMVert_PySeq_As_Array(
+      &bm, vert_seq, 2, 2, &vert_seq_num, true, true, error_prefix);
   if (vert_array == nullptr) {
     return nullptr;
   }
@@ -2608,6 +2594,7 @@ PyDoc_STRVAR(
     "   :rtype: :class:`BMFace`\n");
 static PyObject *bpy_bmfaceseq_new(BPy_BMElemSeq *self, PyObject *args)
 {
+  const char *error_prefix = "faces.new(...)";
   PyObject *vert_seq;
   BPy_BMFace *py_face_example = nullptr; /* optional */
 
@@ -2618,9 +2605,6 @@ static PyObject *bpy_bmfaceseq_new(BPy_BMElemSeq *self, PyObject *args)
   }
 
   BMesh *bm = self->bm;
-  Py_ssize_t vert_seq_len;
-
-  BMVert **vert_array = nullptr;
 
   PyObject *ret = nullptr;
 
@@ -2630,16 +2614,16 @@ static PyObject *bpy_bmfaceseq_new(BPy_BMElemSeq *self, PyObject *args)
     BPY_BM_CHECK_OBJ(py_face_example);
   }
 
-  vert_array = static_cast<BMVert **>(BPy_BMElem_PySeq_As_Array(
-      &bm, vert_seq, 3, PY_SSIZE_T_MAX, &vert_seq_len, BM_VERT, true, true, "faces.new(...)"));
-
+  Py_ssize_t vert_seq_num;
+  BMVert **vert_array = BPy_BMVert_PySeq_As_Array(
+      &bm, vert_seq, 3, PY_SSIZE_T_MAX, &vert_seq_num, true, true, error_prefix);
   if (vert_array == nullptr) {
     return nullptr;
   }
 
   /* check if the face exists */
-  if (BM_face_exists(vert_array, vert_seq_len) != nullptr) {
-    PyErr_SetString(PyExc_ValueError, "faces.new(verts): face already exists");
+  if (BM_face_exists(vert_array, vert_seq_num) != nullptr) {
+    PyErr_Format(PyExc_ValueError, "%s: face already exists", error_prefix);
     goto cleanup;
   }
 
@@ -2648,14 +2632,14 @@ static PyObject *bpy_bmfaceseq_new(BPy_BMElemSeq *self, PyObject *args)
 
   f_new = BM_face_create_verts(bm,
                                vert_array,
-                               vert_seq_len,
+                               vert_seq_num,
                                py_face_example ? py_face_example->f : nullptr,
                                BM_CREATE_NOP,
                                true);
 
   if (UNLIKELY(f_new == nullptr)) {
-    PyErr_SetString(PyExc_ValueError,
-                    "faces.new(verts): couldn't create the new face, internal error");
+    PyErr_Format(
+        PyExc_ValueError, "%s: couldn't create the new face, internal error", error_prefix);
     goto cleanup;
   }
 
@@ -2682,6 +2666,7 @@ PyDoc_STRVAR(
     "   :type vert: :class:`BMVert`\n");
 static PyObject *bpy_bmvertseq_remove(BPy_BMElemSeq *self, BPy_BMVert *value)
 {
+  const char *error_prefix = "verts.remove(vert)";
   BPY_BM_CHECK_OBJ(self);
 
   if (!BPy_BMVert_Check(value)) {
@@ -2690,7 +2675,7 @@ static PyObject *bpy_bmvertseq_remove(BPy_BMElemSeq *self, BPy_BMVert *value)
 
   BMesh *bm = self->bm;
 
-  BPY_BM_CHECK_SOURCE_OBJ(bm, "verts.remove(vert)", value);
+  BPY_BM_CHECK_SOURCE_OBJ(bm, error_prefix, value);
 
   BM_vert_kill(bm, value->v);
   bpy_bm_generic_invalidate((BPy_BMGeneric *)value);
@@ -2708,6 +2693,7 @@ PyDoc_STRVAR(
     "   :type edge: :class:`BMEdge`\n");
 static PyObject *bpy_bmedgeseq_remove(BPy_BMElemSeq *self, BPy_BMEdge *value)
 {
+  const char *error_prefix = "edges.remove(...)";
   BPY_BM_CHECK_OBJ(self);
 
   if (!BPy_BMEdge_Check(value)) {
@@ -2716,7 +2702,7 @@ static PyObject *bpy_bmedgeseq_remove(BPy_BMElemSeq *self, BPy_BMEdge *value)
 
   BMesh *bm = self->bm;
 
-  BPY_BM_CHECK_SOURCE_OBJ(bm, "edges.remove(edges)", value);
+  BPY_BM_CHECK_SOURCE_OBJ(bm, error_prefix, value);
 
   BM_edge_kill(bm, value->e);
   bpy_bm_generic_invalidate((BPy_BMGeneric *)value);
@@ -2734,6 +2720,7 @@ PyDoc_STRVAR(
     "   :type face: :class:`BMFace`\n");
 static PyObject *bpy_bmfaceseq_remove(BPy_BMElemSeq *self, BPy_BMFace *value)
 {
+  const char *error_prefix = "faces.remove(...)";
   BPY_BM_CHECK_OBJ(self);
 
   if (!BPy_BMFace_Check(value)) {
@@ -2742,7 +2729,7 @@ static PyObject *bpy_bmfaceseq_remove(BPy_BMElemSeq *self, BPy_BMFace *value)
 
   BMesh *bm = self->bm;
 
-  BPY_BM_CHECK_SOURCE_OBJ(bm, "faces.remove(face)", value);
+  BPY_BM_CHECK_SOURCE_OBJ(bm, error_prefix, value);
 
   BM_face_kill(bm, value->f);
   bpy_bm_generic_invalidate((BPy_BMGeneric *)value);
@@ -2764,6 +2751,7 @@ PyDoc_STRVAR(
     "   :rtype: :class:`BMEdge`\n");
 static PyObject *bpy_bmedgeseq_get__method(BPy_BMElemSeq *self, PyObject *args)
 {
+  const char *error_prefix = "edges.get(...)";
   PyObject *vert_seq;
   PyObject *fallback = Py_None; /* optional */
 
@@ -2775,12 +2763,11 @@ static PyObject *bpy_bmedgeseq_get__method(BPy_BMElemSeq *self, PyObject *args)
 
   BMesh *bm = self->bm;
   BMEdge *e;
-  BMVert **vert_array = nullptr;
-  Py_ssize_t vert_seq_len; /* always 2 */
   PyObject *ret = nullptr;
 
-  vert_array = static_cast<BMVert **>(BPy_BMElem_PySeq_As_Array(
-      &bm, vert_seq, 2, 2, &vert_seq_len, BM_VERT, true, true, "edges.get(...)"));
+  Py_ssize_t vert_seq_num; /* Always 2. */
+  BMVert **vert_array = BPy_BMVert_PySeq_As_Array(
+      &bm, vert_seq, 2, 2, &vert_seq_num, true, true, error_prefix);
 
   if (vert_array == nullptr) {
     return nullptr;
@@ -2812,6 +2799,7 @@ PyDoc_STRVAR(
     "   :rtype: :class:`BMFace`\n");
 static PyObject *bpy_bmfaceseq_get__method(BPy_BMElemSeq *self, PyObject *args)
 {
+  const char *error_prefix = "faces.get(...)";
   PyObject *vert_seq;
   PyObject *fallback = Py_None; /* optional */
 
@@ -2823,18 +2811,17 @@ static PyObject *bpy_bmfaceseq_get__method(BPy_BMElemSeq *self, PyObject *args)
 
   BMesh *bm = self->bm;
   BMFace *f = nullptr;
-  BMVert **vert_array = nullptr;
-  Py_ssize_t vert_seq_len;
   PyObject *ret = nullptr;
 
-  vert_array = static_cast<BMVert **>(BPy_BMElem_PySeq_As_Array(
-      &bm, vert_seq, 1, PY_SSIZE_T_MAX, &vert_seq_len, BM_VERT, true, true, "faces.get(...)"));
+  Py_ssize_t vert_seq_num;
+  BMVert **vert_array = BPy_BMVert_PySeq_As_Array(
+      &bm, vert_seq, 1, PY_SSIZE_T_MAX, &vert_seq_num, true, true, error_prefix);
 
   if (vert_array == nullptr) {
     return nullptr;
   }
 
-  f = BM_face_exists(vert_array, vert_seq_len);
+  f = BM_face_exists(vert_array, vert_seq_num);
   if (f != nullptr) {
     ret = BPy_BMFace_CreatePyObject(bm, f);
   }
@@ -4457,7 +4444,7 @@ void *BPy_BMElem_PySeq_As_Array_FAST(BMesh **r_bm,
                                      PyObject *seq_fast,
                                      Py_ssize_t min,
                                      Py_ssize_t max,
-                                     Py_ssize_t *r_size,
+                                     Py_ssize_t *r_seq_num,
                                      const char htype,
                                      const bool do_unique_check,
                                      const bool do_bm_check,
@@ -4465,28 +4452,28 @@ void *BPy_BMElem_PySeq_As_Array_FAST(BMesh **r_bm,
 {
   BMesh *bm = (r_bm && *r_bm) ? *r_bm : nullptr;
   PyObject **seq_fast_items = PySequence_Fast_ITEMS(seq_fast);
-  const Py_ssize_t seq_len = PySequence_Fast_GET_SIZE(seq_fast);
+  const Py_ssize_t seq_num = PySequence_Fast_GET_SIZE(seq_fast);
   Py_ssize_t i, i_last_dirty = PY_SSIZE_T_MAX;
 
   BPy_BMElem *item;
   BMElem **alloc;
 
-  *r_size = 0;
+  *r_seq_num = 0;
 
-  if (seq_len < min || seq_len > max) {
+  if (seq_num < min || seq_num > max) {
     PyErr_Format(PyExc_TypeError,
                  "%s: sequence incorrect size, expected [%d - %d], given %d",
                  error_prefix,
                  min,
                  max,
-                 seq_len);
+                 seq_num);
     return nullptr;
   }
 
   /* from now on, use goto */
-  alloc = static_cast<BMElem **>(PyMem_MALLOC(seq_len * sizeof(BPy_BMElem **)));
+  alloc = static_cast<BMElem **>(PyMem_MALLOC(seq_num * sizeof(BPy_BMElem **)));
 
-  for (i = 0; i < seq_len; i++) {
+  for (i = 0; i < seq_num; i++) {
     item = (BPy_BMElem *)seq_fast_items[i];
 
     if (!BPy_BMElem_CheckHType(Py_TYPE(item), htype)) {
@@ -4528,7 +4515,7 @@ void *BPy_BMElem_PySeq_As_Array_FAST(BMesh **r_bm,
   if (do_unique_check) {
     /* check for double verts! */
     bool ok = true;
-    for (i = 0; i < seq_len; i++) {
+    for (i = 0; i < seq_num; i++) {
       if (UNLIKELY(BM_elem_flag_test(alloc[i], BM_ELEM_INTERNAL_TAG) == false)) {
         ok = false;
       }
@@ -4548,7 +4535,7 @@ void *BPy_BMElem_PySeq_As_Array_FAST(BMesh **r_bm,
     }
   }
 
-  *r_size = seq_len;
+  *r_seq_num = seq_num;
   if (r_bm) {
     *r_bm = bm;
   }
@@ -4568,7 +4555,7 @@ void *BPy_BMElem_PySeq_As_Array(BMesh **r_bm,
                                 PyObject *seq,
                                 Py_ssize_t min,
                                 Py_ssize_t max,
-                                Py_ssize_t *r_size,
+                                Py_ssize_t *r_seq_num,
                                 const char htype,
                                 const bool do_unique_check,
                                 const bool do_bm_check,
@@ -4582,55 +4569,104 @@ void *BPy_BMElem_PySeq_As_Array(BMesh **r_bm,
   }
 
   ret = static_cast<PyObject *>(BPy_BMElem_PySeq_As_Array_FAST(
-      r_bm, seq_fast, min, max, r_size, htype, do_unique_check, do_bm_check, error_prefix));
+      r_bm, seq_fast, min, max, r_seq_num, htype, do_unique_check, do_bm_check, error_prefix));
 
   Py_DECREF(seq_fast);
   return ret;
 }
 
-PyObject *BPy_BMElem_Array_As_Tuple(BMesh *bm, BMHeader **elem, Py_ssize_t elem_len)
+BMVert **BPy_BMVert_PySeq_As_Array(BMesh **r_bm,
+                                   PyObject *seq,
+                                   Py_ssize_t min,
+                                   Py_ssize_t max,
+                                   Py_ssize_t *r_seq_num,
+                                   bool do_unique_check,
+                                   bool do_bm_check,
+                                   const char *error_prefix)
+{
+  return static_cast<BMVert **>(BPy_BMElem_PySeq_As_Array(
+      r_bm, seq, min, max, r_seq_num, BM_VERT, do_unique_check, do_bm_check, error_prefix));
+}
+BMEdge **BPy_BMEdge_PySeq_As_Array(BMesh **r_bm,
+                                   PyObject *seq,
+                                   Py_ssize_t min,
+                                   Py_ssize_t max,
+                                   Py_ssize_t *r_seq_num,
+                                   bool do_unique_check,
+                                   bool do_bm_check,
+                                   const char *error_prefix)
+{
+  return static_cast<BMEdge **>(BPy_BMElem_PySeq_As_Array(
+      r_bm, seq, min, max, r_seq_num, BM_EDGE, do_unique_check, do_bm_check, error_prefix));
+}
+BMFace **BPy_BMFace_PySeq_As_Array(BMesh **r_bm,
+                                   PyObject *seq,
+                                   Py_ssize_t min,
+                                   Py_ssize_t max,
+                                   Py_ssize_t *r_seq_num,
+                                   bool do_unique_check,
+                                   bool do_bm_check,
+                                   const char *error_prefix)
+{
+  return static_cast<BMFace **>(BPy_BMElem_PySeq_As_Array(
+      r_bm, seq, min, max, r_seq_num, BM_FACE, do_unique_check, do_bm_check, error_prefix));
+}
+BMLoop **BPy_BMLoop_PySeq_As_Array(BMesh **r_bm,
+                                   PyObject *seq,
+                                   Py_ssize_t min,
+                                   Py_ssize_t max,
+                                   Py_ssize_t *r_seq_num,
+                                   bool do_unique_check,
+                                   bool do_bm_check,
+                                   const char *error_prefix)
+{
+  return static_cast<BMLoop **>(BPy_BMElem_PySeq_As_Array(
+      r_bm, seq, min, max, r_seq_num, BM_LOOP, do_unique_check, do_bm_check, error_prefix));
+}
+
+PyObject *BPy_BMElem_Array_As_Tuple(BMesh *bm, BMHeader **elem, Py_ssize_t elem_num)
 {
   Py_ssize_t i;
-  PyObject *ret = PyTuple_New(elem_len);
-  for (i = 0; i < elem_len; i++) {
+  PyObject *ret = PyTuple_New(elem_num);
+  for (i = 0; i < elem_num; i++) {
     PyTuple_SET_ITEM(ret, i, BPy_BMElem_CreatePyObject(bm, elem[i]));
   }
   return ret;
 }
-PyObject *BPy_BMVert_Array_As_Tuple(BMesh *bm, BMVert **elem, Py_ssize_t elem_len)
+PyObject *BPy_BMVert_Array_As_Tuple(BMesh *bm, BMVert **elem, Py_ssize_t elem_num)
 {
   Py_ssize_t i;
-  PyObject *ret = PyTuple_New(elem_len);
-  for (i = 0; i < elem_len; i++) {
+  PyObject *ret = PyTuple_New(elem_num);
+  for (i = 0; i < elem_num; i++) {
     PyTuple_SET_ITEM(ret, i, BPy_BMVert_CreatePyObject(bm, elem[i]));
   }
   return ret;
 }
-PyObject *BPy_BMEdge_Array_As_Tuple(BMesh *bm, BMEdge **elem, Py_ssize_t elem_len)
+PyObject *BPy_BMEdge_Array_As_Tuple(BMesh *bm, BMEdge **elem, Py_ssize_t elem_num)
 {
   Py_ssize_t i;
-  PyObject *ret = PyTuple_New(elem_len);
-  for (i = 0; i < elem_len; i++) {
+  PyObject *ret = PyTuple_New(elem_num);
+  for (i = 0; i < elem_num; i++) {
     PyTuple_SET_ITEM(ret, i, BPy_BMEdge_CreatePyObject(bm, elem[i]));
   }
 
   return ret;
 }
-PyObject *BPy_BMFace_Array_As_Tuple(BMesh *bm, BMFace **elem, Py_ssize_t elem_len)
+PyObject *BPy_BMFace_Array_As_Tuple(BMesh *bm, BMFace **elem, Py_ssize_t elem_num)
 {
   Py_ssize_t i;
-  PyObject *ret = PyTuple_New(elem_len);
-  for (i = 0; i < elem_len; i++) {
+  PyObject *ret = PyTuple_New(elem_num);
+  for (i = 0; i < elem_num; i++) {
     PyTuple_SET_ITEM(ret, i, BPy_BMFace_CreatePyObject(bm, elem[i]));
   }
 
   return ret;
 }
-PyObject *BPy_BMLoop_Array_As_Tuple(BMesh *bm, BMLoop *const *elem, Py_ssize_t elem_len)
+PyObject *BPy_BMLoop_Array_As_Tuple(BMesh *bm, BMLoop *const *elem, Py_ssize_t elem_num)
 {
   Py_ssize_t i;
-  PyObject *ret = PyTuple_New(elem_len);
-  for (i = 0; i < elem_len; i++) {
+  PyObject *ret = PyTuple_New(elem_num);
+  for (i = 0; i < elem_num; i++) {
     PyTuple_SET_ITEM(ret, i, BPy_BMLoop_CreatePyObject(bm, elem[i]));
   }
 

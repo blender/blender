@@ -157,7 +157,7 @@ enum {
                                                    PyObject *seq_fast,
                                                    Py_ssize_t min,
                                                    Py_ssize_t max,
-                                                   Py_ssize_t *r_size,
+                                                   Py_ssize_t *r_seq_num,
                                                    char htype,
                                                    bool do_unique_check,
                                                    bool do_bm_check,
@@ -166,19 +166,52 @@ enum {
                                               PyObject *seq,
                                               Py_ssize_t min,
                                               Py_ssize_t max,
-                                              Py_ssize_t *r_size,
+                                              Py_ssize_t *r_seq_num,
                                               char htype,
                                               bool do_unique_check,
                                               bool do_bm_check,
                                               const char *error_prefix);
 
-[[nodiscard]] PyObject *BPy_BMElem_Array_As_Tuple(BMesh *bm, BMHeader **elem, Py_ssize_t elem_len);
-[[nodiscard]] PyObject *BPy_BMVert_Array_As_Tuple(BMesh *bm, BMVert **elem, Py_ssize_t elem_len);
-[[nodiscard]] PyObject *BPy_BMEdge_Array_As_Tuple(BMesh *bm, BMEdge **elem, Py_ssize_t elem_len);
-[[nodiscard]] PyObject *BPy_BMFace_Array_As_Tuple(BMesh *bm, BMFace **elem, Py_ssize_t elem_len);
+[[nodiscard]] BMVert **BPy_BMVert_PySeq_As_Array(BMesh **r_bm,
+                                                 PyObject *seq,
+                                                 Py_ssize_t min,
+                                                 Py_ssize_t max,
+                                                 Py_ssize_t *r_seq_num,
+                                                 bool do_unique_check,
+                                                 bool do_bm_check,
+                                                 const char *error_prefix);
+[[nodiscard]] BMEdge **BPy_BMEdge_PySeq_As_Array(BMesh **r_bm,
+                                                 PyObject *seq,
+                                                 Py_ssize_t min,
+                                                 Py_ssize_t max,
+                                                 Py_ssize_t *r_seq_num,
+                                                 bool do_unique_check,
+                                                 bool do_bm_check,
+                                                 const char *error_prefix);
+[[nodiscard]] BMFace **BPy_BMFace_PySeq_As_Array(BMesh **r_bm,
+                                                 PyObject *seq,
+                                                 Py_ssize_t min,
+                                                 Py_ssize_t max,
+                                                 Py_ssize_t *r_seq_num,
+                                                 bool do_unique_check,
+                                                 bool do_bm_check,
+                                                 const char *error_prefix);
+[[nodiscard]] BMLoop **BPy_BMLoop_PySeq_As_Array(BMesh **r_bm,
+                                                 PyObject *seq,
+                                                 Py_ssize_t min,
+                                                 Py_ssize_t max,
+                                                 Py_ssize_t *r_seq_num,
+                                                 bool do_unique_check,
+                                                 bool do_bm_check,
+                                                 const char *error_prefix);
+
+[[nodiscard]] PyObject *BPy_BMElem_Array_As_Tuple(BMesh *bm, BMHeader **elem, Py_ssize_t elem_num);
+[[nodiscard]] PyObject *BPy_BMVert_Array_As_Tuple(BMesh *bm, BMVert **elem, Py_ssize_t elem_num);
+[[nodiscard]] PyObject *BPy_BMEdge_Array_As_Tuple(BMesh *bm, BMEdge **elem, Py_ssize_t elem_num);
+[[nodiscard]] PyObject *BPy_BMFace_Array_As_Tuple(BMesh *bm, BMFace **elem, Py_ssize_t elem_num);
 [[nodiscard]] PyObject *BPy_BMLoop_Array_As_Tuple(BMesh *bm,
                                                   BMLoop *const *elem,
-                                                  Py_ssize_t elem_len);
+                                                  Py_ssize_t elem_num);
 
 [[nodiscard]] int BPy_BMElem_CheckHType(PyTypeObject *type, char htype);
 /**
