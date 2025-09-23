@@ -55,15 +55,8 @@ static void cmp_node_colorbalance_declare(NodeDeclarationBuilder &b)
 
   b.add_output<decl::Color>("Image");
 
-  b.add_input<decl::Float>("Fac")
-      .default_value(1.0f)
-      .min(0.0f)
-      .max(1.0f)
-      .subtype(PROP_FACTOR)
-      .compositor_domain_priority(1);
-  b.add_input<decl::Color>("Image")
-      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_domain_priority(0);
+  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Float>("Fac").default_value(1.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
 
   b.add_input<decl::Menu>("Type")
       .default_value(CMP_NODE_COLOR_BALANCE_LGG)
@@ -310,8 +303,8 @@ static float4 white_point_variable(const float4 color,
   return float4(balanced, color.w);
 }
 
-static float4 color_balance(const float factor,
-                            const float4 color,
+static float4 color_balance(const float4 color,
+                            const float factor,
                             const CMPNodeColorBalanceMethod type,
                             const float base_lift,
                             const float4 color_lift,
@@ -363,8 +356,8 @@ class ColorBalanceFunction : public mf::MultiFunction {
     static const mf::Signature signature = []() {
       mf::Signature signature;
       mf::SignatureBuilder builder{"Color Balance", signature};
-      builder.single_input<float>("Factor");
       builder.single_input<float4>("Color");
+      builder.single_input<float>("Factor");
       builder.single_input<MenuValue>("Type");
 
       builder.single_input<float>("Base Lift");
@@ -394,8 +387,8 @@ class ColorBalanceFunction : public mf::MultiFunction {
 
   void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
-    const VArray<float> factor_array = params.readonly_single_input<float>(0, "Factor");
-    const VArray<float4> color_array = params.readonly_single_input<float4>(1, "Color");
+    const VArray<float4> color_array = params.readonly_single_input<float4>(0, "Color");
+    const VArray<float> factor_array = params.readonly_single_input<float>(1, "Factor");
     const VArray<MenuValue> type_array = params.readonly_single_input<MenuValue>(2, "Type");
 
     const VArray<float> base_lift_array = params.readonly_single_input<float>(3, "Base Lift");
@@ -484,8 +477,8 @@ class ColorBalanceFunction : public mf::MultiFunction {
         const float output_tint = output_tint_array.get_internal_single();
 
         mask.foreach_index([&](const int64_t i) {
-          result[i] = color_balance(factor,
-                                    color_array[i],
+          result[i] = color_balance(color_array[i],
+                                    factor,
                                     CMPNodeColorBalanceMethod(type),
                                     base_lift,
                                     color_lift,
@@ -509,8 +502,8 @@ class ColorBalanceFunction : public mf::MultiFunction {
       }
       else {
         mask.foreach_index([&](const int64_t i) {
-          result[i] = color_balance(factor_array[i],
-                                    color_array[i],
+          result[i] = color_balance(color_array[i],
+                                    factor_array[i],
                                     CMPNodeColorBalanceMethod(type_array[i].value),
                                     base_lift_array[i],
                                     color_lift_array[i],

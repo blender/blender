@@ -35,14 +35,8 @@ static const EnumPropertyItem type_items[] = {
 static void cmp_node_setalpha_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Color>("Image")
-      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_domain_priority(0);
-  b.add_input<decl::Float>("Alpha")
-      .default_value(1.0f)
-      .min(0.0f)
-      .max(1.0f)
-      .compositor_domain_priority(1);
+  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Float>("Alpha").default_value(1.0f).min(0.0f).max(1.0f);
   b.add_input<decl::Menu>("Type")
       .default_value(CMP_NODE_SETALPHA_MODE_APPLY)
       .static_items(type_items);

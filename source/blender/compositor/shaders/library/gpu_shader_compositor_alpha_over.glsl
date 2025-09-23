@@ -20,7 +20,7 @@ float4 preprocess_foreground(float4 foreground, float straight_alpha)
 }
 
 /* Computes the Porter and Duff Over compositing operation. */
-float4 alpha_over(float factor, float4 background, float4 foreground, float straight_alpha)
+float4 alpha_over(float4 background, float4 foreground, float factor, float straight_alpha)
 {
   const float4 foreground_color = preprocess_foreground(foreground, straight_alpha);
 
@@ -34,9 +34,9 @@ float4 alpha_over(float factor, float4 background, float4 foreground, float stra
  * held out by the foreground. See for reference:
  *
  *   https://benmcewan.com/blog/disjoint-over-and-conjoint-over-explained */
-float4 alpha_over_disjoint(float factor,
-                           float4 background,
+float4 alpha_over_disjoint(float4 background,
                            float4 foreground,
+                           float factor,
                            float straight_alpha)
 {
   const float4 foreground_color = preprocess_foreground(foreground, straight_alpha);
@@ -61,9 +61,9 @@ float4 alpha_over_disjoint(float factor,
  *   https://benmcewan.com/blog/disjoint-over-and-conjoint-over-explained
  *
  * However, the equation is wrong and should actually be A+B(1-a/b), A if a>b. */
-float4 alpha_over_conjoint(float factor,
-                           float4 background,
+float4 alpha_over_conjoint(float4 background,
                            float4 foreground,
+                           float factor,
                            float straight_alpha)
 {
   const float4 foreground_color = preprocess_foreground(foreground, straight_alpha);
@@ -82,9 +82,9 @@ float4 alpha_over_conjoint(float factor,
   return mix(background, mix_result, factor);
 }
 
-void node_composite_alpha_over(float factor,
-                               float4 background,
+void node_composite_alpha_over(float4 background,
                                float4 foreground,
+                               float factor,
                                float type,
                                float straight_alpha,
                                out float4 result)
@@ -92,13 +92,13 @@ void node_composite_alpha_over(float factor,
   result = background;
   switch (int(type)) {
     case CMP_NODE_ALPHA_OVER_OPERATION_TYPE_OVER:
-      result = alpha_over(factor, background, foreground, straight_alpha);
+      result = alpha_over(background, foreground, factor, straight_alpha);
       break;
     case CMP_NODE_ALPHA_OVER_OPERATION_TYPE_DISJOINT_OVER:
-      result = alpha_over_disjoint(factor, background, foreground, straight_alpha);
+      result = alpha_over_disjoint(background, foreground, factor, straight_alpha);
       break;
     case CMP_NODE_ALPHA_OVER_OPERATION_TYPE_CONJOINT_OVER:
-      result = alpha_over_conjoint(factor, background, foreground, straight_alpha);
+      result = alpha_over_conjoint(background, foreground, factor, straight_alpha);
       break;
   }
 }

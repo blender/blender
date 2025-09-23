@@ -15,17 +15,15 @@ namespace blender::nodes::node_composite_double_edge_mask_cc {
 
 static void cmp_node_double_edge_mask_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>("Inner Mask")
-      .default_value(0.8f)
-      .min(0.0f)
-      .max(1.0f)
-      .compositor_domain_priority(1)
-      .structure_type(StructureType::Dynamic);
   b.add_input<decl::Float>("Outer Mask")
       .default_value(0.8f)
       .min(0.0f)
       .max(1.0f)
-      .compositor_domain_priority(0)
+      .structure_type(StructureType::Dynamic);
+  b.add_input<decl::Float>("Inner Mask")
+      .default_value(0.8f)
+      .min(0.0f)
+      .max(1.0f)
       .structure_type(StructureType::Dynamic);
   b.add_input<decl::Bool>("Image Edges")
       .default_value(false)

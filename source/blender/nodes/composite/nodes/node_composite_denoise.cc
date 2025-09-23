@@ -75,19 +75,16 @@ static void cmp_node_denoise_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_domain_priority(0)
+      .structure_type(StructureType::Dynamic);
+  b.add_input<decl::Color>("Albedo")
+      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .hide_value()
       .structure_type(StructureType::Dynamic);
   b.add_input<decl::Vector>("Normal")
       .default_value({0.0f, 0.0f, 0.0f})
       .min(-1.0f)
       .max(1.0f)
       .hide_value()
-      .compositor_domain_priority(2)
-      .structure_type(StructureType::Dynamic);
-  b.add_input<decl::Color>("Albedo")
-      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .hide_value()
-      .compositor_domain_priority(1)
       .structure_type(StructureType::Dynamic);
   b.add_input<decl::Bool>("HDR").default_value(true);
   b.add_input<decl::Menu>("Prefilter")
