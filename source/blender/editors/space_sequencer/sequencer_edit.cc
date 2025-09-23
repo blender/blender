@@ -436,7 +436,8 @@ void sync_active_scene_and_time_with_scene_strip(bContext &C)
 
   /* Compute the scene time based on the scene strip. */
   const float frame_index = seq::give_frame_index(
-      sequence_scene, scene_strip, sequence_scene->r.cfra);
+                                sequence_scene, scene_strip, sequence_scene->r.cfra) +
+                            active_scene->r.sfra;
   if (active_scene->r.flag & SCER_SHOW_SUBFRAME) {
     active_scene->r.cfra = int(frame_index);
     active_scene->r.subframe = frame_index - int(frame_index);
