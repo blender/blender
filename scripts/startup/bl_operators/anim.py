@@ -352,6 +352,16 @@ class ClearUselessActions(Operator):
     def poll(cls, _context):
         return bool(bpy.data.actions)
 
+    @staticmethod
+    def has_fcurves(action: bpy.types.Action) -> bool:
+        for layer in action.layers:
+            for strip in layer.strips:
+                assert strip.type == 'KEYFRAME'
+                for channelbag in strip.channelbags:
+                    if channelbag.fcurves:
+                        return True
+        return False
+
     def execute(self, _context):
         removed = 0
 
@@ -365,7 +375,7 @@ class ClearUselessActions(Operator):
                 # if it has F-Curves, then it's a "action library"
                 # (i.e. walk, wave, jump, etc.)
                 # and should be left alone as that's what fake users are for!
-                if not action.fcurves:
+                if not self.has_fcurves(action):
                     # mark action for deletion
                     action.user_clear()
                     removed += 1
