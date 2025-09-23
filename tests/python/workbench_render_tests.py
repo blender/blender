@@ -25,6 +25,13 @@ except ImportError:
     # this script is run during preparation steps.
     pass
 
+BLOCKLIST_VULKAN = [
+    # Blocked due behavior differences. mix(0.05, INF, 0.0) will result a NaN in Vulkan, but INF in OpenGL.
+    # The INF is part of the EXR image.
+    "image_log.blend",
+    "image_log_osl.blend",
+]
+
 
 def setup():
     import bpy
@@ -90,7 +97,11 @@ def main():
     parser = create_argparse()
     args = parser.parse_args()
 
-    report = WorkbenchReport("Workbench", args.outdir, args.oiiotool, variation=args.gpu_backend)
+    blocklist = []
+    if args.gpu_backend == "vulkan":
+        blocklist += BLOCKLIST_VULKAN
+
+    report = WorkbenchReport("Workbench", args.outdir, args.oiiotool, variation=args.gpu_backend, blocklist=blocklist)
     if args.gpu_backend == "vulkan":
         report.set_compare_engine('workbench', 'opengl')
     else:
