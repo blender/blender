@@ -56,6 +56,7 @@ from bpy.props import (StringProperty,
                        CollectionProperty)
 from bpy.types import Operator
 from bpy_extras.io_utils import ImportHelper, ExportHelper, poll_file_object_drop
+from bpy.app.translations import pgettext_n as n_
 
 
 #
@@ -136,20 +137,20 @@ def on_export_action_filter_changed(self, context):
 
 def get_format_items(scene, context):
 
-    items = (('GLB', 'glTF Binary (.glb)',
-              'Exports a single file, with all data packed in binary form. '
-              'Most efficient and portable, but more difficult to edit later'),
-             ('GLTF_SEPARATE', 'glTF Separate (.gltf + .bin + textures)',
-              'Exports multiple files, with separate JSON, binary and texture data. '
-              'Easiest to edit later'))
+    items = (('GLB', n_('glTF Binary (.glb)'),
+              n_('Exports a single file, with all data packed in binary form. '
+                 'Most efficient and portable, but more difficult to edit later')),
+             ('GLTF_SEPARATE', n_('glTF Separate (.gltf + .bin + textures)'),
+              n_('Exports multiple files, with separate JSON, binary and texture data. '
+                 'Easiest to edit later')))
 
     addon_preferences = bpy.context.preferences.addons['io_scene_gltf2'].preferences
     if addon_preferences and addon_preferences.allow_embedded_format:
         # At initialization, the preferences are not yet loaded
         # The second line check is needed until the PR is merge in Blender, for github CI tests
-        items += (('GLTF_EMBEDDED', 'glTF Embedded (.gltf)',
-                   'Exports a single file, with all data packed in JSON. '
-                   'Less efficient than binary, but easier to edit later'
+        items += (('GLTF_EMBEDDED', n_('glTF Embedded (.gltf)'),
+                   n_('Exports a single file, with all data packed in JSON. '
+                      'Less efficient than binary, but easier to edit later')
                    ),)
 
     return items
