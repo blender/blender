@@ -59,9 +59,6 @@ enum class ConversionType {
   HALF_TO_FLOAT,
   FLOAT_TO_HALF,
 
-  FLOAT_TO_SRGBA8,
-  SRGBA8_TO_FLOAT,
-
   FLOAT_TO_B10F_G11F_R11F,
   B10F_G11F_R11F_TO_FLOAT,
 
@@ -113,6 +110,7 @@ static ConversionType type_of_conversion_float(const TextureFormat host_format,
     case TextureFormat::SFLOAT_16_16_16:
       return ConversionType::FLOAT_TO_HALF;
 
+    case TextureFormat::SRGBA_8_8_8_8:
     case TextureFormat::UNORM_8_8_8_8:
     case TextureFormat::UNORM_8_8:
     case TextureFormat::UNORM_8:
@@ -134,9 +132,6 @@ static ConversionType type_of_conversion_float(const TextureFormat host_format,
     case TextureFormat::SNORM_16_16:
     case TextureFormat::SNORM_16:
       return ConversionType::FLOAT_TO_SNORM16;
-
-    case TextureFormat::SRGBA_8_8_8_8:
-      return ConversionType::FLOAT_TO_SRGBA8;
 
     case TextureFormat::UFLOAT_11_11_10:
       return ConversionType::FLOAT_TO_B10F_G11F_R11F;
@@ -662,7 +657,6 @@ static ConversionType reversed(ConversionType type)
       CASE_PAIR(UI32, UI8)
       CASE_PAIR(I32, I8)
       CASE_PAIR(FLOAT, HALF)
-      CASE_PAIR(FLOAT, SRGBA8)
       CASE_PAIR(FLOAT, B10F_G11F_R11F)
       CASE_PAIR(FLOAT3, HALF4)
       CASE_PAIR(FLOAT3, FLOAT4)
@@ -720,7 +714,6 @@ using I16 = ComponentValue<int16_t>;
 using I32 = ComponentValue<int32_t>;
 using F16 = ComponentValue<uint16_t>;
 using F32 = ComponentValue<float>;
-using SRGBA8 = PixelValue<ColorSceneLinearByteEncoded4b<eAlpha::Premultiplied>>;
 using FLOAT3 = PixelValue<float3>;
 using FLOAT4 = PixelValue<ColorSceneLinear4f<eAlpha::Premultiplied>>;
 /* NOTE: Vulkan stores R11_G11_B10 in reverse component order. */
@@ -861,16 +854,6 @@ void convert(DestinationType &dst, const SourceType &src)
                 std::is_same<SourceType, I16>() || std::is_same<SourceType, I32>());
   static_assert(!std::is_same<DestinationType, SourceType>());
   dst.value = src.value;
-}
-
-static void convert(SRGBA8 &dst, const FLOAT4 &src)
-{
-  dst.value = color::encode(src.value);
-}
-
-static void convert(FLOAT4 &dst, const SRGBA8 &src)
-{
-  dst.value = color::decode(src.value);
 }
 
 static void convert(FLOAT3 &dst, const HALF4 &src)
@@ -1103,13 +1086,6 @@ static void convert_buffer(void *dst_memory,
       blender::math::half_to_float_array(static_cast<const uint16_t *>(src_memory),
                                          static_cast<float *>(dst_memory),
                                          to_component_len(device_format) * buffer_size);
-      break;
-
-    case ConversionType::FLOAT_TO_SRGBA8:
-      convert_per_pixel<SRGBA8, FLOAT4>(dst_memory, src_memory, buffer_size);
-      break;
-    case ConversionType::SRGBA8_TO_FLOAT:
-      convert_per_pixel<FLOAT4, SRGBA8>(dst_memory, src_memory, buffer_size);
       break;
 
     case ConversionType::FLOAT_TO_B10F_G11F_R11F:
