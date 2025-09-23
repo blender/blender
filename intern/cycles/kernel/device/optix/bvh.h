@@ -50,6 +50,13 @@ extern "C" __global__ void __miss__kernel_optix_miss()
   optixSetPayload_5(PRIMITIVE_NONE);
 }
 
+extern "C" __global__ void __anyhit__kernel_optix_ignore()
+{
+  return optixIgnoreIntersection();
+}
+
+extern "C" __global__ void __closesthit__kernel_optix_ignore() {}
+
 extern "C" __global__ void __anyhit__kernel_optix_local_hit()
 {
 #if defined(__HAIR__) || defined(__POINTCLOUD__)
