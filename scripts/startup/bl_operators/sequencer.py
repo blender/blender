@@ -14,6 +14,7 @@ from bpy.props import (
     IntProperty,
 )
 from bpy.app.translations import pgettext_rpt as rpt_
+from bpy_extras import anim_utils
 
 
 def _animated_properties_get(strip):
@@ -149,10 +150,10 @@ class SequencerFadesClear(Operator):
         animation_data = scene.animation_data
         if animation_data is None:
             return {'CANCELLED'}
-        action = animation_data.action
-        if action is None:
+        channelbag = anim_utils.action_get_channelbag_for_slot(animation_data.action, animation_data.action_slot)
+        if channelbag is None:
             return {'CANCELLED'}
-        fcurves = action.fcurves
+        fcurves = channelbag.fcurves
         fcurve_map = {
             curve.data_path: curve
             for curve in fcurves
