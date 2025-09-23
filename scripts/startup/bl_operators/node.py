@@ -24,6 +24,7 @@ from mathutils import (
 
 from bpy.app.translations import (
     pgettext_tip as tip_,
+    pgettext_data as data_,
     pgettext_rpt as rpt_,
 )
 
@@ -560,7 +561,7 @@ class NODE_OT_add_empty_group(NodeAddOperator, bpy.types.Operator):
 
     @staticmethod
     def create_empty_group(idname):
-        group = bpy.data.node_groups.new(name="NodeGroup", type=idname)
+        group = bpy.data.node_groups.new(name=data_("NodeGroup"), type=idname)
         input_node = group.nodes.new('NodeGroupInput')
         input_node.select = False
         input_node.location.x = -200 - input_node.width

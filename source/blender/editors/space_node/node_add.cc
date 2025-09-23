@@ -1717,6 +1717,18 @@ static wmOperatorStatus new_compositing_node_group_exec(bContext *C, wmOperator 
   return OPERATOR_FINISHED;
 }
 
+static wmOperatorStatus new_compositing_node_group_invoke(bContext *C,
+                                                          wmOperator *op,
+                                                          const wmEvent * /* event */)
+{
+  PropertyRNA *prop;
+  prop = RNA_struct_find_property(op->ptr, "name");
+  if (!RNA_property_is_set(op->ptr, prop)) {
+    RNA_property_string_set(op->ptr, prop, DATA_("Compositor Nodes"));
+  }
+  return new_compositing_node_group_exec(C, op);
+}
+
 void NODE_OT_new_compositing_node_group(wmOperatorType *ot)
 {
   /* identifiers */
@@ -1726,11 +1738,15 @@ void NODE_OT_new_compositing_node_group(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = new_compositing_node_group_exec;
+  ot->invoke = new_compositing_node_group_invoke;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_string(ot->srna, "name", DATA_("Compositor Nodes"), MAX_ID_NAME - 2, "Name", "");
+  /* The default name of the new node tree can be translated if new data
+   * translation is enabled, but since the user can choose it at invoke time,
+   * the translation happens in the invoke callback instead of here. */
+  RNA_def_string(ot->srna, "name", nullptr, MAX_ID_NAME - 2, "Name", "");
 }
 
 /* -------------------------------------------------------------------- */
