@@ -127,7 +127,6 @@ enum eUSDSceneUnits {
 struct USDExportParams {
   bool export_animation = false;
   bool selected_objects_only = false;
-  bool visible_objects_only = true;
 
   bool export_meshes = true;
   bool export_lights = true;

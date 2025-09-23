@@ -119,7 +119,6 @@ static wmOperatorStatus wm_alembic_export_exec(bContext *C, wmOperator *op)
   params.apply_subdiv = RNA_boolean_get(op->ptr, "apply_subdiv");
   params.curves_as_mesh = RNA_boolean_get(op->ptr, "curves_as_mesh");
   params.flatten_hierarchy = RNA_boolean_get(op->ptr, "flatten");
-  params.visible_objects_only = RNA_boolean_get(op->ptr, "visible_objects_only");
   params.face_sets = RNA_boolean_get(op->ptr, "face_sets");
   params.use_subdiv_schema = RNA_boolean_get(op->ptr, "subdiv_schema");
   params.export_hair = RNA_boolean_get(op->ptr, "export_hair");
@@ -164,7 +163,6 @@ static void ui_alembic_export_settings(const bContext *C, uiLayout *layout, Poin
     if (CTX_wm_space_file(C)) {
       uiLayout *sub = &col->column(true, IFACE_("Include"));
       sub->prop(ptr, "selected", UI_ITEM_NONE, IFACE_("Selection Only"), ICON_NONE);
-      sub->prop(ptr, "visible_objects_only", UI_ITEM_NONE, IFACE_("Visible Only"), ICON_NONE);
     }
   }
 
@@ -355,12 +353,6 @@ void WM_OT_alembic_export(wmOperatorType *ot)
 
   RNA_def_boolean(
       ot->srna, "selected", false, "Selected Objects Only", "Export only selected objects");
-
-  RNA_def_boolean(ot->srna,
-                  "visible_objects_only",
-                  false,
-                  "Visible Objects Only",
-                  "Export only objects that are visible");
 
   RNA_def_boolean(ot->srna,
                   "flatten",

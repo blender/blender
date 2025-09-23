@@ -63,11 +63,8 @@ static bool build_depsgraph(ExportJobData *job)
 
     DEG_graph_build_from_collection(job->depsgraph, collection);
   }
-  else if (job->params.visible_objects_only) {
-    DEG_graph_build_from_view_layer(job->depsgraph);
-  }
   else {
-    DEG_graph_build_for_all_objects(job->depsgraph);
+    DEG_graph_build_from_view_layer(job->depsgraph);
   }
 
   return true;
