@@ -1123,9 +1123,9 @@ class SEQUENCER_MT_strip_retiming(Menu):
         layout = self.layout
 
         is_retiming = (
-            context.sequencer_scene and
+            context.sequencer_scene is not None and
             context.sequencer_scene.sequence_editor is not None and
-            context.sequencer_scene.sequence_editor.selected_retiming_keys
+            context.sequencer_scene.sequence_editor.selected_retiming_keys is not None
         )
         strip = context.active_strip
 
