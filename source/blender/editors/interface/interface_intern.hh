@@ -504,16 +504,16 @@ struct ColorPicker {
   bool is_init;
 
   /**
-   * HSV or HSL in color picker space used for number sliders. This is the same
-   * colorspace as the rgb slider for a clear correspondence.
+   * HSV or HSL in color picker space used for number sliders.
    */
-  float hsv_slider[3];
+  float hsv_perceptual_slider[3];
+  float hsv_linear_slider[3];
 
   /*
    * RGB in color picker used for number sliders, when the space is not scene linear.
    * When it is linear, the RNA property is used directly so that keyframing works.
    */
-  float rgb_slider[3];
+  float rgb_perceptual_slider[3];
 
   /* Hex Color string */
   char hexcol[128];

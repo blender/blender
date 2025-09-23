@@ -35,13 +35,17 @@
 #include "interface_intern.hh"
 
 enum ePickerType {
-  PICKER_TYPE_LINEAR_RGB = 0,
-  PICKER_TYPE_PERCEPTUAL_RGB = 1,
-  PICKER_TYPE_HSV = 2,
+  PICKER_TYPE_RGB = 0,
+  PICKER_TYPE_HSV = 1,
 };
 
-static char g_gamma_color_picker_type = PICKER_TYPE_HSV;
-static char g_linear_color_picker_type = PICKER_TYPE_HSV;
+enum ePickerSpace {
+  PICKER_SPACE_LINEAR = 0,
+  PICKER_SPACE_PERCEPTUAL = 1,
+};
+
+static char g_color_picker_type = PICKER_TYPE_HSV;
+static char g_color_picker_space = PICKER_SPACE_PERCEPTUAL;
 
 /* -------------------------------------------------------------------- */
 /** \name Color Conversion
@@ -166,29 +170,39 @@ static void ui_color_picker_update_from_rgb_linear(ColorPicker *cpicker,
                                                    const float rgb_scene_linear[3])
 {
   /* Convert from RGB to HSV in scene linear space color for number editing. */
-  IMB_colormanagement_scene_linear_to_color_picking_v3(cpicker->rgb_slider, rgb_scene_linear);
+  IMB_colormanagement_scene_linear_to_color_picking_v3(cpicker->rgb_perceptual_slider,
+                                                       rgb_scene_linear);
 
   if (cpicker->is_init == false) {
-    ui_color_picker_rgb_to_hsv(cpicker->rgb_slider, cpicker->hsv_slider);
+    ui_color_picker_rgb_to_hsv(cpicker->rgb_perceptual_slider, cpicker->hsv_perceptual_slider);
   }
   else {
-    ui_color_picker_rgb_to_hsv_compat(cpicker->rgb_slider, cpicker->hsv_slider);
+    ui_color_picker_rgb_to_hsv_compat(cpicker->rgb_perceptual_slider,
+                                      cpicker->hsv_perceptual_slider);
   }
 
-  ui_color_picker_rgb_round(cpicker->rgb_slider);
-  ui_color_picker_rgb_round(cpicker->hsv_slider);
+  if (cpicker->is_init == false) {
+    ui_color_picker_rgb_to_hsv(rgb_scene_linear, cpicker->hsv_linear_slider);
+  }
+  else {
+    ui_color_picker_rgb_to_hsv_compat(rgb_scene_linear, cpicker->hsv_linear_slider);
+  }
+
+  ui_color_picker_rgb_round(cpicker->rgb_perceptual_slider);
+  ui_color_picker_rgb_round(cpicker->hsv_perceptual_slider);
+  ui_color_picker_rgb_round(cpicker->hsv_linear_slider);
 
   /* Convert from RGB to HSV in perceptually linear space for picker widgets. */
-  float rgb_slider[3];
-  copy_v3_v3(rgb_slider, rgb_scene_linear);
-  ui_scene_linear_to_perceptual_space(is_gamma, rgb_slider);
+  float rgb_perceptual_slider[3];
+  copy_v3_v3(rgb_perceptual_slider, rgb_scene_linear);
+  ui_scene_linear_to_perceptual_space(is_gamma, rgb_perceptual_slider);
 
   if (cpicker->is_init == false) {
-    ui_color_picker_rgb_to_hsv(rgb_slider, cpicker->hsv_perceptual);
+    ui_color_picker_rgb_to_hsv(rgb_perceptual_slider, cpicker->hsv_perceptual);
     copy_v3_v3(cpicker->hsv_perceptual_init, cpicker->hsv_perceptual);
   }
   else {
-    ui_color_picker_rgb_to_hsv_compat(rgb_slider, cpicker->hsv_perceptual);
+    ui_color_picker_rgb_to_hsv_compat(rgb_perceptual_slider, cpicker->hsv_perceptual);
   }
 
   cpicker->is_init = true;
@@ -196,13 +210,13 @@ static void ui_color_picker_update_from_rgb_linear(ColorPicker *cpicker,
 
 void ui_but_hsv_set(uiBut *but)
 {
-  float rgb_slider[3];
+  float rgb_perceptual_slider[3];
   ColorPicker *cpicker = static_cast<ColorPicker *>(but->custom_data);
   float *hsv_perceptual = cpicker->hsv_perceptual;
 
-  ui_color_picker_hsv_to_rgb(hsv_perceptual, rgb_slider);
+  ui_color_picker_hsv_to_rgb(hsv_perceptual, rgb_perceptual_slider);
 
-  ui_but_v3_set(but, rgb_slider);
+  ui_but_v3_set(but, rgb_perceptual_slider);
 }
 
 /* Updates all buttons who share the same color picker as the one passed. */
@@ -278,7 +292,7 @@ static void ui_colorpicker_rgba_update_cb(bContext * /*C*/, void *picker_bt1, vo
   }
 }
 
-static void ui_colorpicker_hsv_slider_update_cb(bContext * /*C*/, void *bt1, void *bt2)
+static void ui_colorpicker_hsv_perceptual_slider_update_cb(bContext * /*C*/, void *bt1, void *bt2)
 {
   uiBut *but = static_cast<uiBut *>(bt1);
   uiPopupBlockHandle *popup = but->block->handle;
@@ -297,8 +311,9 @@ static void ui_colorpicker_hsv_slider_update_cb(bContext * /*C*/, void *bt1, voi
      * then update RGB components from the current HSV values. */
     RNA_property_float_get_array_at_most(
         &ptr, prop, rgba_scene_linear, ARRAY_SIZE(rgba_scene_linear));
-    ui_color_picker_hsv_to_rgb(cpicker->hsv_slider, cpicker->rgb_slider);
-    IMB_colormanagement_color_picking_to_scene_linear_v3(rgba_scene_linear, cpicker->rgb_slider);
+    ui_color_picker_hsv_to_rgb(cpicker->hsv_perceptual_slider, cpicker->rgb_perceptual_slider);
+    IMB_colormanagement_color_picking_to_scene_linear_v3(rgba_scene_linear,
+                                                         cpicker->rgb_perceptual_slider);
     ui_update_color_picker_buts_rgba(but->block, cpicker, rgba_scene_linear);
   }
 
@@ -307,7 +322,7 @@ static void ui_colorpicker_hsv_slider_update_cb(bContext * /*C*/, void *bt1, voi
   }
 }
 
-static void ui_colorpicker_rgb_slider_update_cb(bContext * /*C*/, void *bt1, void *bt2)
+static void ui_colorpicker_hsv_linear_slider_update_cb(bContext * /*C*/, void *bt1, void *bt2)
 {
   uiBut *but = static_cast<uiBut *>(bt1);
   uiPopupBlockHandle *popup = but->block->handle;
@@ -326,8 +341,37 @@ static void ui_colorpicker_rgb_slider_update_cb(bContext * /*C*/, void *bt1, voi
      * then update RGB components from the current HSV values. */
     RNA_property_float_get_array_at_most(
         &ptr, prop, rgba_scene_linear, ARRAY_SIZE(rgba_scene_linear));
-    IMB_colormanagement_color_picking_to_scene_linear_v3(rgba_scene_linear, cpicker->rgb_slider);
-    ui_color_picker_rgb_to_hsv(cpicker->rgb_slider, cpicker->hsv_slider);
+    ui_color_picker_hsv_to_rgb(cpicker->hsv_linear_slider, rgba_scene_linear);
+    ui_update_color_picker_buts_rgba(but->block, cpicker, rgba_scene_linear);
+  }
+
+  if (popup) {
+    popup->menuretval = UI_RETURN_UPDATE;
+  }
+}
+
+static void ui_colorpicker_rgb_perceptual_slider_update_cb(bContext * /*C*/, void *bt1, void *bt2)
+{
+  uiBut *but = static_cast<uiBut *>(bt1);
+  uiPopupBlockHandle *popup = but->block->handle;
+  ColorPicker *cpicker = static_cast<ColorPicker *>(but->custom_data);
+
+  /* Get RNA ptr/prop from the original color datablock button (bt2) since the HSV buttons (bt1)
+   * do not directly point to it. */
+  uiBut *prop_but = static_cast<uiBut *>(bt2);
+  PointerRNA ptr = prop_but->rnapoin;
+  PropertyRNA *prop = prop_but->rnaprop;
+  float rgba_scene_linear[4];
+
+  if (prop) {
+    zero_v4(rgba_scene_linear);
+    /* Get the current RGBA color for its (optional) Alpha component,
+     * then update RGB components from the current HSV values. */
+    RNA_property_float_get_array_at_most(
+        &ptr, prop, rgba_scene_linear, ARRAY_SIZE(rgba_scene_linear));
+    IMB_colormanagement_color_picking_to_scene_linear_v3(rgba_scene_linear,
+                                                         cpicker->rgb_perceptual_slider);
+    ui_color_picker_rgb_to_hsv(cpicker->rgb_perceptual_slider, cpicker->hsv_perceptual_slider);
     ui_update_color_picker_buts_rgba(but->block, cpicker, rgba_scene_linear);
   }
 
@@ -346,8 +390,8 @@ static void ui_colorpicker_hex_rna_cb(bContext * /*C*/, void *bt1, void *bt2)
 
   /* In case the current color contains an Alpha component but the Hex string does not, get the
    * current color to preserve the Alpha component.
-   * Like #ui_colorpicker_hsv_slider_update_cb, the original color datablock button (bt2) is used
-   * since Hex Text Field button (bt1) doesn't directly point to it. */
+   * Like #ui_colorpicker_hsv_perceptual_slider_update_cb, the original color datablock button
+   * (bt2) is used since Hex Text Field button (bt1) doesn't directly point to it. */
   uiBut *prop_but = static_cast<uiBut *>(bt2);
   PointerRNA ptr = prop_but->rnapoin;
   PropertyRNA *prop = prop_but->rnaprop;
@@ -390,8 +434,9 @@ static void ui_popup_close_cb(bContext * /*C*/, void *bt1, void * /*arg*/)
 
 static void ui_colorpicker_hide_reveal(uiBlock *block)
 {
-  const ePickerType type = ePickerType(
-      (block->is_color_gamma_picker) ? g_gamma_color_picker_type : g_linear_color_picker_type);
+  const ePickerType type = ePickerType(g_color_picker_type);
+  const ePickerSpace space = (block->is_color_gamma_picker) ? PICKER_SPACE_LINEAR :
+                                                              ePickerSpace(g_color_picker_space);
 
   /* tag buttons */
   for (const std::unique_ptr<uiBut> &bt : block->buttons) {
@@ -399,20 +444,28 @@ static void ui_colorpicker_hide_reveal(uiBlock *block)
         (bt->rnaindex != 3))
     {
       /* RGB sliders (color circle and alpha are always shown) */
-      SET_FLAG_FROM_TEST(bt->flag, (type != PICKER_TYPE_LINEAR_RGB), UI_HIDDEN);
+      SET_FLAG_FROM_TEST(
+          bt->flag, !(type == PICKER_TYPE_RGB && space == PICKER_SPACE_LINEAR), UI_HIDDEN);
     }
-    else if (bt->func == ui_colorpicker_rgb_slider_update_cb) {
+    else if (bt->func == ui_colorpicker_rgb_perceptual_slider_update_cb) {
       /* HSV sliders */
-      SET_FLAG_FROM_TEST(bt->flag, (type != PICKER_TYPE_PERCEPTUAL_RGB), UI_HIDDEN);
+      SET_FLAG_FROM_TEST(
+          bt->flag, !(type == PICKER_TYPE_RGB && space == PICKER_SPACE_PERCEPTUAL), UI_HIDDEN);
     }
-    else if (bt->func == ui_colorpicker_hsv_slider_update_cb) {
+    else if (bt->func == ui_colorpicker_hsv_perceptual_slider_update_cb) {
       /* HSV sliders */
-      SET_FLAG_FROM_TEST(bt->flag, (type != PICKER_TYPE_HSV), UI_HIDDEN);
+      SET_FLAG_FROM_TEST(
+          bt->flag, !(type == PICKER_TYPE_HSV && space == PICKER_SPACE_PERCEPTUAL), UI_HIDDEN);
+    }
+    else if (bt->func == ui_colorpicker_hsv_linear_slider_update_cb) {
+      /* HSV sliders */
+      SET_FLAG_FROM_TEST(
+          bt->flag, !(type == PICKER_TYPE_HSV && space == PICKER_SPACE_LINEAR), UI_HIDDEN);
     }
   }
 }
 
-static void ui_colorpicker_update_type_cb(bContext * /*C*/, void *picker_bt1, void *prop_bt1)
+static void ui_colorpicker_update_type_space_cb(bContext * /*C*/, void *picker_bt1, void *prop_bt1)
 {
   uiBut *picker_but = static_cast<uiBut *>(picker_bt1);
   uiBlock *block = picker_but->block;
@@ -603,65 +656,59 @@ static void ui_block_colorpicker(const bContext * /*C*/,
   }
 
   /* mode */
-  int yco = -1.5f * UI_UNIT_Y;
-  UI_block_align_begin(block);
-
-  char *color_picker_type = (block->is_color_gamma_picker) ? &g_gamma_color_picker_type :
-                                                             &g_linear_color_picker_type;
-
-  auto colorspace_tip_func = [](bContext & /*C*/, uiTooltipData &tip, uiBut *but, void *space) {
-    UI_tooltip_text_field_add(tip, but->tip, {}, UI_TIP_STYLE_HEADER, UI_TIP_LC_NORMAL, false);
-    UI_tooltip_text_field_add(tip,
-                              IFACE_("Color Space: ") +
-                                  std::string(static_cast<const char *>(space)),
-                              {},
-                              UI_TIP_STYLE_NORMAL,
-                              UI_TIP_LC_ACTIVE,
-                              false);
-  };
-
-  bt = uiDefButC(block,
-                 ButType::Row,
-                 0,
-                 (block->is_color_gamma_picker) ? IFACE_("RGB") : IFACE_("Linear"),
-                 0,
-                 yco,
-                 picker_width * ((block->is_color_gamma_picker) ? 0.5 : 0.3),
-                 UI_UNIT_Y,
-                 color_picker_type,
-                 0.0,
-                 float(PICKER_TYPE_LINEAR_RGB),
-                 (block->is_color_gamma_picker) ? TIP_("RGB values") :
-                                                  TIP_("Scene linear working space RGB values"));
-  UI_but_flag_disable(bt, UI_BUT_UNDO);
-  UI_but_drawflag_disable(bt, UI_BUT_TEXT_LEFT);
-  UI_but_func_set(bt, ui_colorpicker_update_type_cb, bt, from_but);
-  UI_but_func_tooltip_custom_set(
-      bt,
-      colorspace_tip_func,
-      const_cast<char *>(
-          (block->is_color_gamma_picker) ?
-              "sRGB" :
-              IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR)),
-      nullptr);
-  bt->custom_data = cpicker;
+  int yco = -0.5f * UI_UNIT_Y;
 
   if (!block->is_color_gamma_picker) {
+    auto colorspace_tip_func = [](bContext & /*C*/, uiTooltipData &tip, uiBut *but, void *space) {
+      UI_tooltip_text_field_add(tip, but->tip, {}, UI_TIP_STYLE_HEADER, UI_TIP_LC_NORMAL, false);
+      UI_tooltip_text_field_add(tip,
+                                IFACE_("Color Space: ") +
+                                    std::string(static_cast<const char *>(space)),
+                                {},
+                                UI_TIP_STYLE_NORMAL,
+                                UI_TIP_LC_ACTIVE,
+                                false);
+    };
+
+    UI_block_align_begin(block);
+
+    bt = uiDefButC(block,
+                   ButType::Row,
+                   0,
+                   IFACE_("Linear"),
+                   0,
+                   yco -= UI_UNIT_Y,
+                   picker_width * 0.5,
+                   UI_UNIT_Y,
+                   &g_color_picker_space,
+                   0.0,
+                   float(PICKER_TYPE_RGB),
+                   TIP_("Scene linear values in the working color space"));
+    UI_but_flag_disable(bt, UI_BUT_UNDO);
+    UI_but_drawflag_disable(bt, UI_BUT_TEXT_LEFT);
+    UI_but_func_set(bt, ui_colorpicker_update_type_space_cb, bt, from_but);
+    UI_but_func_tooltip_custom_set(
+        bt,
+        colorspace_tip_func,
+        const_cast<char *>(IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR)),
+        nullptr);
+    bt->custom_data = cpicker;
+
     bt = uiDefButC(block,
                    ButType::Row,
                    0,
                    IFACE_("Perceptual"),
-                   picker_width * 0.3,
+                   picker_width * 0.5,
                    yco,
-                   picker_width * 0.4,
+                   picker_width * 0.5,
                    UI_UNIT_Y,
-                   color_picker_type,
+                   &g_color_picker_space,
                    0.0,
-                   float(PICKER_TYPE_PERCEPTUAL_RGB),
-                   TIP_("Perceptually uniform RGB values, matching the color picker"));
+                   float(PICKER_TYPE_HSV),
+                   TIP_("Perceptually uniform values, matching the color picker"));
     UI_but_flag_disable(bt, UI_BUT_UNDO);
     UI_but_drawflag_disable(bt, UI_BUT_TEXT_LEFT);
-    UI_but_func_set(bt, ui_colorpicker_update_type_cb, bt, from_but);
+    UI_but_func_set(bt, ui_colorpicker_update_type_space_cb, bt, from_but);
     UI_but_func_tooltip_custom_set(
         bt,
         colorspace_tip_func,
@@ -669,75 +716,145 @@ static void ui_block_colorpicker(const bContext * /*C*/,
         nullptr);
 
     bt->custom_data = cpicker;
+
+    UI_block_align_end(block);
+
+    yco -= 0.5f * UI_UNIT_X;
   }
+
+  UI_block_align_begin(block);
 
   bt = uiDefButC(block,
                  ButType::Row,
                  0,
-                 IFACE_((U.color_picker_type == USER_CP_CIRCLE_HSL) ? "HSL" : "HSV"),
-                 picker_width * ((block->is_color_gamma_picker) ? 0.5 : 0.7),
-                 yco,
-                 picker_width * ((block->is_color_gamma_picker) ? 0.5 : 0.3),
+                 IFACE_("RGB"),
+                 0,
+                 yco -= UI_UNIT_Y,
+                 picker_width * 0.5,
                  UI_UNIT_Y,
-                 color_picker_type,
+                 &g_color_picker_type,
+                 0.0,
+                 float(PICKER_TYPE_RGB),
+                 TIP_("RGB values"));
+  UI_but_flag_disable(bt, UI_BUT_UNDO);
+  UI_but_drawflag_disable(bt, UI_BUT_TEXT_LEFT);
+  UI_but_func_set(bt, ui_colorpicker_update_type_space_cb, bt, from_but);
+  bt->custom_data = cpicker;
+
+  bt = uiDefButC(block,
+                 ButType::Row,
+                 0,
+                 (U.color_picker_type == USER_CP_CIRCLE_HSL) ? IFACE_("HSL") : IFACE_("HSV"),
+                 picker_width * 0.5,
+                 yco,
+                 picker_width * 0.5,
+                 UI_UNIT_Y,
+                 &g_color_picker_type,
                  0.0,
                  float(PICKER_TYPE_HSV),
                  (U.color_picker_type == USER_CP_CIRCLE_HSL) ? TIP_("Hue, Saturation, Lightness") :
                                                                TIP_("Hue, Saturation, Value"));
   UI_but_flag_disable(bt, UI_BUT_UNDO);
   UI_but_drawflag_disable(bt, UI_BUT_TEXT_LEFT);
-  UI_but_func_set(bt, ui_colorpicker_update_type_cb, bt, from_but);
-  UI_but_func_tooltip_custom_set(
-      bt,
-      colorspace_tip_func,
-      const_cast<char *>(
-          (block->is_color_gamma_picker) ?
-              "sRGB" :
-              IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_COLOR_PICKING)),
-      nullptr);
-
+  UI_but_func_set(bt, ui_colorpicker_update_type_space_cb, bt, from_but);
   bt->custom_data = cpicker;
+
   UI_block_align_end(block);
 
-  const int slider_yco = -3.0f * UI_UNIT_Y;
+  const int slider_yco = yco - 1.1f * UI_UNIT_Y;
 
   /* NOTE: don't disable UI_BUT_UNDO for RGBA values, since these don't add undo steps. */
 
   /* RGB values */
   UI_block_align_begin(block);
-  const auto add_rgb_slider = [&](const char *str, const char *tip, const int index, const int y) {
-    bt = uiDefButR_prop(block,
-                        ButType::NumSlider,
-                        0,
-                        str,
-                        0,
-                        y,
-                        picker_width,
-                        UI_UNIT_Y,
-                        ptr,
-                        prop,
-                        index,
-                        0.0,
-                        0.0,
-                        tip);
-    UI_but_number_slider_step_size_set(bt, 10);
-    UI_but_number_slider_precision_set(bt, 3);
-    UI_but_func_set(bt, ui_colorpicker_rgba_update_cb, bt, bt);
-    bt->custom_data = cpicker;
-  };
+  const auto add_rgb_perceptual_slider =
+      [&](const char *str, const char *tip, const int index, const int y) {
+        bt = uiDefButR_prop(block,
+                            ButType::NumSlider,
+                            0,
+                            str,
+                            0,
+                            y,
+                            picker_width,
+                            UI_UNIT_Y,
+                            ptr,
+                            prop,
+                            index,
+                            0.0,
+                            0.0,
+                            tip);
+        UI_but_number_slider_step_size_set(bt, 10);
+        UI_but_number_slider_precision_set(bt, 3);
+        UI_but_func_set(bt, ui_colorpicker_rgba_update_cb, bt, bt);
+        bt->custom_data = cpicker;
+      };
 
   yco = slider_yco;
-  add_rgb_slider(IFACE_("Red:"), TIP_("Red"), 0, yco);
-  add_rgb_slider(IFACE_("Green:"), TIP_("Green"), 1, yco -= UI_UNIT_Y);
-  add_rgb_slider(IFACE_("Blue:"), TIP_("Blue"), 2, yco -= UI_UNIT_Y);
+  add_rgb_perceptual_slider(IFACE_("Red:"), TIP_("Red"), 0, yco);
+  add_rgb_perceptual_slider(IFACE_("Green:"), TIP_("Green"), 1, yco -= UI_UNIT_Y);
+  add_rgb_perceptual_slider(IFACE_("Blue:"), TIP_("Blue"), 2, yco -= UI_UNIT_Y);
+
+  /* HSV values */
+  const auto add_hsv_perceptual_slider =
+      [&](const char *str, const char *tip, const int index, const int y, const bool linear) {
+        float *hsv_values = linear ? cpicker->hsv_linear_slider : cpicker->hsv_perceptual_slider;
+        bt = uiDefButF(block,
+                       ButType::NumSlider,
+                       0,
+                       str,
+                       0,
+                       y,
+                       picker_width,
+                       UI_UNIT_Y,
+                       hsv_values + index,
+                       0.0,
+                       1.0,
+                       tip);
+        if (index == 2) {
+          bt->hardmax = hardmax; /* Not common but RGB may be over 1.0. */
+        }
+        UI_but_number_slider_step_size_set(bt, 10);
+        UI_but_number_slider_precision_set(bt, 3);
+        UI_but_flag_disable(bt, UI_BUT_UNDO);
+        UI_but_func_set(bt,
+                        linear ? ui_colorpicker_hsv_linear_slider_update_cb :
+                                 ui_colorpicker_hsv_perceptual_slider_update_cb,
+                        bt,
+                        from_but);
+        bt->custom_data = cpicker;
+      };
+
+  yco = slider_yco;
+  add_hsv_perceptual_slider(IFACE_("Hue:"), TIP_("Hue"), 0, yco, !block->is_color_gamma_picker);
+  add_hsv_perceptual_slider(IFACE_("Saturation:"),
+                            TIP_("Saturation"),
+                            1,
+                            yco -= UI_UNIT_Y,
+                            !block->is_color_gamma_picker);
+  if (U.color_picker_type == USER_CP_CIRCLE_HSL) {
+    add_hsv_perceptual_slider(IFACE_("Lightness:"),
+                              TIP_("Lightness"),
+                              2,
+                              yco -= UI_UNIT_Y,
+                              !block->is_color_gamma_picker);
+  }
+  else {
+    add_hsv_perceptual_slider(IFACE_("Value:"),
+                              CTX_TIP_(BLT_I18NCONTEXT_COLOR, "Value"),
+                              2,
+                              yco -= UI_UNIT_Y,
+                              !block->is_color_gamma_picker);
+  }
 
   /* Could use:
    * col->prop(ptr, prop, -1, 0, UI_ITEM_R_EXPAND | UI_ITEM_R_SLIDER, "", ICON_NONE);
    * but need to use UI_but_func_set for updating other fake buttons */
 
   if (!block->is_color_gamma_picker) {
+    yco = slider_yco;
+
     /* Display RGB values */
-    const auto add_rgb_slider =
+    const auto add_rgb_perceptual_slider =
         [&](const char *str, const char *tip, const int index, const int y) {
           bt = uiDefButF(block,
                          ButType::NumSlider,
@@ -747,7 +864,7 @@ static void ui_block_colorpicker(const bContext * /*C*/,
                          y,
                          picker_width,
                          UI_UNIT_Y,
-                         cpicker->rgb_slider + index,
+                         cpicker->rgb_perceptual_slider + index,
                          hardmin,
                          hardmax,
                          tip);
@@ -756,49 +873,26 @@ static void ui_block_colorpicker(const bContext * /*C*/,
           bt->softmin = softmin;
           bt->softmax = softmax;
           UI_but_flag_disable(bt, UI_BUT_UNDO);
-          UI_but_func_set(bt, ui_colorpicker_rgb_slider_update_cb, bt, from_but);
+          UI_but_func_set(bt, ui_colorpicker_rgb_perceptual_slider_update_cb, bt, from_but);
           bt->custom_data = cpicker;
         };
 
+    add_rgb_perceptual_slider(IFACE_("Red:"), TIP_("Red"), 0, yco);
+    add_rgb_perceptual_slider(IFACE_("Green:"), TIP_("Green"), 1, yco -= UI_UNIT_Y);
+    add_rgb_perceptual_slider(IFACE_("Blue:"), TIP_("Blue"), 2, yco -= UI_UNIT_Y);
+
     yco = slider_yco;
-    add_rgb_slider(IFACE_("Red:"), TIP_("Red"), 0, yco);
-    add_rgb_slider(IFACE_("Green:"), TIP_("Green"), 1, yco -= UI_UNIT_Y);
-    add_rgb_slider(IFACE_("Blue:"), TIP_("Blue"), 2, yco -= UI_UNIT_Y);
-  }
-
-  /* HSV values */
-  const auto add_hsv_slider = [&](const char *str, const char *tip, const int index, const int y) {
-    bt = uiDefButF(block,
-                   ButType::NumSlider,
-                   0,
-                   str,
-                   0,
-                   y,
-                   picker_width,
-                   UI_UNIT_Y,
-                   cpicker->hsv_slider + index,
-                   0.0,
-                   1.0,
-                   tip);
-    if (index == 2) {
-      bt->hardmax = hardmax; /* Not common but RGB may be over 1.0. */
+    add_hsv_perceptual_slider(IFACE_("Hue:"), TIP_("Hue"), 0, yco, false);
+    add_hsv_perceptual_slider(
+        IFACE_("Saturation:"), TIP_("Saturation"), 1, yco -= UI_UNIT_Y, false);
+    if (U.color_picker_type == USER_CP_CIRCLE_HSL) {
+      add_hsv_perceptual_slider(
+          IFACE_("Lightness:"), TIP_("Lightness"), 2, yco -= UI_UNIT_Y, false);
     }
-    UI_but_number_slider_step_size_set(bt, 10);
-    UI_but_number_slider_precision_set(bt, 3);
-    UI_but_flag_disable(bt, UI_BUT_UNDO);
-    UI_but_func_set(bt, ui_colorpicker_hsv_slider_update_cb, bt, from_but);
-    bt->custom_data = cpicker;
-  };
-
-  yco = slider_yco;
-  add_hsv_slider(IFACE_("Hue:"), TIP_("Hue"), 0, yco);
-  add_hsv_slider(IFACE_("Saturation:"), TIP_("Saturation"), 1, yco -= UI_UNIT_Y);
-  if (U.color_picker_type == USER_CP_CIRCLE_HSL) {
-    add_hsv_slider(IFACE_("Lightness:"), TIP_("Lightness"), 2, yco -= UI_UNIT_Y);
-  }
-  else {
-    add_hsv_slider(
-        IFACE_("Value:"), CTX_TIP_(BLT_I18NCONTEXT_COLOR, "Value"), 2, yco -= UI_UNIT_Y);
+    else {
+      add_hsv_perceptual_slider(
+          IFACE_("Value:"), CTX_TIP_(BLT_I18NCONTEXT_COLOR, "Value"), 2, yco -= UI_UNIT_Y, false);
+    }
   }
 
   if (cpicker->has_alpha) {
