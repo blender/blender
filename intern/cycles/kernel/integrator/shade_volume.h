@@ -799,7 +799,7 @@ struct VolumeIntegrateState {
 
   /* Ratio tracking estimator of the volume transmittance, with MIS applied. */
   float transmittance;
-  /* Current shading position. */
+  /* Current sample position. */
   float t;
   /* Majorant optical depth until now. */
   float optical_depth;
@@ -818,10 +818,15 @@ struct VolumeIntegrateState {
   float direct_rr_scale;
 
   /* Extra fields for path guiding and denoising. */
-  Spectrum emission;
+  PackedSpectrum emission;
 #  ifdef __DENOISING_FEATURES__
-  Spectrum albedo;
+  PackedSpectrum albedo;
 #  endif
+
+  /* The distance between the current and the last sample position. */
+  float dt;
+  /* `dt` at equiangular scatter position. Used to compute the pdf. */
+  float sample_dt;
 };
 
 /* Accumulate transmittance for equiangular distance sampling without MIS. Using telescoping to
@@ -874,7 +879,8 @@ ccl_device_inline bool volume_indirect_scatter_advance(const ccl_private OctreeT
     return true;
   }
 
-  vstate.t += sample_exponential_distribution(vstate.rscatter, 1.0f / sigma_max);
+  vstate.dt = sample_exponential_distribution(vstate.rscatter, sigma_max);
+  vstate.t += vstate.dt;
 
   const bool segment_has_equiangular = equiangular && octree.t.contains(result.direct_t);
   if (segment_has_equiangular && vstate.t > result.direct_t && !result.direct_scatter) {
@@ -882,6 +888,7 @@ ccl_device_inline bool volume_indirect_scatter_advance(const ccl_private OctreeT
     result.direct_scatter = true;
     result.direct_throughput = result.indirect_throughput * vstate.transmittance *
                                vstate.direct_rr_scale;
+    vstate.sample_dt = result.direct_t - vstate.t + vstate.dt;
     vstate.distance_pdf = vstate.transmittance * sigma_max;
     vstate.sigma_max = sigma_max;
   }
@@ -1252,24 +1259,15 @@ ccl_device_inline bool volume_russian_roulette_termination(
 /** \name Null Scattering
  * \{ */
 
-/* TODO(weizhen): homogeneous volume sample process can be simplified, especially we can take much
- * less steps. */
-
 /* In a null-scattering framework, we fill the volume with fictitious particles, so that the
- * density is `sigma_max` everywhere. The null-scattering coefficients `sigma_n` is then defined by
+ * density is `majorant` everywhere. The null-scattering coefficients `sigma_n` is then defined by
  * the density of such particles. */
-ccl_device_inline Spectrum volume_null_event_coefficients(
-    KernelGlobals kg, ccl_private VolumeShaderCoefficients &coeff, const float sigma_max)
+ccl_device_inline Spectrum volume_null_event_coefficients(const Spectrum sigma_t,
+                                                          const float sigma_max,
+                                                          ccl_private float &majorant)
 {
-  const Spectrum sigma_max_ = make_spectrum(sigma_max);
-
-  /* Clamp if bias is allowed. */
-  if (!kernel_data.integrator.volume_unbiased) {
-    coeff.sigma_t = min(coeff.sigma_t, sigma_max_);
-    coeff.sigma_s = min(coeff.sigma_s, sigma_max_);
-  }
-
-  return sigma_max_ - coeff.sigma_t;
+  majorant = fmaxf(reduce_max(sigma_t), sigma_max);
+  return make_spectrum(majorant) - sigma_t;
 }
 
 /* The probability of sampling real scattering event at each candidate point of delta tracking. */
@@ -1278,13 +1276,9 @@ ccl_device_inline float volume_scatter_probability(
     const Spectrum sigma_n,
     const Spectrum throughput)
 {
-  /* For procedure volumes `sigma_max` might not be the strict upper bound. Use absolute value
-   * to handle negative null scattering coefficient as suggested in the paper. */
-  const Spectrum abs_sigma_n = fabs(sigma_n);
-
   /* We use `sigma_s` instead of `sigma_t` to skip sampling the absorption event, because it
    * always returns zero and has high variance. */
-  Spectrum sigma_c = coeff.sigma_s + abs_sigma_n;
+  const Spectrum sigma_c = coeff.sigma_s + sigma_n;
 
   /* Set `albedo` to 1 for the channel where extinction coefficient `sigma_t` is zero, to make
    * sure that we sample a distance outside the current segment when that channel is picked,
@@ -1312,7 +1306,7 @@ ccl_device_inline void volume_sample_indirect_scatter(
     ccl_private VolumeSampleReservoir &reservoir)
 {
   const float weight = vstate.transmittance * prob_s;
-  const Spectrum throughput = result.indirect_throughput * sigma_s / (prob_s * sigma_max);
+  const Spectrum throughput = result.indirect_throughput * sigma_s / prob_s;
 
   if (vstate.vspg) {
     /* If we guide the scatter probability, simply put the candidate in the reservoir. */
@@ -1395,33 +1389,49 @@ ccl_device void volume_integrate_step_scattering(
   }
 
   kernel_assert(sigma_max != 0.0f);
-  const float inv_maj = 1.0f / sigma_max;
+
+  /* Null scattering coefficients. */
+  float majorant;
+  const Spectrum sigma_n = volume_null_event_coefficients(coeff.sigma_t, sigma_max, majorant);
+  if (majorant != sigma_max) {
+    /* Standard null scattering uses the majorant as the rate parameter for distance sampling, thus
+     * the MC estimator is
+     *   <L> = T(t) / p(t) * (L_e + sigma_s * L_s + sigma_n * L)
+     *       = 1 / majorant * (L_e + sigma_s * L_s + sigma_n * L).
+     * If we use another rate parameter sigma for distance sampling, the equation becomes
+     *   <L> = T(t) / p(t) * (L_e + sigma_s * L_s + sigma_n * L)
+     *       = exp(-majorant * t) / sigma * exp(-sigma * t ) * (L_e + sigma_s * L_s + sigma_n *L),
+     * there is a scaling of majorant / sigma * exp(-(majorant - sigma) * t).
+     * NOTE: this is not really unbiased, because the scaling is only applied when we sample an
+     * event inside the segment, but in practice, if the majorant is reasonable, this doesn't
+     * happen too often and shouldn't affect the result much. */
+    result.indirect_throughput *= expf((sigma_max - majorant) * vstate.dt) / sigma_max;
+  }
+  else {
+    result.indirect_throughput /= majorant;
+  }
 
   /* Emission. */
   if (sd->flag & SD_EMISSION) {
     /* Emission = inv_sigma * (L_e + sigma_n * (inv_sigma * (L_e + sigma_n * ···))). */
-    const Spectrum emission = inv_maj * coeff.emission;
-    vstate.emission += result.indirect_throughput * emission;
+    vstate.emission += result.indirect_throughput * coeff.emission;
     if (!result.indirect_scatter) {
       /* Record emission until scatter position. */
-      guiding_record_volume_emission(kg, state, emission);
+      guiding_record_volume_emission(kg, state, coeff.emission);
     }
   }
-
-  /* Null scattering coefficients. */
-  const Spectrum sigma_n = volume_null_event_coefficients(kg, coeff, sigma_max);
 
   if (reduce_add(coeff.sigma_s) == 0.0f) {
     /* Absorption only. Deterministically choose null scattering and estimate the transmittance
      * of the current ray segment. */
-    result.indirect_throughput *= sigma_n * inv_maj;
+    result.indirect_throughput *= sigma_n;
     return;
   }
 
 #  ifdef __DENOISING_FEATURES__
   if (INTEGRATOR_STATE(state, path, flag) & PATH_RAY_DENOISING_FEATURES) {
     /* Albedo = inv_sigma * (sigma_s + sigma_n * (inv_sigma * (sigma_s + sigma_n * ···))). */
-    vstate.albedo += result.indirect_throughput * coeff.sigma_s * inv_maj;
+    vstate.albedo += result.indirect_throughput * coeff.sigma_s;
   }
 #  endif
 
@@ -1432,7 +1442,7 @@ ccl_device void volume_integrate_step_scattering(
 
   /* Null scattering. Accumulate weight and continue. */
   const float prob_n = 1.0f - prob_s;
-  result.indirect_throughput *= safe_divide(sigma_n * inv_maj, prob_n);
+  result.indirect_throughput *= safe_divide(sigma_n, prob_n);
   vstate.transmittance *= prob_n;
 }
 
@@ -1456,7 +1466,12 @@ ccl_device_inline void volume_equiangular_direct_scatter(
 
     if (vstate.use_mis) {
       /* Compute distance pdf for multiple importance sampling. */
-      const Spectrum sigma_n = volume_null_event_coefficients(kg, coeff, vstate.sigma_max);
+      float majorant;
+      const Spectrum sigma_n = volume_null_event_coefficients(
+          coeff.sigma_t, vstate.sigma_max, majorant);
+      if ((vstate.sample_dt != FLT_MAX) && (majorant != vstate.sigma_max)) {
+        result.direct_throughput *= expf((vstate.sigma_max - majorant) * vstate.sample_dt);
+      }
       vstate.distance_pdf *= volume_scatter_probability(coeff, sigma_n, result.direct_throughput);
     }
 
