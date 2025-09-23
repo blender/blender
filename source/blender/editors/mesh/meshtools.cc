@@ -70,8 +70,24 @@ using blender::Span;
  * Add vertex positions of selected meshes as shape keys to the active mesh.
  * \{ */
 
+static std::string create_mirrored_name(const blender::StringRefNull object_name,
+                                        const bool mirror)
+{
+  if (!mirror) {
+    return object_name;
+  }
+  if (object_name.endswith(".L")) {
+    return blender::StringRef(object_name).drop_suffix(2) + ".R";
+  }
+  if (object_name.endswith(".R")) {
+    return blender::StringRef(object_name).drop_suffix(2) + ".L";
+  }
+  return object_name;
+}
+
 wmOperatorStatus ED_mesh_shapes_join_objects_exec(bContext *C,
                                                   const bool ensure_keys_exist,
+                                                  const bool mirror,
                                                   ReportList *reports)
 {
   using namespace blender;
@@ -144,17 +160,35 @@ wmOperatorStatus ED_mesh_shapes_join_objects_exec(bContext *C,
         &active_mesh, active_mesh.key, BKE_keyblock_add(active_mesh.key, nullptr));
   }
 
+  if (mirror) {
+    for (const ObjectInfo &info : compatible_objects) {
+      if (!info.name.endswith(".L") && !info.name.endswith(".R")) {
+        BKE_report(reports, RPT_ERROR, "Selected objects' names must use .L or .R suffix");
+        return OPERATOR_CANCELLED;
+      }
+    }
+  }
+
+  int mirror_count = 0;
+  int mirror_fail_count = 0;
   int keys_changed = 0;
   bool any_keys_added = false;
   for (const ObjectInfo &info : compatible_objects) {
+    const std::string name = create_mirrored_name(info.name, mirror);
     if (ensure_keys_exist) {
-      KeyBlock *kb = BKE_keyblock_add(active_mesh.key, info.name.c_str());
+      KeyBlock *kb = BKE_keyblock_add(active_mesh.key, name.c_str());
       BKE_keyblock_convert_from_mesh(&info.mesh, active_mesh.key, kb);
       any_keys_added = true;
+      if (mirror) {
+        ed::object::shape_key_mirror(&active_object, kb, false, mirror_count, mirror_fail_count);
+      }
     }
-    else if (KeyBlock *kb = BKE_keyblock_find_name(active_mesh.key, info.name.c_str())) {
+    else if (KeyBlock *kb = BKE_keyblock_find_name(active_mesh.key, name.c_str())) {
       keys_changed++;
       BKE_keyblock_update_from_mesh(&info.mesh, kb);
+      if (mirror) {
+        ed::object::shape_key_mirror(&active_object, kb, false, mirror_count, mirror_fail_count);
+      }
     }
   }
 
@@ -164,6 +198,10 @@ wmOperatorStatus ED_mesh_shapes_join_objects_exec(bContext *C,
       return OPERATOR_CANCELLED;
     }
     BKE_reportf(reports, RPT_INFO, "Updated %d shape key(s)", keys_changed);
+  }
+
+  if (mirror) {
+    ED_mesh_report_mirror_ex(*reports, mirror_count, mirror_fail_count, SCE_SELECT_VERTEX);
   }
 
   DEG_id_tag_update(&active_mesh.id, ID_RECALC_GEOMETRY);
