@@ -84,7 +84,7 @@ def get_context_modifier(context):
     if modifier is ...:
         ob = context.object
         if ob is None:
-            return False
+            return None
         modifier = ob.modifiers.active
     if modifier is None or modifier.type != 'NODES':
         return None
