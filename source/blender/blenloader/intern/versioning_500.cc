@@ -2281,6 +2281,91 @@ static void version_dynamic_viewer_node_items(bNodeTree &ntree)
   }
 }
 
+static void do_version_displace_node_remove_xy_scale(bNodeTree &node_tree, bNode &node)
+{
+  blender::bke::node_tree_set_type(node_tree);
+
+  bNodeSocket *displacement_input = blender::bke::node_find_socket(node, SOCK_IN, "Displacement");
+  bNodeSocket *x_scale_input = blender::bke::node_find_socket(node, SOCK_IN, "X Scale");
+  bNodeSocket *y_scale_input = blender::bke::node_find_socket(node, SOCK_IN, "Y Scale");
+
+  /* Find the link going into the inputs of the node. */
+  bNodeLink *displacement_link = nullptr;
+  bNodeLink *x_scale_link = nullptr;
+  bNodeLink *y_scale_link = nullptr;
+  LISTBASE_FOREACH (bNodeLink *, link, &node_tree.links) {
+    if (link->tosock == displacement_input) {
+      displacement_link = link;
+    }
+    if (link->tosock == x_scale_input) {
+      x_scale_link = link;
+    }
+    if (link->tosock == y_scale_input) {
+      y_scale_link = link;
+    }
+  }
+
+  bNode *multiply_node = blender::bke::node_add_node(nullptr, node_tree, "ShaderNodeVectorMath");
+  multiply_node->parent = node.parent;
+  multiply_node->location[0] = node.location[0] - node.width - 20.0f;
+  multiply_node->location[1] = node.location[1];
+  multiply_node->custom1 = NODE_VECTOR_MATH_MULTIPLY;
+
+  bNodeSocket *multiply_a_input = blender::bke::node_find_socket(
+      *multiply_node, SOCK_IN, "Vector");
+  bNodeSocket *multiply_b_input = blender::bke::node_find_socket(
+      *multiply_node, SOCK_IN, "Vector_001");
+  bNodeSocket *multiply_output = blender::bke::node_find_socket(
+      *multiply_node, SOCK_OUT, "Vector");
+
+  copy_v2_v2(multiply_a_input->default_value_typed<bNodeSocketValueVector>()->value,
+             displacement_input->default_value_typed<bNodeSocketValueVector>()->value);
+  if (displacement_link) {
+    version_node_add_link(node_tree,
+                          *displacement_link->fromnode,
+                          *displacement_link->fromsock,
+                          *multiply_node,
+                          *multiply_a_input);
+    blender::bke::node_remove_link(&node_tree, *displacement_link);
+  }
+
+  version_node_add_link(node_tree, *multiply_node, *multiply_output, node, *displacement_input);
+
+  bNode *combine_node = blender::bke::node_add_node(nullptr, node_tree, "ShaderNodeCombineXYZ");
+  combine_node->parent = node.parent;
+  combine_node->location[0] = multiply_node->location[0] - multiply_node->width - 20.0f;
+  combine_node->location[1] = multiply_node->location[1];
+
+  bNodeSocket *combine_x_input = blender::bke::node_find_socket(*combine_node, SOCK_IN, "X");
+  bNodeSocket *combine_y_input = blender::bke::node_find_socket(*combine_node, SOCK_IN, "Y");
+  bNodeSocket *combine_output = blender::bke::node_find_socket(*combine_node, SOCK_OUT, "Vector");
+
+  version_node_add_link(
+      node_tree, *combine_node, *combine_output, *multiply_node, *multiply_b_input);
+
+  combine_x_input->default_value_typed<bNodeSocketValueFloat>()->value =
+      x_scale_input->default_value_typed<bNodeSocketValueFloat>()->value;
+  if (x_scale_link) {
+    version_node_add_link(node_tree,
+                          *x_scale_link->fromnode,
+                          *x_scale_link->fromsock,
+                          *combine_node,
+                          *combine_x_input);
+    blender::bke::node_remove_link(&node_tree, *x_scale_link);
+  }
+
+  combine_y_input->default_value_typed<bNodeSocketValueFloat>()->value =
+      y_scale_input->default_value_typed<bNodeSocketValueFloat>()->value;
+  if (y_scale_link) {
+    version_node_add_link(node_tree,
+                          *y_scale_link->fromnode,
+                          *y_scale_link->fromsock,
+                          *combine_node,
+                          *combine_y_input);
+    blender::bke::node_remove_link(&node_tree, *y_scale_link);
+  }
+}
+
 void do_versions_after_linking_500(FileData *fd, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 9)) {
@@ -3410,6 +3495,21 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
       }
       version_node_input_socket_name(node_tree, CMP_NODE_ALPHAOVER, "Image_001", "Foreground");
       version_node_input_socket_name(node_tree, CMP_NODE_ALPHAOVER, "Image", "Background");
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 88)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type != NTREE_COMPOSIT) {
+        continue;
+      }
+      version_node_input_socket_name(node_tree, CMP_NODE_DISPLACE, "Vector", "Displacement");
+      LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+        if (node->type_legacy == CMP_NODE_DISPLACE) {
+          do_version_displace_node_remove_xy_scale(*node_tree, *node);
+        }
+      }
     }
     FOREACH_NODETREE_END;
   }

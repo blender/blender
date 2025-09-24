@@ -688,11 +688,8 @@ BLI_INLINE_METHOD float4 Result::sample(const float2 &coordinates,
                                              extension_mode_x,
                                              extension_mode_y);
       break;
-    /* The anisotropic sampling requires separate handling with EWA. */
-    case Interpolation::Anisotropic:
-      BLI_assert_unreachable();
-      break;
     case Interpolation::Bicubic:
+    case Interpolation::Anisotropic:
       math::interpolate_cubic_bspline_wrapmode_fl(buffer,
                                                   pixel_value,
                                                   size.x,

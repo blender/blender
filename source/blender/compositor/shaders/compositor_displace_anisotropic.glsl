@@ -20,8 +20,7 @@ void main()
 
   /* Note that the input displacement is in pixel space, so divide by the input size to transform
    * it into the normalized sampler space. */
-  float2 scale = float2(texture_load(x_scale_tx, texel).x, texture_load(y_scale_tx, texel).x);
-  float2 displacement = texture_load(displacement_tx, texel).xy * scale / float2(input_size);
+  float2 displacement = texture_load(displacement_tx, texel).xy / float2(input_size);
   float2 displaced_coordinates = coordinates - displacement;
 
   /* Store the displaced coordinates into the shared table and issue a barrier to later compute the
