@@ -1009,13 +1009,13 @@ static void test_preprocess_stage_attribute()
 }
 )";
     string expect = R"(
+ void my_func() {
 #if defined(GPU_VERTEX_SHADER)
-#line 2
-                         void my_func() {
+#line 3
   return;
-}
 #endif
-#line 5
+#line 4
+}
 )";
     string error;
     string output = process_test_string(input, error);

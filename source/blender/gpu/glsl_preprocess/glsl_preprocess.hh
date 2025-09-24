@@ -169,6 +169,8 @@ class Preprocessor {
 
   metadata::Source metadata;
 
+  using Parser = shader::parser::Parser;
+
  public:
   enum SourceLanguage {
     UNKNOWN = 0,
@@ -214,40 +216,45 @@ class Preprocessor {
       if (do_parse_function) {
         parse_library_functions(str);
       }
-      str = disabled_code_mutation(str, report_error);
-      str = include_parse_and_remove(str, report_error);
       if (language == BLENDER_GLSL) {
         pragma_runtime_generated_parsing(str);
         pragma_once_linting(str, filename, report_error);
       }
-      str = preprocessor_directive_mutation(str);
+      str = disabled_code_mutation(str, report_error);
+      str = include_parse_and_remove(str, report_error);
+      str = pragmas_mutation(str, report_error);
       str = swizzle_function_mutation(str, report_error);
       str = enum_macro_injection(str, language == CPP, report_error);
       if (language == BLENDER_GLSL) {
-        str = using_mutation(str, report_error);
-        str = namespace_mutation(str, report_error);
-        str = template_struct_mutation(str, report_error);
-        str = struct_method_mutation(str, report_error);
-        str = empty_struct_mutation(str, report_error);
-        str = method_call_mutation(str, report_error);
-        str = stage_function_mutation(str);
-        str = resource_guard_mutation(str, report_error);
-        str = loop_unroll(str, report_error);
-        str = assert_processing(str, filename, report_error);
-        str = static_strings_merging(str, report_error);
-        str = static_strings_parsing_and_mutation(str, report_error);
+        Parser parser(str, report_error);
+        using_mutation(parser, report_error);
+
+        namespace_mutation(parser, report_error);
+        template_struct_mutation(parser, report_error);
+        struct_method_mutation(parser, report_error);
+        empty_struct_mutation(parser, report_error);
+        method_call_mutation(parser, report_error);
+        stage_function_mutation(parser, report_error);
+        resource_guard_mutation(parser, report_error);
+        loop_unroll(parser, report_error);
+        assert_processing(parser, filename, report_error);
+        static_strings_merging(parser, report_error);
+        static_strings_parsing_and_mutation(parser, report_error);
+        str = parser.result_get();
         str = printf_processing(str, report_error);
         quote_linting(str, report_error);
       }
-      global_scope_constant_linting(str, report_error);
-      matrix_constructor_linting(str, report_error);
-      array_constructor_linting(str, report_error);
-      if (do_small_type_linting) {
-        small_type_linting(str, report_error);
+      {
+        Parser parser(str, report_error);
+        global_scope_constant_linting(parser, report_error);
+        if (do_small_type_linting) {
+          small_type_linting(parser, report_error);
+        }
+        remove_quotes(parser, report_error);
+        argument_reference_mutation(parser, report_error);
+        default_argument_mutation(parser, report_error);
+        str = parser.result_get();
       }
-      str = remove_quotes(str);
-      str = argument_reference_mutation(str, report_error);
-      str = default_argument_mutation(str, report_error);
       str = variable_reference_mutation(str, report_error);
       str = template_definition_mutation(str, report_error);
       if (language == BLENDER_GLSL) {
@@ -258,7 +265,7 @@ class Preprocessor {
     else if (language == MSL) {
       pragma_runtime_generated_parsing(str);
       str = include_parse_and_remove(str, report_error);
-      str = preprocessor_directive_mutation(str);
+      str = pragmas_mutation(str, report_error);
     }
 #ifdef __APPLE__ /* Limiting to Apple hardware since GLSL compilers might have issues. */
     if (language == GLSL) {
@@ -372,23 +379,17 @@ class Preprocessor {
     return args_concat;
   }
 
-  std::string template_struct_mutation(const std::string &str, report_callback &report_error)
+  void template_struct_mutation(Parser &parser, report_callback &report_error)
   {
     using namespace std;
     using namespace shader::parser;
-
-    std::string out_str = str;
-
     {
-      Parser parser(out_str, report_error);
-
       parser.foreach_match("w<..>(..)", [&](const vector<Token> &tokens) {
         const Scope template_args = tokens[1].scope();
         template_args.foreach_match("w<..>", [&parser](const vector<Token> &tokens) {
           parser.replace(tokens[1].scope(), template_arguments_mangle(tokens[1].scope()), true);
         });
       });
-
       parser.apply_mutations();
 
       /* Replace full specialization by simple struct. */
@@ -396,12 +397,9 @@ class Preprocessor {
         parser.erase(tokens[0], tokens[2]);
         parser.replace(tokens[5].scope(), template_arguments_mangle(tokens[5].scope()), true);
       });
-
-      out_str = parser.result_get();
+      parser.apply_mutations();
     }
     {
-      Parser parser(out_str, report_error);
-
       parser.foreach_scope(ScopeType::Template, [&](Scope temp) {
         /* Parse template declaration. */
         Token struct_start = temp.end().next();
@@ -492,20 +490,16 @@ class Preprocessor {
                                     end_of_instantiation.line_number() + 1);
         });
       });
-
-      out_str = parser.result_get();
+      parser.apply_mutations();
     }
     {
-      Parser parser(out_str, report_error);
-
       /* This rely on our codestyle that do not put spaces between template name and the opening
        * angle bracket. */
       parser.foreach_match("sw<..>", [&](const std::vector<Token> &tokens) {
         parser.replace(tokens[2].scope(), template_arguments_mangle(tokens[2].scope()), true);
       });
-      out_str = parser.result_get();
+      parser.apply_mutations();
     }
-    return out_str;
   }
 
   std::string template_definition_mutation(const std::string &str, report_callback &report_error)
@@ -698,9 +692,14 @@ class Preprocessor {
     return parser.result_get();
   }
 
-  std::string remove_quotes(const std::string &str)
+  /* Remove remaining quotes that can be found in some unsupported C++ macros. */
+  void remove_quotes(Parser &parser, report_callback /*report_error*/)
   {
-    return std::regex_replace(str, std::regex(R"(["'])"), " ");
+    using namespace std;
+    using namespace shader::parser;
+
+    parser.foreach_token(TokenType::String, [&](const Token token) { parser.erase(token); });
+    parser.apply_mutations();
   }
 
   std::string include_parse_and_remove(const std::string &str, report_callback report_error)
@@ -718,10 +717,12 @@ class Preprocessor {
       /* Assert that includes are at the top of the file. */
       if (dependency_name == "gpu_shader_compat.hh") {
         /* Skip GLSL-C++ stubs. They are only for IDE linting. */
+        parser.erase(tokens.front(), tokens.back());
         return;
       }
       if (dependency_name.find("info.hh") != std::string::npos) {
         /* Skip info files. They are only for IDE linting. */
+        parser.erase(tokens.front(), tokens.back());
         return;
       }
       metadata.dependencies.emplace_back(dependency_name);
@@ -750,16 +751,10 @@ class Preprocessor {
     }
   }
 
-  std::string loop_unroll(const std::string &str, report_callback report_error)
+  void loop_unroll(Parser &parser, report_callback report_error)
   {
-    if (str.find("[[gpu::unroll") == std::string::npos) {
-      return str;
-    }
-
     using namespace std;
     using namespace shader::parser;
-
-    Parser parser(str, report_error);
 
     auto parse_for_args =
         [&](const Scope loop_args, Scope &r_init, Scope &r_condition, Scope &r_iter) {
@@ -1040,20 +1035,12 @@ class Preprocessor {
         report_error(ERROR_TOK(tokens[0]), "Incompatible loop format for [[gpu::unroll]].");
       }
     });
-
-    return parser.result_get();
   }
 
-  std::string namespace_mutation(const std::string &str, report_callback report_error)
+  void namespace_mutation(Parser &parser, report_callback report_error)
   {
-    if (str.find("namespace") == std::string::npos) {
-      return str;
-    }
-
     using namespace std;
     using namespace shader::parser;
-
-    Parser parser(str, report_error);
 
     /* Parse each namespace declaration. */
     parser.foreach_scope(ScopeType::Namespace, [&](const Scope &scope) {
@@ -1114,16 +1101,14 @@ class Preprocessor {
       }
     });
 
-    return parser.result_get();
+    parser.apply_mutations();
   }
 
   /* Needs to run before namespace mutation so that `using` have more precedence. */
-  std::string using_mutation(const std::string &str, report_callback report_error)
+  void using_mutation(Parser &parser, report_callback report_error)
   {
     using namespace std;
     using namespace shader::parser;
-
-    Parser parser(str, report_error);
 
     parser.foreach_match("un", [&](const std::vector<Token> &tokens) {
       report_error(ERROR_TOK(tokens[0]),
@@ -1207,8 +1192,6 @@ class Preprocessor {
     parser.foreach_token(Using, [&](const Token &token) {
       report_error(ERROR_TOK(token), "Unsupported `using` keyword usage.");
     });
-
-    return parser.result_get();
   }
 
   std::string namespace_separator_mutation(const std::string &str)
@@ -1271,11 +1254,24 @@ class Preprocessor {
     return parser.result_get();
   }
 
-  std::string preprocessor_directive_mutation(const std::string &str)
+  std::string pragmas_mutation(const std::string &str, report_callback &report_error)
   {
     /* Remove unsupported directives. */
-    std::regex regex(R"(#\s*(?:include|pragma once|pragma runtime_generated)[^\n]*)");
-    return std::regex_replace(str, regex, "");
+    using namespace std;
+    using namespace shader::parser;
+
+    Parser parser(str, report_error);
+    parser.foreach_match("#ww", [&](const std::vector<Token> &tokens) {
+      if (tokens[1].str() == "pragma") {
+        if (tokens[2].str() == "once") {
+          parser.erase(tokens.front(), tokens.back());
+        }
+        else if (tokens[2].str() == "runtime_generated") {
+          parser.erase(tokens.front(), tokens.back());
+        }
+      }
+    });
+    return parser.result_get();
   }
 
   std::string swizzle_function_mutation(const std::string &str, report_callback &report_error)
@@ -1431,16 +1427,13 @@ class Preprocessor {
     return out_str;
   }
 
-  std::string assert_processing(const std::string &str,
-                                const std::string &filepath,
-                                report_callback report_error)
+  void assert_processing(Parser &parser, const std::string &filepath, report_callback report_error)
   {
     std::string filename = std::regex_replace(filepath, std::regex(R"((?:.*)\/(.*))"), "$1");
 
     using namespace std;
     using namespace shader::parser;
 
-    Parser parser(str, report_error);
     /* Example: `assert(i < 0)` > `if (!(i < 0)) { printf(...); }` */
     parser.foreach_match("w(..)", [&](const vector<Token> &tokens) {
       if (tokens[0].str() != "assert") {
@@ -1467,7 +1460,6 @@ class Preprocessor {
     (void)report_error;
 #endif
     parser.apply_mutations();
-    return parser.result_get();
   }
 
   /* String hash are outputted inside GLSL and needs to fit 32 bits. */
@@ -1478,12 +1470,11 @@ class Preprocessor {
     return hash_32;
   }
 
-  std::string static_strings_merging(const std::string &str, report_callback report_error)
+  void static_strings_merging(Parser &parser, report_callback /*report_error*/)
   {
     using namespace std;
     using namespace shader::parser;
 
-    Parser parser(str, report_error);
     do {
       parser.foreach_match("__", [&](const std::vector<Token> &tokens) {
         string first = tokens[0].str();
@@ -1497,33 +1488,27 @@ class Preprocessor {
         parser.replace_try(tokens[0], tokens[1], merged);
       });
     } while (parser.apply_mutations());
-
-    return parser.result_get();
   }
 
-  std::string static_strings_parsing_and_mutation(const std::string &str,
-                                                  report_callback report_error)
+  void static_strings_parsing_and_mutation(Parser &parser, report_callback /*report_error*/)
   {
     using namespace std;
     using namespace shader::parser;
 
-    Parser parser(str, report_error);
     parser.foreach_token(String, [&](const Token &token) {
       uint32_t hash = hash_string(token.str());
       metadata::PrintfFormat format = {hash, token.str()};
       metadata.printf_formats.emplace_back(format);
       parser.replace(token, std::to_string(hash) + 'u', true);
     });
-    return parser.result_get();
+    parser.apply_mutations();
   }
 
   /* Move all method definition outside of struct definition blocks. */
-  std::string struct_method_mutation(const std::string &str, report_callback report_error)
+  void struct_method_mutation(Parser &parser, report_callback report_error)
   {
     using namespace std;
     using namespace shader::parser;
-
-    Parser parser(str, report_error);
 
     parser.foreach_scope(ScopeType::Global, [&](Scope scope) {
       /* `class` -> `struct` */
@@ -1632,34 +1617,29 @@ class Preprocessor {
       });
     });
 
-    return parser.result_get();
+    parser.apply_mutations();
   }
 
   /* Add padding member to empty structs.
    * Empty structs are useful for templating. */
-  std::string empty_struct_mutation(const std::string &str, report_callback report_error)
+  void empty_struct_mutation(Parser &parser, report_callback /*report_error*/)
   {
     using namespace std;
     using namespace shader::parser;
-
-    Parser parser(str, report_error);
 
     parser.foreach_scope(ScopeType::Global, [&](Scope scope) {
       scope.foreach_match("sw{};", [&](const std::vector<Token> &tokens) {
         parser.insert_after(tokens[2], "int _pad;");
       });
     });
-
-    return parser.result_get();
+    parser.apply_mutations();
   }
 
   /* Transform `a.fn(b)` into `fn(a, b)`. */
-  std::string method_call_mutation(const std::string &str, report_callback report_error)
+  void method_call_mutation(Parser &parser, report_callback report_error)
   {
     using namespace std;
     using namespace shader::parser;
-
-    Parser parser(str, report_error);
 
     do {
       parser.foreach_scope(ScopeType::Function, [&](Scope scope) {
@@ -1705,66 +1685,50 @@ class Preprocessor {
         });
       });
     } while (parser.apply_mutations());
-
-    return parser.result_get();
   }
 
-  std::string stage_function_mutation(const std::string &str)
-  {
-    using namespace std;
-
-    if (str.find("_function]]") == string::npos) {
-      return str;
-    }
-
-    vector<pair<string, string>> mutations;
-
-    int64_t line = 1;
-    regex regex_attr(R"(\[\[gpu::(vertex|fragment|compute)_function\]\])");
-    regex_global_search(str, regex_attr, [&](const smatch &match) {
-      string prefix = match.prefix().str();
-      string suffix = match.suffix().str();
-      string attribute = match[0].str();
-      string shader_stage = match[1].str();
-
-      line += line_count(prefix);
-      string signature = suffix.substr(0, suffix.find('{'));
-      string body = '{' +
-                    get_content_between_balanced_pair(suffix.substr(signature.size()), '{', '}') +
-                    "}\n";
-
-      string function = signature + body;
-
-      string check = "defined(";
-      if (shader_stage == "vertex") {
-        check += "GPU_VERTEX_SHADER";
-      }
-      else if (shader_stage == "fragment") {
-        check += "GPU_FRAGMENT_SHADER";
-      }
-      else if (shader_stage == "compute") {
-        check += "GPU_COMPUTE_SHADER";
-      }
-      check += ")";
-
-      string mutated = guarded_scope_mutation(
-          string(attribute.size(), ' ') + function, line, check);
-      mutations.emplace_back(attribute + function, mutated);
-    });
-
-    string out = str;
-    for (auto mutation : mutations) {
-      replace_all(out, mutation.first, mutation.second);
-    }
-    return out;
-  }
-
-  std::string resource_guard_mutation(const std::string &str, report_callback &report_error)
+  void stage_function_mutation(Parser &parser, report_callback /*report_error*/)
   {
     using namespace std;
     using namespace shader::parser;
 
-    Parser parser(str, report_error);
+    parser.foreach_function([&](bool is_static, Token fn_type, Token, Scope, bool, Scope fn_body) {
+      Token attr_tok = (is_static) ? fn_type.prev().prev() : fn_type.prev();
+      if (attr_tok.is_invalid() || attr_tok != ']' || attr_tok.prev() != ']') {
+        return;
+      }
+      Scope attribute = attr_tok.prev().scope();
+      if (attribute.type() != ScopeType::Subscript) {
+        return;
+      }
+
+      const string attr = attribute.str_exclusive();
+      parser.erase(attribute.scope());
+
+      string condition = "defined(";
+      if (attr == "gpu::vertex_function") {
+        condition += "GPU_VERTEX_SHADER";
+      }
+      else if (attr == "gpu::fragment_function") {
+        condition += "GPU_FRAGMENT_SHADER";
+      }
+      else if (attr == "gpu::compute_function") {
+        condition += "GPU_COMPUTE_SHADER";
+      }
+      else {
+        return;
+      }
+      condition += ")";
+
+      guarded_scope_mutation(parser, fn_body, condition);
+    });
+    parser.apply_mutations();
+  }
+
+  void resource_guard_mutation(Parser &parser, report_callback /*report_error*/)
+  {
+    using namespace std;
+    using namespace shader::parser;
 
     parser.foreach_function([&](bool, Token fn_type, Token, Scope, bool, Scope fn_body) {
       fn_body.foreach_match("w(w,", [&](const std::vector<Token> &tokens) {
@@ -1783,21 +1747,23 @@ class Preprocessor {
           scope = scope.scope();
         }
 
+        string condition = "defined(CREATE_INFO_" + info_name + ")";
+
         if (scope.type() == ScopeType::Function) {
-          guarded_scope_mutation(parser, scope, info_name, fn_type);
+          guarded_scope_mutation(parser, scope, condition, fn_type);
         }
         else {
-          guarded_scope_mutation(parser, scope, info_name);
+          guarded_scope_mutation(parser, scope, condition);
         }
       });
     });
 
-    return parser.result_get();
+    parser.apply_mutations();
   }
 
   void guarded_scope_mutation(parser::Parser &parser,
                               parser::Scope scope,
-                              const std::string &info,
+                              const std::string &condition,
                               parser::Token fn_type = parser::Token::invalid())
   {
     using namespace std;
@@ -1806,7 +1772,7 @@ class Preprocessor {
     string line_start = "#line " + std::to_string(scope.start().next().line_number()) + "\n";
     string line_end = "#line " + std::to_string(scope.end().line_number()) + "\n";
 
-    string guard_start = "#if defined(CREATE_INFO_" + info + ")\n";
+    string guard_start = "#if " + condition + "\n";
     string guard_else;
     if (fn_type.is_valid() && fn_type.str() != "void") {
       string type = fn_type.str();
@@ -1958,12 +1924,10 @@ class Preprocessor {
    * Expand functions with default arguments to function overloads.
    * Expects formatted input and that function bodies are followed by newline.
    */
-  std::string default_argument_mutation(std::string str, report_callback &report_error)
+  void default_argument_mutation(Parser &parser, report_callback /*report_error*/)
   {
     using namespace std;
     using namespace shader::parser;
-
-    Parser parser(str, report_error);
 
     parser.foreach_function(
         [&](bool, Token fn_type, Token fn_name, Scope fn_args, bool, Scope fn_body) {
@@ -2017,7 +1981,7 @@ class Preprocessor {
           parser.insert_line_number(end_of_fn_char, fn_body.end().line_number() + 1);
         });
 
-    return parser.result_get();
+    parser.apply_mutations();
   }
 
   /* Used to make GLSL matrix constructor compatible with MSL in pyGPU shaders.
@@ -2037,12 +2001,10 @@ class Preprocessor {
   }
 
   /* To be run before `argument_decorator_macro_injection()`. */
-  std::string argument_reference_mutation(std::string &str, report_callback &report_error)
+  void argument_reference_mutation(Parser &parser, report_callback /*report_error*/)
   {
     using namespace std;
     using namespace shader::parser;
-
-    Parser parser(str, report_error);
 
     auto add_mutation = [&](Token type, Token arg_name, Token last_tok) {
       if (type.prev() == Const) {
@@ -2061,7 +2023,7 @@ class Preprocessor {
       scope.foreach_match(
           "w&T", [&](const vector<Token> toks) { add_mutation(toks[0], toks[2], toks[2]); });
     });
-    return parser.result_get();
+    parser.apply_mutations();
   }
 
   /* To be run after `argument_reference_mutation()`. */
@@ -2214,77 +2176,51 @@ class Preprocessor {
     return std::regex_replace(str, regex, "= ARRAY_T($1) ARRAY_V(");
   }
 
-  /* TODO(fclem): Too many false positive and false negative to be applied to python shaders. */
-  void matrix_constructor_linting(const std::string &str, report_callback report_error)
-  {
-    /* The following regex is expensive. Do a quick early out scan. */
-    if (str.find("mat") == std::string::npos && str.find("float") == std::string::npos) {
-      return;
-    }
-    /* Example: `mat4(other_mat)`. */
-    std::regex regex(R"(\s(?:mat(?:\d|\dx\d)|float\dx\d)\()");
-    regex_global_search(str, regex, [&](const std::smatch &match) {
-      std::string args = get_content_between_balanced_pair("(" + match.suffix().str(), '(', ')');
-      int arg_count = split_string_not_between_balanced_pair(args, ',', '(', ')').size();
-      bool has_floating_point_arg = args.find('.') != std::string::npos;
-      /* TODO(fclem): Check if arg count matches matrix type. */
-      if (arg_count != 1 || has_floating_point_arg) {
-        return;
-      }
-      /* This only catches some invalid usage. For the rest, the CI will catch them. */
-      const char *msg =
-          "Matrix constructor is not cross API compatible. "
-          "Use to_floatNxM to reshape the matrix or use other constructors instead.";
-      report_error(line_number(match), char_number(match), line_str(match), msg);
-    });
-  }
-
   /* Assume formatted source with our code style. Cannot be applied to python shaders. */
-  void global_scope_constant_linting(const std::string &str, report_callback report_error)
+  void global_scope_constant_linting(Parser &parser, report_callback report_error)
   {
-    /* Example: `const uint global_var = 1u;`. Matches if not indented (i.e. inside a scope). */
-    std::regex regex(R"(const \w+ \w+ =)");
-    regex_global_search(str, regex, [&](const std::smatch &match) {
-      /* Positive look-behind is not supported in #std::regex. Do it manually. */
-      if (match.prefix().str().back() == '\n') {
-        const char *msg =
+    using namespace std;
+    using namespace shader::parser;
+
+    /* Example: `const uint global_var = 1u;`. */
+    parser.foreach_match("cww=", [&](const vector<Token> &tokens) {
+      if (tokens[0].scope().type() == ScopeType::Global) {
+        report_error(
+            ERROR_TOK(tokens[2]),
             "Global scope constant expression found. These get allocated per-thread in MSL. "
-            "Use Macro's or uniforms instead.";
-        report_error(line_number(match), char_number(match), line_str(match), msg);
+            "Use Macro's or uniforms instead.");
       }
     });
   }
 
   void quote_linting(const std::string &str, report_callback report_error)
   {
-    std::regex regex(R"(["'])");
-    regex_global_search(str, regex, [&](const std::smatch &match) {
-      /* This only catches some invalid usage. For the rest, the CI will catch them. */
-      const char *msg = "Quotes are forbidden in GLSL.";
-      report_error(line_number(match), char_number(match), line_str(match), msg);
+    using namespace std;
+    using namespace shader::parser;
+
+    Parser parser(str, report_error);
+    /* This only catches some invalid usage. For the rest, the CI will catch them. */
+    parser.foreach_token(TokenType::String, [&](const Token token) {
+      report_error(ERROR_TOK(token),
+                   "Unprocessed string literal. "
+                   "Strings are forbidden in GLSL.");
     });
   }
 
-  void array_constructor_linting(const std::string &str, report_callback report_error)
+  void small_type_linting(Parser &parser, report_callback report_error)
   {
-    std::regex regex(R"(=\s*(\w+)\s*\[[^\]]*\]\s*\()");
-    regex_global_search(str, regex, [&](const std::smatch &match) {
-      /* This only catches some invalid usage. For the rest, the CI will catch them. */
-      const char *msg =
-          "Array constructor is not cross API compatible. Use type_array instead of type[].";
-      report_error(line_number(match), char_number(match), line_str(match), msg);
-    });
-  }
+    using namespace std;
+    using namespace shader::parser;
 
-  template<typename ReportErrorF>
-  void small_type_linting(const std::string &str, const ReportErrorF &report_error)
-  {
-    std::regex regex(R"(\su?(char|short|half)(2|3|4)?\s)");
-    regex_global_search(str, regex, [&](const std::smatch &match) {
-      report_error(line_number(match),
-                   char_number(match),
-                   line_str(match),
-                   "Small types are forbidden in shader interfaces.");
+    parser.foreach_scope(ScopeType::Struct, [&](const Scope scope) {
+      scope.foreach_match("ww;", [&](const vector<Token> tokens) {
+        string type = tokens[0].str();
+        if (type.find("char") != string::npos || type.find("short") != string::npos ||
+            type.find("half") != string::npos)
+        {
+          report_error(ERROR_TOK(tokens[0]), "Small types are forbidden in shader interfaces.");
+        }
+      });
     });
   }
 
