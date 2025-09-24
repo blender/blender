@@ -2072,6 +2072,20 @@ static std::optional<std::string> rna_SceneRenderView_path(const PointerRNA *ptr
   return fmt::format("render.views[\"{}\"]", srv_name_esc);
 }
 
+static bool rna_Scene_use_nodes_get(PointerRNA * /*ptr*/)
+{
+  /* #use_nodes is deprecated. Always return true for consistency with Materials and World. */
+  return true;
+}
+
+static void rna_Scene_use_nodes_set(PointerRNA * /*ptr*/, const bool /*use_nodes*/)
+{
+  /* #use_nodes is deprecated. Setting the property has no effect.
+   * Note: Users will get a warning through the RNA deprecation warning, so no need to log a
+   * warning here. */
+  return;
+}
+
 static void rna_Physics_relations_update(Main *bmain, Scene * /*scene*/, PointerRNA * /*ptr*/)
 {
   DEG_relations_tag_update(bmain);
@@ -8832,6 +8846,20 @@ void RNA_def_scene(BlenderRNA *brna)
                                  "rna_Scene_compositing_node_group_set",
                                  nullptr,
                                  "rna_Scene_compositing_node_group_poll");
+
+  /* Todo(#140111): Remove in 6.0. */
+  prop = RNA_def_property(srna, "use_nodes", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "use_nodes", 1);
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_ui_text(prop, "Use Nodes", "Enable the compositing node group.");
+  RNA_def_property_boolean_funcs(prop, "rna_Scene_use_nodes_get", "rna_Scene_use_nodes_set");
+  RNA_def_property_deprecated(
+      prop,
+      "Unused but kept for compatibility reasons. Setting the property "
+      "has no effect, and getting it always returns True. Use #scene.render.use_compositing to "
+      "turn compositing to enable or disable compositing.",
+      500,
+      600);
 
   /* Sequencer */
   prop = RNA_def_property(srna, "sequence_editor", PROP_POINTER, PROP_NONE);
