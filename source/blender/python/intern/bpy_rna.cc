@@ -1603,7 +1603,7 @@ int pyrna_pydict_to_props(PointerRNA *ptr,
   return error_val;
 }
 
-static PyObject *pyrna_func_to_py(const PointerRNA *ptr, FunctionRNA *func)
+static PyObject *pyrna_func_CreatePyObject(const PointerRNA *ptr, FunctionRNA *func)
 {
   BPy_FunctionPointerRNA_Reference funcrna_ptr{ptr, func};
   PyObject *pyfuncrna_ptr = PyCapsule_New(
@@ -4572,7 +4572,7 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
   /* RNA function only if callback is declared (no optional functions). */
   else if ((func = RNA_struct_find_function(self->ptr->type, name)) && RNA_function_defined(func))
   {
-    ret = pyrna_func_to_py(&self->ptr.value(), func);
+    ret = pyrna_func_CreatePyObject(&self->ptr.value(), func);
   }
   else if (self->ptr->type == &RNA_Context) {
     bContext *C = static_cast<bContext *>(self->ptr->data);
@@ -4949,7 +4949,7 @@ static PyObject *pyrna_prop_collection_getattro(BPy_PropertyRNA *self, PyObject 
       }
       if ((func = RNA_struct_find_function(r_ptr.type, name))) {
         PyObject *self_collection = pyrna_struct_CreatePyObject(&r_ptr);
-        ret = pyrna_func_to_py(
+        ret = pyrna_func_CreatePyObject(
             &(reinterpret_cast<BPy_DummyPointerRNA *>(self_collection))->ptr.value(), func);
         Py_DECREF(self_collection);
 
@@ -7923,16 +7923,16 @@ static PyObject *pyrna_prop_collection_iter_next(PyObject *self)
 /** \name BPY RNA Function
  * \{ */
 
-static PyObject *pyrna_function_new(PyTypeObject *type, PyObject *args, PyObject * /*kwds*/);
-static int pyrna_function_init(PyObject *self, PyObject *args, PyObject * /*kwds*/);
-static void pyrna_function_dealloc(PyObject *self);
+static PyObject *pyrna_func_new(PyTypeObject *type, PyObject *args, PyObject * /*kwds*/);
+static int pyrna_func_init(PyObject *self, PyObject *args, PyObject * /*kwds*/);
+static void pyrna_func_dealloc(PyObject *self);
 
 PyTypeObject pyrna_func_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "bpy_func",
     /*tp_basicsize*/ sizeof(BPy_FunctionRNA),
     /*tp_itemsize*/ 0,
-    /*tp_dealloc*/ pyrna_function_dealloc,
+    /*tp_dealloc*/ pyrna_func_dealloc,
     /*tp_vectorcall_offset*/ 0,
     /*tp_getattr*/ nullptr,
     /*tp_setattr*/ nullptr,
@@ -7967,9 +7967,9 @@ PyTypeObject pyrna_func_Type = {
     /*tp_descr_get*/ nullptr,
     /*tp_descr_set*/ nullptr,
     /*tp_dictoffset*/ 0,
-    /*tp_init*/ pyrna_function_init,
+    /*tp_init*/ pyrna_func_init,
     /*tp_alloc*/ nullptr,
-    /*tp_new*/ pyrna_function_new,
+    /*tp_new*/ pyrna_func_new,
     /*tp_free*/ nullptr,
     /*tp_is_gc*/ nullptr,
     /*tp_bases*/ nullptr,
@@ -7983,7 +7983,7 @@ PyTypeObject pyrna_func_Type = {
     /*tp_vectorcall*/ nullptr,
 };
 
-static PyObject *pyrna_function_new(PyTypeObject *type, PyObject *args, PyObject * /*kwds*/)
+static PyObject *pyrna_func_new(PyTypeObject *type, PyObject *args, PyObject * /*kwds*/)
 {
   if (PyTuple_GET_SIZE(args) != 1) {
     PyErr_Format(PyExc_TypeError, "bpy_func.__new__(arg): expected a single argument");
@@ -8010,7 +8010,7 @@ static PyObject *pyrna_function_new(PyTypeObject *type, PyObject *args, PyObject
   return self;
 }
 
-static int pyrna_function_init(PyObject *self, PyObject *args, PyObject * /*kwds*/)
+static int pyrna_func_init(PyObject *self, PyObject *args, PyObject * /*kwds*/)
 {
   BPy_FunctionRNA *self_function = reinterpret_cast<BPy_FunctionRNA *>(self);
 
@@ -8047,7 +8047,7 @@ static int pyrna_function_init(PyObject *self, PyObject *args, PyObject * /*kwds
   return 0;
 }
 
-static void pyrna_function_dealloc(PyObject *self)
+static void pyrna_func_dealloc(PyObject *self)
 {
   /* Save the current exception, if any. */
   PyObject *error_type, *error_value, *error_traceback;
@@ -8119,7 +8119,7 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
           (flag & FUNC_REGISTER) == false) /* Is not for registration. */
       {
         /* We may want to set the type of this later. */
-        PyObject *func_py = pyrna_func_to_py(&func_ptr, func);
+        PyObject *func_py = pyrna_func_CreatePyObject(&func_ptr, func);
         PyObject_SetAttrString(newclass, RNA_function_identifier(func), func_py);
         Py_DECREF(func_py);
       }
