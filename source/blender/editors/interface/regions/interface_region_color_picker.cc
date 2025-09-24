@@ -170,8 +170,8 @@ static void ui_color_picker_update_from_rgb_linear(ColorPicker *cpicker,
                                                    const float rgb_scene_linear[3])
 {
   /* Convert from RGB to HSV in scene linear space color for number editing. */
-  IMB_colormanagement_scene_linear_to_color_picking_v3(cpicker->rgb_perceptual_slider,
-                                                       rgb_scene_linear);
+  copy_v3_v3(cpicker->rgb_perceptual_slider, rgb_scene_linear);
+  ui_scene_linear_to_perceptual_space(is_gamma, cpicker->rgb_perceptual_slider);
 
   if (cpicker->is_init == false) {
     ui_color_picker_rgb_to_hsv(cpicker->rgb_perceptual_slider, cpicker->hsv_perceptual_slider);
@@ -312,8 +312,8 @@ static void ui_colorpicker_hsv_perceptual_slider_update_cb(bContext * /*C*/, voi
     RNA_property_float_get_array_at_most(
         &ptr, prop, rgba_scene_linear, ARRAY_SIZE(rgba_scene_linear));
     ui_color_picker_hsv_to_rgb(cpicker->hsv_perceptual_slider, cpicker->rgb_perceptual_slider);
-    IMB_colormanagement_color_picking_to_scene_linear_v3(rgba_scene_linear,
-                                                         cpicker->rgb_perceptual_slider);
+    copy_v3_v3(rgba_scene_linear, cpicker->rgb_perceptual_slider);
+    ui_perceptual_to_scene_linear_space(but->block->is_color_gamma_picker, rgba_scene_linear);
     ui_update_color_picker_buts_rgba(but->block, cpicker, rgba_scene_linear);
   }
 
@@ -369,8 +369,8 @@ static void ui_colorpicker_rgb_perceptual_slider_update_cb(bContext * /*C*/, voi
      * then update RGB components from the current HSV values. */
     RNA_property_float_get_array_at_most(
         &ptr, prop, rgba_scene_linear, ARRAY_SIZE(rgba_scene_linear));
-    IMB_colormanagement_color_picking_to_scene_linear_v3(rgba_scene_linear,
-                                                         cpicker->rgb_perceptual_slider);
+    copy_v3_v3(rgba_scene_linear, cpicker->rgb_perceptual_slider);
+    ui_perceptual_to_scene_linear_space(but->block->is_color_gamma_picker, rgba_scene_linear);
     ui_color_picker_rgb_to_hsv(cpicker->rgb_perceptual_slider, cpicker->hsv_perceptual_slider);
     ui_update_color_picker_buts_rgba(but->block, cpicker, rgba_scene_linear);
   }
@@ -435,7 +435,9 @@ static void ui_popup_close_cb(bContext * /*C*/, void *bt1, void * /*arg*/)
 static void ui_colorpicker_hide_reveal(uiBlock *block)
 {
   const ePickerType type = ePickerType(g_color_picker_type);
-  const ePickerSpace space = (block->is_color_gamma_picker) ? PICKER_SPACE_LINEAR :
+  const ePickerSpace space = (block->is_color_gamma_picker) ? (type == PICKER_TYPE_RGB) ?
+                                                              PICKER_SPACE_LINEAR :
+                                                              PICKER_SPACE_PERCEPTUAL :
                                                               ePickerSpace(g_color_picker_space);
 
   /* tag buttons */
