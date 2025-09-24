@@ -17,6 +17,7 @@
 #include "BKE_asset.hh"
 #include "BKE_idprop.hh"
 #include "BKE_main.hh"
+#include "BKE_scene.hh"
 #include "BKE_screen.hh"
 
 #include "BLT_translation.hh"
@@ -146,7 +147,7 @@ static void sequencer_add_scene_draw(const bContext *C, Menu *menu)
   {
     PointerRNA op_ptr = layout->op(
         "SEQUENCER_OT_scene_strip_add_new", IFACE_("Empty Scene"), ICON_ADD);
-    RNA_string_set(&op_ptr, "type", "EMPTY");
+    RNA_enum_set(&op_ptr, "type", SCE_COPY_NEW);
   }
 
   /* Handle the assets. */
