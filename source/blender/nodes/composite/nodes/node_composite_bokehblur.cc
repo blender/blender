@@ -2,14 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup cmpnodes
- */
-
 #include "BLI_math_base.hh"
 #include "BLI_math_vector_types.hh"
-
-#include "UI_resources.hh"
 
 #include "COM_algorithm_pad.hh"
 #include "COM_algorithm_parallel_reduction.hh"
@@ -17,8 +11,6 @@
 #include "COM_utilities.hh"
 
 #include "node_composite_util.hh"
-
-/* **************** BLUR ******************** */
 
 namespace blender::nodes::node_composite_bokehblur_cc {
 
@@ -31,13 +23,10 @@ static void cmp_node_bokehblur_declare(NodeDeclarationBuilder &b)
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_realization_mode(CompositorInputRealizationMode::Transforms)
       .structure_type(StructureType::Dynamic);
-  b.add_input<decl::Float>("Size").default_value(1.0f).min(0.0f).max(10.0f).structure_type(
+  b.add_input<decl::Float>("Size").default_value(0.0f).min(0.0f).structure_type(
       StructureType::Dynamic);
-  b.add_input<decl::Float>("Bounding box")
-      .default_value(1.0f)
-      .min(0.0f)
-      .max(1.0f)
-      .structure_type(StructureType::Dynamic);
+  b.add_input<decl::Float>("Mask").default_value(1.0f).min(0.0f).max(1.0f).structure_type(
+      StructureType::Dynamic);
   b.add_input<decl::Bool>("Extend Bounds").default_value(false);
 
   b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
@@ -85,7 +74,7 @@ class BokehBlurOperation : public NodeOperation {
 
     /* For constant sized blur, the extension should just be the blur radius. */
     if (size.is_single_value()) {
-      return int(math::ceil(this->compute_blur_radius()));
+      return this->get_blur_radius();
     }
 
     /* For variable sized blur, the extension should be the bokeh search radius. */
@@ -95,10 +84,10 @@ class BokehBlurOperation : public NodeOperation {
   void execute_blur(const Result &input, const Result &size)
   {
     if (size.is_single_value()) {
-      execute_constant_size(input);
+      this->execute_constant_size(input);
     }
     else {
-      execute_variable_size(input, size);
+      this->execute_variable_size(input, size);
     }
   }
 
@@ -117,18 +106,18 @@ class BokehBlurOperation : public NodeOperation {
     gpu::Shader *shader = context().get_shader("compositor_bokeh_blur");
     GPU_shader_bind(shader);
 
-    GPU_shader_uniform_1i(shader, "radius", int(compute_blur_radius()));
+    GPU_shader_uniform_1i(shader, "radius", this->get_blur_radius());
 
     input.bind_as_texture(shader, "input_tx");
 
-    const Result &input_weights = get_input("Bokeh");
+    const Result &input_weights = this->get_input("Bokeh");
     input_weights.bind_as_texture(shader, "weights_tx");
 
-    const Result &input_mask = get_input("Bounding box");
+    const Result &input_mask = this->get_input("Mask");
     input_mask.bind_as_texture(shader, "mask_tx");
 
     const Domain domain = input.domain();
-    Result &output_image = get_result("Image");
+    Result &output_image = this->get_result("Image");
     output_image.allocate_texture(domain);
     output_image.bind_as_image(shader, "output_img");
 
@@ -143,9 +132,9 @@ class BokehBlurOperation : public NodeOperation {
 
   void execute_constant_size_cpu(const Result &input)
   {
-    const int radius = int(this->compute_blur_radius());
+    const int radius = this->get_blur_radius();
 
-    const Result &mask_image = this->get_input("Bounding box");
+    const Result &mask_image = this->get_input("Mask");
 
     const Domain domain = input.domain();
     Result &output = this->get_result("Image");
@@ -192,26 +181,25 @@ class BokehBlurOperation : public NodeOperation {
 
   void execute_variable_size_gpu(const Result &input, const Result &size)
   {
-    const int search_radius = compute_variable_size_search_radius();
+    const int search_radius = this->compute_variable_size_search_radius();
 
-    gpu::Shader *shader = context().get_shader("compositor_bokeh_blur_variable_size");
+    gpu::Shader *shader = this->context().get_shader("compositor_bokeh_blur_variable_size");
     GPU_shader_bind(shader);
 
-    GPU_shader_uniform_1f(shader, "base_size", compute_blur_radius());
     GPU_shader_uniform_1i(shader, "search_radius", search_radius);
 
     input.bind_as_texture(shader, "input_tx");
 
-    const Result &input_weights = get_input("Bokeh");
+    const Result &input_weights = this->get_input("Bokeh");
     input_weights.bind_as_texture(shader, "weights_tx");
 
     size.bind_as_texture(shader, "size_tx");
 
-    const Result &input_mask = get_input("Bounding box");
+    const Result &input_mask = this->get_input("Mask");
     input_mask.bind_as_texture(shader, "mask_tx");
 
     const Domain domain = input.domain();
-    Result &output_image = get_result("Image");
+    Result &output_image = this->get_result("Image");
     output_image.allocate_texture(domain);
     output_image.bind_as_image(shader, "output_img");
 
@@ -227,14 +215,13 @@ class BokehBlurOperation : public NodeOperation {
 
   void execute_variable_size_cpu(const Result &input, const Result &size_input)
   {
-    const float base_size = this->compute_blur_radius();
     const int search_radius = this->compute_variable_size_search_radius();
 
-    const Result &weights = get_input("Bokeh");
-    const Result &mask_image = get_input("Bounding box");
+    const Result &weights = this->get_input("Bokeh");
+    const Result &mask_image = this->get_input("Mask");
 
     const Domain domain = input.domain();
-    Result &output = get_result("Image");
+    Result &output = this->get_result("Image");
     output.allocate_texture(domain);
 
     /* Given the texel in the range [-radius, radius] in both axis, load the appropriate weight
@@ -275,7 +262,7 @@ class BokehBlurOperation : public NodeOperation {
         return;
       }
 
-      float center_size = math::max(0.0f, size_input.load_pixel<float>(texel) * base_size);
+      float center_size = math::max(0.0f, size_input.load_pixel<float>(texel));
 
       /* Go over the window of the given search radius and accumulate the colors multiplied by
        * their respective weights as well as the weights themselves, but only if both the size of
@@ -286,7 +273,7 @@ class BokehBlurOperation : public NodeOperation {
       for (int y = -search_radius; y <= search_radius; y++) {
         for (int x = -search_radius; x <= search_radius; x++) {
           float candidate_size = math::max(
-              0.0f, size_input.load_pixel_extended<float>(texel + int2(x, y)) * base_size);
+              0.0f, size_input.load_pixel_extended<float>(texel + int2(x, y)));
 
           /* Skip accumulation if either the x or y distances of the candidate pixel are larger
            * than either the center or candidate pixel size. Note that the max and min functions
@@ -320,7 +307,7 @@ class BokehBlurOperation : public NodeOperation {
   {
     const Result &bokeh = this->get_input("Bokeh");
 
-    Result kernel = context().create_result(ResultType::Color);
+    Result kernel = this->context().create_result(ResultType::Color);
     const int2 kernel_size = int2(radius * 2 + 1);
     kernel.allocate_texture(kernel_size);
     parallel_for(kernel_size, [&](const int2 texel) {
@@ -338,41 +325,28 @@ class BokehBlurOperation : public NodeOperation {
 
   int compute_variable_size_search_radius()
   {
-    const Result &input_size = get_input("Size");
-    const float maximum_size = maximum_float(context(), input_size);
-
-    const float base_size = compute_blur_radius();
-    return math::max(0, int(maximum_size * base_size));
+    return math::max(0, int(maximum_float(context(), this->get_input("Size"))));
   }
 
-  float compute_blur_radius()
+  int get_blur_radius()
   {
-    const int2 image_size = get_input("Image").domain().size;
-    const int max_size = math::max(image_size.x, image_size.y);
-
-    /* The [0, 10] range of the size is arbitrary and is merely in place to avoid very long
-     * computations of the bokeh blur. */
-    const float size = math::clamp(get_input("Size").get_single_value_default(1.0f), 0.0f, 10.0f);
-
-    /* The 100 divisor is arbitrary and was chosen using visual judgment. */
-    return size * (max_size / 100.0f);
+    return math::max(0, int(this->get_input("Size").get_single_value<float>()));
   }
 
   bool is_identity()
   {
-    const Result &input = get_input("Image");
+    const Result &input = this->get_input("Image");
     if (input.is_single_value()) {
       return true;
     }
 
-    if (compute_blur_radius() == 0.0f) {
+    const Result &size = this->get_input("Size");
+    if (size.is_single_value() && this->get_blur_radius() == 0) {
       return true;
     }
 
-    /* This input is, in fact, a boolean mask. If it is zero, no blurring will take place.
-     * Otherwise, the blurring will take place ignoring the value of the input entirely. */
-    const Result &bounding_box = get_input("Bounding box");
-    if (bounding_box.is_single_value() && bounding_box.get_single_value<float>() == 0.0) {
+    const Result &mask = this->get_input("Mask");
+    if (mask.is_single_value() && mask.get_single_value<float>() == 0.0) {
       return true;
     }
 

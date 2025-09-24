@@ -2366,6 +2366,81 @@ static void do_version_displace_node_remove_xy_scale(bNodeTree &node_tree, bNode
   }
 }
 
+/* The Size input is now in pixels, while previously, it was relative to 0.01 of the greater image
+ * dimension. */
+static void do_version_bokeh_blur_pixel_size(bNodeTree &node_tree, bNode &node)
+{
+  blender::bke::node_tree_set_type(node_tree);
+
+  bNodeSocket *image_input = blender::bke::node_find_socket(node, SOCK_IN, "Image");
+  bNodeSocket *size_input = blender::bke::node_find_socket(node, SOCK_IN, "Size");
+
+  /* Find the link going into the inputs of the node. */
+  bNodeLink *image_link = nullptr;
+  bNodeLink *size_link = nullptr;
+  LISTBASE_FOREACH (bNodeLink *, link, &node_tree.links) {
+    if (link->tosock == size_input) {
+      size_link = link;
+    }
+    if (link->tosock == image_input) {
+      image_link = link;
+    }
+  }
+
+  bNode &multiply_node = version_node_add_empty(node_tree, "ShaderNodeMath");
+  multiply_node.parent = node.parent;
+  multiply_node.location[0] = node.location[0] - node.width - 20.0f;
+  multiply_node.location[1] = node.location[1];
+  multiply_node.custom1 = NODE_MATH_MULTIPLY;
+
+  bNodeSocket &multiply_a_input = version_node_add_socket(
+      node_tree, multiply_node, SOCK_IN, "NodeSocketFloat", "Value");
+  bNodeSocket &multiply_b_input = version_node_add_socket(
+      node_tree, multiply_node, SOCK_IN, "NodeSocketFloat", "Value_001");
+  bNodeSocket &multiply_output = version_node_add_socket(
+      node_tree, multiply_node, SOCK_OUT, "NodeSocketFloat", "Value");
+
+  multiply_a_input.default_value_typed<bNodeSocketValueFloat>()->value =
+      size_input->default_value_typed<bNodeSocketValueFloat>()->value;
+  if (size_link) {
+    version_node_add_link(
+        node_tree, *size_link->fromnode, *size_link->fromsock, multiply_node, multiply_a_input);
+    blender::bke::node_remove_link(&node_tree, *size_link);
+  }
+
+  version_node_add_link(node_tree, multiply_node, multiply_output, node, *size_input);
+
+  bNode *relative_to_pixel_node = blender::bke::node_add_node(
+      nullptr, node_tree, "CompositorNodeRelativeToPixel");
+  relative_to_pixel_node->parent = node.parent;
+  relative_to_pixel_node->location[0] = multiply_node.location[0] - multiply_node.width - 20.0f;
+  relative_to_pixel_node->location[1] = multiply_node.location[1];
+  relative_to_pixel_node->custom1 = CMP_NODE_RELATIVE_TO_PIXEL_DATA_TYPE_FLOAT;
+  relative_to_pixel_node->custom2 = CMP_NODE_RELATIVE_TO_PIXEL_REFERENCE_DIMENSION_GREATER;
+
+  bNodeSocket *relative_to_pixel_image_input = blender::bke::node_find_socket(
+      *relative_to_pixel_node, SOCK_IN, "Image");
+  bNodeSocket *relative_to_pixel_value_input = blender::bke::node_find_socket(
+      *relative_to_pixel_node, SOCK_IN, "Float Value");
+  bNodeSocket *relative_to_pixel_value_output = blender::bke::node_find_socket(
+      *relative_to_pixel_node, SOCK_OUT, "Float Value");
+
+  version_node_add_link(node_tree,
+                        *relative_to_pixel_node,
+                        *relative_to_pixel_value_output,
+                        multiply_node,
+                        multiply_b_input);
+
+  relative_to_pixel_value_input->default_value_typed<bNodeSocketValueFloat>()->value = 0.01f;
+  if (image_link) {
+    version_node_add_link(node_tree,
+                          *image_link->fromnode,
+                          *image_link->fromsock,
+                          *relative_to_pixel_node,
+                          *relative_to_pixel_image_input);
+  }
+}
+
 void do_versions_after_linking_500(FileData *fd, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 9)) {
@@ -3508,6 +3583,21 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
         if (node->type_legacy == CMP_NODE_DISPLACE) {
           do_version_displace_node_remove_xy_scale(*node_tree, *node);
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 89)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type != NTREE_COMPOSIT) {
+        continue;
+      }
+      version_node_input_socket_name(node_tree, CMP_NODE_BOKEHBLUR, "Bounding box", "Mask");
+      LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+        if (node->type_legacy == CMP_NODE_BOKEHBLUR) {
+          do_version_bokeh_blur_pixel_size(*node_tree, *node);
         }
       }
     }

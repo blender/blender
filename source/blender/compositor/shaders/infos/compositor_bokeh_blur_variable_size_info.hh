@@ -6,7 +6,6 @@
 
 GPU_SHADER_CREATE_INFO(compositor_bokeh_blur_variable_size)
 LOCAL_GROUP_SIZE(16, 16)
-PUSH_CONSTANT(float, base_size)
 PUSH_CONSTANT(int, search_radius)
 SAMPLER(0, sampler2D, input_tx)
 SAMPLER(1, sampler2D, weights_tx)
