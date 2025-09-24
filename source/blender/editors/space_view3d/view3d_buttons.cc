@@ -2484,7 +2484,9 @@ static void view3d_panel_curve_data(const bContext *C, Panel *panel)
   const int buth = 20 * UI_SCALE_FAC;
 
   add_labeled_field(
-      "Cyclic", status.cyclic_count == 0 || status.cyclic_count == status.curve_count, [&]() {
+      IFACE_("Cyclic"),
+      status.cyclic_count == 0 || status.cyclic_count == status.curve_count,
+      [&]() {
         uiBut *but = uiDefButC(
             block, ButType::Checkbox, 0, "", 0, 0, butw, buth, &modified.cyclic, 0, 1, "");
         UI_but_func_set(but, handle_curves_cyclic, nullptr, nullptr);
@@ -2493,7 +2495,7 @@ static void view3d_panel_curve_data(const bContext *C, Panel *panel)
 
   if (status.nurbs_count == status.curve_count) {
     add_labeled_field(
-        "Knot Mode",
+        IFACE_("Knot Mode"),
         status.nurbs_knot_mode_max * status.nurbs_count == status.nurbs_knot_mode_sum,
         [&]() {
           uiBut *but = uiDefMenuBut(block,
@@ -2510,19 +2512,22 @@ static void view3d_panel_curve_data(const bContext *C, Panel *panel)
           return but;
         });
 
-    add_labeled_field("Order", status.order_max * status.nurbs_count == status.order_sum, [&]() {
-      uiBut *but = uiDefButI(
-          block, ButType::Num, 0, "", 0, 0, butw, buth, &modified.order, 2, 6, "");
-      UI_but_number_step_size_set(but, 1);
-      UI_but_number_precision_set(but, -1);
-      UI_but_func_set(but, handle_curves_order, nullptr, nullptr);
-      return but;
-    });
+    add_labeled_field(
+        IFACE_("Order"), status.order_max * status.nurbs_count == status.order_sum, [&]() {
+          uiBut *but = uiDefButI(
+              block, ButType::Num, 0, "", 0, 0, butw, buth, &modified.order, 2, 6, "");
+          UI_but_number_step_size_set(but, 1);
+          UI_but_number_precision_set(but, -1);
+          UI_but_func_set(but, handle_curves_order, nullptr, nullptr);
+          return but;
+        });
   }
 
   if (status.poly_count == 0) {
     add_labeled_field(
-        "Resolution", status.resolution_max * status.curve_count == status.resolution_sum, [&]() {
+        IFACE_("Resolution"),
+        status.resolution_max * status.curve_count == status.resolution_sum,
+        [&]() {
           uiBut *but = uiDefButI(
               block, ButType::Num, 0, "", 0, 0, butw, buth, &modified.resolution, 1, 64, "");
           UI_but_number_step_size_set(but, 1);
