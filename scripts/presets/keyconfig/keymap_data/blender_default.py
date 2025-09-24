@@ -3543,6 +3543,8 @@ def km_clip_editor(params):
         ("clip.cursor_set", params.cursor_set_event, None),
         ("clip.copy_tracks", {"type": 'C', "value": 'PRESS', "ctrl": True}, None),
         ("clip.paste_tracks", {"type": 'V', "value": 'PRESS', "ctrl": True}, None),
+        ("wm.context_toggle", {"type": 'Z', "value": 'PRESS', "alt": True, "shift": True},
+         {"properties": [("data_path", "space_data.overlay.show_overlays")]}),
         *_template_items_context_menu("CLIP_MT_tracking_context_menu", params.context_menu_event),
     ])
 

@@ -734,6 +734,7 @@ static void clip_main_region_draw(const bContext *C, ARegion *region)
       ED_mask_draw_region(CTX_data_expect_evaluated_depsgraph(C),
                           mask,
                           region,
+                          sc->overlay.flag & SC_SHOW_OVERLAYS,
                           sc->mask_info.draw_flag,
                           sc->mask_info.draw_type,
                           eMaskOverlayMode(sc->mask_info.overlay_mode),
@@ -752,7 +753,7 @@ static void clip_main_region_draw(const bContext *C, ARegion *region)
   show_cursor |= sc->mode == SC_MODE_MASKEDIT;
   show_cursor |= sc->around == V3D_AROUND_CURSOR;
 
-  if (show_cursor) {
+  if (sc->overlay.flag & SC_SHOW_OVERLAYS && sc->overlay.flag & SC_SHOW_CURSOR && show_cursor) {
     GPU_matrix_push();
     GPU_matrix_translate_2f(x, y);
     GPU_matrix_scale_2f(zoomx, zoomy);
@@ -764,7 +765,7 @@ static void clip_main_region_draw(const bContext *C, ARegion *region)
 
   clip_draw_cache_and_notes(C, sc, region);
 
-  if (sc->flag & SC_SHOW_ANNOTATION) {
+  if (sc->overlay.flag & SC_SHOW_OVERLAYS && sc->flag & SC_SHOW_ANNOTATION) {
     /* Grease Pencil */
     clip_draw_grease_pencil((bContext *)C, true);
   }
@@ -782,7 +783,7 @@ static void clip_main_region_draw(const bContext *C, ARegion *region)
   /* reset view matrix */
   UI_view2d_view_restore(C);
 
-  if (sc->flag & SC_SHOW_ANNOTATION) {
+  if (sc->overlay.flag & SC_SHOW_OVERLAYS && sc->flag & SC_SHOW_ANNOTATION) {
     /* draw Grease Pencil - screen space only */
     clip_draw_grease_pencil((bContext *)C, false);
   }

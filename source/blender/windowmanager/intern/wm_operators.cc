@@ -613,6 +613,11 @@ static const char *wm_context_member_from_ptr(const bContext *C,
               TEST_PTR_DATA_TYPE("space_data.overlay", RNA_SpaceNodeOverlay, ptr, snode);
               break;
             }
+            case SPACE_CLIP: {
+              const SpaceClip *sclip = (SpaceClip *)space_data;
+              TEST_PTR_DATA_TYPE("space_data.overlay", RNA_SpaceClipOverlay, ptr, sclip);
+              break;
+            }
             case SPACE_SEQ: {
               const SpaceSeq *sseq = (SpaceSeq *)space_data;
               TEST_PTR_DATA_TYPE(

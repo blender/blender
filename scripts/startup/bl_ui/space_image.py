@@ -942,9 +942,6 @@ class IMAGE_HT_header(Header):
             if ima.is_stereo_3d:
                 row = layout.row()
                 row.prop(sima, "show_stereo_3d", text="")
-            if show_maskedit:
-                row = layout.row()
-                row.popover(panel="IMAGE_PT_mask_display")
 
             # layers.
             layout.template_image_layers(ima, iuser)
@@ -1041,11 +1038,6 @@ class IMAGE_PT_mask_animation(MASK_PT_animation, Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
     bl_category = "Mask"
-
-
-class IMAGE_PT_mask_display(MASK_PT_display, Panel):
-    bl_space_type = 'IMAGE_EDITOR'
-    bl_region_type = 'HEADER'
 
 
 # --- end mask ---
@@ -1787,6 +1779,18 @@ class IMAGE_PT_overlay_render_guides(Panel):
         subrow.prop(overlay, "passepartout_alpha", text="Passepartout")
 
 
+class IMAGE_PT_overlay_mask(MASK_PT_display, Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'HEADER'
+    bl_parent_id = "IMAGE_PT_overlay"
+
+    @classmethod
+    def poll(cls, context):
+        si = context.space_data
+
+        return si.ui_mode == 'MASK'
+
+
 # Grease Pencil properties
 class IMAGE_PT_annotation(AnnotationDataPanel, Panel):
     bl_space_type = 'IMAGE_EDITOR'
@@ -1840,7 +1844,6 @@ classes = (
     IMAGE_PT_active_tool,
     IMAGE_PT_mask,
     IMAGE_PT_mask_layers,
-    IMAGE_PT_mask_display,
     IMAGE_PT_active_mask_spline,
     IMAGE_PT_active_mask_point,
     IMAGE_PT_mask_animation,
@@ -1882,6 +1885,7 @@ classes = (
     IMAGE_PT_overlay_uv_display,
     IMAGE_PT_overlay_image,
     IMAGE_PT_overlay_render_guides,
+    IMAGE_PT_overlay_mask,
     IMAGE_AST_brush_paint,
 )
 

@@ -270,6 +270,7 @@ void sequencer_draw_maskedit(const bContext *C, Scene *scene, ARegion *region, S
 
       ED_mask_draw_region(mask,
                           region,
+                          true,
                           0,
                           0,
                           0, /* TODO */

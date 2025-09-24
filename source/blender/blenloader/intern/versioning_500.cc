@@ -12,9 +12,13 @@
 
 #include "MEM_guardedalloc.h"
 
+/* Define macros in `DNA_genfile.h`. */
+#define DNA_GENFILE_VERSIONING_MACROS
+
 #include "DNA_ID.h"
 #include "DNA_brush_types.h"
 #include "DNA_curves_types.h"
+#include "DNA_genfile.h"
 #include "DNA_grease_pencil_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -3602,6 +3606,23 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 89)) {
+    /* Node Editor: toggle overlays on. */
+    if (!DNA_struct_exists(fd->filesdna, "SpaceClipOverlay")) {
+      LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+        LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+          LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
+            if (space->spacetype == SPACE_CLIP) {
+              SpaceClip *sclip = (SpaceClip *)space;
+              sclip->overlay.flag |= SC_SHOW_OVERLAYS;
+              sclip->overlay.flag |= SC_SHOW_CURSOR;
+            }
+          }
+        }
+      }
+    }
   }
 
   /**

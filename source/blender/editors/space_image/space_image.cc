@@ -761,6 +761,7 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
     ED_mask_draw_region(depsgraph,
                         mask,
                         region, /* Mask overlay is drawn by image/overlay engine. */
+                        sima->overlay.flag & SI_OVERLAY_SHOW_OVERLAYS,
                         sima->mask_info.draw_flag & ~MASK_DRAWFLAG_OVERLAY,
                         sima->mask_info.draw_type,
                         eMaskOverlayMode(sima->mask_info.overlay_mode),
