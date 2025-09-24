@@ -4877,7 +4877,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   prop = RNA_def_property(srna, "show_tooltips", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", USER_TOOLTIPS);
   RNA_def_property_ui_text(
-      prop, "Tooltips", "Display tooltips (when disabled, hold Alt to force display)");
+      prop, "Tooltips", "Display tooltips (when disabled, hold Alt then hover to force display)");
 
   prop = RNA_def_property(srna, "show_tooltips_python", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", USER_TOOLTIPS_PYTHON);
