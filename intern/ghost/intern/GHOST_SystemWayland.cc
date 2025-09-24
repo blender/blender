@@ -6997,7 +6997,7 @@ static void gwl_registry_wl_seat_remove(GWL_Display *display, void *user_data, c
   /* Run after tablet & input devices have been disabled
    * to ensure the buffer from a *visible* cursor never destroyed.
    *
-   * Note that most compositors will have already releases the buffer,
+   * Note that most compositors will have already released the buffer,
    * in that case this will have been set to null.
    * However this isn't guaranteed, see: #145557. */
   if (seat->cursor.wl.buffer) {

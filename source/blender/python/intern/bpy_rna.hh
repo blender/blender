@@ -192,7 +192,7 @@ struct BPy_FunctionRNA {
   FunctionRNA *func;
   /**
    * Instance call only. This is *always* set to `pyrna_func_vectorcall`.
-   * Storing this value is a required by the Python C-API (PEP 590).
+   * Storing this value is required by the Python C-API (PEP 590).
    */
   vectorcallfunc vectorcall;
 };

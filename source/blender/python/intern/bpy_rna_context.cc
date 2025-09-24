@@ -382,7 +382,7 @@ static PyObject *bpy_rna_context_temp_override_exit(BPyContextTempOverride *self
       wmWindow *win = self->ctx_temp.win_is_set ? self->ctx_temp.win : self->ctx_init.win;
       if (win && wm_check_window_exists(bmain, win)) {
         /* Disallow switching away from temporary-screens & full-screen areas, while it could be
-         * useful to support this closing a these screens uses different and more involved logic
+         * useful to support this, closing screens uses different and more involved logic
          * compared with switching between user managed screens, see: #117188. */
         if (wm_check_screen_switch_supported(WM_window_get_active_screen(win))) {
           bpy_rna_context_temp_set_screen_for_window(C, win, self->ctx_temp_orig.screen);

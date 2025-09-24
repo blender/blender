@@ -576,12 +576,11 @@ static void mesh_customdatacorrect_apply_vert(TransCustomDataLayer *tcld,
       bool co_prev_ok;
       bool co_next_ok;
 
-      /* In the unlikely case that we're next to a zero length edge -
-       * walk around the to the next.
+      /* In the unlikely case that we're next to a zero length edge - walk around to the next.
        *
        * Since we only need to check if the vertex is in this corner,
        * its not important _which_ loop - as long as its not overlapping
-       * 'sv->co_orig_3d', see: #45096. */
+       * `sv->co_orig_3d`, see: #45096. */
       project_plane_normalized_v3_v3v3(v_proj[0], co_prev, v_proj_axis);
       while (UNLIKELY(((co_prev_ok = (len_squared_v3v3(v_proj[1], v_proj[0]) > eps)) == false) &&
                       ((l_prev = l_prev->prev) != l->next)))
