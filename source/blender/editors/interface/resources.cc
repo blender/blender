@@ -442,9 +442,6 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_FACE_FRONT:
           cp = ts->face_front;
           break;
-        case TH_FACE_DOT:
-          cp = ts->face_dot;
-          break;
         case TH_FACEDOT_SIZE:
           cp = &ts->facedot_size;
           break;

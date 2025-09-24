@@ -303,7 +303,6 @@ typedef struct ThemeSpace {
   unsigned char header_title[4];
   unsigned char header_text[4];
   unsigned char header_text_hi[4];
-  char _pad2[4];
 
   /* button/tool regions */
   unsigned char shade1[4];
@@ -325,7 +324,6 @@ typedef struct ThemeSpace {
   unsigned char face[4], face_select[4], face_mode_select[4], face_retopology[4];
   unsigned char face_back[4], face_front[4];
   /** Selected color. */
-  unsigned char face_dot[4];
   unsigned char extra_edge_len[4], extra_edge_angle[4], extra_face_angle[4], extra_face_area[4];
   unsigned char normal[4];
   unsigned char vertex_normal[4];
@@ -351,7 +349,7 @@ typedef struct ThemeSpace {
   unsigned char vertex_size, edge_width, outline_width, obcenter_dia, facedot_size;
   unsigned char noodle_curving;
   unsigned char grid_levels;
-  char _pad5[2];
+  char _pad2[2];
   float dash_alpha;
 
   /* Syntax for text-window and nodes. */
