@@ -60,7 +60,7 @@ class FileOutputTest(unittest.TestCase):
             ok = False
 
         # Compare Metadata
-        metadata_ignore = set(("Time", "File", "Date", "RenderTime"))
+        metadata_ignore = set(("Time", "File", "Date", "RenderTime", "Software"))
 
         ref_meta = ref_img.spec().extra_attribs
         out_meta = out_img.spec().extra_attribs
