@@ -114,7 +114,7 @@
  * The ratio z/w is expressed as z_R_w, which is an abbreviation of z_Ratio_y. */
 
 #ifdef ADAPT_TO_GEOMETRY_NODES
-ccl_device float4
+static ccl_device float4
 calculate_out_variables_full_roundness_irregular_circular(bool calculate_r_gon_parameter_field,
                                                           bool normalize_r_gon_parameter,
                                                           float r_gon_sides,
@@ -317,13 +317,14 @@ calculate_out_variables_full_roundness_irregular_circular(bool calculate_r_gon_p
 }
 #endif
 
-ccl_device float4 calculate_out_variables_irregular_circular(bool calculate_r_gon_parameter_field,
-                                                             bool calculate_max_unit_parameter,
-                                                             bool normalize_r_gon_parameter,
-                                                             float r_gon_sides,
-                                                             float r_gon_roundness,
-                                                             float2 coord,
-                                                             float l_coord)
+static ccl_device float4
+calculate_out_variables_irregular_circular(bool calculate_r_gon_parameter_field,
+                                           bool calculate_max_unit_parameter,
+                                           bool normalize_r_gon_parameter,
+                                           float r_gon_sides,
+                                           float r_gon_roundness,
+                                           float2 coord,
+                                           float l_coord)
 {
 #ifdef ADAPT_TO_SVM
   /* Silence compiler warnings. */
