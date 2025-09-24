@@ -72,9 +72,10 @@
 
 /* Logging types to use anywhere in the Python modules. */
 
-CLG_LOGREF_DECLARE_GLOBAL(BPY_LOG_CONTEXT, "bpy.context");
 CLG_LOGREF_DECLARE_GLOBAL(BPY_LOG_INTERFACE, "bpy.interface");
 CLG_LOGREF_DECLARE_GLOBAL(BPY_LOG_RNA, "bpy.rna");
+
+extern CLG_LogRef *BKE_LOG_CONTEXT;
 
 /* For internal use, when starting and ending Python scripts. */
 
@@ -773,6 +774,29 @@ void BPY_modules_load_user(bContext *C)
   bpy_context_clear(C, &gilstate);
 }
 
+/** Helper function for logging context member access errors with both CLI and Python support */
+static void bpy_context_log_member_error(const bContext *C, const char *message)
+{
+  const bool use_logging_info = CLOG_CHECK(BKE_LOG_CONTEXT, CLG_LEVEL_INFO);
+  const bool use_logging_member = C && CTX_member_logging_get(C);
+  if (!(use_logging_info || use_logging_member)) {
+    return;
+  }
+
+  std::optional<std::string> python_location = BPY_python_current_file_and_line();
+  const char *location = python_location ? python_location->c_str() : "unknown:0";
+
+  if (use_logging_info) {
+    CLOG_INFO(BKE_LOG_CONTEXT, "%s: %s", location, message);
+  }
+  else if (use_logging_member) {
+    CLOG_AT_LEVEL_NOCHECK(BKE_LOG_CONTEXT, CLG_LEVEL_INFO, "%s: %s", location, message);
+  }
+  else {
+    BLI_assert_unreachable();
+  }
+}
+
 bool BPY_context_member_get(bContext *C, const char *member, bContextDataResult *result)
 {
   PyGILState_STATE gilstate;
@@ -821,10 +845,11 @@ bool BPY_context_member_get(bContext *C, const char *member, bContextDataResult 
           CTX_data_list_add_ptr(result, ptr);
         }
         else {
-          CLOG_INFO(BPY_LOG_CONTEXT,
-                    "'%s' list item not a valid type in sequence type '%s'",
-                    member,
-                    Py_TYPE(item)->tp_name);
+          /* Log invalid list item type */
+          std::string message = std::string("'") + member +
+                                "' list item not a valid type in sequence type '" +
+                                Py_TYPE(list_item)->tp_name + "'";
+          bpy_context_log_member_error(C, message.c_str());
         }
       }
       Py_DECREF(seq_fast);
@@ -835,14 +860,10 @@ bool BPY_context_member_get(bContext *C, const char *member, bContextDataResult 
 
   if (done == false) {
     if (item) {
-      CLOG_INFO(BPY_LOG_CONTEXT, "'%s' not a valid type", member);
+      /* Log invalid member type */
+      std::string message = std::string("'") + member + "' not a valid type";
+      bpy_context_log_member_error(C, message.c_str());
     }
-    else {
-      CLOG_INFO(BPY_LOG_CONTEXT, "'%s' not found", member);
-    }
-  }
-  else {
-    CLOG_DEBUG(BPY_LOG_CONTEXT, "'%s' found", member);
   }
 
   if (use_gil) {
