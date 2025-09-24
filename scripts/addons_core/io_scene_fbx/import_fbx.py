@@ -15,7 +15,7 @@ if "bpy" in locals():
         importlib.reload(fbx_utils)
 
 import bpy
-from bpy.app.translations import pgettext_tip as tip_
+from bpy.app.translations import pgettext_rpt as rpt_
 from mathutils import Matrix, Euler, Vector, Quaternion
 from bpy_extras import anim_utils
 
@@ -3090,7 +3090,7 @@ def load(operator, context, filepath="",
         is_ascii = False
 
     if is_ascii:
-        operator.report({'ERROR'}, tip_("ASCII FBX files are not supported %r") % filepath)
+        operator.report({'ERROR'}, rpt_("ASCII FBX files are not supported %r") % filepath)
         return {'CANCELLED'}
     del is_ascii
     # End ascii detection.
@@ -3101,11 +3101,11 @@ def load(operator, context, filepath="",
         import traceback
         traceback.print_exc()
 
-        operator.report({'ERROR'}, tip_("Couldn't open file %r (%s)") % (filepath, e))
+        operator.report({'ERROR'}, rpt_("Couldn't open file %r (%s)") % (filepath, e))
         return {'CANCELLED'}
 
     if version < 7100:
-        operator.report({'ERROR'}, tip_("Version %r unsupported, must be %r or later") % (version, 7100))
+        operator.report({'ERROR'}, rpt_("Version %r unsupported, must be %r or later") % (version, 7100))
         return {'CANCELLED'}
 
     print("FBX version: %r" % version)
@@ -3140,7 +3140,7 @@ def load(operator, context, filepath="",
     fbx_settings = elem_find_first(elem_root, b'GlobalSettings')
     fbx_settings_props = elem_find_first(fbx_settings, b'Properties70')
     if fbx_settings is None or fbx_settings_props is None:
-        operator.report({'ERROR'}, tip_("No 'GlobalSettings' found in file %r") % filepath)
+        operator.report({'ERROR'}, rpt_("No 'GlobalSettings' found in file %r") % filepath)
         return {'CANCELLED'}
 
     # FBX default base unit seems to be the centimeter, while raw Blender Unit is equivalent to the meter...
@@ -3207,10 +3207,10 @@ def load(operator, context, filepath="",
     fbx_connections = elem_find_first(elem_root, b'Connections')
 
     if fbx_nodes is None:
-        operator.report({'ERROR'}, tip_("No 'Objects' found in file %r") % filepath)
+        operator.report({'ERROR'}, rpt_("No 'Objects' found in file %r") % filepath)
         return {'CANCELLED'}
     if fbx_connections is None:
-        operator.report({'ERROR'}, tip_("No 'Connections' found in file %r") % filepath)
+        operator.report({'ERROR'}, rpt_("No 'Connections' found in file %r") % filepath)
         return {'CANCELLED'}
 
     # ----
