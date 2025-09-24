@@ -381,11 +381,11 @@ void EDBM_selectmode_flush(BMEditMesh *em)
   EDBM_selectmode_flush_ex(em, em->selectmode);
 }
 
-void EDBM_select_flush(BMEditMesh *em, const bool select)
+void EDBM_select_flush_from_verts(BMEditMesh *em, const bool select)
 {
   /* Function below doesn't use. just do this to keep the values in sync. */
   em->bm->selectmode = em->selectmode;
-  BM_mesh_select_flush(em->bm, select);
+  BM_mesh_select_flush_from_verts(em->bm, select);
 }
 
 void EDBM_select_more(BMEditMesh *em, const bool use_face_step)

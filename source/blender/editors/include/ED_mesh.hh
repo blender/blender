@@ -137,12 +137,12 @@ void EDBM_selectmode_flush_ex(BMEditMesh *em, short selectmode);
 void EDBM_selectmode_flush(BMEditMesh *em);
 
 /**
- * Mode independent selection/de-selection flush.
+ * Mode independent selection/de-selection flush from vertices.
  *
  * \param select: When true, flush the selection state to de-selected elements,
  * otherwise perform the opposite, flushing de-selection.
  */
-void EDBM_select_flush(BMEditMesh *em, bool select);
+void EDBM_select_flush_from_verts(BMEditMesh *em, bool select);
 
 bool EDBM_vert_color_check(BMEditMesh *em);
 

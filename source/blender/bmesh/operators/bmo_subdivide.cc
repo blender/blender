@@ -1362,7 +1362,7 @@ void BM_mesh_esubdivide(BMesh *bm,
       if (edge_hflag & BM_ELEM_SELECT) {
         BMO_slot_buffer_hflag_enable(
             bm, op.slots_out, "geom_inner.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, true);
-        BM_mesh_select_flush(bm, true);
+        BM_mesh_select_flush_from_verts(bm, true);
       }
       break;
     }

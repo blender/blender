@@ -1153,7 +1153,7 @@ static void vgroup_select_verts(const ToolSettings &tool_settings,
 
         /* This has to be called, because this function operates on vertices only.
          * Vertices to edges/faces. */
-        EDBM_select_flush(em, select);
+        EDBM_select_flush_from_verts(em, select);
       }
     }
     else {

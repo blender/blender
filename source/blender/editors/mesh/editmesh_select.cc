@@ -2470,7 +2470,7 @@ void EDBM_selectmode_set(BMEditMesh *em, const short selectmode)
 
   if (em->selectmode & SCE_SELECT_VERTEX) {
     if (em->bm->totvertsel) {
-      EDBM_select_flush(em, true);
+      EDBM_select_flush_from_verts(em, true);
     }
   }
   else if (em->selectmode & SCE_SELECT_EDGE) {
@@ -2585,7 +2585,7 @@ void EDBM_selectmode_convert(BMEditMesh *em,
         }
       }
       /* Deselect edges without both verts selected. */
-      BM_mesh_select_flush(bm, false);
+      BM_mesh_select_flush_from_verts(bm, false);
     }
   }
   else if (selectmode_old == SCE_SELECT_FACE) {
@@ -2601,7 +2601,7 @@ void EDBM_selectmode_convert(BMEditMesh *em,
         }
       }
       /* Deselect faces without edges selected. */
-      BM_mesh_select_flush(bm, false);
+      BM_mesh_select_flush_from_verts(bm, false);
     }
     else if (selectmode_new == SCE_SELECT_VERTEX) {
       /* Flush down (face -> vert). */
@@ -2612,7 +2612,7 @@ void EDBM_selectmode_convert(BMEditMesh *em,
         }
       }
       /* Deselect faces without verts selected. */
-      BM_mesh_select_flush(bm, false);
+      BM_mesh_select_flush_from_verts(bm, false);
     }
   }
 }
@@ -5349,11 +5349,11 @@ static wmOperatorStatus edbm_select_random_exec(bContext *C, wmOperator *op)
     }
 
     if (select) {
-      /* Was #EDBM_select_flush, but it over selects in edge/face mode. */
+      /* Was #EDBM_select_flush_from_verts, but it over selects in edge/face mode. */
       EDBM_selectmode_flush(em);
     }
     else {
-      EDBM_select_flush(em, false);
+      EDBM_select_flush_from_verts(em, false);
     }
 
     DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);

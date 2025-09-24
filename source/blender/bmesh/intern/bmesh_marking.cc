@@ -439,7 +439,7 @@ void BM_mesh_select_mode_flush(BMesh *bm)
 
 /** \} */
 
-void BM_mesh_select_flush(BMesh *bm, const bool select)
+void BM_mesh_select_flush_from_verts(BMesh *bm, const bool select)
 {
   if (select) {
     BMEdge *e;

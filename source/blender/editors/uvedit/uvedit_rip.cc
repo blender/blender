@@ -884,7 +884,7 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
     }
   }
   if (changed) {
-    uvedit_select_flush(scene, bm, false);
+    uvedit_select_flush_from_verts(scene, bm, false);
   }
   return changed;
 }
