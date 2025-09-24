@@ -57,8 +57,12 @@ ListBase TreeDisplayLibraries::build_tree(const TreeSourceData &source_data)
     }
   }
 
-  /* make hierarchy */
-  for (TreeElement *ten : List<TreeElement>(tree)) {
+  /* Make hierarchy.
+   *
+   * Note: `List<T>` template is similar to `LISTBASE_FOREACH`, _not_ `LISTBASE_FOREACH_MUTABLE`,
+   * so we need to iterate over an actual copy of the original list here, to avoid missing some
+   * items. */
+  for (TreeElement *ten : listbase_to_vector<TreeElement>(tree)) {
     if (ten == tree.first) {
       /* First item is main, skip. */
       continue;
@@ -71,21 +75,11 @@ ListBase TreeDisplayLibraries::build_tree(const TreeSourceData &source_data)
       continue;
     }
 
-    TreeElement *parent = (TreeElement *)lib->runtime->parent->id.newid;
-
-    if (tselem->id->tag & ID_TAG_INDIRECT) {
-      /* Only remove from 'first level' if lib is not also directly used. */
-      BLI_remlink(&tree, ten);
-      BLI_addtail(&parent->subtree, ten);
-      ten->parent = parent;
-    }
-    else {
-      /* Else, make a new copy of the libtree for our parent. */
-      TreeElement *dupten = add_library_contents(*source_data.bmain, parent->subtree, lib);
-      if (dupten) {
-        dupten->parent = parent;
-      }
-    }
+    /* A library with a non-null `parent` is always strictly indirectly linked. */
+    TreeElement *parent = reinterpret_cast<TreeElement *>(lib->runtime->parent->id.newid);
+    BLI_remlink(&tree, ten);
+    BLI_addtail(&parent->subtree, ten);
+    ten->parent = parent;
   }
   /* restore newid pointers */
   for (ID *library_id : List<ID>(source_data.bmain->libraries)) {
