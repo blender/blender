@@ -156,14 +156,14 @@ typedef struct bNodeSocket {
   void *default_value;
 
   /** Local stack index for "node_exec". */
-  short stack_index;
+  int stack_index;
   char display_shape;
 
   /* #AttrDomain used when the geometry nodes modifier creates an attribute for a group
    * output. */
   char attribute_domain;
 
-  char _pad[4];
+  char _pad[2];
 
   /** Custom dynamic defined label. */
   char label[/*MAX_NAME*/ 64];
