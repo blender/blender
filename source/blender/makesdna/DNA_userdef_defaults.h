@@ -19,7 +19,7 @@
 #define _DNA_DEFAULT_bUserAssetLibrary \
   { \
     .import_method = ASSET_IMPORT_APPEND_REUSE, \
-    .flag = ASSET_LIBRARY_RELATIVE_PATH, \
+    .flag = ASSET_LIBRARY_RELATIVE_PATH | USER_FILECOMPRESS, \
   }
 
 /** \} */
