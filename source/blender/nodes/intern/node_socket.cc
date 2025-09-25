@@ -537,7 +537,7 @@ bool socket_type_supports_fields(const eNodeSocketDatatype socket_type)
 
 bool socket_type_supports_grids(const eNodeSocketDatatype socket_type)
 {
-  return ELEM(socket_type, SOCK_FLOAT, SOCK_VECTOR);
+  return ELEM(socket_type, SOCK_FLOAT, SOCK_VECTOR, SOCK_INT, SOCK_BOOLEAN);
 }
 
 bool socket_type_always_single(const eNodeSocketDatatype socket_type)

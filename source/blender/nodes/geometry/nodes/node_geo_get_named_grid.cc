@@ -43,11 +43,6 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
   layout->prop(ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
 }
 
-static void node_init(bNodeTree * /*tree*/, bNode *node)
-{
-  node->custom1 = SOCK_FLOAT;
-}
-
 static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_OPENVDB
@@ -79,12 +74,17 @@ static void node_geo_exec(GeoNodeExecParams params)
 #endif
 }
 
+static void node_init(bNodeTree * /*tree*/, bNode *node)
+{
+  node->custom1 = SOCK_FLOAT;
+}
+
 static void node_rna(StructRNA *srna)
 {
   RNA_def_node_enum(srna,
                     "data_type",
                     "Data Type",
-                    "Type of grid data",
+                    "Node socket data type",
                     rna_enum_node_socket_data_type_items,
                     NOD_inline_enum_accessors(custom1),
                     SOCK_FLOAT,
