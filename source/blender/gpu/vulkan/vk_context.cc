@@ -285,7 +285,7 @@ void VKContext::rendering_end()
 
 void VKContext::update_pipeline_data(GPUPrimType primitive,
                                      VKVertexAttributeObject &vao,
-                                     render_graph::VKPipelineData &r_pipeline_data)
+                                     render_graph::VKPipelineDataGraphics &r_pipeline_data)
 {
   VKShader &vk_shader = unwrap(*shader);
   VKFrameBuffer &framebuffer = *active_framebuffer_get();
@@ -296,10 +296,28 @@ void VKContext::update_pipeline_data(GPUPrimType primitive,
     GPU_shader_uniform_1f(shader, "size", -point_size);
   }
 
+  /* Dynamic state line width */
+  const bool is_line_primitive = ELEM(primitive,
+                                      GPU_PRIM_LINES,
+                                      GPU_PRIM_LINE_LOOP,
+                                      GPU_PRIM_LINE_STRIP,
+                                      GPU_PRIM_LINES_ADJ,
+                                      GPU_PRIM_LINE_STRIP_ADJ);
+
+  if (is_line_primitive) {
+    const bool supports_wide_lines = VKBackend::get().device.extensions_get().wide_lines;
+    r_pipeline_data.line_width = supports_wide_lines ?
+                                     state_manager_get().mutable_state.line_width :
+                                     1.0f;
+  }
+  else {
+    r_pipeline_data.line_width.reset();
+  }
+
   update_pipeline_data(vk_shader,
                        vk_shader.ensure_and_get_graphics_pipeline(
                            primitive, vao, state_manager_get(), framebuffer, constants_state_),
-                       r_pipeline_data);
+                       r_pipeline_data.pipeline_data);
 }
 
 void VKContext::update_pipeline_data(render_graph::VKPipelineData &r_pipeline_data)

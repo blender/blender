@@ -23,13 +23,19 @@ void vk_pipeline_data_copy(VKPipelineData &dst, const VKPipelineData &src)
   }
 }
 
-void vk_pipeline_viewport_set_commands(VKCommandBufferInterface &command_buffer,
-                                       const VKViewportData &viewport_data,
-                                       VKViewportData &r_viewport_state)
+void vk_pipeline_dynamic_graphics_build_commands(VKCommandBufferInterface &command_buffer,
+                                                 const VKViewportData &viewport,
+                                                 const std::optional<float> line_width,
+                                                 VKBoundPipelines &r_bound_pipelines)
 {
-  if (assign_if_different(r_viewport_state, viewport_data)) {
-    command_buffer.set_viewport(viewport_data.viewports);
-    command_buffer.set_scissor(viewport_data.scissors);
+  if (assign_if_different(r_bound_pipelines.graphics.viewport_state, viewport)) {
+    command_buffer.set_viewport(viewport.viewports);
+    command_buffer.set_scissor(viewport.scissors);
+  }
+  if (assign_if_different(r_bound_pipelines.graphics.line_width, line_width)) {
+    if (line_width.has_value()) {
+      command_buffer.set_line_width(*line_width);
+    }
   }
 }
 

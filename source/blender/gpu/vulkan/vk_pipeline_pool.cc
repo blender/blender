@@ -101,7 +101,8 @@ VKPipelinePool::VKPipelinePool()
   vk_pipeline_rasterization_provoking_vertex_state_info_.provokingVertexMode =
       VK_PROVOKING_VERTEX_MODE_LAST_VERTEX_EXT;
 
-  vk_dynamic_states_ = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+  vk_dynamic_states_ = {
+      VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR, VK_DYNAMIC_STATE_LINE_WIDTH};
   vk_pipeline_dynamic_state_create_info_ = {};
   vk_pipeline_dynamic_state_create_info_.sType =
       VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
@@ -300,7 +301,13 @@ VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(VKGraphicsInfo &graph
           VK_PROVOKING_VERTEX_MODE_FIRST_VERTEX_EXT;
 
   /* Dynamic state */
-  vk_pipeline_dynamic_state_create_info_.dynamicStateCount = vk_dynamic_states_.size();
+  const bool is_line_topology = ELEM(graphics_info.vertex_in.vk_topology,
+                                     VK_PRIMITIVE_TOPOLOGY_LINE_LIST,
+                                     VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY,
+                                     VK_PRIMITIVE_TOPOLOGY_LINE_STRIP);
+  vk_pipeline_dynamic_state_create_info_.dynamicStateCount = is_line_topology ?
+                                                                 vk_dynamic_states_.size() :
+                                                                 vk_dynamic_states_.size() - 1;
   vk_pipeline_dynamic_state_create_info_.pDynamicStates = vk_dynamic_states_.data();
 
   /* Viewport state */
@@ -583,7 +590,7 @@ VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(VKGraphicsInfo &graph
   VKBackend &backend = VKBackend::get();
   VKDevice &device = backend.device;
   if (device.extensions_get().descriptor_buffer) {
-    vk_graphics_pipeline_create_info_.flags = VK_PIPELINE_CREATE_DESCRIPTOR_BUFFER_BIT_EXT;
+    vk_graphics_pipeline_create_info_.flags |= VK_PIPELINE_CREATE_DESCRIPTOR_BUFFER_BIT_EXT;
   }
 
   VkPipeline pipeline = VK_NULL_HANDLE;

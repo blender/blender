@@ -428,6 +428,7 @@ void VKBackend::detect_workarounds(VKDevice &device)
     extensions.dynamic_rendering_unused_attachments = false;
     extensions.descriptor_buffer = false;
     extensions.pageable_device_local_memory = false;
+    extensions.wide_lines = false;
     GCaps.stencil_export_support = false;
 
     device.workarounds_ = workarounds;
@@ -439,6 +440,7 @@ void VKBackend::detect_workarounds(VKDevice &device)
       device.physical_device_vulkan_12_features_get().shaderOutputLayer;
   extensions.shader_output_viewport_index =
       device.physical_device_vulkan_12_features_get().shaderOutputViewportIndex;
+  extensions.wide_lines = device.physical_device_features_get().wideLines;
   extensions.fragment_shader_barycentric = device.supports_extension(
       VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME);
   extensions.dynamic_rendering_local_read = device.supports_extension(

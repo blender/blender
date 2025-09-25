@@ -17,10 +17,9 @@ namespace blender::gpu::render_graph {
  * Information stored inside the render graph node. See `VKRenderGraphNode`.
  */
 struct VKDrawIndexedData {
-  VKPipelineData pipeline_data;
+  VKPipelineDataGraphics graphics;
   VKIndexBufferBinding index_buffer;
   VKVertexBufferBindings vertex_buffers;
-  VKViewportData viewport_data;
   uint32_t index_count;
   uint32_t instance_count;
   uint32_t first_index;
@@ -51,8 +50,8 @@ class VKDrawIndexedNode : public VKNodeInfo<VKNodeType::DRAW_INDEXED,
   static void set_node_data(Node &node, Storage &storage, const CreateInfo &create_info)
   {
     node.storage_index = storage.draw_indexed.append_and_get_index(create_info.node_data);
-    vk_pipeline_data_copy(storage.draw_indexed[node.storage_index].pipeline_data,
-                          create_info.node_data.pipeline_data);
+    vk_pipeline_data_copy(storage.draw_indexed[node.storage_index].graphics,
+                          create_info.node_data.graphics);
   }
 
   /**
@@ -75,10 +74,10 @@ class VKDrawIndexedNode : public VKNodeInfo<VKNodeType::DRAW_INDEXED,
                       Data &data,
                       VKBoundPipelines &r_bound_pipelines) override
   {
-    vk_pipeline_viewport_set_commands(
-        command_buffer, data.viewport_data, r_bound_pipelines.graphics.viewport_state);
+    vk_pipeline_dynamic_graphics_build_commands(
+        command_buffer, data.graphics.viewport, data.graphics.line_width, r_bound_pipelines);
     vk_pipeline_data_build_commands(command_buffer,
-                                    data.pipeline_data,
+                                    data.graphics.pipeline_data,
                                     r_bound_pipelines.graphics.pipeline,
                                     VK_PIPELINE_BIND_POINT_GRAPHICS,
                                     VK_SHADER_STAGE_ALL_GRAPHICS);
@@ -95,7 +94,7 @@ class VKDrawIndexedNode : public VKNodeInfo<VKNodeType::DRAW_INDEXED,
 
   void free_data(Data &data)
   {
-    vk_pipeline_data_free(data.pipeline_data);
+    vk_pipeline_data_free(data.graphics);
   }
 };
 }  // namespace blender::gpu::render_graph

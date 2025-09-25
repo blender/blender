@@ -42,6 +42,12 @@ struct VKExtensions {
   bool fragment_shader_barycentric = false;
 
   /**
+   * Does the device support wide line rendering
+   * VkPhysicalDeviceFeatures::wideLines
+   */
+  bool wide_lines = false;
+
+  /**
    * Does the device support VK_KHR_dynamic_rendering_local_read enabled.
    */
   bool dynamic_rendering_local_read = false;

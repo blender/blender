@@ -135,7 +135,7 @@ class VKContext : public Context, NonCopyable {
   void update_pipeline_data(render_graph::VKPipelineData &r_pipeline_data);
   void update_pipeline_data(GPUPrimType primitive,
                             VKVertexAttributeObject &vao,
-                            render_graph::VKPipelineData &r_pipeline_data);
+                            render_graph::VKPipelineDataGraphics &r_pipeline_data);
 
   void sync_backbuffer();
 
