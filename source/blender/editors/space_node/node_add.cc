@@ -179,7 +179,10 @@ static wmOperatorStatus add_reroute_exec(bContext *C, wmOperator *op)
    * Further deduplication using the second map means we only have one cut per link. */
   Map<bNodeSocket *, RerouteCutsForSocket> cuts_per_socket;
 
+  int intersection_count = 0;
+
   LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
+
     if (node_link_is_hidden_or_dimmed(region.v2d, *link)) {
       continue;
     }
@@ -190,12 +193,17 @@ static wmOperatorStatus add_reroute_exec(bContext *C, wmOperator *op)
     RerouteCutsForSocket &from_cuts = cuts_per_socket.lookup_or_add_default(link->fromsock);
     from_cuts.from_node = link->fromnode;
     from_cuts.links.add(link, *cut);
+    intersection_count++;
   }
 
   for (const auto item : cuts_per_socket.items()) {
     const Map<bNodeLink *, float2> &cuts = item.value.links;
 
     bNode *reroute = bke::node_add_static_node(C, ntree, NODE_REROUTE);
+
+    if (intersection_count == 1) {
+      bke::node_set_active(ntree, *reroute);
+    }
 
     bke::node_add_link(ntree,
                        *item.value.from_node,
