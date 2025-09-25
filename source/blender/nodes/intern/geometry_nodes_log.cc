@@ -386,6 +386,7 @@ const bke::GeometrySet *ViewerNodeLog::main_geometry() const
 {
   main_geometry_cache_mutex_.ensure([&]() {
     for (const Item &item : this->items) {
+#ifdef WITH_OPENVDB
       if (item.value.is_volume_grid()) {
         const bke::GVolumeGrid grid = item.value.get<bke::GVolumeGrid>();
         Volume *volume = BKE_id_new_nomain<Volume>(nullptr);
@@ -394,6 +395,7 @@ const bke::GeometrySet *ViewerNodeLog::main_geometry() const
         main_geometry_cache_ = bke::GeometrySet::from_volume(volume);
         return;
       }
+#endif
       if (item.value.is_single() && item.value.get_single_ptr().is_type<bke::GeometrySet>()) {
         main_geometry_cache_ = *item.value.get_single_ptr().get<bke::GeometrySet>();
         return;

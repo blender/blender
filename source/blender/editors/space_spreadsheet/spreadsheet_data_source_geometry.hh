@@ -94,6 +94,8 @@ class VolumeDataSource : public DataSource {
   int tot_rows() const override;
 };
 
+#ifdef WITH_OPENVDB
+
 class VolumeGridDataSource : public DataSource {
   /** Using #unique_ptr so that `BKE_volume_grid_fwd.hh` can be used. */
   std::unique_ptr<bke::GVolumeGrid> grid_;
@@ -109,6 +111,8 @@ class VolumeGridDataSource : public DataSource {
 
   int tot_rows() const override;
 };
+
+#endif
 
 class ListDataSource : public DataSource {
   nodes::ListPtr list_;
