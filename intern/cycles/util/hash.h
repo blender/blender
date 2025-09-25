@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "util/defines.h"
 #include "util/math.h"
 #include "util/types.h"
 
@@ -31,9 +32,11 @@ ccl_device_forceinline float uint_to_float_incl(const uint n)
  * https://jcgt.org/published/0009/03/02/
  *
  * Slightly modified to only use signed integers,
- * so that they can also be implemented in OSL. */
+ * so that they can also be implemented in OSL.
+ *
+ * Silence UBsan warnings about signed integer overflow. */
 
-ccl_device_inline int2 hash_pcg2d_i(int2 v)
+ccl_ignore_integer_overflow ccl_device_inline int2 hash_pcg2d_i(int2 v)
 {
   v = v * make_int2(1664525) + make_int2(1013904223);
   v.x += v.y * 1664525;
@@ -44,7 +47,7 @@ ccl_device_inline int2 hash_pcg2d_i(int2 v)
   return v & make_int2(0x7FFFFFFF);
 }
 
-ccl_device_inline int3 hash_pcg3d_i(int3 v)
+ccl_ignore_integer_overflow ccl_device_inline int3 hash_pcg3d_i(int3 v)
 {
   v = v * make_int3(1664525) + make_int3(1013904223);
   v.x += v.y * v.z;
@@ -57,7 +60,7 @@ ccl_device_inline int3 hash_pcg3d_i(int3 v)
   return v & make_int3(0x7FFFFFFF);
 }
 
-ccl_device_inline int4 hash_pcg4d_i(int4 v)
+ccl_ignore_integer_overflow ccl_device_inline int4 hash_pcg4d_i(int4 v)
 {
   v = v * make_int4(1664525) + make_int4(1013904223);
   v.x += v.y * v.w;
