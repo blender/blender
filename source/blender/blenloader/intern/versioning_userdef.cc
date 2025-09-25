@@ -367,6 +367,14 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(regions.scrubbing.time_marker_selected);
   }
 
+  if (!USER_VERSION_ATLEAST(500, 91)) {
+    FROM_DEFAULT_V4_UCHAR(space_view3d.bevel);
+    FROM_DEFAULT_V4_UCHAR(space_view3d.seam);
+    FROM_DEFAULT_V4_UCHAR(space_view3d.sharp);
+    FROM_DEFAULT_V4_UCHAR(space_view3d.crease);
+    FROM_DEFAULT_V4_UCHAR(space_view3d.freestyle);
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a USER_VERSION_ATLEAST check.
