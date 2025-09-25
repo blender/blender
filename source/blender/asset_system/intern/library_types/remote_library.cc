@@ -6,8 +6,6 @@
  * \ingroup asset_system
  */
 
-#include <filesystem>
-
 #include <fmt/format.h>
 
 #include "BLI_fileops.h"
@@ -343,10 +341,18 @@ void remote_library_request_asset_download(bContext &C,
         "    dst_filepath, Path(dst_filepath),\n"
         ")\n";
 
-    BPY_run_string_exec(&C, expr_imports, expr.c_str());
+    std::unique_ptr locals = bke::idprop::create_group("locals");
+    IDP_AddToGroup(locals.get(), IDP_NewString(*library_url, "library_url"));
+    IDP_AddToGroup(locals.get(), IDP_NewString(library.root_path(), "library_path"));
+    IDP_AddToGroup(locals.get(), IDP_NewString(*dst_filepath, "dst_filepath"));
+
+    /* TODO: report errors in the UI somehow. */
+    BPY_run_string_with_locals(&C, script, *locals);
   }
 #else
-  UNUSED_VARS(C, asset, reports);
+  UNUSED_VARS(C, asset);
+  BKE_report(
+      reports, RPT_ERROR, "Downloading assets requires Python, and this Blender is built without");
 #endif
 }
 
@@ -376,33 +382,31 @@ void remote_library_request_preview_download(bContext &C,
   }
 
   const StringRef library_path = library.root_path();
-
   {
-    const char *expr_imports[] = {"_bpy_internal",
-                                  "_bpy_internal.assets.remote_library_listing.asset_downloader",
-                                  "pathlib",
-                                  nullptr};
-    const std::string expr = fmt::format(
-        "_bpy_internal.assets.remote_library_listing.asset_downloader.download_preview('{}', "
-        "pathlib.Path('{}'), '{}', pathlib.Path('{}'))",
-        *library_url,
-        library_path,
-        *preview_url,
-        asset.full_path());
+    std::string script =
+        "import _bpy_internal.assets.remote_library_listing.asset_downloader as asset_dl\n"
+        "from pathlib import Path\n"
+        "\n"
+        "asset_dl.download_preview(\n"
+        "    library_url, Path(library_path),\n"
+        "    preview_url, Path(asset_full_path),\n"
+        ")\n";
 
-    /* Construct local variables for the above script. */
     std::unique_ptr locals = bke::idprop::create_group("locals");
     IDP_AddToGroup(locals.get(), IDP_NewString(*library_url, "library_url"));
     IDP_AddToGroup(locals.get(), IDP_NewString(library.root_path(), "library_path"));
-    IDP_AddToGroup(locals.get(), IDP_NewString(*dst_filepath, "dst_filepath"));
+    IDP_AddToGroup(locals.get(), IDP_NewString(*preview_url, "preview_url"));
+    IDP_AddToGroup(locals.get(), IDP_NewString(asset.full_path(), "asset_full_path"));
 
     /* TODO: report errors in the UI somehow. */
     BPY_run_string_with_locals(&C, script, *locals);
   }
 #else
   UNUSED_VARS(C, asset);
-  BKE_report(
-      reports, RPT_ERROR, "Downloading assets requires Python, and this Blender is built without");
+  /* TODO should we use CLOG here? Otherwise every preview will trigger a report. */
+  BKE_report(reports,
+             RPT_ERROR,
+             "Downloading asset previews requires Python, and this Blender is built without");
 #endif
 }
 
