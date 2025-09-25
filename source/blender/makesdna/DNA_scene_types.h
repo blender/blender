@@ -481,6 +481,7 @@ typedef struct ImageFormatData {
 
   /** OpenEXR: R_IMF_EXR_CODEC_* values in low OPENEXR_CODEC_MASK bits. */
   char exr_codec;
+  char exr_flag;
 
   /** Jpeg2000. */
   char jp2_flag;
@@ -491,19 +492,18 @@ typedef struct ImageFormatData {
 
   /** CINEON. */
   char cineon_flag;
+  char _pad[3];
   short cineon_white, cineon_black;
   float cineon_gamma;
 
-  char _pad[3];
-
   /** Multi-view. */
-  char views_format;
   Stereo3dFormat stereo3d_format;
+  char views_format;
 
   /* Color management members. */
 
   char color_management;
-  char _pad1[7];
+  char _pad1[6];
   ColorManagedViewSettings view_settings;
   ColorManagedDisplaySettings display_settings;
   ColorManagedColorspaceSettings linear_colorspace_settings;
@@ -600,6 +600,11 @@ enum {
   R_IMF_EXR_CODEC_DWAA = 8,
   R_IMF_EXR_CODEC_DWAB = 9,
   R_IMF_EXR_CODEC_MAX = 10,
+};
+
+/** #ImageFormatData::exr_flag */
+enum {
+  R_IMF_EXR_FLAG_MULTIPART = 1 << 0,
 };
 
 /** #ImageFormatData::jp2_flag */

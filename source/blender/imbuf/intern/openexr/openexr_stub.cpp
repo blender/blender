@@ -9,7 +9,7 @@
 #include "BLI_string_ref.hh"
 #include "IMB_openexr.hh"
 
-ExrHandle *IMB_exr_get_handle()
+ExrHandle *IMB_exr_get_handle(bool /*write_multipart*/)
 {
   return nullptr;
 }

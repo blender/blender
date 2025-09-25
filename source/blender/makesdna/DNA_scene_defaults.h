@@ -23,6 +23,7 @@
     .depth = R_IMF_CHAN_DEPTH_8, \
     .quality = 90, \
     .compress = 15, \
+    .exr_flag = R_IMF_EXR_FLAG_MULTIPART, \
   }
 
 #define _DNA_DEFAULT_BakeData \

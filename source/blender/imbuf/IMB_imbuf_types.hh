@@ -42,6 +42,7 @@ using ColorSpace = blender::ocio::ColorSpace;
  */
 
 #define OPENEXR_HALF (1 << 8)
+#define OPENEXR_MULTIPART (1 << 9)
 /* Lowest bits of foptions.flag / exr_codec contain actual codec enum. */
 #define OPENEXR_CODEC_MASK (0xF)
 

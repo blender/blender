@@ -23,11 +23,11 @@
 struct StampData;
 struct ExrHandle;
 
-ExrHandle *IMB_exr_get_handle();
+ExrHandle *IMB_exr_get_handle(bool write_multipart = false);
 
 /**
  * Add multiple channels to EXR file.
- * The number of channels is determined by channelnames.size() without
+ * The number of channels is determined by channelnames.size() with
  * each character a channel name.
  * Layer and pass name, and view name are optional.
  */

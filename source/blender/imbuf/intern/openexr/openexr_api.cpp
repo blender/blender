@@ -769,8 +769,9 @@ bool imb_save_openexr(ImBuf *ibuf, const char *filepath, int flags)
 
 /* flattened out channel */
 struct ExrChannel {
-  /* Number of the part. */
-  int part_number;
+  /* Name and number of the part. */
+  std::string part_name;
+  int part_number = 0;
 
   /* Full name of the chanel. */
   std::string name;
@@ -816,9 +817,11 @@ struct ExrHandle {
   MultiPartInputFile *ifile = nullptr;
 
   OFileStream *ofile_stream = nullptr;
-  MultiPartOutputFile *ofile = nullptr;
+  MultiPartOutputFile *mpofile = nullptr;
+  OutputFile *ofile = nullptr;
 
-  bool write_multichannel = false;
+  bool write_multipart = false;
+  bool has_layer_pass_names = false;
 
   int tilex = 0, tiley = 0;
   int width = 0, height = 0;
@@ -836,9 +839,11 @@ static blender::Vector<ExrChannel> exr_channels_in_multi_part_file(const MultiPa
 
 /* ********************** */
 
-ExrHandle *IMB_exr_get_handle()
+ExrHandle *IMB_exr_get_handle(const bool write_multipart)
 {
-  return MEM_new<ExrHandle>("ExrHandle");
+  ExrHandle *handle = MEM_new<ExrHandle>("ExrHandle");
+  handle->write_multipart = write_multipart;
+  return handle;
 }
 
 /* multiview functions */
@@ -899,18 +904,29 @@ void IMB_exr_add_channels(ExrHandle *handle,
                           float *rect,
                           bool use_half_float)
 {
-  handle->channels.append_as();
-  ExrChannel &echan = handle->channels.last();
+  /* For multipart, part name includes view since part names must be unique. */
+  std::string part_name;
+  if (handle->write_multipart) {
+    part_name = layerpassname;
+    if (!viewname.is_empty()) {
+      if (part_name.empty()) {
+        part_name = viewname;
+      }
+      else {
+        part_name = part_name + "-" + viewname;
+      }
+    }
+  }
 
   /* If there are layer and pass names, we will write Blender multichannel metadata. */
   if (!layerpassname.is_empty()) {
-    handle->write_multichannel = true;
+    handle->has_layer_pass_names = true;
   }
 
   for (size_t channel = 0; channel < channelnames.size(); channel++) {
     /* Full channel name including view (when not using multipart) and channel. */
     std::string full_name = layerpassname;
-    if (!viewname.is_empty()) {
+    if (!handle->write_multipart && !viewname.is_empty()) {
       if (full_name.empty()) {
         full_name = viewname;
       }
@@ -925,8 +941,12 @@ void IMB_exr_add_channels(ExrHandle *handle,
       full_name = full_name + "." + channelnames[channel];
     }
 
+    handle->channels.append_as();
+    ExrChannel &echan = handle->channels.last();
+
     echan.name = full_name;
     echan.internal_name = full_name;
+    echan.part_name = part_name;
     echan.view = viewname;
 
     echan.xstride = xstride;
@@ -944,10 +964,10 @@ static void openexr_header_metadata_multi(ExrHandle *handle,
                                           const StampData *stamp)
 {
   openexr_header_metadata_global(&header, nullptr, ppm);
-  if (handle->write_multichannel) {
+  if (handle->has_layer_pass_names) {
     header.insert("BlenderMultiChannel", StringAttribute("Blender V2.55.1 and newer"));
   }
-  if (!handle->views.empty() && !handle->views[0].empty()) {
+  if (!handle->write_multipart && !handle->views.empty() && !handle->views[0].empty()) {
     addMultiView(header, handle->views);
   }
   BKE_stamp_info_callback(
@@ -963,44 +983,87 @@ bool IMB_exr_begin_write(ExrHandle *handle,
                          int quality,
                          const StampData *stamp)
 {
+  if (handle->channels.is_empty()) {
+    CLOG_ERROR(&LOG, "Attempt to save MultiLayer without layers.");
+    return false;
+  }
+
   Header header(width, height);
 
   handle->width = width;
   handle->height = height;
 
   openexr_header_compression(&header, compress, quality);
-  openexr_header_metadata_multi(handle, header, ppm, stamp);
+
+  blender::Vector<Header> part_headers;
+
+  blender::StringRefNull last_part_name;
 
   for (const ExrChannel &echan : handle->channels) {
-    header.channels().insert(echan.name, Channel(echan.use_half_float ? Imf::HALF : Imf::FLOAT));
+    if (part_headers.is_empty() || last_part_name != echan.part_name) {
+      Header part_header = header;
+
+      /* When writing multipart, set name, view and type in each part. */
+      if (handle->write_multipart) {
+        part_header.setName(echan.part_name);
+        if (!echan.view.empty()) {
+          part_header.insert("view", StringAttribute(echan.view));
+        }
+        part_header.insert("type", StringAttribute(SCANLINEIMAGE));
+      }
+
+      /* Store global metadata in the first header only. Large metadata like cryptomatte would
+       * be bad to duplicate many times. */
+      if (part_headers.is_empty()) {
+        openexr_header_metadata_multi(handle, part_header, ppm, stamp);
+      }
+
+      part_headers.append(std::move(part_header));
+      last_part_name = echan.part_name;
+    }
+
+    part_headers.last().channels().insert(echan.name,
+                                          Channel(echan.use_half_float ? Imf::HALF : Imf::FLOAT));
   }
+
+  BLI_assert(!(handle->write_multipart == false && part_headers.size() > 1));
 
   /* Avoid crash/abort when we don't have permission to write here. */
   /* Manually create `ofstream`, so we can handle UTF8 file-paths on windows. */
   try {
     handle->ofile_stream = new OFileStream(filepath);
-    handle->ofile = new MultiPartOutputFile(*(handle->ofile_stream), &header, 1);
+    if (handle->write_multipart) {
+      handle->mpofile = new MultiPartOutputFile(
+          *(handle->ofile_stream), part_headers.data(), part_headers.size());
+    }
+    else {
+      handle->ofile = new OutputFile(*(handle->ofile_stream), part_headers[0]);
+    }
   }
   catch (const std::exception &exc) {
     CLOG_ERROR(&LOG, "%s: %s", __func__, exc.what());
 
     delete handle->ofile;
+    delete handle->mpofile;
     delete handle->ofile_stream;
 
     handle->ofile = nullptr;
+    handle->mpofile = nullptr;
     handle->ofile_stream = nullptr;
   }
   catch (...) { /* Catch-all for edge cases or compiler bugs. */
     CLOG_ERROR(&LOG, "Unknown error in %s", __func__);
 
     delete handle->ofile;
+    delete handle->mpofile;
     delete handle->ofile_stream;
 
     handle->ofile = nullptr;
+    handle->mpofile = nullptr;
     handle->ofile_stream = nullptr;
   }
 
-  return (handle->ofile != nullptr);
+  return (handle->ofile != nullptr || handle->mpofile != nullptr);
 }
 
 bool IMB_exr_begin_read(
@@ -1070,13 +1133,14 @@ void IMB_exr_write_channels(ExrHandle *handle)
   }
 
   const size_t num_pixels = size_t(handle->width) * handle->height;
+  const size_t num_parts = (handle->mpofile) ? handle->mpofile->parts() : 1;
 
-  {
-    size_t part_num = 0;
+  for (size_t part_num = 0; part_num < num_parts; part_num++) {
+    const std::string &part_id = (handle->mpofile) ? handle->mpofile->header(part_num).name() : "";
     /* We allocate temporary storage for half pixels for all the channels at once. */
     int num_half_channels = 0;
     for (const ExrChannel &echan : handle->channels) {
-      if (echan.use_half_float) {
+      if (echan.part_name == part_id && echan.use_half_float) {
         num_half_channels++;
       }
     }
@@ -1092,6 +1156,10 @@ void IMB_exr_write_channels(ExrHandle *handle)
 
     for (const ExrChannel &echan : handle->channels) {
       /* Writing starts from last scan-line, stride negative. */
+      if (echan.part_name != part_id) {
+        continue;
+      }
+
       if (echan.use_half_float) {
         const float *rect = echan.rect;
         half *cur = current_rect_half;
@@ -1114,10 +1182,16 @@ void IMB_exr_write_channels(ExrHandle *handle)
       }
     }
 
-    OutputPart part(*handle->ofile, part_num);
-    part.setFrameBuffer(frameBuffer);
     try {
-      part.writePixels(handle->height);
+      if (handle->mpofile) {
+        OutputPart part(*handle->mpofile, part_num);
+        part.setFrameBuffer(frameBuffer);
+        part.writePixels(handle->height);
+      }
+      else {
+        handle->ofile->setFrameBuffer(frameBuffer);
+        handle->ofile->writePixels(handle->height);
+      }
     }
     catch (const std::exception &exc) {
       CLOG_ERROR(&LOG, "%s: %s", __func__, exc.what());
@@ -1256,12 +1330,8 @@ void IMB_exr_close(ExrHandle *handle)
   delete handle->ifile;
   delete handle->ifile_stream;
   delete handle->ofile;
+  delete handle->mpofile;
   delete handle->ofile_stream;
-
-  handle->ifile = nullptr;
-  handle->ifile_stream = nullptr;
-  handle->ofile = nullptr;
-  handle->ofile_stream = nullptr;
 
   MEM_delete(handle);
 }

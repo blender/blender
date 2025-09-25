@@ -21,6 +21,7 @@
 #include "BLT_translation.hh"
 
 #include "DNA_image_types.h"
+#include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -871,7 +872,8 @@ bool BKE_image_render_write_exr(ReportList *reports,
                                 const char *view,
                                 int layer)
 {
-  ExrHandle *exrhandle = IMB_exr_get_handle();
+  const int write_multipart = (imf ? imf->exr_flag & R_IMF_EXR_FLAG_MULTIPART : true);
+  ExrHandle *exrhandle = IMB_exr_get_handle(write_multipart);
   const bool multi_layer = !(imf && imf->imtype == R_IMF_IMTYPE_OPENEXR);
 
   /* Write first layer if not multilayer and no layer was specified. */
