@@ -720,7 +720,12 @@ class Preprocessor {
         parser.erase(tokens.front(), tokens.back());
         return;
       }
-      if (dependency_name.find("info.hh") != std::string::npos) {
+      if (dependency_name.find("infos.hh") != std::string::npos) {
+        /* Skip info files. They are only for IDE linting. */
+        parser.erase(tokens.front(), tokens.back());
+        return;
+      }
+      if (dependency_name.find("gpu_shader_create_info.hh") != std::string::npos) {
         /* Skip info files. They are only for IDE linting. */
         parser.erase(tokens.front(), tokens.back());
         return;

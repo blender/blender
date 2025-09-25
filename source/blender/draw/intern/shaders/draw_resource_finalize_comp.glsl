@@ -6,7 +6,7 @@
  * Finish computation of a few draw resource after sync.
  */
 
-#include "draw_view_info.hh"
+#include "draw_view_infos.hh"
 
 #include "gpu_shader_math_matrix_transform_lib.glsl"
 #include "gpu_shader_math_vector_reduce_lib.glsl"

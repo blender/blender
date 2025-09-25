@@ -8,7 +8,7 @@
  * Dispatched as one thread for each trace resolution pixel.
  */
 
-#include "infos/eevee_tracing_info.hh"
+#include "infos/eevee_tracing_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_horizon_setup)
 

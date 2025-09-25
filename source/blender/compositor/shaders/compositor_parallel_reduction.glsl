@@ -39,7 +39,7 @@
  * The shader is generic enough to implement many types of reductions. This is done by using macros
  * that the developer should define to implement a certain reduction operation. Those include,
  * TYPE, IDENTITY, INITIALIZE, LOAD, REDUCE, and WRITE. See the implementation below for more
- * information as well as the compositor_parallel_reduction_info.hh for example reductions
+ * information as well as the compositor_parallel_reduction_infos.hh for example reductions
  * operations. */
 
 /* Doing the reduction in shared memory is faster, so create a shared array where the whole data

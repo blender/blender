@@ -13,7 +13,7 @@
  * by Jorge Jimenez
  */
 
-#include "infos/eevee_motion_blur_info.hh"
+#include "infos/eevee_motion_blur_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_motion_blur_gather)
 

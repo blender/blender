@@ -9,7 +9,7 @@
  * Also does not weight luma for the bilateral weights.
  */
 
-#include "infos/eevee_depth_of_field_info.hh"
+#include "infos/eevee_depth_of_field_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_downsample)
 

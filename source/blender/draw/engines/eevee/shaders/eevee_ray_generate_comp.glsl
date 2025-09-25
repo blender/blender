@@ -7,7 +7,7 @@
  * by the next pass to trace the rays.
  */
 
-#include "infos/eevee_tracing_info.hh"
+#include "infos/eevee_tracing_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_ray_generate)
 

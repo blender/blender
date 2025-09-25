@@ -7,7 +7,7 @@
  * One thread processes one curve.
  */
 
-#include "draw_curves_info.hh"
+#include "draw_curves_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(draw_curves_evaluate_length_intercept)
 

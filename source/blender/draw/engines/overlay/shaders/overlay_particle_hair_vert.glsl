@@ -6,7 +6,7 @@
  * Draw particles as shapes using primitive expansion.
  */
 
-#include "infos/overlay_extra_info.hh"
+#include "infos/overlay_extra_infos.hh"
 
 VERTEX_SHADER_CREATE_INFO(overlay_particle_hair)
 

@@ -17,7 +17,7 @@
  * downsample to max level.
  */
 
-#include "infos/eevee_hiz_info.hh"
+#include "infos/eevee_hiz_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_hiz_update)
 

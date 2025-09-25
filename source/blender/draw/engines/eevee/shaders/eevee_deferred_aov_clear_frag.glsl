@@ -11,7 +11,7 @@
  * AOVs for the pixel affected by the next layer using stencil test after the prepass.
  */
 
-#include "infos/eevee_deferred_info.hh"
+#include "infos/eevee_deferred_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(eevee_deferred_aov_clear)
 

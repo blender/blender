@@ -8,7 +8,7 @@
  */
 /* TODO(fclem): Could reject bounding boxes that are covering only invalid tiles. */
 
-#include "infos/eevee_shadow_info.hh"
+#include "infos/eevee_shadow_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_shadow_view_visibility)
 

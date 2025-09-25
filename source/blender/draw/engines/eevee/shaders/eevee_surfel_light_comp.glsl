@@ -6,7 +6,7 @@
  * Apply lights contribution to scene surfel representation.
  */
 
-#include "infos/eevee_lightprobe_volume_info.hh"
+#include "infos/eevee_lightprobe_volume_infos.hh"
 
 #ifdef GLSL_CPP_STUBS
 #  define LIGHT_ITER_FORCE_NO_CULLING

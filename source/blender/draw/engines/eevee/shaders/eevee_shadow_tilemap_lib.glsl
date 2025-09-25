@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "infos/eevee_common_info.hh"
+#include "infos/eevee_common_infos.hh"
 
 #include "draw_shape_lib.glsl"
 #include "gpu_shader_math_constants_lib.glsl"

@@ -6,7 +6,7 @@
  * Select the visible items inside the active view and put them inside the sorting buffer.
  */
 
-#include "infos/eevee_light_culling_info.hh"
+#include "infos/eevee_light_culling_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_light_culling_select)
 

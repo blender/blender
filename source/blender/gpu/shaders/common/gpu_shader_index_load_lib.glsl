@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "infos/gpu_index_load_info.hh"
+#include "infos/gpu_index_load_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(gpu_index_buffer_load)
 

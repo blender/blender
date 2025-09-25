@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "subdiv_info.hh"
+#include "subdiv_infos.hh"
 
 #ifdef SUBDIV_POLYGON_OFFSET
 COMPUTE_SHADER_CREATE_INFO(subdiv_polygon_offset_base)

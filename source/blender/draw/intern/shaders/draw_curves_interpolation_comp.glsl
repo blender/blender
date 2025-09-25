@@ -9,7 +9,7 @@
  * Equivalent of `CurvesGeometry::evaluated_positions()`.
  */
 
-#include "draw_curves_info.hh"
+#include "draw_curves_infos.hh"
 
 #include "gpu_shader_attribute_load_lib.glsl"
 #include "gpu_shader_math_matrix_transform_lib.glsl"

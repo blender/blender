@@ -14,7 +14,7 @@
  *  Half-resolution Color, signed CoC (out_coc.x), and max slight focus abs CoC (out_coc.y).
  */
 
-#include "infos/eevee_depth_of_field_info.hh"
+#include "infos/eevee_depth_of_field_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_setup)
 

@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/overlay_antialiasing_info.hh"
+#include "infos/overlay_antialiasing_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(overlay_antialiasing)
 

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "infos/gpu_srgb_to_framebuffer_space_info.hh"
+#include "infos/gpu_srgb_to_framebuffer_space_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(gpu_srgb_to_framebuffer_space)
 

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "draw_view_info.hh"
+#include "draw_view_infos.hh"
 
 #include "draw_view_lib.glsl"
 

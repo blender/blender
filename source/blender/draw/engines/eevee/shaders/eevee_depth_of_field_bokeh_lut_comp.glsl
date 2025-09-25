@@ -10,7 +10,7 @@
  * as it is way more complex and expensive to do.
  */
 
-#include "infos/eevee_depth_of_field_info.hh"
+#include "infos/eevee_depth_of_field_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_bokeh_lut)
 

@@ -10,7 +10,7 @@
  * - tilemaps_tx
  */
 
-#include "infos/eevee_deferred_info.hh"
+#include "infos/eevee_deferred_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(eevee_deferred_thickness_amend)
 

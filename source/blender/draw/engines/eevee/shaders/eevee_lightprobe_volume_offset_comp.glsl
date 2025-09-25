@@ -10,7 +10,7 @@
  * Dispatched as 1 thread per irradiance probe sample.
  */
 
-#include "infos/eevee_lightprobe_volume_info.hh"
+#include "infos/eevee_lightprobe_volume_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_lightprobe_volume_offset)
 

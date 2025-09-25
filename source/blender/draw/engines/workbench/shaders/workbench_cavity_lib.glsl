@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
-#include "infos/workbench_composite_info.hh"
+#include "infos/workbench_composite_infos.hh"
 
 #include "draw_view_lib.glsl"
 #include "workbench_common_lib.glsl"

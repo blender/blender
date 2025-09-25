@@ -5,7 +5,7 @@
 /* Sum all Suns extracting during remapping to octahedral map.
  * Dispatch only one thread-group that sums. */
 
-#include "infos/eevee_lightprobe_sphere_info.hh"
+#include "infos/eevee_lightprobe_sphere_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_lightprobe_sphere_sunlight)
 

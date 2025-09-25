@@ -6,7 +6,7 @@
  * output passes covert the entire display extent even when border rendering because that's what
  * the compositor expects, so areas outside of the border are zeroed. */
 
-#include "infos/eevee_film_info.hh"
+#include "infos/eevee_film_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_film_pass_convert_color)
 

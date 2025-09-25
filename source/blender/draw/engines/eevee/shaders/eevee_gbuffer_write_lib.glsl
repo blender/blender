@@ -20,7 +20,7 @@
  * without dealing with none-closures.
  */
 
-#include "infos/eevee_common_info.hh"
+#include "infos/eevee_common_infos.hh"
 
 #include "eevee_gbuffer_lib.glsl"
 

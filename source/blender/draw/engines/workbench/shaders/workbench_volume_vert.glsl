@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/workbench_volume_info.hh"
+#include "infos/workbench_volume_infos.hh"
 
 VERTEX_SHADER_CREATE_INFO(workbench_volume)
 VERTEX_SHADER_CREATE_INFO(workbench_volume_slice)

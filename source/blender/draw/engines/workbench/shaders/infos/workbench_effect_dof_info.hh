@@ -8,7 +8,7 @@
 
 #  include "workbench_shader_shared.hh"
 
-#  include "draw_view_info.hh"
+#  include "draw_view_infos.hh"
 #  include "gpu_shader_fullscreen_info.hh"
 
 #  define PREPARE

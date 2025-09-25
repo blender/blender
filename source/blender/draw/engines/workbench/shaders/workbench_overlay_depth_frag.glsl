@@ -4,7 +4,7 @@
 
 /* Prepare the Depth Buffer for the Overlay Engine. */
 
-#include "infos/workbench_depth_info.hh"
+#include "infos/workbench_depth_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(workbench_overlay_depth)
 

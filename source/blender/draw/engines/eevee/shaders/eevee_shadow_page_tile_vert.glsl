@@ -8,7 +8,7 @@
  * See fragment shader for more infos.
  */
 
-#include "infos/eevee_shadow_info.hh"
+#include "infos/eevee_shadow_infos.hh"
 
 VERTEX_SHADER_CREATE_INFO(eevee_shadow_page_tile_clear)
 

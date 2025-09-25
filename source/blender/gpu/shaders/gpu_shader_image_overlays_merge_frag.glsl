@@ -4,7 +4,7 @@
 
 /* Merge overlays texture on top of image texture and transform to display space (assume sRGB) */
 
-#include "infos/gpu_shader_2D_image_overlays_merge_info.hh"
+#include "infos/gpu_shader_2D_image_overlays_merge_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(gpu_shader_2D_image_overlays_merge)
 

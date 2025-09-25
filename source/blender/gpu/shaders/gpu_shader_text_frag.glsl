@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/gpu_shader_text_info.hh"
+#include "infos/gpu_shader_text_infos.hh"
 
 #include "gpu_shader_colorspace_lib.glsl"
 

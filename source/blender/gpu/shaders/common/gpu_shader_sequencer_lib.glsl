@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "infos/gpu_shader_sequencer_info.hh"
+#include "infos/gpu_shader_sequencer_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(gpu_shader_sequencer_strips)
 

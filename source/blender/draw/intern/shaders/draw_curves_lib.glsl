@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "draw_object_infos_info.hh"
+#include "draw_object_infos_infos.hh"
 
 #include "gpu_shader_math_constants_lib.glsl"
 #include "gpu_shader_math_matrix_conversion_lib.glsl"

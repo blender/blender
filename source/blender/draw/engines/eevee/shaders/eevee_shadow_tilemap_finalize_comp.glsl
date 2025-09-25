@@ -10,7 +10,7 @@
  * to use a sampler instead of a SSBO bind.
  */
 
-#include "infos/eevee_shadow_info.hh"
+#include "infos/eevee_shadow_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_shadow_tilemap_finalize)
 

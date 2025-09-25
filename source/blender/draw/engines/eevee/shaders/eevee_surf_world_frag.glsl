@@ -8,7 +8,7 @@
  * Outputs shading parameter per pixel using a set of randomized BSDFs.
  */
 
-#include "infos/eevee_material_info.hh"
+#include "infos/eevee_material_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(eevee_geom_world)
 FRAGMENT_SHADER_CREATE_INFO(eevee_surf_world)

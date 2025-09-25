@@ -21,7 +21,7 @@
  */
 
 #include "gpu_shader_math_vector_reduce_lib.glsl"
-#include "infos/eevee_common_info.hh"
+#include "infos/eevee_common_infos.hh"
 
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"

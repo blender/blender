@@ -8,7 +8,7 @@
 /* Step 2 : Evaluate all light scattering for each froxels.
  * Also do the temporal reprojection to fight aliasing artifacts. */
 
-#include "infos/eevee_volume_info.hh"
+#include "infos/eevee_volume_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_volume_scatter_with_lights)
 

@@ -15,7 +15,7 @@
  * defined.
  */
 
-#include "infos/eevee_tracing_info.hh"
+#include "infos/eevee_tracing_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(eevee_horizon_scan)
 

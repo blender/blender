@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "draw_view_info.hh"
+#include "draw_view_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(draw_view)
 

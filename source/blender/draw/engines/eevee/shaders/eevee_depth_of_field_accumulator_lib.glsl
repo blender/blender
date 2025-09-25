@@ -10,7 +10,7 @@
  * One is for the half-resolution gather passes and the other one for slight in focus regions.
  */
 
-#include "infos/eevee_depth_of_field_info.hh"
+#include "infos/eevee_depth_of_field_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(eevee_depth_of_field_lut)
 #ifdef GPU_LIBRARY_SHADER

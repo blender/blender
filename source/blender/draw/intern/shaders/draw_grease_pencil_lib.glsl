@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "draw_object_infos_info.hh"
+#include "draw_object_infos_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(draw_gpencil)
 

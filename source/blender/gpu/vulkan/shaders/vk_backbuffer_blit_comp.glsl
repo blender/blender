@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "vk_backbuffer_blit_info.hh"
+#include "vk_backbuffer_blit_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(vk_backbuffer_blit)
 

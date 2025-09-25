@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/workbench_prepass_info.hh"
+#include "infos/workbench_prepass_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(workbench_prepass)
 FRAGMENT_SHADER_CREATE_INFO(workbench_transparent_accum)

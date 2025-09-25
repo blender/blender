@@ -9,7 +9,7 @@
  * Each thread group will load a brick worth of data and add the needed padding texels.
  */
 
-#include "infos/eevee_lightprobe_volume_info.hh"
+#include "infos/eevee_lightprobe_volume_infos.hh"
 
 #ifdef GLSL_CPP_STUBS
 #  define IRRADIANCE_GRID_UPLOAD

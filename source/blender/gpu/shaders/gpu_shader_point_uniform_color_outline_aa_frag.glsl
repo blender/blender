@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/gpu_shader_2D_point_uniform_size_uniform_color_outline_aa_info.hh"
+#include "infos/gpu_shader_2D_point_uniform_size_uniform_color_outline_aa_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(gpu_shader_2D_point_uniform_size_uniform_color_outline_aa)
 
