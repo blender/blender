@@ -111,16 +111,6 @@ def sanity_check_2d_animation():
     yield e.f()     # 2D Full Canvas
     t.assertEqual(window.workspace.name_full.split(".", 1)[0], "2D Full Canvas")
 
-    yield from _call_by_name(e, "Add Workspace")
-    yield e.d()     # 2D Animation
-    yield e.c()     # Compositing
-    t.assertEqual(window.workspace.name_full.split(".", 1)[0], "Compositing")
-
-    yield from _call_by_name(e, "Add Workspace")
-    yield e.d()     # 2D Animation
-    yield e.r()     # Rendering
-    t.assertEqual(window.workspace.name_full.split(".", 1)[0], "Rendering")
-
 
 def sanity_check_sculpting():
     e, t = _test_vars(window := _test_window())
@@ -134,6 +124,20 @@ def sanity_check_sculpting():
     yield e.s()     # Sculpting
     yield e.h()     # Shading
     t.assertEqual(window.workspace.name_full.split(".", 1)[0], "Shading")
+
+
+def sanity_check_storyboarding():
+    e, t = _test_vars(window := _test_window())
+
+    yield from _call_by_name(e, "Add Workspace")
+    yield e.t()     # Storyboarding
+    yield e.d()     # 2D Full Canvas
+    t.assertEqual(window.workspace.name_full.split(".", 1)[0], "2D Full Canvas")
+
+    yield from _call_by_name(e, "Add Workspace")
+    yield e.t()     # Storyboarding
+    yield e.s()     # Storyboarding
+    t.assertEqual(window.workspace.name_full.split(".", 1)[0], "Storyboarding")
 
 
 def sanity_check_vfx():

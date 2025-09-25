@@ -1409,6 +1409,7 @@ if(WITH_UI_TESTS)
     test_workspace.sanity_check_general
     test_workspace.sanity_check_2d_animation
     test_workspace.sanity_check_sculpting
+    test_workspace.sanity_check_storyboarding
     test_workspace.sanity_check_vfx
     test_workspace.sanity_check_video_editing
   )
