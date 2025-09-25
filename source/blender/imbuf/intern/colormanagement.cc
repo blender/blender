@@ -3140,6 +3140,12 @@ const ColorSpace *colormanage_colorspace_get_roled(const int role)
 
 int IMB_colormanagement_colorspace_get_named_index(const char *name)
 {
+  /* Roles. */
+  if (STREQ(name, OCIO_ROLE_SCENE_LINEAR)) {
+    return g_config->get_num_color_spaces();
+  }
+
+  /* Regular color spaces. */
   const ColorSpace *colorspace = colormanage_colorspace_get_named(name);
   if (colorspace) {
     return colorspace->index;
@@ -3149,6 +3155,12 @@ int IMB_colormanagement_colorspace_get_named_index(const char *name)
 
 const char *IMB_colormanagement_colorspace_get_indexed_name(const int index)
 {
+  /* Roles. */
+  if (index == g_config->get_num_color_spaces()) {
+    return OCIO_ROLE_SCENE_LINEAR;
+  }
+
+  /* Regular color spaces. */
   const ColorSpace *colorspace = g_config->get_color_space_by_index(index);
   if (colorspace) {
     return colorspace->name().c_str();
@@ -3747,6 +3759,7 @@ void IMB_colormanagement_look_items_add(EnumPropertyItem **items,
 
 void IMB_colormanagement_colorspace_items_add(EnumPropertyItem **items, int *totitem)
 {
+  /* Regular color spaces. */
   for (const int colorspace_index : blender::IndexRange(g_config->get_num_color_spaces())) {
     const ColorSpace *colorspace = g_config->get_sorted_color_space_by_index(colorspace_index);
     if (!colorspace->is_invertible()) {
@@ -3763,6 +3776,18 @@ void IMB_colormanagement_colorspace_items_add(EnumPropertyItem **items, int *tot
 
     RNA_enum_item_add(items, totitem, &item);
   }
+
+  /* Scene linear role. This is useful for example to create compositing convert colorspace
+   * nodes that work the same regardless of working space. */
+  EnumPropertyItem item;
+
+  item.value = g_config->get_num_color_spaces();
+  item.name = "Working Space";
+  item.identifier = OCIO_ROLE_SCENE_LINEAR;
+  item.icon = 0;
+  item.description = "Working color space of the current file";
+
+  RNA_enum_item_add(items, totitem, &item);
 }
 
 /** \} */
