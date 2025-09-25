@@ -142,13 +142,19 @@ TEST(view_layer, aov_conflict)
   test_render_pass_conflict(&scene, engine, view_layer, aov, "Normal", "use_pass_normal");
   test_render_pass_conflict(&scene, engine, view_layer, aov, "Mist", "use_pass_mist");
   test_render_pass_conflict(&scene, engine, view_layer, aov, "Shadow", "use_pass_shadow");
-  test_render_pass_conflict(&scene, engine, view_layer, aov, "AO", "use_pass_ambient_occlusion");
-  test_render_pass_conflict(&scene, engine, view_layer, aov, "Emit", "use_pass_emit");
-  test_render_pass_conflict(&scene, engine, view_layer, aov, "Env", "use_pass_environment");
-  test_render_pass_conflict(&scene, engine, view_layer, aov, "DiffDir", "use_pass_diffuse_direct");
-  test_render_pass_conflict(&scene, engine, view_layer, aov, "DiffCol", "use_pass_diffuse_color");
-  test_render_pass_conflict(&scene, engine, view_layer, aov, "GlossDir", "use_pass_glossy_direct");
-  test_render_pass_conflict(&scene, engine, view_layer, aov, "GlossCol", "use_pass_glossy_color");
+  test_render_pass_conflict(
+      &scene, engine, view_layer, aov, "Ambient Occlusion", "use_pass_ambient_occlusion");
+  test_render_pass_conflict(&scene, engine, view_layer, aov, "Emission", "use_pass_emit");
+  test_render_pass_conflict(
+      &scene, engine, view_layer, aov, "Environment", "use_pass_environment");
+  test_render_pass_conflict(
+      &scene, engine, view_layer, aov, "Diffuse Direct", "use_pass_diffuse_direct");
+  test_render_pass_conflict(
+      &scene, engine, view_layer, aov, "Diffuse Color", "use_pass_diffuse_color");
+  test_render_pass_conflict(
+      &scene, engine, view_layer, aov, "Glossy Direct", "use_pass_glossy_direct");
+  test_render_pass_conflict(
+      &scene, engine, view_layer, aov, "Glossy Color", "use_pass_glossy_color");
 
   /* Tear down */
   RE_engine_free(engine);

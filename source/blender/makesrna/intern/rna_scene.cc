@@ -5189,7 +5189,7 @@ void rna_def_view_layer_common(BlenderRNA *brna, StructRNA *srna, const bool sce
 
   prop = RNA_def_property(srna, "use_pass_emit", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "passflag", SCE_PASS_EMIT);
-  RNA_def_property_ui_text(prop, "Emit", "Deliver emission pass");
+  RNA_def_property_ui_text(prop, "Emission", "Deliver emission pass");
   if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
   }
@@ -6027,7 +6027,7 @@ static void rna_def_bake_data(BlenderRNA *brna)
   /* custom passes flags */
   prop = RNA_def_property(srna, "use_pass_emit", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "pass_filter", R_BAKE_PASS_FILTER_EMIT);
-  RNA_def_property_ui_text(prop, "Emit", "Add emission contribution");
+  RNA_def_property_ui_text(prop, "Emission", "Add emission contribution");
 
   prop = RNA_def_property(srna, "use_pass_direct", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "pass_filter", R_BAKE_PASS_FILTER_DIRECT);

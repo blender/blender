@@ -24,36 +24,6 @@
 
 #include "RE_engine.h"
 
-/* Deprecated, only provided for API compatibility. */
-const EnumPropertyItem rna_enum_render_pass_type_items[] = {
-    {SCE_PASS_COMBINED, "COMBINED", 0, "Combined", ""},
-    {SCE_PASS_DEPTH, "Z", 0, "Z", ""},
-    {SCE_PASS_SHADOW, "SHADOW", 0, "Shadow", ""},
-    {SCE_PASS_AO, "AO", 0, "Ambient Occlusion", ""},
-    {SCE_PASS_POSITION, "POSITION", 0, "Position", ""},
-    {SCE_PASS_NORMAL, "NORMAL", 0, "Normal", ""},
-    {SCE_PASS_VECTOR, "VECTOR", 0, "Vector", ""},
-    {SCE_PASS_INDEXOB, "OBJECT_INDEX", 0, "Object Index", ""},
-    {SCE_PASS_UV, "UV", 0, "UV", ""},
-    {SCE_PASS_MIST, "MIST", 0, "Mist", ""},
-    {SCE_PASS_EMIT, "EMIT", 0, "Emit", ""},
-    {SCE_PASS_ENVIRONMENT, "ENVIRONMENT", 0, "Environment", ""},
-    {SCE_PASS_INDEXMA, "MATERIAL_INDEX", 0, "Material Index", ""},
-    {SCE_PASS_DIFFUSE_DIRECT, "DIFFUSE_DIRECT", 0, "Diffuse Direct", ""},
-    {SCE_PASS_DIFFUSE_INDIRECT, "DIFFUSE_INDIRECT", 0, "Diffuse Indirect", ""},
-    {SCE_PASS_DIFFUSE_COLOR, "DIFFUSE_COLOR", 0, "Diffuse Color", ""},
-    {SCE_PASS_GLOSSY_DIRECT, "GLOSSY_DIRECT", 0, "Glossy Direct", ""},
-    {SCE_PASS_GLOSSY_INDIRECT, "GLOSSY_INDIRECT", 0, "Glossy Indirect", ""},
-    {SCE_PASS_GLOSSY_COLOR, "GLOSSY_COLOR", 0, "Glossy Color", ""},
-    {SCE_PASS_TRANSM_DIRECT, "TRANSMISSION_DIRECT", 0, "Transmission Direct", ""},
-    {SCE_PASS_TRANSM_INDIRECT, "TRANSMISSION_INDIRECT", 0, "Transmission Indirect", ""},
-    {SCE_PASS_TRANSM_COLOR, "TRANSMISSION_COLOR", 0, "Transmission Color", ""},
-    {SCE_PASS_SUBSURFACE_DIRECT, "SUBSURFACE_DIRECT", 0, "Subsurface Direct", ""},
-    {SCE_PASS_SUBSURFACE_INDIRECT, "SUBSURFACE_INDIRECT", 0, "Subsurface Indirect", ""},
-    {SCE_PASS_SUBSURFACE_COLOR, "SUBSURFACE_COLOR", 0, "Subsurface Color", ""},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-
 const EnumPropertyItem rna_enum_bake_pass_type_items[] = {
     {SCE_PASS_COMBINED, "COMBINED", 0, "Combined", ""},
     {SCE_PASS_AO, "AO", 0, "Ambient Occlusion", ""},
@@ -62,7 +32,7 @@ const EnumPropertyItem rna_enum_bake_pass_type_items[] = {
     {SCE_PASS_NORMAL, "NORMAL", 0, "Normal", ""},
     {SCE_PASS_UV, "UV", 0, "UV", ""},
     {int(SCE_PASS_ROUGHNESS), "ROUGHNESS", 0, "ROUGHNESS", ""},
-    {SCE_PASS_EMIT, "EMIT", 0, "Emit", ""},
+    {SCE_PASS_EMIT, "EMIT", 0, "Emission", ""},
     {SCE_PASS_ENVIRONMENT, "ENVIRONMENT", 0, "Environment", ""},
     {SCE_PASS_DIFFUSE_COLOR, "DIFFUSE", 0, "Diffuse", ""},
     {SCE_PASS_GLOSSY_COLOR, "GLOSSY", 0, "Glossy", ""},
@@ -530,11 +500,6 @@ void rna_RenderPass_rect_set(PointerRNA *ptr, const float *values)
 
   const size_t size_in_bytes = sizeof(float) * rpass->rectx * rpass->recty * rpass->channels;
   memcpy(buffer, values, size_in_bytes);
-}
-
-static RenderPass *rna_RenderPass_find_by_type(RenderLayer *rl, int passtype, const char *view)
-{
-  return RE_pass_find_by_type(rl, passtype, view);
 }
 
 static RenderPass *rna_RenderPass_find_by_name(RenderLayer *rl, const char *name, const char *view)
@@ -1129,17 +1094,6 @@ static void rna_def_render_passes(BlenderRNA *brna, PropertyRNA *cprop)
   srna = RNA_def_struct(brna, "RenderPasses", nullptr);
   RNA_def_struct_sdna(srna, "RenderLayer");
   RNA_def_struct_ui_text(srna, "Render Passes", "Collection of render passes");
-
-  func = RNA_def_function(srna, "find_by_type", "rna_RenderPass_find_by_type");
-  RNA_def_function_ui_description(func, "Get the render pass for a given type and view");
-  parm = RNA_def_enum(
-      func, "pass_type", rna_enum_render_pass_type_items, SCE_PASS_COMBINED, "Pass", "");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  parm = RNA_def_string(
-      func, "view", nullptr, 0, "View", "Render view to get pass from"); /* nullptr ok here */
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  parm = RNA_def_pointer(func, "render_pass", "RenderPass", "", "The matching render pass");
-  RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "find_by_name", "rna_RenderPass_find_by_name");
   RNA_def_function_ui_description(func, "Get the render pass for a given name and view");

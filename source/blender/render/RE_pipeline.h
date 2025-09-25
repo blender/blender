@@ -468,12 +468,6 @@ bool RE_passes_have_name(struct RenderLayer *rl);
 struct RenderPass *RE_pass_find_by_name(struct RenderLayer *rl,
                                         const char *name,
                                         const char *viewname);
-/**
- * Only provided for API compatibility, don't use this in new code!
- */
-struct RenderPass *RE_pass_find_by_type(struct RenderLayer *rl,
-                                        int passtype,
-                                        const char *viewname);
 
 /**
  * Set the buffer data of the render pass.

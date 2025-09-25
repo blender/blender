@@ -928,7 +928,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
             ('NORMAL', "Normal", "", 3),
             ('UV', "UV", "", 4),
             ('ROUGHNESS', "Roughness", "", 5),
-            ('EMIT', "Emit", "", 6),
+            ('EMIT', "Emission", "", 6),
             ('ENVIRONMENT', "Environment", "", 7),
             ('DIFFUSE', "Diffuse", "", 8),
             ('GLOSSY', "Glossy", "", 9),
