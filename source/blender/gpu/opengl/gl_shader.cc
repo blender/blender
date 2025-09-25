@@ -1244,7 +1244,7 @@ GLuint GLShader::create_shader_stage(GLenum gl_stage,
         sources[SOURCES_INDEX_SPECIALIZATION_CONSTANTS]);
   }
 
-  if (DEBUG_LOG_SHADER_SRC_ON_ERROR || (this->name_get().startswith("MADefault Surface"))) {
+  if (DEBUG_LOG_SHADER_SRC_ON_ERROR) {
     /* Store the generated source for printing in case the link fails. */
     StringRefNull source_type;
     switch (gl_stage) {
@@ -1266,12 +1266,6 @@ GLuint GLShader::create_shader_stage(GLenum gl_stage,
     for (StringRefNull source : sources) {
       debug_source.append(source);
     }
-
-    std::mutex mutex;
-    std::scoped_lock lock(mutex);
-    std::ofstream out(source_type);
-    out << fmt::to_string(fmt::join(sources, ""));
-    out.close();
   }
 
   if (async_compilation_) {
