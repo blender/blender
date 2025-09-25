@@ -46,42 +46,59 @@ class FileOutputTest(unittest.TestCase):
         """
         Compare content and metadata of two images.
         """
-        ref_img = oiio.ImageBuf(ref_img_path)
-        out_img = oiio.ImageBuf(out_img_path)
         img_name = os.path.basename(ref_img_path)
 
-        ok = True
-        # Compare image content
-        comp = oiio.ImageBufAlgo.compare(ref_img, out_img, self.fail_threshold, 0)
-        if comp.nfail != 0:
+        ref_input = oiio.ImageInput.open(ref_img_path)
+        out_input = oiio.ImageInput.open(out_img_path)
+
+        # We'll compare all subimages, so that every pass in multilayer, multiview
+        # and multipart EXR files is checked.
+        ref_subimages = ref_input.spec().get_int_attribute("oiio:subimages", 1)
+        out_subimages = out_input.spec().get_int_attribute("oiio:subimages", 1)
+        if ref_subimages != out_subimages:
             if verbose:
-                print_message("Image content mismatch for '{:s}'".format(img_name),
+                print_message("Image subimages mismatch for '{:s}': {} -> {}".
+                              format(img_name, ref_subimages, out_subimages),
                               'FAILURE', 'FAILED')
-            ok = False
+            return False
 
-        # Compare Metadata
-        metadata_ignore = set(("Time", "File", "Date", "RenderTime", "Software"))
+        ok = True
 
-        ref_meta = ref_img.spec().extra_attribs
-        out_meta = out_img.spec().extra_attribs
+        for subimage in range(0, ref_subimages):
+            ref_img = oiio.ImageBuf(ref_img_path, subimage, 0, oiio.ImageSpec())
+            out_img = oiio.ImageBuf(out_img_path, subimage, 0, oiio.ImageSpec())
 
-        for attrib in ref_meta:
-            if attrib.name in metadata_ignore:
-                continue
-            if attrib.name not in out_meta:
+            # Compare image content
+            comp = oiio.ImageBufAlgo.compare(ref_img, out_img, self.fail_threshold, 0)
+            if comp.nfail != 0:
                 if verbose:
-                    print_message(
-                        "Image metadata mismatch: metadata '{:s}' does not exist in output image '{:s}'".format(
-                            attrib.name, img_name), 'FAILURE', 'FAILED')
+                    print_message("Image content mismatch for '{:s}'".format(img_name),
+                                  'FAILURE', 'FAILED')
                 ok = False
-                continue
-            if attrib.value != out_meta[attrib.name]:
-                if verbose:
-                    print_message(
-                        "Image metadata mismatch for metadata '{:s}' in image '{:s}'".format(attrib.name, img_name),
-                        'FAILURE',
-                        'FAILED')
-                ok = False
+
+            # Compare Metadata
+            metadata_ignore = set(("Time", "File", "Date", "RenderTime", "Software"))
+
+            ref_meta = ref_img.spec().extra_attribs
+            out_meta = out_img.spec().extra_attribs
+
+            for attrib in ref_meta:
+                if attrib.name in metadata_ignore:
+                    continue
+                if attrib.name not in out_meta:
+                    if verbose:
+                        print_message(
+                            "Image metadata mismatch: metadata '{:s}' does not exist in output image '{:s}'".format(
+                                attrib.name, img_name), 'FAILURE', 'FAILED')
+                    ok = False
+                    continue
+                if attrib.value != out_meta[attrib.name]:
+                    if verbose:
+                        print_message(
+                            "Image metadata mismatch for metadata '{:s}' in image '{:s}'".format(attrib.name, img_name),
+                            'FAILURE',
+                            'FAILED')
+                    ok = False
 
         return ok
 
@@ -201,7 +218,10 @@ class FileOutputTest(unittest.TestCase):
             for node in node_tree.nodes:
                 if node.type == 'OUTPUT_FILE':
                     node.directory = f'{curr_out_dir}/'
-                    node.file_name = ""
+                    # Can't use empty filename for multilayer, as multiple such
+                    # nodes will write to the same file name then.
+                    if node.format.media_type != 'MULTI_LAYER_IMAGE':
+                        node.file_name = ""
                 elif node.type == 'GROUP' and node.node_tree:
                     set_directory(node.node_tree, base_path)
 
