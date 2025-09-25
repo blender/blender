@@ -355,6 +355,7 @@ static void rna_def_movieclip(BlenderRNA *brna)
   RNA_def_property_array(prop, 2);
   RNA_def_property_range(prop, 0.1f, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.1f, 5000.0f, 1, 2);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(
       prop, "Display Aspect", "Display Aspect for this clip, does not affect rendering");
   RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, nullptr);

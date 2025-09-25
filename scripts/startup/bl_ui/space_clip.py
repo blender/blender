@@ -71,7 +71,10 @@ class CLIP_PT_clip_display(Panel):
         clip = sc.clip
         if clip:
             col = layout.column()
-            col.prop(clip, "display_aspect", text="Display Aspect Ratio")
+            col.use_property_split = True
+            col.use_property_decorate = False
+            col.separator()
+            col.prop(clip, "display_aspect", text="Aspect Ratio")
 
 
 class CLIP_HT_header(Header):
