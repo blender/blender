@@ -529,7 +529,6 @@ static void detect_workarounds()
 
 GLint GLContext::max_cubemap_size = 0;
 GLint GLContext::max_ubo_binds = 0;
-GLint GLContext::max_ubo_size = 0;
 GLint GLContext::max_ssbo_binds = 0;
 
 /** Extensions. */
@@ -588,7 +587,9 @@ void GLBackend::capabilities_init()
   glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &GCaps.max_work_group_size[2]);
   glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, &GCaps.max_shader_storage_buffer_bindings);
   glGetIntegerv(GL_MAX_COMPUTE_SHADER_STORAGE_BLOCKS, &GCaps.max_compute_shader_storage_blocks);
-  int64_t max_ssbo_size;
+  int64_t max_ssbo_size, max_ubo_size;
+  glGetInteger64v(GL_MAX_UNIFORM_BLOCK_SIZE, &max_ubo_size);
+  GCaps.max_uniform_buffer_size = size_t(max_ubo_size);
   glGetInteger64v(GL_MAX_SHADER_STORAGE_BLOCK_SIZE, &max_ssbo_size);
   GCaps.max_storage_buffer_size = size_t(max_ssbo_size);
   GLint ssbo_alignment;
@@ -601,7 +602,6 @@ void GLBackend::capabilities_init()
   glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &GCaps.max_texture_3d_size);
   glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &GLContext::max_cubemap_size);
   glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_BLOCKS, &GLContext::max_ubo_binds);
-  glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &GLContext::max_ubo_size);
   GLint max_ssbo_binds;
   GLContext::max_ssbo_binds = 999999;
   glGetIntegerv(GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS, &max_ssbo_binds);

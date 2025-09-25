@@ -18,6 +18,7 @@
 #include "gpu_backend.hh"
 #include "gpu_node_graph.hh"
 
+#include "GPU_capabilities.hh"
 #include "GPU_context.hh"
 #include "GPU_material.hh"
 
@@ -219,9 +220,12 @@ blender::gpu::UniformBuf *GPU_uniformbuf_create_from_list(ListBase *inputs, cons
   void *data = MEM_mallocN(buffer_size, __func__);
   buffer_fill_from_list(data, inputs);
 
-  UniformBuf *ubo = GPUBackend::get()->uniformbuf_alloc(buffer_size, name);
-  /* Defer data upload. */
-  ubo->attach_data(data);
+  UniformBuf *ubo = nullptr;
+  if (buffer_size <= GPU_max_uniform_buffer_size()) {
+    ubo = GPUBackend::get()->uniformbuf_alloc(buffer_size, name);
+    /* Defer data upload. */
+    ubo->attach_data(data);
+  }
   return ubo;
 }
 

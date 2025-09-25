@@ -727,6 +727,7 @@ void VKBackend::capabilities_init(VKDevice &device)
   GCaps.max_varying_floats = min_uu(limits.maxVertexOutputComponents, INT_MAX);
   GCaps.max_shader_storage_buffer_bindings = GCaps.max_compute_shader_storage_blocks = min_uu(
       limits.maxPerStageDescriptorStorageBuffers, INT_MAX);
+  GCaps.max_uniform_buffer_size = size_t(limits.maxUniformBufferRange);
   GCaps.max_storage_buffer_size = size_t(limits.maxStorageBufferRange);
   GCaps.storage_buffer_alignment = limits.minStorageBufferOffsetAlignment;
 
