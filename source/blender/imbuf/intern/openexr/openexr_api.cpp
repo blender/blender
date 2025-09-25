@@ -111,6 +111,7 @@ using namespace Imath;
 static bool exr_has_multiview(MultiPartInputFile &file);
 static bool exr_has_multipart_file(MultiPartInputFile &file);
 static bool exr_has_alpha(MultiPartInputFile &file);
+static const ColorSpace *imb_exr_part_colorspace(const Header &header);
 
 /* XYZ with Illuminant E */
 static Imf::Chromaticities CHROMATICITIES_XYZ_E{
@@ -521,6 +522,29 @@ static void openexr_header_metadata_global(Header *header,
   }
 }
 
+static void openexr_header_metadata_colorspace(Header *header, const ColorSpace *colorspace)
+{
+  if (colorspace == nullptr) {
+    return;
+  }
+
+  const char *aces_colorspace = IMB_colormanagement_role_colorspace_name_get(
+      COLOR_ROLE_ACES_INTERCHANGE);
+  const char *ibuf_colorspace = IMB_colormanagement_colorspace_get_name(colorspace);
+
+  /* Write chromaticities for ACES-2065-1, as required by ACES container format. */
+  if (aces_colorspace && STREQ(aces_colorspace, ibuf_colorspace)) {
+    header->insert("chromaticities", TypedAttribute<Chromaticities>(CHROMATICITIES_ACES_2065_1));
+    header->insert("adoptedNeutral", TypedAttribute<V2f>(CHROMATICITIES_ACES_2065_1.white));
+  }
+
+  /* Write interop ID if available. */
+  blender::StringRefNull interop_id = IMB_colormanagement_space_get_interop_id(colorspace);
+  if (!interop_id.is_empty()) {
+    header->insert("colorInteropID", TypedAttribute<std::string>(interop_id));
+  }
+}
+
 static void openexr_header_metadata_colorspace(Header *header, ImBuf *ibuf)
 {
   /* Get colorspace from image buffer. */
@@ -536,23 +560,7 @@ static void openexr_header_metadata_colorspace(Header *header, ImBuf *ibuf)
     colorspace = ibuf->byte_buffer.colorspace;
   }
 
-  if (colorspace) {
-    const char *aces_colorspace = IMB_colormanagement_role_colorspace_name_get(
-        COLOR_ROLE_ACES_INTERCHANGE);
-    const char *ibuf_colorspace = IMB_colormanagement_colorspace_get_name(colorspace);
-
-    /* Write chromaticities for ACES-2065-1, as required by ACES container format. */
-    if (aces_colorspace && STREQ(aces_colorspace, ibuf_colorspace)) {
-      header->insert("chromaticities", TypedAttribute<Chromaticities>(CHROMATICITIES_ACES_2065_1));
-      header->insert("adoptedNeutral", TypedAttribute<V2f>(CHROMATICITIES_ACES_2065_1.white));
-    }
-
-    /* Write interop ID if available. */
-    blender::StringRefNull interop_id = IMB_colormanagement_space_get_interop_id(colorspace);
-    if (!interop_id.is_empty()) {
-      header->insert("colorInteropID", TypedAttribute<std::string>(interop_id));
-    }
-  }
+  openexr_header_metadata_colorspace(header, colorspace);
 }
 
 static void openexr_header_metadata_callback(void *data,
@@ -780,6 +788,9 @@ struct ExrChannel {
   /* Channel view. */
   std::string view;
 
+  /* Colorspace. */
+  const ColorSpace *colorspace;
+
   int xstride = 0, ystride = 0; /* step to next pixel, to next scan-line. */
   float *rect = nullptr;        /* first pointer to write in */
   char chan_id = 0;             /* quick lookup of channel char */
@@ -899,6 +910,7 @@ void IMB_exr_add_channels(ExrHandle *handle,
                           blender::StringRefNull layerpassname,
                           blender::StringRefNull channelnames,
                           blender::StringRefNull viewname,
+                          blender::StringRefNull colorspace,
                           size_t xstride,
                           size_t ystride,
                           float *rect,
@@ -948,6 +960,7 @@ void IMB_exr_add_channels(ExrHandle *handle,
     echan.internal_name = full_name;
     echan.part_name = part_name;
     echan.view = viewname;
+    echan.colorspace = IMB_colormanagement_space_get_named(colorspace.c_str());
 
     echan.xstride = xstride;
     echan.ystride = ystride;
@@ -995,6 +1008,26 @@ bool IMB_exr_begin_write(ExrHandle *handle,
 
   openexr_header_compression(&header, compress, quality);
 
+  if (!handle->write_multipart) {
+    /* If we're writing single part, we can only add one colorspace even if there are
+     * multiple passes with potentially different spaces. Prefer to write non-data
+     * colorspace in that case, since readers can detect data passes based on
+     * channels names being e.g. XYZ instead of RGB. */
+    bool found = false;
+    for (const ExrChannel &echan : handle->channels) {
+      if (echan.colorspace && !IMB_colormanagement_space_is_data(echan.colorspace)) {
+        openexr_header_metadata_colorspace(&header, echan.colorspace);
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      if (const ColorSpace *colorspace = handle->channels[0].colorspace) {
+        openexr_header_metadata_colorspace(&header, colorspace);
+      }
+    }
+  }
+
   blender::Vector<Header> part_headers;
 
   blender::StringRefNull last_part_name;
@@ -1003,13 +1036,14 @@ bool IMB_exr_begin_write(ExrHandle *handle,
     if (part_headers.is_empty() || last_part_name != echan.part_name) {
       Header part_header = header;
 
-      /* When writing multipart, set name, view and type in each part. */
+      /* When writing multipart, set name, view,type and colorspace in each part. */
       if (handle->write_multipart) {
         part_header.setName(echan.part_name);
         if (!echan.view.empty()) {
           part_header.insert("view", StringAttribute(echan.view));
         }
         part_header.insert("type", StringAttribute(SCANLINEIMAGE));
+        openexr_header_metadata_colorspace(&part_header, echan.colorspace);
       }
 
       /* Store global metadata in the first header only. Large metadata like cryptomatte would
@@ -1552,9 +1586,18 @@ static blender::Vector<ExrChannel> exr_channels_in_multi_part_file(const MultiPa
                                                                    const bool parse_layers)
 {
   blender::Vector<ExrChannel> channels;
+  const ColorSpace *global_colorspace = imb_exr_part_colorspace(file.header(0));
+
   /* Get channels from each part. */
   for (int p = 0; p < file.parts(); p++) {
     const ChannelList &c = file.header(p).channels();
+
+    /* Parse colorspace. Per part colorspaces are not currently used, but
+     * might as well populate them them for consistency with writing. */
+    const ColorSpace *colorspace = imb_exr_part_colorspace(file.header(p));
+    if (colorspace == nullptr) {
+      colorspace = global_colorspace;
+    }
 
     /* There are two ways of storing multiview EXRs:
      * - Multiple views in part with multiView attribute.
@@ -1609,6 +1652,7 @@ static blender::Vector<ExrChannel> exr_channels_in_multi_part_file(const MultiPa
       }
 
       echan.part_number = p;
+      echan.colorspace = colorspace;
       channels.append(std::move(echan));
     }
   }
@@ -1981,6 +2025,13 @@ static void imb_exr_set_known_colorspace(const Header &header, ImFileColorSpace 
     /* Only works for the Blender default configuration due to fixed name. */
     STRNCPY_UTF8(r_colorspace.metadata_colorspace, "Linear CIE-XYZ E");
   }
+}
+
+static const ColorSpace *imb_exr_part_colorspace(const Header &header)
+{
+  ImFileColorSpace colorspace;
+  imb_exr_set_known_colorspace(header, colorspace);
+  return IMB_colormanagement_space_get_named(colorspace.metadata_colorspace);
 }
 
 static bool exr_get_ppm(MultiPartInputFile &file, double ppm[2])

@@ -703,7 +703,8 @@ static float *image_exr_from_scene_linear_to_output(float *rect,
                                                     const int height,
                                                     const int channels,
                                                     const ImageFormatData *imf,
-                                                    Vector<float *> &tmp_output_rects)
+                                                    Vector<float *> &tmp_output_rects,
+                                                    blender::StringRefNull &r_colorspace)
 {
   if (imf == nullptr) {
     return rect;
@@ -721,6 +722,8 @@ static float *image_exr_from_scene_linear_to_output(float *rect,
       COLOR_ROLE_SCENE_LINEAR);
   IMB_colormanagement_transform_float(
       output_rect, width, height, channels, from_colorspace, to_colorspace, false);
+
+  r_colorspace = to_colorspace;
 
   return output_rect;
 }
@@ -805,14 +808,19 @@ static void add_exr_compositing_result(ExrHandle *exr_handle,
 
     /* Compositing results is always a 4-channel RGBA. */
     const int channels_count_in_buffer = 4;
-    float *output_buffer = (save_as_render) ? image_exr_from_scene_linear_to_output(
-                                                  render_view->ibuf->float_buffer.data,
-                                                  render_result->rectx,
-                                                  render_result->recty,
-                                                  channels_count_in_buffer,
-                                                  imf,
-                                                  temporary_buffers) :
-                                              render_view->ibuf->float_buffer.data;
+    float *output_buffer = render_view->ibuf->float_buffer.data;
+    blender::StringRefNull colorspace = IMB_colormanagement_role_colorspace_name_get(
+        COLOR_ROLE_SCENE_LINEAR);
+
+    if (save_as_render) {
+      output_buffer = image_exr_from_scene_linear_to_output(output_buffer,
+                                                            render_result->rectx,
+                                                            render_result->recty,
+                                                            channels_count_in_buffer,
+                                                            imf,
+                                                            temporary_buffers,
+                                                            colorspace);
+    }
 
     /* For multi-layer EXRs, we write the buffer as is with all its 4 channels. */
     const bool half_float = (imf && imf->depth == R_IMF_CHAN_DEPTH_16);
@@ -821,6 +829,7 @@ static void add_exr_compositing_result(ExrHandle *exr_handle,
                            "Composite.Combined",
                            "RGBA",
                            render_view_name,
+                           colorspace,
                            channels_count_in_buffer,
                            channels_count_in_buffer * render_result->rectx,
                            output_buffer,
@@ -843,6 +852,7 @@ static void add_exr_compositing_result(ExrHandle *exr_handle,
                            "",
                            "V",
                            render_view_name,
+                           colorspace,
                            1,
                            render_result->rectx,
                            gray_scale_output,
@@ -857,6 +867,7 @@ static void add_exr_compositing_result(ExrHandle *exr_handle,
                          "",
                          channelnames,
                          render_view_name,
+                         colorspace,
                          channels_count_in_buffer,
                          channels_count_in_buffer * render_result->rectx,
                          output_buffer,
@@ -928,15 +939,19 @@ bool BKE_image_render_write_exr(ReportList *reports,
       const bool pass_half_float = half_float && pass_RGBA;
 
       /* Color-space conversion only happens on RGBA passes. */
-      float *output_rect = (save_as_render && pass_RGBA) ?
-                               image_exr_from_scene_linear_to_output(
-                                   render_pass->ibuf->float_buffer.data,
-                                   rr->rectx,
-                                   rr->recty,
-                                   render_pass->channels,
-                                   imf,
-                                   tmp_output_rects) :
-                               render_pass->ibuf->float_buffer.data;
+      float *output_rect = render_pass->ibuf->float_buffer.data;
+      blender::StringRefNull colorspace = IMB_colormanagement_role_colorspace_name_get(
+          (pass_RGBA) ? COLOR_ROLE_SCENE_LINEAR : COLOR_ROLE_DATA);
+
+      if (save_as_render && pass_RGBA) {
+        output_rect = image_exr_from_scene_linear_to_output(output_rect,
+                                                            rr->rectx,
+                                                            rr->recty,
+                                                            render_pass->channels,
+                                                            imf,
+                                                            tmp_output_rects,
+                                                            colorspace);
+      }
 
       /* For multi-layer EXRs, we write the pass as is with all of its channels. */
       if (multi_layer) {
@@ -952,6 +967,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
                              layer_pass_name,
                              channelnames,
                              viewname,
+                             colorspace,
                              render_pass->channels,
                              render_pass->channels * rr->rectx,
                              output_rect,
@@ -975,6 +991,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
                              "",
                              channelnames,
                              viewname,
+                             colorspace,
                              render_pass->channels,
                              render_pass->channels * rr->rectx,
                              output_rect,
@@ -985,8 +1002,15 @@ bool BKE_image_render_write_exr(ReportList *reports,
          * the input is RGB[A] and not single channel because it filed the condition above. */
         float *gray_scale_output = image_exr_from_rgb_to_bw(
             output_rect, rr->rectx, rr->recty, render_pass->channels, tmp_output_rects);
-        IMB_exr_add_channels(
-            exrhandle, "", "V", viewname, 1, rr->rectx, gray_scale_output, pass_half_float);
+        IMB_exr_add_channels(exrhandle,
+                             "",
+                             "V",
+                             viewname,
+                             colorspace,
+                             1,
+                             rr->rectx,
+                             gray_scale_output,
+                             pass_half_float);
       }
       else if (render_pass->channels == 1) {
         /* In case of a single channel pass, we need to broadcast the same channel for each of
@@ -997,6 +1021,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
                                "",
                                std::string(1, "RGB"[i]).c_str(),
                                viewname,
+                               colorspace,
                                1,
                                rr->rectx,
                                output_rect,
@@ -1010,7 +1035,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
         float *alpha_output = image_exr_opaque_alpha_buffer(
             rr->rectx, rr->recty, tmp_output_rects);
         IMB_exr_add_channels(
-            exrhandle, "", "A", viewname, 1, rr->rectx, alpha_output, pass_half_float);
+            exrhandle, "", "A", viewname, colorspace, 1, rr->rectx, alpha_output, pass_half_float);
       }
     }
   }
