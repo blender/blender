@@ -67,9 +67,10 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
 
   BKE_modifier_copydata_generic(md, target, flag);
 
-  if (csmd->bind_coords) {
-    tcsmd->bind_coords = static_cast<float(*)[3]>(MEM_dupallocN(csmd->bind_coords));
-  }
+  blender::implicit_sharing::copy_shared_pointer(csmd->bind_coords,
+                                                 csmd->bind_coords_sharing_info,
+                                                 &tcsmd->bind_coords,
+                                                 &tcsmd->bind_coords_sharing_info);
 
   tcsmd->delta_cache.deltas = nullptr;
   tcsmd->delta_cache.deltas_num = 0;
@@ -77,7 +78,7 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
 
 static void freeBind(CorrectiveSmoothModifierData *csmd)
 {
-  MEM_SAFE_FREE(csmd->bind_coords);
+  blender::implicit_sharing::free_shared_data(&csmd->bind_coords, &csmd->bind_coords_sharing_info);
   MEM_SAFE_FREE(csmd->delta_cache.deltas);
 
   csmd->bind_coords_num = 0;
@@ -551,6 +552,7 @@ static void correctivesmooth_modifier_do(ModifierData *md,
                                          blender::MutableSpan<blender::float3> vertexCos,
                                          BMEditMesh *em)
 {
+  using namespace blender;
   CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
 
   const bool force_delta_cache_update =
@@ -575,13 +577,19 @@ static void correctivesmooth_modifier_do(ModifierData *md,
     if (DEG_is_active(depsgraph)) {
       BLI_assert(csmd->bind_coords == nullptr);
       csmd->bind_coords = MEM_malloc_arrayN<float[3]>(size_t(vertexCos.size()), __func__);
+      csmd->bind_coords_sharing_info = implicit_sharing::info_for_mem_free(csmd->bind_coords);
       memcpy(csmd->bind_coords, vertexCos.data(), size_t(vertexCos.size_in_bytes()));
       csmd->bind_coords_num = uint(vertexCos.size());
       BLI_assert(csmd->bind_coords != nullptr);
+
       /* Copy bound data to the original modifier. */
       CorrectiveSmoothModifierData *csmd_orig = (CorrectiveSmoothModifierData *)
           BKE_modifier_get_original(ob, &csmd->modifier);
-      csmd_orig->bind_coords = static_cast<float(*)[3]>(MEM_dupallocN(csmd->bind_coords));
+      implicit_sharing::copy_shared_pointer(csmd->bind_coords,
+                                            csmd->bind_coords_sharing_info,
+                                            &csmd_orig->bind_coords,
+                                            &csmd_orig->bind_coords_sharing_info);
+
       csmd_orig->bind_coords_num = csmd->bind_coords_num;
     }
     else {
@@ -780,13 +788,21 @@ static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierD
        * binding data, can save a significant amount of memory. */
       csmd.bind_coords_num = 0;
       csmd.bind_coords = nullptr;
+      csmd.bind_coords_sharing_info = nullptr;
     }
   }
 
   BLO_write_struct_at_address(writer, CorrectiveSmoothModifierData, md, &csmd);
 
   if (csmd.bind_coords != nullptr) {
-    BLO_write_float3_array(writer, csmd.bind_coords_num, (float *)csmd.bind_coords);
+    BLO_write_shared(writer,
+                     csmd.bind_coords,
+                     sizeof(float[3]) * csmd.bind_coords_num,
+                     csmd.bind_coords_sharing_info,
+                     [&]() {
+                       BLO_write_float3_array(
+                           writer, csmd.bind_coords_num, (const float *)csmd.bind_coords);
+                     });
   }
 }
 
@@ -795,7 +811,10 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
   CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
 
   if (csmd->bind_coords) {
-    BLO_read_float3_array(reader, int(csmd->bind_coords_num), (float **)&csmd->bind_coords);
+    csmd->bind_coords_sharing_info = BLO_read_shared(reader, &csmd->bind_coords, [&]() {
+      BLO_read_float3_array(reader, int(csmd->bind_coords_num), (float **)&csmd->bind_coords);
+      return blender::implicit_sharing::info_for_mem_free(csmd->bind_coords);
+    });
   }
 
   /* runtime only */

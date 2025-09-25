@@ -229,7 +229,7 @@ static void outliner_select_sync_to_pose_bone(TreeElement *te,
 
   short bone_flag = pchan->bone->flag;
 
-  if (PBONE_SELECTABLE(arm, pchan->bone)) {
+  if (blender::animrig::bone_is_selectable(arm, pchan)) {
     if (tselem->flag & TSE_SELECTED) {
       pchan->bone->flag |= BONE_SELECTED;
 

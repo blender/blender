@@ -44,23 +44,13 @@ BLOCKLIST = [
 
 BLOCKLIST_METAL = [
     # Blocked due to difference in volume lightprobe bakes (to be fixed).
-    "clamp_.*.blend",
-    "shadow_all_max_bounces.blend",
-    "light_link_exclude.blend",
-    "light_link_instanced_receiver.blend",
     "light_path_is_volume_scatter_ray.blend",
     # Blocked due to difference in volume lightprobe bakes(maybe?) (to be fixed).
     "volume_zero_extinction_channel.blend",
-    # Blocked due to difference in screen space tracing (to be fixed).
-    "sss_reflection_clamp.blend",
-    # Blocked due to difference in volume rendering (to be fixed).
-    "principled_bsdf_interior.blend",
     # Blocked due to difference in mipmap interpolation (to be fixed).
     "environment_mirror_ball.blend",
     # Blocked due to difference in mipmap interpolation / anisotropic filtering (to be fixed).
     "image.blend",
-    # Blocked due to differences in transparency.
-    "aov_transparency.blend",
     # Blocked due to subtle differences in DOF
     "osl_camera_advanced.blend",
 ]

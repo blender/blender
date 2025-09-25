@@ -323,8 +323,9 @@ static std::string print_test_data(const TestOutputRawData &raw, TestType type)
 
 static StringRef print_test_line(StringRefNull test_src, int64_t test_line)
 {
-  /* Start at line one like the line report scheme. */
-  int64_t line = 1;
+  /* Start at line one like the line report scheme.
+   * However, our preprocessor adds a line directive at the top of the file. Skip it. */
+  int64_t line = 1 - 1;
   int64_t last_pos = 0;
   int64_t pos = 0;
   while ((pos = test_src.find('\n', pos)) != std::string::npos) {
@@ -370,7 +371,7 @@ static void gpu_shader_lib_test(const char *test_src_name, const char *additiona
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
   blender::gpu::Texture *tex = GPU_texture_create_2d(
       "tx", test_output_px_len, test_count, 1, TextureFormat::UINT_32_32_32_32, usage, nullptr);
-  GPUFrameBuffer *fb = GPU_framebuffer_create("test_fb");
+  gpu::FrameBuffer *fb = GPU_framebuffer_create("test_fb");
   GPU_framebuffer_ensure_config(&fb, {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(tex)});
   GPU_framebuffer_bind(fb);
 
@@ -421,13 +422,13 @@ GPU_TEST(math_lib)
 static void test_eevee_lib()
 {
   /* TODO(fclem): Not passing currently. Need to be updated. */
-  // gpu_shader_lib_test("eevee_shadow_test.glsl", "eevee_shared");
+  // gpu_shader_lib_test("eevee_shadow_test.glsl", "eevee_tests_data");
   gpu_shader_lib_test("eevee_occupancy_test.glsl");
   gpu_shader_lib_test("eevee_horizon_scan_test.glsl");
 #ifndef __APPLE__ /* PSOs fail to compile on Mac. Try to port them to compute shader to see if it \
                    * fixes the issue. */
-  gpu_shader_lib_test("eevee_gbuffer_normal_test.glsl", "eevee_shared");
-  gpu_shader_lib_test("eevee_gbuffer_closure_test.glsl", "eevee_shared");
+  gpu_shader_lib_test("eevee_gbuffer_normal_test.glsl", "eevee_tests_data");
+  gpu_shader_lib_test("eevee_gbuffer_closure_test.glsl", "eevee_tests_data");
 #endif
 }
 GPU_TEST(eevee_lib)

@@ -19,7 +19,7 @@ else:
     from bl_i18n_utils import utils as utils_i18n
     from bl_i18n_utils import bl_extract_messages
 
-from bpy.app.translations import pgettext_iface as iface_
+from bpy.app.translations import pgettext_rpt as rpt_
 import addon_utils
 
 import io
@@ -43,7 +43,8 @@ def validate_module(op, context):
 
     mod = utils_i18n.enable_addons(addons={module_name}, check_only=True)
     if not mod:
-        op.report({'ERROR'}, "Add-on '{}' not found!".format(module_name))
+        message = rpt_("Add-on '{}' not found!").format(module_name)
+        op.report({'ERROR'}, message)
         return None, None
     return module_name, mod[0]
 

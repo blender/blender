@@ -229,7 +229,7 @@ PyDoc_STRVAR(
 static PyObject *py_blf_dimensions(PyObject * /*self*/, PyObject *args)
 {
   const char *text;
-  float r_width, r_height;
+  float width, height;
   PyObject *ret;
   int fontid;
 
@@ -237,10 +237,10 @@ static PyObject *py_blf_dimensions(PyObject * /*self*/, PyObject *args)
     return nullptr;
   }
 
-  BLF_width_and_height(fontid, text, INT_MAX, &r_width, &r_height);
+  BLF_width_and_height(fontid, text, INT_MAX, &width, &height);
 
   ret = PyTuple_New(2);
-  PyTuple_SET_ITEMS(ret, PyFloat_FromDouble(r_width), PyFloat_FromDouble(r_height));
+  PyTuple_SET_ITEMS(ret, PyFloat_FromDouble(width), PyFloat_FromDouble(height));
   return ret;
 }
 

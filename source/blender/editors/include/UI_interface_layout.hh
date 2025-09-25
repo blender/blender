@@ -89,6 +89,11 @@ enum class LayoutSeparatorType : int8_t {
   Line,
 };
 
+enum class NodeAssetMenuOperatorType : int8_t {
+  Add,
+  Swap,
+};
+
 /**
  * NOTE: `uiLayout` properties should be considered private outside `interface_layout.cc`,
  * incoming refactors would remove public access and add public read/write function methods.
@@ -690,6 +695,10 @@ struct uiLayout : public uiItem, blender::NonCopyable, blender::NonMovable {
   [[nodiscard]] bool align() const;
   [[nodiscard]] bool variable_size() const;
   [[nodiscard]] blender::ui::EmbossType emboss_or_undefined() const;
+
+ protected:
+  void estimate();
+  virtual void estimate_impl();
 };
 
 inline bool uiLayout::active() const

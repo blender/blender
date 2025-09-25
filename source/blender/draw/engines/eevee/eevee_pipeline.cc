@@ -36,6 +36,20 @@ void BackgroundPipeline::sync(GPUMaterial *gpumat,
   Manager &manager = *inst_.manager;
   RenderBuffers &rbufs = inst_.render_buffers;
 
+  clear_ps_.init();
+  clear_ps_.state_set(DRW_STATE_WRITE_COLOR);
+  clear_ps_.shader_set(inst_.shaders.static_shader_get(RENDERPASS_CLEAR));
+  /* RenderPasses & AOVs. Cleared by background (even if bad practice). */
+  clear_ps_.bind_image("rp_color_img", &rbufs.rp_color_tx);
+  clear_ps_.bind_image("rp_value_img", &rbufs.rp_value_tx);
+  clear_ps_.bind_image("rp_cryptomatte_img", &rbufs.cryptomatte_tx);
+  /* Required by validation layers. */
+  clear_ps_.bind_resources(inst_.cryptomatte);
+  clear_ps_.bind_resources(inst_.uniform_data);
+  clear_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+  /* To allow opaque pass rendering over it. */
+  clear_ps_.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
+
   world_ps_.init();
   world_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
                       DRW_STATE_DEPTH_EQUAL);
@@ -58,20 +72,6 @@ void BackgroundPipeline::sync(GPUMaterial *gpumat,
   world_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   /* To allow opaque pass rendering over it. */
   world_ps_.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
-
-  clear_ps_.init();
-  clear_ps_.state_set(DRW_STATE_WRITE_COLOR);
-  clear_ps_.shader_set(inst_.shaders.static_shader_get(RENDERPASS_CLEAR));
-  /* RenderPasses & AOVs. Cleared by background (even if bad practice). */
-  clear_ps_.bind_image("rp_color_img", &rbufs.rp_color_tx);
-  clear_ps_.bind_image("rp_value_img", &rbufs.rp_value_tx);
-  clear_ps_.bind_image("rp_cryptomatte_img", &rbufs.cryptomatte_tx);
-  /* Required by validation layers. */
-  clear_ps_.bind_resources(inst_.cryptomatte);
-  clear_ps_.bind_resources(inst_.uniform_data);
-  clear_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
-  /* To allow opaque pass rendering over it. */
-  clear_ps_.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
 }
 
 void BackgroundPipeline::clear(View &view)
@@ -540,10 +540,15 @@ void DeferredLayer::begin_sync()
     prepass_ps_.bind_resources(inst_.velocity);
     prepass_ps_.bind_resources(inst_.sampling);
 
-    DRWState state_depth_only = DRW_STATE_WRITE_DEPTH | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
+    /* Clear stencil buffer so that prepass can tag it. Then draw a fullscreen triangle that will
+     * clear AOVs for all the pixels touched by this layer. */
+    prepass_ps_.clear_stencil(0xFFu);
+    prepass_ps_.state_stencil(0xFFu, 0u, 0xFFu);
+
+    DRWState state_depth_only = DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_ALWAYS |
+                                DRW_STATE_WRITE_DEPTH | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
                                 inst_.film.depth.test_state;
-    DRWState state_depth_color = DRW_STATE_WRITE_DEPTH | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
-                                 inst_.film.depth.test_state | DRW_STATE_WRITE_COLOR;
+    DRWState state_depth_color = state_depth_only | DRW_STATE_WRITE_COLOR;
 
     prepass_double_sided_static_ps_ = &prepass_ps_.sub("DoubleSided.Static");
     prepass_double_sided_static_ps_->state_set(state_depth_only);
@@ -595,6 +600,22 @@ void DeferredLayer::end_sync(bool is_first_pass,
 
   use_feedback_output_ = (use_raytracing_ || is_layer_refracted) &&
                          (!is_last_pass || use_screen_reflection_);
+
+  /* Clear AOVs in case previous layers wrote to them. First pass always get clear buffer because
+   * of #BackgroundPipeline::clear(). */
+  if (inst_.film.aovs_info.color_len > 0 && !is_first_pass) {
+    gpu::Shader *sh = inst_.shaders.static_shader_get(DEFERRED_AOV_CLEAR);
+    PassMain::Sub &sub = prepass_ps_.sub("AOVsClear");
+    sub.shader_set(sh);
+    sub.state_set(DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_EQUAL);
+    sub.bind_image("rp_color_img", &inst_.render_buffers.rp_color_tx);
+    sub.bind_image("rp_value_img", &inst_.render_buffers.rp_value_tx);
+    sub.bind_image("rp_cryptomatte_img", &inst_.render_buffers.cryptomatte_tx);
+    sub.bind_resources(inst_.cryptomatte);
+    sub.bind_resources(inst_.uniform_data);
+    sub.state_stencil(0xFFu, 0x0u, 0xFFu);
+    sub.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+  }
 
   {
     RenderBuffersInfoData &rbuf_data = inst_.render_buffers.data;
@@ -742,6 +763,7 @@ void DeferredLayer::end_sync(bool is_first_pass,
       pass.specialize_constant(
           sh, "use_radiance_feedback", use_feedback_output_ && use_clamp_direct_);
       pass.specialize_constant(sh, "render_pass_normal_enabled", rbuf_data.normal_id != -1);
+      pass.specialize_constant(sh, "render_pass_position_enabled", rbuf_data.position_id != -1);
       pass.shader_set(sh);
       /* Use stencil test to reject pixels not written by this layer. */
       pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD_FULL | DRW_STATE_STENCIL_NEQUAL);
@@ -758,6 +780,7 @@ void DeferredLayer::end_sync(bool is_first_pass,
       pass.bind_image("radiance_feedback_img", &radiance_feedback_tx_);
       pass.bind_resources(inst_.gbuffer);
       pass.bind_resources(inst_.uniform_data);
+      pass.bind_resources(inst_.hiz_buffer.front);
       pass.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
       pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
     }
@@ -882,7 +905,7 @@ gpu::Texture *DeferredLayer::render(View &main_view,
   }
 
   GPU_framebuffer_bind(combined_fb);
-  inst_.manager->submit(combine_ps_);
+  inst_.manager->submit(combine_ps_, render_view);
 
   if (use_feedback_output_ && !use_clamp_direct_) {
     /* We skip writing the radiance during the combine pass. Do a simple fast copy. */
@@ -921,8 +944,12 @@ void DeferredPipeline::begin_sync()
 
 void DeferredPipeline::end_sync()
 {
+  Instance &inst = opaque_layer_.inst_;
+
   opaque_layer_.end_sync(true, refraction_layer_.is_empty(), refraction_layer_.has_transmission());
   refraction_layer_.end_sync(opaque_layer_.is_empty(), true, false);
+
+  inst.pipelines.data.gbuffer_additional_data_layer_id = this->normal_layer_count() - 1;
 
   debug_pass_sync();
 }
@@ -946,7 +973,7 @@ void DeferredPipeline::debug_pass_sync()
   pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
 }
 
-void DeferredPipeline::debug_draw(draw::View &view, GPUFrameBuffer *combined_fb)
+void DeferredPipeline::debug_draw(draw::View &view, gpu::FrameBuffer *combined_fb)
 {
   Instance &inst = opaque_layer_.inst_;
   if (!ELEM(inst.debug_mode,

@@ -154,6 +154,9 @@ class SkyTextureNode : public TextureNode {
   SHADER_NODE_CLASS(SkyTextureNode)
 
   NODE_SOCKET_API(NodeSkyType, sky_type)
+  NODE_SOCKET_API(float3, sun_direction)
+  NODE_SOCKET_API(float, turbidity)
+  NODE_SOCKET_API(float, ground_albedo)
   NODE_SOCKET_API(bool, sun_disc)
   NODE_SOCKET_API(float, sun_size)
   NODE_SOCKET_API(float, sun_intensity)
@@ -161,7 +164,7 @@ class SkyTextureNode : public TextureNode {
   NODE_SOCKET_API(float, sun_rotation)
   NODE_SOCKET_API(float, altitude)
   NODE_SOCKET_API(float, air_density)
-  NODE_SOCKET_API(float, dust_density)
+  NODE_SOCKET_API(float, aerosol_density)
   NODE_SOCKET_API(float, ozone_density)
   NODE_SOCKET_API(float3, vector)
   ImageHandle handle;
@@ -1675,6 +1678,16 @@ class NormalMapNode : public ShaderNode {
   NODE_SOCKET_API(ustring, attribute)
   NODE_SOCKET_API(float, strength)
   NODE_SOCKET_API(float3, color)
+};
+
+class RadialTilingNode : public ShaderNode {
+ public:
+  SHADER_NODE_CLASS(RadialTilingNode)
+
+  NODE_SOCKET_API(bool, use_normalize)
+  NODE_SOCKET_API(float3, vector)
+  NODE_SOCKET_API(float, r_gon_sides)
+  NODE_SOCKET_API(float, r_gon_roundness)
 };
 
 class TangentNode : public ShaderNode {

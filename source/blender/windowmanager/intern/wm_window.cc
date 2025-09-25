@@ -229,13 +229,6 @@ static void wm_ghostwindow_destroy(wmWindowManager *wm, wmWindow *win)
     wm->runtime->winactive = nullptr;
   }
 
-  GHOST_ContextHandle restore_ghost_context = GHOST_GetActiveGPUContext();
-  GPUContext *restore_context = GPU_context_active_get();
-  if (restore_context == win->gpuctx) {
-    restore_ghost_context = nullptr;
-    restore_context = nullptr;
-  }
-
   /* We need this window's GPU context active to discard it. */
   GHOST_ActivateWindowDrawingContext(static_cast<GHOST_WindowHandle>(win->ghostwin));
   GPU_context_active_set(static_cast<GPUContext *>(win->gpuctx));
@@ -246,11 +239,6 @@ static void wm_ghostwindow_destroy(wmWindowManager *wm, wmWindow *win)
   GHOST_DisposeWindow(g_system, static_cast<GHOST_WindowHandle>(win->ghostwin));
   win->ghostwin = nullptr;
   win->gpuctx = nullptr;
-
-  if (restore_ghost_context && restore_context) {
-    GHOST_ActivateGPUContext(restore_ghost_context);
-    GPU_context_active_set(restore_context);
-  }
 }
 
 void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
@@ -930,7 +918,7 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
     gpu_settings.flags |= GHOST_gpuDebugContext;
   }
 
-  eGPUBackendType gpu_backend = GPU_backend_type_selection_get();
+  GPUBackendType gpu_backend = GPU_backend_type_selection_get();
   gpu_settings.context_type = wm_ghost_drawing_context_type(gpu_backend);
   gpu_settings.preferred_device.index = U.gpu_preferred_index;
   gpu_settings.preferred_device.vendor_id = U.gpu_preferred_vendor_id;
@@ -1005,12 +993,13 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
     UI_GetThemeColor3fv(TH_BACK, window_bg_color);
 
     /* Until screens get drawn, draw a default background using the window theme color. */
+    wm_window_swap_buffer_acquire(win);
     GPU_clear_color(window_bg_color[0], window_bg_color[1], window_bg_color[2], 1.0f);
 
     /* Needed here, because it's used before it reads #UserDef. */
     WM_window_dpi_set_userdef(win);
 
-    wm_window_swap_buffers(win);
+    wm_window_swap_buffer_release(win);
 
     /* Clear double buffer to avoids flickering of new windows on certain drivers, see #97600. */
     GPU_clear_color(window_bg_color[0], window_bg_color[1], window_bg_color[2], 1.0f);
@@ -1335,10 +1324,10 @@ wmWindow *WM_window_open_temp(bContext *C, const char *title, int space_type, bo
   const bool mm_placement = WM_capabilities_flag() & WM_CAPABILITY_MULTIMONITOR_PLACEMENT;
 
   if (bounds_valid && mm_placement) {
-    rect.xmin = (int)(stored_bounds->xmin * UI_SCALE_FAC);
-    rect.ymin = (int)(stored_bounds->ymin * UI_SCALE_FAC);
-    rect.xmax = (int)(stored_bounds->xmax * UI_SCALE_FAC);
-    rect.ymax = (int)(stored_bounds->ymax * UI_SCALE_FAC);
+    rect.xmin = int(stored_bounds->xmin * UI_SCALE_FAC);
+    rect.ymin = int(stored_bounds->ymin * UI_SCALE_FAC);
+    rect.xmax = int(stored_bounds->xmax * UI_SCALE_FAC);
+    rect.ymax = int(stored_bounds->ymax * UI_SCALE_FAC);
     align = WIN_ALIGN_ABSOLUTE;
   }
   else {
@@ -1768,7 +1757,7 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr C
 #if 0
         /* NOTE(@ideasman42): Ideally we could swap-buffers to avoid a full redraw.
          * however this causes window flickering on resize with LIBDECOR under WAYLAND. */
-        wm_window_swap_buffers(win);
+        wm_window_swap_buffer_release(win);
 #else
       WM_event_add_notifier_ex(wm, win, NC_WINDOW, nullptr);
 #endif
@@ -2199,7 +2188,7 @@ const char *WM_ghost_backend()
 #endif
 }
 
-GHOST_TDrawingContextType wm_ghost_drawing_context_type(const eGPUBackendType gpu_backend)
+GHOST_TDrawingContextType wm_ghost_drawing_context_type(const GPUBackendType gpu_backend)
 {
   switch (gpu_backend) {
     case GPU_BACKEND_NONE:
@@ -2725,9 +2714,14 @@ void wm_window_raise(wmWindow *win)
 /** \name Window Buffers
  * \{ */
 
-void wm_window_swap_buffers(wmWindow *win)
+void wm_window_swap_buffer_acquire(wmWindow *win)
 {
-  GHOST_SwapWindowBuffers(static_cast<GHOST_WindowHandle>(win->ghostwin));
+  GHOST_SwapWindowBufferAcquire(static_cast<GHOST_WindowHandle>(win->ghostwin));
+}
+
+void wm_window_swap_buffer_release(wmWindow *win)
+{
+  GHOST_SwapWindowBufferRelease(static_cast<GHOST_WindowHandle>(win->ghostwin));
 }
 
 void wm_window_set_swap_interval(wmWindow *win, int interval)
@@ -3232,7 +3226,7 @@ void *WM_system_gpu_context_create()
   BLI_assert(GPU_framebuffer_active_get() == GPU_framebuffer_back_get());
 
   GHOST_GPUSettings gpu_settings = {0};
-  const eGPUBackendType gpu_backend = GPU_backend_type_selection_get();
+  const GPUBackendType gpu_backend = GPU_backend_type_selection_get();
   gpu_settings.context_type = wm_ghost_drawing_context_type(gpu_backend);
   if (G.debug & G_DEBUG_GPU) {
     gpu_settings.flags |= GHOST_gpuDebugContext;

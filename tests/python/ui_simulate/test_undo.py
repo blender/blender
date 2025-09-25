@@ -12,9 +12,20 @@ import datetime
 # are handled. This isn't great but seems not to be a problem for users?
 _MENU_CONFIRM_HACK = True
 
+# FIXME: When running multi window tests, the view layer in the new window
+# may not be updated after a single event loop. This fixed delay is to allow
+# the corresponding tests to run as expected. See: #136012.
+_MENU_CONFIRM_HACK_MULTI_WINDOW_PAUSE_SECONDS = 1 / 60
+
+# WARNING: macOS requires extra delay (it's unclear why), see: #146143.
+import sys
+if sys.platform == "darwin":
+    _MENU_CONFIRM_HACK_MULTI_WINDOW_PAUSE_SECONDS = 1 / 6
+del sys
 
 # -----------------------------------------------------------------------------
 # Utilities
+
 
 def _keep_open():
     """
@@ -786,7 +797,7 @@ def view3d_multi_mode_multi_window():
     yield e_b.ret()
     if _MENU_CONFIRM_HACK:
         # We wait for a brief period of time after confirming to ensure that each main window has a different view layer
-        yield datetime.timedelta(seconds=1 / 60)
+        yield datetime.timedelta(seconds=_MENU_CONFIRM_HACK_MULTI_WINDOW_PAUSE_SECONDS)
 
     t.assertNotEqual(window_a.view_layer, window_b.view_layer, "Windows should have different view layers")
 
@@ -945,7 +956,7 @@ def view3d_edit_mode_multi_window():
     yield e_b.ret()
     if _MENU_CONFIRM_HACK:
         # We wait for a brief period of time after confirming to ensure that each main window has a different view layer
-        yield datetime.timedelta(seconds=1 / 60)
+        yield datetime.timedelta(seconds=_MENU_CONFIRM_HACK_MULTI_WINDOW_PAUSE_SECONDS)
 
     t.assertNotEqual(window_a.view_layer, window_b.view_layer, "Windows should have different view layers")
 

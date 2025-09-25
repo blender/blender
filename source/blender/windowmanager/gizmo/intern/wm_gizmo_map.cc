@@ -712,7 +712,7 @@ static wmGizmo *gizmo_find_intersected_3d(bContext *C,
       return nullptr;
     }
     blender::gpu::Texture *depth_tx = GPU_viewport_depth_texture(viewport);
-    GPUFrameBuffer *depth_read_fb = nullptr;
+    blender::gpu::FrameBuffer *depth_read_fb = nullptr;
     GPU_framebuffer_ensure_config(&depth_read_fb,
                                   {
                                       GPU_ATTACHMENT_TEXTURE(depth_tx),

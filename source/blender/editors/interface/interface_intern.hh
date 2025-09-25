@@ -148,9 +148,6 @@ extern const short ui_radial_dir_to_angle[8];
 /** Split number-buttons by ':' and align left/right. */
 #define USE_NUMBUTS_LR_ALIGN
 
-/** Use new 'align' computation code. */
-#define USE_UIBUT_SPATIAL_ALIGN
-
 /** #PieMenuData.flags */
 enum {
   /** Use initial center of pie menu to calculate direction. */
@@ -507,16 +504,16 @@ struct ColorPicker {
   bool is_init;
 
   /**
-   * HSV or HSL in color picker space used for number sliders. This is the same
-   * colorspace as the rgb slider for a clear correspondence.
+   * HSV or HSL in color picker space used for number sliders.
    */
-  float hsv_slider[3];
+  float hsv_perceptual_slider[3];
+  float hsv_linear_slider[3];
 
   /*
    * RGB in color picker used for number sliders, when the space is not scene linear.
    * When it is linear, the RNA property is used directly so that keyframing works.
    */
-  float rgb_slider[3];
+  float rgb_perceptual_slider[3];
 
   /* Hex Color string */
   char hexcol[128];

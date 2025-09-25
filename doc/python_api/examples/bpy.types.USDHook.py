@@ -320,11 +320,11 @@ class USDHookExample(bpy.types.USDHook):
             return False
 
         # Create the node tree
-        bl_material.use_nodes = True
-        node_tree = bl_material.node_tree
-        nodes = node_tree.nodes
-        bsdf = nodes.get("Principled BSDF")
-        assert bsdf
+        nodes = bl_material.node_tree.nodes
+        output = nodes.new(type="ShaderNodeOutputMaterial")
+        bsdf = nodes.new(type="ShaderNodeBsdfPrincipled")
+        bsdf.location[0] -= 1.5 * bsdf.width
+        bl_material.node_tree.links.new(output.inputs["Surface"], bsdf.outputs["BSDF"])
         bsdf_base_color_input = bsdf.inputs['Base Color']
 
         # Try to set the default color value.

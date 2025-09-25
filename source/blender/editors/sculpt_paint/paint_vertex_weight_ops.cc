@@ -819,7 +819,7 @@ static wmOperatorStatus paint_weight_gradient_exec(bContext *C, wmOperator *op)
     VPaint *wp = ts->wpaint;
     Brush *brush = BKE_paint_brush(&wp->paint);
 
-    BKE_curvemapping_init(brush->curve);
+    BKE_curvemapping_init(brush->curve_distance_falloff);
 
     data.brush = brush;
     data.weightpaint = BKE_brush_weight_get(&wp->paint, brush);

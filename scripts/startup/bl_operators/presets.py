@@ -718,7 +718,7 @@ class SavePresetInterfaceTheme(AddPresetBase, Operator):
         try:
             rna_xml.xml_file_write(context, filepath, preset_menu_class.preset_xml_map)
         except Exception as ex:
-            self.report({'ERROR'}, "Unable to overwrite preset: {:s}".format(str(ex)))
+            self.report({'ERROR'}, rpt_("Unable to overwrite preset: {:s}").format(str(ex)))
             import traceback
             traceback.print_exc()
             return {'CANCELLED'}

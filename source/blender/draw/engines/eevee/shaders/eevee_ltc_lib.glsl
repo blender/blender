@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "infos/eevee_common_info.hh"
+#include "infos/eevee_common_infos.hh"
 
 /**
  * Adapted from :
@@ -14,7 +14,8 @@
  * Project page: https://eheitzresearch.wordpress.com/415-2/
  */
 
-#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_math_constants_lib.glsl"
+#include "gpu_shader_math_matrix_construct_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
 /* Diffuse *clipped* sphere integral. */

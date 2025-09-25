@@ -39,10 +39,10 @@ IMMDrawPixelsTexState immDrawPixelsTexSetup(int builtin)
   IMMDrawPixelsTexState state;
   immDrawPixelsTexSetupAttributes(&state);
 
-  state.shader = GPU_shader_get_builtin_shader(eGPUBuiltinShader(builtin));
+  state.shader = GPU_shader_get_builtin_shader(GPUBuiltinShader(builtin));
 
   /* Shader will be unbind by immUnbindProgram in a `immDrawPixelsTex` function. */
-  immBindBuiltinProgram(eGPUBuiltinShader(builtin));
+  immBindBuiltinProgram(GPUBuiltinShader(builtin));
   state.do_shader_unbind = true;
 
   return state;

@@ -231,7 +231,7 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
     isect->type = segment.type;
     isect->u = intersection.curve_parameter;
 
-    if (segment.type & PRIMITIVE_CURVE_RIBBON) {
+    if ((segment.type & PRIMITIVE_CURVE) == PRIMITIVE_CURVE_RIBBON) {
       isect->v = curve_ribbon_v(kg,
                                 intersection.curve_parameter,
                                 intersection.distance,

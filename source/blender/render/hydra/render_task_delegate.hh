@@ -46,7 +46,7 @@ class RenderTaskDelegate : public pxr::HdSceneDelegate {
 
 class GPURenderTaskDelegate : public RenderTaskDelegate {
  private:
-  GPUFrameBuffer *framebuffer_ = nullptr;
+  blender::gpu::FrameBuffer *framebuffer_ = nullptr;
   blender::gpu::Texture *tex_color_ = nullptr;
   blender::gpu::Texture *tex_depth_ = nullptr;
   unsigned int VAO_ = 0;

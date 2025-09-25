@@ -229,12 +229,11 @@ static void scene_init_data(ID *id)
   colorspace_name = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_SEQUENCER);
 
   BKE_color_managed_display_settings_init(&scene->display_settings);
-  BKE_color_managed_view_settings_init_render(
-      &scene->view_settings, &scene->display_settings, "AgX");
+  BKE_color_managed_view_settings_init(&scene->view_settings, &scene->display_settings, "AgX");
   STRNCPY_UTF8(scene->sequencer_colorspace_settings.name, colorspace_name);
 
-  BKE_image_format_init(&scene->r.im_format, true);
-  BKE_image_format_init(&scene->r.bake.im_format, true);
+  BKE_image_format_init(&scene->r.im_format);
+  BKE_image_format_init(&scene->r.bake.im_format);
 
   /* Curve Profile */
   scene->toolsettings->custom_bevel_profile_preset = BKE_curveprofile_add(PROF_PRESET_LINE);
@@ -1599,77 +1598,79 @@ ToolSettings *BKE_toolsettings_copy(ToolSettings *toolsettings, const int flag)
     return nullptr;
   }
   ToolSettings *ts = static_cast<ToolSettings *>(MEM_dupallocN(toolsettings));
-  if (ts->vpaint) {
-    ts->vpaint = static_cast<VPaint *>(MEM_dupallocN(ts->vpaint));
-    BKE_paint_copy(&ts->vpaint->paint, &ts->vpaint->paint, flag);
+  if (toolsettings->vpaint) {
+    ts->vpaint = static_cast<VPaint *>(MEM_dupallocN(toolsettings->vpaint));
+    BKE_paint_copy(&toolsettings->vpaint->paint, &ts->vpaint->paint, flag);
   }
-  if (ts->wpaint) {
-    ts->wpaint = static_cast<VPaint *>(MEM_dupallocN(ts->wpaint));
-    BKE_paint_copy(&ts->wpaint->paint, &ts->wpaint->paint, flag);
+  if (toolsettings->wpaint) {
+    ts->wpaint = static_cast<VPaint *>(MEM_dupallocN(toolsettings->wpaint));
+    BKE_paint_copy(&toolsettings->wpaint->paint, &ts->wpaint->paint, flag);
   }
-  if (ts->sculpt) {
-    ts->sculpt = static_cast<Sculpt *>(MEM_dupallocN(ts->sculpt));
-    BKE_paint_copy(&ts->sculpt->paint, &ts->sculpt->paint, flag);
+  if (toolsettings->sculpt) {
+    ts->sculpt = static_cast<Sculpt *>(MEM_dupallocN(toolsettings->sculpt));
+    BKE_paint_copy(&toolsettings->sculpt->paint, &ts->sculpt->paint, flag);
 
-    if (ts->sculpt->automasking_cavity_curve) {
+    if (toolsettings->sculpt->automasking_cavity_curve) {
       ts->sculpt->automasking_cavity_curve = BKE_curvemapping_copy(
-          ts->sculpt->automasking_cavity_curve);
+          toolsettings->sculpt->automasking_cavity_curve);
       BKE_curvemapping_init(ts->sculpt->automasking_cavity_curve);
     }
 
-    if (ts->sculpt->automasking_cavity_curve_op) {
+    if (toolsettings->sculpt->automasking_cavity_curve_op) {
       ts->sculpt->automasking_cavity_curve_op = BKE_curvemapping_copy(
-          ts->sculpt->automasking_cavity_curve_op);
+          toolsettings->sculpt->automasking_cavity_curve_op);
       BKE_curvemapping_init(ts->sculpt->automasking_cavity_curve_op);
     }
   }
-  if (ts->uvsculpt.strength_curve) {
-    ts->uvsculpt.strength_curve = BKE_curvemapping_copy(ts->uvsculpt.strength_curve);
+  if (toolsettings->uvsculpt.strength_curve) {
+    ts->uvsculpt.strength_curve = BKE_curvemapping_copy(toolsettings->uvsculpt.strength_curve);
     BKE_curvemapping_init(ts->uvsculpt.strength_curve);
   }
-  if (ts->gp_paint) {
-    ts->gp_paint = static_cast<GpPaint *>(MEM_dupallocN(ts->gp_paint));
-    BKE_paint_copy(&ts->gp_paint->paint, &ts->gp_paint->paint, flag);
+  if (toolsettings->gp_paint) {
+    ts->gp_paint = static_cast<GpPaint *>(MEM_dupallocN(toolsettings->gp_paint));
+    BKE_paint_copy(&toolsettings->gp_paint->paint, &ts->gp_paint->paint, flag);
   }
-  if (ts->gp_vertexpaint) {
-    ts->gp_vertexpaint = static_cast<GpVertexPaint *>(MEM_dupallocN(ts->gp_vertexpaint));
-    BKE_paint_copy(&ts->gp_vertexpaint->paint, &ts->gp_vertexpaint->paint, flag);
+  if (toolsettings->gp_vertexpaint) {
+    ts->gp_vertexpaint = static_cast<GpVertexPaint *>(MEM_dupallocN(toolsettings->gp_vertexpaint));
+    BKE_paint_copy(&toolsettings->gp_vertexpaint->paint, &ts->gp_vertexpaint->paint, flag);
   }
-  if (ts->gp_sculptpaint) {
-    ts->gp_sculptpaint = static_cast<GpSculptPaint *>(MEM_dupallocN(ts->gp_sculptpaint));
-    BKE_paint_copy(&ts->gp_sculptpaint->paint, &ts->gp_sculptpaint->paint, flag);
+  if (toolsettings->gp_sculptpaint) {
+    ts->gp_sculptpaint = static_cast<GpSculptPaint *>(MEM_dupallocN(toolsettings->gp_sculptpaint));
+    BKE_paint_copy(&toolsettings->gp_sculptpaint->paint, &ts->gp_sculptpaint->paint, flag);
   }
-  if (ts->gp_weightpaint) {
-    ts->gp_weightpaint = static_cast<GpWeightPaint *>(MEM_dupallocN(ts->gp_weightpaint));
-    BKE_paint_copy(&ts->gp_weightpaint->paint, &ts->gp_weightpaint->paint, flag);
+  if (toolsettings->gp_weightpaint) {
+    ts->gp_weightpaint = static_cast<GpWeightPaint *>(MEM_dupallocN(toolsettings->gp_weightpaint));
+    BKE_paint_copy(&toolsettings->gp_weightpaint->paint, &ts->gp_weightpaint->paint, flag);
   }
-  if (ts->curves_sculpt) {
-    ts->curves_sculpt = static_cast<CurvesSculpt *>(MEM_dupallocN(ts->curves_sculpt));
-    BKE_paint_copy(&ts->curves_sculpt->paint, &ts->curves_sculpt->paint, flag);
+  if (toolsettings->curves_sculpt) {
+    ts->curves_sculpt = static_cast<CurvesSculpt *>(MEM_dupallocN(toolsettings->curves_sculpt));
+    BKE_paint_copy(&toolsettings->curves_sculpt->paint, &ts->curves_sculpt->paint, flag);
   }
 
   /* Color jitter curves in unified paint settings. */
   ts->unified_paint_settings.curve_rand_hue = BKE_curvemapping_copy(
-      ts->unified_paint_settings.curve_rand_hue);
+      toolsettings->unified_paint_settings.curve_rand_hue);
   ts->unified_paint_settings.curve_rand_saturation = BKE_curvemapping_copy(
-      ts->unified_paint_settings.curve_rand_saturation);
+      toolsettings->unified_paint_settings.curve_rand_saturation);
   ts->unified_paint_settings.curve_rand_value = BKE_curvemapping_copy(
-      ts->unified_paint_settings.curve_rand_value);
+      toolsettings->unified_paint_settings.curve_rand_value);
 
-  BKE_paint_copy(&ts->imapaint.paint, &ts->imapaint.paint, flag);
+  BKE_paint_copy(&toolsettings->imapaint.paint, &ts->imapaint.paint, flag);
   ts->particle.paintcursor = nullptr;
   ts->particle.scene = nullptr;
   ts->particle.object = nullptr;
 
   /* duplicate Grease Pencil interpolation curve */
-  ts->gp_interpolate.custom_ipo = BKE_curvemapping_copy(ts->gp_interpolate.custom_ipo);
+  ts->gp_interpolate.custom_ipo = BKE_curvemapping_copy(toolsettings->gp_interpolate.custom_ipo);
   /* Duplicate Grease Pencil multi-frame falloff. */
-  ts->gp_sculpt.cur_falloff = BKE_curvemapping_copy(ts->gp_sculpt.cur_falloff);
-  ts->gp_sculpt.cur_primitive = BKE_curvemapping_copy(ts->gp_sculpt.cur_primitive);
+  ts->gp_sculpt.cur_falloff = BKE_curvemapping_copy(toolsettings->gp_sculpt.cur_falloff);
+  ts->gp_sculpt.cur_primitive = BKE_curvemapping_copy(toolsettings->gp_sculpt.cur_primitive);
 
-  ts->custom_bevel_profile_preset = BKE_curveprofile_copy(ts->custom_bevel_profile_preset);
+  ts->custom_bevel_profile_preset = BKE_curveprofile_copy(
+      toolsettings->custom_bevel_profile_preset);
 
-  ts->sequencer_tool_settings = blender::seq::tool_settings_copy(ts->sequencer_tool_settings);
+  ts->sequencer_tool_settings = blender::seq::tool_settings_copy(
+      toolsettings->sequencer_tool_settings);
   return ts;
 }
 
@@ -1838,6 +1839,10 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
     if (!is_subprocess) {
       BKE_main_id_newptr_and_tag_clear(bmain);
     }
+
+    /* Usages of the duplicated scene also need to be remapped in new duplicated IDs. */
+    ID_NEW_SET(sce, sce_copy);
+
     if (is_root_id) {
       /* In case root duplicated ID is linked, assume we want to get a local copy of it and
        * duplicate all expected linked data. */
@@ -2795,20 +2800,6 @@ enum eCyclesFeatureSet {
   CYCLES_FEATURES_SUPPORTED = 0,
   CYCLES_FEATURES_EXPERIMENTAL = 1,
 };
-
-bool BKE_scene_uses_cycles_experimental_features(Scene *scene)
-{
-  BLI_assert(BKE_scene_uses_cycles(scene));
-  PointerRNA scene_ptr = RNA_id_pointer_create(&scene->id);
-  PointerRNA cycles_ptr = RNA_pointer_get(&scene_ptr, "cycles");
-
-  if (RNA_pointer_is_null(&cycles_ptr)) {
-    /* The pointer only exists if Cycles is enabled. */
-    return false;
-  }
-
-  return RNA_enum_get(&cycles_ptr, "feature_set") == CYCLES_FEATURES_EXPERIMENTAL;
-}
 
 void BKE_scene_base_flag_to_objects(const Scene *scene, ViewLayer *view_layer)
 {

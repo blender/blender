@@ -58,7 +58,7 @@ class BlenderScene():
             BlenderScene.select_imported_objects(gltf)
             BlenderScene.set_active_object(gltf)
 
-        # Exlude not default scene(s) collection(s), if we are in collection
+        # Exclude not default scene(s) collection(s), if we are in collection
         if gltf.import_settings['import_scene_as_collection'] is True:
             if gltf.data.scene is not None:
                 for scene_idx, coll in gltf.blender_collections.items():

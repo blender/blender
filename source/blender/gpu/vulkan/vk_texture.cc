@@ -145,7 +145,7 @@ void VKTexture::clear(eGPUDataFormat format, const void *data)
   context.render_graph().add_node(clear_color_image);
 }
 
-void VKTexture::clear_depth_stencil(const eGPUFrameBufferBits buffers,
+void VKTexture::clear_depth_stencil(const GPUFrameBufferBits buffers,
                                     float clear_depth,
                                     uint clear_stencil,
                                     std::optional<int> layer)
@@ -472,13 +472,6 @@ void VKTexture::update_sub(int offset[3],
   update_sub(0, offset, extent, format, nullptr, &pixel_buffer);
 }
 
-uint VKTexture::gl_bindcode_get() const
-{
-  /* TODO(fclem): Legacy. Should be removed at some point. */
-
-  return 0;
-}
-
 VKMemoryExport VKTexture::export_memory(VkExternalMemoryHandleTypeFlagBits handle_type)
 {
   const VKDevice &device = VKBackend::get().device;
@@ -577,7 +570,7 @@ bool VKTexture::is_texture_view() const
 }
 
 static VkImageUsageFlags to_vk_image_usage(const eGPUTextureUsage usage,
-                                           const eGPUTextureFormatFlag format_flag)
+                                           const GPUTextureFormatFlag format_flag)
 {
   const VKDevice &device = VKBackend::get().device;
   const bool supports_local_read = device.extensions_get().dynamic_rendering_local_read;
@@ -624,8 +617,8 @@ static VkImageUsageFlags to_vk_image_usage(const eGPUTextureUsage usage,
   return result;
 }
 
-static VkImageCreateFlags to_vk_image_create(const eGPUTextureType texture_type,
-                                             const eGPUTextureFormatFlag format_flag,
+static VkImageCreateFlags to_vk_image_create(const GPUTextureType texture_type,
+                                             const GPUTextureFormatFlag format_flag,
                                              const eGPUTextureUsage usage)
 {
   VkImageCreateFlags result = 0;
@@ -711,12 +704,8 @@ bool VKTexture::allocate()
 
   if (bool(texture_usage & GPU_TEXTURE_USAGE_MEMORY_EXPORT)) {
     image_info.pNext = &external_memory_create_info;
-#ifdef _WIN32
-    external_memory_create_info.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT;
-#else
-    external_memory_create_info.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
-#endif
-    allocCreateInfo.pool = device.vma_pools.external_memory;
+    external_memory_create_info.handleTypes = vk_external_memory_handle_type();
+    allocCreateInfo.pool = device.vma_pools.external_memory_image.pool;
   }
   result = vmaCreateImage(device.mem_allocator_get(),
                           &image_info,

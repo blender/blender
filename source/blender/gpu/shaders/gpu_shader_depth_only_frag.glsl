@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/gpu_shader_3D_depth_only_info.hh"
+#include "infos/gpu_shader_3D_depth_only_infos.hh"
 
 void main()
 {

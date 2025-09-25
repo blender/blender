@@ -191,21 +191,38 @@ void GLContext::finish()
  * In this case we delay the deletion until the context is bound again.
  * \{ */
 
+void GLSharedOrphanLists::OrphanList::clear(FunctionRef<void(GLuint, GLuint *)> free_fn)
+{
+  std::scoped_lock lock(mutex_);
+  if (!handles_.is_empty()) {
+    free_fn(uint(handles_.size()), handles_.data());
+    handles_.clear();
+  }
+};
+
+void GLSharedOrphanLists::OrphanList::append(GLuint handle)
+{
+  std::scoped_lock lock(mutex_);
+  handles_.append(handle);
+};
+
 void GLSharedOrphanLists::orphans_clear()
 {
   /* Check if any context is active on this thread! */
   BLI_assert(GLContext::get());
 
-  lists_mutex.lock();
-  if (!buffers.is_empty()) {
-    glDeleteBuffers(uint(buffers.size()), buffers.data());
-    buffers.clear();
-  }
-  if (!textures.is_empty()) {
-    glDeleteTextures(uint(textures.size()), textures.data());
-    textures.clear();
-  }
-  lists_mutex.unlock();
+  buffers.clear(glDeleteBuffers);
+  textures.clear(glDeleteTextures);
+  shaders.clear([](GLuint size, GLuint *handles) {
+    for (uint i = 0; i < size; i++) {
+      glDeleteShader(handles[i]);
+    }
+  });
+  programs.clear([](GLuint size, GLuint *handles) {
+    for (uint i = 0; i < size; i++) {
+      glDeleteProgram(handles[i]);
+    }
+  });
 };
 
 void GLContext::orphans_clear()
@@ -254,7 +271,7 @@ void GLContext::fbo_free(GLuint fbo_id)
   }
 }
 
-void GLContext::buf_free(GLuint buf_id)
+void GLContext::buffer_free(GLuint buf_id)
 {
   /* Any context can free. */
   if (GLContext::get()) {
@@ -262,11 +279,11 @@ void GLContext::buf_free(GLuint buf_id)
   }
   else {
     GLSharedOrphanLists &orphan_list = GLBackend::get()->shared_orphan_list_get();
-    orphans_add(orphan_list.buffers, orphan_list.lists_mutex, buf_id);
+    orphan_list.buffers.append(buf_id);
   }
 }
 
-void GLContext::tex_free(GLuint tex_id)
+void GLContext::texture_free(GLuint tex_id)
 {
   /* Any context can free. */
   if (GLContext::get()) {
@@ -274,7 +291,31 @@ void GLContext::tex_free(GLuint tex_id)
   }
   else {
     GLSharedOrphanLists &orphan_list = GLBackend::get()->shared_orphan_list_get();
-    orphans_add(orphan_list.textures, orphan_list.lists_mutex, tex_id);
+    orphan_list.textures.append(tex_id);
+  }
+}
+
+void GLContext::shader_free(GLuint shader_id)
+{
+  /* Any context can free. */
+  if (GLContext::get()) {
+    glDeleteShader(shader_id);
+  }
+  else {
+    GLSharedOrphanLists &orphan_list = GLBackend::get()->shared_orphan_list_get();
+    orphan_list.shaders.append(shader_id);
+  }
+}
+
+void GLContext::program_free(GLuint program_id)
+{
+  /* Any context can free. */
+  if (GLContext::get()) {
+    glDeleteProgram(program_id);
+  }
+  else {
+    GLSharedOrphanLists &orphan_list = GLBackend::get()->shared_orphan_list_get();
+    orphan_list.programs.append(program_id);
   }
 }
 

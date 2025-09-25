@@ -357,8 +357,6 @@ kmi_defs = (
      (('name', interface.NWLinkActiveToSelectedMenu.bl_idname),), "Link active to selected (menu)"),
     ('wm.call_menu', 'C', 'PRESS', False, True, False,
      (('name', interface.NWCopyToSelectedMenu.bl_idname),), "Copy to selected (menu)"),
-    ('wm.call_menu', 'S', 'PRESS', False, True, False,
-     (('name', interface.NWSwitchNodeTypeMenu.bl_idname),), "Switch node type menu"),
 )
 
 classes = (

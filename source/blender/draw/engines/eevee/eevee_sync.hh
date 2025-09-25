@@ -13,14 +13,15 @@
 
 #include "BKE_duplilist.hh"
 #include "BLI_map.hh"
-#include "DEG_depsgraph_query.hh"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DRW_render.hh"
-#include "GPU_material.hh"
 
-#include "eevee_shader_shared.hh"
+#include "draw_handle.hh"
 
 namespace blender::eevee {
+
+using namespace draw;
 
 class Instance;
 

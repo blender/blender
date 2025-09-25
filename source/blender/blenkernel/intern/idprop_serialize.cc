@@ -300,7 +300,7 @@ class IDPStringSerializer : public IDPropertySerializer {
       const IDProperty *id_property) const override
   {
     std::shared_ptr<DictionaryValue> result = create_dictionary(id_property);
-    result->append_str(IDP_KEY_VALUE, IDP_String(id_property));
+    result->append_str(IDP_KEY_VALUE, IDP_string_get(id_property));
     return result;
   }
 
@@ -339,7 +339,7 @@ class IDPBoolSerializer : public IDPropertySerializer {
       const IDProperty *id_property) const override
   {
     std::shared_ptr<DictionaryValue> result = create_dictionary(id_property);
-    result->append(IDP_KEY_VALUE, std::make_shared<BooleanValue>(IDP_Bool(id_property) != 0));
+    result->append(IDP_KEY_VALUE, std::make_shared<BooleanValue>(IDP_bool_get(id_property) != 0));
     return result;
   }
 
@@ -378,7 +378,7 @@ class IDPIntSerializer : public IDPropertySerializer {
       const IDProperty *id_property) const override
   {
     std::shared_ptr<DictionaryValue> result = create_dictionary(id_property);
-    result->append_int(IDP_KEY_VALUE, IDP_Int(id_property));
+    result->append_int(IDP_KEY_VALUE, IDP_int_get(id_property));
     return result;
   }
 
@@ -417,7 +417,7 @@ class IDPFloatSerializer : public IDPropertySerializer {
       const IDProperty *id_property) const override
   {
     std::shared_ptr<DictionaryValue> result = create_dictionary(id_property);
-    result->append_double(IDP_KEY_VALUE, IDP_Float(id_property));
+    result->append_double(IDP_KEY_VALUE, IDP_float_get(id_property));
     return result;
   }
 
@@ -456,7 +456,7 @@ class IDPDoubleSerializer : public IDPropertySerializer {
       const IDProperty *id_property) const override
   {
     std::shared_ptr<DictionaryValue> result = create_dictionary(id_property);
-    result->append_double(IDP_KEY_VALUE, IDP_Double(id_property));
+    result->append_double(IDP_KEY_VALUE, IDP_double_get(id_property));
     return result;
   }
 
@@ -502,22 +502,22 @@ class IDPArraySerializer : public IDPropertySerializer {
     ArrayValue &array = *result->append_array(IDP_KEY_VALUE);
     switch (static_cast<eIDPropertyType>(id_property->subtype)) {
       case IDP_INT: {
-        int32_t *values = static_cast<int32_t *>(IDP_Array(id_property));
+        int32_t *values = IDP_array_int_get(id_property);
         add_values<int32_t, IntValue>(array, Span<int32_t>(values, id_property->len));
         break;
       }
       case IDP_FLOAT: {
-        float *values = static_cast<float *>(IDP_Array(id_property));
+        float *values = IDP_array_float_get(id_property);
         add_values<float, DoubleValue>(array, Span<float>(values, id_property->len));
         break;
       }
       case IDP_DOUBLE: {
-        double *values = static_cast<double *>(IDP_Array(id_property));
+        double *values = IDP_array_double_get(id_property);
         add_values<double, DoubleValue>(array, Span<double>(values, id_property->len));
         break;
       }
       case IDP_GROUP: {
-        IDProperty *values = static_cast<IDProperty *>(IDP_Array(id_property));
+        IDProperty *values = static_cast<IDProperty *>(IDP_array_voidp_get(id_property));
         add_values(array, Span<IDProperty>(values, id_property->len));
         break;
       }
@@ -788,11 +788,12 @@ static const IDPropertySerializer &serializer_for(StringRef idprop_typename)
   return IDP_SERIALIZER_UNKNOWN;
 }
 
-/* \} */
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name IDProperty to Value
  * \{ */
+
 std::unique_ptr<ArrayValue> convert_to_serialize_values(const IDProperty *properties)
 {
   BLI_assert(properties != nullptr);
@@ -810,7 +811,7 @@ std::unique_ptr<ArrayValue> convert_to_serialize_values(const IDProperty *proper
   return result;
 }
 
-/* \} */
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name IDProperty from Value
@@ -866,6 +867,6 @@ IDProperty *convert_from_serialize_value(const Value &value)
   return idprop_from_value(*value.as_array_value());
 }
 
-/* \} */
+/** \} */
 
 }  // namespace blender::bke::idprop

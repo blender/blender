@@ -38,6 +38,12 @@
 
 #include <fmt/format.h>
 
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <stdio.h>
+#include <string>
+
 #ifdef WIN32
 #  define popen _popen
 #  define pclose _pclose
@@ -46,8 +52,6 @@
 using namespace blender;
 using namespace blender::gpu;
 using namespace blender::gpu::shader;
-
-extern "C" char datatoc_glsl_shader_defines_glsl[];
 
 /* -------------------------------------------------------------------- */
 /** \name Creation / Destruction
@@ -1096,10 +1100,11 @@ static StringRefNull glsl_patch_vertex_get()
 
     /* Needs to have this defined upfront for configuring shader defines. */
     ss << "#define GPU_VERTEX_SHADER\n";
-    /* GLSL Backend Lib. */
-    ss << datatoc_glsl_shader_defines_glsl;
 
-    return ss.str();
+    shader::GeneratedSource extensions{"gpu_shader_glsl_extension.glsl", {}, ss.str()};
+    shader::GeneratedSourceList sources{extensions};
+    return fmt::to_string(fmt::join(
+        gpu_shader_dependency_get_resolved_source("gpu_shader_compat_glsl.glsl", sources), ""));
   }();
   return patch;
 }
@@ -1125,10 +1130,11 @@ static StringRefNull glsl_patch_geometry_get()
 
     /* Needs to have this defined upfront for configuring shader defines. */
     ss << "#define GPU_GEOMETRY_SHADER\n";
-    /* GLSL Backend Lib. */
-    ss << datatoc_glsl_shader_defines_glsl;
 
-    return ss.str();
+    shader::GeneratedSource extensions{"gpu_shader_glsl_extension.glsl", {}, ss.str()};
+    shader::GeneratedSourceList sources{extensions};
+    return fmt::to_string(fmt::join(
+        gpu_shader_dependency_get_resolved_source("gpu_shader_compat_glsl.glsl", sources), ""));
   }();
   return patch;
 }
@@ -1161,10 +1167,11 @@ static StringRefNull glsl_patch_fragment_get()
 
     /* Needs to have this defined upfront for configuring shader defines. */
     ss << "#define GPU_FRAGMENT_SHADER\n";
-    /* GLSL Backend Lib. */
-    ss << datatoc_glsl_shader_defines_glsl;
 
-    return ss.str();
+    shader::GeneratedSource extensions{"gpu_shader_glsl_extension.glsl", {}, ss.str()};
+    shader::GeneratedSourceList sources{extensions};
+    return fmt::to_string(fmt::join(
+        gpu_shader_dependency_get_resolved_source("gpu_shader_compat_glsl.glsl", sources), ""));
   }();
   return patch;
 }
@@ -1185,9 +1192,10 @@ static StringRefNull glsl_patch_compute_get()
 
     ss << "#define GPU_ARB_clip_control\n";
 
-    ss << datatoc_glsl_shader_defines_glsl;
-
-    return ss.str();
+    shader::GeneratedSource extensions{"gpu_shader_glsl_extension.glsl", {}, ss.str()};
+    shader::GeneratedSourceList sources{extensions};
+    return fmt::to_string(fmt::join(
+        gpu_shader_dependency_get_resolved_source("gpu_shader_compat_glsl.glsl", sources), ""));
   }();
   return patch;
 }
@@ -1558,12 +1566,13 @@ size_t GLSourcesBaked::size()
 
 GLShader::GLProgram::~GLProgram()
 {
+  /* This can run from any thread even without a GLContext bound. */
   /* Invalid handles are silently ignored. */
-  glDeleteShader(vert_shader);
-  glDeleteShader(geom_shader);
-  glDeleteShader(frag_shader);
-  glDeleteShader(compute_shader);
-  glDeleteProgram(program_id);
+  GLContext::shader_free(vert_shader);
+  GLContext::shader_free(geom_shader);
+  GLContext::shader_free(frag_shader);
+  GLContext::shader_free(compute_shader);
+  GLContext::program_free(program_id);
 }
 
 void GLShader::GLProgram::program_link(StringRefNull shader_name)

@@ -884,7 +884,7 @@ static char *rna_idp_path(PointerRNA *ptr,
     }
     else if (iter->type == IDP_IDPARRAY) {
       if (prop->type == PROP_COLLECTION) {
-        const IDProperty *array = IDP_IDPArray(iter);
+        const IDProperty *array = IDP_property_array_get(iter);
         if (needle >= array && needle < (iter->len + array)) { /* found! */
           link.name = iter->name;
           link.index = int(needle - array);

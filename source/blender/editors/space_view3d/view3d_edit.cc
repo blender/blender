@@ -498,6 +498,7 @@ static wmOperatorStatus viewpersportho_exec(bContext *C, wmOperator * /*op*/)
     else {
       rv3d->persp = RV3D_PERSP;
     }
+    rv3d->rflag &= ~RV3D_WAS_CAMOB;
     ED_region_tag_redraw(region);
   }
 

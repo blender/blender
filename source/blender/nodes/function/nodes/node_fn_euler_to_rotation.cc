@@ -57,6 +57,7 @@ static void node_register()
   static blender::bke::bNodeType ntype;
   fn_node_type_base(&ntype, "FunctionNodeEulerToRotation", FN_NODE_EULER_TO_ROTATION);
   ntype.ui_name = "Euler to Rotation";
+  ntype.ui_description = "Build a rotation from separate angles around each axis";
   ntype.enum_name_legacy = "EULER_TO_ROTATION";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;

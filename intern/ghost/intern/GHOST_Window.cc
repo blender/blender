@@ -102,9 +102,13 @@ GHOST_IContext *GHOST_Window::getDrawingContext()
   return context_;
 }
 
-GHOST_TSuccess GHOST_Window::swapBuffers()
+GHOST_TSuccess GHOST_Window::swapBufferAcquire()
 {
-  return context_->swapBuffers();
+  return context_->swapBufferAcquire();
+}
+GHOST_TSuccess GHOST_Window::swapBufferRelease()
+{
+  return context_->swapBufferRelease();
 }
 
 GHOST_TSuccess GHOST_Window::setSwapInterval(int interval)

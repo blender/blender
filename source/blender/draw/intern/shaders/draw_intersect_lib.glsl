@@ -9,10 +9,12 @@
  * Results are meant to be conservative.
  */
 
-#include "draw_view_info.hh"
+#include "draw_view_infos.hh"
 
-#include "draw_math_geom_lib.glsl"
 #include "draw_shape_lib.glsl"
+#include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_math_safe_lib.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
 /* ---------------------------------------------------------------------- */

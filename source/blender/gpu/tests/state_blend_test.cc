@@ -18,7 +18,7 @@
 
 namespace blender::gpu::tests {
 
-template<eGPUBlend blend_type>
+template<GPUBlend blend_type>
 void blend_test(float4 source_a, float4 source_b, float4 expected_result)
 {
   GPUOffScreen *offscreen = GPU_offscreen_create(1,

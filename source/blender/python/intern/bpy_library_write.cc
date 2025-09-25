@@ -129,7 +129,7 @@ static PyObject *bpy_lib_write(BPy_PropertyRNA *self, PyObject *args, PyObject *
 
   BLI_path_abs(filepath_abs, BKE_main_blendfile_path_from_global());
 
-  PartialWriteContext partial_write_ctx{bmain_src->filepath};
+  PartialWriteContext partial_write_ctx{*bmain_src};
   const PartialWriteContext::IDAddOptions add_options{
       (PartialWriteContext::IDAddOperations::ADD_DEPENDENCIES |
        PartialWriteContext::IDAddOperations(

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "infos/gpu_shader_print_info.hh"
+#include "infos/gpu_shader_print_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(gpu_print)
 

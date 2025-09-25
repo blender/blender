@@ -31,6 +31,10 @@ eb98fe9e-0baa-417f-8ff1-d56dd79d2ce2:Brushes/Mesh Sculpt/General/Utilities:Brush
 722259b1-4abf-4d15-8b17-7875c8efb248:Brushes/Mesh Sculpt/Paint:Brushes-Mesh Sculpt-Paint
 abea2557-f13e-4e21-b4d8-11a1fffd7d57:Brushes/Mesh Sculpt/Simulation:Brushes-Mesh Sculpt-Simulation
 a82f0b44-1d89-4ca7-ae21-86296257be99:Brushes/Mesh Texture Paint:Brushes-Mesh Texture Paint
+d3581edf-cc21-4fb6-85e1-7c682a584517:Brushes/Mesh Texture Paint/Basic:Brushes-Mesh Texture Paint-Basic
+63415de5-6391-412a-8cc5-419a11180480:Brushes/Mesh Texture Paint/Erase:Brushes-Mesh Texture Paint-Erase
+5e82266d-6884-4d6c-b463-b3385ecb0244:Brushes/Mesh Texture Paint/Pixel Art:Brushes-Mesh Texture Paint-Pixel Art
+f57862b2-0845-4ce7-a860-ce343dee67b9:Brushes/Mesh Texture Paint/Utilities:Brushes-Mesh Texture Paint-Utilities
 27cbc8dc-80c8-45d5-863c-7ecc48bccf20:Brushes/Mesh Vertex Paint:Brushes-Mesh Vertex Paint
 77635e98-1a5a-482e-9cb1-ba9ec4bc5b74:Brushes/Mesh Weight Paint:Brushes-Mesh Weight Paint
 f14d3c5d-8223-4e8c-b3b3-cbce81e4b3ee:Hair:Hair

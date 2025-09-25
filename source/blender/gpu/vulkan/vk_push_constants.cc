@@ -149,22 +149,20 @@ void VKPushConstants::update_uniform_buffer()
 {
   BLI_assert(layout_->storage_type_get() == StorageType::UNIFORM_BUFFER);
   BLI_assert(data_ != nullptr);
-  VKContext &context = *VKContext::get();
-  std::unique_ptr<VKUniformBuffer> &uniform_buffer = tracked_resource_for(context, is_dirty_);
-  uniform_buffer->reset_data_uploaded();
-  uniform_buffer->update(data_);
-  is_dirty_ = false;
+  if (!uniform_buffer_) {
+    uniform_buffer_ = std::make_unique<VKUniformBuffer>(layout_->size_in_bytes(),
+                                                        "push constants buffer");
+  }
+
+  uniform_buffer_->reset_data_uploaded();
+  uniform_buffer_->update(data_);
 }
 
 std::unique_ptr<VKUniformBuffer> &VKPushConstants::uniform_buffer_get()
 {
   BLI_assert(layout_->storage_type_get() == StorageType::UNIFORM_BUFFER);
-  return active_resource();
-}
-
-std::unique_ptr<VKUniformBuffer> VKPushConstants::create_resource(VKContext & /*context*/)
-{
-  return std::make_unique<VKUniformBuffer>(layout_->size_in_bytes(), __func__);
+  BLI_assert(uniform_buffer_);
+  return uniform_buffer_;
 }
 
 }  // namespace blender::gpu

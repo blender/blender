@@ -42,6 +42,8 @@ static void node_register()
 
   fn_node_type_base(&ntype, "FunctionNodeInputBool", FN_NODE_INPUT_BOOL);
   ntype.ui_name = "Boolean";
+  ntype.ui_description =
+      "Provide a True/False value that can be connected to other nodes in the tree";
   ntype.enum_name_legacy = "INPUT_BOOL";
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = node_declare;

@@ -7,7 +7,7 @@
  * the blender executable. This is only used for reference or to update them.
  */
 
-#include "infos/eevee_lut_info.hh"
+#include "infos/eevee_lut_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_lut)
 

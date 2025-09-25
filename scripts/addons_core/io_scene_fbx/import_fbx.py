@@ -1098,8 +1098,14 @@ def blen_read_animations(fbx_tmpl_astack, fbx_tmpl_alayer, stacks, scene, anim_o
                     actions[key] = action = bpy.data.actions.new(action_name)
                     action.use_fake_user = True
 
-                    # Create an Action Slot. Curves created via action.fcurves will automatically be assigned to it.
-                    action.slots.new(id_data.id_type, action_name)
+                    # Always use the same name for the slot. It should be simple
+                    # to switch between imported Actions while keeping Slot
+                    # auto-assignment, which means that all Actions should use
+                    # the same slot name. As long as there's no separate
+                    # indicator for the "intended object name" for this FBX
+                    # animation, this is the best Blender can do. Maybe the
+                    # 'stack name' would be a better choice?
+                    action.slots.new(id_data.id_type, "Slot")
 
                 # If none yet assigned, assign this action to id_data.
                 if not id_data.animation_data:
@@ -2064,7 +2070,7 @@ def blen_read_material(fbx_tmpl, fbx_obj, settings):
                  elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
     fbx_props_no_template = (fbx_props[0], fbx_elem_nil)
 
-    ma_wrap = node_shader_utils.PrincipledBSDFWrapper(ma, is_readonly=False, use_nodes=True)
+    ma_wrap = node_shader_utils.PrincipledBSDFWrapper(ma, is_readonly=False)
     ma_wrap.base_color = elem_props_get_color_rgb(fbx_props, b'DiffuseColor', const_color_white)
     # No specular color in Principled BSDF shader, assumed to be either white or take some tint from diffuse one...
     # TODO: add way to handle tint option (guesstimate from spec color + intensity...)?

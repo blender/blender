@@ -49,6 +49,11 @@ class ColorSpace {
    */
   virtual bool is_data() const = 0;
 
+  /**
+   * The color space is display referred rather than scene referred.
+   */
+  virtual bool is_display_referred() const = 0;
+
   /*
    * Identifier for colorspaces that works with multiple OpenColorIO configurations,
    * as defined by the ASWF Color Interop Forum.

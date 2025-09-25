@@ -4532,7 +4532,10 @@ static void convert_to_catmull_rom(bke::CurvesGeometry &curves,
   const IndexMask non_catmull_rom_curves_selection =
       curves.indices_for_curve_type(CURVE_TYPE_CATMULL_ROM, selection, memory)
           .complement(selection, memory);
-  BLI_assert(!non_catmull_rom_curves_selection.is_empty());
+  if (non_catmull_rom_curves_selection.is_empty()) {
+    return;
+  }
+
   curves = geometry::resample_to_evaluated(curves, non_catmull_rom_curves_selection);
 
   /* To avoid having too many control points, simplify the position attribute based on the
@@ -4567,7 +4570,10 @@ static void convert_to_poly(bke::CurvesGeometry &curves, const IndexMask &select
                                                   .indices_for_curve_type(
                                                       CURVE_TYPE_POLY, selection, memory)
                                                   .complement(selection, memory);
-  BLI_assert(!non_poly_curves_selection.is_empty());
+  if (non_poly_curves_selection.is_empty()) {
+    return;
+  }
+
   curves = geometry::resample_to_evaluated(curves, non_poly_curves_selection);
 }
 

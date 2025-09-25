@@ -302,6 +302,7 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
                         blender::wm::OpCallContext::InvokeDefault,
                         UI_ITEM_NONE);
     layout->prop(&ptr, "show_group_selector", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout->prop(&ptr, "show_manage_panel", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 

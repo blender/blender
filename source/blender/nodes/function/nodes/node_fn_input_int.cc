@@ -42,6 +42,8 @@ static void node_register()
 
   fn_node_type_base(&ntype, "FunctionNodeInputInt", FN_NODE_INPUT_INT);
   ntype.ui_name = "Integer";
+  ntype.ui_description =
+      "Provide an integer value that can be connected to other nodes in the tree";
   ntype.enum_name_legacy = "INPUT_INT";
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = node_declare;

@@ -83,7 +83,7 @@ GHOST_ContextWGL::~GHOST_ContextWGL()
 #endif
 }
 
-GHOST_TSuccess GHOST_ContextWGL::swapBuffers()
+GHOST_TSuccess GHOST_ContextWGL::swapBufferRelease()
 {
   return WIN32_CHK(::SwapBuffers(h_DC_)) ? GHOST_kSuccess : GHOST_kFailure;
 }

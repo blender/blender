@@ -106,7 +106,7 @@ macro(file_list_suffix
   fp_list_new fp_list fn_suffix
   )
 
-  # incase of empty list
+  # in case of empty list
   set(_fp)
   set(_fp_suffixed)
 
@@ -350,7 +350,7 @@ function(blender_link_libraries
   # CMake have a native way of dealing with this, which is specifying what build type the
   # libraries are provided for:
   #
-  #   target_link_libraries(tagret optimized|debug|general <libraries>)
+  #   target_link_libraries(target optimized|debug|general <libraries>)
   #
   # The build type is to be provided as a separate argument to the function.
   #
@@ -1061,6 +1061,7 @@ function(glsl_to_c
   get_filename_component(_file_from ${CMAKE_CURRENT_SOURCE_DIR}/${file_from}    REALPATH)
   get_filename_component(_file_tmp  ${CMAKE_CURRENT_BINARY_DIR}/${file_from}    REALPATH)
   get_filename_component(_file_meta ${CMAKE_CURRENT_BINARY_DIR}/${file_from}.hh REALPATH)
+  get_filename_component(_file_info ${CMAKE_CURRENT_BINARY_DIR}/${file_from}.info  REALPATH)
   get_filename_component(_file_to   ${CMAKE_CURRENT_BINARY_DIR}/${file_from}.c  REALPATH)
 
   list(APPEND ${list_to_add} ${_file_to})
@@ -1071,14 +1072,15 @@ function(glsl_to_c
   get_filename_component(_file_to_path ${_file_to} PATH)
 
   add_custom_command(
-    OUTPUT  ${_file_to} ${_file_meta}
-    COMMAND "$<TARGET_FILE:glsl_preprocess>" ${_file_from} ${_file_tmp} ${_file_meta}
+    OUTPUT  ${_file_to} ${_file_meta} ${_file_info}
+    COMMAND "$<TARGET_FILE:glsl_preprocess>" ${_file_from} ${_file_tmp} ${_file_meta} ${_file_info}
     COMMAND "$<TARGET_FILE:datatoc>" ${_file_tmp} ${_file_to}
     DEPENDS ${_file_from} datatoc glsl_preprocess)
 
   set_source_files_properties(${_file_tmp} PROPERTIES GENERATED TRUE)
   set_source_files_properties(${_file_to}  PROPERTIES GENERATED TRUE)
   set_source_files_properties(${_file_meta}  PROPERTIES GENERATED TRUE)
+  set_source_files_properties(${_file_info}  PROPERTIES GENERATED TRUE)
 endfunction()
 
 

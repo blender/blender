@@ -5,15 +5,12 @@
 /* Sum all Suns extracting during remapping to octahedral map.
  * Dispatch only one thread-group that sums. */
 
-#include "infos/eevee_lightprobe_sphere_info.hh"
+#include "infos/eevee_lightprobe_sphere_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_lightprobe_sphere_sunlight)
 
-#include "eevee_lightprobe_sphere_lib.glsl"
-#include "eevee_lightprobe_sphere_mapping_lib.glsl"
-#include "eevee_sampling_lib.glsl"
-#include "eevee_spherical_harmonics_lib.glsl"
-#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_math_matrix_construct_lib.glsl"
+#include "gpu_shader_math_vector_safe_lib.glsl"
 
 shared float3 local_radiance[gl_WorkGroupSize.x];
 shared float4 local_direction[gl_WorkGroupSize.x];

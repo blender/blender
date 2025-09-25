@@ -58,7 +58,7 @@ def get_channel_groups(obj_uuid: str, blender_action: bpy.types.Action, slot: bp
 
     blender_object = export_settings['vtree'].nodes[obj_uuid].blender_object
 
-    # When mutliple rotation mode detected, keep the currently used
+    # When multiple rotation mode detected, keep the currently used
     multiple_rotation_mode_detected = {}
 
     # When both normal and delta are used --> Set to to_be_sampled list

@@ -34,7 +34,7 @@ constexpr static int GPU_BATCH_VBO_MAX_LEN = 16;
 constexpr static int GPU_BATCH_VAO_STATIC_LEN = 3;
 constexpr static int GPU_BATCH_VAO_DYN_ALLOC_COUNT = 16;
 
-enum eGPUBatchFlag {
+enum GPUBatchFlag {
   /** Invalid default state. */
   GPU_BATCH_INVALID = 0,
 
@@ -56,9 +56,9 @@ enum eGPUBatchFlag {
 #define GPU_BATCH_OWNS_NONE GPU_BATCH_INVALID
 
 BLI_STATIC_ASSERT(GPU_BATCH_OWNS_INDEX < GPU_BATCH_INIT,
-                  "eGPUBatchFlag: Error: status flags are shadowed by the ownership bits!")
+                  "GPUBatchFlag: Error: status flags are shadowed by the ownership bits!")
 
-ENUM_OPERATORS(eGPUBatchFlag, GPU_BATCH_DIRTY)
+ENUM_OPERATORS(GPUBatchFlag, GPU_BATCH_DIRTY)
 
 namespace blender::gpu {
 
@@ -79,7 +79,7 @@ class Batch {
   /** Number of vertices to draw for procedural drawcalls. -1 otherwise. */
   int32_t procedural_vertices;
   /** Bookkeeping. */
-  eGPUBatchFlag flag;
+  GPUBatchFlag flag;
   /** Type of geometry to draw. */
   GPUPrimType prim_type;
   /** Current assigned shader. DEPRECATED. Here only for uniform binding. */
@@ -131,7 +131,7 @@ blender::gpu::Batch *GPU_batch_calloc();
 blender::gpu::Batch *GPU_batch_create_ex(GPUPrimType primitive_type,
                                          blender::gpu::VertBuf *vertex_buf,
                                          blender::gpu::IndexBuf *index_buf,
-                                         eGPUBatchFlag owns_flag);
+                                         GPUBatchFlag owns_flag);
 
 blender::gpu::Batch *GPU_batch_create_procedural(GPUPrimType primitive_type, int32_t vertex_count);
 
@@ -139,7 +139,7 @@ blender::gpu::Batch *GPU_batch_create_procedural(GPUPrimType primitive_type, int
  * Creates a #blender::gpu::Batch without buffer ownership.
  */
 #define GPU_batch_create(primitive_type, vertex_buf, index_buf) \
-  GPU_batch_create_ex(primitive_type, vertex_buf, index_buf, (eGPUBatchFlag)0)
+  GPU_batch_create_ex(primitive_type, vertex_buf, index_buf, (GPUBatchFlag)0)
 
 /**
  * Initialize a cleared #blender::gpu::Batch with explicit buffer ownership.
@@ -150,14 +150,14 @@ void GPU_batch_init_ex(blender::gpu::Batch *batch,
                        GPUPrimType primitive_type,
                        blender::gpu::VertBuf *vertex_buf,
                        blender::gpu::IndexBuf *index_buf,
-                       eGPUBatchFlag owns_flag);
+                       GPUBatchFlag owns_flag);
 /**
  * Initialize a cleared #blender::gpu::Batch without buffer ownership.
  * A #blender::gpu::Batch is in cleared state if it was just allocated using `GPU_batch_calloc()`
  * or cleared using `GPU_batch_clear()`.
  */
 #define GPU_batch_init(batch, primitive_type, vertex_buf, index_buf) \
-  GPU_batch_init_ex(batch, primitive_type, vertex_buf, index_buf, (eGPUBatchFlag)0)
+  GPU_batch_init_ex(batch, primitive_type, vertex_buf, index_buf, (GPUBatchFlag)0)
 
 /**
  * DEPRECATED: It is easy to loose ownership with this. To be removed.
@@ -250,10 +250,10 @@ void GPU_batch_set_shader(
     blender::gpu::Batch *batch,
     blender::gpu::Shader *shader,
     const blender::gpu::shader::SpecializationConstants *constants_state = nullptr);
-void GPU_batch_program_set_builtin(blender::gpu::Batch *batch, eGPUBuiltinShader shader_id);
+void GPU_batch_program_set_builtin(blender::gpu::Batch *batch, GPUBuiltinShader shader_id);
 void GPU_batch_program_set_builtin_with_config(blender::gpu::Batch *batch,
-                                               eGPUBuiltinShader shader_id,
-                                               eGPUShaderConfig sh_cfg);
+                                               GPUBuiltinShader shader_id,
+                                               GPUShaderConfig sh_cfg);
 /**
  * Bind program bound to IMM (immediate mode) to the #blender::gpu::Batch.
  *

@@ -1023,7 +1023,7 @@ void SCULPT_OT_uv_sculpt_relax(wmOperatorType *ot)
   RNA_def_enum(ot->srna,
                "relax_method",
                relax_method_items,
-               CURVE_PRESET_SMOOTH,
+               UV_SCULPT_BRUSH_TYPE_RELAX_LAPLACIAN,
                "Relax Method",
                "Algorithm used for UV relaxation");
 }

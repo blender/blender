@@ -21,7 +21,10 @@ import sys
 import bpy
 import typing
 
-from bpy.app.translations import pgettext_iface as iface_
+from bpy.app.translations import (
+    pgettext_iface as iface_,
+    pgettext_rpt as rpt_,
+)
 
 # The order in which core modules of the addon are loaded and reloaded.
 # Modules not in this list are removed from memory upon reload.
@@ -313,7 +316,7 @@ def check_feature_set_error(_feature_set: RigifyFeatureSets, info: dict, layout:
             sub = split.row()
             sub.alert = True
             text = (
-                iface_("This feature set requires Blender {:s} or newer to work properly.")
+                rpt_("This feature set requires Blender {:s} or newer to work properly.")
                 .format(".".join(str(x) for x in info['blender']))
             )
             sub.label(icon='ERROR', text=text, translate=False)

@@ -7,6 +7,9 @@
 #include "BLI_ghash.h"
 #include "BLI_hash.h"
 #include "BLI_math_color.h"
+
+#include "IMB_colormanagement.hh"
+
 /* get_image */
 #include "BKE_node_legacy_types.hh"
 #include "DNA_material_types.h"
@@ -25,6 +28,7 @@ Material::Material(::Object &ob, bool random)
     }
     float3 hsv = float3(BLI_hash_int_01(hash), 0.5f, 0.8f);
     hsv_to_rgb_v(hsv, base_color);
+    IMB_colormanagement_rec709_to_scene_linear(base_color, base_color);
   }
   else {
     base_color = ob.color;

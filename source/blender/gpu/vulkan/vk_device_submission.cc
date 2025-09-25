@@ -55,7 +55,7 @@ TimelineValue VKDevice::render_graph_submit(render_graph::VKRenderGraph *render_
     render_graph->reset();
     BLI_thread_queue_push(
         unused_render_graphs_, render_graph, BLI_THREAD_QUEUE_WORK_PRIORITY_NORMAL);
-    return 0;
+    return timeline_value_;
   }
 
   VKRenderGraphSubmitTask *submit_task = MEM_new<VKRenderGraphSubmitTask>(__func__);

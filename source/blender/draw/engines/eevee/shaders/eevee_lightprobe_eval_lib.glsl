@@ -4,19 +4,16 @@
 
 #pragma once
 
+#include "draw_math_geom_lib.glsl"
 #include "eevee_bxdf_lib.glsl"
 #include "eevee_closure_lib.glsl"
-#include "eevee_lightprobe_lib.glsl"
 #include "eevee_lightprobe_sphere_eval_lib.glsl"
 #include "eevee_lightprobe_volume_eval_lib.glsl"
-#include "eevee_ray_generate_lib.glsl"
 #include "eevee_sampling_lib.glsl"
 #include "eevee_spherical_harmonics_lib.glsl"
 #include "eevee_subsurface_lib.glsl"
-#include "eevee_thickness_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_base_lib.glsl"
-#include "gpu_shader_math_fast_lib.glsl"
 
 #ifdef SPHERE_PROBE
 
@@ -31,7 +28,7 @@ struct LightProbeSample {
  */
 LightProbeSample lightprobe_load(float3 P, float3 Ng, float3 V)
 {
-  float noise = interlieved_gradient_noise(UTIL_TEXEL, 0.0f, 0.0f);
+  float noise = interleaved_gradient_noise(UTIL_TEXEL, 0.0f, 0.0f);
   noise = fract(noise + sampling_rng_1D_get(SAMPLING_LIGHTPROBE));
 
   LightProbeSample result;
@@ -94,8 +91,6 @@ float3 lightprobe_eval_direction(LightProbeSample samp, float3 P, float3 L, floa
   return radiance_sh;
 }
 
-#  ifdef EEVEE_UTILITY_TX
-
 /* TODO: Port that inside a BSSDF file. */
 float3 lightprobe_eval(
     LightProbeSample samp, ClosureSubsurface cl, float3 P, float3 V, float thickness)
@@ -120,6 +115,5 @@ float3 lightprobe_eval(
                                                             samp.volume_irradiance);
   return mix(radiance_cube, radiance_sh, fac);
 }
-#  endif
 
 #endif /* SPHERE_PROBE */

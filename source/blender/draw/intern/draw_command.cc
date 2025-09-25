@@ -63,7 +63,7 @@ void SubPassTransition::execute() const
 {
   /* TODO(fclem): Require framebuffer bind to always be part of the pass so that we can track it
    * inside RecordingState. */
-  GPUFrameBuffer *framebuffer = GPU_framebuffer_active_get();
+  gpu::FrameBuffer *framebuffer = GPU_framebuffer_active_get();
   /* Unpack to the real enum type. */
   const GPUAttachmentState states[9] = {
       GPUAttachmentState(depth_state),
@@ -284,13 +284,13 @@ void Barrier::execute() const
 
 void Clear::execute() const
 {
-  GPUFrameBuffer *fb = GPU_framebuffer_active_get();
-  GPU_framebuffer_clear(fb, (eGPUFrameBufferBits)clear_channels, color, depth, stencil);
+  gpu::FrameBuffer *fb = GPU_framebuffer_active_get();
+  GPU_framebuffer_clear(fb, (GPUFrameBufferBits)clear_channels, color, depth, stencil);
 }
 
 void ClearMulti::execute() const
 {
-  GPUFrameBuffer *fb = GPU_framebuffer_active_get();
+  gpu::FrameBuffer *fb = GPU_framebuffer_active_get();
   GPU_framebuffer_multi_clear(fb, (const float(*)[4])colors);
 }
 
@@ -669,19 +669,19 @@ std::string Barrier::serialize() const
 std::string Clear::serialize() const
 {
   std::stringstream ss;
-  if (eGPUFrameBufferBits(clear_channels) & GPU_COLOR_BIT) {
+  if (GPUFrameBufferBits(clear_channels) & GPU_COLOR_BIT) {
     ss << "color=" << color;
-    if (eGPUFrameBufferBits(clear_channels) & (GPU_DEPTH_BIT | GPU_STENCIL_BIT)) {
+    if (GPUFrameBufferBits(clear_channels) & (GPU_DEPTH_BIT | GPU_STENCIL_BIT)) {
       ss << ", ";
     }
   }
-  if (eGPUFrameBufferBits(clear_channels) & GPU_DEPTH_BIT) {
+  if (GPUFrameBufferBits(clear_channels) & GPU_DEPTH_BIT) {
     ss << "depth=" << depth;
-    if (eGPUFrameBufferBits(clear_channels) & GPU_STENCIL_BIT) {
+    if (GPUFrameBufferBits(clear_channels) & GPU_STENCIL_BIT) {
       ss << ", ";
     }
   }
-  if (eGPUFrameBufferBits(clear_channels) & GPU_STENCIL_BIT) {
+  if (GPUFrameBufferBits(clear_channels) & GPU_STENCIL_BIT) {
     ss << "stencil=0b" << std::bitset<8>(stencil) << ")";
   }
   return std::string(".clear(") + ss.str() + ")";

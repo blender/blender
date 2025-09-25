@@ -7,12 +7,12 @@
  * processing.
  */
 
-#include "infos/eevee_subsurface_info.hh"
+#include "infos/eevee_subsurface_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_subsurface_setup)
 
 #include "draw_view_lib.glsl"
-#include "eevee_gbuffer_lib.glsl"
+#include "eevee_gbuffer_read_lib.glsl"
 #include "eevee_reverse_z_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
 #include "gpu_shader_shared_exponent_lib.glsl"
@@ -29,16 +29,18 @@ void main()
 
   barrier();
 
-  GBufferReader gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel);
+  const gbuffer::Layers gbuf = gbuffer::read_layers(texel);
 
-  if (gbuffer_closure_get(gbuf, 0).type == CLOSURE_BSSRDF_BURLEY_ID) {
+  ClosureUndetermined cl = gbuf.layer[0];
+
+  if (cl.type == CLOSURE_BSSRDF_BURLEY_ID) {
     float3 radiance = rgb9e5_decode(imageLoadFast(direct_light_img, texel).r);
     radiance += imageLoadFast(indirect_light_img, texel).rgb;
 
-    ClosureSubsurface closure = to_closure_subsurface(gbuffer_closure_get(gbuf, 0));
+    ClosureSubsurface closure = to_closure_subsurface(cl);
     float max_radius = reduce_max(closure.sss_radius);
 
-    uint object_id = texelFetch(gbuf_header_tx, int3(texel, 1), 0).x;
+    uint object_id = gbuffer::read_object_id(texel);
 
     imageStoreFast(radiance_img, texel, float4(radiance, 0.0f));
     imageStoreFast(object_id_img, texel, uint4(object_id));

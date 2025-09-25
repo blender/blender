@@ -79,6 +79,8 @@ static void node_register()
 
   fn_node_type_base(&ntype, "FunctionNodeFloatToInt", FN_NODE_FLOAT_TO_INT);
   ntype.ui_name = "Float to Integer";
+  ntype.ui_description =
+      "Convert the given floating-point number to an integer, with a choice of methods";
   ntype.enum_name_legacy = "FLOAT_TO_INT";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;

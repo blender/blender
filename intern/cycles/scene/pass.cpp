@@ -5,6 +5,7 @@
 #include "scene/pass.h"
 
 #include "util/log.h"
+#include "util/time.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -92,6 +93,7 @@ const NodeEnum *Pass::get_type_enum()
     pass_type_enum.insert("denoising_previous", PASS_DENOISING_PREVIOUS);
     pass_type_enum.insert("volume_majorant", PASS_VOLUME_MAJORANT);
     pass_type_enum.insert("volume_majorant_sample_count", PASS_VOLUME_MAJORANT_SAMPLE_COUNT);
+    pass_type_enum.insert("render_time", PASS_RENDER_TIME);
 
     pass_type_enum.insert("shadow_catcher", PASS_SHADOW_CATCHER);
     pass_type_enum.insert("shadow_catcher_sample_count", PASS_SHADOW_CATCHER_SAMPLE_COUNT);
@@ -343,6 +345,12 @@ PassInfo Pass::get_info(const PassType type,
     case PASS_SAMPLE_COUNT:
       pass_info.num_components = 1;
       pass_info.use_exposure = false;
+      break;
+    case PASS_RENDER_TIME:
+      pass_info.num_components = 1;
+      pass_info.use_exposure = false;
+      pass_info.use_filter = false;
+      pass_info.scale = 1000.0f / float(time_fast_frequency());
       break;
 
     case PASS_AOV_COLOR:

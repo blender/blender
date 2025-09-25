@@ -10,7 +10,7 @@
 #include "BLI_assert.h"
 #include "GPU_material.hh"
 
-enum eMTLDataType {
+enum MTLInterfaceDataType {
   MTL_DATATYPE_CHAR,
   MTL_DATATYPE_CHAR2,
   MTL_DATATYPE_CHAR3,
@@ -87,7 +87,7 @@ enum eMTLDataType {
   MTL_DATATYPE_INT1010102_NORM
 };
 
-inline uint mtl_get_data_type_size(eMTLDataType type)
+inline uint mtl_get_data_type_size(MTLInterfaceDataType type)
 {
   switch (type) {
     case MTL_DATATYPE_CHAR:
@@ -176,7 +176,7 @@ inline uint mtl_get_data_type_size(eMTLDataType type)
   };
 }
 
-inline uint mtl_get_data_type_alignment(eMTLDataType type)
+inline uint mtl_get_data_type_alignment(MTLInterfaceDataType type)
 {
   switch (type) {
     case MTL_DATATYPE_CHAR:
@@ -258,7 +258,7 @@ inline uint mtl_get_data_type_alignment(eMTLDataType type)
   };
 }
 
-inline eMTLDataType gpu_type_to_mtl_type(eGPUType type)
+inline MTLInterfaceDataType gpu_type_to_mtl_type(GPUType type)
 {
   switch (type) {
     case GPU_FLOAT:

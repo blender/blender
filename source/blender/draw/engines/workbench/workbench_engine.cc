@@ -630,7 +630,7 @@ static bool workbench_render_framebuffers_init(const DRWContext *draw_ctx)
 
 static void write_render_color_output(RenderLayer *layer,
                                       const char *viewname,
-                                      GPUFrameBuffer *fb,
+                                      gpu::FrameBuffer *fb,
                                       const rcti *rect)
 {
   RenderPass *rp = RE_pass_find_by_name(layer, RE_PASSNAME_COMBINED, viewname);
@@ -650,7 +650,7 @@ static void write_render_color_output(RenderLayer *layer,
 
 static void write_render_z_output(RenderLayer *layer,
                                   const char *viewname,
-                                  GPUFrameBuffer *fb,
+                                  gpu::FrameBuffer *fb,
                                   const rcti *rect,
                                   const float4x4 &winmat)
 {

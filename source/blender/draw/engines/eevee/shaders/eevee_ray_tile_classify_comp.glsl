@@ -7,12 +7,12 @@
  * This mask is then processed by the compaction phase.
  */
 
-#include "infos/eevee_tracing_info.hh"
+#include "infos/eevee_tracing_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_ray_tile_classify)
 
 #include "eevee_closure_lib.glsl"
-#include "eevee_gbuffer_lib.glsl"
+#include "eevee_gbuffer_read_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
@@ -43,10 +43,10 @@ void main()
   bool valid_texel = in_texture_range(texel, gbuf_header_tx);
 
   if (valid_texel) {
-    GBufferReader gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel);
+    gbuffer::Header header = gbuffer::read_header(texel);
 
     for (uchar i = 0; i < GBUFFER_LAYER_MAX; i++) {
-      ClosureUndetermined cl = gbuffer_closure_get_by_bin(gbuf, i);
+      ClosureUndetermined cl = gbuffer::read_bin(header, texel, i);
       if (cl.type == CLOSURE_NONE_ID) {
         continue;
       }

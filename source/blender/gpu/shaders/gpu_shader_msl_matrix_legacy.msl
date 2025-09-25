@@ -1,0 +1,60 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
+/* Matrix constructors functions for pyGPU shaders compatibility.
+ * Unfortunately, we have to overload all of most common ones. */
+
+#pragma once
+
+#include "gpu_shader_msl_matrix.msl"
+
+using namespace metal;
+
+/* clang-format off */
+/* Scalar constructors. */
+float2x2 __mat2x2(float x1, float x2,
+                  float y1, float y2)
+{
+  return float2x2(x1, x2,
+                  y1, y2);
+}
+
+float3x3 __mat3x3(float x1, float x2, float x3,
+                  float y1, float y2, float y3,
+                  float z1, float z2, float z3)
+{
+  return float3x3(x1, x2, x3,
+                  y1, y2, y3,
+                  z1, z2, z3);
+}
+
+float4x4 __mat4x4(float x1, float x2, float x3, float x4,
+                  float y1, float y2, float y3, float y4,
+                  float z1, float z2, float z3, float z4,
+                  float w1, float w2, float w3, float w4)
+{
+  return float4x4(x1, x2, x3, x4,
+                  y1, y2, y3, y4,
+                  z1, z2, z3, z4,
+                  w1, w2, w3, w4);
+}
+
+/* Diagonal constructors. */
+float2x2 __mat2x2(float x) { return float2x2(x); }
+float3x3 __mat3x3(float x) { return float3x3(x); }
+float4x4 __mat4x4(float x) { return float4x4(x); }
+
+/* Vector constructors. */
+float2x2 __mat2x2(float2 x, float2 y) { return {x, y}; }
+float3x3 __mat3x3(float3 x, float3 y, float3 z) { return {x, y, z}; }
+float4x4 __mat4x4(float4 x, float4 y, float4 z, float4 w) { return {x, y, z, w}; }
+
+/* Reshape constructors. */
+float2x2 __mat2x2(float3x3 a) { return to_float2x2(a); }
+float2x2 __mat2x2(float4x4 a) { return to_float2x2(a); }
+float3x3 __mat3x3(float2x2 a) { return to_float3x3(a); }
+float3x3 __mat3x3(float4x4 a) { return to_float3x3(a); }
+float4x4 __mat4x4(float2x2 a) { return to_float4x4(a); }
+float4x4 __mat4x4(float3x3 a) { return to_float4x4(a); }
+/* clang-format on */

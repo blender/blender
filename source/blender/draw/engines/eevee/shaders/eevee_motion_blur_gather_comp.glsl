@@ -13,7 +13,7 @@
  * by Jorge Jimenez
  */
 
-#include "infos/eevee_motion_blur_info.hh"
+#include "infos/eevee_motion_blur_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_motion_blur_gather)
 
@@ -22,6 +22,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_motion_blur_gather)
 #include "eevee_reverse_z_lib.glsl"
 #include "eevee_sampling_lib.glsl"
 #include "eevee_velocity_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 #define gather_sample_count 8
 
@@ -174,8 +175,8 @@ void main()
   float noise_offset = sampling_rng_1D_get(SAMPLING_TIME);
   /** TODO(fclem) Blue noise. */
   float2 rand = float2(
-      interlieved_gradient_noise(float2(gl_GlobalInvocationID.xy), 0, noise_offset),
-      interlieved_gradient_noise(float2(gl_GlobalInvocationID.xy), 1, noise_offset));
+      interleaved_gradient_noise(float2(gl_GlobalInvocationID.xy), 0, noise_offset),
+      interleaved_gradient_noise(float2(gl_GlobalInvocationID.xy), 1, noise_offset));
 
   /* Randomize tile boundary to avoid ugly discontinuities. Randomize 1/4th of the tile.
    * Note this randomize only in one direction but in practice it's enough. */

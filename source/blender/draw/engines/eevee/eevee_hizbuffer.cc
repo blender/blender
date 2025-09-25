@@ -107,7 +107,7 @@ void HiZBuffer::update()
   is_dirty_ = false;
 }
 
-void HiZBuffer::debug_draw(View &view, GPUFrameBuffer *view_fb)
+void HiZBuffer::debug_draw(View &view, gpu::FrameBuffer *view_fb)
 {
   if (inst_.debug_mode == eDebugMode::DEBUG_HIZ_VALIDATION) {
     inst_.info_append(

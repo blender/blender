@@ -274,7 +274,8 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
   WM_gizmomap_draw(region->runtime->gizmo_map, C, WM_GIZMOMAP_DRAWSTEP_2D);
 
   /* scrubbing region */
-  ED_time_scrub_draw(region, scene, saction->flag & SACTION_DRAWTIME, true);
+  const int fps = round_db_to_int(scene->frames_per_second());
+  ED_time_scrub_draw(region, scene, saction->flag & SACTION_DRAWTIME, true, fps);
 }
 
 static void action_main_region_draw_overlay(const bContext *C, ARegion *region)

@@ -70,7 +70,7 @@ class GLFrameBuffer : public FrameBuffer {
    */
   bool check(char err_out[256]) override;
 
-  void clear(eGPUFrameBufferBits buffers,
+  void clear(GPUFrameBufferBits buffers,
              const float clear_col[4],
              float clear_depth,
              uint clear_stencil) override;
@@ -87,7 +87,7 @@ class GLFrameBuffer : public FrameBuffer {
                                Span<GPUAttachmentState> color_attachment_states) override;
 
  public:
-  void read(eGPUFrameBufferBits planes,
+  void read(GPUFrameBufferBits planes,
             eGPUDataFormat format,
             const int area[4],
             int channel_len,
@@ -97,7 +97,7 @@ class GLFrameBuffer : public FrameBuffer {
   /**
    * Copy \a src at the give offset inside \a dst.
    */
-  void blit_to(eGPUFrameBufferBits planes,
+  void blit_to(GPUFrameBufferBits planes,
                int src_slot,
                FrameBuffer *dst,
                int dst_slot,
@@ -144,7 +144,7 @@ static inline GLenum to_gl(const GPUAttachmentType type)
 #undef ATTACHMENT
 }
 
-static inline GLbitfield to_gl(const eGPUFrameBufferBits bits)
+static inline GLbitfield to_gl(const GPUFrameBufferBits bits)
 {
   GLbitfield mask = 0;
   mask |= (bits & GPU_DEPTH_BIT) ? GL_DEPTH_BUFFER_BIT : 0;

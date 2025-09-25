@@ -159,8 +159,9 @@ void disable(bContext *C, undo::StepData *undo_step)
 
 void disable_with_undo(Main &bmain, Depsgraph &depsgraph, Scene &scene, Object &ob)
 {
-  SculptSession &ss = *ob.sculpt;
-  if (ss.bm != nullptr) {
+  /* This is an unlikely situation to happen in normal usage, though with application handlers
+   * it is possible that a user is attempting to exit the current object mode. See #146398 */
+  if (ob.sculpt && ob.sculpt->bm) {
     /* May be false in background mode. */
     const bool use_undo = G.background ? (ED_undo_stack_get() != nullptr) : true;
     if (use_undo) {

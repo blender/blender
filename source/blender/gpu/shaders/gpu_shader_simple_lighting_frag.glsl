@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/gpu_shader_simple_lighting_info.hh"
+#include "infos/gpu_shader_simple_lighting_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(gpu_shader_simple_lighting)
 

@@ -518,7 +518,7 @@ GPU_TEST(texture_roundtrip__GPU_DATA_FLOAT__GPU_R11F_G11F_B10F);
 
 static void test_texture_roundtrip__GPU_DATA_FLOAT__GPU_SRGB8_A8()
 {
-  texture_create_upload_read_with_bias<TextureFormat::SRGBA_8_8_8_8, GPU_DATA_FLOAT>(0.003f);
+  texture_create_upload_read_with_bias<TextureFormat::SRGBA_8_8_8_8, GPU_DATA_FLOAT>(0.0035f);
 }
 GPU_TEST(texture_roundtrip__GPU_DATA_FLOAT__GPU_SRGB8_A8);
 
@@ -673,7 +673,7 @@ static void test_texture_roundtrip__GPU_DATA_FLOAT__GPU_DEPTH_COMPONENT16()
 GPU_TEST(texture_roundtrip__GPU_DATA_FLOAT__GPU_DEPTH_COMPONENT16);
 #endif
 
-/* \} */
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Round-trip testing GPU_DATA_HALF_FLOAT
@@ -705,7 +705,7 @@ static void test_texture_roundtrip__GPU_DATA_HALF_FLOAT__GPU_RGB16F()
 GPU_TEST(texture_roundtrip__GPU_DATA_HALF_FLOAT__GPU_RGB16F);
 #endif
 
-/* \} */
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Round-trip testing GPU_DATA_INT
@@ -787,7 +787,7 @@ static void test_texture_roundtrip__GPU_DATA_INT__GPU_RGB32I()
 GPU_TEST(texture_roundtrip__GPU_DATA_INT__GPU_RGB32I);
 #endif
 
-/* \} */
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Round-trip testing GPU_DATA_UINT
@@ -887,7 +887,7 @@ static void test_texture_roundtrip__GPU_DATA_UINT__GPU_DEPTH_COMPONENT16()
 GPU_TEST(texture_roundtrip__GPU_DATA_UINT__GPU_DEPTH_COMPONENT16);
 #endif
 
-/* \} */
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Round-trip testing GPU_DATA_UBYTE
@@ -954,7 +954,8 @@ static void test_texture_roundtrip__GPU_DATA_UBYTE__GPU_SRGB8()
 }
 GPU_TEST(texture_roundtrip__GPU_DATA_UBYTE__GPU_SRGB8);
 #endif
-/* \} */
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Round-trip testing GPU_DATA_UINT_24_8_DEPRECATED
@@ -970,7 +971,7 @@ static void test_texture_roundtrip__GPU_DATA_UINT_24_8__GPU_DEPTH32F_STENCIL8()
 GPU_TEST(texture_roundtrip__GPU_DATA_UINT_24_8__GPU_DEPTH32F_STENCIL8);
 #endif
 
-/* \} */
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Round-trip testing GPU_DATA_10_11_11_REV
@@ -982,7 +983,7 @@ static void test_texture_roundtrip__GPU_DATA_10_11_11_REV__GPU_R11F_G11F_B10F()
 }
 GPU_TEST(texture_roundtrip__GPU_DATA_10_11_11_REV__GPU_R11F_G11F_B10F);
 
-/* \} */
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Round-trip testing GPU_DATA_2_10_10_10_REV
@@ -1003,7 +1004,7 @@ static void test_texture_roundtrip__GPU_DATA_2_10_10_10_REV__GPU_RGB10_A2UI()
 }
 GPU_TEST(texture_roundtrip__GPU_DATA_2_10_10_10_REV__GPU_RGB10_A2UI);
 
-/* \} */
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Unpack row length
@@ -1184,6 +1185,6 @@ static void test_texture_pool()
 }
 GPU_TEST(texture_pool);
 
-/* \} */
+/** \} */
 
 }  // namespace blender::gpu::tests

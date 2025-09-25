@@ -149,6 +149,9 @@ static void world_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   BLI_listbase_clear(&wrld->gpumaterial);
   wrld->last_update = 0;
 
+  /* Set deprecated #use_nodes for forward compatibility. */
+  wrld->use_nodes = true;
+
   /* write LibData */
   BLO_write_id_struct(writer, World, id_address, &wrld->id);
   BKE_id_blend_write(writer, &wrld->id);

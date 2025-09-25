@@ -179,32 +179,32 @@ static float3 prop_dist_loc_get(const TransDataContainer *tc,
                                 const bool use_island,
                                 const float proj_vec[3])
 {
-  float3 r_vec;
+  float3 vec;
 
   if (use_island) {
     if (tc->use_local_mat) {
-      mul_v3_m4v3(r_vec, tc->mat, td->iloc);
+      mul_v3_m4v3(vec, tc->mat, td->iloc);
     }
     else {
-      mul_v3_m3v3(r_vec, td->mtx, td->iloc);
+      mul_v3_m3v3(vec, td->mtx, td->iloc);
     }
   }
   else {
     if (tc->use_local_mat) {
-      mul_v3_m4v3(r_vec, tc->mat, td->center);
+      mul_v3_m4v3(vec, tc->mat, td->center);
     }
     else {
-      mul_v3_m3v3(r_vec, td->mtx, td->center);
+      mul_v3_m3v3(vec, td->mtx, td->center);
     }
   }
 
   if (proj_vec) {
     float vec_p[3];
-    project_v3_v3v3(vec_p, r_vec, proj_vec);
-    sub_v3_v3(r_vec, vec_p);
+    project_v3_v3v3(vec_p, vec, proj_vec);
+    sub_v3_v3(vec, vec_p);
   }
 
-  return r_vec;
+  return vec;
 }
 
 /**
@@ -495,24 +495,24 @@ void clipUVData(TransInfo *t)
 
 char transform_convert_frame_side_dir_get(TransInfo *t, float cframe)
 {
-  char r_dir;
+  char dir;
   float center[2];
   if (t->flag & T_MODAL) {
     UI_view2d_region_to_view(
         (View2D *)t->view, t->mouse.imval[0], t->mouse.imval[1], &center[0], &center[1]);
-    r_dir = (center[0] > cframe) ? 'R' : 'L';
+    dir = (center[0] > cframe) ? 'R' : 'L';
     {
       /* XXX: This saves the direction in the "mirror" property to be used for redo! */
-      if (r_dir == 'R') {
+      if (dir == 'R') {
         t->flag |= T_NO_MIRROR;
       }
     }
   }
   else {
-    r_dir = (t->flag & T_NO_MIRROR) ? 'R' : 'L';
+    dir = (t->flag & T_NO_MIRROR) ? 'R' : 'L';
   }
 
-  return r_dir;
+  return dir;
 }
 
 bool FrameOnMouseSide(char side, float frame, float cframe)

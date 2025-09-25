@@ -2459,9 +2459,8 @@ template<typename T> void remove_faces_in_holes(CDT_state<T> *cdt_state)
         BLI_assert(se != nullptr);
         se_next = se->next; /* In case we delete this edge. */
         if (se->edge && !is_constrained_edge(se->edge)) {
-          /* Invalidate one half of this edge. The other has will be or has been
-           * handled with the adjacent triangle is processed: it should be part of the same hole.
-           */
+          /* Invalidate one half of this edge. The other will be, or has already been handled
+           * with the adjacent triangle is processed: it should be part of the same hole. */
           se->next = nullptr;
         }
         se = se_next;

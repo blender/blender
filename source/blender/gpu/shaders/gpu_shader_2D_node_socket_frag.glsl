@@ -2,11 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/gpu_shader_2D_node_socket_info.hh"
-
-#include "gpu_shader_math_matrix_lib.glsl"
+#include "infos/gpu_shader_2D_node_socket_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(gpu_shader_2D_node_socket_inst)
+
+#include "gpu_shader_math_constants_lib.glsl"
+#include "gpu_shader_math_matrix_construct_lib.glsl"
 
 /* Values in `eNodeSocketDisplayShape` in DNA_node_types.h. Keep in sync. */
 #define SOCK_DISPLAY_SHAPE_CIRCLE 0
@@ -35,7 +36,7 @@ float square_sdf(float2 absCo, float2 half_size)
 
 float2 rotate_45(float2 co)
 {
-  return from_rotation(Angle(M_PI * 0.25f)) * co;
+  return from_rotation(AngleRadian(M_PI * 0.25f)) * co;
 }
 
 /* Calculates an upper and lower limit for an anti-aliased cutoff of the squared distance. */

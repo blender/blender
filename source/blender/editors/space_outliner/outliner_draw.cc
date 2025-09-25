@@ -1047,10 +1047,8 @@ static void outliner_restrict_properties_enable_layer_collection_set(
         layer_collection_ptr, props->layer_collection_holdout);
   }
 
-  if (props_active->layer_collection_indirect_only) {
-    props_active->layer_collection_indirect_only = RNA_property_boolean_get(
-        layer_collection_ptr, props->layer_collection_indirect_only);
-  }
+  props_active->layer_collection_indirect_only = RNA_property_boolean_get(
+      layer_collection_ptr, props->layer_collection_indirect_only);
 
   if (props_active->layer_collection_hide_viewport) {
     props_active->layer_collection_hide_viewport = !RNA_property_boolean_get(
@@ -2051,8 +2049,14 @@ static void outliner_draw_overrides_restrictbuts(Main *bmain,
                                UI_UNIT_X,
                                UI_UNIT_Y,
                                "");
+    /* "id" is used by the operator #ED_OT_lib_id_override_editable_toggle. */
+    PointerRNA idptr = RNA_id_pointer_create(&id);
+    UI_but_context_ptr_set(block, but, "id", &idptr);
+
+    /* "session_uid" is used to compare buttons (in redraws). */
     UI_but_context_int_set(block, but, "session_uid", id.session_uid);
     UI_but_func_identity_compare_set(but, outliner_but_identity_cmp_context_id_fn);
+
     UI_but_flag_enable(but, UI_BUT_DRAG_LOCK);
   }
 }

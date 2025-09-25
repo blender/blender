@@ -13,9 +13,8 @@
 #include "eevee_sampling_lib.glsl"
 #include "eevee_thickness_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"
-#include "gpu_shader_math_matrix_lib.glsl"
-#include "gpu_shader_math_vector_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
+
+#include "gpu_shader_math_matrix_construct_lib.glsl"
 
 /* Returns view-space ray. */
 BsdfSample ray_generate_direction(float2 noise, ClosureUndetermined cl, float3 V, float thickness)
@@ -39,7 +38,7 @@ BsdfSample ray_generate_direction(float2 noise, ClosureUndetermined cl, float3 V
     case CLOSURE_BSDF_DIFFUSE_ID:
       break;
     case CLOSURE_NONE_ID:
-      assert(0);
+      assert(false);
       break;
   }
 
@@ -73,7 +72,7 @@ BsdfSample ray_generate_direction(float2 noise, ClosureUndetermined cl, float3 V
       break;
     }
     case CLOSURE_NONE_ID:
-      assert(0);
+      assert(false);
       break;
   }
   samp.direction = tangent_to_world * float3(samp.direction);

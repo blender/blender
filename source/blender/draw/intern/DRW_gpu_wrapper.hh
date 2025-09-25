@@ -1201,7 +1201,7 @@ static inline gpu::Texture **as_texture(Image **img)
 
 class Framebuffer : NonCopyable {
  private:
-  GPUFrameBuffer *fb_ = nullptr;
+  gpu::FrameBuffer *fb_ = nullptr;
   const char *name_;
 
  public:
@@ -1262,12 +1262,12 @@ class Framebuffer : NonCopyable {
     return *this;
   }
 
-  operator GPUFrameBuffer *() const
+  operator gpu::FrameBuffer *() const
   {
     return fb_;
   }
 
-  GPUFrameBuffer **operator&()
+  gpu::FrameBuffer **operator&()
   {
     return &fb_;
   }

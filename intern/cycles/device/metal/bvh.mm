@@ -500,7 +500,8 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
       geomDescCrv.radiusBuffers = [NSArray arrayWithObjects:radius_ptrs.data()
                                                       count:radius_ptrs.size()];
 
-      geomDescCrv.controlPointCount = cpData.size();
+      /* controlPointCount should specify the *per-step* control point count. */
+      geomDescCrv.controlPointCount = cpData.size() / num_motion_steps;
       geomDescCrv.controlPointStride = sizeof(float3);
       geomDescCrv.controlPointFormat = MTLAttributeFormatFloat3;
       geomDescCrv.radiusStride = sizeof(float);

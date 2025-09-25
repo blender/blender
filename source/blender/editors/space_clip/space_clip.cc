@@ -19,6 +19,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
+#include "BLI_math_base.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
@@ -733,6 +734,7 @@ static void clip_main_region_draw(const bContext *C, ARegion *region)
       ED_mask_draw_region(CTX_data_expect_evaluated_depsgraph(C),
                           mask,
                           region,
+                          sc->overlay.flag & SC_SHOW_OVERLAYS,
                           sc->mask_info.draw_flag,
                           sc->mask_info.draw_type,
                           eMaskOverlayMode(sc->mask_info.overlay_mode),
@@ -751,7 +753,7 @@ static void clip_main_region_draw(const bContext *C, ARegion *region)
   show_cursor |= sc->mode == SC_MODE_MASKEDIT;
   show_cursor |= sc->around == V3D_AROUND_CURSOR;
 
-  if (show_cursor) {
+  if (sc->overlay.flag & SC_SHOW_OVERLAYS && sc->overlay.flag & SC_SHOW_CURSOR && show_cursor) {
     GPU_matrix_push();
     GPU_matrix_translate_2f(x, y);
     GPU_matrix_scale_2f(zoomx, zoomy);
@@ -763,7 +765,7 @@ static void clip_main_region_draw(const bContext *C, ARegion *region)
 
   clip_draw_cache_and_notes(C, sc, region);
 
-  if (sc->flag & SC_SHOW_ANNOTATION) {
+  if (sc->overlay.flag & SC_SHOW_OVERLAYS && sc->flag & SC_SHOW_ANNOTATION) {
     /* Grease Pencil */
     clip_draw_grease_pencil((bContext *)C, true);
   }
@@ -781,7 +783,7 @@ static void clip_main_region_draw(const bContext *C, ARegion *region)
   /* reset view matrix */
   UI_view2d_view_restore(C);
 
-  if (sc->flag & SC_SHOW_ANNOTATION) {
+  if (sc->overlay.flag & SC_SHOW_OVERLAYS && sc->flag & SC_SHOW_ANNOTATION) {
     /* draw Grease Pencil - screen space only */
     clip_draw_grease_pencil((bContext *)C, false);
   }
@@ -875,7 +877,8 @@ static void graph_region_draw(const bContext *C, ARegion *region)
   UI_view2d_view_restore(C);
 
   /* time-scrubbing */
-  ED_time_scrub_draw(region, scene, sc->flag & SC_SHOW_SECONDS, true);
+  const int fps = round_db_to_int(scene->frames_per_second());
+  ED_time_scrub_draw(region, scene, sc->flag & SC_SHOW_SECONDS, true, fps);
 
   /* current frame indicator */
   ED_time_scrub_draw_current_frame(region, scene, sc->flag & SC_SHOW_SECONDS, !minimized);
@@ -895,7 +898,7 @@ static void graph_region_draw(const bContext *C, ARegion *region)
     rcti rect;
     BLI_rcti_init(
         &rect, 0, 15 * UI_SCALE_FAC, 15 * UI_SCALE_FAC, region->winy - UI_TIME_SCRUB_MARGIN_Y);
-    UI_view2d_draw_scale_y__values(region, v2d, &rect, TH_TEXT);
+    UI_view2d_draw_scale_y__values(region, v2d, &rect, TH_TEXT, 10);
   }
 }
 
@@ -936,7 +939,8 @@ static void dopesheet_region_draw(const bContext *C, ARegion *region)
   UI_view2d_view_restore(C);
 
   /* time-scrubbing */
-  ED_time_scrub_draw(region, scene, sc->flag & SC_SHOW_SECONDS, true);
+  const int fps = round_db_to_int(scene->frames_per_second());
+  ED_time_scrub_draw(region, scene, sc->flag & SC_SHOW_SECONDS, true, fps);
 
   /* current frame indicator */
   ED_time_scrub_draw_current_frame(region, scene, sc->flag & SC_SHOW_SECONDS, !minimized);

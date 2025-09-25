@@ -1021,6 +1021,7 @@ TextVarsRuntime *text_effect_calc_runtime(const Strip *strip, int font, const in
 }
 
 static ImBuf *do_text_effect(const RenderData *context,
+                             SeqRenderState * /*state*/,
                              Strip *strip,
                              float /*timeline_frame*/,
                              float /*fac*/,

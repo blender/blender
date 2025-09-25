@@ -117,8 +117,8 @@ class AnimationEvaluationTest : public testing::Test {
              << std::endl
              << "    " << rna_path << "[" << array_index
              << "] evaluation did not produce the expected result:" << std::endl
-             << "      evaluted to: " << testing::PrintToString(eval_value) << std::endl
-             << "      expected   : " << testing::PrintToString(expect_value) << std::endl;
+             << "      evaluated to: " << testing::PrintToString(eval_value) << std::endl
+             << "      expected    : " << testing::PrintToString(expect_value) << std::endl;
     }
 
     return testing::AssertionSuccess();
@@ -136,7 +136,7 @@ class AnimationEvaluationTest : public testing::Test {
              << std::endl
              << "    " << rna_path << "[" << array_index
              << "] evaluation should NOT produce a value:" << std::endl
-             << "      evaluted to: " << testing::PrintToString(*eval_value) << std::endl;
+             << "      evaluated to: " << testing::PrintToString(*eval_value) << std::endl;
     }
 
     return testing::AssertionSuccess();

@@ -27,7 +27,7 @@ static void test_framebuffer_clear_color_single_attachment()
   blender::gpu::Texture *texture = GPU_texture_create_2d(
       __func__, UNPACK2(size), 1, TextureFormat::SFLOAT_32_32_32_32, usage, nullptr);
 
-  GPUFrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
+  gpu::FrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
   GPU_framebuffer_ensure_config(&framebuffer,
                                 {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(texture)});
   GPU_framebuffer_bind(framebuffer);
@@ -56,7 +56,7 @@ static void test_framebuffer_clear_color_multiple_attachments()
   blender::gpu::Texture *texture2 = GPU_texture_create_2d(
       __func__, UNPACK2(size), 1, TextureFormat::UINT_32_32_32_32, usage, nullptr);
 
-  GPUFrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
+  gpu::FrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
   GPU_framebuffer_ensure_config(
       &framebuffer,
       {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(texture1), GPU_ATTACHMENT_TEXTURE(texture2)});
@@ -97,7 +97,7 @@ static void test_framebuffer_clear_multiple_color_multiple_attachments()
   blender::gpu::Texture *texture2 = GPU_texture_create_2d(
       __func__, UNPACK2(size), 1, TextureFormat::SFLOAT_32_32_32_32, usage, nullptr);
 
-  GPUFrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
+  gpu::FrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
   GPU_framebuffer_ensure_config(
       &framebuffer,
       {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(texture1), GPU_ATTACHMENT_TEXTURE(texture2)});
@@ -133,7 +133,7 @@ static void test_framebuffer_clear_depth()
   blender::gpu::Texture *texture = GPU_texture_create_2d(
       __func__, UNPACK2(size), 1, TextureFormat::SFLOAT_32_DEPTH, usage, nullptr);
 
-  GPUFrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
+  gpu::FrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
   GPU_framebuffer_ensure_config(&framebuffer, {GPU_ATTACHMENT_TEXTURE(texture)});
   GPU_framebuffer_bind(framebuffer);
 
@@ -161,7 +161,7 @@ static void test_framebuffer_scissor_test()
   blender::gpu::Texture *texture = GPU_texture_create_2d(
       __func__, UNPACK2(size), 1, TextureFormat::SFLOAT_32_32_32_32, usage, nullptr);
 
-  GPUFrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
+  gpu::FrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
   GPU_framebuffer_ensure_config(&framebuffer,
                                 {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(texture)});
   GPU_framebuffer_bind(framebuffer);
@@ -212,7 +212,7 @@ static void test_framebuffer_cube()
       {0.0f, 0.0f, 0.5f, 1.0f},
       {0.0f, 0.0f, 1.0f, 1.0f},
   };
-  GPUFrameBuffer *framebuffers[6] = {nullptr};
+  gpu::FrameBuffer *framebuffers[6] = {nullptr};
 
   for (int i : IndexRange(6)) {
     GPU_framebuffer_ensure_config(&framebuffers[i],
@@ -263,7 +263,7 @@ static void test_framebuffer_multi_viewport()
   blender::gpu::Texture *texture = GPU_texture_create_2d_array(
       __func__, UNPACK2(size), layers, 1, TextureFormat::SINT_32_32, usage, nullptr);
 
-  GPUFrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
+  gpu::FrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
   GPU_framebuffer_ensure_config(&framebuffer,
                                 {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(texture)});
   GPU_framebuffer_bind(framebuffer);
@@ -338,7 +338,7 @@ static void test_framebuffer_subpass_input()
   blender::gpu::Texture *texture_b = GPU_texture_create_2d(
       __func__, UNPACK2(size), 1, TextureFormat::SINT_32, usage, nullptr);
 
-  GPUFrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
+  gpu::FrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
   GPU_framebuffer_ensure_config(
       &framebuffer,
       {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(texture_a), GPU_ATTACHMENT_TEXTURE(texture_b)});

@@ -229,7 +229,7 @@ struct GPUPickState {
   /** Cache on initialization. */
   GPUSelectBuffer *buffer;
   /** Mode of this operation. */
-  eGPUSelectMode mode;
+  GPUSelectMode mode;
 
   /** GPU drawing, never use when `is_cached == true`. */
   struct {
@@ -287,13 +287,13 @@ struct GPUPickState {
   /** Previous state to restore after drawing. */
   int viewport[4];
   int scissor[4];
-  eGPUWriteMask write_mask;
-  eGPUDepthTest depth_test;
+  GPUWriteMask write_mask;
+  GPUDepthTest depth_test;
 };
 
 static GPUPickState g_pick_state{};
 
-void gpu_select_pick_begin(GPUSelectBuffer *buffer, const rcti *input, eGPUSelectMode mode)
+void gpu_select_pick_begin(GPUSelectBuffer *buffer, const rcti *input, GPUSelectMode mode)
 {
   GPUPickState *ps = &g_pick_state;
 
@@ -486,7 +486,7 @@ bool gpu_select_pick_load_id(uint id, bool end)
     }
 
     const uint rect_len = ps->src.rect_len;
-    GPUFrameBuffer *fb = GPU_framebuffer_active_get();
+    blender::gpu::FrameBuffer *fb = GPU_framebuffer_active_get();
     GPU_framebuffer_read_depth(
         fb, UNPACK4(ps->gpu.clip_readpixels), GPU_DATA_UINT, ps->gpu.rect_depth_test->buf);
     /* Perform initial check since most cases the array remains unchanged. */

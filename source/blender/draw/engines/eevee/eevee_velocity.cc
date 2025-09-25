@@ -26,8 +26,8 @@
 #include "eevee_instance.hh"
 // #include "eevee_renderpasses.hh"
 #include "eevee_shader.hh"
-#include "eevee_shader_shared.hh"
 #include "eevee_velocity.hh"
+#include "eevee_velocity_shared.hh"
 
 #include "draw_common.hh"
 

@@ -262,12 +262,15 @@ static Material *rna_Main_materials_new(Main *bmain, const char *name)
   char safe_name[MAX_ID_NAME - 2];
   rna_idname_validate(name, safe_name);
 
-  ID *id = (ID *)BKE_material_add(bmain, safe_name);
-  id_us_min(id);
+  Material *material = BKE_material_add(bmain, safe_name);
+  id_us_min(&material->id);
+
+  material->nodetree = blender::bke::node_tree_add_tree_embedded(
+      bmain, &material->id, "Material Node Tree", "ShaderNodeTree");
 
   WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);
 
-  return (Material *)id;
+  return material;
 }
 
 static void rna_Main_materials_gpencil_data(Main * /*bmain*/, PointerRNA *id_ptr)

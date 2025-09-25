@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "infos/overlay_edit_mode_info.hh"
+#include "infos/overlay_edit_mode_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(overlay_edit_mesh_common)
 

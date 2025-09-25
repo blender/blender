@@ -9,13 +9,14 @@
  * This pass scans all volume froxels and tags tiles needed for shadowing.
  */
 
-#include "infos/eevee_shadow_info.hh"
+#include "infos/eevee_shadow_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_shadow_tag_usage_volume)
 
 #include "eevee_sampling_lib.glsl"
 #include "eevee_shadow_tag_usage_lib.glsl"
 #include "eevee_volume_lib.glsl"
+#include "gpu_shader_math_vector_compare_lib.glsl"
 
 void main()
 {
@@ -33,7 +34,7 @@ void main()
   }
 
   float offset = sampling_rng_1D_get(SAMPLING_VOLUME_W);
-  float jitter = interlieved_gradient_noise(float2(froxel.xy), 0.0f, offset);
+  float jitter = interleaved_gradient_noise(float2(froxel.xy), 0.0f, offset);
 
   float3 uvw = (float3(froxel) + float3(0.5f, 0.5f, jitter)) * uniform_buf.volumes.inv_tex_size;
   float3 ss_P = volume_resolve_to_screen(uvw);

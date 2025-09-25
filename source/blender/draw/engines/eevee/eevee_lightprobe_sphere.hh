@@ -10,10 +10,14 @@
 
 #include "DNA_world_types.h"
 
+#include "draw_pass.hh"
+
 #include "eevee_lightprobe.hh"
-#include "eevee_shader_shared.hh"
+#include "eevee_lightprobe_shared.hh"
 
 namespace blender::eevee {
+
+using namespace draw;
 
 class Instance;
 class CaptureView;
@@ -21,6 +25,9 @@ class CaptureView;
 /* -------------------------------------------------------------------- */
 /** \name Reflection Probe Module
  * \{ */
+
+using SphereProbeDataBuf = draw::UniformArrayBuffer<SphereProbeData, SPHERE_PROBE_MAX>;
+using SphereProbeDisplayDataBuf = draw::StorageArrayBuffer<SphereProbeDisplayData>;
 
 class SphereProbeModule {
   friend LightProbeModule;
@@ -111,7 +118,7 @@ class SphereProbeModule {
   void begin_sync();
   void end_sync();
 
-  void viewport_draw(View &view, GPUFrameBuffer *view_fb);
+  void viewport_draw(View &view, gpu::FrameBuffer *view_fb);
 
   template<typename PassType> void bind_resources(PassType &pass)
   {

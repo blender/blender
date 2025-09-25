@@ -38,19 +38,19 @@ blender::float2 ED_view3d_project_float_v2_m4(const ARegion *region,
 
   copy_v3_v3(vec4, co);
   vec4[3] = 1.0;
-  // r_co[0] = IS_CLIPPED; /* Always overwritten. */
+  // co_region[0] = IS_CLIPPED; /* Always overwritten. */
 
   mul_m4_v4(mat.ptr(), vec4);
 
-  blender::float2 r_co;
+  blender::float2 co_region;
   if (vec4[3] > FLT_EPSILON) {
-    r_co[0] = float(region->winx / 2.0f) + (region->winx / 2.0f) * vec4[0] / vec4[3];
-    r_co[1] = float(region->winy / 2.0f) + (region->winy / 2.0f) * vec4[1] / vec4[3];
+    co_region[0] = float(region->winx / 2.0f) + (region->winx / 2.0f) * vec4[0] / vec4[3];
+    co_region[1] = float(region->winy / 2.0f) + (region->winy / 2.0f) * vec4[1] / vec4[3];
   }
   else {
-    zero_v2(r_co);
+    zero_v2(co_region);
   }
-  return r_co;
+  return co_region;
 }
 
 void ED_view3d_project_float_v3_m4(const ARegion *region,
@@ -760,11 +760,11 @@ bool ED_view3d_win_to_segment_clipped(const Depsgraph *depsgraph,
 blender::float4x4 ED_view3d_ob_project_mat_get(const RegionView3D *rv3d, const Object *ob)
 {
   float vmat[4][4];
-  blender::float4x4 r_pmat;
+  blender::float4x4 pmat;
 
   mul_m4_m4m4(vmat, rv3d->viewmat, ob->object_to_world().ptr());
-  mul_m4_m4m4(r_pmat.ptr(), rv3d->winmat, vmat);
-  return r_pmat;
+  mul_m4_m4m4(pmat.ptr(), rv3d->winmat, vmat);
+  return pmat;
 }
 
 blender::float4x4 ED_view3d_ob_project_mat_get_from_obmat(const RegionView3D *rv3d,

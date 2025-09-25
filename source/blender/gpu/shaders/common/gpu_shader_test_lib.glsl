@@ -4,7 +4,9 @@
 
 #pragma once
 
-#include "gpu_glsl_cpp_stubs.hh"
+#include "gpu_shader_compat.hh"
+#include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_math_vector_compare_lib.glsl"
 
 /* clang-format off */
 #ifndef GPU_METAL

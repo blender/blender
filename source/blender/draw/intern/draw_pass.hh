@@ -67,6 +67,9 @@ namespace blender::draw {
 using namespace blender::draw;
 using namespace blender::draw::command;
 
+using DispatchIndirectBuf = draw::StorageBuffer<DispatchCommand>;
+using DrawIndirectBuf = draw::StorageBuffer<DrawCommand, true>;
+
 class Manager;
 
 namespace command {
@@ -228,7 +231,7 @@ class PassBase {
    * \note Changes the global GPU state (outside of DRW).
    * \note Capture reference to the framebuffer so it can be initialized later.
    */
-  void framebuffer_set(GPUFrameBuffer **framebuffer);
+  void framebuffer_set(gpu::FrameBuffer **framebuffer);
 
   /**
    * Start a new sub-pass and change framebuffer attachments status.
@@ -332,7 +335,7 @@ class PassBase {
   /**
    * Record a barrier call to synchronize arbitrary load/store operation between draw calls.
    */
-  void barrier(eGPUBarrier type);
+  void barrier(GPUBarrier type);
 
   /**
    * Bind a shader resource.
@@ -465,7 +468,7 @@ class PassBase {
 
   int push_constant_offset(const char *name);
 
-  void clear(eGPUFrameBufferBits planes, float4 color, float depth, uint8_t stencil);
+  void clear(GPUFrameBufferBits planes, float4 color, float depth, uint8_t stencil);
 
   gpu::Batch *procedural_batch_get(GPUPrimType primitive);
 
@@ -652,7 +655,7 @@ template<class T> inline command::Undetermined &PassBase<T>::create_command(comm
 }
 
 template<class T>
-inline void PassBase<T>::clear(eGPUFrameBufferBits planes,
+inline void PassBase<T>::clear(GPUFrameBufferBits planes,
                                float4 color,
                                float depth,
                                uint8_t stencil)
@@ -1072,7 +1075,7 @@ inline void PassBase<T>::clear_color_depth_stencil(float4 color, float depth, ui
 /** \name Barrier Implementation
  * \{ */
 
-template<class T> inline void PassBase<T>::barrier(eGPUBarrier type)
+template<class T> inline void PassBase<T>::barrier(GPUBarrier type)
 {
   create_command(Type::Barrier).barrier = {type};
 }
@@ -1106,7 +1109,7 @@ template<class T> inline void PassBase<T>::shader_set(gpu::Shader *shader)
   create_command(Type::ShaderBind).shader_bind = {shader};
 }
 
-template<class T> inline void PassBase<T>::framebuffer_set(GPUFrameBuffer **framebuffer)
+template<class T> inline void PassBase<T>::framebuffer_set(gpu::FrameBuffer **framebuffer)
 {
   create_command(Type::FramebufferBind).framebuffer_bind = {framebuffer};
 }

@@ -615,6 +615,9 @@
     .uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES, \
     .quality = 3, \
     .boundary_smooth = SUBSURF_BOUNDARY_SMOOTH_ALL, \
+    .adaptive_space = SUBSURF_ADAPTIVE_SPACE_PIXEL, \
+    .adaptive_pixel_size = 1.0f, \
+    .adaptive_object_edge_length = 0.01f, \
   }
 
 #define _DNA_DEFAULT_SurfaceModifierData \

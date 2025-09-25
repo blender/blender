@@ -19,23 +19,28 @@ bool OIIOImageLoader::load_metadata(const ImageDeviceFeatures & /*features*/,
                                     ImageMetaData &metadata)
 {
   /* Perform preliminary checks, with meaningful logging. */
+  if (filepath.empty()) {
+    return false;
+  }
+
   if (!path_exists(filepath.string())) {
-    LOG_WARNING << "File '" << filepath.string() << "' does not exist.";
+    LOG_ERROR << "Image file '" << filepath.string() << "' does not exist.";
     return false;
   }
   if (path_is_directory(filepath.string())) {
-    LOG_WARNING << "File '" << filepath.string() << "' is a directory, cannot use as image.";
+    LOG_ERROR << "Image file '" << filepath.string() << "' is a directory, cannot use as image.";
     return false;
   }
 
   unique_ptr<ImageInput> in(ImageInput::create(filepath.string()));
-
   if (!in) {
+    LOG_ERROR << "Image file '" << filepath.string() << "' failed to load.";
     return false;
   }
 
   ImageSpec spec;
   if (!in->open(filepath.string(), spec)) {
+    LOG_ERROR << "Image file '" << filepath.string() << "' failed to open.";
     return false;
   }
 

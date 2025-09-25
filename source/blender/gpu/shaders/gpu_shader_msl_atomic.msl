@@ -1,0 +1,35 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
+#pragma once
+
+using namespace metal;
+
+/** Shader atomics:
+ * In order to emulate GLSL-style atomic operations, wherein variables can be used within atomic
+ * operations, even if they are not explicitly declared atomic, we can cast the pointer to atomic,
+ * to ensure that the load instruction follows atomic_load/store idioms.
+ *
+ * NOTE: We cannot hoist the address space into the template declaration, so these must be declared
+ * for each relevant address space. */
+#define ATOMIC_OP_EX(qualifier, glsl_op, mtl_op) \
+  template<typename T> T atomic##glsl_op(qualifier T &mem, T data) \
+  { \
+    return atomic_##mtl_op##_explicit((qualifier _atomic<T> *)&mem, data, memory_order_relaxed); \
+  }
+
+#define ATOMIC_OP(glsl_op, mtl_op) \
+  ATOMIC_OP_EX(threadgroup, glsl_op, mtl_op) \
+  ATOMIC_OP_EX(device, glsl_op, mtl_op)
+
+ATOMIC_OP(Max, fetch_max)
+ATOMIC_OP(Min, fetch_min)
+ATOMIC_OP(Add, fetch_add)
+ATOMIC_OP(Sub, fetch_sub)
+ATOMIC_OP(And, fetch_and)
+ATOMIC_OP(Or, fetch_or)
+ATOMIC_OP(Xor, fetch_xor)
+ATOMIC_OP(Exchange, exchange)
+
+#undef ATOMIC_OP

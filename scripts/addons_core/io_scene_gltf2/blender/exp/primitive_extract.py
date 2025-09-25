@@ -307,7 +307,7 @@ class PrimitiveCreator:
             attr['len'] = gltf2_blender_conversion.get_data_length(attr['blender_data_type'])
             attr['type'] = gltf2_blender_conversion.get_numpy_type(attr['blender_data_type'])
 
-        # Now we have all attribtues, we can change order if we want
+        # Now we have all attributes, we can change order if we want
         # Note that the glTF specification doesn't say anything about order
         # Attributes are defined only by name
         # But if user want it in a particular order, he can use this hook to perform it
@@ -874,7 +874,7 @@ class PrimitiveCreator:
                 continue
 
             primitives.append({
-                # No attribute here, as they are shared accross all primitives
+                # No attribute here, as they are shared across all primitives
                 'indices': indices,
                 'material': material_idx,
                 'uvmap_attributes_index': uvmap_attributes_index

@@ -233,6 +233,7 @@ static void node_register()
 
   fn_node_type_base(&ntype, "FunctionNodeAlignRotationToVector", FN_NODE_ALIGN_ROTATION_TO_VECTOR);
   ntype.ui_name = "Align Rotation to Vector";
+  ntype.ui_description = "Orient a rotation along the given direction";
   ntype.enum_name_legacy = "ALIGN_ROTATION_TO_VECTOR";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;

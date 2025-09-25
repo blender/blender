@@ -127,7 +127,6 @@ enum eUSDSceneUnits {
 struct USDExportParams {
   bool export_animation = false;
   bool selected_objects_only = false;
-  bool visible_objects_only = true;
 
   bool export_meshes = true;
   bool export_lights = true;
@@ -198,6 +197,7 @@ struct USDImportParams {
   bool is_sequence;
   int sequence_len;
   int offset;
+  bool relative_path;
 
   bool import_defined_only;
   bool import_visible_only;

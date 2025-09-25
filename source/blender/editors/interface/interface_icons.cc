@@ -232,7 +232,7 @@ static void vicon_rgb_red_draw(
 {
   const float color[4] = {0.5f, 0.0f, 0.0f, 1.0f * alpha};
   vicon_rgb_color_draw(x, y, w, h, color, 0.25f * alpha);
-  const char *text = TIP_("R");
+  const char *text = CTX_IFACE_(BLT_I18NCONTEXT_COLOR, "R");
   vicon_rgb_text_draw(x, y, w, h, text, mono_rgba);
 }
 
@@ -241,7 +241,7 @@ static void vicon_rgb_green_draw(
 {
   const float color[4] = {0.0f, 0.4f, 0.0f, 1.0f * alpha};
   vicon_rgb_color_draw(x, y, w, h, color, 0.2f * alpha);
-  const char *text = TIP_("G");
+  const char *text = CTX_IFACE_(BLT_I18NCONTEXT_COLOR, "G");
   vicon_rgb_text_draw(x, y, w, h, text, mono_rgba);
 }
 
@@ -250,7 +250,7 @@ static void vicon_rgb_blue_draw(
 {
   const float color[4] = {0.0f, 0.0f, 1.0f, 1.0f * alpha};
   vicon_rgb_color_draw(x, y, w, h, color, 0.3f * alpha);
-  const char *text = TIP_("B");
+  const char *text = CTX_IFACE_(BLT_I18NCONTEXT_COLOR, "B");
   vicon_rgb_text_draw(x, y, w, h, text, mono_rgba);
 }
 
@@ -1456,7 +1456,7 @@ static void icon_draw_rect(float x,
   }
 
   /* draw */
-  eGPUBuiltinShader shader;
+  GPUBuiltinShader shader;
   if (desaturate != 0.0f) {
     shader = GPU_SHADER_2D_IMAGE_DESATURATE_COLOR;
   }
@@ -1551,10 +1551,10 @@ static void svg_replace_color_attributes(std::string &svg,
       {"blender_tool_transform", tool_transform},
       {"blender_tool_white", tool_white},
       {"blender_tool_red", tool_red},
-      {"blender_bevel_weight", nullptr, TH_EDGE_BEVEL},
-      {"blender_mesh_crease", nullptr, TH_EDGE_CREASE},
-      {"blender_edge_seam", nullptr, TH_EDGE_SEAM},
-      {"blender_edge_sharp", nullptr, TH_EDGE_SHARP},
+      {"blender_bevel", nullptr, TH_BEVEL},
+      {"blender_crease", nullptr, TH_CREASE},
+      {"blender_seam", nullptr, TH_SEAM},
+      {"blender_sharp", nullptr, TH_SHARP},
   };
 
   for (const ColorItem &item : items) {

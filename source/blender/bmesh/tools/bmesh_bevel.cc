@@ -823,7 +823,7 @@ static void bevel_merge_uvs(BevelParams *bp, BMesh *bm)
           float *luv = BM_ELEM_CD_GET_FLOAT_P(l, uv_data_offset);
           add_v2_v2(uv, luv);
         }
-        mul_v2_fl(uv, 1.0f / (float)num_uv_verts);
+        mul_v2_fl(uv, 1.0f / float(num_uv_verts));
         for (BMLoop *l : uv_vert_bucket) {
           float *luv = BM_ELEM_CD_GET_FLOAT_P(l, uv_data_offset);
           copy_v2_v2(luv, uv);
@@ -2536,7 +2536,7 @@ static void check_edge_data_seam_sharp_edges(BevVert *bv, int flag)
 
 static void bevel_extend_edge_data_ex(BevVert *bv, int flag)
 {
-  BLI_assert(flag == BM_ELEM_SEAM || flag == BM_ELEM_SMOOTH);
+  BLI_assert(ELEM(flag, BM_ELEM_SEAM, BM_ELEM_SMOOTH));
   VMesh *vm = bv->vmesh;
 
   BoundVert *bcur = bv->vmesh->boundstart, *start = bcur;

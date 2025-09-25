@@ -18,9 +18,6 @@
 
 #include "rna_internal.hh" /* own include */
 
-#ifdef WITH_ALEMBIC
-#endif
-
 #ifdef RNA_RUNTIME
 
 #  include "BKE_editmesh.hh"
@@ -197,77 +194,6 @@ static void rna_Scene_sequencer_editing_free(Scene *scene)
   blender::seq::editing_free(scene, true);
 }
 
-#  ifdef WITH_ALEMBIC
-
-static void rna_Scene_alembic_export(Scene *scene,
-                                     bContext *C,
-                                     const char *filepath,
-                                     int frame_start,
-                                     int frame_end,
-                                     int xform_samples,
-                                     int geom_samples,
-                                     float shutter_open,
-                                     float shutter_close,
-                                     bool selected_only,
-                                     bool uvs,
-                                     bool normals,
-                                     bool vcolors,
-                                     bool apply_subdiv,
-                                     bool flatten_hierarchy,
-                                     bool visible_objects_only,
-                                     bool face_sets,
-                                     bool use_subdiv_schema,
-                                     bool export_hair,
-                                     bool export_particles,
-                                     bool packuv,
-                                     float scale,
-                                     bool triangulate,
-                                     int quad_method,
-                                     int ngon_method)
-{
-/* We have to enable allow_threads, because we may change scene frame number
- * during export. */
-#    ifdef WITH_PYTHON
-  BPy_BEGIN_ALLOW_THREADS;
-#    endif
-
-  AlembicExportParams params{};
-  params.frame_start = frame_start;
-  params.frame_end = frame_end;
-
-  params.frame_samples_xform = xform_samples;
-  params.frame_samples_shape = geom_samples;
-
-  params.shutter_open = shutter_open;
-  params.shutter_close = shutter_close;
-
-  params.selected_only = selected_only;
-  params.uvs = uvs;
-  params.normals = normals;
-  params.vcolors = vcolors;
-  params.apply_subdiv = apply_subdiv;
-  params.flatten_hierarchy = flatten_hierarchy;
-  params.visible_objects_only = visible_objects_only;
-  params.face_sets = face_sets;
-  params.use_subdiv_schema = use_subdiv_schema;
-  params.export_hair = export_hair;
-  params.export_particles = export_particles;
-  params.packuv = packuv;
-  params.triangulate = triangulate;
-  params.quad_method = quad_method;
-  params.ngon_method = ngon_method;
-
-  params.global_scale = scale;
-
-  ABC_export(scene, C, filepath, &params, true);
-
-#    ifdef WITH_PYTHON
-  BPy_END_ALLOW_THREADS;
-#    endif
-}
-
-#  endif
-
 #else
 
 void RNA_api_scene(StructRNA *srna)
@@ -358,83 +284,6 @@ void RNA_api_scene(StructRNA *srna)
 
   func = RNA_def_function(srna, "sequence_editor_clear", "rna_Scene_sequencer_editing_free");
   RNA_def_function_ui_description(func, "Clear sequence editor in this scene");
-
-#  ifdef WITH_ALEMBIC
-  /* XXX Deprecated, will be removed in 2.8 in favor of calling the export operator. */
-  func = RNA_def_function(srna, "alembic_export", "rna_Scene_alembic_export");
-  RNA_def_function_ui_description(
-      func, "Export to Alembic file (deprecated, use the Alembic export operator)");
-
-  parm = RNA_def_string(
-      func, "filepath", nullptr, FILE_MAX, "File Path", "File path to write Alembic file");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  RNA_def_property_subtype(parm, PROP_FILEPATH); /* Allow non UTF8. */
-
-  RNA_def_int(func, "frame_start", 1, INT_MIN, INT_MAX, "Start", "Start Frame", INT_MIN, INT_MAX);
-  RNA_def_int(func, "frame_end", 1, INT_MIN, INT_MAX, "End", "End Frame", INT_MIN, INT_MAX);
-  RNA_def_int(
-      func, "xform_samples", 1, 1, 128, "Xform samples", "Transform samples per frame", 1, 128);
-  RNA_def_int(
-      func, "geom_samples", 1, 1, 128, "Geom samples", "Geometry samples per frame", 1, 128);
-  RNA_def_float(func, "shutter_open", 0.0f, -1.0f, 1.0f, "Shutter open", "", -1.0f, 1.0f);
-  RNA_def_float(func, "shutter_close", 1.0f, -1.0f, 1.0f, "Shutter close", "", -1.0f, 1.0f);
-  RNA_def_boolean(func, "selected_only", false, "Selected only", "Export only selected objects");
-  RNA_def_boolean(func, "uvs", true, "UVs", "Export UVs");
-  RNA_def_boolean(func, "normals", true, "Normals", "Export normals");
-  RNA_def_boolean(func, "vcolors", false, "Color Attributes", "Export color attributes");
-  RNA_def_boolean(
-      func, "apply_subdiv", true, "Subsurfs as meshes", "Export subdivision surfaces as meshes");
-  RNA_def_boolean(func, "flatten", false, "Flatten hierarchy", "Flatten hierarchy");
-  RNA_def_boolean(func,
-                  "visible_objects_only",
-                  false,
-                  "Visible layers only",
-                  "Export only objects in visible layers");
-  RNA_def_boolean(func, "face_sets", false, "Facesets", "Export face sets");
-  RNA_def_boolean(func,
-                  "subdiv_schema",
-                  false,
-                  "Use Alembic subdivision Schema",
-                  "Use Alembic subdivision Schema");
-  RNA_def_boolean(func,
-                  "export_hair",
-                  true,
-                  "Export Hair",
-                  "Exports hair particle systems as animated curves");
-  RNA_def_boolean(
-      func, "export_particles", true, "Export Particles", "Exports non-hair particle systems");
-  RNA_def_boolean(
-      func, "packuv", false, "Export with packed UV islands", "Export with packed UV islands");
-  RNA_def_float(
-      func,
-      "scale",
-      1.0f,
-      0.0001f,
-      1000.0f,
-      "Scale",
-      "Value by which to enlarge or shrink the objects with respect to the world's origin",
-      0.0001f,
-      1000.0f);
-  RNA_def_boolean(func,
-                  "triangulate",
-                  false,
-                  "Triangulate",
-                  "Export polygons (quads and n-gons) as triangles");
-  RNA_def_enum(func,
-               "quad_method",
-               rna_enum_modifier_triangulate_quad_method_items,
-               0,
-               "Quad Method",
-               "Method for splitting the quads into triangles");
-  RNA_def_enum(func,
-               "ngon_method",
-               rna_enum_modifier_triangulate_ngon_method_items,
-               0,
-               "N-gon Method",
-               "Method for splitting the n-gons into triangles");
-
-  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-#  endif
 }
 
 void RNA_api_scene_render(StructRNA *srna)

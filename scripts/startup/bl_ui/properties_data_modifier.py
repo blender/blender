@@ -76,9 +76,6 @@ class OBJECT_MT_modifier_add(ModifierAddMenu, Menu):
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        if geometry_nodes_supported:
-            self.operator_modifier_add(layout, 'NODES')
-            layout.separator()
         if ob_type in {'MESH', 'CURVE', 'CURVES', 'FONT', 'SURFACE', 'LATTICE', 'GREASEPENCIL', 'POINTCLOUD'}:
             layout.menu("OBJECT_MT_modifier_add_edit")
         if ob_type in {'MESH', 'CURVE', 'FONT', 'SURFACE', 'VOLUME', 'GREASEPENCIL'}:
@@ -94,6 +91,10 @@ class OBJECT_MT_modifier_add(ModifierAddMenu, Menu):
 
         if geometry_nodes_supported:
             layout.menu_contents("OBJECT_MT_modifier_add_root_catalogs")
+
+        if geometry_nodes_supported:
+            layout.separator()
+            self.operator_modifier_add(layout, 'NODES')
 
 
 class OBJECT_MT_modifier_add_edit(ModifierAddMenu, Menu):

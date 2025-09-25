@@ -8,6 +8,11 @@
  * LUT generation module.
  */
 
+#include "GPU_state.hh"
+
+#include "draw_pass.hh"
+
+#include "eevee_defines.hh"
 #include "eevee_precompute.hh"
 
 namespace blender::eevee {

@@ -8,7 +8,7 @@
  * For this reason, we only dispatch 1 thread group.
  */
 
-#include "infos/eevee_light_culling_info.hh"
+#include "infos/eevee_light_culling_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_light_culling_zbin)
 

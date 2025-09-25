@@ -34,7 +34,6 @@ static unordered_map<ustring, OCIO::ConstProcessorRcPtr> cached_processors;
 
 static thread_mutex cache_scene_linear_mutex;
 static string cache_scene_linear_name;
-#endif
 
 static void check_invalidate_caches()
 {
@@ -47,7 +46,7 @@ static void check_invalidate_caches()
     config = OCIO::GetCurrentConfig();
   }
   catch (const OCIO::Exception &exception) {
-    LOG_WARNING << "OCIO config error: " << exception.what();
+    LOG_ERROR << "OCIO config error: " << exception.what();
     return;
   }
 
@@ -64,6 +63,7 @@ static void check_invalidate_caches()
     }
   }
 }
+#endif
 
 ColorSpaceProcessor *ColorSpaceManager::get_processor(ustring colorspace)
 {
@@ -80,7 +80,7 @@ ColorSpaceProcessor *ColorSpaceManager::get_processor(ustring colorspace)
     config = OCIO::GetCurrentConfig();
   }
   catch (const OCIO::Exception &exception) {
-    LOG_WARNING << "OCIO config error: " << exception.what();
+    LOG_ERROR << "OCIO config error: " << exception.what();
     return nullptr;
   }
 
@@ -128,7 +128,7 @@ bool ColorSpaceManager::colorspace_is_data(ustring colorspace)
     config = OCIO::GetCurrentConfig();
   }
   catch (const OCIO::Exception &exception) {
-    LOG_WARNING << "OCIO config error: " << exception.what();
+    LOG_ERROR << "OCIO config error: " << exception.what();
     return false;
   }
 
@@ -208,7 +208,7 @@ ustring ColorSpaceManager::detect_known_colorspace(ustring colorspace,
       config = OCIO::GetCurrentConfig();
     }
     catch (const OCIO::Exception &exception) {
-      LOG_WARNING << "OCIO config error: " << exception.what();
+      LOG_ERROR << "OCIO config error: " << exception.what();
       return u_colorspace_raw;
     }
 

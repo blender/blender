@@ -298,8 +298,9 @@ _axis_convert_num = {'X': 0, 'Y': 1, 'Z': 2, '-X': 3, '-Y': 4, '-Z': 5}
 
 def axis_conversion(from_forward='Y', from_up='Z', to_forward='Y', to_up='Z'):
     """
-    Each argument us an axis in ['X', 'Y', 'Z', '-X', '-Y', '-Z']
+    Each argument is an axis in ['X', 'Y', 'Z', '-X', '-Y', '-Z']
     where the first 2 are a source and the second 2 are the target.
+    :rtype: :class:`mathutils.Matrix`
     """
     from mathutils import Matrix
     from functools import reduce

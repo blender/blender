@@ -27,7 +27,7 @@ GPUContext *GPUTest::context_;
 int32_t GPUTest::prev_g_debug_;
 
 void GPUTest::SetUpTestSuite(GHOST_TDrawingContextType draw_context_type,
-                             eGPUBackendType gpu_backend_type,
+                             GPUBackendType gpu_backend_type,
                              int32_t g_debug_flags)
 {
   prev_g_debug_ = G.debug;

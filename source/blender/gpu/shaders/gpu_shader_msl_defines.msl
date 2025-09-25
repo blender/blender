@@ -1,0 +1,17 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
+#pragma once
+
+#pragma runtime_generated
+
+/* Workgroup size as defines for compute shaders. */
+#define MTL_WORKGROUP_SIZE_X 16
+#define MTL_WORKGROUP_SIZE_Y 16
+#define MTL_WORKGROUP_SIZE_Z 16
+/* Size of the argument buffer for bindless samplers support.
+ * 0 if disabled. */
+#define MTL_ARGUMENT_BUFFER_NUM_SAMPLERS 0
+/* Defined if native texture atomic support is detected. */
+#define MTL_SUPPORTS_TEXTURE_ATOMICS 1

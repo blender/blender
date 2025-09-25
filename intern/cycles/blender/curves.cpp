@@ -386,7 +386,7 @@ static void ExportCurveSegments(Scene *scene, Hair *hair, ParticleCurveData *CDa
 
   /* check allocation */
   if ((hair->get_curve_keys().size() != num_keys) || (hair->num_curves() != num_curves)) {
-    LOG_WARNING << "Hair memory allocation failed, clearing data.";
+    LOG_ERROR << "Hair memory allocation failed, clearing data.";
     hair->clear(true);
   }
 }

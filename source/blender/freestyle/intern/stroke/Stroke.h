@@ -528,7 +528,7 @@ class Stroke : public Interface1D {
   bNodeTree *_nodeTree;
   bool _tips;
   StrokeRep *_rep;
-  Vec2r _extremityOrientations[2];  // the orientations of the first and last extermity
+  Vec2r _extremityOrientations[2];  // the orientations of the first and last extremity
 
  public:
   /** default constructor */

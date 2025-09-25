@@ -2646,7 +2646,7 @@ static void cache_initial_config_set(bContext *C, wmOperator *op, Cache &expand_
   const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
   expand_cache.paint = paint;
   expand_cache.brush = BKE_paint_brush_for_read(&sd.paint);
-  BKE_curvemapping_init(expand_cache.brush->curve);
+  BKE_curvemapping_init(expand_cache.brush->curve_distance_falloff);
   copy_v4_fl(expand_cache.fill_color, 1.0f);
   copy_v3_v3(expand_cache.fill_color, BKE_brush_color_get(paint, expand_cache.brush));
 

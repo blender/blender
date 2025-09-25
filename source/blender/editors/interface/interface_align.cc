@@ -19,8 +19,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#ifdef USE_UIBUT_SPATIAL_ALIGN
-
 /**
  * This struct stores a (simplified) 2D representation of all buttons of a same align group,
  * with their immediate neighbors (if found),
@@ -77,24 +75,24 @@ enum {
 };
 
 /* Mapping between 'our' sides and 'public' UI_BUT_ALIGN flags, order must match enum above. */
-#  define SIDE_TO_UI_BUT_ALIGN \
-    { \
-      UI_BUT_ALIGN_LEFT, UI_BUT_ALIGN_TOP, UI_BUT_ALIGN_RIGHT, UI_BUT_ALIGN_DOWN \
-    }
+#define SIDE_TO_UI_BUT_ALIGN \
+  { \
+    UI_BUT_ALIGN_LEFT, UI_BUT_ALIGN_TOP, UI_BUT_ALIGN_RIGHT, UI_BUT_ALIGN_DOWN \
+  }
 
 /* Given one side, compute the three other ones */
-#  define SIDE1(_s) (((_s) + 1) % TOTSIDES)
-#  define OPPOSITE(_s) (((_s) + 2) % TOTSIDES)
-#  define SIDE2(_s) (((_s) + 3) % TOTSIDES)
+#define SIDE1(_s) (((_s) + 1) % TOTSIDES)
+#define OPPOSITE(_s) (((_s) + 2) % TOTSIDES)
+#define SIDE2(_s) (((_s) + 3) % TOTSIDES)
 
 /* 0: LEFT/RIGHT sides; 1 = TOP/DOWN sides. */
-#  define IS_COLUMN(_s) ((_s) % 2)
+#define IS_COLUMN(_s) ((_s) % 2)
 
 /* Stitch flag from side value. */
-#  define STITCH(_s) (1 << (_s))
+#define STITCH(_s) (1 << (_s))
 
 /* Max distance between to buttons for them to be 'mergeable'. */
-#  define MAX_DELTA 0.45f * max_ii(UI_UNIT_Y, UI_UNIT_X)
+#define MAX_DELTA 0.45f * max_ii(UI_UNIT_Y, UI_UNIT_X)
 
 bool ui_but_can_align(const uiBut *but)
 {
@@ -481,226 +479,13 @@ void ui_block_align_calc(uiBlock *block, const ARegion *region)
   }
 }
 
-#  undef SIDE_TO_UI_BUT_ALIGN
-#  undef SIDE1
-#  undef OPPOSITE
-#  undef SIDE2
-#  undef IS_COLUMN
-#  undef STITCH
-#  undef MAX_DELTA
-
-#else /* !USE_UIBUT_SPATIAL_ALIGN */
-
-bool ui_but_can_align(const uiBut *but)
-{
-  return !ELEM(but->type,
-               ButType::Label,
-               ButType::Checkbox,
-               ButType::CheckboxN,
-               ButType::Sepr,
-               ButType::SeprLine,
-               ButType::SeprSpacer);
-}
-
-static bool buts_are_horiz(uiBut *but1, uiBut *but2)
-{
-  float dx, dy;
-
-  /* simple case which can fail if buttons shift apart
-   * with proportional layouts, see: #38602. */
-  if ((but1->rect.ymin == but2->rect.ymin) && (but1->rect.xmin != but2->rect.xmin)) {
-    return true;
-  }
-
-  dx = fabsf(but1->rect.xmax - but2->rect.xmin);
-  dy = fabsf(but1->rect.ymin - but2->rect.ymax);
-
-  return (dx <= dy);
-}
-
-static void ui_block_align_calc_but(uiBut *first, short nr)
-{
-  uiBut *prev, *but = nullptr, *next;
-  int flag = 0, cols = 0, rows = 0;
-
-  /* auto align */
-
-  for (but = first; but && but->alignnr == nr; but = but->next) {
-    if (but->next && but->next->alignnr == nr) {
-      if (buts_are_horiz(but, but->next)) {
-        cols++;
-      }
-      else {
-        rows++;
-      }
-    }
-  }
-
-  /* rows == 0: 1 row, cols == 0: 1 column */
-
-  /* NOTE: manipulation of 'flag' in the loop below is confusing.
-   * In some cases it's assigned, other times OR is used. */
-  for (but = first, prev = nullptr; but && but->alignnr == nr; prev = but, but = but->next) {
-    next = but->next;
-    if (next && next->alignnr != nr) {
-      next = nullptr;
-    }
-
-    /* clear old flag */
-    but->drawflag &= ~UI_BUT_ALIGN;
-
-    if (flag == 0) { /* first case */
-      if (next) {
-        if (buts_are_horiz(but, next)) {
-          if (rows == 0) {
-            flag = UI_BUT_ALIGN_RIGHT;
-          }
-          else {
-            flag = UI_BUT_ALIGN_DOWN | UI_BUT_ALIGN_RIGHT;
-          }
-        }
-        else {
-          flag = UI_BUT_ALIGN_DOWN;
-        }
-      }
-    }
-    else if (next == nullptr) { /* last case */
-      if (prev) {
-        if (buts_are_horiz(prev, but)) {
-          if (rows == 0) {
-            flag = UI_BUT_ALIGN_LEFT;
-          }
-          else {
-            flag = UI_BUT_ALIGN_TOP | UI_BUT_ALIGN_LEFT;
-          }
-        }
-        else {
-          flag = UI_BUT_ALIGN_TOP;
-        }
-      }
-    }
-    else if (buts_are_horiz(but, next)) {
-      /* check if this is already second row */
-      if (prev && buts_are_horiz(prev, but) == 0) {
-        flag &= ~UI_BUT_ALIGN_LEFT;
-        flag |= UI_BUT_ALIGN_TOP;
-        /* exception case: bottom row */
-        if (rows > 0) {
-          uiBut *bt = but;
-          while (bt && bt->alignnr == nr) {
-            if (bt->next && bt->next->alignnr == nr && buts_are_horiz(bt, bt->next) == 0) {
-              break;
-            }
-            bt = bt->next;
-          }
-          if (bt == nullptr || bt->alignnr != nr) {
-            flag = UI_BUT_ALIGN_TOP | UI_BUT_ALIGN_RIGHT;
-          }
-        }
-      }
-      else {
-        flag |= UI_BUT_ALIGN_LEFT;
-      }
-    }
-    else {
-      if (cols == 0) {
-        flag |= UI_BUT_ALIGN_TOP;
-      }
-      else { /* next button switches to new row */
-
-        if (prev && buts_are_horiz(prev, but)) {
-          flag |= UI_BUT_ALIGN_LEFT;
-        }
-        else {
-          flag &= ~UI_BUT_ALIGN_LEFT;
-          flag |= UI_BUT_ALIGN_TOP;
-        }
-
-        if ((flag & UI_BUT_ALIGN_TOP) == 0) { /* still top row */
-          if (prev) {
-            if (next && buts_are_horiz(but, next)) {
-              flag = UI_BUT_ALIGN_DOWN | UI_BUT_ALIGN_LEFT | UI_BUT_ALIGN_RIGHT;
-            }
-            else {
-              /* last button in top row */
-              flag = UI_BUT_ALIGN_DOWN | UI_BUT_ALIGN_LEFT;
-            }
-          }
-          else {
-            flag |= UI_BUT_ALIGN_DOWN;
-          }
-        }
-        else {
-          flag |= UI_BUT_ALIGN_TOP;
-        }
-      }
-    }
-
-    but->drawflag |= flag;
-
-    /* merge coordinates */
-    if (prev) {
-      /* simple cases */
-      if (rows == 0) {
-        but->rect.xmin = (prev->rect.xmax + but->rect.xmin) / 2.0f;
-        prev->rect.xmax = but->rect.xmin;
-      }
-      else if (cols == 0) {
-        but->rect.ymax = (prev->rect.ymin + but->rect.ymax) / 2.0f;
-        prev->rect.ymin = but->rect.ymax;
-      }
-      else {
-        if (buts_are_horiz(prev, but)) {
-          but->rect.xmin = (prev->rect.xmax + but->rect.xmin) / 2.0f;
-          prev->rect.xmax = but->rect.xmin;
-          /* copy height too */
-          but->rect.ymax = prev->rect.ymax;
-        }
-        else if (prev->prev && buts_are_horiz(prev->prev, prev) == 0) {
-          /* the previous button is a single one in its row */
-          but->rect.ymax = (prev->rect.ymin + but->rect.ymax) / 2.0f;
-          prev->rect.ymin = but->rect.ymax;
-
-          but->rect.xmin = prev->rect.xmin;
-          if (next && buts_are_horiz(but, next) == 0) {
-            but->rect.xmax = prev->rect.xmax;
-          }
-        }
-        else {
-          /* the previous button is not a single one in its row */
-          but->rect.ymax = prev->rect.ymin;
-        }
-      }
-    }
-  }
-}
-
-void ui_block_align_calc(uiBlock *block, const struct ARegion *(region))
-{
-  short nr;
-
-  /* align buttons with same align nr */
-  LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
-    if (but->alignnr) {
-      nr = but->alignnr;
-      ui_block_align_calc_but(but, nr);
-
-      /* skip with same number */
-      for (; but && but->alignnr == nr; but = but->next) {
-        /* pass */
-      }
-
-      if (!but) {
-        break;
-      }
-    }
-    else {
-      but = but->next;
-    }
-  }
-}
-
-#endif /* !USE_UIBUT_SPATIAL_ALIGN */
+#undef SIDE_TO_UI_BUT_ALIGN
+#undef SIDE1
+#undef OPPOSITE
+#undef SIDE2
+#undef IS_COLUMN
+#undef STITCH
+#undef MAX_DELTA
 
 int ui_but_align_opposite_to_area_align_get(const ARegion *region)
 {

@@ -19,7 +19,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-class AlembicProcedural;
 class AttributeRequestSet;
 class Background;
 class BVH;
@@ -271,7 +270,6 @@ template<> Volume *Scene::create_node<Volume>();
 template<> PointCloud *Scene::create_node<PointCloud>();
 template<> ParticleSystem *Scene::create_node<ParticleSystem>();
 template<> Shader *Scene::create_node<Shader>();
-template<> AlembicProcedural *Scene::create_node<AlembicProcedural>();
 template<> Pass *Scene::create_node<Pass>();
 template<> Camera *Scene::create_node<Camera>();
 template<> Background *Scene::create_node<Background>();
@@ -288,7 +286,6 @@ template<> void Scene::delete_node(Object *node);
 template<> void Scene::delete_node(ParticleSystem *node);
 template<> void Scene::delete_node(Shader *node);
 template<> void Scene::delete_node(Procedural *node);
-template<> void Scene::delete_node(AlembicProcedural *node);
 template<> void Scene::delete_node(Pass *node);
 
 template<> void Scene::delete_nodes(const set<Geometry *> &nodes, const NodeOwner *owner);

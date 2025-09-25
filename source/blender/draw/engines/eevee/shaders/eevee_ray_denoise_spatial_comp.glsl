@@ -15,16 +15,17 @@
  * https://www.ea.com/seed/news/seed-dd18-presentation-slides-raytracing
  */
 
-#include "infos/eevee_tracing_info.hh"
+#include "infos/eevee_tracing_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_ray_denoise_spatial)
 
 #include "draw_view_lib.glsl"
 #include "eevee_closure_lib.glsl"
-#include "eevee_gbuffer_lib.glsl"
+#include "eevee_gbuffer_read_lib.glsl"
 #include "eevee_reverse_z_lib.glsl"
 #include "eevee_sampling_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"
+#include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
 void transmission_thickness_amend_closure(inout ClosureUndetermined cl,
@@ -95,10 +96,9 @@ void main()
     return;
   }
 
-  uint gbuf_header = texelFetch(gbuf_header_tx, int3(texel_fullres, 0), 0).r;
+  gbuffer::Header gbuf_header = gbuffer::read_header(texel_fullres);
 
-  ClosureUndetermined closure = gbuffer_read_bin(
-      gbuf_header, gbuf_closure_tx, gbuf_normal_tx, texel_fullres, closure_index);
+  ClosureUndetermined closure = gbuffer::read_bin(texel_fullres, closure_index);
 
   if (closure.type == CLOSURE_NONE_ID) {
     invalid_pixel_write(texel_fullres);
@@ -109,7 +109,7 @@ void main()
   float3 P = drw_point_screen_to_world(float3(uv, 0.5f));
   float3 V = drw_world_incident_vector(P);
 
-  float thickness = gbuffer_read_thickness(gbuf_header, gbuf_normal_tx, texel_fullres);
+  float thickness = gbuffer::read_thickness(gbuf_header, texel_fullres);
   if (thickness != 0.0f) {
     transmission_thickness_amend_closure(closure, V, thickness);
   }

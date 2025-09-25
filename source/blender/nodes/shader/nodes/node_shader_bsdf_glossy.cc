@@ -51,6 +51,10 @@ static int node_shader_gpu_bsdf_glossy(GPUMaterial *mat,
 
   GPU_material_flag_set(mat, GPU_MATFLAG_GLOSSY);
 
+  if (in[0].might_be_tinted()) {
+    GPU_material_flag_set(mat, GPU_MATFLAG_REFLECTION_MAYBE_COLORED);
+  }
+
   float use_multi_scatter = (node->custom1 == SHD_GLOSSY_MULTI_GGX) ? 1.0f : 0.0f;
 
   return GPU_stack_link(mat, node, "node_bsdf_glossy", in, out, GPU_constant(&use_multi_scatter));

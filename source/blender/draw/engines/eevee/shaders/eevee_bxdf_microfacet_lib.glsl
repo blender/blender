@@ -4,15 +4,20 @@
 
 #pragma once
 
-#include "infos/eevee_common_info.hh"
+#include "infos/eevee_common_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(eevee_utility_texture)
 
 #include "eevee_bxdf_lib.glsl"
 #include "eevee_thickness_lib.glsl"
+#include "eevee_utility_tx_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"
-#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_math_fast_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_math_vector_safe_lib.glsl"
+#include "gpu_shader_ray_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 /* -------------------------------------------------------------------- */
 /** \name Microfacet GGX distribution
@@ -396,13 +401,12 @@ Ray bxdf_ggx_ray_amend_transmission(ClosureUndetermined cl, float3 V, Ray ray, f
   return ray;
 }
 
-#ifdef EEVEE_UTILITY_TX
-
 ClosureLight bxdf_ggx_light_reflection(ClosureReflection cl, float3 V)
 {
   float cos_theta = dot(cl.N, V);
   ClosureLight light;
-  light.ltc_mat = utility_tx_sample_lut(utility_tx, cos_theta, cl.roughness, UTIL_LTC_MAT_LAYER);
+  auto &lut_tx = sampler_get(eevee_utility_texture, utility_tx);
+  light.ltc_mat = utility_tx_sample_lut(lut_tx, cos_theta, cl.roughness, UTIL_LTC_MAT_LAYER);
   light.N = cl.N;
   light.type = LIGHT_SPECULAR;
   return light;
@@ -423,13 +427,12 @@ ClosureLight bxdf_ggx_light_transmission(ClosureRefraction cl, float3 V, float t
   float cos_theta = dot(-cl.N, R);
 
   ClosureLight light;
+  auto &lut_tx = sampler_get(eevee_utility_texture, utility_tx);
   light.ltc_mat = utility_tx_sample_lut(
-      utility_tx, cos_theta, perceptual_roughness, UTIL_LTC_MAT_LAYER);
+      lut_tx, cos_theta, perceptual_roughness, UTIL_LTC_MAT_LAYER);
   light.N = -cl.N;
   light.type = LIGHT_TRANSMISSION;
   return light;
 }
-
-#endif
 
 /** \} */

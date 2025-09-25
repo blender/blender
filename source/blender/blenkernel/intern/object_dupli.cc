@@ -328,7 +328,7 @@ static DupliObject *make_dupli(const DupliContext *ctx,
   dob->random_id = BLI_hash_string(dob->ob->id.name + 2);
 
   if (dob->persistent_id[0] != INT_MAX) {
-    for (i = 0; i < MAX_DUPLI_RECUR; i++) {
+    for (i = 0; i < ctx->level + 1; i++) {
       dob->random_id = BLI_hash_int_2d(dob->random_id, uint(dob->persistent_id[i]));
     }
   }
@@ -1861,12 +1861,14 @@ void object_duplilist_preview(Depsgraph *depsgraph,
     if (const geo_log::ViewerNodeLog *viewer_log =
             geo_log::GeoNodesLog::find_viewer_node_log_for_path(*viewer_path))
     {
-      ctx.preview_base_geometry = &viewer_log->geometry;
-      make_duplis_geometry_set_impl(&ctx,
-                                    viewer_log->geometry,
-                                    ob_eval->object_to_world().ptr(),
-                                    true,
-                                    ob_eval->type == OB_CURVES);
+      if (std::optional<blender::bke::GeometrySet> viewer_geometry = viewer_log->main_geometry()) {
+        ctx.preview_base_geometry = &*viewer_geometry;
+        make_duplis_geometry_set_impl(&ctx,
+                                      *viewer_geometry,
+                                      ob_eval->object_to_world().ptr(),
+                                      true,
+                                      ob_eval->type == OB_CURVES);
+      }
     }
   }
 }

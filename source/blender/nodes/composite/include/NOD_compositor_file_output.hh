@@ -109,7 +109,7 @@ struct FileOutputItemsAccessor : public socket_items::SocketItemsAccessorDefault
     socket_items::set_item_name_and_make_unique<FileOutputItemsAccessor>(node, item, name);
 
     item.save_as_render = true;
-    BKE_image_format_init(&item.format, false);
+    BKE_image_format_init(&item.format);
     BKE_image_format_update_color_space_for_type(&item.format);
   }
 

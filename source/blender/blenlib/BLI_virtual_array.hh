@@ -25,6 +25,7 @@
  * see if the increased compile time and binary size is worth it.
  */
 
+#include <functional>
 #include <optional>
 
 #include "BLI_any.hh"
@@ -911,6 +912,15 @@ template<typename T> class VArray : public VArrayCommon<T> {
   template<typename GetFunc> static VArray from_func(const int64_t size, GetFunc get_func)
   {
     return VArray::from<VArrayImpl_For_Func<T, decltype(get_func)>>(size, std::move(get_func));
+  }
+
+  /**
+   * Same as #from_func, but uses a std::function instead of a template. This is slower, but
+   * requires less code generation. Therefore this should be used in non-performance critical code.
+   */
+  static VArray from_std_func(const int64_t size, std::function<T(int64_t index)> get_func)
+  {
+    return VArray::from_func(size, get_func);
   }
 
   /**

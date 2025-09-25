@@ -14,6 +14,7 @@
 
 #include "BKE_action.hh" /* XXX: BKE_pose_channel_find_name */
 #include "BKE_idtype.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 
 #include "DNA_object_types.h"
@@ -283,7 +284,7 @@ const ID *DEG_get_original_id(const ID *id)
 
 Depsgraph *DEG_get_depsgraph_by_id(const ID &id)
 {
-  return id.runtime.depsgraph;
+  return id.runtime->depsgraph;
 }
 
 bool DEG_is_original_id(const ID *id)

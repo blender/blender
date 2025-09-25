@@ -4,11 +4,11 @@
 
 #ifdef GPU_SHADER
 #  pragma once
-#  include "gpu_glsl_cpp_stubs.hh"
+#  include "gpu_shader_compat.hh"
 
 #  include "workbench_shader_shared.hh"
 
-#  include "draw_view_info.hh"
+#  include "draw_view_infos.hh"
 #  include "gpu_shader_fullscreen_info.hh"
 
 #  define PREPARE

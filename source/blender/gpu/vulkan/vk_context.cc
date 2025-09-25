@@ -285,7 +285,7 @@ void VKContext::rendering_end()
 
 void VKContext::update_pipeline_data(GPUPrimType primitive,
                                      VKVertexAttributeObject &vao,
-                                     render_graph::VKPipelineData &r_pipeline_data)
+                                     render_graph::VKPipelineDataGraphics &r_pipeline_data)
 {
   VKShader &vk_shader = unwrap(*shader);
   VKFrameBuffer &framebuffer = *active_framebuffer_get();
@@ -296,10 +296,28 @@ void VKContext::update_pipeline_data(GPUPrimType primitive,
     GPU_shader_uniform_1f(shader, "size", -point_size);
   }
 
+  /* Dynamic state line width */
+  const bool is_line_primitive = ELEM(primitive,
+                                      GPU_PRIM_LINES,
+                                      GPU_PRIM_LINE_LOOP,
+                                      GPU_PRIM_LINE_STRIP,
+                                      GPU_PRIM_LINES_ADJ,
+                                      GPU_PRIM_LINE_STRIP_ADJ);
+
+  if (is_line_primitive) {
+    const bool supports_wide_lines = VKBackend::get().device.extensions_get().wide_lines;
+    r_pipeline_data.line_width = supports_wide_lines ?
+                                     state_manager_get().mutable_state.line_width :
+                                     1.0f;
+  }
+  else {
+    r_pipeline_data.line_width.reset();
+  }
+
   update_pipeline_data(vk_shader,
                        vk_shader.ensure_and_get_graphics_pipeline(
                            primitive, vao, state_manager_get(), framebuffer, constants_state_),
-                       r_pipeline_data);
+                       r_pipeline_data.pipeline_data);
 }
 
 void VKContext::update_pipeline_data(render_graph::VKPipelineData &r_pipeline_data)
@@ -348,21 +366,26 @@ render_graph::VKResourceAccessInfo &VKContext::reset_and_get_access_info()
 /** \name Graphics pipeline
  * \{ */
 
-void VKContext::swap_buffers_pre_callback(const GHOST_VulkanSwapChainData *swap_chain_data)
+void VKContext::swap_buffer_acquired_callback()
 {
   VKContext *context = VKContext::get();
   BLI_assert(context);
-  context->swap_buffers_pre_handler(*swap_chain_data);
+  context->swap_buffer_acquired_handler();
 }
 
-void VKContext::swap_buffers_post_callback()
+void VKContext::swap_buffer_draw_callback(const GHOST_VulkanSwapChainData *swap_chain_data)
 {
   VKContext *context = VKContext::get();
   BLI_assert(context);
-  context->swap_buffers_post_handler();
+  context->swap_buffer_draw_handler(*swap_chain_data);
 }
 
-void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_chain_data)
+void VKContext::swap_buffer_acquired_handler()
+{
+  sync_backbuffer();
+}
+
+void VKContext::swap_buffer_draw_handler(const GHOST_VulkanSwapChainData &swap_chain_data)
 {
   const bool do_blit_to_swapchain = swap_chain_data.image != VK_NULL_HANDLE;
   const bool use_shader = swap_chain_data.surface_format.colorSpace ==
@@ -389,12 +412,6 @@ void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_c
     Shader *shader = device.vk_backbuffer_blit_sh_get();
     GPU_shader_bind(shader);
     GPU_shader_uniform_1f(shader, "sdr_scale", swap_chain_data.sdr_scale);
-    /* See display_as_extended_srgb in libocio_display_processor.cc for details on this choice. */
-#if defined(_WIN32) || defined(__APPLE__)
-    GPU_shader_uniform_1b(shader, "use_gamma22", false);
-#else
-    GPU_shader_uniform_1b(shader, "use_gamma22", true);
-#endif
     VKStateManager &state_manager = state_manager_get();
     state_manager.image_bind(color_attachment, 0);
     state_manager.image_bind(&swap_chain_texture, 1);
@@ -443,11 +460,6 @@ void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_c
 #if 0
   device.debug_print();
 #endif
-}
-
-void VKContext::swap_buffers_post_handler()
-{
-  sync_backbuffer();
 }
 
 void VKContext::specialization_constants_set(

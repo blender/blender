@@ -16,6 +16,7 @@ import bpy
 from bpy.app.translations import (
     contexts as i18n_contexts,
     pgettext_iface as iface_,
+    pgettext_rpt as rpt_,
 )
 
 
@@ -152,7 +153,7 @@ def draw_kmi(display_keymaps, kc, km, kmi, layout, level):
             row.label(text="(Unassigned)")
         else:
             row.alert = True
-            row.label(text="{:s} (unavailable)".format(kmi.idname), icon='WARNING_LARGE')
+            row.label(text=rpt_("{:s} (unavailable)").format(kmi.idname), icon='WARNING_LARGE', translate=False)
 
     row = split.row()
     row.prop(kmi, "map_type", text="")

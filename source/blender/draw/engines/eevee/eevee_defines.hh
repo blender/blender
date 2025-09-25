@@ -191,6 +191,35 @@
 /* Velocity. */
 #define VERTEX_COPY_GROUP_SIZE 64
 
+/* Utility Texture. */
+#define UTIL_TEX_SIZE 64
+#define UTIL_BTDF_LAYER_COUNT 16
+/* Scale and bias to avoid interpolation of the border pixel.
+ * Remap UVs to the border pixels centers. */
+#define UTIL_TEX_UV_SCALE ((UTIL_TEX_SIZE - 1.0f) / UTIL_TEX_SIZE)
+#define UTIL_TEX_UV_BIAS (0.5f / UTIL_TEX_SIZE)
+
+#define UTIL_BLUE_NOISE_LAYER 0
+#define UTIL_SSS_TRANSMITTANCE_PROFILE_LAYER 1
+#define UTIL_LTC_MAT_LAYER 2
+#define UTIL_BSDF_LAYER 3
+#define UTIL_BTDF_LAYER 4
+#define UTIL_DISK_INTEGRAL_LAYER UTIL_SSS_TRANSMITTANCE_PROFILE_LAYER
+#define UTIL_DISK_INTEGRAL_COMP 3
+
+/* Could be somewhere else. */
+#ifdef GPU_SHADER
+#  if defined(GPU_FRAGMENT_SHADER)
+#    define UTIL_TEXEL float2(gl_FragCoord.xy)
+#  elif defined(GPU_COMPUTE_SHADER)
+#    define UTIL_TEXEL float2(gl_GlobalInvocationID.xy)
+#  elif defined(GPU_VERTEX_SHADER)
+#    define UTIL_TEXEL float2(gl_VertexID, 0)
+#  elif defined(GPU_LIBRARY_SHADER)
+#    define UTIL_TEXEL float2(0)
+#  endif
+#endif
+
 /* Resource bindings. */
 
 /* Textures. */
@@ -272,5 +301,9 @@
 #define VELOCITY_GEO_NEXT_BUF_SLOT 3
 #define VELOCITY_INDIRECTION_BUF_SLOT 4
 
+#define CLOSURE_WEIGHT_CUTOFF 1e-5f
 /* Treat closure as singular if the roughness is below this threshold. */
 #define BSDF_ROUGHNESS_THRESHOLD 2e-2
+
+/* Cannot use math libraries in shared headers yet. */
+#define EEVEE_PI 3.14159265358979323846 /* pi */

@@ -6,6 +6,7 @@
  * \ingroup gpu
  */
 
+#include <fmt/format.h>
 #include <sstream>
 
 #include "CLG_log.h"
@@ -18,13 +19,13 @@
 #include "vk_texture.hh"
 #include "vk_vertex_buffer.hh"
 
+#include "gpu_shader_dependency_private.hh"
+
 #include "GPU_capabilities.hh"
 
 #include "BLI_math_matrix_types.hh"
 
 #include "GHOST_C-api.h"
-
-extern "C" char datatoc_glsl_shader_defines_glsl[];
 
 static CLG_LogRef LOG = {"gpu.vulkan"};
 
@@ -37,6 +38,7 @@ void VKExtensions::log() const
              " - [%c] shader output viewport index\n"
              " - [%c] shader output layer\n"
              " - [%c] fragment shader barycentric\n"
+             " - [%c] wide lines\n"
              "Device extensions\n"
              " - [%c] descriptor buffer\n"
              " - [%c] dynamic rendering local read\n"
@@ -49,6 +51,7 @@ void VKExtensions::log() const
              shader_output_viewport_index ? 'X' : ' ',
              shader_output_layer ? 'X' : ' ',
              fragment_shader_barycentric ? 'X' : ' ',
+             wide_lines ? 'X' : ' ',
              descriptor_buffer ? 'X' : ' ',
              dynamic_rendering_local_read ? 'X' : ' ',
              dynamic_rendering_unused_attachments ? 'X' : ' ',
@@ -89,7 +92,7 @@ void VKDevice::deinit()
   pipelines.write_to_disk();
   pipelines.free_data();
   descriptor_set_layouts_.deinit();
-  vmaDestroyPool(mem_allocator_, vma_pools.external_memory);
+  vma_pools.deinit(*this);
   vmaDestroyAllocator(mem_allocator_);
   mem_allocator_ = VK_NULL_HANDLE;
 
@@ -142,7 +145,6 @@ void VKDevice::init(void *ghost_context)
 
   debug::object_label(vk_handle(), "LogicalDevice");
   debug::object_label(vk_queue_, "GenericQueue");
-  init_glsl_patch();
 
   resources.use_dynamic_rendering_local_read = extensions_.dynamic_rendering_local_read;
   orphaned_data.timeline_ = 0;
@@ -271,9 +273,7 @@ void VKDevice::init_memory_allocator()
   info.physicalDevice = vk_physical_device_;
   info.device = vk_device_;
   info.instance = vk_instance_;
-  if (extensions_.descriptor_buffer) {
-    info.flags |= VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
-  }
+  info.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
   if (extensions_.memory_priority) {
     info.flags |= VMA_ALLOCATOR_CREATE_EXT_MEMORY_PRIORITY_BIT;
   }
@@ -285,49 +285,8 @@ void VKDevice::init_memory_allocator()
   if (!extensions_.external_memory) {
     return;
   }
-  /* External memory pool */
-  /* Initialize a dummy image create info to find the memory type index that will be used for
-   * allocating. */
-  VkExternalMemoryHandleTypeFlags vk_external_memory_handle_type = 0;
-#ifdef _WIN32
-  vk_external_memory_handle_type = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT;
-#else
-  vk_external_memory_handle_type = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
-#endif
-  VkExternalMemoryImageCreateInfo external_image_create_info = {
-      VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO,
-      nullptr,
-      vk_external_memory_handle_type};
-  VkImageCreateInfo image_create_info = {VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-                                         &external_image_create_info,
-                                         0,
-                                         VK_IMAGE_TYPE_2D,
-                                         VK_FORMAT_R8G8B8A8_UNORM,
-                                         {1024, 1024, 1},
-                                         1,
-                                         1,
-                                         VK_SAMPLE_COUNT_1_BIT,
-                                         VK_IMAGE_TILING_OPTIMAL,
-                                         VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
-                                             VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-                                             VK_IMAGE_USAGE_SAMPLED_BIT,
-                                         VK_SHARING_MODE_EXCLUSIVE,
-                                         0,
-                                         nullptr,
-                                         VK_IMAGE_LAYOUT_UNDEFINED};
-  VmaAllocationCreateInfo allocation_create_info = {};
-  allocation_create_info.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
-  allocation_create_info.usage = VMA_MEMORY_USAGE_AUTO;
-  uint32_t memory_type_index;
-  vmaFindMemoryTypeIndexForImageInfo(
-      mem_allocator_, &image_create_info, &allocation_create_info, &memory_type_index);
 
-  vma_pools.external_memory_info.handleTypes = vk_external_memory_handle_type;
-  VmaPoolCreateInfo pool_create_info = {};
-  pool_create_info.memoryTypeIndex = memory_type_index;
-  pool_create_info.pMemoryAllocateNext = &vma_pools.external_memory_info;
-  pool_create_info.priority = 1.0f;
-  vmaCreatePool(mem_allocator_, &pool_create_info, &vma_pools.external_memory);
+  vma_pools.init(*this);
 }
 
 void VKDevice::init_dummy_buffer()
@@ -336,7 +295,7 @@ void VKDevice::init_dummy_buffer()
                       VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
                       VkMemoryPropertyFlags(0),
-                      VmaAllocationCreateFlags(0),
+                      VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
                       1.0f);
   debug::object_label(dummy_buffer.vk_handle(), "DummyBuffer");
   /* Default dummy buffer. Set the 4th element to 1 to fix missing orcos. */
@@ -345,7 +304,7 @@ void VKDevice::init_dummy_buffer()
   dummy_buffer.update_immediately(static_cast<void *>(data));
 }
 
-void VKDevice::init_glsl_patch()
+shader::GeneratedSource VKDevice::extensions_define(StringRefNull stage_define) const
 {
   std::stringstream ss;
 
@@ -372,37 +331,37 @@ void VKDevice::init_glsl_patch()
     ss << "#define gpu_BaryCoord gl_BaryCoordEXT\n";
     ss << "#define gpu_BaryCoordNoPersp gl_BaryCoordNoPerspEXT\n";
   }
+  ss << stage_define;
 
-  /* GLSL Backend Lib. */
-
-  glsl_vert_patch_ = ss.str() + "#define GPU_VERTEX_SHADER\n" + datatoc_glsl_shader_defines_glsl;
-  glsl_geom_patch_ = ss.str() + "#define GPU_GEOMETRY_SHADER\n" + datatoc_glsl_shader_defines_glsl;
-  glsl_frag_patch_ = ss.str() + "#define GPU_FRAGMENT_SHADER\n" + datatoc_glsl_shader_defines_glsl;
-  glsl_comp_patch_ = ss.str() + "#define GPU_COMPUTE_SHADER\n" + datatoc_glsl_shader_defines_glsl;
+  return shader::GeneratedSource{"gpu_shader_glsl_extension.glsl", {}, ss.str()};
 }
 
-const char *VKDevice::glsl_vertex_patch_get() const
+std::string VKDevice::glsl_vertex_patch_get() const
 {
-  BLI_assert(!glsl_vert_patch_.empty());
-  return glsl_vert_patch_.c_str();
+  shader::GeneratedSourceList sources{extensions_define("#define GPU_VERTEX_SHADER\n")};
+  return fmt::to_string(fmt::join(
+      gpu_shader_dependency_get_resolved_source("gpu_shader_compat_glsl.glsl", sources), ""));
 }
 
-const char *VKDevice::glsl_geometry_patch_get() const
+std::string VKDevice::glsl_geometry_patch_get() const
 {
-  BLI_assert(!glsl_geom_patch_.empty());
-  return glsl_geom_patch_.c_str();
+  shader::GeneratedSourceList sources{extensions_define("#define GPU_GEOMETRY_SHADER\n")};
+  return fmt::to_string(fmt::join(
+      gpu_shader_dependency_get_resolved_source("gpu_shader_compat_glsl.glsl", sources), ""));
 }
 
-const char *VKDevice::glsl_fragment_patch_get() const
+std::string VKDevice::glsl_fragment_patch_get() const
 {
-  BLI_assert(!glsl_frag_patch_.empty());
-  return glsl_frag_patch_.c_str();
+  shader::GeneratedSourceList sources{extensions_define("#define GPU_FRAGMENT_SHADER\n")};
+  return fmt::to_string(fmt::join(
+      gpu_shader_dependency_get_resolved_source("gpu_shader_compat_glsl.glsl", sources), ""));
 }
 
-const char *VKDevice::glsl_compute_patch_get() const
+std::string VKDevice::glsl_compute_patch_get() const
 {
-  BLI_assert(!glsl_comp_patch_.empty());
-  return glsl_comp_patch_.c_str();
+  shader::GeneratedSourceList sources{extensions_define("#define GPU_COMPUTE_SHADER\n")};
+  return fmt::to_string(fmt::join(
+      gpu_shader_dependency_get_resolved_source("gpu_shader_compat_glsl.glsl", sources), ""));
 }
 
 /* -------------------------------------------------------------------- */
@@ -415,7 +374,7 @@ constexpr int32_t PCI_ID_AMD = 0x1002;
 constexpr int32_t PCI_ID_ATI = 0x1022;
 constexpr int32_t PCI_ID_APPLE = 0x106b;
 
-eGPUDeviceType VKDevice::device_type() const
+GPUDeviceType VKDevice::device_type() const
 {
   switch (vk_physical_device_driver_properties_.driverID) {
     case VK_DRIVER_ID_AMD_PROPRIETARY:
@@ -447,7 +406,7 @@ eGPUDeviceType VKDevice::device_type() const
   return GPU_DEVICE_UNKNOWN;
 }
 
-eGPUDriverType VKDevice::driver_type() const
+GPUDriverType VKDevice::driver_type() const
 {
   switch (vk_physical_device_driver_properties_.driverID) {
     case VK_DRIVER_ID_AMD_PROPRIETARY:

@@ -25,6 +25,7 @@ class Batch;
 class Shader;
 class Texture;
 class UniformBuf;
+class FrameBuffer;
 }  // namespace blender::gpu
 struct ARegion;
 struct bContext;
@@ -51,7 +52,6 @@ struct World;
 struct DRWData;
 struct DRWViewData;
 struct GPUViewport;
-struct GPUFrameBuffer;
 struct DRWTextStore;
 struct GSet;
 struct GPUViewport;
@@ -241,7 +241,7 @@ struct DRWContext {
   blender::float2 inv_size = {0, 0};
 
   /** Returns the viewport's default frame-buffer. */
-  GPUFrameBuffer *default_framebuffer();
+  blender::gpu::FrameBuffer *default_framebuffer();
   /** Returns the viewport's default frame-buffer list. Not all of them might be available. */
   DefaultFramebufferList *viewport_framebuffer_list_get() const;
   /** Returns the viewport's default texture list. Not all of them might be available. */

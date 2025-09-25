@@ -20,6 +20,9 @@
 #include "util/task.h"
 
 #include "BKE_duplilist.hh"
+#include "BKE_node.hh"
+
+#include "NOD_shader_nodes_inline.hh"
 
 CCL_NAMESPACE_BEGIN
 
@@ -1031,6 +1034,9 @@ static ShaderNode *add_node(Scene *scene,
     BL::ShaderNodeTexSky b_sky_node(b_node);
     SkyTextureNode *sky = graph->create_node<SkyTextureNode>();
     sky->set_sky_type((NodeSkyType)b_sky_node.sky_type());
+    sky->set_sun_direction(normalize(get_float3(b_sky_node.sun_direction())));
+    sky->set_turbidity(b_sky_node.turbidity());
+    sky->set_ground_albedo(b_sky_node.ground_albedo());
     sky->set_sun_disc(b_sky_node.sun_disc());
     sky->set_sun_size(b_sky_node.sun_size());
     sky->set_sun_intensity(b_sky_node.sun_intensity());
@@ -1038,7 +1044,7 @@ static ShaderNode *add_node(Scene *scene,
     sky->set_sun_rotation(b_sky_node.sun_rotation());
     sky->set_altitude(b_sky_node.altitude());
     sky->set_air_density(b_sky_node.air_density());
-    sky->set_dust_density(b_sky_node.dust_density());
+    sky->set_aerosol_density(b_sky_node.aerosol_density());
     sky->set_ozone_density(b_sky_node.ozone_density());
     BL::TexMapping b_texture_mapping(b_sky_node.texture_mapping());
     get_tex_mapping(sky, b_texture_mapping);
@@ -1073,6 +1079,12 @@ static ShaderNode *add_node(Scene *scene,
     nmap->set_space((NodeNormalMapSpace)b_normal_map_node.space());
     nmap->set_attribute(ustring(b_normal_map_node.uv_map()));
     node = nmap;
+  }
+  else if (b_node.is_a(&RNA_ShaderNodeRadialTiling)) {
+    BL::ShaderNodeRadialTiling b_radial_tiling_node(b_node);
+    RadialTilingNode *radial_tiling = graph->create_node<RadialTilingNode>();
+    radial_tiling->set_use_normalize(b_radial_tiling_node.normalize());
+    node = radial_tiling;
   }
   else if (b_node.is_a(&RNA_ShaderNodeTangent)) {
     BL::ShaderNodeTangent b_tangent_node(b_node);
@@ -1241,7 +1253,16 @@ static void add_nodes(Scene *scene,
                       ShaderGraph *graph,
                       BL::ShaderNodeTree &b_ntree,
                       const ProxyMap &proxy_input_map,
-                      const ProxyMap &proxy_output_map)
+                      const ProxyMap &proxy_output_map);
+
+static void add_nodes_inlined(Scene *scene,
+                              BL::RenderEngine &b_engine,
+                              BL::BlendData &b_data,
+                              BL::Scene &b_scene,
+                              ShaderGraph *graph,
+                              BL::ShaderNodeTree &b_ntree,
+                              const ProxyMap &proxy_input_map,
+                              const ProxyMap &proxy_output_map)
 {
   /* add nodes */
   PtrInputMap input_map;
@@ -1360,6 +1381,7 @@ static void add_nodes(Scene *scene,
         }
       }
     }
+    /* TODO: All the previous cases can be removed? */
     else {
       ShaderNode *node = nullptr;
 
@@ -1435,6 +1457,29 @@ static void add_nodes(Scene *scene,
       }
     }
   }
+}
+
+static void add_nodes(Scene *scene,
+                      BL::RenderEngine &b_engine,
+                      BL::BlendData &b_data,
+                      BL::Scene &b_scene,
+                      ShaderGraph *graph,
+                      BL::ShaderNodeTree &b_ntree,
+                      const ProxyMap &proxy_input_map,
+                      const ProxyMap &proxy_output_map)
+{
+  bNodeTree *ntree = b_ntree.ptr.data_as<bNodeTree>();
+  bNodeTree *localtree = blender::bke::node_tree_add_tree(
+      nullptr, (blender::StringRef(ntree->id.name) + " Inlined").c_str(), ntree->idname);
+  blender::nodes::InlineShaderNodeTreeParams inline_params;
+  inline_params.allow_preserving_repeat_zones = false;
+  blender::nodes::inline_shader_node_tree(*ntree, *localtree, inline_params);
+
+  BL::ShaderNodeTree b_localtree(RNA_id_pointer_create(&localtree->id));
+  add_nodes_inlined(
+      scene, b_engine, b_data, b_scene, graph, b_localtree, proxy_input_map, proxy_output_map);
+
+  BKE_id_free(nullptr, &localtree->id);
 }
 
 static void add_nodes(Scene *scene,
@@ -1558,7 +1603,7 @@ void BlenderSync::sync_materials(BL::Depsgraph &b_depsgraph, bool update_all)
       shader->set_pass_id(b_mat.pass_index());
 
       /* create nodes */
-      if (b_mat.use_nodes() && b_mat.node_tree()) {
+      if (b_mat.node_tree()) {
         BL::ShaderNodeTree b_ntree(b_mat.node_tree());
 
         add_nodes(scene, b_engine, b_data, b_scene, graph.get(), b_ntree);

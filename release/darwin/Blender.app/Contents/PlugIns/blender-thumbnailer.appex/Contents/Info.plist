@@ -23,7 +23,7 @@
 		<key>CFBundleShortVersionString</key>
 		<string>${MACOSX_BUNDLE_SHORT_VERSION_STRING}</string>
 		<key>CFBundleVersion</key>
-		<string>${MACOSX_BUNDLE_LONG_VERSION_STRING}</string>
+		<string>${MACOSX_BUNDLE_SHORT_VERSION_STRING}</string>
 		<key>CFBundleGetInfoString</key>
 		<string>${MACOSX_BUNDLE_LONG_VERSION_STRING}, Blender Foundation</string>
 		<key>LSMinimumSystemVersion</key>

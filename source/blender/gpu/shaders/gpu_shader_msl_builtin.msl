@@ -1,0 +1,156 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
+/* Builtin functions to emulate GLSL. */
+
+#pragma once
+
+#include "gpu_shader_msl_defines.msl"
+
+using namespace metal;
+
+#define unpackUnorm4x8 unpack_unorm4x8_to_float
+#define unpackSnorm4x8 unpack_snorm4x8_to_float
+#define unpackUnorm2x16 unpack_unorm2x16_to_float
+#define unpackSnorm2x16 unpack_snorm2x16_to_float
+
+#define barrier() \
+  threadgroup_barrier(mem_flags::mem_threadgroup | mem_flags::mem_device | mem_flags::mem_texture)
+
+/* Equality and comparison functions. */
+#define lessThan(a, b) ((a) < (b))
+#define lessThanEqual(a, b) ((a) <= (b))
+#define greaterThan(a, b) ((a) > (b))
+#define greaterThanEqual(a, b) ((a) >= (b))
+#define equal(a, b) ((a) == (b))
+#define notEqual(a, b) ((a) != (b))
+
+/* Modulo functionality. */
+/* `mod(x, y)` is defined as `x - (y * floor(x / y))` in the metal specification.
+ * This is not compatible with GLSL implementation. So we override it with a compatible one. */
+#define mod(x, y) _compatible_mod(x, y)
+#define MOD \
+  { \
+    return x - y * floor(x / y); \
+  }
+float _compatible_mod(float x, float y) MOD;
+template<int S> vec<float, S> _compatible_mod(vec<float, S> x, float y) MOD;
+template<int S> vec<float, S> _compatible_mod(vec<float, S> x, vec<float, S> y) MOD;
+#undef MOD
+
+/* Mathematical functions. */
+template<typename T> T atan(T y, T x)
+{
+  return atan2(y, x);
+}
+
+/* Additional overloads for builtin functions. */
+float distance(float x, float y)
+{
+  return abs(y - x);
+}
+
+/* Overload for mix(vec<T>, vec<T>, float). */
+template<typename T, int S> vec<T, S> mix(vec<T, S> a, vec<T, S> b, float fac)
+{
+  return a * (1.0f - fac) + b * fac;
+}
+
+/* Using vec<bool, S> does not appear to work, splitting cases. */
+#define SELECT \
+  { \
+    return select(a, b, mask); \
+  }
+
+template<typename T> vec<T, 4> mix(vec<T, 4> a, vec<T, 4> b, bool4 mask) SELECT;
+template<typename T> vec<T, 3> mix(vec<T, 3> a, vec<T, 3> b, bool3 mask) SELECT;
+template<typename T> vec<T, 2> mix(vec<T, 2> a, vec<T, 2> b, bool2 mask) SELECT;
+
+#undef SELECT
+
+/* Common Functions. */
+#define dFdx(x) dfdx(x)
+#define dFdy(x) dfdy(x)
+#define discard discard_fragment()
+#define inversesqrt rsqrt
+
+/* clang-format off */
+inline float radians(float deg) { return deg * 0.01745329251f; /* M_PI_F / 180 */ }
+inline float degrees(float rad) { return rad * 57.2957795131f; /* 180 / M_PI_F */ }
+inline int floatBitsToInt(float f) { return as_type<int>(f); }
+inline int2 floatBitsToInt(float2 f) { return as_type<int2>(f); }
+inline int3 floatBitsToInt(float3 f) { return as_type<int3>(f); }
+inline int4 floatBitsToInt(float4 f) { return as_type<int4>(f); }
+inline uint floatBitsToUint(float f) { return as_type<uint>(f); }
+inline uint2 floatBitsToUint(float2 f) { return as_type<uint2>(f); }
+inline uint3 floatBitsToUint(float3 f) { return as_type<uint3>(f); }
+inline uint4 floatBitsToUint(float4 f) { return as_type<uint4>(f); }
+inline float intBitsToFloat(int f) { return as_type<float>(f); }
+inline float2 intBitsToFloat(int2 f) { return as_type<float2>(f); }
+inline float3 intBitsToFloat(int3 f) { return as_type<float3>(f); }
+inline float4 intBitsToFloat(int4 f) { return as_type<float4>(f); }
+inline float uintBitsToFloat(uint f) { return as_type<float>(f); }
+inline float2 uintBitsToFloat(uint2 f) { return as_type<float2>(f); }
+inline float3 uintBitsToFloat(uint3 f) { return as_type<float3>(f); }
+inline float4 uintBitsToFloat(uint4 f) { return as_type<float4>(f); }
+/* clang-format on */
+
+#define bitfieldReverse reverse_bits
+#define bitfieldExtract extract_bits
+#define bitfieldInsert insert_bits
+
+/* popcount returns the same type as T. bitCount always returns int. */
+template<typename T> int bitCount(T x)
+{
+  return int(popcount(x));
+}
+template<typename T, int n> vec<int, n> bitCount(vec<T, n> x)
+{
+  return vec<int, n>(popcount(x));
+}
+
+template<typename T> int findLSB(T x)
+{
+  /* ctz returns the number of trailing zeroes. To fetch the index of the LSB, we can also use this
+   * value as index, however we need to filter out the case where the input value is zero to match
+   * GLSL functionality. */
+  return (x == T(0)) ? int(-1) : int(ctz(x));
+}
+
+template<typename T> int findMSB(T x)
+{
+  /* clz returns the number of leading zeroes. To fetch the index of the MSB, we can also use this
+   * value as index when offset by 1. */
+  return int(sizeof(T) * 8) - 1 - int(clz(x));
+}
+
+/* Base instance with offsets. */
+#define gpu_BaseInstance gl_BaseInstanceARB
+#define gpu_InstanceIndex (gl_InstanceID + gpu_BaseInstance)
+
+#ifdef MTL_WORKGROUP_SIZE_X
+/* Older Metal compiler version don't treat vector component access as constexpr.
+ * We have to make a wrapper class for that otherwise we cannot use WorkGroupSize for sizing
+ * threadgroup arrays. Note that this bug is not present in the version 4.1 of the compiler. */
+struct mtl_WorkGroupSize {
+  union {
+    struct {
+      uint x, y, z;
+    };
+    uint2 xy;
+    uint3 xyz;
+  };
+
+  constexpr mtl_WorkGroupSize()
+      : x(MTL_WORKGROUP_SIZE_X), y(MTL_WORKGROUP_SIZE_Y), z(MTL_WORKGROUP_SIZE_Z)
+  {
+  }
+
+  constexpr inline operator uint3() const
+  {
+    return xyz;
+  }
+};
+#  define gl_WorkGroupSize mtl_WorkGroupSize()
+#endif

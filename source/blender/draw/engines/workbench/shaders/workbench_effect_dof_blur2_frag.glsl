@@ -8,7 +8,7 @@
  * Converted and adapted from HLSL to GLSL by Clément Foucault
  */
 
-#include "infos/workbench_effect_dof_info.hh"
+#include "infos/workbench_effect_dof_infos.hh"
 
 #include "draw_view_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"

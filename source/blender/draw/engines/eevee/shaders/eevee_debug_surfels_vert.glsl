@@ -2,12 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/eevee_lightprobe_volume_info.hh"
+#include "infos/eevee_lightprobe_volume_infos.hh"
 
 VERTEX_SHADER_CREATE_INFO(eevee_debug_surfels)
 
 #include "draw_view_lib.glsl"
-#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_math_matrix_construct_lib.glsl"
 
 void main()
 {
@@ -20,7 +20,8 @@ void main()
     float4 line_color = (surfel.prev == -1)      ? float4(1.0f, 1.0f, 0.0f, 1.0f) :
                       (surfel_next.next == -1) ? float4(0.0f, 1.0f, 1.0f, 1.0f) :
                                                  float4(0.0f, 1.0f, 0.0f, 1.0f);
-    drw_debug_line(surfel_next.position, surfel.position, line_color);
+    /* WORKAROUND: Avoid compilation error because this gets parsed before dead code removal. */
+    drw_ debug_line(surfel_next.position, surfel.position, line_color);
   }
 #endif
 

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "draw_debug_info.hh"
+#include "draw_debug_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(draw_debug_draw)
 

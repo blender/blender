@@ -49,16 +49,14 @@ typedef struct World {
    * bit 0: Do mist
    */
   short mode;
-  char _pad2[6];
+
+  /** Assorted settings. */
+  short flag;
 
   float misi, miststa, mistdist, misthi;
 
   /** Ambient occlusion. */
   float aodist, aoenergy;
-
-  /** Assorted settings. */
-  short flag;
-  char _pad3[2];
 
   /** Eevee settings. */
   /**
@@ -73,11 +71,9 @@ typedef struct World {
   float sun_shadow_maximum_resolution;
   float sun_shadow_jitter_overblur;
   float sun_shadow_filter_radius;
-  char _pad4[4];
 
   short pr_texture;
   short use_nodes DNA_DEPRECATED;
-  char _pad[4];
 
   /* previews */
   struct PreviewImage *preview;
@@ -87,6 +83,8 @@ typedef struct World {
 
   /** Light-group membership information. */
   struct LightgroupMembership *lightgroup;
+
+  void *_pad1;
 
   /** Runtime. */
   ListBase gpumaterial;

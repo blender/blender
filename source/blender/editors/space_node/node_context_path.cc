@@ -86,13 +86,22 @@ static void context_path_add_node_tree_and_node_groups(const SpaceNode &snode,
     if (skip_base && path_item == snode.treepath.first) {
       continue;
     }
+
+    int icon = ICON_NODETREE;
+    if (ID_IS_LINKED(&path_item->nodetree->id)) {
+      icon = ICON_LINKED;
+    }
+    else if (ID_IS_ASSET(&path_item->nodetree->id)) {
+      icon = ICON_ASSET_MANAGER;
+    }
+
     if (path_item != snode.treepath.last) {
       // We don't need to add handle function to last nodetree
       ui::context_path_add_generic(
-          path, RNA_NodeTree, path_item->nodetree, ICON_NODETREE, tree_path_handle_func(i));
+          path, RNA_NodeTree, path_item->nodetree, icon, tree_path_handle_func(i));
     }
     else {
-      ui::context_path_add_generic(path, RNA_NodeTree, path_item->nodetree, ICON_NODETREE);
+      ui::context_path_add_generic(path, RNA_NodeTree, path_item->nodetree, icon);
     }
   }
 }

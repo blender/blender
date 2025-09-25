@@ -81,10 +81,11 @@ typedef struct Tex {
   /** Animation data (must be immediately after id for utilities to use it). */
   struct AnimData *adt;
 
+  void *_pad3;
+
   float noisesize, turbul;
   float bright, contrast, saturation, rfac, gfac, bfac;
   float filtersize;
-  char _pad2[4];
 
   /* newnoise: musgrave parameters */
   float mg_H, mg_lacunarity, mg_octaves, mg_offset, mg_gain;
@@ -122,7 +123,6 @@ typedef struct Tex {
   int sfra DNA_DEPRECATED;
 
   float checkerdist, nabla;
-  char _pad1[4];
 
   struct ImageUser iuser;
 

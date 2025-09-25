@@ -252,7 +252,8 @@ void convolve(Context &context,
   });
 
   if (context.use_gpu()) {
-    output = output_cpu.upload_to_gpu(true);
+    Result output_gpu = output_cpu.upload_to_gpu(true);
+    output.steal_data(output_gpu);
     output_cpu.release();
   }
   else {

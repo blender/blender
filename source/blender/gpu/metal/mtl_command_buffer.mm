@@ -576,9 +576,9 @@ void MTLCommandBufferManager::unfold_pending_debug_groups()
 }
 
 /* Workload Synchronization. */
-bool MTLCommandBufferManager::insert_memory_barrier(eGPUBarrier barrier_bits,
-                                                    eGPUStageBarrierBits before_stages,
-                                                    eGPUStageBarrierBits after_stages)
+bool MTLCommandBufferManager::insert_memory_barrier(GPUBarrier barrier_bits,
+                                                    GPUStageBarrierBits before_stages,
+                                                    GPUStageBarrierBits after_stages)
 {
   /* Apple Silicon does not support memory barriers for RenderCommandEncoder's.
    * We do not currently need these due to implicit API guarantees. However, render->render

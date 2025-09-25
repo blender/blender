@@ -244,7 +244,7 @@ eDepsObjectComponentType nodeTypeToObjectComponent(NodeType type)
       BLI_assert_msg(0, "Visibility component is supposed to be only used internally.");
       return DEG_OB_COMP_PARAMETERS;
   }
-  BLI_assert_msg(0, "Unhandled node type, not suppsed to happen.");
+  BLI_assert_msg(0, "Unhandled node type, not supposed to happen.");
   return DEG_OB_COMP_PARAMETERS;
 }
 

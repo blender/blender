@@ -9,11 +9,11 @@
  * Equivalent of `CurvesGeometry::evaluated_positions()`.
  */
 
-#include "draw_curves_info.hh"
+#include "draw_curves_infos.hh"
 
 #include "gpu_shader_attribute_load_lib.glsl"
-#include "gpu_shader_math_base_lib.glsl"
-#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_math_matrix_transform_lib.glsl"
+#include "gpu_shader_math_safe_lib.glsl"
 #include "gpu_shader_offset_indices_lib.glsl"
 
 /* We workaround the lack of function pointers by using different type to overload the attribute
@@ -262,7 +262,8 @@ void evaluate_curve(const IndexRange points,
   const uint curve_resolution = curves_resolution_buf[curve_index];
   const bool is_curve_cyclic = curve_cyclic_get(curve_index);
 
-  for (uint i = 0; i < evaluated_points.size(); i++) {
+  const uint evaluated_points_count = uint(evaluated_points.size());
+  for (uint i = 0; i < evaluated_points_count; i++) {
     const int evaluated_point_id = evaluated_points.start() + int(i);
     const uint point_id = i / curve_resolution;
     const float parameter = float(i % curve_resolution) / float(curve_resolution);

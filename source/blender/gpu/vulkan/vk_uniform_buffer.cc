@@ -41,7 +41,7 @@ void VKUniformBuffer::allocate()
                      VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-                 VmaAllocationCreateFlags(0),
+                 VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
                  0.8f);
   debug::object_label(buffer_.vk_handle(), name_);
 }

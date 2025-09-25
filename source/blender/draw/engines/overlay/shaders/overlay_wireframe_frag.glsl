@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/overlay_wireframe_info.hh"
+#include "infos/overlay_wireframe_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(overlay_wireframe_base)
 

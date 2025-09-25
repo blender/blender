@@ -200,13 +200,13 @@ def my_create_package(
                     data_list.append("""paths = [{:s}]\n""".format(", ".join("\"{:s}\"".format(v) for v in value)))
 
                 if value_copy:
-                    raise Exception("Unexpected mata-data [build]: {!r}".format(value_copy))
+                    raise Exception("Unexpected metadata [build]: {!r}".format(value_copy))
                 del value_copy
 
             fh.write("".join(data_list).encode('utf-8'))
 
         if metadata_copy:
-            raise Exception("Unexpected mata-data: {!r}".format(metadata_copy))
+            raise Exception("Unexpected metadata: {!r}".format(metadata_copy))
 
         files_create_in_dir(temp_dir_pkg, files)
 

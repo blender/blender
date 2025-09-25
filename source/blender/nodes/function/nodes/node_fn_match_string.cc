@@ -116,6 +116,7 @@ static void node_register()
 
   fn_node_type_base(&ntype, "FunctionNodeMatchString");
   ntype.ui_name = "Match String";
+  ntype.ui_description = "Check if a given string exists within another string";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
   ntype.labelfunc = node_label;

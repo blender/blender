@@ -20,7 +20,7 @@
 /* GPU platform support */
 
 /* GPU Types */
-enum eGPUDeviceType {
+enum GPUDeviceType {
   GPU_DEVICE_NVIDIA = (1 << 0),
   GPU_DEVICE_ATI = (1 << 1),
   GPU_DEVICE_INTEL = (1 << 2),
@@ -32,23 +32,23 @@ enum eGPUDeviceType {
   GPU_DEVICE_ANY = (0xff),
 };
 
-ENUM_OPERATORS(eGPUDeviceType, GPU_DEVICE_ANY)
+ENUM_OPERATORS(GPUDeviceType, GPU_DEVICE_ANY)
 
-enum eGPUOSType {
+enum GPUOSType {
   GPU_OS_WIN = (1 << 8),
   GPU_OS_MAC = (1 << 9),
   GPU_OS_UNIX = (1 << 10),
   GPU_OS_ANY = (0xff00),
 };
 
-enum eGPUDriverType {
+enum GPUDriverType {
   GPU_DRIVER_OFFICIAL = (1 << 16),
   GPU_DRIVER_OPENSOURCE = (1 << 17),
   GPU_DRIVER_SOFTWARE = (1 << 18),
   GPU_DRIVER_ANY = (0xff0000),
 };
 
-enum eGPUSupportLevel {
+enum GPUSupportLevel {
   GPU_SUPPORT_LEVEL_SUPPORTED,
   GPU_SUPPORT_LEVEL_LIMITED,
   GPU_SUPPORT_LEVEL_UNSUPPORTED,
@@ -78,13 +78,13 @@ struct GPUDevice {
 /* GPU Types */
 /* TODO: Verify all use-cases of GPU_type_matches to determine which graphics API it should apply
  * to, and replace with `GPU_type_matches_ex` where appropriate. */
-bool GPU_type_matches(eGPUDeviceType device, eGPUOSType os, eGPUDriverType driver);
-bool GPU_type_matches_ex(eGPUDeviceType device,
-                         eGPUOSType os,
-                         eGPUDriverType driver,
-                         eGPUBackendType backend);
+bool GPU_type_matches(GPUDeviceType device, GPUOSType os, GPUDriverType driver);
+bool GPU_type_matches_ex(GPUDeviceType device,
+                         GPUOSType os,
+                         GPUDriverType driver,
+                         GPUBackendType backend);
 
-eGPUSupportLevel GPU_platform_support_level();
+GPUSupportLevel GPU_platform_support_level();
 const char *GPU_platform_vendor();
 const char *GPU_platform_renderer();
 const char *GPU_platform_version();

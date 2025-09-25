@@ -215,7 +215,7 @@ bool metalrt_shadow_all_hit(
       return true;
     }
 
-    if (type & PRIMITIVE_CURVE_RIBBON) {
+    if ((type & PRIMITIVE_CURVE) == PRIMITIVE_CURVE_RIBBON) {
       MetalKernelContext context(launch_params_metal);
       if (!context.curve_ribbon_accept(nullptr, u, t, ray, object, prim, type)) {
         /* continue search */
@@ -421,7 +421,7 @@ inline TReturnType metalrt_visibility_test(
       return result;
     }
 
-    if (type & PRIMITIVE_CURVE_RIBBON) {
+    if ((type & PRIMITIVE_CURVE) == PRIMITIVE_CURVE_RIBBON) {
       MetalKernelContext context(launch_params_metal);
       if (!context.curve_ribbon_accept(nullptr, u, t, ray, object, prim, type)) {
         result.accept = false;
@@ -472,7 +472,7 @@ inline TReturnType metalrt_visibility_test_shadow(
       return result;
     }
 
-    if (type & PRIMITIVE_CURVE_RIBBON) {
+    if ((type & PRIMITIVE_CURVE) == PRIMITIVE_CURVE_RIBBON) {
       MetalKernelContext context(launch_params_metal);
       if (!context.curve_ribbon_accept(nullptr, u, t, ray, object, prim, type)) {
         result.accept = false;

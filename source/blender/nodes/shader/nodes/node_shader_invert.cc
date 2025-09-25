@@ -20,7 +20,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("Amount of influence the node exerts on the image");
   b.add_input<decl::Color>("Color")
       .default_value({0.0f, 0.0f, 0.0f, 1.0f})
-      .description("Color input on which invertion will be applied");
+      .description("Color input on which inversion will be applied");
   b.add_output<decl::Color>("Color");
 }
 

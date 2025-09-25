@@ -14,7 +14,7 @@ namespace blender::gpu {
 
 GLIndexBuf::~GLIndexBuf()
 {
-  GLContext::buf_free(ibo_id_);
+  GLContext::buffer_free(ibo_id_);
 }
 
 void GLIndexBuf::bind()

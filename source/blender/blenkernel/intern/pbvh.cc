@@ -1120,7 +1120,11 @@ static void normals_calc_verts_simple(const GroupedSpan<int> vert_to_face_map,
     for (const int face : vert_to_face_map[vert]) {
       normal += face_normals[face];
     }
-    vert_normals[vert] = math::normalize(normal);
+    float length;
+    vert_normals[vert] = math::normalize_and_get_length(normal, length);
+    if (length == 0.0f) {
+      vert_normals[vert] = float3(0, 0, 1);
+    }
   }
 }
 

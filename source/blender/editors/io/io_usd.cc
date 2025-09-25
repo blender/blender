@@ -306,7 +306,6 @@ static wmOperatorStatus wm_usd_export_exec(bContext *C, wmOperator *op)
   USDExportParams params;
   params.export_animation = RNA_boolean_get(op->ptr, "export_animation");
   params.selected_objects_only = RNA_boolean_get(op->ptr, "selected_objects_only");
-  params.visible_objects_only = RNA_boolean_get(op->ptr, "visible_objects_only");
 
   params.export_meshes = RNA_boolean_get(op->ptr, "export_meshes");
   params.export_lights = RNA_boolean_get(op->ptr, "export_lights");
@@ -385,7 +384,6 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
     uiLayout *sub = &col->column(true, IFACE_("Include"));
     if (CTX_wm_space_file(C)) {
       sub->prop(ptr, "selected_objects_only", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      sub->prop(ptr, "visible_objects_only", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
     sub->prop(ptr, "export_animation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -569,13 +567,6 @@ void WM_OT_usd_export(wmOperatorType *ot)
                   "Selection Only",
                   "Only export selected objects. Unselected parents of selected objects are "
                   "exported as empty transform");
-
-  RNA_def_boolean(ot->srna,
-                  "visible_objects_only",
-                  true,
-                  "Visible Only",
-                  "Only export visible objects. Invisible parents of exported objects are "
-                  "exported as empty transforms");
 
   prop = RNA_def_string(ot->srna, "collection", nullptr, MAX_ID_NAME - 2, "Collection", nullptr);
   RNA_def_property_flag(prop, PROP_HIDDEN);
@@ -886,6 +877,7 @@ static wmOperatorStatus wm_usd_import_exec(bContext *C, wmOperator *op)
   params.is_sequence = false;
   params.sequence_len = 1;
   params.offset = 0;
+  params.relative_path = RNA_boolean_get(op->ptr, "relative_path");
 
   params.import_visible_only = RNA_boolean_get(op->ptr, "import_visible_only");
   params.import_defined_only = RNA_boolean_get(op->ptr, "import_defined_only");

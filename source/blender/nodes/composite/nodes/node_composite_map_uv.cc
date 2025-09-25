@@ -46,7 +46,6 @@ static void cmp_node_map_uv_declare(NodeDeclarationBuilder &b)
       .description(
           "The UV coordinates at which to sample the texture. The Z component is assumed to "
           "contain an alpha channel")
-      .compositor_domain_priority(0)
       .structure_type(StructureType::Dynamic);
 
   PanelDeclarationBuilder &sampling_panel = b.add_panel("Sampling").default_closed(true);

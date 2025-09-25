@@ -518,7 +518,13 @@ def bvh_node_dict2armature(
 
     arm_ob_adt = arm_ob.animation_data_create()
     action = bpy.data.actions.new(name=bvh_name)
-    action_slot = action.slots.new(arm_ob.id_type, arm_ob.name)
+    # Always use the same name for the slot. The Armature is named after the
+    # BVH file, and so when importing multiple files to get multiple Actions
+    # for a single character, it is likely that all but one of the Armatures
+    # is going to be deleted again. It should be simple to switch between
+    # imported Actions while keeping Slot auto-assignment, which means that
+    # all Actions should use the same slot name.
+    action_slot = action.slots.new(arm_ob.id_type, "Slot")
 
     arm_ob_adt.action = action
     arm_ob_adt.action_slot = action_slot

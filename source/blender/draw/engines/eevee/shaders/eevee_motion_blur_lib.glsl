@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "infos/eevee_common_info.hh"
+#include "infos/eevee_common_infos.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Tile indirection packing

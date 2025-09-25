@@ -142,7 +142,7 @@ def __try_sparse_accessor(array):
     else:
         indices_type = gltf2_io_constants.ComponentType.UnsignedInt
 
-    # Cast indices to appropiate type (if needed)
+    # Cast indices to appropriate type (if needed)
     nonzero_indices = nonzero_indices.astype(
         gltf2_io_constants.ComponentType.to_numpy_dtype(indices_type),
         copy=False,

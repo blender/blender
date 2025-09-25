@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'61dd8a1435fb')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-01 09:40+0000\n"
-"PO-Revision-Date: 2025-08-23 04:59+0000\n"
+"POT-Creation-Date: 2025-09-22 08:45+0000\n"
+"PO-Revision-Date: 2025-09-04 22:59+0000\n"
 "Last-Translator: Dominic Iastrebschi <domjotebit@gmail.com>\n"
 "Language-Team: Romanian <https://translate.blender.org/projects/blender-ui/ui/ro/>\n"
 "Language: ro\n"
@@ -68,15 +68,15 @@ msgstr "Colecție de canale de animație, de obicei asociate cu un slot de acți
 
 
 msgid "F-Curves"
-msgstr "Curbe-F"
+msgstr "Curbe F"
 
 
 msgid "The individual F-Curves that animate the slot"
-msgstr "Curbele-F individuale care animează slotul"
+msgstr "Curbele F individuale care animează slotul"
 
 
 msgid "F-Curve Groups"
-msgstr "Grupuri de curbe-F"
+msgstr "Grupuri de curbele F"
 
 
 msgid "Slot"
@@ -88,7 +88,7 @@ msgstr "Pentru fiecare slot de acțiune, o listă a canalelor de animație care 
 
 
 msgid "Action F-Curves"
-msgstr "Curbe-F de acțiune"
+msgstr "Curbe F de acțiune"
 
 
 msgid "Action Group"
@@ -96,7 +96,7 @@ msgstr "Grup de acțiune"
 
 
 msgid "Groups of F-Curves"
-msgstr "Grup de curbe-F"
+msgstr "Grup de curbe F"
 
 
 msgid "Channels"
@@ -104,7 +104,7 @@ msgstr "Canale"
 
 
 msgid "F-Curves in this group"
-msgstr "Curbe-F în acest grup"
+msgstr "Curbe F în acest grup"
 
 
 msgid "Color Set"
@@ -1138,10 +1138,6 @@ msgid "Name of the Attribute"
 msgstr "Numele Atributului"
 
 
-msgid "Array"
-msgstr "Matrice"
-
-
 msgid "Byte Color Attribute"
 msgstr "Atributul Culorii Byte"
 
@@ -1864,6 +1860,10 @@ msgid "Gamma"
 msgstr "Gamma"
 
 
+msgid "View"
+msgstr "Vedere"
+
+
 msgid "Contrast"
 msgstr "Contrast"
 
@@ -1902,10 +1902,6 @@ msgstr "Manipulator Vector"
 
 msgid "Depth"
 msgstr "Adâncime"
-
-
-msgid "View"
-msgstr "Vedere"
 
 
 msgid "Radius"
@@ -2215,6 +2211,10 @@ msgstr "Ajutor"
 
 msgid "Polygon"
 msgstr "Poligon"
+
+
+msgid "Array"
+msgstr "Matrice"
 
 
 msgid "New"
@@ -3802,10 +3802,6 @@ msgstr "Relație"
 
 msgid "Modify"
 msgstr "Modificare"
-
-
-msgid "Color Space:"
-msgstr "Spațiu Culoare:"
 
 
 msgid "Master"

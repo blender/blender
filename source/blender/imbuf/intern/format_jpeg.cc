@@ -582,7 +582,7 @@ static void write_jpeg(jpeg_compress_struct *cinfo, ImBuf *ibuf)
       if (prop->type == IDP_STRING) {
         size_t text_len;
         if (STREQ(prop->name, "None")) {
-          jpeg_write_marker(cinfo, JPEG_COM, (JOCTET *)IDP_String(prop), prop->len);
+          jpeg_write_marker(cinfo, JPEG_COM, (JOCTET *)IDP_string_get(prop), prop->len);
         }
 
         char *text = static_text;
@@ -590,8 +590,8 @@ static void write_jpeg(jpeg_compress_struct *cinfo, ImBuf *ibuf)
         /* 7 is for Blender, 2 colon separators, length of property
          * name and property value, followed by the nullptr-terminator
          * which isn't needed by JPEG but #BLI_snprintf_rlen requires it. */
-        const size_t text_length_required = 7 + 2 + strlen(prop->name) + strlen(IDP_String(prop)) +
-                                            1;
+        const size_t text_length_required = 7 + 2 + strlen(prop->name) +
+                                            strlen(IDP_string_get(prop)) + 1;
         if (text_length_required > static_text_size) {
           text = MEM_malloc_arrayN<char>(text_length_required, "jpeg metadata field");
           text_size = text_length_required;
@@ -607,7 +607,7 @@ static void write_jpeg(jpeg_compress_struct *cinfo, ImBuf *ibuf)
          * in the read process.
          */
         text_len = BLI_snprintf_utf8_rlen(
-            text, text_size, "Blender:%s:%s", prop->name, IDP_String(prop));
+            text, text_size, "Blender:%s:%s", prop->name, IDP_string_get(prop));
         /* Don't write the null byte (not expected by the JPEG format). */
         jpeg_write_marker(cinfo, JPEG_COM, (JOCTET *)text, uint(text_len));
 
@@ -624,7 +624,7 @@ static void write_jpeg(jpeg_compress_struct *cinfo, ImBuf *ibuf)
   /* Write ICC profile if there is one associated with the colorspace. */
   const ColorSpace *colorspace = ibuf->byte_buffer.colorspace;
   if (colorspace) {
-    blender::Vector<char> icc_profile = IMB_colormanagement_space_icc_profile(colorspace);
+    blender::Vector<char> icc_profile = IMB_colormanagement_space_to_icc_profile(colorspace);
     if (!icc_profile.is_empty()) {
       icc_profile.prepend({'I', 'C', 'C', '_', 'P', 'R', 'O', 'F', 'I', 'L', 'E', 0, 0, 1});
       jpeg_write_marker(cinfo,

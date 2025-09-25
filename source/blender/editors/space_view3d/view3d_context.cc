@@ -74,7 +74,7 @@ int view3d_context(const bContext *C, const char *member, bContextDataResult *re
       ID *selected_id = ptr.owner_id;
       CTX_data_id_list_add(result, selected_id);
     }
-    CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+    CTX_data_type_set(result, ContextDataType::Collection);
     return CTX_RESULT_OK;
   }
 

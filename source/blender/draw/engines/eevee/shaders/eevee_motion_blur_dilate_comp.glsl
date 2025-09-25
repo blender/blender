@@ -7,12 +7,13 @@
  * Outputs the largest intersecting motion vector in the neighborhood.
  */
 
-#include "infos/eevee_motion_blur_info.hh"
+#include "infos/eevee_motion_blur_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_motion_blur_tiles_dilate)
 
 #include "draw_math_geom_lib.glsl"
 #include "eevee_motion_blur_lib.glsl"
+#include "gpu_shader_math_vector_safe_lib.glsl"
 
 #define DEBUG_BYPASS_DILATION 0
 

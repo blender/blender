@@ -69,7 +69,7 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
   opts->scene = scene;
   opts->save_as_render = ima->source == IMA_SRC_VIEWER || save_as_render;
 
-  BKE_image_format_init(&opts->im_format, false);
+  BKE_image_format_init(&opts->im_format);
 
   void *lock;
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
@@ -286,20 +286,20 @@ static void image_save_post(ReportList *reports,
   else if (opts->save_as_render) {
     /* Set the display colorspace that we converted to. */
     const ColorSpace *colorspace = IMB_colormangement_display_get_color_space(
-        &opts->im_format.display_settings);
+        &opts->im_format.view_settings, &opts->im_format.display_settings);
     if (colorspace) {
       blender::StringRefNull colorspace_name = IMB_colormanagement_colorspace_get_name(colorspace);
       if (colorspace_name != ima->colorspace_settings.name) {
         STRNCPY(ima->colorspace_settings.name, colorspace_name.c_str());
-        *r_colorspace_changed = true;
       }
     }
 
     /* View transform is now baked in, so don't apply it a second time for viewing. */
     if (ima->flag & IMA_VIEW_AS_RENDER) {
       ima->flag &= ~IMA_VIEW_AS_RENDER;
-      *r_colorspace_changed = true;
     }
+
+    *r_colorspace_changed = true;
   }
 }
 
@@ -689,6 +689,7 @@ bool BKE_image_save(
 
   if (colorspace_changed) {
     BKE_image_signal(bmain, ima, nullptr, IMA_SIGNAL_COLORMANAGE);
+    BKE_image_partial_update_mark_full_update(ima);
   }
 
   return ok;

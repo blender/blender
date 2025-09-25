@@ -43,7 +43,7 @@ class MTLStateManager : public StateManager {
   void apply_state() override;
   void force_state() override;
 
-  void issue_barrier(eGPUBarrier barrier_bits) override;
+  void issue_barrier(GPUBarrier barrier_bits) override;
 
   void texture_bind(Texture *tex, GPUSamplerState sampler, int unit) override;
   void texture_unbind(Texture *tex) override;
@@ -62,17 +62,17 @@ class MTLStateManager : public StateManager {
   }
 
  private:
-  void set_write_mask(const eGPUWriteMask value);
-  void set_depth_test(const eGPUDepthTest value);
-  void set_stencil_test(const eGPUStencilTest test, const eGPUStencilOp operation);
-  void set_stencil_mask(const eGPUStencilTest test, const GPUStateMutable &state);
+  void set_write_mask(const GPUWriteMask value);
+  void set_depth_test(const GPUDepthTest value);
+  void set_stencil_test(const GPUStencilTest test, const GPUStencilOp operation);
+  void set_stencil_mask(const GPUStencilTest test, const GPUStateMutable &state);
   void set_clip_distances(const int new_dist_len, const int old_dist_len);
   void set_logic_op(const bool enable);
   void set_facing(const bool invert);
-  void set_backface_culling(const eGPUFaceCullTest test);
-  void set_provoking_vert(const eGPUProvokingVertex vert);
+  void set_backface_culling(const GPUFaceCullTest test);
+  void set_provoking_vert(const GPUProvokingVertex vert);
   void set_shadow_bias(const bool enable);
-  void set_blend(const eGPUBlend value);
+  void set_blend(const GPUBlend value);
 
   void set_state(const GPUState &state);
   void set_mutable_state(const GPUStateMutable &state);
@@ -81,7 +81,7 @@ class MTLStateManager : public StateManager {
   void mtl_state_init();
   void mtl_depth_range(float near, float far);
   void mtl_stencil_mask(uint mask);
-  void mtl_stencil_set_func(eGPUStencilTest stencil_func, int ref, uint mask);
+  void mtl_stencil_set_func(GPUStencilTest stencil_func, int ref, uint mask);
   void mtl_clip_plane_enable(uint i);
   void mtl_clip_plane_disable(uint i);
 

@@ -618,7 +618,7 @@ void LightModule::set_view(View &view, const int2 extent)
   inst_.manager->submit(update_ps_, view);
 }
 
-void LightModule::debug_draw(View &view, GPUFrameBuffer *view_fb)
+void LightModule::debug_draw(View &view, gpu::FrameBuffer *view_fb)
 {
   if (inst_.debug_mode == eDebugMode::DEBUG_LIGHT_CULLING) {
     inst_.info_append("Debug Mode: Light Culling Validation");

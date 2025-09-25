@@ -181,7 +181,7 @@ int MTLBatch::prepare_vertex_binding(MTLVertBuf *verts,
 
         {
           /* Handle Any required format conversions.
-           * NOTE(Metal): If there is a mis-match between the format of an attribute
+           * NOTE(Metal): If there is a mismatch between the format of an attribute
            * in the shader interface, and the specified format in the VertexBuffer VertexFormat,
            * we need to perform a format conversion.
            *
@@ -522,7 +522,7 @@ void MTLBatch::draw_advanced(int v_first, int v_count, int i_first, int i_count)
 
   /* Perform regular draw. */
   if (mtl_elem == nullptr) {
-    /* Primitive Type toplogy emulation. */
+    /* Primitive Type topology emulation. */
     if (mtl_needs_topology_emulation(this->prim_type)) {
       /* Generate index buffer for primitive types requiring emulation. */
       GPUPrimType emulated_prim_type = this->prim_type;

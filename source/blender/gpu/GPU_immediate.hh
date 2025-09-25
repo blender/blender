@@ -132,7 +132,7 @@ void immUniformColor4ubv(const unsigned char rgba[4]);
  * Extend #immBindShader to use Blender's library of built-in shader programs.
  * Use #immUnbindProgram() when done.
  */
-void immBindBuiltinProgram(eGPUBuiltinShader shader_id);
+void immBindBuiltinProgram(GPUBuiltinShader shader_id);
 
 /** Extend #immUniformColor to take Blender's themes. */
 void immUniformThemeColor(int color_id);

@@ -200,7 +200,7 @@ bool GHOST_XrGraphicsBindingD3D::needsUpsideDownDrawing(GHOST_Context &) const
   return ghost_d3d_ctx_->isUpsideDown();
 }
 
-/* \} */
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name OpenGL-Direct3D bridge
@@ -260,7 +260,7 @@ void GHOST_XrGraphicsBindingOpenGLD3D::submitToSwapchainImage(
 #endif
 }
 
-/* \} */
+/** \} */
 
 #ifdef WITH_VULKAN_BACKEND
 
@@ -331,6 +331,6 @@ void GHOST_XrGraphicsBindingVulkanD3D::submitToSwapchainImage(
   ghost_ctx_.openxr_release_framebuffer_image_callback_(&openxr_data);
 }
 
-/* \} */
+/** \} */
 
 #endif

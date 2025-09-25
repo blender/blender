@@ -98,7 +98,7 @@ static void standard_defines(Vector<StringRefNull> &sources)
     sources.append("#define OS_UNIX\n");
   }
   /* API Definition */
-  eGPUBackendType backend = GPU_backend_get_type();
+  GPUBackendType backend = GPU_backend_get_type();
   switch (backend) {
     case GPU_BACKEND_OPENGL:
       sources.append("#define GPU_OPENGL\n");
@@ -112,10 +112,6 @@ static void standard_defines(Vector<StringRefNull> &sources)
     default:
       BLI_assert_msg(false, "Invalid GPU Backend Type");
       break;
-  }
-
-  if (GPU_crappy_amd_driver()) {
-    sources.append("#define GPU_DEPRECATED_AMD_DRIVER\n");
   }
 }
 
@@ -705,7 +701,8 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
     typedefs.append(info.typedef_source_generated);
   }
   for (auto filename : info.typedef_sources_) {
-    typedefs.append(gpu_shader_dependency_get_source(filename));
+    typedefs.extend_non_duplicates(
+        gpu_shader_dependency_get_resolved_source(filename, info.generated_sources));
   }
 
   if (!info.vertex_source_.is_empty()) {
@@ -724,7 +721,6 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
     sources.append(resources);
     sources.append(interface);
     sources.extend(code);
-    sources.extend(info.dependencies_generated);
     sources.append(info.vertex_source_generated);
 
     if (info.vertex_entry_fn_ != "main") {
@@ -752,7 +748,6 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
     sources.append(resources);
     sources.append(interface);
     sources.extend(code);
-    sources.extend(info.dependencies_generated);
     sources.append(info.fragment_source_generated);
 
     if (info.fragment_entry_fn_ != "main") {
@@ -803,7 +798,6 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
     sources.append(resources);
     sources.append(layout);
     sources.extend(code);
-    sources.extend(info.dependencies_generated);
     sources.append(info.compute_source_generated);
 
     if (info.compute_entry_fn_ != "main") {
@@ -1022,7 +1016,7 @@ void ShaderCompiler::do_work(void *work_payload)
 
 bool ShaderCompiler::is_compiling_impl()
 {
-  /* The mutex should be locked befor calling this function. */
+  /* The mutex should be locked before calling this function. */
   BLI_assert(!mutex_.try_lock());
 
   if (!compilation_queue_.is_empty()) {

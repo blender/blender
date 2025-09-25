@@ -1193,15 +1193,8 @@ wmOperatorStatus sequencer_select_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_get(scene);
   ARegion *region = CTX_wm_region(C);
-  ScrArea *area = CTX_wm_area(C);
 
   if (ed == nullptr) {
-    return OPERATOR_CANCELLED;
-  }
-
-  if (STREQ(area->runtime.tool->idname, "builtin.blade")) {
-    /* Blade tool overrides select operator everywhere except the padded part of handles. We
-     * should not be able to select these with this tool active, so return. */
     return OPERATOR_CANCELLED;
   }
 

@@ -161,7 +161,7 @@ static void search_link_ops_for_asset_metadata(const bNodeTree &node_tree,
 {
   const AssetMetaData &asset_data = asset.get_metadata();
   const IDProperty *tree_type = BKE_asset_metadata_idprop_find(&asset_data, "type");
-  if (tree_type == nullptr || IDP_Int(tree_type) != node_tree.type) {
+  if (tree_type == nullptr || IDP_int_get(tree_type) != node_tree.type) {
     return;
   }
 
@@ -177,7 +177,7 @@ static void search_link_ops_for_asset_metadata(const bNodeTree &node_tree,
     if (socket_property->type != IDP_STRING) {
       continue;
     }
-    const char *socket_idname = IDP_String(socket_property);
+    const char *socket_idname = IDP_string_get(socket_property);
     const bke::bNodeSocketType *socket_type = bke::node_socket_type_find(socket_idname);
     if (socket_type == nullptr) {
       continue;

@@ -6,13 +6,13 @@
  * Does not use any tracing method. Only rely on local light probes to get the incoming radiance.
  */
 
-#include "infos/eevee_tracing_info.hh"
+#include "infos/eevee_tracing_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_ray_trace_fallback)
 
 #include "eevee_bxdf_sampling_lib.glsl"
 #include "eevee_colorspace_lib.glsl"
-#include "eevee_gbuffer_lib.glsl"
+#include "eevee_gbuffer_read_lib.glsl"
 #include "eevee_lightprobe_eval_lib.glsl"
 #include "eevee_ray_trace_screen_lib.glsl"
 #include "eevee_ray_types_lib.glsl"
@@ -57,11 +57,10 @@ void main()
 
   /* Only closure 0 can be a transmission closure. */
   if (closure_index == 0) {
-    uint gbuf_header = texelFetch(gbuf_header_tx, int3(texel_fullres, 0), 0).r;
-    float thickness = gbuffer_read_thickness(gbuf_header, gbuf_normal_tx, texel_fullres);
+    const gbuffer::Header gbuf_header = gbuffer::read_header(texel_fullres);
+    float thickness = gbuffer::read_thickness(gbuf_header, texel_fullres);
     if (thickness != 0.0f) {
-      ClosureUndetermined cl = gbuffer_read_bin(
-          gbuf_header, gbuf_closure_tx, gbuf_normal_tx, texel_fullres, closure_index);
+      ClosureUndetermined cl = gbuffer::read_bin(texel_fullres, closure_index);
       ray = raytrace_thickness_ray_amend(ray, cl, V, thickness);
     }
   }

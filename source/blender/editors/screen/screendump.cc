@@ -75,7 +75,7 @@ static int screenshot_data_create(bContext *C, wmOperator *op, ScrArea *area)
       scd->crop = area->totrct;
     }
 
-    BKE_image_format_init(&scd->im_format, false);
+    BKE_image_format_init(&scd->im_format);
 
     op->customdata = scd;
 

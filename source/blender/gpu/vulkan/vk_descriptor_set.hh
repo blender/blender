@@ -18,7 +18,6 @@
 #include "vk_buffer.hh"
 #include "vk_common.hh"
 #include "vk_descriptor_set_layouts.hh"
-#include "vk_resource_tracker.hh"
 #include "vk_uniform_buffer.hh"
 
 namespace blender::gpu {

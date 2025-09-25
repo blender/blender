@@ -1343,17 +1343,8 @@ static void shader_preview_startjob(void *customdata, bool *stop, bool *do_updat
 
 static void preview_id_copy_free(ID *id)
 {
-  if (id->properties) {
-    IDP_FreePropertyContent_ex(id->properties, false);
-    MEM_freeN(id->properties);
-    id->properties = nullptr;
-  }
-  if (id->system_properties) {
-    IDP_FreePropertyContent_ex(id->system_properties, false);
-    MEM_freeN(id->system_properties);
-    id->system_properties = nullptr;
-  }
   BKE_libblock_free_datablock(id, 0);
+  BKE_libblock_free_data(id, false);
   MEM_freeN(id);
 }
 

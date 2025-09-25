@@ -10,14 +10,16 @@
 
 #pragma once
 
+#include "DRW_gpu_wrapper.hh"
 #include "DRW_render.hh"
 #include "GPU_capabilities.hh"
-
 #include "GPU_platform.hh"
-#include "eevee_material.hh"
-#include "eevee_shader_shared.hh"
+
+#include "eevee_defines.hh"
 
 namespace blender::eevee {
+
+using namespace draw;
 
 class Instance;
 

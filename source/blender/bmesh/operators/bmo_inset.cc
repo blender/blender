@@ -872,17 +872,17 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
       /* comment the first part because we know this verts in a tagged face */
       if (/* v->e && */ BM_elem_flag_test(v, BM_ELEM_TAG)) {
         BMVert **vout;
-        int r_vout_len;
+        int vout_len;
         BMVert *v_glue = nullptr;
 
         /* disable touching twice, this _will_ happen if the flags not disabled */
         BM_elem_flag_disable(v, BM_ELEM_TAG);
 
-        bmesh_kernel_vert_separate(bm, v, &vout, &r_vout_len, false);
+        bmesh_kernel_vert_separate(bm, v, &vout, &vout_len, false);
         v = nullptr; /* don't use again */
 
         /* in some cases the edge doesn't split off */
-        if (r_vout_len == 1) {
+        if (vout_len == 1) {
           if (use_vert_coords_orig) {
             VERT_ORIG_STORE(vout[0]);
           }
@@ -890,7 +890,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
           continue;
         }
 
-        for (k = 0; k < r_vout_len; k++) {
+        for (k = 0; k < vout_len; k++) {
           BMVert *v_split = vout[k]; /* only to avoid vout[k] all over */
 
           /* need to check if this vertex is from a */
@@ -1102,7 +1102,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
           }
 
           /* this saves expensive/slow glue check for common cases */
-          if (r_vout_len > 2) {
+          if (vout_len > 2) {
             bool ok = true;
             /* last step, nullptr this vertex if has a tagged face */
             BM_ITER_ELEM (f, &iter, v_split, BM_FACES_OF_VERT) {

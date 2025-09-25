@@ -854,7 +854,6 @@ static wmOperatorStatus new_material_exec(bContext *C, wmOperator * /*op*/)
       ma = BKE_gpencil_material_add(bmain, name);
     }
     ED_node_shader_default(C, &ma->id);
-    ma->use_nodes = true;
   }
 
   if (prop) {
@@ -2719,7 +2718,7 @@ static wmOperatorStatus copy_material_exec(bContext *C, wmOperator *op)
   }
 
   Main *bmain = CTX_data_main(C);
-  PartialWriteContext copybuffer{BKE_main_blendfile_path(bmain)};
+  PartialWriteContext copybuffer{*bmain};
 
   /* Add the material to the copybuffer (and all of its dependencies). */
   copybuffer.id_add(
@@ -2900,7 +2899,6 @@ static wmOperatorStatus paste_material_exec(bContext *C, wmOperator *op)
   SWAP_MEMBER(spec);
   SWAP_MEMBER(roughness);
   SWAP_MEMBER(metallic);
-  SWAP_MEMBER(use_nodes);
   SWAP_MEMBER(index);
   SWAP_MEMBER(nodetree);
   SWAP_MEMBER(line_col);

@@ -26,13 +26,13 @@ AUD_NAMESPACE_BEGIN
 AnimateableProperty::AnimateableProperty(int count) :
 	Buffer(count * sizeof(float)), m_count(count), m_isAnimated(false)
 {
-	std::memset(getBuffer(), 0, count * sizeof(float));
+	std::memset(Buffer::getBuffer(), 0, count * sizeof(float));
 }
 
 AnimateableProperty::AnimateableProperty(int count, float value) :
 	Buffer(count * sizeof(float)), m_count(count), m_isAnimated(false)
 {
-	sample_t* buf = getBuffer();
+	sample_t* buf = Buffer::getBuffer();
 
 	for(int i = 0; i < count; i++)
 		buf[i] = value;
@@ -40,7 +40,7 @@ AnimateableProperty::AnimateableProperty(int count, float value) :
 
 void AnimateableProperty::updateUnknownCache(int start, int end)
 {
-	float* buf = getBuffer();
+	float* buf = Buffer::getBuffer();
 
 	// we could do a better interpolation than zero order, but that doesn't work with Blender's animation system
 	// as frames are only written when changing, so to support jumps, we need zero order interpolation here.
@@ -63,13 +63,13 @@ void AnimateableProperty::write(const float* data)
 
 	m_isAnimated = false;
 	m_unknown.clear();
-	std::memcpy(getBuffer(), data, m_count * sizeof(float));
+	std::memcpy(Buffer::getBuffer(), data, m_count * sizeof(float));
 }
 
 void AnimateableProperty::writeConstantRange(const float* data, int position_start, int position_end)
 {
 	assureSize(position_end * m_count * sizeof(float), true);
-	float* buffer = getBuffer();
+	float* buffer = Buffer::getBuffer();
 
 	for(int i = position_start; i < position_end; i++)
 	{
@@ -92,7 +92,7 @@ void AnimateableProperty::write(const float* data, int position, int count)
 
 	assureSize((count + position) * m_count * sizeof(float), true);
 
-	float* buf = getBuffer();
+	float* buf = Buffer::getBuffer();
 
 	std::memcpy(buf + position * m_count, data, count * m_count * sizeof(float));
 
@@ -172,7 +172,7 @@ void AnimateableProperty::read(float position, float* out)
 
 	if(!m_isAnimated)
 	{
-		std::memcpy(out, getBuffer(), m_count * sizeof(float));
+		std::memcpy(out, Buffer::getBuffer(), m_count * sizeof(float));
 		return;
 	}
 
@@ -193,7 +193,7 @@ void AnimateableProperty::read(float position, float* out)
 
 	if(t == 0)
 	{
-		std::memcpy(out, getBuffer() + int(std::floor(position)) * m_count, m_count * sizeof(float));
+		std::memcpy(out, Buffer::getBuffer() + int(std::floor(position)) * m_count, m_count * sizeof(float));
 	}
 	else
 	{
@@ -202,7 +202,7 @@ void AnimateableProperty::read(float position, float* out)
 		float t3 = t2 * t;
 		float m0, m1;
 		float* p0;
-		float* p1 = getBuffer() + pos;
+		float* p1 = Buffer::getBuffer() + pos;
 		float* p2;
 		float* p3;
 		last *= m_count;
@@ -240,6 +240,11 @@ float AnimateableProperty::readSingle(float position)
 bool AnimateableProperty::isAnimated() const
 {
 	return m_isAnimated;
+}
+
+const Buffer& AnimateableProperty::getBuffer()
+{
+	return *this;
 }
 
 AUD_NAMESPACE_END

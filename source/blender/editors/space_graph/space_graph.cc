@@ -233,11 +233,19 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
 
   UI_view2d_view_ortho(v2d);
 
+  /* In driver mode, both X and Y axes are in the same units as the driven property, and so the
+   * grid size should be independent of the scene's frame rate. */
+  constexpr int driver_step = 10;
   /* grid */
   bool display_seconds = (sipo->mode == SIPO_MODE_ANIMATION) && (sipo->flag & SIPO_DRAWTIME);
   if (region->winy > min_height) {
-    UI_view2d_draw_lines_x__frames_or_seconds(v2d, scene, display_seconds);
-    UI_view2d_draw_lines_y__values(v2d);
+    if (sipo->mode == SIPO_MODE_DRIVERS) {
+      UI_view2d_draw_lines_x__values(v2d, driver_step);
+    }
+    else {
+      UI_view2d_draw_lines_x__frames_or_seconds(v2d, scene, display_seconds);
+    }
+    UI_view2d_draw_lines_y__values(v2d, 10);
   }
 
   ED_region_draw_cb_draw(C, region, REGION_DRAW_PRE_VIEW);
@@ -336,7 +344,11 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
   UI_view2d_view_restore(C);
 
   /* time-scrubbing */
-  ED_time_scrub_draw(region, scene, display_seconds, false);
+  int base = round_db_to_int(scene->frames_per_second());
+  if (sipo->mode == SIPO_MODE_DRIVERS) {
+    base = driver_step;
+  }
+  ED_time_scrub_draw(region, scene, display_seconds, false, base);
 }
 
 static void graph_main_region_draw_overlay(const bContext *C, ARegion *region)
@@ -366,7 +378,7 @@ static void graph_main_region_draw_overlay(const bContext *C, ARegion *region)
       rcti rect;
       BLI_rcti_init(
           &rect, 0, 15 * UI_SCALE_FAC, 15 * UI_SCALE_FAC, region->winy - UI_TIME_SCRUB_MARGIN_Y);
-      UI_view2d_draw_scale_y__values(region, v2d, &rect, TH_SCROLL_TEXT);
+      UI_view2d_draw_scale_y__values(region, v2d, &rect, TH_SCROLL_TEXT, 10);
     }
   }
   else {

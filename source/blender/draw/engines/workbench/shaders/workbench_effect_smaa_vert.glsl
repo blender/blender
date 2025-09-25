@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/workbench_effect_antialiasing_info.hh"
+#include "infos/workbench_effect_antialiasing_infos.hh"
 
 VERTEX_SHADER_CREATE_INFO(workbench_smaa)
 

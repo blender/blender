@@ -42,7 +42,7 @@ void GLVertBuf::release_data()
 
   if (vbo_id_ != 0) {
     GPU_TEXTURE_FREE_SAFE(buffer_texture_);
-    GLContext::buf_free(vbo_id_);
+    GLContext::buffer_free(vbo_id_);
     vbo_id_ = 0;
     memory_usage -= vbo_size_;
   }

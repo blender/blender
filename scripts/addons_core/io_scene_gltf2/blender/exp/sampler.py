@@ -104,7 +104,7 @@ def __gather_wrap(blender_shader_node, group_path, export_settings):
     wrap_t = wrap_s
 
     # Starting Blender 3.5, MIRROR is now an extension of image node
-    # So this manual uv wrapping trick is no more usefull for MIRROR x MIRROR
+    # So this manual uv wrapping trick is no more useful for MIRROR x MIRROR
     # But still works for old files
     # Still needed for heterogen heterogeneous sampler, like MIRROR x REPEAT, for example
     # Take manual wrapping into account

@@ -1,9 +1,9 @@
 @echo off
 REM  ###########################################################################
 REM  #
-REM  # Note: This file has a .txt extention so it cannot be directly run from a 
+REM  # Note: This file has a .txt extension so it cannot be directly run from a 
 REM  # blender source clone, it is meant to run on a clean windows install and
-REM  # nothing else. DO NOT REMOVE THE .TXT extention. See instructions below on
+REM  # nothing else. DO NOT REMOVE THE .TXT extension. See instructions below on
 REM  # how to execute this script. 
 REM  #
 REM  ###########################################################################
@@ -44,13 +44,13 @@ echo #                    it has a short name to sidestep any long path issues.
 echo ###########################################################################
 echo #
 echo # Since this will download and install a whole bunch of stuff the following
-echo # disclamer is seemingly required:
+echo # disclaimer is seemingly required:
 echo # 
 echo # ******* WARNING *******
 echo # ******* WARNING *******
 echo # 
 echo # DO NOT RUN THIS ON ANYTHING BUT A CLEAN WINDOWS INSTALL, IF YOU DO, AND IT
-echo # MESSES UP YOUR WORKSTATION, THATS ON YOU...
+echo # MESSES UP YOUR WORKSTATION, THAT'S ON YOU...
 echo # 
 echo # ******* WARNING *******
 echo # ******* WARNING *******

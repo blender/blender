@@ -130,6 +130,7 @@ static void transform_image(int x,
 }
 
 static ImBuf *do_transform_effect(const RenderData *context,
+                                  SeqRenderState * /*state*/,
                                   Strip *strip,
                                   float /*timeline_frame*/,
                                   float /*fac*/,

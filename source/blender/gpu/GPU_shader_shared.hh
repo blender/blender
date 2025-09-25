@@ -20,7 +20,7 @@ struct TestOutputRawData;
  * required in the common use-case where a float3 and an int/float are paired together for optimal
  * data transfer. */
 
-enum eGPUKeyframeShapes : uint32_t {
+enum GPUKeyframeShapes : uint32_t {
   GPU_KEYFRAME_SHAPE_DIAMOND = (1u << 0u),
   GPU_KEYFRAME_SHAPE_CIRCLE = (1u << 1u),
   GPU_KEYFRAME_SHAPE_CLIPPED_VERTICAL = (1u << 2u),
@@ -116,7 +116,7 @@ BLI_STATIC_ASSERT_ALIGN(MultiIconCallData, 16)
 
 #define GPU_SEQ_STRIP_DRAW_DATA_LEN 256
 
-enum eGPUSeqFlags : uint32_t {
+enum GPUSeqFlags : uint32_t {
   GPU_SEQ_FLAG_BACKGROUND = (1u << 0u),
   GPU_SEQ_FLAG_SINGLE_IMAGE = (1u << 1u),
   GPU_SEQ_FLAG_COLOR_BAND = (1u << 2u),
@@ -157,7 +157,7 @@ struct SeqStripDrawData {
   float bottom;
   float top;
   float strip_content_top; /* Content coordinate, i.e. below title bar if there is one. */
-  uint flags;              /* eGPUSeqFlags bitmask. */
+  uint flags;              /* GPUSeqFlags bitmask. */
   /* Strip colors, each is uchar4 packed with equivalent of packUnorm4x8. */
   uint col_background;
   uint col_outline;

@@ -82,7 +82,7 @@ class VKTexture : public Texture {
   void copy_to(Texture *tex) override;
   void copy_to(VKTexture &dst_texture, VkImageAspectFlags vk_image_aspect);
   void clear(eGPUDataFormat format, const void *data) override;
-  void clear_depth_stencil(const eGPUFrameBufferBits buffer,
+  void clear_depth_stencil(const GPUFrameBufferBits buffer,
                            float clear_depth,
                            uint clear_stencil,
                            std::optional<int> layer);
@@ -105,8 +105,6 @@ class VKTexture : public Texture {
                   eGPUDataFormat format,
                   GPUPixelBuffer *pixbuf) override;
 
-  /* TODO(fclem): Legacy. Should be removed at some point. */
-  uint gl_bindcode_get() const override;
   /**
    * Export the memory associated with this texture to be imported by a different
    * API/Process/Instance.

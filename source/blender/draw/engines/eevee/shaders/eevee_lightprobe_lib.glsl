@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "infos/eevee_lightprobe_sphere_info.hh"
+#include "infos/eevee_lightprobe_sphere_infos.hh"
 
 /* TODO(fclem): Pass the lightprobe_sphere_buf around and avoid relying on interface.
  * Currently in conflict with eevee_lightprobe_volume_load. */

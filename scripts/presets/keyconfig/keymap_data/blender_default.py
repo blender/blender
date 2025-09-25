@@ -1395,7 +1395,7 @@ def km_uv_editor(params):
             ("uv.select_box", {"type": 'B', "value": 'PRESS'},
              {"properties": [("pinned", False)]}),
             (op_tool, "builtin.select_box"), params),
-        ("uv.select_box", {"type": 'B', "value": 'PRESS', "ctrl": True},
+        ("uv.select_box", {"type": 'B', "value": 'PRESS', "alt": True},
          {"properties": [("pinned", True)]}),
         op_tool_optional(
             ("uv.select_circle", {"type": 'C', "value": 'PRESS'}, None),
@@ -1426,6 +1426,10 @@ def km_uv_editor(params):
          {"properties": [("clear", True)]}),
         ("uv.copy", {"type": 'C', "value": 'PRESS', "ctrl": True}, None),
         ("uv.paste", {"type": 'V', "value": 'PRESS', "ctrl": True}, None),
+        ("uv.custom_region_set", {"type": 'B', "value": 'PRESS', "ctrl": True}, None),
+        ("wm.context_toggle", {"type": 'B', "value": 'PRESS', "ctrl": True, "alt": True},
+         {"properties": [("data_path", "tool_settings.use_uv_custom_region")]}),
+
         op_menu("IMAGE_MT_uvs_unwrap", {"type": 'U', "value": 'PRESS'}),
         (
             op_menu_pie("IMAGE_MT_uvs_snap_pie", {"type": 'S', "value": 'PRESS', "shift": True})
@@ -2227,6 +2231,7 @@ def km_node_editor(params):
         ("node.link_make", {"type": 'J', "value": 'PRESS', "shift": True},
          {"properties": [("replace", True)]}),
         op_menu("NODE_MT_add", {"type": 'A', "value": 'PRESS', "shift": True}),
+        op_menu("NODE_MT_swap", {"type": 'S', "value": 'PRESS', "shift": True}),
         ("node.duplicate_move", {"type": 'D', "value": 'PRESS', "shift": True},
          {"properties": [("NODE_OT_translate_attach", [("TRANSFORM_OT_translate", [("view2d_edge_pan", True)])])]}),
         ("node.duplicate_move_linked", {"type": 'D', "value": 'PRESS', "alt": True},
@@ -3539,6 +3544,8 @@ def km_clip_editor(params):
         ("clip.cursor_set", params.cursor_set_event, None),
         ("clip.copy_tracks", {"type": 'C', "value": 'PRESS', "ctrl": True}, None),
         ("clip.paste_tracks", {"type": 'V', "value": 'PRESS', "ctrl": True}, None),
+        ("wm.context_toggle", {"type": 'Z', "value": 'PRESS', "alt": True, "shift": True},
+         {"properties": [("data_path", "space_data.overlay.show_overlays")]}),
         *_template_items_context_menu("CLIP_MT_tracking_context_menu", params.context_menu_event),
     ])
 
@@ -7214,6 +7221,26 @@ def km_node_editor_tool_links_cut(params):
     )
 
 
+def km_node_editor_tool_links_mute(params):
+    return (
+        "Node Tool: Mute Links",
+        {"space_type": 'NODE_EDITOR', "region_type": 'WINDOW'},
+        {"items": [
+            ("node.links_mute", {"type": params.tool_mouse, "value": 'PRESS'}, None),
+        ]},
+    )
+
+
+def km_node_editor_tool_add_reroute(params):
+    return (
+        "Node Tool: Add Reroute",
+        {"space_type": 'NODE_EDITOR', "region_type": 'WINDOW'},
+        {"items": [
+            ("node.add_reroute", {"type": params.tool_mouse, "value": 'PRESS'}, None),
+        ]},
+    )
+
+
 # ------------------------------------------------------------------------------
 # Tool System (3D View, Generic)
 
@@ -8866,6 +8893,8 @@ def generate_keymaps(params=None):
         *(km_node_editor_tool_select_lasso(params, fallback=fallback) for fallback in (False, True)),
         *(km_node_editor_tool_select_circle(params, fallback=fallback) for fallback in (False, True)),
         km_node_editor_tool_links_cut(params),
+        km_node_editor_tool_links_mute(params),
+        km_node_editor_tool_add_reroute(params),
         km_3d_view_tool_cursor(params),
         km_3d_view_tool_text_select(params),
         *(km_3d_view_tool_select(params, fallback=fallback) for fallback in (False, True)),

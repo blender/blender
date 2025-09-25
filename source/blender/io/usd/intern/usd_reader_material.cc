@@ -330,6 +330,8 @@ static void set_viewport_material_props(Material *mtl, const pxr::UsdShadeShader
         diffuse_color_input.GetAttr().Get(&val) && val.IsHolding<pxr::GfVec3f>())
     {
       pxr::GfVec3f color = val.UncheckedGet<pxr::GfVec3f>();
+      /* Note: The material is expected to be rendered by the Workbench render engine (Viewport
+       * Display), so no need to define a material node tree. */
       mtl->r = color[0];
       mtl->g = color[1];
       mtl->b = color[2];
@@ -454,7 +456,9 @@ Material *USDMaterialReader::add_material(const pxr::UsdShadeMaterial &usd_mater
 
   /* Create the material. */
   Material *mtl = BKE_material_add(&bmain_, mtl_name.c_str());
-  id_us_min(&mtl->id);
+  mtl->nodetree = blender::bke::node_tree_add_tree_embedded(
+      &bmain_, &mtl->id, "USD Material Node Tree", "ShaderNodeTree");
+  // id_us_min(&mtl->id);
 
   if (read_usd_preview) {
     import_usd_preview(mtl, usd_material);
@@ -495,9 +499,11 @@ void USDMaterialReader::import_usd_preview_nodes(Material *mtl,
    * and output shaders. */
 
   /* Add the node tree. */
-  bNodeTree *ntree = blender::bke::node_tree_add_tree_embedded(
-      nullptr, &mtl->id, "Shader Nodetree", "ShaderNodeTree");
-  mtl->use_nodes = true;
+  bNodeTree *ntree = mtl->nodetree;
+  if (mtl->nodetree == nullptr) {
+    ntree = blender::bke::node_tree_add_tree_embedded(
+        nullptr, &mtl->id, "Shader Nodetree", "ShaderNodeTree");
+  }
 
   /* Create the Principled BSDF shader node. */
   bNode *principled = add_node(ntree, SH_NODE_BSDF_PRINCIPLED, {0.0f, 300.0f});

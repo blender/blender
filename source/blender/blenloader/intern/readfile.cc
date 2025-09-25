@@ -2191,29 +2191,29 @@ static int direct_link_id_restore_recalc(const FileData *fd,
 
 static void readfile_id_runtime_data_ensure(ID &id)
 {
-  if (id.runtime.readfile_data) {
+  if (id.runtime->readfile_data) {
     return;
   }
-  id.runtime.readfile_data = MEM_callocN<ID_Readfile_Data>(__func__);
+  id.runtime->readfile_data = MEM_callocN<ID_Readfile_Data>(__func__);
 }
 
 ID_Readfile_Data::Tags BLO_readfile_id_runtime_tags(ID &id)
 {
-  if (!id.runtime.readfile_data) {
+  if (!id.runtime->readfile_data) {
     return ID_Readfile_Data::Tags{};
   }
-  return id.runtime.readfile_data->tags;
+  return id.runtime->readfile_data->tags;
 }
 
 ID_Readfile_Data::Tags &BLO_readfile_id_runtime_tags_for_write(ID &id)
 {
   readfile_id_runtime_data_ensure(id);
-  return id.runtime.readfile_data->tags;
+  return id.runtime->readfile_data->tags;
 }
 
 void BLO_readfile_id_runtime_data_free(ID &id)
 {
-  MEM_SAFE_FREE(id.runtime.readfile_data);
+  MEM_SAFE_FREE(id.runtime->readfile_data);
 }
 
 void BLO_readfile_id_runtime_data_free_all(Main &bmain)
@@ -2246,6 +2246,9 @@ static void direct_link_id_common(BlendDataReader *reader,
                                   const int id_tag,
                                   const ID_Readfile_Data::Tags id_read_tags)
 {
+  BLI_assert(id->runtime == nullptr);
+  BKE_libblock_runtime_ensure(*id);
+
   if (!BLO_read_data_is_undo(reader)) {
     /* When actually reading a file, we do want to reset/re-generate session UIDS.
      * In undo case, we want to re-use existing ones. */
@@ -2271,13 +2274,8 @@ static void direct_link_id_common(BlendDataReader *reader,
     id->tag = id_tag;
   }
 
-  if (!BLO_read_data_is_undo(reader)) {
-    /* Reset the runtime data, as there were versions of Blender that did not do
-     * this before writing to disk. */
-    id->runtime = ID_Runtime{};
-  }
   readfile_id_runtime_data_ensure(*id);
-  id->runtime.readfile_data->tags = id_read_tags;
+  id->runtime->readfile_data->tags = id_read_tags;
 
   if ((id_tag & ID_TAG_TEMP_MAIN) == 0) {
     BKE_lib_libblock_session_uid_ensure(id);
@@ -2561,6 +2559,7 @@ static ID *create_placeholder(Main *mainvar,
 {
   ListBase *lb = which_libbase(mainvar, idcode);
   ID *ph_id = BKE_libblock_alloc_notest(idcode);
+  BKE_libblock_runtime_ensure(*ph_id);
 
   *((short *)ph_id->name) = idcode;
   BLI_strncpy(ph_id->name + 2, idname, sizeof(ph_id->name) - 2);
@@ -4443,6 +4442,12 @@ static int expand_cb(LibraryIDLinkCallbackData *cb_data)
     return IDWALK_RET_NOP;
   }
 
+  /* Do not expand weak links. These are used when the user interface links to scene data,
+   * but we don't want to bring along such datablocks with a workspace. */
+  if (cb_data->cb_flag & IDWALK_CB_DIRECT_WEAK_LINK) {
+    return IDWALK_RET_NOP;
+  }
+
   /* Explicitly requested to be ignored during readfile processing. Means the read_data code
    * already handled this pointer. Typically, the 'owner_id' pointer of an embedded ID. */
   if (cb_data->cb_flag & IDWALK_CB_READFILE_IGNORE) {
@@ -4947,15 +4952,19 @@ static void read_library_linked_ids(FileData *basefd, FileData *fd, Main *mainva
         /* Transfer the readfile data from the placeholder to the real ID, but
          * only if the real ID has no readfile data yet. The same realid may be
          * referred to by multiple placeholders. */
-        if (realid && !realid->runtime.readfile_data) {
-          realid->runtime.readfile_data = id->runtime.readfile_data;
-          id->runtime.readfile_data = nullptr;
+        if (realid && !realid->runtime->readfile_data) {
+          realid->runtime->readfile_data = id->runtime->readfile_data;
+          id->runtime->readfile_data = nullptr;
         }
 
-        /* The 'readfile' runtime data needs to be freed here, as this ID placeholder does not go
-         * through versioning (the usual place where this data is freed). Since `id` is not a real
-         * ID, this shouldn't follow any pointers to embedded IDs. */
-        BLO_readfile_id_runtime_data_free(*id);
+        /* Ensure that the runtime pointer, and its 'readfile' sub-data, are properly freed, as
+         * this ID placeholder does not go through versioning (the usual place where this data is
+         * freed). Since `id` is not a real ID, this shouldn't follow any pointers to embedded IDs.
+         *
+         * WARNING! This placeholder ID is only an ID struct, with a very small subset of regular
+         * ID common data actually valid and needing to be freed. Therefore, calling
+         * #BKE_libblock_free_data on it would not work. */
+        BKE_libblock_free_runtime_data(id);
 
         MEM_freeN(id);
       }

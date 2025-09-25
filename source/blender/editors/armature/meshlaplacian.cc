@@ -1577,6 +1577,7 @@ static void meshdeform_matrix_solve(MeshDeformModifierData *mmd, MeshDeformBind 
 
 static void harmonic_coordinates_bind(MeshDeformModifierData *mmd, MeshDeformBind *mdb)
 {
+  using namespace blender;
   MDefBindInfluence *inf;
   MDefInfluence *mdinf;
   MDefCell *cell;
@@ -1698,7 +1699,9 @@ static void harmonic_coordinates_bind(MeshDeformModifierData *mmd, MeshDeformBin
 
     /* convert MDefBindInfluences to smaller MDefInfluences */
     mmd->dyngrid = MEM_calloc_arrayN<MDefCell>(mdb->size3, "MDefDynGrid");
+    mmd->dyngrid_sharing_info = implicit_sharing::info_for_mem_free(mmd->dyngrid);
     mmd->dyninfluences = MEM_calloc_arrayN<MDefInfluence>(mmd->influences_num, "MDefInfluence");
+    mmd->dyninfluences_sharing_info = implicit_sharing::info_for_mem_free(mmd->dyninfluences);
     offset = 0;
     for (a = 0; a < mdb->size3; a++) {
       cell = &mmd->dyngrid[a];
@@ -1724,6 +1727,7 @@ static void harmonic_coordinates_bind(MeshDeformModifierData *mmd, MeshDeformBin
     }
 
     mmd->dynverts = mdb->inside;
+    mmd->dynverts_sharing_info = implicit_sharing::info_for_mem_free(mmd->dynverts);
     mmd->dyngridsize = mdb->size;
     copy_v3_v3(mmd->dyncellmin, mdb->min);
     mmd->dyncellwidth = mdb->width[0];
@@ -1749,6 +1753,7 @@ void ED_mesh_deform_bind_callback(Object *object,
                                   int verts_num,
                                   float cagemat[4][4])
 {
+  using namespace blender;
   MeshDeformModifierData *mmd_orig = reinterpret_cast<MeshDeformModifierData *>(
       BKE_modifier_get_original(object, &mmd->modifier));
   MeshDeformBind mdb{};
@@ -1784,6 +1789,7 @@ void ED_mesh_deform_bind_callback(Object *object,
 
   /* assign bind variables */
   mmd_orig->bindcagecos = (float *)mdb.cagecos;
+  mmd_orig->bindcagecos_sharing_info = implicit_sharing::info_for_mem_free(mmd_orig->bindcagecos);
   mmd_orig->verts_num = mdb.verts_num;
   mmd_orig->cage_verts_num = mdb.cage_verts_num;
   copy_m4_m4(mmd_orig->bindmat, mmd_orig->object->object_to_world().ptr());

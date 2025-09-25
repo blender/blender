@@ -462,7 +462,7 @@ def gather_action_animations(obj_uuid: int,
         # This way, we can evaluate drivers on shape keys, and bake them
         drivers = get_sk_drivers(obj_uuid, export_settings)
         if drivers:
-            # So ... Let's create some costum properties and the armature
+            # So ... Let's create some custom properties and the armature
             # First, retrieve the armature object
             for mesh_uuid in drivers:
                 _, channels = get_driver_on_shapekey(mesh_uuid, export_settings)
@@ -471,7 +471,7 @@ def gather_action_animations(obj_uuid: int,
                     if channel is None:
                         continue
                     if blender_object.animation_data is None or blender_object.animation_data.drivers is None:
-                        # There is no animation on the armature, so no need to crate driver
+                        # There is no animation on the armature, so no need to create driver
                         # But, we need to copy the current value of the shape key to the custom property
                         blender_object["gltf_" + mesh_uuid][idx] = blender_object.data.shape_keys.key_blocks[channel.data_path.split('"')[
                             1]].value
@@ -903,7 +903,7 @@ def __get_blender_actions(obj_uuid: str,
                 for act in bpy.data.actions:
                     already_added_action = False
 
-                    # For the assigned action, we aleady have the slot
+                    # For the assigned action, we already have the slot
                     if act == blender_object.animation_data.action:
                         continue
 

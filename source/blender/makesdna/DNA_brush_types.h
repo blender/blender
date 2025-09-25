@@ -172,8 +172,7 @@ typedef struct Brush {
 
   ID id;
 
-  /** Falloff curve. */
-  struct CurveMapping *curve;
+  struct CurveMapping *curve_distance_falloff;
   struct MTex mtex;
   struct MTex mask_mtex;
 
@@ -331,7 +330,7 @@ typedef struct Brush {
 
   float texture_sample_bias;
 
-  int curve_preset;
+  int curve_distance_falloff_preset;
 
   /* Maximum distance to search fake neighbors from a vertex. */
   float disconnected_distance_max;

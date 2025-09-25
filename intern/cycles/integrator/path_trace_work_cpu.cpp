@@ -20,6 +20,7 @@
 #include "session/buffers.h"
 
 #include "util/tbb.h"
+#include "util/time.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -128,6 +129,8 @@ void PathTraceWorkCPU::render_samples_full_pipeline(ThreadKernelGlobalsCPU *kern
   KernelWorkTile sample_work_tile = work_tile;
   float *render_buffer = buffers_->buffer.data();
 
+  fast_timer render_timer;
+
   for (int sample = 0; sample < samples_num; ++sample) {
     if (is_cancel_requested()) {
       break;
@@ -171,6 +174,15 @@ void PathTraceWorkCPU::render_samples_full_pipeline(ThreadKernelGlobalsCPU *kern
       kernels_.integrator_megakernel(kernel_globals, state, render_buffer);
       if (shadow_catcher_state) {
         kernels_.integrator_megakernel(kernel_globals, shadow_catcher_state, render_buffer);
+      }
+    }
+
+    if (kernel_globals->data.film.pass_render_time != PASS_UNUSED) {
+      uint64_t time;
+      if (render_timer.lap(time)) {
+        ccl_global float *buffer = render_buffer + (uint64_t)state->path.render_pixel_index *
+                                                       kernel_globals->data.film.pass_stride;
+        *(buffer + kernel_globals->data.film.pass_render_time) += float(time);
       }
     }
     ++sample_work_tile.start_sample;

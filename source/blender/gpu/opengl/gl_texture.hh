@@ -80,9 +80,6 @@ class GLTexture : public Texture {
 
   void check_feedback_loop();
 
-  /* TODO(fclem): Legacy. Should be removed at some point. */
-  uint gl_bindcode_get() const override;
-
   /**
    * Pre-generate, setup all possible samplers and cache them in the samplers_state_cache_ and
    * custom_samplers_state_cache_ arrays. This is done to avoid the runtime cost associated with
@@ -162,7 +159,7 @@ inline GLenum to_gl_internal_format(TextureFormat format)
   return 0;
 }
 
-inline GLenum to_gl_target(eGPUTextureType type)
+inline GLenum to_gl_target(GPUTextureType type)
 {
   switch (type) {
     case GPU_TEXTURE_1D:
@@ -187,7 +184,7 @@ inline GLenum to_gl_target(eGPUTextureType type)
   }
 }
 
-inline GLenum to_gl_proxy(eGPUTextureType type)
+inline GLenum to_gl_proxy(GPUTextureType type)
 {
   switch (type) {
     case GPU_TEXTURE_1D:

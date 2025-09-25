@@ -20,6 +20,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 
+#include "BLI_bounds.hh"
 #include "BLI_kdtree.h"
 #include "BLI_math_base.hh"
 #include "BLI_math_geom.h"
@@ -123,7 +124,7 @@ bool ED_object_get_active_image(Object *ob,
 {
   Material *ma = DEG_is_evaluated(ob) ? BKE_object_material_get_eval(ob, mat_nr) :
                                         BKE_object_material_get(ob, mat_nr);
-  bNodeTree *ntree = (ma && ma->use_nodes) ? ma->nodetree : nullptr;
+  bNodeTree *ntree = ma ? ma->nodetree : nullptr;
   bNode *node = (ntree) ? bke::node_get_active_texture(*ntree) : nullptr;
 
   if (node && is_image_texture_node(node)) {
@@ -169,7 +170,7 @@ bool ED_object_get_active_image(Object *ob,
 void ED_object_assign_active_image(Main *bmain, Object *ob, int mat_nr, Image *ima)
 {
   Material *ma = BKE_object_material_get(ob, mat_nr);
-  bNode *node = (ma && ma->use_nodes) ? bke::node_get_active_texture(*ma->nodetree) : nullptr;
+  bNode *node = ma ? bke::node_get_active_texture(*ma->nodetree) : nullptr;
 
   if (node && is_image_texture_node(node)) {
     node->id = &ima->id;
@@ -358,6 +359,11 @@ enum eUVWeldAlign {
   UV_ALIGN_Y,
   UV_WELD,
 };
+enum class UVAlignPositionMode {
+  Mean = 0,
+  Min = 1,
+  Max = 2,
+};
 
 static bool uvedit_uv_align_weld(Scene *scene,
                                  BMesh *bm,
@@ -536,24 +542,287 @@ static bool uvedit_uv_straighten(Scene *scene, BMesh *bm, eUVWeldAlign tool)
   BM_uv_element_map_free(element_map);
   return changed;
 }
+enum class UVAlignInitialPosition {
+  BoundingBox = 0,
+  UVTileGrid = 1,
+  ActiveUDIM = 2,
+  Cursor = 3,
+};
+enum class UVAlignIslandAxis {
+  X = 0,
+  Y = 1,
+};
+enum class UVAlignIslandMode {
+  Max = 0,
+  Min = 1,
+  Center = 2,
+  None = 3,
+};
+enum UVAlignIslandOrder {
+  LargeToSmall = 0,
+  SmallToLarge = 1,
+  Fixed = 2,
+};
 
-static void uv_weld_align(bContext *C, eUVWeldAlign tool)
+struct UVAlignIslandBounds {
+  Bounds<float2> bounds;
+  int index;
+};
+
+/**
+ * \param position: The position to begin placing islands on,
+ * this is written to so multiple objects will placing non-overlapping islands.
+ */
+static bool uvedit_uv_islands_arrange(const Scene *scene,
+                                      BMesh *bm,
+                                      const UVAlignIslandAxis axis,
+                                      const UVAlignIslandMode align,
+                                      const UVAlignIslandOrder order,
+                                      const float margin,
+                                      float2 &position)
+{
+  bool changed = false;
+  UvElementMap *element_map = BM_uv_element_map_create(bm, scene, true, false, true, true);
+  if (element_map == nullptr) {
+    return changed;
+  }
+
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
+  const uint other_axis = (uint(axis) + 1) % 2;
+  Array<UVAlignIslandBounds> island_bounds_all(element_map->total_islands);
+  for (int i = 0; i < element_map->total_islands; i++) {
+    UvElement *element = element_map->storage + element_map->island_indices[i];
+    UVAlignIslandBounds &island_bounds = island_bounds_all[i];
+    INIT_MINMAX2(island_bounds.bounds.min, island_bounds.bounds.max);
+    for (int j = 0; j < element_map->island_total_uvs[i]; j++) {
+      float *luv = BM_ELEM_CD_GET_FLOAT_P(element[j].l, offsets.uv);
+      minmax_v2v2_v2(island_bounds.bounds.min, island_bounds.bounds.max, luv);
+    }
+    island_bounds.index = i;
+  }
+  std::stable_sort(island_bounds_all.begin(),
+                   island_bounds_all.end(),
+                   [&order, &axis](const UVAlignIslandBounds &a, const UVAlignIslandBounds &b) {
+                     if (order == UVAlignIslandOrder::Fixed) {
+                       return a.bounds.min[int(axis)] < b.bounds.min[int(axis)];
+                     }
+                     const float area_a = (a.bounds.size()[0] * a.bounds.size()[1]);
+                     const float area_b = (b.bounds.size()[0] * b.bounds.size()[1]);
+                     return (order == UVAlignIslandOrder::LargeToSmall) ? (area_a >= area_b) :
+                                                                          (area_a < area_b);
+                   });
+
+  for (const UVAlignIslandBounds &island_bounds : island_bounds_all) {
+    UvElement *element = element_map->storage + element_map->island_indices[island_bounds.index];
+    for (int j = 0; j < element_map->island_total_uvs[island_bounds.index]; j++) {
+      float *luv = BM_ELEM_CD_GET_FLOAT_P(element[j].l, offsets.uv);
+      if (align == UVAlignIslandMode::Min) {
+        luv[other_axis] += position[other_axis] - island_bounds.bounds.min[other_axis];
+      }
+      else if (align == UVAlignIslandMode::Center) {
+        luv[other_axis] += position[other_axis] - island_bounds.bounds.center()[other_axis];
+      }
+      else if (align == UVAlignIslandMode::Max) {
+        luv[other_axis] += position[other_axis] - island_bounds.bounds.max[other_axis];
+      }
+      luv[int(axis)] += position[int(axis)] - island_bounds.bounds.min[int(axis)];
+    }
+    position[int(axis)] += island_bounds.bounds.size()[int(axis)] + margin;
+    changed = true;
+  }
+  BM_uv_element_map_free(element_map);
+  return changed;
+}
+
+static wmOperatorStatus uv_arrange_islands_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   SpaceImage *sima = CTX_wm_space_image(C);
-  float cent[2], min[2], max[2];
-
-  INIT_MINMAX2(min, max);
 
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       scene, view_layer, nullptr);
 
-  if (tool == UV_ALIGN_AUTO) {
-    ED_uvedit_foreach_uv_multi(
-        scene, objects, true, true, [&](float luv[2]) { minmax_v2v2_v2(min, max, luv); });
-    tool = (max[0] - min[0] >= max[1] - min[1]) ? UV_ALIGN_Y : UV_ALIGN_X;
+  const UVAlignInitialPosition initial_position = UVAlignInitialPosition(
+      RNA_enum_get(op->ptr, "initial_position"));
+  const UVAlignIslandAxis axis = UVAlignIslandAxis(RNA_enum_get(op->ptr, "axis"));
+  const UVAlignIslandMode align = UVAlignIslandMode(RNA_enum_get(op->ptr, "align"));
+  const UVAlignIslandOrder order = UVAlignIslandOrder(RNA_enum_get(op->ptr, "order"));
+  const float margin = RNA_float_get(op->ptr, "margin");
+  const uint other_axis = (uint(axis) + 1) % 2;
+
+  float2 position = {0.0f, 0.0f};
+  Bounds<float2> bounds = {{0.0f, 0.0f}, {1.0f, 1.0f}};
+  if (initial_position == UVAlignInitialPosition::BoundingBox) {
+    INIT_MINMAX2(bounds.min, bounds.max);
+    for (Object *obedit : objects) {
+      BMesh *bm = BKE_editmesh_from_object(obedit)->bm;
+      ED_uvedit_foreach_uv(scene, bm, true, true, [&](float luv[2]) {
+        minmax_v2v2_v2(bounds.min, bounds.max, luv);
+      });
+    }
   }
+  else if (initial_position == UVAlignInitialPosition::ActiveUDIM) {
+    if (sima && sima->image && (sima->image->source == IMA_SRC_TILED)) {
+      const int tile_x = sima->image->active_tile_index % 10;
+      const int tile_y = sima->image->active_tile_index / 10;
+      bounds.min[0] = tile_x;
+      bounds.min[1] = tile_y;
+      bounds.max[0] = tile_x + 1.0f;
+      bounds.max[1] = tile_y + 1.0f;
+    }
+  }
+  else if (initial_position == UVAlignInitialPosition::UVTileGrid) {
+    /* Leave the minimum at zero. */
+    bounds.max[0] = sima->tile_grid_shape[0];
+    bounds.max[1] = sima->tile_grid_shape[1];
+  }
+  else {
+    if (sima) {
+      position = sima->cursor;
+    }
+  }
+  if (ELEM(initial_position,
+           UVAlignInitialPosition::BoundingBox,
+           UVAlignInitialPosition::ActiveUDIM,
+           UVAlignInitialPosition::UVTileGrid))
+  {
+    if (align == UVAlignIslandMode::Min) {
+      position[other_axis] = bounds.min[other_axis];
+    }
+    else if (align == UVAlignIslandMode::Center) {
+      position[other_axis] = bounds.center()[other_axis];
+    }
+    else {
+      position[other_axis] = bounds.max[other_axis];
+    }
+    position[int(axis)] = bounds.min[int(axis)];
+  }
+  for (Object *obedit : objects) {
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+    if (em->bm->totvertsel == 0) {
+      continue;
+    }
+    if (uvedit_uv_islands_arrange(scene, em->bm, axis, align, order, margin, position)) {
+      uvedit_live_unwrap_update(sima, scene, obedit);
+      DEG_id_tag_update(static_cast<ID *>(obedit->data), 0);
+      WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+    }
+  }
+  return OPERATOR_FINISHED;
+}
+
+static void UV_OT_arrange_islands(wmOperatorType *ot)
+{
+  static const EnumPropertyItem initial_position_items[] = {
+      {int(UVAlignInitialPosition::BoundingBox),
+       "BOUNDING_BOX",
+       0,
+       "Bounding Box",
+       "Initial alignment based on the islands bounding box"},
+      {int(UVAlignInitialPosition::UVTileGrid),
+       "UV_GRID",
+       0,
+       "UV Grid",
+       "Initial alignment based on UV Tile Grid"},
+      {int(UVAlignInitialPosition::ActiveUDIM),
+       "ACTIVE_UDIM",
+       0,
+       "Active UDIM",
+       "Initial alignment based on Active UDIM"},
+      {int(UVAlignInitialPosition::Cursor),
+       "CURSOR",
+       0,
+       "2D Cursor",
+       "Initial alignment based on 2D cursor"},
+      {0, nullptr, 0, nullptr, nullptr},
+
+  };
+  static const EnumPropertyItem axis_items[] = {
+      {int(UVAlignIslandAxis::X), "X", 0, "X", "Align UV islands along the X axis"},
+      {int(UVAlignIslandAxis::Y), "Y", 0, "Y", "Align UV islands along the Y axis"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+  static const EnumPropertyItem align_items[] = {
+      {int(UVAlignIslandMode::Min), "MIN", 0, "Min", "Align the islands to the min of the island"},
+      {int(UVAlignIslandMode::Max),
+       "MAX",
+       0,
+       "Max",
+       "Align the islands to the left side of the island"},
+      {int(UVAlignIslandMode::Center),
+       "CENTER",
+       0,
+       "Center",
+       "Align the islands to the center of the largest island"},
+      {int(UVAlignIslandMode::None), "NONE", 0, "None", "Preserve island alignment"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  static const EnumPropertyItem sort_items[] = {
+      {int(UVAlignIslandOrder::LargeToSmall),
+       "LARGE_TO_SMALL",
+       0,
+       "Largest to Smallest",
+       "Sort islands from largest to smallest"},
+      {int(UVAlignIslandOrder::SmallToLarge),
+       "SMALL_TO_LARGE",
+       0,
+       "Smallest to Largest",
+       "Sort islands from smallest to largest"},
+      {int(UVAlignIslandOrder::Fixed), "Fixed", 0, "Fixed", "Preserve island order"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+  /* identifiers */
+  ot->name = "Arrange/Align Islands";
+  ot->description = "Arrange selected UV islands on a line";
+  ot->idname = "UV_OT_arrange_islands";
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* API callbacks. */
+  ot->exec = uv_arrange_islands_exec;
+  ot->poll = ED_operator_uvedit;
+
+  /* properties */
+  RNA_def_enum(ot->srna,
+               "initial_position",
+               initial_position_items,
+               int(UVAlignInitialPosition::BoundingBox),
+               "Initial Position",
+               "Initial position to arrange islands from");
+  RNA_def_enum(ot->srna,
+               "axis",
+               axis_items,
+               int(UVAlignIslandAxis::Y),
+               "Axis",
+               "Axis to arrange UV islands on");
+  RNA_def_enum(ot->srna,
+               "align",
+               align_items,
+               int(UVAlignIslandMode::Min),
+               "Align",
+               "Location to align islands on");
+  RNA_def_enum(ot->srna,
+               "order",
+               sort_items,
+               int(UVAlignIslandOrder::LargeToSmall),
+               "Order",
+               "Order of islands");
+
+  RNA_def_float(
+      ot->srna, "margin", 0.05f, 0.0f, 1.0f, "Margin", "Space between islands", 0.0f, 1.0f);
+}
+
+static void uv_weld(bContext *C)
+{
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  SpaceImage *sima = CTX_wm_space_image(C);
+  float cent[2];
+
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+      scene, view_layer, nullptr);
 
   ED_uvedit_center_multi(scene, objects, cent, 0);
 
@@ -565,8 +834,61 @@ static void uv_weld_align(bContext *C, eUVWeldAlign tool)
       continue;
     }
 
-    if (ELEM(tool, UV_ALIGN_AUTO, UV_ALIGN_X, UV_ALIGN_Y, UV_WELD)) {
-      changed |= uvedit_uv_align_weld(scene, em->bm, tool, cent);
+    changed |= uvedit_uv_align_weld(scene, em->bm, UV_WELD, cent);
+
+    if (changed) {
+      uvedit_live_unwrap_update(sima, scene, obedit);
+      DEG_id_tag_update(static_cast<ID *>(obedit->data), 0);
+      WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+    }
+  }
+}
+
+static void uv_align(bContext *C, eUVWeldAlign tool, UVAlignPositionMode position_mode)
+{
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  SpaceImage *sima = CTX_wm_space_image(C);
+  float pos[2], min[2], max[2];
+  const bool align_auto = (tool == UV_ALIGN_AUTO);
+  INIT_MINMAX2(min, max);
+
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+      scene, view_layer, nullptr);
+
+  if (tool == UV_ALIGN_AUTO) {
+    ED_uvedit_foreach_uv_multi(
+        scene, objects, true, true, [&](float luv[2]) { minmax_v2v2_v2(min, max, luv); });
+    tool = (max[0] - min[0] >= max[1] - min[1]) ? UV_ALIGN_Y : UV_ALIGN_X;
+  }
+
+  if (!align_auto && ELEM(tool, UV_ALIGN_X, UV_ALIGN_Y) &&
+      ELEM(position_mode, UVAlignPositionMode::Min, UVAlignPositionMode::Max))
+  {
+    ED_uvedit_minmax_multi(scene, objects, min, max);
+    if (position_mode == UVAlignPositionMode::Min) {
+      pos[0] = min[0];
+      pos[1] = min[1];
+    }
+    else {
+      pos[0] = max[0];
+      pos[1] = max[1];
+    }
+  }
+  else {
+    ED_uvedit_center_multi(scene, objects, pos, V3D_AROUND_CENTER_MEDIAN);
+  }
+
+  for (Object *obedit : objects) {
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+    bool changed = false;
+
+    if (em->bm->totvertsel == 0) {
+      continue;
+    }
+
+    if (ELEM(tool, UV_ALIGN_AUTO, UV_ALIGN_X, UV_ALIGN_Y)) {
+      changed |= uvedit_uv_align_weld(scene, em->bm, tool, pos);
     }
 
     if (ELEM(tool, UV_STRAIGHTEN, UV_STRAIGHTEN_X, UV_STRAIGHTEN_Y)) {
@@ -580,14 +902,27 @@ static void uv_weld_align(bContext *C, eUVWeldAlign tool)
     }
   }
 }
-
 static wmOperatorStatus uv_align_exec(bContext *C, wmOperator *op)
 {
-  uv_weld_align(C, eUVWeldAlign(RNA_enum_get(op->ptr, "axis")));
+  uv_align(C,
+           eUVWeldAlign(RNA_enum_get(op->ptr, "axis")),
+           UVAlignPositionMode(RNA_enum_get(op->ptr, "position_mode")));
 
   return OPERATOR_FINISHED;
 }
 
+static bool uv_align_poll_property(const bContext * /*C*/, wmOperator *op, const PropertyRNA *prop)
+{
+  const char *prop_id = RNA_property_identifier(prop);
+
+  if (STREQ(prop_id, "position_mode")) {
+    int axis = RNA_enum_get(op->ptr, "axis");
+    if (!ELEM(axis, UV_ALIGN_X, UV_ALIGN_Y)) {
+      return false;
+    }
+  }
+  return true;
+}
 static void UV_OT_align(wmOperatorType *ot)
 {
   static const EnumPropertyItem axis_items[] = {
@@ -616,8 +951,16 @@ static void UV_OT_align(wmOperatorType *ot)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
+  static const EnumPropertyItem position_mode_items[] = {
+      {int(UVAlignPositionMode::Mean), "MEAN", 0, "Mean", "Align UVs along the mean position"},
+      {int(UVAlignPositionMode::Min), "MIN", 0, "Minimum", "Align UVs along the minimum position"},
+      {int(UVAlignPositionMode::Max), "MAX", 0, "Maximum", "Align UVs along the maximum position"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   /* identifiers */
   ot->name = "Align";
+
   ot->description = "Aligns selected UV vertices on a line";
   ot->idname = "UV_OT_align";
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -626,9 +969,17 @@ static void UV_OT_align(wmOperatorType *ot)
   ot->exec = uv_align_exec;
   ot->poll = ED_operator_uvedit;
 
+  ot->poll_property = uv_align_poll_property;
+
   /* properties */
   RNA_def_enum(
       ot->srna, "axis", axis_items, UV_ALIGN_AUTO, "Axis", "Axis to align UV locations on");
+  RNA_def_enum(ot->srna,
+               "position_mode",
+               position_mode_items,
+               int(UVAlignPositionMode::Mean),
+               "Position Mode",
+               "Method of calculating the alignment position");
 }
 
 /** \} */
@@ -969,7 +1320,7 @@ static void UV_OT_remove_doubles(wmOperatorType *ot)
 
 static wmOperatorStatus uv_weld_exec(bContext *C, wmOperator * /*op*/)
 {
-  uv_weld_align(C, UV_WELD);
+  uv_weld(C);
 
   return OPERATOR_FINISHED;
 }
@@ -1982,6 +2333,195 @@ static void UV_OT_mark_seam(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "clear", false, "Clear Seams", "Clear instead of marking seams");
 }
 
+static bool uv_copy_mirrored_faces(BMesh *bm, int direction, int precision, int *r_double_warn)
+{
+  *r_double_warn = 0;
+  const float precision_scale = powf(10.0f, precision);
+  /* TODO: replace mirror look-ups with #EditMeshSymmetryHelper. */
+  Map<float3, BMVert *> mirror_gt, mirror_lt;
+  Map<BMVert *, BMVert *> vmap;
+
+  BMVert *v;
+  BMIter iter;
+  BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+    float3 pos = math::round(float3(v->co) * precision_scale);
+    if (pos.x >= 0.0f) {
+      if (mirror_gt.contains(pos)) {
+        (*r_double_warn)++;
+      }
+      mirror_gt.add(pos, v);
+    }
+    if (pos.x <= 0.0f) {
+      if (mirror_lt.contains(pos)) {
+        (*r_double_warn)++;
+      }
+      mirror_lt.add(pos, v);
+    }
+  }
+
+  for (const auto &[pos, v] : mirror_gt.items()) {
+    float3 mirror_pos = pos;
+    mirror_pos[0] = -mirror_pos[0];
+    BMVert *v_mirror = mirror_lt.lookup_default(mirror_pos, nullptr);
+    if (v_mirror) {
+      vmap.add(v, v_mirror);
+    }
+  }
+  for (const auto &[pos, v] : mirror_lt.items()) {
+    float3 mirror_pos = pos;
+    mirror_pos[0] = -mirror_pos[0];
+    BMVert *v_mirror = mirror_gt.lookup_default(mirror_pos, nullptr);
+    if (v_mirror) {
+      vmap.add(v, v_mirror);
+    }
+  }
+
+  Map<Array<BMVert *>, BMFace *> sorted_verts_to_face;
+  /* Maps faces to their corresponding mirrored face. */
+  Map<BMFace *, BMFace *> face_map;
+
+  BMFace *f;
+  BMIter iter_face;
+  BM_ITER_MESH (f, &iter_face, bm, BM_FACES_OF_MESH) {
+    Array<BMVert *> sorted_verts(f->len);
+    bool valid = true;
+    int loop_index = 0;
+    BMLoop *l;
+    BMIter liter;
+    BM_ITER_ELEM_INDEX (l, &liter, f, BM_LOOPS_OF_FACE, loop_index) {
+      if (!vmap.contains(l->v)) {
+        valid = false;
+        break;
+      }
+      sorted_verts[loop_index] = l->v;
+    }
+    if (valid) {
+      std::sort(sorted_verts.begin(), sorted_verts.end());
+      sorted_verts_to_face.add(std::move(sorted_verts), f);
+    }
+  }
+
+  for (const auto &[sorted_verts, f_dst] : sorted_verts_to_face.items()) {
+    Array<BMVert *> mirror_verts(sorted_verts.size());
+    for (int index = 0; index < sorted_verts.size(); index++) {
+      mirror_verts[index] = vmap.lookup_default(sorted_verts[index], nullptr);
+    }
+    std::sort(mirror_verts.begin(), mirror_verts.end());
+    BMFace *f_src = sorted_verts_to_face.lookup_default(mirror_verts, nullptr);
+    if (f_src) {
+      if (f_src != f_dst) {
+        face_map.add(f_dst, f_src);
+      }
+    }
+  }
+
+  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_PROP_FLOAT2);
+
+  bool changed = false;
+  for (const auto &[f_dst, f_src] : face_map.items()) {
+
+    {
+      float f_dst_center[3];
+      BM_face_calc_center_median(f_dst, f_dst_center);
+      if (direction ? (f_dst_center[0] > 0.0f) : (f_dst_center[0] < 0.0f)) {
+        continue;
+      }
+    }
+
+    BMIter liter;
+    BMLoop *l_dst;
+
+    BM_ITER_ELEM (l_dst, &liter, f_dst, BM_LOOPS_OF_FACE) {
+      BMVert *v_src = vmap.lookup_default(l_dst->v, nullptr);
+      if (!v_src) {
+        continue;
+      }
+
+      BMLoop *l_src = BM_face_vert_share_loop(f_src, v_src);
+      if (!l_src) {
+        continue;
+      }
+      const float *uv_src = BM_ELEM_CD_GET_FLOAT_P(l_src, cd_loop_uv_offset);
+      float *uv_dst = BM_ELEM_CD_GET_FLOAT_P(l_dst, cd_loop_uv_offset);
+
+      uv_dst[0] = -(uv_src[0] - 0.5f) + 0.5f;
+      uv_dst[1] = uv_src[1];
+      changed = true;
+    }
+  }
+
+  return changed;
+}
+
+static wmOperatorStatus uv_copy_mirrored_faces_exec(bContext *C, wmOperator *op)
+{
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+      scene, view_layer, nullptr);
+  const int direction = RNA_enum_get(op->ptr, "direction");
+  const int precision = RNA_int_get(op->ptr, "precision");
+
+  int total_duplicates = 0;
+  int meshes_with_duplicates = 0;
+
+  for (Object *obedit : objects) {
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+    int double_warn = 0;
+
+    bool changed = uv_copy_mirrored_faces(em->bm, direction, precision, &double_warn);
+
+    if (double_warn) {
+      total_duplicates += double_warn;
+      meshes_with_duplicates++;
+    }
+
+    if (changed) {
+      DEG_id_tag_update(static_cast<ID *>(obedit->data), 0);
+      WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+    }
+  }
+
+  if (total_duplicates) {
+    BKE_reportf(op->reports,
+                RPT_WARNING,
+                "%d duplicates found in %d mesh(es), mirror may be incomplete",
+                total_duplicates,
+                meshes_with_duplicates);
+  }
+
+  return OPERATOR_FINISHED;
+}
+void UV_OT_copy_mirrored_faces(wmOperatorType *ot)
+{
+  static const EnumPropertyItem direction_items[] = {
+      {0, "POSITIVE", 0, "Positive", ""},
+      {1, "NEGATIVE", 0, "Negative", ""},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  ot->name = "Copy Mirrored UV Coords";
+  ot->description = "Copy mirror UV coordinates on the X axis based on a mirrored mesh";
+  ot->idname = "UV_OT_copy_mirrored_faces";
+
+  ot->exec = uv_copy_mirrored_faces_exec;
+  ot->poll = ED_operator_editmesh;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_enum(ot->srna, "direction", direction_items, 0, "Axis Direction", "");
+  RNA_def_int(ot->srna,
+              "precision",
+              3,
+              1,
+              16,
+              "Precision",
+              "Tolerance for finding vertex duplicates",
+              1,
+              16);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -2007,11 +2547,13 @@ void ED_operatortypes_uvedit()
   WM_operatortype_append(UV_OT_select_less);
   WM_operatortype_append(UV_OT_select_overlap);
   WM_operatortype_append(UV_OT_select_mode);
+  WM_operatortype_append(UV_OT_custom_region_set);
 
   WM_operatortype_append(UV_OT_snap_cursor);
   WM_operatortype_append(UV_OT_snap_selected);
 
   WM_operatortype_append(UV_OT_align);
+  WM_operatortype_append(UV_OT_arrange_islands);
 
   WM_operatortype_append(UV_OT_rip);
   WM_operatortype_append(UV_OT_stitch);
@@ -2041,6 +2583,7 @@ void ED_operatortypes_uvedit()
   WM_operatortype_append(UV_OT_paste);
 
   WM_operatortype_append(UV_OT_cursor_set);
+  WM_operatortype_append(UV_OT_copy_mirrored_faces);
 }
 
 void ED_operatormacros_uvedit()

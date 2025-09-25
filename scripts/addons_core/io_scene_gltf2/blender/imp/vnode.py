@@ -139,7 +139,7 @@ def init_vnodes(gltf):
             add_nodes_to_scene(idx_scene, child)
 
     for idx_scene, scene in enumerate(gltf.data.scenes or []):
-        for node in scene.nodes:
+        for node in scene.nodes or []:
             add_nodes_to_scene(idx_scene, node)
 
     # Create a map of all scene / blender collections
@@ -176,7 +176,7 @@ def init_vnodes(gltf):
                 if idx_scene == gltf.data.scene:
                     gltf.blender_collections[idx_scene] = gltf.active_collection
                 # No collection creation, so no linking
-                # Link between glTF scence and blender scene is already done
+                # Link between glTF scene and blender scene is already done
 
 
     # Check if we have orphan nodes

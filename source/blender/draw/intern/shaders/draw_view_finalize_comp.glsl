@@ -6,10 +6,10 @@
  * Compute culling data for each views of a given view buffer.
  */
 
-#include "draw_view_info.hh"
+#include "draw_view_infos.hh"
 
 #include "draw_view_lib.glsl"
-#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_math_matrix_transform_lib.glsl"
 
 COMPUTE_SHADER_CREATE_INFO(draw_view_finalize)
 

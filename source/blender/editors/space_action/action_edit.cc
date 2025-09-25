@@ -1144,15 +1144,11 @@ static bool delete_action_keys(bAnimContext *ac)
       changed = ED_masklayer_frames_delete((MaskLayer *)ale->data);
     }
     else {
-      FCurve *fcu = (FCurve *)ale->key_data;
-      AnimData *adt = ale->adt;
-
-      /* delete selected keyframes only */
+      FCurve *fcu = static_cast<FCurve *>(ale->key_data);
       changed = BKE_fcurve_delete_keys_selected(fcu);
 
-      /* Only delete curve too if it won't be doing anything anymore */
-      if (BKE_fcurve_is_empty(fcu)) {
-        blender::animrig::animdata_fcurve_delete(adt, fcu);
+      if (changed && BKE_fcurve_is_empty(fcu)) {
+        ED_anim_ale_fcurve_delete(*ac, *ale);
         ale->key_data = nullptr;
       }
     }

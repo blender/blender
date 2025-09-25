@@ -150,7 +150,7 @@ static CameraCyclesCompatibilityData camera_write_cycles_compatibility_data_crea
 
   auto cycles_property_int_set = [](IDProperty *idprop, const char *name, int value) {
     if (IDProperty *prop = IDP_GetPropertyTypeFromGroup(idprop, name, IDP_INT)) {
-      IDP_Int(prop) = value;
+      IDP_int_set(prop, value);
     }
     else {
       IDP_AddToGroup(idprop, blender::bke::idprop::create(name, value).release());
@@ -159,7 +159,7 @@ static CameraCyclesCompatibilityData camera_write_cycles_compatibility_data_crea
 
   auto cycles_property_float_set = [](IDProperty *idprop, const char *name, float value) {
     if (IDProperty *prop = IDP_GetPropertyTypeFromGroup(idprop, name, IDP_FLOAT)) {
-      IDP_Float(prop) = value;
+      IDP_float_set(prop, value);
     }
     else {
       IDP_AddToGroup(idprop, blender::bke::idprop::create(name, value).release());

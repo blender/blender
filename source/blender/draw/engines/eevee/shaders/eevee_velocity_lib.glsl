@@ -4,13 +4,12 @@
 
 #pragma once
 
-#include "infos/eevee_velocity_info.hh"
+#include "infos/eevee_velocity_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(eevee_velocity_camera)
 
 #include "draw_view_lib.glsl"
-#include "eevee_camera_lib.glsl"
-#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_math_matrix_transform_lib.glsl"
 
 float4 velocity_pack(float4 data)
 {

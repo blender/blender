@@ -189,7 +189,7 @@ static void acf_generic_channel_color(bAnimContext *ac, bAnimListElem *ale, floa
   /* FIXME: what happens when the indentation is 1 greater than what it should be
    * (due to grouping)? */
   const int colorOffset = 10 - 10 * indent;
-  UI_GetThemeColorShade3fv(TH_SHADE2, colorOffset, r_color);
+  UI_GetThemeColorShade3fv(TH_CHANNEL, colorOffset, r_color);
 }
 
 /* backdrop for generic channels */

@@ -152,7 +152,7 @@ static void select_editbmesh_hook(Object *ob, HookModifierData *hmd)
     nr++;
   }
 
-  EDBM_select_flush(em);
+  EDBM_select_flush_from_verts(em, true);
 }
 
 static int return_editlattice_indexar(Lattice *editlatt,

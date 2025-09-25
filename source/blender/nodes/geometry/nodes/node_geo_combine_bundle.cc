@@ -18,6 +18,7 @@
 #include "NOD_geometry_nodes_bundle.hh"
 
 #include "UI_interface_layout.hh"
+#include "shader/node_shader_util.hh"
 
 namespace blender::nodes::node_geo_combine_bundle_cc {
 
@@ -175,7 +176,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, "NodeCombineBundle", NODE_COMBINE_BUNDLE);
+  common_node_type_base(&ntype, "NodeCombineBundle", NODE_COMBINE_BUNDLE);
   ntype.ui_name = "Combine Bundle";
   ntype.ui_description = "Combine multiple socket values into one.";
   ntype.nclass = NODE_CLASS_CONVERTER;

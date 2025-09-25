@@ -17,13 +17,13 @@
  * are no more contexts. */
 
 bool GPU_backend_supported();
-void GPU_backend_type_selection_set(const eGPUBackendType backend);
-eGPUBackendType GPU_backend_type_selection_get();
-eGPUBackendType GPU_backend_get_type();
+void GPU_backend_type_selection_set(const GPUBackendType backend);
+GPUBackendType GPU_backend_type_selection_get();
+GPUBackendType GPU_backend_get_type();
 const char *GPU_backend_get_name();
 
 /**
- * Detect the most suited eGPUBackendType.
+ * Detect the most suited GPUBackendType.
  *
  * - The detected backend will be set in `GPU_backend_type_selection_set`.
  * - When GPU_backend_type_selection_is_overridden it checks the overridden backend.
@@ -39,7 +39,7 @@ bool GPU_backend_type_selection_detect();
 /**
  * Alter the GPU_backend_type_selection_detect to only test a specific backend
  */
-void GPU_backend_type_selection_set_override(eGPUBackendType backend_type);
+void GPU_backend_type_selection_set_override(GPUBackendType backend_type);
 
 /**
  * Check if the GPU_backend_type_selection_detect is overridden to only test a specific backend.

@@ -17,9 +17,8 @@ namespace blender::gpu::render_graph {
  * Information stored inside the render graph node. See `VKRenderGraphNode`.
  */
 struct VKDrawIndirectData {
-  VKPipelineData pipeline_data;
+  VKPipelineDataGraphics graphics;
   VKVertexBufferBindings vertex_buffers;
-  VKViewportData viewport_data;
   VkBuffer indirect_buffer;
   VkDeviceSize offset;
   uint32_t draw_count;
@@ -49,8 +48,8 @@ class VKDrawIndirectNode : public VKNodeInfo<VKNodeType::DRAW_INDIRECT,
   static void set_node_data(Node &node, Storage &storage, const CreateInfo &create_info)
   {
     node.storage_index = storage.draw_indirect.append_and_get_index(create_info.node_data);
-    vk_pipeline_data_copy(storage.draw_indirect[node.storage_index].pipeline_data,
-                          create_info.node_data.pipeline_data);
+    vk_pipeline_data_copy(storage.draw_indirect[node.storage_index].graphics,
+                          create_info.node_data.graphics);
   }
 
   /**
@@ -75,10 +74,10 @@ class VKDrawIndirectNode : public VKNodeInfo<VKNodeType::DRAW_INDIRECT,
                       Data &data,
                       VKBoundPipelines &r_bound_pipelines) override
   {
-    vk_pipeline_viewport_set_commands(
-        command_buffer, data.viewport_data, r_bound_pipelines.graphics.viewport_state);
+    vk_pipeline_dynamic_graphics_build_commands(
+        command_buffer, data.graphics.viewport, data.graphics.line_width, r_bound_pipelines);
     vk_pipeline_data_build_commands(command_buffer,
-                                    data.pipeline_data,
+                                    data.graphics.pipeline_data,
                                     r_bound_pipelines.graphics.pipeline,
                                     VK_PIPELINE_BIND_POINT_GRAPHICS,
                                     VK_SHADER_STAGE_ALL_GRAPHICS);
@@ -90,7 +89,7 @@ class VKDrawIndirectNode : public VKNodeInfo<VKNodeType::DRAW_INDIRECT,
 
   void free_data(Data &data)
   {
-    vk_pipeline_data_free(data.pipeline_data);
+    vk_pipeline_data_free(data.graphics);
   }
 };
 }  // namespace blender::gpu::render_graph

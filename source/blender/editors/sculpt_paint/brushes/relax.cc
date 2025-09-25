@@ -93,8 +93,10 @@ static std::array<float, 4> iteration_strengths(const float strength, const int 
     return {strength, strength, strength, strength};
   }
 
-  /* This operations needs a strength tweak as the relax deformation is too weak by default. */
-  const float modified_strength = strength * 1.5f;
+  /* This operation needs a strength tweak as the relax deformation is too weak by default.
+   * We cap the strength at 1.0 to avoid ripping the mesh in cases where this modified value is
+   * too strong. */
+  const float modified_strength = std::min(strength * 1.5f, 1.0f);
   return {modified_strength, modified_strength, strength, strength};
 }
 

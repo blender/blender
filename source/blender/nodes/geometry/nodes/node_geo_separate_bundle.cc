@@ -19,6 +19,7 @@
 #include "BLO_read_write.hh"
 
 #include "UI_interface_layout.hh"
+#include "shader/node_shader_util.hh"
 
 #include <fmt/format.h>
 
@@ -221,7 +222,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, "NodeSeparateBundle", NODE_SEPARATE_BUNDLE);
+  common_node_type_base(&ntype, "NodeSeparateBundle", NODE_SEPARATE_BUNDLE);
   ntype.ui_name = "Separate Bundle";
   ntype.ui_description = "Split a bundle into multiple sockets.";
   ntype.nclass = NODE_CLASS_CONVERTER;

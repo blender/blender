@@ -28,7 +28,7 @@ static void node_declare(NodeDeclarationBuilder &b)
     const eCustomDataType data_type = eCustomDataType(node->custom1);
     b.add_input(data_type, "Value")
         .supports_field()
-        .description("The values the mininum and maximum will be calculated from");
+        .description("The values the minimum and maximum will be calculated from");
   }
 
   b.add_input<decl::Int>("Group ID", "Group Index")

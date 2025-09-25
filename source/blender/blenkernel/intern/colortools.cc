@@ -1881,10 +1881,9 @@ void BKE_color_managed_display_settings_copy(ColorManagedDisplaySettings *new_se
   STRNCPY_UTF8(new_settings->display_device, settings->display_device);
 }
 
-void BKE_color_managed_view_settings_init_render(
-    ColorManagedViewSettings *view_settings,
-    const ColorManagedDisplaySettings *display_settings,
-    const char *view_transform)
+void BKE_color_managed_view_settings_init(ColorManagedViewSettings *view_settings,
+                                          const ColorManagedDisplaySettings *display_settings,
+                                          const char *view_transform)
 {
   const ColorManagedDisplay *display = IMB_colormanagement_display_get_named(
       display_settings->display_device);
@@ -1905,12 +1904,6 @@ void BKE_color_managed_view_settings_init_render(
   view_settings->curve_mapping = nullptr;
 
   IMB_colormanagement_validate_settings(display_settings, view_settings);
-}
-
-void BKE_color_managed_view_settings_init_untonemapped(
-    ColorManagedViewSettings *view_settings, const ColorManagedDisplaySettings *display_settings)
-{
-  IMB_colormanagement_init_untonemapped_view_settings(view_settings, display_settings);
 }
 
 void BKE_color_managed_view_settings_copy(ColorManagedViewSettings *new_settings,

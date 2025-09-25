@@ -76,6 +76,17 @@ static void rna_SpaceTextEditor_region_location_from_cursor(
   }
 }
 
+static void rna_FileBrowser_deselect_all(SpaceFile *sfile, ReportList *reports)
+{
+  if (sfile->files == nullptr) {
+    /* Likely to happen in background mode.
+     * We could look into initializing this on demand, see: #141547. */
+    BKE_report(reports, RPT_ERROR, "uninitialized file-list");
+    return;
+  }
+  ED_fileselect_deselect_all(sfile);
+}
+
 #else
 
 void RNA_api_region_view3d(StructRNA *srna)
@@ -245,7 +256,8 @@ void RNA_api_space_filebrowser(StructRNA *srna)
   RNA_def_property(func, "relative_path", PROP_STRING, PROP_FILEPATH);
 
   /* Deselect all files. */
-  func = RNA_def_function(srna, "deselect_all", "ED_fileselect_deselect_all");
+  func = RNA_def_function(srna, "deselect_all", "rna_FileBrowser_deselect_all");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
   RNA_def_function_ui_description(func, "Deselect all files");
 }
 

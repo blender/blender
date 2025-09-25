@@ -2470,7 +2470,7 @@ void EDBM_selectmode_set(BMEditMesh *em, const short selectmode)
 
   if (em->selectmode & SCE_SELECT_VERTEX) {
     if (em->bm->totvertsel) {
-      EDBM_select_flush(em);
+      EDBM_select_flush_from_verts(em, true);
     }
   }
   else if (em->selectmode & SCE_SELECT_EDGE) {
@@ -2585,7 +2585,7 @@ void EDBM_selectmode_convert(BMEditMesh *em,
         }
       }
       /* Deselect edges without both verts selected. */
-      BM_mesh_deselect_flush(bm);
+      BM_mesh_select_flush_from_verts(bm, false);
     }
   }
   else if (selectmode_old == SCE_SELECT_FACE) {
@@ -2601,7 +2601,7 @@ void EDBM_selectmode_convert(BMEditMesh *em,
         }
       }
       /* Deselect faces without edges selected. */
-      BM_mesh_deselect_flush(bm);
+      BM_mesh_select_flush_from_verts(bm, false);
     }
     else if (selectmode_new == SCE_SELECT_VERTEX) {
       /* Flush down (face -> vert). */
@@ -2612,7 +2612,7 @@ void EDBM_selectmode_convert(BMEditMesh *em,
         }
       }
       /* Deselect faces without verts selected. */
-      BM_mesh_deselect_flush(bm);
+      BM_mesh_select_flush_from_verts(bm, false);
     }
   }
 }
@@ -4633,7 +4633,7 @@ static void walker_deselect_nth_vertex_chain(BMEditMesh *em,
 
     /* Find next vertex in the loop. */
     BMVert *v_next = bm_step_to_next_selected_vert_in_chain(v_curr, v_prev);
-    if (v_next == nullptr || v_next == v_start) {
+    if (ELEM(v_next, nullptr, v_start)) {
       break;
     }
 
@@ -4666,7 +4666,7 @@ static void walker_deselect_nth_edge_chain(BMEditMesh *em,
 
     /* Find next edge in the loop. */
     BMEdge *e_next = bm_step_over_vert_to_next_selected_edge_in_chain(e_curr, v_through);
-    if (e_next == nullptr || e_next == e_start) {
+    if (ELEM(e_next, nullptr, e_start)) {
       break;
     }
 
@@ -4698,7 +4698,7 @@ static void walker_deselect_nth_face_chain(BMEditMesh *em,
       BM_elem_select_set(bm, (BMElem *)f_curr, false);
     }
 
-    if (f_next == nullptr || f_next == f_start) {
+    if (ELEM(f_next, nullptr, f_start)) {
       break;
     }
 
@@ -5349,11 +5349,11 @@ static wmOperatorStatus edbm_select_random_exec(bContext *C, wmOperator *op)
     }
 
     if (select) {
-      /* Was #EDBM_select_flush, but it over selects in edge/face mode. */
+      /* Was #EDBM_select_flush_from_verts, but it over selects in edge/face mode. */
       EDBM_selectmode_flush(em);
     }
     else {
-      EDBM_deselect_flush(em);
+      EDBM_select_flush_from_verts(em, false);
     }
 
     DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);

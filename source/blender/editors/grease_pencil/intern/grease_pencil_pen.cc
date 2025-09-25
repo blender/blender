@@ -153,6 +153,8 @@ class GreasePencilPenToolOperation : public curves::pen_tool::PenToolOperation {
       return false;
     }
 
+    /* We should insert the keyframe when initializing not here. */
+    BLI_assert(!inserted_keyframe);
     BLI_assert(this->active_drawing_index != std::nullopt);
 
     return true;
@@ -192,6 +194,25 @@ class GreasePencilPenToolOperation : public curves::pen_tool::PenToolOperation {
     }
     else if (placement.use_project_to_stroke()) {
       placement.cache_viewport_depths(CTX_data_depsgraph_pointer(C), this->vc.region, view3d);
+    }
+
+    bool inserted_keyframe = false;
+    /* For the pen tool, we don't want the auto-key to create an empty keyframe, so we
+     * duplicate the previous key. */
+    const bool use_duplicate_previous_key = true;
+    for (bke::greasepencil::Layer *layer : grease_pencil->layers_for_write()) {
+      if (layer->is_editable()) {
+        ed::greasepencil::ensure_active_keyframe(*this->vc.scene,
+                                                 *grease_pencil,
+                                                 *layer,
+                                                 use_duplicate_previous_key,
+                                                 inserted_keyframe);
+      }
+    }
+
+    /* Update the view. */
+    if (inserted_keyframe) {
+      WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
     }
 
     this->placement = placement;

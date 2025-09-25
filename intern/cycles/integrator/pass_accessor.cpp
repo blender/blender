@@ -229,11 +229,10 @@ void PassAccessor::init_kernel_film_convert(KernelFilmConvert *kfilm_convert,
                                             const BufferParams &buffer_params,
                                             const Destination &destination) const
 {
+  const PassType type = pass_access_info_.type;
   const PassMode mode = pass_access_info_.mode;
-  const PassInfo &pass_info = Pass::get_info(pass_access_info_.type,
-                                             mode,
-                                             pass_access_info_.include_albedo,
-                                             pass_access_info_.is_lightgroup);
+  const PassInfo &pass_info = Pass::get_info(
+      type, mode, pass_access_info_.include_albedo, pass_access_info_.is_lightgroup);
 
   kfilm_convert->pass_offset = pass_access_info_.offset;
   kfilm_convert->pass_stride = buffer_params.pass_stride;
@@ -262,11 +261,15 @@ void PassAccessor::init_kernel_film_convert(KernelFilmConvert *kfilm_convert,
   /* Background is not denoised, so always use noisy pass. */
   kfilm_convert->pass_background = buffer_params.get_pass_offset(PASS_BACKGROUND);
 
-  if (pass_info.use_filter) {
-    kfilm_convert->scale = num_samples_ != 0 ? 1.0f / num_samples_ : 0.0f;
+  /* If we have a sample count pass, we must perform the division in the kernel instead
+   * (unless the sample count pass is the one being read). */
+  const bool divide_by_samples = (type == PASS_SAMPLE_COUNT) ||
+                                 (kfilm_convert->pass_sample_count == PASS_UNUSED);
+  if (pass_info.use_filter && divide_by_samples) {
+    kfilm_convert->scale = num_samples_ != 0 ? pass_info.scale / num_samples_ : 0.0f;
   }
   else {
-    kfilm_convert->scale = 1.0f;
+    kfilm_convert->scale = pass_info.scale;
   }
 
   if (pass_info.use_exposure) {

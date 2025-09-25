@@ -803,7 +803,7 @@ void drawConstraint(TransInfo *t)
       drawLine(t, t->center_global, t->spacemtx[1], 'Y', 0);
       drawLine(t, t->center_global, t->spacemtx[2], 'Z', 0);
 
-      eGPUDepthTest depth_test_enabled = GPU_depth_test_get();
+      GPUDepthTest depth_test_enabled = GPU_depth_test_get();
       if (depth_test_enabled) {
         GPU_depth_test(GPU_DEPTH_NONE);
       }
@@ -876,7 +876,7 @@ void drawPropCircle(TransInfo *t)
       GPU_matrix_scale_2f(1.0f / t->aspect[0], 1.0f / t->aspect[1]);
     }
 
-    eGPUDepthTest depth_test_enabled = GPU_depth_test_get();
+    GPUDepthTest depth_test_enabled = GPU_depth_test_get();
     if (depth_test_enabled) {
       GPU_depth_test(GPU_DEPTH_NONE);
     }

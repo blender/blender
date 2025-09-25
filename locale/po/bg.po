@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'61dd8a1435fb')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-01 09:40+0000\n"
+"POT-Creation-Date: 2025-09-22 08:45+0000\n"
 "PO-Revision-Date: 2025-07-23 15:34+0000\n"
 "Last-Translator: Just Adam <adam.abbas2009@gmail.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -648,6 +648,10 @@ msgid "Gamma"
 msgstr "Гама"
 
 
+msgid "View"
+msgstr "Изглед"
+
+
 msgid "Mix"
 msgstr "Смесване"
 
@@ -714,10 +718,6 @@ msgstr "Разделяне"
 
 msgid "Plane"
 msgstr "Равнина"
-
-
-msgid "View"
-msgstr "Изглед"
 
 
 msgid "Render"
@@ -1136,6 +1136,14 @@ msgid "Mask"
 msgstr "Маскиране"
 
 
+msgid "Merge"
+msgstr "Слей"
+
+
+msgid "Text"
+msgstr "Текст"
+
+
 msgid "UV Mapping"
 msgstr "UV Картиране"
 
@@ -1162,14 +1170,6 @@ msgstr "Куки"
 
 msgid "In-Betweens"
 msgstr "Междинни Кадри"
-
-
-msgid "Merge"
-msgstr "Слей"
-
-
-msgid "Text"
-msgstr "Текст"
 
 
 msgid "Languages..."

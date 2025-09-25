@@ -195,7 +195,7 @@ static bool idprop_ui_data_update_int_default(IDProperty *idprop,
   else {
     const int value = PyC_Long_AsI32(default_value);
     if ((value == -1) && PyErr_Occurred()) {
-      PyErr_SetString(PyExc_ValueError, "Error converting \"default\" argument to integer");
+      PyErr_SetString(PyExc_ValueError, "Cannot convert \"default\" argument to integer");
       return false;
     }
 
@@ -358,7 +358,7 @@ static bool idprop_ui_data_update_bool_default(IDProperty *idprop,
   else {
     const int value = PyC_Long_AsBool(default_value);
     if ((value == -1) && PyErr_Occurred()) {
-      PyErr_SetString(PyExc_ValueError, "Error converting \"default\" argument to integer");
+      PyErr_SetString(PyExc_ValueError, "Cannot convert \"default\" argument to integer");
       return false;
     }
 
@@ -448,7 +448,7 @@ static bool idprop_ui_data_update_float_default(IDProperty *idprop,
   else {
     const double value = PyFloat_AsDouble(default_value);
     if ((value == -1.0) && PyErr_Occurred()) {
-      PyErr_SetString(PyExc_ValueError, "Error converting \"default\" argument to double");
+      PyErr_SetString(PyExc_ValueError, "Cannot convert \"default\" argument to double");
       return false;
     }
 
@@ -821,7 +821,7 @@ static void idprop_ui_data_to_dict_id(IDProperty *property, PyObject *dict)
     /* While UI exposed custom properties do not allow the 'all ID types' `0` value, in
      * py-defined IDProperties it is accepted. So force defining a valid id_type value when this
      * function is called. */
-    ID *id = IDP_Id(property);
+    ID *id = IDP_ID_get(property);
     id_type_value = id ? GS(id->name) : ID_OB;
   }
 

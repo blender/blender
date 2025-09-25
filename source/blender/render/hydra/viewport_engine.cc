@@ -240,7 +240,7 @@ void ViewportEngine::render()
   render_task_delegate_->add_aov(pxr::HdAovTokens->color);
   render_task_delegate_->add_aov(pxr::HdAovTokens->depth);
 
-  GPUFrameBuffer *view_framebuffer = GPU_framebuffer_active_get();
+  blender::gpu::FrameBuffer *view_framebuffer = GPU_framebuffer_active_get();
   render_task_delegate_->bind();
 
   auto t = tasks();

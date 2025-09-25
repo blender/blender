@@ -4,7 +4,7 @@
 
 #pragma once
 
-#if !defined(GPU_SHADER) && !defined(GLSL_CPP_STUBS)
+#ifndef GPU_SHADER
 #  include "GPU_shader_shared_utils.hh"
 
 #  include "DNA_action_types.h"
@@ -98,7 +98,7 @@ ENUM_OPERATORS(StickBoneFlag, POS_BONE)
 #define EDGE_UV_SELECT (1u << 5)
 #define FACE_UV_ACTIVE (1u << 6)
 #define FACE_UV_SELECT (1u << 7)
-/* data[1] (2st byte flags) */
+/* data[1] (2nd byte flags) */
 #define VERT_ACTIVE (1u << 0)
 #define VERT_SELECTED (1u << 1)
 #define VERT_SELECTED_BEZT_HANDLE (1u << 2)
@@ -325,7 +325,7 @@ struct ExtraInstanceData {
   float4 color_;
   float4x4 object_to_world;
 
-#if !defined(GPU_SHADER)
+#ifndef GPU_SHADER
   ExtraInstanceData(const float4x4 &object_to_world, const float4 &color, float draw_size)
   {
     this->color_ = color;

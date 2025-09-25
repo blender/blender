@@ -10,5 +10,6 @@ namespace blender::nodes {
 
 class Bundle;
 using BundlePtr = ImplicitSharingPtr<Bundle>;
+struct BundleItemValue;
 
 }  // namespace blender::nodes

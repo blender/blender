@@ -191,6 +191,7 @@ static void node_register()
 
   fn_node_type_base(&ntype, "FunctionNodeBooleanMath", FN_NODE_BOOLEAN_MATH);
   ntype.ui_name = "Boolean Math";
+  ntype.ui_description = "Perform a logical operation on the given boolean inputs";
   ntype.enum_name_legacy = "BOOLEAN_MATH";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;

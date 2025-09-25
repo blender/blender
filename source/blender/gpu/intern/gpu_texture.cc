@@ -132,7 +132,7 @@ bool Texture::init_buffer(VertBuf *vbo, TextureFormat format)
 
 bool Texture::init_view(Texture *src,
                         TextureFormat format,
-                        eGPUTextureType type,
+                        GPUTextureType type,
                         int mip_start,
                         int mip_len,
                         int layer_start,
@@ -253,7 +253,7 @@ static inline gpu::Texture *gpu_texture_create(const char *name,
                                                const int w,
                                                const int h,
                                                const int d,
-                                               const eGPUTextureType type,
+                                               const GPUTextureType type,
                                                int mip_len,
                                                TextureFormat tex_format,
                                                eGPUTextureUsage usage,
@@ -435,7 +435,7 @@ gpu::Texture *GPU_texture_create_error(int dimension, bool is_array)
   int h = (dimension < 2 && !is_array) ? 0 : 1;
   int d = (dimension < 3 && !is_array) ? 0 : 1;
 
-  eGPUTextureType type = GPU_TEXTURE_3D;
+  GPUTextureType type = GPU_TEXTURE_3D;
   type = (dimension == 2) ? (is_array ? GPU_TEXTURE_2D_ARRAY : GPU_TEXTURE_2D) : type;
   type = (dimension == 1) ? (is_array ? GPU_TEXTURE_1D_ARRAY : GPU_TEXTURE_1D) : type;
 
@@ -691,7 +691,7 @@ void GPU_texture_ref(gpu::Texture *texture)
 
 int GPU_texture_dimensions(const gpu::Texture *texture)
 {
-  eGPUTextureType type = texture->type_get();
+  GPUTextureType type = texture->type_get();
   if (type & GPU_TEXTURE_1D) {
     return 1;
   }

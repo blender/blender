@@ -51,8 +51,9 @@ static SpaceLink *userpref_create(const ScrArea *area, const Scene * /*scene*/)
   region = BKE_area_region_new();
 
   BLI_addtail(&spref->regionbase, region);
-  region->regiontype = RGN_TYPE_NAV_BAR;
+  region->regiontype = RGN_TYPE_UI;
   region->alignment = RGN_ALIGN_LEFT;
+  region->flag &= ~RGN_FLAG_HIDDEN;
 
   /* Use smaller size when opened in area like properties editor. */
   if (area->winx && area->winx < 3.0f * UI_NAVIGATION_REGION_WIDTH * UI_SCALE_FAC) {
@@ -230,7 +231,7 @@ void ED_spacetype_userpref()
 
   /* regions: navigation window */
   art = MEM_callocN<ARegionType>("spacetype userpref region");
-  art->regionid = RGN_TYPE_NAV_BAR;
+  art->regionid = RGN_TYPE_UI;
   art->prefsizex = UI_NAVIGATION_REGION_WIDTH;
   art->init = userpref_navigation_region_init;
   art->draw = userpref_navigation_region_draw;

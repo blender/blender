@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/* MATCHING eGPUTextureType. */
+/* MATCHING GPUTextureType. */
 #define GPU_TEXTURE_1D (1 << 0)
 #define GPU_TEXTURE_2D (1 << 1)
 #define GPU_TEXTURE_3D (1 << 2)

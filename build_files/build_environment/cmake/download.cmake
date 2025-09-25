@@ -17,7 +17,7 @@ function(download_source dep)
     set(TARGET_URI https://projects.blender.org/blender/lib-source/media/branch/main/${TARGET_FILE})
   endif()
   # Validate all required variables are set and give an explicit error message
-  # rather than CMake erroring out later on with a more ambigious error.
+  # rather than CMake erroring out later on with a more ambiguous error.
   if(NOT DEFINED TARGET_FILE)
     message(FATAL_ERROR "${dep}_FILE variable not set")
   endif()

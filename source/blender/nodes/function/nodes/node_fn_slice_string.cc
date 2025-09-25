@@ -36,6 +36,7 @@ static void node_register()
 
   fn_node_type_base(&ntype, "FunctionNodeSliceString", FN_NODE_SLICE_STRING);
   ntype.ui_name = "Slice String";
+  ntype.ui_description = "Extract a string segment from a larger string";
   ntype.enum_name_legacy = "SLICE_STRING";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;

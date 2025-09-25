@@ -8,11 +8,12 @@
 
 #pragma once
 
+#include <optional>
+#include <string>
+
 #include "BLI_sys_types.h"
 
 #ifdef WITH_INTERNATIONAL
-
-#  include <optional>
 
 #  include "BLI_string_ref.hh"
 
@@ -136,6 +137,12 @@ void BPY_free_srna_pytype(StructRNA *srna);
  * Avoids duplicating keyword list.
  */
 [[nodiscard]] bool BPY_string_is_keyword(const char *str);
+
+/**
+ * Get current Python stack location.
+ * Returns a string like `filename.py:123` if available, #std::nullopt otherwise.
+ */
+[[nodiscard]] std::optional<std::string> BPY_python_current_file_and_line(void);
 
 /* `bpy_rna_callback.cc` */
 

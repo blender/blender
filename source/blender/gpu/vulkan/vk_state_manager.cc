@@ -29,7 +29,7 @@ void VKStateManager::force_state()
   /* Intentionally empty. State is polled during pipeline creation and is always forced. */
 }
 
-void VKStateManager::issue_barrier(eGPUBarrier barrier_bits)
+void VKStateManager::issue_barrier(GPUBarrier barrier_bits)
 {
   /**
    * Workaround for EEVEE ThicknessFromShadow shader.

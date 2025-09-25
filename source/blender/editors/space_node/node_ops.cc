@@ -45,6 +45,8 @@ void node_operatortypes()
   WM_operatortype_append(NODE_OT_node_copy_color);
   WM_operatortype_append(NODE_OT_deactivate_viewer);
   WM_operatortype_append(NODE_OT_activate_viewer);
+  WM_operatortype_append(NODE_OT_toggle_viewer);
+  WM_operatortype_append(NODE_OT_test_inlining_shader_nodes);
 
   WM_operatortype_append(NODE_OT_duplicate);
   WM_operatortype_append(NODE_OT_delete);
@@ -88,6 +90,8 @@ void node_operatortypes()
   WM_operatortype_append(NODE_OT_add_color);
   WM_operatortype_append(NODE_OT_add_import_node);
   WM_operatortype_append(NODE_OT_add_group_input_node);
+
+  WM_operatortype_append(NODE_OT_swap_group_asset);
 
   WM_operatortype_append(NODE_OT_new_node_tree);
   WM_operatortype_append(NODE_OT_new_compositing_node_group);

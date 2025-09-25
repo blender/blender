@@ -1642,7 +1642,7 @@ static bool draw_subdiv_create_requested_buffers(Object &ob,
   };
 
   if (!bke::subdiv::eval_begin_from_mesh(
-          subdiv, mesh_eval, bke::subdiv::SUBDIV_EVALUATOR_TYPE_GPU))
+          subdiv, mesh_eval, bke::subdiv::SUBDIV_EVALUATOR_TYPE_GPU, {}, g_subdiv_evaluator_cache))
   {
     /* This could happen in two situations:
      * - OpenSubdiv is disabled.

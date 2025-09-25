@@ -9,12 +9,11 @@
  * Note that allocation can fail, in this case the tile is left with no page.
  */
 
-#include "infos/eevee_shadow_info.hh"
+#include "infos/eevee_shadow_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_shadow_page_allocate)
 
 #include "eevee_shadow_page_ops_lib.glsl"
-#include "eevee_shadow_tilemap_lib.glsl"
 
 void main()
 {

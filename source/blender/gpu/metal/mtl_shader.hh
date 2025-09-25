@@ -220,6 +220,11 @@ class MTLShader : public Shader {
   /* Set to true when batch compiling */
   bool async_compilation_ = false;
 
+  /* If greater than one, use argument buffer to support arbitrary number of samplers. */
+  int arg_buf_samplers_vert_ = 0;
+  int arg_buf_samplers_frag_ = 0;
+  int arg_buf_samplers_comp_ = 0;
+
   bool finalize_shader(const shader::ShaderCreateInfo *info = nullptr);
 
  public:

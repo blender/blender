@@ -15,8 +15,8 @@ float3 compute_hue_curve_map_coordinates(float3 parameters)
   return parameters * sampler_scale + sampler_offset;
 }
 
-void node_composite_hue_correct(float factor,
-                                float4 color,
+void node_composite_hue_correct(float4 color,
+                                float factor,
                                 sampler1DArray curve_map,
                                 const float layer,
                                 float3 minimums,

@@ -81,98 +81,152 @@ static std::string process_test_string(std::string str,
   return result.substr(newline + 1);
 }
 
+static void test_preprocess_include()
+{
+  using namespace shader;
+  using namespace std;
+  {
+    string input = R"(
+#include "a.hh"
+#include "b.glsl"
+#if 0
+#  include "c.hh"
+#else
+#  include "d.hh"
+#endif
+#if !defined(GPU_SHADER)
+#  include "e.hh"
+#endif
+)";
+    string expect =
+        R"(static void test(GPUSource &source, GPUFunctionDictionary *g_functions, GPUPrintFormatMap *g_formats) {
+  source.add_dependency("a.hh");
+  source.add_dependency("b.glsl");
+  source.add_dependency("d.hh");
+  UNUSED_VARS(source, g_functions, g_formats);
+}
+)";
+    string error;
+    shader::metadata::Source metadata;
+    string output = process_test_string(input, error, &metadata);
+    EXPECT_EQ(expect, metadata.serialize("test"));
+    EXPECT_EQ(error, "");
+  }
+}
+GPU_TEST(preprocess_include);
+
 static void test_preprocess_unroll()
 {
   using namespace shader;
   using namespace std;
 
   {
-    string input = R"([[gpu::unroll]] for (int i = 2; i < 4; i++, y++) { content += i; })";
-    string expect = R"({ int i = 2;
-#line 1
-{ content += i; }
-#line 1
-i++, y++;
-#line 1
-{ content += i; }
-#line 1
-i++, y++;
-#line 1
-})";
+    string input = R"(
+[[gpu::unroll]] for (int i = 2; i < 4; i++, y++) { content += i; })";
+    string expect = R"(
+
+#line 2
+                    {int i = 2;
+#line 2
+                                                 { content += i; }
+#line 2
+                                       i++, y++;
+#line 2
+                                                 { content += i; }
+#line 2
+                                       i++, y++;
+#line 2
+                                                                 })";
     string error;
     string output = process_test_string(input, error);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
   {
-    string input = R"([[gpu::unroll]] for (int i = 2; i < 4 && i < y; i++, y++) { cont += i; })";
-    string expect = R"({ int i = 2;
-#line 1
-if (i < y) { cont += i; }
-#line 1
-i++, y++;
-#line 1
-if (i < y) { cont += i; }
-#line 1
-i++, y++;
-#line 1
-})";
+    string input = R"(
+[[gpu::unroll]] for (int i = 2; i < 4 && i < y; i++, y++) { cont += i; })";
+    string expect = R"(
+
+#line 2
+                    {int i = 2;
+#line 2
+                             if(i < 4 && i < y)
+#line 2
+                                                          { cont += i; }
+#line 2
+                                                i++, y++;
+#line 2
+                             if(i < 4 && i < y)
+#line 2
+                                                          { cont += i; }
+#line 2
+                                                i++, y++;
+#line 2
+                                                                       })";
     string error;
     string output = process_test_string(input, error);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
   {
-    string input = R"([[gpu::unroll(2)]] for (; i < j;) { content += i; })";
-    string expect = R"({ ;
-#line 1
-if (i < j) { content += i; }
-#line 1
-;
-#line 1
-if (i < j) { content += i; }
-#line 1
-;
-#line 1
-})";
+    string input = R"(
+[[gpu::unroll(2)]] for (; i < j;) { content += i; })";
+    string expect = R"(
+
+{
+#line 2
+                       if(i < j)
+#line 2
+                                  { content += i; }
+#line 2
+                       if(i < j)
+#line 2
+                                  { content += i; }
+#line 2
+                                                  })";
     string error;
     string output = process_test_string(input, error);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
   {
-    string input = R"([[gpu::unroll(2)]] for (; i < j;) { [[gpu::unroll(2)]] for (; j < k;) {} })";
-    string expect = R"({ ;
-#line 1
-if (i < j) { { ;
-#line 1
- if (j < k) {}
-#line 1
- ;
-#line 1
- if (j < k) {}
-#line 1
- ;
-#line 1
- } }
-#line 1
-;
-#line 1
-if (i < j) { { ;
-#line 1
- if (j < k) {}
-#line 1
- ;
-#line 1
- if (j < k) {}
-#line 1
- ;
-#line 1
- } }
-#line 1
-;
-#line 1
-})";
+    string input = R"(
+[[gpu::unroll(2)]] for (; i < j;) { [[gpu::unroll(2)]] for (; j < k;) {} })";
+    string expect = R"(
+
+{
+#line 2
+                       if(i < j)
+#line 2
+                                  {  
+{
+#line 2
+                                                           if(j < k)
+#line 2
+                                                                      {} 
+#line 2
+                                                           if(j < k)
+#line 2
+                                                                      {} 
+#line 2
+                                                                       } }
+#line 2
+                       if(i < j)
+#line 2
+                                  {  
+{
+#line 2
+                                                           if(j < k)
+#line 2
+                                                                      {} 
+#line 2
+                                                           if(j < k)
+#line 2
+                                                                      {} 
+#line 2
+                                                                       } }
+#line 2
+                                                                         })";
     string error;
     string output = process_test_string(input, error);
     EXPECT_EQ(output, expect);
@@ -182,27 +236,30 @@ if (i < j) { { ;
     string input = R"([[gpu::unroll(2)]] for (; i < j;) { break; })";
     string error;
     string output = process_test_string(input, error);
-    EXPECT_EQ(error, "Error: Unrolled loop cannot contain \"break\" statement.");
+    EXPECT_EQ(error, "Unrolled loop cannot contain \"break\" statement.");
   }
   {
     string input = R"([[gpu::unroll(2)]] for (; i < j;) { continue; })";
     string error;
     string output = process_test_string(input, error);
-    EXPECT_EQ(error, "Error: Unrolled loop cannot contain \"continue\" statement.");
+    EXPECT_EQ(error, "Unrolled loop cannot contain \"continue\" statement.");
   }
   {
-    string input = R"([[gpu::unroll(2)]] for (; i < j;) { for (; j < k;) {break;continue;} })";
-    string expect = R"({ ;
-#line 1
-if (i < j) { for (; j < k;) {break;continue;} }
-#line 1
-;
-#line 1
-if (i < j) { for (; j < k;) {break;continue;} }
-#line 1
-;
-#line 1
-})";
+    string input = R"(
+[[gpu::unroll(2)]] for (; i < j;) { for (; j < k;) {break;continue;} })";
+    string expect = R"(
+
+{
+#line 2
+                       if(i < j)
+#line 2
+                                  { for (; j < k;) {break;continue;} }
+#line 2
+                       if(i < j)
+#line 2
+                                  { for (; j < k;) {break;continue;} }
+#line 2
+                                                                     })";
     string error;
     string output = process_test_string(input, error);
     EXPECT_EQ(output, expect);
@@ -212,7 +269,28 @@ if (i < j) { for (; j < k;) {break;continue;} }
     string input = R"([[gpu::unroll]] for (int i = 3; i > 2; i++) {})";
     string error;
     string output = process_test_string(input, error);
-    EXPECT_EQ(error, "Error: Unsupported condition in unrolled loop.");
+    EXPECT_EQ(error, "Unsupported condition in unrolled loop.");
+  }
+  {
+    string input = R"(
+[[gpu::unroll_define(2)]] for (int i = 0; i < DEFINE; i++) { a = i; })";
+    string expect = R"(
+
+{
+#if DEFINE > 0
+#line 2
+                                                           { a = 0; }
+#endif
+#if DEFINE > 1
+#line 2
+                                                           { a = 1; }
+#endif
+#line 2
+                                                                    })";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
   }
 }
 GPU_TEST(preprocess_unroll);
@@ -802,6 +880,47 @@ float NS_write(float a){ return a; }
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
+  {
+    /* Struct with member function inside namespace. */
+    string input = R"(
+namespace NS {
+struct S {
+  static S static_method(S s) {
+    return S(0);
+  }
+  S other_method(int s) {
+    return S(0);
+  }
+};
+} // End of namespace
+)";
+
+    string expect = R"(
+
+struct NS_S {
+
+
+
+
+
+
+int _pad;};
+#line 4
+   NS_S NS_S_static_method(NS_S s) {
+    return NS_S(0);
+  }
+#line 7
+  NS_S other_method(inout NS_S _inout_sta this_ _inout_end, int s) {
+    return NS_S(0);
+  }
+#line 11
+
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
 }
 GPU_TEST(preprocess_namespace);
 
@@ -890,13 +1009,13 @@ static void test_preprocess_stage_attribute()
 }
 )";
     string expect = R"(
+ void my_func() {
 #if defined(GPU_VERTEX_SHADER)
-#line 2
-                         void my_func() {
+#line 3
   return;
-}
 #endif
-#line 5
+#line 4
+}
 )";
     string error;
     string output = process_test_string(input, error);
@@ -1280,8 +1399,13 @@ A
 B
 )";
     Parser parser(input, no_err_report);
+    string expect = R"(
+w#w0
+w)";
+    EXPECT_EQ(parser.data_get().token_types, expect);
+
     Token A = Token::from_position(&parser.data_get(), 1);
-    Token B = Token::from_position(&parser.data_get(), 5);
+    Token B = Token::from_position(&parser.data_get(), 6);
 
     EXPECT_EQ(A.str(), "A");
     EXPECT_EQ(B.str(), "B");

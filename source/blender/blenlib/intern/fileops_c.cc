@@ -346,10 +346,10 @@ bool BLI_file_touch(const char *filepath)
  *
  * If the directory already exists, this function is a no-op.
  *
- * \param dirname The directory to create.
- * \param len The number of bytes of 'dirname' to use as path to create. This
- * makes the recursive call possible without doing string duplication for each
- * parent directory.
+ * \param dirname: The directory to create.
+ * \param len: The number of bytes of `dirname` to use as path to create.
+ * This makes the recursive call possible without doing string duplication
+ * for each parent directory.
  */
 static bool dir_create_recursive(const char *dirname, const int len)
 {

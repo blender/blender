@@ -15,7 +15,7 @@
 struct rcti;
 
 /** Flags for mode of operation. */
-enum eGPUSelectMode {
+enum GPUSelectMode {
   GPU_SELECT_INVALID = 0,
   GPU_SELECT_ALL = 1,
   /* gpu_select_query */
@@ -50,17 +50,14 @@ struct GPUSelectBuffer {
 /**
  * Initialize and provide buffer for results.
  */
-void GPU_select_begin(GPUSelectBuffer *buffer,
-                      const rcti *input,
-                      eGPUSelectMode mode,
-                      int oldhits);
+void GPU_select_begin(GPUSelectBuffer *buffer, const rcti *input, GPUSelectMode mode, int oldhits);
 /**
  * Initialize and provide buffer for results.
  * Uses the new Select-Next engine if enabled.
  */
 void GPU_select_begin_next(GPUSelectBuffer *buffer,
                            const rcti *input,
-                           eGPUSelectMode mode,
+                           GPUSelectMode mode,
                            int oldhits);
 /**
  * Loads a new selection id and ends previous query, if any.

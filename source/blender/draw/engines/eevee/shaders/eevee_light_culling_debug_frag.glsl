@@ -8,7 +8,7 @@
  * pass is not conservative enough).
  */
 
-#include "infos/eevee_light_culling_info.hh"
+#include "infos/eevee_light_culling_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(eevee_light_culling_debug)
 

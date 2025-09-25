@@ -40,14 +40,7 @@ struct IDPropNameGetter {
   }
 };
 
-/**
- * Use a #VectorSet to store properties for constant time lookup, to avoid slowdown with many
- * inputs.
- */
-using PropertiesVectorSet = CustomIDVectorSet<IDProperty *, IDPropNameGetter, 16>;
-PropertiesVectorSet build_properties_vector_set(const IDProperty *properties);
-
-std::optional<StringRef> input_attribute_name_get(const PropertiesVectorSet &properties,
+std::optional<StringRef> input_attribute_name_get(const IDProperty *properties,
                                                   const bNodeTreeInterfaceSocket &io_input);
 
 /**
@@ -71,7 +64,7 @@ std::unique_ptr<IDProperty, bke::idprop::IDPropertyDeleter> id_property_create_f
     bool use_name_for_ids);
 
 bke::GeometrySet execute_geometry_nodes_on_geometry(const bNodeTree &btree,
-                                                    const PropertiesVectorSet &properties_set,
+                                                    const IDProperty *properties,
                                                     const ComputeContext &base_compute_context,
                                                     GeoNodesCallData &call_data,
                                                     bke::GeometrySet input_geometry);
@@ -90,7 +83,8 @@ void update_output_properties_from_node_tree(const bNodeTree &tree,
  * fully evaluate the node tree (would be way to slow), and does not support all socket types. So
  * this function may return #InferenceValue::Unknown for some sockets.
  */
-Vector<InferenceValue> get_geometry_nodes_input_inference_values(
-    const bNodeTree &btree, const PropertiesVectorSet &properties, ResourceScope &scope);
+Vector<InferenceValue> get_geometry_nodes_input_inference_values(const bNodeTree &btree,
+                                                                 const IDProperty *properties,
+                                                                 ResourceScope &scope);
 
 }  // namespace blender::nodes

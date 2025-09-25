@@ -17,6 +17,7 @@
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_enums.h"
 #include "DNA_windowmanager_types.h"
@@ -345,6 +346,14 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
     stats->totvertsel += array_utils::count_booleans(selection);
     stats->totpoints += curves.points_num();
   }
+  else if (obedit->type == OB_POINTCLOUD) {
+    using namespace blender;
+    PointCloud &pointcloud = *static_cast<PointCloud *>(obedit->data);
+    const VArray<bool> selection = *pointcloud.attributes().lookup_or_default<bool>(
+        ".selection", bke::AttrDomain::Point, true);
+    stats->totvertsel = array_utils::count_booleans(selection);
+    stats->totpoints = pointcloud.totpoint;
+  }
 }
 
 static void stats_object_pose(const Object *ob, SceneStats *stats)
@@ -628,6 +637,13 @@ static void get_stats_string(char *info,
                                      stats_fmt->totvertsel,
                                      stats_fmt->totpoints);
     }
+    else if (ob->type == OB_POINTCLOUD) {
+      *ofs += BLI_snprintf_utf8_rlen(info + *ofs,
+                                     len - *ofs,
+                                     IFACE_("Points:%s/%s"),
+                                     stats_fmt->totvertsel,
+                                     stats_fmt->totpoints);
+    }
     else {
       *ofs += BLI_snprintf_utf8_rlen(info + *ofs,
                                      len - *ofs,
@@ -898,6 +914,9 @@ void ED_info_draw_stats(
     }
     else if (ob->type == OB_CURVES) {
       stats_row(col1, labels[VERTS], col2, stats_fmt.totvertsel, stats_fmt.totpoints, y, height);
+    }
+    else if (ob->type == OB_POINTCLOUD) {
+      stats_row(col1, labels[POINTS], col2, stats_fmt.totvertsel, stats_fmt.totpoints, y, height);
     }
     else if (ob->type != OB_FONT) {
       stats_row(col1, labels[VERTS], col2, stats_fmt.totvertsel, stats_fmt.totvert, y, height);

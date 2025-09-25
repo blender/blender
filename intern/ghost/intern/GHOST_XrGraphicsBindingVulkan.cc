@@ -37,7 +37,7 @@ GHOST_XrGraphicsBindingVulkan::GHOST_XrGraphicsBindingVulkan(GHOST_Context &ghos
 {
 }
 
-/* \} */
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Destroying resources.
@@ -97,7 +97,7 @@ GHOST_XrGraphicsBindingVulkan::~GHOST_XrGraphicsBindingVulkan()
   s_xrCreateVulkanDeviceKHR_fn = nullptr;
 }
 
-/* \} */
+/** \} */
 
 bool GHOST_XrGraphicsBindingVulkan::checkVersionRequirements(GHOST_Context &ghost_ctx,
                                                              XrInstance instance,
@@ -557,7 +557,7 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageCpu(
   ghost_ctx_.openxr_release_framebuffer_image_callback_(&openxr_data);
 }
 
-/* \} */
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Data transfer GPU
@@ -772,7 +772,7 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageGpu(
   vkResetCommandBuffer(vk_command_buffer, 0);
 }
 
-/* \} */
+/** \} */
 
 bool GHOST_XrGraphicsBindingVulkan::needsUpsideDownDrawing(GHOST_Context &ghost_ctx) const
 {

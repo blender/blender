@@ -31,6 +31,7 @@
 
 struct ARegion;
 struct AutoComplete;
+struct Depsgraph;
 struct EnumPropertyItem;
 struct FileSelectParams;
 struct ID;
@@ -2549,11 +2550,6 @@ bool uiTemplateCacheFilePointer(PointerRNA *ptr,
  * Draw the velocity related properties of the CacheFile.
  */
 void uiTemplateCacheFileVelocity(uiLayout *layout, PointerRNA *fileptr);
-
-/**
- * Draw the render procedural related properties of the CacheFile.
- */
-void uiTemplateCacheFileProcedural(uiLayout *layout, const bContext *C, PointerRNA *fileptr);
 
 /**
  * Draw the time related properties of the CacheFile.

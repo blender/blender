@@ -326,20 +326,17 @@ class QuickExplode(ObjectModeOperator, Operator):
 
                 mat = object_ensure_material(obj, data_("Explode Fade"))
                 mat.surface_render_method = 'DITHERED'
-                if not mat.use_nodes:
-                    mat.use_nodes = True
 
                 nodes = mat.node_tree.nodes
-                for node in nodes:
-                    if node.type == 'OUTPUT_MATERIAL':
-                        node_out_mat = node
-                        break
-
-                node_surface = node_out_mat.inputs["Surface"].links[0].from_node
+                node_out_mat = nodes.new("ShaderNodeOutputMaterial")
+                node_surface = nodes.new("ShaderNodeBsdfPrincipled")
+                nodes.active = node_out_mat
 
                 node_x = node_surface.location[0]
                 node_y = node_surface.location[1] - 400
                 offset_x = 200
+
+                node_out_mat.location[0] = node_x + node_surface.width + offset_x
 
                 node_mix = nodes.new('ShaderNodeMixShader')
                 node_mix.location = (node_x - offset_x, node_y)
@@ -515,9 +512,6 @@ class QuickSmoke(ObjectModeOperator, Operator):
         mat = bpy.data.materials.new(data_("Smoke Domain Material"))
         obj.material_slots[0].material = mat
 
-        # Make sure we use nodes
-        mat.use_nodes = True
-
         # Set node variables and clear the default nodes
         tree = mat.node_tree
         nodes = tree.nodes
@@ -649,9 +643,6 @@ class QuickLiquid(Operator):
 
         mat = bpy.data.materials.new(data_("Liquid Domain Material"))
         obj.material_slots[0].material = mat
-
-        # Make sure we use nodes
-        mat.use_nodes = True
 
         # Set node variables and clear the default nodes
         tree = mat.node_tree

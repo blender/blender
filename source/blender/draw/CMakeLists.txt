@@ -313,6 +313,64 @@ set(LIB
 )
 
 set(GLSL_SRC
+  intern/shaders/draw_curves_infos.hh
+  intern/shaders/draw_debug_infos.hh
+  intern/shaders/draw_object_infos_infos.hh
+  intern/shaders/draw_view_infos.hh
+  intern/shaders/subdiv_infos.hh
+
+  engines/eevee/shaders/infos/eevee_ambient_occlusion_infos.hh
+  engines/eevee/shaders/infos/eevee_common_infos.hh
+  engines/eevee/shaders/infos/eevee_deferred_infos.hh
+  engines/eevee/shaders/infos/eevee_depth_of_field_infos.hh
+  engines/eevee/shaders/infos/eevee_film_infos.hh
+  engines/eevee/shaders/infos/eevee_hiz_infos.hh
+  engines/eevee/shaders/infos/eevee_light_culling_infos.hh
+  engines/eevee/shaders/infos/eevee_lightprobe_sphere_infos.hh
+  engines/eevee/shaders/infos/eevee_lightprobe_volume_infos.hh
+  engines/eevee/shaders/infos/eevee_lookdev_infos.hh
+  engines/eevee/shaders/infos/eevee_lut_infos.hh
+  engines/eevee/shaders/infos/eevee_material_infos.hh
+  engines/eevee/shaders/infos/eevee_motion_blur_infos.hh
+  engines/eevee/shaders/infos/eevee_shadow_infos.hh
+  engines/eevee/shaders/infos/eevee_subsurface_infos.hh
+  engines/eevee/shaders/infos/eevee_tracing_infos.hh
+  engines/eevee/shaders/infos/eevee_velocity_infos.hh
+  engines/eevee/shaders/infos/eevee_volume_infos.hh
+
+  engines/image/shaders/infos/engine_image_infos.hh
+
+  engines/gpencil/shaders/infos/gpencil_infos.hh
+  engines/gpencil/shaders/infos/gpencil_vfx_infos.hh
+
+  engines/overlay/shaders/infos/overlay_antialiasing_infos.hh
+  engines/overlay/shaders/infos/overlay_armature_infos.hh
+  engines/overlay/shaders/infos/overlay_background_infos.hh
+  engines/overlay/shaders/infos/overlay_common_infos.hh
+  engines/overlay/shaders/infos/overlay_edit_mode_infos.hh
+  engines/overlay/shaders/infos/overlay_extra_infos.hh
+  engines/overlay/shaders/infos/overlay_facing_infos.hh
+  engines/overlay/shaders/infos/overlay_grid_infos.hh
+  engines/overlay/shaders/infos/overlay_outline_infos.hh
+  engines/overlay/shaders/infos/overlay_paint_infos.hh
+  engines/overlay/shaders/infos/overlay_sculpt_curves_infos.hh
+  engines/overlay/shaders/infos/overlay_sculpt_infos.hh
+  engines/overlay/shaders/infos/overlay_viewer_attribute_infos.hh
+  engines/overlay/shaders/infos/overlay_volume_infos.hh
+  engines/overlay/shaders/infos/overlay_wireframe_infos.hh
+
+  engines/select/shaders/infos/select_id_infos.hh
+
+  engines/workbench/shaders/infos/workbench_composite_infos.hh
+  engines/workbench/shaders/infos/workbench_depth_infos.hh
+  engines/workbench/shaders/infos/workbench_effect_antialiasing_infos.hh
+  engines/workbench/shaders/infos/workbench_effect_dof_infos.hh
+  engines/workbench/shaders/infos/workbench_effect_outline_infos.hh
+  engines/workbench/shaders/infos/workbench_prepass_infos.hh
+  engines/workbench/shaders/infos/workbench_shadow_infos.hh
+  engines/workbench/shaders/infos/workbench_transparent_resolve_infos.hh
+  engines/workbench/shaders/infos/workbench_volume_infos.hh
+
   engines/eevee/shaders/eevee_ambient_occlusion_lib.glsl
   engines/eevee/shaders/eevee_ambient_occlusion_pass_comp.glsl
   engines/eevee/shaders/eevee_attributes_curves_lib.glsl
@@ -333,6 +391,7 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_debug_surfels_frag.glsl
   engines/eevee/shaders/eevee_debug_irradiance_grid_vert.glsl
   engines/eevee/shaders/eevee_debug_irradiance_grid_frag.glsl
+  engines/eevee/shaders/eevee_deferred_aov_clear_frag.glsl
   engines/eevee/shaders/eevee_deferred_capture_frag.glsl
   engines/eevee/shaders/eevee_deferred_combine_frag.glsl
   engines/eevee/shaders/eevee_deferred_thickness_amend_frag.glsl
@@ -368,12 +427,15 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_film_pass_convert_comp.glsl
   engines/eevee/shaders/eevee_filter_lib.glsl
   engines/eevee/shaders/eevee_forward_lib.glsl
-  engines/eevee/shaders/eevee_gbuffer_lib.glsl
   engines/eevee/shaders/eevee_gbuffer_closure_test.glsl
+  engines/eevee/shaders/eevee_gbuffer_lib.glsl
   engines/eevee/shaders/eevee_gbuffer_normal_test.glsl
+  engines/eevee/shaders/eevee_gbuffer_read_lib.glsl
+  engines/eevee/shaders/eevee_gbuffer_write_lib.glsl
   engines/eevee/shaders/eevee_geom_curves_vert.glsl
   engines/eevee/shaders/eevee_geom_mesh_vert.glsl
   engines/eevee/shaders/eevee_geom_pointcloud_vert.glsl
+  engines/eevee/shaders/eevee_geom_types_lib.glsl
   engines/eevee/shaders/eevee_geom_volume_vert.glsl
   engines/eevee/shaders/eevee_geom_world_vert.glsl
   engines/eevee/shaders/eevee_hiz_debug_frag.glsl
@@ -490,6 +552,7 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_surfel_ray_comp.glsl
   engines/eevee/shaders/eevee_thickness_lib.glsl
   engines/eevee/shaders/eevee_transparency_lib.glsl
+  engines/eevee/shaders/eevee_utility_tx_lib.glsl
   engines/eevee/shaders/eevee_velocity_lib.glsl
   engines/eevee/shaders/eevee_vertex_copy_comp.glsl
   engines/eevee/shaders/eevee_volume_integration_comp.glsl
@@ -497,8 +560,25 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_volume_resolve_frag.glsl
   engines/eevee/shaders/eevee_volume_scatter_comp.glsl
 
+  engines/eevee/eevee_camera_shared.hh
   engines/eevee/eevee_defines.hh
-  engines/eevee/eevee_shader_shared.hh
+  engines/eevee/eevee_debug_shared.hh
+  engines/eevee/eevee_depth_of_field_shared.hh
+  engines/eevee/eevee_film_shared.hh
+  engines/eevee/eevee_hizbuffer_shared.hh
+  engines/eevee/eevee_light_shared.hh
+  engines/eevee/eevee_lightprobe_shared.hh
+  engines/eevee/eevee_motion_blur_shared.hh
+  engines/eevee/eevee_precompute_shared.hh
+  engines/eevee/eevee_raytrace_shared.hh
+  engines/eevee/eevee_renderbuffers_shared.hh
+  engines/eevee/eevee_sampling_shared.hh
+  engines/eevee/eevee_shadow_shared.hh
+  engines/eevee/eevee_subsurface_shared.hh
+  engines/eevee/eevee_transform.hh
+  engines/eevee/eevee_uniform_shared.hh
+  engines/eevee/eevee_velocity_shared.hh
+  engines/eevee/eevee_volume_shared.hh
 
   engines/workbench/shaders/workbench_cavity_lib.glsl
   engines/workbench/shaders/workbench_common_lib.glsl
@@ -749,11 +829,13 @@ list(APPEND LIB
 
 set(GLSL_SOURCE_CONTENT "")
 set(GLSL_METADATA_CONTENT "")
+set(GLSL_INFOS_CONTENT "")
 foreach(GLSL_FILE ${GLSL_SRC})
   get_filename_component(GLSL_FILE_NAME ${GLSL_FILE} NAME)
   string(REPLACE "." "_" GLSL_FILE_NAME_UNDERSCORES ${GLSL_FILE_NAME})
   string(APPEND GLSL_SOURCE_CONTENT "SHADER_SOURCE\(${GLSL_FILE_NAME_UNDERSCORES}, \"${GLSL_FILE_NAME}\", \"${GLSL_FILE}\"\)\n")
   string(APPEND GLSL_METADATA_CONTENT "#include \"${GLSL_FILE}.hh\"\n")
+  string(APPEND GLSL_INFOS_CONTENT "#include \"${GLSL_FILE}.info\"\n")
 endforeach()
 
 set(glsl_source_list_file "${CMAKE_CURRENT_BINARY_DIR}/glsl_draw_source_list.h")
@@ -762,6 +844,9 @@ list(APPEND SRC ${glsl_source_list_file})
 set(glsl_metadata_list_file "${CMAKE_CURRENT_BINARY_DIR}/glsl_draw_metadata_list.hh")
 file(GENERATE OUTPUT ${glsl_metadata_list_file} CONTENT "${GLSL_METADATA_CONTENT}")
 list(APPEND SRC ${glsl_metadata_list_file})
+set(glsl_infos_list_file "${CMAKE_CURRENT_BINARY_DIR}/glsl_draw_infos_list.hh")
+file(GENERATE OUTPUT ${glsl_infos_list_file} CONTENT "${GLSL_INFOS_CONTENT}")
+list(APPEND SRC ${glsl_infos_list_file})
 list(APPEND INC ${CMAKE_CURRENT_BINARY_DIR})
 
 target_include_directories(bf_draw_shaders PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
