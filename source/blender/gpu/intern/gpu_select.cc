@@ -24,7 +24,7 @@
  * \{ */
 
 /* Internal algorithm used */
-enum eGPUSelectAlgo {
+enum GPUSelectAlgo {
   /**
    * `glBegin/EndQuery(GL_SAMPLES_PASSED... )`, `gpu_select_query.c`
    * Only sets 4th component (ID) correctly.
@@ -43,9 +43,9 @@ struct GPUSelectState {
   /* To ignore selection id calls when not initialized */
   bool select_is_active;
   /* mode of operation */
-  eGPUSelectMode mode;
+  GPUSelectMode mode;
   /* internal algorithm for selection */
-  eGPUSelectAlgo algorithm;
+  GPUSelectAlgo algorithm;
   /* allow GPU_select_begin/end without drawing */
   bool use_cache;
   /**
@@ -69,7 +69,7 @@ static GPUSelectState g_select_state = {false};
 
 static void gpu_select_begin_ex(GPUSelectBuffer *buffer,
                                 const rcti *input,
-                                eGPUSelectMode mode,
+                                GPUSelectMode mode,
                                 int oldhits,
                                 bool use_select_next)
 {
@@ -131,13 +131,13 @@ static void gpu_select_begin_ex(GPUSelectBuffer *buffer,
 
 void GPU_select_begin_next(GPUSelectBuffer *buffer,
                            const rcti *input,
-                           eGPUSelectMode mode,
+                           GPUSelectMode mode,
                            int oldhits)
 {
   gpu_select_begin_ex(buffer, input, mode, oldhits, true);
 }
 
-void GPU_select_begin(GPUSelectBuffer *buffer, const rcti *input, eGPUSelectMode mode, int oldhits)
+void GPU_select_begin(GPUSelectBuffer *buffer, const rcti *input, GPUSelectMode mode, int oldhits)
 {
   gpu_select_begin_ex(buffer, input, mode, oldhits, false);
 }

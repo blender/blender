@@ -23,7 +23,6 @@
 #include "BKE_animsys.h"
 #include "BKE_grease_pencil_legacy_convert.hh"
 #include "BKE_idprop.hh"
-#include "BKE_ipo.h"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_library.hh"
@@ -34,6 +33,7 @@
 #include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
+#include "BKE_report.hh"
 #include "BKE_screen.hh"
 
 #include "ANIM_versioning.hh"
@@ -521,19 +521,19 @@ IDProperty *version_cycles_properties_from_render_layer(SceneRenderLayer *render
 float version_cycles_property_float(IDProperty *idprop, const char *name, float default_value)
 {
   IDProperty *prop = IDP_GetPropertyTypeFromGroup(idprop, name, IDP_FLOAT);
-  return (prop) ? IDP_Float(prop) : default_value;
+  return (prop) ? IDP_float_get(prop) : default_value;
 }
 
 int version_cycles_property_int(IDProperty *idprop, const char *name, int default_value)
 {
   IDProperty *prop = IDP_GetPropertyTypeFromGroup(idprop, name, IDP_INT);
-  return (prop) ? IDP_Int(prop) : default_value;
+  return (prop) ? IDP_int_get(prop) : default_value;
 }
 
 void version_cycles_property_int_set(IDProperty *idprop, const char *name, int value)
 {
   if (IDProperty *prop = IDP_GetPropertyTypeFromGroup(idprop, name, IDP_INT)) {
-    IDP_Int(prop) = value;
+    IDP_int_set(prop, value);
   }
   else {
     IDP_AddToGroup(idprop, blender::bke::idprop::create(name, value).release());
@@ -713,7 +713,9 @@ void do_versions_after_setup(Main *new_bmain,
    * the versions of all the linked libraries. */
 
   if (!blendfile_or_libraries_versions_atleast(new_bmain, 250, 0)) {
-    do_versions_ipos_to_layered_actions(new_bmain);
+    /* This happens here, because at this point in the versioning code there's
+     * 'reports' available. */
+    reports->pre_animato_file_loaded = true;
   }
 
   if (!blendfile_or_libraries_versions_atleast(new_bmain, 250, 0)) {

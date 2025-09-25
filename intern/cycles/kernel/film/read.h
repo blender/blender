@@ -37,10 +37,10 @@ ccl_device_inline float film_get_scale(const ccl_global KernelFilmConvert *ccl_r
   if (kfilm_convert->pass_use_filter) {
     const uint sample_count = *(
         (const ccl_global uint *)(buffer + kfilm_convert->pass_sample_count));
-    return 1.0f / sample_count;
+    return kfilm_convert->scale / sample_count;
   }
 
-  return 1.0f;
+  return kfilm_convert->scale;
 }
 
 ccl_device_inline float film_get_scale_exposure(const ccl_global KernelFilmConvert *ccl_restrict
@@ -81,10 +81,10 @@ ccl_device_inline bool film_get_scale_and_scale_exposure(
   }
 
   if (kfilm_convert->pass_use_filter) {
-    *scale = 1.0f / sample_count;
+    *scale = kfilm_convert->scale / sample_count;
   }
   else {
-    *scale = 1.0f;
+    *scale = kfilm_convert->scale;
   }
 
   if (kfilm_convert->pass_use_exposure) {

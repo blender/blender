@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "gpu_shader_material_transform_utils.glsl"
+#include "gpu_shader_math_vector_safe_lib.glsl"
 
 void node_vector_displacement_tangent(
     float4 vector, float midlevel, float scale, float4 T, out float3 result)

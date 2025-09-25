@@ -14,7 +14,7 @@
 
 #include "DRW_render.hh"
 
-#include "eevee_shader_shared.hh"
+#include "eevee_hizbuffer_shared.hh"
 
 namespace blender::eevee {
 
@@ -102,7 +102,7 @@ class HiZBuffer {
    */
   void update();
 
-  void debug_draw(View &view, GPUFrameBuffer *view_fb);
+  void debug_draw(View &view, gpu::FrameBuffer *view_fb);
 
   /* Back is Previous layer depth (ex: For refraction). Front for current layer depth. */
   struct {

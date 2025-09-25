@@ -102,6 +102,7 @@ void ED_mask_center_from_pivot_ex(
 void ED_mask_draw_region(Depsgraph *depsgraph,
                          Mask *mask,
                          ARegion *region,
+                         bool show_overlays,
                          char draw_flag,
                          char draw_type,
                          eMaskOverlayMode overlay_mode,

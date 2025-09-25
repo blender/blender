@@ -63,7 +63,7 @@ template<typename T, int Channels = 4> struct ImageBufferAccessor {
       return float4(&image_buffer.float_buffer.data[offset]);
     }
     if constexpr ((std::is_same_v<T, int>)) {
-      int offset = (coordinate.y * image_buffer.x + coordinate.x);
+      int offset = (coordinate.y * image_buffer.x + coordinate.x) * Channels;
       float4 result;
       rgba_uchar_to_float(
           result,
@@ -80,7 +80,7 @@ template<typename T, int Channels = 4> struct ImageBufferAccessor {
       copy_v4_v4(&image_buffer.float_buffer.data[offset], new_value);
     }
     if constexpr ((std::is_same_v<T, int>)) {
-      int offset = (coordinate.y * image_buffer.x + coordinate.x);
+      int offset = (coordinate.y * image_buffer.x + coordinate.x) * Channels;
       rgba_float_to_uchar(
           static_cast<uchar *>(static_cast<void *>(&image_buffer.byte_buffer.data[offset])),
           new_value);

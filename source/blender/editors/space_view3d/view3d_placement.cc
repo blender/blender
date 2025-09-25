@@ -647,7 +647,7 @@ static void draw_primitive_view(const bContext *C, ARegion * /*region*/, void *a
   UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, color);
 
   const bool use_depth = !XRAY_ENABLED(ipd->v3d);
-  const eGPUDepthTest depth_test_enabled = GPU_depth_test_get();
+  const GPUDepthTest depth_test_enabled = GPU_depth_test_get();
 
   if (use_depth) {
     GPU_depth_test(GPU_DEPTH_NONE);

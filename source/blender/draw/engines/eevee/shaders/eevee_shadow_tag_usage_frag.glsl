@@ -10,7 +10,7 @@
  * tiles.
  */
 
-#include "infos/eevee_shadow_info.hh"
+#include "infos/eevee_shadow_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(eevee_shadow_tag_usage_transparent)
 

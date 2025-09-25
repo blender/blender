@@ -568,9 +568,6 @@ void BKE_pchan_bbone_deform_segment_index(const bPoseChannel *pchan,
                                           int *r_index,
                                           float *r_blend_next);
 
-#define PBONE_SELECTABLE(arm, bone) \
-  (blender::animrig::bone_is_visible(arm, bone) && !((bone)->flag & BONE_UNSELECTABLE))
-
 /* context.selected_pose_bones */
 #define FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN(_ob, _pchan) \
   for (bPoseChannel *_pchan = (bPoseChannel *)(_ob)->pose->chanbase.first; _pchan; \

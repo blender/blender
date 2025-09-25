@@ -1808,7 +1808,7 @@ extern template float4x4 perspective(
 
 /**
  * Transform normal vectors, maintaining their unit length status, but implementing some
- * optimizations for identity matrics and uniform scaling.
+ * optimizations for identity matrix and uniform scaling.
  */
 void transform_normals(const float3x3 &transform, MutableSpan<float3> normals);
 void transform_normals(Span<float3> src, const float3x3 &transform, MutableSpan<float3> dst);

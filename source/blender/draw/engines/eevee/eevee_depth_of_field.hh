@@ -19,9 +19,13 @@
 
 #pragma once
 
-#include "eevee_shader_shared.hh"
+#include "eevee_depth_of_field_shared.hh"
+
+#include "draw_pass.hh"
 
 namespace blender::eevee {
+
+using namespace draw;
 
 class Instance;
 
@@ -40,9 +44,16 @@ struct DepthOfFieldBuffer {
   Texture stabilize_history_tx_ = {"dof_taa"};
 };
 
+using DepthOfFieldScatterListBuf = draw::StorageArrayBuffer<ScatterRect, 16, true>;
+using DepthOfFieldDataBuf = draw::UniformBuffer<DepthOfFieldData>;
+
 class DepthOfField {
+
  private:
   class Instance &inst_;
+
+  static constexpr GPUSamplerState no_filter = GPUSamplerState::default_sampler();
+  static constexpr GPUSamplerState with_filter = {GPU_SAMPLER_FILTERING_LINEAR};
 
   /** Input/Output texture references. */
   gpu::Texture *input_color_tx_ = nullptr;

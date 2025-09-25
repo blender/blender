@@ -36,6 +36,9 @@ static int node_shader_gpu_bsdf_refraction(GPUMaterial *mat,
   }
 
   GPU_material_flag_set(mat, GPU_MATFLAG_REFRACT);
+  if (in[0].might_be_tinted()) {
+    GPU_material_flag_set(mat, GPU_MATFLAG_REFRACTION_MAYBE_COLORED);
+  }
 
   return GPU_stack_link(mat, node, "node_bsdf_refraction", in, out);
 }

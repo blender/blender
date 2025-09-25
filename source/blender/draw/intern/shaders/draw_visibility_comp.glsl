@@ -7,7 +7,7 @@
  */
 /* TODO(fclem): This could be augmented by a 2 pass occlusion culling system. */
 
-#include "draw_view_info.hh"
+#include "draw_view_infos.hh"
 
 #include "draw_intersect_lib.glsl"
 

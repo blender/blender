@@ -64,7 +64,9 @@ class MESH_MT_shape_key_context_menu(Menu):
         layout.operator("object.shape_key_transfer", text="Copy from Objects")
         layout.separator()
         layout.operator("object.join_shapes", text="New from Objects")
+        layout.operator("object.join_shapes", text="New from Objects Flipped").use_mirror = True
         layout.operator("object.update_shapes", icon='FILE_REFRESH')
+        layout.operator("object.update_shapes", text="Update from Objects Flipped").use_mirror = True
         layout.separator()
         layout.operator("object.shape_key_mirror", icon='ARROW_LEFTRIGHT', text="Flip").use_topology = False
         layout.operator("object.shape_key_mirror", text="Flip (Topology)").use_topology = True
@@ -258,6 +260,44 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, Panel):
         draw_attribute_warnings(context, layout, None)
 
 
+def draw_shape_key_properties(context, layout):
+    layout.use_property_split = True
+    ob = context.object
+    key = ob.data.shape_keys
+    kb = ob.active_shape_key
+    enable_edit = ob.mode != 'EDIT'
+    enable_edit_value = False
+
+    if enable_edit or (ob.use_shape_key_edit_mode and ob.type == 'MESH'):
+        if ob.show_only_shape_key is False:
+            enable_edit_value = True
+
+    layout.use_property_split = True
+    if key.use_relative:
+        if ob.active_shape_key_index != 0:
+            row = layout.row()
+            row.active = enable_edit_value
+            row.prop(kb, "value")
+
+            col = layout.column()
+            sub = col.column(align=True)
+            sub.active = enable_edit_value
+            sub.prop(kb, "slider_min", text="Range Min")
+            sub.prop(kb, "slider_max", text="Max")
+
+            col.prop_search(kb, "vertex_group", ob, "vertex_groups", text="Vertex Group")
+            col.prop_search(kb, "relative_key", key, "key_blocks", text="Relative To")
+
+    else:
+        layout.prop(kb, "interpolation")
+        row = layout.column()
+        row.active = enable_edit_value
+        row.prop(key, "eval_time")
+
+    if ob.type == 'MESH':
+        layout.prop(ob, "add_rest_position_attribute")
+
+
 class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
     bl_label = "Shape Keys"
     COMPAT_ENGINES = {
@@ -280,13 +320,10 @@ class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
         kb = ob.active_shape_key
 
         enable_edit = ob.mode != 'EDIT'
-        enable_edit_value = False
         enable_pin = False
 
         if enable_edit or (ob.use_shape_key_edit_mode and ob.type == 'MESH'):
             enable_pin = True
-            if ob.show_only_shape_key is False:
-                enable_edit_value = True
 
         row = layout.row()
 
@@ -329,30 +366,7 @@ class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
             else:
                 sub.operator("object.shape_key_retime", icon='RECOVER_LAST', text="")
 
-            layout.use_property_split = True
-            if key.use_relative:
-                if ob.active_shape_key_index != 0:
-                    row = layout.row()
-                    row.active = enable_edit_value
-                    row.prop(kb, "value")
-
-                    col = layout.column()
-                    sub.active = enable_edit_value
-                    sub = col.column(align=True)
-                    sub.prop(kb, "slider_min", text="Range Min")
-                    sub.prop(kb, "slider_max", text="Max")
-
-                    col.prop_search(kb, "vertex_group", ob, "vertex_groups", text="Vertex Group")
-                    col.prop_search(kb, "relative_key", key, "key_blocks", text="Relative To")
-
-            else:
-                layout.prop(kb, "interpolation")
-                row = layout.column()
-                row.active = enable_edit_value
-                row.prop(key, "eval_time")
-
-        if ob.type == 'MESH':
-            layout.prop(ob, "add_rest_position_attribute")
+            draw_shape_key_properties(context, layout)
 
 
 class DATA_PT_uv_texture(MeshButtonsPanel, Panel):

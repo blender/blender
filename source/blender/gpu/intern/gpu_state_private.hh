@@ -22,19 +22,19 @@ namespace blender::gpu {
  * Try to keep small to reduce validation time. */
 union GPUState {
   struct {
-    /** eGPUWriteMask */
+    /** GPUWriteMask */
     uint32_t write_mask : 13;
-    /** eGPUBlend */
+    /** GPUBlend */
     uint32_t blend : 4;
-    /** eGPUFaceCullTest */
+    /** GPUFaceCullTest */
     uint32_t culling_test : 2;
-    /** eGPUDepthTest */
+    /** GPUDepthTest */
     uint32_t depth_test : 3;
-    /** eGPUStencilTest */
+    /** GPUStencilTest */
     uint32_t stencil_test : 3;
-    /** eGPUStencilOp */
+    /** GPUStencilOp */
     uint32_t stencil_op : 3;
-    /** eGPUProvokingVertex */
+    /** GPUProvokingVertex */
     uint32_t provoking_vert : 1;
     /** Enable bits. */
     uint32_t logic_op_xor : 1;
@@ -150,7 +150,7 @@ class StateManager {
   virtual void apply_state() = 0;
   virtual void force_state() = 0;
 
-  virtual void issue_barrier(eGPUBarrier barrier_bits) = 0;
+  virtual void issue_barrier(GPUBarrier barrier_bits) = 0;
 
   virtual void texture_bind(Texture *tex, GPUSamplerState sampler, int unit) = 0;
   virtual void texture_unbind(Texture *tex) = 0;
@@ -179,17 +179,17 @@ class Fence {
 };
 
 /* Syntactic sugar. */
-static inline GPUFence *wrap(Fence *pixbuf)
+static inline GPUFence *wrap(Fence *fence)
 {
-  return reinterpret_cast<GPUFence *>(pixbuf);
+  return reinterpret_cast<GPUFence *>(fence);
 }
-static inline Fence *unwrap(GPUFence *pixbuf)
+static inline Fence *unwrap(GPUFence *fence)
 {
-  return reinterpret_cast<Fence *>(pixbuf);
+  return reinterpret_cast<Fence *>(fence);
 }
-static inline const Fence *unwrap(const GPUFence *pixbuf)
+static inline const Fence *unwrap(const GPUFence *fence)
 {
-  return reinterpret_cast<const Fence *>(pixbuf);
+  return reinterpret_cast<const Fence *>(fence);
 }
 
 }  // namespace blender::gpu

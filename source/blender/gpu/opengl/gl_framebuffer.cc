@@ -127,7 +127,7 @@ bool GLFrameBuffer::check(char err_out[256])
 
 #undef FORMAT_STATUS
 
-  const char *format = "GPUFrameBuffer: %s status %s\n";
+  const char *format = "gpu::FrameBuffer: %s status %s\n";
 
   if (err_out) {
     BLI_snprintf(err_out, 256, format, this->name_, err);
@@ -302,7 +302,7 @@ void GLFrameBuffer::attachment_set_loadstore_op(GPUAttachmentType type, GPULoadS
   BLI_assert(context_->active_fb == this);
 
   /* TODO(fclem): Add support for other ops. */
-  if (ls.load_action == eGPULoadOp::GPU_LOADACTION_CLEAR) {
+  if (ls.load_action == GPULoadOp::GPU_LOADACTION_CLEAR) {
     if (tmp_detached_[type].tex != nullptr) {
       /* #GPULoadStore is used to define the frame-buffer before it is used for rendering.
        * Binding back unattached attachment makes its state undefined. This is described by the
@@ -421,7 +421,7 @@ void GLFrameBuffer::bind(bool enabled_srgb)
 /** \name Operations.
  * \{ */
 
-void GLFrameBuffer::clear(eGPUFrameBufferBits buffers,
+void GLFrameBuffer::clear(GPUFrameBufferBits buffers,
                           const float clear_col[4],
                           float clear_depth,
                           uint clear_stencil)
@@ -430,9 +430,9 @@ void GLFrameBuffer::clear(eGPUFrameBufferBits buffers,
   BLI_assert(context_->active_fb == this);
 
   /* Save and restore the state. */
-  eGPUWriteMask write_mask = GPU_write_mask_get();
+  GPUWriteMask write_mask = GPU_write_mask_get();
   uint stencil_mask = GPU_stencil_mask_get();
-  eGPUStencilTest stencil_test = GPU_stencil_test_get();
+  GPUStencilTest stencil_test = GPU_stencil_test_get();
 
   if (buffers & GPU_COLOR_BIT) {
     GPU_color_mask(true, true, true, true);
@@ -470,7 +470,7 @@ void GLFrameBuffer::clear_attachment(GPUAttachmentType type,
   BLI_assert(context_->active_fb == this);
 
   /* Save and restore the state. */
-  eGPUWriteMask write_mask = GPU_write_mask_get();
+  GPUWriteMask write_mask = GPU_write_mask_get();
   GPU_color_mask(true, true, true, true);
   bool depth_mask = GPU_depth_mask_get();
   GPU_depth_mask(true);
@@ -530,7 +530,7 @@ void GLFrameBuffer::clear_multi(const float (*clear_cols)[4])
   }
 }
 
-void GLFrameBuffer::read(eGPUFrameBufferBits plane,
+void GLFrameBuffer::read(GPUFrameBufferBits plane,
                          eGPUDataFormat data_format,
                          const int area[4],
                          int channel_len,
@@ -573,7 +573,7 @@ void GLFrameBuffer::read(eGPUFrameBufferBits plane,
 }
 
 void GLFrameBuffer::blit_to(
-    eGPUFrameBufferBits planes, int src_slot, FrameBuffer *dst_, int dst_slot, int x, int y)
+    GPUFrameBufferBits planes, int src_slot, FrameBuffer *dst_, int dst_slot, int x, int y)
 {
   GLFrameBuffer *src = this;
   GLFrameBuffer *dst = static_cast<GLFrameBuffer *>(dst_);

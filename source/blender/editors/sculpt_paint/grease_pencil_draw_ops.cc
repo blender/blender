@@ -1198,27 +1198,27 @@ static VArray<bool> get_fill_boundary_layers(const GreasePencil &grease_pencil,
 
   switch (fill_layer_mode) {
     case GP_FILL_GPLMODE_ACTIVE:
-      return VArray<bool>::from_func(all_layers.size(), [active_layer_index](const int index) {
+      return VArray<bool>::from_std_func(all_layers.size(), [active_layer_index](const int index) {
         return index != active_layer_index;
       });
     case GP_FILL_GPLMODE_ABOVE:
-      return VArray<bool>::from_func(all_layers.size(), [active_layer_index](const int index) {
+      return VArray<bool>::from_std_func(all_layers.size(), [active_layer_index](const int index) {
         return index != active_layer_index + 1;
       });
     case GP_FILL_GPLMODE_BELOW:
-      return VArray<bool>::from_func(all_layers.size(), [active_layer_index](const int index) {
+      return VArray<bool>::from_std_func(all_layers.size(), [active_layer_index](const int index) {
         return index != active_layer_index - 1;
       });
     case GP_FILL_GPLMODE_ALL_ABOVE:
-      return VArray<bool>::from_func(all_layers.size(), [active_layer_index](const int index) {
+      return VArray<bool>::from_std_func(all_layers.size(), [active_layer_index](const int index) {
         return index <= active_layer_index;
       });
     case GP_FILL_GPLMODE_ALL_BELOW:
-      return VArray<bool>::from_func(all_layers.size(), [active_layer_index](const int index) {
+      return VArray<bool>::from_std_func(all_layers.size(), [active_layer_index](const int index) {
         return index >= active_layer_index;
       });
     case GP_FILL_GPLMODE_VISIBLE:
-      return VArray<bool>::from_func(all_layers.size(), [grease_pencil](const int index) {
+      return VArray<bool>::from_std_func(all_layers.size(), [grease_pencil](const int index) {
         return !grease_pencil.layers()[index]->is_visible();
       });
   }

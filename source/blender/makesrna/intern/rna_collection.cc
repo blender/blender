@@ -564,7 +564,7 @@ static const char *rna_CollectionExport_filepath_value_from_idprop(CollectionExp
   if (IDProperty *group = data->export_properties) {
     IDProperty *filepath_prop = IDP_GetPropertyFromGroup(group, "filepath");
     if (filepath_prop && filepath_prop->type == IDP_STRING) {
-      return IDP_String(filepath_prop);
+      return IDP_string_get(filepath_prop);
     }
   }
   return nullptr;

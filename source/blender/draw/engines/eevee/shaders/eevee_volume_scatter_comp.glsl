@@ -8,22 +8,89 @@
 /* Step 2 : Evaluate all light scattering for each froxels.
  * Also do the temporal reprojection to fight aliasing artifacts. */
 
-#include "infos/eevee_volume_info.hh"
+#include "infos/eevee_volume_infos.hh"
 
-COMPUTE_SHADER_CREATE_INFO(eevee_volume_scatter)
+COMPUTE_SHADER_CREATE_INFO(eevee_volume_scatter_with_lights)
 
-#include "gpu_shader_math_vector_lib.glsl"
-
-/* Included here to avoid requiring lightprobe resources for all volume lib users. */
 #include "eevee_colorspace_lib.glsl"
-#include "eevee_lightprobe_eval_lib.glsl"
-#include "eevee_sampling_lib.glsl"
+#include "eevee_light_iter_lib.glsl"
+#include "eevee_light_lib.glsl"
+#include "eevee_lightprobe_volume_eval_lib.glsl"
+#include "eevee_shadow_lib.glsl"
 #include "eevee_volume_lib.glsl"
 
-#include "eevee_sampling_lib.glsl"
-#include "eevee_volume_lib.glsl"
+#if defined(VOLUME_LIGHTING) || defined(GLSL_CPP_STUBS)
 
-#ifdef VOLUME_LIGHTING
+float3 volume_light(LightData light, const bool is_directional, LightVector lv)
+{
+  float power = 1.0f;
+  if (!is_directional) {
+    float light_radius = light_local_data_get(light).shape_radius;
+    /**
+     * Using "Point Light Attenuation Without Singularity" from Cem Yuksel
+     * http://www.cemyuksel.com/research/pointlightattenuation/pointlightattenuation.pdf
+     * http://www.cemyuksel.com/research/pointlightattenuation/
+     */
+    float d = lv.dist;
+    float d_sqr = square(d);
+    float r_sqr = square(light_radius);
+
+    /* Using reformulation that has better numerical precision. */
+    power = 2.0f / (d_sqr + r_sqr + d * sqrt(d_sqr + r_sqr));
+
+    if (light.type == LIGHT_RECT || light.type == LIGHT_ELLIPSE) {
+      /* Modulate by light plane orientation / solid angle. */
+      power *= saturate(dot(light_z_axis(light), lv.L));
+    }
+  }
+  return light.color * light.power[LIGHT_VOLUME] * power;
+}
+
+#  define VOLUMETRIC_SHADOW_MAX_STEP 128.0f
+
+float3 volume_shadow(
+    LightData ld, const bool is_directional, float3 P, LightVector lv, sampler3D extinction_tx)
+{
+#  if defined(VOLUME_SHADOW) || defined(GLSL_CPP_STUBS)
+  if (uniform_buf.volumes.shadow_steps == 0) {
+    return float3(1.0f);
+  }
+
+  /* Heterogeneous volume shadows. */
+  float dd = lv.dist / uniform_buf.volumes.shadow_steps;
+  float3 L = lv.L * lv.dist / uniform_buf.volumes.shadow_steps;
+
+  if (is_directional) {
+    /* For sun light we scan the whole frustum. So we need to get the correct endpoints. */
+    float3 ndcP = drw_point_world_to_ndc(P);
+    float3 ndcL = drw_point_world_to_ndc(P + lv.L * lv.dist) - ndcP;
+
+    float3 ndc_frustum_isect = ndcP + ndcL * line_unit_box_intersect_dist_safe(ndcP, ndcL);
+
+    L = drw_point_ndc_to_world(ndc_frustum_isect) - P;
+    L /= uniform_buf.volumes.shadow_steps;
+    dd = length(L);
+  }
+
+  /* TODO use shadow maps instead. */
+  float3 shadow = float3(1.0f);
+  for (float t = 1.0f; t < VOLUMETRIC_SHADOW_MAX_STEP && t <= uniform_buf.volumes.shadow_steps;
+       t += 1.0f)
+  {
+    float3 w_pos = P + L * t;
+
+    float3 v_pos = drw_point_world_to_view(w_pos);
+    float3 volume_co = volume_view_to_jitter(v_pos);
+    /* Let the texture be clamped to edge. This reduce visual glitches. */
+    float3 s_extinction = texture(extinction_tx, volume_co).rgb;
+
+    shadow *= exp(-s_extinction * dd);
+  }
+  return shadow;
+#  else
+  return float3(1.0f);
+#  endif /* VOLUME_SHADOW */
+}
 
 float3 volume_light_eval(
     const bool is_directional, float3 P, float3 V, uint l_idx, float s_anisotropy)
@@ -88,7 +155,7 @@ void main()
   float3 scattering = imageLoadFast(in_emission_img, froxel).rgb;
   float3 extinction = imageLoadFast(in_extinction_img, froxel).rgb;
 
-#ifdef VOLUME_LIGHTING
+#if defined(VOLUME_LIGHTING) || defined(GLSL_CPP_STUBS)
   float3 s_scattering = imageLoadFast(in_scattering_img, froxel).rgb;
 
   float offset = sampling_rng_1D_get(SAMPLING_VOLUME_W);

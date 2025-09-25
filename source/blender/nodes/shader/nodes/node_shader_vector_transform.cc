@@ -20,7 +20,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value({0.5f, 0.5f, 0.5f})
       .min(-10000.0f)
       .max(10000.0f)
-      .description("Vector, point, or normal which will be used for convertion between spaces");
+      .description("Vector, point, or normal which will be used for conversion between spaces");
   b.add_output<decl::Vector>("Vector");
 }
 

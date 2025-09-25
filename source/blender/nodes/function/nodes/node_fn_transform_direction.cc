@@ -32,6 +32,8 @@ static void node_register()
   static blender::bke::bNodeType ntype;
   fn_node_type_base(&ntype, "FunctionNodeTransformDirection", FN_NODE_TRANSFORM_DIRECTION);
   ntype.ui_name = "Transform Direction";
+  ntype.ui_description =
+      "Apply a transformation matrix (excluding translation) to the given vector";
   ntype.enum_name_legacy = "TRANSFORM_DIRECTION";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;

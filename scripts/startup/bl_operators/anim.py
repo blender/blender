@@ -530,8 +530,8 @@ class ARMATURE_OT_copy_bone_color_to_selected(Operator):
         if num_pose_color_overrides:
             self.report(
                 {'INFO'},
-                "Bone colors were synced; "
-                "for {:d} bones this will not be visible due to pose bone color overrides".format(
+                rpt_("Bone colors were synced; "
+                     "for {:d} bones this will not be visible due to pose bone color overrides").format(
                     num_pose_color_overrides,
                 ),
             )
@@ -670,7 +670,10 @@ class ARMATURE_OT_collection_remove_unused(Operator):
             armature.collections.remove(bcoll)
 
         self.report(
-            {'INFO'}, "Removed {:d} of {:d} bone collections".format(num_bcolls_to_remove, num_bcolls_before_removal),
+            {'INFO'},
+            rpt_("Removed {:d} of {:d} bone collections").format(
+                num_bcolls_to_remove,
+                num_bcolls_before_removal),
         )
 
 

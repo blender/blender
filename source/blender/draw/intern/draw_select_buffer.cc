@@ -67,7 +67,7 @@ bool SELECTID_Context::is_dirty(Depsgraph *depsgraph, RegionView3D *rv3d)
 uint *DRW_select_buffer_read(
     Depsgraph *depsgraph, ARegion *region, View3D *v3d, const rcti *rect, uint *r_buf_len)
 {
-  uint *r_buf = nullptr;
+  uint *buf = nullptr;
   uint buf_len = 0;
 
   /* Clamp rect. */
@@ -97,9 +97,9 @@ uint *DRW_select_buffer_read(
 
       /* Read the UI32 pixels. */
       buf_len = BLI_rcti_size_x(rect) * BLI_rcti_size_y(rect);
-      r_buf = MEM_malloc_arrayN<uint>(buf_len, __func__);
+      buf = MEM_malloc_arrayN<uint>(buf_len, __func__);
 
-      GPUFrameBuffer *select_id_fb = DRW_engine_select_framebuffer_get();
+      blender::gpu::FrameBuffer *select_id_fb = DRW_engine_select_framebuffer_get();
       GPU_framebuffer_bind(select_id_fb);
       GPU_framebuffer_read_color(select_id_fb,
                                  rect_clamp.xmin,
@@ -109,11 +109,11 @@ uint *DRW_select_buffer_read(
                                  1,
                                  0,
                                  GPU_DATA_UINT,
-                                 r_buf);
+                                 buf);
 
       if (!BLI_rcti_compare(rect, &rect_clamp)) {
         /* The rect has been clamped so we need to realign the buffer and fill in the blanks */
-        GPU_select_buffer_stride_realign(rect, &rect_clamp, r_buf);
+        GPU_select_buffer_stride_realign(rect, &rect_clamp, buf);
       }
     }
 
@@ -125,7 +125,7 @@ uint *DRW_select_buffer_read(
     *r_buf_len = buf_len;
   }
 
-  return r_buf;
+  return buf;
 }
 
 /** \} */
@@ -413,20 +413,20 @@ bool DRW_select_buffer_elem_get(const uint sel_id,
     if (ranges.face.contains(sel_id)) {
       r_elem = sel_id - ranges.face.start();
       r_elem_type = SCE_SELECT_FACE;
-      r_base_index = select_ctx->objects.first_index_of(ob);
-      return true;
+      r_base_index = select_ctx->objects.first_index_of_try(ob);
+      return r_base_index != -1;
     }
     if (ranges.edge.contains(sel_id)) {
       r_elem = sel_id - ranges.edge.start();
       r_elem_type = SCE_SELECT_EDGE;
-      r_base_index = select_ctx->objects.first_index_of(ob);
-      return true;
+      r_base_index = select_ctx->objects.first_index_of_try(ob);
+      return r_base_index != -1;
     }
     if (ranges.vert.contains(sel_id)) {
       r_elem = sel_id - ranges.vert.start();
       r_elem_type = SCE_SELECT_VERTEX;
-      r_base_index = select_ctx->objects.first_index_of(ob);
-      return true;
+      r_base_index = select_ctx->objects.first_index_of_try(ob);
+      return r_base_index != -1;
     }
   }
   return false;

@@ -90,6 +90,10 @@ class FileOutput {
  * data from each of the evaluations of each view, for instance, to save all views in a single file
  * for the File Output node, see the file_outputs_ member for more information. */
 class RenderContext {
+ public:
+  /* True if the render context represents an animation render. */
+  bool is_animation_render = false;
+
  private:
   /* A mapping between file outputs and their image file paths. Those are constructed in the
    * get_file_output method and saved in the save_file_outputs method. See those methods for more

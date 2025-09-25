@@ -74,6 +74,7 @@ set(SRC_OSL
   node_refraction_bsdf.osl
   node_rgb_curves.osl
   node_rgb_ramp.osl
+  node_radial_tiling.osl
   node_separate_color.osl
   node_separate_xyz.osl
   node_set_normal.osl
@@ -119,6 +120,7 @@ set(SRC_OSL_HEADERS
   node_math.h
   node_noise.h
   node_ramp_util.h
+  node_radial_tiling_shared.h
   node_voronoi.h
   stdcycles.h
   ${SRC_OSL_HEADER_DIST}

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "gpu_glsl_cpp_stubs.hh"
+#include "gpu_shader_compat.hh"
 
 float4 white_balance(float4 color, float4 black_level, float4 white_level)
 {
@@ -98,6 +98,31 @@ void curves_combined_rgb(float factor,
   result = mix(color, result, factor);
 }
 
+void curves_combined_rgb_compositor(float4 color,
+                                    float factor,
+                                    float4 black_level,
+                                    float4 white_level,
+                                    sampler1DArray curve_map,
+                                    const float layer,
+                                    float4 range_minimums,
+                                    float4 range_dividers,
+                                    float4 start_slopes,
+                                    float4 end_slopes,
+                                    out float4 result)
+{
+  curves_combined_rgb(factor,
+                      color,
+                      black_level,
+                      white_level,
+                      curve_map,
+                      layer,
+                      range_minimums,
+                      range_dividers,
+                      start_slopes,
+                      end_slopes,
+                      result);
+}
+
 void curves_combined_only(float factor,
                           float4 color,
                           float4 black_level,
@@ -127,6 +152,31 @@ void curves_combined_only(float factor,
   result.a = color.a;
 
   result = mix(color, result, factor);
+}
+
+void curves_combined_only_compositor(float4 color,
+                                     float factor,
+                                     float4 black_level,
+                                     float4 white_level,
+                                     sampler1DArray curve_map,
+                                     const float layer,
+                                     float range_minimum,
+                                     float range_divider,
+                                     float start_slope,
+                                     float end_slope,
+                                     out float4 result)
+{
+  curves_combined_only(factor,
+                       color,
+                       black_level,
+                       white_level,
+                       curve_map,
+                       layer,
+                       range_minimum,
+                       range_divider,
+                       start_slope,
+                       end_slope,
+                       result);
 }
 
 /* Contrary to standard tone curve implementations, the film-like implementation tries to preserve
@@ -205,6 +255,31 @@ void curves_film_like(float factor,
   result.a = color.a;
 
   result = mix(color, result, clamp(factor, 0.0f, 1.0f));
+}
+
+void curves_film_like_compositor(float4 color,
+                                 float factor,
+                                 float4 black_level,
+                                 float4 white_level,
+                                 sampler1DArray curve_map,
+                                 const float layer,
+                                 float range_minimum,
+                                 float range_divider,
+                                 float start_slope,
+                                 float end_slope,
+                                 out float4 result)
+{
+  curves_film_like(factor,
+                   color,
+                   black_level,
+                   white_level,
+                   curve_map,
+                   layer,
+                   range_minimum,
+                   range_divider,
+                   start_slope,
+                   end_slope,
+                   result);
 }
 
 void curves_vector(float3 vector,

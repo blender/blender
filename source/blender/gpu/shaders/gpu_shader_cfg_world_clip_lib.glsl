@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "infos/gpu_clip_planes_info.hh"
+#include "infos/gpu_clip_planes_infos.hh"
 
 #ifdef GPU_FRAGMENT_SHADER
 #  error File should not be included in fragment shader

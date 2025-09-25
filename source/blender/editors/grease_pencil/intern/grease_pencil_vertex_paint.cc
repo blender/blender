@@ -444,7 +444,7 @@ static wmOperatorStatus grease_pencil_vertex_paint_reset_exec(bContext *C, wmOpe
           info,
           use_selection_mask,
           [&](const ColorGeometry4f & /*color*/) -> ColorGeometry4f {
-            return ColorGeometry4f(1.0, 1.0, 1.0, 1.0);
+            return ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f);
           });
       any_changed.store(any_changed | changed, std::memory_order_relaxed);
       return;

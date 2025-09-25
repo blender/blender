@@ -148,4 +148,5 @@ blender::VectorSet<Strip *> query_rendered_strips(const Scene *scene,
                                                   int timeline_frame,
                                                   int displayed_channel);
 
+bool must_render_strip(const VectorSet<Strip *> &strips, Strip *strip);
 }  // namespace blender::seq

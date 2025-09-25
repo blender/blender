@@ -2294,159 +2294,10 @@ static void rna_ConsoleLine_current_character_set(PointerRNA *ptr, const int ind
 
 /* Space Dope-sheet */
 
-static void rna_SpaceDopeSheetEditor_action_set(PointerRNA *ptr,
-                                                PointerRNA value,
-                                                ReportList * /*reports*/)
-{
-  SpaceAction *saction = (SpaceAction *)(ptr->data);
-  bAction *act = (bAction *)value.data;
-
-  if ((act == nullptr) || (act->idroot == 0)) {
-    /* just set if we're clearing the action or if the action is "amorphous" still */
-    saction->action = act;
-  }
-  else {
-    /* action to set must strictly meet the mode criteria... */
-    if (saction->mode == SACTCONT_ACTION) {
-      /* currently, this is "object-level" only, until we have some way of specifying this */
-      if (act->idroot == ID_OB) {
-        saction->action = act;
-      }
-      else {
-        printf(
-            "ERROR: cannot assign Action '%s' to Action Editor, as action is not object-level "
-            "animation\n",
-            act->id.name + 2);
-      }
-    }
-    else if (saction->mode == SACTCONT_SHAPEKEY) {
-      /* As the name says, "shape-key level" only. */
-      if (act->idroot == ID_KE) {
-        saction->action = act;
-      }
-      else {
-        printf(
-            "ERROR: cannot assign Action '%s' to Shape Key Editor, as action doesn't animate "
-            "Shape Keys\n",
-            act->id.name + 2);
-      }
-    }
-    else {
-      printf(
-          "ACK: who's trying to set an action while not in a mode displaying a single Action "
-          "only?\n");
-    }
-  }
-}
-
-static void rna_SpaceDopeSheetEditor_action_update(bContext *C, PointerRNA *ptr)
-{
-  SpaceAction *saction = (SpaceAction *)(ptr->data);
-  const Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer = CTX_data_view_layer(C);
-  Main *bmain = CTX_data_main(C);
-
-  BKE_view_layer_synced_ensure(scene, view_layer);
-  Object *obact = BKE_view_layer_active_object_get(view_layer);
-  if (obact == nullptr) {
-    return;
-  }
-
-  AnimData *adt = nullptr;
-  ID *id = nullptr;
-  switch (saction->mode) {
-    case SACTCONT_ACTION:
-      /* TODO: context selector could help decide this with more control? */
-      adt = BKE_animdata_ensure_id(&obact->id);
-      id = &obact->id;
-      break;
-    case SACTCONT_SHAPEKEY: {
-      Key *key = BKE_key_from_object(obact);
-      if (key == nullptr) {
-        return;
-      }
-      adt = BKE_animdata_ensure_id(&key->id);
-      id = &key->id;
-      break;
-    }
-    case SACTCONT_GPENCIL:
-    case SACTCONT_DOPESHEET:
-    case SACTCONT_MASK:
-    case SACTCONT_CACHEFILE:
-    case SACTCONT_TIMELINE:
-      return;
-  }
-
-  if (adt == nullptr) {
-    /* No animdata was added, so the depsgraph also doesn't need tagging. */
-    return;
-  }
-
-  /* Don't do anything if old and new actions are the same... */
-  if (adt->action == saction->action) {
-    return;
-  }
-
-  /* Exit editmode first - we cannot change actions while in tweak-mode. */
-  BKE_nla_tweakmode_exit({*id, *adt});
-
-  /* To prevent data loss (i.e. if users flip between actions using the Browse menu),
-   * stash this action if nothing else uses it.
-   *
-   * EXCEPTION:
-   * This callback runs when unlinking actions. In that case, we don't want to
-   * stash the action, as the user is signaling that they want to detach it.
-   * This can be reviewed again later,
-   * but it could get annoying if we keep these instead.
-   */
-  if (adt->action != nullptr && adt->action->id.us <= 0 && saction->action != nullptr) {
-    /* XXX: Things here get dodgy if this action is only partially completed,
-     *      and the user then uses the browse menu to get back to this action,
-     *      assigning it as the active action (i.e. the stash strip gets out of sync)
-     */
-    BKE_nla_action_stash({*id, *adt}, ID_IS_OVERRIDE_LIBRARY(id));
-  }
-
-  BKE_animdata_set_action(nullptr, id, saction->action);
-
-  DEG_id_tag_update(&obact->id, ID_RECALC_ANIMATION | ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-
-  /* Update relations as well, so new time source dependency is added. */
-  DEG_relations_tag_update(bmain);
-}
-
 static void rna_SpaceDopeSheetEditor_mode_update(bContext *C, PointerRNA *ptr)
 {
   SpaceAction *saction = (SpaceAction *)(ptr->data);
   ScrArea *area = CTX_wm_area(C);
-  const Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer = CTX_data_view_layer(C);
-  BKE_view_layer_synced_ensure(scene, view_layer);
-  Object *obact = BKE_view_layer_active_object_get(view_layer);
-
-  /* special exceptions for ShapeKey Editor mode */
-  if (saction->mode == SACTCONT_SHAPEKEY) {
-    Key *key = BKE_key_from_object(obact);
-
-    /* 1) update the action stored for the editor */
-    if (key) {
-      saction->action = (key->adt) ? key->adt->action : nullptr;
-    }
-    else {
-      saction->action = nullptr;
-    }
-  }
-  /* make sure action stored is valid */
-  else if (saction->mode == SACTCONT_ACTION) {
-    /* 1) update the action stored for the editor */
-    /* TODO: context selector could help decide this with more control? */
-    if (obact) {
-      saction->action = (obact->adt) ? obact->adt->action : nullptr;
-    }
-    else {
-      saction->action = nullptr;
-    }
-  }
 
   /* Collapse (and show) summary channel and hide channel list for timeline */
   if (saction->mode == SACTCONT_TIMELINE) {
@@ -2968,6 +2819,17 @@ static void rna_SpaceClipEditor_zoom_percentage_set(PointerRNA *ptr, const float
   sc->zoom = value / 100.0f;
 }
 
+static PointerRNA rna_SpaceClip_overlay_get(PointerRNA *ptr)
+{
+  return RNA_pointer_create_with_parent(*ptr, &RNA_SpaceClipOverlay, ptr->data);
+}
+
+static std::optional<std::string> rna_SpaceClipOverlay_path(const PointerRNA *ptr)
+{
+  std::optional<std::string> editor_path = BKE_screen_path_from_screen_to_space(ptr);
+  return fmt::format("{}{}{}", editor_path.value_or(""), editor_path ? "." : "", "overlay");
+}
+
 /* File browser. */
 
 static std::optional<std::string> rna_FileSelectParams_path(const PointerRNA * /*ptr*/)
@@ -3331,9 +3193,9 @@ static void rna_FileBrowser_FSMenu_begin(CollectionPropertyIterator *iter, FSMen
 static PointerRNA rna_FileBrowser_FSMenu_get(CollectionPropertyIterator *iter)
 {
   ListBaseIterator *internal = &iter->internal.listbase;
-  PointerRNA r_ptr = RNA_pointer_create_with_parent(
+  PointerRNA ptr_result = RNA_pointer_create_with_parent(
       iter->parent, &RNA_FileBrowserFSMenuEntry, internal->link);
-  return r_ptr;
+  return ptr_result;
 }
 
 static void rna_FileBrowser_FSMenu_end(CollectionPropertyIterator * /*iter*/) {}
@@ -6763,19 +6625,6 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
                                             (1 << RGN_TYPE_FOOTER) | (1 << RGN_TYPE_UI) |
                                                 (1 << RGN_TYPE_HUD) | (1 << RGN_TYPE_CHANNELS));
 
-  /* data */
-  prop = RNA_def_property(srna, "action", PROP_POINTER, PROP_NONE);
-  RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_pointer_funcs(prop,
-                                 nullptr,
-                                 "rna_SpaceDopeSheetEditor_action_set",
-                                 nullptr,
-                                 "rna_Action_actedit_assign_poll");
-  RNA_def_property_ui_text(prop, "Action", "Action displayed and edited in this space");
-  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-  RNA_def_property_update(
-      prop, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, "rna_SpaceDopeSheetEditor_action_update");
-
   /* mode (hidden in the UI, see 'ui_mode') */
   prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "mode");
@@ -7877,6 +7726,8 @@ static void rna_def_space_userpref(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "SpaceUserPref");
   RNA_def_struct_ui_text(srna, "Space Preferences", "Blender preferences space data");
 
+  rna_def_space_generic_show_region_toggles(srna, (1 << RGN_TYPE_UI));
+
   prop = RNA_def_property(srna, "filter_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "filter_type");
   RNA_def_property_enum_items(prop, filter_type_items);
@@ -8058,12 +7909,12 @@ static void rna_def_space_node(BlenderRNA *brna)
   static const EnumPropertyItem geometry_nodes_type_items[] = {
       {SNODE_GEOMETRY_MODIFIER,
        "MODIFIER",
-       0,
+       ICON_MODIFIER_DATA,
        "Modifier",
        "Edit node group from active object's active modifier"},
       {SNODE_GEOMETRY_TOOL,
        "TOOL",
-       0,
+       ICON_TOOL_SETTINGS,
        "Tool",
        "Edit any geometry node group for use as an operator"},
       {0, nullptr, 0, nullptr, nullptr},
@@ -8253,6 +8104,31 @@ static void rna_def_space_node(BlenderRNA *brna)
 
   rna_def_space_node_overlay(brna);
   RNA_api_space_node(srna);
+}
+
+static void rna_def_space_clip_overlay(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "SpaceClipOverlay", nullptr);
+  RNA_def_struct_sdna(srna, "SpaceClip");
+  RNA_def_struct_nested(brna, srna, "SpaceClipEditor");
+  RNA_def_struct_path_func(srna, "rna_SpaceClipOverlay_path");
+  RNA_def_struct_ui_text(
+      srna, "Overlay Settings", "Settings for display of overlays in the Movie Clip editor");
+
+  prop = RNA_def_property(srna, "show_overlays", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "overlay.flag", SC_SHOW_OVERLAYS);
+  RNA_def_property_boolean_default(prop, true);
+  RNA_def_property_ui_text(prop, "Show Overlays", "Display overlays like cursor and annotations");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, nullptr);
+
+  prop = RNA_def_property(srna, "show_cursor", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "overlay.flag", SC_SHOW_CURSOR);
+  RNA_def_property_boolean_default(prop, true);
+  RNA_def_property_ui_text(prop, "Show Overlays", "Display 2D cursor");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, nullptr);
 }
 
 static void rna_def_space_clip(BlenderRNA *brna)
@@ -8575,6 +8451,16 @@ static void rna_def_space_clip(BlenderRNA *brna)
   RNA_def_property_range(prop, .4f, 80000);
   RNA_def_property_ui_range(prop, 25, 400, 100, 0);
   RNA_def_property_ui_text(prop, "Zoom", "Zoom percentage");
+
+  /* Overlays */
+  prop = RNA_def_property(srna, "overlay", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  RNA_def_property_struct_type(prop, "SpaceClipOverlay");
+  RNA_def_property_pointer_funcs(prop, "rna_SpaceClip_overlay_get", nullptr, nullptr, nullptr);
+  RNA_def_property_ui_text(
+      prop, "Overlay Settings", "Settings for display of overlays in the Movie Clip editor");
+
+  rna_def_space_clip_overlay(brna);
 }
 
 static void rna_def_spreadsheet_column_id(BlenderRNA *brna)

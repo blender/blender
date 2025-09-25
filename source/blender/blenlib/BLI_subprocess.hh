@@ -56,7 +56,7 @@ class BlenderSubprocess : NonCopyable {
   /**
    * Create a subprocess and pass the arguments to the main function.
    * NOTE: The subprocess path is not passed as `argv[0]`.
-   * `args` only support alpha-numeric characters, underscores and hyphen-minus as a safety
+   * `args` only support alphanumeric characters, underscores and hyphen-minus as a safety
    * measure.
    * WARNING: This function shouldn't be called again after it succeeds.
    */

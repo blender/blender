@@ -9,7 +9,7 @@
  * Some render-pass are written during this pass.
  */
 
-#include "infos/eevee_material_info.hh"
+#include "infos/eevee_material_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(eevee_node_tree)
 FRAGMENT_SHADER_CREATE_INFO(eevee_geom_mesh)
@@ -19,8 +19,7 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_cryptomatte_out)
 
 #include "draw_curves_lib.glsl"
 #include "draw_view_lib.glsl"
-#include "eevee_ambient_occlusion_lib.glsl"
-#include "eevee_gbuffer_lib.glsl"
+#include "eevee_gbuffer_write_lib.glsl"
 #include "eevee_nodetree_frag_lib.glsl"
 #include "eevee_sampling_lib.glsl"
 #include "eevee_surf_lib.glsl"
@@ -39,11 +38,30 @@ float4 closure_to_rgba(Closure cl)
   return out_color;
 }
 
+void write_closure_data(int2 texel, int layer, float4 data)
+{
+  /* NOTE: The image view start at layer GBUF_CLOSURE_FB_LAYER_COUNT so all destination layer is
+   * `layer - GBUF_CLOSURE_FB_LAYER_COUNT`. */
+  imageStoreFast(out_gbuf_closure_img, int3(texel, layer - GBUF_CLOSURE_FB_LAYER_COUNT), data);
+}
+
+void write_normal_data(int2 texel, int layer, float2 data)
+{
+  /* NOTE: The image view start at layer GBUF_NORMAL_FB_LAYER_COUNT so all destination layer is
+   * `layer - GBUF_NORMAL_FB_LAYER_COUNT`. */
+  imageStoreFast(out_gbuf_normal_img, int3(texel, layer - GBUF_NORMAL_FB_LAYER_COUNT), data.xyyy);
+}
+
+void write_header_data(int2 texel, int layer, uint data)
+{
+  /* NOTE: The image view start at layer GBUF_HEADER_FB_LAYER_COUNT so all destination layer is
+   * `layer - GBUF_HEADER_FB_LAYER_COUNT`. */
+  imageStoreFast(
+      out_gbuf_header_img, int3(texel, layer - GBUF_HEADER_FB_LAYER_COUNT), uint4(data));
+}
+
 void main()
 {
-  /* Clear AOVs first. In case the material renders to them. */
-  clear_aovs();
-
   init_globals();
 
   float noise = utility_tx_fetch(utility_tx, gl_FragCoord.xy, UTIL_BLUE_NOISE_LAYER).r;
@@ -94,13 +112,12 @@ void main()
         cryptomatte_object_buf[drw_resource_id()], node_tree.crypto_hash, 0.0f);
     imageStoreFast(rp_cryptomatte_img, out_texel, cryptomatte_output);
   }
-  output_renderpass_color(uniform_buf.render_pass.position_id, float4(g_data.P, 1.0f));
   output_renderpass_color(uniform_buf.render_pass.emission_id, float4(g_emission, 1.0f));
 #endif
 
   /* ----- GBuffer output ----- */
 
-  GBufferData gbuf_data;
+  gbuffer::InputClosures gbuf_data;
   gbuf_data.closure[0] = g_closure_get_resolved(0, alpha_rcp);
 #if CLOSURE_BIN_COUNT > 1
   gbuf_data.closure[1] = g_closure_get_resolved(1, alpha_rcp);
@@ -108,46 +125,55 @@ void main()
 #if CLOSURE_BIN_COUNT > 2
   gbuf_data.closure[2] = g_closure_get_resolved(2, alpha_rcp);
 #endif
-  gbuf_data.surface_N = g_data.N;
-  gbuf_data.thickness = thickness;
-  gbuf_data.use_object_id = use_sss || use_light_linking || use_terminator_offset;
+  const bool use_object_id = use_sss || use_light_linking || use_terminator_offset;
 
-  GBufferWriter gbuf = gbuffer_pack(gbuf_data, g_data.Ng);
+  gbuffer::Packed gbuf = gbuffer::pack(gbuf_data, g_data.Ng, g_data.N, thickness, use_object_id);
 
   /* Output header and first closure using frame-buffer attachment. */
   out_gbuf_header = gbuf.header;
-  out_gbuf_closure1 = gbuf.data[0];
-  out_gbuf_closure2 = gbuf.data[1];
-  out_gbuf_normal = gbuf.N[0];
+  out_gbuf_closure1 = gbuf.closure[0];
+  out_gbuf_closure2 = gbuf.closure[1];
+  out_gbuf_normal = gbuf.normal[0];
 
   /* Output remaining closures using image store. */
-  [[gpu::unroll(6)]] for (int layer = GBUF_CLOSURE_FB_LAYER_COUNT;
-                          layer < GBUFFER_DATA_MAX && layer < gbuf.data_len;
-                          layer++)
-  {
-    /* NOTE: The image view start at layer GBUF_CLOSURE_FB_LAYER_COUNT so all destination layer is
-     * `layer - GBUF_CLOSURE_FB_LAYER_COUNT`. */
-    imageStoreFast(out_gbuf_closure_img,
-                   int3(out_texel, layer - GBUF_CLOSURE_FB_LAYER_COUNT),
-                   gbuf.data[layer]);
+#if GBUFFER_LAYER_MAX >= 2 && !defined(GBUFFER_SIMPLE_CLOSURE_LAYOUT)
+  if (flag_test(gbuf.used_layers, CLOSURE_DATA_2)) {
+    write_closure_data(out_texel, 2, gbuf.closure[2]);
   }
-  [[gpu::unroll(4)]] for (int layer = GBUF_NORMAL_FB_LAYER_COUNT;
-                          layer < GBUFFER_NORMAL_MAX && layer < gbuf.normal_len;
-                          layer++)
-  {
-    /* NOTE: The image view start at layer GBUF_NORMAL_FB_LAYER_COUNT so all destination layer is
-     * `layer - GBUF_NORMAL_FB_LAYER_COUNT`. */
-    imageStoreFast(out_gbuf_normal_img,
-                   int3(out_texel, layer - GBUF_NORMAL_FB_LAYER_COUNT),
-                   gbuf.N[layer].xyyy);
+  if (flag_test(gbuf.used_layers, CLOSURE_DATA_3)) {
+    write_closure_data(out_texel, 3, gbuf.closure[3]);
   }
-  if (gbuf_data.use_object_id) {
-    constexpr int layer = GBUF_HEADER_FB_LAYER_COUNT;
-    /* NOTE: The image view start at layer GBUF_HEADER_FB_LAYER_COUNT so all destination layer is
-     * `layer - GBUF_HEADER_FB_LAYER_COUNT`. */
-    imageStoreFast(out_gbuf_header_img,
-                   int3(out_texel, layer - GBUF_HEADER_FB_LAYER_COUNT),
-                   uint4(drw_resource_id()));
+#endif
+#if GBUFFER_LAYER_MAX >= 3
+  if (flag_test(gbuf.used_layers, CLOSURE_DATA_4)) {
+    write_closure_data(out_texel, 4, gbuf.closure[4]);
+  }
+  if (flag_test(gbuf.used_layers, CLOSURE_DATA_5)) {
+    write_closure_data(out_texel, 5, gbuf.closure[5]);
+  }
+#endif
+
+#if GBUFFER_LAYER_MAX >= 2
+  if (flag_test(gbuf.used_layers, NORMAL_DATA_1)) {
+    write_normal_data(out_texel, 1, gbuf.normal[1]);
+  }
+#endif
+#if GBUFFER_LAYER_MAX >= 3
+  if (flag_test(gbuf.used_layers, NORMAL_DATA_2)) {
+    write_normal_data(out_texel, 2, gbuf.normal[2]);
+  }
+#endif
+
+#if defined(GBUFFER_HAS_REFRACTION) || defined(GBUFFER_HAS_SUBSURFACE) || \
+    defined(GBUFFER_HAS_TRANSLUCENT)
+  if (flag_test(gbuf.used_layers, ADDITIONAL_DATA)) {
+    write_normal_data(
+        out_texel, uniform_buf.pipeline.gbuffer_additional_data_layer_id, gbuf.additional_info);
+  }
+#endif
+
+  if (flag_test(gbuf.used_layers, OBJECT_ID)) {
+    write_header_data(out_texel, 1, drw_resource_id());
   }
 
   /* ----- Radiance output ----- */

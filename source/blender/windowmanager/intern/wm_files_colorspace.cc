@@ -164,6 +164,13 @@ static wmOperatorStatus wm_set_working_color_space_invoke(bContext *C,
                      IMB_colormanagement_working_space_get_default()));
   }
 
+  const Main *bmain = CTX_data_main(C);
+  const char *working_space = IMB_colormanagement_working_space_get_indexed_name(
+      RNA_enum_get(op->ptr, "working_space"));
+  if (STREQ(working_space, bmain->colorspace.scene_linear_name)) {
+    return OPERATOR_CANCELLED;
+  }
+
   return WM_operator_props_popup_confirm_ex(
       C,
       op,

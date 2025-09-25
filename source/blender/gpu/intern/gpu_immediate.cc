@@ -58,7 +58,7 @@ void immBindShader(blender::gpu::Shader *shader)
   GPU_matrix_bind(shader);
 }
 
-void immBindBuiltinProgram(eGPUBuiltinShader shader_id)
+void immBindBuiltinProgram(GPUBuiltinShader shader_id)
 {
   blender::gpu::Shader *shader = GPU_shader_get_builtin_shader(shader_id);
   immBindShader(shader);
@@ -135,7 +135,7 @@ static void wide_line_workaround_start(GPUPrimType prim_type)
     return;
   }
 
-  eGPUBuiltinShader polyline_sh;
+  GPUBuiltinShader polyline_sh;
   switch (*imm->builtin_shader_bound) {
     case GPU_SHADER_3D_CLIPPED_UNIFORM_COLOR:
       polyline_sh = GPU_SHADER_3D_POLYLINE_CLIPPED_UNIFORM_COLOR;

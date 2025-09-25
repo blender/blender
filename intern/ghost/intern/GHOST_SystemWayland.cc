@@ -4706,8 +4706,7 @@ static void touch_seat_handle_frame(void *data, wl_touch * /*touch*/)
       seat->touch.wl.surface_window = nullptr;
     }
 
-    GHOST_ASSERT(touch_events_num <= sizeof(touch_events) / sizeof(touch_events[0]),
-                 "Buffer overflow");
+    GHOST_ASSERT(touch_events_num <= ARRAY_SIZE(touch_events), "Buffer overflow");
 
     /* Ensure events are ordered in time. */
     if (UNLIKELY(touch_events_num > 1)) {
@@ -6986,10 +6985,6 @@ static void gwl_registry_wl_seat_remove(GWL_Display *display, void *user_data, c
     zwp_tablet_seat_v2_destroy(seat->wp.tablet_seat);
   }
 
-  if (seat->cursor.custom_data) {
-    munmap(seat->cursor.custom_data, seat->cursor.custom_data_size);
-  }
-
   /* Disable all capabilities as a way to free:
    * - `seat.wl_pointer` (and related cursor variables).
    * - `seat.wl_touch`.
@@ -6998,6 +6993,20 @@ static void gwl_registry_wl_seat_remove(GWL_Display *display, void *user_data, c
   gwl_seat_capability_pointer_disable(seat);
   gwl_seat_capability_keyboard_disable(seat);
   gwl_seat_capability_touch_disable(seat);
+
+  /* Run after tablet & input devices have been disabled
+   * to ensure the buffer from a *visible* cursor never destroyed.
+   *
+   * Note that most compositors will have already released the buffer,
+   * in that case this will have been set to null.
+   * However this isn't guaranteed, see: #145557. */
+  if (seat->cursor.wl.buffer) {
+    wl_buffer_destroy(seat->cursor.wl.buffer);
+  }
+
+  if (seat->cursor.custom_data) {
+    munmap(seat->cursor.custom_data, seat->cursor.custom_data_size);
+  }
 
   /* Un-referencing checks for nullptr case. */
   xkb_state_unref(seat->xkb.state);

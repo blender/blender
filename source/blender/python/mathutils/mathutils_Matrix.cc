@@ -594,20 +594,24 @@ Mathutils_Callback mathutils_matrix_translation_cb = {
 /** \name Matrix Type: `__new__` / `mathutils.Matrix()`
  * \{ */
 
-static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+static PyObject *Matrix_vectorcall(PyObject *type,
+                                   PyObject *const *args,
+                                   const size_t nargsf,
+                                   PyObject *kwnames)
 {
-  if (kwds && PyDict_Size(kwds)) {
+  if (UNLIKELY(kwnames && PyDict_Size(kwnames))) {
     PyErr_SetString(PyExc_TypeError,
                     "Matrix(): "
                     "takes no keyword args");
     return nullptr;
   }
 
-  switch (PyTuple_GET_SIZE(args)) {
-    case 0:
-      return Matrix_CreatePyObject(nullptr, 4, 4, type);
+  switch (PyVectorcall_NARGS(nargsf)) {
+    case 0: {
+      return Matrix_CreatePyObject(nullptr, 4, 4, (PyTypeObject *)type);
+    }
     case 1: {
-      PyObject *arg = PyTuple_GET_ITEM(args, 0);
+      PyObject *arg = args[0];
 
       /* Input is now as a sequence of rows so length of sequence
        * is the number of rows */
@@ -623,7 +627,8 @@ static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
         if (col_num >= 2 && col_num <= 4) {
           /* Sane row & col size, new matrix and assign as slice. */
-          PyObject *matrix = Matrix_CreatePyObject(nullptr, col_num, row_num, type);
+          PyObject *matrix = Matrix_CreatePyObject(
+              nullptr, col_num, row_num, (PyTypeObject *)type);
           if (Matrix_ass_slice((MatrixObject *)matrix, 0, INT_MAX, arg) == 0) {
             return matrix;
           }
@@ -637,7 +642,7 @@ static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
   /* will overwrite error */
   PyErr_SetString(PyExc_TypeError,
-                  "Matrix(): "
+                  "mathutils.Matrix(): "
                   "expects no args or a single arg containing 2-4 numeric sequences");
   return nullptr;
 }
@@ -1591,9 +1596,10 @@ static bool matrix_invert_is_compat(const MatrixObject *self)
 static bool matrix_invert_args_check(const MatrixObject *self, PyObject *args, bool check_type)
 {
   switch (PyTuple_GET_SIZE(args)) {
-    case 0:
+    case 0: {
       return true;
-    case 1:
+    }
+    case 1: {
       if (check_type) {
         const MatrixObject *fallback = (const MatrixObject *)PyTuple_GET_ITEM(args, 0);
         if (!MatrixObject_Check(fallback)) {
@@ -1612,11 +1618,13 @@ static bool matrix_invert_args_check(const MatrixObject *self, PyObject *args, b
       }
 
       return true;
-    default:
+    }
+    default: {
       PyErr_SetString(PyExc_ValueError,
                       "Matrix.invert(ed): "
                       "takes at most one argument");
       return false;
+    }
   }
 }
 
@@ -2297,14 +2305,14 @@ static PyObject *Matrix_repr(MatrixObject *self)
     }
   }
   switch (self->row_num) {
-    case 2:
+    case 2: {
       return PyUnicode_FromFormat(
           "Matrix((%R,\n"
           "        %R))",
           rows[0],
           rows[1]);
-
-    case 3:
+    }
+    case 3: {
       return PyUnicode_FromFormat(
           "Matrix((%R,\n"
           "        %R,\n"
@@ -2312,8 +2320,8 @@ static PyObject *Matrix_repr(MatrixObject *self)
           rows[0],
           rows[1],
           rows[2]);
-
-    case 4:
+    }
+    case 4: {
       return PyUnicode_FromFormat(
           "Matrix((%R,\n"
           "        %R,\n"
@@ -2323,6 +2331,7 @@ static PyObject *Matrix_repr(MatrixObject *self)
           rows[1],
           rows[2],
           rows[3]);
+    }
   }
 
   Py_FatalError("Matrix(): invalid row size!");
@@ -2459,22 +2468,25 @@ static PyObject *Matrix_richcmpr(PyObject *a, PyObject *b, int op)
   }
 
   switch (op) {
-    case Py_NE:
+    case Py_NE: {
       ok = !ok;
       ATTR_FALLTHROUGH;
-    case Py_EQ:
+    }
+    case Py_EQ: {
       res = ok ? Py_False : Py_True;
       break;
-
+    }
     case Py_LT:
     case Py_LE:
     case Py_GT:
-    case Py_GE:
+    case Py_GE: {
       res = Py_NotImplemented;
       break;
-    default:
+    }
+    default: {
       PyErr_BadArgument();
       return nullptr;
+    }
   }
 
   return Py_NewRef(res);
@@ -3564,7 +3576,7 @@ PyTypeObject matrix_Type = {
     /*tp_dictoffset*/ 0,
     /*tp_init*/ nullptr,
     /*tp_alloc*/ nullptr,
-    /*tp_new*/ Matrix_new,
+    /*tp_new*/ nullptr,
     /*tp_free*/ nullptr,
     /*tp_is_gc*/ (inquiry)BaseMathObject_is_gc,
     /*tp_bases*/ nullptr,
@@ -3575,7 +3587,7 @@ PyTypeObject matrix_Type = {
     /*tp_del*/ nullptr,
     /*tp_version_tag*/ 0,
     /*tp_finalize*/ nullptr,
-    /*tp_vectorcall*/ nullptr,
+    /*tp_vectorcall*/ Matrix_vectorcall,
 };
 
 #ifdef MATH_STANDALONE

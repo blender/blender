@@ -27,7 +27,7 @@ GLStorageBuf::GLStorageBuf(size_t size, GPUUsageType usage, const char *name)
     : StorageBuf(size, name)
 {
   usage_ = usage;
-  /* Do not create UBO GL buffer here to allow allocation from any thread. */
+  /* Do not create SSBO GL buffer here to allow allocation from any thread. */
   BLI_assert(size <= GPU_max_storage_buffer_size());
 }
 
@@ -49,10 +49,10 @@ GLStorageBuf::~GLStorageBuf()
   }
 
   if (read_ssbo_id_) {
-    GLContext::buf_free(read_ssbo_id_);
+    GLContext::buffer_free(read_ssbo_id_);
   }
 
-  GLContext::buf_free(ssbo_id_);
+  GLContext::buffer_free(ssbo_id_);
 }
 
 /** \} */

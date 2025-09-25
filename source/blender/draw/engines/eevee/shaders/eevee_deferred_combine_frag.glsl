@@ -7,12 +7,13 @@
  * This also fills the different render passes.
  */
 
-#include "infos/eevee_deferred_info.hh"
+#include "infos/eevee_deferred_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(eevee_deferred_combine)
 
+#include "draw_view_lib.glsl"
 #include "eevee_colorspace_lib.glsl"
-#include "eevee_gbuffer_lib.glsl"
+#include "eevee_gbuffer_read_lib.glsl"
 #include "eevee_renderpass_lib.glsl"
 #include "gpu_shader_shared_exponent_lib.glsl"
 
@@ -54,7 +55,9 @@ void main()
 {
   int2 texel = int2(gl_FragCoord.xy);
 
-  GBufferReader gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel);
+  const gbuffer::Layers gbuf = gbuffer::read_layers(texel);
+  const uchar closure_count = gbuf.header.closure_len();
+  const uint3 bin_indices = gbuf.header.bin_index_per_layer();
 
   float3 diffuse_color = float3(0.0f);
   float3 diffuse_direct = float3(0.0f);
@@ -66,12 +69,12 @@ void main()
   float3 out_indirect = float3(0.0f);
   float3 average_normal = float3(0.0f);
 
-  for (uchar i = 0; i < GBUFFER_LAYER_MAX && i < gbuf.closure_count; i++) {
-    ClosureUndetermined cl = gbuffer_closure_get(gbuf, i);
+  for (uchar i = 0; i < GBUFFER_LAYER_MAX && i < closure_count; i++) {
+    ClosureUndetermined cl = gbuf.layer_get(i);
     if (cl.type == CLOSURE_NONE_ID) {
       continue;
     }
-    uchar layer_index = gbuffer_closure_get_bin_index(gbuf, i);
+    uchar layer_index = bin_indices[i];
     float3 closure_direct_light = load_radiance_direct(texel, layer_index);
     float3 closure_indirect_light = float3(0.0f);
 
@@ -96,13 +99,13 @@ void main()
         specular_indirect += closure_indirect_light;
         break;
       case CLOSURE_NONE_ID:
-        assert(0);
+        assert(false);
         break;
     }
 
     if ((cl.type == CLOSURE_BSDF_TRANSLUCENT_ID ||
          cl.type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID) &&
-        (gbuf.thickness != 0.0f))
+        (gbuffer::read_thickness(gbuf.header, texel) != 0.0f))
     {
       /* We model two transmission event, so the surface color need to be applied twice. */
       cl.color *= cl.color;
@@ -146,8 +149,13 @@ void main()
   if (render_pass_normal_enabled) {
     float normal_len = length(average_normal);
     /* Normalize or fallback to default normal. */
-    average_normal = (normal_len < 1e-5f) ? gbuf.surface_N : (average_normal / normal_len);
+    average_normal = (normal_len < 1e-5f) ? gbuf.surface_N() : (average_normal / normal_len);
     output_renderpass_color(uniform_buf.render_pass.normal_id, float4(average_normal, 1.0f));
+  }
+  if (render_pass_position_enabled) {
+    float depth = texelFetch(hiz_tx, texel, 0).r;
+    float3 P = drw_point_screen_to_world(float3(screen_uv, depth));
+    output_renderpass_color(uniform_buf.render_pass.position_id, float4(P, 1.0f));
   }
 
   out_combined = float4(out_direct + out_indirect, 0.0f);

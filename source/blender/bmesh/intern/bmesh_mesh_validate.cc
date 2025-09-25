@@ -55,7 +55,7 @@ template<> struct blender::DefaultHash<blender::Set<const BMVert *>> {
   }
 };
 
-bool BM_mesh_validate(BMesh *bm)
+bool BM_mesh_is_valid(BMesh *bm)
 {
   blender::Map<blender::OrderedEdge, BMEdge *> edge_hash;
   edge_hash.reserve(bm->totedge);

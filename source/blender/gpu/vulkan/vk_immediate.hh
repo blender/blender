@@ -18,7 +18,6 @@
 #include "vk_buffer.hh"
 #include "vk_data_conversion.hh"
 #include "vk_mem_alloc.h"
-#include "vk_resource_tracker.hh"
 #include "vk_vertex_attribute_object.hh"
 
 namespace blender::gpu {

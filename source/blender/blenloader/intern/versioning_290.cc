@@ -913,7 +913,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
               tex->sun_rotation = 0.0f;
               tex->altitude = 0.0f;
               tex->air_density = 1.0f;
-              tex->dust_density = 1.0f;
+              tex->aerosol_density = 1.0f;
               tex->ozone_density = 1.0f;
             }
           }

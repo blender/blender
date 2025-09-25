@@ -399,8 +399,11 @@ static void do_paint_brush_task(const Depsgraph &depsgraph,
   }
   filter_distances_with_radius(radius, distances, factors);
   apply_hardness_to_distances(radius, cache.hardness, distances);
-  BKE_brush_calc_curve_factors(
-      eBrushCurvePreset(brush.curve_preset), brush.curve, distances, radius, factors);
+  BKE_brush_calc_curve_factors(eBrushCurvePreset(brush.curve_distance_falloff_preset),
+                               brush.curve_distance_falloff,
+                               distances,
+                               radius,
+                               factors);
 
   MutableSpan<float> auto_mask;
   if (cache.automasking) {
@@ -574,7 +577,7 @@ void do_paint_brush(const Depsgraph &depsgraph,
     return;
   }
 
-  BKE_curvemapping_init(brush.curve);
+  BKE_curvemapping_init(brush.curve_distance_falloff);
 
   float4x4 mat;
 
@@ -901,7 +904,7 @@ void do_smear_brush(const Depsgraph &depsgraph,
     });
   }
 
-  BKE_curvemapping_init(brush.curve);
+  BKE_curvemapping_init(brush.curve_distance_falloff);
 
   /* Smooth colors mode. */
   if (ss.cache->alt_smooth) {

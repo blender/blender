@@ -72,7 +72,7 @@ gpu::MTLTexture::MTLTexture(const char *name) : Texture(name)
 
 gpu::MTLTexture::MTLTexture(const char *name,
                             TextureFormat format,
-                            eGPUTextureType type,
+                            GPUTextureType type,
                             id<MTLTexture> metal_texture)
     : Texture(name)
 {
@@ -379,8 +379,8 @@ void gpu::MTLTexture::blit(gpu::MTLTexture *dst,
   BLI_assert(MTLContext::get());
 
   /* Fetch restore framebuffer and blit target framebuffer from destination texture. */
-  GPUFrameBuffer *restore_fb = GPU_framebuffer_active_get();
-  GPUFrameBuffer *blit_target_fb = dst->get_blit_framebuffer(dst_slice, dst_mip);
+  gpu::FrameBuffer *restore_fb = GPU_framebuffer_active_get();
+  gpu::FrameBuffer *blit_target_fb = dst->get_blit_framebuffer(dst_slice, dst_mip);
   BLI_assert(blit_target_fb);
   GPU_framebuffer_bind(blit_target_fb);
 
@@ -402,10 +402,10 @@ void gpu::MTLTexture::blit(gpu::MTLTexture *dst,
   /* Caching previous pipeline state. */
   bool depth_write_prev = GPU_depth_mask_get();
   uint stencil_mask_prev = GPU_stencil_mask_get();
-  eGPUStencilTest stencil_test_prev = GPU_stencil_test_get();
-  eGPUFaceCullTest culling_test_prev = GPU_face_culling_get();
-  eGPUBlend blend_prev = GPU_blend_get();
-  eGPUDepthTest depth_test_prev = GPU_depth_test_get();
+  GPUStencilTest stencil_test_prev = GPU_stencil_test_get();
+  GPUFaceCullTest culling_test_prev = GPU_face_culling_get();
+  GPUBlend blend_prev = GPU_blend_get();
+  GPUDepthTest depth_test_prev = GPU_depth_test_get();
   GPU_scissor_test(false);
 
   /* Apply state for blit draw call. */
@@ -436,7 +436,7 @@ void gpu::MTLTexture::blit(gpu::MTLTexture *dst,
   }
 }
 
-GPUFrameBuffer *gpu::MTLTexture::get_blit_framebuffer(int dst_slice, uint dst_mip)
+gpu::FrameBuffer *gpu::MTLTexture::get_blit_framebuffer(int dst_slice, uint dst_mip)
 {
 
   /* Check if layer has changed. */
@@ -1376,8 +1376,8 @@ void gpu::MTLTexture::clear(eGPUDataFormat data_format, const void *data)
 
   if (do_render_pass_clear) {
     /* Create clear frame-buffer for fast clear. */
-    GPUFrameBuffer *prev_fb = GPU_framebuffer_active_get();
-    FrameBuffer *fb = unwrap(this->get_blit_framebuffer(-1, 0));
+    gpu::FrameBuffer *prev_fb = GPU_framebuffer_active_get();
+    FrameBuffer *fb = this->get_blit_framebuffer(-1, 0);
     fb->bind(true);
     fb->clear_attachment(this->attachment_type(0), data_format, data);
     GPU_framebuffer_bind(prev_fb);
@@ -2025,12 +2025,6 @@ void gpu::MTLTexture::read_internal(int mip,
     /* Release destination buffer. */
     dest_buf->free();
   }
-}
-
-/* Remove once no longer required -- will just return 0 for now in MTL path. */
-uint gpu::MTLTexture::gl_bindcode_get() const
-{
-  return 0;
 }
 
 bool gpu::MTLTexture::init_internal()

@@ -443,7 +443,7 @@ static std::string get_bundle_sync_tooltip(const nodes::BundleSignature &old_sig
   if (!changed_items.is_empty()) {
     fmt::format_to(buf, "{}: {}\n", TIP_("Change"), fmt::join(changed_items, ", "));
   }
-  fmt::format_to(buf, TIP_("\nUpdate based on linked bundle signature"));
+  fmt::format_to(buf, "\n{}", TIP_("Update based on linked bundle signature"));
 
   return fmt::to_string(string_buffer);
 }
@@ -514,7 +514,7 @@ static std::string get_closure_sync_tooltip(const nodes::ClosureSignature &old_s
   if (!changed_outputs.is_empty()) {
     fmt::format_to(buf, "{}: {}\n", TIP_("Change Outputs"), fmt::join(changed_outputs, ", "));
   }
-  fmt::format_to(buf, TIP_("\nUpdate based on linked closure signature"));
+  fmt::format_to(buf, "\n{}", TIP_("Update based on linked closure signature"));
 
   return fmt::to_string(string_buffer);
 }

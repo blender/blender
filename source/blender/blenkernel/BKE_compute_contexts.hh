@@ -205,4 +205,16 @@ class OperatorComputeContext : public ComputeContext {
   void print_current_in_line(std::ostream &stream) const override;
 };
 
+class ShaderComputeContext : public ComputeContext {
+ private:
+  const bNodeTree *tree_ = nullptr;
+
+ public:
+  ShaderComputeContext(const ComputeContext *parent = nullptr, const bNodeTree *tree = nullptr);
+
+ private:
+  ComputeContextHash compute_hash() const override;
+  void print_current_in_line(std::ostream &stream) const override;
+};
+
 }  // namespace blender::bke

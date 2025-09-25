@@ -10,12 +10,16 @@
 
 #  include "OCIO_config.hh"
 
+#  include "CLG_log.h"
+
 #  include "../opencolorio.hh"
 
 #  include "error_handling.hh"
 #  include "libocio_config.hh"
 #  include "libocio_cpu_processor.hh"
 #  include "libocio_display_processor.hh"
+
+static CLG_LogRef LOG = {"color_management"};
 
 namespace blender::ocio {
 
@@ -44,18 +48,63 @@ LibOCIODisplay::LibOCIODisplay(const int index, const LibOCIOConfig &config) : c
 
   name_ = ocio_config->getDisplay(index);
 
+  CLOG_TRACE(&LOG, "Add display: %s", name_.c_str());
+
   /* Initialize views. */
   const int num_views = ocio_config->getNumViews(name_.c_str());
   if (num_views < 0) {
     report_error("Invalid OpenColorIO configuration: negative number of views");
     return;
   }
+
+  /* Try to assign a display colorspace to every view even if missing. In particular for
+   * Raw we still want to set the colorspace. */
+  OCIO_NAMESPACE::ConstColorSpaceRcPtr ocio_fallback_display_colorspace;
+  for (const int view_index : IndexRange(num_views)) {
+    const char *view_name = ocio_config->getView(name_.c_str(), view_index);
+    ocio_fallback_display_colorspace = get_display_view_colorspace(
+        ocio_config, name_.c_str(), view_name);
+    if (ocio_fallback_display_colorspace &&
+        ocio_fallback_display_colorspace->getReferenceSpaceType() ==
+            OCIO_NAMESPACE::REFERENCE_SPACE_DISPLAY)
+    {
+      break;
+    }
+    ocio_fallback_display_colorspace.reset();
+  }
+
   views_.reserve(num_views);
   for (const int view_index : IndexRange(num_views)) {
     const char *view_name = ocio_config->getView(name_.c_str(), view_index);
 
     OCIO_NAMESPACE::ConstColorSpaceRcPtr ocio_display_colorspace = get_display_view_colorspace(
         ocio_config, name_.c_str(), view_name);
+    if (!ocio_display_colorspace) {
+      ocio_display_colorspace = ocio_fallback_display_colorspace;
+    }
+
+    /* There does not exist a description for displays, if there is an associated display
+     * colorspace it's likely to be a useful description. */
+    if (description_.is_empty() && ocio_display_colorspace &&
+        ocio_display_colorspace->getReferenceSpaceType() ==
+            OCIO_NAMESPACE::REFERENCE_SPACE_DISPLAY)
+    {
+      description_ = ocio_display_colorspace->getDescription();
+    }
+
+    const char *view_description = nullptr;
+    const char *view_transform_name = ocio_config->getDisplayViewTransformName(name_.c_str(),
+                                                                               view_name);
+    if (view_transform_name) {
+      const OCIO_NAMESPACE::ConstViewTransformRcPtr view_transform = ocio_config->getViewTransform(
+          view_transform_name);
+      if (view_transform) {
+        view_description = view_transform->getDescription();
+      }
+    }
+    if (view_description == nullptr) {
+      view_description = "";
+    }
 
     /* Detect if view is HDR, through encoding of display colorspace. */
     bool view_is_hdr = false;
@@ -70,14 +119,12 @@ LibOCIODisplay::LibOCIODisplay(const int index, const LibOCIOConfig &config) : c
     Gamut gamut = Gamut::Unknown;
     TransferFunction transfer_function = TransferFunction::Unknown;
 
-    StringRefNull display_interop_id;
-    if (ocio_display_colorspace) {
-      const ColorSpace *display_colorspace = config.get_color_space(
-          ocio_display_colorspace->getName());
-      if (display_colorspace) {
-        display_interop_id = display_colorspace->interop_id();
-      }
-    }
+    const LibOCIOColorSpace *display_colorspace =
+        (ocio_display_colorspace) ? static_cast<const LibOCIOColorSpace *>(config.get_color_space(
+                                        ocio_display_colorspace->getName())) :
+                                    nullptr;
+    StringRefNull display_interop_id = (display_colorspace) ? display_colorspace->interop_id() :
+                                                              "";
 
     if (!display_interop_id.is_empty()) {
       if (display_interop_id.endswith("_rec709_display") ||
@@ -122,7 +169,19 @@ LibOCIODisplay::LibOCIODisplay(const int index, const LibOCIOConfig &config) : c
       }
     }
 
-    views_.append_as(view_index, view_name, view_is_hdr, gamut, transfer_function);
+    CLOG_TRACE(&LOG,
+               "  Add view: %s (colorspace: %s, %s)",
+               view_name,
+               display_colorspace ? display_colorspace->name().c_str() : "<none>",
+               view_is_hdr ? "HDR" : "SDR");
+
+    views_.append_as(view_index,
+                     view_name,
+                     view_description,
+                     view_is_hdr,
+                     gamut,
+                     transfer_function,
+                     display_colorspace);
   }
 
   /* Detect untonemppaed view transform. */

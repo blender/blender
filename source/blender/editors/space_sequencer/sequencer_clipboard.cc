@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <limits>
 
 #include "BLI_math_vector_types.hh"
 #include "BLO_readfile.hh"
@@ -157,7 +158,7 @@ static bool sequencer_write_copy_paste_file(Main *bmain_src,
   /* NOTE: Setting the same current file path as G_MAIN is necessary for now to get correct
    * external filepaths when writing the partial write context on disk. otherwise, filepaths from
    * the scene's sequencer strips (e.g. image ones) would also need to be remapped in this code. */
-  PartialWriteContext copy_buffer{bmain_src->filepath};
+  PartialWriteContext copy_buffer{*bmain_src};
   const char *scene_name = "copybuffer_vse_scene";
 
   /* Add a dummy empty scene to the temporary Main copy buffer. */
@@ -464,7 +465,7 @@ wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
     ofs = scene_dst->r.cfra - scene_src->r.cfra;
   }
   else {
-    int min_seq_startdisp = INT_MAX;
+    int min_seq_startdisp = std::numeric_limits<int>::max();
     LISTBASE_FOREACH (Strip *, strip, &scene_src->ed->seqbase) {
       min_seq_startdisp = std::min(seq::time_left_handle_frame_get(scene_src, strip),
                                    min_seq_startdisp);
@@ -511,7 +512,7 @@ wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
   /* BKE_main_merge will copy the scene_src and its action into bmain_dst. Remove them as
    * we merge the data from these manually.
    */
-  if (has_animation) {
+  if (has_animation && scene_src->adt->action != nullptr) {
     BKE_id_delete(bmain_dst, scene_src->adt->action);
   }
   BKE_id_delete(bmain_dst, scene_src);
@@ -522,6 +523,7 @@ wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
   nseqbase.first = iseq_first;
 
   int2 strip_mean_pos = {0, 0};
+  int image_strip_count = 0;
   LISTBASE_FOREACH (Strip *, istrip, &nseqbase) {
     if (istrip->name == active_seq_name) {
       seq::select_active_set(scene_dst, istrip);
@@ -530,27 +532,38 @@ wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
      * adding strips to seqbase, for lookup cache to work correctly. */
     seq::ensure_unique_name(istrip, scene_dst);
 
-    strip_mean_pos += static_cast<int2>(
-        seq::image_transform_origin_offset_pixelspace_get(scene, istrip));
+    if (region->regiontype == RGN_TYPE_PREVIEW && istrip->type != STRIP_TYPE_SOUND_RAM &&
+        seq::must_render_strip(seq::query_all_strips(&nseqbase), istrip))
+    {
+      strip_mean_pos += static_cast<int2>(
+          seq::image_transform_origin_offset_pixelspace_get(scene, istrip));
+      image_strip_count++;
+    }
   }
 
-  strip_mean_pos /= BLI_listbase_count(&nseqbase);
+  if (image_strip_count > 0) {
+    strip_mean_pos /= image_strip_count;
+  }
 
   LISTBASE_FOREACH (Strip *, istrip, &nseqbase) {
-    /* Translate after name has been changed, otherwise this will affect animdata of original
-     * strip. */
-    seq::transform_translate_strip(scene_dst, istrip, ofs);
-    /* Ensure, that pasted strips don't overlap. */
-    if (seq::transform_test_overlap(scene_dst, ed_dst->current_strips(), istrip)) {
-      seq::transform_seqbase_shuffle(ed_dst->current_strips(), istrip, scene_dst);
-    }
-    if (region->regiontype == RGN_TYPE_PREVIEW && !(RNA_boolean_get(op->ptr, "keep_offset"))) {
+    /* Place strips that generate an image at the mouse cursor. */
+    if (region->regiontype == RGN_TYPE_PREVIEW && !(RNA_boolean_get(op->ptr, "keep_offset")) &&
+        istrip->type != STRIP_TYPE_SOUND_RAM &&
+        seq::must_render_strip(seq::query_all_strips(&nseqbase), istrip))
+    {
       StripTransform *transform = istrip->data->transform;
       const float2 mirror = seq::image_transform_mirror_factor_get(istrip);
       const float2 origin = seq::image_transform_origin_offset_pixelspace_get(scene, istrip);
       transform->xofs = (view_mval[0] - (strip_mean_pos[0] - origin[0])) * mirror[0];
       transform->yofs = (view_mval[1] - (strip_mean_pos[1] - origin[1])) * mirror[1];
       seq::relations_invalidate_cache(scene, istrip);
+    }
+    /* Translate after name has been changed, otherwise this will affect animdata of original
+     * strip. */
+    seq::transform_translate_strip(scene_dst, istrip, ofs);
+    /* Ensure, that pasted strips don't overlap. */
+    if (seq::transform_test_overlap(scene_dst, ed_dst->current_strips(), istrip)) {
+      seq::transform_seqbase_shuffle(ed_dst->current_strips(), istrip, scene_dst);
     }
   }
 

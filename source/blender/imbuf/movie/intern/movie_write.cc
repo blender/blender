@@ -9,6 +9,8 @@
 
 #include "movie_write.hh"
 
+#include "BLI_string_ref.hh"
+
 #include "DNA_scene_types.h"
 
 #include "MOV_write.hh"
@@ -142,6 +144,76 @@ static const char **get_file_extensions(int format)
     default:
       return nullptr;
   }
+}
+
+static void add_hdr_mastering_display_metadata(AVCodecParameters *codecpar,
+                                               AVCodecContext *c,
+                                               const ImageFormatData *imf)
+{
+  if (c->color_primaries != AVCOL_PRI_BT2020) {
+    return;
+  }
+
+  int max_luminance = 0;
+  if (c->color_trc == AVCOL_TRC_ARIB_STD_B67) {
+    /* HLG is always 1000 nits. */
+    max_luminance = 1000;
+  }
+  else if (c->color_trc == AVCOL_TRC_SMPTEST2084) {
+    /* PQ uses heuristic based on view transform name. In the future this could become
+     * a user control, but this solves the common cases. */
+    blender::StringRefNull view_name = imf->view_settings.view_transform;
+    if (view_name.find("HDR 500 nits") != blender::StringRef::not_found) {
+      max_luminance = 500;
+    }
+    else if (view_name.find("HDR 1000 nits") != blender::StringRef::not_found) {
+      max_luminance = 1000;
+    }
+    else if (view_name.find("HDR 2000 nits") != blender::StringRef::not_found) {
+      max_luminance = 2000;
+    }
+    else if (view_name.find("HDR 4000 nits") != blender::StringRef::not_found) {
+      max_luminance = 4000;
+    }
+    else if (view_name.find("HDR 10000 nits") != blender::StringRef::not_found) {
+      max_luminance = 10000;
+    }
+  }
+
+  /* If we don't know anything, don't write metadata. The video player will make some
+   * default assumption, often 1000 nits. */
+  if (max_luminance == 0) {
+    return;
+  }
+
+  AVPacketSideData *side_data = av_packet_side_data_new(&codecpar->coded_side_data,
+                                                        &codecpar->nb_coded_side_data,
+                                                        AV_PKT_DATA_MASTERING_DISPLAY_METADATA,
+                                                        sizeof(AVMasteringDisplayMetadata),
+                                                        0);
+  if (side_data == nullptr) {
+    CLOG_ERROR(&LOG, "Failed to attached mastering display metadata to stream");
+    return;
+  }
+
+  AVMasteringDisplayMetadata *mastering_metadata = reinterpret_cast<AVMasteringDisplayMetadata *>(
+      side_data->data);
+
+  /* Rec.2020 primaries and D65 white point. */
+  mastering_metadata->has_primaries = 1;
+  mastering_metadata->display_primaries[0][0] = av_make_q(34000, 50000);
+  mastering_metadata->display_primaries[0][1] = av_make_q(16000, 50000);
+  mastering_metadata->display_primaries[1][0] = av_make_q(13250, 50000);
+  mastering_metadata->display_primaries[1][1] = av_make_q(34500, 50000);
+  mastering_metadata->display_primaries[2][0] = av_make_q(7500, 50000);
+  mastering_metadata->display_primaries[2][1] = av_make_q(3000, 50000);
+
+  mastering_metadata->white_point[0] = av_make_q(15635, 50000);
+  mastering_metadata->white_point[1] = av_make_q(16450, 50000);
+
+  mastering_metadata->has_luminance = 1;
+  mastering_metadata->min_luminance = av_make_q(1, 10000);
+  mastering_metadata->max_luminance = av_make_q(max_luminance, 1);
 }
 
 /* Write a frame to the output file */
@@ -718,78 +790,33 @@ static void set_quality_rate_options(const MovieWriter *context,
   }
 }
 
-static void set_colorspace_options(AVCodecContext *c, blender::StringRefNull interop_id)
+static void set_colorspace_options(AVCodecContext *c, const ColorSpace *colorspace)
 {
   const AVPixFmtDescriptor *pix_fmt_desc = av_pix_fmt_desc_get(c->pix_fmt);
   const bool is_rgb_format = (pix_fmt_desc->flags & AV_PIX_FMT_FLAG_RGB);
+  const bool for_video = true;
+  const bool rgb_matrix = false;
 
-  /* Full range for most color spaces. */
-  c->color_range = AVCOL_RANGE_JPEG;
-
-  /* ASWF Color Interop Forum defined display spaces. The CICP codes there match the enum
-   * values defined by ffmpeg. Keep in sync with movie_read.cc. */
-  if (interop_id == "pq_rec2020_display") {
-    c->color_primaries = AVCOL_PRI_BT2020;
-    c->color_trc = AVCOL_TRC_SMPTEST2084;
-    c->colorspace = AVCOL_SPC_BT2020_NCL;
+  int cicp[4];
+  if (colorspace && IMB_colormanagement_space_to_cicp(colorspace, for_video, rgb_matrix, cicp)) {
+    /* Note ffmpeg enums are documented to match CICP. */
+    c->color_primaries = AVColorPrimaries(cicp[0]);
+    c->color_trc = AVColorTransferCharacteristic(cicp[1]);
+    c->colorspace = (is_rgb_format) ? AVCOL_SPC_RGB : AVColorSpace(cicp[2]);
+    c->color_range = AVCOL_RANGE_JPEG;
   }
-  else if (interop_id == "hlg_rec2020_display") {
-    c->color_primaries = AVCOL_PRI_BT2020;
-    c->color_trc = AVCOL_TRC_ARIB_STD_B67;
-    c->colorspace = AVCOL_SPC_BT2020_NCL;
-  }
-  else if (interop_id == "pq_p3d65_display") {
-    c->color_primaries = AVCOL_PRI_SMPTE432;
-    c->color_trc = AVCOL_TRC_SMPTEST2084;
-    c->colorspace = AVCOL_SPC_BT2020_NCL;
-  }
-  else if (interop_id == "g26_p3d65_display") {
-    c->color_primaries = AVCOL_PRI_SMPTE432;
-    c->color_trc = AVCOL_TRC_SMPTE428;
-    c->colorspace = AVCOL_SPC_BT709;
-  }
-  else if (interop_id == "g22_rec709_display") {
-    c->color_primaries = AVCOL_PRI_BT709;
-    c->color_trc = AVCOL_TRC_GAMMA22;
-    c->colorspace = AVCOL_SPC_BT709;
-  }
-  else if (interop_id == "g24_rec2020_display") {
-    /* There is no gamma 2.4 trc, but BT.709 is supposed to be close. But it's not
-     * clear this is right, as we use the same trc for sRGB which is clearly different. */
-    c->color_primaries = AVCOL_PRI_BT2020;
-    c->color_trc = AVCOL_TRC_BT709;
-    c->colorspace = AVCOL_SPC_BT2020_NCL;
-  }
-  else if (interop_id == "g24_rec709_display") {
-    /* There is no gamma 2.4 trc, but BT.709 is supposed to be close. But now this
-     * is identical to how we write sRGB so at least of the two must be wrong? */
-    c->color_primaries = AVCOL_PRI_BT709;
-    c->color_trc = AVCOL_TRC_BT709;
-    c->colorspace = AVCOL_SPC_BT709;
-  }
-  else if (interop_id == "srgb_p3d65_display" || interop_id == "srgbx_p3d65_display") {
-    c->color_primaries = AVCOL_PRI_SMPTE432;
-    /* This should be AVCOL_TRC_IEC61966_2_1, but Quicktime refuses to open the file.
-     * And we're currently also writing srgb_rec709_display the same way. */
-    c->color_trc = AVCOL_TRC_BT709;
-    c->colorspace = AVCOL_SPC_BT709;
-  }
-  /* Don't write sRGB as we weren't doing it before either, but maybe we should. */
-#  if 0
-  else if (interop_id == "srgb_rec709_display") {
-    c->color_primaries = AVCOL_PRI_BT709;
-    c->color_trc = AVCOL_TRC_IEC61966_2_1;
-    c->colorspace = AVCOL_SPC_BT709;
-  }
-#  endif
-  /* If we're not writing RGB, we must write a colorspace to define how
-   * the conversion to YUV happens. */
   else if (!is_rgb_format) {
+    /* Note BT.709 is wrong for sRGB.
+     * But we have been writing sRGB like this forever, and there is the so called
+     * "Quicktime gamma shift bug" that complicates things. */
     c->color_primaries = AVCOL_PRI_BT709;
     c->color_trc = AVCOL_TRC_BT709;
     c->colorspace = AVCOL_SPC_BT709;
     /* TODO(sergey): Consider making the range an option to cover more use-cases. */
     c->color_range = AVCOL_RANGE_MPEG;
+  }
+  else {
+    /* We don't set anything for pure sRGB writing, for backwards compatibility. */
   }
 }
 
@@ -1070,12 +1097,8 @@ static AVStream *alloc_video_stream(MovieWriter *context,
 
   /* Set colorspace based on display space of image. */
   const ColorSpace *display_colorspace = IMB_colormangement_display_get_color_space(
-      &imf->display_settings);
-  const blender::StringRefNull interop_id = (display_colorspace) ?
-                                                IMB_colormanagement_space_get_interop_id(
-                                                    display_colorspace) :
-                                                "";
-  set_colorspace_options(c, interop_id);
+      &imf->view_settings, &imf->display_settings);
+  set_colorspace_options(c, display_colorspace);
 
   /* xasp & yasp got float lately... */
 
@@ -1140,6 +1163,8 @@ static AVStream *alloc_video_stream(MovieWriter *context,
   }
 
   avcodec_parameters_from_context(st->codecpar, c);
+
+  add_hdr_mastering_display_metadata(st->codecpar, c, imf);
 
   context->video_time = 0.0f;
 

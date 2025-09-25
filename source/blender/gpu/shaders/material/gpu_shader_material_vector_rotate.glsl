@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gpu_shader_math_matrix_lib.glsl"
-#include "gpu_shader_math_rotation_lib.glsl"
+#include "gpu_shader_math_euler_lib.glsl"
+#include "gpu_shader_math_matrix_construct_lib.glsl"
 
 float3 rotate_around_axis(float3 p, float3 axis, float angle)
 {
@@ -80,7 +80,7 @@ void node_vector_rotate_euler_xyz(float3 vector_in,
                                   float invert,
                                   out float3 vec)
 {
-  float3x3 rmat = (invert < 0.0f) ? transpose(from_rotation(as_EulerXYZ(rotation))) :
-                                    from_rotation(as_EulerXYZ(rotation));
+  float3x3 rmat = (invert < 0.0f) ? transpose(from_rotation(EulerXYZ::from_float3(rotation))) :
+                                    from_rotation(EulerXYZ::from_float3(rotation));
   vec = rmat * (vector_in - center) + center;
 }

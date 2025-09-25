@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "gpu_shader_math_vector_safe_lib.glsl"
+
 void node_bsdf_translucent(float4 color, float3 N, float weight, out Closure result)
 {
   color = max(color, float4(0.0f));

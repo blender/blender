@@ -125,16 +125,11 @@ static void world_copy_data(Main *bmain,
 static void world_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   World *world = reinterpret_cast<World *>(id);
-  const int flag = BKE_lib_query_foreachid_process_flags_get(data);
 
   if (world->nodetree) {
     /* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
     BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
         data, BKE_library_foreach_ID_embedded(data, (ID **)&world->nodetree));
-  }
-
-  if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
-    BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data, world->ipo, IDWALK_CB_USER);
   }
 }
 
@@ -153,6 +148,9 @@ static void world_blend_write(BlendWriter *writer, ID *id, const void *id_addres
    * datablocks. */
   BLI_listbase_clear(&wrld->gpumaterial);
   wrld->last_update = 0;
+
+  /* Set deprecated #use_nodes for forward compatibility. */
+  wrld->use_nodes = true;
 
   /* write LibData */
   BLO_write_id_struct(writer, World, id_address, &wrld->id);

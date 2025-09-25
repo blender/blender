@@ -800,7 +800,7 @@ static wmOperatorStatus pose_copy_exec(bContext *C, wmOperator *op)
   /* Sets chan->flag to POSE_KEY if bone selected. */
   set_pose_keys(ob);
 
-  PartialWriteContext copybuffer{BKE_main_blendfile_path(bmain)};
+  PartialWriteContext copybuffer{*bmain};
   copybuffer.id_add(
       &ob->id,
       PartialWriteContext::IDAddOptions{

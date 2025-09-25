@@ -60,6 +60,9 @@ static void node_register()
 
   fn_node_type_base(&ntype, "FunctionNodeFindInString", FN_NODE_FIND_IN_STRING);
   ntype.ui_name = "Find in String";
+  ntype.ui_description =
+      "Find the number of times a given string occurs in another string and the position of the "
+      "first match";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
   ntype.build_multi_function = node_build_multi_function;

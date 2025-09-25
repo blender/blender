@@ -43,61 +43,6 @@ void uiTemplateCacheFileVelocity(uiLayout *layout, PointerRNA *fileptr)
   layout->prop(fileptr, "velocity_unit", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
-void uiTemplateCacheFileProcedural(uiLayout *layout, const bContext *C, PointerRNA *fileptr)
-{
-  if (RNA_pointer_is_null(fileptr)) {
-    return;
-  }
-
-  /* Ensure that the context has a CacheFile as this may not be set inside of modifiers panels. */
-  layout->context_ptr_set("edit_cachefile", fileptr);
-
-  uiLayout *row, *sub;
-
-  /* Only enable render procedural option if the active engine supports it. */
-  const RenderEngineType *engine_type = CTX_data_engine_type(C);
-
-  Scene *scene = CTX_data_scene(C);
-  const bool engine_supports_procedural = RE_engine_supports_alembic_procedural(engine_type,
-                                                                                scene);
-  CacheFile *cache_file = static_cast<CacheFile *>(fileptr->data);
-  CacheFile *cache_file_eval = DEG_get_evaluated(CTX_data_depsgraph_pointer(C), cache_file);
-  bool is_alembic = cache_file_eval->type == CACHEFILE_TYPE_ALEMBIC;
-
-  if (!is_alembic) {
-    row = &layout->row(false);
-    row->label(RPT_("Only Alembic Procedurals supported"), ICON_INFO);
-  }
-  else if (!engine_supports_procedural) {
-    row = &layout->row(false);
-    /* For Cycles, verify that experimental features are enabled. */
-    if (BKE_scene_uses_cycles(scene) && !BKE_scene_uses_cycles_experimental_features(scene)) {
-      row->label(
-          RPT_(
-              "The Cycles Alembic Procedural is only available with the experimental feature set"),
-          ICON_INFO);
-    }
-    else {
-      row->label(RPT_("The active render engine does not have an Alembic Procedural"), ICON_INFO);
-    }
-  }
-
-  row = &layout->row(false);
-  row->active_set(is_alembic && engine_supports_procedural);
-  row->prop(fileptr, "use_render_procedural", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-
-  const bool use_render_procedural = RNA_boolean_get(fileptr, "use_render_procedural");
-  const bool use_prefetch = RNA_boolean_get(fileptr, "use_prefetch");
-
-  row = &layout->row(false);
-  row->enabled_set(use_render_procedural);
-  row->prop(fileptr, "use_prefetch", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-
-  sub = &layout->row(false);
-  sub->enabled_set(use_prefetch && use_render_procedural);
-  sub->prop(fileptr, "prefetch_cache_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-}
-
 void uiTemplateCacheFileTimeSettings(uiLayout *layout, PointerRNA *fileptr)
 {
   if (RNA_pointer_is_null(fileptr)) {

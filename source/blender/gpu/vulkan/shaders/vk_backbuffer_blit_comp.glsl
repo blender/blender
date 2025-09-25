@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "vk_backbuffer_blit_info.hh"
+#include "vk_backbuffer_blit_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(vk_backbuffer_blit)
 
@@ -17,12 +17,11 @@ float srgb_to_linearrgb(float c)
 
 vec3 nonlinear_to_linear_scrgb(vec3 c)
 {
-  if (use_gamma22) {
-    return pow(c, vec3(2.2f));
-  }
-  else {
-    return vec3(srgb_to_linearrgb(c.r), srgb_to_linearrgb(c.g), srgb_to_linearrgb(c.b));
-  }
+#ifdef USE_GAMMA22
+  return pow(c, vec3(2.2f));
+#else
+  return vec3(srgb_to_linearrgb(c.r), srgb_to_linearrgb(c.g), srgb_to_linearrgb(c.b));
+#endif
 }
 
 void main()

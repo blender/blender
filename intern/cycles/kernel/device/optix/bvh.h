@@ -421,7 +421,7 @@ extern "C" __global__ void __intersection__curve_ribbon()
   const KernelCurveSegment segment = kernel_data_fetch(curve_segments, optixGetPrimitiveIndex());
   const int prim = segment.prim;
   const int type = segment.type;
-  if (type & PRIMITIVE_CURVE_RIBBON) {
+  if ((type & PRIMITIVE_CURVE) == PRIMITIVE_CURVE_RIBBON) {
     optix_intersection_curve(prim, type);
   }
 }

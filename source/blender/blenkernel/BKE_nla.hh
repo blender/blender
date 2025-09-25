@@ -461,6 +461,15 @@ bool BKE_nlatracks_have_animated_strips(ListBase *tracks);
 void BKE_nlastrip_validate_fcurves(NlaStrip *strip);
 
 /**
+ * Delete the NLA-Strip's control F-Curve.
+ *
+ * This also ensures that the strip's flags are correctly updated.
+ *
+ * \return Whether the F-Curve was actually removed.
+ */
+bool BKE_nlastrip_controlcurve_remove(NlaStrip *strip, FCurve *fcurve);
+
+/**
  * Check if the given RNA pointer + property combo should be handled by
  * NLA strip curves or not.
  */

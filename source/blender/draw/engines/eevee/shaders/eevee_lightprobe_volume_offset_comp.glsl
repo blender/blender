@@ -10,12 +10,14 @@
  * Dispatched as 1 thread per irradiance probe sample.
  */
 
-#include "infos/eevee_lightprobe_volume_info.hh"
+#include "infos/eevee_lightprobe_volume_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_lightprobe_volume_offset)
 
 #include "eevee_lightprobe_lib.glsl"
 #include "eevee_surfel_list_lib.glsl"
+#include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_math_constants_lib.glsl"
 
 int find_closest_surfel(int3 grid_coord, float3 P)
 {

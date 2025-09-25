@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/overlay_facing_info.hh"
+#include "infos/overlay_facing_infos.hh"
 
 VERTEX_SHADER_CREATE_INFO(overlay_facing_base)
 VERTEX_SHADER_CREATE_INFO(draw_modelmat)

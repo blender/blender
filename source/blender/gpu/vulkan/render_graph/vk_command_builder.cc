@@ -314,12 +314,7 @@ void VKCommandBuilder::groups_build_commands(VKRenderGraph &render_graph,
       /* Suspend rendering as the next node group will contain data transfer/dispatch commands.
        */
       rendering_active = false;
-      if (command_buffer.use_dynamic_rendering) {
-        command_buffer.end_rendering();
-      }
-      else {
-        command_buffer.end_render_pass();
-      }
+      command_buffer.end_rendering();
 
       VKRenderGraphNode &rendering_node = render_graph.nodes_[rendering_scope];
       render_graph.storage_.begin_rendering[rendering_node.storage_index].vk_rendering_info.flags =

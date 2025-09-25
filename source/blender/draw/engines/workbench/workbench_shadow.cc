@@ -195,7 +195,7 @@ bool ShadowPass::ShadowView::debug_object_culling(Object *ob)
       }
     }
     if (separating_axis) {
-      printf("Sepatating Axis >>> x: %f, y: %f, z: %f, w: %f \n", UNPACK4(plane));
+      printf("Separating Axis >>> x: %f, y: %f, z: %f, w: %f \n", UNPACK4(plane));
       return true;
     }
   }

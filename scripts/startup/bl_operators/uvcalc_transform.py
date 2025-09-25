@@ -143,7 +143,7 @@ def find_rotation_edge(bm, uv_layer, faces, aspect_y):
             prev_uv = uv
             prev_select = loop[uv_layer].select_edge
 
-    # Add 90 degrees to align along V co-ordinate.
+    # Add 90 degrees to align along V coordinate.
     # Twice, because we divide by two.
     sum_u, sum_v = -sum_u, -sum_v
 
@@ -169,9 +169,9 @@ def find_rotation_geometry(bm, uv_layer, faces, method, axis, aspect_y):
             delta_co0 = face.loops[fan - 1].vert.co - face.loops[0].vert.co
             delta_co1 = face.loops[fan].vert.co - face.loops[0].vert.co
             w = delta_co0.cross(delta_co1).length
-            # U direction in geometry co-ordinates.
+            # U direction in geometry coordinates.
             sum_u_co += (delta_co0 * mat[0][0] + delta_co1 * mat[0][1]) * w
-            # V direction in geometry co-ordinates.
+            # V direction in geometry coordinates.
             sum_v_co += (delta_co0 * mat[1][0] + delta_co1 * mat[1][1]) * w
 
     if axis == 'X':
@@ -353,7 +353,7 @@ def get_random_transform(transform_params, entropy):
     if scale_even:
         scale_v = scale_u
 
-    # Results in homogenous co-ordinates.
+    # Results in homogeneous coordinates.
     return [[scale_u * math.cos(angle), -scale_v * math.sin(angle), offset_u],
             [scale_u * math.sin(angle), scale_v * math.cos(angle), offset_v]]
 

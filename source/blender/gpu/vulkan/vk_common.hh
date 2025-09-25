@@ -56,7 +56,7 @@ enum class VKImageViewArrayed {
 };
 
 VkImageAspectFlags to_vk_image_aspect_flag_bits(const TextureFormat format);
-VkImageAspectFlags to_vk_image_aspect_flag_bits(const eGPUFrameBufferBits buffers);
+VkImageAspectFlags to_vk_image_aspect_flag_bits(const GPUFrameBufferBits buffers);
 VkFormat to_vk_format(const TextureFormat format);
 TextureFormat to_gpu_format(const VkFormat format);
 VkFormat to_vk_format(const GPUVertCompType type,
@@ -66,14 +66,14 @@ VkFormat to_vk_format(const shader::Type type);
 VkQueryType to_vk_query_type(const GPUQueryType query_type);
 
 VkComponentSwizzle to_vk_component_swizzle(const char swizzle);
-VkImageViewType to_vk_image_view_type(const eGPUTextureType type,
+VkImageViewType to_vk_image_view_type(const GPUTextureType type,
                                       eImageViewUsage view_type,
                                       VKImageViewArrayed arrayed);
-VkImageType to_vk_image_type(const eGPUTextureType type);
+VkImageType to_vk_image_type(const GPUTextureType type);
 VkClearColorValue to_vk_clear_color_value(const eGPUDataFormat format, const void *data);
 VkIndexType to_vk_index_type(const GPUIndexBufType index_type);
 VkPrimitiveTopology to_vk_primitive_topology(const GPUPrimType prim_type);
-VkCullModeFlags to_vk_cull_mode_flags(const eGPUFaceCullTest cull_test);
+VkCullModeFlags to_vk_cull_mode_flags(const GPUFaceCullTest cull_test);
 VkSamplerAddressMode to_vk_sampler_address_mode(const GPUSamplerExtendMode extend_mode);
 VkDescriptorType to_vk_descriptor_type(const shader::ShaderCreateInfo::Resource &resource);
 

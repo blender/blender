@@ -224,54 +224,39 @@ static GVArray adapt_mesh_domain_corner_to_edge(const Mesh &mesh, const GVArray 
   return GVArray::from_garray(std::move(values));
 }
 
-template<typename T>
-void adapt_mesh_domain_face_to_point_impl(const Mesh &mesh,
-                                          const VArray<T> &src,
-                                          MutableSpan<T> r_dst)
-{
-  BLI_assert(r_dst.size() == mesh.verts_num);
-  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
-
-  threading::parallel_for(vert_to_face_map.index_range(), 2048, [&](const IndexRange range) {
-    for (const int vert : range) {
-      attribute_math::DefaultMixer<T> mixer({&r_dst[vert], 1});
-      for (const int face : vert_to_face_map[vert]) {
-        mixer.mix_in(0, src[face]);
-      }
-      mixer.finalize();
-    }
-  });
-}
-
-/* A vertex is selected if any of the connected faces were selected. */
-template<>
-void adapt_mesh_domain_face_to_point_impl(const Mesh &mesh,
-                                          const VArray<bool> &src,
-                                          MutableSpan<bool> r_dst)
-{
-  BLI_assert(r_dst.size() == mesh.verts_num);
-  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
-
-  threading::parallel_for(vert_to_face_map.index_range(), 2048, [&](const IndexRange range) {
-    for (const int vert : range) {
-      const Span<int> vert_faces = vert_to_face_map[vert];
-      r_dst[vert] = std::any_of(
-          vert_faces.begin(), vert_faces.end(), [&](const int face) { return src[face]; });
-    }
-  });
-}
-
 static GVArray adapt_mesh_domain_face_to_point(const Mesh &mesh, const GVArray &varray)
 {
-  GArray<> values(varray.type(), mesh.verts_num);
+  GVArray new_varray;
   attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
     using T = decltype(dummy);
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
-      adapt_mesh_domain_face_to_point_impl<T>(
-          mesh, varray.typed<T>(), values.as_mutable_span().typed<T>());
+      VArray<T> src = varray.typed<T>();
+      const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
+      if constexpr (std::is_same_v<T, bool>) {
+        new_varray = VArray<T>::from_func(
+            mesh.verts_num, [vert_to_face_map, src](const int point_i) {
+              const Span<int> vert_faces = vert_to_face_map[point_i];
+              /* A vertex is selected if any of the connected faces were selected. */
+              return std::any_of(
+                  vert_faces.begin(), vert_faces.end(), [&](const int face) { return src[face]; });
+            });
+      }
+      else {
+        new_varray = VArray<T>::from_func(
+            mesh.verts_num, [vert_to_face_map, src](const int point_i) {
+              const Span<int> vert_faces = vert_to_face_map[point_i];
+              T return_value;
+              attribute_math::DefaultMixer<T> mixer({&return_value, 1});
+              for (const int face : vert_faces) {
+                mixer.mix_in(0, src[face]);
+              }
+              mixer.finalize();
+              return return_value;
+            });
+      }
     }
   });
-  return GVArray::from_garray(std::move(values));
+  return new_varray;
 }
 
 /* Each corner's value is simply a copy of the value at its face. */

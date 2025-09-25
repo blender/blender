@@ -500,8 +500,8 @@ struct MTLContextGlobalShaderPipelineState {
 
   /* Culling State. */
   bool culling_enabled;
-  eGPUFaceCullTest cull_mode;
-  eGPUFrontFace front_face;
+  GPUFaceCullTest cull_mode;
+  GPUFrontFace front_face;
 
   /* Depth State. */
   MTLContextDepthStencilState depth_stencil_state;
@@ -641,9 +641,9 @@ class MTLCommandBufferManager {
   id<MTLComputeCommandEncoder> ensure_begin_compute_encoder();
 
   /* Workload Synchronization. */
-  bool insert_memory_barrier(eGPUBarrier barrier_bits,
-                             eGPUStageBarrierBits before_stages,
-                             eGPUStageBarrierBits after_stages);
+  bool insert_memory_barrier(GPUBarrier barrier_bits,
+                             GPUStageBarrierBits before_stages,
+                             GPUStageBarrierBits after_stages);
   void encode_signal_event(id<MTLEvent> event, uint64_t value);
   void encode_wait_for_event(id<MTLEvent> event, uint64_t value);
   /* TODO(Metal): Support fences in command buffer class. */
@@ -896,7 +896,7 @@ class MTLContext : public Context {
 
   id<MTLBuffer> get_null_buffer();
   id<MTLBuffer> get_null_attribute_buffer();
-  gpu::MTLTexture *get_dummy_texture(eGPUTextureType type, eGPUSamplerFormat sampler_format);
+  gpu::MTLTexture *get_dummy_texture(GPUTextureType type, GPUSamplerFormat sampler_format);
   void free_dummy_resources();
 
   /* Compute. */

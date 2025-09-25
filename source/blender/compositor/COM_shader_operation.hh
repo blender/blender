@@ -183,13 +183,13 @@ class ShaderOperation : public PixelOperation {
   /* Add an image in the shader for each of the declared outputs. Additionally, emit code to define
    * the storer functions that store the given value in the appropriate image identified by the
    * given index. */
-  void generate_code_for_outputs(gpu::shader::ShaderCreateInfo &shader_create_info);
+  std::string generate_code_for_outputs(gpu::shader::ShaderCreateInfo &shader_create_info);
 
   /* Add a texture will in the shader for each of the declared inputs/attributes in the operation,
    * having the same name as the attribute. Additionally, emit code to initialize the attributes by
    * sampling their corresponding textures. */
-  void generate_code_for_inputs(GPUMaterial *material,
-                                gpu::shader::ShaderCreateInfo &shader_create_info);
+  std::string generate_code_for_inputs(GPUMaterial *material,
+                                       gpu::shader::ShaderCreateInfo &shader_create_info);
 };
 
 }  // namespace blender::compositor

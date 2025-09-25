@@ -284,16 +284,16 @@ Vector<GVArray> evaluate_fields(ResourceScope &scope,
                                 const FieldContext &context,
                                 Span<GVMutableArray> dst_varrays)
 {
-  Vector<GVArray> r_varrays(fields_to_evaluate.size());
+  Vector<GVArray> varrays(fields_to_evaluate.size());
   Array<bool> is_output_written_to_dst(fields_to_evaluate.size(), false);
   const int array_size = mask.min_array_size();
 
   if (mask.is_empty()) {
     for (const int i : fields_to_evaluate.index_range()) {
       const CPPType &type = fields_to_evaluate[i].cpp_type();
-      r_varrays[i] = GVArray::from_empty(type);
+      varrays[i] = GVArray::from_empty(type);
     }
-    return r_varrays;
+    return varrays;
   }
 
   /* Destination arrays are optional. Create a small utility method to access them. */
@@ -326,12 +326,12 @@ Vector<GVArray> evaluate_fields(ResourceScope &scope,
         const int field_input_index = field_tree_info.deduplicated_field_inputs.index_of(
             field_input);
         const GVArray &varray = field_context_inputs[field_input_index];
-        r_varrays[out_index] = varray;
+        varrays[out_index] = varray;
         break;
       }
       case FieldNodeType::Constant: {
         const FieldConstant &field_constant = static_cast<const FieldConstant &>(field.node());
-        r_varrays[out_index] = GVArray::from_single_ref(
+        varrays[out_index] = GVArray::from_single_ref(
             field_constant.type(), mask.min_array_size(), field_constant.value().get());
         break;
       }
@@ -350,7 +350,7 @@ Vector<GVArray> evaluate_fields(ResourceScope &scope,
   Vector<GFieldRef> constant_fields_to_evaluate;
   Vector<int> constant_field_indices;
   for (const int i : fields_to_evaluate.index_range()) {
-    if (r_varrays[i]) {
+    if (varrays[i]) {
       /* Already done. */
       continue;
     }
@@ -399,13 +399,13 @@ Vector<GVArray> evaluate_fields(ResourceScope &scope,
               [buffer, mask, &type]() { type.destruct_indices(buffer, mask); });
         }
 
-        r_varrays[out_index] = GVArray::from_span({type, buffer, array_size});
+        varrays[out_index] = GVArray::from_span({type, buffer, array_size});
       }
       else {
         /* Write the result into the existing span. */
         buffer = dst_varray.get_internal_span().data();
 
-        r_varrays[out_index] = dst_varray;
+        varrays[out_index] = dst_varray;
         is_output_written_to_dst[out_index] = true;
       }
 
@@ -444,7 +444,7 @@ Vector<GVArray> evaluate_fields(ResourceScope &scope,
 
       /* Create virtual array that can be used after the procedure has been executed below. */
       const int out_index = constant_field_indices[i];
-      r_varrays[out_index] = GVArray::from_single_ref(type, array_size, buffer);
+      varrays[out_index] = GVArray::from_single_ref(type, array_size, buffer);
     }
 
     procedure_executor.call(mask, mf_params, mf_context);
@@ -459,7 +459,7 @@ Vector<GVArray> evaluate_fields(ResourceScope &scope,
         /* Caller did not provide a destination for this output. */
         continue;
       }
-      const GVArray &computed_varray = r_varrays[out_index];
+      const GVArray &computed_varray = varrays[out_index];
       BLI_assert(computed_varray.type() == dst_varray.type());
       if (is_output_written_to_dst[out_index]) {
         /* The result has been written into the destination provided by the caller already. */
@@ -484,10 +484,10 @@ Vector<GVArray> evaluate_fields(ResourceScope &scope,
           });
         });
       }
-      r_varrays[out_index] = dst_varray;
+      varrays[out_index] = dst_varray;
     }
   }
-  return r_varrays;
+  return varrays;
 }
 
 void evaluate_constant_field(const GField &field, void *r_value)

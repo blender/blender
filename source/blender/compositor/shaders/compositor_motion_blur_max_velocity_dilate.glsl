@@ -8,6 +8,7 @@
 #include "gpu_shader_compositor_motion_blur_lib.glsl"
 #include "gpu_shader_compositor_texture_utilities.glsl"
 #include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_math_constants_lib.glsl"
 
 struct MotionRect {
   int2 bottom_left;

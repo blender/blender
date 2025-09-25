@@ -2,11 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/overlay_background_info.hh"
+#include "infos/overlay_background_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(overlay_background)
 
-#include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_math_constants_lib.glsl"
 
 float dither()
 {
@@ -84,7 +84,7 @@ void main()
       return;
     case BG_SOLID_CHECKER:
       /* Unreachable. */
-      assert(0);
+      assert(false);
       return;
   }
 

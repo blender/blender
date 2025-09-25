@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'61dd8a1435fb')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-01 09:40+0000\n"
+"POT-Creation-Date: 2025-09-22 08:45+0000\n"
 "PO-Revision-Date: 2025-07-23 15:20+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Kyrgyz <https://translate.blender.org/projects/blender-ui/ui/ky/>\n"
@@ -174,10 +174,6 @@ msgstr "Каптал"
 
 msgid "Layer"
 msgstr "Кат"
-
-
-msgid "Array"
-msgstr "Массив"
 
 
 msgid "Object"
@@ -438,6 +434,10 @@ msgid "Use Curves"
 msgstr "Ийрилерди колдонуу"
 
 
+msgid "View"
+msgstr "Көрүнүш"
+
+
 msgid "Mix"
 msgstr "Аралаш"
 
@@ -561,10 +561,6 @@ msgstr "Метод"
 
 msgid "Plane"
 msgstr "Тегиздик"
-
-
-msgid "View"
-msgstr "Көрүнүш"
 
 
 msgid "Render"
@@ -1290,16 +1286,16 @@ msgid "Mask"
 msgstr "Маска"
 
 
+msgid "Text"
+msgstr "Текст"
+
+
 msgid "Mirror"
 msgstr "Чагылтуу"
 
 
 msgid "Apply"
 msgstr "Колдонуу"
-
-
-msgid "Text"
-msgstr "Текст"
 
 
 msgctxt "MovieClip"
@@ -1396,6 +1392,11 @@ msgid "Help"
 msgstr "Жардам"
 
 
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Решётка"
+
+
 msgid "Smooth"
 msgstr "Тегиз"
 
@@ -1406,6 +1407,10 @@ msgstr "Активдүү элемент"
 
 msgid "Ellipsoid"
 msgstr "Эллипсоид"
+
+
+msgid "Array"
+msgstr "Массив"
 
 
 msgid "Build"
@@ -3313,11 +3318,6 @@ msgstr "Жалпак"
 msgctxt "Operator"
 msgid "Calculate"
 msgstr "Эсептөө"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Решётка"
 
 
 msgctxt "Operator"

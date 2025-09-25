@@ -127,6 +127,8 @@ static bool can_use_mesh_for_orco_evaluation(MeshSeqCacheModifierData *mcmd,
       if (!ABC_mesh_topology_changed(mcmd->reader, ctx->object, mesh, time_offset, r_err_str)) {
         return true;
       }
+#  else
+      UNUSED_VARS(time_offset);
 #  endif
       break;
     case CACHEFILE_TYPE_USD:
@@ -146,26 +148,6 @@ static bool can_use_mesh_for_orco_evaluation(MeshSeqCacheModifierData *mcmd,
 
   return false;
 }
-
-static Mesh *generate_bounding_box_mesh(const std::optional<Bounds<float3>> &bounds,
-                                        Material **mat,
-                                        short totcol)
-{
-  if (!bounds) {
-    return nullptr;
-  }
-
-  Mesh *result = geometry::create_cuboid_mesh(bounds->max - bounds->min, 2, 2, 2);
-  if (mat) {
-    result->mat = static_cast<Material **>(MEM_dupallocN(mat));
-    result->totcol = totcol;
-  }
-
-  bke::mesh_translate(*result, math::midpoint(bounds->min, bounds->max), false);
-
-  return result;
-}
-
 #endif
 
 static void modify_geometry_set(ModifierData *md,
@@ -198,24 +180,6 @@ static void modify_geometry_set(ModifierData *md,
     if (can_use_mesh_for_orco_evaluation(mcmd, ctx, mesh, frame_offset, time_offset, &err_str)) {
       return;
     }
-  }
-
-  /* Do not process data if using a render procedural, return a box instead for displaying in the
-   * viewport. */
-  if (BKE_cache_file_uses_render_procedural(cache_file, scene)) {
-    Mesh *bbox = nullptr;
-    if (geometry_set->has_mesh()) {
-      const Mesh *mesh = geometry_set->get_mesh();
-      bbox = generate_bounding_box_mesh(mesh->bounds_min_max(), mesh->mat, mesh->totcol);
-    }
-    else if (geometry_set->has_pointcloud()) {
-      const PointCloud *pointcloud = geometry_set->get_pointcloud();
-      bbox = generate_bounding_box_mesh(
-          pointcloud->bounds_min_max(), pointcloud->mat, pointcloud->totcol);
-    }
-
-    *geometry_set = bke::GeometrySet::from_mesh(bbox);
-    return;
   }
 
   /* Time (in frames or seconds) between two velocity samples. Automatically computed to
@@ -290,12 +254,6 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     }
   }
 
-  /* Do not process data if using a render procedural, return a box instead for displaying in the
-   * viewport. */
-  if (BKE_cache_file_uses_render_procedural(cache_file, scene)) {
-    return generate_bounding_box_mesh(org_mesh->bounds_min_max(), org_mesh->mat, org_mesh->totcol);
-  }
-
   /* If this invocation is for the ORCO mesh, and the mesh hasn't changed topology, we
    * must return the mesh as-is instead of deforming it. */
   if (can_use_mesh_for_orco_evaluation(mcmd, ctx, mesh, frame_offset, time_offset, &err_str)) {
@@ -343,15 +301,13 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 #endif
 }
 
-static bool depends_on_time(Scene *scene, ModifierData *md)
+static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
 {
 #if defined(WITH_USD) || defined(WITH_ALEMBIC)
   MeshSeqCacheModifierData *mcmd = reinterpret_cast<MeshSeqCacheModifierData *>(md);
-  /* Do not evaluate animations if using the render engine procedural. */
-  return (mcmd->cache_file != nullptr) &&
-         !BKE_cache_file_uses_render_procedural(mcmd->cache_file, scene);
+  return (mcmd->cache_file != nullptr);
 #else
-  UNUSED_VARS(scene, md);
+  UNUSED_VARS(md);
   return false;
 #endif
 }
@@ -436,22 +392,6 @@ static void time_panel_draw(const bContext * /*C*/, Panel *panel)
   uiTemplateCacheFileTimeSettings(layout, &fileptr);
 }
 
-static void render_procedural_panel_draw(const bContext *C, Panel *panel)
-{
-  uiLayout *layout = panel->layout;
-
-  PointerRNA ob_ptr;
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
-
-  PointerRNA fileptr;
-  if (!uiTemplateCacheFilePointer(ptr, "cache_file", &fileptr)) {
-    return;
-  }
-
-  layout->use_property_split_set(true);
-  uiTemplateCacheFileProcedural(layout, C, &fileptr);
-}
-
 static void override_layers_panel_draw(const bContext *C, Panel *panel)
 {
   uiLayout *layout = panel->layout;
@@ -473,12 +413,6 @@ static void panel_register(ARegionType *region_type)
   PanelType *panel_type = modifier_panel_register(
       region_type, eModifierType_MeshSequenceCache, panel_draw);
   modifier_subpanel_register(region_type, "time", "Time", nullptr, time_panel_draw, panel_type);
-  modifier_subpanel_register(region_type,
-                             "render_procedural",
-                             "Render Procedural",
-                             nullptr,
-                             render_procedural_panel_draw,
-                             panel_type);
   modifier_subpanel_register(
       region_type, "velocity", "Velocity", nullptr, velocity_panel_draw, panel_type);
   modifier_subpanel_register(region_type,

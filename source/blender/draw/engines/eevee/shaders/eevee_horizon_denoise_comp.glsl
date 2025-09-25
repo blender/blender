@@ -2,13 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/eevee_tracing_info.hh"
+#include "infos/eevee_tracing_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_horizon_denoise)
 
 #include "draw_view_lib.glsl"
 #include "eevee_filter_lib.glsl"
-#include "eevee_sampling_lib.glsl"
 #include "eevee_spherical_harmonics_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"

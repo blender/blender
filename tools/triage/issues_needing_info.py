@@ -63,7 +63,7 @@ def main() -> None:
         dest="username",
         type=str,
         required=False,
-        help="Username registred in Gitea")
+        help="Username registered in Gitea")
 
     args = parser.parse_args()
     username = args.username

@@ -580,25 +580,20 @@ void bmo_reverse_uvs_exec(BMesh *bm, BMOperator *op)
 static void bmo_get_loop_color_ref(BMesh *bm,
                                    int index,
                                    int *r_cd_color_offset,
-                                   int *r_cd_color_type)
+                                   std::optional<eCustomDataType> *r_cd_color_type)
 {
-  Mesh me_query = blender::dna::shallow_zero_initialize();
-  CustomData_reset(&me_query.vert_data);
-  CustomData_reset(&me_query.edge_data);
-  CustomData_reset(&me_query.face_data);
-  me_query.corner_data = bm->ldata;
-  *((short *)me_query.id.name) = ID_ME;
-
-  AttributeOwner owner = AttributeOwner::from_id(&me_query.id);
-  CustomDataLayer *layer = BKE_attribute_from_index(
-      owner, index, ATTR_DOMAIN_MASK_CORNER, CD_MASK_COLOR_ALL);
-  if (!layer) {
-    *r_cd_color_offset = -1;
-    return;
+  int color_index = 0;
+  for (const CustomDataLayer &layer : blender::Span(bm->ldata.layers, bm->ldata.totlayer)) {
+    if (CD_TYPE_AS_MASK(eCustomDataType(layer.type)) & CD_MASK_COLOR_ALL) {
+      if (color_index == index) {
+        *r_cd_color_offset = layer.offset;
+        *r_cd_color_type = eCustomDataType(layer.type);
+        return;
+      }
+      color_index++;
+    }
   }
-
-  *r_cd_color_offset = layer->offset;
-  *r_cd_color_type = layer->type;
+  *r_cd_color_offset = -1;
 }
 
 void bmo_rotate_colors_exec(BMesh *bm, BMOperator *op)
@@ -612,8 +607,7 @@ void bmo_rotate_colors_exec(BMesh *bm, BMOperator *op)
   const int color_index = BMO_slot_int_get(op->slots_in, "color_index");
 
   int cd_loop_color_offset;
-  int cd_loop_color_type;
-
+  std::optional<eCustomDataType> cd_loop_color_type;
   bmo_get_loop_color_ref(bm, color_index, &cd_loop_color_offset, &cd_loop_color_type);
 
   if (cd_loop_color_offset == -1) {
@@ -678,7 +672,7 @@ void bmo_rotate_colors_exec(BMesh *bm, BMOperator *op)
  *************************************************************************** */
 static void bm_face_reverse_colors(BMFace *f,
                                    const int cd_loop_color_offset,
-                                   const int cd_loop_color_type)
+                                   const eCustomDataType cd_loop_color_type)
 {
   BMIter iter;
   BMLoop *l;
@@ -713,8 +707,7 @@ void bmo_reverse_colors_exec(BMesh *bm, BMOperator *op)
   const int color_index = BMO_slot_int_get(op->slots_in, "color_index");
 
   int cd_loop_color_offset;
-  int cd_loop_color_type;
-
+  std::optional<eCustomDataType> cd_loop_color_type;
   bmo_get_loop_color_ref(bm, color_index, &cd_loop_color_offset, &cd_loop_color_type);
 
   if (cd_loop_color_offset == -1) {
@@ -723,6 +716,6 @@ void bmo_reverse_colors_exec(BMesh *bm, BMOperator *op)
   }
 
   BMO_ITER (f, &iter, op->slots_in, "faces", BM_FACE) {
-    bm_face_reverse_colors(f, cd_loop_color_offset, cd_loop_color_type);
+    bm_face_reverse_colors(f, cd_loop_color_offset, *cd_loop_color_type);
   }
 }

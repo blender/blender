@@ -10,6 +10,7 @@
 
 #include <cstring>
 
+#include "BKE_lib_id.hh"
 #include "MEM_guardedalloc.h"
 
 #include "DNA_material_types.h"
@@ -25,8 +26,10 @@
 #include "BKE_main.hh"
 #include "BKE_material.hh"
 #include "BKE_node.hh"
+#include "BKE_node_runtime.hh"
 
 #include "NOD_shader.h"
+#include "NOD_shader_nodes_inline.hh"
 
 #include "GPU_material.hh"
 #include "GPU_pass.hh"
@@ -96,11 +99,7 @@ struct GPUMaterial {
 
   std::string name;
 
-  GPUMaterial(eGPUMaterialEngine engine) : engine(engine)
-  {
-    graph.used_libraries = BLI_gset_new(
-        BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "GPUNodeGraph.used_libraries");
-  };
+  GPUMaterial(eGPUMaterialEngine engine) : engine(engine){};
 
   ~GPUMaterial()
   {
@@ -129,16 +128,17 @@ struct GPUMaterial {
 
 /* Public API */
 
-GPUMaterial *GPU_material_from_nodetree(Material *ma,
-                                        bNodeTree *ntree,
-                                        ListBase *gpumaterials,
-                                        const char *name,
-                                        eGPUMaterialEngine engine,
-                                        uint64_t shader_uuid,
-                                        bool deferred_compilation,
-                                        GPUCodegenCallbackFn callback,
-                                        void *thunk,
-                                        GPUMaterialPassReplacementCallbackFn pass_replacement_cb)
+GPUMaterialFromNodeTreeResult GPU_material_from_nodetree(
+    Material *ma,
+    bNodeTree *ntree,
+    ListBase *gpumaterials,
+    const char *name,
+    eGPUMaterialEngine engine,
+    uint64_t shader_uuid,
+    bool deferred_compilation,
+    GPUCodegenCallbackFn callback,
+    void *thunk,
+    GPUMaterialPassReplacementCallbackFn pass_replacement_cb)
 {
   /* Search if this material is not already compiled. */
   LISTBASE_FOREACH (LinkData *, link, gpumaterials) {
@@ -147,17 +147,31 @@ GPUMaterial *GPU_material_from_nodetree(Material *ma,
       if (!deferred_compilation) {
         GPU_pass_ensure_its_ready(mat->pass);
       }
-      return mat;
+      return {mat};
     }
   }
+
+  GPUMaterialFromNodeTreeResult result;
 
   GPUMaterial *mat = MEM_new<GPUMaterial>(__func__, engine);
   mat->source_material = ma;
   mat->uuid = shader_uuid;
   mat->name = name;
+  result.material = mat;
 
   /* Localize tree to create links for reroute and mute. */
-  bNodeTree *localtree = blender::bke::node_tree_localize(ntree, nullptr);
+  bNodeTree *localtree = blender::bke::node_tree_add_tree(
+      nullptr, (blender::StringRef(ntree->id.name) + " Inlined").c_str(), ntree->idname);
+  blender::nodes::InlineShaderNodeTreeParams inline_params;
+  inline_params.allow_preserving_repeat_zones = false;
+  blender::nodes::inline_shader_node_tree(*ntree, *localtree, inline_params);
+
+  for (blender::nodes::InlineShaderNodeTreeParams::ErrorMessage &error :
+       inline_params.r_error_messages)
+  {
+    result.errors.append({error.node, std::move(error.message)});
+  }
+
   ntreeGPUMaterialNodes(localtree, mat);
 
   gpu_material_ramp_texture_build(mat);
@@ -190,9 +204,7 @@ GPUMaterial *GPU_material_from_nodetree(Material *ma,
   gpu_node_graph_free_nodes(&mat->graph);
   /* Only free after GPU_pass_shader_get where blender::gpu::UniformBuf read data from the local
    * tree. */
-  blender::bke::node_tree_free_local_tree(localtree);
-  BLI_assert(!localtree->id.py_instance); /* Or call #BKE_libblock_free_data_py. */
-  MEM_freeN(localtree);
+  BKE_id_free(nullptr, &localtree->id);
 
   /* Note that even if building the shader fails in some way, we want to keep
    * it to avoid trying to compile again and again, and simply do not use
@@ -201,7 +213,7 @@ GPUMaterial *GPU_material_from_nodetree(Material *ma,
   link->data = mat;
   BLI_addtail(gpumaterials, link);
 
-  return mat;
+  return result;
 }
 
 GPUMaterial *GPU_material_from_callbacks(eGPUMaterialEngine engine,
@@ -302,7 +314,7 @@ blender::gpu::Shader *GPU_material_get_shader(GPUMaterial *material)
   return GPU_pass_shader_get(GPU_material_get_pass(material));
 }
 
-eGPUMaterialStatus GPU_material_status(GPUMaterial *mat)
+GPUMaterialStatus GPU_material_status(GPUMaterial *mat)
 {
   switch (GPU_pass_status(mat->pass)) {
     case GPU_PASS_SUCCESS:
@@ -556,7 +568,7 @@ void GPU_material_add_output_link_composite(GPUMaterial *material, GPUNodeLink *
 }
 
 char *GPU_material_split_sub_function(GPUMaterial *material,
-                                      eGPUType return_type,
+                                      GPUType return_type,
                                       GPUNodeLink **link)
 {
   /* Force cast to return type. */

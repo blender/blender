@@ -383,7 +383,7 @@ static void foreach_active_gizmo_exposed_to_modifier(
   tree.ensure_interface_cache();
   Array<nodes::socket_usage_inference::SocketUsage> input_usages(tree.interface_inputs().size());
   nodes::socket_usage_inference::infer_group_interface_inputs_usage(
-      tree, nodes::build_properties_vector_set(nmd.settings.properties), input_usages);
+      tree, nmd.settings.properties, input_usages);
 
   const ComputeContext &root_compute_context = compute_context_cache.for_modifier(nullptr, nmd);
   for (auto &&item : tree.runtime->gizmo_propagation->gizmo_inputs_by_group_inputs.items()) {

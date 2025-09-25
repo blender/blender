@@ -15,12 +15,13 @@
  * - utility_tx
  */
 
-#include "infos/eevee_common_info.hh"
+#include "infos/eevee_common_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(eevee_light_data)
 
 #include "eevee_bxdf_lib.glsl"
 #include "eevee_closure_lib.glsl"
+#include "eevee_light_iter_lib.glsl"
 #include "eevee_light_lib.glsl"
 #include "eevee_shadow_lib.glsl"
 #include "eevee_shadow_tracing_lib.glsl"

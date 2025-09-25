@@ -609,8 +609,8 @@ id<MTLBuffer> MTLContext::get_null_attribute_buffer()
   return null_attribute_buffer_;
 }
 
-gpu::MTLTexture *MTLContext::get_dummy_texture(eGPUTextureType type,
-                                               eGPUSamplerFormat sampler_format)
+gpu::MTLTexture *MTLContext::get_dummy_texture(GPUTextureType type,
+                                               GPUSamplerFormat sampler_format)
 {
   /* Decrement 1 from texture type as they start from 1 and go to 32 (inclusive). Remap to 0..31 */
   gpu::MTLTexture *dummy_tex = dummy_textures_[sampler_format][type - 1];

@@ -6,13 +6,13 @@ if(WIN32)
   option(ENABLE_MSYS2 "Enable building of ffmpeg/libsndfile/fftw3/gmp by installing msys2" ON)
   option(MSYS2_USE_UPSTREAM_PACKAGES "Use upstream packages to bootstrap msys2, when OFF the blender mirror will be used" OFF)
 endif()
-option(FORCE_CHECK_HASH "Force a check of all hashses during CMake the configure phase" OFF)
+option(FORCE_CHECK_HASH "Force a check of all hashes during CMake the configure phase" OFF)
 
 cmake_host_system_information(RESULT NUM_CORES QUERY NUMBER_OF_LOGICAL_CORES)
 set(MAKE_THREADS ${NUM_CORES} CACHE STRING "Number of threads to run make with")
 
 # Any python module building with setup.py cannot use multiple theads on windows
-# as they will try to write to the same .pdb file simultaniously which causes
+# as they will try to write to the same .pdb file simultaneously which causes
 # build errors.
 if(WIN32)
   set(PYTHON_MAKE_THREADS 1)

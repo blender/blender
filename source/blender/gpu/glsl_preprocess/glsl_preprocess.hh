@@ -15,6 +15,7 @@
 #include <regex>
 #include <sstream>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "shader_parser.hh"
@@ -168,6 +169,8 @@ class Preprocessor {
 
   metadata::Source metadata;
 
+  using Parser = shader::parser::Parser;
+
  public:
   enum SourceLanguage {
     UNKNOWN = 0,
@@ -214,46 +217,55 @@ class Preprocessor {
         parse_library_functions(str);
       }
       if (language == BLENDER_GLSL) {
-        include_parse(str, report_error);
         pragma_runtime_generated_parsing(str);
         pragma_once_linting(str, filename, report_error);
       }
-      str = preprocessor_directive_mutation(str);
+      str = disabled_code_mutation(str, report_error);
+      str = include_parse_and_remove(str, report_error);
+      str = pragmas_mutation(str, report_error);
       str = swizzle_function_mutation(str, report_error);
       str = enum_macro_injection(str, language == CPP, report_error);
       if (language == BLENDER_GLSL) {
-        str = template_struct_mutation(str, report_error);
-        str = struct_method_mutation(str, report_error);
-        str = empty_struct_mutation(str, report_error);
-        str = method_call_mutation(str, report_error);
-        str = stage_function_mutation(str);
-        str = resource_guard_mutation(str, report_error);
-        str = loop_unroll(str, report_error);
-        str = assert_processing(str, filename, report_error);
-        str = static_strings_merging(str, report_error);
-        str = static_strings_parsing_and_mutation(str, report_error);
+        Parser parser(str, report_error);
+        using_mutation(parser, report_error);
+
+        namespace_mutation(parser, report_error);
+        template_struct_mutation(parser, report_error);
+        struct_method_mutation(parser, report_error);
+        empty_struct_mutation(parser, report_error);
+        method_call_mutation(parser, report_error);
+        stage_function_mutation(parser, report_error);
+        resource_guard_mutation(parser, report_error);
+        loop_unroll(parser, report_error);
+        assert_processing(parser, filename, report_error);
+        static_strings_merging(parser, report_error);
+        static_strings_parsing_and_mutation(parser, report_error);
+        str = parser.result_get();
         str = printf_processing(str, report_error);
         quote_linting(str, report_error);
       }
-      global_scope_constant_linting(str, report_error);
-      matrix_constructor_linting(str, report_error);
-      array_constructor_linting(str, report_error);
-      if (do_small_type_linting) {
-        small_type_linting(str, report_error);
+      {
+        Parser parser(str, report_error);
+        global_scope_constant_linting(parser, report_error);
+        if (do_small_type_linting) {
+          small_type_linting(parser, report_error);
+        }
+        remove_quotes(parser, report_error);
+        argument_reference_mutation(parser, report_error);
+        default_argument_mutation(parser, report_error);
+        str = parser.result_get();
       }
-      str = remove_quotes(str);
-      if (language == BLENDER_GLSL) {
-        str = using_mutation(str, report_error);
-        str = namespace_mutation(str, report_error);
-      }
-      str = argument_reference_mutation(str, report_error);
-      str = default_argument_mutation(str, report_error);
       str = variable_reference_mutation(str, report_error);
       str = template_definition_mutation(str, report_error);
       if (language == BLENDER_GLSL) {
         str = namespace_separator_mutation(str);
       }
       str = template_call_mutation(str, report_error);
+    }
+    else if (language == MSL) {
+      pragma_runtime_generated_parsing(str);
+      str = include_parse_and_remove(str, report_error);
+      str = pragmas_mutation(str, report_error);
     }
 #ifdef __APPLE__ /* Limiting to Apple hardware since GLSL compilers might have issues. */
     if (language == GLSL) {
@@ -367,23 +379,17 @@ class Preprocessor {
     return args_concat;
   }
 
-  std::string template_struct_mutation(const std::string &str, report_callback &report_error)
+  void template_struct_mutation(Parser &parser, report_callback &report_error)
   {
     using namespace std;
     using namespace shader::parser;
-
-    std::string out_str = str;
-
     {
-      Parser parser(out_str, report_error);
-
       parser.foreach_match("w<..>(..)", [&](const vector<Token> &tokens) {
         const Scope template_args = tokens[1].scope();
         template_args.foreach_match("w<..>", [&parser](const vector<Token> &tokens) {
           parser.replace(tokens[1].scope(), template_arguments_mangle(tokens[1].scope()), true);
         });
       });
-
       parser.apply_mutations();
 
       /* Replace full specialization by simple struct. */
@@ -391,12 +397,9 @@ class Preprocessor {
         parser.erase(tokens[0], tokens[2]);
         parser.replace(tokens[5].scope(), template_arguments_mangle(tokens[5].scope()), true);
       });
-
-      out_str = parser.result_get();
+      parser.apply_mutations();
     }
     {
-      Parser parser(out_str, report_error);
-
       parser.foreach_scope(ScopeType::Template, [&](Scope temp) {
         /* Parse template declaration. */
         Token struct_start = temp.end().next();
@@ -487,20 +490,16 @@ class Preprocessor {
                                     end_of_instantiation.line_number() + 1);
         });
       });
-
-      out_str = parser.result_get();
+      parser.apply_mutations();
     }
     {
-      Parser parser(out_str, report_error);
-
       /* This rely on our codestyle that do not put spaces between template name and the opening
        * angle bracket. */
       parser.foreach_match("sw<..>", [&](const std::vector<Token> &tokens) {
         parser.replace(tokens[2].scope(), template_arguments_mangle(tokens[2].scope()), true);
       });
-      out_str = parser.result_get();
+      parser.apply_mutations();
     }
-    return out_str;
   }
 
   std::string template_definition_mutation(const std::string &str, report_callback &report_error)
@@ -693,37 +692,49 @@ class Preprocessor {
     return parser.result_get();
   }
 
-  std::string remove_quotes(const std::string &str)
+  /* Remove remaining quotes that can be found in some unsupported C++ macros. */
+  void remove_quotes(Parser &parser, report_callback /*report_error*/)
   {
-    return std::regex_replace(str, std::regex(R"(["'])"), " ");
+    using namespace std;
+    using namespace shader::parser;
+
+    parser.foreach_token(TokenType::String, [&](const Token token) { parser.erase(token); });
+    parser.apply_mutations();
   }
 
-  void include_parse(const std::string &str, report_callback report_error)
+  std::string include_parse_and_remove(const std::string &str, report_callback report_error)
   {
-    /* Parse include directive before removing them. */
-    std::regex regex(R"(#(\s*)include\s*\"(\w+\.\w+)\")");
+    using namespace std;
+    using namespace shader::parser;
 
-    regex_global_search(str, regex, [&](const std::smatch &match) {
-      std::string indent = match[1].str();
-      /* Assert that includes are not nested in other preprocessor directives. */
-      if (!indent.empty()) {
-        report_error(line_number(match),
-                     char_number(match),
-                     line_str(match),
-                     "#include directives must not be inside #if clause");
-      }
-      std::string dependency_name = match[2].str();
-      /* Assert that includes are at the top of the file. */
-      if (dependency_name == "gpu_glsl_cpp_stubs.hh") {
-        /* Skip GLSL-C++ stubs. They are only for IDE linting. */
+    Parser parser(str, report_error);
+
+    parser.foreach_match("#w_", [&](const std::vector<Token> &tokens) {
+      if (tokens[1].str() != "include") {
         return;
       }
-      if (dependency_name.find("info.hh") != std::string::npos) {
+      string dependency_name = tokens[2].str_exclusive();
+      /* Assert that includes are at the top of the file. */
+      if (dependency_name == "gpu_shader_compat.hh") {
+        /* Skip GLSL-C++ stubs. They are only for IDE linting. */
+        parser.erase(tokens.front(), tokens.back());
+        return;
+      }
+      if (dependency_name.find("infos.hh") != std::string::npos) {
         /* Skip info files. They are only for IDE linting. */
+        parser.erase(tokens.front(), tokens.back());
+        return;
+      }
+      if (dependency_name.find("gpu_shader_create_info.hh") != std::string::npos) {
+        /* Skip info files. They are only for IDE linting. */
+        parser.erase(tokens.front(), tokens.back());
         return;
       }
       metadata.dependencies.emplace_back(dependency_name);
+      parser.erase(tokens.front(), tokens.back());
     });
+
+    return parser.result_get();
   }
 
   void pragma_runtime_generated_parsing(const std::string &str)
@@ -737,268 +748,304 @@ class Preprocessor {
                            const std::string &filename,
                            report_callback report_error)
   {
-    if (filename.find("_lib.") == std::string::npos) {
+    if (filename.find("_lib.") == std::string::npos && filename.find(".hh") == std::string::npos) {
       return;
     }
     if (str.find("\n#pragma once") == std::string::npos) {
-      std::smatch match;
-      report_error(line_number(match),
-                   char_number(match),
-                   line_str(match),
-                   "Library files must contain #pragma once directive.");
+      report_error(0, 0, "", "Header files must contain #pragma once directive.");
     }
   }
 
-  std::string loop_unroll(const std::string &str, report_callback report_error)
+  void loop_unroll(Parser &parser, report_callback report_error)
   {
-    if (str.find("[[gpu::unroll") == std::string::npos) {
-      return str;
-    }
-
-    struct Loop {
-      /* `[[gpu::unroll]] for (int i = 0; i < 10; i++)` */
-      std::string definition;
-      /* `{ some_computation(i); }` */
-      std::string body;
-      /* `int i = 0` */
-      std::string init_statement;
-      /* `i < 10` */
-      std::string test_statement;
-      /* `i++` */
-      std::string iter_statement;
-      /* Spaces and newline between loop start and body. */
-      std::string body_prefix;
-      /* Spaces before the loop definition. */
-      std::string indent;
-      /* `10` */
-      int64_t iter_count;
-      /* Line at which the loop was defined. */
-      int64_t definition_line;
-      /* Line at which the body starts. */
-      int64_t body_line;
-      /* Line at which the body ends. */
-      int64_t end_line;
-    };
-
-    std::vector<Loop> loops;
-
-    auto add_loop = [&](Loop &loop,
-                        const std::smatch &match,
-                        int64_t line,
-                        int64_t lines_in_content) {
-      std::string suffix = match.suffix().str();
-      loop.body = get_content_between_balanced_pair(loop.definition + suffix, '{', '}');
-      loop.body = '{' + loop.body + '}';
-      loop.definition_line = line - lines_in_content;
-      loop.body_line = line;
-      loop.end_line = loop.body_line + line_count(loop.body);
-
-      /* Check that there is no unsupported keywords in the loop body. */
-      if (loop.body.find(" break;") != std::string::npos ||
-          loop.body.find(" continue;") != std::string::npos)
-      {
-        /* Expensive check. Remove other loops and switch scopes inside the unrolled loop scope and
-         * check again to avoid false positive. */
-        std::string modified_body = loop.body;
-
-        std::regex regex_loop(R"( (for|while|do) )");
-        regex_global_search(loop.body, regex_loop, [&](const std::smatch &match) {
-          std::string inner_scope = get_content_between_balanced_pair(match.suffix(), '{', '}');
-          replace_all(modified_body, inner_scope, "");
-        });
-
-        /* Checks if `continue` exists, even in switch statement inside the unrolled loop scope. */
-        if (modified_body.find(" continue;") != std::string::npos) {
-          report_error(line_number(match),
-                       char_number(match),
-                       line_str(match),
-                       "Error: Unrolled loop cannot contain \"continue\" statement.");
-        }
-
-        std::regex regex_switch(R"( switch )");
-        regex_global_search(loop.body, regex_switch, [&](const std::smatch &match) {
-          std::string inner_scope = get_content_between_balanced_pair(match.suffix(), '{', '}');
-          replace_all(modified_body, inner_scope, "");
-        });
-
-        /* Checks if `break` exists inside the unrolled loop scope. */
-        if (modified_body.find(" break;") != std::string::npos) {
-          report_error(line_number(match),
-                       char_number(match),
-                       line_str(match),
-                       "Error: Unrolled loop cannot contain \"break\" statement.");
-        }
-      }
-      loops.emplace_back(loop);
-    };
-
-    /* Parse the loop syntax. */
-    {
-      /* [[gpu::unroll]]. */
-      std::regex regex(R"(( *))"
-                       R"(\[\[gpu::unroll\]\])"
-                       R"(\s*for\s*\()"
-                       R"(\s*((?:uint|int)\s+(\w+)\s+=\s+(-?\d+));)" /* Init statement. */
-                       R"(\s*((\w+)\s+(>|<)(=?)\s+(-?\d+)))"         /* Conditional statement. */
-                       R"(\s*(?:&&)?\s*([^;)]+)?;)"       /* Extra conditional statement. */
-                       R"(\s*(((\w+)(\+\+|\-\-))[^\)]*))" /* Iteration statement. */
-                       R"(\)(\s*))");
-
-      int64_t line = 0;
-
-      regex_global_search(str, regex, [&](const std::smatch &match) {
-        std::string counter_1 = match[3].str();
-        std::string counter_2 = match[6].str();
-        std::string counter_3 = match[13].str();
-
-        std::string content = match[0].str();
-        int64_t lines_in_content = line_count(content);
-
-        line += line_count(match.prefix().str()) + lines_in_content;
-
-        if ((counter_1 != counter_2) || (counter_1 != counter_3)) {
-          report_error(line_number(match),
-                       char_number(match),
-                       line_str(match),
-                       "Error: Non matching loop counter variable.");
-          return;
-        }
-
-        Loop loop;
-
-        int64_t init = std::stol(match[4].str());
-        int64_t end = std::stol(match[9].str());
-        /* TODO(fclem): Support arbitrary strides (aka, arbitrary iter statement). */
-        loop.iter_count = std::abs(end - init);
-
-        std::string condition = match[7].str();
-        if (condition.empty()) {
-          report_error(line_number(match),
-                       char_number(match),
-                       line_str(match),
-                       "Error: Unsupported condition in unrolled loop.");
-        }
-
-        std::string equal = match[8].str();
-        if (equal == "=") {
-          loop.iter_count += 1;
-        }
-
-        std::string iter = match[14].str();
-        if (iter == "++") {
-          if (condition == ">") {
-            report_error(line_number(match),
-                         char_number(match),
-                         line_str(match),
-                         "Error: Unsupported condition in unrolled loop.");
-          }
-        }
-        else if (iter == "--") {
-          if (condition == "<") {
-            report_error(line_number(match),
-                         char_number(match),
-                         line_str(match),
-                         "Error: Unsupported condition in unrolled loop.");
-          }
-        }
-        else {
-          report_error(line_number(match),
-                       char_number(match),
-                       line_str(match),
-                       "Error: Unsupported for loop expression. Expecting ++ or --");
-        }
-
-        loop.definition = content;
-        loop.indent = match[1].str();
-        loop.init_statement = match[2].str();
-        if (!match[10].str().empty()) {
-          loop.test_statement = "if (" + match[10].str() + ") ";
-        }
-        loop.iter_statement = match[11].str();
-        loop.body_prefix = match[15].str();
-
-        add_loop(loop, match, line, lines_in_content);
-      });
-    }
-    {
-      /* [[gpu::unroll(n)]]. */
-      std::regex regex(R"(( *))"
-                       R"(\[\[gpu::unroll\((\d+)\)\]\])"
-                       R"(\s*for\s*\()"
-                       R"(\s*([^;]*);)"
-                       R"(\s*([^;]*);)"
-                       R"(\s*([^)]*))"
-                       R"(\)(\s*))");
-
-      int64_t line = 0;
-
-      regex_global_search(str, regex, [&](const std::smatch &match) {
-        std::string content = match[0].str();
-
-        int64_t lines_in_content = line_count(content);
-
-        line += line_count(match.prefix().str()) + lines_in_content;
-
-        Loop loop;
-        loop.iter_count = std::stol(match[2].str());
-        loop.definition = content;
-        loop.indent = match[1].str();
-        loop.init_statement = match[3].str();
-        loop.test_statement = "if (" + match[4].str() + ") ";
-        loop.iter_statement = match[5].str();
-        loop.body_prefix = match[13].str();
-
-        add_loop(loop, match, line, lines_in_content);
-      });
-    }
-
-    std::string out = str;
-
-    /* Copy paste loop iterations. */
-    for (const Loop &loop : loops) {
-      std::string replacement = loop.indent + "{ " + loop.init_statement + ";";
-      for (int64_t i = 0; i < loop.iter_count; i++) {
-        replacement += std::string("\n#line ") + std::to_string(loop.body_line + 1) + "\n";
-        replacement += loop.indent + loop.test_statement + loop.body;
-        replacement += std::string("\n#line ") + std::to_string(loop.definition_line + 1) + "\n";
-        replacement += loop.indent + loop.iter_statement + ";";
-        if (i == loop.iter_count - 1) {
-          replacement += std::string("\n#line ") + std::to_string(loop.end_line + 1) + "\n";
-          replacement += loop.indent + "}";
-        }
-      }
-
-      std::string replaced = loop.definition + loop.body;
-
-      /* Replace all occurrences in case of recursive unrolling. */
-      replace_all(out, replaced, replacement);
-    }
-
-    /* Check for remaining keywords. */
-    if (out.find("[[gpu::unroll") != std::string::npos) {
-      regex_global_search(str, std::regex(R"(\[\[gpu::unroll)"), [&](const std::smatch &match) {
-        report_error(line_number(match),
-                     char_number(match),
-                     line_str(match),
-                     "Error: Incompatible format for [[gpu::unroll]].");
-      });
-    }
-
-    return out;
-  }
-
-  std::string namespace_mutation(const std::string &str, report_callback report_error)
-  {
-    if (str.find("namespace") == std::string::npos) {
-      return str;
-    }
-
     using namespace std;
     using namespace shader::parser;
 
-    Parser parser(str, report_error);
+    auto parse_for_args =
+        [&](const Scope loop_args, Scope &r_init, Scope &r_condition, Scope &r_iter) {
+          r_init = r_condition = r_iter = Scope::invalid();
+          loop_args.foreach_scope(ScopeType::LoopArg, [&](const Scope arg) {
+            if (arg.start().prev() == '(' && arg.end().next() == ';') {
+              r_init = arg;
+            }
+            else if (arg.start().prev() == ';' && arg.end().next() == ';') {
+              r_condition = arg;
+            }
+            else if (arg.start().prev() == ';' && arg.end().next() == ')') {
+              r_iter = arg;
+            }
+            else {
+              report_error(ERROR_TOK(arg.start()), "Invalid loop declaration.");
+            }
+          });
+        };
 
-    std::string out = str;
+    auto process_loop = [&](const Token loop_start,
+                            const int iter_count,
+                            const int iter_init,
+                            const int iter_incr,
+                            const bool condition_is_trivial,
+                            const bool iteration_is_trivial,
+                            const Scope init,
+                            const Scope cond,
+                            const Scope iter,
+                            const Scope body,
+                            const string body_prefix = "",
+                            const string body_suffix = "") {
+      /* Check that there is no unsupported keywords in the loop body. */
+      bool error = false;
+      /* Checks if `continue` exists, even in switch statement inside the unrolled loop. */
+      body.foreach_token(Continue, [&](const Token token) {
+        if (token.first_containing_scope_of_type(ScopeType::LoopBody) == body) {
+          report_error(ERROR_TOK(token), "Unrolled loop cannot contain \"continue\" statement.");
+          error = true;
+        }
+      });
+      /* Checks if `break` exists directly the unrolled loop scope. Switch statements are ok. */
+      body.foreach_token(Break, [&](const Token token) {
+        if (token.first_containing_scope_of_type(ScopeType::LoopBody) == body) {
+          const Scope switch_scope = token.first_containing_scope_of_type(ScopeType::SwitchBody);
+          if (switch_scope.is_invalid() || !body.contains(switch_scope)) {
+            report_error(ERROR_TOK(token), "Unrolled loop cannot contain \"break\" statement.");
+            error = true;
+          }
+        }
+      });
+      if (error) {
+        return;
+      }
+
+      if (!parser.replace_try(loop_start, body.end(), "", true)) {
+        /* This is the case of nested loops. This loop will be processed in another parser pass. */
+        return;
+      }
+
+      string indent_init, indent_cond, indent_iter;
+      if (init.is_valid()) {
+        indent_init = string(init.start().char_number() - 1, ' ');
+      }
+      if (cond.is_valid()) {
+        indent_cond = string(cond.start().char_number() - 3, ' ');
+      }
+      if (iter.is_valid()) {
+        indent_iter = string(iter.start().char_number(), ' ');
+      }
+      string indent_body = string(body.start().char_number(), ' ');
+      string indent_end = string(body.end().char_number(), ' ');
+
+      /* If possible, replaces the index of the loop iteration inside the given string. */
+      auto replace_index = [&](const string &str, int loop_index) {
+        if (iter.is_invalid() || !iteration_is_trivial || str.empty()) {
+          return str;
+        }
+        Parser str_parser(str, report_error);
+        str_parser.foreach_token(Word, [&](const Token tok) {
+          if (tok.str() == iter[0].str()) {
+            str_parser.replace(tok, std::to_string(loop_index), true);
+          }
+        });
+        return str_parser.result_get();
+      };
+
+      parser.insert_after(body.end(), "\n");
+      if (init.is_valid() && !iteration_is_trivial) {
+        parser.insert_line_number(body.end(), init.start().line_number());
+        parser.insert_after(body.end(), indent_init + "{" + init.str() + ";\n");
+      }
+      else {
+        parser.insert_after(body.end(), "{\n");
+      }
+      for (int64_t i = 0, value = iter_init; i < iter_count; i++, value += iter_incr) {
+        if (cond.is_valid() && !condition_is_trivial) {
+          parser.insert_line_number(body.end(), cond.start().line_number());
+          parser.insert_after(body.end(), indent_cond + "if(" + cond.str() + ")\n");
+        }
+        parser.insert_after(body.end(), replace_index(body_prefix, value));
+        parser.insert_line_number(body.end(), body.start().line_number());
+        parser.insert_after(body.end(), indent_body + replace_index(body.str(), value) + "\n");
+        parser.insert_after(body.end(), body_suffix);
+        if (iter.is_valid() && !iteration_is_trivial) {
+          parser.insert_line_number(body.end(), iter.start().line_number());
+          parser.insert_after(body.end(), indent_iter + iter.str() + ";\n");
+        }
+      }
+      parser.insert_line_number(body.end(), body.end().line_number());
+      parser.insert_after(body.end(), indent_end + body.end().str_with_whitespace());
+    };
+
+    do {
+      /* [[gpu::unroll]]. */
+      parser.foreach_match("[[w::w]]f(..){..}", [&](const std::vector<Token> tokens) {
+        if (tokens[1].scope().str() != "[gpu::unroll]") {
+          return;
+        }
+        const Token for_tok = tokens[8];
+        const Scope loop_args = tokens[9].scope();
+        const Scope loop_body = tokens[13].scope();
+
+        Scope init, cond, iter;
+        parse_for_args(loop_args, init, cond, iter);
+
+        /* Init statement. */
+        const Token var_type = init[0];
+        const Token var_name = init[1];
+        const Token var_init = init[2];
+        if (var_type.str() != "int" && var_type.str() != "uint") {
+          report_error(ERROR_TOK(var_init), "Can only unroll integer based loop.");
+          return;
+        }
+        if (var_init != '=') {
+          report_error(ERROR_TOK(var_init), "Expecting assignment here.");
+          return;
+        }
+        if (init[3] != '0' && init[3] != '-') {
+          report_error(ERROR_TOK(init[3]), "Expecting integer literal here.");
+          return;
+        }
+
+        /* Conditional statement. */
+        const Token cond_var = cond[0];
+        const Token cond_type = cond[1];
+        const Token cond_sign = (cond[2] == '+' || cond[2] == '-') ? cond[2] : Token::invalid();
+        const Token cond_end = cond_sign.is_valid() ? cond[3] : cond[2];
+        if (cond_var.str() != var_name.str()) {
+          report_error(ERROR_TOK(cond_var), "Non matching loop counter variable.");
+          return;
+        }
+        if (cond_end != '0') {
+          report_error(ERROR_TOK(cond_end), "Expecting integer literal here.");
+          return;
+        }
+
+        /* Iteration statement. */
+        const Token iter_var = iter[0];
+        const Token iter_type = iter[1];
+        const Token iter_end = iter[1];
+        int iter_incr = 0;
+        if (iter_var.str() != var_name.str()) {
+          report_error(ERROR_TOK(iter_var), "Non matching loop counter variable.");
+          return;
+        }
+        if (iter_type == Increment) {
+          iter_incr = +1;
+          if (cond_type == '>') {
+            report_error(ERROR_TOK(for_tok), "Unsupported condition in unrolled loop.");
+            return;
+          }
+        }
+        else if (iter_type == Decrement) {
+          iter_incr = -1;
+          if (cond_type == '<') {
+            report_error(ERROR_TOK(for_tok), "Unsupported condition in unrolled loop.");
+            return;
+          }
+        }
+        else {
+          report_error(ERROR_TOK(iter_type), "Unsupported loop expression. Expecting ++ or --.");
+          return;
+        }
+
+        int64_t init_value = std::stol(
+            parser.substr_range_inclusive(var_init.next(), var_init.scope().end()));
+        int64_t end_value = std::stol(
+            parser.substr_range_inclusive(cond_sign.is_valid() ? cond_sign : cond_end, cond_end));
+        /* TODO(fclem): Support arbitrary strides (aka, arbitrary iter statement). */
+        int iter_count = std::abs(end_value - init_value);
+        if (cond_type == GEqual || cond_type == LEqual) {
+          iter_count += 1;
+        }
+
+        bool condition_is_trivial = (cond_end == cond.end());
+        bool iteration_is_trivial = (iter_end == iter.end());
+
+        process_loop(tokens[0],
+                     iter_count,
+                     init_value,
+                     iter_incr,
+                     condition_is_trivial,
+                     iteration_is_trivial,
+                     init,
+                     cond,
+                     iter,
+                     loop_body);
+      });
+
+      /* [[gpu::unroll(n)]]. */
+      parser.foreach_match("[[w::w(0)]]f(..){..}", [&](const std::vector<Token> tokens) {
+        if (tokens[5].str() != "unroll") {
+          return;
+        }
+        const Scope loop_args = tokens[12].scope();
+        const Scope loop_body = tokens[16].scope();
+
+        Scope init, cond, iter;
+        parse_for_args(loop_args, init, cond, iter);
+
+        int iter_count = std::stol(tokens[7].str());
+
+        process_loop(tokens[0], iter_count, 0, 0, false, false, init, cond, iter, loop_body);
+      });
+
+      /* [[gpu::unroll_define(max_n)]]. */
+      parser.foreach_match("[[w::w(0)]]f(..){..}", [&](const std::vector<Token> tokens) {
+        if (tokens[5].str() != "unroll_define") {
+          return;
+        }
+        const Scope loop_args = tokens[12].scope();
+        const Scope loop_body = tokens[16].scope();
+
+        /* Validate format. */
+        Token define_name = Token::invalid();
+        Token iter_var = Token::invalid();
+        loop_args.foreach_match("ww=0;w<w;wP", [&](const std::vector<Token> tokens) {
+          if (tokens[1].str() != tokens[5].str() || tokens[5].str() != tokens[9].str()) {
+            return;
+          }
+          iter_var = tokens[1];
+          define_name = tokens[7];
+        });
+
+        if (define_name.is_invalid()) {
+          report_error(ERROR_TOK(loop_args.start()),
+                       "Incompatible loop format for [[gpu::unroll_define(max_n)]], expected "
+                       "'(int i = 0; i < DEFINE; i++)'");
+          return;
+        }
+
+        Scope init, cond, iter;
+        parse_for_args(loop_args, init, cond, iter);
+
+        int iter_count = std::stol(tokens[7].str());
+
+        string body_prefix = "#if " + define_name.str() + " > " + iter_var.str() + "\n";
+
+        process_loop(tokens[0],
+                     iter_count,
+                     0,
+                     1,
+                     true,
+                     true,
+                     init,
+                     cond,
+                     iter,
+                     loop_body,
+                     body_prefix,
+                     "#endif\n");
+      });
+    } while (parser.apply_mutations());
+
+    /* Check for remaining keywords. */
+    parser.foreach_match("[[w::w", [&](const std::vector<Token> tokens) {
+      if (tokens[2].str() == "gpu" && tokens[5].str() == "unroll") {
+        report_error(ERROR_TOK(tokens[0]), "Incompatible loop format for [[gpu::unroll]].");
+      }
+    });
+  }
+
+  void namespace_mutation(Parser &parser, report_callback report_error)
+  {
+    using namespace std;
+    using namespace shader::parser;
 
     /* Parse each namespace declaration. */
     parser.foreach_scope(ScopeType::Namespace, [&](const Scope &scope) {
@@ -1007,7 +1054,8 @@ class Preprocessor {
         report_error(ERROR_TOK(tokens[0]), "Nested namespaces are unsupported.");
       });
 
-      string namespace_prefix = scope.start().prev().full_symbol_name() + "::";
+      string namespace_prefix = namespace_separator_mutation(
+          scope.start().prev().full_symbol_name() + "::");
       auto process_symbol = [&](const Token &symbol) {
         if (symbol.next() == '<') {
           /* Template instantiation or specialization. */
@@ -1030,8 +1078,22 @@ class Preprocessor {
         });
       };
 
-      scope.foreach_function(
-          [&](bool, Token, Token fn_name, Scope, bool, Scope) { process_symbol(fn_name); });
+      unordered_set<string> processed_functions;
+
+      scope.foreach_function([&](bool, Token, Token fn_name, Scope, bool, Scope) {
+        /* Note: Struct scopes are currently parsed as Local. */
+        if (fn_name.scope().type() == ScopeType::Local) {
+          /* Don't process functions inside a struct scope as the namespace must not be apply
+           * to them, but to the type. Otherwise, method calls will not work. */
+          return;
+        }
+        if (processed_functions.count(fn_name.str())) {
+          /* Don't process function names twice. Can happen with overloads. */
+          return;
+        }
+        processed_functions.emplace(fn_name.str());
+        process_symbol(fn_name);
+      });
       scope.foreach_struct([&](Token, Token struct_name, Scope) { process_symbol(struct_name); });
 
       Token namespace_tok = scope.start().prev().namespace_start().prev();
@@ -1044,16 +1106,14 @@ class Preprocessor {
       }
     });
 
-    return parser.result_get();
+    parser.apply_mutations();
   }
 
   /* Needs to run before namespace mutation so that `using` have more precedence. */
-  std::string using_mutation(const std::string &str, report_callback report_error)
+  void using_mutation(Parser &parser, report_callback report_error)
   {
     using namespace std;
     using namespace shader::parser;
-
-    Parser parser(str, report_error);
 
     parser.foreach_match("un", [&](const std::vector<Token> &tokens) {
       report_error(ERROR_TOK(tokens[0]),
@@ -1089,6 +1149,8 @@ class Preprocessor {
           return;
         }
       }
+
+      to = namespace_separator_mutation(to);
 
       /* Assignments do not allow to alias functions symbols. */
       const bool use_alias = from.str() != to_end.str();
@@ -1135,8 +1197,6 @@ class Preprocessor {
     parser.foreach_token(Using, [&](const Token &token) {
       report_error(ERROR_TOK(token), "Unsupported `using` keyword usage.");
     });
-
-    return parser.result_get();
   }
 
   std::string namespace_separator_mutation(const std::string &str)
@@ -1151,11 +1211,72 @@ class Preprocessor {
     return out;
   }
 
-  std::string preprocessor_directive_mutation(const std::string &str)
+  std::string disabled_code_mutation(const std::string &str, report_callback &report_error)
+  {
+    using namespace std;
+    using namespace shader::parser;
+
+    Parser parser(str, report_error);
+
+    auto process_disabled_scope = [&](Token start_tok) {
+      /* Search for endif with the same indentation. Assume formatted input. */
+      string end_str = start_tok.str_with_whitespace() + "endif";
+      size_t scope_end = parser.data_get().str.find(end_str, start_tok.str_index_start());
+      if (scope_end == string::npos) {
+        report_error(ERROR_TOK(start_tok), "Couldn't find end of disabled scope.");
+        return;
+      }
+      /* Search for else/elif with the same indentation. Assume formatted input. */
+      string else_str = start_tok.str_with_whitespace() + "el";
+      size_t scope_else = parser.data_get().str.find(else_str, start_tok.str_index_start());
+      if (scope_else != string::npos && scope_else < scope_end) {
+        /* Only erase the content and keep the preprocessor directives. */
+        parser.erase(start_tok.line_end() + 1, scope_else - 1);
+      }
+      else {
+        /* Erase the content and the preprocessor directives. */
+        parser.erase(start_tok.str_index_start(), scope_end + end_str.size());
+      }
+    };
+
+    parser.foreach_match("#ww", [&](const std::vector<Token> &tokens) {
+      if (tokens[1].str() == "ifndef" && tokens[2].str() == "GPU_SHADER") {
+        process_disabled_scope(tokens[0]);
+      }
+    });
+    parser.foreach_match("#i!w(w)", [&](const std::vector<Token> &tokens) {
+      if (tokens[1].str() == "if" && tokens[3].str() == "defined" &&
+          tokens[5].str() == "GPU_SHADER")
+      {
+        process_disabled_scope(tokens[0]);
+      }
+    });
+    parser.foreach_match("#i0", [&](const std::vector<Token> &tokens) {
+      if (tokens[1].str() == "if" && tokens[2].str() == "0") {
+        process_disabled_scope(tokens[0]);
+      }
+    });
+    return parser.result_get();
+  }
+
+  std::string pragmas_mutation(const std::string &str, report_callback &report_error)
   {
     /* Remove unsupported directives. */
-    std::regex regex(R"(#\s*(?:include|pragma once|pragma runtime_generated)[^\n]*)");
-    return std::regex_replace(str, regex, "");
+    using namespace std;
+    using namespace shader::parser;
+
+    Parser parser(str, report_error);
+    parser.foreach_match("#ww", [&](const std::vector<Token> &tokens) {
+      if (tokens[1].str() == "pragma") {
+        if (tokens[2].str() == "once") {
+          parser.erase(tokens.front(), tokens.back());
+        }
+        else if (tokens[2].str() == "runtime_generated") {
+          parser.erase(tokens.front(), tokens.back());
+        }
+      }
+    });
+    return parser.result_get();
   }
 
   std::string swizzle_function_mutation(const std::string &str, report_callback &report_error)
@@ -1311,16 +1432,13 @@ class Preprocessor {
     return out_str;
   }
 
-  std::string assert_processing(const std::string &str,
-                                const std::string &filepath,
-                                report_callback report_error)
+  void assert_processing(Parser &parser, const std::string &filepath, report_callback report_error)
   {
     std::string filename = std::regex_replace(filepath, std::regex(R"((?:.*)\/(.*))"), "$1");
 
     using namespace std;
     using namespace shader::parser;
 
-    Parser parser(str, report_error);
     /* Example: `assert(i < 0)` > `if (!(i < 0)) { printf(...); }` */
     parser.foreach_match("w(..)", [&](const vector<Token> &tokens) {
       if (tokens[0].str() != "assert") {
@@ -1347,7 +1465,6 @@ class Preprocessor {
     (void)report_error;
 #endif
     parser.apply_mutations();
-    return parser.result_get();
   }
 
   /* String hash are outputted inside GLSL and needs to fit 32 bits. */
@@ -1358,12 +1475,11 @@ class Preprocessor {
     return hash_32;
   }
 
-  std::string static_strings_merging(const std::string &str, report_callback report_error)
+  void static_strings_merging(Parser &parser, report_callback /*report_error*/)
   {
     using namespace std;
     using namespace shader::parser;
 
-    Parser parser(str, report_error);
     do {
       parser.foreach_match("__", [&](const std::vector<Token> &tokens) {
         string first = tokens[0].str();
@@ -1377,33 +1493,27 @@ class Preprocessor {
         parser.replace_try(tokens[0], tokens[1], merged);
       });
     } while (parser.apply_mutations());
-
-    return parser.result_get();
   }
 
-  std::string static_strings_parsing_and_mutation(const std::string &str,
-                                                  report_callback report_error)
+  void static_strings_parsing_and_mutation(Parser &parser, report_callback /*report_error*/)
   {
     using namespace std;
     using namespace shader::parser;
 
-    Parser parser(str, report_error);
     parser.foreach_token(String, [&](const Token &token) {
       uint32_t hash = hash_string(token.str());
       metadata::PrintfFormat format = {hash, token.str()};
       metadata.printf_formats.emplace_back(format);
       parser.replace(token, std::to_string(hash) + 'u', true);
     });
-    return parser.result_get();
+    parser.apply_mutations();
   }
 
   /* Move all method definition outside of struct definition blocks. */
-  std::string struct_method_mutation(const std::string &str, report_callback report_error)
+  void struct_method_mutation(Parser &parser, report_callback report_error)
   {
     using namespace std;
     using namespace shader::parser;
-
-    Parser parser(str, report_error);
 
     parser.foreach_scope(ScopeType::Global, [&](Scope scope) {
       /* `class` -> `struct` */
@@ -1512,34 +1622,29 @@ class Preprocessor {
       });
     });
 
-    return parser.result_get();
+    parser.apply_mutations();
   }
 
   /* Add padding member to empty structs.
    * Empty structs are useful for templating. */
-  std::string empty_struct_mutation(const std::string &str, report_callback report_error)
+  void empty_struct_mutation(Parser &parser, report_callback /*report_error*/)
   {
     using namespace std;
     using namespace shader::parser;
-
-    Parser parser(str, report_error);
 
     parser.foreach_scope(ScopeType::Global, [&](Scope scope) {
       scope.foreach_match("sw{};", [&](const std::vector<Token> &tokens) {
         parser.insert_after(tokens[2], "int _pad;");
       });
     });
-
-    return parser.result_get();
+    parser.apply_mutations();
   }
 
   /* Transform `a.fn(b)` into `fn(a, b)`. */
-  std::string method_call_mutation(const std::string &str, report_callback report_error)
+  void method_call_mutation(Parser &parser, report_callback report_error)
   {
     using namespace std;
     using namespace shader::parser;
-
-    Parser parser(str, report_error);
 
     do {
       parser.foreach_scope(ScopeType::Function, [&](Scope scope) {
@@ -1585,66 +1690,50 @@ class Preprocessor {
         });
       });
     } while (parser.apply_mutations());
-
-    return parser.result_get();
   }
 
-  std::string stage_function_mutation(const std::string &str)
-  {
-    using namespace std;
-
-    if (str.find("_function]]") == string::npos) {
-      return str;
-    }
-
-    vector<pair<string, string>> mutations;
-
-    int64_t line = 1;
-    regex regex_attr(R"(\[\[gpu::(vertex|fragment|compute)_function\]\])");
-    regex_global_search(str, regex_attr, [&](const smatch &match) {
-      string prefix = match.prefix().str();
-      string suffix = match.suffix().str();
-      string attribute = match[0].str();
-      string shader_stage = match[1].str();
-
-      line += line_count(prefix);
-      string signature = suffix.substr(0, suffix.find('{'));
-      string body = '{' +
-                    get_content_between_balanced_pair(suffix.substr(signature.size()), '{', '}') +
-                    "}\n";
-
-      string function = signature + body;
-
-      string check = "defined(";
-      if (shader_stage == "vertex") {
-        check += "GPU_VERTEX_SHADER";
-      }
-      else if (shader_stage == "fragment") {
-        check += "GPU_FRAGMENT_SHADER";
-      }
-      else if (shader_stage == "compute") {
-        check += "GPU_COMPUTE_SHADER";
-      }
-      check += ")";
-
-      string mutated = guarded_scope_mutation(
-          string(attribute.size(), ' ') + function, line, check);
-      mutations.emplace_back(attribute + function, mutated);
-    });
-
-    string out = str;
-    for (auto mutation : mutations) {
-      replace_all(out, mutation.first, mutation.second);
-    }
-    return out;
-  }
-
-  std::string resource_guard_mutation(const std::string &str, report_callback &report_error)
+  void stage_function_mutation(Parser &parser, report_callback /*report_error*/)
   {
     using namespace std;
     using namespace shader::parser;
 
-    Parser parser(str, report_error);
+    parser.foreach_function([&](bool is_static, Token fn_type, Token, Scope, bool, Scope fn_body) {
+      Token attr_tok = (is_static) ? fn_type.prev().prev() : fn_type.prev();
+      if (attr_tok.is_invalid() || attr_tok != ']' || attr_tok.prev() != ']') {
+        return;
+      }
+      Scope attribute = attr_tok.prev().scope();
+      if (attribute.type() != ScopeType::Subscript) {
+        return;
+      }
+
+      const string attr = attribute.str_exclusive();
+      parser.erase(attribute.scope());
+
+      string condition = "defined(";
+      if (attr == "gpu::vertex_function") {
+        condition += "GPU_VERTEX_SHADER";
+      }
+      else if (attr == "gpu::fragment_function") {
+        condition += "GPU_FRAGMENT_SHADER";
+      }
+      else if (attr == "gpu::compute_function") {
+        condition += "GPU_COMPUTE_SHADER";
+      }
+      else {
+        return;
+      }
+      condition += ")";
+
+      guarded_scope_mutation(parser, fn_body, condition);
+    });
+    parser.apply_mutations();
+  }
+
+  void resource_guard_mutation(Parser &parser, report_callback /*report_error*/)
+  {
+    using namespace std;
+    using namespace shader::parser;
 
     parser.foreach_function([&](bool, Token fn_type, Token, Scope, bool, Scope fn_body) {
       fn_body.foreach_match("w(w,", [&](const std::vector<Token> &tokens) {
@@ -1663,21 +1752,23 @@ class Preprocessor {
           scope = scope.scope();
         }
 
+        string condition = "defined(CREATE_INFO_" + info_name + ")";
+
         if (scope.type() == ScopeType::Function) {
-          guarded_scope_mutation(parser, scope, info_name, fn_type);
+          guarded_scope_mutation(parser, scope, condition, fn_type);
         }
         else {
-          guarded_scope_mutation(parser, scope, info_name);
+          guarded_scope_mutation(parser, scope, condition);
         }
       });
     });
 
-    return parser.result_get();
+    parser.apply_mutations();
   }
 
   void guarded_scope_mutation(parser::Parser &parser,
                               parser::Scope scope,
-                              const std::string &info,
+                              const std::string &condition,
                               parser::Token fn_type = parser::Token::invalid())
   {
     using namespace std;
@@ -1686,7 +1777,7 @@ class Preprocessor {
     string line_start = "#line " + std::to_string(scope.start().next().line_number()) + "\n";
     string line_end = "#line " + std::to_string(scope.end().line_number()) + "\n";
 
-    string guard_start = "#if defined(CREATE_INFO_" + info + ")\n";
+    string guard_start = "#if " + condition + "\n";
     string guard_else;
     if (fn_type.is_valid() && fn_type.str() != "void") {
       string type = fn_type.str();
@@ -1735,7 +1826,7 @@ class Preprocessor {
      * Transform C,C++ enum declaration into GLSL compatible defines and constants:
      *
      * \code{.cpp}
-     * enum eMyEnum : uint {
+     * enum MyEnum : uint {
      *   ENUM_1 = 0u,
      *   ENUM_2 = 1u,
      *   ENUM_3 = 2u,
@@ -1745,7 +1836,7 @@ class Preprocessor {
      * becomes
      *
      * \code{.glsl}
-     * #define eMyEnum uint
+     * #define MyEnum uint
      * constant static constexpr uint ENUM_1 = 0u;
      * constant static constexpr uint ENUM_2 = 1u;
      * constant static constexpr uint ENUM_3 = 2u;
@@ -1838,12 +1929,10 @@ class Preprocessor {
    * Expand functions with default arguments to function overloads.
    * Expects formatted input and that function bodies are followed by newline.
    */
-  std::string default_argument_mutation(std::string str, report_callback &report_error)
+  void default_argument_mutation(Parser &parser, report_callback /*report_error*/)
   {
     using namespace std;
     using namespace shader::parser;
-
-    Parser parser(str, report_error);
 
     parser.foreach_function(
         [&](bool, Token fn_type, Token fn_name, Scope fn_args, bool, Scope fn_body) {
@@ -1897,7 +1986,7 @@ class Preprocessor {
           parser.insert_line_number(end_of_fn_char, fn_body.end().line_number() + 1);
         });
 
-    return parser.result_get();
+    parser.apply_mutations();
   }
 
   /* Used to make GLSL matrix constructor compatible with MSL in pyGPU shaders.
@@ -1917,12 +2006,10 @@ class Preprocessor {
   }
 
   /* To be run before `argument_decorator_macro_injection()`. */
-  std::string argument_reference_mutation(std::string &str, report_callback &report_error)
+  void argument_reference_mutation(Parser &parser, report_callback /*report_error*/)
   {
     using namespace std;
     using namespace shader::parser;
-
-    Parser parser(str, report_error);
 
     auto add_mutation = [&](Token type, Token arg_name, Token last_tok) {
       if (type.prev() == Const) {
@@ -1941,7 +2028,7 @@ class Preprocessor {
       scope.foreach_match(
           "w&T", [&](const vector<Token> toks) { add_mutation(toks[0], toks[2], toks[2]); });
     });
-    return parser.result_get();
+    parser.apply_mutations();
   }
 
   /* To be run after `argument_reference_mutation()`. */
@@ -2094,77 +2181,51 @@ class Preprocessor {
     return std::regex_replace(str, regex, "= ARRAY_T($1) ARRAY_V(");
   }
 
-  /* TODO(fclem): Too many false positive and false negative to be applied to python shaders. */
-  void matrix_constructor_linting(const std::string &str, report_callback report_error)
-  {
-    /* The following regex is expensive. Do a quick early out scan. */
-    if (str.find("mat") == std::string::npos && str.find("float") == std::string::npos) {
-      return;
-    }
-    /* Example: `mat4(other_mat)`. */
-    std::regex regex(R"(\s(?:mat(?:\d|\dx\d)|float\dx\d)\()");
-    regex_global_search(str, regex, [&](const std::smatch &match) {
-      std::string args = get_content_between_balanced_pair("(" + match.suffix().str(), '(', ')');
-      int arg_count = split_string_not_between_balanced_pair(args, ',', '(', ')').size();
-      bool has_floating_point_arg = args.find('.') != std::string::npos;
-      /* TODO(fclem): Check if arg count matches matrix type. */
-      if (arg_count != 1 || has_floating_point_arg) {
-        return;
-      }
-      /* This only catches some invalid usage. For the rest, the CI will catch them. */
-      const char *msg =
-          "Matrix constructor is not cross API compatible. "
-          "Use to_floatNxM to reshape the matrix or use other constructors instead.";
-      report_error(line_number(match), char_number(match), line_str(match), msg);
-    });
-  }
-
   /* Assume formatted source with our code style. Cannot be applied to python shaders. */
-  void global_scope_constant_linting(const std::string &str, report_callback report_error)
+  void global_scope_constant_linting(Parser &parser, report_callback report_error)
   {
-    /* Example: `const uint global_var = 1u;`. Matches if not indented (i.e. inside a scope). */
-    std::regex regex(R"(const \w+ \w+ =)");
-    regex_global_search(str, regex, [&](const std::smatch &match) {
-      /* Positive look-behind is not supported in #std::regex. Do it manually. */
-      if (match.prefix().str().back() == '\n') {
-        const char *msg =
+    using namespace std;
+    using namespace shader::parser;
+
+    /* Example: `const uint global_var = 1u;`. */
+    parser.foreach_match("cww=", [&](const vector<Token> &tokens) {
+      if (tokens[0].scope().type() == ScopeType::Global) {
+        report_error(
+            ERROR_TOK(tokens[2]),
             "Global scope constant expression found. These get allocated per-thread in MSL. "
-            "Use Macro's or uniforms instead.";
-        report_error(line_number(match), char_number(match), line_str(match), msg);
+            "Use Macro's or uniforms instead.");
       }
     });
   }
 
   void quote_linting(const std::string &str, report_callback report_error)
   {
-    std::regex regex(R"(["'])");
-    regex_global_search(str, regex, [&](const std::smatch &match) {
-      /* This only catches some invalid usage. For the rest, the CI will catch them. */
-      const char *msg = "Quotes are forbidden in GLSL.";
-      report_error(line_number(match), char_number(match), line_str(match), msg);
+    using namespace std;
+    using namespace shader::parser;
+
+    Parser parser(str, report_error);
+    /* This only catches some invalid usage. For the rest, the CI will catch them. */
+    parser.foreach_token(TokenType::String, [&](const Token token) {
+      report_error(ERROR_TOK(token),
+                   "Unprocessed string literal. "
+                   "Strings are forbidden in GLSL.");
     });
   }
 
-  void array_constructor_linting(const std::string &str, report_callback report_error)
+  void small_type_linting(Parser &parser, report_callback report_error)
   {
-    std::regex regex(R"(=\s*(\w+)\s*\[[^\]]*\]\s*\()");
-    regex_global_search(str, regex, [&](const std::smatch &match) {
-      /* This only catches some invalid usage. For the rest, the CI will catch them. */
-      const char *msg =
-          "Array constructor is not cross API compatible. Use type_array instead of type[].";
-      report_error(line_number(match), char_number(match), line_str(match), msg);
-    });
-  }
+    using namespace std;
+    using namespace shader::parser;
 
-  template<typename ReportErrorF>
-  void small_type_linting(const std::string &str, const ReportErrorF &report_error)
-  {
-    std::regex regex(R"(\su?(char|short|half)(2|3|4)?\s)");
-    regex_global_search(str, regex, [&](const std::smatch &match) {
-      report_error(line_number(match),
-                   char_number(match),
-                   line_str(match),
-                   "Small types are forbidden in shader interfaces.");
+    parser.foreach_scope(ScopeType::Struct, [&](const Scope scope) {
+      scope.foreach_match("ww;", [&](const vector<Token> tokens) {
+        string type = tokens[0].str();
+        if (type.find("char") != string::npos || type.find("short") != string::npos ||
+            type.find("half") != string::npos)
+        {
+          report_error(ERROR_TOK(tokens[0]), "Small types are forbidden in shader interfaces.");
+        }
+      });
     });
   }
 

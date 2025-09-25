@@ -8,7 +8,7 @@
  * The whole thread group will load the same data and write a brick worth of data.
  */
 
-#include "infos/eevee_lightprobe_volume_info.hh"
+#include "infos/eevee_lightprobe_volume_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_lightprobe_volume_world)
 

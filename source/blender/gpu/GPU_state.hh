@@ -13,7 +13,7 @@
 /** Opaque type hiding blender::gpu::Fence. */
 struct GPUFence;
 
-enum eGPUWriteMask {
+enum GPUWriteMask {
   GPU_WRITE_NONE = 0,
   GPU_WRITE_RED = (1 << 0),
   GPU_WRITE_GREEN = (1 << 1),
@@ -24,9 +24,9 @@ enum eGPUWriteMask {
   GPU_WRITE_COLOR = (GPU_WRITE_RED | GPU_WRITE_GREEN | GPU_WRITE_BLUE | GPU_WRITE_ALPHA),
 };
 
-ENUM_OPERATORS(eGPUWriteMask, GPU_WRITE_COLOR)
+ENUM_OPERATORS(GPUWriteMask, GPU_WRITE_COLOR)
 
-enum eGPUBarrier {
+enum GPUBarrier {
   /* Texture Barrier. */
 
   /** All written texture prior to this barrier can be bound as frame-buffer attachment. */
@@ -58,11 +58,11 @@ enum eGPUBarrier {
   // GPU_BARRIER_CLIENT_MAPPED_BUFFER = (1 << 15), /* Not implemented yet. */
 };
 
-ENUM_OPERATORS(eGPUBarrier, GPU_BARRIER_BUFFER_UPDATE)
+ENUM_OPERATORS(GPUBarrier, GPU_BARRIER_BUFFER_UPDATE)
 
 /* NOTE: For Metal and Vulkan only.
  * TODO(Metal): Update barrier calls to use stage flags. */
-enum eGPUStageBarrierBits {
+enum GPUStageBarrierBits {
   GPU_BARRIER_STAGE_VERTEX = (1 << 0),
   GPU_BARRIER_STAGE_FRAGMENT = (1 << 1),
   GPU_BARRIER_STAGE_COMPUTE = (1 << 2),
@@ -71,7 +71,7 @@ enum eGPUStageBarrierBits {
                            GPU_BARRIER_STAGE_COMPUTE),
 };
 
-ENUM_OPERATORS(eGPUStageBarrierBits, GPU_BARRIER_STAGE_COMPUTE)
+ENUM_OPERATORS(GPUStageBarrierBits, GPU_BARRIER_STAGE_COMPUTE)
 
 /**
  * Defines the fixed pipeline blending equation.
@@ -81,7 +81,7 @@ ENUM_OPERATORS(eGPUStageBarrierBits, GPU_BARRIER_STAGE_COMPUTE)
  * `(SRC * A) + (DST * B)`.
  * The blend mode will modify the A and B parameters.
  */
-enum eGPUBlend {
+enum GPUBlend {
   GPU_BLEND_NONE = 0,
   /** Pre-multiply variants will _NOT_ multiply rgb output by alpha. */
   GPU_BLEND_ALPHA,
@@ -107,7 +107,7 @@ enum eGPUBlend {
   GPU_BLEND_OVERLAY_MASK_FROM_ALPHA,
 };
 
-enum eGPUDepthTest {
+enum GPUDepthTest {
   GPU_DEPTH_NONE = 0,
   GPU_DEPTH_ALWAYS, /* Used to draw to the depth buffer without really testing. */
   GPU_DEPTH_LESS,
@@ -117,14 +117,14 @@ enum eGPUDepthTest {
   GPU_DEPTH_GREATER_EQUAL,
 };
 
-enum eGPUStencilTest {
+enum GPUStencilTest {
   GPU_STENCIL_NONE = 0,
   GPU_STENCIL_ALWAYS,
   GPU_STENCIL_EQUAL,
   GPU_STENCIL_NEQUAL,
 };
 
-enum eGPUStencilOp {
+enum GPUStencilOp {
   GPU_STENCIL_OP_NONE = 0,
   GPU_STENCIL_OP_REPLACE,
   /** Special values for stencil shadows. */
@@ -132,22 +132,22 @@ enum eGPUStencilOp {
   GPU_STENCIL_OP_COUNT_DEPTH_FAIL,
 };
 
-enum eGPUFaceCullTest {
+enum GPUFaceCullTest {
   GPU_CULL_NONE = 0, /* Culling disabled. */
   GPU_CULL_FRONT,
   GPU_CULL_BACK,
 };
 
-enum eGPUProvokingVertex {
+enum GPUProvokingVertex {
   GPU_VERTEX_LAST = 0,  /* Default. */
   GPU_VERTEX_FIRST = 1, /* Follow Blender loop order. */
 };
 
-void GPU_blend(eGPUBlend blend);
-void GPU_face_culling(eGPUFaceCullTest culling);
-void GPU_depth_test(eGPUDepthTest test);
-void GPU_stencil_test(eGPUStencilTest test);
-void GPU_provoking_vertex(eGPUProvokingVertex vert);
+void GPU_blend(GPUBlend blend);
+void GPU_face_culling(GPUFaceCullTest culling);
+void GPU_depth_test(GPUDepthTest test);
+void GPU_stencil_test(GPUStencilTest test);
+void GPU_provoking_vertex(GPUProvokingVertex vert);
 void GPU_front_facing(bool invert);
 void GPU_depth_range(float near, float far);
 void GPU_scissor_test(bool enable);
@@ -175,20 +175,20 @@ void GPU_scissor_get(int coords[4]);
 void GPU_viewport(int x, int y, int width, int height);
 void GPU_viewport_size_get_f(float coords[4]);
 void GPU_viewport_size_get_i(int coords[4]);
-void GPU_write_mask(eGPUWriteMask mask);
+void GPU_write_mask(GPUWriteMask mask);
 void GPU_color_mask(bool r, bool g, bool b, bool a);
 void GPU_depth_mask(bool depth);
 bool GPU_depth_mask_get();
 void GPU_shadow_offset(bool enable);
 void GPU_clip_distances(int distances_enabled);
 bool GPU_mipmap_enabled();
-void GPU_state_set(eGPUWriteMask write_mask,
-                   eGPUBlend blend,
-                   eGPUFaceCullTest culling_test,
-                   eGPUDepthTest depth_test,
-                   eGPUStencilTest stencil_test,
-                   eGPUStencilOp stencil_op,
-                   eGPUProvokingVertex provoking_vert);
+void GPU_state_set(GPUWriteMask write_mask,
+                   GPUBlend blend,
+                   GPUFaceCullTest culling_test,
+                   GPUDepthTest depth_test,
+                   GPUStencilTest stencil_test,
+                   GPUStencilOp stencil_op,
+                   GPUProvokingVertex provoking_vert);
 
 void GPU_stencil_reference_set(uint reference);
 void GPU_stencil_write_mask_set(uint write_mask);
@@ -199,12 +199,12 @@ void GPU_stencil_compare_mask_set(uint compare_mask);
  * BuiltinBits::CLIP_CONTROL for their vertex shader to be patched. */
 void GPU_clip_control_unit_range(bool enable);
 
-eGPUFaceCullTest GPU_face_culling_get();
-eGPUBlend GPU_blend_get();
-eGPUDepthTest GPU_depth_test_get();
-eGPUWriteMask GPU_write_mask_get();
+GPUFaceCullTest GPU_face_culling_get();
+GPUBlend GPU_blend_get();
+GPUDepthTest GPU_depth_test_get();
+GPUWriteMask GPU_write_mask_get();
 uint GPU_stencil_mask_get();
-eGPUStencilTest GPU_stencil_test_get();
+GPUStencilTest GPU_stencil_test_get();
 /**
  * \note Already pre-multiplied by `U.pixelsize`.
  */
@@ -223,7 +223,7 @@ void GPU_apply_state();
  * The type of barrier must be chosen depending on the _future_ use of the memory that was written
  * by the shader.
  */
-void GPU_memory_barrier(eGPUBarrier barrier);
+void GPU_memory_barrier(GPUBarrier barrier);
 
 GPUFence *GPU_fence_create();
 void GPU_fence_free(GPUFence *fence);

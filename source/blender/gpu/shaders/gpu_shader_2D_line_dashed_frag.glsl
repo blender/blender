@@ -9,7 +9,7 @@
  * Dashed is performed in screen space.
  */
 
-#include "infos/gpu_shader_line_dashed_uniform_color_info.hh"
+#include "infos/gpu_shader_line_dashed_uniform_color_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(gpu_shader_3D_line_dashed_uniform_color)
 

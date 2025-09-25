@@ -3145,11 +3145,11 @@ static bool dissolve_leaves_valid_bmesh(FaceMergeState *fms,
 }
 
 /**
- * mf_left and mf_right should share a #MergeEdge me, having index me_index.
- * We change mf_left to remove edge me and insert the appropriate edges of
- * mf_right in between the start and end vertices of that edge.
- * We change the left face of the spliced-in edges to be mf_left's index.
- * We mark the merge_to property of mf_right, which is now in essence deleted.
+ * `mf_left` and `mf_right` should share a #MergeEdge `me`, having index `me_index`.
+ * We change `mf_left` to remove edge `me` and insert the appropriate edges of
+ * `mf_right` in between the start and end vertices of that edge.
+ * We change the left face of the spliced-in edges to be `mf_left`'s index.
+ * We mark the `merge_to` property of `mf_right`, which is now in essence deleted.
  */
 static void splice_faces(
     FaceMergeState *fms, MergeEdge &me, int me_index, MergeFace &mf_left, MergeFace &mf_right)

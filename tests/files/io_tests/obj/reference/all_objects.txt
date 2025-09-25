@@ -590,7 +590,7 @@
   - specular tint (1.000, 1.000, 1.000)
   - roughness 0.500
   - metallic 0.000
-  - ior 1.000
+  - ior 1.450
   - viewport diffuse (0.000, 0.000, 1.000, 1.000)
   - viewport specular (1.000, 1.000, 1.000), intensity 0.500
   - viewport metallic 0.000, roughness 0.500
@@ -602,7 +602,7 @@
   - specular tint (1.000, 1.000, 1.000)
   - roughness 0.500
   - metallic 0.000
-  - ior 1.000
+  - ior 1.450
   - viewport diffuse (0.000, 0.000, 0.500, 1.000)
   - viewport specular (1.000, 1.000, 1.000), intensity 0.500
   - viewport metallic 0.000, roughness 0.500
@@ -614,7 +614,7 @@
   - specular tint (1.000, 1.000, 1.000)
   - roughness 0.500
   - metallic 0.000
-  - ior 1.000
+  - ior 1.450
   - viewport diffuse (0.000, 1.000, 0.000, 1.000)
   - viewport specular (1.000, 1.000, 1.000), intensity 0.500
   - viewport metallic 0.000, roughness 0.500
@@ -626,7 +626,7 @@
   - specular tint (1.000, 1.000, 1.000)
   - roughness 0.500
   - metallic 0.000
-  - ior 1.000
+  - ior 1.450
   - viewport diffuse (0.000, 0.500, 0.000, 1.000)
   - viewport specular (1.000, 1.000, 1.000), intensity 0.500
   - viewport metallic 0.000, roughness 0.500
@@ -638,7 +638,7 @@
   - specular tint (1.000, 1.000, 1.000)
   - roughness 0.500
   - metallic 0.000
-  - ior 1.000
+  - ior 1.450
   - viewport diffuse (0.800, 0.800, 0.800, 1.000)
   - viewport specular (1.000, 1.000, 1.000), intensity 0.500
   - viewport metallic 0.000, roughness 0.500
@@ -650,7 +650,7 @@
   - specular tint (1.000, 1.000, 1.000)
   - roughness 0.500
   - metallic 0.000
-  - ior 1.000
+  - ior 1.450
   - viewport diffuse (1.000, 0.000, 0.000, 1.000)
   - viewport specular (1.000, 1.000, 1.000), intensity 0.500
   - viewport metallic 0.000, roughness 0.500
@@ -662,7 +662,7 @@
   - specular tint (1.000, 1.000, 1.000)
   - roughness 0.500
   - metallic 0.000
-  - ior 1.000
+  - ior 1.450
   - viewport diffuse (0.500, 0.000, 0.000, 1.000)
   - viewport specular (1.000, 1.000, 1.000), intensity 0.500
   - viewport metallic 0.000, roughness 0.500

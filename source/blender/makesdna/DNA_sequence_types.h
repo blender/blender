@@ -20,7 +20,6 @@
 #include "DNA_session_uid_types.h" /* for #SessionUID */
 #include "DNA_vec_types.h"         /* for #rctf */
 
-struct Ipo;
 struct MovieClip;
 struct Scene;
 struct VFont;
@@ -210,9 +209,6 @@ typedef struct Strip {
 
   StripData *data;
 
-  /** Old animation system, deprecated for 2.5. */
-  struct Ipo *ipo_legacy DNA_DEPRECATED;
-
   /** These ID vars should never be NULL but can be when linked libraries fail to load,
    * so check on access. */
   /* For SCENE strips. */
@@ -299,6 +295,8 @@ typedef struct Strip {
   struct SeqRetimingKey *retiming_keys;
   int retiming_keys_num;
   char _pad6[4];
+
+  void *_pad10;
 
   StripRuntime runtime;
 

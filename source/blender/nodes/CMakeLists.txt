@@ -96,6 +96,7 @@ set(SRC
   intern/node_socket_declarations.cc
   intern/node_util.cc
   intern/partial_eval.cc
+  intern/shader_nodes_inline.cc
   intern/socket_search_link.cc
   intern/socket_usage_inference.cc
   intern/socket_value_inference.cc
@@ -141,6 +142,7 @@ set(SRC
   NOD_register.hh
   NOD_rna_define.hh
   NOD_shader.h
+  NOD_shader_nodes_inline.hh
   NOD_socket.hh
   NOD_socket_declarations.hh
   NOD_socket_declarations_geometry.hh

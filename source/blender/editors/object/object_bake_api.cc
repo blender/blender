@@ -23,6 +23,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_path_utils.hh"
+#include "BLI_string_ref.hh"
 #include "BLI_string_utf8.h"
 
 #include "BLT_translation.hh"
@@ -97,7 +98,7 @@ struct BakeAPIRender {
   int normal_space;
   eBakeNormalSwizzle normal_swizzle[3];
 
-  char uv_layer[MAX_CUSTOMDATA_LAYER_NAME];
+  std::string uv_layer;
   char custom_cage[MAX_NAME];
 
   /* Settings for external image saving. */
@@ -220,7 +221,7 @@ static bool write_internal_bake_pixels(Image *image,
                                        const bool is_noncolor,
                                        const bool is_tangent_normal,
                                        Mesh const *mesh_eval,
-                                       char const *uv_layer,
+                                       const StringRef uv_layer,
                                        const float uv_offset[2])
 {
   ImBuf *ibuf;
@@ -368,7 +369,7 @@ static bool write_external_bake_pixels(const char *filepath,
                                        const bool is_noncolor,
                                        const bool is_tangent_normal,
                                        Mesh const *mesh_eval,
-                                       char const *uv_layer,
+                                       const StringRef uv_layer,
                                        const float uv_offset[2])
 {
   ImBuf *ibuf = nullptr;
@@ -1452,13 +1453,16 @@ static wmOperatorStatus bake(const BakeAPIRender *bkr,
     goto cleanup;
   }
 
-  if (bkr->uv_layer[0] != '\0') {
+  if (!bkr->uv_layer.empty()) {
     Mesh *mesh = (Mesh *)ob_low->data;
-    if (CustomData_get_named_layer(&mesh->corner_data, CD_PROP_FLOAT2, bkr->uv_layer) == -1) {
+    const bke::AttributeAccessor attributes = mesh->attributes();
+    const std::optional<bke::AttributeMetaData> meta_data = attributes.lookup_meta_data(
+        bkr->uv_layer);
+    if (meta_data != bke::AttributeMetaData{bke::AttrDomain::Corner, bke::AttrType::Float2}) {
       BKE_reportf(reports,
                   RPT_ERROR,
                   "No UV layer named \"%s\" found in the object \"%s\"",
-                  bkr->uv_layer,
+                  bkr->uv_layer.c_str(),
                   ob_low->id.name + 2);
       goto cleanup;
     }
@@ -1904,7 +1908,7 @@ static void bake_init_api_data(wmOperator *op, bContext *C, BakeAPIRender *bkr)
   bkr->height = RNA_int_get(op->ptr, "height");
   bkr->identifier = "";
 
-  RNA_string_get(op->ptr, "uv_layer", bkr->uv_layer);
+  bkr->uv_layer = RNA_string_get(op->ptr, "uv_layer");
 
   RNA_string_get(op->ptr, "cage_object", bkr->custom_cage);
 

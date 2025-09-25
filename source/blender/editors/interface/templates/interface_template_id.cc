@@ -866,7 +866,6 @@ static StringRef template_id_browse_tip(const StructRNA *type)
 
         /* Use generic text. */
       case ID_LI:
-      case ID_IP:
       case ID_KE:
       case ID_VF:
       case ID_GR:

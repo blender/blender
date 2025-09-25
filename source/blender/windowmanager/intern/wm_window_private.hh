@@ -26,6 +26,6 @@ void WM_ghost_show_message_box(const char *title,
                                const char *link,
                                GHOST_DialogOptions dialog_options);
 
-GHOST_TDrawingContextType wm_ghost_drawing_context_type(const eGPUBackendType gpu_backend);
+GHOST_TDrawingContextType wm_ghost_drawing_context_type(const GPUBackendType gpu_backend);
 
 void wm_test_gpu_backend_fallback(bContext *C);

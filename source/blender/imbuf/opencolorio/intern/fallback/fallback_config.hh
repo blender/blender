@@ -28,7 +28,7 @@ class FallbackConfig : public Config {
   FallbackColorSpace colorspace_data_{1, "Non-Color", FallbackColorSpace::Type::DATA};
   FallbackColorSpace colorspace_srgb_{2, "sRGB", FallbackColorSpace::Type::SRGB};
 
-  FallbackDefaultDisplay default_display_;
+  FallbackDefaultDisplay default_display_{&colorspace_srgb_};
   FallbackDefaultLook default_look_;
 
   /* Vectors that contain non-owning pointers to the color spaces and display. */

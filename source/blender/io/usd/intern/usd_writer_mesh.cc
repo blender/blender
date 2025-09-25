@@ -50,10 +50,7 @@ USDGenericMeshWriter::USDGenericMeshWriter(const USDExporterContext &ctx) : USDA
 
 bool USDGenericMeshWriter::is_supported(const HierarchyContext *context) const
 {
-  if (usd_export_context_.export_params.visible_objects_only) {
-    return context->is_object_visible(usd_export_context_.export_params.evaluation_mode);
-  }
-  return true;
+  return context->is_object_visible(usd_export_context_.export_params.evaluation_mode);
 }
 
 /* Get the last subdiv modifier, regardless of enable/disable status */

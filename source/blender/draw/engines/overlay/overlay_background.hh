@@ -23,7 +23,7 @@ class Background : Overlay {
  private:
   PassSimple bg_ps_ = {"Background"};
 
-  GPUFrameBuffer *framebuffer_ref_ = nullptr;
+  gpu::FrameBuffer *framebuffer_ref_ = nullptr;
 
  public:
   void begin_sync(Resources &res, const State &state) final

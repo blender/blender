@@ -17,9 +17,13 @@
 
 #include "BLI_map.hh"
 
+#include "DRW_gpu_wrapper.hh"
+
 #include "GPU_batch.hh"
-#include "eevee_shader_shared.hh"
+
+#include "eevee_camera_shared.hh"
 #include "eevee_sync.hh"
+#include "eevee_velocity_shared.hh"
 
 namespace blender::eevee {
 
@@ -27,6 +31,11 @@ namespace blender::eevee {
 /** \name VelocityModule
  *
  * \{ */
+
+using CameraDataBuf = draw::UniformBuffer<CameraData>;
+using VelocityGeometryBuf = draw::StorageArrayBuffer<float4, 16, true>;
+using VelocityIndexBuf = draw::StorageArrayBuffer<VelocityIndex, 16>;
+using VelocityObjectBuf = draw::StorageArrayBuffer<float4x4, 16>;
 
 /** Container for scene velocity data. */
 class VelocityModule {

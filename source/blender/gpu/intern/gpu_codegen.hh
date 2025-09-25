@@ -12,6 +12,7 @@
 
 #include "BLI_hash_mm2a.hh"
 #include "BLI_listbase.h"
+#include "BLI_set.hh"
 #include "BLI_vector.hh"
 
 #include "GPU_material.hh"
@@ -82,7 +83,6 @@ class GPUCodegen {
   void generate_uniform_buffer();
   void generate_attribs();
   void generate_resources();
-  void generate_library();
 
   uint32_t hash_get() const
   {
@@ -96,11 +96,13 @@ class GPUCodegen {
  private:
   void set_unique_ids();
 
-  void node_serialize(std::stringstream &eval_ss, const GPUNode *node);
-  std::string graph_serialize(eGPUNodeTag tree_tag,
-                              GPUNodeLink *output_link,
-                              const char *output_default = nullptr);
-  std::string graph_serialize(eGPUNodeTag tree_tag);
+  void node_serialize(blender::Set<blender::StringRefNull> &used_libraries,
+                      std::stringstream &eval_ss,
+                      const GPUNode *node);
+  GPUGraphOutput graph_serialize(GPUNodeTag tree_tag,
+                                 GPUNodeLink *output_link,
+                                 const char *output_default = nullptr);
+  GPUGraphOutput graph_serialize(GPUNodeTag tree_tag);
 };
 
 }  // namespace blender::gpu::shader

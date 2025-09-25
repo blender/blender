@@ -43,6 +43,7 @@ set(SRC_GLSL_FRAG
   eevee_debug_gbuffer_frag.glsl
   eevee_debug_irradiance_grid_frag.glsl
   eevee_debug_surfels_frag.glsl
+  eevee_deferred_aov_clear_frag.glsl
   eevee_deferred_capture_frag.glsl
   eevee_deferred_combine_frag.glsl
   eevee_deferred_light_frag.glsl

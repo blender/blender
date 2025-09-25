@@ -64,24 +64,38 @@ struct RepeatItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
     return &item.name;
   }
 
-  static bool supports_socket_type(const eNodeSocketDatatype socket_type, const int /*ntree_type*/)
+  static bool supports_socket_type(const eNodeSocketDatatype socket_type, const int ntree_type)
   {
-    return ELEM(socket_type,
-                SOCK_FLOAT,
-                SOCK_VECTOR,
-                SOCK_RGBA,
-                SOCK_BOOLEAN,
-                SOCK_ROTATION,
-                SOCK_MATRIX,
-                SOCK_INT,
-                SOCK_STRING,
-                SOCK_GEOMETRY,
-                SOCK_OBJECT,
-                SOCK_MATERIAL,
-                SOCK_IMAGE,
-                SOCK_COLLECTION,
-                SOCK_BUNDLE,
-                SOCK_CLOSURE);
+    switch (ntree_type) {
+      case NTREE_GEOMETRY:
+        return ELEM(socket_type,
+                    SOCK_FLOAT,
+                    SOCK_VECTOR,
+                    SOCK_RGBA,
+                    SOCK_BOOLEAN,
+                    SOCK_ROTATION,
+                    SOCK_MATRIX,
+                    SOCK_INT,
+                    SOCK_STRING,
+                    SOCK_GEOMETRY,
+                    SOCK_OBJECT,
+                    SOCK_MATERIAL,
+                    SOCK_IMAGE,
+                    SOCK_COLLECTION,
+                    SOCK_BUNDLE,
+                    SOCK_CLOSURE);
+      case NTREE_SHADER:
+        return ELEM(socket_type,
+                    SOCK_FLOAT,
+                    SOCK_VECTOR,
+                    SOCK_RGBA,
+                    SOCK_SHADER,
+                    SOCK_BUNDLE,
+                    SOCK_CLOSURE,
+                    SOCK_INT);
+      default:
+        return false;
+    }
   }
 
   static void init_with_socket_type_and_name(bNode &node,

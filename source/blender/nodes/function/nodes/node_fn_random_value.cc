@@ -200,6 +200,7 @@ static void node_register()
 
   fn_node_type_base(&ntype, "FunctionNodeRandomValue", FN_NODE_RANDOM_VALUE);
   ntype.ui_name = "Random Value";
+  ntype.ui_description = "Output a randomized value";
   ntype.enum_name_legacy = "RANDOM_VALUE";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.initfunc = fn_node_random_value_init;

@@ -354,6 +354,7 @@ static void do_wipe_effect(
 }
 
 static ImBuf *do_wipe_effect(const RenderData *context,
+                             SeqRenderState * /*state*/,
                              Strip *strip,
                              float /*timeline_frame*/,
                              float fac,

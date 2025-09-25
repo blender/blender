@@ -156,8 +156,6 @@ void WM_init_splash(bContext *C);
 
 void WM_init_gpu();
 
-bool WM_gpu_is_initialized();
-
 /**
  * Return an identifier for the underlying GHOST implementation.
  * \warning Use of this function should be limited & never for compatibility checks.

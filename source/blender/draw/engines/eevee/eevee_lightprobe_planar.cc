@@ -147,7 +147,7 @@ void PlanarProbeModule::set_view(const draw::View &main_view, int2 main_view_ext
   }
 }
 
-void PlanarProbeModule::viewport_draw(View &view, GPUFrameBuffer *view_fb)
+void PlanarProbeModule::viewport_draw(View &view, gpu::FrameBuffer *view_fb)
 {
   if (!do_display_draw_) {
     return;

@@ -4,8 +4,8 @@ REM #
 REM # This script assumes the machine has been prepared with the vmprep.cmd 
 REM # script and will build the dependencies in the c:\db folder 
 REM # 
-REM # If you find this script with a .txt extention, DO NOT RUN IT! vmprep will 
-REM # Download this and give it the right extention. 
+REM # If you find this script with a .txt extension, DO NOT RUN IT! vmprep will 
+REM # Download this and give it the right extension. 
 REM ###########################################################################
 set CMAKE_GENERATOR_INSTANCE=c:\vs2019bt\
 set CMAKE_GENERATOR=Visual Studio 16 2019

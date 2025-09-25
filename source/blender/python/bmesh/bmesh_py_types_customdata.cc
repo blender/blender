@@ -431,20 +431,22 @@ PyDoc_STRVAR(
     "   :type other: :class:`BMLayerItem`\n");
 static PyObject *bpy_bmlayeritem_copy_from(BPy_BMLayerItem *self, BPy_BMLayerItem *value)
 {
+  const char *error_prefix = "layer.copy_from(...)";
   CustomData *data;
 
   if (!BPy_BMLayerItem_Check(value)) {
     PyErr_Format(PyExc_TypeError,
-                 "layer.copy_from(x): expected BMLayerItem, not '%.200s'",
+                 "%s: expected BMLayerItem, not '%.200s'",
+                 error_prefix,
                  Py_TYPE(value)->tp_name);
     return nullptr;
   }
 
   BPY_BM_CHECK_OBJ(self);
-  BPY_BM_CHECK_SOURCE_OBJ(self->bm, "layer.copy_from()", value);
+  BPY_BM_CHECK_SOURCE_OBJ(self->bm, error_prefix, value);
 
   if ((self->htype != value->htype) || (self->type != value->type)) {
-    PyErr_SetString(PyExc_ValueError, "layer.copy_from(other): layer type mismatch");
+    PyErr_Format(PyExc_ValueError, "%s: layer type mismatch", error_prefix);
   }
 
   else if (self->index == value->index) {

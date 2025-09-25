@@ -67,6 +67,11 @@ class LibOCIOColorSpace : public ColorSpace {
     return ocio_color_space_->isData();
   }
 
+  bool is_display_referred() const override
+  {
+    return ocio_color_space_->getReferenceSpaceType() == OCIO_NAMESPACE::REFERENCE_SPACE_DISPLAY;
+  }
+
   const CPUProcessor *get_to_scene_linear_cpu_processor() const override;
   const CPUProcessor *get_from_scene_linear_cpu_processor() const override;
 

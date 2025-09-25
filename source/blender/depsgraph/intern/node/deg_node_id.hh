@@ -52,7 +52,7 @@ struct IDNode : public Node {
 
   /** Initialize 'id' node - from pointer data given. */
   void init(const ID *id, const char *subdata) override;
-  void init_copy_on_write(Depsgraph &depsgraph, ID *id_cow_hint = nullptr);
+  void init_copy_on_write(ID *id_cow_hint = nullptr);
   ~IDNode() override;
   void destroy();
 

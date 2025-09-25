@@ -27,6 +27,7 @@ static void node_register()
   static blender::bke::bNodeType ntype;
   fn_node_type_base(&ntype, "FunctionNodeMatrixDeterminant", FN_NODE_MATRIX_DETERMINANT);
   ntype.ui_name = "Matrix Determinant";
+  ntype.ui_description = "Compute the determinant of the given matrix";
   ntype.enum_name_legacy = "MATRIX_DETERMINANT";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;

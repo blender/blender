@@ -17,10 +17,15 @@
 
 #include "DNA_world_types.h"
 
+#include "draw_view.hh"
+
 #include "eevee_defines.hh"
+#include "eevee_lightprobe_shared.hh"
 #include "eevee_sync.hh"
 
 namespace blender::eevee {
+
+using namespace draw;
 
 class Instance;
 class VolumeProbeModule;

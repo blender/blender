@@ -17,8 +17,10 @@
 #include "DRW_render.hh"
 
 #include "eevee_lut.hh"
+#include "eevee_material.hh"
 #include "eevee_raytrace.hh"
 #include "eevee_subsurface.hh"
+#include "eevee_uniform_shared.hh"
 
 struct Camera;
 
@@ -227,14 +229,8 @@ struct DeferredLayerBase {
   /* Return the amount of gbuffer layer needed. */
   int closure_layer_count() const
   {
-    /* Diffuse and translucent require only one layer. */
-    int count = count_bits_i(closure_bits_ & (CLOSURE_DIFFUSE | CLOSURE_TRANSLUCENT));
-    /* SSS require an additional layer compared to diffuse. */
-    count += count_bits_i(closure_bits_ & CLOSURE_SSS);
-    /* Reflection and refraction can have at most two layers. */
-    count += 2 * count_bits_i(closure_bits_ &
-                              (CLOSURE_REFRACTION | CLOSURE_REFLECTION | CLOSURE_CLEARCOAT));
-    return count;
+    /* Always allocate 2 layer per closure for interleaved closure data packing in the gbuffer. */
+    return 2 * to_gbuffer_bin_count(closure_bits_);
   }
 
   /* Return the amount of gbuffer layer needed. */
@@ -243,9 +239,7 @@ struct DeferredLayerBase {
     /* TODO(fclem): We could count the number of different tangent frame in the shader and use
      * min(tangent_frame_count, closure_count) once we have the normal reuse optimization.
      * For now, allocate a custom normal layer for each Closure. */
-    int count = count_bits_i(closure_bits_ &
-                             (CLOSURE_REFRACTION | CLOSURE_REFLECTION | CLOSURE_CLEARCOAT |
-                              CLOSURE_DIFFUSE | CLOSURE_TRANSLUCENT));
+    int count = to_gbuffer_bin_count(closure_bits_);
     /* Count the additional information layer needed by some closures. */
     count += count_bits_i(closure_bits_ &
                           (CLOSURE_SSS | CLOSURE_TRANSLUCENT | CLOSURE_REFRACTION));
@@ -404,7 +398,7 @@ class DeferredPipeline {
     return max_ii(opaque_layer_.normal_layer_count(), refraction_layer_.normal_layer_count());
   }
 
-  void debug_draw(draw::View &view, GPUFrameBuffer *combined_fb);
+  void debug_draw(draw::View &view, gpu::FrameBuffer *combined_fb);
 
   bool is_empty() const
   {

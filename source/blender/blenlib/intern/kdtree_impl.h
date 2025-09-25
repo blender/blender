@@ -8,6 +8,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array.hh"
+#include "BLI_bit_vector.hh"
 #include "BLI_kdtree_impl.h"
 #include "BLI_math_base.h"
 #include "BLI_utildefines.h"
@@ -332,13 +334,6 @@ int BLI_kdtree_nd_(find_nearest)(const KDTree *tree,
   return min_node->index;
 }
 
-/**
- * A version of #BLI_kdtree_3d_find_nearest which runs a callback
- * to filter out values.
- *
- * \param filter_cb: Filter find results,
- * Return codes: (1: accept, 0: skip, -1: immediate exit).
- */
 int BLI_kdtree_nd_(find_nearest_cb)(
     const KDTree *tree,
     const float co[KD_DIMS],
@@ -468,11 +463,6 @@ static void nearest_ordered_insert(KDTreeNearest *nearest,
   copy_vn_vn(nearest[i].co, co);
 }
 
-/**
- * Find \a nearest_len_capacity nearest returns number of points found, with results in nearest.
- *
- * \param r_nearest: An array of nearest, sized at least \a nearest_len_capacity.
- */
 int BLI_kdtree_nd_(find_nearest_n_with_len_squared_cb)(
     const KDTree *tree,
     const float co[KD_DIMS],
@@ -630,11 +620,6 @@ static void nearest_add_in_range(KDTreeNearest **r_nearest,
   copy_vn_vn(to->co, co);
 }
 
-/**
- * Range search returns number of points nearest_len, with results in nearest
- *
- * \param r_nearest: Allocated array of nearest nearest_len (caller is responsible for freeing).
- */
 int BLI_kdtree_nd_(range_search_with_len_squared_cb)(
     const KDTree *tree,
     const float co[KD_DIMS],
@@ -726,15 +711,6 @@ int BLI_kdtree_nd_(range_search)(const KDTree *tree,
       tree, co, r_nearest, range, nullptr, nullptr);
 }
 
-/**
- * A version of #BLI_kdtree_3d_range_search which runs a callback
- * instead of allocating an array.
- *
- * \param search_cb: Called for every node found in \a range,
- * false return value performs an early exit.
- *
- * \note the order of calls isn't sorted based on distance.
- */
 void BLI_kdtree_nd_(range_search_cb)(
     const KDTree *tree,
     const float co[KD_DIMS],
@@ -861,27 +837,9 @@ static void deduplicate_recursive(const DeDuplicateParams *p, uint i)
   }
 }
 
-/**
- * Find duplicate points in \a range.
- * Favors speed over quality since it doesn't find the best target vertex for merging.
- * Nodes are looped over, duplicates are added when found.
- * Nevertheless results are predictable.
- *
- * \param range: Coordinates in this range are candidates to be merged.
- * \param use_index_order: Loop over the coordinates ordered by #KDTreeNode.index
- * At the expense of some performance, this ensures the layout of the tree doesn't influence
- * the iteration order.
- * \param duplicates: An array of int's the length of #KDTree.nodes_len
- * Values initialized to -1 are candidates to me merged.
- * Setting the index to its own position in the array prevents it from being touched,
- * although it can still be used as a target.
- * \returns The number of merges found (includes any merges already in the \a duplicates array).
- *
- * \note Merging is always a single step (target indices won't be marked for merging).
- */
 int BLI_kdtree_nd_(calc_duplicates_fast)(const KDTree *tree,
                                          const float range,
-                                         bool use_index_order,
+                                         const bool use_index_order,
                                          int *duplicates)
 {
   int found = 0;
@@ -935,6 +893,75 @@ int BLI_kdtree_nd_(calc_duplicates_fast)(const KDTree *tree,
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name BLI_kdtree_3d_calc_duplicates_cb
+ * \{ */
+
+int BLI_kdtree_nd_(calc_duplicates_cb)(const KDTree *tree,
+                                       const float range,
+                                       int *duplicates,
+                                       int (*duplicates_cb)(void *user_data,
+                                                            const int *cluster,
+                                                            int cluster_num),
+                                       void *user_data)
+{
+  BLI_assert(tree->is_balanced);
+  if (UNLIKELY(tree->root == KD_NODE_UNSET)) {
+    return 0;
+  }
+
+  /* Use `index_to_node_index` so coordinates are looked up in order first to last. */
+  const uint nodes_len = tree->nodes_len;
+  blender::Array<int> index_to_node_index(tree->max_node_index + 1);
+  for (uint i = 0; i < nodes_len; i++) {
+    index_to_node_index[tree->nodes[i].index] = int(i);
+  }
+
+  blender::BitVector<> visited(tree->max_node_index + 1, false);
+  /* Could be inline, declare here to avoid re-allocation. */
+  blender::Vector<int> cluster;
+
+  int found = 0;
+  for (uint i = 0; i < nodes_len; i++) {
+    const int node_index = tree->nodes[i].index;
+    if ((duplicates[node_index] != -1) || visited[node_index]) {
+      continue;
+    }
+
+    BLI_assert(cluster.is_empty());
+    const float *search_co = tree->nodes[index_to_node_index[node_index]].co;
+    visited[node_index].set();
+    auto accumulate_neighbors_fn = [&duplicates, &visited, &cluster](int neighbor_index,
+                                                                     const float * /*co*/,
+                                                                     float /*dist_sq*/) -> bool {
+      if ((duplicates[neighbor_index] == -1) && !visited[neighbor_index]) {
+        cluster.append(neighbor_index);
+        visited[neighbor_index].set();
+      }
+      return true;
+    };
+
+    BLI_kdtree_nd_(range_search_cb_cpp)(tree, search_co, range, accumulate_neighbors_fn);
+    if (cluster.is_empty()) {
+      continue;
+    }
+    found += int(cluster.size());
+    cluster.append(node_index);
+
+    const int cluster_index = duplicates_cb(user_data, cluster.data(), int(cluster.size()));
+    BLI_assert(uint(cluster_index) < uint(cluster.size()));
+    const int target_index = cluster[cluster_index];
+    for (const int cluster_node_index : cluster) {
+      duplicates[cluster_node_index] = target_index;
+    }
+    cluster.clear();
+  }
+
+  return found;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name BLI_kdtree_3d_deduplicate
  * \{ */
 
@@ -970,11 +997,6 @@ static int kdtree_node_cmp_deduplicate(const void *n0_p, const void *n1_p)
   return kdtree_cmp_bool(n0->d == KD_DIMS, n1->d == KD_DIMS);
 }
 
-/**
- * Remove exact duplicates (run before balancing).
- *
- * Keep the first element added when duplicates are found.
- */
 int BLI_kdtree_nd_(deduplicate)(KDTree *tree)
 {
 #ifndef NDEBUG

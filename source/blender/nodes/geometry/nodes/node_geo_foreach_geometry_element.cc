@@ -26,6 +26,8 @@
 
 #include "WM_api.hh"
 
+#include "fmt/core.h"
+
 namespace blender::nodes::node_geo_foreach_geometry_element_cc {
 
 /** Shared between zone input and output node. */
@@ -407,22 +409,24 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
   else {
     params.add_item_full_name(
-        IFACE_("For Each Element " UI_MENU_ARROW_SEP " Main"), [](LinkSearchOpParams &params) {
+        fmt::format(IFACE_("For Each Element {} Main"), UI_MENU_ARROW_SEP),
+        [](LinkSearchOpParams &params) {
           const auto [input_node, output_node] = add_foreach_zone(params);
           socket_items::clear<ForeachGeometryElementGenerationItemsAccessor>(*output_node);
           params.update_and_connect_available_socket(*output_node, "Geometry");
         });
 
-    params.add_item_full_name(IFACE_("For Each Element " UI_MENU_ARROW_SEP " Generated"),
-                              [](LinkSearchOpParams &params) {
-                                const auto [input_node, output_node] = add_foreach_zone(params);
-                                params.node_tree.ensure_topology_cache();
-                                bke::node_add_link(params.node_tree,
-                                                   *output_node,
-                                                   output_node->output_socket(2),
-                                                   params.node,
-                                                   params.socket);
-                              });
+    params.add_item_full_name(
+        fmt::format(IFACE_("For Each Element {} Generated"), UI_MENU_ARROW_SEP),
+        [](LinkSearchOpParams &params) {
+          const auto [input_node, output_node] = add_foreach_zone(params);
+          params.node_tree.ensure_topology_cache();
+          bke::node_add_link(params.node_tree,
+                             *output_node,
+                             output_node->output_socket(2),
+                             params.node,
+                             params.socket);
+        });
   }
 }
 

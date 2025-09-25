@@ -19,6 +19,7 @@ static void extract_paint_overlay_flags(const MeshRenderData &mr, MutableSpan<in
     selection = mr.select_vert;
   }
   if (selection.is_empty() && mr.hide_poly.is_empty() && (!mr.edit_bmesh || !mr.orig_index_vert)) {
+    flags.fill(0);
     return;
   }
   const OffsetIndices faces = mr.faces;

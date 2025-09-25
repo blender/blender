@@ -9,11 +9,13 @@
  * Also contains some sample mapping functions.
  */
 
-#include "infos/eevee_common_info.hh"
+#include "infos/eevee_common_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(eevee_sampling_data)
 
 #include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_math_constants_lib.glsl"
+#include "gpu_shader_math_safe_lib.glsl"
 
 /* -------------------------------------------------------------------- */
 /** \name Sampling data.
@@ -53,23 +55,23 @@ float3 sampling_rng_3D_get(const eSamplingDimension dimension)
 /* Interleaved gradient noise by Jorge Jimenez
  * http://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare
  * Seeding found by Epic Game. */
-float interlieved_gradient_noise(float2 pixel, float seed, float offset)
+float interleaved_gradient_noise(float2 pixel, float seed, float offset)
 {
   pixel += seed * (float2(47, 17) * 0.695f);
   return fract(offset + 52.9829189f * fract(0.06711056f * pixel.x + 0.00583715f * pixel.y));
 }
 
-float2 interlieved_gradient_noise(float2 pixel, float2 seed, float2 offset)
+float2 interleaved_gradient_noise(float2 pixel, float2 seed, float2 offset)
 {
-  return float2(interlieved_gradient_noise(pixel, seed.x, offset.x),
-                interlieved_gradient_noise(pixel, seed.y, offset.y));
+  return float2(interleaved_gradient_noise(pixel, seed.x, offset.x),
+                interleaved_gradient_noise(pixel, seed.y, offset.y));
 }
 
-float3 interlieved_gradient_noise(float2 pixel, float3 seed, float3 offset)
+float3 interleaved_gradient_noise(float2 pixel, float3 seed, float3 offset)
 {
-  return float3(interlieved_gradient_noise(pixel, seed.x, offset.x),
-                interlieved_gradient_noise(pixel, seed.y, offset.y),
-                interlieved_gradient_noise(pixel, seed.z, offset.z));
+  return float3(interleaved_gradient_noise(pixel, seed.x, offset.x),
+                interleaved_gradient_noise(pixel, seed.y, offset.y),
+                interleaved_gradient_noise(pixel, seed.z, offset.z));
 }
 
 /* From: http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html */

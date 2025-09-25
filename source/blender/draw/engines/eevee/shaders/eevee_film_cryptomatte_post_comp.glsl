@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/eevee_film_info.hh"
+#include "infos/eevee_film_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_film_cryptomatte_post)
 

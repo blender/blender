@@ -259,7 +259,7 @@ static void do_outliner_object_select_recursive(const Scene *scene,
 static void do_outliner_bone_select_recursive(bArmature *arm, Bone *bone_parent, bool select)
 {
   LISTBASE_FOREACH (Bone *, bone, &bone_parent->childbase) {
-    if (select && PBONE_SELECTABLE(arm, bone)) {
+    if (select && blender::animrig::bone_is_selectable(arm, bone)) {
       bone->flag |= BONE_SELECTED;
     }
     else {

@@ -520,7 +520,7 @@ static void do_lasso_select_pose__do_tag(void *user_data,
 {
   LassoSelectUserData *data = static_cast<LassoSelectUserData *>(user_data);
   const bArmature *arm = static_cast<bArmature *>(data->vc->obact->data);
-  if (!PBONE_SELECTABLE(arm, pchan->bone)) {
+  if (!blender::animrig::bone_is_selectable(arm, pchan)) {
     return;
   }
 
@@ -5040,7 +5040,7 @@ static void do_circle_select_pose__doSelectBone(void *user_data,
 {
   CircleSelectUserData *data = static_cast<CircleSelectUserData *>(user_data);
   bArmature *arm = static_cast<bArmature *>(data->vc->obact->data);
-  if (!PBONE_SELECTABLE(arm, pchan->bone)) {
+  if (!blender::animrig::bone_is_selectable(arm, pchan)) {
     return;
   }
 

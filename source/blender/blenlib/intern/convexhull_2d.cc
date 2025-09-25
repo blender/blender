@@ -301,9 +301,9 @@ static blender::int2 convexhull_2d_sorted(const float2 *points,
                                           int r_points[])
 {
   const int top = convexhull_2d_sorted_impl(points, points_num, r_points);
-  blender::int2 r_points_range = {0, top};
-  convexhull_2d_stack_finalize(points, r_points, r_points_range);
-  return r_points_range;
+  blender::int2 points_range = {0, top};
+  convexhull_2d_stack_finalize(points, r_points, points_range);
+  return points_range;
 }
 
 int BLI_convexhull_2d(blender::Span<float2> points, int r_points[])

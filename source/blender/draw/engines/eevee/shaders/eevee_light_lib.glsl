@@ -5,7 +5,6 @@
 #pragma once
 
 #include "draw_math_geom_lib.glsl"
-#include "eevee_light_iter_lib.glsl"
 #include "eevee_ltc_lib.glsl"
 
 /* Attenuation cutoff needs to be the same in the shadow loop and the light eval loop. */

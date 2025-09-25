@@ -2,17 +2,16 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/eevee_tracing_info.hh"
+#include "infos/eevee_tracing_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_horizon_resolve)
 
 #include "draw_view_lib.glsl"
 #include "eevee_closure_lib.glsl"
 #include "eevee_filter_lib.glsl"
-#include "eevee_gbuffer_lib.glsl"
+#include "eevee_gbuffer_read_lib.glsl"
 #include "eevee_lightprobe_eval_lib.glsl"
 #include "eevee_reverse_z_lib.glsl"
-#include "eevee_sampling_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
@@ -81,17 +80,16 @@ void main()
     return;
   }
 
-  GBufferReader gbuf = gbuffer_read(
-      gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel_fullres);
+  const gbuffer::Layers gbuf = gbuffer::read_layers(texel_fullres);
 
-  if (gbuf.header == 0u) {
+  if (gbuf.header.is_empty()) {
     return;
   }
 
   float2 center_uv = (float2(texel_fullres) + 0.5f) * uniform_buf.raytrace.full_resolution_inv;
   float center_depth = reverse_z::read(texelFetch(depth_tx, texel_fullres, 0).r);
   float3 center_P = drw_point_screen_to_world(float3(center_uv, center_depth));
-  float3 center_N = gbuf.surface_N;
+  float3 center_N = gbuf.surface_N();
 
   SphericalHarmonicL1 accum_sh;
   if (uniform_buf.raytrace.horizon_resolution_scale == 1) {
@@ -135,8 +133,12 @@ void main()
   float clamp_indirect = uniform_buf.clamp.surface_indirect;
   samp.volume_irradiance = spherical_harmonics_clamp(samp.volume_irradiance, clamp_indirect);
 
-  for (uchar i = 0; i < GBUFFER_LAYER_MAX && i < gbuf.closure_count; i++) {
-    ClosureUndetermined cl = gbuffer_closure_get(gbuf, i);
+  const uchar closure_count = gbuf.header.closure_len();
+  const uint3 bin_indices = gbuf.header.bin_index_per_layer();
+  const float thickness = gbuffer::read_thickness(gbuf.header, texel_fullres);
+
+  for (uchar i = 0; i < GBUFFER_LAYER_MAX && i < closure_count; i++) {
+    ClosureUndetermined cl = gbuf.layer_get(i);
 
     float roughness = closure_apparent_roughness_get(cl);
 
@@ -149,7 +151,7 @@ void main()
       continue;
     }
 
-    LightProbeRay ray = bxdf_lightprobe_ray(cl, P, V, gbuf.thickness);
+    LightProbeRay ray = bxdf_lightprobe_ray(cl, P, V, thickness);
 
     float3 L = ray.dominant_direction;
     float3 vL = drw_normal_world_to_view(L);
@@ -171,7 +173,7 @@ void main()
     float3 radiance_probe = spherical_harmonics_evaluate_lambert(L, samp.volume_irradiance);
     radiance += visibility * radiance_probe;
 
-    uchar layer_index = gbuffer_closure_get_bin_index(gbuf, i);
+    uchar layer_index = bin_indices[i];
 
     float4 radiance_horizon = float4(radiance, 0.0f);
     float4 radiance_raytrace = float4(0.0f);

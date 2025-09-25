@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "gpu_glsl_cpp_stubs.hh"
+#include "gpu_shader_compat.hh"
 
 /* From the paper "Hashed Alpha Testing" by Chris Wyman and Morgan McGuire. */
 float transparency_hash(float2 a)

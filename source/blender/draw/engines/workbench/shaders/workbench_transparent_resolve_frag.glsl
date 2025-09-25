@@ -7,7 +7,7 @@
  * Computer Graphics Techniques (JCGT), vol. 2, no. 2, 122–141, 2013
  */
 
-#include "infos/workbench_transparent_resolve_info.hh"
+#include "infos/workbench_transparent_resolve_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(workbench_transparent_resolve)
 

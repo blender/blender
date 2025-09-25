@@ -711,11 +711,18 @@ GHOST_TSuccess GHOST_SetWindowOrder(GHOST_WindowHandle windowhandle, GHOST_TWind
   return window->setOrder(order);
 }
 
-GHOST_TSuccess GHOST_SwapWindowBuffers(GHOST_WindowHandle windowhandle)
+GHOST_TSuccess GHOST_SwapWindowBufferAcquire(GHOST_WindowHandle windowhandle)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
 
-  return window->swapBuffers();
+  return window->swapBufferAcquire();
+}
+
+GHOST_TSuccess GHOST_SwapWindowBufferRelease(GHOST_WindowHandle windowhandle)
+{
+  GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
+
+  return window->swapBufferRelease();
 }
 
 GHOST_TSuccess GHOST_SetSwapInterval(GHOST_WindowHandle windowhandle, int interval)
@@ -1273,14 +1280,14 @@ void GHOST_GetVulkanHandles(GHOST_ContextHandle contexthandle, GHOST_VulkanHandl
 
 void GHOST_SetVulkanSwapBuffersCallbacks(
     GHOST_ContextHandle contexthandle,
-    void (*swap_buffers_pre_callback)(const GHOST_VulkanSwapChainData *),
-    void (*swap_buffers_post_callback)(void),
+    void (*swap_buffer_draw_callback)(const GHOST_VulkanSwapChainData *),
+    void (*swap_buffer_acquired_callback)(void),
     void (*openxr_acquire_image_callback)(GHOST_VulkanOpenXRData *),
     void (*openxr_release_image_callback)(GHOST_VulkanOpenXRData *))
 {
   GHOST_IContext *context = (GHOST_IContext *)contexthandle;
-  context->setVulkanSwapBuffersCallbacks(swap_buffers_pre_callback,
-                                         swap_buffers_post_callback,
+  context->setVulkanSwapBuffersCallbacks(swap_buffer_draw_callback,
+                                         swap_buffer_acquired_callback,
                                          openxr_acquire_image_callback,
                                          openxr_release_image_callback);
 }

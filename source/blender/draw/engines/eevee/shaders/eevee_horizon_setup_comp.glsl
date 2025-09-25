@@ -8,15 +8,16 @@
  * Dispatched as one thread for each trace resolution pixel.
  */
 
-#include "infos/eevee_tracing_info.hh"
+#include "infos/eevee_tracing_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_horizon_setup)
 
 #include "draw_view_lib.glsl"
 #include "eevee_colorspace_lib.glsl"
-#include "eevee_gbuffer_lib.glsl"
+#include "eevee_gbuffer_read_lib.glsl"
 #include "eevee_reverse_z_lib.glsl"
-#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_math_matrix_transform_lib.glsl"
+#include "gpu_shader_math_vector_compare_lib.glsl"
 
 void main()
 {
@@ -34,11 +35,10 @@ void main()
   texel_fullres = min(texel_fullres, extent - 1);
 
   /* Load Gbuffer. */
-  GBufferReader gbuf = gbuffer_read(
-      gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel_fullres);
+  const gbuffer::Layers gbuf = gbuffer::read_layers(texel_fullres);
 
   /* Export normal. */
-  float3 N = gbuf.surface_N;
+  float3 N = gbuf.surface_N();
   /* Background has invalid data. */
   /* FIXME: This is zero for opaque layer when we are processing the refraction layer. */
   if (is_zero(N)) {
@@ -47,7 +47,7 @@ void main()
   }
   float3 vN = drw_normal_world_to_view(N);
   /* Tag processed pixel in the normal buffer for denoising speed. */
-  bool is_processed = gbuf.header != 0u;
+  bool is_processed = !gbuf.header.is_empty();
   imageStore(out_normal_img, texel, float4(vN * 0.5f + 0.5f, float(is_processed)));
 
   /* Re-project radiance. */

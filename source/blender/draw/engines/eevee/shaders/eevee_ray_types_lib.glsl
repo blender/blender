@@ -6,8 +6,9 @@
 
 #include "draw_math_geom_lib.glsl"
 #include "draw_view_lib.glsl"
-#include "eevee_bxdf_lib.glsl" /* Needed for Ray. */
-#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_math_matrix_transform_lib.glsl"
+#include "gpu_shader_math_safe_lib.glsl"
+#include "gpu_shader_ray_lib.glsl"
 
 /* Screen-space ray ([0..1] "uv" range) where direction is normalize to be as small as one
  * full-resolution pixel. The ray is also clipped to all frustum sides.
@@ -21,6 +22,7 @@ struct ScreenSpaceRay {
 };
 
 void raytrace_screenspace_ray_finalize(inout ScreenSpaceRay ray, float2 pixel_size)
+
 {
   /* Constant bias (due to depth buffer precision). Helps with self intersection. */
   /* Magic numbers for 24bits of precision.

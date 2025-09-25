@@ -13,7 +13,6 @@
 
 struct AnimData;
 struct BPoint;
-struct Ipo;
 struct Key;
 struct MDeformVert;
 
@@ -55,8 +54,6 @@ typedef struct Lattice {
 
   struct BPoint *def;
 
-  /** Old animation system, deprecated for 2.5. */
-  struct Ipo *ipo DNA_DEPRECATED;
   struct Key *key;
 
   struct MDeformVert *dvert;

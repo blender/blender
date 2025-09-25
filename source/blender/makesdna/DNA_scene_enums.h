@@ -64,3 +64,10 @@ typedef enum eUnifiedPaintSettingsFlags {
   UNIFIED_PAINT_INPUT_SAMPLES = (1 << 7),
   UNIFIED_PAINT_COLOR_JITTER = (1 << 8),
 } eUnifiedPaintSettingsFlags;
+
+/** Paint::curve_visibility_flag*/
+typedef enum PaintCurveVisibilityFlags {
+  PAINT_CURVE_SHOW_STRENGTH = (1 << 0),
+  PAINT_CURVE_SHOW_SIZE = (1 << 1),
+  PAINT_CURVE_SHOW_JITTER = (1 << 2),
+} PaintCurveVisibilityFlags;

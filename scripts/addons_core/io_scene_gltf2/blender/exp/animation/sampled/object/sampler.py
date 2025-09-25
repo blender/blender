@@ -148,7 +148,7 @@ def __gather_interpolation(
         export_settings):
 
     if len(keyframes) > 2:
-        # keep STEP as STEP, other become the interpolation choosen by the user
+        # keep STEP as STEP, other become the interpolation chosen by the user
         return {
             "STEP": "STEP"
         }.get(node_channel_interpolation, export_settings['gltf_sampling_interpolation_fallback'])

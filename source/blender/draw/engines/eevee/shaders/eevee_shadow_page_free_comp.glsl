@@ -10,12 +10,11 @@
  * Note that we also count the number of new page allocations needed.
  */
 
-#include "infos/eevee_shadow_info.hh"
+#include "infos/eevee_shadow_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_shadow_page_free)
 
 #include "eevee_shadow_page_ops_lib.glsl"
-#include "eevee_shadow_tilemap_lib.glsl"
 
 void main()
 {

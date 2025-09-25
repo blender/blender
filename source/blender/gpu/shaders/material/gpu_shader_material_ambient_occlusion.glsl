@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "gpu_shader_math_vector_safe_lib.glsl"
+
 void node_ambient_occlusion(float4 color,
                             float dist,
                             float3 normal,

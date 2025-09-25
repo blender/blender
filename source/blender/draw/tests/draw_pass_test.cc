@@ -32,7 +32,7 @@ static void test_draw_pass_all_commands()
   /* Won't be dereferenced. */
   gpu::VertBuf *vbo = (gpu::VertBuf *)1;
   gpu::IndexBuf *ibo = (gpu::IndexBuf *)1;
-  GPUFrameBuffer *fb = nullptr;
+  gpu::FrameBuffer *fb = nullptr;
 
   float4 color(1.0f, 1.0f, 1.0f, 0.0f);
   int3 dispatch_size(1);

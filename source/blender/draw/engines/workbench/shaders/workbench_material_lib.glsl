@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "infos/workbench_prepass_info.hh"
+#include "infos/workbench_prepass_infos.hh"
 
 // SHADER_LIBRARY_CREATE_INFO(workbench_color_material)
 SHADER_LIBRARY_CREATE_INFO(workbench_color_texture)

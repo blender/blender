@@ -96,7 +96,7 @@ struct Overlay {
    * resolving to the given frame-buffer.
    */
 
-  virtual void draw_on_render(GPUFrameBuffer * /*fb*/, Manager & /*manager*/, View & /*view*/){};
+  virtual void draw_on_render(gpu::FrameBuffer * /*fb*/, Manager & /*manager*/, View & /*view*/){};
   virtual void draw(Framebuffer & /*fb*/, Manager & /*manager*/, View & /*view*/){};
   virtual void draw_line(Framebuffer & /*fb*/, Manager & /*manager*/, View & /*view*/){};
   virtual void draw_line_only(Framebuffer & /*fb*/, Manager & /*manager*/, View & /*view*/){};

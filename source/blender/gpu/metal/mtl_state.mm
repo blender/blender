@@ -73,23 +73,23 @@ void MTLStateManager::set_state(const GPUState &state)
   GPUState changed = state ^ current_;
 
   if (changed.blend != 0) {
-    set_blend((eGPUBlend)state.blend);
+    set_blend((GPUBlend)state.blend);
   }
   if (changed.write_mask != 0) {
-    set_write_mask((eGPUWriteMask)state.write_mask);
+    set_write_mask((GPUWriteMask)state.write_mask);
   }
   if (changed.depth_test != 0) {
-    set_depth_test((eGPUDepthTest)state.depth_test);
+    set_depth_test((GPUDepthTest)state.depth_test);
   }
   if (changed.stencil_test != 0 || changed.stencil_op != 0) {
-    set_stencil_test((eGPUStencilTest)state.stencil_test, (eGPUStencilOp)state.stencil_op);
-    set_stencil_mask((eGPUStencilTest)state.stencil_test, mutable_state);
+    set_stencil_test((GPUStencilTest)state.stencil_test, (GPUStencilOp)state.stencil_op);
+    set_stencil_mask((GPUStencilTest)state.stencil_test, mutable_state);
   }
   if (changed.clip_distances != 0) {
     set_clip_distances(state.clip_distances, current_.clip_distances);
   }
   if (changed.culling_test != 0) {
-    set_backface_culling((eGPUFaceCullTest)state.culling_test);
+    set_backface_culling((GPUFaceCullTest)state.culling_test);
   }
   if (changed.logic_op_xor != 0) {
     set_logic_op(state.logic_op_xor);
@@ -98,7 +98,7 @@ void MTLStateManager::set_state(const GPUState &state)
     set_facing(state.invert_facing);
   }
   if (changed.provoking_vert != 0) {
-    set_provoking_vert((eGPUProvokingVertex)state.provoking_vert);
+    set_provoking_vert((GPUProvokingVertex)state.provoking_vert);
   }
   if (changed.shadow_bias != 0) {
     set_shadow_bias(state.shadow_bias);
@@ -151,7 +151,7 @@ void MTLStateManager::set_mutable_state(const GPUStateMutable &state)
   if (changed.stencil_compare_mask != 0 || changed.stencil_reference != 0 ||
       changed.stencil_write_mask != 0)
   {
-    set_stencil_mask((eGPUStencilTest)current_.stencil_test, state);
+    set_stencil_mask((GPUStencilTest)current_.stencil_test, state);
   }
 
   current_mutable_ = state;
@@ -163,7 +163,7 @@ void MTLStateManager::set_mutable_state(const GPUStateMutable &state)
 /** \name State setting functions
  * \{ */
 
-void MTLStateManager::set_write_mask(const eGPUWriteMask value)
+void MTLStateManager::set_write_mask(const GPUWriteMask value)
 {
   BLI_assert(context_);
   MTLContextGlobalShaderPipelineState &pipeline_state = context_->pipeline_state;
@@ -176,7 +176,7 @@ void MTLStateManager::set_write_mask(const eGPUWriteMask value)
   pipeline_state.dirty_flags |= MTL_PIPELINE_STATE_PSO_FLAG;
 }
 
-static MTLCompareFunction gpu_depth_function_to_metal(eGPUDepthTest depth_func)
+static MTLCompareFunction gpu_depth_function_to_metal(GPUDepthTest depth_func)
 {
   switch (depth_func) {
     case GPU_DEPTH_NONE:
@@ -194,13 +194,13 @@ static MTLCompareFunction gpu_depth_function_to_metal(eGPUDepthTest depth_func)
     case GPU_DEPTH_ALWAYS:
       return MTLCompareFunctionAlways;
     default:
-      BLI_assert(false && "Invalid eGPUDepthTest");
+      BLI_assert(false && "Invalid GPUDepthTest");
       break;
   }
   return MTLCompareFunctionAlways;
 }
 
-static MTLCompareFunction gpu_stencil_func_to_metal(eGPUStencilTest stencil_func)
+static MTLCompareFunction gpu_stencil_func_to_metal(GPUStencilTest stencil_func)
 {
   switch (stencil_func) {
     case GPU_STENCIL_NONE:
@@ -212,13 +212,13 @@ static MTLCompareFunction gpu_stencil_func_to_metal(eGPUStencilTest stencil_func
     case GPU_STENCIL_ALWAYS:
       return MTLCompareFunctionAlways;
     default:
-      BLI_assert(false && "Unrecognized eGPUStencilTest function");
+      BLI_assert(false && "Unrecognized GPUStencilTest function");
       break;
   }
   return MTLCompareFunctionAlways;
 }
 
-void MTLStateManager::set_depth_test(const eGPUDepthTest value)
+void MTLStateManager::set_depth_test(const GPUDepthTest value)
 {
   BLI_assert(context_);
   MTLContextGlobalShaderPipelineState &pipeline_state = context_->pipeline_state;
@@ -237,7 +237,7 @@ void MTLStateManager::mtl_stencil_mask(uint mask)
   pipeline_state.dirty_flags |= MTL_PIPELINE_STATE_DEPTHSTENCIL_FLAG;
 }
 
-void MTLStateManager::mtl_stencil_set_func(eGPUStencilTest stencil_func, int ref, uint mask)
+void MTLStateManager::mtl_stencil_set_func(GPUStencilTest stencil_func, int ref, uint mask)
 {
   BLI_assert(context_);
   MTLContextGlobalShaderPipelineState &pipeline_state = context_->pipeline_state;
@@ -250,7 +250,7 @@ void MTLStateManager::mtl_stencil_set_func(eGPUStencilTest stencil_func, int ref
 }
 
 static void mtl_stencil_set_op_separate(MTLContext *context,
-                                        eGPUFaceCullTest face,
+                                        GPUFaceCullTest face,
                                         MTLStencilOperation stencil_fail,
                                         MTLStencilOperation depth_test_fail,
                                         MTLStencilOperation depthstencil_pass)
@@ -284,7 +284,7 @@ static void mtl_stencil_set_op(MTLContext *context,
       context, GPU_CULL_BACK, stencil_fail, depth_test_fail, depthstencil_pass);
 }
 
-void MTLStateManager::set_stencil_test(const eGPUStencilTest test, const eGPUStencilOp operation)
+void MTLStateManager::set_stencil_test(const GPUStencilTest test, const GPUStencilOp operation)
 {
   switch (operation) {
     case GPU_STENCIL_OP_REPLACE:
@@ -327,7 +327,7 @@ void MTLStateManager::set_stencil_test(const eGPUStencilTest test, const eGPUSte
   pipeline_state.dirty_flags |= MTL_PIPELINE_STATE_DEPTHSTENCIL_FLAG;
 }
 
-void MTLStateManager::set_stencil_mask(const eGPUStencilTest test, const GPUStateMutable &state)
+void MTLStateManager::set_stencil_mask(const GPUStencilTest test, const GPUStateMutable &state)
 {
   if (test == GPU_STENCIL_NONE) {
     mtl_stencil_mask(0x00);
@@ -387,7 +387,7 @@ void MTLStateManager::set_facing(const bool invert)
   pipeline_state.dirty = true;
 }
 
-void MTLStateManager::set_backface_culling(const eGPUFaceCullTest test)
+void MTLStateManager::set_backface_culling(const GPUFaceCullTest test)
 {
   /* Check Current Context. */
   BLI_assert(context_);
@@ -402,7 +402,7 @@ void MTLStateManager::set_backface_culling(const eGPUFaceCullTest test)
   pipeline_state.dirty = true;
 }
 
-void MTLStateManager::set_provoking_vert(const eGPUProvokingVertex /*vert*/)
+void MTLStateManager::set_provoking_vert(const GPUProvokingVertex /*vert*/)
 {
   /* NOTE(Metal): Provoking vertex is not a feature in the Metal API.
    * Shaders are handled on a case-by-case basis using a modified vertex shader.
@@ -437,7 +437,7 @@ void MTLStateManager::set_shadow_bias(const bool enable)
   pipeline_state.dirty = true;
 }
 
-void MTLStateManager::set_blend(const eGPUBlend value)
+void MTLStateManager::set_blend(const GPUBlend value)
 {
   /**
    * Factors to the equation.
@@ -568,19 +568,19 @@ void MTLStateManager::set_blend(const eGPUBlend value)
 /* NOTE(Metal): Granular option for specifying before/after stages for a barrier
  * Would be a useful feature. */
 #if 0
-void MTLStateManager::issue_barrier(eGPUBarrier barrier_bits,
-                                    eGPUStageBarrierBits before_stages,
-                                    eGPUStageBarrierBits after_stages)
+void MTLStateManager::issue_barrier(GPUBarrier barrier_bits,
+                                    GPUStageBarrierBits before_stages,
+                                    GPUStageBarrierBits after_stages)
 #endif
-void MTLStateManager::issue_barrier(eGPUBarrier barrier_bits)
+void MTLStateManager::issue_barrier(GPUBarrier barrier_bits)
 {
   /* NOTE(Metal): The Metal API implicitly tracks dependencies between resources.
    * Memory barriers and execution barriers (Fences/Events) can be used to coordinate
    * this explicitly, however, in most cases, the driver will be able to
    * resolve these dependencies automatically.
    * For untracked resources, such as MTLHeap's, explicit barriers are necessary. */
-  eGPUStageBarrierBits before_stages = GPU_BARRIER_STAGE_ANY;
-  eGPUStageBarrierBits after_stages = GPU_BARRIER_STAGE_ANY;
+  GPUStageBarrierBits before_stages = GPU_BARRIER_STAGE_ANY;
+  GPUStageBarrierBits after_stages = GPU_BARRIER_STAGE_ANY;
 
   MTLContext *ctx = MTLContext::get();
   BLI_assert(ctx);

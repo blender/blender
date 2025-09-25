@@ -18,6 +18,7 @@
 #include "DNA_action_defaults.h"
 #include "DNA_action_types.h"
 
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_report.hh"
@@ -49,9 +50,8 @@ bool action_is_layered(const bAction &dna_action)
   const bool has_layered_data = action.layer_array_num > 0 || action.slot_array_num > 0;
   const bool has_animato_data = !(BLI_listbase_is_empty(&action.curves) &&
                                   BLI_listbase_is_empty(&action.groups));
-  const bool has_pre_animato_data = !BLI_listbase_is_empty(&action.chanbase);
 
-  return has_layered_data || (!has_animato_data && !has_pre_animato_data);
+  return has_layered_data || !has_animato_data;
 }
 
 void convert_legacy_animato_actions(Main &bmain)
@@ -68,27 +68,12 @@ void convert_legacy_animato_actions(Main &bmain)
       continue;
     }
 
-    /* This function should skip pre-2.50 Actions, as those are versioned in a special step (see
-     * `do_versions_after_setup()` in `versioning_common.cc`). */
-    if (!BLI_listbase_is_empty(&action.chanbase)) {
-      continue;
-    }
-
     convert_legacy_animato_action(action);
   }
 }
 
 void convert_legacy_animato_action(bAction &dna_action)
 {
-  BLI_assert_msg(BLI_listbase_is_empty(&dna_action.chanbase),
-                 "this function cannot handle pre-2.50 Actions");
-  if (!BLI_listbase_is_empty(&dna_action.chanbase)) {
-    /* This is a pre-2.5 Action, which cannot be converted here. It's converted in another function
-     * to a post-2.5 Action (aka Animato Action), and after that, this function will be called
-     * again. */
-    return;
-  }
-
   Action &action = dna_action.wrap();
   BLI_assert(action.is_action_legacy());
 
@@ -154,7 +139,7 @@ void convert_legacy_animato_action(bAction &dna_action)
 
 void tag_action_user_for_slotted_actions_conversion(ID &animated_id)
 {
-  animated_id.runtime.readfile_data->tags.action_assignment_needs_slot = true;
+  animated_id.runtime->readfile_data->tags.action_assignment_needs_slot = true;
 }
 
 void tag_action_users_for_slotted_actions_conversion(Main &bmain)
@@ -257,10 +242,10 @@ void convert_legacy_action_assignments(Main &bmain, ReportList *reports)
   };
 
   /* Note that the code below does not remove the `action_assignment_needs_slot` tag. One ID can
-   * use multiple Actions (via NLA, Action constraints, etc.); if one of those Action is an ancient
-   * one from before 2.50 (just to name one example case) this ID may needs to be re-visited
-   * after those were versioned. Rather than trying to figure out if re-visiting is necessary, this
-   * function is safe to call multiple times, and all that's lost is a little bit of CPU time. */
+   * use multiple Actions (via NLA, Action constraints, etc.); if one of those Action is a legacy
+   * one from a linked datablock, this ID may needs to be re-visited after the library file was
+   * versioned. Rather than trying to figure out if re-visiting is necessary, this function is safe
+   * to call multiple times, and all that's lost is a little bit of CPU time. */
 
   ID *id;
   FOREACH_MAIN_ID_BEGIN (&bmain, id) {

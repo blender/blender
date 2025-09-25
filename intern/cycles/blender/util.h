@@ -667,17 +667,15 @@ static inline BL::MeshSequenceCacheModifier object_mesh_cache_find(BL::Object &b
 
 static BL::SubsurfModifier object_subdivision_modifier(BL::Object &b_ob, const bool preview)
 {
-  PointerRNA cobj = RNA_pointer_get(&b_ob.ptr, "cycles");
-
-  if (cobj.data && !b_ob.modifiers.empty()) {
+  if (!b_ob.modifiers.empty()) {
     BL::Modifier mod = b_ob.modifiers[b_ob.modifiers.length() - 1];
     const bool enabled = preview ? mod.show_viewport() : mod.show_render();
 
-    if (enabled && mod.type() == BL::Modifier::type_SUBSURF &&
-        RNA_boolean_get(&cobj, "use_adaptive_subdivision"))
-    {
+    if (enabled && mod.type() == BL::Modifier::type_SUBSURF) {
       BL::SubsurfModifier subsurf(mod);
-      return subsurf;
+      if (subsurf.use_adaptive_subdivision()) {
+        return subsurf;
+      }
     }
   }
 

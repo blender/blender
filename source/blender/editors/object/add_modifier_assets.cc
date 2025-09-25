@@ -56,12 +56,12 @@ static asset::AssetItemTree build_catalog_tree(const bContext &C)
   type_filter.id_types = FILTER_ID_NT;
   auto meta_data_filter = [&](const AssetMetaData &meta_data) {
     const IDProperty *tree_type = BKE_asset_metadata_idprop_find(&meta_data, "type");
-    if (tree_type == nullptr || IDP_Int(tree_type) != NTREE_GEOMETRY) {
+    if (tree_type == nullptr || IDP_int_get(tree_type) != NTREE_GEOMETRY) {
       return false;
     }
     const IDProperty *traits_flag = BKE_asset_metadata_idprop_find(
         &meta_data, "geometry_node_asset_traits_flag");
-    if (traits_flag == nullptr || !(IDP_Int(traits_flag) & GEO_NODE_ASSET_MODIFIER)) {
+    if (traits_flag == nullptr || !(IDP_int_get(traits_flag) & GEO_NODE_ASSET_MODIFIER)) {
       return false;
     }
     return true;
@@ -286,6 +286,11 @@ static wmOperatorStatus modifier_add_asset_exec(bContext *C, wmOperator *op)
 
     /* Don't show the data-block selector since it's not usually necessary for assets. */
     nmd->flag |= NODES_MODIFIER_HIDE_DATABLOCK_SELECTOR;
+    SET_FLAG_FROM_TEST(nmd->flag,
+                       node_group->geometry_node_asset_traits &&
+                           (node_group->geometry_node_asset_traits->flag &
+                            GEO_NODE_ASSET_HIDE_MODIFIER_MANAGE_PANEL),
+                       NODES_MODIFIER_HIDE_MANAGE_PANEL);
 
     STRNCPY_UTF8(nmd->modifier.name, DATA_(node_group->id.name + 2));
     BKE_modifier_unique_name(&object->modifiers, &nmd->modifier);

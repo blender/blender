@@ -279,6 +279,7 @@ static void node_register()
 
   geo_node_type_base(&ntype, "GeometryNodeSampleGrid", GEO_NODE_SAMPLE_GRID);
   ntype.ui_name = "Sample Grid";
+  ntype.ui_description = "Retrieve values from the specified volume grid";
   ntype.enum_name_legacy = "SAMPLE_GRID";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.initfunc = node_init;

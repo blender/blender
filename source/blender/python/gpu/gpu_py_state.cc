@@ -101,7 +101,7 @@ static PyObject *pygpu_state_blend_set(PyObject * /*self*/, PyObject *value)
   if (!PyC_ParseStringEnum(value, &pygpu_blend)) {
     return nullptr;
   }
-  GPU_blend(eGPUBlend(pygpu_blend.value_found));
+  GPU_blend(GPUBlend(pygpu_blend.value_found));
   Py_RETURN_NONE;
 }
 
@@ -116,7 +116,7 @@ static PyObject *pygpu_state_blend_get(PyObject * /*self*/)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
 
-  eGPUBlend blend = GPU_blend_get();
+  GPUBlend blend = GPU_blend_get();
   return PyUnicode_FromString(PyC_StringEnum_FindIDFromValue(pygpu_state_blend_items, blend));
 }
 
@@ -165,7 +165,7 @@ static PyObject *pygpu_state_depth_test_set(PyObject * /*self*/, PyObject *value
   if (!PyC_ParseStringEnum(value, &pygpu_depth_test)) {
     return nullptr;
   }
-  GPU_depth_test(eGPUDepthTest(pygpu_depth_test.value_found));
+  GPU_depth_test(GPUDepthTest(pygpu_depth_test.value_found));
   Py_RETURN_NONE;
 }
 
@@ -180,7 +180,7 @@ static PyObject *pygpu_state_depth_test_get(PyObject * /*self*/)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
 
-  eGPUDepthTest test = GPU_depth_test_get();
+  GPUDepthTest test = GPU_depth_test_get();
   return PyUnicode_FromString(PyC_StringEnum_FindIDFromValue(pygpu_state_depthtest_items, test));
 }
 
@@ -441,7 +441,7 @@ static PyObject *pygpu_state_face_culling_set(PyObject * /*self*/, PyObject *val
     return nullptr;
   }
 
-  GPU_face_culling(eGPUFaceCullTest(pygpu_faceculling.value_found));
+  GPU_face_culling(GPUFaceCullTest(pygpu_faceculling.value_found));
   Py_RETURN_NONE;
 }
 
@@ -500,7 +500,7 @@ static PyObject *pygpu_state_active_framebuffer_get(PyObject * /*self*/)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
 
-  GPUFrameBuffer *fb = GPU_framebuffer_active_get();
+  blender::gpu::FrameBuffer *fb = GPU_framebuffer_active_get();
   return BPyGPUFrameBuffer_CreatePyObject(fb, true);
 }
 

@@ -172,7 +172,9 @@ void MTLShaderInterface::add_push_constant_block(uint32_t name_offset)
   push_constant_block_.stage_mask = ShaderStage::ANY;
 }
 
-void MTLShaderInterface::add_uniform(uint32_t name_offset, eMTLDataType type, int array_len)
+void MTLShaderInterface::add_uniform(uint32_t name_offset,
+                                     MTLInterfaceDataType type,
+                                     int array_len)
 {
   BLI_assert(array_len > 0);
   BLI_assert(total_uniforms_ < MTL_MAX_UNIFORMS_PER_BLOCK);
@@ -223,8 +225,8 @@ void MTLShaderInterface::add_uniform(uint32_t name_offset, eMTLDataType type, in
 void MTLShaderInterface::add_texture(uint32_t name_offset,
                                      uint32_t texture_slot,
                                      uint32_t location,
-                                     eGPUTextureType tex_binding_type,
-                                     eGPUSamplerFormat sampler_format,
+                                     GPUTextureType tex_binding_type,
+                                     GPUSamplerFormat sampler_format,
                                      bool is_texture_sampler,
                                      ShaderStage stage_mask,
                                      int tex_buffer_ssbo_location)
@@ -629,7 +631,7 @@ void MTLShaderInterface::insert_argument_encoder(int buffer_index, id encoder)
   MTL_LOG_WARNING("could not insert encoder into cache!");
 }
 
-MTLVertexFormat mtl_datatype_to_vertex_type(eMTLDataType type)
+MTLVertexFormat mtl_datatype_to_vertex_type(MTLInterfaceDataType type)
 {
   switch (type) {
     case MTL_DATATYPE_CHAR:

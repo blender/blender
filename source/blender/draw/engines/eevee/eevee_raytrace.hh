@@ -12,13 +12,16 @@
 
 #include "DNA_scene_types.h"
 
+#include "DRW_gpu_wrapper.hh"
 #include "DRW_render.hh"
 
-#include "eevee_shader_shared.hh"
+#include "eevee_raytrace_shared.hh"
 
 namespace blender::eevee {
 
 class Instance;
+
+using RayTraceTileBuf = draw::StorageArrayBuffer<uint, 1024, true>;
 
 /* -------------------------------------------------------------------- */
 /** \name Ray-tracing Buffers
@@ -275,7 +278,7 @@ class RayTraceModule {
   RayTraceResult alloc_dummy(RayTraceBuffer &rt_buffer);
 
   void debug_pass_sync();
-  void debug_draw(View &view, GPUFrameBuffer *view_fb);
+  void debug_draw(View &view, gpu::FrameBuffer *view_fb);
 
   bool use_raytracing() const
   {

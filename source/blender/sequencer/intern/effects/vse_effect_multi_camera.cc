@@ -30,6 +30,7 @@ static StripEarlyOut early_out_multicam(const Strip * /*strip*/, float /*fac*/)
 }
 
 static ImBuf *do_multicam(const RenderData *context,
+                          SeqRenderState *state,
                           Strip *strip,
                           float timeline_frame,
                           float /*fac*/,
@@ -44,7 +45,7 @@ static ImBuf *do_multicam(const RenderData *context,
   }
 
   ed = context->scene->ed;
-  if (!ed) {
+  if (!ed || state->strips_rendering_seqbase.contains(strip)) {
     return nullptr;
   }
   ListBase *seqbasep = get_seqbase_by_strip(context->scene, strip);
@@ -53,8 +54,9 @@ static ImBuf *do_multicam(const RenderData *context,
     return nullptr;
   }
 
+  state->strips_rendering_seqbase.add(strip);
   out = seq_render_give_ibuf_seqbase(
-      context, timeline_frame, strip->multicam_source, channels, seqbasep);
+      context, state, timeline_frame, strip->multicam_source, channels, seqbasep);
 
   return out;
 }

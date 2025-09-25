@@ -96,6 +96,10 @@ Strip *special_preview_get()
 void special_preview_set(bContext *C, const int mval[2])
 {
   Scene *scene = CTX_data_sequencer_scene(C);
+  if (!seq::editing_get(scene)) {
+    return;
+  }
+
   ARegion *region = CTX_wm_region(C);
   Strip *strip = strip_under_mouse_get(scene, &region->v2d, mval);
   if (strip != nullptr && strip->type != STRIP_TYPE_SOUND_RAM) {
@@ -142,7 +146,7 @@ ImBuf *sequencer_ibuf_get(const bContext *C, const int timeline_frame, const cha
   G.is_break = false;
 
   GPUViewport *viewport = WM_draw_region_get_bound_viewport(region);
-  GPUFrameBuffer *fb = GPU_framebuffer_active_get();
+  blender::gpu::FrameBuffer *fb = GPU_framebuffer_active_get();
   if (viewport) {
     /* Unbind viewport to release the DRW context. */
     GPU_viewport_unbind(viewport);
@@ -266,6 +270,7 @@ void sequencer_draw_maskedit(const bContext *C, Scene *scene, ARegion *region, S
 
       ED_mask_draw_region(mask,
                           region,
+                          true,
                           0,
                           0,
                           0, /* TODO */
@@ -905,7 +910,7 @@ static void update_gpu_scopes(const ImBuf *input_ibuf,
   GPU_matrix_ortho_set(0.0f, 1.0f, 0.0f, 1.0f, -1.0, 1.0f);
   GPU_matrix_identity_set();
 
-  GPUFrameBuffer *fb = nullptr;
+  blender::gpu::FrameBuffer *fb = nullptr;
   GPU_framebuffer_ensure_config(&fb,
                                 {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(display_texture)});
   GPU_framebuffer_bind(fb);
@@ -1097,7 +1102,7 @@ static void text_selection_draw(const bContext *C, const Strip *strip, uint pos)
     const blender::float2 view_offs{-scene->r.xsch / 2.0f, -scene->r.ysch / 2.0f};
     const float view_aspect = scene->r.xasp / scene->r.yasp;
     blender::float3x3 transform_mat = seq::image_transform_matrix_get(scene, strip);
-    blender::float4x2 selection_quad{
+    blender::float2 selection_quad[4] = {
         {character_start.position.x, line_y},
         {character_start.position.x, line_y + text->line_height},
         {character_end.position.x + character_end.advance_x, line_y + text->line_height},
@@ -1156,7 +1161,7 @@ static void text_edit_draw_cursor(const bContext *C, const Strip *strip, uint po
 
   cursor_coords = coords_region_view_align(UI_view2d_fromcontext(C), cursor_coords);
 
-  blender::float4x2 cursor_quad{
+  blender::float2 cursor_quad[4] = {
       {cursor_coords.x, cursor_coords.y},
       {cursor_coords.x, cursor_coords.y + text->line_height},
       {cursor_coords.x + cursor_width, cursor_coords.y + text->line_height},
@@ -1213,7 +1218,7 @@ static void sequencer_preview_draw_empty(ARegion &region)
   GPUViewport *viewport = WM_draw_region_get_bound_viewport(&region);
   BLI_assert(viewport);
 
-  GPUFrameBuffer *overlay_fb = GPU_viewport_framebuffer_overlay_get(viewport);
+  blender::gpu::FrameBuffer *overlay_fb = GPU_viewport_framebuffer_overlay_get(viewport);
   GPU_framebuffer_bind_no_srgb(overlay_fb);
 
   sequencer_preview_clear();
@@ -1270,7 +1275,7 @@ static void preview_draw_color_render_begin(ARegion &region)
   GPUViewport *viewport = WM_draw_region_get_bound_viewport(&region);
   BLI_assert(viewport);
 
-  GPUFrameBuffer *render_fb = GPU_viewport_framebuffer_render_get(viewport);
+  blender::gpu::FrameBuffer *render_fb = GPU_viewport_framebuffer_render_get(viewport);
   GPU_framebuffer_bind(render_fb);
 
   float col[4] = {0, 0, 0, 0};
@@ -1283,7 +1288,7 @@ static void preview_draw_overlay_begin(ARegion &region)
   GPUViewport *viewport = WM_draw_region_get_bound_viewport(&region);
   BLI_assert(viewport);
 
-  GPUFrameBuffer *overlay_fb = GPU_viewport_framebuffer_overlay_get(viewport);
+  blender::gpu::FrameBuffer *overlay_fb = GPU_viewport_framebuffer_overlay_get(viewport);
   GPU_framebuffer_bind_no_srgb(overlay_fb);
 
   sequencer_preview_clear();
@@ -1595,7 +1600,7 @@ static void draw_registered_callbacks(const bContext *C, ARegion &region)
   GPUViewport *viewport = WM_draw_region_get_bound_viewport(&region);
   BLI_assert(viewport);
 
-  GPUFrameBuffer *overlay_fb = GPU_viewport_framebuffer_overlay_get(viewport);
+  blender::gpu::FrameBuffer *overlay_fb = GPU_viewport_framebuffer_overlay_get(viewport);
 
   GPU_framebuffer_bind(overlay_fb);
   ED_region_draw_cb_draw(C, &region, REGION_DRAW_POST_VIEW);

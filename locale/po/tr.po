@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'61dd8a1435fb')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-01 09:40+0000\n"
+"POT-Creation-Date: 2025-09-22 08:45+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: VertexSelection <amacsizk2021@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -1819,10 +1819,6 @@ msgid "Space Type"
 msgstr "Uzay Türü"
 
 
-msgid "The space where the asset shelf is going to be used in"
-msgstr "Varlık rafının kullanılacağı alan"
-
-
 msgid "Preview Size"
 msgstr "Önizleme Boyutu"
 
@@ -2057,14 +2053,6 @@ msgstr "Özniteliğin kaldırılıp kaldırılamayacağı veya yeniden adlandır
 
 msgid "Name of the Attribute"
 msgstr "Özniteliğin Adı"
-
-
-msgid "Array"
-msgstr "Sıralamak"
-
-
-msgid "Single"
-msgstr "Bekar"
 
 
 msgid "Bool Attribute"
@@ -2743,6 +2731,10 @@ msgid "Collection data-blocks"
 msgstr "Koleksiyon veri blokları"
 
 
+msgid "Color Space"
+msgstr "Renk Uzayı"
+
+
 msgid "Curves"
 msgstr "Eğriler"
 
@@ -3329,6 +3321,22 @@ msgstr "Ana Dünyalar"
 
 msgid "Collection of worlds"
 msgstr "Dünyalar koleksiyonu"
+
+
+msgid "Linear BT.709 with illuminant D65 white point"
+msgstr "Aydınlatıcı D65 beyaz noktalı doğrusal BT.709"
+
+
+msgid "Linear BT.2020 with illuminant D65 white point"
+msgstr "Aydınlatıcı D65 beyaz nokta ile doğrusal BT.2020"
+
+
+msgid "ACEScg"
+msgstr "ACEScg"
+
+
+msgid "Linear AP1 with ACES white point"
+msgstr "ACES beyaz noktalı doğrusal AP1"
 
 
 msgid "Blendfile Import Context"
@@ -6675,8 +6683,8 @@ msgid "Color management specific to display device"
 msgstr "Görüntüleme aygıtına özgü renk yönetimi"
 
 
-msgid "Display Device"
-msgstr "Görüntüleme Aygıtı"
+msgid "Display"
+msgstr "Görüntülemek"
 
 
 msgid "Input color space settings"
@@ -6705,38 +6713,6 @@ msgstr "ACES2065-1"
 
 msgid "Linear AP0 with ACES white point"
 msgstr "ACES beyaz noktalı doğrusal AP0"
-
-
-msgid "ACEScg"
-msgstr "ACEScg"
-
-
-msgid "Linear AP1 with ACES white point"
-msgstr "ACES beyaz noktalı doğrusal AP1"
-
-
-msgid "AgX Base Display P3"
-msgstr "AgX Temel Ekran P3"
-
-
-msgid "AgX Base Image Encoding for Display P3 Display"
-msgstr "AgX Tabanlı Görüntü Kodlaması P3 Ekranı"
-
-
-msgid "AgX Base Rec.1886"
-msgstr "AgX Tabanı Rec.1886"
-
-
-msgid "AgX Base Image Encoding for Rec.1886 Display"
-msgstr "Rec.1886 Görüntüleme için AgX Tabanlı Görüntü Kodlaması"
-
-
-msgid "AgX Base Rec.2020"
-msgstr "AgX Tabanı Rec.2020"
-
-
-msgid "AgX Base Image Encoding for BT.2020 Display"
-msgstr "BT.2020 Ekranı için AgX Tabanlı Görüntü Kodlaması"
 
 
 msgid "AgX Base sRGB"
@@ -6791,14 +6767,6 @@ msgid "Linear E-Gamut with illuminant D65 white point"
 msgstr "Aydınlatıcı D65 beyaz noktalı doğrusal E-Gamut"
 
 
-msgid "Linear BT.2020 with illuminant D65 white point"
-msgstr "Aydınlatıcı D65 beyaz nokta ile doğrusal BT.2020"
-
-
-msgid "Linear BT.709 with illuminant D65 white point"
-msgstr "Aydınlatıcı D65 beyaz noktalı doğrusal BT.709"
-
-
 msgid "Non-Color"
 msgstr "Renksiz"
 
@@ -6821,10 +6789,6 @@ msgstr "BT.2020 2.4 Üs EOTF Ekranı"
 
 msgid "sRGB IEC 61966-2-1 compound (piece-wise) encoding"
 msgstr "sRGB IEC 61966-2-1 bileşik (parça bazında) kodlama"
-
-
-msgid "Color Space"
-msgstr "Renk Uzayı"
 
 
 msgid "Color space that the sequencer operates in"
@@ -6873,6 +6837,10 @@ msgstr "Beyaz Dengesini Kullan"
 
 msgid "Perform chromatic adaption from a different white point"
 msgstr "Farklı bir beyaz noktadan kromatik adaptasyon gerçekleştirin"
+
+
+msgid "View"
+msgstr "Görünüm"
 
 
 msgid "View used when converting image to a display space"
@@ -8724,10 +8692,6 @@ msgstr "Yüzeye Teğet"
 
 msgid "Draw in the surface plane"
 msgstr "Yüzey düzleminde çizin"
-
-
-msgid "View"
-msgstr "Görünüm"
 
 
 msgid "Draw in a plane aligned to the viewport"
@@ -10754,10 +10718,6 @@ msgstr "Maksimum B karesi sayısını ayarlayın"
 
 msgid "Video bitrate (kbit/s)"
 msgstr "Video bit hızı (kbit/s)"
-
-
-msgid "HDR"
-msgstr "Yüksek Çözünürlüklü (HDR)"
 
 
 msgid "F-Modifier"
@@ -17147,20 +17107,8 @@ msgid "Override Frame"
 msgstr "Çerçeveyi Geçersiz Kıl"
 
 
-msgid "Prefetch Cache Size"
-msgstr "Önbellek Boyutunu Önceden Al"
-
-
 msgid "Up"
 msgstr "Yukarı"
-
-
-msgid "Use Prefetch"
-msgstr "Önbelleği Kullan"
-
-
-msgid "Use Render Engine Procedural"
-msgstr "Prosedürsel Sunum İşletkesini Kullan"
 
 
 msgid "Velocity Attribute"
@@ -22010,10 +21958,6 @@ msgstr "Ek parçacık verilerini renkli olarak görüntüle"
 
 msgid "How particles are displayed in viewport"
 msgstr "Parçacıklar görünüm alanında nasıl görüntülenir"
-
-
-msgid "Display"
-msgstr "Görüntülemek"
 
 
 msgid "Percentage of particles to display in 3D view"
@@ -29090,6 +29034,70 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
+msgid "Toggle Bone Options"
+msgstr "Kemik Seçeneklerini Değiştir"
+
+
+msgid "Enable Bone Options"
+msgstr "Kemik Seçeneklerini Etkinleştir"
+
+
+msgid "Disable Bone Options"
+msgstr "Kemik Seçeneklerini Devre Dışı Bırak"
+
+
+msgid "Mesh Select Mode"
+msgstr "Örgü Seçim Kipi"
+
+
+msgid "Face Data"
+msgstr "Yüz Verileri"
+
+
+msgid "Select by Face Strength"
+msgstr "Yüz Gücüne Göre Seç"
+
+
+msgid "Set Face Strength"
+msgstr "Yüz Gücünü Ayarla"
+
+
+msgid "Clean Up"
+msgstr "Temizle"
+
+
+msgid "Merge"
+msgstr "Birleştir"
+
+
+msgid "Show/Hide"
+msgstr "Göster/Gizle"
+
+
+msgid "Special Characters"
+msgstr "Özel Karakterler"
+
+
+msgid "Kerning"
+msgstr "Harf aralığı"
+
+
+msgid "Text"
+msgstr "Metin"
+
+
+msgid "Metaball"
+msgstr "Metabol"
+
+
+msgid "Names"
+msgstr "Adlar"
+
+
+msgid "Bone Roll"
+msgstr "Kemik Rulosu"
+
+
 msgid "Pivot Point"
 msgstr "Pivot Noktası"
 
@@ -29174,10 +29182,6 @@ msgid "Assign Material"
 msgstr "Malzeme Atamak"
 
 
-msgid "Metaball"
-msgstr "Metabol"
-
-
 msgid "Light"
 msgstr "Işık"
 
@@ -29208,14 +29212,6 @@ msgstr "İzlemek"
 
 msgid "Quick Effects"
 msgstr "Hızlı Etkiler"
-
-
-msgid "Show/Hide"
-msgstr "Göster/Gizle"
-
-
-msgid "Clean Up"
-msgstr "Temizle"
 
 
 msgid "Asset"
@@ -29268,58 +29264,6 @@ msgstr "Yaymak"
 
 msgid "Bone Collections"
 msgstr "Kemik Koleksiyonları"
-
-
-msgid "Names"
-msgstr "Adlar"
-
-
-msgid "Toggle Bone Options"
-msgstr "Kemik Seçeneklerini Değiştir"
-
-
-msgid "Enable Bone Options"
-msgstr "Kemik Seçeneklerini Etkinleştir"
-
-
-msgid "Disable Bone Options"
-msgstr "Kemik Seçeneklerini Devre Dışı Bırak"
-
-
-msgid "Mesh Select Mode"
-msgstr "Örgü Seçim Kipi"
-
-
-msgid "Face Data"
-msgstr "Yüz Verileri"
-
-
-msgid "Select by Face Strength"
-msgstr "Yüz Gücüne Göre Seç"
-
-
-msgid "Set Face Strength"
-msgstr "Yüz Gücünü Ayarla"
-
-
-msgid "Merge"
-msgstr "Birleştir"
-
-
-msgid "Special Characters"
-msgstr "Özel Karakterler"
-
-
-msgid "Kerning"
-msgstr "Harf aralığı"
-
-
-msgid "Text"
-msgstr "Metin"
-
-
-msgid "Bone Roll"
-msgstr "Kemik Rulosu"
 
 
 msgid "Keyframe Insert Pie"
@@ -29460,10 +29404,6 @@ msgid "Files"
 msgstr "Dosyalar"
 
 
-msgid "Material Specials"
-msgstr "Malzeme Özellikleri"
-
-
 msgctxt "Operator"
 msgid "Smooth"
 msgstr "Düz"
@@ -29483,6 +29423,10 @@ msgstr "Aktif Katmanı Değiştir"
 
 msgid "Add Mask"
 msgstr "Maske Ekle"
+
+
+msgid "Material Specials"
+msgstr "Malzeme Özellikleri"
 
 
 msgid "Move to Layer"
@@ -29618,14 +29562,6 @@ msgstr "Toplu Seçili Düğümleri Değiştir"
 
 msgid "Batch Change Math Operation"
 msgstr "Toplu Değişiklik Matematik İşlemi"
-
-
-msgid "To Socket"
-msgstr "Sokete takmak için"
-
-
-msgid "From Socket"
-msgstr "Soketten"
 
 
 msgid "Copy Label"
@@ -29882,6 +29818,11 @@ msgstr "Ebeveyn"
 msgctxt "Operator"
 msgid "Empty"
 msgstr "Boş"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Dış Kafes"
 
 
 msgid "Clone Layer"
@@ -30618,6 +30559,10 @@ msgstr "Doku Eşlemesi"
 
 msgid "Change stroke UV texture values"
 msgstr "Vuruş UV doku değerlerini değiştir"
+
+
+msgid "Array"
+msgstr "Sıralamak"
 
 
 msgid "Create copies of the shape with offsets"
@@ -37031,10 +36976,6 @@ msgid "Opacity of the image"
 msgstr "Görüntünün opaklığı"
 
 
-msgid "Markers"
-msgstr "İşaretleyiciler"
-
-
 msgid "Collection of markers in track"
 msgstr "Pistteki işaretleyicilerin toplanması"
 
@@ -38000,43 +37941,6 @@ msgid "Create matte based on differences in color channels"
 msgstr "Renk kanallarındaki farklılıklara dayalı mat yaratın"
 
 
-msgid "YUV"
-msgstr "YUV"
-
-
-msgid "YCbCr"
-msgstr "YCbCr"
-
-
-msgctxt "Color"
-msgid "Limit Channel"
-msgstr "Sınır Kanalı"
-
-
-msgid "Limit by this channel's value"
-msgstr "Bu kanalın değeriyle sınırla"
-
-
-msgid "Algorithm"
-msgstr "Algoritma"
-
-
-msgid "Algorithm to use to limit channel"
-msgstr "Kanalı sınırlamak için kullanılacak algoritma"
-
-
-msgid "Limit by single channel"
-msgstr "Tek kanalla sınırla"
-
-
-msgid "Limit by maximum of other channels"
-msgstr "Diğer kanalların maksimum limiti"
-
-
-msgid "Channel used to determine matte"
-msgstr "Matı belirlemek için kullanılan kanal"
-
-
 msgid "Chroma Key"
 msgstr "Kroma Anahtarı"
 
@@ -38051,26 +37955,6 @@ msgstr "Renk Dengesi"
 
 msgid "Adjust color and values"
 msgstr "Renk ve değerleri ayarlayın"
-
-
-msgid "Correction Formula"
-msgstr "Düzeltme Formülü"
-
-
-msgid "Lift/Gamma/Gain"
-msgstr "Kaldırma/Gama/Kazanç"
-
-
-msgid "Offset/Power/Slope (ASC-CDL)"
-msgstr "Ofset/Güç/Eğim (ASC-CDL)"
-
-
-msgid "ASC-CDL standard color correction"
-msgstr "ASC-CDL standart renk düzeltmesi"
-
-
-msgid "Chromatic adaption from a different white point"
-msgstr "Farklı bir beyaz noktadan kromatik adaptasyon"
 
 
 msgid "Input White Point"
@@ -38093,50 +37977,6 @@ msgid "Color Spill"
 msgstr "Renk Dökülmesi"
 
 
-msgid "Red spill suppression"
-msgstr "Kırmızı dökülme bastırma"
-
-
-msgid "Green spill suppression"
-msgstr "Yeşil sızıntının bastırılması"
-
-
-msgid "Blue spill suppression"
-msgstr "Mavi sızıntının bastırılması"
-
-
-msgid "Limit by red"
-msgstr "Kırmızı ile sınırla"
-
-
-msgid "Limit by green"
-msgstr "Yeşil ile sınırla"
-
-
-msgid "Limit by blue"
-msgstr "Mavi ile sınırla"
-
-
-msgid "Simple limit algorithm"
-msgstr "Basit limit algoritması"
-
-
-msgid "Average limit algorithm"
-msgstr "Ortalama limit algoritması"
-
-
-msgid "ITU 601"
-msgstr "İTÜ 601"
-
-
-msgid "ITU 709"
-msgstr "İTÜ 709"
-
-
-msgid "JPEG"
-msgstr "JPEG"
-
-
 msgid "Combine Color"
 msgstr "Renkleri Birleştir"
 
@@ -38149,8 +37989,28 @@ msgid "Mode of color processing"
 msgstr "Renk işleme modu"
 
 
+msgid "YCbCr"
+msgstr "YCbCr"
+
+
+msgid "YUV"
+msgstr "YUV"
+
+
 msgid "Color space used for YCbCrA processing"
 msgstr "YCbCrA işleme için kullanılan renk uzayı"
+
+
+msgid "ITU 601"
+msgstr "İTÜ 601"
+
+
+msgid "ITU 709"
+msgstr "İTÜ 709"
+
+
+msgid "JPEG"
+msgstr "JPEG"
 
 
 msgid "Convert Colorspace"
@@ -38401,52 +38261,12 @@ msgid "Create matte based on 3D distance between colors"
 msgstr "Renkler arasındaki 3B mesafeye dayalı mat oluşturun"
 
 
-msgid "RGB color space"
-msgstr "RGB renk uzayı"
-
-
-msgid "YCbCr suppression"
-msgstr "YCbCr baskılanması"
-
-
 msgid "Double Edge Mask"
 msgstr "Çift Kenarlı Maske"
 
 
 msgid "Create a gradient between two masks"
 msgstr "İki maske arasında bir degrade oluşturun"
-
-
-msgid "Buffer Edge Mode"
-msgstr "Arabellek Kenar Modu"
-
-
-msgid "Bleed Out"
-msgstr "Kanama"
-
-
-msgid "Allow mask pixels to bleed along edges"
-msgstr "Maske piksellerinin kenarlar boyunca sızmasına izin ver"
-
-
-msgid "Keep In"
-msgstr "İçeride Tut"
-
-
-msgid "Restrict mask pixels from touching edges"
-msgstr "Maske piksellerinin kenarlara dokunmasını kısıtla"
-
-
-msgid "Inner Edge Mode"
-msgstr "İç Kenar Modu"
-
-
-msgid "All pixels on inner mask edge are considered during mask calculation"
-msgstr "Maske hesaplaması sırasında iç maske kenarındaki tüm pikseller dikkate alınır"
-
-
-msgid "Adjacent Only"
-msgstr "Sadece bitişik"
 
 
 msgid "Ellipse Mask"
@@ -38601,26 +38421,6 @@ msgid "Convert to and from premultiplied (associated) alpha"
 msgstr "Önceden çarpılmış (ilişkili) alfa'ya dönüştür ve ondan al"
 
 
-msgid "Conversion between premultiplied alpha and key alpha"
-msgstr "Önceden çarpılmış alfa ile anahtar alfa arasındaki dönüşüm"
-
-
-msgid "To Premultiplied"
-msgstr "Önceden çarpılmış"
-
-
-msgid "Convert straight to premultiplied"
-msgstr "Doğrudan önceden çarpılmışa dönüştür"
-
-
-msgid "To Straight"
-msgstr "Düz"
-
-
-msgid "Convert premultiplied to straight"
-msgstr "Ön çarpımı düz sayıya dönüştür"
-
-
 msgid "A color picker"
 msgstr "Bir renk seçici"
 
@@ -38679,22 +38479,6 @@ msgstr "Alfa Ayarı"
 
 msgid "Add an alpha channel to an image"
 msgstr "Bir görüntüye alfa kanalı ekleyin"
-
-
-msgid "Apply Mask"
-msgstr "Maske Uygula"
-
-
-msgid "Multiply the input image's RGBA channels by the alpha input value"
-msgstr "Giriş görüntüsünün RGBA kanallarını alfa giriş değeriyle çarpın"
-
-
-msgid "Replace Alpha"
-msgstr "Alfa'yı Değiştir"
-
-
-msgid "Replace the input image's alpha channel by the alpha input value"
-msgstr "Giriş görüntüsünün alfa kanalını alfa giriş değeriyle değiştirin"
 
 
 msgid "Stabilize 2D"
@@ -42385,10 +42169,6 @@ msgid "Height from sea level"
 msgstr "Deniz seviyesinden yüksekliği"
 
 
-msgid "Dust"
-msgstr "Toz"
-
-
 msgid "Ozone"
 msgstr "Ozon"
 
@@ -42399,14 +42179,6 @@ msgstr "Gökyüzü Tipi"
 
 msgid "Which sky model should be used"
 msgstr "Hangi gökyüzü modeli kullanılmalı"
-
-
-msgid "Nishita"
-msgstr "Nishita"
-
-
-msgid "Nishita 1993 improved"
-msgstr "Nishita 1993 geliştirildi"
 
 
 msgid "Sun Disc"
@@ -42427,10 +42199,6 @@ msgstr "Güneşin ufuktan açısı"
 
 msgid "Sun Intensity"
 msgstr "Güneş Yoğunluğu"
-
-
-msgid "Strength of sun"
-msgstr "Güneşin gücü"
 
 
 msgid "Sun Rotation"
@@ -42611,10 +42379,6 @@ msgstr "Halkalarda dalga dokusunu kullanın"
 
 msgid "White Noise Texture"
 msgstr "Beyaz Gürültü Dokusu"
-
-
-msgid "Return a random value or color based on an input seed"
-msgstr "Bir giriş tohumuna dayalı olarak rastgele bir değer veya renk döndür"
 
 
 msgid "UV Along Stroke"
@@ -42974,6 +42738,10 @@ msgstr "Düğüm tabanlı dokular için, hangi düğümün kullanılacağını �
 
 msgid "Value to Normal"
 msgstr "Değer Normal"
+
+
+msgid "Single"
+msgstr "Bekar"
 
 
 msgid "Enum Item"
@@ -44477,15 +44245,6 @@ msgid "Add Fluid Preset"
 msgstr "Akışkan Ön Ayarı Ekle"
 
 
-msgid "Switch tint colors"
-msgstr "Ton renklerini değiştir"
-
-
-msgctxt "Operator"
-msgid "Flip Colors"
-msgstr "Renkleri Çevir"
-
-
 msgid "Convert selected reference images to textured mesh plane"
 msgstr "Seçili referans görüntülerini dokulu ağ düzlemine dönüştür"
 
@@ -44561,11 +44320,6 @@ msgstr "Bir glTF 2.0 dosyası yükleyin"
 msgctxt "Operator"
 msgid "Import glTF 2.0"
 msgstr "glTF 2.0'ı içe aktar"
-
-
-msgctxt "Operator"
-msgid "Copy Mirrored UV Coords"
-msgstr "Kopyalanmış Yansıtılmış UV Koordinatları"
 
 
 msgid "Construct a torus mesh"
@@ -45605,10 +45359,6 @@ msgstr "Biçem Modülü Dosyası Aç"
 
 msgid "Refresh list of actions"
 msgstr "Eylem listesini yenile"
-
-
-msgid "Add or remove grease pencil brush preset"
-msgstr "Gres kalemi fırçası ön ayarını ekle veya kaldır"
 
 
 msgctxt "Operator"
@@ -48179,6 +47929,10 @@ msgid "Enforce symmetry, make copies of the selection or use existing"
 msgstr "Simetriyi uygulayın, seçimin kopyalarını oluşturun veya mevcut olanı kullanın"
 
 
+msgid "Bone Colors"
+msgstr "Kemik Renkleri"
+
+
 msgid "Which sides to copy from and to (when both are selected)"
 msgstr "Hangi taraflardan ve hangi tarafa kopyalanacağı (her ikisi de seçildiğinde)"
 
@@ -50337,6 +50091,86 @@ msgid "Toggle Free/Align"
 msgstr "Serbest/Hizala'yı Değiştir"
 
 
+msgid "Cycle Handle Type"
+msgstr "Döngü Sap Tipi"
+
+
+msgid "Cycle between all four handle types"
+msgstr "Dört tutamak türü arasında geçiş yapın"
+
+
+msgid "Delete Point"
+msgstr "Noktayı Sil"
+
+
+msgid "Delete an existing point"
+msgstr "Mevcut bir noktayı sil"
+
+
+msgid "Remove from selection"
+msgstr "Seçimden kaldır"
+
+
+msgid "Extrude Handle Type"
+msgstr "Ekstrüde Sap Tipi"
+
+
+msgid "Type of the extruded handle"
+msgstr "Ekstrüde sapın türü"
+
+
+msgid "Extrude Point"
+msgstr "Ekstrüzyon Noktası"
+
+
+msgid "Add a point connected to the last selected point"
+msgstr "Son seçilen noktaya bağlı bir nokta ekle"
+
+
+msgid "Insert Point"
+msgstr "Nokta Ekle"
+
+
+msgid "Insert Point into a curve segment"
+msgstr "Bir eğri parçasına Nokta Ekle"
+
+
+msgid "Move Point"
+msgstr "Hareket Noktası"
+
+
+msgid "Move a point or its handles"
+msgstr "Bir noktayı veya tutamaklarını hareket ettirin"
+
+
+msgid "Move Segment"
+msgstr "Segmenti Taşı"
+
+
+msgid "Only Select Unselected"
+msgstr "Sadece Seçilmemişleri Seç"
+
+
+msgid "Ignore the select action when the element is already selected"
+msgstr "Öğe zaten seçiliyken seçme eylemini yoksay"
+
+
+msgid "Select Point"
+msgstr "Nokta Seç"
+
+
+msgid "Select a point or its handles"
+msgstr "Bir noktayı veya tutamaçlarını seçin"
+
+
+msgid "Toggle Selection"
+msgstr "Seçimi Değiştir"
+
+
+msgid "Toggle the selection"
+msgstr "Seçimi değiştir"
+
+
 msgctxt "Operator"
 msgid "Curve Sculpt Mode Toggle"
 msgstr "Eğri Heykel Modu Geçişi"
@@ -50722,86 +50556,6 @@ msgstr "Tıklandığında"
 
 msgid "Spline closes on release if not dragged"
 msgstr "Sürüklenmezse spline serbest bırakıldığında kapanır"
-
-
-msgid "Cycle Handle Type"
-msgstr "Döngü Sap Tipi"
-
-
-msgid "Cycle between all four handle types"
-msgstr "Dört tutamak türü arasında geçiş yapın"
-
-
-msgid "Delete Point"
-msgstr "Noktayı Sil"
-
-
-msgid "Delete an existing point"
-msgstr "Mevcut bir noktayı sil"
-
-
-msgid "Remove from selection"
-msgstr "Seçimden kaldır"
-
-
-msgid "Extrude Handle Type"
-msgstr "Ekstrüde Sap Tipi"
-
-
-msgid "Type of the extruded handle"
-msgstr "Ekstrüde sapın türü"
-
-
-msgid "Extrude Point"
-msgstr "Ekstrüzyon Noktası"
-
-
-msgid "Add a point connected to the last selected point"
-msgstr "Son seçilen noktaya bağlı bir nokta ekle"
-
-
-msgid "Insert Point"
-msgstr "Nokta Ekle"
-
-
-msgid "Insert Point into a curve segment"
-msgstr "Bir eğri parçasına Nokta Ekle"
-
-
-msgid "Move Point"
-msgstr "Hareket Noktası"
-
-
-msgid "Move a point or its handles"
-msgstr "Bir noktayı veya tutamaklarını hareket ettirin"
-
-
-msgid "Move Segment"
-msgstr "Segmenti Taşı"
-
-
-msgid "Only Select Unselected"
-msgstr "Sadece Seçilmemişleri Seç"
-
-
-msgid "Ignore the select action when the element is already selected"
-msgstr "Öğe zaten seçiliyken seçme eylemini yoksay"
-
-
-msgid "Select Point"
-msgstr "Nokta Seç"
-
-
-msgid "Select a point or its handles"
-msgstr "Bir noktayı veya tutamaçlarını seçin"
-
-
-msgid "Toggle Selection"
-msgstr "Seçimi Değiştir"
-
-
-msgid "Toggle the selection"
-msgstr "Seçimi değiştir"
 
 
 msgid "Toggle Vector"
@@ -57972,14 +57726,6 @@ msgid "Weld loose edges into faces (splitting them into new faces)"
 msgstr "Gevşek kenarları yüzeylere kaynaklayın (yeni yüzeylere bölerek)"
 
 
-msgid "Axis Direction"
-msgstr "Eksen Yönü"
-
-
-msgid "Tolerance for finding vertex duplicates"
-msgstr "Tepe noktası kopyalarını bulma toleransı"
-
-
 msgctxt "Operator"
 msgid "Select Linked Flat Faces"
 msgstr "Bağlantılı Düz Yüzleri Seçin"
@@ -61089,6 +60835,10 @@ msgid "From node linked to selected node"
 msgstr "Seçilen düğüme bağlı düğümden"
 
 
+msgid "From Socket"
+msgstr "Soketten"
+
+
 msgid "From socket linked to selected node"
 msgstr "Seçili düğüme bağlı soketten"
 
@@ -61199,6 +60949,10 @@ msgstr "BMP"
 
 msgid "DPX"
 msgstr "DPX"
+
+
+msgid "HDR"
+msgstr "Yüksek Çözünürlüklü (HDR)"
 
 
 msgid "TIFF"
@@ -63125,10 +62879,6 @@ msgstr "Nesne Hareket Yollarını Hesapla"
 
 msgid "Generate motion paths for the selected objects"
 msgstr "Seçili nesneler için hareket yolları oluşturun"
-
-
-msgid "Display type"
-msgstr "Görüntü türü"
 
 
 msgid "Computation Range"
@@ -66370,10 +66120,6 @@ msgstr "Mevcut eylemdeki her poz işaretçisi için bir poz varlığı oluşturu
 msgctxt "Operator"
 msgid "Create Pose Asset..."
 msgstr "Poz Varlığı Oluştur..."
-
-
-msgid "Activate New Action"
-msgstr "Yeni Eylemi Etkinleştir"
 
 
 msgid "Pose Name"
@@ -72206,6 +71952,22 @@ msgid "Align to Geometry axis"
 msgstr "Geometri eksenine hizala"
 
 
+msgid "Active UDIM"
+msgstr "Aktif UDIM"
+
+
+msgid "2D Cursor"
+msgstr "2B İmleç"
+
+
+msgid "Space between islands"
+msgstr "Adalar arasındaki boşluk"
+
+
+msgid "Order"
+msgstr "Emir"
+
+
 msgctxt "Operator"
 msgid "Average Islands Scale"
 msgstr "Ortalama Adalar Ölçeği"
@@ -72226,6 +71988,19 @@ msgstr "UV'leri kopyala"
 
 msgid "Copy selected UV vertices"
 msgstr "Seçili UV köşelerini kopyala"
+
+
+msgctxt "Operator"
+msgid "Copy Mirrored UV Coords"
+msgstr "Kopyalanmış Yansıtılmış UV Koordinatları"
+
+
+msgid "Axis Direction"
+msgstr "Eksen Yönü"
+
+
+msgid "Tolerance for finding vertex duplicates"
+msgstr "Tepe noktası kopyalarını bulma toleransı"
 
 
 msgctxt "Operator"
@@ -72492,10 +72267,6 @@ msgid "Pack Islands"
 msgstr "Sürü Adaları"
 
 
-msgid "Space between islands"
-msgstr "Adalar arasındaki boşluk"
-
-
 msgid "Margin Method"
 msgstr "Marj Yöntemi"
 
@@ -72638,10 +72409,6 @@ msgstr "En yakın UDIM"
 
 msgid "Pack islands to closest UDIM"
 msgstr "Adaları en yakın UDIM'e paketleyin"
-
-
-msgid "Active UDIM"
-msgstr "Aktif UDIM"
 
 
 msgid "Original bounding box"
@@ -76829,6 +76596,14 @@ msgid "Panel containing UI elements"
 msgstr "UI öğelerini içeren panel"
 
 
+msgid "glTF Variants"
+msgstr "glTF Çeşitleri"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF Malzeme Varyantları"
+
+
 msgid "Active Tool"
 msgstr "Etkin Araç"
 
@@ -76949,14 +76724,6 @@ msgid "VR Info"
 msgstr "VR Bilgisi"
 
 
-msgid "glTF Variants"
-msgstr "glTF Çeşitleri"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF Malzeme Varyantları"
-
-
 msgid "Chain Scaling"
 msgstr "Zincir Ölçeklendirme"
 
@@ -76967,10 +76734,6 @@ msgstr "Uygun"
 
 msgid "Override Layers"
 msgstr "Katmanları Geçersiz Kıl"
-
-
-msgid "Render Procedural"
-msgstr "Prosedürel İşleme"
 
 
 msgid "Bone Constraints"
@@ -76995,10 +76758,6 @@ msgstr "Katılaştırma Tipi"
 
 msgid "Camera Presets"
 msgstr "Kamera Ön Ayarları"
-
-
-msgid "2D Cursor"
-msgstr "2B İmleç"
 
 
 msgid "Footage"
@@ -77252,6 +77011,10 @@ msgstr "Metin Kutuları"
 
 msgid "OpenVDB File"
 msgstr "OpenVDB Dosyası"
+
+
+msgid "Shape Key"
+msgstr "Şekil Anahtarı"
 
 
 msgid "Create Pose Asset"
@@ -77861,10 +77624,6 @@ msgid "New Objects"
 msgstr "Yeni Nesneler"
 
 
-msgid "Debugging"
-msgstr "Hata ayıklama"
-
-
 msgid "New Features"
 msgstr "Yeni Özellikler"
 
@@ -78007,10 +77766,6 @@ msgstr "Kemik Rengi Setleri"
 
 msgid "Theme Space"
 msgstr "Tema Alanı"
-
-
-msgid "Theme Space List"
-msgstr "Tema Alanı Listesi"
 
 
 msgid "Collection Colors"
@@ -79955,10 +79710,6 @@ msgstr "Yinelenen Eğriler"
 
 msgid "Causes curves data to be duplicated with the object"
 msgstr "Eğri verilerinin nesneyle çoğaltılmasına neden olur"
-
-
-msgid "Causes grease pencil data to be duplicated with the object"
-msgstr "Gres kalemi verilerinin nesneyle kopyalanmasına neden olur"
 
 
 msgid "Duplicate Lattice"
@@ -82981,10 +82732,6 @@ msgstr "Animasyonlu Tohum Kullan"
 
 msgid "Use different seed values (and hence noise patterns) at different frames"
 msgstr "Farklı karelerde farklı başlangıç değerleri (ve dolayısıyla gürültü desenleri) kullanın"
-
-
-msgid "Use Tiling"
-msgstr "Döşemeyi Kullan"
 
 
 msgid "Allow objects to be culled based on the camera frustum"
@@ -86838,6 +86585,10 @@ msgid "Snap to strip hold offsets"
 msgstr "Şerit tutma ofsetlerine tutun"
 
 
+msgid "Markers"
+msgstr "İşaretleyiciler"
+
+
 msgid "Snap to markers"
 msgstr "İşaretleyicilere yapıştır"
 
@@ -87165,10 +86916,6 @@ msgstr "Dalga Deformasyon Etkisi"
 
 msgid "Wave Deformation effect"
 msgstr "Dalga Deformasyon etkisi"
-
-
-msgid "Shape Key"
-msgstr "Şekil Anahtarı"
 
 
 msgid "Shape key in a shape keys data-block"
@@ -87956,10 +87703,6 @@ msgstr "Uzay Döküm Kağıdı Düzenleyicisi"
 
 msgid "Dope Sheet space data"
 msgstr "Döküm Kağıdı uzay verisi"
-
-
-msgid "Action displayed and edited in this space"
-msgstr "Bu alanda görüntülenen ve düzenlenen eylem"
 
 
 msgid "Show the active object's cloth point cache"
@@ -90543,6 +90286,11 @@ msgid "Animation start offset (trim start)"
 msgstr "Animasyon başlangıç ofseti (kırpma başlangıcı)"
 
 
+msgctxt "Color"
+msgid "Value"
+msgstr "Değer"
+
+
 msgid "Color Strip"
 msgstr "Renk şeridi"
 
@@ -90875,10 +90623,6 @@ msgid "Sequence strip to load a video from a mask"
 msgstr "Bir maskeden video yüklemek için sıra şeridi"
 
 
-msgid "Mask that this sequence uses"
-msgstr "Bu dizinin kullandığı maske"
-
-
 msgid "Meta Strip"
 msgstr "Meta Şerit"
 
@@ -90889,10 +90633,6 @@ msgstr "Diğer şeritleri tek bir dizi şeridi olarak gruplamak için dizi şeri
 
 msgid "Sequence strip to load a video from the clip editor"
 msgstr "Klip düzenleyiciden bir videoyu yüklemek için sıra şeridi"
-
-
-msgid "Movie clip that this sequence uses"
-msgstr "Bu sekansın kullandığı film klibi"
 
 
 msgid "Frames per second"
@@ -90933,10 +90673,6 @@ msgstr "Sahne Şeridi"
 
 msgid "Sequence strip using the rendered image of a scene"
 msgstr "Bir sahnenin işlenmiş görüntüsünü kullanan dizi şeridi"
-
-
-msgid "Scene that this sequence uses"
-msgstr "Bu sekansın kullandığı sahne"
 
 
 msgid "Camera Override"
@@ -90988,10 +90724,6 @@ msgid "Display the audio waveform inside the strip"
 msgstr "Ses dalga formunu şerit içinde görüntüle"
 
 
-msgid "Sound data-block used by this sequence"
-msgstr "Bu dizi tarafından kullanılan ses veri bloğu"
-
-
 msgctxt "Sound"
 msgid "Sound Offset"
 msgstr "Ses Ofseti"
@@ -91003,6 +90735,18 @@ msgstr "Bir dizi şeridi ve onun değiştiricileri için renk dengesi parametrel
 
 msgid "Correction Method"
 msgstr "Düzeltme Yöntemi"
+
+
+msgid "Lift/Gamma/Gain"
+msgstr "Kaldırma/Gama/Kazanç"
+
+
+msgid "Offset/Power/Slope (ASC-CDL)"
+msgstr "Ofset/Güç/Eğim (ASC-CDL)"
+
+
+msgid "ASC-CDL standard color correction"
+msgstr "ASC-CDL standart renk düzeltmesi"
 
 
 msgid "Color balance gain (highlights)"
@@ -91151,10 +90895,6 @@ msgstr "Değiştirici için maske girişi olarak kullanılan Maske Kimliği"
 
 msgid "Strip used as mask input for the modifier"
 msgstr "Değiştirici için maske girişi olarak kullanılan şerit"
-
-
-msgid "Mask Input Type"
-msgstr "Maske Giriş Türü"
 
 
 msgid "Type of input data used for mask"
@@ -91929,10 +91669,6 @@ msgid "User interface styling and color settings"
 msgstr "Kullanıcı arayüzü stili ve renk ayarları"
 
 
-msgid "Settings for asset shelf"
-msgstr "Varlık rafı ayarları"
-
-
 msgid "Clip Editor"
 msgstr "Klip Düzenleyicisi"
 
@@ -91943,22 +91679,6 @@ msgstr "Temanın adı"
 
 msgid "Active Theme Area"
 msgstr "Aktif Tema Alanı"
-
-
-msgid "Theme Asset Shelf Color"
-msgstr "Tema Varlık Raf Rengi"
-
-
-msgid "Theme settings for asset shelves"
-msgstr "Varlık rafları için tema ayarları"
-
-
-msgid "Main Region Background"
-msgstr "Ana Bölge Arkaplanı"
-
-
-msgid "Header Background"
-msgstr "Başlık Arkaplanı"
 
 
 msgid "Theme Bone Color Set"
@@ -92069,14 +91789,6 @@ msgid "Settings for space"
 msgstr "Alan ayarları"
 
 
-msgid "Settings for space list"
-msgstr "Alan listesi ayarları"
-
-
-msgid "Scrubbing/Markers Region"
-msgstr "Fırçalama/İşaretleyiciler Bölgesi"
-
-
 msgid "Theme Collection Color"
 msgstr "Tema Koleksiyonu Renk"
 
@@ -92095,10 +91807,6 @@ msgstr "Kanal Grubu"
 
 msgid "Active Channel Group"
 msgstr "Etkin Kanal Grubu"
-
-
-msgid "Sub-channel"
-msgstr "Alt kanal"
 
 
 msgid "Breakdown Keyframe"
@@ -92205,14 +91913,6 @@ msgid "Color of preview range overlay"
 msgstr "Önizleme aralığı kaplamasının rengi"
 
 
-msgid "Marker Line"
-msgstr "İşaret çizgisi"
-
-
-msgid "Marker Line Selected"
-msgstr "İşaretçi Çizgisi Seçildi"
-
-
 msgid "Align Handle"
 msgstr "Sapı Hizala"
 
@@ -92279,10 +91979,6 @@ msgstr "Tema Döküm Kağıdı"
 
 msgid "Theme settings for the Dope Sheet"
 msgstr "Döküm Kağıdı için tema ayarları"
-
-
-msgid "Channels Selected"
-msgstr "Seçilen Kanallar"
 
 
 msgid "Interpolation Line"
@@ -92451,10 +92147,6 @@ msgstr "Tema Grafik Düzenleyicisi"
 
 msgid "Theme settings for the graph editor"
 msgstr "Grafik düzenleyici için tema ayarları"
-
-
-msgid "Channels Region"
-msgstr "Kanallar Bölgesi"
 
 
 msgid "Vertex Select"
@@ -92673,10 +92365,6 @@ msgid "Selected Meta Strip (for grouping related strips)"
 msgstr "Seçili Meta Şerit (ilgili şeritleri gruplamak için)"
 
 
-msgid "Nonlinear Animation Track"
-msgstr "Doğrusal Olmayan Animasyon Parçası"
-
-
 msgid "Sound Strips"
 msgstr "Ses Şeritleri"
 
@@ -92885,12 +92573,20 @@ msgid "Theme settings for the Properties"
 msgstr "Özellikler için tema ayarları"
 
 
-msgid "Active Modifier Outline"
-msgstr "Aktif Değiştirici Anahattı"
-
-
 msgid "Search Match"
 msgstr "Arama Eşleşmesi"
+
+
+msgid "Theme settings for asset shelves"
+msgstr "Varlık rafları için tema ayarları"
+
+
+msgid "Header Background"
+msgstr "Başlık Arkaplanı"
+
+
+msgid "Selected Text"
+msgstr "Seçilmiş Metin"
 
 
 msgid "Theme Sequence Editor"
@@ -92917,10 +92613,6 @@ msgid "Selected Strips"
 msgstr "Seçilmiş Şeritler"
 
 
-msgid "Selected Text"
-msgstr "Seçilmiş Metin"
-
-
 msgid "Transition Strip"
 msgstr "Geçiş Şeridi"
 
@@ -92939,30 +92631,6 @@ msgstr "Başlık Metni Vurgusu"
 
 msgid "Text Highlight"
 msgstr "Metin Vurgusu"
-
-
-msgid "Theme Space List Settings"
-msgstr "Tema Alanı Listesi Ayarları"
-
-
-msgid "Source List"
-msgstr "Kaynak Listesi"
-
-
-msgid "Source List Text"
-msgstr "Kaynak Listesi Metni"
-
-
-msgid "Source List Text Highlight"
-msgstr "Kaynak Listesi Metin Vurgusu"
-
-
-msgid "Source List Title"
-msgstr "Kaynak Listesi Başlığı"
-
-
-msgid "Region Background"
-msgstr "Bölge Arkaplanı"
 
 
 msgid "Theme Spreadsheet"
@@ -99379,22 +99047,6 @@ msgid "Legacy Add-ons"
 msgstr "Eski Eklentiler"
 
 
-msgid "Do you want to install the following {:s}?"
-msgstr "Aşağıdaki {:s}'yi yüklemek istiyor musunuz?"
-
-
-msgid "Name: {:s}"
-msgstr "İsim: {:s}"
-
-
-msgid "Repository: {:s}"
-msgstr "Depo: {:s}"
-
-
-msgid "Size: {:s}"
-msgstr "Boyut: {:s}"
-
-
 msgid "The dropped extension comes from an unknown repository."
 msgstr "Düşen eklenti bilinmeyen bir depoda bulunuyor."
 
@@ -99512,6 +99164,10 @@ msgid "Theme \"{:s}\" is already installed!"
 msgstr "\"{:s}\" teması zaten kurulu!"
 
 
+msgid "Name: {:s}"
+msgstr "İsim: {:s}"
+
+
 msgid "URL: {:s}"
 msgstr "URL: {:s}"
 
@@ -99526,6 +99182,18 @@ msgstr "Bağıl yoldan yükleme yapılamıyor"
 
 msgid "Unable to install a directory"
 msgstr "Bir dizin yüklenemiyor"
+
+
+msgid "Do you want to install the following {:s}?"
+msgstr "Aşağıdaki {:s}'yi yüklemek istiyor musunuz?"
+
+
+msgid "Repository: {:s}"
+msgstr "Depo: {:s}"
+
+
+msgid "Size: {:s}"
+msgstr "Boyut: {:s}"
 
 
 msgid "Age: {:s}"
@@ -100300,6 +99968,10 @@ msgid "(Quick access: Shift+W)"
 msgstr "(Hızlı erişim: Shift+W)"
 
 
+msgid "To Socket"
+msgstr "Sokete takmak için"
+
+
 msgctxt "Operator"
 msgid "Settings from Active"
 msgstr "Ayarlar Aktif'ten"
@@ -100431,10 +100103,6 @@ msgid "{} does not seem to be part of a sequence"
 msgstr "{} bir dizinin parçası gibi görünmüyor"
 
 
-msgid "Ignored {}, "
-msgstr "{} göz ardı edildi, "
-
-
 msgid "Deleted {} nodes"
 msgstr "{} düğümleri silindi"
 
@@ -100483,16 +100151,16 @@ msgid "This node has no inputs to swap"
 msgstr "Bu düğümün takas edilecek girişi yok"
 
 
+msgid "Ignored {}"
+msgstr "Göz ardı edildi {}"
+
+
 msgid "This node has no input connections to swap"
 msgstr "Bu düğümün takas edilecek giriş bağlantısı yok"
 
 
 msgid "Ignored {} (not of the same type as {})"
 msgstr "{} (aynı türde değil) göz ardı edildi"
-
-
-msgid "Ignored {}"
-msgstr "Göz ardı edildi {}"
 
 
 msgid "Edit tags for auto texture detection in Principled BSDF setup"
@@ -101510,14 +101178,6 @@ msgid "{:s} is not supported"
 msgstr "{:s} desteklenmiyor"
 
 
-msgid "{:d} mesh(es) with no active UV layer"
-msgstr "{:d} aktif UV tabakası olmayan ağ(lar)"
-
-
-msgid "{:d} duplicates found in {:d} mesh(es), mirror may be incomplete"
-msgstr "{:d} ağ(lar)ında {:d} kopyası bulundu, aynalama tamamlanmamış olabilir"
-
-
 msgid "Node has no attribute {:s}"
 msgstr "Düğümün {:s} niteliği yok"
 
@@ -102242,10 +101902,6 @@ msgid "Animate Path"
 msgstr "Yol Animasyonu"
 
 
-msgid "Order"
-msgstr "Emir"
-
-
 msgctxt "Constraint"
 msgid "Mix"
 msgstr "Karışım"
@@ -102310,10 +101966,6 @@ msgstr "Ağırlık Pozisyonu"
 
 msgid "Shapes"
 msgstr "Şekiller"
-
-
-msgid "Bone Colors"
-msgstr "Kemik Renkleri"
 
 
 msgid "Axes"
@@ -102802,10 +102454,6 @@ msgid "New Layer"
 msgstr "Yeni Katman"
 
 
-msgid "Show Only on Keyframed"
-msgstr "Yalnızca Anahtar Karelerde Göster"
-
-
 msgctxt "Operator"
 msgid "Selection to Grid"
 msgstr "Grid'e Seçim"
@@ -102841,10 +102489,6 @@ msgstr "Veri Kaynağı:"
 
 msgid "No annotation source"
 msgstr "Açıklama kaynağı yok"
-
-
-msgid "Channel Colors are disabled in Animation preferences"
-msgstr "Animasyon tercihlerinde Kanal Renkleri devre dışı bırakıldı"
 
 
 msgctxt "Operator"
@@ -103137,16 +102781,16 @@ msgid "Create Mask"
 msgstr "Maske Oluştur"
 
 
+msgid "Caps Type"
+msgstr "Başlık Türü"
+
+
 msgid "Thickness Profile"
 msgstr "Kalınlık Profili"
 
 
 msgid "Use Thickness Profile"
 msgstr "Kalınlık Profilini Kullan"
-
-
-msgid "Caps Type"
-msgstr "Başlık Türü"
 
 
 msgid "Source Clone Slot"
@@ -104602,6 +104246,10 @@ msgid "Clear Recent Items"
 msgstr "Son Öğeleri Temizle"
 
 
+msgid "Source List"
+msgstr "Kaynak Listesi"
+
+
 msgctxt "Operator"
 msgid "Back"
 msgstr "Geri"
@@ -105488,11 +105136,6 @@ msgstr "Tümünü Yenile"
 
 
 msgctxt "Operator"
-msgid "Sequence Render Animation"
-msgstr "Sekans Sunumu Canlandırması"
-
-
-msgctxt "Operator"
 msgid "Toggle Sequencer/Preview"
 msgstr "Sıralayıcıyı/Önizlemeyi Değiştir"
 
@@ -105635,11 +105278,6 @@ msgstr "Otomatik Yakınlaştırma"
 
 
 msgctxt "Operator"
-msgid "Sequence Render Image"
-msgstr "Sekans Görseli Sun"
-
-
-msgctxt "Operator"
 msgid "Both"
 msgstr "İkisi birden"
 
@@ -105778,11 +105416,6 @@ msgid "Stretch To Fill"
 msgstr "Doldurmak İçin Germe"
 
 
-msgctxt "Operator"
-msgid "Copy Modifiers to Selection"
-msgstr "Değiştiricileri Seçime Kopyala"
-
-
 msgid "Default Fade"
 msgstr "Varsayılan Solma"
 
@@ -105831,11 +105464,6 @@ msgstr "Geçerli Çerçeveden Taşı/Uzat"
 
 
 msgctxt "Operator"
-msgid "Hold Split"
-msgstr "Bölmeyi Tut"
-
-
-msgctxt "Operator"
 msgid "Delete Strip & Data"
 msgstr "Strip ve Verileri Sil"
 
@@ -105880,14 +105508,6 @@ msgstr "Ambalaj"
 
 msgid "Original frame range: {:d}-{:d} ({:d})"
 msgstr "Orijinal kare aralığı: {:d}-{:d} ({:d})"
-
-
-msgid "Hz"
-msgstr "Hz"
-
-
-msgid "dB"
-msgstr "dB"
 
 
 msgid "Source Channel"
@@ -106003,11 +105623,6 @@ msgid "File: {:s}"
 msgstr "Dosya: {:s}"
 
 
-msgctxt "WindowManager"
-msgid "Keying"
-msgstr "Anahtarlama"
-
-
 msgctxt "Operator"
 msgid "Move Marker"
 msgstr "Hareket İşaretçisi"
@@ -106070,6 +105685,11 @@ msgid "Only Active Keying Set"
 msgstr "Yalnızca Etkin Anahtarlama Ayarı"
 
 
+msgctxt "WindowManager"
+msgid "Keying"
+msgstr "Anahtarlama"
+
+
 msgid "Layered Recording"
 msgstr "Katmanlı Kayıt"
 
@@ -106080,10 +105700,6 @@ msgstr "Araç çubuğu grubu bulunamadı"
 
 msgid "Taper Start"
 msgstr "Daralma Başlangıcı"
-
-
-msgid "Weight: {:.3f}"
-msgstr "Ağırlık: {:.3f}"
 
 
 msgid "Style Start"
@@ -106120,6 +105736,10 @@ msgstr "Silindiri etkileşimli bir şekilde ağa ekleyin"
 
 msgid "Add sphere to mesh interactively"
 msgstr "Küreyi etkileşimli bir şekilde ağa ekleyin"
+
+
+msgid "Weight: {:.3f}"
+msgstr "Ağırlık: {:.3f}"
 
 
 msgctxt "Operator"
@@ -106803,16 +106423,6 @@ msgstr "İmleci Aktif'e getirin"
 msgctxt "Operator"
 msgid "Perspective/Orthographic"
 msgstr "Perspektif/Ortografik"
-
-
-msgctxt "Operator"
-msgid "Viewport Render Image"
-msgstr "Görüş Alanı Görseli Sun"
-
-
-msgctxt "Operator"
-msgid "Viewport Render Keyframes"
-msgstr "Görünüm Alanı Render Anahtar Kareleri"
 
 
 msgctxt "Operator"
@@ -107933,11 +107543,6 @@ msgstr "Görünümden Proje (Sınırlar)"
 
 
 msgctxt "Operator"
-msgid "Viewport Render Animation"
-msgstr "Görüş Alanı Sunumu Canlandırması"
-
-
-msgctxt "Operator"
 msgid "Roll Left"
 msgstr "Sola doğru yuvarla"
 
@@ -107975,11 +107580,6 @@ msgstr "Sonraki Blok"
 msgctxt "Operator"
 msgid "Armature"
 msgstr "Armatür"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Dış Kafes"
 
 
 msgctxt "Operator"
@@ -108933,10 +108533,6 @@ msgid "Delete Asset"
 msgstr "Varlığı Sil"
 
 
-msgid "No Brushes currently available"
-msgstr "Şu anda hiçbir Fırça mevcut değil"
-
-
 msgid "UV Map Needed"
 msgstr "UV Haritası Gerekli"
 
@@ -109295,11 +108891,6 @@ msgid "Surface"
 msgstr "Yüzey"
 
 
-msgctxt "Action"
-msgid "var"
-msgstr "değişken"
-
-
 msgid "Untitled"
 msgstr "Başlıksız"
 
@@ -109379,10 +108970,6 @@ msgstr "Render sonucu yazılırken hata oluştu, %s (konsola bakın)"
 
 msgid "Render error (%s) cannot save: '%s'"
 msgstr "İşleme hatası (%s) kaydedilemiyor: '%s'"
-
-
-msgid "ipos"
-msgstr "ipolar"
 
 
 msgid "Basis"
@@ -111492,11 +111079,6 @@ msgid "Lightness"
 msgstr "Aydınlık"
 
 
-msgctxt "Color"
-msgid "Value"
-msgstr "Değer"
-
-
 msgid "Redo"
 msgstr "Yinele"
 
@@ -111589,14 +111171,6 @@ msgstr "{} öğesini {} altına taşı"
 
 msgid "Manual Scale"
 msgstr "Manuel Ölçek"
-
-
-msgid "Only Alembic Procedurals supported"
-msgstr "Yalnızca Alembic Prosedürleri destekleniyor"
-
-
-msgid "The active render engine does not have an Alembic Procedural"
-msgstr "Etkin render motorunun Alembic Prosedürel özelliği yok"
 
 
 msgid "Sort By:"
@@ -112624,12 +112198,12 @@ msgid "No mesh data to join"
 msgstr "Birleştirilecek ağ verisi yok"
 
 
-msgid "No additional selected meshes with equal vertex count to join"
-msgstr "Birleştirilecek eşit tepe noktası sayısına sahip ek seçili ağ yok"
-
-
 msgid "Joining results in %d vertices, limit is %ld"
 msgstr "Birleştirme sonuçları %d köşeye ulaşır, sınır %ld'dir"
+
+
+msgid "No additional selected meshes with equal vertex count to join"
+msgstr "Birleştirilecek eşit tepe noktası sayısına sahip ek seçili ağ yok"
 
 
 msgid "Delete selected metaball elements?"
@@ -114106,6 +113680,14 @@ msgid "A narrow horizontal area interferes with this operation"
 msgstr "Dar bir yatay alan bu işlemi engelliyor"
 
 
+msgid "Restore Areas"
+msgstr "Alanları Geri Yükle"
+
+
+msgid "Maximize Area"
+msgstr "Alanı Maksimize Et"
+
+
 msgid "Select Split"
 msgstr "Bölmeyi Seç"
 
@@ -114128,14 +113710,6 @@ msgstr "Sola Katıl"
 
 msgid "Move/Split Area"
 msgstr "Alanı Taşı/Böl"
-
-
-msgid "Restore Areas"
-msgstr "Alanları Geri Yükle"
-
-
-msgid "Maximize Area"
-msgstr "Alanı Maksimize Et"
 
 
 msgid "Show Header"
@@ -114540,10 +114114,6 @@ msgstr "Yalnızca çoklu çözünürlük modunda desteklenir"
 
 msgid "Click on the mesh to set the detail"
 msgstr "Detayı ayarlamak için ağa tıklayın"
-
-
-msgid "Warning!"
-msgstr "Uyarı!"
 
 
 msgid "Attribute Data Detected"
@@ -116877,10 +116447,6 @@ msgstr "'Dinlenme Pozisyonu' etkinleştirildiğinde Poz değiştirilemez"
 
 msgid "Bone selection count error"
 msgstr "Kemik seçimi sayım hatası"
-
-
-msgid "Unsupported object type for text-space transform"
-msgstr "Metin alanı dönüşümü için desteklenmeyen nesne türü"
 
 
 msgid "(Sharp)"
@@ -119889,24 +119455,8 @@ msgid "Bright"
 msgstr "Parlak"
 
 
-msgid "Color Space:"
-msgstr "Renk uzayı:"
-
-
-msgid "Key Channel:"
-msgstr "Ana Kanal:"
-
-
-msgid "Limiting Channel:"
-msgstr "Sınırlayıcı Kanal:"
-
-
 msgid "Key Color"
 msgstr "Anahtar Renk"
-
-
-msgid "Despill Channel:"
-msgstr "Despill Kanalı:"
 
 
 msgid "Correction for shadows"
@@ -119995,14 +119545,6 @@ msgstr "Resim 1"
 
 msgid "Image 2"
 msgstr "Resim 2"
-
-
-msgid "Inner Edge:"
-msgstr "İç Kenar:"
-
-
-msgid "Buffer Edge:"
-msgstr "Arabellek Kenarı:"
 
 
 msgid "Inner Mask"
@@ -122282,10 +121824,6 @@ msgid "Strength of the light source"
 msgstr "Işık kaynağının gücü"
 
 
-msgid "Color input on which invertion will be applied"
-msgstr "Tersine çevirmenin uygulanacağı renk girişi"
-
-
 msgid "Facing"
 msgstr "Karşı karşıya"
 
@@ -122739,6 +122277,11 @@ msgstr "Kanal %d"
 
 
 msgctxt "Sequence"
+msgid "Brightness/Contrast"
+msgstr "Parlaklık/Kontrast"
+
+
+msgctxt "Sequence"
 msgid "Color Balance"
 msgstr "Renk Dengesi"
 
@@ -122754,13 +122297,8 @@ msgstr "Ton Doğru"
 
 
 msgctxt "Sequence"
-msgid "Brightness/Contrast"
-msgstr "Parlaklık/Kontrast"
-
-
-msgctxt "Sequence"
-msgid "White Balance"
-msgstr "Beyaz Dengesi"
+msgid "Equalizer"
+msgstr "Ekolayzer"
 
 
 msgctxt "Sequence"
@@ -122769,8 +122307,8 @@ msgstr "Ton haritası"
 
 
 msgctxt "Sequence"
-msgid "Equalizer"
-msgstr "Ekolayzer"
+msgid "White Balance"
+msgstr "Beyaz Dengesi"
 
 
 msgid "Strips must be the same length"
@@ -123040,6 +122578,10 @@ msgid "Nothing indicated"
 msgstr "Hiçbir şey belirtilmedi"
 
 
+msgid "'%s': cannot use current file as library"
+msgstr "'%s': geçerli dosya kitaplık olarak kullanılamaz"
+
+
 msgid "'%s': nothing indicated"
 msgstr "'%s': hiçbir şey belirtilmedi"
 
@@ -123050,10 +122592,6 @@ msgstr "'%s': bir kütüphane değil"
 
 msgid "Scene '%s' is linked, instantiation of objects is disabled"
 msgstr "Sahne '%s' bağlantılı, nesnelerin örneklenmesi devre dışı bırakıldı"
-
-
-msgid "'%s': cannot use current file as library"
-msgstr "'%s': geçerli dosya kitaplık olarak kullanılamaz"
 
 
 msgid "'%s' is not a valid library filepath"

@@ -52,26 +52,15 @@ static void init_data(ModifierData *md)
 
 static void free_data(ModifierData *md)
 {
+  using namespace blender;
   MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
 
-  if (mmd->bindinfluences) {
-    MEM_freeN(mmd->bindinfluences);
-  }
-  if (mmd->bindoffsets) {
-    MEM_freeN(mmd->bindoffsets);
-  }
-  if (mmd->bindcagecos) {
-    MEM_freeN(mmd->bindcagecos);
-  }
-  if (mmd->dyngrid) {
-    MEM_freeN(mmd->dyngrid);
-  }
-  if (mmd->dyninfluences) {
-    MEM_freeN(mmd->dyninfluences);
-  }
-  if (mmd->dynverts) {
-    MEM_freeN(mmd->dynverts);
-  }
+  implicit_sharing::free_shared_data(&mmd->bindinfluences, &mmd->bindinfluences_sharing_info);
+  implicit_sharing::free_shared_data(&mmd->bindoffsets, &mmd->bindoffsets_sharing_info);
+  implicit_sharing::free_shared_data(&mmd->bindcagecos, &mmd->bindcagecos_sharing_info);
+  implicit_sharing::free_shared_data(&mmd->dyngrid, &mmd->dyngrid_sharing_info);
+  implicit_sharing::free_shared_data(&mmd->dyninfluences, &mmd->dyninfluences_sharing_info);
+  implicit_sharing::free_shared_data(&mmd->dynverts, &mmd->dynverts_sharing_info);
   if (mmd->bindweights) {
     MEM_freeN(mmd->bindweights); /* deprecated */
   }
@@ -82,29 +71,32 @@ static void free_data(ModifierData *md)
 
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
+  using namespace blender;
   const MeshDeformModifierData *mmd = (const MeshDeformModifierData *)md;
   MeshDeformModifierData *tmmd = (MeshDeformModifierData *)target;
 
   BKE_modifier_copydata_generic(md, target, flag);
 
-  if (mmd->bindinfluences) {
-    tmmd->bindinfluences = static_cast<MDefInfluence *>(MEM_dupallocN(mmd->bindinfluences));
-  }
-  if (mmd->bindoffsets) {
-    tmmd->bindoffsets = static_cast<int *>(MEM_dupallocN(mmd->bindoffsets));
-  }
-  if (mmd->bindcagecos) {
-    tmmd->bindcagecos = static_cast<float *>(MEM_dupallocN(mmd->bindcagecos));
-  }
-  if (mmd->dyngrid) {
-    tmmd->dyngrid = static_cast<MDefCell *>(MEM_dupallocN(mmd->dyngrid));
-  }
-  if (mmd->dyninfluences) {
-    tmmd->dyninfluences = static_cast<MDefInfluence *>(MEM_dupallocN(mmd->dyninfluences));
-  }
-  if (mmd->dynverts) {
-    tmmd->dynverts = static_cast<int *>(MEM_dupallocN(mmd->dynverts));
-  }
+  implicit_sharing::copy_shared_pointer(mmd->bindinfluences,
+                                        mmd->bindinfluences_sharing_info,
+                                        &tmmd->bindinfluences,
+                                        &tmmd->bindinfluences_sharing_info);
+  implicit_sharing::copy_shared_pointer(mmd->bindoffsets,
+                                        mmd->bindoffsets_sharing_info,
+                                        &tmmd->bindoffsets,
+                                        &tmmd->bindoffsets_sharing_info);
+  implicit_sharing::copy_shared_pointer(mmd->bindcagecos,
+                                        mmd->bindcagecos_sharing_info,
+                                        &tmmd->bindcagecos,
+                                        &tmmd->bindcagecos_sharing_info);
+  implicit_sharing::copy_shared_pointer(
+      mmd->dyngrid, mmd->dyngrid_sharing_info, &tmmd->dyngrid, &tmmd->dyngrid_sharing_info);
+  implicit_sharing::copy_shared_pointer(mmd->dyninfluences,
+                                        mmd->dyninfluences_sharing_info,
+                                        &tmmd->dyninfluences,
+                                        &tmmd->dyninfluences_sharing_info);
+  implicit_sharing::copy_shared_pointer(
+      mmd->dynverts, mmd->dynverts_sharing_info, &tmmd->dynverts, &tmmd->dynverts_sharing_info);
   if (mmd->bindweights) {
     tmmd->bindweights = static_cast<float *>(MEM_dupallocN(mmd->bindweights)); /* deprecated */
   }
@@ -322,7 +314,7 @@ static void meshdeformModifier_do(ModifierData *md,
   Mesh *cagemesh;
   const MDeformVert *dvert = nullptr;
   float imat[4][4], cagemat[4][4], iobmat[4][4], icagemat[3][3], cmat[4][4];
-  float(*bindcagecos)[3];
+  const float(*bindcagecos)[3];
   int a, cage_verts_num, defgrp_index;
   MeshdeformUserdata data;
 
@@ -397,7 +389,7 @@ static void meshdeformModifier_do(ModifierData *md,
 
   /* setup deformation data */
   BKE_mesh_wrapper_vert_coords_copy(cagemesh, dco.as_mutable_span().take_front(cage_verts_num));
-  bindcagecos = (float(*)[3])mmd->bindcagecos;
+  bindcagecos = (const float(*)[3])mmd->bindcagecos;
 
   for (a = 0; a < cage_verts_num; a++) {
     /* Get cage vertex in world-space with binding transform. */
@@ -440,6 +432,7 @@ static void deform_verts(ModifierData *md,
 
 void BKE_modifier_mdef_compact_influences(ModifierData *md)
 {
+  using namespace blender;
   MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
   float weight, totweight;
   int influences_num, verts_num, cage_verts_num, a, b;
@@ -465,7 +458,9 @@ void BKE_modifier_mdef_compact_influences(ModifierData *md)
 
   /* allocate bind influences */
   mmd->bindinfluences = MEM_calloc_arrayN<MDefInfluence>(mmd->influences_num, __func__);
+  mmd->bindinfluences_sharing_info = implicit_sharing::info_for_mem_free(mmd->bindinfluences);
   mmd->bindoffsets = MEM_calloc_arrayN<int>(size_t(verts_num) + 1, __func__);
+  mmd->bindoffsets_sharing_info = implicit_sharing::info_for_mem_free(mmd->bindoffsets);
 
   /* write influences */
   influences_num = 0;
@@ -548,15 +543,21 @@ static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierD
        * binding data, can save a significant amount of memory. */
       mmd.influences_num = 0;
       mmd.bindinfluences = nullptr;
+      mmd.bindinfluences_sharing_info = nullptr;
       mmd.verts_num = 0;
       mmd.bindoffsets = nullptr;
+      mmd.bindoffsets_sharing_info = nullptr;
       mmd.cage_verts_num = 0;
       mmd.bindcagecos = nullptr;
+      mmd.bindcagecos_sharing_info = nullptr;
       mmd.dyngridsize = 0;
       mmd.dyngrid = nullptr;
+      mmd.dyngrid_sharing_info = nullptr;
       mmd.influences_num = 0;
       mmd.dyninfluences = nullptr;
+      mmd.dyninfluences_sharing_info = nullptr;
       mmd.dynverts = nullptr;
+      mmd.dynverts_sharing_info = nullptr;
     }
   }
 
@@ -564,21 +565,50 @@ static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierD
 
   BLO_write_struct_at_address(writer, MeshDeformModifierData, md, &mmd);
 
-  BLO_write_struct_array(writer, MDefInfluence, mmd.influences_num, mmd.bindinfluences);
+  BLO_write_shared(writer,
+                   mmd.bindinfluences,
+                   sizeof(MDefInfluence) * mmd.influences_num,
+                   mmd.bindinfluences_sharing_info,
+                   [&]() {
+                     BLO_write_struct_array(
+                         writer, MDefInfluence, mmd.influences_num, mmd.bindinfluences);
+                   });
 
   /* NOTE: `bindoffset` is abusing `verts_num + 1` as its size, this becomes an incorrect value in
    * case `verts_num == 0`, since `bindoffset` is then nullptr, not a size 1 allocated array. */
   if (mmd.verts_num > 0) {
-    BLO_write_int32_array(writer, mmd.verts_num + 1, mmd.bindoffsets);
+    BLO_write_shared(writer,
+                     mmd.bindoffsets,
+                     sizeof(int) * (mmd.verts_num + 1),
+                     mmd.bindoffsets_sharing_info,
+                     [&]() { BLO_write_int32_array(writer, mmd.verts_num + 1, mmd.bindoffsets); });
   }
   else {
     BLI_assert(mmd.bindoffsets == nullptr);
   }
 
-  BLO_write_float3_array(writer, mmd.cage_verts_num, mmd.bindcagecos);
-  BLO_write_struct_array(writer, MDefCell, size * size * size, mmd.dyngrid);
-  BLO_write_struct_array(writer, MDefInfluence, mmd.influences_num, mmd.dyninfluences);
-  BLO_write_int32_array(writer, mmd.verts_num, mmd.dynverts);
+  BLO_write_shared(writer,
+                   mmd.bindcagecos,
+                   sizeof(float[3]) * mmd.cage_verts_num,
+                   mmd.bindcagecos_sharing_info,
+                   [&]() { BLO_write_float3_array(writer, mmd.cage_verts_num, mmd.bindcagecos); });
+  BLO_write_shared(
+      writer, mmd.dyngrid, sizeof(MDefCell) * size * size * size, mmd.dyngrid_sharing_info, [&]() {
+        BLO_write_struct_array(writer, MDefCell, size * size * size, mmd.dyngrid);
+      });
+  BLO_write_shared(writer,
+                   mmd.dyninfluences,
+                   sizeof(MDefInfluence) * mmd.influences_num,
+                   mmd.dyninfluences_sharing_info,
+                   [&]() {
+                     BLO_write_struct_array(
+                         writer, MDefInfluence, mmd.influences_num, mmd.dyninfluences);
+                   });
+  BLO_write_shared(writer,
+                   mmd.dynverts,
+                   sizeof(MDefInfluence) * mmd.verts_num,
+                   mmd.dynverts_sharing_info,
+                   [&]() { BLO_write_int32_array(writer, mmd.verts_num, mmd.dynverts); });
 }
 
 static void blend_read(BlendDataReader *reader, ModifierData *md)
@@ -586,18 +616,48 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
   MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
   const int size = mmd->dyngridsize;
 
-  BLO_read_struct_array(reader, MDefInfluence, mmd->influences_num, &mmd->bindinfluences);
+  if (mmd->bindinfluences) {
+    mmd->bindinfluences_sharing_info = BLO_read_shared(reader, &mmd->bindinfluences, [&]() {
+      BLO_read_struct_array(reader, MDefInfluence, mmd->influences_num, &mmd->bindinfluences);
+      return blender::implicit_sharing::info_for_mem_free(mmd->bindinfluences);
+    });
+  }
 
   /* NOTE: `bindoffset` is abusing `verts_num + 1` as its size, this becomes an incorrect value in
    * case `verts_num == 0`, since `bindoffset` is then nullptr, not a size 1 allocated array. */
   if (mmd->verts_num > 0) {
-    BLO_read_int32_array(reader, mmd->verts_num + 1, &mmd->bindoffsets);
+    if (mmd->bindoffsets) {
+      mmd->bindoffsets_sharing_info = BLO_read_shared(reader, &mmd->bindoffsets, [&]() {
+        BLO_read_int32_array(reader, mmd->verts_num + 1, &mmd->bindoffsets);
+        return blender::implicit_sharing::info_for_mem_free(mmd->bindoffsets);
+      });
+    }
   }
 
-  BLO_read_float3_array(reader, mmd->cage_verts_num, &mmd->bindcagecos);
-  BLO_read_struct_array(reader, MDefCell, size * size * size, &mmd->dyngrid);
-  BLO_read_struct_array(reader, MDefInfluence, mmd->influences_num, &mmd->dyninfluences);
-  BLO_read_int32_array(reader, mmd->verts_num, &mmd->dynverts);
+  if (mmd->bindcagecos) {
+    mmd->bindcagecos_sharing_info = BLO_read_shared(reader, &mmd->bindcagecos, [&]() {
+      BLO_read_float3_array(reader, mmd->cage_verts_num, &mmd->bindcagecos);
+      return blender::implicit_sharing::info_for_mem_free(mmd->bindcagecos);
+    });
+  }
+  if (mmd->dyngrid) {
+    mmd->dyngrid_sharing_info = BLO_read_shared(reader, &mmd->dyngrid, [&]() {
+      BLO_read_struct_array(reader, MDefCell, size * size * size, &mmd->dyngrid);
+      return blender::implicit_sharing::info_for_mem_free(mmd->dyngrid);
+    });
+  }
+  if (mmd->dyninfluences) {
+    mmd->dyninfluences_sharing_info = BLO_read_shared(reader, &mmd->dyninfluences, [&]() {
+      BLO_read_struct_array(reader, MDefInfluence, mmd->influences_num, &mmd->dyninfluences);
+      return blender::implicit_sharing::info_for_mem_free(mmd->dyninfluences);
+    });
+  }
+  if (mmd->dynverts) {
+    mmd->dynverts_sharing_info = BLO_read_shared(reader, &mmd->dynverts, [&]() {
+      BLO_read_int32_array(reader, mmd->verts_num, &mmd->dynverts);
+      return blender::implicit_sharing::info_for_mem_free(mmd->dynverts);
+    });
+  }
 
   /* Deprecated storage. */
   BLO_read_float_array(reader, mmd->verts_num, &mmd->bindweights);

@@ -224,6 +224,6 @@ uint32_t convert_float_formats(uint32_t value)
   return result;
 }
 
-/* \} */
+/** \} */
 
 };  // namespace blender::gpu

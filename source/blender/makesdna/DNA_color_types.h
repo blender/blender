@@ -19,7 +19,7 @@
 #define CM_TOT 4
 
 #define GPU_SKY_WIDTH 512
-#define GPU_SKY_HEIGHT 128
+#define GPU_SKY_HEIGHT 256
 
 typedef struct CurveMapPoint {
   float x, y;

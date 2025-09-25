@@ -7,7 +7,6 @@
 #include "blender/sync.h"
 #include "blender/util.h"
 
-#include "scene/alembic.h"
 #include "scene/camera.h"
 #include "scene/integrator.h"
 #include "scene/light.h"
@@ -439,83 +438,6 @@ bool BlenderSync::sync_object_attributes(BL::DepsgraphObjectInstance &b_instance
 
 /* Object Loop */
 
-void BlenderSync::sync_procedural(BL::Object &b_ob,
-                                  BL::MeshSequenceCacheModifier &b_mesh_cache,
-                                  bool has_subdivision_modifier)
-{
-#ifdef WITH_ALEMBIC
-  BL::CacheFile cache_file = b_mesh_cache.cache_file();
-  void *cache_file_key = cache_file.ptr.data;
-
-  AlembicProcedural *procedural = static_cast<AlembicProcedural *>(
-      procedural_map.find(cache_file_key));
-
-  if (procedural == nullptr) {
-    procedural = scene->create_node<AlembicProcedural>();
-    procedural_map.add(cache_file_key, procedural);
-  }
-  else {
-    procedural_map.used(procedural);
-  }
-
-  float current_frame = static_cast<float>(b_scene.frame_current());
-  if (cache_file.override_frame()) {
-    current_frame = cache_file.frame();
-  }
-
-  if (!cache_file.override_frame()) {
-    procedural->set_start_frame(static_cast<float>(b_scene.frame_start()));
-    procedural->set_end_frame(static_cast<float>(b_scene.frame_end()));
-  }
-
-  procedural->set_frame(current_frame);
-  procedural->set_frame_rate(b_scene.render().fps() / b_scene.render().fps_base());
-  procedural->set_frame_offset(cache_file.frame_offset());
-
-  string absolute_path = blender_absolute_path(b_data, b_ob, b_mesh_cache.cache_file().filepath());
-  procedural->set_filepath(ustring(absolute_path));
-
-  array<ustring> layers;
-  for (BL::CacheFileLayer &layer : cache_file.layers) {
-    if (layer.hide_layer()) {
-      continue;
-    }
-
-    absolute_path = blender_absolute_path(b_data, b_ob, layer.filepath());
-    layers.push_back_slow(ustring(absolute_path));
-  }
-  procedural->set_layers(layers);
-
-  procedural->set_scale(cache_file.scale());
-
-  procedural->set_use_prefetch(cache_file.use_prefetch());
-  procedural->set_prefetch_cache_size(cache_file.prefetch_cache_size());
-
-  /* create or update existing AlembicObjects */
-  const ustring object_path = ustring(b_mesh_cache.object_path());
-
-  AlembicObject *abc_object = procedural->get_or_create_object(object_path);
-
-  array<Node *> used_shaders = find_used_shaders(b_ob);
-  abc_object->set_used_shaders(used_shaders);
-
-  PointerRNA cobj = RNA_pointer_get(&b_ob.ptr, "cycles");
-  const float subd_dicing_rate = max(0.1f, RNA_float_get(&cobj, "dicing_rate") * dicing_rate);
-  abc_object->set_subd_dicing_rate(subd_dicing_rate);
-  abc_object->set_subd_max_level(max_subdivisions);
-
-  abc_object->set_ignore_subdivision(!has_subdivision_modifier);
-
-  if (abc_object->is_modified() || procedural->is_modified()) {
-    procedural->tag_update(scene);
-  }
-#else
-  (void)b_ob;
-  (void)b_mesh_cache;
-  (void)has_subdivision_modifier;
-#endif
-}
-
 void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
                                BL::SpaceView3D &b_v3d,
                                const float motion_time)
@@ -577,35 +499,13 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
 
     /* Object itself. */
     if (b_instance.show_self()) {
-#ifdef WITH_ALEMBIC
-      bool use_procedural = false;
-      bool has_subdivision_modifier = false;
-      BL::MeshSequenceCacheModifier b_mesh_cache(PointerRNA_NULL);
-
-      /* Experimental as Blender does not have good support for procedurals at the moment. */
-      if (use_experimental_procedural) {
-        b_mesh_cache = object_mesh_cache_find(b_ob, &has_subdivision_modifier);
-        use_procedural = b_mesh_cache && b_mesh_cache.cache_file().use_render_procedural();
-      }
-
-      if (use_procedural) {
-        /* Skip in the motion case, as generating motion blur data will be handled in the
-         * procedural. */
-        if (!motion) {
-          sync_procedural(b_ob, b_mesh_cache, has_subdivision_modifier);
-        }
-      }
-      else
-#endif
-      {
-        sync_object(b_view_layer,
-                    b_instance,
-                    motion_time,
-                    false,
-                    show_lights,
-                    culling,
-                    sync_hair ? nullptr : &geom_task_pool);
-      }
+      sync_object(b_view_layer,
+                  b_instance,
+                  motion_time,
+                  false,
+                  show_lights,
+                  culling,
+                  sync_hair ? nullptr : &geom_task_pool);
     }
 
     /* Particle hair as separate object. */

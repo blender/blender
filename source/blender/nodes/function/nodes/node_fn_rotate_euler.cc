@@ -133,6 +133,7 @@ static void node_register()
 
   fn_node_type_base(&ntype, "FunctionNodeRotateEuler", FN_NODE_ROTATE_EULER);
   ntype.ui_name = "Rotate Euler";
+  ntype.ui_description = "Apply a secondary Euler rotation to a given Euler rotation";
   ntype.enum_name_legacy = "ROTATE_EULER";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;

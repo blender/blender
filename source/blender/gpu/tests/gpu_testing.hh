@@ -27,7 +27,7 @@ class GPUTest : public ::testing::Test {
 
  protected:
   static void SetUpTestSuite(GHOST_TDrawingContextType draw_context_type,
-                             eGPUBackendType gpu_backend_type,
+                             GPUBackendType gpu_backend_type,
                              int32_t g_debug_flags);
   static void TearDownTestSuite();
 };

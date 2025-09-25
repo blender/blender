@@ -3113,6 +3113,11 @@ static wmOperatorStatus drop_geometry_nodes_invoke(bContext *C,
   if (!RNA_boolean_get(op->ptr, "show_datablock_in_modifier")) {
     nmd->flag |= NODES_MODIFIER_HIDE_DATABLOCK_SELECTOR;
   }
+  SET_FLAG_FROM_TEST(nmd->flag,
+                     node_tree->geometry_node_asset_traits &&
+                         (node_tree->geometry_node_asset_traits->flag &
+                          GEO_NODE_ASSET_HIDE_MODIFIER_MANAGE_PANEL),
+                     NODES_MODIFIER_HIDE_MANAGE_PANEL);
 
   nmd->node_group = node_tree;
   id_us_plus(&node_tree->id);

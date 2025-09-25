@@ -704,6 +704,7 @@ def BuildRNAInfo():
         # Don't report when these types are ignored.
         suppress_warning = {
             "GeometrySet",
+            "InlineShaderNodes",
             "bpy_func",
             "bpy_prop",
             "bpy_prop_array",

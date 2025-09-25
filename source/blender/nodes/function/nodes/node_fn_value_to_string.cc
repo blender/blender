@@ -128,6 +128,7 @@ static void node_register()
 
   fn_node_type_base(&ntype, "FunctionNodeValueToString", FN_NODE_VALUE_TO_STRING);
   ntype.ui_name = "Value to String";
+  ntype.ui_description = "Generate a string representation of the given input value";
   ntype.enum_name_legacy = "VALUE_TO_STRING";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;

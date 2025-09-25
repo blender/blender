@@ -10,7 +10,7 @@
  * One is for the half-resolution gather passes and the other one for slight in focus regions.
  */
 
-#include "infos/eevee_depth_of_field_info.hh"
+#include "infos/eevee_depth_of_field_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(eevee_depth_of_field_lut)
 #ifdef GPU_LIBRARY_SHADER
@@ -23,7 +23,8 @@ COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_gather)
 #include "eevee_reverse_z_lib.glsl"
 #include "eevee_sampling_lib.glsl"
 #include "gpu_shader_debug_gradients_lib.glsl"
-#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_math_angle_lib.glsl"
+#include "gpu_shader_math_matrix_construct_lib.glsl"
 
 /* -------------------------------------------------------------------- */
 /** \name Options.
@@ -435,8 +436,8 @@ void dof_gather_accumulator(sampler2D color_tx,
   float2 noise_offset = sampling_rng_2D_get(SAMPLING_LENS_U);
   float2 noise = no_gather_random ?
                      float2(0.0f, 0.0f) :
-                     float2(interlieved_gradient_noise(frag_coord, 0, noise_offset.x),
-                            interlieved_gradient_noise(frag_coord, 1, noise_offset.y));
+                     float2(interleaved_gradient_noise(frag_coord, 0, noise_offset.x),
+                            interleaved_gradient_noise(frag_coord, 1, noise_offset.y));
 
   if (!do_fast_gather) {
     /* Jitter the radius to reduce noticeable density changes. */
@@ -463,7 +464,7 @@ void dof_gather_accumulator(sampler2D color_tx,
     int sample_pair_count = gather_ring_density * ring;
 
     float step_rot = M_PI / float(sample_pair_count);
-    float2x2 step_rot_mat = from_rotation(Angle(step_rot));
+    float2x2 step_rot_mat = from_rotation(AngleRadian(step_rot));
 
     float angle_offset = noise.y * step_rot;
     float2 offset = float2(cos(angle_offset), sin(angle_offset));
@@ -603,8 +604,8 @@ void dof_slight_focus_gather(sampler2DDepth depth_tx,
   float2 noise_offset = sampling_rng_2D_get(SAMPLING_LENS_U);
   float2 noise = no_gather_random ?
                      float2(0.0f) :
-                     float2(interlieved_gradient_noise(frag_coord, 3, noise_offset.x),
-                            interlieved_gradient_noise(frag_coord, 5, noise_offset.y));
+                     float2(interleaved_gradient_noise(frag_coord, 3, noise_offset.x),
+                            interleaved_gradient_noise(frag_coord, 5, noise_offset.y));
 
   DofGatherData fg_accum = GATHER_DATA_INIT;
   DofGatherData bg_accum = GATHER_DATA_INIT;

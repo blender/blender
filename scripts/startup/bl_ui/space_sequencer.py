@@ -457,6 +457,17 @@ class SEQUENCER_MT_proxy(Menu):
         layout.prop(st, "proxy_render_size", text="")
 
 
+class SEQUENCER_MT_view_render(Menu):
+    bl_label = "Render Preview"
+
+    def draw(self, _context):
+        layout = self.layout
+        layout.operator("render.opengl", text="Render Sequencer Image", icon='RENDER_STILL').sequencer = True
+        props = layout.operator("render.opengl", text="Render Sequencer Animation", icon='RENDER_ANIMATION')
+        props.animation = True
+        props.sequencer = True
+
+
 class SEQUENCER_MT_view(Menu):
     bl_label = "View"
 
@@ -481,7 +492,7 @@ class SEQUENCER_MT_view(Menu):
             layout.prop(st, "show_region_hud")
         if is_sequencer_only:
             layout.prop(st, "show_region_channels")
-        layout.prop(st, "show_region_footer")
+        layout.prop(st, "show_region_footer", text="Playback Controls")
         layout.separator()
 
         if is_preview:
@@ -536,10 +547,11 @@ class SEQUENCER_MT_view(Menu):
             layout.menu("SEQUENCER_MT_range")
             layout.separator()
 
-        layout.operator("render.opengl", text="Sequence Render Image", icon='RENDER_STILL').sequencer = True
-        props = layout.operator("render.opengl", text="Sequence Render Animation", icon='RENDER_ANIMATION')
+        layout.operator("render.opengl", text="Render Still Preview", icon='RENDER_STILL').sequencer = True
+        props = layout.operator("render.opengl", text="Render Sequence Preview", icon='RENDER_ANIMATION')
         props.animation = True
         props.sequencer = True
+
         layout.separator()
 
         layout.operator("sequencer.export_subtitles", text="Export Subtitles", icon='EXPORT')
@@ -788,36 +800,6 @@ class SEQUENCER_MT_add(Menu):
         col = layout.column()
         col.operator_menu_enum("sequencer.fades_add", "type", text="Fade", icon='IPO_EASE_IN_OUT')
         col.enabled = total >= 1
-
-
-class SEQUENCER_MT_add_scene(Menu):
-    bl_label = "Scene"
-    bl_translation_context = i18n_contexts.operator_default
-
-    def draw(self, context):
-
-        layout = self.layout
-        layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("sequencer.scene_strip_add_new", text="Empty Scene", icon='ADD').type = 'EMPTY'
-
-        layout.menu_contents("SEQUENCER_MT_scene_add_root_catalogs")
-
-        bpy_data_scenes_len = len(bpy.data.scenes)
-        if bpy_data_scenes_len > 10:
-            layout.label(text="Scenes", icon='NONE')
-            layout.operator_context = 'INVOKE_DEFAULT'
-            layout.operator("sequencer.scene_strip_add", text="Scene...", icon='SCENE_DATA')
-        elif bpy_data_scenes_len > 1:
-            layout.label(text="Scenes", icon='NONE')
-            scene = context.sequencer_scene
-            for sc_item in bpy.data.scenes:
-                if sc_item == scene:
-                    continue
-
-                layout.operator_context = 'INVOKE_REGION_WIN'
-                layout.operator("sequencer.scene_strip_add", text=sc_item.name, translate=False).scene = sc_item.name
-
-        del bpy_data_scenes_len
 
 
 class SEQUENCER_MT_add_empty(Menu):
@@ -1069,6 +1051,17 @@ class SEQUENCER_MT_strip_lock_mute(Menu):
         layout.operator("sequencer.unmute", text="Unmute Deselected Strips").unselected = True
 
 
+class SEQUENCER_MT_strip_modifiers(Menu):
+    bl_label = "Modifiers"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.menu("SEQUENCER_MT_modifier_add", text="Add Modifier")
+
+        layout.operator("sequencer.strip_modifier_copy", text="Copy to Selected Strips...")
+
+
 class SEQUENCER_MT_strip_effect(Menu):
     bl_label = "Effect Strip"
 
@@ -1134,9 +1127,9 @@ class SEQUENCER_MT_strip_retiming(Menu):
         layout = self.layout
 
         is_retiming = (
-            context.sequencer_scene and
+            context.sequencer_scene is not None and
             context.sequencer_scene.sequence_editor is not None and
-            context.sequencer_scene.sequence_editor.selected_retiming_keys
+            context.sequencer_scene.sequence_editor.selected_retiming_keys is not None
         )
         strip = context.active_strip
 
@@ -1201,10 +1194,10 @@ class SEQUENCER_MT_strip(Menu):
             layout.separator()
 
             with operator_context(layout, 'EXEC_REGION_WIN'):
-                props = layout.operator("sequencer.split", text="Split")
+                props = layout.operator("sequencer.split", text="Split", text_ctxt=i18n_contexts.id_sequence)
                 props.type = 'SOFT'
 
-                props = layout.operator("sequencer.split", text="Hold Split")
+                props = layout.operator("sequencer.split", text="Hold Split", text_ctxt=i18n_contexts.id_sequence)
                 props.type = 'HARD'
 
             layout.separator()
@@ -1225,8 +1218,7 @@ class SEQUENCER_MT_strip(Menu):
             if strip:
                 strip_type = strip.type
                 layout.separator()
-                layout.operator_menu_enum("sequencer.strip_modifier_add", "type", text="Add Modifier")
-                layout.operator("sequencer.strip_modifier_copy", text="Copy Modifiers to Selection")
+                layout.menu("SEQUENCER_MT_strip_modifiers", icon='MODIFIER')
 
                 if strip_type in {
                         'CROSS', 'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
@@ -1358,7 +1350,7 @@ class SEQUENCER_MT_context_menu(Menu):
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        layout.operator("sequencer.split", text="Split").type = 'SOFT'
+        layout.operator("sequencer.split", text="Split", text_ctxt=i18n_contexts.id_sequence).type = 'SOFT'
 
         layout.separator()
 
@@ -1396,8 +1388,7 @@ class SEQUENCER_MT_context_menu(Menu):
             total, nonsound = selected_strips_count(context)
 
             layout.separator()
-            layout.operator_menu_enum("sequencer.strip_modifier_add", "type", text="Add Modifier")
-            layout.operator("sequencer.strip_modifier_copy", text="Copy Modifiers to Selection")
+            layout.menu("SEQUENCER_MT_strip_modifiers", icon='MODIFIER')
 
             if total == 2:
                 if nonsound == 2:
@@ -1531,6 +1522,60 @@ class SEQUENCER_MT_preview_view_pie(Menu):
         pie.operator("sequencer.view_selected", text="Frame Selected", icon='ZOOM_SELECTED')
         pie.separator()
         pie.operator("sequencer.view_zoom_ratio", text="Zoom 1:1").ratio = 1
+
+
+class SEQUENCER_MT_modifier_add(Menu):
+    bl_label = "Add Modifier"
+    bl_options = {'SEARCH_ON_KEY_PRESS'}
+
+    MODIFIER_TYPES_TO_ICONS = {
+        enum_it.identifier: enum_it.icon
+        for enum_it in bpy.types.StripModifier.bl_rna.properties["type"].enum_items_static
+    }
+    MODIFIER_TYPES_TO_LABELS = {
+        enum_it.identifier: enum_it.name
+        for enum_it in bpy.types.StripModifier.bl_rna.properties["type"].enum_items_static
+    }
+    MODIFIER_TYPES_I18N_CONTEXT = bpy.types.StripModifier.bl_rna.properties["type"].translation_context
+
+    @classmethod
+    def operator_modifier_add(cls, layout, mod_type):
+        layout.operator(
+            "sequencer.strip_modifier_add",
+            text=cls.MODIFIER_TYPES_TO_LABELS[mod_type],
+            # Although these are operators, the label actually comes from an (enum) property,
+            # so the property's translation context must be used here.
+            text_ctxt=cls.MODIFIER_TYPES_I18N_CONTEXT,
+            icon=cls.MODIFIER_TYPES_TO_ICONS[mod_type],
+        ).type = mod_type
+
+    def draw(self, context):
+        layout = self.layout
+        strip = context.active_strip
+        if not strip:
+            return
+
+        if layout.operator_context == 'EXEC_REGION_WIN':
+            layout.operator_context = 'INVOKE_REGION_WIN'
+            layout.operator(
+                "WM_OT_search_single_menu",
+                text="Search...",
+                icon='VIEWZOOM',
+            ).menu_idname = "SEQUENCER_MT_modifier_add"
+            layout.separator()
+
+        layout.operator_context = 'INVOKE_REGION_WIN'
+
+        if strip.type == 'SOUND':
+            self.operator_modifier_add(layout, 'SOUND_EQUALIZER')
+        else:
+            self.operator_modifier_add(layout, 'BRIGHT_CONTRAST')
+            self.operator_modifier_add(layout, 'COLOR_BALANCE')
+            self.operator_modifier_add(layout, 'CURVES')
+            self.operator_modifier_add(layout, 'HUE_CORRECT')
+            self.operator_modifier_add(layout, 'MASK')
+            self.operator_modifier_add(layout, 'TONEMAP')
+            self.operator_modifier_add(layout, 'WHITE_BALANCE')
 
 
 class SequencerButtonsPanel:
@@ -2976,7 +3021,7 @@ class SEQUENCER_PT_view_safe_areas_center_cut(SequencerButtonsPanel_Output, Pane
 
 
 class SEQUENCER_PT_modifiers(SequencerButtonsPanel, Panel):
-    bl_label = "Modifiers"
+    bl_label = ""
     bl_options = {'HIDE_HEADER'}
     bl_category = "Modifiers"
 
@@ -2985,7 +3030,6 @@ class SEQUENCER_PT_modifiers(SequencerButtonsPanel, Panel):
         layout.use_property_split = True
 
         strip = context.active_strip
-        ed = context.sequencer_scene.sequence_editor
         if strip.type == 'SOUND':
             sound = strip.sound
         else:
@@ -2994,8 +3038,7 @@ class SEQUENCER_PT_modifiers(SequencerButtonsPanel, Panel):
         if sound is None:
             layout.prop(strip, "use_linear_modifiers", text="Linear Modifiers")
 
-        layout.operator_menu_enum("sequencer.strip_modifier_add", "type")
-        layout.operator("sequencer.strip_modifier_copy")
+        layout.operator("wm.call_menu", text="Add Modifier", icon='ADD').name = "SEQUENCER_MT_modifier_add"
 
         layout.template_strip_modifiers()
 
@@ -3139,7 +3182,6 @@ classes = (
     SEQUENCER_MT_marker,
     SEQUENCER_MT_navigation,
     SEQUENCER_MT_add,
-    SEQUENCER_MT_add_scene,
     SEQUENCER_MT_add_effect,
     SEQUENCER_MT_add_transitions,
     SEQUENCER_MT_add_empty,
@@ -3155,6 +3197,7 @@ classes = (
     SEQUENCER_MT_strip_mirror,
     SEQUENCER_MT_strip_input,
     SEQUENCER_MT_strip_lock_mute,
+    SEQUENCER_MT_strip_modifiers,
     SEQUENCER_MT_image,
     SEQUENCER_MT_image_transform,
     SEQUENCER_MT_image_clear,
@@ -3166,6 +3209,7 @@ classes = (
     SEQUENCER_MT_retiming,
     SEQUENCER_MT_view_pie,
     SEQUENCER_MT_preview_view_pie,
+    SEQUENCER_MT_modifier_add,
 
     SEQUENCER_PT_color_tag_picker,
 

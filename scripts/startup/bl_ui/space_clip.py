@@ -36,38 +36,6 @@ class CLIP_PT_display(Panel):
         pass
 
 
-class CLIP_PT_marker_display(Panel):
-    bl_space_type = 'CLIP_EDITOR'
-    bl_region_type = 'HEADER'
-    bl_label = "Marker Display"
-    bl_parent_id = "CLIP_PT_display"
-    bl_ui_units_x = 13
-
-    def draw(self, context):
-        layout = self.layout
-
-        view = context.space_data
-
-        row = layout.row()
-
-        col = row.column()
-        col.prop(view, "show_marker_pattern", text="Pattern")
-        col.prop(view, "show_marker_search", text="Search")
-
-        col.prop(view, "show_track_path", text="Path")
-        col = col.column()
-        col.active = view.show_track_path
-        col.prop(view, "path_length", text="Length")
-
-        col = row.column()
-        col.prop(view, "show_disabled", text="Show Disabled")
-        col.prop(view, "show_names", text="Info")
-
-        if view.mode != 'MASK':
-            col.prop(view, "show_bundles", text="3D Markers")
-        col.prop(view, "show_tiny_markers", text="Display Thin")
-
-
 class CLIP_PT_clip_display(Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'HEADER'
@@ -98,13 +66,15 @@ class CLIP_PT_clip_display(Panel):
         col.prop(sc.clip_user, "use_render_undistorted", text="Render Undistorted")
         col = row.column()
         col.prop(sc, "show_stable", text="Show Stable")
-        col.prop(sc, "show_grid", text="Grid")
         col.prop(sc, "use_manual_calibration", text="Calibration")
 
         clip = sc.clip
         if clip:
             col = layout.column()
-            col.prop(clip, "display_aspect", text="Display Aspect Ratio")
+            col.use_property_split = True
+            col.use_property_decorate = False
+            col.separator()
+            col.prop(clip, "display_aspect", text="Aspect Ratio")
 
 
 class CLIP_HT_header(Header):
@@ -123,6 +93,9 @@ class CLIP_HT_header(Header):
         row = layout.row()
         if sc.view == 'CLIP':
             row.template_ID(sc, "clip", open="clip.open")
+
+            row = layout.row()
+            row.prop(sc, "pivot_point", text="", icon_only=True)
         else:
             row = layout.row(align=True)
             props = row.operator("clip.refine_markers", text="", icon='TRACKING_REFINE_BACKWARDS')
@@ -166,8 +139,6 @@ class CLIP_HT_header(Header):
                 if r.is_valid and sc.view == 'CLIP':
                     layout.label(text=rpt_("Solve error: {:.2f} px").format(r.average_error), translate=False)
 
-                row = layout.row()
-                row.prop(sc, "pivot_point", text="", icon_only=True)
                 row = layout.row(align=True)
                 icon = 'LOCKED' if sc.lock_selection else 'UNLOCKED'
                 row.operator("clip.lock_selection_toggle", icon=icon, text="", depress=sc.lock_selection)
@@ -216,9 +187,9 @@ class CLIP_HT_header(Header):
         row = layout.row()
         row.template_ID(sc, "clip", open="clip.open")
 
-        layout.separator_spacer()
-
         if clip:
+            row = layout.row()
+            row.template_ID(sc, "mask", new="mask.new")
 
             layout.prop(sc, "pivot_point", text="", icon_only=True)
 
@@ -234,18 +205,20 @@ class CLIP_HT_header(Header):
                 panel="CLIP_PT_proportional_edit",
             )
 
-            row = layout.row()
-            row.template_ID(sc, "mask", new="mask.new")
-            row.popover(panel="CLIP_PT_mask_display")
+            layout.separator_spacer()
+
             row = layout.row(align=True)
             icon = 'LOCKED' if sc.lock_selection else 'UNLOCKED'
             row.operator("clip.lock_selection_toggle", icon=icon, text="", depress=sc.lock_selection)
             row.popover(panel="CLIP_PT_display")
+        else:
+            layout.separator_spacer()
 
     def draw(self, context):
         layout = self.layout
 
         sc = context.space_data
+        overlay = sc.overlay
 
         layout.template_header()
 
@@ -262,6 +235,14 @@ class CLIP_HT_header(Header):
         sub = row.row(align=True)
         sub.active = sc.show_gizmo
         sub.popover(panel="CLIP_PT_gizmo_display", text="")
+
+        # Overlay toggle & popover.
+        if sc.view == 'CLIP':
+            row = layout.row(align=True)
+            row.prop(overlay, "show_overlays", icon='OVERLAY', text="")
+            sub = row.row(align=True)
+            sub.active = overlay.show_overlays
+            sub.popover(panel="CLIP_PT_overlay", text="")
 
 
 class CLIP_PT_proportional_edit(Panel):
@@ -382,6 +363,7 @@ class CLIP_PT_tools_marker(CLIP_PT_tracking_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
     bl_label = "Marker"
+    bl_translation_context = i18n_contexts.id_movieclip
     bl_category = "Track"
 
     def draw(self, _context):
@@ -974,6 +956,7 @@ class CLIP_PT_marker(CLIP_PT_tracking_panel, Panel):
     bl_region_type = 'UI'
     bl_category = "Track"
     bl_label = "Marker"
+    bl_translation_context = i18n_contexts.id_movieclip
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
@@ -1233,10 +1216,6 @@ class CLIP_PT_tools_mask_tools(MASK_PT_tools, Panel):
     bl_region_type = 'TOOLS'
     bl_category = "Mask"
 
-
-class CLIP_PT_mask_display(MASK_PT_display, Panel):
-    bl_space_type = 'CLIP_EDITOR'
-    bl_region_type = 'HEADER'
 
 # --- end mask ---
 
@@ -1958,6 +1937,77 @@ class CLIP_MT_view_pie(Menu):
             pie.operator("clip.graph_center_current_frame")
 
 
+class CLIP_PT_overlay_display(Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'HEADER'
+    bl_label = "Marker Display"
+    bl_parent_id = "CLIP_PT_overlay"
+
+    def draw(self, context):
+        layout = self.layout
+
+        view = context.space_data
+
+        row = layout.row()
+
+        col = row.column()
+        col.prop(view, "show_marker_pattern", text="Pattern")
+        col.prop(view, "show_marker_search", text="Search")
+
+        col.prop(view, "show_track_path", text="Path")
+        col = col.column()
+        col.active = view.show_track_path
+        col.prop(view, "path_length", text="Length")
+
+        col = row.column()
+        col.prop(view, "show_disabled", text="Show Disabled")
+        col.prop(view, "show_names", text="Info")
+
+        if view.mode != 'MASK':
+            col.prop(view, "show_bundles", text="3D Markers")
+        col.prop(view, "show_tiny_markers", text="Display Thin")
+
+
+class CLIP_PT_overlay_mask(MASK_PT_display, Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'HEADER'
+    bl_parent_id = "CLIP_PT_overlay"
+
+    @classmethod
+    def poll(cls, context):
+        sc = context.space_data
+
+        return sc.mode == 'MASK'
+
+
+class CLIP_PT_overlay_guides(Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'HEADER'
+    bl_parent_id = "CLIP_PT_overlay"
+    bl_label = "Guides"
+
+    def draw(self, context):
+        layout = self.layout
+        sc = context.space_data
+        overlay = sc.overlay
+
+        col = layout.column()
+        col.prop(sc, "show_grid", text="Distortion Grid")
+        col.prop(overlay, "show_cursor", text="Cursor")
+        col.prop(sc, "show_annotation", text="Annotations")
+
+
+class CLIP_PT_overlay(Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'HEADER'
+    bl_label = "Overlays"
+    bl_ui_units_x = 13
+
+    def draw(self, _context):
+        layout = self.layout
+        layout.label(text="Viewport Overlays")
+
+
 class CLIP_PT_gizmo_display(Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'HEADER'
@@ -1984,7 +2034,6 @@ classes = (
     CLIP_HT_header,
     CLIP_PT_display,
     CLIP_PT_clip_display,
-    CLIP_PT_marker_display,
     CLIP_MT_tracking_editor_menus,
     CLIP_MT_masking_editor_menus,
     CLIP_PT_track,
@@ -2013,7 +2062,6 @@ classes = (
     CLIP_PT_2d_cursor,
     CLIP_PT_mask,
     CLIP_PT_mask_layers,
-    CLIP_PT_mask_display,
     CLIP_PT_active_mask_spline,
     CLIP_PT_active_mask_point,
     CLIP_PT_mask_animation,
@@ -2051,6 +2099,10 @@ classes = (
     CLIP_MT_reconstruction_pie,
     CLIP_MT_solving_pie,
     CLIP_MT_view_pie,
+    CLIP_PT_overlay,
+    CLIP_PT_overlay_guides,
+    CLIP_PT_overlay_mask,
+    CLIP_PT_overlay_display,
     CLIP_PT_gizmo_display,
 )
 

@@ -104,6 +104,8 @@ class PenToolOperation {
   /* Only used for Grease Pencil. */
   Vector<float4x4> layer_to_object_per_curves;
 
+  virtual ~PenToolOperation() = default;
+
   virtual float3 project(const float2 &screen_co) const = 0;
   virtual IndexMask all_selected_points(int curves_index, IndexMaskMemory &memory) const = 0;
   virtual IndexMask visible_bezier_handle_points(int curves_index,

@@ -4,27 +4,36 @@
 
 #include "gpu_shader_common_color_utils.glsl"
 
-void node_composite_distance_matte_rgba(
-    float4 color, float4 key, float tolerance, float falloff, out float4 result, out float matte)
+#define CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_RGBA 0
+#define CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_YCCA 1
+
+void node_composite_distance_matte(const float4 color,
+                                   const float4 key,
+                                   const float color_space,
+                                   const float tolerance,
+                                   const float falloff,
+                                   out float4 result,
+                                   out float matte)
 {
-  float difference = distance(color.rgb, key.rgb);
+  float4 color_vector = color;
+  float4 key_vector = key;
+  switch (int(color_space)) {
+    case CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_RGBA:
+      color_vector = color;
+      key_vector = key;
+      break;
+    case CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_YCCA:
+      rgba_to_ycca_itu_709(color, color_vector);
+      rgba_to_ycca_itu_709(key, key_vector);
+      break;
+  }
+
+  float difference = distance(color_vector.xyz(), key_vector.xyz());
   bool is_opaque = difference > tolerance + falloff;
-  float alpha = is_opaque ? color.a : max(0.0f, difference - tolerance) / falloff;
-  matte = min(alpha, color.a);
+  float alpha = is_opaque ? color.w : max(0.0f, difference - tolerance) / falloff;
+  matte = min(alpha, color.w);
   result = color * matte;
 }
 
-void node_composite_distance_matte_ycca(
-    float4 color, float4 key, float tolerance, float falloff, out float4 result, out float matte)
-{
-  float4 color_ycca;
-  rgba_to_ycca_itu_709(color, color_ycca);
-  float4 key_ycca;
-  rgba_to_ycca_itu_709(key, key_ycca);
-
-  float difference = distance(color_ycca.yz, key_ycca.yz);
-  bool is_opaque = difference > tolerance + falloff;
-  float alpha = is_opaque ? color.a : max(0.0f, difference - tolerance) / falloff;
-  matte = min(alpha, color.a);
-  result = color * matte;
-}
+#undef CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_RGBA
+#undef CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_YCCA

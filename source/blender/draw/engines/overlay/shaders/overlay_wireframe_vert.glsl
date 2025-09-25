@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/overlay_wireframe_info.hh"
+#include "infos/overlay_wireframe_infos.hh"
 
 VERTEX_SHADER_CREATE_INFO(overlay_wireframe)
 
@@ -10,7 +10,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_wireframe)
 #include "draw_object_infos_lib.glsl"
 #include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
-#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_math_vector_safe_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 #include "overlay_common_lib.glsl"
 #include "select_lib.glsl"

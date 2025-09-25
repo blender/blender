@@ -21,7 +21,6 @@
 
 #include "DRW_gpu_wrapper.hh"
 
-#include "draw_manager.hh"
 #include "draw_pass.hh"
 
 struct bNode;

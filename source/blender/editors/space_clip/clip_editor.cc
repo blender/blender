@@ -105,7 +105,8 @@ bool ED_space_clip_maskedit_visible_splines_poll(bContext *C)
   }
 
   const SpaceClip *space_clip = CTX_wm_space_clip(C);
-  return space_clip->mask_info.draw_flag & MASK_DRAWFLAG_SPLINE;
+  return space_clip->overlay.flag & SC_SHOW_OVERLAYS &&
+         space_clip->mask_info.draw_flag & MASK_DRAWFLAG_SPLINE;
 }
 
 bool ED_space_clip_maskedit_mask_poll(bContext *C)
@@ -130,7 +131,8 @@ bool ED_space_clip_maskedit_mask_visible_splines_poll(bContext *C)
   }
 
   const SpaceClip *space_clip = CTX_wm_space_clip(C);
-  return space_clip->mask_info.draw_flag & MASK_DRAWFLAG_SPLINE;
+  return space_clip->overlay.flag & SC_SHOW_OVERLAYS &&
+         space_clip->mask_info.draw_flag & MASK_DRAWFLAG_SPLINE;
 }
 
 /** \} */

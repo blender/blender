@@ -24,7 +24,7 @@ namespace blender::gpu {
 class Shader;
 }  // namespace blender::gpu
 
-enum eGPUBuiltinShader {
+enum GPUBuiltinShader {
   /** Glyph drawing shader used by the BLF module. */
   GPU_SHADER_TEXT = 0,
   /** Draws keyframe markers. All markers shapes are supported through a single shader. */
@@ -153,15 +153,15 @@ enum eGPUBuiltinShader {
 #define GPU_SHADER_BUILTIN_LEN (GPU_SHADER_3D_IMAGE_COLOR + 1)
 
 /** Support multiple configurations. */
-enum eGPUShaderConfig {
+enum GPUShaderConfig {
   GPU_SHADER_CFG_DEFAULT = 0,
   GPU_SHADER_CFG_CLIPPED = 1,
 };
 #define GPU_SHADER_CFG_LEN (GPU_SHADER_CFG_CLIPPED + 1)
 
-blender::gpu::Shader *GPU_shader_get_builtin_shader_with_config(eGPUBuiltinShader shader,
-                                                                eGPUShaderConfig sh_cfg);
-blender::gpu::Shader *GPU_shader_get_builtin_shader(eGPUBuiltinShader shader);
+blender::gpu::Shader *GPU_shader_get_builtin_shader_with_config(GPUBuiltinShader shader,
+                                                                GPUShaderConfig sh_cfg);
+blender::gpu::Shader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader);
 
 void GPU_shader_builtin_warm_up();
 

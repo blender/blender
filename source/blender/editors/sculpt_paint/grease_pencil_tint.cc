@@ -82,7 +82,7 @@ void TintOperation::on_stroke_begin(const bContext &C, const InputSample & /*sta
   }
   BLI_assert(brush->gpencil_settings != nullptr);
 
-  BKE_curvemapping_init(brush->curve);
+  BKE_curvemapping_init(brush->curve_distance_falloff);
 
   radius_ = brush->size / 2.0f;
   strength_ = brush->alpha;

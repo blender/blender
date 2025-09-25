@@ -19,6 +19,8 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_instances.hh"
 
+#include "NOD_geometry_nodes_bundle.hh"
+
 #include "spreadsheet_column.hh"
 #include "spreadsheet_column_values.hh"
 
@@ -64,6 +66,9 @@ eSpreadsheetColumnValueType cpp_type_to_column_type(const CPPType &type)
   }
   if (type.is<float4x4>()) {
     return SPREADSHEET_VALUE_TYPE_FLOAT4X4;
+  }
+  if (type.is<nodes::BundleItemValue>()) {
+    return SPREADSHEET_VALUE_TYPE_BUNDLE_ITEM;
   }
 
   return SPREADSHEET_VALUE_TYPE_UNKNOWN;

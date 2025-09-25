@@ -50,7 +50,7 @@ bool IMB_metadata_get_field(const IDProperty *metadata,
   IDProperty *prop = IDP_GetPropertyFromGroup(metadata, key);
 
   if (prop && prop->type == IDP_STRING) {
-    BLI_strncpy(value, IDP_String(prop), value_maxncpy);
+    BLI_strncpy(value, IDP_string_get(prop), value_maxncpy);
     return true;
   }
   return false;
@@ -90,6 +90,6 @@ void IMB_metadata_foreach(const ImBuf *ibuf, IMBMetadataForeachCb callback, void
     return;
   }
   LISTBASE_FOREACH (IDProperty *, prop, &ibuf->metadata->data.group) {
-    callback(prop->name, IDP_String(prop), userdata);
+    callback(prop->name, IDP_string_get(prop), userdata);
   }
 }

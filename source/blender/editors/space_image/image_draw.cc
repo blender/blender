@@ -449,6 +449,14 @@ void draw_image_main_helpers(const bContext *C, ARegion *region)
     ED_space_image_get_zoom(sima, region, &zoomx, &zoomy);
     draw_render_info(C, sima->iuser.scene, ima, region, zoomx, zoomy);
   }
+
+  if (sima->mode == SI_MODE_UV) {
+    const Scene *scene = CTX_data_scene(C);
+    const ToolSettings *ts = scene->toolsettings;
+    if (ts->uv_flag & UV_FLAG_CUSTOM_REGION) {
+      draw_image_uv_custom_region(region, ts->uv_custom_region);
+    }
+  }
 }
 
 bool ED_space_image_show_cache(const SpaceImage *sima)
@@ -605,4 +613,31 @@ float ED_space_image_increment_snap_value(const int grid_dimensions,
 
   /* Fallback */
   return grid_steps[0];
+}
+
+void draw_image_uv_custom_region(const ARegion *region, const rctf &custom_region)
+{
+  const uint shdr_pos = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+
+  GPU_line_width(1.0f);
+
+  immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
+
+  float viewport_size[4];
+  GPU_viewport_size_get_f(viewport_size);
+  immUniform2f("viewport_size", viewport_size[2] / UI_SCALE_FAC, viewport_size[3] / UI_SCALE_FAC);
+
+  immUniform1i("colors_len", 0); /* "simple" mode */
+  immUniform4f("color", 1.0f, 0.25f, 0.25f, 1.0f);
+  immUniform1f("dash_width", 6.0f);
+  immUniform1f("udash_factor", 0.5f);
+  rcti region_rect;
+
+  UI_view2d_view_to_region_rcti(&region->v2d, &custom_region, &region_rect);
+
+  imm_draw_box_wire_2d(
+      shdr_pos, region_rect.xmin, region_rect.ymin, region_rect.xmax, region_rect.ymax);
+
+  immUnbindProgram();
 }

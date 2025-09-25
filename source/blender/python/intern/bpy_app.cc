@@ -649,19 +649,21 @@ static PyObject *bpy_app_help_text(PyObject * /*self*/, PyObject *args, PyObject
 #endif
 PyDoc_STRVAR(
     /* Wrap. */
-    bpy_app_undo_memory_info_doc,
-    ".. staticmethod:: undo_memory_info()\n"
+    bpy_app_memory_usage_undo_doc,
+    ".. staticmethod:: memory_usage_undo()\n"
     "\n"
     "   Get undo memory usage information.\n"
     "\n"
-    "   :return: 'total_memory'.\n"
+    "   :return: Memory usage of the undo stack in bytes.\n"
     "   :rtype: int\n");
 
-static PyObject *bpy_app_undo_memory_info(PyObject * /*self*/, PyObject * /*args*/)
+static PyObject *bpy_app_memory_usage_undo(PyObject * /*self*/, PyObject * /*args*/)
 {
-
-  size_t total_memory = ED_get_total_undo_memory();
-
+  size_t total_memory = 0;
+  UndoStack *ustack = ED_undo_stack_get();
+  if (ustack) {
+    total_memory = ED_undosys_total_memory_calc(ustack);
+  }
   return PyLong_FromSize_t(total_memory);
 }
 
@@ -674,10 +676,10 @@ static PyMethodDef bpy_app_methods[] = {
      (PyCFunction)bpy_app_help_text,
      METH_VARARGS | METH_KEYWORDS | METH_STATIC,
      bpy_app_help_text_doc},
-    {"undo_memory_info",
-     (PyCFunction)bpy_app_undo_memory_info,
+    {"memory_usage_undo",
+     (PyCFunction)bpy_app_memory_usage_undo,
      METH_NOARGS | METH_STATIC,
-     bpy_app_undo_memory_info_doc},
+     bpy_app_memory_usage_undo_doc},
     {nullptr, nullptr, 0, nullptr},
 };
 

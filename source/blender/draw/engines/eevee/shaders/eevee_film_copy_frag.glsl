@@ -12,7 +12,7 @@
  * Code is duplicated here to ensure that the compiler will pass read/write resource checks.
  */
 
-#include "infos/eevee_film_info.hh"
+#include "infos/eevee_film_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(eevee_film_copy_frag)
 

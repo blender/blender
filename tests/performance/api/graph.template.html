@@ -46,23 +46,23 @@
 
       var chartData = chartsQueue[index];
       var chart;
-      
+
       if (chartData.chart_type == 'line') {
         chart = new google.charts.Line(document.getElementById(chartData.id));
       } else {
         chart = new google.charts.Bar(document.getElementById(chartData.id));
       }
-      
+
       google.visualization.events.addOneTimeListener(chart, 'ready', function() {
         /* Auto scale chart elements to display full SVG. */
         var allSvg = document.getElementsByTagName("svg");
         for (var svgIndex = 0; svgIndex < allSvg.length; svgIndex++) {
           allSvg[svgIndex].setAttribute('height', allSvg[svgIndex].getBBox().height);
         }
-        
+
         drawChart(chartsQueue, index + 1);
       });
-      
+
       chart.draw(chartData.data, chartData.options);
     }
 
@@ -151,10 +151,10 @@
           options: options,
           chart_type: benchmark['chart_type']
         };
-        
+
         chartsQueue.push(chartData);
       }
-      
+
       /* Start drawing charts sequentially. */
       drawChart(chartsQueue, 0);
     }

@@ -61,7 +61,7 @@ GHOST_ContextSDL::~GHOST_ContextSDL()
   }
 }
 
-GHOST_TSuccess GHOST_ContextSDL::swapBuffers()
+GHOST_TSuccess GHOST_ContextSDL::swapBufferRelease()
 {
   SDL_GL_SwapWindow(window_);
 

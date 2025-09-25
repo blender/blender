@@ -69,6 +69,7 @@ static void node_register()
   static blender::bke::bNodeType ntype;
   fn_node_type_base(&ntype, "FunctionNodeAxisAngleToRotation", FN_NODE_AXIS_ANGLE_TO_ROTATION);
   ntype.ui_name = "Axis Angle to Rotation";
+  ntype.ui_description = "Build a rotation from an axis and a rotation around that axis";
   ntype.enum_name_legacy = "AXIS_ANGLE_TO_ROTATION";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;

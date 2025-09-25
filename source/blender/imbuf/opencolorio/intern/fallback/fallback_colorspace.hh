@@ -69,6 +69,11 @@ class FallbackColorSpace : public ColorSpace {
     return type_ == Type::DATA;
   }
 
+  bool is_display_referred() const override
+  {
+    return type_ == Type::SRGB;
+  }
+
   const CPUProcessor *get_to_scene_linear_cpu_processor() const override
   {
     if (type_ == Type::SRGB) {

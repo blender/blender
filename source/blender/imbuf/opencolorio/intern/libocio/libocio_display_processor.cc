@@ -2,21 +2,23 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "libocio_display_processor.hh"
-
 #if defined(WITH_OPENCOLORIO)
 
 #  include <cfloat>
+#  include <optional>
 #  include <sstream>
 
+#  include "BLI_colorspace.hh"
 #  include "BLI_math_matrix.hh"
 
 #  include "OCIO_config.hh"
+#  include "OCIO_matrix.hh"
 #  include "OCIO_view.hh"
 
 #  include "error_handling.hh"
 #  include "libocio_config.hh"
 #  include "libocio_display.hh"
+#  include "libocio_display_processor.hh"
 
 #  include "../white_point.hh"
 
@@ -25,6 +27,74 @@
 static CLG_LogRef LOG = {"color_management"};
 
 namespace blender::ocio {
+
+static TransferFunction system_extended_srgb_transfer_function(const LibOCIOView *view,
+                                                               const bool use_hdr_buffer)
+{
+#  ifdef __APPLE__
+  /* The Metal backend always uses sRGB or extended sRGB buffer.
+   *
+   * How this will be decoded depends on the macOS display preset, but from testing
+   * on a MacBook P3 M3 it appears:
+   * - Apple XDR Display (P3 - 1600 nits): Decode with gamma 2.2
+   * - HDR Video (P3-ST 2084): Decode with sRGB. As we encode with the sRGB transfer
+   *   function, this will be cancelled out, and linear values will be passed on
+   *   effectively unmodified.
+   */
+  UNUSED_VARS(use_hdr_buffer, view);
+  return TransferFunction::sRGB;
+#  elif defined(_WIN32)
+  /* The Vulkan backend uses either sRGB for SDR, or linear extended sRGB for HDR.
+   *
+   * - Windows HDR mode off: use_hdr_buffer will be false, and we encode with sRGB.
+   *   By default Windows will decode with gamma 2.2.
+   * - Windows HDR mode on: use_hdr_buffer will be true, and we encode with sRGB.
+   *   The Vulkan HDR swapchain blitting will decode with sRGB to cancel this out
+   *   exactly, meaning we effectively pass on linear values unmodified.
+   *
+   * Note this means that both the user interface and SDR content will not be
+   * displayed the same in HDR mode off and on. However it is consistent with other
+   * software. To match, gamma 2.2 would have to be used.
+   */
+  UNUSED_VARS(use_hdr_buffer, view);
+  return TransferFunction::sRGB;
+#  else
+  /* The Vulkan backend uses either sRGB for SDR, or linear extended sRGB for HDR.
+   *
+   * - When using a HDR swapchain and the display + view is HDR, ensure we pass on
+   *   values linearly by doing gamma 2.2 encode here + gamma 2.2 decode in the
+   *   Vulkan HDR swapchain blitting.
+   * - When using HDR swapain and the display + view is SDR, use sRGB encode to
+   *   emulate what happens on a typical SDR monitor.
+   * - When using an SDR swapchain, the buffer is always sRGB.
+   */
+  return (use_hdr_buffer && view && view->is_hdr()) ? TransferFunction::Gamma22 :
+                                                      TransferFunction::sRGB;
+#  endif
+}
+
+static OCIO_NAMESPACE::TransformRcPtr create_extended_srgb_transform(
+    const TransferFunction transfer_function)
+{
+  if (transfer_function == TransferFunction::sRGB) {
+    /* Piecewise sRGB transfer function. */
+    auto to_ui = OCIO_NAMESPACE::ExponentWithLinearTransform::Create();
+    to_ui->setGamma({2.4, 2.4, 2.4, 1.0});
+    to_ui->setOffset({0.055, 0.055, 0.055, 0.0});
+    /* Mirrored for negative as specified by scRGB and extended sRGB. */
+    to_ui->setNegativeStyle(OCIO_NAMESPACE::NEGATIVE_MIRROR);
+    to_ui->setDirection(OCIO_NAMESPACE::TRANSFORM_DIR_INVERSE);
+    return to_ui;
+  }
+
+  /* Pure gamma 2.2 function. */
+  auto to_ui = OCIO_NAMESPACE::ExponentTransform::Create();
+  to_ui->setValue({2.2, 2.2, 2.2, 1.0});
+  /* Mirrored for negative as specified by scRGB and extended sRGB. */
+  to_ui->setNegativeStyle(OCIO_NAMESPACE::NEGATIVE_MIRROR);
+  to_ui->setDirection(OCIO_NAMESPACE::TRANSFORM_DIR_INVERSE);
+  return to_ui;
+}
 
 static void display_as_extended_srgb(const LibOCIOConfig &config,
                                      OCIO_NAMESPACE::GroupTransformRcPtr &group,
@@ -35,7 +105,7 @@ static void display_as_extended_srgb(const LibOCIOConfig &config,
   /* Emulate the user specified display on an extended sRGB display, conceptually:
    * - Apply the view and display transform
    * - Clamp colors to be within gamut
-   * - Apply the inverse untonemapped display transform
+   * - Convert to cie_xyz_d65_interchange
    * - Convert to extended sRGB or gamma 2.2 scRGB
    *
    * When possible, we do equivalent but faster transforms. */
@@ -57,47 +127,8 @@ static void display_as_extended_srgb(const LibOCIOConfig &config,
     return;
   }
 
-#  ifdef __APPLE__
-  /* The Metal backend always uses sRGB or extended sRGB buffer.
-   *
-   * How this will be decoded depends on the macOS display preset, but from testing
-   * on a MacBook P3 M3 it appears:
-   * - Apple XDR Display (P3 - 1600 nits): Decode with gamma 2.2
-   * - HDR Video (P3-ST 2084): Decode with sRGB. As we encode with the sRGB transfer
-   *   function, this will be cancelled out, and linear values will be passed on
-   *   effectively unmodified.
-   */
-  const TransferFunction target_transfer_function = TransferFunction::sRGB;
-  UNUSED_VARS(use_hdr_buffer);
-#  elif defined(_WIN32)
-  /* The Vulkan backend uses either sRGB for SDR, or linear extended sRGB for HDR.
-   *
-   * - Windows HDR mode off: use_hdr_buffer will be false, and we encode with sRGB.
-   *   By default Windows will decode with gamma 2.2.
-   * - Windows HDR mode on: use_hdr_buffer will be true, and we encode with sRGB.
-   *   The Vulkan HDR swapchain blitting will decode with sRGB to cancel this out
-   *   exactly, meaning we effectively pass on linear values unmodified.
-   *
-   * Note this means that both the user interface and SDR content will not be
-   * displayed the same in HDR mode off and on. However it is consistent with other
-   * software. To match, gamma 2.2 would have to be used.
-   */
-  const TransferFunction target_transfer_function = TransferFunction::sRGB;
-  UNUSED_VARS(use_hdr_buffer);
-#  else
-  /* The Vulkan backend uses either sRGB for SDR, or linear extended sRGB for HDR.
-   *
-   * - When using a HDR swapchain and the display + view is HDR, ensure we pass on
-   *   values linearly by doing gamma 2.2 encode here + gamma 2.2 decode in the
-   *   Vulkan HDR swapchain blitting.
-   * - When using HDR swapain and the display + view is SDR, use sRGB encode to
-   *   emulate what happens on a typical SDR monitor.
-   * - When using an SDR swapchain, the buffer is always sRGB.
-   */
-  const TransferFunction target_transfer_function = (use_hdr_buffer && view->is_hdr()) ?
-                                                        TransferFunction::Gamma22 :
-                                                        TransferFunction::sRGB;
-#  endif
+  const TransferFunction target_transfer_function = system_extended_srgb_transfer_function(
+      view, use_hdr_buffer);
 
   /* If we are already in the desired display colorspace, all we have to do is clamp. */
   if ((view->transfer_function() == target_transfer_function ||
@@ -117,40 +148,46 @@ static void display_as_extended_srgb(const LibOCIOConfig &config,
     return;
   }
 
-  /* Find linear Rec.709 colorspace, needed for the sRGB gamut. */
-  const ColorSpace *lin_rec709 = config.get_color_space_by_interop_id("lin_rec709_scene");
-  if (lin_rec709 == nullptr) {
-    CLOG_WARN(&LOG, "Failed to find lin_rec709_scene colorspace, display may be incorrect");
+  const LibOCIOColorSpace *lin_cie_xyz_d65 = static_cast<const LibOCIOColorSpace *>(
+      config.get_color_space(OCIO_NAMESPACE::ROLE_INTERCHANGE_DISPLAY));
+  const LibOCIOColorSpace *display_colorspace = static_cast<const LibOCIOColorSpace *>(
+      view->display_colorspace());
+
+  /* Verify if all conditions are met to do automatic display color management. */
+  if (lin_cie_xyz_d65 == nullptr) {
+    CLOG_DEBUG(&LOG,
+               "Failed to find %s colorspace, disabling automatic display color management",
+               OCIO_NAMESPACE::ROLE_INTERCHANGE_DISPLAY);
+    return;
+  }
+  if (display_colorspace == nullptr) {
+    CLOG_DEBUG(&LOG,
+               "Failed to find display colorspace for view %s, disabling automatic display color "
+               "management",
+               view_name.c_str());
+    return;
+  }
+  if (!display_colorspace->is_display_referred()) {
+    CLOG_DEBUG(&LOG,
+               "Color space %s is not a display color space, disabling automatic display color "
+               "management",
+               display_colorspace->name().c_str());
     return;
   }
 
-  /* Find the untonemapped view.
-   * TODO: It would be better to do this based on cie_xyz_d65_interchange for configs
-   * that support it. */
-  const View *untonemapped_view = display->get_untonemapped_view();
-  if (untonemapped_view == nullptr) {
-    CLOG_WARN(&LOG,
-              "Failed to find untonemapped view for \"%s\", display may be incorrect",
-              display->name().c_str());
-    return;
-  }
-
-  const ColorSpace *display_colorspace = config.get_display_view_color_space(
-      display->name().c_str(), untonemapped_view->name().c_str());
-
-  /* Find the linear colorspace with the gamut of the display colorspace. */
-  const ColorSpace *lin_gamut = nullptr;
+  /* Find the matrix to convert to linear colorspace with gamut of the display colorspace. */
+  std::optional<double4x4> xyz_to_display_gamut;
   switch (view->gamut()) {
     case Gamut::Rec709: {
-      lin_gamut = config.get_color_space_by_interop_id("lin_rec709_scene");
+      xyz_to_display_gamut = OCIO_XYZ_TO_REC709;
       break;
     }
     case Gamut::P3D65: {
-      lin_gamut = config.get_color_space_by_interop_id("lin_p3d65_scene");
+      xyz_to_display_gamut = OCIO_XYZ_TO_P3;
       break;
     }
     case Gamut::Rec2020: {
-      lin_gamut = config.get_color_space_by_interop_id("lin_rec2020_scene");
+      xyz_to_display_gamut = OCIO_XYZ_TO_REC2020;
       break;
     }
     case Gamut::Unknown: {
@@ -158,7 +195,7 @@ static void display_as_extended_srgb(const LibOCIOConfig &config,
     }
   }
 
-  if (lin_gamut && view->transfer_function() != TransferFunction::Unknown) {
+  if (xyz_to_display_gamut.has_value() && view->transfer_function() != TransferFunction::Unknown) {
     /* Optimized path for known gamut and transfer function. We want OpenColorIO to cancel out
      * out the transfer function of the chosen display, but this is not possible when clamping
      * happens in the middle of it.
@@ -166,9 +203,13 @@ static void display_as_extended_srgb(const LibOCIOConfig &config,
      * So here we transform to the linear colorspace with the gamut of the display colorspace,
      * and clamp there. This means there will be only matrix multiplications, or nothing at
      * all for Rec.709. */
-    auto to_lin_gamut = OCIO_NAMESPACE::ColorSpaceTransform::Create();
-    to_lin_gamut->setSrc(display_colorspace->name().c_str());
-    to_lin_gamut->setDst(lin_gamut->name().c_str());
+    auto to_cie_xyz_d65 = OCIO_NAMESPACE::ColorSpaceTransform::Create();
+    to_cie_xyz_d65->setSrc(display_colorspace->name().c_str());
+    to_cie_xyz_d65->setDst(lin_cie_xyz_d65->name().c_str());
+    group->appendTransform(to_cie_xyz_d65);
+
+    auto to_lin_gamut = OCIO_NAMESPACE::MatrixTransform::Create();
+    to_lin_gamut->setMatrix(math::transpose(xyz_to_display_gamut.value()).base_ptr());
     group->appendTransform(to_lin_gamut);
 
     /* Clamp colors to the chosen display colorspace, to emulate it on the actual display that
@@ -206,10 +247,11 @@ static void display_as_extended_srgb(const LibOCIOConfig &config,
     group->appendTransform(clamp);
 
     /* Transform to linear Rec.709. */
-    if (lin_gamut != lin_rec709) {
-      auto to_rec709 = OCIO_NAMESPACE::ColorSpaceTransform::Create();
-      to_rec709->setSrc(lin_gamut->name().c_str());
-      to_rec709->setDst(lin_rec709->name().c_str());
+    if (view->gamut() != Gamut::Rec709) {
+      auto to_rec709 = OCIO_NAMESPACE::MatrixTransform::Create();
+      to_rec709->setMatrix(
+          math::transpose(OCIO_XYZ_TO_REC709 * math::invert(xyz_to_display_gamut.value()))
+              .base_ptr());
       group->appendTransform(to_rec709);
     }
   }
@@ -230,31 +272,17 @@ static void display_as_extended_srgb(const LibOCIOConfig &config,
     }
 
     /* Convert from display colorspace to linear Rec.709. */
-    auto to_rec709 = OCIO_NAMESPACE::ColorSpaceTransform::Create();
-    to_rec709->setSrc(display_colorspace->name().c_str());
-    to_rec709->setDst(lin_rec709->name().c_str());
+    auto to_cie_xyz_d65 = OCIO_NAMESPACE::ColorSpaceTransform::Create();
+    to_cie_xyz_d65->setSrc(display_colorspace->name().c_str());
+    to_cie_xyz_d65->setDst(lin_cie_xyz_d65->name().c_str());
+    group->appendTransform(to_cie_xyz_d65);
+
+    auto to_rec709 = OCIO_NAMESPACE::MatrixTransform::Create();
+    to_rec709->setMatrix(math::transpose(OCIO_XYZ_TO_REC709).base_ptr());
     group->appendTransform(to_rec709);
   }
 
-  if (target_transfer_function == TransferFunction::sRGB) {
-    /* Piecewise sRGB transfer function. */
-    auto to_ui = OCIO_NAMESPACE::ExponentWithLinearTransform::Create();
-    to_ui->setGamma({2.4, 2.4, 2.4, 1.0});
-    to_ui->setOffset({0.055, 0.055, 0.055, 0.0});
-    /* Mirrored for negative as specified by scRGB and extended sRGB. */
-    to_ui->setNegativeStyle(OCIO_NAMESPACE::NEGATIVE_MIRROR);
-    to_ui->setDirection(OCIO_NAMESPACE::TRANSFORM_DIR_INVERSE);
-    group->appendTransform(to_ui);
-  }
-  else {
-    /* Pure gamma 2.2 function. */
-    auto to_ui = OCIO_NAMESPACE::ExponentTransform::Create();
-    to_ui->setValue({2.2, 2.2, 2.2, 1.0});
-    /* Mirrored for negative as specified by scRGB and extended sRGB. */
-    to_ui->setNegativeStyle(OCIO_NAMESPACE::NEGATIVE_MIRROR);
-    to_ui->setDirection(OCIO_NAMESPACE::TRANSFORM_DIR_INVERSE);
-    group->appendTransform(to_ui);
-  }
+  group->appendTransform(create_extended_srgb_transform(target_transfer_function));
 }
 
 OCIO_NAMESPACE::TransformRcPtr create_ocio_display_transform(
@@ -307,6 +335,34 @@ OCIO_NAMESPACE::TransformRcPtr create_ocio_display_transform(
   return group;
 }
 
+static OCIO_NAMESPACE::TransformRcPtr create_untonemapped_ocio_display_transform(
+    const LibOCIOConfig &config,
+    StringRefNull display_name,
+    StringRefNull from_colorspace,
+    bool use_hdr_buffer)
+{
+  /* Convert to extended sRGB without any tone mapping. */
+  const auto group = OCIO_NAMESPACE::GroupTransform::Create();
+
+  const auto to_scene_linear = OCIO_NAMESPACE::ColorSpaceTransform::Create();
+  to_scene_linear->setSrc(from_colorspace.c_str());
+  to_scene_linear->setDst(OCIO_NAMESPACE::ROLE_SCENE_LINEAR);
+  group->appendTransform(to_scene_linear);
+
+  const auto to_rec709 = OCIO_NAMESPACE::MatrixTransform::Create();
+  to_rec709->setMatrix(math::transpose(double4x4(colorspace::scene_linear_to_rec709)).base_ptr());
+  group->appendTransform(to_rec709);
+
+  const LibOCIODisplay *display = static_cast<const LibOCIODisplay *>(
+      config.get_display_by_name(display_name));
+  const LibOCIOView *view = (display) ? static_cast<const LibOCIOView *>(
+                                            display->get_untonemapped_view()) :
+                                        nullptr;
+  group->appendTransform(create_extended_srgb_transform(
+      system_extended_srgb_transfer_function(view, use_hdr_buffer)));
+  return group;
+}
+
 OCIO_NAMESPACE::ConstProcessorRcPtr create_ocio_display_processor(
     const LibOCIOConfig &config, const DisplayParameters &display_parameters)
 {
@@ -343,30 +399,37 @@ OCIO_NAMESPACE::ConstProcessorRcPtr create_ocio_display_processor(
     group->appendTransform(mt);
   }
 
-  /* Core display processor. */
-  group->appendTransform(create_ocio_display_transform(ocio_config,
-                                                       display_parameters.display,
-                                                       display_parameters.view,
-                                                       display_parameters.look,
-                                                       from_colorspace));
+  if (!display_parameters.view.is_empty()) {
+    /* Core display processor. */
+    group->appendTransform(create_ocio_display_transform(ocio_config,
+                                                         display_parameters.display,
+                                                         display_parameters.view,
+                                                         display_parameters.look,
+                                                         from_colorspace));
+    /* Gamma. */
+    if (display_parameters.exponent != 1.0f) {
+      ExponentTransformRcPtr et = ExponentTransform::Create();
+      const double value[4] = {display_parameters.exponent,
+                               display_parameters.exponent,
+                               display_parameters.exponent,
+                               1.0};
+      et->setValue(value);
+      group->appendTransform(et);
+    }
 
-  /* Gamma. */
-  if (display_parameters.exponent != 1.0f) {
-    ExponentTransformRcPtr et = ExponentTransform::Create();
-    const double value[4] = {display_parameters.exponent,
-                             display_parameters.exponent,
-                             display_parameters.exponent,
-                             1.0};
-    et->setValue(value);
-    group->appendTransform(et);
+    /* Convert to extended sRGB to match the system graphics buffer. */
+    if (display_parameters.use_display_emulation) {
+      display_as_extended_srgb(config,
+                               group,
+                               display_parameters.display,
+                               display_parameters.view,
+                               display_parameters.use_hdr_buffer);
+    }
   }
-
-  if (display_parameters.use_display_emulation) {
-    display_as_extended_srgb(config,
-                             group,
-                             display_parameters.display,
-                             display_parameters.view,
-                             display_parameters.use_hdr_buffer);
+  else {
+    /* Untonemapped case, directly to extended sRGB. */
+    group->appendTransform(create_untonemapped_ocio_display_transform(
+        config, display_parameters.display, from_colorspace, display_parameters.use_hdr_buffer));
   }
 
   if (display_parameters.inverse) {

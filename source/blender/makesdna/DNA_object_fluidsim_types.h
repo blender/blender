@@ -11,8 +11,6 @@
 #include "DNA_ID.h"
 #include "DNA_defs.h"
 
-struct Ipo;
-
 typedef struct FluidVertexVelocity {
   float vel[3];
 } FluidVertexVelocity;
@@ -68,9 +66,6 @@ typedef struct FluidsimSettings {
   /* store start coords of axis aligned bounding box together with size */
   /* values are initialized during derived mesh display. */
   float bbStart[3], bbSize[3];
-
-  /** Animated parameters. */
-  struct Ipo *ipo;
 
   /* additional flags depending on the type, lower short contains flags
    * to check validity, higher short additional flags */

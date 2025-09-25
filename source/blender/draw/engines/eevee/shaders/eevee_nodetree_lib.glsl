@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "infos/eevee_common_info.hh"
+#include "infos/eevee_common_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
 SHADER_LIBRARY_CREATE_INFO(eevee_utility_texture)
@@ -13,43 +13,12 @@ SHADER_LIBRARY_CREATE_INFO(eevee_utility_texture)
 #include "draw_object_infos_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "eevee_renderpass_lib.glsl"
+#include "eevee_utility_tx_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_base_lib.glsl"
-#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_math_safe_lib.glsl"
+#include "gpu_shader_math_vector_reduce_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
-
-struct MeshVertex {
-  int _pad; /* TODO(fclem): Add explicit attribute loading for mesh. */
-  METAL_CONSTRUCTOR_1(MeshVertex, int, _pad)
-};
-
-struct PointCloudPoint {
-  int _pad; /* TODO(fclem): Add explicit attribute loading for mesh. */
-  METAL_CONSTRUCTOR_1(PointCloudPoint, int, _pad)
-};
-
-struct CurvesPoint {
-  int curve_id;
-  int point_id;
-  int curve_segment;
-
-  METAL_CONSTRUCTOR_3(CurvesPoint, int, curve_id, int, point_id, int, curve_segment)
-};
-
-struct WorldPoint {
-  int _pad;
-  METAL_CONSTRUCTOR_1(WorldPoint, int, _pad)
-};
-
-struct VolumePoint {
-  int _pad; /* TODO(fclem): Add explicit attribute loading for volumes. */
-  METAL_CONSTRUCTOR_1(VolumePoint, int, _pad)
-};
-
-struct GPencilPoint {
-  int _pad;
-  METAL_CONSTRUCTOR_1(GPencilPoint, int, _pad)
-};
 
 packed_float3 g_emission;
 packed_float3 g_transmittance;
@@ -86,9 +55,9 @@ ClosureUndetermined g_closure_get(uchar i)
       return g_closure_bins[2];
 #endif
   }
-  /* TODO: this should be unreachable, better to have an assert. */
-  ClosureUndetermined cl_empty;
-  return cl_empty;
+  /* Unreachable. */
+  assert(false);
+  return g_closure_bins[0];
 }
 
 ClosureUndetermined g_closure_get_resolved(uchar i, float weight_fac)
@@ -400,7 +369,7 @@ float ambient_occlusion_eval(float3 normal,
 
   int2 texel = int2(gl_FragCoord.xy);
   float2 noise;
-  noise.x = interlieved_gradient_noise(float2(texel), 3.0f, 0.0f);
+  noise.x = interleaved_gradient_noise(float2(texel), 3.0f, 0.0f);
   noise.y = utility_tx_fetch(utility_tx, float2(texel), UTIL_BLUE_NOISE_LAYER).r;
   noise = fract(noise + sampling_rng_2D_get(SAMPLING_AO_U));
 
@@ -452,11 +421,28 @@ float nodetree_thickness();
 float4 closure_to_rgba(Closure cl);
 #endif
 
-/* Simplified form of F_eta(eta, 1.0). */
+/**
+ * Used for packing.
+ * This is the reflection coefficient also denoted r.
+ * https://en.wikipedia.org/wiki/Fresnel_equations#Complex_amplitude_reflection_and_transmission_coefficients
+ */
+float f0_from_ior(float eta)
+{
+  return (eta - 1.0f) / (eta + 1.0f);
+}
+
+/**
+ * Simplified form of F_eta(eta, 1.0).
+ * This is the power reflection coefficient also denoted R.
+ * https://en.wikipedia.org/wiki/Fresnel_equations#Complex_amplitude_reflection_and_transmission_coefficients
+ */
 float F0_from_ior(float eta)
 {
-  float A = (eta - 1.0f) / (eta + 1.0f);
-  return A * A;
+  return square(f0_from_ior(eta));
+}
+float F0_from_f0(float f0)
+{
+  return square(f0);
 }
 
 /* Return the fresnel color from a precomputed LUT value (from brdf_lut). */
@@ -488,11 +474,8 @@ float3 F_brdf_multi_scatter(float3 f0, float3 f90, float2 lut)
 
 float2 brdf_lut(float cos_theta, float roughness)
 {
-#ifdef EEVEE_UTILITY_TX
+  auto &utility_tx = sampler_get(eevee_utility_texture, utility_tx);
   return utility_tx_sample_lut(utility_tx, cos_theta, roughness, UTIL_BSDF_LAYER).rg;
-#else
-  return float2(1.0f, 0.0f);
-#endif
 }
 
 void brdf_f82_tint_lut(float3 F0,
@@ -502,11 +485,8 @@ void brdf_f82_tint_lut(float3 F0,
                        bool do_multiscatter,
                        out float3 reflectance)
 {
-#ifdef EEVEE_UTILITY_TX
+  auto &utility_tx = sampler_get(eevee_utility_texture, utility_tx);
   float3 split_sum = utility_tx_sample_lut(utility_tx, cos_theta, roughness, UTIL_BSDF_LAYER).rgb;
-#else
-  float3 split_sum = float3(1.0f, 0.0f, 0.0f);
-#endif
 
   reflectance = do_multiscatter ? F_brdf_multi_scatter(F0, float3(1.0f), split_sum.xy) :
                                   F_brdf_single_scatter(F0, float3(1.0f), split_sum.xy);
@@ -544,9 +524,9 @@ float3 lut_coords_bsdf(float cos_theta, float roughness, float ior)
 }
 
 /* Return texture coordinates to sample Surface LUT. */
-float3 lut_coords_btdf(float cos_theta, float roughness, float ior)
+float3 lut_coords_btdf(float cos_theta, float roughness, float f0)
 {
-  return float3(sqrt((ior - 1.0f) / (ior + 1.0f)), sqrt(1.0f - cos_theta), roughness);
+  return float3(sqrt(f0), sqrt(1.0f - cos_theta), roughness);
 }
 
 /* Computes the reflectance and transmittance based on the tint (`f0`, `f90`, `transmission_tint`)
@@ -561,7 +541,7 @@ void bsdf_lut(float3 F0,
               out float3 reflectance,
               out float3 transmittance)
 {
-#ifdef EEVEE_UTILITY_TX
+  auto &utility_tx = sampler_get(eevee_utility_texture, utility_tx);
   if (ior == 1.0f) {
     reflectance = float3(0.0f);
     transmittance = transmission_tint;
@@ -571,19 +551,22 @@ void bsdf_lut(float3 F0,
   float2 split_sum;
   float transmission_factor;
 
+  const float f0 = f0_from_ior(ior);
+
   if (ior > 1.0f) {
-    split_sum = brdf_lut(cos_theta, roughness);
-    float3 coords = lut_coords_btdf(cos_theta, roughness, ior);
-    transmission_factor = utility_tx_sample_bsdf_lut(utility_tx, coords.xy, coords.z).a;
     /* Gradually increase `f90` from 0 to 1 when IOR is in the range of [1.0f, 1.33f], to avoid
      * harsh transition at `IOR == 1`. */
     if (all(equal(F90, float3(1.0f)))) {
-      F90 = float3(saturate(2.33f / 0.33f * (ior - 1.0f) / (ior + 1.0f)));
+      F90 = float3(saturate(2.33f / 0.33f * f0));
     }
+    const float3 coords = lut_coords_btdf(cos_theta, roughness, f0);
+    const float4 bsdf = utility_tx_sample_bsdf_lut(utility_tx, coords.xy, coords.z);
+    split_sum = brdf_lut(cos_theta, roughness);
+    transmission_factor = bsdf.a;
   }
   else {
-    float3 coords = lut_coords_bsdf(cos_theta, roughness, ior);
-    float3 bsdf = utility_tx_sample_bsdf_lut(utility_tx, coords.xy, coords.z).rgb;
+    const float3 coords = lut_coords_bsdf(cos_theta, roughness, ior);
+    const float3 bsdf = utility_tx_sample_bsdf_lut(utility_tx, coords.xy, coords.z).rgb;
     split_sum = bsdf.rg;
     transmission_factor = bsdf.b;
   }
@@ -592,22 +575,17 @@ void bsdf_lut(float3 F0,
   transmittance = (float3(1.0f) - F0) * transmission_factor * transmission_tint;
 
   if (do_multiscatter) {
-    float real_F0 = F0_from_ior(ior);
-    float Ess = real_F0 * split_sum.x + split_sum.y + (1.0f - real_F0) * transmission_factor;
-    float Ems = 1.0f - Ess;
+    const float real_F0 = F0_from_f0(f0);
+    const float Ess = real_F0 * split_sum.x + split_sum.y + (1.0f - real_F0) * transmission_factor;
+    const float Ems = 1.0f - Ess;
     /* Assume that the transmissive tint makes up most of the overall color if it's not zero. */
-    float3 Favg = all(equal(transmission_tint, float3(0.0f))) ? F0 + (F90 - F0) / 21.0f :
-                                                                transmission_tint;
+    const float3 Favg = all(equal(transmission_tint, float3(0.0f))) ? F0 + (F90 - F0) / 21.0f :
+                                                                      transmission_tint;
 
     float3 scale = 1.0f / (1.0f - Ems * Favg);
     reflectance *= scale;
     transmittance *= scale;
   }
-#else
-  reflectance = float3(0.0f);
-  transmittance = float3(0.0f);
-#endif
-  return;
 }
 
 /* Computes the reflectance and transmittance based on the BSDF LUT. */

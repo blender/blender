@@ -587,5 +587,5 @@ const char *MEM_lockfree_name_ptr(void *vmemh)
   return "MEM_lockfree_name_ptr(nullptr)";
 }
 
-void MEM_lockfree_name_ptr_set(void *UNUSED(vmemh), const char *UNUSED(str)) {}
+void MEM_lockfree_name_ptr_set(void * /*vmemh*/, const char * /*str*/) {}
 #endif /* !NDEBUG */

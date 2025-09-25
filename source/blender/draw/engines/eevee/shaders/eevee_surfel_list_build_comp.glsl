@@ -13,13 +13,11 @@
  * Dispatch 1 thread per surfel.
  */
 
-#include "infos/eevee_lightprobe_volume_info.hh"
+#include "infos/eevee_lightprobe_volume_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_surfel_list_build)
 
 #include "eevee_surfel_list_lib.glsl"
-#include "gpu_shader_math_base_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
 
 void main()
 {

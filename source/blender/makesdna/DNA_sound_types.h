@@ -10,7 +10,6 @@
 #include "DNA_ID.h"
 #include "DNA_defs.h"
 
-struct Ipo;
 struct PackedFile;
 
 typedef struct bSound {
@@ -20,6 +19,8 @@ typedef struct bSound {
 #endif
 
   ID id;
+
+  void *_pad1;
 
   /**
    * The path to the sound file.
@@ -40,7 +41,7 @@ typedef struct bSound {
    * Deprecated; used for loading pre 2.5 files.
    */
   struct PackedFile *newpackedfile;
-  struct Ipo *ipo;
+  void *_pad0;
 
   float volume;
   float attenuation;

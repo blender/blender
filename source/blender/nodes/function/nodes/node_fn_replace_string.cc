@@ -46,6 +46,7 @@ static void node_register()
 
   fn_node_type_base(&ntype, "FunctionNodeReplaceString", FN_NODE_REPLACE_STRING);
   ntype.ui_name = "Replace String";
+  ntype.ui_description = "Replace a given string segment with another";
   ntype.enum_name_legacy = "REPLACE_STRING";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;

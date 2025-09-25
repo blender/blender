@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'61dd8a1435fb')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-01 09:40+0000\n"
+"POT-Creation-Date: 2025-09-22 08:45+0000\n"
 "PO-Revision-Date: 2025-07-23 14:57+0000\n"
 "Last-Translator: Michael Tribayu Jatnika Natawiria <mike.natawiria@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -740,14 +740,6 @@ msgstr "Distribusikan memori antar perangkat"
 
 msgid "Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it"
 msgstr "Buat spasi lebih banyak untuk adegan besar supaya cukup dengan mendistribusikan memori antar perangkat yang terkoneksi (e.g via NVLink) daripada menduplikasikannya"
-
-
-msgid "HIP RT"
-msgstr "HIP RT"
-
-
-msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above"
-msgstr "HIP RT mengaktifkan penelusuran sinar perangkat lunak AMD di RDNA2 dan diatasnya"
 
 
 msgid "Embree on GPU"
@@ -1931,10 +1923,6 @@ msgid "Space Type"
 msgstr "Tipe Spasi"
 
 
-msgid "The space where the asset shelf is going to be used in"
-msgstr "Ruang dimana rak aset akan digunakan"
-
-
 msgid "Preview Size"
 msgstr "Ukuran Pratinjau"
 
@@ -2181,14 +2169,6 @@ msgstr "Apakah atribut dapat dihapus atau diganti namanya"
 
 msgid "Name of the Attribute"
 msgstr "Nama Atribut"
-
-
-msgid "Array"
-msgstr "Larik"
-
-
-msgid "Single"
-msgstr "Tunggal"
 
 
 msgid "Bool Attribute"
@@ -2851,6 +2831,10 @@ msgid "Collection data-blocks"
 msgstr "Koleksi data-blok"
 
 
+msgid "Color Space"
+msgstr "Ruang Warna"
+
+
 msgid "Curves"
 msgstr "Kurva"
 
@@ -3449,6 +3433,10 @@ msgstr "Dunia Utama"
 
 msgid "Collection of worlds"
 msgstr "Koleksi dunia"
+
+
+msgid "ACEScg"
+msgstr "ACEScg"
 
 
 msgid "Blendfile Import Context"
@@ -6400,10 +6388,6 @@ msgid "Color management specific to display device"
 msgstr "Manajemen warna spesifik ke perangkat tampilan"
 
 
-msgid "Display Device"
-msgstr "Perangkat Tampilan"
-
-
 msgid "Input color space settings"
 msgstr "Pengaturan spasi warna masukan"
 
@@ -6428,10 +6412,6 @@ msgid "ACES2065-1"
 msgstr "ACES2065-1"
 
 
-msgid "ACEScg"
-msgstr "ACEScg"
-
-
 msgid "Non-Color"
 msgstr "Non-Warna"
 
@@ -6446,10 +6426,6 @@ msgstr "Rec.2020"
 
 msgid "Do not perform any color transform on load, treat colors as in scene linear space already"
 msgstr "Jangan melakukan transformasi warna apa pun saat dimuat, perlakukan warna seperti pada adegan ruang linier sudah"
-
-
-msgid "Color Space"
-msgstr "Ruang Warna"
 
 
 msgid "Color space that the sequencer operates in"
@@ -6492,8 +6468,8 @@ msgid "Use RGB curved for pre-display transformation"
 msgstr "Gunakan RGB kurva untuk pra-tampilkan transformasi"
 
 
-msgid "View Transform"
-msgstr "Lihat Transformasi"
+msgid "View"
+msgstr "Pandangan"
 
 
 msgid "View used when converting image to a display space"
@@ -8324,10 +8300,6 @@ msgstr "Normal ke Permukaan"
 
 msgid "Tangent to Surface"
 msgstr "Tangen ke Permukaan"
-
-
-msgid "View"
-msgstr "Pandangan"
 
 
 msgid "Project the strokes only onto selected objects"
@@ -15315,6 +15287,22 @@ msgid "Mask"
 msgstr "Masker"
 
 
+msgid "Merge"
+msgstr "Menggabungkan"
+
+
+msgid "Text"
+msgstr "Teks"
+
+
+msgid "Metaball"
+msgstr "Metabola"
+
+
+msgid "Names"
+msgstr "Nama"
+
+
 msgid "Snap"
 msgstr "Jepret"
 
@@ -15333,10 +15321,6 @@ msgstr "Seleksi yang Terhubung"
 
 msgid "Assign Material"
 msgstr "Tugaskan Bahan"
-
-
-msgid "Metaball"
-msgstr "Metabola"
 
 
 msgid "Light"
@@ -15365,18 +15349,6 @@ msgstr "Aset"
 
 msgid "Hooks"
 msgstr "Kait"
-
-
-msgid "Names"
-msgstr "Nama"
-
-
-msgid "Merge"
-msgstr "Menggabungkan"
-
-
-msgid "Text"
-msgstr "Teks"
 
 
 msgctxt "MovieClip"
@@ -15416,12 +15388,12 @@ msgid "Marker"
 msgstr "Tanda"
 
 
-msgid "Material Specials"
-msgstr "Spesial Bahan"
-
-
 msgid "Change Active Layer"
 msgstr "Gantikan Layer Aktif"
+
+
+msgid "Material Specials"
+msgstr "Spesial Bahan"
 
 
 msgid "Move to Layer"
@@ -15741,6 +15713,10 @@ msgstr "Menghaluskan warna sapuan"
 
 msgid "Time Offset"
 msgstr "Kamera"
+
+
+msgid "Array"
+msgstr "Larik"
 
 
 msgid "Build"
@@ -17574,36 +17550,12 @@ msgid "Channel Key"
 msgstr "Kunci Saluran"
 
 
-msgid "YCbCr"
-msgstr "YCbCr"
-
-
-msgid "Algorithm"
-msgstr "Algoritma"
-
-
-msgid "Algorithm to use to limit channel"
-msgstr "Algoritma menggunakan batas saluran"
-
-
-msgid "Limit by single channel"
-msgstr "Batasi oleh saluran tunggal"
-
-
-msgid "Limit by maximum of other channels"
-msgstr "Batasi oleh maksimum saluran lain"
-
-
 msgid "Chroma Key"
 msgstr "Kunci Chroma"
 
 
 msgid "Color Balance"
 msgstr "Keseimbangan Warna"
-
-
-msgid "Correction Formula"
-msgstr "Rumus Koreksi"
 
 
 msgid "The color which gets white gets mapped to (automatically converted to/from temperature and tint)"
@@ -17618,28 +17570,12 @@ msgid "Color Key"
 msgstr "Kunci Warna"
 
 
-msgid "Limit by red"
-msgstr "Batasi oleh merah"
-
-
-msgid "Limit by green"
-msgstr "Batasi oleh hijau"
-
-
-msgid "Limit by blue"
-msgstr "Batasi oleh biru"
-
-
-msgid "Simple limit algorithm"
-msgstr "Algoritma batas sederhana"
-
-
-msgid "Average limit algorithm"
-msgstr "Algoritma batas rata-rata"
-
-
 msgid "Mode of color processing"
 msgstr "Mode pemrosesan warna"
+
+
+msgid "YCbCr"
+msgstr "YCbCr"
 
 
 msgid "Color space used for YCbCrA processing"
@@ -17862,18 +17798,6 @@ msgid "Distance Key"
 msgstr "Kunci Jarak"
 
 
-msgid "RGB color space"
-msgstr "Spasi warna RGB"
-
-
-msgid "Buffer Edge Mode"
-msgstr "Modus Sunting"
-
-
-msgid "Adjacent Only"
-msgstr "Hanya Garis"
-
-
 msgid "Ellipse Mask"
 msgstr "Hapus"
 
@@ -17910,10 +17834,6 @@ msgid "File Output"
 msgstr "Keluaran Dokumen"
 
 
-msgid "To Straight"
-msgstr "Ke Lurus"
-
-
 msgid "RGB to BW"
 msgstr "RGB ke BW"
 
@@ -17924,14 +17844,6 @@ msgstr "Render Layer"
 
 msgid "Set Alpha"
 msgstr "Set Alpha"
-
-
-msgid "Apply Mask"
-msgstr "Terapkan Masker"
-
-
-msgid "Replace Alpha"
-msgstr "Gantikan Alpha"
 
 
 msgid "Stabilize 2D"
@@ -18504,6 +18416,10 @@ msgid "Node Output"
 msgstr "Keluaran Node"
 
 
+msgid "Single"
+msgstr "Tunggal"
+
+
 msgid "Node Instance Hash"
 msgstr "Hash Contoh Node"
 
@@ -18618,10 +18534,6 @@ msgstr "Hapus Target"
 msgctxt "Operator"
 msgid "Add Fluid Preset"
 msgstr "Kamera"
-
-
-msgid "Switch tint colors"
-msgstr "Beralih warna kehalusan"
 
 
 msgctxt "Operator"
@@ -19713,6 +19625,10 @@ msgid "Set Handle Type"
 msgstr "Tekstur"
 
 
+msgid "Remove from selection"
+msgstr "Menghapus dari seleksi"
+
+
 msgid "(De)select all control points"
 msgstr "Material"
 
@@ -19771,10 +19687,6 @@ msgstr "Modus Sunting"
 msgctxt "Operator"
 msgid "Make Segment"
 msgstr "Hapus Titik"
-
-
-msgid "Remove from selection"
-msgstr "Menghapus dari seleksi"
 
 
 msgctxt "Operator"
@@ -23781,6 +23693,10 @@ msgid "Align UV vertices on a horizontal line"
 msgstr "Menjajarkan simpul UV di garis horizontal"
 
 
+msgid "Space between islands"
+msgstr "Spasi diantara pulau"
+
+
 msgid "Copy selected UV vertices"
 msgstr "Salin simpul UV yang dipilih"
 
@@ -23836,10 +23752,6 @@ msgstr "Partikel"
 msgctxt "Operator"
 msgid "Pack Islands"
 msgstr "Modus Pahat"
-
-
-msgid "Space between islands"
-msgstr "Spasi diantara pulau"
 
 
 msgid "Scaled"
@@ -25057,10 +24969,6 @@ msgid "New Objects"
 msgstr "Objek Baru"
 
 
-msgid "Debugging"
-msgstr "Debugging"
-
-
 msgid "New Features"
 msgstr "Fitur Baru"
 
@@ -25123,10 +25031,6 @@ msgstr "Editor"
 
 msgid "Theme Space"
 msgstr "Ruang Tema"
-
-
-msgid "Theme Space List"
-msgstr "Daftar Ruang Tema"
 
 
 msgid "Collection Colors"
@@ -25271,10 +25175,6 @@ msgstr "Warna lapisan anotasi baru"
 
 msgid "Duplicate Camera"
 msgstr "Duplikasi Kamera"
-
-
-msgid "Causes grease pencil data to be duplicated with the object"
-msgstr "Menyebabkan data pensil grease diduplikasi dengan objek"
 
 
 msgid "Duplicate Light"
@@ -26371,10 +26271,6 @@ msgstr "Koreksi untuk nada tengah"
 
 msgid "Correction for highlights"
 msgstr "Koreksi untuk highlight"
-
-
-msgid "Mask Input Type"
-msgstr "Grup"
 
 
 msgid "Mute this modifier"
@@ -27813,10 +27709,6 @@ msgstr "Sumber Data:"
 
 msgid "No annotation source"
 msgstr "Tidak ada sumber anotasi"
-
-
-msgid "Channel Colors are disabled in Animation preferences"
-msgstr "Warna Saluran dinonaktifkan di preferensi Animasi"
 
 
 msgctxt "Operator"
@@ -29333,16 +29225,6 @@ msgstr "Perspektif/Ortografik"
 
 
 msgctxt "Operator"
-msgid "Viewport Render Image"
-msgstr "Jendela Tampilan Render Gambar"
-
-
-msgctxt "Operator"
-msgid "Viewport Render Keyframes"
-msgstr "Jendela Tampilan Render Keyframe"
-
-
-msgctxt "Operator"
 msgid "Toggle Local View"
 msgstr "Toggle View Lokal"
 
@@ -30746,10 +30628,6 @@ msgid "No active camera set"
 msgstr "Hapus"
 
 
-msgid "Warning!"
-msgstr "Bahaya!"
-
-
 msgid "vertex data"
 msgstr "data vertex"
 
@@ -31446,22 +31324,6 @@ msgid "Bright"
 msgstr "Kanan"
 
 
-msgid "Color Space:"
-msgstr "Ruang Warna:"
-
-
-msgid "Key Channel:"
-msgstr "Saluran Kunci:"
-
-
-msgid "Limiting Channel:"
-msgstr "Membatasi Saluran:"
-
-
-msgid "Despill Channel:"
-msgstr "Saluran Despill:"
-
-
 msgid "Correction for shadows"
 msgstr "Koreksi untuk bayangan"
 
@@ -31488,10 +31350,6 @@ msgstr "Tipe Bokeh:"
 
 msgid "Result"
 msgstr "Hasil"
-
-
-msgid "Buffer Edge:"
-msgstr "Tepi Penyangga:"
 
 
 msgid "Sun Beams"
@@ -31960,6 +31818,10 @@ msgid "Nothing indicated"
 msgstr "Tidak ada yang berindikasi"
 
 
+msgid "'%s': cannot use current file as library"
+msgstr "'%s': tidak dapat menggunakan file sekarang sebagai perpustakaan"
+
+
 msgid "'%s': nothing indicated"
 msgstr "'%s': tidak terindikasi"
 
@@ -31970,10 +31832,6 @@ msgstr "'%s': bukan perpustakaan"
 
 msgid "Scene '%s' is linked, instantiation of objects is disabled"
 msgstr "Adegan '%s' telah dihubungkan, instantiasi objek telah dinonaktifkan"
-
-
-msgid "'%s': cannot use current file as library"
-msgstr "'%s': tidak dapat menggunakan file sekarang sebagai perpustakaan"
 
 
 msgid "'%s' is not a valid library filepath"

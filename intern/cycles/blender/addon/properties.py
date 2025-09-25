@@ -33,17 +33,6 @@ enum_devices = (
         "Use GPU compute device for rendering, configured in the system tab in the user preferences"),
 )
 
-enum_feature_set = (
-    ('SUPPORTED',
-     "Supported",
-     "Only use finished and supported features"),
-    ('EXPERIMENTAL',
-     "Experimental",
-     "Use experimental and incomplete features that might be broken or change in the future",
-     'ERROR',
-     1),
-)
-
 enum_bvh_layouts = (
     ('BVH2', "BVH2", "", 1),
     ('EMBREE', "Embree", "", 4),
@@ -394,13 +383,6 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         description="Device to use for rendering",
         items=enum_devices,
         default='CPU',
-    )
-    feature_set: EnumProperty(
-        name="Feature Set",
-        description="Feature set to use for rendering",
-        items=enum_feature_set,
-        default='SUPPORTED',
-        update=update_render_engine,
     )
     shading_system: BoolProperty(
         name="Open Shading Language",
@@ -806,22 +788,20 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
     dicing_rate: FloatProperty(
         name="Dicing Rate",
-        description="Size of a micropolygon in pixels",
+        description="Multiplier for per object adaptive subdivision size",
         min=0.1, max=1000.0, soft_min=0.5,
         default=1.0,
-        subtype='PIXEL'
     )
     preview_dicing_rate: FloatProperty(
         name="Viewport Dicing Rate",
-        description="Size of a micropolygon in pixels during preview render",
+        description="Multiplier for per object adaptive subdivision size in the viewport",
         min=0.1, max=1000.0, soft_min=0.5,
         default=8.0,
-        subtype='PIXEL'
     )
 
     max_subdivisions: IntProperty(
         name="Max Subdivisions",
-        description="Stop subdividing when this level is reached even if the dice rate would produce finer tessellation",
+        description="Stop subdividing when this level is reached even if the dicing rate would produce finer tessellation",
         min=0,
         max=16,
         default=12,
@@ -1046,15 +1026,16 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     )
 
     use_auto_tile: BoolProperty(
-        name="Use Tiling",
-        description="Render high resolution images in tiles to reduce memory usage, using the specified tile size. Tiles are cached to disk while rendering to save memory",
+        name="Auto Tile",
+        description="Deprecated, tiling is always enabled",
         default=True,
     )
     tile_size: IntProperty(
         name="Tile Size",
         default=2048,
-        description="",
-        min=8, max=8192,
+        description="Render high resolution images in tiles of this size, to reduce memory usage. Tiles are cached to disk while rendering to save memory",
+        min=8,
+        max=8192,
     )
 
     # Various fine-tuning debug flags
@@ -1377,19 +1358,6 @@ class CyclesObjectSettings(bpy.types.PropertyGroup):
         default=False,
     )
 
-    use_adaptive_subdivision: BoolProperty(
-        name="Use Adaptive Subdivision",
-        description="Use adaptive render time subdivision",
-        default=False,
-    )
-
-    dicing_rate: FloatProperty(
-        name="Dicing Scale",
-        description="Multiplier for scene dicing rate (located in the Subdivision panel)",
-        min=0.1, max=1000.0, soft_min=0.5,
-        default=1.0,
-    )
-
     shadow_terminator_offset: FloatProperty(
         name="Shadow Terminator Shading Offset",
         description="Push the shadow terminator towards the light to hide artifacts on low poly geometry",
@@ -1476,6 +1444,12 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
     pass_debug_sample_count: BoolProperty(
         name="Debug Sample Count",
         description="Number of samples per pixel taken, divided by the maximum number of samples. To analyze adaptive sampling",
+        default=False,
+        update=update_render_passes,
+    )
+    pass_render_time: BoolProperty(
+        name="Render Time",
+        description="Pass containing an estimate for how long each pixel took to render",
         default=False,
         update=update_render_passes,
     )

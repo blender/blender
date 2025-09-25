@@ -14,7 +14,7 @@
 
 #include "DRW_render.hh"
 
-#include "eevee_shader_shared.hh"
+#include "eevee_renderbuffers_shared.hh"
 
 namespace blender::eevee {
 

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "infos/eevee_film_info.hh"
+#include "infos/eevee_film_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(eevee_film)
 

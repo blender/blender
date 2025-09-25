@@ -262,7 +262,7 @@ void register_node_type_sh_tex_white_noise()
 
   common_node_type_base(&ntype, "ShaderNodeTexWhiteNoise", SH_NODE_TEX_WHITE_NOISE);
   ntype.ui_name = "White Noise Texture";
-  ntype.ui_description = "Return a random value or color based on an input seed";
+  ntype.ui_description = "Calculate a random value or color based on an input seed";
   ntype.enum_name_legacy = "TEX_WHITE_NOISE";
   ntype.nclass = NODE_CLASS_TEXTURE;
   ntype.declare = file_ns::sh_node_tex_white_noise_declare;

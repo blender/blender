@@ -4,7 +4,7 @@
 
 #pragma once
 
-#if !defined(GPU_SHADER) && !defined(GLSL_CPP_STUBS)
+#ifndef GPU_SHADER
 #  include "BLI_math_vector.hh"
 #  include "GPU_shader.hh"
 #  include "GPU_shader_shared_utils.hh"
@@ -134,7 +134,7 @@ struct ObjectMatrices {
   float4x4 model;
   float4x4 model_inverse;
 
-#if !defined(GPU_SHADER) && defined(__cplusplus)
+#ifndef GPU_SHADER
   void sync(const Object &object);
   void sync(const float4x4 &model_matrix);
 #endif
@@ -155,7 +155,7 @@ enum eObjectInfoFlag : uint32_t {
   OBJECT_NO_INFO = ~OBJECT_HOLDOUT
 };
 
-#if !defined(GPU_SHADER) && defined(__cplusplus)
+#ifndef GPU_SHADER
 ENUM_OPERATORS(eObjectInfoFlag, OBJECT_ACTIVE_EDIT_MODE);
 #endif
 
@@ -177,7 +177,7 @@ struct ObjectInfos {
   float _pad1;
   float _pad2;
 
-#if !defined(GPU_SHADER) && defined(__cplusplus)
+#ifndef GPU_SHADER
   void sync();
   void sync(const blender::draw::ObjectRef ref, bool is_active_object, bool is_active_edit_mode);
 #endif
@@ -205,7 +205,7 @@ struct ObjectBounds {
   /** Radius of the inscribed sphere derived from the bounding corner. Computed on GPU. */
 #define _inner_sphere_radius bounding_corners[3].w
 
-#if !defined(GPU_SHADER) && defined(__cplusplus)
+#ifndef GPU_SHADER
   void sync();
   void sync(const Object &ob, float inflate_bounds = 0.0f);
   void sync(const float3 &center, const float3 &size);
@@ -271,7 +271,7 @@ struct ObjectAttribute {
   float data_x, data_y, data_z, data_w;
   uint hash_code;
 
-#if !defined(GPU_SHADER) && defined(__cplusplus)
+#ifndef GPU_SHADER
   /**
    * Go through all possible source of the given object uniform attribute.
    * Returns true if the attribute was correctly filled.
@@ -291,7 +291,7 @@ struct LayerAttribute {
   uint buffer_length; /* Only in the first record. */
   uint _pad1, _pad2;
 
-#if !defined(GPU_SHADER) && defined(__cplusplus)
+#ifndef GPU_SHADER
   bool sync(const Scene *scene, const ViewLayer *layer, const GPULayerAttr &attr);
 #endif
 };

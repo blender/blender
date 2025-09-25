@@ -1,0 +1,677 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
+#pragma once
+
+#include "gpu_shader_msl_defines.msl"
+
+using namespace metal;
+
+/* Generate wrapper structs for combined texture and sampler type. */
+#if MTL_ARGUMENT_BUFFER_NUM_SAMPLERS > 0
+using sampler_ptr = constant sampler *;
+#else
+using sampler_ptr = thread sampler *;
+#endif
+
+#define ENABLE_IF(cond) thread metal::enable_if_t<(cond)> * = nullptr
+
+/* Use point sampler instead of texture read to benefit from texture caching and reduce branching
+ * through removal of bounds tests, as these are handled by the sample operation. */
+constexpr sampler _mtl_fetch_samp(address::clamp_to_zero, filter::nearest, coord::pixel);
+
+template<typename T,
+         access A,
+         typename TextureT,
+         bool is_depth,
+         int Dim,
+         int Cube,
+         int Array,
+         bool Atomic = false>
+struct _mtl_sampler {
+
+  template<typename U, int S>
+  using vec_or_scalar = typename metal::conditional<S == 1, U, vec<U, S>>::type;
+
+  using FltCoord = vec_or_scalar<float, Dim + Cube + Array>;
+  using FltDeriv = vec_or_scalar<float, Dim + Cube>;
+  using IntCoord = vec_or_scalar<int, Dim + Cube + Array>;
+  using IntDeriv = vec_or_scalar<int, Dim + Cube>;
+  using UintCoord = vec_or_scalar<uint, Dim + Cube + Array>;
+  using UintDeriv = vec_or_scalar<uint, Dim + Cube>;
+  using SizeVec = vec_or_scalar<int, Dim + Array>;
+  using DataVec = vec<T, 4>;
+  using AtomicT = T;
+
+  /* Template compatible gradient type choosing. */
+  template<int D, int C> struct gradient_n {};
+  /* clang-format off */
+  template<> struct gradient_n<2, 0> { using type = gradient2d; };
+  template<> struct gradient_n<3, 0> { using type = gradient3d; };
+  template<> struct gradient_n<2, 1> { using type = gradientcube; };
+  /* clang-format on */
+  /* Using `using` would invalidate the whole class. */
+#define gradient typename gradient_n<Dim, Cube>::type
+
+#ifndef MTL_SUPPORTS_TEXTURE_ATOMICS
+  /* If native texture atomics are unsupported, we instead utilize a custom type which wraps a
+   * buffer-backed texture. This texture will always be a Texture2D, but will emulate access to
+   * Texture3D and Texture2DArray by stacking layers.
+   * Access pattern will be derived based on the source type. 2DArray and 3D atomic texture
+   * support will require information on the size of each layer within the source 2D texture.
+   *
+   * A device pointer to the backing buffer will also be available for the atomic operations.
+   * NOTE: For atomic ops, it will only be valid to use access::read_write.
+   * We still need to use the wrapped type for access:sample, as texture2DArray and texture3D
+   * will require access indirection.
+   *
+   * NOTE: Only type of UINT is valid, but full template provided to match syntax of standard
+   * textures. */
+  template<typename U, int D, bool At> struct AtomicEmulation {};
+
+  template<typename U> struct AtomicEmulation<U, 2, true> {
+    /** Buffer to do atomic operations on. */
+    device U *buffer;
+    /* Aligned width matches the number of buffer elements in bytes_per_row. This may be greater
+     * than the texture's native width to satisfy device alignment rules. We need to use the padded
+     * width when writing to ensure the correct writing location aligns with a given pixel location
+     * in the texture. */
+    ushort aligned_width;
+
+    /* Convert 2D coordinates to the backing 2D texture coordinates. */
+    int2 to_internal_coord(thread TextureT * /*texture*/, IntCoord coord) const
+    {
+      return coord.xy;
+    }
+    /* Convert 2D coordinates to the memory location in the 2D texture memory buffer. */
+    uint to_linear_coord(thread TextureT * /*texture*/, IntCoord coord) const
+    {
+      return coord.x + coord.y * aligned_width;
+    }
+  };
+
+  template<typename U> struct AtomicEmulation<U, 3, true> {
+    /** Buffer to do atomic operations on. */
+    device U *buffer;
+    /**
+     * Required for pixel location inside the backing texture 2D space, and texture size query.
+     *
+     * IMPORTANT: Note that the slices are not contiguous in the backing texture as we simply use
+     * it for linear storage.
+     * For instance, for a [2,2,2] texture store in a [6x4] backing texture:
+     *
+     * \code{.unparsed}
+     * 001122
+     * 334455
+     * 667788
+     * xxxxxx
+     * \endcode
+     *
+     * The numbers are rows in the 3D texture.
+     */
+    ushort3 texture_size;
+    /* Aligned width matches the number of buffer elements in bytes_per_row. This may be greater
+     * than the texture's native width to satisfy device alignment rules. We need to use the padded
+     * width when writing to ensure the correct writing location aligns with a given pixel location
+     * in the texture. */
+    ushort aligned_width;
+
+    /* Convert 3D coordinates to the backing 2D texture coordinates. */
+    int2 to_internal_coord(thread TextureT *texture, IntCoord coord) const
+    {
+      /* Index of a pixel in the data array. Assuming data layout is scan-line. */
+      uint linear_pixel = uint(coord.x) + uint(coord.y) * texture_size.x +
+                          uint(coord.z) * (texture_size.x * texture_size.y);
+
+      uint backing_tex_width = texture->get_width();
+      /* Coordinate inside the backing texture. */
+      uint y = linear_pixel / backing_tex_width;
+      /* Avoid use of modulo operator for speed. */
+      uint x = linear_pixel - y * backing_tex_width;
+      return int2(x, y);
+    }
+
+    /* Convert 3D coordinates to the memory location in the 2D texture memory buffer. */
+    uint to_linear_coord(thread TextureT *texture, IntCoord coord) const
+    {
+      uint2 co = uint2(to_internal_coord(texture, coord));
+      return co.x + co.y * uint(aligned_width);
+    }
+  };
+
+  AtomicEmulation<T, Dim + Array, Atomic> atomic;
+#endif
+
+  thread TextureT *texture;
+  sampler_ptr samp;
+
+  template<int dim, int array, bool At = false> SizeVec size_impl(uint lod) const {}
+  template<> SizeVec size_impl<1, 0>(uint lod) const
+  {
+    return SizeVec(texture->get_width());
+  }
+  template<> SizeVec size_impl<1, 1>(uint lod) const
+  {
+    return SizeVec(texture->get_width(), texture->get_array_size());
+  }
+  template<> SizeVec size_impl<2, 0>(uint lod) const
+  {
+    return SizeVec(texture->get_width(lod), texture->get_height(lod));
+  }
+  template<> SizeVec size_impl<2, 1>(uint lod) const
+  {
+    return SizeVec(texture->get_width(lod), texture->get_height(lod), texture->get_array_size());
+  }
+  template<> SizeVec size_impl<3, 0>(uint lod) const
+  {
+    return SizeVec(texture->get_width(lod), texture->get_height(lod), texture->get_depth(lod));
+  }
+#ifndef MTL_SUPPORTS_TEXTURE_ATOMICS
+  template<> SizeVec size_impl<2, 1, true>(uint lod) const
+  {
+    return SizeVec(atomic.texture_size);
+  }
+  template<> SizeVec size_impl<3, 0, true>(uint lod) const
+  {
+    return SizeVec(atomic.texture_size);
+  }
+#endif
+  SizeVec size(int lod = 0) const
+  {
+    return size_impl<Dim, Array, Atomic>(uint(lod));
+  }
+
+#define ARRAY_FN \
+  template<int Ar = Array, bool At = Atomic, ENABLE_IF(Ar == 1), ENABLE_IF(At == false)>
+#define NON_ARRAY_FN \
+  template<int Ar = Array, bool At = Atomic, ENABLE_IF(Ar == 0), ENABLE_IF(At == false)>
+
+  NON_ARRAY_FN DataVec sample(FltCoord coord) const
+  {
+    return texture->sample(*samp, coord);
+  }
+  NON_ARRAY_FN DataVec sample_grad(FltCoord coord, FltDeriv dPdx, FltDeriv dPdy) const
+  {
+    return texture->sample(*samp, coord, gradient(dPdx, dPdy));
+  }
+  NON_ARRAY_FN DataVec sample_bias(FltCoord coord, bias lod_bias) const
+  {
+    return texture->sample(*samp, coord, lod_bias);
+  }
+  NON_ARRAY_FN DataVec sample_lod(FltCoord coord, level lod, IntDeriv offset = {0}) const
+  {
+    return texture->sample(*samp, coord, lod, offset);
+  }
+  NON_ARRAY_FN DataVec gather(FltCoord coord) const
+  {
+    return texture->gather(*samp, coord);
+  }
+  NON_ARRAY_FN DataVec fetch(IntCoord coord) const
+  {
+    return texture->sample(_mtl_fetch_samp, FltCoord(coord));
+  }
+  NON_ARRAY_FN DataVec fetch(IntCoord coord, level lod, IntDeriv offset = {0}) const
+  {
+    return texture->sample(_mtl_fetch_samp, FltCoord(coord), lod, offset);
+  }
+
+  ARRAY_FN DataVec sample(FltCoord coord) const
+  {
+    return texture->sample(*samp, uv_mask(coord), layer_mask(coord));
+  }
+  ARRAY_FN DataVec sample_grad(FltCoord coord, FltDeriv dPdx, FltDeriv dPdy) const
+  {
+    return texture->sample(*samp, uv_mask(coord), layer_mask(coord), gradient(dPdx, dPdy));
+  }
+  ARRAY_FN DataVec sample_bias(FltCoord coord, bias lod_bias) const
+  {
+    return texture->sample(*samp, uv_mask(coord), layer_mask(coord), lod_bias);
+  }
+  ARRAY_FN DataVec sample_lod(FltCoord coord, level lod, IntDeriv offset = {0}) const
+  {
+    return texture->sample(*samp, uv_mask(coord), layer_mask(coord), lod, offset);
+  }
+  ARRAY_FN DataVec gather(FltCoord coord) const
+  {
+    return texture->gather(*samp, uv_mask(coord), layer_mask(coord));
+  }
+  ARRAY_FN DataVec fetch(IntCoord coord) const
+  {
+    return texture->sample(_mtl_fetch_samp, uv_mask(coord), layer_mask(coord));
+  }
+  ARRAY_FN DataVec fetch(IntCoord coord, level lod, IntDeriv ofs = {0}) const
+  {
+    return texture->sample(_mtl_fetch_samp, uv_mask(coord), layer_mask(coord), lod, ofs);
+  }
+
+#undef gradient
+#undef ARRAY_FN
+#undef NON_ARRAY_FN
+
+  /**
+   * Image functions.
+   * To be split to its own class.
+   */
+
+#define ARRAY_FN \
+  template<int Ar = Array, bool At = Atomic, ENABLE_IF(Ar == 1), ENABLE_IF(At == false)>
+#define NON_ARRAY_FN \
+  template<int Ar = Array, bool At = Atomic, ENABLE_IF(Ar == 0), ENABLE_IF(At == false)>
+
+  NON_ARRAY_FN DataVec load(IntCoord coord) const
+  {
+    return texture->read(UintCoord(coord), 0);
+  }
+  NON_ARRAY_FN void store(DataVec data, IntCoord coord) const
+  {
+    texture->write(data, UintCoord(coord), 0);
+  }
+
+  ARRAY_FN DataVec load(IntCoord coord) const
+  {
+    return texture->read(uv_mask_img(coord), layer_mask_img(coord), 0);
+  }
+  ARRAY_FN void store(DataVec data, IntCoord coord) const
+  {
+    texture->write(data, uv_mask_img(coord), layer_mask_img(coord), 0);
+  }
+
+#undef ARRAY_FN
+#undef NON_ARRAY_FN
+
+#ifndef MTL_SUPPORTS_TEXTURE_ATOMICS
+  /* Atomic samplers only support `texelFetch` as the texture layout doesn't allow filtering. */
+
+#  define ATOMIC_FN template<bool At = Atomic, ENABLE_IF(At == true)>
+
+  ATOMIC_FN DataVec fetch(IntCoord coord) const
+  {
+    int2 coord_2d = atomic.to_internal_coord(texture, coord);
+    return texture->sample(_mtl_fetch_samp, float2(coord_2d));
+  }
+  ATOMIC_FN DataVec fetch(IntCoord coord, level lod, IntDeriv offset = {0}) const
+  {
+    int2 coord_2d = atomic.to_internal_coord(texture, coord);
+    return texture->sample(_mtl_fetch_samp, float2(coord_2d), lod, offset);
+  }
+
+  ATOMIC_FN DataVec load(IntCoord coord) const
+  {
+    int2 coord_2d = atomic.to_internal_coord(texture, coord);
+    return texture->read(uint2(coord_2d), 0);
+  }
+  ATOMIC_FN void store(DataVec data, IntCoord coord) const
+  {
+    int2 coord_2d = atomic.to_internal_coord(texture, coord);
+    texture->write(data, uint2(coord_2d), 0);
+  }
+
+#  undef ATOMIC_FN
+
+  AtomicT atomic_min(IntCoord coord, AtomicT data) const
+  {
+    return atomicMin(atomic.buffer[atomic.to_linear_coord(texture, coord)], data);
+  }
+  AtomicT atomic_max(IntCoord coord, AtomicT data) const
+  {
+    return atomicMax(atomic.buffer[atomic.to_linear_coord(texture, coord)], data);
+  }
+  AtomicT atomic_add(IntCoord coord, AtomicT data) const
+  {
+    return atomicAdd(atomic.buffer[atomic.to_linear_coord(texture, coord)], data);
+  }
+  AtomicT atomic_and(IntCoord coord, AtomicT data) const
+  {
+    return atomicAnd(atomic.buffer[atomic.to_linear_coord(texture, coord)], data);
+  }
+  AtomicT atomic_or(IntCoord coord, AtomicT data) const
+  {
+    return atomicOr(atomic.buffer[atomic.to_linear_coord(texture, coord)], data);
+  }
+  AtomicT atomic_xor(IntCoord coord, AtomicT data) const
+  {
+    return atomicXor(atomic.buffer[atomic.to_linear_coord(texture, coord)], data);
+  }
+  AtomicT atomic_exchange(IntCoord coord, AtomicT data) const
+  {
+    return atomicExchange(atomic.buffer[atomic.to_linear_coord(texture, coord)], data);
+  }
+
+#else
+#  define NON_ARRAY_ATOMIC \
+    template<typename U = T, \
+             int Ar = Array, \
+             ENABLE_IF(metal::is_integral_v<U> == true), \
+             ENABLE_IF(sizeof(U) == 4), \
+             ENABLE_IF(Ar == 0)>
+#  define ARRAY_ATOMIC \
+    template<typename U = T, \
+             int Ar = Array, \
+             ENABLE_IF(metal::is_integral_v<U> == true), \
+             ENABLE_IF(sizeof(U) == 4), \
+             ENABLE_IF(Ar == 1)>
+
+/* A compiler bug only inserts memory safety if there is another load after the write.
+ * This can happen in any shader. Until this is fixed upstream, use this workaround. */
+#  define SYNC_FIX(...) \
+    __VA_ARGS__; \
+    if (coord.x == -99999 /* Condition that will never be met. */) { \
+      this->store(DataVec(0), IntCoord(coord)); \
+    }
+
+  NON_ARRAY_ATOMIC AtomicT atomic_min(IntCoord coord, AtomicT data) const
+  {
+    return SYNC_FIX(texture->atomic_fetch_min(UintCoord(coord), data).x);
+  }
+  NON_ARRAY_ATOMIC AtomicT atomic_max(IntCoord coord, AtomicT data) const
+  {
+    return SYNC_FIX(texture->atomic_fetch_max(UintCoord(coord), data).x);
+  }
+  NON_ARRAY_ATOMIC AtomicT atomic_add(IntCoord coord, AtomicT data) const
+  {
+    return SYNC_FIX(texture->atomic_fetch_add(UintCoord(coord), data).x);
+  }
+  NON_ARRAY_ATOMIC AtomicT atomic_and(IntCoord coord, AtomicT data) const
+  {
+    return SYNC_FIX(texture->atomic_fetch_and(UintCoord(coord), data).x);
+  }
+  NON_ARRAY_ATOMIC AtomicT atomic_or(IntCoord coord, AtomicT data) const
+  {
+    return SYNC_FIX(texture->atomic_fetch_or(UintCoord(coord), data).x);
+  }
+  NON_ARRAY_ATOMIC AtomicT atomic_xor(IntCoord coord, AtomicT data) const
+  {
+    return SYNC_FIX(texture->atomic_fetch_xor(UintCoord(coord), data).x);
+  }
+  NON_ARRAY_ATOMIC AtomicT atomic_exchange(IntCoord coord, AtomicT data) const
+  {
+    return SYNC_FIX(texture->atomic_exchange(UintCoord(coord), data).x);
+  }
+
+  ARRAY_ATOMIC AtomicT atomic_min(IntCoord coord, AtomicT data) const
+  {
+    return SYNC_FIX(texture->atomic_fetch_min(uv_mask_img(coord), layer_mask_img(coord), data).x);
+  }
+  ARRAY_ATOMIC AtomicT atomic_max(IntCoord coord, AtomicT data) const
+  {
+    return SYNC_FIX(texture->atomic_fetch_max(uv_mask_img(coord), layer_mask_img(coord), data).x);
+  }
+  ARRAY_ATOMIC AtomicT atomic_add(IntCoord coord, AtomicT data) const
+  {
+    return SYNC_FIX(texture->atomic_fetch_add(uv_mask_img(coord), layer_mask_img(coord), data).x);
+  }
+  ARRAY_ATOMIC AtomicT atomic_and(IntCoord coord, AtomicT data) const
+  {
+    return SYNC_FIX(texture->atomic_fetch_and(uv_mask_img(coord), layer_mask_img(coord), data).x);
+  }
+  ARRAY_ATOMIC AtomicT atomic_or(IntCoord coord, AtomicT data) const
+  {
+    return SYNC_FIX(texture->atomic_fetch_or(uv_mask_img(coord), layer_mask_img(coord), data).x);
+  }
+  ARRAY_ATOMIC AtomicT atomic_xor(IntCoord coord, AtomicT data) const
+  {
+    return SYNC_FIX(texture->atomic_fetch_xor(uv_mask_img(coord), layer_mask_img(coord), data).x);
+  }
+  ARRAY_ATOMIC AtomicT atomic_exchange(IntCoord coord, AtomicT data) const
+  {
+    return SYNC_FIX(texture->atomic_exchange(uv_mask_img(coord), layer_mask_img(coord), data).x);
+  }
+
+#  undef NON_ARRAY_ATOMIC
+#  undef ARRAY_ATOMIC
+#endif
+
+  void fence()
+  {
+    texture->fence();
+  }
+
+ private:
+  template<typename U, typename V> static U reshape(V v) {}
+  /* clang-format off */
+  template<> float reshape<float>(float2 v) { return v.x; }
+  template<> float2 reshape<float2>(float3 v) { return v.xy; }
+  template<> float3 reshape<float3>(float4 v) { return v.xyz; }
+  template<> int reshape<int>(int2 v) { return v.x; }
+  template<> int2 reshape<int2>(int3 v) { return v.xy; }
+  template<> int3 reshape<int3>(int4 v) { return v.xyz; }
+  /* clang-format on */
+
+  FltDeriv uv_mask(FltCoord coord) const
+  {
+    return reshape<FltDeriv>(coord);
+  }
+  FltDeriv uv_mask(IntCoord coord) const
+  {
+    return FltDeriv(reshape<IntDeriv>(coord));
+  }
+
+  uint layer_mask(FltCoord coord) const
+  {
+    return coord[Dim + Cube];
+  }
+  uint layer_mask(IntCoord coord) const
+  {
+    return coord[Dim + Cube];
+  }
+
+  UintDeriv uv_mask_img(IntCoord coord) const
+  {
+    return UintDeriv(reshape<IntDeriv>(coord));
+  }
+
+  uint layer_mask_img(IntCoord coord) const
+  {
+    return coord[Dim + Cube];
+  }
+};
+
+#undef ENABLE_IF
+
+/* Add any types as needed. */
+#define TEMPLATE template<typename T = float, access A = access::sample>
+TEMPLATE using sampler2DDepth = _mtl_sampler<T, A, depth2d<T, A>, true, 2, 0, 0>;
+TEMPLATE using sampler2DArrayDepth = _mtl_sampler<T, A, depth2d_array<T, A>, true, 2, 0, 1>;
+TEMPLATE using depthCube = _mtl_sampler<T, A, texturecube<T, A>, true, 2, 1, 1>;
+TEMPLATE using depthCubeArray = _mtl_sampler<T, A, texturecube_array<T, A>, true, 2, 1, 1>;
+TEMPLATE using sampler1D = _mtl_sampler<T, A, texture1d<T, A>, false, 1, 0, 0>;
+TEMPLATE using sampler1DArray = _mtl_sampler<T, A, texture1d_array<T, A>, false, 1, 0, 1>;
+TEMPLATE using sampler2D = _mtl_sampler<T, A, texture2d<T, A>, false, 2, 0, 0>;
+TEMPLATE using sampler2DArray = _mtl_sampler<T, A, texture2d_array<T, A>, false, 2, 0, 1>;
+TEMPLATE using sampler3D = _mtl_sampler<T, A, texture3d<T, A>, false, 3, 0, 0>;
+TEMPLATE using samplerBuffer = _mtl_sampler<T, A, texture_buffer<T, A>, false, 1, 0, 0>;
+TEMPLATE using samplerCube = _mtl_sampler<T, A, texturecube<T, A>, false, 2, 1, 0>;
+TEMPLATE using samplerCubeArray = _mtl_sampler<T, A, texturecube_array<T, A>, false, 2, 1, 1>;
+/* Atomic textures are defined as 2D textures with special layout for 3D texture emulation. */
+TEMPLATE using sampler2DAtomic = _mtl_sampler<T, A, texture2d<T, A>, false, 2, 0, 0, true>;
+TEMPLATE using sampler2DArrayAtomic = _mtl_sampler<T, A, texture2d<T, A>, false, 2, 0, 1, true>;
+TEMPLATE using sampler3DAtomic = _mtl_sampler<T, A, texture2d<T, A>, false, 3, 0, 0, true>;
+
+/* Used by backend to declare the samplers. Could be removed. */
+TEMPLATE using _mtl_sampler_depth_2d = sampler2DDepth<T, A>;
+TEMPLATE using _mtl_sampler_depth_2d_array = sampler2DArrayDepth<T, A>;
+TEMPLATE using _mtl_sampler_depth_cube = depthCube<T, A>;
+TEMPLATE using _mtl_sampler_depth_cube_array = depthCubeArray<T, A>;
+TEMPLATE using _mtl_sampler_1d = sampler1D<T, A>;
+TEMPLATE using _mtl_sampler_1d_array = sampler1DArray<T, A>;
+TEMPLATE using _mtl_sampler_2d = sampler2D<T, A>;
+TEMPLATE using _mtl_sampler_2d_array = sampler2DArray<T, A>;
+TEMPLATE using _mtl_sampler_3d = sampler3D<T, A>;
+TEMPLATE using _mtl_sampler_buffer = samplerBuffer<T, A>;
+TEMPLATE using _mtl_sampler_cube = samplerCube<T, A>;
+TEMPLATE using _mtl_sampler_cube_array = samplerCubeArray<T, A>;
+TEMPLATE using _mtl_sampler_2d_atomic = sampler2DAtomic<T, A>;
+TEMPLATE using _mtl_sampler_2d_array_atomic = sampler2DArrayAtomic<T, A>;
+TEMPLATE using _mtl_sampler_3d_atomic = sampler3DAtomic<T, A>;
+#undef TEMPLATE
+
+/** Sampler functions */
+
+#define SAMPLER_FN \
+  template<typename SamplerT, \
+           typename FltCoord = typename SamplerT::FltCoord, \
+           typename FltDeriv = typename SamplerT::FltDeriv, \
+           typename IntCoord = typename SamplerT::IntCoord, \
+           typename IntDeriv = typename SamplerT::IntDeriv, \
+           typename UintCoord = typename SamplerT::UintCoord, \
+           typename UintDeriv = typename SamplerT::UintDeriv, \
+           typename SizeVec = typename SamplerT::SizeVec, \
+           typename DataVec = typename SamplerT::DataVec>
+
+SAMPLER_FN SizeVec textureSize(SamplerT texture, int lod)
+{
+  return texture.size(lod);
+}
+
+SAMPLER_FN DataVec texture(SamplerT texture, FltCoord coord)
+{
+  return texture.sample(coord);
+}
+
+SAMPLER_FN DataVec texture(SamplerT texture, FltCoord coord, float lod_bias)
+{
+  return texture.sample_bias(coord, bias(lod_bias));
+}
+
+SAMPLER_FN DataVec textureLod(SamplerT texture, FltCoord coord, float lod)
+{
+  return texture.sample_lod(coord, level(lod));
+}
+
+SAMPLER_FN DataVec textureLodOffset(SamplerT texture, FltCoord coord, float lod, IntDeriv offset)
+{
+  return texture.sample_lod(coord, level(lod), offset);
+}
+
+SAMPLER_FN DataVec textureGather(SamplerT texture, FltCoord coord)
+{
+  return texture.gather(coord);
+}
+
+SAMPLER_FN DataVec textureGrad(SamplerT texture, FltCoord coord, FltDeriv dPdx, FltDeriv dPdy)
+{
+  return texture.sample_grad(coord, dPdx, dPdy);
+}
+
+SAMPLER_FN DataVec texelFetch(SamplerT texture, IntCoord coord, int lod)
+{
+  return texture.fetch(coord, level(lod));
+}
+
+SAMPLER_FN DataVec texelFetchOffset(SamplerT texture, IntCoord coord, int lod, IntDeriv offset)
+{
+  return texture.fetch(coord, level(lod), offset);
+}
+
+/* Variant for 1D samplers. Discard the lod. */
+template<typename T, access A>
+typename sampler1D<T, A>::DataVec texelFetch(sampler1D<T, A> texture, int coord, int lod = 0)
+{
+  return texture.fetch(coord);
+}
+
+/* Variant for 1DArray samplers. Discard the lod. */
+template<typename T, access A>
+typename sampler1DArray<T, A>::DataVec texelFetch(sampler1DArray<T, A> texture,
+                                                  int2 coord,
+                                                  int lod = 0)
+{
+  return texture.fetch(coord);
+}
+
+/* Variant for buffer samplers. Discard the lod. */
+template<typename T, access A>
+typename samplerBuffer<T, A>::DataVec texelFetch(samplerBuffer<T, A> texture,
+                                                 int coord,
+                                                 int lod = 0)
+{
+  uint texel = uint(coord);
+  if (texel < texture.texture->get_width()) {
+    return texture.texture->read(texel);
+  }
+  return typename samplerBuffer<T, A>::DataVec(0);
+}
+
+#undef SAMPLER_FN
+
+#ifndef MTL_SUPPORTS_TEXTURE_ATOMICS
+/* textureSize functions for fallback atomic textures. */
+template<typename T, access A>
+int2 textureSize(thread _mtl_sampler_2d_atomic<T, A> image, uint lod)
+{
+  return int2(image.texture->get_width(lod), image.texture->get_height(lod));
+}
+
+template<typename T, access A>
+int3 textureSize(thread _mtl_sampler_2d_array_atomic<T, A> image, uint lod)
+{
+  return int3(image.texture_size);
+}
+
+template<typename T, access A>
+int3 textureSize(thread _mtl_sampler_3d_atomic<T, A> image, uint lod)
+{
+  return int3(image.texture_size);
+}
+#endif
+
+/* Samplers as function parameters. */
+#define sampler1D thread _mtl_sampler_1d<float>
+#define sampler1DArray thread _mtl_sampler_1d_array<float>
+#define sampler2D thread _mtl_sampler_2d<float>
+#define sampler2DDepth thread _mtl_sampler_depth_2d<float>
+#define sampler2DShadow thread _mtl_sampler_depth_2d<float>
+#define sampler2DArray thread _mtl_sampler_2d_array<float>
+#define sampler2DArrayDepth thread _mtl_sampler_depth_2d_array<float>
+#define sampler2DArrayShadow thread _mtl_sampler_depth_2d_array<float>
+#define sampler3D thread _mtl_sampler_3d<float>
+#define samplerBuffer thread _mtl_sampler_buffer<float, access::read>
+#define samplerCube thread _mtl_sampler_cube<float>
+#define samplerCubeDepth thread _mtl_sampler_depth_cube<float>
+#define samplerCubeShadow thread _mtl_sampler_depth_cube<float>
+#define samplerCubeArray thread _mtl_sampler_cube_array<float>
+#define samplerCubeArrayDepth thread _mtl_sampler_depth_cube_array<float>
+#define samplerCubeArrayShadow thread _mtl_sampler_depth_cube_array<float>
+
+#define usampler1D thread _mtl_sampler_1d<uint>
+#define usampler1DArray thread _mtl_sampler_1d_array<uint>
+#define usampler2D thread _mtl_sampler_2d<uint>
+#define usampler2DArray thread _mtl_sampler_2d_array<uint>
+#define usampler3D thread _mtl_sampler_3d<uint>
+#define usamplerBuffer thread _mtl_sampler_buffer<uint, access::read>
+#define usamplerCube thread _mtl_sampler_cube<uint>
+#define usamplerCubeArray thread _mtl_sampler_cube_array<uint>
+
+#define isampler1D thread _mtl_sampler_1d<int>
+#define isampler1DArray thread _mtl_sampler_1d_array<int>
+#define isampler2D thread _mtl_sampler_2d<int>
+#define isampler2DArray thread _mtl_sampler_2d_array<int>
+#define isampler3D thread _mtl_sampler_3d<int>
+#define isamplerBuffer thread _mtl_sampler_buffer<int, access::read>
+#define isamplerCube thread _mtl_sampler_cube<int>
+#define isamplerCubeArray thread _mtl_sampler_cube_array<int>
+
+#ifndef MTL_SUPPORTS_TEXTURE_ATOMICS
+/* If texture atomics are unsupported, map atomic types to internal atomic fallback type. */
+#  define usampler2DArrayAtomic _mtl_sampler_2d_array_atomic<uint>
+#  define usampler2DAtomic _mtl_sampler_2d_atomic<uint>
+#  define usampler3DAtomic _mtl_sampler_3d_atomic<uint>
+#  define isampler2DArrayAtomic _mtl_sampler_2d_array_atomic<int>
+#  define isampler2DAtomic _mtl_sampler_2d_atomic<int>
+#  define isampler3DAtomic _mtl_sampler_3d_atomic<int>
+#else
+#  define usampler2DArrayAtomic usampler2DArray
+#  define usampler2DAtomic usampler2D
+#  define usampler3DAtomic usampler3D
+#  define isampler2DArrayAtomic isampler2DArray
+#  define isampler2DAtomic isampler2D
+#  define isampler3DAtomic isampler3D
+#endif
+
+/* Sampler struct for argument buffer. */
+#if MTL_ARGUMENT_BUFFER_NUM_SAMPLERS > 0
+struct SStruct {
+  array<sampler, MTL_ARGUMENT_BUFFER_NUM_SAMPLERS> sampler_args [[id(0)]];
+};
+#endif

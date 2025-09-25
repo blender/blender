@@ -12,12 +12,12 @@
  * `pos` is the verts position in the curve tangent space
  */
 
-#include "infos/gpu_shader_2D_nodelink_info.hh"
+#include "infos/gpu_shader_2D_nodelink_infos.hh"
 
 VERTEX_SHADER_CREATE_INFO(gpu_shader_2D_nodelink)
 
 #include "gpu_shader_attribute_load_lib.glsl"
-#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_math_vector_compare_lib.glsl"
 
 void main()
 {

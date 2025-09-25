@@ -2,12 +2,20 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-void node_composite_set_alpha_apply(float4 color, float alpha, out float4 result)
+#define CMP_NODE_SETALPHA_MODE_APPLY 0
+#define CMP_NODE_SETALPHA_MODE_REPLACE_ALPHA 1
+
+void node_composite_set_alpha(float4 color, float alpha, float type, out float4 result)
 {
-  result = color * alpha;
+  switch (int(type)) {
+    case CMP_NODE_SETALPHA_MODE_APPLY:
+      result = color * alpha;
+      break;
+    case CMP_NODE_SETALPHA_MODE_REPLACE_ALPHA:
+      result = float4(color.rgb, alpha);
+      break;
+  }
 }
 
-void node_composite_set_alpha_replace(float4 color, float alpha, out float4 result)
-{
-  result = float4(color.rgb, alpha);
-}
+#undef CMP_NODE_SETALPHA_MODE_APPLY
+#undef CMP_NODE_SETALPHA_MODE_REPLACE_ALPHA

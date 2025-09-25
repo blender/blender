@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "gpu_glsl_cpp_stubs.hh"
+#include "gpu_shader_compat.hh"
 
 void valtorgb_opti_constant(
     float fac, float edge, float4 color1, float4 color2, out float4 outcol, out float outalpha)

@@ -320,7 +320,6 @@ void AbstractHierarchyIterator::export_graph_construct()
       DupliParentFinder dupli_parent_finder;
 
       for (const DupliObject &dupli_object : duplilist) {
-        PersistentID persistent_id(&dupli_object);
         if (!should_visit_dupli_object(&dupli_object)) {
           continue;
         }

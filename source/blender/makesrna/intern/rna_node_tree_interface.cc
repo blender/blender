@@ -597,9 +597,9 @@ static const EnumPropertyItem *rna_NodeTreeInterfaceSocket_attribute_domain_item
 static PointerRNA rna_NodeTreeInterfaceItems_active_get(PointerRNA *ptr)
 {
   bNodeTreeInterface *interface = static_cast<bNodeTreeInterface *>(ptr->data);
-  PointerRNA r_ptr = RNA_pointer_create_discrete(
+  PointerRNA ptr_result = RNA_pointer_create_discrete(
       ptr->owner_id, &RNA_NodeTreeInterfaceItem, interface->active_item());
-  return r_ptr;
+  return ptr_result;
 }
 
 static void rna_NodeTreeInterfaceItems_active_set(PointerRNA *ptr,

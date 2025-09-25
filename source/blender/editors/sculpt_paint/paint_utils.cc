@@ -189,7 +189,7 @@ static wmOperatorStatus brush_curve_preset_exec(bContext *C, wmOperator *op)
     Scene *scene = CTX_data_scene(C);
     ViewLayer *view_layer = CTX_data_view_layer(C);
     BKE_brush_curve_preset(br, eCurveMappingPreset(RNA_enum_get(op->ptr, "shape")));
-    BKE_paint_invalidate_cursor_overlay(scene, view_layer, br->curve);
+    BKE_paint_invalidate_cursor_overlay(scene, view_layer, br->curve_distance_falloff);
   }
 
   return OPERATOR_FINISHED;
@@ -199,7 +199,7 @@ static bool brush_curve_preset_poll(bContext *C)
 {
   Brush *br = BKE_paint_brush(BKE_paint_get_active_from_context(C));
 
-  return br && br->curve;
+  return br && br->curve_distance_falloff;
 }
 
 static const EnumPropertyItem prop_shape_items[] = {

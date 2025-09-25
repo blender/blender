@@ -13,6 +13,7 @@
 #include "DNA_ID.h"
 
 struct ID;
+struct Depsgraph;
 
 /* Uncomment this to have verbose log about original and evaluated pointers
  * logged, with detailed information when they are allocated, expanded

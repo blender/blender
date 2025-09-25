@@ -6,7 +6,7 @@
  * Convert DrawPrototype into draw commands.
  */
 
-#include "draw_view_info.hh"
+#include "draw_view_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(draw_command_generate)
 

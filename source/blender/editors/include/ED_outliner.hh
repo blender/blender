@@ -19,9 +19,10 @@ struct PointerRNA;
 bool ED_outliner_collections_editor_poll(bContext *C);
 
 /**
- * Populates the \param objects: ListBase with all the outliner selected objects
- * We store it as (Object *)LinkData->data
- * \param objects: expected to be empty
+ * Populates the `objects` #ListBase with all the outliner selected objects
+ * We store it as `(Object *)LinkData->data`.
+ *
+ * \param objects: Expected to be empty.
  */
 void ED_outliner_selected_objects_get(const bContext *C, ListBase *objects);
 

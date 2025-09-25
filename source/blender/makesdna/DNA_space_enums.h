@@ -916,6 +916,12 @@ typedef enum eConsoleLine_Type {
 /** \name Motion Tracking
  * \{ */
 
+/** #SpaceClipOverlay.flag */
+typedef enum eSpaceClipOverlay_Flag {
+  SC_SHOW_OVERLAYS = (1 << 0),
+  SC_SHOW_CURSOR = (1 << 1),
+} eSpaceClipOverlay_Flag;
+
 /** #SpaceClip.flag */
 typedef enum eSpaceClip_Flag {
   SC_SHOW_MARKER_PATTERN = (1 << 0),
@@ -1035,6 +1041,7 @@ typedef enum eSpreadsheetColumnValueType {
   SPREADSHEET_VALUE_TYPE_INT32_2D = 10,
   SPREADSHEET_VALUE_TYPE_QUATERNION = 11,
   SPREADSHEET_VALUE_TYPE_FLOAT4X4 = 12,
+  SPREADSHEET_VALUE_TYPE_BUNDLE_ITEM = 13,
 } eSpreadsheetColumnValueType;
 
 typedef enum eSpreadsheetColumnFlag {

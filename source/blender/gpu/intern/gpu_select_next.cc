@@ -22,12 +22,12 @@ struct GPUSelectNextState {
   /** Number of hits. Set to -1 if it overflows buffer_len. */
   uint hits = -1;
   /** Mode of operation. */
-  eGPUSelectMode mode = eGPUSelectMode::GPU_SELECT_INVALID;
+  GPUSelectMode mode = GPUSelectMode::GPU_SELECT_INVALID;
 };
 
 static GPUSelectNextState g_state = {};
 
-void gpu_select_next_begin(GPUSelectBuffer *buffer, const rcti *input, eGPUSelectMode mode)
+void gpu_select_next_begin(GPUSelectBuffer *buffer, const rcti *input, GPUSelectMode mode)
 
 {
   g_state.buffer = buffer;
@@ -41,7 +41,7 @@ int gpu_select_next_get_pick_area_center()
   return BLI_rcti_size_x(&g_state.rect) / 2;
 }
 
-eGPUSelectMode gpu_select_next_get_mode()
+GPUSelectMode gpu_select_next_get_mode()
 {
   return g_state.mode;
 }
@@ -56,18 +56,18 @@ void gpu_select_next_set_result(GPUSelectResult *hit_buf, uint hit_len)
 
   /* TODO(fclem): There might be some conversion to do to align to the other APIs output. */
   switch (g_state.mode) {
-    case eGPUSelectMode::GPU_SELECT_ALL:
+    case GPUSelectMode::GPU_SELECT_ALL:
       hit_results.copy_from(hits);
       break;
-    case eGPUSelectMode::GPU_SELECT_PICK_ALL:
+    case GPUSelectMode::GPU_SELECT_PICK_ALL:
       hit_results.copy_from(hits);
       break;
-    case eGPUSelectMode::GPU_SELECT_PICK_NEAREST:
+    case GPUSelectMode::GPU_SELECT_PICK_NEAREST:
       hit_results.copy_from(hits);
       break;
-    case eGPUSelectMode::GPU_SELECT_NEAREST_FIRST_PASS:
-    case eGPUSelectMode::GPU_SELECT_NEAREST_SECOND_PASS:
-    case eGPUSelectMode::GPU_SELECT_INVALID:
+    case GPUSelectMode::GPU_SELECT_NEAREST_FIRST_PASS:
+    case GPUSelectMode::GPU_SELECT_NEAREST_SECOND_PASS:
+    case GPUSelectMode::GPU_SELECT_INVALID:
       BLI_assert_unreachable();
       break;
   }

@@ -224,6 +224,7 @@ static void do_glow_effect_float(Strip *strip,
 }
 
 static ImBuf *do_glow_effect(const RenderData *context,
+                             SeqRenderState * /*state*/,
                              Strip *strip,
                              float /*timeline_frame*/,
                              float fac,

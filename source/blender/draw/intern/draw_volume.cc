@@ -77,7 +77,7 @@ struct VolumeModule {
     GPU_texture_extend_mode(dummy_one, GPU_SAMPLER_EXTEND_MODE_REPEAT);
   }
 
-  gpu::Texture *grid_default_texture(eGPUDefaultValue default_value)
+  gpu::Texture *grid_default_texture(GPUDefaultValue default_value)
   {
     switch (default_value) {
       case GPU_DEFAULT_0:

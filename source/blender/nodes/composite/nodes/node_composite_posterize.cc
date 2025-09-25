@@ -25,14 +25,8 @@ namespace blender::nodes::node_composite_posterize_cc {
 static void cmp_node_posterize_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Color>("Image")
-      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_domain_priority(0);
-  b.add_input<decl::Float>("Steps")
-      .default_value(8.0f)
-      .min(2.0f)
-      .max(1024.0f)
-      .compositor_domain_priority(1);
+  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Float>("Steps").default_value(8.0f).min(2.0f).max(1024.0f);
   b.add_output<decl::Color>("Image");
 }
 

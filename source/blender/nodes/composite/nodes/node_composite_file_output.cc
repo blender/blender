@@ -112,7 +112,7 @@ static void node_init(const bContext *C, PointerRNA *node_pointer)
   data->save_as_render = true;
   data->file_name = BLI_strdup("file_name");
 
-  BKE_image_format_init(&data->format, false);
+  BKE_image_format_init(&data->format);
   BKE_image_format_media_type_set(
       &data->format, node_pointer->owner_id, MEDIA_TYPE_MULTI_LAYER_IMAGE);
   BKE_image_format_update_color_space_for_type(&data->format);
@@ -120,7 +120,7 @@ static void node_init(const bContext *C, PointerRNA *node_pointer)
   Scene *scene = CTX_data_scene(C);
   if (scene) {
     const RenderData *render_data = &scene->r;
-    BLI_strncpy(data->directory, render_data->pic, FILE_MAX);
+    STRNCPY(data->directory, render_data->pic);
   }
 }
 
@@ -169,10 +169,11 @@ static Vector<path_templates::Error> compute_image_path(const StringRefNull dire
                                                         const ImageFormatData &format,
                                                         const Scene &scene,
                                                         const bNode &node,
+                                                        const bool is_animation_render,
                                                         char *r_image_path)
 {
   char base_path[FILE_MAX] = "";
-  BLI_strncpy(base_path, directory.c_str(), FILE_MAX);
+  STRNCPY(base_path, directory.c_str());
   const std::string full_file_name = file_name + file_name_suffix;
   BLI_path_append(base_path, FILE_MAX, full_file_name.c_str());
 
@@ -188,7 +189,7 @@ static Vector<path_templates::Error> compute_image_path(const StringRefNull dire
                                       frame_number,
                                       &format,
                                       scene.r.scemode & R_EXTENSION,
-                                      true,
+                                      is_animation_render,
                                       BKE_scene_multiview_view_suffix_get(&scene.r, view));
 }
 
@@ -238,8 +239,16 @@ static void output_path_layout(uiLayout *layout,
 {
 
   char image_path[FILE_MAX];
-  const Vector<path_templates::Error> path_errors = compute_image_path(
-      directory, file_name, file_name_suffix, view, scene.r.cfra, format, scene, node, image_path);
+  const Vector<path_templates::Error> path_errors = compute_image_path(directory,
+                                                                       file_name,
+                                                                       file_name_suffix,
+                                                                       view,
+                                                                       scene.r.cfra,
+                                                                       format,
+                                                                       scene,
+                                                                       node,
+                                                                       false,
+                                                                       image_path);
 
   if (path_errors.is_empty()) {
     layout->label(image_path, ICON_FILE_IMAGE);
@@ -729,6 +738,7 @@ class FileOutputOperation : public NodeOperation {
         format,
         this->context().get_scene(),
         this->bnode(),
+        this->is_animation_render(),
         r_image_path);
 
     if (!path_errors.is_empty()) {
@@ -781,6 +791,14 @@ class FileOutputOperation : public NodeOperation {
      * this will result in clipping but is more expected for the user. */
     domain.transformation.location() = float2(0.0f);
     return domain;
+  }
+
+  bool is_animation_render()
+  {
+    if (!this->context().render_context()) {
+      return false;
+    }
+    return this->context().render_context()->is_animation_render;
   }
 };
 
@@ -835,7 +853,7 @@ void FileOutputItemsAccessor::blend_read_data_item(BlendDataReader *reader, Item
 std::string FileOutputItemsAccessor::validate_name(const StringRef name)
 {
   char file_name[FILE_MAX] = "";
-  BLI_strncpy(file_name, name.data(), FILE_MAX);
+  STRNCPY(file_name, name.data());
   BLI_path_make_safe_filename(file_name);
   return file_name;
 }

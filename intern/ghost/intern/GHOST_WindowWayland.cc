@@ -1996,6 +1996,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
      * consider it always enabled. But may still get disabled if Vulkan has no
      * appropriate surface format. */
     hdr_info_.hdr_enabled = true;
+    hdr_info_.wide_gamut_enabled = true;
     hdr_info_.sdr_white_level = 1.0f;
   }
 #endif
@@ -2170,10 +2171,10 @@ GHOST_WindowWayland::~GHOST_WindowWayland()
 }
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
-GHOST_TSuccess GHOST_WindowWayland::swapBuffers()
+GHOST_TSuccess GHOST_WindowWayland::swapBufferRelease()
 {
   GHOST_ASSERT(system_->main_thread_id == std::this_thread::get_id(), "Only from main thread!");
-  return GHOST_Window::swapBuffers();
+  return GHOST_Window::swapBufferRelease();
 }
 #endif /* USE_EVENT_BACKGROUND_THREAD */
 

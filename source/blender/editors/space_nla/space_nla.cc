@@ -16,6 +16,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
+#include "BLI_math_base.h"
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
@@ -303,7 +304,8 @@ static void nla_main_region_draw(const bContext *C, ARegion *region)
   /* reset view matrix */
   UI_view2d_view_restore(C);
 
-  ED_time_scrub_draw(region, scene, snla->flag & SNLA_DRAWTIME, true);
+  const int fps = round_db_to_int(scene->frames_per_second());
+  ED_time_scrub_draw(region, scene, snla->flag & SNLA_DRAWTIME, true, fps);
 }
 
 static void nla_main_region_draw_overlay(const bContext *C, ARegion *region)

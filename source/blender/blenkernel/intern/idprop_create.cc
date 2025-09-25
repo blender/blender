@@ -94,7 +94,7 @@ static void array_values_set(IDProperty *property,
 {
   BLI_assert(values);
   BLI_assert(property->len == values_len);
-  memcpy(IDP_Array(property), values, values_len * value_size);
+  memcpy(IDP_array_voidp_get(property), values, values_len * value_size);
 }
 
 /**
@@ -156,6 +156,6 @@ std::unique_ptr<IDProperty, IDPropertyDeleter> create_group(const StringRef prop
   return std::unique_ptr<IDProperty, IDPropertyDeleter>(property);
 }
 
-/* \} */
+/** \} */
 
 }  // namespace blender::bke::idprop

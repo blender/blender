@@ -11,6 +11,8 @@
 #include <cstdint>
 
 #include "BLI_index_mask_fwd.hh"
+#include "BLI_span.hh"
+#include "BLI_vector.hh"
 
 struct Depsgraph;
 struct Mesh;
@@ -79,4 +81,22 @@ void restore_from_bmesh_enter_geometry(const StepData &step_data, Mesh &mesh);
 bool has_bmesh_log_entry();
 
 void restore_position_from_undo_step(const Depsgraph &depsgraph, Object &object);
+
+namespace compression {
+
+/**
+ * Compress a span with ZSTD, using a prefiltering step that can improve compression speed and
+ * ratios for certain data.
+ */
+template<typename T>
+void filter_compress(const Span<T> src,
+                     Vector<std::byte> &filter_buffer,
+                     Vector<std::byte> &compress_buffer);
+
+/** Decompress data compressed with #filter_compress. */
+template<typename T>
+void filter_decompress(const Span<std::byte> src, Vector<std::byte> &buffer, Vector<T> &dst);
+
+}  // namespace compression
+
 }  // namespace blender::ed::sculpt_paint::undo

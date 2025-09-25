@@ -56,6 +56,16 @@ inline bool bone_is_selected(const bArmature *armature, const EditBone *ebone)
   return (ebone->flag & BONE_SELECTED) && bone_is_visible(armature, ebone);
 }
 
+inline bool bone_is_selectable(const bArmature *armature, const bPoseChannel *pchan)
+{
+  return bone_is_visible(armature, pchan) && !(pchan->bone->flag & BONE_UNSELECTABLE);
+}
+
+inline bool bone_is_selectable(const bArmature *armature, const Bone *bone)
+{
+  return bone_is_visible(armature, bone) && !(bone->flag & BONE_UNSELECTABLE);
+}
+
 /**
  * Iterates all descendents of the given pose bone including the bone itself. Iterates breadth
  * first.

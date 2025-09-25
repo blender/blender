@@ -762,7 +762,7 @@ static eSnapTargetOP snap_target_select_from_spacetype_and_tool_settings(TransIn
   /* `t->tsnap.target_operation` not initialized yet. */
   BLI_assert(t->tsnap.target_operation == SCE_SNAP_TARGET_ALL);
 
-  eSnapTargetOP r_target_operation = SCE_SNAP_TARGET_ALL;
+  eSnapTargetOP target_operation = SCE_SNAP_TARGET_ALL;
 
   if (ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE) && !(t->options & CTX_CAMERA)) {
     BKE_view_layer_synced_ensure(t->scene, t->view_layer);
@@ -784,45 +784,45 @@ static eSnapTargetOP snap_target_select_from_spacetype_and_tool_settings(TransIn
         /* Editing a mesh. */
         if ((t->flag & T_PROP_EDIT) != 0) {
           /* Exclude editmesh when using proportional edit. */
-          r_target_operation |= SCE_SNAP_TARGET_NOT_EDITED;
+          target_operation |= SCE_SNAP_TARGET_NOT_EDITED;
         }
         /* UV editing must never snap to the selection as this is what is transformed. */
         if (t->spacetype == SPACE_IMAGE) {
-          r_target_operation |= SCE_SNAP_TARGET_NOT_SELECTED;
+          target_operation |= SCE_SNAP_TARGET_NOT_SELECTED;
         }
       }
       else if (ELEM(obedit_type, OB_ARMATURE, OB_CURVES_LEGACY, OB_SURF, OB_LATTICE, OB_MBALL)) {
         /* Temporary limited to edit mode armature, curves, surfaces, lattices, and meta-balls.
          */
-        r_target_operation |= SCE_SNAP_TARGET_NOT_SELECTED;
+        target_operation |= SCE_SNAP_TARGET_NOT_SELECTED;
       }
     }
     else {
       /* Object or pose mode. */
-      r_target_operation |= SCE_SNAP_TARGET_NOT_SELECTED | SCE_SNAP_TARGET_NOT_ACTIVE;
+      target_operation |= SCE_SNAP_TARGET_NOT_SELECTED | SCE_SNAP_TARGET_NOT_ACTIVE;
     }
   }
   else if (ELEM(t->spacetype, SPACE_NODE, SPACE_SEQ)) {
-    r_target_operation |= SCE_SNAP_TARGET_NOT_SELECTED;
+    target_operation |= SCE_SNAP_TARGET_NOT_SELECTED;
   }
 
   /* Use scene defaults only when transform is modal. */
   if (t->flag & T_MODAL) {
     ToolSettings *ts = t->settings;
     SET_FLAG_FROM_TEST(
-        r_target_operation, (ts->snap_flag & SCE_SNAP_NOT_TO_ACTIVE), SCE_SNAP_TARGET_NOT_ACTIVE);
-    SET_FLAG_FROM_TEST(r_target_operation,
+        target_operation, (ts->snap_flag & SCE_SNAP_NOT_TO_ACTIVE), SCE_SNAP_TARGET_NOT_ACTIVE);
+    SET_FLAG_FROM_TEST(target_operation,
                        !(ts->snap_flag & SCE_SNAP_TO_INCLUDE_EDITED),
                        SCE_SNAP_TARGET_NOT_EDITED);
-    SET_FLAG_FROM_TEST(r_target_operation,
+    SET_FLAG_FROM_TEST(target_operation,
                        !(ts->snap_flag & SCE_SNAP_TO_INCLUDE_NONEDITED),
                        SCE_SNAP_TARGET_NOT_NONEDITED);
-    SET_FLAG_FROM_TEST(r_target_operation,
+    SET_FLAG_FROM_TEST(target_operation,
                        (ts->snap_flag & SCE_SNAP_TO_ONLY_SELECTABLE),
                        SCE_SNAP_TARGET_ONLY_SELECTABLE);
   }
 
-  return r_target_operation;
+  return target_operation;
 }
 
 static void snap_object_context_init(TransInfo *t)

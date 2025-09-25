@@ -48,6 +48,8 @@ static void node_register()
 
   fn_node_type_base(&ntype, "FunctionNodeInputRotation", FN_NODE_INPUT_ROTATION);
   ntype.ui_name = "Rotation";
+  ntype.ui_description =
+      "Provide a rotation value that can be connected to other nodes in the tree";
   ntype.enum_name_legacy = "INPUT_ROTATION";
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = node_declare;

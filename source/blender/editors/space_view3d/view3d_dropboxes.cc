@@ -129,7 +129,7 @@ static void view3d_ob_drop_on_enter(wmDropBox *drop, wmDrag *drag)
     AssetMetaData *meta_data = WM_drag_get_asset_meta_data(drag, ID_OB);
     IDProperty *dimensions_prop = BKE_asset_metadata_idprop_find(meta_data, "dimensions");
     if (dimensions_prop) {
-      copy_v3_v3(dimensions, static_cast<float *>(IDP_Array(dimensions_prop)));
+      copy_v3_v3(dimensions, IDP_array_float_get(dimensions_prop));
     }
   }
 
@@ -308,7 +308,7 @@ static bool view3d_geometry_nodes_drop_poll(bContext *C, wmDrag *drag, const wmE
     }
     const AssetMetaData *metadata = &asset_data->asset->get_metadata();
     const IDProperty *tree_type = BKE_asset_metadata_idprop_find(metadata, "type");
-    if (!tree_type || IDP_Int(tree_type) != NTREE_GEOMETRY) {
+    if (!tree_type || IDP_int_get(tree_type) != NTREE_GEOMETRY) {
       return false;
     }
     if (wmDropBox *drop_box = drag->drop_state.active_dropbox) {

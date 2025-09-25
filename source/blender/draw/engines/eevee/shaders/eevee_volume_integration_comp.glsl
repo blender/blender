@@ -8,7 +8,7 @@
 /* Step 3 : Integrate for each froxel the final amount of light
  * scattered back to the viewer and the amount of transmittance. */
 
-#include "infos/eevee_volume_info.hh"
+#include "infos/eevee_volume_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_volume_integration)
 

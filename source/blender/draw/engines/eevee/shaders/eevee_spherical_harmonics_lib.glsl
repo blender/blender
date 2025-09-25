@@ -4,8 +4,9 @@
 
 #pragma once
 
-#include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_math_vector_reduce_lib.glsl"
+#include "gpu_shader_math_vector_safe_lib.glsl"
 
 /* -------------------------------------------------------------------- */
 /** \name Spherical Harmonics Functions

@@ -10,16 +10,17 @@
 
 #pragma once
 
-#include "BLI_system.h"
 #include "BLI_vector.hh"
 #include "DNA_scene_types.h"
-#include "DRW_render.hh"
 
-#include "eevee_shader_shared.hh"
+#include "eevee_sampling_shared.hh"
+#include "eevee_uniform_shared.hh"
 
 namespace blender::eevee {
 
 class Instance;
+
+using SamplingDataBuf = draw::StorageBuffer<SamplingData>;
 
 class Sampling {
  private:

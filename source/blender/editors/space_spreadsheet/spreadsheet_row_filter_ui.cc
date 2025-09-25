@@ -111,6 +111,7 @@ static std::string value_string(const SpreadsheetRowFilter &row_filter,
       return row_filter.value_string;
     case SPREADSHEET_VALUE_TYPE_QUATERNION:
     case SPREADSHEET_VALUE_TYPE_FLOAT4X4:
+    case SPREADSHEET_VALUE_TYPE_BUNDLE_ITEM:
     case SPREADSHEET_VALUE_TYPE_UNKNOWN:
       return "";
   }
@@ -260,6 +261,7 @@ static void spreadsheet_filter_panel_draw(const bContext *C, Panel *panel)
     case SPREADSHEET_VALUE_TYPE_UNKNOWN:
     case SPREADSHEET_VALUE_TYPE_QUATERNION:
     case SPREADSHEET_VALUE_TYPE_FLOAT4X4:
+    case SPREADSHEET_VALUE_TYPE_BUNDLE_ITEM:
       layout->label(IFACE_("Unsupported column type"), ICON_ERROR);
       break;
   }
