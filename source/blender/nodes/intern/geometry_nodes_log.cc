@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BKE_lib_id.hh"
 #include "NOD_geometry_nodes_bundle.hh"
 #include "NOD_geometry_nodes_closure.hh"
 #include "NOD_geometry_nodes_log.hh"
@@ -381,14 +382,25 @@ void GeoTreeLogger::log_value(const bNode &node, const bNodeSocket &socket, cons
   }
 }
 
-std::optional<bke::GeometrySet> ViewerNodeLog::main_geometry() const
+const bke::GeometrySet *ViewerNodeLog::main_geometry() const
 {
-  for (const Item &item : this->items) {
-    if (item.value.is_single() && item.value.get_single_ptr().is_type<bke::GeometrySet>()) {
-      return *item.value.get_single_ptr().get<bke::GeometrySet>();
+  main_geometry_cache_mutex_.ensure([&]() {
+    for (const Item &item : this->items) {
+      if (item.value.is_volume_grid()) {
+        const bke::GVolumeGrid grid = item.value.get<bke::GVolumeGrid>();
+        Volume *volume = BKE_id_new_nomain<Volume>(nullptr);
+        grid->add_user();
+        BKE_volume_grid_add(volume, grid.get());
+        main_geometry_cache_ = bke::GeometrySet::from_volume(volume);
+        return;
+      }
+      if (item.value.is_single() && item.value.get_single_ptr().is_type<bke::GeometrySet>()) {
+        main_geometry_cache_ = *item.value.get_single_ptr().get<bke::GeometrySet>();
+        return;
+      }
     }
-  }
-  return std::nullopt;
+  });
+  return main_geometry_cache_ ? &*main_geometry_cache_ : nullptr;
 }
 
 static bool warning_is_propagated(const NodeWarningPropagation propagation,
