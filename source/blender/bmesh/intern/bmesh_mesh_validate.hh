@@ -16,4 +16,4 @@
  *
  * \return true when the mesh is valid.
  */
-bool BM_mesh_validate(BMesh *bm);
+bool BM_mesh_is_valid(BMesh *bm);

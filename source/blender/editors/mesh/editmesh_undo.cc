@@ -853,7 +853,7 @@ static void *undomesh_from_editmesh(UndoMesh *um,
   }
 
   /* Uncomment for troubleshooting. */
-  // BM_mesh_validate(em->bm);
+  // BM_mesh_is_valid(em->bm);
 
   CustomData_MeshMasks cd_mask_extra{};
   cd_mask_extra.vmask = CD_MASK_SHAPE_KEYINDEX;
