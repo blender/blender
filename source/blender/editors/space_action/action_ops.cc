@@ -61,9 +61,6 @@ void action_operatortypes()
   WM_operatortype_append(ACTION_OT_stash);
   WM_operatortype_append(ACTION_OT_stash_and_create);
 
-  WM_operatortype_append(ACTION_OT_layer_next);
-  WM_operatortype_append(ACTION_OT_layer_prev);
-
   WM_operatortype_append(ACTION_OT_previewrange_set);
   WM_operatortype_append(ACTION_OT_view_all);
   WM_operatortype_append(ACTION_OT_view_selected);
