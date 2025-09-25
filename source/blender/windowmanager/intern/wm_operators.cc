@@ -2783,7 +2783,7 @@ static void radial_control_paint_curve(uint pos, Brush *br, float radius, int li
   GPU_line_width(2.0f);
   immUniformColor4f(0.8f, 0.8f, 0.8f, 0.85f);
   float step = (radius * 2.0f) / float(line_segments);
-  BKE_curvemapping_init(br->curve);
+  BKE_curvemapping_init(br->curve_distance_falloff);
   immBegin(GPU_PRIM_LINES, line_segments * 2);
   for (int i = 0; i < line_segments; i++) {
     float h1 = BKE_brush_curve_strength_clamped(br, fabsf((i * step) - radius), radius);

@@ -2891,7 +2891,7 @@ static void init_falloff_mesh(const Span<float> mask,
              boundary.edit_info.strength_factor.size());
 
   const int num_elements = boundary.edit_info.strength_factor.size();
-  BKE_curvemapping_init(brush.curve);
+  BKE_curvemapping_init(brush.curve_distance_falloff);
 
   for (const int i : IndexRange(num_elements)) {
     if (boundary.edit_info.propagation_steps_num[i] != BOUNDARY_STEPS_NONE) {
@@ -2937,7 +2937,7 @@ static void init_falloff_grids(const SubdivCCG &subdiv_ccg,
 
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
-  BKE_curvemapping_init(brush.curve);
+  BKE_curvemapping_init(brush.curve_distance_falloff);
 
   for (const int grid : IndexRange(subdiv_ccg.grids_num)) {
     for (const int index : bke::ccg::grid_range(key, grid)) {
@@ -2986,7 +2986,7 @@ static void init_falloff_bmesh(BMesh *bm,
 
   const int num_elements = boundary.edit_info.strength_factor.size();
 
-  BKE_curvemapping_init(brush.curve);
+  BKE_curvemapping_init(brush.curve_distance_falloff);
 
   for (const int i : IndexRange(num_elements)) {
     if (boundary.edit_info.propagation_steps_num[i] != BOUNDARY_STEPS_NONE) {

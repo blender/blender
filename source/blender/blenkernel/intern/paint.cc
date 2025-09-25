@@ -284,7 +284,7 @@ void BKE_paint_invalidate_cursor_overlay(Scene *scene, ViewLayer *view_layer, Cu
   }
 
   Brush *br = BKE_paint_brush(paint);
-  if (br && br->curve == curve) {
+  if (br && br->curve_distance_falloff == curve) {
     overlay_flags |= PAINT_OVERLAY_INVALID_CURVE;
   }
 }

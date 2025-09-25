@@ -630,7 +630,7 @@ class FalloffPanel(BrushPanel):
         if not super().poll(context):
             return False
         settings = cls.paint_settings(context)
-        if not (settings and settings.brush and settings.brush.curve):
+        if not (settings and settings.brush and settings.brush.curve_distance_falloff):
             return False
         if cls.get_brush_mode(context) == 'SCULPT_CURVES':
             brush = settings.brush
@@ -654,8 +654,8 @@ class FalloffPanel(BrushPanel):
             row = col.row(align=True)
             col.prop(brush, "curve_preset", text="")
 
-        if brush.curve_preset == 'CUSTOM':
-            layout.template_curve_mapping(brush, "curve", brush=True, use_negative_slope=True)
+        if brush.curve_distance_falloff_preset == 'CUSTOM':
+            layout.template_curve_mapping(brush, "curve_distance_falloff", brush=True, use_negative_slope=True)
 
             col = layout.column(align=True)
             row = col.row(align=True)

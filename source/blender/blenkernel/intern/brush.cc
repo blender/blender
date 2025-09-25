@@ -82,7 +82,7 @@ static void brush_copy_data(Main * /*bmain*/,
     brush_dst->preview = nullptr;
   }
 
-  brush_dst->curve = BKE_curvemapping_copy(brush_src->curve);
+  brush_dst->curve_distance_falloff = BKE_curvemapping_copy(brush_src->curve_distance_falloff);
   brush_dst->automasking_cavity_curve = BKE_curvemapping_copy(brush_src->automasking_cavity_curve);
 
   brush_dst->curve_rand_hue = BKE_curvemapping_copy(brush_src->curve_rand_hue);
@@ -130,7 +130,7 @@ static void brush_copy_data(Main * /*bmain*/,
 static void brush_free_data(ID *id)
 {
   Brush *brush = reinterpret_cast<Brush *>(id);
-  BKE_curvemapping_free(brush->curve);
+  BKE_curvemapping_free(brush->curve_distance_falloff);
   BKE_curvemapping_free(brush->automasking_cavity_curve);
 
   BKE_curvemapping_free(brush->curve_rand_hue);
@@ -236,8 +236,8 @@ static void brush_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   BLO_write_id_struct(writer, Brush, id_address, &brush->id);
   BKE_id_blend_write(writer, &brush->id);
 
-  if (brush->curve) {
-    BKE_curvemapping_blend_write(writer, brush->curve);
+  if (brush->curve_distance_falloff) {
+    BKE_curvemapping_blend_write(writer, brush->curve_distance_falloff);
   }
 
   if (brush->automasking_cavity_curve) {
@@ -311,12 +311,12 @@ static void brush_blend_read_data(BlendDataReader *reader, ID *id)
   Brush *brush = reinterpret_cast<Brush *>(id);
 
   /* Falloff curve. */
-  BLO_read_struct(reader, CurveMapping, &brush->curve);
+  BLO_read_struct(reader, CurveMapping, &brush->curve_distance_falloff);
 
   BLO_read_struct(reader, ColorBand, &brush->gradient);
 
-  if (brush->curve) {
-    BKE_curvemapping_blend_read(reader, brush->curve);
+  if (brush->curve_distance_falloff) {
+    BKE_curvemapping_blend_read(reader, brush->curve_distance_falloff);
   }
   else {
     BKE_brush_curve_preset(brush, CURVE_PRESET_SHARP);
@@ -878,14 +878,14 @@ void BKE_brush_curve_preset(Brush *b, eCurveMappingPreset preset)
   CurveMapping *cumap = nullptr;
   CurveMap *cuma = nullptr;
 
-  if (!b->curve) {
-    b->curve = BKE_curvemapping_add(1, 0, 0, 1, 1);
+  if (!b->curve_distance_falloff) {
+    b->curve_distance_falloff = BKE_curvemapping_add(1, 0, 0, 1, 1);
   }
-  cumap = b->curve;
+  cumap = b->curve_distance_falloff;
   cumap->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
   cumap->preset = preset;
 
-  cuma = b->curve->cm;
+  cuma = b->curve_distance_falloff->cm;
   BKE_curvemap_reset(cuma, &cumap->clipr, cumap->preset, CURVEMAP_SLOPE_NEGATIVE);
   BKE_curvemapping_changed(cumap, false);
   BKE_brush_tag_unsaved_changes(b);
@@ -1617,7 +1617,8 @@ float BKE_brush_curve_strength(const eBrushCurvePreset preset,
 
 float BKE_brush_curve_strength(const Brush *br, float p, const float len)
 {
-  return BKE_brush_curve_strength(eBrushCurvePreset(br->curve_preset), br->curve, p, len);
+  return BKE_brush_curve_strength(
+      eBrushCurvePreset(br->curve_distance_falloff_preset), br->curve_distance_falloff, p, len);
 }
 
 float BKE_brush_curve_strength_clamped(const Brush *br, float p, const float len)
@@ -1666,7 +1667,7 @@ ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br, bool secondary, bool displa
   int side = 512;
   int half = side / 2;
 
-  BKE_curvemapping_init(br->curve);
+  BKE_curvemapping_init(br->curve_distance_falloff);
 
   float *rect_float = MEM_calloc_arrayN<float>(size_t(side) * size_t(side), "radial control rect");
   IMB_assign_float_buffer(im, rect_float, IB_DO_NOT_TAKE_OWNERSHIP);

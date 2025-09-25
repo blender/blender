@@ -838,8 +838,8 @@ static void do_version_curvemapping_walker(Main *bmain, void (*callback)(CurveMa
   FOREACH_NODETREE_END;
 
   LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-    if (brush->curve) {
-      callback(brush->curve);
+    if (brush->curve_distance_falloff) {
+      callback(brush->curve_distance_falloff);
     }
     if (brush->gpencil_settings) {
       if (brush->gpencil_settings->curve_sensitivity) {

@@ -3302,7 +3302,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         br->spacing = 5;
         br->flag &= ~BRUSH_ALPHA_PRESSURE;
         br->flag &= ~BRUSH_SPACE_ATTEN;
-        br->curve_preset = BRUSH_CURVE_SPHERE;
+        br->curve_distance_falloff_preset = BRUSH_CURVE_SPHERE;
       }
     }
 
@@ -3456,7 +3456,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         br->spacing = 5;
         br->flag &= ~BRUSH_ALPHA_PRESSURE;
         br->flag &= ~BRUSH_SPACE_ATTEN;
-        br->curve_preset = BRUSH_CURVE_SPHERE;
+        br->curve_distance_falloff_preset = BRUSH_CURVE_SPHERE;
       }
     }
 

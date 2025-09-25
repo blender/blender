@@ -76,7 +76,7 @@ void SmoothOperation::toggle_smooth_brush_on(const bContext &C)
 
   const int current_brush_size = BKE_brush_size_get(paint, current_brush);
   BKE_brush_size_set(paint, smooth_brush, current_brush_size);
-  BKE_curvemapping_init(smooth_brush->curve);
+  BKE_curvemapping_init(smooth_brush->curve_distance_falloff);
 }
 
 void SmoothOperation::toggle_smooth_brush_off(const bContext &C)

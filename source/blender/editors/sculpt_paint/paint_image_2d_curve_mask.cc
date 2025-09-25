@@ -112,7 +112,8 @@ static bool is_sampled_curve_valid(const CurveMaskCache *curve_mask_cache, const
   if (curve_mask_cache->sampled_curve == nullptr) {
     return false;
   }
-  return curve_mask_cache->last_curve_timestamp == brush->curve->changed_timestamp;
+  return curve_mask_cache->last_curve_timestamp ==
+         brush->curve_distance_falloff->changed_timestamp;
 }
 
 static void sampled_curve_free(CurveMaskCache *curve_mask_cache)
@@ -132,7 +133,7 @@ static void update_sampled_curve(CurveMaskCache *curve_mask_cache, const Brush *
     const float sample_weight = BKE_brush_curve_strength_clamped(brush, len, 1.0f);
     curve_mask_cache->sampled_curve[i] = sample_weight;
   }
-  curve_mask_cache->last_curve_timestamp = brush->curve->changed_timestamp;
+  curve_mask_cache->last_curve_timestamp = brush->curve_distance_falloff->changed_timestamp;
 }
 
 static size_t diameter_to_curve_mask_size(const int diameter)

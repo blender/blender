@@ -429,7 +429,7 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
   int size;
   const bool refresh = !cursor_snap.overlay_texture ||
                        (overlay_flags & PAINT_OVERLAY_INVALID_CURVE) || cursor_snap.zoom != zoom ||
-                       cursor_snap.curve_preset != br->curve_preset;
+                       cursor_snap.curve_preset != br->curve_distance_falloff_preset;
 
   init = (cursor_snap.overlay_texture != nullptr);
 
@@ -463,7 +463,7 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
     }
     buffer = MEM_malloc_arrayN<uchar>(size * size, "load_tex");
 
-    BKE_curvemapping_init(br->curve);
+    BKE_curvemapping_init(br->curve_distance_falloff);
 
     LoadTexData data{};
     data.br = br;
@@ -500,7 +500,7 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
     size = cursor_snap.size;
   }
 
-  cursor_snap.curve_preset = br->curve_preset;
+  cursor_snap.curve_preset = br->curve_distance_falloff_preset;
   BKE_paint_reset_overlay_invalid(PAINT_OVERLAY_INVALID_CURVE);
 
   return 1;

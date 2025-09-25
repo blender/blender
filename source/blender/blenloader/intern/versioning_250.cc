@@ -1391,8 +1391,8 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 252, 1)) {
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-      if (brush->curve) {
-        brush->curve->preset = CURVE_PRESET_SMOOTH;
+      if (brush->curve_distance_falloff) {
+        brush->curve_distance_falloff->preset = CURVE_PRESET_SMOOTH;
       }
     }
 

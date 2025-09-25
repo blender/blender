@@ -988,7 +988,7 @@ PaintStroke *paint_stroke_new(bContext *C,
   }
 
   /* initialize here to avoid initialization conflict with threaded strokes */
-  BKE_curvemapping_init(br->curve);
+  BKE_curvemapping_init(br->curve_distance_falloff);
   if (paint->flags & PAINT_USE_CAVITY_MASK) {
     BKE_curvemapping_init(paint->cavity_curve);
   }

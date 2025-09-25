@@ -3902,7 +3902,7 @@ static void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache 
 
   cache->saved_smooth_size = BKE_brush_size_get(paint, smooth_brush);
   BKE_brush_size_set(paint, smooth_brush, cur_brush_size);
-  BKE_curvemapping_init(smooth_brush->curve);
+  BKE_curvemapping_init(smooth_brush->curve_distance_falloff);
 }
 
 static void smooth_brush_toggle_off(Paint *paint, StrokeCache *cache)
@@ -7185,8 +7185,11 @@ void calc_brush_strength_factors(const StrokeCache &cache,
                                  const Span<float> distances,
                                  const MutableSpan<float> factors)
 {
-  BKE_brush_calc_curve_factors(
-      eBrushCurvePreset(brush.curve_preset), brush.curve, distances, cache.radius, factors);
+  BKE_brush_calc_curve_factors(eBrushCurvePreset(brush.curve_distance_falloff_preset),
+                               brush.curve_distance_falloff,
+                               distances,
+                               cache.radius,
+                               factors);
 }
 
 void calc_brush_texture_factors(const SculptSession &ss,

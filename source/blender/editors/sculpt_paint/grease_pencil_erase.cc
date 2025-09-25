@@ -1061,7 +1061,7 @@ void EraseOperation::on_stroke_begin(const bContext &C, const InputSample & /*st
   }
   BLI_assert(brush->gpencil_settings != nullptr);
 
-  BKE_curvemapping_init(brush->curve);
+  BKE_curvemapping_init(brush->curve_distance_falloff);
   BKE_curvemapping_init(brush->gpencil_settings->curve_strength);
 
   eraser_mode_ = eGP_BrushEraserMode(brush->gpencil_settings->eraser_mode);
