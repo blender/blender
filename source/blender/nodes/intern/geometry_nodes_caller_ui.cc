@@ -984,10 +984,12 @@ void draw_geometry_nodes_modifier_ui(const bContext &C, PointerRNA *modifier_ptr
     }
   }
 
-  if (uiLayout *panel_layout = layout.panel_prop(
-          &C, modifier_ptr, "open_manage_panel", IFACE_("Manage")))
-  {
-    draw_manage_panel(&C, panel_layout, modifier_ptr, nmd);
+  if ((nmd.flag & NODES_MODIFIER_HIDE_MANAGE_PANEL) == 0) {
+    if (uiLayout *panel_layout = layout.panel_prop(
+            &C, modifier_ptr, "open_manage_panel", IFACE_("Manage")))
+    {
+      draw_manage_panel(&C, panel_layout, modifier_ptr, nmd);
+    }
   }
 }
 

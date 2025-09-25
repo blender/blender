@@ -2571,6 +2571,7 @@ typedef struct NodesModifierData {
 
 typedef enum NodesModifierFlag {
   NODES_MODIFIER_HIDE_DATABLOCK_SELECTOR = (1 << 0),
+  NODES_MODIFIER_HIDE_MANAGE_PANEL = (1 << 1),
 } NodesModifierFlag;
 
 typedef struct MeshToVolumeModifierData {

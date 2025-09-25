@@ -286,6 +286,11 @@ static wmOperatorStatus modifier_add_asset_exec(bContext *C, wmOperator *op)
 
     /* Don't show the data-block selector since it's not usually necessary for assets. */
     nmd->flag |= NODES_MODIFIER_HIDE_DATABLOCK_SELECTOR;
+    SET_FLAG_FROM_TEST(nmd->flag,
+                       node_group->geometry_node_asset_traits &&
+                           (node_group->geometry_node_asset_traits->flag &
+                            GEO_NODE_ASSET_HIDE_MODIFIER_MANAGE_PANEL),
+                       NODES_MODIFIER_HIDE_MANAGE_PANEL);
 
     STRNCPY_UTF8(nmd->modifier.name, DATA_(node_group->id.name + 2));
     BKE_modifier_unique_name(&object->modifiers, &nmd->modifier);

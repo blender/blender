@@ -1068,8 +1068,9 @@ typedef enum GeometryNodeAssetTraitFlag {
   GEO_NODE_ASSET_GREASE_PENCIL = (1 << 9),
   /* Only used by Grease Pencil for now. */
   GEO_NODE_ASSET_PAINT = (1 << 10),
+  GEO_NODE_ASSET_HIDE_MODIFIER_MANAGE_PANEL = (1 << 11),
 } GeometryNodeAssetTraitFlag;
-ENUM_OPERATORS(GeometryNodeAssetTraitFlag, GEO_NODE_ASSET_PAINT);
+ENUM_OPERATORS(GeometryNodeAssetTraitFlag, GEO_NODE_ASSET_HIDE_MODIFIER_MANAGE_PANEL);
 
 /* Data structs, for `node->storage`. */
 
