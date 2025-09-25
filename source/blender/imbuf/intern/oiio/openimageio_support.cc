@@ -159,6 +159,17 @@ static void set_file_colorspace(ImFileColorSpace &r_colorspace,
     string ics = spec.get_string_attribute("oiio:ColorSpace");
     STRNCPY_UTF8(r_colorspace.metadata_colorspace, ics.c_str());
   }
+
+  /* Get colorspace from CICP. */
+  int cicp[4] = {};
+  if (spec.getattribute("CICP", TypeDesc(TypeDesc::INT, 4), cicp, true)) {
+    const bool for_video = false;
+    const ColorSpace *colorspace = IMB_colormanagement_space_from_cicp(cicp, for_video);
+    if (colorspace) {
+      STRNCPY_UTF8(r_colorspace.metadata_colorspace,
+                   IMB_colormanagement_colorspace_get_name(colorspace));
+    }
+  }
 }
 
 /**
@@ -459,7 +470,7 @@ ImageSpec imb_create_write_spec(const WriteContext &ctx, int file_channels, Type
     }
   }
 
-  /* Write ICC profile if there is one associated with the colorspace. */
+  /* Write ICC profile and/or CICP if there is one associated with the colorspace. */
   const ColorSpace *colorspace = (ctx.mem_spec.format == TypeDesc::FLOAT) ?
                                      ctx.ibuf->float_buffer.colorspace :
                                      ctx.ibuf->byte_buffer.colorspace;
@@ -469,6 +480,15 @@ ImageSpec imb_create_write_spec(const WriteContext &ctx, int file_channels, Type
       file_spec.attribute("ICCProfile",
                           OIIO::TypeDesc(OIIO::TypeDesc::UINT8, icc_profile.size()),
                           icc_profile.data());
+    }
+
+    /* PNG only supports RGB matrix. For AVIF and HEIF we want to use a YUV matrix
+     * as these are based on video codecs designed to use them. */
+    const bool for_video = false;
+    const bool rgb_matrix = STREQ(ctx.file_format, "png");
+    int cicp[4];
+    if (IMB_colormanagement_space_to_cicp(colorspace, for_video, rgb_matrix, cicp)) {
+      file_spec.attribute("CICP", TypeDesc(TypeDesc::INT, 4), cicp);
     }
   }
 

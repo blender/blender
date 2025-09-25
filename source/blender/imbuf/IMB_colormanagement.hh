@@ -78,6 +78,7 @@ blender::Vector<char> IMB_colormanagement_space_to_icc_profile(const ColorSpace 
  * For describing the colorspace of videos and high dynamic range image files. */
 bool IMB_colormanagement_space_to_cicp(const ColorSpace *colorspace,
                                        const bool video,
+                                       const bool rgb_matrix,
                                        int cicp[4]);
 const ColorSpace *IMB_colormanagement_space_from_cicp(const int cicp[4], const bool video);
 
