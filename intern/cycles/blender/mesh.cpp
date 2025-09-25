@@ -834,9 +834,20 @@ static void create_subd_mesh(Scene *scene,
   }
 
   /* Set subd parameters. */
-  PointerRNA cobj = RNA_pointer_get(&b_ob.ptr, "cycles");
-  const float subd_dicing_rate = max(0.1f, RNA_float_get(&cobj, "dicing_rate") * dicing_rate);
+  Mesh::SubdivisionAdaptiveSpace space = Mesh::SUBDIVISION_ADAPTIVE_SPACE_PIXEL;
+  switch (subsurf_mod.adaptive_space()) {
+    case BL::SubsurfModifier::adaptive_space_OBJECT:
+      space = Mesh::SUBDIVISION_ADAPTIVE_SPACE_OBJECT;
+      break;
+    case BL::SubsurfModifier::adaptive_space_PIXEL:
+      space = Mesh::SUBDIVISION_ADAPTIVE_SPACE_PIXEL;
+      break;
+  }
+  const float subd_dicing_rate = (space == Mesh::SUBDIVISION_ADAPTIVE_SPACE_PIXEL) ?
+                                     max(0.1f, subsurf_mod.adaptive_pixel_size() * dicing_rate) :
+                                     subsurf_mod.adaptive_object_edge_length() * dicing_rate;
 
+  mesh->set_subd_adaptive_space(space);
   mesh->set_subd_dicing_rate(subd_dicing_rate);
   mesh->set_subd_max_level(max_subdivisions);
   mesh->set_subd_objecttoworld(get_transform(b_ob.matrix_world()));

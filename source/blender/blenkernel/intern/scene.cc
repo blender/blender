@@ -2801,20 +2801,6 @@ enum eCyclesFeatureSet {
   CYCLES_FEATURES_EXPERIMENTAL = 1,
 };
 
-bool BKE_scene_uses_cycles_experimental_features(Scene *scene)
-{
-  BLI_assert(BKE_scene_uses_cycles(scene));
-  PointerRNA scene_ptr = RNA_id_pointer_create(&scene->id);
-  PointerRNA cycles_ptr = RNA_pointer_get(&scene_ptr, "cycles");
-
-  if (RNA_pointer_is_null(&cycles_ptr)) {
-    /* The pointer only exists if Cycles is enabled. */
-    return false;
-  }
-
-  return RNA_enum_get(&cycles_ptr, "feature_set") == CYCLES_FEATURES_EXPERIMENTAL;
-}
-
 void BKE_scene_base_flag_to_objects(const Scene *scene, ViewLayer *view_layer)
 {
   BKE_view_layer_synced_ensure(scene, view_layer);

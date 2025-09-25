@@ -524,10 +524,6 @@ class CYCLES_RENDER_PT_subdivision(CyclesButtonsPanel, Panel):
     bl_label = "Subdivision"
     bl_options = {'DEFAULT_CLOSED'}
 
-    @classmethod
-    def poll(cls, context):
-        return (context.scene.render.engine == 'CYCLES') and (context.scene.cycles.feature_set == 'EXPERIMENTAL')
-
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -2449,9 +2445,6 @@ def draw_device(self, context):
     if context.engine == 'CYCLES':
         from . import engine
         cscene = scene.cycles
-
-        col = layout.column()
-        col.prop(cscene, "feature_set")
 
         col = layout.column()
         col.active = show_device_active(context)

@@ -19,6 +19,7 @@
 
 #include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -315,7 +316,6 @@ static void deform_matrices(ModifierData *md,
   }
 }
 
-#ifdef WITH_CYCLES
 static bool get_show_adaptive_options(const bContext *C, Panel *panel)
 {
   /* Don't show adaptive options if cycles isn't the active engine. */
@@ -331,15 +331,8 @@ static bool get_show_adaptive_options(const bContext *C, Panel *panel)
     return false;
   }
 
-  /* Don't show adaptive options if the cycles experimental feature set is disabled. */
-  Scene *scene = CTX_data_scene(C);
-  if (!BKE_scene_uses_cycles_experimental_features(scene)) {
-    return false;
-  }
-
   return true;
 }
-#endif
 
 static void panel_draw(const bContext *C, Panel *panel)
 {
@@ -347,27 +340,6 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
-
-  /* Only test for adaptive subdivision if built with cycles. */
-  bool show_adaptive_options = false;
-  bool ob_use_adaptive_subdivision = false;
-  PointerRNA cycles_ptr = {};
-  PointerRNA ob_cycles_ptr = {};
-#ifdef WITH_CYCLES
-  Scene *scene = CTX_data_scene(C);
-  PointerRNA scene_ptr = RNA_id_pointer_create(&scene->id);
-  if (BKE_scene_uses_cycles(scene)) {
-    cycles_ptr = RNA_pointer_get(&scene_ptr, "cycles");
-    ob_cycles_ptr = RNA_pointer_get(&ob_ptr, "cycles");
-    if (!RNA_pointer_is_null(&ob_cycles_ptr)) {
-      show_adaptive_options = get_show_adaptive_options(C, panel);
-      ob_use_adaptive_subdivision = show_adaptive_options &&
-                                    RNA_boolean_get(&ob_cycles_ptr, "use_adaptive_subdivision");
-    }
-  }
-#else
-  UNUSED_VARS(C);
-#endif
 
   layout->prop(ptr, "subdivision_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
@@ -402,31 +374,47 @@ static void panel_draw(const bContext *C, Panel *panel)
     }
   }
 
-  if (show_adaptive_options) {
+  if (get_show_adaptive_options(C, panel)) {
     PanelLayout adaptive_panel = layout->panel_prop_with_bool_header(
         C,
         ptr,
         "open_adaptive_subdivision_panel",
-        &ob_cycles_ptr,
+        ptr,
         "use_adaptive_subdivision",
         IFACE_("Adaptive Subdivision"));
     if (adaptive_panel.body) {
-      adaptive_panel.body->active_set(ob_use_adaptive_subdivision);
-      adaptive_panel.body->prop(
-          &ob_cycles_ptr, "dicing_rate", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      Scene *scene = CTX_data_scene(C);
+      PointerRNA scene_ptr = RNA_id_pointer_create(&scene->id);
+      PointerRNA cycles_ptr = RNA_pointer_get(&scene_ptr, "cycles");
+      const float render_rate = RNA_float_get(&cycles_ptr, "dicing_rate");
+      const float preview_rate = RNA_float_get(&cycles_ptr, "preview_dicing_rate");
+      std::string render_str, preview_str;
 
-      float render = std::max(RNA_float_get(&cycles_ptr, "dicing_rate") *
-                                  RNA_float_get(&ob_cycles_ptr, "dicing_rate"),
-                              0.1f);
-      float preview = std::max(RNA_float_get(&cycles_ptr, "preview_dicing_rate") *
-                                   RNA_float_get(&ob_cycles_ptr, "dicing_rate"),
-                               0.1f);
+      adaptive_panel.body->active_set(smd->flags & eSubsurfModifierFlag_UseAdaptiveSubdivision);
+      adaptive_panel.body->prop(ptr, "adaptive_space", UI_ITEM_NONE, IFACE_("Space"), ICON_NONE);
+      if (smd->adaptive_space == SUBSURF_ADAPTIVE_SPACE_OBJECT) {
+        adaptive_panel.body->prop(
+            ptr, "adaptive_object_edge_length", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+        preview_str = fmt::format("{:.5g}", preview_rate * smd->adaptive_object_edge_length);
+        render_str = fmt::format("{:.5g}", render_rate * smd->adaptive_object_edge_length);
+      }
+      else {
+        adaptive_panel.body->prop(
+            ptr, "adaptive_pixel_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+        preview_str = fmt::format("{:.2f} px",
+                                  std::max(preview_rate * smd->adaptive_pixel_size, 0.1f));
+        render_str = fmt::format("{:.2f} px",
+                                 std::max(render_rate * smd->adaptive_pixel_size, 0.1f));
+      }
 
       uiLayout *split = &adaptive_panel.body->split(0.4f, false);
-      split->column(true).label("", ICON_NONE);
       uiLayout *col = &split->column(true);
-      col->label(fmt::format(fmt::runtime(RPT_("Viewport {:.2f} px")), preview), ICON_NONE);
-      col->label(fmt::format(fmt::runtime(RPT_("Render {:.2f} px")), render), ICON_NONE);
+      col->alignment_set(blender::ui::LayoutAlign::Right);
+      col->label(IFACE_("Viewport"), ICON_NONE);
+      col->label(IFACE_("Render"), ICON_NONE);
+      col = &split->column(true);
+      col->label(preview_str, ICON_NONE);
+      col->label(render_str, ICON_NONE);
     }
   }
 
@@ -438,7 +426,8 @@ static void panel_draw(const bContext *C, Panel *panel)
     advanced_layout->prop(ptr, "use_limit_surface", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     uiLayout *col = &advanced_layout->column(true);
-    col->active_set(ob_use_adaptive_subdivision || RNA_boolean_get(ptr, "use_limit_surface"));
+    col->active_set((smd->flags & eSubsurfModifierFlag_UseAdaptiveSubdivision) ||
+                    RNA_boolean_get(ptr, "use_limit_surface"));
     col->prop(ptr, "quality", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     advanced_layout->prop(ptr, "uv_smooth", UI_ITEM_NONE, std::nullopt, ICON_NONE);

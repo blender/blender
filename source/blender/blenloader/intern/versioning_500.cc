@@ -2658,6 +2658,44 @@ static void sequencer_remove_listbase_pointers(Scene &scene)
   blender::seq::meta_stack_set(&scene, last_meta_stack->parent_strip);
 }
 
+static void do_version_adaptive_subdivision(Main *bmain)
+{
+  /* Move cycles properties natively into subdivision surface modifier. */
+  bool experimental_features = false;
+  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+    IDProperty *idprop = version_cycles_properties_from_ID(&scene->id);
+    if (idprop) {
+      experimental_features |= version_cycles_property_boolean(idprop, "feature_set", false);
+    }
+  }
+
+  LISTBASE_FOREACH (Object *, object, &bmain->objects) {
+    bool use_adaptive_subdivision = false;
+    float dicing_rate = 1.0f;
+
+    IDProperty *idprop = version_cycles_properties_from_ID(&object->id);
+    if (idprop) {
+      if (experimental_features) {
+        use_adaptive_subdivision = version_cycles_property_boolean(
+            idprop, "use_adaptive_subdivision", false);
+      }
+      dicing_rate = version_cycles_property_float(idprop, "dicing_rate", 1.0f);
+    }
+
+    LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
+      if (md->type == eModifierType_Subsurf) {
+        SubsurfModifierData *smd = (SubsurfModifierData *)md;
+        if (use_adaptive_subdivision) {
+          smd->flags |= eSubsurfModifierFlag_UseAdaptiveSubdivision;
+          smd->adaptive_space = SUBSURF_ADAPTIVE_SPACE_PIXEL;
+          smd->adaptive_pixel_size = dicing_rate;
+          smd->adaptive_object_edge_length = 0.01f;
+        }
+      }
+    }
+  }
+}
+
 void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   using namespace blender;
@@ -3623,6 +3661,10 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
         }
       }
     }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 92)) {
+    do_version_adaptive_subdivision(bmain);
   }
 
   /**

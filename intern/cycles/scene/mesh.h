@@ -135,6 +135,11 @@ class Mesh : public Geometry {
     SUBDIVISION_FVAR_LINEAR_ALL,
   };
 
+  enum SubdivisionAdaptiveSpace {
+    SUBDIVISION_ADAPTIVE_SPACE_PIXEL,
+    SUBDIVISION_ADAPTIVE_SPACE_OBJECT,
+  };
+
   NODE_SOCKET_API(SubdivisionType, subdivision_type)
   NODE_SOCKET_API(SubdivisionBoundaryInterpolation, subdivision_boundary_interpolation)
   NODE_SOCKET_API(SubdivisionFVarInterpolation, subdivision_fvar_interpolation)
@@ -161,6 +166,7 @@ class Mesh : public Geometry {
   NODE_SOCKET_API_ARRAY(array<float>, subd_vert_creases_weight)
 
   /* Subdivisions parameters */
+  NODE_SOCKET_API(SubdivisionAdaptiveSpace, subd_adaptive_space)
   NODE_SOCKET_API(float, subd_dicing_rate)
   NODE_SOCKET_API(int, subd_max_level)
   NODE_SOCKET_API(Transform, subd_objecttoworld)

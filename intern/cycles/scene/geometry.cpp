@@ -805,8 +805,10 @@ void GeometryManager::device_update(Device *device,
       SubdParams subd_params(mesh);
       subd_params.dicing_rate = mesh->get_subd_dicing_rate();
       subd_params.max_level = mesh->get_subd_max_level();
-      subd_params.objecttoworld = mesh->get_subd_objecttoworld();
-      subd_params.camera = dicing_camera;
+      if (mesh->get_subd_adaptive_space() == Mesh::SUBDIVISION_ADAPTIVE_SPACE_PIXEL) {
+        subd_params.objecttoworld = mesh->get_subd_objecttoworld();
+        subd_params.camera = dicing_camera;
+      }
 
       mesh->tessellate(subd_params);
     }

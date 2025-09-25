@@ -305,6 +305,14 @@ NODE_DEFINE(Mesh)
   SOCKET_INT_ARRAY(subd_ptex_offset, "Subdivision Face PTex Offset", array<int>());
 
   /* Subdivisions parameters */
+  static NodeEnum subd_adaptive_space_enum;
+  subd_adaptive_space_enum.insert("pixel", SUBDIVISION_ADAPTIVE_SPACE_PIXEL);
+  subd_adaptive_space_enum.insert("object", SUBDIVISION_ADAPTIVE_SPACE_OBJECT);
+
+  SOCKET_ENUM(subd_adaptive_space,
+              "Subdivision Adaptive Space",
+              subd_adaptive_space_enum,
+              SUBDIVISION_ADAPTIVE_SPACE_PIXEL);
   SOCKET_FLOAT(subd_dicing_rate, "Subdivision Dicing Rate", 1.0f)
   SOCKET_INT(subd_max_level, "Max Subdivision Level", 1);
   SOCKET_TRANSFORM(subd_objecttoworld, "Subdivision Object Transform", transform_identity());
@@ -316,7 +324,8 @@ bool Mesh::need_tesselation()
 {
   return (subdivision_type != SUBDIVISION_NONE) &&
          (verts_is_modified() || subd_dicing_rate_is_modified() ||
-          subd_objecttoworld_is_modified() || subd_max_level_is_modified());
+          subd_adaptive_space_is_modified() || subd_objecttoworld_is_modified() ||
+          subd_max_level_is_modified());
 }
 
 Mesh::Mesh(const NodeType *node_type, Type geom_type_)
