@@ -49,10 +49,10 @@ GLStorageBuf::~GLStorageBuf()
   }
 
   if (read_ssbo_id_) {
-    GLContext::buf_free(read_ssbo_id_);
+    GLContext::buffer_free(read_ssbo_id_);
   }
 
-  GLContext::buf_free(ssbo_id_);
+  GLContext::buffer_free(ssbo_id_);
 }
 
 /** \} */

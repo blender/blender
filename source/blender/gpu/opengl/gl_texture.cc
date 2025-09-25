@@ -48,7 +48,7 @@ GLTexture::~GLTexture()
     ctx->state_manager->texture_unbind(this);
     ctx->state_manager->image_unbind(this);
   }
-  GLContext::tex_free(tex_id_);
+  GLContext::texture_free(tex_id_);
 }
 
 bool GLTexture::init_internal()

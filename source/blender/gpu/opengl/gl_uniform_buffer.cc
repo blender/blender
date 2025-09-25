@@ -30,7 +30,7 @@ GLUniformBuf::GLUniformBuf(size_t size, const char *name) : UniformBuf(size, nam
 
 GLUniformBuf::~GLUniformBuf()
 {
-  GLContext::buf_free(ubo_id_);
+  GLContext::buffer_free(ubo_id_);
 }
 
 /** \} */
