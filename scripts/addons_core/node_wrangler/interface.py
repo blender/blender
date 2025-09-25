@@ -408,15 +408,6 @@ class NWAttributeMenu(bpy.types.Menu):
             l.label(text="No attributes on objects with this material")
 
 
-class NWSwitchNodeTypeMenu(Menu, NWBaseMenu):
-    bl_idname = "NODE_MT_nw_switch_node_type_menu"
-    bl_label = "Switch Type to..."
-
-    def draw(self, context):
-        layout = self.layout
-        layout.label(text="This operator is removed due to the changes of node menus.", icon='ERROR')
-        layout.label(text="A native implementation of the function is expected in the future.")
-
 #
 #  APPENDAGES TO EXISTING UI
 #
@@ -499,7 +490,6 @@ classes = (
     NWLinkUseNodeNameMenu,
     NWLinkUseOutputsNamesMenu,
     NWAttributeMenu,
-    NWSwitchNodeTypeMenu,
 )
 
 

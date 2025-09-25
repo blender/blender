@@ -89,6 +89,11 @@ enum class LayoutSeparatorType : int8_t {
   Line,
 };
 
+enum class NodeAssetMenuOperatorType : int8_t {
+  Add,
+  Swap,
+};
+
 /**
  * NOTE: `uiLayout` properties should be considered private outside `interface_layout.cc`,
  * incoming refactors would remove public access and add public read/write function methods.

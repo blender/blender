@@ -28,6 +28,84 @@ from bpy.app.translations import (
 )
 
 
+math_nodes = {
+    "ShaderNodeMath",
+    "ShaderNodeVectorMath",
+    "FunctionNodeIntegerMath",
+    "FunctionNodeBooleanMath",
+    "FunctionNodeBitMath",
+}
+
+switch_nodes = {
+    "GeometryNodeMenuSwitch",
+    "GeometryNodeIndexSwitch",
+}
+
+
+# A context manager for temporarily unparenting nodes from their frames
+# This gets rid of issues with framed nodes using relative coordinates
+class temporary_unframe:
+    def __init__(self, nodes):
+        self.parent_dict = {}
+        for node in nodes:
+            if node.parent is not None:
+                self.parent_dict[node] = node.parent
+            node.parent = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, _type, _value, _traceback):
+        for node, parent in self.parent_dict.items():
+            node.parent = parent
+
+
+def cast_value(source, target):
+    source_type = source.type
+    target_type = target.type
+
+    value = source.default_value
+
+    def to_bool(value): return value > 0
+    def single_value_to_color(value): return Vector((value, value, value, 1.0))
+    def single_value_to_vector(value): return Vector([value,] * len(target.default_value))
+    def color_to_float(color): return (0.2126 * color[0]) + (0.7152 * color[1]) + (0.0722 * color[2])
+    def vector_to_float(vector): return sum(vector) / len(vector)
+
+    func_map = {
+        ('VALUE', 'INT'): int,
+        ('VALUE', 'BOOLEAN'): to_bool,
+        ('VALUE', 'RGBA'): single_value_to_color,
+        ('VALUE', 'VECTOR'): single_value_to_vector,
+        ('INT', 'VALUE'): float,
+        ('INT', 'BOOLEAN'): to_bool,
+        ('INT', 'RGBA'): single_value_to_color,
+        ('INT', 'VECTOR'): single_value_to_vector,
+        ('BOOLEAN', 'VALUE'): float,
+        ('BOOLEAN', 'INT'): int,
+        ('BOOLEAN', 'RGBA'): single_value_to_color,
+        ('BOOLEAN', 'VECTOR'): single_value_to_vector,
+        ('RGBA', 'VALUE'): color_to_float,
+        ('RGBA', 'INT'): lambda color: int(color_to_float(color)),
+        ('RGBA', 'BOOLEAN'): lambda color: to_bool(color_to_float(color)),
+        ('RGBA', 'VECTOR'): lambda color: color[:len(target.default_value)],
+        ('VECTOR', 'VALUE'): vector_to_float,
+        ('VECTOR', 'INT'): lambda vector: int(vector_to_float(vector)),
+        # Even negative vectors get implicitly converted to True, hence to_bool is not used
+        ('VECTOR', 'BOOLEAN'): lambda vector: bool(vector_to_float(vector)),
+        ('VECTOR', 'RGBA'): lambda vector: list(vector).extend([0.0] * (len(target.default_value) - len(vector)))
+    }
+
+    if source_type == target_type:
+        return value
+
+    cast_func = func_map.get((source_type, target_type))
+    if cast_func is not None:
+        return cast_func(value)
+
+    return None
+
+
 class NodeSetting(PropertyGroup):
     __slots__ = ()
 
@@ -39,19 +117,83 @@ class NodeSetting(PropertyGroup):
     )
 
 
-# Base class for node "Add" operators.
-class NodeAddOperator:
-
-    use_transform: BoolProperty(
-        name="Use Transform",
-        description="Start transform operator after inserting the node",
-        default=False,
-    )
+class NodeOperator:
     settings: CollectionProperty(
         name="Settings",
         description="Settings to be applied on the newly created node",
         type=NodeSetting,
         options={'SKIP_SAVE'},
+    )
+
+    @classmethod
+    def description(cls, _context, properties):
+        from nodeitems_builtins import node_tree_group_type
+
+        nodetype = properties["type"]
+        if nodetype in node_tree_group_type.values():
+            for setting in properties.settings:
+                if setting.name == "node_tree":
+                    node_group = eval(setting.value)
+                    if node_group.description:
+                        return node_group.description
+        bl_rna = bpy.types.Node.bl_rna_get_subclass(nodetype)
+        if bl_rna is not None:
+            return tip_(bl_rna.description)
+        else:
+            return ""
+
+    # Deselect all nodes in the tree.
+    @staticmethod
+    def deselect_nodes(context):
+        space = context.space_data
+        tree = space.edit_tree
+        for n in tree.nodes:
+            n.select = False
+
+    def create_node(self, context, node_type):
+        space = context.space_data
+        tree = space.edit_tree
+
+        try:
+            node = tree.nodes.new(type=node_type)
+        except RuntimeError as ex:
+            self.report({'ERROR'}, str(ex))
+            return None
+
+        node.select = True
+        tree.nodes.active = node
+        node.location = space.cursor_location
+        return node
+
+    def apply_node_settings(self, node):
+        for setting in self.settings:
+            # XXX catch exceptions here?
+            value = eval(setting.value)
+            node_data = node
+            node_attr_name = setting.name
+
+            # Support path to nested data.
+            if '.' in node_attr_name:
+                node_data_path, node_attr_name = node_attr_name.rsplit(".", 1)
+                node_data = node.path_resolve(node_data_path)
+
+            try:
+                setattr(node_data, node_attr_name, value)
+            except AttributeError as ex:
+                self.report(
+                    {'ERROR_INVALID_INPUT'},
+                    rpt_("Node has no attribute {:s}").format(setting.name))
+                print(str(ex))
+                # Continue despite invalid attribute
+        return node
+
+
+# Base class for node "Add" operators.
+class NodeAddOperator(NodeOperator):
+    use_transform: BoolProperty(
+        name="Use Transform",
+        description="Start transform operator after inserting the node",
+        default=False,
     )
 
     @staticmethod
@@ -72,49 +214,6 @@ class NodeAddOperator:
         else:
             space.cursor_location = tree.view_center
 
-    # Deselect all nodes in the tree.
-    @staticmethod
-    def deselect_nodes(context):
-        space = context.space_data
-        tree = space.edit_tree
-        for n in tree.nodes:
-            n.select = False
-
-    def create_node(self, context, node_type):
-        space = context.space_data
-        tree = space.edit_tree
-
-        try:
-            node = tree.nodes.new(type=node_type)
-        except RuntimeError as ex:
-            self.report({'ERROR'}, str(ex))
-            return None
-
-        for setting in self.settings:
-            # XXX catch exceptions here?
-            value = eval(setting.value)
-            node_data = node
-            node_attr_name = setting.name
-
-            # Support path to nested data.
-            if '.' in node_attr_name:
-                node_data_path, node_attr_name = node_attr_name.rsplit(".", 1)
-                node_data = node.path_resolve(node_data_path)
-
-            try:
-                setattr(node_data, node_attr_name, value)
-            except AttributeError as ex:
-                self.report(
-                    {'ERROR_INVALID_INPUT'},
-                    rpt_("Node has no attribute {:s}").format(setting.name))
-                print(str(ex))
-                # Continue despite invalid attribute
-
-        node.select = True
-        tree.nodes.active = node
-        node.location = space.cursor_location
-        return node
-
     @classmethod
     def poll(cls, context):
         space = context.space_data
@@ -133,6 +232,176 @@ class NodeAddOperator:
             bpy.ops.node.translate_attach_remove_on_cancel('INVOKE_DEFAULT')
 
         return result
+
+
+class NodeSwapOperator(NodeOperator):
+    properties_to_pass = (
+        'color',
+        'hide',
+        'label',
+        'mute',
+        'parent',
+        'show_options',
+        'show_preview',
+        'show_texture',
+        'use_alpha',
+        'use_clamp',
+        'use_custom_color',
+        "operation",
+        "domain",
+        "data_type",
+    )
+
+    @classmethod
+    def poll(cls, context):
+        if (context.area is None) or (context.area.type != "NODE_EDITOR"):
+            return False
+
+        if len(context.selected_nodes) <= 0:
+            cls.poll_message_set("No nodes selected.")
+            return False
+
+        return True
+
+    def transfer_node_properties(self, old_node, new_node):
+        for attr in self.properties_to_pass:
+            if (attr in self.settings):
+                return
+
+            if hasattr(old_node, attr) and hasattr(new_node, attr):
+                try:
+                    setattr(new_node, attr, getattr(old_node, attr))
+                except (TypeError, ValueError):
+                    pass
+
+    def transfer_input_values(self, old_node, new_node):
+        if (old_node.bl_idname in math_nodes) and (new_node.bl_idname in math_nodes):
+            for source_input, target_input in zip(old_node.inputs, new_node.inputs):
+
+                new_value = cast_value(source=source_input, target=target_input)
+
+                if new_value is not None:
+                    target_input.default_value = new_value
+
+        else:
+            for input in old_node.inputs:
+                try:
+                    new_socket = new_node.inputs[input.name]
+                    new_value = cast_value(source=input, target=new_socket)
+
+                    settings_name = f'inputs["{input.name}"].default_value'
+                    already_defined = (settings_name in self.settings)
+
+                    if (new_value is not None) and not already_defined:
+                        new_socket.default_value = new_value
+
+                except (AttributeError, KeyError, TypeError):
+                    pass
+
+    @staticmethod
+    def transfer_links(tree, old_node, new_node, is_input):
+        both_math_nodes = (old_node.bl_idname in math_nodes) and (new_node.bl_idname in math_nodes)
+
+        if is_input:
+            if both_math_nodes:
+                for i, input in enumerate(old_node.inputs):
+                    for link in input.links[:]:
+                        try:
+                            new_socket = new_node.inputs[i]
+
+                            if new_socket.hide or not new_socket.enabled:
+                                continue
+
+                            tree.links.new(link.from_socket, new_socket)
+                        except IndexError:
+                            pass
+            else:
+                for input in old_node.inputs:
+                    links = sorted(input.links, key=lambda link: link.multi_input_sort_id)
+
+                    for link in links:
+                        try:
+                            new_socket = new_node.inputs[input.name]
+
+                            if new_socket.hide or not new_socket.enabled:
+                                continue
+
+                            tree.links.new(link.from_socket, new_socket)
+                        except KeyError:
+                            pass
+
+        else:
+            if both_math_nodes:
+                for i, output in enumerate(old_node.outputs):
+                    for link in output.links[:]:
+                        try:
+                            new_socket = new_node.outputs[i]
+
+                            if new_socket.hide or not new_socket.enabled:
+                                continue
+
+                            new_link = tree.links.new(new_socket, link.to_socket)
+                        except IndexError:
+                            pass
+
+            else:
+                for output in old_node.outputs:
+                    for link in output.links[:]:
+                        try:
+                            new_socket = new_node.outputs[output.name]
+
+                            if new_socket.hide or not new_socket.enabled:
+                                continue
+
+                            new_link = tree.links.new(new_socket, link.to_socket)
+
+                            try:
+                                if link.to_socket.is_multi_input:
+                                    new_link.swap_multi_input_sort_id(link)
+                            except AttributeError:
+                                pass
+
+                        except KeyError:
+                            pass
+
+    @staticmethod
+    def get_switch_items(node):
+        switch_type = node.bl_idname
+
+        if switch_type == "GeometryNodeMenuSwitch":
+            return node.enum_definition.enum_items
+        elif switch_type == "GeometryNodeIndexSwitch":
+            return node.index_switch_items
+
+    def transfer_switch_data(self, old_node, new_node):
+        old_switch_items = self.get_switch_items(old_node)
+        new_switch_items = self.get_switch_items(new_node)
+
+        new_switch_items.clear()
+
+        if new_node.bl_idname == "GeometryNodeMenuSwitch":
+            for i, old_item in enumerate(old_switch_items[:]):
+                # Change the menu item names to numerical indices
+                # This makes it so that later functions that match by socket name work on the switches
+                if hasattr(old_item, "name"):
+                    old_item.name = str(i)
+
+                new_switch_items.new(str(i))
+
+            if (old_switch_value := old_node.inputs[0].default_value) != '':
+                new_node.inputs[0].default_value = str(old_switch_value)
+
+        elif new_node.bl_idname == "GeometryNodeIndexSwitch":
+            for i, old_item in enumerate(old_switch_items[:]):
+                # Change the menu item names to numerical indices
+                # This makes it so that later functions that match by socket name work on the switches
+                if hasattr(old_item, "name"):
+                    old_item.name = str(i)
+
+                new_switch_items.new()
+
+            if (old_switch_value := old_node.inputs[0].default_value) != '':
+                new_node.inputs[0].default_value = int(old_switch_value)
 
 
 # Simple basic operator for adding a node.
@@ -158,6 +427,7 @@ class NODE_OT_add_node(NodeAddOperator, Operator):
         if self.properties.is_property_set("type"):
             self.deselect_nodes(context)
             if node := self.create_node(context, self.type):
+                self.apply_node_settings(node)
                 if self.visible_output:
                     for socket in node.outputs:
                         if socket.name != self.visible_output:
@@ -166,22 +436,91 @@ class NODE_OT_add_node(NodeAddOperator, Operator):
         else:
             return {'CANCELLED'}
 
-    @classmethod
-    def description(cls, _context, properties):
-        from nodeitems_builtins import node_tree_group_type
 
-        nodetype = properties["type"]
-        if nodetype in node_tree_group_type.values():
-            for setting in properties.settings:
-                if setting.name == "node_tree":
-                    node_group = eval(setting.value)
-                    if node_group.description:
-                        return node_group.description
-        bl_rna = bpy.types.Node.bl_rna_get_subclass(nodetype)
-        if bl_rna is not None:
-            return tip_(bl_rna.description)
-        else:
-            return ""
+class NODE_OT_swap_node(NodeSwapOperator, Operator):
+    """Replace the selected nodes with the specified type"""
+    bl_idname = "node.swap_node"
+    bl_label = "Swap Node"
+    bl_options = {"REGISTER", "UNDO"}
+
+    type: StringProperty(
+        name="Node Type",
+        description="Node type",
+    )
+
+    visible_output: StringProperty(
+        name="Output Name",
+        description="If provided, all outputs that are named differently will be hidden",
+        options={'SKIP_SAVE'},
+    )
+
+    @staticmethod
+    def get_zone_pair(tree, node):
+        # Get paired output node
+        if hasattr(node, "paired_output"):
+            return node, node.paired_output
+
+        # Get paired input node
+        for input_node in tree.nodes:
+            if hasattr(input_node, "paired_output"):
+                if input_node.paired_output == node:
+                    return input_node, node
+
+        return None
+
+    def execute(self, context):
+        tree = context.space_data.edit_tree
+
+        for old_node in context.selected_nodes[:]:
+            if tree.nodes.get(old_node.name) is None:
+                continue
+
+            if old_node.bl_idname == self.type:
+                self.apply_node_settings(old_node)
+                continue
+
+            new_node = self.create_node(context, self.type)
+            self.apply_node_settings(new_node)
+            self.transfer_node_properties(old_node, new_node)
+
+            if self.visible_output:
+                for socket in new_node.outputs:
+                    if socket.name != self.visible_output:
+                        socket.hide = True
+
+            with temporary_unframe((old_node,)):
+                new_node.location = old_node.location
+                new_node.select = True
+
+            zone_pair = self.get_zone_pair(tree, old_node)
+
+            if zone_pair is not None:
+                input_node, output_node = zone_pair
+
+                if input_node.select and output_node.select:
+                    with temporary_unframe((input_node, output_node)):
+                        new_node.location = (input_node.location + output_node.location) / 2
+                        new_node.select = True
+
+                self.transfer_input_values(input_node, new_node)
+
+                self.transfer_links(tree, input_node, new_node, is_input=True)
+                self.transfer_links(tree, output_node, new_node, is_input=False)
+
+                for node in zone_pair:
+                    tree.nodes.remove(node)
+            else:
+                if (old_node.bl_idname in switch_nodes) and (new_node.bl_idname in switch_nodes):
+                    self.transfer_switch_data(old_node, new_node)
+
+                self.transfer_input_values(old_node, new_node)
+
+                self.transfer_links(tree, old_node, new_node, is_input=True)
+                self.transfer_links(tree, old_node, new_node, is_input=False)
+
+                tree.nodes.remove(old_node)
+
+        return {'FINISHED'}
 
 
 class NODE_OT_add_empty_group(NodeAddOperator, bpy.types.Operator):
@@ -190,12 +529,19 @@ class NODE_OT_add_empty_group(NodeAddOperator, bpy.types.Operator):
     bl_description = "Add a group node with an empty group"
     bl_options = {'REGISTER', 'UNDO'}
 
+    # Override inherited method from NodeOperator
+    # Return None so that bl_description is used
+    @classmethod
+    def description(cls, _context, properties):
+        ...
+
     def execute(self, context):
         from nodeitems_builtins import node_tree_group_type
         tree = context.space_data.edit_tree
         group = self.create_empty_group(tree.bl_idname)
         self.deselect_nodes(context)
         node = self.create_node(context, node_tree_group_type[tree.bl_idname])
+        self.apply_node_settings(node)
         node.node_tree = group
         return {"FINISHED"}
 
@@ -213,7 +559,45 @@ class NODE_OT_add_empty_group(NodeAddOperator, bpy.types.Operator):
         return group
 
 
-class NodeAddZoneOperator(NodeAddOperator):
+class NODE_OT_swap_empty_group(NodeSwapOperator, bpy.types.Operator):
+    bl_idname = "node.swap_empty_group"
+    bl_label = "Swap Empty Group"
+    bl_description = "Replace active node with an empty group"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # Override inherited method from NodeOperator
+    # Return None so that bl_description is used
+    @classmethod
+    def description(cls, _context, properties):
+        ...
+
+    def execute(self, context):
+        from nodeitems_builtins import node_tree_group_type
+        tree = context.space_data.edit_tree
+        group = self.create_empty_group(tree.bl_idname)
+
+        bpy.ops.node.swap_node('INVOKE_DEFAULT', type=node_tree_group_type[tree.bl_idname])
+
+        for node in context.selected_nodes:
+            node.node_tree = group
+
+        return {"FINISHED"}
+
+    @staticmethod
+    def create_empty_group(idname):
+        group = bpy.data.node_groups.new(name="NodeGroup", type=idname)
+        input_node = group.nodes.new('NodeGroupInput')
+        input_node.select = False
+        input_node.location.x = -200 - input_node.width
+
+        output_node = group.nodes.new('NodeGroupOutput')
+        output_node.is_active_output = True
+        output_node.select = False
+        output_node.location.x = 200
+        return group
+
+
+class ZoneOperator:
     offset: FloatVectorProperty(
         name="Offset",
         description="Offset of nodes from the cursor when added",
@@ -221,6 +605,25 @@ class NodeAddZoneOperator(NodeAddOperator):
         default=(150, 0),
     )
 
+    zone_tooltips = {
+        "GeometryNodeSimulationInput": "Simulate the execution of nodes across a time span",
+        "GeometryNodeRepeatInput": "Execute nodes with a dynamic number of repetitions",
+        "GeometryNodeForeachGeometryElementInput": "Perform operations separately for each geometry element (e.g. vertices, edges, etc.)",
+        "NodeClosureInput": "Wrap nodes inside a closure that can be executed at a different part of the nodetree",
+    }
+
+    @classmethod
+    def description(cls, _context, properties):
+        input_node_type = getattr(properties, "input_node_type", None)
+
+        # For Add Zone operators, use class variable instead of operator property
+        if input_node_type is None:
+            input_node_type = cls.input_node_type
+
+        return cls.zone_tooltips.get(input_node_type, None)
+
+
+class NodeAddZoneOperator(ZoneOperator, NodeAddOperator):
     add_default_geometry_link = True
 
     def execute(self, context):
@@ -230,6 +633,10 @@ class NodeAddZoneOperator(NodeAddOperator):
         self.deselect_nodes(context)
         input_node = self.create_node(context, self.input_node_type)
         output_node = self.create_node(context, self.output_node_type)
+
+        self.apply_node_settings(input_node)
+        self.apply_node_settings(output_node)
+
         if input_node is None or output_node is None:
             return {'CANCELLED'}
 
@@ -245,6 +652,145 @@ class NodeAddZoneOperator(NodeAddOperator):
             from_socket = next(s for s in input_node.outputs if s.type == 'GEOMETRY')
             to_socket = next(s for s in output_node.inputs if s.type == 'GEOMETRY')
             tree.links.new(to_socket, from_socket)
+
+        return {'FINISHED'}
+
+
+class NODE_OT_add_zone(NodeAddZoneOperator, Operator):
+    bl_idname = "node.add_zone"
+    bl_label = "Add Zone"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    input_node_type: StringProperty(
+        name="Input Node",
+        description="Specifies the input node used the created zone",
+    )
+
+    output_node_type: StringProperty(
+        name="Output Node",
+        description="Specifies the output node used the created zone",
+    )
+
+    add_default_geometry_link: BoolProperty(
+        name="Add Geometry Link",
+        description="When enabled, create a link between geometry sockets in this zone",
+        default=False,
+    )
+
+
+class NODE_OT_swap_zone(ZoneOperator, NodeSwapOperator, Operator):
+    bl_idname = "node.swap_zone"
+    bl_label = "Swap Zone"
+    bl_options = {"REGISTER", "UNDO"}
+
+    input_node_type: StringProperty(
+        name="Input Node",
+        description="Specifies the input node used the created zone",
+    )
+
+    output_node_type: StringProperty(
+        name="Output Node",
+        description="Specifies the output node used the created zone",
+    )
+
+    add_default_geometry_link: BoolProperty(
+        name="Add Geometry Link",
+        description="When enabled, create a link between geometry sockets in this zone",
+        default=False,
+    )
+
+    @staticmethod
+    def get_zone_pair(tree, node):
+        # Get paired output node
+        if hasattr(node, "paired_output"):
+            return node, node.paired_output
+
+        # Get paired input node
+        for input_node in tree.nodes:
+            if hasattr(input_node, "paired_output"):
+                if input_node.paired_output == node:
+                    return input_node, node
+
+        return None
+
+    def execute(self, context):
+        tree = context.space_data.edit_tree
+
+        for old_node in context.selected_nodes[:]:
+            if tree.nodes.get(old_node.name) is None:
+                continue
+
+            zone_pair = self.get_zone_pair(tree, old_node)
+
+            if (old_node.bl_idname in {self.input_node_type, self.output_node_type}):
+                if zone_pair is not None:
+                    old_input_node, old_output_node = zone_pair
+                    self.apply_node_settings(old_input_node)
+                    self.apply_node_settings(old_output_node)
+                else:
+                    self.apply_node_settings(old_node)
+
+                continue
+
+            input_node = self.create_node(context, self.input_node_type)
+            output_node = self.create_node(context, self.output_node_type)
+
+            self.apply_node_settings(input_node)
+            self.apply_node_settings(output_node)
+
+            if input_node is None or output_node is None:
+                return {'CANCELLED'}
+
+            # Simulation input must be paired with the output.
+            input_node.pair_with_output(output_node)
+
+            if zone_pair is not None:
+                old_input_node, old_output_node = zone_pair
+
+                with temporary_unframe((old_input_node, old_output_node)):
+                    input_node.location = old_input_node.location
+                    output_node.location = old_output_node.location
+
+                self.transfer_node_properties(old_input_node, input_node)
+                self.transfer_node_properties(old_output_node, output_node)
+
+                self.transfer_input_values(old_input_node, input_node)
+                self.transfer_input_values(old_output_node, output_node)
+
+                self.transfer_links(tree, old_input_node, input_node, is_input=True)
+                self.transfer_links(tree, old_input_node, input_node, is_input=False)
+
+                self.transfer_links(tree, old_output_node, output_node, is_input=True)
+                self.transfer_links(tree, old_output_node, output_node, is_input=False)
+
+                for node in zone_pair:
+                    tree.nodes.remove(node)
+            else:
+                with temporary_unframe((old_node,)):
+                    input_node.location = old_node.location
+                    output_node.location = old_node.location
+
+                    input_node.location -= Vector(self.offset)
+                    output_node.location += Vector(self.offset)
+
+                self.transfer_node_properties(old_node, input_node)
+                self.transfer_node_properties(old_node, output_node)
+
+                self.transfer_input_values(old_node, input_node)
+
+                self.transfer_links(tree, old_node, input_node, is_input=True)
+                self.transfer_links(tree, old_node, output_node, is_input=False)
+
+                tree.nodes.remove(old_node)
+
+            if tree.type == "GEOMETRY" and self.add_default_geometry_link:
+                # Connect geometry sockets by default if available.
+                # Get the sockets by their types, because the name is not guaranteed due to i18n.
+                from_socket = next(s for s in input_node.outputs if s.type == 'GEOMETRY')
+                to_socket = next(s for s in output_node.inputs if s.type == 'GEOMETRY')
+
+                if not (from_socket.is_linked or to_socket.is_linked):
+                    tree.links.new(to_socket, from_socket)
 
         return {'FINISHED'}
 
@@ -750,8 +1296,12 @@ classes = (
 
     NODE_FH_image_node,
 
-    NODE_OT_add_empty_group,
     NODE_OT_add_node,
+    NODE_OT_swap_node,
+    NODE_OT_add_empty_group,
+    NODE_OT_swap_empty_group,
+    NODE_OT_add_zone,
+    NODE_OT_swap_zone,
     NODE_OT_add_simulation_zone,
     NODE_OT_add_repeat_zone,
     NODE_OT_add_foreach_geometry_element_zone,

@@ -91,6 +91,8 @@ void node_operatortypes()
   WM_operatortype_append(NODE_OT_add_import_node);
   WM_operatortype_append(NODE_OT_add_group_input_node);
 
+  WM_operatortype_append(NODE_OT_swap_group_asset);
+
   WM_operatortype_append(NODE_OT_new_node_tree);
   WM_operatortype_append(NODE_OT_new_compositing_node_group);
 

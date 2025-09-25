@@ -9,373 +9,395 @@ from bpy.app.translations import (
 )
 
 
-class NODE_MT_category_compositor_input(Menu):
-    bl_idname = "NODE_MT_category_compositor_input"
+class NODE_MT_compositor_node_input_base(node_add_menu.NodeMenu):
     bl_label = "Input"
 
     def draw(self, context):
         del context
         layout = self.layout
-        layout.menu("NODE_MT_category_compositor_input_constant")
+        self.draw_menu(layout, path="Input/Constant")
         layout.separator()
-        node_add_menu.add_node_type(layout, "NodeGroupInput")
-        node_add_menu.add_node_type(layout, "CompositorNodeBokehImage")
-        node_add_menu.add_node_type(layout, "CompositorNodeImage")
-        node_add_menu.add_node_type(layout, "CompositorNodeImageInfo")
-        node_add_menu.add_node_type(layout, "CompositorNodeImageCoordinates")
-        node_add_menu.add_node_type(layout, "CompositorNodeMask")
-        node_add_menu.add_node_type(layout, "CompositorNodeMovieClip")
+        self.node_operator(layout, "NodeGroupInput")
+        self.node_operator(layout, "CompositorNodeBokehImage")
+        self.node_operator(layout, "CompositorNodeImage")
+        self.node_operator(layout, "CompositorNodeImageInfo")
+        self.node_operator(layout, "CompositorNodeImageCoordinates")
+        self.node_operator(layout, "CompositorNodeMask")
+        self.node_operator(layout, "CompositorNodeMovieClip")
 
         layout.separator()
-        layout.menu("NODE_MT_category_compositor_input_scene")
+        self.draw_menu(layout, path="Input/Scene")
 
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        self.draw_assets_for_catalog(layout, self.bl_label)
 
 
-class NODE_MT_category_compositor_input_constant(Menu):
-    bl_idname = "NODE_MT_category_compositor_input_constant"
+class NODE_MT_compositor_node_input_constant_base(node_add_menu.NodeMenu):
     bl_label = "Constant"
+    menu_path = "Input/Constant"
 
     def draw(self, _context):
         layout = self.layout
-        node_add_menu.add_node_type(layout, "CompositorNodeRGB")
-        node_add_menu.add_node_type(layout, "ShaderNodeValue")
-        node_add_menu.add_node_type(layout, "CompositorNodeNormal")
+        self.node_operator(layout, "CompositorNodeRGB")
+        self.node_operator(layout, "ShaderNodeValue")
+        self.node_operator(layout, "CompositorNodeNormal")
 
-        node_add_menu.draw_assets_for_catalog(layout, "Input/Constant")
+        self.draw_assets_for_catalog(layout, self.menu_path)
 
 
-class NODE_MT_category_compositor_input_scene(Menu):
-    bl_idname = "NODE_MT_category_compositor_input_scene"
+class NODE_MT_compositor_node_input_scene_base(node_add_menu.NodeMenu):
     bl_label = "Scene"
+    menu_path = "Input/Scene"
 
     def draw(self, context):
         layout = self.layout
-        node_add_menu.add_node_type(layout, "CompositorNodeRLayers")
-        node_add_menu.add_node_type_with_outputs(context, layout, "CompositorNodeSceneTime", ["Frame", "Seconds"])
-        node_add_menu.add_node_type(layout, "CompositorNodeTime")
+        self.node_operator(layout, "CompositorNodeRLayers")
+        self.node_operator_with_outputs(context, layout, "CompositorNodeSceneTime", ["Frame", "Seconds"])
+        self.node_operator(layout, "CompositorNodeTime")
 
-        node_add_menu.draw_assets_for_catalog(layout, "Input/Scene")
+        self.draw_assets_for_catalog(layout, self.menu_path)
 
 
-class NODE_MT_category_compositor_output(Menu):
-    bl_idname = "NODE_MT_category_compositor_output"
+class NODE_MT_compositor_node_output_base(node_add_menu.NodeMenu):
     bl_label = "Output"
 
     def draw(self, context):
         del context
         layout = self.layout
-        node_add_menu.add_node_type(layout, "NodeGroupOutput")
-        node_add_menu.add_node_type(layout, "CompositorNodeViewer")
+        self.node_operator(layout, "NodeGroupOutput")
+        self.node_operator(layout, "CompositorNodeViewer")
         layout.separator()
-        node_add_menu.add_node_type(layout, "CompositorNodeOutputFile")
+        self.node_operator(layout, "CompositorNodeOutputFile")
 
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        self.draw_assets_for_catalog(layout, self.bl_label)
 
 
-class NODE_MT_category_compositor_color(Menu):
-    bl_idname = "NODE_MT_category_compositor_color"
+class NODE_MT_compositor_node_color_base(node_add_menu.NodeMenu):
     bl_label = "Color"
 
     def draw(self, _context):
         layout = self.layout
-        layout.menu("NODE_MT_category_compositor_color_adjust")
+        self.draw_menu(layout, path="Color/Adjust")
         layout.separator()
-        layout.menu("NODE_MT_category_compositor_color_mix")
+        self.draw_menu(layout, path="Color/Mix")
         layout.separator()
-        node_add_menu.add_node_type(layout, "CompositorNodePremulKey")
-        node_add_menu.add_node_type(layout, "ShaderNodeBlackbody")
-        node_add_menu.add_node_type(layout, "ShaderNodeValToRGB")
-        node_add_menu.add_node_type(layout, "CompositorNodeConvertColorSpace")
-        node_add_menu.add_node_type(layout, "CompositorNodeConvertToDisplay")
-        node_add_menu.add_node_type(layout, "CompositorNodeSetAlpha")
+        self.node_operator(layout, "CompositorNodePremulKey")
+        self.node_operator(layout, "ShaderNodeBlackbody")
+        self.node_operator(layout, "ShaderNodeValToRGB")
+        self.node_operator(layout, "CompositorNodeConvertColorSpace")
+        self.node_operator(layout, "CompositorNodeConvertToDisplay")
+        self.node_operator(layout, "CompositorNodeSetAlpha")
         layout.separator()
-        node_add_menu.add_node_type(layout, "CompositorNodeInvert")
-        node_add_menu.add_node_type(layout, "CompositorNodeRGBToBW")
+        self.node_operator(layout, "CompositorNodeInvert")
+        self.node_operator(layout, "CompositorNodeRGBToBW")
 
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        self.draw_assets_for_catalog(layout, self.bl_label)
 
 
-class NODE_MT_category_compositor_color_adjust(Menu):
-    bl_idname = "NODE_MT_category_compositor_color_adjust"
+class NODE_MT_compositor_node_color_adjust_base(node_add_menu.NodeMenu):
     bl_label = "Adjust"
+    menu_path = "Color/Adjust"
 
     def draw(self, _context):
         layout = self.layout
-        node_add_menu.add_node_type(layout, "CompositorNodeBrightContrast")
-        node_add_menu.add_node_type(layout, "CompositorNodeColorBalance")
-        node_add_menu.add_node_type(layout, "CompositorNodeColorCorrection")
-        node_add_menu.add_node_type(layout, "CompositorNodeExposure")
-        node_add_menu.add_node_type(layout, "ShaderNodeGamma")
-        node_add_menu.add_node_type(layout, "CompositorNodeHueCorrect")
-        node_add_menu.add_node_type(layout, "CompositorNodeHueSat")
-        node_add_menu.add_node_type(layout, "CompositorNodeCurveRGB")
-        node_add_menu.add_node_type(layout, "CompositorNodeTonemap")
+        self.node_operator(layout, "CompositorNodeBrightContrast")
+        self.node_operator(layout, "CompositorNodeColorBalance")
+        self.node_operator(layout, "CompositorNodeColorCorrection")
+        self.node_operator(layout, "CompositorNodeExposure")
+        self.node_operator(layout, "ShaderNodeGamma")
+        self.node_operator(layout, "CompositorNodeHueCorrect")
+        self.node_operator(layout, "CompositorNodeHueSat")
+        self.node_operator(layout, "CompositorNodeCurveRGB")
+        self.node_operator(layout, "CompositorNodeTonemap")
 
-        node_add_menu.draw_assets_for_catalog(layout, "Color/Adjust")
+        self.draw_assets_for_catalog(layout, self.menu_path)
 
 
-class NODE_MT_category_compositor_color_mix(Menu):
-    bl_idname = "NODE_MT_category_compositor_color_mix"
+class NODE_MT_compositor_node_color_mix_base(node_add_menu.NodeMenu):
     bl_label = "Mix"
+    menu_path = "Color/Mix"
 
     def draw(self, context):
         layout = self.layout
-        node_add_menu.add_node_type(layout, "CompositorNodeAlphaOver")
+        self.node_operator(layout, "CompositorNodeAlphaOver")
         layout.separator()
-        node_add_menu.add_node_type(layout, "CompositorNodeCombineColor")
-        node_add_menu.add_node_type(layout, "CompositorNodeSeparateColor")
+        self.node_operator(layout, "CompositorNodeCombineColor")
+        self.node_operator(layout, "CompositorNodeSeparateColor")
         layout.separator()
-        node_add_menu.add_node_type(layout, "CompositorNodeZcombine")
-        node_add_menu.add_color_mix_node(context, layout)
-        node_add_menu.draw_assets_for_catalog(layout, "Color/Mix")
+        self.node_operator(layout, "CompositorNodeZcombine")
+        self.color_mix_node(context, layout)
+
+        self.draw_assets_for_catalog(layout, self.menu_path)
 
 
-class NODE_MT_category_compositor_filter(Menu):
-    bl_idname = "NODE_MT_category_compositor_filter"
+class NODE_MT_compositor_node_filter_base(node_add_menu.NodeMenu):
     bl_label = "Filter"
 
     def draw(self, context):
         layout = self.layout
-        layout.menu("NODE_MT_category_compositor_filter_blur")
+        self.draw_menu(layout, path="Filter/Blur")
         layout.separator()
-        node_add_menu.add_node_type(layout, "CompositorNodeAntiAliasing")
-        node_add_menu.add_node_type(layout, "CompositorNodeConvolve")
-        node_add_menu.add_node_type(layout, "CompositorNodeDenoise")
-        node_add_menu.add_node_type(layout, "CompositorNodeDespeckle")
+        self.node_operator(layout, "CompositorNodeAntiAliasing")
+        self.node_operator(layout, "CompositorNodeConvolve")
+        self.node_operator(layout, "CompositorNodeDenoise")
+        self.node_operator(layout, "CompositorNodeDespeckle")
         layout.separator()
-        node_add_menu.add_node_type(layout, "CompositorNodeDilateErode")
-        node_add_menu.add_node_type(layout, "CompositorNodeInpaint")
+        self.node_operator(layout, "CompositorNodeDilateErode")
+        self.node_operator(layout, "CompositorNodeInpaint")
         layout.separator()
-        node_add_menu.add_node_type_with_searchable_enum_socket(
+        self.node_operator_with_searchable_enum_socket(
             context, layout, "CompositorNodeFilter", "Type", [
                 "Soften", "Box Sharpen", "Diamond Sharpen", "Laplace", "Sobel", "Prewitt", "Kirsch", "Shadow"])
-        node_add_menu.add_node_type_with_searchable_enum_socket(
+        self.node_operator_with_searchable_enum_socket(
             context, layout, "CompositorNodeGlare", "Type", [
                 "Bloom", "Ghosts", "Streaks", "Fog Glow", "Simple Star", "Sun Beams", "Kernel"])
-        node_add_menu.add_node_type(layout, "CompositorNodeKuwahara")
-        node_add_menu.add_node_type(layout, "CompositorNodePixelate")
-        node_add_menu.add_node_type(layout, "CompositorNodePosterize")
+        self.node_operator(layout, "CompositorNodeKuwahara")
+        self.node_operator(layout, "CompositorNodePixelate")
+        self.node_operator(layout, "CompositorNodePosterize")
 
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        self.draw_assets_for_catalog(layout, self.bl_label)
 
 
-class NODE_MT_category_compositor_filter_blur(Menu):
-    bl_idname = "NODE_MT_category_compositor_filter_blur"
+class NODE_MT_compositor_node_filter_blur_base(node_add_menu.NodeMenu):
     bl_label = "Blur"
+    menu_path = "Filter/Blur"
 
     def draw(self, _context):
         layout = self.layout
-        node_add_menu.add_node_type(layout, "CompositorNodeBilateralblur")
-        node_add_menu.add_node_type(layout, "CompositorNodeBlur")
-        node_add_menu.add_node_type(layout, "CompositorNodeBokehBlur")
-        node_add_menu.add_node_type(layout, "CompositorNodeDefocus")
-        node_add_menu.add_node_type(layout, "CompositorNodeDBlur")
-        node_add_menu.add_node_type(layout, "CompositorNodeVecBlur")
+        self.node_operator(layout, "CompositorNodeBilateralblur")
+        self.node_operator(layout, "CompositorNodeBlur")
+        self.node_operator(layout, "CompositorNodeBokehBlur")
+        self.node_operator(layout, "CompositorNodeDefocus")
+        self.node_operator(layout, "CompositorNodeDBlur")
+        self.node_operator(layout, "CompositorNodeVecBlur")
 
-        node_add_menu.draw_assets_for_catalog(layout, "Filter/Blur")
-
-
-class NODE_MT_category_compositor_group(Menu):
-    bl_idname = "NODE_MT_category_compositor_group"
-    bl_label = "Group"
-
-    def draw(self, context):
-        layout = self.layout
-        node_add_menu.draw_node_group_add_menu(context, layout)
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        self.draw_assets_for_catalog(layout, self.menu_path)
 
 
-class NODE_MT_category_compositor_keying(Menu):
-    bl_idname = "NODE_MT_category_compositor_keying"
+class NODE_MT_compositor_node_keying_base(node_add_menu.NodeMenu):
     bl_label = "Keying"
 
     def draw(self, _context):
         layout = self.layout
-        node_add_menu.add_node_type(layout, "CompositorNodeChannelMatte")
-        node_add_menu.add_node_type(layout, "CompositorNodeChromaMatte")
-        node_add_menu.add_node_type(layout, "CompositorNodeColorMatte")
-        node_add_menu.add_node_type(layout, "CompositorNodeColorSpill")
-        node_add_menu.add_node_type(layout, "CompositorNodeDiffMatte")
-        node_add_menu.add_node_type(layout, "CompositorNodeDistanceMatte")
-        node_add_menu.add_node_type(layout, "CompositorNodeKeying")
-        node_add_menu.add_node_type(layout, "CompositorNodeKeyingScreen")
-        node_add_menu.add_node_type(layout, "CompositorNodeLumaMatte")
+        self.node_operator(layout, "CompositorNodeChannelMatte")
+        self.node_operator(layout, "CompositorNodeChromaMatte")
+        self.node_operator(layout, "CompositorNodeColorMatte")
+        self.node_operator(layout, "CompositorNodeColorSpill")
+        self.node_operator(layout, "CompositorNodeDiffMatte")
+        self.node_operator(layout, "CompositorNodeDistanceMatte")
+        self.node_operator(layout, "CompositorNodeKeying")
+        self.node_operator(layout, "CompositorNodeKeyingScreen")
+        self.node_operator(layout, "CompositorNodeLumaMatte")
 
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        self.draw_assets_for_catalog(layout, self.bl_label)
 
 
-class NODE_MT_category_compositor_mask(Menu):
-    bl_idname = "NODE_MT_category_compositor_mask"
+class NODE_MT_compositor_node_mask_base(node_add_menu.NodeMenu):
     bl_label = "Mask"
 
     def draw(self, _context):
         layout = self.layout
-        node_add_menu.add_node_type(layout, "CompositorNodeCryptomatteV2")
-        node_add_menu.add_node_type(layout, "CompositorNodeCryptomatte")
+        self.node_operator(layout, "CompositorNodeCryptomatteV2")
+        self.node_operator(layout, "CompositorNodeCryptomatte")
         layout.separator()
-        node_add_menu.add_node_type(layout, "CompositorNodeBoxMask")
-        node_add_menu.add_node_type(layout, "CompositorNodeEllipseMask")
+        self.node_operator(layout, "CompositorNodeBoxMask")
+        self.node_operator(layout, "CompositorNodeEllipseMask")
         layout.separator()
-        node_add_menu.add_node_type(layout, "CompositorNodeDoubleEdgeMask")
-        node_add_menu.add_node_type(layout, "CompositorNodeIDMask")
+        self.node_operator(layout, "CompositorNodeDoubleEdgeMask")
+        self.node_operator(layout, "CompositorNodeIDMask")
 
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        self.draw_assets_for_catalog(layout, self.bl_label)
 
 
-class NODE_MT_category_compositor_tracking(Menu):
-    bl_idname = "NODE_MT_category_compositor_tracking"
+class NODE_MT_compositor_node_tracking_base(node_add_menu.NodeMenu):
     bl_label = "Tracking"
     bl_translation_context = i18n_contexts.id_movieclip
 
     def draw(self, _context):
         layout = self.layout
-        node_add_menu.add_node_type(layout, "CompositorNodePlaneTrackDeform")
-        node_add_menu.add_node_type(layout, "CompositorNodeStabilize")
-        node_add_menu.add_node_type(layout, "CompositorNodeTrackPos")
+        self.node_operator(layout, "CompositorNodePlaneTrackDeform")
+        self.node_operator(layout, "CompositorNodeStabilize")
+        self.node_operator(layout, "CompositorNodeTrackPos")
 
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        self.draw_assets_for_catalog(layout, self.bl_label)
 
 
-class NODE_MT_category_compositor_transform(Menu):
-    bl_idname = "NODE_MT_category_compositor_transform"
+class NODE_MT_compositor_node_transform_base(node_add_menu.NodeMenu):
     bl_label = "Transform"
 
     def draw(self, _context):
         layout = self.layout
-        node_add_menu.add_node_type(layout, "CompositorNodeRotate")
-        node_add_menu.add_node_type(layout, "CompositorNodeScale")
-        node_add_menu.add_node_type(layout, "CompositorNodeTransform")
-        node_add_menu.add_node_type(layout, "CompositorNodeTranslate")
+        self.node_operator(layout, "CompositorNodeRotate")
+        self.node_operator(layout, "CompositorNodeScale")
+        self.node_operator(layout, "CompositorNodeTransform")
+        self.node_operator(layout, "CompositorNodeTranslate")
         layout.separator()
-        node_add_menu.add_node_type(layout, "CompositorNodeCornerPin")
-        node_add_menu.add_node_type(layout, "CompositorNodeCrop")
+        self.node_operator(layout, "CompositorNodeCornerPin")
+        self.node_operator(layout, "CompositorNodeCrop")
         layout.separator()
-        node_add_menu.add_node_type(layout, "CompositorNodeDisplace")
-        node_add_menu.add_node_type(layout, "CompositorNodeFlip")
-        node_add_menu.add_node_type(layout, "CompositorNodeMapUV")
+        self.node_operator(layout, "CompositorNodeDisplace")
+        self.node_operator(layout, "CompositorNodeFlip")
+        self.node_operator(layout, "CompositorNodeMapUV")
         layout.separator()
-        node_add_menu.add_node_type(layout, "CompositorNodeLensdist")
-        node_add_menu.add_node_type(layout, "CompositorNodeMovieDistortion")
+        self.node_operator(layout, "CompositorNodeLensdist")
+        self.node_operator(layout, "CompositorNodeMovieDistortion")
 
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        self.draw_assets_for_catalog(layout, self.bl_label)
 
 
-class NODE_MT_category_compositor_texture(Menu):
-    bl_idname = "NODE_MT_category_compositor_texture"
+class NODE_MT_compositor_node_texture_base(node_add_menu.NodeMenu):
     bl_label = "Texture"
 
     def draw(self, _context):
         layout = self.layout
 
-        node_add_menu.add_node_type(layout, "ShaderNodeTexBrick")
-        node_add_menu.add_node_type(layout, "ShaderNodeTexChecker")
-        node_add_menu.add_node_type(layout, "ShaderNodeTexGabor")
-        node_add_menu.add_node_type(layout, "ShaderNodeTexGradient")
-        node_add_menu.add_node_type(layout, "ShaderNodeTexMagic")
-        node_add_menu.add_node_type(layout, "ShaderNodeTexNoise")
-        node_add_menu.add_node_type(layout, "ShaderNodeTexVoronoi")
-        node_add_menu.add_node_type(layout, "ShaderNodeTexWave")
-        node_add_menu.add_node_type(layout, "ShaderNodeTexWhiteNoise")
+        self.node_operator(layout, "ShaderNodeTexBrick")
+        self.node_operator(layout, "ShaderNodeTexChecker")
+        self.node_operator(layout, "ShaderNodeTexGabor")
+        self.node_operator(layout, "ShaderNodeTexGradient")
+        self.node_operator(layout, "ShaderNodeTexMagic")
+        self.node_operator(layout, "ShaderNodeTexNoise")
+        self.node_operator(layout, "ShaderNodeTexVoronoi")
+        self.node_operator(layout, "ShaderNodeTexWave")
+        self.node_operator(layout, "ShaderNodeTexWhiteNoise")
 
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        self.draw_assets_for_catalog(layout, self.bl_label)
 
 
-class NODE_MT_category_compositor_utilities(Menu):
-    bl_idname = "NODE_MT_category_compositor_utilities"
+class NODE_MT_compositor_node_utilities_base(node_add_menu.NodeMenu):
     bl_label = "Utilities"
 
     def draw(self, context):
         layout = self.layout
-        node_add_menu.add_node_type(layout, "ShaderNodeMapRange")
-        node_add_menu.add_node_type_with_searchable_enum(context, layout, "ShaderNodeMath", "operation")
-        node_add_menu.add_node_type(layout, "ShaderNodeMix")
-        node_add_menu.add_node_type(layout, "ShaderNodeClamp")
-        node_add_menu.add_node_type(layout, "ShaderNodeFloatCurve")
+        self.node_operator(layout, "ShaderNodeMapRange")
+        self.node_operator_with_searchable_enum(context, layout, "ShaderNodeMath", "operation")
+        self.node_operator(layout, "ShaderNodeMix")
+        self.node_operator(layout, "ShaderNodeClamp")
+        self.node_operator(layout, "ShaderNodeFloatCurve")
         layout.separator()
-        node_add_menu.add_node_type(layout, "CompositorNodeLevels")
-        node_add_menu.add_node_type(layout, "CompositorNodeNormalize")
+        self.node_operator(layout, "CompositorNodeLevels")
+        self.node_operator(layout, "CompositorNodeNormalize")
         layout.separator()
-        node_add_menu.add_node_type(layout, "CompositorNodeSplit")
-        node_add_menu.add_node_type(layout, "CompositorNodeSwitch")
-        node_add_menu.add_node_type(layout, "GeometryNodeMenuSwitch")
-        node_add_menu.add_node_type(
+        self.node_operator(layout, "CompositorNodeSplit")
+        self.node_operator(layout, "CompositorNodeSwitch")
+        self.node_operator(layout, "GeometryNodeMenuSwitch")
+        self.node_operator(
             layout, "CompositorNodeSwitchView",
             label="Switch Stereo View")
         layout.separator()
-        node_add_menu.add_node_type(layout, "CompositorNodeRelativeToPixel")
+        self.node_operator(layout, "CompositorNodeRelativeToPixel")
 
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        self.draw_assets_for_catalog(layout, self.bl_label)
 
 
-class NODE_MT_category_compositor_vector(Menu):
-    bl_idname = "NODE_MT_category_compositor_vector"
+class NODE_MT_compositor_node_vector_base(node_add_menu.NodeMenu):
     bl_label = "Vector"
 
     def draw(self, context):
         layout = self.layout
-        node_add_menu.add_node_type(layout, "ShaderNodeCombineXYZ")
-        node_add_menu.add_node_type(layout, "ShaderNodeSeparateXYZ")
+        self.node_operator(layout, "ShaderNodeCombineXYZ")
+        self.node_operator(layout, "ShaderNodeSeparateXYZ")
         layout.separator()
-        props = node_add_menu.add_node_type(layout, "ShaderNodeMix", label="Mix Vector")
+        props = self.node_operator(layout, "ShaderNodeMix", label="Mix Vector")
         ops = props.settings.add()
         ops.name = "data_type"
         ops.value = "'VECTOR'"
-        node_add_menu.add_node_type(layout, "ShaderNodeRadialTiling")
-        node_add_menu.add_node_type(layout, "ShaderNodeVectorCurve")
-        node_add_menu.add_node_type_with_searchable_enum(context, layout, "ShaderNodeVectorMath", "operation")
-        node_add_menu.add_node_type(layout, "ShaderNodeVectorRotate")
+        self.node_operator(layout, "ShaderNodeRadialTiling")
+        self.node_operator(layout, "ShaderNodeVectorCurve")
+        self.node_operator_with_searchable_enum(context, layout, "ShaderNodeVectorMath", "operation")
+        self.node_operator(layout, "ShaderNodeVectorRotate")
 
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        self.draw_assets_for_catalog(layout, self.bl_label)
 
 
-class NODE_MT_compositor_node_add_all(Menu):
-    bl_idname = "NODE_MT_compositor_node_add_all"
+class NODE_MT_compositor_node_all_base(node_add_menu.NodeMenu):
     bl_label = ""
+    menu_path = "Root"
+    bl_translation_context = i18n_contexts.operator_default
 
+    # NOTE: Menus are looked up via their label, this is so that both the Add
+    # & Swap menus can share the same layout while each using their
+    # corresponding menus
     def draw(self, context):
         layout = self.layout
-        layout.menu("NODE_MT_category_compositor_input")
-        layout.menu("NODE_MT_category_compositor_output")
+        self.draw_menu(layout, "Input")
+        self.draw_menu(layout, "Output")
         layout.separator()
-        layout.menu("NODE_MT_category_compositor_color")
-        layout.menu("NODE_MT_category_compositor_filter")
+        self.draw_menu(layout, "Color")
+        self.draw_menu(layout, "Filter")
         layout.separator()
-        layout.menu("NODE_MT_category_compositor_keying")
-        layout.menu("NODE_MT_category_compositor_mask")
+        self.draw_menu(layout, "Keying")
+        self.draw_menu(layout, "Mask")
         layout.separator()
-        layout.menu("NODE_MT_category_compositor_tracking")
+        self.draw_menu(layout, "Tracking")
         layout.separator()
-        layout.menu("NODE_MT_category_compositor_texture")
-        layout.menu("NODE_MT_category_compositor_transform")
-        layout.menu("NODE_MT_category_compositor_utilities")
-        layout.menu("NODE_MT_category_compositor_vector")
+        self.draw_menu(layout, "Texture")
+        self.draw_menu(layout, "Transform")
+        self.draw_menu(layout, "Utilities")
+        self.draw_menu(layout, "Vector")
         layout.separator()
-        layout.menu("NODE_MT_category_compositor_group")
-        layout.menu("NODE_MT_category_layout")
+        self.draw_menu(layout, "Group")
+        self.draw_menu(layout, "Layout")
 
-        node_add_menu.draw_root_assets(layout)
+        self.draw_root_assets(layout)
+
+
+add_menus = {
+    # menu bl_idname: baseclass
+    "NODE_MT_category_compositor_input": NODE_MT_compositor_node_input_base,
+    "NODE_MT_category_compositor_input_constant": NODE_MT_compositor_node_input_constant_base,
+    "NODE_MT_category_compositor_input_scene": NODE_MT_compositor_node_input_scene_base,
+    "NODE_MT_category_compositor_output": NODE_MT_compositor_node_output_base,
+    "NODE_MT_category_compositor_color": NODE_MT_compositor_node_color_base,
+    "NODE_MT_category_compositor_color_adjust": NODE_MT_compositor_node_color_adjust_base,
+    "NODE_MT_category_compositor_color_mix": NODE_MT_compositor_node_color_mix_base,
+    "NODE_MT_category_compositor_filter": NODE_MT_compositor_node_filter_base,
+    "NODE_MT_category_compositor_filter_blur": NODE_MT_compositor_node_filter_blur_base,
+    "NODE_MT_category_compositor_texture": NODE_MT_compositor_node_texture_base,
+    "NODE_MT_category_compositor_keying": NODE_MT_compositor_node_keying_base,
+    "NODE_MT_category_compositor_mask": NODE_MT_compositor_node_mask_base,
+    "NODE_MT_category_compositor_tracking": NODE_MT_compositor_node_tracking_base,
+    "NODE_MT_category_compositor_transform": NODE_MT_compositor_node_transform_base,
+    "NODE_MT_category_compositor_utilities": NODE_MT_compositor_node_utilities_base,
+    "NODE_MT_category_compositor_vector": NODE_MT_compositor_node_vector_base,
+    "NODE_MT_compositor_node_add_all": NODE_MT_compositor_node_all_base,
+}
+add_menus = node_add_menu.generate_menus(
+    add_menus,
+    template=node_add_menu.AddNodeMenu,
+    base_dict=node_add_menu.add_base_pathing_dict
+)
+
+
+swap_menus = {
+    # menu bl_idname: baseclass
+    "NODE_MT_compositor_node_input_swap": NODE_MT_compositor_node_input_base,
+    "NODE_MT_compositor_node_input_constant_swap": NODE_MT_compositor_node_input_constant_base,
+    "NODE_MT_compositor_node_input_scene_swap": NODE_MT_compositor_node_input_scene_base,
+    "NODE_MT_compositor_node_output_swap": NODE_MT_compositor_node_output_base,
+    "NODE_MT_compositor_node_color_swap": NODE_MT_compositor_node_color_base,
+    "NODE_MT_compositor_node_color_adjust_swap": NODE_MT_compositor_node_color_adjust_base,
+    "NODE_MT_compositor_node_color_mix_swap": NODE_MT_compositor_node_color_mix_base,
+    "NODE_MT_compositor_node_filter_swap": NODE_MT_compositor_node_filter_base,
+    "NODE_MT_compositor_node_filter_blur_swap": NODE_MT_compositor_node_filter_blur_base,
+    "NODE_MT_compositor_node_texture_swap": NODE_MT_compositor_node_texture_base,
+    "NODE_MT_compositor_node_keying_swap": NODE_MT_compositor_node_keying_base,
+    "NODE_MT_compositor_node_mask_swap": NODE_MT_compositor_node_mask_base,
+    "NODE_MT_compositor_node_tracking_swap": NODE_MT_compositor_node_tracking_base,
+    "NODE_MT_compositor_node_transform_swap": NODE_MT_compositor_node_transform_base,
+    "NODE_MT_compositor_node_utilities_swap": NODE_MT_compositor_node_utilities_base,
+    "NODE_MT_compositor_node_vector_swap": NODE_MT_compositor_node_vector_base,
+    "NODE_MT_compositor_node_swap_all": NODE_MT_compositor_node_all_base,
+}
+swap_menus = node_add_menu.generate_menus(
+    swap_menus,
+    template=node_add_menu.SwapNodeMenu,
+    base_dict=node_add_menu.swap_base_pathing_dict
+)
 
 
 classes = (
-    NODE_MT_compositor_node_add_all,
-    NODE_MT_category_compositor_input,
-    NODE_MT_category_compositor_input_constant,
-    NODE_MT_category_compositor_input_scene,
-    NODE_MT_category_compositor_output,
-    NODE_MT_category_compositor_color,
-    NODE_MT_category_compositor_color_adjust,
-    NODE_MT_category_compositor_color_mix,
-    NODE_MT_category_compositor_filter,
-    NODE_MT_category_compositor_filter_blur,
-    NODE_MT_category_compositor_texture,
-    NODE_MT_category_compositor_keying,
-    NODE_MT_category_compositor_mask,
-    NODE_MT_category_compositor_tracking,
-    NODE_MT_category_compositor_transform,
-    NODE_MT_category_compositor_utilities,
-    NODE_MT_category_compositor_vector,
-    NODE_MT_category_compositor_group,
+    *add_menus,
+    *swap_menus,
 )
 
 if __name__ == "__main__":  # only for live edit.

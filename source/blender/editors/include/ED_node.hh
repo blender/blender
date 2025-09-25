@@ -20,6 +20,8 @@
 
 #include "ED_node_c.hh"
 
+#include "UI_interface_layout.hh"
+
 struct SpaceNode;
 struct ARegion;
 struct Main;
@@ -136,7 +138,8 @@ bool node_editor_is_for_geometry_nodes_modifier(const SpaceNode &snode,
 
 void ui_template_node_asset_menu_items(uiLayout &layout,
                                        const bContext &C,
-                                       StringRef catalog_path);
+                                       StringRef catalog_path,
+                                       const NodeAssetMenuOperatorType operator_type);
 
 /** See #SpaceNode_Runtime::node_can_sync_states. */
 Map<int, bool> &node_can_sync_cache_get(SpaceNode &snode);

@@ -9,136 +9,154 @@ from bpy.app.translations import (
 from bl_ui import node_add_menu
 
 
-class NODE_MT_category_texture_input(Menu):
-    bl_idname = "NODE_MT_category_texture_input"
+class NODE_MT_texture_node_input_base(Menu):
     bl_label = "Input"
 
     def draw(self, _context):
         layout = self.layout
-        node_add_menu.add_node_type(layout, "TextureNodeCoordinates")
-        node_add_menu.add_node_type(layout, "TextureNodeCurveTime")
-        node_add_menu.add_node_type(layout, "TextureNodeImage")
-        node_add_menu.add_node_type(layout, "TextureNodeTexture")
+        self.node_operator(layout, "TextureNodeCoordinates")
+        self.node_operator(layout, "TextureNodeCurveTime")
+        self.node_operator(layout, "TextureNodeImage")
+        self.node_operator(layout, "TextureNodeTexture")
 
 
-class NODE_MT_category_texture_output(Menu):
-    bl_idname = "NODE_MT_category_texture_output"
+class NODE_MT_texture_node_output_base(Menu):
     bl_label = "Output"
 
     def draw(self, _context):
         layout = self.layout
-        node_add_menu.add_node_type(layout, "TextureNodeOutput")
-        node_add_menu.add_node_type(layout, "TextureNodeViewer")
+        self.node_operator(layout, "TextureNodeOutput")
+        self.node_operator(layout, "TextureNodeViewer")
 
 
-class NODE_MT_category_texture_color(Menu):
-    bl_idname = "NODE_MT_category_texture_color"
+class NODE_MT_texture_node_color_base(Menu):
     bl_label = "Color"
 
     def draw(self, _context):
         layout = self.layout
-        node_add_menu.add_node_type(layout, "TextureNodeHueSaturation")
-        node_add_menu.add_node_type(layout, "TextureNodeInvert")
-        node_add_menu.add_node_type(layout, "TextureNodeMixRGB")
-        node_add_menu.add_node_type(layout, "TextureNodeCurveRGB")
+        self.node_operator(layout, "TextureNodeHueSaturation")
+        self.node_operator(layout, "TextureNodeInvert")
+        self.node_operator(layout, "TextureNodeMixRGB")
+        self.node_operator(layout, "TextureNodeCurveRGB")
         layout.separator()
-        node_add_menu.add_node_type(layout, "TextureNodeCombineColor")
-        node_add_menu.add_node_type(layout, "TextureNodeSeparateColor")
+        self.node_operator(layout, "TextureNodeCombineColor")
+        self.node_operator(layout, "TextureNodeSeparateColor")
 
 
-class NODE_MT_category_texture_converter(Menu):
-    bl_idname = "NODE_MT_category_texture_converter"
+class NODE_MT_texture_node_converter_base(Menu):
     bl_label = "Converter"
 
     def draw(self, _context):
         layout = self.layout
-        node_add_menu.add_node_type(layout, "TextureNodeValToRGB")
-        node_add_menu.add_node_type(layout, "TextureNodeDistance")
-        node_add_menu.add_node_type(layout, "TextureNodeMath")
-        node_add_menu.add_node_type(layout, "TextureNodeRGBToBW")
-        node_add_menu.add_node_type(layout, "TextureNodeValToNor")
+        self.node_operator(layout, "TextureNodeValToRGB")
+        self.node_operator(layout, "TextureNodeDistance")
+        self.node_operator(layout, "TextureNodeMath")
+        self.node_operator(layout, "TextureNodeRGBToBW")
+        self.node_operator(layout, "TextureNodeValToNor")
 
 
-class NODE_MT_category_texture_distort(Menu):
-    bl_idname = "NODE_MT_category_texture_distort"
+class NODE_MT_texture_node_distort_base(Menu):
     bl_label = "Distort"
 
     def draw(self, _context):
         layout = self.layout
-        node_add_menu.add_node_type(layout, "TextureNodeAt")
-        node_add_menu.add_node_type(layout, "TextureNodeRotate")
-        node_add_menu.add_node_type(layout, "TextureNodeScale")
-        node_add_menu.add_node_type(layout, "TextureNodeTranslate")
+        self.node_operator(layout, "TextureNodeAt")
+        self.node_operator(layout, "TextureNodeRotate")
+        self.node_operator(layout, "TextureNodeScale")
+        self.node_operator(layout, "TextureNodeTranslate")
 
 
-class NODE_MT_category_texture_pattern(Menu):
-    bl_idname = "NODE_MT_category_texture_pattern"
+class NODE_MT_texture_node_pattern_base(Menu):
     bl_label = "Pattern"
     bl_translation_context = i18n_contexts.id_texture
 
     def draw(self, _context):
         layout = self.layout
-        node_add_menu.add_node_type(layout, "TextureNodeBricks")
-        node_add_menu.add_node_type(layout, "TextureNodeChecker")
+        self.node_operator(layout, "TextureNodeBricks")
+        self.node_operator(layout, "TextureNodeChecker")
 
 
-class NODE_MT_category_texture_texture(Menu):
-    bl_idname = "NODE_MT_category_texture_texture"
+class NODE_MT_texture_node_texture_base(Menu):
     bl_label = "Texture"
 
     def draw(self, _context):
         layout = self.layout
-        node_add_menu.add_node_type(layout, "TextureNodeTexBlend")
-        node_add_menu.add_node_type(layout, "TextureNodeTexClouds")
-        node_add_menu.add_node_type(layout, "TextureNodeTexDistNoise")
-        node_add_menu.add_node_type(layout, "TextureNodeTexMagic")
-        node_add_menu.add_node_type(layout, "TextureNodeTexMarble")
-        node_add_menu.add_node_type(layout, "TextureNodeTexMusgrave")
-        node_add_menu.add_node_type(layout, "TextureNodeTexNoise")
-        node_add_menu.add_node_type(layout, "TextureNodeTexStucci")
-        node_add_menu.add_node_type(layout, "TextureNodeTexVoronoi")
-        node_add_menu.add_node_type(layout, "TextureNodeTexWood")
+        self.node_operator(layout, "TextureNodeTexBlend")
+        self.node_operator(layout, "TextureNodeTexClouds")
+        self.node_operator(layout, "TextureNodeTexDistNoise")
+        self.node_operator(layout, "TextureNodeTexMagic")
+        self.node_operator(layout, "TextureNodeTexMarble")
+        self.node_operator(layout, "TextureNodeTexMusgrave")
+        self.node_operator(layout, "TextureNodeTexNoise")
+        self.node_operator(layout, "TextureNodeTexStucci")
+        self.node_operator(layout, "TextureNodeTexVoronoi")
+        self.node_operator(layout, "TextureNodeTexWood")
 
 
-class NODE_MT_category_texture_group(Menu):
-    bl_idname = "NODE_MT_category_texture_group"
-    bl_label = "Group"
-
-    def draw(self, context):
-        layout = self.layout
-        node_add_menu.draw_node_group_add_menu(context, layout)
-
-
-class NODE_MT_texture_node_add_all(Menu):
-    bl_idname = "NODE_MT_texture_node_add_all"
-    bl_label = "Add"
+class NODE_MT_texture_node_all_base(node_add_menu.NodeMenu):
+    bl_label = ""
+    menu_path = "Root"
     bl_translation_context = i18n_contexts.operator_default
 
-    def draw(self, _context):
+    # NOTE: Menus are looked up via their label, this is so that both the Add
+    # & Swap menus can share the same layout while each using their
+    # corresponding menus
+    def draw(self, context):
         layout = self.layout
-        layout.menu("NODE_MT_category_texture_input")
-        layout.menu("NODE_MT_category_texture_output")
+        self.draw_menu(layout, "Input")
+        self.draw_menu(layout, "Output")
         layout.separator()
-        layout.menu("NODE_MT_category_texture_color")
-        layout.menu("NODE_MT_category_texture_converter")
-        layout.menu("NODE_MT_category_texture_distort")
-        layout.menu("NODE_MT_category_texture_pattern")
-        layout.menu("NODE_MT_category_texture_texture")
+        self.draw_menu(layout, "Color")
+        self.draw_menu(layout, "Converter")
+        self.draw_menu(layout, "Distort")
+        self.draw_menu(layout, "Pattern")
+        self.draw_menu(layout, "Texture")
         layout.separator()
-        layout.menu("NODE_MT_category_texture_group")
-        layout.menu("NODE_MT_category_layout")
+        self.draw_menu(layout, "Group")
+        self.draw_menu(layout, "Layout")
+
+        self.draw_root_assets(layout)
+
+
+add_menus = {
+    # menu bl_idname: baseclass
+    "NODE_MT_category_texture_input": NODE_MT_texture_node_input_base,
+    "NODE_MT_category_texture_output": NODE_MT_texture_node_output_base,
+    "NODE_MT_category_texture_color": NODE_MT_texture_node_color_base,
+    "NODE_MT_category_texture_converter": NODE_MT_texture_node_converter_base,
+    "NODE_MT_category_texture_distort": NODE_MT_texture_node_distort_base,
+    "NODE_MT_category_texture_pattern": NODE_MT_texture_node_pattern_base,
+    "NODE_MT_category_texture_texture": NODE_MT_texture_node_texture_base,
+    "NODE_MT_texture_node_add_all": NODE_MT_texture_node_all_base,
+}
+add_menus = node_add_menu.generate_menus(
+    add_menus,
+    template=node_add_menu.AddNodeMenu,
+    base_dict=node_add_menu.add_base_pathing_dict
+)
+
+
+swap_menus = {
+    # menu bl_idname: baseclass
+    "NODE_MT_texture_node_input_swap": NODE_MT_texture_node_input_base,
+    "NODE_MT_texture_node_output_swap": NODE_MT_texture_node_output_base,
+    "NODE_MT_texture_node_color_swap": NODE_MT_texture_node_color_base,
+    "NODE_MT_texture_node_converter_swap": NODE_MT_texture_node_converter_base,
+    "NODE_MT_texture_node_distort_swap": NODE_MT_texture_node_distort_base,
+    "NODE_MT_texture_node_pattern_swap": NODE_MT_texture_node_pattern_base,
+    "NODE_MT_texture_node_texture_swap": NODE_MT_texture_node_texture_base,
+    "NODE_MT_texture_node_swap_all": NODE_MT_texture_node_all_base,
+}
+swap_menus = node_add_menu.generate_menus(
+    swap_menus,
+    template=node_add_menu.SwapNodeMenu,
+    base_dict=node_add_menu.swap_base_pathing_dict
+)
 
 
 classes = (
-    NODE_MT_texture_node_add_all,
-    NODE_MT_category_texture_input,
-    NODE_MT_category_texture_output,
-    NODE_MT_category_texture_color,
-    NODE_MT_category_texture_converter,
-    NODE_MT_category_texture_distort,
-    NODE_MT_category_texture_pattern,
-    NODE_MT_category_texture_texture,
-    NODE_MT_category_texture_group,
+    *add_menus,
+    *swap_menus,
 )
 
 
