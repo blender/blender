@@ -76,6 +76,7 @@ struct AlphaOverEffectOp {
 };
 
 static ImBuf *do_alphaover_effect(const RenderData *context,
+                                  SeqRenderState * /*state*/,
                                   Strip * /*strip*/,
                                   float /*timeline_frame*/,
                                   float fac,
@@ -125,6 +126,7 @@ struct AlphaUnderEffectOp {
 };
 
 static ImBuf *do_alphaunder_effect(const RenderData *context,
+                                   SeqRenderState * /*state*/,
                                    Strip * /*strip*/,
                                    float /*timeline_frame*/,
                                    float fac,
@@ -325,6 +327,7 @@ struct BlendModeEffectOp {
 };
 
 static ImBuf *do_blend_mode_effect(const RenderData *context,
+                                   SeqRenderState * /*state*/,
                                    Strip *strip,
                                    float /*timeline_frame*/,
                                    float fac,
@@ -356,6 +359,7 @@ static void init_colormix_effect(Strip *strip)
 }
 
 static ImBuf *do_colormix_effect(const RenderData *context,
+                                 SeqRenderState * /*state*/,
                                  Strip *strip,
                                  float /*timeline_frame*/,
                                  float /*fac*/,

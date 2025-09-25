@@ -20,6 +20,7 @@ struct TextVars;
 
 namespace blender::seq {
 
+struct SeqRenderState;
 struct RenderData;
 
 enum class StripEarlyOut {
@@ -58,6 +59,7 @@ struct EffectHandle {
 
   /* execute the effect */
   ImBuf *(*execute)(const RenderData *context,
+                    SeqRenderState *state,
                     Strip *strip,
                     float timeline_frame,
                     float fac,

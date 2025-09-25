@@ -139,6 +139,7 @@ static void gaussian_blur_y(const Span<float> gaussian,
 }
 
 static ImBuf *do_gaussian_blur_effect(const RenderData *context,
+                                      SeqRenderState * /*state*/,
                                       Strip *strip,
                                       float /*timeline_frame*/,
                                       float /*fac*/,

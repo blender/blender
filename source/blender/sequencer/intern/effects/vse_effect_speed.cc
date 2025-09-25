@@ -184,6 +184,7 @@ static float speed_effect_interpolation_ratio_get(Scene *scene,
 }
 
 static ImBuf *do_speed_effect(const RenderData *context,
+                              SeqRenderState *state,
                               Strip *strip,
                               float timeline_frame,
                               float fac,
@@ -197,7 +198,7 @@ static ImBuf *do_speed_effect(const RenderData *context,
   if (s->flags & SEQ_SPEED_USE_INTERPOLATION) {
     fac = speed_effect_interpolation_ratio_get(context->scene, strip, timeline_frame);
     /* Current frame is ibuf1, next frame is ibuf2. */
-    out = cross_effect.execute(context, nullptr, timeline_frame, fac, ibuf1, ibuf2);
+    out = cross_effect.execute(context, state, nullptr, timeline_frame, fac, ibuf1, ibuf2);
     return out;
   }
 
