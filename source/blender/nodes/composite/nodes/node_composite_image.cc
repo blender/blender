@@ -81,6 +81,66 @@ static blender::bke::bNodeSocketTemplate cmp_node_rlayers_out[] = {
 };
 #define NUM_LEGACY_SOCKETS (ARRAY_SIZE(cmp_node_rlayers_out) - 1)
 
+static const char *cmp_node_new_pass_name(const char *name)
+{
+  if (STREQ(name, "DiffDir")) {
+    return "Diffuse Direct";
+  }
+  if (STREQ(name, "DiffInd")) {
+    return "Diffuse Indirect";
+  }
+  if (STREQ(name, "DiffCol")) {
+    return "Diffuse Color";
+  }
+  if (STREQ(name, "GlossDir")) {
+    return "Glossy Direct";
+  }
+  if (STREQ(name, "GlossInd")) {
+    return "Glossy Indirect";
+  }
+  if (STREQ(name, "GlossCol")) {
+    return "Glossy Color";
+  }
+  if (STREQ(name, "TransDir")) {
+    return "Transmission Direct";
+  }
+  if (STREQ(name, "TransInd")) {
+    return "Transmission Indirect";
+  }
+  if (STREQ(name, "TransCol")) {
+    return "Transmission Color";
+  }
+  if (STREQ(name, "VolumeDir")) {
+    return "Volume Direct";
+  }
+  if (STREQ(name, "VolumeInd")) {
+    return "Volume Indirect";
+  }
+  if (STREQ(name, "VolumeCol")) {
+    return "Volume Color";
+  }
+  if (STREQ(name, "AO")) {
+    return "Ambient Occlusion";
+  }
+  if (STREQ(name, "Env")) {
+    return "Environment";
+  }
+  if (STREQ(name, "IndexMA")) {
+    return "Material Index";
+  }
+  if (STREQ(name, "IndexOB")) {
+    return "Object Index";
+  }
+  if (STREQ(name, "GreasePencil")) {
+    return "Grease Pencil";
+  }
+  if (STREQ(name, "Emit")) {
+    return "Emission";
+  }
+
+  return nullptr;
+}
+
 static void cmp_node_image_add_pass_output(bNodeTree *ntree,
                                            bNode *node,
                                            const char *name,
@@ -93,6 +153,18 @@ static void cmp_node_image_add_pass_output(bNodeTree *ntree,
 {
   bNodeSocket *sock = (bNodeSocket *)BLI_findstring(
       &node->outputs, name, offsetof(bNodeSocket, name));
+
+  /* Forward compatibility, rename new socket names to old ones. */
+  if (sock == nullptr) {
+    const char *new_name = cmp_node_new_pass_name(name);
+    if (new_name) {
+      sock = (bNodeSocket *)BLI_findstring(&node->outputs, new_name, offsetof(bNodeSocket, name));
+      if (sock) {
+        STRNCPY(sock->name, name);
+        STRNCPY(sock->identifier, name);
+      }
+    }
+  }
 
   /* Replace if types don't match. */
   if (sock && sock->type != type) {
