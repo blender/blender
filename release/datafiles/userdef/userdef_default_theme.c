@@ -121,6 +121,16 @@ const bTheme U_theme_default = {
       .text_sel = RGBA(0xffffffff),
       .roundness = 0.2f,
     },
+    .wcol_curve = {
+      .outline = RGBA(0x727272ff),
+      .outline_sel = RGBA(0x9a9a9aff),
+      .inner = RGBA(0x545454ff),
+      .inner_sel = RGBA(0x000000ff),
+      .item = RGBA(0x00000059),
+      .text = RGBA(0x08080800),
+      .text_sel = RGBA(0xc9c9c900),
+      .roundness = 0.2f,
+    },
     .wcol_menu = {
       .outline = RGBA(0x3d3d3dff),
       .outline_sel = RGBA(0x3d3d3dff),

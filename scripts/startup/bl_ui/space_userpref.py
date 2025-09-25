@@ -1455,6 +1455,7 @@ class ThemeGenericClassGenerator:
     def generate_panel_classes_for_wcols():
         wcols = [
             ("Box", "wcol_box"),
+            ("Curve", "wcol_curve"),
             ("List Item", "wcol_list_item"),
             ("Menu", "wcol_menu"),
             ("Menu Background", "wcol_menu_back"),

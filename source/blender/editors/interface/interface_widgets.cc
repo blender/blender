@@ -5272,11 +5272,11 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
         break;
 
       case ButType::Curve:
-        ui_draw_but_CURVE(region, but, &tui->wcol_regular, rect);
+        ui_draw_but_CURVE(region, but, &tui->wcol_curve, rect);
         break;
 
       case ButType::CurveProfile:
-        ui_draw_but_CURVEPROFILE(region, but, &tui->wcol_regular, rect);
+        ui_draw_but_CURVEPROFILE(region, but, &tui->wcol_curve, rect);
         break;
 
       case ButType::Progress:
