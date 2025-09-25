@@ -1260,8 +1260,6 @@ void register_standard_node_socket_types()
   bke::node_register_socket_type(*make_socket_type_int(PROP_FACTOR));
 
   bke::node_register_socket_type(*make_socket_type_bool());
-  bke::node_register_socket_type(*make_socket_type_rotation());
-  bke::node_register_socket_type(*make_socket_type_matrix());
 
   bke::node_register_socket_type(*make_socket_type_vector(PROP_NONE, 3));
   bke::node_register_socket_type(*make_socket_type_vector(PROP_FACTOR, 3));
@@ -1294,6 +1292,8 @@ void register_standard_node_socket_types()
   bke::node_register_socket_type(*make_socket_type_vector(PROP_XYZ, 4));
 
   bke::node_register_socket_type(*make_socket_type_rgba());
+  bke::node_register_socket_type(*make_socket_type_rotation());
+  bke::node_register_socket_type(*make_socket_type_matrix());
 
   bke::node_register_socket_type(*make_socket_type_string(PROP_NONE));
   bke::node_register_socket_type(*make_socket_type_string(PROP_FILEPATH));
