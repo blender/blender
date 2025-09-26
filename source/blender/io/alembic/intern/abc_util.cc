@@ -28,11 +28,12 @@ namespace blender::io::alembic {
 
 std::string get_valid_abc_name(const char *name)
 {
-  std::string name_string(name);
-  std::replace(name_string.begin(), name_string.end(), ' ', '_');
-  std::replace(name_string.begin(), name_string.end(), '.', '_');
-  std::replace(name_string.begin(), name_string.end(), ':', '_');
-  return name_string;
+  std::string abc_name(name);
+  std::replace(abc_name.begin(), abc_name.end(), ' ', '_');
+  std::replace(abc_name.begin(), abc_name.end(), '.', '_');
+  std::replace(abc_name.begin(), abc_name.end(), ':', '_');
+  std::replace(abc_name.begin(), abc_name.end(), '/', '_');
+  return abc_name;
 }
 
 Imath::M44d convert_matrix_datatype(const float mat[4][4])

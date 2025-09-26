@@ -8,6 +8,7 @@
 
 #include "abc_customdata.h"
 #include "abc_axis_conversion.h"
+#include "abc_util.h"
 
 #include <Alembic/Abc/ICompoundProperty.h>
 #include <Alembic/Abc/ISampleSelector.h>
@@ -148,7 +149,7 @@ const char *get_uv_sample(UVSample &sample, const CDStreamConfig &config, Custom
 static void write_uv(const OCompoundProperty &prop,
                      CDStreamConfig &config,
                      const void *data,
-                     const char *name)
+                     const std::string &uv_map_name)
 {
   std::vector<uint32_t> indices;
   std::vector<Imath::V2f> uvs;
@@ -159,11 +160,10 @@ static void write_uv(const OCompoundProperty &prop,
     return;
   }
 
-  std::string uv_map_name(name);
   OV2fGeomParam param = config.abc_uv_maps[uv_map_name];
 
   if (!param.valid()) {
-    param = OV2fGeomParam(prop, name, true, kFacevaryingScope, 1);
+    param = OV2fGeomParam(prop, uv_map_name, true, kFacevaryingScope, 1);
   }
   OV2fGeomParam::Sample sample(V2fArraySample(&uvs.front(), uvs.size()),
                                UInt32ArraySample(&indices.front(), indices.size()),
@@ -213,7 +213,7 @@ static void get_cols(const CDStreamConfig &config,
 static void write_mcol(const OCompoundProperty &prop,
                        CDStreamConfig &config,
                        const void *data,
-                       const char *name)
+                       const std::string &vcol_name)
 {
   std::vector<uint32_t> indices;
   std::vector<Imath::C4f> buffer;
@@ -224,11 +224,10 @@ static void write_mcol(const OCompoundProperty &prop,
     return;
   }
 
-  std::string vcol_name(name);
   OC4fGeomParam param = config.abc_vertex_colors[vcol_name];
 
   if (!param.valid()) {
-    param = OC4fGeomParam(prop, name, true, kFacevaryingScope, 1);
+    param = OC4fGeomParam(prop, vcol_name, true, kFacevaryingScope, 1);
   }
 
   OC4fGeomParam::Sample sample(C4fArraySample(&buffer.front(), buffer.size()),
@@ -289,7 +288,7 @@ void write_custom_data(const OCompoundProperty &prop,
 
   for (int i = 0; i < tot_layers; i++) {
     const void *cd_data = CustomData_get_layer_n(data, cd_data_type, i);
-    const char *name = CustomData_get_layer_name(data, cd_data_type, i);
+    std::string name = get_valid_abc_name(CustomData_get_layer_name(data, cd_data_type, i));
 
     if (cd_data_type == CD_PROP_FLOAT2) {
       /* Already exported. */
