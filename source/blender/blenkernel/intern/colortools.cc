@@ -288,7 +288,7 @@ void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, CurveMapS
       cuma->totpoint = 4;
       break;
     case CURVE_PRESET_SMOOTH:
-      cuma->totpoint = 4;
+      cuma->totpoint = 8;
       break;
     case CURVE_PRESET_MAX:
       cuma->totpoint = 2;
@@ -348,12 +348,20 @@ void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, CurveMapS
     case CURVE_PRESET_SMOOTH:
       cuma->curve[0].x = 0;
       cuma->curve[0].y = 1;
-      cuma->curve[1].x = 0.25;
-      cuma->curve[1].y = 0.94;
-      cuma->curve[2].x = 0.75;
-      cuma->curve[2].y = 0.06;
-      cuma->curve[3].x = 1;
-      cuma->curve[3].y = 0;
+      cuma->curve[1].x = 0.12;
+      cuma->curve[1].y = 0.96;
+      cuma->curve[2].x = 0.25;
+      cuma->curve[2].y = 0.84;
+      cuma->curve[3].x = 0.42;
+      cuma->curve[3].y = 0.62;
+      cuma->curve[4].x = 0.58;
+      cuma->curve[4].y = 0.38;
+      cuma->curve[5].x = 0.75;
+      cuma->curve[5].y = 0.16;
+      cuma->curve[6].x = 0.88;
+      cuma->curve[6].y = 0.04;
+      cuma->curve[7].x = 1;
+      cuma->curve[7].y = 0;
       break;
     case CURVE_PRESET_MAX:
       cuma->curve[0].x = 0;
