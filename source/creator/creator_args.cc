@@ -1315,7 +1315,7 @@ static int arg_handle_log_set(int argc, const char **argv, void * /*data*/)
 
 static const char arg_handle_list_clog_cats_doc[] =
     "\n"
-    "\tList all available logging categories for --log, and exit.\n";
+    "\tList all available logging categories for '--log', and exit.\n";
 
 static int arg_handle_list_clog_cats(int /*argc*/, const char ** /*argv*/, void * /*data*/)
 {
