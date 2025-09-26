@@ -471,7 +471,7 @@ static Library *get_archive_library(Main &bmain, ID *for_id, const IDHash &for_i
       BLI_assert_msg(
           packed_id && packed_id->deep_hash != for_id_deep_hash,
           "An already packed ID with same deep hash as the one to be packed, should have already "
-          "be found and used (deduplication) before reaching this codepath");
+          "be found and used (deduplication) before reaching this code-path");
 #endif
       UNUSED_VARS_NDEBUG(for_id_deep_hash);
       continue;

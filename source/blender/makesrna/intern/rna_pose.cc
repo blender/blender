@@ -1187,7 +1187,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
       prop,
       "Use As Pivot",
       "Transform the bone as if it was a child of the Custom Shape Transform bone. This can be "
-      "useful when combining shapekey and armature deformations.");
+      "useful when combining shape-key and armature deformations.");
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
 
   prop = RNA_def_property(srna, "use_custom_shape_bone_size", PROP_BOOLEAN, PROP_NONE);

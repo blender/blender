@@ -626,7 +626,7 @@ class ZoneOperator:
             "Perform operations separately for each geometry element (e.g. vertices, edges, etc.)"
         ),
         "NodeClosureInput": (
-            "Wrap nodes inside a closure that can be executed at a different part of the nodetree"
+            "Wrap nodes inside a closure that can be executed at a different part of the node-tree"
         ),
     }
 
