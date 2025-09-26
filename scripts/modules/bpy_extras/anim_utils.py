@@ -96,6 +96,23 @@ def action_get_channelbag_for_slot(action: Action | None, slot: ActionSlot | Non
     return None
 
 
+def action_get_first_suitable_slot(action: Action | None, target_id_type: str) -> ActionSlot | None:
+    """Return the first Slot of the given Action that's suitable for the given ID type.
+
+    Typically you should not need this function; when an Action is assigned to a
+    data-block, just use the slot that was assigned along with it.
+    """
+
+    if not action:
+        return None
+
+    slot_types = ('UNSPECIFIED', target_id_type)
+    for slot in action.slots:
+        if slot.target_id_type in slot_types:
+            return slot
+    return None
+
+
 def action_ensure_channelbag_for_slot(action: Action, slot: ActionSlot) -> ActionChannelbag:
     """Ensure a layer and a keyframe strip exists, then ensure that strip has a channelbag for the slot."""
 

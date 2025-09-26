@@ -5,6 +5,7 @@
 from typing import Optional, List, Dict, Tuple, TYPE_CHECKING
 from bpy.types import Action, Mesh, Armature
 from bl_math import clamp
+from bpy_extras import anim_utils
 
 from .errors import MetarigError
 from .misc import MeshObject, IdPropSequence, verify_mesh_obj
@@ -48,7 +49,14 @@ class ActionSlotBase:
         """Return a list of bone names that have keyframes in the Action of this Slot."""
         keyed_bones = []
 
-        for fc in self.action.fcurves:
+        # This will get updated to actually support slots properly in #146182. For
+        # now, just pick the first suitable action slot.
+        action_slot = anim_utils.action_get_first_suitable_slot(self.action, 'OBJECT')
+        channelbag = anim_utils.action_get_channelbag_for_slot(self.action, action_slot)
+        if not channelbag:
+            return []
+
+        for fc in channelbag.fcurves:
             # Extracting bone name from fcurve data path
             if fc.data_path.startswith('pose.bones["'):
                 bone_name = fc.data_path[12:].split('"]')[0]

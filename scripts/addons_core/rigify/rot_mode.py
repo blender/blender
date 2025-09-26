@@ -14,6 +14,7 @@ This script/addon:
     - Converts multiple Actions
 
 TO-DO:
+    - Properly support slotted Actions.
     - To convert object's rotation mode (already done in Mutant Bob script,
         but not done in this one.)
     - To understand "EnumProperty" and write it well.
@@ -47,87 +48,90 @@ from bpy.props import (
     EnumProperty,
     StringProperty,
 )
+from bpy.types import (
+    ActionChannelbag,
+)
+
+from bpy_extras import anim_utils
 
 
-def get_or_create_fcurve(action, data_path, array_index=-1, group=None):
-    for fc in action.fcurves:
-        if fc.data_path == data_path and (array_index < 0 or fc.array_index == array_index):
-            return fc
-
-    fc = action.fcurves.new(data_path, index=array_index)
-    fc.group = group
-    return fc
-
-
-def add_keyframe_quat(action, quat, frame, bone_prefix, group):
+def add_keyframe_quat(
+        channelbag: ActionChannelbag,
+        quat: list[float],
+        frame: float,
+        bone_prefix: str,
+        group_name: str) -> None:
     for i in range(len(quat)):
-        fc = get_or_create_fcurve(action, bone_prefix + "rotation_quaternion", i, group)
+        fc = channelbag.fcurves.ensure(bone_prefix + "rotation_quaternion", index=i, group_name=group_name)
         pos = len(fc.keyframe_points)
         fc.keyframe_points.add(1)
         fc.keyframe_points[pos].co = [frame, quat[i]]
         fc.update()
 
 
-def add_keyframe_euler(action, euler, frame, bone_prefix, group):
+def add_keyframe_euler(
+        channelbag: ActionChannelbag,
+        euler: list[float],
+        frame: float,
+        bone_prefix: str,
+        group_name: str) -> None:
     for i in range(len(euler)):
-        fc = get_or_create_fcurve(action, bone_prefix + "rotation_euler", i, group)
+        fc = channelbag.fcurves.ensure(bone_prefix + "rotation_euler", index=i, group_name=group_name)
         pos = len(fc.keyframe_points)
         fc.keyframe_points.add(1)
         fc.keyframe_points[pos].co = [frame, euler[i]]
         fc.update()
 
 
-def frames_matching(action, data_path):
+def frames_matching(channelbag, data_path):
     frames = set()
-    for fc in action.fcurves:
+    for fc in channelbag.fcurves:
         if fc.data_path == data_path:
             fri = [kp.co[0] for kp in fc.keyframe_points]
             frames.update(fri)
     return frames
 
 
-def group_qe(_obj, action, bone, bone_prefix, order):
-    """Converts only one group/bone in one action - Quaternion to euler."""
+def group_qe(_obj, channelbag, bone, bone_prefix, order):
+    """Converts only one group/bone in one channelbag - Quaternion to euler."""
     # pose_bone = bone
     data_path = bone_prefix + "rotation_quaternion"
-    frames = frames_matching(action, data_path)
-    group = action.groups[bone.name]
+    frames = frames_matching(channelbag, data_path)
 
     for fr in frames:
         quat = bone.rotation_quaternion.copy()
-        for fc in action.fcurves:
+        for fc in channelbag.fcurves:
             if fc.data_path == data_path:
                 quat[fc.array_index] = fc.evaluate(fr)
         euler = quat.to_euler(order)
 
-        add_keyframe_euler(action, euler, fr, bone_prefix, group)
+        add_keyframe_euler(channelbag, euler, fr, bone_prefix, bone.name)
         bone.rotation_mode = order
 
 
-def group_eq(_obj, action, bone, bone_prefix, order):
-    """Converts only one group/bone in one action - Euler to Quaternion."""
+def group_eq(obj, channelbag, bone, bone_prefix, order):
+    """Converts only one group/bone in one channelbag - Euler to Quaternion."""
     # pose_bone = bone
     data_path = bone_prefix + "rotation_euler"
-    frames = frames_matching(action, data_path)
-    group = action.groups[bone.name]
+    frames = frames_matching(channelbag, data_path)
 
     for fr in frames:
         euler = bone.rotation_euler.copy()
-        for fc in action.fcurves:
+        for fc in channelbag.fcurves:
             if fc.data_path == data_path:
                 euler[fc.array_index] = fc.evaluate(fr)
         quat = euler.to_quaternion()
 
-        add_keyframe_quat(action, quat, fr, bone_prefix, group)
+        add_keyframe_quat(channelbag, quat, fr, bone_prefix, bone.name)
         bone.rotation_mode = order
 
 
-def convert_curves_of_bone_in_action(obj, action, bone, order):
-    """Convert given bone's curves in given action to given rotation order."""
+def convert_curves_of_bone(obj, channelbag, bone, order):
+    """Convert given bone's curves in given channelbag to given rotation order."""
     to_euler = False
     bone_prefix = ''
 
-    for fcurve in action.fcurves:
+    for fcurve in channelbag.fcurves:
         if fcurve.group.name == bone.name:
 
             # If To-Euler conversion
@@ -149,25 +153,25 @@ def convert_curves_of_bone_in_action(obj, action, bone, order):
     # If To-Euler conversion
     if to_euler and order != 'QUATERNION':
         # Converts the group/bone from Quaternion to Euler
-        group_qe(obj, action, bone, bone_prefix, order)
+        group_qe(obj, channelbag, bone, bone_prefix, order)
 
         # Removes quaternion fcurves
-        for key in action.fcurves:
+        for key in channelbag.fcurves:
             if key.data_path == 'pose.bones["' + bone.name + '"].rotation_quaternion':
                 fcurves_to_remove.append(key)
 
     # If To-Quaternion conversion
     elif to_euler:
         # Converts the group/bone from Euler to Quaternion
-        group_eq(obj, action, bone, bone_prefix, order)
+        group_eq(obj, channelbag, bone, bone_prefix, order)
 
         # Removes euler fcurves
-        for key in action.fcurves:
+        for key in channelbag.fcurves:
             if key.data_path == 'pose.bones["' + bone.name + '"].rotation_euler':
                 fcurves_to_remove.append(key)
 
     for fcurve in fcurves_to_remove:
-        action.fcurves.remove(fcurve)
+        channelbag.fcurves.remove(fcurve)
 
     # Changes rotation mode to new one
     bone.rotation_mode = order
@@ -239,16 +243,40 @@ class POSE_OT_convert_rotation(bpy.types.Operator):
     def execute(self, context):
         obj = context.active_object
 
-        actions = [bpy.data.actions.get(self.selected_action)]
-        pose_bones = context.selected_pose_bones
+        assigned_action = obj.animation_data and obj.animation_data.action
+        assigned_slot = obj.animation_data and obj.animation_data.action_slot
+
         if self.affected_bones == 'ALL':
             pose_bones = obj.pose.bones
+        else:
+            pose_bones = context.selected_pose_bones
+
         if self.affected_actions == 'ALL':
             actions = bpy.data.actions
+        else:
+            actions = [bpy.data.actions.get(self.selected_action)]
 
         for action in actions:
+            if action == assigned_action:
+                # On the assigned Action, use the assigned slot.
+                action_slot = assigned_slot
+            else:
+                # Otherwise find a suitable slot to process.
+                #
+                # NOTE: this may not pick the right slot if they are not
+                # consistently named. Also, if there are multiple suitable
+                # slots, only the first one is converted.
+                if assigned_slot.identifier in action.slots:
+                    action_slot = action.slots[assigned_slot.identifier]
+                else:
+                    action_slot = anim_utils.action_get_first_suitable_slot(action, 'OBJECT')
+
+            channelbag = anim_utils.action_get_channelbag_for_slot(action, action_slot)
+            if not channelbag:
+                continue
+
             for pb in pose_bones:
-                convert_curves_of_bone_in_action(obj, action, pb, self.target_rotation_mode)
+                convert_curves_of_bone(obj, channelbag, pb, self.target_rotation_mode)
 
         return {'FINISHED'}
 
