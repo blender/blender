@@ -46,11 +46,12 @@ std::string get_id_name(const ID *const id)
 
 std::string get_valid_abc_name(const char *name)
 {
-  std::string name_string(name);
-  std::replace(name_string.begin(), name_string.end(), ' ', '_');
-  std::replace(name_string.begin(), name_string.end(), '.', '_');
-  std::replace(name_string.begin(), name_string.end(), ':', '_');
-  return name_string;
+  std::string abc_name(name);
+  std::replace(abc_name.begin(), abc_name.end(), ' ', '_');
+  std::replace(abc_name.begin(), abc_name.end(), '.', '_');
+  std::replace(abc_name.begin(), abc_name.end(), ':', '_');
+  std::replace(abc_name.begin(), abc_name.end(), '/', '_');
+  return abc_name;
 }
 
 std::string get_object_dag_path_name(const Object *const ob, Object *dupli_parent)
