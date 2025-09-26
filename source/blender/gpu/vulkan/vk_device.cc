@@ -93,7 +93,6 @@ void VKDevice::deinit()
   pipelines.free_data();
   descriptor_set_layouts_.deinit();
   vma_pools.deinit(*this);
-  vmaDestroyAllocator(mem_allocator_);
   mem_allocator_ = VK_NULL_HANDLE;
 
   while (!render_graphs_.is_empty()) {
@@ -126,6 +125,7 @@ void VKDevice::init(void *ghost_context)
   vk_device_ = handles.device;
   vk_queue_family_ = handles.graphic_queue_family;
   vk_queue_ = handles.queue;
+  mem_allocator_ = handles.vma_allocator;
   queue_mutex_ = static_cast<std::mutex *>(handles.queue_mutex);
 
   init_physical_device_extensions();
@@ -136,7 +136,7 @@ void VKDevice::init(void *ghost_context)
   VKBackend::capabilities_init(*this);
   init_functions();
   init_debug_callbacks();
-  init_memory_allocator();
+  vma_pools.init(*this);
   pipelines.init();
   pipelines.read_from_disk();
 
@@ -264,29 +264,6 @@ bool VKDevice::supports_extension(const char *extension_name) const
     }
   }
   return false;
-}
-
-void VKDevice::init_memory_allocator()
-{
-  VmaAllocatorCreateInfo info = {};
-  info.vulkanApiVersion = VK_API_VERSION_1_2;
-  info.physicalDevice = vk_physical_device_;
-  info.device = vk_device_;
-  info.instance = vk_instance_;
-  info.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
-  if (extensions_.memory_priority) {
-    info.flags |= VMA_ALLOCATOR_CREATE_EXT_MEMORY_PRIORITY_BIT;
-  }
-  if (extensions_.maintenance4) {
-    info.flags |= VMA_ALLOCATOR_CREATE_KHR_MAINTENANCE4_BIT;
-  }
-  vmaCreateAllocator(&info, &mem_allocator_);
-
-  if (!extensions_.external_memory) {
-    return;
-  }
-
-  vma_pools.init(*this);
 }
 
 void VKDevice::init_dummy_buffer()

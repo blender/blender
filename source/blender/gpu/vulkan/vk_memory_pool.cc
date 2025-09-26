@@ -14,8 +14,10 @@ namespace blender::gpu {
 
 void VKMemoryPools::init(VKDevice &device)
 {
-  init_external_memory_image(device);
-  init_external_memory_pixel_buffer(device);
+  if (device.extensions_get().external_memory) {
+    init_external_memory_image(device);
+    init_external_memory_pixel_buffer(device);
+  }
 }
 
 void VKMemoryPools::init_external_memory_image(VKDevice &device)
