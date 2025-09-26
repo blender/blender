@@ -24,7 +24,7 @@ def node_editor_poll(cls, context):
 
 def node_space_type_poll(cls, context, types):
     if context.space_data.tree_type not in types:
-        tree_types_str = ", ".join(t.split('NodeTree')[0].lower() for t in sorted(types))
+        tree_types_str = ", ".join(t.split("NodeTree")[0].lower() for t in sorted(types))
         poll_message = tip_(
             "Current node tree type not supported.\n"
             "Should be one of {:s}."

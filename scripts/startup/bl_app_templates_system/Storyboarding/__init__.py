@@ -35,7 +35,7 @@ def update_factory_startup_scenes():
         scene.tool_settings.use_keyframe_insert_auto = True
         scene.tool_settings.gpencil_sculpt.use_scale_thickness = True
 
-        if scene.name == 'Edit':
+        if scene.name == "Edit":
             scene.tool_settings.use_keyframe_insert_auto = False
 
 

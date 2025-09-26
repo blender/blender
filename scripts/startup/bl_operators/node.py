@@ -66,11 +66,20 @@ def cast_value(source, target):
 
     value = source.default_value
 
-    def to_bool(value): return value > 0
-    def single_value_to_color(value): return Vector((value, value, value, 1.0))
-    def single_value_to_vector(value): return Vector([value,] * len(target.default_value))
-    def color_to_float(color): return (0.2126 * color[0]) + (0.7152 * color[1]) + (0.0722 * color[2])
-    def vector_to_float(vector): return sum(vector) / len(vector)
+    def to_bool(value):
+        return value > 0
+
+    def single_value_to_color(value):
+        return Vector((value, value, value, 1.0))
+
+    def single_value_to_vector(value):
+        return Vector([value,] * len(target.default_value))
+
+    def color_to_float(color):
+        return (0.2126 * color[0]) + (0.7152 * color[1]) + (0.0722 * color[2])
+
+    def vector_to_float(vector):
+        return sum(vector) / len(vector)
 
     func_map = {
         ('VALUE', 'INT'): int,
@@ -289,7 +298,7 @@ class NodeSwapOperator(NodeOperator):
                     new_socket = new_node.inputs[input.name]
                     new_value = cast_value(source=input, target=new_socket)
 
-                    settings_name = f'inputs["{input.name}"].default_value'
+                    settings_name = "inputs[\"{:s}\"].default_value".format(input.name)
                     already_defined = (settings_name in self.settings)
 
                     if (new_value is not None) and not already_defined:
@@ -370,8 +379,9 @@ class NodeSwapOperator(NodeOperator):
 
         if switch_type == "GeometryNodeMenuSwitch":
             return node.enum_definition.enum_items
-        elif switch_type == "GeometryNodeIndexSwitch":
+        if switch_type == "GeometryNodeIndexSwitch":
             return node.index_switch_items
+        return None
 
     def transfer_switch_data(self, old_node, new_node):
         old_switch_items = self.get_switch_items(old_node)
@@ -605,11 +615,19 @@ class ZoneOperator:
         default=(150, 0),
     )
 
-    zone_tooltips = {
-        "GeometryNodeSimulationInput": "Simulate the execution of nodes across a time span",
-        "GeometryNodeRepeatInput": "Execute nodes with a dynamic number of repetitions",
-        "GeometryNodeForeachGeometryElementInput": "Perform operations separately for each geometry element (e.g. vertices, edges, etc.)",
-        "NodeClosureInput": "Wrap nodes inside a closure that can be executed at a different part of the nodetree",
+    _zone_tooltips = {
+        "GeometryNodeSimulationInput": (
+            "Simulate the execution of nodes across a time span"
+        ),
+        "GeometryNodeRepeatInput": (
+            "Execute nodes with a dynamic number of repetitions"
+        ),
+        "GeometryNodeForeachGeometryElementInput": (
+            "Perform operations separately for each geometry element (e.g. vertices, edges, etc.)"
+        ),
+        "NodeClosureInput": (
+            "Wrap nodes inside a closure that can be executed at a different part of the nodetree"
+        ),
     }
 
     @classmethod
@@ -620,7 +638,7 @@ class ZoneOperator:
         if input_node_type is None:
             input_node_type = cls.input_node_type
 
-        return cls.zone_tooltips.get(input_node_type, None)
+        return cls._zone_tooltips.get(input_node_type, None)
 
 
 class NodeAddZoneOperator(ZoneOperator, NodeAddOperator):

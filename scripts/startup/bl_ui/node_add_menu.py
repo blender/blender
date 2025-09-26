@@ -13,12 +13,10 @@ __all__ = (
     "add_repeat_zone",
     "add_simulation_zone",
     "draw_node_group_add_menu",
-    "draw_root_assets",
 )
 
 import bpy
 from bpy.types import Menu
-from bl_ui import node_add_menu
 from bpy.app.translations import (
     pgettext_iface as iface_,
     contexts as i18n_contexts,
@@ -183,7 +181,8 @@ class NodeMenu(Menu):
             node_idname,
             socket_identifier,
             enum_names,
-            search_weight=0.0):
+            search_weight=0.0,
+    ):
         """Similar to `node_operator`, but with extra entries based on a enum socket while in search"""
         operators = []
         operators.append(cls.node_operator(layout, node_idname, search_weight=search_weight))
@@ -197,7 +196,7 @@ class NodeMenu(Menu):
                     translate=False,
                     search_weight=search_weight)
                 prop = props.settings.add()
-                prop.name = f'inputs["{socket_identifier}"].default_value'
+                prop.name = "inputs[\"{:s}\"].default_value".format(socket_identifier)
                 prop.value = repr(enum_name)
                 operators.append(props)
 
