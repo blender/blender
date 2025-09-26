@@ -886,7 +886,7 @@ static void print_help(bArgs *ba, bool all)
   if (defs.with_opencolorio) {
     PRINT(
         "  $BLENDER_OCIO              Path to override the OpenColorIO configuration file.\n"
-        "                             If not set, the $OCIO environment variable is used.\n");
+        "                             If not set, the 'OCIO' environment variable is used.\n");
   }
   if (defs.win32 || all) {
     PRINT("  $TEMP                      Store temporary files here (MS-Windows).\n");
