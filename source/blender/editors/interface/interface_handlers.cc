@@ -5142,7 +5142,7 @@ static int ui_do_but_VIEW_ITEM(bContext *C,
   BLI_assert(view_item_but->type == ButType::ViewItem);
 
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
-    if ((event->type == LEFTMOUSE) && (event->modifier == 0)) {
+    if (event->type == LEFTMOUSE) {
       switch (event->val) {
         case KM_PRESS:
           /* Extra icons have priority, don't mess with them. */
@@ -5154,9 +5154,6 @@ static int ui_do_but_VIEW_ITEM(bContext *C,
             button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
             data->dragstartx = event->xy[0];
             data->dragstarty = event->xy[1];
-          }
-          else {
-            force_activate_view_item_but(C, data->region, view_item_but);
           }
 
           /* Always continue for drag and drop handling. Also for cases where keymap items are

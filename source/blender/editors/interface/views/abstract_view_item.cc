@@ -340,6 +340,16 @@ void AbstractViewItem::disable_activatable()
   is_activatable_ = false;
 }
 
+void AbstractViewItem::select_on_click_set()
+{
+  select_on_click_ = true;
+}
+
+bool AbstractViewItem::is_select_on_click() const
+{
+  return select_on_click_;
+}
+
 void AbstractViewItem::always_reactivate_on_click()
 {
   reactivate_on_click_ = true;
