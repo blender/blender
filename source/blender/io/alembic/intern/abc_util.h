@@ -33,19 +33,7 @@ namespace blender::io::alembic {
 class AbcObjectReader;
 struct ImportSettings;
 
-std::string get_id_name(const ID *const id);
-std::string get_id_name(const Object *const ob);
 std::string get_valid_abc_name(const char *name);
-/**
- * \brief get_object_dag_path_name returns the name under which the object
- * will be exported in the Alembic file. It is of the form
- * "[../grandparent/]parent/object" if dupli_parent is NULL, or
- * "dupli_parent/[../grandparent/]parent/object" otherwise.
- * \param ob:
- * \param dupli_parent:
- * \return
- */
-std::string get_object_dag_path_name(const Object *const ob, Object *dupli_parent);
 
 /* Convert from float to Alembic matrix representations. Does NOT convert from Z-up to Y-up. */
 Imath::M44d convert_matrix_datatype(const float mat[4][4]);
@@ -122,63 +110,5 @@ std::optional<SampleInterpolationSettings> get_sample_interpolation_settings(
     size_t samples_number);
 
 AbcObjectReader *create_reader(const Alembic::AbcGeom::IObject &object, ImportSettings &settings);
-
-/* *************************** */
-
-#undef ABC_DEBUG_TIME
-
-class ScopeTimer {
-  const char *m_message;
-  double m_start;
-
- public:
-  ScopeTimer(const char *message);
-  ~ScopeTimer();
-};
-
-#ifdef ABC_DEBUG_TIME
-#  define SCOPE_TIMER(message) ScopeTimer prof(message)
-#else
-#  define SCOPE_TIMER(message)
-#endif
-
-/* *************************** */
-
-/**
- * Utility class whose purpose is to more easily log related information. An
- * instance of the SimpleLogger can be created in any context, and will hold a
- * copy of all the strings passed to its output stream.
- *
- * Different instances of the class may be accessed from different threads,
- * although accessing the same instance from different threads will lead to race
- * conditions.
- */
-class SimpleLogger {
-  std::ostringstream m_stream;
-
- public:
-  /**
-   * Return a copy of the string contained in the SimpleLogger's stream.
-   */
-  std::string str() const;
-
-  /**
-   * Remove the bits set on the SimpleLogger's stream and clear its string.
-   */
-  void clear();
-
-  /**
-   * Return a reference to the SimpleLogger's stream, in order to e.g. push
-   * content into it.
-   */
-  std::ostringstream &stream();
-};
-
-#define ABC_LOG(logger) logger.stream()
-
-/**
- * Pass the content of the logger's stream to the specified std::ostream.
- */
-std::ostream &operator<<(std::ostream &os, const SimpleLogger &logger);
 
 }  // namespace blender::io::alembic
