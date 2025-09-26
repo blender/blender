@@ -23,7 +23,7 @@ from bpy.app.translations import (
 )
 
 
-# NOTE: This is kept for compatibility's sake, as some scripts import node_add_menu.add_node_type
+# NOTE: This is kept for compatibility's sake, as some scripts import node_add_menu.add_node_type.
 def add_node_type(layout, node_type, *, label=None, poll=None, search_weight=0.0, translate=True):
     """Add a node type to a menu."""
     return AddNodeMenu.node_operator(
@@ -104,7 +104,7 @@ def add_closure_zone(layout, label):
 
 
 class NodeMenu(Menu):
-    """A baseclass defining the shared methods for AddNodeMenu and SwapNodeMenu"""
+    """A baseclass defining the shared methods for AddNodeMenu and SwapNodeMenu."""
     draw_assets: bool
     use_transform: bool
 
@@ -118,7 +118,7 @@ class NodeMenu(Menu):
     @classmethod
     def node_operator(cls, layout, node_type, *, label=None, poll=None, search_weight=0.0, translate=True):
         """The main operator defined for the node menu.
-        \n(e.g. 'Add Node' for AddNodeMenu, or 'Swap Node' for SwapNodeMenu)"""
+        \n(e.g. 'Add Node' for AddNodeMenu, or 'Swap Node' for SwapNodeMenu)."""
 
         bl_rna = bpy.types.Node.bl_rna_get_subclass(node_type)
         if not label:
@@ -143,7 +143,7 @@ class NodeMenu(Menu):
 
     @classmethod
     def node_operator_with_searchable_enum(cls, context, layout, node_idname, property_name, search_weight=0.0):
-        """Similar to `node_operator`, but with extra entries based on a enum property while in search"""
+        """Similar to `node_operator`, but with extra entries based on a enum property while in search."""
         operators = []
         operators.append(cls.node_operator(layout, node_idname, search_weight=search_weight))
 
@@ -183,7 +183,7 @@ class NodeMenu(Menu):
             enum_names,
             search_weight=0.0,
     ):
-        """Similar to `node_operator`, but with extra entries based on a enum socket while in search"""
+        """Similar to `node_operator`, but with extra entries based on a enum socket while in search."""
         operators = []
         operators.append(cls.node_operator(layout, node_idname, search_weight=search_weight))
         if getattr(context, "is_menu_search", False):
@@ -208,7 +208,7 @@ class NodeMenu(Menu):
 
     @classmethod
     def node_operator_with_outputs(cls, context, layout, node_type, subnames, *, label=None, search_weight=0.0):
-        """Similar to `node_operator`, but with extra entries based on a enum socket while in search"""
+        """Similar to `node_operator`, but with extra entries based on a enum socket while in search."""
         bl_rna = bpy.types.Node.bl_rna_get_subclass(node_type)
         if not label:
             label = bl_rna.name if bl_rna else "Unknown"
@@ -231,7 +231,7 @@ class NodeMenu(Menu):
 
     @classmethod
     def color_mix_node(cls, context, layout):
-        """The 'Mix Color' node, with its different blend modes available while in search"""
+        """The 'Mix Color' node, with its different blend modes available while in search."""
         label = iface_("Mix Color")
 
         operators = []
@@ -269,7 +269,7 @@ class NodeMenu(Menu):
 
     @classmethod
     def new_empty_group(cls, layout):
-        """Group Node with a newly created empty group as its assigned nodetree"""
+        """Group Node with a newly created empty group as its assigned nodetree."""
         props = layout.operator(cls.new_empty_group_operator_id, text="New Group", text_ctxt=i18n_contexts.default)
 
         if hasattr(props, "use_transform"):
@@ -279,7 +279,7 @@ class NodeMenu(Menu):
 
     @classmethod
     def draw_group_menu(cls, context, layout):
-        """Show operators used for interacting with node groups"""
+        """Show operators used for interacting with node groups."""
         space_node = context.space_data
         node_tree = space_node.edit_tree
         all_node_groups = context.blend_data.node_groups
@@ -327,10 +327,12 @@ class NodeMenu(Menu):
 
     @classmethod
     def draw_menu(cls, layout, path):
-        """Takes the given menu path and draws the corresponding menu.
-        \n Menu paths are either explicitly defined, or based on bl_label if not."""
+        """
+        Takes the given menu path and draws the corresponding menu.
+        Menu paths are either explicitly defined, or based on bl_label if not.
+        """
         if cls.pathing_dict is None:
-            raise ValueError("`pathing_dict` was not set for {}".format(cls))
+            raise ValueError("`pathing_dict` was not set for {!s}".format(cls))
 
         layout.menu(cls.pathing_dict[path])
 
@@ -406,7 +408,7 @@ class AddNodeMenu(NodeMenu):
 
 class SwapNodeMenu(NodeMenu):
     draw_assets = True
-    # NOTE: Swap operators don't have a `use_transform` property, so defining it here has no effect
+    # NOTE: Swap operators don't have a `use_transform` property, so defining it here has no effect.
 
     main_operator_id = "node.swap_node"
     zone_operator_id = "node.swap_zone"
