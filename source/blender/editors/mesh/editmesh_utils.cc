@@ -1513,7 +1513,7 @@ bool EDBM_mesh_hide(BMEditMesh *em, bool swap)
   BMElem *ele;
   int itermode;
   char hflag_swap = swap ? BM_ELEM_SELECT : 0;
-  bool changed = true;
+  bool changed = false;
 
   if (em->selectmode & SCE_SELECT_VERTEX) {
     itermode = BM_VERTS_OF_MESH;
