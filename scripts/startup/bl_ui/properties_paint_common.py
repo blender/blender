@@ -783,17 +783,19 @@ def brush_settings(layout, context, brush, popover=False):
 
         row = layout.row(align=True)
         row.prop(brush, "hardness", slider=True)
-        row.prop(brush, "invert_hardness_pressure", text="")
-        row.prop(brush, "use_hardness_pressure", text="")
+        if capabilities.has_hardness_pressure:
+            row.prop(brush, "invert_hardness_pressure", text="")
+            row.prop(brush, "use_hardness_pressure", text="")
 
         # auto_smooth_factor and use_inverse_smooth_pressure
         if capabilities.has_auto_smooth:
+            pressure_name = "use_inverse_smooth_pressure" if capabilities.has_auto_smooth_pressure else None
             UnifiedPaintPanel.prop_unified(
                 layout,
                 context,
                 brush,
                 "auto_smooth_factor",
-                pressure_name="use_inverse_smooth_pressure",
+                pressure_name=pressure_name,
                 slider=True,
             )
 
@@ -1080,6 +1082,7 @@ def brush_shared_settings(layout, context, brush, popover=False):
     size_mode = False
     strength = False
     strength_pressure = False
+    size_pressure = False
     weight = False
     direction = False
 
@@ -1089,6 +1092,7 @@ def brush_shared_settings(layout, context, brush, popover=False):
             blend_mode = brush.image_paint_capabilities.has_color
             size = brush.image_paint_capabilities.has_radius
             strength = strength_pressure = True
+            size_pressure = True
 
     # Sculpt #
     if mode == 'SCULPT':
@@ -1098,6 +1102,7 @@ def brush_shared_settings(layout, context, brush, popover=False):
             strength = True
             strength_pressure = brush.sculpt_capabilities.has_strength_pressure
             direction = brush.sculpt_capabilities.has_direction
+            size_pressure = brush.sculpt_capabilities.has_size_pressure
 
     # Vertex Paint #
     if mode == 'PAINT_VERTEX':
@@ -1106,6 +1111,7 @@ def brush_shared_settings(layout, context, brush, popover=False):
             size = True
             strength = True
             strength_pressure = True
+            size_pressure = True
 
     # Weight Paint #
     if mode == 'PAINT_WEIGHT':
@@ -1113,6 +1119,7 @@ def brush_shared_settings(layout, context, brush, popover=False):
             size = True
             weight = brush.weight_paint_capabilities.has_weight
             strength = strength_pressure = True
+            size_pressure = True
         # Only draw blend mode for the Draw tool, because for other tools it is pointless. D5928#137944
         if brush.weight_brush_type == 'DRAW':
             blend_mode = True
@@ -1124,6 +1131,7 @@ def brush_shared_settings(layout, context, brush, popover=False):
         strength = tool not in {'ADD', 'DELETE'}
         direction = tool in {'GROW_SHRINK', 'SELECTION_PAINT'}
         strength_pressure = tool not in {'SLIDE', 'ADD', 'DELETE'}
+        size_pressure = True
 
     # Grease Pencil #
     if mode == 'PAINT_GREASE_PENCIL':
@@ -1135,6 +1143,7 @@ def brush_shared_settings(layout, context, brush, popover=False):
     if mode == 'SCULPT_GREASE_PENCIL':
         size = True
         strength = True
+        size_pressure = True
 
     ### Draw settings. ###
     ups = UnifiedPaintPanel.paint_settings(context).unified_paint_settings
@@ -1159,14 +1168,16 @@ def brush_shared_settings(layout, context, brush, popover=False):
         size_prop = "unprojected_size"
     if size or size_mode:
         if size:
+            pressure_name = "use_pressure_size" if size_pressure else None
+            curve_visibility_name = "show_size_curve" if size_pressure else None
             UnifiedPaintPanel.prop_unified(
                 layout,
                 context,
                 brush,
                 size_prop,
                 unified_name="use_unified_size",
-                pressure_name="use_pressure_size",
-                curve_visibility_name="show_size_curve",
+                pressure_name=pressure_name,
+                curve_visibility_name=curve_visibility_name,
                 text="Size",
                 slider=True,
             )
