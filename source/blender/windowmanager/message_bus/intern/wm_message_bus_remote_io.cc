@@ -134,8 +134,11 @@ void WM_msg_publish_remote_io(wmMsgBus *mbus,
                                nullptr;
   WM_msg_publish_remote_io_params(mbus, &params);
 
-  /* Value was copied into the publish key. */
+  /* Values were copied into the publish key. */
   MEM_freeN(params.remote_url);
+  if (params.subresource_url) {
+    MEM_freeN(params.subresource_url);
+  }
 }
 
 void WM_msg_subscribe_remote_io_params(wmMsgBus *mbus,
@@ -167,7 +170,7 @@ static void subscribe_remote_io(wmMsgBus *mbus,
                                nullptr;
   WM_msg_subscribe_remote_io_params(mbus, &params, msg_val_params, id_repr);
 
-  /* Value was copied into the subscribe key. */
+  /* Values were copied into the subscribe key. */
   MEM_freeN(params.remote_url);
   if (params.subresource_url) {
     MEM_freeN(params.subresource_url);

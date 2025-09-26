@@ -138,9 +138,9 @@ void RemoteLibraryLoadingStatus::ping_new_pages(const StringRef url)
 
 void RemoteLibraryLoadingStatus::ping_new_preview(const bContext &C,
                                                   const StringRef library_url,
-                                                  const StringRef preview_url)
+                                                  const StringRef /*preview_url*/)
 {
-  WM_msg_publish_remote_io(CTX_wm_message_bus(&C), library_url, preview_url);
+  WM_msg_publish_remote_io(CTX_wm_message_bus(&C), library_url);
 }
 
 void RemoteLibraryLoadingStatus::ping_new_assets(const bContext &C, const StringRef url)
@@ -381,7 +381,6 @@ void remote_library_request_preview_download(bContext &C,
     return;
   }
 
-  const StringRef library_path = library.root_path();
   {
     std::string script =
         "import _bpy_internal.assets.remote_library_listing.asset_downloader as asset_dl\n"

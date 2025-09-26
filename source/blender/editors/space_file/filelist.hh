@@ -67,7 +67,9 @@ void filelist_remote_asset_library_refresh_online_assets_status(const FileList *
                                                                 blender::StringRef remote_url);
 
 void filelist_remote_asset_library_preview_loaded(
-    FileList *filelist, const blender::StringRef remote_url, const blender::StringRef preview_url);
+    FileList *filelist,
+    const blender::StringRef remote_url,
+    const std::optional<blender::StringRef> preview_url);
 void filelist_set_asset_include_online(FileList *filelist, const bool show_online_assets);
 /**
  * \param catalog_id: The catalog that should be filtered by if \a catalog_visibility is

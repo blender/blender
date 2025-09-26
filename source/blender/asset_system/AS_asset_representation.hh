@@ -136,13 +136,13 @@ class AssetRepresentation : NonCopyable, NonMovable {
    *
    * Will return an empty value if this is not an online asset.
    */
-  std::optional<StringRef> download_dst_filepath() const;
+  std::optional<StringRefNull> download_dst_filepath() const;
   /**
    * For online assets (see #is_online()), the URL the asset's preview should be requested from.
    *
    * Will return an empty value if this is not an online asset.
    */
-  std::optional<StringRef> online_asset_preview_url() const;
+  std::optional<StringRefNull> online_asset_preview_url() const;
   /**
    * If the asset is marked as online, removes the online data and marking, turning it into a
    * regular on-disk asset.

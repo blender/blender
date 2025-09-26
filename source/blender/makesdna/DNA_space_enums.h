@@ -681,6 +681,8 @@ enum {
    * found in the .blend). Stored so we don't keep trying to find non-existent previews every time
    * we reload previews. When dealing with heavy files this can have quite an impact. */
   FILE_ENTRY_BLENDERLIB_NO_PREVIEW = 1 << 3,
+  /** Set when requesting an online preview. No further request for this preview should be done
+   * then. */
   FILE_ENTRY_PREVIEW_ONLINE_REQUESTED = 1 << 4,
 };
 

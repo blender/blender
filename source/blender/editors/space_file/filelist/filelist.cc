@@ -172,9 +172,10 @@ void filelist_remote_asset_library_refresh_online_assets_status(
   }
 }
 
-void filelist_remote_asset_library_preview_loaded(FileList *filelist,
-                                                  const blender::StringRef remote_url,
-                                                  const blender::StringRef preview_url)
+void filelist_remote_asset_library_preview_loaded(
+    FileList *filelist,
+    const blender::StringRef remote_url,
+    const std::optional<blender::StringRef> preview_url)
 {
   if (!filelist->asset_library || !filelist->asset_library_ref) {
     return;
@@ -183,8 +184,8 @@ void filelist_remote_asset_library_preview_loaded(FileList *filelist,
     return;
   }
 
-  if (!(filelist->asset_library_ref->type == ASSET_LIBRARY_ALL) ||
-      (filelist->asset_library->remote_url() == remote_url))
+  if ((filelist->asset_library_ref->type != ASSET_LIBRARY_ALL) &&
+      (filelist->asset_library->remote_url() != remote_url))
   {
     return;
   }
@@ -199,10 +200,14 @@ void filelist_remote_asset_library_preview_loaded(FileList *filelist,
     if ((entry->typeflag & FILE_TYPE_ASSET_ONLINE) == 0) {
       continue;
     }
+    if ((entry->flags & FILE_ENTRY_PREVIEW_ONLINE_REQUESTED) == 0) {
+      continue;
+    }
 
-    if (entry->asset->online_asset_preview_url() == preview_url) {
+    /* The preview might be downloaded by now. Unset the loading flag so it gets re-requested for
+     * reading from disk. */
+    if (!preview_url || entry->asset->online_asset_preview_url() == preview_url) {
       entry->flags &= ~FILE_ENTRY_PREVIEW_LOADING;
-      filelist_cache_previews_push(filelist, entry, file_index);
     }
   }
 }
@@ -1891,6 +1896,14 @@ bool filelist_cache_previews_update(FileList *filelist)
         /* Move ownership over icon. */
         entry->preview_icon_id = preview->icon_id;
         preview->icon_id = 0;
+      }
+      else if (entry->flags & FILE_ENTRY_PREVIEW_ONLINE_REQUESTED) {
+        /* Keep the loading tag if the preview is still downloading. Also important to tag as
+         * invalid, otherwise */
+        /* TODO probably needs to be done smarter, so invalid previews can be recognized still. */
+        MEM_freeN(preview);
+        cache->previews_todo_count--;
+        continue;
       }
       else {
         /* We want to avoid re-processing this entry continuously!

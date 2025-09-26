@@ -671,9 +671,10 @@ static ImBuf *thumb_online_asset_get(const char *lib_path,
     char thumb_path[FILE_MAX];
     BLI_path_join(thumb_path, sizeof(thumb_path), thumbs_dir_path, thumb_prefix, thumb_name + 2);
 
-    if (BLI_is_file(thumb_path)) {
-      any_exists = true;
+    if (!BLI_is_file(thumb_path)) {
+      continue;
     }
+    any_exists = true;
 
     if (ImBuf *imbuf = IMB_load_image_from_filepath(thumb_path, IB_byte_data | IB_metadata)) {
       return imbuf;

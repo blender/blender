@@ -160,7 +160,7 @@ std::string AssetRepresentation::full_library_path() const
   return blend_path;
 }
 
-std::optional<StringRef> AssetRepresentation::download_dst_filepath() const
+std::optional<StringRefNull> AssetRepresentation::download_dst_filepath() const
 {
   if (!this->is_online()) {
     return {};
@@ -168,7 +168,7 @@ std::optional<StringRef> AssetRepresentation::download_dst_filepath() const
   return std::get<ExternalAsset>(asset_).online_info_->download_dst_filepath_;
 }
 
-std::optional<StringRef> AssetRepresentation::online_asset_preview_url() const
+std::optional<StringRefNull> AssetRepresentation::online_asset_preview_url() const
 {
   if (!this->is_online()) {
     return {};
