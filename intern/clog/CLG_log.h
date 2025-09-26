@@ -76,6 +76,8 @@ struct CLG_LogType {
 };
 
 struct CLG_LogRef {
+  CLG_LogRef(const char *identifier);
+
   const char *identifier;
   CLG_LogType *type;
   struct CLG_LogRef *next;
@@ -114,6 +116,10 @@ void CLG_level_set(CLG_Level level);
 
 void CLG_logref_init(CLG_LogRef *clg_ref);
 
+void CLG_logref_register(CLG_LogRef *clg_ref);
+void CLG_logref_list_all(void (*callback)(const char *identifier, void *user_data),
+                         void *user_data);
+
 int CLG_color_support_get(CLG_LogRef *clg_ref);
 
 /* When true, quiet any NOCHECK logs that would otherwise be printed regardless of log filters
@@ -122,6 +128,12 @@ int CLG_color_support_get(CLG_LogRef *clg_ref);
  * Note this does not silence log filters and levels that have been explicitly enabled. */
 void CLG_quiet_set(bool quiet);
 bool CLG_quiet_get();
+
+inline CLG_LogRef::CLG_LogRef(const char *identifier)
+    : identifier(identifier), type(nullptr), next(nullptr)
+{
+  CLG_logref_register(this);
+}
 
 /** Declare outside function, declare as extern in header. */
 #define CLG_LOGREF_DECLARE_GLOBAL(var, id) \
