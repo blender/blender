@@ -277,9 +277,6 @@ enum ThemeColorID {
   TH_STITCH_PREVIEW_UNSTITCHABLE,
   TH_STITCH_PREVIEW_ACTIVE,
 
-  TH_PAINT_CURVE_HANDLE,
-  TH_PAINT_CURVE_PIVOT,
-
   TH_UV_SHADOW,
 
   TH_MATCH,            /* highlight color for search matches */
