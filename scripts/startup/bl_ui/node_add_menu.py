@@ -196,7 +196,7 @@ class NodeMenu(Menu):
                     translate=False,
                     search_weight=search_weight)
                 prop = props.settings.add()
-                prop.name = "inputs[\"{:s}\"].default_value".format(socket_identifier)
+                prop.name = "inputs[\"{:s}\"].default_value".format(bpy.utils.escape_identifier(socket_identifier))
                 prop.value = repr(enum_name)
                 operators.append(props)
 

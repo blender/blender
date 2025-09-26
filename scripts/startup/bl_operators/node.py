@@ -298,7 +298,7 @@ class NodeSwapOperator(NodeOperator):
                     new_socket = new_node.inputs[input.name]
                     new_value = cast_value(source=input, target=new_socket)
 
-                    settings_name = "inputs[\"{:s}\"].default_value".format(input.name)
+                    settings_name = "inputs[\"{:s}\"].default_value".format(bpy.utils.escape_identifier(input.name))
                     already_defined = (settings_name in self.settings)
 
                     if (new_value is not None) and not already_defined:
