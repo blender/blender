@@ -458,7 +458,8 @@ class VKDevice : public NonCopyable {
   Shader *vk_backbuffer_blit_sh_get()
   {
     if (vk_backbuffer_blit_sh_ == nullptr) {
-/* See display_as_extended_srgb in libocio_display_processor.cc for details on this choice. */
+      /* See #system_extended_srgb_transfer_function in libocio_display_processor.cc for
+       * details on this choice. */
 #if defined(_WIN32) || defined(__APPLE__)
       vk_backbuffer_blit_sh_ = GPU_shader_create_from_info_name("vk_backbuffer_blit");
 #else

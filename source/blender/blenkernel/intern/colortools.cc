@@ -1881,12 +1881,14 @@ void BKE_color_managed_display_settings_init(ColorManagedDisplaySettings *settin
   const char *display_name = IMB_colormanagement_display_get_default_name();
 
   STRNCPY_UTF8(settings->display_device, display_name);
+  settings->emulation = COLORMANAGE_DISPLAY_EMULATION_AUTO;
 }
 
 void BKE_color_managed_display_settings_copy(ColorManagedDisplaySettings *new_settings,
                                              const ColorManagedDisplaySettings *settings)
 {
   STRNCPY_UTF8(new_settings->display_device, settings->display_device);
+  new_settings->emulation = settings->emulation;
 }
 
 void BKE_color_managed_view_settings_init(ColorManagedViewSettings *view_settings,

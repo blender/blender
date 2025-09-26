@@ -117,6 +117,28 @@ class RENDER_PT_color_management_working_space(RenderButtonsPanel, Panel):
         col.prop(scene.sequencer_colorspace_settings, "name", text="Sequencer")
 
 
+class RENDER_PT_color_management_advanced(RenderButtonsPanel, Panel):
+    bl_label = "Advanced"
+    bl_parent_id = "RENDER_PT_color_management"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE',
+        'BLENDER_WORKBENCH',
+    }
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        scene = context.scene
+
+        col = layout.column()
+        col.active = scene.view_settings.support_emulation
+        col.prop(scene.display_settings, "emulation")
+
+
 class RENDER_PT_color_management_curves(RenderButtonsPanel, Panel):
     bl_label = "Curves"
     bl_parent_id = "RENDER_PT_color_management"
@@ -1139,10 +1161,11 @@ classes = (
     RENDER_PT_opengl_film,
     RENDER_PT_hydra_debug,
     RENDER_PT_color_management,
-    RENDER_PT_color_management_working_space,
     RENDER_PT_color_management_curves,
     RENDER_PT_color_management_white_balance_presets,
     RENDER_PT_color_management_white_balance,
+    RENDER_PT_color_management_working_space,
+    RENDER_PT_color_management_advanced,
 )
 
 if __name__ == "__main__":  # only for live edit.

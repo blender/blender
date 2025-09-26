@@ -780,6 +780,18 @@ void IMB_colormanagement_display_settings_from_ctx(
   }
 }
 
+static bool get_display_emulation(const ColorManagedDisplaySettings &display_settings)
+{
+  switch (display_settings.emulation) {
+    case COLORMANAGE_DISPLAY_EMULATION_OFF:
+      return false;
+    case COLORMANAGE_DISPLAY_EMULATION_AUTO:
+      return true;
+  }
+
+  return true;
+}
+
 static std::shared_ptr<const ocio::CPUProcessor> get_display_buffer_processor(
     const ColorManagedDisplaySettings &display_settings,
     const char *look,
@@ -807,7 +819,9 @@ static std::shared_ptr<const ocio::CPUProcessor> get_display_buffer_processor(
   display_parameters.use_hdr_buffer = GPU_hdr_support();
   display_parameters.use_hdr_display = IMB_colormanagement_display_is_hdr(&display_settings,
                                                                           view_transform);
-  display_parameters.use_display_emulation = target == DISPLAY_SPACE_DRAW;
+  display_parameters.use_display_emulation = (target == DISPLAY_SPACE_DRAW) ?
+                                                 get_display_emulation(display_settings) :
+                                                 false;
 
   return g_config->get_display_cpu_processor(display_parameters);
 }
@@ -3056,6 +3070,17 @@ bool IMB_colormanagement_display_is_wide_gamut(const ColorManagedDisplaySettings
   return (view) ? view->gamut() != ocio::Gamut::Rec709 : false;
 }
 
+bool IMB_colormanagement_display_support_emulation(
+    const ColorManagedDisplaySettings *display_settings, const char *view_name)
+{
+  const ocio::Display *display = g_config->get_display_by_name(display_settings->display_device);
+  if (display == nullptr) {
+    return false;
+  }
+  const ocio::View *view = display->get_view_by_name(view_name);
+  return (view) ? view->support_emulation() : false;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -4432,7 +4457,7 @@ bool IMB_colormanagement_setup_glsl_draw_from_space(
   display_parameters.use_hdr_buffer = GPU_hdr_support();
   display_parameters.use_hdr_display = IMB_colormanagement_display_is_hdr(
       display_settings, display_parameters.view.c_str());
-  display_parameters.use_display_emulation = true;
+  display_parameters.use_display_emulation = get_display_emulation(*display_settings);
 
   /* Bind shader. Internally GPU shaders are created and cached on demand. */
   global_gpu_state.gpu_shader_bound = g_config->get_gpu_shader_binder().display_bind(
