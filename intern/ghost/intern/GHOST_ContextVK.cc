@@ -21,6 +21,10 @@
 
 #include "vulkan/vk_ghost_api.hh"
 
+#if !defined(_WIN32) or defined(_M_ARM64)
+/* Silence compilation warning on non-windows x64 systems. */
+#  define VMA_EXTERNAL_MEMORY_WIN32 0
+#endif
 #include "vk_mem_alloc.h"
 
 #include "CLG_log.h"
