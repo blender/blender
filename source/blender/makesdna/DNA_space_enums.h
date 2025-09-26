@@ -879,6 +879,12 @@ typedef enum SpaceNodeGeometryNodesType {
   SNODE_GEOMETRY_TOOL = 1,
 } SpaceNodeGeometryNodesType;
 
+/** #SpaceNode.nodes_type */
+typedef enum SpaceNodeCompositorNodesType {
+  SNODE_COMPOSITOR_SCENE = 0,
+  SNODE_COMPOSITOR_SEQUENCER = 1,
+} SpaceNodeCompositorNodesType;
+
 /** #SpaceNode.insert_ofs_dir */
 enum {
   SNODE_INSERTOFS_DIR_RIGHT = 0,

@@ -58,7 +58,8 @@ struct WhiteBalanceApplyOp {
   }
 };
 
-static void whiteBalance_apply(const StripScreenQuad & /*quad*/,
+static void whiteBalance_apply(const RenderData * /*render_data*/,
+                               const StripScreenQuad & /*quad*/,
                                StripModifierData *smd,
                                ImBuf *ibuf,
                                ImBuf *mask)

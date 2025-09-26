@@ -145,6 +145,16 @@ Strip *lookup_strip_by_name(Editing *ed, const char *key);
 Span<Strip *> lookup_strips_by_scene(Editing *ed, const Scene *key);
 
 /**
+ * Find all strips using provided compositor node tree as a modifier
+ *
+ * \param ed: Editing that owns lookup hash
+ * \param key: Node tree pointer
+ *
+ * \return Span of strips
+ */
+Span<Strip *> lookup_strips_by_compositor_node_group(Editing *ed, const bNodeTree *key);
+
+/**
  * Find which meta strip the given timeline channel belongs to. Returns nullptr if it is a global
  * channel.
  */

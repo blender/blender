@@ -6,7 +6,16 @@
 
 #include "GPU_shader.hh"
 
-#include "NOD_composite.hh" /* Own include. */
+#include "BLT_translation.hh"
+
+#include "UI_resources.hh"
+
+#include "DNA_space_types.h"
+
+#include "BKE_context.hh"
+
+#include "NOD_composite.hh"
+#include "NOD_node_extra_info.hh"
 
 #include "COM_node_operation.hh"
 #include "COM_utilities.hh"
@@ -135,6 +144,58 @@ compositor::NodeOperation *get_group_input_compositor_operation(compositor::Cont
                                                                 DNode node)
 {
   return new node_composite_group_input_cc::GroupInputOperation(context, node);
+}
+
+void get_compositor_group_input_extra_info(blender::nodes::NodeExtraInfoParams &parameters)
+{
+  if (parameters.tree.type != NTREE_COMPOSIT) {
+    return;
+  }
+
+  SpaceNode *space_node = CTX_wm_space_node(&parameters.C);
+  if (space_node->edittree != space_node->nodetree) {
+    return;
+  }
+
+  if (space_node->node_tree_sub_type != SNODE_COMPOSITOR_SEQUENCER) {
+    return;
+  }
+
+  Span<const bNodeSocket *> group_inputs = parameters.node.output_sockets().drop_back(1);
+  bool added_warning_for_unsupported_inputs = false;
+  for (const bNodeSocket *input : group_inputs) {
+    if (StringRef(input->name) == "Image") {
+      if (input->type != SOCK_RGBA) {
+        blender::nodes::NodeExtraInfoRow row;
+        row.text = IFACE_("Wrong Image Input Type");
+        row.icon = ICON_ERROR;
+        row.tooltip = TIP_("Node group's main Image input should be of type Color");
+        parameters.rows.append(std::move(row));
+      }
+    }
+    else if (StringRef(input->name) == "Mask") {
+      if (input->type != SOCK_RGBA) {
+        blender::nodes::NodeExtraInfoRow row;
+        row.text = IFACE_("Wrong Mask Input Type");
+        row.icon = ICON_ERROR;
+        row.tooltip = TIP_("Node group's Mask input should be of type Color");
+        parameters.rows.append(std::move(row));
+      }
+    }
+    else {
+      if (added_warning_for_unsupported_inputs) {
+        continue;
+      }
+      blender::nodes::NodeExtraInfoRow row;
+      row.text = IFACE_("Unsupported Inputs");
+      row.icon = ICON_WARNING_LARGE;
+      row.tooltip = TIP_(
+          "Only a main Image and Mask inputs are supported, the rest are unsupported and will "
+          "return zero");
+      parameters.rows.append(std::move(row));
+      added_warning_for_unsupported_inputs = true;
+    }
+  }
 }
 
 }  // namespace blender::nodes

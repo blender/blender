@@ -145,13 +145,29 @@ class NODE_HT_header(Header):
                     layout.template_ID(id_from, "active_texture", new="texture.new")
 
         elif snode.tree_type == 'CompositorNodeTree':
-
+            layout.prop(snode, "node_tree_sub_type", text="")
             NODE_MT_editor_menus.draw_collapsible(context, layout)
-
             layout.separator_spacer()
-            row = layout.row()
-            row.enabled = not snode.pin
-            row.template_ID(scene, "compositing_node_group", new="node.new_compositing_node_group")
+
+            if snode.node_tree_sub_type == 'SCENE':
+                row = layout.row()
+                row.enabled = not snode.pin
+                row.template_ID(scene, "compositing_node_group", new="node.new_compositing_node_group")
+            elif snode.node_tree_sub_type == 'SEQUENCER':
+                row = layout.row()
+                sequencer_scene = context.workspace.sequencer_scene
+                sequencer_editor = sequencer_scene.sequence_editor if sequencer_scene else None
+                active_strip = sequencer_editor.active_strip if sequencer_editor else None
+                active_modifier = active_strip.modifiers.active if active_strip else None
+                is_compositor_modifier_active = active_modifier and active_modifier.type == 'COMPOSITOR'
+                if is_compositor_modifier_active and not snode.pin:
+                    row.template_ID(
+                        active_modifier,
+                        "node_group",
+                        new="node.new_compositor_sequencer_node_group")
+                else:
+                    row.enabled = False
+                    row.template_ID(snode, "node_tree", new="node.new_compositor_sequencer_node_group")
 
         elif snode.tree_type == 'GeometryNodeTree':
             layout.prop(snode, "node_tree_sub_type", text="")
@@ -200,7 +216,7 @@ class NODE_HT_header(Header):
             op.parent_tree_index = len(snode.path) - 2
 
         # Backdrop
-        if is_compositor:
+        if is_compositor and snode.node_tree_sub_type == 'SCENE':
             row = layout.row(align=True)
             row.prop(snode, "show_backdrop", toggle=True)
             row.active = snode.node_tree is not None

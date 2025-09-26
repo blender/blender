@@ -1494,7 +1494,9 @@ void draw_nodespace_back_pix(const bContext &C,
   GPU_matrix_pop_projection();
   GPU_matrix_pop();
 
-  if (!(snode.flag & SNODE_BACKDRAW) || !ED_node_is_compositor(&snode)) {
+  if (!(snode.flag & SNODE_BACKDRAW) || !ED_node_is_compositor(&snode) ||
+      snode.node_tree_sub_type != SNODE_COMPOSITOR_SCENE)
+  {
     return;
   }
 

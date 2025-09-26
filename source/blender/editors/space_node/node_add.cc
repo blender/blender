@@ -1733,6 +1733,92 @@ void NODE_OT_new_compositing_node_group(wmOperatorType *ot)
   RNA_def_string(ot->srna, "name", DATA_("Compositor Nodes"), MAX_ID_NAME - 2, "Name", "");
 }
 
+/* -------------------------------------------------------------------- */
+/** \name New Compositor Sequencer Node Group Operator
+ * \{ */
+
+static void initialize_compositor_sequencer_node_group(const bContext *C, bNodeTree &ntree)
+{
+  BLI_assert(ntree.type == NTREE_COMPOSIT);
+  BLI_assert(BLI_listbase_count(&ntree.nodes) == 0);
+
+  ntree.tree_interface.add_socket(
+      DATA_("Image"), "", "NodeSocketColor", NODE_INTERFACE_SOCKET_INPUT, nullptr);
+  ntree.tree_interface.add_socket(
+      DATA_("Mask"), "", "NodeSocketColor", NODE_INTERFACE_SOCKET_INPUT, nullptr);
+  ntree.tree_interface.add_socket(
+      DATA_("Image"), "", "NodeSocketColor", NODE_INTERFACE_SOCKET_OUTPUT, nullptr);
+
+  bNode *output_node = blender::bke::node_add_node(C, ntree, "NodeGroupOutput");
+  output_node->location[0] = 200.0f;
+  output_node->location[1] = 0.0f;
+
+  bNode *input_node = blender::bke::node_add_node(C, ntree, "NodeGroupInput");
+  input_node->location[0] = -150.0f - input_node->width;
+  input_node->location[1] = 0.0f;
+  blender::bke::node_set_active(ntree, *input_node);
+
+  bNode *reroute = blender::bke::node_add_static_node(C, ntree, NODE_REROUTE);
+  reroute->location[0] = 100.0f;
+  reroute->location[1] = -35.0f;
+
+  bNode *viewer = blender::bke::node_add_static_node(C, ntree, CMP_NODE_VIEWER);
+  viewer->location[0] = 200.0f;
+  viewer->location[1] = -80.0f;
+
+  blender::bke::node_add_link(ntree,
+                              *input_node,
+                              *static_cast<bNodeSocket *>(input_node->outputs.first),
+                              *reroute,
+                              *static_cast<bNodeSocket *>(reroute->inputs.first));
+
+  blender::bke::node_add_link(ntree,
+                              *reroute,
+                              *static_cast<bNodeSocket *>(reroute->outputs.first),
+                              *output_node,
+                              *static_cast<bNodeSocket *>(output_node->inputs.first));
+
+  blender::bke::node_add_link(ntree,
+                              *reroute,
+                              *static_cast<bNodeSocket *>(reroute->outputs.first),
+                              *viewer,
+                              *static_cast<bNodeSocket *>(viewer->inputs.first));
+
+  BKE_ntree_update_after_single_tree_change(*CTX_data_main(C), ntree);
+}
+
+static wmOperatorStatus new_compositor_sequencer_node_group_exec(bContext *C, wmOperator *op)
+{
+  char tree_name[MAX_ID_NAME - 2];
+  RNA_string_get(op->ptr, "name", tree_name);
+
+  bNodeTree *ntree = new_node_tree_impl(C, tree_name, "CompositorNodeTree");
+  initialize_compositor_sequencer_node_group(C, *ntree);
+
+  BKE_ntree_update_after_single_tree_change(*CTX_data_main(C), *ntree);
+  WM_event_add_notifier(C, NC_NODE | NA_ADDED, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+void NODE_OT_new_compositor_sequencer_node_group(wmOperatorType *operator_type)
+{
+  operator_type->name = "New Compositor Sequencer Node Group";
+  operator_type->idname = "NODE_OT_new_compositor_sequencer_node_group";
+  operator_type->description = "Create a new compositor node group for sequencer";
+
+  operator_type->exec = new_compositor_sequencer_node_group_exec;
+
+  operator_type->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_string(operator_type->srna,
+                 "name",
+                 DATA_("Sequencer Compositor Nodes"),
+                 MAX_ID_NAME - 2,
+                 "Name",
+                 "");
+}
+
 /** \} */
 
 }  // namespace blender::ed::space_node

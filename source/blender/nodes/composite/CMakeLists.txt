@@ -14,6 +14,7 @@ set(INC
   ../../compositor/cached_resources
   ../../compositor/derived_resources
   ../../compositor/utilities
+  ../../sequencer
 
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -129,6 +130,7 @@ set(LIB
   PRIVATE bf::render
   PRIVATE bf::windowmanager
   PRIVATE bf::dependencies::optional::opencolorio
+  PRIVATE bf::sequencer
 )
 
 add_node_discovery(

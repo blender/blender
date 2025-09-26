@@ -65,7 +65,8 @@ struct CurvesApplyOp {
   }
 };
 
-static void curves_apply(const StripScreenQuad & /*quad*/,
+static void curves_apply(const RenderData * /*render_data*/,
+                         const StripScreenQuad & /*quad*/,
                          StripModifierData *smd,
                          ImBuf *ibuf,
                          ImBuf *mask)

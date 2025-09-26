@@ -625,6 +625,11 @@ typedef enum eModTonemapType {
   SEQ_TONEMAP_RD_PHOTORECEPTOR = 1,
 } eModTonemapType;
 
+typedef struct SequencerCompositorModifierData {
+  StripModifierData modifier;
+  struct bNodeTree *node_group;
+} SequencerCompositorModifierData;
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -888,6 +893,7 @@ typedef enum eStripModifierType {
   eSeqModifierType_WhiteBalance = 6,
   eSeqModifierType_Tonemap = 7,
   eSeqModifierType_SoundEqualizer = 8,
+  eSeqModifierType_Compositor = 9,
   /* Keep last. */
   NUM_STRIP_MODIFIER_TYPES,
 } eStripModifierType;

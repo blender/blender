@@ -100,7 +100,8 @@ struct HueCorrectApplyOp {
   }
 };
 
-static void hue_correct_apply(const StripScreenQuad & /*quad*/,
+static void hue_correct_apply(const RenderData * /*render_data*/,
+                              const StripScreenQuad & /*quad*/,
                               StripModifierData *smd,
                               ImBuf *ibuf,
                               ImBuf *mask)

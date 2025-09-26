@@ -44,6 +44,7 @@ struct EffectInfo {
 #define RNA_ENUM_SEQUENCER_VIDEO_MODIFIER_TYPE_ITEMS \
   {eSeqModifierType_BrightContrast, "BRIGHT_CONTRAST", ICON_MOD_BRIGHTNESS_CONTRAST, "Brightness/Contrast", ""}, \
   {eSeqModifierType_ColorBalance, "COLOR_BALANCE", ICON_MOD_COLOR_BALANCE, "Color Balance", ""}, \
+  {eSeqModifierType_Compositor, "COMPOSITOR", ICON_NODE_COMPOSITING, "Compositor", ""}, \
   {eSeqModifierType_Curves, "CURVES", ICON_MOD_CURVES, "Curves", ""}, \
   {eSeqModifierType_HueCorrect, "HUE_CORRECT", ICON_MOD_HUE_CORRECT, "Hue Correct", ""}, \
   {eSeqModifierType_Mask, "MASK", ICON_MOD_MASK, "Mask", ""}, \
@@ -1444,6 +1445,8 @@ static StructRNA *rna_StripModifier_refine(PointerRNA *ptr)
       return &RNA_SequencerTonemapModifierData;
     case eSeqModifierType_SoundEqualizer:
       return &RNA_SoundEqualizerModifier;
+    case eSeqModifierType_Compositor:
+      return &RNA_SequencerCompositorModifierData;
     default:
       return &RNA_StripModifier;
   }
@@ -1740,6 +1743,33 @@ static void rna_Strip_SoundEqualizer_Curve_clear(SoundEqualizerModifierData *sem
 {
   blender::seq::sound_equalizermodifier_free((StripModifierData *)semd);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
+}
+
+static bool rna_CompositorModifier_node_group_poll(PointerRNA * /*ptr*/, PointerRNA value)
+{
+  const bNodeTree *node_tree = value.data_as<bNodeTree>();
+  if (node_tree->type != NTREE_COMPOSIT) {
+    return false;
+  }
+  return true;
+}
+
+static void rna_CompositorModifier_node_group_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  rna_StripModifier_update(bmain, scene, ptr);
+
+  /* Tag depsgraph relations for an update since the modifier could now be referencing a different
+   * node tree. */
+  DEG_relations_tag_update(bmain);
+
+  /* Strips from other scenes could be modified, so use the scene of the strip as opposed to the
+   * active scene argument. */
+  Scene *strip_scene = reinterpret_cast<Scene *>(ptr->owner_id);
+  Editing *ed = blender::seq::editing_get(strip_scene);
+
+  /* The sequencer stores a cached mapping between compositor node trees and strips that use them
+   * as a modifier, so we need to invalidate the cache since the node tree changed. */
+  blender::seq::strip_lookup_invalidate(ed);
 }
 
 #else
@@ -4065,6 +4095,24 @@ static void rna_def_tonemap_modifier(BlenderRNA *brna)
   rna_def_modifier_panel_open_prop(srna, "open_mask_input_panel", 1);
 }
 
+static void rna_def_compositor_modifier(BlenderRNA *brna)
+{
+  StructRNA *srna = RNA_def_struct(brna, "SequencerCompositorModifierData", "StripModifier");
+  RNA_def_struct_sdna(srna, "SequencerCompositorModifierData");
+  RNA_def_struct_ui_icon(srna, ICON_NODE_COMPOSITING);
+  RNA_def_struct_ui_text(srna, "SequencerCompositorModifierData", "Compositor Modifier");
+
+  PropertyRNA *prop = RNA_def_property(srna, "node_group", PROP_POINTER, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Node Group", "Node group that controls what this modifier does");
+  RNA_def_property_pointer_funcs(
+      prop, nullptr, nullptr, nullptr, "rna_CompositorModifier_node_group_poll");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_update(
+      prop, NC_SCENE | ND_SEQUENCER, "rna_CompositorModifier_node_group_update");
+
+  rna_def_modifier_panel_open_prop(srna, "open_mask_input_panel", 1);
+}
+
 static void rna_def_modifiers(BlenderRNA *brna)
 {
   rna_def_modifier(brna);
@@ -4076,6 +4124,7 @@ static void rna_def_modifiers(BlenderRNA *brna)
   rna_def_brightcontrast_modifier(brna);
   rna_def_whitebalance_modifier(brna);
   rna_def_tonemap_modifier(brna);
+  rna_def_compositor_modifier(brna);
 }
 
 static void rna_def_graphical_sound_equalizer(BlenderRNA *brna)

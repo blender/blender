@@ -934,6 +934,10 @@ Map<const bNodeTreeZone *, ComputeContextHash> GeoNodesLog::
 
 static GeoNodesLog *get_root_log(const SpaceNode &snode)
 {
+  if (!ED_node_is_geometry(&snode)) {
+    return nullptr;
+  }
+
   switch (SpaceNodeGeometryNodesType(snode.node_tree_sub_type)) {
     case SNODE_GEOMETRY_MODIFIER: {
       std::optional<ed::space_node::ObjectAndModifier> object_and_modifier =

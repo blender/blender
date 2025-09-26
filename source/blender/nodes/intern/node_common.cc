@@ -869,6 +869,11 @@ static bool group_output_insert_link(blender::bke::NodeInsertLinkParams &params)
 
 }  // namespace blender::nodes
 
+static void node_group_input_extra_info(blender::nodes::NodeExtraInfoParams &params)
+{
+  get_compositor_group_input_extra_info(params);
+}
+
 void register_node_type_group_input()
 {
   /* used for all tree types, needs dynamic allocation */
@@ -884,6 +889,7 @@ void register_node_type_group_input()
   blender::bke::node_type_size(*ntype, 140, 80, 400);
   ntype->declare = blender::nodes::group_input_declare;
   ntype->insert_link = blender::nodes::group_input_insert_link;
+  ntype->get_extra_info = node_group_input_extra_info;
   ntype->get_compositor_operation = blender::nodes::get_group_input_compositor_operation;
 
   blender::bke::node_register_type(*ntype);

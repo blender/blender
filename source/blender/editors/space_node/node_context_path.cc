@@ -21,6 +21,10 @@
 
 #include "ED_screen.hh"
 
+#include "SEQ_modifier.hh"
+#include "SEQ_select.hh"
+#include "SEQ_sequencer.hh"
+
 #include "WM_api.hh"
 
 #include "UI_interface.hh"
@@ -162,9 +166,47 @@ static void get_context_path_node_compositor(const bContext &C,
     context_path_add_node_tree_and_node_groups(snode, path);
   }
   else {
-    Scene *scene = CTX_data_scene(&C);
-    ui::context_path_add_generic(path, RNA_Scene, scene);
-    context_path_add_node_tree_and_node_groups(snode, path);
+    if (snode.node_tree_sub_type == SNODE_COMPOSITOR_SEQUENCER) {
+      Scene *sequencer_scene = CTX_data_sequencer_scene(&C);
+      if (!sequencer_scene) {
+        context_path_add_node_tree_and_node_groups(snode, path);
+        return;
+      }
+      Editing *ed = seq::editing_get(sequencer_scene);
+      if (!ed) {
+        context_path_add_node_tree_and_node_groups(snode, path);
+        return;
+      }
+      Strip *strip = seq::select_active_get(sequencer_scene);
+      if (!strip) {
+        context_path_add_node_tree_and_node_groups(snode, path);
+        return;
+      }
+      StripModifierData *smd = seq::modifier_get_active(strip);
+      if (!smd) {
+        context_path_add_node_tree_and_node_groups(snode, path);
+        return;
+      }
+      if (smd->type != eSeqModifierType_Compositor) {
+        context_path_add_node_tree_and_node_groups(snode, path);
+        return;
+      }
+      SequencerCompositorModifierData *scmd = reinterpret_cast<SequencerCompositorModifierData *>(
+          smd);
+      if (scmd->node_group == nullptr) {
+        context_path_add_node_tree_and_node_groups(snode, path);
+        return;
+      }
+      ui::context_path_add_generic(path, RNA_Scene, sequencer_scene, ICON_SCENE);
+      ui::context_path_add_generic(path, RNA_Strip, strip, ICON_SEQ_STRIP_DUPLICATE);
+      ui::context_path_add_generic(path, RNA_NodeTree, scmd->node_group);
+      context_path_add_node_tree_and_node_groups(snode, path, true);
+    }
+    else {
+      Scene *scene = CTX_data_scene(&C);
+      ui::context_path_add_generic(path, RNA_Scene, scene);
+      context_path_add_node_tree_and_node_groups(snode, path);
+    }
   }
 }
 
