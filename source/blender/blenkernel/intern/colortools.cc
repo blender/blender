@@ -273,7 +273,7 @@ CurveMapPoint *BKE_curvemap_insert(CurveMap *cuma, float x, float y)
   return newcmp;
 }
 
-void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope)
+void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, CurveMapSlopeType slope)
 {
   if (cuma->curve) {
     MEM_freeN(cuma->curve);
@@ -322,7 +322,7 @@ void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope
       cuma->curve[0].y = clipr->ymax;
       cuma->curve[1].x = clipr->xmax;
       cuma->curve[1].y = clipr->ymin;
-      if (slope == CURVEMAP_SLOPE_POS_NEG) {
+      if (slope == CurveMapSlopeType::PositiveNegative) {
         cuma->curve[0].flag &= ~CUMA_HANDLE_AUTO_ANIM;
         cuma->curve[1].flag &= ~CUMA_HANDLE_AUTO_ANIM;
         cuma->curve[0].flag |= CUMA_HANDLE_VECTOR;
@@ -420,7 +420,7 @@ void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope
 
   /* mirror curve in x direction to have positive slope
    * rather than default negative slope */
-  if (slope == CURVEMAP_SLOPE_POSITIVE) {
+  if (slope == CurveMapSlopeType::Positive) {
     int i, last = cuma->totpoint - 1;
     CurveMapPoint *newpoints = static_cast<CurveMapPoint *>(MEM_dupallocN(cuma->curve));
 
@@ -431,7 +431,7 @@ void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope
     MEM_freeN(cuma->curve);
     cuma->curve = newpoints;
   }
-  else if (slope == CURVEMAP_SLOPE_POS_NEG) {
+  else if (slope == CurveMapSlopeType::PositiveNegative) {
     const int num_points = cuma->totpoint * 2 - 1;
     CurveMapPoint *new_points = MEM_malloc_arrayN<CurveMapPoint>(size_t(num_points),
                                                                  "curve symmetric points");

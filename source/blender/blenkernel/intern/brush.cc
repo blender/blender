@@ -886,7 +886,7 @@ void BKE_brush_curve_preset(Brush *b, eCurveMappingPreset preset)
   cumap->preset = preset;
 
   cuma = b->curve_distance_falloff->cm;
-  BKE_curvemap_reset(cuma, &cumap->clipr, cumap->preset, CURVEMAP_SLOPE_NEGATIVE);
+  BKE_curvemap_reset(cuma, &cumap->clipr, cumap->preset, CurveMapSlopeType::Negative);
   BKE_curvemapping_changed(cumap, false);
   BKE_brush_tag_unsaved_changes(b);
 }

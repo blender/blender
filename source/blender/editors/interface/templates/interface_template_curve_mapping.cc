@@ -190,7 +190,7 @@ static uiBlock *curvemap_clipping_func(bContext *C, ARegion *region, void *cumap
 }
 
 static uiBlock *curvemap_tools_func(
-    bContext *C, ARegion *region, RNAUpdateCb &cb, bool show_extend, int reset_mode)
+    bContext *C, ARegion *region, RNAUpdateCb &cb, bool show_extend, CurveMapSlopeType reset_mode)
 {
   PointerRNA cumap_ptr = RNA_property_pointer_get(&cb.ptr, cb.prop);
   CurveMapping *cumap = static_cast<CurveMapping *>(cumap_ptr.data);
@@ -292,25 +292,25 @@ static uiBlock *curvemap_tools_func(
 static uiBlock *curvemap_tools_posslope_func(bContext *C, ARegion *region, void *cb_v)
 {
   return curvemap_tools_func(
-      C, region, *static_cast<RNAUpdateCb *>(cb_v), true, CURVEMAP_SLOPE_POSITIVE);
+      C, region, *static_cast<RNAUpdateCb *>(cb_v), true, CurveMapSlopeType::Positive);
 }
 
 static uiBlock *curvemap_tools_negslope_func(bContext *C, ARegion *region, void *cb_v)
 {
   return curvemap_tools_func(
-      C, region, *static_cast<RNAUpdateCb *>(cb_v), true, CURVEMAP_SLOPE_NEGATIVE);
+      C, region, *static_cast<RNAUpdateCb *>(cb_v), true, CurveMapSlopeType::Negative);
 }
 
 static uiBlock *curvemap_brush_tools_func(bContext *C, ARegion *region, void *cb_v)
 {
   return curvemap_tools_func(
-      C, region, *static_cast<RNAUpdateCb *>(cb_v), false, CURVEMAP_SLOPE_POSITIVE);
+      C, region, *static_cast<RNAUpdateCb *>(cb_v), false, CurveMapSlopeType::Positive);
 }
 
 static uiBlock *curvemap_brush_tools_negslope_func(bContext *C, ARegion *region, void *cb_v)
 {
   return curvemap_tools_func(
-      C, region, *static_cast<RNAUpdateCb *>(cb_v), false, CURVEMAP_SLOPE_NEGATIVE);
+      C, region, *static_cast<RNAUpdateCb *>(cb_v), false, CurveMapSlopeType::Negative);
 }
 
 static void curvemap_buttons_redraw(bContext &C)
@@ -755,7 +755,8 @@ static void curvemap_buttons_layout(uiLayout *layout,
     UI_but_func_set(bt, [cumap, cb](bContext &C) {
       cumap->preset = CURVE_PRESET_LINE;
       for (int a = 0; a < CM_TOT; a++) {
-        BKE_curvemap_reset(cumap->cm + a, &cumap->clipr, cumap->preset, CURVEMAP_SLOPE_POSITIVE);
+        BKE_curvemap_reset(
+            cumap->cm + a, &cumap->clipr, cumap->preset, CurveMapSlopeType::Positive);
       }
 
       cumap->black[0] = cumap->black[1] = cumap->black[2] = 0.0f;
