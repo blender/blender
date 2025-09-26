@@ -180,7 +180,7 @@ static NSImage *generate_nsimage_for_file(const char *src_blend_path, NSError *e
     /* Return the thumbnail reply. */
     handler(thumbnailReply, nil);
   }
-  NSLog(@"Thumbnail generation succcessfully completed");
+  NSLog(@"Thumbnail generation successfully completed");
 }
 
 @end
