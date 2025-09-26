@@ -92,7 +92,10 @@ static void context_path_add_node_tree_and_node_groups(const SpaceNode &snode,
     }
 
     int icon = ICON_NODETREE;
-    if (ID_IS_LINKED(&path_item->nodetree->id)) {
+    if (ID_IS_PACKED(&path_item->nodetree->id)) {
+      icon = ICON_PACKAGE;
+    }
+    else if (ID_IS_LINKED(&path_item->nodetree->id)) {
       icon = ICON_LINKED;
     }
     else if (ID_IS_ASSET(&path_item->nodetree->id)) {
