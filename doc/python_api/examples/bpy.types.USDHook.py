@@ -245,8 +245,28 @@ class USDHookExample(bpy.types.USDHook):
 
     @staticmethod
     def on_import(import_context):
-        """ Create a text object to display the stage's custom data.
+        """Inspect the imported stage & objects to set some custom data
         """
+
+        ###########################################################
+        # Store some USD metadata on each imported data block.
+        ###########################################################
+        prim_map = import_context.get_prim_map()
+
+        # Store prim path as a string on each data block created.
+        for prim_path, data_blocks in prim_map.items():
+
+            # Type hints for prim map.
+            prim_path: Sdf.Path
+            data_blocks: list[bpy.types.ID]
+
+            # Loop over mapped data blocks to store some metadata.
+            for data_block in data_blocks:
+                data_block["prim_path"] = str(prim_path)
+
+        ###########################################################
+        # Create a text object to display the stage's custom data.
+        ###########################################################
         stage = import_context.get_stage()
 
         if stage is None:
