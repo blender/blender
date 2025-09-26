@@ -395,10 +395,15 @@ static void add_pose_transdata(
   Bone *bone = pchan->bone;
   float pmat[3][3], omat[3][3];
   float cmat[3][3], tmat[3][3];
-  float vec[3];
 
-  copy_v3_v3(vec, pchan->pose_mat[3]);
-  copy_v3_v3(td->center, vec);
+  const bArmature *arm = static_cast<bArmature *>(ob->data);
+  BKE_pose_channel_transform_location(arm, pchan, td->center);
+  if (pchan->flag & POSE_TRANSFORM_AROUND_CUSTOM_TX) {
+    copy_v3_v3(td_ext->center_no_override, pchan->pose_mat[3]);
+  }
+  else {
+    copy_v3_v3(td_ext->center_no_override, td->center);
+  }
 
   td->flag = TD_SELECTED;
   if (bone->flag & BONE_HINGE_CHILD_TRANSFORM) {
@@ -449,11 +454,12 @@ static void add_pose_transdata(
   /* Proper way to get parent transform + our own transform + constraints transform. */
   copy_m3_m4(omat, ob->object_to_world().ptr());
 
-  /* New code, using "generic" BKE_bone_parent_transform_calc_from_pchan(). */
   {
     BoneParentTransform bpt;
     float rpmat[3][3];
 
+    /* Not using the pchan->custom_tx here because we need the transformation to be
+     * relative to the actual bone being modified, not it's visual representation.  */
     BKE_bone_parent_transform_calc_from_pchan(pchan, &bpt);
     if (t->mode == TFM_TRANSLATION) {
       copy_m3_m4(pmat, bpt.loc_mat);
@@ -498,7 +504,7 @@ static void add_pose_transdata(
   }
 
   /* For `axismtx` we use the bone's own transform. */
-  copy_m3_m4(pmat, pchan->pose_mat);
+  BKE_pose_channel_transform_orientation(arm, pchan, pmat);
   mul_m3_m3m3(td->axismtx, omat, pmat);
   normalize_m3(td->axismtx);
 
@@ -703,6 +709,9 @@ static void createTransPose(bContext * /*C*/, TransInfo *t)
     /* Use pose channels to fill trans data. */
     td = tc->data;
     tdx = tc->data_ext;
+    tdx->center_no_override[0] = 0;
+    tdx->center_no_override[1] = 0;
+    tdx->center_no_override[2] = 0;
     LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
       if (pchan->bone->flag & BONE_TRANSFORM) {
         add_pose_transdata(t, pchan, ob, td++, tdx++);

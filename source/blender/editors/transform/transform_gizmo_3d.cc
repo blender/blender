@@ -22,6 +22,7 @@
 #include "DNA_meta_types.h"
 #include "DNA_pointcloud_types.h"
 
+#include "BKE_action.hh"
 #include "BKE_armature.hh"
 #include "BKE_context.hh"
 #include "BKE_crazyspace.hh"
@@ -836,12 +837,16 @@ static int gizmo_3d_foreach_selected(const bContext *C,
         mul_m4_m4m4(mat_local, ob->world_to_object().ptr(), ob_iter->object_to_world().ptr());
       }
 
+      bArmature *arm = static_cast<bArmature *>(ob_iter->data);
       /* Use channels to get stats. */
       LISTBASE_FOREACH (bPoseChannel *, pchan, &ob_iter->pose->chanbase) {
         if (!(pchan->bone->flag & BONE_TRANSFORM)) {
           continue;
         }
-        run_coord_with_matrix(pchan->pose_head, use_mat_local, mat_local);
+
+        float pchan_pivot[3];
+        BKE_pose_channel_transform_location(arm, pchan, pchan_pivot);
+        run_coord_with_matrix(pchan_pivot, use_mat_local, mat_local);
         totsel++;
 
         if (r_drawflags) {
