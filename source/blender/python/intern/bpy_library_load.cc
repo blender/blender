@@ -472,7 +472,7 @@ static PyObject *bpy_lib_enter(BPy_Library *self)
   ReportList *reports = &self->reports;
   BlendFileReadReport *bf_reports = &self->bf_reports;
 
-  BKE_reports_init(reports, RPT_STORE);
+  BKE_reports_init(reports, RPT_STORE | RPT_PRINT_HANDLED_BY_OWNER);
   memset(bf_reports, 0, sizeof(*bf_reports));
   bf_reports->reports = reports;
 

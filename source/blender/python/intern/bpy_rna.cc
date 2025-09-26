@@ -2053,7 +2053,7 @@ static int pyrna_py_to_prop(
           /* Data == nullptr, assign to RNA. */
           if ((param == nullptr) || RNA_struct_is_a(param->ptr->type, ptr_type)) {
             ReportList reports;
-            BKE_reports_init(&reports, RPT_STORE);
+            BKE_reports_init(&reports, RPT_STORE | RPT_PRINT_HANDLED_BY_OWNER);
             RNA_property_pointer_set(
                 ptr, prop, (param == nullptr) ? PointerRNA_NULL : *param->ptr, &reports);
             const int err = BPy_reports_to_error(&reports, PyExc_RuntimeError, true);
@@ -6856,7 +6856,9 @@ static PyObject *pyrna_func_vectorcall(PyObject *callable,
     ReportList reports;
     bContext *C = BPY_context_get();
 
-    BKE_reports_init(&reports, RPT_STORE);
+    /* No need to print any reports. We will turn errors into Python exceptions, and
+     * Python API calls should be silent and not print info or warning messages. */
+    BKE_reports_init(&reports, RPT_STORE | RPT_PRINT_HANDLED_BY_OWNER);
     RNA_function_call(C, &reports, self_ptr, self_func, &parms);
 
     err = BPy_reports_to_error(&reports, PyExc_RuntimeError, true);
@@ -10116,7 +10118,7 @@ static PyObject *pyrna_register_class(PyObject * /*self*/, PyObject *py_class)
   C = BPY_context_get();
 
   /* Call the register callback with reports & identifier. */
-  BKE_reports_init(&reports, RPT_STORE);
+  BKE_reports_init(&reports, RPT_STORE | RPT_PRINT_HANDLED_BY_OWNER);
 
   identifier = ((PyTypeObject *)py_class)->tp_name;
 
