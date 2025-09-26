@@ -14,4 +14,4 @@ namespace blender::asset_system {
 
 StringRefNull essentials_directory_path();
 
-}
+}  // namespace blender::asset_system

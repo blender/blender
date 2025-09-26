@@ -717,6 +717,10 @@ static bool override_idtemplate_poll(bContext *C, const bool is_create_op)
     return false;
   }
 
+  if (ID_IS_PACKED(id)) {
+    return false;
+  }
+
   if (is_create_op) {
     if (!ID_IS_LINKED(id) && !ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
       return false;

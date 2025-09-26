@@ -303,3 +303,15 @@ void AS_asset_full_path_explode_from_weak_ref(const AssetWeakReference *asset_re
                                               char **r_dir,
                                               char **r_group,
                                               char **r_name);
+
+/**
+ * Updates the default import method for asset libraries based on
+ * #U.experimental.no_data_block_packing.
+ */
+void AS_asset_library_import_method_ensure_valid(Main &bmain);
+/**
+ * This is not done as part of #AS_asset_library_import_method_ensure_valid because it changes
+ * run-time data only and does not need to happen during versioning (also it appears to break tests
+ * when run during versioning).
+ */
+void AS_asset_library_essential_import_method_update();

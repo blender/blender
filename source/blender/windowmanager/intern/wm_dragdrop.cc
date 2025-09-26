@@ -753,6 +753,16 @@ ID *WM_drag_asset_id_import(const bContext *C, wmDragAsset *asset_drag, const in
                                     idtype,
                                     name,
                                     flag | (use_relative_path ? FILE_RELPATH : 0));
+    case ASSET_IMPORT_PACK:
+      return WM_file_link_datablock(bmain,
+                                    scene,
+                                    view_layer,
+                                    view3d,
+                                    blend_path.c_str(),
+                                    idtype,
+                                    name,
+                                    flag | (use_relative_path ? FILE_RELPATH : 0) |
+                                        BLO_LIBLINK_PACK);
     case ASSET_IMPORT_APPEND:
       return WM_file_append_datablock(bmain,
                                       scene,
@@ -787,7 +797,7 @@ bool WM_drag_asset_will_import_linked(const wmDrag *drag)
   }
 
   const wmDragAsset *asset_drag = WM_drag_get_asset_data(drag, 0);
-  return asset_drag->import_settings.method == ASSET_IMPORT_LINK;
+  return ELEM(asset_drag->import_settings.method, ASSET_IMPORT_LINK, ASSET_IMPORT_PACK);
 }
 
 ID *WM_drag_get_local_ID_or_import_from_asset(const bContext *C, const wmDrag *drag, int idcode)

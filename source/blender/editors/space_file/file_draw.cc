@@ -410,7 +410,7 @@ static void file_but_enable_drag(uiBut *but,
       import_settings.method = eAssetImportMethod(import_method);
       import_settings.use_instance_collections =
           (sfile->asset_params->import_flags &
-           (import_method == ASSET_IMPORT_LINK ?
+           (ELEM(import_method, ASSET_IMPORT_LINK, ASSET_IMPORT_PACK) ?
                 FILE_ASSET_IMPORT_INSTANCE_COLLECTIONS_ON_LINK :
                 FILE_ASSET_IMPORT_INSTANCE_COLLECTIONS_ON_APPEND)) != 0;
 

@@ -127,10 +127,9 @@ class QuickFur(ObjectModeOperator, Operator):
 
         with bpy.data.libraries.load(
                 asset_library_filepath,
-                link=False,
-                clear_asset_data=True,
-                reuse_local_id=True,
-                recursive=True,
+                link=True,
+                pack=True,
+                set_fake=False,
         ) as (data_src, data_dst):
             # The values are assumed to exist, no inspection of the source is needed.
             del data_src

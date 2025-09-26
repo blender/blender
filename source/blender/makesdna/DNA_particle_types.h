@@ -298,7 +298,6 @@ typedef struct ParticleSettings {
   float rad_root, rad_tip, rad_scale;
 
   struct CurveMapping *twistcurve;
-  void *_pad7;
 } ParticleSettings;
 
 typedef struct ParticleSystem {

@@ -34,6 +34,7 @@
 #  include "BKE_image.hh"
 #  include "BKE_lattice.hh"
 #  include "BKE_lib_remap.hh"
+#  include "BKE_library.hh"
 #  include "BKE_light.h"
 #  include "BKE_lightprobe.h"
 #  include "BKE_linestyle.h"
@@ -144,6 +145,28 @@ static void rna_Main_ID_remove(Main *bmain,
         id->name + 2,
         ID_REAL_USERS(id));
   }
+}
+
+static ID *rna_Main_pack_linked_ids_hierarchy(struct BlendData *blenddata,
+                                              ReportList *reports,
+                                              ID *root_id)
+{
+  if (!ID_IS_LINKED(root_id)) {
+    BKE_reportf(reports, RPT_ERROR, "Only linked IDs can be packed");
+    return nullptr;
+  }
+  if (ID_IS_PACKED(root_id)) {
+    /* Nothing to do. */
+    return root_id;
+  }
+
+  Main *bmain = reinterpret_cast<Main *>(blenddata);
+  blender::bke::library::pack_linked_id_hierarchy(*bmain, *root_id);
+
+  ID *packed_root_id = root_id->newid;
+  BKE_main_id_newptr_and_tag_clear(bmain);
+
+  return packed_root_id;
 }
 
 static Camera *rna_Main_cameras_new(Main *bmain, const char *name)
@@ -869,12 +892,12 @@ RNA_MAIN_ID_TAG_FUNCS_DEF(volumes, volumes, ID_VO)
 
 #else
 
-void RNA_api_main(StructRNA * /*srna*/)
+void RNA_api_main(StructRNA *srna)
 {
-#  if 0
   FunctionRNA *func;
   PropertyRNA *parm;
 
+#  if 0
   /* maybe we want to add functions in 'bpy.data' still?
    * for now they are all in collections bpy.data.images.new(...) */
   func = RNA_def_function(srna, "add_image", "rna_Main_add_image");
@@ -885,6 +908,15 @@ void RNA_api_main(StructRNA * /*srna*/)
   parm = RNA_def_pointer(func, "image", "Image", "", "New image");
   RNA_def_function_return(func, parm);
 #  endif
+
+  func = RNA_def_function(srna, "pack_linked_ids_hierarchy", "rna_Main_pack_linked_ids_hierarchy");
+  RNA_def_function_ui_description(
+      func, "Pack the given linked ID and its dependencies into current blendfile");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  parm = RNA_def_pointer(func, "root_id", "ID", "", "Root linked ID to pack");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_pointer(func, "packed_id", "ID", "", "The packed ID matching the given root ID");
+  RNA_def_function_return(func, parm);
 }
 
 void RNA_def_main_cameras(BlenderRNA *brna, PropertyRNA *cprop)

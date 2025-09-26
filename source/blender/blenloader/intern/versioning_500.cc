@@ -72,6 +72,8 @@
 
 #include "WM_api.hh"
 
+#include "AS_asset_library.hh"
+
 #include "readfile.hh"
 
 #include "versioning_common.hh"
@@ -3679,4 +3681,7 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
   LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
     bke::mesh_freestyle_marks_to_generic(*mesh);
   }
+
+  /* TODO: Can be moved to subversion bump. */
+  AS_asset_library_import_method_ensure_valid(*bmain);
 }

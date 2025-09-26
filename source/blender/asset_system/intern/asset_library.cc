@@ -21,11 +21,14 @@
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
 
+#include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "asset_catalog_collection.hh"
 #include "asset_catalog_definition_file.hh"
 #include "asset_library_service.hh"
+#include "essentials_library.hh"
 #include "runtime_library.hh"
 #include "utils.hh"
 
@@ -158,6 +161,67 @@ void AS_asset_full_path_explode_from_weak_ref(const AssetWeakReference *asset_re
     if (r_name) {
       *r_name = r_path_buffer + exploded->group_component.size() + 1;
     }
+  }
+}
+
+static void update_import_method_for_user_libraries()
+{
+  LISTBASE_FOREACH (bUserAssetLibrary *, library, &U.asset_libraries) {
+    if (U.experimental.no_data_block_packing) {
+      if (library->import_method == ASSET_IMPORT_PACK) {
+        library->import_method = ASSET_IMPORT_APPEND_REUSE;
+      }
+    }
+    else {
+      if (library->import_method == ASSET_IMPORT_APPEND_REUSE) {
+        library->import_method = ASSET_IMPORT_PACK;
+      }
+    }
+  }
+}
+
+static void update_import_method_for_asset_browsers(Main &bmain)
+{
+  LISTBASE_FOREACH (bScreen *, screen, &bmain.screens) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+        if (sl->spacetype != SPACE_FILE) {
+          continue;
+        }
+        SpaceFile *sfile = reinterpret_cast<SpaceFile *>(sl);
+        if (!sfile->asset_params) {
+          continue;
+        }
+        if (U.experimental.no_data_block_packing) {
+          if (sfile->asset_params->import_method == FILE_ASSET_IMPORT_PACK) {
+            sfile->asset_params->import_method = FILE_ASSET_IMPORT_APPEND_REUSE;
+          }
+        }
+        else {
+          if (sfile->asset_params->import_method == FILE_ASSET_IMPORT_APPEND_REUSE) {
+            sfile->asset_params->import_method = FILE_ASSET_IMPORT_PACK;
+          }
+        }
+      }
+    }
+  }
+}
+
+void AS_asset_library_import_method_ensure_valid(Main &bmain)
+{
+  update_import_method_for_user_libraries();
+  update_import_method_for_asset_browsers(bmain);
+}
+
+void AS_asset_library_essential_import_method_update()
+{
+  AssetLibraryReference library_ref{};
+  library_ref.custom_library_index = -1;
+  library_ref.type = ASSET_LIBRARY_ESSENTIALS;
+  EssentialsAssetLibrary *library = dynamic_cast<EssentialsAssetLibrary *>(
+      AS_asset_library_load(nullptr, library_ref));
+  if (library) {
+    library->update_default_import_method();
   }
 }
 
