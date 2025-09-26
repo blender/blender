@@ -667,13 +667,6 @@ if(WITH_SYSTEM_FREETYPE)
   set(BROTLI_LIBRARIES "")
 endif()
 
-if(WITH_LZO AND WITH_SYSTEM_LZO)
-  find_package_wrapper(LZO)
-  if(NOT LZO_FOUND)
-    message(FATAL_ERROR "Failed finding system LZO version!")
-  endif()
-endif()
-
 if(WITH_SYSTEM_EIGEN3)
   find_package_wrapper(Eigen3)
   if(NOT EIGEN3_FOUND)

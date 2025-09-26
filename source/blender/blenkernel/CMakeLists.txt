@@ -709,36 +709,6 @@ if(WITH_JACK)
   add_definitions(-DWITH_JACK)
 endif()
 
-if(WITH_LZO)
-  if(WITH_SYSTEM_LZO)
-    list(APPEND INC_SYS
-      ${LZO_INCLUDE_DIR}
-    )
-    list(APPEND LIB
-      ${LZO_LIBRARIES}
-    )
-    add_definitions(-DWITH_SYSTEM_LZO)
-  else()
-    list(APPEND INC_SYS
-      ../../../extern/lzo/minilzo
-    )
-    list(APPEND LIB
-      extern_minilzo
-    )
-  endif()
-  add_definitions(-DWITH_LZO)
-endif()
-
-if(WITH_LZMA)
-  list(APPEND INC_SYS
-    ../../../extern/lzma
-  )
-  list(APPEND LIB
-    extern_lzma
-  )
-  add_definitions(-DWITH_LZMA)
-endif()
-
 if(WITH_LIBMV)
   add_definitions(-DWITH_LIBMV)
 endif()

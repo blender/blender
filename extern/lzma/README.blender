@@ -1,9 +1,0 @@
-Project: LZMA SDK
-URL: https://www.7-zip.org/sdk.html
-License: Public Domain
-Upstream version: 23.01
-Local modifications:
-* Update LzFind.c to find the correct NEON header when using clang-cl + Windows ARM64
-
-- Took only files needed for Blender: C source for raw LZMA1 encoder/decoder.
-- CMakeLists.txt is made for Blender codebase
