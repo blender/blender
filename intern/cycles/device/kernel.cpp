@@ -18,6 +18,7 @@ bool device_kernel_has_shading(DeviceKernel kernel)
           kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE ||
           kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE ||
           kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME ||
+          kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME_RAY_MARCHING ||
           kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW ||
           kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_DEDICATED_LIGHT ||
           kernel == DEVICE_KERNEL_SHADER_EVAL_DISPLACE ||
@@ -69,6 +70,8 @@ const char *device_kernel_as_string(DeviceKernel kernel)
       return "integrator_shade_surface_mnee";
     case DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME:
       return "integrator_shade_volume";
+    case DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME_RAY_MARCHING:
+      return "integrator_shade_volume_ray_marching";
     case DEVICE_KERNEL_INTEGRATOR_SHADE_DEDICATED_LIGHT:
       return "integrator_shade_dedicated_light";
     case DEVICE_KERNEL_INTEGRATOR_MEGAKERNEL:

@@ -94,7 +94,13 @@ ccl_device_inline void integrate_transparent_volume_shadow(KernelGlobals kg,
   /* `object` is only needed for light tree with light linking, it is irrelevant for shadow. */
   shader_setup_from_volume(shadow_sd, &ray, OBJECT_NONE);
 
-  volume_shadow_heterogeneous(kg, state, &ray, shadow_sd, throughput);
+  if (kernel_data.integrator.volume_ray_marching) {
+    const float step_size = volume_stack_step_size<true>(kg, state);
+    volume_shadow_ray_marching(kg, state, &ray, shadow_sd, throughput, step_size);
+  }
+  else {
+    volume_shadow_null_scattering(kg, state, &ray, shadow_sd, throughput);
+  }
 }
 #  endif
 

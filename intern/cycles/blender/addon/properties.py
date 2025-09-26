@@ -779,10 +779,32 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         default=8,
     )
 
-    volume_unbiased: BoolProperty(
-        name="Unbiased",
-        description="If enabled, volume rendering converges to the correct result with sufficiently large numbers "
-        "of samples, but might appear noisier in the process",
+    volume_step_rate: FloatProperty(
+        name="Step Rate",
+        description="Globally adjust detail for volume rendering, on top of automatically estimated step size. "
+                    "Higher values reduce render time, lower values render with more detail",
+        default=1.0,
+        min=0.01, max=100.0, soft_min=0.1, soft_max=10.0, precision=2
+    )
+    volume_preview_step_rate: FloatProperty(
+        name="Step Rate",
+        description="Globally adjust detail for volume rendering, on top of automatically estimated step size. "
+                    "Higher values reduce render time, lower values render with more detail",
+        default=1.0,
+        min=0.01, max=100.0, soft_min=0.1, soft_max=10.0, precision=2
+    )
+    volume_max_steps: IntProperty(
+        name="Max Steps",
+        description="Maximum number of steps through the volume before giving up, "
+        "to avoid extremely long render times with big objects or small step sizes",
+        default=1024,
+        min=2, max=65536
+    )
+
+    volume_biased: BoolProperty(
+        name="Biased",
+        description="Default volume rendering uses null scattering, which is unbiased and has less artifacts, "
+        "but could be noisier. Biased option uses ray marching, with controls for steps size and max steps",
         default=False,
     )
 
@@ -1134,6 +1156,14 @@ class CyclesMaterialSettings(bpy.types.PropertyGroup):
         default='LINEAR',
     )
 
+    volume_step_rate: FloatProperty(
+        name="Step Rate",
+        description="Scale the distance between volume shader samples when rendering the volume "
+                    "(lower values give more accurate and detailed results, but also increased render time)",
+        default=1.0,
+        min=0.001, max=1000.0, soft_min=0.1, soft_max=10.0, precision=4
+    )
+
     @classmethod
     def register(cls):
         bpy.types.Material.cycles = PointerProperty(
@@ -1227,6 +1257,13 @@ class CyclesWorldSettings(bpy.types.PropertyGroup):
         description="Interpolation method to use for volumes",
         items=enum_volume_interpolation,
         default='LINEAR',
+    )
+    volume_step_size: FloatProperty(
+        name="Step Size",
+        description="Distance between volume shader samples when rendering the volume "
+                    "(lower values give more accurate and detailed results, but also increased render time)",
+        default=1.0,
+        min=0.0000001, max=100000.0, soft_min=0.1, soft_max=100.0, precision=4
     )
 
     @classmethod

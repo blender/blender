@@ -83,9 +83,12 @@ class Shader : public Node {
   NODE_SOCKET_API(bool, use_bump_map_correction)
   NODE_SOCKET_API(VolumeSampling, volume_sampling_method)
   NODE_SOCKET_API(int, volume_interpolation_method)
+  NODE_SOCKET_API(float, volume_step_rate)
 
   /* displacement */
   NODE_SOCKET_API(DisplacementMethod, displacement_method)
+
+  float prev_volume_step_rate;
 
   /* synchronization */
   bool need_update_uvs;

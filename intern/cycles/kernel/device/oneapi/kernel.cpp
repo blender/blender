@@ -460,6 +460,15 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
               kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_shade_volume);
           break;
         }
+        case DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME_RAY_MARCHING: {
+          oneapi_call(kg,
+                      cgh,
+                      global_size,
+                      local_size,
+                      args,
+                      oneapi_kernel_integrator_shade_volume_ray_marching);
+          break;
+        }
         case DEVICE_KERNEL_INTEGRATOR_SHADE_DEDICATED_LIGHT: {
           oneapi_call(kg,
                       cgh,

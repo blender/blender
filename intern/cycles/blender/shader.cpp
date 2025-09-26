@@ -1625,6 +1625,7 @@ void BlenderSync::sync_materials(BL::Depsgraph &b_depsgraph, bool update_all)
       shader->set_use_bump_map_correction(get_boolean(cmat, "use_bump_map_correction"));
       shader->set_volume_sampling_method(get_volume_sampling(cmat));
       shader->set_volume_interpolation_method(get_volume_interpolation(cmat));
+      shader->set_volume_step_rate(get_float(cmat, "volume_step_rate"));
       shader->set_displacement_method(get_displacement_method(b_mat));
 
       shader->set_graph(std::move(graph));
@@ -1691,6 +1692,7 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d,
       PointerRNA cworld = RNA_pointer_get(&b_world.ptr, "cycles");
       shader->set_volume_sampling_method(get_volume_sampling(cworld));
       shader->set_volume_interpolation_method(get_volume_interpolation(cworld));
+      shader->set_volume_step_rate(get_float(cworld, "volume_step_size"));
     }
     else if (new_viewport_parameters.use_scene_world && b_world) {
       BackgroundNode *background = graph->create_node<BackgroundNode>();

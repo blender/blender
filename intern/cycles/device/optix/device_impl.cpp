@@ -574,6 +574,10 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
     group_descs[PG_RGEN_SHADE_VOLUME].raygen.module = optix_module;
     group_descs[PG_RGEN_SHADE_VOLUME].raygen.entryFunctionName =
         "__raygen__kernel_optix_integrator_shade_volume";
+    group_descs[PG_RGEN_SHADE_VOLUME_RAY_MARCHING].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
+    group_descs[PG_RGEN_SHADE_VOLUME_RAY_MARCHING].raygen.module = optix_module;
+    group_descs[PG_RGEN_SHADE_VOLUME_RAY_MARCHING].raygen.entryFunctionName =
+        "__raygen__kernel_optix_integrator_shade_volume_ray_marching";
     group_descs[PG_RGEN_SHADE_SHADOW].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
     group_descs[PG_RGEN_SHADE_SHADOW].raygen.module = optix_module;
     group_descs[PG_RGEN_SHADE_SHADOW].raygen.entryFunctionName =

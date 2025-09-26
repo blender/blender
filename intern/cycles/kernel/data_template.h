@@ -208,7 +208,8 @@ KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE
 KERNEL_STRUCT_MEMBER(integrator, int, blue_noise_sequence_length)
 /* Volume render. */
 KERNEL_STRUCT_MEMBER(integrator, int, use_volumes)
-KERNEL_STRUCT_MEMBER(integrator, int, volume_unbiased)
+KERNEL_STRUCT_MEMBER(integrator, int, volume_ray_marching)
+KERNEL_STRUCT_MEMBER(integrator, int, volume_max_steps)
 /* Shadow catcher. */
 KERNEL_STRUCT_MEMBER(integrator, int, has_shadow_catcher)
 /* Closure filter. */
@@ -231,7 +232,6 @@ KERNEL_STRUCT_MEMBER(integrator, int, use_guiding_mis_weights)
 /* Padding. */
 KERNEL_STRUCT_MEMBER(integrator, int, pad1)
 KERNEL_STRUCT_MEMBER(integrator, int, pad2)
-KERNEL_STRUCT_MEMBER(integrator, int, pad3)
 KERNEL_STRUCT_END(KernelIntegrator)
 
 /* SVM. For shader specialization. */

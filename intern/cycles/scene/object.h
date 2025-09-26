@@ -112,6 +112,9 @@ class Object : public Node {
   /* Returns the index that is used in the kernel for this object. */
   int get_device_index() const;
 
+  /* Compute step size from attributes, shaders, transforms. */
+  float compute_volume_step_size() const;
+
   /* Check whether this object can be used as light-emissive. */
   bool usable_as_light() const;
 

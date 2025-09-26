@@ -6,6 +6,7 @@
 #include "scene/attribute.h"
 #include "scene/background.h"
 #include "scene/image_vdb.h"
+#include "scene/integrator.h"
 #include "scene/light.h"
 #include "scene/object.h"
 #include "scene/scene.h"
@@ -34,6 +35,7 @@ NODE_DEFINE(Volume)
 {
   NodeType *type = NodeType::add("volume", create, NodeType::NONE, Mesh::get_node_type());
 
+  SOCKET_FLOAT(step_size, "Step Size", 0.0f);
   SOCKET_BOOLEAN(object_space, "Object Space", false);
   SOCKET_FLOAT(velocity_scale, "Velocity Scale", 1.0f);
 
@@ -42,6 +44,7 @@ NODE_DEFINE(Volume)
 
 Volume::Volume() : Mesh(get_node_type(), Geometry::VOLUME)
 {
+  step_size = 0.0f;
   object_space = false;
 }
 
@@ -156,9 +159,12 @@ class VolumeMeshBuilder {
 
   void create_mesh(vector<float3> &vertices,
                    vector<int> &indices,
-                   const float face_overlap_avoidance);
+                   const float face_overlap_avoidance,
+                   const bool ray_marching);
 
-  void generate_vertices_and_quads(vector<int3> &vertices_is, vector<QuadData> &quads);
+  void generate_vertices_and_quads(vector<int3> &vertices_is,
+                                   vector<QuadData> &quads,
+                                   const bool ray_marching);
 
   void convert_object_space(const vector<int3> &vertices,
                             vector<float3> &out_vertices,
@@ -207,23 +213,96 @@ void VolumeMeshBuilder::add_padding(const int pad_size)
 
 void VolumeMeshBuilder::create_mesh(vector<float3> &vertices,
                                     vector<int> &indices,
-                                    const float face_overlap_avoidance)
+                                    const float face_overlap_avoidance,
+                                    const bool ray_marching)
 {
   /* We create vertices in index space (is), and only convert them to object
    * space when done. */
   vector<int3> vertices_is;
   vector<QuadData> quads;
 
-  generate_vertices_and_quads(vertices_is, quads);
+  generate_vertices_and_quads(vertices_is, quads, ray_marching);
 
   convert_object_space(vertices_is, vertices, face_overlap_avoidance);
 
   convert_quads_to_tris(quads, indices);
 }
 
-void VolumeMeshBuilder::generate_vertices_and_quads(vector<ccl::int3> &vertices_is,
-                                                    vector<QuadData> &quads)
+static bool is_non_empty_leaf(const openvdb::MaskGrid::TreeType &tree, const openvdb::Coord coord)
 {
+  const auto *leaf_node = tree.probeLeaf(coord);
+  return (leaf_node && !leaf_node->isEmpty());
+}
+
+void VolumeMeshBuilder::generate_vertices_and_quads(vector<ccl::int3> &vertices_is,
+                                                    vector<QuadData> &quads,
+                                                    const bool ray_marching)
+{
+  if (ray_marching) {
+    /* Make sure we only have leaf nodes in the tree, as tiles are not handled by this algorithm */
+    topology_grid->tree().voxelizeActiveTiles();
+
+    const openvdb::MaskGrid::TreeType &tree = topology_grid->tree();
+    tree.evalLeafBoundingBox(bbox);
+
+    const int3 resolution = make_int3(bbox.dim().x(), bbox.dim().y(), bbox.dim().z());
+
+    unordered_map<size_t, int> used_verts;
+    for (auto iter = tree.cbeginLeaf(); iter; ++iter) {
+      if (iter->isEmpty()) {
+        continue;
+      }
+      openvdb::CoordBBox leaf_bbox = iter->getNodeBoundingBox();
+      /* +1 to convert from exclusive to include bounds. */
+      leaf_bbox.max() = leaf_bbox.max().offsetBy(1);
+      int3 min = make_int3(leaf_bbox.min().x(), leaf_bbox.min().y(), leaf_bbox.min().z());
+      int3 max = make_int3(leaf_bbox.max().x(), leaf_bbox.max().y(), leaf_bbox.max().z());
+      int3 corners[8] = {
+          make_int3(min[0], min[1], min[2]),
+          make_int3(max[0], min[1], min[2]),
+          make_int3(max[0], max[1], min[2]),
+          make_int3(min[0], max[1], min[2]),
+          make_int3(min[0], min[1], max[2]),
+          make_int3(max[0], min[1], max[2]),
+          make_int3(max[0], max[1], max[2]),
+          make_int3(min[0], max[1], max[2]),
+      };
+      /* Only create a quad if on the border between an active and an inactive leaf.
+       *
+       * We verify that a leaf exists by probing a coordinate that is at its center,
+       * to do so we compute the center of the current leaf and offset this coordinate
+       * by the size of a leaf in each direction.
+       */
+      static const int LEAF_DIM = openvdb::MaskGrid::TreeType::LeafNodeType::DIM;
+      auto center = leaf_bbox.min() + openvdb::Coord(LEAF_DIM / 2);
+      if (!is_non_empty_leaf(tree, openvdb::Coord(center.x() - LEAF_DIM, center.y(), center.z())))
+      {
+        create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_X_MIN);
+      }
+      if (!is_non_empty_leaf(tree, openvdb::Coord(center.x() + LEAF_DIM, center.y(), center.z())))
+      {
+        create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_X_MAX);
+      }
+      if (!is_non_empty_leaf(tree, openvdb::Coord(center.x(), center.y() - LEAF_DIM, center.z())))
+      {
+        create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Y_MIN);
+      }
+      if (!is_non_empty_leaf(tree, openvdb::Coord(center.x(), center.y() + LEAF_DIM, center.z())))
+      {
+        create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Y_MAX);
+      }
+      if (!is_non_empty_leaf(tree, openvdb::Coord(center.x(), center.y(), center.z() - LEAF_DIM)))
+      {
+        create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Z_MIN);
+      }
+      if (!is_non_empty_leaf(tree, openvdb::Coord(center.x(), center.y(), center.z() + LEAF_DIM)))
+      {
+        create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Z_MAX);
+      }
+    }
+    return;
+  }
+
   bbox = topology_grid->evalActiveVoxelBoundingBox();
 
   const int3 resolution = make_int3(bbox.dim().x(), bbox.dim().y(), bbox.dim().z());
@@ -524,7 +603,8 @@ void GeometryManager::create_volume_mesh(const Scene *scene, Volume *volume, Pro
   /* Create mesh. */
   vector<float3> vertices;
   vector<int> indices;
-  builder.create_mesh(vertices, indices, face_overlap_avoidance);
+  const bool ray_marching = scene->integrator->get_volume_ray_marching();
+  builder.create_mesh(vertices, indices, face_overlap_avoidance, ray_marching);
 
   volume->reserve_mesh(vertices.size(), indices.size() / 3);
   volume->used_shaders.clear();
@@ -570,6 +650,11 @@ void VolumeManager::tag_update()
 /* Remove changed object from the list of octrees and tag for rebuild. */
 void VolumeManager::tag_update(const Object *object, uint32_t flag)
 {
+  if (object_octrees_.empty()) {
+    /* Volume object is not in the octree, can happen when using ray marching. */
+    return;
+  }
+
   if (flag & ObjectManager::VISIBILITY_MODIFIED) {
     tag_update();
   }
@@ -1013,12 +1098,52 @@ std::string VolumeManager::visualize_octree(const char *filename) const
   return filename_full;
 }
 
+void VolumeManager::update_step_size(const Scene *scene, DeviceScene *dscene) const
+{
+  assert(scene->integrator->get_volume_ray_marching());
+
+  if (!dscene->volume_step_size.is_modified() && last_algorithm == RAY_MARCHING) {
+    return;
+  }
+
+  if (dscene->volume_step_size.need_realloc()) {
+    dscene->volume_step_size.alloc(scene->objects.size());
+  }
+
+  float *volume_step_size = dscene->volume_step_size.data();
+
+  for (const Object *object : scene->objects) {
+    const Geometry *geom = object->get_geometry();
+    if (!geom->has_volume) {
+      continue;
+    }
+
+    volume_step_size[object->index] = scene->integrator->get_volume_step_rate() *
+                                      object->compute_volume_step_size();
+  }
+
+  dscene->volume_step_size.copy_to_device();
+  dscene->volume_step_size.clear_modified();
+}
+
 void VolumeManager::device_update(Device *device,
                                   DeviceScene *dscene,
                                   const Scene *scene,
                                   Progress &progress)
 {
-  if (need_rebuild_) {
+  if (scene->integrator->get_volume_ray_marching()) {
+    /* No need to update octree for ray marching. */
+    if (last_algorithm == NULL_SCATTERING) {
+      dscene->volume_tree_nodes.free();
+      dscene->volume_tree_roots.free();
+      dscene->volume_tree_root_ids.free();
+    }
+    update_step_size(scene, dscene);
+    last_algorithm = RAY_MARCHING;
+    return;
+  }
+
+  if (need_rebuild_ || last_algorithm == RAY_MARCHING) {
     /* Data needed for volume shader evaluation. */
     device->const_copy_to("data", &dscene->data, sizeof(dscene->data));
 
@@ -1039,6 +1164,11 @@ void VolumeManager::device_update(Device *device,
     LOG_DEBUG << "Octree visualization has been written to " << visualize_octree("octree.py");
     update_visualization_ = false;
   }
+
+  if (last_algorithm == RAY_MARCHING) {
+    dscene->volume_step_size.free();
+  }
+  last_algorithm = NULL_SCATTERING;
 }
 
 void VolumeManager::device_free(DeviceScene *dscene)
@@ -1046,6 +1176,7 @@ void VolumeManager::device_free(DeviceScene *dscene)
   dscene->volume_tree_nodes.free();
   dscene->volume_tree_roots.free();
   dscene->volume_tree_root_ids.free();
+  dscene->volume_step_size.free();
 }
 
 VolumeManager::~VolumeManager()
