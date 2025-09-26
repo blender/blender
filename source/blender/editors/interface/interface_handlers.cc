@@ -3472,7 +3472,7 @@ const wmIMEData *ui_but_ime_data_get(uiBut *but)
 {
   uiHandleButtonData *data = but->semi_modal_state ? but->semi_modal_state : but->active;
 
-  if (data && data->window) {
+  if (data && data->window && data->window->runtime->ime_data_is_composing) {
     return data->window->runtime->ime_data;
   }
   return nullptr;
