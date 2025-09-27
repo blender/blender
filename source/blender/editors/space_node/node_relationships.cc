@@ -556,8 +556,12 @@ static bNodeSocket *node_link_viewer_get_socket(bNodeTree &ntree,
     /* In viewer nodes in the compositor, only the first input should be linked to. */
     return (bNodeSocket *)viewer_node.inputs.first;
   }
-  /* For the geometry nodes viewer, find the socket with the correct type. */
+  if (!nodes::GeoViewerItemsAccessor::supports_socket_type(src_socket.typeinfo->type, ntree.type))
+  {
+    return nullptr;
+  }
 
+  /* For the geometry nodes viewer, find the socket with the correct type. */
   const std::string name = get_viewer_source_name(src_socket);
 
   int item_index;
