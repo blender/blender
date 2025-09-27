@@ -103,7 +103,14 @@ static void node_declare(blender::nodes::NodeDeclarationBuilder &b)
     }
   }
 
-  b.add_input<decl::Extend>("", "__extend__").structure_type(StructureType::Dynamic);
+  b.add_input<decl::Extend>("", "__extend__")
+      .structure_type(StructureType::Dynamic)
+      .custom_draw([](CustomSocketDrawParams &params) {
+        uiLayout &layout = params.layout;
+        layout.emboss_set(ui::EmbossType::None);
+        PointerRNA op_ptr = layout.op("node.enum_definition_item_add", "", ICON_ADD);
+        RNA_int_set(&op_ptr, "node_identifier", params.node.identifier);
+      });
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

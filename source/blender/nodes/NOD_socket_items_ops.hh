@@ -24,7 +24,9 @@
 
 namespace blender::nodes::socket_items::ops {
 
-inline PointerRNA get_active_node_to_operate_on(bContext *C, const StringRef node_idname)
+inline PointerRNA get_active_node_to_operate_on(bContext *C,
+                                                wmOperator *op,
+                                                const StringRef node_idname)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   if (!snode) {
@@ -40,20 +42,28 @@ inline PointerRNA get_active_node_to_operate_on(bContext *C, const StringRef nod
   if (!zones) {
     return PointerRNA_NULL;
   }
-  bNode *active_node = bke::node_get_active(*snode->edittree);
-  if (!active_node) {
+
+  bNode *node = nullptr;
+  if (RNA_struct_property_is_set(op->ptr, "node_identifier")) {
+    const int id = RNA_int_get(op->ptr, "node_identifier");
+    node = snode->edittree->node_by_id(id);
+  }
+  else {
+    node = bke::node_get_active(*snode->edittree);
+  }
+  if (!node) {
     return PointerRNA_NULL;
   }
-  if (const bke::bNodeTreeZone *zone = zones->get_zone_by_node(active_node->identifier)) {
-    if (zone->input_node() == active_node) {
+  if (const bke::bNodeTreeZone *zone = zones->get_zone_by_node(node->identifier)) {
+    if (zone->input_node() == node) {
       /* Assume the data is generally stored on the output and not the input node. */
-      active_node = const_cast<bNode *>(zone->output_node());
+      node = const_cast<bNode *>(zone->output_node());
     }
   }
-  if (active_node->idname != node_idname) {
+  if (node->idname != node_idname) {
     return PointerRNA_NULL;
   }
-  return RNA_pointer_create_discrete(&snode->edittree->id, &RNA_Node, active_node);
+  return RNA_pointer_create_discrete(&snode->edittree->id, &RNA_Node, node);
 }
 
 inline void update_after_node_change(bContext *C, const PointerRNA node_ptr)
@@ -68,7 +78,30 @@ inline void update_after_node_change(bContext *C, const PointerRNA node_ptr)
 
 template<typename Accessor> inline bool editable_node_active_poll(bContext *C)
 {
-  return get_active_node_to_operate_on(C, Accessor::node_idname).data != nullptr;
+  SpaceNode *snode = CTX_wm_space_node(C);
+  if (!snode) {
+    return false;
+  }
+  if (!snode->edittree) {
+    return false;
+  }
+  if (!ID_IS_EDITABLE(snode->edittree)) {
+    return false;
+  }
+  return true;
+}
+
+inline void add_node_identifier_property(wmOperatorType *ot)
+{
+  RNA_def_int(ot->srna,
+              "node_identifier",
+              0,
+              0,
+              INT32_MAX,
+              "Node Identifier",
+              "Optional identifier of the node to operate on",
+              0,
+              INT32_MAX);
 }
 
 template<typename Accessor>
@@ -82,8 +115,8 @@ inline void remove_active_item(wmOperatorType *ot,
   ot->description = description;
   ot->poll = editable_node_active_poll<Accessor>;
 
-  ot->exec = [](bContext *C, wmOperator * /*op*/) -> wmOperatorStatus {
-    PointerRNA node_ptr = get_active_node_to_operate_on(C, Accessor::node_idname);
+  ot->exec = [](bContext *C, wmOperator *op) -> wmOperatorStatus {
+    PointerRNA node_ptr = get_active_node_to_operate_on(C, op, Accessor::node_idname);
     bNode &node = *static_cast<bNode *>(node_ptr.data);
     SocketItemsRef ref = Accessor::get_items_from_node(node);
     if (*ref.items_num > 0) {
@@ -93,6 +126,8 @@ inline void remove_active_item(wmOperatorType *ot,
     }
     return OPERATOR_FINISHED;
   };
+
+  add_node_identifier_property(ot);
 }
 
 template<typename Accessor>
@@ -107,7 +142,7 @@ inline void remove_item_by_index(wmOperatorType *ot,
   ot->poll = editable_node_active_poll<Accessor>;
 
   ot->exec = [](bContext *C, wmOperator *op) -> wmOperatorStatus {
-    PointerRNA node_ptr = get_active_node_to_operate_on(C, Accessor::node_idname);
+    PointerRNA node_ptr = get_active_node_to_operate_on(C, op, Accessor::node_idname);
     bNode &node = *static_cast<bNode *>(node_ptr.data);
     const int index_to_remove = RNA_int_get(op->ptr, "index");
     SocketItemsRef ref = Accessor::get_items_from_node(node);
@@ -132,8 +167,11 @@ inline void add_item(wmOperatorType *ot,
   ot->description = description;
   ot->poll = editable_node_active_poll<Accessor>;
 
-  ot->exec = [](bContext *C, wmOperator * /*op*/) -> wmOperatorStatus {
-    PointerRNA node_ptr = get_active_node_to_operate_on(C, Accessor::node_idname);
+  ot->exec = [](bContext *C, wmOperator *op) -> wmOperatorStatus {
+    PointerRNA node_ptr = get_active_node_to_operate_on(C, op, Accessor::node_idname);
+    if (node_ptr.data == nullptr) {
+      return OPERATOR_CANCELLED;
+    }
     bNode &node = *static_cast<bNode *>(node_ptr.data);
     SocketItemsRef ref = Accessor::get_items_from_node(node);
     const typename Accessor::ItemT *active_item = nullptr;
@@ -180,6 +218,8 @@ inline void add_item(wmOperatorType *ot,
     update_after_node_change(C, node_ptr);
     return OPERATOR_FINISHED;
   };
+
+  add_node_identifier_property(ot);
 }
 
 enum class MoveDirection {
@@ -199,7 +239,7 @@ inline void move_active_item(wmOperatorType *ot,
   ot->poll = editable_node_active_poll<Accessor>;
 
   ot->exec = [](bContext *C, wmOperator *op) -> wmOperatorStatus {
-    PointerRNA node_ptr = get_active_node_to_operate_on(C, Accessor::node_idname);
+    PointerRNA node_ptr = get_active_node_to_operate_on(C, op, Accessor::node_idname);
     bNode &node = *static_cast<bNode *>(node_ptr.data);
     const MoveDirection direction = MoveDirection(RNA_enum_get(op->ptr, "direction"));
 
@@ -225,6 +265,7 @@ inline void move_active_item(wmOperatorType *ot,
   };
 
   RNA_def_enum(ot->srna, "direction", direction_items, 0, "Direction", "Move direction");
+  add_node_identifier_property(ot);
 }
 
 /**
