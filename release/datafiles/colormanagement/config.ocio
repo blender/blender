@@ -191,7 +191,6 @@ display_colorspaces:
     bitdepth: 32f
     description: Rec.2100-PQ 10000 nits peak display with reference white at 100 nits
     isdata: false
-    categories: [file-io]
     encoding: hdr-video
     allocation: uniform
     from_display_reference: !<GroupTransform>
@@ -206,7 +205,6 @@ display_colorspaces:
     bitdepth: 32f
     description: Rec.2100-HLG 1000 nits peak display with reference white at 100 nits
     isdata: false
-    categories: [file-io]
     encoding: hdr-video
     allocation: uniform
     from_display_reference: !<GroupTransform>
@@ -647,6 +645,36 @@ colorspaces:
         - !<AllocationTransform> {allocation: lg2, vars: [-12.47393, 12.5260688117], direction: inverse}
         - !<MatrixTransform> {matrix: [0.856627153315983, 0.0951212405381588, 0.0482516061458583, 0, 0.137318972929847, 0.761241990602591, 0.101439036467562, 0, 0.11189821299995, 0.0767994186031903, 0.811302368396859, 0, 0, 0, 0, 1], direction: inverse}
         - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear Rec.2020, direction: inverse}
+
+  - !<ColorSpace>
+    name: ACEScc
+    aliases: [acescc_ap1, acescc_ap1_scene]
+    family: Log
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      ACES color correction space, using AP1 primaries.
+    isdata: false
+    encoding: log
+    to_scene_reference: !<GroupTransform>
+      children:
+        - !<BuiltinTransform> {style: ACEScc_to_ACES2065-1}
+        - !<ColorSpaceTransform> {src: ACES2065-1, dst: Linear CIE-XYZ E}
+
+  - !<ColorSpace>
+    name: ACEScct
+    aliases: [acescct_ap1, acescct_ap1_scene]
+    family: Log
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      ACES color correction space with toe, using AP1 primaries.
+    isdata: false
+    encoding: log
+    to_scene_reference: !<GroupTransform>
+      children:
+        - !<BuiltinTransform> {style: ACEScct_to_ACES2065-1}
+        - !<ColorSpaceTransform> {src: ACES2065-1, dst: Linear CIE-XYZ E}
 
 looks:
   - !<Look>
