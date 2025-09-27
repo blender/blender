@@ -600,15 +600,22 @@ static bool node_update_basis_socket(TreeDrawContext &tree_draw_ctx,
   }
 
   if (input_socket) {
-    node_socket_add_tooltip_in_node_editor(*input_socket, *row);
     /* Round the socket location to stop it from jiggling. */
     input_socket->runtime->location = float2(round(locx), round(locy - NODE_DYS));
   }
   if (output_socket) {
-    node_socket_add_tooltip_in_node_editor(*output_socket, *row);
     /* Round the socket location to stop it from jiggling. */
     output_socket->runtime->location = float2(round(locx + NODE_WIDTH(node)),
                                               round(locy - NODE_DYS));
+  }
+
+  /* Prioritize tooltip for inputs if available. The tooltip for the output is still accessible
+   * when hovering exactly over the output socket. */
+  if (input_socket) {
+    node_socket_add_tooltip_in_node_editor(*input_socket, *row);
+  }
+  else if (output_socket) {
+    node_socket_add_tooltip_in_node_editor(*output_socket, *row);
   }
 
   UI_block_align_end(&block);
