@@ -891,6 +891,7 @@ void register_node_type_group_input()
   ntype->insert_link = blender::nodes::group_input_insert_link;
   ntype->get_extra_info = node_group_input_extra_info;
   ntype->get_compositor_operation = blender::nodes::get_group_input_compositor_operation;
+  ntype->no_muting = true;
 
   blender::bke::node_register_type(*ntype);
 }
