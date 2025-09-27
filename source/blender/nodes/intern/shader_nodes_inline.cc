@@ -266,10 +266,19 @@ class ShaderNodesInliner {
 
   Vector<SocketInContext> find_final_output_sockets() const
   {
-    Vector<SocketInContext> output_sockets;
+    const bke::bNodeTreeZones *zones = src_tree_.zones();
+    if (!zones) {
+      return {};
+    }
 
+    Vector<SocketInContext> output_sockets;
     auto add_output_type = [&](const char *output_type) {
       for (const bNode *node : src_tree_.nodes_by_type(output_type)) {
+        const bke::bNodeTreeZone *zone = zones->get_zone_by_node(node->identifier);
+        if (zone) {
+          params_.r_error_messages.append({node, TIP_("Output node must not be in zone")});
+          continue;
+        }
         for (const bNodeSocket *socket : node->input_sockets()) {
           output_sockets.append({nullptr, socket});
         }
