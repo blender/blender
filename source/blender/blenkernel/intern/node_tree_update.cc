@@ -973,6 +973,11 @@ class NodeTreeMainUpdater {
       const bke::bNodeZoneType *closure_zone_type = bke::zone_type_by_node_type(
           NODE_CLOSURE_OUTPUT);
       switch (node->type_legacy) {
+        case NODE_REROUTE: {
+          node->input_socket(0).display_shape = SOCK_DISPLAY_SHAPE_CIRCLE;
+          node->output_socket(0).display_shape = SOCK_DISPLAY_SHAPE_CIRCLE;
+          break;
+        }
         case NODE_GROUP_OUTPUT:
         case NODE_GROUP_INPUT: {
           for (bNodeSocket *socket : node->input_sockets()) {
