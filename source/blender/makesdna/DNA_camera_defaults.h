@@ -40,6 +40,7 @@
     .ortho_scale = 6.0, \
     .flag = CAM_SHOWPASSEPARTOUT, \
     .passepartalpha = 0.5f, \
+    .composition_guide_color = {0.5f, 0.5f, 0.5f, 1.0f}, \
  \
     .panorama_type = CAM_PANORAMA_FISHEYE_EQUISOLID,\
     .fisheye_fov = M_PI,\

@@ -899,6 +899,11 @@ void RNA_def_camera(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Lens Unit", "Unit to edit lens in for the user interface");
 
   /* dtx */
+  prop = RNA_def_property(srna, "composition_guide_color", PROP_FLOAT, PROP_COLOR);
+  RNA_def_property_ui_text(
+      prop, "Composition Guide Color", "Color and alpha for compositional guide overlays");
+  RNA_def_property_update(prop, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, nullptr);
+
   prop = RNA_def_property(srna, "show_composition_center", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "dtx", CAM_DTX_CENTER);
   RNA_def_property_ui_text(
