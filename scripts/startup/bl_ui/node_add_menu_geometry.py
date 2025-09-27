@@ -595,6 +595,7 @@ class NODE_MT_gn_output_base(node_add_menu.NodeMenu):
 
     def draw(self, context):
         layout = self.layout
+        self.node_operator(layout, "NodeEnableOutput")
         self.node_operator(layout, "NodeGroupOutput")
         self.node_operator(layout, "GeometryNodeViewer")
         self.node_operator_with_searchable_enum(context, layout, "GeometryNodeWarning", "warning_type")

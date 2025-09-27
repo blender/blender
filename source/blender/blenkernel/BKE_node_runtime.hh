@@ -185,11 +185,10 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
   std::unique_ptr<nodes::StructureTypeInterface> structure_type_interface;
 
   /**
-   * A bool for each input socket (indexed by `index_in_all_inputs()`) that indicates whether this
-   * socket is used by the node it belongs to. Sockets for which this is false may e.g. be grayed
-   * out.
+   * Indexed by #bNodeSocket::index_in_tree(). Contains information about whether the socket is
+   * used or visible.
    */
-  blender::Array<nodes::socket_usage_inference::SocketUsage> inferenced_input_socket_usage;
+  blender::Array<nodes::socket_usage_inference::SocketUsage> inferenced_socket_usage;
   CacheMutex inferenced_input_socket_usage_mutex;
 
   /**
@@ -1022,8 +1021,7 @@ inline bool bNodeSocket::is_panel_collapsed() const
 
 inline bool bNodeSocket::is_visible() const
 {
-  return !this->is_user_hidden() && this->is_available() &&
-         (this->is_output() || this->inferred_input_socket_visibility());
+  return !this->is_user_hidden() && this->is_available() && this->inferred_socket_visibility();
 }
 
 inline bool bNodeSocket::is_icon_visible() const

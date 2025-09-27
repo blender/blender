@@ -62,6 +62,7 @@ class NODE_MT_compositor_node_output_base(node_add_menu.NodeMenu):
 
     def draw(self, context):
         layout = self.layout
+        self.node_operator(layout, "NodeEnableOutput")
         self.node_operator(layout, "NodeGroupOutput")
         self.node_operator(layout, "CompositorNodeViewer")
         if context.space_data.node_tree_sub_type == 'SCENE':

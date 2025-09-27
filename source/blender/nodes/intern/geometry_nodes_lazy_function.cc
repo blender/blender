@@ -1285,6 +1285,28 @@ class LazyFunctionForSwitchSocketUsage : public lf::LazyFunction {
   }
 };
 
+class LazyFunctionForEnableOutputSocketUsage : public lf::LazyFunction {
+ public:
+  LazyFunctionForEnableOutputSocketUsage()
+  {
+    debug_name_ = "Enable Output Socket Usage";
+    inputs_.append_as("Enable", CPPType::get<SocketValueVariant>());
+    outputs_.append_as("Usage", CPPType::get<bool>());
+  }
+
+  void execute_impl(lf::Params &params, const lf::Context & /*context*/) const override
+  {
+    const SocketValueVariant &keep_variant = params.get_input<SocketValueVariant>(0);
+    if (keep_variant.is_single()) {
+      if (keep_variant.get<bool>() == true) {
+        params.set_output(0, true);
+        return;
+      }
+    }
+    params.set_output(0, false);
+  }
+};
+
 /**
  * Outputs booleans that indicate which inputs of a switch node are used. Note that it's possible
  * that all inputs are used when the index input is a field.
@@ -2870,6 +2892,10 @@ struct GeometryNodesLazyFunctionBuilder {
           this->build_multi_function_node(bnode, fn_item, graph_params);
           break;
         }
+        if (bnode.is_type("NodeEnableOutput")) {
+          this->build_enable_output_node(bnode, graph_params);
+          break;
+        }
         if (bnode.is_undefined()) {
           this->build_undefined_node(bnode, graph_params);
           break;
@@ -3444,6 +3470,42 @@ struct GeometryNodesLazyFunctionBuilder {
         graph_params.usage_by_bsocket.add(&false_input_bsocket, output_is_used_socket);
       }
     }
+  }
+
+  void build_enable_output_node(const bNode &bnode, BuildGraphParams &graph_params)
+  {
+    std::unique_ptr<LazyFunction> lazy_function = get_enable_output_node_lazy_function(
+        bnode, *lf_graph_info_);
+    lf::FunctionNode &lf_node = graph_params.lf_graph.add_function(*lazy_function);
+    scope_.add(std::move(lazy_function));
+
+    for (const int i : bnode.input_sockets().index_range()) {
+      graph_params.lf_inputs_by_bsocket.add(&bnode.input_socket(i), &lf_node.input(i));
+      mapping_->bsockets_by_lf_socket_map.add(&lf_node.input(i), &bnode.input_socket(i));
+    }
+    for (const int i : bnode.output_sockets().index_range()) {
+      graph_params.lf_output_by_bsocket.add(&bnode.output_socket(i), &lf_node.output(i));
+      mapping_->bsockets_by_lf_socket_map.add(&lf_node.output(i), &bnode.output_socket(i));
+    }
+
+    this->build_enable_output_node_socket_usage(bnode, graph_params);
+  }
+
+  void build_enable_output_node_socket_usage(const bNode &bnode, BuildGraphParams &graph_params)
+  {
+    const bNodeSocket &enable_bsocket = *bnode.input_by_identifier("Enable");
+    const bNodeSocket &value_input_bsocket = *bnode.input_by_identifier("Value");
+    const bNodeSocket &output_bsocket = bnode.output_socket(0);
+    lf::OutputSocket *output_is_used_socket = graph_params.usage_by_bsocket.lookup_default(
+        &output_bsocket, nullptr);
+    if (!output_is_used_socket) {
+      return;
+    }
+    static LazyFunctionForEnableOutputSocketUsage socket_usage_fn;
+    lf::Node &lf_node = graph_params.lf_graph.add_function(socket_usage_fn);
+    graph_params.lf_inputs_by_bsocket.add(&enable_bsocket, &lf_node.input(0));
+    graph_params.usage_by_bsocket.add(&enable_bsocket, output_is_used_socket);
+    graph_params.usage_by_bsocket.add(&value_input_bsocket, &lf_node.output(0));
   }
 
   void build_index_switch_node(const bNode &bnode, BuildGraphParams &graph_params)
