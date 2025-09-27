@@ -45,4 +45,7 @@ LinkedClosureSignatures gather_linked_origin_closure_signatures(
     const bNodeSocket &closure_socket,
     bke::ComputeContextCache &compute_context_cache);
 
+std::optional<NodeInContext> find_origin_index_menu_switch(
+    const SocketInContext &socket, bke::ComputeContextCache &compute_context_cache);
+
 }  // namespace blender::nodes

@@ -1120,4 +1120,14 @@ bool socket_type_supports_default_input_type(const bke::bNodeSocketType &socket_
   return false;
 }
 
+void CustomSocketDrawParams::draw_standard(uiLayout &layout,
+                                           const std::optional<StringRefNull> label_override)
+{
+  this->socket.typeinfo->draw(const_cast<bContext *>(&this->C),
+                              &layout,
+                              &this->socket_ptr,
+                              &this->node_ptr,
+                              (label_override.has_value()) ? *label_override : this->label);
+}
+
 }  // namespace blender::nodes

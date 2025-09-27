@@ -666,4 +666,30 @@ LinkedClosureSignatures gather_linked_origin_closure_signatures(
   return result;
 }
 
+std::optional<NodeInContext> find_origin_index_menu_switch(
+    const SocketInContext &src_socket, bke::ComputeContextCache &compute_context_cache)
+{
+  std::optional<NodeInContext> result;
+  find_origin_sockets_through_contexts(
+      src_socket,
+      compute_context_cache,
+      [&](const SocketInContext &socket) {
+        if (socket->is_input()) {
+          return false;
+        }
+        const NodeInContext node = socket.owner_node();
+        if (!node->is_type("GeometryNodeMenuSwitch")) {
+          return false;
+        }
+        const auto &storage = *static_cast<const NodeMenuSwitch *>(node->storage);
+        if (storage.data_type != SOCK_INT) {
+          return false;
+        }
+        result = socket.owner_node();
+        return true;
+      },
+      false);
+  return result;
+}
+
 }  // namespace blender::nodes
