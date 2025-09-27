@@ -10,18 +10,25 @@
 #include <cstdlib>
 #include <fmt/format.h>
 
+#include "DNA_collection_types.h"
+#include "DNA_image_types.h"
+#include "DNA_material_types.h"
 #include "DNA_node_types.h"
+#include "DNA_object_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_lasso_2d.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
+#include "BLI_resource_scope.hh"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
+#include "BKE_idtype.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_main_invariants.hh"
 #include "BKE_node.hh"
@@ -48,6 +55,8 @@
 #include "UI_view2d.hh"
 
 #include "DEG_depsgraph.hh"
+
+#include "BLT_translation.hh"
 
 #include "node_intern.hh" /* own include */
 
@@ -1316,13 +1325,29 @@ void NODE_OT_select_same_type_step(wmOperatorType *ot)
 /** \name Find Node by Name Operator
  * \{ */
 
-static std::string node_find_create_label(const bNodeTree &ntree, const bNode &node)
+static std::string node_find_create_node_label(const bNodeTree &ntree, const bNode &node)
 {
   std::string label = bke::node_label(ntree, node);
   if (label == node.name) {
     return label;
   }
   return fmt::format("{} ({})", label, node.name);
+}
+
+static std::string node_find_create_string_value(const bNode &node, const StringRef str)
+{
+  return fmt::format("{}: \"{}\" ({})", TIP_("String"), str, node.name);
+}
+
+static std::string node_find_create_data_block_value(const bNode &node, const ID &id)
+{
+  const IDTypeInfo *type = BKE_idtype_get_info_from_id(&id);
+  BLI_assert(type);
+  StringRef type_name = TIP_(type->name);
+  if (GS(id.name) == ID_NT) {
+    type_name = TIP_("Node Group");
+  }
+  return fmt::format("{}: \"{}\" ({})", type_name, BKE_id_name(id), node.name);
 }
 
 /* Generic search invoke. */
@@ -1334,19 +1359,93 @@ static void node_find_update_fn(const bContext *C,
 {
   SpaceNode *snode = CTX_wm_space_node(C);
 
-  ui::string_search::StringSearch<bNode> search;
+  struct Item {
+    bNode *node;
+    std::string search_str;
+  };
+
+  ui::string_search::StringSearch<Item> search;
+  blender::ResourceScope scope;
+
+  auto add_data_block_item = [&](bNode &node, const ID *id) {
+    if (!id) {
+      return;
+    }
+    const StringRef search_str = scope.add_value(node_find_create_data_block_value(node, *id));
+    search.add(search_str, &scope.construct<Item>(Item{&node, search_str}));
+  };
 
   const bNodeTree &ntree = *snode->edittree;
+  ntree.ensure_topology_cache();
   for (bNode *node : snode->edittree->all_nodes()) {
-    const std::string name = node_find_create_label(ntree, *node);
-    search.add(name, node);
+    const StringRef name = scope.add_value(node_find_create_node_label(ntree, *node));
+    search.add(name, &scope.construct<Item>(Item{node, name}));
+
+    if (node->is_type("FunctionNodeInputString")) {
+      const auto *storage = static_cast<const NodeInputString *>(node->storage);
+      const StringRef value_str = storage->string;
+      if (!value_str.is_empty()) {
+        const StringRef search_str = scope.add_value(
+            node_find_create_string_value(*node, value_str));
+        search.add(search_str, &scope.construct<Item>(Item{node, search_str}));
+      }
+    }
+    if (node->id) {
+      /* Avoid showing referenced node group data-blocks twice. */
+      const bool skip_data_block =
+          node->is_group() &&
+          StringRef(bke::node_label(ntree, *node)).find(BKE_id_name(*node->id)) !=
+              StringRef::not_found;
+      if (!skip_data_block) {
+        add_data_block_item(*node, node->id);
+      }
+    }
+
+    for (const bNodeSocket *socket : node->input_sockets()) {
+      switch (socket->type) {
+        case SOCK_STRING: {
+          if (socket->is_logically_linked()) {
+            continue;
+          }
+          const bNodeSocketValueString *value =
+              socket->default_value_typed<bNodeSocketValueString>();
+          const StringRef value_str = value->value;
+          if (!value_str.is_empty()) {
+            const StringRef search_str = scope.add_value(
+                node_find_create_string_value(*node, value_str));
+            search.add(search_str, &scope.construct<Item>(Item{node, search_str}));
+          }
+          break;
+        }
+        case SOCK_OBJECT: {
+          add_data_block_item(
+              *node, id_cast<ID *>(socket->default_value_typed<bNodeSocketValueObject>()->value));
+          break;
+        }
+        case SOCK_MATERIAL: {
+          add_data_block_item(
+              *node,
+              id_cast<ID *>(socket->default_value_typed<bNodeSocketValueMaterial>()->value));
+          break;
+        }
+        case SOCK_COLLECTION: {
+          add_data_block_item(
+              *node,
+              id_cast<ID *>(socket->default_value_typed<bNodeSocketValueCollection>()->value));
+          break;
+        }
+        case SOCK_IMAGE: {
+          add_data_block_item(
+              *node, id_cast<ID *>(socket->default_value_typed<bNodeSocketValueImage>()->value));
+          break;
+        }
+      }
+    }
   }
 
-  const Vector<bNode *> filtered_nodes = search.query(str);
-
-  for (bNode *node : filtered_nodes) {
-    const std::string name = node_find_create_label(ntree, *node);
-    if (!UI_search_item_add(items, name, node, ICON_NONE, 0, 0)) {
+  const Vector<Item *> filtered_items = search.query(str);
+  for (const Item *item : filtered_items) {
+    if (!UI_search_item_add(items, item->search_str, item->node, ICON_NONE, 0, 0)) {
       break;
     }
   }
