@@ -173,12 +173,6 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
   std::unique_ptr<nodes::FieldInferencingInterface> field_inferencing_interface;
   /** Field status for every socket, accessed with #bNodeSocket::index_in_tree(). */
   Array<FieldSocketState> field_states;
-  /**
-   * Inferred structure type for every socket, accessed with #bNodeSocket::index_in_tree().
-   * This is not necessarily the structure type that is displayed in the node editor. E.g. it may
-   * be Single for an unconnected field input.
-   */
-  Array<nodes::StructureType> inferred_structure_types;
   /** Information about usage of anonymous attributes within the group. */
   std::unique_ptr<node_tree_reference_lifetimes::ReferenceLifetimesInfo> reference_lifetimes_info;
   std::unique_ptr<nodes::gizmos::TreeGizmoPropagation> gizmo_propagation;
@@ -292,6 +286,17 @@ class bNodeSocketRuntime : NonCopyable, NonMovable {
    * including dragged node links that aren't actually in the tree.
    */
   short total_inputs = 0;
+
+  /**
+   * Inferred structure type of the socket. This is not necessarily the same as the structure type
+   * that is displayed in the UI. For example, it would be #StructureType::Single for an unlinked
+   * input of the Math node, but the socket is displayed as #StructureType::Dynamic.
+   *
+   * This is stored on the socket instead of as array in #bNodeTreeRuntime because the data needs
+   * to stay attached to the socket even when the node tree changes. This is used when e.g. syncing
+   * a newly created Separate Bundle node to an existing Combine Bundle node.
+   */
+  nodes::StructureType inferred_structure_type = nodes::StructureType::Dynamic;
 
   /**
    * The location of the socket in the tree, calculated while drawing the nodes and invalid if the
@@ -1032,7 +1037,7 @@ inline bool bNodeSocket::is_icon_visible() const
 
 inline bool bNodeSocket::may_be_field() const
 {
-  return ELEM(this->owner_tree().runtime->inferred_structure_types[this->index_in_tree()],
+  return ELEM(this->runtime->inferred_structure_type,
               blender::nodes::StructureType::Field,
               blender::nodes::StructureType::Dynamic);
 }

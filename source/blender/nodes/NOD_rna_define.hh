@@ -8,6 +8,8 @@
 
 #include "BLI_function_ref.hh"
 
+#include "DNA_node_types.h"
+
 #include "RNA_define.hh"
 
 #include "WM_types.hh" /* For notifier defines */
@@ -16,6 +18,8 @@ void rna_Node_update(Main *bmain, Scene *scene, PointerRNA *ptr);
 void rna_Node_socket_update(Main *bmain, Scene *scene, PointerRNA *ptr);
 void rna_Node_update_relations(Main *bmain, Scene *scne, PointerRNA *ptr);
 void rna_Node_Viewer_shortcut_node_set(PointerRNA *ptr, PropertyRNA *prop, int value);
+const EnumPropertyItem *rna_NodeSocket_structure_type_item_filter(
+    const bNodeTree *ntree, const eNodeSocketDatatype socket_type, bool *r_free);
 
 namespace blender::nodes {
 

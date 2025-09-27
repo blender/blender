@@ -1134,6 +1134,12 @@ static void std_node_socket_draw(
     draw_node_socket_without_value(layout, sock, text);
     return;
   }
+  if (tree->type == NTREE_GEOMETRY &&
+      ELEM(sock->display_shape, SOCK_DISPLAY_SHAPE_LIST, SOCK_DISPLAY_SHAPE_VOLUME_GRID))
+  {
+    draw_node_socket_without_value(layout, sock, text);
+    return;
+  }
 
   const StringRefNull label = text;
   text = (sock->flag & SOCK_HIDE_LABEL) ? "" : text;
