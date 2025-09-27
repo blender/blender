@@ -415,8 +415,13 @@ void sync_sockets_closure(SpaceNode &snode,
     };
   }
   for (auto &&[from_socket, to_socket] : internal_links) {
-    bke::node_add_link(
-        *snode.edittree, closure_input_node, *from_socket, closure_output_node, *to_socket);
+    if (!snode.edittree->typeinfo->validate_link ||
+        snode.edittree->typeinfo->validate_link(from_socket->typeinfo->type,
+                                                to_socket->typeinfo->type))
+    {
+      bke::node_add_link(
+          *snode.edittree, closure_input_node, *from_socket, closure_output_node, *to_socket);
+    }
   }
 }
 
