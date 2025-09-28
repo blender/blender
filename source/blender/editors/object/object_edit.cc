@@ -1835,7 +1835,7 @@ static wmOperatorStatus shade_auto_smooth_exec(bContext *C, wmOperator *op)
     AssetWeakReference asset_weak_ref{};
     asset_weak_ref.asset_library_type = ASSET_LIBRARY_ESSENTIALS;
     asset_weak_ref.relative_asset_identifier = BLI_strdup(
-        "geometry_nodes/smooth_by_angle.blend/NodeTree/Smooth by Angle");
+        "geometry_nodes/geometry_nodes_essentials.blend/NodeTree/Smooth by Angle");
 
     const asset_system::AssetRepresentation *asset_representation =
         asset::find_asset_from_weak_ref(*C, asset_weak_ref, op->reports);
