@@ -2819,10 +2819,43 @@ enum {
   UV_SELECT_FACE = 1 << 2,
 };
 
-/** #ToolSettings::uv_sticky */
+/**
+ * #ToolSettings::uv_sticky
+ *
+ * Control the behavior of selecting UV's in the UV editor.
+ *
+ * Internally UV's store selection for every face-corner,
+ * however for the purpose of conveniently selecting & editing UV's it's often
+ * preferable to use sticky selection (#UV_STICKY_LOCATION),
+ * where selecting a UV also selects other UV's at the same location.
+ *
+ * \note This setting only affects subsequent selection operations.
+ * It does not alter the current selection state.
+ */
 enum {
+  /**
+   * Treat all other UV's sharing the vertex at that location as a single UV.
+   * This is the default behavior.
+   *
+   * \note Ripping UV's apart is still possible with "Split" & "Rip" operators.
+   */
   UV_STICKY_LOCATION = 0,
+  /**
+   * Treat all UV's as individual face-corners, no matter where they are located.
+   * This can be useful if the intention with UV editing is to manipulate each faces
+   * UV's independently of one another.
+   *
+   * \note This is impractical for typical usage as it's impractical
+   * to select and move a single UV connected to other UV chordates.
+   */
   UV_STICKY_DISABLE = 1,
+  /**
+   * Selecting applies to all UV's sharing a vertex.
+   * This can be useful to weld UV's that share a vertex but have become separated.
+   *
+   * \note This is impractical for typical usage since selecting UV's at island-boundaries
+   * selects UV's of any other UV island-boundaries which share that vertex.
+   */
   UV_STICKY_VERT = 2,
 };
 
