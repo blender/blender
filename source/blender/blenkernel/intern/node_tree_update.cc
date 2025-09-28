@@ -743,7 +743,9 @@ class NodeTreeMainUpdater {
         if (!output_socket->is_available()) {
           continue;
         }
-        if (output_socket->flag & SOCK_NO_INTERNAL_LINK) {
+        if (output_socket->runtime->declaration &&
+            output_socket->runtime->declaration->no_mute_links)
+        {
           continue;
         }
         const bNodeSocket *input_socket = this->find_internally_linked_input(ntree, output_socket);
@@ -798,7 +800,8 @@ class NodeTreeMainUpdater {
       if (!input_socket->is_available()) {
         continue;
       }
-      if (input_socket->flag & SOCK_NO_INTERNAL_LINK) {
+      if (input_socket->runtime->declaration && input_socket->runtime->declaration->no_mute_links)
+      {
         continue;
       }
       const int priority = get_internal_link_type_priority(input_socket->typeinfo,

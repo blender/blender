@@ -1135,7 +1135,7 @@ static void std_node_socket_draw(
   }
 
   const StringRefNull label = text;
-  text = (sock->flag & SOCK_HIDE_LABEL) ? "" : text;
+  text = (socket_decl && socket_decl->hide_label) ? "" : text;
 
   /* Some socket types draw the gizmo icon in a special way to look better. All others use a
    * fallback default code path. */
@@ -1148,7 +1148,7 @@ static void std_node_socket_draw(
       layout->prop(ptr, "default_value", DEFAULT_FLAGS, text, ICON_NONE);
       break;
     case SOCK_VECTOR:
-      if (sock->flag & SOCK_COMPACT) {
+      if (socket_decl && socket_decl->compact) {
         uiTemplateComponentMenu(layout, ptr, "default_value", text);
       }
       else {
