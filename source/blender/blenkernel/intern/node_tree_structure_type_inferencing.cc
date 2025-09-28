@@ -498,6 +498,12 @@ static void propagate_right_to_left(const bNodeTree &tree,
             Vector<int, 8> inputs_with_links;
             for (const int input : node_interface.outputs[output].linked_inputs) {
               const bNodeSocket &input_socket = *input_sockets[input];
+              if (input_requirements[input_socket.index_in_all_inputs()] ==
+                  DataRequirement::Single)
+              {
+                /* Inputs which require a single value can't get a different requirement. */
+                continue;
+              }
               if (input_socket.is_directly_linked()) {
                 inputs_with_links.append(input_socket.index_in_all_inputs());
               }
