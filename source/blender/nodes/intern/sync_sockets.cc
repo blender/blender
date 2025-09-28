@@ -68,6 +68,9 @@ static BundleSyncState get_sync_state_separate_bundle(
   bke::ComputeContextCache compute_context_cache;
   const ComputeContext *current_context = ed::space_node::compute_context_for_edittree_socket(
       snode, compute_context_cache, *src_bundle_socket);
+  if (!current_context) {
+    return {NodeSyncState::NoSyncSource};
+  }
   const LinkedBundleSignatures linked_signatures = gather_linked_origin_bundle_signatures(
       current_context, *src_bundle_socket, compute_context_cache);
   if (linked_signatures.items.is_empty()) {
@@ -103,6 +106,9 @@ static BundleSyncState get_sync_state_combine_bundle(
   bke::ComputeContextCache compute_context_cache;
   const ComputeContext *current_context = ed::space_node::compute_context_for_edittree_socket(
       snode, compute_context_cache, *src_bundle_socket);
+  if (!current_context) {
+    return {NodeSyncState::NoSyncSource};
+  }
   const LinkedBundleSignatures linked_signatures = gather_linked_target_bundle_signatures(
       current_context, *src_bundle_socket, compute_context_cache);
   if (linked_signatures.items.is_empty()) {
@@ -137,6 +143,9 @@ static ClosureSyncState get_sync_state_closure_output(
   bke::ComputeContextCache compute_context_cache;
   const ComputeContext *current_context = ed::space_node::compute_context_for_edittree_socket(
       snode, compute_context_cache, *src_closure_socket);
+  if (!current_context) {
+    return {NodeSyncState::NoSyncSource};
+  }
   const LinkedClosureSignatures linked_signatures = gather_linked_target_closure_signatures(
       current_context, *src_closure_socket, compute_context_cache);
   if (linked_signatures.items.is_empty()) {
@@ -171,6 +180,9 @@ static ClosureSyncState get_sync_state_evaluate_closure(
   bke::ComputeContextCache compute_context_cache;
   const ComputeContext *current_context = ed::space_node::compute_context_for_edittree_socket(
       snode, compute_context_cache, *src_closure_socket);
+  if (!current_context) {
+    return {NodeSyncState::NoSyncSource};
+  }
   const LinkedClosureSignatures linked_signatures = gather_linked_origin_closure_signatures(
       current_context, *src_closure_socket, compute_context_cache);
   if (linked_signatures.items.is_empty()) {

@@ -204,7 +204,8 @@ static Vector<SocketInContext> find_target_sockets_through_contexts(
                   &node->owner_tree(),
                   ClosureSourceLocation{&closure_tree,
                                         closure_output_node->identifier,
-                                        origin_socket.context_hash()});
+                                        origin_socket.context_hash(),
+                                        origin_socket.context});
           if (closure_context.is_recursive()) {
             continue;
           }
@@ -373,17 +374,22 @@ static Vector<SocketInContext> find_origin_sockets_through_contexts(
         if (!zones->link_between_zones_is_allowed(from_zone, to_zone)) {
           continue;
         }
-        const Vector<const bke::bNodeTreeZone *> zones_to_enter = zones->get_zones_to_enter(
-            from_zone, to_zone);
         const ComputeContext *compute_context = socket.context;
-        for (int i = zones_to_enter.size() - 1; i >= 0; i--) {
-          if (!compute_context) {
-            /* There must be a compute context when we are in a zone. */
-            BLI_assert_unreachable();
-            return found_origins.extract_vector();
+        for (const bke::bNodeTreeZone *zone = to_zone; zone != from_zone; zone = zone->parent_zone)
+        {
+          if (const auto *evaluate_closure_context =
+                  dynamic_cast<const bke::EvaluateClosureComputeContext *>(compute_context))
+          {
+            const std::optional<nodes::ClosureSourceLocation> &source_location =
+                evaluate_closure_context->closure_source_location();
+            /* This is expected to be available during value tracing. */
+            BLI_assert(source_location);
+            BLI_assert(source_location->compute_context);
+            compute_context = source_location->compute_context;
           }
-          /* Each zone corresponds to one compute context level. */
-          compute_context = compute_context->parent();
+          else {
+            compute_context = compute_context->parent();
+          }
         }
         add_if_new({compute_context, from_socket}, bundle_path);
       }
@@ -457,7 +463,8 @@ static Vector<SocketInContext> find_origin_sockets_through_contexts(
                   &node->owner_tree(),
                   ClosureSourceLocation{&closure_tree,
                                         closure_output_node->identifier,
-                                        origin_socket.context_hash()});
+                                        origin_socket.context_hash(),
+                                        origin_socket.context});
           if (closure_context.is_recursive()) {
             continue;
           }

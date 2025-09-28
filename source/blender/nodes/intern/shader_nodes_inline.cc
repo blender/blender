@@ -723,7 +723,8 @@ class ShaderNodesInliner {
         closure_output_node.identifier,
         closure_zone_value->closure_creation_context ?
             closure_zone_value->closure_creation_context->hash() :
-            ComputeContextHash{}};
+            ComputeContextHash{},
+        closure_zone_value->closure_creation_context};
     const bke::EvaluateClosureComputeContext &closure_eval_context =
         compute_context_cache_.for_evaluate_closure(socket.context,
                                                     evaluate_closure_node->identifier,
