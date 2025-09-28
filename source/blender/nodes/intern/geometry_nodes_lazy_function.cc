@@ -743,20 +743,7 @@ class LazyFunctionForMultiFunctionNode : public LazyFunction {
                                                  &eval_user_data,
                                                  error_message))
     {
-      int available_output_index = 0;
-      for (const bNodeSocket *bsocket : node_.output_sockets()) {
-        if (!bsocket->is_available()) {
-          continue;
-        }
-        SocketValueVariant *output_value = output_values[available_output_index];
-        if (!output_value) {
-          continue;
-        }
-        std::destroy_at(output_value);
-        construct_socket_default_value(*bsocket->typeinfo, output_value);
-        available_output_index++;
-      }
-
+      set_default_remaining_node_outputs(params, node_);
       if (!error_message.empty()) {
         const auto &user_data = *static_cast<GeoNodesUserData *>(context.user_data);
         const auto &local_user_data = *static_cast<GeoNodesLocalUserData *>(
@@ -769,7 +756,9 @@ class LazyFunctionForMultiFunctionNode : public LazyFunction {
               {node_.identifier, {NodeWarningType::Error, error_message}});
         }
       }
+      return;
     }
+
     for (const int i : outputs_.index_range()) {
       if (params.get_output_usage(i) != lf::ValueUsage::Unused) {
         params.output_set(i);
