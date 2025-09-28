@@ -82,6 +82,7 @@ static void node_declare(blender::nodes::NodeDeclarationBuilder &b)
     menu.supports_field();
   }
   menu.structure_type(menu_structure_type);
+  menu.optional_label();
 
   for (const NodeEnumItem &enum_item : storage.enum_definition.items()) {
     const std::string identifier = MenuSwitchItemsAccessor::socket_identifier_for_item(enum_item);

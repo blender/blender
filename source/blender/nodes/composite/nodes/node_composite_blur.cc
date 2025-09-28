@@ -51,7 +51,10 @@ static void cmp_node_blur_declare(NodeDeclarationBuilder &b)
       .default_value({0.0f, 0.0f})
       .min(0.0f)
       .structure_type(StructureType::Dynamic);
-  b.add_input<decl::Menu>("Type").default_value(R_FILTER_GAUSS).static_items(type_items);
+  b.add_input<decl::Menu>("Type")
+      .default_value(R_FILTER_GAUSS)
+      .static_items(type_items)
+      .optional_label();
   b.add_input<decl::Bool>("Extend Bounds").default_value(false);
   b.add_input<decl::Bool>("Separable")
       .default_value(true)

@@ -24,6 +24,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
   b.add_input<decl::Menu>("Mode")
       .static_items(rna_enum_curve_normal_mode_items)
+      .optional_label()
       .description("Mode for curve normal evaluation");
   b.add_input<decl::Vector>("Normal")
       .default_value({0.0f, 0.0f, 1.0f})

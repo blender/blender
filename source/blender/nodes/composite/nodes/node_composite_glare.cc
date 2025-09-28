@@ -104,10 +104,14 @@ static void cmp_node_glare_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .structure_type(StructureType::Dynamic);
-  b.add_input<decl::Menu>("Type").default_value(CMP_NODE_GLARE_STREAKS).static_items(type_items);
+  b.add_input<decl::Menu>("Type")
+      .default_value(CMP_NODE_GLARE_STREAKS)
+      .static_items(type_items)
+      .optional_label();
   b.add_input<decl::Menu>("Quality")
       .default_value(CMP_NODE_GLARE_QUALITY_MEDIUM)
-      .static_items(quality_items);
+      .static_items(quality_items)
+      .optional_label();
 
   PanelDeclarationBuilder &highlights_panel = b.add_panel("Highlights").default_closed(true);
   highlights_panel.add_input<decl::Float>("Threshold", "Highlights Threshold")
@@ -223,7 +227,8 @@ static void cmp_node_glare_declare(NodeDeclarationBuilder &b)
   glare_panel.add_input<decl::Menu>("Kernel Data Type")
       .default_value(KernelDataType::Float)
       .static_items(kernel_data_type_items)
-      .usage_by_menu("Type", CMP_NODE_GLARE_KERNEL);
+      .usage_by_menu("Type", CMP_NODE_GLARE_KERNEL)
+      .optional_label();
   glare_panel.add_input<decl::Float>("Kernel", "Float Kernel")
       .hide_value()
       .structure_type(StructureType::Dynamic)

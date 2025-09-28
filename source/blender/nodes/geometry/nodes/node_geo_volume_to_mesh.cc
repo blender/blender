@@ -46,6 +46,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("Volume to convert to a mesh");
   b.add_input<decl::Menu>("Resolution Mode")
       .static_items(resolution_mode_items)
+      .optional_label()
       .description("How the voxel size is specified");
   b.add_input<decl::Float>("Voxel Size")
       .default_value(0.3f)

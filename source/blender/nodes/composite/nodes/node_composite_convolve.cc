@@ -36,7 +36,8 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Color>("Image").hide_value().structure_type(StructureType::Dynamic);
   b.add_input<decl::Menu>("Kernel Data Type")
       .default_value(KernelDataType::Float)
-      .static_items(kernel_data_type_items);
+      .static_items(kernel_data_type_items)
+      .optional_label();
   b.add_input<decl::Float>("Kernel", "Float Kernel")
       .hide_value()
       .structure_type(StructureType::Dynamic)

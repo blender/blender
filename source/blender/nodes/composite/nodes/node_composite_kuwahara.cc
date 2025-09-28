@@ -48,7 +48,8 @@ static void cmp_node_kuwahara_declare(NodeDeclarationBuilder &b)
       .structure_type(StructureType::Dynamic);
   b.add_input<decl::Menu>("Type")
       .default_value(CMP_NODE_KUWAHARA_ANISOTROPIC)
-      .static_items(type_items);
+      .static_items(type_items)
+      .optional_label();
 
   b.add_input<decl::Int>("Uniformity")
       .default_value(4)

@@ -51,6 +51,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Bool>("Selection").default_value(true).field_on_all().hide_value();
   b.add_input<decl::Menu>("Mode")
       .static_items(mode_items)
+      .optional_label()
       .description("How to specify the amount of samples");
   b.add_input<decl::Int>("Count")
       .default_value(10)

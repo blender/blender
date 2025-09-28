@@ -57,15 +57,18 @@ static void cmp_node_color_spill_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Menu>("Spill Channel")
       .default_value(RGBChannel::G)
       .static_items(rgb_channel_items)
-      .expanded();
+      .expanded()
+      .optional_label();
   b.add_input<decl::Menu>("Limit Method")
       .default_value(CMP_NODE_COLOR_SPILL_LIMIT_ALGORITHM_SINGLE)
       .static_items(limit_method_items)
-      .expanded();
+      .expanded()
+      .optional_label();
   b.add_input<decl::Menu>("Limit Channel")
       .default_value(RGBChannel::R)
       .static_items(rgb_channel_items)
       .expanded()
+      .optional_label()
       .usage_by_menu("Limit Method", CMP_NODE_COLOR_SPILL_LIMIT_ALGORITHM_SINGLE);
   b.add_input<decl::Float>("Limit Strength")
       .default_value(1.0f)

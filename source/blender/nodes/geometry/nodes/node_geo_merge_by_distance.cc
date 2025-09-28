@@ -38,7 +38,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("Point cloud or mesh to merge points of");
   b.add_output<decl::Geometry>("Geometry").propagate_all().align_with_previous();
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
-  b.add_input<decl::Menu>("Mode").static_items(mode_items);
+  b.add_input<decl::Menu>("Mode").static_items(mode_items).optional_label();
   b.add_input<decl::Float>("Distance").default_value(0.001f).min(0.0f).subtype(PROP_DISTANCE);
 }
 

@@ -89,10 +89,12 @@ static void cmp_node_denoise_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Bool>("HDR").default_value(true);
   b.add_input<decl::Menu>("Prefilter")
       .default_value(CMP_NODE_DENOISE_PREFILTER_ACCURATE)
-      .static_items(prefilter_items);
+      .static_items(prefilter_items)
+      .optional_label();
   b.add_input<decl::Menu>("Quality")
       .default_value(CMP_NODE_DENOISE_QUALITY_SCENE)
-      .static_items(quality_items);
+      .static_items(quality_items)
+      .optional_label();
 
   b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }

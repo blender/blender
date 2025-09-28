@@ -65,7 +65,8 @@ static void cmp_node_trackpos_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Menu>("Mode")
       .default_value(CMP_NODE_TRACK_POSITION_ABSOLUTE)
-      .static_items(mode_items);
+      .static_items(mode_items)
+      .optional_label();
   b.add_input<decl::Int>("Frame").usage_by_menu(
       "Mode", {CMP_NODE_TRACK_POSITION_RELATIVE_FRAME, CMP_NODE_TRACK_POSITION_ABSOLUTE_FRAME});
 

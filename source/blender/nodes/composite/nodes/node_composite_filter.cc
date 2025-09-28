@@ -46,7 +46,10 @@ static void cmp_node_filter_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .subtype(PROP_FACTOR)
       .structure_type(StructureType::Dynamic);
-  b.add_input<decl::Menu>("Type").default_value(CMP_NODE_FILTER_SOFT).static_items(type_items);
+  b.add_input<decl::Menu>("Type")
+      .default_value(CMP_NODE_FILTER_SOFT)
+      .static_items(type_items)
+      .optional_label();
 
   b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }

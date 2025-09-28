@@ -60,7 +60,8 @@ static void node_declare(NodeDeclarationBuilder &b)
           "center is averaged");
   b.add_input<decl::Menu>("Scale Mode")
       .static_items(scale_mode_items)
-      .default_value(GEO_NODE_SCALE_ELEMENTS_UNIFORM);
+      .default_value(GEO_NODE_SCALE_ELEMENTS_UNIFORM)
+      .optional_label();
   b.add_input<decl::Vector>("Axis")
       .default_value({1.0f, 0.0f, 0.0f})
       .field_on_all()
