@@ -3422,10 +3422,15 @@ class WM_MT_splash(Menu):
         col2 = split.column()
         col2_title = col2.row()
 
-        found_recent = col2.template_recent_files()
+        found_recent = col2.template_recent_files(rows=5)
 
         if found_recent:
             col2_title.label(text="Recent Files")
+
+            col_more = col2.column()
+            col_more.operator_context = 'INVOKE_DEFAULT'
+            more_props = col_more.operator("wm.search_single_menu", text="More...", icon='VIEWZOOM')
+            more_props.menu_idname = "TOPBAR_MT_file_open_recent"
         else:
             # Links if no recent files.
             col2_title.label(text="Getting Started")
