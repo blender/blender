@@ -109,7 +109,7 @@ static bool uvedit_ensure_uvs(Object *obedit)
   BM_uv_map_attr_edge_select_ensure(em->bm, active_uv_name);
   const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
 
-  /* select new UVs (ignore UV_FLAG_SYNC_SELECT in this case) */
+  /* select new UVs (ignore UV_FLAG_SELECT_SYNC in this case) */
   BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
     BMIter liter;
     BMLoop *l;
@@ -454,7 +454,7 @@ static bool uvedit_have_selection(const Scene *scene, BMEditMesh *em, const Unwr
   /* verify if we have any selected uv's before unwrapping,
    * so we can cancel the operator early */
   BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-    if (scene->toolsettings->uv_flag & UV_FLAG_SYNC_SELECT) {
+    if (scene->toolsettings->uv_flag & UV_FLAG_SELECT_SYNC) {
       if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
         continue;
       }
@@ -932,7 +932,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
     float weight[4];
     BMFace *origFace = faceMap[i];
 
-    if (scene->toolsettings->uv_flag & UV_FLAG_SYNC_SELECT) {
+    if (scene->toolsettings->uv_flag & UV_FLAG_SELECT_SYNC) {
       if (BM_elem_flag_test(origFace, BM_ELEM_HIDDEN)) {
         continue;
       }
@@ -1096,7 +1096,7 @@ static void minimize_stretch_iteration(bContext *C, wmOperator *op, bool interac
   ScrArea *area = CTX_wm_area(C);
   const Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = scene->toolsettings;
-  const bool synced_selection = (ts->uv_flag & UV_FLAG_SYNC_SELECT) != 0;
+  const bool synced_selection = (ts->uv_flag & UV_FLAG_SELECT_SYNC) != 0;
 
   blender::geometry::uv_parametrizer_stretch_blend(ms->handle, ms->blend);
   blender::geometry::uv_parametrizer_stretch_iter(ms->handle);
@@ -1136,7 +1136,7 @@ static void minimize_stretch_exit(bContext *C, wmOperator *op, bool cancel)
   ScrArea *area = CTX_wm_area(C);
   const Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = scene->toolsettings;
-  const bool synced_selection = (ts->uv_flag & UV_FLAG_SYNC_SELECT) != 0;
+  const bool synced_selection = (ts->uv_flag & UV_FLAG_SELECT_SYNC) != 0;
 
   ED_area_status_text(area, nullptr);
   ED_workspace_status_text(C, nullptr);
@@ -2046,7 +2046,7 @@ static wmOperatorStatus average_islands_scale_exec(bContext *C, wmOperator *op)
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   ToolSettings *ts = scene->toolsettings;
-  const bool synced_selection = (ts->uv_flag & UV_FLAG_SYNC_SELECT) != 0;
+  const bool synced_selection = (ts->uv_flag & UV_FLAG_SELECT_SYNC) != 0;
 
   UnwrapOptions options = unwrap_options_get(nullptr, nullptr, ts);
   options.topology_from_uvs = true;
@@ -4306,7 +4306,7 @@ void UV_OT_cube_project(wmOperatorType *ot)
 void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob)
 {
   Mesh *mesh = static_cast<Mesh *>(ob->data);
-  bool sync_selection = (scene->toolsettings->uv_flag & UV_FLAG_SYNC_SELECT) != 0;
+  bool sync_selection = (scene->toolsettings->uv_flag & UV_FLAG_SELECT_SYNC) != 0;
 
   BMeshCreateParams create_params{};
   create_params.use_toolflags = false;
@@ -4314,7 +4314,7 @@ void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob)
 
   /* turn sync selection off,
    * since we are not in edit mode we need to ensure only the uv flags are tested */
-  scene->toolsettings->uv_flag &= ~UV_FLAG_SYNC_SELECT;
+  scene->toolsettings->uv_flag &= ~UV_FLAG_SELECT_SYNC;
 
   ED_mesh_uv_ensure(mesh, nullptr);
 
@@ -4346,7 +4346,7 @@ void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob)
   BM_mesh_free(bm);
 
   if (sync_selection) {
-    scene->toolsettings->uv_flag |= UV_FLAG_SYNC_SELECT;
+    scene->toolsettings->uv_flag |= UV_FLAG_SELECT_SYNC;
   }
 }
 

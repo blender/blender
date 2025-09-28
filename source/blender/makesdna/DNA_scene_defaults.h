@@ -377,7 +377,7 @@
     .select_thresh = 0.01f, \
  \
     .selectmode = SCE_SELECT_VERTEX, \
-    .uv_selectmode = UV_SELECT_VERTEX, \
+    .uv_selectmode = UV_SELECT_VERT, \
     .autokey_mode = AUTOKEY_MODE_NORMAL, \
  \
     .transform_pivot_point = V3D_AROUND_CENTER_MEDIAN, \

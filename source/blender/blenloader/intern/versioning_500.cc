@@ -2732,8 +2732,8 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       ToolSettings *ts = scene->toolsettings;
       if (ts->uv_selectmode & uv_select_island) {
-        ts->uv_selectmode = UV_SELECT_VERTEX;
-        ts->uv_flag |= UV_FLAG_ISLAND_SELECT;
+        ts->uv_selectmode = UV_SELECT_VERT;
+        ts->uv_flag |= UV_FLAG_SELECT_ISLAND;
       }
     }
   }

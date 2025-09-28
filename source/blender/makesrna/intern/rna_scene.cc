@@ -129,7 +129,7 @@ const EnumPropertyItem rna_enum_mesh_select_mode_items[] = {
 };
 
 const EnumPropertyItem rna_enum_mesh_select_mode_uv_items[] = {
-    {UV_SELECT_VERTEX, "VERTEX", ICON_UV_VERTEXSEL, "Vertex", "Vertex selection mode"},
+    {UV_SELECT_VERT, "VERTEX", ICON_UV_VERTEXSEL, "Vertex", "Vertex selection mode"},
     {UV_SELECT_EDGE, "EDGE", ICON_UV_EDGESEL, "Edge", "Edge selection mode"},
     {UV_SELECT_FACE, "FACE", ICON_UV_FACESEL, "Face", "Face selection mode"},
     {0, nullptr, 0, nullptr, nullptr},
@@ -3300,17 +3300,17 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   };
 
   static const EnumPropertyItem uv_sticky_mode_items[] = {
-      {SI_STICKY_DISABLE,
+      {UV_STICKY_DISABLE,
        "DISABLED",
        ICON_STICKY_UVS_DISABLE,
        "Disabled",
        "Sticky vertex selection disabled"},
-      {SI_STICKY_LOC,
+      {UV_STICKY_LOCATION,
        "SHARED_LOCATION",
        ICON_STICKY_UVS_LOC,
        "Shared Location",
        "Select UVs that are at the same location and share a mesh vertex"},
-      {SI_STICKY_VERTEX,
+      {UV_STICKY_VERT,
        "SHARED_VERTEX",
        ICON_STICKY_UVS_VERT,
        "Shared Vertex",
@@ -4217,7 +4217,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
       prop, NC_SPACE | ND_SPACE_IMAGE, "rna_Scene_uv_sticky_select_mode_update");
 
   prop = RNA_def_property(srna, "use_uv_select_sync", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "uv_flag", UV_FLAG_SYNC_SELECT);
+  RNA_def_property_boolean_sdna(prop, nullptr, "uv_flag", UV_FLAG_SELECT_SYNC);
   RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_ui_text(
       prop, "UV Sync Selection", "Keep UV and edit mode mesh selection in sync");
@@ -4225,7 +4225,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, nullptr);
 
   prop = RNA_def_property(srna, "use_uv_select_island", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "uv_flag", UV_FLAG_ISLAND_SELECT);
+  RNA_def_property_boolean_sdna(prop, nullptr, "uv_flag", UV_FLAG_SELECT_ISLAND);
   RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_ui_text(prop, "UV Island Selection", "Island selection");
   RNA_def_property_ui_icon(prop, ICON_UV_ISLANDSEL, 0);

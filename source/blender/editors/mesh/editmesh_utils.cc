@@ -761,7 +761,7 @@ static void bm_uv_build_islands(UvElementMap *element_map,
 
   const BMUVOffsets uv_offsets = BM_uv_map_offsets_get(bm);
 
-  const bool use_uv_edge_connectivity = scene->toolsettings->uv_flag & UV_FLAG_SYNC_SELECT ?
+  const bool use_uv_edge_connectivity = scene->toolsettings->uv_flag & UV_FLAG_SELECT_SYNC ?
                                             scene->toolsettings->selectmode & SCE_SELECT_EDGE :
                                             scene->toolsettings->uv_selectmode & UV_SELECT_EDGE;
   if (use_uv_edge_connectivity) {
@@ -983,7 +983,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
                                        const bool do_islands)
 {
   /* In uv sync selection, all UVs (from unhidden geometry) are visible. */
-  const bool face_selected = !(scene->toolsettings->uv_flag & UV_FLAG_SYNC_SELECT);
+  const bool face_selected = !(scene->toolsettings->uv_flag & UV_FLAG_SELECT_SYNC);
 
   BMVert *ev;
   BMFace *efa;
