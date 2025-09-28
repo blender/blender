@@ -845,11 +845,8 @@ void infer_group_interface_usage(const bNodeTree &group,
   {
     /* Detect actually used inputs. */
     SocketUsageInferencer inferencer{group, group_input_values, scope, compute_context_cache};
-    for (const bNode *node : group.group_input_nodes()) {
-      for (const int i : group.interface_inputs().index_range()) {
-        const bNodeSocket &socket = node->output_socket(i);
-        r_input_usages[i].is_used |= inferencer.is_socket_used({nullptr, &socket});
-      }
+    for (const int i : group.interface_inputs().index_range()) {
+      r_input_usages[i].is_used |= inferencer.is_group_input_used(i);
     }
   }
   bool visibility_controlling_input_exists = false;
