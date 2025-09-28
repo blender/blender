@@ -746,6 +746,10 @@ class NODE_MT_gn_utilities_rotation_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "FunctionNodeAxisAngleToRotation")
         self.node_operator(layout, "FunctionNodeEulerToRotation")
         self.node_operator(layout, "FunctionNodeInvertRotation")
+        props = self.node_operator(layout, "ShaderNodeMix", label="Mix Rotation")
+        ops = props.settings.add()
+        ops.name = "data_type"
+        ops.value = "'ROTATION'"
         self.node_operator(layout, "FunctionNodeRotateRotation")
         self.node_operator(layout, "FunctionNodeRotateVector")
         self.node_operator(layout, "FunctionNodeRotationToAxisAngle")
