@@ -56,6 +56,16 @@ struct SocketUsageInferencer {
   Map<SocketInContext, bool> all_socket_usages_;
 
   /**
+   * Stack of tasks that allows depth-first traversal of the tree to check if outputs are disabled.
+   */
+  Stack<SocketInContext> disabled_output_tasks_;
+
+  /**
+   * Contains whether a socket is disabled. Sockets not in this map are not known yet.
+   */
+  Map<SocketInContext, bool> all_socket_disable_states_;
+
+  /**
    * Treat top-level nodes as if they are never muted for usage-inferencing. This is used when
    * computing the socket usage that is displayed in the node editor (through grayed out or hidden
    * sockets). Which inputs/outputs of a node is visible should never depend on whether it is muted
@@ -106,16 +116,6 @@ struct SocketUsageInferencer {
     return false;
   }
 
-  bool group_output_has_default_value(const int output_i)
-  {
-    const bNode *group_output_node = root_tree_.group_output_node();
-    if (!group_output_node) {
-      return true;
-    }
-    const SocketInContext socket{nullptr, &group_output_node->input_socket(output_i)};
-    return this->socket_has_default_value(socket);
-  }
-
   bool is_socket_used(const SocketInContext &socket)
   {
     const std::optional<bool> is_used = all_socket_usages_.lookup_try(socket);
@@ -150,17 +150,37 @@ struct SocketUsageInferencer {
     return value_inferencer_.get_socket_value(socket);
   }
 
-  bool socket_has_default_value(const SocketInContext &socket)
+  bool is_disabled_group_output(const int output_i)
   {
-    const InferenceValue value = this->get_socket_value(socket);
-    if (!value.is_primitive_value()) {
-      return false;
+    const bNode *group_output_node = root_tree_.group_output_node();
+    if (!group_output_node) {
+      return true;
     }
-    const CPPType &type = *socket->typeinfo->base_cpp_type;
-    if (!type.is_equality_comparable()) {
-      return false;
+    const SocketInContext socket{nullptr, &group_output_node->input_socket(output_i)};
+    return this->is_disabled_output(socket);
+  }
+
+  bool is_disabled_output(const SocketInContext &socket)
+  {
+    const std::optional<bool> is_disabled = all_socket_disable_states_.lookup_try(socket);
+    if (is_disabled.has_value()) {
+      return *is_disabled;
     }
-    return type.is_equal(value.get_primitive_ptr(), type.default_value());
+    if (socket->owner_tree().has_available_link_cycle()) {
+      return true;
+    }
+    BLI_assert(disabled_output_tasks_.is_empty());
+    disabled_output_tasks_.push(socket);
+
+    while (!disabled_output_tasks_.is_empty()) {
+      const SocketInContext &socket = disabled_output_tasks_.peek();
+      this->disabled_output_task(socket);
+      if (&socket == &disabled_output_tasks_.peek()) {
+        /* The task is finished if it hasn't added any new task it depends on. */
+        disabled_output_tasks_.pop();
+      }
+    }
+    return all_socket_disable_states_.lookup(socket);
   }
 
  private:
@@ -569,6 +589,139 @@ struct SocketUsageInferencer {
     usage_tasks_.push(socket);
   }
 
+  void disabled_output_task(const SocketInContext &socket)
+  {
+    if (all_socket_disable_states_.contains(socket)) {
+      return;
+    }
+    const bNode &node = socket->owner_node();
+    if (!socket->is_available()) {
+      all_socket_disable_states_.add_new(socket, true);
+      return;
+    }
+    if (node.is_undefined() && !node.is_custom_group()) {
+      all_socket_disable_states_.add_new(socket, true);
+      return;
+    }
+    if (socket->is_input()) {
+      this->disabled_output_task__input(socket);
+    }
+    else {
+      this->disabled_output_task__output(socket);
+    }
+  }
+
+  void disabled_output_task__input(const SocketInContext &socket)
+  {
+    const Span<const bNodeLink *> links = socket->directly_linked_links();
+    const bNodeLink *single_link = links.size() == 1 && links[0]->is_used() ? links[0] : nullptr;
+    if (links.size() != 1 || !links[0]->is_used()) {
+      /* The socket is not linked, thus it is not disabled. */
+      all_socket_disable_states_.add_new(socket, false);
+      return;
+    }
+    const SocketInContext origin_socket{socket.context, single_link->fromsock};
+    this->disabled_output_task__with_origin_socket(socket, origin_socket);
+  }
+
+  void disabled_output_task__output(const SocketInContext &socket)
+  {
+    const NodeInContext node = socket.owner_node();
+    if (node->is_muted()) {
+      const bool is_top_level = socket.context == nullptr;
+      if (!this->ignore_top_level_node_muting_ || !is_top_level) {
+        this->disabled_output_task__output__muted_node(socket);
+        return;
+      }
+    }
+
+    switch (node->type_legacy) {
+      case NODE_GROUP:
+      case NODE_CUSTOM_GROUP: {
+        this->disabled_output_task__output__group_node(socket);
+        break;
+      }
+      case NODE_REROUTE: {
+        this->disabled_output_task__with_origin_socket(socket, node.input_socket(0));
+        break;
+      }
+      default: {
+        if (node->is_type("NodeEnableOutput")) {
+          this->disabled_output_task__output__enable_output_node(socket);
+          break;
+        }
+        /* By default, all output sockets are enabled unless they are explicitly disabled by some
+         * rule above. */
+        all_socket_disable_states_.add_new(socket, false);
+        break;
+      }
+    }
+  }
+
+  void disabled_output_task__output__muted_node(const SocketInContext &socket)
+  {
+    const NodeInContext node = socket.owner_node();
+    for (const bNodeLink &internal_link : node->internal_links()) {
+      if (internal_link.tosock != socket.socket) {
+        continue;
+      }
+      this->disabled_output_task__with_origin_socket(socket,
+                                                     {socket.context, internal_link.fromsock});
+      return;
+    }
+  }
+
+  void disabled_output_task__output__group_node(const SocketInContext &socket)
+  {
+    const NodeInContext node = socket.owner_node();
+    const bNodeTree *group = reinterpret_cast<const bNodeTree *>(node->id);
+    if (!group || ID_MISSING(&group->id)) {
+      all_socket_disable_states_.add_new(socket, true);
+      return;
+    }
+    group->ensure_topology_cache();
+    if (group->has_available_link_cycle()) {
+      all_socket_disable_states_.add_new(socket, true);
+      return;
+    }
+    const bNode *group_output_node = group->group_output_node();
+    if (!group_output_node) {
+      all_socket_disable_states_.add_new(socket, true);
+      return;
+    }
+    const ComputeContext &group_context = compute_context_cache_.for_group_node(
+        socket.context, node->identifier, &node->owner_tree());
+    const SocketInContext origin_socket{&group_context,
+                                        &group_output_node->input_socket(socket->index())};
+    this->disabled_output_task__with_origin_socket(socket, origin_socket);
+  }
+
+  void disabled_output_task__output__enable_output_node(const SocketInContext &socket)
+  {
+    const NodeInContext node = socket.owner_node();
+    const SocketInContext enable_socket = node.input_socket(0);
+    const InferenceValue enable_value = this->get_socket_value(enable_socket);
+    const std::optional<bool> is_enabled_opt = enable_value.get_if_primitive<bool>();
+    const bool is_enabled = is_enabled_opt.value_or(true);
+    all_socket_disable_states_.add_new(socket, !is_enabled);
+  }
+
+  void disabled_output_task__with_origin_socket(const SocketInContext &socket,
+                                                const SocketInContext &origin_socket)
+  {
+    const std::optional<bool> is_disabled = all_socket_disable_states_.lookup_try(origin_socket);
+    if (is_disabled.has_value()) {
+      all_socket_disable_states_.add_new(socket, *is_disabled);
+      return;
+    }
+    this->push_disabled_output_task(origin_socket);
+  }
+
+  void push_disabled_output_task(const SocketInContext &socket)
+  {
+    disabled_output_tasks_.push(socket);
+  }
+
   static const bNodeSocket *get_first_available_bsocket(const Span<const bNodeSocket *> sockets)
   {
     for (const bNodeSocket *socket : sockets) {
@@ -664,16 +817,10 @@ Array<SocketUsage> infer_all_sockets_usage(const bNodeTree &tree)
       continue;
     }
     const SocketInContext socket_ctx{nullptr, socket};
-    if (inferencer_all_unknown.socket_has_default_value(socket_ctx)) {
-      /* The output always has the default value unconditionally. */
-      continue;
+    if (inferencer_only_controllers.is_disabled_output(socket_ctx)) {
+      SocketUsage &usage = all_usages[socket->index_in_tree()];
+      usage.is_visible = false;
     }
-    if (!inferencer_only_controllers.socket_has_default_value(socket_ctx)) {
-      /* The output does not have the default value, so it's used. */
-      continue;
-    }
-    SocketUsage &usage = all_usages[socket->index_in_tree()];
-    usage.is_visible = false;
   }
 
   return all_usages;
@@ -745,15 +892,11 @@ void infer_group_interface_usage(const bNodeTree &group,
   }
   if (r_output_usages) {
     for (const int i : group.interface_outputs().index_range()) {
-      if (inferencer_all_unknown.group_output_has_default_value(i)) {
-        continue;
+      if (inferencer_only_controllers.is_disabled_group_output(i)) {
+        SocketUsage &usage = (*r_output_usages)[i];
+        usage.is_used = false;
+        usage.is_visible = false;
       }
-      if (!inferencer_only_controllers.group_output_has_default_value(i)) {
-        continue;
-      }
-      SocketUsage &usage = (*r_output_usages)[i];
-      usage.is_used = false;
-      usage.is_visible = false;
     }
   }
 }
