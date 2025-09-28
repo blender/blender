@@ -162,9 +162,10 @@ void uiTemplateNodeInputs(uiLayout *layout, bContext *C, PointerRNA *ptr)
       else if (const auto *socket_decl = dynamic_cast<const SocketDeclaration *>(item_decl)) {
         bNodeSocket &socket = node.socket_by_decl(*socket_decl);
         if (socket_decl->custom_draw_fn) {
+          uiLayout &row = layout->row(false);
           CustomSocketDrawParams params{
               *C,
-              *layout,
+              row,
               tree,
               node,
               socket,
