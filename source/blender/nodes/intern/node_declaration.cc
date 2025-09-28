@@ -538,9 +538,9 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::dependent_field(
   return *this;
 }
 
-BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::hide_label(bool value)
+BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::optional_label(bool value)
 {
-  decl_base_->hide_label = value;
+  decl_base_->optional_label = value;
   return *this;
 }
 

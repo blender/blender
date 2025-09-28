@@ -15,7 +15,7 @@ namespace blender::nodes::node_geo_material_selection_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Material>("Material").hide_label(true);
+  b.add_input<decl::Material>("Material").optional_label(true);
   b.add_output<decl::Bool>("Selection").field_source();
 }
 

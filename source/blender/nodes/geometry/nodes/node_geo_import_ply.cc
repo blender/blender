@@ -20,7 +20,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::String>("Path")
       .subtype(PROP_FILEPATH)
       .path_filter("*.ply")
-      .hide_label()
+      .optional_label()
       .description("Path to a PLY file");
 
   b.add_output<decl::Geometry>("Mesh");

@@ -15,7 +15,7 @@ namespace blender::nodes::node_geo_image_info_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Image>("Image").hide_label();
+  b.add_input<decl::Image>("Image").optional_label();
   b.add_input<decl::Int>("Frame").min(0).description(
       "Which frame to use for videos. Note that different frames in videos can "
       "have different resolutions");

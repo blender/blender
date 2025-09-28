@@ -29,7 +29,7 @@ NODE_STORAGE_FUNCS(NodeGeometryObjectInfo)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Object>("Object").hide_label();
+  b.add_input<decl::Object>("Object").optional_label();
   b.add_input<decl::Bool>("As Instance")
       .description(
           "Output the entire object as single instance. "

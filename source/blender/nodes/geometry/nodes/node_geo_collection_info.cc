@@ -27,7 +27,7 @@ NODE_STORAGE_FUNCS(NodeGeometryCollectionInfo)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Collection>("Collection").hide_label();
+  b.add_input<decl::Collection>("Collection").optional_label();
   b.add_input<decl::Bool>("Separate Children")
       .description(
           "Output each child of the collection as a separate instance, sorted alphabetically");

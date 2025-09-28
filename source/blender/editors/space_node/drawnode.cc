@@ -1135,7 +1135,7 @@ static void std_node_socket_draw(
   }
 
   const StringRefNull label = text;
-  text = (socket_decl && socket_decl->hide_label) ? "" : text;
+  text = (socket_decl && socket_decl->optional_label) ? "" : text;
 
   /* Some socket types draw the gizmo icon in a special way to look better. All others use a
    * fallback default code path. */

@@ -215,7 +215,11 @@ class SocketDeclaration : public ItemDeclaration {
   eNodeSocketInOut in_out;
   /** Socket type that corresponds to this socket declaration. */
   eNodeSocketDatatype socket_type;
-  bool hide_label = false;
+  /**
+   * Indicates that the meaning of the socket values is clear even if the label is not shown. This
+   * can result in cleaner UIs in some cases. The drawing code will still draw the label sometimes.
+   */
+  bool optional_label = false;
   bool hide_value = false;
   bool compact = false;
   bool is_multi_input = false;
@@ -316,7 +320,7 @@ class BaseSocketDeclarationBuilder {
  public:
   virtual ~BaseSocketDeclarationBuilder() = default;
 
-  BaseSocketDeclarationBuilder &hide_label(bool value = true);
+  BaseSocketDeclarationBuilder &optional_label(bool value = true);
 
   BaseSocketDeclarationBuilder &hide_value(bool value = true);
 
