@@ -708,7 +708,8 @@ class ShaderNodesInliner {
     const ClosureZoneValue *closure_zone_value = std::get_if<ClosureZoneValue>(
         &closure_input_value->value);
     if (!closure_zone_value) {
-      this->store_socket_value_fallback(socket);
+      /* If the closure is null, the node behaves as if it is muted. */
+      this->handle_output_socket__muted(socket);
       return;
     }
     const auto *evaluate_closure_storage = static_cast<const NodeEvaluateClosure *>(
