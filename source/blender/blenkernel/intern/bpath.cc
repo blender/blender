@@ -30,6 +30,7 @@
 
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
+#include "BLI_map.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -276,6 +277,20 @@ void BKE_bpath_missing_files_check(Main *bmain, ReportList *reports)
 #define MAX_DIR_RECURSE 16
 #define FILESIZE_INVALID_DIRECTORY -1
 
+struct BPathFind_PathInfo {
+  int64_t filesize;
+  bool found;
+  std::string new_path;
+};
+
+struct BPathFind_Data {
+  const char *basedir;
+  const char *searchdir;
+  ReportList *reports;
+  bool find_all; /* Also search for files whose current path is still valid. */
+  blender::Map<std::string, BPathFind_PathInfo> paths;
+};
+
 /**
  * Find the given filename recursively in the given search directory and its sub-directories.
  *
@@ -292,28 +307,15 @@ void BKE_bpath_missing_files_check(Main *bmain, ReportList *reports)
  * \return true if found, false otherwise.
  */
 static bool missing_files_find__recursive(const char *search_directory,
-                                          const char *filename_src,
-                                          char r_filepath_new[FILE_MAX],
-                                          int64_t *r_filesize,
+                                          BPathFind_Data *data,
                                           int *r_recurse_depth)
 {
   /* TODO: Move this function to BLI_path_utils? The 'biggest size' behavior is quite specific
    * though... */
-  DIR *dir;
-  BLI_stat_t status;
-  char path[FILE_MAX];
-  int64_t size;
-  bool found = false;
-
   BLI_assert(!BLI_path_is_rel(search_directory));
-  dir = opendir(search_directory);
-
+  DIR *dir = opendir(search_directory);
   if (dir == nullptr) {
-    return found;
-  }
-
-  if (*r_filesize == FILESIZE_INVALID_DIRECTORY) {
-    *r_filesize = 0; /* The directory opened fine. */
+    return false;
   }
 
   for (dirent *de = readdir(dir); de != nullptr; de = readdir(dir)) {
@@ -321,73 +323,68 @@ static bool missing_files_find__recursive(const char *search_directory,
       continue;
     }
 
+    char path[FILE_MAX];
     BLI_path_join(path, sizeof(path), search_directory, de->d_name);
 
+    BLI_stat_t status;
     if (BLI_stat(path, &status) == -1) {
       CLOG_WARN(&LOG, "Cannot get file status (`stat()`) of '%s'", path);
       continue;
     }
 
-    if (S_ISREG(status.st_mode)) {                                  /* It is a file. */
-      if (BLI_path_ncmp(filename_src, de->d_name, FILE_MAX) == 0) { /* Names match. */
-        size = status.st_size;
-        if ((size > 0) && (size > *r_filesize)) { /* Find the biggest matching file. */
-          *r_filesize = size;
-          BLI_strncpy(r_filepath_new, path, FILE_MAX);
-          found = true;
+    if (S_ISREG(status.st_mode)) { /* It is a file. */
+      BPathFind_PathInfo *handle = data->paths.lookup_ptr(de->d_name);
+      if (handle != nullptr) {
+        int64_t size = status.st_size;
+        if ((size > 0) && (size > handle->filesize)) { /* Find the biggest matching file. */
+          handle->filesize = size;
+          handle->new_path = std::string(path);
+          handle->found = true;
         }
       }
     }
     else if (S_ISDIR(status.st_mode)) { /* It is a sub-directory. */
       if (*r_recurse_depth <= MAX_DIR_RECURSE) {
         (*r_recurse_depth)++;
-        found |= missing_files_find__recursive(
-            path, filename_src, r_filepath_new, r_filesize, r_recurse_depth);
+        missing_files_find__recursive(path, data, r_recurse_depth);
         (*r_recurse_depth)--;
       }
     }
   }
 
   closedir(dir);
-  return found;
+  return true;
 }
 
-struct BPathFind_Data {
-  const char *basedir;
-  const char *searchdir;
-  ReportList *reports;
-  bool find_all; /* Also search for files which current path is still valid. */
-};
-
-static bool missing_files_find_foreach_path_cb(BPathForeachPathData *bpath_data,
-                                               char *path_dst,
-                                               size_t path_dst_maxncpy,
-                                               const char *path_src)
+static bool missing_files_find_populate_cb(BPathForeachPathData *bpath_data,
+                                           char * /*path_dst*/,
+                                           size_t /*path_dst_maxncpy*/,
+                                           const char *path_src)
 {
   BPathFind_Data *data = (BPathFind_Data *)bpath_data->user_data;
-  char filepath_new[FILE_MAX];
-
-  int64_t filesize = FILESIZE_INVALID_DIRECTORY;
-  int recurse_depth = 0;
-  bool is_found;
 
   if (!data->find_all && BLI_exists(path_src)) {
     return false;
   }
 
-  filepath_new[0] = '\0';
+  data->paths.add(BLI_path_basename(path_src), {0, false});
+  return false;
+}
 
-  is_found = missing_files_find__recursive(
-      data->searchdir, BLI_path_basename(path_src), filepath_new, &filesize, &recurse_depth);
+static bool missing_files_find_replace_cb(BPathForeachPathData *bpath_data,
+                                          char *path_dst,
+                                          size_t path_dst_maxncpy,
+                                          const char *path_src)
+{
+  BPathFind_Data *data = (BPathFind_Data *)bpath_data->user_data;
+  char filepath_new[FILE_MAX];
 
-  if (filesize == FILESIZE_INVALID_DIRECTORY) {
-    BKE_reportf(data->reports,
-                RPT_WARNING,
-                "Could not open the directory '%s'",
-                BLI_path_basename(data->searchdir));
+  if (!data->find_all && BLI_exists(path_src)) {
     return false;
   }
-  if (is_found == false) {
+
+  const auto handle = data->paths.lookup_try(BLI_path_basename(path_src));
+  if (!handle || !handle->found) {
     BKE_reportf(data->reports,
                 RPT_WARNING,
                 "Could not find '%s' in '%s'",
@@ -397,6 +394,7 @@ static bool missing_files_find_foreach_path_cb(BPathForeachPathData *bpath_data,
   }
 
   /* Keep the path relative if the previous one was relative. */
+  BLI_strncpy(filepath_new, handle->new_path.c_str(), FILE_MAX);
   if (BLI_path_is_rel(path_dst)) {
     BLI_path_rel(filepath_new, data->basedir);
   }
@@ -420,9 +418,21 @@ void BKE_bpath_missing_files_find(Main *bmain,
 
   BPathForeachPathData path_data{};
   path_data.bmain = bmain;
-  path_data.callback_function = missing_files_find_foreach_path_cb;
+  path_data.callback_function = missing_files_find_populate_cb;
   path_data.flag = eBPathForeachFlag(flag);
   path_data.user_data = &data;
+  BKE_bpath_foreach_path_main(&path_data);
+
+  int recurse_depth = 0;
+  if (!missing_files_find__recursive(data.searchdir, &data, &recurse_depth)) {
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "Could not open the directory '%s'",
+                BLI_path_basename(data.searchdir));
+    return;
+  }
+
+  path_data.callback_function = missing_files_find_replace_cb;
   BKE_bpath_foreach_path_main(&path_data);
 }
 
