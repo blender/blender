@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'7089def6cbcb')\n"
 "Report-Msgid-Bugs-To: \n"
 "PO-Revision-Date: 2025-07-23 15:29+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
@@ -266,10 +266,6 @@ msgid "3D Cursor"
 msgstr "3Д Ахырхага"
 
 
-msgid "Text"
-msgstr "Аҳәоу"
-
-
 msgid "Metaball"
 msgstr "Метампыл"
 
@@ -278,12 +274,16 @@ msgid "Light"
 msgstr "Алашара"
 
 
-msgid "Marker"
-msgstr "Ашьҭа"
-
-
 msgid "Keying"
 msgstr " Аиҭаганҵа"
+
+
+msgid "Text"
+msgstr "Аҳәоу"
+
+
+msgid "Marker"
+msgstr "Ашьҭа"
 
 
 msgid "File"

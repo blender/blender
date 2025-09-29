@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'7089def6cbcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-22 08:45+0000\n"
+"POT-Creation-Date: 2025-09-29 09:33+0000\n"
 "PO-Revision-Date: 2025-07-23 15:03+0000\n"
 "Last-Translator: Nooby Noober <iamanoobynoober@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
@@ -1013,10 +1013,6 @@ msgstr "ﺎﻨﻬﭘ"
 
 msgid "Area width"
 msgstr "ﻪﻘﻄﻨﻣ ﯼﺎﻨﻬﭘ"
-
-
-msgid "Catalog Path"
-msgstr "ﮒﻮﻟﺎﺗﺎﮐ ﺮﯿﺴﻣ"
 
 
 msgid "Full Path"
@@ -2224,6 +2220,10 @@ msgid "Append"
 msgstr "ﻥﺩﻭﺰﻓﺍ"
 
 
+msgid "Pack"
+msgstr "ﻪﺘﺴﺑ"
+
+
 msgid "Matrix"
 msgstr "ﺲﯾﺮﺗﺎﻣ"
 
@@ -2949,16 +2949,16 @@ msgid "Mix"
 msgstr "ﻁﻮﻠﺨﻣ"
 
 
-msgid "Text"
-msgstr "ﻦﺘﻣ"
-
-
-msgid "Pivot Point"
-msgstr "ﺶﺧﺮﭼ ﻪﻄﻘﻧ"
-
-
 msgid "Mirror"
 msgstr "ﻪﻨﯾﺁ"
+
+
+msgid "Layout"
+msgstr "ﺡﺮﻃ"
+
+
+msgid "Tracking"
+msgstr "ﯽﺑﺎﯾﺩﺭ"
 
 
 msgid "Add Image"
@@ -2977,6 +2977,26 @@ msgid "Convert"
 msgstr "ﻞﯾﺪﺒﺗ"
 
 
+msgid "Text"
+msgstr "ﻦﺘﻣ"
+
+
+msgid "Import"
+msgstr "ﻥﺩﺮﮐ ﺩﺭﺍﻭ"
+
+
+msgid "Math"
+msgstr "ﯽﺿﺎﯾﺭ"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Pivot Point"
+msgstr "ﺶﺧﺮﭼ ﻪﻄﻘﻧ"
+
+
 msgid "Key"
 msgstr "ﺪﯿﻠﮐ"
 
@@ -2988,22 +3008,6 @@ msgstr "ﺮﮕﻧﺎﺸﻧ"
 msgctxt "Operator"
 msgid "Smooth"
 msgstr "ﻑﺎﺻ"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Math"
-msgstr "ﯽﺿﺎﯾﺭ"
-
-
-msgid "Import"
-msgstr "ﻥﺩﺮﮐ ﺩﺭﺍﻭ"
-
-
-msgid "Layout"
-msgstr "ﺡﺮﻃ"
 
 
 msgctxt "NodeTree"
@@ -4343,10 +4347,6 @@ msgid "GPU Compute"
 msgstr "GPU ﺎﺑ ﻪﺒﺳﺎﺤﻣ"
 
 
-msgid "Supported"
-msgstr "ﻩﺪﺷ ﯽﻧﺎﺒﯿﺘﺸﭘ"
-
-
 msgid "Box filter"
 msgstr "ﻪﺒﻌﺟ ﺮﺘﻠﯿﻓ"
 
@@ -4590,10 +4590,6 @@ msgid "File:"
 msgstr ":ﻩﺪﻧﻭﺮﭘ"
 
 
-msgid "Tracking"
-msgstr "ﯽﺑﺎﯾﺩﺭ"
-
-
 msgctxt "Operator"
 msgid "Import..."
 msgstr "...ﻥﺩﺮﮐ ﺩﺭﺍﻭ"
@@ -4681,6 +4677,10 @@ msgid "Build Original:"
 msgstr ":ﯽﻠﺻﺍ ﺖﺧﺎﺳ"
 
 
+msgid "Aspect Ratio"
+msgstr "ﺮﯾﻮﺼﺗ ﺖﺒﺴﻧ"
+
+
 msgid "3D Markers"
 msgstr "3D ﺮﮕﻧﺎﺸﻧ"
 
@@ -4689,17 +4689,9 @@ msgid "Image*"
 msgstr "ﺮﯾﻮﺼﺗ*"
 
 
-msgid "Aspect Ratio"
-msgstr "ﺮﯾﻮﺼﺗ ﺖﺒﺴﻧ"
-
-
 msgctxt "Operator"
 msgid "Mute"
 msgstr "ﺵﻮﻣ‌ﺎﺧ"
-
-
-msgid "Pack"
-msgstr "ﻪﺘﺴﺑ"
 
 
 msgid "Text: External"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'7089def6cbcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-22 08:45+0000\n"
+"POT-Creation-Date: 2025-09-29 09:33+0000\n"
 "PO-Revision-Date: 2025-09-04 22:59+0000\n"
 "Last-Translator: Dominic Iastrebschi <domjotebit@gmail.com>\n"
 "Language-Team: Romanian <https://translate.blender.org/projects/blender-ui/ui/ro/>\n"
@@ -1098,16 +1098,16 @@ msgid "Vector"
 msgstr "Vector"
 
 
-msgid "Byte Color"
-msgstr "Culoare Byte"
-
-
 msgid "String"
 msgstr "Șir"
 
 
 msgid "Text string"
 msgstr "Șir de text"
+
+
+msgid "Byte Color"
+msgstr "Culoare Byte"
 
 
 msgid "Domain"
@@ -2148,8 +2148,16 @@ msgid "Sampling"
 msgstr "Eșantionare"
 
 
+msgid "Layout"
+msgstr "Aspect"
+
+
 msgid "Light"
 msgstr "Lumină"
+
+
+msgid "Tracking"
+msgstr "Urmărire"
 
 
 msgid "Add Image"
@@ -2164,20 +2172,16 @@ msgid "Convert"
 msgstr "Convertire"
 
 
-msgid "Marker"
-msgstr "Marcator"
-
-
 msgid "UV"
 msgstr "UV"
 
 
+msgid "Marker"
+msgstr "Marcator"
+
+
 msgid "Unwrap"
 msgstr "Desfacere"
-
-
-msgid "Layout"
-msgstr "Aspect"
 
 
 msgid "Add Modifier"
@@ -2190,11 +2194,6 @@ msgstr "Generare"
 
 msgid "Physics"
 msgstr "Fizică"
-
-
-msgctxt "Operator"
-msgid "Scene"
-msgstr "Scenă"
 
 
 msgid "Blender"
@@ -2280,16 +2279,6 @@ msgstr "Șterge Keyframe-urile"
 msgctxt "Operator"
 msgid "Insert Keyframes"
 msgstr "Inserează Keyframe-uri"
-
-
-msgctxt "Operator"
-msgid "Next Layer"
-msgstr "Stratul Următor"
-
-
-msgctxt "Operator"
-msgid "Previous Layer"
-msgstr "Startul Anterior"
 
 
 msgctxt "Operator"
@@ -2824,10 +2813,6 @@ msgstr "Fișier:"
 msgctxt "Operator"
 msgid "Apply"
 msgstr "Aplicare"
-
-
-msgid "Tracking"
-msgstr "Urmărire"
 
 
 msgctxt "WindowManager"

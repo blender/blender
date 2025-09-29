@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'7089def6cbcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-22 08:45+0000\n"
+"POT-Creation-Date: 2025-09-29 09:33+0000\n"
 "PO-Revision-Date: 2025-07-23 14:57+0000\n"
 "Last-Translator: Michael Tribayu Jatnika Natawiria <mike.natawiria@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -1678,10 +1678,6 @@ msgid "Armatures active edit bone"
 msgstr "Tulang edit armatur aktif"
 
 
-msgid "Catalog Path"
-msgstr "Jalur Katalog"
-
-
 msgid "User Asset Libraries"
 msgstr "Perpustakaan Aset Pengguna"
 
@@ -2003,6 +1999,14 @@ msgid "32-bit integer"
 msgstr "Integer 32-bit"
 
 
+msgid "Boolean"
+msgstr "Boolean"
+
+
+msgid "True or false"
+msgstr "True/benar atau false/salah"
+
+
 msgid "Vector"
 msgstr "Vector"
 
@@ -2015,12 +2019,20 @@ msgid "RGBA color with 32-bit floating-point values"
 msgstr "Warna RGBA dengan nilai 32-bit floating-point"
 
 
-msgid "Byte Color"
-msgstr "Warna Byte"
+msgid "Quaternion"
+msgstr "Kuaternion"
 
 
-msgid "RGBA color with 8-bit positive integer values"
-msgstr "Warna RGBA dengan nilai integer positif 8-bit"
+msgid "Floating point quaternion rotation"
+msgstr "Rotasi Kuaternion Titik Floating"
+
+
+msgid "4x4 Matrix"
+msgstr "Matriks 4x4"
+
+
+msgid "Floating point matrix"
+msgstr "Matriks titik floating"
 
 
 msgid "String"
@@ -2029,22 +2041,6 @@ msgstr "String"
 
 msgid "Text string"
 msgstr "Teks string"
-
-
-msgid "Boolean"
-msgstr "Boolean"
-
-
-msgid "True or false"
-msgstr "True/benar atau false/salah"
-
-
-msgid "2D Vector"
-msgstr "Vektor 2D"
-
-
-msgid "2D vector with floating-point values"
-msgstr "Vektor 2D dengan nilai floating-point"
 
 
 msgid "8-Bit Integer"
@@ -2071,20 +2067,20 @@ msgid "32-bit signed integer vector"
 msgstr "Vektor Integer Signed 32-Bit"
 
 
-msgid "Quaternion"
-msgstr "Kuaternion"
+msgid "2D Vector"
+msgstr "Vektor 2D"
 
 
-msgid "Floating point quaternion rotation"
-msgstr "Rotasi Kuaternion Titik Floating"
+msgid "2D vector with floating-point values"
+msgstr "Vektor 2D dengan nilai floating-point"
 
 
-msgid "4x4 Matrix"
-msgstr "Matriks 4x4"
+msgid "Byte Color"
+msgstr "Warna Byte"
 
 
-msgid "Floating point matrix"
-msgstr "Matriks titik floating"
+msgid "RGBA color with 8-bit positive integer values"
+msgstr "Warna RGBA dengan nilai integer positif 8-bit"
 
 
 msgid "Domain"
@@ -15287,28 +15283,12 @@ msgid "Mask"
 msgstr "Masker"
 
 
-msgid "Merge"
-msgstr "Menggabungkan"
-
-
-msgid "Text"
-msgstr "Teks"
-
-
-msgid "Metaball"
-msgstr "Metabola"
-
-
-msgid "Names"
-msgstr "Nama"
+msgid "Mirror"
+msgstr "Cermin"
 
 
 msgid "Snap"
 msgstr "Jepret"
-
-
-msgid "Mirror"
-msgstr "Cermin"
 
 
 msgid "Navigation"
@@ -15323,6 +15303,14 @@ msgid "Assign Material"
 msgstr "Tugaskan Bahan"
 
 
+msgid "Layout"
+msgstr "Tata Letak"
+
+
+msgid "Metaball"
+msgstr "Metabola"
+
+
 msgid "Light"
 msgstr "Cahaya"
 
@@ -15331,8 +15319,16 @@ msgid "Light Probe"
 msgstr "Probe Cahaya"
 
 
+msgid "Tracking"
+msgstr "Pelacakan"
+
+
 msgid "Add Image"
 msgstr "Tambah Gambar"
+
+
+msgid "Utilities"
+msgstr "Utilitas"
 
 
 msgid "Apply"
@@ -15349,6 +15345,42 @@ msgstr "Aset"
 
 msgid "Hooks"
 msgstr "Kait"
+
+
+msgid "Names"
+msgstr "Nama"
+
+
+msgid "Sample"
+msgstr "Sampel"
+
+
+msgid "Merge"
+msgstr "Menggabungkan"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Instances"
+msgstr "Contoh-contoh"
+
+
+msgid "Text"
+msgstr "Teks"
+
+
+msgid "Import"
+msgstr "Impor"
+
+
+msgid "Math"
+msgstr "Matematika"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgctxt "MovieClip"
@@ -15400,10 +15432,6 @@ msgid "Move to Layer"
 msgstr "Pindah ke Layer"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgctxt "Operator"
 msgid "Mirror"
 msgstr "Cermin"
@@ -15421,36 +15449,8 @@ msgid "Strip"
 msgstr "Strip"
 
 
-msgid "Utilities"
-msgstr "Utilitas"
-
-
-msgid "Math"
-msgstr "Matematika"
-
-
-msgid "Import"
-msgstr "Impor"
-
-
-msgid "Layout"
-msgstr "Tata Letak"
-
-
 msgid "Node"
 msgstr "Simpul"
-
-
-msgid "Sample"
-msgstr "Sampel"
-
-
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Contoh-contoh"
 
 
 msgid "Node Color Specials"
@@ -15467,11 +15467,6 @@ msgstr "Preset Frame Rate"
 
 msgid "Effect Strip"
 msgstr "Strip Efek"
-
-
-msgctxt "Operator"
-msgid "Scene"
-msgstr "Adegan"
 
 
 msgid "Transition"
@@ -17357,20 +17352,8 @@ msgid "Type of NLA Strip"
 msgstr "Tipe Strip NLA"
 
 
-msgid "Action Clip"
-msgstr "Klip Aksi"
-
-
 msgid "NLA Strip references some Action"
 msgstr "Strip NLA mereferensi beberapa Aksi"
-
-
-msgid "Meta"
-msgstr "Meta"
-
-
-msgid "Sound Clip"
-msgstr "Klip Suara"
 
 
 msgid "Animated Influence"
@@ -24342,14 +24325,6 @@ msgid "Use Instancing"
 msgstr "Menggunakan Percontohan"
 
 
-msgid "Visible Objects Only"
-msgstr "Objek yang Terlihat Aja"
-
-
-msgid "Export only objects that are visible"
-msgstr "Ekspor objek yang terliht saja"
-
-
 msgid "Transform Samples"
 msgstr "Sampel Transformasi"
 
@@ -24779,12 +24754,12 @@ msgid "Footage Settings"
 msgstr "Pengaturan Rekaman"
 
 
-msgid "Marker Display"
-msgstr "Tampilan Penanda"
-
-
 msgid "Mask Settings"
 msgstr "Pengaturan Masker"
+
+
+msgid "Marker Display"
+msgstr "Tampilan Penanda"
 
 
 msgid "Mask Display"
@@ -25279,6 +25254,10 @@ msgstr "Menggunakan Buram Gerakan"
 
 msgid "Use motion blur for this object"
 msgstr "Menggunakan buram gerakan untuk benda ini"
+
+
+msgid "Render Time"
+msgstr "Waktu Render"
 
 
 msgid "AO Bounces"
@@ -26090,6 +26069,10 @@ msgid "Gizmo to adjust location"
 msgstr "Gizmo untuk menyesuaikan lokasi"
 
 
+msgid "Meta"
+msgstr "Meta"
+
+
 msgid "Show surfaces"
 msgstr "Tampilkan permukaan"
 
@@ -26439,10 +26422,6 @@ msgstr "Warna Standar"
 
 msgid "Camera Path"
 msgstr "Kamera"
-
-
-msgid "Edge Bevel"
-msgstr "Buat"
 
 
 msgid "Changed"
@@ -27250,10 +27229,6 @@ msgid "Add-ons:"
 msgstr "Tambahan:"
 
 
-msgid "Tracking"
-msgstr "Pelacakan"
-
-
 msgid "Note:"
 msgstr "Catatan:"
 
@@ -27407,11 +27382,6 @@ msgstr "Website Blender"
 
 msgid "Read about what's new in this version of Blender"
 msgstr "Baca tentang apa yang baru dengan versi Blender terbaru ini"
-
-
-msgctxt "Operator"
-msgid "Tutorials"
-msgstr "Tutorial"
 
 
 msgctxt "Operator"
@@ -27836,10 +27806,6 @@ msgid "Date"
 msgstr "Tanggal"
 
 
-msgid "Render Time"
-msgstr "Waktu Render"
-
-
 msgid "Mask Mapping"
 msgstr "Pemetaan Masker"
 
@@ -28185,10 +28151,6 @@ msgid "Unknown add-ons"
 msgstr "Add-on tidak diketahui"
 
 
-msgid "Display Thin"
-msgstr "Tampilkan Tipis"
-
-
 msgid "B/W"
 msgstr "B/W"
 
@@ -28247,16 +28209,20 @@ msgid "Set Floor"
 msgstr "Set Lantai"
 
 
+msgid "Display Thin"
+msgstr "Tampilkan Tipis"
+
+
+msgid "Viewport Overlays"
+msgstr "Overlay Jendela Tampilan"
+
+
 msgid "Viewport Gizmos"
 msgstr "Gizmos Jendela Tampilan"
 
 
-msgid "3D Markers"
-msgstr "Marker 3D"
-
-
-msgid "Display Aspect Ratio"
-msgstr "Tampilkan Aspek Rasio"
+msgid "Aspect Ratio"
+msgstr "Rasio Aspek"
 
 
 msgctxt "Operator"
@@ -28323,6 +28289,10 @@ msgstr "Set Keyframe A"
 msgctxt "Operator"
 msgid "Set Keyframe B"
 msgstr "Set Keyframe B"
+
+
+msgid "3D Markers"
+msgstr "Marker 3D"
 
 
 msgctxt "Operator"
@@ -28701,10 +28671,6 @@ msgid "Image*"
 msgstr "Gambar*"
 
 
-msgid "Aspect Ratio"
-msgstr "Rasio Aspek"
-
-
 msgid "Repeat Image"
 msgstr "Ulangi Gambar"
 
@@ -28985,11 +28951,6 @@ msgstr "Teks"
 
 
 msgctxt "Operator"
-msgid "Scene..."
-msgstr "Adegan..."
-
-
-msgctxt "Operator"
 msgid "Gaussian Blur"
 msgstr "Buram Gaussian"
 
@@ -29122,6 +29083,11 @@ msgstr "Render Gambar"
 msgctxt "Operator"
 msgid "Release Notes"
 msgstr "Catatan Rilis"
+
+
+msgctxt "Operator"
+msgid "Tutorials"
+msgstr "Tutorial"
 
 
 msgid "No active item"
@@ -29469,10 +29435,6 @@ msgstr "Tampilkan Gizmo-gizmo"
 
 msgid "Object Gizmos"
 msgstr "Gizmo-gizmo Benda"
-
-
-msgid "Viewport Overlays"
-msgstr "Overlay Jendela Tampilan"
 
 
 msgid "Statistics"
@@ -30750,6 +30712,10 @@ msgstr "Orientasi Transformasi"
 
 msgid "Saved %s"
 msgstr "Nilai: %s"
+
+
+msgid "Action Clip"
+msgstr "Klip Aksi"
 
 
 msgid "No valid action to add"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'7089def6cbcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-22 08:45+0000\n"
+"POT-Creation-Date: 2025-09-29 09:33+0000\n"
 "PO-Revision-Date: 2025-07-23 15:20+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Kyrgyz <https://translate.blender.org/projects/blender-ui/ui/ky/>\n"
@@ -1286,16 +1286,28 @@ msgid "Mask"
 msgstr "Маска"
 
 
-msgid "Text"
-msgstr "Текст"
-
-
 msgid "Mirror"
 msgstr "Чагылтуу"
 
 
+msgid "Tracking"
+msgstr "Трекинг"
+
+
 msgid "Apply"
 msgstr "Колдонуу"
+
+
+msgid "Text"
+msgstr "Текст"
+
+
+msgid "Import"
+msgstr "Импорттоо"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgctxt "MovieClip"
@@ -1344,16 +1356,8 @@ msgid "Smooth"
 msgstr "Тегиз"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Align"
 msgstr "Түздөө"
-
-
-msgid "Import"
-msgstr "Импорттоо"
 
 
 msgid "Node"
@@ -1499,10 +1503,6 @@ msgstr "Ченөө бирдиктери"
 
 msgid "Starting"
 msgstr "Башталууда"
-
-
-msgid "Meta"
-msgstr "Мета"
 
 
 msgid "YCbCr"
@@ -2806,6 +2806,10 @@ msgid "Lens"
 msgstr "Объектив"
 
 
+msgid "Meta"
+msgstr "Мета"
+
+
 msgid "Speaker"
 msgstr "Үн булагы"
 
@@ -3056,10 +3060,6 @@ msgid "Statistics"
 msgstr "Статистика"
 
 
-msgid "Tracking"
-msgstr "Трекинг"
-
-
 msgid "3D View"
 msgstr "3D-көрүнүш"
 
@@ -3172,11 +3172,6 @@ msgstr "Түс"
 msgctxt "Operator"
 msgid "Text"
 msgstr "Текст"
-
-
-msgctxt "Operator"
-msgid "Scene..."
-msgstr "Сахна..."
 
 
 msgctxt "Text"
