@@ -2674,8 +2674,16 @@ static const EnumPropertyItem *rna_SpaceNodeEditor_node_tree_sub_type_itemf(
   };
 
   static const EnumPropertyItem compositor_sub_type_items[] = {
-      {SNODE_COMPOSITOR_SCENE, "SCENE", 0, "Scene", "Edit node group for the current scene"},
-      {SNODE_COMPOSITOR_SEQUENCER, "SEQUENCER", 0, "Sequencer", "Edit node group for sequencer"},
+      {SNODE_COMPOSITOR_SCENE,
+       "SCENE",
+       ICON_SCENE_DATA,
+       "Scene",
+       "Edit compositing node group for the current scene"},
+      {SNODE_COMPOSITOR_SEQUENCER,
+       "SEQUENCER",
+       ICON_SEQUENCE,
+       "Sequencer",
+       "Edit compositing node group for Sequencer strip modifiers"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
