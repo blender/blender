@@ -272,6 +272,15 @@ static int BPy_IDGroup_SetName(BPy_IDProperty *self, PyObject *value, void * /*c
     PyErr_SetString(PyExc_TypeError, "string length cannot exceed 63 characters!");
     return -1;
   }
+  if (STREQ(name, self->prop->name)) {
+    return 0;
+  }
+  if (IDProperty *parent = self->parent) {
+    if (IDP_GetPropertyFromGroup(parent, name)) {
+      PyErr_SetString(PyExc_NameError, "property name already exists in parent group");
+      return -1;
+    }
+  }
 
   memcpy(self->prop->name, name, name_len + 1);
   return 0;
