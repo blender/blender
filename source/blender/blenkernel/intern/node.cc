@@ -4434,6 +4434,7 @@ void node_tree_free_tree(bNodeTree &ntree)
 {
   ntree_free_data(&ntree.id);
   BKE_animdata_free(&ntree.id, false);
+  BKE_libblock_free_runtime_data(&ntree.id);
 }
 
 void node_tree_free_embedded_tree(bNodeTree *ntree)
