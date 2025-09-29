@@ -153,7 +153,7 @@ class OSLCompiler {
 #ifdef WITH_OSL
   OSLCompiler(OSL::ShadingSystem *ss, Scene *scene);
 #endif
-  void compile(Shader *shader);
+  void compile(OSLGlobals *og, int shader_id, Shader *shader);
 
   void add(ShaderNode *node, const char *name, bool isfilepath = false);
 
