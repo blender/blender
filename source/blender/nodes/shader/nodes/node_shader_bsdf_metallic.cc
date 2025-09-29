@@ -99,7 +99,7 @@ static int node_shader_gpu_bsdf_metallic(GPUMaterial *mat,
   }
 
   GPU_material_flag_set(mat, GPU_MATFLAG_GLOSSY);
-  if (use_complex_ior) {
+  if (use_complex_ior == 0.0f) {
     if (in[0].might_be_tinted() || in[1].might_be_tinted()) {
       GPU_material_flag_set(mat, GPU_MATFLAG_REFLECTION_MAYBE_COLORED);
     }
