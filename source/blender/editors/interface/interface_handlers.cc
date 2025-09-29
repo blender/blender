@@ -9959,7 +9959,7 @@ static int ui_list_get_increment(const uiList *ui_list, const int type, const in
 
   /* Handle column offsets for grid layouts. */
   if (ELEM(type, EVT_UPARROWKEY, EVT_DOWNARROWKEY) &&
-      ELEM(ui_list->layout_type, UILST_LAYOUT_GRID, UILST_LAYOUT_BIG_PREVIEW_GRID))
+      ELEM(ui_list->layout_type, UILST_LAYOUT_BIG_PREVIEW_GRID))
   {
     increment = (type == EVT_UPARROWKEY) ? -columns : columns;
   }
