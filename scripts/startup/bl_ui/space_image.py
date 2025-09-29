@@ -1411,9 +1411,9 @@ class IMAGE_PT_uv_sculpt_curve(Panel):
         props = context.scene.tool_settings.uv_sculpt
 
         col = layout.column()
-        col.prop(props, "curve_preset", expand=True)
+        col.prop(props, "curve_distance_falloff_preset", expand=True)
 
-        if props.curve_preset == 'CUSTOM':
+        if props.curve_distance_falloff_preset == 'CUSTOM':
             col = layout.column()
             col.template_curve_mapping(props, "strength_curve")
 

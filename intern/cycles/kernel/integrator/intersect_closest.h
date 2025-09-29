@@ -233,7 +233,13 @@ ccl_device_forceinline void integrator_intersect_next_kernel(
     const int flags = (hit_surface) ? kernel_data_fetch(shaders, shader).flags : 0;
 
     if (!integrator_intersect_terminate(kg, state, flags)) {
-      integrator_path_next(state, current_kernel, DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME);
+      if (kernel_data.integrator.volume_ray_marching) {
+        integrator_path_next(
+            state, current_kernel, DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME_RAY_MARCHING);
+      }
+      else {
+        integrator_path_next(state, current_kernel, DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME);
+      }
     }
     else {
       integrator_path_terminate(kg, state, render_buffer, current_kernel);

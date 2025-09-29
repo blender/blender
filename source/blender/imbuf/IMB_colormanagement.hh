@@ -363,6 +363,8 @@ bool IMB_colormanagement_display_is_hdr(const ColorManagedDisplaySettings *displ
                                         const char *view_name);
 bool IMB_colormanagement_display_is_wide_gamut(const ColorManagedDisplaySettings *display_settings,
                                                const char *view_name);
+bool IMB_colormanagement_display_support_emulation(
+    const ColorManagedDisplaySettings *display_settings, const char *view_name);
 
 /** \} */
 

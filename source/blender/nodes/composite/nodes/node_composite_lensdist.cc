@@ -54,7 +54,8 @@ static void cmp_node_lensdist_declare(NodeDeclarationBuilder &b)
       .structure_type(StructureType::Dynamic);
   b.add_input<decl::Menu>("Type")
       .default_value(CMP_NODE_LENS_DISTORTION_RADIAL)
-      .static_items(type_items);
+      .static_items(type_items)
+      .optional_label();
   b.add_input<decl::Float>("Distortion")
       .default_value(0.0f)
       .subtype(PROP_FACTOR)

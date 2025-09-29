@@ -1170,6 +1170,26 @@ static void rna_def_pose_channel(BlenderRNA *brna)
   RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 100, RNA_TRANSLATION_PREC_DEFAULT);
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
 
+  prop = RNA_def_property(srna, "use_transform_at_custom_shape", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", POSE_TRANSFORM_AT_CUSTOM_TX);
+  RNA_def_property_ui_text(
+      prop,
+      "Affect Gizmo",
+      "The location and orientation of the Custom Shape Transform bone will be used for transform "
+      "gizmos and for other transform operators in the 3D Viewport. When disabled, the 3D "
+      "Viewport will still use the actual bone transform for these, even when the custom bone "
+      "shape transform is overridden.");
+  RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
+
+  prop = RNA_def_property(srna, "use_transform_around_custom_shape", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", POSE_TRANSFORM_AROUND_CUSTOM_TX);
+  RNA_def_property_ui_text(
+      prop,
+      "Use As Pivot",
+      "Transform the bone as if it was a child of the Custom Shape Transform bone. This can be "
+      "useful when combining shape-key and armature deformations.");
+  RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
+
   prop = RNA_def_property(srna, "use_custom_shape_bone_size", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(
       prop, nullptr, "drawflag", PCHAN_DRAW_NO_CUSTOM_BONE_SIZE);

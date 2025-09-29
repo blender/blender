@@ -203,6 +203,14 @@ class TestIdPropertyCreation(TestHelper, unittest.TestCase):
         with self.assertRaises(TypeError):
             self.id[self.key_id] = self
 
+    def test_rename(self):
+        self.id["foo"] = {"a": 1}
+        self.id["bar"] = {"b": 2}
+        self.id["foo"].name = "foo"
+        self.id["bar"].name = "bar"
+        with self.assertRaises(NameError):
+            self.id["foo"].name = "bar"
+
 
 class TestIdPropertyUIData(TestHelper, unittest.TestCase):
     # Default testing idprop key identifier.

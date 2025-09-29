@@ -32,6 +32,7 @@
 
 #include "DNA_genfile.h"
 #include "DNA_print.hh"
+#include "DNA_sdna_pointers.hh"
 #include "DNA_sdna_types.h" /* for SDNA ;-) */
 
 /**
@@ -1961,6 +1962,58 @@ void DNA_sdna_alias_data_ensure_structs_map(SDNA *sdna)
   UNUSED_VARS(sdna);
 #endif
 }
+
+namespace blender::dna::pointers {
+
+PointersInDNA::PointersInDNA(const SDNA &sdna) : sdna_(sdna)
+{
+  structs_.resize(sdna.structs_num);
+  for (const int struct_i : IndexRange(sdna.structs_num)) {
+    const SDNA_Struct &sdna_struct = *sdna.structs[struct_i];
+    StructInfo &struct_info = structs_[struct_i];
+
+    struct_info.size_in_bytes = 0;
+    for (const int member_i : IndexRange(sdna_struct.members_num)) {
+      struct_info.size_in_bytes += get_member_size_in_bytes(&sdna_,
+                                                            &sdna_struct.members[member_i]);
+    }
+
+    this->gather_pointer_members_recursive(sdna_struct, 0, structs_[struct_i]);
+  }
+}
+
+void PointersInDNA::gather_pointer_members_recursive(const SDNA_Struct &sdna_struct,
+                                                     int initial_offset,
+                                                     StructInfo &r_struct_info) const
+{
+  int offset = initial_offset;
+  for (const int member_i : IndexRange(sdna_struct.members_num)) {
+    const SDNA_StructMember &member = sdna_struct.members[member_i];
+    const char *member_type_name = sdna_.types[member.type_index];
+    const eStructMemberCategory member_category = get_struct_member_category(&sdna_, &member);
+    const int array_elem_num = sdna_.members_array_num[member.member_index];
+
+    if (member_category == STRUCT_MEMBER_CATEGORY_POINTER) {
+      for (int elem_i = 0; elem_i < array_elem_num; elem_i++) {
+        const char *member_name = sdna_.members[member.member_index];
+        r_struct_info.pointers.append(
+            {offset + elem_i * sdna_.pointer_size, member_type_name, member_name});
+      }
+    }
+    else if (member_category == STRUCT_MEMBER_CATEGORY_STRUCT) {
+      const int substruct_i = DNA_struct_find_index_without_alias(&sdna_, member_type_name);
+      const SDNA_Struct &sub_sdna_struct = *sdna_.structs[substruct_i];
+      int substruct_size = sdna_.types_size[member.type_index];
+      for (int elem_i = 0; elem_i < array_elem_num; elem_i++) {
+        this->gather_pointer_members_recursive(
+            sub_sdna_struct, offset + elem_i * substruct_size, r_struct_info);
+      }
+    }
+    offset += get_member_size_in_bytes(&sdna_, &member);
+  }
+}
+
+}  // namespace blender::dna::pointers
 
 /** \} */
 

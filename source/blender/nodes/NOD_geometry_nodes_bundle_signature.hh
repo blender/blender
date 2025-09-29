@@ -8,24 +8,21 @@
 
 #include "BKE_node.hh"
 
+#include "NOD_node_in_compute_context.hh"
+
 namespace blender::nodes {
 
 struct BundleSignature {
-
   struct Item {
     std::string key;
     const bke::bNodeSocketType *type = nullptr;
+    NodeSocketInterfaceStructureType structure_type;
 
-    uint64_t hash() const
-    {
-      return get_default_hash(this->key);
-    }
-
-    BLI_STRUCT_EQUALITY_OPERATORS_1(Item, key)
+    BLI_STRUCT_EQUALITY_OPERATORS_3(Item, key, type, structure_type);
   };
 
   struct ItemKeyGetter {
-    std::string operator()(const Item &item)
+    StringRefNull operator()(const Item &item)
     {
       return item.key;
     }
@@ -33,12 +30,35 @@ struct BundleSignature {
 
   CustomIDVectorSet<Item, ItemKeyGetter> items;
 
-  bool matches_exactly(const BundleSignature &other) const;
+  friend bool operator==(const BundleSignature &a, const BundleSignature &b);
+  friend bool operator!=(const BundleSignature &a, const BundleSignature &b);
 
-  static bool all_matching_exactly(const Span<BundleSignature> signatures);
+  static BundleSignature from_combine_bundle_node(const bNode &node,
+                                                  bool allow_auto_structure_type);
+  static BundleSignature from_separate_bundle_node(const bNode &node,
+                                                   bool allow_auto_structure_type);
 
-  static BundleSignature from_combine_bundle_node(const bNode &node);
-  static BundleSignature from_separate_bundle_node(const bNode &node);
+  void set_auto_structure_types();
 };
+
+/**
+ * Multiple bundle signatures that may be linked to a single node.
+ */
+struct LinkedBundleSignatures {
+  struct Item {
+    BundleSignature signature;
+    bool is_signature_definition = false;
+    SocketInContext source_socket;
+  };
+  Vector<Item> items;
+  bool has_type_definition() const;
+
+  std::optional<BundleSignature> get_merged_signature() const;
+};
+
+NodeSocketInterfaceStructureType get_structure_type_for_bundle_signature(
+    const bNodeSocket &socket,
+    const NodeSocketInterfaceStructureType stored_structure_type,
+    const bool allow_auto_structure_type);
 
 }  // namespace blender::nodes

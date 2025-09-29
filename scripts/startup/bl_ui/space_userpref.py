@@ -59,7 +59,7 @@ class USERPREF_PT_navigation_bar(Panel):
     bl_label = "Preferences Navigation"
     bl_space_type = 'PREFERENCES'
     bl_region_type = 'UI'
-    bl_category = 'Navigation'
+    bl_category = "Navigation"
     bl_options = {'HIDE_HEADER'}
 
     def draw(self, context):
@@ -706,7 +706,7 @@ class USERPREF_PT_system_display_graphics(SystemPanel, CenterAlignMixIn, Panel):
     @classmethod
     def poll(cls, _context):
         import platform
-        return platform.system() != 'Darwin'
+        return platform.system() != "Darwin"
 
     def draw_centered(self, context, layout):
         prefs = context.preferences
@@ -838,8 +838,8 @@ class USERPREF_PT_system_memory(SystemPanel, CenterAlignMixIn, Panel):
             col = layout.column(align=True)
             col.active = system.gpu_backend != 'VULKAN'
             col.row().prop(system, "shader_compilation_method", expand=True)
-            label = "Threads" if system.shader_compilation_method == 'THREAD' else "Subprocesses"
-            col.prop(system, "gpu_shader_workers", text=label)
+            label = iface_("Threads") if system.shader_compilation_method == 'THREAD' else iface_("Subprocesses")
+            col.prop(system, "gpu_shader_workers", text=label, translate=False)
 
 
 class USERPREF_PT_system_video_sequencer(SystemPanel, CenterAlignMixIn, Panel):
@@ -1455,6 +1455,7 @@ class ThemeGenericClassGenerator:
     def generate_panel_classes_for_wcols():
         wcols = [
             ("Box", "wcol_box"),
+            ("Curve", "wcol_curve"),
             ("List Item", "wcol_list_item"),
             ("Menu", "wcol_menu"),
             ("Menu Background", "wcol_menu_back"),
@@ -2961,6 +2962,7 @@ class USERPREF_PT_developer_tools(Panel):
                 ({"property": "use_viewport_debug"}, None),
                 ({"property": "use_eevee_debug"}, None),
                 ({"property": "use_extensions_debug"}, ("/blender/blender/issues/119521", "#119521")),
+                ({"property": "no_data_block_packing"}, ("/blender/blender/issues/132167", "#132167")),
             ),
         )
 

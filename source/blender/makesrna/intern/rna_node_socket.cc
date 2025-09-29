@@ -279,15 +279,8 @@ static void rna_NodeSocket_type_set(PointerRNA *ptr, int value)
 
 static int rna_NodeSocket_inferred_structure_type_get(PointerRNA *ptr)
 {
-  bNodeTree *tree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
   bNodeSocket *socket = ptr->data_as<bNodeSocket>();
-  tree->ensure_topology_cache();
-  if (tree->runtime->inferred_structure_types.size() != tree->all_sockets().size()) {
-    /* This cache is outdated or not available on this tree type. */
-    return int(blender::nodes::StructureType::Dynamic);
-  }
-  const int index = socket->index_in_tree();
-  return int(tree->runtime->inferred_structure_types[index]);
+  return int(socket->runtime->inferred_structure_type);
 }
 
 static void rna_NodeSocket_bl_idname_get(PointerRNA *ptr, char *value)
@@ -647,7 +640,7 @@ const EnumPropertyItem *RNA_node_enum_definition_itemf(
 
 const EnumPropertyItem *RNA_node_socket_menu_itemf(bContext * /*C*/,
                                                    PointerRNA *ptr,
-                                                   PropertyRNA * /*prop*/,
+                                                   PropertyRNA *prop,
                                                    bool *r_free)
 {
   const bNodeSocket *socket = static_cast<bNodeSocket *>(ptr->data);
@@ -660,6 +653,8 @@ const EnumPropertyItem *RNA_node_socket_menu_itemf(bContext * /*C*/,
     *r_free = false;
     return rna_enum_dummy_NULL_items;
   }
+  const char *socket_translation_context = blender::bke::node_socket_translation_context(*socket);
+  RNA_def_property_translation_context(prop, socket_translation_context);
   return RNA_node_enum_definition_itemf(*data->enum_items, r_free);
 }
 

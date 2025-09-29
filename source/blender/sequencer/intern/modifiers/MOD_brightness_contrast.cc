@@ -48,7 +48,8 @@ struct BrightContrastApplyOp {
   }
 };
 
-static void brightcontrast_apply(const StripScreenQuad & /*quad*/,
+static void brightcontrast_apply(const RenderData * /*render_data*/,
+                                 const StripScreenQuad & /*quad*/,
                                  StripModifierData *smd,
                                  ImBuf *ibuf,
                                  ImBuf *mask)

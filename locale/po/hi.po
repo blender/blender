@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'7089def6cbcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-22 08:45+0000\n"
+"POT-Creation-Date: 2025-09-29 09:33+0000\n"
 "PO-Revision-Date: 2025-07-23 15:34+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -2580,44 +2580,20 @@ msgid "Mask"
 msgstr "आवरण"
 
 
-msgid "Toggle Bone Options"
-msgstr "हड्डी विकल्प बंद/बुझ"
-
-
-msgid "Enable Bone Options"
-msgstr "हड्डी विकल्प को सक्षम करें"
-
-
-msgid "Merge"
-msgstr "विलय करें"
-
-
-msgid "Show/Hide"
-msgstr "छुपाएँ / दिखाएँ"
-
-
-msgid "Text"
-msgstr "पाठ"
-
-
-msgid "Names"
-msgstr "नाम"
-
-
-msgid "Bone Roll"
-msgstr "हड्डी पंजी"
+msgid "Mirror"
+msgstr "दर्पण"
 
 
 msgid "Snap"
 msgstr "स्नैप"
 
 
-msgid "Mirror"
-msgstr "दर्पण"
-
-
 msgid "Light"
 msgstr "प्रकाश"
+
+
+msgid "Keying"
+msgstr "कुंजीयन"
 
 
 msgid "Rigid Body"
@@ -2636,12 +2612,52 @@ msgid "Quick Effects"
 msgstr "त्वरित प्रभाव"
 
 
+msgid "Show/Hide"
+msgstr "छुपाएँ / दिखाएँ"
+
+
 msgid "Make Single User"
 msgstr "एकल प्रयोक्ता बनाएँ"
 
 
 msgid "Hooks"
 msgstr "खूँटी"
+
+
+msgid "Names"
+msgstr "नाम"
+
+
+msgid "Toggle Bone Options"
+msgstr "हड्डी विकल्प बंद/बुझ"
+
+
+msgid "Enable Bone Options"
+msgstr "हड्डी विकल्प को सक्षम करें"
+
+
+msgid "Merge"
+msgstr "विलय करें"
+
+
+msgid "Text"
+msgstr "पाठ"
+
+
+msgid "Import"
+msgstr "आयात करें"
+
+
+msgid "Bone Roll"
+msgstr "हड्डी पंजी"
+
+
+msgid "Math"
+msgstr "गणित"
+
+
+msgid "UV"
+msgstr "यूवी"
 
 
 msgid "Basic"
@@ -2690,28 +2706,12 @@ msgid "Smooth"
 msgstr "चिकना"
 
 
-msgid "UV"
-msgstr "यूवी"
-
-
 msgid "Align"
 msgstr "संरेखित करें"
 
 
 msgid "Strip"
 msgstr "पट्टी"
-
-
-msgid "Math"
-msgstr "गणित"
-
-
-msgid "Keying"
-msgstr "कुंजीयन"
-
-
-msgid "Import"
-msgstr "आयात करें"
 
 
 msgid "Node"
@@ -3027,10 +3027,6 @@ msgstr "रुचिनुकूल रंग"
 
 msgid "Starting"
 msgstr "प्रारम्भ"
-
-
-msgid "Meta"
-msgstr "मेटा"
 
 
 msgid "NLA Track is locked"
@@ -4867,6 +4863,10 @@ msgid "Lock to Object"
 msgstr "वस्तु के लिए तालाबंदी"
 
 
+msgid "Meta"
+msgstr "मेटा"
+
+
 msgid "3D"
 msgstr "त्रि-आयाम"
 
@@ -5485,11 +5485,6 @@ msgstr "रंग"
 msgctxt "Operator"
 msgid "Text"
 msgstr "पाठ"
-
-
-msgctxt "Operator"
-msgid "Scene..."
-msgstr "दृश्य..."
 
 
 msgctxt "Operator"

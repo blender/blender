@@ -339,6 +339,10 @@ static size_t id_delete(Main *bmain,
     id_remapper.clear();
   }
 
+  /* Remapping above may have left some Library::runtime::archived_libraries items to nullptr,
+   * clean this up and shrink the vector accordingly. */
+  blender::bke::library::main_cleanup_parent_archives(*bmain);
+
   /* Since we removed IDs from Main, their own other IDs usages need to be removed 'manually'. */
   blender::Vector<ID *> cleanup_ids{ids_to_delete.begin(), ids_to_delete.end()};
   BKE_libblock_relink_multiple(

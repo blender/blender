@@ -489,7 +489,6 @@ static void sort_readers(blender::MutableSpan<AbcObjectReader *> readers)
 static void import_file(ImportJobData *data, const char *filepath, float progress_factor)
 {
   blender::timeit::TimePoint start_time = blender::timeit::Clock::now();
-  SCOPE_TIMER("Alembic import, objects reading and creation");
 
   ArchiveReader *archive = ArchiveReader::get(data->bmain, {filepath});
 
@@ -646,8 +645,6 @@ static void import_startjob(void *user_data, wmJobWorkerStatus *worker_status)
 
 static void import_endjob(void *user_data)
 {
-  SCOPE_TIMER("Alembic import, cleanup");
-
   ImportJobData *data = static_cast<ImportJobData *>(user_data);
 
   /* Delete objects on cancellation. */

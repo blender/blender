@@ -30,6 +30,7 @@
 
 #include <chrono>
 
+#include "BLI_cache_mutex.hh"
 #include "BLI_compute_context.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_generic_pointer.hh"
@@ -239,6 +240,9 @@ class ListInfoLog : public ValueLog {
  * Data logged by a viewer node when it is executed.
  */
 class ViewerNodeLog {
+  mutable CacheMutex main_geometry_cache_mutex_;
+  mutable std::optional<bke::GeometrySet> main_geometry_cache_;
+
  public:
   struct Item {
     int identifier;
@@ -255,7 +259,7 @@ class ViewerNodeLog {
 
   CustomIDVectorSet<Item, ItemIdentifierGetter> items;
 
-  std::optional<bke::GeometrySet> main_geometry() const;
+  const bke::GeometrySet *main_geometry() const;
 };
 
 using Clock = std::chrono::steady_clock;

@@ -636,11 +636,11 @@ ccl_device Spectrum volume_transmittance(KernelGlobals kg,
 
 /* Compute the volumetric transmittance of the segment [ray->tmin, ray->tmax],
  * used for the shadow ray throughput. */
-ccl_device void volume_shadow_heterogeneous(KernelGlobals kg,
-                                            IntegratorShadowState state,
-                                            ccl_private Ray *ccl_restrict ray,
-                                            ccl_private ShaderData *ccl_restrict sd,
-                                            ccl_private Spectrum *ccl_restrict throughput)
+ccl_device void volume_shadow_null_scattering(KernelGlobals kg,
+                                              IntegratorShadowState state,
+                                              ccl_private Ray *ccl_restrict ray,
+                                              ccl_private ShaderData *ccl_restrict sd,
+                                              ccl_private Spectrum *ccl_restrict throughput)
 {
   /* Load random number state. */
   RNGState rng_state;
@@ -1891,14 +1891,14 @@ volume_direct_sample_method(KernelGlobals kg,
 }
 
 /* Shared function of integrating homogeneous and heterogeneous volume. */
-ccl_device void volume_integrate_shared(KernelGlobals kg,
-                                        const IntegratorState state,
-                                        const ccl_private Ray *ccl_restrict ray,
-                                        ccl_private ShaderData *ccl_restrict sd,
-                                        const ccl_private RNGState *rng_state,
-                                        ccl_global float *ccl_restrict render_buffer,
-                                        ccl_private LightSample *ls,
-                                        ccl_private VolumeIntegrateResult &result)
+ccl_device void volume_integrate_null_scattering(KernelGlobals kg,
+                                                 const IntegratorState state,
+                                                 const ccl_private Ray *ccl_restrict ray,
+                                                 ccl_private ShaderData *ccl_restrict sd,
+                                                 const ccl_private RNGState *rng_state,
+                                                 ccl_global float *ccl_restrict render_buffer,
+                                                 ccl_private LightSample *ls,
+                                                 ccl_private VolumeIntegrateResult &result)
 {
   PROFILING_INIT(kg, PROFILING_SHADE_VOLUME_INTEGRATE);
 
@@ -1943,6 +1943,426 @@ ccl_device void volume_integrate_shared(KernelGlobals kg,
     INTEGRATOR_STATE_WRITE(state, path, optical_depth) += vstate.optical_depth;
   }
 }
+
+/* -------------------------------------------------------------------- */
+/** \name Ray Marching
+ * \{ */
+
+/* Determines the next shading position. */
+struct VolumeStep {
+  /* Shift starting point of all segments by a random amount to avoid banding artifacts due to
+   * biased ray marching with insufficient step size. */
+  float offset;
+
+  /* Step size taken at each marching step. */
+  float size;
+
+  /* Perform shading at this offset within a step, to integrate over the entire step segment. */
+  float shade_offset;
+
+  /* Maximal steps allowed between `ray->tmin` and `ray->tmax`. */
+  int max_steps;
+
+  /* Current active segment. */
+  Interval<float> t;
+};
+
+template<const bool shadow>
+ccl_device_forceinline void volume_step_init(KernelGlobals kg,
+                                             const ccl_private RNGState *rng_state,
+                                             const float object_step_size,
+                                             const float tmin,
+                                             const float tmax,
+                                             ccl_private VolumeStep *vstep)
+{
+  vstep->t.min = vstep->t.max = tmin;
+
+  if (object_step_size == FLT_MAX) {
+    /* Homogeneous volume. */
+    vstep->size = tmax - tmin;
+    vstep->shade_offset = 0.0f;
+    vstep->offset = 1.0f;
+    vstep->max_steps = 1;
+  }
+  else {
+    /* Heterogeneous volume. */
+    vstep->max_steps = kernel_data.integrator.volume_max_steps;
+    const float t = tmax - tmin;
+    float step_size = min(object_step_size, t);
+
+    if (t > vstep->max_steps * step_size) {
+      /* Increase step size to cover the whole ray segment. */
+      step_size = t / (float)vstep->max_steps;
+    }
+
+    vstep->size = step_size;
+    vstep->shade_offset = path_state_rng_1D(kg, rng_state, PRNG_VOLUME_SHADE_OFFSET);
+
+    if (shadow) {
+      /* For shadows we do not offset all segments, since the starting point is already a random
+       * distance inside the volume. It also appears to create banding artifacts for unknown
+       * reasons. */
+      vstep->offset = 1.0f;
+    }
+    else {
+      vstep->offset = path_state_rng_1D(kg, rng_state, PRNG_VOLUME_OFFSET);
+    }
+  }
+}
+
+ccl_device_inline bool volume_ray_marching_advance(const int step,
+                                                   const ccl_private Ray *ccl_restrict ray,
+                                                   ccl_private float3 *shade_P,
+                                                   ccl_private VolumeStep &vstep)
+{
+  if (vstep.t.max == ray->tmax) {
+    /* Reached the last segment. */
+    return false;
+  }
+
+  /* Advance to new position. */
+  vstep.t.min = vstep.t.max;
+  vstep.t.max = min(ray->tmax, ray->tmin + (step + vstep.offset) * vstep.size);
+  const float shade_t = mix(vstep.t.min, vstep.t.max, vstep.shade_offset);
+  *shade_P = ray->P + ray->D * shade_t;
+
+  return step < vstep.max_steps;
+}
+
+ccl_device void volume_shadow_ray_marching(KernelGlobals kg,
+                                           IntegratorShadowState state,
+                                           ccl_private Ray *ccl_restrict ray,
+                                           ccl_private ShaderData *ccl_restrict sd,
+                                           ccl_private Spectrum *ccl_restrict throughput,
+                                           const float object_step_size)
+{
+  /* Load random number state. */
+  RNGState rng_state;
+  shadow_path_state_rng_load(state, &rng_state);
+
+  /* For stochastic texture sampling. */
+  sd->lcg_state = lcg_state_init(
+      rng_state.rng_pixel, rng_state.rng_offset, rng_state.sample, 0xd9111870);
+
+  Spectrum tp = *throughput;
+
+  /* Prepare for stepping. */
+  VolumeStep vstep;
+  volume_step_init<true>(kg, &rng_state, object_step_size, ray->tmin, ray->tmax, &vstep);
+
+  /* compute extinction at the start */
+  Spectrum sum = zero_spectrum();
+  for (int step = 0; volume_ray_marching_advance(step, ray, &sd->P, vstep); step++) {
+    /* compute attenuation over segment */
+    const Spectrum sigma_t = volume_shader_eval_extinction<true>(kg, state, sd, PATH_RAY_SHADOW);
+    /* Compute `expf()` only for every Nth step, to save some calculations
+     * because `exp(a)*exp(b) = exp(a+b)`, also do a quick #VOLUME_THROUGHPUT_EPSILON
+     * check then. */
+    sum += (-sigma_t * vstep.t.length());
+    if ((step & 0x07) == 0) { /* TODO: Other interval? */
+      tp = *throughput * exp(sum);
+
+      /* stop if nearly all light is blocked */
+      if (reduce_max(tp) < VOLUME_THROUGHPUT_EPSILON) {
+        break;
+      }
+    }
+  }
+
+  if (vstep.t.max == ray->tmax) {
+    /* Update throughput in case we haven't done it above. */
+    tp = *throughput * exp(sum);
+  }
+
+  *throughput = tp;
+}
+
+struct VolumeRayMarchingState {
+  /* Random numbers for scattering. */
+  float rscatter;
+  float rchannel;
+
+  /* Multiple importance sampling. */
+  VolumeSampleMethod direct_sample_method;
+  bool use_mis;
+  float distance_pdf;
+  float equiangular_pdf;
+};
+
+ccl_device_inline void volume_ray_marching_state_init(
+    KernelGlobals kg,
+    const ccl_private RNGState *rng_state,
+    const VolumeSampleMethod direct_sample_method,
+    ccl_private VolumeRayMarchingState &vstate)
+{
+  vstate.rscatter = path_state_rng_1D(kg, rng_state, PRNG_VOLUME_SCATTER_DISTANCE);
+  vstate.rchannel = path_state_rng_1D(kg, rng_state, PRNG_VOLUME_COLOR_CHANNEL);
+
+  /* Multiple importance sampling: pick between equiangular and distance sampling strategy. */
+  vstate.direct_sample_method = direct_sample_method;
+  vstate.use_mis = (direct_sample_method == VOLUME_SAMPLE_MIS);
+  if (vstate.use_mis) {
+    if (vstate.rscatter < 0.5f) {
+      vstate.rscatter *= 2.0f;
+      vstate.direct_sample_method = VOLUME_SAMPLE_DISTANCE;
+    }
+    else {
+      vstate.rscatter = (vstate.rscatter - 0.5f) * 2.0f;
+      vstate.direct_sample_method = VOLUME_SAMPLE_EQUIANGULAR;
+    }
+  }
+  vstate.equiangular_pdf = 0.0f;
+  vstate.distance_pdf = 1.0f;
+}
+
+/* Returns true if we found the indirect scatter position within the current active ray segment. */
+ccl_device bool volume_sample_indirect_scatter_ray_marching(
+    const Spectrum transmittance,
+    const Spectrum channel_pdf,
+    const int channel,
+    const ccl_private ShaderData *ccl_restrict sd,
+    const ccl_private VolumeShaderCoefficients &ccl_restrict coeff,
+    const ccl_private Interval<float> &t,
+    ccl_private VolumeRayMarchingState &ccl_restrict vstate,
+    ccl_private VolumeIntegrateResult &ccl_restrict result)
+{
+  if (result.indirect_scatter) {
+    /* Already sampled indirect scatter position. */
+    return false;
+  }
+
+  /* If sampled distance does not go beyond the current segment, we have found the scatter
+   * position. Otherwise continue searching and accumulate the transmittance along the ray. */
+  const float sample_transmittance = volume_channel_get(transmittance, channel);
+  if (1.0f - vstate.rscatter >= sample_transmittance) {
+    /* Pick `sigma_t` from a random channel. */
+    const float sample_sigma_t = volume_channel_get(coeff.sigma_t, channel);
+
+    /* Generate the next distance using random walk, following exponential distribution
+     * p(dt) = sigma_t * exp(-sigma_t * dt). */
+    const float new_dt = -logf(1.0f - vstate.rscatter) / sample_sigma_t;
+    const float new_t = t.min + new_dt;
+
+    const Spectrum new_transmittance = volume_color_transmittance(coeff.sigma_t, new_dt);
+    /* PDF for density-based distance sampling is handled implicitly via
+     * transmittance / pdf = exp(-sigma_t * dt) / (sigma_t * exp(-sigma_t * dt)) = 1 / sigma_t. */
+    const float distance_pdf = dot(channel_pdf, coeff.sigma_t * new_transmittance);
+
+    if (vstate.distance_pdf * distance_pdf > VOLUME_SAMPLE_PDF_CUTOFF) {
+      /* Update throughput. */
+      result.indirect_scatter = true;
+      result.indirect_t = new_t;
+      result.indirect_throughput *= coeff.sigma_s * new_transmittance / distance_pdf;
+      if (vstate.direct_sample_method == VOLUME_SAMPLE_DISTANCE) {
+        vstate.distance_pdf *= distance_pdf;
+      }
+
+      volume_shader_copy_phases(&result.indirect_phases, sd);
+
+      return true;
+    }
+  }
+  else {
+    /* Update throughput. */
+    const float distance_pdf = dot(channel_pdf, transmittance);
+    result.indirect_throughput *= transmittance / distance_pdf;
+    if (vstate.direct_sample_method == VOLUME_SAMPLE_DISTANCE) {
+      vstate.distance_pdf *= distance_pdf;
+    }
+
+    /* Remap rscatter so we can reuse it and keep thing stratified. */
+    vstate.rscatter = 1.0f - (1.0f - vstate.rscatter) / sample_transmittance;
+  }
+
+  return false;
+}
+
+/* Find direct and indirect scatter positions. */
+ccl_device_forceinline void volume_ray_marching_step_scattering(
+    const ccl_private ShaderData *sd,
+    const ccl_private Ray *ray,
+    const ccl_private EquiangularCoefficients &equiangular_coeffs,
+    const ccl_private VolumeShaderCoefficients &ccl_restrict coeff,
+    const Spectrum transmittance,
+    const ccl_private Interval<float> &t,
+    ccl_private VolumeRayMarchingState &ccl_restrict vstate,
+    ccl_private VolumeIntegrateResult &ccl_restrict result)
+{
+  /* Pick random color channel for sampling the scatter distance. We use the Veach one-sample model
+   * with balance heuristic for the channels.
+   * Set `albedo` to 1 for the channel where extinction coefficient `sigma_t` is zero, to make sure
+   * that we sample a distance outside the current segment when that channel is picked, meaning
+   * light passes through without attenuation. */
+  const Spectrum albedo = safe_divide_color(coeff.sigma_s, coeff.sigma_t, 1.0f);
+  Spectrum channel_pdf;
+  const int channel = volume_sample_channel(
+      albedo, result.indirect_throughput, &vstate.rchannel, &channel_pdf);
+
+  /* Equiangular sampling for direct lighting. */
+  if (vstate.direct_sample_method == VOLUME_SAMPLE_EQUIANGULAR && !result.direct_scatter) {
+    if (t.contains(result.direct_t) && vstate.equiangular_pdf > VOLUME_SAMPLE_PDF_CUTOFF) {
+      const float new_dt = result.direct_t - t.min;
+      const Spectrum new_transmittance = volume_color_transmittance(coeff.sigma_t, new_dt);
+
+      result.direct_scatter = true;
+      result.direct_throughput *= coeff.sigma_s * new_transmittance / vstate.equiangular_pdf;
+      volume_shader_copy_phases(&result.direct_phases, sd);
+
+      /* Multiple importance sampling. */
+      if (vstate.use_mis) {
+        const float distance_pdf = vstate.distance_pdf *
+                                   dot(channel_pdf, coeff.sigma_t * new_transmittance);
+        const float mis_weight = 2.0f * power_heuristic(vstate.equiangular_pdf, distance_pdf);
+        result.direct_throughput *= mis_weight;
+      }
+    }
+    else {
+      result.direct_throughput *= transmittance;
+      vstate.distance_pdf *= dot(channel_pdf, transmittance);
+    }
+  }
+
+  /* Distance sampling for indirect and optional direct lighting. */
+  if (volume_sample_indirect_scatter_ray_marching(
+          transmittance, channel_pdf, channel, sd, coeff, t, vstate, result))
+  {
+    if (vstate.direct_sample_method == VOLUME_SAMPLE_DISTANCE) {
+      /* If using distance sampling for direct light, just copy parameters of indirect light
+       * since we scatter at the same point. */
+      result.direct_scatter = true;
+      result.direct_t = result.indirect_t;
+      result.direct_throughput = result.indirect_throughput;
+      volume_shader_copy_phases(&result.direct_phases, sd);
+
+      /* Multiple importance sampling. */
+      if (vstate.use_mis) {
+        const float equiangular_pdf = volume_equiangular_pdf(
+            ray, equiangular_coeffs, result.indirect_t);
+        const float mis_weight = power_heuristic(vstate.distance_pdf, equiangular_pdf);
+        result.direct_throughput *= 2.0f * mis_weight;
+      }
+    }
+  }
+}
+
+/* heterogeneous volume distance sampling: integrate stepping through the
+ * volume until we reach the end, get absorbed entirely, or run out of
+ * iterations. this does probabilistically scatter or get transmitted through
+ * for path tracing where we don't want to branch. */
+ccl_device_forceinline void volume_integrate_ray_marching(
+    KernelGlobals kg,
+    const IntegratorState state,
+    const ccl_private Ray *ccl_restrict ray,
+    ccl_private ShaderData *ccl_restrict sd,
+    const ccl_private RNGState *ccl_restrict rng_state,
+    ccl_global float *ccl_restrict render_buffer,
+    const float object_step_size,
+    ccl_private LightSample *ls,
+    ccl_private VolumeIntegrateResult &result)
+{
+  PROFILING_INIT(kg, PROFILING_SHADE_VOLUME_INTEGRATE);
+
+  EquiangularCoefficients equiangular_coeffs = {zero_float3(), {ray->tmin, ray->tmax}};
+  const VolumeSampleMethod direct_sample_method = volume_direct_sample_method(
+      kg, state, ray, sd, rng_state, &equiangular_coeffs, ls);
+
+  /* Prepare for stepping. */
+  VolumeStep vstep;
+  volume_step_init<false>(kg, rng_state, object_step_size, ray->tmin, ray->tmax, &vstep);
+
+  /* Initialize volume integration state. */
+  VolumeRayMarchingState vstate ccl_optional_struct_init;
+  volume_ray_marching_state_init(kg, rng_state, direct_sample_method, vstate);
+
+  /* Initialize volume integration result. */
+  const Spectrum throughput = INTEGRATOR_STATE(state, path, throughput);
+  result.direct_throughput = (vstate.direct_sample_method == VOLUME_SAMPLE_NONE) ?
+                                 zero_spectrum() :
+                                 throughput;
+  result.indirect_throughput = throughput;
+
+  /* Equiangular sampling: compute distance and PDF in advance. */
+  if (vstate.direct_sample_method == VOLUME_SAMPLE_EQUIANGULAR) {
+    result.direct_t = volume_equiangular_sample(
+        ray, equiangular_coeffs, vstate.rscatter, &vstate.equiangular_pdf);
+  }
+#  if defined(__PATH_GUIDING__)
+  result.direct_sample_method = vstate.direct_sample_method;
+#  endif
+
+#  ifdef __DENOISING_FEATURES__
+  const bool write_denoising_features = (INTEGRATOR_STATE(state, path, flag) &
+                                         PATH_RAY_DENOISING_FEATURES);
+  Spectrum accum_albedo = zero_spectrum();
+#  endif
+  Spectrum accum_emission = zero_spectrum();
+
+  for (int step = 0; volume_ray_marching_advance(step, ray, &sd->P, vstep); step++) {
+    /* compute segment */
+    VolumeShaderCoefficients coeff ccl_optional_struct_init;
+    if (volume_shader_sample(kg, state, sd, &coeff)) {
+      const int closure_flag = sd->flag;
+
+      /* Evaluate transmittance over segment. */
+      const float dt = vstep.t.length();
+      const Spectrum transmittance = (closure_flag & SD_EXTINCTION) ?
+                                         volume_color_transmittance(coeff.sigma_t, dt) :
+                                         one_spectrum();
+
+      /* Emission. */
+      if (closure_flag & SD_EMISSION) {
+        /* Only write emission before indirect light scatter position, since we terminate
+         * stepping at that point if we have already found a direct light scatter position. */
+        if (!result.indirect_scatter) {
+          const Spectrum emission = volume_emission_integrate(&coeff, closure_flag, dt);
+          accum_emission += result.indirect_throughput * emission;
+          guiding_record_volume_emission(kg, state, emission);
+        }
+      }
+
+      if (closure_flag & SD_SCATTER) {
+#  ifdef __DENOISING_FEATURES__
+        /* Accumulate albedo for denoising features. */
+        if (write_denoising_features && (closure_flag & SD_SCATTER)) {
+          const Spectrum albedo = safe_divide_color(coeff.sigma_s, coeff.sigma_t);
+          accum_albedo += result.indirect_throughput * albedo * (one_spectrum() - transmittance);
+        }
+#  endif
+
+        /* Scattering and absorption. */
+        volume_ray_marching_step_scattering(
+            sd, ray, equiangular_coeffs, coeff, transmittance, vstep.t, vstate, result);
+      }
+      else if (closure_flag & SD_EXTINCTION) {
+        /* Absorption only. */
+        result.indirect_throughput *= transmittance;
+        result.direct_throughput *= transmittance;
+      }
+
+      if (volume_integrate_should_stop(result)) {
+        break;
+      }
+    }
+  }
+
+  /* Write accumulated emission. */
+  if (!is_zero(accum_emission)) {
+    if (light_link_object_match(kg, light_link_receiver_forward(kg, state), sd->object)) {
+      film_write_volume_emission(
+          kg, state, accum_emission, render_buffer, object_lightgroup(kg, sd->object));
+    }
+  }
+
+#  ifdef __DENOISING_FEATURES__
+  /* Write denoising features. */
+  if (write_denoising_features) {
+    film_write_denoising_features_volume(
+        kg, state, accum_albedo, result.indirect_scatter, render_buffer);
+  }
+#  endif /* __DENOISING_FEATURES__ */
+}
+
+/** \} */
 
 /* Path tracing: sample point on light and evaluate light shader, then
  * queue shadow ray to be traced. */
@@ -2199,38 +2619,15 @@ ccl_device_forceinline bool integrate_volume_phase_scatter(
   return true;
 }
 
-/* get the volume attenuation and emission over line segment defined by
- * ray, with the assumption that there are no surfaces blocking light
- * between the endpoints. distance sampling is used to decide if we will
- * scatter or not. */
-ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
-                                                 IntegratorState state,
-                                                 ccl_private Ray *ccl_restrict ray,
-                                                 ccl_global float *ccl_restrict render_buffer)
+ccl_device_inline VolumeIntegrateEvent
+volume_integrate_event(KernelGlobals kg,
+                       IntegratorState state,
+                       const ccl_private Ray *ccl_restrict ray,
+                       ccl_private ShaderData *sd,
+                       const ccl_private RNGState *rng_state,
+                       ccl_private LightSample &ls,
+                       ccl_private VolumeIntegrateResult &result)
 {
-  if (integrator_state_volume_stack_is_empty(kg, state)) {
-    return VOLUME_PATH_ATTENUATED;
-  }
-
-  ShaderData sd;
-  /* FIXME: `object` is used for light linking. We read the bottom of the stack for simplicity, but
-   * this does not work for overlapping volumes. */
-  shader_setup_from_volume(&sd, ray, INTEGRATOR_STATE_ARRAY(state, volume_stack, 0, object));
-
-  /* Load random number state. */
-  RNGState rng_state;
-  path_state_rng_load(state, &rng_state);
-
-  /* For stochastic texture sampling. */
-  sd.lcg_state = lcg_state_init(
-      rng_state.rng_pixel, rng_state.rng_offset, rng_state.sample, 0x15b4f88d);
-
-  LightSample ls ccl_optional_struct_init;
-
-  /* TODO: expensive to zero closures? */
-  VolumeIntegrateResult result = {};
-  volume_integrate_shared(kg, state, ray, &sd, &rng_state, render_buffer, &ls, result);
-
 #  if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 1
   /* The current path throughput which is used later to calculate per-segment throughput. */
   const float3 initial_throughput = INTEGRATOR_STATE(state, path, throughput);
@@ -2267,10 +2664,10 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
         const float3 transmittance_weight = spectrum_to_rgb(
             safe_divide_color(result.indirect_throughput, initial_throughput));
         guiding_record_volume_transmission(kg, state, transmittance_weight);
-        guiding_record_volume_segment(kg, state, direct_P, sd.wi);
+        guiding_record_volume_segment(kg, state, direct_P, sd->wi);
         guiding_generated_new_segment = true;
         unlit_throughput = result.indirect_throughput / continuation_probability;
-        rand_phase_guiding = path_state_rng_1D(kg, &rng_state, PRNG_VOLUME_PHASE_GUIDING_DISTANCE);
+        rand_phase_guiding = path_state_rng_1D(kg, rng_state, PRNG_VOLUME_PHASE_GUIDING_DISTANCE);
       }
       else if (result.direct_sample_method == VOLUME_SAMPLE_EQUIANGULAR) {
         /* If the direct scatter event is generated using VOLUME_SAMPLE_EQUIANGULAR the direct
@@ -2287,7 +2684,7 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
         unlit_throughput /= scatterEval;
         unlit_throughput *= continuation_probability;
         rand_phase_guiding = path_state_rng_1D(
-            kg, &rng_state, PRNG_VOLUME_PHASE_GUIDING_EQUIANGULAR);
+            kg, rng_state, PRNG_VOLUME_PHASE_GUIDING_EQUIANGULAR);
       }
 #    endif
 #    if PATH_GUIDING_LEVEL >= 4
@@ -2302,8 +2699,8 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
     result.direct_throughput /= continuation_probability;
     integrate_volume_direct_light(kg,
                                   state,
-                                  &sd,
-                                  &rng_state,
+                                  sd,
+                                  rng_state,
                                   direct_P,
                                   &result.direct_phases,
 #  if defined(__PATH_GUIDING__)
@@ -2330,28 +2727,28 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
   INTEGRATOR_STATE_WRITE(state, path, throughput) = result.indirect_throughput;
 
   if (result.indirect_scatter) {
-    sd.P = ray->P + result.indirect_t * ray->D;
+    sd->P = ray->P + result.indirect_t * ray->D;
 
 #  if defined(__PATH_GUIDING__)
     if ((kernel_data.kernel_features & KERNEL_FEATURE_PATH_GUIDING)) {
 #    if PATH_GUIDING_LEVEL >= 1
       if (!guiding_generated_new_segment) {
-        guiding_record_volume_segment(kg, state, sd.P, sd.wi);
+        guiding_record_volume_segment(kg, state, sd->P, sd->wi);
       }
 #    endif
 #    if PATH_GUIDING_LEVEL >= 4
       /* If the direct scatter event was generated using VOLUME_SAMPLE_EQUIANGULAR we need to
        * initialize the guiding distribution at the indirect scatter position. */
       if (result.direct_sample_method == VOLUME_SAMPLE_EQUIANGULAR) {
-        rand_phase_guiding = path_state_rng_1D(kg, &rng_state, PRNG_VOLUME_PHASE_GUIDING_DISTANCE);
+        rand_phase_guiding = path_state_rng_1D(kg, rng_state, PRNG_VOLUME_PHASE_GUIDING_DISTANCE);
         volume_shader_prepare_guiding(
-            kg, state, rand_phase_guiding, sd.P, ray->D, &result.indirect_phases);
+            kg, state, rand_phase_guiding, sd->P, ray->D, &result.indirect_phases);
       }
 #    endif
     }
 #  endif
 
-    if (integrate_volume_phase_scatter(kg, state, &sd, ray, &rng_state, &result.indirect_phases)) {
+    if (integrate_volume_phase_scatter(kg, state, sd, ray, rng_state, &result.indirect_phases)) {
       return VOLUME_PATH_SCATTERED;
     }
     return VOLUME_PATH_MISSED;
@@ -2365,27 +2762,99 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
   return VOLUME_PATH_ATTENUATED;
 }
 
+/* get the volume attenuation and emission over line segment defined by
+ * ray, with the assumption that there are no surfaces blocking light
+ * between the endpoints. distance sampling is used to decide if we will
+ * scatter or not. */
+ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
+                                                 IntegratorState state,
+                                                 ccl_private Ray *ccl_restrict ray,
+                                                 ccl_global float *ccl_restrict render_buffer)
+{
+  kernel_assert(!kernel_data.integrator.volume_ray_marching);
+
+  if (integrator_state_volume_stack_is_empty(kg, state)) {
+    return VOLUME_PATH_ATTENUATED;
+  }
+
+  ShaderData sd;
+  /* FIXME: `object` is used for light linking. We read the bottom of the stack for simplicity, but
+   * this does not work for overlapping volumes. */
+  shader_setup_from_volume(&sd, ray, INTEGRATOR_STATE_ARRAY(state, volume_stack, 0, object));
+
+  /* Load random number state. */
+  RNGState rng_state;
+  path_state_rng_load(state, &rng_state);
+
+  /* For stochastic texture sampling. */
+  sd.lcg_state = lcg_state_init(
+      rng_state.rng_pixel, rng_state.rng_offset, rng_state.sample, 0x15b4f88d);
+
+  LightSample ls ccl_optional_struct_init;
+
+  /* TODO: expensive to zero closures? */
+  VolumeIntegrateResult result = {};
+  volume_integrate_null_scattering(kg, state, ray, &sd, &rng_state, render_buffer, &ls, result);
+
+  return volume_integrate_event(kg, state, ray, &sd, &rng_state, ls, result);
+}
+
+ccl_device VolumeIntegrateEvent
+volume_integrate_ray_marching(KernelGlobals kg,
+                              IntegratorState state,
+                              ccl_private Ray *ccl_restrict ray,
+                              ccl_global float *ccl_restrict render_buffer)
+{
+  kernel_assert(kernel_data.integrator.volume_ray_marching);
+
+  if (integrator_state_volume_stack_is_empty(kg, state)) {
+    return VOLUME_PATH_ATTENUATED;
+  }
+
+  ShaderData sd;
+  /* FIXME: `object` is used for light linking. We read the bottom of the stack for simplicity, but
+   * this does not work for overlapping volumes. */
+  shader_setup_from_volume(&sd, ray, INTEGRATOR_STATE_ARRAY(state, volume_stack, 0, object));
+
+  /* Load random number state. */
+  RNGState rng_state;
+  path_state_rng_load(state, &rng_state);
+
+  /* For stochastic texture sampling. */
+  sd.lcg_state = lcg_state_init(
+      rng_state.rng_pixel, rng_state.rng_offset, rng_state.sample, 0x15b4f88d);
+
+  LightSample ls ccl_optional_struct_init;
+
+  /* TODO: expensive to zero closures? */
+  VolumeIntegrateResult result = {};
+
+  const float step_size = volume_stack_step_size<false>(kg, state);
+  volume_integrate_ray_marching(
+      kg, state, ray, &sd, &rng_state, render_buffer, step_size, &ls, result);
+
+  return volume_integrate_event(kg, state, ray, &sd, &rng_state, ls, result);
+}
+
 #endif
 
-ccl_device void integrator_shade_volume(KernelGlobals kg,
-                                        IntegratorState state,
-                                        ccl_global float *ccl_restrict render_buffer)
+#ifdef __VOLUME__
+ccl_device_inline void integrator_shade_volume_setup(KernelGlobals kg,
+                                                     IntegratorState state,
+                                                     ccl_private Ray *ccl_restrict ray,
+                                                     ccl_private Intersection *ccl_restrict isect)
 {
   PROFILING_INIT(kg, PROFILING_SHADE_VOLUME_SETUP);
 
-#ifdef __VOLUME__
   /* Setup shader data. */
-  Ray ray ccl_optional_struct_init;
-  integrator_state_read_ray(state, &ray);
-
-  Intersection isect ccl_optional_struct_init;
-  integrator_state_read_isect(state, &isect);
+  integrator_state_read_ray(state, ray);
+  integrator_state_read_isect(state, isect);
 
   /* Set ray length to current segment. */
-  ray.tmax = (isect.prim != PRIM_NONE) ? isect.t : FLT_MAX;
+  ray->tmax = (isect->prim != PRIM_NONE) ? isect->t : FLT_MAX;
 
   /* Clean volume stack for background rays. */
-  if (isect.prim == PRIM_NONE) {
+  if (isect->prim == PRIM_NONE) {
     volume_stack_clean(kg, state);
   }
 
@@ -2393,35 +2862,70 @@ ccl_device void integrator_shade_volume(KernelGlobals kg,
   if (INTEGRATOR_STATE(state, path, bounce) == 0) {
     INTEGRATOR_STATE_WRITE(state, path, flag) |= PATH_RAY_VOLUME_PRIMARY_TRANSMIT;
   }
+}
+#endif
 
-  const VolumeIntegrateEvent event = volume_integrate(kg, state, &ray, render_buffer);
+template<DeviceKernel volume_kernel>
+ccl_device_inline void integrator_next_kernel_after_shade_volume(
+    KernelGlobals kg,
+    const IntegratorState state,
+    ccl_global float *ccl_restrict render_buffer,
+    const ccl_private Intersection *ccl_restrict isect,
+    const VolumeIntegrateEvent event)
+{
   if (event == VOLUME_PATH_MISSED) {
     /* End path. */
-    integrator_path_terminate(kg, state, render_buffer, DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME);
+    integrator_path_terminate(kg, state, render_buffer, volume_kernel);
     return;
   }
 
   if (event == VOLUME_PATH_ATTENUATED) {
     /* Continue to background, light or surface. */
-    integrator_intersect_next_kernel_after_volume<DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME>(
-        kg, state, &isect, render_buffer);
+    integrator_intersect_next_kernel_after_volume<volume_kernel>(kg, state, isect, render_buffer);
     return;
   }
 
-#  ifdef __SHADOW_LINKING__
-  if (shadow_linking_schedule_intersection_kernel<DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME>(kg,
-                                                                                         state))
-  {
+#ifdef __SHADOW_LINKING__
+  if (shadow_linking_schedule_intersection_kernel<volume_kernel>(kg, state)) {
     return;
   }
-#  endif /* __SHADOW_LINKING__ */
+#endif /* __SHADOW_LINKING__ */
 
   kernel_assert(event == VOLUME_PATH_SCATTERED);
 
   /* Queue intersect_closest kernel. */
-  integrator_path_next(
-      state, DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME, DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST);
+  integrator_path_next(state, volume_kernel, DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST);
+}
+
+ccl_device void integrator_shade_volume(KernelGlobals kg,
+                                        IntegratorState state,
+                                        ccl_global float *ccl_restrict render_buffer)
+{
+#ifdef __VOLUME__
+  Ray ray ccl_optional_struct_init;
+  Intersection isect ccl_optional_struct_init;
+  integrator_shade_volume_setup(kg, state, &ray, &isect);
+
+  const VolumeIntegrateEvent event = volume_integrate(kg, state, &ray, render_buffer);
+  integrator_next_kernel_after_shade_volume<DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME>(
+      kg, state, render_buffer, &isect, event);
+
 #endif /* __VOLUME__ */
 }
 
+ccl_device void integrator_shade_volume_ray_marching(KernelGlobals kg,
+                                                     IntegratorState state,
+                                                     ccl_global float *ccl_restrict render_buffer)
+{
+#ifdef __VOLUME__
+  Ray ray ccl_optional_struct_init;
+  Intersection isect ccl_optional_struct_init;
+  integrator_shade_volume_setup(kg, state, &ray, &isect);
+
+  const VolumeIntegrateEvent event = volume_integrate_ray_marching(kg, state, &ray, render_buffer);
+  integrator_next_kernel_after_shade_volume<DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME_RAY_MARCHING>(
+      kg, state, render_buffer, &isect, event);
+
+#endif /* __VOLUME__ */
+}
 CCL_NAMESPACE_END

@@ -23,6 +23,7 @@
     .depth = R_IMF_CHAN_DEPTH_8, \
     .quality = 90, \
     .compress = 15, \
+    .exr_flag = R_IMF_EXR_FLAG_MULTIPART, \
   }
 
 #define _DNA_DEFAULT_BakeData \
@@ -376,7 +377,7 @@
     .select_thresh = 0.01f, \
  \
     .selectmode = SCE_SELECT_VERTEX, \
-    .uv_selectmode = UV_SELECT_VERTEX, \
+    .uv_selectmode = UV_SELECT_VERT, \
     .autokey_mode = AUTOKEY_MODE_NORMAL, \
  \
     .transform_pivot_point = V3D_AROUND_CENTER_MEDIAN, \

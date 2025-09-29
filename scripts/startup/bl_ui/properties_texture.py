@@ -925,7 +925,7 @@ class TEXTURE_PT_animation(TextureButtonsPanel, PropertiesAnimationMixin, Proper
         texture = context.texture
 
         # Assumption: the texture user is a particle system texture slot,
-        # something like `bpy.data.particles['ParticleSettings'].texture_slots[0]`.
+        # something like `bpy.data.particles["ParticleSettings"].texture_slots[0]`.
         # Since at the top of the properties panel the user is shown first, and
         # underneath that the texture itself, this panel uses the same order.
         if texture_user := context.texture_user:

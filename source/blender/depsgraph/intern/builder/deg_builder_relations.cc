@@ -3441,6 +3441,21 @@ static bool strip_build_prop_cb(Strip *strip, void *user_data)
     ViewLayer *sequence_view_layer = BKE_view_layer_default_render(strip->scene);
     cd->builder->build_scene_speakers(strip->scene, sequence_view_layer);
   }
+  LISTBASE_FOREACH (StripModifierData *, modifier, &strip->modifiers) {
+    if (modifier->type != eSeqModifierType_Compositor) {
+      continue;
+    }
+
+    const SequencerCompositorModifierData *modifier_data =
+        reinterpret_cast<SequencerCompositorModifierData *>(modifier);
+    if (!modifier_data->node_group) {
+      continue;
+    }
+    cd->builder->build_nodetree(modifier_data->node_group);
+    OperationKey node_tree_key(
+        &modifier_data->node_group->id, NodeType::NTREE_OUTPUT, OperationCode::NTREE_OUTPUT);
+    cd->builder->add_relation(node_tree_key, cd->sequencer_key, "Modifier's Node Group");
+  }
   /* TODO(sergey): Movie clip, camera, mask. */
   return true;
 }

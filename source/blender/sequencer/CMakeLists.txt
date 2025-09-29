@@ -5,6 +5,9 @@
 set(INC
   PUBLIC .
   intern
+  ../compositor
+  ../compositor/cached_resources
+  ../compositor/derived_resources
   ../editors/include
   ../animrig
   ../makesrna
@@ -68,6 +71,7 @@ set(SRC
   intern/effects/vse_effect_wipe.cc
   intern/modifiers/MOD_brightness_contrast.cc
   intern/modifiers/MOD_color_balance.cc
+  intern/modifiers/MOD_compositor.cc
   intern/modifiers/MOD_curves.cc
   intern/modifiers/MOD_hue_correct.cc
   intern/modifiers/MOD_mask.cc
@@ -120,8 +124,10 @@ set(LIB
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::nodes
   PRIVATE bf::render
   PRIVATE bf::windowmanager
+  bf_compositor
 )
 
 if(WITH_AUDASPACE)

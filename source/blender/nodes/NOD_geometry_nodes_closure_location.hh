@@ -29,6 +29,8 @@ struct ClosureSourceLocation {
   const bNodeTree *tree;
   int closure_output_node_id;
   ComputeContextHash compute_context_hash;
+  /** Optional actual compute context. If it is set, its hash should be the same as above. */
+  const ComputeContext *compute_context = nullptr;
 };
 
 struct ClosureEvalLog {

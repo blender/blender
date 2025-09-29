@@ -1249,7 +1249,7 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
 
   if ((batch_requested & MBC_EDITUV) || cd_uv_update) {
     /* Discard UV batches if sync_selection changes */
-    const bool is_uvsyncsel = ts && (ts->uv_flag & UV_FLAG_SYNC_SELECT);
+    const bool is_uvsyncsel = ts && (ts->uv_flag & UV_FLAG_SELECT_SYNC);
     if (cd_uv_update || (cache.is_uvsyncsel != is_uvsyncsel)) {
       cache.is_uvsyncsel = is_uvsyncsel;
       FOREACH_MESH_BUFFER_CACHE (cache, mbc) {

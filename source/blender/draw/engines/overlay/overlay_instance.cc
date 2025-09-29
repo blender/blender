@@ -342,7 +342,6 @@ void Resources::update_theme_settings(const DRWContext *ctx, const State &state)
   UI_GetThemeColor4fv(TH_NURB_VLINE, gb.colors.nurb_vline);
   UI_GetThemeColor4fv(TH_NURB_SEL_ULINE, gb.colors.nurb_sel_uline);
   UI_GetThemeColor4fv(TH_NURB_SEL_VLINE, gb.colors.nurb_sel_vline);
-  UI_GetThemeColor4fv(TH_ACTIVE_SPLINE, gb.colors.active_spline);
 
   UI_GetThemeColor4fv(TH_CFRAME, gb.colors.current_frame);
   UI_GetThemeColor4fv(TH_FRAME_BEFORE, gb.colors.before_frame);

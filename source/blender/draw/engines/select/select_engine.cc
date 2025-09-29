@@ -358,13 +358,15 @@ struct Instance : public DrawEngine {
     StaticData &e_data = StaticData::get();
     SELECTID_Context &sel_ctx = e_data.context;
 
-    if (!sel_ctx.objects.contains(ob) && ob->dt >= OB_SOLID) {
-      /* This object is not selectable. It is here to participate in occlusion.
-       * This is the case in retopology mode. */
-      blender::gpu::Batch *geom_faces = DRW_mesh_batch_cache_get_surface(
-          DRW_object_get_data_for_drawing<Mesh>(*ob));
+    if (!sel_ctx.objects.contains(ob)) {
+      if (ob->dt >= OB_SOLID) {
+        /* This object is not selectable. It is here to participate in occlusion.
+         * This is the case in retopology mode. */
+        blender::gpu::Batch *geom_faces = DRW_mesh_batch_cache_get_surface(
+            DRW_object_get_data_for_drawing<Mesh>(*ob));
 
-      depth_occlude->draw(geom_faces, manager.unique_handle(ob_ref));
+        depth_occlude->draw(geom_faces, manager.unique_handle(ob_ref));
+      }
       return;
     }
 

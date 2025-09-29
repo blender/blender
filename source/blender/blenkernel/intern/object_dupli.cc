@@ -1861,7 +1861,7 @@ void object_duplilist_preview(Depsgraph *depsgraph,
     if (const geo_log::ViewerNodeLog *viewer_log =
             geo_log::GeoNodesLog::find_viewer_node_log_for_path(*viewer_path))
     {
-      if (std::optional<blender::bke::GeometrySet> viewer_geometry = viewer_log->main_geometry()) {
+      if (const blender::bke::GeometrySet *viewer_geometry = viewer_log->main_geometry()) {
         ctx.preview_base_geometry = &*viewer_geometry;
         make_duplis_geometry_set_impl(&ctx,
                                       *viewer_geometry,

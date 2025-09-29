@@ -6,28 +6,26 @@
  * \ingroup openexr
  */
 
+#include "BLI_string_ref.hh"
 #include "IMB_openexr.hh"
 
-void *IMB_exr_get_handle()
+ExrHandle *IMB_exr_get_handle(bool /*write_multipart*/)
 {
   return nullptr;
 }
-void *IMB_exr_get_handle_name(const char * /*name*/)
-{
-  return nullptr;
-}
-void IMB_exr_add_channel(void * /*handle*/,
-                         const char * /*layname*/,
-                         const char * /*passname*/,
-                         const char * /*view*/,
-                         int /*xstride*/,
-                         int /*ystride*/,
-                         float * /*rect*/,
-                         bool /*use_half_float*/)
+void IMB_exr_add_channels(ExrHandle * /*handle*/,
+                          blender::StringRefNull /*layerpassname*/,
+                          blender::StringRefNull /*channelnames*/,
+                          blender::StringRefNull /*viewname*/,
+                          blender::StringRefNull /*colorspace*/,
+                          size_t /*xstride*/,
+                          size_t /*ystride*/,
+                          float * /*rect*/,
+                          bool /*use_half_float*/)
 {
 }
 
-bool IMB_exr_begin_read(void * /*handle*/,
+bool IMB_exr_begin_read(ExrHandle * /*handle*/,
                         const char * /*filepath*/,
                         int * /*width*/,
                         int * /*height*/,
@@ -35,7 +33,7 @@ bool IMB_exr_begin_read(void * /*handle*/,
 {
   return false;
 }
-bool IMB_exr_begin_write(void * /*handle*/,
+bool IMB_exr_begin_write(ExrHandle * /*handle*/,
                          const char * /*filepath*/,
                          int /*width*/,
                          int /*height*/,
@@ -47,9 +45,8 @@ bool IMB_exr_begin_write(void * /*handle*/,
   return false;
 }
 
-bool IMB_exr_set_channel(void * /*handle*/,
-                         const char * /*layname*/,
-                         const char * /*passname*/,
+bool IMB_exr_set_channel(ExrHandle * /*handle*/,
+                         blender::StringRefNull /*full_name*/,
                          int /*xstride*/,
                          int /*ystride*/,
                          float * /*rect*/)
@@ -57,10 +54,10 @@ bool IMB_exr_set_channel(void * /*handle*/,
   return false;
 }
 
-void IMB_exr_read_channels(void * /*handle*/) {}
-void IMB_exr_write_channels(void * /*handle*/) {}
+void IMB_exr_read_channels(ExrHandle * /*handle*/) {}
+void IMB_exr_write_channels(ExrHandle * /*handle*/) {}
 
-void IMB_exr_multilayer_convert(void * /*handle*/,
+void IMB_exr_multilayer_convert(ExrHandle * /*handle*/,
                                 void * /*base*/,
                                 void *(* /*addview*/)(void *base, const char *str),
                                 void *(* /*addlayer*/)(void *base, const char *str),
@@ -74,15 +71,15 @@ void IMB_exr_multilayer_convert(void * /*handle*/,
 {
 }
 
-void IMB_exr_close(void * /*handle*/) {}
+void IMB_exr_close(ExrHandle * /*handle*/) {}
 
-void IMB_exr_add_view(void * /*handle*/, const char * /*name*/) {}
-bool IMB_exr_has_multilayer(void * /*handle*/)
+void IMB_exr_add_view(ExrHandle * /*handle*/, const char * /*name*/) {}
+bool IMB_exr_has_multilayer(ExrHandle * /*handle*/)
 {
   return false;
 }
 
-bool IMB_exr_get_ppm(void * /*handle*/, double /*ppm*/[2])
+bool IMB_exr_get_ppm(ExrHandle * /*handle*/, double /*ppm*/[2])
 {
   return false;
 }

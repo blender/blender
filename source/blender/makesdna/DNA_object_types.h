@@ -227,7 +227,6 @@ typedef struct Object {
   bAnimVizSettings avs;
   /** Motion path cache for this object. */
   bMotionPath *mpath;
-  void *_pad0;
 
   ListBase effect DNA_DEPRECATED;  /* XXX deprecated... keep for readfile */
   ListBase defbase DNA_DEPRECATED; /* Only for versioning, moved to object data. */

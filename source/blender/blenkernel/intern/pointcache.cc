@@ -75,20 +75,6 @@
 #  include "RBI_api.h"
 #endif
 
-#if 0  // #ifdef WITH_LZO
-#  ifdef WITH_SYSTEM_LZO
-#    include <lzo/lzo1x.h>
-#  else
-#    include "minilzo.h"
-#  endif
-#  define LZO_HEAP_ALLOC(var, size) \
-    lzo_align_t __LZO_MMODEL var[((size) + (sizeof(lzo_align_t) - 1)) / sizeof(lzo_align_t)]
-#endif
-
-#if 0  // #ifdef WITH_LZMA
-#  include "LzmaLib.h"
-#endif
-
 #include <zstd.h>
 
 #define PTCACHE_DATA_FROM(data, type, from) \
@@ -1535,22 +1521,6 @@ static int ptcache_file_compressed_read(PTCacheFile *pf,
         decomp_result = MEM_malloc_arrayN<uchar>(items_num * item_size,
                                                  "pointcache_unfilter_buffer");
       }
-#if 0  // #ifdef WITH_LZO
-      if (compressed == PTCACHE_COMPRESS_LZO_DEPRECATED) {
-        size_t out_len = items_num * item_size;
-        r = lzo1x_decompress_safe(in, (lzo_uint)in_len, decomp_result, (lzo_uint *)&out_len, nullptr);
-      }
-#endif
-#if 0  // #ifdef WITH_LZMA
-      if (compressed == PTCACHE_COMPRESS_LZMA_DEPRECATED) {
-        size_t leni = in_len, leno = items_num * item_size;
-        uchar lzma_props[16] = {};
-        uint lzma_props_size = 0;
-        ptcache_file_read(pf, &lzma_props_size, 1, sizeof(uint));
-        ptcache_file_read(pf, lzma_props, lzma_props_size, sizeof(uchar));
-        r = LzmaUncompress(decomp_result, &leno, in, &leni, lzma_props, lzma_props_size);
-      }
-#endif
       if (ELEM(compressed,
                PTCACHE_COMPRESS_ZSTD_FILTERED,
                PTCACHE_COMPRESS_ZSTD_FAST_DEPRECATED,

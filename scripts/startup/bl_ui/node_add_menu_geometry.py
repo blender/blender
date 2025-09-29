@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import bpy
-from bpy.types import Menu
 from bl_ui import node_add_menu
 from bpy.app.translations import (
     contexts as i18n_contexts,
@@ -396,6 +395,7 @@ class NODE_MT_gn_input_gizmo_base(node_add_menu.NodeMenu):
     menu_path = "Input/Gizmo"
 
     def draw(self, context):
+        del context
         layout = self.layout
         self.node_operator(layout, "GeometryNodeGizmoDial")
         self.node_operator(layout, "GeometryNodeGizmoLinear")
@@ -595,6 +595,7 @@ class NODE_MT_gn_output_base(node_add_menu.NodeMenu):
 
     def draw(self, context):
         layout = self.layout
+        self.node_operator(layout, "NodeEnableOutput")
         self.node_operator(layout, "NodeGroupOutput")
         self.node_operator(layout, "GeometryNodeViewer")
         self.node_operator_with_searchable_enum(context, layout, "GeometryNodeWarning", "warning_type")
@@ -710,6 +711,7 @@ class NODE_MT_gn_utilities_deprecated_base(node_add_menu.NodeMenu):
     menu_path = "Utilities/Deprecated"
 
     def draw(self, context):
+        del context
         layout = self.layout
         self.node_operator(layout, "FunctionNodeAlignEulerToVector")
         self.node_operator(layout, "FunctionNodeRotateEuler")
@@ -744,6 +746,10 @@ class NODE_MT_gn_utilities_rotation_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "FunctionNodeAxisAngleToRotation")
         self.node_operator(layout, "FunctionNodeEulerToRotation")
         self.node_operator(layout, "FunctionNodeInvertRotation")
+        props = self.node_operator(layout, "ShaderNodeMix", label="Mix Rotation")
+        ops = props.settings.add()
+        ops.name = "data_type"
+        ops.value = "'ROTATION'"
         self.node_operator(layout, "FunctionNodeRotateRotation")
         self.node_operator(layout, "FunctionNodeRotateVector")
         self.node_operator(layout, "FunctionNodeRotationToAxisAngle")
@@ -780,6 +786,7 @@ class NODE_MT_category_utilities_bundle_base(node_add_menu.NodeMenu):
     menu_path = "Utilities/Bundle"
 
     def draw(self, context):
+        del context
         layout = self.layout
         self.node_operator(layout, "NodeCombineBundle")
         self.node_operator(layout, "NodeSeparateBundle")
@@ -792,6 +799,7 @@ class NODE_MT_category_utilities_closure_base(node_add_menu.NodeMenu):
     menu_path = "Utilities/Closure"
 
     def draw(self, context):
+        del context
         layout = self.layout
         self.closure_zone(layout, label="Closure")
         self.node_operator(layout, "NodeEvaluateClosure")
@@ -842,6 +850,7 @@ class NODE_MT_gn_mesh_uv_base(node_add_menu.NodeMenu):
     def draw(self, _context):
         layout = self.layout
         self.node_operator(layout, "GeometryNodeUVPackIslands")
+        self.node_operator(layout, "GeometryNodeUVTangent")
         self.node_operator(layout, "GeometryNodeUVUnwrap")
 
         self.draw_assets_for_catalog(layout, self.menu_path)
@@ -890,6 +899,7 @@ class NODE_MT_gn_volume_read_base(node_add_menu.NodeMenu):
     menu_path = "Volume/Read"
 
     def draw(self, context):
+        del context
         layout = self.layout
         self.node_operator(layout, "GeometryNodeGetNamedGrid")
         self.node_operator(layout, "GeometryNodeGridInfo")
@@ -913,6 +923,7 @@ class NODE_MT_gn_volume_sample_base(node_add_menu.NodeMenu):
     menu_path = "Volume/Sample"
 
     def draw(self, context):
+        del context
         layout = self.layout
         self.node_operator(layout, "GeometryNodeSampleGrid")
         self.node_operator(layout, "GeometryNodeSampleGridIndex")
@@ -939,6 +950,7 @@ class NODE_MT_gn_volume_primitives_base(node_add_menu.NodeMenu):
     menu_path = "Volume/Primitives"
 
     def draw(self, context):
+        del context
         layout = self.layout
         self.node_operator(layout, "GeometryNodeVolumeCube")
 
@@ -953,6 +965,7 @@ class NODE_MT_gn_all_base(node_add_menu.NodeMenu):
     # & Swap menus can share the same layout while each using their
     # corresponding menus
     def draw(self, context):
+        del context
         layout = self.layout
         self.draw_menu(layout, "Attribute")
         self.draw_menu(layout, "Input")

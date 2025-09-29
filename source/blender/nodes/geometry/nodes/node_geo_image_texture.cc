@@ -22,7 +22,7 @@ NODE_STORAGE_FUNCS(NodeGeometryImageTexture)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Image>("Image").hide_label();
+  b.add_input<decl::Image>("Image").optional_label();
   b.add_input<decl::Vector>("Vector")
       .implicit_field(NODE_DEFAULT_INPUT_POSITION_FIELD)
       .description("Texture coordinates from 0 to 1");

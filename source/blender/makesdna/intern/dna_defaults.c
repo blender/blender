@@ -56,7 +56,8 @@
  * - When loading old files that don't contain newly added struct members (these will be zeroed)
  *   to set their values use `versioning_{BLENDER_VERSION}.c` source files.
  * - For startup file data, to update these defaults use
- *   #BLO_update_defaults_startup_blend & #blo_do_versions_userdef.
+ *   #BLO_update_defaults_startup_blend, #blo_do_versions_userdef, and #U_default or
+ *   #U_theme_default.
  */
 
 #define DNA_DEPRECATED_ALLOW

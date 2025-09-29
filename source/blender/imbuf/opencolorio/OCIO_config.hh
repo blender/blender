@@ -9,7 +9,6 @@
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string_ref.hh"
-#include "DNA_windowmanager_types.h"
 
 namespace blender::ocio {
 

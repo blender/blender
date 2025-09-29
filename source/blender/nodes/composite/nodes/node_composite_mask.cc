@@ -45,6 +45,7 @@ static void cmp_node_mask_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Menu>("Size Source")
       .default_value(MenuValue(0))
       .static_items(size_source_items)
+      .optional_label()
       .description("The source where the size of the mask is retrieved");
   b.add_input<decl::Int>("Size X")
       .default_value(256)

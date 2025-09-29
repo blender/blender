@@ -33,8 +33,9 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>("Geometry").propagate_all().align_with_previous();
   b.add_input<decl::Menu>("Pattern Mode")
       .static_items(pattern_mode_items)
+      .optional_label()
       .description("How the attributes to remove are chosen");
-  b.add_input<decl::String>("Name").is_attribute_name().hide_label();
+  b.add_input<decl::String>("Name").is_attribute_name().optional_label();
 }
 
 struct RemoveAttributeParams {

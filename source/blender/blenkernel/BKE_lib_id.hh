@@ -71,6 +71,11 @@ struct ID_Runtime_Remap {
 };
 
 struct ID_Runtime {
+  /**
+   * The last modifification time of the source .blend file where this ID was loaded from.
+   */
+  int64_t src_blend_modifification_time;
+
   ID_Runtime_Remap remap = {};
   /**
    * The depsgraph that owns this data block. This is only set on data-blocks which are
@@ -248,6 +253,11 @@ enum {
    * Internally this is used to share some pointers instead of duplicating them.
    */
   LIB_ID_COPY_SET_COPIED_ON_WRITE = 1 << 10,
+
+  /**
+   * Set #ID.newid pointer of the given source ID with the address of its new copy.
+   */
+  LIB_ID_COPY_ID_NEW_SET = 1 << 11,
 
   /* *** Specific options to some ID types or usages. *** */
   /* *** May be ignored by unrelated ID copying functions. *** */

@@ -264,6 +264,13 @@ void ui_region_to_window(const ARegion *region, int *x, int *y)
   *y += region->winrct.ymin;
 }
 
+void ui_region_to_window(
+    const ARegion *region, int region_x, int region_y, int *r_window_x, int *r_window_y)
+{
+  *r_window_x = region_x + region->winrct.xmin;
+  *r_window_y = region_y + region->winrct.ymin;
+}
+
 int uiBlock::but_index(const uiBut *but) const
 {
   BLI_assert(!buttons.is_empty() && but);

@@ -486,6 +486,202 @@ class TestBlendLibAppendReuseID(TestBlendLibLinkHelper):
         self.assertEqual(len(bpy.data.collections), 0)  # Scene's master collection is not listed here
 
 
+class TestBlendLibPackedLinkedID(TestBlendLibLinkHelper):
+
+    def __init__(self, args):
+        super().__init__(args)
+
+    def test_link_pack_basic(self):
+        output_dir = self.args.output_dir
+        output_lib_path = self.init_lib_data_basic()
+
+        # Link of a single Object, and make it packed.
+        self.reset_blender()
+
+        link_dir = os.path.join(output_lib_path, "Object")
+        bpy.ops.wm.link(directory=link_dir, filename="LibMesh", instance_object_data=False)
+
+        self.assertEqual(len(bpy.data.libraries), 1)
+        library = bpy.data.libraries[0]
+
+        self.assertEqual(len(bpy.data.meshes), 1)
+        for me in bpy.data.meshes:
+            self.assertEqual(me.library, library)
+            self.assertEqual(me.users, 1)
+        self.assertEqual(len(bpy.data.objects), 1)
+        for ob in bpy.data.objects:
+            self.assertEqual(ob.library, library)
+        self.assertEqual(len(bpy.data.collections), 0)  # Scene's master collection is not listed here
+
+        ob_packed = bpy.data.pack_linked_ids_hierarchy(bpy.data.objects[0])
+
+        # Need to ensure that the newly packed linked object is used, and kept in the scene.
+        bpy.data.scenes[0].collection.objects.link(ob_packed)
+
+        self.assertEqual(len(bpy.data.libraries), 2)
+        library = bpy.data.libraries[0]
+        archive_library = bpy.data.libraries[1]
+
+        def check_valid():
+            self.assertFalse(library.is_archive)
+            self.assertEqual(len(library.archive_libraries), 1)
+            self.assertEqual(library.archive_libraries[0], archive_library)
+            self.assertTrue(archive_library.is_archive)
+            self.assertEqual(archive_library.archive_parent_library, library)
+
+            self.assertEqual(len(bpy.data.meshes), 2)
+            self.assertEqual(bpy.data.meshes[0].library, library)
+            self.assertEqual(bpy.data.meshes[0].users, 1)
+            self.assertEqual(bpy.data.meshes[1].library, archive_library)
+            self.assertEqual(bpy.data.meshes[1].users, 1)
+
+            self.assertEqual(len(bpy.data.objects), 2)
+            self.assertEqual(bpy.data.objects[0].library, library)
+            self.assertEqual(bpy.data.objects[0].data, bpy.data.meshes[0])
+            self.assertEqual(bpy.data.objects[1].library, archive_library)
+            self.assertEqual(bpy.data.objects[1].data, bpy.data.meshes[1])
+
+        check_valid()
+
+        output_work_path = os.path.join(output_dir, self.unique_blendfile_name("blendfile"))
+        bpy.ops.wm.save_as_mainfile(filepath=output_work_path, check_existing=False, compress=False)
+
+        self.reset_blender()
+
+        bpy.ops.wm.open_mainfile(filepath=output_work_path, load_ui=False)
+
+        self.assertEqual(len(bpy.data.libraries), 2)
+        library = bpy.data.libraries[0]
+        archive_library = bpy.data.libraries[1]
+
+        check_valid()
+
+    def test_link_pack_indirect(self):
+        # Test handling of indirectly linked packed data (when packed in another library),
+        # packing linked data using other packed linked data, etc.
+        output_dir = self.args.output_dir
+        output_lib_path = self.init_lib_data_packed_indirect_lib()
+
+        # Link of a single Object, and make it packed.
+        self.reset_blender()
+
+        link_dir = os.path.join(output_lib_path, "Object")
+        bpy.ops.wm.link(directory=link_dir, filename="LibMesh", instance_object_data=False)
+
+        # Directly linked library, indirectly linked one (though empty), and its packed archive version.
+        self.assertEqual(len(bpy.data.libraries), 3)
+        library = bpy.data.libraries[0]
+        library_indirect = bpy.data.libraries[1]
+        library_indirect_archive = bpy.data.libraries[2]
+
+        def check_valid():
+            self.assertFalse(library.is_archive)
+            self.assertFalse(library_indirect.is_archive)
+            self.assertTrue(library_indirect_archive.is_archive)
+            self.assertTrue(library_indirect_archive.name in library_indirect.archive_libraries)
+
+            self.assertEqual(len(bpy.data.images), 1)
+            for im in bpy.data.images:
+                self.assertEqual(im.library, library_indirect_archive)
+                self.assertEqual(im.users, 1)
+                self.assertTrue(im.is_linked_packed)
+
+            self.assertEqual(len(bpy.data.materials), 1)
+            for ma in bpy.data.materials:
+                self.assertEqual(ma.library, library_indirect_archive)
+                self.assertEqual(ma.users, 1)
+                self.assertTrue(ma.is_linked_packed)
+
+            self.assertEqual(len(bpy.data.meshes), 1)
+            for me in bpy.data.meshes:
+                self.assertEqual(me.library, library)
+                self.assertEqual(me.users, 1)
+
+            self.assertEqual(len(bpy.data.objects), 1)
+            for ob in bpy.data.objects:
+                self.assertEqual(ob.library, library)
+
+            self.assertEqual(len(bpy.data.collections), 0)  # Scene's master collection is not listed here
+
+        check_valid()
+
+        output_work_path = os.path.join(output_dir, self.unique_blendfile_name("blendfile"))
+        bpy.ops.wm.save_as_mainfile(filepath=output_work_path, check_existing=False, compress=False)
+
+        self.reset_blender()
+
+        bpy.ops.wm.open_mainfile(filepath=output_work_path, load_ui=False)
+
+        self.assertEqual(len(bpy.data.libraries), 3)
+        library = bpy.data.libraries[0]
+        library_indirect = bpy.data.libraries[1]
+        library_indirect_archive = bpy.data.libraries[2]
+
+        check_valid()
+
+        ob_packed = bpy.data.pack_linked_ids_hierarchy(bpy.data.objects[0])
+
+        # Need to ensure that the newly packed linked object is used, and kept in the scene.
+        bpy.data.scenes[0].collection.objects.link(ob_packed)
+
+        self.assertEqual(len(bpy.data.libraries), 4)
+        # Due to ID name sorting, the newly ceratedt archive library should be second now, after its parent one.
+        archive_library = bpy.data.libraries[1]
+
+        def check_valid():
+            self.assertFalse(library.is_archive)
+            self.assertEqual(len(library.archive_libraries), 1)
+            self.assertEqual(library.archive_libraries[0], archive_library)
+            self.assertTrue(archive_library.is_archive)
+            self.assertEqual(archive_library.archive_parent_library, library)
+
+            self.assertFalse(library_indirect.is_archive)
+            self.assertTrue(library_indirect_archive.is_archive)
+            self.assertTrue(library_indirect_archive.name in library_indirect.archive_libraries)
+
+            self.assertEqual(len(bpy.data.images), 1)
+            for im in bpy.data.images:
+                self.assertEqual(im.library, library_indirect_archive)
+                self.assertEqual(im.users, 1)
+                self.assertTrue(im.is_linked_packed)
+
+            self.assertEqual(len(bpy.data.materials), 1)
+            for ma in bpy.data.materials:
+                self.assertEqual(ma.library, library_indirect_archive)
+                self.assertEqual(ma.users, 2)
+                self.assertTrue(ma.is_linked_packed)
+
+            self.assertEqual(len(bpy.data.meshes), 2)
+            self.assertEqual(bpy.data.meshes[0].library, library)
+            self.assertEqual(bpy.data.meshes[0].users, 1)
+            self.assertEqual(bpy.data.meshes[1].library, archive_library)
+            self.assertEqual(bpy.data.meshes[1].users, 1)
+
+            self.assertEqual(len(bpy.data.objects), 2)
+            self.assertEqual(bpy.data.objects[0].library, library)
+            self.assertEqual(bpy.data.objects[0].data, bpy.data.meshes[0])
+            self.assertEqual(bpy.data.objects[1].library, archive_library)
+            self.assertEqual(bpy.data.objects[1].data, bpy.data.meshes[1])
+
+            self.assertEqual(len(bpy.data.collections), 0)  # Scene's master collection is not listed here
+
+        check_valid()
+
+        bpy.ops.wm.save_as_mainfile(filepath=output_work_path, check_existing=False, compress=False)
+
+        self.reset_blender()
+
+        bpy.ops.wm.open_mainfile(filepath=output_work_path, load_ui=False)
+
+        self.assertEqual(len(bpy.data.libraries), 4)
+        library = bpy.data.libraries[0]
+        archive_library = bpy.data.libraries[1]
+        library_indirect = bpy.data.libraries[2]
+        library_indirect_archive = bpy.data.libraries[3]
+
+        check_valid()
+
+
 class TestBlendLibLibraryReload(TestBlendLibLinkHelper):
 
     def __init__(self, args):
@@ -608,6 +804,34 @@ class TestBlendLibDataLibrariesLoadLink(TestBlendLibDataLibrariesLoad):
         self.assertIsNotNone(bpy.data.meshes[0].library)
         self.assertIsNotNone(bpy.data.objects[0].library)
         self.assertIsNotNone(bpy.data.collections[0].library)
+
+
+class TestBlendLibDataLibrariesLoadPack(TestBlendLibDataLibrariesLoad):
+
+    def test_libload_pack(self):
+        output_lib_path = self.do_libload_init()
+        # Cannot create overrides on packed linked data currently.
+        self.assertRaises(ValueError,
+                          self.do_libload, filepath=output_lib_path, link=True, pack=True, create_liboverrides=True)
+        self.do_libload(filepath=output_lib_path, link=True, pack=True, create_liboverrides=False)
+
+        self.assertEqual(len(bpy.data.meshes), 1)
+        self.assertEqual(len(bpy.data.objects), 1)  # This code does no instantiation.
+        self.assertEqual(len(bpy.data.collections), 1)
+        # One archive library for the packed data-blocks and the reference library.
+        self.assertEqual(len(bpy.data.libraries), 2)
+
+        # Packed dat should be owned by archive library.
+        packed_mesh = bpy.data.meshes[0]
+        packed_object = bpy.data.objects[0]
+        packed_collection = bpy.data.collections[0]
+        link_library = bpy.data.libraries[0]
+        archive_library = bpy.data.libraries[1]
+        self.assertEqual(packed_mesh.library, archive_library)
+        self.assertEqual(packed_object.library, archive_library)
+        self.assertEqual(packed_collection.library, archive_library)
+        self.assertTrue(archive_library.is_archive)
+        self.assertFalse(link_library.is_archive)
 
 
 class TestBlendLibDataLibrariesLoadLibOverride(TestBlendLibDataLibrariesLoad):
@@ -741,11 +965,14 @@ TESTS = (
     TestBlendLibAppendBasic,
     TestBlendLibAppendReuseID,
 
+    TestBlendLibPackedLinkedID,
+
     TestBlendLibLibraryReload,
     TestBlendLibLibraryRelocate,
 
     TestBlendLibDataLibrariesLoadAppend,
     TestBlendLibDataLibrariesLoadLink,
+    TestBlendLibDataLibrariesLoadPack,
     TestBlendLibDataLibrariesLoadLibOverride,
 )
 

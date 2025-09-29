@@ -281,7 +281,7 @@ static void depthdropper_depth_sample_pt(bContext *C,
           BKE_unit_value_as_string(ddr->name,
                                    sizeof(ddr->name),
                                    double(*r_depth),
-                                   4,
+                                   -4,
                                    B_UNIT_LENGTH,
                                    scene->unit,
                                    false);

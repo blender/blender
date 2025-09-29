@@ -869,10 +869,10 @@ class VIEW3D_PT_tools_weight_gradient(Panel, View3DPaintPanel):
         brush = settings.brush
 
         col = layout.column(align=True)
-        col.prop(brush, "curve_preset", expand=True)
+        col.prop(brush, "curve_distance_falloff_preset", expand=True)
 
         if brush.curve_distance_falloff_preset == 'CUSTOM':
-            layout.template_curve_mapping(brush, "curve_distance_falloff", brush=True)
+            layout.template_curve_mapping(brush, "curve_distance_falloff", brush=True, use_negative_slope=True)
 
             col = layout.column(align=True)
             row = col.row(align=True)

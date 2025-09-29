@@ -211,11 +211,19 @@ typedef struct ColorManagedViewSettings {
 
 typedef struct ColorManagedDisplaySettings {
   char display_device[64];
+  char emulation;
+  char _pad[7];
 } ColorManagedDisplaySettings;
 
 typedef struct ColorManagedColorspaceSettings {
   char name[/*MAX_COLORSPACE_NAME*/ 64];
 } ColorManagedColorspaceSettings;
+
+/** #ColorManagedDisplaySettings.emulation */
+enum {
+  COLORMANAGE_DISPLAY_EMULATION_AUTO = 0,
+  COLORMANAGE_DISPLAY_EMULATION_OFF = 1,
+};
 
 /** #ColorManagedViewSettings.flag */
 enum {

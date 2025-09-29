@@ -4,6 +4,7 @@
 
 #include <fmt/format.h>
 
+#include "BKE_volume_grid_fwd.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_virtual_array.hh"
@@ -564,6 +565,20 @@ void VolumeDataSource::foreach_default_column_ids(
   }
 }
 
+#ifdef WITH_OPENVDB
+static StringRef grid_class_name(const bke::VolumeGridData &grid_data)
+{
+  openvdb::GridClass grid_class = grid_data.grid_class();
+  if (grid_class == openvdb::GridClass::GRID_FOG_VOLUME) {
+    return IFACE_("Fog Volume");
+  }
+  if (grid_class == openvdb::GridClass::GRID_LEVEL_SET) {
+    return IFACE_("Level Set");
+  }
+  return IFACE_("Unknown");
+}
+#endif
+
 std::unique_ptr<ColumnValues> VolumeDataSource::get_column_values(
     const SpreadsheetColumnID &column_id) const
 {
@@ -594,15 +609,7 @@ std::unique_ptr<ColumnValues> VolumeDataSource::get_column_values(
   if (STREQ(column_id.name, "Class")) {
     return std::make_unique<ColumnValues>(
         IFACE_("Class"), VArray<std::string>::from_std_func(size, [volume](int64_t index) {
-          const bke::VolumeGridData *volume_grid = BKE_volume_grid_get(volume, index);
-          openvdb::GridClass grid_class = volume_grid->grid_class();
-          if (grid_class == openvdb::GridClass::GRID_FOG_VOLUME) {
-            return IFACE_("Fog Volume");
-          }
-          if (grid_class == openvdb::GridClass::GRID_LEVEL_SET) {
-            return IFACE_("Level Set");
-          }
-          return IFACE_("Unknown");
+          return grid_class_name(*BKE_volume_grid_get(volume, index));
         }));
   }
 #else
@@ -620,6 +627,51 @@ int VolumeDataSource::tot_rows() const
   }
   return BKE_volume_num_grids(volume);
 }
+
+#ifdef WITH_OPENVDB
+
+VolumeGridDataSource::VolumeGridDataSource(const bke::GVolumeGrid &grid)
+    : grid_(std::make_unique<bke::GVolumeGrid>(grid))
+{
+}
+
+void VolumeGridDataSource::foreach_default_column_ids(
+    FunctionRef<void(const SpreadsheetColumnID &, bool is_extra)> fn) const
+{
+  if (!grid_) {
+    return;
+  }
+
+  for (const char *name : {"Data Type", "Class"}) {
+    SpreadsheetColumnID column_id{(char *)name};
+    fn(column_id, false);
+  }
+}
+
+std::unique_ptr<ColumnValues> VolumeGridDataSource::get_column_values(
+    const SpreadsheetColumnID &column_id) const
+{
+  if (STREQ(column_id.name, "Data Type")) {
+    const VolumeGridType type = (*grid_)->grid_type();
+    const char *name = nullptr;
+    RNA_enum_name_from_value(rna_enum_volume_grid_data_type_items, type, &name);
+    return std::make_unique<ColumnValues>(IFACE_("Data Type"),
+                                          VArray<std::string>::from_single(name, 1));
+  }
+  if (STREQ(column_id.name, "Class")) {
+    const StringRef name = grid_class_name(grid_->get());
+    return std::make_unique<ColumnValues>(IFACE_("Class"),
+                                          VArray<std::string>::from_single(name, 1));
+  }
+  return {};
+}
+
+int VolumeGridDataSource::tot_rows() const
+{
+  return 1;
+}
+
+#endif
 
 ListDataSource::ListDataSource(nodes::ListPtr list) : list_(std::move(list)) {}
 
@@ -1051,7 +1103,11 @@ std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object 
     return {};
   }
   if (display_data.is_volume_grid()) {
+#ifdef WITH_OPENVDB
+    return std::make_unique<VolumeGridDataSource>(display_data.get<bke::GVolumeGrid>());
+#else
     return {};
+#endif
   }
   if (display_data.is_list()) {
     return std::make_unique<ListDataSource>(display_data.extract<nodes::ListPtr>());

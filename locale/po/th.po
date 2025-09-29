@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'7089def6cbcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-22 08:45+0000\n"
+"POT-Creation-Date: 2025-09-29 09:33+0000\n"
 "PO-Revision-Date: 2025-07-23 15:06+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -1865,44 +1865,16 @@ msgid "Mask"
 msgstr "หน้ากาก"
 
 
-msgid "Face Data"
-msgstr "ข้อมูลด้าน"
-
-
-msgid "Merge"
-msgstr "ผสาน"
-
-
-msgid "Text"
-msgstr "ช้อความ"
-
-
-msgid "Metaball"
-msgstr "เมตาบอล"
-
-
-msgid "Names"
-msgstr "ชื่อ"
-
-
-msgid "Pivot Point"
-msgstr "จุดหมุน"
-
-
-msgid "Snap"
-msgstr "ยึดติด"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "แก้ไข"
-
-
 msgid "Mask Edit"
 msgstr "การแก้ไขหน้ากาก"
 
 
 msgid "Mirror"
 msgstr "กระจกสะท้อน"
+
+
+msgid "Snap"
+msgstr "ยึดติด"
 
 
 msgid "Local View"
@@ -1929,8 +1901,24 @@ msgid "View Regions"
 msgstr "ขอบเขตมุมมอง"
 
 
+msgid "Proportional Editing Falloff"
+msgstr "แก้ไข"
+
+
+msgid "Layout"
+msgstr "เค้าโครง"
+
+
+msgid "Metaball"
+msgstr "เมตาบอล"
+
+
 msgid "Light"
 msgstr "แสง"
+
+
+msgid "Keying"
+msgstr "คีย์"
 
 
 msgid "Add Image"
@@ -1949,6 +1937,38 @@ msgid "Hooks"
 msgstr "ตะขอ"
 
 
+msgid "Names"
+msgstr "ชื่อ"
+
+
+msgid "Face Data"
+msgstr "ข้อมูลด้าน"
+
+
+msgid "Merge"
+msgstr "ผสาน"
+
+
+msgid "Text"
+msgstr "ช้อความ"
+
+
+msgid "Import"
+msgstr "นำเข้า"
+
+
+msgid "Math"
+msgstr "คณิตศาสตร์"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Pivot Point"
+msgstr "จุดหมุน"
+
+
 msgid "Zoom"
 msgstr "ซูม"
 
@@ -1961,29 +1981,9 @@ msgid "Files"
 msgstr "ไฟล์"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgctxt "Operator"
 msgid "Mirror"
 msgstr "กระจกสะท้อน"
-
-
-msgid "Math"
-msgstr "คณิตศาสตร์"
-
-
-msgid "Keying"
-msgstr "คีย์"
-
-
-msgid "Import"
-msgstr "นำเข้า"
-
-
-msgid "Layout"
-msgstr "เค้าโครง"
 
 
 msgid "Node"
@@ -1992,11 +1992,6 @@ msgstr "โนด"
 
 msgid "Add Modifier"
 msgstr "เพิ่มการปรับแต่ง"
-
-
-msgctxt "Operator"
-msgid "Scene"
-msgstr "ฉาก"
 
 
 msgid "Blender"
@@ -2199,6 +2194,10 @@ msgstr "คัดลอก"
 
 msgid "World"
 msgstr "โลก"
+
+
+msgid "Edge Length"
+msgstr "ความยาวของเส้นขอบ"
 
 
 msgid "UV Center"
@@ -2880,10 +2879,6 @@ msgstr "   โดยน้ำหนักเยื่อหุ้ม"
 
 msgid "Vertex (Triangle)"
 msgstr "จุดยอด (สามเหลี่ยม)"
-
-
-msgid "Edge Length"
-msgstr "ความยาวของเส้นขอบ"
 
 
 msgid "Low"
@@ -3909,11 +3904,6 @@ msgstr "คู่มือ"
 
 
 msgctxt "Operator"
-msgid "Tutorials"
-msgstr "สอนวิธีใช้งาน"
-
-
-msgctxt "Operator"
 msgid "Support"
 msgstr "สนับสนุน"
 
@@ -4233,11 +4223,6 @@ msgstr "ข้อความ"
 
 
 msgctxt "Operator"
-msgid "Scene..."
-msgstr "ฉาก..."
-
-
-msgctxt "Operator"
 msgid "Glow"
 msgstr "เรืองแสง"
 
@@ -4376,6 +4361,10 @@ msgid "General"
 msgstr "ทั่วไป"
 
 
+msgid "More..."
+msgstr "เพิ่มเติม..."
+
+
 msgctxt "Operator"
 msgid "Alembic (.abc)"
 msgstr "Alembic (.abc)"
@@ -4389,6 +4378,11 @@ msgstr "เรนเดอร์ภาพ"
 msgctxt "Operator"
 msgid "Operator Search..."
 msgstr "ค้นหาตัวดำเนินการ..."
+
+
+msgctxt "Operator"
+msgid "Tutorials"
+msgstr "สอนวิธีใช้งาน"
 
 
 msgctxt "Operator"
@@ -4948,10 +4942,6 @@ msgstr "ใหม่"
 msgctxt "World"
 msgid "New"
 msgstr "ใหม่"
-
-
-msgid "More..."
-msgstr "เพิ่มเติม..."
 
 
 msgid "Yesterday"

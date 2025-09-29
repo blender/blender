@@ -47,6 +47,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("Limit the maximum value of the radius in order to avoid overlapping fillets");
   b.add_input<decl::Menu>("Mode")
       .static_items(mode_items)
+      .optional_label()
       .description("How to choose number of vertices on fillet");
   b.add_input<decl::Int>("Count")
       .default_value(1)

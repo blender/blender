@@ -60,7 +60,8 @@ static void cmp_node_colorbalance_declare(NodeDeclarationBuilder &b)
 
   b.add_input<decl::Menu>("Type")
       .default_value(CMP_NODE_COLOR_BALANCE_LGG)
-      .static_items(type_items);
+      .static_items(type_items)
+      .optional_label();
 
   b.add_input<decl::Float>("Lift", "Base Lift")
       .default_value(0.0f)

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'7089def6cbcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-22 08:45+0000\n"
+"POT-Creation-Date: 2025-09-29 09:33+0000\n"
 "PO-Revision-Date: 2025-07-23 15:33+0000\n"
 "Last-Translator: Eitan Traurig <eitant13@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
@@ -170,6 +170,10 @@ msgstr "האפ"
 
 msgid "Indirect"
 msgstr "ףיקע"
+
+
+msgid "Emission"
+msgstr "הטילפ"
 
 
 msgid "Collections"
@@ -587,10 +591,6 @@ msgid "Mask"
 msgstr "הכסמ"
 
 
-msgid "Face Data"
-msgstr "האפ ינותנ"
-
-
 msgid "Mirror"
 msgstr "הארמ"
 
@@ -601,6 +601,10 @@ msgstr "לחה"
 
 msgid "Convert"
 msgstr "רמה"
+
+
+msgid "Face Data"
+msgstr "האפ ינותנ"
 
 
 msgid "Languages..."
@@ -653,10 +657,6 @@ msgstr "עקר"
 
 msgid "Reflection"
 msgstr "תופקתשה"
-
-
-msgid "Emission"
-msgstr "הטילפ"
 
 
 msgid "Y Axis"

@@ -504,7 +504,7 @@ bool ED_node_is_texture(SpaceNode *snode)
   return snode->tree_idname == ntreeType_Texture->idname;
 }
 
-bool ED_node_is_geometry(SpaceNode *snode)
+bool ED_node_is_geometry(const SpaceNode *snode)
 {
   return snode->tree_idname == ntreeType_Geometry->idname;
 }

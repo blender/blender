@@ -36,6 +36,11 @@ class FallbackDefaultView : public View {
     return false;
   }
 
+  bool support_emulation() const override
+  {
+    return false;
+  }
+
   Gamut gamut() const override
   {
     return Gamut::Rec709;

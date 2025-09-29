@@ -54,6 +54,7 @@ set(SRC
 
 set(LIB
   PRIVATE bf::animrig
+  PRIVATE bf::asset_system
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PUBLIC bf::blenloader_core
@@ -73,6 +74,7 @@ set(LIB
   PRIVATE bf::render
   PRIVATE bf::sequencer
   PRIVATE bf::windowmanager
+  PRIVATE bf::extern::xxhash
 )
 
 if(WITH_BUILDINFO)

@@ -182,6 +182,30 @@ static const EnumPropertyItem rna_enum_preferences_extension_repo_source_type_it
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+static const EnumPropertyItem rna_enum_preferences_asset_import_method_items[] = {
+    {ASSET_IMPORT_LINK, "LINK", ICON_LINK_BLEND, "Link", "Import the assets as linked data-block"},
+    {ASSET_IMPORT_APPEND,
+     "APPEND",
+     ICON_APPEND_BLEND,
+     "Append",
+     "Import the assets as copied data-block, with no link to the original asset data-block"},
+    {ASSET_IMPORT_APPEND_REUSE,
+     "APPEND_REUSE",
+     ICON_APPEND_BLEND,
+     "Append (Reuse Data)",
+     "Import the assets as copied data-block while avoiding multiple copies of nested, "
+     "typically heavy data. For example the textures of a material asset, or the mesh of an "
+     "object asset, don't have to be copied every time this asset is imported. The instances of "
+     "the asset share the data instead."},
+    {ASSET_IMPORT_PACK,
+     "PACK",
+     ICON_PACKAGE,
+     "Pack",
+     "Import the asset as linked data-block, and pack it in the current file (ensures that it "
+     "remains unchanged in case the library data is modified, is not available anymore, etc.)"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 #ifdef RNA_RUNTIME
 
 #  include "AS_remote_library.hh"
@@ -227,6 +251,8 @@ static const EnumPropertyItem rna_enum_preferences_extension_repo_source_type_it
 #  include "ED_screen.hh"
 
 #  include "UI_interface.hh"
+
+#  include "AS_asset_library.hh"
 
 static void rna_userdef_version_get(PointerRNA *ptr, int *value)
 {
@@ -372,11 +398,10 @@ int rna_userdef_asset_library_path_editable(const PointerRNA *ptr, const char **
     *r_info = N_("The download cache directory of remote asset libraries cannot be changed");
     return PropertyFlag(0);
   }
-
   return PROP_EDITABLE;
 }
 
-static void rna_userdef_asset_library_clear_update(bContext *C, PointerRNA *ptr)
+static void rna_userdef_asset_library_update(bContext *C, PointerRNA *ptr)
 {
   blender::ed::asset::list::clear_all_library(C);
   rna_userdef_update(CTX_data_main(C), CTX_data_scene(C), ptr);
@@ -389,7 +414,7 @@ static void rna_userdef_asset_library_remote_sync_update(bContext *C, PointerRNA
   /* Make sure all visible instances of this asset library will be refreshed. */
   blender::ed::asset::list::clear(&library_ref, C);
   blender::asset_system::remote_library_request_download(*CTX_data_main(C), *library);
-  rna_userdef_asset_library_clear_update(C, ptr);
+  rna_userdef_asset_library_update(C, ptr);
 }
 
 /**
@@ -1508,6 +1533,49 @@ static void rna_preference_gpu_preferred_device_set(PointerRNA *ptr, int value)
   preferences->gpu_preferred_device_id = 0u;
 }
 
+static const EnumPropertyItem *rna_preference_asset_libray_import_method_itemf(
+    bContext * /*C*/, PointerRNA * /*ptr*/, PropertyRNA * /*prop*/, bool *r_free)
+{
+  EnumPropertyItem *items = nullptr;
+  int items_num = 0;
+  for (const EnumPropertyItem *item = rna_enum_preferences_asset_import_method_items;
+       item->identifier;
+       item++)
+  {
+    switch (eAssetImportMethod(item->value)) {
+      case ASSET_IMPORT_APPEND_REUSE: {
+        if (U.experimental.no_data_block_packing) {
+          RNA_enum_item_add(&items, &items_num, item);
+        }
+        break;
+      }
+      case ASSET_IMPORT_PACK: {
+        if (!U.experimental.no_data_block_packing) {
+          RNA_enum_item_add(&items, &items_num, item);
+        }
+        break;
+      }
+      default: {
+        RNA_enum_item_add(&items, &items_num, item);
+        break;
+      }
+    }
+  }
+  RNA_enum_item_end(&items, &items_num);
+  *r_free = true;
+  return items;
+}
+
+static void rna_experimental_no_data_block_packing_update(bContext *C, PointerRNA *ptr)
+{
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  rna_userdef_update(bmain, scene, ptr);
+  AS_asset_library_import_method_ensure_valid(*bmain);
+  AS_asset_library_essential_import_method_update();
+  rna_userdef_asset_library_update(C, ptr);
+}
+
 #else
 
 #  define USERDEF_TAG_DIRTY_PROPERTY_UPDATE_ENABLE \
@@ -1884,6 +1952,11 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
   prop = RNA_def_property(srna, "wcol_box", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
   RNA_def_property_ui_text(prop, "Box Backdrop Colors", "");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
+  prop = RNA_def_property(srna, "wcol_curve", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  RNA_def_property_ui_text(prop, "Curve Widget Colors", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   prop = RNA_def_property(srna, "wcol_menu", PROP_POINTER, PROP_NONE);
@@ -2722,21 +2795,6 @@ static void rna_def_userdef_theme_spaces_face(StructRNA *srna, const bool has_fa
   }
 }
 
-static void rna_def_userdef_theme_spaces_paint_curves(StructRNA *srna)
-{
-  PropertyRNA *prop;
-
-  prop = RNA_def_property(srna, "paint_curve_handle", PROP_FLOAT, PROP_COLOR_GAMMA);
-  RNA_def_property_array(prop, 4);
-  RNA_def_property_ui_text(prop, "Paint Curve Handle", "");
-  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
-
-  prop = RNA_def_property(srna, "paint_curve_pivot", PROP_FLOAT, PROP_COLOR_GAMMA);
-  RNA_def_property_array(prop, 4);
-  RNA_def_property_ui_text(prop, "Paint Curve Pivot", "");
-  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
-}
-
 static void rna_def_userdef_theme_spaces_gpencil(StructRNA *srna)
 {
   PropertyRNA *prop;
@@ -2957,12 +3015,6 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "NURBS Active V Lines", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
-  prop = RNA_def_property(srna, "act_spline", PROP_FLOAT, PROP_COLOR_GAMMA);
-  RNA_def_property_float_sdna(prop, nullptr, "act_spline");
-  RNA_def_property_array(prop, 3);
-  RNA_def_property_ui_text(prop, "Active Spline", "");
-  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
-
   /* Armature Object specific. */
 
   prop = RNA_def_property(srna, "bone_pose", PROP_FLOAT, PROP_COLOR_GAMMA);
@@ -3038,8 +3090,6 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
   RNA_def_property_array(prop, 3);
   RNA_def_property_ui_text(prop, "Transform", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
-
-  rna_def_userdef_theme_spaces_paint_curves(srna);
 
   prop = RNA_def_property(srna, "outline_width", PROP_INT, PROP_PIXEL);
   RNA_def_property_range(prop, 1, 5);
@@ -3690,8 +3740,6 @@ static void rna_def_userdef_theme_space_image(BlenderRNA *brna)
   RNA_def_property_array(prop, 3);
   RNA_def_property_ui_text(prop, "Metadata Text", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
-
-  rna_def_userdef_theme_spaces_paint_curves(srna);
 }
 
 static void rna_def_userdef_theme_space_seq(BlenderRNA *brna)
@@ -6679,7 +6727,7 @@ static void rna_def_userdef_filepaths_asset_library(BlenderRNA *brna)
   RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_userdef_asset_library_path_set");
   RNA_def_property_editable_func(prop, "rna_userdef_asset_library_path_editable");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-  RNA_def_property_update(prop, 0, "rna_userdef_asset_library_clear_update");
+  RNA_def_property_update(prop, 0, "rna_userdef_asset_library_update");
 
   prop = RNA_def_property(srna, "remote_url", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, nullptr, "remote_url");
@@ -6687,30 +6735,16 @@ static void rna_def_userdef_filepaths_asset_library(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, 0, "rna_userdef_asset_library_remote_sync_update");
 
-  static const EnumPropertyItem import_method_items[] = {
-      {ASSET_IMPORT_LINK, "LINK", 0, "Link", "Import the assets as linked data-block"},
-      {ASSET_IMPORT_APPEND,
-       "APPEND",
-       0,
-       "Append",
-       "Import the assets as copied data-block, with no link to the original asset data-block"},
-      {ASSET_IMPORT_APPEND_REUSE,
-       "APPEND_REUSE",
-       0,
-       "Append (Reuse Data)",
-       "Import the assets as copied data-block while avoiding multiple copies of nested, "
-       "typically heavy data. For example the textures of a material asset, or the mesh of an "
-       "object asset, don't have to be copied every time this asset is imported. The instances of "
-       "the asset share the data instead."},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
   prop = RNA_def_property(srna, "import_method", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, import_method_items);
+  RNA_def_property_enum_items(prop, rna_enum_preferences_asset_import_method_items);
+  RNA_def_property_enum_funcs(
+      prop, nullptr, nullptr, "rna_preference_asset_libray_import_method_itemf");
   RNA_def_property_ui_text(
       prop,
       "Default Import Method",
       "Determine how the asset will be imported, unless overridden by the Asset Browser");
-  RNA_def_property_update(prop, 0, "rna_userdef_update");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(prop, 0, "rna_userdef_asset_library_update");
 
   prop = RNA_def_property(srna, "use_relative_path", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", ASSET_LIBRARY_RELATIVE_PATH);
@@ -7177,7 +7211,7 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_userdef_autosave_update");
 
   prop = RNA_def_property(srna, "recent_files", PROP_INT, PROP_NONE);
-  RNA_def_property_range(prop, 0, 30);
+  RNA_def_property_range(prop, 0, 1000);
   RNA_def_property_ui_text(
       prop, "Recent Files", "Maximum number of recently opened files to remember");
 
@@ -7346,6 +7380,13 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
       "Write Legacy Blend File Format",
       "Use file format used before Blender 5.0. This format is more limited "
       "but it may have better compatibility with tools that don't support the new format yet");
+
+  prop = RNA_def_property(srna, "no_data_block_packing", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "no_data_block_packing", 1);
+  RNA_def_property_ui_text(
+      prop, "No Data-Block Packing", "Fall-back to appending instead of packing data-blocks");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(prop, 0, "rna_experimental_no_data_block_packing_update");
 
   prop = RNA_def_property(srna, "use_all_linked_data_direct", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_ui_text(

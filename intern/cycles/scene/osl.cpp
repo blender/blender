@@ -661,22 +661,31 @@ void OSLShaderManager::device_update_specific(Device *device,
     og->displacement_state.clear();
     og->bump_state.clear();
     og->background_state.reset();
+
+    /* Allocate space for the shader groups. Needs to be done here so the multithreaded
+     * compilation can write to it safely. */
+    og->surface_state.resize(scene->shaders.size());
+    og->volume_state.resize(scene->shaders.size());
+    og->displacement_state.resize(scene->shaders.size());
+    og->bump_state.resize(scene->shaders.size());
   });
 
   /* create shaders */
   Shader *background_shader = scene->background->get_shader(scene);
 
-  /* compile each shader to OSL shader groups */
+  /* Compile each shader to OSL shader groups. */
   TaskPool task_pool;
-  for (Shader *shader : scene->shaders) {
-    assert(shader->graph);
+  for (int shader_id = 0; shader_id < scene->shaders.size(); shader_id++) {
 
-    auto compile = [scene, shader, background_shader](Device *sub_device, OSLGlobals *) {
+    auto compile = [scene, shader_id, background_shader](Device *sub_device, OSLGlobals *og) {
+      Shader *shader = scene->shaders[shader_id];
+      assert(shader->graph);
+
       OSL::ShadingSystem *ss = scene->osl_manager->get_shading_system(sub_device);
 
       OSLCompiler compiler(ss, scene);
       compiler.background = (shader == background_shader);
-      compiler.compile(shader);
+      compiler.compile(og, shader_id, shader);
     };
 
     task_pool.push([device, compile] { OSLManager::foreach_osl_device(device, compile); });
@@ -687,21 +696,8 @@ void OSLShaderManager::device_update_specific(Device *device,
     return;
   }
 
-  /* collect shader groups from all shaders */
+  /* Tag updates after shader compilation is done. */
   for (Shader *shader : scene->shaders) {
-    OSLManager::OSLManager::foreach_osl_device(
-        device, [shader, background_shader](Device *, OSLGlobals *og) {
-          /* push state to array for lookup */
-          og->surface_state.push_back(shader->osl_surface_ref);
-          og->volume_state.push_back(shader->osl_volume_ref);
-          og->displacement_state.push_back(shader->osl_displacement_ref);
-          og->bump_state.push_back(shader->osl_surface_bump_ref);
-
-          if (shader == background_shader) {
-            og->background_state = shader->osl_surface_ref;
-          }
-        });
-
     if (shader->emission_sampling != EMISSION_SAMPLING_NONE) {
       scene->light_manager->tag_update(scene, LightManager::SHADER_COMPILED);
     }
@@ -1540,7 +1536,7 @@ OSL::ShaderGroupRef OSLCompiler::compile_type(Shader *shader, ShaderGraph *graph
   return std::move(current_group);
 }
 
-void OSLCompiler::compile(Shader *shader)
+void OSLCompiler::compile(OSLGlobals *og, int shader_id, Shader *shader)
 {
   if (shader->is_modified()) {
     ShaderGraph *graph = shader->graph.get();
@@ -1550,34 +1546,21 @@ void OSLCompiler::compile(Shader *shader)
 
     /* generate surface shader */
     if (shader->reference_count() && shader->has_surface) {
-      shader->osl_surface_ref = compile_type(shader, graph, SHADER_TYPE_SURFACE);
+      og->surface_state[shader_id] = compile_type(shader, graph, SHADER_TYPE_SURFACE);
 
       if (has_bump) {
-        shader->osl_surface_bump_ref = compile_type(shader, graph, SHADER_TYPE_BUMP);
+        og->bump_state[shader_id] = compile_type(shader, graph, SHADER_TYPE_BUMP);
       }
-      else {
-        shader->osl_surface_bump_ref = OSL::ShaderGroupRef();
-      }
-    }
-    else {
-      shader->osl_surface_ref = OSL::ShaderGroupRef();
-      shader->osl_surface_bump_ref = OSL::ShaderGroupRef();
     }
 
     /* generate volume shader */
     if (shader->reference_count() && shader->has_volume) {
-      shader->osl_volume_ref = compile_type(shader, graph, SHADER_TYPE_VOLUME);
-    }
-    else {
-      shader->osl_volume_ref = OSL::ShaderGroupRef();
+      og->volume_state[shader_id] = compile_type(shader, graph, SHADER_TYPE_VOLUME);
     }
 
     /* generate displacement shader */
     if (shader->reference_count() && shader->has_displacement) {
-      shader->osl_displacement_ref = compile_type(shader, graph, SHADER_TYPE_DISPLACEMENT);
-    }
-    else {
-      shader->osl_displacement_ref = OSL::ShaderGroupRef();
+      og->displacement_state[shader_id] = compile_type(shader, graph, SHADER_TYPE_DISPLACEMENT);
     }
 
     /* Estimate emission for MIS. */

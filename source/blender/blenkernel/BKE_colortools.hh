@@ -6,6 +6,7 @@
 /** \file
  * \ingroup bke
  */
+#include <cstdint>
 
 struct BlendDataReader;
 struct BlendWriter;
@@ -39,17 +40,17 @@ void BKE_curvemapping_set_black_white(CurveMapping *cumap,
                                       const float black[3],
                                       const float white[3]);
 
-enum {
-  CURVEMAP_SLOPE_NEGATIVE = 0,
-  CURVEMAP_SLOPE_POSITIVE = 1,
-  CURVEMAP_SLOPE_POS_NEG = 2,
+enum class CurveMapSlopeType : int8_t {
+  Negative = 0,
+  Positive = 1,
+  PositiveNegative = 2,
 };
 
 /**
  * Reset the view for current curve.
  */
 void BKE_curvemapping_reset_view(CurveMapping *cumap);
-void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope);
+void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, CurveMapSlopeType slope);
 /**
  * Removes with flag set.
  */

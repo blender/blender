@@ -343,7 +343,7 @@ PyDoc_STRVAR(
     bpy_geometry_set_grease_pencil_doc,
     "The Grease Pencil data-block in the geometry set.\n"
     "\n"
-    ":type: :class:`bpy.types.GreasePencilv3`\n");
+    ":type: :class:`bpy.types.GreasePencil`\n");
 static PyObject *BPy_GeometrySet_get_grease_pencil(BPy_GeometrySet *self, void * /*closure*/)
 {
   return pyrna_id_CreatePyObject(

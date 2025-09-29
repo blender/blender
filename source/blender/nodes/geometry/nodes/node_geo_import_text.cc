@@ -19,7 +19,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::String>("Path")
       .subtype(PROP_FILEPATH)
       .path_filter("*.txt")
-      .hide_label()
+      .optional_label()
       .description("Path to a text file");
 
   b.add_output<decl::String>("String");

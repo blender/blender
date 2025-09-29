@@ -281,11 +281,8 @@ bNodeSocket &SocketDeclaration::update_or_build(bNodeTree &ntree,
 
 void SocketDeclaration::set_common_flags(bNodeSocket &socket) const
 {
-  SET_FLAG_FROM_TEST(socket.flag, compact, SOCK_COMPACT);
   SET_FLAG_FROM_TEST(socket.flag, hide_value, SOCK_HIDE_VALUE);
-  SET_FLAG_FROM_TEST(socket.flag, hide_label, SOCK_HIDE_LABEL);
   SET_FLAG_FROM_TEST(socket.flag, is_multi_input, SOCK_MULTI_INPUT);
-  SET_FLAG_FROM_TEST(socket.flag, no_mute_links, SOCK_NO_INTERNAL_LINK);
   SET_FLAG_FROM_TEST(socket.flag, !is_available, SOCK_UNAVAIL);
 }
 
@@ -297,19 +294,10 @@ bool SocketDeclaration::matches_common_data(const bNodeSocket &socket) const
   if (socket.identifier != this->identifier) {
     return false;
   }
-  if (((socket.flag & SOCK_COMPACT) != 0) != this->compact) {
-    return false;
-  }
   if (((socket.flag & SOCK_HIDE_VALUE) != 0) != this->hide_value) {
     return false;
   }
-  if (((socket.flag & SOCK_HIDE_LABEL) != 0) != this->hide_label) {
-    return false;
-  }
   if (((socket.flag & SOCK_MULTI_INPUT) != 0) != this->is_multi_input) {
-    return false;
-  }
-  if (((socket.flag & SOCK_NO_INTERNAL_LINK) != 0) != this->no_mute_links) {
     return false;
   }
   if (((socket.flag & SOCK_UNAVAIL) != 0) != !this->is_available) {
@@ -550,9 +538,9 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::dependent_field(
   return *this;
 }
 
-BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::hide_label(bool value)
+BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::optional_label(bool value)
 {
-  decl_base_->hide_label = value;
+  decl_base_->optional_label = value;
   return *this;
 }
 
@@ -1118,6 +1106,16 @@ bool socket_type_supports_default_input_type(const bke::bNodeSocketType &socket_
       return stype == SOCK_MATRIX;
   }
   return false;
+}
+
+void CustomSocketDrawParams::draw_standard(uiLayout &layout,
+                                           const std::optional<StringRefNull> label_override)
+{
+  this->socket.typeinfo->draw(const_cast<bContext *>(&this->C),
+                              &layout,
+                              &this->socket_ptr,
+                              &this->node_ptr,
+                              (label_override.has_value()) ? *label_override : this->label);
 }
 
 }  // namespace blender::nodes

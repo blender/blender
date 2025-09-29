@@ -3422,7 +3422,9 @@ static void do_brush_action(const Depsgraph &depsgraph,
   if (!ELEM(brush.sculpt_brush_type, SCULPT_BRUSH_TYPE_SMOOTH, SCULPT_BRUSH_TYPE_MASK) &&
       brush.autosmooth_factor > 0)
   {
-    if (brush.flag & BRUSH_INVERSE_SMOOTH_PRESSURE) {
+    if (bke::brush::supports_auto_smooth_pressure(brush) &&
+        brush.flag & BRUSH_INVERSE_SMOOTH_PRESSURE)
+    {
       brushes::do_smooth_brush(
           depsgraph, sd, ob, node_mask, brush.autosmooth_factor * (1.0f - ss.cache->pressure));
     }
@@ -4290,7 +4292,9 @@ static void brush_delta_update(const Depsgraph &depsgraph,
 static void cache_paint_invariants_update(StrokeCache &cache, const Brush &brush)
 {
   cache.hardness = brush.hardness;
-  if (brush.paint_flags & BRUSH_PAINT_HARDNESS_PRESSURE) {
+  if (bke::brush::supports_hardness_pressure(brush) &&
+      brush.paint_flags & BRUSH_PAINT_HARDNESS_PRESSURE)
+  {
     cache.hardness *= brush.paint_flags & BRUSH_PAINT_HARDNESS_PRESSURE_INVERT ?
                           1.0f - cache.pressure :
                           cache.pressure;
@@ -5030,11 +5034,7 @@ static void restore_from_undo_step_if_necessary(const Depsgraph &depsgraph,
   }
 
   /* Restore the mesh before continuing with anchored stroke. */
-  if ((brush->flag & BRUSH_ANCHORED) ||
-      (ELEM(brush->sculpt_brush_type, SCULPT_BRUSH_TYPE_GRAB, SCULPT_BRUSH_TYPE_ELASTIC_DEFORM) &&
-       BKE_brush_use_size_pressure(brush)) ||
-      (brush->flag & BRUSH_DRAG_DOT))
-  {
+  if (brush->flag & BRUSH_ANCHORED || brush->flag & BRUSH_DRAG_DOT) {
 
     undo::restore_from_undo_step(depsgraph, sd, ob);
 

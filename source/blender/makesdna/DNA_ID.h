@@ -18,6 +18,7 @@
 
 /** Workaround to forward-declare C++ type in C header. */
 #ifdef __cplusplus
+#  include <cstring>
 #  include <type_traits>
 
 namespace blender::bke::id {
@@ -41,10 +42,6 @@ typedef struct PreviewImageRuntimeHandle PreviewImageRuntimeHandle;
 typedef struct LibraryRuntimeHandle LibraryRuntimeHandle;
 typedef struct IDPropertyGroupChildrenSet IDPropertyGroupChildrenSet;
 typedef struct ID_RuntimeHandle ID_RuntimeHandle;
-#endif
-
-#ifdef __cplusplus
-extern "C" {
 #endif
 
 struct FileData;
@@ -383,6 +380,37 @@ enum {
   ID_REMAP_IS_USER_ONE_SKIPPED = 1 << 1,
 };
 
+typedef struct IDHash {
+  char data[16];
+
+#ifdef __cplusplus
+  uint64_t hash() const
+  {
+    return *reinterpret_cast<const uint64_t *>(this->data);
+  }
+
+  static constexpr IDHash get_null()
+  {
+    return {};
+  }
+  bool is_null() const
+  {
+    return *this == IDHash::get_null();
+  }
+
+  friend bool operator==(const IDHash &a, const IDHash &b)
+  {
+    return memcmp(a.data, b.data, sizeof(a.data)) == 0;
+  }
+
+  friend bool operator!=(const IDHash &a, const IDHash &b)
+  {
+    return !(a == b);
+  }
+
+#endif
+} IDHash;
+
 typedef struct ID {
   /* There's a nasty circular dependency here.... 'void *' to the rescue! I
    * really wonder why this is needed. */
@@ -432,6 +460,18 @@ typedef struct ID {
    * re-allocations (e.g. due to undo/redo steps).
    */
   unsigned int session_uid;
+
+  /**
+   * This is only available on packed linked data-blocks. It is a hash of the contents the
+   * data-block including all its dependencies. It is computed when first packing the data-block
+   * and is not changed afterwards. It can be used to detect that packed data-blocks in two
+   * separate .blend files are the same.
+   *
+   * Two data-blocks with the same deep hash are assumed to be interchangeable, but not necessarily
+   * exactly the same. For example, it's possible to change node positions on packed data-blocks
+   * without changing the deep hash.
+   */
+  IDHash deep_hash;
 
   /**
    * User-defined custom properties storage. Typically Accessed through the 'dict' syntax from
@@ -511,6 +551,24 @@ typedef struct Library {
   /** Path name used for reading, can be relative and edited in the outliner. */
   char filepath[/*FILE_MAX*/ 1024];
 
+  /** Flags defining specific characteristics of a library. See #LibraryFlag. */
+  uint16_t flag;
+  char _pad[6];
+
+  /**
+   * For archive library only (#LIBRARY_FLAG_IS_ARCHIVE): The main library owning it.
+   *
+   * `archive_parent_library` and `packedfile` should never be both non-null in a same Library ID.
+   */
+  struct Library *archive_parent_library;
+
+  /**
+   * Packed blendfile of the library, nullptr if not packed.
+   *
+   * \note Individual IDs may be packed even if the entire library is not packed.
+   *
+   * `archive_parent_library` and `packedfile` should never be both non-null in a same Library ID.
+   */
   struct PackedFile *packedfile;
 
   /**
@@ -519,7 +577,21 @@ typedef struct Library {
    * Typically allocated when creating a new Library or reading it from a blendfile.
    */
   LibraryRuntimeHandle *runtime;
+
+  void *_pad2;
 } Library;
+
+/**
+ * #Library.flag
+ *
+ * Some of these flags define a 'virtual' library, which may not be an actual blendfile, store
+ * 'archived' embedded data, etc. IDs contained in these virtual libraries are _not_ managed by
+ * regular linking code.
+ */
+enum LibraryFlag {
+  /** The library is an 'archive' that only contains embedded linked data. */
+  LIBRARY_FLAG_IS_ARCHIVE = 1 << 0,
+};
 
 /**
  * A weak library/ID reference for local data that has been appended, to allow re-using that local
@@ -618,6 +690,12 @@ typedef struct PreviewImage {
 #define ID_MISSING(_id) ((((const ID *)(_id))->tag & ID_TAG_MISSING) != 0)
 
 #define ID_IS_LINKED(_id) (((const ID *)(_id))->lib != NULL)
+/**
+ * Indicates that this ID is linked but also packed into the current .blend file. Note that this
+ * just means that this specific ID and its dependencies are packed, not the entire library. So
+ * this is separate from #Library::packedfile.
+ */
+#define ID_IS_PACKED(_id) (ID_IS_LINKED(_id) && ((_id)->flag & ID_FLAG_LINKED_AND_PACKED))
 
 #define ID_TYPE_SUPPORTS_ASSET_EDITABLE(id_type) \
   ELEM(id_type, ID_BR, ID_TE, ID_NT, ID_IM, ID_PC, ID_MA)
@@ -717,6 +795,11 @@ enum {
    * so it must be treated as dirty.
    */
   ID_FLAG_CLIPBOARD_MARK = 1 << 14,
+  /**
+   * Indicates that this linked ID is packed into the current .blend file. This should never be set
+   * on local ID (without)one with a null `ID::lib` pointer).
+   */
+  ID_FLAG_LINKED_AND_PACKED = 1 << 15,
 };
 
 /**
@@ -1273,10 +1356,6 @@ typedef enum eID_Index {
 } eID_Index;
 
 #define INDEX_ID_MAX (INDEX_ID_NULL + 1)
-
-#ifdef __cplusplus
-}
-#endif
 
 #ifdef __cplusplus
 namespace blender::dna {

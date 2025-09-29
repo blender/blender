@@ -725,6 +725,7 @@ static ID *wm_file_link_append_datablock_ex(Main *bmain,
       BLI_path_cmp(BKE_main_blendfile_path(bmain), filepath) != 0,
       "Calling code should ensure it does not attempt to link/append from current blendfile");
 
+  const bool do_pack = (flag & BLO_LIBLINK_PACK) != 0;
   const bool do_append = (flag & FILE_LINK) == 0;
   /* Tag everything so we can make local only the new datablock. */
   BKE_main_id_tag_all(bmain, ID_TAG_PRE_EXISTING, true);
@@ -747,7 +748,10 @@ static ID *wm_file_link_append_datablock_ex(Main *bmain,
   /* Link datablock. */
   BKE_blendfile_link(lapp_context, nullptr);
 
-  if (do_append) {
+  if (do_pack) {
+    BKE_blendfile_link_pack(lapp_context, nullptr);
+  }
+  else if (do_append) {
     BKE_blendfile_append(lapp_context, nullptr);
   }
 

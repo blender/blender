@@ -159,7 +159,7 @@ static PyObject *bpy_lib_write(BPy_PropertyRNA *self, PyObject *args, PyObject *
   /* write blend */
   ReportList reports;
 
-  BKE_reports_init(&reports, RPT_STORE);
+  BKE_reports_init(&reports, RPT_STORE | RPT_PRINT_HANDLED_BY_OWNER);
   bool success = partial_write_ctx.write(
       filepath_abs, write_flags, path_remap.value_found, reports);
 

@@ -61,16 +61,13 @@ def __filter_pbr_material(blender_material, export_settings):
 
 
 def __gather_base_color_factor(blender_material, export_settings):
-    if not blender_material.use_nodes:
-        return [*blender_material.diffuse_color[:3],
-                1.0], {"color": None, "alpha": None, "color_type": None, "alpha_type": None, "alpha_mode": "OPAQUE"}
 
     rgb, alpha = None, None
     vc_info = {"color": None, "alpha": None, "color_type": None, "alpha_type": None, "alpha_mode": "OPAQUE"}
 
     path_alpha = None
     path = None
-    alpha_socket = get_socket(blender_material.node_tree, blender_material.use_nodes, "Alpha")
+    alpha_socket = get_socket(blender_material.node_tree, "Alpha")
     if alpha_socket.socket is not None and isinstance(alpha_socket.socket, bpy.types.NodeSocket):
         alpha_info = gather_alpha_info(alpha_socket.to_node_nav())
         vc_info['alpha'] = alpha_info['alphaColorAttrib']
@@ -79,12 +76,12 @@ def __gather_base_color_factor(blender_material, export_settings):
         alpha = alpha_info['alphaFactor']
         path_alpha = alpha_info['alphaPath']
 
-    base_color_socket = get_socket(blender_material.node_tree, blender_material.use_nodes, "Base Color")
+    base_color_socket = get_socket(blender_material.node_tree, "Base Color")
     if base_color_socket.socket is None:
-        base_color_socket = get_socket(blender_material.node_tree, blender_material.use_nodes, "BaseColor")
+        base_color_socket = get_socket(blender_material.node_tree, "BaseColor")
     if base_color_socket.socket is None:
         base_color_socket = get_socket_from_gltf_material_node(
-            blender_material.node_tree, blender_material.use_nodes, "BaseColorFactor")
+            blender_material.node_tree, "BaseColorFactor")
     if base_color_socket.socket is not None and isinstance(base_color_socket.socket, bpy.types.NodeSocket):
         if export_settings['gltf_image_format'] != "NONE":
             rgb_vc_info = gather_color_info(base_color_socket.to_node_nav())
@@ -127,14 +124,14 @@ def __gather_base_color_factor(blender_material, export_settings):
 
 
 def __gather_base_color_texture(blender_material, export_settings):
-    base_color_socket = get_socket(blender_material.node_tree, blender_material.use_nodes, "Base Color")
+    base_color_socket = get_socket(blender_material.node_tree, "Base Color")
     if base_color_socket.socket is None:
-        base_color_socket = get_socket(blender_material.node_tree, blender_material.use_nodes, "BaseColor")
+        base_color_socket = get_socket(blender_material.node_tree, "BaseColor")
     if base_color_socket.socket is None:
         base_color_socket = get_socket_from_gltf_material_node(
-            blender_material.node_tree, blender_material.use_nodes, "BaseColor")
+            blender_material.node_tree, "BaseColor")
 
-    alpha_socket = get_socket(blender_material.node_tree, blender_material.use_nodes, "Alpha")
+    alpha_socket = get_socket(blender_material.node_tree, "Alpha")
 
     # keep sockets that have some texture : color and/or alpha
     inputs = tuple(
@@ -172,13 +169,11 @@ def __gather_extras(blender_material, export_settings):
 
 
 def __gather_metallic_factor(blender_material, export_settings):
-    if not blender_material.use_nodes:
-        return blender_material.metallic
 
-    metallic_socket = get_socket(blender_material.node_tree, blender_material.use_nodes, "Metallic")
+    metallic_socket = get_socket(blender_material.node_tree, "Metallic")
     if metallic_socket.socket is None:
         metallic_socket = get_socket_from_gltf_material_node(
-            blender_material.node_tree, blender_material.use_nodes, "MetallicFactor")
+            blender_material.node_tree, "MetallicFactor")
     if metallic_socket.socket is not None and isinstance(metallic_socket.socket, bpy.types.NodeSocket):
         fac, path = get_factor_from_socket(metallic_socket, kind='VALUE')
 
@@ -195,8 +190,8 @@ def __gather_metallic_factor(blender_material, export_settings):
 
 
 def __gather_metallic_roughness_texture(blender_material, orm_texture, export_settings):
-    metallic_socket = get_socket(blender_material.node_tree, blender_material.use_nodes, "Metallic")
-    roughness_socket = get_socket(blender_material.node_tree, blender_material.use_nodes, "Roughness")
+    metallic_socket = get_socket(blender_material.node_tree, "Metallic")
+    roughness_socket = get_socket(blender_material.node_tree, "Roughness")
 
     hasMetal = metallic_socket.socket is not None and has_image_node_from_socket(metallic_socket, export_settings)
     hasRough = roughness_socket.socket is not None and has_image_node_from_socket(roughness_socket, export_settings)
@@ -205,7 +200,7 @@ def __gather_metallic_roughness_texture(blender_material, orm_texture, export_se
     # Using directlty the Blender socket object
     if not hasMetal and not hasRough:
         metallic_roughness = get_socket_from_gltf_material_node(
-            blender_material.node_tree, blender_material.use_nodes, "MetallicRoughness")
+            blender_material.node_tree, "MetallicRoughness")
         if metallic_roughness.socket is None or not has_image_node_from_socket(metallic_roughness, export_settings):
             return None, {}, {}, None
         else:
@@ -231,13 +226,11 @@ def __gather_metallic_roughness_texture(blender_material, orm_texture, export_se
 
 
 def __gather_roughness_factor(blender_material, export_settings):
-    if not blender_material.use_nodes:
-        return blender_material.roughness
 
-    roughness_socket = get_socket(blender_material.node_tree, blender_material.use_nodes, "Roughness")
+    roughness_socket = get_socket(blender_material.node_tree, "Roughness")
     if roughness_socket is None:
         roughness_socket = get_socket_from_gltf_material_node(
-            blender_material.node_tree, blender_material.use_nodes, "RoughnessFactor")
+            blender_material.node_tree, "RoughnessFactor")
     if roughness_socket.socket is not None and isinstance(roughness_socket.socket, bpy.types.NodeSocket):
         fac, path = get_factor_from_socket(roughness_socket, kind='VALUE')
 

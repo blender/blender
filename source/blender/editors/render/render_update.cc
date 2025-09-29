@@ -328,6 +328,14 @@ static void update_sequencer(const DEGEditorUpdateContext *update_ctx, Main *bma
       blender::seq::cache_cleanup(changed_scene);
     }
   }
+
+  /* Invalidate cache for strips that use this compositing tree as a modifier.  */
+  if (GS(id->name) == ID_NT) {
+    const bNodeTree *node_tree = reinterpret_cast<const bNodeTree *>(id);
+    if (node_tree->type == NTREE_COMPOSIT) {
+      blender::seq::relations_invalidate_compositor_modifiers(bmain, node_tree);
+    }
+  }
 }
 
 void ED_render_id_flush_update(const DEGEditorUpdateContext *update_ctx, ID *id)

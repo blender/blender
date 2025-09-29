@@ -29,6 +29,7 @@
 
 #include "DNA_image_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_space_types.h"
 #include "DNA_vec_types.h"
 
 #include "RE_engine.h"
@@ -86,6 +87,66 @@ static blender::bke::bNodeSocketTemplate cmp_node_rlayers_out[] = {
 };
 #define NUM_LEGACY_SOCKETS (ARRAY_SIZE(cmp_node_rlayers_out) - 1)
 
+static const char *cmp_node_legacy_pass_name(const char *name)
+{
+  if (STREQ(name, "Diffuse Direct")) {
+    return "DiffDir";
+  }
+  if (STREQ(name, "Diffuse Indirect")) {
+    return "DiffInd";
+  }
+  if (STREQ(name, "Diffuse Color")) {
+    return "DiffCol";
+  }
+  if (STREQ(name, "Glossy Direct")) {
+    return "GlossDir";
+  }
+  if (STREQ(name, "Glossy Indirect")) {
+    return "GlossInd";
+  }
+  if (STREQ(name, "Glossy Color")) {
+    return "GlossCol";
+  }
+  if (STREQ(name, "Transmission Direct")) {
+    return "TransDir";
+  }
+  if (STREQ(name, "Transmission Indirect")) {
+    return "TransInd";
+  }
+  if (STREQ(name, "Transmission Color")) {
+    return "TransCol";
+  }
+  if (STREQ(name, "Volume Direct")) {
+    return "VolumeDir";
+  }
+  if (STREQ(name, "Volume Indirect")) {
+    return "VolumeInd";
+  }
+  if (STREQ(name, "Volume Color")) {
+    return "VolumeCol";
+  }
+  if (STREQ(name, "Ambient Occlusion")) {
+    return "AO";
+  }
+  if (STREQ(name, "Environment")) {
+    return "Env";
+  }
+  if (STREQ(name, "Material Index")) {
+    return "IndexMA";
+  }
+  if (STREQ(name, "Object Index")) {
+    return "IndexOB";
+  }
+  if (STREQ(name, "Grease Pencil")) {
+    return "GreasePencil";
+  }
+  if (STREQ(name, "Emission")) {
+    return "Emit";
+  }
+
+  return nullptr;
+}
+
 static void cmp_node_image_add_pass_output(bNodeTree *ntree,
                                            bNode *node,
                                            const char *name,
@@ -98,6 +159,19 @@ static void cmp_node_image_add_pass_output(bNodeTree *ntree,
 {
   bNodeSocket *sock = (bNodeSocket *)BLI_findstring(
       &node->outputs, name, offsetof(bNodeSocket, name));
+
+  /* Rename legacy socket names to new ones. */
+  if (sock == nullptr) {
+    const char *legacy_name = cmp_node_legacy_pass_name(name);
+    if (legacy_name) {
+      sock = (bNodeSocket *)BLI_findstring(
+          &node->outputs, legacy_name, offsetof(bNodeSocket, name));
+      if (sock) {
+        STRNCPY(sock->name, name);
+        STRNCPY(sock->identifier, name);
+      }
+    }
+  }
 
   /* Replace if types don't match. */
   if (sock && sock->type != type) {
@@ -676,12 +750,19 @@ static void node_composit_buts_viewlayers(uiLayout *layout, bContext *C, Pointer
   RNA_string_set(&op_ptr, "scene", scene_name);
 }
 
-/* Give a warning if passes are used with a render engine that does not support them. */
 static void node_extra_info(NodeExtraInfoParams &parameters)
 {
-  const Scene *scene = CTX_data_scene(&parameters.C);
+  SpaceNode *space_node = CTX_wm_space_node(&parameters.C);
+  if (space_node->node_tree_sub_type != SNODE_COMPOSITOR_SCENE) {
+    NodeExtraInfoRow row;
+    row.text = RPT_("Node Unsupported");
+    row.tooltip = TIP_("The Render Layers node is only supported for scene compositing");
+    row.icon = ICON_ERROR;
+    parameters.rows.append(std::move(row));
+  }
 
   /* EEVEE supports passes. */
+  const Scene *scene = CTX_data_scene(&parameters.C);
   if (StringRef(scene->r.engine) == RE_engine_id_BLENDER_EEVEE) {
     return;
   }

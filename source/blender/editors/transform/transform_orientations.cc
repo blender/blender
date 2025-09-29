@@ -665,6 +665,7 @@ short calc_orientation_from_type_ex(const Scene *scene,
       if (ob) {
         if (ob->mode & OB_MODE_POSE) {
           const bPoseChannel *pchan = BKE_pose_channel_active_if_bonecoll_visible(ob);
+
           if (pchan && gimbal_axis_pose(ob, pchan, r_mat)) {
             break;
           }
@@ -1428,8 +1429,11 @@ int getTransformOrientation_ex(const Scene *scene,
     bool ok = false;
 
     if (activeOnly && (pchan = BKE_pose_channel_active_if_bonecoll_visible(ob))) {
-      add_v3_v3(r_normal, pchan->pose_mat[2]);
-      add_v3_v3(r_plane, pchan->pose_mat[1]);
+      float pose_mat[3][3];
+      BKE_pose_channel_transform_orientation(arm, pchan, pose_mat);
+
+      add_v3_v3(r_normal, pose_mat[2]);
+      add_v3_v3(r_plane, pose_mat[1]);
       ok = true;
     }
     else {
@@ -1439,8 +1443,11 @@ int getTransformOrientation_ex(const Scene *scene,
         /* Use channels to get stats. */
         LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
           if (pchan->bone && pchan->bone->flag & BONE_TRANSFORM) {
-            add_v3_v3(r_normal, pchan->pose_mat[2]);
-            add_v3_v3(r_plane, pchan->pose_mat[1]);
+            float pose_mat[3][3];
+            BKE_pose_channel_transform_orientation(arm, pchan, pose_mat);
+
+            add_v3_v3(r_normal, pose_mat[2]);
+            add_v3_v3(r_plane, pose_mat[1]);
           }
         }
         ok = true;

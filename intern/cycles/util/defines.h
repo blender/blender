@@ -82,6 +82,18 @@
 #  endif
 #endif /* __KERNEL_GPU__ */
 
+/* Address sanitizer suppression. */
+
+#ifdef __KERNEL_GPU__
+#  define ccl_ignore_integer_overflow
+#else
+#  if defined(__SANITIZE_ADDRESS__) && (defined(__GNUC__) || defined(__clang__))
+#    define ccl_ignore_integer_overflow [[gnu::no_sanitize("signed-integer-overflow")]]
+#  else
+#    define ccl_ignore_integer_overflow
+#  endif
+#endif
+
 /* macros */
 
 /* hints for branch prediction, only use in code that runs a _lot_ */

@@ -102,6 +102,7 @@ class NODE_MT_texture_node_all_base(node_add_menu.NodeMenu):
     # & Swap menus can share the same layout while each using their
     # corresponding menus
     def draw(self, context):
+        del context
         layout = self.layout
         self.draw_menu(layout, "Input")
         self.draw_menu(layout, "Output")

@@ -301,7 +301,7 @@ class TIME_PT_keyframing_settings(TimelinePanelButtons, Panel):
             self.bl_label = scene.keying_sets_all.active.bl_label
             if scene.keying_sets_all.active.bl_label in scene.keying_sets:
                 # Do not translate, this keying set is user-defined.
-                self.bl_translation_context = "Do not translate"
+                self.bl_translation_context = i18n_contexts.no_translation
             else:
                 # Use the keying set's translation context (default).
                 self.bl_translation_context = scene.keying_sets_all.active.bl_rna.translation_context

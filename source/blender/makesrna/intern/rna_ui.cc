@@ -50,7 +50,6 @@ const EnumPropertyItem rna_enum_operator_context_items[] = {
 const EnumPropertyItem rna_enum_uilist_layout_type_items[] = {
     {UILST_LAYOUT_DEFAULT, "DEFAULT", 0, "Default Layout", "Use the default, multi-rows layout"},
     {UILST_LAYOUT_COMPACT, "COMPACT", 0, "Compact Layout", "Use the compact, single-row layout"},
-    {UILST_LAYOUT_GRID, "GRID", 0, "Grid Layout", "Use the grid-based layout"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

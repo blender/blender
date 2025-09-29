@@ -33,6 +33,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>("Geometry").propagate_all().align_with_previous();
   b.add_input<decl::Menu>("Mode")
       .static_items(mode_items)
+      .optional_label()
       .description("How the transformation is specified");
   b.add_input<decl::Vector>("Translation")
       .subtype(PROP_TRANSLATION)

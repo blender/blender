@@ -41,7 +41,8 @@ static void node_declare(NodeDeclarationBuilder &b)
           "An index used to group curves together. Filling is done separately for each group");
   b.add_input<decl::Menu>("Mode")
       .static_items(mode_items)
-      .default_value(GEO_NODE_CURVE_FILL_MODE_TRIANGULATED);
+      .default_value(GEO_NODE_CURVE_FILL_MODE_TRIANGULATED)
+      .optional_label();
   b.add_output<decl::Geometry>("Mesh").propagate_all_instance_attributes();
 }
 

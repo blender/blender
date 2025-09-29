@@ -110,7 +110,7 @@ class SocketTooltipBuilder {
     if (socket_.type == SOCK_MENU) {
       return true;
     }
-    if (socket_.flag & SOCK_HIDE_LABEL) {
+    if (socket_.runtime->declaration && socket_.runtime->declaration->optional_label) {
       return true;
     }
     return false;

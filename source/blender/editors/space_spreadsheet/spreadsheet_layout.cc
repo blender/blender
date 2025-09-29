@@ -35,6 +35,43 @@
 
 namespace blender::ed::spreadsheet {
 
+static std::string format_matrix_to_grid(const float4x4 &matrix)
+{
+  auto format_element = [](float value) {
+    if (math::abs(value) < 1e-4f) {
+      return fmt::format("{:.3}", value);
+    }
+    return fmt::format("{:.6}", value);
+  };
+
+  /* Transpose to be able to print row by row. */
+  const float4x4 t_matrix = math::transpose(matrix);
+  std::array<std::array<std::string, 4>, 4> formatted_elements;
+  std::array<size_t, 4> column_widths = {};
+  for (const int row_i : IndexRange(4)) {
+    for (const int col_i : IndexRange(4)) {
+      formatted_elements[row_i][col_i] = format_element(t_matrix[row_i][col_i]);
+      column_widths[col_i] = std::max(column_widths[col_i],
+                                      formatted_elements[row_i][col_i].length());
+    }
+  }
+
+  fmt::memory_buffer buf;
+  for (const int row_i : IndexRange(4)) {
+    for (const int col_i : IndexRange(4)) {
+      fmt::format_to(
+          fmt::appender(buf), "{:>{}}", formatted_elements[row_i][col_i], column_widths[col_i]);
+      if (col_i < 3) {
+        fmt::format_to(fmt::appender(buf), "  ");
+      }
+    }
+    if (row_i < 3) {
+      fmt::format_to(fmt::appender(buf), "\n");
+    }
+  }
+  return fmt::to_string(buf);
+}
+
 class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
  private:
   const SpreadsheetLayout &spreadsheet_layout_;
@@ -430,17 +467,12 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
     uiBut *but = this->draw_undrawable(params);
     /* Center alignment. */
     UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
-    UI_but_func_tooltip_set(
+    UI_but_func_tooltip_custom_set(
         but,
-        [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
-          /* Transpose to be able to print row by row. */
-          const float4x4 value = math::transpose(*static_cast<const float4x4 *>(argN));
-          std::stringstream ss;
-          ss << value[0] << ",\n";
-          ss << value[1] << ",\n";
-          ss << value[2] << ",\n";
-          ss << value[3];
-          return ss.str();
+        [](bContext & /*C*/, uiTooltipData &tip, uiBut * /*but*/, void *argN) {
+          const float4x4 matrix = *static_cast<const float4x4 *>(argN);
+          UI_tooltip_text_field_add(
+              tip, format_matrix_to_grid(matrix), {}, UI_TIP_STYLE_MONO, UI_TIP_LC_VALUE);
         },
         MEM_dupallocN<float4x4>(__func__, value),
         MEM_freeN);

@@ -62,6 +62,7 @@ static void cmp_node_scale_declare(NodeDeclarationBuilder &b)
       .min(0.0001f)
       .max(CMP_SCALE_MAX)
       .structure_type(StructureType::Dynamic)
+      .optional_label()
       .usage_by_menu("Type", {CMP_NODE_SCALE_RELATIVE, CMP_NODE_SCALE_ABSOLUTE});
   b.add_input<decl::Float>("Y")
       .default_value(1.0f)
@@ -73,20 +74,24 @@ static void cmp_node_scale_declare(NodeDeclarationBuilder &b)
       .default_value(CMP_NODE_SCALE_RENDER_SIZE_STRETCH)
       .static_items(frame_type_items)
       .usage_by_menu("Type", CMP_NODE_SCALE_RENDER_SIZE)
+      .optional_label()
       .description("How the image fits in the camera frame");
 
   PanelDeclarationBuilder &sampling_panel = b.add_panel("Sampling").default_closed(true);
   sampling_panel.add_input<decl::Menu>("Interpolation")
       .default_value(CMP_NODE_INTERPOLATION_BILINEAR)
       .static_items(rna_enum_node_compositor_interpolation_items)
+      .optional_label()
       .description("Interpolation method");
   sampling_panel.add_input<decl::Menu>("Extension X")
       .default_value(CMP_NODE_EXTENSION_MODE_CLIP)
       .static_items(rna_enum_node_compositor_extension_items)
+      .optional_label()
       .description("The extension mode applied to the X axis");
   sampling_panel.add_input<decl::Menu>("Extension Y")
       .default_value(CMP_NODE_EXTENSION_MODE_CLIP)
       .static_items(rna_enum_node_compositor_extension_items)
+      .optional_label()
       .description("The extension mode applied to the Y axis");
 }
 

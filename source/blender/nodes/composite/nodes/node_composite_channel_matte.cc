@@ -117,36 +117,45 @@ static void cmp_node_channel_matte_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Menu>("Color Space")
       .default_value(CMP_NODE_CHANNEL_MATTE_CS_RGB)
       .static_items(color_space_items)
-      .expanded();
+      .expanded()
+      .optional_label();
   b.add_input<decl::Menu>("RGB Key Channel")
       .default_value(RGBChannel::G)
       .static_items(rgb_channel_items)
       .expanded()
-      .usage_by_menu("Color Space", CMP_NODE_CHANNEL_MATTE_CS_RGB);
+      .translation_context(BLT_I18NCONTEXT_COLOR)
+      .usage_by_menu("Color Space", CMP_NODE_CHANNEL_MATTE_CS_RGB)
+      .optional_label();
   b.add_input<decl::Menu>("HSV Key Channel")
       .default_value(HSVChannel::H)
       .static_items(hsv_channel_items)
       .expanded()
-      .usage_by_menu("Color Space", CMP_NODE_CHANNEL_MATTE_CS_HSV);
+      .translation_context(BLT_I18NCONTEXT_COLOR)
+      .usage_by_menu("Color Space", CMP_NODE_CHANNEL_MATTE_CS_HSV)
+      .optional_label();
   b.add_input<decl::Menu>("YUV Key Channel")
       .default_value(YUVChannel::V)
       .static_items(yuv_channel_items)
       .expanded()
-      .usage_by_menu("Color Space", CMP_NODE_CHANNEL_MATTE_CS_YUV);
+      .usage_by_menu("Color Space", CMP_NODE_CHANNEL_MATTE_CS_YUV)
+      .optional_label();
   b.add_input<decl::Menu>("YCbCr Key Channel")
       .default_value(YCbCrChannel::Cr)
       .static_items(ycbcr_channel_items)
       .expanded()
-      .usage_by_menu("Color Space", CMP_NODE_CHANNEL_MATTE_CS_YCC);
+      .usage_by_menu("Color Space", CMP_NODE_CHANNEL_MATTE_CS_YCC)
+      .optional_label();
 
   b.add_input<decl::Menu>("Limit Method")
       .default_value(CMP_NODE_CHANNEL_MATTE_LIMIT_ALGORITHM_MAX)
       .static_items(limit_method_items)
-      .expanded();
+      .expanded()
+      .optional_label();
   b.add_input<decl::Menu>("RGB Limit Channel")
       .default_value(RGBChannel::R)
       .static_items(rgb_channel_items)
       .expanded()
+      .optional_label()
       .make_available([](bNode &node) {
         bNodeSocket &limit_method_socket = *blender::bke::node_find_socket(
             node, SOCK_IN, "Limit Method");
@@ -168,6 +177,7 @@ static void cmp_node_channel_matte_declare(NodeDeclarationBuilder &b)
       .default_value(HSVChannel::S)
       .static_items(hsv_channel_items)
       .expanded()
+      .optional_label()
       .make_available([](bNode &node) {
         bNodeSocket &limit_method_socket = *blender::bke::node_find_socket(
             node, SOCK_IN, "Limit Method");
@@ -189,6 +199,7 @@ static void cmp_node_channel_matte_declare(NodeDeclarationBuilder &b)
       .default_value(YUVChannel::U)
       .static_items(yuv_channel_items)
       .expanded()
+      .optional_label()
       .make_available([](bNode &node) {
         bNodeSocket &limit_method_socket = *blender::bke::node_find_socket(
             node, SOCK_IN, "Limit Method");
@@ -210,6 +221,7 @@ static void cmp_node_channel_matte_declare(NodeDeclarationBuilder &b)
       .default_value(YCbCrChannel::Cb)
       .static_items(ycbcr_channel_items)
       .expanded()
+      .optional_label()
       .make_available([](bNode &node) {
         bNodeSocket &limit_method_socket = *blender::bke::node_find_socket(
             node, SOCK_IN, "Limit Method");

@@ -209,7 +209,7 @@ static void parallel_grid_topology_tasks(const openvdb::MaskTree &mask_tree,
  * \param input_values: All input values which may be grids, fields or single values.
  * \param input_grids: The input grids already extracted from #input_values.
  * \param output_grids: The output grids to be filled with the results of the multi-function. The
- *   topology of these grids is initialized already.
+ *   topology of these grids is initialized already. May be null if the output is not needed.
  * \param transform: The transform of all input and output grids.
  * \param leaf_node_mask: Indicates which voxels in the leaf should be computed.
  * \param leaf_bbox: The bounding box of the leaf node.
@@ -332,6 +332,10 @@ BLI_NOINLINE static void process_leaf_node(const mf::MultiFunction &fn,
   for (const int output_i : output_grids.index_range()) {
     const mf::ParamType param_type = fn.param_type(params.next_param_index());
     const CPPType &param_cpp_type = param_type.data_type().single_type();
+    if (!output_grids[output_i]) {
+      params.add_ignored_single_output();
+      continue;
+    }
 
     openvdb::GridBase &grid_base = *output_grids[output_i];
     to_typed_grid(grid_base, [&](auto &grid) {
@@ -462,6 +466,9 @@ BLI_NOINLINE static void process_voxels(const mf::MultiFunction &fn,
 
   /* Copy the values from the temporary buffers into the output grids. */
   for (const int output_i : output_grids.index_range()) {
+    if (!output_grids[output_i]) {
+      continue;
+    }
     openvdb::GridBase &grid_base = *output_grids[output_i];
     to_typed_grid(grid_base, [&](auto &grid) {
       using GridT = std::decay_t<decltype(grid)>;
@@ -553,6 +560,10 @@ BLI_NOINLINE static void process_tiles(const mf::MultiFunction &fn,
   /* Prepare temporary output buffers for the field evaluation. Those will later be copied into the
    * output grids. */
   for ([[maybe_unused]] const int output_i : output_grids.index_range()) {
+    if (!output_grids[output_i]) {
+      params.add_ignored_single_output();
+      continue;
+    }
     const int param_index = input_values.size() + output_i;
     const mf::ParamType param_type = fn.param_type(param_index);
     const CPPType &type = param_type.data_type().single_type();
@@ -565,6 +576,9 @@ BLI_NOINLINE static void process_tiles(const mf::MultiFunction &fn,
 
   /* Copy the values from the temporary buffers into the output grids. */
   for (const int output_i : output_grids.index_range()) {
+    if (!output_grids[output_i]) {
+      continue;
+    }
     const int param_index = input_values.size() + output_i;
     openvdb::GridBase &grid_base = *output_grids[output_i];
     to_typed_grid(grid_base, [&](auto &grid) {
@@ -660,6 +674,10 @@ BLI_NOINLINE static void process_background(const mf::MultiFunction &fn,
   }
 
   for ([[maybe_unused]] const int output_i : output_grids.index_range()) {
+    if (!output_grids[output_i]) {
+      params.add_ignored_single_output();
+      continue;
+    }
     const int param_index = input_values.size() + output_i;
     const mf::ParamType param_type = fn.param_type(param_index);
     const CPPType &type = param_type.data_type().single_type();
@@ -671,6 +689,9 @@ BLI_NOINLINE static void process_background(const mf::MultiFunction &fn,
   fn.call_auto(mask, params, context);
 
   for ([[maybe_unused]] const int output_i : output_grids.index_range()) {
+    if (!output_grids[output_i]) {
+      continue;
+    }
     const int param_index = input_values.size() + output_i;
     const GSpan value = params.computed_array(param_index);
 
@@ -740,6 +761,9 @@ bool execute_multi_function_on_value_variant__volume_grid(
 
   Array<openvdb::GridBase::Ptr> output_grids(output_values.size());
   for (const int i : output_values.index_range()) {
+    if (!output_values[i]) {
+      continue;
+    }
     const int param_index = input_values.size() + i;
     const mf::ParamType param_type = fn.param_type(param_index);
     const CPPType &cpp_type = param_type.data_type().single_type();

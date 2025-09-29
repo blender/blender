@@ -43,7 +43,8 @@ static void cmp_node_moviedistortion_declare(NodeDeclarationBuilder &b)
       .structure_type(StructureType::Dynamic);
   b.add_input<decl::Menu>("Type")
       .default_value(compositor::DistortionType::Distort)
-      .static_items(type_items);
+      .static_items(type_items)
+      .optional_label();
 
   b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }

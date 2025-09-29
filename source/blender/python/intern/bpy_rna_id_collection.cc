@@ -289,7 +289,7 @@ static PyObject *bpy_user_map(PyObject *self, PyObject *args, PyObject *kwds)
     }
     FOREACH_MAIN_LISTBASE_ID_END;
   }
-  FOREACH_MAIN_LISTBASE_ID_END;
+  FOREACH_MAIN_LISTBASE_END;
 
   ret = data_cb.user_map;
 
@@ -491,7 +491,7 @@ static PyObject *bpy_file_path_map(PyObject *self, PyObject *args, PyObject *kwd
       }
       FOREACH_MAIN_LISTBASE_ID_END;
     }
-    FOREACH_MAIN_LISTBASE_ID_END;
+    FOREACH_MAIN_LISTBASE_END;
   }
 
   ret = filepathmap_data.file_path_map;

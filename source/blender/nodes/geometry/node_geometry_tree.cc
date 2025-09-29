@@ -133,7 +133,6 @@ static bool geometry_node_tree_socket_type_valid(blender::bke::bNodeTreeType * /
                SOCK_OBJECT,
                SOCK_GEOMETRY,
                SOCK_COLLECTION,
-               SOCK_TEXTURE,
                SOCK_IMAGE,
                SOCK_MATERIAL,
                SOCK_MENU) ||

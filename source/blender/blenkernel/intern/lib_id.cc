@@ -1667,6 +1667,14 @@ void BKE_libblock_copy_in_lib(Main *bmain,
     DEG_id_type_tag(bmain, GS(new_id->name));
   }
 
+  if (owner_library && *owner_library && ((*owner_library)->flag & LIBRARY_FLAG_IS_ARCHIVE) != 0) {
+    new_id->flag |= ID_FLAG_LINKED_AND_PACKED;
+  }
+
+  if (flag & LIB_ID_COPY_ID_NEW_SET) {
+    ID_NEW_SET(id, new_id);
+  }
+
   *new_id_p = new_id;
 }
 

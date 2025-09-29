@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'7089def6cbcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-22 08:45+0000\n"
+"POT-Creation-Date: 2025-09-29 09:33+0000\n"
 "PO-Revision-Date: 2025-07-23 14:52+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -577,12 +577,12 @@ msgid "Data Type"
 msgstr "Data Type"
 
 
-msgid "Vector"
-msgstr "Vector"
-
-
 msgid "True or false"
 msgstr "Waar of niet waar"
+
+
+msgid "Vector"
+msgstr "Vector"
 
 
 msgid "2D Vector"
@@ -2698,18 +2698,6 @@ msgid "Mask"
 msgstr "Mask"
 
 
-msgid "Show/Hide"
-msgstr "Toon/Verberg"
-
-
-msgid "Text"
-msgstr "Tekst"
-
-
-msgid "Names"
-msgstr "Namen"
-
-
 msgid "Mirror"
 msgstr "Spiegel"
 
@@ -2728,6 +2716,10 @@ msgstr "Selecteer Vergelijkbaar"
 
 msgid "Select Linked"
 msgstr "Selecteer Aaneengesloten"
+
+
+msgid "Layout"
+msgstr "Indeling"
 
 
 msgid "Light"
@@ -2750,6 +2742,10 @@ msgid "Quick Effects"
 msgstr "Snelle Effecten"
 
 
+msgid "Show/Hide"
+msgstr "Toon/Verberg"
+
+
 msgid "Convert"
 msgstr "Converteer"
 
@@ -2760,6 +2756,18 @@ msgstr "Haken"
 
 msgid "Clear Transform"
 msgstr "Maak Transformatie Leeg"
+
+
+msgid "Names"
+msgstr "Namen"
+
+
+msgid "Text"
+msgstr "Tekst"
+
+
+msgid "Import"
+msgstr "Importeren"
 
 
 msgctxt "MovieClip"
@@ -2793,25 +2801,12 @@ msgid "Mirror"
 msgstr "Spiegel"
 
 
-msgid "Import"
-msgstr "Importeren"
-
-
-msgid "Layout"
-msgstr "Indeling"
-
-
 msgid "Add Modifier"
 msgstr "Voeg Aanpasser Toe"
 
 
 msgid "Generate"
 msgstr "Genereer"
-
-
-msgctxt "Operator"
-msgid "Scene"
-msgstr "Scene"
 
 
 msgid "Text to 3D Object"
@@ -3084,14 +3079,6 @@ msgstr "Eigen Kleur"
 
 msgid "Starting"
 msgstr "Opstarten"
-
-
-msgid "Meta"
-msgstr "Meta"
-
-
-msgid "Sound Clip"
-msgstr "Geluidsclip"
 
 
 msgid "Show Texture"
@@ -3445,16 +3432,6 @@ msgstr "Afbreken"
 
 msgid "Generated"
 msgstr "Gegenereerd"
-
-
-msgctxt "Operator"
-msgid "Next Layer"
-msgstr "Volgende Laag"
-
-
-msgctxt "Operator"
-msgid "Previous Layer"
-msgstr "Vorige Laag"
 
 
 msgctxt "Operator"
@@ -6266,10 +6243,6 @@ msgid "Preserve"
 msgstr "Behouden"
 
 
-msgid "Visible Only"
-msgstr "Alleen Zichtbare"
-
-
 msgctxt "Operator"
 msgid "Import USD"
 msgstr "Importeer USD"
@@ -6612,8 +6585,8 @@ msgid "3D Curves"
 msgstr "3D Krommes"
 
 
-msgid "Supported"
-msgstr "Ondersteund"
+msgid "Render Time"
+msgstr "Render Tijd"
 
 
 msgid "Engine"
@@ -6811,6 +6784,10 @@ msgstr "Vervang Tekst"
 
 msgid "Show Empty Force Field"
 msgstr "Laat leeg krachtveld zien"
+
+
+msgid "Meta"
+msgstr "Meta"
 
 
 msgid "3D"
@@ -7377,10 +7354,6 @@ msgid "Date"
 msgstr "Datum"
 
 
-msgid "Render Time"
-msgstr "Render Tijd"
-
-
 msgid "Render As"
 msgstr "Render Als"
 
@@ -7787,11 +7760,6 @@ msgstr "Kleur"
 msgctxt "Operator"
 msgid "Text"
 msgstr "Tekst"
-
-
-msgctxt "Operator"
-msgid "Scene..."
-msgstr "Scene..."
 
 
 msgctxt "Operator"

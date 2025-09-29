@@ -1685,7 +1685,7 @@ void BKE_paint_cavity_curve_preset(Paint *paint, int preset)
   cumap->preset = preset;
 
   cuma = cumap->cm;
-  BKE_curvemap_reset(cuma, &cumap->clipr, cumap->preset, CURVEMAP_SLOPE_POSITIVE);
+  BKE_curvemap_reset(cuma, &cumap->clipr, cumap->preset, CurveMapSlopeType::Positive);
   BKE_curvemapping_changed(cumap, false);
 }
 

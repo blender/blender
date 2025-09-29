@@ -354,6 +354,9 @@ ccl_device
             fresnel->f0 = rgb_to_spectrum(clamped_base_color);
             const Spectrum f82 = min(specular_tint, one_spectrum());
 
+            fresnel->thin_film.thickness = thinfilm_thickness;
+            fresnel->thin_film.ior = thinfilm_ior;
+
             /* setup bsdf */
             sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
             const bool is_multiggx = (distribution == CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID);
@@ -576,7 +579,21 @@ ccl_device
         bsdf->N = valid_reflection_N;
         bsdf->ior = 1.0f;
 
-        const ClosureType distribution = (ClosureType)data_node.z;
+        uint distribution_int;
+        uint thin_film_thickness_offset;
+        uint thin_film_ior_offset;
+        uint unused;
+        svm_unpack_node_uchar4(data_node.z,
+                               &distribution_int,
+                               &thin_film_thickness_offset,
+                               &thin_film_ior_offset,
+                               &unused);
+
+        const float thin_film_thickness = fmaxf(
+            stack_load_float(stack, thin_film_thickness_offset), 1e-5f);
+        const float thin_film_ior = fmaxf(stack_load_float(stack, thin_film_ior_offset), 1e-5f);
+
+        const ClosureType distribution = (ClosureType)distribution_int;
         /* Setup BSDF */
         if (distribution == CLOSURE_BSDF_MICROFACET_BECKMANN_ID) {
           sd->flag |= bsdf_microfacet_beckmann_setup(bsdf);
@@ -591,6 +608,13 @@ ccl_device
           ccl_private FresnelConductor *fresnel = (ccl_private FresnelConductor *)
               closure_alloc_extra(sd, sizeof(FresnelConductor));
 
+          if (!fresnel) {
+            break;
+          }
+
+          fresnel->thin_film.thickness = thin_film_thickness;
+          fresnel->thin_film.ior = thin_film_ior;
+
           const float3 n = max(stack_load_float3(stack, base_ior_offset), zero_float3());
           const float3 k = max(stack_load_float3(stack, edge_tint_k_offset), zero_float3());
 
@@ -600,6 +624,13 @@ ccl_device
         else {
           ccl_private FresnelF82Tint *fresnel = (ccl_private FresnelF82Tint *)closure_alloc_extra(
               sd, sizeof(FresnelF82Tint));
+
+          if (!fresnel) {
+            break;
+          }
+
+          fresnel->thin_film.thickness = thin_film_thickness;
+          fresnel->thin_film.ior = thin_film_ior;
 
           const float3 color = saturate(stack_load_float3(stack, base_ior_offset));
           const float3 tint = saturate(stack_load_float3(stack, edge_tint_k_offset));

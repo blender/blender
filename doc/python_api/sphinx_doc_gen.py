@@ -1212,7 +1212,7 @@ context_type_map = {
     "editable_fcurves": [("FCurve", True)],
     "fluid": [("FluidSimulationModifier", False)],
     "gpencil": [("GreasePencil", False)],
-    "grease_pencil": [("GreasePencilv3", False)],
+    "grease_pencil": [("GreasePencil", False)],
     "curves": [("Hair Curves", False)],
     "id": [("ID", False)],
     "image_paint_object": [("Object", False)],

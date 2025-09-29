@@ -284,6 +284,7 @@ static void sync_volume_object(BL::BlendData &b_data,
 
   BL::VolumeRender b_render(b_volume.render());
 
+  volume->set_step_size(b_render.step_size());
   volume->set_object_space((b_render.space() == BL::VolumeRender::space_OBJECT));
 
   float velocity_scale = b_volume.velocity_scale();

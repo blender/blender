@@ -613,14 +613,14 @@ static bool bake_pass_filter_check(eScenePassType pass_type,
 
         BKE_report(reports,
                    RPT_ERROR,
-                   "Combined bake pass requires Emit, or a light pass with "
+                   "Combined bake pass requires Emission, or a light pass with "
                    "Direct or Indirect contributions enabled");
 
         return false;
       }
       BKE_report(reports,
                  RPT_ERROR,
-                 "Combined bake pass requires Emit, or a light pass with "
+                 "Combined bake pass requires Emission, or a light pass with "
                  "Direct or Indirect contributions enabled");
       return false;
     case SCE_PASS_DIFFUSE_COLOR:

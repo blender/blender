@@ -809,7 +809,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
         if (ts->autokey_mode == 0) {
           ts->autokey_mode = 2; /* 'add/replace' but not on */
         }
-        ts->uv_selectmode = UV_SELECT_VERTEX;
+        ts->uv_selectmode = UV_SELECT_VERT;
         ts->vgroup_weight = 1.0f;
       }
     }

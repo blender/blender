@@ -117,6 +117,11 @@ ccl_device_inline float3 make_float3(const int3 i)
 #endif
 }
 
+ccl_device_inline float3 make_float3(const float3 a)
+{
+  return a;
+}
+
 ccl_device_inline void print_float3(const ccl_private char *label, const float3 a)
 {
 #ifdef __KERNEL_PRINTF__

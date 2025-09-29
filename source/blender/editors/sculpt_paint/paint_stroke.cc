@@ -1114,9 +1114,7 @@ bool paint_supports_dynamic_size(const Brush &br, const PaintMode mode)
 
   switch (mode) {
     case PaintMode::Sculpt:
-      if (sculpt_is_grab_tool(br)) {
-        return false;
-      }
+      return bke::brush::supports_size_pressure(br);
       break;
 
     case PaintMode::Texture2D: /* fall through */

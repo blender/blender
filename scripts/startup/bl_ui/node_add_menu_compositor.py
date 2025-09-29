@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-from bpy.types import Menu
 from bl_ui import node_add_menu
 from bpy.app.translations import (
     contexts as i18n_contexts,
@@ -50,7 +49,8 @@ class NODE_MT_compositor_node_input_scene_base(node_add_menu.NodeMenu):
 
     def draw(self, context):
         layout = self.layout
-        self.node_operator(layout, "CompositorNodeRLayers")
+        if context.space_data.node_tree_sub_type == 'SCENE':
+            self.node_operator(layout, "CompositorNodeRLayers")
         self.node_operator_with_outputs(context, layout, "CompositorNodeSceneTime", ["Frame", "Seconds"])
         self.node_operator(layout, "CompositorNodeTime")
 
@@ -61,12 +61,13 @@ class NODE_MT_compositor_node_output_base(node_add_menu.NodeMenu):
     bl_label = "Output"
 
     def draw(self, context):
-        del context
         layout = self.layout
+        self.node_operator(layout, "NodeEnableOutput")
         self.node_operator(layout, "NodeGroupOutput")
         self.node_operator(layout, "CompositorNodeViewer")
-        layout.separator()
-        self.node_operator(layout, "CompositorNodeOutputFile")
+        if context.space_data.node_tree_sub_type == 'SCENE':
+            layout.separator()
+            self.node_operator(layout, "CompositorNodeOutputFile")
 
         self.draw_assets_for_catalog(layout, self.bl_label)
 
@@ -318,6 +319,7 @@ class NODE_MT_compositor_node_all_base(node_add_menu.NodeMenu):
     # & Swap menus can share the same layout while each using their
     # corresponding menus
     def draw(self, context):
+        del context
         layout = self.layout
         self.draw_menu(layout, "Input")
         self.draw_menu(layout, "Output")

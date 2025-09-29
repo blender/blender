@@ -63,7 +63,8 @@ struct MaskApplyOp {
   }
 };
 
-static void maskmodifier_apply(const StripScreenQuad & /*quad*/,
+static void maskmodifier_apply(const RenderData * /*render_data*/,
+                               const StripScreenQuad & /*quad*/,
                                StripModifierData * /*smd*/,
                                ImBuf *ibuf,
                                ImBuf *mask)

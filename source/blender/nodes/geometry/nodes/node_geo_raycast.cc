@@ -54,6 +54,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   }
   b.add_input<decl::Menu>("Interpolation")
       .static_items(interpolation_items)
+      .optional_label()
       .description("Mapping from the target geometry to hit points");
 
   b.add_input<decl::Vector>("Source Position")

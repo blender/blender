@@ -13,6 +13,7 @@
 #include "abc_writer_nurbs.h"
 #include "abc_writer_points.h"
 #include "abc_writer_transform.h"
+#include "intern/abc_util.h"
 
 #include <memory>
 #include <string>
@@ -83,12 +84,7 @@ void ABCHierarchyIterator::release_writer(AbstractHierarchyWriter *writer)
 
 std::string ABCHierarchyIterator::make_valid_name(const std::string &name) const
 {
-  std::string abc_name(name);
-  std::replace(abc_name.begin(), abc_name.end(), ' ', '_');
-  std::replace(abc_name.begin(), abc_name.end(), '.', '_');
-  std::replace(abc_name.begin(), abc_name.end(), ':', '_');
-  std::replace(abc_name.begin(), abc_name.end(), '/', '_');
-  return abc_name;
+  return get_valid_abc_name(name.c_str());
 }
 
 ObjectIdentifier ABCHierarchyIterator::determine_graph_index_object(

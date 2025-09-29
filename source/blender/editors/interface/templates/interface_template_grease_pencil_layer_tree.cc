@@ -148,7 +148,7 @@ class LayerNodeDropTarget : public TreeViewItemDropTarget {
       WM_msg_publish_rna_prop(
           CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencilv3Layers, active);
       WM_msg_publish_rna_prop(
-          CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencilv3, layers);
+          CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencil, layers);
     }
     else if (drag_node.is_group()) {
       WM_msg_publish_rna_prop(CTX_wm_message_bus(C),
@@ -157,7 +157,7 @@ class LayerNodeDropTarget : public TreeViewItemDropTarget {
                               GreasePencilv3LayerGroup,
                               active);
       WM_msg_publish_rna_prop(
-          CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencilv3, layer_groups);
+          CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencil, layer_groups);
     }
 
     ED_undo_push(C, "Reorder Layers");

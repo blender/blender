@@ -37,7 +37,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Color>("Color")
       .default_value(ColorGeometry4f(1.0f, 1.0f, 1.0f, 1.0f))
       .field_on_all()
-      .hide_label();
+      .optional_label();
   b.add_input<decl::Float>("Opacity").default_value(1.0f).min(0.0f).max(1.0f).field_on_all();
 }
 

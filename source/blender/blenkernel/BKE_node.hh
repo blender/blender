@@ -1137,6 +1137,11 @@ StringRefNull node_socket_label(const bNodeSocket &sock);
  */
 std::optional<StringRefNull> node_socket_short_label(const bNodeSocket &sock);
 
+/**
+ * Get node socket translation context if it is set.
+ */
+const char *node_socket_translation_context(const bNodeSocket &sock);
+
 NodeColorTag node_color_tag(const bNode &node);
 
 /**

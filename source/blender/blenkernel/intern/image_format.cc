@@ -785,6 +785,9 @@ void BKE_image_format_to_imbuf(ImBuf *ibuf, const ImageFormatData *imf)
     }
     ibuf->foptions.flag |= (imf->exr_codec & OPENEXR_CODEC_MASK);
     ibuf->foptions.quality = quality;
+    if (imf->exr_flag & R_IMF_EXR_FLAG_MULTIPART) {
+      ibuf->foptions.flag |= OPENEXR_MULTIPART;
+    }
   }
 #endif
 #ifdef WITH_IMAGE_CINEON
@@ -985,6 +988,9 @@ void BKE_image_format_from_imbuf(ImageFormatData *im_format, const ImBuf *imbuf)
     }
     if (exr_codec < R_IMF_EXR_CODEC_MAX) {
       im_format->exr_codec = exr_codec;
+    }
+    if (custom_flags & OPENEXR_MULTIPART) {
+      im_format->exr_flag |= R_IMF_EXR_FLAG_MULTIPART;
     }
   }
 #endif

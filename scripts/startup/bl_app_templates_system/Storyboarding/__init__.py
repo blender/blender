@@ -35,12 +35,12 @@ def update_factory_startup_scenes():
         scene.tool_settings.use_keyframe_insert_auto = True
         scene.tool_settings.gpencil_sculpt.use_scale_thickness = True
 
-        if scene.name == 'Edit':
+        if scene.name == "Edit":
             scene.tool_settings.use_keyframe_insert_auto = False
 
 
 def update_factory_startup_grease_pencils():
-    for grease_pencil in bpy.data.grease_pencils_v3:
+    for grease_pencil in bpy.data.grease_pencils:
         grease_pencil.onion_keyframe_type = 'ALL'
 
 

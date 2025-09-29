@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'7089def6cbcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-22 08:45+0000\n"
+"POT-Creation-Date: 2025-09-29 09:33+0000\n"
 "PO-Revision-Date: 2025-07-31 16:24+0000\n"
 "Last-Translator: leif larsen <linuxdk1978@gmail.com>\n"
 "Language-Team: Danish <https://translate.blender.org/projects/blender-ui/ui/da/>\n"
@@ -1487,10 +1487,6 @@ msgid "Armatures active edit bone"
 msgstr "Armaturer aktive redigere knogle"
 
 
-msgid "Catalog Path"
-msgstr "Katalogsti"
-
-
 msgid "User Asset Libraries"
 msgstr "Bruger Asset Libraries"
 
@@ -1804,6 +1800,14 @@ msgid "32-bit integer"
 msgstr "32-bit heltal"
 
 
+msgid "Boolean"
+msgstr "Boolean"
+
+
+msgid "True or false"
+msgstr "Sandt eller falsk"
+
+
 msgid "Vector"
 msgstr "Vektor"
 
@@ -1816,12 +1820,20 @@ msgid "RGBA color with 32-bit floating-point values"
 msgstr "RGBA farver med 32-bit floating-point værdier"
 
 
-msgid "Byte Color"
-msgstr "Byte farve"
+msgid "Quaternion"
+msgstr "Kvaternion"
 
 
-msgid "RGBA color with 8-bit positive integer values"
-msgstr "RRGB farver med 8-bit positive intenger værdier"
+msgid "Floating point quaternion rotation"
+msgstr "Flydende komma quaternion rotation"
+
+
+msgid "4x4 Matrix"
+msgstr "4x4 Matrix"
+
+
+msgid "Floating point matrix"
+msgstr "Floating point matrix"
 
 
 msgid "String"
@@ -1830,22 +1842,6 @@ msgstr "Streng"
 
 msgid "Text string"
 msgstr "tekst string"
-
-
-msgid "Boolean"
-msgstr "Boolean"
-
-
-msgid "True or false"
-msgstr "Sandt eller falsk"
-
-
-msgid "2D Vector"
-msgstr "2D Vektor"
-
-
-msgid "2D vector with floating-point values"
-msgstr "2D vector med floating-point værdier"
 
 
 msgid "8-Bit Integer"
@@ -1872,20 +1868,20 @@ msgid "32-bit signed integer vector"
 msgstr "32-Bit signed integer vector"
 
 
-msgid "Quaternion"
-msgstr "Kvaternion"
+msgid "2D Vector"
+msgstr "2D Vektor"
 
 
-msgid "Floating point quaternion rotation"
-msgstr "Flydende komma quaternion rotation"
+msgid "2D vector with floating-point values"
+msgstr "2D vector med floating-point værdier"
 
 
-msgid "4x4 Matrix"
-msgstr "4x4 Matrix"
+msgid "Byte Color"
+msgstr "Byte farve"
 
 
-msgid "Floating point matrix"
-msgstr "Floating point matrix"
+msgid "RGBA color with 8-bit positive integer values"
+msgstr "RRGB farver med 8-bit positive intenger værdier"
 
 
 msgid "Domain"
@@ -3912,10 +3908,6 @@ msgstr "Nøglebillede kant"
 
 msgid "Keyframe Border Selected"
 msgstr "Nøglebillede kant valgt"
-
-
-msgid "Face Dot Selected"
-msgstr "Overflade punkt valgt"
 
 
 msgid "Face Dot Size"
