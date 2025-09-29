@@ -11,6 +11,10 @@ FRAGMENT_SHADER_CREATE_INFO(workbench_smaa_stage_1)
 
 void main()
 {
+  float4 offset[3];
+  offset[0] = offset0;
+  offset[1] = offset1;
+  offset[2] = offset2;
 #if SMAA_STAGE == 0
   /* Detect edges in color and revealage buffer. */
   out_edges = SMAALumaEdgeDetectionPS(uvs, offset, color_tx);
