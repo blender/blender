@@ -42,7 +42,7 @@ NODE_SHADER_MATERIALX_BEGIN
 #ifdef WITH_MATERIALX
 {
   /* NOTE: This node isn't supported by MaterialX. */
-  return get_output_default(socket_out_->name, NodeItem::Type::Float);
+  return get_output_default(socket_out_->identifier, NodeItem::Type::Float);
 }
 #endif
 NODE_SHADER_MATERIALX_END

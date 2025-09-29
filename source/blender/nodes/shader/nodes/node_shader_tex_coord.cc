@@ -76,7 +76,7 @@ NODE_SHADER_MATERIALX_BEGIN
 {
   /* NOTE: Some outputs aren't supported by MaterialX. */
   NodeItem res = empty();
-  std::string name = socket_out_->name;
+  std::string name = socket_out_->identifier;
 
   if (ELEM(name, "Generated", "UV")) {
     res = texcoord_node();
