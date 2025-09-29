@@ -47,7 +47,9 @@ struct PrintfFormat {
 const PrintfFormat &gpu_shader_dependency_get_printf_format(uint32_t format_hash);
 
 Vector<StringRefNull> gpu_shader_dependency_get_resolved_source(
-    StringRefNull source_name, const GeneratedSourceList &generated_sources);
+    StringRefNull source_name,
+    const GeneratedSourceList &generated_sources,
+    StringRefNull shader_name = "");
 StringRefNull gpu_shader_dependency_get_source(StringRefNull source_name);
 
 /**
