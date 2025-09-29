@@ -167,7 +167,7 @@ struct bNodeSocketType {
                uiLayout *layout,
                PointerRNA *ptr,
                PointerRNA *node_ptr,
-               StringRefNull text) = nullptr;
+               StringRef text) = nullptr;
   void (*draw_color)(bContext *C, PointerRNA *ptr, PointerRNA *node_ptr, float *r_color) = nullptr;
   void (*draw_color_simple)(const bNodeSocketType *socket_type, float *r_color) = nullptr;
 
