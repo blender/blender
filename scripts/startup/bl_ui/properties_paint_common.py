@@ -1080,6 +1080,7 @@ def brush_shared_settings(layout, context, brush, popover=False):
     blend_mode = False
     size = False
     size_mode = False
+    size_pressure = False
     strength = False
     strength_pressure = False
     size_pressure = False
@@ -1170,6 +1171,11 @@ def brush_shared_settings(layout, context, brush, popover=False):
         if size:
             pressure_name = "use_pressure_size" if size_pressure else None
             curve_visibility_name = "show_size_curve" if size_pressure else None
+            # Grease Pencil Sculpt uses size pressure but doesn't map to a custom curve, this is a weird case where we
+            # don't show the dropdown but do show the pressure toggle.
+            # TODO: Add curve support for GP Sculpt
+            if mode == 'SCULPT_GREASE_PENCIL':
+                curve_visibility_name = None
             UnifiedPaintPanel.prop_unified(
                 layout,
                 context,
