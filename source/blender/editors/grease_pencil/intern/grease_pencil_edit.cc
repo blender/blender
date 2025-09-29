@@ -4722,6 +4722,146 @@ static void GREASE_PENCIL_OT_convert_curve_type(wmOperatorType *ot)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Set Corner Type Operator
+ * \{ */
+
+enum class CornerType : uint8_t {
+  Round = 0,
+  Bevel = 1,
+  Miter = 2,
+};
+
+static const EnumPropertyItem prop_corner_types[] = {
+    {int(CornerType::Round), "ROUND", 0, "Round", ""},
+    {int(CornerType::Bevel), "FLAT", 0, "Flat", ""},
+    {int(CornerType::Miter), "SHARP", 0, "Sharp", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static wmOperatorStatus grease_pencil_set_corner_type_exec(bContext *C, wmOperator *op)
+{
+  using bke::greasepencil::Layer;
+
+  const Scene *scene = CTX_data_scene(C);
+  Object *object = CTX_data_active_object(C);
+  View3D *v3d = CTX_wm_view3d(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+
+  const CornerType corner_type = CornerType(RNA_enum_get(op->ptr, "corner_type"));
+  float miter_angle = RNA_float_get(op->ptr, "miter_angle");
+
+  if (corner_type == CornerType::Round) {
+    miter_angle = GP_STROKE_MITER_ANGLE_ROUND;
+  }
+  else if (corner_type == CornerType::Bevel) {
+    miter_angle = GP_STROKE_MITER_ANGLE_BEVEL;
+  }
+  else if (corner_type == CornerType::Miter) {
+    /* Prevent the angle from being set to zero, and becoming the `Round` type.*/
+    if (miter_angle == 0.0f) {
+      miter_angle = DEG2RADF(1.0f);
+    }
+  }
+
+  std::atomic<bool> changed = false;
+  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
+    IndexMaskMemory memory;
+    const IndexMask selection = ed::greasepencil::retrieve_editable_and_all_selected_points(
+        *object, info.drawing, info.layer_index, v3d->overlay.handle_display, memory);
+    if (selection.is_empty()) {
+      return;
+    }
+
+    bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
+    bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+
+    /* Only create the attribute if we are not storing the default. */
+    if (miter_angle == GP_STROKE_MITER_ANGLE_ROUND && !attributes.contains("miter_angle")) {
+      return;
+    }
+
+    /* Remove the attribute if we are storing all default. */
+    if (miter_angle == GP_STROKE_MITER_ANGLE_ROUND && selection == curves.points_range()) {
+      attributes.remove("miter_angle");
+      changed.store(true, std::memory_order_relaxed);
+      return;
+    }
+
+    if (bke::SpanAttributeWriter<float> miter_angles =
+            attributes.lookup_or_add_for_write_span<float>(
+                "miter_angle",
+                bke::AttrDomain::Point,
+                bke::AttributeInitVArray(
+                    VArray<float>::from_single(GP_STROKE_MITER_ANGLE_ROUND, curves.points_num()))))
+    {
+      index_mask::masked_fill(miter_angles.span, miter_angle, selection);
+      miter_angles.finish();
+      changed.store(true, std::memory_order_relaxed);
+    }
+  });
+
+  if (changed) {
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void grease_pencil_set_corner_type_ui(bContext *C, wmOperator *op)
+{
+  uiLayout *layout = op->layout;
+  wmWindowManager *wm = CTX_wm_manager(C);
+
+  PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, op->type->srna, op->properties);
+
+  layout->use_property_split_set(true);
+  layout->use_property_decorate_set(false);
+
+  layout->prop(&ptr, "corner_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+
+  const CornerType corner_type = CornerType(RNA_enum_get(op->ptr, "corner_type"));
+
+  if (corner_type != CornerType::Miter) {
+    return;
+  }
+
+  layout->prop(&ptr, "miter_angle", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+}
+
+static void GREASE_PENCIL_OT_set_corner_type(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Set Corner Type";
+  ot->idname = "GREASE_PENCIL_OT_set_corner_type";
+  ot->description = "Set the corner type of the selected points";
+
+  /* Callbacks. */
+  ot->exec = grease_pencil_set_corner_type_exec;
+  ot->poll = editable_grease_pencil_poll;
+  ot->ui = grease_pencil_set_corner_type_ui;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* Properties */
+  ot->prop = RNA_def_enum(
+      ot->srna, "corner_type", prop_corner_types, int(CornerType::Miter), "Corner Type", "");
+  ot->prop = RNA_def_float_distance(ot->srna,
+                                    "miter_angle",
+                                    DEG2RADF(45.0f),
+                                    0.0f,
+                                    M_PI,
+                                    "Miter Cut Angle",
+                                    "All corners sharper than the Miter angle will be cut flat",
+                                    0.0f,
+                                    M_PI);
+  RNA_def_property_subtype(ot->prop, PROP_ANGLE);
+}
+
+/** \} */
+
 }  // namespace blender::ed::greasepencil
 
 void ED_operatortypes_grease_pencil_edit()
@@ -4765,6 +4905,7 @@ void ED_operatortypes_grease_pencil_edit()
   WM_operatortype_append(GREASE_PENCIL_OT_remove_fill_guides);
   WM_operatortype_append(GREASE_PENCIL_OT_outline);
   WM_operatortype_append(GREASE_PENCIL_OT_convert_curve_type);
+  WM_operatortype_append(GREASE_PENCIL_OT_set_corner_type);
 }
 
 /* -------------------------------------------------------------------- */
