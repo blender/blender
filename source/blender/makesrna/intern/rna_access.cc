@@ -3108,6 +3108,7 @@ void RNA_property_int_set(PointerRNA *ptr, PropertyRNA *prop, int value)
   }
 
   if (idprop) {
+    RNA_property_int_clamp(ptr, &iprop->property, &value);
     IDP_int_set(idprop, value);
     rna_idproperty_touch(idprop);
   }
@@ -3119,6 +3120,7 @@ void RNA_property_int_set(PointerRNA *ptr, PropertyRNA *prop, int value)
   }
   else if (iprop->property.flag & PROP_EDITABLE) {
     if (IDProperty *group = RNA_struct_system_idprops(ptr, true)) {
+      RNA_property_int_clamp(ptr, &iprop->property, &value);
       IDP_AddToGroup(
           group,
           blender::bke::idprop::create(prop_rna_or_id.identifier, value, IDP_FLAG_STATIC_TYPE)
@@ -3555,6 +3557,7 @@ void RNA_property_float_set(PointerRNA *ptr, PropertyRNA *prop, float value)
   }
 
   if (idprop) {
+    RNA_property_float_clamp(ptr, &fprop->property, &value);
     if (idprop->type == IDP_FLOAT) {
       IDP_float_set(idprop, value);
     }
@@ -3570,8 +3573,6 @@ void RNA_property_float_set(PointerRNA *ptr, PropertyRNA *prop, float value)
     fprop->set_ex(ptr, &fprop->property, value);
   }
   else if (fprop->property.flag & PROP_EDITABLE) {
-    /* FIXME: This is only called here? What about already existing IDProps (see above)? And
-     * similar code for Int properties? */
     RNA_property_float_clamp(ptr, &fprop->property, &value);
     if (IDProperty *group = RNA_struct_system_idprops(ptr, true)) {
       IDP_AddToGroup(
