@@ -565,9 +565,6 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_NURB_SEL_VLINE:
           cp = ts->nurb_sel_vline;
           break;
-        case TH_ACTIVE_SPLINE:
-          cp = ts->act_spline;
-          break;
 
         case TH_HANDLE_FREE:
           cp = btheme->common.curves.handle_free;

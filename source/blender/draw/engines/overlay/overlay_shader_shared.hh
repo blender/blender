@@ -234,7 +234,6 @@ struct ThemeColors {
   float4 nurb_vline;
   float4 nurb_sel_uline;
   float4 nurb_sel_vline;
-  float4 active_spline;
 
   float4 bone_pose;
   float4 bone_pose_active;

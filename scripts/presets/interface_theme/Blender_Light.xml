@@ -506,7 +506,6 @@
         nurb_vline="#803060"
         nurb_sel_uline="#f0ff40"
         nurb_sel_vline="#f090a0"
-        act_spline="#db2512"
         extra_edge_len="#ff6149"
         extra_edge_angle="#cccc00"
         extra_face_angle="#b3b3ff"
