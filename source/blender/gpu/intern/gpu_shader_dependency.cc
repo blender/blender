@@ -45,7 +45,7 @@ extern "C" {
 #undef SHADER_SOURCE
 }
 
-static CLG_LogRef LOG = {"gpu.shader_dependencies"};
+static CLG_LogRef LOG = {"shader.dependencies"};
 
 namespace blender::gpu {
 
