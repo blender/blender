@@ -161,7 +161,8 @@ void draw_mask_input_type_settings(const bContext *C, uiLayout *layout, PointerR
     MetaStack *ms = meta_stack_active_get(ed);
     PointerRNA sequences_object;
     if (ms) {
-      sequences_object = RNA_pointer_create_discrete(&sequencer_scene->id, &RNA_MetaStrip, ms);
+      sequences_object = RNA_pointer_create_discrete(
+          &sequencer_scene->id, &RNA_MetaStrip, ms->parent_strip);
     }
     else {
       sequences_object = RNA_pointer_create_discrete(
