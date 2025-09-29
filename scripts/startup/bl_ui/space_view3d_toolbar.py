@@ -2084,6 +2084,7 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_random(View3DPanel, Panel):
         layout.use_property_decorate = False
 
         tool_settings = context.tool_settings
+        paint = tool_settings.gpencil_paint
         brush = tool_settings.gpencil_paint.brush
         mode = tool_settings.gpencil_paint.color_mode
         gp_settings = brush.gpencil_settings
@@ -2142,8 +2143,16 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_random(View3DPanel, Panel):
         row = col.row(align=True)
         row.prop(gp_settings, "pen_jitter", slider=True)
         row.prop(gp_settings, "use_jitter_pressure", text="", icon='STYLUS_PRESSURE')
-        if gp_settings.use_jitter_pressure and self.is_popover is False:
-            col.template_curve_mapping(gp_settings, "curve_jitter", brush=True)
+        if self.is_popover is False:
+            row.prop(
+                paint,
+                "show_jitter_curve",
+                text="",
+                icon='DOWNARROW_HLT' if paint.show_jitter_curve else 'RIGHTARROW',
+                emboss=False)
+            if paint.show_jitter_curve:
+                col.active = gp_settings.use_jitter_pressure
+                col.template_curve_mapping(gp_settings, "curve_jitter", brush=True)
 
 
 class VIEW3D_PT_tools_grease_pencil_v3_brush_stabilizer(Panel, View3DPanel):

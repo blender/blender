@@ -1667,6 +1667,7 @@ def brush_basic__draw_color_selector(context, layout, brush, gp_settings):
 
 def brush_basic_grease_pencil_paint_settings(layout, context, brush, props, *, compact=False):
     gp_settings = brush.gpencil_settings
+    paint = context.tool_settings.gpencil_paint
     tool = context.workspace.tools.from_space_view3d_mode(context.mode, create=False)
     if gp_settings is None:
         return
@@ -1694,18 +1695,34 @@ def brush_basic_grease_pencil_paint_settings(layout, context, brush, props, *, c
         row = layout.row(align=True)
         row.prop(brush, size, slider=True, text="Size")
         row.prop(brush, "use_pressure_size", text="")
+        if not compact:
+            row.prop(
+                paint,
+                "show_size_curve",
+                text="",
+                icon='DOWNARROW_HLT' if paint.show_size_curve else 'RIGHTARROW',
+                emboss=False)
 
-        if brush.use_pressure_size and not compact:
-            col = layout.column()
-            col.template_curve_mapping(gp_settings, "curve_sensitivity", brush=True)
+            if paint.show_size_curve:
+                col = layout.column()
+                col.active = brush.use_pressure_size
+                col.template_curve_mapping(gp_settings, "curve_sensitivity", brush=True)
 
         row = layout.row(align=True)
         row.prop(brush, "strength", slider=True, text="Strength")
         row.prop(brush, "use_pressure_strength", text="")
+        if not compact:
+            row.prop(
+                paint,
+                "show_strength_curve",
+                text="",
+                icon='DOWNARROW_HLT' if paint.show_strength_curve else 'RIGHTARROW',
+                emboss=False)
 
-        if brush.use_pressure_strength and not compact:
-            col = layout.column()
-            col.template_curve_mapping(gp_settings, "curve_strength", brush=True)
+            if paint.show_strength_curve:
+                col = layout.column()
+                col.active = brush.use_pressure_strength
+                col.template_curve_mapping(gp_settings, "curve_strength", brush=True)
 
     if props:
         layout.prop(props, "subdivision")
