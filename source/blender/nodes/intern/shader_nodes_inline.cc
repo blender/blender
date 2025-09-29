@@ -272,23 +272,24 @@ class ShaderNodesInliner {
     return true;
   }
 
-  Vector<SocketInContext> find_final_output_sockets() const
+  Vector<SocketInContext> find_final_output_sockets()
   {
-    const bke::bNodeTreeZones *zones = src_tree_.zones();
-    if (!zones) {
-      return {};
-    }
+    Vector<TreeInContext> trees;
+    this->find_trees_potentially_containing_shader_outputs_recursive(nullptr, src_tree_, trees);
 
     Vector<SocketInContext> output_sockets;
     auto add_output_type = [&](const char *output_type) {
-      for (const bNode *node : src_tree_.nodes_by_type(output_type)) {
-        const bke::bNodeTreeZone *zone = zones->get_zone_by_node(node->identifier);
-        if (zone) {
-          params_.r_error_messages.append({node, TIP_("Output node must not be in zone")});
-          continue;
-        }
-        for (const bNodeSocket *socket : node->input_sockets()) {
-          output_sockets.append({nullptr, socket});
+      for (const TreeInContext &tree : trees) {
+        const bke::bNodeTreeZones &zones = *tree->zones();
+        for (const bNode *node : tree->nodes_by_type(output_type)) {
+          const bke::bNodeTreeZone *zone = zones.get_zone_by_node(node->identifier);
+          if (zone) {
+            params_.r_error_messages.append({node, TIP_("Output node must not be in zone")});
+            continue;
+          }
+          for (const bNodeSocket *socket : node->input_sockets()) {
+            output_sockets.append({tree.context, socket});
+          }
         }
       }
     };
@@ -314,6 +315,39 @@ class ShaderNodesInliner {
     }
 
     return output_sockets;
+  }
+
+  void find_trees_potentially_containing_shader_outputs_recursive(const ComputeContext *context,
+                                                                  const bNodeTree &tree,
+                                                                  Vector<TreeInContext> &r_trees)
+  {
+    const bke::bNodeTreeZones *zones = src_tree_.zones();
+    if (!zones) {
+      return;
+    }
+    if (tree.has_available_link_cycle()) {
+      return;
+    }
+    r_trees.append({context, &tree});
+    for (const bNode *group_node : tree.group_nodes()) {
+      if (group_node->is_muted()) {
+        continue;
+      }
+      const bNodeTree *group = id_cast<const bNodeTree *>(group_node->id);
+      if (!group || ID_MISSING(&group->id)) {
+        continue;
+      }
+      group->ensure_topology_cache();
+      const bke::bNodeTreeZone *zone = zones->get_zone_by_node(group_node->identifier);
+      if (zone) {
+        /* Node groups in zones are ignored. */
+        continue;
+      }
+      const ComputeContext &group_context = compute_context_cache_.for_group_node(
+          context, group_node->identifier, &tree);
+      this->find_trees_potentially_containing_shader_outputs_recursive(
+          &group_context, *group, r_trees);
+    }
   }
 
   void handle_socket(const SocketInContext &socket)
