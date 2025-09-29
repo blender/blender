@@ -19,6 +19,7 @@
 #include "vk_debug.hh"
 #include "vk_descriptor_pools.hh"
 #include "vk_resource_pool.hh"
+#include "vk_streaming_buffer.hh"
 
 namespace blender::gpu {
 class VKFrameBuffer;
@@ -45,6 +46,8 @@ class VKContext : public Context, NonCopyable {
   VkSurfaceFormatKHR swap_chain_format_ = {};
   gpu::Texture *surface_texture_ = nullptr;
   void *ghost_context_;
+
+  Vector<std::unique_ptr<VKStreamingBuffer>> streaming_buffers_;
 
   /* Reusable data. Stored inside context to limit reallocations. */
   render_graph::VKResourceAccessInfo access_info_ = {};
@@ -154,6 +157,8 @@ class VKContext : public Context, NonCopyable {
   static void openxr_release_framebuffer_image_callback(GHOST_VulkanOpenXRData *data);
 
   void specialization_constants_set(const shader::SpecializationConstants *constants_state);
+
+  std::unique_ptr<VKStreamingBuffer> &get_or_create_streaming_buffer(VKBuffer &buffer);
 
  private:
   void swap_buffer_draw_handler(const GHOST_VulkanSwapChainData &data);

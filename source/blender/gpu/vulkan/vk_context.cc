@@ -178,6 +178,7 @@ TimelineValue VKContext::flush_render_graph(RenderGraphFlushFlags flags,
       signal_semaphore,
       signal_fence);
   render_graph_.reset();
+  streaming_buffers_.clear();
   if (bool(flags & RenderGraphFlushFlags::RENEW_RENDER_GRAPH)) {
     render_graph_ = std::reference_wrapper<render_graph::VKRenderGraph>(
         *device.render_graph_new());
@@ -467,6 +468,18 @@ void VKContext::specialization_constants_set(
 {
   constants_state_ = (constants_state != nullptr) ? *constants_state :
                                                     shader::SpecializationConstants{};
+}
+
+std::unique_ptr<VKStreamingBuffer> &VKContext::get_or_create_streaming_buffer(VKBuffer &buffer)
+{
+  for (std::unique_ptr<VKStreamingBuffer> &streaming_buffer : streaming_buffers_) {
+    if (streaming_buffer->vk_buffer_dst() == buffer.vk_handle()) {
+      return streaming_buffer;
+    }
+  }
+
+  streaming_buffers_.append(std::make_unique<VKStreamingBuffer>(buffer));
+  return streaming_buffers_.last();
 }
 
 /** \} */

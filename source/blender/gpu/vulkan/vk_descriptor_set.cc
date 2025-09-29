@@ -211,7 +211,7 @@ void VKDescriptorSetUpdator::bind_storage_buffer_resource(
       VKIndexBuffer *index_buffer = static_cast<VKIndexBuffer *>(elem.resource);
       index_buffer->ensure_updated();
       vk_buffer = index_buffer->vk_handle();
-      vk_device_size = index_buffer->size_get();
+      vk_device_size = index_buffer->size_get() - elem.offset;
       vk_device_address = index_buffer->device_address_get();
       break;
     }
@@ -219,7 +219,7 @@ void VKDescriptorSetUpdator::bind_storage_buffer_resource(
       VKVertexBuffer *vertex_buffer = static_cast<VKVertexBuffer *>(elem.resource);
       vertex_buffer->ensure_updated();
       vk_buffer = vertex_buffer->vk_handle();
-      vk_device_size = vertex_buffer->size_used_get();
+      vk_device_size = vertex_buffer->size_used_get() - elem.offset;
       vk_device_address = vertex_buffer->device_address_get();
       break;
     }
@@ -227,7 +227,7 @@ void VKDescriptorSetUpdator::bind_storage_buffer_resource(
       VKUniformBuffer *uniform_buffer = static_cast<VKUniformBuffer *>(elem.resource);
       uniform_buffer->ensure_updated();
       vk_buffer = uniform_buffer->vk_handle();
-      vk_device_size = uniform_buffer->size_in_bytes();
+      vk_device_size = uniform_buffer->size_in_bytes() - elem.offset;
       vk_device_address = uniform_buffer->device_address_get();
       break;
     }
@@ -242,7 +242,7 @@ void VKDescriptorSetUpdator::bind_storage_buffer_resource(
     case BindSpaceStorageBuffers::Type::Buffer: {
       VKBuffer *buffer = static_cast<VKBuffer *>(elem.resource);
       vk_buffer = buffer->vk_handle();
-      vk_device_size = buffer->size_in_bytes();
+      vk_device_size = buffer->size_in_bytes() - elem.offset;
       vk_device_address = buffer->device_address_get();
       break;
     }
@@ -255,7 +255,7 @@ void VKDescriptorSetUpdator::bind_storage_buffer_resource(
               vk_buffer,
               vk_device_address,
               elem.offset,
-              vk_device_size - elem.offset,
+              vk_device_size,
               resource_binding.location);
   if (vk_buffer != VK_NULL_HANDLE) {
     access_info.buffers.append({vk_buffer, resource_binding.access_mask});

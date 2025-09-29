@@ -251,7 +251,7 @@ class VKStateManager : public StateManager {
                            void *resource,
                            int binding)
   {
-    storage_buffer_bind(resource_type, resource, binding, 0u);
+    storage_buffer_bind(resource_type, resource, binding, 0);
   }
   void storage_buffer_bind(BindSpaceStorageBuffers::Type resource_type,
                            void *resource,

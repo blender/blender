@@ -25,6 +25,7 @@ class VKStorageBuffer : public StorageBuf {
 
   /** Staging buffer that is used when doing an async read-back. */
   VKStagingBuffer *async_read_buffer_ = nullptr;
+  VkDeviceSize offset_ = 0;
 
  public:
   VKStorageBuffer(size_t size, GPUUsageType usage, const char *name);
@@ -51,6 +52,10 @@ class VKStorageBuffer : public StorageBuf {
   int64_t size_in_bytes() const
   {
     return buffer_.size_in_bytes();
+  }
+  VkDeviceSize offset_get() const
+  {
+    return offset_;
   }
 
   void ensure_allocated();
