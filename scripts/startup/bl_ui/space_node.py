@@ -440,6 +440,7 @@ class NODE_MT_node(Menu):
         layout.separator()
         layout.operator("node.join", text="Join in New Frame")
         layout.operator("node.detach", text="Remove from Frame")
+        layout.operator("node.join_nodes", text="Join Group Inputs")
 
         layout.separator()
         props = layout.operator("wm.call_panel", text="Rename...")

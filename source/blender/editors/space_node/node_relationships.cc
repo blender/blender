@@ -2095,7 +2095,7 @@ void NODE_OT_parent_set(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Join Nodes Operator
+/** \name Join Nodes in Frame Operator
  * \{ */
 
 struct NodeJoinState {
@@ -2176,7 +2176,7 @@ static const bNode *find_common_parent_node(const Span<const bNode *> nodes)
   return candidates.last();
 }
 
-static wmOperatorStatus node_join_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus node_join_in_frame_exec(bContext *C, wmOperator * /*op*/)
 {
   Main &bmain = *CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
@@ -2205,7 +2205,9 @@ static wmOperatorStatus node_join_exec(bContext *C, wmOperator * /*op*/)
   return OPERATOR_FINISHED;
 }
 
-static wmOperatorStatus node_join_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus node_join_in_frame_invoke(bContext *C,
+                                                  wmOperator *op,
+                                                  const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
   SpaceNode *snode = CTX_wm_space_node(C);
@@ -2220,22 +2222,130 @@ static wmOperatorStatus node_join_invoke(bContext *C, wmOperator *op, const wmEv
   snode->runtime->cursor[0] /= UI_SCALE_FAC;
   snode->runtime->cursor[1] /= UI_SCALE_FAC;
 
-  return node_join_exec(C, op);
+  return node_join_in_frame_exec(C, op);
 }
 
 void NODE_OT_join(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Join Nodes";
+  ot->name = "Join Nodes in Frame";
   ot->description = "Attach selected nodes to a new common frame";
   ot->idname = "NODE_OT_join";
 
   /* API callbacks. */
-  ot->exec = node_join_exec;
-  ot->invoke = node_join_invoke;
+  ot->exec = node_join_in_frame_exec;
+  ot->invoke = node_join_in_frame_invoke;
   ot->poll = ED_operator_node_editable;
 
   /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Join Nodes Operator
+ * \{ */
+
+static void join_group_inputs(bNodeTree &tree, VectorSet<bNode *> group_inputs, bNode *active_node)
+{
+  bNode *main_node = nullptr;
+  if (group_inputs.contains(active_node)) {
+    main_node = active_node;
+  }
+  else {
+    main_node = group_inputs[0];
+    /* Move main node to average of all group inputs. */
+    float2 location{};
+    for (const bNode *node : group_inputs) {
+      location += node->location;
+    }
+    location /= float(group_inputs.size());
+    copy_v2_v2(main_node->location, location);
+  }
+  tree.ensure_topology_cache();
+  MultiValueMap<bNodeSocket *, bNodeLink *> old_link_map;
+  for (bNode *node : group_inputs) {
+    for (bNodeSocket *socket : node->output_sockets().drop_back(1)) {
+      old_link_map.add_multiple(socket, socket->directly_linked_links());
+    }
+  }
+  MultiValueMap<bNodeSocket *, bNodeSocket *> used_link_targets;
+  for (bNodeSocket *socket : main_node->output_sockets()) {
+    used_link_targets.add_multiple(socket, socket->directly_linked_sockets());
+  }
+  for (bNode *node : group_inputs) {
+    if (node == main_node) {
+      continue;
+    }
+    bool keep_node = false;
+
+    /* Using runtime data directly because we know the parts that are used are still valid. */
+    for (const int group_input_i : node->runtime->outputs.index_range().drop_back(1)) {
+      bool keep_socket = false;
+      bNodeSocket &new_socket = *main_node->runtime->outputs[group_input_i];
+      bNodeSocket &old_socket = *node->runtime->outputs[group_input_i];
+      for (bNodeLink *link : old_link_map.lookup(&old_socket)) {
+        bNodeSocket &to_socket = *link->tosock;
+        if (used_link_targets.lookup(&new_socket).contains(&to_socket)) {
+          keep_node = true;
+          keep_socket = true;
+          continue;
+        }
+        used_link_targets.add(&new_socket, &to_socket);
+        link->fromsock = &new_socket;
+        link->fromnode = main_node;
+        new_socket.flag &= ~SOCK_HIDDEN;
+        BKE_ntree_update_tag_link_changed(&tree);
+      }
+      if (!keep_socket) {
+        old_socket.flag |= SOCK_HIDDEN;
+      }
+    }
+    if (!keep_node) {
+      bke::node_free_node(&tree, *node);
+    }
+  }
+}
+
+static wmOperatorStatus node_join_nodes_exec(bContext *C, wmOperator *op)
+{
+  Main &bmain = *CTX_data_main(C);
+  SpaceNode &snode = *CTX_wm_space_node(C);
+  bNodeTree &ntree = *snode.edittree;
+
+  bNode *active_node = bke::node_get_active(ntree);
+  VectorSet<bNode *> selected_nodes = get_selected_nodes(ntree);
+  if (selected_nodes.size() <= 1) {
+    return OPERATOR_CANCELLED;
+  }
+
+  if (std::all_of(selected_nodes.begin(), selected_nodes.end(), [](const bNode *node) {
+        return node->is_group_input();
+      }))
+  {
+    join_group_inputs(ntree, std::move(selected_nodes), active_node);
+  }
+  else {
+    BKE_report(op->reports, RPT_ERROR, "Selected nodes can't be joined");
+    return OPERATOR_CANCELLED;
+  }
+
+  BKE_main_ensure_invariants(bmain, snode.edittree->id);
+  WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+void NODE_OT_join_nodes(wmOperatorType *ot)
+{
+  ot->name = "Join Nodes";
+  ot->description = "Merge selected group input nodes into one if possible";
+  ot->idname = "NODE_OT_join_nodes";
+
+  ot->exec = node_join_nodes_exec;
+  ot->poll = ED_operator_node_editable;
+
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
