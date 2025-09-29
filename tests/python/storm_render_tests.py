@@ -34,6 +34,7 @@ BLOCKLIST_USD = [
 BLOCKLIST_METAL = [
     # Thinfilm
     "principled.*thinfilm.*.blend",
+    "metallic.*thinfilm.*.blend",
     # Transparency
     "transparent.blend",
     "transparent_shadow.blend",
