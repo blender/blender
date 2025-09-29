@@ -74,6 +74,7 @@ set(LIB
   PRIVATE bf::render
   PRIVATE bf::sequencer
   PRIVATE bf::windowmanager
+  PRIVATE bf::extern::xxhash
 )
 
 if(WITH_BUILDINFO)
