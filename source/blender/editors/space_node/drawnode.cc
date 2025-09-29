@@ -1420,6 +1420,9 @@ static void std_node_socket_interface_draw(ID *id,
     }
   }
 
+  if (interface_socket->flag & NODE_INTERFACE_SOCKET_INPUT) {
+    col->prop(&ptr, "optional_label", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
+  }
   {
     uiLayout *sub = &col->column(false);
     sub->active_set(interface_socket->default_input == NODE_DEFAULT_INPUT_VALUE);

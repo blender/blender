@@ -1156,6 +1156,7 @@ bNodeTreeInterfaceSocket *add_interface_socket_from_node(bNodeTree &ntree,
       if (!decl->description.empty()) {
         description = decl->description;
       }
+      SET_FLAG_FROM_TEST(flag, decl->optional_label, NODE_INTERFACE_SOCKET_OPTIONAL_LABEL);
     }
 
     iosock = ntree.tree_interface.add_socket(name, description, socket_type, flag, nullptr);

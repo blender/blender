@@ -1205,6 +1205,16 @@ static void rna_def_node_interface_socket(BlenderRNA *brna)
       prop, "Menu Expanded", "Draw the menu socket as an expanded drop-down menu");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeTreeInterfaceItem_update");
 
+  prop = RNA_def_property(srna, "optional_label", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", NODE_INTERFACE_SOCKET_OPTIONAL_LABEL);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(
+      prop,
+      "Optional Label",
+      "Indicate that the label of this socket is not necessary to understand its meaning. This "
+      "may result in the label being skipped in some cases");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeTreeInterfaceItem_update");
+
   prop = RNA_def_property(srna, "attribute_domain", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_attribute_domain_items);
   RNA_def_property_enum_funcs(
