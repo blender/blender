@@ -23,8 +23,7 @@ class BlenderMaterial():
         if material_idx is None:
             # If no material is specified, we create a default one
             mat = bpy.data.materials.new(name="DefaultMaterial")
-            mat.use_nodes = True
-            mat.node_tree.nodes.clear()
+            # Since Blender 5.0, no need to remove default nodes, as they are not created by default
             output_node = mat.node_tree.nodes.new(type='ShaderNodeOutputMaterial')
             output_node.location = (0, 0)
             shader_node = mat.node_tree.nodes.new(type='ShaderNodeBsdfPrincipled')
@@ -54,9 +53,7 @@ class BlenderMaterial():
         BlenderMaterial.set_eevee_surface_render_method(pymaterial, mat)
         BlenderMaterial.set_viewport_color(pymaterial, mat, vertex_color)
 
-        mat.use_nodes = True
-        while mat.node_tree.nodes:  # clear all nodes
-            mat.node_tree.nodes.remove(mat.node_tree.nodes[0])
+        # Since Blender 5.0, no need to remove default nodes, as they are not created by default
 
         mh = MaterialHelper(gltf, pymaterial, mat, vertex_color)
 

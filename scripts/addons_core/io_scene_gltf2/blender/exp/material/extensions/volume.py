@@ -25,13 +25,13 @@ def export_volume(blender_material, export_settings):
     uvmap_info = {}
 
     thickness_socket = get_socket_from_gltf_material_node(
-        blender_material.node_tree, blender_material.use_nodes, 'Thickness')
+        blender_material.node_tree, 'Thickness')
     if thickness_socket.socket is None:
         # If no thickness (here because there is no glTF Material Output node), no volume extension export
         return None, {}, {}
 
-    density_socket = get_socket(blender_material.node_tree, blender_material.use_nodes, 'Density', volume=True)
-    attenuation_color_socket = get_socket(blender_material.node_tree, blender_material.use_nodes, 'Color', volume=True)
+    density_socket = get_socket(blender_material.node_tree, 'Density', volume=True)
+    attenuation_color_socket = get_socket(blender_material.node_tree, 'Color', volume=True)
     # Even if density or attenuation are not set, we export volume extension
 
     if attenuation_color_socket.socket is not None and isinstance(

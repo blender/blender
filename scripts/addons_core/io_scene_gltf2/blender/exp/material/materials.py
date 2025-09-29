@@ -92,7 +92,7 @@ def gather_material(blender_material, export_settings):
         emission_strength = max(emissive_factor)
         emissive_factor = [f / emission_strength for f in emissive_factor]
 
-    alpha_socket = get_socket(blender_material.node_tree, blender_material.use_nodes, "Alpha")
+    alpha_socket = get_socket(blender_material.node_tree, "Alpha")
     if isinstance(alpha_socket.socket, bpy.types.NodeSocket):
         alpha_info = gather_alpha_info(alpha_socket.to_node_nav())
     else:
@@ -117,7 +117,7 @@ def gather_material(blender_material, export_settings):
 
     # Get all textures nodes that are not used in the material
     if export_settings['gltf_unused_textures'] is True:
-        if blender_material.node_tree and blender_material.use_nodes:
+        if blender_material.node_tree:
             nodes = get_material_nodes(
                 blender_material.node_tree, [
                     blender_material.node_tree], bpy.types.ShaderNodeTexImage)
@@ -305,7 +305,7 @@ def __gather_extensions(blender_material, emissive_factor, export_settings):
 
 
 def __gather_normal_texture(blender_material, export_settings):
-    normal = get_socket(blender_material.node_tree, blender_material.use_nodes, "Normal")
+    normal = get_socket(blender_material.node_tree, "Normal")
     normal_texture, uvmap_info, udim_info, _ = gltf2_blender_gather_texture_info.gather_material_normal_texture_info_class(
         normal, (normal,), export_settings)
 
@@ -339,15 +339,15 @@ def __gather_orm_texture(blender_material, export_settings):
     # Check for the presence of Occlusion, Roughness, Metallic sharing a single image.
     # If not fully shared, return None, so the images will be cached and processed separately.
 
-    occlusion = get_socket(blender_material.node_tree, blender_material.use_nodes, "Occlusion")
+    occlusion = get_socket(blender_material.node_tree, "Occlusion")
     if occlusion.socket is None or not has_image_node_from_socket(occlusion, export_settings):
         occlusion = get_socket_from_gltf_material_node(
-            blender_material.node_tree, blender_material.use_nodes, "Occlusion")
+            blender_material.node_tree, "Occlusion")
         if occlusion.socket is None or not has_image_node_from_socket(occlusion, export_settings):
             return None
 
-    metallic_socket = get_socket(blender_material.node_tree, blender_material.use_nodes, "Metallic")
-    roughness_socket = get_socket(blender_material.node_tree, blender_material.use_nodes, "Roughness")
+    metallic_socket = get_socket(blender_material.node_tree, "Metallic")
+    roughness_socket = get_socket(blender_material.node_tree, "Roughness")
 
     hasMetal = metallic_socket.socket is not None and has_image_node_from_socket(metallic_socket, export_settings)
     hasRough = roughness_socket.socket is not None and has_image_node_from_socket(roughness_socket, export_settings)
@@ -356,7 +356,7 @@ def __gather_orm_texture(blender_material, export_settings):
     # Using directlty the Blender socket object
     if not hasMetal and not hasRough:
         metallic_roughness = get_socket_from_gltf_material_node(
-            blender_material.node_tree, blender_material.use_nodes, "MetallicRoughness")
+            blender_material.node_tree, "MetallicRoughness")
         if metallic_roughness.socket is None or not has_image_node_from_socket(metallic_roughness, export_settings):
             return None
         result = (occlusion, metallic_roughness)
@@ -404,10 +404,10 @@ def __gather_orm_texture(blender_material, export_settings):
 
 
 def __gather_occlusion_texture(blender_material, orm_texture, export_settings):
-    occlusion = get_socket(blender_material.node_tree, blender_material.use_nodes, "Occlusion")
+    occlusion = get_socket(blender_material.node_tree, "Occlusion")
     if occlusion.socket is None:
         occlusion = get_socket_from_gltf_material_node(
-            blender_material.node_tree, blender_material.use_nodes, "Occlusion")
+            blender_material.node_tree, "Occlusion")
     if occlusion.socket is None:
         return None, {}, {}
     occlusion_texture, uvmap_info, udim_info, _ = gltf2_blender_gather_texture_info.gather_material_occlusion_texture_info_class(
@@ -449,7 +449,6 @@ def __export_unlit(blender_material, export_settings):
 
     info = gltf2_unlit.detect_shadeless_material(
         blender_material.node_tree,
-        blender_material.use_nodes,
         export_settings)
     if info is None:
         return None, {}, {"color": None, "alpha": None, "color_type": None, "alpha_type": None, "alpha_mode": "OPAQUE"}, {}

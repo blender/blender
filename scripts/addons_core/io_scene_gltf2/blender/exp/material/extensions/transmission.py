@@ -17,7 +17,7 @@ def export_transmission(blender_material, export_settings):
     transmission_extension = {}
     transmission_slots = ()
 
-    transmission_socket = get_socket(blender_material.node_tree, blender_material.use_nodes, 'Transmission Weight')
+    transmission_socket = get_socket(blender_material.node_tree, 'Transmission Weight')
 
     if transmission_socket.socket is not None and isinstance(
             transmission_socket.socket,
