@@ -435,6 +435,16 @@ class BlenderCameraParamQuery : public OSLCameraParamQuery {
         data.push_back(RNA_property_boolean_get(&custom_props, prop));
       }
     }
+    else if (RNA_property_type(prop) == PROP_ENUM) {
+      const char *identifier = "";
+      const int value = RNA_property_enum_get(&custom_props, prop);
+      if (RNA_property_enum_identifier(nullptr, &custom_props, prop, value, &identifier)) {
+        data.push_back(atoi(identifier));
+      }
+      else {
+        data.push_back(value);
+      }
+    }
     else {
       if (array_len > 0) {
         data.resize(array_len);

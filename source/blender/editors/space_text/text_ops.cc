@@ -4365,7 +4365,7 @@ static wmOperatorStatus text_update_shader_exec(bContext *C, wmOperator *op)
   }
 
   if (!found) {
-    BKE_report(op->reports, RPT_INFO, "Text not used by any node, no update done");
+    BKE_report(op->reports, RPT_INFO, "Text not used by any node or camera, no update done");
   }
 
   RE_engine_free(engine);
