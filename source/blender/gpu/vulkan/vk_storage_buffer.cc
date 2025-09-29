@@ -36,7 +36,8 @@ void VKStorageBuffer::update(const void *data)
 {
   VKContext &context = *VKContext::get();
   ensure_allocated();
-  VKStagingBuffer staging_buffer(buffer_, VKStagingBuffer::Direction::HostToDevice);
+  VKStagingBuffer staging_buffer(
+      buffer_, VKStagingBuffer::Direction::HostToDevice, 0, usage_size_in_bytes_);
   VKBuffer &buffer = staging_buffer.host_buffer_get();
   if (buffer.is_allocated()) {
     buffer.update_immediately(data);

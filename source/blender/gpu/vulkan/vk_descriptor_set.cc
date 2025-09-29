@@ -235,7 +235,7 @@ void VKDescriptorSetUpdator::bind_storage_buffer_resource(
       VKStorageBuffer *storage_buffer = static_cast<VKStorageBuffer *>(elem.resource);
       storage_buffer->ensure_allocated();
       vk_buffer = storage_buffer->vk_handle();
-      vk_device_size = storage_buffer->size_in_bytes();
+      vk_device_size = storage_buffer->usage_size_get();
       vk_device_address = storage_buffer->device_address_get();
       break;
     }

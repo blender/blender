@@ -187,7 +187,8 @@ static ft_pix blf_unscaled_F26Dot6_to_pixels(FontBLF *font, const FT_Pos value)
  */
 static void blf_batch_draw_init()
 {
-  g_batch.glyph_buf = GPU_storagebuf_create(sizeof(g_batch.glyph_data));
+  g_batch.glyph_buf = GPU_storagebuf_create_ex(
+      sizeof(g_batch.glyph_data), nullptr, GPU_USAGE_STREAM, __func__);
   g_batch.glyph_len = 0;
   /* We render a quad as a triangle strip and instance it for each glyph. */
   g_batch.batch = GPU_batch_create_procedural(GPU_PRIM_TRI_STRIP, 4);
@@ -315,6 +316,7 @@ void blf_batch_draw()
   }
 
   blender::gpu::Texture *texture = blf_batch_cache_texture_load();
+  GPU_storagebuf_usage_size_set(g_batch.glyph_buf, size_t(g_batch.glyph_len) * sizeof(GlyphQuad));
   GPU_storagebuf_update(g_batch.glyph_buf, g_batch.glyph_data);
   GPU_storagebuf_bind(g_batch.glyph_buf, 0);
 
