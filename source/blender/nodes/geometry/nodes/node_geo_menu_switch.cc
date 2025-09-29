@@ -3,7 +3,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array_utils.hh"
+
 #include "node_geometry_util.hh"
+#include "shader/node_shader_util.hh"
 
 #include "DNA_node_types.h"
 
@@ -553,7 +555,7 @@ static void register_node()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_cmp_node_type_base(&ntype, "GeometryNodeMenuSwitch", GEO_NODE_MENU_SWITCH);
+  common_node_type_base(&ntype, "GeometryNodeMenuSwitch", GEO_NODE_MENU_SWITCH);
   ntype.ui_name = "Menu Switch";
   ntype.ui_description = "Select from multiple inputs by name";
   ntype.enum_name_legacy = "MENU_SWITCH";

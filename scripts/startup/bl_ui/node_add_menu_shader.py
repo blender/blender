@@ -404,6 +404,8 @@ class NODE_MT_shader_node_utilities_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "NodeEvaluateClosure")
         self.node_operator(layout, "NodeCombineBundle")
         self.node_operator(layout, "NodeSeparateBundle")
+        layout.separator()
+        self.node_operator(layout, "GeometryNodeMenuSwitch")
 
 
 class NODE_MT_shader_node_all_base(node_add_menu.NodeMenu):
