@@ -120,7 +120,7 @@ static void hue_correct_panel_draw(const bContext *C, Panel *panel)
   uiLayout *layout = panel->layout;
   PointerRNA *ptr = UI_panel_custom_data_get(panel);
 
-  uiTemplateCurveMapping(layout, ptr, "curve_mapping", 'h', false, false, false, false);
+  uiTemplateCurveMapping(layout, ptr, "curve_mapping", 'h', false, false, false, false, false);
 
   if (uiLayout *mask_input_layout = layout->panel_prop(
           C, ptr, "open_mask_input_panel", IFACE_("Mask Input")))
