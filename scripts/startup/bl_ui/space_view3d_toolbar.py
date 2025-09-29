@@ -2144,7 +2144,7 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_random(View3DPanel, Panel):
                 emboss=False)
             if paint.show_jitter_curve:
                 col.active = gp_settings.use_jitter_pressure
-                col.template_curve_mapping(gp_settings, "curve_jitter", brush=True)
+                col.template_curve_mapping(gp_settings, "curve_jitter", brush=True, show_presets=True)
 
 
 class VIEW3D_PT_tools_grease_pencil_v3_brush_stabilizer(Panel, View3DPanel):
