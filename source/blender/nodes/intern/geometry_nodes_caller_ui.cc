@@ -508,13 +508,10 @@ static void draw_property_for_socket(DrawGroupInputsContext &ctx,
    * the prefix so it appears less verbose. */
   if (parent_name.has_value()) {
     const StringRef prefix_to_remove = *parent_name;
-    int pos = name.find(prefix_to_remove);
-    if (pos == 0 && name != prefix_to_remove) {
-      /* Needs to trim remaining space characters if any. Use the `trim()` from `StringRefNull`
-       * because std::string doesn't have a built-in `trim()` yet. If the property name is the
-       * same as parent panel's name then keep the name, otherwise the name would be an empty
-       * string which messes up the UI. */
-      name = StringRefNull(name.substr(prefix_to_remove.size())).trim();
+    const int prefix_size = prefix_to_remove.size();
+    const int pos = name.find(prefix_to_remove);
+    if (pos == 0 && name.size() > prefix_size && name[prefix_size] == ' ') {
+      name = name.substr(prefix_size + 1);
     }
   }
 
