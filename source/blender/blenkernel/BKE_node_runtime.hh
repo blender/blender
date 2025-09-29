@@ -442,6 +442,10 @@ class AllowUsingOutdatedInfo : NonCopyable, NonMovable {
   }
 };
 
+/* If result is not true then this means that the last node tree editing operation was not covered
+ * by the topology cache update ensure call. All derivative information about topology is not
+ * available. You should call "tree.ensure_topology_cache();" first.
+ */
 inline bool topology_cache_is_available(const bNodeTree &tree)
 {
   if (!tree.runtime->topology_cache_exists) {
