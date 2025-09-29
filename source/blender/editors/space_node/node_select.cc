@@ -1334,6 +1334,11 @@ static std::string node_find_create_node_label(const bNodeTree &ntree, const bNo
   return fmt::format("{} ({})", label, node.name);
 }
 
+static std::string node_find_create_group_input_label(const bNode &node, const bNodeSocket &socket)
+{
+  return fmt::format("{}: \"{}\" ({})", TIP_("Input"), socket.name, node.name);
+}
+
 static std::string node_find_create_string_value(const bNode &node, const StringRef str)
 {
   return fmt::format("{}: \"{}\" ({})", TIP_("String"), str, node.name);
@@ -1387,6 +1392,16 @@ static void node_find_update_fn(const bContext *C,
       if (!value_str.is_empty()) {
         const StringRef search_str = scope.add_value(
             node_find_create_string_value(*node, value_str));
+        search.add(search_str, &scope.construct<Item>(Item{node, search_str}));
+      }
+    }
+    if (node->is_group_input()) {
+      for (const bNodeSocket *socket : node->output_sockets().drop_back(1)) {
+        if (!socket->is_directly_linked()) {
+          continue;
+        }
+        const StringRef search_str = scope.add_value(
+            node_find_create_group_input_label(*node, *socket));
         search.add(search_str, &scope.construct<Item>(Item{node, search_str}));
       }
     }
