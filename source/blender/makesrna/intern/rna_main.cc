@@ -437,7 +437,7 @@ void RNA_def_main(BlenderRNA *brna)
        "Annotation data-blocks (legacy Grease Pencil)",
        RNA_def_main_annotations},
       {"grease_pencils_v3",
-       "GreasePencilv3",
+       "GreasePencil",
        "rna_Main_grease_pencils_begin",
        "Grease Pencil",
        "Grease Pencil data-blocks",

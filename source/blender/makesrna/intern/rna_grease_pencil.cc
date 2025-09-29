@@ -1426,7 +1426,7 @@ static void rna_def_grease_pencil_data(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  srna = RNA_def_struct(brna, "GreasePencilv3", "ID");
+  srna = RNA_def_struct(brna, "GreasePencil", "ID");
   RNA_def_struct_sdna(srna, "GreasePencil");
   RNA_def_struct_ui_text(srna, "Grease Pencil", "Grease Pencil data-block");
   RNA_def_struct_ui_icon(srna, ICON_OUTLINER_DATA_GREASEPENCIL);

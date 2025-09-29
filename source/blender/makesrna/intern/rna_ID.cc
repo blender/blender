@@ -390,7 +390,7 @@ short RNA_type_to_ID_code(const StructRNA *type)
   if (base_type == &RNA_Annotation) {
     return ID_GD_LEGACY;
   }
-  if (base_type == &RNA_GreasePencilv3) {
+  if (base_type == &RNA_GreasePencil) {
     return ID_GP;
   }
   if (base_type == &RNA_Collection) {
@@ -510,7 +510,7 @@ StructRNA *ID_code_to_RNA_type(short idcode)
     case ID_GD_LEGACY:
       return &RNA_Annotation;
     case ID_GP:
-      return &RNA_GreasePencilv3;
+      return &RNA_GreasePencil;
     case ID_GR:
       return &RNA_Collection;
     case ID_CV:

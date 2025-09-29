@@ -2131,14 +2131,14 @@ void RNA_def_main_grease_pencil(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   /* return type */
   parm = RNA_def_pointer(
-      func, "grease_pencil", "GreasePencilv3", "", "New Grease Pencil data-block");
+      func, "grease_pencil", "GreasePencil", "", "New Grease Pencil data-block");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_Main_ID_remove");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   RNA_def_function_ui_description(func,
                                   "Remove a Grease Pencil instance from the current blendfile");
-  parm = RNA_def_pointer(func, "grease_pencil", "GreasePencilv3", "", "Grease Pencil to remove");
+  parm = RNA_def_pointer(func, "grease_pencil", "GreasePencil", "", "Grease Pencil to remove");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
   RNA_def_boolean(
