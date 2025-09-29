@@ -610,9 +610,11 @@ static void gather_realize_tasks_for_instances(GatherTasksInfo &gather_info,
 
   Span<int> stored_instance_ids;
   if (gather_info.create_id_attribute_on_any_component) {
-    bke::AttributeReader ids = instances.attributes().lookup<int>("id");
-    if (ids) {
-      stored_instance_ids = ids.varray.get_internal_span();
+    bke::GAttributeReader ids = instances.attributes().lookup("id");
+    if (ids && ids.domain == bke::AttrDomain::Instance && ids.varray.type().is<int>() &&
+        ids.varray.is_span())
+    {
+      stored_instance_ids = ids.varray.get_internal_span().typed<int>();
     }
   }
 
@@ -1184,7 +1186,9 @@ static AllPointCloudsInfo preprocess_pointclouds(const bke::GeometrySet &geometr
     }
     if (info.create_id_attribute) {
       bke::GAttributeReader ids_attribute = attributes.lookup("id");
-      if (ids_attribute) {
+      if (ids_attribute && ids_attribute.domain == bke::AttrDomain::Point &&
+          ids_attribute.varray.type().is<int>() && ids_attribute.varray.is_span())
+      {
         pointcloud_info.stored_ids = ids_attribute.varray.get_internal_span().typed<int>();
       }
     }
@@ -1464,7 +1468,9 @@ static AllMeshesInfo preprocess_meshes(const bke::GeometrySet &geometry_set,
     }
     if (info.create_id_attribute) {
       bke::GAttributeReader ids_attribute = attributes.lookup("id");
-      if (ids_attribute) {
+      if (ids_attribute && ids_attribute.domain == bke::AttrDomain::Point &&
+          ids_attribute.varray.type().is<int>() && ids_attribute.varray.is_span())
+      {
         mesh_info.stored_vertex_ids = ids_attribute.varray.get_internal_span().typed<int>();
       }
     }
@@ -1915,7 +1921,9 @@ static AllCurvesInfo preprocess_curves(const bke::GeometrySet &geometry_set,
     }
     if (info.create_id_attribute) {
       bke::GAttributeReader id_attribute = attributes.lookup("id");
-      if (id_attribute) {
+      if (id_attribute && id_attribute.domain == bke::AttrDomain::Point &&
+          id_attribute.varray.type().is<int>() && id_attribute.varray.is_span())
+      {
         curve_info.stored_ids = id_attribute.varray.get_internal_span().typed<int>();
       }
     }

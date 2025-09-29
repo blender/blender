@@ -125,19 +125,26 @@ static Map<int, int> create_value_to_first_index_map(const Span<int> values)
 }
 
 static Array<int> create_id_index_map(const bke::AttributeAccessor attributes_a,
-                                      const bke::AttributeAccessor b_attributes)
+                                      const bke::AttributeAccessor b_attributes,
+                                      const bke::AttrDomain id_domain)
 {
-  const bke::AttributeReader<int> ids_a = attributes_a.lookup<int>("id");
-  const bke::AttributeReader<int> ids_b = b_attributes.lookup<int>("id");
+  const bke::GAttributeReader ids_a = attributes_a.lookup("id");
+  const bke::GAttributeReader ids_b = b_attributes.lookup("id");
   if (!ids_a || !ids_b) {
+    return {};
+  }
+  if (!ids_a.varray.type().is<int>() || !ids_b.varray.type().is<int>()) {
+    return {};
+  }
+  if (ids_a.domain != id_domain || ids_b.domain != id_domain) {
     return {};
   }
   if (sharing_info_equal(ids_a.sharing_info, ids_b.sharing_info)) {
     return {};
   }
 
-  const VArraySpan ids_span_a(*ids_a);
-  const VArraySpan ids_span_b(*ids_b);
+  const VArraySpan ids_span_a(ids_a.varray.typed<int>());
+  const VArraySpan ids_span_b(ids_b.varray.typed<int>());
 
   const Map<int, int> id_map_b = create_value_to_first_index_map(ids_span_b);
   Array<int> index_map(ids_span_a.size());
@@ -153,7 +160,8 @@ bke::GeometrySet mix_geometries(bke::GeometrySet a, const bke::GeometrySet &b, c
 {
   if (Mesh *mesh_a = a.get_mesh_for_write()) {
     if (const Mesh *mesh_b = b.get_mesh()) {
-      Array<int> vert_map = create_id_index_map(mesh_a->attributes(), mesh_b->attributes());
+      Array<int> vert_map = create_id_index_map(
+          mesh_a->attributes(), mesh_b->attributes(), bke::AttrDomain::Point);
       mix_attributes(mesh_a->attributes_for_write(),
                      mesh_b->attributes(),
                      vert_map,
@@ -164,8 +172,8 @@ bke::GeometrySet mix_geometries(bke::GeometrySet a, const bke::GeometrySet &b, c
   }
   if (PointCloud *points_a = a.get_pointcloud_for_write()) {
     if (const PointCloud *points_b = b.get_pointcloud()) {
-      const Array<int> index_map = create_id_index_map(points_a->attributes(),
-                                                       points_b->attributes());
+      const Array<int> index_map = create_id_index_map(
+          points_a->attributes(), points_b->attributes(), bke::AttrDomain::Point);
       mix_attributes(points_a->attributes_for_write(),
                      points_b->attributes(),
                      index_map,
@@ -177,7 +185,7 @@ bke::GeometrySet mix_geometries(bke::GeometrySet a, const bke::GeometrySet &b, c
     if (const Curves *curves_b = b.get_curves()) {
       bke::MutableAttributeAccessor a = curves_a->geometry.wrap().attributes_for_write();
       const bke::AttributeAccessor b = curves_b->geometry.wrap().attributes();
-      const Array<int> index_map = create_id_index_map(a, b);
+      const Array<int> index_map = create_id_index_map(a, b, bke::AttrDomain::Point);
       mix_attributes(
           a,
           b,
@@ -189,8 +197,8 @@ bke::GeometrySet mix_geometries(bke::GeometrySet a, const bke::GeometrySet &b, c
   }
   if (bke::Instances *instances_a = a.get_instances_for_write()) {
     if (const bke::Instances *instances_b = b.get_instances()) {
-      const Array<int> index_map = create_id_index_map(instances_a->attributes(),
-                                                       instances_b->attributes());
+      const Array<int> index_map = create_id_index_map(
+          instances_a->attributes(), instances_b->attributes(), bke::AttrDomain::Instance);
       mix_attributes(instances_a->attributes_for_write(),
                      instances_b->attributes(),
                      index_map,

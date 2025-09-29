@@ -878,13 +878,6 @@ static GeometryAttributeProviders create_attribute_providers_for_mesh()
                                                  point_access,
                                                  tag_component_positions_changed);
 
-  static BuiltinCustomDataLayerProvider id("id",
-                                           AttrDomain::Point,
-                                           CD_PROP_INT32,
-                                           BuiltinAttributeProvider::Deletable,
-                                           point_access,
-                                           nullptr);
-
   static const auto material_index_clamp = mf::build::SI1_SO<int, int>(
       "Material Index Validate",
       [](int value) {
@@ -957,7 +950,6 @@ static GeometryAttributeProviders create_attribute_providers_for_mesh()
                                      &edge_verts,
                                      &corner_vert,
                                      &corner_edge,
-                                     &id,
                                      &material_index,
                                      &sharp_face,
                                      &sharp_edge},
