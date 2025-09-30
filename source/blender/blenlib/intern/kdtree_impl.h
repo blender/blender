@@ -9,7 +9,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
-#include "BLI_bit_vector.hh"
 #include "BLI_kdtree_impl.h"
 #include "BLI_math_base.h"
 #include "BLI_utildefines.h"
@@ -899,6 +898,7 @@ int BLI_kdtree_nd_(calc_duplicates_fast)(const KDTree *tree,
 int BLI_kdtree_nd_(calc_duplicates_cb)(const KDTree *tree,
                                        const float range,
                                        int *duplicates,
+                                       const bool has_self_index,
                                        int (*duplicates_cb)(void *user_data,
                                                             const int *cluster,
                                                             int cluster_num),
@@ -916,26 +916,59 @@ int BLI_kdtree_nd_(calc_duplicates_cb)(const KDTree *tree,
     index_to_node_index[tree->nodes[i].index] = int(i);
   }
 
-  blender::BitVector<> visited(tree->max_node_index + 1, false);
+  int found = 0;
+
+  /* First pass, handle merging into self-index (if any exist). */
+  if (has_self_index) {
+    blender::Array<float> duplicates_dist_sq(tree->max_node_index + 1);
+    for (uint i = 0; i < nodes_len; i++) {
+      const int node_index = tree->nodes[i].index;
+      if (node_index != duplicates[node_index]) {
+        continue;
+      }
+      const float *search_co = tree->nodes[index_to_node_index[node_index]].co;
+      auto accumulate_neighbors_fn =
+          [&duplicates, &node_index, &duplicates_dist_sq, &found](
+              int neighbor_index, const float * /*co*/, const float dist_sq) -> bool {
+        const int target_index = duplicates[neighbor_index];
+        if (target_index == -1) {
+          duplicates[neighbor_index] = node_index;
+          duplicates_dist_sq[neighbor_index] = dist_sq;
+          found += 1;
+        }
+        /* Don't steal from self references. */
+        else if (target_index != neighbor_index) {
+          float &dist_sq_best = duplicates_dist_sq[neighbor_index];
+          /* Steal the target if it's closer. */
+          if (dist_sq < dist_sq_best) {
+            dist_sq_best = dist_sq;
+            duplicates[neighbor_index] = node_index;
+          }
+        }
+        return true;
+      };
+
+      BLI_kdtree_nd_(range_search_cb_cpp)(tree, search_co, range, accumulate_neighbors_fn);
+    }
+  }
+
+  /* Second pass, de-duplicate clusters that weren't handled in the first pass. */
+
   /* Could be inline, declare here to avoid re-allocation. */
   blender::Vector<int> cluster;
-
-  int found = 0;
   for (uint i = 0; i < nodes_len; i++) {
     const int node_index = tree->nodes[i].index;
-    if ((duplicates[node_index] != -1) || visited[node_index]) {
+    if (duplicates[node_index] != -1) {
       continue;
     }
 
     BLI_assert(cluster.is_empty());
     const float *search_co = tree->nodes[index_to_node_index[node_index]].co;
-    visited[node_index].set();
-    auto accumulate_neighbors_fn = [&duplicates, &visited, &cluster](int neighbor_index,
-                                                                     const float * /*co*/,
-                                                                     float /*dist_sq*/) -> bool {
-      if ((duplicates[neighbor_index] == -1) && !visited[neighbor_index]) {
+    auto accumulate_neighbors_fn = [&duplicates, &cluster](int neighbor_index,
+                                                           const float * /*co*/,
+                                                           const float /*dist_sq*/) -> bool {
+      if (duplicates[neighbor_index] == -1) {
         cluster.append(neighbor_index);
-        visited[neighbor_index].set();
       }
       return true;
     };
