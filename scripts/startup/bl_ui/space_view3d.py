@@ -7056,7 +7056,7 @@ class VIEW3D_PT_overlay_object(Panel):
         sub.prop(overlay, "show_bones", text="Bones")
         sub.prop(overlay, "show_motion_paths")
 
-        can_show_object_origins = False if mode in {
+        can_show_object_origins = mode not in {
             'PAINT_TEXTURE',
             'PAINT_2D',
             'SCULPT',
@@ -7066,7 +7066,8 @@ class VIEW3D_PT_overlay_object(Panel):
             'PAINT_GREASE_PENCIL',
             'VERTEX_GREASE_PENCIL',
             'WEIGHT_GREASE_PENCIL',
-            'SCULPT_GREASE_PENCIL'} else True
+            'SCULPT_GREASE_PENCIL',
+        }
         subsub = sub.column()
         subsub.active = can_show_object_origins
         subsub.prop(overlay, "show_object_origins", text="Origins")
