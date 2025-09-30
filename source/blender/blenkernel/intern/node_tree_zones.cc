@@ -46,7 +46,7 @@ static Vector<std::unique_ptr<bNodeTreeZone>> find_zone_nodes(
     zone->index = zones.size();
     zone->output_node_id = node->identifier;
     r_zone_by_inout_node.add(node, zone.get());
-    zones.append_and_get_index(std::move(zone));
+    zones.append(std::move(zone));
   }
   for (const bNodeZoneType *zone_type : zone_types) {
     for (const bNode *input_node : tree.nodes_by_type(zone_type->input_idname)) {
@@ -56,6 +56,13 @@ static Vector<std::unique_ptr<bNodeTreeZone>> find_zone_nodes(
           r_zone_by_inout_node.add(input_node, zone);
         }
       }
+    }
+  }
+  /* Avoid incomplete zones, all zones must have a valid input and output node. */
+  for (const std::unique_ptr<bNodeTreeZone> &zone : zones) {
+    if (!zone->input_node_id || !zone->output_node_id) {
+      r_zone_by_inout_node.clear();
+      return {};
     }
   }
   return zones;

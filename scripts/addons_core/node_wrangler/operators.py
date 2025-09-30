@@ -2261,13 +2261,28 @@ class NWResetNodes(bpy.types.Operator):
                 and nw_check_selected(cls, context)
                 and nw_check_active(cls, context))
 
+    @staticmethod
+    def is_frame_node(node):
+        return node.bl_idname == "NodeFrame"
+
+    group_node_types = {"CompositorNodeGroup", "GeometryNodeGroup", "ShaderNodeGroup"}
+    # TODO All zone nodes are ignored here for now, because replacing one of the input/output pair breaks the zone.
+    # It's possible to handle zones by using the `paired_output` function of an input node
+    # and reconstruct the zone using the `pair_with_output` function.
+    zone_node_types = {"GeometryNodeRepeatInput", "GeometryNodeRepeatOutput", "NodeClosureInput",
+                        "NodeClosureOutput", "GeometryNodeSimulationInput", "GeometryNodeSimulationOutput",
+                        "GeometryNodeForeachGeometryElementInput", "GeometryNodeForeachGeometryElementOutput"}
+    node_ignore = group_node_types | zone_node_types | {"NodeFrame", "NodeReroute"}
+
+    @classmethod
+    def ignore_node(cls, node):
+        return node.bl_idname in cls.node_ignore
+
     def execute(self, context):
         node_active = context.active_node
         node_selected = context.selected_nodes
-        node_ignore = ["FRAME", "REROUTE", "GROUP", "SIMULATION_INPUT", "SIMULATION_OUTPUT"]
-
         active_node_name = node_active.name if node_active.select else None
-        valid_nodes = [n for n in node_selected if n.type not in node_ignore]
+        valid_nodes = [n for n in node_selected if not self.ignore_node(n)]
 
         # Create output lists
         selected_node_names = [n.name for n in node_selected]
@@ -2275,18 +2290,18 @@ class NWResetNodes(bpy.types.Operator):
 
         # Reset all valid children in a frame
         node_active_is_frame = False
-        if len(node_selected) == 1 and node_active.type == "FRAME":
+        if len(node_selected) == 1 and self.is_frame_node(node_active):
             node_tree = node_active.id_data
             children = [n for n in node_tree.nodes if n.parent == node_active]
             if children:
-                valid_nodes = [n for n in children if n.type not in node_ignore]
-                selected_node_names = [n.name for n in children if n.type not in node_ignore]
+                valid_nodes = [n for n in children if not self.ignore_node(n)]
+                selected_node_names = [n.name for n in children if not self.ignore_node(n)]
                 node_active_is_frame = True
 
         # Check if valid nodes in selection
         if not (len(valid_nodes) > 0):
             # Check for frames only
-            frames_selected = [n for n in node_selected if n.type == "FRAME"]
+            frames_selected = [n for n in node_selected if self.is_frame_node(n)]
             if (len(frames_selected) > 1 and len(frames_selected) == len(node_selected)):
                 self.report({'ERROR'}, "Please select only 1 frame to reset")
             else:
@@ -2306,7 +2321,6 @@ class NWResetNodes(bpy.types.Operator):
 
         # Run through all valid nodes
         for node in valid_nodes:
-
             parent = node.parent if node.parent else None
             node_loc = [node.location.x, node.location.y]
 
