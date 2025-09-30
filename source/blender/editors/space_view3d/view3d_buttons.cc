@@ -1595,7 +1595,7 @@ static void v3d_editvertex_buts(
 static void v3d_object_dimension_buts(bContext *C, uiLayout *layout, View3D *v3d, Object *ob)
 {
   uiBlock *block = (layout) ? layout->block() : nullptr;
-  uiLayout &sub_layout = layout->absolute(false);
+  uiLayout *sub_layout = layout ? &layout->absolute(false) : nullptr;
   TransformProperties *tfp = v3d_transform_props_ensure(v3d);
   const bool is_editable = ID_IS_EDITABLE(&ob->id);
 
@@ -1610,8 +1610,8 @@ static void v3d_object_dimension_buts(bContext *C, uiLayout *layout, View3D *v3d
     copy_v3_v3(tfp->ob_scale_orig, ob->scale);
     copy_m4_m4(tfp->ob_obmat_orig, ob->object_to_world().ptr());
 
-    if (!is_editable) {
-      sub_layout.enabled_set(false);
+    if (!is_editable && sub_layout) {
+      sub_layout->enabled_set(false);
     }
 
     uiDefBut(block,
