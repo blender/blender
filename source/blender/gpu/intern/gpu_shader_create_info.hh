@@ -446,6 +446,7 @@ enum class BuiltinBits {
    * \note Emulated on OpenGL.
    */
   BARYCENTRIC_COORD = (1 << 0),
+  STENCIL_REF = (1 << 1),
   FRAG_COORD = (1 << 2),
   FRONT_FACING = (1 << 4),
   GLOBAL_INVOCATION_ID = (1 << 5),

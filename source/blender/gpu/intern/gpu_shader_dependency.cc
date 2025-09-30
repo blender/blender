@@ -77,6 +77,8 @@ struct GPUSource {
     switch (builtin) {
       case Builtin::FragCoord:
         return BuiltinBits::FRAG_COORD;
+      case Builtin::FragStencilRef:
+        return BuiltinBits::STENCIL_REF;
       case Builtin::FrontFacing:
         return BuiltinBits::FRONT_FACING;
       case Builtin::GlobalInvocationID:

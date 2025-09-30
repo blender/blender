@@ -556,9 +556,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
                                   shd_builder_->glsl_fragment_source_.find("gl_FragDepth") !=
                                       std::string::npos;
 
-    /* TODO(fclem): Add to create info. */
-    msl_iface.uses_gl_FragStencilRefARB = shd_builder_->glsl_fragment_source_.find(
-                                              "gl_FragStencilRefARB") != std::string::npos;
+    msl_iface.uses_gl_FragStencilRefARB = bool(info->builtins_ & BuiltinBits::STENCIL_REF);
 
     msl_iface.depth_write = info->depth_write_;
 
