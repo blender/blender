@@ -124,7 +124,7 @@ class GPUVulkanTest : public GPUTest {
   {
     GPUTest::SetUpTestSuite(GHOST_kDrawingContextTypeVulkan,
                             GPU_BACKEND_VULKAN,
-                            G_DEBUG_GPU | G_DEBUG_GPU_COMPILE_SHADERS | G_DEBUG_GPU_RENDERDOC);
+                            G_DEBUG_GPU | G_DEBUG_GPU_SHADER_DEBUG_INFO | G_DEBUG_GPU_RENDERDOC);
   }
   static void TearDownTestSuite()
   {
@@ -138,7 +138,7 @@ class GPUVulkanWorkaroundsTest : public GPUTest {
   {
     GPUTest::SetUpTestSuite(GHOST_kDrawingContextTypeVulkan,
                             GPU_BACKEND_VULKAN,
-                            G_DEBUG_GPU | G_DEBUG_GPU_COMPILE_SHADERS | G_DEBUG_GPU_RENDERDOC |
+                            G_DEBUG_GPU | G_DEBUG_GPU_SHADER_DEBUG_INFO | G_DEBUG_GPU_RENDERDOC |
                                 G_DEBUG_GPU_FORCE_WORKAROUNDS);
   }
   static void TearDownTestSuite()
