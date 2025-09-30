@@ -96,7 +96,9 @@ def action_get_channelbag_for_slot(action: Action | None, slot: ActionSlot | Non
     return None
 
 
-def _ensure_channelbag_exists(action: Action, slot: ActionSlot) -> ActionChannelbag:
+def action_ensure_channelbag_for_slot(action: Action, slot: ActionSlot) -> ActionChannelbag:
+    """Ensure a layer and a keyframe strip exists, then ensure that that strip has a channelbag for the slot."""
+
     try:
         layer = action.layers[0]
     except IndexError:
@@ -732,7 +734,7 @@ class KeyframesCo:
             if fcurve is None:
                 data_path, array_index = fc_key
                 assert action.is_action_layered
-                channelbag = _ensure_channelbag_exists(action, action_slot)
+                channelbag = action_ensure_channelbag_for_slot(action, action_slot)
                 fcurve = channelbag.fcurves.new(data_path, index=array_index)
 
             keyframe_points = fcurve.keyframe_points
