@@ -221,6 +221,50 @@ void NODE_OT_group_edit(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Enter group at cursor, or exit when not hovering any node.
+ * \{ */
+
+static wmOperatorStatus node_group_enter_exit_invoke(bContext *C,
+                                                     wmOperator * /*op*/,
+                                                     const wmEvent *event)
+{
+  SpaceNode &snode = *CTX_wm_space_node(C);
+  ARegion &region = *CTX_wm_region(C);
+
+  float2 cursor;
+  UI_view2d_region_to_view(&region.v2d, event->mval[0], event->mval[1], &cursor.x, &cursor.y);
+  bNode *node = node_under_mouse_get(snode, cursor);
+
+  if (!node || node->is_frame()) {
+    ED_node_tree_pop(&region, &snode);
+    return OPERATOR_FINISHED;
+  }
+  if (!node->is_group()) {
+    return OPERATOR_PASS_THROUGH;
+  }
+  bNodeTree *group = id_cast<bNodeTree *>(node->id);
+  if (!group || ID_MISSING(group)) {
+    return OPERATOR_PASS_THROUGH;
+  }
+  ED_node_tree_push(&region, &snode, group, node);
+  return OPERATOR_FINISHED;
+}
+
+void NODE_OT_group_enter_exit(wmOperatorType *ot)
+{
+  ot->name = "Enter/Exit Group";
+  ot->description = "Enter or exit node group based on cursor location";
+  ot->idname = "NODE_OT_group_enter_exit";
+
+  ot->invoke = node_group_enter_exit_invoke;
+  ot->poll = node_group_operator_active_poll;
+
+  ot->flag = OPTYPE_REGISTER;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Ungroup Operator
  * \{ */
 

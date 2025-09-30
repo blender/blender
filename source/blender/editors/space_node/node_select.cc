@@ -135,7 +135,7 @@ static bool node_frame_select_isect_mouse(const SpaceNode &snode,
   return false;
 }
 
-static bNode *node_under_mouse_select(const SpaceNode &snode, const float2 mouse)
+bNode *node_under_mouse_get(const SpaceNode &snode, const float2 mouse)
 {
   for (bNode *node : tree_draw_order_calc_nodes_reversed(*snode.edittree)) {
     switch (node->type_legacy) {
@@ -158,7 +158,7 @@ static bNode *node_under_mouse_select(const SpaceNode &snode, const float2 mouse
 
 static bool is_position_over_node_or_socket(SpaceNode &snode, ARegion &region, const float2 &mouse)
 {
-  if (node_under_mouse_select(snode, mouse)) {
+  if (node_under_mouse_get(snode, mouse)) {
     return true;
   }
   if (node_find_indicated_socket(snode, region, mouse, SOCK_IN | SOCK_OUT)) {
@@ -606,7 +606,7 @@ static bool node_mouse_select(bContext *C,
   if (!sock) {
 
     /* Find the closest visible node. */
-    node = node_under_mouse_select(snode, cursor);
+    node = node_under_mouse_get(snode, cursor);
     found = (node != nullptr);
     node_was_selected = node && (node->flag & SELECT);
 
