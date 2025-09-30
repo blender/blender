@@ -914,6 +914,8 @@ void VolumeManager::initialize_octree(const Scene *scene, Progress &progress)
           vdb_map_[{geom, shader}] = mesh_to_sdf_grid(mesh, shader, 1.0f);
         }
       }
+#else
+      (void)progress;
 #endif
     }
   }

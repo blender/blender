@@ -147,6 +147,7 @@ class BlenderSmokeLoader : public VDBImageLoader {
     (void)width;
     (void)height;
     (void)depth;
+    (void)channels;
 #endif
     return false;
   }
