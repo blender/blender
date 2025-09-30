@@ -357,7 +357,7 @@
   { \
     .size = 100, \
     .strength = 1.0f, \
-    .curve_preset = BRUSH_CURVE_SMOOTH, \
+    .curve_distance_falloff_preset = BRUSH_CURVE_SMOOTH, \
   }
 
 #define _DNA_DEFAULT_ToolSettings \

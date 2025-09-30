@@ -1415,7 +1415,7 @@ class IMAGE_PT_uv_sculpt_curve(Panel):
 
         if props.curve_distance_falloff_preset == 'CUSTOM':
             col = layout.column()
-            col.template_curve_mapping(props, "strength_curve")
+            col.template_curve_mapping(props, "curve_distance_falloff")
 
 
 # Only a popover.
