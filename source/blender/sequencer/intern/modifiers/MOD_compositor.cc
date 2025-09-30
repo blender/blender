@@ -103,17 +103,15 @@ class CompositorContext : public compositor::Context {
     return result;
   }
 
-  compositor::Result get_input(const Scene * /*scene*/,
-                               int /*view_layer_id*/,
-                               const char *pass_name) override
+  compositor::Result get_input(StringRef name) override
   {
     compositor::Result result = this->create_result(compositor::ResultType::Color);
 
-    if (StringRef(pass_name) == "Image") {
+    if (name == "Image") {
       result.wrap_external(image_buffer_->float_buffer.data,
                            int2(image_buffer_->x, image_buffer_->y));
     }
-    else if (StringRef(pass_name) == "Mask" && mask_buffer_) {
+    else if (name == "Mask" && mask_buffer_) {
       result.wrap_external(mask_buffer_->float_buffer.data,
                            int2(mask_buffer_->x, mask_buffer_->y));
     }

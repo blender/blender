@@ -30,7 +30,6 @@ class GroupInputOperation : public NodeOperation {
 
   void execute() override
   {
-    const Scene &scene = this->context().get_scene();
     for (const bNodeSocket *output : this->node()->output_sockets()) {
       if (!is_socket_available(output)) {
         continue;
@@ -41,9 +40,7 @@ class GroupInputOperation : public NodeOperation {
         continue;
       }
 
-      this->context().populate_meta_data_for_pass(&scene, 0, output->name, result.meta_data);
-
-      const Result pass = this->context().get_input(&scene, 0, output->name);
+      const Result pass = this->context().get_input(output->name);
       this->execute_pass(pass, result);
     }
   }
