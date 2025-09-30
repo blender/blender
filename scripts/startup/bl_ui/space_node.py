@@ -152,7 +152,10 @@ class NODE_HT_header(Header):
             if snode.node_tree_sub_type == 'SCENE':
                 row = layout.row()
                 row.enabled = not snode.pin
-                row.template_ID(scene, "compositing_node_group", new="node.new_compositing_node_group")
+                if scene.compositing_node_group:
+                    row.template_ID(scene, "compositing_node_group", new="node.duplicate_compositing_node_group")
+                else:
+                    row.template_ID(scene, "compositing_node_group", new="node.new_compositing_node_group")
             elif snode.node_tree_sub_type == 'SEQUENCER':
                 row = layout.row()
                 sequencer_scene = context.workspace.sequencer_scene
