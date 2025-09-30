@@ -260,8 +260,6 @@ class VKStateManager : public StateManager {
   void storage_buffer_unbind(void *resource);
   void storage_buffer_unbind_all();
 
-  void unbind_from_all_namespaces(void *resource);
-
   void texture_unpack_row_length_set(uint len) override;
 
   /**

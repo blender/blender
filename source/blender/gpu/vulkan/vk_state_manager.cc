@@ -110,15 +110,6 @@ void VKStateManager::uniform_buffer_unbind_all()
   is_dirty = true;
 }
 
-void VKStateManager::unbind_from_all_namespaces(void *resource)
-{
-  uniform_buffers_.unbind(resource);
-  storage_buffers_.unbind(resource);
-  images_.unbind(resource, this);
-  textures_.unbind(resource);
-  is_dirty = true;
-}
-
 void VKStateManager::texel_buffer_bind(VKVertexBuffer &vertex_buffer, int binding)
 {
   textures_.bind(BindSpaceTextures::Type::VertexBuffer,
