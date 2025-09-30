@@ -24,12 +24,16 @@ class GPUTest : public ::testing::Test {
   static GPUContext *context_;
 
   static int32_t prev_g_debug_;
+  std::string debug_group_name_;
 
  protected:
   static void SetUpTestSuite(GHOST_TDrawingContextType draw_context_type,
                              GPUBackendType gpu_backend_type,
                              int32_t g_debug_flags);
   static void TearDownTestSuite();
+
+  void SetUp() override;
+  void TearDown() override;
 };
 
 #ifdef WITH_OPENGL_BACKEND
