@@ -20,6 +20,7 @@ struct StripModifierData;
 
 namespace blender::seq {
 
+struct SeqRenderState;
 struct StripScreenQuad;
 struct RenderData;
 
@@ -79,6 +80,7 @@ void modifier_free(StripModifierData *smd);
 void modifier_unique_name(Strip *strip, StripModifierData *smd);
 StripModifierData *modifier_find_by_name(Strip *strip, const char *name);
 void modifier_apply_stack(const RenderData *context,
+                          SeqRenderState *state,
                           const Strip *strip,
                           ImBuf *ibuf,
                           int timeline_frame);
