@@ -87,15 +87,26 @@ static void rna_Strips_move_strip_to_meta(
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 }
 
-static Strip *rna_Strip_split(
-    ID *id, Strip *strip, Main *bmain, ReportList *reports, int frame, int split_method)
+static Strip *rna_Strip_split(ID *id,
+                              Strip *strip,
+                              Main *bmain,
+                              ReportList *reports,
+                              int frame,
+                              int split_method,
+                              bool ignore_connections)
 {
   Scene *scene = (Scene *)id;
   ListBase *seqbase = blender::seq::get_seqbase_by_strip(scene, strip);
 
   const char *error_msg = nullptr;
-  Strip *r_seq = blender::seq::edit_strip_split(
-      bmain, scene, seqbase, strip, frame, blender::seq::eSplitMethod(split_method), &error_msg);
+  Strip *strip_split = blender::seq::edit_strip_split(bmain,
+                                                      scene,
+                                                      seqbase,
+                                                      strip,
+                                                      frame,
+                                                      blender::seq::eSplitMethod(split_method),
+                                                      ignore_connections,
+                                                      &error_msg);
   if (error_msg != nullptr) {
     BKE_report(reports, RPT_ERROR, error_msg);
   }
@@ -106,7 +117,7 @@ static Strip *rna_Strip_split(
 
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 
-  return r_seq;
+  return strip_split;
 }
 
 static Strip *rna_Strip_parent_meta(ID *id, Strip *strip_self)
@@ -753,6 +764,8 @@ void RNA_api_strip(StructRNA *srna)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_enum(func, "split_method", strip_split_method_items, 0, "", "");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  parm = RNA_def_boolean(
+      func, "ignore_connections", false, "", "Don't propagate split to connected strips");
   /* Return type. */
   parm = RNA_def_pointer(func, "sequence", "Strip", "", "Right side Strip");
   RNA_def_function_return(func, parm);
