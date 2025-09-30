@@ -1082,50 +1082,19 @@ class NODE_PT_node_tree_interface(Panel):
                 layout.prop(active_item, "description")
                 layout.prop(active_item, "default_closed", text="Closed by Default")
 
+            if active_item.item_type == 'PANEL' and len(
+                    active_item.interface_items) > 0 and getattr(
+                    active_item.interface_items[0], "is_panel_toggle", False):
+                panel_toggle_item = active_item.interface_items[0]
+                header, body = layout.panel("panel_toggle", default_closed=False)
+                header.label(text="Panel Toggle")
+                if body:
+                    body.prop(panel_toggle_item, "default_value", text="Default")
+                    col = body.column()
+                    col.prop(panel_toggle_item, "hide_in_modifier")
+                    col.prop(panel_toggle_item, "force_non_field")
+
             layout.use_property_split = False
-
-
-class NODE_PT_node_tree_interface_panel_toggle(Panel):
-    bl_space_type = 'NODE_EDITOR'
-    bl_region_type = 'UI'
-    bl_category = "Group"
-    bl_parent_id = "NODE_PT_node_tree_interface"
-    bl_label = "Panel Toggle"
-
-    @classmethod
-    def poll(cls, context):
-        snode = context.space_data
-        if snode is None:
-            return False
-        tree = snode.edit_tree
-        if tree is None:
-            return False
-        active_item = tree.interface.active
-        if not active_item or active_item.item_type != 'PANEL':
-            return False
-        if not active_item.interface_items:
-            return False
-        first_item = active_item.interface_items[0]
-        return getattr(first_item, "is_panel_toggle", False)
-
-    def draw(self, context):
-        layout = self.layout
-        snode = context.space_data
-        tree = snode.edit_tree
-
-        active_item = tree.interface.active
-        panel_toggle_item = active_item.interface_items[0]
-
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        layout.prop(panel_toggle_item, "default_value", text="Default")
-
-        col = layout.column()
-        col.prop(panel_toggle_item, "hide_in_modifier")
-        col.prop(panel_toggle_item, "force_non_field")
-
-        layout.use_property_split = False
 
 
 class NODE_PT_node_tree_properties(Panel):
@@ -1281,7 +1250,6 @@ classes = (
     NODE_PT_node_tree_properties,
     NODE_MT_node_tree_interface_context_menu,
     NODE_PT_node_tree_interface,
-    NODE_PT_node_tree_interface_panel_toggle,
     NODE_PT_node_tree_animation,
     NODE_PT_active_node_generic,
     NODE_PT_active_node_color,
