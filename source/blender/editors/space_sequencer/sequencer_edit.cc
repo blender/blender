@@ -29,6 +29,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_global.hh"
+#include "BKE_layer.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_report.hh"
@@ -63,6 +64,7 @@
 /* For menu, popup, icons, etc. */
 #include "ED_fileselect.hh"
 #include "ED_numinput.hh"
+#include "ED_object.hh"
 #include "ED_scene.hh"
 #include "ED_screen.hh"
 #include "ED_screen_types.hh"
@@ -369,6 +371,8 @@ void sync_active_scene_and_time_with_scene_strip(bContext &C)
 
   wmWindow *win = CTX_wm_window(&C);
   Scene *active_scene = WM_window_get_active_scene(win);
+  ViewLayer *view_layer = WM_window_get_active_view_layer(win);
+  Object *prev_obact = BKE_view_layer_active_object_get(view_layer);
 
   Editing *ed = seq::editing_get(sequence_scene);
   if (!ed) {
@@ -447,6 +451,14 @@ void sync_active_scene_and_time_with_scene_strip(bContext &C)
     active_scene->r.subframe = 0.0f;
   }
   FRAMENUMBER_MIN_CLAMP(active_scene->r.cfra);
+
+  /* Try to sync the object mode of the active object. */
+  if (prev_obact) {
+    Object *obact = CTX_data_active_object(&C);
+    if (obact && prev_obact->type == obact->type) {
+      ed::object::mode_set(&C, eObjectMode(prev_obact->mode));
+    }
+  }
 
   DEG_id_tag_update(&active_scene->id, ID_RECALC_FRAME_CHANGE);
   WM_event_add_notifier(&C, NC_WINDOW, nullptr);
