@@ -803,6 +803,13 @@ static void foreach_obref_in_scene(DRWContext &draw_ctx,
       draw_object_cb(ob_ref);
     }
 
+    bool is_preview_dupli = data_.dupli_parent && data_.dupli_object_current;
+    if (is_preview_dupli) {
+      /* Don't create duplis from temporary preview objects, object_duplilist_preview already takes
+       * care of everything. (See #146194, #146211) */
+      continue;
+    }
+
     bool instances_visible = (visibility & OB_VISIBLE_INSTANCES) &&
                              ((ob->transflag & OB_DUPLI) ||
                               ob->runtime->geometry_set_eval != nullptr);
