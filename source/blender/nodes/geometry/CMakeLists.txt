@@ -83,6 +83,7 @@ set(SRC
   nodes/node_geo_evaluate_at_index.cc
   nodes/node_geo_evaluate_closure.cc
   nodes/node_geo_evaluate_on_domain.cc
+  nodes/node_geo_field_to_grid.cc
   nodes/node_geo_extrude_mesh.cc
   nodes/node_geo_field_average.cc
   nodes/node_geo_field_min_and_max.cc
@@ -255,6 +256,7 @@ set(SRC
   include/NOD_geo_bundle.hh
   include/NOD_geo_capture_attribute.hh
   include/NOD_geo_closure.hh
+  include/NOD_geo_field_to_grid.hh
   include/NOD_geo_foreach_geometry_element.hh
   include/NOD_geo_index_switch.hh
   include/NOD_geo_menu_switch.hh

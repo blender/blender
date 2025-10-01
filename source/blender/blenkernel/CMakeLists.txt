@@ -534,6 +534,7 @@ set(SRC
   BKE_volume_grid_fields.hh
   BKE_volume_grid_file_cache.hh
   BKE_volume_grid_fwd.hh
+  BKE_volume_grid_process.hh
   BKE_volume_grid_type_traits.hh
   BKE_volume_openvdb.hh
   BKE_volume_render.hh
