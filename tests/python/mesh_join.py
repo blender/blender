@@ -192,6 +192,27 @@ class TestMeshJoin(unittest.TestCase):
         self.assertEqual(cube_1.data.shape_keys.key_blocks["B"].data[0].co, Vector((-1.0, -4.0, -1.0)))
         self.assertEqual(cube_1.data.shape_keys.key_blocks["B"].data[13].co, Vector((1.0, -3.0, 1.0)))
 
+    def test_shape_keys_not_active(self):
+        bpy.ops.object.select_all(action='SELECT')
+        bpy.ops.object.delete()
+
+        bpy.ops.mesh.primitive_cube_add()
+        cube_1 = bpy.context.object
+        cube_1.shape_key_add(name="Basis")
+        key = cube_1.shape_key_add(name="A")
+        key = cube_1.shape_key_add(name="B")
+        key = cube_1.shape_key_add(name="C")
+
+        bpy.ops.mesh.primitive_cube_add()
+        cube_2 = bpy.context.object
+
+        bpy.ops.object.select_all(action='SELECT')
+        bpy.context.view_layer.objects.active = cube_2
+        bpy.ops.object.join()
+
+        self.assertEqual(len(cube_2.data.vertices), 16)
+        self.assertEqual(len(cube_2.data.shape_keys.key_blocks), 4)
+
 
 if __name__ == '__main__':
     import sys
