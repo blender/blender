@@ -46,7 +46,7 @@ class TestBlendUserMap(TestBlendLibLinkHelper):
         expected_map = {
             bpy.data.images[0]: {bpy.data.materials[0]},
             bpy.data.materials[0]: {bpy.data.meshes[0]},
-            bpy.data.scenes[0]: {bpy.data.window_managers[0], bpy.data.workspaces['Layout']},
+            bpy.data.scenes[0]: {bpy.data.window_managers[0]},
             bpy.data.collections[0]: {bpy.data.scenes[0]},
             bpy.data.libraries[0]: set(),
             bpy.data.meshes[0]: {bpy.data.objects[0]},

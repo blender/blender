@@ -202,7 +202,7 @@ class BlenderPointerAnim():
                 pointer_tab[3] in ["emissiveFactor", "alphaCutoff"]:
 
             if pointer_tab[3] == "emissiveFactor":
-                emissive_socket = get_socket(asset.blender_nodetree, True, "Emissive")
+                emissive_socket = get_socket(asset.blender_nodetree, "Emissive")
                 if emissive_socket.socket.is_linked:
                     # We need to find the correct node value to animate (An Emissive Factor node)
                     mix_node = emissive_socket.socket.links[0].from_node
@@ -224,7 +224,7 @@ class BlenderPointerAnim():
                 pointer_tab[3] == "normalTexture" and \
                 pointer_tab[4] == "scale":
 
-            normal_socket = get_socket(asset.blender_nodetree, True, "Normal")
+            normal_socket = get_socket(asset.blender_nodetree, "Normal")
             if normal_socket.socket.is_linked:
                 normal_node = normal_socket.socket.links[0].from_node
                 if normal_node.type == "NORMAL_MAP":
@@ -236,9 +236,9 @@ class BlenderPointerAnim():
                 pointer_tab[3] == "occlusionTexture" and \
                 pointer_tab[4] == "strength":
 
-            occlusion_socket = get_socket(asset.blender_nodetree, True, "Occlusion")
+            occlusion_socket = get_socket(asset.blender_nodetree, "Occlusion")
             if occlusion_socket.socket is None:
-                occlusion_socket = get_socket_from_gltf_material_node(asset.blender_mat.node_tree, True, "Occlusion")
+                occlusion_socket = get_socket_from_gltf_material_node(asset.blender_mat.node_tree, "Occlusion")
             if occlusion_socket.socket.is_linked:
                 mix_node = occlusion_socket.socket.links[0].from_node
                 if mix_node.type == "MIX":
@@ -261,7 +261,7 @@ class BlenderPointerAnim():
                 # This can be regular PBR, or unlit
                 if is_unlit is False:
 
-                    base_color_socket = get_socket(asset.blender_nodetree, True, "Base Color")
+                    base_color_socket = get_socket(asset.blender_nodetree, "Base Color")
                     if base_color_socket.socket.is_linked:
                         # We need to find the correct node value to animate (An Mix Factor node)
                         mix_node = base_color_socket.links[0].from_node
@@ -276,7 +276,7 @@ class BlenderPointerAnim():
                         num_components = 3  # Do not use alpha here, will be managed later
 
                 else:
-                    unlit_info = detect_shadeless_material(asset.blender_nodetree, True, {})
+                    unlit_info = detect_shadeless_material(asset.blender_nodetree, {})
                     if 'rgb_socket' in unlit_info:
                         socket = unlit_info['rgb_socket']
                         blender_path = socket.socket.path_from_id() + ".default_value"
@@ -286,7 +286,7 @@ class BlenderPointerAnim():
                         socket = NodeSocket(None, None)
 
             if pointer_tab[4] == "roughnessFactor":
-                roughness_socket = get_socket(asset.blender_nodetree, True, "Roughness")
+                roughness_socket = get_socket(asset.blender_nodetree, "Roughness")
                 if roughness_socket.socket.is_linked:
                     # We need to find the correct node value to animate (An Mix Factor node)
                     mix_node = roughness_socket.links[0].from_node
@@ -302,7 +302,7 @@ class BlenderPointerAnim():
                     num_components = 1
 
             if pointer_tab[4] == "metallicFactor":
-                metallic_socket = get_socket(asset.blender_nodetree, True, "Metallic")
+                metallic_socket = get_socket(asset.blender_nodetree, "Metallic")
                 if metallic_socket.socket.is_linked:
                     # We need to find the correct node value to animate (An Mix Factor node)
                     mix_node = metallic_socket.links[0].from_node
@@ -326,41 +326,41 @@ class BlenderPointerAnim():
             if pointer_tab[-4] == "baseColorTexture":
                 # This can be regular PBR, or unlit
                 if is_unlit is False:
-                    socket = get_socket(asset['blender_nodetree'], True, "Base Color")
+                    socket = get_socket(asset['blender_nodetree'], "Base Color")
                 else:
-                    unlit_info = detect_shadeless_material(asset['blender_nodetree'], True, {})
+                    unlit_info = detect_shadeless_material(asset['blender_nodetree'], {})
                     if 'rgb_socket' in unlit_info:
                         socket = unlit_info['rgb_socket']
                     else:
                         socket = NodeSocket(None, None)
             elif pointer_tab[-4] == "emissiveTexture":
-                socket = get_socket(asset.blender_nodetree, True, "Emission Color")
+                socket = get_socket(asset.blender_nodetree, "Emission Color")
             elif pointer_tab[-4] == "normalTexture":
-                socket = get_socket(asset.blender_nodetree, True, "Normal")
+                socket = get_socket(asset.blender_nodetree, "Normal")
             elif pointer_tab[-4] == "occlusionTexture":
-                socket = get_socket(asset.blender_nodetree, True, "Occlusion")
+                socket = get_socket(asset.blender_nodetree, "Occlusion")
                 if socket is None:
-                    socket = get_socket_from_gltf_material_node(asset.blender_nodetree, True, "Occlusion")
+                    socket = get_socket_from_gltf_material_node(asset.blender_nodetree, "Occlusion")
             elif pointer_tab[-4] == "metallicRoughnessTexture":
-                socket = get_socket(asset.blender_nodetree, True, "Roughness")
+                socket = get_socket(asset.blender_nodetree, "Roughness")
             elif pointer_tab[-4] == "specularTexture":
-                socket = get_socket(asset['blender_nodetree'], True, "Specular IOR Level")
+                socket = get_socket(asset['blender_nodetree'], "Specular IOR Level")
             elif pointer_tab[-4] == "specularColorTexture":
-                socket = get_socket(asset['blender_nodetree'], True, "Specular Tint")
+                socket = get_socket(asset['blender_nodetree'], "Specular Tint")
             elif pointer_tab[-4] == "sheenColorTexture":
-                socket = get_socket(asset['blender_nodetree'], True, "Sheen Tint")
+                socket = get_socket(asset['blender_nodetree'], "Sheen Tint")
             elif pointer_tab[-4] == "sheenRoughnessTexture":
-                socket = get_socket(asset['blender_nodetree'], True, "Sheen Roughness")
+                socket = get_socket(asset['blender_nodetree'], "Sheen Roughness")
             elif pointer_tab[-4] == "clearcoatTexture":
-                socket = get_socket(asset['blender_nodetree'], True, "Coat Weight")
+                socket = get_socket(asset['blender_nodetree'], "Coat Weight")
             elif pointer_tab[-4] == "clearcoatRoughnessTexture":
-                socket = get_socket(asset['blender_nodetree'], True, "Coat Roughness")
+                socket = get_socket(asset['blender_nodetree'], "Coat Roughness")
             elif pointer_tab[-4] == "clearcoatNormalTexture":
-                socket = get_socket(asset['blender_nodetree'], True, "Coat Normal")
+                socket = get_socket(asset['blender_nodetree'], "Coat Normal")
             elif pointer_tab[-4] == "thicknessTexture":
-                socket = get_socket_from_gltf_material_node(asset['blender_nodetree'], True, "Thickness")
+                socket = get_socket_from_gltf_material_node(asset['blender_nodetree'], "Thickness")
             elif pointer_tab[-4] == "transmissionTexture":
-                socket = get_socket(asset['blender_nodetree'], True, "Transmission Weight")
+                socket = get_socket(asset['blender_nodetree'], "Transmission Weight")
             else:
                 print("Some Texture are not managed for KHR_animation_pointer / KHR_texture_transform")
 
@@ -429,7 +429,7 @@ class BlenderPointerAnim():
                 pointer_tab[4] == "KHR_materials_emissive_strength" and \
                 pointer_tab[5] == "emissiveStrength":
 
-            socket = get_socket(asset['blender_nodetree'], True, "Emission Strength")
+            socket = get_socket(asset['blender_nodetree'], "Emission Strength")
             blender_path = socket.socket.path_from_id() + ".default_value"
             group_name = 'Material'
             num_components = 1
@@ -440,7 +440,7 @@ class BlenderPointerAnim():
                 pointer_tab[5] in ["thicknessFactor", "attenuationDistance", "attenuationColor"]:
 
             if pointer_tab[5] == "thicknessFactor":
-                thicknesss_socket = get_socket_from_gltf_material_node(asset['blender_nodetree'], True, 'Thickness')
+                thicknesss_socket = get_socket_from_gltf_material_node(asset['blender_nodetree'], 'Thickness')
                 if thicknesss_socket.socket.is_linked:
                     mix_node = thicknesss_socket.socket.links[0].from_node
                     if mix_node.type == "MATH":
@@ -455,7 +455,7 @@ class BlenderPointerAnim():
                     num_components = 1
 
             if pointer_tab[5] == "attenuationDistance":
-                density_socket = get_socket(asset['blender_nodetree'], True, 'Density', volume=True)
+                density_socket = get_socket(asset['blender_nodetree'], 'Density', volume=True)
                 blender_path = density_socket.socket.path_from_id() + ".default_value"
                 group_name = 'Material'
                 num_components = 1
@@ -465,7 +465,7 @@ class BlenderPointerAnim():
                     values[idx] = [1.0 / old_values[idx][0]]
 
             if pointer_tab[5] == "attenuationColor":
-                attenuation_color_socket = get_socket(asset['blender_nodetree'], True, 'Color', volume=True)
+                attenuation_color_socket = get_socket(asset['blender_nodetree'], 'Color', volume=True)
                 blender_path = attenuation_color_socket.socket.path_from_id() + ".default_value"
                 group_name = 'Material'
                 num_components = 3
@@ -475,7 +475,7 @@ class BlenderPointerAnim():
                 pointer_tab[4] == "KHR_materials_ior" and \
                 pointer_tab[5] == "ior":
 
-            ior_socket = get_socket(asset['blender_nodetree'], True, 'IOR')
+            ior_socket = get_socket(asset['blender_nodetree'], 'IOR')
             blender_path = ior_socket.socket.path_from_id() + ".default_value"
             group_name = 'Material'
             num_components = 1
@@ -485,7 +485,7 @@ class BlenderPointerAnim():
                 pointer_tab[4] == "KHR_materials_transmission" and \
                 pointer_tab[5] == "transmissionFactor":
 
-            transmission_socket = get_socket(asset['blender_nodetree'], True, 'Transmission Weight')
+            transmission_socket = get_socket(asset['blender_nodetree'], 'Transmission Weight')
             if transmission_socket.socket.is_linked:
                 mix_node = transmission_socket.links[0].from_node
                 if mix_node.type == "MATH":
@@ -505,7 +505,7 @@ class BlenderPointerAnim():
                 pointer_tab[5] == "clearcoatNormalTexture" and \
                 pointer_tab[6] == "scale":
             result = from_socket(
-                get_socket(asset['blender_nodetree'], True, 'Coat Normal'),
+                get_socket(asset['blender_nodetree'], 'Coat Normal'),
                 FilterByType(bpy.types.ShaderNodeNormalMap))
             if result:
                 blender_path = result[0].shader_node.inputs['Strength'].path_from_id() + ".default_value"
@@ -516,7 +516,7 @@ class BlenderPointerAnim():
                 pointer_tab[3] == "extensions" and \
                 pointer_tab[4] == "KHR_materials_clearcoat" and \
                 pointer_tab[5] == "clearcoatFactor":
-            clearcoat_socket = get_socket(asset['blender_nodetree'], True, 'Coat Weight')
+            clearcoat_socket = get_socket(asset['blender_nodetree'], 'Coat Weight')
             if clearcoat_socket.socket.is_linked:
                 mix_node = clearcoat_socket.socket.links[0].from_node
                 if mix_node.type == "MATH":
@@ -534,7 +534,7 @@ class BlenderPointerAnim():
                 pointer_tab[3] == "extensions" and \
                 pointer_tab[4] == "KHR_materials_clearcoat" and \
                 pointer_tab[5] == "clearcoatRoughnessFactor":
-            clearcoat_roughness_socket = get_socket(asset['blender_nodetree'], True, 'Coat Roughness')
+            clearcoat_roughness_socket = get_socket(asset['blender_nodetree'], 'Coat Roughness')
             if clearcoat_roughness_socket.socket.is_linked:
                 mix_node = clearcoat_roughness_socket.socket.links[0].from_node
                 if mix_node.type == "MATH":
@@ -552,7 +552,7 @@ class BlenderPointerAnim():
                 pointer_tab[3] == "extensions" and \
                 pointer_tab[4] == "KHR_materials_sheen" and \
                 pointer_tab[5] == "sheenColorFactor":
-            sheen_color_socket = get_socket(asset['blender_nodetree'], True, 'Sheen Tint')
+            sheen_color_socket = get_socket(asset['blender_nodetree'], 'Sheen Tint')
             if sheen_color_socket.socket.is_linked:
                 mix_node = sheen_color_socket.socket.links[0].from_node
                 if mix_node.type == "MIX":
@@ -570,7 +570,7 @@ class BlenderPointerAnim():
                 pointer_tab[3] == "extensions" and \
                 pointer_tab[4] == "KHR_materials_sheen" and \
                 pointer_tab[5] == "sheenRoughnessFactor":
-            sheen_roughness_socket = get_socket(asset['blender_nodetree'], True, 'Sheen Roughness')
+            sheen_roughness_socket = get_socket(asset['blender_nodetree'], 'Sheen Roughness')
             if sheen_roughness_socket.socket.is_linked:
                 mix_node = sheen_roughness_socket.socket.links[0].from_node
                 if mix_node.type == "MATH":
@@ -588,7 +588,7 @@ class BlenderPointerAnim():
                 pointer_tab[3] == "extensions" and \
                 pointer_tab[4] == "KHR_materials_specular" and \
                 pointer_tab[5] == "specularFactor":
-            specular_socket = get_socket(asset['blender_nodetree'], True, 'Specular IOR Level')
+            specular_socket = get_socket(asset['blender_nodetree'], 'Specular IOR Level')
             if specular_socket.socket.is_linked:
                 mix_node = specular_socket.socket.links[0].from_node
                 if mix_node.type == "MATH":
@@ -610,7 +610,7 @@ class BlenderPointerAnim():
                 pointer_tab[3] == "extensions" and \
                 pointer_tab[4] == "KHR_materials_specular" and \
                 pointer_tab[5] == "specularColorFactor":
-            specular_color_socket = get_socket(asset['blender_nodetree'], True, 'Specular Tint')
+            specular_color_socket = get_socket(asset['blender_nodetree'], 'Specular Tint')
             if specular_color_socket.socket.is_linked:
                 mix_node = specular_color_socket.socket.links[0].from_node
                 if mix_node.type == "MIX":
@@ -628,7 +628,7 @@ class BlenderPointerAnim():
                 pointer_tab[3] == "extensions" and \
                 pointer_tab[4] == "KHR_materials_anisotropy" and \
                 pointer_tab[5] == "anisotropyStrength":
-            anisotropy_socket = get_socket(asset['blender_nodetree'], True, 'Anisotropic')
+            anisotropy_socket = get_socket(asset['blender_nodetree'], 'Anisotropic')
             if anisotropy_socket.socket.is_linked:
                 mix_node = anisotropy_socket.socket.links[0].from_node
                 if mix_node.type == "MATH":
@@ -646,7 +646,7 @@ class BlenderPointerAnim():
                 pointer_tab[3] == "extensions" and \
                 pointer_tab[4] == "KHR_materials_anisotropy" and \
                 pointer_tab[5] == "anisotropyRotation":
-            anisotropy_rotation_socket = get_socket(asset['blender_nodetree'], True, 'Anisotropic Rotation')
+            anisotropy_rotation_socket = get_socket(asset['blender_nodetree'], 'Anisotropic Rotation')
             if anisotropy_rotation_socket.socket.is_linked:
                 mix_node = anisotropy_rotation_socket.socket.links[0].from_node
                 if mix_node.type == "MATH":
@@ -687,9 +687,9 @@ class BlenderPointerAnim():
                 pointer_tab[4] == "baseColorFactor":
 
             if is_unlit is False:
-                alpha_socket = get_socket(asset.blender_nodetree, True, "Alpha")
+                alpha_socket = get_socket(asset.blender_nodetree, "Alpha")
             else:
-                unlit_info = detect_shadeless_material(asset.blender_nodetree, True, {})
+                unlit_info = detect_shadeless_material(asset.blender_nodetree, {})
                 if 'alpha_socket' in unlit_info:
                     alpha_socket = unlit_info['alpha_socket']
             if alpha_socket.socket.is_linked:

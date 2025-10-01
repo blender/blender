@@ -188,7 +188,7 @@ def __gather_sampler(blender_shader_sockets, export_settings):
     if len(first_valid_shader_node.group_path) > 0:
         # Retrieving the blender material using this shader tree
         for mat in bpy.data.materials:
-            if mat.use_nodes is True and id(mat.node_tree) == id(first_valid_shader_node.group_path[0].original):
+            if id(mat.node_tree) == id(first_valid_shader_node.group_path[0].original):
                 group_path_str += mat.name  # TODO if linked, we can have multiple materials with same name...
                 break
     if len(first_valid_shader_node.group_path) > 1:

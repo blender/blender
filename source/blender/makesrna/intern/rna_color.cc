@@ -674,6 +674,20 @@ static bool rna_ColorManagedViewSettings_is_hdr_get(PointerRNA *ptr)
                                             view_settings->view_transform);
 }
 
+static bool rna_ColorManagedViewSettings_support_emulation_get(PointerRNA *ptr)
+{
+  ColorManagedViewSettings *view_settings = (ColorManagedViewSettings *)ptr->data;
+  if (GS(ptr->owner_id->name) != ID_SCE) {
+    return false;
+  }
+  const Scene *scene = reinterpret_cast<const Scene *>(ptr->owner_id);
+  if (&scene->view_settings != view_settings) {
+    return false;
+  }
+  return IMB_colormanagement_display_support_emulation(&scene->display_settings,
+                                                       view_settings->view_transform);
+}
+
 static int rna_ViewSettings_only_view_look_editable(const PointerRNA *ptr, const char **r_info)
 {
   ColorManagedViewSettings *view_settings = (ColorManagedViewSettings *)ptr->data;
@@ -1353,6 +1367,24 @@ static void rna_def_colormanage(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
+  static const EnumPropertyItem emulation_items[] = {
+      {COLORMANAGE_DISPLAY_EMULATION_OFF,
+       "OFF",
+       0,
+       "Off",
+       "Directly output image as produced by OpenColorIO. This is not correct in general, but "
+       "may be used when the system configuration and actual display device is known to match "
+       "the chosen display"},
+      {COLORMANAGE_DISPLAY_EMULATION_AUTO,
+       "AUTO",
+       0,
+       "Automatic",
+       "Display images consistent with most other applications, to preview images and video for "
+       "export. A best effort is made to emulate the chosen display on the actual display "
+       "device."},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   static const EnumPropertyItem look_items[] = {
       {0, "NONE", 0, "None", "Do not modify image in an artistic manner"},
       {0, nullptr, 0, nullptr, nullptr},
@@ -1386,6 +1418,15 @@ static void rna_def_colormanage(BlenderRNA *brna)
       "Display name. For viewing, this is the display device that will be emulated by limiting "
       "the gamut and HDR colors. For image and video output, this is the display space used for "
       "writing.");
+  RNA_def_property_update(
+      prop, NC_WINDOW, "rna_ColorManagedDisplaySettings_display_device_update");
+
+  prop = RNA_def_property(srna, "emulation", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, emulation_items);
+  RNA_def_property_ui_text(
+      prop,
+      "Display Emulation",
+      "Control how images in the chosen display are mapped to the physical display");
   RNA_def_property_update(
       prop, NC_WINDOW, "rna_ColorManagedDisplaySettings_display_device_update");
 
@@ -1494,6 +1535,16 @@ static void rna_def_colormanage(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Is HDR", "The display and view transform supports high dynamic range colors");
   RNA_def_property_boolean_funcs(prop, "rna_ColorManagedViewSettings_is_hdr_get", nullptr);
+
+  prop = RNA_def_property(srna, "support_emulation", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(
+      prop,
+      "Support Emulation",
+      "The display and view transform supports automatic emulation for another display device, "
+      "using the display color spaces mechanism in OpenColorIO v2 configurations");
+  RNA_def_property_boolean_funcs(
+      prop, "rna_ColorManagedViewSettings_support_emulation_get", nullptr);
 
   /* ** Color-space ** */
   srna = RNA_def_struct(brna, "ColorManagedInputColorspaceSettings", nullptr);

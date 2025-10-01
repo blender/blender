@@ -31,6 +31,12 @@ blender::gpu::StorageBuf *GPU_storagebuf_create_ex(size_t size,
 
 void GPU_storagebuf_free(blender::gpu::StorageBuf *ssbo);
 
+/**
+ * Limit the size of the storage buffer.
+ *
+ * Backends can optimize data transfers using the size that is actually used.
+ */
+void GPU_storagebuf_usage_size_set(blender::gpu::StorageBuf *ssbo, size_t size);
 void GPU_storagebuf_update(blender::gpu::StorageBuf *ssbo, const void *data);
 
 void GPU_storagebuf_bind(blender::gpu::StorageBuf *ssbo, int slot);

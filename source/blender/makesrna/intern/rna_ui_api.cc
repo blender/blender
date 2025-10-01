@@ -915,10 +915,12 @@ static void rna_uiLayout_template_node_operator_asset_menu_items(uiLayout *layou
 }
 
 static void rna_uiLayout_template_modifier_asset_menu_items(uiLayout *layout,
-                                                            const char *catalog_path)
+                                                            const char *catalog_path,
+                                                            const bool skip_essentials)
 {
   using namespace blender;
-  ed::object::ui_template_modifier_asset_menu_items(*layout, StringRef(catalog_path));
+  ed::object::ui_template_modifier_asset_menu_items(
+      *layout, StringRef(catalog_path), skip_essentials);
 }
 
 static void rna_uiLayout_template_node_operator_root_items(uiLayout *layout, bContext *C)
@@ -1868,6 +1870,7 @@ void RNA_api_ui_layout(StructRNA *srna)
   RNA_def_boolean(func, "brush", false, "", "Show brush options");
   RNA_def_boolean(func, "use_negative_slope", false, "", "Use a negative slope by default");
   RNA_def_boolean(func, "show_tone", false, "", "Show tone options");
+  RNA_def_boolean(func, "show_presets", false, "", "Show preset options");
 
   func = RNA_def_function(srna, "template_curveprofile", "uiTemplateCurveProfile");
   RNA_def_function_ui_description(func, "A profile path editor used for custom profiles");
@@ -2150,6 +2153,7 @@ void RNA_api_ui_layout(StructRNA *srna)
                           "template_modifier_asset_menu_items",
                           "rna_uiLayout_template_modifier_asset_menu_items");
   parm = RNA_def_string(func, "catalog_path", nullptr, 0, "", "");
+  parm = RNA_def_boolean(func, "skip_essentials", false, "", "");
 
   func = RNA_def_function(srna,
                           "template_node_operator_asset_menu_items",
@@ -2225,7 +2229,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 
   func = RNA_def_function(srna, "template_recent_files", "uiTemplateRecentFiles");
   RNA_def_function_ui_description(func, "Show list of recently saved .blend files");
-  RNA_def_int(func, "rows", 5, 1, INT_MAX, "", "Maximum number of items to show", 1, INT_MAX);
+  RNA_def_int(func, "rows", 6, 1, INT_MAX, "", "Maximum number of items to show", 1, INT_MAX);
   parm = RNA_def_int(func, "found", 0, 0, INT_MAX, "", "Number of items drawn", 0, INT_MAX);
   RNA_def_function_return(func, parm);
 

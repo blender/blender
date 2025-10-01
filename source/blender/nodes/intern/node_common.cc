@@ -336,7 +336,8 @@ static BaseSocketDeclarationBuilder &build_interface_socket_declaration(
         const auto &value = node_interface::get_socket_data_as<bNodeSocketValueMenu>(io_socket);
         decl = &b.add_socket<decl::Menu>(name, identifier, in_out)
                     .default_value(MenuValue(value.value))
-                    .expanded(io_socket.flag & NODE_INTERFACE_SOCKET_MENU_EXPANDED);
+                    .expanded(io_socket.flag & NODE_INTERFACE_SOCKET_MENU_EXPANDED)
+                    .optional_label();
         break;
       }
       case SOCK_OBJECT: {
@@ -392,6 +393,7 @@ static BaseSocketDeclarationBuilder &build_interface_socket_declaration(
   decl->hide_value(io_socket.flag & NODE_INTERFACE_SOCKET_HIDE_VALUE);
   decl->compact(io_socket.flag & NODE_INTERFACE_SOCKET_COMPACT);
   decl->panel_toggle(io_socket.flag & NODE_INTERFACE_SOCKET_PANEL_TOGGLE);
+  decl->optional_label(io_socket.flag & NODE_INTERFACE_SOCKET_OPTIONAL_LABEL);
   decl->default_input_type(NodeDefaultInputType(io_socket.default_input));
   if (structure_type) {
     decl->structure_type(*structure_type);
@@ -869,6 +871,11 @@ static bool group_output_insert_link(blender::bke::NodeInsertLinkParams &params)
 
 }  // namespace blender::nodes
 
+static void node_group_input_extra_info(blender::nodes::NodeExtraInfoParams &params)
+{
+  get_compositor_group_input_extra_info(params);
+}
+
 void register_node_type_group_input()
 {
   /* used for all tree types, needs dynamic allocation */
@@ -884,7 +891,9 @@ void register_node_type_group_input()
   blender::bke::node_type_size(*ntype, 140, 80, 400);
   ntype->declare = blender::nodes::group_input_declare;
   ntype->insert_link = blender::nodes::group_input_insert_link;
+  ntype->get_extra_info = node_group_input_extra_info;
   ntype->get_compositor_operation = blender::nodes::get_group_input_compositor_operation;
+  ntype->no_muting = true;
 
   blender::bke::node_register_type(*ntype);
 }

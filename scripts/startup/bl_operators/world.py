@@ -54,6 +54,7 @@ class WORLD_OT_convert_volume_to_mesh(bpy.types.Operator):
         material = bpy.data.materials.new(name)
         mesh.materials.append(material)
         volume_tree = material.node_tree
+        volume_tree.nodes.clear()
         volume_tree.nodes.new("ShaderNodeOutputMaterial")
         volume_output = volume_tree.get_output_node('EEVEE')
 

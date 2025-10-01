@@ -732,6 +732,7 @@ static void print_help(bArgs *ba, bool all)
   BLI_args_print_arg_doc(ba, "--log-show-source");
   BLI_args_print_arg_doc(ba, "--log-show-backtrace");
   BLI_args_print_arg_doc(ba, "--log-file");
+  BLI_args_print_arg_doc(ba, "--log-list-categories");
 
   PRINT("\n");
   PRINT("Debug Options:\n");
@@ -885,7 +886,7 @@ static void print_help(bArgs *ba, bool all)
   if (defs.with_opencolorio) {
     PRINT(
         "  $BLENDER_OCIO              Path to override the OpenColorIO configuration file.\n"
-        "                             If not set, the $OCIO environment variable is used.\n");
+        "                             If not set, the 'OCIO' environment variable is used.\n");
   }
   if (defs.win32 || all) {
     PRINT("  $TEMP                      Store temporary files here (MS-Windows).\n");
@@ -1309,6 +1310,19 @@ static int arg_handle_log_set(int argc, const char **argv, void * /*data*/)
     return 1;
   }
   fprintf(stderr, "\nError: '%s' no args given.\n", arg_id);
+  return 0;
+}
+
+static const char arg_handle_list_clog_cats_doc[] =
+    "\n"
+    "\tList all available logging categories for '--log', and exit.\n";
+
+static int arg_handle_list_clog_cats(int /*argc*/, const char ** /*argv*/, void * /*data*/)
+{
+  auto print_identifier = [](const char *identifier, void *) { printf("%s\n", identifier); };
+  CLG_logref_list_all(print_identifier, nullptr);
+  BKE_blender_atexit();
+  exit(EXIT_SUCCESS);
   return 0;
 }
 
@@ -2866,10 +2880,12 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
    * Also and commands that exit after usage. */
   BLI_args_pass_set(ba, ARG_PASS_SETTINGS);
   BLI_args_add(ba, "-h", "--help", CB(arg_handle_print_help), ba);
+
   /* MS-Windows only. */
   BLI_args_add(ba, "/?", nullptr, CB_EX(arg_handle_print_help, win32), ba);
 
   BLI_args_add(ba, "-v", "--version", CB(arg_handle_print_version), nullptr);
+  BLI_args_add(ba, nullptr, "--log-list-categories", CB(arg_handle_list_clog_cats), nullptr);
 
   BLI_args_add(ba, "-y", "--enable-autoexec", CB_EX(arg_handle_python_set, enable), (void *)true);
   BLI_args_add(

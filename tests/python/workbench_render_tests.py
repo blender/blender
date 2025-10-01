@@ -41,6 +41,9 @@ def setup():
         scene.display.shading.light = 'STUDIO'
         scene.display.shading.color_type = 'TEXTURE'
 
+        # Hair
+        scene.render.hair_type = 'STRIP'
+
 
 # When run from inside Blender, render and exit.
 try:

@@ -24,12 +24,16 @@ class GPUTest : public ::testing::Test {
   static GPUContext *context_;
 
   static int32_t prev_g_debug_;
+  std::string debug_group_name_;
 
  protected:
   static void SetUpTestSuite(GHOST_TDrawingContextType draw_context_type,
                              GPUBackendType gpu_backend_type,
                              int32_t g_debug_flags);
   static void TearDownTestSuite();
+
+  void SetUp() override;
+  void TearDown() override;
 };
 
 #ifdef WITH_OPENGL_BACKEND
@@ -37,8 +41,9 @@ class GPUOpenGLTest : public GPUTest {
  public:
   static void SetUpTestSuite()
   {
-    GPUTest::SetUpTestSuite(
-        GHOST_kDrawingContextTypeOpenGL, GPU_BACKEND_OPENGL, G_DEBUG_GPU | G_DEBUG_GPU_RENDERDOC);
+    GPUTest::SetUpTestSuite(GHOST_kDrawingContextTypeOpenGL,
+                            GPU_BACKEND_OPENGL,
+                            G_DEBUG_GPU | G_DEBUG_GPU_COMPILE_SHADERS | G_DEBUG_GPU_RENDERDOC);
   }
   static void TearDownTestSuite()
   {
@@ -52,7 +57,8 @@ class GPUOpenGLWorkaroundsTest : public GPUTest {
   {
     GPUTest::SetUpTestSuite(GHOST_kDrawingContextTypeOpenGL,
                             GPU_BACKEND_OPENGL,
-                            G_DEBUG_GPU | G_DEBUG_GPU_FORCE_WORKAROUNDS);
+                            G_DEBUG_GPU | G_DEBUG_GPU_COMPILE_SHADERS | G_DEBUG_GPU_RENDERDOC |
+                                G_DEBUG_GPU_FORCE_WORKAROUNDS);
   }
   static void TearDownTestSuite()
   {
@@ -116,8 +122,9 @@ class GPUVulkanTest : public GPUTest {
  public:
   static void SetUpTestSuite()
   {
-    GPUTest::SetUpTestSuite(
-        GHOST_kDrawingContextTypeVulkan, GPU_BACKEND_VULKAN, G_DEBUG_GPU | G_DEBUG_GPU_RENDERDOC);
+    GPUTest::SetUpTestSuite(GHOST_kDrawingContextTypeVulkan,
+                            GPU_BACKEND_VULKAN,
+                            G_DEBUG_GPU | G_DEBUG_GPU_SHADER_DEBUG_INFO | G_DEBUG_GPU_RENDERDOC);
   }
   static void TearDownTestSuite()
   {
@@ -131,7 +138,8 @@ class GPUVulkanWorkaroundsTest : public GPUTest {
   {
     GPUTest::SetUpTestSuite(GHOST_kDrawingContextTypeVulkan,
                             GPU_BACKEND_VULKAN,
-                            G_DEBUG_GPU | G_DEBUG_GPU_RENDERDOC | G_DEBUG_GPU_FORCE_WORKAROUNDS);
+                            G_DEBUG_GPU | G_DEBUG_GPU_SHADER_DEBUG_INFO | G_DEBUG_GPU_RENDERDOC |
+                                G_DEBUG_GPU_FORCE_WORKAROUNDS);
   }
   static void TearDownTestSuite()
   {

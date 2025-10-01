@@ -114,8 +114,7 @@ class MTLBatch : public Batch {
   int prepare_vertex_binding(MTLVertBuf *verts,
                              MTLRenderPipelineStateDescriptor &desc,
                              const MTLShaderInterface *interface,
-                             uint16_t &attr_mask,
-                             bool instanced);
+                             uint16_t &attr_mask);
 
   id<MTLBuffer> get_emulated_toplogy_buffer(GPUPrimType &in_out_prim_type, uint32_t &v_count);
 

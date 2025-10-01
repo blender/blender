@@ -172,6 +172,17 @@ void relations_invalidate_scene_strips(const Main *bmain, const Scene *scene_tar
   }
 }
 
+void relations_invalidate_compositor_modifiers(const Main *bmain, const bNodeTree *node_tree)
+{
+  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+    if (scene->ed != nullptr) {
+      for (Strip *strip : lookup_strips_by_compositor_node_group(editing_get(scene), node_tree)) {
+        relations_invalidate_cache(scene, strip);
+      }
+    }
+  }
+}
+
 static void invalidate_movieclip_strips(Scene *scene, MovieClip *clip_target, ListBase *seqbase)
 {
   for (Strip *strip = static_cast<Strip *>(seqbase->first); strip != nullptr; strip = strip->next)

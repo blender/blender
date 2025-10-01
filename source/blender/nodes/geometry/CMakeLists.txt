@@ -79,6 +79,7 @@ set(SRC
   nodes/node_geo_edge_paths_to_selection.cc
   nodes/node_geo_edge_split.cc
   nodes/node_geo_edges_to_face_groups.cc
+  nodes/node_geo_enable_output.cc
   nodes/node_geo_evaluate_at_index.cc
   nodes/node_geo_evaluate_closure.cc
   nodes/node_geo_evaluate_on_domain.cc
@@ -145,6 +146,7 @@ set(SRC
   nodes/node_geo_instances_to_points.cc
   nodes/node_geo_interpolate_curves.cc
   nodes/node_geo_is_viewport.cc
+  nodes/node_geo_join_bundle.cc
   nodes/node_geo_join_geometry.cc
   nodes/node_geo_list.cc
   nodes/node_geo_list_get_item.cc
@@ -241,6 +243,7 @@ set(SRC
   nodes/node_geo_translate_instances.cc
   nodes/node_geo_triangulate.cc
   nodes/node_geo_uv_pack_islands.cc
+  nodes/node_geo_uv_tangent.cc
   nodes/node_geo_uv_unwrap.cc
   nodes/node_geo_viewer.cc
   nodes/node_geo_viewport_transform.cc

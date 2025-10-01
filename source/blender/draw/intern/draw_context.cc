@@ -679,9 +679,20 @@ ObjectRef::ObjectRef(Object &ob, Object *dupli_parent, const VectorList<DupliObj
 
 namespace blender::draw {
 
-static bool supports_handle_ranges(Object *ob)
+static bool supports_handle_ranges(DupliObject *dupli, Object *parent)
 {
-  if (ob->type == OB_MESH) {
+  int ob_type = dupli->ob_data ? BKE_object_obdata_to_type(dupli->ob_data) : OB_EMPTY;
+  if (!ELEM(ob_type, OB_MESH, OB_CURVES_LEGACY, OB_SURF, OB_FONT, OB_POINTCLOUD, OB_GREASE_PENCIL))
+  {
+    return false;
+  }
+
+  Object *ob = dupli->ob;
+  if (min(ob->dt, parent->dt) == OB_BOUNDBOX) {
+    return false;
+  }
+
+  if (ob_type == OB_MESH) {
     /* Hair drawing doesn't support handle ranges. */
     LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
       const int draw_as = (psys->part->draw_as == PART_DRAW_REND) ? psys->part->ren_as :
@@ -693,7 +704,8 @@ static bool supports_handle_ranges(Object *ob)
     /* Smoke drawing doesn't support handle ranges. */
     return !BKE_modifiers_findby_type(ob, eModifierType_Fluid);
   }
-  return ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF, OB_FONT, OB_POINTCLOUD, OB_GREASE_PENCIL);
+
+  return true;
 }
 
 enum class InstancesFlags : uint8_t {
@@ -771,13 +783,9 @@ static void foreach_obref_in_scene(DRWContext &draw_ctx,
   eEvaluationMode eval_mode = DEG_get_mode(depsgraph);
   View3D *v3d = draw_ctx.v3d;
 
-#if 0 /* Temporary disabled until we can fix all the issues that it causes. */
   /* EEVEE is not supported for now. */
   const bool engines_support_handle_ranges = (v3d && v3d->shading.type <= OB_SOLID) ||
                                              BKE_scene_uses_blender_workbench(draw_ctx.scene);
-#else
-  const bool engines_support_handle_ranges = false;
-#endif
 
   DEGObjectIterSettings deg_iter_settings = {nullptr};
   deg_iter_settings.depsgraph = depsgraph;
@@ -801,6 +809,13 @@ static void foreach_obref_in_scene(DRWContext &draw_ctx,
        * dupli_parent and dupli_object_current won't be null for these. */
       ObjectRef ob_ref(ob, data_.dupli_parent, data_.dupli_object_current);
       draw_object_cb(ob_ref);
+    }
+
+    bool is_preview_dupli = data_.dupli_parent && data_.dupli_object_current;
+    if (is_preview_dupli) {
+      /* Don't create duplis from temporary preview objects, object_duplilist_preview already takes
+       * care of everything. (See #146194, #146211) */
+      continue;
     }
 
     bool instances_visible = (visibility & OB_VISIBLE_INSTANCES) &&
@@ -835,7 +850,7 @@ static void foreach_obref_in_scene(DRWContext &draw_ctx,
       }
 #endif
 
-      if (!engines_support_handle_ranges || !supports_handle_ranges(dupli.ob)) {
+      if (!engines_support_handle_ranges || !supports_handle_ranges(&dupli, ob)) {
         /* Sync the dupli as a single object. */
         if (!evil::DEG_iterator_temp_object_from_dupli(
                 ob, &dupli, eval_mode, false, &tmp_object, &tmp_runtime) ||

@@ -46,7 +46,8 @@ static void cmp_node_dilate_declare(NodeDeclarationBuilder &b)
       "erodes");
   b.add_input<decl::Menu>("Type")
       .default_value(CMP_NODE_DILATE_ERODE_STEP)
-      .static_items(type_items);
+      .static_items(type_items)
+      .optional_label();
   b.add_input<decl::Float>("Falloff Size")
       .default_value(0.0f)
       .min(0.0f)
@@ -57,6 +58,7 @@ static void cmp_node_dilate_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Menu>("Falloff")
       .default_value(PROP_SMOOTH)
       .static_items(rna_enum_proportional_falloff_curve_only_items)
+      .optional_label()
       .usage_by_menu("Type", CMP_NODE_DILATE_ERODE_DISTANCE_FEATHER);
 
   b.add_output<decl::Float>("Mask").structure_type(StructureType::Dynamic);

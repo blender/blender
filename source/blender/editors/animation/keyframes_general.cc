@@ -1711,7 +1711,7 @@ static const FCurve *pastebuf_find_matching_copybuf_item(const pastebuf_match_fu
     BLI_assert(ale_slot);
   }
 
-  /* NASTYNESS: this code shouldn't have to care about which slots are currently visible in
+  /* NASTINESS: this code shouldn't have to care about which slots are currently visible in
    * the channel list. But since selection state is only relevant when they CAN actually be
    * selected, it does matter. This code assumes:
    *   1. because SELECTION or SELECTION_AND_IDENTIFIER was returned, slot selection is a

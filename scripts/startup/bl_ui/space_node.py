@@ -145,13 +145,32 @@ class NODE_HT_header(Header):
                     layout.template_ID(id_from, "active_texture", new="texture.new")
 
         elif snode.tree_type == 'CompositorNodeTree':
-
+            layout.prop(snode, "node_tree_sub_type", text="")
             NODE_MT_editor_menus.draw_collapsible(context, layout)
-
             layout.separator_spacer()
-            row = layout.row()
-            row.enabled = not snode.pin
-            row.template_ID(scene, "compositing_node_group", new="node.new_compositing_node_group")
+
+            if snode.node_tree_sub_type == 'SCENE':
+                row = layout.row()
+                row.enabled = not snode.pin
+                if scene.compositing_node_group:
+                    row.template_ID(scene, "compositing_node_group", new="node.duplicate_compositing_node_group")
+                else:
+                    row.template_ID(scene, "compositing_node_group", new="node.new_compositing_node_group")
+            elif snode.node_tree_sub_type == 'SEQUENCER':
+                row = layout.row()
+                sequencer_scene = context.workspace.sequencer_scene
+                sequencer_editor = sequencer_scene.sequence_editor if sequencer_scene else None
+                active_strip = sequencer_editor.active_strip if sequencer_editor else None
+                active_modifier = active_strip.modifiers.active if active_strip else None
+                is_compositor_modifier_active = active_modifier and active_modifier.type == 'COMPOSITOR'
+                if is_compositor_modifier_active and not snode.pin:
+                    row.template_ID(
+                        active_modifier,
+                        "node_group",
+                        new="node.new_compositor_sequencer_node_group")
+                else:
+                    row.enabled = False
+                    row.template_ID(snode, "node_tree", new="node.new_compositor_sequencer_node_group")
 
         elif snode.tree_type == 'GeometryNodeTree':
             layout.prop(snode, "node_tree_sub_type", text="")
@@ -200,7 +219,7 @@ class NODE_HT_header(Header):
             op.parent_tree_index = len(snode.path) - 2
 
         # Backdrop
-        if is_compositor:
+        if is_compositor and snode.node_tree_sub_type == 'SCENE':
             row = layout.row(align=True)
             row.prop(snode, "show_backdrop", toggle=True)
             row.active = snode.node_tree is not None
@@ -233,7 +252,7 @@ class NODE_HT_header(Header):
 class NODE_PT_gizmo_display(Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'HEADER'
-    bl_label = 'Gizmos'
+    bl_label = "Gizmos"
     bl_ui_units_x = 8
 
     def draw(self, context):
@@ -263,7 +282,6 @@ class NODE_MT_editor_menus(Menu):
         layout.menu("NODE_MT_view")
         layout.menu("NODE_MT_select")
         layout.menu("NODE_MT_add")
-        layout.menu("NODE_MT_swap")
         layout.menu("NODE_MT_node")
 
 
@@ -424,6 +442,7 @@ class NODE_MT_node(Menu):
         layout.separator()
         layout.operator("node.join", text="Join in New Frame")
         layout.operator("node.detach", text="Remove from Frame")
+        layout.operator("node.join_nodes", text="Join Group Inputs")
 
         layout.separator()
         props = layout.operator("wm.call_panel", text="Rename...")
@@ -445,6 +464,7 @@ class NODE_MT_node(Menu):
             layout.operator("node.group_ungroup")
 
         layout.separator()
+        layout.menu("NODE_MT_swap")
         layout.menu("NODE_MT_context_menu_show_hide_menu")
 
         if is_compositor:
@@ -1062,50 +1082,19 @@ class NODE_PT_node_tree_interface(Panel):
                 layout.prop(active_item, "description")
                 layout.prop(active_item, "default_closed", text="Closed by Default")
 
+            if active_item.item_type == 'PANEL' and len(
+                    active_item.interface_items) > 0 and getattr(
+                    active_item.interface_items[0], "is_panel_toggle", False):
+                panel_toggle_item = active_item.interface_items[0]
+                header, body = layout.panel("panel_toggle", default_closed=False)
+                header.label(text="Panel Toggle")
+                if body:
+                    body.prop(panel_toggle_item, "default_value", text="Default")
+                    col = body.column()
+                    col.prop(panel_toggle_item, "hide_in_modifier")
+                    col.prop(panel_toggle_item, "force_non_field")
+
             layout.use_property_split = False
-
-
-class NODE_PT_node_tree_interface_panel_toggle(Panel):
-    bl_space_type = 'NODE_EDITOR'
-    bl_region_type = 'UI'
-    bl_category = "Group"
-    bl_parent_id = "NODE_PT_node_tree_interface"
-    bl_label = "Panel Toggle"
-
-    @classmethod
-    def poll(cls, context):
-        snode = context.space_data
-        if snode is None:
-            return False
-        tree = snode.edit_tree
-        if tree is None:
-            return False
-        active_item = tree.interface.active
-        if not active_item or active_item.item_type != 'PANEL':
-            return False
-        if not active_item.interface_items:
-            return False
-        first_item = active_item.interface_items[0]
-        return getattr(first_item, "is_panel_toggle", False)
-
-    def draw(self, context):
-        layout = self.layout
-        snode = context.space_data
-        tree = snode.edit_tree
-
-        active_item = tree.interface.active
-        panel_toggle_item = active_item.interface_items[0]
-
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        layout.prop(panel_toggle_item, "default_value", text="Default")
-
-        col = layout.column()
-        col.prop(panel_toggle_item, "hide_in_modifier")
-        col.prop(panel_toggle_item, "force_non_field")
-
-        layout.use_property_split = False
 
 
 class NODE_PT_node_tree_properties(Panel):
@@ -1261,7 +1250,6 @@ classes = (
     NODE_PT_node_tree_properties,
     NODE_MT_node_tree_interface_context_menu,
     NODE_PT_node_tree_interface,
-    NODE_PT_node_tree_interface_panel_toggle,
     NODE_PT_node_tree_animation,
     NODE_PT_active_node_generic,
     NODE_PT_active_node_color,

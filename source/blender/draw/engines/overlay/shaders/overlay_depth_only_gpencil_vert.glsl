@@ -27,6 +27,7 @@ void main()
                                unused_strength,
                                unused_uv,
                                gp_interp_flat.sspos,
+                               gp_interp_flat.sspos_adj,
                                gp_interp_flat.aspect,
                                gp_interp_noperspective.thickness,
                                gp_interp_noperspective.hardness);

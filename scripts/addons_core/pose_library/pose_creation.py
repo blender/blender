@@ -91,8 +91,6 @@ class PoseActionCreator:
 
     def _create_new_action(self) -> Action:
         dst_action = bpy.data.actions.new(self.params.new_asset_name)
-        if self.params.src_action:
-            dst_action.id_root = self.params.src_action.id_root
         dst_action.user_clear()  # actions.new() sets users=1, but marking as asset also increments user count.
         return dst_action
 

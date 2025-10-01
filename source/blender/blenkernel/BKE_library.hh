@@ -9,12 +9,15 @@
  * API to manage `Library` data-blocks.
  */
 
+#include "DNA_ID.h"
+
+#include "BLI_map.hh"
+#include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 
 #include "BKE_main.hh"
 
 struct FileData;
-struct Library;
 struct ListBase;
 struct Main;
 struct UniqueName_Map;
@@ -27,6 +30,10 @@ struct LibraryRuntime {
 
   /**
    * Filedata (i.e. opened blendfile) source of this library data.
+   *
+   * \note: This is not always matching the library's blendfile path. E.g. for archive packed
+   * libraries, this will be the filedata of the packing blendfile, not of the reference/source
+   * library.
    */
   FileData *filedata = nullptr;
   /**
@@ -48,6 +55,12 @@ struct LibraryRuntime {
   /** Set for indirectly linked libraries, used in the outliner and while reading. */
   Library *parent = nullptr;
 
+  /**
+   * Helper listing all archived libraries 'versions' of this library.
+   * Should only contain something if this library is a regular 'real' blendfile library.
+   */
+  blender::Vector<Library *> archived_libraries = {};
+
   /** #eLibrary_Tag. */
   ushort tag = 0;
 
@@ -66,6 +79,18 @@ struct LibraryRuntime {
  * Search for given absolute filepath in all libraries in given #ListBase.
  */
 Library *search_filepath_abs(ListBase *libraries, blender::StringRef filepath_abs);
+
+/**
+ * Pack given linked ID, and all the related hierarchy.
+ *
+ * Will set final embedded ID into each ID::newid pointers.
+ */
+void pack_linked_id_hierarchy(Main &bmain, ID &root_id);
+
+/**
+ * Cleanup references to removed/deleted archive libraries in their archive parent.
+ */
+void main_cleanup_parent_archives(Main &bmain);
 
 };  // namespace blender::bke::library
 

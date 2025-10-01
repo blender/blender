@@ -1469,7 +1469,6 @@ Legal Terms
 | [FFTW](https://www.fftw.org/) | 3.3.10 | `Copyright (c) 2003, 2007-14 Matteo Frigo. Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology` |
 | [Flac](https://xiph.org/flac/) | 1.4.2 | `Copyright (C) 2001-2009  Josh Coalson. Copyright (C) 2011-2016  Xiph.Org Foundation.` |
 | [GMP](https://gmplib.org/) | 6.3.0 | `Copyright 1996-2020 Free Software Foundation, Inc.` |
-| [miniLZO](http://www.oberhumer.com/opensource/lzo/) | 2.08 | `Copyright (C) 1996-2014 Markus Franz Xaver Oberhumer All Rights Reserved.` |
 | [Potrace](https://potrace.sourceforge.net/) | 1.16 | `Copyright © 2001-2019 Peter Selinger.` |
 | [X Drag and Drop](http://www.newplanetsoftware.com/xdnd/ (defunct)) | 2000-08-08 | `Copyright (C) 1996-2000 Paul Sheer` |
 | [X264](https://www.videolan.org/developers/x264.html) | 35fe20d1ba4 | `Copyright (C) 2003-2021 x264 project` |

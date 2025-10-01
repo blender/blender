@@ -506,7 +506,6 @@
         nurb_vline="#803060"
         nurb_sel_uline="#f0ff40"
         nurb_sel_vline="#f090a0"
-        act_spline="#db2512"
         extra_edge_len="#ff6149"
         extra_edge_angle="#cccc00"
         extra_face_angle="#b3b3ff"
@@ -527,8 +526,6 @@
         skin_root="#b44d4d"
         view_overlay="#000000"
         transform="#ffffff"
-        paint_curve_handle="#7fff7f7f"
-        paint_curve_pivot="#ff7f7f7f"
         outline_width="1"
         object_origin_size="6"
         >
@@ -674,8 +671,6 @@
         uv_shadow="#707070ff"
         metadatabg="#000000"
         metadatatext="#ffffff"
-        paint_curve_handle="#7fff7f7f"
-        paint_curve_pivot="#ff7f7f7f"
         >
         <space>
           <ThemeSpaceGeneric

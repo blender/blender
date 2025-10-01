@@ -139,7 +139,7 @@ void register_node_tree_type_tex()
   tt->group_idname = "TextureNodeGroup";
   tt->ui_name = N_("Texture Node Editor");
   tt->ui_icon = ICON_NODE_TEXTURE; /* Defined in `drawnode.cc`. */
-  tt->ui_description = N_("Texture nodes");
+  tt->ui_description = N_("Edit textures using nodes");
 
   tt->foreach_nodeclass = foreach_nodeclass;
   tt->update = update;

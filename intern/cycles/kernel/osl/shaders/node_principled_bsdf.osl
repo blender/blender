@@ -155,7 +155,17 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
   if (metallic > CLOSURE_WEIGHT_CUTOFF) {
     color F0 = clamped_base_color;
     color F82 = min(specular_tint, color(1.0));
-    MetallicBSDF = microfacet_f82_tint(distribution, Normal, T, alpha_x, alpha_y, F0, F82);
+    MetallicBSDF = microfacet_f82_tint(distribution,
+                                       Normal,
+                                       T,
+                                       alpha_x,
+                                       alpha_y,
+                                       F0,
+                                       F82,
+                                       "thinfilm_thickness",
+                                       ThinFilmThickness,
+                                       "thinfilm_ior",
+                                       ThinFilmIOR);
     BSDF = mix(BSDF, MetallicBSDF, metallic);
   }
 

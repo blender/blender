@@ -33,7 +33,8 @@ static void cmp_node_ellipsemask_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Menu>("Operation")
       .default_value(CMP_NODE_MASKTYPE_ADD)
-      .static_items(operation_items);
+      .static_items(operation_items)
+      .optional_label();
   b.add_input<decl::Float>("Mask")
       .subtype(PROP_FACTOR)
       .default_value(0.0f)

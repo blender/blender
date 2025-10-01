@@ -515,6 +515,11 @@ ccl_device_inline float3 faceforward(const float3 vector,
 }
 #endif
 
+ccl_device_inline float3 safe_sqrt(const float3 a)
+{
+  return sqrt(max(a, zero_float3()));
+}
+
 ccl_device_inline float3 project(const float3 v, const float3 v_proj)
 {
   const float len_squared = dot(v_proj, v_proj);

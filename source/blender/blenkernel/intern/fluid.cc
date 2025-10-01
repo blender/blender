@@ -3224,10 +3224,12 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
   blender::MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   blender::MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
-  const bool is_sharp = orgmesh->attributes()
-                            .lookup_or_default<bool>("sharp_face", AttrDomain::Face, false)
-                            .varray[0];
-  mesh_smooth_set(*mesh, !is_sharp);
+  if (orgmesh->attributes().domain_size(AttrDomain::Face) > 0) {
+    const bool is_sharp = orgmesh->attributes()
+                              .lookup_or_default<bool>("sharp_face", AttrDomain::Face, false)
+                              .varray[0];
+    mesh_smooth_set(*mesh, !is_sharp);
+  }
 
   /* Get size (dimension) but considering scaling. */
   copy_v3_v3(cell_size_scaled, fds->cell_size);

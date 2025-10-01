@@ -381,6 +381,9 @@ ccl_device void osl_closure_conductor_bsdf_setup(KernelGlobals kg,
     preserve_energy = (closure->distribution == make_string("multi_ggx", 16842698693386468366ull));
   }
 
+  fresnel->thin_film.thickness = closure->thinfilm_thickness;
+  fresnel->thin_film.ior = closure->thinfilm_ior;
+
   fresnel->ior = {rgb_to_spectrum(closure->ior), rgb_to_spectrum(closure->extinction)};
   bsdf_microfacet_setup_fresnel_conductor(kg, bsdf, sd, fresnel, preserve_energy);
 }
@@ -607,6 +610,9 @@ ccl_device void osl_closure_microfacet_f82_tint_setup(
   }
 
   fresnel->f0 = rgb_to_spectrum(closure->f0);
+  fresnel->thin_film.thickness = closure->thinfilm_thickness;
+  fresnel->thin_film.ior = closure->thinfilm_ior;
+
   bsdf_microfacet_setup_fresnel_f82_tint(
       kg, bsdf, sd, fresnel, rgb_to_spectrum(closure->f82), preserve_energy);
 }

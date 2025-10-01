@@ -518,7 +518,7 @@ static bool uv_shortest_path_pick_ex(Scene *scene,
     if (flush != 0) {
       const bool select = (flush == 1);
       BMesh *bm = BKE_editmesh_from_object(obedit)->bm;
-      if (ts->uv_flag & UV_FLAG_SYNC_SELECT) {
+      if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
         ED_uvedit_select_sync_flush(scene->toolsettings, bm, select);
       }
       else {
@@ -526,7 +526,7 @@ static bool uv_shortest_path_pick_ex(Scene *scene,
       }
     }
 
-    if (ts->uv_flag & UV_FLAG_SYNC_SELECT) {
+    if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
       DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
     }
     else {
@@ -611,7 +611,7 @@ static wmOperatorStatus uv_shortest_path_pick_invoke(bContext *C,
     else if (uv_selectmode & UV_SELECT_EDGE) {
       /* Edge selection. */
       BMLoop *l_src = nullptr;
-      if (ts->uv_flag & UV_FLAG_SYNC_SELECT) {
+      if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
         BMEdge *e_src = BM_mesh_active_edge_get(bm);
         if (e_src != nullptr) {
           l_src = uv_find_nearest_loop_from_edge(scene, obedit, e_src, co);
@@ -634,7 +634,7 @@ static wmOperatorStatus uv_shortest_path_pick_invoke(bContext *C,
     else {
       /* Vertex selection. */
       BMLoop *l_src = nullptr;
-      if (ts->uv_flag & UV_FLAG_SYNC_SELECT) {
+      if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
         BMVert *v_src = BM_mesh_active_vert_get(bm);
         if (v_src != nullptr) {
           l_src = uv_find_nearest_loop_from_vert(scene, obedit, v_src, co);

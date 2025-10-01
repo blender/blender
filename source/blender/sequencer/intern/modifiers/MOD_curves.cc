@@ -65,7 +65,8 @@ struct CurvesApplyOp {
   }
 };
 
-static void curves_apply(const StripScreenQuad & /*quad*/,
+static void curves_apply(const RenderData * /*render_data*/,
+                         const StripScreenQuad & /*quad*/,
                          StripModifierData *smd,
                          ImBuf *ibuf,
                          ImBuf *mask)
@@ -92,7 +93,7 @@ static void curves_panel_draw(const bContext *C, Panel *panel)
   uiLayout *layout = panel->layout;
   PointerRNA *ptr = UI_panel_custom_data_get(panel);
 
-  uiTemplateCurveMapping(layout, ptr, "curve_mapping", 'c', false, false, false, true);
+  uiTemplateCurveMapping(layout, ptr, "curve_mapping", 'c', false, false, false, true, false);
 
   if (uiLayout *mask_input_layout = layout->panel_prop(
           C, ptr, "open_mask_input_panel", IFACE_("Mask Input")))

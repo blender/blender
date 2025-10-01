@@ -525,7 +525,7 @@ class NodeTreeMainUpdater {
     this->make_node_previews_dirty(ntree);
 
     this->propagate_runtime_flags(ntree);
-    if (ELEM(ntree.type, NTREE_GEOMETRY, NTREE_COMPOSIT)) {
+    if (ELEM(ntree.type, NTREE_GEOMETRY, NTREE_COMPOSIT, NTREE_SHADER)) {
       if (this->propagate_enum_definitions(ntree)) {
         result.interface_changed = true;
       }
@@ -743,7 +743,9 @@ class NodeTreeMainUpdater {
         if (!output_socket->is_available()) {
           continue;
         }
-        if (output_socket->flag & SOCK_NO_INTERNAL_LINK) {
+        if (output_socket->runtime->declaration &&
+            output_socket->runtime->declaration->no_mute_links)
+        {
           continue;
         }
         const bNodeSocket *input_socket = this->find_internally_linked_input(ntree, output_socket);
@@ -798,7 +800,8 @@ class NodeTreeMainUpdater {
       if (!input_socket->is_available()) {
         continue;
       }
-      if (input_socket->flag & SOCK_NO_INTERNAL_LINK) {
+      if (input_socket->runtime->declaration && input_socket->runtime->declaration->no_mute_links)
+      {
         continue;
       }
       const int priority = get_internal_link_type_priority(input_socket->typeinfo,
@@ -931,16 +934,23 @@ class NodeTreeMainUpdater {
     }
   }
 
-  static int get_input_socket_shape(const SocketDeclaration &decl,
-                                    const StructureType structure_type)
+  static int get_socket_shape(const bNodeSocket &socket,
+                              const bool use_inferred_structure_type = false)
   {
-    if (decl.identifier == "__extend__") {
-      return SOCK_DISPLAY_SHAPE_CIRCLE;
-    }
-    if (nodes::socket_type_always_single(decl.socket_type)) {
+    if (nodes::socket_type_always_single(socket.typeinfo->type)) {
       return SOCK_DISPLAY_SHAPE_LINE;
     }
-    switch (structure_type) {
+    const SocketDeclaration *decl = socket.runtime->declaration;
+    if (!decl) {
+      return SOCK_DISPLAY_SHAPE_CIRCLE;
+    }
+    if (decl->identifier == "__extend__") {
+      return SOCK_DISPLAY_SHAPE_CIRCLE;
+    }
+    const StructureType display_structure_type = use_inferred_structure_type ?
+                                                     socket.runtime->inferred_structure_type :
+                                                     decl->structure_type;
+    switch (display_structure_type) {
       case StructureType::Single:
         return SOCK_DISPLAY_SHAPE_LINE;
       case StructureType::Dynamic:
@@ -956,36 +966,6 @@ class NodeTreeMainUpdater {
     return SOCK_DISPLAY_SHAPE_CIRCLE;
   }
 
-  static int get_output_socket_shape(const SocketDeclaration &decl,
-                                     const StructureType structure_type)
-  {
-    if (decl.identifier == "__extend__") {
-      return SOCK_DISPLAY_SHAPE_CIRCLE;
-    }
-    if (nodes::socket_type_always_single(decl.socket_type)) {
-      return SOCK_DISPLAY_SHAPE_LINE;
-    }
-    switch (structure_type) {
-      case StructureType::Single: {
-        return SOCK_DISPLAY_SHAPE_LINE;
-      }
-      case StructureType::Dynamic: {
-        return SOCK_DISPLAY_SHAPE_CIRCLE;
-      }
-      case StructureType::Field: {
-        return SOCK_DISPLAY_SHAPE_DIAMOND;
-      }
-      case StructureType::Grid: {
-        return SOCK_DISPLAY_SHAPE_VOLUME_GRID;
-      }
-      case StructureType::List: {
-        return SOCK_DISPLAY_SHAPE_LIST;
-      }
-    }
-    BLI_assert_unreachable();
-    return SOCK_DISPLAY_SHAPE_CIRCLE;
-  }
-
   void update_socket_shapes(bNodeTree &ntree)
   {
     ntree.ensure_topology_cache();
@@ -993,33 +973,94 @@ class NodeTreeMainUpdater {
       if (node->is_undefined()) {
         continue;
       }
-      /* For input/output nodes we use the inferred structure types. */
-      if (node->is_group_input() || node->is_group_output() ||
-          ELEM(node->type_legacy, NODE_CLOSURE_INPUT, NODE_CLOSURE_OUTPUT))
-      {
-        for (bNodeSocket *socket : node->input_sockets()) {
-          socket->display_shape = get_input_socket_shape(
-              *socket->runtime->declaration,
-              ntree.runtime->inferred_structure_types[socket->index_in_tree()]);
+      const bke::bNodeZoneType *closure_zone_type = bke::zone_type_by_node_type(
+          NODE_CLOSURE_OUTPUT);
+      switch (node->type_legacy) {
+        case NODE_REROUTE: {
+          node->input_socket(0).display_shape = SOCK_DISPLAY_SHAPE_CIRCLE;
+          node->output_socket(0).display_shape = SOCK_DISPLAY_SHAPE_CIRCLE;
+          break;
         }
-        for (bNodeSocket *socket : node->output_sockets()) {
-          socket->display_shape = get_output_socket_shape(
-              *socket->runtime->declaration,
-              ntree.runtime->inferred_structure_types[socket->index_in_tree()]);
+        case NODE_GROUP_OUTPUT:
+        case NODE_GROUP_INPUT: {
+          for (bNodeSocket *socket : node->input_sockets()) {
+            socket->display_shape = get_socket_shape(*socket, true);
+          }
+          for (bNodeSocket *socket : node->output_sockets()) {
+            socket->display_shape = get_socket_shape(*socket, true);
+          }
+          break;
         }
-        continue;
-      }
-      /* For other nodes we just use the static structure types defined in the declaration. */
-      for (bNodeSocket *socket : node->input_sockets()) {
-        if (const SocketDeclaration *declaration = socket->runtime->declaration) {
-          socket->display_shape = get_input_socket_shape(*declaration,
-                                                         declaration->structure_type);
+        case NODE_COMBINE_BUNDLE: {
+          const auto &storage = *static_cast<const NodeCombineBundle *>(node->storage);
+          for (const int i : IndexRange(storage.items_num)) {
+            const NodeCombineBundleItem &item = storage.items[i];
+            bNodeSocket &socket = node->input_socket(i);
+            socket.display_shape = get_socket_shape(
+                socket, item.structure_type == NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO);
+          }
+          break;
         }
-      }
-      for (bNodeSocket *socket : node->output_sockets()) {
-        if (const SocketDeclaration *declaration = socket->runtime->declaration) {
-          socket->display_shape = get_output_socket_shape(*declaration,
-                                                          declaration->structure_type);
+        case NODE_SEPARATE_BUNDLE: {
+          const auto &storage = *static_cast<const NodeSeparateBundle *>(node->storage);
+          for (const int i : IndexRange(storage.items_num)) {
+            const NodeSeparateBundleItem &item = storage.items[i];
+            bNodeSocket &socket = node->output_socket(i);
+            socket.display_shape = get_socket_shape(
+                socket, item.structure_type == NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO);
+          }
+          break;
+        }
+        case NODE_CLOSURE_INPUT: {
+          if (const bNode *closure_output_node = closure_zone_type->get_corresponding_output(
+                  ntree, *node))
+          {
+            const auto &storage = *static_cast<const NodeClosureOutput *>(
+                closure_output_node->storage);
+            for (const int i : IndexRange(storage.input_items.items_num)) {
+              const NodeClosureInputItem &item = storage.input_items.items[i];
+              bNodeSocket &socket = node->output_socket(i);
+              socket.display_shape = get_socket_shape(
+                  socket, item.structure_type == NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO);
+            }
+          }
+          break;
+        }
+        case NODE_CLOSURE_OUTPUT: {
+          const auto &storage = *static_cast<const NodeClosureOutput *>(node->storage);
+          for (const int i : IndexRange(storage.output_items.items_num)) {
+            const NodeClosureOutputItem &item = storage.output_items.items[i];
+            bNodeSocket &socket = node->input_socket(i);
+            socket.display_shape = get_socket_shape(
+                socket, item.structure_type == NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO);
+          }
+          break;
+        }
+        case NODE_EVALUATE_CLOSURE: {
+          const auto &storage = *static_cast<const NodeEvaluateClosure *>(node->storage);
+          for (const int i : IndexRange(storage.input_items.items_num)) {
+            const NodeEvaluateClosureInputItem &item = storage.input_items.items[i];
+            bNodeSocket &socket = node->input_socket(i + 1);
+            socket.display_shape = get_socket_shape(
+                socket, item.structure_type == NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO);
+          }
+          for (const int i : IndexRange(storage.output_items.items_num)) {
+            const NodeEvaluateClosureOutputItem &item = storage.output_items.items[i];
+            bNodeSocket &socket = node->output_socket(i);
+            socket.display_shape = get_socket_shape(
+                socket, item.structure_type == NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO);
+          }
+          break;
+        }
+        default: {
+          /* For other nodes we just use the static structure types defined in the declaration. */
+          for (bNodeSocket *socket : node->input_sockets()) {
+            socket->display_shape = get_socket_shape(*socket);
+          }
+          for (bNodeSocket *socket : node->output_sockets()) {
+            socket->display_shape = get_socket_shape(*socket);
+          }
+          break;
         }
       }
     }
@@ -1373,14 +1414,6 @@ class NodeTreeMainUpdater {
             NodeLinkError{TIP_("Use node groups to reuse the same menu multiple times")});
         continue;
       }
-      if (ntree.type == NTREE_GEOMETRY) {
-        if (this->is_invalid_field_link(*link)) {
-          link->flag &= ~NODE_LINK_VALID;
-          ntree.runtime->link_errors.add(
-              NodeLinkKey{*link}, NodeLinkError{TIP_("The node input does not support fields")});
-          continue;
-        }
-      }
       const bNode &from_node = *link->fromnode;
       const bNode &to_node = *link->tonode;
       if (from_node.runtime->toposort_left_to_right_index >
@@ -1421,25 +1454,67 @@ class NodeTreeMainUpdater {
           continue;
         }
       }
+      if (const char *error = this->get_structure_type_link_error(*link)) {
+        link->flag &= ~NODE_LINK_VALID;
+        ntree.runtime->link_errors.add(NodeLinkKey{*link}, NodeLinkError{error});
+        continue;
+      }
     }
   }
 
-  bool is_invalid_field_link(const bNodeLink &link)
+  const char *get_structure_type_link_error(const bNodeLink &link)
   {
-    if (!link.fromsock->may_be_field()) {
-      return false;
+    const nodes::StructureType from_inferred_type =
+        link.fromsock->runtime->inferred_structure_type;
+    if (from_inferred_type == StructureType::Dynamic) {
+      /* Showing errors in this case results in many false positives in cases where Blender is not
+       * sure what the actual type is. */
+      return nullptr;
     }
-    const nodes::SocketDeclaration *to_socket_decl = link.tosock->runtime->declaration;
-    if (!to_socket_decl) {
-      return false;
+    const int from_shape = link.fromsock->display_shape;
+    const int to_shape = link.tosock->display_shape;
+    switch (to_shape) {
+      case SOCK_DISPLAY_SHAPE_CIRCLE: {
+        return nullptr;
+      }
+      case SOCK_DISPLAY_SHAPE_LINE: {
+        if (from_shape == SOCK_DISPLAY_SHAPE_LINE) {
+          return nullptr;
+        }
+        if (from_inferred_type == StructureType::Single) {
+          return nullptr;
+        }
+        return TIP_("Input expects a single value");
+      }
+      case SOCK_DISPLAY_SHAPE_DIAMOND: {
+        if (ELEM(from_shape, SOCK_DISPLAY_SHAPE_LINE, SOCK_DISPLAY_SHAPE_DIAMOND)) {
+          return nullptr;
+        }
+        if (ELEM(from_inferred_type, StructureType::Single, StructureType::Field)) {
+          return nullptr;
+        }
+        return TIP_("Input expects a field or single value");
+      }
+      case SOCK_DISPLAY_SHAPE_VOLUME_GRID: {
+        if (from_shape == SOCK_DISPLAY_SHAPE_VOLUME_GRID) {
+          return nullptr;
+        }
+        if (from_inferred_type == StructureType::Grid) {
+          return nullptr;
+        }
+        return TIP_("Input expects a volume grid");
+      }
+      case SOCK_DISPLAY_SHAPE_LIST: {
+        if (from_shape == SOCK_DISPLAY_SHAPE_LIST) {
+          return nullptr;
+        }
+        if (from_inferred_type == StructureType::List) {
+          return nullptr;
+        }
+        return TIP_("Input expects a list");
+      }
     }
-    if (ELEM(to_socket_decl->structure_type, StructureType::Dynamic, StructureType::Field)) {
-      return false;
-    }
-    if (link.tonode->is_group_output() || link.tonode->is_type("NodeClosureOutput")) {
-      return false;
-    }
-    return true;
+    return nullptr;
   }
 
   bool check_if_output_changed(const bNodeTree &tree)
@@ -1764,7 +1839,7 @@ class NodeTreeMainUpdater {
               break;
             }
             const bNodeTreeZone *zone = zones->get_zone_by_node(node.identifier);
-            if (!zone->input_node()) {
+            if (!zone || !zone->input_node()) {
               break;
             }
             for (const bNodeSocket *input_socket : zone->input_node()->input_sockets()) {

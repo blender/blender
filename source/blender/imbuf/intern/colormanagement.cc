@@ -780,6 +780,18 @@ void IMB_colormanagement_display_settings_from_ctx(
   }
 }
 
+static bool get_display_emulation(const ColorManagedDisplaySettings &display_settings)
+{
+  switch (display_settings.emulation) {
+    case COLORMANAGE_DISPLAY_EMULATION_OFF:
+      return false;
+    case COLORMANAGE_DISPLAY_EMULATION_AUTO:
+      return true;
+  }
+
+  return true;
+}
+
 static std::shared_ptr<const ocio::CPUProcessor> get_display_buffer_processor(
     const ColorManagedDisplaySettings &display_settings,
     const char *look,
@@ -807,7 +819,10 @@ static std::shared_ptr<const ocio::CPUProcessor> get_display_buffer_processor(
   display_parameters.use_hdr_buffer = GPU_hdr_support();
   display_parameters.use_hdr_display = IMB_colormanagement_display_is_hdr(&display_settings,
                                                                           view_transform);
-  display_parameters.use_display_emulation = target == DISPLAY_SPACE_DRAW;
+  display_parameters.is_image_output = (target == DISPLAY_SPACE_IMAGE_OUTPUT);
+  display_parameters.use_display_emulation = (target == DISPLAY_SPACE_DRAW) ?
+                                                 get_display_emulation(display_settings) :
+                                                 false;
 
   return g_config->get_display_cpu_processor(display_parameters);
 }
@@ -856,7 +871,9 @@ void colormanage_imbuf_set_default_spaces(ImBuf *ibuf)
   ibuf->byte_buffer.colorspace = g_config->get_color_space(global_role_default_byte);
 }
 
-void colormanage_imbuf_make_linear(ImBuf *ibuf, const char *from_colorspace)
+void colormanage_imbuf_make_linear(ImBuf *ibuf,
+                                   const char *from_colorspace,
+                                   const ColorManagedFileOutput output)
 {
   const ColorSpace *colorspace = g_config->get_color_space(from_colorspace);
 
@@ -871,6 +888,14 @@ void colormanage_imbuf_make_linear(ImBuf *ibuf, const char *from_colorspace)
 
     if (ibuf->byte_buffer.data) {
       IMB_free_byte_pixels(ibuf);
+    }
+
+    if (output != ColorManagedFileOutput::Video) {
+      const ColorSpace *image_colorspace = g_config->get_color_space_for_hdr_image(
+          from_colorspace);
+      if (image_colorspace) {
+        from_colorspace = image_colorspace->name().c_str();
+      }
     }
 
     IMB_colormanagement_transform_float(ibuf->float_buffer.data,
@@ -1411,7 +1436,7 @@ static const int CICP_MATRIX_REC2020_NCL = 9;
 static const int CICP_RANGE_FULL = 1;
 
 bool IMB_colormanagement_space_to_cicp(const ColorSpace *colorspace,
-                                       const bool video,
+                                       const ColorManagedFileOutput output,
                                        const bool rgb_matrix,
                                        int cicp[4])
 {
@@ -1483,7 +1508,7 @@ bool IMB_colormanagement_space_to_cicp(const ColorSpace *colorspace,
      * But we have been writing sRGB like this forever, and there is the so called
      * "Quicktime gamma shift bug" that complicates things. */
     cicp[0] = CICP_PRI_P3D65;
-    cicp[1] = (video) ? CICP_TRC_BT709 : CICP_TRC_SRGB;
+    cicp[1] = (output == ColorManagedFileOutput::Video) ? CICP_TRC_BT709 : CICP_TRC_SRGB;
     cicp[2] = (rgb_matrix) ? CICP_MATRIX_RGB : CICP_MATRIX_BT709;
     cicp[3] = CICP_RANGE_FULL;
     return true;
@@ -1497,7 +1522,8 @@ bool IMB_colormanagement_space_to_cicp(const ColorSpace *colorspace,
   return false;
 }
 
-const ColorSpace *IMB_colormanagement_space_from_cicp(const int cicp[4], const bool video)
+const ColorSpace *IMB_colormanagement_space_from_cicp(const int cicp[4],
+                                                      const ColorManagedFileOutput output)
 {
   StringRefNull interop_id;
 
@@ -1522,7 +1548,7 @@ const ColorSpace *IMB_colormanagement_space_from_cicp(const int cicp[4], const b
     interop_id = "g24_rec2020_display";
   }
   else if (cicp[0] == CICP_PRI_REC709 && cicp[1] == CICP_TRC_BT709) {
-    if (video) {
+    if (output == ColorManagedFileOutput::Video) {
       /* Arguably this should be g24_rec709_display, but we write sRGB like this.
        * So there is an exception for now. */
       interop_id = "srgb_rec709_display";
@@ -2706,7 +2732,9 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
     colormanagement_imbuf_make_display_space(colormanaged_ibuf,
                                              &image_format->view_settings,
                                              &image_format->display_settings,
-                                             DISPLAY_SPACE_FILE_OUTPUT,
+                                             image_format->media_type == MEDIA_TYPE_VIDEO ?
+                                                 DISPLAY_SPACE_VIDEO_OUTPUT :
+                                                 DISPLAY_SPACE_IMAGE_OUTPUT,
                                              byte_output);
 
     if (colormanaged_ibuf->float_buffer.data) {
@@ -2736,6 +2764,14 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
                                       global_role_default_byte;
 
     const char *to_colorspace = image_format->linear_colorspace_settings.name;
+
+    /* to_colorspace may need to modified to compensate for 100 vs 203 nits conventions. */
+    if (image_format->media_type != MEDIA_TYPE_VIDEO) {
+      const ColorSpace *image_colorspace = g_config->get_color_space_for_hdr_image(to_colorspace);
+      if (image_colorspace) {
+        to_colorspace = image_colorspace->name().c_str();
+      }
+    }
 
     /* TODO: can we check with OCIO if color spaces are the same but have different names? */
     if (to_colorspace[0] == '\0' || STREQ(from_colorspace, to_colorspace)) {
@@ -3054,6 +3090,17 @@ bool IMB_colormanagement_display_is_wide_gamut(const ColorManagedDisplaySettings
   }
   const ocio::View *view = display->get_view_by_name(view_name);
   return (view) ? view->gamut() != ocio::Gamut::Rec709 : false;
+}
+
+bool IMB_colormanagement_display_support_emulation(
+    const ColorManagedDisplaySettings *display_settings, const char *view_name)
+{
+  const ocio::Display *display = g_config->get_display_by_name(display_settings->display_device);
+  if (display == nullptr) {
+    return false;
+  }
+  const ocio::View *view = display->get_view_by_name(view_name);
+  return (view) ? view->support_emulation() : false;
 }
 
 /** \} */
@@ -4432,7 +4479,7 @@ bool IMB_colormanagement_setup_glsl_draw_from_space(
   display_parameters.use_hdr_buffer = GPU_hdr_support();
   display_parameters.use_hdr_display = IMB_colormanagement_display_is_hdr(
       display_settings, display_parameters.view.c_str());
-  display_parameters.use_display_emulation = true;
+  display_parameters.use_display_emulation = get_display_emulation(*display_settings);
 
   /* Bind shader. Internally GPU shaders are created and cached on demand. */
   global_gpu_state.gpu_shader_bound = g_config->get_gpu_shader_binder().display_bind(

@@ -17,12 +17,19 @@ CCL_NAMESPACE_BEGIN
 class Object;
 class Octree;
 
+enum VolumeRenderingAlgorithm {
+  NULL_SCATTERING,
+  RAY_MARCHING,
+  NONE,
+};
+
 class Volume : public Mesh {
  public:
   NODE_DECLARE
 
   Volume();
 
+  NODE_SOCKET_API(float, step_size)
   NODE_SOCKET_API(bool, object_space)
   NODE_SOCKET_API(float, velocity_scale)
 
@@ -72,6 +79,9 @@ class VolumeManager {
    * `filename`, which is a Python script that can be run inside Blender. */
   std::string visualize_octree(const char *filename) const;
 
+  /* Step size for ray marching. */
+  void update_step_size(const Scene *, DeviceScene *) const;
+
   /* One octree per object per shader. */
   std::map<std::pair<const Object *, const Shader *>, std::shared_ptr<Octree>> object_octrees_;
 
@@ -80,6 +90,8 @@ class VolumeManager {
   bool update_visualization_ = false;
   int num_octree_nodes_;
   int num_octree_roots_;
+
+  VolumeRenderingAlgorithm last_algorithm = NONE;
 
 #ifdef WITH_OPENVDB
   /* Create SDF grid for mesh volumes, to determine whether a certain point is in the

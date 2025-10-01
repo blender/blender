@@ -48,6 +48,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("Volume with fog grids that points are scattered in");
   b.add_input<decl::Menu>("Mode")
       .static_items(mode_items)
+      .optional_label()
       .description("Method to use for scattering points");
   b.add_input<decl::Float>("Density")
       .default_value(1.0f)

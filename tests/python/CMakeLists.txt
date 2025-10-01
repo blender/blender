@@ -348,16 +348,12 @@ if(TEST_SRC_DIR_EXISTS)
     --output-dir ${TEST_OUT_DIR}/blendfile_io/
   )
 
-# This test is intermittently failing. Disable it for now to avoid other work
-# being incorrectly flagged as broken. Once issue #146221 is resolved this
-# test must be re-enabled.
-#
-#  add_blender_test(
-#    blendfile_library_overrides
-#    --python ${CMAKE_CURRENT_LIST_DIR}/bl_blendfile_library_overrides.py --
-#    --output-dir ${TEST_OUT_DIR}/blendfile_io/
-#    --test-dir "${TEST_SRC_DIR}/libraries_and_linking"
-#  )
+  add_blender_test(
+    blendfile_library_overrides
+    --python ${CMAKE_CURRENT_LIST_DIR}/bl_blendfile_library_overrides.py --
+    --output-dir ${TEST_OUT_DIR}/blendfile_io/
+    --test-dir "${TEST_SRC_DIR}/libraries_and_linking"
+  )
 
   add_blender_test(
     blendfile_header

@@ -223,6 +223,9 @@ PyDoc_STRVAR(
     "   :type filepath: str | bytes\n"
     "   :arg link: When False reference to the original file is lost.\n"
     "   :type link: bool\n"
+    "   :arg pack: If True, and ``link`` is also True, pack linked data-blocks into the current "
+    "blend-file.\n"
+    "   :type pack: bool\n"
     "   :arg relative: When True the path is stored relative to the open blend file.\n"
     "   :type relative: bool\n"
     "   :arg set_fake: If True, set fake user on appended IDs.\n"
@@ -260,6 +263,7 @@ static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *k
    */
   struct {
     BoolFlagPair is_link = {false, FILE_LINK};
+    BoolFlagPair is_pack = {false, BLO_LIBLINK_PACK};
     BoolFlagPair is_relative = {false, FILE_RELPATH};
     BoolFlagPair set_fake = {false, BLO_LIBLINK_APPEND_SET_FAKEUSER};
     BoolFlagPair recursive = {false, BLO_LIBLINK_APPEND_RECURSIVE};
@@ -279,6 +283,7 @@ static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *k
   static const char *_keywords[] = {
       "filepath",
       "link",
+      "pack",
       "relative",
       "set_fake",
       "recursive",
@@ -296,6 +301,7 @@ static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *k
       /* Optional keyword only arguments. */
       "|$"
       "O&" /* `link` */
+      "O&" /* `pack` */
       "O&" /* `relative` */
       "O&" /* `recursive` */
       "O&" /* `set_fake` */
@@ -316,6 +322,8 @@ static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *k
                                         &filepath_data,
                                         PyC_ParseBool,
                                         &flag_vars.is_link,
+                                        PyC_ParseBool,
+                                        &flag_vars.is_pack,
                                         PyC_ParseBool,
                                         &flag_vars.is_relative,
                                         PyC_ParseBool,
@@ -389,10 +397,18 @@ static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *k
       PyErr_SetString(PyExc_ValueError, "`link` is False but `create_liboverrides` is True");
       return nullptr;
     }
+    if (flag_vars.is_pack.value) {
+      PyErr_SetString(PyExc_ValueError, "`pack` must be False if `link` is False");
+      return nullptr;
+    }
   }
 
   if (create_liboverrides) {
     /* Library overrides. */
+    if (flag_vars.is_pack.value) {
+      PyErr_SetString(PyExc_ValueError, "`create_liboverrides` must be False if `pack` is True");
+      return nullptr;
+    }
   }
   else {
     /* Library overrides (disabled). */
@@ -456,7 +472,7 @@ static PyObject *bpy_lib_enter(BPy_Library *self)
   ReportList *reports = &self->reports;
   BlendFileReadReport *bf_reports = &self->bf_reports;
 
-  BKE_reports_init(reports, RPT_STORE);
+  BKE_reports_init(reports, RPT_STORE | RPT_PRINT_HANDLED_BY_OWNER);
   memset(bf_reports, 0, sizeof(*bf_reports));
   bf_reports->reports = reports;
 
@@ -639,6 +655,7 @@ static bool bpy_lib_exit_lapp_context_items_cb(BlendfileLinkAppendContext *lapp_
 static PyObject *bpy_lib_exit(BPy_Library *self, PyObject * /*args*/)
 {
   Main *bmain = self->bmain;
+  const bool do_pack = ((self->flag & BLO_LIBLINK_PACK) != 0);
   const bool do_append = ((self->flag & FILE_LINK) == 0);
   const bool create_liboverrides = self->create_liboverrides;
   /* Code in #bpy_lib_load should have raised exception in case of incompatible parameter values.
@@ -709,7 +726,10 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject * /*args*/)
   BKE_blendfile_link_append_context_init_done(lapp_context);
 
   BKE_blendfile_link(lapp_context, nullptr);
-  if (do_append) {
+  if (do_pack) {
+    BKE_blendfile_link_pack(lapp_context, nullptr);
+  }
+  else if (do_append) {
     BKE_blendfile_append(lapp_context, nullptr);
   }
   else if (create_liboverrides) {

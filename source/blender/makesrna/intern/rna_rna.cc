@@ -2197,8 +2197,11 @@ void rna_property_override_diff_default(Main *bmain, RNAPropertyOverrideDiffCont
         RNACompareOverrideDiffPropPtrContext ptrdiff_ctx(rnadiff_ctx);
         ptrdiff_ctx.owner_id_a = ptr_a->owner_id;
         ptrdiff_ctx.owner_id_b = ptr_b->owner_id;
-        ptrdiff_ctx.propptr_a = RNA_property_pointer_get(ptr_a, rawprop_a);
-        ptrdiff_ctx.propptr_b = RNA_property_pointer_get(ptr_b, rawprop_b);
+        /* Do not create empty IDPGroup properties here. This is not only a totally useless
+         * overhead, but it also remains unsafe in parallelized context, despite the usage of a
+         * mutex in #property_pointer_get(). See also #146221. */
+        ptrdiff_ctx.propptr_a = RNA_property_pointer_get_never_create(ptr_a, rawprop_a);
+        ptrdiff_ctx.propptr_b = RNA_property_pointer_get_never_create(ptr_b, rawprop_b);
         ptrdiff_ctx.no_prop_name = true;
         ptrdiff_ctx.no_ownership = no_ownership;
         ptrdiff_ctx.property_type = PROP_POINTER;

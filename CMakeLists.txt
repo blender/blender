@@ -521,11 +521,6 @@ else()
 endif()
 
 # Compression
-option(WITH_LZO "Enable fast LZO compression (used for pointcache)" ON)
-option(WITH_LZMA "Enable best LZMA compression, (used for pointcache)" ON)
-if(UNIX AND NOT APPLE)
-  option(WITH_SYSTEM_LZO "Use the system LZO library" OFF)
-endif()
 option(WITH_DRACO "Enable Draco mesh compression Python module (used for glTF)" ON)
 
 # Camera/motion tracking
@@ -2885,10 +2880,6 @@ if(FIRST_RUN)
   info_cfg_option(WITH_PULSEAUDIO_DYNLOAD)
   info_cfg_option(WITH_SDL)
   info_cfg_option(WITH_WASAPI)
-
-  info_cfg_text("Compression:")
-  info_cfg_option(WITH_LZMA)
-  info_cfg_option(WITH_LZO)
 
   if(WITH_PYTHON)
     info_cfg_text("Python:")

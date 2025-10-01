@@ -82,6 +82,18 @@
 #  endif
 #endif /* __KERNEL_GPU__ */
 
+/* Address sanitizer suppression. */
+
+#ifdef __KERNEL_GPU__
+#  define ccl_ignore_integer_overflow
+#else
+#  if defined(__SANITIZE_ADDRESS__) && (defined(__GNUC__) || defined(__clang__))
+#    define ccl_ignore_integer_overflow [[gnu::no_sanitize("signed-integer-overflow")]]
+#  else
+#    define ccl_ignore_integer_overflow
+#  endif
+#endif
+
 /* macros */
 
 /* hints for branch prediction, only use in code that runs a _lot_ */
@@ -102,3 +114,18 @@
 
 #define CONCAT_HELPER(a, ...) a##__VA_ARGS__
 #define CONCAT(a, ...) CONCAT_HELPER(a, __VA_ARGS__)
+
+#if (defined __KERNEL_METAL__) && (__METAL_VERSION__ >= 320)
+#  define __METAL_PRINTF__
+#endif
+
+/* Metal's logging works very similar to `printf()`, except for a few differences:
+ * - %s is not supported,
+ * - double doesn't exist, so no casting to double for %f,
+ * - no `\n` needed at the end of the format string.
+ * NOTE: To see the print in the console, environment variables `MTL_LOG_LEVEL` should be set to
+ * `MTLLogLevelDebug`, and `MTL_LOG_TO_STDERR` should be set to `1`.
+ * See https://developer.apple.com/documentation/metal/logging-shader-debug-messages */
+#  ifdef __METAL_PRINTF__
+#    define printf(...) metal::os_log_default.log_debug(__VA_ARGS__)
+#  endif

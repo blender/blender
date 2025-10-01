@@ -24,6 +24,7 @@
 #include "DNA_node_types.h"
 
 #include "NOD_node_declaration.hh"
+#include "NOD_socket_declarations.hh"
 
 using blender::StringRef;
 
@@ -1155,6 +1156,12 @@ bNodeTreeInterfaceSocket *add_interface_socket_from_node(bNodeTree &ntree,
     if (decl) {
       if (!decl->description.empty()) {
         description = decl->description;
+      }
+      SET_FLAG_FROM_TEST(flag, decl->optional_label, NODE_INTERFACE_SOCKET_OPTIONAL_LABEL);
+      if (socket_type == "NodeSocketMenu" && from_sock.type == SOCK_MENU) {
+        if (const auto *menu_decl = dynamic_cast<const nodes::decl::Menu *>(decl)) {
+          SET_FLAG_FROM_TEST(flag, menu_decl->is_expanded, NODE_INTERFACE_SOCKET_MENU_EXPANDED);
+        }
       }
     }
 

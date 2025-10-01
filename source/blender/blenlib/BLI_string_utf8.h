@@ -59,7 +59,7 @@ int BLI_str_utf8_invalid_substitute(char *str, size_t str_len, const char substi
  * \note This is intended for situations when the string is expected to be valid,
  * where copying and substituting values is typically not needed.
  */
-[[nodiscard]] const char *BLI_str_utf8_invalid_substitute_as_needed(
+[[nodiscard]] const char *BLI_str_utf8_invalid_substitute_if_needed(
     const char *str, size_t str_len, const char substitute, char *buf, const size_t buf_maxncpy)
     ATTR_NONNULL(1, 4);
 

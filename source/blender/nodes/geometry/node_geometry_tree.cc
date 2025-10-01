@@ -133,7 +133,6 @@ static bool geometry_node_tree_socket_type_valid(blender::bke::bNodeTreeType * /
                SOCK_OBJECT,
                SOCK_GEOMETRY,
                SOCK_COLLECTION,
-               SOCK_TEXTURE,
                SOCK_IMAGE,
                SOCK_MATERIAL,
                SOCK_MENU) ||
@@ -149,7 +148,7 @@ void register_node_tree_type_geo()
   tt->group_idname = "GeometryNodeGroup";
   tt->ui_name = N_("Geometry Node Editor");
   tt->ui_icon = ICON_GEOMETRY_NODES;
-  tt->ui_description = N_("Geometry nodes");
+  tt->ui_description = N_("Advanced geometry editing and tools creation using nodes");
   tt->rna_ext.srna = &RNA_GeometryNodeTree;
   tt->update = geometry_node_tree_update;
   tt->get_from_context = geometry_node_tree_get_from_context;

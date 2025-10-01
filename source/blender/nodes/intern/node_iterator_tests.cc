@@ -118,7 +118,7 @@ TEST_F(NodeTest, tree_iterator_1_mat)
   TestData context;
 
   Material *material = BKE_material_add(context.bmain, "Material");
-  ED_node_shader_default(context.C, &material->id);
+  ED_node_shader_default(context.C, context.bmain, &material->id);
 
   IteratorResult iter_result = this->get_node_trees(context.bmain);
 
@@ -133,7 +133,7 @@ TEST_F(NodeTest, tree_iterator_scene_no_tree)
   TestData context;
 
   Material *material = BKE_material_add(context.bmain, "Material");
-  ED_node_shader_default(context.C, &material->id);
+  ED_node_shader_default(context.C, context.bmain, &material->id);
 
   BKE_scene_add(context.bmain, "Scene");
 
@@ -151,7 +151,7 @@ TEST_F(NodeTest, tree_iterator_1mat_1scene)
   const char SCENE_NAME[MAX_ID_NAME] = "Scene for testing";
 
   Material *material = BKE_material_add(context.bmain, "Material");
-  ED_node_shader_default(context.C, &material->id);
+  ED_node_shader_default(context.C, context.bmain, &material->id);
 
   Scene *scene = BKE_scene_add(context.bmain, SCENE_NAME);
   /* Embedded compositing trees are deprecated, but still relevant for versioning/backward
@@ -186,7 +186,7 @@ TEST_F(NodeTest, tree_iterator_1mat_3scenes)
   const char MATERIAL_NTREE_NAME[MAX_NAME] = "Shader Nodetree";
 
   Material *material = BKE_material_add(context.bmain, "Material");
-  ED_node_shader_default(context.C, &material->id);
+  ED_node_shader_default(context.C, context.bmain, &material->id);
 
   BKE_scene_add(context.bmain, SCENE_NAME_1);
   /* Note: no node tree for scene 1. */
@@ -227,7 +227,7 @@ TEST_F(NodeTest, tree_iterator_1mat_1scene_2compositing_trees)
   const char MATERIAL_NTREE_NAME[MAX_NAME] = "Shader Nodetree";
 
   Material *material = BKE_material_add(context.bmain, "Material");
-  ED_node_shader_default(context.C, &material->id);
+  ED_node_shader_default(context.C, context.bmain, &material->id);
 
   BKE_scene_add(context.bmain, SCENE_NAME_1);
 

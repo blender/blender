@@ -756,6 +756,8 @@ void ui_window_to_region(const ARegion *region, int *x, int *y);
 void ui_window_to_region_rcti(const ARegion *region, rcti *rect_dst, const rcti *rct_src);
 void ui_window_to_region_rctf(const ARegion *region, rctf *rect_dst, const rctf *rct_src);
 void ui_region_to_window(const ARegion *region, int *x, int *y);
+void ui_region_to_window(
+    const ARegion *region, int region_x, int region_y, int *r_window_x, int *r_window_y);
 /**
  * Popups will add a margin to #ARegion.winrct for shadow,
  * for interactivity (point-inside tests for eg), we want the winrct without the margin added.

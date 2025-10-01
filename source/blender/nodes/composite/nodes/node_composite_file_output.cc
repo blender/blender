@@ -49,6 +49,7 @@
 #include "COM_utilities.hh"
 
 #include "NOD_compositor_file_output.hh"
+#include "NOD_node_extra_info.hh"
 #include "NOD_socket_items_blend.hh"
 #include "NOD_socket_items_ops.hh"
 #include "NOD_socket_items_ui.hh"
@@ -181,6 +182,12 @@ static Vector<path_templates::Error> compute_image_path(const StringRefNull dire
   BKE_add_template_variables_general(template_variables, &node.owner_tree().id);
   BKE_add_template_variables_for_render_path(template_variables, scene);
   BKE_add_template_variables_for_node(template_variables, node);
+
+  /* Substitute #### frame variables if not doing an animation render. For animation renders, this
+   * is handled internally by the following function. */
+  if (!is_animation_render) {
+    BLI_path_frame(base_path, FILE_MAX, frame_number, 0);
+  }
 
   return BKE_image_path_from_imformat(r_image_path,
                                       base_path,
@@ -374,6 +381,18 @@ static void node_blend_read(bNodeTree & /*tree*/, bNode &node, BlendDataReader &
   BLO_read_string(&reader, &data.file_name);
   BKE_image_format_blend_read_data(&reader, &data.format);
   socket_items::blend_read_data<FileOutputItemsAccessor>(&reader, node);
+}
+
+static void node_extra_info(NodeExtraInfoParams &parameters)
+{
+  SpaceNode *space_node = CTX_wm_space_node(&parameters.C);
+  if (space_node->node_tree_sub_type != SNODE_COMPOSITOR_SCENE) {
+    NodeExtraInfoRow row;
+    row.text = RPT_("Node Unsupported");
+    row.tooltip = TIP_("The File Output node is only supported for scene compositing");
+    row.icon = ICON_ERROR;
+    parameters.rows.append(std::move(row));
+  }
 }
 
 using namespace blender::compositor;
@@ -826,6 +845,7 @@ static void node_register()
       ntype, "NodeCompositorFileOutput", node_free_storage, node_copy_storage);
   ntype.blend_write_storage_content = node_blend_write;
   ntype.blend_data_read_storage_content = node_blend_read;
+  ntype.get_extra_info = node_extra_info;
   ntype.get_compositor_operation = get_compositor_operation;
 
   blender::bke::node_register_type(ntype);

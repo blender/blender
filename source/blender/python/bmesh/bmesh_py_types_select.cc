@@ -29,8 +29,8 @@ PyDoc_STRVAR(
     bpy_bmeditselseq_active_doc,
     "The last selected element or None (read-only).\n"
     "\n"
-    ":type: :class:`BMVert`, "
-    ":class:`BMEdge` or :class:`BMFace`\n");
+    ":type: :class:`bmesh.types.BMVert`, "
+    ":class:`bmesh.types.BMEdge` or :class:`bmesh.types.BMFace`\n");
 static PyObject *bpy_bmeditselseq_active_get(BPy_BMEditSelSeq *self, void * /*closure*/)
 {
   BMEditSelection *ese;

@@ -262,7 +262,7 @@ bool RE_HasSingleLayer(Render *re)
 }
 
 RenderResult *RE_MultilayerConvert(
-    void *exrhandle, const char *colorspace, bool predivide, int rectx, int recty)
+    ExrHandle *exrhandle, const char *colorspace, bool predivide, int rectx, int recty)
 {
   return render_result_new_from_exr(exrhandle, colorspace, predivide, rectx, recty);
 }
@@ -1809,12 +1809,7 @@ static bool is_compositing_possible_on_gpu(Scene *scene, ReportList *reports)
 
   int width, height;
   BKE_render_resolution(&scene->r, false, &width, &height);
-  const int max_texture_size = GPU_max_texture_size();
-
-  /* There is no way to know if the render size is too large except if we actually allocate a test
-   * texture, which we want to avoid due its cost. So we employ a heuristic that so far has worked
-   * with all known GPU drivers. */
-  if (size_t(width) * height > (size_t(max_texture_size) * max_texture_size) / 4) {
+  if (!GPU_is_safe_texture_size(width, height)) {
     BKE_report(reports, RPT_ERROR, "Render size too large for GPU, use CPU compositor instead");
     return false;
   }
@@ -2913,44 +2908,6 @@ RenderPass *RE_pass_find_by_name(RenderLayer *rl, const char *name, const char *
       }
     }
   }
-  return nullptr;
-}
-
-RenderPass *RE_pass_find_by_type(RenderLayer *rl, int passtype, const char *viewname)
-{
-#define CHECK_PASS(NAME) \
-  if (passtype == SCE_PASS_##NAME) { \
-    return RE_pass_find_by_name(rl, RE_PASSNAME_##NAME, viewname); \
-  } \
-  ((void)0)
-
-  CHECK_PASS(COMBINED);
-  CHECK_PASS(DEPTH);
-  CHECK_PASS(VECTOR);
-  CHECK_PASS(NORMAL);
-  CHECK_PASS(UV);
-  CHECK_PASS(EMIT);
-  CHECK_PASS(SHADOW);
-  CHECK_PASS(AO);
-  CHECK_PASS(ENVIRONMENT);
-  CHECK_PASS(INDEXOB);
-  CHECK_PASS(INDEXMA);
-  CHECK_PASS(MIST);
-  CHECK_PASS(DIFFUSE_DIRECT);
-  CHECK_PASS(DIFFUSE_INDIRECT);
-  CHECK_PASS(DIFFUSE_COLOR);
-  CHECK_PASS(GLOSSY_DIRECT);
-  CHECK_PASS(GLOSSY_INDIRECT);
-  CHECK_PASS(GLOSSY_COLOR);
-  CHECK_PASS(TRANSM_DIRECT);
-  CHECK_PASS(TRANSM_INDIRECT);
-  CHECK_PASS(TRANSM_COLOR);
-  CHECK_PASS(SUBSURFACE_DIRECT);
-  CHECK_PASS(SUBSURFACE_INDIRECT);
-  CHECK_PASS(SUBSURFACE_COLOR);
-
-#undef CHECK_PASS
-
   return nullptr;
 }
 

@@ -71,12 +71,14 @@ ListBase TreeDisplayLibraries::build_tree(const TreeSourceData &source_data)
     TreeStoreElem *tselem = TREESTORE(ten);
     Library *lib = (Library *)tselem->id;
     BLI_assert(!lib || (GS(lib->id.name) == ID_LI));
-    if (!lib || !lib->runtime->parent) {
+    if (!lib || !(lib->runtime->parent || lib->archive_parent_library)) {
       continue;
     }
 
     /* A library with a non-null `parent` is always strictly indirectly linked. */
-    TreeElement *parent = reinterpret_cast<TreeElement *>(lib->runtime->parent->id.newid);
+    TreeElement *parent = reinterpret_cast<TreeElement *>(
+        (lib->archive_parent_library ? lib->archive_parent_library : lib->runtime->parent)
+            ->id.newid);
     BLI_remlink(&tree, ten);
     BLI_addtail(&parent->subtree, ten);
     ten->parent = parent;
@@ -144,7 +146,7 @@ TreeElement *TreeDisplayLibraries::add_library_contents(Main &mainvar, ListBase 
         if (filter_id_type) {
           ten = tenlib;
         }
-        else {
+        else if (id->lib == lib) {
           ten = add_element(
               &tenlib->subtree, reinterpret_cast<ID *>(lib), nullptr, nullptr, TSE_ID_BASE, a);
           ten->directdata = lbarray[a];

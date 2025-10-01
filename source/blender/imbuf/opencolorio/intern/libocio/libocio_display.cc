@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "libocio_display.hh"
+#include "OCIO_display.hh"
 
 #if defined(WITH_OPENCOLORIO)
 
@@ -73,6 +74,9 @@ LibOCIODisplay::LibOCIODisplay(const int index, const LibOCIOConfig &config) : c
     ocio_fallback_display_colorspace.reset();
   }
 
+  bool support_emulation = config.get_color_space(OCIO_NAMESPACE::ROLE_INTERCHANGE_DISPLAY) !=
+                           nullptr;
+
   views_.reserve(num_views);
   for (const int view_index : IndexRange(num_views)) {
     const char *view_name = ocio_config->getView(name_.c_str(), view_index);
@@ -113,6 +117,11 @@ LibOCIODisplay::LibOCIODisplay(const int index, const LibOCIOConfig &config) : c
       view_is_hdr = encoding == "hdr-video";
       is_hdr_ |= view_is_hdr;
     }
+
+    /* Detect if display emulation is supported. */
+    bool view_support_emulation = support_emulation && ocio_display_colorspace &&
+                                  ocio_display_colorspace->getReferenceSpaceType() ==
+                                      OCIO_NAMESPACE::REFERENCE_SPACE_DISPLAY;
 
     /* Detect gamut and transfer function through interop ID. When unknown, things
      * should still work correctly but may miss optimizations. */
@@ -179,6 +188,7 @@ LibOCIODisplay::LibOCIODisplay(const int index, const LibOCIOConfig &config) : c
                      view_name,
                      view_description,
                      view_is_hdr,
+                     view_support_emulation,
                      gamut,
                      transfer_function,
                      display_colorspace);

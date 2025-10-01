@@ -119,8 +119,6 @@ class DeviceInfo {
   {
     return !(*this == info);
   }
-
-  bool contains_device_type(const DeviceType type) const;
 };
 
 /* Device */

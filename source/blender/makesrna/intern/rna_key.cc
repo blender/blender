@@ -16,6 +16,8 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
+#include "WM_types.hh"
+
 #include "rna_internal.hh"
 
 const EnumPropertyItem rna_enum_keyblock_type_items[] = {
@@ -969,7 +971,7 @@ static void rna_def_keyblock(BlenderRNA *brna)
       prop, nullptr, "rna_ShapeKey_value_set", "rna_ShapeKey_value_range");
   RNA_def_property_ui_range(prop, -10.0f, 10.0f, 10, 3);
   RNA_def_property_ui_text(prop, "Value", "Value of shape key at the current frame");
-  RNA_def_property_update(prop, 0, "rna_Key_update_data");
+  RNA_def_property_update(prop, ND_KEYS, "rna_Key_update_data");
 
   prop = RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "type");

@@ -134,6 +134,9 @@ typedef struct Camera {
   /* Stereo settings */
   struct CameraStereoSettings stereo;
 
+  /* Compositional guide overlay color */
+  float composition_guide_color[4];
+
   /** Runtime data (keep last). */
   Camera_Runtime runtime;
 } Camera;

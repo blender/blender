@@ -43,6 +43,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>("Density").default_value(1.0f).min(0.01f).max(FLT_MAX);
   b.add_input<decl::Menu>("Resolution Mode")
       .static_items(resolution_mode_items)
+      .optional_label()
       .description("How the voxel size is specified");
   b.add_input<decl::Float>("Voxel Size")
       .default_value(0.3f)

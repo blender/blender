@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_math_constants_lib.glsl"
 
 /* Define macro flags for code adaption. */
 /* No macro flags necessary, as code is adapted to GLSL by default. */

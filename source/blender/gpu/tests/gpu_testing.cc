@@ -72,4 +72,18 @@ void GPUTest::TearDownTestSuite()
   G.debug = prev_g_debug_;
 }
 
+void GPUTest::SetUp()
+{
+  const ::testing::TestInfo *info = ::testing::UnitTest::GetInstance()->current_test_info();
+  std::stringstream ss;
+  ss << info->test_suite_name() << "." << info->name();
+  debug_group_name_ = ss.str();
+  GPU_debug_group_begin(debug_group_name_.c_str());
+}
+
+void GPUTest::TearDown()
+{
+  GPU_debug_group_end();
+}
+
 }  // namespace blender::gpu

@@ -31,7 +31,8 @@ static void cmp_node_distance_matte_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Menu>("Color Space")
       .default_value(CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_RGBA)
       .static_items(color_space_items)
-      .expanded();
+      .expanded()
+      .optional_label();
   b.add_input<decl::Float>("Tolerance")
       .default_value(0.1f)
       .subtype(PROP_FACTOR)

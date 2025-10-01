@@ -45,10 +45,10 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   b.add_input<decl::String>("A", "A_STR")
       .translation_context(BLT_I18NCONTEXT_ID_NODETREE)
-      .hide_label();
+      .optional_label();
   b.add_input<decl::String>("B", "B_STR")
       .translation_context(BLT_I18NCONTEXT_ID_NODETREE)
-      .hide_label();
+      .optional_label();
 
   b.add_input<decl::Float>("C").default_value(0.9f);
   b.add_input<decl::Float>("Angle").default_value(0.0872665f).subtype(PROP_ANGLE);

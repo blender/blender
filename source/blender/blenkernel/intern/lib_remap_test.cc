@@ -100,7 +100,7 @@ class MaterialTestData : public TestData {
   MaterialTestData()
   {
     material = BKE_material_add(this->bmain, "Material");
-    ED_node_shader_default(this->C, &this->material->id);
+    ED_node_shader_default(this->C, this->bmain, &this->material->id);
     this->material_nodetree = this->material->nodetree;
   }
 };

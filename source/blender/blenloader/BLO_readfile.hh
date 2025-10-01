@@ -406,6 +406,10 @@ enum eBLOLibLinkFlags {
    * see e.g. #BKE_blendfile_library_relocate.
    */
   BLO_LIBLINK_COLLECTION_NO_HIERARCHY_REBUILD = 1 << 26,
+  /**
+   * Pack the linked data-blocks to keep them working even if the source file is not available.
+   */
+  BLO_LIBLINK_PACK = 1 << 27,
 };
 
 /**
@@ -584,13 +588,13 @@ struct ID_Readfile_Data {
 };
 
 /**
- * Return `id->runtime.readfile_data->tags` if the `readfile_data` is allocated,
+ * Return `id->runtime->readfile_data->tags` if the `readfile_data` is allocated,
  * otherwise return an all-zero set of tags.
  */
 ID_Readfile_Data::Tags BLO_readfile_id_runtime_tags(ID &id);
 
 /**
- * Create the `readfile_data` if needed, and return `id->runtime.readfile_data->tags`.
+ * Create the `readfile_data` if needed, and return `id->runtime->readfile_data->tags`.
  *
  * Use it instead of #BLO_readfile_id_runtime_tags when tags need to be set.
  */

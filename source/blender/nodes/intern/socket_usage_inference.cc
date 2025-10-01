@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <optional>
 #include <regex>
 
 #include "NOD_geometry_nodes_execute.hh"
@@ -53,6 +54,16 @@ struct SocketUsageInferencer {
    * known yet.
    */
   Map<SocketInContext, bool> all_socket_usages_;
+
+  /**
+   * Stack of tasks that allows depth-first traversal of the tree to check if outputs are disabled.
+   */
+  Stack<SocketInContext> disabled_output_tasks_;
+
+  /**
+   * Contains whether a socket is disabled. Sockets not in this map are not known yet.
+   */
+  Map<SocketInContext, bool> all_socket_disable_states_;
 
   /**
    * Treat top-level nodes as if they are never muted for usage-inferencing. This is used when
@@ -137,6 +148,39 @@ struct SocketUsageInferencer {
   InferenceValue get_socket_value(const SocketInContext &socket)
   {
     return value_inferencer_.get_socket_value(socket);
+  }
+
+  bool is_disabled_group_output(const int output_i)
+  {
+    const bNode *group_output_node = root_tree_.group_output_node();
+    if (!group_output_node) {
+      return true;
+    }
+    const SocketInContext socket{nullptr, &group_output_node->input_socket(output_i)};
+    return this->is_disabled_output(socket);
+  }
+
+  bool is_disabled_output(const SocketInContext &socket)
+  {
+    const std::optional<bool> is_disabled = all_socket_disable_states_.lookup_try(socket);
+    if (is_disabled.has_value()) {
+      return *is_disabled;
+    }
+    if (socket->owner_tree().has_available_link_cycle()) {
+      return true;
+    }
+    BLI_assert(disabled_output_tasks_.is_empty());
+    disabled_output_tasks_.push(socket);
+
+    while (!disabled_output_tasks_.is_empty()) {
+      const SocketInContext &socket = disabled_output_tasks_.peek();
+      this->disabled_output_task(socket);
+      if (&socket == &disabled_output_tasks_.peek()) {
+        /* The task is finished if it hasn't added any new task it depends on. */
+        disabled_output_tasks_.pop();
+      }
+    }
+    return all_socket_disable_states_.lookup(socket);
   }
 
  private:
@@ -245,6 +289,10 @@ struct SocketUsageInferencer {
         break;
       }
       default: {
+        if (node->is_type("NodeEnableOutput")) {
+          this->usage_task__input__enable_output(socket);
+          break;
+        }
         this->usage_task__input__fallback(socket);
         break;
       }
@@ -411,6 +459,20 @@ struct SocketUsageInferencer {
         socket, {&node->output_socket(socket->index())}, {}, socket.context);
   }
 
+  void usage_task__input__enable_output(const SocketInContext &socket)
+  {
+    const NodeInContext node = socket.owner_node();
+    const SocketInContext enable_socket = node.input_socket(0);
+    const SocketInContext output_socket = node.output_socket(0);
+    if (socket == enable_socket) {
+      this->usage_task__with_dependent_sockets(socket, {&*output_socket}, {}, socket.context);
+    }
+    else {
+      this->usage_task__with_dependent_sockets(
+          socket, {&*output_socket}, {&*enable_socket}, socket.context);
+    }
+  }
+
   void usage_task__input__fallback(const SocketInContext &socket)
   {
     const SocketDeclaration *socket_decl = socket->runtime->declaration;
@@ -527,6 +589,139 @@ struct SocketUsageInferencer {
     usage_tasks_.push(socket);
   }
 
+  void disabled_output_task(const SocketInContext &socket)
+  {
+    if (all_socket_disable_states_.contains(socket)) {
+      return;
+    }
+    const bNode &node = socket->owner_node();
+    if (!socket->is_available()) {
+      all_socket_disable_states_.add_new(socket, true);
+      return;
+    }
+    if (node.is_undefined() && !node.is_custom_group()) {
+      all_socket_disable_states_.add_new(socket, true);
+      return;
+    }
+    if (socket->is_input()) {
+      this->disabled_output_task__input(socket);
+    }
+    else {
+      this->disabled_output_task__output(socket);
+    }
+  }
+
+  void disabled_output_task__input(const SocketInContext &socket)
+  {
+    const Span<const bNodeLink *> links = socket->directly_linked_links();
+    const bNodeLink *single_link = links.size() == 1 && links[0]->is_used() ? links[0] : nullptr;
+    if (links.size() != 1 || !links[0]->is_used()) {
+      /* The socket is not linked, thus it is not disabled. */
+      all_socket_disable_states_.add_new(socket, false);
+      return;
+    }
+    const SocketInContext origin_socket{socket.context, single_link->fromsock};
+    this->disabled_output_task__with_origin_socket(socket, origin_socket);
+  }
+
+  void disabled_output_task__output(const SocketInContext &socket)
+  {
+    const NodeInContext node = socket.owner_node();
+    if (node->is_muted()) {
+      const bool is_top_level = socket.context == nullptr;
+      if (!this->ignore_top_level_node_muting_ || !is_top_level) {
+        this->disabled_output_task__output__muted_node(socket);
+        return;
+      }
+    }
+
+    switch (node->type_legacy) {
+      case NODE_GROUP:
+      case NODE_CUSTOM_GROUP: {
+        this->disabled_output_task__output__group_node(socket);
+        break;
+      }
+      case NODE_REROUTE: {
+        this->disabled_output_task__with_origin_socket(socket, node.input_socket(0));
+        break;
+      }
+      default: {
+        if (node->is_type("NodeEnableOutput")) {
+          this->disabled_output_task__output__enable_output_node(socket);
+          break;
+        }
+        /* By default, all output sockets are enabled unless they are explicitly disabled by some
+         * rule above. */
+        all_socket_disable_states_.add_new(socket, false);
+        break;
+      }
+    }
+  }
+
+  void disabled_output_task__output__muted_node(const SocketInContext &socket)
+  {
+    const NodeInContext node = socket.owner_node();
+    for (const bNodeLink &internal_link : node->internal_links()) {
+      if (internal_link.tosock != socket.socket) {
+        continue;
+      }
+      this->disabled_output_task__with_origin_socket(socket,
+                                                     {socket.context, internal_link.fromsock});
+      return;
+    }
+  }
+
+  void disabled_output_task__output__group_node(const SocketInContext &socket)
+  {
+    const NodeInContext node = socket.owner_node();
+    const bNodeTree *group = reinterpret_cast<const bNodeTree *>(node->id);
+    if (!group || ID_MISSING(&group->id)) {
+      all_socket_disable_states_.add_new(socket, true);
+      return;
+    }
+    group->ensure_topology_cache();
+    if (group->has_available_link_cycle()) {
+      all_socket_disable_states_.add_new(socket, true);
+      return;
+    }
+    const bNode *group_output_node = group->group_output_node();
+    if (!group_output_node) {
+      all_socket_disable_states_.add_new(socket, true);
+      return;
+    }
+    const ComputeContext &group_context = compute_context_cache_.for_group_node(
+        socket.context, node->identifier, &node->owner_tree());
+    const SocketInContext origin_socket{&group_context,
+                                        &group_output_node->input_socket(socket->index())};
+    this->disabled_output_task__with_origin_socket(socket, origin_socket);
+  }
+
+  void disabled_output_task__output__enable_output_node(const SocketInContext &socket)
+  {
+    const NodeInContext node = socket.owner_node();
+    const SocketInContext enable_socket = node.input_socket(0);
+    const InferenceValue enable_value = this->get_socket_value(enable_socket);
+    const std::optional<bool> is_enabled_opt = enable_value.get_if_primitive<bool>();
+    const bool is_enabled = is_enabled_opt.value_or(true);
+    all_socket_disable_states_.add_new(socket, !is_enabled);
+  }
+
+  void disabled_output_task__with_origin_socket(const SocketInContext &socket,
+                                                const SocketInContext &origin_socket)
+  {
+    const std::optional<bool> is_disabled = all_socket_disable_states_.lookup_try(origin_socket);
+    if (is_disabled.has_value()) {
+      all_socket_disable_states_.add_new(socket, *is_disabled);
+      return;
+    }
+    this->push_disabled_output_task(origin_socket);
+  }
+
+  void push_disabled_output_task(const SocketInContext &socket)
+  {
+    disabled_output_tasks_.push(socket);
+  }
+
   static const bNodeSocket *get_first_available_bsocket(const Span<const bNodeSocket *> sockets)
   {
     for (const bNodeSocket *socket : sockets) {
@@ -548,11 +743,12 @@ static bool input_may_affect_visibility(const bNodeSocket &socket)
   return socket.type == SOCK_MENU;
 }
 
-Array<SocketUsage> infer_all_input_sockets_usage(const bNodeTree &tree)
+Array<SocketUsage> infer_all_sockets_usage(const bNodeTree &tree)
 {
   tree.ensure_topology_cache();
   const Span<const bNodeSocket *> all_input_sockets = tree.all_input_sockets();
-  Array<SocketUsage> all_usages(all_input_sockets.size());
+  const Span<const bNodeSocket *> all_output_sockets = tree.all_output_sockets();
+  Array<SocketUsage> all_usages(tree.all_sockets().size());
 
   ResourceScope scope;
   bke::ComputeContextCache compute_context_cache;
@@ -568,9 +764,8 @@ Array<SocketUsage> infer_all_input_sockets_usage(const bNodeTree &tree)
                                      std::nullopt,
                                      ignore_top_level_node_muting};
     inferencer.mark_top_level_node_outputs_as_used();
-    for (const int i : all_input_sockets.index_range()) {
-      const bNodeSocket &socket = *all_input_sockets[i];
-      all_usages[i].is_used = inferencer.is_socket_used({nullptr, &socket});
+    for (const bNodeSocket *socket : all_input_sockets) {
+      all_usages[socket->index_in_tree()].is_used = inferencer.is_socket_used({nullptr, socket});
     }
   }
 
@@ -597,36 +792,52 @@ Array<SocketUsage> infer_all_input_sockets_usage(const bNodeTree &tree)
                                                     ignore_top_level_node_muting};
   inferencer_all_unknown.mark_top_level_node_outputs_as_used();
   inferencer_only_controllers.mark_top_level_node_outputs_as_used();
-  for (const int i : all_input_sockets.index_range()) {
-    if (all_usages[i].is_used) {
+  for (const bNodeSocket *socket : all_input_sockets) {
+    SocketUsage &usage = all_usages[socket->index_in_tree()];
+    if (usage.is_used) {
       /* Used inputs are always visible. */
       continue;
     }
-    const SocketInContext socket{nullptr, all_input_sockets[i]};
-    if (inferencer_only_controllers.is_socket_used(socket)) {
+    const SocketInContext socket_ctx{nullptr, socket};
+    if (inferencer_only_controllers.is_socket_used(socket_ctx)) {
       /* The input should be visible if it's used if only visibility-controlling inputs are
        * considered. */
       continue;
     }
-    if (!inferencer_all_unknown.is_socket_used(socket)) {
+    if (!inferencer_all_unknown.is_socket_used(socket_ctx)) {
       /* The input should be visible if it's never used, regardless of any inputs. Its usage does
        * not depend on any visibility-controlling input. */
       continue;
     }
-    all_usages[i].is_visible = false;
+    usage.is_visible = false;
+  }
+  for (const bNodeSocket *socket : all_output_sockets) {
+    const bNode &node = socket->owner_node();
+    if (node.is_group_input()) {
+      continue;
+    }
+    const SocketInContext socket_ctx{nullptr, socket};
+    if (inferencer_only_controllers.is_disabled_output(socket_ctx)) {
+      SocketUsage &usage = all_usages[socket->index_in_tree()];
+      usage.is_visible = false;
+    }
   }
 
   return all_usages;
 }
 
-void infer_group_interface_inputs_usage(const bNodeTree &group,
-                                        const Span<InferenceValue> group_input_values,
-                                        const MutableSpan<SocketUsage> r_input_usages)
+void infer_group_interface_usage(const bNodeTree &group,
+                                 const Span<InferenceValue> group_input_values,
+                                 const MutableSpan<SocketUsage> r_input_usages,
+                                 const std::optional<MutableSpan<SocketUsage>> r_output_usages)
 {
   SocketUsage default_usage;
   default_usage.is_used = false;
   default_usage.is_visible = true;
   r_input_usages.fill(default_usage);
+  if (r_output_usages) {
+    r_output_usages->fill({true, true});
+  }
 
   ResourceScope scope;
   bke::ComputeContextCache compute_context_cache;
@@ -634,20 +845,9 @@ void infer_group_interface_inputs_usage(const bNodeTree &group,
   {
     /* Detect actually used inputs. */
     SocketUsageInferencer inferencer{group, group_input_values, scope, compute_context_cache};
-    for (const bNode *node : group.group_input_nodes()) {
-      for (const int i : group.interface_inputs().index_range()) {
-        const bNodeSocket &socket = node->output_socket(i);
-        r_input_usages[i].is_used |= inferencer.is_socket_used({nullptr, &socket});
-      }
+    for (const int i : group.interface_inputs().index_range()) {
+      r_input_usages[i].is_used |= inferencer.is_group_input_used(i);
     }
-  }
-  if (std::all_of(r_input_usages.begin(), r_input_usages.end(), [](const SocketUsage &usage) {
-        return usage.is_used;
-      }))
-  {
-    /* If all inputs are used, there is no need to infer visibility because all inputs should be
-     * visible. */
-    return;
   }
   bool visibility_controlling_input_exists = false;
   Array<InferenceValue, 32> inputs_all_unknown(group_input_values.size(),
@@ -687,6 +887,15 @@ void infer_group_interface_inputs_usage(const bNodeTree &group,
     }
     r_input_usages[i].is_visible = false;
   }
+  if (r_output_usages) {
+    for (const int i : group.interface_outputs().index_range()) {
+      if (inferencer_only_controllers.is_disabled_group_output(i)) {
+        SocketUsage &usage = (*r_output_usages)[i];
+        usage.is_used = false;
+        usage.is_visible = false;
+      }
+    }
+  }
 }
 
 void infer_group_interface_inputs_usage(const bNodeTree &group,
@@ -716,18 +925,19 @@ void infer_group_interface_inputs_usage(const bNodeTree &group,
     input_values[i] = InferenceValue::from_primitive(value);
   }
 
-  infer_group_interface_inputs_usage(group, input_values, r_input_usages);
+  infer_group_interface_usage(group, input_values, r_input_usages, {});  // TODO
 }
 
-void infer_group_interface_inputs_usage(const bNodeTree &group,
-                                        const IDProperty *properties,
-                                        MutableSpan<SocketUsage> r_input_usages)
+void infer_group_interface_usage(const bNodeTree &group,
+                                 const IDProperty *properties,
+                                 MutableSpan<SocketUsage> r_input_usages,
+                                 std::optional<MutableSpan<SocketUsage>> r_output_usages)
 {
   ResourceScope scope;
   const Vector<InferenceValue> group_input_values =
       nodes::get_geometry_nodes_input_inference_values(group, properties, scope);
-  nodes::socket_usage_inference::infer_group_interface_inputs_usage(
-      group, group_input_values, r_input_usages);
+  nodes::socket_usage_inference::infer_group_interface_usage(
+      group, group_input_values, r_input_usages, r_output_usages);
 }
 
 InputSocketUsageParams::InputSocketUsageParams(SocketUsageInferencer &inferencer,

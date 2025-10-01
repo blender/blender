@@ -2,8 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <fmt/format.h>
+
 #include "node_geometry_util.hh"
 
+#include "UI_interface_c.hh"
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
@@ -24,6 +27,48 @@
 namespace blender::nodes::node_geo_index_switch_cc {
 
 NODE_STORAGE_FUNCS(NodeIndexSwitch)
+
+static void draw_item_socket(CustomSocketDrawParams &params, const int index)
+{
+  if (!params.menu_switch_source_by_index_switch) {
+    params.draw_standard(params.layout);
+    return;
+  }
+  const bNode *menu_switch_node = params.menu_switch_source_by_index_switch->lookup_default(
+      &params.node, nullptr);
+  if (!menu_switch_node) {
+    params.draw_standard(params.layout);
+    return;
+  }
+  const auto &menu_switch_storage = *static_cast<const NodeMenuSwitch *>(
+      menu_switch_node->storage);
+  BLI_assert(menu_switch_storage.data_type == SOCK_INT);
+  const NodeEnumItem *found_item = nullptr;
+  for (const int i : IndexRange(menu_switch_storage.enum_definition.items_num)) {
+    const NodeEnumItem &item = menu_switch_storage.enum_definition.items_array[i];
+    const bNodeSocket &menu_switch_input_socket = menu_switch_node->input_socket(1 + i);
+    if (menu_switch_input_socket.is_directly_linked()) {
+      params.draw_standard(params.layout);
+      return;
+    }
+    const auto &menu_switch_input_socket_value = *static_cast<const bNodeSocketValueInt *>(
+        menu_switch_input_socket.default_value);
+    if (menu_switch_input_socket_value.value == index) {
+      if (found_item) {
+        /* Found multiple items, so there is not a unique label for this index. */
+        params.draw_standard(params.layout);
+        return;
+      }
+      found_item = &item;
+    }
+  }
+  if (!found_item) {
+    params.draw_standard(params.layout);
+    return;
+  }
+  const std::string label = fmt::format("{}: {}", index, found_item->name);
+  params.draw_standard(params.layout, label);
+}
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -48,11 +93,13 @@ static void node_declare(NodeDeclarationBuilder &b)
   for (const int i : items.index_range()) {
     const std::string identifier = IndexSwitchItemsAccessor::socket_identifier_for_item(items[i]);
     auto &input = b.add_input(data_type, std::to_string(i), std::move(identifier));
+    input.custom_draw(
+        [index = i](CustomSocketDrawParams &params) { draw_item_socket(params, index); });
     if (supports_fields) {
       input.supports_field();
     }
     /* Labels are ugly in combination with data-block pickers and are usually disabled. */
-    input.hide_label(ELEM(data_type, SOCK_OBJECT, SOCK_IMAGE, SOCK_COLLECTION, SOCK_MATERIAL));
+    input.optional_label(ELEM(data_type, SOCK_OBJECT, SOCK_IMAGE, SOCK_COLLECTION, SOCK_MATERIAL));
     input.structure_type(structure_type);
   }
 
@@ -65,7 +112,12 @@ static void node_declare(NodeDeclarationBuilder &b)
   }
   output.structure_type(structure_type);
 
-  b.add_input<decl::Extend>("", "__extend__");
+  b.add_input<decl::Extend>("", "__extend__").custom_draw([](CustomSocketDrawParams &params) {
+    uiLayout &layout = params.layout;
+    layout.emboss_set(ui::EmbossType::None);
+    PointerRNA op_ptr = layout.op("node.index_switch_item_add", IFACE_(""), ICON_ADD);
+    RNA_int_set(&op_ptr, "node_identifier", params.node.identifier);
+  });
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

@@ -68,6 +68,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Menu>("Method")
       .static_items(shape_method_items)
       .default_value(ShapeMethod::Aabb)
+      .optional_label()
       .description("Method used for packing UV islands");
 }
 

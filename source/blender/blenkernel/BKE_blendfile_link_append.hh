@@ -335,6 +335,14 @@ void BKE_blendfile_link_append_context_init_done(BlendfileLinkAppendContext *lap
 void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *reports);
 
 /**
+ * Perform packing operation.
+ *
+ * The IDs processed by this functions are the one that have been linked by a previous call to
+ * #BKE_blendfile_link on the same `lapp_context`.
+ */
+void BKE_blendfile_link_pack(BlendfileLinkAppendContext *lapp_context, ReportList *reports);
+
+/**
  * Perform append operation, using modern ID usage looper to detect which ID should be kept
  * linked, made local, duplicated as local, re-used from local etc.
  *

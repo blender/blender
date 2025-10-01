@@ -2079,7 +2079,11 @@ static BMLoopNorEditDataArray *flip_custom_normals_init_data(BMesh *bm)
      * Otherwise they will be left in a mangled state.
      */
     BM_lnorspace_update(bm);
-    lnors_ed_arr = BM_loop_normal_editdata_array_init(bm, true);
+    lnors_ed_arr = BM_loop_normal_editdata_array_init_with_htype(
+        bm,
+        true,
+        /* Force #BM_FACE because the loop below operates on all selected faces. */
+        BM_FACE);
   }
 
   return lnors_ed_arr;
@@ -2101,7 +2105,11 @@ static bool flip_custom_normals(BMesh *bm, BMLoopNorEditDataArray *lnors_ed_arr)
 
   /* We need to recreate the custom normal array because the clnors_data will
    * be mangled because we swapped the loops around when we flipped the faces. */
-  BMLoopNorEditDataArray *lnors_ed_arr_new_full = BM_loop_normal_editdata_array_init(bm, true);
+  BMLoopNorEditDataArray *lnors_ed_arr_new_full = BM_loop_normal_editdata_array_init_with_htype(
+      bm,
+      true,
+      /* Force #BM_FACE because the loop below operates on all selected faces. */
+      BM_FACE);
 
   {
     /* We need to recalculate all loop normals in the affected area. Even the ones that are not

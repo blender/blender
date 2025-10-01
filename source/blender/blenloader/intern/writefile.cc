@@ -67,6 +67,7 @@
 #include <fcntl.h>
 #include <iomanip>
 #include <sstream>
+#include <xxhash.h>
 
 #ifdef WIN32
 #  include "BLI_winstuff.h"
@@ -89,6 +90,7 @@
 #include "DNA_genfile.h"
 #include "DNA_key_types.h"
 #include "DNA_print.hh"
+#include "DNA_sdna_pointers.hh"
 #include "DNA_sdna_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
@@ -447,6 +449,46 @@ struct WriteData {
     blender::Set<const void *> per_id_addresses_set;
   } validation_data;
 
+  struct {
+    /**
+     * Knows which DNA members are pointers. Those members are overridden when serializing the
+     * .blend file to get more stable pointer identifiers.
+     */
+    std::unique_ptr<blender::dna::pointers::PointersInDNA> sdna_pointers;
+    /**
+     * Maps each runtime-pointer to a unique identifier that's written in the .blend file.
+     *
+     * Currently, no pointers are ever removed from this map during writing of a single file.
+     * Correctness wise, this is fine. However, when some data-blocks write temporary addresses,
+     * those may be reused across IDs while actually pointing to different data. This can break
+     * address id stability in some situations. In the future this could be improved by clearing
+     * such temporary pointers before writing the next data-block.
+     */
+    blender::Map<const void *, uint64_t> pointer_map;
+    /**
+     * Contains all the #pointer_map.values(). This is used to make sure that the same id is never
+     * reused for a different pointer. While this is technically allowed in .blend files (when the
+     * pointers are local data of different objects), we currently don't always know what type a
+     * pointer points to when writing it. So we can't determine if a pointer is local or not.
+     */
+    blender::Set<uint64_t> used_ids;
+    /**
+     * The next stable address id is derived from this. This is modified in
+     * two cases:
+     * - A new stable address is needed, in which case this is just incremented.
+     * - A new "section" of the .blend file starts. In this case, this should be reinitialized with
+     *   some hash of an identifier of the next section. This makes sure that if the number of
+     *   pointers in the previous section is modified, the pointers in the new section are not
+     *   affected. A "section" can be anything, but currently a section simply starts when a new
+     *   data-block starts. In the future, an API could be added that allows sections to start
+     *   within a data-block which could isolate stable pointer ids even more.
+     *
+     * When creating the new address id, keep in mind that this may be 0 and it may collide with
+     * previous hints.
+     */
+    uint64_t next_id_hint = 0;
+  } stable_address_ids;
+
   /**
    * Keeps track of which shared data has been written for the current ID. This is necessary to
    * avoid writing the same data more than once.
@@ -475,6 +517,8 @@ static WriteData *writedata_new(WriteWrap *ww)
   WriteData *wd = MEM_new<WriteData>(__func__);
 
   wd->sdna = DNA_sdna_current_get();
+  wd->stable_address_ids.sdna_pointers = std::make_unique<blender::dna::pointers::PointersInDNA>(
+      *wd->sdna);
 
   wd->ww = ww;
 
@@ -641,6 +685,18 @@ static bool mywrite_end(WriteData *wd)
   return err;
 }
 
+static uint64_t get_stable_pointer_hint_for_id(const ID &id)
+{
+  /* Make the stable pointer dependend on the data-block name. This is somewhat arbitrary but the
+   * name is at least something that doesn't really change automatically unexpectedly. */
+  const uint64_t name_hash = XXH3_64bits(id.name, strlen(id.name));
+  if (id.lib) {
+    const uint64_t lib_hash = XXH3_64bits(id.lib->id.name, strlen(id.lib->id.name));
+    return name_hash ^ lib_hash;
+  }
+  return name_hash;
+}
+
 /**
  * Start writing of data related to a single ID.
  *
@@ -652,6 +708,8 @@ static void mywrite_id_begin(WriteData *wd, ID *id)
   wd->is_writing_id = true;
 
   BLI_assert(wd->validation_data.per_id_addresses_set.is_empty());
+
+  wd->stable_address_ids.next_id_hint = get_stable_pointer_hint_for_id(*id);
 
   if (wd->use_memfile) {
     wd->mem.current_id_session_uid = id->session_uid;
@@ -767,6 +825,48 @@ static void write_bhead(WriteData *wd, const BHead &bhead)
   mywrite(wd, &bh, sizeof(bh));
 }
 
+static uint64_t stable_id_from_hint(const uint64_t hint)
+{
+  /* Add a stride. This is not strictly necessary but may help with debugging later on because it's
+   * easier to identify bad ids. */
+  uint64_t stable_id = hint << 4;
+  if (stable_id == 0) {
+    /* Null values are reserved for nullptr. */
+    stable_id = (1 << 4);
+  }
+  return stable_id;
+}
+
+static uint64_t get_next_stable_address_id(WriteData &wd)
+{
+  uint64_t stable_id = stable_id_from_hint(wd.stable_address_ids.next_id_hint);
+  while (!wd.stable_address_ids.used_ids.add(stable_id)) {
+    /* Generate a new hint because there is a collision. Collisions are generally expected to be
+     * very rare. It can happen when #get_stable_pointer_hint_for_id produces values that are very
+     * close for different IDs. */
+    wd.stable_address_ids.next_id_hint = XXH3_64bits(&wd.stable_address_ids.next_id_hint,
+                                                     sizeof(uint64_t));
+    stable_id = stable_id_from_hint(wd.stable_address_ids.next_id_hint);
+  }
+  wd.stable_address_ids.next_id_hint++;
+  return stable_id;
+}
+
+static uint64_t get_address_id_int(WriteData &wd, const void *address)
+{
+  if (address == nullptr) {
+    return 0;
+  }
+  /* Either reuse an existing identifier or create a new one. */
+  return wd.stable_address_ids.pointer_map.lookup_or_add_cb(
+      address, [&]() { return get_next_stable_address_id(wd); });
+}
+
+static const void *get_address_id(WriteData &wd, const void *address)
+{
+  return reinterpret_cast<const void *>(get_address_id_int(wd, address));
+}
+
 static void writestruct_at_address_nr(WriteData *wd,
                                       const int filecode,
                                       const int struct_nr,
@@ -794,9 +894,38 @@ static void writestruct_at_address_nr(WriteData *wd,
     }
   }
 
+  /* Get the address identifier that will be written to the file.*/
+  const void *address_id = get_address_id(*wd, adr);
+
+  const blender::dna::pointers::StructInfo &struct_info =
+      wd->stable_address_ids.sdna_pointers->get_for_struct(struct_nr);
+  const bool can_write_raw_runtime_data = struct_info.pointers.is_empty();
+
+  blender::DynamicStackBuffer<16 * 1024> buffer_owner(len_in_bytes, 64);
+  const void *data_to_write;
+  if (can_write_raw_runtime_data) {
+    /* The passed in data contains no pointers, so it can be written without an additional copy. */
+    data_to_write = data;
+  }
+  else {
+    void *buffer = buffer_owner.buffer();
+    data_to_write = buffer;
+    memcpy(buffer, data, len_in_bytes);
+
+    /* Overwrite pointers with their corresponding address identifiers. */
+    for (const int i : blender::IndexRange(nr)) {
+      for (const blender::dna::pointers::PointerInfo &pointer_info : struct_info.pointers) {
+        const int offset = i * struct_info.size_in_bytes + pointer_info.offset;
+        const void **p_ptr = reinterpret_cast<const void **>(POINTER_OFFSET(buffer, offset));
+        const void *address_id = get_address_id(*wd, *p_ptr);
+        *p_ptr = address_id;
+      }
+    }
+  }
+
   BHead bh;
   bh.code = filecode;
-  bh.old = adr;
+  bh.old = address_id;
   bh.nr = nr;
   bh.SDNAnr = struct_nr;
   bh.len = len_in_bytes;
@@ -806,11 +935,12 @@ static void writestruct_at_address_nr(WriteData *wd,
   }
 
   if (wd->debug_dst) {
-    blender::dna::print_structs_at_address(*wd->sdna, struct_nr, data, adr, nr, *wd->debug_dst);
+    blender::dna::print_structs_at_address(
+        *wd->sdna, struct_nr, data_to_write, address_id, nr, *wd->debug_dst);
   }
 
   write_bhead(wd, bh);
-  mywrite(wd, data, size_t(bh.len));
+  mywrite(wd, data_to_write, size_t(bh.len));
 }
 
 static void writestruct_nr(
@@ -819,12 +949,15 @@ static void writestruct_nr(
   writestruct_at_address_nr(wd, filecode, struct_nr, nr, adr, adr);
 }
 
-static void write_raw_data_in_debug_file(WriteData *wd, const size_t len, const void *adr)
+static void write_raw_data_in_debug_file(WriteData *wd,
+                                         const size_t len,
+                                         const void *address_id,
+                                         const void *data)
 {
   fmt::memory_buffer buf;
   fmt::appender dst{buf};
 
-  fmt::format_to(dst, "<Raw Data> at {} ({} bytes)\n", adr, len);
+  fmt::format_to(dst, "<Raw Data> at {} ({} bytes)\n", address_id, len);
 
   constexpr int bytes_per_row = 8;
   const int len_digits = std::to_string(std::max<size_t>(0, len - 1)).size();
@@ -833,7 +966,7 @@ static void write_raw_data_in_debug_file(WriteData *wd, const size_t len, const 
     if (i % bytes_per_row == 0) {
       fmt::format_to(dst, "  {:{}}: ", i, len_digits);
     }
-    fmt::format_to(dst, "{:02x} ", reinterpret_cast<const uint8_t *>(adr)[i]);
+    fmt::format_to(dst, "{:02x} ", reinterpret_cast<const uint8_t *>(data)[i]);
     if (i % bytes_per_row == bytes_per_row - 1) {
       fmt::format_to(dst, "\n");
     }
@@ -848,9 +981,10 @@ static void write_raw_data_in_debug_file(WriteData *wd, const size_t len, const 
 /**
  * \warning Do not use for structs.
  */
-static void writedata(WriteData *wd, const int filecode, const size_t len, const void *adr)
+static void writedata(
+    WriteData *wd, const int filecode, const void *data, const size_t len, const void *adr)
 {
-  if (adr == nullptr || len == 0) {
+  if (data == nullptr || len == 0) {
     return;
   }
 
@@ -866,20 +1000,27 @@ static void writedata(WriteData *wd, const int filecode, const size_t len, const
     return;
   }
 
+  const void *address_id = get_address_id(*wd, adr);
+
   BHead bh;
   bh.code = filecode;
-  bh.old = adr;
+  bh.old = address_id;
   bh.nr = 1;
   BLI_STATIC_ASSERT(SDNA_RAW_DATA_STRUCT_INDEX == 0, "'raw data' SDNA struct index should be 0")
   bh.SDNAnr = SDNA_RAW_DATA_STRUCT_INDEX;
   bh.len = int64_t(len);
 
   if (wd->debug_dst) {
-    write_raw_data_in_debug_file(wd, len, adr);
+    write_raw_data_in_debug_file(wd, len, address_id, adr);
   }
 
   write_bhead(wd, bh);
-  mywrite(wd, adr, len);
+  mywrite(wd, data, len);
+}
+
+static void writedata(WriteData *wd, const int filecode, const size_t len, const void *adr)
+{
+  writedata(wd, filecode, adr, len, adr);
 }
 
 /**
@@ -1164,6 +1305,11 @@ static void write_libraries(WriteData *wd, Main *bmain)
       if (id->us == 0) {
         continue;
       }
+      if (ID_IS_PACKED(id)) {
+        BLI_assert(library.flag & LIBRARY_FLAG_IS_ARCHIVE);
+        ids_used_from_library.append(id);
+        continue;
+      }
       if (id->tag & ID_TAG_EXTERN) {
         ids_used_from_library.append(id);
         continue;
@@ -1176,6 +1322,15 @@ static void write_libraries(WriteData *wd, Main *bmain)
 
     bool should_write_library = false;
     if (library.packedfile) {
+      should_write_library = true;
+    }
+    else if (!library.runtime->archived_libraries.is_empty()) {
+      /* Reference 'real' blendfile library of archived 'copies' of it containing packed linked
+       * IDs should always be written. */
+      /* FIXME: A bit weak, as it could be that all archive libs are now empty (if all related
+       * packed linked IDs have been deleted e.g.)...
+       * Could be fixed by either adding more checks here, or ensuring empty archive libs are
+       * deleted when no ID uses them anymore? */
       should_write_library = true;
     }
     else if (wd->use_memfile) {
@@ -1194,16 +1349,22 @@ static void write_libraries(WriteData *wd, Main *bmain)
 
     write_id(wd, &library.id);
 
-    /* Write placeholders for linked data-blocks that are used. */
+    /* Write placeholders for linked data-blocks that are used, and real IDs for the packed linked
+     * ones. */
     for (ID *id : ids_used_from_library) {
-      if (!BKE_idtype_idcode_is_linkable(GS(id->name))) {
-        CLOG_ERROR(&LOG,
-                   "Data-block '%s' from lib '%s' is not linkable, but is flagged as "
-                   "directly linked",
-                   id->name,
-                   library.runtime->filepath_abs);
+      if (ID_IS_PACKED(id)) {
+        write_id(wd, id);
       }
-      write_id_placeholder(wd, id);
+      else {
+        if (!BKE_idtype_idcode_is_linkable(GS(id->name))) {
+          CLOG_ERROR(&LOG,
+                     "Data-block '%s' from lib '%s' is not linkable, but is flagged as "
+                     "directly linked",
+                     id->name,
+                     library.runtime->filepath_abs);
+        }
+        write_id_placeholder(wd, id);
+      }
     }
   }
 
@@ -2059,7 +2220,15 @@ void BLO_write_double_array(BlendWriter *writer, const int64_t num, const double
 
 void BLO_write_pointer_array(BlendWriter *writer, const int64_t num, const void *data_ptr)
 {
-  BLO_write_raw(writer, sizeof(void *) * size_t(num), data_ptr);
+  /* Create a temporary copy of the pointer array, because all pointers need to be remapped to
+   * their stable address ids. */
+  blender::Array<const void *, 32> data = blender::Span<const void *>(
+      reinterpret_cast<const void *const *>(data_ptr), num);
+  for (const int64_t i : data.index_range()) {
+    data[i] = get_address_id(*writer->wd, data[i]);
+  }
+
+  writedata(writer->wd, BLO_CODE_DATA, data.data(), data.as_span().size_in_bytes(), data_ptr);
 }
 
 void BLO_write_float3_array(BlendWriter *writer, const int64_t num, const float *data_ptr)
@@ -2083,13 +2252,15 @@ void BLO_write_shared(BlendWriter *writer,
   if (data == nullptr) {
     return;
   }
+  const uint64_t address_id = get_address_id_int(*writer->wd, data);
   if (BLO_write_is_undo(writer)) {
     MemFile &memfile = *writer->wd->mem.written_memfile;
     if (sharing_info != nullptr) {
       if (memfile.shared_storage == nullptr) {
         memfile.shared_storage = MEM_new<MemFileSharedStorage>(__func__);
       }
-      if (memfile.shared_storage->map.add(data, sharing_info)) {
+      if (memfile.shared_storage->sharing_info_by_address_id.add(address_id, {sharing_info, data}))
+      {
         /* The undo-step takes (shared) ownership of the data, which also makes it immutable. */
         sharing_info->add_user();
         /* This size is an estimate, but good enough to count data with many users less. */

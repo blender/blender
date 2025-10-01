@@ -135,7 +135,7 @@ class Library(_types.ID):
         # we could make this an attribute in rna.
         attr_links = (
             "actions", "armatures", "brushes", "cameras",
-            "curves", "grease_pencils_v3", "collections", "images",
+            "curves", "grease_pencils", "collections", "images",
             "lights", "lattices", "materials", "metaballs",
             "meshes", "node_groups", "objects", "scenes",
             "sounds", "speakers", "textures", "texts",
@@ -970,7 +970,7 @@ class Gizmo(_StructRNA):
 
         with gpu.matrix.push_pop():
             gpu.matrix.multiply_matrix(matrix)
-            batch.draw()
+            batch.draw(shader)
 
         if use_blend:
             gpu.state.blend_set('NONE')
@@ -1002,7 +1002,6 @@ class Gizmo(_StructRNA):
         vbo.attr_fill(id=pos_id, data=verts)
         batch = GPUBatch(type=type, buf=vbo)
         shader = gpu.shader.from_builtin('UNIFORM_COLOR')
-        batch.program_set(shader)
         return (batch, shader)
 
 

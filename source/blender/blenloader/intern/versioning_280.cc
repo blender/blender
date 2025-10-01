@@ -3180,7 +3180,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
             BKE_curvemap_reset(gset.cur_falloff->cm,
                                &gset.cur_falloff->clipr,
                                CURVE_PRESET_GAUSS,
-                               CURVEMAP_SLOPE_POSITIVE);
+                               CurveMapSlopeType::Positive);
           }
         }
       }
@@ -4554,7 +4554,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
           BKE_curvemap_reset(gset.cur_primitive->cm,
                              &gset.cur_primitive->clipr,
                              CURVE_PRESET_BELL,
-                             CURVEMAP_SLOPE_POSITIVE);
+                             CurveMapSlopeType::Positive);
         }
       }
     }

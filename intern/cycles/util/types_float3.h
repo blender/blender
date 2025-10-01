@@ -117,15 +117,25 @@ ccl_device_inline float3 make_float3(const int3 i)
 #endif
 }
 
+ccl_device_inline float3 make_float3(const float3 a)
+{
+  return a;
+}
+
+#if defined __METAL_PRINTF__
+#  define print_float3(label, a) \
+    metal::os_log_default.log_debug(label ":  %.8f %.8f %.8f", a.x, a.y, a.z)
+#else
 ccl_device_inline void print_float3(const ccl_private char *label, const float3 a)
 {
-#ifdef __KERNEL_PRINTF__
+#  ifdef __KERNEL_PRINTF__
   printf("%s: %.8f %.8f %.8f\n", label, (double)a.x, (double)a.y, (double)a.z);
-#else
+#  else
   (void)label;
   (void)a;
-#endif
+#  endif
 }
+#endif
 
 ccl_device_inline float2 make_float2(const float3 a)
 {

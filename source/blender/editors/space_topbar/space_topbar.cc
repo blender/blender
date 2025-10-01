@@ -186,16 +186,26 @@ static void topbar_header_region_message_subscribe(const wmRegionMessageSubscrib
       mbus, &workspace->id, workspace, WorkSpace, tools, &msg_sub_value_region_tag_redraw);
 }
 
-static void recent_files_menu_draw(const bContext * /*C*/, Menu *menu)
+static void recent_files_menu_draw(const bContext *C, Menu *menu)
 {
   uiLayout *layout = menu->layout;
   layout->operator_context_set(blender::wm::OpCallContext::InvokeDefault);
-  if (uiTemplateRecentFiles(layout, U.recent_files) != 0) {
-    layout->separator();
-    layout->op("WM_OT_clear_recent_files", IFACE_("Clear Recent Files List..."), ICON_TRASH);
+  const bool is_menu_search = CTX_data_int_get(C, "is_menu_search").value_or(false);
+  if (is_menu_search) {
+    uiTemplateRecentFiles(layout, U.recent_files);
   }
   else {
-    layout->label(IFACE_("No Recent Files"), ICON_NONE);
+    const int limit = std::min<int>(U.recent_files, 20);
+    if (uiTemplateRecentFiles(layout, limit) != 0) {
+      layout->separator();
+      PointerRNA search_props = layout->op(
+          "WM_OT_search_single_menu", IFACE_("More..."), ICON_VIEWZOOM);
+      RNA_string_set(&search_props, "menu_idname", "TOPBAR_MT_file_open_recent");
+      layout->op("WM_OT_clear_recent_files", IFACE_("Clear Recent Files List..."), ICON_TRASH);
+    }
+    else {
+      layout->label(IFACE_("No Recent Files"), ICON_NONE);
+    }
   }
 }
 

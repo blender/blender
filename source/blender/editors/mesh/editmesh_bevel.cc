@@ -138,7 +138,7 @@ static void edbm_bevel_update_status_text(bContext *C, wmOperator *op)
   else {
     double offset_val = double(RNA_float_get(op->ptr, "offset"));
     BKE_unit_value_as_string_scaled(
-        offset_str, NUM_STR_REP_LEN, offset_val, 3, B_UNIT_LENGTH, sce->unit, true);
+        offset_str, NUM_STR_REP_LEN, offset_val, -3, B_UNIT_LENGTH, sce->unit, true);
   }
 
   PropertyRNA *prop;

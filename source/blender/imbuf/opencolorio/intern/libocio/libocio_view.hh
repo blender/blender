@@ -20,6 +20,7 @@ class LibOCIOView : public View {
   StringRefNull name_;
   StringRefNull description_;
   bool is_hdr_ = false;
+  bool support_emulation_ = false;
   Gamut gamut_ = Gamut::Unknown;
   TransferFunction transfer_function_ = TransferFunction::Unknown;
   const LibOCIOColorSpace *display_colorspace_ = nullptr;
@@ -29,12 +30,14 @@ class LibOCIOView : public View {
               const StringRefNull name,
               const StringRefNull description,
               const bool is_hdr,
+              const bool support_emulation,
               const Gamut gamut,
               const TransferFunction transfer_function,
               const LibOCIOColorSpace *display_colorspace)
       : name_(name),
         description_(description),
         is_hdr_(is_hdr),
+        support_emulation_(support_emulation),
         gamut_(gamut),
         transfer_function_(transfer_function),
         display_colorspace_(display_colorspace)
@@ -55,6 +58,11 @@ class LibOCIOView : public View {
   bool is_hdr() const override
   {
     return is_hdr_;
+  }
+
+  bool support_emulation() const override
+  {
+    return support_emulation_;
   }
 
   Gamut gamut() const override

@@ -24,7 +24,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   b.add_input<decl::Bool>("Show").default_value(true).hide_value();
   b.add_output<decl::Bool>("Show").align_with_previous();
-  b.add_input<decl::String>("Message").hide_label();
+  b.add_input<decl::String>("Message").optional_label();
 }
 
 class LazyFunctionForWarningNode : public LazyFunction {

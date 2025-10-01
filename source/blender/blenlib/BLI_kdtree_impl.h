@@ -107,6 +107,9 @@ int BLI_kdtree_nd_(calc_duplicates_fast)(const KDTree *tree,
  * which other indices are merged into.
  *
  * \param tree: A tree, all indices *must* be unique.
+ * \param has_self_index: When true, account for indices
+ * in the `duplicates` array that reference themselves,
+ * prioritizing them as targets before de-duplicating the remainder with each other.
  * \param deduplicate_cb: A function which receives duplicate indices,
  * it must choose the "target" index to keep which is returned.
  * The return value is an index in the `cluster` array (a value from `0..cluster_num`).
@@ -120,6 +123,7 @@ int BLI_kdtree_nd_(calc_duplicates_fast)(const KDTree *tree,
 int BLI_kdtree_nd_(calc_duplicates_cb)(const KDTree *tree,
                                        const float range,
                                        int *duplicates,
+                                       bool has_self_index,
                                        int (*deduplicate_cb)(void *user_data,
                                                              const int *cluster,
                                                              int cluster_num),
@@ -199,12 +203,14 @@ template<typename Fn>
 inline int BLI_kdtree_nd_(calc_duplicates_cb_cpp)(const KDTree *tree,
                                                   const float distance,
                                                   int *duplicates,
+                                                  const bool has_self_index,
                                                   const Fn &fn)
 {
   return BLI_kdtree_nd_(calc_duplicates_cb)(
       tree,
       distance,
       duplicates,
+      has_self_index,
       [](void *user_data, const int *cluster, int cluster_num) -> int {
         const Fn &fn = *static_cast<const Fn *>(user_data);
         return fn(cluster, cluster_num);

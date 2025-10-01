@@ -44,6 +44,16 @@ const char *GPU_extension_get(int i);
 
 int GPU_texture_size_with_limit(int res);
 
+/**
+ * Returns whether it should be "safe" to use texture of a given size.
+ *
+ * The heuristic is that maybe allocating texture that is 25% of
+ * #GPU_max_texture_size squared is fine. Note that the actual texture creation
+ * can still fail even if deemed "safe" by this function, depending on current memory
+ * usage, texture format, etc.
+ */
+bool GPU_is_safe_texture_size(int width, int height);
+
 bool GPU_use_subprocess_compilation();
 int GPU_max_parallel_compilations();
 

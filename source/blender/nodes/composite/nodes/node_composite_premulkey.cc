@@ -38,7 +38,8 @@ static void cmp_node_premulkey_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
   b.add_input<decl::Menu>("Type")
       .default_value(CMP_NODE_ALPHA_CONVERT_PREMULTIPLY)
-      .static_items(type_items);
+      .static_items(type_items)
+      .optional_label();
   b.add_output<decl::Color>("Image");
 }
 

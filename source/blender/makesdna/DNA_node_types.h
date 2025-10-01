@@ -236,11 +236,13 @@ typedef struct bNodeSocket {
    */
   bool affects_node_output() const;
   /**
-   * This becomes false when it is detected that the input socket is currently not used and its
-   * usage depends on a menu (as opposed to e.g. a boolean input). By convention, sockets whose
-   * visibility is controlled by a menu should be hidden.
+   * This becomes false when it is detected that the socket is unused and should be hidden.
+   * Inputs: An input should be hidden if it's unused and its usage depends on a menu input (as
+   *   opposed to e.g. a boolean input).
+   * Outputs: An output is unused if it outputs the socket types fallback value as a constant given
+   *   the current set of menu inputs and its value depends on a menu input.
    */
-  bool inferred_input_socket_visibility() const;
+  bool inferred_socket_visibility() const;
   /**
    * True when the value of this socket may be a field. This is inferred during structure type
    * inferencing.
@@ -356,16 +358,14 @@ typedef enum eNodeSocketFlag {
   SOCK_HIDE_VALUE = (1 << 7),
   /** Socket hidden automatically, to distinguish from manually hidden. */
   SOCK_AUTO_HIDDEN__DEPRECATED = (1 << 8),
-  SOCK_NO_INTERNAL_LINK = (1 << 9),
-  /** Draw socket in a more compact form. */
-  SOCK_COMPACT = (1 << 10),
+  /** Not used anymore but may still be set in files. */
+  SOCK_NO_INTERNAL_LINK_LEGACY = (1 << 9),
+  /** Not used anymore but may still be set in files. */
+  SOCK_COMPACT_LEGACY = (1 << 10),
   /** Make the input socket accept multiple incoming links in the UI. */
   SOCK_MULTI_INPUT = (1 << 11),
-  /**
-   * Don't show the socket's label in the interface, for situations where the
-   * type is obvious and the name takes up too much space.
-   */
-  SOCK_HIDE_LABEL = (1 << 12),
+  /** Not used anymore but may still be set in files. */
+  SOCK_HIDE_LABEL_LEGACY = (1 << 12),
   /**
    * Only used for geometry nodes. Don't show the socket value in the modifier interface.
    */
@@ -2305,7 +2305,9 @@ typedef struct NodeClosureOutputItem {
   char *name;
   /** #eNodeSocketDatatype. */
   short socket_type;
-  char _pad[2];
+  /** #NodeSocketInterfaceStructureType. */
+  int8_t structure_type;
+  char _pad[1];
   int identifier;
 } NodeClosureOutputItem;
 
@@ -2325,9 +2327,16 @@ typedef struct NodeClosureOutputItems {
   char _pad[4];
 } NodeClosureOutputItems;
 
+typedef enum NodeClosureFlag {
+  NODE_CLOSURE_FLAG_DEFINE_SIGNATURE = (1 << 0),
+} NodeClosureFlag;
+
 typedef struct NodeClosureOutput {
   NodeClosureInputItems input_items;
   NodeClosureOutputItems output_items;
+  /** #NodeClosureFlag. */
+  uint8_t flag;
+  char _pad[7];
 } NodeClosureOutput;
 
 typedef struct NodeEvaluateClosureInputItem {
@@ -2350,6 +2359,10 @@ typedef struct NodeEvaluateClosureOutputItem {
   int identifier;
 } NodeEvaluateClosureOutputItem;
 
+typedef enum NodeEvaluateClosureFlag {
+  NODE_EVALUATE_CLOSURE_FLAG_DEFINE_SIGNATURE = (1 << 0),
+} NodeEvaluateClosureFlag;
+
 typedef struct NodeEvaluateClosureInputItems {
   NodeEvaluateClosureInputItem *items;
   int items_num;
@@ -2369,6 +2382,9 @@ typedef struct NodeEvaluateClosureOutputItems {
 typedef struct NodeEvaluateClosure {
   NodeEvaluateClosureInputItems input_items;
   NodeEvaluateClosureOutputItems output_items;
+  /** #NodeEvaluateClosureFlag. */
+  uint8_t flag;
+  char _pad[7];
 } NodeEvaluateClosure;
 
 typedef struct IndexSwitchItem {
@@ -2489,30 +2505,46 @@ typedef struct NodeCombineBundleItem {
   char *name;
   int identifier;
   int16_t socket_type;
-  char _pad[2];
+  /** #NodeSocketInterfaceStructureType. */
+  int8_t structure_type;
+  char _pad[1];
 } NodeCombineBundleItem;
+
+typedef enum NodeCombineBundleFlag {
+  NODE_COMBINE_BUNDLE_FLAG_DEFINE_SIGNATURE = (1 << 0),
+} NodeCombineBundleFlag;
 
 typedef struct NodeCombineBundle {
   NodeCombineBundleItem *items;
   int items_num;
   int next_identifier;
   int active_index;
-  char _pad[4];
+  /** #NodeCombineBundleFlag. */
+  uint8_t flag;
+  char _pad[3];
 } NodeCombineBundle;
 
 typedef struct NodeSeparateBundleItem {
   char *name;
   int identifier;
   int16_t socket_type;
-  char _pad[2];
+  /** #NodeSocketInterfaceStructureType. */
+  int8_t structure_type;
+  char _pad[1];
 } NodeSeparateBundleItem;
+
+typedef enum NodeSeparateBundleFlag {
+  NODE_SEPARATE_BUNDLE_FLAG_DEFINE_SIGNATURE = (1 << 0),
+} NodeSeparateBundleFlag;
 
 typedef struct NodeSeparateBundle {
   NodeSeparateBundleItem *items;
   int items_num;
   int next_identifier;
   int active_index;
-  char _pad[4];
+  /** #NodeSeparateBundleFlag. */
+  uint8_t flag;
+  char _pad[3];
 } NodeSeparateBundle;
 
 typedef struct NodeFunctionFormatStringItem {

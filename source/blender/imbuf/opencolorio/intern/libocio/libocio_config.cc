@@ -80,6 +80,7 @@ LibOCIOConfig::LibOCIOConfig(const OCIO_NAMESPACE::ConstConfigRcPtr &ocio_config
 
   initialize_active_color_spaces();
   initialize_inactive_color_spaces();
+  initialize_hdr_color_spaces();
   initialize_looks();
   initialize_displays();
 }
@@ -362,6 +363,62 @@ const ColorSpace *LibOCIOConfig::get_color_space_by_interop_id(StringRefNull int
   }
 
   return nullptr;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name HDR image API
+ * \{ */
+
+const ColorSpace *LibOCIOConfig::get_color_space_for_hdr_image(StringRefNull name) const
+{
+  /* Based on emperical testing,  ideo works with 100 nits diffuse white, while
+   * images need 203 nits diffuse whites to show matching results. */
+  const ColorSpace *colorspece = get_color_space(name);
+  if (colorspece->interop_id() == "pq_rec2020_display") {
+    return get_color_space("blender:pq_rec2020_display_203nits");
+  }
+  if (colorspece->interop_id() == "hlg_rec2020_display") {
+    return get_color_space("blender:hlg_rec2020_display_203nits");
+  }
+  return nullptr;
+}
+
+void LibOCIOConfig::initialize_hdr_color_spaces()
+{
+  for (StringRefNull interop_id : {"pq_rec2020_display", "hlg_rec2020_display"}) {
+    const auto *colorspace = static_cast<const LibOCIOColorSpace *>(
+        get_color_space_by_interop_id(interop_id));
+    if (!colorspace || !colorspace->is_display_referred()) {
+      continue;
+    }
+
+    /* Create colorspace that uses 203 nits diffuse white instead of 100 nits. */
+    const auto hdr_100_colorspace = ocio_config_->getColorSpace(colorspace->name().c_str());
+    const auto hdr_colorspace = OCIO_NAMESPACE::ColorSpace::Create(
+        OCIO_NAMESPACE::REFERENCE_SPACE_DISPLAY);
+    const auto group = OCIO_NAMESPACE::GroupTransform::Create();
+
+    hdr_colorspace->setName(("blender:" + interop_id + "_203nits").c_str());
+
+    const auto to_203_nits = OCIO_NAMESPACE::MatrixTransform::Create();
+    to_203_nits->setMatrix(double4x4(double3x3::diagonal(203.0 / 100.0)).base_ptr());
+    group->appendTransform(to_203_nits);
+
+    const auto to_display = hdr_100_colorspace
+                                ->getTransform(OCIO_NAMESPACE::COLORSPACE_DIR_FROM_REFERENCE)
+                                ->createEditableCopy();
+    group->appendTransform(to_display);
+
+    hdr_colorspace->setTransform(group, OCIO_NAMESPACE::COLORSPACE_DIR_FROM_REFERENCE);
+
+    OCIO_NAMESPACE::Config *mutable_ocio_config = const_cast<OCIO_NAMESPACE::Config *>(
+        ocio_config_.get());
+    mutable_ocio_config->addColorSpace(hdr_colorspace);
+
+    inactive_color_spaces_.append_as(inactive_color_spaces_.size(), ocio_config_, hdr_colorspace);
+  }
 }
 
 /** \} */

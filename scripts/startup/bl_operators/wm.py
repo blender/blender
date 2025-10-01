@@ -27,6 +27,7 @@ from bpy.app.translations import (
     pgettext_rpt as rpt_,
     contexts as i18n_contexts,
 )
+from bpy_extras import anim_utils
 
 
 def _rna_path_prop_search_for_context_impl(context, edit_text, unique_attrs):
@@ -1841,15 +1842,19 @@ class WM_OT_properties_edit(Operator):
 
             def _update_strips(strips):
                 for st in strips:
-                    if st.type == 'CLIP' and st.action:
-                        _update(st.action.fcurves)
+                    if st.type == 'CLIP':
+                        channelbag = anim_utils.action_get_channelbag_for_slot(st.action, st.action_slot)
+                        if not channelbag:
+                            continue
+                        _update(channelbag.fcurves)
                     elif st.type == 'META':
                         _update_strips(st.strips)
 
             adt = getattr(item, "animation_data", None)
             if adt is not None:
-                if adt.action:
-                    _update(adt.action.fcurves)
+                channelbag = anim_utils.action_get_channelbag_for_slot(adt.action, adt.action_slot)
+                if channelbag:
+                    _update(channelbag.fcurves)
                 if adt.drivers:
                     _update(adt.drivers)
                 if adt.nla_tracks:
@@ -2915,7 +2920,7 @@ class WM_OT_batch_rename(Operator):
             'CURVE': ("curves", iface_("Curve(s)"), bpy.types.Curve),
             'META': ("metaballs", iface_("Metaball(s)"), bpy.types.MetaBall),
             'VOLUME': ("volumes", iface_("Volume(s)"), bpy.types.Volume),
-            'GREASEPENCIL': ("grease_pencils_v3", iface_("Grease Pencil(s)"), bpy.types.GreasePencilv3),
+            'GREASEPENCIL': ("grease_pencils", iface_("Grease Pencil(s)"), bpy.types.GreasePencil),
             'ARMATURE': ("armatures", iface_("Armature(s)"), bpy.types.Armature),
             'LATTICE': ("lattices", iface_("Lattice(s)"), bpy.types.Lattice),
             'LIGHT': ("lights", iface_("Light(s)"), bpy.types.Light),
@@ -3422,21 +3427,29 @@ class WM_MT_splash(Menu):
         col2 = split.column()
         col2_title = col2.row()
 
-        found_recent = col2.template_recent_files()
+        found_recent = col2.template_recent_files(rows=5)
 
         if found_recent:
             col2_title.label(text="Recent Files")
+
+            col_more = col2.column()
+            col_more.operator_context = 'INVOKE_DEFAULT'
+            more_props = col_more.operator("wm.search_single_menu", text="More...", icon='VIEWZOOM')
+            more_props.menu_idname = "TOPBAR_MT_file_open_recent"
         else:
             # Links if no recent files.
             col2_title.label(text="Getting Started")
 
             col2.operator("wm.url_open_preset", text="Manual", icon='URL').type = 'MANUAL'
-            col2.operator("wm.url_open", text="Tutorials", icon='URL').url = "https://www.blender.org/tutorials/"
             col2.operator("wm.url_open", text="Support", icon='URL').url = "https://www.blender.org/support/"
             col2.operator("wm.url_open", text="User Communities", icon='URL').url = "https://www.blender.org/community/"
+            col2.operator("wm.url_open", text="Get Involved", icon='URL').url = "https://www.blender.org/get-involved/"
             col2.operator("wm.url_open_preset", text="Blender Website", icon='URL').type = 'BLENDER'
 
-        layout.separator()
+        col_sep = layout.column()
+        col_sep.separator()
+        col_sep.separator(type='LINE')
+        col_sep.separator()
 
         split = layout.split()
 
@@ -3448,8 +3461,8 @@ class WM_MT_splash(Menu):
 
         col2 = split.column()
 
-        col2.operator("wm.url_open_preset", text="Donate", icon='FUND').type = 'FUND'
         col2.operator("wm.url_open_preset", text="What's New", icon='URL').type = 'RELEASE_NOTES'
+        col2.operator("wm.url_open_preset", text="Donate to Blender", icon='FUND').type = 'FUND'
 
         layout.separator()
 

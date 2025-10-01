@@ -69,10 +69,12 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Menu>("Quad Method")
       .static_items(rna_node_geometry_triangulate_quad_method_items)
       .default_value(geometry::TriangulateQuadMode::ShortEdge)
+      .optional_label()
       .description("Method for splitting the quads into triangles");
   b.add_input<decl::Menu>("N-gon Method")
       .default_value(geometry::TriangulateNGonMode::Beauty)
       .static_items(rna_node_geometry_triangulate_ngon_method_items)
+      .optional_label()
       .description("Method for splitting the n-gons into triangles");
 }
 

@@ -28,7 +28,6 @@ class NODE_OT_GLTF_SETTINGS(bpy.types.Operator):
             space is not None
             and space.type == "NODE_EDITOR"
             and context.object and context.object.active_material
-            and context.object.active_material.use_nodes is True
             and bpy.context.preferences.addons['io_scene_gltf2'].preferences.settings_node_ui is True
         )
 

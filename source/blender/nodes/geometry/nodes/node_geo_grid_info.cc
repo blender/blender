@@ -73,9 +73,7 @@ static void node_geo_exec(GeoNodeExecParams params)
         }
       });
 #else
-  params.set_default_remaining_outputs();
-  params.error_message_add(NodeWarningType::Error,
-                           TIP_("Disabled, Blender was compiled without OpenVDB"));
+  node_geo_exec_with_missing_openvdb(params);
 #endif
 }
 
@@ -89,7 +87,7 @@ static void node_rna(StructRNA *srna)
   RNA_def_node_enum(srna,
                     "data_type",
                     "Data Type",
-                    "Type of grid data",
+                    "Node socket data type",
                     rna_enum_node_socket_data_type_items,
                     NOD_inline_enum_accessors(custom1),
                     SOCK_FLOAT,

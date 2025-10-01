@@ -135,12 +135,40 @@ def osl_param_ensure_property(ccam, param):
 
     ui = ccam.id_properties_ui(name)
     ui.clear()
+    ui.update(default=tuple(default) if len(default) > 1 else default[0])
 
-    # Determine subtype (no unit support for now)
+    # Determine subtype (limited unit support for now)
     if param.type.vecsemantics == param.type.vecsemantics.COLOR:
         ui.update(subtype='COLOR')
+    elif param.type.vecsemantics == param.type.vecsemantics.POINT:
+        ui.update(subtype='TRANSLATION')
+    elif param.type.vecsemantics == param.type.vecsemantics.NORMAL:
+        ui.update(subtype='DIRECTION')
+    elif datatype is str and metadata.get('widget') == 'filename':
+        ui.update(subtype='FILE_PATH')
+    elif datatype is float and metadata.get('unit') == 'radians':
+        ui.update(subtype='ANGLE')
+    elif datatype is float and metadata.get('unit') == 'm':
+        ui.update(subtype='DISTANCE')
+    elif datatype is float and metadata.get('unit') in ('s', 'sec'):
+        ui.update(subtype='TIME_ABSOLUTE')
     elif metadata.get('slider'):
         ui.update(subtype='FACTOR')
+    elif datatype is int and metadata.get('widget') == 'mapper':
+        options = metadata.get('options', "")
+        options = options.split("|")
+        option_items = []
+        for option in options:
+            if ":" not in option:
+                continue
+            item, index = option.split(":")
+            # Ensure that the index can be converted to an integer
+            try:
+                int(index)
+            except ValueError:
+                continue
+            option_items.append((str(index), bpy.path.display_name(item), ""))
+        ui.update(items=option_items)
 
     # Map OSL metadata to Blender names
     option_map = {

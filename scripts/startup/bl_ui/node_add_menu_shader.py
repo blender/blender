@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-from bpy.types import Menu
 from bl_ui import node_add_menu
 from bpy.app.translations import (
     contexts as i18n_contexts,
@@ -367,6 +366,10 @@ class NODE_MT_shader_node_vector_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "ShaderNodeBump")
         self.node_operator(layout, "ShaderNodeDisplacement")
         self.node_operator(layout, "ShaderNodeMapping")
+        props = self.node_operator(layout, "ShaderNodeMix", label="Mix Vector")
+        ops = props.settings.add()
+        ops.name = "data_type"
+        ops.value = "'VECTOR'"
         self.node_operator(layout, "ShaderNodeNormal")
         self.node_operator(layout, "ShaderNodeNormalMap")
         self.node_operator(layout, "ShaderNodeRadialTiling")
@@ -401,6 +404,8 @@ class NODE_MT_shader_node_utilities_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "NodeEvaluateClosure")
         self.node_operator(layout, "NodeCombineBundle")
         self.node_operator(layout, "NodeSeparateBundle")
+        layout.separator()
+        self.node_operator(layout, "GeometryNodeMenuSwitch")
 
 
 class NODE_MT_shader_node_all_base(node_add_menu.NodeMenu):
@@ -412,6 +417,7 @@ class NODE_MT_shader_node_all_base(node_add_menu.NodeMenu):
     # & Swap menus can share the same layout while each using their
     # corresponding menus
     def draw(self, context):
+        del context
         layout = self.layout
         self.draw_menu(layout, "Input")
         self.draw_menu(layout, "Output")

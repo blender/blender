@@ -22,7 +22,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::String>("Path")
       .subtype(PROP_FILEPATH)
       .path_filter("*.stl")
-      .hide_label()
+      .optional_label()
       .description("Path to a STL file");
 
   b.add_output<decl::Geometry>("Mesh");

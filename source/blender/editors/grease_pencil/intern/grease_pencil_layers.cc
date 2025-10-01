@@ -118,7 +118,7 @@ static wmOperatorStatus grease_pencil_layer_add_exec(bContext *C, wmOperator *op
   std::string new_layer_name = RNA_string_get(op->ptr, "new_layer_name");
   Layer &new_layer = grease_pencil.add_layer(new_layer_name);
   WM_msg_publish_rna_prop(
-      CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencilv3, layers);
+      CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencil, layers);
 
   if (grease_pencil.has_active_layer()) {
     grease_pencil.move_node_after(new_layer.as_node(),
@@ -190,7 +190,7 @@ static wmOperatorStatus grease_pencil_layer_remove_exec(bContext *C, wmOperator 
   WM_msg_publish_rna_prop(
       CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencilv3Layers, active);
   WM_msg_publish_rna_prop(
-      CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencilv3, layers);
+      CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencil, layers);
 
   DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, &grease_pencil);
@@ -263,7 +263,7 @@ static wmOperatorStatus grease_pencil_layer_move_exec(bContext *C, wmOperator *o
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
 
   WM_msg_publish_rna_prop(
-      CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencilv3, layers);
+      CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencil, layers);
 
   return OPERATOR_FINISHED;
 }
@@ -344,7 +344,7 @@ static wmOperatorStatus grease_pencil_layer_group_add_exec(bContext *C, wmOperat
 
   LayerGroup &new_group = grease_pencil.add_layer_group(new_layer_group_name);
   WM_msg_publish_rna_prop(
-      CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencilv3, layer_groups);
+      CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencil, layer_groups);
 
   if (grease_pencil.has_active_layer()) {
     grease_pencil.move_node_after(new_group.as_node(),
@@ -410,7 +410,7 @@ static wmOperatorStatus grease_pencil_layer_group_remove_exec(bContext *C, wmOpe
   WM_msg_publish_rna_prop(
       CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencilv3LayerGroup, active);
   WM_msg_publish_rna_prop(
-      CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencilv3, layer_groups);
+      CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencil, layer_groups);
 
   return OPERATOR_FINISHED;
 }
@@ -655,7 +655,7 @@ static wmOperatorStatus grease_pencil_layer_duplicate_exec(bContext *C, wmOperat
       active_layer, duplicate_frames, duplicate_drawings);
 
   WM_msg_publish_rna_prop(
-      CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencilv3, layers);
+      CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencil, layers);
 
   grease_pencil.move_node_after(new_layer.as_node(), active_layer.as_node());
   grease_pencil.set_active_layer(&new_layer);
@@ -816,7 +816,7 @@ static wmOperatorStatus grease_pencil_merge_layer_exec(bContext *C, wmOperator *
   BKE_grease_pencil_nomain_to_grease_pencil(merged_grease_pencil, &grease_pencil);
 
   WM_msg_publish_rna_prop(
-      CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencilv3, layers);
+      CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencil, layers);
 
   /* Try to set the active (merged) layer. */
   TreeNode *node = grease_pencil.find_node_by_name(merged_layer_name);

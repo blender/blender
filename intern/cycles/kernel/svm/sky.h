@@ -134,7 +134,6 @@ ccl_device float3 geographical_to_direction(const float lat, const float lon)
 }
 
 ccl_device float3 sky_radiance_nishita(KernelGlobals kg,
-                                       const NodeSkyType type,
                                        const float3 dir,
                                        const uint32_t path_flag,
                                        const float3 pixel_bottom,
@@ -142,7 +141,7 @@ ccl_device float3 sky_radiance_nishita(KernelGlobals kg,
                                        const ccl_private float *sky_data,
                                        const uint texture_id)
 {
-  /* definitions */
+  /* Definitions */
   const float sun_elevation = sky_data[0];
   const float sun_rotation = sky_data[1];
   const float angular_diameter = sky_data[2];
@@ -150,49 +149,32 @@ ccl_device float3 sky_radiance_nishita(KernelGlobals kg,
   const float earth_intersection_angle = sky_data[4];
   const bool sun_disc = (angular_diameter >= 0.0f);
   float3 xyz = zero_float3();
-  /* convert dir to spherical coordinates */
   const float2 direction = direction_to_spherical(dir);
-  /* definitions */
   const float3 sun_dir = spherical_to_direction(sun_elevation - M_PI_2_F, sun_rotation - M_PI_2_F);
   const float sun_dir_angle = precise_angle(dir, sun_dir);
   const float half_angular = angular_diameter * 0.5f;
   const float dir_elevation = M_PI_2_F - direction.x;
 
-  /* If the ray is inside the sun disc, render it, otherwise render the sky.
-   * Alternatively, ignore the sun if we're evaluating the background texture. */
+  /* If the ray is inside the Sun disc, render it, otherwise render the sky.
+   * Alternatively, ignore the Sun if we're evaluating the background texture. */
   if (sun_disc && sun_dir_angle < half_angular && dir_elevation > earth_intersection_angle &&
       !((path_flag & PATH_RAY_IMPORTANCE_BAKE) && kernel_data.background.use_sun_guiding))
   {
-    /* sun interpolation */
+    /* Sun interpolation */
     const float y = ((dir_elevation - sun_elevation) / angular_diameter) + 0.5f;
-    /* limb darkening, coefficient is 0.6f */
+    /* Limb darkening, coefficient is 0.6f */
     const float limb_darkening = (1.0f -
                                   0.6f * (1.0f - sqrtf(1.0f - sqr(sun_dir_angle / half_angular))));
     xyz = mix(pixel_bottom, pixel_top, y) * sun_intensity * limb_darkening;
   }
 
-  /* sky */
+  /* Sky */
   const float x = fractf((-direction.y - M_PI_2_F + sun_rotation) * M_1_2PI_F);
-  if (dir.z > 0.0f) {
-    /* sky interpolation */
-    /* more pixels toward horizon compensation */
-    const float y = safe_sqrtf(dir_elevation * M_2_PI_F) * 0.5f + 0.5f;
-    xyz += make_float3(kernel_tex_image_interp(kg, texture_id, x, y));
-  }
-  /* ground */
-  else if (type == NODE_SKY_MULTIPLE_SCATTERING) {
-    const float y = -safe_sqrtf(-dir_elevation * M_2_PI_F) * 0.5f + 0.5f;
-    xyz += make_float3(kernel_tex_image_interp(kg, texture_id, x, y));
-  }
-  else if (dir.z >= -0.4f) {
-    /* black ground fade */
-    float fade = 1.0f + dir.z * 2.5f;
-    fade = sqr(fade) * fade;
-    /* interpolation */
-    xyz += make_float3(kernel_tex_image_interp(kg, texture_id, x, 0.508f)) * fade;
-  }
+  /* Undo the non-linear transformation from the sky LUT */
+  const float y = copysignf(sqrtf(fabsf(dir_elevation) * M_2_PI_F), dir_elevation) * 0.5f + 0.5f;
+  xyz += make_float3(kernel_tex_image_interp(kg, texture_id, x, y));
 
-  /* convert to RGB */
+  /* Convert to RGB */
   return xyz_to_rgb_clamped(kg, xyz);
 }
 
@@ -317,8 +299,7 @@ ccl_device_noinline int svm_node_tex_sky(KernelGlobals kg,
     const uint texture_id = __float_as_uint(data.w);
 
     /* Compute Sky */
-    rgb = sky_radiance_nishita(
-        kg, sky_type, dir, path_flag, pixel_bottom, pixel_top, sky_data, texture_id);
+    rgb = sky_radiance_nishita(kg, dir, path_flag, pixel_bottom, pixel_top, sky_data, texture_id);
   }
 
   stack_store_float3(stack, out_offset, rgb);

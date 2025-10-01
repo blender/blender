@@ -52,10 +52,12 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Menu>("UV Smooth")
       .static_items(rna_enum_subdivision_uv_smooth_items)
       .default_value(SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES)
+      .optional_label()
       .description("Controls how smoothing is applied to UVs");
   b.add_input<decl::Menu>("Boundary Smooth")
       .static_items(rna_enum_subdivision_boundary_smooth_items)
       .default_value(SUBSURF_BOUNDARY_SMOOTH_ALL)
+      .optional_label()
       .description("Controls how open boundaries are smoothed");
 }
 

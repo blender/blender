@@ -1134,6 +1134,9 @@ class ViewerDataTreeView : public ui::AbstractTreeView {
   void build_tree() override
   {
     const nodes::geo_eval_log::ViewerNodeLog *log = viewer_node_log_lookup(sspreadsheet_);
+    if (!log) {
+      return;
+    }
     for (const nodes::geo_eval_log::ViewerNodeLog::Item &item : log->items) {
       const bke::SocketValueVariant &value = item.value;
       auto &child_item = this->add_tree_item<ViewerNodeItem>(item);

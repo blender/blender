@@ -17,6 +17,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_brush_types.h"
+#include "DNA_camera_types.h"
 #include "DNA_curves_types.h"
 #include "DNA_genfile.h"
 #include "DNA_grease_pencil_types.h"
@@ -66,11 +67,17 @@
 
 #include "BLO_read_write.hh"
 
+#include "SEQ_edit.hh"
+#include "SEQ_effects.hh"
 #include "SEQ_iterator.hh"
 #include "SEQ_modifier.hh"
+#include "SEQ_relations.hh"
 #include "SEQ_sequencer.hh"
+#include "SEQ_utils.hh"
 
 #include "WM_api.hh"
+
+#include "AS_asset_library.hh"
 
 #include "readfile.hh"
 
@@ -2445,6 +2452,51 @@ static void do_version_bokeh_blur_pixel_size(bNodeTree &node_tree, bNode &node)
   }
 }
 
+static bool window_has_sequence_editor_open(const wmWindow *win)
+{
+  bScreen *screen = WM_window_get_active_screen(win);
+  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+    LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+      if (sl->spacetype == SPACE_SEQ) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/* Merge transform effect properties with strip transform. Because this effect could use modifiers,
+ * change its type to gaussian blur with 0 radius. */
+static void sequencer_substitute_transform_effects(Scene *scene)
+{
+  blender::seq::for_each_callback(&scene->ed->seqbase, [&](Strip *strip) -> bool {
+    if (strip->type == STRIP_TYPE_TRANSFORM_LEGACY && strip->effectdata != nullptr) {
+      TransformVarsLegacy *tv = static_cast<TransformVarsLegacy *>(strip->effectdata);
+      StripTransform *transform = strip->data->transform;
+      blender::float2 offset(tv->xIni, tv->yIni);
+      if (tv->percent == 1) {
+        blender::float2 scene_resolution(scene->r.xsch, scene->r.ysch);
+        offset *= scene_resolution;
+      }
+      transform->xofs += offset.x;
+      transform->yofs += offset.y;
+      transform->scale_x *= tv->ScalexIni;
+      transform->scale_y *= tv->ScaleyIni;
+      transform->rotation += tv->rotIni;
+      blender::seq::EffectHandle sh = blender::seq::strip_effect_handle_get(strip);
+      sh.free(strip, true);
+      strip->type = STRIP_TYPE_GAUSSIAN_BLUR;
+      sh = blender::seq::strip_effect_handle_get(strip);
+      sh.init(strip);
+      GaussianBlurVars *gv = static_cast<GaussianBlurVars *>(strip->effectdata);
+      gv->size_x = gv->size_y = 0.0f;
+      blender::seq::edit_strip_name_set(scene, strip, "Transform Placeholder (Migrated)");
+      blender::seq::ensure_unique_name(strip, scene);
+    }
+    return true;
+  });
+}
+
 void do_versions_after_linking_500(FileData *fd, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 9)) {
@@ -2536,9 +2588,21 @@ void do_versions_after_linking_500(FileData *fd, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 63)) {
     LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
       LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-        Scene *scene = WM_window_get_active_scene(win);
-        WorkSpace *workspace = WM_window_get_active_workspace(win);
-        workspace->sequencer_scene = scene;
+        if (window_has_sequence_editor_open(win)) {
+          Scene *scene = WM_window_get_active_scene(win);
+          if (scene->ed != nullptr) {
+            WorkSpace *workspace = WM_window_get_active_workspace(win);
+            workspace->sequencer_scene = scene;
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 97)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->ed != nullptr) {
+        sequencer_substitute_transform_effects(scene);
       }
     }
   }
@@ -2729,8 +2793,8 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       ToolSettings *ts = scene->toolsettings;
       if (ts->uv_selectmode & uv_select_island) {
-        ts->uv_selectmode = UV_SELECT_VERTEX;
-        ts->uv_flag |= UV_FLAG_ISLAND_SELECT;
+        ts->uv_selectmode = UV_SELECT_VERT;
+        ts->uv_flag |= UV_FLAG_SELECT_ISLAND;
       }
     }
   }
@@ -3667,6 +3731,31 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
     do_version_adaptive_subdivision(bmain);
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 95)) {
+    LISTBASE_FOREACH (Camera *, camera, &bmain->cameras) {
+      float default_col[4] = {0.5f, 0.5f, 0.5f, 1.0f};
+      copy_v4_v4(camera->composition_guide_color, default_col);
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 97)) {
+    /* Enable new "Optional Label" setting for all menu sockets. This was implicit before. */
+    FOREACH_NODETREE_BEGIN (bmain, tree, id) {
+      tree->tree_interface.foreach_item([&](bNodeTreeInterfaceItem &item) {
+        if (item.item_type != NODE_INTERFACE_SOCKET) {
+          return true;
+        }
+        auto &socket = reinterpret_cast<bNodeTreeInterfaceSocket &>(item);
+        if (!STREQ(socket.socket_type, "NodeSocketMenu")) {
+          return true;
+        }
+        socket.flag |= NODE_INTERFACE_SOCKET_OPTIONAL_LABEL;
+        return true;
+      });
+    }
+    FOREACH_NODETREE_END;
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
@@ -3679,4 +3768,7 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
   LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
     bke::mesh_freestyle_marks_to_generic(*mesh);
   }
+
+  /* TODO: Can be moved to subversion bump. */
+  AS_asset_library_import_method_ensure_valid(*bmain);
 }

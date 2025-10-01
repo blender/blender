@@ -161,7 +161,8 @@ void draw_mask_input_type_settings(const bContext *C, uiLayout *layout, PointerR
     MetaStack *ms = meta_stack_active_get(ed);
     PointerRNA sequences_object;
     if (ms) {
-      sequences_object = RNA_pointer_create_discrete(&sequencer_scene->id, &RNA_MetaStrip, ms);
+      sequences_object = RNA_pointer_create_discrete(
+          &sequencer_scene->id, &RNA_MetaStrip, ms->parent_strip);
     }
     else {
       sequences_object = RNA_pointer_create_discrete(
@@ -325,6 +326,7 @@ void apply_and_advance_mask(float4 /*input*/, float4 & /*result*/, const void *&
  * \a timeline_frame is offset by \a fra_offset only in case we are using a real mask.
  */
 static ImBuf *modifier_render_mask_input(const RenderData *context,
+                                         SeqRenderState *state,
                                          int mask_input_type,
                                          Strip *mask_strip,
                                          Mask *mask_id,
@@ -335,8 +337,7 @@ static ImBuf *modifier_render_mask_input(const RenderData *context,
 
   if (mask_input_type == STRIP_MASK_INPUT_STRIP) {
     if (mask_strip) {
-      SeqRenderState state;
-      mask_input = seq_render_strip(context, &state, mask_strip, timeline_frame);
+      mask_input = seq_render_strip(context, state, mask_strip, timeline_frame);
     }
   }
   else if (mask_input_type == STRIP_MASK_INPUT_ID) {
@@ -352,11 +353,17 @@ static ImBuf *modifier_render_mask_input(const RenderData *context,
 
 static ImBuf *modifier_mask_get(StripModifierData *smd,
                                 const RenderData *context,
+                                SeqRenderState *state,
                                 int timeline_frame,
                                 int fra_offset)
 {
-  return modifier_render_mask_input(
-      context, smd->mask_input_type, smd->mask_strip, smd->mask_id, timeline_frame, fra_offset);
+  return modifier_render_mask_input(context,
+                                    state,
+                                    smd->mask_input_type,
+                                    smd->mask_strip,
+                                    smd->mask_id,
+                                    timeline_frame,
+                                    fra_offset);
 }
 
 /* -------------------------------------------------------------------- */
@@ -371,6 +378,7 @@ static void modifier_types_init(StripModifierTypeInfo *types[])
   INIT_TYPE(None);
   INIT_TYPE(BrightContrast);
   INIT_TYPE(ColorBalance);
+  INIT_TYPE(Compositor);
   INIT_TYPE(Curves);
   INIT_TYPE(HueCorrect);
   INIT_TYPE(Mask);
@@ -495,6 +503,7 @@ static bool skip_modifier(Scene *scene, const StripModifierData *smd, int timeli
 }
 
 void modifier_apply_stack(const RenderData *context,
+                          SeqRenderState *state,
                           const Strip *strip,
                           ImBuf *ibuf,
                           int timeline_frame)
@@ -527,8 +536,8 @@ void modifier_apply_stack(const RenderData *context,
         frame_offset = smd->mask_id ? ((Mask *)smd->mask_id)->sfra : 0;
       }
 
-      ImBuf *mask = modifier_mask_get(smd, context, timeline_frame, frame_offset);
-      smti->apply(quad, smd, ibuf, mask);
+      ImBuf *mask = modifier_mask_get(smd, context, state, timeline_frame, frame_offset);
+      smti->apply(context, quad, smd, ibuf, mask);
       if (mask) {
         IMB_freeImBuf(mask);
       }

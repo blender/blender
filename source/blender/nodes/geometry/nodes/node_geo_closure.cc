@@ -42,15 +42,23 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
   layout->use_property_split_set(true);
   layout->use_property_decorate_set(false);
 
+  PointerRNA output_node_ptr = RNA_pointer_create_discrete(&ntree.id, &RNA_Node, &output_node);
+
   layout->op("node.sockets_sync", "Sync", ICON_FILE_REFRESH);
+  layout->prop(&output_node_ptr, "define_signature", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (current_node->type_legacy == NODE_CLOSURE_INPUT) {
     if (uiLayout *panel = layout->panel(C, "input_items", false, TIP_("Input Items"))) {
       socket_items::ui::draw_items_list_with_operators<ClosureInputItemsAccessor>(
           C, panel, ntree, output_node);
       socket_items::ui::draw_active_item_props<ClosureInputItemsAccessor>(
           ntree, output_node, [&](PointerRNA *item_ptr) {
+            const auto &item = *item_ptr->data_as<NodeClosureInputItem>();
+            panel->use_property_split_set(true);
+            panel->use_property_decorate_set(false);
             panel->prop(item_ptr, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-            panel->prop(item_ptr, "structure_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+            if (!socket_type_always_single(eNodeSocketDatatype(item.socket_type))) {
+              panel->prop(item_ptr, "structure_type", UI_ITEM_NONE, "Shape", ICON_NONE);
+            }
           });
     }
   }
@@ -60,7 +68,13 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
           C, panel, ntree, output_node);
       socket_items::ui::draw_active_item_props<ClosureOutputItemsAccessor>(
           ntree, output_node, [&](PointerRNA *item_ptr) {
+            const auto &item = *item_ptr->data_as<NodeClosureOutputItem>();
+            panel->use_property_split_set(true);
+            panel->use_property_decorate_set(false);
             panel->prop(item_ptr, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+            if (!socket_type_always_single(eNodeSocketDatatype(item.socket_type))) {
+              panel->prop(item_ptr, "structure_type", UI_ITEM_NONE, "Shape", ICON_NONE);
+            }
           });
     }
   }
@@ -83,7 +97,13 @@ static void node_declare(NodeDeclarationBuilder &b)
         const NodeClosureInputItem &item = output_storage.input_items.items[i];
         const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
         const std::string identifier = ClosureInputItemsAccessor::socket_identifier_for_item(item);
-        b.add_output(socket_type, item.name, identifier);
+        auto &decl = b.add_output(socket_type, item.name, identifier);
+        if (item.structure_type != NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO) {
+          decl.structure_type(StructureType(item.structure_type));
+        }
+        else {
+          decl.structure_type(StructureType::Dynamic);
+        }
       }
     }
   }
@@ -149,7 +169,13 @@ static void node_declare(NodeDeclarationBuilder &b)
       const NodeClosureOutputItem &item = storage.output_items.items[i];
       const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
       const std::string identifier = ClosureOutputItemsAccessor::socket_identifier_for_item(item);
-      b.add_input(socket_type, item.name, identifier).supports_field();
+      auto &decl = b.add_input(socket_type, item.name, identifier).supports_field();
+      if (item.structure_type != NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO) {
+        decl.structure_type(StructureType(item.structure_type));
+      }
+      else {
+        decl.structure_type(StructureType::Dynamic);
+      }
     }
   }
   b.add_input<decl::Extend>("", "__extend__");

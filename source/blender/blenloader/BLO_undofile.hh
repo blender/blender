@@ -10,20 +10,18 @@
  */
 
 #include "BLI_filereader.h"
+#include "BLI_implicit_sharing.hh"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
 
-namespace blender {
-class ImplicitSharingInfo;
-}
 struct Main;
 struct Scene;
 
 struct MemFileSharedStorage {
   /**
-   * Maps the data pointer to the sharing info that it is owned by.
+   * Maps the address id to the shared data and corresponding sharing info..
    */
-  blender::Map<const void *, const blender::ImplicitSharingInfo *> map;
+  blender::Map<uint64_t, blender::ImplicitSharingInfoAndData> sharing_info_by_address_id;
 
   ~MemFileSharedStorage();
 };

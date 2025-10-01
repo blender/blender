@@ -16,6 +16,7 @@
 #  include "BLI_winstuff.h"
 #endif
 
+#include "BLI_fileops.h"
 #include "BLI_filereader.h"
 #include "BLI_map.hh"
 
@@ -82,6 +83,7 @@ struct FileData {
   BlenderHeader blender_header = {};
 
   FileReader *file = nullptr;
+  std::optional<BLI_stat_t> file_stat;
 
   /**
    * Whether we are undoing (< 0) or redoing (> 0), used to choose which 'unchanged' flag to use
@@ -118,6 +120,8 @@ struct FileData {
   /** Used to retrieve asset data from (bhead+1). NOTE: This may not be available in old files,
    * will be -1 then! */
   int id_asset_data_offset = 0;
+  int id_flag_offset = 0;
+  int id_deep_hash_offset = 0;
   /** For do_versions patching. */
   int globalf = 0;
   int fileflags = 0;
@@ -135,6 +139,8 @@ struct FileData {
 
   OldNewMap *datamap = nullptr;
   OldNewMap *globmap = nullptr;
+  /** Used to keep track of already loaded packed IDs to avoid loading them multiple times. */
+  std::shared_ptr<blender::Map<IDHash, ID *>> id_by_deep_hash;
 
   /**
    * Store mapping from old ID pointers (the values they have in the .blend file) to new ones,
@@ -189,9 +195,22 @@ struct FileData {
   void *storage_handle = nullptr;
 };
 
-/***/
+/**
+ * Split a single main into a vector of Mains, each containing only IDs from a given library.
+ *
+ * The vector is accessible in all of the split mains through the shared pointer
+ * #Main::split_mains.
+ *
+ * The first Main of the vector is the same as the given `main`, and contains local IDs.
+ *
+ * If `do_split_packed_ids` is `false`, packed linked IDs remain in the local (first) main as well.
+ */
+void blo_split_main(Main *bmain, bool do_split_packed_ids = true);
+/**
+ * Join the set of split mains (found in given `main` #Main::split_mains vector shared pointer)
+ * back into that 'main' main.
+ */
 void blo_join_main(Main *bmain);
-void blo_split_main(Main *bmain);
 
 BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath) ATTR_NONNULL(1, 2);
 
@@ -232,6 +251,13 @@ BHead *blo_bhead_prev(FileData *fd, BHead *thisblock) ATTR_NONNULL(1, 2);
  * it was saved in a version of Blender with higher MAX_ID_NAME value).
  */
 const char *blo_bhead_id_name(FileData *fd, const BHead *bhead);
+/**
+ * Warning! It's the caller's responsibility to ensure that the given bhead **is** an ID one!
+ *
+ * Returns the ID flag value (or `0` if the blendfile is too old and the offset of the ID::flag
+ * member could not be computed).
+ */
+short blo_bhead_id_flag(const FileData *fd, const BHead *bhead);
 /**
  * Warning! Caller's responsibility to ensure given bhead **is** an ID one!
  */

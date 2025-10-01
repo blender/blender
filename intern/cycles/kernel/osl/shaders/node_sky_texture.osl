@@ -163,28 +163,11 @@ color sky_radiance_nishita(vector dir, float sky_data[11], string filename, stri
   if (x > 1.0) {
     x = x - 1.0;
   }
-  color rgb_sky;
-  if (sky_type == "single_scattering" && dir[2] < 0.0) {
-    /* Fade ground to black for Single Scattering model and disable Sun disc below horizon */
-    rgb_sun = color(0.0, 0.0, 0.0);
-    if (dir[2] < -0.4) {
-      rgb_sky = color(0.0, 0.0, 0.0);
-    }
-    else {
-      float fade = pow(1.0 + dir[2] * 2.5, 3.0);
-      color xyz = (color)texture(
-          filename, x, 0.492, "wrap", "periodic", "interp", "linear", "alpha", alpha);
-      rgb_sky = xyz_to_rgb(xyz[0], xyz[1], xyz[2]) * fade;
-    }
-  }
-  else {
-    /* Undo the non-linear transformation from the sky LUT */
-    float dir_elevation_abs = (dir_elevation < 0.0) ? -dir_elevation : dir_elevation;
-    float y = 1.0 - (sqrt(dir_elevation_abs / M_PI_2) * signx(dir_elevation) * 0.5 + 0.5);
-    color xyz = (color)texture(
-        filename, x, y, "wrap", "clamp", "interp", "linear", "alpha", alpha);
-    rgb_sky = xyz_to_rgb(xyz[0], xyz[1], xyz[2]);
-  }
+  /* Undo the non-linear transformation from the sky LUT */
+  float dir_elevation_abs = (dir_elevation < 0.0) ? -dir_elevation : dir_elevation;
+  float y = 1.0 - (sqrt(dir_elevation_abs / M_PI_2) * signx(dir_elevation) * 0.5 + 0.5);
+  color xyz = (color)texture(filename, x, y, "wrap", "clamp", "interp", "linear", "alpha", alpha);
+  color rgb_sky = xyz_to_rgb(xyz[0], xyz[1], xyz[2]);
 
   return rgb_sun * sun_intensity + rgb_sky;
 }

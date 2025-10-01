@@ -472,6 +472,7 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_motion_blur_flatten_comp.glsl
   engines/eevee/shaders/eevee_motion_blur_gather_comp.glsl
   engines/eevee/shaders/eevee_motion_blur_lib.glsl
+  engines/eevee/shaders/eevee_nodetree_closures_lib.glsl
   engines/eevee/shaders/eevee_nodetree_frag_lib.glsl
   engines/eevee/shaders/eevee_nodetree_lib.glsl
   engines/eevee/shaders/eevee_nodetree_vert_lib.glsl

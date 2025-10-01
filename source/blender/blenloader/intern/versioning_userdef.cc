@@ -375,6 +375,17 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_view3d.freestyle);
   }
 
+  if (!USER_VERSION_ATLEAST(500, 93)) {
+    FROM_DEFAULT_V4_UCHAR(tui.wcol_curve.text);
+    FROM_DEFAULT_V4_UCHAR(tui.wcol_curve.text_sel);
+    FROM_DEFAULT_V4_UCHAR(tui.wcol_curve.item);
+    FROM_DEFAULT_V4_UCHAR(tui.wcol_curve.inner);
+    FROM_DEFAULT_V4_UCHAR(tui.wcol_curve.inner_sel);
+    FROM_DEFAULT_V4_UCHAR(tui.wcol_curve.outline);
+    FROM_DEFAULT_V4_UCHAR(tui.wcol_curve.outline_sel);
+    btheme->tui.wcol_curve.roundness = U_theme_default.tui.wcol_curve.roundness;
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a USER_VERSION_ATLEAST check.
@@ -1666,6 +1677,18 @@ void blo_do_versions_userdef(UserDef *userdef)
         userdef, "VIEW3D_AST_brush_texture_paint", "Brushes/Mesh Texture Paint/Pixel Art");
     BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
         userdef, "VIEW3D_AST_brush_texture_paint", "Brushes/Mesh Texture Paint/Utilities");
+  }
+
+  if (!USER_VERSION_ATLEAST(500, 94)) {
+    /* Force-reset file compression to ON, see #135735. */
+    userdef->flag |= USER_FILECOMPRESS;
+  }
+
+  if (!USER_VERSION_ATLEAST(500, 96)) {
+    /* Increase the number of recently-used files if using the old default value. */
+    if (userdef->recent_files == 20) {
+      userdef->recent_files = 200;
+    }
   }
 
   /**

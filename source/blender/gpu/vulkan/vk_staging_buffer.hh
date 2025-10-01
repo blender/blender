@@ -78,5 +78,10 @@ class VKStagingBuffer {
    * In case a reference of the staging buffer is kept, but the host resource isn't needed anymore.
    */
   void free();
+
+  VkDeviceSize size_in_bytes_get() const
+  {
+    return region_size_;
+  }
 };
 }  // namespace blender::gpu

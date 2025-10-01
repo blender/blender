@@ -38,7 +38,8 @@ static void cmp_node_levels_declare(NodeDeclarationBuilder &b)
       .structure_type(StructureType::Dynamic);
   b.add_input<decl::Menu>("Channel")
       .default_value(CMP_NODE_LEVLES_LUMINANCE)
-      .static_items(channel_items);
+      .static_items(channel_items)
+      .optional_label();
 
   b.add_output<decl::Float>("Mean");
   b.add_output<decl::Float>("Standard Deviation");

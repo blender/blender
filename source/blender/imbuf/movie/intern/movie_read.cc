@@ -126,8 +126,8 @@ static void probe_video_colorspace(MovieReader *anim, char r_colorspace_name[IM_
                        anim->pCodecCtx->color_trc,
                        anim->pCodecCtx->colorspace,
                        anim->pCodecCtx->color_range};
-  const bool for_video = true;
-  const ColorSpace *colorspace = IMB_colormanagement_space_from_cicp(cicp, for_video);
+  const ColorSpace *colorspace = IMB_colormanagement_space_from_cicp(
+      cicp, ColorManagedFileOutput::Video);
 
   if (colorspace == nullptr) {
     return;
@@ -1329,7 +1329,8 @@ static ImBuf *ffmpeg_fetchibuf(MovieReader *anim, int position, IMB_Timecode_Typ
        * It might not be the most optimal thing to do from the playback performance in the
        * sequencer perspective, but it ensures that other areas in Blender do not run into obscure
        * color space mismatches. */
-      colormanage_imbuf_make_linear(cur_frame_final, anim->colorspace);
+      colormanage_imbuf_make_linear(
+          cur_frame_final, anim->colorspace, ColorManagedFileOutput::Video);
     }
   }
   else {

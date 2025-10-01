@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'7089def6cbcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-22 08:45+0000\n"
+"POT-Creation-Date: 2025-09-29 09:33+0000\n"
 "PO-Revision-Date: 2025-07-23 15:18+0000\n"
 "Last-Translator: Aras Pranckevičius <aras@nesnausk.org>\n"
 "Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
@@ -825,12 +825,12 @@ msgid "Type of data stored in attribute"
 msgstr "Duomenų laikomų atribute tipas"
 
 
+msgid "Boolean"
+msgstr "Loginis"
+
+
 msgid "Vector"
 msgstr "Vektorius"
-
-
-msgid "Byte Color"
-msgstr "Baitų spalva"
 
 
 msgid "String"
@@ -841,8 +841,8 @@ msgid "Text string"
 msgstr "Teksto eilutė"
 
 
-msgid "Boolean"
-msgstr "Loginis"
+msgid "Byte Color"
+msgstr "Baitų spalva"
 
 
 msgid "Face"
@@ -3097,12 +3097,8 @@ msgid "Dots"
 msgstr "Taškai"
 
 
-msgid "Show/Hide"
-msgstr "Rodyti/Slėpti"
-
-
-msgid "Text"
-msgstr "Tekstas"
+msgid "Layout"
+msgstr "Išdėstymas/Maketas"
 
 
 msgid "Apply"
@@ -3111,6 +3107,18 @@ msgstr "Pritaikyti"
 
 msgid "Track"
 msgstr "Sekti"
+
+
+msgid "Show/Hide"
+msgstr "Rodyti/Slėpti"
+
+
+msgid "Text"
+msgstr "Tekstas"
+
+
+msgid "Import"
+msgstr "Importuoti"
 
 
 msgid "Animals"
@@ -3131,14 +3139,6 @@ msgstr "Failai"
 
 msgid "NLA"
 msgstr "„NLA“"
-
-
-msgid "Import"
-msgstr "Importuoti"
-
-
-msgid "Layout"
-msgstr "Išdėstymas/Maketas"
 
 
 msgid "Add Modifier"
@@ -3910,16 +3910,6 @@ msgid "ID From"
 msgstr "ID iš"
 
 
-msgctxt "ID"
-msgid "Modifier"
-msgstr "Keitiklis"
-
-
-msgctxt "ID"
-msgid "Tool"
-msgstr "Įrankis"
-
-
 msgid "Blender File"
 msgstr "„Blender“ failas"
 
@@ -3955,6 +3945,11 @@ msgstr "Filtravimo būdas"
 
 msgid "Filter based on the operator name"
 msgstr "Filtruoti pagal operatoriaus/-ės vardą"
+
+
+msgctxt "ID"
+msgid "Tool"
+msgstr "Įrankis"
 
 
 msgid "Scene Properties"

@@ -49,6 +49,7 @@ static uint64_t hash(const std::string &name)
 
 enum Builtin : uint64_t {
   FragCoord = hash("gl_FragCoord"),
+  FragStencilRef = hash("gl_FragStencilRefARB"),
   FrontFacing = hash("gl_FrontFacing"),
   GlobalInvocationID = hash("gl_GlobalInvocationID"),
   InstanceID = hash("gl_InstanceID"),
@@ -1345,6 +1346,7 @@ class Preprocessor {
     using namespace metadata;
     /* TODO: This can trigger false positive caused by disabled #if blocks. */
     std::string tokens[] = {"gl_FragCoord",
+                            "gl_FragStencilRefARB",
                             "gl_FrontFacing",
                             "gl_GlobalInvocationID",
                             "gl_InstanceID",

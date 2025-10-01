@@ -117,7 +117,7 @@ static void imb_handle_colorspace_and_alpha(ImBuf *ibuf,
     }
   }
 
-  colormanage_imbuf_make_linear(ibuf, new_colorspace);
+  colormanage_imbuf_make_linear(ibuf, new_colorspace, ColorManagedFileOutput::Image);
 }
 
 ImBuf *IMB_load_image_from_memory(const uchar *mem,

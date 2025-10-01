@@ -13,16 +13,14 @@ from .search_node_tree import \
     gather_color_info
 
 
-def detect_shadeless_material(blender_material_node_tree, use_nodes, export_settings):
+def detect_shadeless_material(blender_material_node_tree, export_settings):
     """Detect if this material is "shadeless" ie. should be exported
     with KHR_materials_unlit. Returns None if not. Otherwise, returns
     a dict with info from parsing the node tree.
     """
-    if not use_nodes:
-        return None
 
     # Old Background node detection (unlikely to happen)
-    bg_socket = get_socket(blender_material_node_tree, use_nodes, "Background")
+    bg_socket = get_socket(blender_material_node_tree, "Background")
     if bg_socket.socket is not None:
         return {'rgb_socket': bg_socket}
 

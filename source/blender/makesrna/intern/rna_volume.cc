@@ -29,7 +29,7 @@ const EnumPropertyItem rna_enum_volume_grid_data_type_items[] = {
     {VOLUME_GRID_INT, "INT", 0, "Integer", "32-bit integer"},
     {VOLUME_GRID_INT64, "INT64", 0, "Integer 64-bit", "64-bit integer"},
     {VOLUME_GRID_MASK, "MASK", 0, "Mask", "No data, boolean mask of active voxels"},
-    {VOLUME_GRID_VECTOR_FLOAT, "VECTOR_FLOAT", 0, "Float Vector", "3D float vector"},
+    {VOLUME_GRID_VECTOR_FLOAT, "VECTOR_FLOAT", 0, "Vector", "3D float vector"},
     {VOLUME_GRID_VECTOR_DOUBLE, "VECTOR_DOUBLE", 0, "Double Vector", "3D double vector"},
     {VOLUME_GRID_VECTOR_INT, "VECTOR_INT", 0, "Integer Vector", "3D integer vector"},
     {VOLUME_GRID_POINTS,
@@ -539,6 +539,17 @@ static void rna_def_volume_render(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, space_items);
   RNA_def_property_ui_text(
       prop, "Space", "Specify volume density and step size in object or world space");
+  RNA_def_property_update(prop, 0, "rna_Volume_update_display");
+
+  prop = RNA_def_property(srna, "step_size", PROP_FLOAT, PROP_DISTANCE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_range(prop, 0.0, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.0, 100.0, 1, 3);
+  RNA_def_property_ui_text(prop,
+                           "Step Size",
+                           "Distance between volume samples. Lower values render more detail at "
+                           "the cost of performance. If set to zero, the step size is "
+                           "automatically determined based on voxel size.");
   RNA_def_property_update(prop, 0, "rna_Volume_update_display");
 
   prop = RNA_def_property(srna, "clipping", PROP_FLOAT, PROP_NONE);

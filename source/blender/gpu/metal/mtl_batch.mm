@@ -101,8 +101,7 @@ bool MTLBatch::MTLVertexDescriptorCache::insert(
 int MTLBatch::prepare_vertex_binding(MTLVertBuf *verts,
                                      MTLRenderPipelineStateDescriptor &desc,
                                      const MTLShaderInterface *interface,
-                                     uint16_t &attr_mask,
-                                     bool instanced)
+                                     uint16_t &attr_mask)
 {
 
   const GPUVertFormat *format = &verts->format;
@@ -163,14 +162,13 @@ int MTLBatch::prepare_vertex_binding(MTLVertBuf *verts,
         if (!buffer_added) {
           buffer_index = desc.vertex_descriptor.num_vert_buffers;
           desc.vertex_descriptor.buffer_layouts[buffer_index].step_function =
-              (instanced) ? MTLVertexStepFunctionPerInstance : MTLVertexStepFunctionPerVertex;
+              MTLVertexStepFunctionPerVertex;
           desc.vertex_descriptor.buffer_layouts[buffer_index].step_rate = 1;
           desc.vertex_descriptor.buffer_layouts[buffer_index].stride = buffer_stride;
           desc.vertex_descriptor.num_vert_buffers++;
           buffer_added = true;
 
-          MTL_LOG_DEBUG("  -- [Batch] Adding source %s buffer (Index: %d, Stride: %d)",
-                        (instanced) ? "instance" : "vertex",
+          MTL_LOG_DEBUG("  -- [Batch] Adding source vertex buffer (Index: %d, Stride: %d)",
                         buffer_index,
                         buffer_stride);
         }
@@ -259,9 +257,9 @@ int MTLBatch::prepare_vertex_binding(MTLVertBuf *verts,
               (int)desc.vertex_descriptor.attributes[mtl_attr.location].format);
 
           MTL_LOG_DEBUG(
-              "  -- [Batch] matching %s attribute '%s' (Attribute Index: %d, Buffer index: %d, "
+              "  -- [Batch] matching vertex attribute '%s' (Attribute Index: %d, Buffer index: "
+              "%d, "
               "offset: %d)",
-              (instanced) ? "instance" : "vertex",
               name,
               mtl_attr.location,
               buffer_index,
@@ -424,7 +422,6 @@ void MTLBatch::prepare_vertex_descriptor_and_bindings(MTLVertBuf **buffers, int 
    * We iterate through the buffers and resolve which attributes satisfy the requirements of the
    * currently bound shader. We cache this data, for a given Batch<->ShderInterface pairing in a
    * VAO cache to avoid the need to recalculate this data. */
-  bool buffer_is_instanced[GPU_BATCH_VBO_MAX_LEN] = {false};
 
   VertexDescriptorShaderInterfacePair *descriptor = this->vao_cache.find(interface);
   if (descriptor) {
@@ -435,7 +432,6 @@ void MTLBatch::prepare_vertex_descriptor_and_bindings(MTLVertBuf **buffers, int 
     for (int bid = 0; bid < GPU_BATCH_VBO_MAX_LEN; ++bid) {
       if (descriptor->bufferIds[bid].used) {
         buffers[bid] = mtl_verts[descriptor->bufferIds[bid].id];
-        buffer_is_instanced[bid] = false;
       }
     }
   }
@@ -454,11 +450,9 @@ void MTLBatch::prepare_vertex_descriptor_and_bindings(MTLVertBuf **buffers, int 
     for (int v = 0; v < GPU_BATCH_VBO_MAX_LEN; v++) {
       if (mtl_verts[v] != nullptr) {
         MTL_LOG_DEBUG(" -- [Batch] Checking bindings for bound vertex buffer %p", mtl_verts[v]);
-        int buffer_ind = this->prepare_vertex_binding(
-            mtl_verts[v], desc, interface, attr_mask, false);
+        int buffer_ind = this->prepare_vertex_binding(mtl_verts[v], desc, interface, attr_mask);
         if (buffer_ind >= 0) {
           buffers[buffer_ind] = mtl_verts[v];
-          buffer_is_instanced[buffer_ind] = false;
 
           pair.bufferIds[buffer_ind].id = v;
           pair.bufferIds[buffer_ind].used = 1;

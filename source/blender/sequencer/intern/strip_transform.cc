@@ -410,6 +410,7 @@ static void strip_transform_handle_overwrite_split(Scene *scene,
                                         target,
                                         time_left_handle_frame_get(scene, transformed),
                                         SPLIT_SOFT,
+                                        true,
                                         nullptr);
   edit_strip_split(bmain,
                    scene,
@@ -417,6 +418,7 @@ static void strip_transform_handle_overwrite_split(Scene *scene,
                    split_strip,
                    time_right_handle_frame_get(scene, transformed),
                    SPLIT_SOFT,
+                   true,
                    nullptr);
   edit_flag_for_removal(scene, seqbasep, split_strip);
   edit_remove_flagged_strips(scene, seqbasep);

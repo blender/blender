@@ -26,6 +26,29 @@ typedef enum LightLinkingType {
 } LightLinkingType;
 
 /**
+ * Add an empty LightLinking data to an Object.
+ */
+void BKE_light_linking_ensure(struct Object *object);
+
+/**
+ * Copy the LightLinking data from `object_src` to `object_dst`.
+ *
+ * \param copy_flags Flags controlling the copy process, see e.g. #LIB_ID_CREATE_NO_USER_REFCOUNT
+ * and related flags in the same enum.
+ */
+void BKE_light_linking_copy(struct Object *object_dst,
+                            const struct Object *object_src,
+                            const int copy_flags);
+
+/**
+ * Free the LightLinking data from the object.
+ *
+ * \param copy_flags Flags controlling the copy process, see e.g. #LIB_ID_CREATE_NO_USER_REFCOUNT
+ * and related flags in the same enum.
+ */
+void BKE_light_linking_delete(struct Object *object, const int delete_flags);
+
+/**
  * Free object's light_linking if it is not needed to hold any of collections.
  */
 void BKE_light_linking_free_if_empty(struct Object *object);

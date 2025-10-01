@@ -36,7 +36,16 @@ void VKStorageBuffer::update(const void *data)
 {
   VKContext &context = *VKContext::get();
   ensure_allocated();
-  VKStagingBuffer staging_buffer(buffer_, VKStagingBuffer::Direction::HostToDevice);
+
+  if (usage_ == GPU_USAGE_STREAM) {
+    VKContext &context = *VKContext::get();
+    VKStreamingBuffer &streaming_buffer = *context.get_or_create_streaming_buffer(buffer_);
+    offset_ = streaming_buffer.update(context, data, usage_size_in_bytes_);
+    return;
+  }
+
+  VKStagingBuffer staging_buffer(
+      buffer_, VKStagingBuffer::Direction::HostToDevice, 0, usage_size_in_bytes_);
   VKBuffer &buffer = staging_buffer.host_buffer_get();
   if (buffer.is_allocated()) {
     buffer.update_immediately(data);
@@ -79,7 +88,7 @@ void VKStorageBuffer::bind(int slot)
 {
   VKContext &context = *VKContext::get();
   context.state_manager_get().storage_buffer_bind(
-      BindSpaceStorageBuffers::Type::StorageBuffer, this, slot);
+      BindSpaceStorageBuffers::Type::StorageBuffer, this, slot, offset_);
 }
 
 void VKStorageBuffer::unbind()

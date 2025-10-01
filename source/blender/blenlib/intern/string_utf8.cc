@@ -328,7 +328,7 @@ int BLI_str_utf8_invalid_substitute(char *str, size_t str_len, const char substi
   return tot;
 }
 
-const char *BLI_str_utf8_invalid_substitute_as_needed(const char *str,
+const char *BLI_str_utf8_invalid_substitute_if_needed(const char *str,
                                                       const size_t str_len,
                                                       const char substitute,
                                                       char *buf,

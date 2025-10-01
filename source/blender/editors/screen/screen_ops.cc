@@ -5988,6 +5988,9 @@ wmOperatorStatus ED_screen_animation_play(bContext *C, int sync, int mode)
                                          CTX_data_view_layer(C);
   Depsgraph *depsgraph = is_sequencer ? BKE_scene_ensure_depsgraph(bmain, scene, view_layer) :
                                         CTX_data_ensure_evaluated_depsgraph(C);
+  if (is_sequencer) {
+    BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
+  }
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 
   if (ED_screen_animation_playing(CTX_wm_manager(C))) {
@@ -6959,6 +6962,8 @@ static std::string screen_drop_scene_tooltip(bContext * /*C*/,
     switch (asset_drag->import_settings.method) {
       case ASSET_IMPORT_LINK:
         return fmt::format(fmt::runtime(TIP_("Link {}")), dragged_scene_name);
+      case ASSET_IMPORT_PACK:
+        return fmt::format(fmt::runtime(TIP_("Pack {}")), dragged_scene_name);
       case ASSET_IMPORT_APPEND:
         return fmt::format(fmt::runtime(TIP_("Append {}")), dragged_scene_name);
       case ASSET_IMPORT_APPEND_REUSE:

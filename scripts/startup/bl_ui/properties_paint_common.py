@@ -262,7 +262,6 @@ class UnifiedPaintPanel:
             unified_name=None,
             pressure_name=None,
             curve_visibility_name=None,
-            icon='NONE',
             text=None,
             slider=False,
             header=False,
@@ -282,7 +281,7 @@ class UnifiedPaintPanel:
         if unified_name and getattr(ups, unified_name):
             prop_owner = ups
 
-        row.prop(prop_owner, prop_name, icon=icon, text=text, slider=slider)
+        row.prop(prop_owner, prop_name, icon='NONE', text=text, slider=slider)
 
         if unified_name and not header:
             # NOTE: We don't draw UnifiedPaintSettings in the header to reduce clutter. D5928#136281
@@ -572,7 +571,7 @@ class StrokePanel(BrushPanel):
             if settings.show_jitter_curve and self.is_popover is False:
                 subcol = col.column()
                 subcol.active = brush.use_pressure_jitter
-                subcol.template_curve_mapping(brush, "curve_jitter", brush=True)
+                subcol.template_curve_mapping(brush, "curve_jitter", brush=True, show_presets=True)
             col.row().prop(brush, "jitter_unit", expand=True)
 
         col.separator()
@@ -649,22 +648,17 @@ class FalloffPanel(BrushPanel):
 
         col = layout.column(align=True)
         if context.region.type == 'TOOL_HEADER':
-            col.prop(brush, "curve_preset", expand=True)
+            col.prop(brush, "curve_distance_falloff_preset", expand=True)
         else:
             row = col.row(align=True)
-            col.prop(brush, "curve_preset", text="")
+            col.prop(brush, "curve_distance_falloff_preset", text="")
 
         if brush.curve_distance_falloff_preset == 'CUSTOM':
-            layout.template_curve_mapping(brush, "curve_distance_falloff", brush=True, use_negative_slope=True)
+            layout.template_curve_mapping(brush, "curve_distance_falloff", brush=True,
+                                          use_negative_slope=True, show_presets=True)
 
             col = layout.column(align=True)
             row = col.row(align=True)
-            row.operator("brush.curve_preset", icon='SMOOTHCURVE', text="").shape = 'SMOOTH'
-            row.operator("brush.curve_preset", icon='SPHERECURVE', text="").shape = 'ROUND'
-            row.operator("brush.curve_preset", icon='ROOTCURVE', text="").shape = 'ROOT'
-            row.operator("brush.curve_preset", icon='SHARPCURVE', text="").shape = 'SHARP'
-            row.operator("brush.curve_preset", icon='LINCURVE', text="").shape = 'LINE'
-            row.operator("brush.curve_preset", icon='NOCURVE', text="").shape = 'MAX'
 
         show_falloff_shape = False
         if mode in {'SCULPT', 'PAINT_VERTEX', 'PAINT_WEIGHT'} and brush.sculpt_brush_type != 'POSE':
@@ -783,17 +777,19 @@ def brush_settings(layout, context, brush, popover=False):
 
         row = layout.row(align=True)
         row.prop(brush, "hardness", slider=True)
-        row.prop(brush, "invert_hardness_pressure", text="")
-        row.prop(brush, "use_hardness_pressure", text="")
+        if capabilities.has_hardness_pressure:
+            row.prop(brush, "invert_hardness_pressure", text="")
+            row.prop(brush, "use_hardness_pressure", text="")
 
         # auto_smooth_factor and use_inverse_smooth_pressure
         if capabilities.has_auto_smooth:
+            pressure_name = "use_inverse_smooth_pressure" if capabilities.has_auto_smooth_pressure else None
             UnifiedPaintPanel.prop_unified(
                 layout,
                 context,
                 brush,
                 "auto_smooth_factor",
-                pressure_name="use_inverse_smooth_pressure",
+                pressure_name=pressure_name,
                 slider=True,
             )
 
@@ -1078,8 +1074,10 @@ def brush_shared_settings(layout, context, brush, popover=False):
     blend_mode = False
     size = False
     size_mode = False
+    size_pressure = False
     strength = False
     strength_pressure = False
+    size_pressure = False
     weight = False
     direction = False
 
@@ -1089,6 +1087,7 @@ def brush_shared_settings(layout, context, brush, popover=False):
             blend_mode = brush.image_paint_capabilities.has_color
             size = brush.image_paint_capabilities.has_radius
             strength = strength_pressure = True
+            size_pressure = True
 
     # Sculpt #
     if mode == 'SCULPT':
@@ -1098,6 +1097,7 @@ def brush_shared_settings(layout, context, brush, popover=False):
             strength = True
             strength_pressure = brush.sculpt_capabilities.has_strength_pressure
             direction = brush.sculpt_capabilities.has_direction
+            size_pressure = brush.sculpt_capabilities.has_size_pressure
 
     # Vertex Paint #
     if mode == 'PAINT_VERTEX':
@@ -1106,6 +1106,7 @@ def brush_shared_settings(layout, context, brush, popover=False):
             size = True
             strength = True
             strength_pressure = True
+            size_pressure = True
 
     # Weight Paint #
     if mode == 'PAINT_WEIGHT':
@@ -1113,6 +1114,7 @@ def brush_shared_settings(layout, context, brush, popover=False):
             size = True
             weight = brush.weight_paint_capabilities.has_weight
             strength = strength_pressure = True
+            size_pressure = True
         # Only draw blend mode for the Draw tool, because for other tools it is pointless. D5928#137944
         if brush.weight_brush_type == 'DRAW':
             blend_mode = True
@@ -1124,6 +1126,7 @@ def brush_shared_settings(layout, context, brush, popover=False):
         strength = tool not in {'ADD', 'DELETE'}
         direction = tool in {'GROW_SHRINK', 'SELECTION_PAINT'}
         strength_pressure = tool not in {'SLIDE', 'ADD', 'DELETE'}
+        size_pressure = True
 
     # Grease Pencil #
     if mode == 'PAINT_GREASE_PENCIL':
@@ -1135,6 +1138,7 @@ def brush_shared_settings(layout, context, brush, popover=False):
     if mode == 'SCULPT_GREASE_PENCIL':
         size = True
         strength = True
+        size_pressure = True
 
     ### Draw settings. ###
     ups = UnifiedPaintPanel.paint_settings(context).unified_paint_settings
@@ -1159,14 +1163,21 @@ def brush_shared_settings(layout, context, brush, popover=False):
         size_prop = "unprojected_size"
     if size or size_mode:
         if size:
+            pressure_name = "use_pressure_size" if size_pressure else None
+            curve_visibility_name = "show_size_curve" if size_pressure else None
+            # Grease Pencil Sculpt uses size pressure but doesn't map to a custom curve, this is a weird case where we
+            # don't show the dropdown but do show the pressure toggle.
+            # TODO: Add curve support for GP Sculpt
+            if mode == 'SCULPT_GREASE_PENCIL':
+                curve_visibility_name = None
             UnifiedPaintPanel.prop_unified(
                 layout,
                 context,
                 brush,
                 size_prop,
                 unified_name="use_unified_size",
-                pressure_name="use_pressure_size",
-                curve_visibility_name="show_size_curve",
+                pressure_name=pressure_name,
+                curve_visibility_name=curve_visibility_name,
                 text="Size",
                 slider=True,
             )
@@ -1174,7 +1185,7 @@ def brush_shared_settings(layout, context, brush, popover=False):
             if paint.show_size_curve and not popover:
                 subcol = layout.column()
                 subcol.active = brush.use_pressure_size
-                subcol.template_curve_mapping(brush, "curve_size", brush=True)
+                subcol.template_curve_mapping(brush, "curve_size", brush=True, show_presets=True)
         if size_mode:
             layout.row().prop(size_owner, "use_locked_size", expand=True)
             layout.separator()
@@ -1196,7 +1207,7 @@ def brush_shared_settings(layout, context, brush, popover=False):
             if paint.show_strength_curve and not popover:
                 subcol = layout.column()
                 subcol.active = brush.use_pressure_strength
-                subcol.template_curve_mapping(brush, "curve_strength", brush=True)
+                subcol.template_curve_mapping(brush, "curve_strength", brush=True, show_presets=True)
         layout.separator()
 
     if direction:
@@ -1656,6 +1667,7 @@ def brush_basic__draw_color_selector(context, layout, brush, gp_settings):
 
 def brush_basic_grease_pencil_paint_settings(layout, context, brush, props, *, compact=False):
     gp_settings = brush.gpencil_settings
+    paint = context.tool_settings.gpencil_paint
     tool = context.workspace.tools.from_space_view3d_mode(context.mode, create=False)
     if gp_settings is None:
         return
@@ -1683,18 +1695,34 @@ def brush_basic_grease_pencil_paint_settings(layout, context, brush, props, *, c
         row = layout.row(align=True)
         row.prop(brush, size, slider=True, text="Size")
         row.prop(brush, "use_pressure_size", text="")
+        if not compact:
+            row.prop(
+                paint,
+                "show_size_curve",
+                text="",
+                icon='DOWNARROW_HLT' if paint.show_size_curve else 'RIGHTARROW',
+                emboss=False)
 
-        if brush.use_pressure_size and not compact:
-            col = layout.column()
-            col.template_curve_mapping(gp_settings, "curve_sensitivity", brush=True)
+            if paint.show_size_curve:
+                col = layout.column()
+                col.active = brush.use_pressure_size
+                col.template_curve_mapping(gp_settings, "curve_sensitivity", brush=True, show_presets=True)
 
         row = layout.row(align=True)
         row.prop(brush, "strength", slider=True, text="Strength")
         row.prop(brush, "use_pressure_strength", text="")
+        if not compact:
+            row.prop(
+                paint,
+                "show_strength_curve",
+                text="",
+                icon='DOWNARROW_HLT' if paint.show_strength_curve else 'RIGHTARROW',
+                emboss=False)
 
-        if brush.use_pressure_strength and not compact:
-            col = layout.column()
-            col.template_curve_mapping(gp_settings, "curve_strength", brush=True)
+            if paint.show_strength_curve:
+                col = layout.column()
+                col.active = brush.use_pressure_strength
+                col.template_curve_mapping(gp_settings, "curve_strength", brush=True, show_presets=True)
 
     if props:
         layout.prop(props, "subdivision")

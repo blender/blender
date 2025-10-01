@@ -74,10 +74,13 @@ class Context {
   virtual Result get_viewer_output(Domain domain, bool is_data, ResultPrecision precision) = 0;
 
   /* Get the result where the given input is stored. */
-  virtual Result get_input(const Scene *scene, int view_layer, const char *name) = 0;
+  virtual Result get_input(StringRef name) = 0;
 
   /* True if the compositor should use GPU acceleration. */
   virtual bool use_gpu() const = 0;
+
+  /* Get the result where the given pass is stored. */
+  virtual Result get_pass(const Scene *scene, int view_layer, const char *name);
 
   /* Get the render settings for compositing. This could be different from scene->r render settings
    * in case the render size or other settings needs to be overwritten. */

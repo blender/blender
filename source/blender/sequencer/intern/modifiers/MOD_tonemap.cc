@@ -280,7 +280,8 @@ static AreaLuminance tonemap_calc_input_luminance(const StripScreenQuad &quad, c
   return lum;
 }
 
-static void tonemapmodifier_apply(const StripScreenQuad &quad,
+static void tonemapmodifier_apply(const RenderData * /*render_data*/,
+                                  const StripScreenQuad &quad,
                                   StripModifierData *smd,
                                   ImBuf *ibuf,
                                   ImBuf *mask)

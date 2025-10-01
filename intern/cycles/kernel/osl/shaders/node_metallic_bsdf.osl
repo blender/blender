@@ -14,6 +14,8 @@ shader node_metallic_bsdf(color BaseColor = color(0.617, 0.577, 0.540),
                           float Roughness = 0.5,
                           float Anisotropy = 0.0,
                           float Rotation = 0.0,
+                          float ThinFilmThickness = 0.0,
+                          float ThinFilmIOR = 1.33,
                           normal Normal = N,
                           normal Tangent = 0.0,
                           output closure color BSDF = 0)
@@ -35,10 +37,29 @@ shader node_metallic_bsdf(color BaseColor = color(0.617, 0.577, 0.540),
   if (fresnel_type == "f82") {
     color F0 = clamp(BaseColor, color(0.0), color(1.0));
     color F82 = clamp(EdgeTint, color(0.0), color(1.0));
-    BSDF = microfacet_f82_tint(distribution, Normal, T, alpha_x, alpha_y, F0, F82);
+    BSDF = microfacet_f82_tint(distribution,
+                               Normal,
+                               T,
+                               alpha_x,
+                               alpha_y,
+                               F0,
+                               F82,
+                               "thinfilm_thickness",
+                               ThinFilmThickness,
+                               "thinfilm_ior",
+                               ThinFilmIOR);
   }
   else {
-    BSDF = conductor_bsdf(
-        Normal, T, alpha_x, alpha_y, max(IOR, 0.0), max(Extinction, 0.0), distribution);
+    BSDF = conductor_bsdf(Normal,
+                          T,
+                          alpha_x,
+                          alpha_y,
+                          max(IOR, 0.0),
+                          max(Extinction, 0.0),
+                          distribution,
+                          "thinfilm_thickness",
+                          ThinFilmThickness,
+                          "thinfilm_ior",
+                          ThinFilmIOR);
   }
 }

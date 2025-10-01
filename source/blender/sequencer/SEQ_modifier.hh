@@ -20,6 +20,7 @@ struct StripModifierData;
 
 namespace blender::seq {
 
+struct SeqRenderState;
 struct StripScreenQuad;
 struct RenderData;
 
@@ -53,7 +54,11 @@ struct StripModifierTypeInfo {
 
   /* Apply modifier on an image buffer.
    * quad contains four corners of the (pre-transform) strip rectangle in pixel space. */
-  void (*apply)(const StripScreenQuad &quad, StripModifierData *smd, ImBuf *ibuf, ImBuf *mask);
+  void (*apply)(const RenderData *render_data,
+                const StripScreenQuad &quad,
+                StripModifierData *smd,
+                ImBuf *ibuf,
+                ImBuf *mask);
 
   /** Register the panel types for the modifier's UI. */
   void (*panel_register)(ARegionType *region_type);
@@ -75,6 +80,7 @@ void modifier_free(StripModifierData *smd);
 void modifier_unique_name(Strip *strip, StripModifierData *smd);
 StripModifierData *modifier_find_by_name(Strip *strip, const char *name);
 void modifier_apply_stack(const RenderData *context,
+                          SeqRenderState *state,
                           const Strip *strip,
                           ImBuf *ibuf,
                           int timeline_frame);

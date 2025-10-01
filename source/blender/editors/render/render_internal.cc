@@ -1308,8 +1308,10 @@ static wmOperatorStatus render_shutter_curve_preset_exec(bContext *C, wmOperator
 
   mblur_shutter_curve->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
   mblur_shutter_curve->preset = preset;
-  BKE_curvemap_reset(
-      cm, &mblur_shutter_curve->clipr, mblur_shutter_curve->preset, CURVEMAP_SLOPE_POS_NEG);
+  BKE_curvemap_reset(cm,
+                     &mblur_shutter_curve->clipr,
+                     mblur_shutter_curve->preset,
+                     CurveMapSlopeType::PositiveNegative);
   BKE_curvemapping_changed(mblur_shutter_curve, false);
 
   return OPERATOR_FINISHED;

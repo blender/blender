@@ -717,7 +717,15 @@ void BKE_main_library_weak_reference_add_item(
   BLI_assert(BKE_idtype_idcode_append_is_reusable(GS(new_id->name)));
 
   const LibWeakRefKey key{library_filepath, library_id_name};
-  library_weak_reference_mapping->map.add_new(key, new_id);
+  /* With packed IDs and archive libraries, it is now possible to have several instances of the
+   * (originally) same linked ID made local at the same time in an append opeeration, so it is
+   * possible to get the same key several time here. And `Map::add_new` cannot be used safely
+   * anymore.
+   *
+   * Simply consider the first added one as valid, there is no good way to determine the 'best' one
+   * to keep around for append-or-reuse operations anyway - and the whole append-and-reuse may be
+   * depracted soon too. */
+  library_weak_reference_mapping->map.add(key, new_id);
 
   BKE_main_library_weak_reference_add(new_id, library_filepath, library_id_name);
 }

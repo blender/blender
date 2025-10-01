@@ -56,7 +56,8 @@ DeviceScene::DeviceScene(Device *device)
       ies_lights(device, "ies", MEM_GLOBAL),
       volume_tree_nodes(device, "volume_tree_nodes", MEM_GLOBAL),
       volume_tree_roots(device, "volume_tree_roots", MEM_GLOBAL),
-      volume_tree_root_ids(device, "volume_tree_root_ids", MEM_GLOBAL)
+      volume_tree_root_ids(device, "volume_tree_root_ids", MEM_GLOBAL),
+      volume_step_size(device, "volume_step_size", MEM_GLOBAL)
 {
   memset((void *)&data, 0, sizeof(data));
 }

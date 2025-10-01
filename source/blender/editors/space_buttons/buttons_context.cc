@@ -259,7 +259,7 @@ static bool buttons_context_path_data(ButsContextPath *path, int type)
   if (RNA_struct_is_a(ptr->type, &RNA_LightProbe) && ELEM(type, -1, OB_LIGHTPROBE)) {
     return true;
   }
-  if (RNA_struct_is_a(ptr->type, &RNA_GreasePencilv3) && ELEM(type, -1, OB_GREASE_PENCIL)) {
+  if (RNA_struct_is_a(ptr->type, &RNA_GreasePencil) && ELEM(type, -1, OB_GREASE_PENCIL)) {
     return true;
   }
   if (RNA_struct_is_a(ptr->type, &RNA_Curves) && ELEM(type, -1, OB_CURVES)) {
@@ -1170,7 +1170,7 @@ int /*eContextResult*/ buttons_context(const bContext *C,
     return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "grease_pencil")) {
-    set_pointer_type(path, result, &RNA_GreasePencilv3);
+    set_pointer_type(path, result, &RNA_GreasePencil);
     return CTX_RESULT_OK;
   }
   return CTX_RESULT_MEMBER_NOT_FOUND;

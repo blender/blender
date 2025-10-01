@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'7089def6cbcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-22 08:45+0000\n"
+"POT-Creation-Date: 2025-09-29 09:33+0000\n"
 "PO-Revision-Date: 2025-07-23 15:13+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Basque <https://translate.blender.org/projects/blender-ui/ui/eu/>\n"
@@ -553,6 +553,10 @@ msgid "Min Angle"
 msgstr "Angelu Minimoa"
 
 
+msgid "Relations"
+msgstr "Loturak"
+
+
 msgid "Show/Hide"
 msgstr "Erakutsi/Ezkutatu"
 
@@ -561,8 +565,8 @@ msgid "Text"
 msgstr "Testua"
 
 
-msgid "Relations"
-msgstr "Loturak"
+msgid "Import"
+msgstr "Inportatu"
 
 
 msgid "UV"
@@ -571,10 +575,6 @@ msgstr "UV"
 
 msgid "Show/Hide Faces"
 msgstr "Aurpegiak erakutsi/ezkutatu"
-
-
-msgid "Import"
-msgstr "Inportatu"
 
 
 msgid "Physics"
@@ -1852,11 +1852,6 @@ msgstr "Kolorea"
 msgctxt "Operator"
 msgid "Text"
 msgstr "Testua"
-
-
-msgctxt "Operator"
-msgid "Scene..."
-msgstr "Eszena"
 
 
 msgctxt "Text"

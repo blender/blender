@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'fb3904ce45c6')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'7089def6cbcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-22 08:45+0000\n"
+"POT-Creation-Date: 2025-09-29 09:33+0000\n"
 "PO-Revision-Date: 2025-07-23 15:34+0000\n"
 "Last-Translator: Just Adam <adam.abbas2009@gmail.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -832,6 +832,10 @@ msgid "Append"
 msgstr "Добави"
 
 
+msgid "Pack"
+msgstr "Пакетирай"
+
+
 msgid "End"
 msgstr "Край"
 
@@ -1136,14 +1140,6 @@ msgid "Mask"
 msgstr "Маскиране"
 
 
-msgid "Merge"
-msgstr "Слей"
-
-
-msgid "Text"
-msgstr "Текст"
-
-
 msgid "UV Mapping"
 msgstr "UV Картиране"
 
@@ -1172,6 +1168,18 @@ msgid "In-Betweens"
 msgstr "Междинни Кадри"
 
 
+msgid "Merge"
+msgstr "Слей"
+
+
+msgid "Text"
+msgstr "Текст"
+
+
+msgid "Import"
+msgstr "Внеси"
+
+
 msgid "Languages..."
 msgstr "Езици..."
 
@@ -1182,10 +1190,6 @@ msgstr "Кеш"
 
 msgid "Key"
 msgstr "Клавиш"
-
-
-msgid "Import"
-msgstr "Внеси"
 
 
 msgid "System"
@@ -1254,6 +1258,10 @@ msgstr "Свят"
 
 msgid "Even"
 msgstr "Равн"
+
+
+msgid "Edge Length"
+msgstr "Дължина на ръба"
 
 
 msgid "Lines"
@@ -1679,10 +1687,6 @@ msgstr "Събери като Форми"
 
 msgid "Origin to Geometry"
 msgstr "Начало към Геометрия"
-
-
-msgid "Edge Length"
-msgstr "Дължина на ръба"
 
 
 msgid "Maximum scale randomization over each axis"
@@ -2294,10 +2298,6 @@ msgstr "Кешът е изключен докато файла не бъде з�
 
 msgid "Unpack"
 msgstr "Разпакетирай"
-
-
-msgid "Pack"
-msgstr "Пакетирай"
 
 
 msgid "Minimum Grid Spacing"

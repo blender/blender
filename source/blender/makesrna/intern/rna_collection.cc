@@ -713,6 +713,8 @@ static void rna_def_collection_light_linking(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
+  RNA_define_lib_overridable(true);
+
   srna = RNA_def_struct(brna, "CollectionLightLinking", nullptr);
   RNA_def_struct_sdna(srna, "CollectionLightLinking");
   RNA_def_struct_ui_text(
@@ -728,6 +730,8 @@ static void rna_def_collection_light_linking(BlenderRNA *brna)
       prop, "Link State", "Light or shadow receiving state of the object or collection");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_CollectionLightLinking_update");
+
+  RNA_define_lib_overridable(false);
 }
 
 static void rna_def_collection_object(BlenderRNA *brna)
@@ -740,11 +744,15 @@ static void rna_def_collection_object(BlenderRNA *brna)
   RNA_def_struct_ui_text(
       srna, "Collection Object", "Object of a collection with its collection related settings");
 
+  RNA_define_lib_overridable(true);
+
   /* Light Linking. */
   prop = RNA_def_property(srna, "light_linking", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
   RNA_def_property_struct_type(prop, "CollectionLightLinking");
   RNA_def_property_ui_text(prop, "Light Linking", "Light linking settings of the collection");
+
+  RNA_define_lib_overridable(false);
 }
 
 static void rna_def_collection_child(BlenderRNA *brna)
@@ -757,12 +765,16 @@ static void rna_def_collection_child(BlenderRNA *brna)
   RNA_def_struct_ui_text(
       srna, "Collection Child", "Child collection with its collection related settings");
 
+  RNA_define_lib_overridable(true);
+
   /* Light Linking. */
   prop = RNA_def_property(srna, "light_linking", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
   RNA_def_property_struct_type(prop, "CollectionLightLinking");
   RNA_def_property_ui_text(
       prop, "Light Linking", "Light linking settings of the collection object");
+
+  RNA_define_lib_overridable(false);
 }
 
 static void rna_def_collection_exporter_data(BlenderRNA *brna)

@@ -471,6 +471,12 @@ struct TransDataExtension {
   int rotOrder;
   /** Original object transformation used for rigid bodies. */
   float oloc[3], orot[3], oquat[4], orotAxis[3], orotAngle;
+
+  /**
+   * Use when #TransDataBasic::center has been overridden but the real center is still needed
+   * for internal calculations.
+   */
+  float center_no_override[3];
 };
 
 struct TransData2D {

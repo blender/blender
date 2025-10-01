@@ -32,11 +32,14 @@ ID *asset_local_id_ensure_imported(Main &bmain,
   }
 
   const eAssetImportMethod method = [&]() {
+    const bool no_packing = U.experimental.no_data_block_packing;
     if (import_method) {
-      return *import_method;
+      return (no_packing && *import_method == ASSET_IMPORT_PACK) ? ASSET_IMPORT_APPEND_REUSE :
+                                                                   *import_method;
     }
     if (std::optional asset_method = asset.get_import_method()) {
-      return *asset_method;
+      return (no_packing && *asset_method == ASSET_IMPORT_PACK) ? ASSET_IMPORT_APPEND_REUSE :
+                                                                  *asset_method;
     }
     return ASSET_IMPORT_APPEND_REUSE;
   }();
@@ -51,6 +54,16 @@ ID *asset_local_id_ensure_imported(Main &bmain,
                                     asset.get_id_type(),
                                     asset.get_name().c_str(),
                                     (asset.get_use_relative_path() ? FILE_RELPATH : 0));
+    case ASSET_IMPORT_PACK:
+      return WM_file_link_datablock(&bmain,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    blend_path.c_str(),
+                                    asset.get_id_type(),
+                                    asset.get_name().c_str(),
+                                    BLO_LIBLINK_PACK |
+                                        (asset.get_use_relative_path() ? FILE_RELPATH : 0));
     case ASSET_IMPORT_APPEND:
       return WM_file_append_datablock(&bmain,
                                       nullptr,

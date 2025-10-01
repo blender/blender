@@ -56,6 +56,11 @@ class View {
   virtual bool is_hdr() const = 0;
 
   /**
+   * Does this view transform support display emulation?
+   */
+  virtual bool support_emulation() const = 0;
+
+  /**
    * Gamut of the display colorspace.
    */
   virtual Gamut gamut() const = 0;

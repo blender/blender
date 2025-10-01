@@ -562,6 +562,7 @@ void PathTraceWorkGPU::enqueue_path_iteration(DeviceKernel kernel, const int num
     case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE:
     case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE:
     case DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME:
+    case DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME_RAY_MARCHING:
     case DEVICE_KERNEL_INTEGRATOR_SHADE_DEDICATED_LIGHT: {
       /* Shading kernels with integrator state and render buffer. */
       const DeviceKernelArguments args(
@@ -570,7 +571,6 @@ void PathTraceWorkGPU::enqueue_path_iteration(DeviceKernel kernel, const int num
       queue_->enqueue(kernel, work_size, args);
       break;
     }
-
     default:
       LOG_FATAL << "Unhandled kernel " << device_kernel_as_string(kernel)
                 << " used for path iteration, should never happen.";
@@ -1272,6 +1272,7 @@ bool PathTraceWorkGPU::kernel_creates_shadow_paths(DeviceKernel kernel)
           kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE ||
           kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE ||
           kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME ||
+          kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME_RAY_MARCHING ||
           kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_DEDICATED_LIGHT);
 }
 

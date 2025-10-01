@@ -32,7 +32,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .align_with_previous()
       .description("Geometry to assign a material to");
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
-  b.add_input<decl::Material>("Material").hide_label();
+  b.add_input<decl::Material>("Material").optional_label();
 }
 
 static void assign_material_to_id_geometry(ID *id,

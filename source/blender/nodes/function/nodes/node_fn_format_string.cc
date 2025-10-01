@@ -33,7 +33,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.use_custom_socket_order();
   b.allow_any_socket_order();
 
-  b.add_input<decl::String>("Format").hide_label().description(
+  b.add_input<decl::String>("Format").optional_label().description(
       "Format string using a Python and path template compatible syntax. For example, \"Count: "
       "{}\" would replace the {} with the first input value.");
   b.add_output<decl::String>("String").align_with_previous();

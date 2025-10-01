@@ -4434,6 +4434,7 @@ void node_tree_free_tree(bNodeTree &ntree)
 {
   ntree_free_data(&ntree.id);
   BKE_animdata_free(&ntree.id, false);
+  BKE_libblock_free_runtime_data(&ntree.id);
 }
 
 void node_tree_free_embedded_tree(bNodeTree *ntree)
@@ -4973,6 +4974,24 @@ std::optional<StringRefNull> node_socket_short_label(const bNodeSocket &sock)
 StringRefNull node_socket_label(const bNodeSocket &sock)
 {
   return (sock.label[0] != '\0') ? sock.label : sock.name;
+}
+
+const char *node_socket_translation_context(const bNodeSocket &sock)
+{
+  /* The node is not explicitly defined. */
+  if (sock.runtime->declaration == nullptr) {
+    return nullptr;
+  }
+
+  const std::optional<std::string> &translation_context =
+      sock.runtime->declaration->translation_context;
+
+  /* Default context. */
+  if (!translation_context.has_value()) {
+    return nullptr;
+  }
+
+  return translation_context->c_str();
 }
 
 NodeColorTag node_color_tag(const bNode &node)

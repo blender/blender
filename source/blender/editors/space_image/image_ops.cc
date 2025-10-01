@@ -3296,7 +3296,7 @@ static wmOperatorStatus image_scale_exec(bContext *C, wmOperator *op)
     ED_image_undo_push_end();
   }
   else {
-    // Ensure that an image buffer can be aquired for all UDIM tiles
+    // Ensure that an image buffer can be acquired for all UDIM tiles
     LISTBASE_FOREACH (ImageTile *, current_tile, &ima->tiles) {
       iuser.tile = current_tile->tile_number;
 

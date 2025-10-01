@@ -16,6 +16,7 @@
 #include "IMB_imbuf_enums.h"
 
 struct ColormanageCache;
+struct ExrHandle;
 namespace blender::gpu {
 class Texture;
 }
@@ -41,6 +42,7 @@ using ColorSpace = blender::ocio::ColorSpace;
  */
 
 #define OPENEXR_HALF (1 << 8)
+#define OPENEXR_MULTIPART (1 << 9)
 /* Lowest bits of foptions.flag / exr_codec contain actual codec enum. */
 #define OPENEXR_CODEC_MASK (0xF)
 
@@ -228,8 +230,8 @@ struct ImBuf {
   int userflags;
   /** image metadata */
   IDProperty *metadata;
-  /** temporary storage */
-  void *userdata;
+  /** OpenEXR handle. */
+  ExrHandle *exrhandle;
 
   /* file information */
   /** file type we are going to save as */

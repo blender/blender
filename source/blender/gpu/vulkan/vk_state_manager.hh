@@ -251,7 +251,7 @@ class VKStateManager : public StateManager {
                            void *resource,
                            int binding)
   {
-    storage_buffer_bind(resource_type, resource, binding, 0u);
+    storage_buffer_bind(resource_type, resource, binding, 0);
   }
   void storage_buffer_bind(BindSpaceStorageBuffers::Type resource_type,
                            void *resource,
@@ -259,8 +259,6 @@ class VKStateManager : public StateManager {
                            VkDeviceSize offset);
   void storage_buffer_unbind(void *resource);
   void storage_buffer_unbind_all();
-
-  void unbind_from_all_namespaces(void *resource);
 
   void texture_unpack_row_length_set(uint len) override;
 

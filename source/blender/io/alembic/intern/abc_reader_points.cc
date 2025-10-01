@@ -19,6 +19,8 @@
 #include "BKE_object.hh"
 #include "BKE_pointcloud.hh"
 
+#include "BLI_color_types.hh"
+
 #include <algorithm>
 
 using namespace Alembic::AbcGeom;
@@ -88,29 +90,104 @@ static void read_points(const P3fArraySamplePtr positions, MutableSpan<float3> r
   }
 }
 
-static N3fArraySamplePtr read_points_sample(const IPointsSchema &schema,
-                                            const ISampleSelector &selector,
-                                            MutableSpan<float3> r_points)
+static void read_points_sample(const IPointsSchema &schema,
+                               const ISampleSelector &selector,
+                               MutableSpan<float3> r_points)
 {
   Alembic::AbcGeom::IPointsSchema::Sample sample = schema.getValue(selector);
 
   const P3fArraySamplePtr &positions = sample.getPositions();
+  read_points(positions, r_points);
+}
 
-  ICompoundProperty prop = schema.getArbGeomParams();
-  N3fArraySamplePtr vnormals;
+template<typename TOut, typename TIn> static TOut convert_abc_value(const TIn &in)
+{
+  static_assert(std::is_same_v<TIn, TOut>,
+                "convert_abc_value needs to be explicitly specialized for each pair of types");
+  return in;
+}
 
-  if (has_property(prop, "N")) {
-    const Alembic::Util::uint32_t itime = static_cast<Alembic::Util::uint32_t>(
-        selector.getRequestedTime());
-    const IN3fArrayProperty &normals_prop = IN3fArrayProperty(prop, "N", itime);
+template<> float3 convert_abc_value(const V3f &in)
+{
+  float3 out;
+  copy_zup_from_yup(out, in.getValue());
+  return out;
+}
 
-    if (normals_prop) {
-      vnormals = normals_prop.getValue(selector);
+template<> ColorGeometry4f convert_abc_value(const C3f &in)
+{
+  return ColorGeometry4f(in[0], in[1], in[2], 1.f);
+}
+
+template<> float2 convert_abc_value(const V2f &in)
+{
+  return in.getValue();
+}
+
+template<typename TArrayProperty, typename TWriteValue>
+static void read_typed_property_sample(const ICompoundProperty &parent,
+                                       const ISampleSelector &selector,
+                                       const std::string &name,
+                                       bke::MutableAttributeAccessor &attribute_accessor)
+{
+  const TArrayProperty &array_prop = TArrayProperty(parent, name);
+  if (array_prop) {
+    using SamplePtr = typename TArrayProperty::sample_ptr_type;
+    using ValueType = typename TArrayProperty::value_type;
+
+    const SamplePtr sample_ptr = array_prop.getValue(selector);
+    bke::SpanAttributeWriter<TWriteValue> writer =
+        attribute_accessor.lookup_or_add_for_write_span<TWriteValue>(name, bke::AttrDomain::Point);
+    MutableSpan<TWriteValue> span = writer.span;
+    for (const int64_t i : IndexRange(std::min(span.size(), int64_t(sample_ptr->size())))) {
+      ValueType value = (*sample_ptr)[i];
+      span[i] = convert_abc_value<TWriteValue>(value);
+    }
+    writer.finish();
+  }
+}
+
+static void read_point_arb_geom_params(const IPointsSchema &schema,
+                                       const ISampleSelector &selector,
+                                       bke::MutableAttributeAccessor &attribute_accessor)
+{
+  const ICompoundProperty prop = schema.getArbGeomParams();
+  for (size_t i = 0; i < prop.getNumProperties(); i++) {
+    const PropertyHeader header = prop.getPropertyHeader(i);
+    const PropertyType property_type = header.getPropertyType();
+    if (property_type != kArrayProperty) {
+      // currently unsupported
+      continue;
+    }
+
+    const DataType data_type = header.getDataType();
+    const MetaData metadata = header.getMetaData();
+    const std::string interpretation = metadata.get("interpretation");
+    const std::string name = header.getName();
+
+    if (data_type == DataType(kFloat32POD, 3)) {
+      if (interpretation == C3fTPTraits::interpretation()) {
+        read_typed_property_sample<IC3fArrayProperty, ColorGeometry4f>(
+            prop, selector, name, attribute_accessor);
+      }
+      else if (interpretation == N3fTPTraits::interpretation()) {
+        read_typed_property_sample<IN3fArrayProperty, float3>(
+            prop, selector, name, attribute_accessor);
+      }
+      else {
+        read_typed_property_sample<IV3fArrayProperty, float3>(
+            prop, selector, name, attribute_accessor);
+      }
+    }
+    else if (data_type == DataType(kFloat32POD, 2)) {
+      read_typed_property_sample<IV2fArrayProperty, float2>(
+          prop, selector, name, attribute_accessor);
+    }
+    else if (data_type == DataType(kFloat32POD, 1)) {
+      read_typed_property_sample<IFloatArrayProperty, float>(
+          prop, selector, name, attribute_accessor);
     }
   }
-
-  read_points(positions, r_points);
-  return vnormals;
 }
 
 void AbcPointsReader::read_geometry(bke::GeometrySet &geometry_set,
@@ -156,7 +233,8 @@ void AbcPointsReader::read_geometry(bke::GeometrySet &geometry_set,
   bke::MutableAttributeAccessor attribute_accessor = pointcloud->attributes_for_write();
 
   MutableSpan<float3> point_positions = pointcloud->positions_for_write();
-  N3fArraySamplePtr normals = read_points_sample(m_schema, sample_sel, point_positions);
+  read_points_sample(m_schema, sample_sel, point_positions);
+
   MutableSpan<float> point_radii = pointcloud->radius_for_write();
 
   if (widths) {
@@ -168,16 +246,7 @@ void AbcPointsReader::read_geometry(bke::GeometrySet &geometry_set,
     point_radii.fill(0.01f);
   }
 
-  if (normals) {
-    bke::SpanAttributeWriter<float3> normals_writer =
-        attribute_accessor.lookup_or_add_for_write_span<float3>("N", bke::AttrDomain::Point);
-    MutableSpan<float3> point_normals = normals_writer.span;
-    for (const int64_t i : IndexRange(std::min(point_normals.size(), int64_t(normals->size())))) {
-      Imath::V3f nor_in = (*normals)[i];
-      copy_zup_from_yup(point_normals[i], nor_in.getValue());
-    }
-    normals_writer.finish();
-  }
+  read_point_arb_geom_params(m_schema, sample_sel, attribute_accessor);
 
   if (velocity_name != nullptr && velocity_scale != 0.0f) {
     V3fArraySamplePtr velocities = get_velocity_prop(m_schema, sample_sel, velocity_name);

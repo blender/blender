@@ -68,19 +68,25 @@ static BundleSyncState get_sync_state_separate_bundle(
   bke::ComputeContextCache compute_context_cache;
   const ComputeContext *current_context = ed::space_node::compute_context_for_edittree_socket(
       snode, compute_context_cache, *src_bundle_socket);
-  const Vector<nodes::BundleSignature> source_signatures = gather_linked_origin_bundle_signatures(
-      current_context, *src_bundle_socket, compute_context_cache);
-  if (source_signatures.is_empty()) {
+  if (!current_context) {
     return {NodeSyncState::NoSyncSource};
   }
-  if (!nodes::BundleSignature::all_matching_exactly(source_signatures)) {
+  const LinkedBundleSignatures linked_signatures = gather_linked_origin_bundle_signatures(
+      current_context, *src_bundle_socket, compute_context_cache);
+  if (linked_signatures.items.is_empty()) {
+    return {NodeSyncState::NoSyncSource};
+  }
+  std::optional<BundleSignature> merged_signature = linked_signatures.get_merged_signature();
+  if (!merged_signature.has_value()) {
     return {NodeSyncState::ConflictingSyncSources};
   }
-  const nodes::BundleSignature &source_signature = source_signatures[0];
+  if (!linked_signatures.has_type_definition()) {
+    merged_signature->set_auto_structure_types();
+  }
   const nodes::BundleSignature &current_signature =
-      nodes::BundleSignature::from_separate_bundle_node(separate_bundle_node);
-  if (!source_signature.matches_exactly(current_signature)) {
-    return {NodeSyncState::CanBeSynced, source_signature};
+      nodes::BundleSignature::from_separate_bundle_node(separate_bundle_node, true);
+  if (*merged_signature != current_signature) {
+    return {NodeSyncState::CanBeSynced, std::move(merged_signature)};
   }
   return {NodeSyncState::Synced};
 }
@@ -100,19 +106,25 @@ static BundleSyncState get_sync_state_combine_bundle(
   bke::ComputeContextCache compute_context_cache;
   const ComputeContext *current_context = ed::space_node::compute_context_for_edittree_socket(
       snode, compute_context_cache, *src_bundle_socket);
-  const Vector<nodes::BundleSignature> source_signatures = gather_linked_target_bundle_signatures(
-      current_context, *src_bundle_socket, compute_context_cache);
-  if (source_signatures.is_empty()) {
+  if (!current_context) {
     return {NodeSyncState::NoSyncSource};
   }
-  if (!nodes::BundleSignature::all_matching_exactly(source_signatures)) {
+  const LinkedBundleSignatures linked_signatures = gather_linked_target_bundle_signatures(
+      current_context, *src_bundle_socket, compute_context_cache);
+  if (linked_signatures.items.is_empty()) {
+    return {NodeSyncState::NoSyncSource};
+  }
+  std::optional<BundleSignature> merged_signature = linked_signatures.get_merged_signature();
+  if (!merged_signature.has_value()) {
     return {NodeSyncState::ConflictingSyncSources};
   }
-  const nodes::BundleSignature &source_signature = source_signatures[0];
+  if (!linked_signatures.has_type_definition()) {
+    merged_signature->set_auto_structure_types();
+  }
   const nodes::BundleSignature &current_signature =
-      nodes::BundleSignature::from_combine_bundle_node(combine_bundle_node);
-  if (!source_signature.matches_exactly(current_signature)) {
-    return {NodeSyncState::CanBeSynced, source_signature};
+      nodes::BundleSignature::from_combine_bundle_node(combine_bundle_node, true);
+  if (*merged_signature != current_signature) {
+    return {NodeSyncState::CanBeSynced, std::move(merged_signature)};
   }
   return {NodeSyncState::Synced};
 }
@@ -131,20 +143,25 @@ static ClosureSyncState get_sync_state_closure_output(
   bke::ComputeContextCache compute_context_cache;
   const ComputeContext *current_context = ed::space_node::compute_context_for_edittree_socket(
       snode, compute_context_cache, *src_closure_socket);
-  const Vector<nodes::ClosureSignature> source_signatures =
-      gather_linked_target_closure_signatures(
-          current_context, *src_closure_socket, compute_context_cache);
-  if (source_signatures.is_empty()) {
+  if (!current_context) {
     return {NodeSyncState::NoSyncSource};
   }
-  if (!nodes::ClosureSignature::all_matching_exactly(source_signatures)) {
+  const LinkedClosureSignatures linked_signatures = gather_linked_target_closure_signatures(
+      current_context, *src_closure_socket, compute_context_cache);
+  if (linked_signatures.items.is_empty()) {
+    return {NodeSyncState::NoSyncSource};
+  }
+  std::optional<ClosureSignature> merged_signature = linked_signatures.get_merged_signature();
+  if (!merged_signature.has_value()) {
     return {NodeSyncState::ConflictingSyncSources};
   }
-  const nodes::ClosureSignature &source_signature = source_signatures[0];
+  if (!linked_signatures.has_type_definition()) {
+    merged_signature->set_auto_structure_types();
+  }
   const nodes::ClosureSignature &current_signature =
-      nodes::ClosureSignature::from_closure_output_node(closure_output_node);
-  if (!source_signature.matches_exactly(current_signature)) {
-    return {NodeSyncState::CanBeSynced, source_signature};
+      nodes::ClosureSignature::from_closure_output_node(closure_output_node, true);
+  if (*merged_signature != current_signature) {
+    return {NodeSyncState::CanBeSynced, merged_signature};
   }
   return {NodeSyncState::Synced};
 }
@@ -163,20 +180,25 @@ static ClosureSyncState get_sync_state_evaluate_closure(
   bke::ComputeContextCache compute_context_cache;
   const ComputeContext *current_context = ed::space_node::compute_context_for_edittree_socket(
       snode, compute_context_cache, *src_closure_socket);
-  const Vector<nodes::ClosureSignature> source_signatures =
-      gather_linked_origin_closure_signatures(
-          current_context, *src_closure_socket, compute_context_cache);
-  if (source_signatures.is_empty()) {
+  if (!current_context) {
     return {NodeSyncState::NoSyncSource};
   }
-  if (!nodes::ClosureSignature::all_matching_exactly(source_signatures)) {
+  const LinkedClosureSignatures linked_signatures = gather_linked_origin_closure_signatures(
+      current_context, *src_closure_socket, compute_context_cache);
+  if (linked_signatures.items.is_empty()) {
+    return {NodeSyncState::NoSyncSource};
+  }
+  std::optional<ClosureSignature> merged_signature = linked_signatures.get_merged_signature();
+  if (!merged_signature.has_value()) {
     return {NodeSyncState::ConflictingSyncSources};
   }
-  const nodes::ClosureSignature &source_signature = source_signatures[0];
+  if (!linked_signatures.has_type_definition()) {
+    merged_signature->set_auto_structure_types();
+  }
   const nodes::ClosureSignature &current_signature =
-      nodes::ClosureSignature::from_evaluate_closure_node(evaluate_closure_node);
-  if (!source_signature.matches_exactly(current_signature)) {
-    return {NodeSyncState::CanBeSynced, source_signature};
+      nodes::ClosureSignature::from_evaluate_closure_node(evaluate_closure_node, true);
+  if (*merged_signature != current_signature) {
+    return {NodeSyncState::CanBeSynced, merged_signature};
   }
   return {NodeSyncState::Synced};
 }
@@ -214,6 +236,7 @@ void sync_sockets_separate_bundle(SpaceNode &snode,
     NodeSeparateBundleItem &new_item = *nodes::socket_items::add_item_with_socket_type_and_name<
         nodes ::SeparateBundleItemsAccessor>(
         *snode.edittree, separate_bundle_node, item.type->type, item.key.c_str());
+    new_item.structure_type = int(item.structure_type);
     if (const std::optional<int> old_identifier = old_identifiers.lookup_try(item.key)) {
       new_item.identifier = *old_identifier;
     }
@@ -254,6 +277,7 @@ void sync_sockets_combine_bundle(SpaceNode &snode,
     NodeCombineBundleItem &new_item = *nodes::socket_items::add_item_with_socket_type_and_name<
         nodes ::CombineBundleItemsAccessor>(
         *snode.edittree, combine_bundle_node, item.type->type, item.key.c_str());
+    new_item.structure_type = int(item.structure_type);
     if (const std::optional<int> old_identifier = old_identifiers.lookup_try(item.key)) {
       new_item.identifier = *old_identifier;
     }
@@ -303,6 +327,7 @@ void sync_sockets_evaluate_closure(SpaceNode &snode,
         *nodes::socket_items::add_item_with_socket_type_and_name<
             nodes::EvaluateClosureInputItemsAccessor>(
             *snode.edittree, evaluate_closure_node, item.type->type, item.key.c_str());
+    new_item.structure_type = int(item.structure_type);
     if (const std::optional<int> old_identifier = old_input_identifiers.lookup_try(item.key)) {
       new_item.identifier = *old_identifier;
     }
@@ -312,6 +337,7 @@ void sync_sockets_evaluate_closure(SpaceNode &snode,
         *nodes::socket_items::add_item_with_socket_type_and_name<
             nodes::EvaluateClosureOutputItemsAccessor>(
             *snode.edittree, evaluate_closure_node, item.type->type, item.key.c_str());
+    new_item.structure_type = int(item.structure_type);
     if (const std::optional<int> old_identifier = old_output_identifiers.lookup_try(item.key)) {
       new_item.identifier = *old_identifier;
     }
@@ -361,9 +387,7 @@ void sync_sockets_closure(SpaceNode &snode,
     NodeClosureInputItem &new_item =
         *nodes::socket_items::add_item_with_socket_type_and_name<nodes::ClosureInputItemsAccessor>(
             *snode.edittree, closure_output_node, item.type->type, item.key.c_str());
-    if (item.structure_type) {
-      new_item.structure_type = int(*item.structure_type);
-    }
+    new_item.structure_type = int(item.structure_type);
     if (const std::optional<int> old_identifier = old_input_identifiers.lookup_try(item.key)) {
       new_item.identifier = *old_identifier;
     }
@@ -372,6 +396,7 @@ void sync_sockets_closure(SpaceNode &snode,
     NodeClosureOutputItem &new_item = *nodes::socket_items::add_item_with_socket_type_and_name<
         nodes::ClosureOutputItemsAccessor>(
         *snode.edittree, closure_output_node, item.type->type, item.key.c_str());
+    new_item.structure_type = int(item.structure_type);
     if (const std::optional<int> old_identifier = old_output_identifiers.lookup_try(item.key)) {
       new_item.identifier = *old_identifier;
     }
@@ -402,8 +427,13 @@ void sync_sockets_closure(SpaceNode &snode,
     };
   }
   for (auto &&[from_socket, to_socket] : internal_links) {
-    bke::node_add_link(
-        *snode.edittree, closure_input_node, *from_socket, closure_output_node, *to_socket);
+    if (!snode.edittree->typeinfo->validate_link ||
+        snode.edittree->typeinfo->validate_link(from_socket->typeinfo->type,
+                                                to_socket->typeinfo->type))
+    {
+      bke::node_add_link(
+          *snode.edittree, closure_input_node, *from_socket, closure_output_node, *to_socket);
+    }
   }
 }
 
@@ -413,20 +443,25 @@ static std::string get_bundle_sync_tooltip(const nodes::BundleSignature &old_sig
   Vector<StringRef> added_items;
   Vector<StringRef> removed_items;
   Vector<StringRef> changed_items;
+  bool order_changed = false;
 
-  for (const nodes::BundleSignature::Item &new_item : new_signature.items) {
-    if (const nodes::BundleSignature::Item *old_item = old_signature.items.lookup_key_ptr_as(
-            new_item.key))
-    {
-      if (new_item.type->type != old_item->type->type) {
-        changed_items.append(new_item.key);
-      }
-    }
-    else {
+  for (const int new_item_i : new_signature.items.index_range()) {
+    const BundleSignature::Item &new_item = new_signature.items[new_item_i];
+    const int old_item_i = old_signature.items.index_of_try_as(new_item.key);
+    if (old_item_i == -1) {
       added_items.append(new_item.key);
     }
+    else {
+      const BundleSignature::Item &old_item = old_signature.items[old_item_i];
+      if (new_item != old_item) {
+        changed_items.append(new_item.key);
+      }
+      if (old_item_i != new_item_i) {
+        order_changed = true;
+      }
+    }
   }
-  for (const nodes::BundleSignature ::Item &old_item : old_signature.items) {
+  for (const nodes::BundleSignature::Item &old_item : old_signature.items) {
     if (!new_signature.items.contains_as(old_item.key)) {
       removed_items.append(old_item.key);
     }
@@ -435,13 +470,16 @@ static std::string get_bundle_sync_tooltip(const nodes::BundleSignature &old_sig
   fmt::memory_buffer string_buffer;
   auto buf = fmt::appender(string_buffer);
   if (!added_items.is_empty()) {
-    fmt::format_to(buf, "{}: {}\n", TIP_("Add"), fmt::join(added_items, ", "));
+    fmt::format_to(buf, "\u2022 {}: {}\n", TIP_("Add"), fmt::join(added_items, ", "));
   }
   if (!removed_items.is_empty()) {
-    fmt::format_to(buf, "{}: {}\n", TIP_("Remove"), fmt::join(removed_items, ", "));
+    fmt::format_to(buf, "\u2022 {}: {}\n", TIP_("Remove"), fmt::join(removed_items, ", "));
   }
   if (!changed_items.is_empty()) {
-    fmt::format_to(buf, "{}: {}\n", TIP_("Change"), fmt::join(changed_items, ", "));
+    fmt::format_to(buf, "\u2022 {}: {}\n", TIP_("Change"), fmt::join(changed_items, ", "));
+  }
+  if (order_changed) {
+    fmt::format_to(buf, "\u2022 {}", TIP_("Reorder"));
   }
   fmt::format_to(buf, "\n{}", TIP_("Update based on linked bundle signature"));
 
@@ -454,21 +492,27 @@ static std::string get_closure_sync_tooltip(const nodes::ClosureSignature &old_s
   Vector<StringRef> added_inputs;
   Vector<StringRef> removed_inputs;
   Vector<StringRef> changed_inputs;
+  bool input_order = false;
 
   Vector<StringRef> added_outputs;
   Vector<StringRef> removed_outputs;
   Vector<StringRef> changed_outputs;
+  bool output_order = false;
 
-  for (const nodes::ClosureSignature::Item &new_item : new_signature.inputs) {
-    if (const nodes::ClosureSignature::Item *old_item = old_signature.inputs.lookup_key_ptr_as(
-            new_item.key))
-    {
-      if (new_item.type->type != old_item->type->type) {
-        changed_inputs.append(new_item.key);
-      }
+  for (const int new_item_i : new_signature.inputs.index_range()) {
+    const nodes::ClosureSignature::Item &new_item = new_signature.inputs[new_item_i];
+    const int old_item_i = old_signature.inputs.index_of_try_as(new_item.key);
+    if (old_item_i == -1) {
+      added_inputs.append(new_item.key);
     }
     else {
-      added_inputs.append(new_item.key);
+      const nodes::ClosureSignature::Item &old_item = old_signature.inputs[old_item_i];
+      if (new_item != old_item) {
+        changed_inputs.append(new_item.key);
+      }
+      if (old_item_i != new_item_i) {
+        input_order = true;
+      }
     }
   }
   for (const nodes::ClosureSignature::Item &old_item : old_signature.inputs) {
@@ -476,16 +520,20 @@ static std::string get_closure_sync_tooltip(const nodes::ClosureSignature &old_s
       removed_inputs.append(old_item.key);
     }
   }
-  for (const nodes::ClosureSignature::Item &new_item : new_signature.outputs) {
-    if (const nodes::ClosureSignature::Item *old_item = old_signature.outputs.lookup_key_ptr_as(
-            new_item.key))
-    {
-      if (new_item.type->type != old_item->type->type) {
-        changed_outputs.append(new_item.key);
-      }
+  for (const int new_item_i : new_signature.outputs.index_range()) {
+    const nodes::ClosureSignature::Item &new_item = new_signature.outputs[new_item_i];
+    const int old_item_i = old_signature.outputs.index_of_try_as(new_item.key);
+    if (old_item_i == -1) {
+      added_outputs.append(new_item.key);
     }
     else {
-      added_outputs.append(new_item.key);
+      const nodes::ClosureSignature::Item &old_item = old_signature.outputs[old_item_i];
+      if (new_item != old_item) {
+        changed_outputs.append(new_item.key);
+      }
+      if (old_item_i != new_item_i) {
+        output_order = true;
+      }
     }
   }
   for (const nodes::ClosureSignature::Item &old_item : old_signature.outputs) {
@@ -497,22 +545,30 @@ static std::string get_closure_sync_tooltip(const nodes::ClosureSignature &old_s
   fmt::memory_buffer string_buffer;
   auto buf = fmt::appender(string_buffer);
   if (!added_inputs.is_empty()) {
-    fmt::format_to(buf, "{}: {}\n", TIP_("Add Inputs"), fmt::join(added_inputs, ", "));
+    fmt::format_to(buf, "\u2022 {}: {}\n", TIP_("Add Inputs"), fmt::join(added_inputs, ", "));
   }
   if (!removed_inputs.is_empty()) {
-    fmt::format_to(buf, "{}: {}\n", TIP_("Remove Inputs"), fmt::join(removed_inputs, ", "));
+    fmt::format_to(buf, "\u2022 {}: {}\n", TIP_("Remove Inputs"), fmt::join(removed_inputs, ", "));
   }
   if (!changed_inputs.is_empty()) {
-    fmt::format_to(buf, "{}: {}\n", TIP_("Change Inputs"), fmt::join(changed_inputs, ", "));
+    fmt::format_to(buf, "\u2022 {}: {}\n", TIP_("Change Inputs"), fmt::join(changed_inputs, ", "));
+  }
+  if (input_order) {
+    fmt::format_to(buf, "\u2022 {}\n", TIP_("Reorder Inputs"));
   }
   if (!added_outputs.is_empty()) {
-    fmt::format_to(buf, "{}: {}\n", TIP_("Add Outputs"), fmt::join(added_outputs, ", "));
+    fmt::format_to(buf, "\u2022 {}: {}\n", TIP_("Add Outputs"), fmt::join(added_outputs, ", "));
   }
   if (!removed_outputs.is_empty()) {
-    fmt::format_to(buf, "{}: {}\n", TIP_("Remove Outputs"), fmt::join(removed_outputs, ", "));
+    fmt::format_to(
+        buf, "\u2022 {}: {}\n", TIP_("Remove Outputs"), fmt::join(removed_outputs, ", "));
   }
   if (!changed_outputs.is_empty()) {
-    fmt::format_to(buf, "{}: {}\n", TIP_("Change Outputs"), fmt::join(changed_outputs, ", "));
+    fmt::format_to(
+        buf, "\u2022 {}: {}\n", TIP_("Change Outputs"), fmt::join(changed_outputs, ", "));
+  }
+  if (output_order) {
+    fmt::format_to(buf, "\u2022 {}\n", TIP_("Reorder Outputs"));
   }
   fmt::format_to(buf, "\n{}", TIP_("Update based on linked closure signature"));
 
@@ -559,7 +615,7 @@ std::string sync_node_description_get(const bContext &C, const bNode &node)
 
   if (node.is_type("NodeSeparateBundle")) {
     const nodes::BundleSignature old_signature = nodes::BundleSignature::from_separate_bundle_node(
-        node);
+        node, true);
     if (const std::optional<nodes::BundleSignature> new_signature =
             get_sync_state_separate_bundle(*snode, node).source_signature)
     {
@@ -568,7 +624,7 @@ std::string sync_node_description_get(const bContext &C, const bNode &node)
   }
   else if (node.is_type("NodeCombineBundle")) {
     const nodes::BundleSignature old_signature = nodes::BundleSignature::from_combine_bundle_node(
-        node);
+        node, true);
     if (const std::optional<nodes::BundleSignature> new_signature =
             get_sync_state_combine_bundle(*snode, node).source_signature)
     {
@@ -577,7 +633,7 @@ std::string sync_node_description_get(const bContext &C, const bNode &node)
   }
   else if (node.is_type("NodeEvaluateClosure")) {
     const nodes::ClosureSignature old_signature =
-        nodes::ClosureSignature::from_evaluate_closure_node(node);
+        nodes::ClosureSignature::from_evaluate_closure_node(node, true);
     if (const std::optional<nodes::ClosureSignature> new_signature =
             get_sync_state_evaluate_closure(*snode, node).source_signature)
     {
@@ -586,7 +642,7 @@ std::string sync_node_description_get(const bContext &C, const bNode &node)
   }
   else if (node.is_type("NodeClosureOutput")) {
     const nodes::ClosureSignature old_signature =
-        nodes::ClosureSignature::from_closure_output_node(node);
+        nodes::ClosureSignature::from_closure_output_node(node, true);
     if (const std::optional<nodes::ClosureSignature> new_signature =
             get_sync_state_closure_output(*snode, node).source_signature)
     {

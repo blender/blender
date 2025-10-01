@@ -73,6 +73,7 @@ Strip *edit_strip_split(Main *bmain,
                         Strip *strip,
                         int timeline_frame,
                         eSplitMethod method,
+                        bool ignore_connections,
                         const char **r_error);
 /**
  * Find gap after initial_frame and move strips on right side to close the gap

@@ -357,6 +357,31 @@ struct GlobalState {
 
   int num_device_users = 0;
   std::chrono::time_point<std::chrono::steady_clock> last_user_disconnect_time_point;
+
+  ~GlobalState()
+  {
+    /* Ensure that we don't end up in a deadlock if the global state is being cleaned up
+     * before BKE_sound_exit_once has been called. (For example if someone called exit()
+     * to quickly close the program without cleaning up)
+     *
+     * If we don't do this, we could end up in a state where this destructor is waiting for
+     * other threads to let go of delayed_close_cv forever. See #146640.
+     */
+    exit_threads();
+  }
+
+  void exit_threads()
+  {
+    {
+      std::unique_lock lock(sound_device_mutex);
+      need_exit = true;
+    }
+
+    if (delayed_close_thread.joinable()) {
+      delayed_close_cv.notify_all();
+      delayed_close_thread.join();
+    }
+  }
 };
 
 GlobalState g_state;
@@ -528,15 +553,7 @@ void BKE_sound_exit()
 
 void BKE_sound_exit_once()
 {
-  {
-    std::unique_lock lock(g_state.sound_device_mutex);
-    g_state.need_exit = true;
-  }
-
-  if (g_state.delayed_close_thread.joinable()) {
-    g_state.delayed_close_cv.notify_one();
-    g_state.delayed_close_thread.join();
-  }
+  g_state.exit_threads();
 
   std::lock_guard lock(g_state.sound_device_mutex);
   sound_device_close_no_lock();

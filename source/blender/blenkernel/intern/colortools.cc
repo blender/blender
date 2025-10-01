@@ -273,7 +273,7 @@ CurveMapPoint *BKE_curvemap_insert(CurveMap *cuma, float x, float y)
   return newcmp;
 }
 
-void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope)
+void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, CurveMapSlopeType slope)
 {
   if (cuma->curve) {
     MEM_freeN(cuma->curve);
@@ -288,7 +288,7 @@ void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope
       cuma->totpoint = 4;
       break;
     case CURVE_PRESET_SMOOTH:
-      cuma->totpoint = 4;
+      cuma->totpoint = 8;
       break;
     case CURVE_PRESET_MAX:
       cuma->totpoint = 2;
@@ -322,7 +322,7 @@ void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope
       cuma->curve[0].y = clipr->ymax;
       cuma->curve[1].x = clipr->xmax;
       cuma->curve[1].y = clipr->ymin;
-      if (slope == CURVEMAP_SLOPE_POS_NEG) {
+      if (slope == CurveMapSlopeType::PositiveNegative) {
         cuma->curve[0].flag &= ~CUMA_HANDLE_AUTO_ANIM;
         cuma->curve[1].flag &= ~CUMA_HANDLE_AUTO_ANIM;
         cuma->curve[0].flag |= CUMA_HANDLE_VECTOR;
@@ -348,12 +348,20 @@ void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope
     case CURVE_PRESET_SMOOTH:
       cuma->curve[0].x = 0;
       cuma->curve[0].y = 1;
-      cuma->curve[1].x = 0.25;
-      cuma->curve[1].y = 0.94;
-      cuma->curve[2].x = 0.75;
-      cuma->curve[2].y = 0.06;
-      cuma->curve[3].x = 1;
-      cuma->curve[3].y = 0;
+      cuma->curve[1].x = 0.12;
+      cuma->curve[1].y = 0.96;
+      cuma->curve[2].x = 0.25;
+      cuma->curve[2].y = 0.84;
+      cuma->curve[3].x = 0.42;
+      cuma->curve[3].y = 0.62;
+      cuma->curve[4].x = 0.58;
+      cuma->curve[4].y = 0.38;
+      cuma->curve[5].x = 0.75;
+      cuma->curve[5].y = 0.16;
+      cuma->curve[6].x = 0.88;
+      cuma->curve[6].y = 0.04;
+      cuma->curve[7].x = 1;
+      cuma->curve[7].y = 0;
       break;
     case CURVE_PRESET_MAX:
       cuma->curve[0].x = 0;
@@ -420,7 +428,7 @@ void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope
 
   /* mirror curve in x direction to have positive slope
    * rather than default negative slope */
-  if (slope == CURVEMAP_SLOPE_POSITIVE) {
+  if (slope == CurveMapSlopeType::Positive) {
     int i, last = cuma->totpoint - 1;
     CurveMapPoint *newpoints = static_cast<CurveMapPoint *>(MEM_dupallocN(cuma->curve));
 
@@ -431,7 +439,7 @@ void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope
     MEM_freeN(cuma->curve);
     cuma->curve = newpoints;
   }
-  else if (slope == CURVEMAP_SLOPE_POS_NEG) {
+  else if (slope == CurveMapSlopeType::PositiveNegative) {
     const int num_points = cuma->totpoint * 2 - 1;
     CurveMapPoint *new_points = MEM_malloc_arrayN<CurveMapPoint>(size_t(num_points),
                                                                  "curve symmetric points");
@@ -1873,12 +1881,14 @@ void BKE_color_managed_display_settings_init(ColorManagedDisplaySettings *settin
   const char *display_name = IMB_colormanagement_display_get_default_name();
 
   STRNCPY_UTF8(settings->display_device, display_name);
+  settings->emulation = COLORMANAGE_DISPLAY_EMULATION_AUTO;
 }
 
 void BKE_color_managed_display_settings_copy(ColorManagedDisplaySettings *new_settings,
                                              const ColorManagedDisplaySettings *settings)
 {
   STRNCPY_UTF8(new_settings->display_device, settings->display_device);
+  new_settings->emulation = settings->emulation;
 }
 
 void BKE_color_managed_view_settings_init(ColorManagedViewSettings *view_settings,

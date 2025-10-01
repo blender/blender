@@ -8,6 +8,7 @@
 
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_space_types.h"
 
 #include "BLI_listbase.h"
 
@@ -22,6 +23,10 @@
 
 #include "UI_resources.hh"
 
+#include "SEQ_modifier.hh"
+#include "SEQ_select.hh"
+#include "SEQ_sequencer.hh"
+
 #include "node_common.h"
 
 #include "RNA_prototypes.hh"
@@ -35,6 +40,41 @@ static void composite_get_from_context(const bContext *C,
                                        ID **r_id,
                                        ID **r_from)
 {
+  using namespace blender;
+  const SpaceNode *snode = CTX_wm_space_node(C);
+  if (snode->node_tree_sub_type == SNODE_COMPOSITOR_SEQUENCER) {
+    Scene *sequencer_scene = CTX_data_sequencer_scene(C);
+    if (!sequencer_scene) {
+      *r_ntree = nullptr;
+      return;
+    }
+    Editing *ed = seq::editing_get(sequencer_scene);
+    if (!ed) {
+      *r_ntree = nullptr;
+      return;
+    }
+    Strip *strip = seq::select_active_get(sequencer_scene);
+    if (!strip) {
+      *r_ntree = nullptr;
+      return;
+    }
+    StripModifierData *smd = seq::modifier_get_active(strip);
+    if (!smd) {
+      *r_ntree = nullptr;
+      return;
+    }
+    if (smd->type != eSeqModifierType_Compositor) {
+      *r_ntree = nullptr;
+      return;
+    }
+    SequencerCompositorModifierData *scmd = reinterpret_cast<SequencerCompositorModifierData *>(
+        smd);
+    *r_from = nullptr;
+    *r_id = &sequencer_scene->id;
+    *r_ntree = scmd->node_group;
+    return;
+  }
+
   Scene *scene = CTX_data_scene(C);
 
   *r_from = nullptr;
@@ -158,7 +198,7 @@ void register_node_tree_type_cmp()
   tt->group_idname = "CompositorNodeGroup";
   tt->ui_name = N_("Compositor");
   tt->ui_icon = ICON_NODE_COMPOSITING;
-  tt->ui_description = N_("Compositing nodes");
+  tt->ui_description = N_("Create effects and post-process renders, images, and the 3D Viewport");
 
   tt->foreach_nodeclass = foreach_nodeclass;
   tt->localize = localize;

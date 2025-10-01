@@ -130,6 +130,7 @@ bool VDBImageLoader::load_pixels(const ImageMetaData &metadata,
     return true;
   }
 #else
+  (void)metadata;
   (void)pixels;
 #endif
 

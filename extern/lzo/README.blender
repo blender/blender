@@ -1,7 +1,0 @@
-Project: miniLZO
-#mini subset of the LZO real-time data compression librar
-URL: http://www.oberhumer.com/opensource/lzo/
-License: SPDX:GPL-2.0-or-later
-Upstream version: 2.08
-Local modifications: Add #ifdef for Windows ARM64 (MSVC) platforms
-Copyright: Copyright (C) 1996-2014 Markus Franz Xaver Oberhumer All Rights Reserved.
