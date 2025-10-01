@@ -1747,11 +1747,14 @@ static void icon_draw_size(float x,
     icon_draw_rect_input(x, y, w, h, icon_id, aspect, alpha, inverted);
   }
   else if (ELEM(di->type, ICON_TYPE_SVG_MONO, ICON_TYPE_SVG_COLOR)) {
-    float outline_intensity = mono_border ? (btheme->tui.icon_border_intensity > 0.0f ?
-                                                 btheme->tui.icon_border_intensity :
-                                                 0.3f) :
-                                            0.0f;
-    outline_intensity *= alpha;
+    /* The alpha may be over 1.0, however `outline_intensity` must be in the [0..1] range. */
+    const float outline_intensity = mono_border ?
+                                        std::min(1.0f,
+                                                 (btheme->tui.icon_border_intensity > 0.0f ?
+                                                      btheme->tui.icon_border_intensity :
+                                                      0.3f) *
+                                                     alpha) :
+                                        0.0f;
 
     float color[4];
     if (icon_id == ICON_NOT_FOUND) {
