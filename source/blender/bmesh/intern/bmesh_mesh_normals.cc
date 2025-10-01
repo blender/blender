@@ -2200,7 +2200,9 @@ static int bm_loop_normal_mark_indiv(BMesh *bm, BLI_bitmap *loops, const bool do
       }
     }
   }
-  else {
+
+  /* If the selection history could not be used, fall back to regular selection. */
+  if (totloopsel == 0) {
     if (sel_faces) {
       bm_loop_normal_mark_faces_impl(bm, loops, do_all_loops_of_vert, &totloopsel);
     }
