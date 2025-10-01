@@ -25,7 +25,6 @@ __all__ = (
 
 import bpy
 
-from bpy_extras import anim_utils
 
 ###########################
 # General Utilities
@@ -130,6 +129,8 @@ def RKS_ITER_selected_bones(ksi, context, ks):
 
 # "Available" F-Curves.
 def RKS_GEN_available(_ksi, _context, ks, data):
+    from bpy_extras import anim_utils
+
     # try to get the animation data associated with the closest
     # ID-block to the data (neither of which may exist/be easy to find)
     id_block = data.id_data
