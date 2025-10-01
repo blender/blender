@@ -32,7 +32,13 @@ class Background : Overlay {
     DRWState pass_state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_BACKGROUND;
     float4 color_override(0.0f, 0.0f, 0.0f, 0.0f);
     int background_type;
-    const float vignette_aperture = state.v3d->vignette_aperture, vignette_falloff = 0.15f;
+
+#if 0 /* FIXME: causes crash on startup, see #147155. */
+    const float vignette_aperture = state.v3d->vignette_aperture;
+#else
+    const float vignette_aperture = 1.0f;
+#endif
+    const float vignette_falloff = 0.15f;
 
     if (state.is_viewport_image_render && !state.draw_background) {
       background_type = BG_SOLID;
