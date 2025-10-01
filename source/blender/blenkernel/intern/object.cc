@@ -101,6 +101,7 @@
 #include "BKE_lib_remap.hh"
 #include "BKE_library.hh"
 #include "BKE_light.h"
+#include "BKE_light_linking.h"
 #include "BKE_lightprobe.h"
 #include "BKE_linestyle.h"
 #include "BKE_main.hh"
@@ -266,9 +267,7 @@ static void object_copy_data(Main *bmain,
   if (ob_src->lightgroup) {
     ob_dst->lightgroup = (LightgroupMembership *)MEM_dupallocN(ob_src->lightgroup);
   }
-  if (ob_src->light_linking) {
-    ob_dst->light_linking = (LightLinking *)MEM_dupallocN(ob_src->light_linking);
-  }
+  BKE_light_linking_copy(ob_dst, ob_src, flag_subdata);
 
   if ((flag & LIB_ID_COPY_SET_COPIED_ON_WRITE) != 0) {
     if (ob_src->lightprobe_cache) {
@@ -332,7 +331,7 @@ static void object_free_data(ID *id)
   BKE_previewimg_free(&ob->preview);
 
   MEM_SAFE_FREE(ob->lightgroup);
-  MEM_SAFE_FREE(ob->light_linking);
+  BKE_light_linking_delete(ob, LIB_ID_CREATE_NO_USER_REFCOUNT);
 
   BKE_lightprobe_cache_free(ob);
 
