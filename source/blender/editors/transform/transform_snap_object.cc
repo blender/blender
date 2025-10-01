@@ -903,7 +903,8 @@ static eSnapMode snap_obj_fn(SnapObjectContext *sctx,
 
   if (GS(ob_data->name) == ID_ME) {
     if (ELEM(ob_eval->type, OB_CURVES_LEGACY, OB_SURF) &&
-        (sctx->runtime.params.edit_mode_type != SNAP_GEOM_FINAL))
+        (sctx->runtime.params.edit_mode_type != SNAP_GEOM_FINAL) &&
+        BKE_object_is_in_editmode(ob_eval))
     {
       /* The final Curves geometry is generated as a Mesh. Skip this Mesh if the target is not
        * #SNAP_GEOM_FINAL. */
