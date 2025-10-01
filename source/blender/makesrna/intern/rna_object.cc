@@ -2177,6 +2177,85 @@ static std::optional<std::string> rna_ObjectLightLinking_path(const PointerRNA *
   return "light_linking";
 }
 
+bool rna_Object_light_linking_override_apply(Main *bmain,
+                                             RNAPropertyOverrideApplyContext &rnaapply_ctx)
+{
+  /* NOTE: Here:
+   *   - `dst` is the new, being updated liboverride data, which is a clean copy from the linked
+   *     reference data.
+   *   - `src` is the old, stored liboverride data, which is the source to copy overridden data
+   *     from.
+   */
+
+  PointerRNA *ptr_dst = &rnaapply_ctx.ptr_dst;
+  PointerRNA *ptr_src = &rnaapply_ctx.ptr_src;
+  PointerRNA *ptr_storage = &rnaapply_ctx.ptr_storage;
+  const int len_dst = rnaapply_ctx.len_src;
+  const int len_src = rnaapply_ctx.len_src;
+  const int len_storage = rnaapply_ctx.len_storage;
+  IDOverrideLibraryPropertyOperation *opop = rnaapply_ctx.liboverride_operation;
+
+  BLI_assert(len_dst == len_src && (!ptr_storage || len_dst == len_storage) && len_dst == 0);
+  BLI_assert_msg(opop->operation == LIBOVERRIDE_OP_REPLACE,
+                 "Unsupported RNA override operation on object light linking pointer");
+  UNUSED_VARS_NDEBUG(ptr_storage, len_dst, len_src, len_storage, opop);
+
+  /* LightLinking is a special case, since you cannot edit/replace it, it's either existent or not.
+   * Further more, when a lightlinking is added to the linked reference later on, the one created
+   * for the liboverride needs to be 'merged', such that its overridable data is kept. */
+  Object *ob_dst = blender::id_cast<Object *>(ptr_dst->owner_id);
+  Object *ob_src = blender::id_cast<Object *>(ptr_src->owner_id);
+
+  if (ob_dst->light_linking == nullptr && ob_src->light_linking == nullptr) {
+    /* Nothing to do. */
+    return false;
+  }
+
+  if (ob_dst->light_linking == nullptr && ob_src->light_linking != nullptr) {
+    /* Copy light linking data from previous liboverride data into final liboverride one. */
+    BKE_light_linking_copy(ob_dst, ob_src, 0);
+    return true;
+  }
+  else if (ob_dst->light_linking != nullptr && ob_src->light_linking == nullptr) {
+    /* Override has cleared/removed light linking data from its reference. */
+    BKE_light_linking_delete(ob_dst, 0);
+    return true;
+  }
+  else {
+    BLI_assert(ob_dst->light_linking != nullptr && ob_src->light_linking != nullptr);
+    /* Override had to create a light linking data, but now its reference also has one, need to
+     * merge them by keeping the overridable data from the liboverride, while using the light
+     * linking of the reference.
+     *
+     * Note that this case will not be encountered when the linked reference data already had
+     * light linking data, since there will be no operation for the light linking pointer itself
+     * then, only potentially for its internal overridable data (collections...). */
+
+    /* For these collections, only replace linked data with previously defined liboverride data if
+     * the latter is non-null. Otherwise, assume that the previously defined liboverride data
+     * property was 'unset', and can be replaced by the linked reference value. */
+    if (ob_src->light_linking->receiver_collection != nullptr) {
+      id_us_min(blender::id_cast<ID *>(ob_dst->light_linking->receiver_collection));
+      ob_dst->light_linking->receiver_collection = ob_src->light_linking->receiver_collection;
+      id_us_plus(blender::id_cast<ID *>(ob_dst->light_linking->receiver_collection));
+    }
+    if (ob_src->light_linking->blocker_collection != nullptr) {
+      id_us_min(blender::id_cast<ID *>(ob_dst->light_linking->blocker_collection));
+      ob_dst->light_linking->blocker_collection = ob_src->light_linking->blocker_collection;
+      id_us_plus(blender::id_cast<ID *>(ob_dst->light_linking->blocker_collection));
+    }
+
+    /* Note: LightLinking runtime data is currently set by depsgraph evaluation, so no need to
+     * handle them here. */
+  }
+
+  DEG_id_tag_update(&ob_dst->id, ID_RECALC_SHADING);
+
+  DEG_relations_tag_update(bmain);
+  WM_main_add_notifier(NC_OBJECT | ND_DRAW, &ob_dst->id);
+  return true;
+}
+
 static PointerRNA rna_LightLinking_receiver_collection_get(PointerRNA *ptr)
 {
   Object *object = reinterpret_cast<Object *>(ptr->owner_id);
@@ -3642,6 +3721,9 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
   RNA_def_property_struct_type(prop, "ObjectLightLinking");
   RNA_def_property_pointer_funcs(prop, "rna_Object_light_linking_get", nullptr, nullptr, nullptr);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_override_funcs(
+      prop, nullptr, nullptr, "rna_Object_light_linking_override_apply");
   RNA_def_property_ui_text(prop, "Light Linking", "Light linking settings");
 
   /* Shadow terminator. */
@@ -3696,6 +3778,8 @@ static void rna_def_object_light_linking(BlenderRNA *brna)
   RNA_def_struct_nested(brna, srna, "Object");
   RNA_def_struct_path_func(srna, "rna_ObjectLightLinking_path");
 
+  RNA_define_lib_overridable(true);
+
   prop = RNA_def_property(srna, "receiver_collection", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "Collection");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
@@ -3721,6 +3805,8 @@ static void rna_def_object_light_linking(BlenderRNA *brna)
                            "Blocker Collection",
                            "Collection which defines objects which block light from this emitter");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_LightLinking_collection_update");
+
+  RNA_define_lib_overridable(false);
 }
 
 void RNA_def_object(BlenderRNA *brna)
