@@ -319,7 +319,7 @@ void filelist_filter(FileList *filelist)
          filtered_tmp,
          sizeof(*filelist->filelist_intern.filtered) * size_t(num_filtered));
   filelist->filelist.entries_filtered_num = num_filtered;
-  //  printf("Filetered: %d over %d entries\n", num_filtered, filelist->filelist.entries_num);
+  //  printf("Filtered: %d over %d entries\n", num_filtered, filelist->filelist.entries_num);
 
   filelist_cache_clear(filelist->filelist_cache, filelist->filelist_cache->size);
   filelist->flags &= ~FL_NEED_FILTERING;

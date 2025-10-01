@@ -520,7 +520,7 @@ static wmOperatorStatus data_transfer_exec(bContext *C, wmOperator *op)
     }
     else {
       /* Selected objects contains the active object, in this case `ob_src` is the same as
-       * `ob_dst`, so we don't treat this case as invaid. */
+       * `ob_dst`, so we don't treat this case as invalid. */
       if (ob_src != ob_dst) {
         invalid_count++;
       }

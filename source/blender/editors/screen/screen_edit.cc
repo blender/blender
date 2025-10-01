@@ -662,7 +662,7 @@ static void region_cursor_set(wmWindow *win, bool swin_changed)
 {
   bScreen *screen = WM_window_get_active_screen(win);
 
-  /* Don't touch cursor if something else is controling it, like button handling. See #51739. */
+  /* Don't touch cursor if something else is controlling it, like button handling. See #51739. */
   if (win->grabcursor) {
     return;
   }

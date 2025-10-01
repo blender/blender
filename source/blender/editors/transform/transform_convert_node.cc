@@ -231,8 +231,9 @@ static void node_snap_grid_apply(TransInfo *t)
         continue;
       }
 
-      /* Nodes are snapped to the grid by first aligning their inital position to the grid and then
-       * offsetting them in grid increments.
+      /* Nodes are snapped to the grid by first aligning their initial position to the grid and
+       * then offsetting them in grid increments.
+       *
        * This ensures that multiple unsnapped nodes snap to the grid in sync while moving.
        */
 
