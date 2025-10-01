@@ -87,6 +87,15 @@ void BM_lnorspace_err(BMesh *bm);
 #endif
 
 /* Loop Generics */
+
+/**
+ * Initialize loop data based on a type, overriding the #BMesh::selectmode of `bm`.
+ * This can be useful if a single types selection is preferred,
+ * instead of using mixed modes and the selection history.
+ */
+BMLoopNorEditDataArray *BM_loop_normal_editdata_array_init_with_htype(BMesh *bm,
+                                                                      bool do_all_loops_of_vert,
+                                                                      char htype_override);
 BMLoopNorEditDataArray *BM_loop_normal_editdata_array_init(BMesh *bm, bool do_all_loops_of_vert);
 void BM_loop_normal_editdata_array_free(BMLoopNorEditDataArray *lnors_ed_arr);
 
