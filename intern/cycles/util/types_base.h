@@ -76,12 +76,16 @@ CCL_NAMESPACE_END
 #  define __KERNEL_PRINTF__
 #endif
 
+#if defined __METAL_PRINTF__
+#  define print_float(label, a) metal::os_log_default.log_debug(label ": %.8f", a)
+#else
 ccl_device_inline void print_float(const ccl_private char *label, const float a)
 {
-#ifdef __KERNEL_PRINTF__
+#  ifdef __KERNEL_PRINTF__
   printf("%s: %.8f\n", label, (double)a);
-#endif
+#  endif
 }
+#endif
 
 /* Most GPU APIs matching native vector types, so we only need to implement them for
  * CPU and oneAPI. */

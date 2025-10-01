@@ -479,6 +479,16 @@ void MetalDevice::compile_and_load(const int device_id, MetalPipelineType pso_ty
       options.languageVersion = MTLLanguageVersion3_1;
     }
 #  endif
+#  if defined(MAC_OS_VERSION_15_0)
+    if (@available(macos 15.0, *)) {
+      options.languageVersion = MTLLanguageVersion3_2;
+      if (const char *loglevel = getenv("MTL_LOG_LEVEL")) {
+        if (strcmp(loglevel, "MTLLogLevelDebug") == 0) {
+          options.enableLogging = true;
+        }
+      }
+    }
+#  endif
 
     if (getenv("CYCLES_METAL_PROFILING") || getenv("CYCLES_METAL_DEBUG")) {
       path_write_text(path_cache_get(string_printf("%s.metal", kernel_type_as_string(pso_type))),

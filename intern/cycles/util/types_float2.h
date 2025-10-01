@@ -57,11 +57,15 @@ ccl_device_inline int2 make_int2(const float2 f)
   return make_int2((int)f.x, (int)f.y);
 }
 
+#if defined __METAL_PRINTF__
+#  define print_float2(label, a) metal::os_log_default.log_debug(label ": %.8f %.8f", a.x, a.y)
+#else
 ccl_device_inline void print_float2(const ccl_private char *label, const float2 a)
 {
-#ifdef __KERNEL_PRINTF__
+#  ifdef __KERNEL_PRINTF__
   printf("%s: %.8f %.8f\n", label, (double)a.x, (double)a.y);
-#endif
+#  endif
 }
+#endif
 
 CCL_NAMESPACE_END
