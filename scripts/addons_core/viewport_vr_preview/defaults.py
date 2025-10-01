@@ -1231,7 +1231,7 @@ def vr_defaults_create_default(session_state):
                                       'ANY',
                                       'ANY')
         """
-    
+
     ami = vr_defaults_haptic_action_add(am,
                                         VRDefaultActions.HAPTIC.value,
                                         ["/user/hand/left",

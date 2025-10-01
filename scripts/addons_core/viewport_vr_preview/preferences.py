@@ -43,7 +43,7 @@ class USERPREF_PT_vr_navigation(Panel):
         col = layout.column()
 
         col.row().prop(nav, "vignette_intensity", text="Vignette Intensity")
-        
+
         if nav.snap_turn:
           col.row().prop(nav, "turn_amount", text="Turn Amount")
         else:
