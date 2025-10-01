@@ -2847,7 +2847,6 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
           case STRIP_TYPE_ALPHAUNDER:
           case STRIP_TYPE_COLORMIX:
           case STRIP_TYPE_MULTICAM:
-          case STRIP_TYPE_TRANSFORM:
           case STRIP_TYPE_SPEED:
           case STRIP_TYPE_GLOW:
           case STRIP_TYPE_GAUSSIAN_BLUR:

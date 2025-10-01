@@ -67,7 +67,6 @@ set(SRC
   intern/effects/vse_effect_solid_color.cc
   intern/effects/vse_effect_speed.cc
   intern/effects/vse_effect_text.cc
-  intern/effects/vse_effect_transform.cc
   intern/effects/vse_effect_wipe.cc
   intern/modifiers/MOD_brightness_contrast.cc
   intern/modifiers/MOD_color_balance.cc
