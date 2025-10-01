@@ -208,6 +208,14 @@ const UserDef U_default = {
             .flag = 0,
         },
 
+    .xr_navigation =
+        {
+            .vignette_intensity = 60.0f,
+            .turn_amount = DEG2RAD(30),
+            .turn_speed = DEG2RAD(60),
+            .flag = USER_XR_NAV_SNAP_TURN,
+        },
+
     .space_data =
         {
             .section_active = USER_SECTION_INTERFACE,
@@ -245,5 +253,13 @@ const UserDef U_default = {
     .runtime =
         {
             .is_dirty = 0,
+        },
+
+    .xr_navigation = 
+        {
+            .vignette_intensity = 60.0f,
+            .turn_amount = DEG2RAD(30),
+            .turn_speed = DEG2RAD(60),
+            .flag = USER_XR_NAV_SNAP_TURN,
         },
 };

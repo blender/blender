@@ -22,6 +22,7 @@ namespace blender::draw::overlay {
 class Background : Overlay {
  private:
   PassSimple bg_ps_ = {"Background"};
+  PassSimple bg_vignette_ps_ = {"Background Vignette"};
 
   gpu::FrameBuffer *framebuffer_ref_ = nullptr;
 
@@ -31,6 +32,7 @@ class Background : Overlay {
     DRWState pass_state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_BACKGROUND;
     float4 color_override(0.0f, 0.0f, 0.0f, 0.0f);
     int background_type;
+    const float vignette_aperture = state.v3d->vignette_aperture, vignette_falloff = 0.15f;
 
     if (state.is_viewport_image_render && !state.draw_background) {
       background_type = BG_SOLID;
@@ -96,13 +98,38 @@ class Background : Overlay {
     bg_ps_.bind_texture("depth_buffer", &res.depth_tx);
     bg_ps_.push_constant("color_override", color_override);
     bg_ps_.push_constant("bg_type", background_type);
+    bg_ps_.push_constant("vignette_enabled", false);
     bg_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+
+    if (state.vignette_enabled) {
+      bg_vignette_ps_.init();
+      bg_vignette_ps_.framebuffer_set(&framebuffer_ref_);
+
+      bg_vignette_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA);
+      bg_vignette_ps_.shader_set(res.shaders->background_fill.get());
+      bg_vignette_ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
+      bg_vignette_ps_.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
+      bg_vignette_ps_.bind_texture("color_buffer", &res.color_render_tx);
+      bg_vignette_ps_.bind_texture("depth_buffer", &res.depth_tx);
+      bg_vignette_ps_.push_constant("color_override", color_override);
+      bg_vignette_ps_.push_constant("bg_type", background_type);
+      bg_vignette_ps_.push_constant("vignette_enabled", true);
+      bg_vignette_ps_.push_constant("vignette_aperture", vignette_aperture);
+      bg_vignette_ps_.push_constant("vignette_falloff", vignette_falloff);
+      bg_vignette_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+    }
   }
 
   void draw_output(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     framebuffer_ref_ = framebuffer;
     manager.submit(bg_ps_, view);
+  }
+
+  void draw_vignette(Framebuffer &framebuffer, Manager &manager, View &view)
+  {
+    framebuffer_ref_ = framebuffer;
+    manager.submit(bg_vignette_ps_, view);
   }
 };
 

@@ -30,6 +30,8 @@
 #include "GPU_state.hh"
 #include "GPU_viewport.hh"
 
+#include "UI_resources.hh"
+
 #include "WM_api.hh"
 
 #include "wm_xr_intern.hh"
@@ -180,6 +182,7 @@ void wm_xr_draw_view(const GHOST_XrDrawViewInfo *draw_view, void *customdata)
                                   winmat,
                                   settings->clip_start,
                                   settings->clip_end,
+                                  session_state->vignette_data->aperture,
                                   true,
                                   false,
                                   true,
@@ -337,7 +340,7 @@ static void wm_xr_controller_aim_draw(const XrSessionSettings *settings, wmXrSes
       break;
     case XR_CONTROLLER_DRAW_DARK_RAY:
     case XR_CONTROLLER_DRAW_LIGHT_RAY:
-      draw_ray = true;
+      draw_ray = !state->is_raycast_shown;
       break;
   }
 

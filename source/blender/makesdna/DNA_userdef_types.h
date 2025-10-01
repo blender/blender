@@ -167,6 +167,14 @@ typedef struct WalkNavigation {
   char _pad0[6];
 } WalkNavigation;
 
+typedef struct XrNavigation {
+  float vignette_intensity;
+  float turn_speed;
+  float turn_amount;
+  short flag;
+  char _pad0[2];
+} XrNavigation;
+
 typedef struct UserDef_Runtime {
   /** Mark as changed so the preferences are saved on exit. */
   char is_dirty;
@@ -619,6 +627,7 @@ typedef struct UserDef {
   char statusbar_flag;    /* eUserpref_StatusBar_Flag */
 
   struct WalkNavigation walk_navigation;
+  struct XrNavigation xr_navigation;
 
   /** The UI for the user preferences. */
   UserDef_SpaceData space_data;
@@ -1107,6 +1116,12 @@ typedef enum eUserpref_FactorDisplay {
   USER_FACTOR_AS_FACTOR = 0,
   USER_FACTOR_AS_PERCENTAGE = 1,
 } eUserpref_FactorDisplay;
+
+/** #UserDef.xr_navigation_flag */
+typedef enum eUserpref_XrNavigationFlags {
+  USER_XR_NAV_SNAP_TURN = (1 << 0),
+  USER_XR_NAV_INVERT_ROTATION = (1 << 1),
+} eUserpref_XrNavigationFlags;
 
 typedef enum eUserpref_RenderDisplayType {
   USER_RENDER_DISPLAY_NONE = 0,

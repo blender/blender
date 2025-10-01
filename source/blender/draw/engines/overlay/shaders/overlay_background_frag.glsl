@@ -31,8 +31,19 @@ void main()
    * This removes the alpha channel and put the background behind reference images
    * while masking the reference images by the render alpha.
    */
-  float alpha = texture(color_buffer, screen_uv).a;
-  float depth = texture(depth_buffer, screen_uv).r;
+
+  float alpha;
+  float depth;
+
+  if (vignette_enabled) {
+    const float dist = length(screen_uv - 0.5f);
+    alpha = smoothstep(vignette_aperture, vignette_aperture + vignette_falloff, dist);
+    depth = 0.0f;
+  }
+  else {
+    alpha = texture(color_buffer, screen_uv).a;
+    depth = texture(depth_buffer, screen_uv).r;
+  }
 
   float3 bg_col;
   float3 col_high;
@@ -90,11 +101,16 @@ void main()
 
   bg_col = mix(bg_col, color_override.rgb, color_override.a);
 
-  /* Mimic alpha under behavior. Result is premultiplied. */
-  frag_color = float4(bg_col, 1.0f) * (1.0f - alpha);
+  if (vignette_enabled) {
+    frag_color = float4(bg_col, alpha);
+  }
+  else {
+    /* Mimic alpha under behavior. Result is premultiplied. */
+    frag_color = float4(bg_col, 1.0f) * (1.0f - alpha);
 
-  /* Special case: If the render is not transparent, do not clear alpha values. */
-  if (depth == 1.0f && alpha == 1.0f) {
-    frag_color.a = 1.0f;
+    /* Special case: If the render is not transparent, do not clear alpha values. */
+    if (depth == 1.0f && alpha == 1.0f) {
+      frag_color.a = 1.0f;
+    }
   }
 }
