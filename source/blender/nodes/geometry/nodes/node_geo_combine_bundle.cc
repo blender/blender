@@ -99,7 +99,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *node_ptr)
 
   layout->op("node.sockets_sync", IFACE_("Sync"), ICON_FILE_REFRESH);
   layout->prop(node_ptr, "define_signature", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  if (uiLayout *panel = layout->panel(C, "bundle_items", false, TIP_("Bundle Items"))) {
+  if (uiLayout *panel = layout->panel(C, "bundle_items", false, IFACE_("Bundle Items"))) {
     socket_items::ui::draw_items_list_with_operators<CombineBundleItemsAccessor>(
         C, panel, ntree, node);
     socket_items::ui::draw_active_item_props<CombineBundleItemsAccessor>(
