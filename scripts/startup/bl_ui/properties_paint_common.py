@@ -262,7 +262,6 @@ class UnifiedPaintPanel:
             unified_name=None,
             pressure_name=None,
             curve_visibility_name=None,
-            icon='NONE',
             text=None,
             slider=False,
             header=False,
@@ -282,7 +281,7 @@ class UnifiedPaintPanel:
         if unified_name and getattr(ups, unified_name):
             prop_owner = ups
 
-        row.prop(prop_owner, prop_name, icon=icon, text=text, slider=slider)
+        row.prop(prop_owner, prop_name, icon='NONE', text=text, slider=slider)
 
         if unified_name and not header:
             # NOTE: We don't draw UnifiedPaintSettings in the header to reduce clutter. D5928#136281
