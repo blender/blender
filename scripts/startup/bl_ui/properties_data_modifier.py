@@ -155,7 +155,7 @@ class OBJECT_MT_modifier_add_generate(ModifierAddMenu, Menu):
             self.operator_modifier_add(layout, 'BOOLEAN')
         if ob_type in {'MESH', 'CURVE', 'FONT', 'SURFACE'}:
             self.operator_modifier_add(layout, 'BUILD')
-            self.operator_modifier_add_asset(layout, n_('Curve to Tube'))
+            self.operator_modifier_add_asset(layout, n_('Curve to Tube'), icon='MOD_CURVE_TO_TUBE')
             self.operator_modifier_add(layout, 'DECIMATE')
             self.operator_modifier_add(layout, 'EDGE_SPLIT')
         if ob_type == 'MESH':
@@ -168,7 +168,7 @@ class OBJECT_MT_modifier_add_generate(ModifierAddMenu, Menu):
             self.operator_modifier_add(layout, 'MULTIRES')
         if ob_type in {'MESH', 'CURVE', 'FONT', 'SURFACE'}:
             self.operator_modifier_add(layout, 'REMESH')
-            self.operator_modifier_add_asset(layout, n_('Scatter on Surface'))
+            self.operator_modifier_add_asset(layout, n_('Scatter on Surface'), icon='MOD_SCATTER_ON_SURFACE')
             self.operator_modifier_add(layout, 'SCREW')
         if ob_type == 'MESH':
             self.operator_modifier_add(layout, 'SKIN')
