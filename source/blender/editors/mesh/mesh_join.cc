@@ -106,7 +106,8 @@ static VectorSet<std::string> join_vertex_groups(const Span<const Object *> obje
   return vertex_group_names;
 }
 
-static void join_positions_and_shape_keys(const Span<const Object *> objects_to_join,
+static void join_positions_and_shape_keys(Main *bmain,
+                                          const Span<const Object *> objects_to_join,
                                           const OffsetIndices<int> vert_ranges,
                                           const float4x4 &world_to_dst_mesh,
                                           Mesh &dst_mesh)
@@ -122,7 +123,7 @@ static void join_positions_and_shape_keys(const Span<const Object *> objects_to_
 
   const auto ensure_dst_key = [&]() {
     if (!dst_mesh.key) {
-      dst_mesh.key = BKE_key_add(nullptr, nullptr);
+      dst_mesh.key = BKE_key_add(bmain, &dst_mesh.id);
       dst_mesh.key->type = KEY_RELATIVE;
     }
   };
@@ -507,7 +508,8 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
   float4x4 world_to_active_object;
   invert_m4_m4_safe_ortho(world_to_active_object.ptr(), active_object->object_to_world().ptr());
 
-  join_positions_and_shape_keys(objects_to_join, vert_ranges, world_to_active_object, *dst_mesh);
+  join_positions_and_shape_keys(
+      bmain, objects_to_join, vert_ranges, world_to_active_object, *dst_mesh);
 
   MutableSpan<int2> dst_edges = dst_mesh->edges_for_write();
   for (const int i : objects_to_join.index_range().drop_front(1)) {
