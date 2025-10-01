@@ -628,6 +628,19 @@ static void rna_def_paint_curve(BlenderRNA *brna)
   RNA_def_struct_ui_icon(srna, ICON_CURVE_BEZCURVE);
 }
 
+static void rna_def_paint_curve_visibility_flag(StructRNA *srna,
+                                                const char *prop_name,
+                                                const char *ui_name,
+                                                const int64_t flag)
+{
+  PropertyRNA *prop;
+
+  prop = RNA_def_property(srna, prop_name, PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "curve_visibility_flags", flag);
+  RNA_def_property_ui_text(prop, ui_name, nullptr);
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
+}
+
 static void rna_def_paint(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -757,21 +770,12 @@ static void rna_def_paint(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Tile Z", "Tile along Z axis");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
 
-  prop = RNA_def_property(srna, "show_strength_curve", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(
-      prop, nullptr, "curve_visibility_flags", PAINT_CURVE_SHOW_STRENGTH);
-  RNA_def_property_ui_text(prop, "Show Strength Curve", "Show strength curve");
-  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
-
-  prop = RNA_def_property(srna, "show_size_curve", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "curve_visibility_flags", PAINT_CURVE_SHOW_SIZE);
-  RNA_def_property_ui_text(prop, "Show Size Curve", "Show size curve");
-  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
-
-  prop = RNA_def_property(srna, "show_jitter_curve", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "curve_visibility_flags", PAINT_CURVE_SHOW_JITTER);
-  RNA_def_property_ui_text(prop, "Show Jitter Curve", "Show jitter curve");
-  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
+  rna_def_paint_curve_visibility_flag(
+      srna, "show_strength_curve", "Show Strength Curve", PAINT_CURVE_SHOW_STRENGTH);
+  rna_def_paint_curve_visibility_flag(
+      srna, "show_size_curve", "Show Size Curve", PAINT_CURVE_SHOW_SIZE);
+  rna_def_paint_curve_visibility_flag(
+      srna, "show_jitter_curve", "Show Jitter Curve", PAINT_CURVE_SHOW_JITTER);
 
   /* Unified Paint Settings */
   prop = RNA_def_property(srna, "unified_paint_settings", PROP_POINTER, PROP_NONE);
