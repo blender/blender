@@ -510,10 +510,8 @@ bool ED_node_supports_preview(SpaceNode *snode)
          (USER_EXPERIMENTAL_TEST(&U, use_shader_node_previews) && ED_node_is_shader(snode));
 }
 
-void ED_node_shader_default(const bContext *C, ID *id)
+void ED_node_shader_default(const bContext *C, Main *bmain, ID *id)
 {
-  Main *bmain = CTX_data_main(C);
-
   if (GS(id->name) == ID_MA) {
     /* Materials */
     Object *ob = CTX_data_active_object(C);

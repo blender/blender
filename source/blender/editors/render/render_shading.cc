@@ -853,7 +853,7 @@ static wmOperatorStatus new_material_exec(bContext *C, wmOperator * /*op*/)
     else {
       ma = BKE_gpencil_material_add(bmain, name);
     }
-    ED_node_shader_default(C, &ma->id);
+    ED_node_shader_default(C, bmain, &ma->id);
   }
 
   if (prop) {
@@ -982,7 +982,7 @@ static wmOperatorStatus new_world_exec(bContext *C, wmOperator * /*op*/)
   }
   else {
     wo = BKE_world_add(bmain, CTX_DATA_(BLT_I18NCONTEXT_ID_WORLD, "World"));
-    ED_node_shader_default(C, &wo->id);
+    ED_node_shader_default(C, bmain, &wo->id);
   }
 
   /* hook into UI */

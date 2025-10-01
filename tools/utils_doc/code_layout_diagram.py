@@ -934,6 +934,7 @@ def render_output(scene, bounds, filepath):
     scene.render.filepath = filepath
 
     world = bpy.data.worlds.new(name_gen)
+    world.node_tree.nodes.clear()
     output = world.node_tree.nodes.new("ShaderNodeOutputWorld")
     background = world.node_tree.nodes.new("ShaderNodeBackground")
     world.node_tree.links.new(output.outputs["Surface"], background.outputs["Surface"])

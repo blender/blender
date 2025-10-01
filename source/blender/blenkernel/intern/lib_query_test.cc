@@ -127,7 +127,7 @@ class IDSubDataTestData : public WholeIDTestData {
     /* Add a material that contains an embedded nodetree and assign a custom property to one of
      * its nodes. */
     this->material = BKE_material_add(this->bmain, "Material");
-    ED_node_shader_default(this->C, &this->material->id);
+    ED_node_shader_default(this->C, this->bmain, &this->material->id);
 
     BKE_object_material_assign(
         this->bmain, this->object, this->material, this->object->actcol, BKE_MAT_ASSIGN_OBJECT);
