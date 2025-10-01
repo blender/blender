@@ -701,8 +701,8 @@ static blender::gpu::TextureFormat get_hdr_framebuffer_format(const Scene *scene
 {
   bool use_float = false;
 
-  if (scene && ((IMB_colormanagement_display_is_hdr(&scene->display_settings,
-                                                    scene->view_settings.view_transform)) ||
+  if (scene && (IMB_colormanagement_display_is_hdr(&scene->display_settings,
+                                                   scene->view_settings.view_transform) ||
                 IMB_colormanagement_display_is_wide_gamut(&scene->display_settings,
                                                           scene->view_settings.view_transform)))
   {

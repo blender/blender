@@ -725,7 +725,7 @@ static bool colormanage_compatible_look(const ocio::Look *look, StringRef view_f
 
   /* Skip looks only relevant to specific view transforms.
    * If the view transform has view-specific look ignore non-specific looks. */
-  return (view_filter.is_empty()) ? look->view().is_empty() : look->view() == view_filter;
+  return view_filter.is_empty() ? look->view().is_empty() : look->view() == view_filter;
 }
 
 static bool colormanage_compatible_look(const ocio::Look *look, const char *view_name)
@@ -809,7 +809,7 @@ static std::shared_ptr<const ocio::CPUProcessor> get_display_buffer_processor(
   display_parameters.from_colorspace = from_colorspace;
   display_parameters.view = view_transform;
   display_parameters.display = display_settings.display_device;
-  display_parameters.look = (colormanage_use_look(look, view_transform)) ? look : "";
+  display_parameters.look = colormanage_use_look(look, view_transform) ? look : "";
   display_parameters.scale = (exposure == 0.0f) ? 1.0f : powf(2.0f, exposure);
   display_parameters.exponent = (gamma == 1.0f) ? 1.0f : 1.0f / max_ff(FLT_EPSILON, gamma);
   display_parameters.temperature = temperature;
@@ -1503,7 +1503,7 @@ bool IMB_colormanagement_space_to_cicp(const ColorSpace *colorspace,
     cicp[3] = CICP_RANGE_FULL;
     return true;
   }
-  if (interop_id == "srgb_p3d65_display" || interop_id == "srgbx_p3d65_display") {
+  if (ELEM(interop_id, "srgb_p3d65_display", "srgbx_p3d65_display")) {
     /* For video we use BT.709 to match default sRGB writing, even though it is wrong.
      * But we have been writing sRGB like this forever, and there is the so called
      * "Quicktime gamma shift bug" that complicates things. */
@@ -1557,14 +1557,14 @@ const ColorSpace *IMB_colormanagement_space_from_cicp(const int cicp[4],
       interop_id = "g24_rec709_display";
     }
   }
-  else if (cicp[0] == CICP_PRI_P3D65 && (cicp[1] == CICP_TRC_SRGB || cicp[1] == CICP_TRC_BT709)) {
+  else if (cicp[0] == CICP_PRI_P3D65 && ELEM(cicp[1], CICP_TRC_SRGB, CICP_TRC_BT709)) {
     interop_id = "srgb_p3d65_display";
   }
   else if (cicp[0] == CICP_PRI_REC709 && cicp[1] == CICP_TRC_SRGB) {
     interop_id = "srgb_rec709_display";
   }
 
-  return (interop_id.is_empty()) ? nullptr : g_config->get_color_space_by_interop_id(interop_id);
+  return interop_id.is_empty() ? nullptr : g_config->get_color_space_by_interop_id(interop_id);
 }
 
 StringRefNull IMB_colormanagement_space_get_interop_id(const ColorSpace *colorspace)
@@ -3529,7 +3529,7 @@ void IMB_colormanagement_working_space_convert(
 {
   using namespace blender;
   /* If unknown, assume it's the OpenColorIO config scene linear space. */
-  float3x3 bmain_scene_linear_to_xyz = (math::is_zero(current_scene_linear_to_xyz)) ?
+  float3x3 bmain_scene_linear_to_xyz = math::is_zero(current_scene_linear_to_xyz) ?
                                            global_scene_linear_to_xyz_default :
                                            current_scene_linear_to_xyz;
 

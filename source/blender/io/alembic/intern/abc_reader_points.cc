@@ -116,7 +116,7 @@ template<> float3 convert_abc_value(const V3f &in)
 
 template<> ColorGeometry4f convert_abc_value(const C3f &in)
 {
-  return ColorGeometry4f(in[0], in[1], in[2], 1.f);
+  return ColorGeometry4f(in[0], in[1], in[2], 1.0f);
 }
 
 template<> float2 convert_abc_value(const V2f &in)

@@ -2020,7 +2020,7 @@ static void imb_exr_set_known_colorspace(const Header &header, ImFileColorSpace 
 
   /* Try chromaticities. */
   if (header_chromaticities &&
-      (imb_check_chromaticity_matches(header_chromaticities->value(), CHROMATICITIES_XYZ_E)))
+      imb_check_chromaticity_matches(header_chromaticities->value(), CHROMATICITIES_XYZ_E))
   {
     /* Only works for the Blender default configuration due to fixed name. */
     STRNCPY_UTF8(r_colorspace.metadata_colorspace, "Linear CIE-XYZ E");
