@@ -1839,7 +1839,7 @@ class NodeTreeMainUpdater {
               break;
             }
             const bNodeTreeZone *zone = zones->get_zone_by_node(node.identifier);
-            if (!zone->input_node()) {
+            if (!zone || !zone->input_node()) {
               break;
             }
             for (const bNodeSocket *input_socket : zone->input_node()->input_sockets()) {
