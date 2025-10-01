@@ -731,6 +731,30 @@ static void draw_interface_panel_content(DrawGroupInputsContext &ctx,
   }
 }
 
+static std::string get_node_warning_panel_name(const int num_errors,
+                                               const int num_warnings,
+                                               const int num_infos)
+{
+  fmt::memory_buffer buffer;
+  fmt::appender buf = fmt::appender(buffer);
+  if (num_errors > 0) {
+    fmt::format_to(buf, "{} ({})", IFACE_("Errors"), num_errors);
+  }
+  if (num_warnings > 0) {
+    if (num_errors > 0) {
+      fmt::format_to(buf, ", ");
+    }
+    fmt::format_to(buf, "{} ({})", IFACE_("Warnings"), num_warnings);
+  }
+  if (num_infos > 0) {
+    if (num_errors > 0 || num_warnings > 0) {
+      fmt::format_to(buf, ", ");
+    }
+    fmt::format_to(buf, "{} ({})", IFACE_("Info"), num_infos);
+  }
+  return std::string(buffer.data(), buffer.size());
+}
+
 static void draw_warnings(const bContext *C,
                           const NodesModifierData &nmd,
                           uiLayout *layout,
@@ -750,9 +774,16 @@ static void draw_warnings(const bContext *C,
   if (warnings_num == 0) {
     return;
   }
+  Map<NodeWarningType, int> count_by_type;
+  for (const NodeWarning &warning : tree_log->all_warnings) {
+    count_by_type.lookup_or_add(warning.type, 0)++;
+  }
+  const int num_errors = count_by_type.lookup_default(NodeWarningType::Error, 0);
+  const int num_warnings = count_by_type.lookup_default(NodeWarningType::Warning, 0);
+  const int num_infos = count_by_type.lookup_default(NodeWarningType::Info, 0);
+  const std::string panel_name = get_node_warning_panel_name(num_errors, num_warnings, num_infos);
   PanelLayout panel = layout->panel_prop(C, md_ptr, "open_warnings_panel");
-  panel.header->label(fmt::format(fmt::runtime(IFACE_("Warnings ({})")), warnings_num).c_str(),
-                      ICON_NONE);
+  panel.header->label(panel_name.c_str(), ICON_NONE);
   if (!panel.body) {
     return;
   }
