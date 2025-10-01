@@ -71,7 +71,11 @@ PyC_FlagSet bpy_bm_htype_all_flags[] = {
     {0, nullptr},
 };
 
-#define BPY_BM_HFLAG_ALL_STR "('SELECT', 'HIDE', 'SEAM', 'SMOOTH', 'TAG')"
+/** This may be used with a `Literal[...]` typing expression. */
+#define BPY_BM_HTYPE_NOLOOP "'VERT', 'EDGE', 'FACE'"
+
+/** This may be used with a `Literal[...]` typing expression. */
+#define BPY_BM_HFLAG_ALL_STR "'SELECT', 'HIDE', 'SEAM', 'SMOOTH', 'TAG'"
 
 PyC_FlagSet bpy_bm_hflag_all_flags[] = {
     {BM_ELEM_SELECT, "SELECT"},
@@ -350,10 +354,9 @@ static PyObject *bpy_bmesh_is_wrapped_get(BPy_BMesh *self, void * /*closure*/)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmesh_select_mode_doc,
-    "The selection mode, values can be {'VERT', 'EDGE', 'FACE'}, cannot be assigned an empty "
-    "set.\n"
+    "The selection mode, cannot be assigned an empty set.\n"
     "\n"
-    ":type: set\n");
+    ":type: set[Literal[" BPY_BM_HTYPE_NOLOOP "]]\n");
 static PyObject *bpy_bmesh_select_mode_get(BPy_BMesh *self, void * /*closure*/)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -1498,9 +1501,9 @@ PyDoc_STRVAR(
     "\n"
     "   :arg matrix: 4x4x transform matrix.\n"
     "   :type matrix: :class:`mathutils.Matrix`\n"
-    "   :arg filter: set of values in " BPY_BM_HFLAG_ALL_STR
+    "   :arg filter: Flag to filter vertices."
     ".\n"
-    "   :type filter: set[str]\n");
+    "   :type filter: set[Literal[" BPY_BM_HFLAG_ALL_STR "]]\n");
 static PyObject *bpy_bmesh_transform(BPy_BMElem *self, PyObject *args, PyObject *kw)
 {
   static const char *kwlist[] = {"matrix", "filter", nullptr};
