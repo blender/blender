@@ -509,6 +509,8 @@ std::string error_message_from_load(const VolumeGridData &grid)
 #endif
 }
 
+#ifdef WITH_OPENVDB
+
 /**
  * Call #process_leaf_fn on the leaf node if it has a certain minimum number of active voxels. If
  * there are only a few active voxels, gather those in #r_coords for later batch processing.
@@ -732,5 +734,7 @@ void set_grid_background(openvdb::GridBase &grid_base, const GPointer value)
     tree.root().setBackground(*static_cast<const ValueType *>(value.get()), true);
   });
 }
+
+#endif /* WITH_OPENVDB */
 
 }  // namespace blender::bke::volume_grid
