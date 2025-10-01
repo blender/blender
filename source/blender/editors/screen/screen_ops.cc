@@ -5988,6 +5988,9 @@ wmOperatorStatus ED_screen_animation_play(bContext *C, int sync, int mode)
                                          CTX_data_view_layer(C);
   Depsgraph *depsgraph = is_sequencer ? BKE_scene_ensure_depsgraph(bmain, scene, view_layer) :
                                         CTX_data_ensure_evaluated_depsgraph(C);
+  if (is_sequencer) {
+    BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
+  }
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 
   if (ED_screen_animation_playing(CTX_wm_manager(C))) {

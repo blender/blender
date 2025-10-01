@@ -60,6 +60,9 @@ typedef enum GreasePencilStrokeCapType {
   GP_STROKE_CAP_TYPE_MAX,
 } GreasePencilStrokeCapType;
 
+#define GP_STROKE_MITER_ANGLE_ROUND 0.0f
+#define GP_STROKE_MITER_ANGLE_BEVEL DEG2RADF(180.0f)
+
 /**
  * Type of drawing data.
  * If `GP_DRAWING` the node is a `GreasePencilDrawing`,

@@ -54,7 +54,11 @@ OVERLAY_INFO_VARIATIONS(overlay_armature_sphere_outline)
 GPU_SHADER_INTERFACE_INFO(overlay_armature_sphere_solid_iface)
 FLAT(float3, final_state_color)
 FLAT(float3, final_bone_color)
-FLAT(float4x4, sphere_matrix)
+/* Cannot interpolate matrix. */
+FLAT(float4, sphere_matrix0)
+FLAT(float4, sphere_matrix1)
+FLAT(float4, sphere_matrix2)
+FLAT(float4, sphere_matrix3)
 SMOOTH(float3, view_position)
 GPU_SHADER_INTERFACE_END()
 

@@ -17,6 +17,7 @@
 #include "BLI_listbase.h"
 
 #include "BKE_action.hh"
+#include "BKE_light_linking.h"
 #include "BKE_mesh_types.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
@@ -131,9 +132,7 @@ void ObjectRuntimeBackup::restore_to_object(Object *object)
   if (light_linking_runtime) {
     /* Lazily allocate light linking on the evaluated object for the cases when the object is only
      * a receiver or a blocker and does not need its own LightLinking on the original object. */
-    if (!object->light_linking) {
-      object->light_linking = MEM_callocN<LightLinking>(__func__);
-    }
+    BKE_light_linking_ensure(object);
     object->light_linking->runtime = *light_linking_runtime;
   }
 

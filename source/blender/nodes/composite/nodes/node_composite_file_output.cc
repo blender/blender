@@ -183,6 +183,12 @@ static Vector<path_templates::Error> compute_image_path(const StringRefNull dire
   BKE_add_template_variables_for_render_path(template_variables, scene);
   BKE_add_template_variables_for_node(template_variables, node);
 
+  /* Substitute #### frame variables if not doing an animation render. For animation renders, this
+   * is handled internally by the following function. */
+  if (!is_animation_render) {
+    BLI_path_frame(base_path, FILE_MAX, frame_number, 0);
+  }
+
   return BKE_image_path_from_imformat(r_image_path,
                                       base_path,
                                       BKE_main_blendfile_path_from_global(),

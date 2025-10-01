@@ -201,6 +201,7 @@ void node_keymap(wmKeyConfig *keyconf);
 
 rctf node_frame_rect_inside(const SpaceNode &snode, const bNode &node);
 bool node_or_socket_isect_event(const bContext &C, const wmEvent &event);
+bNode *node_under_mouse_get(const SpaceNode &snode, const float2 mouse);
 
 bool node_deselect_all(bNodeTree &node_tree);
 void node_socket_select(bNode *node, bNodeSocket &sock);
@@ -310,6 +311,7 @@ void NODE_OT_add_import_node(wmOperatorType *ot);
 void NODE_OT_swap_group_asset(wmOperatorType *ot);
 void NODE_OT_new_node_tree(wmOperatorType *ot);
 void NODE_OT_new_compositing_node_group(wmOperatorType *ot);
+void NODE_OT_duplicate_compositing_node_group(wmOperatorType *ot);
 void NODE_OT_new_compositor_sequencer_node_group(wmOperatorType *operator_type);
 void NODE_OT_add_group_input_node(wmOperatorType *ot);
 
@@ -321,6 +323,7 @@ void NODE_OT_group_insert(wmOperatorType *ot);
 void NODE_OT_group_ungroup(wmOperatorType *ot);
 void NODE_OT_group_separate(wmOperatorType *ot);
 void NODE_OT_group_edit(wmOperatorType *ot);
+void NODE_OT_group_enter_exit(wmOperatorType *ot);
 
 void NODE_OT_default_group_width_set(wmOperatorType *ot);
 

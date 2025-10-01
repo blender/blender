@@ -165,21 +165,10 @@ void node_tex_sky_nishita(float3 co,
   float fade = 1.0f;
   float y;
 
-  if (sky_type == 0.0f && co.z < -0.4f) {
-    /* Black ground if Single Scattering model */
-    color = float4(0.0f, 0.0f, 0.0f, 1.0f);
-    return;
-  }
-  if (sky_type == 0.0f && co.z < 0.0f) {
-    /* Ground fade */
-    fade = pow(1.0f + co.z * 2.5f, 3.0f);
-    y = 0.508f;
-  }
-  else {
-    /* Undo the non-linear transformation from the sky LUT. */
-    float dir_elevation_abs = (dir_elevation < 0.0f) ? -dir_elevation : dir_elevation;
-    y = sqrt(dir_elevation_abs / M_PI_2) * sign(dir_elevation) * 0.5f + 0.5f;
-  }
+  /* Undo the non-linear transformation from the sky LUT. */
+  float dir_elevation_abs = (dir_elevation < 0.0f) ? -dir_elevation : dir_elevation;
+  y = sqrt(dir_elevation_abs / M_PI_2) * sign(dir_elevation) * 0.5f + 0.5f;
+
   /* Look up color in the precomputed map and convert to RGB. */
   xyz = fade * texture(ima, float3(x, y, layer)).rgb;
   color = float4(dot(xyz_to_r, xyz), dot(xyz_to_g, xyz), dot(xyz_to_b, xyz), 1.0f);

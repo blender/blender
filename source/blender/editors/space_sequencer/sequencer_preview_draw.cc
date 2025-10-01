@@ -903,6 +903,9 @@ static void update_gpu_scopes(const ImBuf *input_ibuf,
   const gpu::TextureFormat format = gpu::TextureFormat::SFLOAT_16_16_16_16;
   display_texture = GPU_texture_create_2d(
       "seq_scope_display_buf", width, height, 1, format, usage, nullptr);
+  if (display_texture == nullptr) {
+    return;
+  }
   GPU_texture_filter_mode(display_texture, false);
 
   GPU_matrix_push();
@@ -1515,7 +1518,9 @@ static blender::gpu::Texture *create_texture(const ImBuf &ibuf)
 
     texture = GPU_texture_create_2d(
         "seq_display_buf", ibuf.x, ibuf.y, 1, texture_format, texture_usage, nullptr);
-    GPU_texture_update(texture, GPU_DATA_FLOAT, ibuf.float_buffer.data);
+    if (texture) {
+      GPU_texture_update(texture, GPU_DATA_FLOAT, ibuf.float_buffer.data);
+    }
   }
   else if (ibuf.byte_buffer.data) {
     texture = GPU_texture_create_2d("seq_display_buf",
@@ -1525,7 +1530,9 @@ static blender::gpu::Texture *create_texture(const ImBuf &ibuf)
                                     blender::gpu::TextureFormat::UNORM_8_8_8_8,
                                     texture_usage,
                                     nullptr);
-    GPU_texture_update(texture, GPU_DATA_UBYTE, ibuf.byte_buffer.data);
+    if (texture) {
+      GPU_texture_update(texture, GPU_DATA_UBYTE, ibuf.byte_buffer.data);
+    }
   }
 
   if (texture) {

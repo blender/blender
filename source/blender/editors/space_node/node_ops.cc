@@ -65,6 +65,7 @@ void node_operatortypes()
   WM_operatortype_append(NODE_OT_group_ungroup);
   WM_operatortype_append(NODE_OT_group_separate);
   WM_operatortype_append(NODE_OT_group_edit);
+  WM_operatortype_append(NODE_OT_group_enter_exit);
 
   WM_operatortype_append(NODE_OT_default_group_width_set);
 
@@ -95,6 +96,7 @@ void node_operatortypes()
 
   WM_operatortype_append(NODE_OT_new_node_tree);
   WM_operatortype_append(NODE_OT_new_compositing_node_group);
+  WM_operatortype_append(NODE_OT_duplicate_compositing_node_group);
   WM_operatortype_append(NODE_OT_new_compositor_sequencer_node_group);
 
   WM_operatortype_append(NODE_OT_parent_set);

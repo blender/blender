@@ -426,7 +426,7 @@ static wmOperatorStatus shape_key_remove_exec(bContext *C, wmOperator *op)
   else {
     int num_selected_but_locked = 0;
     /* This could be moved into a function of its own at some point. Right now it's only used here,
-     * though, since its inner structure is taylored for allowing shapekey deletion. */
+     * though, since its inner structure is tailored for allowing shapekey deletion. */
     Key &key = *BKE_key_from_object(ob);
     LISTBASE_FOREACH_MUTABLE (KeyBlock *, kb, &key.block) {
       /* Always try to find the keyblock again, as the previous one may have been deleted. For
@@ -445,7 +445,7 @@ static wmOperatorStatus shape_key_remove_exec(bContext *C, wmOperator *op)
       /* When `BKE_object_shapekey_remove()` deletes the active shapekey, the active shapekeyindex
        * is updated as well. It usually decrements, which means that even when the same index is
        * re-visited, we don't see the active one any more. However, when the basis key (index=0) is
-       * deleted AND there are keys remaning, the active index remains set to 0, and so every
+       * deleted AND there are keys remaining, the active index remains set to 0, and so every
        * iteration sees "the active shapekey", effectively deleting all of them. */
       if (cur_index == 0) {
         ob->shapenr = 0;

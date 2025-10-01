@@ -29,7 +29,7 @@ const EnumPropertyItem rna_enum_volume_grid_data_type_items[] = {
     {VOLUME_GRID_INT, "INT", 0, "Integer", "32-bit integer"},
     {VOLUME_GRID_INT64, "INT64", 0, "Integer 64-bit", "64-bit integer"},
     {VOLUME_GRID_MASK, "MASK", 0, "Mask", "No data, boolean mask of active voxels"},
-    {VOLUME_GRID_VECTOR_FLOAT, "VECTOR_FLOAT", 0, "Float Vector", "3D float vector"},
+    {VOLUME_GRID_VECTOR_FLOAT, "VECTOR_FLOAT", 0, "Vector", "3D float vector"},
     {VOLUME_GRID_VECTOR_DOUBLE, "VECTOR_DOUBLE", 0, "Double Vector", "3D double vector"},
     {VOLUME_GRID_VECTOR_INT, "VECTOR_INT", 0, "Integer Vector", "3D integer vector"},
     {VOLUME_GRID_POINTS,

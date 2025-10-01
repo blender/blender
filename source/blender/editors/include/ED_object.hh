@@ -609,6 +609,8 @@ void data_xform_by_mat4(XFormObjectData &xod, const float4x4 &transform);
 void data_xform_restore(XFormObjectData &xod);
 void data_xform_tag_update(XFormObjectData &xod);
 
-void ui_template_modifier_asset_menu_items(uiLayout &layout, StringRef catalog_path);
+void ui_template_modifier_asset_menu_items(uiLayout &layout,
+                                           StringRef catalog_path,
+                                           bool skip_essentials);
 
 }  // namespace blender::ed::object

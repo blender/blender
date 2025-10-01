@@ -1569,6 +1569,9 @@ float BKE_brush_curve_strength(const eBrushCurvePreset preset,
                                const float distance,
                                const float brush_radius)
 {
+  BLI_assert(distance >= 0.0f);
+  BLI_assert(brush_radius >= 0.0f);
+
   float p = distance;
   float strength = 1.0f;
 

@@ -677,12 +677,14 @@ static int *bmesh_find_doubles_by_distance_impl(BMesh *bm,
 {
   int *duplicates = MEM_malloc_arrayN<int>(verts_len, __func__);
   bool found_duplicates = false;
+  bool has_self_index = false;
 
   KDTree_3d *tree = BLI_kdtree_3d_new(verts_len);
   for (int i = 0; i < verts_len; i++) {
     BLI_kdtree_3d_insert(tree, i, verts[i]->co);
     if (has_keep_vert && BMO_vert_flag_test(bm, verts[i], VERT_KEEP)) {
       duplicates[i] = i;
+      has_self_index = true;
     }
     else {
       duplicates[i] = -1;
@@ -730,7 +732,7 @@ static int *bmesh_find_doubles_by_distance_impl(BMesh *bm,
   };
 
   found_duplicates = BLI_kdtree_3d_calc_duplicates_cb_cpp(
-                         tree, dist, duplicates, deduplicate_target_calc_fn) != 0;
+                         tree, dist, duplicates, has_self_index, deduplicate_target_calc_fn) != 0;
 
   BLI_kdtree_3d_free(tree);
 

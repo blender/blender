@@ -409,6 +409,7 @@ Strip *edit_strip_split(Main *bmain,
                         Strip *strip,
                         const int timeline_frame,
                         const eSplitMethod method,
+                        const bool ignore_connections,
                         const char **r_error)
 {
   if (!seq_edit_split_intersect_check(scene, strip, timeline_frame)) {
@@ -418,21 +419,11 @@ Strip *edit_strip_split(Main *bmain,
   /* Whole strip effect chain must be duplicated in order to preserve relationships. */
   blender::VectorSet<Strip *> strips;
   strips.add(strip);
-  iterator_set_expand(scene, seqbase, strips, query_strip_effect_chain);
-
-  /* All connected strips (that are selected and at the cut frame) must also be duplicated. */
-  blender::VectorSet<Strip *> strips_old(strips);
-  for (Strip *strip : strips_old) {
-    blender::VectorSet<Strip *> connections = connected_strips_get(strip);
-    connections.remove_if([&](Strip *connection) {
-      return !(connection->flag & SELECT) ||
-             !seq_edit_split_intersect_check(scene, connection, timeline_frame);
-    });
-    strips.add_multiple(connections.as_span());
-  }
-
-  /* In case connected strips had effects, duplicate those too: */
-  iterator_set_expand(scene, seqbase, strips, query_strip_effect_chain);
+  iterator_set_expand(scene,
+                      seqbase,
+                      strips,
+                      ignore_connections ? query_strip_effect_chain :
+                                           query_strip_connected_and_effect_chain);
 
   if (!seq_edit_split_operation_permitted_check(scene, strips, timeline_frame, r_error)) {
     return nullptr;
@@ -447,6 +438,10 @@ Strip *edit_strip_split(Main *bmain,
     /* Move strips in collection from seqbase to new ListBase. */
     BLI_remlink(seqbase, strip_iter);
     BLI_addtail(&left_strips, strip_iter);
+
+    if (ignore_connections) {
+      seq::disconnect(strip_iter);
+    }
 
     /* Duplicate curves from backup, so they can be renamed along with split strips. */
     animation_duplicate_backup_to_scene(scene, strip_iter, &animation_backup);

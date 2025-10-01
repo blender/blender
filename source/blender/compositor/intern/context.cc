@@ -18,6 +18,11 @@
 
 namespace blender::compositor {
 
+Result Context::get_pass(const Scene * /*scene*/, int /*view_layer*/, const char * /*name*/)
+{
+  return this->create_result(compositor::ResultType::Color);
+}
+
 const RenderData &Context::get_render_data() const
 {
   return this->get_scene().r;

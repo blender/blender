@@ -1258,6 +1258,7 @@ class USDExportTest(AbstractUSDTest):
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
         material = bpy.data.materials.new(name="test_material")
         node_tree = material.node_tree
+        node_tree.nodes.clear()
         bsdf = node_tree.nodes.new("ShaderNodeBsdfPrincipled")
         output = node_tree.nodes.new("ShaderNodeOutputMaterial")
         node_tree.links.new(bsdf.outputs["BSDF"], output.inputs["Surface"])

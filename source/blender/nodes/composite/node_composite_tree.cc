@@ -198,7 +198,7 @@ void register_node_tree_type_cmp()
   tt->group_idname = "CompositorNodeGroup";
   tt->ui_name = N_("Compositor");
   tt->ui_icon = ICON_NODE_COMPOSITING;
-  tt->ui_description = N_("Compositing nodes");
+  tt->ui_description = N_("Create effects and post-process renders, images, and the 3D Viewport");
 
   tt->foreach_nodeclass = foreach_nodeclass;
   tt->localize = localize;

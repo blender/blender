@@ -90,10 +90,11 @@ OVERLAY_INFO_CLIP_VARIATION(overlay_outline_prepass_wire)
 GPU_SHADER_NAMED_INTERFACE_INFO(overlay_outline_prepass_gpencil_flat_iface, gp_interp_flat)
 FLAT(float2, aspect)
 FLAT(float4, sspos)
+FLAT(float4, sspos_adj)
 GPU_SHADER_NAMED_INTERFACE_END(gp_interp_flat)
 GPU_SHADER_NAMED_INTERFACE_INFO(overlay_outline_prepass_gpencil_noperspective_iface,
                                 gp_interp_noperspective)
-NO_PERSPECTIVE(float2, thickness)
+NO_PERSPECTIVE(float4, thickness)
 NO_PERSPECTIVE(float, hardness)
 GPU_SHADER_NAMED_INTERFACE_END(gp_interp_noperspective)
 

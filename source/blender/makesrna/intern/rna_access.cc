@@ -3108,6 +3108,7 @@ void RNA_property_int_set(PointerRNA *ptr, PropertyRNA *prop, int value)
   }
 
   if (idprop) {
+    RNA_property_int_clamp(ptr, &iprop->property, &value);
     IDP_int_set(idprop, value);
     rna_idproperty_touch(idprop);
   }
@@ -3119,6 +3120,7 @@ void RNA_property_int_set(PointerRNA *ptr, PropertyRNA *prop, int value)
   }
   else if (iprop->property.flag & PROP_EDITABLE) {
     if (IDProperty *group = RNA_struct_system_idprops(ptr, true)) {
+      RNA_property_int_clamp(ptr, &iprop->property, &value);
       IDP_AddToGroup(
           group,
           blender::bke::idprop::create(prop_rna_or_id.identifier, value, IDP_FLAG_STATIC_TYPE)
@@ -3555,6 +3557,7 @@ void RNA_property_float_set(PointerRNA *ptr, PropertyRNA *prop, float value)
   }
 
   if (idprop) {
+    RNA_property_float_clamp(ptr, &fprop->property, &value);
     if (idprop->type == IDP_FLOAT) {
       IDP_float_set(idprop, value);
     }
@@ -3570,8 +3573,6 @@ void RNA_property_float_set(PointerRNA *ptr, PropertyRNA *prop, float value)
     fprop->set_ex(ptr, &fprop->property, value);
   }
   else if (fprop->property.flag & PROP_EDITABLE) {
-    /* FIXME: This is only called here? What about already existing IDProps (see above)? And
-     * similar code for Int properties? */
     RNA_property_float_clamp(ptr, &fprop->property, &value);
     if (IDProperty *group = RNA_struct_system_idprops(ptr, true)) {
       IDP_AddToGroup(
@@ -4433,7 +4434,7 @@ int RNA_property_enum_step(
   return result_value;
 }
 
-PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
+static PointerRNA property_pointer_get(PointerRNA *ptr, PropertyRNA *prop, const bool do_create)
 {
   PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop;
   IDProperty *idprop;
@@ -4459,7 +4460,7 @@ PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
   if (pprop->get) {
     return pprop->get(ptr);
   }
-  if (prop->flag & PROP_IDPROPERTY) {
+  if (prop->flag & PROP_IDPROPERTY && do_create) {
     /* NOTE: While creating/writing data in an accessor is really bad design-wise, this is
      * currently very difficult to avoid in that case. So a global mutex is used to keep ensuring
      * thread safety. */
@@ -4470,6 +4471,16 @@ PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
     return RNA_property_pointer_get(ptr, prop);
   }
   return PointerRNA_NULL;
+}
+
+PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
+{
+  return property_pointer_get(ptr, prop, true);
+}
+
+PointerRNA RNA_property_pointer_get_never_create(PointerRNA *ptr, PropertyRNA *prop)
+{
+  return property_pointer_get(ptr, prop, false);
 }
 
 void RNA_property_pointer_set(PointerRNA *ptr,

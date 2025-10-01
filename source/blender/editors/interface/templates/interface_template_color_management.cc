@@ -65,7 +65,7 @@ void uiTemplateColormanagedViewSettings(uiLayout *layout,
   col->prop(&view_transform_ptr, "use_curve_mapping", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (view_settings->flag & COLORMANAGE_VIEW_USE_CURVES) {
     uiTemplateCurveMapping(
-        col, &view_transform_ptr, "curve_mapping", 'c', true, false, false, false);
+        col, &view_transform_ptr, "curve_mapping", 'c', true, false, false, false, false);
   }
 
   col = &layout->column(false);

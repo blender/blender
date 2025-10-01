@@ -83,7 +83,7 @@ static void node_socket_button_label(bContext * /*C*/,
                                      uiLayout *layout,
                                      PointerRNA * /*ptr*/,
                                      PointerRNA * /*node_ptr*/,
-                                     const StringRefNull text)
+                                     const StringRef text)
 {
   layout->label(text, ICON_NONE);
 }
@@ -106,7 +106,7 @@ static void node_buts_mix_rgb(uiLayout *layout, bContext * /*C*/, PointerRNA *pt
 
 static void node_buts_time(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiTemplateCurveMapping(layout, ptr, "curve", 's', false, false, false, false);
+  uiTemplateCurveMapping(layout, ptr, "curve", 's', false, false, false, false, false);
 }
 
 static void node_buts_colorramp(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -116,12 +116,12 @@ static void node_buts_colorramp(uiLayout *layout, bContext * /*C*/, PointerRNA *
 
 static void node_buts_curvevec(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiTemplateCurveMapping(layout, ptr, "mapping", 'v', false, false, false, false);
+  uiTemplateCurveMapping(layout, ptr, "mapping", 'v', false, false, false, false, false);
 }
 
 static void node_buts_curvefloat(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiTemplateCurveMapping(layout, ptr, "mapping", 0, false, false, false, false);
+  uiTemplateCurveMapping(layout, ptr, "mapping", 0, false, false, false, false, false);
 }
 
 }  // namespace blender::ed::space_node
@@ -157,7 +157,7 @@ static void node_buts_curvecol(uiLayout *layout, bContext * /*C*/, PointerRNA *p
   /* "Tone" (Standard/Film-like) only used in the Compositor. */
   bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
   uiTemplateCurveMapping(
-      layout, ptr, "mapping", 'c', false, false, false, (ntree->type == NTREE_COMPOSIT));
+      layout, ptr, "mapping", 'c', false, false, false, (ntree->type == NTREE_COMPOSIT), false);
 }
 
 static void node_buts_normal(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -542,7 +542,7 @@ static void node_composit_buts_huecorrect(uiLayout *layout, bContext * /*C*/, Po
     cumap->flag &= ~CUMA_DRAW_SAMPLE;
   }
 
-  uiTemplateCurveMapping(layout, ptr, "mapping", 'h', false, false, false, false);
+  uiTemplateCurveMapping(layout, ptr, "mapping", 'h', false, false, false, false, false);
 }
 
 static void node_composit_buts_combsep_color(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -868,7 +868,7 @@ static void node_socket_undefined_draw(bContext * /*C*/,
                                        uiLayout *layout,
                                        PointerRNA * /*ptr*/,
                                        PointerRNA * /*node_ptr*/,
-                                       StringRefNull /*text*/)
+                                       StringRef /*text*/)
 {
   layout->label(IFACE_("Undefined Socket Type"), ICON_ERROR);
 }
@@ -1071,7 +1071,7 @@ static void draw_node_socket_without_value(uiLayout *layout,
 }
 
 static void std_node_socket_draw(
-    bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr, StringRefNull label)
+    bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr, StringRef label)
 {
   bNode *node = (bNode *)node_ptr->data;
   bNodeSocket *sock = (bNodeSocket *)ptr->data;
@@ -1086,7 +1086,7 @@ static void std_node_socket_draw(
   }
 
   const bool optional_label = (socket_decl && socket_decl->optional_label) || label.is_empty();
-  const StringRefNull label_or_empty = optional_label ? "" : label;
+  const StringRef label_or_empty = optional_label ? "" : label;
 
   const bool has_gizmo = tree->runtime->gizmo_propagation ?
                              tree->runtime->gizmo_propagation->gizmo_endpoint_sockets.contains(
@@ -1420,6 +1420,9 @@ static void std_node_socket_interface_draw(ID *id,
     }
   }
 
+  if (interface_socket->flag & NODE_INTERFACE_SOCKET_INPUT) {
+    col->prop(&ptr, "optional_label", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
+  }
   {
     uiLayout *sub = &col->column(false);
     sub->active_set(interface_socket->default_input == NODE_DEFAULT_INPUT_VALUE);

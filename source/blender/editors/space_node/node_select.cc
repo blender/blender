@@ -135,7 +135,7 @@ static bool node_frame_select_isect_mouse(const SpaceNode &snode,
   return false;
 }
 
-static bNode *node_under_mouse_select(const SpaceNode &snode, const float2 mouse)
+bNode *node_under_mouse_get(const SpaceNode &snode, const float2 mouse)
 {
   for (bNode *node : tree_draw_order_calc_nodes_reversed(*snode.edittree)) {
     switch (node->type_legacy) {
@@ -158,7 +158,7 @@ static bNode *node_under_mouse_select(const SpaceNode &snode, const float2 mouse
 
 static bool is_position_over_node_or_socket(SpaceNode &snode, ARegion &region, const float2 &mouse)
 {
-  if (node_under_mouse_select(snode, mouse)) {
+  if (node_under_mouse_get(snode, mouse)) {
     return true;
   }
   if (node_find_indicated_socket(snode, region, mouse, SOCK_IN | SOCK_OUT)) {
@@ -606,7 +606,7 @@ static bool node_mouse_select(bContext *C,
   if (!sock) {
 
     /* Find the closest visible node. */
-    node = node_under_mouse_select(snode, cursor);
+    node = node_under_mouse_get(snode, cursor);
     found = (node != nullptr);
     node_was_selected = node && (node->flag & SELECT);
 
@@ -1334,6 +1334,11 @@ static std::string node_find_create_node_label(const bNodeTree &ntree, const bNo
   return fmt::format("{} ({})", label, node.name);
 }
 
+static std::string node_find_create_group_input_label(const bNode &node, const bNodeSocket &socket)
+{
+  return fmt::format("{}: \"{}\" ({})", TIP_("Input"), socket.name, node.name);
+}
+
 static std::string node_find_create_string_value(const bNode &node, const StringRef str)
 {
   return fmt::format("{}: \"{}\" ({})", TIP_("String"), str, node.name);
@@ -1387,6 +1392,16 @@ static void node_find_update_fn(const bContext *C,
       if (!value_str.is_empty()) {
         const StringRef search_str = scope.add_value(
             node_find_create_string_value(*node, value_str));
+        search.add(search_str, &scope.construct<Item>(Item{node, search_str}));
+      }
+    }
+    if (node->is_group_input()) {
+      for (const bNodeSocket *socket : node->output_sockets().drop_back(1)) {
+        if (!socket->is_directly_linked()) {
+          continue;
+        }
+        const StringRef search_str = scope.add_value(
+            node_find_create_group_input_label(*node, *socket));
         search.add(search_str, &scope.construct<Item>(Item{node, search_str}));
       }
     }

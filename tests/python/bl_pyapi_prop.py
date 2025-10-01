@@ -38,11 +38,21 @@ class TestPropertyGroup(bpy.types.PropertyGroup):
 class TestPropNumerical(unittest.TestCase):
     default_value = 0
     custom_value = 1
+    min_value = -1
+    max_value = 5
 
     def setUp(self):
         id_type.test_bool = BoolProperty(default=bool(self.default_value))
-        id_type.test_int = IntProperty(default=int(self.default_value))
-        id_type.test_float = FloatProperty(default=float(self.default_value))
+        id_type.test_int = IntProperty(
+            default=int(self.default_value),
+            min=int(self.min_value),
+            max=int(self.max_value),
+        )
+        id_type.test_float = FloatProperty(
+            default=float(self.default_value),
+            min=float(self.min_value),
+            max=float(self.max_value),
+        )
 
         self.test_bool_storage = bool(self.custom_value)
         self.test_int_storage = int(self.custom_value)
@@ -64,11 +74,15 @@ class TestPropNumerical(unittest.TestCase):
         )
         id_type.test_int_getset = IntProperty(
             default=int(self.default_value),
+            min=int(self.min_value),
+            max=int(self.max_value),
             get=lambda s: self.test_int_storage,
             set=int_set_,
         )
         id_type.test_float_getset = FloatProperty(
             default=float(self.default_value),
+            min=float(self.min_value),
+            max=float(self.max_value),
             get=lambda s: self.test_float_storage,
             set=float_set_,
         )
@@ -80,11 +94,15 @@ class TestPropNumerical(unittest.TestCase):
         )
         id_type.test_int_transform = IntProperty(
             default=int(self.default_value),
+            min=int(self.min_value),
+            max=int(self.max_value),
             get_transform=lambda s, c_v, isset: c_v,
             set_transform=lambda s, n_v, c_v, isset: n_v,
         )
         id_type.test_float_transform = FloatProperty(
             default=float(self.default_value),
+            min=float(self.min_value),
+            max=float(self.max_value),
             get_transform=lambda s, c_v, isset: c_v,
             set_transform=lambda s, n_v, c_v, isset: n_v,
         )
@@ -98,6 +116,8 @@ class TestPropNumerical(unittest.TestCase):
         )
         id_type.test_int_getset_transform = IntProperty(
             default=int(self.default_value),
+            min=int(self.min_value),
+            max=int(self.max_value),
             get=lambda s: self.test_int_storage,
             set=int_set_,
             get_transform=lambda s, c_v, isset: c_v,
@@ -105,6 +125,8 @@ class TestPropNumerical(unittest.TestCase):
         )
         id_type.test_float_getset_transform = FloatProperty(
             default=float(self.default_value),
+            min=float(self.min_value),
+            max=float(self.max_value),
             get=lambda s: self.test_float_storage,
             set=float_set_,
             get_transform=lambda s, c_v, isset: c_v,
@@ -128,7 +150,22 @@ class TestPropNumerical(unittest.TestCase):
         del id_type.test_int_getset_transform
         del id_type.test_bool_getset_transform
 
-    def do_test_access(self, prop_name, py_type, expected_value):
+    def do_min_max_expect_success(self, prop_name, py_type):
+        # This property is expected to properly clamp set values within required range.
+        setattr(id_inst, prop_name, py_type(self.min_value - 1))
+        self.assertEqual(getattr(id_inst, prop_name), py_type(self.min_value))
+        setattr(id_inst, prop_name, py_type(self.max_value + 1))
+        self.assertEqual(getattr(id_inst, prop_name), py_type(self.max_value))
+
+    def do_min_max_expect_failure(self, prop_name, py_type):
+        # This property is not expected to properly clamp set values within required range.
+        # This happens when using custom setters.
+        setattr(id_inst, prop_name, py_type(self.min_value - 1))
+        self.assertNotEqual(getattr(id_inst, prop_name), py_type(self.min_value))
+        setattr(id_inst, prop_name, py_type(self.max_value + 1))
+        self.assertNotEqual(getattr(id_inst, prop_name), py_type(self.max_value))
+
+    def do_test_access(self, prop_name, py_type, expected_value, do_min_max=None):
         v = getattr(id_inst, prop_name)
         self.assertIsInstance(v, py_type)
         self.assertEqual(v, expected_value)
@@ -136,42 +173,84 @@ class TestPropNumerical(unittest.TestCase):
         self.assertEqual(getattr(id_inst, prop_name), expected_value)
         setattr(id_inst, prop_name, py_type(self.custom_value))
         self.assertEqual(getattr(id_inst, prop_name), py_type(self.custom_value))
+        if do_min_max:
+            do_min_max(prop_name, py_type)
 
     def test_access_bool(self):
         self.do_test_access("test_bool", bool, bool(self.default_value))
 
     def test_access_int(self):
-        self.do_test_access("test_int", int, int(self.default_value))
+        self.do_test_access(
+            "test_int",
+            int,
+            int(self.default_value),
+            do_min_max=self.do_min_max_expect_success,
+        )
 
     def test_access_float(self):
-        self.do_test_access("test_float", float, float(self.default_value))
+        self.do_test_access(
+            "test_float",
+            float,
+            float(self.default_value),
+            do_min_max=self.do_min_max_expect_success,
+        )
 
     def test_access_bool_getset(self):
         self.do_test_access("test_bool_getset", bool, bool(self.custom_value))
 
     def test_access_int_getset(self):
-        self.do_test_access("test_int_getset", int, int(self.custom_value))
+        self.do_test_access(
+            "test_int_getset",
+            int,
+            int(self.custom_value),
+            do_min_max=self.do_min_max_expect_failure,
+        )
 
     def test_access_float_getset(self):
-        self.do_test_access("test_float_getset", float, float(self.custom_value))
+        self.do_test_access(
+            "test_float_getset",
+            float,
+            float(self.custom_value),
+            do_min_max=self.do_min_max_expect_failure,
+        )
 
     def test_access_bool_transform(self):
         self.do_test_access("test_bool_transform", bool, bool(self.default_value))
 
     def test_access_int_transform(self):
-        self.do_test_access("test_int_transform", int, int(self.default_value))
+        self.do_test_access(
+            "test_int_transform",
+            int,
+            int(self.default_value),
+            do_min_max=self.do_min_max_expect_success,
+        )
 
     def test_access_float_transform(self):
-        self.do_test_access("test_float_transform", float, float(self.default_value))
+        self.do_test_access(
+            "test_float_transform",
+            float,
+            float(self.default_value),
+            do_min_max=self.do_min_max_expect_success,
+        )
 
     def test_access_bool_getset_transform(self):
         self.do_test_access("test_bool_getset_transform", bool, bool(self.custom_value))
 
     def test_access_int_getset_transform(self):
-        self.do_test_access("test_int_getset_transform", int, int(self.custom_value))
+        self.do_test_access(
+            "test_int_getset_transform",
+            int,
+            int(self.custom_value),
+            do_min_max=self.do_min_max_expect_failure,
+        )
 
     def test_access_float_getset_transform(self):
-        self.do_test_access("test_float_getset_transform", float, float(self.custom_value))
+        self.do_test_access(
+            "test_float_getset_transform",
+            float,
+            float(self.custom_value),
+            do_min_max=self.do_min_max_expect_failure,
+        )
 
     # TODO: Add expected failure cases (e.g. handling of out-of range values).
 

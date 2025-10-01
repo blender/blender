@@ -138,6 +138,12 @@ static void copy_stable_id_point(const OffsetIndices<int> offsets,
   if (!src_attribute) {
     return;
   }
+  if (!ELEM(src_attribute.domain, AttrDomain::Point, AttrDomain::Instance)) {
+    return;
+  }
+  if (!src_attribute.varray.type().is<int>()) {
+    return;
+  }
   SpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span<int>(
       "id", AttrDomain::Point);
   if (!dst_attribute) {
@@ -217,6 +223,13 @@ static void copy_stable_id_curves(const bke::CurvesGeometry &src_curves,
   if (!src_attribute) {
     return;
   }
+  if (src_attribute.domain != AttrDomain::Point) {
+    return;
+  }
+  if (!src_attribute.varray.type().is<int>()) {
+    return;
+  }
+
   SpanAttributeWriter dst_attribute =
       dst_curves.attributes_for_write().lookup_or_add_for_write_only_span<int>("id",
                                                                                AttrDomain::Point);
@@ -426,6 +439,12 @@ static void copy_stable_id_faces(const Mesh &mesh,
   if (!src_attribute) {
     return;
   }
+  if (src_attribute.domain != AttrDomain::Point) {
+    return;
+  }
+  if (!src_attribute.varray.type().is<int>()) {
+    return;
+  }
   SpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span<int>(
       "id", AttrDomain::Point);
   if (!dst_attribute) {
@@ -615,6 +634,12 @@ static void copy_stable_id_edges(const Mesh &mesh,
 {
   GAttributeReader src_attribute = src_attributes.lookup("id");
   if (!src_attribute) {
+    return;
+  }
+  if (src_attribute.domain != AttrDomain::Point) {
+    return;
+  }
+  if (!src_attribute.varray.type().is<int>()) {
     return;
   }
   SpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span<int>(

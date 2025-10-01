@@ -37,11 +37,15 @@ enum ColorManagedDisplaySpace {
   /* Convert to display space for drawing. This will included emulation of the
    * chosen display for an extended sRGB buffer. */
   DISPLAY_SPACE_DRAW,
-  /* Convert to display space for file output. */
-  DISPLAY_SPACE_FILE_OUTPUT,
+  /* Convert to display space for file output. Note image and video have different
+   * conventions for HDR brightness, so there is a distinction. */
+  DISPLAY_SPACE_IMAGE_OUTPUT,
+  DISPLAY_SPACE_VIDEO_OUTPUT,
   /* Convert to display space for inspecting color values as text in the UI. */
   DISPLAY_SPACE_COLOR_INSPECTION,
 };
+
+enum class ColorManagedFileOutput { Image, Video };
 
 /* -------------------------------------------------------------------- */
 /** \name Generic Functions
@@ -77,10 +81,11 @@ blender::Vector<char> IMB_colormanagement_space_to_icc_profile(const ColorSpace 
 /* Get CICP code for colorspace.
  * For describing the colorspace of videos and high dynamic range image files. */
 bool IMB_colormanagement_space_to_cicp(const ColorSpace *colorspace,
-                                       const bool video,
+                                       const ColorManagedFileOutput output,
                                        const bool rgb_matrix,
                                        int cicp[4]);
-const ColorSpace *IMB_colormanagement_space_from_cicp(const int cicp[4], const bool video);
+const ColorSpace *IMB_colormanagement_space_from_cicp(const int cicp[4],
+                                                      const ColorManagedFileOutput output);
 
 /* Get identifier for colorspaces that works with multiple OpenColorIO configurations,
  * as defined by the ASWF Color Interop Forum. */

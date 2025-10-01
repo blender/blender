@@ -43,7 +43,7 @@ struct NodeInContext {
 };
 
 /**
- * Utility struct to pair a socket with a compute context. This unique identifies a socket in a
+ * Utility struct to pair a socket with a compute context. This uniquely identifies a socket in a
  * node-tree evaluation.
  */
 struct SocketInContext {
@@ -63,6 +63,20 @@ struct SocketInContext {
    * context. This is important as the same compute context may be constructed multiple times.
    */
   BLI_STRUCT_EQUALITY_OPERATORS_2(SocketInContext, context_hash(), socket)
+};
+
+/**
+ * Utility struct to pair a tree with a compute context.
+ */
+struct TreeInContext {
+  const ComputeContext *context = nullptr;
+  const bNodeTree *tree = nullptr;
+
+  uint64_t hash() const;
+  ComputeContextHash context_hash() const;
+  const bNodeTree *operator->() const;
+  const bNodeTree &operator*() const;
+  operator bool() const;
 };
 
 /* -------------------------------------------------------------------- */
@@ -138,6 +152,37 @@ inline SocketInContext::operator bool() const
 inline NodeInContext SocketInContext::owner_node() const
 {
   return {this->context, &this->socket->owner_node()};
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #TreeInContext Inline Methods
+ * \{ */
+
+inline uint64_t TreeInContext::hash() const
+{
+  return get_default_hash(this->context_hash(), this->tree);
+}
+
+inline ComputeContextHash TreeInContext::context_hash() const
+{
+  return context ? context->hash() : ComputeContextHash{};
+}
+
+inline const bNodeTree *TreeInContext::operator->() const
+{
+  return this->tree;
+}
+
+inline const bNodeTree &TreeInContext::operator*() const
+{
+  return *this->tree;
+}
+
+inline TreeInContext::operator bool() const
+{
+  return this->tree != nullptr;
 }
 
 /** \} */

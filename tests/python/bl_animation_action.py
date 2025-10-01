@@ -607,6 +607,21 @@ class ChannelbagsTest(unittest.TestCase):
         self.assertEqual([channelbag], list(self.strip.channelbags))
         self.assertEqual(self.slot, channelbag.slot)
 
+    def test_ensure_fcurve(self):
+        channelbag = self.strip.channelbag(self.slot, ensure=True)
+        self.assertEqual([], channelbag.fcurves[:])
+
+        fcurve_1 = channelbag.fcurves.ensure("location", index=2, group_name="Name")
+        self.assertEqual("location", fcurve_1.data_path)
+        self.assertEqual(2, fcurve_1.array_index)
+        self.assertEqual("Name", fcurve_1.group.name)
+        self.assertIn("Name", channelbag.groups)
+        self.assertEqual([fcurve_1], channelbag.fcurves[:])
+
+        fcurve_2 = channelbag.fcurves.ensure("location", index=2, group_name="Name")
+        self.assertEqual(fcurve_1, fcurve_2)
+        self.assertEqual([fcurve_1], channelbag.fcurves[:])
+
     def test_create_remove_fcurves(self):
         channelbag = self.strip.channelbags.new(self.slot)
 
@@ -987,6 +1002,24 @@ class ConvenienceFunctionsTest(unittest.TestCase):
 
         channelbag = self.action.layers[0].strips[0].channelbags[0]
         self.assertEqual(fcurve, channelbag.fcurves[0])
+
+    def test_fcurve_ensure_for_datablock_group_name(self) -> None:
+        # Assign the Action to the Cube.
+        ob_cube = bpy.data.objects["Cube"]
+        adt = ob_cube.animation_data_create()
+        adt.action = self.action
+
+        with self.assertRaises(IndexError):
+            self.action.layers[0].strips[0].channelbags[0]
+
+        fcurve = self.action.fcurve_ensure_for_datablock(ob_cube, "location", index=2, group_name="grúpa")
+
+        channelbag = self.action.layers[0].strips[0].channelbags[0]
+        self.assertEqual(fcurve, channelbag.fcurves[0])
+
+        # Check that the group was also created correctly.
+        self.assertIn("grúpa", channelbag.groups)
+        self.assertIn(fcurve, channelbag.groups["grúpa"].channels[:])
 
 
 def main():

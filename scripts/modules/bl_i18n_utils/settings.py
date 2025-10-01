@@ -287,7 +287,8 @@ PYGETTEXT_KEYWORDS = (() +
           for it in ("add_input", "add_output")) +
 
     # Node socket declarations: names with contexts
-    tuple((r"\.{}(?:<decl::.*?>\(|[^,]+,)\s*" + _msg_re + r"[^;]*\.translation_context\(\s*" + _ctxt_re + r"\s*\)").format(it)
+    tuple((r"\.{}(?:<decl::.*?>\(|[^,]+,)\s*" + _msg_re +
+           r"[^;]*\.translation_context\(\s*" + _ctxt_re + r"\s*\)").format(it)
           for it in ("add_input", "add_output")) +
 
     # Node socket declarations: description and error messages

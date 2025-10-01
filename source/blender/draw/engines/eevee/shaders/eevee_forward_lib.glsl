@@ -10,10 +10,11 @@
  * This is used by alpha blended materials and materials using Shader to RGB nodes.
  */
 
+#include "draw_model_lib.glsl"
 #include "eevee_colorspace_lib.glsl"
 #include "eevee_light_eval_lib.glsl"
 #include "eevee_lightprobe_eval_lib.glsl"
-#include "eevee_nodetree_lib.glsl"
+#include "eevee_nodetree_closures_lib.glsl"
 #include "eevee_subsurface_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"
 

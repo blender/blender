@@ -200,9 +200,6 @@ EffectHandle effect_handle_get(StripType strip_type)
     case STRIP_TYPE_GLOW:
       glow_effect_get_handle(rval);
       break;
-    case STRIP_TYPE_TRANSFORM:
-      transform_effect_get_handle(rval);
-      break;
     case STRIP_TYPE_SPEED:
       speed_effect_get_handle(rval);
       break;

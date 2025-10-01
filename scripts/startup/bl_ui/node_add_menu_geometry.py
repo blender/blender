@@ -790,6 +790,7 @@ class NODE_MT_category_utilities_bundle_base(node_add_menu.NodeMenu):
         layout = self.layout
         self.node_operator(layout, "NodeCombineBundle")
         self.node_operator(layout, "NodeSeparateBundle")
+        self.node_operator(layout, "NodeJoinBundle")
 
         self.draw_assets_for_catalog(layout, self.menu_path)
 

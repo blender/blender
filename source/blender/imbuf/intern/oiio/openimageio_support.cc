@@ -163,8 +163,8 @@ static void set_file_colorspace(ImFileColorSpace &r_colorspace,
   /* Get colorspace from CICP. */
   int cicp[4] = {};
   if (spec.getattribute("CICP", TypeDesc(TypeDesc::INT, 4), cicp, true)) {
-    const bool for_video = false;
-    const ColorSpace *colorspace = IMB_colormanagement_space_from_cicp(cicp, for_video);
+    const ColorSpace *colorspace = IMB_colormanagement_space_from_cicp(
+        cicp, ColorManagedFileOutput::Image);
     if (colorspace) {
       STRNCPY_UTF8(r_colorspace.metadata_colorspace,
                    IMB_colormanagement_colorspace_get_name(colorspace));
@@ -484,10 +484,11 @@ ImageSpec imb_create_write_spec(const WriteContext &ctx, int file_channels, Type
 
     /* PNG only supports RGB matrix. For AVIF and HEIF we want to use a YUV matrix
      * as these are based on video codecs designed to use them. */
-    const bool for_video = false;
     const bool rgb_matrix = STREQ(ctx.file_format, "png");
     int cicp[4];
-    if (IMB_colormanagement_space_to_cicp(colorspace, for_video, rgb_matrix, cicp)) {
+    if (IMB_colormanagement_space_to_cicp(
+            colorspace, ColorManagedFileOutput::Image, rgb_matrix, cicp))
+    {
       file_spec.attribute("CICP", TypeDesc(TypeDesc::INT, 4), cicp);
     }
   }

@@ -106,6 +106,7 @@ const EnumPropertyItem default_ActionSlot_target_id_type_items[] = {
 #  include "UI_interface_icons.hh"
 
 #  include "ANIM_action_legacy.hh"
+#  include "ANIM_fcurve.hh"
 #  include "ANIM_keyframing.hh"
 
 #  include <fmt/format.h>
@@ -641,7 +642,8 @@ static FCurve *rna_Channelbag_fcurve_new(ActionChannelbag *dna_channelbag,
                                          Main *bmain,
                                          ReportList *reports,
                                          const char *data_path,
-                                         const int index)
+                                         const int index,
+                                         const char *group_name)
 {
   BLI_assert(data_path != nullptr);
   if (data_path[0] == '\0') {
@@ -649,8 +651,13 @@ static FCurve *rna_Channelbag_fcurve_new(ActionChannelbag *dna_channelbag,
     return nullptr;
   }
 
+  blender::animrig::FCurveDescriptor descr = {data_path, index};
+  if (group_name && group_name[0]) {
+    descr.channel_group = {group_name};
+  }
+
   animrig::Channelbag &self = dna_channelbag->wrap();
-  FCurve *fcurve = self.fcurve_create_unique(bmain, {data_path, index});
+  FCurve *fcurve = self.fcurve_create_unique(bmain, descr);
   if (!fcurve) {
     BKE_reportf(reports,
                 RPT_ERROR,
@@ -660,6 +667,29 @@ static FCurve *rna_Channelbag_fcurve_new(ActionChannelbag *dna_channelbag,
     return nullptr;
   }
   return fcurve;
+}
+
+static FCurve *rna_Channelbag_fcurve_ensure(ActionChannelbag *dna_channelbag,
+                                            Main *bmain,
+                                            ReportList *reports,
+                                            const char *data_path,
+                                            const int index,
+                                            const char *group_name)
+{
+  BLI_assert(data_path != nullptr);
+  if (data_path[0] == '\0') {
+    BKE_report(reports, RPT_ERROR, "F-Curve data path empty, invalid argument");
+    return nullptr;
+  }
+
+  blender::animrig::FCurveDescriptor descr = {data_path, index};
+  if (group_name && group_name[0]) {
+    descr.channel_group = {group_name};
+  }
+
+  animrig::Channelbag &self = dna_channelbag->wrap();
+  FCurve &fcurve = self.fcurve_ensure(bmain, descr);
+  return &fcurve;
 }
 
 static FCurve *rna_Channelbag_fcurve_find(ActionChannelbag *dna_channelbag,
@@ -1387,7 +1417,8 @@ static FCurve *rna_Action_fcurve_ensure_for_datablock(bAction *_self,
                                                       ReportList *reports,
                                                       ID *datablock,
                                                       const char *data_path,
-                                                      const int array_index)
+                                                      const int array_index,
+                                                      const char *group_name)
 {
   /* Precondition checks. */
   {
@@ -1407,8 +1438,12 @@ static FCurve *rna_Action_fcurve_ensure_for_datablock(bAction *_self,
     }
   }
 
-  FCurve &fcurve = blender::animrig::action_fcurve_ensure(
-      bmain, *_self, *datablock, {data_path, array_index});
+  blender::animrig::FCurveDescriptor descriptor = {data_path, array_index};
+  if (group_name && group_name[0]) {
+    descriptor.channel_group = std::string(group_name);
+  }
+
+  FCurve &fcurve = blender::animrig::action_fcurve_ensure(bmain, *_self, *datablock, descriptor);
 
   WM_main_add_notifier(NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
   return &fcurve;
@@ -2501,21 +2536,38 @@ static void rna_def_channelbag_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
       srna, "F-Curves", "Collection of F-Curves for a specific action slot, on a specific strip");
 
   /* Channelbag.fcurves.new(...) */
-  extern FCurve *ActionChannelbagFCurves_new_func(ID * _selfid,
-                                                  ActionChannelbag * _self,
-                                                  Main * bmain,
-                                                  ReportList * reports,
-                                                  const char *data_path,
-                                                  int index);
-
   func = RNA_def_function(srna, "new", "rna_Channelbag_fcurve_new");
   RNA_def_function_ui_description(func, "Add an F-Curve to the channelbag");
   RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS);
   parm = RNA_def_string(func, "data_path", nullptr, 0, "Data Path", "F-Curve data path to use");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "Array index", 0, INT_MAX);
-
+  parm = RNA_def_string(
+      func,
+      "group_name",
+      nullptr,
+      sizeof(bActionGroup::name),
+      "Group Name",
+      "Name of the Group for this F-Curve, will be created if it does not exist yet");
   parm = RNA_def_pointer(func, "fcurve", "FCurve", "", "Newly created F-Curve");
+  RNA_def_function_return(func, parm);
+
+  /* Channelbag.fcurves.ensure(...) */
+  func = RNA_def_function(srna, "ensure", "rna_Channelbag_fcurve_ensure");
+  RNA_def_function_ui_description(
+      func, "Returns the F-Curve if it already exists, and creates it if necessary");
+  RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS);
+  parm = RNA_def_string(func, "data_path", nullptr, 0, "Data Path", "F-Curve data path to use");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "Array index", 0, INT_MAX);
+  parm = RNA_def_string(func,
+                        "group_name",
+                        nullptr,
+                        sizeof(bActionGroup::name),
+                        "Group Name",
+                        "Name of the Group for this F-Curve, will be created if it does not exist "
+                        "yet. This parameter is ignored if the F-Curve already exists");
+  parm = RNA_def_pointer(func, "fcurve", "FCurve", "", "Found or newly created F-Curve");
   RNA_def_function_return(func, parm);
 
   /* Channelbag.fcurves.find(...) */
@@ -3080,6 +3132,13 @@ static void rna_def_action(BlenderRNA *brna)
   parm = RNA_def_string(func, "data_path", nullptr, 0, "Data Path", "F-Curve data path");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "Array index", 0, INT_MAX);
+  RNA_def_string(func,
+                 "group_name",
+                 nullptr,
+                 0,
+                 "Group Name",
+                 "Name of the group for this F-Curve, if any. If the F-Curve already exists, this "
+                 "parameter is ignored");
   parm = RNA_def_pointer(func, "fcurve", "FCurve", "", "The found or created F-Curve");
   RNA_def_function_return(func, parm);
 

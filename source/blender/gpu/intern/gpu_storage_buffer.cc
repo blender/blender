@@ -29,13 +29,19 @@ namespace blender::gpu {
 
 StorageBuf::StorageBuf(size_t size, const char *name)
 {
-  size_in_bytes_ = size;
+  size_in_bytes_ = usage_size_in_bytes_ = size;
   STRNCPY(name_, name);
 }
 
 StorageBuf::~StorageBuf()
 {
   MEM_SAFE_FREE(data_);
+}
+
+void StorageBuf::usage_size_set(size_t usage_size)
+{
+  BLI_assert(usage_size <= size_in_bytes_);
+  usage_size_in_bytes_ = usage_size;
 }
 
 }  // namespace blender::gpu
@@ -71,6 +77,11 @@ blender::gpu::StorageBuf *GPU_storagebuf_create_ex(size_t size,
 void GPU_storagebuf_free(blender::gpu::StorageBuf *ssbo)
 {
   delete ssbo;
+}
+
+void GPU_storagebuf_usage_size_set(blender::gpu::StorageBuf *ssbo, size_t usage_size)
+{
+  ssbo->usage_size_set(usage_size);
 }
 
 void GPU_storagebuf_update(blender::gpu::StorageBuf *ssbo, const void *data)

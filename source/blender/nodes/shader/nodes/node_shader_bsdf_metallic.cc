@@ -91,17 +91,24 @@ static int node_shader_gpu_bsdf_metallic(GPUMaterial *mat,
                                          GPUNodeStack *in,
                                          GPUNodeStack *out)
 {
+  float use_multi_scatter = (node->custom1 == SHD_GLOSSY_MULTI_GGX) ? 1.0f : 0.0f;
+  float use_complex_ior = (node->custom2 == SHD_PHYSICAL_CONDUCTOR) ? 1.0f : 0.0f;
+
   if (!in[7].link) {
     GPU_link(mat, "world_normals_get", &in[7].link);
   }
 
   GPU_material_flag_set(mat, GPU_MATFLAG_GLOSSY);
-  if (in[0].might_be_tinted()) {
-    GPU_material_flag_set(mat, GPU_MATFLAG_REFLECTION_MAYBE_COLORED);
+  if (use_complex_ior == 0.0f) {
+    if (in[0].might_be_tinted() || in[1].might_be_tinted()) {
+      GPU_material_flag_set(mat, GPU_MATFLAG_REFLECTION_MAYBE_COLORED);
+    }
   }
-
-  float use_multi_scatter = (node->custom1 == SHD_GLOSSY_MULTI_GGX) ? 1.0f : 0.0f;
-  float use_complex_ior = (node->custom2 == SHD_PHYSICAL_CONDUCTOR) ? 1.0f : 0.0f;
+  else {
+    if (in[2].might_be_tinted() || in[3].might_be_tinted()) {
+      GPU_material_flag_set(mat, GPU_MATFLAG_REFLECTION_MAYBE_COLORED);
+    }
+  }
 
   return GPU_stack_link(mat,
                         node,

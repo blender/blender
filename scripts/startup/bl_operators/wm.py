@@ -27,6 +27,7 @@ from bpy.app.translations import (
     pgettext_rpt as rpt_,
     contexts as i18n_contexts,
 )
+from bpy_extras import anim_utils
 
 
 def _rna_path_prop_search_for_context_impl(context, edit_text, unique_attrs):
@@ -1841,15 +1842,19 @@ class WM_OT_properties_edit(Operator):
 
             def _update_strips(strips):
                 for st in strips:
-                    if st.type == 'CLIP' and st.action:
-                        _update(st.action.fcurves)
+                    if st.type == 'CLIP':
+                        channelbag = anim_utils.action_get_channelbag_for_slot(st.action, st.action_slot)
+                        if not channelbag:
+                            continue
+                        _update(channelbag.fcurves)
                     elif st.type == 'META':
                         _update_strips(st.strips)
 
             adt = getattr(item, "animation_data", None)
             if adt is not None:
-                if adt.action:
-                    _update(adt.action.fcurves)
+                channelbag = anim_utils.action_get_channelbag_for_slot(adt.action, adt.action_slot)
+                if channelbag:
+                    _update(channelbag.fcurves)
                 if adt.drivers:
                     _update(adt.drivers)
                 if adt.nla_tracks:

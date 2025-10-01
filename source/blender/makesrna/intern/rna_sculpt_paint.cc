@@ -444,12 +444,12 @@ static void rna_UvSculpt_curve_preset_set(PointerRNA *ptr, int value)
 {
   Scene *scene = reinterpret_cast<Scene *>(ptr->owner_id);
   if (value == BRUSH_CURVE_CUSTOM) {
-    if (!scene->toolsettings->uvsculpt.strength_curve) {
-      scene->toolsettings->uvsculpt.strength_curve = BKE_curvemapping_add(
+    if (!scene->toolsettings->uvsculpt.curve_distance_falloff) {
+      scene->toolsettings->uvsculpt.curve_distance_falloff = BKE_curvemapping_add(
           1, 0.0f, 0.0f, 1.0f, 1.0f);
     }
   }
-  scene->toolsettings->uvsculpt.curve_preset = int8_t(value);
+  scene->toolsettings->uvsculpt.curve_distance_falloff_preset = int8_t(value);
 }
 
 /** \name Paint mode settings
@@ -1269,15 +1269,15 @@ static void rna_def_uv_sculpt(BlenderRNA *brna)
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_AMOUNT);
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
 
-  prop = RNA_def_property(srna, "strength_curve", PROP_POINTER, PROP_NONE);
+  prop = RNA_def_property(srna, "curve_distance_falloff", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "CurveMapping");
   RNA_def_property_pointer_funcs(prop, nullptr, nullptr, nullptr, nullptr);
-  RNA_def_property_ui_text(prop, "Strength Curve", "");
+  RNA_def_property_ui_text(prop, "Falloff Curve", "");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
 
-  prop = RNA_def_property(srna, "curve_preset", PROP_ENUM, PROP_NONE);
+  prop = RNA_def_property(srna, "curve_distance_falloff_preset", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_brush_curve_preset_items);
-  RNA_def_property_ui_text(prop, "Strength Curve Preset", "");
+  RNA_def_property_ui_text(prop, "Falloff Curve Preset", "");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_CURVE_LEGACY);
   RNA_def_property_enum_funcs(prop, nullptr, "rna_UvSculpt_curve_preset_set", nullptr);
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);

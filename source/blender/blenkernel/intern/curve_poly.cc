@@ -15,11 +15,14 @@ namespace blender::bke::curves::poly {
 
 static bool delta_dir(const float3 &pos, const float3 &next, float3 &r_delta_dir)
 {
-  const float epsilon = 1e-6f;
-  if (UNLIKELY(math::almost_equal_relative(pos, next, epsilon))) {
+  const float epsilon = 1.0e-9f;
+
+  const float3 delta = next - pos;
+  const float norm = math::length(delta);
+  if (UNLIKELY(norm < epsilon)) {
     return false;
   }
-  r_delta_dir = math::normalize(next - pos);
+  r_delta_dir = delta / norm;
   return true;
 }
 
@@ -32,23 +35,40 @@ static float3 direction_bisect(const float3 &pos,
                                float3 &other_dir,
                                bool &is_equal)
 {
-  const float epsilon = 1e-6f;
+  const float epsilon = 1.0e-9f;
   const bool prev_equal = is_equal;
-  is_equal = math::almost_equal_relative(pos, next, epsilon);
+
+  const float3 next_delta = next - pos;
+  const float next_norm = math::length(next_delta);
+  is_equal = next_norm < epsilon;
   if (UNLIKELY(is_equal)) {
-    /* Return the direction relative the 'previous' point. If 'prev_equal' is true this is not
-     * the direction from previous point (it would be from the previous 'non-zero' segment).
+    /* Return the direction relative the 'previous' point. If 'prev_equal' is true, this
+     * will return the direction of the last non-zero segment.
      */
     return other_dir;
   }
 
   const float3 prev_dir = other_dir;
-  other_dir = math::normalize(next - pos);
+  other_dir = next_delta / next_norm;
   if (UNLIKELY(prev_equal)) {
-    /* Return direction to next point as previous direction is not from the adjacent point! */
+    /* Return the direction of the next segment as previous direction is not an adjacent segment!
+     */
     return other_dir;
   }
-  return math::normalize(prev_dir + other_dir);
+  const float3 tangent = prev_dir + other_dir;
+  const float norm = math::length(tangent);
+  if (norm < 0.6627619f) { /* Approximates angle between segments < 45°) */
+    if (norm < 2e-7) {     /* Approximately < sin(1e-5) */
+      return other_dir;
+    }
+    /* Compute using the cross product, as catastrophic cancellation occurs in `tangent`
+     * when the sum approaches 0, leading to significant numerical errors (see #146332).
+     */
+    const float3 binormal = math::cross(other_dir, prev_dir);
+    const float3 normal = other_dir - prev_dir;
+    return math::normalize(math::cross(binormal, normal));
+  }
+  return tangent / norm;
 }
 
 void calculate_tangents(const Span<float3> positions,

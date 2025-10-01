@@ -207,6 +207,7 @@ def SVGGetMaterial(color, context):
         return materials[color]
 
     mat = bpy.data.materials.new(name='SVGMat')
+    mat.node_tree.nodes.clear()
     node_tree = mat.node_tree
     bsdf = node_tree.nodes.new("ShaderNodeBsdfDiffuse")
     output = node_tree.nodes.new("ShaderNodeOutputMaterial")

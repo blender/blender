@@ -106,7 +106,8 @@ static VectorSet<std::string> join_vertex_groups(const Span<const Object *> obje
   return vertex_group_names;
 }
 
-static void join_positions_and_shape_keys(const Span<const Object *> objects_to_join,
+static void join_positions_and_shape_keys(Main *bmain,
+                                          const Span<const Object *> objects_to_join,
                                           const OffsetIndices<int> vert_ranges,
                                           const float4x4 &world_to_dst_mesh,
                                           Mesh &dst_mesh)
@@ -122,7 +123,7 @@ static void join_positions_and_shape_keys(const Span<const Object *> objects_to_
 
   const auto ensure_dst_key = [&]() {
     if (!dst_mesh.key) {
-      dst_mesh.key = BKE_key_add(nullptr, nullptr);
+      dst_mesh.key = BKE_key_add(bmain, &dst_mesh.id);
       dst_mesh.key->type = KEY_RELATIVE;
     }
   };
@@ -198,24 +199,34 @@ static void join_generic_attributes(const Span<const Object *> objects_to_join,
                             "material_index",
                             ".sculpt_face_set"};
 
-  bke::GeometrySet::GatheredAttributes attr_info;
-  for (const int i : objects_to_join.index_range()) {
-    const Mesh &mesh = *static_cast<const Mesh *>(objects_to_join[i]->data);
-    mesh.attributes().foreach_attribute([&](const bke::AttributeIter &attr) {
-      if (skip_names.contains(attr.name) || all_vertex_group_names.contains(attr.name)) {
-        return;
-      }
-      attr_info.add(attr.name, {attr.domain, attr.data_type});
-    });
+  Array<std::string> names;
+  Array<bke::AttributeDomainAndType> kinds;
+  {
+    bke::GeometrySet::GatheredAttributes attr_info;
+    for (const int i : objects_to_join.index_range()) {
+      const Mesh &mesh = *static_cast<const Mesh *>(objects_to_join[i]->data);
+      mesh.attributes().foreach_attribute([&](const bke::AttributeIter &attr) {
+        if (skip_names.contains(attr.name) || all_vertex_group_names.contains(attr.name)) {
+          return;
+        }
+        attr_info.add(attr.name, {attr.domain, attr.data_type});
+      });
+    }
+    names.reinitialize(attr_info.names.size());
+    kinds.reinitialize(attr_info.names.size());
+    for (const int i : attr_info.names.index_range()) {
+      names[i] = attr_info.names[i];
+      kinds[i] = attr_info.kinds[i];
+    }
   }
 
   bke::MutableAttributeAccessor dst_attributes = dst_mesh.attributes_for_write();
 
   const Set<StringRefNull> attribute_names = dst_attributes.all_ids();
-  for (const int attr_i : attr_info.names.index_range()) {
-    const StringRef name = attr_info.names[attr_i];
-    const bke::AttrDomain domain = attr_info.kinds[attr_i].domain;
-    const bke::AttrType data_type = attr_info.kinds[attr_i].data_type;
+  for (const int attr_i : names.index_range()) {
+    const StringRef name = names[attr_i];
+    const bke::AttrDomain domain = kinds[attr_i].domain;
+    const bke::AttrType data_type = kinds[attr_i].data_type;
     if (const std::optional<bke::AttributeMetaData> meta_data = dst_attributes.lookup_meta_data(
             name))
     {
@@ -230,10 +241,10 @@ static void join_generic_attributes(const Span<const Object *> objects_to_join,
     }
   }
 
-  for (const int attr_i : attr_info.names.index_range()) {
-    const StringRef name = attr_info.names[attr_i];
-    const bke::AttrDomain domain = attr_info.kinds[attr_i].domain;
-    const bke::AttrType data_type = attr_info.kinds[attr_i].data_type;
+  for (const int attr_i : names.index_range()) {
+    const StringRef name = names[attr_i];
+    const bke::AttrDomain domain = kinds[attr_i].domain;
+    const bke::AttrType data_type = kinds[attr_i].data_type;
 
     bke::GSpanAttributeWriter dst = dst_attributes.lookup_for_write_span(name);
     for (const int i : objects_to_join.index_range().drop_front(1)) {
@@ -497,7 +508,8 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
   float4x4 world_to_active_object;
   invert_m4_m4_safe_ortho(world_to_active_object.ptr(), active_object->object_to_world().ptr());
 
-  join_positions_and_shape_keys(objects_to_join, vert_ranges, world_to_active_object, *dst_mesh);
+  join_positions_and_shape_keys(
+      bmain, objects_to_join, vert_ranges, world_to_active_object, *dst_mesh);
 
   MutableSpan<int2> dst_edges = dst_mesh->edges_for_write();
   for (const int i : objects_to_join.index_range().drop_front(1)) {

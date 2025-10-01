@@ -300,7 +300,7 @@ static bool might_have_tinted_specular(const GPUNodeStack &base_color,
                                        const GPUNodeStack &metallic,
                                        const GPUNodeStack &specular_tint)
 {
-  if (metallic.socket_is_one()) {
+  if (metallic.socket_not_zero()) {
     /* Metals might have colored specular. */
     return base_color.might_be_tinted() || specular_tint.might_be_tinted();
   }

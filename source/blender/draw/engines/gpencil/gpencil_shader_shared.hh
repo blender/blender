@@ -39,6 +39,9 @@ enum gpLightType : uint32_t {
 
 #define GP_IS_STROKE_VERTEX_BIT (1 << 30)
 #define GP_VERTEX_ID_SHIFT 2
+#define GP_CORNER_TYPE_ROUND_BITS 0u
+#define GP_CORNER_TYPE_BEVEL_BITS 63u
+#define GP_CORNER_TYPE_MITER_NUMBER 62u
 
 /* Avoid compiler funkiness with enum types not being strongly typed in C. */
 #ifndef GPU_SHADER

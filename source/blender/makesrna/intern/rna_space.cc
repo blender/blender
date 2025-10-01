@@ -91,7 +91,11 @@ const EnumPropertyItem rna_enum_space_type_items[] = {
      ICON_NODETREE,
      "Node Editor",
      "Editor for node-based shading and compositing tools"},
-    {SPACE_SEQ, "SEQUENCE_EDITOR", ICON_SEQUENCE, "Video Sequencer", "Video editing tools"},
+    {SPACE_SEQ,
+     "SEQUENCE_EDITOR",
+     ICON_SEQUENCE,
+     "Video Sequencer",
+     "Non-linear editor for arranging and mixing scenes, video, audio, and effects"},
     {SPACE_CLIP, "CLIP_EDITOR", ICON_TRACKER, "Movie Clip Editor", "Motion tracking tools"},
 
     /* Animation. */
@@ -171,7 +175,11 @@ const EnumPropertyItem rna_enum_space_graph_mode_items[] = {
      ICON_GRAPH,
      "Graph Editor",
      "Edit animation/keyframes displayed as 2D curves"},
-    {SIPO_MODE_DRIVERS, "DRIVERS", ICON_DRIVER, "Drivers", "Edit drivers"},
+    {SIPO_MODE_DRIVERS,
+     "DRIVERS",
+     ICON_DRIVER,
+     "Drivers",
+     "Define and edit drivers that link properties to custom functions or other data"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -187,8 +195,16 @@ const EnumPropertyItem rna_enum_space_sequencer_view_type_items[] = {
 };
 
 const EnumPropertyItem rna_enum_space_file_browse_mode_items[] = {
-    {FILE_BROWSE_MODE_FILES, "FILES", ICON_FILEBROWSER, "File Browser", ""},
-    {FILE_BROWSE_MODE_ASSETS, "ASSETS", ICON_ASSET_MANAGER, "Asset Browser", ""},
+    {FILE_BROWSE_MODE_FILES,
+     "FILES",
+     ICON_FILEBROWSER,
+     "File Browser",
+     "Built-in file manager for opening, saving, and linking data"},
+    {FILE_BROWSE_MODE_ASSETS,
+     "ASSETS",
+     ICON_ASSET_MANAGER,
+     "Asset Browser",
+     "Manage assets in the current file and access linked asset libraries"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -268,19 +284,19 @@ const EnumPropertyItem rna_enum_space_action_mode_items[] = {
 
 #define SI_ITEM_VIEW(identifier, name, icon) \
   { \
-    SI_MODE_VIEW, identifier, icon, name, "View the image" \
+    SI_MODE_VIEW, identifier, icon, name, "Inspect images or render results" \
   }
 #define SI_ITEM_UV \
   { \
-    SI_MODE_UV, "UV", ICON_UV, "UV Editor", "UV edit in mesh editmode" \
+    SI_MODE_UV, "UV", ICON_UV, "UV Editor", "View and edit UVs" \
   }
 #define SI_ITEM_PAINT \
   { \
-    SI_MODE_PAINT, "PAINT", ICON_TPAINT_HLT, "Paint", "2D image painting mode" \
+    SI_MODE_PAINT, "PAINT", ICON_TPAINT_HLT, "Paint", "Paint images in 2D" \
   }
 #define SI_ITEM_MASK \
   { \
-    SI_MODE_MASK, "MASK", ICON_MOD_MASK, "Mask", "Mask editing" \
+    SI_MODE_MASK, "MASK", ICON_MOD_MASK, "Mask", "View and edit masks" \
   }
 
 const EnumPropertyItem rna_enum_space_image_mode_all_items[] = {

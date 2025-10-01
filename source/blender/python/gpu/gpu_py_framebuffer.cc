@@ -347,7 +347,7 @@ static PyObject *pygpu_framebuffer__tp_new(PyTypeObject * /*self*/, PyObject *ar
       "|$" /* Optional keyword only arguments. */
       "O"  /* `depth_slot` */
       "O"  /* `color_slots` */
-      ":gpu::FrameBuffer.__new__",
+      ":GPUFrameBuffer.__new__",
       _keywords,
       nullptr,
   };
@@ -804,7 +804,7 @@ static PyMethodDef pygpu_framebuffer__tp_methods[] = {
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_framebuffer__tp_doc,
-    ".. class:: gpu::FrameBuffer(*, depth_slot=None, color_slots=None)\n"
+    ".. class:: GPUFrameBuffer(*, depth_slot=None, color_slots=None)\n"
     "\n"
     "   This object gives access to framebuffer functionalities.\n"
     "   When a 'layer' is specified in a argument, a single layer of a 3D or array "
@@ -823,7 +823,7 @@ PyDoc_STRVAR(
     "None\n");
 PyTypeObject BPyGPUFrameBuffer_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
-    /*tp_name*/ "gpu::FrameBuffer",
+    /*tp_name*/ "GPUFrameBuffer",
     /*tp_basicsize*/ sizeof(BPyGPUFrameBuffer),
     /*tp_itemsize*/ 0,
     /*tp_dealloc*/ (destructor)BPyGPUFrameBuffer__tp_dealloc,

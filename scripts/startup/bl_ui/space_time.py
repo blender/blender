@@ -42,7 +42,7 @@ def playback_controls(layout, context):
     is_sequencer = st.type == 'SEQUENCE_EDITOR' and st.view_type == 'SEQUENCER'
 
     scene = context.scene if not is_sequencer else context.sequencer_scene
-    tool_settings = context.tool_settings
+    tool_settings = scene.tool_settings if scene else None
     screen = context.screen
 
     if scene:

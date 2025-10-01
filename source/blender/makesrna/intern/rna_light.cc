@@ -76,9 +76,10 @@ static void rna_Light_draw_update(Main * /*bmain*/, Scene * /*scene*/, PointerRN
 static void rna_Light_use_nodes_update(bContext *C, PointerRNA *ptr)
 {
   Light *la = (Light *)ptr->data;
+  Main *bmain = CTX_data_main(C);
 
   if (la->use_nodes && la->nodetree == nullptr) {
-    ED_node_shader_default(C, &la->id);
+    ED_node_shader_default(C, bmain, &la->id);
   }
 
   rna_Light_update(CTX_data_main(C), CTX_data_scene(C), ptr);

@@ -525,7 +525,7 @@ class NodeTreeMainUpdater {
     this->make_node_previews_dirty(ntree);
 
     this->propagate_runtime_flags(ntree);
-    if (ELEM(ntree.type, NTREE_GEOMETRY, NTREE_COMPOSIT)) {
+    if (ELEM(ntree.type, NTREE_GEOMETRY, NTREE_COMPOSIT, NTREE_SHADER)) {
       if (this->propagate_enum_definitions(ntree)) {
         result.interface_changed = true;
       }
@@ -1839,7 +1839,7 @@ class NodeTreeMainUpdater {
               break;
             }
             const bNodeTreeZone *zone = zones->get_zone_by_node(node.identifier);
-            if (!zone->input_node()) {
+            if (!zone || !zone->input_node()) {
               break;
             }
             for (const bNodeSocket *input_socket : zone->input_node()->input_sockets()) {

@@ -1359,10 +1359,10 @@ typedef struct CurvesSculpt {
 } CurvesSculpt;
 
 typedef struct UvSculpt {
-  struct CurveMapping *strength_curve;
+  struct CurveMapping *curve_distance_falloff;
   int size;
   float strength;
-  int8_t curve_preset; /* #eBrushCurvePreset. */
+  int8_t curve_distance_falloff_preset; /* #eBrushCurvePreset. */
   char _pad[7];
 } UvSculpt;
 

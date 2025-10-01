@@ -28,6 +28,7 @@ class VIEW3D_MT_pose_modify(Menu):
         layout.operator("poselib.asset_modify", text="Add Selected Bones").mode = "ADD"
         layout.operator("poselib.asset_modify", text="Remove Selected Bones").mode = "REMOVE"
 
+
 class PoseLibraryPanel:
     @classmethod
     def pose_library_panel_poll(cls, context: Context) -> bool:
@@ -131,8 +132,6 @@ class DOPESHEET_PT_asset_panel(PoseLibraryPanel, Panel):
         if bpy.types.POSELIB_OT_restore_previous_action.poll(context):
             row.operator("poselib.restore_previous_action", text="", icon='LOOP_BACK')
         col.operator("poselib.copy_as_asset", icon="COPYDOWN")
-
-        layout.operator("poselib.convert_old_poselib")
 
 
 def pose_library_list_item_asset_menu(self: UIList, context: Context) -> None:

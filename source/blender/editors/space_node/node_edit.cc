@@ -310,12 +310,7 @@ static bool is_compositing_possible(const bContext *C)
 
   int width, height;
   BKE_render_resolution(&scene->r, false, &width, &height);
-  const int max_texture_size = GPU_max_texture_size();
-
-  /* There is no way to know if the render size is too large except if we actually allocate a test
-   * texture, which we want to avoid due its cost. So we employ a heuristic that so far has worked
-   * with all known GPU drivers. */
-  if (size_t(width) * height > (size_t(max_texture_size) * max_texture_size) / 4) {
+  if (!GPU_is_safe_texture_size(width, height)) {
     WM_global_report(RPT_ERROR, "Render size too large for GPU, use CPU compositor instead");
     return false;
   }
@@ -515,10 +510,8 @@ bool ED_node_supports_preview(SpaceNode *snode)
          (USER_EXPERIMENTAL_TEST(&U, use_shader_node_previews) && ED_node_is_shader(snode));
 }
 
-void ED_node_shader_default(const bContext *C, ID *id)
+void ED_node_shader_default(const bContext *C, Main *bmain, ID *id)
 {
-  Main *bmain = CTX_data_main(C);
-
   if (GS(id->name) == ID_MA) {
     /* Materials */
     Object *ob = CTX_data_active_object(C);

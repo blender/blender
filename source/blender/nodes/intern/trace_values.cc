@@ -446,6 +446,10 @@ static Vector<SocketInContext> find_origin_sockets_through_contexts(
         }
         continue;
       }
+      if (node->is_type("NodeJoinBundle")) {
+        add_if_new(node.input_socket(0), bundle_path);
+        continue;
+      }
       if (node->is_type("NodeEvaluateClosure")) {
         const auto &evaluate_storage = *static_cast<const NodeEvaluateClosure *>(node->storage);
         const StringRef key = evaluate_storage.output_items.items[socket->index()].name;
@@ -611,12 +615,37 @@ LinkedBundleSignatures gather_linked_origin_bundle_signatures(
       {bundle_socket_context, &bundle_socket},
       compute_context_cache,
       [&](const SocketInContext &socket) {
-        const bNode &node = socket->owner_node();
-        if (socket->is_output() && node.is_type("NodeCombineBundle")) {
-          const auto &storage = *static_cast<const NodeCombineBundle *>(node.storage);
-          result.items.append({BundleSignature::from_combine_bundle_node(node, false),
-                               bool(storage.flag & NODE_COMBINE_BUNDLE_FLAG_DEFINE_SIGNATURE),
-                               socket});
+        const NodeInContext node = socket.owner_node();
+        if (socket->is_output()) {
+          if (node->is_type("NodeCombineBundle")) {
+            const auto &storage = *static_cast<const NodeCombineBundle *>(node->storage);
+            result.items.append({BundleSignature::from_combine_bundle_node(*node, false),
+                                 bool(storage.flag & NODE_COMBINE_BUNDLE_FLAG_DEFINE_SIGNATURE),
+                                 socket});
+            return true;
+          }
+        }
+        if (node->is_type("NodeJoinBundle")) {
+          const SocketInContext input_socket = node.input_socket(0);
+          BundleSignature joined_signature;
+          bool is_signature_definition = true;
+          for (const bNodeLink *link : input_socket->directly_linked_links()) {
+            if (!link->is_used()) {
+              continue;
+            }
+            const bNodeSocket *socket_from = link->fromsock;
+            const LinkedBundleSignatures sub_signatures = gather_linked_origin_bundle_signatures(
+                node.context, *socket_from, compute_context_cache);
+            for (const LinkedBundleSignatures::Item &sub_signature : sub_signatures.items) {
+              if (!sub_signature.is_signature_definition) {
+                is_signature_definition = false;
+              }
+              for (const BundleSignature::Item &item : sub_signature.signature.items) {
+                joined_signature.items.add(item);
+              }
+            }
+          }
+          result.items.append({joined_signature, is_signature_definition, socket});
           return true;
         }
         return false;

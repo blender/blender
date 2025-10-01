@@ -83,6 +83,7 @@ BLOCKLIST_OPTIX_OSL_ALL = BLOCKLIST_OPTIX_OSL_LIMITED + [
     'principled_bsdf_bevel_emission_137420.blend',
     # Dicing tests use wireframe node which doesn't appear to be supported with OptiX OSL
     'dicing_camera.blend',
+    'object_dicing.blend',
     'offscreen_dicing.blend',
     'panorama_dicing.blend',
     # The mapping of the UDIM texture is incorrect. Need to investigate why.

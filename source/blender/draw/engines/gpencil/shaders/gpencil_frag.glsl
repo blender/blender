@@ -81,11 +81,15 @@ void main()
 
   frag_color.rgb *= gpencil_lighting();
 
-  frag_color *= gpencil_stroke_round_cap_mask(gp_interp_flat.sspos.xy,
-                                              gp_interp_flat.sspos.zw,
-                                              gp_interp_flat.aspect,
-                                              gp_interp_noperspective.thickness.x,
-                                              gp_interp_noperspective.hardness);
+  frag_color *= gpencil_stroke_mask(gp_interp_flat.sspos.xy,
+                                    gp_interp_flat.sspos.zw,
+                                    gp_interp_flat.sspos_adj.xy,
+                                    gp_interp_flat.sspos_adj.zw,
+                                    gp_interp.uv,
+                                    gp_interp_flat.mat_flag,
+                                    gp_interp_noperspective.thickness.x,
+                                    gp_interp_noperspective.hardness,
+                                    gp_interp_noperspective.thickness.zw);
 
   /* To avoid aliasing artifacts, we reduce the opacity of small strokes. */
   frag_color *= smoothstep(0.0f, 1.0f, gp_interp_noperspective.thickness.y);
