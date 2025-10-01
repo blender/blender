@@ -1609,11 +1609,27 @@ static bool is_smooth_by_angle_modifier(const ModifierData &md)
   if (!nmd.node_group) {
     return false;
   }
-  const LibraryWeakReference *library_ref = nmd.node_group->id.library_weak_reference;
-  if (!library_ref) {
+  if (const LibraryWeakReference *library_ref = nmd.node_group->id.library_weak_reference) {
+    /* Support appended assets added before asset packing in Blender 5.0. */
+    if (!library_ref) {
+      return false;
+    }
+    if (!STREQ(library_ref->library_id_name + 2, "Smooth by Angle")) {
+      return false;
+    }
+    return true;
+  }
+  const Library *library = nmd.node_group->id.lib;
+  if (!library) {
     return false;
   }
-  if (!STREQ(library_ref->library_id_name + 2, "Smooth by Angle")) {
+  if (!StringRef(library->filepath)
+           .endswith("datafiles/assets/geometry_nodes/geometry_nodes_essentials.blend"))
+  {
+
+    return false;
+  }
+  if (!STREQ(BKE_id_name(nmd.node_group->id), "Smooth by Angle")) {
     return false;
   }
   return true;
@@ -1644,8 +1660,6 @@ static wmOperatorStatus shade_smooth_exec(bContext *C, wmOperator *op)
     CTX_data_selected_editable_objects(C, &ctx_objects);
   }
 
-  bool modifier_removed = false;
-
   Set<ID *> object_data;
   for (const PointerRNA &ptr : ctx_objects) {
     Object *ob = static_cast<Object *>(ptr.data);
@@ -1658,7 +1672,7 @@ static wmOperatorStatus shade_smooth_exec(bContext *C, wmOperator *op)
             if (is_smooth_by_angle_modifier(*md)) {
               modifier_remove(op->reports, bmain, scene, ob, md);
               DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-              modifier_removed = true;
+              WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | NA_REMOVED, ob);
               break;
             }
           }
@@ -1697,11 +1711,6 @@ static wmOperatorStatus shade_smooth_exec(bContext *C, wmOperator *op)
       DEG_id_tag_update(data, ID_RECALC_GEOMETRY);
       WM_event_add_notifier(C, NC_GEOM | ND_DATA, data);
     }
-  }
-
-  if (modifier_removed) {
-    /* Outliner needs to know. #124302. */
-    WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, nullptr);
   }
 
   if (has_linked_data) {
@@ -1915,6 +1924,7 @@ static wmOperatorStatus shade_auto_smooth_exec(bContext *C, wmOperator *op)
       LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
         if (is_smooth_by_angle_modifier(*md)) {
           modifier_remove(op->reports, &bmain, &scene, object, md);
+          WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | NA_REMOVED, object);
           break;
         }
       }
