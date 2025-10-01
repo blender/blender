@@ -97,7 +97,7 @@ def action_get_channelbag_for_slot(action: Action | None, slot: ActionSlot | Non
 
 
 def action_ensure_channelbag_for_slot(action: Action, slot: ActionSlot) -> ActionChannelbag:
-    """Ensure a layer and a keyframe strip exists, then ensure that that strip has a channelbag for the slot."""
+    """Ensure a layer and a keyframe strip exists, then ensure that strip has a channelbag for the slot."""
 
     try:
         layer = action.layers[0]
