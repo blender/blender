@@ -1546,8 +1546,8 @@ bool calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], floa
 static bool transinfo_show_overlay(TransInfo *t, ARegion *region)
 {
   /* Don't show overlays when not the active view and when overlay is disabled: #57139 */
-  if (region == t->region) {
-    return true;
+  if (region != t->region) {
+    return false;
   }
 
   if (t->spacetype == SPACE_VIEW3D) {
