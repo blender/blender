@@ -4434,7 +4434,7 @@ int RNA_property_enum_step(
   return result_value;
 }
 
-PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
+static PointerRNA property_pointer_get(PointerRNA *ptr, PropertyRNA *prop, const bool do_create)
 {
   PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop;
   IDProperty *idprop;
@@ -4460,7 +4460,7 @@ PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
   if (pprop->get) {
     return pprop->get(ptr);
   }
-  if (prop->flag & PROP_IDPROPERTY) {
+  if (prop->flag & PROP_IDPROPERTY && do_create) {
     /* NOTE: While creating/writing data in an accessor is really bad design-wise, this is
      * currently very difficult to avoid in that case. So a global mutex is used to keep ensuring
      * thread safety. */
@@ -4471,6 +4471,16 @@ PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
     return RNA_property_pointer_get(ptr, prop);
   }
   return PointerRNA_NULL;
+}
+
+PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
+{
+  return property_pointer_get(ptr, prop, true);
+}
+
+PointerRNA RNA_property_pointer_get_never_create(PointerRNA *ptr, PropertyRNA *prop)
+{
+  return property_pointer_get(ptr, prop, false);
 }
 
 void RNA_property_pointer_set(PointerRNA *ptr,
