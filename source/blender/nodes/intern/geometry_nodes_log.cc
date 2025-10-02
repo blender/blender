@@ -169,6 +169,7 @@ GeometryInfoLog::GeometryInfoLog(const bke::GeometrySet &geometry_set)
         break;
       }
       case bke::GeometryComponent::Type::Volume: {
+#ifdef WITH_OPENVDB
         const auto &volume_component = *static_cast<const bke::VolumeComponent *>(component);
         if (const Volume *volume = volume_component.get()) {
           VolumeInfo &info = this->volume_info.emplace();
@@ -178,6 +179,7 @@ GeometryInfoLog::GeometryInfoLog(const bke::GeometrySet &geometry_set)
             info.grids[i] = {grid->name(), bke::volume_grid::get_type(*grid)};
           }
         }
+#endif /* WITH_OPENVDB */
         break;
       }
       case bke::GeometryComponent::Type::GreasePencil: {
