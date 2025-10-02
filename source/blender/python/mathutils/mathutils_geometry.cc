@@ -830,16 +830,21 @@ PyDoc_STRVAR(
     "   :arg line_p2: Second point of the line\n"
     "   :type line_p2: :class:`mathutils.Vector`\n"
     "   :rtype: tuple[:class:`mathutils.Vector`, float]\n");
-static PyObject *M_Geometry_intersect_point_line(PyObject * /*self*/, PyObject *args)
+static PyObject *M_Geometry_intersect_point_line(PyObject * /*self*/,
+                                                 PyObject *const *args,
+                                                 Py_ssize_t nargs)
 {
   const char *error_prefix = "intersect_point_line";
-  PyObject *py_pt, *py_line_a, *py_line_b;
   float pt[3], pt_out[3], line_a[3], line_b[3];
   int pt_num = 2;
 
-  if (!PyArg_ParseTuple(args, "OOO:intersect_point_line", &py_pt, &py_line_a, &py_line_b)) {
+  if (!_PyArg_CheckPositional(error_prefix, nargs, 3, 3)) {
     return nullptr;
   }
+
+  PyObject *py_pt = args[0];
+  PyObject *py_line_a = args[1];
+  PyObject *py_line_b = args[2];
 
   /* Accept 2D verts. */
   if ((((pt_num = mathutils_array_parse(
@@ -1772,7 +1777,7 @@ static PyMethodDef M_Geometry_methods[] = {
      M_Geometry_intersect_ray_tri_doc},
     {"intersect_point_line",
      (PyCFunction)M_Geometry_intersect_point_line,
-     METH_VARARGS,
+     METH_FASTCALL,
      M_Geometry_intersect_point_line_doc},
     {"intersect_point_tri",
      (PyCFunction)M_Geometry_intersect_point_tri,
