@@ -12,6 +12,7 @@
 
 #ifdef WITH_OPENVDB
 #  include <openvdb/Grid.h>
+#  include <openvdb/tools/Prune.h>
 #endif
 
 namespace blender::bke::volume_grid {
@@ -798,6 +799,11 @@ void set_grid_background(openvdb::GridBase &grid_base, const GPointer value)
     BLI_assert(value.type()->size == sizeof(ValueType));
     tree.root().setBackground(*static_cast<const ValueType *>(value.get()), true);
   });
+}
+
+void prune_inactive(openvdb::GridBase &grid_base)
+{
+  to_typed_grid(grid_base, [&](auto &grid) { openvdb::tools::pruneInactive(grid.tree()); });
 }
 
 #endif /* WITH_OPENVDB */

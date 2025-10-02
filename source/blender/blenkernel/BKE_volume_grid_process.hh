@@ -112,6 +112,9 @@ void set_mask_leaf_buffer_from_bools(openvdb::BoolGrid &grid,
 
 void set_grid_background(openvdb::GridBase &grid_base, const GPointer value);
 
+/** See #openvdb::tools::pruneInactive. */
+void prune_inactive(openvdb::GridBase &grid_base);
+
 }  // namespace blender::bke::volume_grid
 
 /** \} */

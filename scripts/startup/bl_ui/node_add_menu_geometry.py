@@ -955,6 +955,8 @@ class NODE_MT_gn_volume_operations_base(node_add_menu.NodeMenu):
             self.node_operator(layout, "GeometryNodeGridToMesh")
             self.node_operator(layout, "GeometryNodeSDFGridBoolean")
             self.node_operator(layout, "GeometryNodeFieldToGrid")
+            self.node_operator(layout, "GeometryNodeGridPrune")
+            self.node_operator(layout, "GeometryNodeGridVoxelize")
 
         self.draw_assets_for_catalog(layout, self.menu_path)
 
