@@ -75,18 +75,24 @@ class NODE_MT_compositor_node_output_base(node_add_menu.NodeMenu):
 class NODE_MT_compositor_node_color_base(node_add_menu.NodeMenu):
     bl_label = "Color"
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
         self.draw_menu(layout, path="Color/Adjust")
         layout.separator()
-        self.draw_menu(layout, path="Color/Mix")
-        layout.separator()
         self.node_operator(layout, "CompositorNodePremulKey")
+        self.node_operator(layout, "CompositorNodeAlphaOver")
+        self.node_operator(layout, "CompositorNodeSetAlpha")
+        layout.separator()
+        self.node_operator(layout, "CompositorNodeCombineColor")
+        self.node_operator(layout, "CompositorNodeSeparateColor")
+        layout.separator()
+        self.node_operator(layout, "CompositorNodeZcombine")
+        self.color_mix_node(context, layout)
+        layout.separator()
         self.node_operator(layout, "ShaderNodeBlackbody")
         self.node_operator(layout, "ShaderNodeValToRGB")
         self.node_operator(layout, "CompositorNodeConvertColorSpace")
         self.node_operator(layout, "CompositorNodeConvertToDisplay")
-        self.node_operator(layout, "CompositorNodeSetAlpha")
         layout.separator()
         self.node_operator(layout, "CompositorNodeInvert")
         self.node_operator(layout, "CompositorNodeRGBToBW")
@@ -119,13 +125,6 @@ class NODE_MT_compositor_node_color_mix_base(node_add_menu.NodeMenu):
 
     def draw(self, context):
         layout = self.layout
-        self.node_operator(layout, "CompositorNodeAlphaOver")
-        layout.separator()
-        self.node_operator(layout, "CompositorNodeCombineColor")
-        self.node_operator(layout, "CompositorNodeSeparateColor")
-        layout.separator()
-        self.node_operator(layout, "CompositorNodeZcombine")
-        self.color_mix_node(context, layout)
 
         self.draw_assets_for_catalog(layout, self.menu_path)
 
@@ -151,9 +150,6 @@ class NODE_MT_compositor_node_filter_base(node_add_menu.NodeMenu):
         self.node_operator_with_searchable_enum_socket(
             context, layout, "CompositorNodeGlare", "Type", [
                 "Bloom", "Ghosts", "Streaks", "Fog Glow", "Simple Star", "Sun Beams", "Kernel"])
-        self.node_operator(layout, "CompositorNodeKuwahara")
-        self.node_operator(layout, "CompositorNodePixelate")
-        self.node_operator(layout, "CompositorNodePosterize")
 
         self.draw_assets_for_catalog(layout, self.bl_label)
 
@@ -269,11 +265,8 @@ class NODE_MT_compositor_node_utilities_base(node_add_menu.NodeMenu):
 
     def draw(self, context):
         layout = self.layout
-        self.node_operator(layout, "ShaderNodeMapRange")
-        self.node_operator_with_searchable_enum(context, layout, "ShaderNodeMath", "operation")
-        self.node_operator(layout, "ShaderNodeMix")
-        self.node_operator(layout, "ShaderNodeClamp")
-        self.node_operator(layout, "ShaderNodeFloatCurve")
+        self.draw_menu(layout, path="Utilities/Math")
+        self.draw_menu(layout, path="Utilities/Vector")
         layout.separator()
         self.node_operator(layout, "CompositorNodeLevels")
         self.node_operator(layout, "CompositorNodeNormalize")
@@ -292,20 +285,53 @@ class NODE_MT_compositor_node_utilities_base(node_add_menu.NodeMenu):
 
 class NODE_MT_compositor_node_vector_base(node_add_menu.NodeMenu):
     bl_label = "Vector"
+    menu_path = "Utilities/Vector"
 
     def draw(self, context):
         layout = self.layout
         self.node_operator(layout, "ShaderNodeCombineXYZ")
-        self.node_operator(layout, "ShaderNodeSeparateXYZ")
-        layout.separator()
+        props = self.node_operator(layout, "ShaderNodeMapRange")
+        ops = props.settings.add()
+        ops.name = "data_type"
+        ops.value = "'FLOAT_VECTOR'"
         props = self.node_operator(layout, "ShaderNodeMix", label="Mix Vector")
         ops = props.settings.add()
         ops.name = "data_type"
         ops.value = "'VECTOR'"
+        self.node_operator(layout, "ShaderNodeSeparateXYZ")
+        layout.separator()
         self.node_operator(layout, "ShaderNodeRadialTiling")
         self.node_operator(layout, "ShaderNodeVectorCurve")
-        self.node_operator_with_searchable_enum(context, layout, "ShaderNodeVectorMath", "operation")
+
         self.node_operator(layout, "ShaderNodeVectorRotate")
+
+        self.draw_assets_for_catalog(layout, self.menu_path)
+
+
+class NODE_MT_compositor_node_math_base(node_add_menu.NodeMenu):
+    bl_label = "Math"
+    menu_path = "Utilities/Math"
+
+    def draw(self, context):
+        layout = self.layout
+
+        self.node_operator(layout, "ShaderNodeClamp")
+        self.node_operator(layout, "ShaderNodeFloatCurve")
+        self.node_operator(layout, "ShaderNodeMapRange")
+        self.node_operator_with_searchable_enum(context, layout, "ShaderNodeMath", "operation")
+        self.node_operator(layout, "ShaderNodeMix")
+
+        self.draw_assets_for_catalog(layout, self.menu_path)
+
+
+class NODE_MT_compositor_node_creative_base(node_add_menu.NodeMenu):
+    bl_label = "Creative"
+
+    def draw(self, _context):
+        layout = self.layout
+        self.node_operator(layout, "CompositorNodeKuwahara")
+        self.node_operator(layout, "CompositorNodePixelate")
+        self.node_operator(layout, "CompositorNodePosterize")
 
         self.draw_assets_for_catalog(layout, self.bl_label)
 
@@ -325,6 +351,7 @@ class NODE_MT_compositor_node_all_base(node_add_menu.NodeMenu):
         self.draw_menu(layout, "Output")
         layout.separator()
         self.draw_menu(layout, "Color")
+        self.draw_menu(layout, "Creative")
         self.draw_menu(layout, "Filter")
         layout.separator()
         self.draw_menu(layout, "Keying")
@@ -335,12 +362,11 @@ class NODE_MT_compositor_node_all_base(node_add_menu.NodeMenu):
         self.draw_menu(layout, "Texture")
         self.draw_menu(layout, "Transform")
         self.draw_menu(layout, "Utilities")
-        self.draw_menu(layout, "Vector")
+        layout.separator()
+        self.draw_root_assets(layout)
         layout.separator()
         self.draw_menu(layout, "Group")
         self.draw_menu(layout, "Layout")
-
-        self.draw_root_assets(layout)
 
 
 add_menus = {
@@ -351,9 +377,9 @@ add_menus = {
     "NODE_MT_category_compositor_output": NODE_MT_compositor_node_output_base,
     "NODE_MT_category_compositor_color": NODE_MT_compositor_node_color_base,
     "NODE_MT_category_compositor_color_adjust": NODE_MT_compositor_node_color_adjust_base,
-    "NODE_MT_category_compositor_color_mix": NODE_MT_compositor_node_color_mix_base,
     "NODE_MT_category_compositor_filter": NODE_MT_compositor_node_filter_base,
     "NODE_MT_category_compositor_filter_blur": NODE_MT_compositor_node_filter_blur_base,
+    "NODE_MT_category_compositor_creative": NODE_MT_compositor_node_creative_base,
     "NODE_MT_category_compositor_texture": NODE_MT_compositor_node_texture_base,
     "NODE_MT_category_compositor_keying": NODE_MT_compositor_node_keying_base,
     "NODE_MT_category_compositor_mask": NODE_MT_compositor_node_mask_base,
@@ -361,6 +387,7 @@ add_menus = {
     "NODE_MT_category_compositor_transform": NODE_MT_compositor_node_transform_base,
     "NODE_MT_category_compositor_utilities": NODE_MT_compositor_node_utilities_base,
     "NODE_MT_category_compositor_vector": NODE_MT_compositor_node_vector_base,
+    "NODE_MT_category_compositor_math": NODE_MT_compositor_node_math_base,
     "NODE_MT_compositor_node_add_all": NODE_MT_compositor_node_all_base,
 }
 add_menus = node_add_menu.generate_menus(
@@ -378,9 +405,9 @@ swap_menus = {
     "NODE_MT_compositor_node_output_swap": NODE_MT_compositor_node_output_base,
     "NODE_MT_compositor_node_color_swap": NODE_MT_compositor_node_color_base,
     "NODE_MT_compositor_node_color_adjust_swap": NODE_MT_compositor_node_color_adjust_base,
-    "NODE_MT_compositor_node_color_mix_swap": NODE_MT_compositor_node_color_mix_base,
     "NODE_MT_compositor_node_filter_swap": NODE_MT_compositor_node_filter_base,
     "NODE_MT_compositor_node_filter_blur_swap": NODE_MT_compositor_node_filter_blur_base,
+    "NODE_MT_category_compositor_creative_swap": NODE_MT_compositor_node_creative_base,
     "NODE_MT_compositor_node_texture_swap": NODE_MT_compositor_node_texture_base,
     "NODE_MT_compositor_node_keying_swap": NODE_MT_compositor_node_keying_base,
     "NODE_MT_compositor_node_mask_swap": NODE_MT_compositor_node_mask_base,
@@ -388,6 +415,7 @@ swap_menus = {
     "NODE_MT_compositor_node_transform_swap": NODE_MT_compositor_node_transform_base,
     "NODE_MT_compositor_node_utilities_swap": NODE_MT_compositor_node_utilities_base,
     "NODE_MT_compositor_node_vector_swap": NODE_MT_compositor_node_vector_base,
+    "NODE_MT_compositor_node_math_swap": NODE_MT_compositor_node_math_base,
     "NODE_MT_compositor_node_swap_all": NODE_MT_compositor_node_all_base,
 }
 swap_menus = node_add_menu.generate_menus(
