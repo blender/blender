@@ -91,8 +91,8 @@ struct RenderJob : public RenderJobBase {
   ColorManagedViewSettings view_settings;
   ColorManagedDisplaySettings display_settings;
   bool interface_locked;
-  int start_frame;
-  int end_frame;
+  int frame_start;
+  int frame_end;
 };
 
 /* called inside thread! */
@@ -298,27 +298,27 @@ static void screen_render_single_layer_set(
 
 static bool render_operator_has_custom_frame_range(wmOperator *render_operator)
 {
-  return RNA_struct_property_is_set(render_operator->ptr, "start_frame") ||
-         RNA_struct_property_is_set(render_operator->ptr, "end_frame");
+  return RNA_struct_property_is_set(render_operator->ptr, "frame_start") ||
+         RNA_struct_property_is_set(render_operator->ptr, "frame_end");
 }
 
 static void get_render_operator_frame_range(wmOperator *render_operator,
                                             const Scene *scene,
-                                            int &start_frame,
-                                            int &end_frame)
+                                            int &frame_start,
+                                            int &frame_end)
 {
-  if (RNA_struct_property_is_set(render_operator->ptr, "start_frame")) {
-    start_frame = RNA_int_get(render_operator->ptr, "start_frame");
+  if (RNA_struct_property_is_set(render_operator->ptr, "frame_start")) {
+    frame_start = RNA_int_get(render_operator->ptr, "frame_start");
   }
   else {
-    start_frame = scene->r.sfra;
+    frame_start = scene->r.sfra;
   }
 
-  if (RNA_struct_property_is_set(render_operator->ptr, "end_frame")) {
-    end_frame = RNA_int_get(render_operator->ptr, "end_frame");
+  if (RNA_struct_property_is_set(render_operator->ptr, "frame_end")) {
+    frame_end = RNA_int_get(render_operator->ptr, "frame_end");
   }
   else {
-    end_frame = scene->r.efra;
+    frame_end = scene->r.efra;
   }
 }
 
@@ -347,9 +347,9 @@ static wmOperatorStatus screen_render_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  int start_frame, end_frame;
-  get_render_operator_frame_range(op, scene, start_frame, end_frame);
-  if (is_animation && start_frame > end_frame) {
+  int frame_start, frame_end;
+  get_render_operator_frame_range(op, scene, frame_start, frame_end);
+  if (is_animation && frame_start > frame_end) {
     BKE_report(op->reports, RPT_ERROR, "Start frame is larger than end frame");
     return OPERATOR_CANCELLED;
   }
@@ -388,8 +388,8 @@ static wmOperatorStatus screen_render_exec(bContext *C, wmOperator *op)
                   scene,
                   single_layer,
                   camera_override,
-                  start_frame,
-                  end_frame,
+                  frame_start,
+                  frame_end,
                   scene->r.frame_step);
   }
   else {
@@ -746,8 +746,8 @@ static void render_startjob(void *rjv, wmJobWorkerStatus *worker_status)
                   rj->scene,
                   rj->single_layer,
                   rj->camera_override,
-                  rj->start_frame,
-                  rj->end_frame,
+                  rj->frame_start,
+                  rj->frame_end,
                   rj->scene->r.frame_step);
   }
   else {
@@ -1026,9 +1026,9 @@ static wmOperatorStatus screen_render_invoke(bContext *C, wmOperator *op, const 
     return OPERATOR_CANCELLED;
   }
 
-  int start_frame, end_frame;
-  get_render_operator_frame_range(op, scene, start_frame, end_frame);
-  if (is_animation && start_frame > end_frame) {
+  int frame_start, frame_end;
+  get_render_operator_frame_range(op, scene, frame_start, frame_end);
+  if (is_animation && frame_start > frame_end) {
     BKE_report(op->reports, RPT_ERROR, "Start frame is larger than end frame");
     return OPERATOR_CANCELLED;
   }
@@ -1098,8 +1098,8 @@ static wmOperatorStatus screen_render_invoke(bContext *C, wmOperator *op, const 
   rj->orig_layer = 0;
   rj->last_layer = 0;
   rj->area = area;
-  rj->start_frame = start_frame;
-  rj->end_frame = end_frame;
+  rj->frame_start = frame_start;
+  rj->frame_end = frame_end;
 
   BKE_color_managed_display_settings_copy(&rj->display_settings, &scene->display_settings);
   BKE_color_managed_view_settings_copy(&rj->view_settings, &scene->view_settings);
@@ -1249,7 +1249,7 @@ void RENDER_OT_render(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_int(
       ot->srna,
-      "start_frame",
+      "frame_start",
       0,
       INT_MIN,
       INT_MAX,
@@ -1261,7 +1261,7 @@ void RENDER_OT_render(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_int(
       ot->srna,
-      "end_frame",
+      "frame_end",
       0,
       INT_MIN,
       INT_MAX,
