@@ -11,6 +11,7 @@ ExternalProject_Add(external_ffi
   CONFIGURE_COMMAND ${CONFIGURE_ENV} &&
     cd ${BUILD_DIR}/ffi/src/external_ffi/ &&
     ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/ffi
+      --disable-multi-os-directory
       --enable-shared=no
       --enable-static=yes
       --with-pic
@@ -24,11 +25,8 @@ ExternalProject_Add(external_ffi
     cd ${BUILD_DIR}/ffi/src/external_ffi/ &&
     make install
 
-  PATCH_COMMAND ${PATCH_CMD} -p 0 -d
-    ${BUILD_DIR}/ffi/src/external_ffi <
-    ${PATCH_DIR}/ffi.diff &&
+  PATCH_COMMAND ${PATCH_CMD} -p 1 -d
     # Fix compilation errors on Apple Clang >= 17, remove when FFI is updated beyond 3.4.7, see PR #136934 for details.
-    ${PATCH_CMD} -p 1 -d
     ${BUILD_DIR}/ffi/src/external_ffi <
     ${PATCH_DIR}/ffi_apple_clang_17.diff
 

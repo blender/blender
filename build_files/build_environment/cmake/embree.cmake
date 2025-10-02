@@ -139,6 +139,9 @@ if(WIN32)
       COMMAND ${CMAKE_COMMAND} -E copy
         ${LIBDIR}/embree/lib/embree4_d.lib
         ${HARVEST_TARGET}/embree/lib/embree4_d.lib
+      COMMAND ${CMAKE_COMMAND} -E copy
+        ${LIBDIR}/embree/lib/embree4_sycl_d.lib
+        ${HARVEST_TARGET}/embree/lib/embree4_sycl_d.lib
 
       DEPENDEES install
     )

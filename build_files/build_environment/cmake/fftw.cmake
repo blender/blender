@@ -79,13 +79,15 @@ if(WIN32)
       DEPENDEES install
     )
   endif()
-else()
-  add_custom_target(external_fftw)
-  add_dependencies(
-    external_fftw
-    external_fftw3_double
-    external_fftw3_float)
+endif()
 
+add_custom_target(external_fftw)
+add_dependencies(
+  external_fftw
+  external_fftw3_double
+  external_fftw3_float)
+
+if(NOT WIN32)
   harvest(external_fftw3 fftw3/include fftw3/include "*.h")
   harvest(external_fftw3 fftw3/lib fftw3/lib "*.a")
 endif()

@@ -12,6 +12,7 @@ if(UNIX AND NOT APPLE)
   # This causes linking to static pthread libraries which gives link errors.
   # Since we manually specify library paths it should static link other libs.
   set(OPENIMAGEIO_LINKSTATIC -DLINKSTATIC=OFF)
+  set(OIIO_SIMD_FLAGS -DUSE_SIMD=sse4.2)
 else()
   set(OPENIMAGEIO_LINKSTATIC -DLINKSTATIC=ON)
 endif()
@@ -20,7 +21,7 @@ if(WIN32)
   if(BLENDER_PLATFORM_ARM)
     set(OIIO_SIMD_FLAGS -DUSE_SIMD=0)
   else()
-    set(OIIO_SIMD_FLAGS -DUSE_SIMD=sse2)
+    set(OIIO_SIMD_FLAGS -DUSE_SIMD=sse4.2)
   endif()
   set(OPENJPEG_POSTFIX _msvc)
   if(BUILD_MODE STREQUAL Debug)
@@ -133,7 +134,7 @@ ExternalProject_Add(external_openimageio
       ${PATCH_DIR}/openimageio.diff &&
     ${PATCH_CMD} -p 1 -N -d
       ${BUILD_DIR}/openimageio/src/external_openimageio/ <
-      ${PATCH_DIR}/oiio_windows_arm64.diff
+      ${PATCH_DIR}/openimageio_png_cicp_4746.diff
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openimageio
     ${DEFAULT_CMAKE_FLAGS}

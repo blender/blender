@@ -1,11 +1,21 @@
---- a/cmake/defaults/Packages.cmake	2025-01-22 08:14:27
-+++ b/cmake/defaults/Packages.cmake	2025-01-22 08:14:41
-@@ -20,7 +20,7 @@
+--- a/cmake/defaults/Packages.cmake	2025-08-20 13:06:07.093053300 -0700
++++ b/cmake/defaults/Packages.cmake	2025-08-20 13:47:11.656614900 -0700
+@@ -20,18 +20,6 @@
  find_package(Threads REQUIRED)
  set(PXR_THREAD_LIBS "${CMAKE_THREAD_LIBS_INIT}")
  
--if((PXR_ENABLE_PYTHON_SUPPORT AND PXR_USE_BOOST_PYTHON) OR PXR_ENABLE_OPENVDB_SUPPORT)
-+if(PXR_ENABLE_PYTHON_SUPPORT AND PXR_USE_BOOST_PYTHON)
-     # Find Boost package before getting any boost specific components as we need to
-     # disable boost-provided cmake config, based on the boost version found.
-     find_package(Boost REQUIRED)
+-if(PXR_ENABLE_OPENVDB_SUPPORT)
+-    # Find Boost package before getting any boost specific components as we need to
+-    # disable boost-provided cmake config, based on the boost version found.
+-    find_package(Boost REQUIRED)
+-    # If a user explicitly sets Boost_NO_BOOST_CMAKE to On, following will
+-    # disable the use of boost provided cmake config.
+-    option(Boost_NO_BOOST_CMAKE "Disable boost-provided cmake config" OFF)
+-    if (Boost_NO_BOOST_CMAKE)
+-      message(STATUS "Disabling boost-provided cmake config")
+-    endif()
+-endif()
+-
+ if(PXR_ENABLE_PYTHON_SUPPORT)
+     # 1--Python.
+     macro(setup_python_package package)

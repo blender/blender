@@ -51,13 +51,7 @@ ExternalProject_Add(external_igc_llvm
       ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0004-OpenCL-Allow-undefining-header-only-macros.patch &&
     ${PATCH_CMD} -p 1 -d
       ${IGC_LLVM_SOURCE_DIR} <
-      ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0005-Enable-use-of-GNU-C-extension.patch &&
-    ${PATCH_CMD} -p 1 -d
-      ${IGC_LLVM_SOURCE_DIR} <
-      ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0006-Make-globals-used-for-array-initialization-codegen-c.patch &&
-    ${PATCH_CMD} -p 1 -d
-      ${IGC_LLVM_SOURCE_DIR} <
-      ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0007-clang-Sema-check-default-argument-promotions-for-pri.patch
+      ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0005-Enable-use-of-GNU-C-extension.patch
 )
 add_dependencies(
   external_igc_llvm

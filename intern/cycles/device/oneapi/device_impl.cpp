@@ -1354,7 +1354,7 @@ static const int lowest_supported_driver_version_win = 1016554;
  * This information is returned by `ocloc query OCL_DRIVER_VERSION`. */
 static const int lowest_supported_driver_version_neo = 31896;
 #  else
-static const int lowest_supported_driver_version_neo = 31740;
+static const int lowest_supported_driver_version_neo = 34666;
 #  endif
 
 int parse_driver_build_version(const sycl::device &device)
