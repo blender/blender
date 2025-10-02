@@ -1793,28 +1793,6 @@ def brush_basic_grease_pencil_paint_settings(layout, context, brush, props, *, c
         layout.prop(gp_settings, "use_active_layer_only")
 
 
-def brush_basic_gpencil_vertex_settings(layout, context, brush, *, compact=False):
-    del compact  # UNUSED.
-    gp_settings = brush.gpencil_settings
-    ups = context.tool_settings.gpencil_vertex_paint.unified_paint_settings
-    brush_prop_owner = ups if ups.use_unified_size else brush
-
-    # Brush details
-    row = layout.row(align=True)
-    row.prop(brush, "size", text="Size")
-    row.prop(brush, "use_pressure_size", text="", icon='STYLUS_PRESSURE')
-
-    if brush.gpencil_vertex_brush_type in {'DRAW', 'BLUR', 'SMEAR'}:
-        row = layout.row(align=True)
-        row.prop(brush_prop_owner, "strength", slider=True)
-        row.prop(brush, "use_pressure_strength", text="", icon='STYLUS_PRESSURE')
-        row.prop(ups, "use_unified_strength", text="", icon='BRUSHES_ALL')
-
-    if brush.gpencil_vertex_brush_type in {'DRAW', 'REPLACE'}:
-        row = layout.row(align=True)
-        row.prop(gp_settings, "vertex_mode", text="Mode")
-
-
 def brush_basic_grease_pencil_weight_settings(layout, context, brush, *, compact=False):
     UnifiedPaintPanel.prop_unified(
         layout,

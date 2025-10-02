@@ -1629,9 +1629,9 @@ class VIEW3D_PT_tools_grease_pencil_vertex_paint_settings(Panel, View3DPanel, Gr
 
         if not self.is_popover:
             from bl_ui.properties_paint_common import (
-                brush_basic_gpencil_vertex_settings,
+                brush_basic_grease_pencil_vertex_settings,
             )
-            brush_basic_gpencil_vertex_settings(layout, context, brush)
+            brush_basic_grease_pencil_vertex_settings(layout, context, brush)
 
 
 class VIEW3D_PT_tools_grease_pencil_brush_vertex_color(View3DPanel, Panel):
