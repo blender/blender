@@ -628,19 +628,19 @@ class ChannelbagsTest(unittest.TestCase):
         # Creating an F-Curve should work.
         fcurve = channelbag.fcurves.new('location', index=1)
         self.assertIsNotNone(fcurve)
-        self.assertEquals(fcurve.data_path, 'location')
-        self.assertEquals(fcurve.array_index, 1)
-        self.assertEquals([fcurve], channelbag.fcurves[:])
+        self.assertEqual(fcurve.data_path, 'location')
+        self.assertEqual(fcurve.array_index, 1)
+        self.assertEqual([fcurve], channelbag.fcurves[:])
 
         # Empty data paths should not be accepted.
         with self.assertRaises(RuntimeError):
             channelbag.fcurves.new('', index=1)
-        self.assertEquals([fcurve], channelbag.fcurves[:])
+        self.assertEqual([fcurve], channelbag.fcurves[:])
 
         # Creating an F-Curve twice should fail:
         with self.assertRaises(RuntimeError):
             channelbag.fcurves.new('location', index=1)
-        self.assertEquals([fcurve], channelbag.fcurves[:])
+        self.assertEqual([fcurve], channelbag.fcurves[:])
 
         # Removing an unrelated F-Curve should fail, even when an F-Curve with
         # the same RNA path and array index exists.
@@ -649,11 +649,11 @@ class ChannelbagsTest(unittest.TestCase):
         other_fcurve = other_cbag.fcurves.new('location', index=1)
         with self.assertRaises(RuntimeError):
             channelbag.fcurves.remove(other_fcurve)
-        self.assertEquals([fcurve], channelbag.fcurves[:])
+        self.assertEqual([fcurve], channelbag.fcurves[:])
 
         # Removing an existing F-Curve should work:
         channelbag.fcurves.remove(fcurve)
-        self.assertEquals([], channelbag.fcurves[:])
+        self.assertEqual([], channelbag.fcurves[:])
 
     def test_fcurves_clear(self):
         channelbag = self.strip.channelbags.new(self.slot)
@@ -661,9 +661,9 @@ class ChannelbagsTest(unittest.TestCase):
         for index in range(4):
             channelbag.fcurves.new('rotation_quaternion', index=index)
 
-        self.assertEquals(4, len(channelbag.fcurves))
+        self.assertEqual(4, len(channelbag.fcurves))
         channelbag.fcurves.clear()
-        self.assertEquals([], channelbag.fcurves[:])
+        self.assertEqual([], channelbag.fcurves[:])
 
     def test_channel_groups(self):
         channelbag = self.strip.channelbags.new(self.slot)
@@ -676,14 +676,14 @@ class ChannelbagsTest(unittest.TestCase):
         fcurve4 = channelbag.fcurves.new('scale', index=1)
         fcurve5 = channelbag.fcurves.new('scale', index=2)
 
-        self.assertEquals([], channelbag.groups[:])
+        self.assertEqual([], channelbag.groups[:])
 
         # Create some channel groups.
         group0 = channelbag.groups.new('group0')
         group1 = channelbag.groups.new('group1')
-        self.assertEquals([group0, group1], channelbag.groups[:])
-        self.assertEquals([], group0.channels[:])
-        self.assertEquals([], group1.channels[:])
+        self.assertEqual([group0, group1], channelbag.groups[:])
+        self.assertEqual([], group0.channels[:])
+        self.assertEqual([], group1.channels[:])
 
         # Assign some fcurves to the channel groups. Intentionally not in order
         # so we can test that the fcurves get moved around properly.
@@ -691,25 +691,25 @@ class ChannelbagsTest(unittest.TestCase):
         fcurve3.group = group1
         fcurve2.group = group0
         fcurve4.group = group0
-        self.assertEquals([fcurve2, fcurve4], group0.channels[:])
-        self.assertEquals([fcurve5, fcurve3], group1.channels[:])
-        self.assertEquals([fcurve2, fcurve4, fcurve5, fcurve3, fcurve0, fcurve1], channelbag.fcurves[:])
+        self.assertEqual([fcurve2, fcurve4], group0.channels[:])
+        self.assertEqual([fcurve5, fcurve3], group1.channels[:])
+        self.assertEqual([fcurve2, fcurve4, fcurve5, fcurve3, fcurve0, fcurve1], channelbag.fcurves[:])
 
         # Weird case to be consistent with the legacy API: assigning None to an
         # fcurve's group does *not* unassign it from its group. This is stupid,
         # and we should change it at some point.  But it's how the legacy API
         # already works (presumably an oversight), so sticking to that for now.
         fcurve3.group = None
-        self.assertEquals(group1, fcurve3.group)
-        self.assertEquals([fcurve2, fcurve4], group0.channels[:])
-        self.assertEquals([fcurve5, fcurve3], group1.channels[:])
-        self.assertEquals([fcurve2, fcurve4, fcurve5, fcurve3, fcurve0, fcurve1], channelbag.fcurves[:])
+        self.assertEqual(group1, fcurve3.group)
+        self.assertEqual([fcurve2, fcurve4], group0.channels[:])
+        self.assertEqual([fcurve5, fcurve3], group1.channels[:])
+        self.assertEqual([fcurve2, fcurve4, fcurve5, fcurve3, fcurve0, fcurve1], channelbag.fcurves[:])
 
         # Removing a group.
         channelbag.groups.remove(group0)
-        self.assertEquals([group1], channelbag.groups[:])
-        self.assertEquals([fcurve5, fcurve3], group1.channels[:])
-        self.assertEquals([fcurve5, fcurve3, fcurve2, fcurve4, fcurve0, fcurve1], channelbag.fcurves[:])
+        self.assertEqual([group1], channelbag.groups[:])
+        self.assertEqual([fcurve5, fcurve3], group1.channels[:])
+        self.assertEqual([fcurve5, fcurve3, fcurve2, fcurve4, fcurve0, fcurve1], channelbag.fcurves[:])
 
         # Attempting to remove a channel group that belongs to a different
         # channel bag should fail.
@@ -723,9 +723,9 @@ class ChannelbagsTest(unittest.TestCase):
         # to assign a group to an fcurve that doesn't belong to the same channel
         # bag should silently fail (just does a printf to stdout).
         fcurve0.group = other_group
-        self.assertEquals([group1], channelbag.groups[:])
-        self.assertEquals([fcurve5, fcurve3], group1.channels[:])
-        self.assertEquals([fcurve5, fcurve3, fcurve2, fcurve4, fcurve0, fcurve1], channelbag.fcurves[:])
+        self.assertEqual([group1], channelbag.groups[:])
+        self.assertEqual([fcurve5, fcurve3], group1.channels[:])
+        self.assertEqual([fcurve5, fcurve3, fcurve2, fcurve4, fcurve0, fcurve1], channelbag.fcurves[:])
 
     def test_channelbag_slot_properties(self):
         slot_1 = self.slot
