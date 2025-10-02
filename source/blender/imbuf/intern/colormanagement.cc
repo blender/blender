@@ -1503,7 +1503,7 @@ bool IMB_colormanagement_space_to_cicp(const ColorSpace *colorspace,
     cicp[3] = CICP_RANGE_FULL;
     return true;
   }
-  if (ELEM(interop_id, "srgb_p3d65_display", "srgbx_p3d65_display")) {
+  if (ELEM(interop_id, "srgb_p3d65_display", "srgbe_p3d65_display")) {
     /* For video we use BT.709 to match default sRGB writing, even though it is wrong.
      * But we have been writing sRGB like this forever, and there is the so called
      * "Quicktime gamma shift bug" that complicates things. */
