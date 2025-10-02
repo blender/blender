@@ -820,30 +820,28 @@ PyDoc_STRVAR(
     M_Geometry_intersect_point_line_doc,
     ".. function:: intersect_point_line(pt, line_p1, line_p2, /)\n"
     "\n"
-    "   Takes a point and a line and returns a tuple with the closest point on the line and its "
+    "   Takes a point and a line and returns the closest point on the line and its "
     "distance from the first point of the line as a percentage of the length of the line.\n"
     "\n"
     "   :arg pt: Point\n"
     "   :type pt: :class:`mathutils.Vector`\n"
     "   :arg line_p1: First point of the line\n"
     "   :type line_p1: :class:`mathutils.Vector`\n"
-    "   :arg line_p1: Second point of the line\n"
-    "   :type line_p1: :class:`mathutils.Vector`\n"
+    "   :arg line_p2: Second point of the line\n"
+    "   :type line_p2: :class:`mathutils.Vector`\n"
     "   :rtype: tuple[:class:`mathutils.Vector`, float]\n");
 static PyObject *M_Geometry_intersect_point_line(PyObject * /*self*/, PyObject *args)
 {
   const char *error_prefix = "intersect_point_line";
   PyObject *py_pt, *py_line_a, *py_line_b;
   float pt[3], pt_out[3], line_a[3], line_b[3];
-  float lambda;
-  PyObject *ret;
   int pt_num = 2;
 
   if (!PyArg_ParseTuple(args, "OOO:intersect_point_line", &py_pt, &py_line_a, &py_line_b)) {
     return nullptr;
   }
 
-  /* accept 2d verts */
+  /* Accept 2D verts. */
   if ((((pt_num = mathutils_array_parse(
              pt, 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_pt, error_prefix)) != -1) &&
        (mathutils_array_parse(
@@ -854,10 +852,10 @@ static PyObject *M_Geometry_intersect_point_line(PyObject * /*self*/, PyObject *
     return nullptr;
   }
 
-  /* do the calculation */
-  lambda = closest_to_line_v3(pt_out, pt, line_a, line_b);
+  /* Do the calculation. */
+  const float lambda = closest_to_line_v3(pt_out, pt, line_a, line_b);
 
-  ret = PyTuple_New(2);
+  PyObject *ret = PyTuple_New(2);
   PyTuple_SET_ITEMS(
       ret, Vector_CreatePyObject(pt_out, pt_num, nullptr), PyFloat_FromDouble(lambda));
   return ret;
