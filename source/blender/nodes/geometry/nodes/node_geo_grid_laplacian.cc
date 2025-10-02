@@ -6,7 +6,9 @@
 
 #include "node_geometry_util.hh"
 
-#include "openvdb/tools/GridOperators.h"
+#ifdef WITH_OPENVDB
+#  include "openvdb/tools/GridOperators.h"
+#endif
 
 namespace blender::nodes::node_geo_grid_laplacian_cc {
 
