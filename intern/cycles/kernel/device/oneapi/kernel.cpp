@@ -25,13 +25,27 @@ static OneAPIErrorCallback s_error_cb = nullptr;
 static void *s_error_user_ptr = nullptr;
 
 #  ifdef WITH_EMBREE_GPU
-static const RTCFeatureFlags CYCLES_ONEAPI_EMBREE_BASIC_FEATURES = (const RTCFeatureFlags)(
-    RTC_FEATURE_FLAG_TRIANGLE | RTC_FEATURE_FLAG_INSTANCE |
-    RTC_FEATURE_FLAG_FILTER_FUNCTION_IN_ARGUMENTS | RTC_FEATURE_FLAG_POINT |
-    RTC_FEATURE_FLAG_MOTION_BLUR);
-static const RTCFeatureFlags CYCLES_ONEAPI_EMBREE_ALL_FEATURES = (const RTCFeatureFlags)(
-    CYCLES_ONEAPI_EMBREE_BASIC_FEATURES | RTC_FEATURE_FLAG_ROUND_CATMULL_ROM_CURVE |
-    RTC_FEATURE_FLAG_FLAT_CATMULL_ROM_CURVE | RTC_FEATURE_FLAG_ROUND_LINEAR_CURVE);
+static RTCFeatureFlags oneapi_embree_features_from_kernel_features(const uint kernel_features)
+{
+  unsigned int feature_flags = RTC_FEATURE_FLAG_TRIANGLE | RTC_FEATURE_FLAG_INSTANCE |
+                               RTC_FEATURE_FLAG_FILTER_FUNCTION_IN_ARGUMENTS;
+
+  if (kernel_features & KERNEL_FEATURE_HAIR_THICK) {
+    feature_flags |= RTC_FEATURE_FLAG_ROUND_CATMULL_ROM_CURVE |
+                     RTC_FEATURE_FLAG_ROUND_LINEAR_CURVE;
+  }
+  if (kernel_features & KERNEL_FEATURE_HAIR) {
+    feature_flags |= RTC_FEATURE_FLAG_FLAT_CATMULL_ROM_CURVE;
+  }
+  if (kernel_features & KERNEL_FEATURE_POINTCLOUD) {
+    feature_flags |= RTC_FEATURE_FLAG_POINT;
+  }
+  if (kernel_features & KERNEL_FEATURE_OBJECT_MOTION) {
+    feature_flags |= RTC_FEATURE_FLAG_MOTION_BLUR;
+  }
+
+  return (RTCFeatureFlags)feature_flags;
+}
 #  endif
 
 void oneapi_set_error_cb(OneAPIErrorCallback cb, void *user_ptr)
@@ -251,19 +265,12 @@ bool oneapi_load_kernels(SyclQueue *queue_,
             sycl::get_kernel_bundle<sycl::bundle_state::input>(
                 queue->get_context(), {queue->get_device()}, {kernel_id});
 
-        /* Hair requires embree curves support. */
-        if (kernel_features & KERNEL_FEATURE_HAIR) {
-          one_kernel_bundle_input
-              .set_specialization_constant<ONEAPIKernelContext::oneapi_embree_features>(
-                  CYCLES_ONEAPI_EMBREE_ALL_FEATURES);
-          sycl::build(one_kernel_bundle_input);
-        }
-        else {
-          one_kernel_bundle_input
-              .set_specialization_constant<ONEAPIKernelContext::oneapi_embree_features>(
-                  CYCLES_ONEAPI_EMBREE_BASIC_FEATURES);
-          sycl::build(one_kernel_bundle_input);
-        }
+        const RTCFeatureFlags embree_features = oneapi_embree_features_from_kernel_features(
+            kernel_features);
+        one_kernel_bundle_input
+            .set_specialization_constant<ONEAPIKernelContext::oneapi_embree_features>(
+                embree_features);
+        sycl::build(one_kernel_bundle_input);
       }
     }
     catch (const sycl::exception &e) {
@@ -358,13 +365,12 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
       /* Spec says it has no effect if the called kernel doesn't support the below specialization
        * constant but it can still trigger a recompilation, so we set it only if needed. */
       if (device_kernel_has_intersection(device_kernel)) {
-        const RTCFeatureFlags used_embree_features = !use_hardware_raytracing ?
-                                                         RTC_FEATURE_FLAG_NONE :
-                                                     !(kernel_features & KERNEL_FEATURE_HAIR) ?
-                                                         CYCLES_ONEAPI_EMBREE_BASIC_FEATURES :
-                                                         CYCLES_ONEAPI_EMBREE_ALL_FEATURES;
+        const RTCFeatureFlags embree_features = use_hardware_raytracing ?
+                                                    oneapi_embree_features_from_kernel_features(
+                                                        kernel_features) :
+                                                    RTC_FEATURE_FLAG_NONE;
         cgh.set_specialization_constant<ONEAPIKernelContext::oneapi_embree_features>(
-            used_embree_features);
+            embree_features);
       }
 #  else
       (void)kernel_features;
