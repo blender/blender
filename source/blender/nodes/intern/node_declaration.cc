@@ -43,16 +43,16 @@ void NodeDeclarationBuilder::build_remaining_anonymous_attribute_relations()
     return ELEM(socket_decl->socket_type, SOCK_GEOMETRY, SOCK_BUNDLE, SOCK_CLOSURE);
   };
 
-  Vector<int> geometry_inputs;
+  Vector<int> data_inputs;
   for (const int i : declaration_.inputs.index_range()) {
     if (is_data_socket_decl(declaration_.inputs[i])) {
-      geometry_inputs.append(i);
+      data_inputs.append(i);
     }
   }
-  Vector<int> geometry_outputs;
+  Vector<int> data_outputs;
   for (const int i : declaration_.outputs.index_range()) {
     if (is_data_socket_decl(declaration_.outputs[i])) {
-      geometry_outputs.append(i);
+      data_outputs.append(i);
     }
   }
 
@@ -60,8 +60,8 @@ void NodeDeclarationBuilder::build_remaining_anonymous_attribute_relations()
     if (socket_builder->field_on_all_) {
       aal::RelationsInNode &relations = this->get_anonymous_attribute_relations();
       const int field_input = socket_builder->decl_base_->index;
-      for (const int geometry_input : geometry_inputs) {
-        relations.eval_relations.append({field_input, geometry_input});
+      for (const int data_input : data_inputs) {
+        relations.eval_relations.append({field_input, data_input});
       }
     }
   }
@@ -69,8 +69,8 @@ void NodeDeclarationBuilder::build_remaining_anonymous_attribute_relations()
     if (socket_builder->field_on_all_) {
       aal::RelationsInNode &relations = this->get_anonymous_attribute_relations();
       const int field_output = socket_builder->decl_base_->index;
-      for (const int geometry_output : geometry_outputs) {
-        relations.available_relations.append({field_output, geometry_output});
+      for (const int data_output : data_outputs) {
+        relations.available_relations.append({field_output, data_output});
       }
     }
     if (socket_builder->reference_pass_all_) {
@@ -78,16 +78,18 @@ void NodeDeclarationBuilder::build_remaining_anonymous_attribute_relations()
       const int field_output = socket_builder->decl_base_->index;
       for (const int input_i : declaration_.inputs.index_range()) {
         SocketDeclaration &input_socket_decl = *declaration_.inputs[input_i];
-        if (input_socket_decl.input_field_type != InputSocketFieldType::None) {
+        if (input_socket_decl.input_field_type != InputSocketFieldType::None ||
+            ELEM(input_socket_decl.socket_type, SOCK_BUNDLE, SOCK_CLOSURE))
+        {
           relations.reference_relations.append({input_i, field_output});
         }
       }
     }
     if (socket_builder->propagate_from_all_) {
       aal::RelationsInNode &relations = this->get_anonymous_attribute_relations();
-      const int geometry_output = socket_builder->decl_base_->index;
-      for (const int geometry_input : geometry_inputs) {
-        relations.propagate_relations.append({geometry_input, geometry_output});
+      const int data_output = socket_builder->decl_base_->index;
+      for (const int data_input : data_inputs) {
+        relations.propagate_relations.append({data_input, data_output});
       }
     }
   }
