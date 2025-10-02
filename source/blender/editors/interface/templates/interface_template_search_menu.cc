@@ -624,10 +624,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
           SPACE_MENU_MAP(SPACE_INFO, "INFO_MT_editor_menus");
           SPACE_MENU_MAP(SPACE_SEQ, "SEQUENCER_MT_editor_menus");
           SPACE_MENU_MAP(SPACE_TEXT, "TEXT_MT_editor_menus");
-          SPACE_MENU_MAP(SPACE_ACTION,
-                         (((const SpaceAction *)sl)->mode == SACTCONT_TIMELINE) ?
-                             "TIME_MT_editor_menus" :
-                             "DOPESHEET_MT_editor_menus");
+          SPACE_MENU_MAP(SPACE_ACTION, "DOPESHEET_MT_editor_menus");
           SPACE_MENU_MAP(SPACE_NLA, "NLA_MT_editor_menus");
           SPACE_MENU_MAP(SPACE_NODE, "NODE_MT_editor_menus");
           SPACE_MENU_MAP(SPACE_CONSOLE, "CONSOLE_MT_editor_menus");

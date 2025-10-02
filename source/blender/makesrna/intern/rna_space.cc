@@ -212,10 +212,6 @@ const EnumPropertyItem rna_enum_space_file_browse_mode_items[] = {
   { \
     SACTCONT_DOPESHEET, "DOPESHEET", ICON_ACTION, "Dope Sheet", "Edit all keyframes in scene" \
   }
-#define SACT_ITEM_TIMELINE \
-  { \
-    SACTCONT_TIMELINE, "TIMELINE", ICON_TIME, "Timeline", "Timeline and playback controls" \
-  }
 #define SACT_ITEM_ACTION \
   { \
     SACTCONT_ACTION, "ACTION", ICON_OBJECT_DATA, "Action Editor", \
@@ -246,7 +242,6 @@ const EnumPropertyItem rna_enum_space_file_browse_mode_items[] = {
  * so show that using object-icon hint */
 static EnumPropertyItem rna_enum_space_action_mode_all_items[] = {
     SACT_ITEM_DOPESHEET,
-    SACT_ITEM_TIMELINE,
     SACT_ITEM_ACTION,
     SACT_ITEM_SHAPEKEY,
     SACT_ITEM_GPENCIL,
@@ -256,7 +251,6 @@ static EnumPropertyItem rna_enum_space_action_mode_all_items[] = {
 };
 static EnumPropertyItem rna_enum_space_action_ui_mode_items[] = {
     SACT_ITEM_DOPESHEET,
-    /* SACT_ITEM_TIMELINE, */
     SACT_ITEM_ACTION,
     SACT_ITEM_SHAPEKEY,
     SACT_ITEM_GPENCIL,
@@ -266,16 +260,7 @@ static EnumPropertyItem rna_enum_space_action_ui_mode_items[] = {
 };
 #endif
 
-/* Expose as `ui_mode`. */
-
-const EnumPropertyItem rna_enum_space_action_mode_items[] = {
-    SACT_ITEM_DOPESHEET,
-    SACT_ITEM_TIMELINE,
-    {0, nullptr, 0, nullptr, nullptr},
-};
-
 #undef SACT_ITEM_DOPESHEET
-#undef SACT_ITEM_TIMELINE
 #undef SACT_ITEM_ACTION
 #undef SACT_ITEM_SHAPEKEY
 #undef SACT_ITEM_GPENCIL
@@ -2349,21 +2334,10 @@ static void rna_SpaceDopeSheetEditor_mode_update(bContext *C, PointerRNA *ptr)
   SpaceAction *saction = (SpaceAction *)(ptr->data);
   ScrArea *area = CTX_wm_area(C);
 
-  /* Collapse (and show) summary channel and hide channel list for timeline */
-  if (saction->mode == SACTCONT_TIMELINE) {
-    saction->ads.flag |= ADS_FLAG_SUMMARY_COLLAPSED;
-    saction->ads.filterflag |= ADS_FILTER_SUMMARY;
-  }
-
   if (area && area->spacedata.first == saction) {
     ARegion *channels_region = BKE_area_find_region_type(area, RGN_TYPE_CHANNELS);
     if (channels_region) {
-      if (saction->mode == SACTCONT_TIMELINE) {
-        channels_region->flag |= RGN_FLAG_HIDDEN;
-      }
-      else {
-        channels_region->flag &= ~RGN_FLAG_HIDDEN;
-      }
+      channels_region->flag &= ~RGN_FLAG_HIDDEN;
       ED_region_visibility_change_update(C, area, channels_region);
     }
   }
@@ -2373,9 +2347,7 @@ static void rna_SpaceDopeSheetEditor_mode_update(bContext *C, PointerRNA *ptr)
 
   /* store current mode as "old mode",
    * so that returning from other editors doesn't always reset to "Action Editor" */
-  if (saction->mode != SACTCONT_TIMELINE) {
-    saction->mode_prev = saction->mode;
-  }
+  saction->mode_prev = saction->mode;
 }
 
 /* Space Graph Editor */

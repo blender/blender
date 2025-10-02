@@ -205,16 +205,10 @@ class DOPESHEET_HT_header(Header):
         st = context.space_data
 
         layout.template_header()
+        layout.prop(st, "ui_mode", text="")
 
-        if st.mode == 'TIMELINE':
-            from bl_ui.space_time import TIME_MT_editor_menus
-            TIME_MT_editor_menus.draw_collapsible(context, layout)
-            playback_controls(layout, context)
-        else:
-            layout.prop(st, "ui_mode", text="")
-
-            DOPESHEET_MT_editor_menus.draw_collapsible(context, layout)
-            DOPESHEET_HT_editor_buttons.draw_header(context, layout)
+        DOPESHEET_MT_editor_menus.draw_collapsible(context, layout)
+        DOPESHEET_HT_editor_buttons.draw_header(context, layout)
 
 
 # Header for "normal" dopesheet editor modes (e.g. Dope Sheet, Action, Shape Keys, etc.)

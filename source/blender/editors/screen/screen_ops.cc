@@ -5584,12 +5584,8 @@ static bool match_region_with_redraws(const ScrArea *area,
     }
   }
   else if (regiontype == RGN_TYPE_HEADER) {
-    if (spacetype == SPACE_ACTION) {
-      /* The timeline shows the current frame in the header. Other headers
-       * don't need to be updated. */
-      SpaceAction *saction = (SpaceAction *)area->spacedata.first;
-      return saction->mode == SACTCONT_TIMELINE;
-    }
+    /* Since the timeline does not exist anymore, this doesn't need updating. */
+    return false;
   }
   else if (regiontype == RGN_TYPE_FOOTER) {
     /* The footer region in animation editors shows the current frame. */

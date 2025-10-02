@@ -564,7 +564,7 @@ static void action_listener(const wmSpaceTypeListenerParams *params)
   switch (wmn->category) {
     case NC_GPENCIL:
       /* only handle these events for containers in which GPencil frames are displayed */
-      if (ELEM(saction->mode, SACTCONT_GPENCIL, SACTCONT_DOPESHEET, SACTCONT_TIMELINE)) {
+      if (ELEM(saction->mode, SACTCONT_GPENCIL, SACTCONT_DOPESHEET)) {
         if (wmn->action == NA_EDITED) {
           ED_area_tag_redraw(area);
         }
@@ -626,10 +626,8 @@ static void action_listener(const wmSpaceTypeListenerParams *params)
           }
           break;
         default:
-          if (saction->mode != SACTCONT_TIMELINE) {
-            /* Just redrawing the view will do. */
-            ED_area_tag_redraw(area);
-          }
+          /* Just redrawing the view will do. */
+          ED_area_tag_redraw(area);
           break;
       }
       break;
@@ -647,11 +645,6 @@ static void action_listener(const wmSpaceTypeListenerParams *params)
         case ND_POINTCACHE:
         case ND_MODIFIER:
         case ND_PARTICLE:
-          /* only needed in timeline mode */
-          if (saction->mode == SACTCONT_TIMELINE) {
-            ED_area_tag_refresh(area);
-            ED_area_tag_redraw(area);
-          }
           break;
         default: /* just redrawing the view will do */
           ED_area_tag_redraw(area);
@@ -710,39 +703,18 @@ static void action_listener(const wmSpaceTypeListenerParams *params)
 
 static void action_header_region_listener(const wmRegionListenerParams *params)
 {
-  ScrArea *area = params->area;
   ARegion *region = params->region;
   const wmNotifier *wmn = params->notifier;
-  SpaceAction *saction = (SpaceAction *)area->spacedata.first;
 
   /* context changes */
   switch (wmn->category) {
     case NC_SCREEN:
-      if (saction->mode == SACTCONT_TIMELINE) {
-        if (wmn->data == ND_ANIMPLAY) {
-          ED_region_tag_redraw(region);
-        }
-      }
       break;
     case NC_SCENE:
-      if (saction->mode == SACTCONT_TIMELINE) {
-        switch (wmn->data) {
-          case ND_RENDER_RESULT:
-          case ND_OB_SELECT:
-          case ND_FRAME:
-          case ND_FRAME_RANGE:
-          case ND_KEYINGSET:
-          case ND_RENDER_OPTIONS:
-            ED_region_tag_redraw(region);
-            break;
-        }
-      }
-      else {
-        switch (wmn->data) {
-          case ND_OB_ACTIVE:
-            ED_region_tag_redraw(region);
-            break;
-        }
+      switch (wmn->data) {
+        case ND_OB_ACTIVE:
+          ED_region_tag_redraw(region);
+          break;
       }
       break;
     case NC_ID:
@@ -898,54 +870,6 @@ static void action_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
   }
 }
 
-/**
- * \note Used for splitting out a subset of modes is more involved,
- * The previous non-timeline mode is stored so switching back to the
- * dope-sheet doesn't always reset the sub-mode.
- */
-static int action_space_subtype_get(ScrArea *area)
-{
-  SpaceAction *sact = static_cast<SpaceAction *>(area->spacedata.first);
-  return sact->mode == SACTCONT_TIMELINE ? SACTCONT_TIMELINE : SACTCONT_DOPESHEET;
-}
-
-static void action_space_subtype_set(ScrArea *area, int value)
-{
-  SpaceAction *sact = static_cast<SpaceAction *>(area->spacedata.first);
-  if (value == SACTCONT_TIMELINE) {
-    if (sact->mode != SACTCONT_TIMELINE) {
-      sact->mode_prev = sact->mode;
-    }
-    sact->mode = value;
-  }
-  else {
-    sact->mode = sact->mode_prev;
-  }
-}
-
-static void action_space_subtype_item_extend(bContext * /*C*/,
-                                             EnumPropertyItem **item,
-                                             int *totitem)
-{
-  RNA_enum_items_add(item, totitem, rna_enum_space_action_mode_items);
-}
-
-static blender::StringRefNull action_space_name_get(const ScrArea *area)
-{
-  SpaceAction *sact = static_cast<SpaceAction *>(area->spacedata.first);
-  const int index = max_ii(0, RNA_enum_from_value(rna_enum_space_action_mode_items, sact->mode));
-  const EnumPropertyItem item = rna_enum_space_action_mode_items[index];
-  return item.name;
-}
-
-static int action_space_icon_get(const ScrArea *area)
-{
-  SpaceAction *sact = static_cast<SpaceAction *>(area->spacedata.first);
-  const int index = max_ii(0, RNA_enum_from_value(rna_enum_space_action_mode_items, sact->mode));
-  const EnumPropertyItem item = rna_enum_space_action_mode_items[index];
-  return item.icon;
-}
-
 static void action_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *sl)
 {
   SpaceAction *saction = (SpaceAction *)sl;
@@ -975,11 +899,6 @@ void ED_spacetype_action()
   st->refresh = action_refresh;
   st->id_remap = action_id_remap;
   st->foreach_id = action_foreach_id;
-  st->space_subtype_item_extend = action_space_subtype_item_extend;
-  st->space_subtype_get = action_space_subtype_get;
-  st->space_subtype_set = action_space_subtype_set;
-  st->space_name_get = action_space_name_get;
-  st->space_icon_get = action_space_icon_get;
   st->blend_read_data = action_space_blend_read_data;
   st->blend_read_after_liblink = nullptr;
   st->blend_write = action_space_blend_write;
