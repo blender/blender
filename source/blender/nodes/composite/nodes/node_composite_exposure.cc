@@ -24,10 +24,13 @@ namespace blender::nodes::node_composite_exposure_cc {
 
 static void cmp_node_exposure_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.is_function_node();
-  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f}).hide_value();
+  b.add_output<decl::Color>("Image").align_with_previous();
+
   b.add_input<decl::Float>("Exposure").min(-10.0f).max(10.0f);
-  b.add_output<decl::Color>("Image");
 }
 
 using namespace blender::compositor;

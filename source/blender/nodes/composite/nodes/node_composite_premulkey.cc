@@ -34,13 +34,16 @@ static const EnumPropertyItem type_items[] = {
 
 static void cmp_node_premulkey_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.is_function_node();
-  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f}).hide_value();
+  b.add_output<decl::Color>("Image").align_with_previous();
+
   b.add_input<decl::Menu>("Type")
       .default_value(CMP_NODE_ALPHA_CONVERT_PREMULTIPLY)
       .static_items(type_items)
       .optional_label();
-  b.add_output<decl::Color>("Image");
 }
 
 using namespace blender::compositor;

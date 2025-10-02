@@ -33,9 +33,14 @@ namespace blender::nodes::node_composite_vec_blur_cc {
 
 static void cmp_node_vec_blur_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .hide_value()
       .structure_type(StructureType::Dynamic);
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic).align_with_previous();
+
   b.add_input<decl::Vector>("Speed")
       .dimensions(4)
       .default_value({0.0f, 0.0f, 0.0f})
@@ -49,8 +54,6 @@ static void cmp_node_vec_blur_declare(NodeDeclarationBuilder &b)
       "The number of samples used to approximate the motion blur");
   b.add_input<decl::Float>("Shutter").default_value(0.5f).min(0.0f).description(
       "Time between shutter opening and closing in frames");
-
-  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }
 
 using namespace blender::compositor;

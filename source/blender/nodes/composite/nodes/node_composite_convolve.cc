@@ -33,7 +33,11 @@ static const EnumPropertyItem kernel_data_type_items[] = {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.add_input<decl::Color>("Image").hide_value().structure_type(StructureType::Dynamic);
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic).align_with_previous();
+
   b.add_input<decl::Menu>("Kernel Data Type")
       .default_value(KernelDataType::Float)
       .static_items(kernel_data_type_items)
@@ -51,8 +55,6 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Bool>("Normalize Kernel")
       .default_value(true)
       .description("Normalizes the kernel such that it integrates to one");
-
-  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }
 
 using namespace blender::compositor;

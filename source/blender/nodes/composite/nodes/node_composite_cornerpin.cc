@@ -34,13 +34,15 @@ namespace blender::nodes::node_composite_cornerpin_cc {
 static void cmp_node_cornerpin_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
-
-  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
-  b.add_output<decl::Float>("Plane").structure_type(StructureType::Dynamic);
+  b.allow_any_socket_order();
 
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .hide_value()
       .structure_type(StructureType::Dynamic);
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic).align_with_previous();
+  b.add_output<decl::Float>("Plane").structure_type(StructureType::Dynamic);
+
   b.add_input<decl::Vector>("Upper Left")
       .subtype(PROP_FACTOR)
       .dimensions(2)

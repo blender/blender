@@ -33,17 +33,19 @@ namespace blender::nodes::node_composite_stabilize2d_cc {
 static void cmp_node_stabilize2d_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
+  b.allow_any_socket_order();
 
-  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
+  b.add_input<decl::Color>("Image")
+      .default_value({0.8f, 0.8f, 0.8f, 1.0f})
+      .hide_value()
+      .compositor_realization_mode(CompositorInputRealizationMode::None)
+      .structure_type(StructureType::Dynamic);
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic).align_with_previous();
 
   b.add_layout([](uiLayout *layout, bContext *context, PointerRNA *node_pointer) {
     uiTemplateID(layout, context, node_pointer, "clip", nullptr, "CLIP_OT_open", nullptr);
   });
 
-  b.add_input<decl::Color>("Image")
-      .default_value({0.8f, 0.8f, 0.8f, 1.0f})
-      .compositor_realization_mode(CompositorInputRealizationMode::None)
-      .structure_type(StructureType::Dynamic);
   b.add_input<decl::Bool>("Invert").default_value(false).description(
       "Invert stabilization to reintroduce motion to the image");
 

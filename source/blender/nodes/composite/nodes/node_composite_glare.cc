@@ -90,10 +90,17 @@ static const EnumPropertyItem kernel_data_type_items[] = {
 static void cmp_node_glare_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
+  b.allow_any_socket_order();
 
+  b.add_input<decl::Color>("Image")
+      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .hide_value()
+      .structure_type(StructureType::Dynamic);
   b.add_output<decl::Color>("Image")
       .structure_type(StructureType::Dynamic)
-      .description("The image with the generated glare added");
+      .description("The image with the generated glare added")
+      .align_with_previous();
+
   b.add_output<decl::Color>("Glare")
       .structure_type(StructureType::Dynamic)
       .description("The generated glare");
@@ -101,9 +108,6 @@ static void cmp_node_glare_declare(NodeDeclarationBuilder &b)
       .structure_type(StructureType::Dynamic)
       .description("The extracted highlights from which the glare was generated");
 
-  b.add_input<decl::Color>("Image")
-      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .structure_type(StructureType::Dynamic);
   b.add_input<decl::Menu>("Type")
       .default_value(CMP_NODE_GLARE_STREAKS)
       .static_items(type_items)

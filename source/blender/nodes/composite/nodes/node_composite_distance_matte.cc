@@ -25,8 +25,13 @@ static const EnumPropertyItem color_space_items[] = {
 
 static void cmp_node_distance_matte_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.is_function_node();
-  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f}).hide_value();
+  b.add_output<decl::Color>("Image").align_with_previous();
+  b.add_output<decl::Float>("Matte");
+
   b.add_input<decl::Color>("Key Color").default_value({1.0f, 1.0f, 1.0f, 1.0f});
   b.add_input<decl::Menu>("Color Space")
       .default_value(CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_RGBA)
@@ -49,9 +54,6 @@ static void cmp_node_distance_matte_declare(NodeDeclarationBuilder &b)
       .description(
           "If the distance between the color and the key color in the given color space is less "
           "than this threshold, it is partially keyed, otherwise, it is not keyed");
-
-  b.add_output<decl::Color>("Image");
-  b.add_output<decl::Float>("Matte");
 }
 
 static void node_composit_init_distance_matte(bNodeTree * /*ntree*/, bNode *node)

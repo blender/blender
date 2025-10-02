@@ -40,9 +40,15 @@ static const EnumPropertyItem type_items[] = {
 
 static void cmp_node_tonemap_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
+
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .hide_value()
       .structure_type(StructureType::Dynamic);
+
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic).align_with_previous();
 
   b.add_input<decl::Menu>("Type")
       .default_value(CMP_NODE_TONE_MAP_PHOTORECEPTOR)
@@ -101,8 +107,6 @@ static void cmp_node_tonemap_declare(NodeDeclarationBuilder &b)
           "Specifies if tone mapping operates on the luminance or on each channel independently, "
           "0 means it uses luminance, 1 means it is per channel, and values in between blends "
           "between both");
-
-  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }
 
 static void node_composit_init_tonemap(bNodeTree * /*ntree*/, bNode *node)

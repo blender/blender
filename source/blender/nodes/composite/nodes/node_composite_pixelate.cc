@@ -24,11 +24,13 @@ namespace blender::nodes::node_composite_pixelate_cc {
 
 static void cmp_node_pixelate_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Color").structure_type(StructureType::Dynamic);
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
+  b.add_input<decl::Color>("Color").structure_type(StructureType::Dynamic).hide_value();
+  b.add_output<decl::Color>("Color").structure_type(StructureType::Dynamic).align_with_previous();
+
   b.add_input<decl::Int>("Size").default_value(1).min(1).description(
       "The number of pixels that correspond to the same output pixel");
-
-  b.add_output<decl::Color>("Color").structure_type(StructureType::Dynamic);
 }
 
 using namespace blender::compositor;
