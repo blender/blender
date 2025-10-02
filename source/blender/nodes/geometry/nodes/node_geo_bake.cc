@@ -79,6 +79,8 @@ static void node_declare(NodeDeclarationBuilder &b)
         output_decl.dependent_field({input_decl.index()});
       }
     }
+    input_decl.structure_type(StructureType::Dynamic);
+    output_decl.structure_type(StructureType::Dynamic);
     if (socket_type == SOCK_BUNDLE) {
       dynamic_cast<decl::BundleBuilder &>(output_decl)
           .pass_through_input_index(input_decl.index());
