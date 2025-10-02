@@ -40,6 +40,9 @@
 
 namespace blender {
 
+/* The time in seconds strokes will take when the `delta_time` attribute does not exist. */
+constexpr float GP_BUILD_TIME_DEFAULT_STROKES = 1.0f;
+
 static void init_data(ModifierData *md)
 {
   auto *gpmd = reinterpret_cast<GreasePencilBuildModifierData *>(md);
@@ -490,18 +493,48 @@ static float get_factor_from_draw_speed(const bke::CurvesGeometry &curves,
   const bke::AttributeAccessor attributes = curves.attributes();
   const VArray<float> init_times = *attributes.lookup_or_default<float>(
       "init_time", bke::AttrDomain::Curve, 0.0f);
-  const VArray<float> delta_times = *attributes.lookup_or_default<float>(
+  const VArray<float> src_delta_times = *attributes.lookup_or_default<float>(
       "delta_time", bke::AttrDomain::Point, 0.0f);
+
+  Array<float> delta_times(curves.points_num());
+
+  if (const std::optional<float> src_delta_time = src_delta_times.get_if_single()) {
+    delta_times.fill(*src_delta_time);
+  }
+  else {
+    array_utils::copy(src_delta_times, delta_times.as_mutable_span());
+  }
+
+  /**
+   * Make any strokes that completes in zero seconds to instead take
+   * `GP_BUILD_TIME_DEFAULT_STROKES` seconds.
+   */
+  for (const int curve : curves.curves_range()) {
+    const IndexRange points = points_by_curve[curve];
+    if (delta_times[points.last()] == 0.0f && points.size() != 1) {
+      for (const int point_id : points.index_range()) {
+        const int point_i = points[point_id];
+        delta_times[point_i] = GP_BUILD_TIME_DEFAULT_STROKES * float(point_id) /
+                               float(points.size() - 1);
+      }
+    }
+  }
 
   Array<float> start_times(curves.curves_num());
   start_times[0] = 0;
   float accumulated_shift_delta_time = init_times[0];
   for (const int curve : curves.curves_range().drop_front(1)) {
     const float previous_start_time = start_times[curve - 1];
+    const float init_time = init_times[curve];
     const float previous_delta_time = delta_times[points_by_curve[curve - 1].last()];
     const float previous_end_time = previous_start_time + previous_delta_time;
+    float shifted_start_time = init_time - accumulated_shift_delta_time;
 
-    const float shifted_start_time = init_times[curve] - accumulated_shift_delta_time;
+    /* Make each stroke have no gap, if the `init_time` is at the default. */
+    if (init_time == 0.0f) {
+      shifted_start_time = previous_end_time;
+    }
+
     const float gap_delta_time = math::min(math::abs(shifted_start_time - previous_end_time),
                                            max_gap);
 
@@ -558,11 +591,6 @@ static float get_build_factor(const GreasePencilBuildTimeMode time_mode,
     case MOD_GREASE_PENCIL_BUILD_TIMEMODE_PERCENTAGE:
       return percentage * (1.0f + fade);
     case MOD_GREASE_PENCIL_BUILD_TIMEMODE_DRAWSPEED:
-      /* The "drawing speed" is written as an attribute called 'delta_time' (for each point). If
-       * this attribute doesn't exist, we fall back to the "frames" mode. */
-      if (!curves.attributes().contains("delta_time")) {
-        return build_factor_frames;
-      }
       return get_factor_from_draw_speed(curves,
                                         float(current_frame) / scene_fps,
                                         speed_fac,
