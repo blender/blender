@@ -14,7 +14,6 @@ from bpy.app.translations import (
     pgettext_rpt as rpt_,
     contexts as i18n_contexts,
 )
-from bpy_extras import anim_utils
 
 
 class SelectPattern(Operator):
@@ -821,6 +820,8 @@ class TransformsToDeltasAnim(Operator):
         return (obs is not None)
 
     def execute(self, context):
+        from bpy_extras import anim_utils
+
         # map from standard transform paths to "new" transform paths
         STANDARD_TO_DELTA_PATHS = {
             "location": "delta_location",

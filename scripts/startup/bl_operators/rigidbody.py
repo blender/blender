@@ -8,7 +8,6 @@ from bpy.props import (
     EnumProperty,
     IntProperty,
 )
-from bpy_extras import anim_utils
 
 
 class CopyRigidbodySettings(Operator):
@@ -107,6 +106,8 @@ class BakeToKeyframes(Operator):
         return (obj and obj.rigid_body)
 
     def execute(self, context):
+        from bpy_extras import anim_utils
+
         bake = []
         objects = []
         scene = context.scene

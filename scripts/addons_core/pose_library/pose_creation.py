@@ -30,7 +30,6 @@ from bpy.types import (
     FCurve,
     Keyframe,
 )
-from bpy_extras import anim_utils
 
 FCurveValue = Union[float, int]
 
@@ -78,6 +77,7 @@ class PoseActionCreator:
 
     def create(self) -> Optional[Action]:
         """Create a single-frame Action containing only the given bones, or None if no anim data was found."""
+        from bpy_extras import anim_utils
 
         try:
             dst_action = self._create_new_action()
@@ -116,6 +116,8 @@ class PoseActionCreator:
 
     def _store_animated_parameters(self, dst_channelbag: ActionChannelbag) -> None:
         """Store the current value of any animated bone properties."""
+        from bpy_extras import anim_utils
+
         if self.params.src_action is None:
             return
         src_channelbag = anim_utils.action_get_channelbag_for_slot(self.params.src_action, self.params.src_action_slot)

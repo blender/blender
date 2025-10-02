@@ -14,7 +14,6 @@ from bpy.props import (
     IntProperty,
 )
 from bpy.app.translations import pgettext_rpt as rpt_
-from bpy_extras import anim_utils
 
 
 def _animated_properties_get(strip):
@@ -146,6 +145,8 @@ class SequencerFadesClear(Operator):
         return strip is not None
 
     def execute(self, context):
+        from bpy_extras import anim_utils
+
         scene = context.scene
         animation_data = scene.animation_data
         if animation_data is None:

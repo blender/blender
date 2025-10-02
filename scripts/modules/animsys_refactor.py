@@ -16,8 +16,6 @@ import sys
 
 import bpy
 
-from bpy_extras import anim_utils
-
 IS_TESTING = False
 
 
@@ -153,6 +151,7 @@ def update_data_paths(rna_update, log=sys.stdout):
                 and options is an opaque data.
                 class_name, fcurve and options may be None!
     """
+    from bpy_extras import anim_utils
 
     rna_update_from_map = {}
     for ren_class, ren_from, ren_to, options in rna_update:
