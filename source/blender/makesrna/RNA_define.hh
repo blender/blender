@@ -446,6 +446,15 @@ void RNA_def_property_flag(PropertyRNA *prop, PropertyFlag flag);
 void RNA_def_property_clear_flag(PropertyRNA *prop, PropertyFlag flag);
 void RNA_def_property_override_flag(PropertyRNA *prop, PropertyOverrideFlag flag);
 void RNA_def_property_override_clear_flag(PropertyRNA *prop, PropertyOverrideFlag flag);
+
+/**
+ * In some cases showing properties in the outliner crashes.
+ * It's a bug that occurs when accessing a value re-allocates
+ * memory which may already be referenced by other RNA.
+ * See: #145877.
+ */
+void RNA_def_property_flag_hide_from_ui_workaround(PropertyRNA *prop);
+
 /**
  * Add the property-tags passed as \a tags to \a prop (if valid).
  *

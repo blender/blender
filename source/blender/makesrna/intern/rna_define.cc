@@ -1594,6 +1594,13 @@ void RNA_def_property_flag(PropertyRNA *prop, PropertyFlag flag)
   }
 }
 
+void RNA_def_property_flag_hide_from_ui_workaround(PropertyRNA *prop)
+{
+  /* Re-use the hidden flag.
+   * This function is mainly used so it's clear that this is a workaround. */
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+}
+
 void RNA_def_property_clear_flag(PropertyRNA *prop, PropertyFlag flag)
 {
   prop->flag &= ~flag;
