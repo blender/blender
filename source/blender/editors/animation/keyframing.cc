@@ -756,6 +756,7 @@ static wmOperatorStatus clear_anim_v3d_exec(bContext *C, wmOperator * /*op*/)
           DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
           changed = true;
         }
+        DEG_id_tag_update(&ob->adt->action->id, ID_RECALC_ANIMATION_NO_FLUSH);
       }
       else {
         for (fcu = static_cast<FCurve *>(dna_action->curves.first); fcu; fcu = fcn) {
