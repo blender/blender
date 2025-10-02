@@ -32,7 +32,7 @@ class GridDensityProvider {
  public:
   GridDensityProvider(OccluderSource &source) : source(source) {}
 
-  virtual ~GridDensityProvider(){};
+  virtual ~GridDensityProvider() {};
 
   float cellSize()
   {

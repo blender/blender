@@ -509,7 +509,7 @@ bool BKE_mesh_runtime_is_valid(Mesh *mesh_eval)
       CustomData_get_layer_for_write(&mesh_eval->vert_data, CD_MDEFORMVERT, mesh_eval->verts_num));
   is_valid &= BKE_mesh_validate_arrays(
       mesh_eval,
-      reinterpret_cast<float(*)[3]>(positions.data()),
+      reinterpret_cast<float (*)[3]>(positions.data()),
       positions.size(),
       edges.data(),
       edges.size(),

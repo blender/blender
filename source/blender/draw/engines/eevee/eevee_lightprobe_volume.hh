@@ -139,7 +139,7 @@ class IrradianceBake {
   bool do_break_ = false;
 
  public:
-  IrradianceBake(Instance &inst) : inst_(inst){};
+  IrradianceBake(Instance &inst) : inst_(inst) {};
 
   void init(const Object &probe_object);
   void sync();
@@ -233,8 +233,8 @@ class VolumeProbeModule {
   bool do_update_world_ = true;
 
  public:
-  VolumeProbeModule(Instance &inst) : bake(inst), inst_(inst){};
-  ~VolumeProbeModule(){};
+  VolumeProbeModule(Instance &inst) : bake(inst), inst_(inst) {};
+  ~VolumeProbeModule() {};
 
   void init();
   void sync();

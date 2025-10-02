@@ -43,7 +43,7 @@ static void transdata_elem_trackball(const TransInfo *t,
                                      const float mat_final[3][3])
 {
   float mat_buf[3][3];
-  const float(*mat)[3] = mat_final;
+  const float (*mat)[3] = mat_final;
   if (t->flag & T_PROP_EDIT) {
     axis_angle_normalized_to_mat3(mat_buf, axis, td->factor * angle);
     mat = mat_buf;

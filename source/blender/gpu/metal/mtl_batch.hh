@@ -55,7 +55,7 @@ class MTLBatch : public Batch {
     uint32_t cache_life_index_ = 0;
 
    public:
-    MTLVertexDescriptorCache(MTLBatch *batch) : batch_(batch){};
+    MTLVertexDescriptorCache(MTLBatch *batch) : batch_(batch) {};
     VertexDescriptorShaderInterfacePair *find(const ShaderInterface *interface);
     bool insert(VertexDescriptorShaderInterfacePair &data);
 

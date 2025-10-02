@@ -602,7 +602,7 @@ static void copy_or_interp_loop_attributes(Mesh *dest_mesh,
   int norig = fill_orig_loops(f, orig_face, orig_me, orig_me_index, mim, orig_loops);
   /* We may need these arrays if we have to interpolate Loop attributes rather than just copy.
    * Right now, trying Array<float[2]> complains, so declare cos_2d a different way. */
-  float(*cos_2d)[2];
+  float (*cos_2d)[2];
   Array<float> weights;
   Array<const void *> src_blocks_ofs;
   float axis_mat[3][3];
@@ -612,7 +612,7 @@ static void copy_or_interp_loop_attributes(Mesh *dest_mesh,
      * At this point we cannot yet calculate the interpolation weights, as they depend on
      * the coordinate where interpolation is to happen, but we can allocate the needed arrays,
      * so they don't have to be allocated per-layer. */
-    cos_2d = (float(*)[2])BLI_array_alloca(cos_2d, orig_face.size());
+    cos_2d = (float (*)[2])BLI_array_alloca(cos_2d, orig_face.size());
     weights = Array<float>(orig_face.size());
     src_blocks_ofs = Array<const void *>(orig_face.size());
     get_poly2d_cos(orig_me, orig_face, cos_2d, mim.to_target_transform[orig_me_index], axis_mat);

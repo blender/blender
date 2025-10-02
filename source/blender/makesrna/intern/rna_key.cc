@@ -220,7 +220,7 @@ static void rna_KeyBlock_normals_vert_calc(ID *id,
 
   *normals = MEM_malloc_arrayN<float>(size_t(*normals_num), __func__);
 
-  BKE_keyblock_mesh_calc_normals(data, mesh, (float(*)[3])(*normals), nullptr, nullptr);
+  BKE_keyblock_mesh_calc_normals(data, mesh, (float (*)[3])(*normals), nullptr, nullptr);
 }
 
 static int rna_KeyBlock_normals_poly_len(const PointerRNA *ptr,
@@ -250,7 +250,7 @@ static void rna_KeyBlock_normals_poly_calc(ID *id,
 
   *normals = MEM_malloc_arrayN<float>(size_t(*normals_num), __func__);
 
-  BKE_keyblock_mesh_calc_normals(data, mesh, nullptr, (float(*)[3])(*normals), nullptr);
+  BKE_keyblock_mesh_calc_normals(data, mesh, nullptr, (float (*)[3])(*normals), nullptr);
 }
 
 static int rna_KeyBlock_normals_loop_len(const PointerRNA *ptr,
@@ -280,7 +280,7 @@ static void rna_KeyBlock_normals_loop_calc(ID *id,
 
   *normals = MEM_malloc_arrayN<float>(size_t(*normals_num), __func__);
 
-  BKE_keyblock_mesh_calc_normals(data, mesh, nullptr, nullptr, (float(*)[3])(*normals));
+  BKE_keyblock_mesh_calc_normals(data, mesh, nullptr, nullptr, (float (*)[3])(*normals));
 }
 
 PointerRNA rna_object_shapekey_index_get(ID *id, int value)

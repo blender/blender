@@ -268,7 +268,7 @@ MaterialPool *gpencil_material_pool_create(Instance *inst,
       gpencil_uv_transform_get(gp_style->texture_offset,
                                gp_style->texture_scale,
                                gp_style->texture_angle,
-                               reinterpret_cast<float(*)[2]>(&mat_data->fill_uv_rot_scale),
+                               reinterpret_cast<float (*)[2]>(&mat_data->fill_uv_rot_scale),
                                mat_data->fill_uv_offset);
       copy_v4_v4(mat_data->fill_color, gp_style->fill_rgba);
       mat_data->fill_texture_mix = 1.0f - gp_style->mix_factor;
@@ -281,7 +281,7 @@ MaterialPool *gpencil_material_pool_create(Instance *inst,
       gpencil_uv_transform_get(gp_style->texture_offset,
                                gp_style->texture_scale,
                                gp_style->texture_angle,
-                               reinterpret_cast<float(*)[2]>(&mat_data->fill_uv_rot_scale),
+                               reinterpret_cast<float (*)[2]>(&mat_data->fill_uv_rot_scale),
                                mat_data->fill_uv_offset);
       copy_v4_v4(mat_data->fill_color, gp_style->fill_rgba);
       copy_v4_v4(mat_data->fill_mix_color, gp_style->mix_rgba);
@@ -379,7 +379,7 @@ void gpencil_light_pool_populate(LightPool *lightpool, Object *ob)
   }
 
   gpLight *gp_light = &lightpool->light_data[lightpool->light_used];
-  float(*mat)[4] = reinterpret_cast<float(*)[4]>(&gp_light->right);
+  float (*mat)[4] = reinterpret_cast<float (*)[4]>(&gp_light->right);
 
   if (light.type == LA_SPOT) {
     copy_m4_m4(mat, ob->world_to_object().ptr());

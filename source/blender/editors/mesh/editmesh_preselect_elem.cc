@@ -222,7 +222,7 @@ static void view3d_preselect_mesh_elem_update_from_vert(EditMesh_PreSelElem *pse
                                                         BMVert *eve,
                                                         const Span<float3> vert_positions)
 {
-  float(*verts)[3] = static_cast<float(*)[3]>(MEM_mallocN(sizeof(*psel->verts), __func__));
+  float (*verts)[3] = static_cast<float (*)[3]>(MEM_mallocN(sizeof(*psel->verts), __func__));
   vcos_get(eve, verts[0], vert_positions);
   psel->verts = verts;
   psel->verts_len = 1;
@@ -233,7 +233,7 @@ static void view3d_preselect_mesh_elem_update_from_edge(EditMesh_PreSelElem *pse
                                                         BMEdge *eed,
                                                         const Span<float3> vert_positions)
 {
-  float(*edges)[2][3] = static_cast<float(*)[2][3]>(MEM_mallocN(sizeof(*psel->edges), __func__));
+  float (*edges)[2][3] = static_cast<float (*)[2][3]>(MEM_mallocN(sizeof(*psel->edges), __func__));
   vcos_get_pair(&eed->v1, edges[0], vert_positions);
   psel->edges = edges;
   psel->edges_len = 1;
@@ -269,9 +269,9 @@ static void view3d_preselect_update_preview_triangle_from_vert(
     ED_view3d_win_to_3d_int(vc->v3d, vc->region, center, mval, center);
     mul_m4_v3(vc->obedit->world_to_object().ptr(), center);
 
-    psel->preview_tris = static_cast<float(*)[3][3]>(
+    psel->preview_tris = static_cast<float (*)[3][3]>(
         MEM_mallocN(sizeof(*psel->preview_tris) * 2, __func__));
-    psel->preview_lines = static_cast<float(*)[2][3]>(
+    psel->preview_lines = static_cast<float (*)[2][3]>(
         MEM_mallocN(sizeof(*psel->preview_lines) * 4, __func__));
 
     copy_v3_v3(psel->preview_tris[0][0], e_pair[0]->v1->co);
@@ -314,7 +314,7 @@ static void view3d_preselect_update_preview_triangle_from_face(EditMesh_PreSelEl
                                                                BMFace *efa,
                                                                const int /*mval*/[2])
 {
-  float(*preview_lines)[2][3] = static_cast<float(*)[2][3]>(
+  float (*preview_lines)[2][3] = static_cast<float (*)[2][3]>(
       MEM_mallocN(sizeof(*psel->edges) * efa->len, __func__));
   BMLoop *l_iter, *l_first;
   l_iter = l_first = BM_FACE_FIRST_LOOP(efa);
@@ -330,9 +330,9 @@ static void view3d_preselect_update_preview_triangle_from_edge(
     EditMesh_PreSelElem *psel, ViewContext *vc, BMesh * /*bm*/, BMEdge *eed, const int mval[2])
 {
   float center[3];
-  psel->preview_tris = static_cast<float(*)[3][3]>(
+  psel->preview_tris = static_cast<float (*)[3][3]>(
       MEM_mallocN(sizeof(*psel->preview_tris), __func__));
-  psel->preview_lines = static_cast<float(*)[2][3]>(
+  psel->preview_lines = static_cast<float (*)[2][3]>(
       MEM_mallocN(sizeof(*psel->preview_lines) * 3, __func__));
   mid_v3_v3v3(center, eed->v1->co, eed->v2->co);
   mul_m4_v3(vc->obedit->object_to_world().ptr(), center);
@@ -360,7 +360,7 @@ static void view3d_preselect_mesh_elem_update_from_face(EditMesh_PreSelElem *pse
                                                         BMFace *efa,
                                                         const Span<float3> vert_positions)
 {
-  float(*edges)[2][3] = static_cast<float(*)[2][3]>(
+  float (*edges)[2][3] = static_cast<float (*)[2][3]>(
       MEM_mallocN(sizeof(*psel->edges) * efa->len, __func__));
   BMLoop *l_iter, *l_first;
   l_iter = l_first = BM_FACE_FIRST_LOOP(efa);

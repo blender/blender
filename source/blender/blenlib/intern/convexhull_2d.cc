@@ -796,7 +796,7 @@ float BLI_convexhull_aabb_fit_points_2d(blender::Span<float2> points)
   int points_hull_num = BLI_convexhull_2d(points, index_map);
 
   if (points_hull_num > 1) {
-    float(*points_hull)[2] = MEM_malloc_arrayN<float[2]>(size_t(points_hull_num), __func__);
+    float (*points_hull)[2] = MEM_malloc_arrayN<float[2]>(size_t(points_hull_num), __func__);
     for (int j = 0; j < points_hull_num; j++) {
       copy_v2_v2(points_hull[j], points[index_map[j]]);
     }

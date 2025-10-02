@@ -48,7 +48,7 @@ namespace Freestyle {
   { \
     (t) = (i) + (N); \
     (r0) = modff((t), &(u)); \
-    (r1) = (r0)-1.0; \
+    (r1) = (r0) - 1.0; \
     (b0) = int(u) & BM; \
     (b1) = ((b0) + 1) & BM; \
   } \

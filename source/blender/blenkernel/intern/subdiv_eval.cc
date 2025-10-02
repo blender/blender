@@ -131,7 +131,7 @@ static void set_face_varying_data_from_uv_task(void *__restrict userdata,
   FaceVaryingDataFromUVContext *ctx = static_cast<FaceVaryingDataFromUVContext *>(userdata);
   opensubdiv::TopologyRefinerImpl *topology_refiner = ctx->topology_refiner;
   const int layer_index = ctx->layer_index;
-  const float(*mluv)[2] = &ctx->uv_map[ctx->faces[face_index].start()];
+  const float (*mluv)[2] = &ctx->uv_map[ctx->faces[face_index].start()];
 
   /* TODO(sergey): OpenSubdiv's C-API converter can change winding of
    * loops of a face, need to watch for that, to prevent wrong UVs assigned.
@@ -151,11 +151,11 @@ static void set_face_varying_data_from_uv(Subdiv *subdiv,
   opensubdiv::TopologyRefinerImpl *topology_refiner = subdiv->topology_refiner;
   OpenSubdiv_Evaluator *evaluator = subdiv->evaluator;
   const int num_faces = topology_refiner->base_level().GetNumFaces();
-  const float(*mluv)[2] = uv_map;
+  const float (*mluv)[2] = uv_map;
 
   const int num_fvar_values = topology_refiner->base_level().GetNumFVarValues(layer_index);
   /* Use a temporary buffer so we do not upload UVs one at a time to the GPU. */
-  float(*buffer)[2] = MEM_malloc_arrayN<float[2]>(size_t(num_fvar_values), __func__);
+  float (*buffer)[2] = MEM_malloc_arrayN<float[2]>(size_t(num_fvar_values), __func__);
 
   FaceVaryingDataFromUVContext ctx;
   ctx.topology_refiner = topology_refiner;
@@ -179,9 +179,9 @@ static void set_face_varying_data_from_uv(Subdiv *subdiv,
 
 static void set_vertex_data_from_orco(Subdiv *subdiv, const Mesh *mesh)
 {
-  const float(*orco)[3] = static_cast<const float(*)[3]>(
+  const float (*orco)[3] = static_cast<const float (*)[3]>(
       CustomData_get_layer(&mesh->vert_data, CD_ORCO));
-  const float(*cloth_orco)[3] = static_cast<const float(*)[3]>(
+  const float (*cloth_orco)[3] = static_cast<const float (*)[3]>(
       CustomData_get_layer(&mesh->vert_data, CD_CLOTH_ORCO));
 
   if (orco || cloth_orco) {
@@ -256,7 +256,7 @@ bool eval_refine_from_mesh(Subdiv *subdiv,
   /* Set face-varying data to UV maps. */
   const int num_uv_layers = CustomData_number_of_layers(&mesh->corner_data, CD_PROP_FLOAT2);
   for (int layer_index = 0; layer_index < num_uv_layers; layer_index++) {
-    const float(*uv_map)[2] = static_cast<const float(*)[2]>(
+    const float (*uv_map)[2] = static_cast<const float (*)[2]>(
         CustomData_get_layer_n(&mesh->corner_data, CD_PROP_FLOAT2, layer_index));
     set_face_varying_data_from_uv(subdiv, mesh, uv_map, layer_index);
   }

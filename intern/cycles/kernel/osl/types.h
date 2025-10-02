@@ -66,20 +66,17 @@ struct OSLClosure {
   OSLClosureType id;
 };
 
-struct ccl_align(8) OSLClosureMul : public OSLClosure
-{
+struct ccl_align(8) OSLClosureMul : public OSLClosure {
   packed_float3 weight;
   const ccl_private OSLClosure *closure;
 };
 
-struct ccl_align(8) OSLClosureAdd : public OSLClosure
-{
+struct ccl_align(8) OSLClosureAdd : public OSLClosure {
   const ccl_private OSLClosure *closureA;
   const ccl_private OSLClosure *closureB;
 };
 
-struct ccl_align(8) OSLClosureComponent : public OSLClosure
-{
+struct ccl_align(8) OSLClosureComponent : public OSLClosure {
   packed_float3 weight;
 };
 

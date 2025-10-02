@@ -41,10 +41,7 @@ static const char *ndof_progress_string[] = {
 };
 
 /* Printable values for #NDOF_ButtonT enum (keep aligned) */
-#define MAP_ENTRY(button) \
-  { \
-    GHOST_##button, #button \
-  }
+#define MAP_ENTRY(button) {GHOST_##button, #button}
 static const std::map<GHOST_NDOF_ButtonT, const char *> ndof_button_names = {
     /* Disable wrapping, it makes it difficult to read. */
     /* clang-format off */

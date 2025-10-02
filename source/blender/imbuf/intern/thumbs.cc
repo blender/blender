@@ -167,7 +167,7 @@ static void escape_uri_string(const char *string,
                               const int escaped_string_size,
                               const eUnsafeCharacterSet mask)
 {
-#define ACCEPTABLE(a) ((a) >= 32 && (a) < 128 && (acceptable[(a)-32] & mask))
+#define ACCEPTABLE(a) ((a) >= 32 && (a) < 128 && (acceptable[(a) - 32] & mask))
 
   BLI_assert(escaped_string_size > 0);
   /* Remove space for \0. */

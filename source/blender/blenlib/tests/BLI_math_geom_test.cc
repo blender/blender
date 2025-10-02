@@ -123,13 +123,13 @@ TEST(math_geom, CrossPoly)
   const float tri_ccw_2d[3][2] = {{1, 0}, {0, 1}, {-1, 0}};
   const float tri_ccw_3d[3][3] = {{1, 0}, {0, 1}, {-1, 0}};
 
-  auto cross_tri_v3_as_float3 = [](const float(*poly)[3]) -> float3 {
+  auto cross_tri_v3_as_float3 = [](const float (*poly)[3]) -> float3 {
     float n[3];
     cross_tri_v3(n, UNPACK3(poly));
     return float3(n[0], n[1], n[2]);
   };
 
-  auto cross_poly_v3_as_float3 = [](const float(*poly)[3]) -> float3 {
+  auto cross_poly_v3_as_float3 = [](const float (*poly)[3]) -> float3 {
     float n[3];
     cross_poly_v3(n, poly, 3);
     return float3(n[0], n[1], n[2]);

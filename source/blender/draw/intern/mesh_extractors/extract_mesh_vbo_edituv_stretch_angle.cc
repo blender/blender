@@ -89,7 +89,7 @@ static void extract_uv_stretch_angle_bm(const MeshRenderData &mr,
     do {
       const int l_index = BM_elem_index_get(l_iter);
 
-      const float(*luv)[2], (*luv_next)[2];
+      const float (*luv)[2], (*luv_next)[2];
       BMLoop *l_next = l_iter->next;
       if (l_iter == BM_FACE_FIRST_LOOP(face)) {
         /* First loop in face. */

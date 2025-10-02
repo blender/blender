@@ -239,17 +239,17 @@ void BKE_shrinkwrap_snap_point_to_surface(const ShrinkwrapTreeData *tree,
  */
 #define NULL_ShrinkwrapCalcData \
   { \
-    NULL, \
+      NULL, \
   }
 #define NULL_BVHTreeFromMesh \
   { \
-    NULL, \
+      NULL, \
   }
 #define NULL_BVHTreeRayHit \
   { \
-    NULL, \
+      NULL, \
   }
 #define NULL_BVHTreeNearest \
   { \
-    0, \
+      0, \
   }

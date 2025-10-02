@@ -381,7 +381,7 @@ static void draw_filled_lasso(wmGesture *gt, const blender::int2 *lasso_pt_extra
  * tool, and this common logic. */
 static void draw_lasso_smooth_stroke_indicator(wmGesture *gt, const uint shdr_pos)
 {
-  float(*lasso)[2] = static_cast<float(*)[2]>(gt->customdata);
+  float (*lasso)[2] = static_cast<float (*)[2]>(gt->customdata);
   float last_x = lasso[gt->points - 1][0];
   float last_y = lasso[gt->points - 1][1];
 
@@ -466,7 +466,7 @@ static void draw_start_vertex_circle(const wmGesture &gt, const uint shdr_pos)
   const int numverts = gt.points;
 
   /* Draw the circle around the starting vertex. */
-  const short(*border)[2] = static_cast<short int(*)[2]>(gt.customdata);
+  const short (*border)[2] = static_cast<short int (*)[2]>(gt.customdata);
 
   const float start_pos[2] = {float(border[0][0]), float(border[0][1])};
   const float current_pos[2] = {float(gt.mval.x), float(gt.mval.y)};

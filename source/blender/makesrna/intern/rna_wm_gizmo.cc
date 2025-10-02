@@ -362,7 +362,7 @@ RNA_GIZMO_GENERIC_FLOAT_ARRAY_RW_DEF(matrix_offset, matrix_offset, 16);
 static void rna_Gizmo_matrix_world_get(PointerRNA *ptr, float value[16])
 {
   wmGizmo *gz = static_cast<wmGizmo *>(ptr->data);
-  WM_gizmo_calc_matrix_final(gz, (float(*)[4])value);
+  WM_gizmo_calc_matrix_final(gz, (float (*)[4])value);
 }
 
 RNA_GIZMO_GENERIC_FLOAT_RW_DEF(scale_basis, scale_basis);

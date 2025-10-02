@@ -166,10 +166,11 @@ static void eyedropper_colorband_apply(bContext *C, wmOperator *op)
   EyedropperColorband *eye = static_cast<EyedropperColorband *>(op->customdata);
   /* Always filter, avoids noise in resulting color-band. */
   const bool filter_samples = true;
-  BKE_colorband_init_from_table_rgba(eye->color_band,
-                                     reinterpret_cast<const float(*)[4]>(eye->color_buffer.data()),
-                                     eye->color_buffer.size(),
-                                     filter_samples);
+  BKE_colorband_init_from_table_rgba(
+      eye->color_band,
+      reinterpret_cast<const float (*)[4]>(eye->color_buffer.data()),
+      eye->color_buffer.size(),
+      filter_samples);
   eye->is_set = true;
   if (eye->prop) {
     RNA_property_update(C, &eye->ptr, eye->prop);

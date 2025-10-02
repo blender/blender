@@ -1108,7 +1108,7 @@ static bool name_matches_dopesheet_filter(const bDopeSheet *ads, const char *nam
     const size_t str_len = strlen(ads->searchstr);
     const int words_max = BLI_string_max_possible_word_count(str_len);
 
-    int(*words)[2] = static_cast<int(*)[2]>(BLI_array_alloca(words, words_max));
+    int (*words)[2] = static_cast<int (*)[2]>(BLI_array_alloca(words, words_max));
     const int words_len = BLI_string_find_split_words(
         ads->searchstr, str_len, ' ', words, words_max);
     bool found = false;

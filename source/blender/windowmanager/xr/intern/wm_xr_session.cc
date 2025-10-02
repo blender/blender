@@ -941,8 +941,8 @@ static void wm_xr_session_action_states_interpret(wmXrData *xr,
       break;
     }
     case XR_VECTOR2F_INPUT: {
-      const float(*state)[2] = &((float(*)[2])action->states)[subaction_idx];
-      float(*state_prev)[2] = &((float(*)[2])action->states_prev)[subaction_idx];
+      const float (*state)[2] = &((float (*)[2])action->states)[subaction_idx];
+      float (*state_prev)[2] = &((float (*)[2])action->states_prev)[subaction_idx];
       if (test_vec2f_state(
               *state, action->float_thresholds[subaction_idx], action->axis_flags[subaction_idx]))
       {
@@ -1079,7 +1079,7 @@ static bool wm_xr_session_action_test_bimanual(const wmXrSessionState *session_s
       break;
     }
     case XR_VECTOR2F_INPUT: {
-      const float(*state)[2] = &((float(*)[2])action->states)[*r_subaction_idx_other];
+      const float (*state)[2] = &((float (*)[2])action->states)[*r_subaction_idx_other];
       if (test_vec2f_state(*state,
                            action->float_thresholds[*r_subaction_idx_other],
                            action->axis_flags[*r_subaction_idx_other]))
@@ -1134,9 +1134,9 @@ static wmXrActionData *wm_xr_session_event_create(const char *action_set_name,
       data->float_threshold = action->float_thresholds[subaction_idx];
       break;
     case XR_VECTOR2F_INPUT:
-      copy_v2_v2(data->state, ((float(*)[2])action->states)[subaction_idx]);
+      copy_v2_v2(data->state, ((float (*)[2])action->states)[subaction_idx]);
       if (bimanual) {
-        copy_v2_v2(data->state_other, ((float(*)[2])action->states)[subaction_idx_other]);
+        copy_v2_v2(data->state_other, ((float (*)[2])action->states)[subaction_idx_other]);
       }
       data->float_threshold = action->float_thresholds[subaction_idx];
       break;

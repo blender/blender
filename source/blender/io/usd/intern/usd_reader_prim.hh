@@ -94,7 +94,7 @@ class USDPrimReader {
   virtual bool valid() const;
 
   virtual void create_object(Main *bmain) = 0;
-  virtual void read_object_data(Main * /*bmain*/, pxr::UsdTimeCode /*time*/){};
+  virtual void read_object_data(Main * /*bmain*/, pxr::UsdTimeCode /*time*/) {};
 
   Object *object() const;
   void object(Object *ob);

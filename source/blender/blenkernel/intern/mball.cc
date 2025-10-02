@@ -673,7 +673,7 @@ void BKE_mball_data_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
     BKE_lattice_deform_coords(
         ob->parent,
         ob,
-        reinterpret_cast<float(*)[3]>(mesh->vert_positions_for_write().data()),
+        reinterpret_cast<float (*)[3]>(mesh->vert_positions_for_write().data()),
         mesh->verts_num,
         0,
         nullptr,

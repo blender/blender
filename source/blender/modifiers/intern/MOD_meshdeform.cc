@@ -254,8 +254,8 @@ static void meshdeform_vert_task(void *__restrict userdata,
   const int defgrp_index = data->defgrp_index;
   const int *offsets = mmd->bindoffsets;
   const MDefInfluence *__restrict influences = mmd->bindinfluences;
-  /*const*/ float(*__restrict dco)[3] = data->dco;
-  float(*vertexCos)[3] = data->vertexCos;
+  /*const*/ float (*__restrict dco)[3] = data->dco;
+  float (*vertexCos)[3] = data->vertexCos;
   float co[3];
   float weight, totweight, fac = 1.0f;
 
@@ -314,7 +314,7 @@ static void meshdeformModifier_do(ModifierData *md,
   Mesh *cagemesh;
   const MDeformVert *dvert = nullptr;
   float imat[4][4], cagemat[4][4], iobmat[4][4], icagemat[3][3], cmat[4][4];
-  const float(*bindcagecos)[3];
+  const float (*bindcagecos)[3];
   int a, cage_verts_num, defgrp_index;
   MeshdeformUserdata data;
 
@@ -389,7 +389,7 @@ static void meshdeformModifier_do(ModifierData *md,
 
   /* setup deformation data */
   BKE_mesh_wrapper_vert_coords_copy(cagemesh, dco.as_mutable_span().take_front(cage_verts_num));
-  bindcagecos = (const float(*)[3])mmd->bindcagecos;
+  bindcagecos = (const float (*)[3])mmd->bindcagecos;
 
   for (a = 0; a < cage_verts_num; a++) {
     /* Get cage vertex in world-space with binding transform. */
@@ -404,7 +404,7 @@ static void meshdeformModifier_do(ModifierData *md,
   /* Initialize data to be pass to the for body function. */
   data.mmd = mmd;
   data.dvert = dvert;
-  data.dco = reinterpret_cast<float(*)[3]>(dco.data());
+  data.dco = reinterpret_cast<float (*)[3]>(dco.data());
   data.defgrp_index = defgrp_index;
   data.vertexCos = vertexCos;
   data.cagemat = cagemat;
@@ -423,9 +423,9 @@ static void deform_verts(ModifierData *md,
                          blender::MutableSpan<blender::float3> positions)
 {
   /* if next modifier needs original vertices */
-  MOD_previous_vcos_store(md, reinterpret_cast<float(*)[3]>(positions.data()));
+  MOD_previous_vcos_store(md, reinterpret_cast<float (*)[3]>(positions.data()));
   meshdeformModifier_do(
-      md, ctx, mesh, reinterpret_cast<float(*)[3]>(positions.data()), positions.size());
+      md, ctx, mesh, reinterpret_cast<float (*)[3]>(positions.data()), positions.size());
 }
 
 #define MESHDEFORM_MIN_INFLUENCE 0.00001f

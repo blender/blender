@@ -685,7 +685,7 @@ static int ibuf_get_color_clip(float col[4], ImBuf *ibuf, int x, int y, int extf
       x = std::max(x, 0); /* TXF alpha: clip = 1; } */
       if (x >= ibuf->x) {
         x = ibuf->x - 1;
-      }                   /* TXF alpha: clip = 1; } */
+      } /* TXF alpha: clip = 1; } */
       y = std::max(y, 0); /* TXF alpha: clip = 1; } */
       if (y >= ibuf->y) {
         y = ibuf->y - 1;

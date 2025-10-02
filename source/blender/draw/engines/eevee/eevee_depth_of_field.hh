@@ -161,8 +161,8 @@ class DepthOfField {
   bool enabled_ = false;
 
  public:
-  DepthOfField(Instance &inst) : inst_(inst){};
-  ~DepthOfField(){};
+  DepthOfField(Instance &inst) : inst_(inst) {};
+  ~DepthOfField() {};
 
   void init();
 

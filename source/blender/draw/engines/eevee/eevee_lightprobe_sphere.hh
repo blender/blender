@@ -112,7 +112,7 @@ class SphereProbeModule {
   PassSimple viewport_display_ps_ = {"ProbeSphereModule.Viewport Display"};
 
  public:
-  SphereProbeModule(Instance &instance) : instance_(instance){};
+  SphereProbeModule(Instance &instance) : instance_(instance) {};
 
   void init();
   void begin_sync();

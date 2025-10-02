@@ -389,7 +389,7 @@ static int (*parse_int_range_relative_clamp_n(const char *str,
     }
   }
 
-  int(*values)[2] = MEM_malloc_arrayN<int[2]>(size_t(len), __func__);
+  int (*values)[2] = MEM_malloc_arrayN<int[2]>(size_t(len), __func__);
   int i = 0;
   while (true) {
     const char *str_end_range;
@@ -2318,7 +2318,7 @@ static int arg_handle_render_frame(int argc, const char **argv, void *data)
       Render *re;
       ReportList reports;
 
-      int(*frame_range_arr)[2], frames_range_len;
+      int (*frame_range_arr)[2], frames_range_len;
       if ((frame_range_arr = parse_int_range_relative_clamp_n(argv[1],
                                                               scene->r.sfra,
                                                               scene->r.efra,

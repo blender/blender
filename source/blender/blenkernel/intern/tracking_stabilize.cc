@@ -1301,7 +1301,7 @@ static void tracking_stabilize_frame_interpolation_cb(void *__restrict userdata,
       static_cast<TrackingStabilizeFrameInterpolationData *>(userdata);
   ImBuf *ibuf = data->ibuf;
   ImBuf *tmpibuf = data->tmpibuf;
-  float(*mat)[4] = data->mat;
+  float (*mat)[4] = data->mat;
 
   float vec[3] = {0.0f, float(y), 0.0f};
   float rvec[3];

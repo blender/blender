@@ -39,10 +39,10 @@ void bmo_planar_faces_exec(BMesh *bm, BMOperator *op)
   BMFace *f;
   BLI_mempool *vert_accum_pool;
   GHash *vaccum_map;
-  float(*faces_center)[3];
+  float (*faces_center)[3];
   int i, iter_step, shared_vert_num;
 
-  faces_center = static_cast<float(*)[3]>(
+  faces_center = static_cast<float (*)[3]>(
       MEM_mallocN(sizeof(*faces_center) * faces_num, __func__));
 
   shared_vert_num = 0;

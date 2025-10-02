@@ -99,7 +99,7 @@ struct GPUMaterial {
 
   std::string name;
 
-  GPUMaterial(eGPUMaterialEngine engine) : engine(engine){};
+  GPUMaterial(eGPUMaterialEngine engine) : engine(engine) {};
 
   ~GPUMaterial()
   {

@@ -420,7 +420,7 @@ void BKE_crazyspace_build_sculpt(Depsgraph *depsgraph,
     }
 
     blender::Array<blender::float3, 0> origVerts = deformcos;
-    float(*quats)[4];
+    float (*quats)[4];
     int i, deformed = 0;
     VirtualModifierData virtual_modifier_data;
     Object object_eval;

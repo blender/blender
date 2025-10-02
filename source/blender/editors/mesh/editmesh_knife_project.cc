@@ -76,7 +76,7 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C, Object *ob, Li
           int a;
           BPoint *bp;
           bool is_cyclic = (nu->flagu & CU_NURB_CYCLIC) != 0;
-          float(*mval)[2] = static_cast<float(*)[2]>(
+          float (*mval)[2] = static_cast<float (*)[2]>(
               MEM_mallocN(sizeof(*mval) * (nu->pntsu + is_cyclic), __func__));
 
           for (bp = nu->bp, a = 0; a < nu->pntsu; a++, bp++) {

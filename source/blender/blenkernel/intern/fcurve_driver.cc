@@ -433,7 +433,7 @@ static float dvar_eval_rotDiff(const AnimationEvalContext * /*anim_eval_context*
     return 0.0f;
   }
 
-  const float(*mat[2])[4];
+  const float (*mat[2])[4];
 
   /* NOTE: for now, these are all just world-space. */
   for (int i = 0; i < 2; i++) {

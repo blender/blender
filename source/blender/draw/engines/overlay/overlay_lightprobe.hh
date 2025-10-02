@@ -43,7 +43,7 @@ class LightProbes : Overlay {
   } call_buffers_{selection_type_};
 
  public:
-  LightProbes(const SelectionType selection_type) : selection_type_(selection_type){};
+  LightProbes(const SelectionType selection_type) : selection_type_(selection_type) {};
 
   void begin_sync(Resources &res, const State &state) final
   {

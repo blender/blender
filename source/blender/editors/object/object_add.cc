@@ -779,7 +779,7 @@ static std::optional<Bounds<float3>> lattice_add_to_selected_collect_targets_and
     const Object *object_eval = DEG_get_evaluated(depsgraph, base->object);
     if (object_eval && DEG_object_transform_is_evaluated(*object_eval)) {
       if (std::optional<Bounds<float3>> object_bounds = BKE_object_boundbox_get(object_eval)) {
-        const float(*object_to_world_matrix)[4] = object_eval->object_to_world().ptr();
+        const float (*object_to_world_matrix)[4] = object_eval->object_to_world().ptr();
         /* Generate all 8 corners of the bounding box. */
         std::array<float3, 8> corners = bounds::corners(*object_bounds);
         for (float3 &corner : corners) {

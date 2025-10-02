@@ -213,7 +213,7 @@ static bool copy_dupli_context(DupliContext *r_ctx,
   r_ctx->object = ob;
   r_ctx->instance_stack = ctx->instance_stack;
   if (mat) {
-    mul_m4_m4m4(r_ctx->space_mat, (float(*)[4])ctx->space_mat, mat);
+    mul_m4_m4m4(r_ctx->space_mat, (float (*)[4])ctx->space_mat, mat);
   }
   r_ctx->persistent_id[r_ctx->level] = index;
   r_ctx->instance_idx[r_ctx->level] = instance_index;
@@ -279,7 +279,7 @@ static DupliObject *make_dupli(const DupliContext *ctx,
 
   dob->ob = ob;
   dob->ob_data = const_cast<ID *>(object_data);
-  mul_m4_m4m4(dob->mat, (float(*)[4])ctx->space_mat, mat);
+  mul_m4_m4m4(dob->mat, (float (*)[4])ctx->space_mat, mat);
   dob->type = ctx->gen == nullptr ? 0 : ctx->dupli_gen_type_stack->last();
   dob->preview_base_geometry = ctx->preview_base_geometry;
   dob->preview_instance_index = ctx->preview_instance_index;
@@ -779,7 +779,7 @@ static void make_duplis_verts(const DupliContext *ctx)
     vdd.totvert = mesh_eval->verts_num;
     vdd.vert_positions = mesh_eval->vert_positions();
     vdd.vert_normals = mesh_eval->vert_normals();
-    vdd.orco = (const float(*)[3])CustomData_get_layer(&mesh_eval->vert_data, CD_ORCO);
+    vdd.orco = (const float (*)[3])CustomData_get_layer(&mesh_eval->vert_data, CD_ORCO);
 
     make_child_duplis(ctx, &vdd, make_child_duplis_verts_from_mesh);
   }
@@ -1149,7 +1149,7 @@ static void get_dupliface_transform_from_coords(Span<float3> coords,
   /* Scale. */
   float scale;
   if (use_scale) {
-    const float area = area_poly_v3((const float(*)[3])coords.data(), uint(coords.size()));
+    const float area = area_poly_v3((const float (*)[3])coords.data(), uint(coords.size()));
     scale = sqrtf(area) * scale_fac;
   }
   else {
@@ -1255,7 +1255,7 @@ static void make_child_duplis_faces_from_mesh(const DupliContext *ctx,
                                               Object *inst_ob)
 {
   FaceDupliData_Mesh *fdd = (FaceDupliData_Mesh *)userdata;
-  const float(*orco)[3] = fdd->orco;
+  const float (*orco)[3] = fdd->orco;
   const float2 *uv_map = fdd->uv_map;
   const int totface = fdd->totface;
   const bool use_scale = fdd->params.use_scale;
@@ -1371,7 +1371,7 @@ static void make_duplis_faces(const DupliContext *ctx)
     fdd.uv_map = (uv_idx != -1) ? (const float2 *)CustomData_get_layer_n(
                                       &mesh_eval->corner_data, CD_PROP_FLOAT2, uv_idx) :
                                   nullptr;
-    fdd.orco = (const float(*)[3])CustomData_get_layer(&mesh_eval->vert_data, CD_ORCO);
+    fdd.orco = (const float (*)[3])CustomData_get_layer(&mesh_eval->vert_data, CD_ORCO);
 
     make_child_duplis(ctx, &fdd, make_child_duplis_faces_from_mesh);
   }

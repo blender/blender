@@ -3068,7 +3068,7 @@ static void calchandleNurb_intern(BezTriple *bezt,
                                   char fcurve_smoothing)
 {
   /* defines to avoid confusion */
-#define p2_h1 ((p2)-3)
+#define p2_h1 ((p2) - 3)
 #define p2_h2 ((p2) + 3)
 
   const float *p1, *p3;

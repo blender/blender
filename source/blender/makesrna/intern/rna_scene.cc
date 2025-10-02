@@ -255,18 +255,10 @@ const EnumPropertyItem rna_enum_curve_fit_method_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-#define MEDIA_TYPE_ENUM_IMAGE \
-  { \
-    MEDIA_TYPE_IMAGE, "IMAGE", ICON_NONE, "Image", "" \
-  }
+#define MEDIA_TYPE_ENUM_IMAGE {MEDIA_TYPE_IMAGE, "IMAGE", ICON_NONE, "Image", ""}
 #define MEDIA_TYPE_ENUM_MULTI_LAYER_IMAGE \
-  { \
-    MEDIA_TYPE_MULTI_LAYER_IMAGE, "MULTI_LAYER_IMAGE", ICON_NONE, "Multi-Layer EXR", "" \
-  }
-#define MEDIA_TYPE_ENUM_VIDEO \
-  { \
-    MEDIA_TYPE_VIDEO, "VIDEO", ICON_NONE, "Video", "" \
-  }
+  {MEDIA_TYPE_MULTI_LAYER_IMAGE, "MULTI_LAYER_IMAGE", ICON_NONE, "Multi-Layer EXR", ""}
+#define MEDIA_TYPE_ENUM_VIDEO {MEDIA_TYPE_VIDEO, "VIDEO", ICON_NONE, "Video", ""}
 
 static const EnumPropertyItem rna_enum_media_type_all_items[] = {
     MEDIA_TYPE_ENUM_IMAGE,
@@ -2391,14 +2383,14 @@ static void rna_View3DCursor_rotation_axis_angle_set(PointerRNA *ptr, const floa
 static void rna_View3DCursor_matrix_get(PointerRNA *ptr, float *values)
 {
   const View3DCursor *cursor = static_cast<const View3DCursor *>(ptr->data);
-  copy_m4_m4((float(*)[4])values, cursor->matrix<blender::float4x4>().ptr());
+  copy_m4_m4((float (*)[4])values, cursor->matrix<blender::float4x4>().ptr());
 }
 
 static void rna_View3DCursor_matrix_set(PointerRNA *ptr, const float *values)
 {
   View3DCursor *cursor = static_cast<View3DCursor *>(ptr->data);
   float unit_mat[4][4];
-  normalize_m4_m4(unit_mat, (const float(*)[4])values);
+  normalize_m4_m4(unit_mat, (const float (*)[4])values);
   cursor->set_matrix(blender::float4x4(unit_mat), false);
 }
 

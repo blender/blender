@@ -1330,7 +1330,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del,
     /* handle multi-res data */
     if (cd_loop_mdisp_offset != -1) {
       float f_center[3];
-      float(*faces_center)[3] = BLI_array_alloca(faces_center, totface);
+      float (*faces_center)[3] = BLI_array_alloca(faces_center, totface);
 
       BM_face_calc_center_median(f_new, f_center);
       for (i = 0; i < totface; i++) {

@@ -431,7 +431,7 @@ static void deform_verts(ModifierData *md,
                           ctx,
                           ctx->object,
                           mesh,
-                          reinterpret_cast<float(*)[3]>(positions.data()),
+                          reinterpret_cast<float (*)[3]>(positions.data()),
                           positions.size());
 }
 

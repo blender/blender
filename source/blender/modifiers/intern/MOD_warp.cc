@@ -190,7 +190,7 @@ static void warpModifier_do(WarpModifierData *wmd,
   int defgrp_index;
   const MDeformVert *dvert, *dv = nullptr;
   const bool invert_vgroup = (wmd->flag & MOD_WARP_INVERT_VGROUP) != 0;
-  float(*tex_co)[3] = nullptr;
+  float (*tex_co)[3] = nullptr;
 
   if (!(wmd->object_from && wmd->object_to)) {
     return;
@@ -336,7 +336,7 @@ static void deform_verts(ModifierData *md,
 {
   WarpModifierData *wmd = (WarpModifierData *)md;
   warpModifier_do(
-      wmd, ctx, mesh, reinterpret_cast<float(*)[3]>(positions.data()), positions.size());
+      wmd, ctx, mesh, reinterpret_cast<float (*)[3]>(positions.data()), positions.size());
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)

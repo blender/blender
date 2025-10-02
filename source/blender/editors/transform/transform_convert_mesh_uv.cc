@@ -360,7 +360,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
         const bool selected = uvedit_uv_select_test(scene, l, offsets);
-        float(*luv)[2];
+        float (*luv)[2];
         const float *center = nullptr;
         float prop_distance = FLT_MAX;
 
@@ -380,7 +380,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
           }
         }
 
-        luv = (float(*)[2])BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
+        luv = (float (*)[2])BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
         UVsToTransData(t->aspect, *luv, center, prop_distance, selected, l, td++, td2d++);
       }
     }

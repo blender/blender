@@ -103,8 +103,8 @@ class Context {
 
   virtual void memory_statistics_get(int *r_total_mem, int *r_free_mem) = 0;
 
-  virtual void debug_group_begin(const char * /*name*/, int /*index*/){};
-  virtual void debug_group_end(){};
+  virtual void debug_group_begin(const char * /*name*/, int /*index*/) {};
+  virtual void debug_group_end() {};
 
   /* Returns true if capture successfully started. */
   virtual bool debug_capture_begin(const char *title) = 0;

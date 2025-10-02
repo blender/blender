@@ -37,7 +37,7 @@ class Fluids : Overlay {
   int dominant_axis = -1;
 
  public:
-  Fluids(const SelectionType selection_type) : selection_type_(selection_type){};
+  Fluids(const SelectionType selection_type) : selection_type_(selection_type) {};
 
   void begin_sync(Resources &res, const State &state) final
   {

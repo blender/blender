@@ -58,7 +58,7 @@ class Axis {
  public:
   Axis() = default;
 
-  constexpr Axis(const Value axis) : axis_(axis){};
+  constexpr Axis(const Value axis) : axis_(axis) {};
 
   /** Convert an uppercase axis character 'X', 'Y' or 'Z' to an enum value. */
   constexpr static Axis from_char(char axis_char)
@@ -124,8 +124,8 @@ class AxisSigned {
  public:
   AxisSigned() = default;
 
-  constexpr AxisSigned(Value axis) : axis_(axis){};
-  constexpr AxisSigned(Axis axis) : axis_(from_int(axis.as_int())){};
+  constexpr AxisSigned(Value axis) : axis_(axis) {};
+  constexpr AxisSigned(Axis axis) : axis_(from_int(axis.as_int())) {};
 
   /** Allow casting from DNA enums stored as short / int. */
   constexpr static AxisSigned from_int(int axis_int)

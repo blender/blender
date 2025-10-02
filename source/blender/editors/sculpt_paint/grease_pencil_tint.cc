@@ -33,7 +33,7 @@ using ed::greasepencil::MutableDrawingInfo;
 
 class TintOperation : public GreasePencilStrokeOperation {
  public:
-  TintOperation(bool temp_eraser = false) : temp_eraser_(temp_eraser){};
+  TintOperation(bool temp_eraser = false) : temp_eraser_(temp_eraser) {};
   void on_stroke_begin(const bContext &C, const InputSample &start_sample) override;
   void on_stroke_extended(const bContext &C, const InputSample &extension_sample) override;
   void on_stroke_done(const bContext &C) override;
@@ -209,7 +209,7 @@ void TintOperation::tint_fills(const bke::CurvesGeometry &strokes,
       return false;
     }
     return isect_point_poly_v2(
-        mouse, reinterpret_cast<const float(*)[2]>(points.data()), points.size());
+        mouse, reinterpret_cast<const float (*)[2]>(points.data()), points.size());
   };
 
   threading::parallel_for(strokes.curves_range(), 512, [&](const IndexRange curves) {

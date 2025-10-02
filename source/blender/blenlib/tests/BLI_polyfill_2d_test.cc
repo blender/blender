@@ -238,7 +238,7 @@ static void test_polyfill_template_flip_sign(const char *id,
                                              uint tris[][3],
                                              const uint tris_num)
 {
-  float(*poly_copy)[2] = MEM_malloc_arrayN<float[2]>(poly_num, id);
+  float (*poly_copy)[2] = MEM_malloc_arrayN<float[2]>(poly_num, id);
   for (int flip_x = 0; flip_x < 2; flip_x++) {
     for (int flip_y = 0; flip_y < 2; flip_y++) {
       float sign_x = flip_x ? -1.0f : 1.0f;
@@ -263,7 +263,7 @@ static void test_polyfill_template_main(const char *id,
 {
   /* overkill? - try at _every_ offset & reverse */
   uint poly_reverse;
-  float(*poly_copy)[2] = MEM_malloc_arrayN<float[2]>(poly_num, id);
+  float (*poly_copy)[2] = MEM_malloc_arrayN<float[2]>(poly_num, id);
   float tmp[2];
 
   memcpy(poly_copy, poly, sizeof(float[2]) * poly_num);
@@ -395,7 +395,7 @@ static void polyfill_to_obj(const char *id,
  * \endcode
  */
 
-#define POLY_TRI_COUNT(len) ((len)-2)
+#define POLY_TRI_COUNT(len) ((len) - 2)
 
 /* A counterclockwise triangle */
 TEST(polyfill2d, TriangleCCW)

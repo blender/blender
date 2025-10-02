@@ -173,7 +173,7 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *f_dst, const BMFace *f_src, con
   const void **blocks_v = do_vertex ?
                               static_cast<const void **>(BLI_array_alloca(blocks_v, f_src->len)) :
                               nullptr;
-  float(*cos_2d)[2] = static_cast<float(*)[2]>(BLI_array_alloca(cos_2d, f_src->len));
+  float (*cos_2d)[2] = static_cast<float (*)[2]>(BLI_array_alloca(cos_2d, f_src->len));
   float axis_mat[3][3]; /* use normal to transform into 2d xy coords */
   int i;
 
@@ -496,7 +496,7 @@ void BM_loop_interp_multires_ex(BMesh * /*bm*/,
     md_dst->totdisp = md_src->totdisp;
     md_dst->level = md_src->level;
     if (md_dst->totdisp) {
-      md_dst->disps = static_cast<float(*)[3]>(
+      md_dst->disps = static_cast<float (*)[3]>(
           MEM_callocN(sizeof(float[3]) * md_dst->totdisp, __func__));
     }
     else {
@@ -691,7 +691,7 @@ void BM_loop_interp_from_face(
                              static_cast<const void **>(BLI_array_alloca(vblocks, f_src->len)) :
                              nullptr;
   const void **blocks = static_cast<const void **>(BLI_array_alloca(blocks, f_src->len));
-  float(*cos_2d)[2] = static_cast<float(*)[2]>(BLI_array_alloca(cos_2d, f_src->len));
+  float (*cos_2d)[2] = static_cast<float (*)[2]>(BLI_array_alloca(cos_2d, f_src->len));
   float *w = static_cast<float *>(BLI_array_alloca(w, f_src->len));
   float axis_mat[3][3]; /* use normal to transform into 2d xy coords */
   float co[2];
@@ -742,7 +742,7 @@ void BM_vert_interp_from_face(BMesh *bm, BMVert *v_dst, const BMFace *f_src)
   BMLoop *l_iter;
   BMLoop *l_first;
   const void **blocks = static_cast<const void **>(BLI_array_alloca(blocks, f_src->len));
-  float(*cos_2d)[2] = static_cast<float(*)[2]>(BLI_array_alloca(cos_2d, f_src->len));
+  float (*cos_2d)[2] = static_cast<float (*)[2]>(BLI_array_alloca(cos_2d, f_src->len));
   float *w = static_cast<float *>(BLI_array_alloca(w, f_src->len));
   float axis_mat[3][3]; /* use normal to transform into 2d xy coords */
   float co[2];

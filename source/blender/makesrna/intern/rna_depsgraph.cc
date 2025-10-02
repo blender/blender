@@ -167,13 +167,13 @@ static void rna_DepsgraphObjectInstance_matrix_world_get(PointerRNA *ptr, float 
   RNA_DepsgraphIterator *di = static_cast<RNA_DepsgraphIterator *>(ptr->data);
   DEGObjectIterData *deg_iter = (DEGObjectIterData *)di->iter.data;
   if (deg_iter->dupli_object_current != nullptr) {
-    copy_m4_m4((float(*)[4])mat, deg_iter->dupli_object_current->mat);
+    copy_m4_m4((float (*)[4])mat, deg_iter->dupli_object_current->mat);
   }
   else {
     /* We can return actual object's matrix here, no reason to return identity matrix
      * when this is not actually an instance... */
     Object *ob = (Object *)di->iter.current;
-    copy_m4_m4((float(*)[4])mat, ob->object_to_world().ptr());
+    copy_m4_m4((float (*)[4])mat, ob->object_to_world().ptr());
   }
 }
 

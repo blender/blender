@@ -51,7 +51,7 @@ bool BLI_lasso_is_point_inside(const Span<int2> mcoords,
 
   const int pt[2] = {sx, sy};
   return isect_point_poly_v2_int(
-      pt, reinterpret_cast<const int(*)[2]>(mcoords.data()), uint(mcoords.size()));
+      pt, reinterpret_cast<const int (*)[2]>(mcoords.data()), uint(mcoords.size()));
 }
 
 bool BLI_lasso_is_edge_inside(

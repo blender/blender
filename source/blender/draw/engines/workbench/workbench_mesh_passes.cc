@@ -10,7 +10,7 @@ namespace blender::workbench {
 /** \name MeshPass
  * \{ */
 
-MeshPass::MeshPass(const char *name) : PassMain(name){};
+MeshPass::MeshPass(const char *name) : PassMain(name) {};
 
 bool MeshPass::is_empty() const
 {

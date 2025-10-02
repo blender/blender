@@ -459,15 +459,15 @@ static LoopPairStore *bm_edgering_pair_store_create(BMesh *bm,
 
     BMEdgeLoopStore *el_store_pair[2] = {el_store_a, el_store_b};
     uint side_index;
-    float(*nors_pair[2])[3];
+    float (*nors_pair[2])[3];
     GHash *nors_gh_pair[2];
 
     BM_edgeloop_edges_get(el_store_a, e_arr_a);
     BM_edgeloop_edges_get(el_store_b, e_arr_b);
 
-    lpair->nors_a = static_cast<float(*)[3]>(
+    lpair->nors_a = static_cast<float (*)[3]>(
         MEM_mallocN(sizeof(*lpair->nors_a) * len_a, __func__));
-    lpair->nors_b = static_cast<float(*)[3]>(
+    lpair->nors_b = static_cast<float (*)[3]>(
         MEM_mallocN(sizeof(*lpair->nors_b) * len_b, __func__));
 
     nors_pair[0] = lpair->nors_a;
@@ -495,7 +495,7 @@ static LoopPairStore *bm_edgering_pair_store_create(BMesh *bm,
       BMEdgeLoopStore *el_store = el_store_pair[side_index];
       ListBase *lb = BM_edgeloop_verts_get(el_store);
       GHash *nors_gh_iter = nors_gh_pair[side_index];
-      float(*nor)[3] = nors_pair[side_index];
+      float (*nor)[3] = nors_pair[side_index];
 
       LinkData *v_iter;
 
@@ -556,7 +556,7 @@ static void bm_edgering_pair_interpolate(BMesh *bm,
 
   BMEdgeLoopStore *el_store_ring;
 
-  float(*coord_array_main)[3] = nullptr;
+  float (*coord_array_main)[3] = nullptr;
 
   BM_edgeloop_calc_center(bm, el_store_a);
   BM_edgeloop_calc_center(bm, el_store_b);
@@ -610,7 +610,7 @@ static void bm_edgering_pair_interpolate(BMesh *bm,
     add_v3_v3(handle_a, el_store_a_co);
     add_v3_v3(handle_b, el_store_b_co);
 
-    coord_array_main = static_cast<float(*)[3]>(
+    coord_array_main = static_cast<float (*)[3]>(
         MEM_mallocN(dims * (resolu) * sizeof(float), __func__));
 
     for (i = 0; i < dims; i++) {
@@ -627,7 +627,7 @@ static void bm_edgering_pair_interpolate(BMesh *bm,
   switch (interp_mode) {
     case SUBD_RING_INTERP_LINEAR: {
       if (falloff_cache) {
-        float(*coord_array)[3] = static_cast<float(*)[3]>(
+        float (*coord_array)[3] = static_cast<float (*)[3]>(
             MEM_mallocN(dims * (resolu) * sizeof(float), __func__));
         for (i = 0; i < resolu; i++) {
           interp_v3_v3v3(
@@ -661,13 +661,13 @@ static void bm_edgering_pair_interpolate(BMesh *bm,
       break;
     }
     case SUBD_RING_INTERP_PATH: {
-      float(*direction_array)[3] = static_cast<float(*)[3]>(
+      float (*direction_array)[3] = static_cast<float (*)[3]>(
           MEM_mallocN(dims * (resolu) * sizeof(float), __func__));
-      float(*quat_array)[4] = static_cast<float(*)[4]>(
+      float (*quat_array)[4] = static_cast<float (*)[4]>(
           MEM_mallocN(resolu * sizeof(*quat_array), __func__));
-      float(*tri_array)[3][3] = static_cast<float(*)[3][3]>(
+      float (*tri_array)[3][3] = static_cast<float (*)[3][3]>(
           MEM_mallocN(resolu * sizeof(*tri_array), __func__));
-      float(*tri_sta)[3], (*tri_end)[3], (*tri_tmp)[3];
+      float (*tri_sta)[3], (*tri_end)[3], (*tri_tmp)[3];
 
       /* very similar to make_bevel_list_3D_minimum_twist */
 
@@ -755,7 +755,7 @@ static void bm_edgering_pair_interpolate(BMesh *bm,
       break;
     }
     case SUBD_RING_INTERP_SURF: {
-      float(*coord_array)[3] = static_cast<float(*)[3]>(
+      float (*coord_array)[3] = static_cast<float (*)[3]>(
           MEM_mallocN(dims * (resolu) * sizeof(float), __func__));
 
       /* calculate a bezier handle per edge ring */

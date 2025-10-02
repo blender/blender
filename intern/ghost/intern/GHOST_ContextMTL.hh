@@ -177,5 +177,5 @@ class GHOST_ContextMTL : public GHOST_Context {
   void metalInitFramebuffer();
   void metalUpdateFramebuffer();
   void metalSwapBuffers();
-  void initClear(){};
+  void initClear() {};
 };

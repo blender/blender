@@ -76,9 +76,7 @@ enum {
 
 /* Mapping between 'our' sides and 'public' UI_BUT_ALIGN flags, order must match enum above. */
 #define SIDE_TO_UI_BUT_ALIGN \
-  { \
-    UI_BUT_ALIGN_LEFT, UI_BUT_ALIGN_TOP, UI_BUT_ALIGN_RIGHT, UI_BUT_ALIGN_DOWN \
-  }
+  {UI_BUT_ALIGN_LEFT, UI_BUT_ALIGN_TOP, UI_BUT_ALIGN_RIGHT, UI_BUT_ALIGN_DOWN}
 
 /* Given one side, compute the three other ones */
 #define SIDE1(_s) (((_s) + 1) % TOTSIDES)

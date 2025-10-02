@@ -59,7 +59,7 @@ struct CameraData {
 
 #ifdef __cplusplus
   /* Small constructor to allow detecting new buffers. */
-  CameraData() : initialized(false){};
+  CameraData() : initialized(false) {};
 #endif
 };
 BLI_STATIC_ASSERT_ALIGN(CameraData, 16)

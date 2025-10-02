@@ -138,7 +138,7 @@ class Interface1D {
   }
 
   /** Destructor */
-  virtual ~Interface1D(){};
+  virtual ~Interface1D() {};
 
   /** Returns the string "Interface1D". */
   virtual string getExactTypeName() const

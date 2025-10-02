@@ -81,7 +81,7 @@ class VKDescriptorSet : NonCopyable {
 
 class VKDescriptorSetUpdator {
  public:
-  virtual ~VKDescriptorSetUpdator(){};
+  virtual ~VKDescriptorSetUpdator() {};
 
   virtual void allocate_new_descriptor_set(VKDevice &device,
                                            VKContext &context,

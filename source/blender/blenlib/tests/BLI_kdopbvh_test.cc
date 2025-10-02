@@ -54,7 +54,7 @@ static void optimal_check_callback(void *userdata,
                                    const float co[3],
                                    BVHTreeNearest *nearest)
 {
-  float(*points)[3] = (float(*)[3])userdata;
+  float (*points)[3] = (float (*)[3])userdata;
 
   /* BVH_NEAREST_OPTIMAL_ORDER should hit the right node on the first try */
   EXPECT_EQ(nearest->index, -1);
@@ -75,7 +75,7 @@ static void find_nearest_points_test(
   BVHTree *tree = BLI_bvhtree_new(points_len, 0.0, 8, 8);
 
   void *mem = MEM_malloc_arrayN<float[3]>(size_t(points_len), __func__);
-  float(*points)[3] = (float(*)[3])mem;
+  float (*points)[3] = (float (*)[3])mem;
 
   for (int i = 0; i < points_len; i++) {
     rng_v3_round(points[i], 3, rng, round, scale);

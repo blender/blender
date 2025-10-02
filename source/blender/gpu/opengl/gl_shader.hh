@@ -141,7 +141,7 @@ class GLShader : public Shader {
   void compute_shader_from_glsl(MutableSpan<StringRefNull> sources) override;
   bool finalize(const shader::ShaderCreateInfo *info = nullptr) override;
   bool post_finalize(const shader::ShaderCreateInfo *info = nullptr);
-  void warm_cache(int /*limit*/) override{};
+  void warm_cache(int /*limit*/) override {};
 
   std::string resources_declare(const shader::ShaderCreateInfo &info) const override;
   std::string constants_declare(const shader::SpecializationConstants &constants_state) const;
@@ -198,7 +198,8 @@ class GLShader : public Shader {
 class GLShaderCompiler : public ShaderCompiler {
  public:
   GLShaderCompiler()
-      : ShaderCompiler(GPU_max_parallel_compilations(), GPUWorker::ContextType::PerThread, true){};
+      : ShaderCompiler(GPU_max_parallel_compilations(), GPUWorker::ContextType::PerThread, true) {
+        };
 
   virtual void specialize_shader(ShaderSpecialization &specialization) override;
 };
@@ -250,7 +251,8 @@ class GLSubprocessShaderCompiler : public ShaderCompiler {
 
  public:
   GLSubprocessShaderCompiler()
-      : ShaderCompiler(GPU_max_parallel_compilations(), GPUWorker::ContextType::PerThread, true){};
+      : ShaderCompiler(GPU_max_parallel_compilations(), GPUWorker::ContextType::PerThread, true) {
+        };
   virtual ~GLSubprocessShaderCompiler() override;
 
   virtual Shader *compile_shader(const shader::ShaderCreateInfo &info) override;

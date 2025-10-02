@@ -116,9 +116,9 @@ static void subdiv_mesh_ctx_cache_custom_data_layers(SubdivMeshContext *ctx)
   /* UV layers interpolation. */
   subdiv_mesh_ctx_cache_uv_layers(ctx);
   /* Orco interpolation. */
-  ctx->orco = static_cast<float(*)[3]>(
+  ctx->orco = static_cast<float (*)[3]>(
       CustomData_get_layer_for_write(&subdiv_mesh->vert_data, CD_ORCO, subdiv_mesh->verts_num));
-  ctx->cloth_orco = static_cast<float(*)[3]>(CustomData_get_layer_for_write(
+  ctx->cloth_orco = static_cast<float (*)[3]>(CustomData_get_layer_for_write(
       &subdiv_mesh->vert_data, CD_CLOTH_ORCO, subdiv_mesh->verts_num));
 }
 

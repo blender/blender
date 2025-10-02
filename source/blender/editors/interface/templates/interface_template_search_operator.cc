@@ -50,7 +50,7 @@ static void operator_search_update_fn(const bContext *C,
   const int words_max = BLI_string_max_possible_word_count(str_len);
   blender::Array<blender::int2> words(words_max);
   const int words_len = BLI_string_find_split_words(
-      str, str_len, ' ', (int(*)[2])words.data(), words_max);
+      str, str_len, ' ', (int (*)[2])words.data(), words_max);
 
   for (wmOperatorType *ot : WM_operatortypes_registered_get()) {
     const char *ot_ui_name = CTX_IFACE_(ot->translation_context, ot->name);
@@ -59,7 +59,7 @@ static void operator_search_update_fn(const bContext *C,
       continue;
     }
 
-    if (BLI_string_all_words_matched(ot_ui_name, str, (int(*)[2])words.data(), words_len)) {
+    if (BLI_string_all_words_matched(ot_ui_name, str, (int (*)[2])words.data(), words_len)) {
       if (WM_operator_poll((bContext *)C, ot)) {
         std::string name = ot_ui_name;
         if (const std::optional<std::string> kmi_str = WM_key_event_operator_string(

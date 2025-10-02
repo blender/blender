@@ -318,8 +318,8 @@ static void maximum_common_subgraph_internal(int incumbent[][2],
 {
   int min = std::min(n0, n1);
 
-  uint8_t(*cur)[2] = (uint8_t(*)[2])MEM_mallocN(min * sizeof(*cur), __func__);
-  uint8_t(*domains)[BDS] = (uint8_t(*)[8])MEM_mallocN(min * min * sizeof(*domains), __func__);
+  uint8_t (*cur)[2] = (uint8_t (*)[2])MEM_mallocN(min * sizeof(*cur), __func__);
+  uint8_t (*domains)[BDS] = (uint8_t (*)[8])MEM_mallocN(min * min * sizeof(*domains), __func__);
   uint8_t *left = static_cast<uint8_t *>(MEM_mallocN(n0 * sizeof *left, __func__));
   uint8_t *right = static_cast<uint8_t *>(MEM_mallocN(n1 * sizeof *right, __func__));
 

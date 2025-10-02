@@ -67,9 +67,9 @@ ATOMIC_INLINE size_t atomic_add_and_fetch_z(size_t *p, size_t x)
 ATOMIC_INLINE size_t atomic_sub_and_fetch_z(size_t *p, size_t x)
 {
 #if (LG_SIZEOF_PTR == 8)
-  return (size_t)atomic_add_and_fetch_uint64((uint64_t *)p, (uint64_t) - ((int64_t)x));
+  return (size_t)atomic_add_and_fetch_uint64((uint64_t *)p, (uint64_t)-((int64_t)x));
 #elif (LG_SIZEOF_PTR == 4)
-  return (size_t)atomic_add_and_fetch_uint32((uint32_t *)p, (uint32_t) - ((int32_t)x));
+  return (size_t)atomic_add_and_fetch_uint32((uint32_t *)p, (uint32_t)-((int32_t)x));
 #endif
 }
 
@@ -85,9 +85,9 @@ ATOMIC_INLINE size_t atomic_fetch_and_add_z(size_t *p, size_t x)
 ATOMIC_INLINE size_t atomic_fetch_and_sub_z(size_t *p, size_t x)
 {
 #if (LG_SIZEOF_PTR == 8)
-  return (size_t)atomic_fetch_and_add_uint64((uint64_t *)p, (uint64_t) - ((int64_t)x));
+  return (size_t)atomic_fetch_and_add_uint64((uint64_t *)p, (uint64_t)-((int64_t)x));
 #elif (LG_SIZEOF_PTR == 4)
-  return (size_t)atomic_fetch_and_add_uint32((uint32_t *)p, (uint32_t) - ((int32_t)x));
+  return (size_t)atomic_fetch_and_add_uint32((uint32_t *)p, (uint32_t)-((int32_t)x));
 #endif
 }
 
@@ -146,9 +146,9 @@ ATOMIC_INLINE unsigned int atomic_add_and_fetch_u(unsigned int *p, unsigned int 
 ATOMIC_INLINE unsigned int atomic_sub_and_fetch_u(unsigned int *p, unsigned int x)
 {
 #if (LG_SIZEOF_INT == 8)
-  return (unsigned int)atomic_add_and_fetch_uint64((uint64_t *)p, (uint64_t) - ((int64_t)x));
+  return (unsigned int)atomic_add_and_fetch_uint64((uint64_t *)p, (uint64_t)-((int64_t)x));
 #elif (LG_SIZEOF_INT == 4)
-  return (unsigned int)atomic_add_and_fetch_uint32((uint32_t *)p, (uint32_t) - ((int32_t)x));
+  return (unsigned int)atomic_add_and_fetch_uint32((uint32_t *)p, (uint32_t)-((int32_t)x));
 #endif
 }
 
@@ -164,9 +164,9 @@ ATOMIC_INLINE unsigned int atomic_fetch_and_add_u(unsigned int *p, unsigned int 
 ATOMIC_INLINE unsigned int atomic_fetch_and_sub_u(unsigned int *p, unsigned int x)
 {
 #if (LG_SIZEOF_INT == 8)
-  return (unsigned int)atomic_fetch_and_add_uint64((uint64_t *)p, (uint64_t) - ((int64_t)x));
+  return (unsigned int)atomic_fetch_and_add_uint64((uint64_t *)p, (uint64_t)-((int64_t)x));
 #elif (LG_SIZEOF_INT == 4)
-  return (unsigned int)atomic_fetch_and_add_uint32((uint32_t *)p, (uint32_t) - ((int32_t)x));
+  return (unsigned int)atomic_fetch_and_add_uint32((uint32_t *)p, (uint32_t)-((int32_t)x));
 #endif
 }
 

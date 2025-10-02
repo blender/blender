@@ -96,7 +96,7 @@ static bool bm_vert_pair_share_splittable_face_cb(BMFace * /*f*/,
                                                   BMLoop *l_b,
                                                   void *userdata)
 {
-  float(*data)[3] = static_cast<float(*)[3]>(userdata);
+  float (*data)[3] = static_cast<float (*)[3]>(userdata);
   float *v_a_co = data[0];
   float *v_a_b_dir = data[1];
   const float range_min = -FLT_EPSILON;

@@ -129,7 +129,7 @@ float BM_face_uv_calc_cross(const BMFace *f, const int cd_loop_uv_offset)
   do {
     uvs[i++] = BM_ELEM_CD_GET_FLOAT2_P(l_iter, cd_loop_uv_offset);
   } while ((l_iter = l_iter->next) != l_first);
-  return cross_poly_v2(reinterpret_cast<const float(*)[2]>(uvs.data()), f->len);
+  return cross_poly_v2(reinterpret_cast<const float (*)[2]>(uvs.data()), f->len);
 }
 
 void BM_face_uv_minmax(const BMFace *f, float min[2], float max[2], const int cd_loop_uv_offset)
@@ -207,5 +207,5 @@ bool BM_face_uv_point_inside_test(const BMFace *f, const float co[2], const int 
     projverts[i] = BM_ELEM_CD_GET_FLOAT2_P(l_iter, cd_loop_uv_offset);
   }
 
-  return isect_point_poly_v2(co, reinterpret_cast<const float(*)[2]>(projverts.data()), f->len);
+  return isect_point_poly_v2(co, reinterpret_cast<const float (*)[2]>(projverts.data()), f->len);
 }

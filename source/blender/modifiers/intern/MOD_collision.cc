@@ -133,17 +133,18 @@ static void deform_verts(ModifierData *md,
         mul_m4_v3(ob->object_to_world().ptr(), collmd->x[i]);
       }
 
-      collmd->xnew = static_cast<float(*)[3]>(MEM_dupallocN(collmd->x)); /* Frame end position. */
-      collmd->current_x = static_cast<float(*)[3]>(MEM_dupallocN(collmd->x));    /* Inter-frame. */
-      collmd->current_xnew = static_cast<float(*)[3]>(MEM_dupallocN(collmd->x)); /* Inter-frame. */
-      collmd->current_v = static_cast<float(*)[3]>(MEM_dupallocN(collmd->x));    /* Inter-frame. */
+      collmd->xnew = static_cast<float (*)[3]>(MEM_dupallocN(collmd->x)); /* Frame end position. */
+      collmd->current_x = static_cast<float (*)[3]>(MEM_dupallocN(collmd->x)); /* Inter-frame. */
+      collmd->current_xnew = static_cast<float (*)[3]>(
+          MEM_dupallocN(collmd->x));                                           /* Inter-frame. */
+      collmd->current_v = static_cast<float (*)[3]>(MEM_dupallocN(collmd->x)); /* Inter-frame. */
 
       collmd->mvert_num = mvert_num;
 
       {
         const blender::Span<blender::int3> corner_tris = mesh->corner_tris();
         collmd->tri_num = corner_tris.size();
-        int(*vert_tris)[3] = MEM_malloc_arrayN<int[3]>(collmd->tri_num, __func__);
+        int (*vert_tris)[3] = MEM_malloc_arrayN<int[3]>(collmd->tri_num, __func__);
         blender::bke::mesh::vert_tris_from_corner_tris(
             mesh->corner_verts(),
             corner_tris,
@@ -163,7 +164,7 @@ static void deform_verts(ModifierData *md,
     }
     else if (mvert_num == collmd->mvert_num) {
       /* put positions to old positions */
-      float(*temp)[3] = collmd->x;
+      float (*temp)[3] = collmd->x;
       collmd->x = collmd->xnew;
       collmd->xnew = temp;
       collmd->time_x = collmd->time_xnew;

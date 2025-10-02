@@ -219,7 +219,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
   const bool is_new = !(bm->totvert || (bm->vdata.totlayer || bm->edata.totlayer ||
                                         bm->pdata.totlayer || bm->ldata.totlayer));
   KeyBlock *actkey;
-  float(*keyco)[3] = nullptr;
+  float (*keyco)[3] = nullptr;
   CustomData_MeshMasks mask = CD_MASK_BMESH;
   CustomData_MeshMasks_update(&mask, &params->cd_mask_extra);
 
@@ -346,9 +346,9 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
   if (is_new == false) {
     tot_shape_keys = min_ii(tot_shape_keys, CustomData_number_of_layers(&bm->vdata, CD_SHAPEKEY));
   }
-  const float(**shape_key_table)[3] = tot_shape_keys ? (const float(**)[3])BLI_array_alloca(
-                                                           shape_key_table, tot_shape_keys) :
-                                                       nullptr;
+  const float (**shape_key_table)[3] = tot_shape_keys ? (const float (**)[3])BLI_array_alloca(
+                                                            shape_key_table, tot_shape_keys) :
+                                                        nullptr;
 
   if ((params->active_shapekey != 0) && tot_shape_keys > 0) {
     actkey = static_cast<KeyBlock *>(BLI_findlink(&mesh->key->block, params->active_shapekey - 1));
@@ -381,7 +381,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
     }
 
     if (actkey && actkey->totelem == mesh->verts_num) {
-      keyco = params->use_shapekey ? static_cast<float(*)[3]>(actkey->data) : nullptr;
+      keyco = params->use_shapekey ? static_cast<float (*)[3]>(actkey->data) : nullptr;
       if (is_new) {
         bm->shapenr = params->active_shapekey;
       }
@@ -397,7 +397,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
         int j = CustomData_get_layer_index_n(&bm->vdata, CD_SHAPEKEY, i);
         bm->vdata.layers[j].uid = block->uid;
       }
-      shape_key_table[i] = static_cast<const float(*)[3]>(block->data);
+      shape_key_table[i] = static_cast<const float (*)[3]>(block->data);
     }
   }
 
@@ -459,7 +459,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
 
     /* Set shape-key data. */
     if (tot_shape_keys) {
-      float(*co_dst)[3] = (float(*)[3])BM_ELEM_CD_GET_VOID_P(v, cd_shape_key_offset);
+      float (*co_dst)[3] = (float (*)[3])BM_ELEM_CD_GET_VOID_P(v, cd_shape_key_offset);
       for (int j = 0; j < tot_shape_keys; j++, co_dst++) {
         copy_v3_v3(*co_dst, shape_key_table[j][i]);
       }
@@ -795,7 +795,7 @@ static void bm_to_mesh_shape(BMesh *bm,
   const int cd_shape_keyindex_offset = CustomData_get_offset(&bm->vdata, CD_SHAPE_KEYINDEX);
   BMIter iter;
   BMVert *eve;
-  float(*ofs)[3] = nullptr;
+  float (*ofs)[3] = nullptr;
   std::optional<Array<bool>> dependent;
 
   /* Editing the basis key updates others. */
@@ -816,7 +816,7 @@ static void bm_to_mesh_shape(BMesh *bm,
 
     const int cd_shape_offset = CustomData_get_n_offset(&bm->vdata, CD_SHAPEKEY, actkey_uuid);
 
-    ofs = static_cast<float(*)[3]>(MEM_mallocN(sizeof(float[3]) * bm->totvert, __func__));
+    ofs = static_cast<float (*)[3]>(MEM_mallocN(sizeof(float[3]) * bm->totvert, __func__));
     int i;
     BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
       const int keyi = BM_ELEM_CD_GET_INT(eve, cd_shape_keyindex_offset);
@@ -862,7 +862,7 @@ static void bm_to_mesh_shape(BMesh *bm,
   int currkey_i;
   LISTBASE_FOREACH_INDEX (KeyBlock *, currkey, &key->block, currkey_i) {
     int keyi;
-    float(*currkey_data)[3];
+    float (*currkey_data)[3];
 
     const int currkey_uuid = bm_to_mesh_shape_layer_index_from_kb(bm, currkey);
     const int cd_shape_offset = (currkey_uuid == -1) ?
@@ -880,7 +880,7 @@ static void bm_to_mesh_shape(BMesh *bm,
         currkey->data = MEM_reallocN(currkey->data, key->elemsize * bm->totvert);
         currkey->totelem = bm->totvert;
       }
-      currkey_data = (float(*)[3])currkey->data;
+      currkey_data = (float (*)[3])currkey->data;
 
       int i;
       BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
@@ -927,7 +927,7 @@ static void bm_to_mesh_shape(BMesh *bm,
                   "using basis shape-key data");
       }
 
-      currkey_data = static_cast<float(*)[3]>(
+      currkey_data = static_cast<float (*)[3]>(
           MEM_mallocN(key->elemsize * bm->totvert, "currkey->data"));
 
       int i;
@@ -942,7 +942,7 @@ static void bm_to_mesh_shape(BMesh *bm,
            * coordinates may be flushed back to the shape-key when exporting or rendering.
            * This is a last resort! If this branch is running as part of regular usage
            * it can be considered a bug. */
-          const float(*oldkey)[3] = static_cast<const float(*)[3]>(currkey->data);
+          const float (*oldkey)[3] = static_cast<const float (*)[3]>(currkey->data);
           copy_v3_v3(currkey_data[i], oldkey[keyi]);
         }
         else {

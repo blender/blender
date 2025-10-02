@@ -372,8 +372,8 @@ void BKE_volume_grid_wireframe(const Volume *volume,
       boxes_to_edge_mesh({box}, grid.transform(), verts, edges);
     }
     cb(cb_userdata,
-       (float(*)[3])verts.data(),
-       (int(*)[2])edges.data(),
+       (float (*)[3])verts.data(),
+       (int (*)[2])edges.data(),
        verts.size(),
        edges.size());
   }
@@ -395,8 +395,8 @@ void BKE_volume_grid_wireframe(const Volume *volume,
     }
 
     cb(cb_userdata,
-       (float(*)[3])verts.data(),
-       (int(*)[2])edges.data(),
+       (float (*)[3])verts.data(),
+       (int (*)[2])edges.data(),
        verts.size(),
        edges.size());
   }
@@ -453,7 +453,7 @@ void BKE_volume_grid_selection_surface(const Volume * /*volume*/,
   const float offset_factor = 0.01f;
   grow_triangles(verts, tris, offset_factor);
 
-  cb(cb_userdata, (float(*)[3])verts.data(), (int(*)[3])tris.data(), verts.size(), tris.size());
+  cb(cb_userdata, (float (*)[3])verts.data(), (int (*)[3])tris.data(), verts.size(), tris.size());
 #else
   UNUSED_VARS(volume_grid);
   cb(cb_userdata, nullptr, nullptr, 0, 0);

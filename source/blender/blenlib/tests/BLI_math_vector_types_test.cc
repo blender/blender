@@ -134,7 +134,7 @@ TEST(math_vec_types, PointerConversion)
 TEST(math_vec_types, PointerArrayConversion)
 {
   float array[1][3] = {{1.0f, 2.0f, 3.0f}};
-  float(*ptr)[3] = array;
+  float (*ptr)[3] = array;
   float3 fptr(ptr);
   EXPECT_EQ(fptr[0], 1.0f);
   EXPECT_EQ(fptr[1], 2.0f);

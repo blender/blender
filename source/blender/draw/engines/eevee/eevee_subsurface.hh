@@ -62,7 +62,7 @@ struct SubsurfaceModule {
     data_.sample_len = -1;
   };
 
-  ~SubsurfaceModule(){};
+  ~SubsurfaceModule() {};
 
   void end_sync();
 

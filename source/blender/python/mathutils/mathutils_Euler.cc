@@ -192,7 +192,7 @@ static PyObject *Euler_to_matrix(EulerObject *self)
     return nullptr;
   }
 
-  eulO_to_mat3((float(*)[3])mat, self->eul, self->order);
+  eulO_to_mat3((float (*)[3])mat, self->eul, self->order);
 
   return Matrix_CreatePyObject(mat, 3, 3, nullptr);
 }

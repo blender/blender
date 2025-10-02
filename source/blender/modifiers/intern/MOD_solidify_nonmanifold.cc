@@ -298,7 +298,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   /* Vert edge adjacent map. */
   OldVertEdgeRef **vert_adj_edges = MEM_calloc_arrayN<OldVertEdgeRef *>(verts_num, __func__);
   /* Original vertex positions (changed for degenerated geometry). */
-  float(*orig_mvert_co)[3] = MEM_malloc_arrayN<float[3]>(verts_num, __func__);
+  float (*orig_mvert_co)[3] = MEM_malloc_arrayN<float[3]>(verts_num, __func__);
   /* Fill in the original vertex positions. */
   for (uint i = 0; i < verts_num; i++) {
     orig_mvert_co[i][0] = orig_vert_positions[i][0];
@@ -1427,7 +1427,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
               NewEdgeRef *first_edge = nullptr;
               NewEdgeRef **edge_ptr = g->edges;
               /* Contains normal and offset `[nx, ny, nz, ofs]`. */
-              float(*planes_queue)[4] = MEM_malloc_arrayN<float[4]>(g->edges_len + 1, __func__);
+              float (*planes_queue)[4] = MEM_malloc_arrayN<float[4]>(g->edges_len + 1, __func__);
               uint queue_index = 0;
 
               float fallback_nor[3];

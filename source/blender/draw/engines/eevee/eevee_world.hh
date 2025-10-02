@@ -60,7 +60,7 @@ class World {
   LookdevWorld lookdev_world_;
 
  public:
-  World(Instance &inst) : inst_(inst){};
+  World(Instance &inst) : inst_(inst) {};
   ~World();
 
   /* Setup and request the background shader. */

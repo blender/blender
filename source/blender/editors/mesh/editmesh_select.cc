@@ -1457,7 +1457,7 @@ static wmOperatorStatus edbm_select_similar_region_exec(bContext *C, wmOperator 
   bool changed = false;
 
   /* Group variables. */
-  int(*group_index)[2];
+  int (*group_index)[2];
   int group_tot;
   int i;
 
@@ -3109,7 +3109,7 @@ bool EDBM_select_interior_faces(BMEditMesh *em)
   }
 
   /* Group variables. */
-  int(*fgroup_index)[2];
+  int (*fgroup_index)[2];
   int fgroup_len;
 
   int *fgroup_array = MEM_malloc_arrayN<int>(bm->totface, __func__);

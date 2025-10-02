@@ -1561,7 +1561,7 @@ static void interpolate_corner_attributes(bke::MutableAttributeAccessor &output_
           const Span<int> out_face_verts = output_corner_verts.slice(out_face);
           weights.resize(in_face_size);
           cos_2d.resize(in_face_size);
-          float(*cos_2d_p)[2] = reinterpret_cast<float(*)[2]>(cos_2d.data());
+          float (*cos_2d_p)[2] = reinterpret_cast<float (*)[2]>(cos_2d.data());
           const float3 axis_dominant = bke::mesh::face_normal_calc(input_vert_positions,
                                                                    in_face_verts);
           axis_dominant_v3_to_m3(axis_mat.ptr(), axis_dominant);

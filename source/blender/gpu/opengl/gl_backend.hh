@@ -178,9 +178,9 @@ class GLBackend : public GPUBackend {
   }
 
   /* Render Frame Coordination */
-  void render_begin() override{};
-  void render_end() override{};
-  void render_step(bool /*force_resource_release*/) override{};
+  void render_begin() override {};
+  void render_end() override {};
+  void render_step(bool /*force_resource_release*/) override {};
 
   bool debug_capture_begin(const char *title);
   void debug_capture_end();

@@ -20,8 +20,7 @@
 CCL_NAMESPACE_BEGIN
 
 #define OSL_CLOSURE_STRUCT_BEGIN(Upper, lower) \
-  struct ccl_align(8) Upper##Closure \
-  { \
+  struct ccl_align(8) Upper##Closure { \
     const char *label;
 #define OSL_CLOSURE_STRUCT_END(Upper, lower) \
   } \
@@ -31,8 +30,7 @@ CCL_NAMESPACE_BEGIN
 
 #include "closures_template.h"
 
-struct ccl_align(8) LayerClosure
-{
+struct ccl_align(8) LayerClosure {
   const ccl_private OSLClosure *base;
   const ccl_private OSLClosure *top;
 };

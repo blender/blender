@@ -1141,7 +1141,7 @@ ccl_device_inline void volume_distance_sampling_finalize(
     reservoir.add_sample(
         1.0f - guided_scatter_prob,
 #  ifdef __DENOISING_FEATURES__
-        {vstate.emission, reservoir.candidate.t, result.indirect_throughput, 0.0f, vstate.albedo}
+        { vstate.emission, reservoir.candidate.t, result.indirect_throughput, 0.0f, vstate.albedo }
 #  else
         {vstate.emission, reservoir.candidate.t, result.indirect_throughput, 0.0f}
 #  endif

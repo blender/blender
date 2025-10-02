@@ -122,7 +122,7 @@ int bm_mesh_calc_uv_islands(const Scene *scene,
 
   int *groups_array = MEM_malloc_arrayN<int>(bm->totface, __func__);
 
-  int(*group_index)[2];
+  int (*group_index)[2];
 
   /* Set the tag for `BM_mesh_calc_face_groups`. */
   BMFace *f;

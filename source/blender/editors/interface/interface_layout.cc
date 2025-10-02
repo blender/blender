@@ -232,7 +232,7 @@ struct LayoutOverlap : public uiLayout {
 struct LayoutRadial : public uiLayout {
   LayoutRadial() : uiLayout(uiItemType::LayoutRadial, nullptr) {}
 
-  void estimate_impl() override{};
+  void estimate_impl() override {};
   void resolve_impl() override;
 };
 

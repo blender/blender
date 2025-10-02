@@ -1216,7 +1216,7 @@ void lineart_main_cull_triangles(LineartData *ld, bool clip_far)
 {
   LineartTriangle *tri;
   LineartElementLinkNode *v_eln, *t_eln, *e_eln;
-  double(*m_view_projection)[4] = ld->conf.view_projection;
+  double (*m_view_projection)[4] = ld->conf.view_projection;
   int i;
   int v_count = 0, t_count = 0, e_count = 0;
   Object *ob;

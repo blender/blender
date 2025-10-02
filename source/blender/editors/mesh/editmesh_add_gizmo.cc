@@ -149,7 +149,7 @@ static void gizmo_placement_prop_matrix_get(const wmGizmo *gz,
 
   if (value_p != ggd->cage->matrix_offset) {
     mul_m4_m4m4(
-        static_cast<float(*)[4]>(value_p), ggd->cage->matrix_basis, ggd->cage->matrix_offset);
+        static_cast<float (*)[4]>(value_p), ggd->cage->matrix_basis, ggd->cage->matrix_offset);
     RNA_property_float_get_array(op->ptr, ggd->data.prop_matrix, value);
   }
 }
@@ -165,7 +165,7 @@ static void gizmo_placement_prop_matrix_set(const wmGizmo *gz,
   UNUSED_VARS_NDEBUG(gz_prop);
 
   float mat[4][4];
-  mul_m4_m4m4(mat, ggd->cage->matrix_basis, static_cast<const float(*)[4]>(value));
+  mul_m4_m4m4(mat, ggd->cage->matrix_basis, static_cast<const float (*)[4]>(value));
 
   if (is_negative_m4(mat)) {
     negate_mat3_m4(mat);

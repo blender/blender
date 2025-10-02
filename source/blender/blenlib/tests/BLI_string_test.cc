@@ -903,7 +903,7 @@ class StringFindSplitWords : public testing::Test {
         str.c_str(),
         max_length,
         ' ',
-        reinterpret_cast<int(*)[2]>(actual_word_info.data()),
+        reinterpret_cast<int (*)[2]>(actual_word_info.data()),
         effective_max_words);
     /* Schrink actual array to an actual number of words, so we can compare
      * vectors as-is. */

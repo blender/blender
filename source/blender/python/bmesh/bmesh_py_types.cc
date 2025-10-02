@@ -1542,14 +1542,14 @@ static PyObject *bpy_bmesh_transform(BPy_BMElem *self, PyObject *args, PyObject 
 
   if (!filter_flags) {
     BM_ITER_MESH (eve, &iter, self->bm, BM_VERTS_OF_MESH) {
-      mul_m4_v3((float(*)[4])mat_ptr, eve->co);
+      mul_m4_v3((float (*)[4])mat_ptr, eve->co);
     }
   }
   else {
     const char filter_flags_ch = char(filter_flags);
     BM_ITER_MESH (eve, &iter, self->bm, BM_VERTS_OF_MESH) {
       if (BM_elem_flag_test(eve, filter_flags_ch)) {
-        mul_m4_v3((float(*)[4])mat_ptr, eve->co);
+        mul_m4_v3((float (*)[4])mat_ptr, eve->co);
       }
     }
   }

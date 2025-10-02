@@ -219,7 +219,7 @@ static bool find_isomorphism(UvElementMap *dest,
 
   GraphISO *graph_dest = build_iso_graph(dest, dest_island_index, cd_loop_uv_offset);
 
-  int(*solution)[2] = (int(*)[2])MEM_mallocN(graph_source->n * sizeof(*solution), __func__);
+  int (*solution)[2] = (int (*)[2])MEM_mallocN(graph_source->n * sizeof(*solution), __func__);
   int solution_length = 0;
   const bool found = ED_uvedit_clipboard_maximum_common_subgraph(
       graph_source, graph_dest, solution, &solution_length, r_search_abandoned);

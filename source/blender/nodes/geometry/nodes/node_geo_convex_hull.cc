@@ -31,7 +31,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
 {
-  plConvexHull hull = plConvexHullCompute((float(*)[3])coords.data(), coords.size());
+  plConvexHull hull = plConvexHullCompute((float (*)[3])coords.data(), coords.size());
 
   const int verts_num = plConvexHullNumVertices(hull);
   const int faces_num = verts_num <= 2 ? 0 : plConvexHullNumFaces(hull);

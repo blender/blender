@@ -34,7 +34,7 @@ static void multires_subdivide_create_object_space_linear_grids(Mesh *mesh)
     for (int l = 0; l < face.size(); l++) {
       const int loop_index = face[l];
 
-      float(*disps)[3] = mdisps[loop_index].disps;
+      float (*disps)[3] = mdisps[loop_index].disps;
       mdisps[loop_index].totdisp = 4;
       mdisps[loop_index].level = 1;
 

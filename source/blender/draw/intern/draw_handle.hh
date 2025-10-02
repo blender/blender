@@ -57,7 +57,7 @@ struct ResourceIndex {
   uint32_t raw;
 
   ResourceIndex() = default;
-  ResourceIndex(uint raw_) : raw(raw_){};
+  ResourceIndex(uint raw_) : raw(raw_) {};
   ResourceIndex(uint index, bool inverted_handedness)
   {
     raw = index;

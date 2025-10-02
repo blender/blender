@@ -61,21 +61,21 @@ static void bm_interp_face_store(InterpFace *iface, BMesh *bm, BMFace *f, MemAre
       BLI_memarena_alloc(interp_arena, sizeof(*iface->blocks_l) * f->len));
   void **blocks_v = iface->blocks_v = static_cast<void **>(
       BLI_memarena_alloc(interp_arena, sizeof(*iface->blocks_v) * f->len));
-  float(*cos_2d)[2] = iface->cos_2d = static_cast<float(*)[2]>(
+  float (*cos_2d)[2] = iface->cos_2d = static_cast<float (*)[2]>(
       BLI_memarena_alloc(interp_arena, sizeof(*iface->cos_2d) * f->len));
   void *axis_mat = iface->axis_mat;
   int i;
 
   BLI_assert(BM_face_is_normal_valid(f));
 
-  axis_dominant_v3_to_m3(static_cast<float(*)[3]>(axis_mat), f->no);
+  axis_dominant_v3_to_m3(static_cast<float (*)[3]>(axis_mat), f->no);
 
   iface->f = f;
 
   i = 0;
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
   do {
-    mul_v2_m3v3(cos_2d[i], static_cast<const float(*)[3]>(axis_mat), l_iter->v->co);
+    mul_v2_m3v3(cos_2d[i], static_cast<const float (*)[3]>(axis_mat), l_iter->v->co);
     blocks_l[i] = nullptr;
     CustomData_bmesh_copy_block(bm->ldata, l_iter->head.data, &blocks_l[i]);
     /* if we were not modifying the loops later we would do... */
@@ -270,8 +270,8 @@ static void bmo_face_inset_individual(BMesh *bm,
   /* stores verts split away from the face (aligned with face verts) */
   BMVert **verts = BLI_array_alloca(verts, f->len);
   /* store edge normals (aligned with face-loop-edges) */
-  float(*edge_nors)[3] = BLI_array_alloca(edge_nors, f->len);
-  float(*coords)[3] = BLI_array_alloca(coords, f->len);
+  float (*edge_nors)[3] = BLI_array_alloca(edge_nors, f->len);
+  float (*coords)[3] = BLI_array_alloca(coords, f->len);
 
   BMLoop *l_iter, *l_first;
   BMLoop *l_other;
@@ -1314,7 +1314,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 
   /* cheap feature to add depth to the inset */
   if (depth != 0.0f) {
-    float(*varr_co)[3];
+    float (*varr_co)[3];
     BMOIter oiter;
 
     /* We need to re-calculate tagged normals,

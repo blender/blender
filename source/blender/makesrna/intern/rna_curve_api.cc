@@ -23,7 +23,7 @@
 
 static void rna_Curve_transform(Curve *cu, const float mat[16], bool shape_keys)
 {
-  BKE_curve_transform(cu, (const float(*)[4])mat, shape_keys, true);
+  BKE_curve_transform(cu, (const float (*)[4])mat, shape_keys, true);
 
   DEG_id_tag_update(&cu->id, 0);
 }

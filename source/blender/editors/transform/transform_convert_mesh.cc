@@ -636,7 +636,7 @@ static void mesh_customdatacorrect_apply_vert(TransCustomDataLayer *tcld,
    */
   const bool update_loop_mdisps = is_moved && do_loop_mdisps && (tcld->cd_loop_mdisp_offset != -1);
   if (update_loop_mdisps) {
-    float(*faces_center)[3] = static_cast<float(*)[3]>(BLI_array_alloca(faces_center, l_num));
+    float (*faces_center)[3] = static_cast<float (*)[3]>(BLI_array_alloca(faces_center, l_num));
     BMLoop *l;
 
     BM_ITER_ELEM_INDEX (l, &liter, v, BM_LOOPS_OF_VERT, j) {
@@ -752,7 +752,7 @@ void transform_convert_mesh_islands_calc(BMEditMesh *em,
 
   /* Group variables. */
   int *groups_array = nullptr;
-  int(*group_index)[2] = nullptr;
+  int (*group_index)[2] = nullptr;
 
   bool has_only_single_islands = bm->totedgesel == 0 && bm->totfacesel == 0;
   if (has_only_single_islands && !calc_single_islands) {
@@ -786,12 +786,12 @@ void transform_convert_mesh_islands_calc(BMEditMesh *em,
 
     BLI_assert(data.island_tot);
     if (calc_island_center) {
-      data.center = static_cast<float(*)[3]>(
+      data.center = static_cast<float (*)[3]>(
           MEM_mallocN(sizeof(*data.center) * data.island_tot, __func__));
     }
 
     if (calc_island_axismtx) {
-      data.axismtx = static_cast<float(*)[3][3]>(
+      data.axismtx = static_cast<float (*)[3][3]>(
           MEM_mallocN(sizeof(*data.axismtx) * data.island_tot, __func__));
     }
 
@@ -881,11 +881,11 @@ void transform_convert_mesh_islands_calc(BMEditMesh *em,
 
     if (group_tot_single != 0) {
       if (calc_island_center) {
-        data.center = static_cast<float(*)[3]>(MEM_reallocN(
+        data.center = static_cast<float (*)[3]>(MEM_reallocN(
             data.center, sizeof(*data.center) * (data.island_tot + group_tot_single)));
       }
       if (calc_island_axismtx) {
-        data.axismtx = static_cast<float(*)[3][3]>(MEM_reallocN(
+        data.axismtx = static_cast<float (*)[3][3]>(MEM_reallocN(
             data.axismtx, sizeof(*data.axismtx) * (data.island_tot + group_tot_single)));
       }
 
@@ -1330,7 +1330,7 @@ void transform_convert_mesh_crazyspace_detect(TransInfo *t,
                                               BMEditMesh *em,
                                               TransMeshDataCrazySpace *r_crazyspace_data)
 {
-  float(*quats)[4] = nullptr;
+  float (*quats)[4] = nullptr;
   const int prop_mode = (t->flag & T_PROP_EDIT) ? (t->flag & T_PROP_EDIT_ALL) : 0;
   if (BKE_modifiers_get_cage_index(t->scene, tc->obedit, nullptr, true) != -1) {
     Array<float3, 0> defcos;
@@ -1360,7 +1360,7 @@ void transform_convert_mesh_crazyspace_detect(TransInfo *t,
     {
       const Array<float3> mappedcos = BKE_crazyspace_get_mapped_editverts(t->depsgraph,
                                                                           tc->obedit);
-      quats = static_cast<float(*)[4]>(
+      quats = static_cast<float (*)[4]>(
           MEM_mallocN(em->bm->totvert * sizeof(*quats), "crazy quats"));
       BKE_crazyspace_set_quats_editmesh(em, defcos, mappedcos, quats, !prop_mode);
     }

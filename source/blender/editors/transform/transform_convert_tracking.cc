@@ -489,7 +489,7 @@ static void flushTransTracking(TransInfo *t)
             float d[2], d2[2];
 
             if (!tdt->smarkers) {
-              tdt->smarkers = static_cast<float(*)[2]>(MEM_callocN(
+              tdt->smarkers = static_cast<float (*)[2]>(MEM_callocN(
                   sizeof(*tdt->smarkers) * tdt->markersnr, "flushTransTracking markers"));
               for (int a = 0; a < tdt->markersnr; a++) {
                 copy_v2_v2(tdt->smarkers[a], tdt->markers[a].pos);

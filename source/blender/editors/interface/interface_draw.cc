@@ -103,7 +103,7 @@ void UI_draw_roundbox_4fv_ex(const rctf *rect,
 
   blender::gpu::Batch *batch = ui_batch_roundbox_widget_get();
   GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
-  GPU_batch_uniform_4fv_array(batch, "parameters", 11, (const float(*)[4]) & widget_params);
+  GPU_batch_uniform_4fv_array(batch, "parameters", 11, (const float (*)[4]) & widget_params);
   GPU_blend(GPU_BLEND_ALPHA);
   GPU_batch_draw(batch);
   GPU_blend(GPU_BLEND_NONE);
@@ -1987,7 +1987,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
   const uint tot_triangles = tot_points - 2;
 
   /* Create array of the positions of the table's points. */
-  float(*table_coords)[2] = static_cast<float(*)[2]>(
+  float (*table_coords)[2] = static_cast<float (*)[2]>(
       MEM_mallocN(sizeof(*table_coords) * tot_points, __func__));
   for (uint i = 0; i < uint(BKE_curveprofile_table_size(profile)); i++) {
     /* Only add the points from the table here. */
@@ -2411,7 +2411,7 @@ void ui_draw_dropshadow(
 
   blender::gpu::Batch *batch = ui_batch_roundbox_shadow_get();
   GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_SHADOW);
-  GPU_batch_uniform_4fv_array(batch, "parameters", 4, (const float(*)[4]) & widget_params);
+  GPU_batch_uniform_4fv_array(batch, "parameters", 4, (const float (*)[4]) & widget_params);
   GPU_batch_uniform_1f(batch, "alpha", alpha);
   GPU_batch_draw(batch);
 

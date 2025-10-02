@@ -770,14 +770,14 @@ ShapeCache::ShapeCache()
       float2(-1.0f, -1.0f) * axis_marker_scale,
       float2(-1.0f, 1.0f) * axis_marker_scale,
 #else /* diamond */
-      float2(-1.0f, 0.0f) * axis_marker_scale,
-      float2(0.0f, 1.0f) * axis_marker_scale,
-      float2(0.0f, 1.0f) * axis_marker_scale,
-      float2(1.0f, 0.0f) * axis_marker_scale,
-      float2(1.0f, 0.0f) * axis_marker_scale,
-      float2(0.0f, -1.0f) * axis_marker_scale,
-      float2(0.0f, -1.0f) * axis_marker_scale,
-      float2(-1.0f, 0.0f) * axis_marker_scale,
+        float2(-1.0f, 0.0f) * axis_marker_scale,
+        float2(0.0f, 1.0f) * axis_marker_scale,
+        float2(0.0f, 1.0f) * axis_marker_scale,
+        float2(1.0f, 0.0f) * axis_marker_scale,
+        float2(1.0f, 0.0f) * axis_marker_scale,
+        float2(0.0f, -1.0f) * axis_marker_scale,
+        float2(0.0f, -1.0f) * axis_marker_scale,
+        float2(-1.0f, 0.0f) * axis_marker_scale,
 #endif
     };
 
