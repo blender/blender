@@ -436,6 +436,13 @@ void node_geometry_add_layer_search_button(const bContext &C,
                                            PointerRNA &socket_ptr,
                                            uiLayout &layout,
                                            StringRef placeholder = "");
+/* `node_geometry_volume_grid_search.cc` */
+
+void node_geometry_add_volume_grid_search_button(const bContext &C,
+                                                 const bNode &node,
+                                                 PointerRNA &socket_ptr,
+                                                 uiLayout &layout,
+                                                 StringRef placeholder = "");
 
 /* `node_context_path.cc` */
 

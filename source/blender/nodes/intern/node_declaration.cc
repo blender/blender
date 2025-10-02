@@ -938,6 +938,12 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::is_layer_name(const 
   return *this;
 }
 
+BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::is_volume_grid_name(const bool value)
+{
+  decl_base_->is_volume_grid_name = value;
+  return *this;
+}
+
 OutputFieldDependency OutputFieldDependency::ForFieldSource()
 {
   OutputFieldDependency field_dependency;

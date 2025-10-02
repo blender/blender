@@ -25,7 +25,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_default_layout();
   b.add_input<decl::Geometry>("Volume").description("Volume geometry to add a grid to");
   b.add_output<decl::Geometry>("Volume").align_with_previous();
-  b.add_input<decl::String>("Name").optional_label();
+  b.add_input<decl::String>("Name").optional_label().is_volume_grid_name();
 
   const bNode *node = b.node_or_null();
   if (!node) {

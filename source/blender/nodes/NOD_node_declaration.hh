@@ -232,6 +232,7 @@ class SocketDeclaration : public ItemDeclaration {
   /** This socket is used as a toggle for the parent panel. */
   bool is_panel_toggle = false;
   bool is_layer_name = false;
+  bool is_volume_grid_name = false;
 
   /** Index in the list of inputs or outputs of the node. */
   int index = -1;
@@ -474,6 +475,7 @@ class BaseSocketDeclarationBuilder {
   BaseSocketDeclarationBuilder &structure_type(StructureType structure_type);
 
   BaseSocketDeclarationBuilder &is_layer_name(bool value = true);
+  BaseSocketDeclarationBuilder &is_volume_grid_name(bool value = true);
 
   /** Index in the list of inputs or outputs. */
   int index() const;
