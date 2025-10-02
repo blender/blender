@@ -8771,7 +8771,9 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 #else
       status.item(IFACE_("Snap"), ICON_EVENT_CTRL);
 #endif
-      status.item(IFACE_("Precision"), ICON_EVENT_SHIFT);
+      if (ui_but_is_float(but)) {
+        status.item(IFACE_("Precision"), ICON_EVENT_SHIFT);
+      }
     }
     ui_numedit_begin(but, data);
   }
