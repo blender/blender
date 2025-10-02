@@ -33,13 +33,6 @@ class Background : Overlay {
     float4 color_override(0.0f, 0.0f, 0.0f, 0.0f);
     int background_type;
 
-#if 0 /* FIXME: causes crash on startup, see #147155. */
-    const float vignette_aperture = state.v3d->vignette_aperture;
-#else
-    const float vignette_aperture = 1.0f;
-#endif
-    const float vignette_falloff = 0.15f;
-
     if (state.is_viewport_image_render && !state.draw_background) {
       background_type = BG_SOLID;
       color_override[3] = 1.0f;
@@ -108,6 +101,9 @@ class Background : Overlay {
     bg_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
 
     if (state.vignette_enabled) {
+      const float vignette_aperture = state.v3d ? state.v3d->vignette_aperture : 1.0f;
+      const float vignette_falloff = 0.15f;
+
       bg_vignette_ps_.init();
       bg_vignette_ps_.framebuffer_set(&framebuffer_ref_);
 
