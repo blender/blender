@@ -11,9 +11,10 @@
 #include "vk_context.hh"
 
 namespace blender::gpu {
-VKStreamingBuffer::VKStreamingBuffer(VKBuffer &buffer)
-    : vk_buffer_dst_(buffer.vk_handle()), vk_buffer_size_(buffer.size_in_bytes())
-
+VKStreamingBuffer::VKStreamingBuffer(VKBuffer &buffer, VkDeviceSize min_offset_alignment)
+    : min_offset_alignment_(min_offset_alignment),
+      vk_buffer_dst_(buffer.vk_handle()),
+      vk_buffer_size_(buffer.size_in_bytes())
 {
 }
 
@@ -47,7 +48,13 @@ VkDeviceSize VKStreamingBuffer::update(VKContext &context, const void *data, siz
   VKBuffer &host_buffer = *host_buffer_.value().get();
 
   VkDeviceSize start_offset = offset_;
+  /* Advance the offset to the next possible offset considering the minimum allowed offset
+   * alignment. */
   offset_ += data_size;
+  if (min_offset_alignment_ > 1) {
+    offset_ = ceil_to_multiple_ul(offset_, min_offset_alignment_);
+  }
+
   memcpy(
       static_cast<void *>(static_cast<uint8_t *>(host_buffer.mapped_memory_get()) + start_offset),
       data,

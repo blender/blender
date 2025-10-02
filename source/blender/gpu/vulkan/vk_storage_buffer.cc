@@ -38,8 +38,9 @@ void VKStorageBuffer::update(const void *data)
   ensure_allocated();
 
   if (usage_ == GPU_USAGE_STREAM) {
-    VKContext &context = *VKContext::get();
-    VKStreamingBuffer &streaming_buffer = *context.get_or_create_streaming_buffer(buffer_);
+    const VKDevice &device = VKBackend::get().device;
+    VKStreamingBuffer &streaming_buffer = *context.get_or_create_streaming_buffer(
+        buffer_, device.physical_device_properties_get().limits.minStorageBufferOffsetAlignment);
     offset_ = streaming_buffer.update(context, data, usage_size_in_bytes_);
     return;
   }

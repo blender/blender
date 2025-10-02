@@ -158,7 +158,8 @@ class VKContext : public Context, NonCopyable {
 
   void specialization_constants_set(const shader::SpecializationConstants *constants_state);
 
-  std::unique_ptr<VKStreamingBuffer> &get_or_create_streaming_buffer(VKBuffer &buffer);
+  std::unique_ptr<VKStreamingBuffer> &get_or_create_streaming_buffer(
+      VKBuffer &buffer, VkDeviceSize min_offset_alignment);
 
  private:
   void swap_buffer_draw_handler(const GHOST_VulkanSwapChainData &data);
