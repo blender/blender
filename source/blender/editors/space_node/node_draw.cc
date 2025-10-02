@@ -4996,7 +4996,7 @@ void node_draw_space(const bContext &C, ARegion &region)
     }
 
     /* Draw context path. */
-    if (snode.overlay.flag & SN_OVERLAY_SHOW_PATH && snode.edittree) {
+    if (snode.overlay.flag & SN_OVERLAY_SHOW_PATH) {
       draw_tree_path(C, region);
     }
   }

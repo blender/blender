@@ -760,10 +760,14 @@ static void node_area_listener(const wmSpaceTypeListenerParams *params)
         }
       }
       else if (ED_node_is_geometry(snode)) {
-        /* Rather strict check: only redraw when the reference matches the current editor's ID. */
         if (wmn->data == ND_MODIFIER) {
+          /* Rather strict check: only redraw when the reference matches current editor's ID, */
           if (wmn->reference == snode->id || snode->id == nullptr) {
             node_area_tag_tree_recalc(snode, area);
+          }
+          /* Redraw context path if modifier was added or removed. */
+          if (ELEM(wmn->action, NA_ADDED, NA_REMOVED)) {
+            ED_area_tag_redraw(area);
           }
         }
       }
