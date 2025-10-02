@@ -6760,7 +6760,10 @@ static void gwl_registry_xdg_decoration_manager_remove(GWL_Display *display,
 static void gwl_registry_xdg_output_manager_add(GWL_Display *display,
                                                 const GWL_RegisteryAdd_Params &params)
 {
-  const uint version = GWL_IFACE_VERSION_CLAMP(params.version, 2u, 3u);
+  /* NOTE(@ideasman42): only version 3 and over is well supported.
+   * Support version 1 so GNOME-32 (on the build-bots Rocky8) can be used.
+   * Use `zxdg_output_v1_get_version` to ensure feature support at runtime. */
+  const uint version = GWL_IFACE_VERSION_CLAMP(params.version, 1u, 3u);
 
   display->xdg.output_manager = static_cast<zxdg_output_manager_v1 *>(wl_registry_bind(
       display->wl.registry, params.name, &zxdg_output_manager_v1_interface, version));
