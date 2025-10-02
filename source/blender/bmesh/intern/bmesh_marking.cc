@@ -1116,6 +1116,19 @@ void BM_select_history_validate(BMesh *bm)
   }
 }
 
+char BM_select_history_htype_all(const BMesh *bm)
+{
+  char htype_selected = 0;
+  LISTBASE_FOREACH (const BMEditSelection *, ese, &bm->selected) {
+    htype_selected |= ese->htype;
+    /* Early exit if all types found. */
+    if (htype_selected == (BM_VERT | BM_EDGE | BM_FACE)) {
+      break;
+    }
+  }
+  return htype_selected;
+}
+
 bool BM_select_history_active_get(BMesh *bm, BMEditSelection *ese)
 {
   BMEditSelection *ese_last = static_cast<BMEditSelection *>(bm->selected.last);

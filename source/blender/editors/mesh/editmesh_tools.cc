@@ -25,6 +25,7 @@
 #include "BLI_linklist.h"
 #include "BLI_linklist_stack.h"
 #include "BLI_listbase.h"
+#include "BLI_math_bits.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -1542,6 +1543,7 @@ static wmOperatorStatus edbm_vert_connect_path_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   uint failed_selection_order_len = 0;
   uint failed_connect_len = 0;
+  bool has_select_history_mixed = false;
   const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
 
@@ -1560,6 +1562,14 @@ static wmOperatorStatus edbm_vert_connect_path_exec(bContext *C, wmOperator *op)
       if (!edbm_connect_vert_pair(em, static_cast<Mesh *>(obedit->data), op)) {
         failed_connect_len++;
       }
+      continue;
+    }
+
+    /* Skip mixed selections since path handling only supports uniform types, see #147150. */
+    const char htype_selected = BM_select_history_htype_all(bm);
+    if (count_bits_i(htype_selected) > 1) {
+      has_select_history_mixed = true;
+      failed_selection_order_len++;
       continue;
     }
 
@@ -1596,7 +1606,12 @@ static wmOperatorStatus edbm_vert_connect_path_exec(bContext *C, wmOperator *op)
   }
 
   if (failed_selection_order_len == objects.size()) {
-    BKE_report(op->reports, RPT_ERROR, "Invalid selection order");
+    if (has_select_history_mixed) {
+      BKE_report(op->reports, RPT_ERROR, "Could not connect mixed selection types");
+    }
+    else {
+      BKE_report(op->reports, RPT_ERROR, "Invalid selection order");
+    }
     return OPERATOR_CANCELLED;
   }
   if (failed_connect_len == objects.size()) {
