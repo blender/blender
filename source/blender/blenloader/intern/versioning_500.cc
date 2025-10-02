@@ -2749,11 +2749,12 @@ static void do_version_adaptive_subdivision(Main *bmain)
     LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
       if (md->type == eModifierType_Subsurf) {
         SubsurfModifierData *smd = (SubsurfModifierData *)md;
+        smd->adaptive_space = SUBSURF_ADAPTIVE_SPACE_PIXEL;
+        smd->adaptive_pixel_size = dicing_rate;
+        smd->adaptive_object_edge_length = 0.01f;
+
         if (use_adaptive_subdivision) {
           smd->flags |= eSubsurfModifierFlag_UseAdaptiveSubdivision;
-          smd->adaptive_space = SUBSURF_ADAPTIVE_SPACE_PIXEL;
-          smd->adaptive_pixel_size = dicing_rate;
-          smd->adaptive_object_edge_length = 0.01f;
         }
       }
     }
