@@ -34,7 +34,7 @@ from .utils.paths import match_files_to_socket_names, split_into_components
 from .utils.nodes import (node_mid_pt, autolink, node_at_pos, get_nodes_links,
                           force_update, nw_check,
                           nw_check_not_empty, nw_check_selected, nw_check_active, nw_check_space_type,
-                          nw_check_node_type, nw_check_visible_outputs, nw_check_viewer_node, NWBase,
+                          nw_check_node_type, nw_check_visible_outputs, get_viewer_image, nw_check_viewer_node, NWBase,
                           get_first_enabled_output, is_visible_socket)
 
 
@@ -2191,7 +2191,7 @@ class NWAddSequence(Operator, NWBase, ImportHelper):
 class NWSaveViewer(bpy.types.Operator, ExportHelper):
     """Save the current viewer node to an image file"""
     bl_idname = "node.nw_save_viewer"
-    bl_label = "Save This Image"
+    bl_label = "Save Viewer Image"
     filepath: StringProperty(subtype="FILE_PATH")
     filename_ext: EnumProperty(
         name="Format",
@@ -2206,7 +2206,9 @@ class NWSaveViewer(bpy.types.Operator, ExportHelper):
                ('.dpx', 'DPX', ""),
                ('.exr', 'OPEN_EXR', ""),
                ('.hdr', 'HDR', ""),
-               ('.tif', 'TIFF', "")),
+               ('.tif', 'TIFF', ""),
+               ('.webp', 'WEBP', ""),
+              ),
         default='.png',
     )
 
@@ -2218,36 +2220,39 @@ class NWSaveViewer(bpy.types.Operator, ExportHelper):
 
     def execute(self, context):
         fp = self.filepath
-        if fp:
-            formats = {
-                '.bmp': 'BMP',
-                '.rgb': 'IRIS',
-                '.png': 'PNG',
-                '.jpg': 'JPEG',
-                '.jpeg': 'JPEG',
-                '.jp2': 'JPEG2000',
-                '.tga': 'TARGA',
-                '.cin': 'CINEON',
-                '.dpx': 'DPX',
-                '.exr': 'OPEN_EXR',
-                '.hdr': 'HDR',
-                '.tiff': 'TIFF',
-                '.tif': 'TIFF'}
-            basename, ext = path.splitext(fp)
-            image_settings = context.scene.render.image_settings
-            old_media_type = image_settings.media_type
-            old_file_format = image_settings.file_format
-            old_tree_type = context.space_data.tree_type
-            image_settings.media_type = 'IMAGE'
-            image_settings.file_format = formats[self.filename_ext]
-            context.area.type = "IMAGE_EDITOR"
-            context.area.spaces[0].image = bpy.data.images['Viewer Node']
-            context.area.spaces[0].image.save_render(fp)
-            context.area.type = "NODE_EDITOR"
-            context.space_data.tree_type = old_tree_type
-            image_settings.media_type = old_media_type
-            image_settings.file_format = old_file_format
-            return {'FINISHED'}
+        if not fp:
+            return {'CANCELLED'}
+
+        formats = {
+            '.bmp': 'BMP',
+            '.rgb': 'IRIS',
+            '.png': 'PNG',
+            '.jpg': 'JPEG',
+            '.jpeg': 'JPEG',
+            '.jp2': 'JPEG2000',
+            '.tga': 'TARGA',
+            '.cin': 'CINEON',
+            '.dpx': 'DPX',
+            '.exr': 'OPEN_EXR',
+            '.hdr': 'HDR',
+            '.tiff': 'TIFF',
+            '.tif': 'TIFF',
+            '.webp': 'WEBP',
+        }
+        image_settings = context.scene.render.image_settings
+        old_media_type = image_settings.media_type
+        old_file_format = image_settings.file_format
+        image_settings.media_type = 'IMAGE'
+        image_settings.file_format = formats[self.filename_ext]
+
+        try:
+            get_viewer_image().save_render(fp)
+        except RuntimeError as e:
+            self.report({'ERROR'}, rpt_("Could not write image: {}").format(e))
+
+        image_settings.media_type = old_media_type
+        image_settings.file_format = old_file_format
+        return {'FINISHED'}
 
 
 class NWResetNodes(bpy.types.Operator):
