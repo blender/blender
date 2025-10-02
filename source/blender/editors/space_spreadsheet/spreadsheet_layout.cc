@@ -606,6 +606,14 @@ float ColumnValues::fit_column_values_width_px(const std::optional<int64_t> &max
           [](const float value) { return fmt::format("{:.3f}", value); });
     }
     case SPREADSHEET_VALUE_TYPE_INT32_2D: {
+      if (data_.type().is<short2>()) {
+        return estimate_max_column_width<short2>(
+            get_min_width(6 * SPREADSHEET_WIDTH_UNIT),
+            fontid,
+            max_sample_size,
+            data_.typed<short2>(),
+            [](const short2 value) { return fmt::format("{}  {}", value.x, value.y); });
+      }
       return estimate_max_column_width<int2>(
           get_min_width(6 * SPREADSHEET_WIDTH_UNIT),
           fontid,
