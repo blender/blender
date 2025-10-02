@@ -104,6 +104,13 @@ blender::StringRef legacy_socket_idname_to_socket_type(blender::StringRef idname
  * code generally expects to get the sockets that the node had at the time of writing the
  * versioning code. Changing the declaration later can break the versioning code in ways that are
  * hard to detect.
+ *
+ * When adding new nodes in versioning code that replace or belong to existing nodes, they should
+ * be positioned so that it overlaps the existing node with just a slight offset. This is better
+ * than putting them next to each other they way one would do it manually, because it messes up
+ * more complex node trees significantly. In simple tests, putting the nodes next to each other
+ * looks better, but in actual user-files it looks way worse and makes it less obvious what was
+ * changed by versioning code.
  */
 bNode &version_node_add_empty(bNodeTree &ntree, const char *idname);
 
