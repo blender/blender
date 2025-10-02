@@ -1440,7 +1440,7 @@ static FCurve *rna_Action_fcurve_ensure_for_datablock(bAction *_self,
 
   blender::animrig::FCurveDescriptor descriptor = {data_path, array_index};
   if (group_name && group_name[0]) {
-    descriptor.channel_group = std::string(group_name);
+    descriptor.channel_group = group_name;
   }
 
   FCurve &fcurve = blender::animrig::action_fcurve_ensure(bmain, *_self, *datablock, descriptor);
