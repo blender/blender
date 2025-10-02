@@ -5841,6 +5841,12 @@ static wmOperatorStatus screen_animation_step_invoke(bContext *C,
   /* Since we follow draw-flags, we can't send notifier but tag regions ourselves. */
   if (depsgraph != nullptr) {
     ED_update_for_newframe(bmain, depsgraph);
+
+    /* Updating the frame, and invoking the frame pre/post hooks, can result in the current timer
+     * being removed. For example, calling `screen.animation_cancel` inside `frame_change_post`. */
+    if (wt->flags & WM_TIMER_TAGGED_FOR_REMOVAL) {
+      return OPERATOR_FINISHED;
+    }
   }
 
   LISTBASE_FOREACH (wmWindow *, window, &wm->windows) {
