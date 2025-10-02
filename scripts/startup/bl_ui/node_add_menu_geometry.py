@@ -911,7 +911,6 @@ class NODE_MT_gn_volume_read_base(node_add_menu.NodeMenu):
         layout = self.layout
         self.node_operator(layout, "GeometryNodeGetNamedGrid")
         self.node_operator(layout, "GeometryNodeGridInfo")
-        self.node_operator(layout, "GeometryNodeSetGridTransform")
 
         self.draw_assets_for_catalog(layout, self.menu_path)
 
@@ -923,6 +922,8 @@ class NODE_MT_gn_volume_write_base(node_add_menu.NodeMenu):
     def draw(self, context):
         layout = self.layout
         self.node_operator(layout, "GeometryNodeStoreNamedGrid")
+        self.node_operator(layout, "GeometryNodeSetGridBackground")
+        self.node_operator(layout, "GeometryNodeSetGridTransform")
 
         self.draw_assets_for_catalog(layout, self.menu_path)
 
