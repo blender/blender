@@ -433,6 +433,7 @@ void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, CurveMapS
     CurveMapPoint *newpoints = static_cast<CurveMapPoint *>(MEM_dupallocN(cuma->curve));
 
     for (i = 0; i < cuma->totpoint; i++) {
+      newpoints[i].x = 1.0f - cuma->curve[last - i].x;
       newpoints[i].y = cuma->curve[last - i].y;
     }
 
