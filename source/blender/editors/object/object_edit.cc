@@ -1624,7 +1624,7 @@ static bool is_smooth_by_angle_modifier(const ModifierData &md)
     return false;
   }
   if (!StringRef(library->filepath)
-           .endswith("datafiles/assets/geometry_nodes/geometry_nodes_essentials.blend"))
+           .endswith("datafiles/assets/nodes/geometry_nodes_essentials.blend"))
   {
 
     return false;
@@ -1844,7 +1844,7 @@ static wmOperatorStatus shade_auto_smooth_exec(bContext *C, wmOperator *op)
     AssetWeakReference asset_weak_ref{};
     asset_weak_ref.asset_library_type = ASSET_LIBRARY_ESSENTIALS;
     asset_weak_ref.relative_asset_identifier = BLI_strdup(
-        "geometry_nodes/geometry_nodes_essentials.blend/NodeTree/Smooth by Angle");
+        "nodes/geometry_nodes_essentials.blend/NodeTree/Smooth by Angle");
 
     const asset_system::AssetRepresentation *asset_representation =
         asset::find_asset_from_weak_ref(*C, asset_weak_ref, op->reports);

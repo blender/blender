@@ -49,7 +49,7 @@ class ModifierAddMenu:
         )
         props.asset_library_type = 'ESSENTIALS'
         props.asset_library_identifier = ""
-        props.relative_asset_identifier = "geometry_nodes/geometry_nodes_essentials.blend/NodeTree/" + name
+        props.relative_asset_identifier = "nodes/geometry_nodes_essentials.blend/NodeTree/" + name
 
 
 class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
