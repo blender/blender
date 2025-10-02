@@ -343,8 +343,8 @@ void CustomData_copy_data_layer(const CustomData *source,
                                 int dst_index,
                                 int count);
 void CustomData_copy_elements(eCustomDataType type,
-                              void *src_data_ofs,
-                              void *dst_data_ofs,
+                              const void *src_data,
+                              void *dst_data,
                               int count);
 
 /**
