@@ -1020,8 +1020,7 @@ static bool socket_needs_attribute_search(bNode &node, bNodeSocket &socket)
   if (socket.in_out == SOCK_OUT) {
     return false;
   }
-  const int socket_index = BLI_findindex(&node.inputs, &socket);
-  return node_decl->inputs[socket_index]->is_attribute_name;
+  return socket.runtime->declaration->is_attribute_name;
 }
 
 static bool socket_needs_layer_search(const bNode &node, const bNodeSocket &socket)
@@ -1036,8 +1035,7 @@ static bool socket_needs_layer_search(const bNode &node, const bNodeSocket &sock
   if (socket.in_out == SOCK_OUT) {
     return false;
   }
-  const int socket_index = BLI_findindex(&node.inputs, &socket);
-  return node_decl->inputs[socket_index]->is_layer_name;
+  return socket.runtime->declaration->is_layer_name;
 }
 
 static bool socket_needs_volume_grid_search(const bNode &node, const bNodeSocket &socket)
@@ -1052,8 +1050,7 @@ static bool socket_needs_volume_grid_search(const bNode &node, const bNodeSocket
   if (socket.in_out == SOCK_OUT) {
     return false;
   }
-  const int socket_index = BLI_findindex(&node.inputs, &socket);
-  return node_decl->inputs[socket_index]->is_volume_grid_name;
+  return socket.runtime->declaration->is_volume_grid_name;
 }
 
 static void draw_gizmo_pin_icon(uiLayout *layout, PointerRNA *socket_ptr)
