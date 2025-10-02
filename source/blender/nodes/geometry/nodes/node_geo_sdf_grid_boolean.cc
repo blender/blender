@@ -135,6 +135,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       return;
     }
   }
+  operands.first()->tag_tree_modified();
 
   params.set_output("Grid", std::move(operands.first()));
 #else

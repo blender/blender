@@ -1263,10 +1263,11 @@ typedef struct SpreadsheetRowFilter {
   /* eSpaceSpreadsheet_RowFilterFlag. */
   uint8_t flag;
 
-  char _pad0[2];
+  char _pad0[6];
 
   int value_int;
   int value_int2[2];
+  int value_int3[3];
   char *value_string;
   float value_float;
   float threshold;

@@ -178,6 +178,15 @@ bool VolumeGridData::is_reloadable() const
   return bool(lazy_load_grid_);
 }
 
+void VolumeGridData::tag_tree_modified() const
+{
+  active_voxels_mutex_.tag_dirty();
+  active_leaf_voxels_mutex_.tag_dirty();
+  active_tiles_mutex_.tag_dirty();
+  size_in_bytes_mutex_.tag_dirty();
+  active_bounds_mutex_.tag_dirty();
+}
+
 bool VolumeGridData::is_loaded() const
 {
   std::lock_guard lock{mutex_};
@@ -190,9 +199,64 @@ void VolumeGridData::count_memory(MemoryCounter &memory) const
   if (!tree_loaded_) {
     return;
   }
-  const openvdb::TreeBase &tree = grid_->baseTree();
-  memory.add_shared(tree_sharing_info_.get(),
-                    [&](MemoryCounter &shared_memory) { shared_memory.add(tree.memUsage()); });
+  memory.add_shared(tree_sharing_info_.get(), [&](MemoryCounter &shared_memory) {
+    shared_memory.add(this->size_in_bytes());
+  });
+}
+
+int64_t VolumeGridData::active_voxels() const
+{
+  active_voxels_mutex_.ensure([&]() {
+    VolumeTreeAccessToken token;
+    const openvdb::GridBase &grid = this->grid(token);
+    const openvdb::TreeBase &tree = grid.baseTree();
+    active_voxels_ = tree.activeVoxelCount();
+  });
+  return active_voxels_;
+}
+
+int64_t VolumeGridData::active_leaf_voxels() const
+{
+  active_leaf_voxels_mutex_.ensure([&]() {
+    VolumeTreeAccessToken token;
+    const openvdb::GridBase &grid = this->grid(token);
+    const openvdb::TreeBase &tree = grid.baseTree();
+    active_leaf_voxels_ = tree.activeLeafVoxelCount();
+  });
+  return active_leaf_voxels_;
+}
+
+int64_t VolumeGridData::active_tiles() const
+{
+  active_tiles_mutex_.ensure([&]() {
+    VolumeTreeAccessToken token;
+    const openvdb::GridBase &grid = this->grid(token);
+    const openvdb::TreeBase &tree = grid.baseTree();
+    active_tiles_ = tree.activeTileCount();
+  });
+  return active_tiles_;
+}
+
+int64_t VolumeGridData::size_in_bytes() const
+{
+  size_in_bytes_mutex_.ensure([&]() {
+    VolumeTreeAccessToken token;
+    const openvdb::GridBase &grid = this->grid(token);
+    const openvdb::TreeBase &tree = grid.baseTree();
+    size_in_bytes_ = tree.memUsage();
+  });
+  return size_in_bytes_;
+}
+
+const openvdb::CoordBBox &VolumeGridData::active_bounds() const
+{
+  active_bounds_mutex_.ensure([&]() {
+    VolumeTreeAccessToken token;
+    const openvdb::GridBase &grid = this->grid(token);
+    const openvdb::TreeBase &tree = grid.baseTree();
+    tree.evalActiveVoxelBoundingBox(active_bounds_);
+  });
+  return active_bounds_;
 }
 
 std::string VolumeGridData::error_message() const
@@ -464,6 +528,7 @@ void clear_tree(VolumeGridData &grid)
 #ifdef WITH_OPENVDB
   VolumeTreeAccessToken tree_token;
   grid.grid_for_write(tree_token).clear();
+  grid.tag_tree_modified();
 #else
   UNUSED_VARS(grid);
 #endif
