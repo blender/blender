@@ -118,6 +118,78 @@ static void join_positions(const Span<const Object *> objects_to_join,
   }
 }
 
+static void join_normals(const Span<const Object *> objects_to_join,
+                         const OffsetIndices<int> vert_ranges,
+                         const OffsetIndices<int> face_ranges,
+                         const OffsetIndices<int> corner_ranges,
+                         const float4x4 &world_to_dst_mesh,
+                         Mesh &dst_mesh)
+{
+  bke::mesh::NormalJoinInfo normal_info;
+  for (const Object *object : objects_to_join) {
+    const Mesh &mesh = *static_cast<const Mesh *>(object->data);
+    normal_info.add_mesh(mesh);
+  }
+
+  bke::MutableAttributeAccessor dst_attributes = dst_mesh.attributes_for_write();
+  switch (normal_info.result_type) {
+    case bke::mesh::NormalJoinInfo::Output::None: {
+      break;
+    }
+    case bke::mesh::NormalJoinInfo::Output::CornerFan: {
+      bke::SpanAttributeWriter dst_attr = dst_attributes.lookup_or_add_for_write_only_span<short2>(
+          "custom_normal", bke::AttrDomain::Corner);
+      for (const int i : objects_to_join.index_range()) {
+        const Object &src_object = *objects_to_join[i];
+        const Mesh &src_mesh = *static_cast<const Mesh *>(src_object.data);
+        const bke::AttributeAccessor attributes = src_mesh.attributes();
+        const bke::GAttributeReader src = attributes.lookup("custom_normal");
+        if (!src) {
+          dst_attr.span.slice(corner_ranges[i]).fill(short2(0));
+          continue;
+        }
+        const bke::AttrType data_type = bke::cpp_type_to_attribute_type(src.varray.type());
+        if (!bke::mesh::is_corner_fan_normals({src.domain, data_type})) {
+          dst_attr.span.slice(corner_ranges[i]).fill(short2(0));
+          continue;
+        }
+        src.typed<short2>().varray.materialize(dst_attr.span.slice(corner_ranges[i]));
+      }
+      dst_attr.finish();
+      break;
+    }
+    case bke::mesh::NormalJoinInfo::Output::Free: {
+      bke::SpanAttributeWriter dst_attr = dst_attributes.lookup_or_add_for_write_only_span<float3>(
+          "custom_normal", *normal_info.result_domain);
+      for (const int i : objects_to_join.index_range()) {
+        const Object &src_object = *objects_to_join[i];
+        const Mesh &src_mesh = *static_cast<const Mesh *>(src_object.data);
+        switch (*normal_info.result_domain) {
+          case bke::AttrDomain::Point:
+            math::transform_normals(src_mesh.vert_normals(),
+                                    float3x3(world_to_dst_mesh),
+                                    dst_attr.span.slice(vert_ranges[i]));
+            break;
+          case bke::AttrDomain::Face:
+            math::transform_normals(src_mesh.face_normals(),
+                                    float3x3(world_to_dst_mesh),
+                                    dst_attr.span.slice(face_ranges[i]));
+            break;
+          case bke::AttrDomain::Corner:
+            math::transform_normals(src_mesh.corner_normals(),
+                                    float3x3(world_to_dst_mesh),
+                                    dst_attr.span.slice(corner_ranges[i]));
+            break;
+          default:
+            BLI_assert_unreachable();
+        }
+      }
+      dst_attr.finish();
+      break;
+    }
+  }
+}
+
 static void join_shape_keys(Main *bmain,
                             const Span<const Object *> objects_to_join,
                             const OffsetIndices<int> vert_ranges,
@@ -212,6 +284,7 @@ static void join_generic_attributes(const Span<const Object *> objects_to_join,
                             ".corner_vert",
                             ".corner_edge",
                             "material_index",
+                            "custom_normal",
                             ".sculpt_face_set"};
 
   Array<std::string> names;
@@ -510,6 +583,8 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
 
   join_shape_keys(bmain, objects_to_join, vert_ranges, world_to_active_object, *active_mesh);
   join_positions(objects_to_join, vert_ranges, world_to_active_object, *dst_mesh);
+  join_normals(
+      objects_to_join, vert_ranges, face_ranges, corner_ranges, world_to_active_object, *dst_mesh);
 
   MutableSpan<int2> dst_edges = dst_mesh->edges_for_write();
   for (const int i : objects_to_join.index_range()) {
