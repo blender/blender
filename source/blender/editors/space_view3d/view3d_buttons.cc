@@ -2056,24 +2056,24 @@ static void v3d_editmetaball_buts(uiLayout *layout, Object *ob)
       break;
     case MB_CUBE:
       col->label(IFACE_("Size:"), ICON_NONE);
-      col->prop(&ptr, "size_x", UI_ITEM_NONE, "X", ICON_NONE);
-      col->prop(&ptr, "size_y", UI_ITEM_NONE, "Y", ICON_NONE);
-      col->prop(&ptr, "size_z", UI_ITEM_NONE, "Z", ICON_NONE);
+      col->prop(&ptr, "size_x", UI_ITEM_NONE, IFACE_("X"), ICON_NONE);
+      col->prop(&ptr, "size_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
+      col->prop(&ptr, "size_z", UI_ITEM_NONE, IFACE_("Z"), ICON_NONE);
       break;
     case MB_TUBE:
       col->label(IFACE_("Size:"), ICON_NONE);
-      col->prop(&ptr, "size_x", UI_ITEM_NONE, "X", ICON_NONE);
+      col->prop(&ptr, "size_x", UI_ITEM_NONE, IFACE_("X"), ICON_NONE);
       break;
     case MB_PLANE:
       col->label(IFACE_("Size:"), ICON_NONE);
-      col->prop(&ptr, "size_x", UI_ITEM_NONE, "X", ICON_NONE);
-      col->prop(&ptr, "size_y", UI_ITEM_NONE, "Y", ICON_NONE);
+      col->prop(&ptr, "size_x", UI_ITEM_NONE, IFACE_("X"), ICON_NONE);
+      col->prop(&ptr, "size_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
       break;
     case MB_ELIPSOID:
       col->label(IFACE_("Size:"), ICON_NONE);
-      col->prop(&ptr, "size_x", UI_ITEM_NONE, "X", ICON_NONE);
-      col->prop(&ptr, "size_y", UI_ITEM_NONE, "Y", ICON_NONE);
-      col->prop(&ptr, "size_z", UI_ITEM_NONE, "Z", ICON_NONE);
+      col->prop(&ptr, "size_x", UI_ITEM_NONE, IFACE_("X"), ICON_NONE);
+      col->prop(&ptr, "size_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
+      col->prop(&ptr, "size_z", UI_ITEM_NONE, IFACE_("Z"), ICON_NONE);
       break;
   }
 }

@@ -111,7 +111,7 @@ void draw_layer_filter_settings(const bContext * /*C*/, uiLayout *layout, Pointe
                      "tree_node_filter",
                      &obj_data_ptr,
                      "layer_groups",
-                     "Group",
+                     IFACE_("Group"),
                      ICON_GREASEPENCIL_LAYER_GROUP);
   }
   else {
