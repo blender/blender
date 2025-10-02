@@ -1824,13 +1824,6 @@ static Mesh *meshgl_to_mesh(MeshGL &mgl,
     });
   }
 
-  {
-#  ifdef DEBUG_TIME
-    timeit::ScopedTimer timer_e("calculating edges");
-#  endif
-    bke::mesh_calc_edges(*mesh, false, false);
-  }
-
   /* Set the vertex positions, using implicit sharing to avoid copying any data. */
   {
 #  ifdef DEBUG_TIME
@@ -1844,6 +1837,15 @@ static Mesh *meshgl_to_mesh(MeshGL &mgl,
     output_attrs.add<float3>("position", bke::AttrDomain::Point, init);
     sharing_info->remove_user_and_delete_if_last();
   }
+
+  {
+#  ifdef DEBUG_TIME
+    timeit::ScopedTimer timer_e("calculating edges");
+#  endif
+    bke::mesh_calc_edges(*mesh, false, false);
+  }
+
+  BLI_assert(BKE_mesh_is_valid(mesh));
 
   OutToInMaps out_to_in(&ma, joined_mesh, mesh, &mesh_offsets);
 
