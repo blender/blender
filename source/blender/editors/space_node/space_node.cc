@@ -1876,6 +1876,8 @@ void ED_spacetype_node()
   art->draw = node_buttons_region_draw;
   BLI_addhead(&st->regiontypes, art);
 
+  node_tree_interface_panel_register(art);
+
   /* regions: toolbar */
   art = MEM_callocN<ARegionType>("spacetype view3d tools region");
   art->regionid = RGN_TYPE_TOOLS;

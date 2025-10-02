@@ -1016,92 +1016,12 @@ class NODE_MT_node_tree_interface_context_menu(Menu):
             layout.operator("node.interface_item_unlink_panel_toggle")
 
 
-class NODE_PT_node_tree_interface(Panel):
-    bl_space_type = 'NODE_EDITOR'
-    bl_region_type = 'UI'
-    bl_category = "Group"
-    bl_label = "Group Sockets"
-
-    @classmethod
-    def poll(cls, context):
-        snode = context.space_data
-        if snode is None:
-            return False
-        tree = snode.edit_tree
-        if tree is None:
-            return False
-        if tree.is_embedded_data:
-            return False
-        if not tree.bl_use_group_interface:
-            return False
-        return True
-
-    def draw(self, context):
-        layout = self.layout
-        snode = context.space_data
-        tree = snode.edit_tree
-
-        split = layout.row()
-
-        split.template_node_tree_interface(tree.interface)
-
-        ops_col = split.column(align=True)
-        ops_col.enabled = tree.library is None
-        ops_col.operator_menu_enum("node.interface_item_new", "item_type", icon='ADD', text="")
-        ops_col.operator("node.interface_item_remove", icon='REMOVE', text="")
-        ops_col.separator()
-        ops_col.menu("NODE_MT_node_tree_interface_context_menu", icon='DOWNARROW_HLT', text="")
-
-        ops_col.separator()
-
-        active_item = tree.interface.active
-        if active_item is not None:
-            layout.use_property_split = True
-            layout.use_property_decorate = False
-
-            if active_item.item_type == 'SOCKET':
-                layout.prop(active_item, "socket_type", text="Type")
-                layout.prop(active_item, "description")
-                # Display descriptions only for Geometry Nodes, since it's only used in the modifier panel.
-                if tree.type == 'GEOMETRY':
-                    field_socket_types = {
-                        "NodeSocketInt",
-                        "NodeSocketColor",
-                        "NodeSocketVector",
-                        "NodeSocketBool",
-                        "NodeSocketFloat",
-                    }
-                    if active_item.socket_type in field_socket_types:
-                        if 'OUTPUT' in active_item.in_out:
-                            layout.prop(active_item, "attribute_domain")
-                        layout.prop(active_item, "default_attribute_name")
-                if hasattr(active_item, "draw"):
-                    active_item.draw(context, layout)
-
-            if active_item.item_type == 'PANEL':
-                layout.prop(active_item, "description")
-                layout.prop(active_item, "default_closed", text="Closed by Default")
-
-            if active_item.item_type == 'PANEL' and len(
-                    active_item.interface_items) > 0 and getattr(
-                    active_item.interface_items[0], "is_panel_toggle", False):
-                panel_toggle_item = active_item.interface_items[0]
-                header, body = layout.panel("panel_toggle", default_closed=False)
-                header.label(text="Panel Toggle")
-                if body:
-                    body.prop(panel_toggle_item, "default_value", text="Default")
-                    col = body.column()
-                    col.prop(panel_toggle_item, "hide_in_modifier")
-                    col.prop(panel_toggle_item, "force_non_field")
-
-            layout.use_property_split = False
-
-
 class NODE_PT_node_tree_properties(Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
     bl_category = "Group"
     bl_label = "Group"
+    bl_order = 0
 
     @classmethod
     def poll(cls, context):
@@ -1156,6 +1076,7 @@ class NODE_PT_node_tree_animation(Panel):
     bl_category = "Group"
     bl_label = "Animation"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_order = 20
 
     @classmethod
     def poll(cls, context):
@@ -1249,7 +1170,6 @@ classes = (
     NODE_PT_node_color_presets,
     NODE_PT_node_tree_properties,
     NODE_MT_node_tree_interface_context_menu,
-    NODE_PT_node_tree_interface,
     NODE_PT_node_tree_animation,
     NODE_PT_active_node_generic,
     NODE_PT_active_node_color,

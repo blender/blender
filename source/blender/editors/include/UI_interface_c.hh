@@ -2666,7 +2666,7 @@ void uiTemplateLightLinkingCollection(uiLayout *layout,
 void uiTemplateBoneCollectionTree(uiLayout *layout, bContext *C);
 void uiTemplateGreasePencilLayerTree(uiLayout *layout, bContext *C);
 
-void uiTemplateNodeTreeInterface(uiLayout *layout, bContext *C, PointerRNA *ptr);
+void uiTemplateNodeTreeInterface(uiLayout *layout, const bContext *C, PointerRNA *ptr);
 /**
  * Draw all node buttons and socket default values with the same panel structure used by the node.
  */

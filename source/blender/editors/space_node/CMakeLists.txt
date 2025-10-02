@@ -43,6 +43,7 @@ set(SRC
   node_socket_tooltip.cc
   node_sync_sockets.cc
   node_templates.cc
+  node_tree_interface_ui.cc
   node_view.cc
   space_node.cc
 
