@@ -340,7 +340,7 @@ static void draw_horizontal_scale_indicators(const ARegion *region,
     to_string(to_string_data, start + steps * distance, 0, text, sizeof(text));
     const float right_text_width = BLF_width(font_id, text, strlen(text));
     const float max_text_width = max_ff(left_text_width, right_text_width);
-    const float max_label_count = BLI_rcti_size_x(&v2d->mask) + 1 / (max_text_width + 10.0f);
+    const float max_label_count = (BLI_rcti_size_x(&v2d->mask) + 1) / (max_text_width + 10.0f);
     draw_frequency = ceil(float(steps) / max_label_count);
   }
 
