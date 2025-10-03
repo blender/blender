@@ -628,6 +628,10 @@ if(WITH_AUDASPACE)
     )
   endif()
   add_definitions(-DWITH_AUDASPACE)
+  
+  if(WITH_RUBBERBAND)
+    add_definitions(-DWITH_RUBBERBAND)
+  endif()
 endif()
 
 if(WITH_BULLET)

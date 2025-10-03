@@ -45,6 +45,7 @@
 #  include <AUD_Sequence.h>
 #  include <AUD_Sound.h>
 #  include <AUD_Special.h>
+#  include <AUD_Types.h>
 #endif
 
 #include "BKE_bpath.hh"
@@ -1528,6 +1529,32 @@ bool BKE_sound_stream_info_get(Main *main,
   return true;
 }
 
+#  ifdef WITH_RUBBERBAND
+void *BKE_sound_add_time_stretch_effect(void *sound_handle, float fps)
+{
+  return AUD_Sound_animateableTimeStretchPitchScale(
+      sound_handle, fps, 1.0, 1.0, AUD_STRETCHER_QUALITY_HIGH, false);
+}
+void BKE_sound_set_scene_sound_time_stretch_at_frame(void *handle,
+                                                     int frame,
+                                                     float time_stretch,
+                                                     char animated)
+{
+  AUD_Sound_animateableTimeStretchPitchScale_setAnimationData(
+      handle, AUD_AP_TIME_STRETCH, frame, &time_stretch, animated);
+}
+void BKE_sound_set_scene_sound_time_stretch_constant_range(void *handle,
+                                                           int frame_start,
+                                                           int frame_end,
+                                                           float time_stretch)
+{
+  frame_start = max_ii(0, frame_start);
+  frame_end = max_ii(0, frame_end);
+  AUD_Sound_animateableTimeStretchPitchScale_setConstantRangeAnimationData(
+      handle, AUD_AP_TIME_STRETCH, frame_start, frame_end, &time_stretch);
+}
+#  endif /* WITH_RUBBERBAND */
+
 #else /* WITH_AUDASPACE */
 
 #  include "BLI_utildefines.h"
@@ -1596,6 +1623,7 @@ void BKE_sound_read_waveform(Main *bmain,
 {
   UNUSED_VARS(sound, stop, bmain);
 }
+
 void BKE_sound_update_sequencer(Main * /*main*/, bSound * /*sound*/) {}
 void BKE_sound_update_scene(Depsgraph * /*depsgraph*/, Scene * /*scene*/) {}
 void BKE_sound_update_scene_sound(void * /*handle*/, bSound * /*sound*/) {}
@@ -1652,6 +1680,26 @@ bool BKE_sound_stream_info_get(Main * /*main*/,
 }
 
 #endif /* WITH_AUDASPACE */
+
+#if !defined(WITH_AUDASPACE) || !defined(WITH_RUBBERBAND)
+void *BKE_sound_add_time_stretch_effect(void * /*sound_handle*/, float /*fps*/)
+{
+  return nullptr;
+}
+
+void BKE_sound_set_scene_sound_time_stretch_at_frame(void * /*handle*/,
+                                                     int /*frame*/,
+                                                     float /*time_stretch*/,
+                                                     char /*animated*/)
+{
+}
+void BKE_sound_set_scene_sound_time_stretch_constant_range(void * /*handle*/,
+                                                           int /*frame_start*/,
+                                                           int /*frame_end*/,
+                                                           float /*time_stretch*/)
+{
+}
+#endif
 
 void BKE_sound_reset_scene_runtime(Scene *scene)
 {
