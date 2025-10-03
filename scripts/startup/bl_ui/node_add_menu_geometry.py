@@ -911,6 +911,7 @@ class NODE_MT_gn_volume_read_base(node_add_menu.NodeMenu):
         layout = self.layout
         self.node_operator(layout, "GeometryNodeGetNamedGrid")
         self.node_operator(layout, "GeometryNodeGridInfo")
+        self.node_operator(layout, "GeometryNodeInputVoxelIndex")
 
         self.draw_assets_for_catalog(layout, self.menu_path)
 
