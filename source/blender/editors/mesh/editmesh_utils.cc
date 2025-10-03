@@ -1549,6 +1549,19 @@ bool EDBM_mesh_hide(BMEditMesh *em, bool swap)
         }
       }
     }
+    /* In edge or face select mode, also hide isolated verts that aren't connected to an edge. */
+    if (ELEM(itermode, BM_EDGES_OF_MESH, BM_FACES_OF_MESH)) {
+      BMVert *v;
+      BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
+        if (v->e) {
+          continue;
+        }
+        if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN) && !BM_elem_flag_test(v, BM_ELEM_SELECT)) {
+          BM_elem_hide_set(em->bm, (BMElem *)v, true);
+          changed = true;
+        }
+      }
+    }
   }
 
   if (changed) {
