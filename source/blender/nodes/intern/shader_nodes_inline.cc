@@ -617,12 +617,11 @@ class ShaderNodesInliner {
     const std::optional<PrimitiveSocketValue> iterations_value_opt =
         iterations_socket_value->to_primitive(*iterations_input->typeinfo);
     if (!iterations_value_opt) {
-      /* Number of iterations is not a primitive value. */
-      this->store_socket_value_fallback(socket);
       this->add_dynamic_repeat_zone_iterations_error(*repeat_input_node);
-      return;
     }
-    const int iterations = std::get<int>(iterations_value_opt->value);
+    const int iterations = iterations_value_opt.has_value() ?
+                               std::get<int>(iterations_value_opt->value) :
+                               0;
     if (iterations <= 0) {
       /* If the number of iterations is zero, the values are copied directly from the repeat input
        * node. */
