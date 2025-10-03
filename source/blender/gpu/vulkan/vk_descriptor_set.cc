@@ -73,18 +73,19 @@ void VKDescriptorSetUpdator::bind_image_resource(const VKStateManager &state_man
       VK_IMAGE_LAYOUT_GENERAL,
       resource_binding.location);
   /* Update access info. */
-  uint32_t layer_base = 0;
-  uint32_t layer_count = VK_REMAINING_ARRAY_LAYERS;
-  if (resource_binding.arrayed == VKImageViewArrayed::ARRAYED && texture.is_texture_view()) {
+  VKSubImageRange subimage = {};
+  if (texture.is_texture_view()) {
     IndexRange layer_range = texture.layer_range();
-    layer_base = layer_range.start();
-    layer_count = layer_range.size();
+    IndexRange mipmap_range = texture.mip_map_range();
+    subimage = {uint32_t(mipmap_range.start()),
+                uint32_t(mipmap_range.size()),
+                uint32_t(layer_range.start()),
+                uint32_t(layer_range.size())};
   }
   access_info.images.append({texture.vk_image_handle(),
                              resource_binding.access_mask,
                              to_vk_image_aspect_flag_bits(texture.device_format_get()),
-                             layer_base,
-                             layer_count});
+                             subimage});
 }
 
 void VKDescriptorSetUpdator::bind_texture_resource(const VKDevice &device,

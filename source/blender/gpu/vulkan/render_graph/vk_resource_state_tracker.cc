@@ -30,7 +30,9 @@ ResourceHandle VKResourceStateTracker::create_resource_slot()
   return handle;
 }
 
-void VKResourceStateTracker::add_image(VkImage vk_image, uint32_t layer_count, const char *name)
+void VKResourceStateTracker::add_image(VkImage vk_image,
+                                       bool use_subresource_tracking,
+                                       const char *name)
 {
   UNUSED_VARS_NDEBUG(name);
   BLI_assert_msg(!image_resources_.contains(vk_image),
@@ -42,7 +44,7 @@ void VKResourceStateTracker::add_image(VkImage vk_image, uint32_t layer_count, c
 
   resource.type = VKResourceType::IMAGE;
   resource.image.vk_image = vk_image;
-  resource.image.layer_count = layer_count;
+  resource.image.use_subresource_tracking = use_subresource_tracking;
 #ifndef NDEBUG
   resource.name = name;
 #endif

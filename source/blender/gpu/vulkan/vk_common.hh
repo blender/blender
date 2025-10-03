@@ -55,6 +55,13 @@ enum class VKImageViewArrayed {
   ARRAYED,
 };
 
+struct VKSubImageRange {
+  uint32_t mipmap_level = 0;
+  uint32_t mipmap_count = VK_REMAINING_MIP_LEVELS;
+  uint32_t layer_base = 0;
+  uint32_t layer_count = VK_REMAINING_ARRAY_LAYERS;
+};
+
 VkImageAspectFlags to_vk_image_aspect_flag_bits(const TextureFormat format);
 VkImageAspectFlags to_vk_image_aspect_flag_bits(const GPUFrameBufferBits buffers);
 VkFormat to_vk_format(const TextureFormat format);

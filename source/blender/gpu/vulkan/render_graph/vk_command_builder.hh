@@ -59,18 +59,18 @@ class VKCommandBuilder {
   };
 
   /**
-   * An image can consist out of layers. In some cases each layer can get different
-   * VkImageLayouts. To not complicate the global state tracker we track layered
-   * resources only when building the barriers.
+   * An image can consist out of layers and mipmaps. In some cases each layer/mipmap can get
+   * different VkImageLayouts. To not complicate the global state tracker we track sub-resources
+   * only when building the barriers.
    */
-  struct LayeredImageTracker {
+  struct ImageTracker {
     /**
      * Local reference to the active command builder.
      *
      * The reference is used to add VkImageMemoryBarrier's to the command builder.
      */
     VKCommandBuilder &command_builder;
-    LayeredImageTracker(VKCommandBuilder &command_builder) : command_builder(command_builder) {}
+    ImageTracker(VKCommandBuilder &command_builder) : command_builder(command_builder) {}
 
     /**
      * All layered attachments of the last rendering scope (VKNodeType::BEGIN_RENDERING).
@@ -79,21 +79,24 @@ class VKCommandBuilder {
      * be transitioned into a different image layout. These image layouts are stored in
      * `layered_bindings`.
      */
-    Set<VkImage> layered_attachments;
+    Set<VkImage> tracked_attachments;
 
-    struct TrackedImage {
+    /**
+     * Keep track of the changes to images since the start of the rendering scope. This allows
+     * reverting and rebuilding the correct state when ending or resuming the render scope.
+     */
+    struct SubImageChange {
       VkImage vk_image;
       VkImageLayout vk_image_layout;
-      uint32_t layer;
-      uint32_t layer_count;
+      VKSubImageRange subimage;
     };
-    Vector<TrackedImage> layered_bindings;
+    Vector<SubImageChange> changes;
 
     /**
      * Update the layered attachments list when beginning a new render scope.
      *
      * node_handle should be a handle that points to a VKNodeType::BEGIN_RENDERING.
-     * Any attachments that are layered will be added to the `layered_attachments` list.
+     * Any attachments that are layered will be added to the `tracked_attachments` list.
      */
     void begin(const VKRenderGraph &render_graph, NodeHandle node_handle);
 
@@ -102,7 +105,7 @@ class VKCommandBuilder {
      */
     inline bool contains(VkImage vk_image) const
     {
-      return layered_attachments.contains(vk_image);
+      return tracked_attachments.contains(vk_image);
     }
 
     /**
@@ -111,8 +114,17 @@ class VKCommandBuilder {
      * - `old_layout` should be the expected layout of the full image.
      */
     void update(VkImage vk_image,
-                uint32_t layer,
-                uint32_t layer_count,
+                const VKSubImageRange &subimage,
+                VkImageLayout old_layout,
+                VkImageLayout new_layout,
+                Barrier &r_barrier);
+    /**
+     * Ensure the layout of a mipmap level.
+     *
+     * - `old_layout` should be the expected layout of the full image.
+     */
+    void update(VkImage vk_image,
+                uint32_t mipmap_level,
                 VkImageLayout old_layout,
                 VkImageLayout new_layout,
                 Barrier &r_barrier);
@@ -228,7 +240,7 @@ class VKCommandBuilder {
   void build_pipeline_barriers(VKRenderGraph &render_graph,
                                NodeHandle node_handle,
                                VkPipelineStageFlags pipeline_stage,
-                               LayeredImageTracker &layered_tracker,
+                               ImageTracker &image_tracker,
                                Barrier &r_barrier,
                                bool within_rendering = false);
   void reset_barriers(Barrier &r_barrier);
@@ -256,7 +268,7 @@ class VKCommandBuilder {
   void add_image_barriers(VKRenderGraph &render_graph,
                           NodeHandle node_handle,
                           VkPipelineStageFlags node_stages,
-                          LayeredImageTracker &layered_tracker,
+                          ImageTracker &image_tracker,
                           Barrier &r_barrier,
                           bool within_rendering);
   void add_image_barrier(VkImage vk_image,
@@ -266,18 +278,17 @@ class VKCommandBuilder {
                          VkImageLayout old_image_layout,
                          VkImageLayout new_image_layout,
                          VkImageAspectFlags aspect_mask,
-                         uint32_t layer_base = 0,
-                         uint32_t layer_count = VK_REMAINING_ARRAY_LAYERS);
+                         const VKSubImageRange &subimage);
   void add_image_read_barriers(VKRenderGraph &render_graph,
                                NodeHandle node_handle,
                                VkPipelineStageFlags node_stages,
-                               LayeredImageTracker &layered_tracker,
+                               ImageTracker &image_tracker,
                                Barrier &r_barrier,
                                bool within_rendering);
   void add_image_write_barriers(VKRenderGraph &render_graph,
                                 NodeHandle node_handle,
                                 VkPipelineStageFlags node_stages,
-                                LayeredImageTracker &layered_tracker,
+                                ImageTracker &image_tracker,
                                 Barrier &r_barrier,
                                 bool within_rendering);
 
