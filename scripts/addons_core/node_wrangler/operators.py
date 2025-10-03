@@ -1688,7 +1688,7 @@ class NWAddReroutes(Operator, NWBase):
 
             reroutes_count = 0  # Will be used when aligning reroutes added to hidden nodes.
             for out_i, output in enumerate(node.outputs):
-                if output.is_unavailable:
+                if output.is_unavailable or isinstance(output, bpy.types.NodeSocketVirtual):
                     continue
                 if node.type == 'R_LAYERS' and output.name != 'Alpha':
                     # If 'R_LAYERS' check if output is used in render pass.
