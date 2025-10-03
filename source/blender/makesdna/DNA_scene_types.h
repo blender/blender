@@ -1889,6 +1889,15 @@ typedef struct ToolSettings {
   /* Pixel threshold that needs to be crossed before the playhead is snapped to a point. */
   int playhead_snap_distance;
 
+  /* Animation settings, used by "Paste Global Transform" operator. */
+  struct Object *anim_mirror_object;
+  struct Object *anim_relative_object;
+  char anim_mirror_bone[64];
+
+  /* Flags for "Fix to Camera" operator. */
+  uint8_t fix_to_cam_flag; /* eFixToCam_Flags */
+  char _pad8[7];
+
 } ToolSettings;
 
 /** \} */

@@ -3,6 +3,8 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 __all__ = (
+    "AutoKeying",
+
     "bake_action",
     "bake_action_objects",
 
@@ -13,9 +15,14 @@ __all__ = (
 )
 
 import bpy
-from bpy.types import Action, ActionSlot, ActionChannelbag
-from dataclasses import dataclass
+from bpy.types import (
+    Context, Action, ActionSlot, ActionChannelbag,
+    Object, PoseBone, KeyingSet,
+)
 
+import contextlib
+from dataclasses import dataclass
+from typing import Iterable, Optional, Union, Iterator
 from collections.abc import (
     Mapping,
     Sequence,
@@ -767,3 +774,256 @@ class KeyframesCo:
             # This also deduplicates keys where baked keys were inserted on the
             # same frame as existing ones.
             fcurve.update()
+
+
+class AutoKeying:
+    """Auto-keying support."""
+
+    # Use AutoKeying.keytype() or Authkeying.options() context to change those.
+    _keytype = 'KEYFRAME'
+    _force_autokey = False  # Allow use without the user activating auto-keying.
+    _use_loc = True
+    _use_rot = True
+    _use_scale = True
+
+    @classmethod
+    @contextlib.contextmanager
+    def keytype(cls, the_keytype: str) -> Iterator[None]:
+        """Context manager to set the key type that's inserted."""
+        default_keytype = cls._keytype
+        try:
+            cls._keytype = the_keytype
+            yield
+        finally:
+            cls._keytype = default_keytype
+
+    @classmethod
+    @contextlib.contextmanager
+    def options(
+            cls,
+            *,
+            keytype: str = "",
+            use_loc: bool = True,
+            use_rot: bool = True,
+            use_scale: bool = True,
+            force_autokey: bool = False) -> Iterator[None]:
+        """Context manager to set various keyframing options."""
+        default_keytype = cls._keytype
+        default_use_loc = cls._use_loc
+        default_use_rot = cls._use_rot
+        default_use_scale = cls._use_scale
+        default_force_autokey = cls._force_autokey
+        try:
+            cls._keytype = keytype
+            cls._use_loc = use_loc
+            cls._use_rot = use_rot
+            cls._use_scale = use_scale
+            cls._force_autokey = force_autokey
+            yield
+        finally:
+            cls._keytype = default_keytype
+            cls._use_loc = default_use_loc
+            cls._use_rot = default_use_rot
+            cls._use_scale = default_use_scale
+            cls._force_autokey = default_force_autokey
+
+    @classmethod
+    def keying_options(cls, context: Context) -> set[str]:
+        """Retrieve the general keyframing options from user preferences."""
+
+        prefs = context.preferences
+        ts = context.scene.tool_settings
+        options = set()
+
+        if prefs.edit.use_visual_keying:
+            options.add('INSERTKEY_VISUAL')
+        if prefs.edit.use_keyframe_insert_needed:
+            options.add('INSERTKEY_NEEDED')
+        if ts.use_keyframe_cycle_aware:
+            options.add('INSERTKEY_CYCLE_AWARE')
+        return options
+
+    @classmethod
+    def keying_options_from_keyingset(cls, context: Context, keyingset: KeyingSet) -> set[str]:
+        """Retrieve the general keyframing options from user preferences."""
+
+        ts = context.scene.tool_settings
+        options = set()
+
+        if keyingset.use_insertkey_visual:
+            options.add('INSERTKEY_VISUAL')
+        if keyingset.use_insertkey_needed:
+            options.add('INSERTKEY_NEEDED')
+        if ts.use_keyframe_cycle_aware:
+            options.add('INSERTKEY_CYCLE_AWARE')
+        return options
+
+    @classmethod
+    def autokeying_options(cls, context: Context) -> Optional[set[str]]:
+        """Retrieve the Auto Keyframe options, or None if disabled."""
+
+        ts = context.scene.tool_settings
+
+        if not (cls._force_autokey or ts.use_keyframe_insert_auto):
+            return None
+
+        active_keyingset = context.scene.keying_sets_all.active
+        if ts.use_keyframe_insert_keyingset and active_keyingset:
+            # No support for keying sets in this function
+            raise RuntimeError("This function should not be called when there is an active keying set")
+
+        prefs = context.preferences
+        options = cls.keying_options(context)
+
+        if prefs.edit.use_keyframe_insert_available:
+            options.add('INSERTKEY_AVAILABLE')
+        if ts.auto_keying_mode == 'REPLACE_KEYS':
+            options.add('INSERTKEY_REPLACE')
+        return options
+
+    @staticmethod
+    def get_4d_rotlock(bone: PoseBone) -> Iterable[bool]:
+        "Retrieve the lock status for 4D rotation."
+        if bone.lock_rotations_4d:
+            return [bone.lock_rotation_w, *bone.lock_rotation]
+        else:
+            return [all(bone.lock_rotation)] * 4
+
+    @classmethod
+    def keyframe_channels(
+        cls,
+        target: Union[Object, PoseBone],
+        options: set[str],
+        data_path: str,
+        group: str,
+        locks: Iterable[bool],
+    ) -> None:
+        """Keyframe channels, avoiding keying locked channels."""
+        if all(locks):
+            return
+
+        if not any(locks):
+            target.keyframe_insert(data_path, group=group, options=options, keytype=cls._keytype)
+            return
+
+        for index, lock in enumerate(locks):
+            if lock:
+                continue
+            target.keyframe_insert(data_path, index=index, group=group, options=options, keytype=cls._keytype)
+
+    @classmethod
+    def key_transformation(
+        cls,
+        target: Union[Object, PoseBone],
+        options: set[str],
+    ) -> None:
+        """Keyframe transformation properties, avoiding keying locked channels."""
+
+        is_bone = isinstance(target, PoseBone)
+        if is_bone:
+            group = target.name
+        else:
+            group = "Object Transforms"
+
+        def keyframe(data_path: str, locks: Iterable[bool]) -> None:
+            cls.keyframe_channels(target, options, data_path, group, locks)
+
+        if cls._use_loc and not (is_bone and target.bone.use_connect):
+            keyframe("location", target.lock_location)
+
+        if cls._use_rot:
+            if target.rotation_mode == 'QUATERNION':
+                keyframe("rotation_quaternion", cls.get_4d_rotlock(target))
+            elif target.rotation_mode == 'AXIS_ANGLE':
+                keyframe("rotation_axis_angle", cls.get_4d_rotlock(target))
+            else:
+                keyframe("rotation_euler", target.lock_rotation)
+
+        if cls._use_scale:
+            keyframe("scale", target.lock_scale)
+
+    @classmethod
+    def key_transformation_via_keyingset(cls,
+                                         context: Context,
+                                         target: Union[Object, PoseBone],
+                                         keyingset: KeyingSet) -> None:
+        """Auto-key transformation properties with the given keying set."""
+
+        keyingset.refresh()
+
+        is_bone = isinstance(target, PoseBone)
+        options = cls.keying_options_from_keyingset(context, keyingset)
+
+        paths_to_key = {keysetpath.data_path: keysetpath for keysetpath in keyingset.paths}
+
+        def keyframe(data_path: str, locks: Iterable[bool]) -> None:
+            # Keying sets are relative to the ID.
+            full_data_path = target.path_from_id(data_path)
+            try:
+                keysetpath = paths_to_key[full_data_path]
+            except KeyError:
+                # No biggie, just means this property shouldn't be keyed.
+                return
+
+            match keysetpath.group_method:
+                case 'NAMED':
+                    group = keysetpath.group
+                case 'KEYINGSET':
+                    group = keyingset.name
+                case 'NONE', _:
+                    group = ""
+
+            cls.keyframe_channels(target, options, data_path, group, locks)
+
+        if cls._use_loc and not (is_bone and target.bone.use_connect):
+            keyframe("location", target.lock_location)
+
+        if cls._use_rot:
+            if target.rotation_mode == 'QUATERNION':
+                keyframe("rotation_quaternion", cls.get_4d_rotlock(target))
+            elif target.rotation_mode == 'AXIS_ANGLE':
+                keyframe("rotation_axis_angle", cls.get_4d_rotlock(target))
+            else:
+                keyframe("rotation_euler", target.lock_rotation)
+
+        if cls._use_scale:
+            keyframe("scale", target.lock_scale)
+
+    @classmethod
+    def active_keyingset(cls, context: Context) -> KeyingSet | None:
+        """Return the active keying set, if it should be used.
+
+        Only returns the active keying set when the auto-key settings indicate
+        it should be used, and when it is not using absolute paths (because
+        that's not supported by the Copy Global Transform add-on).
+        """
+        ts = context.scene.tool_settings
+        if not ts.use_keyframe_insert_keyingset:
+            return None
+
+        active_keyingset = context.scene.keying_sets_all.active
+        if not active_keyingset:
+            return None
+
+        active_keyingset.refresh()
+        if active_keyingset.is_path_absolute:
+            # Absolute-path keying sets are not supported (yet?).
+            return None
+
+        return active_keyingset
+
+    @classmethod
+    def autokey_transformation(cls, context: Context, target: Union[Object, PoseBone]) -> None:
+        """Auto-key transformation properties."""
+
+        # See if the active keying set should be used.
+        keyingset = cls.active_keyingset(context)
+        if keyingset:
+            cls.key_transformation_via_keyingset(context, target, keyingset)
+            return
+
+        # Use regular autokeying options.
+        options = cls.autokeying_options(context)
+        if options is None:
+            return
+        cls.key_transformation(target, options)

@@ -940,6 +940,12 @@ typedef enum eUserpref_Anim_Flags {
   USER_ANIM_HIGH_QUALITY_DRAWING = (1 << 2),
 } eUserpref_Anim_Flags;
 
+typedef enum eFixToCam_Flags {
+  FIX_TO_CAM_FLAG_USE_LOC = (1 << 0),
+  FIX_TO_CAM_FLAG_USE_ROT = (1 << 1),
+  FIX_TO_CAM_FLAG_USE_SCALE = (1 << 2),
+} eFixToCam_Flags;
+
 /** #UserDef.transopts */
 typedef enum eUserpref_Translation_Flags {
   USER_TR_TOOLTIPS = (1 << 0),

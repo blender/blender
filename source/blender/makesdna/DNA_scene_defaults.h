@@ -432,6 +432,9 @@
     /* Placement */ \
     .snap_mode_tools = SCE_SNAP_TO_GEOM,\
     .plane_axis = 2,\
+\
+    /* Animation */ \
+    .fix_to_cam_flag = FIX_TO_CAM_FLAG_USE_LOC | FIX_TO_CAM_FLAG_USE_ROT | FIX_TO_CAM_FLAG_USE_SCALE, \
   }
 
 #define _DNA_DEFAULT_Sculpt \

@@ -4189,6 +4189,42 @@ static void rna_def_tool_settings(BlenderRNA *brna)
       prop, "New Keyframe Type", "Type of keyframes to create when inserting keyframes");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ACTION);
 
+  /* Animation */
+  prop = RNA_def_property(srna, "anim_mirror_object", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_pointer_funcs(prop, nullptr, nullptr, nullptr, nullptr);
+  RNA_def_property_ui_text(prop,
+                           "Mirror Object",
+                           "Object to mirror over. Leave empty and name a bone to always mirror "
+                           "over that bone of the active armature");
+
+  prop = RNA_def_property(srna, "anim_mirror_bone", PROP_STRING, PROP_NONE);
+  RNA_def_struct_name_property(srna, prop);
+  RNA_def_property_ui_text(prop, "Mirror Bone", "Bone to use for the mirroring");
+
+  prop = RNA_def_property(srna, "anim_relative_object", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_pointer_funcs(prop, nullptr, nullptr, nullptr, nullptr);
+  RNA_def_property_ui_text(prop, "Relative Object", "Object to which matrices are made relative");
+
+  prop = RNA_def_property(srna, "anim_fix_to_cam_use_loc", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "fix_to_cam_flag", FIX_TO_CAM_FLAG_USE_LOC);
+  RNA_def_property_boolean_default(prop, true);
+  RNA_def_property_ui_text(
+      prop, "Use Location for Camera Fix", "Create location keys when fixing to the scene camera");
+
+  prop = RNA_def_property(srna, "anim_fix_to_cam_use_rot", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "fix_to_cam_flag", FIX_TO_CAM_FLAG_USE_ROT);
+  RNA_def_property_boolean_default(prop, true);
+  RNA_def_property_ui_text(
+      prop, "Use Rotation for Camera Fix", "Create rotation keys when fixing to the scene camera");
+
+  prop = RNA_def_property(srna, "anim_fix_to_cam_use_scale", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "fix_to_cam_flag", FIX_TO_CAM_FLAG_USE_SCALE);
+  RNA_def_property_boolean_default(prop, true);
+  RNA_def_property_ui_text(
+      prop, "Use Scale for Camera Fix", "Create scale keys when fixing to the scene camera");
+
   /* UV */
   prop = RNA_def_property(srna, "uv_select_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "uv_selectmode");

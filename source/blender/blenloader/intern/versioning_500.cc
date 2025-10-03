@@ -19,6 +19,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_curves_types.h"
+#include "DNA_defaults.h"
 #include "DNA_genfile.h"
 #include "DNA_grease_pencil_types.h"
 #include "DNA_material_types.h"
@@ -2604,6 +2605,16 @@ void do_versions_after_linking_500(FileData *fd, Main *bmain)
       if (scene->ed != nullptr) {
         sequencer_substitute_transform_effects(scene);
       }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 101)) {
+    const uint8_t default_flags = DNA_struct_default_get(ToolSettings)->fix_to_cam_flag;
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (!scene->toolsettings) {
+        continue;
+      }
+      scene->toolsettings->fix_to_cam_flag = default_flags;
     }
   }
 
