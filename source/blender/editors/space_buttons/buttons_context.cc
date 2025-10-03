@@ -24,6 +24,7 @@
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_world_types.h"
 
@@ -37,6 +38,9 @@
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
 #include "BKE_screen.hh"
+
+#include "SEQ_modifier.hh"
+#include "SEQ_select.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
@@ -523,6 +527,46 @@ static bool buttons_context_path_texture(const bContext *C,
   return true;
 }
 
+static bool buttons_context_path_strip(ButsContextPath *path)
+{
+  PointerRNA *ptr = &path->ptr[path->len - 1];
+  /* If we already have a (pinned) strip, we're done. */
+  if (RNA_struct_is_a(ptr->type, &RNA_Strip)) {
+    return true;
+  }
+
+  if (buttons_context_path_scene(path)) {
+    Scene *scene = static_cast<Scene *>(path->ptr[path->len - 1].data);
+    Strip *active_strip = blender::seq::select_active_get(scene);
+    if (active_strip == nullptr) {
+      return false;
+    }
+
+    path->ptr[path->len] = RNA_pointer_create_discrete(&scene->id, &RNA_Strip, active_strip);
+    path->len++;
+    return true;
+  }
+
+  return false;
+}
+
+static bool buttons_context_path_strip_modifier(Scene *sequencer_scene, ButsContextPath *path)
+{
+  if (sequencer_scene && buttons_context_path_strip(path)) {
+    Strip *active_strip = static_cast<Strip *>(path->ptr[path->len - 1].data);
+
+    StripModifierData *smd = blender::seq::modifier_get_active(active_strip);
+    if (smd) {
+      path->ptr[path->len] = RNA_pointer_create_discrete(
+          &sequencer_scene->id, &RNA_StripModifier, smd);
+      path->len++;
+    }
+    return true;
+  }
+
+  return false;
+}
+
 #ifdef WITH_FREESTYLE
 static bool buttons_context_linestyle_pinnable(const bContext *C, ViewLayer *view_layer)
 {
@@ -554,6 +598,8 @@ static bool buttons_context_path(
    * Otherwise there is a loop reading the context that we are setting. */
   wmWindow *window = CTX_wm_window(C);
   Scene *scene = WM_window_get_active_scene(window);
+  WorkSpace *workspace = WM_window_get_active_workspace(window);
+  Scene *sequencer_scene = workspace->sequencer_scene;
   ViewLayer *view_layer = WM_window_get_active_view_layer(window);
 
   *path = {};
@@ -568,7 +614,13 @@ static bool buttons_context_path(
   }
   /* No pinned root, use scene as initial root. */
   else if (mainb != BCONTEXT_TOOL) {
-    path->ptr[0] = RNA_id_pointer_create(&scene->id);
+    if (ELEM(mainb, BCONTEXT_STRIP, BCONTEXT_STRIP_MODIFIER)) {
+      path->ptr[0] = RNA_id_pointer_create(&sequencer_scene->id);
+    }
+    else {
+      path->ptr[0] = RNA_id_pointer_create(&scene->id);
+    }
+
     path->len++;
 
     if (!ELEM(mainb,
@@ -576,7 +628,9 @@ static bool buttons_context_path(
               BCONTEXT_RENDER,
               BCONTEXT_OUTPUT,
               BCONTEXT_VIEW_LAYER,
-              BCONTEXT_WORLD))
+              BCONTEXT_WORLD,
+              BCONTEXT_STRIP,
+              BCONTEXT_STRIP_MODIFIER))
     {
       path->ptr[path->len] = RNA_pointer_create_discrete(nullptr, &RNA_ViewLayer, view_layer);
       path->len++;
@@ -644,6 +698,12 @@ static bool buttons_context_path(
       break;
     case BCONTEXT_BONE_CONSTRAINT:
       found = buttons_context_path_pose_bone(path);
+      break;
+    case BCONTEXT_STRIP:
+      found = buttons_context_path_strip(path);
+      break;
+    case BCONTEXT_STRIP_MODIFIER:
+      found = buttons_context_path_strip_modifier(sequencer_scene, path);
       break;
     default:
       found = false;
@@ -851,6 +911,8 @@ const char *buttons_context_dir[] = {
     "curves",
     "pointcloud",
     "volume",
+    "strip",
+    "strip_modifier",
     nullptr,
 };
 
@@ -1173,6 +1235,14 @@ int /*eContextResult*/ buttons_context(const bContext *C,
     set_pointer_type(path, result, &RNA_GreasePencil);
     return CTX_RESULT_OK;
   }
+  if (CTX_data_equals(member, "strip")) {
+    set_pointer_type(path, result, &RNA_Strip);
+    return CTX_RESULT_OK;
+  }
+  if (CTX_data_equals(member, "strip_modifier")) {
+    set_pointer_type(path, result, &RNA_StripModifier);
+    return CTX_RESULT_OK;
+  }
   return CTX_RESULT_MEMBER_NOT_FOUND;
 }
 
@@ -1206,7 +1276,9 @@ static void buttons_panel_context_draw(const bContext *C, Panel *panel)
               BCONTEXT_OUTPUT,
               BCONTEXT_SCENE,
               BCONTEXT_VIEW_LAYER,
-              BCONTEXT_WORLD) &&
+              BCONTEXT_WORLD,
+              BCONTEXT_STRIP,
+              BCONTEXT_STRIP_MODIFIER) &&
         ptr->type == &RNA_Scene)
     {
       continue;

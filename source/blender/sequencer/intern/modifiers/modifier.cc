@@ -183,12 +183,6 @@ bool modifier_ui_poll(const bContext *C, PanelType * /*pt*/)
   if (!sequencer_scene) {
     return false;
   }
-  if (const SpaceSeq *sseq = CTX_wm_space_seq(C)) {
-    /* Only show modifiers in the sequencer view types, not the preview. */
-    if (sseq->view == SEQ_VIEW_PREVIEW) {
-      return false;
-    }
-  }
   Strip *active_strip = seq::select_active_get(sequencer_scene);
   return active_strip != nullptr;
 }
@@ -232,9 +226,9 @@ PanelType *modifier_panel_register(ARegionType *region_type,
 
   modifier_type_panel_id(type, panel_type->idname);
   STRNCPY_UTF8(panel_type->label, "");
-  STRNCPY_UTF8(panel_type->category, "Modifiers");
   STRNCPY_UTF8(panel_type->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   STRNCPY_UTF8(panel_type->active_property, "is_active");
+  STRNCPY_UTF8(panel_type->context, "strip_modifier");
 
   panel_type->draw_header = modifier_panel_header;
   panel_type->draw = draw;

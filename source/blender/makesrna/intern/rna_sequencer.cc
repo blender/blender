@@ -2290,6 +2290,7 @@ static void rna_def_strip(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Strip", "Sequence strip in the sequence editor");
   RNA_def_struct_refine_func(srna, "rna_Strip_refine");
   RNA_def_struct_path_func(srna, "rna_Strip_path");
+  RNA_def_struct_ui_icon(srna, ICON_SEQ_SEQUENCER);
   RNA_def_struct_idprops_func(srna, "rna_Strip_idprops");
   RNA_def_struct_system_idprops_func(srna, "rna_Strip_system_idprops");
 
