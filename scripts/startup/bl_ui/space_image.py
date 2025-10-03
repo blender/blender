@@ -484,6 +484,7 @@ class IMAGE_MT_uvs(Menu):
         layout.operator_context = 'EXEC_REGION_WIN'
         layout.menu("IMAGE_MT_uvs_align")
         layout.operator("uv.align_rotation")
+        layout.operator_menu_enum("uv.move_on_axis", "type", text="Move on Axis")
 
         layout.separator()
 

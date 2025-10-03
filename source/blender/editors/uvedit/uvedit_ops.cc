@@ -344,6 +344,101 @@ bool ED_uvedit_center_from_pivot_ex(const SpaceImage *sima,
   return changed;
 }
 
+enum class UVMoveType {
+  Dynamic = 0,
+  Pixel = 1,
+  Udim = 2,
+};
+enum class UVMoveDirection {
+  X = 0,
+  Y = 1,
+};
+
+static wmOperatorStatus uv_move_on_axis_exec(bContext *C, wmOperator *op)
+
+{
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  SpaceImage *sima = CTX_wm_space_image(C);
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+      scene, view_layer, nullptr);
+  UVMoveType type = UVMoveType(RNA_enum_get(op->ptr, "type"));
+  UVMoveDirection axis = UVMoveDirection(RNA_enum_get(op->ptr, "axis"));
+  int distance = RNA_int_get(op->ptr, "distance");
+
+  int size[2];
+  ED_space_image_get_size(sima, &size[0], &size[1]);
+  float distance_final;
+  if (type == UVMoveType::Dynamic) {
+    distance_final = float(distance) / sima->tile_grid_shape[int(axis)];
+  }
+  else if (type == UVMoveType::Pixel) {
+    distance_final = float(distance) / size[int(axis)];
+  }
+  else {
+    distance_final = distance;
+  }
+  for (Object *obedit : objects) {
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+    bool changed = false;
+    if (em->bm->totvertsel == 0) {
+      continue;
+    }
+
+    ED_uvedit_foreach_uv(
+        scene, em->bm, true, true, [&axis, &distance_final, &changed](float luv[2]) {
+          luv[int(axis)] += distance_final;
+          changed = true;
+        });
+
+    if (changed) {
+      uvedit_live_unwrap_update(sima, scene, obedit);
+      DEG_id_tag_update(static_cast<ID *>(obedit->data), 0);
+      WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+    }
+  }
+  return OPERATOR_FINISHED;
+}
+
+static void UV_OT_move_on_axis(wmOperatorType *ot)
+{
+  static const EnumPropertyItem shift_items[] = {
+      {int(UVMoveType::Dynamic), "DYNAMIC", 0, "Dynamic", "Move by dynamic grid"},
+      {int(UVMoveType::Pixel), "PIXEL", 0, "Pixel", "Move by pixel"},
+      {int(UVMoveType::Udim), "UDIM", 0, "UDIM", "Move by UDIM"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  static const EnumPropertyItem axis_items[] = {
+      {int(UVMoveDirection::X), "X", 0, "X axis", "Move vertices on the X axis"},
+      {int(UVMoveDirection::Y), "Y", 0, "Y axis", "Move vertices on the Y axis"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  /* identifiers */
+  ot->name = "Move on Axis";
+  ot->description = "Move UVs on an axis";
+  ot->idname = "UV_OT_move_on_axis";
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* API callbacks. */
+  ot->exec = uv_move_on_axis_exec;
+  ot->poll = ED_operator_uvedit;
+
+  /* properties */
+  RNA_def_enum(ot->srna, "type", shift_items, int(UVMoveType::Udim), "Type", "Move Type");
+  RNA_def_enum(
+      ot->srna, "axis", axis_items, int(UVMoveDirection::X), "Axis", "Axis to move UVs on");
+  RNA_def_int(ot->srna,
+              "distance",
+              1,
+              INT_MIN,
+              INT_MAX,
+              "Distance",
+              "Distance to move UVs",
+              INT_MIN,
+              INT_MAX);
+}
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -2584,6 +2679,7 @@ void ED_operatortypes_uvedit()
 
   WM_operatortype_append(UV_OT_cursor_set);
   WM_operatortype_append(UV_OT_copy_mirrored_faces);
+  WM_operatortype_append(UV_OT_move_on_axis);
 }
 
 void ED_operatormacros_uvedit()
