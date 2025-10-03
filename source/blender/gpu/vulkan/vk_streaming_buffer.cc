@@ -60,9 +60,10 @@ VkDeviceSize VKStreamingBuffer::update(VKContext &context, const void *data, siz
       data,
       data_size);
 
+  /* Increace the region size to copy to include the min offset alignment. */
   render_graph::VKCopyBufferNode::Data &copy_buffer_data = render_graph.get_node_data(
       copy_buffer_handle_);
-  copy_buffer_data.region.size += data_size;
+  copy_buffer_data.region.size += offset_ - start_offset;
   return start_offset;
 }
 
