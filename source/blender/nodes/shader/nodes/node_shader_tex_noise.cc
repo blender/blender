@@ -67,7 +67,7 @@ static void sh_node_tex_noise_declare(NodeDeclarationBuilder &b)
       .max(1000.0f)
       .default_value(0.0f)
       .description("Amount of distortion");
-  b.add_output<decl::Float>("Fac").no_muted_links();
+  b.add_output<decl::Float>("Factor", "Fac").no_muted_links();
   b.add_output<decl::Color>("Color").no_muted_links();
 }
 

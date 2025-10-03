@@ -51,7 +51,7 @@ static void sh_node_tex_wave_declare(NodeDeclarationBuilder &b)
           "Position of the wave along the Bands Direction.\n"
           "This can be used as an input for more control over the distortion");
   b.add_output<decl::Color>("Color").no_muted_links();
-  b.add_output<decl::Float>("Fac").no_muted_links();
+  b.add_output<decl::Float>("Factor", "Fac").no_muted_links();
 }
 
 static void node_shader_buts_tex_wave(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

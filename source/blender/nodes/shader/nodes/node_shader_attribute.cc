@@ -17,7 +17,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Color>("Color");
   b.add_output<decl::Vector>("Vector");
-  b.add_output<decl::Float>("Fac");
+  b.add_output<decl::Float>("Factor", "Fac");
   b.add_output<decl::Float>("Alpha");
 }
 

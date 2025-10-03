@@ -31,7 +31,7 @@ static void sh_node_tex_checker_declare(NodeDeclarationBuilder &b)
           "Overall texture scale.\n"
           "The scale is a factor of the bounding box of the face divided by the Scale value");
   b.add_output<decl::Color>("Color");
-  b.add_output<decl::Float>("Fac");
+  b.add_output<decl::Float>("Factor", "Fac");
 }
 
 static void node_shader_init_tex_checker(bNodeTree * /*ntree*/, bNode *node)

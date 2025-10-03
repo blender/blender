@@ -11,10 +11,14 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Color>("Color")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .description("Color input on which correction will be applied");
-  b.add_input<decl::Float>("Bright").default_value(0.0f).min(-100.0f).max(100.0f).description(
-      "Brightness correction value.\n"
-      "An additive-type factor by which to increase the overall brightness of the image. "
-      "Use a negative number to darken an image, and a positive number to brighten it");
+  b.add_input<decl::Float>("Brightness", "Bright")
+      .default_value(0.0f)
+      .min(-100.0f)
+      .max(100.0f)
+      .description(
+          "Brightness correction value.\n"
+          "An additive-type factor by which to increase the overall brightness of the image. "
+          "Use a negative number to darken an image, and a positive number to brighten it");
   b.add_input<decl::Float>("Contrast")
       .default_value(0.0f)
       .min(-100.0f)

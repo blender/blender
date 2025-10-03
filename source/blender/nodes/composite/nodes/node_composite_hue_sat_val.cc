@@ -43,7 +43,11 @@ static void cmp_node_huesatval_declare(NodeDeclarationBuilder &b)
       .max(2.0f)
       .subtype(PROP_FACTOR)
       .translation_context(BLT_I18NCONTEXT_COLOR);
-  b.add_input<decl::Float>("Fac").default_value(1.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>("Factor", "Fac")
+      .default_value(1.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR);
 }
 
 using namespace blender::compositor;
