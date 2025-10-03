@@ -940,7 +940,10 @@ int BLI_kdtree_nd_(calc_duplicates_cb)(const KDTree *tree,
         else if (target_index != neighbor_index) {
           float &dist_sq_best = duplicates_dist_sq[neighbor_index];
           /* Steal the target if it's closer. */
-          if (dist_sq < dist_sq_best) {
+          if ((dist_sq < dist_sq_best) ||
+              /* Pick the lowest index as a tie breaker for a deterministic result. */
+              ((dist_sq == dist_sq_best) && (node_index < target_index)))
+          {
             dist_sq_best = dist_sq;
             duplicates[neighbor_index] = node_index;
           }
