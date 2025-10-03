@@ -8935,6 +8935,7 @@ static void rna_def_node(BlenderRNA *brna)
                                     "rna_NodeInputs_lookup_string",
                                     nullptr);
   RNA_def_property_struct_type(prop, "NodeSocket");
+  RNA_def_property_flag_hide_from_ui_workaround(prop);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Inputs", "");
   rna_def_node_sockets_api(brna, prop, SOCK_IN);
@@ -8951,6 +8952,7 @@ static void rna_def_node(BlenderRNA *brna)
                                     "rna_NodeOutputs_lookup_string",
                                     nullptr);
   RNA_def_property_struct_type(prop, "NodeSocket");
+  RNA_def_property_flag_hide_from_ui_workaround(prop);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Outputs", "");
   rna_def_node_sockets_api(brna, prop, SOCK_OUT);
