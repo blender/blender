@@ -94,10 +94,17 @@ static void library_copy_data(Main *bmain,
   if (library_src->packedfile) {
     library_dst->packedfile = BKE_packedfile_duplicate(library_src->packedfile);
   }
-  library_dst->runtime = MEM_new<LibraryRuntime>(__func__, *library_src->runtime);
-  library_dst->runtime->filedata = nullptr;
-  library_dst->runtime->is_filedata_owner = false;
-  library_dst->runtime->name_map = nullptr;
+
+  /* Only explicitely copy a sub-set of the runtime data. */
+  library_dst->runtime = MEM_new<LibraryRuntime>(__func__);
+  BLI_strncpy(library_dst->runtime->filepath_abs,
+              library_src->runtime->filepath_abs,
+              sizeof(library_dst->runtime->filepath_abs));
+  library_dst->runtime->parent = library_src->runtime->parent;
+  library_dst->runtime->tag = library_src->runtime->tag;
+  library_dst->runtime->versionfile = library_src->runtime->versionfile;
+  library_dst->runtime->subversionfile = library_src->runtime->subversionfile;
+  library_dst->runtime->colorspace = library_src->runtime->colorspace;
 }
 
 static void library_foreach_id(ID *id, LibraryForeachIDData *data)
