@@ -5947,6 +5947,8 @@ def km_edit_pointcloud(params):
         ("pointcloud.separate", {"type": 'P', "value": 'PRESS'}, None),
         ("transform.transform", {"type": 'S', "value": 'PRESS', "alt": True},
          {"properties": [("mode", 'CURVE_SHRINKFATTEN')]}),
+        *_template_items_proportional_editing(
+            params, connected=True, toggle_data_path="tool_settings.use_proportional_edit"),
     ])
 
     return keymap
