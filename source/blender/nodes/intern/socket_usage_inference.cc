@@ -31,7 +31,7 @@
 namespace blender::nodes::socket_usage_inference {
 
 /** Utility class to simplify passing global state into all the functions during inferencing. */
-struct SocketUsageInferencer {
+class SocketUsageInferencerImpl {
  private:
   friend InputSocketUsageParams;
 
@@ -74,12 +74,14 @@ struct SocketUsageInferencer {
   bool ignore_top_level_node_muting_ = false;
 
  public:
-  SocketUsageInferencer(const bNodeTree &tree,
-                        const std::optional<Span<InferenceValue>> tree_input_values,
-                        ResourceScope &scope,
-                        bke::ComputeContextCache &compute_context_cache,
-                        const std::optional<Span<bool>> top_level_ignored_inputs = std::nullopt,
-                        const bool ignore_top_level_node_muting = false)
+  SocketUsageInferencer *owner_ = nullptr;
+
+  SocketUsageInferencerImpl(const bNodeTree &tree,
+                            const std::optional<Span<InferenceValue>> tree_input_values,
+                            ResourceScope &scope,
+                            bke::ComputeContextCache &compute_context_cache,
+                            const std::optional<Span<bool>> top_level_ignored_inputs,
+                            const bool ignore_top_level_node_muting)
       : scope_(scope),
         compute_context_cache_(compute_context_cache),
         value_inferencer_(
@@ -486,7 +488,7 @@ struct SocketUsageInferencer {
       return;
     }
     InputSocketUsageParams params{
-        *this, socket.context, socket->owner_tree(), socket->owner_node(), *socket};
+        *owner_, socket.context, socket->owner_tree(), socket->owner_node(), *socket};
     const std::optional<bool> is_used = (*socket_decl->usage_inference_fn)(params);
     if (!is_used.has_value()) {
       /* Some value was requested, come back later when that value is available. */
@@ -733,6 +735,23 @@ struct SocketUsageInferencer {
   }
 };
 
+SocketUsageInferencer::SocketUsageInferencer(
+    const bNodeTree &tree,
+    const std::optional<Span<InferenceValue>> tree_input_values,
+    ResourceScope &scope,
+    bke::ComputeContextCache &compute_context_cache,
+    const std::optional<Span<bool>> top_level_ignored_inputs,
+    const bool ignore_top_level_node_muting)
+    : impl_(scope.construct<SocketUsageInferencerImpl>(tree,
+                                                       tree_input_values,
+                                                       scope,
+                                                       compute_context_cache,
+                                                       top_level_ignored_inputs,
+                                                       ignore_top_level_node_muting))
+{
+  impl_.owner_ = this;
+}
+
 static bool input_may_affect_visibility(const bNodeTreeInterfaceSocket &socket)
 {
   return socket.socket_type == StringRef("NodeSocketMenu");
@@ -956,14 +975,14 @@ InputSocketUsageParams::InputSocketUsageParams(SocketUsageInferencer &inferencer
 InferenceValue InputSocketUsageParams::get_input(const StringRef identifier) const
 {
   const SocketInContext input_socket{compute_context_, this->node.input_by_identifier(identifier)};
-  return inferencer_.get_socket_value(input_socket);
+  return inferencer_.impl_.get_socket_value(input_socket);
 }
 
 std::optional<bool> InputSocketUsageParams::any_output_is_used() const
 {
   const bNodeSocket *first_missing = nullptr;
   for (const bNodeSocket *output_socket : this->node.output_sockets()) {
-    if (const std::optional<bool> is_used = inferencer_.all_socket_usages_.lookup_try(
+    if (const std::optional<bool> is_used = inferencer_.impl_.all_socket_usages_.lookup_try(
             {compute_context_, output_socket}))
     {
       if (*is_used) {
@@ -975,7 +994,7 @@ std::optional<bool> InputSocketUsageParams::any_output_is_used() const
     }
   }
   if (first_missing) {
-    inferencer_.push_usage_task({compute_context_, first_missing});
+    inferencer_.impl_.push_usage_task({compute_context_, first_missing});
     return std::nullopt;
   }
   return false;
@@ -991,6 +1010,31 @@ bool InputSocketUsageParams::menu_input_may_be(const StringRef identifier,
     return true;
   }
   return value.get_primitive<MenuValue>().value == enum_value;
+}
+
+void SocketUsageInferencer::mark_top_level_node_outputs_as_used()
+{
+  impl_.mark_top_level_node_outputs_as_used();
+}
+
+bool SocketUsageInferencer::is_group_input_used(const int input_i)
+{
+  return impl_.is_group_input_used(input_i);
+}
+
+bool SocketUsageInferencer::is_socket_used(const SocketInContext &socket)
+{
+  return impl_.is_socket_used(socket);
+}
+
+bool SocketUsageInferencer::is_disabled_group_output(const int output_i)
+{
+  return impl_.is_disabled_group_output(output_i);
+}
+
+bool SocketUsageInferencer::is_disabled_output(const SocketInContext &socket)
+{
+  return impl_.is_disabled_output(socket);
 }
 
 }  // namespace blender::nodes::socket_usage_inference

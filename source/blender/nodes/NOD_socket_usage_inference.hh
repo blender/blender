@@ -21,7 +21,36 @@ struct IDProperty;
 
 namespace blender::nodes::socket_usage_inference {
 
-struct SocketUsageInferencer;
+class SocketUsageInferencerImpl;
+
+/**
+ * Can detect which sockets are used or disabled.
+ */
+class SocketUsageInferencer {
+ private:
+  SocketUsageInferencerImpl &impl_;
+
+  friend class InputSocketUsageParams;
+
+ public:
+  SocketUsageInferencer(const bNodeTree &tree,
+                        std::optional<Span<InferenceValue>> tree_input_values,
+                        ResourceScope &scope,
+                        bke::ComputeContextCache &compute_context_cache,
+                        std::optional<Span<bool>> top_level_ignored_inputs = std::nullopt,
+                        bool ignore_top_level_node_muting = false);
+
+  bool is_socket_used(const SocketInContext &socket);
+  bool is_group_input_used(int input_i);
+
+  bool is_disabled_output(const SocketInContext &socket);
+  bool is_disabled_group_output(int output_i);
+
+  /** This can be used when detecting the usage of all input sockets in a node tree, instead of
+   * just the inputs of the group as a whole.
+   */
+  void mark_top_level_node_outputs_as_used();
+};
 
 class InputSocketUsageParams {
  private:
