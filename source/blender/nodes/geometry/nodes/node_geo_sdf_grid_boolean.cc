@@ -181,7 +181,6 @@ static void node_register()
   ntype.initfunc = node_init;
   ntype.draw_buttons = node_layout;
   ntype.geometry_node_execute = node_geo_exec;
-  ntype.gather_link_search_ops = search_link_ops_for_volume_grid_node;
   blender::bke::node_register_type(ntype);
   node_rna(ntype.rna_ext.srna);
 }

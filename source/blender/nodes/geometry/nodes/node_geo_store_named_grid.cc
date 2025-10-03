@@ -39,9 +39,6 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void search_link_ops(GatherLinkSearchOpParams &params)
 {
-  if (!USER_EXPERIMENTAL_TEST(&U, use_new_volume_nodes)) {
-    return;
-  }
   if (params.other_socket().type == SOCK_GEOMETRY) {
     params.add_item(IFACE_("Volume"), [](LinkSearchOpParams &params) {
       bNode &node = params.add_node("GeometryNodeStoreNamedGrid");

@@ -101,7 +101,6 @@ static void node_register()
   ntype.enum_name_legacy = "GET_NAMED_GRID";
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
-  ntype.gather_link_search_ops = search_link_ops_for_volume_grid_node;
   ntype.draw_buttons = node_layout;
   ntype.initfunc = node_init;
   ntype.geometry_node_execute = node_geo_exec;
