@@ -152,9 +152,11 @@ void main()
     /* Encode validity of each samples in the grid cell. */
     for (int cell = 0; cell < 4; cell++) {
       for (int i = 0; i < 8; i++) {
-        int3 coord_input = clamp(texel_coord, int3(0), grid_size - 1);
+        int3 sample_position = lightprobe_volume_grid_cell_corner(i);
+        int3 coord_texel = texel_coord + int3(0, 0, cell) + sample_position;
+        int3 coord_input = clamp(coord_texel, int3(0), grid_size - 1);
         float validity = texelFetch(validity_tx, coord_input, 0).r;
-        bool is_padding_voxel = !all(equal(texel_coord, input_coord));
+        bool is_padding_voxel = !all(equal(coord_texel, coord_input));
         if ((validity > validity_threshold) || is_padding_voxel) {
           cell_validity_bits[cell] |= (1 << i);
         }
