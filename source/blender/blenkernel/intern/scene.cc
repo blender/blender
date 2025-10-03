@@ -319,7 +319,7 @@ static void scene_copy_data(Main *bmain,
   BKE_curvemapping_copy_data(&scene_dst->r.mblur_shutter_curve, &scene_src->r.mblur_shutter_curve);
 
   /* tool settings */
-  scene_dst->toolsettings = BKE_toolsettings_copy(scene_dst->toolsettings, flag_subdata);
+  scene_dst->toolsettings = BKE_toolsettings_copy(scene_src->toolsettings, flag_subdata);
 
   if (scene_src->display.shading.prop) {
     scene_dst->display.shading.prop = IDP_CopyProperty(scene_src->display.shading.prop);
