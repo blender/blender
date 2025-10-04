@@ -1060,6 +1060,9 @@ void retiming_sound_animation_data_set(const Scene *scene, const Strip *strip)
                                    [](const RetimingRange &range) {
                                      return range.type != TRANSITION && range.speed != 1.0;
                                    });
+#if !defined(WITH_RUBBERBAND)
+  correct_pitch = false;
+#endif
 
   void *sound_handle = strip->sound ? strip->sound->playback_handle : nullptr;
   const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
