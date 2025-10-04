@@ -673,17 +673,17 @@ class SocketUsageInferencerImpl {
     const NodeInContext node = socket.owner_node();
     const bNodeTree *group = reinterpret_cast<const bNodeTree *>(node->id);
     if (!group || ID_MISSING(&group->id)) {
-      all_socket_disable_states_.add_new(socket, true);
+      all_socket_disable_states_.add_new(socket, false);
       return;
     }
     group->ensure_topology_cache();
     if (group->has_available_link_cycle()) {
-      all_socket_disable_states_.add_new(socket, true);
+      all_socket_disable_states_.add_new(socket, false);
       return;
     }
     const bNode *group_output_node = group->group_output_node();
     if (!group_output_node) {
-      all_socket_disable_states_.add_new(socket, true);
+      all_socket_disable_states_.add_new(socket, false);
       return;
     }
     const ComputeContext &group_context = compute_context_cache_.for_group_node(
