@@ -347,13 +347,11 @@ static void node_geo_exec(GeoNodeExecParams params)
 #endif
 }
 
-static void node_init(bNodeTree *tree, bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   GeometryNodeFieldToGrid *data = MEM_callocN<GeometryNodeFieldToGrid>(__func__);
   data->data_type = SOCK_FLOAT;
   node->storage = data;
-  socket_items::add_item_with_socket_type_and_name<ItemsAccessor>(
-      *tree, *node, SOCK_FLOAT, "Value");
 }
 
 static void node_free_storage(bNode *node)
