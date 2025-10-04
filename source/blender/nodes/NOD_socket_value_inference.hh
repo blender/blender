@@ -82,11 +82,12 @@ class SocketValueInferencer {
   SocketValueInferencerImpl &impl_;
 
  public:
-  SocketValueInferencer(const bNodeTree &tree,
-                        ResourceScope &scope,
-                        bke::ComputeContextCache &compute_context_cache,
-                        const std::optional<Span<InferenceValue>> tree_input_values,
-                        const std::optional<Span<bool>> top_level_ignored_inputs);
+  SocketValueInferencer(
+      const bNodeTree &tree,
+      ResourceScope &scope,
+      bke::ComputeContextCache &compute_context_cache,
+      FunctionRef<InferenceValue(int group_input_i)> group_input_value_fn = nullptr,
+      std::optional<Span<bool>> top_level_ignored_inputs = std::nullopt);
 
   InferenceValue get_socket_value(const SocketInContext &socket);
 };

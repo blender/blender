@@ -385,8 +385,13 @@ static void foreach_active_gizmo_exposed_to_modifier(
   ResourceScope scope;
   const Vector<InferenceValue> input_values = get_geometry_nodes_input_inference_values(
       *nmd.node_group, nmd.settings.properties, scope);
+
+  SocketValueInferencer value_inferencer{
+      *nmd.node_group, scope, compute_context_cache, [&](const int group_input_i) {
+        return input_values[group_input_i];
+      }};
   socket_usage_inference::SocketUsageInferencer usage_inferencer(
-      *nmd.node_group, input_values, scope, compute_context_cache);
+      *nmd.node_group, scope, value_inferencer, compute_context_cache);
 
   const ComputeContext &root_compute_context = compute_context_cache.for_modifier(nullptr, nmd);
   for (auto &&item : tree.runtime->gizmo_propagation->gizmo_inputs_by_group_inputs.items()) {

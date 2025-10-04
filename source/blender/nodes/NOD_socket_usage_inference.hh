@@ -34,10 +34,9 @@ class SocketUsageInferencer {
 
  public:
   SocketUsageInferencer(const bNodeTree &tree,
-                        std::optional<Span<InferenceValue>> tree_input_values,
                         ResourceScope &scope,
+                        SocketValueInferencer &value_inferencer,
                         bke::ComputeContextCache &compute_context_cache,
-                        std::optional<Span<bool>> top_level_ignored_inputs = std::nullopt,
                         bool ignore_top_level_node_muting = false);
 
   bool is_socket_used(const SocketInContext &socket);
