@@ -218,6 +218,7 @@ bool ED_transverts_check_obedit(const Object *obedit)
 void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit, const int mode)
 {
   using namespace blender;
+  BLI_assert(DEG_is_evaluated(obedit));
 
   Nurb *nu;
   BezTriple *bezt;
