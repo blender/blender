@@ -1438,15 +1438,42 @@ static PyObject *bpy_bmesh_from_mesh(BPy_BMesh *self, PyObject *args, PyObject *
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmesh_select_flush_mode_doc,
-    ".. method:: select_flush_mode()\n"
+    ".. method:: select_flush_mode(/, *, down=False)\n"
     "\n"
-    "   flush selection based on the current mode current "
-    ":class:`bmesh.types.BMesh.select_mode`.\n");
-static PyObject *bpy_bmesh_select_flush_mode(BPy_BMesh *self)
+    "   Flush selection based on the current mode current "
+    ":class:`bmesh.types.BMesh.select_mode`.\n"
+    "\n"
+    "   :arg down: Flush selection down from faces to edges & verts or from edges to verts. "
+    "This option is ignored when vertex selection mode is enabled.\n"
+    "   :type down: bool\n");
+static PyObject *bpy_bmesh_select_flush_mode(BPy_BMesh *self, PyObject *args, PyObject *kw)
 {
   BPY_BM_CHECK_OBJ(self);
 
-  BM_mesh_select_mode_flush(self->bm);
+  bool down = false;
+  BMSelectFlushFlag flag = BMSelectFlushFlag_Default;
+
+  static const char *kwlist[] = {
+      "down",
+      nullptr,
+  };
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kw,
+                                   "|$"
+                                   "O&" /* `down` */
+                                   ":select_flush_mode",
+                                   (char **)kwlist,
+                                   PyC_ParseBool,
+                                   &down))
+  {
+    return nullptr;
+  }
+
+  if (down) {
+    flag |= BMSelectFlushFlag::Down;
+  }
+
+  BM_mesh_select_mode_flush_ex(self->bm, self->bm->selectmode, flag);
 
   Py_RETURN_NONE;
 }
@@ -3172,7 +3199,7 @@ static PyMethodDef bpy_bmesh_methods[] = {
     /* meshdata */
     {"select_flush_mode",
      (PyCFunction)bpy_bmesh_select_flush_mode,
-     METH_NOARGS,
+     METH_VARARGS | METH_KEYWORDS,
      bpy_bmesh_select_flush_mode_doc},
     {"select_flush", (PyCFunction)bpy_bmesh_select_flush, METH_O, bpy_bmesh_select_flush_doc},
     {"normal_update",

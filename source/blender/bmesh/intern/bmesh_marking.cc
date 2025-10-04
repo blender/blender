@@ -407,14 +407,108 @@ static void bm_mesh_select_mode_flush_edge_to_face(BMesh *bm)
   bm->totfacesel += chunk_data.delta_selection_len;
 }
 
+/**
+ * Flush down from edges to verts.
+ *
+ * \note This is not typically needed as settling the selection flushes down.
+ */
+static void bm_mesh_select_mode_flush_edge_to_vert(BMesh *bm)
+{
+  BMIter iter;
+  BMEdge *e;
+  bool any_select = false;
+  BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+    if (BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
+      continue;
+    }
+    if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
+      any_select = true;
+    }
+    else {
+      BM_vert_select_set(bm, e->v1, false);
+      BM_vert_select_set(bm, e->v2, false);
+    }
+  }
+  if (any_select) {
+    BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+      if (BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
+        continue;
+      }
+      if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
+        BM_vert_select_set(bm, e->v1, true);
+        BM_vert_select_set(bm, e->v2, true);
+      }
+    }
+  }
+}
+
+/**
+ * Flush down from faces to verts & edges.
+ *
+ * \note This is not typically needed as settling the selection flushes down.
+ */
+static void bm_mesh_select_mode_flush_face_to_vert_and_edge(BMesh *bm)
+{
+  BMIter iter;
+  BMFace *f;
+  bool any_select = false;
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+      continue;
+    }
+    if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+      any_select = true;
+    }
+    else {
+      BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
+      BMLoop *l_iter = l_first;
+      do {
+        BM_vert_select_set(bm, l_iter->v, false);
+        BM_edge_select_set_noflush(bm, l_iter->e, false);
+      } while ((l_iter = l_iter->next) != l_first);
+    }
+  }
+  if (any_select) {
+    BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+      if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+        continue;
+      }
+      if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+        BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
+        BMLoop *l_iter = l_first;
+        do {
+          BM_vert_select_set(bm, l_iter->v, true);
+          BM_edge_select_set_noflush(bm, l_iter->e, true);
+        } while ((l_iter = l_iter->next) != l_first);
+      }
+    }
+  }
+}
+
 void BM_mesh_select_mode_flush_ex(BMesh *bm, const short selectmode, BMSelectFlushFlag flag)
 {
-  if (selectmode & SCE_SELECT_VERTEX) {
-    bm_mesh_select_mode_flush_vert_to_edge(bm);
+  const bool flush_down = bool(flag & BMSelectFlushFlag::Down);
+  if (flush_down) {
+    if (selectmode & SCE_SELECT_VERTEX) {
+      /* Pass. */
+    }
+    else if (selectmode & SCE_SELECT_EDGE) {
+      bm_mesh_select_mode_flush_edge_to_vert(bm);
+    }
+    else if (selectmode & SCE_SELECT_FACE) {
+      bm_mesh_select_mode_flush_face_to_vert_and_edge(bm);
+    }
   }
 
-  if (selectmode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) {
-    bm_mesh_select_mode_flush_edge_to_face(bm);
+  /* Always flush up. */
+  {
+    if (selectmode & SCE_SELECT_VERTEX) {
+      bm_mesh_select_mode_flush_vert_to_edge(bm);
+    }
+
+    if (selectmode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) {
+      bm_mesh_select_mode_flush_edge_to_face(bm);
+    }
   }
 
   /* Remove any deselected elements from the BMEditSelection */
@@ -434,7 +528,7 @@ void BM_mesh_select_mode_flush_ex(BMesh *bm, const short selectmode, BMSelectFlu
 
 void BM_mesh_select_mode_flush(BMesh *bm)
 {
-  BM_mesh_select_mode_flush_ex(bm, bm->selectmode, BMSelectFlushFlag_All);
+  BM_mesh_select_mode_flush_ex(bm, bm->selectmode, BMSelectFlushFlag_Default);
 }
 
 /** \} */
