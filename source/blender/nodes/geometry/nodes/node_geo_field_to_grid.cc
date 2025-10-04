@@ -36,8 +36,9 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.allow_any_socket_order();
   b.add_default_layout();
 
+  const bNodeTree *tree = b.tree_or_null();
   const bNode *node = b.node_or_null();
-  if (!node) {
+  if (!node || !tree) {
     return;
   }
   const GeometryNodeFieldToGrid &storage = node_storage(*node);
@@ -52,7 +53,9 @@ static void node_declare(NodeDeclarationBuilder &b)
     const std::string input_identifier = ItemsAccessor::input_socket_identifier_for_item(item);
     const std::string output_identifier = ItemsAccessor::output_socket_identifier_for_item(item);
 
-    b.add_input(data_type, item.name, input_identifier).supports_field();
+    b.add_input(data_type, item.name, input_identifier)
+        .supports_field()
+        .socket_name_ptr(&tree->id, FieldToGridItemsAccessor::item_srna, &item, "name");
     b.add_output(data_type, item.name, output_identifier)
         .structure_type(StructureType::Grid)
         .align_with_previous()
