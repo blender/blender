@@ -386,10 +386,11 @@ static void foreach_active_gizmo_exposed_to_modifier(
   const Vector<InferenceValue> input_values = get_geometry_nodes_input_inference_values(
       *nmd.node_group, nmd.settings.properties, scope);
 
+  const auto get_input_value = [&](const int group_input_i) {
+    return input_values[group_input_i];
+  };
   SocketValueInferencer value_inferencer{
-      *nmd.node_group, scope, compute_context_cache, [&](const int group_input_i) {
-        return input_values[group_input_i];
-      }};
+      *nmd.node_group, scope, compute_context_cache, get_input_value};
   socket_usage_inference::SocketUsageInferencer usage_inferencer(
       *nmd.node_group, scope, value_inferencer, compute_context_cache);
 

@@ -852,10 +852,10 @@ void infer_group_interface_usage(const bNodeTree &group,
 
   {
     /* Detect actually used inputs. */
-    SocketValueInferencer value_inferencer{
-        group, scope, compute_context_cache, [&](const int group_input_i) {
-          return group_input_values[group_input_i];
-        }};
+    const auto get_input_value = [&](const int group_input_i) {
+      return group_input_values[group_input_i];
+    };
+    SocketValueInferencer value_inferencer{group, scope, compute_context_cache, get_input_value};
     SocketUsageInferencer usage_inferencer{group, scope, value_inferencer, compute_context_cache};
     for (const int i : group.interface_inputs().index_range()) {
       r_input_usages[i].is_used |= usage_inferencer.is_group_input_used(i);
@@ -875,14 +875,15 @@ void infer_group_interface_usage(const bNodeTree &group,
   SocketValueInferencer value_inferencer_all_unknown{group, scope, compute_context_cache};
   SocketUsageInferencer usage_inferencer_all_unknown{
       group, scope, value_inferencer_all_unknown, compute_context_cache};
+  const auto get_only_controllers_input_value = [&](const int group_input_i) {
+    const bNodeTreeInterfaceSocket &io_socket = *group.interface_inputs()[group_input_i];
+    if (input_may_affect_visibility(io_socket)) {
+      return group_input_values[group_input_i];
+    }
+    return InferenceValue::Unknown();
+  };
   SocketValueInferencer value_inferencer_only_controllers{
-      group, scope, compute_context_cache, [&](const int group_input_i) {
-        const bNodeTreeInterfaceSocket &io_socket = *group.interface_inputs()[group_input_i];
-        if (input_may_affect_visibility(io_socket)) {
-          return group_input_values[group_input_i];
-        }
-        return InferenceValue::Unknown();
-      }};
+      group, scope, compute_context_cache, get_only_controllers_input_value};
   SocketUsageInferencer usage_inferencer_only_controllers{
       group, scope, value_inferencer_only_controllers, compute_context_cache};
   for (const int i : group.interface_inputs().index_range()) {
