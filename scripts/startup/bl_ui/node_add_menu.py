@@ -270,7 +270,11 @@ class NodeMenu(Menu):
     @classmethod
     def new_empty_group(cls, layout):
         """Group Node with a newly created empty group as its assigned nodetree."""
-        props = layout.operator(cls.new_empty_group_operator_id, text="New Group", text_ctxt=i18n_contexts.default)
+        props = layout.operator(
+            cls.new_empty_group_operator_id,
+            text="New Group",
+            text_ctxt=i18n_contexts.default,
+            icon='ADD')
 
         if hasattr(props, "use_transform"):
             props.use_transform = cls.use_transform
@@ -284,13 +288,13 @@ class NodeMenu(Menu):
         node_tree = space_node.edit_tree
         all_node_groups = context.blend_data.node_groups
 
+        operators = []
+        operators.append(cls.new_empty_group(layout))
+
         if node_tree in all_node_groups.values():
             layout.separator()
             cls.node_operator(layout, "NodeGroupInput")
             cls.node_operator(layout, "NodeGroupOutput")
-
-        operators = []
-        operators.append(cls.new_empty_group(layout))
 
         if node_tree:
             from nodeitems_builtins import node_tree_group_type
