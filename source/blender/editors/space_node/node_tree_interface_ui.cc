@@ -4,14 +4,20 @@
 
 #include "BKE_library.hh"
 #include "BKE_screen.hh"
+
 #include "BLI_listbase.h"
 #include "BLI_string_utf8.h"
+
 #include "BLT_translation.hh"
+
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+
 #include "NOD_socket.hh"
+
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
+
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
