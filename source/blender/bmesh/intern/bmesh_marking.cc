@@ -407,7 +407,7 @@ static void bm_mesh_select_mode_flush_edge_to_face(BMesh *bm)
   bm->totfacesel += chunk_data.delta_selection_len;
 }
 
-void BM_mesh_select_mode_flush_ex(BMesh *bm, const short selectmode, eBMSelectionFlushFLags flags)
+void BM_mesh_select_mode_flush_ex(BMesh *bm, const short selectmode, BMSelectFlushFlag flag)
 {
   if (selectmode & SCE_SELECT_VERTEX) {
     bm_mesh_select_mode_flush_vert_to_edge(bm);
@@ -420,13 +420,13 @@ void BM_mesh_select_mode_flush_ex(BMesh *bm, const short selectmode, eBMSelectio
   /* Remove any deselected elements from the BMEditSelection */
   BM_select_history_validate(bm);
 
-  if (flags & BM_SELECT_LEN_FLUSH_RECALC_VERT) {
+  if (bool(flag & BMSelectFlushFlag::RecalcLenVert)) {
     recount_totvertsel(bm);
   }
-  if (flags & BM_SELECT_LEN_FLUSH_RECALC_EDGE) {
+  if (bool(flag & BMSelectFlushFlag::RecalcLenEdge)) {
     recount_totedgesel(bm);
   }
-  if (flags & BM_SELECT_LEN_FLUSH_RECALC_FACE) {
+  if (bool(flag & BMSelectFlushFlag::RecalcLenFace)) {
     recount_totfacesel(bm);
   }
   BLI_assert(recount_totsels_are_ok(bm));
@@ -434,7 +434,7 @@ void BM_mesh_select_mode_flush_ex(BMesh *bm, const short selectmode, eBMSelectio
 
 void BM_mesh_select_mode_flush(BMesh *bm)
 {
-  BM_mesh_select_mode_flush_ex(bm, bm->selectmode, BM_SELECT_LEN_FLUSH_RECALC_ALL);
+  BM_mesh_select_mode_flush_ex(bm, bm->selectmode, BMSelectFlushFlag_All);
 }
 
 /** \} */
