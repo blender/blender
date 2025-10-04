@@ -1560,7 +1560,10 @@ void OneapiDevice::architecture_information(const SyclDevice *device,
     FILL_ARCH_INFO(intel_gpu_mtl_u, true)
     FILL_ARCH_INFO(intel_gpu_mtl_h, true)
     FILL_ARCH_INFO(intel_gpu_bmg_g21, true)
+    FILL_ARCH_INFO(intel_gpu_bmg_g31, true)
     FILL_ARCH_INFO(intel_gpu_lnl_m, true)
+    FILL_ARCH_INFO(intel_gpu_ptl_h, true)
+    FILL_ARCH_INFO(intel_gpu_ptl_u, true)
 
     default:
       name = "unknown";
