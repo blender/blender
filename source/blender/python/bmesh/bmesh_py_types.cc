@@ -1438,38 +1438,38 @@ static PyObject *bpy_bmesh_from_mesh(BPy_BMesh *self, PyObject *args, PyObject *
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmesh_select_flush_mode_doc,
-    ".. method:: select_flush_mode(/, *, down=False)\n"
+    ".. method:: select_flush_mode(/, *, flush_down=False)\n"
     "\n"
     "   Flush selection based on the current mode current "
     ":class:`bmesh.types.BMesh.select_mode`.\n"
     "\n"
-    "   :arg down: Flush selection down from faces to edges & verts or from edges to verts. "
+    "   :arg flush_down: Flush selection down from faces to edges & verts or from edges to verts. "
     "This option is ignored when vertex selection mode is enabled.\n"
-    "   :type down: bool\n");
+    "   :type flush_down: bool\n");
 static PyObject *bpy_bmesh_select_flush_mode(BPy_BMesh *self, PyObject *args, PyObject *kw)
 {
   BPY_BM_CHECK_OBJ(self);
 
-  bool down = false;
+  bool flush_down = false;
   BMSelectFlushFlag flag = BMSelectFlushFlag_Default;
 
   static const char *kwlist[] = {
-      "down",
+      "flush_down",
       nullptr,
   };
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
                                    "|$"
-                                   "O&" /* `down` */
+                                   "O&" /* `flush_down` */
                                    ":select_flush_mode",
                                    (char **)kwlist,
                                    PyC_ParseBool,
-                                   &down))
+                                   &flush_down))
   {
     return nullptr;
   }
 
-  if (down) {
+  if (flush_down) {
     flag |= BMSelectFlushFlag::Down;
   }
 
@@ -1661,7 +1661,7 @@ PyDoc_STRVAR(
     "\n"
     "   .. note::\n"
     "\n"
-    "      Currently this only flushes down, so selecting a face will select all its "
+    "      This only flushes down, so selecting a face will select all its "
     "vertices but de-selecting a vertex "
     "      won't de-select all the faces that use it, before finishing with a mesh "
     "typically flushing is still needed.\n");
