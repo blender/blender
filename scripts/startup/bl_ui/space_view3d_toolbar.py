@@ -762,7 +762,7 @@ class VIEW3D_PT_tools_brush_display(Panel, View3DPaintBrushPanel, DisplayPanel):
     bl_parent_id = "VIEW3D_PT_tools_brush_settings"
     bl_label = "Cursor"
     bl_options = {'DEFAULT_CLOSED'}
-    bl_ui_units_x = 12
+    bl_ui_units_x = 15
 
 
 class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
@@ -770,6 +770,7 @@ class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
     bl_parent_id = "VIEW3D_PT_tools_brush_settings"
     bl_label = "Texture"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_ui_units_x = 13
 
     @classmethod
     def poll(cls, context):
@@ -802,6 +803,7 @@ class VIEW3D_PT_tools_mask_texture(Panel, View3DPaintPanel, TextureMaskPanel):
     bl_parent_id = "VIEW3D_PT_tools_brush_settings"
     bl_label = "Texture Mask"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_ui_units_x = 13
 
     @classmethod
     def poll(cls, context):
@@ -826,6 +828,7 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel, StrokePanel):
     bl_label = "Stroke"
     bl_parent_id = "VIEW3D_PT_tools_brush_settings"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_ui_units_x = 14
 
 
 class VIEW3D_PT_tools_brush_stroke_smooth_stroke(Panel, View3DPaintPanel, SmoothStrokePanel):
@@ -1023,7 +1026,7 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
     bl_label = "Options"
     bl_options = {'DEFAULT_CLOSED'}
-    bl_ui_units_x = 12
+    bl_ui_units_x = 13
 
     @classmethod
     def poll(cls, context):
@@ -1735,7 +1738,7 @@ class VIEW3D_PT_tools_grease_pencil_paint_appearance(GreasePencilDisplayPanel, P
     bl_parent_id = "VIEW3D_PT_tools_grease_pencil_v3_brush_settings"
     bl_label = "Cursor"
     bl_category = "Tool"
-    bl_ui_units_x = 15
+    bl_ui_units_x = 16
 
 
 class VIEW3D_PT_tools_grease_pencil_sculpt_appearance(GreasePencilDisplayPanel, Panel, View3DPanel):
