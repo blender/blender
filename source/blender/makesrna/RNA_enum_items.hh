@@ -282,6 +282,9 @@ DEF_ENUM(rna_enum_keyblock_type_items)
 
 DEF_ENUM(rna_enum_asset_library_type_items)
 
+/* Defined in source/blender/python/intern/bpy_rna_id_collection.cc */
+DEF_ENUM(rna_enum_file_path_foreach_flag_items)
+
 #endif
 
 #undef DEF_ENUM
