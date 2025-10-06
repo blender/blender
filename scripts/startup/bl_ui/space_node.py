@@ -1139,6 +1139,7 @@ def node_panel(cls):
 class NODE_AST_compositor(bpy.types.AssetShelf):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
+    bl_options = {'DEFAULT_VISIBLE'}
 
     @classmethod
     def poll(cls, context):
