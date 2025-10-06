@@ -351,7 +351,9 @@ Vector<GreasePencilExporter::ObjectInfo> GreasePencilExporter::retrieve_objects(
       break;
     case SelectMode::Visible:
       LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-        add_object(base->object);
+        if ((base->flag & BASE_ENABLED_RENDER) != 0) {
+          add_object(base->object);
+        }
       }
       break;
   }
