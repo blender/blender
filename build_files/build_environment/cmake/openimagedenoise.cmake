@@ -54,7 +54,7 @@ if(WIN32 AND NOT BLENDER_PLATFORM_ARM)
     # functionality.
     cmake_path(CONVERT $ENV{ROCM_PATH} TO_CMAKE_PATH_LIST ROCM_PATH NORMALIZE)
     list(APPEND OIDN_EXTRA_ARGS -DROCM_PATH=${ROCM_PATH})
-  endif()  
+  endif()
   set(OIDN_CMAKE_FLAGS ${DEFAULT_CLANG_CMAKE_FLAGS}
     -DCMAKE_CXX_COMPILER=${LIBDIR}/dpcpp/bin/clang++.exe
     -DCMAKE_C_COMPILER=${LIBDIR}/dpcpp/bin/clang.exe

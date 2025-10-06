@@ -70,7 +70,7 @@ ExternalProject_Add(external_ispc
   PATCH_COMMAND ${PATCH_CMD} -p 1 -d
     ${BUILD_DIR}/ispc/src/external_ispc <
     ${PATCH_DIR}/ispc.diff
-    
+
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/ispc
     -Wno-dev

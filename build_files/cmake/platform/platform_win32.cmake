@@ -907,7 +907,7 @@ endif()
 if(WITH_RUBBERBAND)
   set(RUBBERBAND_FOUND TRUE)
   set(RUBBERBAND_INCLUDE_DIRS ${LIBDIR}/rubberband/include)
-  set(RUBBERBAND_LIBRARIES 
+  set(RUBBERBAND_LIBRARIES
     optimized ${LIBDIR}/rubberband/lib/rubberband-static.lib
     debug ${LIBDIR}/rubberband/lib/rubberband-static_d.lib
   )
