@@ -25,6 +25,8 @@
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.hh"
 
+#include "ED_node.hh"
+
 #include "node_intern.hh"
 
 namespace geo_log = blender::nodes::geo_eval_log;

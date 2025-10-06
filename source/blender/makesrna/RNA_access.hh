@@ -276,8 +276,8 @@ int RNA_property_array_item_index(PropertyRNA *prop, char name);
  */
 int RNA_property_string_maxlength(PropertyRNA *prop);
 
-const char *RNA_property_ui_name(const PropertyRNA *prop);
-const char *RNA_property_ui_name_raw(const PropertyRNA *prop);
+const char *RNA_property_ui_name(const PropertyRNA *prop, const PointerRNA *ptr = nullptr);
+const char *RNA_property_ui_name_raw(const PropertyRNA *prop, const PointerRNA *ptr = nullptr);
 const char *RNA_property_ui_description(const PropertyRNA *prop);
 const char *RNA_property_ui_description_raw(const PropertyRNA *prop);
 const char *RNA_property_translation_context(const PropertyRNA *prop);

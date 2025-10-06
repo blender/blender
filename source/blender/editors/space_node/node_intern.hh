@@ -170,8 +170,6 @@ void node_socket_color_get(const bContext &C,
                            const bNodeSocket &sock,
                            float r_color[4]);
 
-const char *node_socket_get_label(const bNodeSocket *socket, const char *panel_label);
-
 void node_draw_space(const bContext &C, ARegion &region);
 
 void node_socket_add_tooltip(const bNodeTree &ntree, const bNodeSocket &sock, uiLayout &layout);

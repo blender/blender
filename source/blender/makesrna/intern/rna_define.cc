@@ -3223,6 +3223,18 @@ void RNA_def_property_override_funcs(PropertyRNA *prop,
   }
 }
 
+void RNA_def_property_ui_name_func(PropertyRNA *prop, const char *name_func)
+{
+  if (!DefRNA.preprocess) {
+    CLOG_ERROR(&LOG, "only during preprocessing.");
+    return;
+  }
+
+  if (name_func) {
+    prop->ui_name_func = (PropUINameFunc)name_func;
+  }
+}
+
 void RNA_def_property_update(PropertyRNA *prop, int noteflag, const char *func)
 {
   if (!DefRNA.preprocess) {

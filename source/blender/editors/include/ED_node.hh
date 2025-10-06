@@ -144,4 +144,6 @@ void ui_template_node_asset_menu_items(uiLayout &layout,
 /** See #SpaceNode_Runtime::node_can_sync_states. */
 Map<int, bool> &node_can_sync_cache_get(SpaceNode &snode);
 
+const char *node_socket_get_label(const bNodeSocket *socket, const char *panel_label = nullptr);
+
 }  // namespace blender::ed::space_node

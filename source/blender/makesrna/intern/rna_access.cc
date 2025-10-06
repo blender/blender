@@ -2208,13 +2208,23 @@ int RNA_property_enum_bitflag_identifiers(
   return 0;
 }
 
-const char *RNA_property_ui_name(const PropertyRNA *prop)
+const char *RNA_property_ui_name(const PropertyRNA *prop, const PointerRNA *ptr)
 {
+  if (ptr && prop->magic == RNA_MAGIC && prop->ui_name_func) {
+    if (const char *name = prop->ui_name_func(ptr, prop, true)) {
+      return name;
+    }
+  }
   return CTX_IFACE_(RNA_property_translation_context(prop), rna_ensure_property_name(prop));
 }
 
-const char *RNA_property_ui_name_raw(const PropertyRNA *prop)
+const char *RNA_property_ui_name_raw(const PropertyRNA *prop, const PointerRNA *ptr)
 {
+  if (ptr && prop->magic == RNA_MAGIC && prop->ui_name_func) {
+    if (const char *name = prop->ui_name_func(ptr, prop, false)) {
+      return name;
+    }
+  }
   return rna_ensure_property_name(prop);
 }
 
