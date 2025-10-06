@@ -709,6 +709,11 @@ static void mywrite_id_begin(WriteData *wd, ID *id)
 
   BLI_assert(wd->validation_data.per_id_addresses_set.is_empty());
 
+  BLI_assert_msg(ID_IS_PACKED(id) || id->deep_hash.is_null(),
+                 "The only IDs with non-null deephash data should be packed linked ones");
+  BLI_assert_msg((id->flag & ID_FLAG_EMBEDDED_DATA) == 0 || id->deep_hash.is_null(),
+                 "Embedded IDs should always have a null deephash data");
+
   wd->stable_address_ids.next_id_hint = get_stable_pointer_hint_for_id(*id);
 
   if (wd->use_memfile) {
