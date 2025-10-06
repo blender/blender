@@ -130,8 +130,7 @@ void VKDescriptorSetUpdator::bind_texture_resource(const VKDevice &device,
         access_info.images.append({texture->vk_image_handle(),
                                    resource_binding.access_mask,
                                    to_vk_image_aspect_flag_bits(texture->device_format_get()),
-                                   0,
-                                   VK_REMAINING_ARRAY_LAYERS});
+                                   {}});
       }
       break;
     }
@@ -163,8 +162,7 @@ void VKDescriptorSetUpdator::bind_input_attachment_resource(
       access_info.images.append({texture->vk_image_handle(),
                                  resource_binding.access_mask,
                                  to_vk_image_aspect_flag_bits(texture->device_format_get()),
-                                 0,
-                                 VK_REMAINING_ARRAY_LAYERS});
+                                 {}});
     }
   }
   else {
@@ -191,8 +189,7 @@ void VKDescriptorSetUpdator::bind_input_attachment_resource(
       access_info.images.append({vk_image,
                                  resource_binding.access_mask,
                                  to_vk_image_aspect_flag_bits(texture->device_format_get()),
-                                 0,
-                                 VK_REMAINING_ARRAY_LAYERS});
+                                 {}});
     }
   }
 }
