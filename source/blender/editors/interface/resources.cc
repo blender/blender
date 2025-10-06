@@ -1486,6 +1486,28 @@ bool UI_GetIconThemeColor4ubv(int colorid, uchar col[4])
   return true;
 }
 
+void UI_GetColorPtrBlendAlpha4fv(
+    const float cp1[4], const float cp2[4], float fac, const float alphaoffset, float r_col[4])
+{
+  float r, g, b, a;
+
+  CLAMP(fac, 0.0f, 1.0f);
+  r = (1.0f - fac) * cp1[0] + fac * cp2[0];
+  g = (1.0f - fac) * cp1[1] + fac * cp2[1];
+  b = (1.0f - fac) * cp1[2] + fac * cp2[2];
+  a = (1.0f - fac) * cp1[3] + fac * cp2[3] + alphaoffset;
+
+  CLAMP(r, 0.0f, 1.0f);
+  CLAMP(g, 0.0f, 1.0f);
+  CLAMP(b, 0.0f, 1.0f);
+  CLAMP(a, 0.0f, 1.0f);
+
+  r_col[0] = r;
+  r_col[1] = g;
+  r_col[2] = b;
+  r_col[3] = a;
+}
+
 void UI_GetColorPtrShade3ubv(const uchar cp[3], int offset, uchar r_col[3])
 {
   int r, g, b;
