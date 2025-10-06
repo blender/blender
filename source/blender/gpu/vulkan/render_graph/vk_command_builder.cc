@@ -262,15 +262,6 @@ void VKCommandBuilder::groups_build_commands(VKRenderGraph &render_graph,
       if (node.type == VKNodeType::BEGIN_RENDERING) {
         rendering_scope = node_handle;
         rendering_active = true;
-
-        /* Check of the group spans a full rendering scope. In that case we don't need to set
-         * the VK_RENDERING_SUSPENDING_BIT. */
-        const VKRenderGraphNode &last_node = render_graph.nodes_[group_node_handles.last()];
-        bool will_be_suspended = last_node.type != VKNodeType::END_RENDERING;
-        if (will_be_suspended) {
-          render_graph.storage_.begin_rendering[node.storage_index].vk_rendering_info.flags =
-              VK_RENDERING_SUSPENDING_BIT;
-        }
       }
 
       else if (node.type == VKNodeType::END_RENDERING) {
@@ -278,10 +269,10 @@ void VKCommandBuilder::groups_build_commands(VKRenderGraph &render_graph,
       }
       else if (node_type_is_within_rendering(node.type)) {
         if (!rendering_active) {
-          /* Resume rendering scope. */
+          /* Restart rendering scope. */
           VKRenderGraphNode &rendering_node = render_graph.nodes_[rendering_scope];
-          render_graph.storage_.begin_rendering[rendering_node.storage_index]
-              .vk_rendering_info.flags = VK_RENDERING_RESUMING_BIT;
+          VKBeginRenderingNode::reconfigure_for_restart(
+              render_graph.storage_.begin_rendering[rendering_node.storage_index]);
           rendering_node.build_commands(command_buffer, render_graph.storage_, active_pipelines);
           rendering_active = true;
         }
@@ -315,10 +306,6 @@ void VKCommandBuilder::groups_build_commands(VKRenderGraph &render_graph,
        */
       rendering_active = false;
       command_buffer.end_rendering();
-
-      VKRenderGraphNode &rendering_node = render_graph.nodes_[rendering_scope];
-      render_graph.storage_.begin_rendering[rendering_node.storage_index].vk_rendering_info.flags =
-          VK_RENDERING_RESUMING_BIT;
     }
 
     /* Record group post barriers. */
