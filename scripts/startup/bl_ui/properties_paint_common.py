@@ -1246,7 +1246,7 @@ def color_jitter_panel(layout, context, brush):
 
             row = col.row(align=True)
             row.enabled = prop_owner.use_color_jitter
-            row.prop(prop_owner, "value_jitter", slider=True, text="Value", text_context=i18n_contexts.color)
+            row.prop(prop_owner, "value_jitter", slider=True, text="Value", text_ctxt=i18n_contexts.color)
             row.prop(prop_owner, "use_stroke_random_val", text="", icon='GP_SELECT_STROKES')
             row.prop(prop_owner, "use_random_press_val", text="", icon='STYLUS_PRESSURE')
 
