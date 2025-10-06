@@ -124,6 +124,7 @@ class NODE_MT_compositor_node_color_mix_base(node_add_menu.NodeMenu):
     menu_path = "Color/Mix"
 
     def draw(self, context):
+        del context
         layout = self.layout
 
         self.draw_assets_for_catalog(layout, self.menu_path)
@@ -264,6 +265,7 @@ class NODE_MT_compositor_node_utilities_base(node_add_menu.NodeMenu):
     bl_label = "Utilities"
 
     def draw(self, context):
+        del context
         layout = self.layout
         self.draw_menu(layout, path="Utilities/Math")
         self.draw_menu(layout, path="Utilities/Vector")

@@ -14,18 +14,18 @@ __all__ = (
     "BakeOptions",
 )
 
-import bpy
-from bpy.types import (
-    Context, Action, ActionSlot, ActionChannelbag,
-    Object, PoseBone, KeyingSet,
-)
-
 import contextlib
 from dataclasses import dataclass
 from typing import Iterable, Optional, Union, Iterator
 from collections.abc import (
     Mapping,
     Sequence,
+)
+
+import bpy
+from bpy.types import (
+    Context, Action, ActionSlot, ActionChannelbag,
+    Object, PoseBone, KeyingSet,
 )
 
 from rna_prop_ui import (
@@ -886,8 +886,7 @@ class AutoKeying:
         "Retrieve the lock status for 4D rotation."
         if bone.lock_rotations_4d:
             return [bone.lock_rotation_w, *bone.lock_rotation]
-        else:
-            return [all(bone.lock_rotation)] * 4
+        return [all(bone.lock_rotation)] * 4
 
     @classmethod
     def keyframe_channels(

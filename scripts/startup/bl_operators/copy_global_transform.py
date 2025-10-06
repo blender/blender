@@ -16,7 +16,7 @@ from typing import Iterable, Optional, Any, TypeAlias
 import bpy
 from bpy.types import (
     Context, Object, Operator, PoseBone,
-    Camera, ID, ActionChannelbag, PropertyGroup,
+    Camera, ID, ActionChannelbag,
 )
 from mathutils import Matrix
 
@@ -784,7 +784,7 @@ def _unregister_message_bus() -> None:
 
 
 @bpy.app.handlers.persistent  # type: ignore
-def _on_blendfile_load_post(none: Any, other_none: Any) -> None:
+def _on_blendfile_load_post(_none: Any, _other_none: Any) -> None:
     # The parameters are required, but both are None.
     _register_message_bus()
 

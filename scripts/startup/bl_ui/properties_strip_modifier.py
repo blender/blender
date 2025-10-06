@@ -2,15 +2,9 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-import bpy
 from bpy.types import (
     Panel,
 )
-from bpy.app.translations import (
-    contexts as i18n_contexts,
-    pgettext_rpt as rpt_,
-)
-from rna_prop_ui import PropertyPanel
 
 
 class StripModButtonsPanel:
@@ -32,7 +26,6 @@ class STRIP_PT_modifiers(StripModButtonsPanel, Panel):
         layout.use_property_split = True
 
         strip = context.active_strip
-        ed = context.sequencer_scene.sequence_editor
         if strip.type == 'SOUND':
             sound = strip.sound
         else:

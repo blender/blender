@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import bpy
-from bpy.types import Menu, Panel
+from bpy.types import Panel
 from bpy.app.translations import (
     pgettext_n as n_,
     contexts as i18n_contexts,
