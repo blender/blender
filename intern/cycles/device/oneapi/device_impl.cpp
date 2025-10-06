@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021-2022 Intel Corporation
+/* SPDX-FileCopyrightText: 2021-2025 Intel Corporation
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
@@ -25,6 +25,8 @@
 
 #  include "kernel/device/oneapi/globals.h"
 #  include "kernel/device/oneapi/kernel.h"
+
+#  include "session/display_driver.h"
 
 #  if defined(WITH_EMBREE_GPU) && defined(EMBREE_SYCL_SUPPORT) && !defined(SYCL_LANGUAGE_VERSION)
 /* These declarations are missing from embree headers when compiling from a compiler that doesn't
@@ -945,11 +947,46 @@ unique_ptr<DeviceQueue> OneapiDevice::gpu_queue_create()
   return make_unique<OneapiDeviceQueue>(this);
 }
 
-bool OneapiDevice::should_use_graphics_interop(const GraphicsInteropDevice & /*interop_device*/,
-                                               const bool /*log*/)
+bool OneapiDevice::should_use_graphics_interop(const GraphicsInteropDevice &interop_device,
+                                               const bool log)
 {
-  /* NOTE(@nsirgien): oneAPI doesn't yet support direct writing into graphics API objects, so
-   * return false. */
+#  ifdef SYCL_LINEAR_MEMORY_INTEROP_AVAILABLE
+  if (interop_device.type != GraphicsInteropDevice::VULKAN) {
+    /* SYCL only supports interop with Vulkan and D3D. */
+    return false;
+  }
+
+  try {
+    const sycl::device &device = reinterpret_cast<sycl::queue *>(device_queue_)->get_device();
+    if (!device.has(sycl::aspect::ext_oneapi_external_memory_import)) {
+      return false;
+    }
+
+    /* This extension is in the namespace "sycl::ext::intel",
+     * but also available on non-Intel GPUs. */
+    sycl::detail::uuid_type uuid = device.get_info<sycl::ext::intel::info::device::uuid>();
+    const bool found = (uuid.size() == interop_device.uuid.size() &&
+                        memcmp(uuid.data(), interop_device.uuid.data(), uuid.size()) == 0);
+
+    if (log) {
+      if (found) {
+        LOG_INFO << "Graphics interop: found matching Vulkan device for oneAPI";
+      }
+      else {
+        LOG_INFO << "Graphics interop: no matching Vulkan device for oneAPI";
+      }
+
+      LOG_INFO << "Graphics Interop: oneAPI UUID " << string_hex(uuid.data(), uuid.size())
+               << ", Vulkan UUID "
+               << string_hex(interop_device.uuid.data(), interop_device.uuid.size());
+    }
+
+    return found;
+  }
+  catch (sycl::exception &e) {
+    LOG_ERROR << "Could not release external Vulkan memory: " << e.what();
+  }
+#  endif
   return false;
 }
 

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021-2022 Intel Corporation
+/* SPDX-FileCopyrightText: 2021-2025 Intel Corporation
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
@@ -45,6 +45,10 @@ class OneapiDeviceQueue : public DeviceQueue {
   {
     return true;
   }
+
+#  ifdef SYCL_LINEAR_MEMORY_INTEROP_AVAILABLE
+  unique_ptr<DeviceGraphicsInterop> graphics_interop_create() override;
+#  endif
 
  protected:
   OneapiDevice *oneapi_device_;
