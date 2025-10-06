@@ -2428,7 +2428,8 @@ static void UV_OT_mark_seam(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "clear", false, "Clear Seams", "Clear instead of marking seams");
 }
 
-static bool uv_copy_mirrored_faces(BMesh *bm, int direction, int precision, int *r_double_warn)
+static bool uv_copy_mirrored_faces(
+    const Scene *scene, BMesh *bm, int direction, int precision, int *r_double_warn)
 {
   *r_double_warn = 0;
   const float precision_scale = powf(10.0f, precision);
@@ -2436,21 +2437,22 @@ static bool uv_copy_mirrored_faces(BMesh *bm, int direction, int precision, int 
   Map<float3, BMVert *> mirror_gt, mirror_lt;
   Map<BMVert *, BMVert *> vmap;
 
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
+  BLI_assert(offsets.uv != -1);
   BMVert *v;
   BMIter iter;
+
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
     float3 pos = math::round(float3(v->co) * precision_scale);
     if (pos.x >= 0.0f) {
-      if (mirror_gt.contains(pos)) {
+      if (!mirror_gt.add_overwrite(pos, v)) {
         (*r_double_warn)++;
       }
-      mirror_gt.add(pos, v);
     }
     if (pos.x <= 0.0f) {
-      if (mirror_lt.contains(pos)) {
+      if (!mirror_lt.add_overwrite(pos, v)) {
         (*r_double_warn)++;
       }
-      mirror_lt.add(pos, v);
     }
   }
 
@@ -2515,6 +2517,13 @@ static bool uv_copy_mirrored_faces(BMesh *bm, int direction, int precision, int 
   bool changed = false;
   for (const auto &[f_dst, f_src] : face_map.items()) {
 
+    /* Skip unless both faces have all their UVs selected. */
+    if (!uvedit_face_select_test(scene, f_dst, offsets) ||
+        !uvedit_face_select_test(scene, f_src, offsets))
+    {
+      continue;
+    }
+
     {
       float f_dst_center[3];
       BM_face_calc_center_median(f_dst, f_dst_center);
@@ -2565,7 +2574,7 @@ static wmOperatorStatus uv_copy_mirrored_faces_exec(bContext *C, wmOperator *op)
 
     int double_warn = 0;
 
-    bool changed = uv_copy_mirrored_faces(em->bm, direction, precision, &double_warn);
+    bool changed = uv_copy_mirrored_faces(scene, em->bm, direction, precision, &double_warn);
 
     if (double_warn) {
       total_duplicates += double_warn;
