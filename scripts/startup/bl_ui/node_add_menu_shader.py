@@ -370,9 +370,9 @@ class NODE_MT_shader_node_vector_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "ShaderNodeNormal")
         self.node_operator(layout, "ShaderNodeRadialTiling")
         self.node_operator(layout, "ShaderNodeVectorCurve")
+        self.node_operator_with_searchable_enum(context, layout, "ShaderNodeVectorMath", "operation")
         self.node_operator(layout, "ShaderNodeVectorRotate")
         self.node_operator(layout, "ShaderNodeVectorTransform")
-        self.node_operator_with_searchable_enum(context, layout, "ShaderNodeVectorMath", "operation")
 
         self.draw_assets_for_catalog(layout, self.menu_path)
 

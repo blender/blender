@@ -871,8 +871,8 @@ class NODE_MT_gn_utilities_vector_base(node_add_menu.NodeMenu):
         ops = props.settings.add()
         ops.name = "data_type"
         ops.value = "'VECTOR'"
-        layout.separator()
         self.node_operator(layout, "ShaderNodeSeparateXYZ")
+        layout.separator()
         self.node_operator(layout, "ShaderNodeRadialTiling")
         self.node_operator(layout, "ShaderNodeVectorCurve")
         self.node_operator_with_searchable_enum(context, layout, "ShaderNodeVectorMath", "operation")
