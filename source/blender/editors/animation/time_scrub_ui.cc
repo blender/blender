@@ -94,7 +94,7 @@ static void draw_current_frame(const Scene *scene,
   const float text_width = UI_fontstyle_string_width(fstyle, frame_str);
   const float box_width = std::max(text_width + (2.0f * text_padding), box_min_width);
   const float box_margin = 2.0f * UI_SCALE_FAC;
-  const float shadow_width = U.pixelsize;
+  const float shadow_width = UI_SCALE_FAC;
 
   float fg_color[4];
   UI_GetThemeColor4fv(TH_CFRAME, fg_color);
