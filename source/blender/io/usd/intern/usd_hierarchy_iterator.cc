@@ -149,22 +149,21 @@ USDExporterContext USDHierarchyIterator::create_usd_export_context(const Hierarc
   return exporter_context;
 }
 
-void USDHierarchyIterator::determine_point_instancers(const HierarchyContext *context)
+bool USDHierarchyIterator::determine_point_instancers(const HierarchyContext *context)
 {
   if (!context) {
-    return;
+    return true;
   }
 
   if (context->object->type == OB_ARMATURE) {
-    return;
+    return true;
   }
 
+  bool is_referencing_self = false;
   if (context->is_point_instancer()) {
     /* Mark the point instancer's children as a point instance. */
     USDExporterContext usd_export_context = create_usd_export_context(context);
     const ExportChildren *children = graph_children(context);
-
-    bool is_referencing_self = false;
 
     pxr::SdfPath instancer_path;
     if (!params_.root_prim_path.empty()) {
@@ -243,6 +242,8 @@ void USDHierarchyIterator::determine_point_instancers(const HierarchyContext *co
       }
     }
   }
+
+  return !is_referencing_self;
 }
 
 AbstractHierarchyWriter *USDHierarchyIterator::create_transform_writer(
@@ -251,7 +252,12 @@ AbstractHierarchyWriter *USDHierarchyIterator::create_transform_writer(
   /* The transform writer is always called before data writers,
    * so determine if the #Xform's children is a point instancer before writing data. */
   if (params_.use_instancing) {
-    determine_point_instancers(context);
+    if (!determine_point_instancers(context)) {
+      /* If we could not determine that our point instancing setup is safe, we should not continue
+       * writing. Continuing would result in enormous amounts of USD warnings about cyclic
+       * references. */
+      return nullptr;
+    }
   }
 
   return new USDTransformWriter(create_usd_export_context(context));
