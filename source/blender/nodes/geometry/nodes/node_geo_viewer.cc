@@ -8,6 +8,8 @@
 
 #include "BLO_read_write.hh"
 
+#include "DNA_modifier_types.h"
+
 #include "NOD_geo_viewer.hh"
 #include "NOD_node_extra_info.hh"
 #include "NOD_socket_items_blend.hh"
@@ -228,6 +230,30 @@ static void geo_viewer_node_log_impl(const bNode &node,
 
 static void node_extra_info(NodeExtraInfoParams &params)
 {
+  SpaceNode *snode = CTX_wm_space_node(&params.C);
+  if (snode) {
+    if (std::optional<ed::space_node::ObjectAndModifier> object_and_modifier =
+            ed::space_node::get_modifier_for_node_editor(*snode))
+    {
+      const NodesModifierData &nmd = *object_and_modifier->nmd;
+      nmd.node_group->ensure_topology_cache();
+      if (!(nmd.modifier.mode & eModifierMode_Realtime)) {
+        NodeExtraInfoRow row;
+        row.icon = ICON_ERROR;
+        row.text = TIP_("Modifier disabled");
+        row.tooltip = TIP_("The viewer does not work because the modifier is disabled");
+        params.rows.append(std::move(row));
+      }
+      else if (!nmd.node_group->group_output_node()) {
+        NodeExtraInfoRow row;
+        row.icon = ICON_ERROR;
+        row.text = TIP_("Missing output");
+        row.tooltip = TIP_(
+            "The viewer does not work because the node group used by the modifier has no output");
+        params.rows.append(std::move(row));
+      }
+    }
+  }
   const auto data_type = eCustomDataType(node_storage(params.node).data_type_legacy);
   if (ELEM(data_type, CD_PROP_QUATERNION, CD_PROP_FLOAT4X4)) {
     NodeExtraInfoRow row;

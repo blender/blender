@@ -11218,7 +11218,7 @@ void RNA_def_modifier(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Realtime", "Display modifier in viewport");
   RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
-  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Modifier_update");
   RNA_def_property_ui_icon(prop, ICON_RESTRICT_VIEW_ON, 1);
 
   prop = RNA_def_property(srna, "show_render", PROP_BOOLEAN, PROP_NONE);
