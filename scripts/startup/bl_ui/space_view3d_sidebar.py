@@ -58,6 +58,7 @@ class VIEW3D_PT_copy_global_transform(GlobalTransformPanelMixin, Panel):
 class VIEW3D_PT_copy_global_transform_fix_to_camera(GlobalTransformPanelMixin, Panel):
     bl_label = "Fix to Camera"
     bl_parent_id = "VIEW3D_PT_copy_global_transform"
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context: Context) -> None:
         layout = self.layout
@@ -89,23 +90,29 @@ class VIEW3D_PT_copy_global_transform_fix_to_camera(GlobalTransformPanelMixin, P
 
 
 class VIEW3D_PT_copy_global_transform_mirror(GlobalTransformPanelMixin, Panel):
-    bl_label = "Mirror Options"
+    bl_label = "Mirror"
     bl_parent_id = "VIEW3D_PT_copy_global_transform"
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context: Context) -> None:
         layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
         scene = context.scene
-        layout.prop(scene.tool_settings, "anim_mirror_object", text="Object")
+
+        col = layout.column(align=True)
+        col.prop(scene.tool_settings, "anim_mirror_object", text="Object")
 
         mirror_ob = scene.tool_settings.anim_mirror_object
         if mirror_ob is None:
             # No explicit mirror object means "the current armature", so then the bone name should be editable.
             if context.object and context.object.type == 'ARMATURE':
-                self._bone_search(layout, scene, context.object)
+                self._bone_search(col, scene, context.object)
             else:
                 self._bone_entry(layout, scene)
         elif mirror_ob.type == 'ARMATURE':
-            self._bone_search(layout, scene, mirror_ob)
+            self._bone_search(col, scene, mirror_ob)
 
     def _bone_search(self, layout: UILayout, scene: bpy.types.Scene, armature_ob: bpy.types.Object) -> None:
         """Search within the bones of the given armature."""
@@ -127,15 +134,18 @@ class VIEW3D_PT_copy_global_transform_mirror(GlobalTransformPanelMixin, Panel):
 class VIEW3D_PT_copy_global_transform_relative(GlobalTransformPanelMixin, Panel):
     bl_label = "Relative"
     bl_parent_id = "VIEW3D_PT_copy_global_transform"
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context: Context) -> None:
         layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
         scene = context.scene
 
         # Copy/Paste relative to some object:
         copy_paste_sub = layout.column(align=False)
         has_relative_ob = bool(get_relative_ob(context))
-        copy_paste_sub.label(text="Work Relative to some Object")
         copy_paste_sub.prop(scene.tool_settings, 'anim_relative_object', text="Object")
         if not scene.tool_settings.anim_relative_object:
             copy_paste_sub.label(text="Using Active Scene Camera")
@@ -162,8 +172,8 @@ class VIEW3D_PT_copy_global_transform_relative(GlobalTransformPanelMixin, Panel)
 classes = (
     VIEW3D_PT_copy_global_transform,
     VIEW3D_PT_copy_global_transform_mirror,
-    VIEW3D_PT_copy_global_transform_fix_to_camera,
     VIEW3D_PT_copy_global_transform_relative,
+    VIEW3D_PT_copy_global_transform_fix_to_camera,
 )
 
 if __name__ == "__main__":  # only for live edit.
