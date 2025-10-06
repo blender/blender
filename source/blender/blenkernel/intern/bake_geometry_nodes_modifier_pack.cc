@@ -149,9 +149,9 @@ static bool directory_is_empty(const blender::StringRefNull path)
     if (FILENAME_IS_CURRPAR(entry.relname)) {
       continue;
     }
-    return true;
+    return false;
   }
-  return false;
+  return true;
 }
 
 static bool disk_bake_exists(const blender::bke::bake::BakePath &path)
