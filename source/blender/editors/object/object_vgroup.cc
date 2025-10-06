@@ -1430,7 +1430,7 @@ static bool vgroup_normalize_all(Object *ob,
     soft_lock_flags[def_nr] = true;
   }
 
-  const bool all_locked = !lock_flags.contains(false);
+  const bool all_locked = !lock_flags.is_empty() && !lock_flags.contains(false);
   if (all_locked) {
     BKE_report(reports, RPT_ERROR, "All groups are locked");
   }
