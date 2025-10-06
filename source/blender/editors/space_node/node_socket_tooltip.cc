@@ -230,6 +230,11 @@ class SocketTooltipBuilder {
       build_tooltip_value_implicit_default(socket_decl->default_input_type);
       return;
     }
+    if (socket_decl && socket_decl->structure_type == nodes::StructureType::Grid) {
+      this->start_block(TooltipBlockType::Value);
+      this->build_tooltip_value_and_type_oneline(TIP_("Empty Grid"), TIP_("Volume Grid"));
+      return;
+    }
     if (socket_.typeinfo->base_cpp_type == nullptr) {
       return;
     }
