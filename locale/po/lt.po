@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'7089def6cbcb')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'ceca413bcbf8')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-29 09:33+0000\n"
+"POT-Creation-Date: 2025-10-06 08:44+0000\n"
 "PO-Revision-Date: 2025-07-23 15:18+0000\n"
 "Last-Translator: Aras Pranckevičius <aras@nesnausk.org>\n"
 "Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
@@ -33,10 +33,6 @@ msgstr "Spalva"
 
 msgid "Value"
 msgstr "Reikšmė"
-
-
-msgid "Action F-Curves"
-msgstr "Veiksmo „F“-kreivės"
 
 
 msgid "Groups of F-Curves"
@@ -534,10 +530,6 @@ msgstr "Redaktorius šešėliavimo mazgams ir kompozicijos įrankiams"
 
 msgid "Video Sequencer"
 msgstr "Vaizdo montažas"
-
-
-msgid "Video editing tools"
-msgstr "Vaizdo įrašų redagavimo įrankiai"
 
 
 msgid "Motion tracking tools"
@@ -2355,10 +2347,6 @@ msgid "Users"
 msgstr "Vartotojai/Naudotojai"
 
 
-msgid "Groups"
-msgstr "Grupės"
-
-
 msgid "Layers"
 msgstr "Sluoksniai"
 
@@ -3073,6 +3061,10 @@ msgid "Paths"
 msgstr "Keliai"
 
 
+msgid "Groups"
+msgstr "Grupės"
+
+
 msgid "Modifier Name"
 msgstr "Keitiklio pavadinimas"
 
@@ -3097,12 +3089,16 @@ msgid "Dots"
 msgstr "Taškai"
 
 
-msgid "Layout"
-msgstr "Išdėstymas/Maketas"
+msgid "Import"
+msgstr "Importuoti"
 
 
 msgid "Apply"
 msgstr "Pritaikyti"
+
+
+msgid "Text"
+msgstr "Tekstas"
 
 
 msgid "Track"
@@ -3113,12 +3109,8 @@ msgid "Show/Hide"
 msgstr "Rodyti/Slėpti"
 
 
-msgid "Text"
-msgstr "Tekstas"
-
-
-msgid "Import"
-msgstr "Importuoti"
+msgid "Layout"
+msgstr "Išdėstymas/Maketas"
 
 
 msgid "Animals"
@@ -3429,11 +3421,6 @@ msgid "File Browser Mode"
 msgstr "Failų naršyklės veiksena"
 
 
-msgctxt "Curve"
-msgid "Mode"
-msgstr "Veiksena"
-
-
 msgctxt "Operator"
 msgid "Filter"
 msgstr "Filtras"
@@ -3528,6 +3515,11 @@ msgstr "Įdiegti pasirinktinius medžiagos užfiksavimus („MatCap“ (dgs.))"
 msgctxt "Operator"
 msgid "Render"
 msgstr "Vaizduoti"
+
+
+msgctxt "Curve"
+msgid "Mode"
+msgstr "Veiksena"
 
 
 msgctxt "Scene"

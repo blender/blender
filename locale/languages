@@ -37,7 +37,7 @@
 31:Hungarian - Magyar:hu_HU:11%
 27:Indonesian - Bahasa indonesia:id_ID:21%
 4:Italian - Italiano:it_IT:45%
-2:Japanese - 日本語:ja_JP:96%
+2:Japanese - 日本語:ja_JP:97%
 # Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #44:Kazakh - Қазақша:kk_KZ:0%
 50:Khmer - ខ្មែរ:km:0%
 24:Korean - 한국어:ko_KR:51%
@@ -47,7 +47,7 @@
 25:Nepali - नेपाली:ne_NP:0%
 26:Persian - ﯽﺳﺭﺎﻓ:fa_IR:3%
 19:Polish - Polski:pl_PL:18%
-32:Portuguese (Brazil) - Português brasileiro:pt_BR:45%
+32:Portuguese (Brazil) - Português brasileiro:pt_BR:44%
 12:Portuguese (Portugal) - Português europeu:pt_PT:71%
 20:Romanian - Român:ro_RO:2%
 15:Russian - Русский:ru_RU:99%
@@ -58,11 +58,11 @@
 9:Spanish - Español:es:99%
 51:Swahili - Kiswahili:sw:75%
 7:Swedish - Svenska:sv_SE:22%
-49:Tamil - தமிழ்:ta:97%
+49:Tamil - தமிழ்:ta:96%
 46:Thai - ภาษาไทย:th_TH:3%
-30:Turkish - Türkçe:tr_TR:82%
+30:Turkish - Türkçe:tr_TR:81%
 18:Ukrainian - Українська:uk_UA:59%
-55:Urdu - وُدرُا:ur:90%
+55:Urdu - وُدرُا:ur:89%
 # Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #39:Uzbek (Cyrillic) - Ўзбек:uz_UZ@cyrillic:0%
 # Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #38:Uzbek (Latin) - Oʻzbek:uz_UZ@latin:0%
 41:Vietnamese - Tiếng Việt:vi_VN:94%

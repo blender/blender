@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'7089def6cbcb')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'ceca413bcbf8')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-29 09:33+0000\n"
+"POT-Creation-Date: 2025-10-06 08:44+0000\n"
 "PO-Revision-Date: 2025-09-29 00:59+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -213,14 +213,6 @@ msgstr "Åtgärdsgruppen utökas förutom i grafredigeraren"
 
 msgid "Expanded in Graph Editor"
 msgstr "Expanderad i grafredigeraren"
-
-
-msgid "Action Groups"
-msgstr "Åtgärdsgrupper"
-
-
-msgid "Collection of action groups"
-msgstr "Samling av åtgärdsgrupper"
 
 
 msgid "Action Layer"
@@ -836,10 +828,6 @@ msgstr "Nodredigerare"
 
 msgid "Video Sequencer"
 msgstr "Videosekvenser"
-
-
-msgid "Video editing tools"
-msgstr "Videoredigeringsverktyg"
 
 
 msgid "Movie Clip Editor"
@@ -4477,6 +4465,10 @@ msgid "Wind Factor"
 msgstr "Vindfaktor"
 
 
+msgid "Annotations"
+msgstr "Anteckningar"
+
+
 msgid "Fonts"
 msgstr "Typsnitt"
 
@@ -5275,6 +5267,10 @@ msgid "Use Curve"
 msgstr "Använd kurva"
 
 
+msgid "Items"
+msgstr "Objekt"
+
+
 msgid "Line Width"
 msgstr "Linjetjocklek"
 
@@ -5532,10 +5528,6 @@ msgstr "Antal gånger detta datablock hänvisas till"
 
 msgid "A collection of F-Curves for animation"
 msgstr "En samling F-kurvor för animering"
-
-
-msgid "Groups"
-msgstr "Grupper"
 
 
 msgid "Is Empty"
@@ -7200,10 +7192,6 @@ msgid "Whole Collection"
 msgstr "Hela samlingen"
 
 
-msgid "Annotations"
-msgstr "Anteckningar"
-
-
 msgid "Inverse"
 msgstr "Omvänd"
 
@@ -8117,10 +8105,6 @@ msgstr "Ägare"
 
 msgid "Internal owner"
 msgstr "Intern ägare"
-
-
-msgid "Items"
-msgstr "Objekt"
 
 
 msgid "Activate or deactivate item"
@@ -9088,6 +9072,10 @@ msgid "Group Name"
 msgstr "Gruppnamn"
 
 
+msgid "Groups"
+msgstr "Grupper"
+
+
 msgid "Layer Collection"
 msgstr "Lagersamling"
 
@@ -9335,12 +9323,124 @@ msgid "Mask"
 msgstr "Mask"
 
 
-msgid "Mirror"
-msgstr "Spegla"
+msgid "Add Image"
+msgstr "Lägg till bild"
+
+
+msgid "Read"
+msgstr "Läs"
+
+
+msgid "Relations"
+msgstr "Relationer"
+
+
+msgid "Write"
+msgstr "Skriv"
+
+
+msgid "Primitives"
+msgstr "Primitiver"
+
+
+msgid "Rigid Body"
+msgstr "Rigid kropp"
+
+
+msgid "Import"
+msgstr "Importera"
+
+
+msgid "Apply"
+msgstr "Applicera"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Track"
+msgstr "Spår"
+
+
+msgid "Utilities"
+msgstr "Verktyg"
+
+
+msgid "Deprecated"
+msgstr "Föråldrad"
+
+
+msgid "Quick Effects"
+msgstr "Snabbeffekter"
+
+
+msgid "Show/Hide"
+msgstr "Visa/dölj"
+
+
+msgid "Clean Up"
+msgstr "Städa upp"
+
+
+msgid "Asset"
+msgstr "Tillgång"
+
+
+msgid "Convert"
+msgstr "Konvertera"
+
+
+msgid "Math"
+msgstr "Matematik"
+
+
+msgid "Link/Transfer Data"
+msgstr "Länka/överför data"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Propagate"
+msgstr "Propagera"
+
+
+msgid "Names"
+msgstr "Namn"
+
+
+msgid "Merge"
+msgstr "Sammanfoga"
+
+
+msgid "Special Characters"
+msgstr "Specialtecken"
+
+
+msgid "Metaball"
+msgstr "Metaboll"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
+msgid "Pivot Point"
+msgstr "Fast punkt"
 
 
 msgid "Snap"
 msgstr "Snäpp"
+
+
+msgid "Adjust"
+msgstr "Justera"
+
+
+msgid "Mirror"
+msgstr "Spegla"
 
 
 msgid "Local View"
@@ -9371,14 +9471,6 @@ msgid "Assign Material"
 msgstr "Tilldela material"
 
 
-msgid "Layout"
-msgstr "Layout"
-
-
-msgid "Metaball"
-msgstr "Metaboll"
-
-
 msgid "Light"
 msgstr "Ljus"
 
@@ -9387,112 +9479,8 @@ msgid "Light Probe"
 msgstr "Ljussond"
 
 
-msgid "Adjust"
-msgstr "Justera"
-
-
-msgid "Add Image"
-msgstr "Lägg till bild"
-
-
-msgid "Relations"
-msgstr "Relationer"
-
-
-msgid "Utilities"
-msgstr "Verktyg"
-
-
-msgid "Rigid Body"
-msgstr "Rigid kropp"
-
-
-msgid "Apply"
-msgstr "Applicera"
-
-
-msgid "Track"
-msgstr "Spår"
-
-
-msgid "Quick Effects"
-msgstr "Snabbeffekter"
-
-
-msgid "Show/Hide"
-msgstr "Visa/dölj"
-
-
-msgid "Clean Up"
-msgstr "Städa upp"
-
-
-msgid "Asset"
-msgstr "Tillgång"
-
-
-msgid "Convert"
-msgstr "Konvertera"
-
-
-msgid "Link/Transfer Data"
-msgstr "Länka/överför data"
-
-
-msgid "Propagate"
-msgstr "Propagera"
-
-
-msgid "Names"
-msgstr "Namn"
-
-
-msgid "Read"
-msgstr "Läs"
-
-
-msgid "Write"
-msgstr "Skriv"
-
-
-msgid "Primitives"
-msgstr "Primitiver"
-
-
-msgid "Merge"
-msgstr "Sammanfoga"
-
-
 msgid "Instances"
 msgstr "Instanser"
-
-
-msgid "Special Characters"
-msgstr "Specialtecken"
-
-
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Import"
-msgstr "Importera"
-
-
-msgid "Deprecated"
-msgstr "Föråldrad"
-
-
-msgid "Math"
-msgstr "Matematik"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Pivot Point"
-msgstr "Fast punkt"
 
 
 msgid "Animals"
@@ -13279,11 +13267,6 @@ msgstr "Spara den aktuella visningsnoden till en bildfil"
 
 
 msgctxt "Operator"
-msgid "Save This Image"
-msgstr "Spara denna bild"
-
-
-msgctxt "Operator"
 msgid "Add Modifier"
 msgstr "Lägg till modifierare"
 
@@ -14384,21 +14367,6 @@ msgstr "Redigera metadata"
 msgctxt "Operator"
 msgid "Save Brush Asset"
 msgstr "Spara penseltillgång"
-
-
-msgctxt "Operator"
-msgid "Preset"
-msgstr "Förinställning"
-
-
-msgctxt "Curve"
-msgid "Mode"
-msgstr "Läge"
-
-
-msgctxt "Curve"
-msgid "Line"
-msgstr "Linje"
 
 
 msgctxt "Operator"
@@ -19323,6 +19291,16 @@ msgid "Render"
 msgstr "Rendera"
 
 
+msgctxt "Curve"
+msgid "Mode"
+msgstr "Läge"
+
+
+msgctxt "Curve"
+msgid "Line"
+msgstr "Linje"
+
+
 msgctxt "Operator"
 msgid "Cancel Render View"
 msgstr "Avbryt renderingsvy"
@@ -19725,11 +19703,6 @@ msgstr "Alfa över"
 msgctxt "Sequence"
 msgid "Alpha Under"
 msgstr "Alfa under"
-
-
-msgctxt "Sequence"
-msgid "Transform"
-msgstr "Omvandla"
 
 
 msgctxt "Sequence"
@@ -21332,10 +21305,6 @@ msgid "Viewer Left"
 msgstr "Visare vänster"
 
 
-msgid "Minimum Speed"
-msgstr "Minsta hastighet"
-
-
 msgctxt "Operator"
 msgid "Add Workspace"
 msgstr "Lägg till arbetsyta"
@@ -21416,6 +21385,10 @@ msgid "Palette Color"
 msgstr "Palettfärg"
 
 
+msgid "VR"
+msgstr "VR"
+
+
 msgid "Active Tool"
 msgstr "Aktivt verktyg"
 
@@ -21442,10 +21415,6 @@ msgstr "Mätning"
 
 msgid "Stroke Placement"
 msgstr "Streckplacering"
-
-
-msgid "VR"
-msgstr "VR"
 
 
 msgid "Import Settings"
@@ -21751,13 +21720,13 @@ msgid "Note"
 msgstr "Observera"
 
 
+msgid "Waveforms"
+msgstr "Vågformer"
+
+
 msgctxt "Sequence"
 msgid "Box"
 msgstr "Ruta"
-
-
-msgid "Waveforms"
-msgstr "Vågformer"
 
 
 msgid "Find & Replace"
@@ -22227,10 +22196,6 @@ msgstr "Experimentella funktioner"
 
 msgid "Cycles Debug"
 msgstr "Felsökning för Cycles"
-
-
-msgid "New Volume Nodes"
-msgstr "Nya volymnoder"
 
 
 msgid "Extension Repositories"
@@ -24038,10 +24003,6 @@ msgid "Asset Browser"
 msgstr "Tillgångsbläddrare"
 
 
-msgid "Edit drivers"
-msgstr "Redigera drivare"
-
-
 msgid "Use Normalization"
 msgstr "Använd normalisering"
 
@@ -24056,10 +24017,6 @@ msgstr "Färg och alfa"
 
 msgid "Z-Buffer"
 msgstr "Z-buffert"
-
-
-msgid "View the image"
-msgstr "Visa bilden"
 
 
 msgid "Pivot around the 3D cursor"
@@ -24405,14 +24362,6 @@ msgid "Display text as italic"
 msgstr "Visa text som kursiv"
 
 
-msgid "Translate X"
-msgstr "Översätt X"
-
-
-msgid "Translate Y"
-msgstr "Översätt Y"
-
-
 msgctxt "Sequence"
 msgid "Direction"
 msgstr "Riktning"
@@ -24468,6 +24417,14 @@ msgstr "Vitvärde"
 
 msgid "Proxy parameters for a sequence strip"
 msgstr "Mellanparametrar för en sekvensremsa"
+
+
+msgid "Translate X"
+msgstr "Översätt X"
+
+
+msgid "Translate Y"
+msgstr "Översätt Y"
 
 
 msgctxt "Light"
@@ -27439,6 +27396,14 @@ msgid "Export to File"
 msgstr "Exportera till fil"
 
 
+msgid "Unpack"
+msgstr "Packa upp"
+
+
+msgid "Cut To"
+msgstr "Klipp till"
+
+
 msgid "Calculate"
 msgstr "Beräkna"
 
@@ -28183,10 +28148,6 @@ msgid "Exit Group"
 msgstr "Gå ur grupp"
 
 
-msgid "Closed by Default"
-msgstr "Stängd som standard"
-
-
 msgid "Types"
 msgstr "Typer"
 
@@ -28499,16 +28460,8 @@ msgid "Add Transition"
 msgstr "Lägg till övergång"
 
 
-msgid "Unpack"
-msgstr "Packa upp"
-
-
 msgid "{:d} MB"
 msgstr "{:d} MB"
-
-
-msgid "Cut To"
-msgstr "Klipp till"
 
 
 msgid "All Data-Blocks"
@@ -32096,6 +32049,10 @@ msgid "Disconnect"
 msgstr "Koppla bort"
 
 
+msgid "Closed by Default"
+msgstr "Stängd som standard"
+
+
 msgid "Add \"%s\" Input"
 msgstr "Lägg till \"%s\"-inmatning"
 
@@ -33029,10 +32986,6 @@ msgid "Replace Original"
 msgstr "Ersätt original"
 
 
-msgid "Bright"
-msgstr "Ljus"
-
-
 msgid "YUV Key Channel"
 msgstr "YUV-nyckelkanal"
 
@@ -33395,10 +33348,6 @@ msgstr "Strängar"
 
 msgid "Limit Surface"
 msgstr "Begränsa yta"
-
-
-msgid "Warnings ({})"
-msgstr "Varningar ({})"
 
 
 msgid "Manage"

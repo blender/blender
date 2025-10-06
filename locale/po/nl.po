@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'7089def6cbcb')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'ceca413bcbf8')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-29 09:33+0000\n"
+"POT-Creation-Date: 2025-10-06 08:44+0000\n"
 "PO-Revision-Date: 2025-07-23 14:52+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -65,10 +65,6 @@ msgstr "F-Curves"
 
 msgid "F-Curve Groups"
 msgstr "F-Curve groepen"
-
-
-msgid "Action F-Curves"
-msgstr "Actie F-Curves"
 
 
 msgid "Action Group"
@@ -229,10 +225,6 @@ msgstr "Actie groep is uitgebreid behalve in grafiek bewerker"
 
 msgid "Expanded in Graph Editor"
 msgstr "Uitgebreid in grafiek bewerker"
-
-
-msgid "Collection of action groups"
-msgstr "Collectie van actiegroepen"
 
 
 msgid "Strips"
@@ -503,10 +495,6 @@ msgstr "Editor Type"
 
 msgid "Empty"
 msgstr "Leeg"
-
-
-msgid "Video editing tools"
-msgstr "Videobewerkingsgereedschap"
 
 
 msgid "Text Editor"
@@ -1596,6 +1584,10 @@ msgid "2D"
 msgstr "2D"
 
 
+msgid "Annotations"
+msgstr "Annotaties"
+
+
 msgid "Fonts"
 msgstr "Lettertypen"
 
@@ -2403,10 +2395,6 @@ msgid "Mirror Object"
 msgstr "Spiegel Object"
 
 
-msgid "Annotations"
-msgstr "Annotaties"
-
-
 msgid "Speed of Sound"
 msgstr "Snelheid van Geluid"
 
@@ -2698,34 +2686,6 @@ msgid "Mask"
 msgstr "Mask"
 
 
-msgid "Mirror"
-msgstr "Spiegel"
-
-
-msgid "Local View"
-msgstr "Lokale Scherm"
-
-
-msgid "Navigation"
-msgstr "Navigatie"
-
-
-msgid "Select Similar"
-msgstr "Selecteer Vergelijkbaar"
-
-
-msgid "Select Linked"
-msgstr "Selecteer Aaneengesloten"
-
-
-msgid "Layout"
-msgstr "Indeling"
-
-
-msgid "Light"
-msgstr "Licht"
-
-
 msgid "Add Image"
 msgstr "Voeg Afbeelding Toe"
 
@@ -2736,6 +2696,14 @@ msgstr "Relaties"
 
 msgid "Rigid Body"
 msgstr "Star Lichaam"
+
+
+msgid "Import"
+msgstr "Importeren"
+
+
+msgid "Text"
+msgstr "Tekst"
 
 
 msgid "Quick Effects"
@@ -2762,12 +2730,32 @@ msgid "Names"
 msgstr "Namen"
 
 
-msgid "Text"
-msgstr "Tekst"
+msgid "Layout"
+msgstr "Indeling"
 
 
-msgid "Import"
-msgstr "Importeren"
+msgid "Mirror"
+msgstr "Spiegel"
+
+
+msgid "Local View"
+msgstr "Lokale Scherm"
+
+
+msgid "Navigation"
+msgstr "Navigatie"
+
+
+msgid "Select Similar"
+msgstr "Selecteer Vergelijkbaar"
+
+
+msgid "Select Linked"
+msgstr "Selecteer Aaneengesloten"
+
+
+msgid "Light"
+msgstr "Licht"
 
 
 msgctxt "MovieClip"
@@ -3688,26 +3676,6 @@ msgstr "Splits"
 msgctxt "Operator"
 msgid "Switch Direction"
 msgstr "Keer Richting Om"
-
-
-msgctxt "Curve"
-msgid "Mode"
-msgstr "Modus"
-
-
-msgctxt "Curve"
-msgid "Max"
-msgstr "Max"
-
-
-msgctxt "Curve"
-msgid "Line"
-msgstr "Lijn"
-
-
-msgctxt "Curve"
-msgid "Round"
-msgstr "Rond"
 
 
 msgctxt "Operator"
@@ -5351,6 +5319,26 @@ msgid "Render Layer"
 msgstr "Renderlaag"
 
 
+msgctxt "Curve"
+msgid "Mode"
+msgstr "Modus"
+
+
+msgctxt "Curve"
+msgid "Max"
+msgstr "Max"
+
+
+msgctxt "Curve"
+msgid "Line"
+msgstr "Lijn"
+
+
+msgctxt "Curve"
+msgid "Round"
+msgstr "Rond"
+
+
 msgctxt "Operator"
 msgid "Show/Hide Render View"
 msgstr "Render scherm weergeven/verbergen"
@@ -5707,11 +5695,6 @@ msgstr "Vermenigvuldigen"
 msgctxt "Sequence"
 msgid "Wipe"
 msgstr "Veeg"
-
-
-msgctxt "Sequence"
-msgid "Transform"
-msgstr "Transformatie"
 
 
 msgctxt "Sequence"
@@ -6264,14 +6247,6 @@ msgstr "Volledig Scherm aan/uit"
 msgctxt "Operator"
 msgid "New Window"
 msgstr "Nieuw Scherm"
-
-
-msgid "Maximum Speed"
-msgstr "Maximale Snelheid"
-
-
-msgid "Minimum Speed"
-msgstr "Minimale Snelheid"
 
 
 msgid "Path to the library"
@@ -7449,6 +7424,10 @@ msgid "Export to File"
 msgstr "Exporteren naar Bestand"
 
 
+msgid "Default Fade"
+msgstr "Standaard VervagingFit Preview in Window"
+
+
 msgid "Calculate"
 msgstr "Bereken"
 
@@ -7775,10 +7754,6 @@ msgstr "Gloed"
 msgctxt "Operator"
 msgid "All Transforms"
 msgstr "Alle Transformaties"
-
-
-msgid "Default Fade"
-msgstr "Standaard VervagingFit Preview in Window"
 
 
 msgid "Resolutions"

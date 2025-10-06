@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'7089def6cbcb')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'ceca413bcbf8')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-29 09:33+0000\n"
+"POT-Creation-Date: 2025-10-06 08:44+0000\n"
 "PO-Revision-Date: 2025-07-23 15:14+0000\n"
 "Last-Translator: Kamil <uhkamil@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -65,10 +65,6 @@ msgstr "Gniazdo"
 
 msgid "Collection of f-curve groups"
 msgstr "Zbiór grup krzywych f"
-
-
-msgid "Action F-Curves"
-msgstr "Akcja krzywej F"
 
 
 msgid "Action Group"
@@ -237,14 +233,6 @@ msgstr "Grupa akcji jest rozwinięta w edytorze grafów"
 
 msgid "Pin in Graph Editor"
 msgstr "Przypnij w Edytorze Grafu"
-
-
-msgid "Action Groups"
-msgstr "Grupy akcji"
-
-
-msgid "Collection of action groups"
-msgstr "Kolekcja grup akcji"
 
 
 msgid "The list of strips that are on this animation layer"
@@ -1210,10 +1198,6 @@ msgstr "Edytor z narzędziami do nieliniowego cieniowania i kompozycji"
 
 msgid "Video Sequencer"
 msgstr "Edytor sekwencji wideo"
-
-
-msgid "Video editing tools"
-msgstr "Narzędzia do edycji wideo"
 
 
 msgid "Movie Clip Editor"
@@ -8530,6 +8514,10 @@ msgid "Which asset types to show/hide, when browsing an asset library"
 msgstr "Które typy prefabrykatów mają być pokazywane/ukrywane podczas przeglądania biblioteki prefabrykatów"
 
 
+msgid "Annotations"
+msgstr "Adnotacje"
+
+
 msgid "Show Armature data-blocks"
 msgstr "Wyświetla bloki danych dla szkieletów"
 
@@ -9332,15 +9320,6 @@ msgstr "Biblioteka"
 
 msgid "Original ID"
 msgstr "Oryginalny ID"
-
-
-msgid "Groups"
-msgstr "Grupy"
-
-
-msgctxt "ID"
-msgid "ID Root Type"
-msgstr "ID (identyfikator) typu korzenia"
 
 
 msgid "Layers"
@@ -10481,10 +10460,6 @@ msgid "Particles/Face"
 msgstr "Cząsteczki/ściana"
 
 
-msgid "Annotations"
-msgstr "Adnotacje"
-
-
 msgid "Inverse"
 msgstr "Odwrotny"
 
@@ -11444,6 +11419,10 @@ msgid "Location, Rotation, Scale & Custom Properties"
 msgstr "Położenie, obrót, skala i właściwości własne"
 
 
+msgid "Groups"
+msgstr "Grupy"
+
+
 msgid "Layer Collection"
 msgstr "Kolekcja warstw"
 
@@ -11560,72 +11539,40 @@ msgid "Mask"
 msgstr "Maska"
 
 
-msgid "Mirror"
-msgstr "Odbicie lustrzane"
+msgid "Read"
+msgstr "Odczyt"
 
 
-msgid "Snap"
-msgstr "Przyciągnij"
-
-
-msgid "Local View"
-msgstr "Widok lokalny"
-
-
-msgid "Viewpoint"
-msgstr "Punkt obserwacji"
-
-
-msgid "Navigation"
-msgstr "Nawigacja"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proporcjonalne edytowanie spadku"
-
-
-msgid "Select Linked"
-msgstr "Zaznacz powiązane"
-
-
-msgid "Assign Material"
-msgstr "Przypisanie materiału"
-
-
-msgid "Layout"
-msgstr "Układ"
-
-
-msgid "Metaball"
-msgstr "Metakula"
-
-
-msgid "Light"
-msgstr "Światło"
-
-
-msgid "Light Probe"
-msgstr "Sonda świetlna"
-
-
-msgid "Keying"
-msgstr "Kluczowanie"
-
-
-msgid "Utilities"
-msgstr "Narzędzia"
+msgid "Write"
+msgstr "Zapis"
 
 
 msgid "Rigid Body"
 msgstr "Bryła sztywna"
 
 
+msgid "Import"
+msgstr "Importuj"
+
+
 msgid "Apply"
 msgstr "Zastosuj"
 
 
+msgid "Text"
+msgstr "Tekst"
+
+
 msgid "Track"
 msgstr "Ścieżka"
+
+
+msgid "Utilities"
+msgstr "Narzędzia"
+
+
+msgid "Deprecated"
+msgstr "Przestarzałe"
 
 
 msgid "Quick Effects"
@@ -11648,44 +11595,76 @@ msgid "Convert"
 msgstr "Konwertuj"
 
 
+msgid "Math"
+msgstr "Matematyka"
+
+
 msgid "Bone Collections"
 msgstr "Kolekcja kości"
-
-
-msgid "Read"
-msgstr "Odczyt"
 
 
 msgid "Face Data"
 msgstr "Dane ściany"
 
 
-msgid "Write"
-msgstr "Zapis"
-
-
 msgid "Merge"
 msgstr "Scal"
 
 
+msgid "Metaball"
+msgstr "Metakula"
+
+
+msgid "Layout"
+msgstr "Układ"
+
+
+msgid "Snap"
+msgstr "Przyciągnij"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proporcjonalne edytowanie spadku"
+
+
+msgid "Keying"
+msgstr "Kluczowanie"
+
+
+msgid "Mirror"
+msgstr "Odbicie lustrzane"
+
+
+msgid "Local View"
+msgstr "Widok lokalny"
+
+
+msgid "Viewpoint"
+msgstr "Punkt obserwacji"
+
+
+msgid "Navigation"
+msgstr "Nawigacja"
+
+
+msgid "Select Linked"
+msgstr "Zaznacz powiązane"
+
+
+msgid "Assign Material"
+msgstr "Przypisanie materiału"
+
+
+msgid "Light"
+msgstr "Światło"
+
+
+msgid "Light Probe"
+msgstr "Sonda świetlna"
+
+
 msgid "Gizmo"
 msgstr "Gizmo"
-
-
-msgid "Text"
-msgstr "Tekst"
-
-
-msgid "Import"
-msgstr "Importuj"
-
-
-msgid "Deprecated"
-msgstr "Przestarzałe"
-
-
-msgid "Math"
-msgstr "Matematyka"
 
 
 msgid "Catalog"
@@ -13876,21 +13855,6 @@ msgstr "Rodzaj biblioteki prefabrykatów"
 
 
 msgctxt "Operator"
-msgid "Preset"
-msgstr "Ustawienie wstępne"
-
-
-msgctxt "Curve"
-msgid "Line"
-msgstr "Linia"
-
-
-msgctxt "Curve"
-msgid "Round"
-msgstr "Okrągły"
-
-
-msgctxt "Operator"
 msgid "Context Menu"
 msgstr "Menu kontekstowe"
 
@@ -16061,6 +16025,16 @@ msgstr "Renderuj"
 
 msgid "Render active scene"
 msgstr "Renderuje aktywną scenę"
+
+
+msgctxt "Curve"
+msgid "Line"
+msgstr "Linia"
+
+
+msgctxt "Curve"
+msgid "Round"
+msgstr "Okrągły"
 
 
 msgid "Hinge"
@@ -18910,10 +18884,6 @@ msgid "Command output"
 msgstr "Dane wyjściowe polecenia"
 
 
-msgid "Timeline and playback controls"
-msgstr "Oś czasu oraz kontrolki odtwarzania"
-
-
 msgid "Action Editor"
 msgstr "Edytor akcji"
 
@@ -18988,10 +18958,6 @@ msgstr "Wyświetl kanały"
 
 msgid "UV Editor"
 msgstr "Edytor UV"
-
-
-msgid "Mask editing"
-msgstr "Edycja maski"
 
 
 msgid "Line Sample"
@@ -19433,10 +19399,6 @@ msgstr "Wyświetla tekst jako kursywę"
 
 msgid "Display shadow behind text"
 msgstr "Wyświetla cień za tekstem"
-
-
-msgid "Unit of measure to translate the input"
-msgstr "Jednostka miary do przesuwania wejścia"
 
 
 msgid "Angle of the transition"
@@ -21073,6 +21035,22 @@ msgid "Export to File"
 msgstr "Eksportuj do pliku"
 
 
+msgid "Position X"
+msgstr "Pozycja X"
+
+
+msgid "Unpack"
+msgstr "Rozpakuj"
+
+
+msgid "Source Channel"
+msgstr "Kanał źródłowy"
+
+
+msgid "Cut To"
+msgstr "Przytnij do"
+
+
 msgid "Calculate"
 msgstr "Oblicz"
 
@@ -21660,10 +21638,6 @@ msgid "Swap Data"
 msgstr "Zamień dane"
 
 
-msgid "Position X"
-msgstr "Pozycja X"
-
-
 msgctxt "Operator"
 msgid "Left"
 msgstr "Lewo"
@@ -21743,18 +21717,6 @@ msgstr "Własne proxy"
 
 msgid "Add Transition"
 msgstr "Dodaj przejście"
-
-
-msgid "Unpack"
-msgstr "Rozpakuj"
-
-
-msgid "Source Channel"
-msgstr "Kanał źródłowy"
-
-
-msgid "Cut To"
-msgstr "Przytnij do"
 
 
 msgctxt "Text"
@@ -24075,10 +24037,6 @@ msgid "Choose active color stop"
 msgstr "Wybierz aktywny znacznik koloru"
 
 
-msgid "Use Clipping"
-msgstr "Użyj obcinania"
-
-
 msgid "Min X:"
 msgstr "Min X:"
 
@@ -24119,16 +24077,8 @@ msgid "Zoom out"
 msgstr "Oddal"
 
 
-msgid "Clipping Options"
-msgstr "Opcje ucinania"
-
-
 msgid "Delete points"
 msgstr "Usuń punkty"
-
-
-msgid "Reset Black/White point and curves"
-msgstr "Resetuj punkt bieli/czerni i krzywe"
 
 
 msgid "ID-Block:"
@@ -27154,22 +27104,6 @@ msgid "F-Curve data path empty, invalid argument"
 msgstr "Ścieżka danych krzywej F pusta, nieprawidłowy argument"
 
 
-msgid "Action group '%s' not found in action '%s'"
-msgstr "Grupa akcji '%s' nie odnaleziona w akcji '%s'"
-
-
-msgid "F-Curve '%s[%d]' already exists in action '%s'"
-msgstr "Krzywa F '%s[%d]' już istnieje w akcji '%s'"
-
-
-msgid "F-Curve not found in action '%s'"
-msgstr "Krzywa F nie odnaleziona w akcji '%s'"
-
-
-msgid "F-Curve's action group '%s' not found in action '%s'"
-msgstr "Grupa akcji '%s' krzywej F nie odnaleziona w akcji '%s'"
-
-
 msgid "Timeline marker '%s' not found in action '%s'"
 msgstr "Marker osi czasu '%s' nie odnaleziony w akcji '%s'"
 
@@ -27664,10 +27598,6 @@ msgid "Replace Original"
 msgstr "Zastąp oryginał"
 
 
-msgid "Fac"
-msgstr "Współczynnik"
-
-
 msgid "Result"
 msgstr "Wynik"
 
@@ -27702,6 +27632,10 @@ msgstr "Blask mgły"
 
 msgid "Streaks"
 msgstr "Smugi"
+
+
+msgid "Fac"
+msgstr "Współczynnik"
 
 
 msgid "Val"
