@@ -3467,7 +3467,7 @@ static size_t animdata_filter_dopesheet_scene(bAnimContext *ac,
     /* Strip modifier node trees. */
     if (ed && !(ac->ads->filterflag & ADS_FILTER_NONTREE)) {
       VectorSet<ID *> node_trees;
-      seq::for_each_callback(&ed->seqbase, [&](Strip *strip) {
+      seq::foreach_strip(&ed->seqbase, [&](Strip *strip) {
         seq::foreach_strip_modifier_id(strip, [&](ID *id) {
           if (GS(id->name) == ID_NT) {
             node_trees.add(id);
