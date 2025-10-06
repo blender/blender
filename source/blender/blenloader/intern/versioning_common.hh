@@ -264,7 +264,7 @@ static void adjust_fcurve_key_frame_values(FCurve *fcurve,
   BKE_fcurve_handles_recalc(fcurve);
 }
 
-/* Gets the compositing node tree of the given scene. The deprecated nodetree member is returned
+/* Gets the compositing node tree of the given scene. The deprecated node-tree member is returned
  * for older versions before reusable node trees were introduced in bd61e69be5, while the new
  * compositing_node_group is returned otherwise. */
 bNodeTree *version_get_scene_compositor_node_tree(Main *bmain, Scene *scene);

@@ -687,7 +687,7 @@ static bool mywrite_end(WriteData *wd)
 
 static uint64_t get_stable_pointer_hint_for_id(const ID &id)
 {
-  /* Make the stable pointer dependend on the data-block name. This is somewhat arbitrary but the
+  /* Make the stable pointer dependent on the data-block name. This is somewhat arbitrary but the
    * name is at least something that doesn't really change automatically unexpectedly. */
   const uint64_t name_hash = XXH3_64bits(id.name, strlen(id.name));
   if (id.lib) {
@@ -710,9 +710,9 @@ static void mywrite_id_begin(WriteData *wd, ID *id)
   BLI_assert(wd->validation_data.per_id_addresses_set.is_empty());
 
   BLI_assert_msg(ID_IS_PACKED(id) || id->deep_hash.is_null(),
-                 "The only IDs with non-null deephash data should be packed linked ones");
+                 "The only IDs with non-null deep-hash data should be packed linked ones");
   BLI_assert_msg((id->flag & ID_FLAG_EMBEDDED_DATA) == 0 || id->deep_hash.is_null(),
-                 "Embedded IDs should always have a null deephash data");
+                 "Embedded IDs should always have a null deep-hash data");
 
   wd->stable_address_ids.next_id_hint = get_stable_pointer_hint_for_id(*id);
 

@@ -559,7 +559,7 @@ const EnumPropertyItem rna_enum_file_path_foreach_flag_items[] = {
     {BKE_BPATH_FOREACH_PATH_SKIP_MULTIFILE,
      "SKIP_MULTIFILE",
      0,
-     "Skip Multifile",
+     "Skip Multi-file",
      "Skip paths where a single dir is used with an array of files, eg. sequence strip images or "
      "point-caches. In this case only the first file path is processed. This is needed for "
      "directory manipulation callbacks which might otherwise modify the same directory multiple "
