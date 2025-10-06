@@ -8,6 +8,8 @@
  * \ingroup sequencer
  */
 
+#include "BLI_function_ref.hh"
+
 #include "DNA_sequence_types.h"
 
 struct ARegionType;
@@ -17,6 +19,7 @@ struct ImBuf;
 struct ListBase;
 struct Strip;
 struct StripModifierData;
+struct ID;
 
 namespace blender::seq {
 
@@ -99,5 +102,8 @@ void modifier_set_active(Strip *strip, StripModifierData *smd);
 
 static constexpr char STRIP_MODIFIER_TYPE_PANEL_PREFIX[] = "STRIPMOD_PT_";
 void modifier_type_panel_id(eStripModifierType type, char *r_idname);
+
+/* Iterate over all the modifiers and call the callback function for every referenced ID. */
+void foreach_strip_modifier_id(Strip *strip, const FunctionRef<void(ID *)> fn);
 
 }  // namespace blender::seq

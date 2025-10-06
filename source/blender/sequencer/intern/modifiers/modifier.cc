@@ -621,6 +621,21 @@ void modifier_type_panel_id(eStripModifierType type, char *r_idname)
       r_idname, sizeof(PanelType::idname), STRIP_MODIFIER_TYPE_PANEL_PREFIX, mti->idname);
 }
 
+void foreach_strip_modifier_id(Strip *strip, const FunctionRef<void(ID *)> fn)
+{
+  LISTBASE_FOREACH (StripModifierData *, smd, &strip->modifiers) {
+    if (smd->mask_id) {
+      fn(reinterpret_cast<ID *>(smd->mask_id));
+    }
+    if (smd->type == eSeqModifierType_Compositor) {
+      auto *modifier_data = reinterpret_cast<SequencerCompositorModifierData *>(smd);
+      if (modifier_data->node_group) {
+        fn(reinterpret_cast<ID *>(modifier_data->node_group));
+      }
+    }
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

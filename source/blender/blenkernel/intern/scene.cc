@@ -807,6 +807,8 @@ static bool strip_foreach_member_id_cb(Strip *strip, void *user_data)
   IDP_foreach_property(strip->system_properties, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
     BKE_lib_query_idpropertiesForeachIDLink_callback(prop, data);
   });
+  /* TODO: This could use `seq::foreach_strip_modifier_id`, but because `FOREACHID_PROCESS_IDSUPER`
+   * doesn't take IDs but "ID supers", it makes it a bit more cumbersome. */
   LISTBASE_FOREACH (StripModifierData *, smd, &strip->modifiers) {
     FOREACHID_PROCESS_IDSUPER(data, smd->mask_id, IDWALK_CB_USER);
     if (smd->type == eSeqModifierType_Compositor) {

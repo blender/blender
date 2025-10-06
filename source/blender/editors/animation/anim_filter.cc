@@ -88,6 +88,8 @@
 #include "ED_anim_api.hh"
 #include "ED_markers.hh"
 
+#include "SEQ_iterator.hh"
+#include "SEQ_modifier.hh"
 #include "SEQ_sequencer.hh"
 #include "SEQ_utils.hh"
 
@@ -3444,6 +3446,7 @@ static size_t animdata_filter_dopesheet_scene(bAnimContext *ac,
   BEGIN_ANIMFILTER_SUBCHANNELS (EXPANDED_SCEC(sce)) {
     bNodeTree *ntree = sce->compositing_node_group;
     World *wo = sce->world;
+    Editing *ed = sce->ed;
 
     /* Action, Drivers, or NLA for Scene */
     if ((ac->ads->filterflag & ADS_FILTER_NOSCE) == 0) {
@@ -3459,6 +3462,23 @@ static size_t animdata_filter_dopesheet_scene(bAnimContext *ac,
     if ((ntree) && !(ac->ads->filterflag & ADS_FILTER_NONTREE)) {
       tmp_items += animdata_filter_ds_nodetree(
           ac, &tmp_data, reinterpret_cast<ID *>(sce), ntree, filter_mode);
+    }
+
+    /* Strip modifier node trees. */
+    if (ed && !(ac->ads->filterflag & ADS_FILTER_NONTREE)) {
+      VectorSet<ID *> node_trees;
+      seq::for_each_callback(&ed->seqbase, [&](Strip *strip) {
+        seq::foreach_strip_modifier_id(strip, [&](ID *id) {
+          if (GS(id->name) == ID_NT) {
+            node_trees.add(id);
+          }
+        });
+        return true;
+      });
+      for (ID *node_tree : node_trees) {
+        tmp_items += animdata_filter_ds_nodetree(
+            ac, &tmp_data, &sce->id, reinterpret_cast<bNodeTree *>(node_tree), filter_mode);
+      }
     }
 
     /* line styles */
