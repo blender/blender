@@ -37,6 +37,8 @@ d3581edf-cc21-4fb6-85e1-7c682a584517:Brushes/Mesh Texture Paint/Basic:Brushes-Me
 f57862b2-0845-4ce7-a860-ce343dee67b9:Brushes/Mesh Texture Paint/Utilities:Brushes-Mesh Texture Paint-Utilities
 27cbc8dc-80c8-45d5-863c-7ecc48bccf20:Brushes/Mesh Vertex Paint:Brushes-Mesh Vertex Paint
 77635e98-1a5a-482e-9cb1-ba9ec4bc5b74:Brushes/Mesh Weight Paint:Brushes-Mesh Weight Paint
+81249800-1dfd-4eec-9257-20019aa3ef5d:Camera & Lens Effects:Camera & Lens Effects
+679c9c61-2227-41c9-b483-0112dcd65b71:Creative:Creative
 007a2c8d-f113-421b-a39c-8fbc76c4f7fe:Generate:Generate
 6ecdfe44-a0d7-40b9-8518-b92c97a1b4f2:Generate:Generate
 a7b80fd1-5de6-4c15-9049-52f25f4376de:Geometry:Geometry
