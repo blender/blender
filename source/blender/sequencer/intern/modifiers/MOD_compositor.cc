@@ -132,6 +132,12 @@ static void compositor_modifier_init_data(StripModifierData *strip_modifier_data
   modifier_data->node_group = nullptr;
 }
 
+static bool is_linear_float_buffer(ImBuf *image_buffer)
+{
+  return image_buffer->float_buffer.data &&
+         IMB_colormanagement_space_is_scene_linear(image_buffer->float_buffer.colorspace);
+}
+
 static bool ensure_linear_float_buffer(ImBuf *ibuf)
 {
   if (!ibuf) {
@@ -139,9 +145,7 @@ static bool ensure_linear_float_buffer(ImBuf *ibuf)
   }
 
   /* Already have scene linear float pixels, nothing to do. */
-  if (ibuf->float_buffer.data &&
-      IMB_colormanagement_space_is_scene_linear(ibuf->float_buffer.colorspace))
-  {
+  if (is_linear_float_buffer(ibuf)) {
     return true;
   }
 
@@ -176,13 +180,22 @@ static void compositor_modifier_apply(const RenderData *render_data,
     return;
   }
 
-  ensure_linear_float_buffer(mask);
+  ImBuf *linear_mask = mask;
+  if (mask && !is_linear_float_buffer(mask)) {
+    linear_mask = IMB_dupImBuf(mask);
+    ensure_linear_float_buffer(linear_mask);
+  }
+
   const bool was_float_linear = ensure_linear_float_buffer(image_buffer);
   const bool was_byte = image_buffer->float_buffer.data == nullptr;
 
-  CompositorContext context(*render_data, modifier_data, image_buffer, mask);
+  CompositorContext context(*render_data, modifier_data, image_buffer, linear_mask);
   compositor::Evaluator evaluator(context);
   evaluator.evaluate();
+
+  if (mask != linear_mask) {
+    IMB_freeImBuf(linear_mask);
+  }
 
   if (was_float_linear) {
     return;
