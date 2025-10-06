@@ -129,9 +129,9 @@ def _selected_keyframes_for_action_slot(object: Object, rna_path_prefix: str) ->
 
 
 def _copy_matrix_to_clipboard(window_manager: bpy.types.WindowManager, matrix: Matrix) -> None:
-    rows = [f"    {tuple(row)!r}," for row in matrix]
+    rows = ["    {!r},".format(tuple(row)) for row in matrix]
     as_string = "\n".join(rows)
-    window_manager.clipboard = f"Matrix((\n{as_string}\n))"
+    window_manager.clipboard = "Matrix((\n{:s}\n))".format(as_string)
 
 
 class OBJECT_OT_copy_global_transform(Operator):
@@ -529,7 +529,7 @@ class TransformableObject(Transformable):
         self.object = object
 
     def __str__(self) -> str:
-        return f"TransformableObject({self.object.name})"
+        return "TransformableObject({:s})".format(self.object.name)
 
     def matrix_world(self) -> Matrix:
         return self.object.matrix_world
@@ -561,7 +561,7 @@ class TransformableBone(Transformable):
         self.pose_bone = pose_bone
 
     def __str__(self) -> str:
-        return f"TransformableBone({self.arm_object.name}, bone={self.pose_bone.name})"
+        return "TransformableBone({:s}, bone={:s})".format(self.arm_object.name, self.pose_bone.name)
 
     def matrix_world(self) -> Matrix:
         mat = self.arm_object.matrix_world @ self.pose_bone.matrix
