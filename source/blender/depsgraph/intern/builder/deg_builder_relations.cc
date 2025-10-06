@@ -3478,7 +3478,7 @@ void DepsgraphRelationBuilder::build_scene_sequencer(Scene *scene)
 
   Seq_build_prop_cb_data cb_data = {this, sequencer_key, false};
 
-  seq::for_each_callback(&scene->ed->seqbase, strip_build_prop_cb, &cb_data);
+  seq::foreach_strip(&scene->ed->seqbase, strip_build_prop_cb, &cb_data);
   if (cb_data.has_audio_strips) {
     add_relation(sequencer_key, scene_audio_key, "Sequencer -> Audio");
   }

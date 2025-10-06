@@ -711,7 +711,7 @@ static Strip *strip_get_by_transform(Editing *ed, StripTransform *transform)
   data.data = transform;
 
   /* irritating we need to search for our strip! */
-  blender::seq::for_each_callback(&ed->seqbase, transform_strip_cmp_fn, &data);
+  blender::seq::foreach_strip(&ed->seqbase, transform_strip_cmp_fn, &data);
 
   return data.strip;
 }
@@ -758,7 +758,7 @@ static Strip *strip_get_by_crop(Editing *ed, StripCrop *crop)
   data.data = crop;
 
   /* irritating we need to search for our strip! */
-  blender::seq::for_each_callback(&ed->seqbase, crop_strip_cmp_fn, &data);
+  blender::seq::foreach_strip(&ed->seqbase, crop_strip_cmp_fn, &data);
 
   return data.strip;
 }
@@ -1180,7 +1180,7 @@ static Strip *strip_get_by_proxy(Editing *ed, StripProxy *proxy)
   data.strip = nullptr;
   data.data = proxy;
 
-  blender::seq::for_each_callback(&ed->seqbase, seqproxy_strip_cmp_fn, &data);
+  blender::seq::foreach_strip(&ed->seqbase, seqproxy_strip_cmp_fn, &data);
   return data.strip;
 }
 
@@ -1259,7 +1259,7 @@ static Strip *strip_get_by_colorbalance(Editing *ed,
   data.data = cb;
 
   /* irritating we need to search for our strip! */
-  blender::seq::for_each_callback(&ed->seqbase, colbalance_seq_cmp_fn, &data);
+  blender::seq::foreach_strip(&ed->seqbase, colbalance_seq_cmp_fn, &data);
 
   *r_smd = data.smd;
 
@@ -1417,7 +1417,7 @@ static Strip *strip_get_by_modifier(Editing *ed, StripModifierData *smd)
   data.data = smd;
 
   /* irritating we need to search for our strip! */
-  blender::seq::for_each_callback(&ed->seqbase, modifier_strip_cmp_fn, &data);
+  blender::seq::foreach_strip(&ed->seqbase, modifier_strip_cmp_fn, &data);
 
   return data.strip;
 }

@@ -894,8 +894,7 @@ void blo_do_versions_420(FileData *fd, Library * /*lib*/, Main *bmain)
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed != nullptr) {
-        blender::seq::for_each_callback(
-            &scene->ed->seqbase, strip_hue_correct_set_wrapping, nullptr);
+        blender::seq::foreach_strip(&scene->ed->seqbase, strip_hue_correct_set_wrapping, nullptr);
       }
     }
   }
@@ -1042,8 +1041,7 @@ void blo_do_versions_420(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 28)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed != nullptr) {
-        blender::seq::for_each_callback(
-            &scene->ed->seqbase, strip_proxies_timecode_update, nullptr);
+        blender::seq::foreach_strip(&scene->ed->seqbase, strip_proxies_timecode_update, nullptr);
       }
     }
 
@@ -1056,7 +1054,7 @@ void blo_do_versions_420(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 29)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed) {
-        blender::seq::for_each_callback(&scene->ed->seqbase, strip_text_data_update, nullptr);
+        blender::seq::foreach_strip(&scene->ed->seqbase, strip_text_data_update, nullptr);
       }
     }
   }

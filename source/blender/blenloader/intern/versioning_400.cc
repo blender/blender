@@ -394,8 +394,7 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       Editing *ed = blender::seq::editing_get(scene);
       if (ed != nullptr) {
-        blender::seq::for_each_callback(
-            &ed->seqbase, versioning_convert_strip_speed_factor, scene);
+        blender::seq::foreach_strip(&ed->seqbase, versioning_convert_strip_speed_factor, scene);
       }
     }
   }

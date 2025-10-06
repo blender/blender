@@ -4640,7 +4640,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
 
       if (scene->ed) {
-        blender::seq::for_each_callback(&scene->ed->seqbase, strip_update_flags_cb, nullptr);
+        blender::seq::foreach_strip(&scene->ed->seqbase, strip_update_flags_cb, nullptr);
       }
     }
 

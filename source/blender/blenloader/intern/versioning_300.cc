@@ -1316,8 +1316,8 @@ void do_versions_after_linking_300(FileData * /*fd*/, Main *bmain)
       if (ed == nullptr) {
         continue;
       }
-      blender::seq::for_each_callback(&ed->seqbase, strip_speed_factor_set, scene);
-      blender::seq::for_each_callback(&ed->seqbase, version_fix_seq_meta_range, scene);
+      blender::seq::foreach_strip(&ed->seqbase, strip_speed_factor_set, scene);
+      blender::seq::foreach_strip(&ed->seqbase, version_fix_seq_meta_range, scene);
     }
   }
 
@@ -2686,7 +2686,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       sequencer_tool_settings->pivot_point = V3D_AROUND_CENTER_MEDIAN;
 
       if (scene->ed != nullptr) {
-        blender::seq::for_each_callback(&scene->ed->seqbase, strip_transform_origin_set, nullptr);
+        blender::seq::foreach_strip(&scene->ed->seqbase, strip_transform_origin_set, nullptr);
       }
     }
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
@@ -2838,7 +2838,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     /* Set strip color tags to STRIP_COLOR_NONE. */
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed != nullptr) {
-        blender::seq::for_each_callback(
+        blender::seq::foreach_strip(
             &scene->ed->seqbase, do_versions_sequencer_color_tags, nullptr);
       }
     }
@@ -2858,7 +2858,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     /* Set defaults for new color balance modifier parameters. */
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed != nullptr) {
-        blender::seq::for_each_callback(
+        blender::seq::foreach_strip(
             &scene->ed->seqbase, do_versions_sequencer_color_balance_sop, nullptr);
       }
     }
@@ -3218,7 +3218,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 302, 2)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed != nullptr) {
-        blender::seq::for_each_callback(&scene->ed->seqbase, strip_transform_filter_set, nullptr);
+        blender::seq::foreach_strip(&scene->ed->seqbase, strip_transform_filter_set, nullptr);
       }
     }
   }
@@ -3427,7 +3427,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         continue;
       }
       blender::seq::channels_ensure(&ed->channels);
-      blender::seq::for_each_callback(&scene->ed->seqbase, strip_meta_channels_ensure, nullptr);
+      blender::seq::foreach_strip(&scene->ed->seqbase, strip_meta_channels_ensure, nullptr);
     }
   }
 
@@ -3617,7 +3617,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       Editing *ed = blender::seq::editing_get(scene);
       if (ed != nullptr) {
-        blender::seq::for_each_callback(&ed->seqbase, version_merge_still_offsets, nullptr);
+        blender::seq::foreach_strip(&ed->seqbase, version_merge_still_offsets, nullptr);
       }
     }
 
@@ -4098,8 +4098,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       Editing *ed = blender::seq::editing_get(scene);
       if (ed != nullptr) {
-        blender::seq::for_each_callback(
-            &ed->seqbase, version_set_seq_single_frame_content, nullptr);
+        blender::seq::foreach_strip(&ed->seqbase, version_set_seq_single_frame_content, nullptr);
       }
     }
 
@@ -4193,8 +4192,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       Editing *ed = blender::seq::editing_get(scene);
       if (ed != nullptr) {
-        blender::seq::for_each_callback(
-            &ed->seqbase, version_seq_fix_broken_sound_strips, nullptr);
+        blender::seq::foreach_strip(&ed->seqbase, version_seq_fix_broken_sound_strips, nullptr);
       }
     }
 

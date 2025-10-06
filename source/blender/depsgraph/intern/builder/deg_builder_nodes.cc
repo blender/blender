@@ -2355,7 +2355,7 @@ void DepsgraphNodeBuilder::build_scene_sequencer(Scene *scene)
                        seq::eval_strips(depsgraph, scene_cow, &scene_cow->ed->seqbase);
                      });
   /* Make sure data for sequences is in the graph. */
-  seq::for_each_callback(&scene->ed->seqbase, strip_node_build_cb, this);
+  seq::foreach_strip(&scene->ed->seqbase, strip_node_build_cb, this);
 }
 
 void DepsgraphNodeBuilder::build_scene_audio(Scene *scene)

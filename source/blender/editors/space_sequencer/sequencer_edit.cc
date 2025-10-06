@@ -3396,7 +3396,7 @@ static wmOperatorStatus sequencer_export_subtitles_exec(bContext *C, wmOperator 
 
   if (ed != nullptr) {
     Seq_get_text_cb_data cb_data = {&text_seq, scene};
-    seq::for_each_callback(&ed->seqbase, strip_get_text_strip_cb, &cb_data);
+    seq::foreach_strip(&ed->seqbase, strip_get_text_strip_cb, &cb_data);
   }
 
   if (BLI_listbase_is_empty(&text_seq)) {

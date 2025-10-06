@@ -245,7 +245,7 @@ static void sound_update_animation_flags(Scene *scene)
   scene->id.tag |= ID_TAG_DOIT;
 
   if (scene->ed != nullptr) {
-    blender::seq::for_each_callback(&scene->ed->seqbase, sound_update_animation_flags_fn, scene);
+    blender::seq::foreach_strip(&scene->ed->seqbase, sound_update_animation_flags_fn, scene);
   }
 
   fcu = id_data_find_fcurve(&scene->id, scene, &RNA_Scene, "audio_volume", 0, &driven);

@@ -110,7 +110,7 @@ void version_system_idprops_generate(Main *bmain)
     }
 
     if (scene->ed != nullptr) {
-      blender::seq::for_each_callback(&scene->ed->seqbase, [](Strip *strip) -> bool {
+      blender::seq::foreach_strip(&scene->ed->seqbase, [](Strip *strip) -> bool {
         idprops_process(strip->prop, &strip->system_properties);
         return true;
       });
@@ -795,7 +795,7 @@ static void version_seq_text_from_legacy(Main *bmain)
 {
   LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
     if (scene->ed != nullptr) {
-      blender::seq::for_each_callback(&scene->ed->seqbase, [&](Strip *strip) -> bool {
+      blender::seq::foreach_strip(&scene->ed->seqbase, [&](Strip *strip) -> bool {
         if (strip->type == STRIP_TYPE_TEXT && strip->effectdata != nullptr) {
           TextVars *data = static_cast<TextVars *>(strip->effectdata);
           if (data->text_ptr == nullptr) {
@@ -2470,7 +2470,7 @@ static bool window_has_sequence_editor_open(const wmWindow *win)
  * change its type to gaussian blur with 0 radius. */
 static void sequencer_substitute_transform_effects(Scene *scene)
 {
-  blender::seq::for_each_callback(&scene->ed->seqbase, [&](Strip *strip) -> bool {
+  blender::seq::foreach_strip(&scene->ed->seqbase, [&](Strip *strip) -> bool {
     if (strip->type == STRIP_TYPE_TRANSFORM_LEGACY && strip->effectdata != nullptr) {
       TransformVarsLegacy *tv = static_cast<TransformVarsLegacy *>(strip->effectdata);
       StripTransform *transform = strip->data->transform;
@@ -3101,7 +3101,7 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
       Editing *ed = seq::editing_get(scene);
 
       if (ed != nullptr) {
-        seq::for_each_callback(&ed->seqbase, [](Strip *strip) -> bool {
+        seq::foreach_strip(&ed->seqbase, [](Strip *strip) -> bool {
           LISTBASE_FOREACH (StripModifierData *, smd, &strip->modifiers) {
             seq::modifier_persistent_uid_init(*strip, *smd);
           }
@@ -3560,7 +3560,7 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed != nullptr) {
         /* Set the first strip modifier as the active one and uncollapse the root panel. */
-        blender::seq::for_each_callback(&scene->ed->seqbase, [&](Strip *strip) -> bool {
+        blender::seq::foreach_strip(&scene->ed->seqbase, [&](Strip *strip) -> bool {
           seq::modifier_set_active(strip,
                                    static_cast<StripModifierData *>(strip->modifiers.first));
           LISTBASE_FOREACH (StripModifierData *, smd, &strip->modifiers) {

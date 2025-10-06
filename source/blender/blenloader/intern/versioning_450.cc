@@ -4859,7 +4859,7 @@ static void version_sequencer_update_overdrop(Main *bmain)
 {
   LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
     if (scene->ed != nullptr) {
-      blender::seq::for_each_callback(
+      blender::seq::foreach_strip(
           &scene->ed->seqbase, strip_effect_overdrop_to_alphaover, nullptr);
     }
   }

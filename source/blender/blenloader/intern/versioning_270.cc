@@ -859,7 +859,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
       STRNCPY_UTF8(srv->suffix, STEREO_RIGHT_SUFFIX);
 
       if (scene->ed) {
-        blender::seq::for_each_callback(&scene->ed->seqbase, strip_update_proxy_cb, nullptr);
+        blender::seq::foreach_strip(&scene->ed->seqbase, strip_update_proxy_cb, nullptr);
       }
     }
 
@@ -1128,7 +1128,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed) {
-        blender::seq::for_each_callback(&scene->ed->seqbase, strip_update_effectdata_cb, nullptr);
+        blender::seq::foreach_strip(&scene->ed->seqbase, strip_update_effectdata_cb, nullptr);
       }
     }
 

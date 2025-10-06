@@ -1123,7 +1123,7 @@ void IMB_colormanagement_check_file_config(Main *bmain)
 
     /* Check sequencer strip input colorspace. */
     if (scene->ed != nullptr) {
-      blender::seq::for_each_callback(&scene->ed->seqbase, [&](Strip *strip) {
+      blender::seq::foreach_strip(&scene->ed->seqbase, [&](Strip *strip) {
         if (strip->data) {
           ok &= colormanage_check_colorspace_settings(&strip->data->colorspace_settings,
                                                       "sequencer strip");

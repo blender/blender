@@ -848,8 +848,7 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
   }
   if (scene->ed) {
     BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
-        data,
-        blender::seq::for_each_callback(&scene->ed->seqbase, strip_foreach_member_id_cb, data));
+        data, blender::seq::foreach_strip(&scene->ed->seqbase, strip_foreach_member_id_cb, data));
   }
 
   BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
@@ -980,7 +979,7 @@ static void scene_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
   Scene *scene = (Scene *)id;
   if (scene->ed != nullptr) {
-    blender::seq::for_each_callback(&scene->ed->seqbase, strip_foreach_path_callback, bpath_data);
+    blender::seq::foreach_strip(&scene->ed->seqbase, strip_foreach_path_callback, bpath_data);
   }
 }
 
