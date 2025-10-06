@@ -12,6 +12,7 @@
 #include <cstring>
 #include <ctime>
 
+#include "BLI_path_utils.hh"
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
@@ -1623,10 +1624,9 @@ static bool is_smooth_by_angle_modifier(const ModifierData &md)
   if (!library) {
     return false;
   }
-  if (!StringRef(library->filepath)
-           .endswith("datafiles/assets/nodes/geometry_nodes_essentials.blend"))
+  if (!BLI_path_contains(library->filepath,
+                         "datafiles/assets/nodes/geometry_nodes_essentials.blend"))
   {
-
     return false;
   }
   if (!STREQ(BKE_id_name(nmd.node_group->id), "Smooth by Angle")) {
