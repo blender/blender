@@ -5,9 +5,6 @@
 import bpy
 from bpy.types import Context, Panel, UILayout
 from bpy.app.translations import contexts as i18n_contexts
-from bpy_extras.anim_utils import AutoKeying
-
-from bl_operators.copy_global_transform import get_relative_ob
 
 
 class GlobalTransformPanelMixin:
@@ -61,6 +58,8 @@ class VIEW3D_PT_copy_global_transform_fix_to_camera(GlobalTransformPanelMixin, P
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context: Context) -> None:
+        from bpy_extras.anim_utils import AutoKeying
+
         layout = self.layout
         scene = context.scene
 
@@ -137,6 +136,8 @@ class VIEW3D_PT_copy_global_transform_relative(GlobalTransformPanelMixin, Panel)
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context: Context) -> None:
+        from bl_operators.copy_global_transform import get_relative_ob
+
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False

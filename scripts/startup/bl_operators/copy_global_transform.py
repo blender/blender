@@ -10,7 +10,6 @@ Simple operators for copying world-space transforms.
 It's called "global" to avoid confusion with the Blender World data-block.
 """
 
-import ast
 import abc
 from typing import Iterable, Optional, Any, TypeAlias
 
@@ -20,7 +19,6 @@ from bpy.types import (
     Camera, ID, ActionChannelbag, PropertyGroup,
 )
 from mathutils import Matrix
-from bpy_extras.anim_utils import AutoKeying
 
 
 _axis_enum_items = [
@@ -47,6 +45,7 @@ def get_matrix(context: Context) -> Matrix:
 
 
 def set_matrix(context: Context, mat: Matrix) -> None:
+    from bpy_extras.anim_utils import AutoKeying
     bone = context.active_pose_bone
     if bone:
         # Convert matrix to local space
@@ -301,6 +300,8 @@ class OBJECT_OT_paste_transform(Operator):
         return Matrix(floats)
 
     def execute(self, context: Context) -> set[str]:
+        import ast
+
         clipboard = context.window_manager.clipboard.strip()
         if clipboard.startswith("Matrix"):
             mat = Matrix(ast.literal_eval(clipboard[6:]))
@@ -537,6 +538,7 @@ class TransformableObject(Transformable):
         self.object.matrix_world = matrix
 
     def _autokey_matrix_world(self, context: Context) -> None:
+        from bpy_extras.anim_utils import AutoKeying
         AutoKeying.autokey_transformation(context, self.object)
 
     def __hash__(self) -> int:
@@ -571,6 +573,7 @@ class TransformableBone(Transformable):
         self.pose_bone.matrix = arm_eval.matrix_world.inverted() @ matrix
 
     def _autokey_matrix_world(self, context: Context) -> None:
+        from bpy_extras.anim_utils import AutoKeying
         AutoKeying.autokey_transformation(context, self.pose_bone)
 
     def __hash__(self) -> int:
@@ -677,6 +680,7 @@ class OBJECT_OT_fix_to_camera(FixToCameraCommon, Operator):
         return {t: camera_mat_inv @ t.matrix_world() for t in transformables}
 
     def _execute(self, context: Context, transformables: list[Transformable]) -> None:
+        from bpy_extras.anim_utils import AutoKeying
         depsgraph = context.view_layer.depsgraph
         scene = context.scene
 
