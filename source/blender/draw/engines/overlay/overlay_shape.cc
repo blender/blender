@@ -1348,7 +1348,7 @@ ShapeCache::ShapeCache()
   /* cursor lines */
   {
     const float outer_limit = 1.0f;
-    const float color_limit = 0.75f;
+    const float color_limit = 0.85f;
     const float inner_limit = 0.25f;
     const std::array<int, 3> axis_theme = {TH_AXIS_X, TH_AXIS_Y, TH_AXIS_Z};
 
