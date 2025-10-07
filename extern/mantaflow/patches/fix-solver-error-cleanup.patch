@@ -1,0 +1,62 @@
+diff --git a/extern/mantaflow/preprocessed/plugin/pressure.cpp b/extern/mantaflow/preprocessed/plugin/pressure.cpp
+index 593aeb16859..75118a4402a 100644
+--- a/extern/mantaflow/preprocessed/plugin/pressure.cpp
++++ b/extern/mantaflow/preprocessed/plugin/pressure.cpp
+@@ -1181,7 +1181,27 @@ void solvePressureSystem(Grid<Real> &rhs,
+     gcg->setMGPreconditioner(GridCgInterface::PC_MGP, pmg);
+   }
+ 
++  auto cleanup = [&](){
++    // Cleanup
++    if (gcg)
++      delete gcg;
++    if (pca0)
++      delete pca0;
++    if (pca1)
++      delete pca1;
++    if (pca2)
++      delete pca2;
++    if (pca3)
++      delete pca3;
++
++    // PcMGDynamic: always delete multigrid solver after use
++    // PcMGStatic: keep multigrid solver for next solve
++    if (pmg && preconditioner == PcMGDynamic)
++      releaseMG(parent);
++  };
++
+   // CG solve
++  try {
+   for (int iter = 0; iter < maxIter; iter++) {
+     if (!gcg->iterate())
+       iter = maxIter;
+@@ -1193,23 +1213,13 @@ void solvePressureSystem(Grid<Real> &rhs,
+   debMsg("FluidSolver::solvePressure done. Iterations:" << gcg->getIterations()
+                                                         << ", residual:" << gcg->getResNorm(),
+          2);
++  }
++  catch (const Manta::Error &e) {
++    cleanup();
++    throw e;
++  }
+ 
+-  // Cleanup
+-  if (gcg)
+-    delete gcg;
+-  if (pca0)
+-    delete pca0;
+-  if (pca1)
+-    delete pca1;
+-  if (pca2)
+-    delete pca2;
+-  if (pca3)
+-    delete pca3;
+-
+-  // PcMGDynamic: always delete multigrid solver after use
+-  // PcMGStatic: keep multigrid solver for next solve
+-  if (pmg && preconditioner == PcMGDynamic)
+-    releaseMG(parent);
++  cleanup();
+ }
+ static PyObject *_W_2(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
+ {
