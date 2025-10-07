@@ -1360,12 +1360,12 @@ ShapeCache::ShapeCache()
       float3 axis(0.0f);
       axis[i] = 1.0f;
       /* Draw the positive axes. */
-      UI_GetThemeColor4fv(axis_theme[i], crosshair_color);
+      UI_GetThemeColor3fv(axis_theme[i], crosshair_color);
       verts.append({outer_limit * axis, crosshair_color});
       verts.append({color_limit * axis, crosshair_color});
 
       /* Inner crosshair. */
-      UI_GetThemeColor4fv(TH_VIEW_OVERLAY, crosshair_color);
+      UI_GetThemeColor3fv(TH_VIEW_OVERLAY, crosshair_color);
       verts.append({color_limit * axis, crosshair_color});
       verts.append({inner_limit * axis, crosshair_color});
 
@@ -1376,7 +1376,7 @@ ShapeCache::ShapeCache()
       verts.append({color_limit * axis, crosshair_color});
 
       /* Inner crosshair. */
-      UI_GetThemeColor4fv(TH_VIEW_OVERLAY, crosshair_color);
+      UI_GetThemeColor3fv(TH_VIEW_OVERLAY, crosshair_color);
       verts.append({color_limit * axis, crosshair_color});
       verts.append({inner_limit * axis, crosshair_color});
     }
