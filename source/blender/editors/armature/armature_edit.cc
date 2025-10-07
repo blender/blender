@@ -1135,7 +1135,9 @@ static wmOperatorStatus armature_align_bones_exec(bContext *C, wmOperator *op)
         if (ebone->flag & BONE_SELECTED) {
           bone_align_to_bone(arm->edbo, ebone, actbone);
         }
-        else {
+        else if ((arm->flag & ARM_MIRROR_EDIT)) {
+          /* Need to check for the mirror mode, because when editing multiple armatures with
+           * differing mirror settings `actmirb` can be a nullptr. See #146242. */
           bone_align_to_bone(arm->edbo, ebone, actmirb);
         }
       }
