@@ -2678,13 +2678,13 @@ static const EnumPropertyItem *rna_SpaceNodeEditor_node_tree_sub_type_itemf(
       {SNODE_GEOMETRY_MODIFIER,
        "MODIFIER",
        ICON_MODIFIER_DATA,
-       "Modifier",
-       "Edit node group from active object's active modifier"},
+       N_("Modifier"),
+       N_("Edit node group from active object's active modifier")},
       {SNODE_GEOMETRY_TOOL,
        "TOOL",
        ICON_TOOL_SETTINGS,
-       "Tool",
-       "Edit any geometry node group for use as an operator"},
+       N_("Tool"),
+       N_("Edit any geometry node group for use as an operator")},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -2692,13 +2692,13 @@ static const EnumPropertyItem *rna_SpaceNodeEditor_node_tree_sub_type_itemf(
       {SNODE_COMPOSITOR_SCENE,
        "SCENE",
        ICON_SCENE_DATA,
-       "Scene",
-       "Edit compositing node group for the current scene"},
+       N_("Scene"),
+       N_("Edit compositing node group for the current scene")},
       {SNODE_COMPOSITOR_SEQUENCER,
        "SEQUENCER",
        ICON_SEQUENCE,
-       "Sequencer",
-       "Edit compositing node group for Sequencer strip modifiers"},
+       N_("Sequencer"),
+       N_("Edit compositing node group for Sequencer strip modifiers")},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -8117,7 +8117,6 @@ static void rna_def_space_node(BlenderRNA *brna)
   RNA_def_property_enum_funcs(
       prop, nullptr, nullptr, "rna_SpaceNodeEditor_node_tree_sub_type_itemf");
   RNA_def_property_ui_text(prop, "Node Tree Sub-Type", "");
-  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ID);
   RNA_def_property_update(
       prop, NC_SPACE | ND_SPACE_NODE, "rna_SpaceNodeEditor_node_tree_sub_type_update");
 
