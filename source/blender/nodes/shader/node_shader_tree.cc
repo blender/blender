@@ -434,10 +434,9 @@ static bool ntree_shader_implicit_closure_cast(bNodeTree *ntree)
       modified = true;
     }
     else if ((link->fromsock->type == SOCK_SHADER) && (link->tosock->type != SOCK_SHADER)) {
-      /* Meh. Not directly visible to the user. But better than nothing. */
-      fprintf(stderr, "Shader Nodetree Error: Invalid implicit socket conversion\n");
+      blender::bke::node_remove_link(ntree, *link);
       BKE_ntree_update_after_single_tree_change(*G.main, *ntree);
-      return false;
+      modified = true;
     }
   }
   if (modified) {
