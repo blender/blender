@@ -350,7 +350,7 @@ class NodeMenu(Menu):
 
     @classmethod
     def simulation_zone(cls, layout, label):
-        props = layout.operator(cls.zone_operator_id, text=label)
+        props = layout.operator(cls.zone_operator_id, text=iface_(label), translate=False)
         props.input_node_type = "GeometryNodeSimulationInput"
         props.output_node_type = "GeometryNodeSimulationOutput"
         props.add_default_geometry_link = True
@@ -362,7 +362,7 @@ class NodeMenu(Menu):
 
     @classmethod
     def repeat_zone(cls, layout, label):
-        props = layout.operator(cls.zone_operator_id, text=label)
+        props = layout.operator(cls.zone_operator_id, text=iface_(label), translate=False)
         props.input_node_type = "GeometryNodeRepeatInput"
         props.output_node_type = "GeometryNodeRepeatOutput"
         props.add_default_geometry_link = True
@@ -374,7 +374,7 @@ class NodeMenu(Menu):
 
     @classmethod
     def for_each_element_zone(cls, layout, label):
-        props = layout.operator(cls.zone_operator_id, text=label)
+        props = layout.operator(cls.zone_operator_id, text=iface_(label), translate=False)
         props.input_node_type = "GeometryNodeForeachGeometryElementInput"
         props.output_node_type = "GeometryNodeForeachGeometryElementOutput"
         props.add_default_geometry_link = False
@@ -386,7 +386,7 @@ class NodeMenu(Menu):
 
     @classmethod
     def closure_zone(cls, layout, label):
-        props = layout.operator(cls.zone_operator_id, text=label)
+        props = layout.operator(cls.zone_operator_id, text=iface_(label), translate=False)
         props.input_node_type = "NodeClosureInput"
         props.output_node_type = "NodeClosureOutput"
         props.add_default_geometry_link = False

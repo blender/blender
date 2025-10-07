@@ -677,6 +677,13 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
             ("add_repeat_zone", 1),
             ("add_foreach_geometry_element_zone", 1),
             ("add_closure_zone", 1),
+            ("node_operator", 4),
+            ("node_operator_with_outputs", 6),
+            ("simulation_zone", 2),
+            ("repeat_zone", 2),
+            ("for_each_element_zone", 2),
+            ("closure_zone", 2),
+
     ):
         func_translate_args[func_id] = {"label": (arg_pos, {})}
     # print(func_translate_args)
