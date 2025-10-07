@@ -1192,6 +1192,18 @@ size_t BLI_str_format_uint64_grouped(char dst[BLI_STR_FORMAT_UINT64_GROUPED_SIZE
   return BLI_str_format_int_grouped_ex(src, dst, num_len);
 }
 
+size_t BLI_str_format_int64_grouped(char dst[BLI_STR_FORMAT_INT64_GROUPED_SIZE], int64_t num)
+{
+  const size_t dst_maxncpy = BLI_STR_FORMAT_INT64_GROUPED_SIZE;
+  BLI_string_debug_size(dst, dst_maxncpy);
+  UNUSED_VARS_NDEBUG(dst_maxncpy);
+
+  char src[BLI_STR_FORMAT_INT64_GROUPED_SIZE];
+  const int num_len = int(SNPRINTF(src, "%" PRId64 "", num));
+
+  return BLI_str_format_int_grouped_ex(src, dst, num_len);
+}
+
 void BLI_str_format_byte_unit(char dst[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE],
                               long long int bytes,
                               const bool base_10)
