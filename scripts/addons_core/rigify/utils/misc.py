@@ -272,6 +272,59 @@ def clone_parameters(target):
     return property_to_python(dict(target))
 
 
+def propgroup_to_dict(source: bpy.types.PropertyGroup) -> dict[str, typing.Any]:
+    """Convert a bpy.types.PropertyGroup to a dictionary.
+
+    Note that this follows much of the same logic as `assign_rna_properties()` below.
+    """
+
+    # Precondition check.
+    assert isinstance(source, bpy.types.PropertyGroup), "Source must be PropertyGroup, but is {!r}".format(type(source))
+
+    # Copy the property values one by one.
+    skip_properties = {'rna_type', 'bl_rna'}
+    dictionary = {}
+    for prop in source.bl_rna.properties:
+        attr = prop.identifier
+
+        if attr in skip_properties:
+            continue
+
+        # Un-set properties if necessary:
+        try:
+            is_set = source.is_property_set(attr)
+        except TypeError as ex:
+            raise TypeError("{!s} on {!s}".format('; '.join(ex.args), source)) from None
+        if not is_set:
+            continue
+
+        # Set properties, depending on their type:
+        value = getattr(source, attr)
+        match prop.type:
+            # Directly assignable types:
+            case 'BOOLEAN' | 'INT' | 'FLOAT' | 'ENUM' | 'STRING':
+                dictionary[attr] = value
+
+            # Treat as list-like:
+            case 'COLLECTION':
+                target_coll = [propgroup_to_dict(source_item) for source_item in value]
+                dictionary[attr] = target_coll
+
+            # Pointer properties are treated depending on the type they point
+            # to. PropertyGroups have to be dealt with by recursion, while other
+            # types can be assigned directly.
+            case 'POINTER':
+                if isinstance(value, bpy.types.PropertyGroup):
+                    dictionary[attr] = propgroup_to_dict(value)
+                    continue
+                dictionary[attr] = value
+
+            case _:
+                raise TypeError("no implementation for RNA property {!r} type {!r}".format(prop.identifier, prop.type))
+
+    return dictionary
+
+
 def assign_parameters(target, val_dict=None, **params):
     if val_dict is not None:
         for key in list(target.keys()):
@@ -286,6 +339,92 @@ def assign_parameters(target, val_dict=None, **params):
             target[key] = value
         except Exception as e:
             raise Exception(f"Couldn't set {key} to {value}: {e}")
+
+
+def assign_rna_properties(target: bpy.types.PropertyGroup,
+                          source: bpy.types.PropertyGroup | dict[str, typing.Any]) -> None:
+    """Basically calling `setattr(target, attribute, value_from_source)` for each property of `target`.
+
+    Note that this follows much of the same logic as `propgroup_to_dict()` above.
+    """
+
+    # Precondition checks.
+    assert isinstance(target, bpy.types.PropertyGroup), "Target must be PropertyGroup, but is {!r}".format(type(target))
+    assert isinstance(source, (bpy.types.PropertyGroup, dict)
+                      ), "Source must be PropertyGroup or dict, but is {!r}".format(type(source))
+    if isinstance(source, bpy.types.PropertyGroup):
+        assert (target.__class__ == source.__class__), "Source and target must be PropertyGroups of the same type."
+
+    def _setattr(prop_identifier, value):
+        """Wrapper around setattr() that has more concrete info in its exception when it fails."""
+        try:
+            setattr(target, prop_identifier, value)
+        except AttributeError as ex:
+            raise AttributeError(
+                "Could not set {!r}.{!s} = {!r} (type={!s}): {!s}".format(
+                    target, prop_identifier, value, type(value), ex)) from None
+
+    # Dynamically construct functions to create an abstraction around dict vs. PropertyGroup.
+    if isinstance(source, dict):
+        def _is_property_set(prop_identifier: str) -> bool:
+            return prop_identifier in source
+
+        def _get_value(prop_identifier: str) -> typing.Any:
+            return source[prop_identifier]
+    else:
+        def _is_property_set(prop_identifier: str) -> bool:
+            return source.is_property_set(prop_identifier)
+
+        def _get_value(prop_identifier: str) -> typing.Any:
+            return getattr(source, prop_identifier)
+
+    # Copy the property values one by one.
+    skip_properties = {'rna_type', 'bl_rna'}
+    for prop in target.bl_rna.properties:
+        attr = prop.identifier
+
+        if attr in skip_properties:
+            continue
+
+        # Un-set properties if necessary:
+        try:
+            is_set = _is_property_set(attr)
+        except TypeError as ex:
+            raise TypeError("{!s} on {!s}".format('; '.join(ex.args), source)) from None
+        if not is_set:
+            target.property_unset(attr)
+            continue
+
+        # Set properties, depending on their type:
+        value = _get_value(attr)
+        match prop.type:
+            # Directly assignable types:
+            case 'BOOLEAN' | 'INT' | 'FLOAT' | 'ENUM' | 'STRING':
+                if target.is_property_readonly(attr):
+                    continue
+                _setattr(attr, value)
+
+            # Treat as list-like:
+            case 'COLLECTION':
+                target_coll = getattr(target, attr)
+                target_coll.clear()
+                for source_item in value:
+                    target_item = target_coll.add()
+                    assign_rna_properties(target_item, source_item)
+
+            # Pointer properties are treated depending on the type they point
+            # to. PropertyGroups have to be dealt with by recursion, while other
+            # types can be assigned directly.
+            case 'POINTER':
+                if isinstance(value, bpy.types.PropertyGroup):
+                    assign_rna_properties(getattr(target, attr), value)
+                    continue
+                if target.is_property_readonly(attr):
+                    continue
+                _setattr(attr, value)
+
+            case _:
+                raise TypeError("no implementation for RNA property {!r} type {!r}".format(prop.identifier, prop.type))
 
 
 def select_object(context: bpy.types.Context, obj: bpy.types.Object, deselect_all=False):
