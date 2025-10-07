@@ -116,6 +116,10 @@ class NodeMenu(Menu):
     pathing_dict: dict[str, str]
 
     @classmethod
+    def poll(cls, context):
+        return context.space_data.type == 'NODE_EDITOR'
+
+    @classmethod
     def node_operator(cls, layout, node_type, *, label=None, poll=None, search_weight=0.0, translate=True):
         """The main operator defined for the node menu.
         \n(e.g. 'Add Node' for AddNodeMenu, or 'Swap Node' for SwapNodeMenu)."""
