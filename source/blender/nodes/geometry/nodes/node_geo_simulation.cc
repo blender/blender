@@ -939,7 +939,7 @@ void mix_baked_data_item(const eNodeSocketDatatype socket_type,
     case SOCK_RGBA:
     case SOCK_MATRIX: {
       const CPPType &type = *bke::socket_type_to_geo_nodes_base_cpp_type(socket_type);
-      if (prev.is_context_dependent_field() || next.is_context_dependent_field()) {
+      if (!prev.is_single() || !next.is_single()) {
         /* Fields are evaluated on geometries and are mixed there. */
         break;
       }
