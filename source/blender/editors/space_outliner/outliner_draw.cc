@@ -2986,7 +2986,7 @@ static bool tselem_draw_icon(uiBlock *block,
       if (collection->color_tag != COLLECTION_COLOR_NONE) {
         UI_icon_draw_ex(x,
                         y,
-                        data.icon,
+                        ICON_COLLECTION_COLOR_01 + collection->color_tag,
                         UI_INV_SCALE_FAC,
                         alpha,
                         0.0f,

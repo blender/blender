@@ -477,43 +477,6 @@ DEF_ICON_VECTOR_COLORSET_DRAW_NTH(20, 19)
 
 #  undef DEF_ICON_VECTOR_COLORSET_DRAW_NTH
 
-static void vicon_collection_color_draw(
-    short color_tag, float x, float y, float w, float /*h*/, float /*alpha*/)
-{
-  bTheme *btheme = UI_GetTheme();
-  const ThemeCollectionColor *collection_color = &btheme->collection_color[color_tag];
-
-  const float aspect = float(ICON_DEFAULT_WIDTH) / w;
-
-  UI_icon_draw_ex(x,
-                  y,
-                  ICON_OUTLINER_COLLECTION,
-                  aspect,
-                  1.0f,
-                  0.0f,
-                  collection_color->color,
-                  btheme->tui.icon_border_intensity > 0.0f,
-                  UI_NO_ICON_OVERLAY_TEXT);
-}
-
-#  define DEF_ICON_COLLECTION_COLOR_DRAW(index, color) \
-    static void vicon_collection_color_draw_##index( \
-        float x, float y, float w, float h, float alpha, const uchar * /*mono_rgba[4]*/) \
-    { \
-      vicon_collection_color_draw(color, x, y, w, h, alpha); \
-    }
-
-DEF_ICON_COLLECTION_COLOR_DRAW(01, COLLECTION_COLOR_01);
-DEF_ICON_COLLECTION_COLOR_DRAW(02, COLLECTION_COLOR_02);
-DEF_ICON_COLLECTION_COLOR_DRAW(03, COLLECTION_COLOR_03);
-DEF_ICON_COLLECTION_COLOR_DRAW(04, COLLECTION_COLOR_04);
-DEF_ICON_COLLECTION_COLOR_DRAW(05, COLLECTION_COLOR_05);
-DEF_ICON_COLLECTION_COLOR_DRAW(06, COLLECTION_COLOR_06);
-DEF_ICON_COLLECTION_COLOR_DRAW(07, COLLECTION_COLOR_07);
-DEF_ICON_COLLECTION_COLOR_DRAW(08, COLLECTION_COLOR_08);
-
-#  undef DEF_ICON_COLLECTION_COLOR_DRAW
-
 static void vicon_strip_color_draw(
     short color_tag, float x, float y, float w, float /*h*/, float /*alpha*/)
 {
@@ -995,15 +958,6 @@ static void init_internal_icons()
   def_internal_vicon(ICON_COLORSET_18_VEC, vicon_colorset_draw_18);
   def_internal_vicon(ICON_COLORSET_19_VEC, vicon_colorset_draw_19);
   def_internal_vicon(ICON_COLORSET_20_VEC, vicon_colorset_draw_20);
-
-  def_internal_vicon(ICON_COLLECTION_COLOR_01, vicon_collection_color_draw_01);
-  def_internal_vicon(ICON_COLLECTION_COLOR_02, vicon_collection_color_draw_02);
-  def_internal_vicon(ICON_COLLECTION_COLOR_03, vicon_collection_color_draw_03);
-  def_internal_vicon(ICON_COLLECTION_COLOR_04, vicon_collection_color_draw_04);
-  def_internal_vicon(ICON_COLLECTION_COLOR_05, vicon_collection_color_draw_05);
-  def_internal_vicon(ICON_COLLECTION_COLOR_06, vicon_collection_color_draw_06);
-  def_internal_vicon(ICON_COLLECTION_COLOR_07, vicon_collection_color_draw_07);
-  def_internal_vicon(ICON_COLLECTION_COLOR_08, vicon_collection_color_draw_08);
 
   def_internal_vicon(ICON_STRIP_COLOR_01, vicon_strip_color_draw_01);
   def_internal_vicon(ICON_STRIP_COLOR_02, vicon_strip_color_draw_02);
@@ -1538,6 +1492,14 @@ static void svg_replace_color_attributes(std::string &svg,
       {"blender_info", nullptr, TH_INFO},
       {"blender_scene", nullptr, TH_ICON_SCENE},
       {"blender_collection", nullptr, TH_ICON_COLLECTION},
+      {"blender_collection_color_01", btheme->collection_color[0].color},
+      {"blender_collection_color_02", btheme->collection_color[1].color},
+      {"blender_collection_color_03", btheme->collection_color[2].color},
+      {"blender_collection_color_04", btheme->collection_color[3].color},
+      {"blender_collection_color_05", btheme->collection_color[4].color},
+      {"blender_collection_color_06", btheme->collection_color[5].color},
+      {"blender_collection_color_07", btheme->collection_color[6].color},
+      {"blender_collection_color_08", btheme->collection_color[7].color},
       {"blender_object", nullptr, TH_ICON_OBJECT},
       {"blender_object_data", nullptr, TH_ICON_OBJECT_DATA},
       {"blender_modifier", nullptr, TH_ICON_MODIFIER},
