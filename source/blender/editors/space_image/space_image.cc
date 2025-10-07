@@ -76,13 +76,16 @@ static void image_scopes_tag_refresh(ScrArea *area)
 static void image_user_refresh_scene(const bContext *C, SpaceImage *sima)
 {
   /* Update scene image user for acquiring render results. */
-  sima->iuser.scene = CTX_data_scene(C);
+  sima->iuser.scene = (sima->iuser.flag & IMA_SHOW_SEQUENCER_SCENE) ? CTX_data_sequencer_scene(C) :
+                                                                      CTX_data_scene(C);
 
   if (sima->image && sima->image->type == IMA_TYPE_R_RESULT) {
     /* While rendering, prefer scene that is being rendered. */
     Scene *render_scene = ED_render_job_get_current_scene(C);
     if (render_scene) {
       sima->iuser.scene = render_scene;
+      SET_FLAG_FROM_TEST(
+          sima->iuser.flag, render_scene == CTX_data_sequencer_scene(C), IMA_SHOW_SEQUENCER_SCENE);
     }
   }
 

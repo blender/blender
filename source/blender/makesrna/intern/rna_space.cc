@@ -1819,6 +1819,24 @@ static void rna_SpaceImageEditor_show_stereo_update(Main * /*bmain*/,
   }
 }
 
+static void rna_SpaceImageEditor_show_sequencer_scene_set(PointerRNA *ptr, bool value)
+{
+  SpaceImage *sima = ptr->data_as<SpaceImage>();
+
+  if (value) {
+    sima->iuser.flag |= IMA_SHOW_SEQUENCER_SCENE;
+  }
+  else {
+    sima->iuser.flag &= ~IMA_SHOW_SEQUENCER_SCENE;
+  }
+}
+
+static bool rna_SpaceImageEditor_show_sequencer_scene_get(PointerRNA *ptr)
+{
+  SpaceImage *sima = ptr->data_as<SpaceImage>();
+  return (sima->iuser.flag & IMA_SHOW_SEQUENCER_SCENE) != 0;
+}
+
 static bool rna_SpaceImageEditor_show_render_get(PointerRNA *ptr)
 {
   SpaceImage *sima = (SpaceImage *)(ptr->data);
@@ -6080,6 +6098,17 @@ static void rna_def_space_image(BlenderRNA *brna)
   RNA_def_property_ui_icon(prop, ICON_CAMERA_STEREO, 0);
   RNA_def_property_update(
       prop, NC_SPACE | ND_SPACE_IMAGE, "rna_SpaceImageEditor_show_stereo_update");
+
+  prop = RNA_def_property(srna, "show_sequencer_scene", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(prop,
+                                 "rna_SpaceImageEditor_show_sequencer_scene_get",
+                                 "rna_SpaceImageEditor_show_sequencer_scene_set");
+  RNA_def_property_ui_text(
+      prop,
+      "Show Sequencer Scene",
+      "Display the render result for the sequencer scene instead of the active scene");
+  RNA_def_property_ui_icon(prop, ICON_SEQ_SEQUENCER, 0);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, nullptr);
 
   /* uv */
   prop = RNA_def_property(srna, "uv_editor", PROP_POINTER, PROP_NONE);

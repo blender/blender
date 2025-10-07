@@ -931,6 +931,13 @@ class IMAGE_HT_header(Header):
             layout.prop_search(mesh.uv_layers, "active", mesh, "uv_layers", text="")
 
         if ima:
+            seq_scene = context.sequencer_scene
+            scene = context.scene
+
+            if show_render and seq_scene and (seq_scene != scene):
+                row = layout.row()
+                row.prop(sima, "show_sequencer_scene", text="")
+
             if ima.is_stereo_3d:
                 row = layout.row()
                 row.prop(sima, "show_stereo_3d", text="")
