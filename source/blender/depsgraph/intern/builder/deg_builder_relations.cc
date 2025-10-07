@@ -1530,6 +1530,16 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
           ComponentKey target_transform_key(&ct->tar->id, NodeType::TRANSFORM);
           add_relation(target_transform_key, constraint_op_key, cti->name);
         }
+        else if (con->type == CONSTRAINT_TYPE_GEOMETRY_ATTRIBUTE) {
+          /* Constraints which require the target object geometry attributes. */
+          ComponentKey target_key(&ct->tar->id, NodeType::GEOMETRY);
+          add_relation(target_key, constraint_op_key, cti->name);
+
+          /* NOTE: The target object's transform is used when the 'Apply target transform' flag
+           * is set.*/
+          ComponentKey target_transform_key(&ct->tar->id, NodeType::TRANSFORM);
+          add_relation(target_transform_key, constraint_op_key, cti->name);
+        }
         else {
           /* Standard object relation. */
           /* TODO: loc vs rot vs scale? */

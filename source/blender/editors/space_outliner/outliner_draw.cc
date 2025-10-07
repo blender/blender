@@ -2751,6 +2751,9 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
           case CONSTRAINT_TYPE_SHRINKWRAP:
             data.icon = ICON_CON_SHRINKWRAP;
             break;
+          case CONSTRAINT_TYPE_GEOMETRY_ATTRIBUTE:
+            data.icon = ICON_CON_GEOMETRYATTRIBUTE;
+            break;
 
           default:
             data.icon = ICON_DOT;
