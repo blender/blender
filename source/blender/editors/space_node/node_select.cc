@@ -35,6 +35,7 @@
 #include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
+#include "BKE_screen.hh"
 #include "BKE_viewer_path.hh"
 #include "BKE_workspace.hh"
 
@@ -521,6 +522,71 @@ void node_select_single(bContext &C, bNode &node)
   WM_event_add_notifier(&C, NC_NODE | NA_SELECTED, nullptr);
 }
 
+static const bNodeSocket *find_socket_at_mouse_y(const Span<const bNodeSocket *> sockets,
+                                                 const float view_y)
+{
+  const bNodeSocket *best_socket = nullptr;
+  float best_distance = FLT_MAX;
+  for (const bNodeSocket *socket : sockets) {
+    if (!socket->is_icon_visible()) {
+      continue;
+    }
+    const float socket_y = socket->runtime->location.y;
+    const float distance = math::distance(socket_y, view_y);
+    if (distance < best_distance) {
+      best_distance = distance;
+      best_socket = socket;
+    }
+  }
+  return best_socket;
+}
+
+static void activate_interface_socket(bNodeTree &tree, bNodeTreeInterfaceSocket &io_socket)
+{
+  bNodeTreeInterfacePanel &io_panel = *tree.tree_interface.find_item_parent(io_socket.item, true);
+  bNodeTreeInterfaceItem *item_to_activate = nullptr;
+  if (io_panel.header_toggle_socket() == &io_socket) {
+    item_to_activate = &io_panel.item;
+  }
+  else {
+    item_to_activate = &io_socket.item;
+  }
+  tree.tree_interface.active_item_set(item_to_activate);
+}
+
+static void handle_group_input_node_selection(bNodeTree &tree,
+                                              const bNode &group_input_node,
+                                              const float2 &cursor)
+{
+
+  tree.ensure_topology_cache();
+  tree.ensure_interface_cache();
+  const bNodeSocket *indicated_socket = find_socket_at_mouse_y(
+      group_input_node.output_sockets().drop_back(1), cursor.y);
+  if (!indicated_socket) {
+    return;
+  }
+  const int group_input_i = indicated_socket->index();
+  bNodeTreeInterfaceSocket &io_socket = *tree.interface_inputs()[group_input_i];
+  activate_interface_socket(tree, io_socket);
+}
+
+static void handle_group_output_node_selection(bNodeTree &tree,
+                                               const bNode &group_output_node,
+                                               const float2 &cursor)
+{
+  tree.ensure_topology_cache();
+  tree.ensure_interface_cache();
+  const bNodeSocket *indicated_socket = find_socket_at_mouse_y(
+      group_output_node.input_sockets().drop_back(1), cursor.y);
+  if (!indicated_socket) {
+    return;
+  }
+  const int group_output_i = indicated_socket->index();
+  bNodeTreeInterfaceSocket &io_socket = *tree.interface_outputs()[group_output_i];
+  activate_interface_socket(tree, io_socket);
+}
+
 static bool node_mouse_select(bContext *C,
                               wmOperator *op,
                               const int2 mval,
@@ -641,6 +707,13 @@ static bool node_mouse_select(bContext *C,
           /* Doesn't make sense for picking. */
           BLI_assert_unreachable();
           break;
+      }
+
+      if (node->is_group_input()) {
+        handle_group_input_node_selection(node_tree, *node, cursor);
+      }
+      if (node->is_group_output()) {
+        handle_group_output_node_selection(node_tree, *node, cursor);
       }
 
       changed = true;
