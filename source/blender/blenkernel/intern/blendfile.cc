@@ -1974,7 +1974,7 @@ ID *PartialWriteContext::id_add(
 
   /* The given ID may have already been added (either explicitly or as a dependency) before. */
   /* NOTE: This should not be needed currently (as this is only used as temporary partial copy of
-   * the current main Main data-base, so ID's runtime session_uid should be enough), but in the
+   * the current main data-base, so ID's runtime `session_uid` should be enough), but in the
    * future it might also be good to lookup by ID deep hash for packed data? */
   ID *ctx_root_id = BKE_main_idmap_lookup_uid(matching_uid_map_, id->session_uid);
   if (ctx_root_id) {

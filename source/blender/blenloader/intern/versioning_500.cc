@@ -2507,7 +2507,7 @@ static void do_version_lift_gamma_gain_srgb_to_linear(bNodeTree &node_tree, bNod
   bNodeSocket *type_input = blender::bke::node_find_socket(node, SOCK_IN, "Type");
   bNodeSocket *image_output = blender::bke::node_find_socket(node, SOCK_OUT, "Image");
 
-  /* Find the links going into and out of of the node. */
+  /* Find the links going into and out of the node. */
   bNodeLink *image_input_link = nullptr;
   bNodeLink *type_input_link = nullptr;
   LISTBASE_FOREACH (bNodeLink *, link, &node_tree.links) {

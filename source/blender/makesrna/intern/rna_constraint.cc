@@ -3653,7 +3653,7 @@ static void rna_def_constraint_geometry_attribute(BlenderRNA *brna)
        "REPLACE",
        0,
        "Replace",
-       "Replace the original transformation with the trasnform from the attribute"},
+       "Replace the original transformation with the transform from the attribute"},
       RNA_ENUM_ITEM_SEPR,
       {CON_ATTRIBUTE_MIX_BEFORE_FULL,
        "BEFORE_FULL",

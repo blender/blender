@@ -33,7 +33,7 @@ void BKE_light_linking_ensure(struct Object *object);
 /**
  * Copy the LightLinking data from `object_src` to `object_dst`.
  *
- * \param copy_flags Flags controlling the copy process, see e.g. #LIB_ID_CREATE_NO_USER_REFCOUNT
+ * \param copy_flags: Flags controlling the copy process, see e.g. #LIB_ID_CREATE_NO_USER_REFCOUNT
  * and related flags in the same enum.
  */
 void BKE_light_linking_copy(struct Object *object_dst,
@@ -43,7 +43,7 @@ void BKE_light_linking_copy(struct Object *object_dst,
 /**
  * Free the LightLinking data from the object.
  *
- * \param copy_flags Flags controlling the copy process, see e.g. #LIB_ID_CREATE_NO_USER_REFCOUNT
+ * \param copy_flags: Flags controlling the copy process, see e.g. #LIB_ID_CREATE_NO_USER_REFCOUNT
  * and related flags in the same enum.
  */
 void BKE_light_linking_delete(struct Object *object, const int delete_flags);
