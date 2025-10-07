@@ -241,7 +241,7 @@ PointerRNA RNA_pointer_create_from_ancestor(const PointerRNA &ptr, const int anc
 
 bool RNA_pointer_is_null(const PointerRNA *ptr)
 {
-  return (ptr->data == nullptr) || (ptr->owner_id == nullptr) || (ptr->type == nullptr);
+  return (ptr->data == nullptr) || (ptr->type == nullptr);
 }
 
 PointerRNA RNA_blender_rna_pointer_create()
