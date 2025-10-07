@@ -995,6 +995,17 @@ typedef struct SpaceAction_Runtime {
   char _pad0[7];
 } SpaceAction_Runtime;
 
+typedef enum SpaceActionOverlays_Flag {
+  ADS_OVERLAY_SHOW_OVERLAYS = (1 << 0),
+  ADS_SHOW_SCENE_STRIP_FRAME_RANGE = (1 << 1)
+} SpaceActionOverlays_Flag;
+
+typedef struct SpaceActionOverlays {
+  /** #SpaceActionOverlays_Flag */
+  int flag;
+  char _pad0[4];
+} SpaceActionOverlays;
+
 /* Action Editor Space. This is defined here instead of in DNA_space_types.h */
 typedef struct SpaceAction {
   struct SpaceLink *next, *prev;
@@ -1027,6 +1038,8 @@ typedef struct SpaceAction {
   /** (eTimeline_Cache_Flag). */
   char cache_display;
   char _pad1[6];
+
+  SpaceActionOverlays overlays;
 
   SpaceAction_Runtime runtime;
 } SpaceAction;

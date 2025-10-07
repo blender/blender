@@ -3918,6 +3918,23 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_END;
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 104)) {
+    /* Dope Sheet Editor: toggle overlays on. */
+    if (!DNA_struct_exists(fd->filesdna, "SpaceActionOverlays")) {
+      LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+        LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+          LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
+            if (space->spacetype == SPACE_ACTION) {
+              SpaceAction *space_action = (SpaceAction *)space;
+              space_action->overlays.flag |= ADS_OVERLAY_SHOW_OVERLAYS;
+              space_action->overlays.flag |= ADS_SHOW_SCENE_STRIP_FRAME_RANGE;
+            }
+          }
+        }
+      }
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.

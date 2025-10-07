@@ -151,6 +151,9 @@ typedef struct ThemeCommonAnim {
       keyframe_jitter_selected[4], keyframe_moving_hold_selected[4],
       keyframe_generated_selected[4];
   unsigned char long_key[4], long_key_selected[4];
+
+  unsigned char scene_strip_range[4];
+  char _pad0[4];
 } ThemeCommonAnim;
 
 typedef struct ThemeCommonCurves {

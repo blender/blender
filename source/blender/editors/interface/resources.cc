@@ -915,6 +915,9 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_ANIM_PREVIEW_RANGE:
           cp = btheme->common.anim.preview_range;
           break;
+        case TH_ANIM_SCENE_STRIP_RANGE:
+          cp = btheme->common.anim.scene_strip_range;
+          break;
 
         case TH_NLA_TWEAK:
           cp = ts->nla_tweaking;
