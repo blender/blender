@@ -1831,8 +1831,11 @@ static bool is_opaque_alpha_over(const Strip *strip)
     return false;
   }
   LISTBASE_FOREACH (StripModifierData *, smd, &strip->modifiers) {
-    /* Assume result is not opaque if there is an enabled Mask modifier. */
-    if ((smd->flag & STRIP_MODIFIER_FLAG_MUTE) == 0 && smd->type == eSeqModifierType_Mask) {
+    /* Assume result is not opaque if there is an enabled Mask or Compositor modifiers, which could
+     * introduce alpha. */
+    if ((smd->flag & STRIP_MODIFIER_FLAG_MUTE) == 0 &&
+        ELEM(smd->type, eSeqModifierType_Mask, eSeqModifierType_Compositor))
+    {
       return false;
     }
   }
