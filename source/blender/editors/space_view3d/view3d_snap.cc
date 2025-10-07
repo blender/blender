@@ -929,7 +929,8 @@ static bool snap_curs_to_sel_ex(bContext *C, const int pivot_point, float r_curs
       }
 
       if (ED_transverts_check_obedit(obedit)) {
-        ED_transverts_create_from_obedit(&tvs, obedit, TM_ALL_JOINTS | TM_SKIP_HANDLES);
+        const Object *obedit_eval = DEG_get_evaluated(depsgraph, obedit);
+        ED_transverts_create_from_obedit(&tvs, obedit_eval, TM_ALL_JOINTS | TM_SKIP_HANDLES);
       }
 
       count += tvs.transverts_tot;
