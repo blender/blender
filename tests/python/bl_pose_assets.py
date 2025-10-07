@@ -88,8 +88,8 @@ class CreateAssetTest(unittest.TestCase):
         self._armature_object.pose.bones[_BONE_NAME_1].location = (1, 1, 2)
         self._armature_object.pose.bones[_BONE_NAME_2].location = (-1, 0, 0)
 
-        self._armature_object.pose.bones[_BONE_NAME_1].bone.select = True
-        self._armature_object.pose.bones[_BONE_NAME_2].bone.select = False
+        self._armature_object.pose.bones[_BONE_NAME_1].select = True
+        self._armature_object.pose.bones[_BONE_NAME_2].select = False
 
         self._armature_object.pose.bones[_BONE_NAME_1].keyframe_insert('["bool_test"]')
         self._armature_object.pose.bones[_BONE_NAME_1].keyframe_insert('["float_test"]')
@@ -130,8 +130,8 @@ class CreateAssetTest(unittest.TestCase):
         self._armature_object.pose.bones[_BONE_NAME_1].location = (1, 1, 2)
         self._armature_object.pose.bones[_BONE_NAME_2].location = (-1, 0, 0)
 
-        self._armature_object.pose.bones[_BONE_NAME_1].bone.select = True
-        self._armature_object.pose.bones[_BONE_NAME_2].bone.select = False
+        self._armature_object.pose.bones[_BONE_NAME_1].select = True
+        self._armature_object.pose.bones[_BONE_NAME_2].select = False
 
         self._armature_object.pose.bones[_BONE_NAME_1].keyframe_insert('["bool_test"]')
         self._armature_object.pose.bones[_BONE_NAME_1].keyframe_insert('["float_test"]')
@@ -181,8 +181,8 @@ class CreateAssetTest(unittest.TestCase):
         self._armature_object.pose.bones[_BONE_NAME_1].location = (1, 1, 2)
         self._armature_object.pose.bones[_BONE_NAME_2].location = (-1, 0, 0)
 
-        self._armature_object.pose.bones[_BONE_NAME_1].bone.select = True
-        self._armature_object.pose.bones[_BONE_NAME_2].bone.select = False
+        self._armature_object.pose.bones[_BONE_NAME_1].select = True
+        self._armature_object.pose.bones[_BONE_NAME_2].select = False
 
         self.assertEqual(len(bpy.data.actions), 0)
         bpy.ops.poselib.create_pose_asset(

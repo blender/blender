@@ -1026,7 +1026,7 @@ static bool skip_fcurve_selected_data(bAnimContext *ac,
 
         /* can only add this F-Curve if it is selected */
         if (ac->ads->filterflag & ADS_FILTER_ONLYSEL) {
-          if ((pchan->bone->flag & BONE_SELECTED) == 0) {
+          if ((pchan->flag & POSE_SELECTED) == 0) {
             return true;
           }
         }

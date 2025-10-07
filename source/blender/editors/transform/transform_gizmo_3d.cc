@@ -840,7 +840,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
       bArmature *arm = static_cast<bArmature *>(ob_iter->data);
       /* Use channels to get stats. */
       LISTBASE_FOREACH (bPoseChannel *, pchan, &ob_iter->pose->chanbase) {
-        if (!(pchan->bone->flag & BONE_TRANSFORM)) {
+        if (!(pchan->runtime.flag & POSE_RUNTIME_TRANSFORM)) {
           continue;
         }
 

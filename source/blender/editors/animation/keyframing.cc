@@ -714,7 +714,7 @@ static bool can_delete_fcurve(FCurve *fcu, Object *ob)
         pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
         /* Delete if bone is selected. */
         if ((pchan) && (pchan->bone)) {
-          if (pchan->bone->flag & BONE_SELECTED) {
+          if (pchan->flag & POSE_SELECTED) {
             can_delete = true;
           }
         }

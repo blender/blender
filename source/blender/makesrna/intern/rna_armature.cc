@@ -760,14 +760,8 @@ static void rna_Bone_select_update(Main * /*bmain*/, Scene * /*scene*/, PointerR
       DEG_id_tag_update(id, ID_RECALC_SYNC_TO_EVAL);
     }
     else if (GS(id->name) == ID_OB) {
-      Object *ob = (Object *)id;
-      bArmature *arm = (bArmature *)ob->data;
-
-      if (arm->flag & ARM_HAS_VIZ_DEPS) {
-        DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
-      }
-
-      DEG_id_tag_update(&arm->id, ID_RECALC_SYNC_TO_EVAL);
+      /* This should be handled by the pose bone. */
+      BLI_assert_unreachable();
     }
   }
 

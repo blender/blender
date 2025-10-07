@@ -89,9 +89,7 @@ def _create_armature():
     edit_bone.head = (1, 0, 0)
     bpy.ops.object.mode_set(mode='POSE')
     armature_obj.pose.bones[_BONE_NAME].rotation_mode = "XYZ"
-    armature_obj.pose.bones[_BONE_NAME].bone.select = True
-    armature_obj.pose.bones[_BONE_NAME].bone.select_head = True
-    armature_obj.pose.bones[_BONE_NAME].bone.select_tail = True
+    armature_obj.pose.bones[_BONE_NAME].select = True
     bpy.ops.object.mode_set(mode='OBJECT')
 
     return armature_obj

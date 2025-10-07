@@ -83,6 +83,7 @@ bool ED_object_posemode_enter_ex(Main *bmain, Object *ob)
     case OB_ARMATURE:
       ob->restore_mode = ob->mode;
       ob->mode |= OB_MODE_POSE;
+
       /* Inform all evaluated versions that we changed the mode. */
       DEG_id_tag_update_ex(bmain, &ob->id, ID_RECALC_SYNC_TO_EVAL);
       ok = true;
@@ -386,7 +387,7 @@ static void pose_clear_paths(Object *ob, bool only_selected)
   /* free the motionpath blocks for all bones - This is easier for users to quickly clear all */
   LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
     if (pchan->mpath) {
-      if ((only_selected == false) || ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED))) {
+      if ((only_selected == false) || (pchan->flag & POSE_SELECTED)) {
         animviz_free_motionpath(pchan->mpath);
         pchan->mpath = nullptr;
       }
@@ -680,11 +681,11 @@ static wmOperatorStatus pose_hide_exec(bContext *C, wmOperator *op)
       if (!ANIM_bone_in_visible_collection(arm, pchan->bone)) {
         continue;
       }
-      if (((pchan->bone->flag & BONE_SELECTED) != 0) != hide_select) {
+      if (((pchan->flag & POSE_SELECTED) != 0) != hide_select) {
         continue;
       }
       pchan->drawflag |= PCHAN_DRAW_HIDDEN;
-      pchan->bone->flag &= ~BONE_SELECTED;
+      pchan->flag &= ~POSE_SELECTED;
       changed = true;
     }
 
@@ -737,7 +738,7 @@ static wmOperatorStatus pose_reveal_exec(bContext *C, wmOperator *op)
         continue;
       }
       if (!(pchan->bone->flag & BONE_UNSELECTABLE)) {
-        SET_FLAG_FROM_TEST(pchan->bone->flag, select, BONE_SELECTED);
+        SET_FLAG_FROM_TEST(pchan->flag, select, POSE_SELECTED);
       }
       pchan->drawflag &= ~PCHAN_DRAW_HIDDEN;
       changed = true;

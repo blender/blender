@@ -125,7 +125,7 @@ bool calc_active_center_for_editmode(Object *obedit, const bool select_only, flo
 bool calc_active_center_for_posemode(Object *ob, const bool select_only, float r_center[3])
 {
   bPoseChannel *pchan = BKE_pose_channel_active_if_bonecoll_visible(ob);
-  if (pchan && (!select_only || (pchan->bone->flag & BONE_SELECTED))) {
+  if (pchan && (!select_only || (pchan->flag & POSE_SELECTED))) {
     const bArmature *arm = static_cast<bArmature *>(ob->data);
     BKE_pose_channel_transform_location(arm, pchan, r_center);
     return true;
