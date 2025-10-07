@@ -269,6 +269,11 @@ PYGETTEXT_KEYWORDS = (() +
                      "CTX_wm_operator_poll_msg_set", "WM_global_report", "WM_global_reportf",
                      "UI_but_disable")) +
 
+    # ED_undo_push() is used in Undo History menu and has the "Operator" context, same as operators.
+    tuple(PyGettextKeyword(("{}\\((?:[^\"',]+,)\\s*" + _msg_re + r"\s*(?:\))").format(it),
+                           context_override='BLT_I18NCONTEXT_OPERATOR_DEFAULT')
+          for it in ("ED_undo_push", "ED_undo_grouped_push")) +
+
     # bmesh operator errors
     tuple(PyGettextKeyword(("{}\\((?:[^\"',]+,){{3}}\\s*" + _msg_re + r"\s*\)").format(it))
           for it in ("BMO_error_raise",)) +
