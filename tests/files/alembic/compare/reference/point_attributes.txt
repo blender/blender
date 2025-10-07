@@ -1,0 +1,39 @@
+==== Point Clouds: 1
+- PointCloud 'particles' points:5
+  - attr 'emission' FLOAT_COLOR POINT
+    - (3.261, 0.846, 0.097, 1.000)
+    - (3.188, 0.827, 0.094, 1.000)
+    - (3.660, 0.949, 0.108, 1.000)
+    - (3.597, 0.933, 0.107, 1.000)
+    - (3.205, 0.831, 0.095, 1.000)
+  - attr 'normals' FLOAT_VECTOR POINT
+    - (-0.467, 0.698, 0.544)
+    - (-0.708, 0.276, -0.650)
+    - (0.652, -0.041, -0.757)
+    - (0.672, -0.274, 0.688)
+    - (-0.705, -0.664, 0.249)
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-2.168, 0.698, -0.916)
+    - (1.324, 0.276, -2.865)
+    - (3.020, -0.041, 1.284)
+    - (-1.478, -0.274, 2.791)
+    - (-1.483, -0.664, -1.957)
+  - attr 'radius' FLOAT POINT
+    - 0.577 0.577 0.577 0.577 0.577 
+  - attr 'temperature' FLOAT POINT
+    - 0.400 0.400 0.400 0.400 0.400 
+  - attr 'uv' FLOAT2 POINT
+    - (0.863, 0.746)
+    - (0.118, 0.589)
+    - (0.363, 0.487)
+    - (0.627, 0.412)
+    - (0.946, 0.269)
+
+==== Objects: 1
+- Obj 'particles' POINTCLOUD data:'particles'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - 1 modifiers
+    - MESH_SEQUENCE_CACHE 'MeshSequenceCache'
+

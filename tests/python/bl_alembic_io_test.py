@@ -14,6 +14,8 @@ import unittest
 
 import bpy
 
+sys.path.append(str(pathlib.Path(__file__).parent.absolute()))
+
 args = None
 
 
@@ -449,6 +451,40 @@ class OverrideLayersTest(AbstractAlembicTest):
         self.assertEqual(len(mesh.polygons), 6)
 
 
+class AlembicImportComparisonTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.testdir = args.testdir
+        cls.output_dir = args.outdir
+
+    def test_import_alembic(self):
+        comparisondir = self.testdir.joinpath("compare")
+        input_files = sorted(pathlib.Path(comparisondir).glob("*.abc"))
+        self.passed_tests = []
+        self.failed_tests = []
+        self.updated_tests = []
+
+        from modules import io_report
+        report = io_report.Report("Alembic Import", self.output_dir, comparisondir, comparisondir.joinpath("reference"))
+        io_report.Report.context_lines = 8
+
+        for input_file in input_files:
+            input_file_path = pathlib.Path(input_file)
+
+            io_report.Report.side_to_print_single_line = 5
+            io_report.Report.side_to_print_multi_line = 3
+
+            with self.subTest(input_file_path.stem):
+                bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
+                ok = report.import_and_check(
+                    input_file, lambda filepath, params: bpy.ops.wm.alembic_import(
+                        filepath=str(input_file), **params))
+                if not ok:
+                    self.fail(f"{input_file.stem} import result does not match expectations")
+
+        report.finish("io_alembic_import")
+
+
 def main():
     global args
     import argparse
@@ -460,6 +496,7 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--testdir', required=True, type=pathlib.Path)
+    parser.add_argument('--outdir', required=True, type=pathlib.Path)
     args, remaining = parser.parse_known_args(argv)
 
     unittest.main(argv=remaining)
