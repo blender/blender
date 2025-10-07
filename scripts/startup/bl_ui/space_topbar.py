@@ -585,10 +585,10 @@ class TOPBAR_MT_help(Menu):
         show_developer = context.preferences.view.show_developer_ui
 
         layout.operator("wm.url_open_preset", text="Manual", icon='URL').type = 'MANUAL'
-        layout.operator("wm.url_open_preset", text="Release Notes").type = 'RELEASE_NOTES'
-        layout.operator("wm.url_open", text="Tutorials").url = "https://www.blender.org/tutorials"
         layout.operator("wm.url_open", text="Support").url = "https://www.blender.org/support"
         layout.operator("wm.url_open", text="User Communities").url = "https://www.blender.org/community/"
+        layout.operator("wm.url_open", text="Get Involved").url = "https://www.blender.org/get-involved/"
+        layout.operator("wm.url_open_preset", text="Release Notes").type = 'RELEASE_NOTES'
 
         layout.separator()
 
