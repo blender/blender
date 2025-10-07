@@ -7,7 +7,6 @@
  */
 
 #include "BLI_math_base.hh"
-#include "BLI_math_color.h"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
@@ -245,21 +244,14 @@ static float4 lift_gamma_gain(const float4 color,
                               const float base_gain,
                               const float4 color_gain)
 {
-  float3 srgb_color;
-  linearrgb_to_srgb_v3_v3(srgb_color, color);
-
   const float3 lift = base_lift + color_lift.xyz();
-  const float3 lift_balanced = ((srgb_color - 1.0f) * (2.0f - lift)) + 1.0f;
+  const float3 lift_balanced = ((color.xyz() - 1.0f) * (2.0f - lift)) + 1.0f;
 
   const float3 gain = base_gain * color_gain.xyz();
-  float3 gain_balanced = lift_balanced * gain;
-  gain_balanced = math::max(gain_balanced, float3(0.0f));
-
-  float3 linear_color;
-  srgb_to_linearrgb_v3_v3(linear_color, gain_balanced);
+  const float3 gain_balanced = math::max(float3(0.0f), lift_balanced * gain);
 
   const float3 gamma = base_gamma * color_gamma.xyz();
-  float3 gamma_balanced = math::pow(linear_color, 1.0f / math::max(gamma, float3(1e-6f)));
+  const float3 gamma_balanced = math::pow(gain_balanced, 1.0f / math::max(gamma, float3(1e-6f)));
 
   return float4(gamma_balanced, color.w);
 }

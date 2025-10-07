@@ -2,7 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gpu_shader_common_color_utils.glsl"
 #include "gpu_shader_math_matrix_construct_lib.glsl"
 
 #define CMP_NODE_COLOR_BALANCE_LGG 0
@@ -17,19 +16,14 @@ float4 lift_gamma_gain(const float4 color,
                        const float base_gain,
                        const float4 color_gain)
 {
-  const float3 srgb_color = linear_rgb_to_srgb(color.rgb);
-
   const float3 lift = base_lift + color_lift.xyz();
-  const float3 lift_balanced = ((srgb_color - 1.0f) * (2.0f - lift)) + 1.0f;
+  const float3 lift_balanced = ((color.xyz() - 1.0f) * (2.0f - lift)) + 1.0f;
 
   const float3 gain = base_gain * color_gain.xyz();
-  float3 gain_balanced = lift_balanced * gain;
-  gain_balanced = max(gain_balanced, float3(0.0f));
-
-  float3 linear_color = srgb_to_linear_rgb(gain_balanced);
+  const float3 gain_balanced = max(float3(0.0f), lift_balanced * gain);
 
   const float3 gamma = base_gamma * color_gamma.xyz();
-  float3 gamma_balanced = pow(linear_color, 1.0f / max(gamma, float3(1e-6)));
+  const float3 gamma_balanced = pow(gain_balanced, 1.0f / max(gamma, float3(1e-6)));
 
   return float4(gamma_balanced, color.w);
 }
