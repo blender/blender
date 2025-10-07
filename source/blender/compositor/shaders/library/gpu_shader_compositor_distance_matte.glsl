@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "gpu_shader_common_color_utils.glsl"
+#include "gpu_shader_math_safe_lib.glsl"
 
 #define CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_RGBA 0
 #define CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_YCCA 1
@@ -30,7 +31,7 @@ void node_composite_distance_matte(const float4 color,
 
   float difference = distance(color_vector.xyz(), key_vector.xyz());
   bool is_opaque = difference > tolerance + falloff;
-  float alpha = is_opaque ? color.w : max(0.0f, difference - tolerance) / falloff;
+  float alpha = is_opaque ? color.w : safe_divide(max(0.0f, difference - tolerance), falloff);
   matte = min(alpha, color.w);
   result = color * matte;
 }

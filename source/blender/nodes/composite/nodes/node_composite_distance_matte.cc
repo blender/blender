@@ -105,7 +105,8 @@ static void distance_key(const float4 color,
 
   float difference = math::distance(color_vector.xyz(), key_vector.xyz());
   bool is_opaque = difference > tolerance + falloff;
-  float alpha = is_opaque ? color.w : math::max(0.0f, difference - tolerance) / falloff;
+  float alpha = is_opaque ? color.w :
+                            math::safe_divide(math::max(0.0f, difference - tolerance), falloff);
   matte = math::min(alpha, color.w);
   result = color * matte;
 }
