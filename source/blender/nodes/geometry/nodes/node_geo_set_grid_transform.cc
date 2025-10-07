@@ -32,13 +32,13 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.use_custom_socket_order();
   b.allow_any_socket_order();
   b.add_default_layout();
+  b.add_output<decl::Bool>("Is Valid")
+      .description("The new transform is valid and was successfully applied to the grid.");
   b.add_input(data_type, "Grid")
       .hide_value()
       .structure_type(StructureType::Grid)
       .is_default_link_socket();
   b.add_output(data_type, "Grid").structure_type(StructureType::Grid).align_with_previous();
-  b.add_output<decl::Bool>("Is Valid")
-      .description("The new transform is valid and was successfully applied to the grid.");
   b.add_input<decl::Matrix>("Transform")
       .description("The new transform from grid index space to object space.");
 }
