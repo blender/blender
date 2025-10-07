@@ -15,7 +15,7 @@ Then run `make license` and commit `license.md`.
 # Blender Third-Party Licenses
 
 While Blender itself is released under [GPU-GPL 3.0 or later](https://spdx.org/licenses/GPL-3.0-or-later.html)
-`© 2011-2024 Blender Foundation`,
+`© 2011-2025 Blender Foundation`,
 it contains dependencies which have different licenses.
 
 <details>
@@ -897,7 +897,7 @@ Provided by SIL’s Non-Roman Script Initiative. Contact us at nrsi@sil.org.
 | [OpenImageIO](https://github.com/AcademySoftwareFoundation/OpenImageIO) | v2.5.11.0 | `Copyright Contributors to the OpenImageIO project.` |
 | [OpenSSL](https://www.openssl.org) | 3.1.5 | `Copyright (c) 1998-2024 The OpenSSL Project Authors. Copyright (c) 1995-1998 Eric A. Young, Tim J. Hudson; All rights reserved.` |
 | [OpenXR](https://khronos.org/openxr/) | 1.0.22 | `Copyright (c) 2017-2020 The Khronos Group Inc. Copyright (c) 2017-2019 Valve Corporation. Copyright (c) 2017-2019 LunarG, Inc. Copyright (c) 2019 Collabora, Ltd.` |
-| [Pthreads](https://github.com/fwbuilder/pthreads4w) | 3.0.0 | `Copyright 1998 John E. Bossom. Copyright 1999-2018, Pthreads4w contributors.` |
+| [Pthreads](https://github.com/fwbuilder/pthreads4w) | 3.0.0 | `Copyright 1998 John E. Bossom Copyright 1999-2018, Pthreads4w contributors  This product includes software developed through the colaborative effort of several individuals, each of whom is listed in the file CONTRIBUTORS included with this software.  The following files are not covered under the Copyrights listed above:      [1] tests/rwlock7.c     [1] tests/rwlock7_1.c     [1] tests/rwlock8.c     [1] tests/rwlock8_1.c     [2] tests/threestage.c  [1] The file tests/rwlock7.c and those similarly named are derived from code written by Dave Butenhof for his book 'Programming With POSIX(R) Threads'. The original code was obtained by free download from his website http://home.earthlink.net/~anneart/family/Threads/source.html  [2] The file tests/threestage.c is taken directly from examples in the book "Windows System Programming, Edition 4" by Johnson (John) Hart Session 6, Chapter 10. ThreeStage.c Several required additional header and source files from the book examples have been included inline to simplify compilation. The only modification to the code has been to provide default values when run without arguments.` |
 | [RangeTree](https://github.com/ideasman42/rangetree-c) | 40ebed8aa20 | `Copyright (c) 2016, Campbell Barton` |
 | [SDL Extension Wrangler](https://github.com/SDLWrangler/sdlew) | 15edf8e | `Copyright 2014 Blender Foundation` |
 | [ShaderC](https://github.com/google/shaderc) | v2022.3 | `Copyright 2015 The Shaderc Authors. All rights reserved.` |
