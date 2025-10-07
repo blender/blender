@@ -30,9 +30,9 @@ enum class InterpolationMode {
 };
 
 static const EnumPropertyItem interpolation_mode_items[] = {
-    {int(InterpolationMode::Nearest), "NEAREST", 0, "Nearest Neighbor", ""},
-    {int(InterpolationMode::TriLinear), "TRILINEAR", 0, "Trilinear", ""},
-    {int(InterpolationMode::TriQuadratic), "TRIQUADRATIC", 0, "Triquadratic", ""},
+    {int(InterpolationMode::Nearest), "NEAREST", 0, N_("Nearest Neighbor"), ""},
+    {int(InterpolationMode::TriLinear), "TRILINEAR", 0, N_("Trilinear"), ""},
+    {int(InterpolationMode::TriQuadratic), "TRIQUADRATIC", 0, N_("Triquadratic"), ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

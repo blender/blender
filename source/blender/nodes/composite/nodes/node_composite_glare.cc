@@ -50,20 +50,20 @@
 namespace blender::nodes::node_composite_glare_cc {
 
 static const EnumPropertyItem type_items[] = {
-    {CMP_NODE_GLARE_BLOOM, "BLOOM", 0, "Bloom", ""},
-    {CMP_NODE_GLARE_GHOST, "GHOSTS", 0, "Ghosts", ""},
-    {CMP_NODE_GLARE_STREAKS, "STREAKS", 0, "Streaks", ""},
-    {CMP_NODE_GLARE_FOG_GLOW, "FOG_GLOW", 0, "Fog Glow", ""},
-    {CMP_NODE_GLARE_SIMPLE_STAR, "SIMPLE_STAR", 0, "Simple Star", ""},
-    {CMP_NODE_GLARE_SUN_BEAMS, "SUN_BEAMS", 0, "Sun Beams", ""},
-    {CMP_NODE_GLARE_KERNEL, "KERNEL", 0, "Kernel", ""},
+    {CMP_NODE_GLARE_BLOOM, "BLOOM", 0, N_("Bloom"), ""},
+    {CMP_NODE_GLARE_GHOST, "GHOSTS", 0, N_("Ghosts"), ""},
+    {CMP_NODE_GLARE_STREAKS, "STREAKS", 0, N_("Streaks"), ""},
+    {CMP_NODE_GLARE_FOG_GLOW, "FOG_GLOW", 0, N_("Fog Glow"), ""},
+    {CMP_NODE_GLARE_SIMPLE_STAR, "SIMPLE_STAR", 0, N_("Simple Star"), ""},
+    {CMP_NODE_GLARE_SUN_BEAMS, "SUN_BEAMS", 0, N_("Sun Beams"), ""},
+    {CMP_NODE_GLARE_KERNEL, "KERNEL", 0, N_("Kernel"), ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 static const EnumPropertyItem quality_items[] = {
-    {CMP_NODE_GLARE_QUALITY_HIGH, "HIGH", 0, "High", ""},
-    {CMP_NODE_GLARE_QUALITY_MEDIUM, "MEDIUM", 0, "Medium", ""},
-    {CMP_NODE_GLARE_QUALITY_LOW, "LOW", 0, "Low", ""},
+    {CMP_NODE_GLARE_QUALITY_HIGH, "HIGH", 0, N_("High"), ""},
+    {CMP_NODE_GLARE_QUALITY_MEDIUM, "MEDIUM", 0, N_("Medium"), ""},
+    {CMP_NODE_GLARE_QUALITY_LOW, "LOW", 0, N_("Low"), ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -76,14 +76,14 @@ static const EnumPropertyItem kernel_data_type_items[] = {
     {int(KernelDataType::Float),
      "FLOAT",
      0,
-     "Float",
-     "The kernel is a float and will be convolved with all input channels"},
+     N_("Float"),
+     N_("The kernel is a float and will be convolved with all input channels")},
     {int(KernelDataType::Color),
      "COLOR",
      0,
-     "Color",
-     "The kernel is a color and each channel of the kernel will be convolved with each respective "
-     "channel in the input"},
+     N_("Color"),
+     N_("The kernel is a color and each channel of the kernel will be convolved with each "
+        "respective channel in the input")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

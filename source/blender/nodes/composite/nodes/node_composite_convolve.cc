@@ -20,14 +20,14 @@ static const EnumPropertyItem kernel_data_type_items[] = {
     {int(KernelDataType::Float),
      "FLOAT",
      0,
-     "Float",
-     "The kernel is a float and will be convolved with all input channels"},
+     N_("Float"),
+     N_("The kernel is a float and will be convolved with all input channels")},
     {int(KernelDataType::Color),
      "COLOR",
      0,
-     "Color",
-     "The kernel is a color and each channel of the kernel will be convolved with each respective "
-     "channel in the input"},
+     N_("Color"),
+     N_("The kernel is a color and each channel of the kernel will be convolved with each "
+        "respective channel in the input")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

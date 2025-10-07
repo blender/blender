@@ -40,34 +40,34 @@ static const EnumPropertyItem prefilter_items[] = {
     {CMP_NODE_DENOISE_PREFILTER_NONE,
      "NONE",
      0,
-     "None",
-     "No prefiltering, use when guiding passes are noise-free"},
+     N_("None"),
+     N_("No prefiltering, use when guiding passes are noise-free")},
     {CMP_NODE_DENOISE_PREFILTER_FAST,
      "FAST",
      0,
-     "Fast",
-     "Denoise image and guiding passes together. Improves quality when guiding passes are noisy "
-     "using least amount of extra processing time."},
+     N_("Fast"),
+     N_("Denoise image and guiding passes together. Improves quality when guiding passes are "
+        "noisy using least amount of extra processing time.")},
     {CMP_NODE_DENOISE_PREFILTER_ACCURATE,
      "ACCURATE",
      0,
-     "Accurate",
-     "Prefilter noisy guiding passes before denoising image. Improves quality when guiding "
-     "passes are noisy using extra processing time."},
+     N_("Accurate"),
+     N_("Prefilter noisy guiding passes before denoising image. Improves quality when guiding "
+        "passes are noisy using extra processing time.")},
     {0, nullptr, 0, nullptr, nullptr}};
 
 static const EnumPropertyItem quality_items[] = {
     {CMP_NODE_DENOISE_QUALITY_SCENE,
      "FOLLOW_SCENE",
      0,
-     "Follow Scene",
-     "Use the scene's denoising quality setting"},
+     N_("Follow Scene"),
+     N_("Use the scene's denoising quality setting")},
     {CMP_NODE_DENOISE_QUALITY_HIGH, "HIGH", 0, "High", "High quality"},
     {CMP_NODE_DENOISE_QUALITY_BALANCED,
      "BALANCED",
      0,
-     "Balanced",
-     "Balanced between performance and quality"},
+     N_("Balanced"),
+     N_("Balanced between performance and quality")},
     {CMP_NODE_DENOISE_QUALITY_FAST, "FAST", 0, "Fast", "High performance"},
     {0, nullptr, 0, nullptr, nullptr}};
 

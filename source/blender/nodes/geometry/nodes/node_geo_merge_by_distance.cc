@@ -19,13 +19,13 @@ static EnumPropertyItem mode_items[] = {
     {GEO_NODE_MERGE_BY_DISTANCE_MODE_ALL,
      "ALL",
      0,
-     "All",
-     "Merge all close selected points, whether or not they are connected"},
+     N_("All"),
+     N_("Merge all close selected points, whether or not they are connected")},
     {GEO_NODE_MERGE_BY_DISTANCE_MODE_CONNECTED,
      "CONNECTED",
      0,
-     "Connected",
-     "Only merge mesh vertices along existing edges. This method can be much faster"},
+     N_("Connected"),
+     N_("Only merge mesh vertices along existing edges. This method can be much faster")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

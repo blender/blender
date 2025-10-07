@@ -38,26 +38,26 @@ static const EnumPropertyItem mode_items[] = {
     {CMP_NODE_TRACK_POSITION_ABSOLUTE,
      "ABSOLUTE",
      0,
-     "Absolute",
-     "Returns the position and speed of the marker at the current scene frame relative to the "
-     "zero origin of the tracking space"},
+     N_("Absolute"),
+     N_("Returns the position and speed of the marker at the current scene frame relative to the "
+        "zero origin of the tracking space")},
     {CMP_NODE_TRACK_POSITION_RELATIVE_START,
      "RELATIVE_START",
      0,
-     "Relative Start",
-     "Returns the position and speed of the marker at the current scene frame relative to the "
-     "position of the first non-disabled marker in the track"},
+     N_("Relative Start"),
+     N_("Returns the position and speed of the marker at the current scene frame relative to the "
+        "position of the first non-disabled marker in the track")},
     {CMP_NODE_TRACK_POSITION_RELATIVE_FRAME,
      "RELATIVE_FRAME",
      0,
-     "Relative Frame",
-     "Returns the position and speed of the marker at the current scene frame relative to the "
-     "position of the marker at the current scene frame plus the user given relative frame"},
+     N_("Relative Frame"),
+     N_("Returns the position and speed of the marker at the current scene frame relative to the "
+        "position of the marker at the current scene frame plus the user given relative frame")},
     {CMP_NODE_TRACK_POSITION_ABSOLUTE_FRAME,
      "ABSOLUTE_FRAME",
      0,
-     "Absolute Frame",
-     "Returns the position and speed of the marker at the given absolute frame"},
+     N_("Absolute Frame"),
+     N_("Returns the position and speed of the marker at the given absolute frame")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

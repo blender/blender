@@ -17,14 +17,14 @@ static EnumPropertyItem method_items[] = {
     {GEO_NODE_UV_UNWRAP_METHOD_ANGLE_BASED,
      "ANGLE_BASED",
      0,
-     "Angle Based",
-     "This method gives a good 2D representation of a mesh"},
+     N_("Angle Based"),
+     N_("This method gives a good 2D representation of a mesh")},
     {GEO_NODE_UV_UNWRAP_METHOD_CONFORMAL,
      "CONFORMAL",
      0,
-     "Conformal",
-     "Uses LSCM (Least Squares Conformal Mapping). This usually gives a less accurate UV "
-     "mapping than Angle Based, but works better for simpler objects"},
+     N_("Conformal"),
+     N_("Uses LSCM (Least Squares Conformal Mapping). This usually gives a less accurate UV "
+        "mapping than Angle Based, but works better for simpler objects")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
