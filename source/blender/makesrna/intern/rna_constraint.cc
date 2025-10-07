@@ -155,6 +155,11 @@ const EnumPropertyItem rna_enum_constraint_type_items[] = {
      ICON_CON_FOLLOWPATH,
      "Follow Path",
      "Use to animate an object/bone following a path"},
+    {CONSTRAINT_TYPE_GEOMETRY_ATTRIBUTE,
+     "GEOMETRY_ATTRIBUTE",
+     ICON_CON_GEOMETRYATTRIBUTE,
+     "Geometry Attribute",
+     "Retrieve transform from target geometry attribute data"},
     {CONSTRAINT_TYPE_PIVOT,
      "PIVOT",
      ICON_CON_PIVOT,
@@ -165,11 +170,6 @@ const EnumPropertyItem rna_enum_constraint_type_items[] = {
      ICON_CON_SHRINKWRAP,
      "Shrinkwrap",
      "Restrict movements to surface of target mesh"},
-    {CONSTRAINT_TYPE_GEOMETRY_ATTRIBUTE,
-     "GEOMETRY_ATTRIBUTE",
-     ICON_CON_GEOMETRYATTRIBUTE,
-     "Geometry Attribute",
-     "Retrieve transform from target geometry attribute data"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
