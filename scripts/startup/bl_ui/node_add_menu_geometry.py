@@ -935,6 +935,7 @@ class NODE_MT_gn_volume_sample_base(node_add_menu.NodeMenu):
         layout = self.layout
         self.node_operator(layout, "GeometryNodeSampleGrid")
         self.node_operator(layout, "GeometryNodeSampleGridIndex")
+        self.node_operator(layout, "GeometryNodeGridAdvect")
         self.node_operator(layout, "GeometryNodeGridCurl")
         self.node_operator(layout, "GeometryNodeGridDivergence")
         self.node_operator(layout, "GeometryNodeGridGradient")

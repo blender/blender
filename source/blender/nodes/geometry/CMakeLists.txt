@@ -96,6 +96,7 @@ set(SRC
   nodes/node_geo_gizmo_linear.cc
   nodes/node_geo_gizmo_transform.cc
   nodes/node_geo_grease_pencil_to_curves.cc
+  nodes/node_geo_grid_advect.cc
   nodes/node_geo_grid_curl.cc
   nodes/node_geo_grid_divergence.cc
   nodes/node_geo_grid_gradient.cc
