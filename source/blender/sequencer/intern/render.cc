@@ -71,6 +71,7 @@
 #include "cache/intra_frame_cache.hh"
 #include "cache/source_image_cache.hh"
 #include "effects/effects.hh"
+#include "modifiers/modifier.hh"
 #include "multiview.hh"
 #include "prefetch.hh"
 #include "proxy.hh"
@@ -440,19 +441,21 @@ static bool seq_need_scale_to_render_size(const Strip *strip, bool is_proxy_imag
   return true;
 }
 
-static float3x3 sequencer_image_crop_transform_matrix(const Scene *scene,
-                                                      const Strip *strip,
-                                                      const ImBuf *in,
-                                                      const ImBuf *out,
-                                                      const float image_scale_factor,
-                                                      const float preview_scale_factor)
+static float3x3 calc_strip_transform_matrix(const Scene *scene,
+                                            const Strip *strip,
+                                            const int in_x,
+                                            const int in_y,
+                                            const int out_x,
+                                            const int out_y,
+                                            const float image_scale_factor,
+                                            const float preview_scale_factor)
 {
   const StripTransform *transform = strip->data->transform;
 
   /* This value is intentionally kept as integer. Otherwise images with odd dimensions would
    * be translated to center of canvas by non-integer value, which would cause it to be
    * interpolated. Interpolation with 0 user defined translation is unwanted behavior. */
-  const int3 image_center_offs((out->x - in->x) / 2, (out->y - in->y) / 2, 0);
+  const int3 image_center_offs((out_x - in_x) / 2, (out_y - in_y) / 2, 0);
 
   const float2 translation(transform->xofs * preview_scale_factor,
                            transform->yofs * preview_scale_factor);
@@ -461,12 +464,12 @@ static float3x3 sequencer_image_crop_transform_matrix(const Scene *scene,
                      transform->scale_y * image_scale_factor);
 
   const float2 origin = image_transform_origin_get(scene, strip);
-  const float2 pivot(in->x * origin[0], in->y * origin[1]);
+  const float2 pivot(in_x * origin[0], in_y * origin[1]);
 
   const float3x3 matrix = math::from_loc_rot_scale<float3x3>(
       translation + float2(image_center_offs), rotation, scale);
   const float3x3 mat_pivot = math::from_origin_transform(matrix, pivot);
-  return math::invert(mat_pivot);
+  return mat_pivot;
 }
 
 static void sequencer_image_crop_init(const Strip *strip,
@@ -531,17 +534,14 @@ static eIMBInterpolationFilterMode get_auto_filter(const StripTransform *transfo
   return IMB_FILTER_BILINEAR;
 }
 
-static void sequencer_preprocess_transform_crop(
-    ImBuf *in, ImBuf *out, const RenderData *context, Strip *strip, const bool is_proxy_image)
+static void sequencer_preprocess_transform_crop(ImBuf *in,
+                                                ImBuf *out,
+                                                const RenderData *context,
+                                                Strip *strip,
+                                                const float3x3 &matrix,
+                                                const bool do_scale_to_render_size,
+                                                const float preview_scale_factor)
 {
-  const Scene *scene = context->scene;
-  const float preview_scale_factor = get_render_scale_factor(*context);
-  const bool do_scale_to_render_size = seq_need_scale_to_render_size(strip, is_proxy_image);
-  const float image_scale_factor = do_scale_to_render_size ? preview_scale_factor : 1.0f;
-
-  float3x3 matrix = sequencer_image_crop_transform_matrix(
-      scene, strip, in, out, image_scale_factor, preview_scale_factor);
-
   /* Proxy image is smaller, so crop values must be corrected by proxy scale factor.
    * Proxy scale factor always matches preview_scale_factor. */
   rctf source_crop;
@@ -628,56 +628,26 @@ static ImBuf *input_preprocess(const RenderData *context,
                                const bool is_proxy_image)
 {
   Scene *scene = context->scene;
-  ImBuf *preprocessed_ibuf = nullptr;
 
   /* Deinterlace. */
   if ((strip->flag & SEQ_FILTERY) && !ELEM(strip->type, STRIP_TYPE_MOVIE, STRIP_TYPE_MOVIECLIP)) {
-    /* Change original image pointer to avoid another duplication in SEQ_USE_TRANSFORM. */
-    preprocessed_ibuf = IMB_makeSingleUser(ibuf);
-    ibuf = preprocessed_ibuf;
-
-    IMB_filtery(preprocessed_ibuf);
-  }
-
-  if (sequencer_use_crop(strip) || sequencer_use_transform(strip) || context->rectx != ibuf->x ||
-      context->recty != ibuf->y)
-  {
-    const int x = context->rectx;
-    const int y = context->recty;
-    preprocessed_ibuf = IMB_allocImBuf(
-        x, y, 32, ibuf->float_buffer.data ? IB_float_data : IB_byte_data);
-
-    sequencer_preprocess_transform_crop(ibuf, preprocessed_ibuf, context, strip, is_proxy_image);
-
-    seq_imbuf_assign_spaces(scene, preprocessed_ibuf);
-    IMB_metadata_copy(preprocessed_ibuf, ibuf);
-    IMB_freeImBuf(ibuf);
-  }
-
-  /* Duplicate ibuf if we still have original. */
-  if (preprocessed_ibuf == nullptr) {
-    preprocessed_ibuf = IMB_makeSingleUser(ibuf);
-  }
-
-  if (strip->flag & SEQ_FLIPX) {
-    IMB_flipx(preprocessed_ibuf);
-  }
-
-  if (strip->flag & SEQ_FLIPY) {
-    IMB_flipy(preprocessed_ibuf);
+    ibuf = IMB_makeSingleUser(ibuf);
+    IMB_filtery(ibuf);
   }
 
   if (strip->sat != 1.0f) {
-    IMB_saturation(preprocessed_ibuf, strip->sat);
+    ibuf = IMB_makeSingleUser(ibuf);
+    IMB_saturation(ibuf, strip->sat);
   }
 
   if (strip->flag & SEQ_MAKE_FLOAT) {
-    if (!preprocessed_ibuf->float_buffer.data) {
-      seq_imbuf_to_sequencer_space(scene, preprocessed_ibuf, true);
+    if (!ibuf->float_buffer.data) {
+      ibuf = IMB_makeSingleUser(ibuf);
+      seq_imbuf_to_sequencer_space(scene, ibuf, true);
     }
 
-    if (preprocessed_ibuf->byte_buffer.data) {
-      IMB_free_byte_pixels(preprocessed_ibuf);
+    if (ibuf->byte_buffer.data) {
+      IMB_free_byte_pixels(ibuf);
     }
   }
 
@@ -687,15 +657,71 @@ static ImBuf *input_preprocess(const RenderData *context,
   }
 
   if (mul != 1.0f) {
+    ibuf = IMB_makeSingleUser(ibuf);
     const bool multiply_alpha = (strip->flag & SEQ_MULTIPLY_ALPHA);
-    multiply_ibuf(preprocessed_ibuf, mul, multiply_alpha);
+    multiply_ibuf(ibuf, mul, multiply_alpha);
   }
+
+  const float preview_scale_factor = get_render_scale_factor(*context);
+  const bool do_scale_to_render_size = seq_need_scale_to_render_size(strip, is_proxy_image);
+  const float image_scale_factor = do_scale_to_render_size ? preview_scale_factor : 1.0f;
 
   if (strip->modifiers.first) {
-    modifier_apply_stack(context, state, strip, preprocessed_ibuf, timeline_frame);
+    ibuf = IMB_makeSingleUser(ibuf);
+    float3x3 matrix = calc_strip_transform_matrix(scene,
+                                                  strip,
+                                                  ibuf->x,
+                                                  ibuf->y,
+                                                  context->rectx,
+                                                  context->recty,
+                                                  image_scale_factor,
+                                                  preview_scale_factor);
+    modifier_apply_stack(context, state, strip, matrix, ibuf, timeline_frame);
   }
 
-  return preprocessed_ibuf;
+  if (sequencer_use_crop(strip) || sequencer_use_transform(strip) || context->rectx != ibuf->x ||
+      context->recty != ibuf->y)
+  {
+    const int x = context->rectx;
+    const int y = context->recty;
+    ImBuf *transformed_ibuf = IMB_allocImBuf(
+        x, y, 32, ibuf->float_buffer.data ? IB_float_data : IB_byte_data);
+
+    /* Note: calculate matrix again; modifiers can actually change the image size. */
+    float3x3 matrix = calc_strip_transform_matrix(scene,
+                                                  strip,
+                                                  ibuf->x,
+                                                  ibuf->y,
+                                                  context->rectx,
+                                                  context->recty,
+                                                  image_scale_factor,
+                                                  preview_scale_factor);
+    matrix = math::invert(matrix);
+    sequencer_preprocess_transform_crop(ibuf,
+                                        transformed_ibuf,
+                                        context,
+                                        strip,
+                                        matrix,
+                                        do_scale_to_render_size,
+                                        preview_scale_factor);
+
+    seq_imbuf_assign_spaces(scene, transformed_ibuf);
+    IMB_metadata_copy(transformed_ibuf, ibuf);
+    IMB_freeImBuf(ibuf);
+    ibuf = transformed_ibuf;
+  }
+
+  if (strip->flag & SEQ_FLIPX) {
+    ibuf = IMB_makeSingleUser(ibuf);
+    IMB_flipx(ibuf);
+  }
+
+  if (strip->flag & SEQ_FLIPY) {
+    ibuf = IMB_makeSingleUser(ibuf);
+    IMB_flipy(ibuf);
+  }
+
+  return ibuf;
 }
 
 static ImBuf *seq_render_preprocess_ibuf(const RenderData *context,
@@ -1261,7 +1287,12 @@ static ImBuf *seq_render_movieclip_strip(const RenderData *context,
   return ibuf;
 }
 
-ImBuf *seq_render_mask(const RenderData *context, Mask *mask, float frame_index, bool make_float)
+ImBuf *seq_render_mask(Depsgraph *depsgraph,
+                       int width,
+                       int height,
+                       const Mask *mask,
+                       float frame_index,
+                       bool make_float)
 {
   /* TODO: add option to rasterize to alpha imbuf? */
   ImBuf *ibuf = nullptr;
@@ -1284,19 +1315,18 @@ ImBuf *seq_render_mask(const RenderData *context, Mask *mask, float frame_index,
   /* anim-data */
   adt = BKE_animdata_from_id(&mask->id);
   const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
-      context->depsgraph, mask->sfra + frame_index);
+      depsgraph, mask->sfra + frame_index);
   BKE_animsys_evaluate_animdata(&mask_temp->id, adt, &anim_eval_context, ADT_RECALC_ANIM, false);
 
-  maskbuf = MEM_malloc_arrayN<float>(size_t(context->rectx) * size_t(context->recty), __func__);
+  maskbuf = MEM_malloc_arrayN<float>(size_t(width) * size_t(height), __func__);
 
   mr_handle = BKE_maskrasterize_handle_new();
 
-  BKE_maskrasterize_handle_init(
-      mr_handle, mask_temp, context->rectx, context->recty, true, true, true);
+  BKE_maskrasterize_handle_init(mr_handle, mask_temp, width, height, true, true, true);
 
   BKE_id_free(nullptr, &mask_temp->id);
 
-  BKE_maskrasterize_buffer(mr_handle, context->rectx, context->recty, maskbuf);
+  BKE_maskrasterize_buffer(mr_handle, width, height, maskbuf);
 
   BKE_maskrasterize_handle_free(mr_handle);
 
@@ -1305,12 +1335,11 @@ ImBuf *seq_render_mask(const RenderData *context, Mask *mask, float frame_index,
     const float *fp_src;
     float *fp_dst;
 
-    ibuf = IMB_allocImBuf(
-        context->rectx, context->recty, 32, IB_float_data | IB_uninitialized_pixels);
+    ibuf = IMB_allocImBuf(width, height, 32, IB_float_data | IB_uninitialized_pixels);
 
     fp_src = maskbuf;
     fp_dst = ibuf->float_buffer.data;
-    i = context->rectx * context->recty;
+    i = width * height;
     while (--i) {
       fp_dst[0] = fp_dst[1] = fp_dst[2] = *fp_src;
       fp_dst[3] = 1.0f;
@@ -1324,12 +1353,11 @@ ImBuf *seq_render_mask(const RenderData *context, Mask *mask, float frame_index,
     const float *fp_src;
     uchar *ub_dst;
 
-    ibuf = IMB_allocImBuf(
-        context->rectx, context->recty, 32, IB_byte_data | IB_uninitialized_pixels);
+    ibuf = IMB_allocImBuf(width, height, 32, IB_byte_data | IB_uninitialized_pixels);
 
     fp_src = maskbuf;
     ub_dst = ibuf->byte_buffer.data;
-    i = context->rectx * context->recty;
+    i = width * height;
     while (--i) {
       ub_dst[0] = ub_dst[1] = ub_dst[2] = uchar(*fp_src * 255.0f); /* already clamped */
       ub_dst[3] = 255;
@@ -1348,7 +1376,8 @@ static ImBuf *seq_render_mask_strip(const RenderData *context, Strip *strip, flo
 {
   bool make_float = (strip->flag & SEQ_MAKE_FLOAT) != 0;
 
-  return seq_render_mask(context, strip->mask, frame_index, make_float);
+  return seq_render_mask(
+      context->depsgraph, context->rectx, context->recty, strip->mask, frame_index, make_float);
 }
 
 static ImBuf *seq_render_scene_strip_ex(const RenderData *context,

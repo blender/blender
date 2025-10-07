@@ -67,6 +67,7 @@ class GroupInputOperation : public NodeOperation {
     else {
       this->execute_pass_cpu(pass, result);
     }
+    result.set_transformation(pass.domain().transformation);
   }
 
   void execute_pass_gpu(const Result &pass, Result &result)
@@ -125,9 +126,12 @@ class GroupInputOperation : public NodeOperation {
      * compositing region into an appropriately sized result. */
     const int2 lower_bound = this->context().get_compositing_region().min;
 
-    result.allocate_texture(Domain(this->context().get_compositing_region_size()));
+    const int2 size = this->context().use_context_bounds_for_input_output() ?
+                          this->context().get_compositing_region_size() :
+                          pass.domain().size;
+    result.allocate_texture(size);
 
-    parallel_for(result.domain().size, [&](const int2 texel) {
+    parallel_for(size, [&](const int2 texel) {
       result.store_pixel_generic_type(texel, pass.load_pixel_generic_type(texel + lower_bound));
     });
   }
