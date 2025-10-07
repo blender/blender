@@ -797,6 +797,12 @@ static wmOperatorStatus pose_copy_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "No pose to copy");
     return OPERATOR_CANCELLED;
   }
+  if (ID_IS_PACKED(&ob->id)) {
+    /* Direct link/append of packed IDs is not supported currently, so neither is their
+     * copy/pasting. */
+    BKE_report(op->reports, RPT_ERROR, "Cannot copy/paste packed data");
+    return OPERATOR_CANCELLED;
+  }
   /* Sets chan->flag to POSE_KEY if bone selected. */
   set_pose_keys(ob);
 

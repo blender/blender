@@ -160,6 +160,9 @@ static bool asset_write_in_library(Main &bmain,
 
   ID &id = const_cast<ID &>(id_const);
 
+  /* This is not expected to ever happen currently from this codepath. */
+  BLI_assert(!ID_IS_PACKED(&id));
+
   PartialWriteContext lib_write_ctx{bmain};
   ID *new_id = lib_write_ctx.id_add(&id,
                                     {(PartialWriteContext::IDAddOperations::MAKE_LOCAL |
