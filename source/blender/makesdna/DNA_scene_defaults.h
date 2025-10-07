@@ -65,6 +65,8 @@
     .sfra = 1, \
     .efra = 250, \
     .frame_step = 1, \
+    .time_jump_delta = 1.0, \
+    .time_jump_unit = 1, \
     .xsch = 1920, \
     .ysch = 1080, \
     .xasp = 1, \

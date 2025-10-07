@@ -97,6 +97,12 @@ def playback_controls(layout, context):
     row.operator("screen.keyframe_jump", text="", icon='NEXT_KEYFRAME').next = True
     row.operator("screen.frame_jump", text="", icon='FF').end = True
 
+    # Time jump
+    row = layout.row(align=True)
+    row.operator("screen.time_jump", text="", icon='FRAME_PREV').backward = True
+    row.operator("screen.time_jump", text="", icon='FRAME_NEXT').backward = False
+    row.popover(panel="TIME_PT_jump", text="")
+
     if tool_settings:
         row = layout.row(align=True)
         row.prop(tool_settings, "use_snap_playhead", text="")
@@ -289,12 +295,30 @@ class TIME_PT_auto_keyframing(TimelinePanelButtons, Panel):
             col.prop(tool_settings, "use_record_with_nla", text="Layered Recording")
 
 
+class TIME_PT_jump(TimelinePanelButtons, Panel):
+    bl_label = "Time Jump"
+    bl_options = {'HIDE_HEADER'}
+    bl_region_type = 'HEADER'
+    bl_ui_units_x = 10
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        scene = context.scene
+
+        layout.prop(scene, "time_jump_unit", expand=True, text="Jump Unit")
+        layout.prop(scene, "time_jump_delta", text="Delta")
+
+
 ###################################
 
 classes = (
     TIME_PT_playback,
     TIME_PT_keyframing_settings,
     TIME_PT_auto_keyframing,
+    TIME_PT_jump,
     TIME_PT_playhead_snapping,
 )
 
