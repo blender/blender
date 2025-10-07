@@ -89,6 +89,7 @@ static bool bm_loop_uv_shared_edge_check(const BMLoop *l_a, const BMLoop *l_b, v
  * Loosely based on `uvedit_is_face_affected`, but "bug-compatible" with previous code.
  */
 static bool uvedit_is_face_affected_for_calc_uv_islands(const Scene *scene,
+                                                        const BMesh *bm,
                                                         BMFace *efa,
                                                         const bool only_selected_faces,
                                                         const bool only_selected_uvs,
@@ -100,7 +101,7 @@ static bool uvedit_is_face_affected_for_calc_uv_islands(const Scene *scene,
   if (only_selected_faces) {
     if (only_selected_uvs) {
       return BM_elem_flag_test(efa, BM_ELEM_SELECT) &&
-             uvedit_face_select_test(scene, efa, uv_offsets);
+             uvedit_face_select_test(scene, bm, efa, uv_offsets);
     }
     return BM_elem_flag_test(efa, BM_ELEM_SELECT);
   }
@@ -129,7 +130,7 @@ int bm_mesh_calc_uv_islands(const Scene *scene,
   BMIter iter;
   BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
     const bool face_affected = uvedit_is_face_affected_for_calc_uv_islands(
-        scene, f, only_selected_faces, only_selected_uvs, uv_offsets);
+        scene, bm, f, only_selected_faces, only_selected_uvs, uv_offsets);
     BM_elem_flag_set(f, BM_ELEM_TAG, face_affected);
   }
 

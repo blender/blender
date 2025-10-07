@@ -427,6 +427,7 @@ static void edbm_bevel_exit(bContext *C, wmOperator *op)
     if ((em->selectmode & SCE_SELECT_FACE) == 0) {
       EDBM_selectmode_flush(em);
     }
+    EDBM_uvselect_clear(em);
   }
 
   if (opdata->is_modal) {

@@ -906,7 +906,7 @@ static Mesh *mesh_boolean_mesh_arr(Span<const Mesh *> meshes,
  * \{ */
 
 /* has no meaning for faces, do this so we can tell which face is which */
-#define BM_FACE_TAG BM_ELEM_DRAW
+#define BM_FACE_TAG BM_ELEM_SELECT_UV
 
 /**
  * Function use to say what operand a face is part of, based on the `BM_FACE_TAG`

@@ -245,9 +245,12 @@ static void ringsel_finish(bContext *C, wmOperator *op)
       }
 
       EDBM_selectmode_flush(lcd->em);
+
       DEG_id_tag_update(static_cast<ID *>(lcd->ob->data), ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, lcd->ob->data);
     }
+
+    EDBM_uvselect_clear(em);
   }
 }
 

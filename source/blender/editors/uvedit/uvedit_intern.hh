@@ -87,17 +87,22 @@ BMLoop *uv_find_nearest_loop_from_vert(Scene *scene, Object *obedit, BMVert *v, 
 BMLoop *uv_find_nearest_loop_from_edge(Scene *scene, Object *obedit, BMEdge *e, const float co[2]);
 
 bool uvedit_vert_is_edge_select_any_other(const ToolSettings *ts,
+                                          const BMesh *bm,
                                           const BMLoop *l,
                                           const BMUVOffsets &offsets);
 bool uvedit_vert_is_face_select_any_other(const ToolSettings *ts,
+                                          const BMesh *bm,
                                           const BMLoop *l,
                                           const BMUVOffsets &offsets);
+bool uvedit_edge_is_face_select_any_other(const ToolSettings *ts,
+                                          const BMesh *bm,
+                                          const BMLoop *l,
+                                          const BMUVOffsets &offsets);
+
 bool uvedit_vert_is_all_other_faces_selected(const ToolSettings *ts,
+                                             const BMesh *bm,
                                              const BMLoop *l,
                                              const BMUVOffsets &offsets);
-bool uvedit_edge_is_face_select_any_other(const ToolSettings *ts,
-                                          const BMLoop *l,
-                                          const BMUVOffsets &offsets);
 
 /* utility tool functions */
 
@@ -131,6 +136,9 @@ void UV_OT_shortest_path_select(wmOperatorType *ot);
 /* `uvedit_select.cc` */
 
 void uvedit_select_prepare_custom_data(const Scene *scene, BMesh *bm);
+void uvedit_select_prepare_sync_select(const Scene *scene, BMesh *bm);
+
+void uvedit_select_prepare_UNUSED(const Scene *scene, BMesh *bm);
 
 bool uvedit_select_is_any_selected(const Scene *scene, BMesh *bm);
 bool uvedit_select_is_any_selected_multi(const Scene *scene, blender::Span<Object *> objects);
@@ -139,6 +147,7 @@ bool uvedit_select_is_any_selected_multi(const Scene *scene, blender::Span<Objec
  * not ideal in many cases since there could be multiple.
  */
 const float *uvedit_first_selected_uv_from_vertex(Scene *scene,
+                                                  const BMesh *bm,
                                                   BMVert *eve,
                                                   const BMUVOffsets &offsets);
 

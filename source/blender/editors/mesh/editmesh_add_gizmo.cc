@@ -343,6 +343,9 @@ static wmOperatorStatus add_primitive_cube_gizmo_exec(bContext *C, wmOperator *o
   }
 
   EDBM_selectmode_flush_ex(em, SCE_SELECT_VERTEX);
+  /* TODO(@ideasman42): maintain UV sync for newly created data. */
+  EDBM_uvselect_clear(em);
+
   EDBMUpdate_Params params{};
   params.calc_looptris = true;
   params.calc_normals = false;

@@ -15,6 +15,7 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_customdata.hh"
 #include "BKE_global.hh"
@@ -86,6 +87,15 @@ PyC_FlagSet bpy_bm_hflag_all_flags[] = {
     {0, nullptr},
 };
 
+/* This could/should be shared with `scene.toolsettings.uv_sticky_select_mode`.
+ * however it relies on using the RNA API. */
+static PyC_StringEnumItems bpy_bm_uv_select_sticky_items[] = {
+    {UV_STICKY_LOCATION, "SHARED_LOCATION"},
+    {UV_STICKY_DISABLE, "DISABLED"},
+    {UV_STICKY_VERT, "SHARED_VERTEX"},
+    {0, nullptr},
+};
+
 /* py-type definitions
  * ******************* */
 
@@ -123,6 +133,12 @@ PyDoc_STRVAR(
     /* Wrap. */
     bpy_bm_elem_seam_doc,
     "Seam for UV unwrapping.\n"
+    "\n"
+    ":type: bool\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bm_elem_uv_select_doc,
+    "UV selected state of this element.\n"
     "\n"
     ":type: bool\n");
 
@@ -402,6 +418,34 @@ static int bpy_bmesh_select_history_set(BPy_BMesh *self, PyObject *value, void *
   BPY_BM_CHECK_INT(self);
 
   return BPy_BMEditSel_Assign(self, value);
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bmesh_uv_select_sync_valid_doc,
+    "When true, the UV selection has been synchronized. "
+    "Setting to False means the UV selection will be ignored. "
+    "While setting to true is supported it is up to the script author to "
+    "ensure a correct selection state before doing so.\n"
+    ":type: "
+    "bool\n");
+static PyObject *bpy_bmesh_uv_select_sync_valid_get(BPy_BMesh *self, void * /*closure*/)
+{
+  BPY_BM_CHECK_OBJ(self);
+
+  return PyBool_FromLong(self->bm->uv_select_sync_valid);
+}
+
+static int bpy_bmesh_uv_select_sync_valid_set(BPy_BMesh *self, PyObject *value, void * /*closure*/)
+{
+  BPY_BM_CHECK_INT(self);
+
+  int param;
+  if ((param = PyC_Long_AsBool(value)) == -1) {
+    return -1;
+  }
+  self->bm->uv_select_sync_valid = param;
+  return 0;
 }
 
 /* Vert
@@ -808,6 +852,12 @@ static PyGetSetDef bpy_bmesh_getseters[] = {
      bpy_bmesh_select_history_doc,
      nullptr},
 
+    {"uv_select_sync_valid",
+     (getter)bpy_bmesh_uv_select_sync_valid_get,
+     (setter)bpy_bmesh_uv_select_sync_valid_set,
+     bpy_bmesh_uv_select_sync_valid_doc,
+     nullptr},
+
     /* readonly checks */
     {"is_wrapped",
      (getter)bpy_bmesh_is_wrapped_get,
@@ -979,6 +1029,11 @@ static PyGetSetDef bpy_bmface_getseters[] = {
      (setter)bpy_bm_elem_hflag_set,
      bpy_bm_elem_tag_doc,
      (void *)BM_ELEM_TAG},
+    {"uv_select",
+     (getter)bpy_bm_elem_hflag_get,
+     (setter)bpy_bm_elem_hflag_set,
+     bpy_bm_elem_uv_select_doc,
+     (void *)BM_ELEM_SELECT_UV},
     {"index",
      (getter)bpy_bm_elem_index_get,
      (setter)bpy_bm_elem_index_set,
@@ -1046,6 +1101,16 @@ static PyGetSetDef bpy_bmloop_getseters[] = {
      (setter)bpy_bm_elem_hflag_set,
      bpy_bm_elem_tag_doc,
      (void *)BM_ELEM_TAG},
+    {"uv_select_vert",
+     (getter)bpy_bm_elem_hflag_get,
+     (setter)bpy_bm_elem_hflag_set,
+     bpy_bm_elem_uv_select_doc,
+     (void *)BM_ELEM_SELECT_UV},
+    {"uv_select_edge",
+     (getter)bpy_bm_elem_hflag_get,
+     (setter)bpy_bm_elem_hflag_set,
+     bpy_bm_elem_uv_select_doc,
+     (void *)BM_ELEM_SELECT_UV_EDGE},
     {"index",
      (getter)bpy_bm_elem_index_get,
      (setter)bpy_bm_elem_index_set,
@@ -1499,6 +1564,492 @@ static PyObject *bpy_bmesh_select_flush(BPy_BMesh *self, PyObject *value)
   BM_mesh_select_flush_from_verts(self->bm, param);
   Py_RETURN_NONE;
 }
+
+/* ---------------------------------------------------------------------- */
+/** \name UV Sync Selection
+ * \{ */
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bmesh_uv_select_flush_mode_doc,
+    ".. method:: uv_select_flush_mode(flush_down=False)\n"
+    "\n"
+    "   Flush selection based on the current mode current :class:`BMesh.select_mode`.\n"
+    "\n"
+    "   :arg flush_down: Flush selection down from faces to edges & verts or from edges to verts. "
+    "This option is ignored when vertex selection mode is enabled.\n"
+    "   :type flush_down: bool\n");
+static PyObject *bpy_bmesh_uv_select_flush_mode(BPy_BMesh *self, PyObject *args, PyObject *kw)
+{
+  BPY_BM_CHECK_OBJ(self);
+  BMesh *bm = self->bm;
+
+  bool flush_down = false;
+  static const char *kwlist[] = {
+      "flush_down",
+      nullptr,
+  };
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kw,
+                                   "|$"
+                                   "O&" /* `flush_down` */
+                                   ":uv_select_flush_mode",
+                                   (char **)kwlist,
+                                   PyC_ParseBool,
+                                   &flush_down))
+  {
+    return nullptr;
+  }
+
+  BM_mesh_uvselect_mode_flush_ex(bm, bm->selectmode, flush_down);
+  Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bmesh_uv_select_flush_doc,
+    ".. method:: uv_select_flush(select)\n"
+    "\n"
+    "   Flush selection from UV vertices to edges & faces independent of the selection mode.\n"
+    "\n"
+    "   :arg select: Flush selection or de-selected elements.\n"
+    "   :type select: bool\n"
+    "\n"
+    "   .. note::\n"
+    "\n"
+    "      - |UV_SELECT_SYNC_TO_MESH_NEEDED|\n");
+static PyObject *bpy_bmesh_uv_select_flush(BPy_BMesh *self, PyObject *value)
+{
+  const char *error_prefix = "uv_select_flush(...)";
+  int param;
+
+  BPY_BM_CHECK_OBJ(self);
+
+  if ((param = PyC_Long_AsBool(value)) == -1) {
+    return nullptr;
+  }
+  BMesh *bm = self->bm;
+  /* While sync doesn't need to be valid,
+   * failing to make it valid causes selection functions to assert, so require it to be valid. */
+  if (bpy_bm_check_uv_select_sync_valid(bm, error_prefix) == -1) {
+    return nullptr;
+  }
+  BM_mesh_uvselect_flush_from_verts(bm, param);
+  Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bmesh_uv_select_flush_shared_doc,
+    ".. method:: uv_select_flush_shared(select)\n"
+    "\n"
+    "   Flush selection from UV vertices to contiguous UV's independent of the selection mode.\n"
+    "\n"
+    "   :arg select: Flush selection or de-selected elements.\n"
+    "   :type select: bool\n"
+    "\n"
+    "   .. note::\n"
+    "\n"
+    "      - |UV_SELECT_SYNC_TO_MESH_NEEDED|\n");
+static PyObject *bpy_bmesh_uv_select_flush_shared(BPy_BMesh *self, PyObject *value)
+{
+  const char *error_prefix = "uv_select_flush_shared(...)";
+  int param;
+
+  BPY_BM_CHECK_OBJ(self);
+
+  if ((param = PyC_Long_AsBool(value)) == -1) {
+    return nullptr;
+  }
+  BMesh *bm = self->bm;
+  /* While sync doesn't need to be valid,
+   * failing to make it valid causes selection functions to assert, so require it to be valid. */
+  if (bpy_bm_check_uv_select_sync_valid(bm, error_prefix) == -1) {
+    return nullptr;
+  }
+  if (param) {
+    BM_mesh_uvselect_flush_shared_only_select(bm, param);
+  }
+  else {
+    BM_mesh_uvselect_flush_shared_only_deselect(bm, param);
+  }
+  Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bmesh_uv_select_sync_from_mesh_doc,
+    ".. method:: uv_select_sync_from_mesh(/, *, "
+    "sticky_select_mode='SHARED_LOCATION')\n"
+    "\n"
+    "   Sync selection from mesh to UVs.\n"
+    "\n"
+    "   :arg sticky_select_mode: Behavior when flushing from the mesh to UV selection "
+    "|UV_STICKY_SELECT_MODE_REF|. "
+    "This should only be used when preparing to create a UV selection.\n"
+    "   :type sticky_select_mode: |UV_STICKY_SELECT_MODE_TYPE|\n"
+    "\n"
+    "   .. note::\n"
+    "\n"
+    "      - |UV_SELECT_SYNC_TO_MESH_NEEDED|\n");
+static PyObject *bpy_bmesh_uv_select_sync_from_mesh(BPy_BMesh *self, PyObject *args, PyObject *kw)
+{
+  static const char *kwlist[] = {
+      "sticky_select_mode",
+      nullptr,
+  };
+
+  BPY_BM_CHECK_OBJ(self);
+
+  PyC_StringEnum uv_sticky_select_mode = {bpy_bm_uv_select_sticky_items, UV_STICKY_LOCATION};
+
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kw,
+                                   "|$" /* Optional keyword only arguments. */
+                                   "O&" /* `sticky_select_mode` */
+                                   ":uv_select_sync_from_mesh",
+                                   (char **)kwlist,
+                                   PyC_ParseStringEnum,
+                                   &uv_sticky_select_mode))
+  {
+    return nullptr;
+  }
+
+  BMesh *bm = self->bm;
+  switch (uv_sticky_select_mode.value_found) {
+    case UV_STICKY_LOCATION: {
+      const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_PROP_FLOAT2);
+      if (cd_loop_uv_offset == -1) {
+        PyErr_SetString(PyExc_ValueError, "sticky_select_mode='SHARED_LOCATION' requires UV's");
+        return nullptr;
+      }
+      BM_mesh_uvselect_sync_from_mesh_sticky_location(bm, cd_loop_uv_offset);
+      break;
+    }
+    case UV_STICKY_DISABLE: {
+      BM_mesh_uvselect_sync_from_mesh_sticky_disabled(bm);
+      break;
+    }
+    case UV_STICKY_VERT: {
+      BM_mesh_uvselect_sync_from_mesh_sticky_vert(bm);
+      break;
+    }
+  }
+
+  Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bmesh_uv_select_sync_to_mesh_doc,
+    ".. method:: uv_select_sync_to_mesh()\n"
+    "\n"
+    "   Sync selection from UVs to the mesh.\n");
+static PyObject *bpy_bmesh_uv_select_sync_to_mesh(BPy_BMesh *self)
+{
+  const char *error_prefix = "uv_select_sync_to_mesh(...)";
+
+  BPY_BM_CHECK_OBJ(self);
+
+  BMesh *bm = self->bm;
+  if (bpy_bm_check_uv_select_sync_valid(bm, error_prefix) == -1) {
+    return nullptr;
+  }
+  BM_mesh_uvselect_sync_to_mesh(bm);
+  Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bmesh_uv_select_foreach_set_doc,
+    ".. method:: uv_select_foreach_set(select, /, *, "
+    "loop_verts=(), loop_edges=(), faces=(), sticky_select_mode='SHARED_LOCATION')\n"
+    "\n"
+    "   Set the UV selection state for loop-vertices, loop-edges & faces.\n"
+    "\n"
+    "   This is a close equivalent to selecting in the UV editor.\n"
+    "\n"
+    "   :arg select: The selection state to set.\n"
+    "   :type select: bool\n"
+    "   :arg loop_verts: Loop verts to operate on.\n"
+    "   :type loop_verts: Iterable[:class:`bmesh.types.BMLoop`]\n"
+    "   :arg loop_edges: Loop edges to operate on.\n"
+    "   :type loop_edges: Iterable[:class:`bmesh.types.BMLoop`]\n"
+    "   :arg faces: Faces to operate on.\n"
+    "   :type faces: Iterable[:class:`bmesh.types.BMFace`]\n"
+    "   :arg sticky_select_mode: See |UV_STICKY_SELECT_MODE_REF|.\n"
+    "   :type sticky_select_mode: |UV_STICKY_SELECT_MODE_TYPE|\n"
+    "\n"
+    "   .. note::\n"
+    "\n"
+    "      - |UV_SELECT_FLUSH_MODE_NEEDED|\n"
+    "      - |UV_SELECT_SYNC_TO_MESH_NEEDED|\n");
+static PyObject *bpy_bmesh_uv_select_foreach_set(BPy_BMesh *self, PyObject *args, PyObject *kw)
+{
+  const char *error_prefix = "uv_select_foreach_set(...)";
+  static const char *kwlist[] = {
+      "", /* `select` */
+      "loop_verts",
+      "loop_edges",
+      "faces",
+      "sticky_select_mode",
+      nullptr,
+  };
+  BMesh *bm;
+  bool use_select = false;
+  PyObject *py_loop_verts = nullptr;
+  PyObject *py_loop_edges = nullptr;
+  PyObject *py_faces = nullptr;
+  PyC_StringEnum uv_sticky_select_mode = {bpy_bm_uv_select_sticky_items, UV_STICKY_LOCATION};
+
+  BPY_BM_CHECK_OBJ(self);
+
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kw,
+                                   "O&" /* `select` */
+                                   "|$" /* Optional keyword only arguments. */
+                                   "O"  /* `loop_verts` */
+                                   "O"  /* `loop_edges` */
+                                   "O"  /* `faces` */
+                                   "O&" /* `sticky_select_mode` */
+                                   ":uv_select_foreach_set",
+                                   (char **)kwlist,
+                                   PyC_ParseBool,
+                                   &use_select,
+                                   &py_loop_verts,
+                                   &py_loop_edges,
+                                   &py_faces,
+                                   PyC_ParseStringEnum,
+                                   &uv_sticky_select_mode))
+  {
+    return nullptr;
+  }
+
+  bm = self->bm;
+  if (bpy_bm_check_uv_select_sync_valid(bm, error_prefix) == -1) {
+    return nullptr;
+  }
+  const bool shared = uv_sticky_select_mode.value_found == UV_STICKY_LOCATION;
+  const int cd_loop_uv_offset = shared ? bpy_bm_uv_layer_offset_or_error(bm, error_prefix) : -1;
+  if (shared && (cd_loop_uv_offset == -1)) {
+    return nullptr;
+  }
+
+  Py_ssize_t loop_vert_array_num = 0;
+  Py_ssize_t loop_edge_array_num = 0;
+  Py_ssize_t face_array_num = 0;
+  BMLoop **loop_vert_array = nullptr;
+  BMLoop **loop_edge_array = nullptr;
+  BMFace **face_array = nullptr;
+
+  bool ok = true;
+  if (ok && py_loop_verts) {
+    BMesh *bm_test = nullptr;
+    if (!(loop_vert_array = BPy_BMLoop_PySeq_As_Array(&bm_test,
+                                                      py_loop_verts,
+                                                      0,
+                                                      PY_SSIZE_T_MAX,
+                                                      &loop_vert_array_num,
+                                                      true,
+                                                      true,
+                                                      error_prefix)))
+    {
+      ok = false;
+    }
+    else if (bm_test && bpy_bm_check_bm_match_or_error(bm, bm_test, error_prefix) == -1) {
+      ok = false;
+    }
+  }
+  if (ok && py_loop_edges) {
+    BMesh *bm_test = nullptr;
+    if (!(loop_edge_array = BPy_BMLoop_PySeq_As_Array(&bm_test,
+                                                      py_loop_edges,
+                                                      0,
+                                                      PY_SSIZE_T_MAX,
+                                                      &loop_edge_array_num,
+                                                      true,
+                                                      true,
+                                                      error_prefix)))
+    {
+      ok = false;
+    }
+    else if (bm_test && bpy_bm_check_bm_match_or_error(bm, bm_test, error_prefix) == -1) {
+      ok = false;
+    }
+  }
+  if (ok && py_faces) {
+    BMesh *bm_test = nullptr;
+    if (!(face_array = BPy_BMFace_PySeq_As_Array(
+              &bm_test, py_faces, 0, PY_SSIZE_T_MAX, &face_array_num, true, true, error_prefix)))
+    {
+      ok = false;
+    }
+    else if (bm_test && bpy_bm_check_bm_match_or_error(bm, bm_test, error_prefix) == -1) {
+      ok = false;
+    }
+  }
+
+  /* TODO: support different "sticky" modes. */
+  if (ok) {
+    BM_mesh_uvselect_set_elem_shared(bm,
+                                     use_select,
+                                     cd_loop_uv_offset,
+                                     blender::Span(loop_vert_array, loop_vert_array_num),
+                                     blender::Span(loop_edge_array, loop_edge_array_num),
+                                     blender::Span(face_array, face_array_num));
+  }
+
+  PyMem_FREE(loop_vert_array);
+  PyMem_FREE(loop_edge_array);
+  PyMem_FREE(face_array);
+
+  if (ok == false) {
+    /* The error has been raised. */
+    return nullptr;
+  }
+  Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bmesh_uv_select_foreach_set_from_mesh_doc,
+    ".. method:: uv_select_foreach_set_from_mesh(select, /, *, "
+    "verts=(), edges=(), faces=(), sticky_select_mode='SHARED_LOCATION')\n"
+    "\n"
+    "   Select or de-select mesh elements, updating the UV selection.\n"
+    "\n"
+    "   An equivalent to selecting from the 3D viewport "
+    "for selection operations that support maintaining a synchronized UV selection.\n"
+    "\n"
+    "   :arg select: The selection state to set.\n"
+    "   :type select: bool\n"
+    "   :arg verts: Verts to operate on.\n"
+    "   :type verts: Iterable[:class:`bmesh.types.BMVert`]\n"
+    "   :arg edges: Edges to operate on.\n"
+    "   :type edges: Iterable[:class:`bmesh.types.BMEdge`]\n"
+    "   :arg faces: Faces to operate on.\n"
+    "   :type faces: Iterable[:class:`bmesh.types.BMFace`]\n"
+    "   :arg sticky_select_mode: See |UV_STICKY_SELECT_MODE_REF|.\n"
+    "   :type sticky_select_mode: |UV_STICKY_SELECT_MODE_TYPE|\n");
+static PyObject *bpy_bmesh_uv_select_foreach_set_from_mesh(BPy_BMesh *self,
+                                                           PyObject *args,
+                                                           PyObject *kw)
+{
+  const char *error_prefix = "uv_select_foreach_set_from_mesh(...)";
+  static const char *kwlist[] = {
+      "", /* `select` */
+      "verts",
+      "edges",
+      "faces",
+      "sticky_select_mode",
+      nullptr,
+  };
+  bool use_select = false;
+  PyObject *py_verts = nullptr;
+  PyObject *py_edges = nullptr;
+  PyObject *py_faces = nullptr;
+  PyC_StringEnum uv_sticky_select_mode = {bpy_bm_uv_select_sticky_items, UV_STICKY_LOCATION};
+
+  BPY_BM_CHECK_OBJ(self);
+
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kw,
+                                   "O&" /* `select` */
+                                   "|$" /* Optional keyword only arguments. */
+                                   "O"  /* `verts` */
+                                   "O"  /* `edges` */
+                                   "O"  /* `faces` */
+                                   "O&" /* `sticky_select_mode` */
+                                   ":uv_select_foreach_set_from_mesh",
+                                   (char **)kwlist,
+                                   PyC_ParseBool,
+                                   &use_select,
+                                   &py_verts,
+                                   &py_edges,
+                                   &py_faces,
+                                   PyC_ParseStringEnum,
+                                   &uv_sticky_select_mode))
+  {
+    return nullptr;
+  }
+
+  BMesh *bm = self->bm;
+  if (bpy_bm_check_uv_select_sync_valid(bm, error_prefix) == -1) {
+    return nullptr;
+  }
+  const bool shared = uv_sticky_select_mode.value_found == UV_STICKY_LOCATION;
+  const int cd_loop_uv_offset = shared ? bpy_bm_uv_layer_offset_or_error(bm, error_prefix) : -1;
+  if (shared && (cd_loop_uv_offset == -1)) {
+    return nullptr;
+  }
+
+  Py_ssize_t vert_array_num = 0;
+  Py_ssize_t edge_array_num = 0;
+  Py_ssize_t face_array_num = 0;
+  BMVert **vert_array = nullptr;
+  BMEdge **edge_array = nullptr;
+  BMFace **face_array = nullptr;
+
+  bool ok = true;
+  if (ok && py_verts) {
+    BMesh *bm_test = nullptr;
+    if (!(vert_array = BPy_BMVert_PySeq_As_Array(
+              &bm_test, py_verts, 0, PY_SSIZE_T_MAX, &vert_array_num, true, true, error_prefix)))
+    {
+      ok = false;
+    }
+    else if (bm_test && bpy_bm_check_bm_match_or_error(bm, bm_test, error_prefix) == -1) {
+      ok = false;
+    }
+  }
+  if (ok && py_edges) {
+    BMesh *bm_test = nullptr;
+    if (!(edge_array = BPy_BMEdge_PySeq_As_Array(
+              &bm_test, py_edges, 0, PY_SSIZE_T_MAX, &edge_array_num, true, true, error_prefix)))
+    {
+      ok = false;
+    }
+    else if (bm_test && bpy_bm_check_bm_match_or_error(bm, bm_test, error_prefix) == -1) {
+      ok = false;
+    }
+  }
+  if (ok && py_faces) {
+    BMesh *bm_test = nullptr;
+    if (!(face_array = BPy_BMFace_PySeq_As_Array(
+              &bm_test, py_faces, 0, PY_SSIZE_T_MAX, &face_array_num, true, true, error_prefix)))
+    {
+      ok = false;
+    }
+    else if (bm_test && bpy_bm_check_bm_match_or_error(bm, bm_test, error_prefix) == -1) {
+      ok = false;
+    }
+  }
+
+  if (ok) {
+    const BMUVSelectPickParams uv_pick_params = {
+        /*cd_loop_uv_offset*/ cd_loop_uv_offset,
+        /*shared*/ shared,
+    };
+    BM_mesh_uvselect_set_elem_from_mesh(bm,
+                                        use_select,
+                                        uv_pick_params,
+                                        blender::Span(vert_array, vert_array_num),
+                                        blender::Span(edge_array, edge_array_num),
+                                        blender::Span(face_array, face_array_num));
+  }
+
+  PyMem_FREE(vert_array);
+  PyMem_FREE(edge_array);
+  PyMem_FREE(face_array);
+
+  if (ok == false) {
+    /* The error has been raised. */
+    return nullptr;
+  }
+  Py_RETURN_NONE;
+}
+
+/** \} */
 
 PyDoc_STRVAR(
     /* Wrap. */
@@ -2187,6 +2738,34 @@ static PyObject *bpy_bmface_copy(BPy_BMFace *self, PyObject *args, PyObject *kw)
 
 PyDoc_STRVAR(
     /* Wrap. */
+    bpy_bmface_uv_select_set_doc,
+    ".. method:: uv_select_set(select)\n"
+    "\n"
+    "   Select the face.\n"
+    "\n"
+    "   :arg select: Select or de-select.\n"
+    "   :type select: bool\n"
+    "\n"
+    "   .. note::\n"
+    "\n"
+    "      Currently this only flushes down, so selecting a face will select all its "
+    "vertices but de-selecting a vertex "
+    "      won't de-select all the faces that use it, before finishing with a mesh "
+    "typically flushing is still needed.\n");
+static PyObject *bpy_bmface_uv_select_set(BPy_BMFace *self, PyObject *value)
+{
+  BMesh *bm = self->bm;
+  BPY_BM_CHECK_OBJ(self);
+  int param;
+  if ((param = PyC_Long_AsBool(value)) == -1) {
+    return nullptr;
+  }
+  BM_face_uvselect_set(bm, self->f, param);
+  Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
     bpy_bmface_calc_area_doc,
     ".. method:: calc_area()\n"
     "\n"
@@ -2420,6 +2999,65 @@ static PyObject *bpy_bmloop_copy_from_face_interp(BPy_BMLoop *self, PyObject *ar
 
   BM_loop_interp_from_face(bm, self->l, py_face->f, do_vertex, do_multires);
 
+  Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bmloop_uv_select_vert_set_doc,
+    ".. method:: uv_select_vert_set(select)\n"
+    "\n"
+    "   Select the UV vertex.\n"
+    "\n"
+    "   :arg select: Select or de-select.\n"
+    "   :type select: bool\n"
+    "\n"
+    "   .. note::\n"
+    "\n"
+    "      Currently this only flushes down, so selecting an edge will select all its "
+    "vertices but de-selecting a vertex "
+    "      won't de-select the edges & faces that use it, before finishing with a mesh "
+    "typically flushing with :class:`bmesh.types.BMesh.uv_select_flush_mode` is still needed.\n");
+static PyObject *bpy_bmloop_uv_select_vert_set(BPy_BMLoop *self, PyObject *value)
+{
+  BMesh *bm = self->bm;
+  BPY_BM_CHECK_OBJ(self);
+  int param;
+  if ((param = PyC_Long_AsBool(value)) == -1) {
+    return nullptr;
+  }
+
+  /* There is no flushing version of this function. */
+  BM_loop_vert_uvselect_set_noflush(bm, self->l, param);
+
+  Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bmloop_uv_select_edge_set_doc,
+    ".. method:: uv_select_edge_set(select)\n"
+    "\n"
+    "   Set the UV edge selection state.\n"
+    "\n"
+    "   :arg select: Select or de-select.\n"
+    "   :type select: bool\n"
+    "\n"
+    "   .. note::\n"
+    "\n"
+    "      This only flushes down, so selecting an edge will select all its "
+    "vertices but de-selecting a vertex "
+    "won't de-select the faces that use it, before finishing with a mesh "
+    "typically flushing with :class:`bmesh.types.BMesh.uv_select_flush_mode` is still needed.\n");
+static PyObject *bpy_bmloop_uv_select_edge_set(BPy_BMLoop *self, PyObject *value)
+{
+  BMesh *bm = self->bm;
+  BPY_BM_CHECK_OBJ(self);
+  int param;
+  if ((param = PyC_Long_AsBool(value)) == -1) {
+    return nullptr;
+  }
+  BM_loop_edge_uvselect_set(bm, self->l, param);
   Py_RETURN_NONE;
 }
 
@@ -3196,12 +3834,45 @@ static PyMethodDef bpy_bmesh_methods[] = {
      bpy_bmesh_from_mesh_doc},
     {"to_mesh", (PyCFunction)bpy_bmesh_to_mesh, METH_VARARGS, bpy_bmesh_to_mesh_doc},
 
-    /* meshdata */
+    /* Mesh select methods. */
     {"select_flush_mode",
      (PyCFunction)bpy_bmesh_select_flush_mode,
      METH_VARARGS | METH_KEYWORDS,
      bpy_bmesh_select_flush_mode_doc},
     {"select_flush", (PyCFunction)bpy_bmesh_select_flush, METH_O, bpy_bmesh_select_flush_doc},
+
+    /* UV select methods. */
+    {"uv_select_flush_mode",
+     (PyCFunction)bpy_bmesh_uv_select_flush_mode,
+     METH_VARARGS | METH_KEYWORDS,
+     bpy_bmesh_uv_select_flush_mode_doc},
+    {"uv_select_flush",
+     (PyCFunction)bpy_bmesh_uv_select_flush,
+     METH_O,
+     bpy_bmesh_uv_select_flush_doc},
+    {"uv_select_flush_shared",
+     (PyCFunction)bpy_bmesh_uv_select_flush_shared,
+     METH_O,
+     bpy_bmesh_uv_select_flush_shared_doc},
+
+    {"uv_select_sync_from_mesh",
+     (PyCFunction)bpy_bmesh_uv_select_sync_from_mesh,
+     METH_VARARGS | METH_KEYWORDS,
+     bpy_bmesh_uv_select_sync_from_mesh_doc},
+    {"uv_select_sync_to_mesh",
+     (PyCFunction)bpy_bmesh_uv_select_sync_to_mesh,
+     METH_NOARGS,
+     bpy_bmesh_uv_select_sync_to_mesh_doc},
+    {"uv_select_foreach_set",
+     (PyCFunction)bpy_bmesh_uv_select_foreach_set,
+     METH_VARARGS | METH_KEYWORDS,
+     bpy_bmesh_uv_select_foreach_set_doc},
+    {"uv_select_foreach_set_from_mesh",
+     (PyCFunction)bpy_bmesh_uv_select_foreach_set_from_mesh,
+     METH_VARARGS | METH_KEYWORDS,
+     bpy_bmesh_uv_select_foreach_set_from_mesh_doc},
+
+    /* meshdata */
     {"normal_update",
      (PyCFunction)bpy_bmesh_normal_update,
      METH_NOARGS,
@@ -3294,6 +3965,8 @@ static PyMethodDef bpy_bmface_methods[] = {
 
     {"copy", (PyCFunction)bpy_bmface_copy, METH_VARARGS | METH_KEYWORDS, bpy_bmface_copy_doc},
 
+    {"uv_select_set", (PyCFunction)bpy_bmface_uv_select_set, METH_O, bpy_bmface_uv_select_set_doc},
+
     {"calc_area", (PyCFunction)bpy_bmface_calc_area, METH_NOARGS, bpy_bmface_calc_area_doc},
     {"calc_perimeter",
      (PyCFunction)bpy_bmface_calc_perimeter,
@@ -3343,6 +4016,15 @@ static PyMethodDef bpy_bmloop_methods[] = {
      (PyCFunction)bpy_bmloop_copy_from_face_interp,
      METH_VARARGS,
      bpy_bmloop_copy_from_face_interp_doc},
+
+    {"uv_select_vert_set",
+     (PyCFunction)bpy_bmloop_uv_select_vert_set,
+     METH_O,
+     bpy_bmloop_uv_select_vert_set_doc},
+    {"uv_select_edge_set",
+     (PyCFunction)bpy_bmloop_uv_select_edge_set,
+     METH_O,
+     bpy_bmloop_uv_select_edge_set_doc},
 
     {"calc_angle", (PyCFunction)bpy_bmloop_calc_angle, METH_NOARGS, bpy_bmloop_calc_angle_doc},
     {"calc_normal", (PyCFunction)bpy_bmloop_calc_normal, METH_NOARGS, bpy_bmloop_calc_normal_doc},
@@ -4164,10 +4846,28 @@ void BPy_BM_init_types()
 /* bmesh.types submodule
  * ********************* */
 
+/* This exists to declare substitutions. */
+PyDoc_STRVAR(
+    /* Wrap. */
+    BPy_BM_types_module_doc,
+    "\n"
+    ".. |UV_STICKY_SELECT_MODE_REF| replace:: "
+    "(:class:`bpy.types.ToolSettings.uv_sticky_select_mode` which may be passed in directly).\n"
+    "\n"
+    ".. |UV_STICKY_SELECT_MODE_TYPE| replace:: "
+    "Literal['SHARED_LOCATION', 'DISABLED', 'SHARED_VERTEX']\n"
+    "\n"
+    ".. |UV_SELECT_FLUSH_MODE_NEEDED| replace:: "
+    "This function selection-mode independent, "
+    "typically :class:`bmesh.types.BMesh.uv_select_flush_mode` should be called afterwards.\n"
+    "\n"
+    ".. |UV_SELECT_SYNC_TO_MESH_NEEDED| replace:: "
+    "This function doesn't flush the selection to the mesh, "
+    "typically :class:`bmesh.types.BMesh.uv_select_sync_to_mesh` should be called afterwards.\n");
 static PyModuleDef BPy_BM_types_module_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "bmesh.types",
-    /*m_doc*/ nullptr,
+    /*m_doc*/ BPy_BM_types_module_doc,
     /*m_size*/ 0,
     /*m_methods*/ nullptr,
     /*m_slots*/ nullptr,
@@ -4477,6 +5177,34 @@ int bpy_bm_generic_valid_check_source(BMesh *bm_source,
   }
 
   return ret;
+}
+
+int bpy_bm_check_uv_select_sync_valid(BMesh *bm, const char *error_prefix)
+{
+  int ret = 0;
+  if (bm->uv_select_sync_valid == false) {
+    PyErr_Format(PyExc_ValueError, "%s: bm.uv_select_sync_valid: must be true", error_prefix);
+    ret = -1;
+  }
+  return ret;
+}
+
+int bpy_bm_uv_layer_offset_or_error(BMesh *bm, const char *error_prefix)
+{
+  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_PROP_FLOAT2);
+  if (cd_loop_uv_offset == -1) {
+    PyErr_Format(PyExc_ValueError, "%s: failed, no UV layer found", error_prefix);
+  }
+  return cd_loop_uv_offset;
+}
+
+int bpy_bm_check_bm_match_or_error(BMesh *bm_a, BMesh *bm_b, const char *error_prefix)
+{
+  if (bm_a != bm_b) {
+    PyErr_Format(PyExc_ValueError, "%s: elements must be from a singe BMesh", error_prefix);
+    return -1;
+  }
+  return 0;
 }
 
 void bpy_bm_generic_invalidate(BPy_BMGeneric *self)

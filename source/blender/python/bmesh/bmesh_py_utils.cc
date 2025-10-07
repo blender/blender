@@ -23,6 +23,7 @@
 #include "bmesh_py_utils.hh" /* own include */
 
 #include "../generic/py_capi_utils.hh"
+#include "../generic/python_compat.hh"
 #include "../generic/python_utildefines.hh"
 
 PyDoc_STRVAR(
@@ -764,6 +765,134 @@ static PyObject *bpy_bm_utils_loop_separate(PyObject * /*self*/, BPy_BMLoop *val
   Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bm_utils_uv_select_check_doc,
+    ".. method:: uv_select_check(bm, /, *, sync=True, flush=False, contiguous=False)\n"
+    "\n"
+    "   Split an edge, return the newly created data.\n"
+    "\n"
+    "   :arg sync: Check the data is properly synchronized between UV's and the underlying mesh. "
+    "Failure to synchronize with the mesh selection may cause tools not to behave properly.\n"
+    "   :type sync: bool\n"
+    "   :arg flush: Check the selection has been properly flushed between elements "
+    "(based on the current :class:`BMesh.select_mode`).\n"
+    "   :type flush: bool\n"
+    "   :arg contiguous: Check connected UV's and edges have a matching selection state.\n"
+    "   :type contiguous: bool\n"
+    "   :return: An error dictionary or None when there are no errors found.\n"
+    "   :rtype: dict[str, int] | None\n");
+static PyObject *bpy_bm_utils_uv_select_check(PyObject * /*self*/, PyObject *args, PyObject *kwds)
+{
+  const char *error_prefix = "uv_select_check(...)";
+  BPy_BMesh *py_bm;
+  bool check_sync = true;
+  bool check_contiguous = false;
+  bool check_flush = false;
+
+  static const char *_keywords[] = {
+      "",
+      "sync",
+      "flush",
+      "contiguous",
+      nullptr,
+  };
+  static _PyArg_Parser _parser = {
+      PY_ARG_PARSER_HEAD_COMPAT()
+      "O!" /* `bm` */
+      "|$" /* Optional keyword only arguments. */
+      "O&" /* `sync` */
+      "O&" /* `flush` */
+      "O&" /* `contiguous` */
+      ":uv_select_check",
+      _keywords,
+      nullptr,
+  };
+  if (!_PyArg_ParseTupleAndKeywordsFast(args,
+                                        kwds,
+                                        &_parser,
+                                        &BPy_BMesh_Type,
+                                        &py_bm,
+                                        PyC_ParseBool,
+                                        &check_sync,
+                                        PyC_ParseBool,
+                                        &check_flush,
+                                        PyC_ParseBool,
+                                        &check_contiguous))
+  {
+    return nullptr;
+  }
+
+  BPY_BM_CHECK_OBJ(py_bm);
+
+  BMesh *bm = py_bm->bm;
+  if (check_sync) {
+    if (bpy_bm_check_uv_select_sync_valid(bm, error_prefix) == -1) {
+      return nullptr;
+    }
+  }
+
+  const int cd_loop_uv_offset = check_contiguous ?
+                                    CustomData_get_offset(&bm->ldata, CD_PROP_FLOAT2) :
+                                    -1;
+  if (check_contiguous) {
+    if (cd_loop_uv_offset == -1) {
+      PyErr_SetString(PyExc_ValueError, "contiguous=True for a mesh without UV coordinates");
+      return nullptr;
+    }
+  }
+
+  UVSelectValidateInfo info = {};
+  const bool is_valid = BM_mesh_uvselect_is_valid(
+      bm, cd_loop_uv_offset, check_sync, check_flush, check_contiguous, &info);
+  if (is_valid) {
+    Py_RETURN_NONE;
+  }
+
+  PyObject *result = PyDict_New();
+
+#define DICT_ADD_INT_MEMBER(info_struct, member) \
+  PyDict_SetItemString(result, STRINGIFY(member), PyLong_FromLong(info_struct.member))
+
+  {
+    UVSelectValidateInfo_Sync &info_sub = info.sync;
+    DICT_ADD_INT_MEMBER(info_sub, count_uv_vert_any_selected_with_vert_unselected);
+    DICT_ADD_INT_MEMBER(info_sub, count_uv_vert_none_selected_with_vert_selected);
+
+    DICT_ADD_INT_MEMBER(info_sub, count_uv_edge_any_selected_with_edge_unselected);
+    DICT_ADD_INT_MEMBER(info_sub, count_uv_edge_none_selected_with_edge_selected);
+  }
+
+  if (check_flush) {
+    UVSelectValidateInfo_Flush &info_sub = info.flush;
+    DICT_ADD_INT_MEMBER(info_sub, count_uv_edge_selected_with_any_verts_unselected);
+    DICT_ADD_INT_MEMBER(info_sub, count_uv_edge_unselected_with_all_verts_selected);
+
+    DICT_ADD_INT_MEMBER(info_sub, count_uv_face_selected_with_any_verts_unselected);
+    DICT_ADD_INT_MEMBER(info_sub, count_uv_face_unselected_with_all_verts_selected);
+
+    DICT_ADD_INT_MEMBER(info_sub, count_uv_face_selected_with_any_edges_unselected);
+    DICT_ADD_INT_MEMBER(info_sub, count_uv_face_unselected_with_all_edges_selected);
+  }
+
+  if (check_contiguous) {
+    UVSelectValidateInfo_Contiguous &info_sub = info.contiguous;
+    DICT_ADD_INT_MEMBER(info_sub, count_uv_vert_non_contiguous_selected);
+    DICT_ADD_INT_MEMBER(info_sub, count_uv_edge_non_contiguous_selected);
+  }
+
+  if (check_flush && check_contiguous) {
+    UVSelectValidateInfo_FlushAndContiguous &info_sub = info.flush_contiguous;
+    DICT_ADD_INT_MEMBER(info_sub, count_uv_vert_isolated_in_edge_or_face_mode);
+    DICT_ADD_INT_MEMBER(info_sub, count_uv_vert_isolated_in_face_mode);
+    DICT_ADD_INT_MEMBER(info_sub, count_uv_edge_isolated_in_face_mode);
+  }
+
+#undef DICT_ADD_INT_MEMBER
+
+  return result;
+}
+
 #ifdef __GNUC__
 #  ifdef __clang__
 #    pragma clang diagnostic push
@@ -821,6 +950,10 @@ static PyMethodDef BPy_BM_utils_methods[] = {
      (PyCFunction)bpy_bm_utils_loop_separate,
      METH_O,
      bpy_bm_utils_loop_separate_doc},
+    {"uv_select_check",
+     (PyCFunction)bpy_bm_utils_uv_select_check,
+     METH_VARARGS | METH_KEYWORDS,
+     bpy_bm_utils_uv_select_check_doc},
     {nullptr, nullptr, 0, nullptr},
 };
 

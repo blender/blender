@@ -212,6 +212,9 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, bool use_select);
 void EDBM_flag_enable_all(BMEditMesh *em, char hflag);
 void EDBM_flag_disable_all(BMEditMesh *em, char hflag);
 
+/** \copydoc #BM_uvselect_clear */
+bool EDBM_uvselect_clear(BMEditMesh *em);
+
 bool BMBVH_EdgeVisible(const BMBVHTree *tree,
                        const BMEdge *e,
                        const Depsgraph *depsgraph,

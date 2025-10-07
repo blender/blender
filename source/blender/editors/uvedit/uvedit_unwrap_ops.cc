@@ -464,7 +464,7 @@ static bool uvedit_have_selection(const Scene *scene, BMEditMesh *em, const Unwr
     }
 
     BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-      if (uvedit_uv_select_test(scene, l, offsets)) {
+      if (uvedit_uv_select_test(scene, em->bm, l, offsets)) {
         break;
       }
     }
@@ -533,6 +533,7 @@ float ED_uvedit_get_aspect_y(Object *ob)
 }
 
 static bool uvedit_is_face_affected(const Scene *scene,
+                                    const BMesh *bm,
                                     BMFace *efa,
                                     const UnwrapOptions *options,
                                     const BMUVOffsets &offsets)
@@ -549,7 +550,7 @@ static bool uvedit_is_face_affected(const Scene *scene,
     BMLoop *l;
     BMIter iter;
     BM_ITER_ELEM (l, &iter, efa, BM_LOOPS_OF_FACE) {
-      if (uvedit_uv_select_test(scene, l, offsets)) {
+      if (uvedit_uv_select_test(scene, bm, l, offsets)) {
         return true;
       }
     }
@@ -563,6 +564,7 @@ static bool uvedit_is_face_affected(const Scene *scene,
  */
 static void uvedit_prepare_pinned_indices(ParamHandle *handle,
                                           const Scene *scene,
+                                          const BMesh *bm,
                                           BMFace *efa,
                                           const UnwrapOptions *options,
                                           const BMUVOffsets &offsets)
@@ -572,7 +574,7 @@ static void uvedit_prepare_pinned_indices(ParamHandle *handle,
   BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
     bool pin = BM_ELEM_CD_GET_BOOL(l, offsets.pin);
     if (options->pin_unselected && !pin) {
-      pin = !uvedit_uv_select_test(scene, l, offsets);
+      pin = !uvedit_uv_select_test(scene, bm, l, offsets);
     }
     if (pin) {
       int bmvertindex = BM_elem_index_get(l->v);
@@ -584,6 +586,7 @@ static void uvedit_prepare_pinned_indices(ParamHandle *handle,
 
 static void construct_param_handle_face_add(ParamHandle *handle,
                                             const Scene *scene,
+                                            const BMesh *bm,
                                             BMFace *efa,
                                             blender::geometry::ParamKey face_index,
                                             const UnwrapOptions *options,
@@ -612,7 +615,7 @@ static void construct_param_handle_face_add(ParamHandle *handle,
     co[i] = l->v->co;
     uv[i] = luv;
     pin[i] = BM_ELEM_CD_GET_BOOL(l, offsets.pin);
-    select[i] = uvedit_uv_select_test(scene, l, offsets);
+    select[i] = uvedit_uv_select_test(scene, bm, l, offsets);
     if (options->pin_unselected && !select[i]) {
       pin[i] = true;
     }
@@ -705,15 +708,15 @@ static ParamHandle *construct_param_handle(const Scene *scene,
   const int cd_weight_index = BKE_object_defgroup_name_index(ob, options->weight_group);
 
   BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, i) {
-    if (uvedit_is_face_affected(scene, efa, options, offsets)) {
-      uvedit_prepare_pinned_indices(handle, scene, efa, options, offsets);
+    if (uvedit_is_face_affected(scene, bm, efa, options, offsets)) {
+      uvedit_prepare_pinned_indices(handle, scene, bm, efa, options, offsets);
     }
   }
 
   BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, i) {
-    if (uvedit_is_face_affected(scene, efa, options, offsets)) {
+    if (uvedit_is_face_affected(scene, bm, efa, options, offsets)) {
       construct_param_handle_face_add(
-          handle, scene, efa, i, options, offsets, cd_weight_offset, cd_weight_index);
+          handle, scene, bm, efa, i, options, offsets, cd_weight_offset, cd_weight_index);
     }
   }
 
@@ -762,15 +765,22 @@ static ParamHandle *construct_param_handle_multi(const Scene *scene,
     const int cd_weight_index = BKE_object_defgroup_name_index(obedit, options->weight_group);
 
     BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, i) {
-      if (uvedit_is_face_affected(scene, efa, options, offsets)) {
-        uvedit_prepare_pinned_indices(handle, scene, efa, options, offsets);
+      if (uvedit_is_face_affected(scene, bm, efa, options, offsets)) {
+        uvedit_prepare_pinned_indices(handle, scene, bm, efa, options, offsets);
       }
     }
 
     BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, i) {
-      if (uvedit_is_face_affected(scene, efa, options, offsets)) {
-        construct_param_handle_face_add(
-            handle, scene, efa, i + offset, options, offsets, cd_weight_offset, cd_weight_index);
+      if (uvedit_is_face_affected(scene, bm, efa, options, offsets)) {
+        construct_param_handle_face_add(handle,
+                                        scene,
+                                        bm,
+                                        efa,
+                                        i + offset,
+                                        options,
+                                        offsets,
+                                        cd_weight_offset,
+                                        cd_weight_index);
       }
     }
 
@@ -786,6 +796,7 @@ static ParamHandle *construct_param_handle_multi(const Scene *scene,
 }
 
 static void texface_from_original_index(const Scene *scene,
+                                        const BMesh *bm,
                                         const BMUVOffsets &offsets,
                                         BMFace *efa,
                                         int index,
@@ -809,7 +820,7 @@ static void texface_from_original_index(const Scene *scene,
       float *luv = BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
       *r_uv = luv;
       *r_pin = BM_ELEM_CD_GET_BOOL(l, offsets.pin);
-      *r_select = uvedit_uv_select_test(scene, l, offsets);
+      *r_select = uvedit_uv_select_test(scene, bm, l, offsets);
       break;
     }
   }
@@ -982,6 +993,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
      * If the vertex exists in the, we pass the original uv pointer to the solver, thus
      * flushing the solution to the edit mesh. */
     texface_from_original_index(scene,
+                                em->bm,
                                 offsets,
                                 origFace,
                                 origVertIndices[poly_corner_verts[0]],
@@ -989,6 +1001,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
                                 &pin[0],
                                 &select[0]);
     texface_from_original_index(scene,
+                                em->bm,
                                 offsets,
                                 origFace,
                                 origVertIndices[poly_corner_verts[1]],
@@ -996,6 +1009,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
                                 &pin[1],
                                 &select[1]);
     texface_from_original_index(scene,
+                                em->bm,
                                 offsets,
                                 origFace,
                                 origVertIndices[poly_corner_verts[2]],
@@ -1003,6 +1017,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
                                 &pin[2],
                                 &select[2]);
     texface_from_original_index(scene,
+                                em->bm,
                                 offsets,
                                 origFace,
                                 origVertIndices[poly_corner_verts[3]],
@@ -1393,6 +1408,7 @@ static float uv_nearest_grid_tile_distance(const int udim_grid[2],
 }
 
 static bool island_has_pins(const Scene *scene,
+                            const BMesh *bm,
                             FaceIsland *island,
                             const blender::geometry::UVPackIsland_Params *params)
 {
@@ -1410,7 +1426,7 @@ static bool island_has_pins(const Scene *scene,
       if (BM_ELEM_CD_GET_BOOL(l, pin_offset)) {
         return true;
       }
-      if (pin_unselected && !uvedit_uv_select_test(scene, l, island->offsets)) {
+      if (pin_unselected && !uvedit_uv_select_test(scene, bm, l, island->offsets)) {
         return true;
       }
     }
@@ -1484,7 +1500,7 @@ static void uvedit_pack_islands_multi(const Scene *scene,
     /* Remove from linked list and append to blender::Vector. */
     LISTBASE_FOREACH_MUTABLE (FaceIsland *, island, &island_list) {
       BLI_remlink(&island_list, island);
-      const bool pinned = island_has_pins(scene, island, params);
+      const bool pinned = island_has_pins(scene, bm, island, params);
       if (ignore_pinned && pinned) {
         MEM_freeN(island->faces);
         MEM_freeN(island);
@@ -2651,7 +2667,7 @@ static void uv_map_clip_correct(const Scene *scene,
           continue;
         }
 
-        if (only_selected_uvs && !uvedit_face_select_test(scene, efa, offsets)) {
+        if (only_selected_uvs && !uvedit_face_select_test(scene, em->bm, efa, offsets)) {
           continue;
         }
 
@@ -2668,7 +2684,7 @@ static void uv_map_clip_correct(const Scene *scene,
           continue;
         }
 
-        if (only_selected_uvs && !uvedit_face_select_test(scene, efa, offsets)) {
+        if (only_selected_uvs && !uvedit_face_select_test(scene, em->bm, efa, offsets)) {
           continue;
         }
 
@@ -2706,7 +2722,7 @@ static void uv_map_clip_correct(const Scene *scene,
           continue;
         }
 
-        if (only_selected_uvs && !uvedit_face_select_test(scene, efa, offsets)) {
+        if (only_selected_uvs && !uvedit_face_select_test(scene, em->bm, efa, offsets)) {
           continue;
         }
 
@@ -3242,7 +3258,7 @@ static wmOperatorStatus smart_project_exec(bContext *C, wmOperator *op)
       }
 
       if (only_selected_uvs) {
-        if (!uvedit_face_select_test(scene, efa, offsets)) {
+        if (!uvedit_face_select_test(scene, em->bm, efa, offsets)) {
           uvedit_face_select_disable(scene, em->bm, efa, offsets);
           continue;
         }
@@ -3835,7 +3851,7 @@ static float uv_sphere_project(const Scene *scene,
     }
 
     if (only_selected_uvs) {
-      if (!uvedit_face_select_test(scene, efa, offsets)) {
+      if (!uvedit_face_select_test(scene, bm, efa, offsets)) {
         uvedit_face_select_disable(scene, bm, efa, offsets);
         continue; /* Unselected UV, ignore. */
       }
@@ -4011,7 +4027,7 @@ static float uv_cylinder_project(const Scene *scene,
     }
 
     if (only_selected_uvs) {
-      if (!uvedit_face_select_test(scene, efa, offsets)) {
+      if (!uvedit_face_select_test(scene, bm, efa, offsets)) {
         uvedit_face_select_disable(scene, bm, efa, offsets);
         continue; /* Unselected UV, ignore. */
       }
@@ -4107,7 +4123,7 @@ static wmOperatorStatus cylinder_project_exec(bContext *C, wmOperator *op)
         continue;
       }
 
-      if (only_selected_uvs && !uvedit_face_select_test(scene, efa, offsets)) {
+      if (only_selected_uvs && !uvedit_face_select_test(scene, em->bm, efa, offsets)) {
         uvedit_face_select_disable(scene, em->bm, efa, offsets);
         continue;
       }
@@ -4192,7 +4208,7 @@ static void uvedit_unwrap_cube_project(const Scene *scene,
     if (use_select && !BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
       continue;
     }
-    if (only_selected_uvs && !uvedit_face_select_test(scene, efa, offsets)) {
+    if (only_selected_uvs && !uvedit_face_select_test(scene, bm, efa, offsets)) {
       uvedit_face_select_disable(scene, bm, efa, offsets);
       continue;
     }

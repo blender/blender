@@ -408,6 +408,7 @@ void EDBM_select_more(BMEditMesh *em, const bool use_face_step)
   BMO_op_finish(em->bm, &bmop);
 
   EDBM_selectmode_flush(em);
+  EDBM_uvselect_clear(em);
 }
 
 void EDBM_select_less(BMEditMesh *em, const bool use_face_step)
@@ -430,6 +431,7 @@ void EDBM_select_less(BMEditMesh *em, const bool use_face_step)
   BMO_op_finish(em->bm, &bmop);
 
   EDBM_selectmode_flush(em);
+  EDBM_uvselect_clear(em);
 
   /* only needed for select less, ensure we don't have isolated elements remaining */
   BM_mesh_select_mode_clean(em->bm);
@@ -438,11 +440,26 @@ void EDBM_select_less(BMEditMesh *em, const bool use_face_step)
 void EDBM_flag_disable_all(BMEditMesh *em, const char hflag)
 {
   BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, hflag, false);
+
+  /* Keep this as there is no need to maintain UV selection when all are disabled. */
+  if (hflag & BM_ELEM_SELECT) {
+    EDBM_uvselect_clear(em);
+  }
 }
 
 void EDBM_flag_enable_all(BMEditMesh *em, const char hflag)
 {
   BM_mesh_elem_hflag_enable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, hflag, true);
+
+  /* Keep this as there is no need to maintain UV selection when all are enabled. */
+  if (hflag & BM_ELEM_SELECT) {
+    EDBM_uvselect_clear(em);
+  }
+}
+
+bool EDBM_uvselect_clear(BMEditMesh *em)
+{
+  return BM_mesh_uvselect_clear(em->bm);
 }
 
 /** \} */
@@ -650,6 +667,7 @@ static void bm_uv_assign_island(UvElementMap *element_map,
 
 static int bm_uv_edge_select_build_islands(UvElementMap *element_map,
                                            const Scene *scene,
+                                           const BMesh *bm,
                                            UvElement *islandbuf,
                                            uint *map,
                                            bool uv_selected,
@@ -694,7 +712,7 @@ static int bm_uv_edge_select_build_islands(UvElementMap *element_map,
       while (element) {
 
         /* Scan forwards around the BMFace that contains element->l. */
-        if (!uv_selected || uvedit_edge_select_test(scene, element->l, offsets)) {
+        if (!uv_selected || uvedit_edge_select_test(scene, bm, element->l, offsets)) {
           UvElement *next = BM_uv_element_get(element_map, element->l->next);
           if (next && next->island == INVALID_ISLAND) {
             UvElement *tail = element_map->head_table[next - element_map->storage];
@@ -710,7 +728,7 @@ static int bm_uv_edge_select_build_islands(UvElementMap *element_map,
         }
 
         /* Scan backwards around the BMFace that contains element->l. */
-        if (!uv_selected || uvedit_edge_select_test(scene, element->l->prev, offsets)) {
+        if (!uv_selected || uvedit_edge_select_test(scene, bm, element->l->prev, offsets)) {
           UvElement *prev = BM_uv_element_get(element_map, element->l->prev);
           if (prev && prev->island == INVALID_ISLAND) {
             UvElement *tail = element_map->head_table[prev - element_map->storage];
@@ -766,7 +784,7 @@ static void bm_uv_build_islands(UvElementMap *element_map,
                                             scene->toolsettings->uv_selectmode & UV_SELECT_EDGE;
   if (use_uv_edge_connectivity) {
     nislands = bm_uv_edge_select_build_islands(
-        element_map, scene, islandbuf, map, uv_selected, uv_offsets);
+        element_map, scene, bm, islandbuf, map, uv_selected, uv_offsets);
     islandbufsize = totuv;
   }
 
@@ -784,7 +802,7 @@ static void bm_uv_build_islands(UvElementMap *element_map,
         BMLoop *l;
         BMIter liter;
         BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-          if (uv_selected && !uvedit_uv_select_test(scene, l, uv_offsets)) {
+          if (uv_selected && !uvedit_uv_select_test(scene, bm, l, uv_offsets)) {
             continue;
           }
 
@@ -1013,7 +1031,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
     else {
       BMLoop *l;
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-        if (uvedit_uv_select_test(scene, l, offsets)) {
+        if (uvedit_uv_select_test(scene, bm, l, offsets)) {
           totuv++;
         }
       }
@@ -1048,7 +1066,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
     int i;
     BMLoop *l;
     BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
-      if (uv_selected && !uvedit_uv_select_test(scene, l, offsets)) {
+      if (uv_selected && !uvedit_uv_select_test(scene, bm, l, offsets)) {
         continue;
       }
 
@@ -1084,7 +1102,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
       newvlist = v;
 
       const float *uv = static_cast<const float *>(BM_ELEM_CD_GET_VOID_P(v->l, offsets.uv));
-      bool uv_vert_sel = uvedit_uv_select_test(scene, v->l, offsets);
+      bool uv_vert_sel = uvedit_uv_select_test(scene, bm, v->l, offsets);
 
       UvElement *lastv = nullptr;
       UvElement *iterv = vlist;
@@ -1104,7 +1122,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
         if (connected) {
           /* Check if the uv loops share the same selection state (if not, they are not connected
            * as they have been ripped or other edit commands have separated them). */
-          const bool uv2_vert_sel = uvedit_uv_select_test(scene, iterv->l, offsets);
+          const bool uv2_vert_sel = uvedit_uv_select_test(scene, bm, iterv->l, offsets);
           connected = (uv_vert_sel == uv2_vert_sel);
         }
 
@@ -1566,6 +1584,7 @@ bool EDBM_mesh_hide(BMEditMesh *em, bool swap)
 
   if (changed) {
     EDBM_selectmode_flush(em);
+    EDBM_uvselect_clear(em);
   }
   return changed;
 
@@ -1632,6 +1651,53 @@ bool EDBM_mesh_reveal(BMEditMesh *em, bool select)
       if (BM_elem_flag_test(ele, BM_ELEM_TAG)) {
         BM_elem_select_set(em->bm, ele, select);
       }
+    }
+  }
+
+  if (em->bm->uv_select_sync_valid) {
+    BMesh *bm = em->bm;
+    /* NOTE(@ideasman42): this could/should use the "sticky" tool setting.
+     * Although in practice it's OK to assume "connected" sticky in this case. */
+    const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_PROP_FLOAT2);
+    if (cd_loop_uv_offset == -1) {
+      /* Not expected but not an error either, clear if the UV's have been removed. */
+      EDBM_uvselect_clear(em);
+    }
+    else {
+      BMIter iter;
+      BMFace *f;
+
+      if (em->selectmode & SCE_SELECT_VERTEX) {
+        BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+          BMLoop *l_iter, *l_first;
+          l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+          do {
+            if (BM_elem_flag_test(l_iter->v, BM_ELEM_TAG)) {
+              BM_loop_vert_uvselect_set_shared(bm, l_iter, select, cd_loop_uv_offset);
+            }
+          } while ((l_iter = l_iter->next) != l_first);
+        }
+      }
+      else if (em->selectmode & SCE_SELECT_EDGE) {
+        BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+          BMLoop *l_iter, *l_first;
+          l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+          do {
+            if (BM_elem_flag_test(l_iter->e, BM_ELEM_TAG)) {
+              BM_loop_edge_uvselect_set_shared(bm, l_iter, select, cd_loop_uv_offset);
+            }
+          } while ((l_iter = l_iter->next) != l_first);
+        }
+      }
+      else {
+        BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+          if (BM_elem_flag_test(f, BM_ELEM_TAG)) {
+            BM_face_uvselect_set_shared(bm, f, select, cd_loop_uv_offset);
+          }
+        }
+      }
+
+      BM_mesh_uvselect_mode_flush(bm);
     }
   }
 

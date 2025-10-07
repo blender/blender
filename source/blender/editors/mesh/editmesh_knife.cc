@@ -4096,6 +4096,8 @@ static void knifetool_finish_single_post(KnifeTool_OpData * /*kcd*/, Object *ob)
 {
   BMEditMesh *em = BKE_editmesh_from_object(ob);
   EDBM_selectmode_flush(em);
+  EDBM_uvselect_clear(em);
+
   EDBMUpdate_Params params{};
   params.calc_looptris = true;
   params.calc_normals = true;

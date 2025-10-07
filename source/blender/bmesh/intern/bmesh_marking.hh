@@ -93,6 +93,11 @@ void BM_edge_select_set_noflush(BMesh *bm, BMEdge *e, bool select);
 void BM_face_select_set_noflush(BMesh *bm, BMFace *f, bool select);
 
 /**
+ * Return true when there are a mix of selected/unselected elements.
+ */
+bool BM_mesh_select_is_mixed(const BMesh *bm);
+
+/**
  * \brief Select Mode Clean
  *
  * Remove isolated selected elements when in a mode doesn't support them.

@@ -147,7 +147,7 @@ BMEdge *BM_edge_create(
 #endif
 
   e->head.htype = BM_EDGE;
-  e->head.hflag = BM_ELEM_SMOOTH | BM_ELEM_DRAW;
+  e->head.hflag = BM_ELEM_SMOOTH;
   e->head.api_flag = 0;
 
   /* allocate flags */

@@ -66,7 +66,7 @@ static int uvedit_center(Scene *scene, const Span<Object *> objects, float cente
       }
 
       BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-        if (uvedit_uv_select_test(scene, l, offsets)) {
+        if (uvedit_uv_select_test(scene, em->bm, l, offsets)) {
           luv = BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
           add_v2_v2(center, luv);
           tot++;
@@ -101,7 +101,7 @@ static void uvedit_translate(Scene *scene, const Span<Object *> objects, const f
       }
 
       BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-        if (uvedit_uv_select_test(scene, l, offsets)) {
+        if (uvedit_uv_select_test(scene, em->bm, l, offsets)) {
           luv = BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
           add_v2_v2(luv, delta);
         }
