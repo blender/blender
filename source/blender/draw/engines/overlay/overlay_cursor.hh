@@ -88,7 +88,7 @@ class Cursor : Overlay {
     pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA);
     pass.shader_set(GPU_shader_get_builtin_shader(GPU_SHADER_3D_POLYLINE_FLAT_COLOR));
     pass.push_constant("viewportSize", float2(state.region->winx, state.region->winy));
-    pass.push_constant("lineWidth", U.pixelsize * 1.5f);
+    pass.push_constant("lineWidth", U.pixelsize);
     pass.push_constant("lineSmooth", true);
     /* WORKAROUND: This is normally set by the GPUBatch or IMM API but we don't use them here.
      * So make sure it is set otherwise it can be in undefined state (see #136911). */
