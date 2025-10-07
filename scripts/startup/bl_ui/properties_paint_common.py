@@ -261,7 +261,6 @@ class UnifiedPaintPanel:
             unified_paint_settings_override=None,
             unified_name=None,
             pressure_name=None,
-            curve_visibility_name=None,
             text=None,
             slider=False,
             header=False,
@@ -272,7 +271,6 @@ class UnifiedPaintPanel:
             :param unified_paint_settings_override allows a caller to pass in a specific object for usage. Needed for
             some 'brush-like' tools."""
         row = layout.row(align=True)
-        paint = UnifiedPaintPanel.paint_settings(context)
         if unified_paint_settings_override:
             ups = unified_paint_settings_override
         else:
@@ -290,15 +288,33 @@ class UnifiedPaintPanel:
         if pressure_name:
             row.prop(brush, pressure_name, text="")
 
-        if curve_visibility_name and not header:
-            is_active = getattr(paint, curve_visibility_name)
-            row.prop(
-                paint,
-                curve_visibility_name,
-                text="",
-                icon='DOWNARROW_HLT' if is_active else 'RIGHTARROW',
-                emboss=False)
         return row
+
+    @staticmethod
+    def prop_custom_pressure(
+            layout,
+            context,
+            parent_row,
+            brush,
+            *,
+            pressure_name,
+            curve_visibility_name,
+            custom_curve_name,
+    ):
+        paint = UnifiedPaintPanel.paint_settings(context)
+
+        is_active = getattr(paint, curve_visibility_name)
+        parent_row.prop(
+            paint,
+            curve_visibility_name,
+            text="",
+            icon='DOWNARROW_HLT' if is_active else 'RIGHTARROW',
+            emboss=False)
+
+        if is_active:
+            subcol = layout.column()
+            subcol.active = getattr(brush, pressure_name)
+            subcol.template_curve_mapping(brush, custom_curve_name, brush=True, show_presets=True)
 
     @staticmethod
     def prop_unified_color(parent, context, brush, prop_name, *, text=None):
@@ -1164,50 +1180,63 @@ def brush_shared_settings(layout, context, brush, popover=False):
     if size or size_mode:
         if size:
             pressure_name = "use_pressure_size" if size_pressure else None
-            curve_visibility_name = "show_size_curve" if size_pressure else None
-            # Grease Pencil Sculpt uses size pressure but doesn't map to a custom curve, this is a weird case where we
-            # don't show the dropdown but do show the pressure toggle.
-            # TODO: Add curve support for GP Sculpt
-            if mode == 'SCULPT_GREASE_PENCIL':
-                curve_visibility_name = None
-            UnifiedPaintPanel.prop_unified(
+            unified_row = UnifiedPaintPanel.prop_unified(
                 layout,
                 context,
                 brush,
                 size_prop,
                 unified_name="use_unified_size",
                 pressure_name=pressure_name,
-                curve_visibility_name=curve_visibility_name,
                 text="Size",
                 slider=True,
             )
-        if mode in {'PAINT_TEXTURE', 'PAINT_2D', 'SCULPT', 'PAINT_VERTEX', 'PAINT_WEIGHT', 'SCULPT_CURVES'}:
-            if paint.show_size_curve and not popover:
-                subcol = layout.column()
-                subcol.active = brush.use_pressure_size
-                subcol.template_curve_mapping(brush, "curve_size", brush=True, show_presets=True)
+            if not popover and size_pressure and mode in {
+                'PAINT_TEXTURE',
+                'PAINT_2D',
+                'SCULPT',
+                'PAINT_VERTEX',
+                'PAINT_WEIGHT',
+                    'SCULPT_CURVES'}:
+                UnifiedPaintPanel.prop_custom_pressure(
+                    layout,
+                    context,
+                    unified_row,
+                    brush,
+                    pressure_name=pressure_name,
+                    curve_visibility_name="show_size_curve",
+                    custom_curve_name="curve_size",
+                )
         if size_mode:
             layout.row().prop(size_owner, "use_locked_size", expand=True)
             layout.separator()
 
     if strength:
         pressure_name = "use_pressure_strength" if strength_pressure else None
-        curve_visibility_name = "show_strength_curve" if strength_pressure else None
-        UnifiedPaintPanel.prop_unified(
+        unified_row = UnifiedPaintPanel.prop_unified(
             layout,
             context,
             brush,
             "strength",
             unified_name="use_unified_strength",
             pressure_name=pressure_name,
-            curve_visibility_name=curve_visibility_name,
             slider=True,
         )
-        if mode in {'PAINT_TEXTURE', 'PAINT_2D', 'SCULPT', 'PAINT_VERTEX', 'PAINT_WEIGHT', 'SCULPT_CURVES'}:
-            if paint.show_strength_curve and not popover:
-                subcol = layout.column()
-                subcol.active = brush.use_pressure_strength
-                subcol.template_curve_mapping(brush, "curve_strength", brush=True, show_presets=True)
+        if not popover and strength_pressure and mode in {
+            'PAINT_TEXTURE',
+            'PAINT_2D',
+            'SCULPT',
+            'PAINT_VERTEX',
+            'PAINT_WEIGHT',
+                'SCULPT_CURVES'}:
+            UnifiedPaintPanel.prop_custom_pressure(
+                layout,
+                context,
+                unified_row,
+                brush,
+                pressure_name=pressure_name,
+                curve_visibility_name="show_strength_curve",
+                custom_curve_name="curve_strength",
+            )
         layout.separator()
 
     if direction:
