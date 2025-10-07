@@ -285,7 +285,7 @@ void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, CurveMapS
       cuma->totpoint = 2;
       break;
     case CURVE_PRESET_SHARP:
-      cuma->totpoint = 4;
+      cuma->totpoint = 5;
       break;
     case CURVE_PRESET_SMOOTH:
       cuma->totpoint = 8;
@@ -297,10 +297,10 @@ void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, CurveMapS
       cuma->totpoint = 8;
       break;
     case CURVE_PRESET_ROUND:
-      cuma->totpoint = 4;
+      cuma->totpoint = 6;
       break;
     case CURVE_PRESET_ROOT:
-      cuma->totpoint = 4;
+      cuma->totpoint = 6;
       break;
     case CURVE_PRESET_GAUSS:
       cuma->totpoint = 7;
@@ -339,11 +339,19 @@ void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, CurveMapS
       cuma->curve[0].x = 0;
       cuma->curve[0].y = 1;
       cuma->curve[1].x = 0.25;
-      cuma->curve[1].y = 0.50;
-      cuma->curve[2].x = 0.75;
-      cuma->curve[2].y = 0.04;
-      cuma->curve[3].x = 1;
-      cuma->curve[3].y = 0;
+      cuma->curve[1].y = 0.5625;
+      cuma->curve[2].x = 0.50;
+      cuma->curve[2].y = 0.25;
+      cuma->curve[3].x = 0.75;
+      cuma->curve[3].y = 0.0625;
+      cuma->curve[4].x = 1;
+      cuma->curve[4].y = 0;
+      if (slope == CurveMapSlopeType::PositiveNegative) {
+        cuma->curve[0].flag &= ~CUMA_HANDLE_AUTO_ANIM;
+        cuma->curve[0].flag |= CUMA_HANDLE_VECTOR;
+        cuma->curve[4].flag &= ~CUMA_HANDLE_AUTO_ANIM;
+        cuma->curve[4].flag |= CUMA_HANDLE_VECTOR;
+      }
       break;
     case CURVE_PRESET_SMOOTH:
       cuma->curve[0].x = 0;
@@ -380,21 +388,35 @@ void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, CurveMapS
       cuma->curve[0].x = 0;
       cuma->curve[0].y = 1;
       cuma->curve[1].x = 0.5;
-      cuma->curve[1].y = 0.90;
-      cuma->curve[2].x = 0.86;
-      cuma->curve[2].y = 0.5;
-      cuma->curve[3].x = 1;
-      cuma->curve[3].y = 0;
+      cuma->curve[1].y = 0.866;
+      cuma->curve[2].x = 0.6765;
+      cuma->curve[2].y = 0.7364;
+      cuma->curve[3].x = 0.8582;
+      cuma->curve[3].y = 0.5133;
+      cuma->curve[4].x = 0.967;
+      cuma->curve[4].y = 0.2547;
+      cuma->curve[5].x = 1;
+      cuma->curve[5].y = 0;
       break;
     case CURVE_PRESET_ROOT:
       cuma->curve[0].x = 0;
       cuma->curve[0].y = 1;
       cuma->curve[1].x = 0.25;
-      cuma->curve[1].y = 0.95;
-      cuma->curve[2].x = 0.75;
-      cuma->curve[2].y = 0.44;
-      cuma->curve[3].x = 1;
-      cuma->curve[3].y = 0;
+      cuma->curve[1].y = 0.866;
+      cuma->curve[2].x = 0.5;
+      cuma->curve[2].y = 0.707;
+      cuma->curve[3].x = 0.75;
+      cuma->curve[3].y = 0.5;
+      cuma->curve[4].x = 0.9375;
+      cuma->curve[4].y = 0.25;
+      cuma->curve[5].x = 1;
+      cuma->curve[5].y = 0;
+      if (slope == CurveMapSlopeType::PositiveNegative) {
+        cuma->curve[0].flag &= ~CUMA_HANDLE_AUTO_ANIM;
+        cuma->curve[0].flag |= CUMA_HANDLE_VECTOR;
+        cuma->curve[5].flag &= ~CUMA_HANDLE_AUTO_ANIM;
+        cuma->curve[5].flag |= CUMA_HANDLE_VECTOR;
+      }
       break;
     case CURVE_PRESET_GAUSS:
       cuma->curve[0].x = 0;
