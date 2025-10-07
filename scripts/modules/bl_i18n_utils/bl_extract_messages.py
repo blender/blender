@@ -1107,7 +1107,7 @@ def dump_asset_messages(msgs, reports, settings):
             )
 
             if "sockets" in asset:
-                for socket_name, socket_description in asset["sockets"]:
+                for socket_name, socket_description in sorted(asset["sockets"]):
                     msgsrc = f"Socket name from node group {name}, file {asset_file}"
                     process_msg(
                         msgs, settings.DEFAULT_CONTEXT, socket_name, msgsrc,
