@@ -806,7 +806,7 @@ static void draw_warnings(const bContext *C,
   uiLayout *col = &panel.body->column(false);
   for (const NodeWarning *warning : warnings) {
     const int icon = node_warning_type_icon(warning->type);
-    col->label(warning->message, icon);
+    col->label(RPT_(warning->message), icon);
   }
 }
 

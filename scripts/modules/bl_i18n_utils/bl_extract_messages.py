@@ -1087,6 +1087,10 @@ def dump_asset_messages(msgs, reports, settings):
                     socket_data = asset_data.setdefault("sockets", [])
                     socket_data.append((interface.name, interface.description))
                 assets.append(asset_data)
+                for node in asset.nodes:
+                    if node.bl_idname == "GeometryNodeWarning" and node.inputs['Message'].default_value:
+                        warning_data = asset_data.setdefault("warnings", [])
+                        warning_data.append(node.inputs['Message'].default_value)
 
     for asset_file in sorted(asset_files):
         for asset in sorted(asset_files[asset_file], key=lambda a: a["name"]):
@@ -1112,6 +1116,13 @@ def dump_asset_messages(msgs, reports, settings):
                     msgsrc = f"Socket description from node group {name}, file {asset_file}"
                     process_msg(
                         msgs, settings.DEFAULT_CONTEXT, socket_description, msgsrc,
+                        reports, None, settings,
+                    )
+            if "warnings" in asset:
+                for warning in sorted(asset["warnings"]):
+                    msgsrc = f"Warning from node group {name}, file {asset_file}"
+                    process_msg(
+                        msgs, settings.DEFAULT_CONTEXT, warning, msgsrc,
                         reports, None, settings,
                     )
 
