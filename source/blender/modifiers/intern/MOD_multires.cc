@@ -109,7 +109,7 @@ static blender::bke::subdiv::Subdiv *subdiv_descriptor_ensure(
 
 /* Subdivide into fully qualified mesh. */
 
-static Mesh *multires_as_mesh(MultiresModifierData *mmd,
+static Mesh *multires_as_mesh(const MultiresModifierData *mmd,
                               const ModifierEvalContext *ctx,
                               Mesh *mesh,
                               blender::bke::subdiv::Subdiv *subdiv)
@@ -141,7 +141,7 @@ static Mesh *multires_as_mesh(MultiresModifierData *mmd,
 static void multires_ccg_settings_init(SubdivToCCGSettings *settings,
                                        const MultiresModifierData *mmd,
                                        const ModifierEvalContext *ctx,
-                                       Mesh *mesh)
+                                       const Mesh *mesh)
 {
   const bool has_mask = CustomData_has_layer(&mesh->corner_data, CD_GRID_PAINT_MASK);
   const bool use_render_params = (ctx->flag & MOD_APPLY_RENDER);
