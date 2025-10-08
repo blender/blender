@@ -878,7 +878,7 @@ void BM_data_layer_ensure_named(BMesh *bm, CustomData *data, int type, const Str
   }
 }
 
-void BM_uv_map_attr_select_and_pin_ensure(BMesh *bm)
+void BM_uv_map_attr_pin_ensure_for_all_layers(BMesh *bm)
 {
   const int nr_uv_layers = CustomData_number_of_layers(&bm->ldata, CD_PROP_FLOAT2);
   for (int l = 0; l < nr_uv_layers; l++) {
@@ -889,48 +889,15 @@ void BM_uv_map_attr_select_and_pin_ensure(BMesh *bm)
         bm,
         &bm->ldata,
         CD_PROP_BOOL,
-        BKE_uv_map_vert_select_name_get(CustomData_get_layer_name(&bm->ldata, CD_PROP_FLOAT2, l),
-                                        name));
-    BM_data_layer_ensure_named(
-        bm,
-        &bm->ldata,
-        CD_PROP_BOOL,
-        BKE_uv_map_edge_select_name_get(CustomData_get_layer_name(&bm->ldata, CD_PROP_FLOAT2, l),
-                                        name));
-    BM_data_layer_ensure_named(
-        bm,
-        &bm->ldata,
-        CD_PROP_BOOL,
         BKE_uv_map_pin_name_get(CustomData_get_layer_name(&bm->ldata, CD_PROP_FLOAT2, l), name));
   }
 }
 
-void BM_uv_map_attr_vert_select_ensure(BMesh *bm, const StringRef uv_map_name)
-{
-  char name[MAX_CUSTOMDATA_LAYER_NAME];
-  BM_data_layer_ensure_named(
-      bm, &bm->ldata, CD_PROP_BOOL, BKE_uv_map_vert_select_name_get(uv_map_name, name));
-}
-
-void BM_uv_map_attr_edge_select_ensure(BMesh *bm, const StringRef uv_map_name)
-{
-  char name[MAX_CUSTOMDATA_LAYER_NAME];
-  BM_data_layer_ensure_named(
-      bm, &bm->ldata, CD_PROP_BOOL, BKE_uv_map_edge_select_name_get(uv_map_name, name));
-}
-
-void BM_uv_map_attr_pin_ensure(BMesh *bm, const StringRef uv_map_name)
+void BM_uv_map_attr_pin_ensure_named(BMesh *bm, const StringRef uv_map_name)
 {
   char name[MAX_CUSTOMDATA_LAYER_NAME];
   BM_data_layer_ensure_named(
       bm, &bm->ldata, CD_PROP_BOOL, BKE_uv_map_pin_name_get(uv_map_name, name));
-}
-
-bool BM_uv_map_attr_vert_select_exists(const BMesh *bm, const StringRef uv_map_name)
-{
-  char name[MAX_CUSTOMDATA_LAYER_NAME];
-  return (CustomData_get_named_layer_index(
-              &bm->ldata, CD_PROP_BOOL, BKE_uv_map_vert_select_name_get(uv_map_name, name)) != -1);
 }
 
 bool BM_uv_map_attr_pin_exists(const BMesh *bm, const StringRef uv_map_name)

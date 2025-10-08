@@ -104,19 +104,16 @@ static bool uvedit_ensure_uvs(Object *obedit)
     return false;
   }
 
-  const char *active_uv_name = CustomData_get_active_layer_name(&em->bm->ldata, CD_PROP_FLOAT2);
-  BM_uv_map_attr_vert_select_ensure(em->bm, active_uv_name);
-  BM_uv_map_attr_edge_select_ensure(em->bm, active_uv_name);
-  const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
-
   /* select new UVs (ignore UV_FLAG_SELECT_SYNC in this case) */
+  em->bm->uv_select_sync_valid = false;
   BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
     BMIter liter;
     BMLoop *l;
 
+    BM_elem_flag_enable(l->f, BM_ELEM_SELECT_UV);
     BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-      BM_ELEM_CD_SET_BOOL(l, offsets.select_vert, true);
-      BM_ELEM_CD_SET_BOOL(l, offsets.select_edge, true);
+      BM_elem_flag_enable(l, BM_ELEM_SELECT_UV);
+      BM_elem_flag_enable(l, BM_ELEM_SELECT_UV_EDGE);
     }
   }
 
@@ -2667,7 +2664,7 @@ static void uv_map_clip_correct(const Scene *scene,
           continue;
         }
 
-        if (only_selected_uvs && !uvedit_face_select_test(scene, em->bm, efa, offsets)) {
+        if (only_selected_uvs && !uvedit_face_select_test(scene, em->bm, efa)) {
           continue;
         }
 
@@ -2684,7 +2681,7 @@ static void uv_map_clip_correct(const Scene *scene,
           continue;
         }
 
-        if (only_selected_uvs && !uvedit_face_select_test(scene, em->bm, efa, offsets)) {
+        if (only_selected_uvs && !uvedit_face_select_test(scene, em->bm, efa)) {
           continue;
         }
 
@@ -2722,7 +2719,7 @@ static void uv_map_clip_correct(const Scene *scene,
           continue;
         }
 
-        if (only_selected_uvs && !uvedit_face_select_test(scene, em->bm, efa, offsets)) {
+        if (only_selected_uvs && !uvedit_face_select_test(scene, em->bm, efa)) {
           continue;
         }
 
@@ -3258,8 +3255,8 @@ static wmOperatorStatus smart_project_exec(bContext *C, wmOperator *op)
       }
 
       if (only_selected_uvs) {
-        if (!uvedit_face_select_test(scene, em->bm, efa, offsets)) {
-          uvedit_face_select_disable(scene, em->bm, efa, offsets);
+        if (!uvedit_face_select_test(scene, em->bm, efa)) {
+          uvedit_face_select_disable(scene, em->bm, efa);
           continue;
         }
       }
@@ -3851,8 +3848,8 @@ static float uv_sphere_project(const Scene *scene,
     }
 
     if (only_selected_uvs) {
-      if (!uvedit_face_select_test(scene, bm, efa, offsets)) {
-        uvedit_face_select_disable(scene, bm, efa, offsets);
+      if (!uvedit_face_select_test(scene, bm, efa)) {
+        uvedit_face_select_disable(scene, bm, efa);
         continue; /* Unselected UV, ignore. */
       }
     }
@@ -4027,8 +4024,8 @@ static float uv_cylinder_project(const Scene *scene,
     }
 
     if (only_selected_uvs) {
-      if (!uvedit_face_select_test(scene, bm, efa, offsets)) {
-        uvedit_face_select_disable(scene, bm, efa, offsets);
+      if (!uvedit_face_select_test(scene, bm, efa)) {
+        uvedit_face_select_disable(scene, bm, efa);
         continue; /* Unselected UV, ignore. */
       }
     }
@@ -4123,8 +4120,8 @@ static wmOperatorStatus cylinder_project_exec(bContext *C, wmOperator *op)
         continue;
       }
 
-      if (only_selected_uvs && !uvedit_face_select_test(scene, em->bm, efa, offsets)) {
-        uvedit_face_select_disable(scene, em->bm, efa, offsets);
+      if (only_selected_uvs && !uvedit_face_select_test(scene, em->bm, efa)) {
+        uvedit_face_select_disable(scene, em->bm, efa);
         continue;
       }
 
@@ -4208,8 +4205,8 @@ static void uvedit_unwrap_cube_project(const Scene *scene,
     if (use_select && !BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
       continue;
     }
-    if (only_selected_uvs && !uvedit_face_select_test(scene, bm, efa, offsets)) {
-      uvedit_face_select_disable(scene, bm, efa, offsets);
+    if (only_selected_uvs && !uvedit_face_select_test(scene, bm, efa)) {
+      uvedit_face_select_disable(scene, bm, efa);
       continue;
     }
 
@@ -4340,7 +4337,7 @@ void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob)
   BM_mesh_bm_from_me(bm, mesh, &bm_from_me_params);
 
   /* Select all UVs for cube_project. */
-  ED_uvedit_select_all(bm);
+  ED_uvedit_select_all(scene->toolsettings, bm);
   /* A cube size of 2.0 maps [-1..1] vertex coords to [0.0..1.0] in UV coords. */
   uvedit_unwrap_cube_project(scene, bm, 2.0, false, false, nullptr);
 

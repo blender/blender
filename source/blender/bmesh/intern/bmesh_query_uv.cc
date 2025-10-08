@@ -31,10 +31,6 @@ BMUVOffsets BM_uv_map_offsets_from_layer(const BMesh *bm, const int layer)
 
   BMUVOffsets offsets;
   offsets.uv = bm->ldata.layers[layer_index].offset;
-  offsets.select_vert = CustomData_get_offset_named(
-      &bm->ldata, CD_PROP_BOOL, BKE_uv_map_vert_select_name_get(name, buffer));
-  offsets.select_edge = CustomData_get_offset_named(
-      &bm->ldata, CD_PROP_BOOL, BKE_uv_map_edge_select_name_get(name, buffer));
   offsets.pin = CustomData_get_offset_named(
       &bm->ldata, CD_PROP_BOOL, BKE_uv_map_pin_name_get(name, buffer));
 

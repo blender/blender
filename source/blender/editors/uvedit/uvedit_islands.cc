@@ -92,16 +92,14 @@ static bool uvedit_is_face_affected_for_calc_uv_islands(const Scene *scene,
                                                         const BMesh *bm,
                                                         BMFace *efa,
                                                         const bool only_selected_faces,
-                                                        const bool only_selected_uvs,
-                                                        const BMUVOffsets &uv_offsets)
+                                                        const bool only_selected_uvs)
 {
   if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
     return false;
   }
   if (only_selected_faces) {
     if (only_selected_uvs) {
-      return BM_elem_flag_test(efa, BM_ELEM_SELECT) &&
-             uvedit_face_select_test(scene, bm, efa, uv_offsets);
+      return BM_elem_flag_test(efa, BM_ELEM_SELECT) && uvedit_face_select_test(scene, bm, efa);
     }
     return BM_elem_flag_test(efa, BM_ELEM_SELECT);
   }
@@ -130,7 +128,7 @@ int bm_mesh_calc_uv_islands(const Scene *scene,
   BMIter iter;
   BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
     const bool face_affected = uvedit_is_face_affected_for_calc_uv_islands(
-        scene, bm, f, only_selected_faces, only_selected_uvs, uv_offsets);
+        scene, bm, f, only_selected_faces, only_selected_uvs);
     BM_elem_flag_set(f, BM_ELEM_TAG, face_affected);
   }
 

@@ -1710,15 +1710,7 @@ void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh)
         [](const uint32_t a, const uint32_t b) { return a | b; });
 
     float2 *coords = MEM_malloc_arrayN<float2>(size_t(mesh->corners_num), __func__);
-    bool *vert_selection = nullptr;
-    bool *edge_selection = nullptr;
     bool *pin = nullptr;
-    if (needed_boolean_attributes & MLOOPUV_VERTSEL) {
-      vert_selection = MEM_malloc_arrayN<bool>(size_t(mesh->corners_num), __func__);
-    }
-    if (needed_boolean_attributes & MLOOPUV_EDGESEL) {
-      edge_selection = MEM_malloc_arrayN<bool>(size_t(mesh->corners_num), __func__);
-    }
     if (needed_boolean_attributes & MLOOPUV_PINNED) {
       pin = MEM_malloc_arrayN<bool>(size_t(mesh->corners_num), __func__);
     }
@@ -1726,16 +1718,6 @@ void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh)
     threading::parallel_for(IndexRange(mesh->corners_num), 4096, [&](IndexRange range) {
       for (const int i : range) {
         coords[i] = mloopuv[i].uv;
-      }
-      if (vert_selection) {
-        for (const int i : range) {
-          vert_selection[i] = mloopuv[i].flag & MLOOPUV_VERTSEL;
-        }
-      }
-      if (edge_selection) {
-        for (const int i : range) {
-          edge_selection[i] = mloopuv[i].flag & MLOOPUV_EDGESEL;
-        }
       }
       if (pin) {
         for (const int i : range) {
@@ -1753,22 +1735,6 @@ void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh)
     CustomData_add_layer_named_with_data(
         &mesh->corner_data, CD_PROP_FLOAT2, coords, mesh->corners_num, new_name, nullptr);
     char buffer[MAX_CUSTOMDATA_LAYER_NAME];
-    if (vert_selection) {
-      CustomData_add_layer_named_with_data(&mesh->corner_data,
-                                           CD_PROP_BOOL,
-                                           vert_selection,
-                                           mesh->corners_num,
-                                           BKE_uv_map_vert_select_name_get(new_name, buffer),
-                                           nullptr);
-    }
-    if (edge_selection) {
-      CustomData_add_layer_named_with_data(&mesh->corner_data,
-                                           CD_PROP_BOOL,
-                                           edge_selection,
-                                           mesh->corners_num,
-                                           BKE_uv_map_edge_select_name_get(new_name, buffer),
-                                           nullptr);
-    }
     if (pin) {
       CustomData_add_layer_named_with_data(&mesh->corner_data,
                                            CD_PROP_BOOL,
@@ -2621,7 +2587,78 @@ void mesh_custom_normals_to_generic(Mesh &mesh)
   }
 }
 
-//
+void mesh_uv_select_to_single_attribute(Mesh &mesh)
+{
+  const char *name = CustomData_get_active_layer_name(&mesh.corner_data, CD_PROP_FLOAT2);
+  if (!name) {
+    return;
+  }
+  const std::string uv_select_vert_name_shared = ".uv_select_vert";
+  const std::string uv_select_edge_name_shared = ".uv_select_edge";
+  const std::string uv_select_face_name_shared = ".uv_select_face";
+
+  const std::string uv_select_vert_prefix = ".vs.";
+  const std::string uv_select_edge_prefix = ".es.";
+
+  const std::string uv_select_vert_name = uv_select_vert_prefix + name;
+  const std::string uv_select_edge_name = uv_select_edge_prefix + name;
+
+  const int uv_select_vert = CustomData_get_named_layer_index(
+      &mesh.corner_data, CD_PROP_BOOL, uv_select_vert_name);
+  const int uv_select_edge = CustomData_get_named_layer_index(
+      &mesh.corner_data, CD_PROP_BOOL, uv_select_edge_name);
+
+  if (uv_select_vert != -1 && uv_select_edge != -1) {
+    /* Unlikely either exist but ensure there are no duplicate names. */
+    CustomData_free_layer_named(&mesh.corner_data, uv_select_vert_name_shared);
+    CustomData_free_layer_named(&mesh.corner_data, uv_select_edge_name_shared);
+    CustomData_free_layer_named(&mesh.face_data, uv_select_face_name_shared);
+
+    STRNCPY_UTF8(mesh.corner_data.layers[uv_select_vert].name, uv_select_vert_name_shared.c_str());
+    STRNCPY_UTF8(mesh.corner_data.layers[uv_select_edge].name, uv_select_edge_name_shared.c_str());
+
+    bool *uv_select_face = MEM_malloc_arrayN<bool>(mesh.faces_num, __func__);
+    CustomData_add_layer_named_with_data(&mesh.face_data,
+                                         CD_PROP_BOOL,
+                                         uv_select_face,
+                                         mesh.faces_num,
+                                         uv_select_face_name_shared,
+                                         nullptr);
+
+    /* Create a face selection layer (flush from edges). */
+    if (mesh.faces_num > 0) {
+      const OffsetIndices<int> faces = mesh.faces();
+      const Span<bool> uv_select_edge_data(
+          static_cast<bool *>(mesh.corner_data.layers[uv_select_edge].data), mesh.corners_num);
+      threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {
+        for (const int face : range) {
+          uv_select_face[face] = !uv_select_edge_data.slice(faces[face]).contains(false);
+        }
+      });
+    }
+  }
+
+  /* Logically a set as names are expected to be unique.
+   * If there are duplicates, this will remove those too. */
+  Vector<std::string> attributes_to_remove;
+  for (const int i : IndexRange(mesh.corner_data.totlayer)) {
+    const CustomDataLayer &layer = mesh.corner_data.layers[i];
+    if (layer.type != CD_PROP_BOOL) {
+      continue;
+    }
+    StringRef layer_name = StringRef(layer.name);
+    if (layer_name.startswith(uv_select_vert_prefix) ||
+        layer_name.startswith(uv_select_edge_prefix))
+    {
+      attributes_to_remove.append(layer.name);
+    }
+  }
+
+  for (const StringRef name_to_remove : attributes_to_remove) {
+    CustomData_free_layer_named(&mesh.corner_data, name_to_remove);
+  }
+}
+
 }  // namespace blender::bke
 
 /** \} */

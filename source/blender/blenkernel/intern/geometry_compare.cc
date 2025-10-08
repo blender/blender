@@ -526,8 +526,8 @@ static bool sort_faces_based_on_corners(const IndexMapping &corners,
   return true;
 }
 
-/*
- * The uv selection / pin layers are ignored in the comparisons because
+/**
+ * The UV selection & pin layers are ignored in the comparisons because
  * the original flags they replace were ignored as well. Because of the
  * lazy creation of these layers it would need careful handling of the
  * test files to compare these layers. For now it has been decided to
@@ -535,8 +535,8 @@ static bool sort_faces_based_on_corners(const IndexMapping &corners,
  */
 static bool ignored_attribute(const StringRef id)
 {
-  return attribute_name_is_anonymous(id) || id.startswith(".vs.") || id.startswith(".es.") ||
-         id.startswith(".pn.");
+  return attribute_name_is_anonymous(id) || id.startswith(".pn.") ||
+         ELEM(id, ".uv_select_vert", ".uv_select_edge", ".uv_select_face");
 }
 
 /**

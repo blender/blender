@@ -776,11 +776,11 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
     if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
       bool is_all = true;
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-        if (uvedit_loop_vert_select_get(ts, bm, l, offsets)) {
-          if (uvedit_loop_edge_select_get(ts, bm, l, offsets)) {
+        if (uvedit_loop_vert_select_get(ts, bm, l)) {
+          if (uvedit_loop_edge_select_get(ts, bm, l)) {
             UL(l)->is_select_edge = true;
           }
-          else if (!uvedit_loop_edge_select_get(ts, bm, l->prev, offsets)) {
+          else if (!uvedit_loop_edge_select_get(ts, bm, l->prev)) {
             /* #bm_loop_uv_select_single_vert_validate validates below. */
             UL(l)->is_select_vert_single = true;
             is_all = false;
@@ -824,12 +824,12 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
     BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
         if (!UL(l)->is_select_all) {
-          if (uvedit_loop_vert_select_get(ts, bm, l, offsets)) {
-            uvedit_loop_vert_select_set(ts, bm, l, false, offsets);
+          if (uvedit_loop_vert_select_get(ts, bm, l)) {
+            uvedit_loop_vert_select_set(ts, bm, l, false);
             changed = true;
           }
-          if (uvedit_loop_edge_select_get(ts, bm, l, offsets)) {
-            uvedit_loop_edge_select_set(ts, bm, l, false, offsets);
+          if (uvedit_loop_edge_select_get(ts, bm, l)) {
+            uvedit_loop_edge_select_set(ts, bm, l, false);
             changed = true;
           }
         }
@@ -862,7 +862,7 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
               BMLoop *l_iter = static_cast<BMLoop *>(BLI_gsetIterator_getKey(&gs_iter));
               ULData *ul = UL(l_iter);
               if (ul->side == side_from_cursor) {
-                uvedit_uv_select_disable(scene, bm, l_iter, offsets);
+                uvedit_uv_select_disable(scene, bm, l_iter);
                 changed = true;
               }
               /* Ensure we don't operate on these again. */
@@ -880,7 +880,7 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
             BMLoop *l_iter = static_cast<BMLoop *>(BLI_gsetIterator_getKey(&gs_iter));
             ULData *ul = UL(l_iter);
             if (ul->side == side_from_cursor) {
-              uvedit_uv_select_disable(scene, bm, l_iter, offsets);
+              uvedit_uv_select_disable(scene, bm, l_iter);
               changed = true;
             }
             /* Ensure we don't operate on these again. */

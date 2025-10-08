@@ -257,17 +257,17 @@ bool ED_uvedit_minmax_multi(const Scene *scene,
   return changed;
 }
 
-void ED_uvedit_select_all(BMesh *bm)
+void ED_uvedit_select_all(const ToolSettings *ts, BMesh *bm)
 {
   BMFace *efa;
   BMLoop *l;
   BMIter iter, liter;
-  const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
   BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+    uvedit_face_select_set_no_sync(ts, bm, efa, true);
     BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-      BM_ELEM_CD_SET_BOOL(l, offsets.select_vert, true);
-      BM_ELEM_CD_SET_BOOL(l, offsets.select_edge, true);
+      uvedit_vert_select_set_no_sync(ts, bm, l, true);
+      uvedit_edge_select_set_no_sync(ts, bm, l, true);
     }
   }
 }
@@ -1724,10 +1724,8 @@ static wmOperatorStatus uv_pin_exec(bContext *C, wmOperator *op)
   BMFace *efa;
   BMLoop *l;
   BMIter iter, liter;
-  const ToolSettings *ts = scene->toolsettings;
   const bool clear = RNA_boolean_get(op->ptr, "clear");
   const bool invert = RNA_boolean_get(op->ptr, "invert");
-  const bool synced_selection = (ts->uv_flag & UV_FLAG_SELECT_SYNC) != 0;
 
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       scene, view_layer, nullptr);
@@ -1741,20 +1739,12 @@ static wmOperatorStatus uv_pin_exec(bContext *C, wmOperator *op)
     if (em->bm->totvertsel == 0) {
       continue;
     }
-    if (synced_selection) {
-      /* Pass. */
-    }
-    else {
-      if (!BM_uv_map_attr_vert_select_exists(em->bm, active_uv_name)) {
-        continue;
-      }
-    }
 
     if (clear && !BM_uv_map_attr_pin_exists(em->bm, active_uv_name)) {
       continue;
     }
 
-    BM_uv_map_attr_pin_ensure(em->bm, active_uv_name);
+    BM_uv_map_attr_pin_ensure_named(em->bm, active_uv_name);
     const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
 
     BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
@@ -1820,19 +1810,24 @@ static void UV_OT_pin(wmOperatorType *ot)
 
 /* check if we are selected or unselected based on 'bool_test' arg,
  * needed for select swap support */
-#define UV_VERT_SEL_TEST(l, bool_test) (BM_ELEM_CD_GET_BOOL(l, offsets.select_vert) == bool_test)
+#define UV_VERT_SEL_TEST(ts, bm, l, bool_test) \
+  (uvedit_vert_select_get_no_sync(ts, bm, l) == bool_test)
 
-#define UV_EDGE_SEL_TEST(l, bool_test) (BM_ELEM_CD_GET_BOOL(l, offsets.select_edge) == bool_test)
+#define UV_EDGE_SEL_TEST(ts, bm, l, bool_test) \
+  (uvedit_edge_select_get_no_sync(ts, bm, l) == bool_test)
 
 /* is every UV vert selected or unselected depending on bool_test */
-static bool bm_face_is_all_uv_sel(BMFace *f, bool select_test, const BMUVOffsets &offsets)
+static bool bm_face_is_all_uv_sel(const ToolSettings *ts,
+                                  const BMesh *bm,
+                                  BMFace *f,
+                                  bool select_test)
 {
   BMLoop *l_iter;
   BMLoop *l_first;
 
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
   do {
-    if (!UV_EDGE_SEL_TEST(l_iter, select_test)) {
+    if (!UV_EDGE_SEL_TEST(ts, bm, l_iter, select_test)) {
       return false;
     }
   } while ((l_iter = l_iter->next) != l_first);
@@ -1980,17 +1975,6 @@ static wmOperatorStatus uv_hide_exec(bContext *C, wmOperator *op)
     BMIter iter, liter;
 
     if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
-      /* Pass. */
-    }
-    else {
-      const char *active_uv_name = CustomData_get_active_layer_name(&em->bm->ldata,
-                                                                    CD_PROP_FLOAT2);
-      BM_uv_map_attr_vert_select_ensure(em->bm, active_uv_name);
-      BM_uv_map_attr_edge_select_ensure(em->bm, active_uv_name);
-    }
-    const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
-
-    if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
       uv_mesh_hide_sync_select(ts, ob, em, swap);
       continue;
     }
@@ -2004,7 +1988,7 @@ static wmOperatorStatus uv_hide_exec(bContext *C, wmOperator *op)
 
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 
-        if (UV_VERT_SEL_TEST(l, !swap) || UV_EDGE_SEL_TEST(l, !swap)) {
+        if (UV_VERT_SEL_TEST(ts, em->bm, l, !swap) || UV_EDGE_SEL_TEST(ts, em->bm, l, !swap)) {
           hide = 1;
           break;
         }
@@ -2014,26 +1998,29 @@ static wmOperatorStatus uv_hide_exec(bContext *C, wmOperator *op)
         if (use_face_center) {
           if (em->selectmode == SCE_SELECT_FACE) {
             /* Deselect BMesh face if UV face is (de)selected depending on #swap. */
-            if (bm_face_is_all_uv_sel(efa, !swap, offsets)) {
+            if (bm_face_is_all_uv_sel(ts, em->bm, efa, !swap)) {
               BM_face_select_set(em->bm, efa, false);
             }
-            uvedit_face_select_disable(scene, em->bm, efa, offsets);
+            uvedit_face_select_disable(scene, em->bm, efa);
           }
           else {
-            if (bm_face_is_all_uv_sel(efa, true, offsets) == !swap) {
+            if (bm_face_is_all_uv_sel(ts, em->bm, efa, true) == !swap) {
               BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
                 /* For both cases rely on edge sel tests, since all vert sel tests are invalid in
                  * case of sticky selections. */
-                if (UV_EDGE_SEL_TEST(l, !swap) && (em->selectmode == SCE_SELECT_EDGE)) {
+                if (UV_EDGE_SEL_TEST(ts, em->bm, l, !swap) && (em->selectmode == SCE_SELECT_EDGE))
+                {
                   BM_edge_select_set(em->bm, l->e, false);
                 }
-                else if (UV_EDGE_SEL_TEST(l, !swap) && (em->selectmode == SCE_SELECT_VERTEX)) {
+                else if (UV_EDGE_SEL_TEST(ts, em->bm, l, !swap) &&
+                         (em->selectmode == SCE_SELECT_VERTEX))
+                {
                   BM_vert_select_set(em->bm, l->v, false);
                 }
               }
             }
             if (!swap) {
-              uvedit_face_select_disable(scene, em->bm, efa, offsets);
+              uvedit_face_select_disable(scene, em->bm, efa);
             }
           }
         }
@@ -2041,11 +2028,11 @@ static wmOperatorStatus uv_hide_exec(bContext *C, wmOperator *op)
           /* Deselect BMesh face depending on the type of UV selectmode and the type of UV element
            * being considered. */
           BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-            if (UV_EDGE_SEL_TEST(l, !swap) && (ts->uv_selectmode == UV_SELECT_EDGE)) {
+            if (UV_EDGE_SEL_TEST(ts, em->bm, l, !swap) && (ts->uv_selectmode == UV_SELECT_EDGE)) {
               BM_face_select_set(em->bm, efa, false);
               break;
             }
-            if (UV_VERT_SEL_TEST(l, !swap) && (ts->uv_selectmode == UV_SELECT_VERT)) {
+            if (UV_VERT_SEL_TEST(ts, em->bm, l, !swap) && (ts->uv_selectmode == UV_SELECT_VERT)) {
               BM_face_select_set(em->bm, efa, false);
               break;
             }
@@ -2054,11 +2041,11 @@ static wmOperatorStatus uv_hide_exec(bContext *C, wmOperator *op)
               break;
             }
           }
-          uvedit_face_select_disable(scene, em->bm, efa, offsets);
+          uvedit_face_select_disable(scene, em->bm, efa);
         }
         else {
           BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-            if (UV_EDGE_SEL_TEST(l, !swap) && (ts->uv_selectmode == UV_SELECT_EDGE)) {
+            if (UV_EDGE_SEL_TEST(ts, em->bm, l, !swap) && (ts->uv_selectmode == UV_SELECT_EDGE)) {
               if (em->selectmode == SCE_SELECT_EDGE) {
                 BM_edge_select_set(em->bm, l->e, false);
               }
@@ -2067,7 +2054,9 @@ static wmOperatorStatus uv_hide_exec(bContext *C, wmOperator *op)
                 BM_vert_select_set(em->bm, l->next->v, false);
               }
             }
-            else if (UV_VERT_SEL_TEST(l, !swap) && (ts->uv_selectmode != UV_SELECT_EDGE)) {
+            else if (UV_VERT_SEL_TEST(ts, em->bm, l, !swap) &&
+                     (ts->uv_selectmode != UV_SELECT_EDGE))
+            {
               if (em->selectmode == SCE_SELECT_EDGE) {
                 BM_edge_select_set(em->bm, l->e, false);
               }
@@ -2077,7 +2066,7 @@ static wmOperatorStatus uv_hide_exec(bContext *C, wmOperator *op)
             }
           }
           if (!swap) {
-            uvedit_face_select_disable(scene, em->bm, efa, offsets);
+            uvedit_face_select_disable(scene, em->bm, efa);
           }
         }
       }
@@ -2145,17 +2134,6 @@ static wmOperatorStatus uv_reveal_exec(bContext *C, wmOperator *op)
     BMLoop *l;
     BMIter iter, liter;
 
-    if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
-      /* Pass. */
-    }
-    else {
-      const char *active_uv_name = CustomData_get_active_layer_name(&em->bm->ldata,
-                                                                    CD_PROP_FLOAT2);
-      BM_uv_map_attr_vert_select_ensure(em->bm, active_uv_name);
-      BM_uv_map_attr_edge_select_ensure(em->bm, active_uv_name);
-    }
-    const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
-
     /* NOTE: Selecting faces is delayed so that it doesn't select verts/edges and confuse certain
      * UV selection checks.
      * This creates a temporary state which breaks certain UV selection functions that do face
@@ -2184,9 +2162,10 @@ static wmOperatorStatus uv_reveal_exec(bContext *C, wmOperator *op)
           BM_elem_flag_disable(efa, BM_ELEM_TAG);
           if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN) && !BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
             BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-              BM_ELEM_CD_SET_BOOL(l, offsets.select_vert, select);
-              BM_ELEM_CD_SET_BOOL(l, offsets.select_edge, select);
+              uvedit_vert_select_set_no_sync(ts, em->bm, l, select);
+              uvedit_edge_select_set_no_sync(ts, em->bm, l, select);
             }
+            uvedit_face_select_set_no_sync(ts, em->bm, efa, select);
             // BM_face_select_set(em->bm, efa, true);
             BM_elem_flag_enable(efa, BM_ELEM_TAG);
           }
@@ -2209,10 +2188,11 @@ static wmOperatorStatus uv_reveal_exec(bContext *C, wmOperator *op)
             if (!totsel) {
               BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 
-                BM_ELEM_CD_SET_BOOL(l, offsets.select_vert, select);
-                BM_ELEM_CD_SET_BOOL(l, offsets.select_edge, select);
+                uvedit_vert_select_set_no_sync(ts, em->bm, l, select);
+                uvedit_edge_select_set_no_sync(ts, em->bm, l, select);
               }
             }
+            uvedit_face_select_set_no_sync(ts, em->bm, efa, select);
             // BM_face_select_set(em->bm, efa, true);
             BM_elem_flag_enable(efa, BM_ELEM_TAG);
           }
@@ -2224,9 +2204,10 @@ static wmOperatorStatus uv_reveal_exec(bContext *C, wmOperator *op)
         BM_elem_flag_disable(efa, BM_ELEM_TAG);
         if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN) && !BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
           BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-            BM_ELEM_CD_SET_BOOL(l, offsets.select_vert, select);
-            BM_ELEM_CD_SET_BOOL(l, offsets.select_edge, select);
+            uvedit_vert_select_set_no_sync(ts, em->bm, l, select);
+            uvedit_edge_select_set_no_sync(ts, em->bm, l, select);
           }
+          uvedit_face_select_set_no_sync(ts, em->bm, efa, select);
           // BM_face_select_set(em->bm, efa, true);
           BM_elem_flag_enable(efa, BM_ELEM_TAG);
         }
@@ -2237,9 +2218,10 @@ static wmOperatorStatus uv_reveal_exec(bContext *C, wmOperator *op)
         BM_elem_flag_disable(efa, BM_ELEM_TAG);
         if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN) && !BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
           BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-            BM_ELEM_CD_SET_BOOL(l, offsets.select_vert, select);
-            BM_ELEM_CD_SET_BOOL(l, offsets.select_edge, select);
+            uvedit_vert_select_set_no_sync(ts, em->bm, l, select);
+            uvedit_edge_select_set_no_sync(ts, em->bm, l, select);
           }
+          uvedit_face_select_set_no_sync(ts, em->bm, efa, select);
           // BM_face_select_set(em->bm, efa, true);
           BM_elem_flag_enable(efa, BM_ELEM_TAG);
         }
@@ -2553,6 +2535,7 @@ static bool uv_copy_mirrored_faces(
 
   const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
   BLI_assert(offsets.uv != -1);
+  UNUSED_VARS_NDEBUG(offsets);
   BMVert *v;
   BMIter iter;
 
@@ -2632,9 +2615,7 @@ static bool uv_copy_mirrored_faces(
   for (const auto &[f_dst, f_src] : face_map.items()) {
 
     /* Skip unless both faces have all their UVs selected. */
-    if (!uvedit_face_select_test(scene, bm, f_dst, offsets) ||
-        !uvedit_face_select_test(scene, bm, f_src, offsets))
-    {
+    if (!uvedit_face_select_test(scene, bm, f_dst) || !uvedit_face_select_test(scene, bm, f_src)) {
       continue;
     }
 

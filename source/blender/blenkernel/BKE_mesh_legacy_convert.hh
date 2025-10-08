@@ -20,6 +20,8 @@ struct CustomDataLayer;
 
 namespace blender::bke {
 
+void mesh_uv_select_to_single_attribute(Mesh &mesh);
+
 void mesh_custom_normals_to_generic(Mesh &mesh);
 
 void mesh_sculpt_mask_to_generic(Mesh &mesh);

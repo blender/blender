@@ -335,7 +335,7 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
   mesh->runtime->subsurf_face_dot_tags.clear_and_shrink();
   mesh->runtime->subsurf_optimal_display_edges.clear_and_shrink();
   mesh->runtime->spatial_groups.reset();
-  mesh->flag &= ~ME_NO_OVERLAPPING_TOPOLOGY;
+  mesh->flag &= ~(ME_NO_OVERLAPPING_TOPOLOGY | ME_FLAG_UV_SELECT_SYNC_VALID);
 }
 
 void Mesh::tag_edges_split()
