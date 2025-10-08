@@ -875,20 +875,16 @@ bool GPU_stack_link_zone(GPUMaterial *material,
 {
   GPUNodeGraph *graph = gpu_material_node_graph(material);
   GPUNode *node;
-  int i, totin, totout;
+  int i;
 
   node = gpu_node_create(name);
   node->zone_index = zone_index;
   node->is_zone_end = is_zone_end;
 
-  totin = 0;
-  totout = 0;
-
   if (in) {
     for (i = 0; !in[i].end; i++) {
       if (in[i].type != GPU_NONE) {
         gpu_node_input_socket(material, bnode, node, &in[i], i);
-        totin++;
       }
     }
   }
@@ -897,7 +893,6 @@ bool GPU_stack_link_zone(GPUMaterial *material,
     for (i = 0; !out[i].end; i++) {
       if (out[i].type != GPU_NONE) {
         gpu_node_output(node, out[i].type, &out[i].link);
-        totout++;
       }
     }
   }
