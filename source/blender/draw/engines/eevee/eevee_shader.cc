@@ -533,6 +533,12 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_surfel_light";
     case SURFEL_LIST_BUILD:
       return "eevee_surfel_list_build";
+    case SURFEL_LIST_FLATTEN:
+      return "eevee_surfel_list_flatten";
+    case SURFEL_LIST_PREFIX:
+      return "eevee_surfel_list_prefix";
+    case SURFEL_LIST_PREPARE:
+      return "eevee_surfel_list_prepare";
     case SURFEL_LIST_SORT:
       return "eevee_surfel_list_sort";
     case SURFEL_RAY:

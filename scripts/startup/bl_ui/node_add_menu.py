@@ -315,7 +315,11 @@ class NodeMenu(Menu):
             if groups:
                 layout.separator()
                 for group in groups:
-                    props = cls.node_operator(layout, node_tree_group_type[group.bl_idname], label=group.name)
+                    search_weight = -1.0 if group.is_linked_packed else 0.0
+                    props = cls.node_operator(layout,
+                                              node_tree_group_type[group.bl_idname],
+                                              label=group.name,
+                                              search_weight=search_weight)
                     ops = props.settings.add()
                     ops.name = "node_tree"
                     ops.value = "bpy.data.node_groups[{!r}]".format(group.name)
