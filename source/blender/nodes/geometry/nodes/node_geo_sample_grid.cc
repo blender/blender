@@ -227,24 +227,30 @@ class SampleGridFunction : public mf::MultiFunction {
 static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_OPENVDB
-  const bNode &node = params.node();
-  const eNodeSocketDatatype data_type = eNodeSocketDatatype(node.custom1);
-  const auto interpolation = params.get_input<InterpolationMode>("Interpolation");
-
   bke::GVolumeGrid grid = params.extract_input<bke::GVolumeGrid>("Grid");
   if (!grid) {
     params.set_default_remaining_outputs();
     return;
   }
 
-  auto fn = std::make_shared<SampleGridFunction>(std::move(grid), interpolation);
-  auto op = FieldOperation::from(std::move(fn), {params.extract_input<Field<float3>>("Position")});
+  const auto interpolation = params.get_input<InterpolationMode>("Interpolation");
+  bke::SocketValueVariant position = params.extract_input<bke::SocketValueVariant>("Position");
 
-  const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
-  const CPPType &output_type = *bke::socket_type_to_geo_nodes_base_cpp_type(data_type);
-  const GField output_field = conversions.try_convert(fn::GField(std::move(op)), output_type);
-  params.set_output("Value", std::move(output_field));
+  std::string error_message;
+  bke::SocketValueVariant output_value;
+  if (!execute_multi_function_on_value_variant(
+          std::make_shared<SampleGridFunction>(std::move(grid), interpolation),
+          {&position},
+          {&output_value},
+          params.user_data(),
+          error_message))
+  {
+    params.set_default_remaining_outputs();
+    params.error_message_add(NodeWarningType::Error, std::move(error_message));
+    return;
+  }
 
+  params.set_output("Value", std::move(output_value));
 #else
   node_geo_exec_with_missing_openvdb(params);
 #endif
