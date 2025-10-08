@@ -58,6 +58,9 @@ struct BMUVOffsets {
   int pin;
 };
 
+/** All values reference none layers. */
+#define BMUVOFFSETS_NONE {-1, -1, -1, -1}
+
 /* A data type large enough to hold 1 element from any custom-data layer type. */
 struct CDBlockBytes {
   unsigned char data[64];
