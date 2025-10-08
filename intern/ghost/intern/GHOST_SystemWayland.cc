@@ -1719,7 +1719,7 @@ struct GWL_RegisteryAdd_Params {
  * \note Any operations that depend on other interfaces being registered must be performed in the
  * #GWL_RegistryHandler_UpdateFn callback as the order interfaces are added is out of our control.
  *
- * \param display: The display which holes a reference to the global object.
+ * \param display: The display which holds a reference to the global object.
  * \param params: Various arguments needed for registration.
  */
 using GWL_RegistryHandler_AddFn = void (*)(GWL_Display *display,
@@ -1738,7 +1738,7 @@ struct GWL_RegisteryUpdate_Params {
 /**
  * Optional update callback to refresh internal data when another interface has been added/removed.
  *
- * \param display: The display which holes a reference to the global object.
+ * \param display: The display which holds a reference to the global object.
  * \param params: Various arguments needed for updating.
  */
 using GWL_RegistryHandler_UpdateFn = void (*)(GWL_Display *display,
@@ -1746,7 +1746,7 @@ using GWL_RegistryHandler_UpdateFn = void (*)(GWL_Display *display,
 
 /**
  * Remove callback for object registry.
- * \param display: The display which holes a reference to the global object.
+ * \param display: The display which holds a reference to the global object.
  * \param user_data: Optional reference to a sub element of `display`,
  * use for outputs or seats, for example when the display may hold multiple references.
  * \param on_exit: Enabled when freeing on exit.
@@ -5535,7 +5535,7 @@ static bool xkb_compose_state_feed_and_get_utf8(
  */
 static void keyboard_handle_key_repeat_cancel(GWL_Seat *seat)
 {
-  GHOST_ASSERT(seat->key_repeat.timer != nullptr, "Caller much check for timer");
+  GHOST_ASSERT(seat->key_repeat.timer != nullptr, "Caller must check for timer");
   delete static_cast<GWL_KeyRepeatPlayload *>(seat->key_repeat.timer->getUserData());
 
   gwl_seat_key_repeat_timer_remove(seat);
@@ -5550,7 +5550,7 @@ static void keyboard_handle_key_repeat_cancel(GWL_Seat *seat)
  */
 static void keyboard_handle_key_repeat_reset(GWL_Seat *seat, const bool use_delay)
 {
-  GHOST_ASSERT(seat->key_repeat.timer != nullptr, "Caller much check for timer");
+  GHOST_ASSERT(seat->key_repeat.timer != nullptr, "Caller must check for timer");
   GHOST_TimerProcPtr key_repeat_fn = seat->key_repeat.timer->getTimerProc();
   GHOST_TUserDataPtr payload = seat->key_repeat.timer->getUserData();
 

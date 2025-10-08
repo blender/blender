@@ -371,7 +371,7 @@ enum eGWL_PendingWindowActions {
 
 struct GWL_WindowFrame {
   /**
-   * The frame size (in GHOST window coordinates).
+   * The frame size (in pixels).
    *
    * These must be converted to WAYLAND relative coordinates when the window is scaled
    * by Hi-DPI/fractional scaling.
@@ -2600,6 +2600,8 @@ GHOST_TSuccess GHOST_WindowWayland::close()
 
 GHOST_TSuccess GHOST_WindowWayland::activate()
 {
+  /* When first initializing from the main thread, activation is called directly,
+   * otherwise activation is performed when processing pending events. */
 #ifdef USE_EVENT_BACKGROUND_THREAD
   const bool is_main_thread = system_->main_thread_id == std::this_thread::get_id();
   if (is_main_thread)
@@ -2628,8 +2630,9 @@ GHOST_TSuccess GHOST_WindowWayland::activate()
 
 GHOST_TSuccess GHOST_WindowWayland::deactivate()
 {
+  /* When first initializing from the main thread, deactivation is called directly,
+   * otherwise deactivation is performed when processing pending events. */
 #ifdef USE_EVENT_BACKGROUND_THREAD
-  /* Actual activation is handled when processing pending events. */
   const bool is_main_thread = system_->main_thread_id == std::this_thread::get_id();
   if (is_main_thread)
 #endif
