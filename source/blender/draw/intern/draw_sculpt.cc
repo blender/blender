@@ -218,15 +218,8 @@ Vector<SculptBatch> sculpt_batches_per_material_get(const Object *ob,
     attrs.append(pbvh::GenericRequest(name));
   }
 
-  /* UV maps are not in attribute requests. */
-  for (uint i = 0; i < 32; i++) {
-    if (cd_needed.uv & (1 << i)) {
-      int layer_i = CustomData_get_layer_index_n(&mesh.corner_data, CD_PROP_FLOAT2, i);
-      CustomDataLayer *layer = layer_i != -1 ? mesh.corner_data.layers + layer_i : nullptr;
-      if (layer) {
-        attrs.append(pbvh::GenericRequest(layer->name));
-      }
-    }
+  for (const StringRef name : cd_needed.uv) {
+    attrs.append(pbvh::GenericRequest(name));
   }
 
   return sculpt_batches_get_ex(ob, false, attrs);
