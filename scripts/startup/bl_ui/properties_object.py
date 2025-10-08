@@ -108,6 +108,27 @@ class OBJECT_PT_delta_transform(ObjectButtonsPanel, Panel):
         col.prop(ob, "delta_scale", text="Scale")
 
 
+class OBJECT_PT_parent_inverse_transform(ObjectButtonsPanel, Panel):
+    bl_label = "Parent Inverse Transform"
+    bl_parent_id = "OBJECT_PT_transform"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        ob = context.object
+        return ob and ob.parent
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        ob = context.object
+        layout.template_matrix(ob, "matrix_parent_inverse")
+
+        props = layout.operator("object.parent_clear", text="Clear Parent Inverse Transform")
+        props.type = 'CLEAR_INVERSE'
+
+
 class OBJECT_PT_relations(ObjectButtonsPanel, Panel):
     bl_label = "Relations"
     bl_options = {'DEFAULT_CLOSED'}
@@ -605,6 +626,7 @@ classes = (
     OBJECT_PT_context_object,
     OBJECT_PT_transform,
     OBJECT_PT_delta_transform,
+    OBJECT_PT_parent_inverse_transform,
     OBJECT_PT_relations,
     COLLECTION_MT_context_menu,
     OBJECT_PT_collections,
