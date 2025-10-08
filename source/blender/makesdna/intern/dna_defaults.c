@@ -531,6 +531,7 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
     SDNA_DEFAULT_DECL_EX(UserDef_SpaceData, UserDef.space_data),
     SDNA_DEFAULT_DECL_EX(UserDef_FileSpaceData, UserDef.file_space_data),
     SDNA_DEFAULT_DECL_EX(WalkNavigation, UserDef.walk_navigation),
+    SDNA_DEFAULT_DECL_EX(XrNavigation, UserDef.xr_navigation),
     SDNA_DEFAULT_DECL(bUserAssetLibrary),
     SDNA_DEFAULT_DECL(bUserExtensionRepo),
     SDNA_DEFAULT_DECL(bUserAssetShelfSettings),

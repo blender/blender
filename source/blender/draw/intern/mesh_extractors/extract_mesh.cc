@@ -37,7 +37,9 @@ void mesh_render_data_face_flag(const MeshRenderData &mr,
   if (efa == mr.efa_act_uv) {
     eattr.v_flag |= VFLAG_FACE_UV_ACTIVE;
   }
-  if ((offsets.uv != -1) && uvedit_face_select_test_ex(mr.toolsettings, efa, offsets)) {
+  if ((offsets.uv != -1) && (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) &&
+      uvedit_face_select_test_ex(mr.toolsettings, mr.bm, efa))
+  {
     eattr.v_flag |= VFLAG_FACE_UV_SELECT;
   }
 
@@ -61,7 +63,7 @@ void mesh_render_data_loop_flag(const MeshRenderData &mr,
   if (BM_ELEM_CD_GET_BOOL(l, offsets.pin)) {
     eattr.v_flag |= VFLAG_VERT_UV_PINNED;
   }
-  if (uvedit_uv_select_test_ex(mr.toolsettings, l, offsets)) {
+  if (uvedit_uv_select_test_ex(mr.toolsettings, mr.bm, l, offsets)) {
     eattr.v_flag |= VFLAG_VERT_UV_SELECT;
   }
 }
@@ -74,7 +76,7 @@ void mesh_render_data_loop_edge_flag(const MeshRenderData &mr,
   if (offsets.uv == -1) {
     return;
   }
-  if (uvedit_edge_select_test_ex(mr.toolsettings, l, offsets)) {
+  if (uvedit_edge_select_test_ex(mr.toolsettings, mr.bm, l, offsets)) {
     eattr.v_flag |= VFLAG_EDGE_UV_SELECT;
     eattr.v_flag |= VFLAG_VERT_UV_SELECT;
   }

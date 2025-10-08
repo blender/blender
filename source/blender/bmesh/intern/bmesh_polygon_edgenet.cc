@@ -572,7 +572,7 @@ bool BM_face_split_edgenet(BMesh *bm,
 
     /* See: #BM_loop_interp_from_face for similar logic. */
     void **blocks = BLI_array_alloca(blocks, f->len);
-    float(*cos_2d)[2] = BLI_array_alloca(cos_2d, f->len);
+    float (*cos_2d)[2] = BLI_array_alloca(cos_2d, f->len);
     float *w = BLI_array_alloca(w, f->len);
     float axis_mat[3][3];
     float co[2];
@@ -1352,7 +1352,7 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
   /* Declare here because of `goto` below. */
   BMEdge **edge_net_new = nullptr;
   BVHTree *bvhtree = nullptr;
-  float(*vert_coords_backup)[3] = nullptr;
+  float (*vert_coords_backup)[3] = nullptr;
   uint *verts_group_table = nullptr;
   BMVert **vert_arr = nullptr;
   uint vert_arr_len = 0;
@@ -1403,11 +1403,11 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
            * but we need to sort the groups before setting the vertex array order */
           const float axis_value[2] = {
 #if SORT_AXIS == 0
-            dot_m3_v3_row_x(axis_mat, v_iter->co),
-            dot_m3_v3_row_y(axis_mat, v_iter->co),
+              dot_m3_v3_row_x(axis_mat, v_iter->co),
+              dot_m3_v3_row_y(axis_mat, v_iter->co),
 #else
-            dot_m3_v3_row_y(axis_mat, v_iter->co),
-            dot_m3_v3_row_x(axis_mat, v_iter->co),
+              dot_m3_v3_row_y(axis_mat, v_iter->co),
+              dot_m3_v3_row_x(axis_mat, v_iter->co),
 #endif
           };
 
@@ -1442,7 +1442,7 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
   verts_group_table = static_cast<uint *>(
       BLI_memarena_alloc(mem_arena, sizeof(*verts_group_table) * vert_arr_len));
 
-  vert_coords_backup = static_cast<float(*)[3]>(
+  vert_coords_backup = static_cast<float (*)[3]>(
       BLI_memarena_alloc(mem_arena, sizeof(*vert_coords_backup) * vert_arr_len));
 
   {

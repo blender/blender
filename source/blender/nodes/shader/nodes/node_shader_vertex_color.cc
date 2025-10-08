@@ -76,7 +76,7 @@ NODE_SHADER_MATERIALX_BEGIN
 {
   /* TODO: some output expected be implemented within the next iteration
    * (see node-definition `<geomcolor>`). */
-  return get_output_default(socket_out_->name, NodeItem::Type::Any);
+  return get_output_default(socket_out_->identifier, NodeItem::Type::Any);
 }
 #endif
 NODE_SHADER_MATERIALX_END

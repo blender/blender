@@ -1312,7 +1312,7 @@ static void uv_image_outset(const ProjPaintState *ps,
 
   for (fidx[0] = 0; fidx[0] < 3; fidx[0]++) {
     LoopSeamData *seam_data;
-    float(*seam_uvs)[2];
+    float (*seam_uvs)[2];
     float ang[2];
 
     if ((ps->faceSeamFlags[tri_index] & (PROJ_FACE_SEAM0 << fidx[0])) == 0) {
@@ -1601,7 +1601,7 @@ static void screen_px_to_vector_persp(int winx,
   r_dir[0] = 2.0f * (co_px[0] / winx) - 1.0f;
   r_dir[1] = 2.0f * (co_px[1] / winy) - 1.0f;
   r_dir[2] = -0.5f;
-  mul_project_m4_v3((float(*)[4])projmat_inv, r_dir);
+  mul_project_m4_v3((float (*)[4])projmat_inv, r_dir);
   sub_v3_v3(r_dir, view_pos);
 }
 
@@ -3303,7 +3303,7 @@ static void project_paint_face_init(const ProjPaintState *ps,
           if (len_squared_v2v2(vCoSS[fidx1], vCoSS[fidx2]) > FLT_EPSILON) {
             uint loop_idx = ps->corner_tris_eval[tri_index][fidx1];
             LoopSeamData *seam_data = &ps->loopSeamData[loop_idx];
-            float(*seam_uvs)[2] = seam_data->seam_uvs;
+            float (*seam_uvs)[2] = seam_data->seam_uvs;
 
             if (is_ortho) {
               fac1 = line_point_factor_v2(bucket_clip_edges[0], vCoSS[fidx1], vCoSS[fidx2]);
@@ -3392,7 +3392,7 @@ static void project_paint_face_init(const ProjPaintState *ps,
                     if (!is_ortho) {
                       pixel_on_edge[3] = 1.0f;
                       /* cast because of const */
-                      mul_m4_v4((float(*)[4])ps->projectMat, pixel_on_edge);
+                      mul_m4_v4((float (*)[4])ps->projectMat, pixel_on_edge);
                       pixel_on_edge[0] = float(ps->winx * 0.5f) +
                                          (ps->winx * 0.5f) * pixel_on_edge[0] / pixel_on_edge[3];
                       pixel_on_edge[1] = float(ps->winy * 0.5f) +
@@ -3829,7 +3829,7 @@ static void proj_paint_state_screen_coords_init(ProjPaintState *ps, const int di
 
   INIT_MINMAX2(ps->screenMin, ps->screenMax);
 
-  ps->screenCoords = static_cast<float(*)[4]>(
+  ps->screenCoords = static_cast<float (*)[4]>(
       MEM_mallocN(sizeof(float) * ps->totvert_eval * 4, "ProjectPaint ScreenVerts"));
   projScreenCo = *ps->screenCoords;
 
@@ -3907,7 +3907,7 @@ static void proj_paint_state_cavity_init(ProjPaintState *ps)
 
   if (ps->do_mask_cavity) {
     int *counter = MEM_calloc_arrayN<int>(ps->totvert_eval, "counter");
-    float(*edges)[3] = static_cast<float(*)[3]>(
+    float (*edges)[3] = static_cast<float (*)[3]>(
         MEM_callocN(sizeof(float[3]) * ps->totvert_eval, "edges"));
     ps->cavities = MEM_malloc_arrayN<float>(ps->totvert_eval, "ProjectPaint Cavities");
     cavities = ps->cavities;
@@ -4102,8 +4102,8 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   ps->corner_tris_eval = ps->mesh_eval->corner_tris();
   ps->corner_tri_faces_eval = ps->mesh_eval->corner_tri_faces();
 
-  ps->poly_to_loop_uv = static_cast<const float(**)[2]>(
-      MEM_mallocN(ps->faces_num_eval * sizeof(float(*)[2]), "proj_paint_mtfaces"));
+  ps->poly_to_loop_uv = static_cast<const float (**)[2]>(
+      MEM_mallocN(ps->faces_num_eval * sizeof(float (*)[2]), "proj_paint_mtfaces"));
 
   return true;
 }
@@ -4116,24 +4116,24 @@ struct ProjPaintLayerClone {
 
 static void proj_paint_layer_clone_init(ProjPaintState *ps, ProjPaintLayerClone *layer_clone)
 {
-  const float(*uv_map_clone_base)[2] = nullptr;
+  const float (*uv_map_clone_base)[2] = nullptr;
 
   /* use clone mtface? */
   if (ps->do_layer_clone) {
     const int layer_num = CustomData_get_clone_layer(&((Mesh *)ps->ob->data)->corner_data,
                                                      CD_PROP_FLOAT2);
 
-    ps->poly_to_loop_uv_clone = static_cast<const float(**)[2]>(
-        MEM_mallocN(ps->faces_num_eval * sizeof(float(*)[2]), "proj_paint_mtfaces"));
+    ps->poly_to_loop_uv_clone = static_cast<const float (**)[2]>(
+        MEM_mallocN(ps->faces_num_eval * sizeof(float (*)[2]), "proj_paint_mtfaces"));
 
     if (layer_num != -1) {
-      uv_map_clone_base = static_cast<const float(*)[2]>(
+      uv_map_clone_base = static_cast<const float (*)[2]>(
           CustomData_get_layer_n(&ps->mesh_eval->corner_data, CD_PROP_FLOAT2, layer_num));
     }
 
     if (uv_map_clone_base == nullptr) {
       /* get active instead */
-      uv_map_clone_base = static_cast<const float(*)[2]>(
+      uv_map_clone_base = static_cast<const float (*)[2]>(
           CustomData_get_layer(&ps->mesh_eval->corner_data, CD_PROP_FLOAT2));
     }
   }
@@ -4163,10 +4163,10 @@ static bool project_paint_clone_face_skip(ProjPaintState *ps,
     if (ps->do_material_slots) {
       if (lc->slot_clone != lc->slot_last_clone) {
         if (!lc->slot_clone->uvname ||
-            !(lc->uv_map_clone_base = static_cast<const float(*)[2]>(CustomData_get_layer_named(
+            !(lc->uv_map_clone_base = static_cast<const float (*)[2]>(CustomData_get_layer_named(
                   &ps->mesh_eval->corner_data, CD_PROP_FLOAT2, lc->slot_clone->uvname))))
         {
-          lc->uv_map_clone_base = static_cast<const float(*)[2]>(
+          lc->uv_map_clone_base = static_cast<const float (*)[2]>(
               CustomData_get_layer(&ps->mesh_eval->corner_data, CD_PROP_FLOAT2));
         }
         lc->slot_last_clone = lc->slot_clone;
@@ -4347,17 +4347,17 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
       slot = project_paint_face_paint_slot(ps, tri_index);
       /* all faces should have a valid slot, reassert here */
       if (slot == nullptr) {
-        uv_map_base = static_cast<const float(*)[2]>(
+        uv_map_base = static_cast<const float (*)[2]>(
             CustomData_get_layer(&ps->mesh_eval->corner_data, CD_PROP_FLOAT2));
         tpage = ps->canvas_ima;
       }
       else {
         if (slot != slot_last) {
           if (!slot->uvname ||
-              !(uv_map_base = static_cast<const float(*)[2]>(CustomData_get_layer_named(
+              !(uv_map_base = static_cast<const float (*)[2]>(CustomData_get_layer_named(
                     &ps->mesh_eval->corner_data, CD_PROP_FLOAT2, slot->uvname))))
           {
-            uv_map_base = static_cast<const float(*)[2]>(
+            uv_map_base = static_cast<const float (*)[2]>(
                 CustomData_get_layer(&ps->mesh_eval->corner_data, CD_PROP_FLOAT2));
           }
           slot_last = slot;
@@ -4507,7 +4507,7 @@ static void project_paint_begin(const bContext *C,
 {
   ProjPaintLayerClone layer_clone;
   ProjPaintFaceLookup face_lookup;
-  const float(*uv_map_base)[2] = nullptr;
+  const float (*uv_map_base)[2] = nullptr;
 
   /* At the moment this is just ps->arena_mt[0], but use this to show were not multi-threading. */
   MemArena *arena;
@@ -4541,13 +4541,13 @@ static void project_paint_begin(const bContext *C,
     int layer_num = CustomData_get_stencil_layer(&((Mesh *)ps->ob->data)->corner_data,
                                                  CD_PROP_FLOAT2);
     if (layer_num != -1) {
-      ps->uv_map_stencil_eval = static_cast<const float(*)[2]>(
+      ps->uv_map_stencil_eval = static_cast<const float (*)[2]>(
           CustomData_get_layer_n(&ps->mesh_eval->corner_data, CD_PROP_FLOAT2, layer_num));
     }
 
     if (ps->uv_map_stencil_eval == nullptr) {
       /* get active instead */
-      ps->uv_map_stencil_eval = static_cast<const float(*)[2]>(
+      ps->uv_map_stencil_eval = static_cast<const float (*)[2]>(
           CustomData_get_layer(&ps->mesh_eval->corner_data, CD_PROP_FLOAT2));
     }
 

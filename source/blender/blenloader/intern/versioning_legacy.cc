@@ -1191,7 +1191,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     while (sce) {
       ed = sce->ed;
       if (ed) {
-        blender::seq::for_each_callback(&sce->ed->seqbase, strip_set_alpha_mode_cb, nullptr);
+        blender::seq::foreach_strip(&sce->ed->seqbase, strip_set_alpha_mode_cb, nullptr);
       }
 
       sce = static_cast<Scene *>(sce->id.next);
@@ -2366,7 +2366,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
          sce = static_cast<Scene *>(sce->id.next))
     {
       if (sce->ed) {
-        blender::seq::for_each_callback(&sce->ed->seqbase, strip_set_blend_mode_cb, nullptr);
+        blender::seq::foreach_strip(&sce->ed->seqbase, strip_set_blend_mode_cb, nullptr);
       }
     }
   }

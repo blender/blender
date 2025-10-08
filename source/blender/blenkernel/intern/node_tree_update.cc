@@ -399,7 +399,7 @@ class NodeTreeMainUpdater {
       }
 
       if (result.output_changed) {
-        ntree->runtime->geometry_nodes_lazy_function_graph_info.reset();
+        ntree->runtime->geometry_nodes_lazy_function_graph_info_mutex.tag_dirty();
       }
 
       ID *owner_id = BKE_id_owner_get(&ntree->id);

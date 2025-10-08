@@ -386,6 +386,10 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     btheme->tui.wcol_curve.roundness = U_theme_default.tui.wcol_curve.roundness;
   }
 
+  if (!USER_VERSION_ATLEAST(500, 104)) {
+    FROM_DEFAULT_V4_UCHAR(common.anim.scene_strip_range);
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a USER_VERSION_ATLEAST check.
@@ -1026,7 +1030,7 @@ void blo_do_versions_userdef(UserDef *userdef)
 
   if (!USER_VERSION_ATLEAST(278, 6)) {
     /* Clear preference flags for re-use. */
-    userdef->flag &= ~(USER_FLAG_NUMINPUT_ADVANCED | (1 << 2) | USER_FLAG_UNUSED_3 |
+    userdef->flag &= ~(USER_FLAG_NUMINPUT_ADVANCED | (1 << 2) | USER_MENU_CLOSE_LEAVE |
                        USER_FLAG_UNUSED_6 | USER_FLAG_UNUSED_7 | USER_INTERNET_ALLOW |
                        USER_DEVELOPER_UI);
     userdef->uiflag &= ~USER_HEADER_BOTTOM;
@@ -1689,6 +1693,19 @@ void blo_do_versions_userdef(UserDef *userdef)
     if (userdef->recent_files == 20) {
       userdef->recent_files = 200;
     }
+  }
+
+  if (!USER_VERSION_ATLEAST(500, 99)) {
+    userdef->xr_navigation.vignette_intensity = 50.0f;
+    userdef->xr_navigation.turn_amount = DEG2RAD(30);
+    userdef->xr_navigation.turn_speed = DEG2RAD(60);
+    userdef->xr_navigation.flag = USER_XR_NAV_SNAP_TURN;
+  }
+
+  if (!USER_VERSION_ATLEAST(500, 101)) {
+    /* The Copy Global Transform add-on was moved into Blender itself, and thus
+     * is no longer an add-on. */
+    BKE_addon_remove_safe(&userdef->addons, "copy_global_transform");
   }
 
   /**

@@ -121,7 +121,7 @@ class ConditionalDownloader:
         is renamed to the given path, overwriting any pre-existing file.
 
         Raises a HTTPRequestDownloadError for specific HTTP errors. Can also
-        raise other exceptions, for example when filesystem access fails. On any
+        raise other exceptions, for example when file-system access fails. On any
         exception, the `download_error()` function will be called on the
         reporter.
         """
@@ -1318,10 +1318,10 @@ def _cleanup_main_file_attribute() -> Generator[None]:
     See the `get_preparation_data(name)` function in Python's stdlib:
     https://github.com/python/cpython/blob/180b3eb697bf5bb0088f3f35ef2d3675f9fff04f/Lib/multiprocessing/spawn.py#L197
 
-    This issue can be recognised by a failure to start a background process,
+    This issue can be recognized by a failure to start a background process,
     with an error like:
 
-        FileNotFoundError: [Errno 2] No such file or directory: '/path/to/blender/<blender string>'
+        ``FileNotFoundError: [Errno 2] No such file or directory: '/path/to/blender/<blender string>'``
 
     """
 

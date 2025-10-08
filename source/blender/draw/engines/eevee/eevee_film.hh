@@ -112,8 +112,8 @@ class Film {
   bool is_valid_render_extent_ = true;
 
  public:
-  Film(Instance &inst, FilmData &data) : inst_(inst), data_(data){};
-  ~Film(){};
+  Film(Instance &inst, FilmData &data) : inst_(inst), data_(data) {};
+  ~Film() {};
 
   void init(const int2 &full_extent, const rcti *output_rect);
 

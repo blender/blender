@@ -36,7 +36,7 @@
 
 static BMFace *bm_face_split_walk_back(BMesh *bm, BMLoop *l_src, BMLoop **r_l)
 {
-  float(*cos)[3];
+  float (*cos)[3];
   BMLoop *l_dst;
   BMFace *f;
   int num, i;

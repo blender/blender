@@ -297,6 +297,7 @@ bool is_orthogonal_m4(const float m[4][4]);
 bool is_orthonormal_m3(const float m[3][3]);
 bool is_orthonormal_m4(const float m[4][4]);
 
+bool is_identity_m4(const float m[4][4]);
 bool is_uniform_scaled_m3(const float m[3][3]);
 bool is_uniform_scaled_m4(const float m[4][4]);
 

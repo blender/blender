@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021-2022 Intel Corporation
+/* SPDX-FileCopyrightText: 2021-2025 Intel Corporation
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
@@ -6,6 +6,7 @@
 
 #  include "device/oneapi/queue.h"
 #  include "device/oneapi/device_impl.h"
+#  include "device/oneapi/graphics_interop.h"
 #  include "util/log.h"
 
 #  include "kernel/device/oneapi/kernel.h"
@@ -141,6 +142,13 @@ void OneapiDeviceQueue::copy_from_device(device_memory &mem)
 {
   oneapi_device_->mem_copy_from(mem);
 }
+
+#  ifdef SYCL_LINEAR_MEMORY_INTEROP_AVAILABLE
+unique_ptr<DeviceGraphicsInterop> OneapiDeviceQueue::graphics_interop_create()
+{
+  return make_unique<OneapiDeviceGraphicsInterop>(this);
+}
+#  endif
 
 CCL_NAMESPACE_END
 

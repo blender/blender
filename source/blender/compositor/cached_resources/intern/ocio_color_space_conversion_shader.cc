@@ -153,7 +153,12 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
 
   bool addUniform(const char *name,
                   const SizeGetter &get_size,
-                  const VectorFloatGetter &get_vector_float) override
+                  const VectorFloatGetter &get_vector_float
+#  if OCIO_VERSION_HEX >= 0x02050000
+                  ,
+                  const unsigned /*maxSize*/
+#  endif
+                  ) override
   {
     /* Check if a resource exists with the same name and assert if it is the case, returning false
      * indicates failure to add the uniform for the shader creator. */
@@ -175,7 +180,12 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
 
   bool addUniform(const char *name,
                   const SizeGetter &get_size,
-                  const VectorIntGetter &get_vector_int) override
+                  const VectorIntGetter &get_vector_int
+#  if OCIO_VERSION_HEX >= 0x02050000
+                  ,
+                  const unsigned /*maxSize*/
+#  endif
+                  ) override
   {
     /* Check if a resource exists with the same name and assert if it is the case, returning false
      * indicates failure to add the uniform for the shader creator. */
@@ -195,16 +205,21 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
     return true;
   }
 
-  void addTexture(const char *texture_name,
-                  const char *sampler_name,
-                  uint width,
-                  uint height,
-                  TextureType channel,
-#  if OCIO_VERSION_HEX >= 0x02030000
-                  OCIO::GpuShaderDesc::TextureDimensions dimensions,
+#  if OCIO_VERSION_HEX >= 0x02050000
+  unsigned
+#  else
+  void
 #  endif
-                  OCIO::Interpolation interpolation,
-                  const float *values) override
+  addTexture(const char *texture_name,
+             const char *sampler_name,
+             uint width,
+             uint height,
+             TextureType channel,
+#  if OCIO_VERSION_HEX >= 0x02030000
+             OCIO::GpuShaderDesc::TextureDimensions dimensions,
+#  endif
+             OCIO::Interpolation interpolation,
+             const float *values) override
   {
     /* Check if a resource exists with the same name and assert if it is the case. */
     if (!resource_names_.add(std::make_unique<std::string>(sampler_name))) {
@@ -240,13 +255,21 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
     GPU_texture_filter_mode(texture, interpolation != OCIO::INTERP_NEAREST);
 
     textures_.add(sampler_name, texture);
+#  if OCIO_VERSION_HEX >= 0x02050000
+    return textures_.size() - 1;
+#  endif
   }
 
-  void add3DTexture(const char *texture_name,
-                    const char *sampler_name,
-                    uint size,
-                    OCIO::Interpolation interpolation,
-                    const float *values) override
+#  if OCIO_VERSION_HEX >= 0x02050000
+  unsigned
+#  else
+  void
+#  endif
+  add3DTexture(const char *texture_name,
+               const char *sampler_name,
+               uint size,
+               OCIO::Interpolation interpolation,
+               const float *values) override
   {
     /* Check if a resource exists with the same name and assert if it is the case. */
     if (!resource_names_.add(std::make_unique<std::string>(sampler_name))) {
@@ -270,12 +293,18 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
     GPU_texture_filter_mode(texture, interpolation != OCIO::INTERP_NEAREST);
 
     textures_.add(sampler_name, texture);
+#  if OCIO_VERSION_HEX >= 0x02050000
+    return textures_.size() - 1;
+#  endif
   }
 
   /* This gets called before the finalize() method to construct the shader code. We just
    * concatenate the code except for the declarations section. That's because the ShaderCreateInfo
    * will add the declaration itself. */
-  void createShaderText(const char * /*declarations*/,
+  void createShaderText(const char * /*parameter_declarations*/,
+#  if OCIO_VERSION_HEX >= 0x02050000
+                        const char * /*texture_declarations*/,
+#  endif
                         const char *helper_methods,
                         const char *function_header,
                         const char *function_body,

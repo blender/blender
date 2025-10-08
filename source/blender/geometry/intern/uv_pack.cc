@@ -168,7 +168,7 @@ void PackIsland::add_polygon(const Span<float2> uvs, MemArena *arena, Heap *heap
   /* Storage. */
   uint(*tris)[3] = static_cast<uint(*)[3]>(
       BLI_memarena_alloc(arena, sizeof(*tris) * size_t(nfilltri)));
-  const float(*source)[2] = reinterpret_cast<const float(*)[2]>(uvs.data());
+  const float (*source)[2] = reinterpret_cast<const float (*)[2]>(uvs.data());
 
   /* Triangulate. */
   BLI_polyfill_calc_arena(source, vert_count, 0, tris, arena);

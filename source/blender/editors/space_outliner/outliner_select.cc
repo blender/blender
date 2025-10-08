@@ -564,7 +564,7 @@ static void tree_element_posechannel_activate(bContext *C,
       }
 
       LISTBASE_FOREACH (bPoseChannel *, pchannel, &ob_iter->pose->chanbase) {
-        pchannel->bone->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
+        pchannel->flag &= ~POSE_SELECTED;
       }
 
       if (ob != ob_iter) {
@@ -573,19 +573,19 @@ static void tree_element_posechannel_activate(bContext *C,
     }
   }
 
-  if ((set == OL_SETSEL_EXTEND) && (pchan->bone->flag & BONE_SELECTED)) {
-    pchan->bone->flag &= ~BONE_SELECTED;
+  if ((set == OL_SETSEL_EXTEND) && (pchan->flag & POSE_SELECTED)) {
+    pchan->flag &= ~POSE_SELECTED;
   }
   else {
     if (blender::animrig::bone_is_visible(arm, pchan)) {
-      pchan->bone->flag |= BONE_SELECTED;
+      pchan->flag |= POSE_SELECTED;
     }
     arm->act_bone = pchan->bone;
   }
 
   if (recursive) {
     /* Recursive select/deselect */
-    do_outliner_bone_select_recursive(arm, pchan->bone, (pchan->bone->flag & BONE_SELECTED) != 0);
+    do_outliner_bone_select_recursive(arm, pchan->bone, (pchan->flag & POSE_SELECTED) != 0);
   }
 
   WM_event_add_notifier(C, NC_OBJECT | ND_BONE_ACTIVE, ob);
@@ -992,7 +992,7 @@ static eOLDrawState tree_element_posechannel_state_get(const Object *ob_pose,
   const Object *ob = (const Object *)tselem->id;
   const bPoseChannel *pchan = static_cast<bPoseChannel *>(te->directdata);
   if (ob == ob_pose && ob->pose) {
-    if (pchan->bone->flag & BONE_SELECTED) {
+    if (pchan->flag & POSE_SELECTED) {
       return OL_DRAWSEL_NORMAL;
     }
   }

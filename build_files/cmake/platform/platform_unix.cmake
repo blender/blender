@@ -298,7 +298,7 @@ if(WITH_CODEC_FFMPEG)
     # Override FFMPEG components to also include static library dependencies
     # included with precompiled libraries, and to ensure correct link order.
     set(FFMPEG_FIND_COMPONENTS
-      avformat avcodec avdevice avutil swresample swscale
+      avformat avdevice avfilter avcodec avutil swresample swscale
       sndfile
       FLAC
       mp3lame
@@ -586,6 +586,17 @@ if(WITH_MANIFOLD)
     set_and_warn_library_found("MANIFOLD" MANIFOLD_FOUND WITH_MANIFOLD)
   endif()
   mark_as_advanced(manifold_DIR)
+endif()
+
+if(WITH_RUBBERBAND)
+  if(DEFINED LIBDIR)
+    find_package_wrapper(Rubberband)
+  else()
+    # Use system libs
+    find_package(PkgConfig)
+    pkg_check_modules(RUBBERBAND rubberband)
+  endif()
+  set_and_warn_library_found("Rubberband" RUBBERBAND_FOUND WITH_RUBBERBAND)
 endif()
 
 if(WITH_CYCLES AND WITH_CYCLES_PATH_GUIDING)

@@ -64,13 +64,12 @@ eSnapMode snapArmature(SnapObjectContext *sctx,
   }
   else if (ob_eval->pose && ob_eval->pose->chanbase.first) {
     LISTBASE_FOREACH (bPoseChannel *, pchan, &ob_eval->pose->chanbase) {
-      Bone *bone = pchan->bone;
-      if (!bone || !blender::animrig::bone_is_visible(arm, pchan)) {
+      if (!blender::animrig::bone_is_visible(arm, pchan)) {
         /* Skip hidden bones. */
         continue;
       }
 
-      const bool is_selected = (bone->flag & (BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL)) != 0;
+      const bool is_selected = (pchan->flag & POSE_SELECTED) != 0;
       if (is_selected && skip_selected) {
         continue;
       }

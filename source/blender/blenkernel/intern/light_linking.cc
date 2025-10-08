@@ -27,7 +27,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
-void BKE_light_linking_ensure(struct Object *object)
+void BKE_light_linking_ensure(Object *object)
 {
   if (object->light_linking == nullptr) {
     object->light_linking = MEM_callocN<LightLinking>(__func__);
@@ -47,7 +47,7 @@ void BKE_light_linking_copy(Object *object_dst, const Object *object_src, const 
   }
 }
 
-void BKE_light_linking_delete(struct Object *object, const int delete_flags)
+void BKE_light_linking_delete(Object *object, const int delete_flags)
 {
   if (object->light_linking) {
     if ((delete_flags & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {

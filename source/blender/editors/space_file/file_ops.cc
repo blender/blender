@@ -1857,7 +1857,7 @@ static wmOperatorStatus file_external_operation_exec(bContext *C, wmOperator *op
     return OPERATOR_CANCELLED;
   }
 
-  char filepath[FILE_MAX];
+  char filepath[FILE_MAX_LIBEXTRA];
   filelist_file_get_full_path(sfile->files, fileentry, filepath);
 
   WM_cursor_set(CTX_wm_window(C), WM_CURSOR_WAIT);

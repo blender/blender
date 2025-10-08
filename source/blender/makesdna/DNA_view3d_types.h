@@ -350,7 +350,8 @@ typedef struct View3D {
 
   float lens, grid;
   float clip_start, clip_end;
-  float ofs[3] DNA_DEPRECATED;
+  float vignette_aperture;
+  float ofs[2] DNA_DEPRECATED;
 
   char _pad[1];
 

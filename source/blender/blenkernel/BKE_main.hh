@@ -667,9 +667,8 @@ MainListsArray BKE_main_lists_get(Main &bmain);
  * typically when a library is missing, by definition its data (placeholder IDs) does not need
  * versionning anyway then. */
 #define LIBRARY_VERSION_FILE_ATLEAST(lib, ver, subver) \
-  (((lib)->runtime->versionfile != 0) && \
-   ((lib)->runtime->versionfile > (ver) || \
-    ((lib)->runtime->versionfile == (ver) && (lib)->runtime->subversionfile >= (subver))))
+  ((lib)->runtime->versionfile == 0 || (lib)->runtime->versionfile > (ver) || \
+   ((lib)->runtime->versionfile == (ver) && (lib)->runtime->subversionfile >= (subver)))
 
 /**
  * The size of thumbnails (optionally) stored in the `.blend` files header.

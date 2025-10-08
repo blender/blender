@@ -105,7 +105,7 @@ static void test_framebuffer_clear_multiple_color_multiple_attachments()
 
   const float4 clear_color[2] = {float4(0.1f, 0.2f, 0.5f, 1.0f), float4(0.5f, 0.2f, 0.1f, 1.0f)};
   GPU_framebuffer_multi_clear(
-      framebuffer, static_cast<const float(*)[4]>(static_cast<const void *>(clear_color)));
+      framebuffer, static_cast<const float (*)[4]>(static_cast<const void *>(clear_color)));
   GPU_finish();
 
   float4 *read_data1 = static_cast<float4 *>(GPU_texture_read(texture1, GPU_DATA_FLOAT, 0));

@@ -39,6 +39,9 @@ static Vector<NodesModifierBakeFile> pack_files_from_directory(const StringRefNu
     const direntry &dir_entry = dir_entries[i];
     const StringRefNull dir_entry_path = dir_entry.path;
     const StringRefNull name = dir_entry.relname;
+    if (FILENAME_IS_CURRPAR(name.c_str())) {
+      continue;
+    }
     NodesModifierBakeFile bake_file;
     bake_file.name = BLI_strdup_null(name.c_str());
     bake_file.packed_file = BKE_packedfile_new(reports, dir_entry_path.c_str(), "");
@@ -140,8 +143,15 @@ static bool directory_is_empty(const blender::StringRefNull path)
 {
   direntry *entries = nullptr;
   const int entries_num = BLI_filelist_dir_contents(path.c_str(), &entries);
-  BLI_filelist_free(entries, entries_num);
-  return entries_num == 0;
+  BLI_SCOPED_DEFER([&]() { BLI_filelist_free(entries, entries_num); });
+  for (const int i : IndexRange(entries_num)) {
+    const direntry &entry = entries[i];
+    if (FILENAME_IS_CURRPAR(entry.relname)) {
+      continue;
+    }
+    return false;
+  }
+  return true;
 }
 
 static bool disk_bake_exists(const blender::bke::bake::BakePath &path)

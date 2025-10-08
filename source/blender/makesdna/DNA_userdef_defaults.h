@@ -18,7 +18,7 @@
 
 #define _DNA_DEFAULT_bUserAssetLibrary \
   { \
-    .import_method = ASSET_IMPORT_APPEND_REUSE, \
+    .import_method = ASSET_IMPORT_PACK, \
     .flag = ASSET_LIBRARY_RELATIVE_PATH, \
   }
 

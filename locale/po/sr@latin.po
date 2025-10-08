@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'7089def6cbcb')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'ceca413bcbf8')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-29 09:33+0000\n"
+"POT-Creation-Date: 2025-10-06 08:44+0000\n"
 "PO-Revision-Date: 2025-07-23 14:56+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -4772,6 +4772,10 @@ msgid "Grid"
 msgstr "Mreža"
 
 
+msgid "Items"
+msgstr "Stavke"
+
+
 msgid "Basis Matrix"
 msgstr "Osnovna matrica"
 
@@ -4894,10 +4898,6 @@ msgstr "Lažni korisnik"
 
 msgid "Users"
 msgstr "Korisnici"
-
-
-msgid "Groups"
-msgstr "Grupe"
 
 
 msgid "Layers"
@@ -7952,10 +7952,6 @@ msgid "Owner"
 msgstr "Vlasnik"
 
 
-msgid "Items"
-msgstr "Stavke"
-
-
 msgid "Name of the key map"
 msgstr "Naziv mape prečica"
 
@@ -8186,6 +8182,10 @@ msgstr "Tačka u rešetki kaveza"
 
 msgid "Deformed Location"
 msgstr "Deformisana lokacija"
+
+
+msgid "Groups"
+msgstr "Grupe"
 
 
 msgid "Point selected"
@@ -8505,56 +8505,16 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
-msgid "Mirror"
-msgstr "Ogledalo"
-
-
-msgid "Snap"
-msgstr "Lepljenje"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapiranje"
-
-
-msgid "Local View"
-msgstr "Lokalni pogled"
-
-
-msgid "Navigation"
-msgstr "Navigacija"
-
-
-msgid "Align View"
-msgstr "Poravnaj pogled"
-
-
-msgid "Select Linked"
-msgstr "Izaberi povezano"
-
-
-msgid "Metaball"
-msgstr "Meta lopta"
-
-
-msgid "Light"
-msgstr "Svetlost"
-
-
-msgid "Keying"
-msgstr "Zbirka tastera"
-
-
-msgid "Tracking"
-msgstr "Praćenje"
-
-
 msgid "Relations"
 msgstr "Odnosi"
 
 
 msgid "Rigid Body"
 msgstr "Kruto telo"
+
+
+msgid "Import"
+msgstr "Uvoz"
 
 
 msgid "Apply"
@@ -8571,6 +8531,14 @@ msgstr "Brzi efekti"
 
 msgid "Show/Hide"
 msgstr "Prikaži/sakrij"
+
+
+msgid "Math"
+msgstr "Matematika"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Hooks"
@@ -8617,20 +8585,52 @@ msgid "Special Characters"
 msgstr "Specijalni znaci"
 
 
-msgid "Import"
-msgstr "Uvoz"
+msgid "Metaball"
+msgstr "Meta lopta"
 
 
 msgid "Bone Roll"
 msgstr "Rolna kostiju"
 
 
-msgid "Math"
-msgstr "Matematika"
+msgid "Snap"
+msgstr "Lepljenje"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Keying"
+msgstr "Zbirka tastera"
+
+
+msgid "Tracking"
+msgstr "Praćenje"
+
+
+msgid "Mirror"
+msgstr "Ogledalo"
+
+
+msgid "UV Mapping"
+msgstr "UV Mapiranje"
+
+
+msgid "Local View"
+msgstr "Lokalni pogled"
+
+
+msgid "Navigation"
+msgstr "Navigacija"
+
+
+msgid "Align View"
+msgstr "Poravnaj pogled"
+
+
+msgid "Select Linked"
+msgstr "Izaberi povezano"
+
+
+msgid "Light"
+msgstr "Svetlost"
 
 
 msgid "Basic"
@@ -12258,35 +12258,6 @@ msgid "Remove Boid State"
 msgstr "Izaberite sliku za pozadinu"
 
 
-msgctxt "Operator"
-msgid "Preset"
-msgstr "Postavke"
-
-
-msgid "Set brush shape"
-msgstr "Postavi oblik četkice"
-
-
-msgctxt "Curve"
-msgid "Mode"
-msgstr "Režim"
-
-
-msgctxt "Curve"
-msgid "Max"
-msgstr "Maks"
-
-
-msgctxt "Curve"
-msgid "Line"
-msgstr "Linija"
-
-
-msgctxt "Curve"
-msgid "Round"
-msgstr "Okruglo"
-
-
 msgid "Scalar"
 msgstr "Skalar"
 
@@ -15607,13 +15578,13 @@ msgid "Ungroup selected nodes"
 msgstr "Razgrupiše izabrane čvorove"
 
 
+msgid "Attach selected nodes to a new common frame"
+msgstr "Pridružuje izabrane kosti tekućoj grupi kostiju"
+
+
 msgctxt "Operator"
 msgid "Join Nodes"
 msgstr "Poveži čvorove"
-
-
-msgid "Attach selected nodes to a new common frame"
-msgstr "Pridružuje izabrane kosti tekućoj grupi kostiju"
 
 
 msgctxt "Operator"
@@ -17085,6 +17056,26 @@ msgid "Single render layer to re-render (used only when animation is disabled)"
 msgstr "Postavi izabranu dimenziju renderinga"
 
 
+msgctxt "Curve"
+msgid "Mode"
+msgstr "Režim"
+
+
+msgctxt "Curve"
+msgid "Max"
+msgstr "Maks"
+
+
+msgctxt "Curve"
+msgid "Line"
+msgstr "Linija"
+
+
+msgctxt "Curve"
+msgid "Round"
+msgstr "Okruglo"
+
+
 msgctxt "Operator"
 msgid "Cancel Render View"
 msgstr "Prikaži/sakrij pogled"
@@ -17498,11 +17489,6 @@ msgstr "Brisanje"
 msgctxt "Sequence"
 msgid "Glow"
 msgstr "Isijavanje"
-
-
-msgctxt "Sequence"
-msgid "Transform"
-msgstr "Transformacija"
 
 
 msgctxt "Sequence"
@@ -21189,10 +21175,6 @@ msgid "Cursor Y-Value"
 msgstr "Y vrednost kursora"
 
 
-msgid "Edit drivers"
-msgstr "Mod izmene "
-
-
 msgid "Individual Centers"
 msgstr "Individualni centri"
 
@@ -21223,10 +21205,6 @@ msgstr "Z-bafer"
 
 msgid "UV Editor"
 msgstr "UV uređivač"
-
-
-msgid "Mask editing"
-msgstr "Uređivanje maske"
 
 
 msgid "Sampled colors along line"
@@ -21596,26 +21574,6 @@ msgid "Accuracy of the blur effect"
 msgstr "Preciznost efekta zamućenja"
 
 
-msgid "Bilinear interpolation"
-msgstr "Linearna interpolacija"
-
-
-msgid "Bicubic interpolation"
-msgstr "Kubična interpolacija"
-
-
-msgid "Translate X"
-msgstr "X pomeranje"
-
-
-msgid "Translate Y"
-msgstr "Y pomeranje"
-
-
-msgid "Translation Unit"
-msgstr "Jedinice pomeranja"
-
-
 msgid "Image Strip"
 msgstr "Traka slike"
 
@@ -21670,6 +21628,14 @@ msgstr "Originalna širina slike"
 
 msgid "Adaptation"
 msgstr "Adaptacija"
+
+
+msgid "Translate X"
+msgstr "X pomeranje"
+
+
+msgid "Translate Y"
+msgstr "Y pomeranje"
 
 
 msgid "Map X and Y coordinates directly"
@@ -22274,10 +22240,6 @@ msgstr "Filtriraj po imenu"
 
 msgid "Default Layout"
 msgstr "Početna vrednost"
-
-
-msgid "Grid Layout"
-msgstr "Putanja datoteka"
 
 
 msgid "Show Filter"
@@ -24283,10 +24245,6 @@ msgid "Delete the active position"
 msgstr "Izbriši aktivnu poziciju"
 
 
-msgid "Use Clipping"
-msgstr "Koristi isecanje"
-
-
 msgid "Reset View"
 msgstr "Resetuj pogled"
 
@@ -24315,16 +24273,8 @@ msgid "Zoom out"
 msgstr "Udalji"
 
 
-msgid "Clipping Options"
-msgstr "Opcije isecanja"
-
-
 msgid "Delete points"
 msgstr "Izbriši tačke"
-
-
-msgid "Reset Black/White point and curves"
-msgstr "Resetuj crnu i belu tačku i krive"
 
 
 msgid "Browse Scene to be linked"
@@ -25316,14 +25266,6 @@ msgid "Replace Original"
 msgstr "Zameni original"
 
 
-msgid "Fac"
-msgstr "Strana"
-
-
-msgid "Bright"
-msgstr "Svetlina"
-
-
 msgid "Soften"
 msgstr "Umekšanje"
 
@@ -25342,6 +25284,10 @@ msgstr "Jednostavna zvezda"
 
 msgid "Fog Glow"
 msgstr "Isijavanje magle"
+
+
+msgid "Fac"
+msgstr "Strana"
 
 
 msgid "Size Source"

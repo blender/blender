@@ -14,7 +14,7 @@ if(DEFINED WITH_FFTW3 AND WITH_FFTW3) # "Build With FFTW"
   set(FFTW_LIBRARY ${FFTW3_LIBRARIES})
 endif()
 set(WITH_LIBSNDFILE ${WITH_CODEC_SNDFILE})  # "Build With LibSndFile"
-set(WITH_RUBBERBAND FALSE)  # "Build With Rubber Band Library"
+set(WITH_RUBBERBAND ${WITH_RUBBERBAND})  # "Build With Rubber Band Library"
 set(SEPARATE_C FALSE)  # "Build C Binding as separate library"
 set(PLUGIN_COREAUDIO FALSE)  # "Build CoreAudio Plugin"
 set(PLUGIN_FFMPEG FALSE)  # "Build FFMPEG Plugin"

@@ -383,7 +383,8 @@ static bool edbm_bevel_calc(wmOperator *op)
             em->bm, bmop.slots_out, "edges.out", BM_EDGE, BM_ELEM_SELECT, true);
 
         if ((em->bm->selectmode & SCE_SELECT_VERTEX) == 0) {
-          BM_mesh_select_mode_flush_ex(em->bm, SCE_SELECT_VERTEX, BM_SELECT_LEN_FLUSH_RECALC_EDGE);
+          BM_mesh_select_mode_flush_ex(
+              em->bm, SCE_SELECT_VERTEX, BMSelectFlushFlag::RecalcLenEdge);
         }
       }
     }
@@ -426,6 +427,7 @@ static void edbm_bevel_exit(bContext *C, wmOperator *op)
     if ((em->selectmode & SCE_SELECT_FACE) == 0) {
       EDBM_selectmode_flush(em);
     }
+    EDBM_uvselect_clear(em);
   }
 
   if (opdata->is_modal) {

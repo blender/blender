@@ -43,7 +43,11 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.is_function_node();
   b.add_input<decl::Color>("Background").default_value({1.0f, 1.0f, 1.0f, 1.0f});
   b.add_input<decl::Color>("Foreground").default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_input<decl::Float>("Fac").default_value(1.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>("Factor", "Fac")
+      .default_value(1.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR);
   b.add_input<decl::Menu>("Type")
       .default_value(CMP_NODE_ALPHA_OVER_OPERATION_TYPE_OVER)
       .static_items(type_items)

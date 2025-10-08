@@ -11,9 +11,10 @@
 #include "vk_context.hh"
 
 namespace blender::gpu {
-VKStreamingBuffer::VKStreamingBuffer(VKBuffer &buffer)
-    : vk_buffer_dst_(buffer.vk_handle()), vk_buffer_size_(buffer.size_in_bytes())
-
+VKStreamingBuffer::VKStreamingBuffer(VKBuffer &buffer, VkDeviceSize min_offset_alignment)
+    : min_offset_alignment_(min_offset_alignment),
+      vk_buffer_dst_(buffer.vk_handle()),
+      vk_buffer_size_(buffer.size_in_bytes())
 {
 }
 
@@ -47,15 +48,22 @@ VkDeviceSize VKStreamingBuffer::update(VKContext &context, const void *data, siz
   VKBuffer &host_buffer = *host_buffer_.value().get();
 
   VkDeviceSize start_offset = offset_;
+  /* Advance the offset to the next possible offset considering the minimum allowed offset
+   * alignment. */
   offset_ += data_size;
+  if (min_offset_alignment_ > 1) {
+    offset_ = ceil_to_multiple_ul(offset_, min_offset_alignment_);
+  }
+
   memcpy(
       static_cast<void *>(static_cast<uint8_t *>(host_buffer.mapped_memory_get()) + start_offset),
       data,
       data_size);
 
+  /* Increace the region size to copy to include the min offset alignment. */
   render_graph::VKCopyBufferNode::Data &copy_buffer_data = render_graph.get_node_data(
       copy_buffer_handle_);
-  copy_buffer_data.region.size += data_size;
+  copy_buffer_data.region.size += offset_ - start_offset;
   return start_offset;
 }
 

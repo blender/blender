@@ -24,9 +24,14 @@ namespace blender::nodes::node_composite_bilateralblur_cc {
 
 static void cmp_node_bilateralblur_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .hide_value()
       .structure_type(StructureType::Dynamic);
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic).align_with_previous();
+
   b.add_input<decl::Color>("Determinator")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .structure_type(StructureType::Dynamic);
@@ -38,8 +43,6 @@ static void cmp_node_bilateralblur_declare(NodeDeclarationBuilder &b)
       .description(
           "Pixels are considered in the blur area if the average difference between their "
           "determinator and the determinator of the center pixel is less than this threshold");
-
-  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }
 
 using namespace blender::compositor;

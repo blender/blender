@@ -50,7 +50,7 @@ using offset_t = intptr_t;
 // #define USE_TOTALLOC
 
 /* pad must be power of two */
-#define PADUP(num, pad) (((num) + ((pad)-1)) & ~((pad)-1))
+#define PADUP(num, pad) (((num) + ((pad) - 1)) & ~((pad) - 1))
 
 struct BLI_memiter_elem {
   offset_t size;

@@ -356,15 +356,15 @@ void BMO_slot_mat_set(BMOperator *op,
   slot->data.p = BLI_memarena_alloc(op->arena, sizeof(float[4][4]));
 
   if (size == 4) {
-    copy_m4_m4(static_cast<float(*)[4]>(slot->data.p), (const float(*)[4])mat);
+    copy_m4_m4(static_cast<float (*)[4]>(slot->data.p), (const float (*)[4])mat);
   }
   else if (size == 3) {
-    copy_m4_m3(static_cast<float(*)[4]>(slot->data.p), (const float(*)[3])mat);
+    copy_m4_m3(static_cast<float (*)[4]>(slot->data.p), (const float (*)[3])mat);
   }
   else {
     fprintf(stderr, "%s: invalid size argument %d (bmesh internal error)\n", __func__, size);
 
-    zero_m4(static_cast<float(*)[4]>(slot->data.p));
+    zero_m4(static_cast<float (*)[4]>(slot->data.p));
   }
 }
 

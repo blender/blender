@@ -109,6 +109,8 @@ set(SRC
   intern/bmesh_structure.cc
   intern/bmesh_structure.hh
   intern/bmesh_structure_inline.hh
+  intern/bmesh_uvselect.cc
+  intern/bmesh_uvselect.hh
   intern/bmesh_walkers.cc
   intern/bmesh_walkers.hh
   intern/bmesh_walkers_impl.cc

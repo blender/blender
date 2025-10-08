@@ -319,7 +319,7 @@ static void scene_copy_data(Main *bmain,
   BKE_curvemapping_copy_data(&scene_dst->r.mblur_shutter_curve, &scene_src->r.mblur_shutter_curve);
 
   /* tool settings */
-  scene_dst->toolsettings = BKE_toolsettings_copy(scene_dst->toolsettings, flag_subdata);
+  scene_dst->toolsettings = BKE_toolsettings_copy(scene_src->toolsettings, flag_subdata);
 
   if (scene_src->display.shading.prop) {
     scene_dst->display.shading.prop = IDP_CopyProperty(scene_src->display.shading.prop);
@@ -807,6 +807,8 @@ static bool strip_foreach_member_id_cb(Strip *strip, void *user_data)
   IDP_foreach_property(strip->system_properties, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
     BKE_lib_query_idpropertiesForeachIDLink_callback(prop, data);
   });
+  /* TODO: This could use `seq::foreach_strip_modifier_id`, but because `FOREACHID_PROCESS_IDSUPER`
+   * doesn't take IDs but "ID supers", it makes it a bit more cumbersome. */
   LISTBASE_FOREACH (StripModifierData *, smd, &strip->modifiers) {
     FOREACHID_PROCESS_IDSUPER(data, smd->mask_id, IDWALK_CB_USER);
     if (smd->type == eSeqModifierType_Compositor) {
@@ -846,8 +848,7 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
   }
   if (scene->ed) {
     BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
-        data,
-        blender::seq::for_each_callback(&scene->ed->seqbase, strip_foreach_member_id_cb, data));
+        data, blender::seq::foreach_strip(&scene->ed->seqbase, strip_foreach_member_id_cb, data));
   }
 
   BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
@@ -874,8 +875,23 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
               BKE_lib_query_idpropertiesForeachIDLink_callback(prop, data);
             }));
 
-    BKE_view_layer_synced_ensure(scene, view_layer);
-    LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
+    /* FIXME: Although ideally this should always have access to synced data, this is not always
+     * the case (FOREACH_ID can be called in context where re-syncing is blocked, while effectively
+     * modifying the viewlayer or collections data, see e.g. #id_delete code which remaps all
+     * deleted ID usages to null).
+     *
+     * There is no obvious solution to this problem, so for now working around with some 'band-aid'
+     * special code and asserts.
+     *
+     * In the future, there may be need for a new `IDWALK_CB` flag to mark existing pointer values
+     * as unsafe to access in such cases. */
+    const bool is_synced = BKE_view_layer_synced_ensure(scene, view_layer);
+    if (!is_synced) {
+      BLI_assert_msg((flag & IDWALK_RECURSE) == 0,
+                     "foreach_id should never recurse in case it cannot ensure that all "
+                     "viewlayers are in synced with their collections");
+    }
+    LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_unsynced_get(view_layer)) {
       BKE_LIB_FOREACHID_PROCESS_IDSUPER(
           data,
           base->object,
@@ -978,7 +994,7 @@ static void scene_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
   Scene *scene = (Scene *)id;
   if (scene->ed != nullptr) {
-    blender::seq::for_each_callback(&scene->ed->seqbase, strip_foreach_path_callback, bpath_data);
+    blender::seq::foreach_strip(&scene->ed->seqbase, strip_foreach_path_callback, bpath_data);
   }
 }
 

@@ -180,8 +180,8 @@ struct BChunkList;
  */
 #define USE_HASH_TABLE_KEY_CACHE
 #ifdef USE_HASH_TABLE_KEY_CACHE
-#  define HASH_TABLE_KEY_UNSET ((hash_key)-1)
-#  define HASH_TABLE_KEY_FALLBACK ((hash_key)-2)
+#  define HASH_TABLE_KEY_UNSET ((hash_key) - 1)
+#  define HASH_TABLE_KEY_FALLBACK ((hash_key) - 2)
 #endif
 
 /**

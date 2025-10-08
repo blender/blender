@@ -512,7 +512,7 @@ template<typename T> void cdt_draw(const std::string &label, const CDTArrangemen
   }
   double scale = view_width / width;
 
-#  define SX(x) (((x)-minx) * scale)
+#  define SX(x) (((x) - minx) * scale)
 #  define SY(y) ((maxy - (y)) * scale)
 
   std::ofstream f;

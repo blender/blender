@@ -38,8 +38,8 @@ template<typename T> struct AngleRadianBase {
  public:
   AngleRadianBase() = default;
 
-  AngleRadianBase(const T &radian) : value_(radian){};
-  explicit AngleRadianBase(const T &cos, const T &sin) : value_(math::atan2(sin, cos)){};
+  AngleRadianBase(const T &radian) : value_(radian) {};
+  explicit AngleRadianBase(const T &cos, const T &sin) : value_(math::atan2(sin, cos)) {};
 
   /** Static functions. */
 
@@ -184,9 +184,9 @@ template<typename T> struct AngleCartesianBase {
    * Create an angle from a radian value.
    */
   explicit AngleCartesianBase(const T &radian)
-      : AngleCartesianBase(math::cos(radian), math::sin(radian)){};
+      : AngleCartesianBase(math::cos(radian), math::sin(radian)) {};
   explicit AngleCartesianBase(const AngleRadianBase<T> &angle)
-      : AngleCartesianBase(math::cos(angle.radian()), math::sin(angle.radian())){};
+      : AngleCartesianBase(math::cos(angle.radian()), math::sin(angle.radian())) {};
 
   /** Static functions. */
 
@@ -385,7 +385,7 @@ template<typename T = float> struct AngleFraction {
    * fractions.
    */
   AngleFraction(int64_t numerator, int64_t denominator = 1)
-      : numerator_(numerator), denominator_(denominator){};
+      : numerator_(numerator), denominator_(denominator) {};
 
  public:
   /** Static functions. */

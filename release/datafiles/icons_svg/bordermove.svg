@@ -1,1 +1,30 @@
-<svg height="1600" viewBox="0 0 1600 1600" width="1600" xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"><sodipodi:namedview pagecolor="#303030" showgrid="true"><inkscape:grid id="grid5" units="px" spacingx="100" spacingy="100" color="#4772b3" opacity="0.2" visible="true" /></sodipodi:namedview><g fill="#fff"><g enable-background="new" transform="matrix(100 0 0 100 -8899.6438 -61900.356)"><path d="m75 599v2h1v-2zm3 0v1h2v-1zm4 0v2h1v-2zm-6 3c-2.197587 0-4 1.80241-4 4 0 .91965.327327 1.75942.855469 2.4375l-3.708985 3.70898a.50005001.50005001 0 1 0 .707032.70704l3.708984-3.70899c.677952.52778 1.518204.85547 2.4375.85547 2.197595 0 3.998047-1.80241 3.998047-4s-1.800452-4-3.998047-4zm6 1v2h1v-2zm-6 .002c1.652136 0 3 1.34592 3 2.99805s-1.347864 3-3 3c-1.652128 0-3-1.34787-3-3 0-1.65214 1.347872-2.99805 3-2.99805zm6 3.998v2h1v-2zm-7 4v2h1v-2zm7 0v2h1v-2zm-4 1v1h2v-1z" transform="translate(21 21)"/><path d="m96 620v3.5h1v-2.5h6v12h-6v-2.25h-1v3.25h8v-14z" opacity=".25"/></g></g></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   height="1600"
+   viewBox="0 0 1600 1600"
+   width="1600"
+   version="1.1"
+   id="svg3"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs3" />
+  <g
+     fill="#ffffff"
+     id="g3"
+     transform="matrix(-1,0,0,1,1600.0001,0)">
+    <g
+       enable-background="new"
+       transform="matrix(100,0,0,100,-8899.6438,-61900.356)"
+       id="g2">
+      <path
+         d="m 75,599 v 2 h 1 v -2 z m 3,0 v 1 h 2 v -1 z m 4,0 v 2 h 1 v -2 z m -6,3 c -2.197587,0 -4,1.80241 -4,4 0,0.91965 0.327327,1.75942 0.855469,2.4375 l -3.708985,3.70898 a 0.50005001,0.50005001 0 1 0 0.707032,0.70704 L 73.5625,609.14453 C 74.240452,609.67231 75.080704,610 76,610 c 2.197595,0 3.998047,-1.80241 3.998047,-4 0,-2.19759 -1.800452,-4 -3.998047,-4 z m 6,1 v 2 h 1 v -2 z m -6,0.002 c 1.652136,0 3,1.34592 3,2.99805 0,1.65213 -1.347864,3 -3,3 -1.652128,0 -3,-1.34787 -3,-3 0,-1.65214 1.347872,-2.99805 3,-2.99805 z M 82,607 v 2 h 1 v -2 z m -7,4 v 2 h 1 v -2 z m 7,0 v 2 h 1 v -2 z m -4,1 v 1 h 2 v -1 z"
+         transform="translate(21,21)"
+         id="path1" />
+      <path
+         d="m 96,620 v 3.5 h 1 V 621 h 6 v 12 h -6 v -2.25 H 96 V 634 h 8 v -14 z"
+         opacity="0.25"
+         id="path2" />
+    </g>
+  </g>
+</svg>

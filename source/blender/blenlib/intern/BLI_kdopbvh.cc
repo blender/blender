@@ -226,7 +226,7 @@ MINLINE axis_t max_axis(axis_t a, axis_t b)
 static void node_minmax_init(const BVHTree *tree, BVHNode *node)
 {
   axis_t axis_iter;
-  float(*bv)[2] = (float(*)[2])node->bv;
+  float (*bv)[2] = (float (*)[2])node->bv;
 
   for (axis_iter = tree->start_axis; axis_iter != tree->stop_axis; axis_iter++) {
     bv[axis_iter][0] = FLT_MAX;

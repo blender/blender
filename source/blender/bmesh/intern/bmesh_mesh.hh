@@ -183,22 +183,23 @@ extern const BMAllocTemplate bm_mesh_allocsize_default;
 extern const BMAllocTemplate bm_mesh_chunksize_default;
 
 #define BMALLOC_TEMPLATE_FROM_BM(bm) \
-  { \
-    (CHECK_TYPE_INLINE(bm, BMesh *), (bm)->totvert), (bm)->totedge, (bm)->totloop, (bm)->totface \
-  }
+  {(CHECK_TYPE_INLINE(bm, BMesh *), (bm)->totvert), (bm)->totedge, (bm)->totloop, (bm)->totface}
 
 #define _VA_BMALLOC_TEMPLATE_FROM_ME_1(me) \
   { \
-    (CHECK_TYPE_INLINE(me, Mesh *), (me)->verts_num), (me)->edges_num, (me)->corners_num, \
-        (me)->faces_num, \
+      (CHECK_TYPE_INLINE(me, Mesh *), (me)->verts_num), \
+      (me)->edges_num, \
+      (me)->corners_num, \
+      (me)->faces_num, \
   }
 #define _VA_BMALLOC_TEMPLATE_FROM_ME_2(me_a, me_b) \
   { \
-    (CHECK_TYPE_INLINE(me_a, Mesh *), \
-     CHECK_TYPE_INLINE(me_b, Mesh *), \
-     (me_a)->verts_num + (me_b)->verts_num), \
-        (me_a)->edges_num + (me_b)->edges_num, (me_a)->corners_num + (me_b)->corners_num, \
-        (me_a)->faces_num + (me_b)->faces_num, \
+      (CHECK_TYPE_INLINE(me_a, Mesh *), \
+       CHECK_TYPE_INLINE(me_b, Mesh *), \
+       (me_a)->verts_num + (me_b)->verts_num), \
+      (me_a)->edges_num + (me_b)->edges_num, \
+      (me_a)->corners_num + (me_b)->corners_num, \
+      (me_a)->faces_num + (me_b)->faces_num, \
   }
 #define BMALLOC_TEMPLATE_FROM_ME(...) \
   VA_NARGS_CALL_OVERLOAD(_VA_BMALLOC_TEMPLATE_FROM_ME_, __VA_ARGS__)

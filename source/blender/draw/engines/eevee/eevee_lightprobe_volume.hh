@@ -84,6 +84,15 @@ class IrradianceBake {
   SurfelListInfoBuf list_info_buf_ = {"list_info_buf_"};
   /** List array containing list start surfel index. Cleared to -1. */
   StorageArrayBuffer<int, 16, true> list_start_buf_ = {"list_start_buf_"};
+  /** Count number of surfel per surfel list. Cleared to 0. */
+  StorageArrayBuffer<int, 16, true> list_counter_buf_ = {"list_counter_buf_"};
+  /** IndexRange of sorting items for each surfel list. */
+  StorageArrayBuffer<int, 16, true> list_range_buf_ = {"list_range_buf_"};
+  /** Sorting items for fast sorting of surfels. */
+  StorageArrayBuffer<float, 16, true> list_item_distance_buf_ = {"list_item_distance_buf_"};
+  StorageArrayBuffer<int, 16, true> list_item_surfel_id_buf_ = {"list_item_surfel_id_buf_"};
+  /** Result of sorting. Needed to be duplicated to avoid race condition. */
+  StorageArrayBuffer<int, 16, true> sorted_surfel_id_buf_ = {"sorted_surfel_id_buf_"};
 
   /* Dispatch size for per surfel workload. */
   int3 dispatch_per_surfel_ = int3(1);
@@ -139,7 +148,7 @@ class IrradianceBake {
   bool do_break_ = false;
 
  public:
-  IrradianceBake(Instance &inst) : inst_(inst){};
+  IrradianceBake(Instance &inst) : inst_(inst) {};
 
   void init(const Object &probe_object);
   void sync();
@@ -233,8 +242,8 @@ class VolumeProbeModule {
   bool do_update_world_ = true;
 
  public:
-  VolumeProbeModule(Instance &inst) : bake(inst), inst_(inst){};
-  ~VolumeProbeModule(){};
+  VolumeProbeModule(Instance &inst) : bake(inst), inst_(inst) {};
+  ~VolumeProbeModule() {};
 
   void init();
   void sync();

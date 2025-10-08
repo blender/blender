@@ -1156,8 +1156,7 @@ void blo_do_versions_410(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 18)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed != nullptr) {
-        blender::seq::for_each_callback(
-            &scene->ed->seqbase, strip_filter_bilinear_to_auto, nullptr);
+        blender::seq::foreach_strip(&scene->ed->seqbase, strip_filter_bilinear_to_auto, nullptr);
       }
     }
   }

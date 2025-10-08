@@ -511,7 +511,7 @@ static void deform_verts(ModifierData *md,
   laplaciansmoothModifier_do((LaplacianSmoothModifierData *)md,
                              ctx->object,
                              mesh,
-                             reinterpret_cast<float(*)[3]>(positions.data()),
+                             reinterpret_cast<float (*)[3]>(positions.data()),
                              positions.size());
 }
 

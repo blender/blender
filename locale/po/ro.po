@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'7089def6cbcb')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'ceca413bcbf8')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-29 09:33+0000\n"
+"POT-Creation-Date: 2025-10-06 08:44+0000\n"
 "PO-Revision-Date: 2025-09-04 22:59+0000\n"
 "Last-Translator: Dominic Iastrebschi <domjotebit@gmail.com>\n"
 "Language-Team: Romanian <https://translate.blender.org/projects/blender-ui/ui/ro/>\n"
@@ -85,10 +85,6 @@ msgstr "Slot"
 
 msgid "For each action slot, a list of animation channels that are meant for that slot"
 msgstr "Pentru fiecare slot de acțiune, o listă a canalelor de animație care sunt destinate slotului respectiv"
-
-
-msgid "Action F-Curves"
-msgstr "Curbe F de acțiune"
 
 
 msgid "Action Group"
@@ -257,14 +253,6 @@ msgstr "Grupul de acțiune este extins în editorul de grafice"
 
 msgid "Pin in Graph Editor"
 msgstr "Fixare în Editorul de Grafice"
-
-
-msgid "Action Groups"
-msgstr "Grupuri de acțiune"
-
-
-msgid "Collection of action groups"
-msgstr "Colecție de grupuri de acțiune"
 
 
 msgid "Action Pose Markers"
@@ -884,10 +872,6 @@ msgstr "Editor pentru instrumente de umbrire și compunere bazate pe noduri"
 
 msgid "Video Sequencer"
 msgstr "Sequencer video"
-
-
-msgid "Video editing tools"
-msgstr "Unelte de editare video"
 
 
 msgid "Movie Clip Editor"
@@ -2148,18 +2132,6 @@ msgid "Sampling"
 msgstr "Eșantionare"
 
 
-msgid "Layout"
-msgstr "Aspect"
-
-
-msgid "Light"
-msgstr "Lumină"
-
-
-msgid "Tracking"
-msgstr "Urmărire"
-
-
 msgid "Add Image"
 msgstr "Adăugare Imagine"
 
@@ -2174,6 +2146,18 @@ msgstr "Convertire"
 
 msgid "UV"
 msgstr "UV"
+
+
+msgid "Layout"
+msgstr "Aspect"
+
+
+msgid "Tracking"
+msgstr "Urmărire"
+
+
+msgid "Light"
+msgstr "Lumină"
 
 
 msgid "Marker"
@@ -2338,16 +2322,6 @@ msgid "(undocumented operator)"
 msgstr "(operator nedocumentat)"
 
 
-msgctxt "Curve"
-msgid "Mode"
-msgstr "Mod"
-
-
-msgctxt "Curve"
-msgid "Max"
-msgstr "Max"
-
-
 msgctxt "Operator"
 msgid "Add Marker"
 msgstr "Adăugare Marker"
@@ -2475,6 +2449,16 @@ msgid "Render"
 msgstr "Render"
 
 
+msgctxt "Curve"
+msgid "Mode"
+msgstr "Mod"
+
+
+msgctxt "Curve"
+msgid "Max"
+msgstr "Max"
+
+
 msgctxt "Scene"
 msgid "New"
 msgstr "Nou"
@@ -2503,11 +2487,6 @@ msgstr "Scădere"
 msgctxt "Sequence"
 msgid "Multiply"
 msgstr "Înmulțire"
-
-
-msgctxt "Sequence"
-msgid "Transform"
-msgstr "Transformare"
 
 
 msgctxt "Sequence"
@@ -3270,16 +3249,8 @@ msgid "Zoom out"
 msgstr "Micșorare"
 
 
-msgid "Clipping Options"
-msgstr "Opțiuni de tăiere"
-
-
 msgid "Delete points"
 msgstr "Șterge punctele"
-
-
-msgid "Reset Black/White point and curves"
-msgstr "Resetează punctele și curbele Negru/Alb"
 
 
 msgid "Display number of users of this data (click to make a single-user copy)"

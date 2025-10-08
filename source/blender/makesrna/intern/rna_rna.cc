@@ -1842,9 +1842,17 @@ static void rna_property_override_diff_propptr(Main *bmain,
     }
   }
   else {
-    /* We could also use is_diff_pointer, but then we potentially lose the greater-than/less-than
-     * info - and don't think performances are critical here for now anyway. */
-    ptrdiff_ctx.rnadiff_ctx.comparison = !RNA_struct_equals(bmain, propptr_a, propptr_b, mode);
+    if (no_ownership || is_null || is_type_diff || !is_valid_for_diffing) {
+      /* In case this pointer prop does not own its data (or one is nullptr), do not compare
+       * structs! This is a quite safe path to infinite loop, among other nasty issues. Instead,
+       * just compare pointers themselves. */
+      ptrdiff_ctx.rnadiff_ctx.comparison = (propptr_a->data != propptr_b->data);
+    }
+    else {
+      /* We could also use is_diff_pointer, but then we potentially lose the greater-than/less-than
+       * info - and don't think performances are critical here for now anyway. */
+      ptrdiff_ctx.rnadiff_ctx.comparison = !RNA_struct_equals(bmain, propptr_a, propptr_b, mode);
+    }
   }
 }
 
@@ -2210,7 +2218,7 @@ void rna_property_override_diff_default(Main *bmain, RNAPropertyOverrideDiffCont
         if (prop_a->is_idprop || prop_a->is_rna_storage_idprop || prop_a->rnaprop->override_apply)
         {
           BLI_assert(prop_a->is_idprop == prop_b->is_idprop);
-          BLI_assert(prop_a->rnaprop->override_apply == prop_b->rnaprop->override_apply);
+          BLI_assert(prop_a->is_rna_storage_idprop == prop_b->is_rna_storage_idprop);
           BLI_assert(prop_a->rnaprop->override_apply == prop_b->rnaprop->override_apply);
           ptrdiff_ctx.has_liboverride_apply_cb = true;
         }

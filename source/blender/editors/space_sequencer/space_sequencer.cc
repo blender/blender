@@ -1036,7 +1036,6 @@ static void sequencer_buttons_region_init(wmWindowManager *wm, ARegion *region)
       wm->runtime->defaultconf, "Video Sequence Editor", SPACE_SEQ, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->runtime->handlers, keymap);
 
-  UI_panel_category_active_set_default(region, "Strip");
   ED_region_panels_init(wm, region);
 }
 
@@ -1212,15 +1211,6 @@ void ED_spacetype_sequencer()
   art->snap_size = ED_region_generic_panel_region_snap_size;
   art->draw = sequencer_buttons_region_draw;
   BLI_addhead(&st->regiontypes, art);
-
-  /* Register the panel types from strip modifiers. The actual panels are built per strip modifier
-   * rather than per modifier type. */
-  for (int i = 0; i < NUM_STRIP_MODIFIER_TYPES; i++) {
-    const seq::StripModifierTypeInfo *mti = seq::modifier_type_info_get(i);
-    if (mti != nullptr && mti->panel_register != nullptr) {
-      mti->panel_register(art);
-    }
-  }
 
   sequencer_buttons_register(art);
   /* Toolbar. */

@@ -29,7 +29,7 @@
 
 static void rna_gizmo_draw_preset_box(wmGizmo *gz, const float matrix[16], int select_id)
 {
-  ED_gizmo_draw_preset_box(gz, (const float(*)[4])matrix, select_id);
+  ED_gizmo_draw_preset_box(gz, (const float (*)[4])matrix, select_id);
 }
 
 static void rna_gizmo_draw_preset_arrow(wmGizmo *gz,
@@ -37,7 +37,7 @@ static void rna_gizmo_draw_preset_arrow(wmGizmo *gz,
                                         int axis,
                                         int select_id)
 {
-  ED_gizmo_draw_preset_arrow(gz, (const float(*)[4])matrix, axis, select_id);
+  ED_gizmo_draw_preset_arrow(gz, (const float (*)[4])matrix, axis, select_id);
 }
 
 static void rna_gizmo_draw_preset_circle(wmGizmo *gz,
@@ -45,7 +45,7 @@ static void rna_gizmo_draw_preset_circle(wmGizmo *gz,
                                          int axis,
                                          int select_id)
 {
-  ED_gizmo_draw_preset_circle(gz, (const float(*)[4])matrix, axis, select_id);
+  ED_gizmo_draw_preset_circle(gz, (const float (*)[4])matrix, axis, select_id);
 }
 
 /* -------------------------------------------------------------------- */

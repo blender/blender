@@ -25,7 +25,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_default_layout();
   b.add_input<decl::Geometry>("Volume").description("Volume geometry to add a grid to");
   b.add_output<decl::Geometry>("Volume").align_with_previous();
-  b.add_input<decl::String>("Name").optional_label();
+  b.add_input<decl::String>("Name").optional_label().is_volume_grid_name();
 
   const bNode *node = b.node_or_null();
   if (!node) {
@@ -39,9 +39,6 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void search_link_ops(GatherLinkSearchOpParams &params)
 {
-  if (!USER_EXPERIMENTAL_TEST(&U, use_new_volume_nodes)) {
-    return;
-  }
   if (params.other_socket().type == SOCK_GEOMETRY) {
     params.add_item(IFACE_("Volume"), [](LinkSearchOpParams &params) {
       bNode &node = params.add_node("GeometryNodeStoreNamedGrid");

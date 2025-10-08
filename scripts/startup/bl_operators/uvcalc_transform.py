@@ -2,6 +2,13 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+__all__ = (
+    "classes",
+
+    # While "internal" (not for user scripts) it's used by `uvcalc_follow_active`.
+    "is_face_uv_selected_fn_from_context",
+)
+
 import math
 
 from bpy.types import Operator
@@ -19,51 +26,98 @@ from bpy.props import (
 # ------------------------------------------------------------------------------
 # Local Utility Functions
 
-def is_face_uv_selected(face, uv_layer, any_edge):
-    # Returns True if the face is UV selected.
-    #
-    # :arg face: the face to query.
-    # :type face: :class:`BMFace`
-    # :arg uv_layer: the UV layer to source UVs from.
-    # :type bmesh: :class:`BMLayerItem`
-    # :arg any_edge: use edge selection instead of vertex selection.
-    # :type any_edge: bool
-    # :return: True if the face is UV selected.
-    # :rtype: bool
-
-    if not face.select:  # Geometry selection
+# `sync_valid` functions.
+def is_face_uv_selected_for_uv_select_sync_valid(face, any_edge):
+    if face.hide:
         return False
-
-    import bpy
-    if bpy.context.tool_settings.use_uv_select_sync:
-        # In sync selection mode, UV selection comes solely from geometry selection.
+    if face.uv_select:
         return True
-
     if any_edge:
         for loop in face.loops:
-            if loop[uv_layer].select_edge:
+            if loop.uv_select_edge:
                 return True
+    return False
+
+
+def is_loop_edge_uv_selected_for_uv_select_sync_valid(loop):
+    if loop.face.hide:
         return False
-
-    for loop in face.loops:
-        if not loop[uv_layer].select:
-            return False
-    return True
+    if loop.uv_select_edge:
+        return True
+    return False
 
 
-def is_island_uv_selected(island, uv_layer, any_edge):
+# `sync_invalid` functions.
+def is_face_uv_selected_for_uv_select_sync_invalid(face, any_edge):
+    if face.hide:
+        return False
+    if face.select:
+        return True
+    if any_edge:
+        for loop in face.loops:
+            if loop.edge.select:
+                return True
+    return False
+
+
+def is_loop_edge_uv_selected_for_uv_select_sync_invalid(loop):
+    if loop.face.hide:
+        return False
+    if loop.edge.select:
+        return True
+    return False
+
+
+# `no_sync` functions.
+def is_face_uv_selected_for_uv_select_no_sync(face, any_edge):
+    if face.hide:
+        return False
+    if face.select:
+        if face.uv_select:
+            return True
+        if any_edge:
+            for loop in face.loops:
+                if loop.uv_select_edge:
+                    return True
+    return False
+
+
+def is_loop_edge_uv_selected_for_uv_select_no_sync(loop):
+    if loop.face.hide:
+        return False
+    if loop.face.select:
+        if loop.uv_select_edge:
+            return True
+    return False
+
+
+def is_face_uv_selected_fn_from_context(scene, bm):
+    if scene.tool_settings.use_uv_select_sync:
+        if bm.uv_select_sync_valid:
+            return is_face_uv_selected_for_uv_select_sync_valid
+        return is_face_uv_selected_for_uv_select_sync_invalid
+    return is_face_uv_selected_for_uv_select_no_sync
+
+
+def is_loop_edge_uv_selected_fn_from_context(scene, bm):
+    if scene.tool_settings.use_uv_select_sync:
+        if bm.uv_select_sync_valid:
+            return is_loop_edge_uv_selected_for_uv_select_sync_valid
+        return is_loop_edge_uv_selected_for_uv_select_sync_invalid
+    return is_loop_edge_uv_selected_for_uv_select_no_sync
+
+
+def is_island_uv_selected(island, any_edge, face_select_test_fn):
     # Returns True if the island is UV selected.
     #
     # :arg island: list of faces to query.
     # :type island: Sequence[:class:`BMFace`]
-    # :arg uv_layer: the UV layer to source UVs from.
-    # :type bmesh: :class:`BMLayerItem`
     # :arg any_edge: use edge selection instead of vertex selection.
     # :type any_edge: bool
     # :return: list of lists containing polygon indices.
     # :rtype: bool
     for face in island:
-        if is_face_uv_selected(face, uv_layer, any_edge):
+        if face_select_test_fn(face, any_edge):
             return True
     return False
 
@@ -106,6 +160,7 @@ def island_uv_bounds_center(island, uv_layer):
 # Align UV Rotation Operator
 
 def find_rotation_auto(bm, uv_layer, faces, aspect_y):
+    del bm
     sum_u = 0.0
     sum_v = 0.0
     for face in faces:
@@ -124,12 +179,13 @@ def find_rotation_auto(bm, uv_layer, faces, aspect_y):
     return -math.atan2(sum_v, sum_u) / 4.0
 
 
-def find_rotation_edge(bm, uv_layer, faces, aspect_y):
+def find_rotation_edge(bm, uv_layer, faces, aspect_y, loop_edge_select_test_fn):
+    del bm
     sum_u = 0.0
     sum_v = 0.0
     for face in faces:
         prev_uv = face.loops[-1][uv_layer].uv
-        prev_select = face.loops[-1][uv_layer].select_edge
+        prev_select = loop_edge_select_test_fn(face.loops[-1])
         for loop in face.loops:
             uv = loop[uv_layer].uv
             if prev_select:
@@ -141,7 +197,7 @@ def find_rotation_edge(bm, uv_layer, faces, aspect_y):
                 sum_v += math.sin(edge_angle)
 
             prev_uv = uv
-            prev_select = loop[uv_layer].select_edge
+            prev_select = loop_edge_select_test_fn(loop)
 
     # Add 90 degrees to align along V coordinate.
     # Twice, because we divide by two.
@@ -151,7 +207,8 @@ def find_rotation_edge(bm, uv_layer, faces, aspect_y):
     return -math.atan2(sum_v, sum_u) / 2.0
 
 
-def find_rotation_geometry(bm, uv_layer, faces, method, axis, aspect_y):
+def find_rotation_geometry(bm, uv_layer, faces, axis, aspect_y):
+    del bm
     sum_u_co = Vector((0.0, 0.0, 0.0))
     sum_v_co = Vector((0.0, 0.0, 0.0))
     for face in faces:
@@ -185,14 +242,14 @@ def find_rotation_geometry(bm, uv_layer, faces, method, axis, aspect_y):
     return math.atan2(sum_u_co[axis_index], sum_v_co[axis_index])
 
 
-def align_uv_rotation_island(bm, uv_layer, faces, method, axis, aspect_y):
+def align_uv_rotation_island(bm, uv_layer, faces, method, axis, aspect_y, loop_edge_select_test_fn):
     angle = 0.0
     if method == 'AUTO':
         angle = find_rotation_auto(bm, uv_layer, faces, aspect_y)
     elif method == 'EDGE':
-        angle = find_rotation_edge(bm, uv_layer, faces, aspect_y)
+        angle = find_rotation_edge(bm, uv_layer, faces, aspect_y, loop_edge_select_test_fn)
     elif method == 'GEOMETRY':
-        angle = find_rotation_geometry(bm, uv_layer, faces, method, axis, aspect_y)
+        angle = find_rotation_geometry(bm, uv_layer, faces, axis, aspect_y)
 
     if angle == 0.0:
         return False  # No change.
@@ -217,7 +274,7 @@ def align_uv_rotation_island(bm, uv_layer, faces, method, axis, aspect_y):
     return True
 
 
-def align_uv_rotation_bmesh(bm, method, axis, aspect_y):
+def align_uv_rotation_bmesh(bm, method, axis, aspect_y, loop_edge_select_test_fn, face_select_test_fn):
     import bpy_extras.bmesh_utils
 
     uv_layer = bm.loops.layers.uv.active
@@ -227,8 +284,8 @@ def align_uv_rotation_bmesh(bm, method, axis, aspect_y):
     islands = bpy_extras.bmesh_utils.bmesh_linked_uv_islands(bm, uv_layer)
     changed = False
     for island in islands:
-        if is_island_uv_selected(island, uv_layer, method == 'EDGE'):
-            if align_uv_rotation_island(bm, uv_layer, island, method, axis, aspect_y):
+        if is_island_uv_selected(island, method == 'EDGE', face_select_test_fn):
+            if align_uv_rotation_island(bm, uv_layer, island, method, axis, aspect_y, loop_edge_select_test_fn):
                 changed = True
     return changed
 
@@ -251,6 +308,7 @@ def get_aspect_y(context):
 
 def align_uv_rotation(context, method, axis, correct_aspect):
     import bmesh
+    scene = context.scene
 
     aspect_y = 1.0
     if correct_aspect:
@@ -259,9 +317,12 @@ def align_uv_rotation(context, method, axis, correct_aspect):
     ob_list = context.objects_in_mode_unique_data
     for ob in ob_list:
         bm = bmesh.from_edit_mesh(ob.data)
-        if bm.loops.layers.uv:
-            if align_uv_rotation_bmesh(bm, method, axis, aspect_y):
-                bmesh.update_edit_mesh(ob.data)
+        if not bm.loops.layers.uv:
+            continue
+        loop_edge_select_test_fn = is_loop_edge_uv_selected_fn_from_context(scene, bm)
+        face_select_test_fn = is_face_uv_selected_fn_from_context(scene, bm)
+        if align_uv_rotation_bmesh(bm, method, axis, aspect_y, loop_edge_select_test_fn, face_select_test_fn):
+            bmesh.update_edit_mesh(ob.data)
 
     return {'FINISHED'}
 
@@ -358,7 +419,7 @@ def get_random_transform(transform_params, entropy):
             [scale_u * math.sin(angle), scale_v * math.cos(angle), offset_v]]
 
 
-def randomize_uv_transform_island(bm, uv_layer, faces, transform_params):
+def randomize_uv_transform_island(uv_layer, faces, transform_params):
     # Ensure consistent random values for island, regardless of selection etc.
     entropy = min(f.index for f in faces)
 
@@ -379,17 +440,18 @@ def randomize_uv_transform_island(bm, uv_layer, faces, transform_params):
             loop[uv_layer].uv = (u, v)
 
 
-def randomize_uv_transform_bmesh(mesh, bm, transform_params):
+def randomize_uv_transform_bmesh(bm, transform_params, face_select_test_fn):
     import bpy_extras.bmesh_utils
     uv_layer = bm.loops.layers.uv.verify()
     islands = bpy_extras.bmesh_utils.bmesh_linked_uv_islands(bm, uv_layer)
     for island in islands:
-        if is_island_uv_selected(island, uv_layer, False):
-            randomize_uv_transform_island(bm, uv_layer, island, transform_params)
+        if is_island_uv_selected(island, False, face_select_test_fn):
+            randomize_uv_transform_island(uv_layer, island, transform_params)
 
 
 def randomize_uv_transform(context, transform_params):
     import bmesh
+    scene = context.scene
     ob_list = context.objects_in_mode_unique_data
     for ob in ob_list:
         bm = bmesh.from_edit_mesh(ob.data)
@@ -398,7 +460,8 @@ def randomize_uv_transform(context, transform_params):
 
         # Only needed to access the minimum face index of each island.
         bm.faces.index_update()
-        randomize_uv_transform_bmesh(ob.data, bm, transform_params)
+        face_select_test_fn = is_face_uv_selected_fn_from_context(scene, bm)
+        randomize_uv_transform_bmesh(bm, transform_params, face_select_test_fn)
 
     for ob in ob_list:
         bmesh.update_edit_mesh(ob.data)
@@ -478,8 +541,8 @@ class RandomizeUVTransform(Operator):
         scale = None if not self.use_scale else self.scale
         scale_even = self.scale_even
 
-        transformParams = [seed, loc, rot, scale, scale_even]
-        return randomize_uv_transform(context, transformParams)
+        transform_params = [seed, loc, rot, scale, scale_even]
+        return randomize_uv_transform(context, transform_params)
 
 
 classes = (

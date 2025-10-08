@@ -275,7 +275,7 @@ struct BMOpSlot {
 #define BMO_SLOT_AS_INT(slot) ((slot)->data.i)
 #define BMO_SLOT_AS_FLOAT(slot) ((slot)->data.f)
 #define BMO_SLOT_AS_VECTOR(slot) ((slot)->data.vec)
-#define BMO_SLOT_AS_MATRIX(slot) ((float(*)[4])((slot)->data.p))
+#define BMO_SLOT_AS_MATRIX(slot) ((float (*)[4])((slot)->data.p))
 #define BMO_SLOT_AS_BUFFER(slot) ((slot)->data.buf)
 #define BMO_SLOT_AS_GHASH(slot) ((slot)->data.ghash)
 

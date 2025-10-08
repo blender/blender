@@ -193,37 +193,37 @@ struct ResourceBind {
   ResourceBind() = default;
 
   ResourceBind(int slot_, gpu::UniformBuf *res)
-      : slot(slot_), is_reference(false), type(Type::UniformBuf), uniform_buf(res){};
+      : slot(slot_), is_reference(false), type(Type::UniformBuf), uniform_buf(res) {};
   ResourceBind(int slot_, gpu::UniformBuf **res)
-      : slot(slot_), is_reference(true), type(Type::UniformBuf), uniform_buf_ref(res){};
+      : slot(slot_), is_reference(true), type(Type::UniformBuf), uniform_buf_ref(res) {};
   ResourceBind(int slot_, gpu::StorageBuf *res)
-      : slot(slot_), is_reference(false), type(Type::StorageBuf), storage_buf(res){};
+      : slot(slot_), is_reference(false), type(Type::StorageBuf), storage_buf(res) {};
   ResourceBind(int slot_, gpu::StorageBuf **res)
-      : slot(slot_), is_reference(true), type(Type::StorageBuf), storage_buf_ref(res){};
+      : slot(slot_), is_reference(true), type(Type::StorageBuf), storage_buf_ref(res) {};
   ResourceBind(int slot_, gpu::UniformBuf *res, Type /*type*/)
-      : slot(slot_), is_reference(false), type(Type::UniformAsStorageBuf), uniform_buf(res){};
+      : slot(slot_), is_reference(false), type(Type::UniformAsStorageBuf), uniform_buf(res) {};
   ResourceBind(int slot_, gpu::UniformBuf **res, Type /*type*/)
-      : slot(slot_), is_reference(true), type(Type::UniformAsStorageBuf), uniform_buf_ref(res){};
+      : slot(slot_), is_reference(true), type(Type::UniformAsStorageBuf), uniform_buf_ref(res) {};
   ResourceBind(int slot_, gpu::VertBuf *res, Type /*type*/)
-      : slot(slot_), is_reference(false), type(Type::VertexAsStorageBuf), vertex_buf(res){};
+      : slot(slot_), is_reference(false), type(Type::VertexAsStorageBuf), vertex_buf(res) {};
   ResourceBind(int slot_, gpu::VertBuf **res, Type /*type*/)
-      : slot(slot_), is_reference(true), type(Type::VertexAsStorageBuf), vertex_buf_ref(res){};
+      : slot(slot_), is_reference(true), type(Type::VertexAsStorageBuf), vertex_buf_ref(res) {};
   ResourceBind(int slot_, gpu::IndexBuf *res, Type /*type*/)
-      : slot(slot_), is_reference(false), type(Type::IndexAsStorageBuf), index_buf(res){};
+      : slot(slot_), is_reference(false), type(Type::IndexAsStorageBuf), index_buf(res) {};
   ResourceBind(int slot_, gpu::IndexBuf **res, Type /*type*/)
-      : slot(slot_), is_reference(true), type(Type::IndexAsStorageBuf), index_buf_ref(res){};
+      : slot(slot_), is_reference(true), type(Type::IndexAsStorageBuf), index_buf_ref(res) {};
   ResourceBind(int slot_, draw::Image *res)
-      : slot(slot_), is_reference(false), type(Type::Image), texture(draw::as_texture(res)){};
+      : slot(slot_), is_reference(false), type(Type::Image), texture(draw::as_texture(res)) {};
   ResourceBind(int slot_, draw::Image **res)
-      : slot(slot_), is_reference(true), type(Type::Image), texture_ref(draw::as_texture(res)){};
+      : slot(slot_), is_reference(true), type(Type::Image), texture_ref(draw::as_texture(res)) {};
   ResourceBind(int slot_, gpu::Texture *res, GPUSamplerState state)
-      : sampler(state), slot(slot_), is_reference(false), type(Type::Sampler), texture(res){};
+      : sampler(state), slot(slot_), is_reference(false), type(Type::Sampler), texture(res) {};
   ResourceBind(int slot_, gpu::Texture **res, GPUSamplerState state)
-      : sampler(state), slot(slot_), is_reference(true), type(Type::Sampler), texture_ref(res){};
+      : sampler(state), slot(slot_), is_reference(true), type(Type::Sampler), texture_ref(res) {};
   ResourceBind(int slot_, gpu::VertBuf *res)
-      : slot(slot_), is_reference(false), type(Type::BufferSampler), vertex_buf(res){};
+      : slot(slot_), is_reference(false), type(Type::BufferSampler), vertex_buf(res) {};
   ResourceBind(int slot_, gpu::VertBuf **res)
-      : slot(slot_), is_reference(true), type(Type::BufferSampler), vertex_buf_ref(res){};
+      : slot(slot_), is_reference(true), type(Type::BufferSampler), vertex_buf_ref(res) {};
 
   void execute() const;
   std::string serialize() const;
@@ -268,42 +268,43 @@ struct PushConstant {
   PushConstant() = default;
 
   PushConstant(int loc, const float &val)
-      : location(loc), array_len(1), comp_len(1), type(Type::FloatValue), float1_value(val){};
+      : location(loc), array_len(1), comp_len(1), type(Type::FloatValue), float1_value(val) {};
   PushConstant(int loc, const float2 &val)
-      : location(loc), array_len(1), comp_len(2), type(Type::FloatValue), float2_value(val){};
+      : location(loc), array_len(1), comp_len(2), type(Type::FloatValue), float2_value(val) {};
   PushConstant(int loc, const float3 &val)
-      : location(loc), array_len(1), comp_len(3), type(Type::FloatValue), float3_value(val){};
+      : location(loc), array_len(1), comp_len(3), type(Type::FloatValue), float3_value(val) {};
   PushConstant(int loc, const float4 &val)
-      : location(loc), array_len(1), comp_len(4), type(Type::FloatValue), float4_value(val){};
+      : location(loc), array_len(1), comp_len(4), type(Type::FloatValue), float4_value(val) {};
 
   PushConstant(int loc, const int &val)
-      : location(loc), array_len(1), comp_len(1), type(Type::IntValue), int1_value(val){};
+      : location(loc), array_len(1), comp_len(1), type(Type::IntValue), int1_value(val) {};
   PushConstant(int loc, const int2 &val)
-      : location(loc), array_len(1), comp_len(2), type(Type::IntValue), int2_value(val){};
+      : location(loc), array_len(1), comp_len(2), type(Type::IntValue), int2_value(val) {};
   PushConstant(int loc, const int3 &val)
-      : location(loc), array_len(1), comp_len(3), type(Type::IntValue), int3_value(val){};
+      : location(loc), array_len(1), comp_len(3), type(Type::IntValue), int3_value(val) {};
   PushConstant(int loc, const int4 &val)
-      : location(loc), array_len(1), comp_len(4), type(Type::IntValue), int4_value(val){};
+      : location(loc), array_len(1), comp_len(4), type(Type::IntValue), int4_value(val) {};
 
   PushConstant(int loc, const float *val, int arr)
-      : location(loc), array_len(arr), comp_len(1), type(Type::FloatReference), float_ref(val){};
+      : location(loc), array_len(arr), comp_len(1), type(Type::FloatReference), float_ref(val) {};
   PushConstant(int loc, const float2 *val, int arr)
-      : location(loc), array_len(arr), comp_len(2), type(Type::FloatReference), float2_ref(val){};
+      : location(loc), array_len(arr), comp_len(2), type(Type::FloatReference), float2_ref(val) {};
   PushConstant(int loc, const float3 *val, int arr)
-      : location(loc), array_len(arr), comp_len(3), type(Type::FloatReference), float3_ref(val){};
+      : location(loc), array_len(arr), comp_len(3), type(Type::FloatReference), float3_ref(val) {};
   PushConstant(int loc, const float4 *val, int arr)
-      : location(loc), array_len(arr), comp_len(4), type(Type::FloatReference), float4_ref(val){};
+      : location(loc), array_len(arr), comp_len(4), type(Type::FloatReference), float4_ref(val) {};
   PushConstant(int loc, const float4x4 *val)
-      : location(loc), array_len(1), comp_len(16), type(Type::FloatReference), float4x4_ref(val){};
+      : location(loc), array_len(1), comp_len(16), type(Type::FloatReference), float4x4_ref(val) {
+        };
 
   PushConstant(int loc, const int *val, int arr)
-      : location(loc), array_len(arr), comp_len(1), type(Type::IntReference), int_ref(val){};
+      : location(loc), array_len(arr), comp_len(1), type(Type::IntReference), int_ref(val) {};
   PushConstant(int loc, const int2 *val, int arr)
-      : location(loc), array_len(arr), comp_len(2), type(Type::IntReference), int2_ref(val){};
+      : location(loc), array_len(arr), comp_len(2), type(Type::IntReference), int2_ref(val) {};
   PushConstant(int loc, const int3 *val, int arr)
-      : location(loc), array_len(arr), comp_len(3), type(Type::IntReference), int3_ref(val){};
+      : location(loc), array_len(arr), comp_len(3), type(Type::IntReference), int3_ref(val) {};
   PushConstant(int loc, const int4 *val, int arr)
-      : location(loc), array_len(arr), comp_len(4), type(Type::IntReference), int4_ref(val){};
+      : location(loc), array_len(arr), comp_len(4), type(Type::IntReference), int4_ref(val) {};
 
   void execute(RecordingState &state) const;
   std::string serialize() const;
@@ -340,21 +341,21 @@ struct SpecializeConstant {
   SpecializeConstant() = default;
 
   SpecializeConstant(gpu::Shader *sh, int loc, const float &val)
-      : shader(sh), float_value(val), location(loc), type(Type::FloatValue){};
+      : shader(sh), float_value(val), location(loc), type(Type::FloatValue) {};
   SpecializeConstant(gpu::Shader *sh, int loc, const int &val)
-      : shader(sh), int_value(val), location(loc), type(Type::IntValue){};
+      : shader(sh), int_value(val), location(loc), type(Type::IntValue) {};
   SpecializeConstant(gpu::Shader *sh, int loc, const uint &val)
-      : shader(sh), uint_value(val), location(loc), type(Type::UintValue){};
+      : shader(sh), uint_value(val), location(loc), type(Type::UintValue) {};
   SpecializeConstant(gpu::Shader *sh, int loc, const bool &val)
-      : shader(sh), bool_value(val), location(loc), type(Type::BoolValue){};
+      : shader(sh), bool_value(val), location(loc), type(Type::BoolValue) {};
   SpecializeConstant(gpu::Shader *sh, int loc, const float *val)
-      : shader(sh), float_ref(val), location(loc), type(Type::FloatReference){};
+      : shader(sh), float_ref(val), location(loc), type(Type::FloatReference) {};
   SpecializeConstant(gpu::Shader *sh, int loc, const int *val)
-      : shader(sh), int_ref(val), location(loc), type(Type::IntReference){};
+      : shader(sh), int_ref(val), location(loc), type(Type::IntReference) {};
   SpecializeConstant(gpu::Shader *sh, int loc, const uint *val)
-      : shader(sh), uint_ref(val), location(loc), type(Type::UintReference){};
+      : shader(sh), uint_ref(val), location(loc), type(Type::UintReference) {};
   SpecializeConstant(gpu::Shader *sh, int loc, const bool *val)
-      : shader(sh), bool_ref(val), location(loc), type(Type::BoolReference){};
+      : shader(sh), bool_ref(val), location(loc), type(Type::BoolReference) {};
 
   void execute(RecordingState &state) const;
   std::string serialize() const;
@@ -426,8 +427,8 @@ struct Dispatch {
 
   Dispatch() = default;
 
-  Dispatch(int3 group_len) : is_reference(false), size(group_len){};
-  Dispatch(int3 *group_len) : is_reference(true), size_ref(group_len){};
+  Dispatch(int3 group_len) : is_reference(false), size(group_len) {};
+  Dispatch(int3 *group_len) : is_reference(true), size_ref(group_len) {};
 
   void execute(RecordingState &state) const;
   std::string serialize() const;

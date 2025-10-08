@@ -404,7 +404,7 @@ static void statvis_calc_distort(const MeshRenderData &mr, MutableSpan<float> r_
             BM_loop_calc_face_normal_safe_vcos(
                 l_iter,
                 no_face,
-                reinterpret_cast<const float(*)[3]>(mr.bm_vert_coords.data()),
+                reinterpret_cast<const float (*)[3]>(mr.bm_vert_coords.data()),
                 no_corner);
           }
           else {

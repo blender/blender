@@ -722,7 +722,7 @@ static void camera_frame_fit_data_init(const Scene *scene,
   BKE_camera_params_compute_matrix(params);
 
   /* initialize callback data */
-  copy_m3_m4(data->camera_rotmat, (float(*)[4])ob->object_to_world().ptr());
+  copy_m3_m4(data->camera_rotmat, (float (*)[4])ob->object_to_world().ptr());
   normalize_m3(data->camera_rotmat);
   /* To transform a plane which is in its homogeneous representation (4d vector),
    * we need the inverse of the transpose of the transform matrix... */

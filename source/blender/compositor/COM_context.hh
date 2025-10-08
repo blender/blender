@@ -66,7 +66,7 @@ class Context {
   virtual Bounds<int2> get_compositing_region() const = 0;
 
   /* Get the result where the result of the compositor should be written. */
-  virtual Result get_output() = 0;
+  virtual Result get_output(Domain domain) = 0;
 
   /* Get the result where the result of the compositor viewer should be written, given the domain
    * of the result to be viewed, its precision, and whether the output is a non-color data image
@@ -101,6 +101,12 @@ class Context {
   /* True if the compositor should treat viewers as composite outputs because it has no concept of
    * or support for viewers. */
   virtual bool treat_viewer_as_compositor_output() const;
+
+  /* True if the compositor input/output should use output region/bounds setup in the context. */
+  virtual bool use_context_bounds_for_input_output() const
+  {
+    return true;
+  }
 
   /* Populates the given meta data from the render stamp information of the given render pass. */
   virtual void populate_meta_data_for_pass(const Scene *scene,

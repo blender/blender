@@ -186,11 +186,16 @@ Vector<Object *> BKE_view_layer_array_from_objects_in_mode_unique_data(const Sce
   return BKE_view_layer_array_from_objects_in_mode_params(scene, view_layer, v3d, &params);
 }
 
+ListBase *BKE_view_layer_object_bases_unsynced_get(ViewLayer *view_layer)
+{
+  return &view_layer->object_bases;
+}
+
 ListBase *BKE_view_layer_object_bases_get(ViewLayer *view_layer)
 {
   BLI_assert_msg((view_layer->flag & VIEW_LAYER_OUT_OF_SYNC) == 0,
                  "Object Bases out of sync, invoke BKE_view_layer_synced_ensure.");
-  return &view_layer->object_bases;
+  return BKE_view_layer_object_bases_unsynced_get(view_layer);
 }
 
 Base *BKE_view_layer_active_base_get(ViewLayer *view_layer)

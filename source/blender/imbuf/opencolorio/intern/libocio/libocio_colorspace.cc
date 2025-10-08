@@ -150,7 +150,7 @@ LibOCIOColorSpace::LibOCIOColorSpace(const int index,
       interop_id_ = "srgb_p3d65_display";
     }
     else if (alias == "displayp3_hdr_display") {
-      interop_id_ = "srgbx_p3d65_display";
+      interop_id_ = "srgbe_p3d65_display";
     }
     else if (alias == "p3d65_display") {
       interop_id_ = "g26_p3d65_display";

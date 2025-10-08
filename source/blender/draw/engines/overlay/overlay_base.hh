@@ -63,7 +63,7 @@ struct Overlay {
   virtual void object_sync(Manager & /*manager*/,
                            const ObjectRef & /*ob_ref*/,
                            Resources & /*res*/,
-                           const State & /*state*/){};
+                           const State & /*state*/) {};
 
   /**
    * Fills passes or buffers for each object in edit mode.
@@ -74,20 +74,20 @@ struct Overlay {
   virtual void edit_object_sync(Manager & /*manager*/,
                                 const ObjectRef & /*ob_ref*/,
                                 Resources & /*res*/,
-                                const State & /*state*/){};
+                                const State & /*state*/) {};
 
   /**
    * Finalize passes or buffers used for object sync.
    * Runs once at the start of the sync cycle.
    */
-  virtual void end_sync(Resources & /*res*/, const State & /*state*/){};
+  virtual void end_sync(Resources & /*res*/, const State & /*state*/) {};
 
   /**
    * Warms #PassMain and #PassSortable to avoid overhead of pipeline switching.
    * Should only contains calls to `generate_commands`.
    * NOTE: `view` is guaranteed to be the same view that will be passed to the draw functions.
    */
-  virtual void pre_draw(Manager & /*manager*/, View & /*view*/){};
+  virtual void pre_draw(Manager & /*manager*/, View & /*view*/) {};
 
   /**
    * Drawing can be split into multiple passes. Each callback draws onto a specific frame-buffer.
@@ -96,12 +96,13 @@ struct Overlay {
    * resolving to the given frame-buffer.
    */
 
-  virtual void draw_on_render(gpu::FrameBuffer * /*fb*/, Manager & /*manager*/, View & /*view*/){};
-  virtual void draw(Framebuffer & /*fb*/, Manager & /*manager*/, View & /*view*/){};
-  virtual void draw_line(Framebuffer & /*fb*/, Manager & /*manager*/, View & /*view*/){};
-  virtual void draw_line_only(Framebuffer & /*fb*/, Manager & /*manager*/, View & /*view*/){};
-  virtual void draw_color_only(Framebuffer & /*fb*/, Manager & /*manager*/, View & /*view*/){};
-  virtual void draw_output(Framebuffer & /*fb*/, Manager & /*manager*/, View & /*view*/){};
+  virtual void draw_on_render(gpu::FrameBuffer * /*fb*/, Manager & /*manager*/, View & /*view*/) {
+  };
+  virtual void draw(Framebuffer & /*fb*/, Manager & /*manager*/, View & /*view*/) {};
+  virtual void draw_line(Framebuffer & /*fb*/, Manager & /*manager*/, View & /*view*/) {};
+  virtual void draw_line_only(Framebuffer & /*fb*/, Manager & /*manager*/, View & /*view*/) {};
+  virtual void draw_color_only(Framebuffer & /*fb*/, Manager & /*manager*/, View & /*view*/) {};
+  virtual void draw_output(Framebuffer & /*fb*/, Manager & /*manager*/, View & /*view*/) {};
 };
 
 }  // namespace blender::draw::overlay

@@ -387,7 +387,7 @@ static void curve_draw_stroke_3d(const bContext * /*C*/, ARegion * /*region*/, v
   }
 
   if (stroke_len > 1) {
-    float(*coord_array)[3] = static_cast<float(*)[3]>(
+    float (*coord_array)[3] = static_cast<float (*)[3]>(
         MEM_mallocN(sizeof(*coord_array) * stroke_len, __func__));
 
     {

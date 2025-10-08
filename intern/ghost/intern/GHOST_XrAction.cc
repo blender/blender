@@ -326,7 +326,7 @@ void GHOST_XrAction::updateState(XrSession session,
                  (std::string("Failed to get state for vector2f action \"") + action_name + "\".")
                      .data());
         if (state.isActive) {
-          memcpy(((float(*)[2])states_)[subaction_idx], &state.currentState, sizeof(float[2]));
+          memcpy(((float (*)[2])states_)[subaction_idx], &state.currentState, sizeof(float[2]));
         }
         break;
       }

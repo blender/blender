@@ -266,7 +266,7 @@ static PyObject *Quaternion_to_matrix(QuaternionObject *self)
     return nullptr;
   }
 
-  quat_to_mat3((float(*)[3])mat, self->quat);
+  quat_to_mat3((float (*)[3])mat, self->quat);
   return Matrix_CreatePyObject(mat, 3, 3, nullptr);
 }
 

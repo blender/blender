@@ -894,8 +894,7 @@ void blo_do_versions_420(FileData *fd, Library * /*lib*/, Main *bmain)
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed != nullptr) {
-        blender::seq::for_each_callback(
-            &scene->ed->seqbase, strip_hue_correct_set_wrapping, nullptr);
+        blender::seq::foreach_strip(&scene->ed->seqbase, strip_hue_correct_set_wrapping, nullptr);
       }
     }
   }
@@ -960,18 +959,6 @@ void blo_do_versions_420(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed != nullptr) {
         scene->ed->show_missing_media_flag |= SEQ_EDIT_SHOW_MISSING_MEDIA;
-      }
-    }
-  }
-
-  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 23)) {
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      ToolSettings *ts = scene->toolsettings;
-      if (!ts->uvsculpt.curve_distance_falloff) {
-        ts->uvsculpt.size = 50;
-        ts->uvsculpt.strength = 1.0f;
-        ts->uvsculpt.curve_distance_falloff_preset = BRUSH_CURVE_SMOOTH;
-        ts->uvsculpt.curve_distance_falloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
       }
     }
   }
@@ -1054,8 +1041,7 @@ void blo_do_versions_420(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 28)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed != nullptr) {
-        blender::seq::for_each_callback(
-            &scene->ed->seqbase, strip_proxies_timecode_update, nullptr);
+        blender::seq::foreach_strip(&scene->ed->seqbase, strip_proxies_timecode_update, nullptr);
       }
     }
 
@@ -1068,7 +1054,7 @@ void blo_do_versions_420(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 29)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed) {
-        blender::seq::for_each_callback(&scene->ed->seqbase, strip_text_data_update, nullptr);
+        blender::seq::foreach_strip(&scene->ed->seqbase, strip_text_data_update, nullptr);
       }
     }
   }

@@ -35,10 +35,10 @@ index 6d0e10d..3c1f60e 100644
 +# we are patching this dirirectly for Blender.
 \ No newline at end of file
 diff --git a/source/adapters/level_zero/CMakeLists.txt b/source/adapters/level_zero/CMakeLists.txt
-index cb7e028..d3241fa 100644
+index 5bb5cf6..b457adf 100644
 --- a/source/adapters/level_zero/CMakeLists.txt
 +++ b/source/adapters/level_zero/CMakeLists.txt
-@@ -59,7 +59,7 @@ if(UR_BUILD_ADAPTER_L0)
+@@ -58,7 +58,7 @@ if(UR_BUILD_ADAPTER_L0)
          # 'utils' target from 'level-zero-loader' includes path which is prefixed
          # in the source directory, this breaks the installation of 'utils' target.
          set_target_properties(utils PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "")
@@ -47,7 +47,7 @@ index cb7e028..d3241fa 100644
              EXPORT ${PROJECT_NAME}-targets
              ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
              RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-@@ -110,7 +110,6 @@ if(UR_BUILD_ADAPTER_L0)
+@@ -109,7 +109,6 @@ if(UR_BUILD_ADAPTER_L0)
          ${PROJECT_NAME}::umf
          LevelZeroLoader
          LevelZeroLoader-Headers
@@ -55,7 +55,7 @@ index cb7e028..d3241fa 100644
      )
 
      target_include_directories(ur_adapter_level_zero PRIVATE
-@@ -206,7 +205,6 @@ if(UR_BUILD_ADAPTER_L0_V2)
+@@ -211,7 +210,6 @@ if(UR_BUILD_ADAPTER_L0_V2)
          ${PROJECT_NAME}::umf
          LevelZeroLoader
          LevelZeroLoader-Headers
@@ -87,15 +87,3 @@ index fb4c519..615b588 100644
  #include <ur/ur.hpp>
  #include <ur_ddi.h>
  #include <ze_api.h>
-diff --git a/source/adapters/level_zero/image.cpp b/source/adapters/level_zero/image.cpp
-index 8c205f5..217a185 100644
---- a/source/adapters/level_zero/image.cpp
-+++ b/source/adapters/level_zero/image.cpp
-@@ -517,6 +517,7 @@ ur_result_t bindlessImagesCreateImpl(ur_context_handle_t hContext,
-     ZE2UR_CALL(zeContextMakeImageResident,
-                (hContext->ZeContext, hDevice->ZeDevice, ZeImage));
-   } else if (MemAllocProperties.type == ZE_MEMORY_TYPE_DEVICE ||
-+             MemAllocProperties.type == ZE_MEMORY_TYPE_HOST ||
-              MemAllocProperties.type == ZE_MEMORY_TYPE_SHARED) {
-     ZeStruct<ze_image_pitched_exp_desc_t> PitchedDesc;
-     PitchedDesc.ptr = reinterpret_cast<void *>(hImageMem);

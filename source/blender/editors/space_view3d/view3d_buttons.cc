@@ -932,7 +932,7 @@ static void v3d_editvertex_buts(
     UI_but_unit_type_set(but, PROP_UNIT_LENGTH);
 
     if (totcurvebweight == tot) {
-      float &weight = (ELEM(ob->type, OB_CURVES, OB_GREASE_PENCIL)) ?
+      float &weight = ELEM(ob->type, OB_CURVES, OB_GREASE_PENCIL) ?
                           tfp->ve_median.curves.nurbs_weight :
                           tfp->ve_median.curve.b_weight;
       but = uiDefButF(block,
@@ -2166,7 +2166,7 @@ static bool view3d_panel_curve_data_poll(const bContext *C, PanelType * /*pt*/)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
-  return (ob && (ELEM(ob->type, OB_GREASE_PENCIL, OB_CURVES) && BKE_object_is_in_editmode(ob)));
+  return (ob && ELEM(ob->type, OB_GREASE_PENCIL, OB_CURVES) && BKE_object_is_in_editmode(ob));
 }
 
 static void apply_to_active_object(

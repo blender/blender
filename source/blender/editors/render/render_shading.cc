@@ -2716,6 +2716,11 @@ static wmOperatorStatus copy_material_exec(bContext *C, wmOperator *op)
   if (ma == nullptr) {
     return OPERATOR_CANCELLED;
   }
+  if (ID_IS_PACKED(&ma->id)) {
+    /* Direct link/append of packed IDs is not supported currently, so neither is their
+     * copy/pasting. */
+    return OPERATOR_CANCELLED;
+  }
 
   Main *bmain = CTX_data_main(C);
   PartialWriteContext copybuffer{*bmain};

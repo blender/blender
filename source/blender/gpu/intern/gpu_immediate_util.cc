@@ -484,12 +484,14 @@ void imm_draw_box_checker_2d_ex(float x1,
 
   immUnbindProgram();
 }
-void imm_draw_box_checker_2d(float x1, float y1, float x2, float y2)
+void imm_draw_box_checker_2d(float x1, float y1, float x2, float y2, bool clear_alpha)
 {
   float checker_primary[4];
   float checker_secondary[4];
   UI_GetThemeColor4fv(TH_TRANSPARENT_CHECKER_PRIMARY, checker_primary);
   UI_GetThemeColor4fv(TH_TRANSPARENT_CHECKER_SECONDARY, checker_secondary);
+  checker_primary[3] = clear_alpha ? 0.0 : checker_primary[3];
+  checker_secondary[3] = clear_alpha ? 0.0 : checker_secondary[3];
   int checker_size = UI_GetThemeValue(TH_TRANSPARENT_CHECKER_SIZE) * U.pixelsize;
   imm_draw_box_checker_2d_ex(x1, y1, x2, y2, checker_primary, checker_secondary, checker_size);
 }

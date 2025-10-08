@@ -123,7 +123,9 @@ NODE_SHADER_MATERIALX_BEGIN
 #ifdef WITH_MATERIALX
 {
   NodeItem vector = get_input_value("Vector", NodeItem::Type::Vector3);
-  int index = STREQ(socket_out_->name, "X") ? 0 : STREQ(socket_out_->name, "Y") ? 1 : 2;
+  int index = STREQ(socket_out_->identifier, "X") ? 0 :
+              STREQ(socket_out_->identifier, "Y") ? 1 :
+                                                    2;
   return vector[index];
 }
 #endif

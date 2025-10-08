@@ -42,6 +42,8 @@
 
 #include "UI_resources.hh"
 
+#include "ED_node.hh"
+
 #include "node_common.h"
 #include "node_util.hh"
 
@@ -869,6 +871,16 @@ static bool group_output_insert_link(blender::bke::NodeInsertLinkParams &params)
   return true;
 }
 
+static void node_group_input_layout(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+  ed::space_node::node_tree_interface_draw(*C, *layout, *id_cast<bNodeTree *>(ptr->owner_id));
+}
+
+static void node_group_output_layout(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+  ed::space_node::node_tree_interface_draw(*C, *layout, *id_cast<bNodeTree *>(ptr->owner_id));
+}
+
 }  // namespace blender::nodes
 
 static void node_group_input_extra_info(blender::nodes::NodeExtraInfoParams &params)
@@ -893,6 +905,7 @@ void register_node_type_group_input()
   ntype->insert_link = blender::nodes::group_input_insert_link;
   ntype->get_extra_info = node_group_input_extra_info;
   ntype->get_compositor_operation = blender::nodes::get_group_input_compositor_operation;
+  ntype->draw_buttons_ex = blender::nodes::node_group_input_layout;
   ntype->no_muting = true;
 
   blender::bke::node_register_type(*ntype);
@@ -941,6 +954,7 @@ void register_node_type_group_output()
   ntype->declare = blender::nodes::group_output_declare;
   ntype->insert_link = blender::nodes::group_output_insert_link;
   ntype->get_extra_info = node_group_output_extra_info;
+  ntype->draw_buttons_ex = blender::nodes::node_group_output_layout;
   ntype->get_compositor_operation = blender::nodes::get_group_output_compositor_operation;
 
   ntype->no_muting = true;

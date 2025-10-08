@@ -62,7 +62,7 @@ class IndexBuf {
   };
 
  public:
-  IndexBuf(){};
+  IndexBuf() {};
   virtual ~IndexBuf();
 
   void init(uint indices_len,

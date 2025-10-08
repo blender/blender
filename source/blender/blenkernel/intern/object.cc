@@ -637,13 +637,9 @@ static void object_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   BLO_write_pointer_array(writer, ob->totcol, ob->mat);
   BLO_write_char_array(writer, ob->totcol, ob->matbits);
 
-  bArmature *arm = nullptr;
-  if (ob->type == OB_ARMATURE) {
-    arm = (bArmature *)ob->data;
-  }
-
   if (ob->pose) {
-    BKE_pose_blend_write(writer, ob->pose, arm);
+    BLI_assert(ob->type == OB_ARMATURE);
+    BKE_pose_blend_write(writer, ob->pose);
   }
   BKE_constraint_blend_write(writer, &ob->constraints);
   animviz_motionpath_blend_write(writer, ob->mpath);
@@ -2735,7 +2731,7 @@ void BKE_object_obdata_size_init(Object *ob, const float size)
       unit_m4(mat);
       scale_m4_fl(mat, size);
 
-      BKE_lattice_transform(lt, (float(*)[4])mat, false);
+      BKE_lattice_transform(lt, (float (*)[4])mat, false);
       break;
     }
   }
@@ -3160,7 +3156,7 @@ static void give_parvert(const Object *par, int nr, float vec[3], const bool use
     DispList *dl = par->runtime->curve_cache ?
                        BKE_displist_find(&par->runtime->curve_cache->disp, DL_VERTS) :
                        nullptr;
-    float(*co)[3] = dl ? (float(*)[3])dl->verts : nullptr;
+    float (*co)[3] = dl ? (float (*)[3])dl->verts : nullptr;
     int tot;
 
     if (latt->editlatt) {

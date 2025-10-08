@@ -705,7 +705,7 @@ static void set_rest_pose(Main *bmain,
       xf = xf * bind_xf.GetInverse();
 
       pxr::GfMatrix4f mat(xf);
-      BKE_pchan_apply_mat4(pchan, (float(*)[4])mat.data(), false);
+      BKE_pchan_apply_mat4(pchan, (float (*)[4])mat.data(), false);
 
       i++;
     }

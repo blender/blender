@@ -88,6 +88,8 @@
 #include "ED_anim_api.hh"
 #include "ED_markers.hh"
 
+#include "SEQ_iterator.hh"
+#include "SEQ_modifier.hh"
 #include "SEQ_sequencer.hh"
 #include "SEQ_utils.hh"
 
@@ -140,11 +142,13 @@ bAction *ANIM_active_action_from_area(Scene *scene,
     case SACTCONT_DOPESHEET:
     case SACTCONT_MASK:
     case SACTCONT_CACHEFILE:
-    case SACTCONT_TIMELINE:
       if (r_action_user) {
         *r_action_user = nullptr;
       }
       return nullptr;
+    case SACTCONT_TIMELINE:
+      BLI_assert_unreachable();
+      break;
   }
 
   BLI_assert_unreachable();
@@ -244,29 +248,6 @@ static bool actedit_get_context(bAnimContext *ac, SpaceAction *saction)
       saction->ads.source = reinterpret_cast<ID *>(ac->scene);
 
       ac->datatype = ANIMCONT_DOPESHEET;
-      ac->data = &saction->ads;
-      return true;
-
-    case SACTCONT_TIMELINE: /* Timeline */
-      /* update scene-pointer (no need to check for pinning yet, as not implemented) */
-      saction->ads.source = reinterpret_cast<ID *>(ac->scene);
-
-      /* sync scene's "selected keys only" flag with our "only selected" flag
-       *
-       * XXX: This is a workaround for #55525. We shouldn't really be syncing the flags like this,
-       * but it's a simpler fix for now than also figuring out how the next/prev keyframe
-       * tools should work in the 3D View if we allowed full access to the timeline's
-       * dopesheet filters (i.e. we'd have to figure out where to host those settings,
-       * to be on a scene level like this flag currently is, along with several other unknowns).
-       */
-      if (ac->scene->flag & SCE_KEYS_NO_SELONLY) {
-        saction->ads.filterflag &= ~ADS_FILTER_ONLYSEL;
-      }
-      else {
-        saction->ads.filterflag |= ADS_FILTER_ONLYSEL;
-      }
-
-      ac->datatype = ANIMCONT_TIMELINE;
       ac->data = &saction->ads;
       return true;
 
@@ -1045,7 +1026,7 @@ static bool skip_fcurve_selected_data(bAnimContext *ac,
 
         /* can only add this F-Curve if it is selected */
         if (ac->ads->filterflag & ADS_FILTER_ONLYSEL) {
-          if ((pchan->bone->flag & BONE_SELECTED) == 0) {
+          if ((pchan->flag & POSE_SELECTED) == 0) {
             return true;
           }
         }
@@ -1129,7 +1110,7 @@ static bool name_matches_dopesheet_filter(const bDopeSheet *ads, const char *nam
     const size_t str_len = strlen(ads->searchstr);
     const int words_max = BLI_string_max_possible_word_count(str_len);
 
-    int(*words)[2] = static_cast<int(*)[2]>(BLI_array_alloca(words, words_max));
+    int (*words)[2] = static_cast<int (*)[2]>(BLI_array_alloca(words, words_max));
     const int words_len = BLI_string_find_split_words(
         ads->searchstr, str_len, ' ', words, words_max);
     bool found = false;
@@ -3465,6 +3446,7 @@ static size_t animdata_filter_dopesheet_scene(bAnimContext *ac,
   BEGIN_ANIMFILTER_SUBCHANNELS (EXPANDED_SCEC(sce)) {
     bNodeTree *ntree = sce->compositing_node_group;
     World *wo = sce->world;
+    Editing *ed = sce->ed;
 
     /* Action, Drivers, or NLA for Scene */
     if ((ac->ads->filterflag & ADS_FILTER_NOSCE) == 0) {
@@ -3480,6 +3462,23 @@ static size_t animdata_filter_dopesheet_scene(bAnimContext *ac,
     if ((ntree) && !(ac->ads->filterflag & ADS_FILTER_NONTREE)) {
       tmp_items += animdata_filter_ds_nodetree(
           ac, &tmp_data, reinterpret_cast<ID *>(sce), ntree, filter_mode);
+    }
+
+    /* Strip modifier node trees. */
+    if (ed && !(ac->ads->filterflag & ADS_FILTER_NONTREE)) {
+      VectorSet<ID *> node_trees;
+      seq::foreach_strip(&ed->seqbase, [&](Strip *strip) {
+        seq::foreach_strip_modifier_id(strip, [&](ID *id) {
+          if (GS(id->name) == ID_NT) {
+            node_trees.add(id);
+          }
+        });
+        return true;
+      });
+      for (ID *node_tree : node_trees) {
+        tmp_items += animdata_filter_ds_nodetree(
+            ac, &tmp_data, &sce->id, reinterpret_cast<bNodeTree *>(node_tree), filter_mode);
+      }
     }
 
     /* line styles */

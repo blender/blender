@@ -19,9 +19,14 @@ namespace blender::nodes::node_composite_antialiasing_cc {
 
 static void cmp_node_antialiasing_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .hide_value()
       .structure_type(StructureType::Dynamic);
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic).align_with_previous();
+
   b.add_input<decl::Float>("Threshold")
       .default_value(0.2f)
       .subtype(PROP_FACTOR)
@@ -43,8 +48,6 @@ static void cmp_node_antialiasing_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(1.0f)
       .description("Specifies how much sharp corners will be rounded");
-
-  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }
 
 using namespace blender::compositor;

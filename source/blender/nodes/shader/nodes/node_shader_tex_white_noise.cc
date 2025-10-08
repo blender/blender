@@ -238,7 +238,7 @@ NODE_SHADER_MATERIALX_BEGIN
       break;
   }
 
-  if (STREQ(socket_out_->name, "Value")) {
+  if (STREQ(socket_out_->identifier, "Value")) {
     return noise;
   }
 

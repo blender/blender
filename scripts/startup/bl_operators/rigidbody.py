@@ -106,6 +106,8 @@ class BakeToKeyframes(Operator):
         return (obj and obj.rigid_body)
 
     def execute(self, context):
+        from bpy_extras import anim_utils
+
         bake = []
         objects = []
         scene = context.scene
@@ -167,8 +169,13 @@ class BakeToKeyframes(Operator):
 
             # clean up keyframes
             for obj in objects:
-                action = obj.animation_data.action
-                for fcu in action.fcurves:
+                channelbag = anim_utils.action_get_channelbag_for_slot(
+                    obj.animation_data.action,
+                    obj.animation_data.action_slot,
+                )
+                if not channelbag:
+                    continue
+                for fcu in channelbag.fcurves:
                     keyframe_points = fcu.keyframe_points
                     i = 1
                     # remove unneeded keyframes

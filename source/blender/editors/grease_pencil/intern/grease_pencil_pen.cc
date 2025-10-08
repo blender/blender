@@ -246,17 +246,6 @@ class GreasePencilPenToolOperation : public curves::pen_tool::PenToolOperation {
   }
 };
 
-/* Invoke handler: Initialize the operator. */
-static wmOperatorStatus grease_pencil_pen_invoke(bContext *C, wmOperator *op, const wmEvent *event)
-{
-  /* Allocate new data. */
-  GreasePencilPenToolOperation *ptd_pointer = MEM_new<GreasePencilPenToolOperation>(__func__);
-  op->customdata = ptd_pointer;
-  GreasePencilPenToolOperation &ptd = *ptd_pointer;
-
-  return ptd.invoke(C, op, event);
-}
-
 /* Exit and free memory. */
 static void grease_pencil_pen_exit(bContext *C, wmOperator *op)
 {
@@ -274,6 +263,21 @@ static void grease_pencil_pen_exit(bContext *C, wmOperator *op)
   op->customdata = nullptr;
 }
 
+/* Invoke handler: Initialize the operator. */
+static wmOperatorStatus grease_pencil_pen_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  /* Allocate new data. */
+  GreasePencilPenToolOperation *ptd_pointer = MEM_new<GreasePencilPenToolOperation>(__func__);
+  op->customdata = ptd_pointer;
+  GreasePencilPenToolOperation &ptd = *ptd_pointer;
+
+  const wmOperatorStatus result = ptd.invoke(C, op, event);
+  if (result != OPERATOR_RUNNING_MODAL) {
+    grease_pencil_pen_exit(C, op);
+  }
+  return result;
+}
+
 /* Modal handler: Events handling during interactive part. */
 static wmOperatorStatus grease_pencil_pen_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -281,7 +285,7 @@ static wmOperatorStatus grease_pencil_pen_modal(bContext *C, wmOperator *op, con
       op->customdata);
 
   const wmOperatorStatus result = ptd.modal(C, op, event);
-  if (result == OPERATOR_FINISHED) {
+  if (result != OPERATOR_RUNNING_MODAL) {
     grease_pencil_pen_exit(C, op);
   }
   return result;

@@ -670,16 +670,10 @@ struct EnumPropertyItem {
  * By convention the value should be a non-empty string or NULL when there is no description
  * (never an empty string).
  */
-#define RNA_ENUM_ITEM_HEADING(name, description) \
-  { \
-    0, "", 0, name, description \
-  }
+#define RNA_ENUM_ITEM_HEADING(name, description) {0, "", 0, name, description}
 
 /** Separator for RNA enum items (shown in the UI). */
-#define RNA_ENUM_ITEM_SEPR \
-  { \
-    0, "", 0, NULL, NULL \
-  }
+#define RNA_ENUM_ITEM_SEPR {0, "", 0, NULL, NULL}
 
 /** Separator for RNA enum that begins a new column in menus (shown in the UI). */
 #define RNA_ENUM_ITEM_SEPR_COLUMN RNA_ENUM_ITEM_HEADING("", NULL)
@@ -833,7 +827,7 @@ using EnumPropertyGetTransformFunc = int (*)(PointerRNA *ptr,
 using EnumPropertySetTransformFunc =
     int (*)(PointerRNA *ptr, PropertyRNA *prop, int new_value, int curr_value, bool is_set);
 /* same as PropEnumItemFunc */
-using EnumPropertyItemFunc = const EnumPropertyItem *(*)(bContext *C,
+using EnumPropertyItemFunc = const EnumPropertyItem *(*)(bContext * C,
                                                          PointerRNA *ptr,
                                                          PropertyRNA *prop,
                                                          bool *r_free);
@@ -994,7 +988,7 @@ using StructCallbackFunc = int (*)(bContext *C,
                                    FunctionRNA *func,
                                    ParameterList *list);
 using StructFreeFunc = void (*)(void *data);
-using StructRegisterFunc = StructRNA *(*)(Main *bmain,
+using StructRegisterFunc = StructRNA *(*)(Main * bmain,
                                           ReportList *reports,
                                           void *data,
                                           const char *identifier,
@@ -1003,7 +997,7 @@ using StructRegisterFunc = StructRNA *(*)(Main *bmain,
                                           StructFreeFunc free);
 /** Return true when `type` was successfully unregistered & freed. */
 using StructUnregisterFunc = bool (*)(Main *bmain, StructRNA *type);
-using StructInstanceFunc = void **(*)(PointerRNA *ptr);
+using StructInstanceFunc = void **(*)(PointerRNA * ptr);
 
 struct StructRNA;
 

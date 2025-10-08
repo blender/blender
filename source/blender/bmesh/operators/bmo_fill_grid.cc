@@ -205,7 +205,7 @@ static void bm_grid_fill_array(BMesh *bm,
   /* for use_loop_interp */
   BMLoop *(*larr_x_a)[2], *(*larr_x_b)[2], *(*larr_y_a)[2], *(*larr_y_b)[2];
 
-  float(*weight_table)[4];
+  float (*weight_table)[4];
 
 #define XY(_x, _y) ((_x) + ((_y) * (xtot)))
 
@@ -234,7 +234,7 @@ static void bm_grid_fill_array(BMesh *bm,
 #endif
 
   if (use_interp_simple || use_vert_interp || use_loop_interp) {
-    weight_table = static_cast<float(*)[4]>(
+    weight_table = static_cast<float (*)[4]>(
         MEM_mallocN(sizeof(*weight_table) * size_t(xtot * ytot), __func__));
     barycentric_weights_v2_grid_cache(xtot, ytot, weight_table);
   }

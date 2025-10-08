@@ -5,18 +5,22 @@
 // #define USE_WELD_DEBUG
 // #define USE_WELD_DEBUG_TIME
 
+#include "BKE_attribute_math.hh"
 #include "BLI_array.hh"
 #include "BLI_bit_vector.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_kdtree.h"
+#include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_offset_indices.hh"
 #include "BLI_vector.hh"
 
+#include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 #include "DNA_meshdata_types.h"
 
+#include "DNA_object_types.h"
 #include "GEO_mesh_merge_by_distance.hh"
 #include "GEO_randomize.hh"
 
@@ -1279,7 +1283,7 @@ static void weld_mesh_context_create(const Mesh &mesh,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name CustomData
+/** \name Merging
  * \{ */
 
 /**
@@ -1329,107 +1333,8 @@ static void merge_groups_create(Span<int> dest_map,
   }
 }
 
-static void customdata_weld(
-    const CustomData *source, CustomData *dest, const int *src_indices, int count, int dest_index)
-{
-  if (count == 1) {
-    CustomData_copy_data(source, dest, src_indices[0], dest_index, 1);
-    return;
-  }
-
-  CustomData_interp(source, dest, src_indices, nullptr, count, dest_index);
-
-  int src_i, dest_i;
-  int j;
-
-  int vs_flag = 0;
-
-  /* interpolates a layer at a time */
-  dest_i = 0;
-  for (src_i = 0; src_i < source->totlayer; src_i++) {
-    const eCustomDataType type = eCustomDataType(source->layers[src_i].type);
-
-    /* find the first dest layer with type >= the source type
-     * (this should work because layers are ordered by type)
-     */
-    while (dest_i < dest->totlayer && dest->layers[dest_i].type < type) {
-      dest_i++;
-    }
-
-    /* if there are no more dest layers, we're done */
-    if (dest_i == dest->totlayer) {
-      break;
-    }
-
-    /* if we found a matching layer, add the data */
-    if (dest->layers[dest_i].type == type) {
-      void *src_data = source->layers[src_i].data;
-      if (type == CD_MVERT_SKIN) {
-        /* The `typeInfo->interp` of #CD_MVERT_SKIN does not include the flags, so #MVERT_SKIN_ROOT
-         * and #MVERT_SKIN_LOOSE are lost after the interpolation.
-         *
-         * This behavior is not incorrect. Ideally, islands should be checked to avoid repeated
-         * roots.
-         *
-         * However, for now, to prevent the loss of flags, they are simply re-added if any of the
-         * merged vertices have them. */
-        for (j = 0; j < count; j++) {
-          MVertSkin *vs = &((MVertSkin *)src_data)[src_indices[j]];
-          vs_flag |= vs->flag;
-        }
-      }
-      else if (CustomData_layer_has_interp(dest, dest_i)) {
-        /* Already calculated.
-         * TODO: Optimize by exposing `typeInfo->interp`. */
-      }
-      else if (CustomData_layer_has_math(dest, dest_i)) {
-        const int size = CustomData_sizeof(type);
-        void *dst_data = dest->layers[dest_i].data;
-        void *v_dst = POINTER_OFFSET(dst_data, size_t(dest_index) * size);
-        for (j = 0; j < count; j++) {
-          CustomData_data_add(
-              type, v_dst, POINTER_OFFSET(src_data, size_t(src_indices[j]) * size));
-        }
-      }
-      else {
-        CustomData_copy_layer_type_data(source, dest, type, src_indices[0], dest_index, 1);
-      }
-
-      /* if there are multiple source & dest layers of the same type,
-       * we don't want to copy all source layers to the same dest, so
-       * increment dest_i
-       */
-      dest_i++;
-    }
-  }
-
-  float fac = 1.0f / count;
-
-  for (dest_i = 0; dest_i < dest->totlayer; dest_i++) {
-    CustomDataLayer *layer_dst = &dest->layers[dest_i];
-    const eCustomDataType type = eCustomDataType(layer_dst->type);
-    if (type == CD_MVERT_SKIN) {
-      MVertSkin *vs = &((MVertSkin *)layer_dst->data)[dest_index];
-      vs->flag = vs_flag;
-    }
-    else if (CustomData_layer_has_interp(dest, dest_i)) {
-      /* Already calculated. */
-    }
-    else if (CustomData_layer_has_math(dest, dest_i)) {
-      const int size = CustomData_sizeof(type);
-      void *dst_data = layer_dst->data;
-      void *v_dst = POINTER_OFFSET(dst_data, size_t(dest_index) * size);
-      CustomData_data_multiply(type, v_dst, fac);
-    }
-  }
-}
-
 /**
- * \brief Applies to `CustomData *dest` the values in `CustomData *source`.
- *
- * This function creates the CustomData of the resulting mesh according to the merge map in
- * `dest_map`. The resulting customdata will not have the source elements, so the indexes will be
- * modified. To indicate the new indices `r_final_map` is also created.
+ * To indicate the new indices `r_final_map` is created.
  *
  * \param dest_map: Map that defines the source and target elements. The source elements will be
  *                  merged into the target. Each target corresponds to a group.
@@ -1439,17 +1344,17 @@ static void customdata_weld(
  *
  * \return r_final_map: Array indicating the new indices of the elements.
  */
-static void merge_customdata_all(const CustomData *source,
-                                 CustomData *dest,
-                                 Span<int> dest_map,
+static void merge_customdata_all(Span<int> dest_map,
                                  Span<int> double_elems,
                                  const int dest_size,
                                  const bool do_mix_data,
+                                 Vector<int> &r_src_index_offsets,
+                                 Vector<int> &r_src_index_data,
                                  Array<int> &r_final_map)
 {
-  UNUSED_VARS_NDEBUG(dest_size);
-
   const int source_size = dest_map.size();
+  r_src_index_offsets.reserve(dest_size + 1);
+  r_src_index_data.reserve(source_size);
 
   MutableSpan<int> groups_offs_;
   Array<int> groups_buffer;
@@ -1468,31 +1373,25 @@ static void merge_customdata_all(const CustomData *source,
   bool finalize_map = false;
   int dest_index = 0;
   for (int i = 0; i < source_size; i++) {
-    const int source_index = i;
-    int count = 0;
     while (i < source_size && dest_map[i] == OUT_OF_CONTEXT) {
-      r_final_map[i] = dest_index + count;
-      count++;
+      r_final_map[i] = dest_index;
+      r_src_index_offsets.append_unchecked(r_src_index_data.size());
+      r_src_index_data.append(i);
+      dest_index++;
       i++;
     }
-    if (count) {
-      CustomData_copy_data(source, dest, source_index, dest_index, count);
-      dest_index += count;
-    }
+
     if (i == source_size) {
       break;
     }
     if (dest_map[i] == i) {
       if (do_mix_data) {
-        const IndexRange grp_buffer_range = groups_offs[i];
-        customdata_weld(source,
-                        dest,
-                        &groups_buffer[grp_buffer_range.start()],
-                        grp_buffer_range.size(),
-                        dest_index);
+        r_src_index_offsets.append_unchecked(r_src_index_data.size());
+        r_src_index_data.extend(groups_buffer.as_span().slice(groups_offs[i]));
       }
       else {
-        CustomData_copy_data(source, dest, i, dest_index, 1);
+        r_src_index_offsets.append_unchecked(r_src_index_data.size());
+        r_src_index_data.append(i);
       }
       r_final_map[i] = dest_index;
       dest_index++;
@@ -1527,6 +1426,8 @@ static void merge_customdata_all(const CustomData *source,
     }
   }
 
+  r_src_index_offsets.append_unchecked(r_src_index_data.size());
+
   BLI_assert(dest_index == dest_size);
 }
 
@@ -1535,6 +1436,124 @@ static void merge_customdata_all(const CustomData *source,
 /* -------------------------------------------------------------------- */
 /** \name Mesh Vertex Merging
  * \{ */
+
+template<typename T>
+static void copy_first_from_src(const Span<T> src,
+                                const GroupedSpan<int> dst_to_src,
+                                MutableSpan<T> dst)
+{
+  for (const int dst_index : dst.index_range()) {
+    const int src_index = dst_to_src[dst_index].first();
+    dst[dst_index] = src[src_index];
+  }
+}
+
+static void mix_src_indices(const GSpan src_attr,
+                            const GroupedSpan<int> dst_to_src,
+                            GMutableSpan dst_attr)
+{
+  bke::attribute_math::convert_to_static_type(src_attr.type(), [&](auto dummy) {
+    using T = decltype(dummy);
+    const Span<T> src = src_attr.typed<T>();
+    MutableSpan<T> dst = dst_attr.typed<T>();
+    threading::parallel_for(dst.index_range(), 2048, [&](const IndexRange range) {
+      for (const int dst_index : range) {
+        const Span<int> src_indices = dst_to_src[dst_index];
+        if (src_indices.size() == 1) {
+          dst[dst_index] = src[src_indices.first()];
+          continue;
+        }
+        bke::attribute_math::DefaultMixer<T> mixer({&dst[dst_index], 1});
+        for (const int src_index : src_indices) {
+          mixer.mix_in(0, src[src_index]);
+        }
+        mixer.finalize();
+      }
+    });
+  });
+}
+
+static void mix_attributes(const bke::AttributeAccessor src_attributes,
+                           const GroupedSpan<int> dst_to_src,
+                           const bke::AttrDomain domain,
+                           const Set<StringRef> &skip_names,
+                           bke::MutableAttributeAccessor dst_attributes)
+{
+  src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (iter.domain != domain) {
+      return;
+    }
+    if (skip_names.contains(iter.name)) {
+      return;
+    }
+    const GVArraySpan src_attr = *iter.get();
+    bke::GSpanAttributeWriter dst_attr = dst_attributes.lookup_or_add_for_write_only_span(
+        iter.name, iter.domain, iter.data_type);
+    mix_src_indices(src_attr, dst_to_src, dst_attr.span);
+    dst_attr.finish();
+  });
+}
+
+static void mix_vertex_groups(const Mesh &mesh_src,
+                              const GroupedSpan<int> dst_to_src,
+                              Mesh &mesh_dst)
+{
+  const char *func = __func__;
+  const Span<MDeformVert> src_dverts = mesh_src.deform_verts();
+  if (src_dverts.is_empty()) {
+    return;
+  }
+  MutableSpan<MDeformVert> dst_dverts = mesh_dst.deform_verts_for_write();
+  threading::parallel_for(dst_to_src.index_range(), 256, [&](const IndexRange range) {
+    struct WeightIndexGetter {
+      int operator()(const MDeformWeight &value) const
+      {
+        return value.def_nr;
+      }
+    };
+    CustomIDVectorSet<MDeformWeight, WeightIndexGetter, 64> weights;
+
+    for (const int dst_vert : range) {
+      MDeformVert &dst_dvert = dst_dverts[dst_vert];
+
+      const Span<int> src_verts = dst_to_src[dst_vert];
+      if (src_verts.size() == 1) {
+        const MDeformVert &src_dvert = src_dverts[src_verts.first()];
+        dst_dvert.dw = MEM_malloc_arrayN<MDeformWeight>(src_dvert.totweight, func);
+        std::copy_n(src_dvert.dw, src_dvert.totweight, dst_dvert.dw);
+        dst_dvert.totweight = src_dvert.totweight;
+        continue;
+      }
+
+      const float src_num_inv = math::rcp(float(src_verts.size()));
+      for (const int src_vert : src_verts) {
+        const MDeformVert &src_dvert = src_dverts[src_vert];
+        for (const MDeformWeight &src_weight : Span(src_dvert.dw, src_dvert.totweight)) {
+          const int i = weights.index_of_or_add(MDeformWeight{src_weight.def_nr, 0.0f});
+          const_cast<MDeformWeight &>(weights[i]).weight += src_weight.weight * src_num_inv;
+        }
+      }
+
+      std::sort(const_cast<MDeformWeight *>(weights.begin()),
+                const_cast<MDeformWeight *>(weights.end()),
+                [](const auto &a, const auto &b) { return a.def_nr < b.def_nr; });
+
+      dst_dvert.dw = MEM_malloc_arrayN<MDeformWeight>(weights.size(), func);
+      dst_dvert.totweight = weights.size();
+      std::copy(weights.begin(), weights.end(), dst_dvert.dw);
+      weights.clear_and_keep_capacity();
+    }
+  });
+}
+
+static Set<StringRef> get_vertex_group_names(const Mesh &mesh)
+{
+  Set<StringRef> names;
+  LISTBASE_FOREACH (bDeformGroup *, group, &mesh.vertex_group_names) {
+    names.add(group->name);
+  }
+  return names;
+}
 
 static Mesh *create_merged_mesh(const Mesh &mesh,
                                 MutableSpan<int> vert_dest_map,
@@ -1545,9 +1564,11 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
   SCOPED_TIMER(__func__);
 #endif
 
+  const Span<int2> src_edges = mesh.edges();
   const OffsetIndices src_faces = mesh.faces();
   const Span<int> src_corner_verts = mesh.corner_verts();
   const Span<int> src_corner_edges = mesh.corner_edges();
+  const bke::AttributeAccessor src_attributes = mesh.attributes();
   const int totvert = mesh.verts_num;
   const int totedge = mesh.edges_num;
 
@@ -1559,61 +1580,122 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
   const int result_nloops = src_corner_verts.size() - weld_mesh.loop_kill_len;
   const int result_nfaces = src_faces.size() - weld_mesh.face_kill_len + weld_mesh.wpoly_new_len;
 
-  Mesh *result = BKE_mesh_new_nomain_from_template(
-      &mesh, result_nverts, result_nedges, result_nfaces, result_nloops);
+  Mesh *result = BKE_mesh_new_nomain(result_nverts, result_nedges, result_nfaces, result_nloops);
+  BKE_mesh_copy_parameters_for_eval(result, &mesh);
   MutableSpan<int2> dst_edges = result->edges_for_write();
   MutableSpan<int> dst_face_offsets = result->face_offsets_for_write();
   MutableSpan<int> dst_corner_verts = result->corner_verts_for_write();
   MutableSpan<int> dst_corner_edges = result->corner_edges_for_write();
+  bke::MutableAttributeAccessor dst_attributes = result->attributes_for_write();
 
   /* Vertices. */
 
   Array<int> vert_final_map;
-
-  merge_customdata_all(&mesh.vert_data,
-                       &result->vert_data,
-                       vert_dest_map,
+  Vector<int> vert_src_index_offset_data;
+  Vector<int> vert_src_index_data;
+  merge_customdata_all(vert_dest_map,
                        weld_mesh.double_verts,
                        result_nverts,
                        do_mix_data,
+                       vert_src_index_offset_data,
+                       vert_src_index_data,
                        vert_final_map);
+  const GroupedSpan<int> dst_to_src_verts(OffsetIndices<int>(vert_src_index_offset_data),
+                                          vert_src_index_data);
+
+  mix_attributes(src_attributes,
+                 dst_to_src_verts,
+                 bke::AttrDomain::Point,
+                 get_vertex_group_names(mesh),
+                 dst_attributes);
+  mix_vertex_groups(mesh, dst_to_src_verts, *result);
+  if (CustomData_has_layer(&mesh.vert_data, CD_ORIGINDEX)) {
+    const Span src(static_cast<const int *>(CustomData_get_layer(&mesh.vert_data, CD_ORIGINDEX)),
+                   mesh.verts_num);
+    MutableSpan dst(static_cast<int *>(CustomData_add_layer(
+                        &result->vert_data, CD_ORIGINDEX, CD_CONSTRUCT, result->verts_num)),
+                    result->verts_num);
+    copy_first_from_src(src, dst_to_src_verts, dst);
+  }
+  if (CustomData_has_layer(&mesh.vert_data, CD_MVERT_SKIN)) {
+    const Span src(
+        static_cast<const MVertSkin *>(CustomData_get_layer(&mesh.vert_data, CD_MVERT_SKIN)),
+        mesh.verts_num);
+    MutableSpan dst(static_cast<MVertSkin *>(CustomData_add_layer(
+                        &result->vert_data, CD_MVERT_SKIN, CD_CONSTRUCT, result->verts_num)),
+                    result->verts_num);
+    threading::parallel_for(dst.index_range(), 2048, [&](const IndexRange range) {
+      for (const int dst_vert : range) {
+        const Span<int> src_verts = dst_to_src_verts[dst_vert];
+        if (src_verts.size() == 1) {
+          dst[dst_vert] = src[src_verts.first()];
+          continue;
+        }
+        const float src_num_inv = math::rcp(float(src_verts.size()));
+        for (const int src_vert : src_verts) {
+          madd_v3_v3fl(dst[dst_vert].radius, src[src_vert].radius, src_num_inv);
+          dst[dst_vert].flag |= src[src_vert].flag;
+        }
+      }
+    });
+  }
 
   /* Edges. */
 
   Array<int> edge_final_map;
-
-  merge_customdata_all(&mesh.edge_data,
-                       &result->edge_data,
-                       weld_mesh.edge_dest_map,
+  Vector<int> edge_src_index_offset_data;
+  Vector<int> edge_src_index_data;
+  merge_customdata_all(weld_mesh.edge_dest_map,
                        weld_mesh.double_edges,
                        result_nedges,
                        do_mix_data,
+                       edge_src_index_offset_data,
+                       edge_src_index_data,
                        edge_final_map);
+  const GroupedSpan<int> dst_to_src_edges(OffsetIndices<int>(edge_src_index_offset_data),
+                                          edge_src_index_data);
 
-  for (int2 &edge : dst_edges) {
-    edge[0] = vert_final_map[edge[0]];
-    edge[1] = vert_final_map[edge[1]];
-    BLI_assert(edge[0] != edge[1]);
-    BLI_assert(IN_RANGE_INCL(edge[0], 0, result_nverts - 1));
-    BLI_assert(IN_RANGE_INCL(edge[1], 0, result_nverts - 1));
+  mix_attributes(
+      src_attributes, dst_to_src_edges, bke::AttrDomain::Edge, {".edge_verts"}, dst_attributes);
+  if (CustomData_has_layer(&mesh.edge_data, CD_ORIGINDEX)) {
+    const Span src(static_cast<const int *>(CustomData_get_layer(&mesh.edge_data, CD_ORIGINDEX)),
+                   mesh.edges_num);
+    MutableSpan dst(static_cast<int *>(CustomData_add_layer(
+                        &result->edge_data, CD_ORIGINDEX, CD_CONSTRUCT, result->edges_num)),
+                    result->edges_num);
+    copy_first_from_src(src, dst_to_src_edges, dst);
   }
 
+  threading::parallel_for(dst_edges.index_range(), 2048, [&](const IndexRange range) {
+    for (const int dst_edge_index : range) {
+      const int src_edge_index = dst_to_src_edges[dst_edge_index].first();
+      const int2 src_edge = src_edges[src_edge_index];
+      dst_edges[dst_edge_index] = int2(vert_final_map[src_edge[0]], vert_final_map[src_edge[1]]);
+    }
+  });
+
   /* Faces/Loops. */
+  Vector<int> corner_src_index_offset_data;
+  Vector<int> corner_src_index_data;
+
+  corner_src_index_offset_data.reserve(result->corners_num + 1);
+  corner_src_index_data.reserve(mesh.corners_num);
 
   int r_i = 0;
   int loop_cur = 0;
+  Array<bool> dst_face_unaffected(result_nfaces - weld_mesh.wpoly_new_len);
+  Array<int> dst_to_src_faces(result_nfaces - weld_mesh.wpoly_new_len);
   Array<int, 64> group_buffer(weld_mesh.max_face_len);
   for (const int i : src_faces.index_range()) {
     const int loop_start = loop_cur;
     const int poly_ctx = weld_mesh.face_map[i];
     if (poly_ctx == OUT_OF_CONTEXT) {
-      int mp_loop_len = src_faces[i].size();
-      CustomData_copy_data(
-          &mesh.corner_data, &result->corner_data, src_faces[i].start(), loop_cur, mp_loop_len);
-      for (; mp_loop_len--; loop_cur++) {
-        dst_corner_verts[loop_cur] = vert_final_map[dst_corner_verts[loop_cur]];
-        dst_corner_edges[loop_cur] = edge_final_map[dst_corner_edges[loop_cur]];
+      for (const int loop_orig : src_faces[i]) {
+        corner_src_index_offset_data.append_unchecked(corner_src_index_data.size());
+        corner_src_index_data.append(loop_orig);
+        loop_cur++;
       }
+      dst_face_unaffected[r_i] = true;
     }
     else {
       const WeldPoly &wp = weld_mesh.wpoly[poly_ctx];
@@ -1632,19 +1714,17 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
       if (wp.poly_dst != OUT_OF_CONTEXT) {
         continue;
       }
+      dst_face_unaffected[r_i] = false;
       do {
-        customdata_weld(&mesh.corner_data,
-                        &result->corner_data,
-                        group_buffer.data(),
-                        iter.group_len,
-                        loop_cur);
+        corner_src_index_offset_data.append_unchecked(corner_src_index_data.size());
+        corner_src_index_data.extend(Span(group_buffer.data(), iter.group_len));
         dst_corner_verts[loop_cur] = vert_final_map[iter.v];
         dst_corner_edges[loop_cur] = edge_final_map[iter.e];
         loop_cur++;
       } while (weld_iter_loop_of_poly_next(iter));
     }
 
-    CustomData_copy_data(&mesh.face_data, &result->face_data, i, r_i, 1);
+    dst_to_src_faces[r_i] = i;
     dst_face_offsets[r_i] = loop_start;
     r_i++;
   }
@@ -1669,8 +1749,8 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
       continue;
     }
     do {
-      customdata_weld(
-          &mesh.corner_data, &result->corner_data, group_buffer.data(), iter.group_len, loop_cur);
+      corner_src_index_offset_data.append_unchecked(corner_src_index_data.size());
+      corner_src_index_data.extend(Span(group_buffer.data(), iter.group_len));
       dst_corner_verts[loop_cur] = vert_final_map[iter.v];
       dst_corner_edges[loop_cur] = edge_final_map[iter.e];
       loop_cur++;
@@ -1679,6 +1759,57 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
     dst_face_offsets[r_i] = loop_start;
     r_i++;
   }
+
+  corner_src_index_offset_data.append_unchecked(corner_src_index_data.size());
+
+  const GroupedSpan<int> dst_to_src_corners(OffsetIndices<int>(corner_src_index_offset_data),
+                                            corner_src_index_data);
+
+  const OffsetIndices dst_faces = result->faces();
+
+  src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (iter.domain != bke::AttrDomain::Face) {
+      return;
+    }
+    const GVArray src_attr = *iter.get();
+    const CPPType &type = src_attr.type();
+    bke::GSpanAttributeWriter dst_attr = dst_attributes.lookup_or_add_for_write_only_span(
+        iter.name, iter.domain, iter.data_type);
+    bke::attribute_math::gather(
+        src_attr, dst_to_src_faces, dst_attr.span.drop_back(weld_mesh.wpoly_new_len));
+    type.fill_assign_n(type.default_value(),
+                       dst_attr.span.take_back(weld_mesh.wpoly_new_len).data(),
+                       weld_mesh.wpoly_new_len);
+    dst_attr.finish();
+  });
+
+  if (CustomData_has_layer(&mesh.face_data, CD_ORIGINDEX)) {
+    const Span src(static_cast<const int *>(CustomData_get_layer(&mesh.face_data, CD_ORIGINDEX)),
+                   mesh.faces_num);
+    MutableSpan dst(static_cast<int *>(CustomData_add_layer(
+                        &result->face_data, CD_ORIGINDEX, CD_CONSTRUCT, result->faces_num)),
+                    result->faces_num);
+    bke::attribute_math::gather(src, dst_to_src_faces, dst.drop_back(weld_mesh.wpoly_new_len));
+    dst.take_back(weld_mesh.wpoly_new_len).fill(ORIGINDEX_NONE);
+  }
+
+  IndexMaskMemory memory;
+  const IndexMask out_of_context_faces = IndexMask::from_bools(dst_face_unaffected, memory);
+
+  out_of_context_faces.foreach_index(GrainSize(1024), [&](const int dst_face_index) {
+    const IndexRange src_face = src_faces[dst_to_src_faces[dst_face_index]];
+    const IndexRange dst_face = dst_faces[dst_face_index];
+    for (const int i : src_face.index_range()) {
+      dst_corner_verts[dst_face[i]] = vert_final_map[src_corner_verts[src_face[i]]];
+      dst_corner_edges[dst_face[i]] = edge_final_map[src_corner_edges[src_face[i]]];
+    }
+  });
+
+  mix_attributes(src_attributes,
+                 dst_to_src_corners,
+                 bke::AttrDomain::Corner,
+                 {".corner_vert", ".corner_edge"},
+                 dst_attributes);
 
   BLI_assert(int(r_i) == result_nfaces);
   BLI_assert(loop_cur == result_nloops);

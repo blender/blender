@@ -60,7 +60,7 @@ static void draw_render_info(
   Render *re = RE_GetSceneRender(scene);
   Scene *stats_scene = ED_render_job_get_scene(C);
   if (stats_scene == nullptr) {
-    stats_scene = CTX_data_scene(C);
+    stats_scene = scene;
   }
 
   RenderResult *rr = BKE_image_acquire_renderresult(stats_scene, ima);

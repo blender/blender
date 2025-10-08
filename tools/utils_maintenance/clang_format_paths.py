@@ -25,8 +25,8 @@ from collections.abc import (
     Sequence,
 )
 
-VERSION_MIN = (17, 0, 6)
-VERSION_MAX_RECOMMENDED = (17, 0, 6)
+VERSION_MIN = (20, 1, 8)
+VERSION_MAX_RECOMMENDED = (20, 1, 8)
 CLANG_FORMAT_CMD = "clang-format"
 
 BASE_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))

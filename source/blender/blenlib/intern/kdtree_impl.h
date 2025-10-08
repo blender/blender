@@ -55,13 +55,13 @@ struct KDTree {
 #define KD_NEAR_ALLOC_INC 100 /* alloc increment for collecting nearest */
 #define KD_FOUND_ALLOC_INC 50 /* alloc increment for collecting nearest */
 
-#define KD_NODE_UNSET ((uint)-1)
+#define KD_NODE_UNSET ((uint) - 1)
 
 /**
  * When set we know all values are unbalanced,
  * otherwise clear them when re-balancing: see #62210.
  */
-#define KD_NODE_ROOT_IS_INIT ((uint)-2)
+#define KD_NODE_ROOT_IS_INIT ((uint) - 2)
 
 /* -------------------------------------------------------------------- */
 /** \name Local Math API
@@ -940,7 +940,10 @@ int BLI_kdtree_nd_(calc_duplicates_cb)(const KDTree *tree,
         else if (target_index != neighbor_index) {
           float &dist_sq_best = duplicates_dist_sq[neighbor_index];
           /* Steal the target if it's closer. */
-          if (dist_sq < dist_sq_best) {
+          if ((dist_sq < dist_sq_best) ||
+              /* Pick the lowest index as a tie breaker for a deterministic result. */
+              ((dist_sq == dist_sq_best) && (node_index < target_index)))
+          {
             dist_sq_best = dist_sq;
             duplicates[neighbor_index] = node_index;
           }

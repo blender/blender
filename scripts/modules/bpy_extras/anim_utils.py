@@ -3,6 +3,8 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 __all__ = (
+    "AutoKeying",
+
     "bake_action",
     "bake_action_objects",
 
@@ -12,13 +14,18 @@ __all__ = (
     "BakeOptions",
 )
 
-import bpy
-from bpy.types import Action, ActionSlot, ActionChannelbag
+import contextlib
 from dataclasses import dataclass
-
+from typing import Iterable, Optional, Union, Iterator
 from collections.abc import (
     Mapping,
     Sequence,
+)
+
+import bpy
+from bpy.types import (
+    Context, Action, ActionSlot, ActionChannelbag,
+    Object, PoseBone, KeyingSet,
 )
 
 from rna_prop_ui import (
@@ -96,8 +103,25 @@ def action_get_channelbag_for_slot(action: Action | None, slot: ActionSlot | Non
     return None
 
 
+def action_get_first_suitable_slot(action: Action | None, target_id_type: str) -> ActionSlot | None:
+    """Return the first Slot of the given Action that's suitable for the given ID type.
+
+    Typically you should not need this function; when an Action is assigned to a
+    data-block, just use the slot that was assigned along with it.
+    """
+
+    if not action:
+        return None
+
+    slot_types = ('UNSPECIFIED', target_id_type)
+    for slot in action.slots:
+        if slot.target_id_type in slot_types:
+            return slot
+    return None
+
+
 def action_ensure_channelbag_for_slot(action: Action, slot: ActionSlot) -> ActionChannelbag:
-    """Ensure a layer and a keyframe strip exists, then ensure that that strip has a channelbag for the slot."""
+    """Ensure a layer and a keyframe strip exists, then ensure that strip has a channelbag for the slot."""
 
     try:
         layer = action.layers[0]
@@ -391,13 +415,6 @@ def bake_action_iter(
             obj_info.append((frame, *obj_frame_info(obj)))
 
     # -------------------------------------------------------------------------
-    # Clean (store initial data)
-    if bake_options.do_clean and action is not None:
-        clean_orig_data = {fcu: {p.co[1] for p in fcu.keyframe_points} for fcu in action.fcurves}
-    else:
-        clean_orig_data = {}
-
-    # -------------------------------------------------------------------------
     # Create action
 
     # in case animation data hasn't been created
@@ -423,16 +440,24 @@ def bake_action_iter(
     if not atd.use_tweak_mode:
         atd.action_blend_type = 'REPLACE'
 
+    # If any data is going to be baked, there will be a channelbag created, so
+    # might just as well create it now and have a clear, unambiguous reference
+    # to it. If it is created here, it will have no F-Curves, and so certain
+    # loops below will just be no-ops.
+    channelbag: ActionChannelbag = action_ensure_channelbag_for_slot(atd.action, atd.action_slot)
+
+    # -------------------------------------------------------------------------
+    # Clean (store initial data)
+    if bake_options.do_clean:
+        clean_orig_data = {fcu: {p.co[1] for p in fcu.keyframe_points} for fcu in channelbag.fcurves}
+    else:
+        clean_orig_data = {}
+
     # -------------------------------------------------------------------------
     # Apply transformations to action
 
     # pose
-    lookup_fcurves = {}
-    assert action.is_action_layered
-    channelbag = action_get_channelbag_for_slot(action, atd.action_slot)
-    if channelbag:
-        # channelbag can be None if no layers or strips exist in the action.
-        lookup_fcurves = {(fcurve.data_path, fcurve.array_index): fcurve for fcurve in channelbag.fcurves}
+    lookup_fcurves = {(fcurve.data_path, fcurve.array_index): fcurve for fcurve in channelbag.fcurves}
 
     if bake_options.do_pose:
         for f, armature_custom_properties in armature_info:
@@ -524,10 +549,10 @@ def bake_action_iter(
                     bake_custom_properties(pbone, custom_props=custom_props[name], frame=f, group_name=name)
 
             if is_new_action:
-                keyframes.insert_keyframes_into_new_action(total_new_keys, action, name)
+                keyframes.insert_keyframes_into_new_action(total_new_keys, channelbag, name)
             else:
                 keyframes.insert_keyframes_into_existing_action(
-                    lookup_fcurves, total_new_keys, action, atd.action_slot)
+                    lookup_fcurves, total_new_keys, channelbag)
 
     # object. TODO. multiple objects
     if bake_options.do_object:
@@ -591,10 +616,9 @@ def bake_action_iter(
                 bake_custom_properties(obj, custom_props=custom_props, frame=f, group_name=name)
 
         if is_new_action:
-            keyframes.insert_keyframes_into_new_action(total_new_keys, action, name)
+            keyframes.insert_keyframes_into_new_action(total_new_keys, channelbag, name)
         else:
-            keyframes.insert_keyframes_into_existing_action(
-                lookup_fcurves, total_new_keys, action, atd.action_slot)
+            keyframes.insert_keyframes_into_existing_action(lookup_fcurves, total_new_keys, channelbag)
 
         if bake_options.do_parents_clear:
             obj.parent = None
@@ -603,7 +627,7 @@ def bake_action_iter(
     # Clean
 
     if bake_options.do_clean:
-        for fcu in action.fcurves:
+        for fcu in channelbag.fcurves:
             fcu_orig_data = clean_orig_data.get(fcu, set())
 
             keyframe_points = fcu.keyframe_points
@@ -675,15 +699,14 @@ class KeyframesCo:
     def insert_keyframes_into_new_action(
         self,
         total_new_keys: int,
-        action: Action,
-        action_group_name: str,
+        channelbag: ActionChannelbag,
+        group_name: str,
     ) -> None:
         """
         Assumes the action is new, that it has no F-curves. Otherwise, the only difference between versions is
         performance and implementation simplicity.
 
-        :arg action_group_name: Name of Action Group that F-curves are added to.
-        :type action_group_name: str
+        :arg group_name: Name of the Group that F-curves are added to.
         """
         linear_enum_values = [
             bpy.types.Keyframe.bl_rna.properties["interpolation"].enum_items["LINEAR"].value
@@ -694,8 +717,8 @@ class KeyframesCo:
                 continue
 
             data_path, array_index = fc_key
-            keyframe_points = action.fcurves.new(
-                data_path, index=array_index, action_group=action_group_name
+            keyframe_points = channelbag.fcurves.new(
+                data_path, index=array_index, group_name=group_name
             ).keyframe_points
 
             keyframe_points.add(total_new_keys)
@@ -709,18 +732,14 @@ class KeyframesCo:
         self,
         lookup_fcurves: Mapping[FCurveKey, bpy.types.FCurve],
         total_new_keys: int,
-        action: Action,
-        action_slot: ActionSlot,
+        channelbag: ActionChannelbag,
     ) -> None:
         """
         Assumes the action already exists, that it might already have F-curves. Otherwise, the
         only difference between versions is performance and implementation simplicity.
 
         :arg lookup_fcurves: : This is only used for efficiency.
-           It's a substitute for ``action.fcurves.find()`` which is a potentially expensive linear search.
-        :type lookup_fcurves: ``Mapping[FCurveKey, bpy.types.FCurve]``
-        :arg action_group_name: Name of Action Group that F-curves are added to.
-        :type action_group_name: str
+           It's a substitute for ``channelbag.fcurves.find()`` which is a potentially expensive linear search.
         """
         linear_enum_values = [
             bpy.types.Keyframe.bl_rna.properties["interpolation"].enum_items["LINEAR"].value
@@ -733,8 +752,6 @@ class KeyframesCo:
             fcurve = lookup_fcurves.get(fc_key, None)
             if fcurve is None:
                 data_path, array_index = fc_key
-                assert action.is_action_layered
-                channelbag = action_ensure_channelbag_for_slot(action, action_slot)
                 fcurve = channelbag.fcurves.new(data_path, index=array_index)
 
             keyframe_points = fcurve.keyframe_points
@@ -757,3 +774,255 @@ class KeyframesCo:
             # This also deduplicates keys where baked keys were inserted on the
             # same frame as existing ones.
             fcurve.update()
+
+
+class AutoKeying:
+    """Auto-keying support."""
+
+    # Use AutoKeying.keytype() or Authkeying.options() context to change those.
+    _keytype = 'KEYFRAME'
+    _force_autokey = False  # Allow use without the user activating auto-keying.
+    _use_loc = True
+    _use_rot = True
+    _use_scale = True
+
+    @classmethod
+    @contextlib.contextmanager
+    def keytype(cls, the_keytype: str) -> Iterator[None]:
+        """Context manager to set the key type that's inserted."""
+        default_keytype = cls._keytype
+        try:
+            cls._keytype = the_keytype
+            yield
+        finally:
+            cls._keytype = default_keytype
+
+    @classmethod
+    @contextlib.contextmanager
+    def options(
+            cls,
+            *,
+            keytype: str = "",
+            use_loc: bool = True,
+            use_rot: bool = True,
+            use_scale: bool = True,
+            force_autokey: bool = False) -> Iterator[None]:
+        """Context manager to set various keyframing options."""
+        default_keytype = cls._keytype
+        default_use_loc = cls._use_loc
+        default_use_rot = cls._use_rot
+        default_use_scale = cls._use_scale
+        default_force_autokey = cls._force_autokey
+        try:
+            cls._keytype = keytype
+            cls._use_loc = use_loc
+            cls._use_rot = use_rot
+            cls._use_scale = use_scale
+            cls._force_autokey = force_autokey
+            yield
+        finally:
+            cls._keytype = default_keytype
+            cls._use_loc = default_use_loc
+            cls._use_rot = default_use_rot
+            cls._use_scale = default_use_scale
+            cls._force_autokey = default_force_autokey
+
+    @classmethod
+    def keying_options(cls, context: Context) -> set[str]:
+        """Retrieve the general keyframing options from user preferences."""
+
+        prefs = context.preferences
+        ts = context.scene.tool_settings
+        options = set()
+
+        if prefs.edit.use_visual_keying:
+            options.add('INSERTKEY_VISUAL')
+        if prefs.edit.use_keyframe_insert_needed:
+            options.add('INSERTKEY_NEEDED')
+        if ts.use_keyframe_cycle_aware:
+            options.add('INSERTKEY_CYCLE_AWARE')
+        return options
+
+    @classmethod
+    def keying_options_from_keyingset(cls, context: Context, keyingset: KeyingSet) -> set[str]:
+        """Retrieve the general keyframing options from user preferences."""
+
+        ts = context.scene.tool_settings
+        options = set()
+
+        if keyingset.use_insertkey_visual:
+            options.add('INSERTKEY_VISUAL')
+        if keyingset.use_insertkey_needed:
+            options.add('INSERTKEY_NEEDED')
+        if ts.use_keyframe_cycle_aware:
+            options.add('INSERTKEY_CYCLE_AWARE')
+        return options
+
+    @classmethod
+    def autokeying_options(cls, context: Context) -> Optional[set[str]]:
+        """Retrieve the Auto Keyframe options, or None if disabled."""
+
+        ts = context.scene.tool_settings
+
+        if not (cls._force_autokey or ts.use_keyframe_insert_auto):
+            return None
+
+        active_keyingset = context.scene.keying_sets_all.active
+        if ts.use_keyframe_insert_keyingset and active_keyingset:
+            # No support for keying sets in this function
+            raise RuntimeError("This function should not be called when there is an active keying set")
+
+        prefs = context.preferences
+        options = cls.keying_options(context)
+
+        if prefs.edit.use_keyframe_insert_available:
+            options.add('INSERTKEY_AVAILABLE')
+        if ts.auto_keying_mode == 'REPLACE_KEYS':
+            options.add('INSERTKEY_REPLACE')
+        return options
+
+    @staticmethod
+    def get_4d_rotlock(bone: PoseBone) -> Iterable[bool]:
+        "Retrieve the lock status for 4D rotation."
+        if bone.lock_rotations_4d:
+            return [bone.lock_rotation_w, *bone.lock_rotation]
+        return [all(bone.lock_rotation)] * 4
+
+    @classmethod
+    def keyframe_channels(
+        cls,
+        target: Union[Object, PoseBone],
+        options: set[str],
+        data_path: str,
+        group: str,
+        locks: Iterable[bool],
+    ) -> None:
+        """Keyframe channels, avoiding keying locked channels."""
+        if all(locks):
+            return
+
+        if not any(locks):
+            target.keyframe_insert(data_path, group=group, options=options, keytype=cls._keytype)
+            return
+
+        for index, lock in enumerate(locks):
+            if lock:
+                continue
+            target.keyframe_insert(data_path, index=index, group=group, options=options, keytype=cls._keytype)
+
+    @classmethod
+    def key_transformation(
+        cls,
+        target: Union[Object, PoseBone],
+        options: set[str],
+    ) -> None:
+        """Keyframe transformation properties, avoiding keying locked channels."""
+
+        is_bone = isinstance(target, PoseBone)
+        if is_bone:
+            group = target.name
+        else:
+            group = "Object Transforms"
+
+        def keyframe(data_path: str, locks: Iterable[bool]) -> None:
+            cls.keyframe_channels(target, options, data_path, group, locks)
+
+        if cls._use_loc and not (is_bone and target.bone.use_connect):
+            keyframe("location", target.lock_location)
+
+        if cls._use_rot:
+            if target.rotation_mode == 'QUATERNION':
+                keyframe("rotation_quaternion", cls.get_4d_rotlock(target))
+            elif target.rotation_mode == 'AXIS_ANGLE':
+                keyframe("rotation_axis_angle", cls.get_4d_rotlock(target))
+            else:
+                keyframe("rotation_euler", target.lock_rotation)
+
+        if cls._use_scale:
+            keyframe("scale", target.lock_scale)
+
+    @classmethod
+    def key_transformation_via_keyingset(cls,
+                                         context: Context,
+                                         target: Union[Object, PoseBone],
+                                         keyingset: KeyingSet) -> None:
+        """Auto-key transformation properties with the given keying set."""
+
+        keyingset.refresh()
+
+        is_bone = isinstance(target, PoseBone)
+        options = cls.keying_options_from_keyingset(context, keyingset)
+
+        paths_to_key = {keysetpath.data_path: keysetpath for keysetpath in keyingset.paths}
+
+        def keyframe(data_path: str, locks: Iterable[bool]) -> None:
+            # Keying sets are relative to the ID.
+            full_data_path = target.path_from_id(data_path)
+            try:
+                keysetpath = paths_to_key[full_data_path]
+            except KeyError:
+                # No biggie, just means this property shouldn't be keyed.
+                return
+
+            match keysetpath.group_method:
+                case 'NAMED':
+                    group = keysetpath.group
+                case 'KEYINGSET':
+                    group = keyingset.name
+                case 'NONE', _:
+                    group = ""
+
+            cls.keyframe_channels(target, options, data_path, group, locks)
+
+        if cls._use_loc and not (is_bone and target.bone.use_connect):
+            keyframe("location", target.lock_location)
+
+        if cls._use_rot:
+            if target.rotation_mode == 'QUATERNION':
+                keyframe("rotation_quaternion", cls.get_4d_rotlock(target))
+            elif target.rotation_mode == 'AXIS_ANGLE':
+                keyframe("rotation_axis_angle", cls.get_4d_rotlock(target))
+            else:
+                keyframe("rotation_euler", target.lock_rotation)
+
+        if cls._use_scale:
+            keyframe("scale", target.lock_scale)
+
+    @classmethod
+    def active_keyingset(cls, context: Context) -> KeyingSet | None:
+        """Return the active keying set, if it should be used.
+
+        Only returns the active keying set when the auto-key settings indicate
+        it should be used, and when it is not using absolute paths (because
+        that's not supported by the Copy Global Transform add-on).
+        """
+        ts = context.scene.tool_settings
+        if not ts.use_keyframe_insert_keyingset:
+            return None
+
+        active_keyingset = context.scene.keying_sets_all.active
+        if not active_keyingset:
+            return None
+
+        active_keyingset.refresh()
+        if active_keyingset.is_path_absolute:
+            # Absolute-path keying sets are not supported (yet?).
+            return None
+
+        return active_keyingset
+
+    @classmethod
+    def autokey_transformation(cls, context: Context, target: Union[Object, PoseBone]) -> None:
+        """Auto-key transformation properties."""
+
+        # See if the active keying set should be used.
+        keyingset = cls.active_keyingset(context)
+        if keyingset:
+            cls.key_transformation_via_keyingset(context, target, keyingset)
+            return
+
+        # Use regular autokeying options.
+        options = cls.autokeying_options(context)
+        if options is None:
+            return
+        cls.key_transformation(target, options)

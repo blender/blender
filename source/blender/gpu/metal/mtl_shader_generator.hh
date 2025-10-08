@@ -406,7 +406,7 @@ class MSLGeneratorInterface {
   const shader::ShaderCreateInfo *create_info_;
 
  public:
-  MSLGeneratorInterface(MTLShader &shader) : parent_shader_(shader){};
+  MSLGeneratorInterface(MTLShader &shader) : parent_shader_(shader) {};
 
   /** Prepare MSLGeneratorInterface from create-info. **/
   void prepare_from_createinfo(const shader::ShaderCreateInfo *info);

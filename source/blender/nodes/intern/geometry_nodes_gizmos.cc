@@ -381,14 +381,26 @@ static void foreach_active_gizmo_exposed_to_modifier(
   }
 
   tree.ensure_interface_cache();
-  Array<nodes::socket_usage_inference::SocketUsage> input_usages(tree.interface_inputs().size());
-  nodes::socket_usage_inference::infer_group_interface_usage(
-      tree, nmd.settings.properties, input_usages);
+
+  ResourceScope scope;
+  const Vector<InferenceValue> input_values = get_geometry_nodes_input_inference_values(
+      *nmd.node_group, nmd.settings.properties, scope);
+
+  const auto get_input_value = [&](const int group_input_i) {
+    return input_values[group_input_i];
+  };
+  SocketValueInferencer value_inferencer{
+      *nmd.node_group, scope, compute_context_cache, get_input_value};
+  socket_usage_inference::SocketUsageInferencer usage_inferencer(
+      *nmd.node_group, scope, value_inferencer, compute_context_cache);
 
   const ComputeContext &root_compute_context = compute_context_cache.for_modifier(nullptr, nmd);
   for (auto &&item : tree.runtime->gizmo_propagation->gizmo_inputs_by_group_inputs.items()) {
     const ie::GroupInputElem &group_input_elem = item.key;
-    if (!input_usages[group_input_elem.group_input_index].is_used) {
+    if (item.value.is_empty()) {
+      continue;
+    }
+    if (!usage_inferencer.is_group_input_used(group_input_elem.group_input_index)) {
       continue;
     }
     for (const ie::SocketElem &socket_elem : item.value) {

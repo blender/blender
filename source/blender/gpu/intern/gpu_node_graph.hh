@@ -73,6 +73,10 @@ struct GPUNode {
 
   ListBase inputs;
   ListBase outputs;
+
+  /* Zones. */
+  int zone_index;
+  bool is_zone_end;
 };
 
 struct GPUNodeLink {
@@ -111,6 +115,11 @@ struct GPUOutput {
   GPUType type;      /* data type = length of vector/matrix */
   GPUNodeLink *link; /* output link */
   int id;            /* unique id as created by code generator */
+
+  /* True for Zone Items. */
+  bool is_zone_io;
+  /* This variable is shared with other socket/s and doesn't need to be declared. */
+  bool is_duplicate;
 };
 
 struct GPUInput {
@@ -138,6 +147,11 @@ struct GPUInput {
     /* GPU_SOURCE_FUNCTION_CALL */
     char function_call[64];
   };
+
+  /* True for Zone Items. */
+  bool is_zone_io;
+  /* This variable is shared with other socket/s and doesn't need to be declared. */
+  bool is_duplicate;
 };
 
 struct GPUNodeGraphOutputLink {
@@ -181,7 +195,7 @@ struct GPUNodeGraph {
 
 /* Node Graph */
 
-void gpu_nodes_tag(GPUNodeLink *link, GPUNodeTag tag);
+void gpu_nodes_tag(GPUNodeGraph *graph, GPUNodeLink *link_start, GPUNodeTag tag);
 void gpu_node_graph_prune_unused(GPUNodeGraph *graph);
 void gpu_node_graph_finalize_uniform_attrs(GPUNodeGraph *graph);
 

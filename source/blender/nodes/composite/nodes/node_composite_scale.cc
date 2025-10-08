@@ -49,20 +49,21 @@ static const EnumPropertyItem frame_type_items[] = {
 static void cmp_node_scale_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
-
-  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
+  b.allow_any_socket_order();
 
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .hide_value()
       .compositor_realization_mode(CompositorInputRealizationMode::None)
       .structure_type(StructureType::Dynamic);
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic).align_with_previous();
+
   b.add_input<decl::Menu>("Type").default_value(CMP_NODE_SCALE_RELATIVE).static_items(type_items);
   b.add_input<decl::Float>("X")
       .default_value(1.0f)
       .min(0.0001f)
       .max(CMP_SCALE_MAX)
       .structure_type(StructureType::Dynamic)
-      .optional_label()
       .usage_by_menu("Type", {CMP_NODE_SCALE_RELATIVE, CMP_NODE_SCALE_ABSOLUTE});
   b.add_input<decl::Float>("Y")
       .default_value(1.0f)

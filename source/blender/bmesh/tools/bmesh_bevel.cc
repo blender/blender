@@ -921,7 +921,7 @@ static BMFace *bev_create_ngon(BevelParams *bp,
     return nullptr;
   }
 
-  if ((facerep || (face_arr && face_arr[0]))) {
+  if (facerep || (face_arr && face_arr[0])) {
     BM_elem_attrs_copy(bm, facerep ? facerep : face_arr[0], f);
     if (do_interp) {
       int i = 0;
@@ -1211,7 +1211,7 @@ static void math_layer_info_init(BevelParams *bp, BMesh *bm)
 static BMFace *choose_rep_face(BevelParams *bp, BMFace **face, int nfaces)
 {
 #define VEC_VALUE_LEN 6
-  float(*value_vecs)[VEC_VALUE_LEN] = nullptr;
+  float (*value_vecs)[VEC_VALUE_LEN] = nullptr;
   int num_viable = 0;
 
   value_vecs = BLI_array_alloca(value_vecs, nfaces);
@@ -4969,7 +4969,7 @@ static float projected_boundary_area(BevVert *bv, BMFace *f)
 {
   BMEdge *e1, *e2;
   VMesh *vm = bv->vmesh;
-  float(*proj_co)[2] = BLI_array_alloca(proj_co, vm->count);
+  float (*proj_co)[2] = BLI_array_alloca(proj_co, vm->count);
   float axis_mat[3][3];
   axis_dominant_v3_to_m3(axis_mat, f->no);
   get_incident_edges(f, bv->v, &e1, &e2);

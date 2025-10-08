@@ -54,7 +54,7 @@ class Cryptomatte {
   CryptomatteObjectBuf cryptomatte_object_buf;
 
  public:
-  Cryptomatte(Instance &inst) : inst_(inst){};
+  Cryptomatte(Instance &inst) : inst_(inst) {};
 
   void begin_sync();
   void sync_object(Object *ob, ResourceHandleRange res_handle);

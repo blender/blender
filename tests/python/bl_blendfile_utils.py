@@ -39,8 +39,14 @@ class TestHelper(unittest.TestCase):
             if not inst_attr_id.startswith("test_"):
                 continue
             inst_attr = getattr(self, inst_attr_id)
-            if callable(inst_attr):
+            if not callable(inst_attr):
+                continue
+
+            self.setUp()
+            try:
                 inst_attr()
+            finally:
+                self.tearDown()
 
 
 class TestBlendLibLinkHelper(TestHelper):

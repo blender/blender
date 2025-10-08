@@ -1050,7 +1050,7 @@ bool BKE_mesh_validate(Mesh *mesh, const bool do_verbose, const bool cddata_chec
       CustomData_get_layer_for_write(&mesh->vert_data, CD_MDEFORMVERT, mesh->verts_num));
   BKE_mesh_validate_arrays(
       mesh,
-      reinterpret_cast<float(*)[3]>(positions.data()),
+      reinterpret_cast<float (*)[3]>(positions.data()),
       positions.size(),
       edges.data(),
       edges.size(),
@@ -1107,7 +1107,7 @@ bool BKE_mesh_is_valid(Mesh *mesh)
       CustomData_get_layer_for_write(&mesh->vert_data, CD_MDEFORMVERT, mesh->verts_num));
   is_valid &= BKE_mesh_validate_arrays(
       mesh,
-      reinterpret_cast<float(*)[3]>(positions.data()),
+      reinterpret_cast<float (*)[3]>(positions.data()),
       positions.size(),
       edges.data(),
       edges.size(),

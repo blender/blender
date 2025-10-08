@@ -1673,7 +1673,7 @@ static void sequencer_preview_draw_overlays(const bContext *C,
   else if (space_sequencer.flag & SEQ_USE_ALPHA) {
     /* Draw checked-board. */
     const View2D &v2d = region.v2d;
-    imm_draw_box_checker_2d(v2d.tot.xmin, v2d.tot.ymin, v2d.tot.xmax, v2d.tot.ymax);
+    imm_draw_box_checker_2d(v2d.tot.xmin, v2d.tot.ymin, v2d.tot.xmax, v2d.tot.ymax, true);
 
     /* Draw current and preview textures in a special way to pierce a hole in the overlay to make
      * the actual image visible. */

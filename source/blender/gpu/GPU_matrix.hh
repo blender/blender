@@ -178,35 +178,35 @@ int GPU_matrix_stack_level_get_projection();
 #  if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
 #    define _GPU_MAT3_CONST_CAST(x) \
       (_Generic((x), \
-          void *: (const float(*)[3])(x), \
-          float *: (const float(*)[3])(x), \
-          float(*)[4]: (const float(*)[3])(x), \
-          const void *: (const float(*)[3])(x), \
-          const float *: (const float(*)[3])(x), \
-          const float(*)[3]: (const float(*)[3])(x)))
+           void *: (const float (*)[3])(x), \
+           float *: (const float (*)[3])(x), \
+           float (*)[4]: (const float (*)[3])(x), \
+           const void *: (const float (*)[3])(x), \
+           const float *: (const float (*)[3])(x), \
+           const float (*)[3]: (const float (*)[3])(x)))
 #    define _GPU_MAT3_CAST(x) \
       (_Generic((x), \
-          void *: (float(*)[3])(x), \
-          float *: (float(*)[3])(x), \
-          float(*)[3]: (float(*)[3])(x)))
+           void *: (float (*)[3])(x), \
+           float *: (float (*)[3])(x), \
+           float (*)[3]: (float (*)[3])(x)))
 #    define _GPU_MAT4_CONST_CAST(x) \
       (_Generic((x), \
-          void *: (const float(*)[4])(x), \
-          float *: (const float(*)[4])(x), \
-          float(*)[4]: (const float(*)[4])(x), \
-          const void *: (const float(*)[4])(x), \
-          const float *: (const float(*)[4])(x), \
-          const float(*)[4]: (const float(*)[4])(x)))
+           void *: (const float (*)[4])(x), \
+           float *: (const float (*)[4])(x), \
+           float (*)[4]: (const float (*)[4])(x), \
+           const void *: (const float (*)[4])(x), \
+           const float *: (const float (*)[4])(x), \
+           const float (*)[4]: (const float (*)[4])(x)))
 #    define _GPU_MAT4_CAST(x) \
       (_Generic((x), \
-          void *: (float(*)[4])(x), \
-          float *: (float(*)[4])(x), \
-          float(*)[4]: (float(*)[4])(x)))
+           void *: (float (*)[4])(x), \
+           float *: (float (*)[4])(x), \
+           float (*)[4]: (float (*)[4])(x)))
 #  else
-#    define _GPU_MAT3_CONST_CAST(x) (const float(*)[3])(x)
-#    define _GPU_MAT3_CAST(x) (float(*)[3])(x)
-#    define _GPU_MAT4_CONST_CAST(x) (const float(*)[4])(x)
-#    define _GPU_MAT4_CAST(x) (float(*)[4])(x)
+#    define _GPU_MAT3_CONST_CAST(x) (const float (*)[3])(x)
+#    define _GPU_MAT3_CAST(x) (float (*)[3])(x)
+#    define _GPU_MAT4_CONST_CAST(x) (const float (*)[4])(x)
+#    define _GPU_MAT4_CAST(x) (float (*)[4])(x)
 #  endif /* C11 */
 
 /* make matrix inputs generic, to avoid warnings */

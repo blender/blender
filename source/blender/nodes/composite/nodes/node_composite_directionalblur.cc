@@ -23,12 +23,14 @@ namespace blender::nodes::node_composite_directionalblur_cc {
 static void cmp_node_directional_blur_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
-
-  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
+  b.allow_any_socket_order();
 
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .hide_value()
       .structure_type(StructureType::Dynamic);
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic).align_with_previous();
+
   b.add_input<decl::Int>("Samples").default_value(1).min(1).max(32).description(
       "The number of samples used to compute the blur. The more samples the smoother the "
       "result, but at the expense of more compute time. The actual number of samples is two "

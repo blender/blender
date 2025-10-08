@@ -283,7 +283,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   /* handle shape keys */
   totshape = CustomData_number_of_layers(&result->vert_data, CD_SHAPEKEY);
   for (a = 0; a < totshape; a++) {
-    float(*cos)[3] = static_cast<float(*)[3]>(
+    float (*cos)[3] = static_cast<float (*)[3]>(
         CustomData_get_layer_n_for_write(&result->vert_data, CD_SHAPEKEY, a, result->verts_num));
     for (int i = src_verts_num; i < result->verts_num; i++) {
       mul_m4_v3(mtx, cos[i]);
@@ -359,7 +359,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     const int totuv = CustomData_number_of_layers(&result->corner_data, CD_PROP_FLOAT2);
 
     for (a = 0; a < totuv; a++) {
-      float(*uv_map)[2] = static_cast<float(*)[2]>(CustomData_get_layer_n_for_write(
+      float (*uv_map)[2] = static_cast<float (*)[2]>(CustomData_get_layer_n_for_write(
           &result->corner_data, CD_PROP_FLOAT2, a, result->corners_num));
       int j = src_loops_num;
       uv_map += j; /* second set of loops only */

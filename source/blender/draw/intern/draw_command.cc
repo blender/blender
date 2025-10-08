@@ -291,7 +291,7 @@ void Clear::execute() const
 void ClearMulti::execute() const
 {
   gpu::FrameBuffer *fb = GPU_framebuffer_active_get();
-  GPU_framebuffer_multi_clear(fb, (const float(*)[4])colors);
+  GPU_framebuffer_multi_clear(fb, (const float (*)[4])colors);
 }
 
 void StateSet::execute(RecordingState &recording_state) const

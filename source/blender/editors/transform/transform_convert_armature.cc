@@ -266,7 +266,7 @@ static short pose_grab_with_ik(Main *bmain, Object *ob)
    * (but they must be selected, and only one ik-solver per chain should get added). */
   LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
     if (BKE_pose_is_bonecoll_visible(arm, pchan)) {
-      if (pchan->bone->flag & (BONE_SELECTED | BONE_TRANSFORM_MIRROR)) {
+      if ((pchan->flag & POSE_SELECTED) && (pchan->bone->flag & BONE_TRANSFORM_MIRROR)) {
         /* Rule: no IK for solitary (unconnected) bones. */
         for (bonec = static_cast<Bone *>(pchan->bone->childbase.first); bonec; bonec = bonec->next)
         {
@@ -283,7 +283,7 @@ static short pose_grab_with_ik(Main *bmain, Object *ob)
           /* Only adds if there's no IK yet (and no parent bone was selected). */
           bPoseChannel *parent;
           for (parent = pchan->parent; parent; parent = parent->parent) {
-            if (parent->bone->flag & (BONE_SELECTED | BONE_TRANSFORM_MIRROR)) {
+            if ((parent->flag & POSE_SELECTED) && (parent->bone->flag & BONE_TRANSFORM_MIRROR)) {
               break;
             }
           }
@@ -406,11 +406,11 @@ static void add_pose_transdata(
   }
 
   td->flag = TD_SELECTED;
-  if (bone->flag & BONE_HINGE_CHILD_TRANSFORM) {
+  if (pchan->runtime.flag & POSE_RUNTIME_HINGE_CHILD_TRANSFORM) {
     td->flag |= TD_NOCENTER;
   }
 
-  if (bone->flag & BONE_TRANSFORM_CHILD) {
+  if (pchan->runtime.flag & POSE_RUNTIME_TRANSFORM_CHILD) {
     td->flag |= TD_NOCENTER;
     td->flag |= TD_NO_LOC;
   }
@@ -591,7 +591,7 @@ static void createTransPose(bContext * /*C*/, TransInfo *t)
     /* Now count, and check if we have autoIK or have to switch from translate to rotate. */
     LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
       Bone *bone = pchan->bone;
-      if (!(bone->flag & BONE_TRANSFORM)) {
+      if (!(pchan->runtime.flag & POSE_RUNTIME_TRANSFORM)) {
         continue;
       }
 
@@ -604,7 +604,7 @@ static void createTransPose(bContext * /*C*/, TransInfo *t)
 
         if (has_targetless_ik(pchan) == nullptr) {
           if (pchan->parent && (bone->flag & BONE_CONNECTED)) {
-            if (bone->flag & BONE_HINGE_CHILD_TRANSFORM) {
+            if (pchan->runtime.flag & POSE_RUNTIME_HINGE_CHILD_TRANSFORM) {
               has_translate_rotate[0] = true;
             }
           }
@@ -641,7 +641,7 @@ static void createTransPose(bContext * /*C*/, TransInfo *t)
         /* Clear the MIRROR flag from previous runs. */
         pchan->bone->flag &= ~BONE_TRANSFORM_MIRROR;
 
-        if ((pchan->bone->flag & BONE_TRANSFORM) &&
+        if ((pchan->runtime.flag & POSE_RUNTIME_TRANSFORM) &&
             BKE_pose_channel_get_mirrored(ob->pose, pchan->name))
         {
           total_mirrored++;
@@ -687,7 +687,7 @@ static void createTransPose(bContext * /*C*/, TransInfo *t)
 
     if (mirror) {
       LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
-        if (pchan->bone->flag & BONE_TRANSFORM) {
+        if (pchan->runtime.flag & POSE_RUNTIME_TRANSFORM) {
           bPoseChannel *pchan_mirror = BKE_pose_channel_get_mirrored(ob->pose, pchan->name);
           if (pchan_mirror) {
             pchan_mirror->bone->flag |= BONE_TRANSFORM_MIRROR;
@@ -713,13 +713,14 @@ static void createTransPose(bContext * /*C*/, TransInfo *t)
     tdx->center_no_override[1] = 0;
     tdx->center_no_override[2] = 0;
     LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-      if (pchan->bone->flag & BONE_TRANSFORM) {
+      if (pchan->runtime.flag & POSE_RUNTIME_TRANSFORM) {
         add_pose_transdata(t, pchan, ob, td++, tdx++);
       }
     }
 
     if (td != (tc->data + tc->data_len)) {
       BKE_report(t->reports, RPT_DEBUG, "Bone selection count error");
+      BLI_assert_unreachable();
     }
   }
 
@@ -1161,7 +1162,7 @@ static void pose_transform_mirror_update(TransInfo *t, TransDataContainer *tc, O
   TransData *td = tc->data;
   for (int i = tc->data_len; i--; td++) {
     bPoseChannel *pchan_orig = static_cast<bPoseChannel *>(td->extra);
-    BLI_assert(pchan_orig->bone->flag & BONE_TRANSFORM);
+    BLI_assert(pchan_orig->runtime.flag & POSE_RUNTIME_TRANSFORM);
     /* No layer check, correct mirror is more important. */
     bPoseChannel *pchan = BKE_pose_channel_get_mirrored(pose, pchan_orig->name);
     if (pchan == nullptr) {
@@ -1342,7 +1343,7 @@ static void autokeyframe_pose(bContext *C,
 
   bPose *pose = ob->pose;
   LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
-    if ((pchan->bone->flag & BONE_TRANSFORM) == 0 &&
+    if ((pchan->runtime.flag & POSE_RUNTIME_TRANSFORM) == 0 &&
         !((pose->flag & POSE_MIRROR_EDIT) && (pchan->bone->flag & BONE_TRANSFORM_MIRROR)))
     {
       continue;
@@ -1456,57 +1457,56 @@ static void recalcData_pose(TransInfo *t)
 /** \name Special After Transform Pose
  * \{ */
 
-static void bone_children_clear_transflag(int mode, short around, ListBase *lb)
+static void pose_channel_children_clear_transflag(bPose &pose,
+                                                  bPoseChannel &pose_bone,
+                                                  const int mode,
+                                                  const short around)
 {
-  Bone *bone = static_cast<Bone *>(lb->first);
-
-  for (; bone; bone = bone->next) {
-    if ((bone->flag & BONE_HINGE) && (bone->flag & BONE_CONNECTED)) {
-      bone->flag |= BONE_HINGE_CHILD_TRANSFORM;
+  blender::animrig::pose_bone_descendent_iterator(pose, pose_bone, [&](bPoseChannel &child) {
+    if (&pose_bone == &child) {
+      return;
     }
-    else if ((bone->flag & BONE_TRANSFORM) && ELEM(mode, TFM_ROTATION, TFM_TRACKBALL) &&
-             (around == V3D_AROUND_LOCAL_ORIGINS))
+    Bone *bone = child.bone;
+    if ((bone->flag & BONE_HINGE) && (bone->flag & BONE_CONNECTED)) {
+      child.runtime.flag |= POSE_RUNTIME_HINGE_CHILD_TRANSFORM;
+    }
+    else if ((child.runtime.flag & POSE_RUNTIME_TRANSFORM) &&
+             ELEM(mode, TFM_ROTATION, TFM_TRACKBALL) && (around == V3D_AROUND_LOCAL_ORIGINS))
     {
-      bone->flag |= BONE_TRANSFORM_CHILD;
+      child.runtime.flag |= POSE_RUNTIME_TRANSFORM_CHILD;
     }
     else {
-      bone->flag &= ~BONE_TRANSFORM;
+      child.runtime.flag &= ~POSE_RUNTIME_TRANSFORM;
     }
-
-    bone_children_clear_transflag(mode, around, &bone->childbase);
-  }
+  });
 }
 
 void transform_convert_pose_transflags_update(Object *ob, const int mode, const short around)
 {
   bArmature *arm = static_cast<bArmature *>(ob->data);
-  Bone *bone;
 
   LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-    bone = pchan->bone;
     if (blender::animrig::bone_is_visible(arm, pchan)) {
-      if (bone->flag & BONE_SELECTED) {
-        bone->flag |= BONE_TRANSFORM;
+      if (pchan->flag & POSE_SELECTED) {
+        pchan->runtime.flag |= POSE_RUNTIME_TRANSFORM;
       }
       else {
-        bone->flag &= ~BONE_TRANSFORM;
+        pchan->runtime.flag &= ~POSE_RUNTIME_TRANSFORM;
       }
 
-      bone->flag &= ~BONE_HINGE_CHILD_TRANSFORM;
-      bone->flag &= ~BONE_TRANSFORM_CHILD;
+      pchan->runtime.flag &= ~POSE_RUNTIME_HINGE_CHILD_TRANSFORM;
+      pchan->runtime.flag &= ~POSE_RUNTIME_TRANSFORM_CHILD;
     }
     else {
-      bone->flag &= ~BONE_TRANSFORM;
+      pchan->runtime.flag &= ~POSE_RUNTIME_TRANSFORM;
     }
   }
 
   /* Make sure no bone can be transformed when a parent is transformed. */
-  /* Since pchans are depsgraph sorted, the parents are in beginning of list. */
   if (!ELEM(mode, TFM_BONESIZE, TFM_BONE_ENVELOPE_DIST)) {
     LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-      bone = pchan->bone;
-      if (bone->flag & BONE_TRANSFORM) {
-        bone_children_clear_transflag(mode, around, &bone->childbase);
+      if (pchan->runtime.flag & POSE_RUNTIME_TRANSFORM) {
+        pose_channel_children_clear_transflag(*ob->pose, *pchan, mode, around);
       }
     }
   }
@@ -1542,7 +1542,6 @@ static short apply_targetless_ik(Object *ob)
         }
       }
       for (; segcount; segcount--) {
-        Bone *bone;
         float mat[4][4];
 
         /* `pose_mat(b) = pose_mat(b-1) * offs_bone * channel * constraint * IK`. */
@@ -1551,8 +1550,8 @@ static short apply_targetless_ik(Object *ob)
         /* `mat = pose_mat(b) * inv(pose_mat(b-1) * offs_bone)`. */
 
         parchan = chanlist[segcount - 1];
-        bone = parchan->bone;
-        bone->flag |= BONE_TRANSFORM; /* Ensures it gets an auto key inserted. */
+        /* Ensures it gets an auto key inserted. */
+        parchan->runtime.flag |= POSE_RUNTIME_TRANSFORM;
 
         BKE_armature_mat_pose_to_bone(parchan, parchan->pose_mat, mat);
         /* Apply and decompose, doesn't work for constraints or non-uniform scale well. */
@@ -1671,7 +1670,7 @@ static void special_aftertrans_update__pose(bContext *C, TransInfo *t)
         BKE_pose_where_is(t->depsgraph, t->scene, pose_ob);
       }
 
-      /* Set BONE_TRANSFORM flags for auto-key, gizmo draw might have changed them. */
+      /* Set POSE_RUNTIME_TRANSFORM flags for auto-key, gizmo draw might have changed them. */
       if (!canceled && (t->mode != TFM_DUMMY)) {
         transform_convert_pose_transflags_update(ob, t->mode, t->around);
       }

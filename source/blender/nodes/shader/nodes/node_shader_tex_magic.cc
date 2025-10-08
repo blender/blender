@@ -26,7 +26,7 @@ static void sh_node_tex_magic_declare(NodeDeclarationBuilder &b)
       .default_value(1.0f)
       .description("Amount of distortion");
   b.add_output<decl::Color>("Color").no_muted_links();
-  b.add_output<decl::Float>("Fac").no_muted_links();
+  b.add_output<decl::Float>("Factor", "Fac").no_muted_links();
 }
 
 static void node_shader_buts_tex_magic(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

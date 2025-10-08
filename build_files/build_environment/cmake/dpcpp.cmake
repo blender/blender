@@ -39,7 +39,8 @@ set(DPCPP_EXTRA_ARGS
   -DLLVMGenXIntrinsics_SOURCE_DIR=${BUILD_DIR}/vcintrinsics/src/external_vcintrinsics/
   -DOpenCL_HEADERS=file://${PACKAGE_DIR}/${OPENCLHEADERS_FILE}
   -DOpenCL_LIBRARY_SRC=file://${PACKAGE_DIR}/${ICDLOADER_FILE}
-  -DBOOST_MP11_SOURCE_DIR=${BUILD_DIR}/mp11/src/external_mp11/
+  -DSYCL_EMHASH_DIR=${LIBDIR}/emhash/include
+  -DEMHASH_SYS_LOC=${LIBDIR}/emhash/include/emhash
   -DLEVEL_ZERO_LIBRARY=${LIBDIR}/level-zero/lib/${LIBPREFIX}ze_loader${SHAREDLIBEXT}
   -DLEVEL_ZERO_INCLUDE_DIR=${LIBDIR}/level-zero/include/level_zero
   -DLLVM_EXTERNAL_SPIRV_HEADERS_SOURCE_DIR=${BUILD_DIR}/dpcpp_spirvheaders/src/external_dpcpp_spirvheaders/
@@ -49,21 +50,21 @@ set(DPCPP_EXTRA_ARGS
   -DSYCL_UMF_DISABLE_HWLOC=ON
   -DUMF_DISABLE_HWLOC=ON
   -DUMF_BUILD_SHARED_LIBRARY=OFF
-  -DSYCL_ENABLE_XPTI_TRACING=OFF
+  -DSYCL_ENABLE_XPTI_TRACING=ON
   -DSYCL_INCLUDE_TESTS=OFF
-  -DUR_ENABLE_TRACING=OFF
-  -DUR_BUILD_TOOLS=OFF
+  -DUR_ENABLE_TRACING=ON
+  -DXPTIFW_PARALLEL_HASHMAP_HEADERS=${LIBDIR}/parallelhashmap/include
   # Below here is copied from an invocation of buildbot/config.py
   -DLLVM_ENABLE_ASSERTIONS=ON
   -DLLVM_TARGETS_TO_BUILD=X86
-  -DLLVM_EXTERNAL_PROJECTS=sycl^^llvm-spirv^^opencl^^libdevice^^lld
+  -DLLVM_EXTERNAL_PROJECTS=sycl^^llvm-spirv^^opencl^^libdevice^^xpti^^xptifw^^lld
   -DLLVM_EXTERNAL_SYCL_SOURCE_DIR=${DPCPP_SOURCE_ROOT}/sycl
   -DLLVM_EXTERNAL_LLVM_SPIRV_SOURCE_DIR=${DPCPP_SOURCE_ROOT}/llvm-spirv
   -DLLVM_EXTERNAL_XPTI_SOURCE_DIR=${DPCPP_SOURCE_ROOT}/xpti
   -DXPTI_SOURCE_DIR=${DPCPP_SOURCE_ROOT}/xpti
   -DLLVM_EXTERNAL_XPTIFW_SOURCE_DIR=${DPCPP_SOURCE_ROOT}/xptifw
   -DLLVM_EXTERNAL_LIBDEVICE_SOURCE_DIR=${DPCPP_SOURCE_ROOT}/libdevice
-  -DLLVM_ENABLE_PROJECTS=clang^^sycl^^llvm-spirv^^opencl^^libdevice^^lld
+  -DLLVM_ENABLE_PROJECTS=clang^^sycl^^llvm-spirv^^opencl^^libdevice^^xpti^^xptifw^^lld
   -DLIBCLC_TARGETS_TO_BUILD=
   -DLIBCLC_GENERATE_REMANGLED_VARIANTS=OFF
   -DSYCL_BUILD_PI_HIP_PLATFORM=AMD
@@ -136,12 +137,13 @@ add_dependencies(
   external_vcintrinsics
   external_openclheaders
   external_icdloader
-  external_mp11
+  external_emhash
   external_level-zero
   external_dpcpp_spirvheaders
   external_unifiedruntime
   external_unifiedmemoryframework
   external_zstd
+  external_parallelhashmap
 )
 
 if(WIN32)
@@ -162,6 +164,7 @@ else()
   harvest(external_dpcpp dpcpp/bin dpcpp/bin "*")
   harvest(external_dpcpp dpcpp/include dpcpp/include "*")
   harvest(external_dpcpp dpcpp/lib dpcpp/lib "libsycl*")
+  harvest(external_dpcpp dpcpp/lib dpcpp/lib "libxpti*")
   harvest(external_dpcpp dpcpp/lib dpcpp/lib "libur*")
   harvest(external_dpcpp dpcpp/lib/clang dpcpp/lib/clang "*")
 endif()

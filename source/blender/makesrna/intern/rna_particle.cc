@@ -680,7 +680,7 @@ static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem,
   }
 
   {
-    float(*fuv)[4];
+    float (*fuv)[4];
     /* Note all sanity checks are done in this helper func. */
     const int num = rna_ParticleSystem_tessfaceidx_on_emitter(
         particlesystem, modifier, particle, particle_no, &fuv);
@@ -716,7 +716,7 @@ static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem,
   }
 
   {
-    float(*fuv)[4];
+    float (*fuv)[4];
     /* Note all sanity checks are done in this helper func. */
     const int num = rna_ParticleSystem_tessfaceidx_on_emitter(
         particlesystem, modifier, particle, particle_no, &fuv);

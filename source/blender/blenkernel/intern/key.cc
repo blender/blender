@@ -601,7 +601,7 @@ static char *key_block_get_data(Key *key, KeyBlock *actkb, KeyBlock *kb, char **
       Mesh *mesh;
       BMVert *eve;
       BMIter iter;
-      float(*co)[3];
+      float (*co)[3];
       int a;
 
       mesh = (Mesh *)key->from;
@@ -1588,7 +1588,7 @@ float *BKE_key_evaluate_object_ex(
       case ID_LT: {
         Lattice *lattice = (Lattice *)obdata;
         const int totpoint = min_ii(tot, lattice->pntsu * lattice->pntsv * lattice->pntsw);
-        keyblock_data_convert_to_lattice((const float(*)[3])out, lattice->def, totpoint);
+        keyblock_data_convert_to_lattice((const float (*)[3])out, lattice->def, totpoint);
         break;
       }
       case ID_CU_LEGACY: {
@@ -1687,7 +1687,7 @@ void BKE_keyblock_data_set_with_mat4(Key *key,
   for (KeyBlock *kb = static_cast<KeyBlock *>(key->block.first); kb; kb = kb->next, index++) {
     if (ELEM(shape_index, -1, index)) {
       const int block_elem_len = kb->totelem;
-      float(*block_data)[3] = (float(*)[3])kb->data;
+      float (*block_data)[3] = (float (*)[3])kb->data;
       for (int data_offset = 0; data_offset < block_elem_len; ++data_offset) {
         const float *src_data = (const float *)(elements + data_offset);
         float *dst_data = (float *)(block_data + data_offset);
@@ -1956,7 +1956,7 @@ std::optional<std::string> BKE_keyblock_curval_rnapath_get(const Key *key, const
 void BKE_keyblock_update_from_lattice(const Lattice *lt, KeyBlock *kb)
 {
   BPoint *bp;
-  float(*fp)[3];
+  float (*fp)[3];
   int a, tot;
 
   BLI_assert(kb->totelem == lt->pntsu * lt->pntsv * lt->pntsw);
@@ -1967,7 +1967,7 @@ void BKE_keyblock_update_from_lattice(const Lattice *lt, KeyBlock *kb)
   }
 
   bp = lt->def;
-  fp = static_cast<float(*)[3]>(kb->data);
+  fp = static_cast<float (*)[3]>(kb->data);
   for (a = 0; a < kb->totelem; a++, fp++, bp++) {
     copy_v3_v3(*fp, bp->vec);
   }
@@ -2002,7 +2002,7 @@ static void keyblock_data_convert_to_lattice(const float (*fp)[3],
 void BKE_keyblock_convert_to_lattice(const KeyBlock *kb, Lattice *lt)
 {
   BPoint *bp = lt->def;
-  const float(*fp)[3] = static_cast<const float(*)[3]>(kb->data);
+  const float (*fp)[3] = static_cast<const float (*)[3]>(kb->data);
   const int tot = min_ii(kb->totelem, lt->pntsu * lt->pntsv * lt->pntsw);
 
   keyblock_data_convert_to_lattice(fp, bp, tot);
@@ -2213,8 +2213,8 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
   const bool face_normals_needed = r_face_normals != nullptr || vert_normals_needed ||
                                    loop_normals_needed;
 
-  float(*vert_normals)[3] = r_vert_normals;
-  float(*face_normals)[3] = r_face_normals;
+  float (*vert_normals)[3] = r_vert_normals;
+  float (*face_normals)[3] = r_face_normals;
   bool free_vert_normals = false;
   bool free_face_normals = false;
   if (vert_normals_needed && r_vert_normals == nullptr) {

@@ -250,9 +250,9 @@ void create_blend_shapes(pxr::UsdStageRefPtr stage,
     pxr::VtIntArray indices(kb->totelem);
     std::iota(indices.begin(), indices.end(), 0);
 
-    const float(*fp)[3] = static_cast<float(*)[3]>(kb->data);
+    const float (*fp)[3] = static_cast<float (*)[3]>(kb->data);
 
-    const float(*basis_fp)[3] = static_cast<float(*)[3]>(basis_key->data);
+    const float (*basis_fp)[3] = static_cast<float (*)[3]>(basis_key->data);
 
     for (int i = 0; i < kb->totelem; ++i) {
       /* Subtract the key positions from the

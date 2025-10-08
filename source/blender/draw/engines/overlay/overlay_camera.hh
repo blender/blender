@@ -44,7 +44,7 @@ struct CameraInstanceData : public ExtraInstanceData {
   }
 
   CameraInstanceData(const float4x4 &p_matrix, const float4 &color)
-      : ExtraInstanceData(p_matrix, color, 1.0f){};
+      : ExtraInstanceData(p_matrix, color, 1.0f) {};
 };
 
 /**

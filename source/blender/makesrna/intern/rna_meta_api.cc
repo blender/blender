@@ -22,7 +22,7 @@
 
 static void rna_Meta_transform(MetaBall *mb, const float mat[16])
 {
-  BKE_mball_transform(mb, (const float(*)[4])mat, true);
+  BKE_mball_transform(mb, (const float (*)[4])mat, true);
 
   DEG_id_tag_update(&mb->id, 0);
 }

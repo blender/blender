@@ -31,6 +31,7 @@
 
 #include "DEG_depsgraph.hh"
 
+#include "ED_mesh.hh"
 #include "ED_screen.hh"
 #include "ED_transform.hh"
 #include "ED_uvedit.hh"
@@ -738,12 +739,19 @@ static bool uv_rip_pairs_calc_center_and_direction(UVRipPairs *rip,
  */
 static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const float aspect_y)
 {
-  Mesh *mesh = (Mesh *)obedit->data;
-  BMEditMesh *em = mesh->runtime->edit_mesh.get();
+  const ToolSettings *ts = scene->toolsettings;
+
+  BMEditMesh *em = BKE_editmesh_from_object(obedit);
   BMesh *bm = em->bm;
-  const char *active_uv_name = CustomData_get_active_layer_name(&bm->ldata, CD_PROP_FLOAT2);
-  BM_uv_map_attr_vert_select_ensure(bm, active_uv_name);
-  BM_uv_map_attr_edge_select_ensure(bm, active_uv_name);
+
+  if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
+    uvedit_select_prepare_sync_select(scene, bm);
+    BLI_assert(bm->uv_select_sync_valid);
+  }
+  else {
+    uvedit_select_prepare_custom_data(scene, bm);
+  }
+
   const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
   BMFace *efa;
@@ -768,11 +776,11 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
     if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
       bool is_all = true;
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-        if (BM_ELEM_CD_GET_BOOL(l, offsets.select_vert)) {
-          if (BM_ELEM_CD_GET_BOOL(l, offsets.select_edge)) {
+        if (uvedit_loop_vert_select_get(ts, bm, l)) {
+          if (uvedit_loop_edge_select_get(ts, bm, l)) {
             UL(l)->is_select_edge = true;
           }
-          else if (!BM_ELEM_CD_GET_BOOL(l->prev, offsets.select_edge)) {
+          else if (!uvedit_loop_edge_select_get(ts, bm, l->prev)) {
             /* #bm_loop_uv_select_single_vert_validate validates below. */
             UL(l)->is_select_vert_single = true;
             is_all = false;
@@ -816,12 +824,12 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
     BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
         if (!UL(l)->is_select_all) {
-          if (BM_ELEM_CD_GET_BOOL(l, offsets.select_vert)) {
-            BM_ELEM_CD_SET_BOOL(l, offsets.select_vert, false);
+          if (uvedit_loop_vert_select_get(ts, bm, l)) {
+            uvedit_loop_vert_select_set(ts, bm, l, false);
             changed = true;
           }
-          if (BM_ELEM_CD_GET_BOOL(l, offsets.select_edge)) {
-            BM_ELEM_CD_SET_BOOL(l, offsets.select_edge, false);
+          if (uvedit_loop_edge_select_get(ts, bm, l)) {
+            uvedit_loop_edge_select_set(ts, bm, l, false);
             changed = true;
           }
         }
@@ -854,7 +862,7 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
               BMLoop *l_iter = static_cast<BMLoop *>(BLI_gsetIterator_getKey(&gs_iter));
               ULData *ul = UL(l_iter);
               if (ul->side == side_from_cursor) {
-                uvedit_uv_select_disable(scene, bm, l_iter, offsets);
+                uvedit_uv_select_disable(scene, bm, l_iter);
                 changed = true;
               }
               /* Ensure we don't operate on these again. */
@@ -872,7 +880,7 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
             BMLoop *l_iter = static_cast<BMLoop *>(BLI_gsetIterator_getKey(&gs_iter));
             ULData *ul = UL(l_iter);
             if (ul->side == side_from_cursor) {
-              uvedit_uv_select_disable(scene, bm, l_iter, offsets);
+              uvedit_uv_select_disable(scene, bm, l_iter);
               changed = true;
             }
             /* Ensure we don't operate on these again. */
@@ -884,7 +892,12 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
     }
   }
   if (changed) {
-    uvedit_select_flush_from_verts(scene, bm, false);
+    if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
+      BM_mesh_uvselect_flush_from_loop_verts(bm);
+    }
+    else {
+      uvedit_select_flush_from_verts(scene, bm, false);
+    }
   }
   return changed;
 }
@@ -899,14 +912,25 @@ static wmOperatorStatus uv_rip_exec(bContext *C, wmOperator *op)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
   Scene *scene = CTX_data_scene(C);
+  const ToolSettings *ts = scene->toolsettings;
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  if (scene->toolsettings->uv_flag & UV_FLAG_SELECT_SYNC) {
+  if (ts->uv_sticky == UV_STICKY_VERT) {
     /* "Rip" is logically incompatible with sync-select.
      * Report an error instead of "poll" so this is reported when the tool is used,
      * with #131642 implemented, this can be made to work. */
-    BKE_report(op->reports, RPT_ERROR, "Rip is not compatible with sync selection");
+    BKE_report(op->reports, RPT_ERROR, "Rip is not compatible with vertex sticky selection");
     return OPERATOR_CANCELLED;
+  }
+
+  if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
+    /* Important because in sync selection we *must* be able to de-select individual loops. */
+    if (ED_uvedit_sync_uvselect_ignore(ts)) {
+      BKE_report(op->reports,
+                 RPT_ERROR,
+                 "Rip is only compatible with sync-select with vertex/edge selection");
+      return OPERATOR_CANCELLED;
+    }
   }
 
   bool changed_multi = false;
@@ -924,6 +948,12 @@ static wmOperatorStatus uv_rip_exec(bContext *C, wmOperator *op)
 
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       scene, view_layer, nullptr);
+
+  if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
+    /* While this is almost always true, any mis-match (from multiple scenes for example).
+     * Will not work properly. */
+    EDBM_selectmode_set_multi_ex(scene, objects, ts->selectmode);
+  }
 
   for (Object *obedit : objects) {
     if (uv_rip_object(scene, obedit, co, aspect_y)) {

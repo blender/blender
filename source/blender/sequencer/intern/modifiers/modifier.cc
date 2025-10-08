@@ -35,6 +35,7 @@
 #include "SEQ_select.hh"
 #include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
+#include "SEQ_transform.hh"
 #include "SEQ_utils.hh"
 
 #include "UI_interface.hh"
@@ -183,12 +184,6 @@ bool modifier_ui_poll(const bContext *C, PanelType * /*pt*/)
   if (!sequencer_scene) {
     return false;
   }
-  if (const SpaceSeq *sseq = CTX_wm_space_seq(C)) {
-    /* Only show modifiers in the sequencer view types, not the preview. */
-    if (sseq->view == SEQ_VIEW_PREVIEW) {
-      return false;
-    }
-  }
   Strip *active_strip = seq::select_active_get(sequencer_scene);
   return active_strip != nullptr;
 }
@@ -232,9 +227,9 @@ PanelType *modifier_panel_register(ARegionType *region_type,
 
   modifier_type_panel_id(type, panel_type->idname);
   STRNCPY_UTF8(panel_type->label, "");
-  STRNCPY_UTF8(panel_type->category, "Modifiers");
   STRNCPY_UTF8(panel_type->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   STRNCPY_UTF8(panel_type->active_property, "is_active");
+  STRNCPY_UTF8(panel_type->context, "strip_modifier");
 
   panel_type->draw_header = modifier_panel_header;
   panel_type->draw = draw;
@@ -298,30 +293,6 @@ void store_pixel_raw(float4 pix, float *ptr)
   *reinterpret_cast<float4 *>(ptr) = pix;
 }
 
-/* Byte mask */
-void apply_and_advance_mask(float4 input, float4 &result, const uchar *&mask)
-{
-  float3 m;
-  rgb_uchar_to_float(m, mask);
-  result.x = math::interpolate(input.x, result.x, m.x);
-  result.y = math::interpolate(input.y, result.y, m.y);
-  result.z = math::interpolate(input.z, result.z, m.z);
-  mask += 4;
-}
-
-/* Float mask */
-void apply_and_advance_mask(float4 input, float4 &result, const float *&mask)
-{
-  float3 m(mask);
-  result.x = math::interpolate(input.x, result.x, m.x);
-  result.y = math::interpolate(input.y, result.y, m.y);
-  result.z = math::interpolate(input.z, result.z, m.z);
-  mask += 4;
-}
-
-/* No mask */
-void apply_and_advance_mask(float4 /*input*/, float4 & /*result*/, const void *& /*mask*/) {}
-
 /**
  * \a timeline_frame is offset by \a fra_offset only in case we are using a real mask.
  */
@@ -345,25 +316,15 @@ static ImBuf *modifier_render_mask_input(const RenderData *context,
      * fine, but if it is a byte image then we also just take that without
      * extra memory allocations or conversions. All modifiers are expected
      * to handle mask being either type. */
-    mask_input = seq_render_mask(context, mask_id, timeline_frame - fra_offset, false);
+    mask_input = seq_render_mask(context->depsgraph,
+                                 context->rectx,
+                                 context->recty,
+                                 mask_id,
+                                 timeline_frame - fra_offset,
+                                 false);
   }
 
   return mask_input;
-}
-
-static ImBuf *modifier_mask_get(StripModifierData *smd,
-                                const RenderData *context,
-                                SeqRenderState *state,
-                                int timeline_frame,
-                                int fra_offset)
-{
-  return modifier_render_mask_input(context,
-                                    state,
-                                    smd->mask_input_type,
-                                    smd->mask_strip,
-                                    smd->mask_id,
-                                    timeline_frame,
-                                    fra_offset);
 }
 
 /* -------------------------------------------------------------------- */
@@ -505,11 +466,10 @@ static bool skip_modifier(Scene *scene, const StripModifierData *smd, int timeli
 void modifier_apply_stack(const RenderData *context,
                           SeqRenderState *state,
                           const Strip *strip,
+                          const float3x3 &transform,
                           ImBuf *ibuf,
                           int timeline_frame)
 {
-  const StripScreenQuad quad = get_strip_screen_quad(context, strip);
-
   if (strip->modifiers.first && (strip->flag & SEQ_USE_LINEAR_MODIFIERS)) {
     render_imbuf_from_sequencer_space(context->scene, ibuf);
   }
@@ -536,8 +496,14 @@ void modifier_apply_stack(const RenderData *context,
         frame_offset = smd->mask_id ? ((Mask *)smd->mask_id)->sfra : 0;
       }
 
-      ImBuf *mask = modifier_mask_get(smd, context, state, timeline_frame, frame_offset);
-      smti->apply(context, quad, smd, ibuf, mask);
+      ImBuf *mask = modifier_render_mask_input(context,
+                                               state,
+                                               smd->mask_input_type,
+                                               smd->mask_strip,
+                                               smd->mask_id,
+                                               timeline_frame,
+                                               frame_offset);
+      smti->apply(context, strip, transform.ptr(), smd, ibuf, mask);
       if (mask) {
         IMB_freeImBuf(mask);
       }
@@ -625,6 +591,21 @@ void modifier_type_panel_id(eStripModifierType type, char *r_idname)
   const StripModifierTypeInfo *mti = modifier_type_info_get(type);
   BLI_string_join(
       r_idname, sizeof(PanelType::idname), STRIP_MODIFIER_TYPE_PANEL_PREFIX, mti->idname);
+}
+
+void foreach_strip_modifier_id(Strip *strip, const FunctionRef<void(ID *)> fn)
+{
+  LISTBASE_FOREACH (StripModifierData *, smd, &strip->modifiers) {
+    if (smd->mask_id) {
+      fn(reinterpret_cast<ID *>(smd->mask_id));
+    }
+    if (smd->type == eSeqModifierType_Compositor) {
+      auto *modifier_data = reinterpret_cast<SequencerCompositorModifierData *>(smd);
+      if (modifier_data->node_group) {
+        fn(reinterpret_cast<ID *>(modifier_data->node_group));
+      }
+    }
+  }
 }
 
 /** \} */

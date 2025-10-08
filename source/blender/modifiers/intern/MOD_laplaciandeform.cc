@@ -638,7 +638,7 @@ static int isSystemDifferent(LaplacianDeformModifierData *lmd,
 static void LaplacianDeformModifier_do(
     LaplacianDeformModifierData *lmd, Object *ob, Mesh *mesh, float (*vertexCos)[3], int verts_num)
 {
-  float(*filevertexCos)[3];
+  float (*filevertexCos)[3];
   int sysdif;
   LaplacianSystem *sys = nullptr;
   filevertexCos = nullptr;
@@ -768,7 +768,7 @@ static void deform_verts(ModifierData *md,
   LaplacianDeformModifier_do((LaplacianDeformModifierData *)md,
                              ctx->object,
                              mesh,
-                             reinterpret_cast<float(*)[3]>(positions.data()),
+                             reinterpret_cast<float (*)[3]>(positions.data()),
                              positions.size());
 }
 

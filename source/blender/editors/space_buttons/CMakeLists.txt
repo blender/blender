@@ -33,6 +33,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::nodes
   PRIVATE bf::windowmanager
+  PRIVATE bf::sequencer
 )
 
 

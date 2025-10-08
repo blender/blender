@@ -347,7 +347,7 @@ class WOEdge {
     userdata = nullptr;
   }
 
-  virtual ~WOEdge(){};  // soc
+  virtual ~WOEdge() {};  // soc
 
   /** copy constructor */
   WOEdge(WOEdge &iBrother);

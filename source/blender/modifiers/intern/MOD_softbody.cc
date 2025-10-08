@@ -36,7 +36,7 @@ static void deform_verts(ModifierData * /*md*/,
                scene,
                ctx->object,
                DEG_get_ctime(ctx->depsgraph),
-               reinterpret_cast<float(*)[3]>(positions.data()),
+               reinterpret_cast<float (*)[3]>(positions.data()),
                positions.size());
 }
 

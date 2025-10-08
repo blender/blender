@@ -49,9 +49,14 @@ static const EnumPropertyItem type_items[] = {
 
 static void cmp_node_lensdist_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .hide_value()
       .structure_type(StructureType::Dynamic);
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic).align_with_previous();
+
   b.add_input<decl::Menu>("Type")
       .default_value(CMP_NODE_LENS_DISTORTION_RADIAL)
       .static_items(type_items)
@@ -83,8 +88,6 @@ static void cmp_node_lensdist_declare(NodeDeclarationBuilder &b)
       .description(
           "Scales the image such that it fits entirely in the frame, leaving no empty spaces at "
           "the corners");
-
-  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }
 
 static void node_composit_init_lensdist(bNodeTree * /*ntree*/, bNode *node)

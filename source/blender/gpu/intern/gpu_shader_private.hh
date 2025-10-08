@@ -273,7 +273,7 @@ class ShaderCompiler {
   Shader *compile(const shader::ShaderCreateInfo &info, bool is_batch_compilation);
 
   virtual Shader *compile_shader(const shader::ShaderCreateInfo &info);
-  virtual void specialize_shader(ShaderSpecialization & /*specialization*/){};
+  virtual void specialize_shader(ShaderSpecialization & /*specialization*/) {};
 
   BatchHandle batch_compile(Span<const shader::ShaderCreateInfo *> &infos,
                             CompilationPriority priority);

@@ -121,7 +121,7 @@ float (*BKE_mask_spline_differentiate_with_resolution(MaskSpline *spline,
   MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
 
   MaskSplinePoint *point_curr, *point_prev;
-  float(*diff_points)[2], (*fp)[2];
+  float (*diff_points)[2], (*fp)[2];
   const int tot = BKE_mask_spline_differentiate_calc_total(spline, resol);
   int a;
 
@@ -203,7 +203,7 @@ static void feather_bucket_add_edge(FeatherEdgesBucket *bucket, int start, int e
       bucket->segments = MEM_calloc_arrayN<int[2]>(alloc_delta, "feather bucket segments");
     }
     else {
-      bucket->segments = static_cast<int(*)[2]>(MEM_reallocN(
+      bucket->segments = static_cast<int (*)[2]>(MEM_reallocN(
           bucket->segments, (alloc_delta + bucket->tot_segment) * sizeof(*bucket->segments)));
     }
 
@@ -495,7 +495,7 @@ static float (
 {
   MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
   MaskSplinePoint *point_curr, *point_prev;
-  float(*feather)[2], (*fp)[2];
+  float (*feather)[2], (*fp)[2];
 
   const int tot = BKE_mask_spline_differentiate_calc_total(spline, resol);
   int a;
@@ -570,7 +570,7 @@ static float (*mask_spline_feather_differentiated_points_with_resolution__double
   MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
 
   MaskSplinePoint *point_curr, *point_prev;
-  float(*feather)[2], (*fp)[2];
+  float (*feather)[2], (*fp)[2];
   const int tot = BKE_mask_spline_differentiate_calc_total(spline, resol);
   int a;
 
@@ -724,7 +724,7 @@ float (*BKE_mask_spline_feather_points(MaskSpline *spline, int *r_tot_feather_po
   MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
 
   int i, tot = 0;
-  float(*feather)[2], (*fp)[2];
+  float (*feather)[2], (*fp)[2];
 
   /* count */
   for (i = 0; i < spline->tot_point; i++) {

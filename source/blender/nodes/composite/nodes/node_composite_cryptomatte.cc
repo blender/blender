@@ -29,7 +29,9 @@
 
 #include "DNA_image_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_space_types.h"
 
+#include "BKE_compositor.hh"
 #include "BKE_context.hh"
 #include "BKE_cryptomatte.hh"
 #include "BKE_global.hh"
@@ -39,9 +41,13 @@
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 
+#include "UI_resources.hh"
+
 #include "MEM_guardedalloc.h"
 
 #include "RE_pipeline.h"
+
+#include "NOD_node_extra_info.hh"
 
 #include "COM_node_operation.hh"
 #include "COM_result.hh"
@@ -631,36 +637,44 @@ static void node_copy_cryptomatte(bNodeTree * /*dst_ntree*/,
   dest_node->storage = dest_nc;
 }
 
-static bool node_poll_cryptomatte(const blender::bke::bNodeType * /*ntype*/,
-                                  const bNodeTree *ntree,
-                                  const char **r_disabled_hint)
-{
-  if (STREQ(ntree->idname, "CompositorNodeTree")) {
-    Scene *scene;
-
-    /* See node_composit_poll_rlayers. */
-    for (scene = static_cast<Scene *>(G.main->scenes.first); scene;
-         scene = static_cast<Scene *>(scene->id.next))
-    {
-      if (scene->compositing_node_group == ntree) {
-        break;
-      }
-    }
-
-    if (scene == nullptr) {
-      *r_disabled_hint = RPT_(
-          "The node tree must be the compositing node group of any scene in the file");
-    }
-    return scene != nullptr;
-  }
-  *r_disabled_hint = RPT_("Not a compositor node tree");
-  return false;
-}
-
 static void node_update_cryptomatte(bNodeTree *ntree, bNode *node)
 {
   cmp_node_update_default(ntree, node);
   ntreeCompositCryptomatteUpdateLayerNames(node);
+}
+
+static void node_extra_info(NodeExtraInfoParams &parameters)
+{
+  if (parameters.node.custom1 != CMP_NODE_CRYPTOMATTE_SOURCE_RENDER) {
+    return;
+  }
+
+  SpaceNode *space_node = CTX_wm_space_node(&parameters.C);
+  if (space_node->node_tree_sub_type != SNODE_COMPOSITOR_SCENE) {
+    NodeExtraInfoRow row;
+    row.text = RPT_("Node Unsupported");
+    row.tooltip = TIP_(
+        "The Cryptomatte node in render mode is only supported for scene compositing");
+    row.icon = ICON_ERROR;
+    parameters.rows.append(std::move(row));
+    return;
+  }
+
+  /* EEVEE supports passes. */
+  const Scene *scene = CTX_data_scene(&parameters.C);
+  if (StringRef(scene->r.engine) == RE_engine_id_BLENDER_EEVEE) {
+    return;
+  }
+
+  if (!bke::compositor::is_viewport_compositor_used(parameters.C)) {
+    return;
+  }
+
+  NodeExtraInfoRow row;
+  row.text = RPT_("Passes Not Supported");
+  row.tooltip = TIP_("Render passes in the Viewport compositor are only supported in EEVEE");
+  row.icon = ICON_ERROR;
+  parameters.rows.append(std::move(row));
 }
 
 using namespace blender::compositor;
@@ -939,7 +953,7 @@ static void register_node_type_cmp_cryptomatte()
   blender::bke::node_type_size(ntype, 240, 100, 700);
   ntype.initfunc = file_ns::node_init_cryptomatte;
   ntype.initfunc_api = file_ns::node_init_api_cryptomatte;
-  ntype.poll = file_ns::node_poll_cryptomatte;
+  ntype.get_extra_info = file_ns::node_extra_info;
   ntype.updatefunc = file_ns::node_update_cryptomatte;
   blender::bke::node_type_storage(
       ntype, "NodeCryptomatte", file_ns::node_free_cryptomatte, file_ns::node_copy_cryptomatte);

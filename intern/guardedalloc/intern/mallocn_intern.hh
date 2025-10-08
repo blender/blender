@@ -69,7 +69,7 @@ size_t malloc_usable_size(void *ptr);
 #  define MEM_INLINE static inline
 #endif
 
-#define IS_POW2(a) (((a) & ((a)-1)) == 0)
+#define IS_POW2(a) (((a) & ((a) - 1)) == 0)
 
 /* Extra padding which needs to be applied on MemHead to make it aligned. */
 #define MEMHEAD_ALIGN_PADDING(alignment) \

@@ -32,7 +32,7 @@ class USDDomeLightReader : public USDPrimReader {
   /* Until Blender supports DomeLight objects natively, use a separate create_object overload that
    * allows the caller to pass in the required Scene data. */
 
-  void create_object(Main * /*bmain*/) override{};
+  void create_object(Main * /*bmain*/) override {};
   void create_object(Scene *scene, Main *bmain);
 };
 

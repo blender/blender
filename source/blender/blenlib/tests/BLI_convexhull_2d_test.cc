@@ -119,9 +119,9 @@ TEST(convexhull_2d, IsCCW)
     }
     blender::Array<float2> points_hull = convexhull_2d_as_array(points);
 
-    EXPECT_GE(
-        cross_poly_v2(reinterpret_cast<const float(*)[2]>(points_hull.data()), points_hull.size()),
-        0.0f);
+    EXPECT_GE(cross_poly_v2(reinterpret_cast<const float (*)[2]>(points_hull.data()),
+                            points_hull.size()),
+              0.0f);
   }
 }
 
@@ -297,7 +297,7 @@ TEST(convexhull_2d, Simple)
 
         /* The cross product must be positive or zero. */
         EXPECT_GE(
-            cross_poly_v2(reinterpret_cast<float(*)[2]>(points_hull.data()), points_indices_num),
+            cross_poly_v2(reinterpret_cast<float (*)[2]>(points_hull.data()), points_indices_num),
             0.0f);
 
         /* The first point is documented to be the lowest, check this is so. */

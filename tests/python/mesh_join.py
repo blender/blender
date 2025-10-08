@@ -58,8 +58,8 @@ class TestMeshJoin(unittest.TestCase):
         self.assertEqual(joined_attr.data[0].value, 1)
         self.assertEqual(joined_attr.data[1].value, 1)
         self.assertEqual(joined_attr.data[2].value, 45)
-        self.assertEqual(joined_attr.data[9].value, 53)
-        self.assertEqual(joined_attr.data[20].value, 1)
+        self.assertEqual(joined_attr.data[9].value, 98)
+        self.assertEqual(joined_attr.data[20].value, 46)
 
     def test_materials_simple(self):
         bpy.ops.object.select_all(action='SELECT')
@@ -91,11 +91,11 @@ class TestMeshJoin(unittest.TestCase):
         cube_1 = bpy.context.view_layer.objects.active
         cube_1.data.materials.append(mat_1)
         material_indices = cube_1.data.attributes.new(name="material_index", type='INT', domain='FACE')
-        material_indices.data.foreach_set('value', [0, 1, 1, 700, 1, 2])
 
         bpy.ops.mesh.primitive_cube_add()
         cube_2 = bpy.context.view_layer.objects.active
         material_indices = cube_2.data.attributes.new(name="material_index", type='INT', domain='FACE')
+        material_indices.data.foreach_set('value', [0, 1, 1, 700, 1, 2])
 
         bpy.ops.object.select_all(action='SELECT')
         bpy.context.view_layer.objects.active = cube_1
@@ -106,7 +106,7 @@ class TestMeshJoin(unittest.TestCase):
         material_indices = cube_1.data.attributes["material_index"]
         self.assertTrue(material_indices)
         material_index_data = [m.value for m in material_indices.data]
-        self.assertEqual(material_index_data, [0, 1, 1, 700, 1, 2] + [0] * 6)
+        self.assertEqual(material_index_data, [0] * 6 + [0, 1, 1, 700, 1, 2])
 
     def test_materials(self):
         bpy.ops.object.select_all(action='SELECT')

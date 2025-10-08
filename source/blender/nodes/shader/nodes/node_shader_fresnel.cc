@@ -10,7 +10,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Float>("IOR").default_value(1.5f).min(0.0f).max(1000.0f);
   b.add_input<decl::Vector>("Normal").hide_value();
-  b.add_output<decl::Float>("Fac");
+  b.add_output<decl::Float>("Factor", "Fac");
 }
 
 static int node_shader_gpu_fresnel(GPUMaterial *mat,

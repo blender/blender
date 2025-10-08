@@ -429,7 +429,7 @@ static BMVert **hull_input_verts_copy(BMOperator *op, const int num_input_verts)
 
 static float (*hull_verts_for_bullet(BMVert **input_verts, const int num_input_verts))[3]
 {
-  float(*coords)[3] = static_cast<float(*)[3]>(
+  float (*coords)[3] = static_cast<float (*)[3]>(
       MEM_callocN(sizeof(*coords) * num_input_verts, __func__));
   int i;
 
@@ -467,7 +467,7 @@ static BMVert **hull_verts_from_bullet(plConvexHull hull,
 static void hull_from_bullet(BMesh *bm, BMOperator *op, BLI_mempool *hull_triangles)
 {
   BMVert **input_verts;
-  float(*coords)[3];
+  float (*coords)[3];
   BMVert **hull_verts;
 
   plConvexHull hull;

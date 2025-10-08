@@ -66,7 +66,7 @@ void VKCommandBuilder::groups_extract_barriers(VKRenderGraph &render_graph,
   vk_buffer_memory_barriers_.clear();
   vk_image_memory_barriers_.clear();
 
-  LayeredImageTracker layered_tracker(*this);
+  ImageTracker image_tracker(*this);
 
   /* Extract barriers. */
   group_pre_barriers_.clear();
@@ -93,7 +93,7 @@ void VKCommandBuilder::groups_extract_barriers(VKRenderGraph &render_graph,
       VKRenderGraphNode &node = render_graph.nodes_[node_handle];
       Barrier barrier = {};
       build_pipeline_barriers(
-          render_graph, node_handle, node.pipeline_stage_get(), layered_tracker, barrier);
+          render_graph, node_handle, node.pipeline_stage_get(), image_tracker, barrier);
       if (!barrier.is_empty()) {
 #if 0
         std::cout << __func__ << ": node_group=" << group_index
@@ -114,7 +114,7 @@ void VKCommandBuilder::groups_extract_barriers(VKRenderGraph &render_graph,
         BLI_assert(!rendering_active);
         rendering_scope = node_handle;
         rendering_active = true;
-        layered_tracker.begin(render_graph, node_handle);
+        image_tracker.begin(render_graph, node_handle);
       }
 
       else if (node.type == VKNodeType::END_RENDERING) {
@@ -127,7 +127,7 @@ void VKCommandBuilder::groups_extract_barriers(VKRenderGraph &render_graph,
          * reflects the correct state. These barriers needs to be added as node post barriers. We
          * assume that END_RENDERING is always the last node of a group. */
         Barrier barrier = {};
-        layered_tracker.end(barrier, use_local_read);
+        image_tracker.end(barrier, use_local_read);
         if (!barrier.is_empty()) {
           post_barriers.append(barrier);
         }
@@ -141,7 +141,7 @@ void VKCommandBuilder::groups_extract_barriers(VKRenderGraph &render_graph,
          * reflects the correct state. These barriers needs to be added as node post barriers.
          */
         Barrier barrier = {};
-        layered_tracker.suspend(barrier, use_local_read);
+        image_tracker.suspend(barrier, use_local_read);
         if (!barrier.is_empty()) {
           post_barriers.append(barrier);
         }
@@ -154,7 +154,7 @@ void VKCommandBuilder::groups_extract_barriers(VKRenderGraph &render_graph,
         build_pipeline_barriers(render_graph,
                                 rendering_scope,
                                 rendering_node.pipeline_stage_get(),
-                                layered_tracker,
+                                image_tracker,
                                 barrier);
         if (!barrier.is_empty()) {
           barrier_list_.append(barrier);
@@ -163,7 +163,7 @@ void VKCommandBuilder::groups_extract_barriers(VKRenderGraph &render_graph,
         /* Resume layered tracking. Each layer that has an override will be transition back to
          * the layer specific image layout. */
         barrier = {};
-        layered_tracker.resume(barrier, use_local_read);
+        image_tracker.resume(barrier, use_local_read);
         if (!barrier.is_empty()) {
           barrier_list_.append(barrier);
         }
@@ -177,7 +177,7 @@ void VKCommandBuilder::groups_extract_barriers(VKRenderGraph &render_graph,
       {
         Barrier barrier = {};
         build_pipeline_barriers(
-            render_graph, node_handle, node.pipeline_stage_get(), layered_tracker, barrier, true);
+            render_graph, node_handle, node.pipeline_stage_get(), image_tracker, barrier, true);
         if (!barrier.is_empty()) {
           node_pre_barriers.append(barrier);
         }
@@ -191,7 +191,7 @@ void VKCommandBuilder::groups_extract_barriers(VKRenderGraph &render_graph,
        * reflects the correct state. These barriers needs to be added as node post barriers.
        */
       Barrier barrier = {};
-      layered_tracker.suspend(barrier, use_local_read);
+      image_tracker.suspend(barrier, use_local_read);
       if (!barrier.is_empty()) {
         post_barriers.append(barrier);
       }
@@ -262,15 +262,6 @@ void VKCommandBuilder::groups_build_commands(VKRenderGraph &render_graph,
       if (node.type == VKNodeType::BEGIN_RENDERING) {
         rendering_scope = node_handle;
         rendering_active = true;
-
-        /* Check of the group spans a full rendering scope. In that case we don't need to set
-         * the VK_RENDERING_SUSPENDING_BIT. */
-        const VKRenderGraphNode &last_node = render_graph.nodes_[group_node_handles.last()];
-        bool will_be_suspended = last_node.type != VKNodeType::END_RENDERING;
-        if (will_be_suspended) {
-          render_graph.storage_.begin_rendering[node.storage_index].vk_rendering_info.flags =
-              VK_RENDERING_SUSPENDING_BIT;
-        }
       }
 
       else if (node.type == VKNodeType::END_RENDERING) {
@@ -278,10 +269,10 @@ void VKCommandBuilder::groups_build_commands(VKRenderGraph &render_graph,
       }
       else if (node_type_is_within_rendering(node.type)) {
         if (!rendering_active) {
-          /* Resume rendering scope. */
+          /* Restart rendering scope. */
           VKRenderGraphNode &rendering_node = render_graph.nodes_[rendering_scope];
-          render_graph.storage_.begin_rendering[rendering_node.storage_index]
-              .vk_rendering_info.flags = VK_RENDERING_RESUMING_BIT;
+          VKBeginRenderingNode::reconfigure_for_restart(
+              render_graph.storage_.begin_rendering[rendering_node.storage_index]);
           rendering_node.build_commands(command_buffer, render_graph.storage_, active_pipelines);
           rendering_active = true;
         }
@@ -315,10 +306,6 @@ void VKCommandBuilder::groups_build_commands(VKRenderGraph &render_graph,
        */
       rendering_active = false;
       command_buffer.end_rendering();
-
-      VKRenderGraphNode &rendering_node = render_graph.nodes_[rendering_scope];
-      render_graph.storage_.begin_rendering[rendering_node.storage_index].vk_rendering_info.flags =
-          VK_RENDERING_RESUMING_BIT;
     }
 
     /* Record group post barriers. */
@@ -422,13 +409,13 @@ void VKCommandBuilder::finish_debug_groups(VKCommandBufferInterface &command_buf
 void VKCommandBuilder::build_pipeline_barriers(VKRenderGraph &render_graph,
                                                NodeHandle node_handle,
                                                VkPipelineStageFlags pipeline_stage,
-                                               LayeredImageTracker &layered_tracker,
+                                               ImageTracker &image_tracker,
                                                Barrier &r_barrier,
                                                bool within_rendering)
 {
   reset_barriers(r_barrier);
   add_image_barriers(
-      render_graph, node_handle, pipeline_stage, layered_tracker, r_barrier, within_rendering);
+      render_graph, node_handle, pipeline_stage, image_tracker, r_barrier, within_rendering);
   add_buffer_barriers(render_graph, node_handle, pipeline_stage, r_barrier);
 }
 
@@ -608,15 +595,15 @@ void VKCommandBuilder::add_buffer_barrier(VkBuffer vk_buffer,
 void VKCommandBuilder::add_image_barriers(VKRenderGraph &render_graph,
                                           NodeHandle node_handle,
                                           VkPipelineStageFlags node_stages,
-                                          LayeredImageTracker &layered_tracker,
+                                          ImageTracker &image_tracker,
                                           Barrier &r_barrier,
                                           bool within_rendering)
 {
   r_barrier.image_memory_barriers = IndexRange(vk_image_memory_barriers_.size(), 0);
   add_image_read_barriers(
-      render_graph, node_handle, node_stages, layered_tracker, r_barrier, within_rendering);
+      render_graph, node_handle, node_stages, image_tracker, r_barrier, within_rendering);
   add_image_write_barriers(
-      render_graph, node_handle, node_stages, layered_tracker, r_barrier, within_rendering);
+      render_graph, node_handle, node_stages, image_tracker, r_barrier, within_rendering);
   r_barrier.image_memory_barriers = r_barrier.image_memory_barriers.with_new_end(
       vk_image_memory_barriers_.size());
 }
@@ -624,7 +611,7 @@ void VKCommandBuilder::add_image_barriers(VKRenderGraph &render_graph,
 void VKCommandBuilder::add_image_read_barriers(VKRenderGraph &render_graph,
                                                NodeHandle node_handle,
                                                VkPipelineStageFlags node_stages,
-                                               LayeredImageTracker &layered_tracker,
+                                               ImageTracker &image_tracker,
                                                Barrier &r_barrier,
                                                bool within_rendering)
 {
@@ -651,14 +638,13 @@ void VKCommandBuilder::add_image_read_barriers(VKRenderGraph &render_graph,
     }
 
     if (resource_state.image_layout != link.vk_image_layout &&
-        layered_tracker.contains(resource.image.vk_image))
+        image_tracker.contains(resource.image.vk_image))
     {
-      layered_tracker.update(resource.image.vk_image,
-                             link.layer_base,
-                             link.layer_count,
-                             resource_state.image_layout,
-                             link.vk_image_layout,
-                             r_barrier);
+      image_tracker.update(resource.image.vk_image,
+                           link.subimage,
+                           resource_state.image_layout,
+                           link.vk_image_layout,
+                           r_barrier);
       continue;
     }
 
@@ -682,7 +668,8 @@ void VKCommandBuilder::add_image_read_barriers(VKRenderGraph &render_graph,
                       link.vk_access_flags,
                       resource_state.image_layout,
                       link.vk_image_layout,
-                      link.vk_image_aspect);
+                      link.vk_image_aspect,
+                      {});
     resource_state.image_layout = link.vk_image_layout;
   }
 }
@@ -690,7 +677,7 @@ void VKCommandBuilder::add_image_read_barriers(VKRenderGraph &render_graph,
 void VKCommandBuilder::add_image_write_barriers(VKRenderGraph &render_graph,
                                                 NodeHandle node_handle,
                                                 VkPipelineStageFlags node_stages,
-                                                LayeredImageTracker &layered_tracker,
+                                                ImageTracker &image_tracker,
                                                 Barrier &r_barrier,
                                                 bool within_rendering)
 {
@@ -707,15 +694,14 @@ void VKCommandBuilder::add_image_write_barriers(VKRenderGraph &render_graph,
       /* Allow only local read barriers inside rendering scope */
       continue;
     }
-    if (layered_tracker.contains(resource.image.vk_image) &&
+    if (image_tracker.contains(resource.image.vk_image) &&
         resource_state.image_layout != link.vk_image_layout)
     {
-      layered_tracker.update(resource.image.vk_image,
-                             link.layer_base,
-                             link.layer_count,
-                             resource_state.image_layout,
-                             link.vk_image_layout,
-                             r_barrier);
+      image_tracker.update(resource.image.vk_image,
+                           link.subimage,
+                           resource_state.image_layout,
+                           link.vk_image_layout,
+                           r_barrier);
 
       continue;
     }
@@ -733,7 +719,8 @@ void VKCommandBuilder::add_image_write_barriers(VKRenderGraph &render_graph,
                         link.vk_access_flags,
                         resource_state.image_layout,
                         link.vk_image_layout,
-                        link.vk_image_aspect);
+                        link.vk_image_aspect,
+                        {});
       resource_state.image_layout = link.vk_image_layout;
     }
   }
@@ -746,8 +733,7 @@ void VKCommandBuilder::add_image_barrier(VkImage vk_image,
                                          VkImageLayout old_layout,
                                          VkImageLayout new_layout,
                                          VkImageAspectFlags aspect_mask,
-                                         uint32_t layer_base,
-                                         uint32_t layer_count)
+                                         const VKSubImageRange &subimage)
 {
   BLI_assert(aspect_mask != VK_IMAGE_ASPECT_NONE);
   for (VkImageMemoryBarrier &vk_image_memory_barrier :
@@ -773,17 +759,20 @@ void VKCommandBuilder::add_image_barrier(VkImage vk_image,
     }
   }
 
-  vk_image_memory_barriers_.append(
-      {VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-       nullptr,
-       src_access_mask,
-       dst_access_mask,
-       old_layout,
-       new_layout,
-       VK_QUEUE_FAMILY_IGNORED,
-       VK_QUEUE_FAMILY_IGNORED,
-       vk_image,
-       {aspect_mask, 0, VK_REMAINING_MIP_LEVELS, layer_base, layer_count}});
+  vk_image_memory_barriers_.append({VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                                    nullptr,
+                                    src_access_mask,
+                                    dst_access_mask,
+                                    old_layout,
+                                    new_layout,
+                                    VK_QUEUE_FAMILY_IGNORED,
+                                    VK_QUEUE_FAMILY_IGNORED,
+                                    vk_image,
+                                    {aspect_mask,
+                                     subimage.mipmap_level,
+                                     subimage.mipmap_count,
+                                     subimage.layer_base,
+                                     subimage.layer_count}});
 }
 
 /** \} */
@@ -792,42 +781,46 @@ void VKCommandBuilder::add_image_barrier(VkImage vk_image,
 /** \name Sub-resource tracking
  * \{ */
 
-void VKCommandBuilder::LayeredImageTracker::begin(const VKRenderGraph &render_graph,
-                                                  NodeHandle node_handle)
+void VKCommandBuilder::ImageTracker::begin(const VKRenderGraph &render_graph,
+                                           NodeHandle node_handle)
 {
   BLI_assert(render_graph.nodes_[node_handle].type == VKNodeType::BEGIN_RENDERING);
-  layered_attachments.clear();
-  layered_bindings.clear();
+  tracked_attachments.clear();
+  changes.clear();
 
   const VKRenderGraphNodeLinks &links = render_graph.links_[node_handle];
   for (const VKRenderGraphLink &link : links.outputs) {
     VKResourceStateTracker::Resource &resource = render_graph.resources_.resources_.lookup(
         link.resource.handle);
-    if (resource.has_multiple_layers()) {
-      layered_attachments.add(resource.image.vk_image);
+    if (resource.use_subresource_tracking()) {
+      tracked_attachments.add(resource.image.vk_image);
     }
   }
 }
 
-void VKCommandBuilder::LayeredImageTracker::update(VkImage vk_image,
-                                                   uint32_t layer,
-                                                   uint32_t layer_count,
-                                                   VkImageLayout old_layout,
-                                                   VkImageLayout new_layout,
-                                                   Barrier &r_barrier)
+void VKCommandBuilder::ImageTracker::update(VkImage vk_image,
+                                            const VKSubImageRange &subimage,
+                                            VkImageLayout old_layout,
+                                            VkImageLayout new_layout,
+                                            Barrier &r_barrier)
 {
-  for (const TrackedImage &binding : layered_bindings) {
-    if (binding.vk_image == vk_image && binding.layer == layer) {
-      BLI_assert_msg(binding.vk_image_layout == new_layout,
-                     "We don't support that one layer transitions multiple times during a "
-                     "rendering scope.");
+  for (const SubImageChange &change : changes) {
+    if (change.vk_image == vk_image && ((subimage.layer_count != VK_REMAINING_ARRAY_LAYERS &&
+                                         change.subimage.layer_base == subimage.layer_base) ||
+                                        (subimage.mipmap_count != VK_REMAINING_MIP_LEVELS &&
+                                         change.subimage.mipmap_level != subimage.mipmap_level)))
+    {
+      BLI_assert_msg(
+          change.vk_image_layout == new_layout,
+          "We don't support more that one change of the same subimage multiple times during a "
+          "rendering scope.");
       /* Early exit as layer is in correct layout. This is a normal case as we expect multiple
        * draw commands to take place during a rendering scope with the same layer access. */
       return;
     }
   }
 
-  layered_bindings.append({vk_image, new_layout, layer, layer_count});
+  changes.append({vk_image, new_layout, subimage});
 
   /* We should be able to do better. BOTTOM/TOP is really a worst case barrier. */
   r_barrier.src_stage_mask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
@@ -842,21 +835,20 @@ void VKCommandBuilder::LayeredImageTracker::update(VkImage vk_image,
                                     old_layout,
                                     new_layout,
                                     VK_IMAGE_ASPECT_COLOR_BIT,
-                                    layer,
-                                    layer_count);
+                                    subimage);
 }
 
-void VKCommandBuilder::LayeredImageTracker::end(Barrier &r_barrier, bool use_local_read)
+void VKCommandBuilder::ImageTracker::end(Barrier &r_barrier, bool use_local_read)
 {
   suspend(r_barrier, use_local_read);
-  layered_attachments.clear();
-  layered_bindings.clear();
+  tracked_attachments.clear();
+  changes.clear();
 }
 
-void VKCommandBuilder::LayeredImageTracker::suspend(Barrier &r_barrier, bool use_local_read)
+void VKCommandBuilder::ImageTracker::suspend(Barrier &r_barrier, bool use_local_read)
 
 {
-  if (layered_bindings.is_empty()) {
+  if (changes.is_empty()) {
     return;
   }
 
@@ -866,9 +858,9 @@ void VKCommandBuilder::LayeredImageTracker::suspend(Barrier &r_barrier, bool use
   r_barrier.dst_stage_mask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
   int64_t start_index = command_builder.vk_image_memory_barriers_.size();
   r_barrier.image_memory_barriers = IndexRange::from_begin_size(start_index, 0);
-  for (const TrackedImage &binding : layered_bindings) {
+  for (const SubImageChange &change : changes) {
     command_builder.add_image_barrier(
-        binding.vk_image,
+        change.vk_image,
         r_barrier,
         VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT |
             VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
@@ -876,12 +868,11 @@ void VKCommandBuilder::LayeredImageTracker::suspend(Barrier &r_barrier, bool use
         VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT |
             VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
             VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT,
-        binding.vk_image_layout,
+        change.vk_image_layout,
         use_local_read ? VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR :
                          VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
         VK_IMAGE_ASPECT_COLOR_BIT,
-        binding.layer,
-        binding.layer_count);
+        change.subimage);
     r_barrier.image_memory_barriers = r_barrier.image_memory_barriers.with_new_end(
         command_builder.vk_image_memory_barriers_.size());
 
@@ -894,9 +885,9 @@ void VKCommandBuilder::LayeredImageTracker::suspend(Barrier &r_barrier, bool use
   }
 }
 
-void VKCommandBuilder::LayeredImageTracker::resume(Barrier &r_barrier, bool use_local_read)
+void VKCommandBuilder::ImageTracker::resume(Barrier &r_barrier, bool use_local_read)
 {
-  if (layered_bindings.is_empty()) {
+  if (changes.is_empty()) {
     return;
   }
 
@@ -907,9 +898,9 @@ void VKCommandBuilder::LayeredImageTracker::resume(Barrier &r_barrier, bool use_
   int64_t start_index = command_builder.vk_image_memory_barriers_.size();
   r_barrier.image_memory_barriers = IndexRange::from_begin_size(start_index, 0);
 
-  for (const TrackedImage &binding : layered_bindings) {
+  for (const SubImageChange &change : changes) {
     command_builder.add_image_barrier(
-        binding.vk_image,
+        change.vk_image,
         r_barrier,
         VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT |
             VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
@@ -919,10 +910,9 @@ void VKCommandBuilder::LayeredImageTracker::resume(Barrier &r_barrier, bool use_
             VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT,
         use_local_read ? VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR :
                          VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-        binding.vk_image_layout,
+        change.vk_image_layout,
         VK_IMAGE_ASPECT_COLOR_BIT,
-        binding.layer,
-        binding.layer_count);
+        change.subimage);
 #if 0
     std::cout << __func__ << ": transition layout image=" << binding.vk_image
               << ", layer=" << binding.layer << ", count=" << binding.layer_count

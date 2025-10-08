@@ -242,6 +242,21 @@ typedef struct bPoseChannel_BBoneSegmentBoundary {
   float depth_scale;
 } bPoseChannel_BBoneSegmentBoundary;
 
+/**
+ * Runtime flags on pose bones. Those are only used internally and are not exposed to the user.
+ */
+typedef enum bPoseChannelRuntimeFlag {
+  /** Used during transform. Not every selected bone is transformed. For example in a chain of
+     bones, only the first selected may be transformed. */
+  POSE_RUNTIME_TRANSFORM = (1 << 0),
+  /** Set to prevent hinge child bones from influencing the transform center. */
+  POSE_RUNTIME_HINGE_CHILD_TRANSFORM = (1 << 1),
+  /** Indicates that a parent is also being transformed. */
+  POSE_RUNTIME_TRANSFORM_CHILD = (1 << 2),
+  /* Set on bones during selection to tell following code that this bone should be operated on. */
+  POSE_RUNTIME_IN_SELECTION_AREA = (1 << 3),
+} bPoseChannelRuntimeFlag;
+
 typedef struct bPoseChannel_Runtime {
   SessionUID session_uid;
 
@@ -253,7 +268,9 @@ typedef struct bPoseChannel_Runtime {
 
   /* Inverse of the total length of the segment polyline. */
   float bbone_arc_length_reciprocal;
-  char _pad1[4];
+  /* bPoseChannelRuntimeFlag */
+  uint8_t flag;
+  char _pad1[3];
 
   /* Rest and posed matrices for segments. */
   struct Mat4 *bbone_rest_mats;
@@ -313,8 +330,9 @@ typedef struct bPoseChannel {
   short agrp_index;
   /** For quick detecting which constraints affect this channel. */
   char constflag;
-  /** Copy of bone flag, so you can work with library armatures, not for runtime use. */
-  char selectflag;
+  /** This used to store the selectionflag for serialization but is not longer required since that
+   * is now natively stored on the `flag` property. */
+  char selectflag DNA_DEPRECATED;
   char drawflag;
   char bboneflag DNA_DEPRECATED;
   char _pad0[4];
@@ -462,6 +480,8 @@ typedef enum ePchan_Flag {
      `custom_tx` are set. This can be useful for rigs where the deformation is coming from
      blendshapes in addition to the armature. */
   POSE_TRANSFORM_AROUND_CUSTOM_TX = (1 << 5),
+  POSE_SELECTED = (1 << 6),
+
   /* IK/Pose solving */
   POSE_CHAIN = (1 << 9),
   POSE_DONE = (1 << 10),
@@ -995,6 +1015,17 @@ typedef struct SpaceAction_Runtime {
   char _pad0[7];
 } SpaceAction_Runtime;
 
+typedef enum SpaceActionOverlays_Flag {
+  ADS_OVERLAY_SHOW_OVERLAYS = (1 << 0),
+  ADS_SHOW_SCENE_STRIP_FRAME_RANGE = (1 << 1)
+} SpaceActionOverlays_Flag;
+
+typedef struct SpaceActionOverlays {
+  /** #SpaceActionOverlays_Flag */
+  int flag;
+  char _pad0[4];
+} SpaceActionOverlays;
+
 /* Action Editor Space. This is defined here instead of in DNA_space_types.h */
 typedef struct SpaceAction {
   struct SpaceLink *next, *prev;
@@ -1027,6 +1058,8 @@ typedef struct SpaceAction {
   /** (eTimeline_Cache_Flag). */
   char cache_display;
   char _pad1[6];
+
+  SpaceActionOverlays overlays;
 
   SpaceAction_Runtime runtime;
 } SpaceAction;

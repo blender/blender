@@ -28,16 +28,19 @@ namespace blender::nodes::node_composite_keying_cc {
 static void cmp_node_keying_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
+  b.allow_any_socket_order();
 
-  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
+  b.add_input<decl::Color>("Image")
+      .default_value({0.8f, 0.8f, 0.8f, 1.0f})
+      .hide_value()
+      .structure_type(StructureType::Dynamic);
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic).align_with_previous();
+
   b.add_output<decl::Float>("Matte").structure_type(StructureType::Dynamic);
   b.add_output<decl::Float>("Edges")
       .structure_type(StructureType::Dynamic)
       .translation_context(BLT_I18NCONTEXT_ID_IMAGE);
 
-  b.add_input<decl::Color>("Image")
-      .default_value({0.8f, 0.8f, 0.8f, 1.0f})
-      .structure_type(StructureType::Dynamic);
   b.add_input<decl::Color>("Key Color")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .structure_type(StructureType::Dynamic);

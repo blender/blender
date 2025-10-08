@@ -100,7 +100,9 @@ static void edbm_intersect_select(BMEditMesh *em, Mesh *mesh, bool do_select)
           BM_edge_select_set(em->bm, e, true);
         }
       }
+
       EDBM_selectmode_flush(em);
+      EDBM_uvselect_clear(em);
     }
   }
 

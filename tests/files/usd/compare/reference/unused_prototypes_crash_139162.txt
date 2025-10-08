@@ -13,6 +13,22 @@
   - attr 'sharp_face' BOOLEAN FACE
     - 1 1 1 1 1 1 
 
+==== Point Clouds: 1
+- PointCloud 'MainInstancer' points:2
+  - attr 'mask' BOOLEAN POINT
+    - 1 1 
+  - attr 'orientation' QUATERNION POINT
+    - (1.000, 0.000, 0.000, 0.000)
+    - (1.000, 0.000, 0.000, 0.000)
+  - attr 'position' FLOAT_VECTOR POINT
+    - (2.000, 0.000, 0.000)
+    - (-2.000, 0.000, 0.000)
+  - attr 'proto_index' INT POINT
+    - 0 0 
+  - attr 'scale' FLOAT_VECTOR POINT
+    - (1.000, 1.000, 1.000)
+    - (1.000, 1.000, 1.000)
+
 ==== Objects: 2
 - Obj 'MainInstancer' POINTCLOUD data:'MainInstancer'
   - pos 0.000, 0.000, 0.000

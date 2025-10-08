@@ -426,8 +426,8 @@ class USDHookInvoker {
    * python::call_method<void>(hook_obj, function_name(), arg1, arg2); */
   virtual void call_hook(PyObject *hook_obj) = 0;
 
-  virtual void init_in_gil(){};
-  virtual void release_in_gil(){};
+  virtual void init_in_gil() {};
+  virtual void release_in_gil() {};
 };
 
 class OnExportInvoker final : public USDHookInvoker {

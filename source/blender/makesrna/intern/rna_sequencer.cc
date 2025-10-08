@@ -711,7 +711,7 @@ static Strip *strip_get_by_transform(Editing *ed, StripTransform *transform)
   data.data = transform;
 
   /* irritating we need to search for our strip! */
-  blender::seq::for_each_callback(&ed->seqbase, transform_strip_cmp_fn, &data);
+  blender::seq::foreach_strip(&ed->seqbase, transform_strip_cmp_fn, &data);
 
   return data.strip;
 }
@@ -758,7 +758,7 @@ static Strip *strip_get_by_crop(Editing *ed, StripCrop *crop)
   data.data = crop;
 
   /* irritating we need to search for our strip! */
-  blender::seq::for_each_callback(&ed->seqbase, crop_strip_cmp_fn, &data);
+  blender::seq::foreach_strip(&ed->seqbase, crop_strip_cmp_fn, &data);
 
   return data.strip;
 }
@@ -1180,7 +1180,7 @@ static Strip *strip_get_by_proxy(Editing *ed, StripProxy *proxy)
   data.strip = nullptr;
   data.data = proxy;
 
-  blender::seq::for_each_callback(&ed->seqbase, seqproxy_strip_cmp_fn, &data);
+  blender::seq::foreach_strip(&ed->seqbase, seqproxy_strip_cmp_fn, &data);
   return data.strip;
 }
 
@@ -1259,7 +1259,7 @@ static Strip *strip_get_by_colorbalance(Editing *ed,
   data.data = cb;
 
   /* irritating we need to search for our strip! */
-  blender::seq::for_each_callback(&ed->seqbase, colbalance_seq_cmp_fn, &data);
+  blender::seq::foreach_strip(&ed->seqbase, colbalance_seq_cmp_fn, &data);
 
   *r_smd = data.smd;
 
@@ -1417,7 +1417,7 @@ static Strip *strip_get_by_modifier(Editing *ed, StripModifierData *smd)
   data.data = smd;
 
   /* irritating we need to search for our strip! */
-  blender::seq::for_each_callback(&ed->seqbase, modifier_strip_cmp_fn, &data);
+  blender::seq::foreach_strip(&ed->seqbase, modifier_strip_cmp_fn, &data);
 
   return data.strip;
 }
@@ -2290,6 +2290,7 @@ static void rna_def_strip(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Strip", "Sequence strip in the sequence editor");
   RNA_def_struct_refine_func(srna, "rna_Strip_refine");
   RNA_def_struct_path_func(srna, "rna_Strip_path");
+  RNA_def_struct_ui_icon(srna, ICON_SEQ_SEQUENCER);
   RNA_def_struct_idprops_func(srna, "rna_Strip_idprops");
   RNA_def_struct_system_idprops_func(srna, "rna_Strip_system_idprops");
 
@@ -3230,6 +3231,13 @@ static void rna_def_sound(BlenderRNA *brna)
       prop, "Display Waveform", "Display the audio waveform inside the strip");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, nullptr);
 
+  prop = RNA_def_property(srna, "pitch_correction", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", SEQ_AUDIO_PITCH_CORRECTION);
+  RNA_def_property_ui_text(
+      prop,
+      "Preserve Pitch",
+      "Maintain the original pitch of the audio when changing playback speed");
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Strip_sound_update");
   rna_def_retiming_keys(srna);
   rna_def_input(srna);
 }

@@ -67,9 +67,8 @@ void pose_apply(Object *ob,
     return;
   }
 
-  const bArmature *armature = static_cast<bArmature *>(ob->data);
   const blender::bke::BoneNameSet selected_bone_names =
-      blender::bke::BKE_armature_find_selected_bone_names(armature);
+      blender::bke::BKE_pose_channel_find_selected_names(ob);
 
   /* Mute all FCurves that are not associated with selected bones. This separates the concept of
    * bone selection from the FCurve evaluation code. */
@@ -128,7 +127,7 @@ bool any_bone_selected(const blender::Span<const Object *> objects)
       continue;
     }
     LISTBASE_FOREACH (bPoseChannel *, pose_bone, &obj->pose->chanbase) {
-      if (pose_bone->bone->flag & BONE_SELECTED) {
+      if (pose_bone->flag & POSE_SELECTED) {
         return true;
       }
     }

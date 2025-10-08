@@ -21,7 +21,7 @@ namespace blender::nodes::node_shader_curves_cc::vec {
 static void sh_node_curve_vec_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>("Fac")
+  b.add_input<decl::Float>("Factor", "Fac")
       .min(0.0f)
       .max(1.0f)
       .default_value(1.0f)
@@ -159,7 +159,7 @@ namespace blender::nodes::node_shader_curves_cc::rgb {
 static void sh_node_curve_rgb_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>("Fac")
+  b.add_input<decl::Float>("Factor", "Fac")
       .min(0.0f)
       .max(1.0f)
       .default_value(1.0f)

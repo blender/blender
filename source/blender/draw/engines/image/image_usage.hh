@@ -33,6 +33,7 @@ struct ImageUsage {
   bool last_tile_drawing;
 
   const void *last_image = nullptr;
+  const void *last_scene = nullptr;
 
   ImageUsage() = default;
   ImageUsage(const ::Image *image, const ::ImageUser *image_user, bool do_tile_drawing)
@@ -43,6 +44,7 @@ struct ImageUsage {
     colorspace_settings = image->colorspace_settings;
     alpha_mode = image->alpha_mode;
     last_image = static_cast<const void *>(image);
+    last_scene = image_user ? static_cast<const void *>(image_user->scene) : nullptr;
     last_tile_drawing = do_tile_drawing;
   }
 

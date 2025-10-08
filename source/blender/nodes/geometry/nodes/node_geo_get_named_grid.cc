@@ -21,7 +21,7 @@ namespace blender::nodes::node_geo_get_named_grid_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Volume").description("Volume to take a named grid out of");
-  b.add_input<decl::String>("Name").optional_label();
+  b.add_input<decl::String>("Name").optional_label().is_volume_grid_name();
   b.add_input<decl::Bool>("Remove").default_value(true).translation_context(
       BLT_I18NCONTEXT_OPERATOR_DEFAULT);
 
@@ -101,7 +101,6 @@ static void node_register()
   ntype.enum_name_legacy = "GET_NAMED_GRID";
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
-  ntype.gather_link_search_ops = search_link_ops_for_volume_grid_node;
   ntype.draw_buttons = node_layout;
   ntype.initfunc = node_init;
   ntype.geometry_node_execute = node_geo_exec;

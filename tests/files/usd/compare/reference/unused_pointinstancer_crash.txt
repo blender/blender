@@ -68,6 +68,19 @@
     - (1.000, 1.000)
     - (0.000, 1.000)
 
+==== Point Clouds: 1
+- PointCloud 'point_instancer' points:1
+  - attr 'mask' BOOLEAN POINT
+    - 1 
+  - attr 'orientation' QUATERNION POINT
+    - (0.929, 0.301, 0.205, -0.066)
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 0.000, 0.000)
+  - attr 'proto_index' INT POINT
+    - 0 
+  - attr 'scale' FLOAT_VECTOR POINT
+    - (1.000, 1.000, 1.000)
+
 ==== Objects: 6
 - Obj 'A' MESH data:'A'
   - pos 0.000, 0.000, 0.000

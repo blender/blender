@@ -370,7 +370,7 @@ bool ABCGenericMeshWriter::get_velocities(Mesh *mesh, std::vector<Imath::V3f> &v
   }
 
   const int totverts = mesh->verts_num;
-  const float(*mesh_velocities)[3] = reinterpret_cast<float(*)[3]>(velocity_layer->data);
+  const float (*mesh_velocities)[3] = reinterpret_cast<float (*)[3]>(velocity_layer->data);
 
   vels.clear();
   vels.resize(totverts);

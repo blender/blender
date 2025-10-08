@@ -971,7 +971,10 @@ typedef struct RenderData {
   int compositor_denoise_preview_quality; /* eCompositorDenoiseQaulity */
   int compositor_denoise_final_quality;   /* eCompositorDenoiseQaulity */
 
-  char _pad6[4];
+  /** Frames to jump manually. */
+  float time_jump_delta;
+  int time_jump_unit;
+  char _pad10[4];
 } RenderData;
 
 /** #RenderData::quality_flag */
@@ -1019,6 +1022,12 @@ typedef enum eCompositorDenoiseQaulity {
   SCE_COMPOSITOR_DENOISE_BALANCED = 1,
   SCE_COMPOSITOR_DENOISE_FAST = 2,
 } eCompositorDenoiseQaulity;
+
+/** #RenderData::time_jump_unit */
+enum {
+  SCE_TIME_JUMP_FRAME = 0,
+  SCE_TIME_JUMP_SECOND = 1,
+};
 
 /** \} */
 
@@ -1888,6 +1897,15 @@ typedef struct ToolSettings {
   int16_t snap_step_frames;
   /* Pixel threshold that needs to be crossed before the playhead is snapped to a point. */
   int playhead_snap_distance;
+
+  /* Animation settings, used by "Paste Global Transform" operator. */
+  struct Object *anim_mirror_object;
+  struct Object *anim_relative_object;
+  char anim_mirror_bone[64];
+
+  /* Flags for "Fix to Camera" operator. */
+  uint8_t fix_to_cam_flag; /* eFixToCam_Flags */
+  char _pad8[7];
 
 } ToolSettings;
 

@@ -242,7 +242,7 @@ static void curve_to_displist(const Curve *cu,
       dl->charidx = nu->charidx;
       dl->type = (is_cyclic && (dl->nr != 2)) ? DL_POLY : DL_SEGM;
 
-      float(*coords)[3] = (float(*)[3])dl->verts;
+      float (*coords)[3] = (float (*)[3])dl->verts;
       for (int i = 0; i < len; i++) {
         const BPoint *bp = &nu->bp[i];
         copy_v3_v3(coords[i], bp->vec);

@@ -97,10 +97,10 @@ static void deform_verts(ModifierData *md,
     KeyBlock *kb = BKE_keyblock_find_by_index(BKE_key_from_object(ctx->object),
                                               clmd->sim_parms->shapekey_rest);
     if (kb && kb->data != nullptr) {
-      float(*layerorco)[3] = static_cast<float(*)[3]>(
+      float (*layerorco)[3] = static_cast<float (*)[3]>(
           CustomData_get_layer_for_write(&mesh->vert_data, CD_CLOTH_ORCO, mesh->verts_num));
       if (!layerorco) {
-        layerorco = static_cast<float(*)[3]>(CustomData_add_layer(
+        layerorco = static_cast<float (*)[3]>(CustomData_add_layer(
             &mesh->vert_data, CD_CLOTH_ORCO, CD_SET_DEFAULT, mesh->verts_num));
       }
 
@@ -116,7 +116,7 @@ static void deform_verts(ModifierData *md,
                    scene,
                    ctx->object,
                    mesh,
-                   reinterpret_cast<float(*)[3]>(positions.data()));
+                   reinterpret_cast<float (*)[3]>(positions.data()));
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)

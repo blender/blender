@@ -1911,9 +1911,11 @@ void BKE_paint_copy(const Paint *src, Paint *dst, const int flag)
   }
 
   dst->runtime = MEM_new<blender::bke::PaintRuntime>(__func__);
-  dst->runtime->paint_mode = src->runtime->paint_mode;
-  dst->runtime->ob_mode = src->runtime->ob_mode;
-  dst->runtime->initialized = true;
+  if (src->runtime) {
+    dst->runtime->paint_mode = src->runtime->paint_mode;
+    dst->runtime->ob_mode = src->runtime->ob_mode;
+    dst->runtime->initialized = true;
+  }
 }
 
 void BKE_paint_settings_foreach_mode(ToolSettings *ts, blender::FunctionRef<void(Paint *paint)> fn)
@@ -1981,15 +1983,15 @@ blender::float3 BKE_paint_randomize_color(const BrushColorJitterSettings &color_
                                    distance * noise_scale, initial_hsv_jitter[2] * 100));
 
   float hue_jitter_scale = color_jitter.hue;
-  if ((color_jitter.flag & BRUSH_COLOR_JITTER_USE_HUE_RAND_PRESS)) {
+  if (color_jitter.flag & BRUSH_COLOR_JITTER_USE_HUE_RAND_PRESS) {
     hue_jitter_scale *= BKE_curvemapping_evaluateF(color_jitter.curve_hue_jitter, 0, pressure);
   }
   float sat_jitter_scale = color_jitter.saturation;
-  if ((color_jitter.flag & BRUSH_COLOR_JITTER_USE_SAT_RAND_PRESS)) {
+  if (color_jitter.flag & BRUSH_COLOR_JITTER_USE_SAT_RAND_PRESS) {
     sat_jitter_scale *= BKE_curvemapping_evaluateF(color_jitter.curve_sat_jitter, 0, pressure);
   }
   float val_jitter_scale = color_jitter.value;
-  if ((color_jitter.flag & BRUSH_COLOR_JITTER_USE_VAL_RAND_PRESS)) {
+  if (color_jitter.flag & BRUSH_COLOR_JITTER_USE_VAL_RAND_PRESS) {
     val_jitter_scale *= BKE_curvemapping_evaluateF(color_jitter.curve_val_jitter, 0, pressure);
   }
 

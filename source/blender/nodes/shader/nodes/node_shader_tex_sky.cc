@@ -288,11 +288,11 @@ static void node_shader_update_sky(bNodeTree *ntree, bNode *node)
   bNodeSocket *sockVector = bke::node_find_socket(*node, SOCK_IN, "Vector");
 
   NodeTexSky *tex = (NodeTexSky *)node->storage;
-  bke::node_set_socket_availability(*ntree,
-                                    *sockVector,
-                                    !((tex->sky_model == SHD_SKY_SINGLE_SCATTERING ||
-                                       tex->sky_model == SHD_SKY_MULTIPLE_SCATTERING) &&
-                                      tex->sun_disc == 1));
+  bke::node_set_socket_availability(
+      *ntree,
+      *sockVector,
+      !(ELEM(tex->sky_model, SHD_SKY_SINGLE_SCATTERING, SHD_SKY_MULTIPLE_SCATTERING) &&
+        tex->sun_disc == 1));
 }
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)

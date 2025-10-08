@@ -35,7 +35,7 @@ static void cmp_node_time_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Int>("Start Frame").default_value(1);
   b.add_input<decl::Int>("End Frame").default_value(250);
 
-  b.add_output<decl::Float>("Fac");
+  b.add_output<decl::Float>("Factor", "Fac");
 }
 
 static void node_composit_init_curves_time(bNodeTree * /*ntree*/, bNode *node)
@@ -133,7 +133,7 @@ static void cmp_node_rgbcurves_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .description("Image/Color input on which RGB color transformation will be applied");
-  b.add_input<decl::Float>("Fac")
+  b.add_input<decl::Float>("Factor", "Fac")
       .default_value(1.0f)
       .min(0.0f)
       .max(1.0f)

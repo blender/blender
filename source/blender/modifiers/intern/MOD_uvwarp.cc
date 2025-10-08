@@ -105,7 +105,7 @@ static void uv_warp_compute(void *__restrict userdata,
   const MDeformVert *dvert = data->dvert;
   const int defgrp_index = data->defgrp_index;
 
-  float(*warp_mat)[4] = data->warp_mat;
+  float (*warp_mat)[4] = data->warp_mat;
 
   int l;
 

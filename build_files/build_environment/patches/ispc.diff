@@ -1,63 +1,12 @@
-diff -Naur ispc-1.17.0.org/CMakeLists.txt ispc-1.17.0/CMakeLists.txt
---- ispc-1.17.0.org/CMakeLists.txt	2022-01-15 01:35:15 -0700
-+++ ispc-1.17.0/CMakeLists.txt	2022-02-12 12:44:24 -0700
-@@ -443,7 +447,7 @@
+diff -Naur ispc-1.28.0/cmake/GenerateBuiltins.cmake external_ispc/cmake/GenerateBuiltins.cmake
+--- ispc-1.28.0/cmake/GenerateBuiltins.cmake	2025-08-12 06:34:22.000000000 -0600
++++ external_ispc/cmake/GenerateBuiltins.cmake	2025-09-10 10:40:05.793808800 -0600
+@@ -334,7 +334,7 @@
  
- # Include directories
- target_include_directories(${PROJECT_NAME} PRIVATE
--                           ${LLVM_INCLUDE_DIRS}
-+                           ${LLVM_INCLUDE_DIRS} ${CLANG_INCLUDE_DIRS}
-                            ${XE_DEPS_DIR}/include
-                            ${CMAKE_CURRENT_SOURCE_DIR}/src
-                            ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR})
-@@ -607,7 +607,7 @@
-                  NAMES
-                     "${CMAKE_STATIC_LIBRARY_PREFIX}${clangLib}${CMAKE_STATIC_LIBRARY_SUFFIX}"
-                     clang-cpp
--                 HINTS ${LLVM_LIBRARY_DIRS})
-+                 HINTS ${LLVM_LIBRARY_DIRS} ${CLANG_LIBRARY_DIR})
-     if (NOT ${${clangLib}Path} IN_LIST CLANG_LIBRARY_FULL_PATH_LIST)
-         list(APPEND CLANG_LIBRARY_FULL_PATH_LIST ${${clangLib}Path})
-     endif()
-@@ -546,6 +550,29 @@
-     endif()
- endif()
- 
-+# Link against libstdc++.a which must be provided to the linker after
-+# LLVM and CLang libraries.
-+# This is needed because some of LLVM/CLang dependencies are using
-+# std::make_shared, which is defined in one of those:
-+#  - libclang-cpp.so
-+#  - libstdc++.a
-+# Using the former one is tricky because then generated binary depends
-+# on a library which is outside of the LD_LIBRARY_PATH.
-+#
-+# Hence, using C++ implementation from G++ which seems to work just fine.
-+# In fact, from investigation seems that libclang-cpp.so itself is pulling
-+# std::_Sp_make_shared_tag from G++'s libstdc++.a.
-+if(UNIX AND NOT APPLE)
-+    execute_process(
-+        COMMAND g++ --print-file-name libstdc++.a
-+        OUTPUT_VARIABLE GCC_LIBSTDCXX_A
-+        OUTPUT_STRIP_TRAILING_WHITESPACE
-+    )
-+    if(GCC_LIBSTDCXX_A AND EXISTS ${GCC_LIBSTDCXX_A})
-+        target_link_libraries(${PROJECT_NAME} ${GCC_LIBSTDCXX_A})
-+    endif()
-+endif()
-+
- # Build target for utility checking host ISA
- if (ISPC_INCLUDE_UTILS)
-     add_executable(check_isa "")
-diff -Naur ispc-1.17.0.org/cmake/GenerateBuiltins.cmake ispc-1.17.0/cmake/GenerateBuiltins.cmake
---- ispc-1.17.0.org/cmake/GenerateBuiltins.cmake	2022-01-15 01:35:15 -0700
-+++ ispc-1.17.0/cmake/GenerateBuiltins.cmake	2022-02-12 12:44:24 -0700
-@@ -124,6 +124,8 @@
- 
-     if ("${bit}" STREQUAL "32" AND ${arch} STREQUAL "x86")
-         set(target_arch "i686")
-+        # Blender: disable 32bit due to build issues on Linux and being unnecessary.
-+        set(SKIP ON)
-     elseif ("${bit}" STREQUAL "64" AND ${arch} STREQUAL "x86")
-         set(target_arch "x86_64")
-     elseif ("${bit}" STREQUAL "32" AND ${arch} STREQUAL "arm")
+     add_custom_command(
+         OUTPUT ${bc}
+-        COMMAND cat ${input} | \"${LLVM_AS_EXECUTABLE}\" -o ${bc}
++        COMMAND ${CMAKE_COMMAND} -E cat ${input} | \"${LLVM_AS_EXECUTABLE}\" -o ${bc}
+         DEPENDS ${input}
+         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+         )

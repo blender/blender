@@ -2823,7 +2823,7 @@ ImBuf *BKE_tracking_get_plane_imbuf(const ImBuf *frame_ibuf,
                                     const MovieTrackingPlaneMarker *plane_marker)
 {
   /* Alias for corners, allowing shorter access to coordinates. */
-  const float(*corners)[2] = plane_marker->corners;
+  const float (*corners)[2] = plane_marker->corners;
 
   /* Dimensions of the frame image in pixels. */
   const int frame_width = frame_ibuf->x;

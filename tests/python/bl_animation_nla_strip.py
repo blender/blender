@@ -35,7 +35,12 @@ class AbstractNlaStripTest(unittest.TestCase):
         self.nla_tracks = self.test_object.animation_data.nla_tracks
 
         self.action = bpy.data.actions.new(name="ObjectAction")
-        x_location_fcurve = self.action.fcurves.new(data_path="location", index=0, action_group="Object Transforms")
+        slot = self.action.slots.new(self.test_object.id_type, self.test_object.name)
+        layer = self.action.layers.new("Layer")
+        strip = layer.strips.new(type="KEYFRAME")
+        channelbag = strip.channelbags.new(slot)
+
+        x_location_fcurve = channelbag.fcurves.new(data_path="location", index=0, group_name="Object Transforms")
         for frame in range(1, 5):
             x_location_fcurve.keyframe_points.insert(frame, value=frame).interpolation = "CONSTANT"
 

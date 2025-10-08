@@ -56,12 +56,12 @@ static bool strip_for_each_recursive(ListBase *seqbase,
   return true;
 }
 
-void for_each_callback(ListBase *seqbase, ForEachFunc callback, void *user_data)
+void foreach_strip(ListBase *seqbase, ForEachFunc callback, void *user_data)
 {
   strip_for_each_recursive(seqbase, callback, user_data);
 }
 
-void for_each_callback(ListBase *seqbase, blender::FunctionRef<bool(Strip *)> callback)
+void foreach_strip(ListBase *seqbase, blender::FunctionRef<bool(Strip *)> callback)
 {
   strip_for_each_recursive(seqbase, callback);
 }

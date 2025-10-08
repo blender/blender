@@ -18,14 +18,14 @@ TEST_P(VKRenderGraphTestScheduler, begin_rendering_copy_buffer_end_rendering)
   VkHandle<VkBuffer> buffer_src(3u);
   VkHandle<VkBuffer> buffer_dst(4u);
 
-  resources.add_image(image, 1);
+  resources.add_image(image, false);
   resources.add_buffer(buffer_src);
   resources.add_buffer(buffer_dst);
 
   {
     VKResourceAccessInfo access_info = {};
     access_info.images.append(
-        {image, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_IMAGE_ASPECT_COLOR_BIT, 0});
+        {image, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_IMAGE_ASPECT_COLOR_BIT, {}});
     VKBeginRenderingNode::CreateInfo begin_rendering(access_info);
     begin_rendering.node_data.color_attachments[0].sType =
         VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
@@ -125,14 +125,14 @@ TEST_P(VKRenderGraphTestScheduler, begin_clear_attachments_copy_buffer_end)
   VkHandle<VkBuffer> buffer_src(3u);
   VkHandle<VkBuffer> buffer_dst(4u);
 
-  resources.add_image(image, 1);
+  resources.add_image(image, false);
   resources.add_buffer(buffer_src);
   resources.add_buffer(buffer_dst);
 
   {
     VKResourceAccessInfo access_info = {};
     access_info.images.append(
-        {image, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_IMAGE_ASPECT_COLOR_BIT, 0});
+        {image, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_IMAGE_ASPECT_COLOR_BIT, {}});
     VKBeginRenderingNode::CreateInfo begin_rendering(access_info);
     begin_rendering.node_data.color_attachments[0].sType =
         VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
@@ -254,14 +254,14 @@ TEST_P(VKRenderGraphTestScheduler, begin_copy_buffer_clear_attachments_end)
   VkHandle<VkBuffer> buffer_src(3u);
   VkHandle<VkBuffer> buffer_dst(4u);
 
-  resources.add_image(image, 1);
+  resources.add_image(image, false);
   resources.add_buffer(buffer_src);
   resources.add_buffer(buffer_dst);
 
   {
     VKResourceAccessInfo access_info = {};
     access_info.images.append(
-        {image, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_IMAGE_ASPECT_COLOR_BIT, 0});
+        {image, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_IMAGE_ASPECT_COLOR_BIT, {}});
     VKBeginRenderingNode::CreateInfo begin_rendering(access_info);
     begin_rendering.node_data.color_attachments[0].sType =
         VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
@@ -383,14 +383,14 @@ TEST_P(VKRenderGraphTestScheduler, begin_clear_attachments_copy_buffer_clear_att
   VkHandle<VkBuffer> buffer_src(3u);
   VkHandle<VkBuffer> buffer_dst(4u);
 
-  resources.add_image(image, 1);
+  resources.add_image(image, false);
   resources.add_buffer(buffer_src);
   resources.add_buffer(buffer_dst);
 
   {
     VKResourceAccessInfo access_info = {};
     access_info.images.append(
-        {image, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_IMAGE_ASPECT_COLOR_BIT, 0});
+        {image, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_IMAGE_ASPECT_COLOR_BIT, {}});
     VKBeginRenderingNode::CreateInfo begin_rendering(access_info);
     begin_rendering.node_data.color_attachments[0].sType =
         VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
@@ -544,13 +544,13 @@ TEST_P(VKRenderGraphTestScheduler, begin_draw_copy_framebuffer_draw_end)
   VkHandle<VkPipelineLayout> pipeline_layout_background(6u);
   VkHandle<VkPipeline> pipeline_background(7u);
 
-  resources.add_image(image_attachment, 1);
-  resources.add_image(image_feedback, 1);
+  resources.add_image(image_attachment, false);
+  resources.add_image(image_feedback, false);
 
   {
     VKResourceAccessInfo access_info = {};
     access_info.images.append(
-        {image_attachment, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_IMAGE_ASPECT_COLOR_BIT, 0});
+        {image_attachment, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_IMAGE_ASPECT_COLOR_BIT, {}});
     VKBeginRenderingNode::CreateInfo begin_rendering(access_info);
     begin_rendering.node_data.color_attachments[0].sType =
         VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
@@ -637,19 +637,16 @@ TEST_P(VKRenderGraphTestScheduler, begin_draw_copy_framebuffer_draw_end)
           "base_array_layer=0, layer_count=4294967295  )" +
           endl() + ")",
       log[0]);
-  EXPECT_EQ(
-      "begin_rendering(p_rendering_info=flags=VK_RENDERING_SUSPENDING_BIT, "
-      "VK_RENDERING_SUSPENDING_BIT_KHR, render_area=" +
-          endl() + "  offset=" + endl() + "    x=0, y=0  , extent=" + endl() +
-          "    width=0, height=0  , layer_count=1, view_mask=0, color_attachment_count=1, "
-          "p_color_attachments=" +
-          endl() + "  image_view=0x3, image_layout=" + color_attachment_layout_str() +
-          ", "
-          "resolve_mode=VK_RESOLVE_MODE_NONE, resolve_image_view=0, "
-          "resolve_image_layout=VK_IMAGE_LAYOUT_UNDEFINED, "
-          "load_op=VK_ATTACHMENT_LOAD_OP_DONT_CARE, store_op=VK_ATTACHMENT_STORE_OP_STORE" +
-          endl() + ")",
-      log[1]);
+  EXPECT_EQ("begin_rendering(p_rendering_info=flags=, render_area=" + endl() +
+                "  offset=" + endl() + "    x=0, y=0  , extent=" + endl() +
+                "    width=0, height=0  , layer_count=1, view_mask=0, color_attachment_count=1, "
+                "p_color_attachments=" +
+                endl() + "  image_view=0x3, image_layout=" + color_attachment_layout_str() +
+                ", resolve_mode=VK_RESOLVE_MODE_NONE, resolve_image_view=0, "
+                "resolve_image_layout=VK_IMAGE_LAYOUT_UNDEFINED, "
+                "load_op=VK_ATTACHMENT_LOAD_OP_DONT_CARE, store_op=VK_ATTACHMENT_STORE_OP_STORE" +
+                endl() + ")",
+            log[1]);
   EXPECT_EQ("set_viewport(num_viewports=1)", log[2]);
   EXPECT_EQ("set_scissor(num_scissors=1)", log[3]);
   EXPECT_EQ("bind_pipeline(pipeline_bind_point=VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline=0x5)",
@@ -702,19 +699,16 @@ TEST_P(VKRenderGraphTestScheduler, begin_draw_copy_framebuffer_draw_end)
           "base_array_layer=0, layer_count=4294967295  )" +
           endl() + ")",
       log[9]);
-  EXPECT_EQ(
-      "begin_rendering(p_rendering_info=flags=VK_RENDERING_RESUMING_BIT, "
-      "VK_RENDERING_RESUMING_BIT_KHR, render_area=" +
-          endl() + "  offset=" + endl() + "    x=0, y=0  , extent=" + endl() +
-          "    width=0, height=0  , layer_count=1, view_mask=0, color_attachment_count=1, "
-          "p_color_attachments=" +
-          endl() + "  image_view=0x3, image_layout=" + color_attachment_layout_str() +
-          ", "
-          "resolve_mode=VK_RESOLVE_MODE_NONE, resolve_image_view=0, "
-          "resolve_image_layout=VK_IMAGE_LAYOUT_UNDEFINED, "
-          "load_op=VK_ATTACHMENT_LOAD_OP_DONT_CARE, store_op=VK_ATTACHMENT_STORE_OP_STORE" +
-          endl() + ")",
-      log[10]);
+  EXPECT_EQ("begin_rendering(p_rendering_info=flags=, render_area=" + endl() +
+                "  offset=" + endl() + "    x=0, y=0  , extent=" + endl() +
+                "    width=0, height=0  , layer_count=1, view_mask=0, color_attachment_count=1, "
+                "p_color_attachments=" +
+                endl() + "  image_view=0x3, image_layout=" + color_attachment_layout_str() +
+                ", resolve_mode=VK_RESOLVE_MODE_NONE, resolve_image_view=0, "
+                "resolve_image_layout=VK_IMAGE_LAYOUT_UNDEFINED, "
+                "load_op=VK_ATTACHMENT_LOAD_OP_LOAD, store_op=VK_ATTACHMENT_STORE_OP_STORE" +
+                endl() + ")",
+            log[10]);
   EXPECT_EQ("bind_pipeline(pipeline_bind_point=VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline=0x7)",
             log[11]);
   EXPECT_EQ("draw(vertex_count=4, instance_count=1, first_vertex=0, first_instance=0)", log[12]);
@@ -734,14 +728,14 @@ TEST_P(VKRenderGraphTestScheduler, begin_update_draw_update_draw_update_draw_end
   VkHandle<VkPipelineLayout> pipeline_layout(5u);
   VkHandle<VkPipeline> pipeline(6u);
 
-  resources.add_image(image, 1);
+  resources.add_image(image, false);
   resources.add_buffer(buffer_a);
   resources.add_buffer(buffer_b);
 
   {
     VKResourceAccessInfo access_info = {};
     access_info.images.append(
-        {image, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_IMAGE_ASPECT_COLOR_BIT, 0});
+        {image, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_IMAGE_ASPECT_COLOR_BIT, {}});
     VKBeginRenderingNode::CreateInfo begin_rendering(access_info);
     begin_rendering.node_data.color_attachments[0].sType =
         VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
@@ -885,19 +879,16 @@ TEST_P(VKRenderGraphTestScheduler, begin_update_draw_update_draw_update_draw_end
           "size=18446744073709551615)" +
           endl() + ")",
       log[4]);
-  EXPECT_EQ(
-      "begin_rendering(p_rendering_info=flags=VK_RENDERING_SUSPENDING_BIT, "
-      "VK_RENDERING_SUSPENDING_BIT_KHR, render_area=" +
-          endl() + "  offset=" + endl() + "    x=0, y=0  , extent=" + endl() +
-          "    width=0, height=0  , layer_count=1, view_mask=0, color_attachment_count=1, "
-          "p_color_attachments=" +
-          endl() + "  image_view=0x4, image_layout=" + color_attachment_layout_str() +
-          ", "
-          "resolve_mode=VK_RESOLVE_MODE_NONE, resolve_image_view=0, "
-          "resolve_image_layout=VK_IMAGE_LAYOUT_UNDEFINED, "
-          "load_op=VK_ATTACHMENT_LOAD_OP_DONT_CARE, store_op=VK_ATTACHMENT_STORE_OP_STORE" +
-          endl() + ")",
-      log[5]);
+  EXPECT_EQ("begin_rendering(p_rendering_info=flags=, render_area=" + endl() +
+                "  offset=" + endl() + "    x=0, y=0  , extent=" + endl() +
+                "    width=0, height=0  , layer_count=1, view_mask=0, color_attachment_count=1, "
+                "p_color_attachments=" +
+                endl() + "  image_view=0x4, image_layout=" + color_attachment_layout_str() +
+                ", resolve_mode=VK_RESOLVE_MODE_NONE, resolve_image_view=0, "
+                "resolve_image_layout=VK_IMAGE_LAYOUT_UNDEFINED, "
+                "load_op=VK_ATTACHMENT_LOAD_OP_DONT_CARE, store_op=VK_ATTACHMENT_STORE_OP_STORE" +
+                endl() + ")",
+            log[5]);
   EXPECT_EQ("set_viewport(num_viewports=1)", log[6]);
   EXPECT_EQ("set_scissor(num_scissors=1)", log[7]);
   EXPECT_EQ("bind_pipeline(pipeline_bind_point=VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline=0x6)",
@@ -939,19 +930,16 @@ TEST_P(VKRenderGraphTestScheduler, begin_update_draw_update_draw_update_draw_end
           "base_array_layer=0, layer_count=4294967295  )" +
           endl() + ")",
       log[15]);
-  EXPECT_EQ(
-      "begin_rendering(p_rendering_info=flags=VK_RENDERING_RESUMING_BIT, "
-      "VK_RENDERING_RESUMING_BIT_KHR, render_area=" +
-          endl() + "  offset=" + endl() + "    x=0, y=0  , extent=" + endl() +
-          "    width=0, height=0  , layer_count=1, view_mask=0, color_attachment_count=1, "
-          "p_color_attachments=" +
-          endl() + "  image_view=0x4, image_layout=" + color_attachment_layout_str() +
-          ", "
-          "resolve_mode=VK_RESOLVE_MODE_NONE, resolve_image_view=0, "
-          "resolve_image_layout=VK_IMAGE_LAYOUT_UNDEFINED, "
-          "load_op=VK_ATTACHMENT_LOAD_OP_DONT_CARE, store_op=VK_ATTACHMENT_STORE_OP_STORE" +
-          endl() + ")",
-      log[16]);
+  EXPECT_EQ("begin_rendering(p_rendering_info=flags=, render_area=" + endl() +
+                "  offset=" + endl() + "    x=0, y=0  , extent=" + endl() +
+                "    width=0, height=0  , layer_count=1, view_mask=0, color_attachment_count=1, "
+                "p_color_attachments=" +
+                endl() + "  image_view=0x4, image_layout=" + color_attachment_layout_str() +
+                ", resolve_mode=VK_RESOLVE_MODE_NONE, resolve_image_view=0, "
+                "resolve_image_layout=VK_IMAGE_LAYOUT_UNDEFINED, "
+                "load_op=VK_ATTACHMENT_LOAD_OP_LOAD, store_op=VK_ATTACHMENT_STORE_OP_STORE" +
+                endl() + ")",
+            log[16]);
   EXPECT_EQ("draw(vertex_count=3, instance_count=1, first_vertex=0, first_instance=0)", log[17]);
   EXPECT_EQ("end_rendering()", log[18]);
 }
@@ -970,13 +958,13 @@ TEST_P(VKRenderGraphTestScheduler, begin_draw_copy_to_attachment_draw_end)
   VkHandle<VkPipelineLayout> pipeline_layout(4u);
   VkHandle<VkPipeline> pipeline(5u);
 
-  resources.add_image(image_attachment, 1);
-  resources.add_image(image_editor, 1);
+  resources.add_image(image_attachment, false);
+  resources.add_image(image_editor, false);
 
   {
     VKResourceAccessInfo access_info = {};
     access_info.images.append(
-        {image_attachment, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_IMAGE_ASPECT_COLOR_BIT, 0});
+        {image_attachment, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_IMAGE_ASPECT_COLOR_BIT, {}});
     VKBeginRenderingNode::CreateInfo begin_rendering(access_info);
     begin_rendering.node_data.color_attachments[0].sType =
         VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
@@ -1062,19 +1050,16 @@ TEST_P(VKRenderGraphTestScheduler, begin_draw_copy_to_attachment_draw_end)
           "base_array_layer=0, layer_count=4294967295  )" +
           endl() + ")",
       log[0]);
-  EXPECT_EQ(
-      "begin_rendering(p_rendering_info=flags=VK_RENDERING_SUSPENDING_BIT, "
-      "VK_RENDERING_SUSPENDING_BIT_KHR, render_area=" +
-          endl() + "  offset=" + endl() + "    x=0, y=0  , extent=" + endl() +
-          "    width=0, height=0  , layer_count=1, view_mask=0, color_attachment_count=1, "
-          "p_color_attachments=" +
-          endl() + "  image_view=0x3, image_layout=" + color_attachment_layout_str() +
-          ", "
-          "resolve_mode=VK_RESOLVE_MODE_NONE, resolve_image_view=0, "
-          "resolve_image_layout=VK_IMAGE_LAYOUT_UNDEFINED, "
-          "load_op=VK_ATTACHMENT_LOAD_OP_DONT_CARE, store_op=VK_ATTACHMENT_STORE_OP_STORE" +
-          endl() + ")",
-      log[1]);
+  EXPECT_EQ("begin_rendering(p_rendering_info=flags=, render_area=" + endl() +
+                "  offset=" + endl() + "    x=0, y=0  , extent=" + endl() +
+                "    width=0, height=0  , layer_count=1, view_mask=0, color_attachment_count=1, "
+                "p_color_attachments=" +
+                endl() + "  image_view=0x3, image_layout=" + color_attachment_layout_str() +
+                ", resolve_mode=VK_RESOLVE_MODE_NONE, resolve_image_view=0, "
+                "resolve_image_layout=VK_IMAGE_LAYOUT_UNDEFINED, "
+                "load_op=VK_ATTACHMENT_LOAD_OP_DONT_CARE, store_op=VK_ATTACHMENT_STORE_OP_STORE" +
+                endl() + ")",
+            log[1]);
   EXPECT_EQ("set_viewport(num_viewports=1)", log[2]);
   EXPECT_EQ("set_scissor(num_scissors=1)", log[3]);
   EXPECT_EQ("bind_pipeline(pipeline_bind_point=VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline=0x5)",
@@ -1127,19 +1112,16 @@ TEST_P(VKRenderGraphTestScheduler, begin_draw_copy_to_attachment_draw_end)
           "base_array_layer=0, layer_count=4294967295  )" +
           endl() + ")",
       log[9]);
-  EXPECT_EQ(
-      "begin_rendering(p_rendering_info=flags=VK_RENDERING_RESUMING_BIT, "
-      "VK_RENDERING_RESUMING_BIT_KHR, render_area=" +
-          endl() + "  offset=" + endl() + "    x=0, y=0  , extent=" + endl() +
-          "    width=0, height=0  , layer_count=1, view_mask=0, color_attachment_count=1, "
-          "p_color_attachments=" +
-          endl() + "  image_view=0x3, image_layout=" + color_attachment_layout_str() +
-          ", "
-          "resolve_mode=VK_RESOLVE_MODE_NONE, resolve_image_view=0, "
-          "resolve_image_layout=VK_IMAGE_LAYOUT_UNDEFINED, "
-          "load_op=VK_ATTACHMENT_LOAD_OP_DONT_CARE, store_op=VK_ATTACHMENT_STORE_OP_STORE" +
-          endl() + ")",
-      log[10]);
+  EXPECT_EQ("begin_rendering(p_rendering_info=flags=, render_area=" + endl() +
+                "  offset=" + endl() + "    x=0, y=0  , extent=" + endl() +
+                "    width=0, height=0  , layer_count=1, view_mask=0, color_attachment_count=1, "
+                "p_color_attachments=" +
+                endl() + "  image_view=0x3, image_layout=" + color_attachment_layout_str() +
+                ", resolve_mode=VK_RESOLVE_MODE_NONE, resolve_image_view=0, "
+                "resolve_image_layout=VK_IMAGE_LAYOUT_UNDEFINED, "
+                "load_op=VK_ATTACHMENT_LOAD_OP_LOAD, store_op=VK_ATTACHMENT_STORE_OP_STORE" +
+                endl() + ")",
+            log[10]);
   EXPECT_EQ("draw(vertex_count=4, instance_count=1, first_vertex=0, first_instance=0)", log[11]);
   EXPECT_EQ("end_rendering()", log[12]);
 }

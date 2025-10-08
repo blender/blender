@@ -104,8 +104,7 @@ static void laplacian_increase_edge_count(blender::Map<blender::OrderedEdge, int
                                           int v1,
                                           int v2)
 {
-  edgehash.add_or_modify(
-      {v1, v2}, [](int *value) { *value = 1; }, [](int *value) { (*value)++; });
+  edgehash.add_or_modify({v1, v2}, [](int *value) { *value = 1; }, [](int *value) { (*value)++; });
 }
 
 static int laplacian_edge_count(const blender::Map<blender::OrderedEdge, int> &edgehash,
@@ -204,7 +203,7 @@ static LaplacianSystem *laplacian_system_construct_begin(int verts_num, int face
 
   sys->verts = MEM_calloc_arrayN<float *>(verts_num, "LaplacianSystemVerts");
   sys->vpinned = MEM_calloc_arrayN<char>(verts_num, "LaplacianSystemVpinned");
-  sys->faces = static_cast<int(*)[3]>(
+  sys->faces = static_cast<int (*)[3]>(
       MEM_callocN(sizeof(int[3]) * faces_num, "LaplacianSystemFaces"));
 
   sys->verts_num = 0;
@@ -241,7 +240,7 @@ void laplacian_add_triangle(LaplacianSystem *sys, int v1, int v2, int v3)
 
 static void laplacian_system_construct_end(LaplacianSystem *sys)
 {
-  int(*face)[3];
+  int (*face)[3];
   int a, verts_num = sys->verts_num, faces_num = sys->faces_num;
 
   laplacian_begin_solve(sys, 0);
@@ -278,7 +277,7 @@ static void laplacian_system_construct_end(LaplacianSystem *sys)
   }
 
   if (sys->storeweights) {
-    sys->fweights = static_cast<float(*)[3]>(
+    sys->fweights = static_cast<float (*)[3]>(
         MEM_callocN(sizeof(float[3]) * faces_num, "LaplacianFWeight"));
   }
 
@@ -371,7 +370,7 @@ static void bvh_callback(void *userdata, int index, const BVHTreeRay *ray, BVHTr
   BVHCallbackUserData *data = static_cast<BVHCallbackUserData *>(userdata);
   const blender::int3 &tri = data->sys->heat.corner_tris[index];
   const blender::Span<int> corner_verts = data->sys->heat.corner_verts;
-  float(*verts)[3] = data->sys->heat.verts;
+  float (*verts)[3] = data->sys->heat.verts;
   const float *vtri_co[3];
   float dist_test;
 
@@ -403,7 +402,7 @@ static void heat_ray_tree_create(LaplacianSystem *sys)
 {
   const blender::int3 *corner_tris = sys->heat.corner_tris;
   const blender::Span<int> corner_verts = sys->heat.corner_verts;
-  float(*verts)[3] = sys->heat.verts;
+  float (*verts)[3] = sys->heat.verts;
   int tris_num = sys->heat.tris_num;
   int verts_num = sys->heat.verts_num;
   int a;
@@ -544,7 +543,7 @@ static void heat_calc_vnormals(LaplacianSystem *sys)
   float fnor[3];
   int a, v1, v2, v3, (*face)[3];
 
-  sys->heat.vert_normals = static_cast<float(*)[3]>(
+  sys->heat.vert_normals = static_cast<float (*)[3]>(
       MEM_callocN(sizeof(float[3]) * sys->verts_num, "HeatVNors"));
 
   for (a = 0, face = sys->faces; a < sys->faces_num; a++, face++) {
@@ -1027,7 +1026,7 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb,
     const blender::Span<int> corner_verts = mdb->cagemesh_cache.corner_verts;
     const int face_i = mdb->cagemesh_cache.tri_faces[hit.index];
     const blender::IndexRange face = mdb->cagemesh_cache.faces[face_i];
-    const float(*cagecos)[3] = mdb->cagecos;
+    const float (*cagecos)[3] = mdb->cagecos;
     const float len = isect_mdef.lambda;
     MDefBoundIsect *isect;
 
@@ -1052,7 +1051,7 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb,
     }
 
     interp_weights_poly_v3(isect->poly_weights,
-                           reinterpret_cast<float(*)[3]>(mp_cagecos.data()),
+                           reinterpret_cast<float (*)[3]>(mp_cagecos.data()),
                            face.size(),
                            isect->co);
 
@@ -1766,13 +1765,13 @@ void ED_mesh_deform_bind_callback(Object *object,
   BKE_mesh_wrapper_ensure_mdata(cagemesh);
 
   /* get mesh and cage mesh */
-  mdb.vertexcos = static_cast<float(*)[3]>(
+  mdb.vertexcos = static_cast<float (*)[3]>(
       MEM_callocN(sizeof(float[3]) * verts_num, "MeshDeformCos"));
   mdb.verts_num = verts_num;
 
   mdb.cagemesh = cagemesh;
   mdb.cage_verts_num = mdb.cagemesh->verts_num;
-  mdb.cagecos = static_cast<float(*)[3]>(
+  mdb.cagecos = static_cast<float (*)[3]>(
       MEM_callocN(sizeof(*mdb.cagecos) * mdb.cage_verts_num, "MeshDeformBindCos"));
   copy_m4_m4(mdb.cagemat, cagemat);
 

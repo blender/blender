@@ -2800,7 +2800,7 @@ static wmOperatorStatus view_item_click_select(bContext &C,
   if (range_select) {
     bool is_inside_range = false;
     view.foreach_view_item([&](AbstractViewItem &item) {
-      if ((item.is_active()) ^ (&item == clicked_item)) {
+      if (item.is_active() ^ (&item == clicked_item)) {
         is_inside_range = !is_inside_range;
         /* Select end items from the range. */
         item.set_selected(true);

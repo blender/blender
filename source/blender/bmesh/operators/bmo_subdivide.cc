@@ -1383,6 +1383,23 @@ void BM_mesh_esubdivide(BMesh *bm,
       break;
     }
   }
+  if (edge_hflag & BM_ELEM_SELECT) {
+    /* TODO(@ideasman42): the current behavior for face selection flushing
+     * can cause parts of disconnected UV islands to become selected.
+     * This is caused by the underlying geometry becoming selected.
+     * while this is not a bug in UV selection uses are likely to
+     * notice this problem when dealing with the UV selections.
+     * This can be observed after subdividing the default "Suzanne" model
+     * when the UV island of one of the ears is selected.
+     *
+     * We may want to change the resulting selection after a subdivision
+     * to avoid this problem occurring. */
+
+    if (bm->uv_select_sync_valid) {
+      const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_PROP_FLOAT2);
+      BM_mesh_uvselect_flush_post_subdivide(bm, cd_loop_uv_offset);
+    }
+  }
 
   BMO_op_finish(bm, &op);
 }

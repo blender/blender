@@ -16,6 +16,7 @@ from bpy.app.translations import (
     pgettext_rpt as rpt_,
     contexts as i18n_contexts,
 )
+from bpy_extras import anim_utils
 
 from collections import defaultdict
 from typing import TYPE_CHECKING, Callable, Any
@@ -1469,7 +1470,7 @@ def ik_to_fk(rig: ArmatureObject, window='ALL'):
                 break
 
 
-def clear_animation(act, anim_type, names):
+def clear_animation(channelbag, anim_type, names):
     bones = []
     for group in names:
         if names[group]['limb_type'] == 'arm':
@@ -1485,7 +1486,7 @@ def clear_animation(act, anim_type, names):
                 bones.extend([names[group]['controls'][1], names[group]['controls'][2], names[group]['controls'][3],
                               names[group]['controls'][4]])
     f_curves = []
-    for fcu in act.fcurves:
+    for fcu in channelbag.fcurves:
         words = fcu.data_path.split('"')
         if words[0] == "pose.bones[" and words[1] in bones:
             f_curves.append(fcu)
@@ -1494,7 +1495,7 @@ def clear_animation(act, anim_type, names):
         return
 
     for fcu in f_curves:
-        act.fcurves.remove(fcu)
+        channelbag.fcurves.remove(fcu)
 
     # Put cleared bones back to rest pose
     bpy.ops.pose.loc_clear()
@@ -1673,7 +1674,7 @@ class OBJECT_OT_ClearAnimation(bpy.types.Operator):
     bl_idname = "rigify.clear_animation"
     bl_label = "Clear Animation"
     bl_description = "Clear animation for FK or IK bones"
-    bl_options = {'INTERNAL'}
+    bl_options = {'INTERNAL', 'UNDO'}
 
     anim_type: StringProperty()
 
@@ -1681,13 +1682,14 @@ class OBJECT_OT_ClearAnimation(bpy.types.Operator):
         rig = verify_armature_obj(context.object)
 
         if not rig.animation_data:
-            return {'FINISHED'}
+            return {'CANCELLED'}
 
-        act = rig.animation_data.action
-        if not act:
-            return {'FINISHED'}
+        channelbag = anim_utils.action_get_channelbag_for_slot(
+            rig.animation_data.action, rig.animation_data.action_slot)
+        if not channelbag:
+            return {'CANCELLED'}
 
-        clear_animation(act, self.anim_type, names=get_limb_generated_names(rig))
+        clear_animation(channelbag, self.anim_type, names=get_limb_generated_names(rig))
         return {'FINISHED'}
 
 

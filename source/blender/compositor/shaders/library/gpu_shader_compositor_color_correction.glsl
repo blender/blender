@@ -12,22 +12,22 @@ void node_composite_color_correction(float4 color,
                                      float master_contrast,
                                      float master_gamma,
                                      float master_gain,
-                                     float master_lift,
+                                     float master_offset,
                                      float highlights_saturation,
                                      float highlights_contrast,
                                      float highlights_gamma,
                                      float highlights_gain,
-                                     float highlights_lift,
+                                     float highlights_offset,
                                      float midtones_saturation,
                                      float midtones_contrast,
                                      float midtones_gamma,
                                      float midtones_gain,
-                                     float midtones_lift,
+                                     float midtones_offset,
                                      float shadows_saturation,
                                      float shadows_contrast,
                                      float shadows_gamma,
                                      float shadows_gain,
-                                     float shadows_lift,
+                                     float shadows_offset,
                                      float start_midtones,
                                      float end_midtones,
                                      float apply_on_red,
@@ -76,17 +76,17 @@ void node_composite_color_correction(float4 color,
   gain += level_midtones * midtones_gain;
   gain += level_highlights * highlights_gain;
   gain *= master_gain;
-  float lift = level_shadows * shadows_lift;
-  lift += level_midtones * midtones_lift;
-  lift += level_highlights * highlights_lift;
-  lift += master_lift;
+  float offset = level_shadows * shadows_offset;
+  offset += level_midtones * midtones_offset;
+  offset += level_highlights * highlights_offset;
+  offset += master_offset;
 
   float inverse_gamma = 1.0f / gamma;
   float luma = get_luminance(color.rgb, luminance_coefficients);
 
   float3 corrected = luma + saturation * (color.rgb - luma);
   corrected = 0.5f + (corrected - 0.5f) * contrast;
-  corrected = fallback_pow(corrected * gain + lift, inverse_gamma, corrected);
+  corrected = fallback_pow(corrected * gain + offset, inverse_gamma, corrected);
   corrected = mix(color.rgb, corrected, min(mask, 1.0f));
 
   float3 enabled_channels = float3(apply_on_red, apply_on_green, apply_on_blue);

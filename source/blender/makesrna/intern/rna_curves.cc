@@ -125,19 +125,19 @@ static bool rna_Curves_curve_offset_data_lookup_int(PointerRNA *ptr, int index, 
 
 static float (*get_curves_positions_for_write(Curves &curves))[3]
 {
-  return reinterpret_cast<float(*)[3]>(curves.geometry.wrap().positions_for_write().data());
+  return reinterpret_cast<float (*)[3]>(curves.geometry.wrap().positions_for_write().data());
 }
 
 static const float (*get_curves_positions(const Curves &curves))[3]
 {
-  return reinterpret_cast<const float(*)[3]>(curves.geometry.wrap().positions().data());
+  return reinterpret_cast<const float (*)[3]>(curves.geometry.wrap().positions().data());
 }
 
 static int rna_CurvePoint_index_get_const(const PointerRNA *ptr)
 {
   const Curves *curves = rna_curves(ptr);
-  const float(*co)[3] = static_cast<float(*)[3]>(ptr->data);
-  const float(*positions)[3] = get_curves_positions(*curves);
+  const float (*co)[3] = static_cast<float (*)[3]>(ptr->data);
+  const float (*positions)[3] = get_curves_positions(*curves);
   return int(co - positions);
 }
 
@@ -289,15 +289,15 @@ static void rna_CurveSlice_points_begin(CollectionPropertyIterator *iter, Pointe
   Curves *curves = rna_curves(ptr);
   const int offset = rna_CurveSlice_first_point_index_get(ptr);
   const int size = rna_CurveSlice_points_length_get(ptr);
-  float(*positions)[3] = get_curves_positions_for_write(*curves);
-  float(*co)[3] = positions + offset;
+  float (*positions)[3] = get_curves_positions_for_write(*curves);
+  float (*co)[3] = positions + offset;
   rna_iterator_array_begin(iter, ptr, co, sizeof(float[3]), size, 0, nullptr);
 }
 
 static void rna_Curves_normals_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   Curves *curves = rna_curves(ptr);
-  float(*positions)[3] = blender::ed::curves::point_normals_array_create(curves);
+  float (*positions)[3] = blender::ed::curves::point_normals_array_create(curves);
   const int size = curves->geometry.point_num;
   rna_iterator_array_begin(iter, ptr, positions, sizeof(float[3]), size, true, nullptr);
 }

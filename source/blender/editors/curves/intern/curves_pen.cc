@@ -1410,7 +1410,7 @@ static wmOperatorStatus curves_pen_modal(bContext *C, wmOperator *op, const wmEv
   CurvesPenToolOperation &ptd = *reinterpret_cast<CurvesPenToolOperation *>(op->customdata);
 
   const wmOperatorStatus result = ptd.modal(C, op, event);
-  if (result == OPERATOR_FINISHED) {
+  if (result != OPERATOR_RUNNING_MODAL) {
     curves_pen_exit(C, op);
   }
   return result;

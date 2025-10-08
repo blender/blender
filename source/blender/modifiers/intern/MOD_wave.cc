@@ -126,7 +126,7 @@ static void waveModifier_do(WaveModifierData *wmd,
   float ctime = DEG_get_ctime(ctx->depsgraph);
   float minfac = float(1.0 / exp(wmd->width * wmd->narrow * wmd->width * wmd->narrow));
   float lifefac = wmd->height;
-  float(*tex_co)[3] = nullptr;
+  float (*tex_co)[3] = nullptr;
   const int wmd_axis = wmd->flag & (MOD_WAVE_X | MOD_WAVE_Y);
   const float falloff = wmd->falloff;
   float falloff_fac = 1.0f; /* when falloff == 0.0f this stays at 1.0f */
@@ -286,7 +286,7 @@ static void deform_verts(ModifierData *md,
                   ctx,
                   ctx->object,
                   mesh,
-                  reinterpret_cast<float(*)[3]>(positions.data()),
+                  reinterpret_cast<float (*)[3]>(positions.data()),
                   positions.size());
 }
 

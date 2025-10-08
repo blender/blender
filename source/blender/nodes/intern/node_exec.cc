@@ -122,6 +122,12 @@ static bNodeStack *setup_stack(bNodeStack *stack, bNodeTree *ntree, bNode *node,
   ns->sockettype = sock->type;
 
   switch (sock->type) {
+    case SOCK_INT:
+      ns->vec[0] = node_socket_get_int(ntree, node, sock);
+      break;
+    case SOCK_BOOLEAN:
+      ns->vec[0] = node_socket_get_bool(ntree, node, sock);
+      break;
     case SOCK_FLOAT:
       ns->vec[0] = node_socket_get_float(ntree, node, sock);
       break;

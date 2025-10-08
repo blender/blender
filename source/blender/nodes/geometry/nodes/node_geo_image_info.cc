@@ -41,7 +41,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   ImageUser image_user;
   BKE_imageuser_default(&image_user);
-  image_user.frames = INT_MAX;
+  image_user.frames = std::numeric_limits<int>::max();
   image_user.framenr = BKE_image_is_animated(image) ? frame : 0;
 
   void *lock;

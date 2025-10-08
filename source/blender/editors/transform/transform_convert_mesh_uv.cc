@@ -110,7 +110,7 @@ static void uv_set_connectivity_distance(const ToolSettings *ts,
 
     BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
       float dist;
-      bool uv_vert_sel = uvedit_uv_select_test_ex(ts, l, offsets);
+      bool uv_vert_sel = uvedit_uv_select_test_ex(ts, bm, l, offsets);
 
       if (uv_vert_sel) {
         BLI_LINKSTACK_PUSH(queue, l);
@@ -296,7 +296,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
         /* Make sure that the loop element flag is cleared for when we use it in
          * uv_set_connectivity_distance later. */
         BM_elem_flag_disable(l, BM_ELEM_TAG);
-        if (uvedit_uv_select_test(scene, l, offsets)) {
+        if (uvedit_uv_select_test(scene, em->bm, l, offsets)) {
           countsel++;
 
           if (island_center) {
@@ -359,8 +359,8 @@ static void createTransUVs(bContext *C, TransInfo *t)
       }
 
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-        const bool selected = uvedit_uv_select_test(scene, l, offsets);
-        float(*luv)[2];
+        const bool selected = uvedit_uv_select_test(scene, em->bm, l, offsets);
+        float (*luv)[2];
         const float *center = nullptr;
         float prop_distance = FLT_MAX;
 
@@ -380,7 +380,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
           }
         }
 
-        luv = (float(*)[2])BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
+        luv = (float (*)[2])BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
         UVsToTransData(t->aspect, *luv, center, prop_distance, selected, l, td++, td2d++);
       }
     }
@@ -871,7 +871,7 @@ Array<TransDataEdgeSlideVert> transform_mesh_uv_edge_slide_data_create(const Tra
 
         if (check_edge) {
           BMLoop *l_edge = l_dst == l->prev ? l_dst : l;
-          if (!uvedit_edge_select_test_ex(t->settings, l_edge, offsets)) {
+          if (!uvedit_edge_select_test_ex(t->settings, bm, l_edge, offsets)) {
             continue;
           }
         }

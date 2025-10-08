@@ -160,7 +160,7 @@ static void displaceModifier_do_task(void *__restrict userdata,
   int defgrp_index = data->defgrp_index;
   int direction = data->direction;
   bool use_global_direction = data->use_global_direction;
-  float(*tex_co)[3] = data->tex_co;
+  float (*tex_co)[3] = data->tex_co;
   blender::MutableSpan<blender::float3> positions = data->positions;
 
   /* When no texture is used, we fall back to white. */
@@ -251,7 +251,7 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   const MDeformVert *dvert;
   int direction = dmd->direction;
   int defgrp_index;
-  float(*tex_co)[3];
+  float (*tex_co)[3];
   float weight = 1.0f; /* init value unused but some compilers may complain */
   const bool use_global_direction = dmd->space == MOD_DISP_SPACE_GLOBAL;
 
@@ -276,7 +276,7 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
                            ctx,
                            ob,
                            mesh,
-                           reinterpret_cast<float(*)[3]>(positions.data()),
+                           reinterpret_cast<float (*)[3]>(positions.data()),
                            tex_co);
 
     MOD_init_texture((MappingInfoModifierData *)dmd, ctx);

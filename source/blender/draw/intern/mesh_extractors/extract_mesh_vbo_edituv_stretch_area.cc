@@ -77,7 +77,7 @@ static AreaInfo compute_area_ratio(const MeshRenderData &mr, MutableSpan<float> 
         for (const int face_index : range) {
           const IndexRange face = faces[face_index];
           const float area = bke::mesh::face_area_calc(positions, corner_verts.slice(face));
-          float uvarea = area_poly_v2(reinterpret_cast<const float(*)[2]>(&uv_map[face.start()]),
+          float uvarea = area_poly_v2(reinterpret_cast<const float (*)[2]>(&uv_map[face.start()]),
                                       face.size());
           info.tot_area += area;
           info.tot_uv_area += uvarea;

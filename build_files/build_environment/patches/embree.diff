@@ -1,22 +1,3 @@
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 1292e26..a1a9fcf 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -159,7 +159,13 @@ IF (EMBREE_SYCL_GEOMETRY_CALLBACK)
- ENDIF()
-
- IF (EMBREE_SYCL_SUPPORT)
--  ADD_DEFINITIONS("-DEMBREE_SYCL_SUPPORT")  # FIXME: only use define from rtcore_config.h
-+# Too many compilation issues with MSVC Debug and various versions of DPC++.
-+# It's preferable to disable SYCL support when using MSVC Debug.
-+  IF(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Debug")
-+    SET(EMBREE_SYCL_SUPPORT FALSE)
-+  ELSE()
-+    ADD_DEFINITIONS("-DEMBREE_SYCL_SUPPORT")  # FIXME: only use define from rtcore_config.h
-+  ENDIF()
- ENDIF()
-
- CMAKE_DEPENDENT_OPTION(EMBREE_SYCL_RT_SIMULATION "Using hardware simulation" OFF "EMBREE_SYCL_SUPPORT" OFF)
 diff --git a/common/cmake/dpcpp.cmake b/common/cmake/dpcpp.cmake
 index a15c179..4760e63 100644
 --- a/common/cmake/dpcpp.cmake

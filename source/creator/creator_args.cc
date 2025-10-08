@@ -389,7 +389,7 @@ static int (*parse_int_range_relative_clamp_n(const char *str,
     }
   }
 
-  int(*values)[2] = MEM_malloc_arrayN<int[2]>(size_t(len), __func__);
+  int (*values)[2] = MEM_malloc_arrayN<int[2]>(size_t(len), __func__);
   int i = 0;
   while (true) {
     const char *str_end_range;
@@ -2318,7 +2318,7 @@ static int arg_handle_render_frame(int argc, const char **argv, void *data)
       Render *re;
       ReportList reports;
 
-      int(*frame_range_arr)[2], frames_range_len;
+      int (*frame_range_arr)[2], frames_range_len;
       if ((frame_range_arr = parse_int_range_relative_clamp_n(argv[1],
                                                               scene->r.sfra,
                                                               scene->r.efra,
@@ -2713,12 +2713,16 @@ static bool handle_load_file(bContext *C, const char *filepath_arg, const bool l
 
   /* Load the file. */
   ReportList reports;
-  BKE_reports_init(&reports, RPT_PRINT);
+  BKE_reports_init(&reports, RPT_PRINT | RPT_STORE);
+  BKE_report_print_level_set(&reports, RPT_WARNING);
   /* When activating from the command line there isn't an exact equivalent to operator properties.
    * Instead, enabling auto-execution via `--enable-autoexec` causes the auto-execution
    * check to be skipped (if it's set), so it's fine to always enable the check here. */
   const bool use_scripts_autoexec_check = true;
   const bool success = WM_file_read(C, filepath, use_scripts_autoexec_check, &reports);
+
+  wmWindowManager *wm = CTX_wm_manager(C);
+  WM_reports_from_reports_move(wm, &reports);
   BKE_reports_free(&reports);
 
   if (success) {

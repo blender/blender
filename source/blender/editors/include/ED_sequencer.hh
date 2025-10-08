@@ -82,6 +82,11 @@ bool can_select_handle(const Scene *scene, const Strip *strip, const View2D *v2d
 bool handle_is_selected(const Strip *strip, eStripHandle handle);
 
 bool is_scene_time_sync_needed(const bContext &C);
+/**
+ * Returns the scene strip (if any) that should be used for the scene synchronization feature.
+ * This is the top-most visible scene strip at the current time of the \a sequencer_scene.
+ */
+const Strip *get_scene_strip_for_time_sync(const Scene *sequence_scene);
 void sync_active_scene_and_time_with_scene_strip(bContext &C);
 
 }  // namespace blender::ed::vse

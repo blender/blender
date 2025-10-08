@@ -85,7 +85,9 @@ NODE_SHADER_MATERIALX_BEGIN
       BLI_assert_unreachable();
   }
 
-  int index = STREQ(socket_out_->name, "Red") ? 0 : STREQ(socket_out_->name, "Green") ? 1 : 2;
+  int index = STREQ(socket_out_->identifier, "Red")   ? 0 :
+              STREQ(socket_out_->identifier, "Green") ? 1 :
+                                                        2;
   return convert[index];
 }
 #endif

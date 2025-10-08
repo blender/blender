@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'7089def6cbcb')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'ceca413bcbf8')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-29 09:33+0000\n"
+"POT-Creation-Date: 2025-10-06 08:44+0000\n"
 "PO-Revision-Date: 2025-07-23 15:06+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -25,10 +25,6 @@ msgstr "ชนิด"
 
 msgid "Color"
 msgstr "สี"
-
-
-msgid "Action F-Curves"
-msgstr "กระทำเส้นโค้ง F"
 
 
 msgid "Action Group"
@@ -165,10 +161,6 @@ msgstr "กลุ่มการกระทำถูกเลือก"
 
 msgid "Expanded"
 msgstr "ขยาย"
-
-
-msgid "Action Groups"
-msgstr "กลุ่มการกระทำ"
 
 
 msgctxt "ID"
@@ -440,10 +432,6 @@ msgstr "ตัวแก้ไขรูปภาพ/UV"
 
 msgid "Node Editor"
 msgstr "ตัวแก้ไขโนด"
-
-
-msgid "Video editing tools"
-msgstr "เครื่องมือแก้ไขวิดีโอ"
 
 
 msgid "Graph Editor"
@@ -1865,16 +1853,80 @@ msgid "Mask"
 msgstr "หน้ากาก"
 
 
-msgid "Mask Edit"
-msgstr "การแก้ไขหน้ากาก"
+msgid "Add Image"
+msgstr "เพิ่มภาพ"
 
 
-msgid "Mirror"
-msgstr "กระจกสะท้อน"
+msgid "Import"
+msgstr "นำเข้า"
+
+
+msgid "Apply"
+msgstr "นำไปใช้"
+
+
+msgid "Text"
+msgstr "ช้อความ"
+
+
+msgid "Track"
+msgstr "แทร็ค"
+
+
+msgid "Math"
+msgstr "คณิตศาสตร์"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Hooks"
+msgstr "ตะขอ"
+
+
+msgid "Names"
+msgstr "ชื่อ"
+
+
+msgid "Face Data"
+msgstr "ข้อมูลด้าน"
+
+
+msgid "Merge"
+msgstr "ผสาน"
+
+
+msgid "Metaball"
+msgstr "เมตาบอล"
+
+
+msgid "Layout"
+msgstr "เค้าโครง"
+
+
+msgid "Pivot Point"
+msgstr "จุดหมุน"
 
 
 msgid "Snap"
 msgstr "ยึดติด"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "แก้ไข"
+
+
+msgid "Mask Edit"
+msgstr "การแก้ไขหน้ากาก"
+
+
+msgid "Keying"
+msgstr "คีย์"
+
+
+msgid "Mirror"
+msgstr "กระจกสะท้อน"
 
 
 msgid "Local View"
@@ -1901,72 +1953,8 @@ msgid "View Regions"
 msgstr "ขอบเขตมุมมอง"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "แก้ไข"
-
-
-msgid "Layout"
-msgstr "เค้าโครง"
-
-
-msgid "Metaball"
-msgstr "เมตาบอล"
-
-
 msgid "Light"
 msgstr "แสง"
-
-
-msgid "Keying"
-msgstr "คีย์"
-
-
-msgid "Add Image"
-msgstr "เพิ่มภาพ"
-
-
-msgid "Apply"
-msgstr "นำไปใช้"
-
-
-msgid "Track"
-msgstr "แทร็ค"
-
-
-msgid "Hooks"
-msgstr "ตะขอ"
-
-
-msgid "Names"
-msgstr "ชื่อ"
-
-
-msgid "Face Data"
-msgstr "ข้อมูลด้าน"
-
-
-msgid "Merge"
-msgstr "ผสาน"
-
-
-msgid "Text"
-msgstr "ช้อความ"
-
-
-msgid "Import"
-msgstr "นำเข้า"
-
-
-msgid "Math"
-msgstr "คณิตศาสตร์"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Pivot Point"
-msgstr "จุดหมุน"
 
 
 msgid "Zoom"
@@ -2398,26 +2386,6 @@ msgstr "+X ไปยัง -X"
 
 msgid "Path to file"
 msgstr "ตำแหน่งไปยังไฟล์"
-
-
-msgctxt "Curve"
-msgid "Mode"
-msgstr "โหมด"
-
-
-msgctxt "Curve"
-msgid "Max"
-msgstr "สูงสุด"
-
-
-msgctxt "Curve"
-msgid "Line"
-msgstr "เส้น"
-
-
-msgctxt "Curve"
-msgid "Round"
-msgstr "มน"
 
 
 msgctxt "Operator"
@@ -2984,6 +2952,26 @@ msgid "Render"
 msgstr "เรนเดอร์"
 
 
+msgctxt "Curve"
+msgid "Mode"
+msgstr "โหมด"
+
+
+msgctxt "Curve"
+msgid "Max"
+msgstr "สูงสุด"
+
+
+msgctxt "Curve"
+msgid "Line"
+msgstr "เส้น"
+
+
+msgctxt "Curve"
+msgid "Round"
+msgstr "มน"
+
+
 msgctxt "Scene"
 msgid "New"
 msgstr "ใหม่"
@@ -3044,11 +3032,6 @@ msgstr "แทนที่ที่เลือกไว้"
 msgctxt "Sequence"
 msgid "Add"
 msgstr "เพิ่ม"
-
-
-msgctxt "Sequence"
-msgid "Transform"
-msgstr "การปรับเปลี่ยน"
 
 
 msgctxt "Operator"
@@ -3562,10 +3545,6 @@ msgstr "แสดงเคอร์เซอร์สองมิติ"
 
 msgid "UV Editor"
 msgstr "ตัวแก้ไข UV"
-
-
-msgid "Mask editing"
-msgstr "การแก้ไขหน้ากาก"
 
 
 msgid "Pivot around the 3D cursor"

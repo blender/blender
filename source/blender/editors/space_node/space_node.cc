@@ -760,11 +760,13 @@ static void node_area_listener(const wmSpaceTypeListenerParams *params)
         }
       }
       else if (ED_node_is_geometry(snode)) {
-        /* Rather strict check: only redraw when the reference matches the current editor's ID. */
         if (wmn->data == ND_MODIFIER) {
+          /* Rather strict check: only redraw when the reference matches current editor's ID, */
           if (wmn->reference == snode->id || snode->id == nullptr) {
             node_area_tag_tree_recalc(snode, area);
           }
+          /* Redraw context path or modifier dependent information. */
+          ED_area_tag_redraw(area);
         }
       }
       break;
@@ -1871,6 +1873,8 @@ void ED_spacetype_node()
   art->snap_size = ED_region_generic_panel_region_snap_size;
   art->draw = node_buttons_region_draw;
   BLI_addhead(&st->regiontypes, art);
+
+  node_tree_interface_panel_register(art);
 
   /* regions: toolbar */
   art = MEM_callocN<ARegionType>("spacetype view3d tools region");

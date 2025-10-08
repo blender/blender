@@ -26,10 +26,15 @@ namespace blender::nodes::node_composite_despeckle_cc {
 
 static void cmp_node_despeckle_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .hide_value()
       .structure_type(StructureType::Dynamic);
-  b.add_input<decl::Float>("Fac")
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic).align_with_previous();
+
+  b.add_input<decl::Float>("Factor", "Fac")
       .default_value(1.0f)
       .min(0.0f)
       .max(1.0f)
@@ -50,8 +55,6 @@ static void cmp_node_despeckle_declare(NodeDeclarationBuilder &b)
           "Pixels are despeckled only if the number of pixels in their neighborhood that are "
           "different exceed this ratio threshold relative to the total number of neighbors. "
           "Neighbors are considered different if they exceed the color threshold input");
-
-  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }
 
 using namespace blender::compositor;

@@ -166,10 +166,7 @@ struct BLT_i18n_contexts_descriptor {
   const char *value;
 };
 
-#define BLT_I18NCONTEXTS_ITEM(ctxt_id, py_id) \
-  { \
-    #ctxt_id, py_id, ctxt_id \
-  }
+#define BLT_I18NCONTEXTS_ITEM(ctxt_id, py_id) {#ctxt_id, py_id, ctxt_id}
 
 #define BLT_I18NCONTEXTS_DESC \
   { \

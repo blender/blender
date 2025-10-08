@@ -416,7 +416,7 @@ class StorageVectorBuffer : public StorageArrayBuffer<T, len, false> {
   int64_t item_len_ = 0;
 
  public:
-  StorageVectorBuffer(const char *name = nullptr) : StorageArrayBuffer<T, len, false>(name){};
+  StorageVectorBuffer(const char *name = nullptr) : StorageArrayBuffer<T, len, false>(name) {};
   ~StorageVectorBuffer() = default;
 
   /**
@@ -1065,7 +1065,7 @@ class Texture : NonCopyable {
 
 class TextureFromPool : public Texture, NonMovable {
  public:
-  TextureFromPool(const char *name = "gpu::Texture") : Texture(name){};
+  TextureFromPool(const char *name = "gpu::Texture") : Texture(name) {};
 
   /* Always use `release()` after rendering. */
   void acquire(int2 extent,
@@ -1205,8 +1205,8 @@ class Framebuffer : NonCopyable {
   const char *name_;
 
  public:
-  Framebuffer() : name_(""){};
-  Framebuffer(const char *name) : name_(name){};
+  Framebuffer() : name_("") {};
+  Framebuffer(const char *name) : name_(name) {};
 
   ~Framebuffer()
   {

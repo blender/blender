@@ -108,6 +108,8 @@ typedef enum eSpaceButtons_Context {
   BCONTEXT_SHADERFX = 15,
   BCONTEXT_OUTPUT = 16,
   BCONTEXT_COLLECTION = 17,
+  BCONTEXT_STRIP = 18,
+  BCONTEXT_STRIP_MODIFIER = 19,
 
   /* Keep last. */
   BCONTEXT_TOT,
@@ -1052,6 +1054,8 @@ typedef enum eSpreadsheetColumnValueType {
   SPREADSHEET_VALUE_TYPE_QUATERNION = 11,
   SPREADSHEET_VALUE_TYPE_FLOAT4X4 = 12,
   SPREADSHEET_VALUE_TYPE_BUNDLE_ITEM = 13,
+  SPREADSHEET_VALUE_TYPE_INT64 = 14,
+  SPREADSHEET_VALUE_TYPE_INT32_3D = 15,
 } eSpreadsheetColumnValueType;
 
 typedef enum eSpreadsheetColumnFlag {

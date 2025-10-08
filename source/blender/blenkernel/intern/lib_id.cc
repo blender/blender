@@ -258,6 +258,11 @@ void BKE_lib_id_clear_library_data(Main *bmain, ID *id, const int flags)
     }
   }
 
+  /* Ensure that the deephash is reset when making an ID local (in case it was previously a packed
+   * linked ID), as this is by definition not a valid deephash anymore (that ID is now a fully
+   * independent copy living in another blendfile). */
+  id->deep_hash = {};
+
   /* We need to tag this IDs and all of its users, conceptually new local ID and original linked
    * ones are two completely different data-blocks that were virtually remapped, even though in
    * reality they remain the same data. For undo this info is critical now. */
@@ -482,6 +487,13 @@ void BKE_lib_id_expand_local(Main *bmain, ID *id, const int flags)
 void lib_id_copy_ensure_local(Main *bmain, const ID *old_id, ID *new_id, const int flags)
 {
   if (ID_IS_LINKED(old_id)) {
+    /* For packed linked data copied into local IDs in Main, assume that they are no more related
+     * to their original library source, and clear their deephash.
+     *
+     * NOTE: In case more control is needed over that behavior in the future, a new flag can be
+     * added instead. */
+    new_id->deep_hash = {};
+
     BKE_lib_id_expand_local(bmain, new_id, flags);
     lib_id_library_local_paths(bmain, nullptr, old_id->lib, new_id);
   }
@@ -727,11 +739,6 @@ ID *BKE_id_copy_in_lib(Main *bmain,
    * XXX TODO: is this behavior OK, or should we need a separate flag to control that? */
   if ((flag & LIB_ID_CREATE_NO_MAIN) == 0) {
     BLI_assert(!owner_library || newid->lib == *owner_library);
-    /* Expanding local linked ID usages should never be needed with embedded IDs - this will be
-     * handled together with their owner ID copying code. */
-    if (!ID_IS_LINKED(newid) && (newid->flag & ID_FLAG_EMBEDDED_DATA) == 0) {
-      lib_id_copy_ensure_local(bmain, id, newid, 0);
-    }
     /* If the ID was copied into a library, ensure paths are properly remapped, and that it has a
      * 'linked' tag set. */
     if (ID_IS_LINKED(newid)) {
@@ -742,7 +749,13 @@ ID *BKE_id_copy_in_lib(Main *bmain,
         newid->tag |= ID_TAG_EXTERN;
       }
     }
+    /* Expanding local linked ID usages should never be needed with embedded IDs - this will be
+     * handled together with their owner ID copying code. */
+    else if ((newid->flag & ID_FLAG_EMBEDDED_DATA) == 0) {
+      lib_id_copy_ensure_local(bmain, id, newid, 0);
+    }
   }
+
   else {
     /* NOTE: Do not call `ensure_local` for IDs copied outside of Main, even if they do become
      * local.

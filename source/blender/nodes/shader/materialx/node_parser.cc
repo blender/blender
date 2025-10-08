@@ -60,7 +60,7 @@ std::string NodeParser::node_name(const char *override_output_name) const
           to_type_ :
           NodeItem::Type::Empty;
   const StringRef socket_out_name = (override_output_name) ? override_output_name :
-                                    (socket_out_)          ? socket_out_->name :
+                                    (socket_out_)          ? socket_out_->identifier :
                                                              "";
   return graph_.unique_node_name(node_, socket_out_name, to_type);
 }

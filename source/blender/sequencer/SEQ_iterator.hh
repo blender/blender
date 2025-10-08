@@ -31,10 +31,10 @@ using ForEachFunc = bool (*)(Strip *strip, void *user_data);
  * \param callback: query function callback, returns false if iteration should stop.
  * \param user_data: pointer to user data that can be used in the callback function.
  */
-void for_each_callback(ListBase *seqbase, ForEachFunc callback, void *user_data);
+void foreach_strip(ListBase *seqbase, ForEachFunc callback, void *user_data);
 
 /** Same as above, but using a more modern FunctionRef as callback. */
-void for_each_callback(ListBase *seqbase, blender::FunctionRef<bool(Strip *)> callback);
+void foreach_strip(ListBase *seqbase, blender::FunctionRef<bool(Strip *)> callback);
 
 /**
  * Expand set by running `strip_query_func()` for each strip, which will be used as reference.

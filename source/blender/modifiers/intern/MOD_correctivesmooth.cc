@@ -447,7 +447,7 @@ static void calc_tangent_spaces(const Mesh *mesh,
     for (; next_corner != term_corner;
          prev_corner = curr_corner, curr_corner = next_corner, next_corner++)
     {
-      float(*ts)[3] = r_tangent_spaces[curr_corner];
+      float (*ts)[3] = r_tangent_spaces[curr_corner];
 
       /* re-use the previous value */
 #if 0
@@ -511,8 +511,8 @@ static void calc_deltas(CorrectiveSmoothModifierData *csmd,
 
   uint l_index;
 
-  float(*tangent_spaces)[3][3] = MEM_malloc_arrayN<float[3][3]>(size_t(corner_verts.size()),
-                                                                __func__);
+  float (*tangent_spaces)[3][3] = MEM_malloc_arrayN<float[3][3]>(size_t(corner_verts.size()),
+                                                                 __func__);
 
   if (csmd->delta_cache.deltas_num != uint(corner_verts.size())) {
     MEM_SAFE_FREE(csmd->delta_cache.deltas);
@@ -693,8 +693,8 @@ static void correctivesmooth_modifier_do(ModifierData *md,
 
     const float scale = csmd->scale;
 
-    float(*tangent_spaces)[3][3] = MEM_malloc_arrayN<float[3][3]>(size_t(corner_verts.size()),
-                                                                  __func__);
+    float (*tangent_spaces)[3][3] = MEM_malloc_arrayN<float[3][3]>(size_t(corner_verts.size()),
+                                                                   __func__);
     float *tangent_weights = MEM_malloc_arrayN<float>(size_t(corner_verts.size()), __func__);
     float *tangent_weights_per_vertex = MEM_malloc_arrayN<float>(size_t(vertexCos.size()),
                                                                  __func__);

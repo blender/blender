@@ -343,8 +343,11 @@ TEST_F(KeylistSummaryTest, slot_summary_bone_selection)
   ASSERT_EQ(SingleKeyingResult::SUCCESS, insert_vert_fcurve(&bone2_loc_x, {3.0, 3.0}, {}, {}));
 
   /* Select only Bone.001. */
-  bone1->flag |= BONE_SELECTED;
-  bone2->flag &= ~BONE_SELECTED;
+  bPoseChannel *pose_bone1 = BKE_pose_channel_find_name(armature->pose, bone1->name);
+  ASSERT_NE(pose_bone1, nullptr);
+  pose_bone1->flag |= POSE_SELECTED;
+  bPoseChannel *pose_bone2 = BKE_pose_channel_find_name(armature->pose, bone2->name);
+  pose_bone2->flag &= ~POSE_SELECTED;
 
   /* Generate slot summary keylist. */
   AnimKeylist *keylist = ED_keylist_create();

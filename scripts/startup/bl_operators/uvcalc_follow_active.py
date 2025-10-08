@@ -2,6 +2,10 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+__all__ = (
+    "classes",
+)
+
 from bpy.types import Operator
 
 from bpy.props import (
@@ -16,9 +20,9 @@ STATUS_ERR_MISSING_UV_LAYER = (1 << 4)
 STATUS_ERR_NO_FACES_SELECTED = (1 << 5)
 
 
-def extend(obj, EXTEND_MODE, use_uv_selection):
+def extend(scene, obj, EXTEND_MODE, use_uv_selection):
     import bmesh
-    from .uvcalc_transform import is_face_uv_selected
+    from .uvcalc_transform import is_face_uv_selected_fn_from_context
 
     me = obj.data
 
@@ -37,9 +41,10 @@ def extend(obj, EXTEND_MODE, use_uv_selection):
         return STATUS_ERR_MISSING_UV_LAYER  # Object's mesh doesn't have any UV layers.
 
     if use_uv_selection:
+        face_select_test_fn = is_face_uv_selected_fn_from_context(scene, bm)
         faces = [
             f for f in bm.faces
-            if f.select and len(f.verts) == 4 and is_face_uv_selected(f, uv_act, False)
+            if f.select and len(f.verts) == 4 and face_select_test_fn(f, False)
         ]
     else:
         faces = [
@@ -242,6 +247,7 @@ def extend(obj, EXTEND_MODE, use_uv_selection):
 
 
 def main(context, operator):
+    scene = context.scene
     use_uv_selection = True
     if context.space_data and context.space_data.type == 'VIEW_3D':
         use_uv_selection = False  # When called from the 3D editor, UV selection is ignored.
@@ -253,8 +259,7 @@ def main(context, operator):
     ob_list = context.objects_in_mode_unique_data
     for ob in ob_list:
         num_meshes += 1
-
-        ret = extend(ob, operator.properties.mode, use_uv_selection)
+        ret = extend(scene, ob, operator.properties.mode, use_uv_selection)
         if ret != STATUS_OK:
             num_errors += 1
             status |= ret

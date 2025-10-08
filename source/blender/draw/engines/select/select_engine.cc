@@ -91,7 +91,7 @@ struct Instance : public DrawEngine {
   {
     this->draw_ctx = DRW_context_get();
     StaticData &e_data = StaticData::get();
-    GPUShaderConfig sh_cfg = (RV3D_CLIPPING_ENABLED(draw_ctx->v3d, draw_ctx->rv3d)) ?
+    GPUShaderConfig sh_cfg = RV3D_CLIPPING_ENABLED(draw_ctx->v3d, draw_ctx->rv3d) ?
                                  GPU_SHADER_CFG_CLIPPED :
                                  GPU_SHADER_CFG_DEFAULT;
 
@@ -111,7 +111,7 @@ struct Instance : public DrawEngine {
   void begin_sync() final
   {
     StaticData &e_data = StaticData::get();
-    GPUShaderConfig sh_cfg = (RV3D_CLIPPING_ENABLED(draw_ctx->v3d, draw_ctx->rv3d)) ?
+    GPUShaderConfig sh_cfg = RV3D_CLIPPING_ENABLED(draw_ctx->v3d, draw_ctx->rv3d) ?
                                  GPU_SHADER_CFG_CLIPPED :
                                  GPU_SHADER_CFG_DEFAULT;
 

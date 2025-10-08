@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'7089def6cbcb')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'ceca413bcbf8')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-29 09:33+0000\n"
+"POT-Creation-Date: 2025-10-06 08:44+0000\n"
 "PO-Revision-Date: 2025-07-23 15:20+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Kyrgyz <https://translate.blender.org/projects/blender-ui/ui/ky/>\n"
@@ -1286,12 +1286,8 @@ msgid "Mask"
 msgstr "Маска"
 
 
-msgid "Mirror"
-msgstr "Чагылтуу"
-
-
-msgid "Tracking"
-msgstr "Трекинг"
+msgid "Import"
+msgstr "Импорттоо"
 
 
 msgid "Apply"
@@ -1302,12 +1298,16 @@ msgid "Text"
 msgstr "Текст"
 
 
-msgid "Import"
-msgstr "Импорттоо"
-
-
 msgid "UV"
 msgstr "UV"
+
+
+msgid "Tracking"
+msgstr "Трекинг"
+
+
+msgid "Mirror"
+msgstr "Чагылтуу"
 
 
 msgctxt "MovieClip"
@@ -1636,11 +1636,6 @@ msgstr "Тандалганын жашыруу"
 msgctxt "Operator"
 msgid "Subdivide"
 msgstr "Бөлүү"
-
-
-msgctxt "Curve"
-msgid "Mode"
-msgstr "Режим"
 
 
 msgctxt "Operator"
@@ -2200,6 +2195,11 @@ msgid "Render active scene"
 msgstr "Активдүү сахнаны визуалдаштыруу"
 
 
+msgctxt "Curve"
+msgid "Mode"
+msgstr "Режим"
+
+
 msgctxt "Operator"
 msgid "Delete Scene"
 msgstr "Сахнаны өчүрүү"
@@ -2317,11 +2317,6 @@ msgstr "Түрү"
 msgctxt "Sequence"
 msgid "Add"
 msgstr "Кошуу"
-
-
-msgctxt "Sequence"
-msgid "Transform"
-msgstr "Өзгөртүү"
 
 
 msgctxt "Sequence"

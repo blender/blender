@@ -99,8 +99,13 @@ static const EnumPropertyItem limit_method_items[] = {
 
 static void cmp_node_channel_matte_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.is_function_node();
-  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f}).hide_value();
+  b.add_output<decl::Color>("Image").align_with_previous();
+  b.add_output<decl::Float>("Matte");
+
   b.add_input<decl::Float>("Minimum")
       .default_value(0.0f)
       .subtype(PROP_FACTOR)
@@ -239,9 +244,6 @@ static void cmp_node_channel_matte_declare(NodeDeclarationBuilder &b)
                                             CMP_NODE_CHANNEL_MATTE_LIMIT_ALGORITHM_SINGLE) &&
                    params.menu_input_may_be("Color Space", CMP_NODE_CHANNEL_MATTE_CS_YCC);
           });
-
-  b.add_output<decl::Color>("Image");
-  b.add_output<decl::Float>("Matte");
 }
 
 static void node_composit_init_channel_matte(bNodeTree * /*ntree*/, bNode *node)

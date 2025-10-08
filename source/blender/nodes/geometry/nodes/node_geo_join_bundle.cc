@@ -16,8 +16,8 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.allow_any_socket_order();
   b.add_input<decl::Bundle>("Bundle").multi_input().description(
       "Bundles to join together on the top level for each bundle. When there are duplicates, only "
-      "the first occurence is used");
-  b.add_output<decl::Bundle>("Bundle").align_with_previous();
+      "the first occurrence is used");
+  b.add_output<decl::Bundle>("Bundle").align_with_previous().propagate_all().reference_pass_all();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

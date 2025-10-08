@@ -25,6 +25,7 @@
 #include "BKE_mesh_types.hh"
 
 #include "DNA_mesh_types.h"
+#include "DNA_scene_types.h"
 
 #include "../generic/py_capi_utils.hh"
 
@@ -56,6 +57,7 @@ static PyObject *bpy_bm_new(PyObject * /*self*/, PyObject *args, PyObject *kw)
   BMeshCreateParams params{};
   params.use_toolflags = use_operators;
   bm = BM_mesh_create(&bm_mesh_allocsize_default, &params);
+  bm->selectmode = SCE_SELECT_VERTEX;
 
   return BPy_BMesh_CreatePyObject(bm, BPY_BMFLAG_NOP);
 }

@@ -356,6 +356,21 @@ struct BMesh {
 
   bool use_toolflags;
 
+  /**
+   * Used when the UV select sync tool-setting is enabled (see: #UV_FLAG_SELECT_SYNC).
+   *
+   * When true, UV selection flags are "valid" (see: #BM_ELEM_SELECT_UV & #BM_ELEM_SELECT_UV_EDGE).
+   * Otherwise UV selection is read from vertex/edge/face selection flags used in the viewport.
+   *
+   * Notes:
+   * - This should be cleared aggressively when there is no need
+   *   to store a separate UV selection to avoid unnecessary overhead.
+   * - Clear using #BM_mesh_uvselect_clear (instead of setting directly).
+   *
+   - See `bmesh_uvselect.hh` for a more comprehensive explanation.
+   */
+  bool uv_select_sync_valid;
+
   int toolflag_index;
 
   CustomData vdata, edata, ldata, pdata;
@@ -505,7 +520,11 @@ enum {
    */
   BM_ELEM_TAG = (1 << 4),
 
-  BM_ELEM_DRAW = (1 << 5), /* edge display */
+  /**
+   * Used for #BMLoop for loop-vertex selection & #BMFace when the face is selected.
+   * The #BMLoop also stores edge selection: #BM_ELEM_SELECT_UV_EDGE.
+   */
+  BM_ELEM_SELECT_UV = (1 << 5),
 
   /** Spare tag, assumed dirty, use define in each function to name based on use. */
   BM_ELEM_TAG_ALT = (1 << 6),
@@ -517,6 +536,9 @@ enum {
    */
   BM_ELEM_INTERNAL_TAG = (1 << 7),
 };
+
+/* Only for #BMLoop to select an edge. */
+#define BM_ELEM_SELECT_UV_EDGE BM_ELEM_SEAM
 
 struct BPy_BMGeneric;
 extern void bpy_bm_generic_invalidate(struct BPy_BMGeneric *self);
@@ -555,10 +577,10 @@ using BMLoopPairFilterFunc = bool (*)(const BMLoop *, const BMLoop *, void *user
 #  define BM_ELEM_CD_GET_BOOL_P(ele, offset) \
     (BLI_assert(offset != -1), \
      _Generic(ele, \
-     GENERIC_TYPE_ANY((bool *)POINTER_OFFSET((ele)->head.data, offset), \
-                      _BM_GENERIC_TYPE_ELEM_NONCONST), \
-     GENERIC_TYPE_ANY((const bool *)POINTER_OFFSET((ele)->head.data, offset), \
-                      _BM_GENERIC_TYPE_ELEM_CONST)))
+         GENERIC_TYPE_ANY((bool *)POINTER_OFFSET((ele)->head.data, offset), \
+                          _BM_GENERIC_TYPE_ELEM_NONCONST), \
+         GENERIC_TYPE_ANY((const bool *)POINTER_OFFSET((ele)->head.data, offset), \
+                          _BM_GENERIC_TYPE_ELEM_CONST)))
 #else
 #  define BM_ELEM_CD_GET_BOOL_P(ele, offset) \
     (BLI_assert(offset != -1), (bool *)((char *)(ele)->head.data + (offset)))
@@ -568,9 +590,10 @@ using BMLoopPairFilterFunc = bool (*)(const BMLoop *, const BMLoop *, void *user
 #  define BM_ELEM_CD_GET_VOID_P(ele, offset) \
     (BLI_assert(offset != -1), \
      _Generic(ele, \
-     GENERIC_TYPE_ANY(POINTER_OFFSET((ele)->head.data, offset), _BM_GENERIC_TYPE_ELEM_NONCONST), \
-     GENERIC_TYPE_ANY((const void *)POINTER_OFFSET((ele)->head.data, offset), \
-                      _BM_GENERIC_TYPE_ELEM_CONST)))
+         GENERIC_TYPE_ANY(POINTER_OFFSET((ele)->head.data, offset), \
+                          _BM_GENERIC_TYPE_ELEM_NONCONST), \
+         GENERIC_TYPE_ANY((const void *)POINTER_OFFSET((ele)->head.data, offset), \
+                          _BM_GENERIC_TYPE_ELEM_CONST)))
 #else
 #  define BM_ELEM_CD_GET_VOID_P(ele, offset) \
     (BLI_assert(offset != -1), (void *)((char *)(ele)->head.data + (offset)))
@@ -592,26 +615,26 @@ using BMLoopPairFilterFunc = bool (*)(const BMLoop *, const BMLoop *, void *user
 #  define BM_ELEM_CD_GET_FLOAT_P(ele, offset) \
     (BLI_assert(offset != -1), \
      _Generic(ele, \
-     GENERIC_TYPE_ANY((float *)POINTER_OFFSET((ele)->head.data, offset), \
-                      _BM_GENERIC_TYPE_ELEM_NONCONST), \
-     GENERIC_TYPE_ANY((const float *)POINTER_OFFSET((ele)->head.data, offset), \
-                      _BM_GENERIC_TYPE_ELEM_CONST)))
+         GENERIC_TYPE_ANY((float *)POINTER_OFFSET((ele)->head.data, offset), \
+                          _BM_GENERIC_TYPE_ELEM_NONCONST), \
+         GENERIC_TYPE_ANY((const float *)POINTER_OFFSET((ele)->head.data, offset), \
+                          _BM_GENERIC_TYPE_ELEM_CONST)))
 
 #  define BM_ELEM_CD_GET_FLOAT2_P(ele, offset) \
     (BLI_assert(offset != -1), \
      _Generic(ele, \
-     GENERIC_TYPE_ANY((float(*)[2])POINTER_OFFSET((ele)->head.data, offset), \
-                      _BM_GENERIC_TYPE_ELEM_NONCONST), \
-     GENERIC_TYPE_ANY((const float(*)[2])POINTER_OFFSET((ele)->head.data, offset), \
-                      _BM_GENERIC_TYPE_ELEM_CONST)))
+         GENERIC_TYPE_ANY((float (*)[2])POINTER_OFFSET((ele)->head.data, offset), \
+                          _BM_GENERIC_TYPE_ELEM_NONCONST), \
+         GENERIC_TYPE_ANY((const float (*)[2])POINTER_OFFSET((ele)->head.data, offset), \
+                          _BM_GENERIC_TYPE_ELEM_CONST)))
 
 #  define BM_ELEM_CD_GET_FLOAT3_P(ele, offset) \
     (BLI_assert(offset != -1), \
      _Generic(ele, \
-     GENERIC_TYPE_ANY((float(*)[3])POINTER_OFFSET((ele)->head.data, offset), \
-                      _BM_GENERIC_TYPE_ELEM_NONCONST), \
-     GENERIC_TYPE_ANY((const float(*)[3])POINTER_OFFSET((ele)->head.data, offset), \
-                      _BM_GENERIC_TYPE_ELEM_CONST)))
+         GENERIC_TYPE_ANY((float (*)[3])POINTER_OFFSET((ele)->head.data, offset), \
+                          _BM_GENERIC_TYPE_ELEM_NONCONST), \
+         GENERIC_TYPE_ANY((const float (*)[3])POINTER_OFFSET((ele)->head.data, offset), \
+                          _BM_GENERIC_TYPE_ELEM_CONST)))
 
 #else
 
@@ -619,10 +642,10 @@ using BMLoopPairFilterFunc = bool (*)(const BMLoop *, const BMLoop *, void *user
     (BLI_assert(offset != -1), (float *)((char *)(ele)->head.data + (offset)))
 
 #  define BM_ELEM_CD_GET_FLOAT2_P(ele, offset) \
-    (BLI_assert(offset != -1), (float(*)[2])((char *)(ele)->head.data + (offset)))
+    (BLI_assert(offset != -1), (float (*)[2])((char *)(ele)->head.data + (offset)))
 
 #  define BM_ELEM_CD_GET_FLOAT3_P(ele, offset) \
-    (BLI_assert(offset != -1), (float(*)[3])((char *)(ele)->head.data + (offset)))
+    (BLI_assert(offset != -1), (float (*)[3])((char *)(ele)->head.data + (offset)))
 
 #endif
 

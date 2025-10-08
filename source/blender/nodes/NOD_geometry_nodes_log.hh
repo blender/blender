@@ -135,6 +135,11 @@ struct GeometryAttributeInfo {
   std::optional<bke::AttrType> data_type;
 };
 
+struct VolumeGridInfo {
+  std::string name;
+  VolumeGridType grid_type;
+};
+
 /**
  * Geometries are not logged entirely, because that would result in a lot of time and memory
  * overhead. Instead, only the data needed for UI features is logged.
@@ -168,7 +173,7 @@ class GeometryInfoLog : public ValueLog {
     int gizmo_transforms_num = 0;
   };
   struct VolumeInfo {
-    int grids_num;
+    Vector<VolumeGridInfo> grids;
   };
 
   std::optional<MeshInfo> mesh_info;

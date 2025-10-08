@@ -63,7 +63,7 @@ UvVertMap *BKE_mesh_uv_vert_map_create(blender::OffsetIndices<int> faces,
     threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {
       for (const int64_t face : range) {
         const Span<float2> face_uvs = uv_map.slice(faces[face]);
-        winding[face] = cross_poly_v2(reinterpret_cast<const float(*)[2]>(face_uvs.data()),
+        winding[face] = cross_poly_v2(reinterpret_cast<const float (*)[2]>(face_uvs.data()),
                                       uint(faces[face].size())) < 0.0f;
       }
     });

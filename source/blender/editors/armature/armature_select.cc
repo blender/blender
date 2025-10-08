@@ -183,10 +183,10 @@ static void *ed_armature_pick_bone_from_selectbuffer_impl(const bool is_editmode
             continue;
           }
           if (findunsel) {
-            sel = (pchan->bone->flag & BONE_SELECTED);
+            sel = (pchan->flag & POSE_SELECTED);
           }
           else {
-            sel = !(pchan->bone->flag & BONE_SELECTED);
+            sel = !(pchan->flag & POSE_SELECTED);
           }
 
           data = pchan;

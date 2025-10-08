@@ -51,7 +51,7 @@ class USDHierarchyIterator : public AbstractHierarchyIterator {
 
  protected:
   bool mark_as_weak_export(const Object *object) const override;
-  void determine_point_instancers(const HierarchyContext *context);
+  bool determine_point_instancers(const HierarchyContext *context);
 
   AbstractHierarchyWriter *create_transform_writer(const HierarchyContext *context) override;
   AbstractHierarchyWriter *create_data_writer(const HierarchyContext *context) override;

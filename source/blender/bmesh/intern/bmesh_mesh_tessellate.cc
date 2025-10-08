@@ -97,7 +97,7 @@ BLI_INLINE void bmesh_calc_tessellation_for_face_impl(std::array<BMLoop *, 3> *l
       BMLoop **l_arr;
 
       float axis_mat[3][3];
-      float(*projverts)[2];
+      float (*projverts)[2];
       uint(*tris)[3];
 
       const int tris_len = efa->len - 2;
@@ -109,7 +109,7 @@ BLI_INLINE void bmesh_calc_tessellation_for_face_impl(std::array<BMLoop *, 3> *l
 
       tris = static_cast<uint(*)[3]>(BLI_memarena_alloc(pf_arena, sizeof(*tris) * tris_len));
       l_arr = static_cast<BMLoop **>(BLI_memarena_alloc(pf_arena, sizeof(*l_arr) * efa->len));
-      projverts = static_cast<float(*)[2]>(
+      projverts = static_cast<float (*)[2]>(
           BLI_memarena_alloc(pf_arena, sizeof(*projverts) * efa->len));
 
       axis_dominant_v3_to_m3_negate(axis_mat, efa->no);
@@ -492,14 +492,14 @@ static int bmesh_calc_tessellation_for_face_beauty(std::array<BMLoop *, 3> *loop
       BMLoop **l_arr;
 
       float axis_mat[3][3];
-      float(*projverts)[2];
+      float (*projverts)[2];
       uint(*tris)[3];
 
       const int tris_len = efa->len - 2;
 
       tris = static_cast<uint(*)[3]>(BLI_memarena_alloc(pf_arena, sizeof(*tris) * tris_len));
       l_arr = static_cast<BMLoop **>(BLI_memarena_alloc(pf_arena, sizeof(*l_arr) * efa->len));
-      projverts = static_cast<float(*)[2]>(
+      projverts = static_cast<float (*)[2]>(
           BLI_memarena_alloc(pf_arena, sizeof(*projverts) * efa->len));
 
       axis_dominant_v3_to_m3_negate(axis_mat, efa->no);

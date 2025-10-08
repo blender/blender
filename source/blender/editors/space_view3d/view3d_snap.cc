@@ -138,7 +138,7 @@ static wmOperatorStatus snap_sel_to_grid_exec(bContext *C, wmOperator *op)
       invert_m4_m4(ob_eval->runtime->world_to_object.ptr(), ob_eval->object_to_world().ptr());
 
       LISTBASE_FOREACH (bPoseChannel *, pchan_eval, &ob_eval->pose->chanbase) {
-        if (pchan_eval->bone->flag & BONE_SELECTED) {
+        if (pchan_eval->flag & POSE_SELECTED) {
           if (ANIM_bonecoll_is_visible_pchan(arm_eval, pchan_eval)) {
             if ((pchan_eval->bone->flag & BONE_CONNECTED) == 0) {
               float nLoc[3];
@@ -285,6 +285,18 @@ void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot)
 /** \name Snap Selection to Location (Utility)
  * \{ */
 
+/* Return true if the bone or any of its parents has the given runtime flag set. */
+static bool pose_bone_runtime_flag_test_recursive(const bPoseChannel *pose_bone, int flag)
+{
+  if (pose_bone->runtime.flag & flag) {
+    return true;
+  }
+  if (pose_bone->parent) {
+    return pose_bone_runtime_flag_test_recursive(pose_bone->parent, flag);
+  }
+  return false;
+}
+
 /**
  * Snaps the selection as a whole (use_offset=true) or each selected object to the given location.
  *
@@ -404,24 +416,24 @@ static bool snap_selected_to_location_rotation(bContext *C,
       mul_v3_m4v3(target_loc_local, ob->world_to_object().ptr(), target_loc_global);
 
       LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-        if ((pchan->bone->flag & BONE_SELECTED) && blender::animrig::bone_is_visible(arm, pchan) &&
+        if ((pchan->flag & POSE_SELECTED) && blender::animrig::bone_is_visible(arm, pchan) &&
             /* if the bone has a parent and is connected to the parent,
              * don't do anything - will break chain unless we do auto-ik.
              */
             (pchan->bone->flag & BONE_CONNECTED) == 0)
         {
-          pchan->bone->flag |= BONE_TRANSFORM;
+          pchan->runtime.flag |= POSE_RUNTIME_TRANSFORM;
         }
         else {
-          pchan->bone->flag &= ~BONE_TRANSFORM;
+          pchan->runtime.flag &= ~POSE_RUNTIME_TRANSFORM;
         }
       }
 
       LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-        if ((pchan->bone->flag & BONE_TRANSFORM) &&
+        if ((pchan->runtime.flag & POSE_RUNTIME_TRANSFORM) &&
             /* check that our parents not transformed (if we have one) */
             ((pchan->bone->parent &&
-              BKE_armature_bone_flag_test_recursive(pchan->bone->parent, BONE_TRANSFORM)) == 0))
+              pose_bone_runtime_flag_test_recursive(pchan->parent, POSE_RUNTIME_TRANSFORM)) == 0))
         {
           /* Get position in pchan (pose) space. */
           blender::float3 target_loc_pose;
@@ -497,7 +509,7 @@ static bool snap_selected_to_location_rotation(bContext *C,
       }
 
       LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-        pchan->bone->flag &= ~BONE_TRANSFORM;
+        pchan->runtime.flag &= ~POSE_RUNTIME_TRANSFORM;
       }
 
       ob->pose->flag |= (POSE_LOCKED | POSE_DO_UNLOCK);
@@ -945,7 +957,7 @@ static bool snap_curs_to_sel_ex(bContext *C, const int pivot_point, float r_curs
       bArmature *arm = static_cast<bArmature *>(obact_eval->data);
       LISTBASE_FOREACH (bPoseChannel *, pchan, &obact_eval->pose->chanbase) {
         if (ANIM_bonecoll_is_visible_pchan(arm, pchan)) {
-          if (pchan->bone->flag & BONE_SELECTED) {
+          if (pchan->flag & POSE_SELECTED) {
             copy_v3_v3(vec, pchan->pose_head);
             mul_m4_v3(obact_eval->object_to_world().ptr(), vec);
             add_v3_v3(centroid, vec);

@@ -284,7 +284,7 @@ bool ED_armature_pose_select_pick_bone(const Scene *scene,
                                        ViewLayer *view_layer,
                                        View3D *v3d,
                                        Object *ob,
-                                       Bone *bone,
+                                       bPoseChannel *pchan,
                                        const SelectPick_Params &params) ATTR_NONNULL(1, 2, 3, 4);
 /**
  * Called for mode-less pose selection.

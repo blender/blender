@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'7089def6cbcb')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'ceca413bcbf8')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-29 09:33+0000\n"
+"POT-Creation-Date: 2025-10-06 08:44+0000\n"
 "PO-Revision-Date: 2025-07-31 16:24+0000\n"
 "Last-Translator: leif larsen <linuxdk1978@gmail.com>\n"
 "Language-Team: Danish <https://translate.blender.org/projects/blender-ui/ui/da/>\n"
@@ -101,14 +101,6 @@ msgstr "Animation kanaler for slots"
 
 msgid "For each action slot, a list of animation channels that are meant for that slot"
 msgstr "For hver handlings slot, en liste af animation kanaler der er beregnet  for det slot"
-
-
-msgid "Action F-Curves"
-msgstr "Handlings F-kurver"
-
-
-msgid "Collection of action F-Curves. Note that this is a legacy API that is unaware of action slots, and will only consider the F-Curves for this action's first slot"
-msgstr "Samling af action F-kurver. Bemærk, at dette er en ældre API, der ikke er opmærksom på handlingspladser, og som kun vil overveje F-kurverne for denne handlings første plads"
 
 
 msgid "Action Group"
@@ -277,14 +269,6 @@ msgstr "Handlingsgruppen udvides i grafeditor"
 
 msgid "Pin in Graph Editor"
 msgstr "Fastgør i Graph Editor"
-
-
-msgid "Action Groups"
-msgstr "Handlingsgrupper"
-
-
-msgid "Collection of action groups"
-msgstr "Samling af handlingsgrupper"
 
 
 msgid "Action Layer"
@@ -1297,10 +1281,6 @@ msgstr "Editor til nodebaserede fave- og sammensætningsværktøje"
 
 msgid "Video Sequencer"
 msgstr "Video Sequencer"
-
-
-msgid "Video editing tools"
-msgstr "Videoredigeringsværktøjer"
 
 
 msgid "Movie Clip Editor"
@@ -3882,10 +3862,6 @@ msgid "Gray Scale"
 msgstr "Gråskala"
 
 
-msgid "Timeline and playback controls"
-msgstr "Tidslinje og afspilnings kontroller"
-
-
 msgid "3D"
 msgstr "3d"
 
@@ -3962,12 +3938,12 @@ msgid "Motion"
 msgstr "Bevægelse"
 
 
-msgid "Fac"
-msgstr "Fak"
-
-
 msgid "Key Color"
 msgstr "Nøglefarve"
+
+
+msgid "Fac"
+msgstr "Fak"
 
 
 msgid "ID value"

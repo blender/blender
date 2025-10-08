@@ -248,7 +248,7 @@ extern size_t (*MEM_get_peak_memory)(void) ATTR_WARN_UNUSED_RESULT;
 
 /** Overhead for lockfree allocator (use to avoid slop-space). */
 #define MEM_SIZE_OVERHEAD sizeof(size_t)
-#define MEM_SIZE_OPTIMAL(size) ((size)-MEM_SIZE_OVERHEAD)
+#define MEM_SIZE_OPTIMAL(size) ((size) - MEM_SIZE_OVERHEAD)
 
 #ifndef NDEBUG
 extern const char *(*MEM_name_ptr)(void *vmemh);

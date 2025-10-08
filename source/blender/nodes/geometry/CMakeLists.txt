@@ -86,6 +86,7 @@ set(SRC
   nodes/node_geo_extrude_mesh.cc
   nodes/node_geo_field_average.cc
   nodes/node_geo_field_min_and_max.cc
+  nodes/node_geo_field_to_grid.cc
   nodes/node_geo_field_variance.cc
   nodes/node_geo_flip_faces.cc
   nodes/node_geo_foreach_geometry_element.cc
@@ -95,8 +96,15 @@ set(SRC
   nodes/node_geo_gizmo_linear.cc
   nodes/node_geo_gizmo_transform.cc
   nodes/node_geo_grease_pencil_to_curves.cc
+  nodes/node_geo_grid_advect.cc
+  nodes/node_geo_grid_curl.cc
+  nodes/node_geo_grid_divergence.cc
+  nodes/node_geo_grid_gradient.cc
   nodes/node_geo_grid_info.cc
+  nodes/node_geo_grid_laplacian.cc
+  nodes/node_geo_grid_prune.cc
   nodes/node_geo_grid_to_mesh.cc
+  nodes/node_geo_grid_voxelize.cc
   nodes/node_geo_image.cc
   nodes/node_geo_image_info.cc
   nodes/node_geo_image_texture.cc
@@ -142,6 +150,7 @@ set(SRC
   nodes/node_geo_input_spline_length.cc
   nodes/node_geo_input_spline_resolution.cc
   nodes/node_geo_input_tangent.cc
+  nodes/node_geo_input_voxel_index.cc
   nodes/node_geo_instance_on_points.cc
   nodes/node_geo_instances_to_points.cc
   nodes/node_geo_interpolate_curves.cc
@@ -202,6 +211,12 @@ set(SRC
   nodes/node_geo_scale_elements.cc
   nodes/node_geo_scale_instances.cc
   nodes/node_geo_sdf_grid_boolean.cc
+  nodes/node_geo_sdf_grid_fillet.cc
+  nodes/node_geo_sdf_grid_laplacian.cc
+  nodes/node_geo_sdf_grid_mean.cc
+  nodes/node_geo_sdf_grid_mean_curvature.cc
+  nodes/node_geo_sdf_grid_median.cc
+  nodes/node_geo_sdf_grid_offset.cc
   nodes/node_geo_self_object.cc
   nodes/node_geo_separate_bundle.cc
   nodes/node_geo_separate_components.cc
@@ -214,6 +229,8 @@ set(SRC
   nodes/node_geo_set_grease_pencil_color.cc
   nodes/node_geo_set_grease_pencil_depth_mode.cc
   nodes/node_geo_set_grease_pencil_softness.cc
+  nodes/node_geo_set_grid_background.cc
+  nodes/node_geo_set_grid_transform.cc
   nodes/node_geo_set_id.cc
   nodes/node_geo_set_instance_transform.cc
   nodes/node_geo_set_material.cc
@@ -255,6 +272,7 @@ set(SRC
   include/NOD_geo_bundle.hh
   include/NOD_geo_capture_attribute.hh
   include/NOD_geo_closure.hh
+  include/NOD_geo_field_to_grid.hh
   include/NOD_geo_foreach_geometry_element.hh
   include/NOD_geo_index_switch.hh
   include/NOD_geo_menu_switch.hh

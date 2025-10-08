@@ -129,7 +129,7 @@ static bool verttag_test_cb(BMLoop *l, void *user_data_v)
     if (verttag_filter_cb(l_iter, user_data)) {
       const float *luv_iter = BM_ELEM_CD_GET_FLOAT_P(l_iter, cd_loop_uv_offset);
       if (equals_v2v2(luv, luv_iter)) {
-        if (!uvedit_uv_select_test(scene, l_iter, user_data->offsets)) {
+        if (!uvedit_uv_select_test(scene, user_data->bm, l_iter, user_data->offsets)) {
           return false;
         }
       }
@@ -150,7 +150,7 @@ static void verttag_set_cb(BMLoop *l, bool val, void *user_data_v)
     if (verttag_filter_cb(l_iter, user_data)) {
       const float *luv_iter = BM_ELEM_CD_GET_FLOAT_P(l_iter, cd_loop_uv_offset);
       if (equals_v2v2(luv, luv_iter)) {
-        uvedit_uv_select_set(scene, bm, l_iter, val, user_data->offsets);
+        uvedit_uv_select_set(scene, bm, l_iter, val);
       }
     }
   }
@@ -259,7 +259,7 @@ static bool edgetag_test_cb(BMLoop *l, void *user_data_v)
   BM_ITER_ELEM (l_iter, &iter, l->e, BM_LOOPS_OF_EDGE) {
     if (edgetag_filter_cb(l_iter, user_data)) {
       if (BM_loop_uv_share_edge_check(l, l_iter, user_data->offsets.uv)) {
-        if (!uvedit_edge_select_test(scene, l_iter, user_data->offsets)) {
+        if (!uvedit_edge_select_test(scene, user_data->bm, l_iter, user_data->offsets)) {
           return false;
         }
       }
@@ -376,7 +376,7 @@ static bool facetag_test_cb(BMFace *f, void *user_data_v)
   BMIter iter;
   BMLoop *l_iter;
   BM_ITER_ELEM (l_iter, &iter, f, BM_LOOPS_OF_FACE) {
-    if (!uvedit_edge_select_test(scene, l_iter, user_data->offsets)) {
+    if (!uvedit_edge_select_test(scene, user_data->bm, l_iter, user_data->offsets)) {
       return false;
     }
   }
@@ -611,17 +611,17 @@ static wmOperatorStatus uv_shortest_path_pick_invoke(bContext *C,
     else if (uv_selectmode & UV_SELECT_EDGE) {
       /* Edge selection. */
       BMLoop *l_src = nullptr;
-      if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
+      if ((ts->uv_flag & UV_FLAG_SELECT_SYNC) && (bm->uv_select_sync_valid == false)) {
         BMEdge *e_src = BM_mesh_active_edge_get(bm);
         if (e_src != nullptr) {
           l_src = uv_find_nearest_loop_from_edge(scene, obedit, e_src, co);
         }
       }
       else {
-        l_src = ED_uvedit_active_edge_loop_get(bm);
+        l_src = ED_uvedit_active_edge_loop_get(ts, bm);
         if (l_src != nullptr) {
-          if (!uvedit_uv_select_test(scene, l_src, offsets) &&
-              !uvedit_uv_select_test(scene, l_src->next, offsets))
+          if (!uvedit_uv_select_test(scene, bm, l_src, offsets) &&
+              !uvedit_uv_select_test(scene, bm, l_src->next, offsets))
           {
             l_src = nullptr;
           }
@@ -634,16 +634,16 @@ static wmOperatorStatus uv_shortest_path_pick_invoke(bContext *C,
     else {
       /* Vertex selection. */
       BMLoop *l_src = nullptr;
-      if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
+      if ((ts->uv_flag & UV_FLAG_SELECT_SYNC) && (bm->uv_select_sync_valid == false)) {
         BMVert *v_src = BM_mesh_active_vert_get(bm);
         if (v_src != nullptr) {
           l_src = uv_find_nearest_loop_from_vert(scene, obedit, v_src, co);
         }
       }
       else {
-        l_src = ED_uvedit_active_vert_loop_get(bm);
+        l_src = ED_uvedit_active_vert_loop_get(ts, bm);
         if (l_src != nullptr) {
-          if (!uvedit_uv_select_test(scene, l_src, offsets)) {
+          if (!uvedit_uv_select_test(scene, bm, l_src, offsets)) {
             l_src = nullptr;
           }
         }
@@ -689,6 +689,7 @@ static wmOperatorStatus uv_shortest_path_pick_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
+  const ToolSettings *ts = scene->toolsettings;
   ViewLayer *view_layer = CTX_data_view_layer(C);
   const char uv_selectmode = ED_uvedit_select_mode_get(scene);
 
@@ -725,7 +726,7 @@ static wmOperatorStatus uv_shortest_path_pick_exec(bContext *C, wmOperator *op)
     if (index < 0 || index >= bm->totloop) {
       return OPERATOR_CANCELLED;
     }
-    if (!(ele_src = (BMElem *)ED_uvedit_active_edge_loop_get(bm)) ||
+    if (!(ele_src = (BMElem *)ED_uvedit_active_edge_loop_get(ts, bm)) ||
         !(ele_dst = (BMElem *)BM_loop_at_index_find(bm, index)))
     {
       return OPERATOR_CANCELLED;
@@ -735,7 +736,7 @@ static wmOperatorStatus uv_shortest_path_pick_exec(bContext *C, wmOperator *op)
     if (index < 0 || index >= bm->totloop) {
       return OPERATOR_CANCELLED;
     }
-    if (!(ele_src = (BMElem *)ED_uvedit_active_vert_loop_get(bm)) ||
+    if (!(ele_src = (BMElem *)ED_uvedit_active_vert_loop_get(ts, bm)) ||
         !(ele_dst = (BMElem *)BM_loop_at_index_find(bm, index)))
     {
       return OPERATOR_CANCELLED;

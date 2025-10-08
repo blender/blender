@@ -344,12 +344,15 @@ class USERPREF_PT_interface_statusbar(InterfacePanel, CenterAlignMixIn, Panel):
         col.prop(view, "show_statusbar_version", text="Blender Version")
 
 
-class USERPREF_PT_interface_menus(InterfacePanel, Panel):
+class USERPREF_PT_interface_menus(InterfacePanel, CenterAlignMixIn, Panel):
     bl_label = "Menus"
     bl_options = {'DEFAULT_CLOSED'}
 
-    def draw(self, context):
-        pass
+    def draw_centered(self, context, layout):
+        prefs = context.preferences
+        view = prefs.view
+        col = layout.column()
+        col.prop(view, "menu_close_leave")
 
 
 class USERPREF_PT_interface_menus_mouse_over(InterfacePanel, CenterAlignMixIn, Panel):
@@ -3006,7 +3009,6 @@ class USERPREF_PT_experimental_new_features(ExperimentalPanel, Panel):
             (
                 ({"property": "use_extended_asset_browser"},
                  ("blender/blender/projects/10", "Pipeline, Assets & IO Project Page")),
-                ({"property": "use_new_volume_nodes"}, ("blender/blender/issues/103248", "#103248")),
                 ({"property": "use_shader_node_previews"}, ("blender/blender/issues/110353", "#110353")),
                 ({"property": "use_geometry_nodes_lists"}, ("blender/blender/issues/140918", "#140918")),
             ),

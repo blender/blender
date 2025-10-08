@@ -155,9 +155,10 @@ void BKE_gpencil_stroke_fill_triangulate(bGPDstroke *gps)
   gps->tot_triangles = gps->totpoints - 2;
   uint(*tmp_triangles)[3] = MEM_malloc_arrayN<uint[3]>(size_t(gps->tot_triangles),
                                                        "GP Stroke temp triangulation");
-  float(*points2d)[2] = MEM_malloc_arrayN<float[2]>(size_t(gps->totpoints),
-                                                    "GP Stroke temp 2d points");
-  float(*uv)[2] = MEM_malloc_arrayN<float[2]>(size_t(gps->totpoints), "GP Stroke temp 2d uv data");
+  float (*points2d)[2] = MEM_malloc_arrayN<float[2]>(size_t(gps->totpoints),
+                                                     "GP Stroke temp 2d points");
+  float (*uv)[2] = MEM_malloc_arrayN<float[2]>(size_t(gps->totpoints),
+                                               "GP Stroke temp 2d uv data");
 
   int direction = 0;
 

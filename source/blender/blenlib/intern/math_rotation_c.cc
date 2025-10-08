@@ -2090,7 +2090,7 @@ void add_weighted_dq_dq(DualQuat *dq_sum, const DualQuat *dq, float weight)
       weight = -weight;
     }
 
-    copy_m4_m4(wmat, (float(*)[4])dq->scale);
+    copy_m4_m4(wmat, (float (*)[4])dq->scale);
     mul_m4_fl(wmat, weight);
     add_m4_m4m4(dq_sum->scale, dq_sum->scale, wmat);
     dq_sum->scale_weight += weight;

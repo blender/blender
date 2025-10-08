@@ -175,7 +175,7 @@ static int dgroup_skinnable_cb(Object *ob, Bone *bone, void *datap)
   }
 
   if (!data->is_weight_paint ||
-      (ANIM_bone_in_visible_collection(arm, bone) && (bone->flag & BONE_SELECTED)))
+      (ANIM_bone_in_visible_collection(arm, bone) && (pose_bone->flag & POSE_SELECTED)))
   {
     if (!(defgroup = BKE_object_defgroup_find_name(ob, bone->name))) {
       defgroup = BKE_object_defgroup_add_name(ob, bone->name);
@@ -298,7 +298,7 @@ static void add_verts_to_dgroups(ReportList *reports,
   bPoseChannel *pchan;
   Mesh *mesh;
   Mat4 bbone_array[MAX_BBONE_SUBDIV], *bbone = nullptr;
-  float(*root)[3], (*tip)[3];
+  float (*root)[3], (*tip)[3];
   blender::Array<blender::float3> verts;
   bool *selected;
   int numbones, vertsfilled = 0, segments = 0;
@@ -421,7 +421,7 @@ static void add_verts_to_dgroups(ReportList *reports,
     const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
     if (mesh_eval) {
       BKE_mesh_foreach_mapped_vert_coords_get(
-          mesh_eval, reinterpret_cast<float(*)[3]>(verts.data()), mesh->verts_num);
+          mesh_eval, reinterpret_cast<float (*)[3]>(verts.data()), mesh->verts_num);
       vertsfilled = 1;
     }
   }
@@ -448,7 +448,7 @@ static void add_verts_to_dgroups(ReportList *reports,
 
     heat_bone_weighting(ob,
                         mesh,
-                        reinterpret_cast<float(*)[3]>(verts.data()),
+                        reinterpret_cast<float (*)[3]>(verts.data()),
                         numbones,
                         dgrouplist,
                         dgroupflip,

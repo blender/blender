@@ -46,6 +46,7 @@
 static PyMethodDef pyrna_blenddata_methods[] = {
     {nullptr, nullptr, 0, nullptr}, /* #BPY_rna_id_collection_user_map_method_def */
     {nullptr, nullptr, 0, nullptr}, /* #BPY_rna_id_collection_file_path_map_method_def */
+    {nullptr, nullptr, 0, nullptr}, /* #BPY_rna_id_collection_file_path_foreach_method_def */
     {nullptr, nullptr, 0, nullptr}, /* #BPY_rna_id_collection_batch_remove_method_def */
     {nullptr, nullptr, 0, nullptr}, /* #BPY_rna_id_collection_orphans_purge_method_def */
     {nullptr, nullptr, 0, nullptr}, /* #BPY_rna_data_context_method_def */
@@ -276,10 +277,11 @@ void BPY_rna_types_extend_capi()
   ARRAY_SET_ITEMS(pyrna_blenddata_methods,
                   BPY_rna_id_collection_user_map_method_def,
                   BPY_rna_id_collection_file_path_map_method_def,
+                  BPY_rna_id_collection_file_path_foreach_method_def,
                   BPY_rna_id_collection_batch_remove_method_def,
                   BPY_rna_id_collection_orphans_purge_method_def,
                   BPY_rna_data_context_method_def);
-  BLI_STATIC_ASSERT(ARRAY_SIZE(pyrna_blenddata_methods) == 6, "Unexpected number of methods")
+  BLI_STATIC_ASSERT(ARRAY_SIZE(pyrna_blenddata_methods) == 7, "Unexpected number of methods")
   pyrna_struct_type_extend_capi(&RNA_BlendData, pyrna_blenddata_methods, nullptr);
 
   /* BlendDataLibraries */

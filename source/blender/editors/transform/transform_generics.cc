@@ -595,7 +595,9 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
           else if (t->options & CTX_MASK) {
             use_prop_edit = ts->proportional_mask;
           }
-          else if (obact && obact->mode == OB_MODE_OBJECT) {
+          else if (object_mode == OB_MODE_OBJECT) {
+            /* No active object means #TransConvertType_Object [see #convert_type_get()], so use
+             * toolsetting for *object*. */
             use_prop_edit = ts->proportional_objects;
           }
           else {
@@ -1312,7 +1314,9 @@ void calculatePropRatio(TransInfo *t)
               td->factor = dist * dist;
               break;
             case PROP_SMOOTH:
-              td->factor = 3.0f * dist * dist - 2.0f * dist * dist * dist;
+              /* Float imprecision can cause a `dist` approaching 1.0
+               * to assign `td->factor` exceeding 1.0. See #147530. */
+              td->factor = std::min(1.0f, 3.0f * dist * dist - 2.0f * dist * dist * dist);
               break;
             case PROP_ROOT:
               td->factor = sqrtf(dist);
@@ -1341,6 +1345,8 @@ void calculatePropRatio(TransInfo *t)
               td->factor = 1;
               break;
           }
+          /* An assert here likely means clamping is needed. */
+          BLI_assert(td->factor <= 1.0f);
         }
       }
     }
