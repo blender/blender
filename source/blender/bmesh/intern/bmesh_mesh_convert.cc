@@ -117,26 +117,25 @@ using blender::bke::AttrDomain;
 
 bool BM_attribute_stored_in_bmesh_builtin(const StringRef name)
 {
-  /* TODO: increase the size of the `ELEM` macro or split out the `.` case. */
-  if (ELEM(name, ".uv_select_vert", ".uv_select_edge", ".uv_select_face")) {
-    return true;
+  if (name.is_empty()) {
+    return false;
   }
-
-  return ELEM(name,
-              "position",
-              ".edge_verts",
-              ".corner_vert",
-              ".corner_edge",
-              ".hide_vert",
-              ".hide_edge",
-              ".hide_poly",
-              "uv_seam",
-              ".select_vert",
-              ".select_edge",
-              ".select_poly",
-              "material_index",
-              "sharp_face",
-              "sharp_edge");
+  if (name[0] == '.') {
+    return ELEM(name,
+                ".edge_verts",
+                ".corner_vert",
+                ".corner_edge",
+                ".hide_vert",
+                ".hide_edge",
+                ".hide_poly",
+                ".select_vert",
+                ".select_edge",
+                ".select_poly",
+                ".uv_select_vert",
+                ".uv_select_edge",
+                ".uv_select_face");
+  }
+  return ELEM(name, "position", "uv_seam", "material_index", "sharp_face", "sharp_edge");
 }
 
 static BMFace *bm_face_create_from_mpoly(BMesh &bm,
