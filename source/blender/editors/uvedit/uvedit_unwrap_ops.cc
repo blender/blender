@@ -110,7 +110,7 @@ static bool uvedit_ensure_uvs(Object *obedit)
     BMIter liter;
     BMLoop *l;
 
-    BM_elem_flag_enable(l->f, BM_ELEM_SELECT_UV);
+    BM_elem_flag_enable(efa, BM_ELEM_SELECT_UV);
     BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
       BM_elem_flag_enable(l, BM_ELEM_SELECT_UV);
       BM_elem_flag_enable(l, BM_ELEM_SELECT_UV_EDGE);
