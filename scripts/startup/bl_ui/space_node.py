@@ -351,9 +351,13 @@ class NODE_MT_view(Menu):
         layout = self.layout
 
         snode = context.space_data
+        is_compositor = snode.tree_type == 'CompositorNodeTree'
 
         layout.prop(snode, "show_region_toolbar")
         layout.prop(snode, "show_region_ui")
+
+        if is_compositor:
+            layout.prop(snode, "show_region_asset_shelf")
 
         layout.separator()
 
