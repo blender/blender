@@ -274,6 +274,30 @@ bool node_insert_link_default(blender::bke::NodeInsertLinkParams & /*params*/)
 /** \name Default value RNA access
  * \{ */
 
+int node_socket_get_int(bNodeTree *ntree, bNode * /*node*/, bNodeSocket *sock)
+{
+  PointerRNA ptr = RNA_pointer_create_discrete((ID *)ntree, &RNA_NodeSocket, sock);
+  return RNA_int_get(&ptr, "default_value");
+}
+
+void node_socket_set_int(bNodeTree *ntree, bNode * /*node*/, bNodeSocket *sock, int value)
+{
+  PointerRNA ptr = RNA_pointer_create_discrete((ID *)ntree, &RNA_NodeSocket, sock);
+  RNA_int_set(&ptr, "default_value", value);
+}
+
+bool node_socket_get_bool(bNodeTree *ntree, bNode * /*node*/, bNodeSocket *sock)
+{
+  PointerRNA ptr = RNA_pointer_create_discrete((ID *)ntree, &RNA_NodeSocket, sock);
+  return RNA_boolean_get(&ptr, "default_value");
+}
+
+void node_socket_set_bool(bNodeTree *ntree, bNode * /*node*/, bNodeSocket *sock, bool value)
+{
+  PointerRNA ptr = RNA_pointer_create_discrete((ID *)ntree, &RNA_NodeSocket, sock);
+  RNA_boolean_set(&ptr, "default_value", value);
+}
+
 float node_socket_get_float(bNodeTree *ntree, bNode * /*node*/, bNodeSocket *sock)
 {
   PointerRNA ptr = RNA_pointer_create_discrete((ID *)ntree, &RNA_NodeSocket, sock);

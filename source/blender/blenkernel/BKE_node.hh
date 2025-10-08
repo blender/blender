@@ -1048,7 +1048,7 @@ void node_chain_iterator(const bNodeTree *ntree,
  * \note Recursive
  */
 void node_chain_iterator_backwards(const bNodeTree *ntree,
-                                   const bNode *node_start,
+                                   bNode *node_start,
                                    bool (*callback)(bNode *, bNode *, void *),
                                    void *userdata,
                                    int recursion_lvl);
