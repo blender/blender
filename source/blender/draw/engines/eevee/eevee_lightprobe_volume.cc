@@ -793,21 +793,67 @@ void IrradianceBake::sync()
     PassSimple &pass = surfel_ray_build_ps_;
     pass.init();
     {
-      PassSimple::Sub &sub = pass.sub("ListBuild");
-      sub.shader_set(inst_.shaders.static_shader_get(SURFEL_LIST_BUILD));
+      /* Count number of surfel per list. */
+      PassSimple::Sub &sub = pass.sub("ListPrepare");
+      sub.shader_set(inst_.shaders.static_shader_get(SURFEL_LIST_PREPARE));
       sub.bind_ssbo(SURFEL_BUF_SLOT, &surfels_buf_);
       sub.bind_ssbo(CAPTURE_BUF_SLOT, &capture_info_buf_);
-      sub.bind_ssbo("list_start_buf", &list_start_buf_);
+      sub.bind_ssbo("list_counter_buf", &list_counter_buf_);
       sub.bind_ssbo("list_info_buf", &list_info_buf_);
       sub.barrier(GPU_BARRIER_SHADER_STORAGE);
       sub.dispatch(&dispatch_per_surfel_);
     }
     {
+      /* Prefix sum of list sizes. Outputs an IndexRange per list. */
+      PassSimple::Sub &sub = pass.sub("ListPrefix");
+      sub.shader_set(inst_.shaders.static_shader_get(SURFEL_LIST_PREFIX));
+      sub.bind_ssbo(SURFEL_BUF_SLOT, &surfels_buf_);
+      sub.bind_ssbo(CAPTURE_BUF_SLOT, &capture_info_buf_);
+      sub.bind_ssbo("list_counter_buf", &list_counter_buf_);
+      sub.bind_ssbo("list_range_buf", &list_range_buf_);
+      sub.bind_ssbo("list_info_buf", &list_info_buf_);
+      sub.barrier(GPU_BARRIER_SHADER_STORAGE);
+      sub.dispatch(&dispatch_per_list_);
+    }
+    {
+      /* Copy surfel list sorting data into a flat array.
+       * All lists data are contiguous in memory using the IndexRange from previous pass. */
+      PassSimple::Sub &sub = pass.sub("ListFlatten");
+      sub.shader_set(inst_.shaders.static_shader_get(SURFEL_LIST_FLATTEN));
+      sub.bind_ssbo(SURFEL_BUF_SLOT, &surfels_buf_);
+      sub.bind_ssbo(CAPTURE_BUF_SLOT, &capture_info_buf_);
+      sub.bind_ssbo("list_counter_buf", &list_counter_buf_);
+      sub.bind_ssbo("list_range_buf", &list_range_buf_);
+      sub.bind_ssbo("list_item_distance_buf", &list_item_distance_buf_);
+      sub.bind_ssbo("list_item_surfel_id_buf", &list_item_surfel_id_buf_);
+      sub.bind_ssbo("list_info_buf", &list_info_buf_);
+      sub.barrier(GPU_BARRIER_SHADER_STORAGE);
+      sub.dispatch(&dispatch_per_surfel_);
+    }
+    {
+      /* Radix sort of the list. Output surfel index in the sorted list. */
       PassSimple::Sub &sub = pass.sub("ListSort");
       sub.shader_set(inst_.shaders.static_shader_get(SURFEL_LIST_SORT));
       sub.bind_ssbo(SURFEL_BUF_SLOT, &surfels_buf_);
       sub.bind_ssbo(CAPTURE_BUF_SLOT, &capture_info_buf_);
+      sub.bind_ssbo("list_range_buf", &list_range_buf_);
+      sub.bind_ssbo("list_item_surfel_id_buf", &list_item_surfel_id_buf_);
+      sub.bind_ssbo("list_item_distance_buf", &list_item_distance_buf_);
+      sub.bind_ssbo("sorted_surfel_id_buf", &sorted_surfel_id_buf_);
+      sub.bind_ssbo("list_info_buf", &list_info_buf_);
+      sub.barrier(GPU_BARRIER_SHADER_STORAGE);
+      sub.dispatch(&dispatch_per_surfel_);
+    }
+    {
+      /* Take the sorted lists array and copy adjacent surfel indices back to the Surfels.
+       * Also relink coplanar surfels to avoid over shadowing.  */
+      PassSimple::Sub &sub = pass.sub("ListBuild");
+      sub.shader_set(inst_.shaders.static_shader_get(SURFEL_LIST_BUILD));
+      sub.bind_ssbo(SURFEL_BUF_SLOT, &surfels_buf_);
+      sub.bind_ssbo(CAPTURE_BUF_SLOT, &capture_info_buf_);
       sub.bind_ssbo("list_start_buf", &list_start_buf_);
+      sub.bind_ssbo("list_range_buf", &list_range_buf_);
+      sub.bind_ssbo("sorted_surfel_id_buf", &sorted_surfel_id_buf_);
       sub.bind_ssbo("list_info_buf", &list_info_buf_);
       sub.barrier(GPU_BARRIER_SHADER_STORAGE);
       sub.dispatch(&dispatch_per_list_);
@@ -1097,7 +1143,8 @@ void IrradianceBake::surfels_create(const Object &probe_object)
   }
 
   if (capture_info_buf_.surfel_len > surfels_buf_.size()) {
-    printf("IrradianceBake: Allocating %u surfels.\n", capture_info_buf_.surfel_len);
+    CLOG_INFO(
+        &Instance::log, "IrradianceBake: Allocating %u surfels.", capture_info_buf_.surfel_len);
 
     size_t max_size = GPU_max_storage_buffer_size();
     if (GPU_mem_stats_supported()) {
@@ -1282,7 +1329,16 @@ void IrradianceBake::raylists_build()
   dispatch_per_list_.x = divide_ceil_u(list_info_buf_.list_max, SURFEL_LIST_GROUP_SIZE);
 
   list_start_buf_.resize(ceil_to_multiple_u(list_info_buf_.list_max, 4));
+  list_counter_buf_.resize(ceil_to_multiple_u(list_info_buf_.list_max, 4));
+  list_range_buf_.resize(ceil_to_multiple_u(list_info_buf_.list_max * 2, 4));
 
+  list_item_distance_buf_.resize(ceil_to_multiple_u(max_ii(1, capture_info_buf_.surfel_len), 4));
+  list_item_surfel_id_buf_.resize(ceil_to_multiple_u(max_ii(1, capture_info_buf_.surfel_len), 4));
+  sorted_surfel_id_buf_.resize(ceil_to_multiple_u(max_ii(1, capture_info_buf_.surfel_len), 4));
+
+  GPU_storagebuf_clear(list_counter_buf_, 0);
+  /* Clear for the case where there are no list or no surfel.
+   * Otherwise the irradiance_capture stage will have broken lists. */
   GPU_storagebuf_clear(list_start_buf_, -1);
   inst_.manager->submit(surfel_ray_build_ps_, ray_view_);
 }
