@@ -1363,8 +1363,9 @@ set_and_warn_dependency(WITH_IMAGE_OPENEXR WITH_CYCLES_OSL OFF)
 # Hydra requires USD.
 set_and_warn_dependency(WITH_USD WITH_HYDRA OFF)
 
-# The Ocean modifier requires FFTW3.
+# Ocean modifier and Rubberband require FFTW3.
 set_and_warn_dependency(WITH_FFTW3 WITH_MOD_OCEANSIM OFF)
+set_and_warn_dependency(WITH_FFTW3 WITH_RUBBERBAND OFF)
 
 if(NOT WITH_CYCLES)
   set(WITH_CYCLES_OSL OFF)
@@ -2839,6 +2840,7 @@ if(FIRST_RUN)
   info_cfg_option(WITH_POTRACE)
   info_cfg_option(WITH_PUGIXML)
   info_cfg_option(WITH_QUADRIFLOW)
+  info_cfg_option(WITH_RUBBERBAND)
   info_cfg_option(WITH_TBB)
   info_cfg_option(WITH_USD)
   info_cfg_option(WITH_MATERIALX)
