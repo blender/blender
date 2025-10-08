@@ -84,18 +84,6 @@ PyDoc_STRVAR(
     "UV pin state.\n"
     "\n"
     ":type: bool\n");
-PyDoc_STRVAR(
-    /* Wrap. */
-    bpy_bmloopuv_select_doc,
-    "UV select state.\n"
-    "\n"
-    ":type: bool\n");
-PyDoc_STRVAR(
-    /* Wrap. */
-    bpy_bmloopuv_select_edge_doc,
-    "UV edge select state.\n"
-    "\n"
-    ":type: bool\n");
 
 static PyObject *bpy_bmloopuv_pin_uv_get(BPy_BMLoopUV *self, void * /*closure*/)
 {
