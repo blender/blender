@@ -557,7 +557,7 @@ std::optional<SocketValueVariant> implicitly_convert_socket_value(
     SocketValueVariant output_variant;
     std::string error_message;
     if (!execute_multi_function_on_value_variant(
-            multi_fn, {}, {&input_variant}, {&output_variant}, nullptr, error_message))
+            multi_fn, {&input_variant}, {&output_variant}, nullptr, error_message))
     {
       return std::nullopt;
     }
@@ -588,7 +588,7 @@ class LazyFunctionForImplicitConversion : public LazyFunction {
     BLI_assert(to_value != nullptr);
     std::string error_message;
     if (!execute_multi_function_on_value_variant(
-            fn_, {}, {from_value}, {to_value}, nullptr, error_message))
+            fn_, {from_value}, {to_value}, nullptr, error_message))
     {
       std::destroy_at(to_value);
       construct_socket_default_value(dst_type_, to_value);

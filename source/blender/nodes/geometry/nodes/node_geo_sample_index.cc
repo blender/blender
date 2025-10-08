@@ -206,14 +206,12 @@ static void node_geo_exec(GeoNodeExecParams params)
   SocketValueVariant index_value_variant = params.extract_input<SocketValueVariant>("Index");
   const CPPType &cpp_type = value_field.cpp_type();
 
-  if (index_value_variant.is_context_dependent_field()) {
-    /* If the index is a field, the output has to be a field that still depends on the input. */
-    auto fn = std::make_shared<SampleIndexFunction>(
-        std::move(geometry), std::move(value_field), domain, use_clamp);
-    auto op = FieldOperation::from(std::move(fn), {index_value_variant.extract<Field<int>>()});
-    params.set_output("Value", GField(std::move(op)));
-  }
-  else if (const GeometryComponent *component = find_source_component(geometry, domain)) {
+  if (index_value_variant.is_single()) {
+    const GeometryComponent *component = find_source_component(geometry, domain);
+    if (!component) {
+      params.set_default_remaining_outputs();
+      return;
+    }
     /* Optimization for the case when the index is a single value. Here only that one index has to
      * be evaluated. */
     const int domain_size = component->attribute_domain_size(domain);
@@ -236,11 +234,25 @@ static void node_geo_exec(GeoNodeExecParams params)
     else {
       params.set_output("Value", fn::make_constant_field(cpp_type, cpp_type.default_value()));
     }
+    return;
   }
-  else {
-    /* Output default value if there is no geometry. */
-    params.set_output("Value", fn::make_constant_field(cpp_type, cpp_type.default_value()));
+
+  bke::SocketValueVariant output_value;
+  std::string error_message;
+  if (!execute_multi_function_on_value_variant(
+          std::make_shared<SampleIndexFunction>(
+              std::move(geometry), std::move(value_field), domain, use_clamp),
+          {&index_value_variant},
+          {&output_value},
+          params.user_data(),
+          error_message))
+  {
+    params.set_default_remaining_outputs();
+    params.error_message_add(NodeWarningType::Error, std::move(error_message));
+    return;
   }
+
+  params.set_output("Value", std::move(output_value));
 }
 
 static void node_register()

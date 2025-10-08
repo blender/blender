@@ -166,8 +166,19 @@ static void node_geo_exec(GeoNodeExecParams params)
   const CPPType &float2_type = CPPType::get<float2>();
   Field<float2> source_uv_map = conversions.try_convert(
       params.extract_input<Field<float3>>("Source UV Map"), float2_type);
-  Field<float2> sample_uvs = conversions.try_convert(
-      params.extract_input<Field<float3>>("Sample UV"), float2_type);
+
+  auto sample_uv_value = params.extract_input<bke::SocketValueVariant>("Sample UV");
+  if (sample_uv_value.is_list()) {
+    params.error_message_add(NodeWarningType::Error,
+                             "Lists are not supported for \"Sample UV\" input");
+  }
+  if (sample_uv_value.is_volume_grid()) {
+    params.error_message_add(NodeWarningType::Error,
+                             "Volume grids are not supported for \"Sample UV\" input");
+  }
+  Field<float2> sample_uvs = conversions.try_convert(sample_uv_value.extract<Field<float3>>(),
+                                                     float2_type);
+
   auto uv_op = FieldOperation::from(
       std::make_shared<ReverseUVSampleFunction>(geometry, std::move(source_uv_map)),
       {std::move(sample_uvs)});
