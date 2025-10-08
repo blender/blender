@@ -43,6 +43,11 @@ struct NodeClipboardItemIDInfo {
    */
   std::string library_path;
 
+  /**
+   * Packed IDs are identified by the #ID.deep_hash.
+   */
+  std::optional<IDHash> packed_id_hash;
+
   /** The validated ID pointer (may be the same as the original one, or a new one). */
   std::optional<ID *> new_id = {};
 };
@@ -116,11 +121,25 @@ struct NodeClipboard {
     Map<std::string, Library *> libraries_path_to_id;
     for (NodeClipboardItemIDInfo &id_info : this->old_ids_to_idinfo.values()) {
       id_info.new_id.reset();
-      if (!id_info.library_path.empty() && !libraries_path_to_id.contains(id_info.library_path)) {
+      if (!id_info.packed_id_hash.has_value() && !id_info.library_path.empty() &&
+          !libraries_path_to_id.contains(id_info.library_path))
+      {
         libraries_path_to_id.add(
             id_info.library_path,
             blender::bke::library::search_filepath_abs(&bmain.libraries, id_info.library_path));
       }
+    }
+
+    /* Prepare a map of packed IDs, to avoid quadratic lookups below. */
+    Map<IDHash, ID *> packed_id_by_hash;
+    {
+      ID *id;
+      FOREACH_MAIN_ID_BEGIN (&bmain, id) {
+        if (ID_IS_PACKED(id)) {
+          packed_id_by_hash.add(id->deep_hash, id);
+        }
+      }
+      FOREACH_MAIN_ID_END;
     }
 
     /* Find a new valid ID pointer for all ID usages in given node.
@@ -129,8 +148,9 @@ struct NodeClipboard {
      * and library-path pairs can be used here.
      *   - UID cannot be trusted across file load.
      *   - ID pointer itself cannot be trusted across undo/redo and file-load. */
-    auto validate_id_fn = [this, &is_valid, &bmain, &bmain_id_map, &libraries_path_to_id](
-                              LibraryIDLinkCallbackData *cb_data) -> int {
+    auto validate_id_fn =
+        [this, &is_valid, &bmain, &bmain_id_map, &libraries_path_to_id, &packed_id_by_hash](
+            LibraryIDLinkCallbackData *cb_data) -> int {
       ID *old_id = *(cb_data->id_pointer);
       if (!old_id) {
         return IDWALK_RET_NOP;
@@ -147,14 +167,22 @@ struct NodeClipboard {
         if (!bmain_id_map) {
           bmain_id_map = BKE_main_idmap_create(&bmain, false, nullptr, MAIN_IDMAP_TYPE_NAME);
         }
-        Library *new_id_lib = libraries_path_to_id.lookup_default(id_info.library_path, nullptr);
-        if (id_info.library_path.empty() || new_id_lib) {
-          id_info.new_id = BKE_main_idmap_lookup_name(
-              bmain_id_map, GS(id_info.id_name.c_str()), id_info.id_name.c_str() + 2, new_id_lib);
+        if (id_info.packed_id_hash.has_value()) {
+          id_info.new_id = packed_id_by_hash.lookup_default(*id_info.packed_id_hash, nullptr);
         }
         else {
-          /* No matching library found, so there is no possible matching ID either. */
-          id_info.new_id = nullptr;
+          Library *new_id_lib = libraries_path_to_id.lookup_default(id_info.library_path, nullptr);
+          BLI_assert(!new_id_lib || !(new_id_lib->flag & LIBRARY_FLAG_IS_ARCHIVE));
+          if (id_info.library_path.empty() || new_id_lib) {
+            id_info.new_id = BKE_main_idmap_lookup_name(bmain_id_map,
+                                                        GS(id_info.id_name.c_str()),
+                                                        id_info.id_name.c_str() + 2,
+                                                        new_id_lib);
+          }
+          else {
+            /* No matching library found, so there is no possible matching ID either. */
+            id_info.new_id = nullptr;
+          }
         }
       }
       if (*(id_info.new_id) == nullptr) {
@@ -243,6 +271,7 @@ struct NodeClipboard {
     auto ensure_id_info_fn = [this](LibraryIDLinkCallbackData *cb_data) -> int {
       ID *old_id = *(cb_data->id_pointer);
       if (!old_id) {
+        return IDWALK_RET_NOP;
       }
       if (this->old_ids_to_idinfo.contains(old_id)) {
         return IDWALK_RET_NOP;
@@ -253,6 +282,9 @@ struct NodeClipboard {
         id_info.id_name = old_id->name;
         if (ID_IS_LINKED(old_id)) {
           id_info.library_path = old_id->lib->runtime->filepath_abs;
+          if (ID_IS_PACKED(old_id)) {
+            id_info.packed_id_hash = old_id->deep_hash;
+          }
         }
       }
       this->old_ids_to_idinfo.add(old_id, std::move(id_info));
