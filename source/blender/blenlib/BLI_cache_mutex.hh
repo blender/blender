@@ -82,7 +82,14 @@ class CacheMutex {
    * This function is thread-safe under the assumption that the same parameters are passed from
    * every thread.
    */
-  void ensure(FunctionRef<void()> compute_cache);
+  void ensure(const FunctionRef<void()> compute_cache)
+  {
+    /* Handle fast case when the cache is up-to-date. */
+    if (cache_valid_.load(std::memory_order_acquire)) {
+      return;
+    }
+    this->ensure_impl(compute_cache);
+  }
 
   /**
    * Reset the cache. The next time #ensure is called, it will recompute that code.
@@ -107,6 +114,9 @@ class CacheMutex {
   {
     return cache_valid_.load(std::memory_order_relaxed);
   }
+
+ private:
+  void ensure_impl(FunctionRef<void()> compute_cache);
 };
 
 }  // namespace blender
