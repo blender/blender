@@ -4787,6 +4787,13 @@ void BKE_lib_override_library_main_operations_create(Main *bmain,
       BKE_pose_ensure(bmain, ob, static_cast<bArmature *>(ob->data), true);
     }
   }
+  /* Similar issue with view layers, some may not be up-to-date, and re-syncing them from a
+   * multi-threaded process is utterly unsafe. Some RNA property access may cause this, see e.g.
+   * #147565 and the `node_warnings` property of the Geometry Nodes. */
+  const bool resync_success = BKE_main_view_layers_synced_ensure(bmain);
+  BLI_assert_msg(resync_success,
+                 "Ensuring that all viewlayers in Main are synced with their collections failed");
+  BKE_layer_collection_resync_forbid();
 
   LibOverrideOpCreateData create_pool_data{};
   create_pool_data.bmain = bmain;
@@ -4854,6 +4861,8 @@ void BKE_lib_override_library_main_operations_create(Main *bmain,
   BLI_task_pool_work_and_wait(task_pool);
 
   BLI_task_pool_free(task_pool);
+
+  BKE_layer_collection_resync_allow();
 
   if (create_pool_data.report_flags & RNA_OVERRIDE_MATCH_RESULT_RESTORE_TAGGED) {
     BKE_lib_override_library_main_operations_restore(
