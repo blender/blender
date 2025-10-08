@@ -105,8 +105,12 @@ class SocketUsageInferencerImpl {
   bool is_group_input_used(const int input_i)
   {
     for (const bNode *node : root_tree_.group_input_nodes()) {
-      const SocketInContext socket{nullptr, &node->output_socket(input_i)};
-      if (this->is_socket_used(socket)) {
+      const bNodeSocket &socket = node->output_socket(input_i);
+      if (!socket.is_directly_linked()) {
+        continue;
+      }
+      const SocketInContext socket_ctx{nullptr, &socket};
+      if (this->is_socket_used(socket_ctx)) {
         return true;
       }
     }
