@@ -1159,7 +1159,7 @@ class ShaderNodesInliner {
       }
       return;
     }
-    if (params_.dynamic_repeat_zone_iterations_is_error) {
+    if (!params_.allow_preserving_repeat_zones) {
       const bool is_iterations_input = dst_node.inputs.first == &dst_socket &&
                                        dst_node.is_type("GeometryNodeRepeatInput");
       if (is_iterations_input) {

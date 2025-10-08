@@ -12,13 +12,13 @@ struct bNode;
 namespace blender::nodes {
 
 struct InlineShaderNodeTreeParams {
-  bool allow_preserving_repeat_zones = false;
   /**
-   * In general, only a constant number of iterations per repeat zone is allowed, because otherwise
-   * it can't be inlined. However, if the render engine supports repeat zones natively, it could
-   * also support a dynamic number of iterations.
+   * Disable loop unrolling and keep Repeat Zone nodes in the tree.
+   * (For engines with native support for Repeat Zones)
+   *
+   * Some Repeat Zones may still be unrolled (eg. if they have Closure or Bundle Zone Items).
    */
-  bool dynamic_repeat_zone_iterations_is_error = true;
+  bool allow_preserving_repeat_zones = false;
 
   struct ErrorMessage {
     /* In theory, more contextual information could be added here like the entire context path to
