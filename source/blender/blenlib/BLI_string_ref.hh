@@ -53,7 +53,7 @@ class StringRefBase {
   constexpr StringRefBase(const char *data, int64_t size);
 
  public:
-  /* Similar to string_view::npos, but signed. */
+  /** Similar to #string_view::npos, but signed. */
   static constexpr int64_t not_found = -1;
 
   constexpr int64_t size() const;
