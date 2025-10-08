@@ -827,7 +827,7 @@ void RNA_def_collections(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "Collection", "ID");
   RNA_def_struct_ui_text(srna, "Collection", "Collection of Object data-blocks");
-  RNA_def_struct_ui_icon(srna, ICON_OUTLINER_COLLECTION);
+  RNA_def_struct_ui_icon(srna, ICON_GROUP);
   /* This is done on save/load in `readfile.cc`,
    * removed if no objects are in the collection and not in a scene. */
   RNA_def_struct_clear_flag(srna, STRUCT_ID_REFCOUNT);

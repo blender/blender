@@ -1379,7 +1379,7 @@ class USERPREF_PT_theme_collection_colors(ThemePanel, CenterAlignMixIn, Panel):
     def draw_header(self, _context):
         layout = self.layout
 
-        layout.label(icon='OUTLINER_COLLECTION')
+        layout.label(icon='GROUP')
 
     def draw_centered(self, context, layout):
         theme = context.preferences.themes[0]
