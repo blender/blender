@@ -76,8 +76,10 @@ static void image_scopes_tag_refresh(ScrArea *area)
 static void image_user_refresh_scene(const bContext *C, SpaceImage *sima)
 {
   /* Update scene image user for acquiring render results. */
-  sima->iuser.scene = (sima->iuser.flag & IMA_SHOW_SEQUENCER_SCENE) ? CTX_data_sequencer_scene(C) :
-                                                                      CTX_data_scene(C);
+  Scene *sequencer_scene = CTX_data_sequencer_scene(C);
+  sima->iuser.scene = (sima->iuser.flag & IMA_SHOW_SEQUENCER_SCENE) && sequencer_scene ?
+                          sequencer_scene :
+                          CTX_data_scene(C);
 
   if (sima->image && sima->image->type == IMA_TYPE_R_RESULT) {
     /* While rendering, prefer scene that is being rendered. */
