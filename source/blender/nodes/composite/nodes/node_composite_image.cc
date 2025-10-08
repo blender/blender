@@ -674,18 +674,6 @@ static void node_composit_init_rlayers(const bContext *C, PointerRNA *ptr)
   }
 }
 
-static bool node_composit_poll_rlayers(const blender::bke::bNodeType * /*ntype*/,
-                                       const bNodeTree *ntree,
-                                       const char **r_disabled_hint)
-{
-  if (!STREQ(ntree->idname, "CompositorNodeTree")) {
-    *r_disabled_hint = RPT_("Not a compositor node tree");
-    return false;
-  }
-
-  return true;
-}
-
 static void node_composit_free_rlayers(bNode *node)
 {
   /* free extra socket info */
@@ -974,7 +962,6 @@ static void register_node_type_cmp_rlayers()
   blender::bke::node_type_socket_templates(&ntype, nullptr, cmp_node_rlayers_out);
   ntype.draw_buttons = file_ns::node_composit_buts_viewlayers;
   ntype.initfunc_api = file_ns::node_composit_init_rlayers;
-  ntype.poll = file_ns::node_composit_poll_rlayers;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
   ntype.flag |= NODE_PREVIEW;
   blender::bke::node_type_storage(ntype,
