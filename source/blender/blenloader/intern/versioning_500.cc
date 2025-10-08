@@ -3958,6 +3958,13 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_END;
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 107)) {
+    LISTBASE_FOREACH (Material *, material, &bmain->materials) {
+      /* The flag was actually interpreted as reversed. */
+      material->blend_flag ^= MA_BL_LIGHTPROBE_VOLUME_DOUBLE_SIDED;
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
