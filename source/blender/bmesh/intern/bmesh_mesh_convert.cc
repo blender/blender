@@ -443,7 +443,8 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
                                                              AttrDomain::Corner);
   const VArraySpan uv_select_face = *attributes.lookup<bool>(".uv_select_face", AttrDomain::Face);
 
-  const bool need_uv_select = is_new && (!uv_select_vert.is_empty() && !uv_select_vert.is_empty());
+  const bool need_uv_select = is_new && (!uv_select_vert.is_empty() &&
+                                         !uv_select_edge.is_empty() && !uv_select_face.is_empty());
 
   const Span<float3> positions = mesh->vert_positions();
   Array<BMVert *> vtable(mesh->verts_num);
