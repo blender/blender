@@ -46,12 +46,15 @@
 struct BPy_BMLoopUV {
   PyObject_VAR_HEAD
   float *uv;
-  /* vert_select, edge_select and pin could be nullptr, signifying those layers don't exist.
-   * Currently those layers are always created on a BMesh because adding layers to an existing
-   * BMesh is slow and invalidates existing python objects having pointers into the original
-   * datablocks (adding a layer re-generates all blocks). But eventually the plan is to lazily
-   * allocate the bool layers 'on demand'. Therefore the code tries to handle all cases where
-   * the layers don't exist. */
+  /**
+   * Pin may be null, signifying the layer doesn't exist.
+   *
+   * Currently its always created on a #BMesh because adding UV layers to an existing #BMesh is
+   * slow and invalidates existing Python objects having pointers into the original data-blocks
+   * (since adding a layer re-generates all blocks).
+   * But eventually the plan is to lazily allocate the boolean layers "on demand".
+   * Therefore the code handles cases where the pin layer doesn't exist.
+   */
   bool *pin;
   BMLoop *loop;
 };
