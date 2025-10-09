@@ -1349,9 +1349,7 @@ void blo_do_versions_userdef(UserDef *userdef)
   }
 
   if (!USER_VERSION_ATLEAST(302, 5)) {
-    wmKeyConfigFilterItemParams params{};
-    params.check_item = true;
-    params.check_diff_item_add = true;
+    const wmKeyConfigFilterItemParams params = WM_KEY_CONFIG_FILTER_ITEM_ALL;
     BKE_keyconfig_pref_filter_items(userdef, &params, keymap_item_update_tweak_event, nullptr);
   }
 
@@ -1609,9 +1607,7 @@ void blo_do_versions_userdef(UserDef *userdef)
   }
 
   if (!USER_VERSION_ATLEAST(405, 11)) {
-    wmKeyConfigFilterItemParams params{};
-    params.check_item = true;
-    params.check_diff_item_add = true;
+    const wmKeyConfigFilterItemParams params = WM_KEY_CONFIG_FILTER_ITEM_ALL;
     BKE_keyconfig_pref_filter_items(
         userdef,
         &params,
