@@ -104,12 +104,7 @@ struct HueCorrectApplyOp {
   }
 };
 
-static void hue_correct_apply(const RenderData * /*render_data*/,
-                              const Strip * /*strip*/,
-                              const float transform[3][3],
-                              StripModifierData *smd,
-                              ImBuf *ibuf,
-                              ImBuf *mask)
+static void hue_correct_apply(ModifierApplyContext &context, StripModifierData *smd, ImBuf *mask)
 {
   HueCorrectModifierData *hcmd = (HueCorrectModifierData *)smd;
 
@@ -117,7 +112,7 @@ static void hue_correct_apply(const RenderData * /*render_data*/,
 
   HueCorrectApplyOp op;
   op.curve_mapping = &hcmd->curve_mapping;
-  apply_modifier_op(op, ibuf, mask, float3x3(transform));
+  apply_modifier_op(op, context.image, mask, context.transform);
 }
 
 static void hue_correct_panel_draw(const bContext *C, Panel *panel)

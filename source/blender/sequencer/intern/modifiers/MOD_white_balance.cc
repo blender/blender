@@ -62,12 +62,7 @@ struct WhiteBalanceApplyOp {
   }
 };
 
-static void whiteBalance_apply(const RenderData * /*render_data*/,
-                               const Strip * /*strip*/,
-                               const float transform[3][3],
-                               StripModifierData *smd,
-                               ImBuf *ibuf,
-                               ImBuf *mask)
+static void whiteBalance_apply(ModifierApplyContext &context, StripModifierData *smd, ImBuf *mask)
 {
   const WhiteBalanceModifierData *data = (const WhiteBalanceModifierData *)smd;
 
@@ -75,7 +70,7 @@ static void whiteBalance_apply(const RenderData * /*render_data*/,
   op.multiplier[0] = (data->white_value[0] != 0.0f) ? 1.0f / data->white_value[0] : FLT_MAX;
   op.multiplier[1] = (data->white_value[1] != 0.0f) ? 1.0f / data->white_value[1] : FLT_MAX;
   op.multiplier[2] = (data->white_value[2] != 0.0f) ? 1.0f / data->white_value[2] : FLT_MAX;
-  apply_modifier_op(op, ibuf, mask, float3x3(transform));
+  apply_modifier_op(op, context.image, mask, context.transform);
 }
 
 static void whiteBalance_panel_draw(const bContext *C, Panel *panel)
