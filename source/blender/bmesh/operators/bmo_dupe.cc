@@ -614,7 +614,7 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
                    "use_keep_orig=%b "
                    "use_normal_flip=%b "
                    "use_normal_from_adjacent=%b "
-                   "skip_input_flip=%b ",
+                   "skip_input_flip=%b",
                    op,
                    "geom_last.out",
                    use_merge,
