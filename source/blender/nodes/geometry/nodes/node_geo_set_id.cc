@@ -30,32 +30,8 @@ static void set_id_in_component(GeometryComponent &component,
   MutableAttributeAccessor attributes = *component.attributes_for_write();
 
   const bke::GeometryFieldContext field_context{component, domain};
-  fn::FieldEvaluator evaluator{field_context, domain_size};
-  evaluator.set_selection(selection_field);
-
-  /* Since adding the ID attribute can change the result of the field evaluation (the random value
-   * node uses the index if the ID is unavailable), make sure that it isn't added before evaluating
-   * the field. However, as an optimization, use a faster code path when it already exists. */
-  if (const std::optional<AttributeMetaData> meta_data = attributes.lookup_meta_data("id")) {
-    if (meta_data->domain == domain && meta_data->data_type == bke::AttrType::Int32) {
-      AttributeWriter<int> id_attribute = attributes.lookup_or_add_for_write<int>("id", domain);
-      evaluator.add_with_destination(id_field, id_attribute.varray);
-      evaluator.evaluate();
-      id_attribute.finish();
-      return;
-    }
-    /* There is an ID attribute, but it has the wrong type, so remove it so that it can be
-     * recreated below. */
-    attributes.remove("id");
-  }
-  evaluator.add(id_field);
-  evaluator.evaluate();
-  const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
-  const VArray<int> result_ids = evaluator.get_evaluated<int>(0);
-  SpanAttributeWriter<int> id_attribute = attributes.lookup_or_add_for_write_span<int>("id",
-                                                                                       domain);
-  result_ids.materialize(selection, id_attribute.span);
-  id_attribute.finish();
+  bke::try_capture_field_on_geometry(
+      attributes, field_context, "id", domain, selection_field, id_field);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
