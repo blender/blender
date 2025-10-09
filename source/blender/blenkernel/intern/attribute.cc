@@ -263,38 +263,28 @@ bool BKE_attribute_rename(AttributeOwner &owner,
     return false;
   }
 
-  if (owner.type() != AttributeOwnerType::Mesh) {
-    bke::AttributeStorage &attributes = *owner.get_storage();
-    if (!attributes.lookup(old_name)) {
+  if (owner.type() == AttributeOwnerType::Mesh) {
+    Mesh *mesh = owner.get_mesh();
+    /* NOTE: Checking if the new name matches the old name only makes sense when the name
+     * is clamped to its maximum length, otherwise assigning an over-long name multiple times
+     * will add `.001` suffix unnecessarily. */
+    {
+      const int new_name_maxncpy = CustomData_name_maxncpy_calc(new_name);
+      /* NOTE: A function that performs a clamped comparison without copying would be handy. */
+      char new_name_clamped[MAX_CUSTOMDATA_LAYER_NAME];
+      new_name.copy_utf8_truncated(new_name_clamped, new_name_maxncpy);
+      if (old_name == new_name_clamped) {
+        return false;
+      }
+    }
+
+    CustomDataLayer *layer = BKE_attribute_search_for_write(
+        owner, old_name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
+    if (layer == nullptr) {
       BKE_report(reports, RPT_ERROR, "Attribute is not part of this geometry");
       return false;
     }
-    attributes.rename(old_name, new_name);
-    return true;
-  }
 
-  /* NOTE: Checking if the new name matches the old name only makes sense when the name
-   * is clamped to it's maximum length, otherwise assigning an over-long name multiple times
-   * will add `.001` suffix unnecessarily. */
-  {
-    const int new_name_maxncpy = CustomData_name_maxncpy_calc(new_name);
-    /* NOTE: A function that performs a clamped comparison without copying would be handy here. */
-    char new_name_clamped[MAX_CUSTOMDATA_LAYER_NAME];
-    new_name.copy_utf8_truncated(new_name_clamped, new_name_maxncpy);
-    if (old_name == new_name_clamped) {
-      return false;
-    }
-  }
-
-  CustomDataLayer *layer = BKE_attribute_search_for_write(
-      owner, old_name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
-  if (layer == nullptr) {
-    BKE_report(reports, RPT_ERROR, "Attribute is not part of this geometry");
-    return false;
-  }
-
-  if (owner.type() == AttributeOwnerType::Mesh) {
-    Mesh *mesh = owner.get_mesh();
     if (!mesh_attribute_valid(*mesh,
                               new_name,
                               BKE_attribute_domain(owner, layer),
@@ -303,45 +293,51 @@ bool BKE_attribute_rename(AttributeOwner &owner,
     {
       return false;
     }
-  }
-  else if (owner.type() == AttributeOwnerType::Curves) {
-    Curves *curves = owner.get_curves();
-    if (!name_valid_for_builtin_domain_and_type(
-            curves->geometry.wrap().attributes(),
-            new_name,
-            BKE_attribute_domain(owner, layer),
-            *bke::custom_data_type_to_attr_type(eCustomDataType(layer->type)),
-            reports))
-    {
-      return false;
+
+    std::string result_name = BKE_attribute_calc_unique_name(owner, new_name);
+
+    if (layer->type == CD_PROP_FLOAT2) {
+      /* Rename UV sub-attributes. */
+      char buffer_src[MAX_CUSTOMDATA_LAYER_NAME];
+      char buffer_dst[MAX_CUSTOMDATA_LAYER_NAME];
+      bke_attribute_rename_if_exists(owner,
+                                     BKE_uv_map_pin_name_get(layer->name, buffer_src),
+                                     BKE_uv_map_pin_name_get(result_name, buffer_dst),
+                                     reports);
     }
-  }
 
-  std::string result_name = BKE_attribute_calc_unique_name(owner, new_name);
-
-  if (layer->type == CD_PROP_FLOAT2 && owner.type() == AttributeOwnerType::Mesh) {
-    /* Rename UV sub-attributes. */
-    char buffer_src[MAX_CUSTOMDATA_LAYER_NAME];
-    char buffer_dst[MAX_CUSTOMDATA_LAYER_NAME];
-
-    bke_attribute_rename_if_exists(owner,
-                                   BKE_uv_map_pin_name_get(layer->name, buffer_src),
-                                   BKE_uv_map_pin_name_get(result_name, buffer_dst),
-                                   reports);
-  }
-
-  if (owner.type() == AttributeOwnerType::Mesh) {
-    Mesh *mesh = owner.get_mesh();
     if (old_name == BKE_id_attributes_active_color_name(&mesh->id)) {
       BKE_id_attributes_active_color_set(&mesh->id, result_name);
     }
     if (old_name == BKE_id_attributes_default_color_name(&mesh->id)) {
       BKE_id_attributes_default_color_set(&mesh->id, result_name);
     }
+
+    StringRef(result_name).copy_utf8_truncated(layer->name);
+
+    return true;
   }
 
-  StringRef(result_name).copy_utf8_truncated(layer->name);
+  bke::AttributeStorage &attributes = *owner.get_storage();
+  bke::Attribute *attr = attributes.lookup(old_name);
+  if (!attr) {
+    BKE_report(reports, RPT_ERROR, "Attribute is not part of this geometry");
+    return false;
+  }
 
+  if (owner.type() == AttributeOwnerType::Curves) {
+    Curves *curves = owner.get_curves();
+    if (!name_valid_for_builtin_domain_and_type(curves->geometry.wrap().attributes(),
+                                                new_name,
+                                                attr->domain(),
+                                                attr->data_type(),
+                                                reports))
+    {
+      return false;
+    }
+  }
+
+  attributes.rename(old_name, new_name);
   return true;
 }
 
