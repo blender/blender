@@ -50,6 +50,10 @@ static void node_geo_exec(GeoNodeExecParams params)
       params.extract_input<float>("Voxel Size"),
       params.extract_input<float>("Gradient Width"),
       params.extract_input<float>("Density"));
+  if (!grid) {
+    params.set_default_remaining_outputs();
+    return;
+  }
   params.set_output("Density Grid", std::move(grid));
 #else
   node_geo_exec_with_missing_openvdb(params);
