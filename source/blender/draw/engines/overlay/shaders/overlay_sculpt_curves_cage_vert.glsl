@@ -14,6 +14,8 @@ void main()
 {
   float3 world_pos = drw_point_object_to_world(pos);
   gl_Position = drw_point_world_to_homogenous(world_pos);
+  /* Small bias to always be on top of the geom. */
+  gl_Position.z -= 1e-3f;
 
   final_color = float4(selection);
   final_color.a *= opacity;
