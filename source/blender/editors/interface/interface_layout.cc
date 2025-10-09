@@ -3049,6 +3049,12 @@ void uiLayout::popover(const bContext *C,
   uiBut *but = ui_item_menu(
       layout, name, icon, ui_item_paneltype_func, pt, nullptr, TIP_(pt->description), true);
   but->type = ButType::Popover;
+
+  /* Override button size when there is no icon or label. */
+  if (layout->root()->type == blender::ui::LayoutType::VerticalBar && !icon && name.is_empty()) {
+    but->rect.xmax = but->rect.xmin + UI_UNIT_X;
+  }
+
   if (!ok) {
     but->flag |= UI_BUT_DISABLED;
   }
