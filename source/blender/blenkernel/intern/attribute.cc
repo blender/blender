@@ -369,14 +369,15 @@ static bool attribute_name_exists(const AttributeOwner &owner, const StringRef n
 
 std::string BKE_attribute_calc_unique_name(const AttributeOwner &owner, const StringRef name)
 {
-  if (owner.type() != AttributeOwnerType::Mesh) {
-    blender::bke::AttributeStorage &storage = *owner.get_storage();
-    return storage.unique_name_calc(name);
+  if (owner.type() == AttributeOwnerType::Mesh) {
+    return BLI_uniquename_cb(
+        [&](const StringRef new_name) { return attribute_name_exists(owner, new_name); },
+        '.',
+        name.is_empty() ? DATA_("Attribute") : name);
   }
-  return BLI_uniquename_cb(
-      [&](const StringRef new_name) { return attribute_name_exists(owner, new_name); },
-      '.',
-      name.is_empty() ? DATA_("Attribute") : name);
+
+  blender::bke::AttributeStorage &storage = *owner.get_storage();
+  return storage.unique_name_calc(name);
 }
 
 CustomDataLayer *BKE_attribute_new(AttributeOwner &owner,
@@ -789,59 +790,55 @@ std::optional<blender::StringRefNull> BKE_attributes_active_name_get(AttributeOw
   if (active_index == -1) {
     return std::nullopt;
   }
-  if (owner.type() != AttributeOwnerType::Mesh) {
-    bke::AttributeStorage &storage = *owner.get_storage();
-    if (!IndexRange(storage.count()).contains(active_index)) {
-      return std::nullopt;
+  if (owner.type() == AttributeOwnerType::Mesh) {
+    if (active_index > BKE_attributes_length(owner, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL)) {
+      active_index = 0;
     }
-    return storage.at_index(active_index).name();
-  }
-
-  if (active_index > BKE_attributes_length(owner, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL)) {
-    active_index = 0;
-  }
-
-  const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(owner);
-
-  int index = 0;
-
-  for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
-    CustomData *customdata = info[domain].customdata;
-    if (customdata == nullptr) {
-      continue;
-    }
-    for (int i = 0; i < customdata->totlayer; i++) {
-      CustomDataLayer *layer = &customdata->layers[i];
-      if (CD_MASK_PROP_ALL & CD_TYPE_AS_MASK(eCustomDataType(layer->type))) {
-        if (index == active_index) {
-          if (blender::bke::allow_procedural_attribute_access(layer->name)) {
-            return layer->name;
+    const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(owner);
+    int index = 0;
+    for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
+      CustomData *customdata = info[domain].customdata;
+      if (customdata == nullptr) {
+        continue;
+      }
+      for (int i = 0; i < customdata->totlayer; i++) {
+        CustomDataLayer *layer = &customdata->layers[i];
+        if (CD_MASK_PROP_ALL & CD_TYPE_AS_MASK(eCustomDataType(layer->type))) {
+          if (index == active_index) {
+            if (blender::bke::allow_procedural_attribute_access(layer->name)) {
+              return layer->name;
+            }
+            return std::nullopt;
           }
-          return std::nullopt;
+          index++;
         }
-        index++;
       }
     }
+    return std::nullopt;
   }
 
-  return std::nullopt;
+  bke::AttributeStorage &storage = *owner.get_storage();
+  if (!IndexRange(storage.count()).contains(active_index)) {
+    return std::nullopt;
+  }
+  return storage.at_index(active_index).name();
 }
 
 void BKE_attributes_active_set(AttributeOwner &owner, const StringRef name)
 {
   using namespace blender;
-  if (owner.type() != AttributeOwnerType::Mesh) {
-    bke::AttributeStorage &attributes = *owner.get_storage();
-    *BKE_attributes_active_index_p(owner) = attributes.index_of(name);
+  if (owner.type() == AttributeOwnerType::Mesh) {
+    const CustomDataLayer *layer = BKE_attribute_search(
+        owner, name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
+    BLI_assert(layer != nullptr);
+
+    const int index = BKE_attribute_to_index(owner, layer, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL);
+    *BKE_attributes_active_index_p(owner) = index;
     return;
   }
 
-  const CustomDataLayer *layer = BKE_attribute_search(
-      owner, name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
-  BLI_assert(layer != nullptr);
-
-  const int index = BKE_attribute_to_index(owner, layer, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL);
-  *BKE_attributes_active_index_p(owner) = index;
+  bke::AttributeStorage &attributes = *owner.get_storage();
+  *BKE_attributes_active_index_p(owner) = attributes.index_of(name);
 }
 
 void BKE_attributes_active_clear(AttributeOwner &owner)
