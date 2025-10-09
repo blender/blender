@@ -1014,24 +1014,26 @@ struct FlatObjectRef {
     return -1;
   }
 
-  using Callback = FunctionRef<void(gpu::Batch *geom, ResourceHandleRange handle)>;
+  using Callback = FunctionRef<void(gpu::Batch *geom, ResourceIndex handle)>;
 
   /* Execute callback for every handles that is orthogonal to the view.
    * Note: Only works in orthogonal view. */
   void if_flat_axis_orthogonal_to_view(Manager &manager, const View &view, Callback callback) const
   {
-    const float4x4 &object_to_world =
-        manager.matrix_buf.current().get_or_resize(handle.resource_index()).model;
+    for (ResourceIndex resource_index : handle.index_range()) {
+      const float4x4 &object_to_world =
+          manager.matrix_buf.current().get_or_resize(resource_index.resource_index()).model;
 
-    float3 view_forward = view.forward();
-    float3 axis_not_flat_a = (flattened_axis_id == 0) ? object_to_world.y_axis() :
-                                                        object_to_world.x_axis();
-    float3 axis_not_flat_b = (flattened_axis_id == 1) ? object_to_world.z_axis() :
-                                                        object_to_world.y_axis();
-    float3 axis_flat = math::cross(axis_not_flat_a, axis_not_flat_b);
+      float3 view_forward = view.forward();
+      float3 axis_not_flat_a = (flattened_axis_id == 0) ? object_to_world.y_axis() :
+                                                          object_to_world.x_axis();
+      float3 axis_not_flat_b = (flattened_axis_id == 1) ? object_to_world.z_axis() :
+                                                          object_to_world.y_axis();
+      float3 axis_flat = math::cross(axis_not_flat_a, axis_not_flat_b);
 
-    if (math::abs(math::dot(view_forward, axis_flat)) < 1e-3f) {
-      callback(geom, handle);
+      if (math::abs(math::dot(view_forward, axis_flat)) < 1e-3f) {
+        callback(geom, resource_index);
+      }
     }
   }
 };
