@@ -1254,10 +1254,11 @@ class PackageInstaller:
             if package.is_mandatory:
                 self.settings.logger.critical(
                     f"\tFailed to find a matching mandatory {package_distro_name} "
-                    f"(withing versions range [{package.version_min}, {package.version_mex}[).")
+                    f"(within versions range [{package.version_min}, {package.version_mex}[).")
                 exit(1)
-            self.settings.logger.warning(f"\tFailed to find a matching {package_distro_name} "
-                                         f"(withing versions range [{package.version_min}, {package.version_mex}[).")
+            self.settings.logger.warning(
+                f"\tFailed to find a matching {package_distro_name} "
+                f"(within versions range [{package.version_min}, {package.version_mex}[).")
             return False
 
         if self._install_command is ...:
