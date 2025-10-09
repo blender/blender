@@ -23,9 +23,7 @@ struct ID;
 
 namespace blender::seq {
 
-struct SeqRenderState;
-struct StripScreenQuad;
-struct RenderData;
+struct ModifierApplyContext;
 
 struct StripModifierTypeInfo {
   /**
@@ -56,12 +54,7 @@ struct StripModifierTypeInfo {
   void (*copy_data)(StripModifierData *smd, StripModifierData *target);
 
   /* Apply modifier on an image buffer. */
-  void (*apply)(const RenderData *render_data,
-                const Strip *strip,
-                const float transform[3][3],
-                StripModifierData *smd,
-                ImBuf *ibuf,
-                ImBuf *mask);
+  void (*apply)(ModifierApplyContext &context, StripModifierData *smd, ImBuf *mask);
 
   /** Register the panel types for the modifier's UI. */
   void (*panel_register)(ARegionType *region_type);

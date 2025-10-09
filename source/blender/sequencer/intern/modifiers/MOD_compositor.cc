@@ -44,13 +44,14 @@ class CompositorContext : public compositor::Context {
   ImBuf *image_buffer_;
   ImBuf *mask_buffer_;
   float3x3 xform_;
+  float2 result_translation_ = float2(0, 0);
 
  public:
   CompositorContext(const RenderData &render_data,
                     const SequencerCompositorModifierData *modifier_data,
                     ImBuf *image_buffer,
                     ImBuf *mask_buffer,
-                    const Strip *strip)
+                    const Strip &strip)
       : compositor::Context(),
         render_data_(render_data),
         modifier_data_(modifier_data),
@@ -61,8 +62,13 @@ class CompositorContext : public compositor::Context {
     if (mask_buffer) {
       /* Note: do not use passed transform matrix since compositor coordinate
        * space is not from the image corner, but rather centered on the image. */
-      xform_ = math::invert(image_transform_matrix_get(render_data.scene, strip));
+      xform_ = math::invert(image_transform_matrix_get(render_data.scene, &strip));
     }
+  }
+
+  float2 get_result_translation() const
+  {
+    return result_translation_;
   }
 
   const Scene &get_scene() const override
@@ -101,6 +107,7 @@ class CompositorContext : public compositor::Context {
 
   compositor::Result get_output(compositor::Domain domain) override
   {
+    result_translation_ = domain.transformation.location();
     compositor::Result result = this->create_result(compositor::ResultType::Color);
     if (domain.size.x != image_buffer_->x || domain.size.y != image_buffer_->y) {
       /* Output size is different (e.g. image is blurred with expanded bounds);
@@ -119,18 +126,8 @@ class CompositorContext : public compositor::Context {
                                        bool /*is_data*/,
                                        compositor::ResultPrecision /*precision*/) override
   {
-    compositor::Result result = this->create_result(compositor::ResultType::Color);
-    if (domain.size.x != image_buffer_->x || domain.size.y != image_buffer_->y) {
-      /* Output size is different (e.g. image is blurred with expanded bounds);
-       * need to allocate appropriately sized buffer. */
-      IMB_free_all_data(image_buffer_);
-      image_buffer_->x = domain.size.x;
-      image_buffer_->y = domain.size.y;
-      IMB_alloc_float_pixels(image_buffer_, 4, false);
-    }
-    result.wrap_external(image_buffer_->float_buffer.data,
-                         int2(image_buffer_->x, image_buffer_->y));
-    return result;
+    /* Within compositor modifier, output and viewer output function the same. */
+    return get_output(domain);
   }
 
   compositor::Result get_input(StringRef name) override
@@ -199,11 +196,8 @@ static bool ensure_linear_float_buffer(ImBuf *ibuf)
   return false;
 }
 
-static void compositor_modifier_apply(const RenderData *render_data,
-                                      const Strip *strip,
-                                      const float /*transform*/[3][3],
+static void compositor_modifier_apply(ModifierApplyContext &context,
                                       StripModifierData *strip_modifier_data,
-                                      ImBuf *image_buffer,
                                       ImBuf *mask)
 {
   const SequencerCompositorModifierData *modifier_data =
@@ -218,12 +212,15 @@ static void compositor_modifier_apply(const RenderData *render_data,
     ensure_linear_float_buffer(linear_mask);
   }
 
-  const bool was_float_linear = ensure_linear_float_buffer(image_buffer);
-  const bool was_byte = image_buffer->float_buffer.data == nullptr;
+  const bool was_float_linear = ensure_linear_float_buffer(context.image);
+  const bool was_byte = context.image->float_buffer.data == nullptr;
 
-  CompositorContext context(*render_data, modifier_data, image_buffer, linear_mask, strip);
-  compositor::Evaluator evaluator(context);
+  CompositorContext com_context(
+      context.render_data, modifier_data, context.image, linear_mask, context.strip);
+  compositor::Evaluator evaluator(com_context);
   evaluator.evaluate();
+
+  context.result_translation += com_context.get_result_translation();
 
   if (mask != linear_mask) {
     IMB_freeImBuf(linear_mask);
@@ -234,11 +231,11 @@ static void compositor_modifier_apply(const RenderData *render_data,
   }
 
   if (was_byte) {
-    IMB_byte_from_float(image_buffer);
-    IMB_free_float_pixels(image_buffer);
+    IMB_byte_from_float(context.image);
+    IMB_free_float_pixels(context.image);
   }
   else {
-    seq_imbuf_to_sequencer_space(render_data->scene, image_buffer, true);
+    seq_imbuf_to_sequencer_space(context.render_data.scene, context.image, true);
   }
 }
 

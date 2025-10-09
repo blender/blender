@@ -254,18 +254,13 @@ static void colorBalance_init_data(StripModifierData *smd)
   }
 }
 
-static void colorBalance_apply(const RenderData * /*render_data*/,
-                               const Strip * /*strip*/,
-                               const float transform[3][3],
-                               StripModifierData *smd,
-                               ImBuf *ibuf,
-                               ImBuf *mask)
+static void colorBalance_apply(ModifierApplyContext &context, StripModifierData *smd, ImBuf *mask)
 {
   const ColorBalanceModifierData *cbmd = (const ColorBalanceModifierData *)smd;
 
   ColorBalanceApplyOp op;
-  op.init(*cbmd, ibuf->byte_buffer.data != nullptr);
-  apply_modifier_op(op, ibuf, mask, float3x3(transform));
+  op.init(*cbmd, context.image->byte_buffer.data != nullptr);
+  apply_modifier_op(op, context.image, mask, context.transform);
 }
 
 static void colorBalance_panel_draw(const bContext *C, Panel *panel)

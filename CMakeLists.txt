@@ -414,17 +414,17 @@ Build with external audaspace library installed on the system \
 (only enable if you know what you're doing!)"
   OFF
 )
+option(WITH_RUBBERBAND "\
+Build with Rubber Band for audio time-stretching and pitch-scaling (used by Audaspace)"
+  ON
+)
 mark_as_advanced(WITH_AUDASPACE)
 mark_as_advanced(WITH_SYSTEM_AUDASPACE)
-
-if(WITH_AUDASPACE AND NOT WITH_SYSTEM_AUDASPACE)
-  option(WITH_RUBBERBAND "\
-  Build with Rubber Band for audio time-stretching and pitch-scaling (used by Audaspace)"
-    ON
-  )
-endif()
+mark_as_advanced(WITH_RUBBERBAND)
 
 set_and_warn_dependency(WITH_AUDASPACE WITH_SYSTEM_AUDASPACE OFF)
+set_and_warn_dependency(WITH_AUDASPACE WITH_RUBBERBAND OFF)
+set_and_warn_incompatible(WITH_SYSTEM_AUDASPACE WITH_RUBBERBAND OFF)
 
 if(WITH_GHOST_X11)
   option(WITH_X11_XINPUT "Enable X11 Xinput (tablet support and unicode input)" ON)
@@ -2840,7 +2840,6 @@ if(FIRST_RUN)
   info_cfg_option(WITH_POTRACE)
   info_cfg_option(WITH_PUGIXML)
   info_cfg_option(WITH_QUADRIFLOW)
-  info_cfg_option(WITH_RUBBERBAND)
   info_cfg_option(WITH_TBB)
   info_cfg_option(WITH_USD)
   info_cfg_option(WITH_MATERIALX)
@@ -2879,6 +2878,7 @@ if(FIRST_RUN)
 
   info_cfg_text("Audio:")
   info_cfg_option(WITH_AUDASPACE)
+  info_cfg_option(WITH_RUBBERBAND)
   info_cfg_option(WITH_CODEC_FFMPEG)
   info_cfg_option(WITH_CODEC_SNDFILE)
   info_cfg_option(WITH_COREAUDIO)
