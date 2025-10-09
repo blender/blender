@@ -247,7 +247,7 @@ class POSE_OT_selection_set_select(_NeedSelSetMixin, Operator):
 
         for bone in context.visible_pose_bones:
             if bone.name in sel_set.bone_ids:
-                bone.bone.select = True
+                bone.select = True
 
         return {'FINISHED'}
 
@@ -264,7 +264,7 @@ class POSE_OT_selection_set_deselect(_NeedSelSetMixin, Operator):
 
         for bone in context.selected_pose_bones:
             if bone.name in act_sel_set.bone_ids:
-                bone.bone.select = False
+                bone.select = False
 
         return {'FINISHED'}
 

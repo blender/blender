@@ -596,10 +596,10 @@ def rotPoleToggle(rig, limb_type, controls, ik_ctrl, fk_ctrl, parent, pole):
             if limb_type == 'arm':
                 func1 = arm_fk2ik
                 func2 = arm_ik2fk
-                rig.pose.bones[controls[0]].bone.select = not new_pole_vector_value
-                rig.pose.bones[controls[4]].bone.select = not new_pole_vector_value
-                rig.pose.bones[parent].bone.select = not new_pole_vector_value
-                rig.pose.bones[pole].bone.select = new_pole_vector_value
+                rig.pose.bones[controls[0]].select = not new_pole_vector_value
+                rig.pose.bones[controls[4]].select = not new_pole_vector_value
+                rig.pose.bones[parent].select = not new_pole_vector_value
+                rig.pose.bones[pole].select = new_pole_vector_value
 
                 kwargs1 = {'uarm_fk': controls[1], 'farm_fk': controls[2], 'hand_fk': controls[3],
                           'uarm_ik': controls[0], 'farm_ik': ik_ctrl[1],
@@ -610,11 +610,11 @@ def rotPoleToggle(rig, limb_type, controls, ik_ctrl, fk_ctrl, parent, pole):
             else:
                 func1 = leg_fk2ik
                 func2 = leg_ik2fk
-                rig.pose.bones[controls[0]].bone.select = not new_pole_vector_value
-                rig.pose.bones[controls[6]].bone.select = not new_pole_vector_value
-                rig.pose.bones[controls[5]].bone.select = not new_pole_vector_value
-                rig.pose.bones[parent].bone.select = not new_pole_vector_value
-                rig.pose.bones[pole].bone.select = new_pole_vector_value
+                rig.pose.bones[controls[0]].select = not new_pole_vector_value
+                rig.pose.bones[controls[6]].select = not new_pole_vector_value
+                rig.pose.bones[controls[5]].select = not new_pole_vector_value
+                rig.pose.bones[parent].select = not new_pole_vector_value
+                rig.pose.bones[pole].select = new_pole_vector_value
 
                 kwargs1 = {'thigh_fk': controls[1], 'shin_fk': controls[2], 'foot_fk': controls[3],
                           'mfoot_fk': controls[7], 'thigh_ik': controls[0], 'shin_ik': ik_ctrl[1],
@@ -787,7 +787,7 @@ class Rigify_Rot2PoleSwitch(bpy.types.Operator):
 
         if self.bone_name:
             bpy.ops.pose.select_all(action='DESELECT')
-            rig.pose.bones[self.bone_name].bone.select = True
+            rig.pose.bones[self.bone_name].select = True
 
         rotPoleToggle(rig, self.limb_type, self.controls, self.ik_ctrl, self.fk_ctrl,
                       self.parent, self.pole)
