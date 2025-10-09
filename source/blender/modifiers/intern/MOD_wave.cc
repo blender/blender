@@ -312,9 +312,9 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   row->prop(ptr, "use_normal", UI_ITEM_NONE, "", ICON_NONE);
   sub = &row->row(true);
   sub->active_set(RNA_boolean_get(ptr, "use_normal"));
-  sub->prop(ptr, "use_normal_x", UI_ITEM_R_TOGGLE, "X", ICON_NONE);
-  sub->prop(ptr, "use_normal_y", UI_ITEM_R_TOGGLE, "Y", ICON_NONE);
-  sub->prop(ptr, "use_normal_z", UI_ITEM_R_TOGGLE, "Z", ICON_NONE);
+  sub->prop(ptr, "use_normal_x", UI_ITEM_R_TOGGLE, IFACE_("X"), ICON_NONE);
+  sub->prop(ptr, "use_normal_y", UI_ITEM_R_TOGGLE, IFACE_("Y"), ICON_NONE);
+  sub->prop(ptr, "use_normal_z", UI_ITEM_R_TOGGLE, IFACE_("Z"), ICON_NONE);
 
   col = &layout->column(false);
   col->prop(ptr, "falloff_radius", UI_ITEM_NONE, IFACE_("Falloff"), ICON_NONE);
@@ -340,7 +340,7 @@ static void position_panel_draw(const bContext * /*C*/, Panel *panel)
 
   col = &layout->column(true);
   col->prop(ptr, "start_position_x", UI_ITEM_NONE, IFACE_("Start Position X"), ICON_NONE);
-  col->prop(ptr, "start_position_y", UI_ITEM_NONE, "Y", ICON_NONE);
+  col->prop(ptr, "start_position_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
 }
 
 static void time_panel_draw(const bContext * /*C*/, Panel *panel)

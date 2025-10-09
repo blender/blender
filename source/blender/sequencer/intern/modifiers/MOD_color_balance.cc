@@ -288,33 +288,36 @@ static void colorBalance_panel_draw(const bContext *C, Panel *panel)
     {
       uiLayout &split = flow.column(false).split(0.35f, false);
       uiLayout &col = split.column(true);
-      col.label("Lift", ICON_NONE);
+      col.label(IFACE_("Lift"), ICON_NONE);
       col.separator();
       col.separator();
       col.prop(&color_balance, "lift", UI_ITEM_NONE, "", ICON_NONE);
-      col.prop(&color_balance, "invert_lift", UI_ITEM_NONE, "Invert", ICON_ARROW_LEFTRIGHT);
+      col.prop(
+          &color_balance, "invert_lift", UI_ITEM_NONE, IFACE_("Invert"), ICON_ARROW_LEFTRIGHT);
       uiTemplateColorPicker(&split, &color_balance, "lift", true, false, false, true);
       col.separator();
     }
     {
       uiLayout &split = flow.column(false).split(0.35f, false);
       uiLayout &col = split.column(true);
-      col.label("Gamma", ICON_NONE);
+      col.label(IFACE_("Gamma"), ICON_NONE);
       col.separator();
       col.separator();
       col.prop(&color_balance, "gamma", UI_ITEM_NONE, "", ICON_NONE);
-      col.prop(&color_balance, "invert_gamma", UI_ITEM_NONE, "Invert", ICON_ARROW_LEFTRIGHT);
+      col.prop(
+          &color_balance, "invert_gamma", UI_ITEM_NONE, IFACE_("Invert"), ICON_ARROW_LEFTRIGHT);
       uiTemplateColorPicker(&split, &color_balance, "gamma", true, false, true, true);
       col.separator();
     }
     {
       uiLayout &split = flow.column(false).split(0.35f, false);
       uiLayout &col = split.column(true);
-      col.label("Gain", ICON_NONE);
+      col.label(IFACE_("Gain"), ICON_NONE);
       col.separator();
       col.separator();
       col.prop(&color_balance, "gain", UI_ITEM_NONE, "", ICON_NONE);
-      col.prop(&color_balance, "invert_gain", UI_ITEM_NONE, "Invert", ICON_ARROW_LEFTRIGHT);
+      col.prop(
+          &color_balance, "invert_gain", UI_ITEM_NONE, IFACE_("Invert"), ICON_ARROW_LEFTRIGHT);
       uiTemplateColorPicker(&split, &color_balance, "gain", true, false, true, true);
     }
   }
@@ -322,33 +325,36 @@ static void colorBalance_panel_draw(const bContext *C, Panel *panel)
     {
       uiLayout &split = flow.column(false).split(0.35f, false);
       uiLayout &col = split.column(true);
-      col.label("Offset", ICON_NONE);
+      col.label(IFACE_("Offset"), ICON_NONE);
       col.separator();
       col.separator();
       col.prop(&color_balance, "offset", UI_ITEM_NONE, "", ICON_NONE);
-      col.prop(&color_balance, "invert_offset", UI_ITEM_NONE, "Invert", ICON_ARROW_LEFTRIGHT);
+      col.prop(
+          &color_balance, "invert_offset", UI_ITEM_NONE, IFACE_("Invert"), ICON_ARROW_LEFTRIGHT);
       uiTemplateColorPicker(&split, &color_balance, "offset", true, false, false, true);
       col.separator();
     }
     {
       uiLayout &split = flow.column(false).split(0.35f, false);
       uiLayout &col = split.column(true);
-      col.label("Power", ICON_NONE);
+      col.label(IFACE_("Power"), ICON_NONE);
       col.separator();
       col.separator();
       col.prop(&color_balance, "power", UI_ITEM_NONE, "", ICON_NONE);
-      col.prop(&color_balance, "invert_power", UI_ITEM_NONE, "Invert", ICON_ARROW_LEFTRIGHT);
+      col.prop(
+          &color_balance, "invert_power", UI_ITEM_NONE, IFACE_("Invert"), ICON_ARROW_LEFTRIGHT);
       uiTemplateColorPicker(&split, &color_balance, "power", true, false, false, true);
       col.separator();
     }
     {
       uiLayout &split = flow.column(false).split(0.35f, false);
       uiLayout &col = split.column(true);
-      col.label("Slope", ICON_NONE);
+      col.label(IFACE_("Slope"), ICON_NONE);
       col.separator();
       col.separator();
       col.prop(&color_balance, "slope", UI_ITEM_NONE, "", ICON_NONE);
-      col.prop(&color_balance, "invert_slope", UI_ITEM_NONE, "Invert", ICON_ARROW_LEFTRIGHT);
+      col.prop(
+          &color_balance, "invert_slope", UI_ITEM_NONE, IFACE_("Invert"), ICON_ARROW_LEFTRIGHT);
       uiTemplateColorPicker(&split, &color_balance, "slope", true, false, false, true);
     }
   }

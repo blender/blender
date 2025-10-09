@@ -2444,7 +2444,9 @@ static void move_to_collection_menu_draw(const bContext *C, Menu *menu)
   Scene *scene = CTX_data_scene(C);
   if (layout.operator_context() == wm::OpCallContext::ExecRegionWin) {
     layout.operator_context_set(wm::OpCallContext::InvokeRegionWin);
-    PointerRNA op_ptr = layout.op("WM_OT_search_single_menu", "Search...", ICON_VIEWZOOM);
+    PointerRNA op_ptr = layout.op("WM_OT_search_single_menu",
+                                  CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Search..."),
+                                  ICON_VIEWZOOM);
     RNA_string_set(&op_ptr, "menu_idname", menu->type->idname);
     layout.separator();
   }

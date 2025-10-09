@@ -59,10 +59,10 @@ static void draw_vector(uiLayout &layout, const float3 &value)
 static void draw_color(uiLayout &layout, const ColorGeometry4f &value)
 {
   uiLayout &col = layout.column(true);
-  col.label(fmt::format("{}: {:.5f}", IFACE_("R"), value.r), ICON_NONE);
-  col.label(fmt::format("{}: {:.5f}", IFACE_("G"), value.g), ICON_NONE);
-  col.label(fmt::format("{}: {:.5f}", IFACE_("B"), value.b), ICON_NONE);
-  col.label(fmt::format("{}: {:.5f}", IFACE_("A"), value.a), ICON_NONE);
+  col.label(fmt::format("{}: {:.5f}", CTX_IFACE_(BLT_I18NCONTEXT_COLOR, "R"), value.r), ICON_NONE);
+  col.label(fmt::format("{}: {:.5f}", CTX_IFACE_(BLT_I18NCONTEXT_COLOR, "G"), value.g), ICON_NONE);
+  col.label(fmt::format("{}: {:.5f}", CTX_IFACE_(BLT_I18NCONTEXT_COLOR, "B"), value.b), ICON_NONE);
+  col.label(fmt::format("{}: {:.5f}", CTX_IFACE_(BLT_I18NCONTEXT_COLOR, "A"), value.a), ICON_NONE);
 }
 static void draw_string(uiLayout &layout, const StringRef value)
 {
