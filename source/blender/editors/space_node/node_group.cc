@@ -242,6 +242,9 @@ static wmOperatorStatus node_group_enter_exit_invoke(bContext *C,
   if (!node->is_group()) {
     return OPERATOR_PASS_THROUGH;
   }
+  if (node->is_custom_group()) {
+    return OPERATOR_PASS_THROUGH;
+  }
   bNodeTree *group = id_cast<bNodeTree *>(node->id);
   if (!group || ID_MISSING(group)) {
     return OPERATOR_PASS_THROUGH;

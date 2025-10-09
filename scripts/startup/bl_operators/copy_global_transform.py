@@ -267,12 +267,27 @@ class OBJECT_OT_paste_transform(Operator):
         if not context.active_pose_bone and not context.active_object:
             cls.poll_message_set("Select an object or pose bone")
             return False
-
-        clipboard = context.window_manager.clipboard.strip()
-        if not (clipboard.startswith("Matrix(") or clipboard.startswith("<Matrix 4x4")):
-            cls.poll_message_set("Clipboard does not contain a valid matrix")
-            return False
         return True
+
+    @classmethod
+    def string_to_matrix(cls, value: str) -> Matrix | None:
+        if value.startswith("Matrix"):
+            return cls.parse_matrix(value)
+        if value.startswith("<Matrix 4x4"):
+            return cls.parse_repr_m4(value[12:-1])
+        if value:
+            return cls.parse_print_m4(value)
+        return None
+
+    @staticmethod
+    def parse_matrix(value: str) -> Matrix | None:
+        import ast
+        try:
+            return Matrix(ast.literal_eval(value[6:]))
+        except Exception:
+            # ast.literal_eval() can raise a slew of exceptions, all of
+            # which means that it's not a matrix on the clipboard.
+            return None
 
     @staticmethod
     def parse_print_m4(value: str) -> Optional[Matrix]:
@@ -285,7 +300,11 @@ class OBJECT_OT_paste_transform(Operator):
         if len(lines) != 4:
             return None
 
-        floats = tuple(tuple(float(item) for item in line.split()) for line in lines)
+        try:
+            floats = tuple(tuple(float(item) for item in line.split()) for line in lines)
+        except ValueError:
+            # Apprently not the expected format.
+            return None
         return Matrix(floats)
 
     @staticmethod
@@ -296,22 +315,19 @@ class OBJECT_OT_paste_transform(Operator):
         if len(lines) != 4:
             return None
 
-        floats = tuple(tuple(float(item.strip()) for item in line.strip()[1:-1].split(',')) for line in lines)
+        try:
+            floats = tuple(tuple(float(item.strip()) for item in line.strip()[1:-1].split(',')) for line in lines)
+        except ValueError:
+            # Apprently not the expected format.
+            return None
         return Matrix(floats)
 
     def execute(self, context: Context) -> set[str]:
-        import ast
-
         clipboard = context.window_manager.clipboard.strip()
-        if clipboard.startswith("Matrix"):
-            mat = Matrix(ast.literal_eval(clipboard[6:]))
-        elif clipboard.startswith("<Matrix 4x4"):
-            mat = self.parse_repr_m4(clipboard[12:-1])
-        else:
-            mat = self.parse_print_m4(clipboard)
 
+        mat = self.string_to_matrix(clipboard)
         if mat is None:
-            self.report({'ERROR'}, "Clipboard does not contain a valid matrix")
+            self.report({'ERROR'}, "Clipboard does not contain a matrix")
             return {'CANCELLED'}
 
         try:
