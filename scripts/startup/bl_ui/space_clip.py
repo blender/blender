@@ -1232,12 +1232,9 @@ class CLIP_PT_footage(CLIP_PT_clip_view_panel, Panel):
         layout.use_property_decorate = False
 
         sc = context.space_data
-        clip = sc.clip
 
         col = layout.column()
         col.template_movieclip(sc, "clip", compact=True)
-        col.prop(clip, "frame_start")
-        col.prop(clip, "frame_offset")
         col.template_movieclip_information(sc, "clip", sc.clip_user)
 
 
