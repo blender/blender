@@ -4791,6 +4791,14 @@ void BKE_lib_override_library_main_operations_create(Main *bmain,
    * multi-threaded process is utterly unsafe. Some RNA property access may cause this, see e.g.
    * #147565 and the `node_warnings` property of the Geometry Nodes. */
   const bool resync_success = BKE_main_view_layers_synced_ensure(bmain);
+  /* Layer resync should never fail here.
+   *
+   * This call is fairly high-level and should never happen within a callpath which has already
+   * forbidden resync (using #BKE_layer_collection_resync_forbid).
+   *
+   * Other unlikely reasons for failure (like very old blendfile data before versioning, where
+   * scenes have no master collection yet) are also never expected to be met in this code.
+   */
   BLI_assert_msg(resync_success,
                  "Ensuring that all viewlayers in Main are synced with their collections failed");
   UNUSED_VARS_NDEBUG(resync_success);
