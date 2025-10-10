@@ -17,7 +17,6 @@ void node_mix_blend(float fac,
                     out float4 outcol)
 {
   outcol = mix(col1, col2, fac);
-  outcol.a = col1.a;
 }
 
 void node_mix_add(float fac,
