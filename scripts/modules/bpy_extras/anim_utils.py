@@ -465,7 +465,7 @@ def bake_action_iter(
                                    frame=f, group_name="Armature Custom Properties")
 
         for name, pbone in obj.pose.bones.items():
-            if bake_options.only_selected and not pbone.bone.select:
+            if bake_options.only_selected and not pbone.select:
                 continue
 
             if bake_options.do_constraint_clear:

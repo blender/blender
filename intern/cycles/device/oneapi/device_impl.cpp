@@ -1531,6 +1531,52 @@ std::vector<sycl::device> available_sycl_devices(bool *multiple_dgpus_detected =
             }
           }
         }
+
+        /* NOTE(sirgienko) Due to some changes in the latest Intel Drivers, the currently used
+         * DPC++ compiler will duplicate devices on some platforms, which have a discrete Intel GPU
+         * together with 11th-14th Gen CPUs, with iGPU enabled. This will be fixed in upstream
+         * DPC++ 6.3, but for now, in order to not confuse our Blender end-users with several
+         * duplicated GPUs, we will avoid adding duplicates into the device list. */
+        /* The order of adding devices is not important, as both duplicated GPUs are fully
+         * functional and performant, so we can pick up the first one we find. */
+        if (!filter_out) {
+          for (const sycl::device &already_available_device : available_devices) {
+            std::array<sycl::device, 2> devices = {already_available_device, device};
+            std::vector<sycl::ext::intel::info::device::uuid::return_type> uuids;
+            for (int i = 0; i < 2; i++) {
+              /* As this is an Intel-specific enumeration issue - we are collecting Intel UUID
+               * expecting it to be supported on Intel GPUs. */
+              if (devices[i].has(sycl::aspect::ext_intel_device_info_uuid)) {
+                uuids.push_back(devices[i].get_info<sycl::ext::intel::info::device::uuid>());
+              }
+              else if (devices[i].get_platform().get_info<sycl::info::platform::vendor>() ==
+                       "Intel(R) Corporation")
+              {
+                /* Better to ensure that our expectation that all Intel devices support the UUID
+                 * extension is correct. If one day this is not true, then we will at least have a
+                 * warning message in the log. */
+                const std::string &device_name = devices[i].get_info<sycl::info::device::name>();
+                LOG_WARNING << "Despite expectation, Intel oneAPI device '" << device_name
+                            << "' is not supporting Intel SYCL UUID extension.";
+              }
+            }
+            if (uuids.size() == 2) {
+              if (uuids[0] == uuids[1]) {
+                const std::string &device_name = device.get_info<sycl::info::device::name>();
+                const std::string &platform_name =
+                    device.get_platform().get_info<sycl::info::platform::name>();
+                LOG_DEBUG
+                    << "Detecting that oneAPI device '" << device_name << "' of platform '"
+                    << platform_name
+                    << "' is identical (by UUID comparison) to an already added device in the "
+                       "list of available devices, so it will not be added again.";
+                filter_out = true;
+                break;
+              }
+            }
+          }
+        }
+
         if (!filter_out) {
           available_devices.push_back(device);
         }
