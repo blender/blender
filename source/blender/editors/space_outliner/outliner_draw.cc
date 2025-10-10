@@ -730,7 +730,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
 
     if (ELEM(tselem->type, TSE_SOME_ID, TSE_LINKED_NODE_TREE)) {
       if (id_rename_helper()) {
-        undo_str = "Rename Data-Block";
+        undo_str = CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Rename Data-Block");
       }
 
       WM_msg_publish_rna_prop(mbus, tselem->id, tselem->id, ID, name);
@@ -787,13 +787,13 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           BKE_object_defgroup_unique_name(vg, ob);
           WM_msg_publish_rna_prop(mbus, &ob->id, vg, VertexGroup, name);
           DEG_id_tag_update(tselem->id, ID_RECALC_SYNC_TO_EVAL);
-          undo_str = "Rename Vertex Group";
+          undo_str = CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Rename Vertex Group");
           break;
         }
         case TSE_NLA_ACTION: {
           /* The #tselem->id is a #bAction. */
           if (id_rename_helper()) {
-            undo_str = "Rename Data-Block";
+            undo_str = CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Rename Data-Block");
           }
           WM_msg_publish_rna_prop(mbus, tselem->id, tselem->id, ID, name);
           DEG_id_tag_update(tselem->id, ID_RECALC_SYNC_TO_EVAL);
@@ -801,13 +801,14 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
         }
         case TSE_NLA_TRACK: {
           WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_RENAME, nullptr);
-          undo_str = "Rename NLA Track";
+          undo_str = CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Rename NLA Track");
           break;
         }
         case TSE_MODIFIER: {
           WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER | NA_RENAME, nullptr);
           DEG_relations_tag_update(bmain);
-          undo_str = "Rename Modifier";
+          undo_str = CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Rename Modifier");
+
           break;
         }
         case TSE_EBONE: {
@@ -823,7 +824,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
             WM_msg_publish_rna_prop(mbus, &arm->id, ebone, EditBone, name);
             WM_event_add_notifier(C, NC_OBJECT | ND_POSE, nullptr);
             DEG_id_tag_update(tselem->id, ID_RECALC_SYNC_TO_EVAL);
-            undo_str = "Rename Edit Bone";
+            undo_str = CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Rename Edit Bone");
           }
           break;
         }
@@ -846,7 +847,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           WM_msg_publish_rna_prop(mbus, &arm->id, bone, Bone, name);
           WM_event_add_notifier(C, NC_OBJECT | ND_POSE, nullptr);
           DEG_id_tag_update(tselem->id, ID_RECALC_SYNC_TO_EVAL);
-          undo_str = "Rename Bone";
+          undo_str = CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Rename Bone");
           break;
         }
         case TSE_POSE_CHANNEL: {
@@ -871,7 +872,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           WM_event_add_notifier(C, NC_OBJECT | ND_POSE, nullptr);
           DEG_id_tag_update(tselem->id, ID_RECALC_SYNC_TO_EVAL);
           DEG_id_tag_update(&arm->id, ID_RECALC_SYNC_TO_EVAL);
-          undo_str = "Rename Pose Bone";
+          undo_str = CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Rename Pose Bone");
           break;
         }
         case TSE_GP_LAYER: {
@@ -889,7 +890,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
           WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, gpd);
           DEG_id_tag_update(tselem->id, ID_RECALC_SYNC_TO_EVAL);
-          undo_str = "Rename Annotation Layer";
+          undo_str = CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Rename Annotation Layer");
           break;
         }
         case TSE_GREASE_PENCIL_NODE: {
@@ -905,7 +906,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           grease_pencil.rename_node(*bmain, node, new_name);
           DEG_id_tag_update(&grease_pencil.id, ID_RECALC_SYNC_TO_EVAL);
           WM_event_add_notifier(C, NC_ID | NA_RENAME, nullptr);
-          undo_str = "Rename Grease Pencil Drawing";
+          undo_str = CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Rename Grease Pencil Drawing");
           break;
         }
         case TSE_R_LAYER: {
@@ -922,13 +923,13 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           WM_msg_publish_rna_prop(mbus, &scene->id, view_layer, ViewLayer, name);
           WM_event_add_notifier(C, NC_ID | NA_RENAME, nullptr);
           DEG_id_tag_update(tselem->id, ID_RECALC_SYNC_TO_EVAL);
-          undo_str = "Rename View Layer";
+          undo_str = CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Rename View Layer");
           break;
         }
         case TSE_LAYER_COLLECTION: {
           /* The #tselem->id is a #Collection, not a #LayerCollection */
           if (id_rename_helper()) {
-            undo_str = "Rename Data-Block";
+            undo_str = CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Rename Data-Block");
           }
           WM_msg_publish_rna_prop(mbus, tselem->id, tselem->id, ID, name);
           WM_event_add_notifier(C, NC_ID | NA_RENAME, nullptr);
@@ -944,13 +945,13 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           WM_msg_publish_rna_prop(mbus, &arm->id, bcoll, BoneCollection, name);
           WM_event_add_notifier(C, NC_OBJECT | ND_BONE_COLLECTION, arm);
           DEG_id_tag_update(&arm->id, ID_RECALC_SYNC_TO_EVAL);
-          undo_str = "Rename Bone Collection";
+          undo_str = CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Rename Bone Collection");
           break;
         }
 
         case TSE_ACTION_SLOT: {
           WM_event_add_notifier(C, NC_ID | NA_RENAME, nullptr);
-          undo_str = "Rename Action Slot";
+          undo_str = CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Rename Action Slot");
           break;
         }
       }

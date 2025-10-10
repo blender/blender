@@ -11,6 +11,7 @@
 
 import json
 import os
+import re
 import sys
 import types
 
@@ -247,77 +248,96 @@ _ctxt_re_gen = lambda uid: (
 )
 _ctxt_re = _ctxt_re_gen("")
 _msg_re = r"(?P<msg_raw>" + _str_whole_re.format(_="_msg") + r")"
-PYGETTEXT_KEYWORDS = (() +
-    tuple((r"{}\(\s*" + _msg_re + r"\s*\)").format(it)
-          for it in ("IFACE_", "TIP_", "RPT_", "DATA_", "N_")) +
 
-    tuple((r"{}\(\s*" + _ctxt_re + r"\s*,\s*" + _msg_re + r"\s*\)").format(it)
+class PyGettextKeyword:
+    def __init__(self, re_expr, context_override=None):
+        self.re_expr = re_expr
+        self.context_override = context_override
+
+        self.re = re.compile(re_expr)
+        self.search = self.re.search
+
+PYGETTEXT_KEYWORDS = (() +
+    tuple(PyGettextKeyword((r"{}\(\s*" + _msg_re + r"\s*\)").format(it))
+         for it in ("IFACE_", "TIP_", "RPT_", "DATA_", "N_")) +
+
+    tuple(PyGettextKeyword((r"{}\(\s*" + _ctxt_re + r"\s*,\s*" + _msg_re + r"\s*\)").format(it))
           for it in ("CTX_IFACE_", "CTX_TIP_", "CTX_RPT_", "CTX_DATA_", "CTX_N_")) +
 
-    tuple(("{}\\((?:[^\"',]+,){{1,2}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
+    tuple(PyGettextKeyword(("{}\\((?:[^\"',]+,){{1,2}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it))
           for it in ("BKE_report", "BKE_reportf", "BKE_reports_prepend", "BKE_reports_prependf",
                      "CTX_wm_operator_poll_msg_set", "WM_global_report", "WM_global_reportf",
                      "UI_but_disable")) +
 
+    # ED_undo_push() is used in Undo History menu and has the "Operator" context, same as operators.
+    tuple(PyGettextKeyword(("{}\\((?:[^\"',]+,)\\s*" + _msg_re + r"\s*(?:\))").format(it),
+                           context_override='BLT_I18NCONTEXT_OPERATOR_DEFAULT')
+          for it in ("ED_undo_push", "ED_undo_grouped_push")) +
+
     # bmesh operator errors
-    tuple(("{}\\((?:[^\"',]+,){{3}}\\s*" + _msg_re + r"\s*\)").format(it)
+    tuple(PyGettextKeyword(("{}\\((?:[^\"',]+,){{3}}\\s*" + _msg_re + r"\s*\)").format(it))
           for it in ("BMO_error_raise",)) +
 
     # Modifier errors
-    tuple(("{}\\((?:[^\"',]+,){{2}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
+    tuple(PyGettextKeyword(("{}\\((?:[^\"',]+,){{2}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it))
           for it in ("BKE_modifier_set_error",)) +
 
     # Window manager job names.
-    tuple(("{}\\((?:[^\"',]+,){{3}}\\s*" + _msg_re + r"\s*,").format(it)
+    tuple(PyGettextKeyword(("{}\\((?:[^\"',]+,){{3}}\\s*" + _msg_re + r"\s*,").format(it))
           for it in ("WM_jobs_get",)) +
 
     # Compositor and EEVEE messages.
     # Ends either with `)` (function call close), or `,` when there are extra formatting parameters.
-    tuple((r"{}\(\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
+    tuple(PyGettextKeyword((r"{}\(\s*" + _msg_re + r"\s*(?:\)|,)").format(it))
           for it in ("set_info_message", "info_append_i18n")) +
 
     # This one is a tad more risky, but in practice would not expect a name/uid string parameter
     # (the second one in those functions) to ever have a comma in it, so think this is fine.
-    tuple(("{}\\((?:[^,]+,){{2}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
+    tuple(PyGettextKeyword(("{}\\((?:[^,]+,){{2}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it))
           for it in ("modifier_subpanel_register", "gpencil_modifier_subpanel_register")) +
 
     # Node socket declarations: context-less names.
-    tuple((r"\.{}(?:<decl::.*?>\(|[^,]+,)\s*" + _msg_re + r"(?:,[^),]+)*\s*\)"
-           r"(?![^;]*\.translation_context\()").format(it)
+    tuple(PyGettextKeyword((r"\.{}(?:<decl::.*?>\(|[^,]+,)\s*" + _msg_re + r"(?:,[^),]+)*\s*\)"
+           r"(?![^;]*\.translation_context\()").format(it))
           for it in ("add_input", "add_output")) +
 
     # Node socket declarations: names with contexts
-    tuple((r"\.{}(?:<decl::.*?>\(|[^,]+,)\s*" + _msg_re +
-           r"[^;]*\.translation_context\(\s*" + _ctxt_re + r"\s*\)").format(it)
+    tuple(PyGettextKeyword((r"\.{}(?:<decl::.*?>\(|[^,]+,)\s*" + _msg_re +
+           r"[^;]*\.translation_context\(\s*" + _ctxt_re + r"\s*\)").format(it))
           for it in ("add_input", "add_output")) +
 
     # Node socket declarations: description and error messages
-    tuple((r"\.{}\(\s*" + _msg_re + r"\s*\)").format(it)
+    tuple(PyGettextKeyword((r"\.{}\(\s*" + _msg_re + r"\s*\)").format(it))
           for it in ("description", "error_message_add")) +
 
     # Node socket panels and labels from declarations: context-less names
-    tuple((r"\.{}\(\s*" + _msg_re +
-           r"\s*\)(?![^;]*\.translation_context\()[^;]*;").format(it)
+    tuple(PyGettextKeyword((r"\.{}\(\s*" + _msg_re +
+           r"\s*\)(?![^;]*\.translation_context\()[^;]*;").format(it))
           for it in ("short_label", "add_panel",)) +
 
     # Node socket panels and labels from declarations: names with contexts
-    tuple((r"\.{}\(\s*" + _msg_re + r"[^;]*\.translation_context\(\s*" +
-           _ctxt_re + r"\s*\)").format(it)
+    tuple(PyGettextKeyword((r"\.{}\(\s*" + _msg_re + r"[^;]*\.translation_context\(\s*" +
+           _ctxt_re + r"\s*\)").format(it))
           for it in ("short_label", "add_panel",)) +
 
     # Dynamic node socket labels
-    tuple((r"{}\(\s*[^,]+,\s*" + _msg_re + r"\s*\)").format(it)
+    tuple(PyGettextKeyword((r"{}\(\s*[^,]+,\s*" + _msg_re + r"\s*\)").format(it))
           for it in ("node_sock_label",)) +
 
     # Geometry Nodes field inputs
-    ((r"FieldInput\(CPPType::get<.*?>\(\),\s*" + _msg_re + r"\s*\)"),) +
+    (PyGettextKeyword(r"FieldInput\(CPPType::get<.*?>\(\),\s*" + _msg_re + r"\s*\)"),) +
 
     # bUnitDef unit names
-    ((r"/\*name_display\*/\s*" + _msg_re + r"\s*,"),) +
+    (PyGettextKeyword(r"/\*name_display\*/\s*" + _msg_re + r"\s*,"),) +
 
-    tuple((r"{}\(\s*" + _msg_re + r"\s*,\s*(?:" +
-           r"\s*,\s*)?(?:".join(_ctxt_re_gen(i) for i in range(PYGETTEXT_MAX_MULTI_CTXT)) + r")?\s*,?\s*\)").format(it)
-          for it in ("BLT_I18N_MSGID_MULTI_CTXT",))
+    tuple(PyGettextKeyword(
+        (r"{}\(\s*"
+         + _msg_re
+         + r"\s*,\s*(?:"
+         + r"\s*,\s*)?(?:".join(_ctxt_re_gen(i) for i in range(PYGETTEXT_MAX_MULTI_CTXT))
+         + r")?\s*,?\s*\)"
+         ).format(it)
+    ) for it in ("BLT_I18N_MSGID_MULTI_CTXT",))
 )
 
 # autopep8: on

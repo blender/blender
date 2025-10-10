@@ -58,7 +58,11 @@ static void colorband_distribute(bContext *C, ColorBand *coba, bool evenly)
       coba->data[a].pos = pos;
       pos += gap;
     }
-    ED_undo_push(C, evenly ? "Distribute Stops Evenly" : "Distribute Stops from Left");
+    const char *undo_str = evenly ? CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT,
+                                           "Distribute Stops Evenly") :
+                                    CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT,
+                                           "Distribute Stops from Left");
+    ED_undo_push(C, undo_str);
   }
 }
 
