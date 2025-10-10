@@ -261,6 +261,7 @@ set(GLSL_SRC
   shaders/compositor_glare_ghost_accumulate.glsl
   shaders/compositor_glare_ghost_base.glsl
   shaders/compositor_glare_highlights.glsl
+  shaders/compositor_glare_kernel_downsample.glsl
   shaders/compositor_glare_mix.glsl
   shaders/compositor_glare_simple_star_anti_diagonal_pass.glsl
   shaders/compositor_glare_simple_star_diagonal_pass.glsl
