@@ -175,6 +175,10 @@ void BLF_batch_draw_begin();
 void BLF_batch_draw_flush();
 void BLF_batch_draw_end();
 
+/* Discard any batching in process and restart.
+ * Only used as a workaround for glitchy driver sync. */
+void BLF_batch_discard();
+
 /**
  * Draw the string using the current font.
  */

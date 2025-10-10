@@ -343,6 +343,15 @@ static void blf_batch_draw_end()
   }
 }
 
+void BLF_batch_discard()
+{
+  if (g_batch.glyph_buf) {
+    GPU_storagebuf_free(g_batch.glyph_buf);
+  }
+  g_batch.glyph_buf = GPU_storagebuf_create_ex(
+      sizeof(g_batch.glyph_data), nullptr, GPU_USAGE_STREAM, __func__);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
