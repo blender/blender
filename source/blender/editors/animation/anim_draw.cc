@@ -129,7 +129,7 @@ void ANIM_draw_scene_strip_range(const bContext *C, View2D *v2d)
     return;
   }
   const Strip *scene_strip = blender::ed::vse::get_scene_strip_for_time_sync(sequencer_scene);
-  if (!scene_strip) {
+  if (!scene_strip || !scene_strip->scene) {
     return;
   }
   GPU_blend(GPU_BLEND_ALPHA);
