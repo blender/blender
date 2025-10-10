@@ -1509,10 +1509,10 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
       init_rect.ymin = init_rect_overlap->ymin - pad;
       init_rect.ymax = init_rect_overlap->ymax + pad;
       rcti rect_clamp;
-      rect_clamp.xmin = 0;
-      rect_clamp.xmax = win_size[0];
-      rect_clamp.ymin = 0;
-      rect_clamp.ymax = win_size[1];
+      rect_clamp.xmin = pad_x + pad;
+      rect_clamp.xmax = win_size[0] - pad_x - pad;
+      rect_clamp.ymin = pad_y + pad;
+      rect_clamp.ymax = win_size[1] - pad_y - pad;
       /* try right. */
       const int size_x = BLI_rcti_size_x(&rect_i);
       const int size_y = BLI_rcti_size_y(&rect_i);
