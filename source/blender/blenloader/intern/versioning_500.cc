@@ -3287,39 +3287,12 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 46)) {
-    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-          if (sl->spacetype != SPACE_NODE) {
-            continue;
-          }
-          const SpaceNode *snode = reinterpret_cast<SpaceNode *>(sl);
-          if (!STREQ(snode->tree_idname, "CompositorNodeTree")) {
-            continue;
-          }
-
-          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                 &sl->regionbase;
-
-          if (ARegion *new_shelf_region = do_versions_add_region_if_not_found(
-                  regionbase,
-                  RGN_TYPE_ASSET_SHELF,
-                  "Asset shelf for compositing (versioning)",
-                  RGN_TYPE_HEADER))
-          {
-            new_shelf_region->alignment = RGN_ALIGN_BOTTOM;
-          }
-          if (ARegion *new_shelf_header = do_versions_add_region_if_not_found(
-                  regionbase,
-                  RGN_TYPE_ASSET_SHELF_HEADER,
-                  "Asset shelf header for compositing (versioning)",
-                  RGN_TYPE_ASSET_SHELF))
-          {
-            new_shelf_header->alignment = RGN_ALIGN_BOTTOM | RGN_ALIGN_HIDE_WITH_PREV;
-          }
-        }
-      }
-    }
+    /* Versioning from 0a0dd4ca37 was wrong, it only created asset shelf regions for Node Editors
+     * that are Compositors. If you change a non-Node Editor (e.g. an Image Editor) to a Compositor
+     * Editor, all is fine (SpaceLink *node_create gets called, the regions set up correctly), but
+     * changing an existing Node Editor (e.g. Shader or Geometry Nodes) to a Compositor, no new
+     * Space gets set up (rightfully so) and we are then missing the regions. Now corrected below
+     * (version bump in 5.1 since that is also affected). */
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 48)) {
@@ -3975,6 +3948,38 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 109)) {
     LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
       repair_node_link_node_pointers(*fd, *ntree);
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 2)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype != SPACE_NODE) {
+            continue;
+          }
+
+          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                 &sl->regionbase;
+
+          if (ARegion *new_shelf_region = do_versions_add_region_if_not_found(
+                  regionbase,
+                  RGN_TYPE_ASSET_SHELF,
+                  "Asset shelf for compositing (versioning)",
+                  RGN_TYPE_HEADER))
+          {
+            new_shelf_region->alignment = RGN_ALIGN_BOTTOM;
+          }
+          if (ARegion *new_shelf_header = do_versions_add_region_if_not_found(
+                  regionbase,
+                  RGN_TYPE_ASSET_SHELF_HEADER,
+                  "Asset shelf header for compositing (versioning)",
+                  RGN_TYPE_ASSET_SHELF))
+          {
+            new_shelf_header->alignment = RGN_ALIGN_BOTTOM | RGN_ALIGN_HIDE_WITH_PREV;
+          }
+        }
+      }
     }
   }
 
