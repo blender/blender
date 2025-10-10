@@ -232,12 +232,13 @@ Domain RealizeOnDomainOperation::compute_realized_transformation_domain(
   const float2 upper_left_corner = float2(0.0f, size.y);
   const float2 upper_right_corner = float2(size);
 
-  /* Eliminate the translation component of the transformation and create a centered
-   * transformation with the image center as the origin. Translation is ignored since it has no
-   * effect on the size of the domain and will be restored later. */
-  const float2 center = float2(float2(size) / 2.0f);
+  /* Eliminate the translation component of the transformation. Translation is ignored since it has
+   * no effect on the size of the domain and will be restored later. */
   const float3x3 transformation = float3x3(float2x2(domain.transformation));
-  const float3x3 centered_transformation = math::from_origin_transform(transformation, center);
+
+  /* Translate the input such that it is centered in the virtual compositing space. */
+  const float2 center_translation = -float2(size) / 2.0f;
+  const float3x3 centered_transformation = math::translate(transformation, center_translation);
 
   /* Transform each of the 4 corners of the image by the centered transformation. */
   const float2 transformed_lower_left_corner = math::transform_point(centered_transformation,
