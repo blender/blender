@@ -4793,6 +4793,7 @@ void BKE_lib_override_library_main_operations_create(Main *bmain,
   const bool resync_success = BKE_main_view_layers_synced_ensure(bmain);
   BLI_assert_msg(resync_success,
                  "Ensuring that all viewlayers in Main are synced with their collections failed");
+  UNUSED_VARS_NDEBUG(resync_sucess);
   BKE_layer_collection_resync_forbid();
 
   LibOverrideOpCreateData create_pool_data{};
