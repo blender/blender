@@ -30,13 +30,13 @@ static const EnumPropertyItem mode_items[] = {
     {GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_RANDOM,
      "DENSITY_RANDOM",
      0,
-     "Random",
-     "Distribute points randomly inside of the volume"},
+     N_("Random"),
+     N_("Distribute points randomly inside of the volume")},
     {GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_GRID,
      "DENSITY_GRID",
      0,
-     "Grid",
-     "Distribute the points in a grid pattern inside of the volume"},
+     N_("Grid"),
+     N_("Distribute the points in a grid pattern inside of the volume")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

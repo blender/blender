@@ -23,20 +23,21 @@ static EnumPropertyItem mode_items[] = {
     {GEO_NODE_CURVE_RESAMPLE_EVALUATED,
      "EVALUATED",
      0,
-     "Evaluated",
-     "Output the input spline's evaluated points, based on the resolution attribute for NURBS "
-     "and Bézier splines. Poly splines are unchanged"},
+     N_("Evaluated"),
+     N_("Output the input spline's evaluated points, based on the resolution attribute for NURBS "
+        "and Bézier splines. Poly splines are unchanged")},
     {GEO_NODE_CURVE_RESAMPLE_COUNT,
      "COUNT",
      0,
-     "Count",
-     "Sample the specified number of points along each spline"},
+     N_("Count"),
+     N_("Sample the specified number of points along each spline")},
     {GEO_NODE_CURVE_RESAMPLE_LENGTH,
      "LENGTH",
      0,
-     "Length",
-     "Calculate the number of samples by splitting each spline into segments with the specified "
-     "length"},
+     N_("Length"),
+     N_("Calculate the number of samples by splitting each spline into segments with the "
+        "specified "
+        "length")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

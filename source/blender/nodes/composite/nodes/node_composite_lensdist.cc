@@ -37,13 +37,13 @@ static const EnumPropertyItem type_items[] = {
     {CMP_NODE_LENS_DISTORTION_RADIAL,
      "RADIAL",
      0,
-     "Radial",
-     "Radially distorts the image to create a barrel or a Pincushion distortion"},
+     N_("Radial"),
+     N_("Radially distorts the image to create a barrel or a Pincushion distortion")},
     {CMP_NODE_LENS_DISTORTION_HORIZONTAL,
      "HORIZONTAL",
      0,
-     "Horizontal",
-     "Horizontally distorts the image to create a channel/color shifting effect"},
+     N_("Horizontal"),
+     N_("Horizontally distorts the image to create a channel/color shifting effect")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

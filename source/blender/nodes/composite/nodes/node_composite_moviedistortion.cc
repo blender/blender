@@ -31,8 +31,8 @@
 namespace blender::nodes::node_composite_moviedistortion_cc {
 
 static const EnumPropertyItem type_items[] = {
-    {int(compositor::DistortionType::Distort), "UNDISTORT", 0, "Undistort", ""},
-    {int(compositor::DistortionType::Undistort), "DISTORT", 0, "Distort", ""},
+    {int(compositor::DistortionType::Distort), "UNDISTORT", 0, N_("Undistort"), ""},
+    {int(compositor::DistortionType::Undistort), "DISTORT", 0, N_("Distort"), ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

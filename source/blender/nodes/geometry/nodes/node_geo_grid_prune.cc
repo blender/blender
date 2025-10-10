@@ -43,20 +43,21 @@ static void node_declare(NodeDeclarationBuilder &b)
       {int(Mode::Inactive),
        "INACTIVE",
        0,
-       "Inactive",
-       "Turn inactive voxels and tiles into inactive background tiles"},
+       N_("Inactive"),
+       N_("Turn inactive voxels and tiles into inactive background tiles")},
       {int(Mode::Threshold),
        "THRESHOLD",
        0,
-       "Threshold",
-       "Turn regions where all voxels have the same value and active state (within a tolerance "
-       "threshold) into inactive background tiles"},
+       N_("Threshold"),
+       N_("Turn regions where all voxels have the same value and active state (within a tolerance "
+          "threshold) into inactive background tiles")},
       {int(Mode::SDF),
        "SDF",
        0,
-       "SDF",
-       "Replace inactive tiles with inactive nodes. Faster than tolerance-based pruning, useful "
-       "for cases like narrow-band SDF grids with only inside or outside background values."},
+       N_("SDF"),
+       N_("Replace inactive tiles with inactive nodes. Faster than tolerance-based pruning, "
+          "useful for cases like narrow-band SDF grids with only inside or outside background "
+          "values.")},
       {0, nullptr, 0, nullptr, nullptr},
   };
   b.add_input<decl::Menu>("Mode")

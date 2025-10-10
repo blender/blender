@@ -29,13 +29,13 @@ static EnumPropertyItem interpolation_items[] = {
     {GEO_NODE_RAYCAST_INTERPOLATED,
      "INTERPOLATED",
      0,
-     "Interpolated",
-     "Interpolate the attribute from the corners of the hit face"},
+     N_("Interpolated"),
+     N_("Interpolate the attribute from the corners of the hit face")},
     {GEO_NODE_RAYCAST_NEAREST,
      "NEAREST",
      0,
-     "Nearest",
-     "Use the attribute value of the closest mesh element"},
+     N_("Nearest"),
+     N_("Use the attribute value of the closest mesh element")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

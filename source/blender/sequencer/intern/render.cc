@@ -539,13 +539,13 @@ static void sequencer_preprocess_transform_crop(ImBuf *in,
                                                 const RenderData *context,
                                                 Strip *strip,
                                                 const float3x3 &matrix,
-                                                const bool do_scale_to_render_size,
+                                                const bool scale_crop_values,
                                                 const float preview_scale_factor)
 {
   /* Proxy image is smaller, so crop values must be corrected by proxy scale factor.
    * Proxy scale factor always matches preview_scale_factor. */
   rctf source_crop;
-  const float crop_scale_factor = do_scale_to_render_size ? preview_scale_factor : 1.0f;
+  const float crop_scale_factor = scale_crop_values ? preview_scale_factor : 1.0f;
   sequencer_image_crop_init(strip, in, crop_scale_factor, &source_crop);
 
   const StripTransform *transform = strip->data->transform;
@@ -706,7 +706,7 @@ static ImBuf *input_preprocess(const RenderData *context,
                                         context,
                                         strip,
                                         matrix,
-                                        do_scale_to_render_size,
+                                        !do_scale_to_render_size,
                                         preview_scale_factor);
 
     seq_imbuf_assign_spaces(scene, transformed_ibuf);

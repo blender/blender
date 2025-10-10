@@ -27,12 +27,16 @@
 namespace blender::nodes::node_composite_kuwahara_cc {
 
 static const EnumPropertyItem type_items[] = {
-    {CMP_NODE_KUWAHARA_CLASSIC, "CLASSIC", 0, "Classic", "Fast but less accurate variation"},
+    {CMP_NODE_KUWAHARA_CLASSIC,
+     "CLASSIC",
+     0,
+     N_("Classic"),
+     N_("Fast but less accurate variation")},
     {CMP_NODE_KUWAHARA_ANISOTROPIC,
      "ANISOTROPIC",
      0,
-     "Anisotropic",
-     "Accurate but slower variation"},
+     N_("Anisotropic"),
+     N_("Accurate but slower variation")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

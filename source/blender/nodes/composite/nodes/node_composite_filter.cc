@@ -20,18 +20,22 @@
 namespace blender::nodes::node_composite_filter_cc {
 
 static const EnumPropertyItem type_items[] = {
-    {CMP_NODE_FILTER_SOFT, "SOFTEN", 0, "Soften", ""},
-    {CMP_NODE_FILTER_SHARP_BOX, "SHARPEN", 0, "Box Sharpen", "An aggressive sharpening filter"},
+    {CMP_NODE_FILTER_SOFT, "SOFTEN", 0, N_("Soften"), ""},
+    {CMP_NODE_FILTER_SHARP_BOX,
+     "SHARPEN",
+     0,
+     N_("Box Sharpen"),
+     N_("An aggressive sharpening filter")},
     {CMP_NODE_FILTER_SHARP_DIAMOND,
      "SHARPEN_DIAMOND",
      0,
-     "Diamond Sharpen",
-     "A moderate sharpening filter"},
-    {CMP_NODE_FILTER_LAPLACE, "LAPLACE", 0, "Laplace", ""},
-    {CMP_NODE_FILTER_SOBEL, "SOBEL", 0, "Sobel", ""},
-    {CMP_NODE_FILTER_PREWITT, "PREWITT", 0, "Prewitt", ""},
-    {CMP_NODE_FILTER_KIRSCH, "KIRSCH", 0, "Kirsch", ""},
-    {CMP_NODE_FILTER_SHADOW, "SHADOW", 0, "Shadow", ""},
+     N_("Diamond Sharpen"),
+     N_("A moderate sharpening filter")},
+    {CMP_NODE_FILTER_LAPLACE, "LAPLACE", 0, N_("Laplace"), ""},
+    {CMP_NODE_FILTER_SOBEL, "SOBEL", 0, N_("Sobel"), ""},
+    {CMP_NODE_FILTER_PREWITT, "PREWITT", 0, N_("Prewitt"), ""},
+    {CMP_NODE_FILTER_KIRSCH, "KIRSCH", 0, N_("Kirsch"), ""},
+    {CMP_NODE_FILTER_SHADOW, "SHADOW", 0, N_("Shadow"), ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

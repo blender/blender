@@ -30,14 +30,14 @@
 namespace blender::nodes::node_composite_blur_cc {
 
 static const EnumPropertyItem type_items[] = {
-    {R_FILTER_BOX, "FLAT", 0, "Flat", ""},
-    {R_FILTER_TENT, "TENT", 0, "Tent", ""},
-    {R_FILTER_QUAD, "QUAD", 0, "Quadratic", ""},
-    {R_FILTER_CUBIC, "CUBIC", 0, "Cubic", ""},
-    {R_FILTER_GAUSS, "GAUSS", 0, "Gaussian", ""},
-    {R_FILTER_FAST_GAUSS, "FAST_GAUSS", 0, "Fast Gaussian", ""},
-    {R_FILTER_CATROM, "CATROM", 0, "Catrom", ""},
-    {R_FILTER_MITCH, "MITCH", 0, "Mitch", ""},
+    {R_FILTER_BOX, "FLAT", 0, N_("Flat"), ""},
+    {R_FILTER_TENT, "TENT", 0, N_("Tent"), ""},
+    {R_FILTER_QUAD, "QUAD", 0, N_("Quadratic"), ""},
+    {R_FILTER_CUBIC, "CUBIC", 0, N_("Cubic"), ""},
+    {R_FILTER_GAUSS, "GAUSS", 0, N_("Gaussian"), ""},
+    {R_FILTER_FAST_GAUSS, "FAST_GAUSS", 0, N_("Fast Gaussian"), ""},
+    {R_FILTER_CATROM, "CATROM", 0, N_("Catrom"), ""},
+    {R_FILTER_MITCH, "MITCH", 0, N_("Mitch"), ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
