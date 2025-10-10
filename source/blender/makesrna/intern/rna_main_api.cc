@@ -205,6 +205,23 @@ static void rna_Main_scenes_remove(
       /* Don't rely on `CTX_wm_window(C)` as it may have been cleared,
        * yet windows may still be open that reference this scene. */
       wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+
+      /* Cancel animation playback. */
+      if (bScreen *screen = ED_screen_animation_playing(wm)) {
+        ScreenAnimData *sad = static_cast<ScreenAnimData *>(screen->animtimer->customdata);
+        if (sad->scene == scene) {
+#  ifdef WITH_PYTHON
+          BPy_BEGIN_ALLOW_THREADS;
+#  endif
+
+          ED_screen_animation_play(C, 0, 0);
+
+#  ifdef WITH_PYTHON
+          BPy_END_ALLOW_THREADS;
+#  endif
+        }
+      }
+
       LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
         if (WM_window_get_active_scene(win) == scene) {
 #  ifdef WITH_PYTHON
