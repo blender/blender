@@ -21,12 +21,14 @@ namespace blender::bke {
 std::optional<AttrType> custom_data_type_to_attr_type(const eCustomDataType data_type)
 {
   switch (data_type) {
+    /* These types are not used for actual #CustomData layers. */
     case CD_NUMTYPES:
     case CD_AUTO_FROM_NAME:
     case CD_TANGENT:
-      /* These types are not used for actual #CustomData layers. */
       BLI_assert_unreachable();
       return std::nullopt;
+
+    /* These types are only used for versioning old files. */
     case CD_MVERT:
     case CD_MSTICKY:
     case CD_MEDGE:
@@ -44,36 +46,43 @@ std::optional<AttrType> custom_data_type_to_attr_type(const eCustomDataType data
     case CD_TESSLOOPNORMAL:
     case CD_FREESTYLE_EDGE:
     case CD_FREESTYLE_FACE:
-      /* These types are only used for versioning old files. */
       return std::nullopt;
+
+    /* These types are only used for #BMesh. */
     case CD_SHAPEKEY:
     case CD_SHAPE_KEYINDEX:
     case CD_BM_ELEM_PYPTR:
-      /* These types are only used for #BMesh. */
       return std::nullopt;
+
+    /* Only used for legacy #MFace data. */
     case CD_MFACE:
     case CD_ORIGSPACE:
     case CD_MCOL:
-      /* Only used for legacy #MFace data. */
       return std::nullopt;
+
+    /* Custom data on vertices. */
     case CD_MDEFORMVERT:
     case CD_MVERT_SKIN:
     case CD_ORCO:
     case CD_CLOTH_ORCO:
-      /* Custom data on vertices. */
       return std::nullopt;
+
+    /* Custom data on face corners. */
     case CD_NORMAL:
     case CD_MDISPS:
     case CD_ORIGSPACE_MLOOP:
     case CD_GRID_PAINT_MASK:
-      /* Custom data on face corners. */
       return std::nullopt;
+
+    /* Use for editing/selecting original data from evaluated mesh (vertices, edges, faces). */
     case CD_ORIGINDEX:
-      /* Use for editing/selecting original data from evaluated mesh (vertices, edges, faces). */
       return std::nullopt;
+
+    /* Used as a cache of tangents for current RNA API (face corners). */
     case CD_MLOOPTANGENT:
-      /* Used as a cache of tangents for current RNA API. */
       return std::nullopt;
+
+    /* Attribute types. */
     case CD_PROP_FLOAT:
       return AttrType::Float;
     case CD_PROP_INT32:
