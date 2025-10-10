@@ -24,7 +24,7 @@ std::optional<AttrType> custom_data_type_to_attr_type(const eCustomDataType data
     case CD_NUMTYPES:
     case CD_AUTO_FROM_NAME:
     case CD_TANGENT:
-      /* These type is not used for actual #CustomData layers. */
+      /* These types are not used for actual #CustomData layers. */
       BLI_assert_unreachable();
       return std::nullopt;
     case CD_MVERT:
@@ -51,21 +51,28 @@ std::optional<AttrType> custom_data_type_to_attr_type(const eCustomDataType data
     case CD_BM_ELEM_PYPTR:
       /* These types are only used for #BMesh. */
       return std::nullopt;
-    case CD_MDEFORMVERT:
     case CD_MFACE:
-    case CD_MCOL:
-    case CD_ORIGINDEX:
-    case CD_NORMAL:
     case CD_ORIGSPACE:
+    case CD_MCOL:
+      /* Only used for legacy #MFace data. */
+      return std::nullopt;
+    case CD_MDEFORMVERT:
+    case CD_MVERT_SKIN:
     case CD_ORCO:
-    case CD_MDISPS:
     case CD_CLOTH_ORCO:
+      /* Custom data on vertices. */
+      return std::nullopt;
+    case CD_NORMAL:
+    case CD_MDISPS:
     case CD_ORIGSPACE_MLOOP:
     case CD_GRID_PAINT_MASK:
-    case CD_MVERT_SKIN:
+      /* Custom data on face corners. */
+      return std::nullopt;
+    case CD_ORIGINDEX:
+      /* Use for editing/selecting original data from evaluated mesh (vertices, edges, faces). */
+      return std::nullopt;
     case CD_MLOOPTANGENT:
-      /* These types are not generic. They will either be moved to some generic data type or
-       * #AttributeStorage will be extended to be able to support a similar format. */
+      /* Used as a cache of tangents for current RNA API. */
       return std::nullopt;
     case CD_PROP_FLOAT:
       return AttrType::Float;
