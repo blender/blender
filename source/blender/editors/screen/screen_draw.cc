@@ -724,6 +724,12 @@ void screen_animate_area_highlight(wmWindow *win,
                                    float outline[4],
                                    float seconds)
 {
+  /* Disabling for now, see #147487. This can cause memory leaks since the
+   * data is only freed when the animation completes, which might not happen
+   * during automated tests. Freeing wmWindow->drawcalls on window close might
+   * be enough, but will have to be investigated. */
+  return;
+
   AreaAnimateHighlightData *data = MEM_callocN<AreaAnimateHighlightData>(
       "screen_animate_area_highlight");
   data->win = win;
