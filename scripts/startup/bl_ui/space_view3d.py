@@ -2239,6 +2239,8 @@ class VIEW3D_MT_paint_vertex_grease_pencil(Menu):
         layout.operator("grease_pencil.vertex_color_levels", text="Levels")
         layout.operator("grease_pencil.vertex_color_hsv", text="Hue/Saturation/Value")
         layout.operator("grease_pencil.vertex_color_brightness_contrast", text="Brightness/Contrast")
+        layout.separator()
+        layout.operator("paint.sample_color").merged = False
 
 
 class VIEW3D_MT_select_paint_mask(Menu):
