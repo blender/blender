@@ -68,6 +68,7 @@ shader camera(float focal_length = 50.0 [[ float min = 0.0, float sensitivity = 
     float focal_distance;
     getattribute("cam:focal_distance", focal_distance);
     getattribute("cam:aperture_position", position);
+    position *= focal_length * 1e-3;
 
     point Pfocus = direction * focal_distance / direction.z;
     direction = normalize(Pfocus - position);
