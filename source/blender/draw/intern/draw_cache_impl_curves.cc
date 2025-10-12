@@ -762,7 +762,7 @@ void CurvesEvalCache::ensure_positions(CurvesModule &module, const bke::CurvesGe
   }
 
   if (curves.is_empty()) {
-    /* Can happen when called from `curves_pos_buffer_get()`. Caller has to deal with nullptr.  */
+    /* Can happen when called from `curves_pos_buffer_get()`. Caller has to deal with nullptr. */
     return;
   }
 

@@ -4800,7 +4800,7 @@ void BKE_lib_override_library_main_operations_create(Main *bmain,
    * scenes have no master collection yet) are also never expected to be met in this code.
    */
   BLI_assert_msg(resync_success,
-                 "Ensuring that all viewlayers in Main are synced with their collections failed");
+                 "Ensuring that all view-layers in Main are synced with their collections failed");
   UNUSED_VARS_NDEBUG(resync_success);
   BKE_layer_collection_resync_forbid();
 

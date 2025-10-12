@@ -512,8 +512,8 @@ void WM_operator_properties_generic_select(wmOperatorType *ot)
       ot->srna, "wait_to_deselect_others", false, "Wait to Deselect Others", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
-  /* Force the selection to act on mouse click, not press. Necessary for some cases, but isn't used
-   * much.  */
+  /* Force the selection to act on mouse click, not press.
+   * Necessary for some cases, but isn't used much. */
   prop = RNA_def_boolean(ot->srna,
                          "use_select_on_click",
                          false,

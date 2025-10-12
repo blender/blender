@@ -2112,7 +2112,7 @@ static void do_version_material_remove_use_nodes(Main *bmain, Material *material
         *ntree, new_output_cycles, SOCK_IN, "NodeSocketVector", "Displacement");
     version_node_add_socket(*ntree, new_output_cycles, SOCK_IN, "NodeSocketFloat", "Thickness");
     /* We don't activate the output explicitly to avoid having two active outputs. We assume
-     * `node_tree.get_output_node('Cycles')` will return this node.  */
+     * `node_tree.get_output_node('Cycles')` will return this node. */
     new_output_cycles.custom1 = SHD_OUTPUT_CYCLES;
 
     bNode &shader_cycles = *blender::bke::node_add_static_node(

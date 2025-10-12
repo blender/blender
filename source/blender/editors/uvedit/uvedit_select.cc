@@ -3081,7 +3081,7 @@ static void uv_select_invert(const Scene *scene, BMEditMesh *em)
     if (ED_uvedit_sync_uvselect_ignore(ts)) {
       bm->uv_select_sync_valid = false;
     }
-    /* If selection wasn't synced, there is no need to sync.  */
+    /* If selection wasn't synced, there is no need to sync. */
     if (bm->uv_select_sync_valid == false) {
       EDBM_select_swap(em);
       EDBM_selectmode_flush(em);

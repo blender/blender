@@ -877,7 +877,7 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
 
     /* FIXME: Although ideally this should always have access to synced data, this is not always
      * the case (FOREACH_ID can be called in context where re-syncing is blocked, while effectively
-     * modifying the viewlayer or collections data, see e.g. #id_delete code which remaps all
+     * modifying the view-layer or collections data, see e.g. #id_delete code which remaps all
      * deleted ID usages to null).
      *
      * There is no obvious solution to this problem, so for now working around with some 'band-aid'
@@ -889,7 +889,7 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
     if (!is_synced) {
       BLI_assert_msg((flag & IDWALK_RECURSE) == 0,
                      "foreach_id should never recurse in case it cannot ensure that all "
-                     "viewlayers are in synced with their collections");
+                     "view-layers are in synced with their collections");
     }
     LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_unsynced_get(view_layer)) {
       BKE_LIB_FOREACHID_PROCESS_IDSUPER(
