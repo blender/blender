@@ -95,7 +95,7 @@ class SEQUENCER_HT_header(Header):
         tool_settings = scene.tool_settings if scene else None
         sequencer_tool_settings = tool_settings.sequencer_tool_settings if tool_settings else None
 
-        if st.view_type == 'SEQUENCER':
+        if st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}:
             row = layout.row(align=True)
             row.template_ID(context.workspace, "sequencer_scene", new="scene.new_sequencer_scene")
 
