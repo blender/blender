@@ -200,9 +200,10 @@ class IMMapStream : public Imf::IStream {
     imb_mmap_unlock();
   }
 
-  /* This is implementing regular `read`, not `readMemoryMapped`, because DWAA and DWAB
-   * decompressors load on unaligned offsets. Therefore we can't avoid the memory copy. */
-
+  /**
+   * This is implementing regular `read`, not `readMemoryMapped`, because DWAA and DWAB
+   * decompressors load on unaligned offsets. Therefore we can't avoid the memory copy.
+   */
   bool read(char c[], int n) override
   {
     if (_exrpos + n > _exrsize) {
@@ -775,29 +776,35 @@ bool imb_save_openexr(ImBuf *ibuf, const char *filepath, int flags)
  * - separated with a dot: the Layer name (like "Light1" or "Walls" or "Characters")
  */
 
-/* flattened out channel */
+/** Flattened out channel. */
 struct ExrChannel {
-  /* Name and number of the part. */
+  /** Name and number of the part. */
   std::string part_name;
   int part_number = 0;
 
-  /* Full name of the chanel. */
+  /** Full name of the chanel. */
   std::string name;
-  /* Name as stored in the header. */
+  /** Name as stored in the header. */
   std::string internal_name;
-  /* Channel view. */
+  /** Channel view. */
   std::string view;
 
-  /* Colorspace. */
+  /** Color-space. */
   const ColorSpace *colorspace;
 
-  int xstride = 0, ystride = 0; /* step to next pixel, to next scan-line. */
-  float *rect = nullptr;        /* first pointer to write in */
-  char chan_id = 0;             /* quick lookup of channel char */
-  bool use_half_float = false;  /* when saving use half float for file storage */
+  /** Step to next pixel. */
+  int xstride = 0;
+  /** Step to next scan-line. */
+  int ystride = 0;
+  /** First pointer to write in */
+  float *rect = nullptr;
+  /** Quick lookup of channel char */
+  char chan_id = 0;
+  /** When saving use half float for file storage. */
+  bool use_half_float = false;
 };
 
-/* hierarchical; layers -> passes -> channels[] */
+/** Hierarchical; layers -> passes -> channels[]. */
 struct ExrPass {
   ~ExrPass()
   {
@@ -812,7 +819,8 @@ struct ExrPass {
   ExrChannel *chan[EXR_PASS_MAXCHAN] = {};
   char chan_id[EXR_PASS_MAXCHAN] = {};
 
-  std::string internal_name; /* Name with no view. */
+  /** Name with no view. */
+  std::string internal_name;
   std::string view;
 };
 
@@ -840,8 +848,10 @@ struct ExrHandle {
 
   StringVector views;
 
-  blender::Vector<ExrChannel> channels; /* flattened out channels. */
-  blender::Vector<ExrLayer> layers;     /* layers and passes. */
+  /** Flattened out channels. */
+  blender::Vector<ExrChannel> channels;
+  /** Layers and passes. */
+  blender::Vector<ExrLayer> layers;
 };
 
 static bool imb_exr_multilayer_parse_channels_from_file(ExrHandle *handle);
@@ -1580,8 +1590,10 @@ static bool exr_has_xyz_channels(ExrHandle *exr_handle)
   return x_found && y_found && z_found;
 }
 
-/* Replacement for OpenEXR GetChannelsInMultiPartFile, that also handles the
- * case where parts are used for passes instead of multiview. */
+/**
+ * Replacement for OpenEXR GetChannelsInMultiPartFile, that also handles the
+ * case where parts are used for passes instead of multi-view.
+ */
 static blender::Vector<ExrChannel> exr_channels_in_multi_part_file(const MultiPartInputFile &file,
                                                                    const bool parse_layers)
 {
@@ -1592,14 +1604,14 @@ static blender::Vector<ExrChannel> exr_channels_in_multi_part_file(const MultiPa
   for (int p = 0; p < file.parts(); p++) {
     const ChannelList &c = file.header(p).channels();
 
-    /* Parse colorspace. Per part colorspaces are not currently used, but
+    /* Parse color-space. Per part color-spaces are not currently used, but
      * might as well populate them for consistency with writing. */
     const ColorSpace *colorspace = imb_exr_part_colorspace(file.header(p));
     if (colorspace == nullptr) {
       colorspace = global_colorspace;
     }
 
-    /* There are two ways of storing multiview EXRs:
+    /* There are two ways of storing multi-view EXRs:
      * - Multiple views in part with multiView attribute.
      * - Each view in its own part with view attribute. */
     const bool has_multiple_views_in_part = hasMultiView(file.header(p));
@@ -1762,7 +1774,7 @@ static bool imb_exr_multilayer_parse_channels_from_file(ExrHandle *handle)
   return true;
 }
 
-/* creates channels, makes a hierarchy and assigns memory to channels */
+/** Creates channels, makes a hierarchy and assigns memory to channels. */
 static ExrHandle *imb_exr_begin_read_mem(IStream &file_stream,
                                          MultiPartInputFile &file,
                                          int width,
@@ -1815,7 +1827,7 @@ static void exr_print_filecontents(MultiPartInputFile &file)
   }
 }
 
-/* For non-multi-layer, map R G B A channel names to something that's in this file. */
+/** For non-multi-layer, map R G B A channel names to something that's in this file. */
 static const char *exr_rgba_channelname(MultiPartInputFile &file, const char *chan)
 {
   const ChannelList &channels = file.header(0).channels();
@@ -1937,7 +1949,7 @@ static bool exr_has_multipart_file(MultiPartInputFile &file)
   return file.parts() > 1;
 }
 
-/* it returns true if the file is multilayer or multiview */
+/** It returns true if the file is multi-layer or multi-view. */
 static bool imb_exr_is_multi(MultiPartInputFile &file)
 {
   /* Multipart files are treated as multilayer in blender -
