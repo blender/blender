@@ -3752,6 +3752,17 @@ void node_socket_move_default_value(Main & /*bmain*/,
     }
   }
 
+  /* Special handling for strings because the generic code below can't handle them. */
+  if (src.type == SOCK_STRING && dst.type == SOCK_STRING &&
+      dst_node.is_type("FunctionNodeInputString"))
+  {
+    auto *src_value = static_cast<bNodeSocketValueString *>(src.default_value);
+    auto *dst_storage = static_cast<NodeInputString *>(dst_node.storage);
+    MEM_SAFE_FREE(dst_storage->string);
+    dst_storage->string = BLI_strdup_null(src_value->value);
+    return;
+  }
+
   void *src_value = socket_value_storage(src);
   if (!src_value) {
     return;
@@ -3765,17 +3776,6 @@ void node_socket_move_default_value(Main & /*bmain*/,
     dst_node.input_socket(0).default_value_typed<bNodeSocketValueFloat>()->value = src_value.x;
     dst_node.input_socket(1).default_value_typed<bNodeSocketValueFloat>()->value = src_value.y;
     dst_node.input_socket(2).default_value_typed<bNodeSocketValueFloat>()->value = src_value.z;
-    return;
-  }
-
-  /* Special handling for strings because the generic code below can't handle them. */
-  if (src.type == SOCK_STRING && dst.type == SOCK_STRING &&
-      dst_node.is_type("FunctionNodeInputString"))
-  {
-    auto *src_value = static_cast<bNodeSocketValueString *>(src.default_value);
-    auto *dst_storage = static_cast<NodeInputString *>(dst_node.storage);
-    MEM_SAFE_FREE(dst_storage->string);
-    dst_storage->string = BLI_strdup_null(src_value->value);
     return;
   }
 
