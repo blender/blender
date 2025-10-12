@@ -3070,21 +3070,24 @@ class VIEW3D_MT_object_context_menu(Menu):
                 if selected_objects_len > 1:
                     layout.operator("object.join")
 
-            if obj.type in {'MESH', 'CURVE', 'CURVES', 'SURFACE', 'POINTCLOUD',
-                            'META', 'FONT', 'GREASEPENCIL'}:
+            if obj.type in {
+                    'MESH', 'CURVE', 'CURVES', 'SURFACE', 'POINTCLOUD',
+                    'META', 'FONT', 'GREASEPENCIL'
+            }:
                 layout.operator_menu_enum("object.convert", "target")
 
-            if (obj.type in {'MESH',
-                             'CURVE',
-                             'CURVES',
-                             'SURFACE',
-                             'GREASEPENCIL',
-                             'LATTICE',
-                             'ARMATURE',
-                             'META',
-                             'FONT',
-                             'POINTCLOUD',
-                             } or (obj.type == 'EMPTY' and obj.instance_collection is not None)):
+            if (obj.type in {
+                'MESH',
+                'CURVE',
+                'CURVES',
+                'SURFACE',
+                'GREASEPENCIL',
+                'LATTICE',
+                'ARMATURE',
+                'META',
+                'FONT',
+                'POINTCLOUD',
+            } or (obj.type == 'EMPTY' and obj.instance_collection is not None)):
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator_menu_enum("object.origin_set", text="Set Origin", property="type")
                 layout.operator_context = 'INVOKE_DEFAULT'
@@ -9019,7 +9022,8 @@ class VIEW3D_PT_curves_sculpt_parameter_falloff(Panel):
             brush.curves_sculpt_settings,
             "curve_parameter_falloff",
             brush=True,
-            show_presets=True)
+            show_presets=True,
+        )
 
 
 class VIEW3D_PT_curves_sculpt_grow_shrink_scaling(Panel):

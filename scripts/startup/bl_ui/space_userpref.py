@@ -2589,8 +2589,10 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                     (search in bl_info["name"].casefold() or
                      search in iface_(bl_info["name"]).casefold()) or
                     (bl_info["author"] and (search in bl_info["author"].casefold())) or
-                    ((filter == "All") and (search in bl_info["category"].casefold() or
-                                            search in iface_(bl_info["category"]).casefold()))
+                    ((filter == "All") and (
+                        search in bl_info["category"].casefold() or
+                        search in iface_(bl_info["category"]).casefold()
+                    ))
             ):
                 continue
 

@@ -345,10 +345,14 @@ def _uniqify(name, other_names):
 
     # Construct the list of numbers already in use.
     offset = len(name) + 1
-    others = (n[offset:] for n in other_names
-              if n.startswith(name + '.'))
-    numbers = sorted(int(suffix) for suffix in others
-                     if suffix.isdigit())
+    others = (
+        n[offset:] for n in other_names
+        if n.startswith(name + '.')
+    )
+    numbers = sorted(
+        int(suffix) for suffix in others
+        if suffix.isdigit()
+    )
 
     # Find the first unused number.
     min_index = 1

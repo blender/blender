@@ -868,8 +868,12 @@ class VIEW3D_PT_tools_weight_gradient(Panel, View3DPaintPanel):
         col.prop(brush, "curve_distance_falloff_preset", expand=True)
 
         if brush.curve_distance_falloff_preset == 'CUSTOM':
-            layout.template_curve_mapping(brush, "curve_distance_falloff", brush=True,
-                                          use_negative_slope=True, show_presets=True)
+            layout.template_curve_mapping(
+                brush, "curve_distance_falloff",
+                brush=True,
+                use_negative_slope=True,
+                show_presets=True,
+            )
 
 
 class VIEW3D_PT_tools_brush_falloff(Panel, View3DPaintPanel, FalloffPanel):
@@ -2124,7 +2128,8 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_random(View3DPanel, Panel):
                 "show_jitter_curve",
                 text="",
                 icon='DOWNARROW_HLT' if paint.show_jitter_curve else 'RIGHTARROW',
-                emboss=False)
+                emboss=False,
+            )
             if paint.show_jitter_curve:
                 col.active = gp_settings.use_jitter_pressure
                 col.template_curve_mapping(gp_settings, "curve_jitter", brush=True, show_presets=True)

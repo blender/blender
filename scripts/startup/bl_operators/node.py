@@ -211,8 +211,10 @@ class NodeAddOperator(NodeOperator):
     def poll(cls, context):
         space = context.space_data
         # Needs active node editor and a tree to add nodes to.
-        return (space and (space.type == 'NODE_EDITOR') and
-                space.edit_tree and space.edit_tree.is_editable)
+        return (
+            space and (space.type == 'NODE_EDITOR') and
+            space.edit_tree and space.edit_tree.is_editable
+        )
 
     # Default invoke stores the mouse position to place the node correctly
     # and optionally invokes the transform operator.

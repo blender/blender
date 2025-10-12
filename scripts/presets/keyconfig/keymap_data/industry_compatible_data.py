@@ -261,9 +261,11 @@ def km_screen(params):
 
 def km_screen_editing(params):
     items = []
-    keymap = ("Screen Editing",
-              {"space_type": 'EMPTY', "region_type": 'WINDOW'},
-              {"items": items})
+    keymap = (
+        "Screen Editing",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
+        {"items": items},
+    )
 
     items.extend([
         # Action zones
@@ -2703,15 +2705,16 @@ def _template_paint_radial_control(
         items.extend([
             ("wm.radial_control", {"type": 'F', "value": 'PRESS', "ctrl": True, "alt": True},
              radial_control_properties(
-                 paint, "mask_texture_slot.angle", None, secondary_rotation=secondary_rotation, color=color)),
+                 paint, "mask_texture_slot.angle", None, secondary_rotation=secondary_rotation, color=color,
+            )),
         ])
 
     if weight:
         items.extend([
             ("wm.radial_control", {"type": 'F', "value": 'PRESS', "ctrl": True, "alt": True},
              radial_control_properties(
-                 paint, "mask_texture_slot.angle", None, secondary_rotation=secondary_rotation, color=color)),
-
+                 paint, "mask_texture_slot.angle", None, secondary_rotation=secondary_rotation, color=color,
+            )),
             ("wm.radial_control", {"type": 'F', "value": 'PRESS', "ctrl": True},
              radial_control_properties(
                 paint, "weight", "use_unified_weight"))
@@ -2766,8 +2769,10 @@ def km_image_paint(params):
         ("wm.context_toggle", {"type": 'L', "value": 'PRESS'},
          {"properties": [("data_path", "tool_settings.image_paint.brush.use_smooth_stroke")]}),
         # Context menu.
-        *_template_items_context_panel("VIEW3D_PT_paint_texture_context_menu",
-                                       {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
+        *_template_items_context_panel(
+            "VIEW3D_PT_paint_texture_context_menu",
+            {"type": 'RIGHTMOUSE', "value": 'PRESS'},
+        ),
         # Tools
         op_tool_cycle("builtin.select_box", {"type": 'Q', "value": 'PRESS'}),
         op_tool_cycle("builtin.annotate", {"type": 'D', "value": 'PRESS'}),
