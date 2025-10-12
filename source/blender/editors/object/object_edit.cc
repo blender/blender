@@ -1663,9 +1663,9 @@ static bool is_smooth_by_angle_modifier(const ModifierData &md)
   if (!library) {
     return false;
   }
-  if (!BLI_path_contains(library->filepath,
-                         "datafiles/assets/nodes/geometry_nodes_essentials.blend"))
-  {
+  char auto_smooth_asset_path[FILE_MAX] = "datafiles/assets/nodes/geometry_nodes_essentials.blend";
+  BLI_path_normalize(auto_smooth_asset_path);
+  if (!StringRef(library->filepath).endswith(auto_smooth_asset_path)) {
     return false;
   }
   if (!STREQ(BKE_id_name(nmd.node_group->id), "Smooth by Angle")) {
