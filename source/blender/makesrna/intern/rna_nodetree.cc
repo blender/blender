@@ -7309,7 +7309,8 @@ static void rna_def_geo_viewer_item(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(
       prop, "Auto Remove", "Remove the item automatically when it is unlinked");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_update(
+      prop, NC_NODE | NA_EDITED, "rna_Node_ItemArray_item_update<GeoViewerItemsAccessor>");
 }
 
 static void rna_def_geo_viewer_items(BlenderRNA *brna)
