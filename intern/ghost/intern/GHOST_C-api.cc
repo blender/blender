@@ -965,6 +965,11 @@ void GHOST_SetBacktraceHandler(GHOST_TBacktraceFn backtrace_fn)
   GHOST_ISystem::setBacktraceFn(backtrace_fn);
 }
 
+void GHOST_UseWindowFrame(bool use_window_frame)
+{
+  GHOST_ISystem::setUseWindowFrame(use_window_frame);
+}
+
 void GHOST_UseWindowFocus(bool use_focus)
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();

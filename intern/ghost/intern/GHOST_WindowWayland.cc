@@ -1867,12 +1867,16 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
     GWL_XDG_Decor_Window &decor = *window_->xdg_decor;
 
     if (system_->xdg_decor_manager_get()) {
+      const bool use_window_frame = system_->use_window_frame_get();
       decor.toplevel_decor = zxdg_decoration_manager_v1_get_toplevel_decoration(
           system_->xdg_decor_manager_get(), decor.toplevel);
       zxdg_toplevel_decoration_v1_add_listener(
           decor.toplevel_decor, &xdg_toplevel_decoration_v1_listener, window_);
+      /* Request client side decorations as a way of disabling decorations. */
       zxdg_toplevel_decoration_v1_set_mode(decor.toplevel_decor,
-                                           ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE);
+                                           use_window_frame ?
+                                               ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE :
+                                               ZXDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE);
     }
 
     /* Commit needed to so configure callback runs. */

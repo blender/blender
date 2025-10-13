@@ -702,6 +702,7 @@ static void print_help(bArgs *ba, bool all)
   BLI_args_print_arg_doc(ba, "--window-geometry");
   BLI_args_print_arg_doc(ba, "--start-console");
   BLI_args_print_arg_doc(ba, "--no-native-pixels");
+  BLI_args_print_arg_doc(ba, "--no-window-frame");
   BLI_args_print_arg_doc(ba, "--no-window-focus");
 
   PRINT("\n");
@@ -1886,6 +1887,15 @@ static const char arg_handle_window_maximized_doc[] =
 static int arg_handle_window_maximized(int /*argc*/, const char ** /*argv*/, void * /*data*/)
 {
   WM_init_state_maximized_set();
+  return 0;
+}
+
+static const char arg_handle_no_window_frame_doc[] =
+    "\n\t"
+    "Disable all window decorations (Wayland only).";
+static int arg_handle_no_window_frame(int /*argc*/, const char ** /*argv*/, void * /*data*/)
+{
+  WM_init_window_frame_set(false);
   return 0;
 }
 
@@ -3087,6 +3097,7 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
   BLI_args_add(ba, "-w", "--window-border", CB(arg_handle_window_border), nullptr);
   BLI_args_add(ba, "-W", "--window-fullscreen", CB(arg_handle_window_fullscreen), nullptr);
   BLI_args_add(ba, "-M", "--window-maximized", CB(arg_handle_window_maximized), nullptr);
+  BLI_args_add(ba, nullptr, "--no-window-frame", CB(arg_handle_no_window_frame), nullptr);
   BLI_args_add(ba, nullptr, "--no-window-focus", CB(arg_handle_no_window_focus), nullptr);
   BLI_args_add(ba, "-con", "--start-console", CB(arg_handle_start_with_console), nullptr);
   BLI_args_add(ba, "-r", "--register", CB(arg_handle_register_extension), nullptr);
