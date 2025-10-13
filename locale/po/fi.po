@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'5517941a60ac')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 14:36+0000\n"
+"POT-Creation-Date: 2025-10-13 16:12+0000\n"
 "PO-Revision-Date: 2025-07-23 15:32+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -7244,8 +7244,40 @@ msgid "Mask"
 msgstr "Maski"
 
 
+msgid "Metaball"
+msgstr "Metapallo"
+
+
+msgid "Light"
+msgstr "Valo"
+
+
+msgid "Light Probe"
+msgstr "Valoluotain"
+
+
+msgid "Add Image"
+msgstr "Lisää kuva"
+
+
+msgid "Track"
+msgstr "Raide"
+
+
 msgid "Show/Hide"
 msgstr "Näytä/Piilota"
+
+
+msgid "Hooks"
+msgstr "Koukut"
+
+
+msgid "Random Mask"
+msgstr "Satunnainen maski"
+
+
+msgid "Names"
+msgstr "Nimet"
 
 
 msgid "Mesh Select Mode"
@@ -7260,36 +7292,8 @@ msgid "Math"
 msgstr "Matematiikka"
 
 
-msgid "Track"
-msgstr "Raide"
-
-
-msgid "Names"
-msgstr "Nimet"
-
-
-msgid "Metaball"
-msgstr "Metapallo"
-
-
 msgid "Text"
 msgstr "Teksti"
-
-
-msgid "Add Image"
-msgstr "Lisää kuva"
-
-
-msgid "Light Probe"
-msgstr "Valoluotain"
-
-
-msgid "Light"
-msgstr "Valo"
-
-
-msgid "Select More/Less"
-msgstr "Valitse enemmän/vähemmän"
 
 
 msgid "Read"
@@ -7300,40 +7304,36 @@ msgid "Write"
 msgstr "Kirjoita"
 
 
-msgid "Select Loops"
-msgstr "Valitse silmukat"
-
-
-msgid "Select All by Trait"
-msgstr "Valitse kaikki piirteen mukaan"
-
-
-msgid "Select Similar"
-msgstr "Valitse samankaltainen"
-
-
-msgid "Random Mask"
-msgstr "Satunnainen maski"
-
-
 msgid "Instances"
 msgstr "Instanssit"
-
-
-msgid "UV Mapping"
-msgstr "UV-kartoittaminen"
 
 
 msgid "Import"
 msgstr "Tuo"
 
 
+msgid "UV Mapping"
+msgstr "UV-kartoittaminen"
+
+
+msgid "Select More/Less"
+msgstr "Valitse enemmän/vähemmän"
+
+
+msgid "Select Similar"
+msgstr "Valitse samankaltainen"
+
+
+msgid "Select All by Trait"
+msgstr "Valitse kaikki piirteen mukaan"
+
+
 msgid "UV"
 msgstr "UV"
 
 
-msgid "Hooks"
-msgstr "Koukut"
+msgid "Select Loops"
+msgstr "Valitse silmukat"
 
 
 msgid "Basic"

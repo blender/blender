@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'5517941a60ac')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 14:36+0000\n"
+"POT-Creation-Date: 2025-10-13 16:12+0000\n"
 "PO-Revision-Date: 2025-07-23 15:14+0000\n"
 "Last-Translator: Kamil <uhkamil@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -11531,8 +11531,36 @@ msgid "Mask"
 msgstr "Maska"
 
 
-msgid "Convert"
-msgstr "Konwertuj"
+msgid "Metaball"
+msgstr "Metakula"
+
+
+msgid "Light"
+msgstr "Światło"
+
+
+msgid "Light Probe"
+msgstr "Sonda świetlna"
+
+
+msgid "Rigid Body"
+msgstr "Bryła sztywna"
+
+
+msgid "Apply"
+msgstr "Zastosuj"
+
+
+msgid "Track"
+msgstr "Ścieżka"
+
+
+msgid "Quick Effects"
+msgstr "Szybkie efekty"
+
+
+msgid "Show/Hide"
+msgstr "Pokaż/Ukryj"
 
 
 msgid "Clean Up"
@@ -11543,76 +11571,48 @@ msgid "Asset"
 msgstr "Prefabrykat"
 
 
-msgid "Show/Hide"
-msgstr "Pokaż/Ukryj"
+msgid "Convert"
+msgstr "Konwertuj"
 
 
 msgid "Layout"
 msgstr "Układ"
 
 
-msgid "Apply"
-msgstr "Zastosuj"
-
-
-msgid "Quick Effects"
-msgstr "Szybkie efekty"
-
-
-msgid "Face Data"
-msgstr "Dane ściany"
+msgid "Bone Collections"
+msgstr "Kolekcja kości"
 
 
 msgid "Keying"
 msgstr "Kluczowanie"
 
 
-msgid "Merge"
-msgstr "Scal"
-
-
 msgid "Utilities"
 msgstr "Narzędzia"
+
+
+msgid "Face Data"
+msgstr "Dane ściany"
 
 
 msgid "Math"
 msgstr "Matematyka"
 
 
-msgid "Track"
-msgstr "Ścieżka"
-
-
-msgid "Metaball"
-msgstr "Metakula"
+msgid "Merge"
+msgstr "Scal"
 
 
 msgid "Text"
 msgstr "Tekst"
 
 
-msgid "Bone Collections"
-msgstr "Kolekcja kości"
-
-
-msgid "Rigid Body"
-msgstr "Bryła sztywna"
-
-
 msgid "Snap"
 msgstr "Przyciągnij"
 
 
-msgid "Light Probe"
-msgstr "Sonda świetlna"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Proporcjonalne edytowanie spadku"
-
-
-msgid "Light"
-msgstr "Światło"
 
 
 msgid "Read"
@@ -11623,24 +11623,8 @@ msgid "Write"
 msgstr "Zapis"
 
 
-msgid "Select Linked"
-msgstr "Zaznacz powiązane"
-
-
-msgid "Navigation"
-msgstr "Nawigacja"
-
-
-msgid "Viewpoint"
-msgstr "Punkt obserwacji"
-
-
 msgid "Gizmo"
 msgstr "Gizmo"
-
-
-msgid "Local View"
-msgstr "Widok lokalny"
 
 
 msgid "Mirror"
@@ -11651,8 +11635,24 @@ msgid "Import"
 msgstr "Importuj"
 
 
+msgid "Local View"
+msgstr "Widok lokalny"
+
+
+msgid "Viewpoint"
+msgstr "Punkt obserwacji"
+
+
+msgid "Navigation"
+msgstr "Nawigacja"
+
+
 msgid "Deprecated"
 msgstr "Przestarzałe"
+
+
+msgid "Select Linked"
+msgstr "Zaznacz powiązane"
 
 
 msgid "Assign Material"

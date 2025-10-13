@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'5517941a60ac')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 14:36+0000\n"
+"POT-Creation-Date: 2025-10-13 16:12+0000\n"
 "PO-Revision-Date: 2025-09-09 13:59+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -24554,12 +24554,44 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "Convert"
-msgstr "Converti"
+msgid "Metaball"
+msgstr "Metaball"
 
 
-msgid "Make Single User"
-msgstr "Rendi Utilizzatore Singolo"
+msgid "Light"
+msgstr "Luce"
+
+
+msgid "Light Probe"
+msgstr "Sensore di Luce"
+
+
+msgid "Add Image"
+msgstr "Aggiungi Immagine"
+
+
+msgid "Relations"
+msgstr "Relazioni"
+
+
+msgid "Rigid Body"
+msgstr "Corpo Rigido"
+
+
+msgid "Apply"
+msgstr "Applica"
+
+
+msgid "Track"
+msgstr "Traccia"
+
+
+msgid "Quick Effects"
+msgstr "Effetti Veloci"
+
+
+msgid "Show/Hide"
+msgstr "Mostra/Nascondi"
 
 
 msgid "Clean Up"
@@ -24570,16 +24602,60 @@ msgid "Asset"
 msgstr "Risorsa"
 
 
-msgid "Show/Hide"
-msgstr "Mostra/Nascondi"
+msgid "Make Single User"
+msgstr "Rendi Utilizzatore Singolo"
+
+
+msgid "Convert"
+msgstr "Converti"
+
+
+msgid "Link/Transfer Data"
+msgstr "Collega/Trasferisci Dati"
+
+
+msgid "Hooks"
+msgstr "Ganci"
+
+
+msgid "Vertex Group Locks"
+msgstr "Blocchi del Gruppo di Vertici"
+
+
+msgid "Face Sets Init"
+msgstr "Init Sets di Facce"
+
+
+msgid "Random Mask"
+msgstr "Maschera Casuale"
 
 
 msgid "Layout"
 msgstr "Layout"
 
 
-msgid "Apply"
-msgstr "Applica"
+msgid "Clear Transform"
+msgstr "Cancella Trasformazione"
+
+
+msgid "In-Betweens"
+msgstr "Intermedio"
+
+
+msgid "Propagate"
+msgstr "Propaga"
+
+
+msgid "Bone Collections"
+msgstr "Raccolte di Ossa"
+
+
+msgid "Names"
+msgstr "Nomi"
+
+
+msgid "Adjust"
+msgstr "Regola"
 
 
 msgid "Toggle Bone Options"
@@ -24594,20 +24670,28 @@ msgid "Disable Bone Options"
 msgstr "Disabilita Opzioni Osso"
 
 
-msgid "Quick Effects"
-msgstr "Effetti Veloci"
+msgid "Keying"
+msgstr "Keying"
 
 
 msgid "Mesh Select Mode"
 msgstr "Modalità Selezione Mesh"
 
 
+msgid "Tracking"
+msgstr "Tracciamento"
+
+
+msgid "Utilities"
+msgstr "Utilità"
+
+
 msgid "Face Data"
 msgstr "Dati Faccia"
 
 
-msgid "Adjust"
-msgstr "Regola"
+msgid "Math"
+msgstr "Matematica"
 
 
 msgid "Select by Face Strength"
@@ -24618,40 +24702,12 @@ msgid "Set Face Strength"
 msgstr "Imposta Intensità Faccia"
 
 
-msgid "Keying"
-msgstr "Keying"
-
-
-msgid "Tracking"
-msgstr "Tracciamento"
-
-
 msgid "Merge"
 msgstr "Unisci"
 
 
-msgid "Utilities"
-msgstr "Utilità"
-
-
-msgid "Math"
-msgstr "Matematica"
-
-
-msgid "Track"
-msgstr "Traccia"
-
-
-msgid "Names"
-msgstr "Nomi"
-
-
 msgid "Special Characters"
 msgstr "Caratteri Speciali"
-
-
-msgid "Metaball"
-msgstr "Metaball"
 
 
 msgid "Kerning"
@@ -24662,32 +24718,8 @@ msgid "Text"
 msgstr "Testo"
 
 
-msgid "Bone Collections"
-msgstr "Raccolte di Ossa"
-
-
 msgid "Bone Roll"
 msgstr "Rollio Osso"
-
-
-msgid "Rigid Body"
-msgstr "Corpo Rigido"
-
-
-msgid "Propagate"
-msgstr "Propaga"
-
-
-msgid "In-Betweens"
-msgstr "Intermedio"
-
-
-msgid "Relations"
-msgstr "Relazioni"
-
-
-msgid "Add Image"
-msgstr "Aggiungi Immagine"
 
 
 msgid "Pivot Point"
@@ -24698,44 +24730,24 @@ msgid "Snap"
 msgstr "Aggancia"
 
 
-msgid "Light Probe"
-msgstr "Sensore di Luce"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Decadimento Modifica Proporzionale"
-
-
-msgid "Light"
-msgstr "Luce"
 
 
 msgid "Mask Edit"
 msgstr "Modifica Maschera"
 
 
-msgid "Select More/Less"
-msgstr "Seleziona Più/Meno"
-
-
 msgid "Automasking"
 msgstr "Automascheramento"
 
 
-msgid "Face Sets Edit"
-msgstr "Modifica Sets di Facce"
-
-
-msgid "Vertex Group Locks"
-msgstr "Blocchi del Gruppo di Vertici"
-
-
-msgid "Clear Transform"
-msgstr "Cancella Trasformazione"
-
-
 msgid "Read"
 msgstr "Lettura"
+
+
+msgid "Face Sets Edit"
+msgstr "Modifica Sets di Facce"
 
 
 msgid "Sample"
@@ -24750,60 +24762,8 @@ msgid "Primitives"
 msgstr "Primitive"
 
 
-msgid "Select Loops"
-msgstr "Seleziona Anelli"
-
-
-msgid "Select Linked"
-msgstr "Seleziona Collegati"
-
-
-msgid "Select All by Trait"
-msgstr "Seleziona Tutto per Caratteristica"
-
-
-msgid "Face Sets Init"
-msgstr "Init Sets di Facce"
-
-
-msgid "Select Similar"
-msgstr "Seleziona Simili"
-
-
-msgid "Random Mask"
-msgstr "Maschera Casuale"
-
-
-msgid "View Regions"
-msgstr "Regione Vista"
-
-
-msgid "Align View to Active"
-msgstr "Allinea Vista a Attivo"
-
-
-msgid "Align View"
-msgstr "Allinea Vista"
-
-
-msgid "Navigation"
-msgstr "Navigazione"
-
-
-msgid "Viewpoint"
-msgstr "Punto di vista"
-
-
 msgid "Instances"
 msgstr "Istanze"
-
-
-msgid "Local View"
-msgstr "Vista Locale"
-
-
-msgid "UV Mapping"
-msgstr "Mappatura UV"
 
 
 msgid "Mirror"
@@ -24814,28 +24774,68 @@ msgid "Import"
 msgstr "Importa"
 
 
+msgid "UV Mapping"
+msgstr "Mappatura UV"
+
+
+msgid "Local View"
+msgstr "Vista Locale"
+
+
+msgid "Viewpoint"
+msgstr "Punto di vista"
+
+
+msgid "Navigation"
+msgstr "Navigazione"
+
+
+msgid "Align View"
+msgstr "Allinea Vista"
+
+
+msgid "Align View to Active"
+msgstr "Allinea Vista a Attivo"
+
+
+msgid "View Regions"
+msgstr "Regione Vista"
+
+
+msgid "Select More/Less"
+msgstr "Seleziona Più/Meno"
+
+
+msgid "Select Similar"
+msgstr "Seleziona Simili"
+
+
+msgid "Select All by Trait"
+msgstr "Seleziona Tutto per Caratteristica"
+
+
 msgid "UV"
 msgstr "UV"
+
+
+msgid "Select Linked"
+msgstr "Seleziona Collegati"
+
+
+msgid "Select Loops"
+msgstr "Seleziona Anelli"
+
+
+msgid "Basic"
+msgstr "Di Base"
 
 
 msgid "Assign Material"
 msgstr "Assegna Materiale"
 
 
-msgid "Hooks"
-msgstr "Ganci"
-
-
-msgid "Link/Transfer Data"
-msgstr "Collega/Trasferisci Dati"
-
-
 msgid "Keyframe Insert Pie"
 msgstr "Torta Inserisci Keyframe"
-
-
-msgid "Basic"
-msgstr "Di Base"
 
 
 msgid "Bone Collection Specials"
@@ -50138,6 +50138,10 @@ msgid "Active Palette Color"
 msgstr "Colore Tavolozza Attivo"
 
 
+msgid "Auto-Masking"
+msgstr "Auto-Mascheramento"
+
+
 msgid "Shadow Settings"
 msgstr "Impostazioni Ombra"
 
@@ -50188,10 +50192,6 @@ msgstr "Giacitura Tratto"
 
 msgid "Stereoscopy"
 msgstr "Stereoscopia"
-
-
-msgid "Auto-Masking"
-msgstr "Auto-Mascheramento"
 
 
 msgid "Chain Scaling"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'5517941a60ac')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 14:36+0000\n"
+"POT-Creation-Date: 2025-10-13 16:12+0000\n"
 "PO-Revision-Date: 2025-07-23 15:08+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -26382,12 +26382,44 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
-msgid "Convert"
-msgstr "Конвертування"
+msgid "Metaball"
+msgstr "Метакуля"
 
 
-msgid "Make Single User"
-msgstr "Зробити однокористувацьким"
+msgid "Light"
+msgstr "Слабко"
+
+
+msgid "Light Probe"
+msgstr "Проба Освітлення"
+
+
+msgid "Add Image"
+msgstr "Додати Зображення"
+
+
+msgid "Relations"
+msgstr "Зв'язки"
+
+
+msgid "Rigid Body"
+msgstr "Тверде тіло"
+
+
+msgid "Apply"
+msgstr "Застосувати"
+
+
+msgid "Track"
+msgstr "Стеження"
+
+
+msgid "Quick Effects"
+msgstr "Швидкі ефекти"
+
+
+msgid "Show/Hide"
+msgstr "Показати/приховати"
 
 
 msgid "Clean Up"
@@ -26398,16 +26430,52 @@ msgid "Asset"
 msgstr "Актив"
 
 
-msgid "Show/Hide"
-msgstr "Показати/приховати"
+msgid "Make Single User"
+msgstr "Зробити однокористувацьким"
+
+
+msgid "Convert"
+msgstr "Конвертування"
+
+
+msgid "Link/Transfer Data"
+msgstr "Пов'язати/Перенести Дані"
+
+
+msgid "Hooks"
+msgstr "Гачки"
+
+
+msgid "Vertex Group Locks"
+msgstr "Блокування Груп Вершин"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Ліплення Задати Опертя"
+
+
+msgid "Face Sets Init"
+msgstr "Ініціація Наборів Граней"
 
 
 msgid "Layout"
 msgstr "Розстановка"
 
 
-msgid "Apply"
-msgstr "Застосувати"
+msgid "Clear Transform"
+msgstr "Зчистити трансформації"
+
+
+msgid "In-Betweens"
+msgstr "У проміжках"
+
+
+msgid "Propagate"
+msgstr "Поширити"
+
+
+msgid "Names"
+msgstr "Назви"
 
 
 msgid "Toggle Bone Options"
@@ -26422,16 +26490,28 @@ msgid "Disable Bone Options"
 msgstr "Відключити параметри кісток"
 
 
-msgid "Quick Effects"
-msgstr "Швидкі ефекти"
+msgid "Keying"
+msgstr "Ключування"
 
 
 msgid "Mesh Select Mode"
 msgstr "Режим Вибору Сіті"
 
 
+msgid "Tracking"
+msgstr "Стеження"
+
+
+msgid "Utilities"
+msgstr "Утиліти"
+
+
 msgid "Face Data"
 msgstr "Дані граней"
+
+
+msgid "Math"
+msgstr "Математика"
 
 
 msgid "Select by Face Strength"
@@ -26442,40 +26522,12 @@ msgid "Set Face Strength"
 msgstr "Задати Силу Грані"
 
 
-msgid "Keying"
-msgstr "Ключування"
-
-
-msgid "Tracking"
-msgstr "Стеження"
-
-
 msgid "Merge"
 msgstr "Об'єднання"
 
 
-msgid "Utilities"
-msgstr "Утиліти"
-
-
-msgid "Math"
-msgstr "Математика"
-
-
-msgid "Track"
-msgstr "Стеження"
-
-
-msgid "Names"
-msgstr "Назви"
-
-
 msgid "Special Characters"
 msgstr "Спеціальні символи"
-
-
-msgid "Metaball"
-msgstr "Метакуля"
 
 
 msgid "Kerning"
@@ -26490,26 +26542,6 @@ msgid "Bone Roll"
 msgstr "Прокручення Кістки"
 
 
-msgid "Rigid Body"
-msgstr "Тверде тіло"
-
-
-msgid "Propagate"
-msgstr "Поширити"
-
-
-msgid "In-Betweens"
-msgstr "У проміжках"
-
-
-msgid "Relations"
-msgstr "Зв'язки"
-
-
-msgid "Add Image"
-msgstr "Додати Зображення"
-
-
 msgid "Pivot Point"
 msgstr "Точка Опертя"
 
@@ -26518,24 +26550,12 @@ msgid "Snap"
 msgstr "Підхоп"
 
 
-msgid "Light Probe"
-msgstr "Проба Освітлення"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Спад Пропорційного Редагування"
 
 
-msgid "Light"
-msgstr "Слабко"
-
-
 msgid "Mask Edit"
 msgstr "Редагування Маски"
-
-
-msgid "Select More/Less"
-msgstr "Вибрати більше/менше"
 
 
 msgid "Automasking"
@@ -26546,72 +26566,12 @@ msgid "Face Sets Edit"
 msgstr "Редагування Наборів Граней"
 
 
-msgid "Vertex Group Locks"
-msgstr "Блокування Груп Вершин"
-
-
-msgid "Clear Transform"
-msgstr "Зчистити трансформації"
-
-
 msgid "Sample"
 msgstr "Вибірка"
 
 
 msgid "Primitives"
 msgstr "Примітиви"
-
-
-msgid "Select Loops"
-msgstr "Виділити петлі"
-
-
-msgid "Select Linked"
-msgstr "Виділити пов'язане"
-
-
-msgid "Select All by Trait"
-msgstr "Вибрати все за рисою"
-
-
-msgid "Face Sets Init"
-msgstr "Ініціація Наборів Граней"
-
-
-msgid "Select Similar"
-msgstr "Вибрати подібні"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Ліплення Задати Опертя"
-
-
-msgid "View Regions"
-msgstr "Регіони Огляду"
-
-
-msgid "Align View to Active"
-msgstr "Вирівняти Огляд за Активним"
-
-
-msgid "Align View"
-msgstr "Вирівняти Огляд"
-
-
-msgid "Navigation"
-msgstr "Навігація"
-
-
-msgid "Viewpoint"
-msgstr "Точка зору"
-
-
-msgid "Local View"
-msgstr "Огляд Локально"
-
-
-msgid "UV Mapping"
-msgstr "Розкладання UV"
 
 
 msgid "Mirror"
@@ -26622,24 +26582,64 @@ msgid "Import"
 msgstr "Імпортувати"
 
 
+msgid "UV Mapping"
+msgstr "Розкладання UV"
+
+
+msgid "Local View"
+msgstr "Огляд Локально"
+
+
+msgid "Viewpoint"
+msgstr "Точка зору"
+
+
+msgid "Navigation"
+msgstr "Навігація"
+
+
+msgid "Align View"
+msgstr "Вирівняти Огляд"
+
+
+msgid "Align View to Active"
+msgstr "Вирівняти Огляд за Активним"
+
+
+msgid "View Regions"
+msgstr "Регіони Огляду"
+
+
+msgid "Select More/Less"
+msgstr "Вибрати більше/менше"
+
+
+msgid "Select Similar"
+msgstr "Вибрати подібні"
+
+
+msgid "Select All by Trait"
+msgstr "Вибрати все за рисою"
+
+
 msgid "UV"
 msgstr "UV"
 
 
-msgid "Assign Material"
-msgstr "Призначити Матеріал"
+msgid "Select Linked"
+msgstr "Виділити пов'язане"
 
 
-msgid "Hooks"
-msgstr "Гачки"
-
-
-msgid "Link/Transfer Data"
-msgstr "Пов'язати/Перенести Дані"
+msgid "Select Loops"
+msgstr "Виділити петлі"
 
 
 msgid "Basic"
 msgstr "Основний"
+
+
+msgid "Assign Material"
+msgstr "Призначити Матеріал"
 
 
 msgid "Assets"
@@ -61092,6 +61092,10 @@ msgid "Panel containing UI elements"
 msgstr "Панель, що містить елементи Інтерфейсу Користувача"
 
 
+msgid "Auto-Masking"
+msgstr "Авто-Маскування"
+
+
 msgid "VR"
 msgstr "ВР"
 
@@ -61174,10 +61178,6 @@ msgstr "Стереоскопія"
 
 msgid "Multi Frame"
 msgstr "Багато Кадр"
-
-
-msgid "Auto-Masking"
-msgstr "Авто-Маскування"
 
 
 msgid "Chain Scaling"

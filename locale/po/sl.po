@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'5517941a60ac')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 14:36+0000\n"
+"POT-Creation-Date: 2025-10-13 16:12+0000\n"
 "PO-Revision-Date: 2025-10-11 20:59+0000\n"
 "Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
@@ -22607,10 +22607,6 @@ msgid "Community"
 msgstr "Skupnost"
 
 
-msgid "Testing"
-msgstr "Na preizkušnji"
-
-
 msgid "Addon Tags"
 msgstr "Značke dodatkov"
 
@@ -25539,12 +25535,44 @@ msgid "Mask"
 msgstr "Maska"
 
 
-msgid "Convert"
-msgstr "Pretvori"
+msgid "Metaball"
+msgstr "Metažoga"
 
 
-msgid "Make Single User"
-msgstr "Naredi edinstveno uporabniku"
+msgid "Light"
+msgstr "Luč"
+
+
+msgid "Light Probe"
+msgstr "Svetlobna sonda"
+
+
+msgid "Add Image"
+msgstr "Dodaj sliko"
+
+
+msgid "Relations"
+msgstr "Razmerja"
+
+
+msgid "Rigid Body"
+msgstr "Togo telo"
+
+
+msgid "Apply"
+msgstr "Uveljavi"
+
+
+msgid "Track"
+msgstr "Obriši"
+
+
+msgid "Quick Effects"
+msgstr "Učinki na hitro"
+
+
+msgid "Show/Hide"
+msgstr "Pokaži / skrij"
 
 
 msgid "Clean Up"
@@ -25555,36 +25583,56 @@ msgid "Asset"
 msgstr "Sredstvo"
 
 
-msgid "Show/Hide"
-msgstr "Pokaži / skrij"
+msgid "Make Single User"
+msgstr "Naredi edinstveno uporabniku"
+
+
+msgid "Convert"
+msgstr "Pretvori"
+
+
+msgid "Link/Transfer Data"
+msgstr "Poveži / prenesi podatke"
+
+
+msgid "Hooks"
+msgstr "Kavlji"
+
+
+msgid "Trim/Add"
+msgstr "Poreži / dodaj"
+
+
+msgid "Random Mask"
+msgstr "Naključna maska"
 
 
 msgid "Layout"
 msgstr "Ureditev"
 
 
-msgid "Apply"
-msgstr "Uveljavi"
+msgid "Clear Transform"
+msgstr "Počisti transformacijo"
 
 
-msgid "Quick Effects"
-msgstr "Učinki na hitro"
+msgid "In-Betweens"
+msgstr "Vmesni okvirji"
 
 
-msgid "Face Data"
-msgstr "Podatki lic"
+msgid "Propagate"
+msgstr "Razširjanje"
+
+
+msgid "Bone Collections"
+msgstr "Zbirke kosti"
+
+
+msgid "Names"
+msgstr "Imena"
 
 
 msgid "Adjust"
 msgstr "Prilagoditev"
-
-
-msgid "Select by Face Strength"
-msgstr "Izberi glede na krepkost lica"
-
-
-msgid "Set Face Strength"
-msgstr "Nastavi krepkost lica"
 
 
 msgid "Keying"
@@ -25595,36 +25643,40 @@ msgid "Tracking"
 msgstr "Sledenje"
 
 
-msgid "Merge"
-msgstr "Združi"
-
-
 msgid "Utilities"
 msgstr "Pripomočki"
+
+
+msgid "Face Data"
+msgstr "Podatki lic"
 
 
 msgid "Math"
 msgstr "Matematika"
 
 
+msgid "Select by Face Strength"
+msgstr "Izberi glede na krepkost lica"
+
+
 msgid "Creative"
 msgstr "Ustvarjanje"
 
 
-msgid "Track"
-msgstr "Obriši"
+msgid "Set Face Strength"
+msgstr "Nastavi krepkost lica"
 
 
-msgid "Names"
-msgstr "Imena"
+msgid "Merge"
+msgstr "Združi"
+
+
+msgid "Render Preview"
+msgstr "Predogled upodobitve"
 
 
 msgid "Special Characters"
 msgstr "Posebni znaki"
-
-
-msgid "Metaball"
-msgstr "Metažoga"
 
 
 msgid "Kerning"
@@ -25635,36 +25687,8 @@ msgid "Text"
 msgstr "Besedilo"
 
 
-msgid "Render Preview"
-msgstr "Predogled upodobitve"
-
-
-msgid "Bone Collections"
-msgstr "Zbirke kosti"
-
-
 msgid "Bone Roll"
 msgstr "Zasukaj kost"
-
-
-msgid "Rigid Body"
-msgstr "Togo telo"
-
-
-msgid "Propagate"
-msgstr "Razširjanje"
-
-
-msgid "In-Betweens"
-msgstr "Vmesni okvirji"
-
-
-msgid "Relations"
-msgstr "Razmerja"
-
-
-msgid "Add Image"
-msgstr "Dodaj sliko"
 
 
 msgid "Pivot Point"
@@ -25675,32 +25699,16 @@ msgid "Snap"
 msgstr "Pritrdi"
 
 
-msgid "Light Probe"
-msgstr "Svetlobna sonda"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Slabljenje sorazmernega urejanja"
-
-
-msgid "Light"
-msgstr "Luč"
 
 
 msgid "Mask Edit"
 msgstr "Urejanje maske"
 
 
-msgid "Select More/Less"
-msgstr "Izberi več / manj"
-
-
 msgid "Automasking"
 msgstr "Samodejno maskiranje"
-
-
-msgid "Clear Transform"
-msgstr "Počisti transformacijo"
 
 
 msgid "Read"
@@ -25719,64 +25727,12 @@ msgid "Primitives"
 msgstr "Primitivi"
 
 
-msgid "Select Loops"
-msgstr "Izberi zanke"
-
-
-msgid "Select Linked"
-msgstr "Izberi povezano"
-
-
-msgid "Select All by Trait"
-msgstr "Izberi vse po značilnosti"
-
-
-msgid "Select Similar"
-msgstr "Izberi sorodne"
-
-
-msgid "Random Mask"
-msgstr "Naključna maska"
-
-
-msgid "View Regions"
-msgstr "Področja pogleda"
-
-
-msgid "Align View to Active"
-msgstr "Poravnaj pogled na aktivno"
-
-
-msgid "Align View"
-msgstr "Poravnava pogleda"
-
-
-msgid "Navigation"
-msgstr "Navigacija"
-
-
-msgid "Viewpoint"
-msgstr "Gledišče"
-
-
 msgid "Gizmo"
 msgstr "Manipulator"
 
 
 msgid "Instances"
 msgstr "Primerki"
-
-
-msgid "Local View"
-msgstr "Krajevni pogled"
-
-
-msgid "UV Mapping"
-msgstr "Preslikanje UV"
-
-
-msgid "Trim/Add"
-msgstr "Poreži / dodaj"
 
 
 msgid "Mirror"
@@ -25787,28 +25743,64 @@ msgid "Import"
 msgstr "Uvozi"
 
 
+msgid "UV Mapping"
+msgstr "Preslikanje UV"
+
+
+msgid "Local View"
+msgstr "Krajevni pogled"
+
+
+msgid "Viewpoint"
+msgstr "Gledišče"
+
+
+msgid "Navigation"
+msgstr "Navigacija"
+
+
+msgid "Align View"
+msgstr "Poravnava pogleda"
+
+
+msgid "Align View to Active"
+msgstr "Poravnaj pogled na aktivno"
+
+
 msgid "Deprecated"
 msgstr "Zastarelo"
+
+
+msgid "View Regions"
+msgstr "Področja pogleda"
+
+
+msgid "Select More/Less"
+msgstr "Izberi več / manj"
 
 
 msgid "List"
 msgstr "Seznam"
 
 
+msgid "Select Similar"
+msgstr "Izberi sorodne"
+
+
+msgid "Select All by Trait"
+msgstr "Izberi vse po značilnosti"
+
+
 msgid "UV"
 msgstr "UV"
 
 
-msgid "Assign Material"
-msgstr "Dodeli material"
+msgid "Select Linked"
+msgstr "Izberi povezano"
 
 
-msgid "Hooks"
-msgstr "Kavlji"
-
-
-msgid "Link/Transfer Data"
-msgstr "Poveži / prenesi podatke"
+msgid "Select Loops"
+msgstr "Izberi zanke"
 
 
 msgid "Animals"
@@ -25817,6 +25809,10 @@ msgstr "Živali"
 
 msgid "Basic"
 msgstr "Osnovno"
+
+
+msgid "Assign Material"
+msgstr "Dodeli material"
 
 
 msgid "Rigify Meta-Rigs"
@@ -49257,6 +49253,14 @@ msgid "Panel containing UI elements"
 msgstr "Plošča, ki vsebuje elemente uporabniškega vmesnika"
 
 
+msgid "Auto-Masking"
+msgstr "Samodejno maskiranje"
+
+
+msgid "Viewport Debug"
+msgstr "Razhroščevanje 3D pogleda"
+
+
 msgid "VR"
 msgstr "VR"
 
@@ -49375,14 +49379,6 @@ msgstr "Stereoskopija"
 
 msgid "Multi Frame"
 msgstr "Multiokvir"
-
-
-msgid "Auto-Masking"
-msgstr "Samodejno maskiranje"
-
-
-msgid "Viewport Debug"
-msgstr "Razhroščevanje 3D pogleda"
 
 
 msgid "Import Settings"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'5517941a60ac')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 14:36+0000\n"
+"POT-Creation-Date: 2025-10-13 16:12+0000\n"
 "PO-Revision-Date: 2025-10-12 19:59+0000\n"
 "Last-Translator: Joan Pujolar <joan.pujolar@gmail.com>\n"
 "Language-Team: Catalan <https://translate.blender.org/projects/blender-ui/ui/ca/>\n"
@@ -29735,14 +29735,6 @@ msgid "Maintained by community developers"
 msgstr "Mantingut pels desenvolupadors de la comunitat"
 
 
-msgid "Testing"
-msgstr "En proves"
-
-
-msgid "Newly contributed scripts (excluded from release builds)"
-msgstr "Protocols de nova contribució (exclosos de les compilacions publicades)"
-
-
 msgid "Addon Tags"
 msgstr "Etiquetes de complements"
 
@@ -34786,12 +34778,44 @@ msgid "Editor menu containing buttons"
 msgstr "El menú d'edició que conté els botons"
 
 
-msgid "Convert"
-msgstr "Convertir en"
+msgid "Metaball"
+msgstr "Metabola"
 
 
-msgid "Make Single User"
-msgstr "Forçar un únic usador"
+msgid "Light"
+msgstr "Llum"
+
+
+msgid "Light Probe"
+msgstr "Sonda de llum"
+
+
+msgid "Add Image"
+msgstr "Afegir imatge"
+
+
+msgid "Relations"
+msgstr "Relacions"
+
+
+msgid "Rigid Body"
+msgstr "Cos rígid"
+
+
+msgid "Apply"
+msgstr "Aplicar"
+
+
+msgid "Track"
+msgstr "Rastrejar"
+
+
+msgid "Quick Effects"
+msgstr "Efectes ràpids"
+
+
+msgid "Show/Hide"
+msgstr "Mostrar/amagar"
 
 
 msgid "Clean Up"
@@ -34802,16 +34826,68 @@ msgid "Asset"
 msgstr "Recurs"
 
 
-msgid "Show/Hide"
-msgstr "Mostrar/amagar"
+msgid "Make Single User"
+msgstr "Forçar un únic usador"
+
+
+msgid "Convert"
+msgstr "Convertir en"
+
+
+msgid "Link/Transfer Data"
+msgstr "Enllaçar/transferir dades"
+
+
+msgid "Hooks"
+msgstr "Ganxos"
+
+
+msgid "Vertex Group Locks"
+msgstr "Blocatges de grup de vèrtexs"
+
+
+msgid "Trim/Add"
+msgstr "Retallar/afegir"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Pivot de conjunt escultòric"
+
+
+msgid "Face Sets Init"
+msgstr "Jocs de cares inicials"
+
+
+msgid "Random Mask"
+msgstr "Màscara aleatòria"
 
 
 msgid "Layout"
 msgstr "Disposició"
 
 
-msgid "Apply"
-msgstr "Aplicar"
+msgid "Clear Transform"
+msgstr "Retirar transformació"
+
+
+msgid "In-Betweens"
+msgstr "Entremitgers"
+
+
+msgid "Propagate"
+msgstr "Propagar"
+
+
+msgid "Bone Collections"
+msgstr "Col·leccions d'ossos"
+
+
+msgid "Names"
+msgstr "Noms"
+
+
+msgid "Adjust"
+msgstr "Ajustament"
 
 
 msgid "Toggle Bone Options"
@@ -34826,68 +34902,52 @@ msgid "Disable Bone Options"
 msgstr "Deshabilitar opcions d'ossos"
 
 
-msgid "Quick Effects"
-msgstr "Efectes ràpids"
+msgid "Keying"
+msgstr "Croma"
 
 
 msgid "Mesh Select Mode"
 msgstr "Mode selecció de malla"
 
 
-msgid "Face Data"
-msgstr "Dades de cares"
-
-
-msgid "Adjust"
-msgstr "Ajustament"
-
-
-msgid "Select by Face Strength"
-msgstr "Seleccionar segons força de cara"
-
-
-msgid "Set Face Strength"
-msgstr "Definir força de cara"
-
-
-msgid "Keying"
-msgstr "Croma"
-
-
 msgid "Tracking"
 msgstr "Rastreig"
-
-
-msgid "Merge"
-msgstr "Fusionar"
 
 
 msgid "Utilities"
 msgstr "Utensilis"
 
 
+msgid "Face Data"
+msgstr "Dades de cares"
+
+
 msgid "Math"
 msgstr "Matemàtica"
+
+
+msgid "Select by Face Strength"
+msgstr "Seleccionar segons força de cara"
 
 
 msgid "Creative"
 msgstr "Creatiu"
 
 
-msgid "Track"
-msgstr "Rastrejar"
+msgid "Set Face Strength"
+msgstr "Definir força de cara"
 
 
-msgid "Names"
-msgstr "Noms"
+msgid "Merge"
+msgstr "Fusionar"
+
+
+msgid "Render Preview"
+msgstr "Previsionat de revelat"
 
 
 msgid "Special Characters"
 msgstr "Caràcters especials"
-
-
-msgid "Metaball"
-msgstr "Metabola"
 
 
 msgid "Kerning"
@@ -34898,36 +34958,8 @@ msgid "Text"
 msgstr "Text"
 
 
-msgid "Render Preview"
-msgstr "Previsionat de revelat"
-
-
-msgid "Bone Collections"
-msgstr "Col·leccions d'ossos"
-
-
 msgid "Bone Roll"
 msgstr "Girar os"
-
-
-msgid "Rigid Body"
-msgstr "Cos rígid"
-
-
-msgid "Propagate"
-msgstr "Propagar"
-
-
-msgid "In-Betweens"
-msgstr "Entremitgers"
-
-
-msgid "Relations"
-msgstr "Relacions"
-
-
-msgid "Add Image"
-msgstr "Afegir imatge"
 
 
 msgid "Pivot Point"
@@ -34938,44 +34970,24 @@ msgid "Snap"
 msgstr "Acoblament"
 
 
-msgid "Light Probe"
-msgstr "Sonda de llum"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Decaïment a l'edició proporcional"
-
-
-msgid "Light"
-msgstr "Llum"
 
 
 msgid "Mask Edit"
 msgstr "Edició de màscares"
 
 
-msgid "Select More/Less"
-msgstr "Seleccionar més/menys"
-
-
 msgid "Automasking"
 msgstr "Autoemmascarament"
 
 
-msgid "Face Sets Edit"
-msgstr "Edició de jocs de cares"
-
-
-msgid "Vertex Group Locks"
-msgstr "Blocatges de grup de vèrtexs"
-
-
-msgid "Clear Transform"
-msgstr "Retirar transformació"
-
-
 msgid "Read"
 msgstr "Lectura"
+
+
+msgid "Face Sets Edit"
+msgstr "Edició de jocs de cares"
 
 
 msgid "Sample"
@@ -34990,72 +35002,12 @@ msgid "Primitives"
 msgstr "Primitius"
 
 
-msgid "Select Loops"
-msgstr "Seleccionar bucles"
-
-
-msgid "Select Linked"
-msgstr "Seleccionar connectats"
-
-
-msgid "Select All by Trait"
-msgstr "Seleccionar tot per trets"
-
-
-msgid "Face Sets Init"
-msgstr "Jocs de cares inicials"
-
-
-msgid "Select Similar"
-msgstr "Seleccionar similar"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Pivot de conjunt escultòric"
-
-
-msgid "Random Mask"
-msgstr "Màscara aleatòria"
-
-
-msgid "View Regions"
-msgstr "Regions de visionat"
-
-
-msgid "Align View to Active"
-msgstr "Alinear vista a actiu"
-
-
-msgid "Align View"
-msgstr "Alinear vista"
-
-
-msgid "Navigation"
-msgstr "Navegació"
-
-
-msgid "Viewpoint"
-msgstr "Punt de vista"
-
-
 msgid "Gizmo"
 msgstr "Flòstic"
 
 
 msgid "Instances"
 msgstr "Instàncies"
-
-
-msgid "Local View"
-msgstr "Vista local"
-
-
-msgid "UV Mapping"
-msgstr "Mapejat UV"
-
-
-msgid "Trim/Add"
-msgstr "Retallar/afegir"
 
 
 msgid "Mirror"
@@ -35066,32 +35018,64 @@ msgid "Import"
 msgstr "Importar"
 
 
+msgid "UV Mapping"
+msgstr "Mapejat UV"
+
+
+msgid "Local View"
+msgstr "Vista local"
+
+
+msgid "Viewpoint"
+msgstr "Punt de vista"
+
+
+msgid "Navigation"
+msgstr "Navegació"
+
+
+msgid "Align View"
+msgstr "Alinear vista"
+
+
+msgid "Align View to Active"
+msgstr "Alinear vista a actiu"
+
+
 msgid "Deprecated"
 msgstr "Obsolet"
+
+
+msgid "View Regions"
+msgstr "Regions de visionat"
+
+
+msgid "Select More/Less"
+msgstr "Seleccionar més/menys"
 
 
 msgid "List"
 msgstr "Llistar"
 
 
+msgid "Select Similar"
+msgstr "Seleccionar similar"
+
+
+msgid "Select All by Trait"
+msgstr "Seleccionar tot per trets"
+
+
 msgid "UV"
 msgstr "UV"
 
 
-msgid "Assign Material"
-msgstr "Assignar material"
+msgid "Select Linked"
+msgstr "Seleccionar connectats"
 
 
-msgid "Hooks"
-msgstr "Ganxos"
-
-
-msgid "Link/Transfer Data"
-msgstr "Enllaçar/transferir dades"
-
-
-msgid "Keyframe Insert Pie"
-msgstr "Circummenú d’inserció de fotofites"
+msgid "Select Loops"
+msgstr "Seleccionar bucles"
 
 
 msgid "Animals"
@@ -35100,6 +35084,14 @@ msgstr "Animals"
 
 msgid "Basic"
 msgstr "Bàsic"
+
+
+msgid "Assign Material"
+msgstr "Assignar material"
+
+
+msgid "Keyframe Insert Pie"
+msgstr "Circummenú d’inserció de fotofites"
 
 
 msgid "Bone Collection Specials"
@@ -91303,6 +91295,26 @@ msgid "Panel containing UI elements"
 msgstr "Plafó que conté elements de la IU"
 
 
+msgid "Auto-Masking"
+msgstr "Autoemmascarament"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Afegir opcions de corbes a l'escultura amb corba"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Paràmetre de decaïment d'escultura amb corba"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "Engrandir/encongir escala de corbes"
+
+
+msgid "Viewport Debug"
+msgstr "Depuració de mirador"
+
+
 msgid "VR"
 msgstr "RV"
 
@@ -91429,26 +91441,6 @@ msgstr "Estereoscòpia"
 
 msgid "Multi Frame"
 msgstr "Multifotograma"
-
-
-msgid "Auto-Masking"
-msgstr "Autoemmascarament"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Afegir opcions de corbes a l'escultura amb corba"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Paràmetre de decaïment d'escultura amb corba"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "Engrandir/encongir escala de corbes"
-
-
-msgid "Viewport Debug"
-msgstr "Depuració de mirador"
 
 
 msgid "Import Settings"

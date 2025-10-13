@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'5517941a60ac')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 14:36+0000\n"
+"POT-Creation-Date: 2025-10-13 16:12+0000\n"
 "PO-Revision-Date: 2025-07-27 17:01+0000\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -22418,12 +22418,40 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
-msgid "Convert"
-msgstr "轉換"
+msgid "Metaball"
+msgstr "變幻球"
 
 
-msgid "Make Single User"
-msgstr "製作單一使用者"
+msgid "Light"
+msgstr "燈光"
+
+
+msgid "Light Probe"
+msgstr "燈光採樣器"
+
+
+msgid "Relations"
+msgstr "關係"
+
+
+msgid "Rigid Body"
+msgstr "剛體"
+
+
+msgid "Apply"
+msgstr "套用"
+
+
+msgid "Track"
+msgstr "追蹤"
+
+
+msgid "Quick Effects"
+msgstr "快速效果"
+
+
+msgid "Show/Hide"
+msgstr "顯示/隱藏"
 
 
 msgid "Clean Up"
@@ -22434,16 +22462,56 @@ msgid "Asset"
 msgstr "素材"
 
 
-msgid "Show/Hide"
-msgstr "顯示/隱藏"
+msgid "Make Single User"
+msgstr "製作單一使用者"
+
+
+msgid "Convert"
+msgstr "轉換"
+
+
+msgid "Link/Transfer Data"
+msgstr "連結/傳輸資料"
+
+
+msgid "Hooks"
+msgstr "鉤"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "設定樞紐點"
+
+
+msgid "Random Mask"
+msgstr "隨機遮罩"
 
 
 msgid "Layout"
 msgstr "配置"
 
 
-msgid "Apply"
-msgstr "套用"
+msgid "Clear Transform"
+msgstr "清除變換"
+
+
+msgid "In-Betweens"
+msgstr "內部之間"
+
+
+msgid "Propagate"
+msgstr "增生"
+
+
+msgid "Bone Collections"
+msgstr "骨骼集盒"
+
+
+msgid "Names"
+msgstr "名稱"
+
+
+msgid "Adjust"
+msgstr "調整"
 
 
 msgid "Toggle Bone Options"
@@ -22458,56 +22526,36 @@ msgid "Disable Bone Options"
 msgstr "停用骨骼設定"
 
 
-msgid "Quick Effects"
-msgstr "快速效果"
+msgid "Keying"
+msgstr "鍵處理"
 
 
 msgid "Mesh Select Mode"
 msgstr "網格選取模式"
 
 
-msgid "Face Data"
-msgstr "面資料"
-
-
-msgid "Adjust"
-msgstr "調整"
-
-
-msgid "Keying"
-msgstr "鍵處理"
-
-
 msgid "Tracking"
 msgstr "跟蹤"
-
-
-msgid "Merge"
-msgstr "合併"
 
 
 msgid "Utilities"
 msgstr "效用"
 
 
+msgid "Face Data"
+msgstr "面資料"
+
+
 msgid "Math"
 msgstr "數學公式"
 
 
-msgid "Track"
-msgstr "追蹤"
-
-
-msgid "Names"
-msgstr "名稱"
+msgid "Merge"
+msgstr "合併"
 
 
 msgid "Special Characters"
 msgstr "特殊字元"
-
-
-msgid "Metaball"
-msgstr "變幻球"
 
 
 msgid "Kerning"
@@ -22518,28 +22566,8 @@ msgid "Text"
 msgstr "文字"
 
 
-msgid "Bone Collections"
-msgstr "骨骼集盒"
-
-
 msgid "Bone Roll"
 msgstr "骨骼滾動"
-
-
-msgid "Rigid Body"
-msgstr "剛體"
-
-
-msgid "Propagate"
-msgstr "增生"
-
-
-msgid "In-Betweens"
-msgstr "內部之間"
-
-
-msgid "Relations"
-msgstr "關係"
 
 
 msgid "Pivot Point"
@@ -22550,36 +22578,20 @@ msgid "Snap"
 msgstr "吸附"
 
 
-msgid "Light Probe"
-msgstr "燈光採樣器"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "比例化編輯衰落"
-
-
-msgid "Light"
-msgstr "燈光"
-
-
-msgid "Select More/Less"
-msgstr "選取更多/更少"
 
 
 msgid "Automasking"
 msgstr "自動遮罩"
 
 
-msgid "Face Sets Edit"
-msgstr "面集編輯"
-
-
-msgid "Clear Transform"
-msgstr "清除變換"
-
-
 msgid "Read"
 msgstr "讀取"
+
+
+msgid "Face Sets Edit"
+msgstr "面集編輯"
 
 
 msgid "Sample"
@@ -22594,52 +22606,8 @@ msgid "Primitives"
 msgstr "原形"
 
 
-msgid "Select Linked"
-msgstr "選取連結項"
-
-
-msgid "Select Similar"
-msgstr "選取相似者"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "設定樞紐點"
-
-
-msgid "Random Mask"
-msgstr "隨機遮罩"
-
-
-msgid "View Regions"
-msgstr "檢視範圍"
-
-
-msgid "Align View to Active"
-msgstr "對齊檢視至作用項"
-
-
-msgid "Align View"
-msgstr "對齊檢視"
-
-
-msgid "Navigation"
-msgstr "導覽"
-
-
-msgid "Viewpoint"
-msgstr "視點"
-
-
 msgid "Instances"
 msgstr "實例化"
-
-
-msgid "Local View"
-msgstr "區域檢視"
-
-
-msgid "UV Mapping"
-msgstr "UV 映射處理"
 
 
 msgid "Mirror"
@@ -22650,16 +22618,48 @@ msgid "Import"
 msgstr "匯入"
 
 
+msgid "UV Mapping"
+msgstr "UV 映射處理"
+
+
+msgid "Local View"
+msgstr "區域檢視"
+
+
+msgid "Viewpoint"
+msgstr "視點"
+
+
+msgid "Navigation"
+msgstr "導覽"
+
+
+msgid "Align View"
+msgstr "對齊檢視"
+
+
+msgid "Align View to Active"
+msgstr "對齊檢視至作用項"
+
+
+msgid "View Regions"
+msgstr "檢視範圍"
+
+
+msgid "Select More/Less"
+msgstr "選取更多/更少"
+
+
+msgid "Select Similar"
+msgstr "選取相似者"
+
+
 msgid "UV"
 msgstr "UV"
 
 
-msgid "Hooks"
-msgstr "鉤"
-
-
-msgid "Link/Transfer Data"
-msgstr "連結/傳輸資料"
+msgid "Select Linked"
+msgstr "選取連結項"
 
 
 msgid "Basic"
@@ -48366,6 +48366,10 @@ msgid "Palette Color"
 msgstr "色版色彩"
 
 
+msgid "Auto-Masking"
+msgstr "自動遮罩"
+
+
 msgid "VR"
 msgstr "VR"
 
@@ -48428,10 +48432,6 @@ msgstr "立體視覺"
 
 msgid "Multi Frame"
 msgstr "多重畫框"
-
-
-msgid "Auto-Masking"
-msgstr "自動遮罩"
 
 
 msgid "Chain Scaling"

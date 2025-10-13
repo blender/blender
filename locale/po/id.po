@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'5517941a60ac')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 14:36+0000\n"
+"POT-Creation-Date: 2025-10-13 16:12+0000\n"
 "PO-Revision-Date: 2025-07-23 14:57+0000\n"
 "Last-Translator: Michael Tribayu Jatnika Natawiria <mike.natawiria@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -15250,24 +15250,48 @@ msgid "Mask"
 msgstr "Masker"
 
 
-msgid "Asset"
-msgstr "Aset"
+msgid "Metaball"
+msgstr "Metabola"
 
 
-msgid "Layout"
-msgstr "Tata Letak"
+msgid "Light"
+msgstr "Cahaya"
+
+
+msgid "Light Probe"
+msgstr "Probe Cahaya"
+
+
+msgid "Add Image"
+msgstr "Tambah Gambar"
 
 
 msgid "Apply"
 msgstr "Tetapkan"
 
 
+msgid "Track"
+msgstr "Lacak"
+
+
+msgid "Asset"
+msgstr "Aset"
+
+
+msgid "Hooks"
+msgstr "Kait"
+
+
+msgid "Layout"
+msgstr "Tata Letak"
+
+
+msgid "Names"
+msgstr "Nama"
+
+
 msgid "Tracking"
 msgstr "Pelacakan"
-
-
-msgid "Merge"
-msgstr "Menggabungkan"
 
 
 msgid "Utilities"
@@ -15278,48 +15302,20 @@ msgid "Math"
 msgstr "Matematika"
 
 
-msgid "Track"
-msgstr "Lacak"
-
-
-msgid "Names"
-msgstr "Nama"
-
-
-msgid "Metaball"
-msgstr "Metabola"
+msgid "Merge"
+msgstr "Menggabungkan"
 
 
 msgid "Text"
 msgstr "Teks"
 
 
-msgid "Add Image"
-msgstr "Tambah Gambar"
-
-
 msgid "Snap"
 msgstr "Jepret"
 
 
-msgid "Light Probe"
-msgstr "Probe Cahaya"
-
-
-msgid "Light"
-msgstr "Cahaya"
-
-
 msgid "Sample"
 msgstr "Sampel"
-
-
-msgid "Select Linked"
-msgstr "Seleksi yang Terhubung"
-
-
-msgid "Navigation"
-msgstr "Navigasi"
 
 
 msgid "Gizmo"
@@ -15338,16 +15334,20 @@ msgid "Import"
 msgstr "Impor"
 
 
+msgid "Navigation"
+msgstr "Navigasi"
+
+
 msgid "UV"
 msgstr "UV"
 
 
+msgid "Select Linked"
+msgstr "Seleksi yang Terhubung"
+
+
 msgid "Assign Material"
 msgstr "Tugaskan Bahan"
-
-
-msgid "Hooks"
-msgstr "Kait"
 
 
 msgctxt "MovieClip"

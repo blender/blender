@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'5517941a60ac')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 14:36+0000\n"
+"POT-Creation-Date: 2025-10-13 16:12+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: Balázs Füvesi <fuvesib@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -6573,16 +6573,36 @@ msgid "Mask"
 msgstr "Maszk"
 
 
-msgid "Clean Up"
-msgstr "Tisztítás"
+msgid "Metaball"
+msgstr "Meta test"
+
+
+msgid "Light"
+msgstr "Fényforrás"
+
+
+msgid "Relations"
+msgstr "Kapcsolatok"
+
+
+msgid "Rigid Body"
+msgstr "Szilárd test"
+
+
+msgid "Apply"
+msgstr "Elfogadás"
+
+
+msgid "Track"
+msgstr "Nyom"
 
 
 msgid "Show/Hide"
 msgstr "Mutat/Rejt"
 
 
-msgid "Apply"
-msgstr "Elfogadás"
+msgid "Clean Up"
+msgstr "Tisztítás"
 
 
 msgid "Keying"
@@ -6597,40 +6617,8 @@ msgid "Merge"
 msgstr "Összefésülés"
 
 
-msgid "Track"
-msgstr "Nyom"
-
-
-msgid "Metaball"
-msgstr "Meta test"
-
-
 msgid "Text"
 msgstr "Szöveg"
-
-
-msgid "Rigid Body"
-msgstr "Szilárd test"
-
-
-msgid "Relations"
-msgstr "Kapcsolatok"
-
-
-msgid "Light"
-msgstr "Fényforrás"
-
-
-msgid "Align View"
-msgstr "Nézet igazítása"
-
-
-msgid "Navigation"
-msgstr "Navigáció"
-
-
-msgid "Local View"
-msgstr "Helyi nézet"
 
 
 msgid "Mirror"
@@ -6639,6 +6627,18 @@ msgstr "Tükrözés"
 
 msgid "Import"
 msgstr "Importálás"
+
+
+msgid "Local View"
+msgstr "Helyi nézet"
+
+
+msgid "Navigation"
+msgstr "Navigáció"
+
+
+msgid "Align View"
+msgstr "Nézet igazítása"
 
 
 msgid "UV"

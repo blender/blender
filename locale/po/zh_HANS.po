@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'5517941a60ac')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 14:36+0000\n"
+"POT-Creation-Date: 2025-10-13 16:12+0000\n"
 "PO-Revision-Date: 2025-10-12 19:59+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hans/>\n"
@@ -29737,14 +29737,6 @@ msgid "Maintained by community developers"
 msgstr "由社区开发者进行维护"
 
 
-msgid "Testing"
-msgstr "测试版"
-
-
-msgid "Newly contributed scripts (excluded from release builds)"
-msgstr "新近贡献的脚本 (不包含在发布版本中)"
-
-
 msgid "Addon Tags"
 msgstr "插件标签"
 
@@ -34788,12 +34780,44 @@ msgid "Editor menu containing buttons"
 msgstr "包含按钮的编辑器菜单"
 
 
-msgid "Convert"
-msgstr "转换"
+msgid "Metaball"
+msgstr "融球"
 
 
-msgid "Make Single User"
-msgstr "使其独立化"
+msgid "Light"
+msgstr "灯光"
+
+
+msgid "Light Probe"
+msgstr "光照探头"
+
+
+msgid "Add Image"
+msgstr "添加图像"
+
+
+msgid "Relations"
+msgstr "关系"
+
+
+msgid "Rigid Body"
+msgstr "刚体"
+
+
+msgid "Apply"
+msgstr "应用"
+
+
+msgid "Track"
+msgstr "追踪"
+
+
+msgid "Quick Effects"
+msgstr "快速效果"
+
+
+msgid "Show/Hide"
+msgstr "显示 / 隐藏"
 
 
 msgid "Clean Up"
@@ -34804,16 +34828,68 @@ msgid "Asset"
 msgstr "资产"
 
 
-msgid "Show/Hide"
-msgstr "显示 / 隐藏"
+msgid "Make Single User"
+msgstr "使其独立化"
+
+
+msgid "Convert"
+msgstr "转换"
+
+
+msgid "Link/Transfer Data"
+msgstr "关联/传递数据"
+
+
+msgid "Hooks"
+msgstr "钩挂"
+
+
+msgid "Vertex Group Locks"
+msgstr "顶点组锁"
+
+
+msgid "Trim/Add"
+msgstr "修剪 / 添加"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "雕刻集轴心点"
+
+
+msgid "Face Sets Init"
+msgstr "面组初始化"
+
+
+msgid "Random Mask"
+msgstr "随机遮罩"
 
 
 msgid "Layout"
 msgstr "布局"
 
 
-msgid "Apply"
-msgstr "应用"
+msgid "Clear Transform"
+msgstr "清空变换"
+
+
+msgid "In-Betweens"
+msgstr "间帧调整"
+
+
+msgid "Propagate"
+msgstr "传导"
+
+
+msgid "Bone Collections"
+msgstr "骨骼集合"
+
+
+msgid "Names"
+msgstr "名称"
+
+
+msgid "Adjust"
+msgstr "校正"
 
 
 msgid "Toggle Bone Options"
@@ -34828,68 +34904,52 @@ msgid "Disable Bone Options"
 msgstr "禁用骨骼设置"
 
 
-msgid "Quick Effects"
-msgstr "快速效果"
+msgid "Keying"
+msgstr "抠像"
 
 
 msgid "Mesh Select Mode"
 msgstr "网格选择模式"
 
 
-msgid "Face Data"
-msgstr "面数据"
-
-
-msgid "Adjust"
-msgstr "校正"
-
-
-msgid "Select by Face Strength"
-msgstr "按面强度选择"
-
-
-msgid "Set Face Strength"
-msgstr "设置面强度"
-
-
-msgid "Keying"
-msgstr "抠像"
-
-
 msgid "Tracking"
 msgstr "追踪"
-
-
-msgid "Merge"
-msgstr "合并"
 
 
 msgid "Utilities"
 msgstr "实用工具"
 
 
+msgid "Face Data"
+msgstr "面数据"
+
+
 msgid "Math"
 msgstr "运算"
+
+
+msgid "Select by Face Strength"
+msgstr "按面强度选择"
 
 
 msgid "Creative"
 msgstr "创意"
 
 
-msgid "Track"
-msgstr "追踪"
+msgid "Set Face Strength"
+msgstr "设置面强度"
 
 
-msgid "Names"
-msgstr "名称"
+msgid "Merge"
+msgstr "合并"
+
+
+msgid "Render Preview"
+msgstr "渲染预览"
 
 
 msgid "Special Characters"
 msgstr "特殊字符"
-
-
-msgid "Metaball"
-msgstr "融球"
 
 
 msgid "Kerning"
@@ -34900,36 +34960,8 @@ msgid "Text"
 msgstr "文本"
 
 
-msgid "Render Preview"
-msgstr "渲染预览"
-
-
-msgid "Bone Collections"
-msgstr "骨骼集合"
-
-
 msgid "Bone Roll"
 msgstr "骨骼扭转"
-
-
-msgid "Rigid Body"
-msgstr "刚体"
-
-
-msgid "Propagate"
-msgstr "传导"
-
-
-msgid "In-Betweens"
-msgstr "间帧调整"
-
-
-msgid "Relations"
-msgstr "关系"
-
-
-msgid "Add Image"
-msgstr "添加图像"
 
 
 msgid "Pivot Point"
@@ -34940,44 +34972,24 @@ msgid "Snap"
 msgstr "吸附"
 
 
-msgid "Light Probe"
-msgstr "光照探头"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "衰减编辑的衰减方式"
-
-
-msgid "Light"
-msgstr "灯光"
 
 
 msgid "Mask Edit"
 msgstr "遮罩编辑"
 
 
-msgid "Select More/Less"
-msgstr "扩展/缩减选择"
-
-
 msgid "Automasking"
 msgstr "自动遮罩"
 
 
-msgid "Face Sets Edit"
-msgstr "面组编辑"
-
-
-msgid "Vertex Group Locks"
-msgstr "顶点组锁"
-
-
-msgid "Clear Transform"
-msgstr "清空变换"
-
-
 msgid "Read"
 msgstr "读取"
+
+
+msgid "Face Sets Edit"
+msgstr "面组编辑"
 
 
 msgid "Sample"
@@ -34992,72 +35004,12 @@ msgid "Primitives"
 msgstr "基本体"
 
 
-msgid "Select Loops"
-msgstr "选择循环"
-
-
-msgid "Select Linked"
-msgstr "选择相连元素"
-
-
-msgid "Select All by Trait"
-msgstr "按特征全选"
-
-
-msgid "Face Sets Init"
-msgstr "面组初始化"
-
-
-msgid "Select Similar"
-msgstr "选择相似"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "雕刻集轴心点"
-
-
-msgid "Random Mask"
-msgstr "随机遮罩"
-
-
-msgid "View Regions"
-msgstr "视图框"
-
-
-msgid "Align View to Active"
-msgstr "视图对齐活动项"
-
-
-msgid "Align View"
-msgstr "对齐视图"
-
-
-msgid "Navigation"
-msgstr "视图导航"
-
-
-msgid "Viewpoint"
-msgstr "视图"
-
-
 msgid "Gizmo"
 msgstr "操控器"
 
 
 msgid "Instances"
 msgstr "实例"
-
-
-msgid "Local View"
-msgstr "局部视图"
-
-
-msgid "UV Mapping"
-msgstr "UV 映射"
-
-
-msgid "Trim/Add"
-msgstr "修剪 / 添加"
 
 
 msgid "Mirror"
@@ -35068,32 +35020,64 @@ msgid "Import"
 msgstr "导入"
 
 
+msgid "UV Mapping"
+msgstr "UV 映射"
+
+
+msgid "Local View"
+msgstr "局部视图"
+
+
+msgid "Viewpoint"
+msgstr "视图"
+
+
+msgid "Navigation"
+msgstr "视图导航"
+
+
+msgid "Align View"
+msgstr "对齐视图"
+
+
+msgid "Align View to Active"
+msgstr "视图对齐活动项"
+
+
 msgid "Deprecated"
 msgstr "已弃用"
+
+
+msgid "View Regions"
+msgstr "视图框"
+
+
+msgid "Select More/Less"
+msgstr "扩展/缩减选择"
 
 
 msgid "List"
 msgstr "列表"
 
 
+msgid "Select Similar"
+msgstr "选择相似"
+
+
+msgid "Select All by Trait"
+msgstr "按特征全选"
+
+
 msgid "UV"
 msgstr "UV"
 
 
-msgid "Assign Material"
-msgstr "指定材质"
+msgid "Select Linked"
+msgstr "选择相连元素"
 
 
-msgid "Hooks"
-msgstr "钩挂"
-
-
-msgid "Link/Transfer Data"
-msgstr "关联/传递数据"
-
-
-msgid "Keyframe Insert Pie"
-msgstr "插入关键帧饼菜单"
+msgid "Select Loops"
+msgstr "选择循环"
 
 
 msgid "Animals"
@@ -35102,6 +35086,14 @@ msgstr "动物"
 
 msgid "Basic"
 msgstr "基本"
+
+
+msgid "Assign Material"
+msgstr "指定材质"
+
+
+msgid "Keyframe Insert Pie"
+msgstr "插入关键帧饼菜单"
 
 
 msgid "Bone Collection Specials"
@@ -91305,6 +91297,26 @@ msgid "Panel containing UI elements"
 msgstr "面板包含用户界面元素"
 
 
+msgid "Auto-Masking"
+msgstr "自动遮罩"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "曲线雕刻 添加曲线选项"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "曲线雕刻衰减参数"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "曲线生长/收缩缩放"
+
+
+msgid "Viewport Debug"
+msgstr "视口调试"
+
+
 msgid "VR"
 msgstr "VR"
 
@@ -91431,26 +91443,6 @@ msgstr "立体视法"
 
 msgid "Multi Frame"
 msgstr "多帧"
-
-
-msgid "Auto-Masking"
-msgstr "自动遮罩"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "曲线雕刻 添加曲线选项"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "曲线雕刻衰减参数"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "曲线生长/收缩缩放"
-
-
-msgid "Viewport Debug"
-msgstr "视口调试"
 
 
 msgid "Import Settings"
