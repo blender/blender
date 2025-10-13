@@ -220,7 +220,9 @@ def list_render_passes(scene, srl):
     if crl.pass_debug_sample_count:
         yield ("Debug Sample Count", "X", 'VALUE')
     if crl.pass_render_time:
-        yield ("Render Time", "X", 'VALUE')
+        # Only yield the pass if rendering on CPU
+        if scene.cycles.device == 'CPU':
+            yield ("Render Time", "X", "VALUE")
 
     # Cryptomatte passes.
     # NOTE: Name channels are lowercase RGBA so that compression rules check in OpenEXR DWA code
