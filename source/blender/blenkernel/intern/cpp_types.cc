@@ -36,7 +36,8 @@ BLI_CPP_TYPE_MAKE(Image *, CPPTypeFlags::BasicType)
 BLI_CPP_TYPE_MAKE(Material *, CPPTypeFlags::BasicType)
 
 BLI_CPP_TYPE_MAKE(MStringProperty, CPPTypeFlags::None);
-BLI_CPP_TYPE_MAKE(blender::nodes::MenuValue, CPPTypeFlags::EqualityComparable);
+BLI_CPP_TYPE_MAKE(blender::nodes::MenuValue,
+                  CPPTypeFlags::Hashable | CPPTypeFlags::EqualityComparable);
 BLI_CPP_TYPE_MAKE(blender::nodes::BundlePtr, CPPTypeFlags::EqualityComparable);
 BLI_CPP_TYPE_MAKE(blender::nodes::ClosurePtr, CPPTypeFlags::EqualityComparable);
 BLI_CPP_TYPE_MAKE(blender::nodes::ListPtr, CPPTypeFlags::EqualityComparable);
