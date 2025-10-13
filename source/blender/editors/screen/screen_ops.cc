@@ -3458,7 +3458,7 @@ static void keylist_from_graph_editor(bContext &C, AnimKeylist &keylist)
       continue;
     }
 
-    const bool use_nla_mapping = true;
+    const bool use_nla_mapping = ANIM_nla_mapping_allowed(ale);
     fcurve_to_keylist(ale->adt, fcu, &keylist, 0, {-FLT_MAX, FLT_MAX}, use_nla_mapping);
   }
 
