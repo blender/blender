@@ -243,6 +243,12 @@ float4 OCIO_ProcessColor(float4 col, float4 col_overlay)
   }
 #endif
 
+#ifdef OUTPUT_PREMULTIPLIED
+  if (col.a > 0.0 && col.a < 1.0) {
+    col.rgb *= col.a;
+  }
+#endif
+
   return col;
 }
 
