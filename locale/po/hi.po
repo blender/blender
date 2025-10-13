@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'ceca413bcbf8')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'5517941a60ac')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-06 08:44+0000\n"
+"POT-Creation-Date: 2025-10-13 14:36+0000\n"
 "PO-Revision-Date: 2025-07-23 15:34+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -621,14 +621,6 @@ msgstr "चयनयोग्य"
 
 msgid "Parent"
 msgstr "कारण"
-
-
-msgid "Select Head"
-msgstr "सिर का चयन करें"
-
-
-msgid "Select Tail"
-msgstr "पूंछ का चयन करें"
 
 
 msgid "Tail"
@@ -2580,52 +2572,16 @@ msgid "Mask"
 msgstr "आवरण"
 
 
-msgid "Rigid Body"
-msgstr "कठोर-पदार्थ"
-
-
-msgid "Import"
-msgstr "आयात करें"
-
-
-msgid "Apply"
-msgstr "लागू करें"
-
-
-msgid "Text"
-msgstr "पाठ"
-
-
-msgid "Track"
-msgstr "ट्रैक"
-
-
-msgid "Quick Effects"
-msgstr "त्वरित प्रभाव"
+msgid "Make Single User"
+msgstr "एकल प्रयोक्ता बनाएँ"
 
 
 msgid "Show/Hide"
 msgstr "छुपाएँ / दिखाएँ"
 
 
-msgid "Make Single User"
-msgstr "एकल प्रयोक्ता बनाएँ"
-
-
-msgid "Math"
-msgstr "गणित"
-
-
-msgid "UV"
-msgstr "यूवी"
-
-
-msgid "Hooks"
-msgstr "खूँटी"
-
-
-msgid "Names"
-msgstr "नाम"
+msgid "Apply"
+msgstr "लागू करें"
 
 
 msgid "Toggle Bone Options"
@@ -2636,28 +2592,64 @@ msgid "Enable Bone Options"
 msgstr "हड्डी विकल्प को सक्षम करें"
 
 
-msgid "Merge"
-msgstr "विलय करें"
-
-
-msgid "Bone Roll"
-msgstr "हड्डी पंजी"
-
-
-msgid "Snap"
-msgstr "स्नैप"
+msgid "Quick Effects"
+msgstr "त्वरित प्रभाव"
 
 
 msgid "Keying"
 msgstr "कुंजीयन"
 
 
-msgid "Mirror"
-msgstr "दर्पण"
+msgid "Merge"
+msgstr "विलय करें"
+
+
+msgid "Math"
+msgstr "गणित"
+
+
+msgid "Track"
+msgstr "ट्रैक"
+
+
+msgid "Names"
+msgstr "नाम"
+
+
+msgid "Text"
+msgstr "पाठ"
+
+
+msgid "Bone Roll"
+msgstr "हड्डी पंजी"
+
+
+msgid "Rigid Body"
+msgstr "कठोर-पदार्थ"
+
+
+msgid "Snap"
+msgstr "स्नैप"
 
 
 msgid "Light"
 msgstr "प्रकाश"
+
+
+msgid "Mirror"
+msgstr "दर्पण"
+
+
+msgid "Import"
+msgstr "आयात करें"
+
+
+msgid "UV"
+msgstr "यूवी"
+
+
+msgid "Hooks"
+msgstr "खूँटी"
 
 
 msgid "Basic"

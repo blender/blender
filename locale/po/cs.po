@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'ceca413bcbf8')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'5517941a60ac')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-06 08:44+0000\n"
+"POT-Creation-Date: 2025-10-13 14:36+0000\n"
 "PO-Revision-Date: 2025-07-23 15:14+0000\n"
 "Last-Translator: Jan Vavřínek <janvavrinek1@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -3093,14 +3093,6 @@ msgid "Parent bone (in same Armature)"
 msgstr "Vyrenderovat aktuální frame"
 
 
-msgid "Select Head"
-msgstr "Vybrat"
-
-
-msgid "Select Tail"
-msgstr "Vybrat propojení"
-
-
 msgid "Tail"
 msgstr "Ocas"
 
@@ -5271,6 +5263,14 @@ msgstr "Použití 3D polohy stopy k nadřazenému"
 
 msgid "Undistort"
 msgstr "Historie vracení"
+
+
+msgid "Attribute Name"
+msgstr "Název atributu"
+
+
+msgid "Domain Type"
+msgstr "Typ Domény"
 
 
 msgid "Kinematic Constraint"
@@ -7793,10 +7793,6 @@ msgstr "res"
 
 msgid "Smoke Grid Resolution"
 msgstr "Jemnost dělení"
-
-
-msgid "Domain Type"
-msgstr "Typ Domény"
 
 
 msgid "Change domain type of the simulation"
@@ -11345,10 +11341,6 @@ msgid "Active Movie Clip"
 msgstr "Akce"
 
 
-msgid "Mirror Object"
-msgstr "Zrcadlit objekt"
-
-
 msgid "No distance attenuation"
 msgstr "Žádný útlum vzdálenosti"
 
@@ -13842,68 +13834,28 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
-msgid "Relations"
-msgstr "Vztahy"
-
-
-msgid "Rigid Body"
-msgstr "Tuhé Těleso"
-
-
-msgid "Import"
-msgstr "Importovat"
-
-
-msgid "Apply"
-msgstr "Použít"
-
-
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Track"
-msgstr "Sledování"
-
-
-msgid "Utilities"
-msgstr "Nástroje"
-
-
-msgid "Quick Effects"
-msgstr "Rychlé Efekty"
-
-
-msgid "Show/Hide"
-msgstr "Zobrazit/skrýt"
+msgid "Make Single User"
+msgstr "Přivlastnit"
 
 
 msgid "Clean Up"
 msgstr "Vyčistit"
 
 
-msgid "Make Single User"
-msgstr "Přivlastnit"
+msgid "Show/Hide"
+msgstr "Zobrazit/skrýt"
 
 
-msgid "Math"
-msgstr "Matematika"
+msgid "Layout"
+msgstr "Rozložení"
 
 
-msgid "Hooks"
-msgstr "Háky"
+msgid "Apply"
+msgstr "Použít"
 
 
-msgid "Clear Transform"
-msgstr "Vyčistit transformaci"
-
-
-msgid "Propagate"
-msgstr "Vložit"
-
-
-msgid "Names"
-msgstr "Názvy"
+msgid "Quick Effects"
+msgstr "Rychlé Efekty"
 
 
 msgid "Mesh Select Mode"
@@ -13914,8 +13866,32 @@ msgid "Face Data"
 msgstr "Data Ploch"
 
 
+msgid "Keying"
+msgstr "Klíčovací sestava"
+
+
+msgid "Tracking"
+msgstr "Sledování"
+
+
 msgid "Merge"
 msgstr "Sloučit"
+
+
+msgid "Utilities"
+msgstr "Nástroje"
+
+
+msgid "Math"
+msgstr "Matematika"
+
+
+msgid "Track"
+msgstr "Sledování"
+
+
+msgid "Names"
+msgstr "Názvy"
 
 
 msgid "Special Characters"
@@ -13926,12 +13902,24 @@ msgid "Metaball"
 msgstr "Meta objekt"
 
 
+msgid "Text"
+msgstr "Text"
+
+
 msgid "Bone Roll"
 msgstr "Kost"
 
 
-msgid "Layout"
-msgstr "Rozložení"
+msgid "Rigid Body"
+msgstr "Tuhé Těleso"
+
+
+msgid "Propagate"
+msgstr "Vložit"
+
+
+msgid "Relations"
+msgstr "Vztahy"
 
 
 msgid "Pivot Point"
@@ -13946,48 +13934,52 @@ msgid "Proportional Editing Falloff"
 msgstr "Způsob útlumu"
 
 
-msgid "Keying"
-msgstr "Klíčovací sestava"
+msgid "Light"
+msgstr "Světlo"
 
 
-msgid "Tracking"
-msgstr "Sledování"
-
-
-msgid "Mirror"
-msgstr "Zrcadlit"
-
-
-msgid "UV Mapping"
-msgstr "UV mapování"
-
-
-msgid "Local View"
-msgstr "Lokální pohled"
-
-
-msgid "Navigation"
-msgstr "Navigace"
-
-
-msgid "Align View"
-msgstr "Zarovnat pohled"
+msgid "Clear Transform"
+msgstr "Vyčistit transformaci"
 
 
 msgid "Select Linked"
 msgstr "Vybrat Propojené"
 
 
-msgid "Assign Material"
-msgstr "Přiřadit Materiál"
+msgid "Align View"
+msgstr "Zarovnat pohled"
 
 
-msgid "Light"
-msgstr "Světlo"
+msgid "Navigation"
+msgstr "Navigace"
 
 
 msgid "Instances"
 msgstr "Instance"
+
+
+msgid "Local View"
+msgstr "Lokální pohled"
+
+
+msgid "UV Mapping"
+msgstr "UV mapování"
+
+
+msgid "Mirror"
+msgstr "Zrcadlit"
+
+
+msgid "Import"
+msgstr "Importovat"
+
+
+msgid "Assign Material"
+msgstr "Přiřadit Materiál"
+
+
+msgid "Hooks"
+msgstr "Háky"
 
 
 msgid "Basic"
@@ -14329,10 +14321,6 @@ msgstr "Protínají"
 
 msgid "Distortion"
 msgstr "Historie vracení"
-
-
-msgid "UV Select"
-msgstr "Vybrat"
 
 
 msgid "Set the map as active for display and editing"
@@ -15328,6 +15316,10 @@ msgstr "Kopírovat modifikátor"
 
 msgid "Mirroring modifier"
 msgstr "Vrátit editaci"
+
+
+msgid "Mirror Object"
+msgstr "Zrcadlit objekt"
 
 
 msgid "Object to use as mirror"
@@ -17234,10 +17226,6 @@ msgstr "Při výpočtu AO zvážit pouze samotný objekt"
 
 msgid "Number of rays to trace per shader evaluation"
 msgstr "Počet sledovaných paprsků na vyhodnocení shaderu"
-
-
-msgid "Attribute Name"
-msgstr "Název atributu"
 
 
 msgid "General type of the attribute"
@@ -27119,10 +27107,6 @@ msgstr "Nový obrázek"
 msgctxt "Operator"
 msgid "Render"
 msgstr "Render"
-
-
-msgid "Render active scene"
-msgstr "Vykreslí aktivné scénu"
 
 
 msgid "Render Layer"
@@ -39331,11 +39315,6 @@ msgid "Release Notes"
 msgstr "Poznámky k vydání"
 
 
-msgctxt "Operator"
-msgid "Tutorials"
-msgstr "Tutoriály"
-
-
 msgid "No active item"
 msgstr "Žádná aktivní položka"
 
@@ -42016,6 +41995,10 @@ msgstr "Kámen (drcený)"
 
 msgid "Timber"
 msgstr "Dřevo"
+
+
+msgid "Render active scene"
+msgstr "Vykreslí aktivné scénu"
 
 
 msgid "Scene has no camera"
