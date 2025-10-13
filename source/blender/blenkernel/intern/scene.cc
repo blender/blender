@@ -114,12 +114,18 @@
 
 using blender::bke::CompositorRuntime;
 using blender::bke::SceneRuntime;
+using blender::bke::SequencerRuntime;
 
 CompositorRuntime::~CompositorRuntime()
 {
   if (preview_depsgraph) {
     DEG_graph_free(preview_depsgraph);
   }
+}
+
+SequencerRuntime::~SequencerRuntime()
+{
+  DEG_graph_free(depsgraph);
 }
 
 CurveMapping *BKE_sculpt_default_cavity_curve()
