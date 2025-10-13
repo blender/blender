@@ -191,6 +191,8 @@ static const EnumPropertyItem rna_enum_driver_target_context_property_items[] = 
 #  include "BKE_anim_data.hh"
 #  include "BKE_fcurve.hh"
 #  include "BKE_fcurve_driver.h"
+#  include "BKE_idtype.hh"
+#  include "BKE_lib_id.hh"
 #  include "BKE_report.hh"
 
 #  include "DEG_depsgraph.hh"
@@ -350,6 +352,27 @@ static void rna_DriverVariable_update_data(Main *bmain, Scene *scene, PointerRNA
 }
 
 /* ----------- */
+
+void rna_DriverTarget_id_set(PointerRNA *ptr, PointerRNA value, struct ReportList * /*reports*/)
+{
+  DriverTarget *data = ptr->data_as<DriverTarget>();
+  ID *id = value.data_as<ID>();
+  if (!id) {
+    data->id = nullptr;
+    return;
+  }
+  BLI_assert(id == value.owner_id);
+  if (ptr->owner_id && !BKE_id_can_use_id(*ptr->owner_id, *id)) {
+    return;
+  }
+  /* Driver targets may be local data referencing unlinkable data like shape keys. These cannot be
+   * directly linked.
+   * FIXME: Band-aid, find a better way to handle this. */
+  if (BKE_idtype_idcode_is_linkable(GS(id->name))) {
+    id_lib_extern(id);
+  }
+  data->id = id;
+}
 
 static StructRNA *rna_DriverTarget_id_typef(PointerRNA *ptr)
 {
@@ -1972,7 +1995,8 @@ static void rna_def_drivertarget(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ID_REFCOUNT);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_editable_func(prop, "rna_DriverTarget_id_editable");
-  RNA_def_property_pointer_funcs(prop, nullptr, nullptr, "rna_DriverTarget_id_typef", nullptr);
+  RNA_def_property_pointer_funcs(
+      prop, nullptr, "rna_DriverTarget_id_set", "rna_DriverTarget_id_typef", nullptr);
   RNA_def_property_ui_text(prop,
                            "ID",
                            "ID-block that the specific property used can be found from "
