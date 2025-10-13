@@ -18,7 +18,11 @@ from bpy.types import (
     Panel,
     UIList,
 )
-from bpy.types import VIEW3D_PT_object_type_visibility
+# Add space_view3d.py to module search path for VIEW3D_PT_object_type_visibility import.
+import os.path
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../startup/bl_ui')))
+from space_view3d import VIEW3D_PT_object_type_visibility
 
 
 # Session.
