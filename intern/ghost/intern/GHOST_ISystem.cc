@@ -55,13 +55,14 @@ GHOST_TSuccess GHOST_ISystem::createSystem(bool verbose, [[maybe_unused]] bool b
 
   GHOST_TSuccess success;
   if (!system_) {
-    const bool use_window_frame = GHOST_ISystem::getUseWindowFrame();
-
 #if defined(WITH_HEADLESS)
     /* Pass. */
 #elif defined(WITH_GHOST_WAYLAND)
 #  if defined(WITH_GHOST_WAYLAND_DYNLOAD)
-    const bool has_wayland_libraries = ghost_wl_dynload_libraries_init(use_window_frame);
+    /* Even if other systems support `--no-window-frame`, it's likely only WAYLAND
+     * needs to configure this when creating the system (based on LIBDECOR usage). */
+    const bool has_wayland_libraries = ghost_wl_dynload_libraries_init(
+        GHOST_ISystem::getUseWindowFrame());
 #  else
     const bool has_wayland_libraries = true;
 #  endif
