@@ -813,6 +813,8 @@ static void add_single_point_and_curve(const PenToolOperation &ptd,
   curves.handle_types_left_for_write().last() = ptd.extrude_handle;
   curves.handle_types_right_for_write().last() = ptd.extrude_handle;
   curves.update_curve_types();
+  curves.resolution_for_write().last() = 12;
+  curve_attributes_to_skip.add("resolution");
 
   const int material_index = ptd.vc.obact->actcol - 1;
   if (material_index != -1) {

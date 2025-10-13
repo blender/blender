@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'5517941a60ac')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 14:36+0000\n"
+"POT-Creation-Date: 2025-10-13 16:12+0000\n"
 "PO-Revision-Date: 2025-07-23 15:16+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -28437,6 +28437,26 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
+msgid "Metaball"
+msgstr "Mpira wa miguu"
+
+
+msgid "Light"
+msgstr "Mwanga"
+
+
+msgid "Light Probe"
+msgstr "Uchunguzi wa Mwanga"
+
+
+msgid "Apply"
+msgstr "Tumia"
+
+
+msgid "Show/Hide"
+msgstr "Onyesha/Ficha"
+
+
 msgid "Clean Up"
 msgstr "Safisha"
 
@@ -28445,16 +28465,12 @@ msgid "Asset"
 msgstr "Mali"
 
 
-msgid "Show/Hide"
-msgstr "Onyesha/Ficha"
-
-
 msgid "Layout"
 msgstr "Mpangilio"
 
 
-msgid "Apply"
-msgstr "Tumia"
+msgid "Bone Collections"
+msgstr "Mikusanyo ya Mifupa"
 
 
 msgid "Adjust"
@@ -28469,10 +28485,6 @@ msgid "Tracking"
 msgstr "Kufuatilia"
 
 
-msgid "Merge"
-msgstr "Unganisha"
-
-
 msgid "Utilities"
 msgstr "Huduma"
 
@@ -28481,16 +28493,12 @@ msgid "Math"
 msgstr "Hisabati"
 
 
-msgid "Metaball"
-msgstr "Mpira wa miguu"
+msgid "Merge"
+msgstr "Unganisha"
 
 
 msgid "Text"
 msgstr "Maandishi"
-
-
-msgid "Bone Collections"
-msgstr "Mikusanyo ya Mifupa"
 
 
 msgid "Pivot Point"
@@ -28499,14 +28507,6 @@ msgstr "Egemeo"
 
 msgid "Snap"
 msgstr "Picha"
-
-
-msgid "Light Probe"
-msgstr "Uchunguzi wa Mwanga"
-
-
-msgid "Light"
-msgstr "Mwanga"
 
 
 msgid "Read"
@@ -28525,14 +28525,6 @@ msgid "Primitives"
 msgstr "Watu wa kwanza"
 
 
-msgid "Select Linked"
-msgstr "Chagua Imeunganishwa"
-
-
-msgid "Navigation"
-msgstr "Urambazaji"
-
-
 msgid "Instances"
 msgstr "Matukio"
 
@@ -28545,16 +28537,24 @@ msgid "Import"
 msgstr "Ingiza"
 
 
+msgid "Navigation"
+msgstr "Urambazaji"
+
+
 msgid "Deprecated"
 msgstr "Imeacha kutumika"
 
 
-msgid "Keyframe Insert Pie"
-msgstr "Ingiza Pai ya Fremu Muhimu"
+msgid "Select Linked"
+msgstr "Chagua Imeunganishwa"
 
 
 msgid "Basic"
 msgstr "Msingi"
+
+
+msgid "Keyframe Insert Pie"
+msgstr "Ingiza Pai ya Fremu Muhimu"
 
 
 msgid "Bone Collection Specials"
@@ -73188,6 +73188,22 @@ msgid "Panel containing UI elements"
 msgstr "Paneli iliyo na vipengele vya UI"
 
 
+msgid "Auto-Masking"
+msgstr "Kufunika Masking Kiotomatiki"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Mchoro wa Mikunjo Ongeza Chaguzi za Mviringo"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Curves Sculpt Parameta Falloff"
+
+
+msgid "Viewport Debug"
+msgstr "Utatuzi wa kituo cha kutazama"
+
+
 msgid "View Lock"
 msgstr "Kufuli ya Tazama"
 
@@ -73250,22 +73266,6 @@ msgstr "Mtazamo wa Quad"
 
 msgid "Multi Frame"
 msgstr "Fremu nyingi"
-
-
-msgid "Auto-Masking"
-msgstr "Kufunika Masking Kiotomatiki"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Mchoro wa Mikunjo Ongeza Chaguzi za Mviringo"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Curves Sculpt Parameta Falloff"
-
-
-msgid "Viewport Debug"
-msgstr "Utatuzi wa kituo cha kutazama"
 
 
 msgid "Motion Blur"

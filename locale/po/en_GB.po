@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'5517941a60ac')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 14:36+0000\n"
+"POT-Creation-Date: 2025-10-13 16:12+0000\n"
 "PO-Revision-Date: 2025-07-23 14:59+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -33999,12 +33999,44 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
-msgid "Convert"
-msgstr "Convert"
+msgid "Metaball"
+msgstr "Metaball"
 
 
-msgid "Make Single User"
-msgstr "Make Single User"
+msgid "Light"
+msgstr "Light"
+
+
+msgid "Light Probe"
+msgstr "Light Probe"
+
+
+msgid "Add Image"
+msgstr "Add Image"
+
+
+msgid "Relations"
+msgstr "Relations"
+
+
+msgid "Rigid Body"
+msgstr "Rigid Body"
+
+
+msgid "Apply"
+msgstr "Apply"
+
+
+msgid "Track"
+msgstr "Track"
+
+
+msgid "Quick Effects"
+msgstr "Quick Effects"
+
+
+msgid "Show/Hide"
+msgstr "Show/Hide"
 
 
 msgid "Clean Up"
@@ -34015,16 +34047,68 @@ msgid "Asset"
 msgstr "Asset"
 
 
-msgid "Show/Hide"
-msgstr "Show/Hide"
+msgid "Make Single User"
+msgstr "Make Single User"
+
+
+msgid "Convert"
+msgstr "Convert"
+
+
+msgid "Link/Transfer Data"
+msgstr "Link/Transfer Data"
+
+
+msgid "Hooks"
+msgstr "Hooks"
+
+
+msgid "Vertex Group Locks"
+msgstr "Vertex Group Locks"
+
+
+msgid "Trim/Add"
+msgstr "Trim/Add"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Sculpt Set Pivot"
+
+
+msgid "Face Sets Init"
+msgstr "Face Sets Init"
+
+
+msgid "Random Mask"
+msgstr "Random Mask"
 
 
 msgid "Layout"
 msgstr "Layout"
 
 
-msgid "Apply"
-msgstr "Apply"
+msgid "Clear Transform"
+msgstr "Clear Transform"
+
+
+msgid "In-Betweens"
+msgstr "In-Betweens"
+
+
+msgid "Propagate"
+msgstr "Propagate"
+
+
+msgid "Bone Collections"
+msgstr "Bone Collections"
+
+
+msgid "Names"
+msgstr "Names"
+
+
+msgid "Adjust"
+msgstr "Adjust"
 
 
 msgid "Toggle Bone Options"
@@ -34039,20 +34123,28 @@ msgid "Disable Bone Options"
 msgstr "Disable Bone Options"
 
 
-msgid "Quick Effects"
-msgstr "Quick Effects"
+msgid "Keying"
+msgstr "Keying"
 
 
 msgid "Mesh Select Mode"
 msgstr "Mesh Select Mode"
 
 
+msgid "Tracking"
+msgstr "Tracking"
+
+
+msgid "Utilities"
+msgstr "Utilities"
+
+
 msgid "Face Data"
 msgstr "Face Data"
 
 
-msgid "Adjust"
-msgstr "Adjust"
+msgid "Math"
+msgstr "Maths"
 
 
 msgid "Select by Face Strength"
@@ -34063,40 +34155,12 @@ msgid "Set Face Strength"
 msgstr "Set Face Strength"
 
 
-msgid "Keying"
-msgstr "Keying"
-
-
-msgid "Tracking"
-msgstr "Tracking"
-
-
 msgid "Merge"
 msgstr "Merge"
 
 
-msgid "Utilities"
-msgstr "Utilities"
-
-
-msgid "Math"
-msgstr "Maths"
-
-
-msgid "Track"
-msgstr "Track"
-
-
-msgid "Names"
-msgstr "Names"
-
-
 msgid "Special Characters"
 msgstr "Special Characters"
-
-
-msgid "Metaball"
-msgstr "Metaball"
 
 
 msgid "Kerning"
@@ -34107,32 +34171,8 @@ msgid "Text"
 msgstr "Text"
 
 
-msgid "Bone Collections"
-msgstr "Bone Collections"
-
-
 msgid "Bone Roll"
 msgstr "Bone Roll"
-
-
-msgid "Rigid Body"
-msgstr "Rigid Body"
-
-
-msgid "Propagate"
-msgstr "Propagate"
-
-
-msgid "In-Betweens"
-msgstr "In-Betweens"
-
-
-msgid "Relations"
-msgstr "Relations"
-
-
-msgid "Add Image"
-msgstr "Add Image"
 
 
 msgid "Pivot Point"
@@ -34143,44 +34183,24 @@ msgid "Snap"
 msgstr "Snap"
 
 
-msgid "Light Probe"
-msgstr "Light Probe"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Proportional Editing Falloff"
-
-
-msgid "Light"
-msgstr "Light"
 
 
 msgid "Mask Edit"
 msgstr "Mask Edit"
 
 
-msgid "Select More/Less"
-msgstr "Select More/Less"
-
-
 msgid "Automasking"
 msgstr "Automasking"
 
 
-msgid "Face Sets Edit"
-msgstr "Face Sets Edit"
-
-
-msgid "Vertex Group Locks"
-msgstr "Vertex Group Locks"
-
-
-msgid "Clear Transform"
-msgstr "Clear Transform"
-
-
 msgid "Read"
 msgstr "Read"
+
+
+msgid "Face Sets Edit"
+msgstr "Face Sets Edit"
 
 
 msgid "Sample"
@@ -34195,72 +34215,12 @@ msgid "Primitives"
 msgstr "Primitives"
 
 
-msgid "Select Loops"
-msgstr "Select Loops"
-
-
-msgid "Select Linked"
-msgstr "Select Linked"
-
-
-msgid "Select All by Trait"
-msgstr "Select All by Trait"
-
-
-msgid "Face Sets Init"
-msgstr "Face Sets Init"
-
-
-msgid "Select Similar"
-msgstr "Select Similar"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Sculpt Set Pivot"
-
-
-msgid "Random Mask"
-msgstr "Random Mask"
-
-
-msgid "View Regions"
-msgstr "View Regions"
-
-
-msgid "Align View to Active"
-msgstr "Align View to Active"
-
-
-msgid "Align View"
-msgstr "Align View"
-
-
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "Viewpoint"
-msgstr "Viewpoint"
-
-
 msgid "Gizmo"
 msgstr "Gizmo"
 
 
 msgid "Instances"
 msgstr "Instances"
-
-
-msgid "Local View"
-msgstr "Local View"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapping"
-
-
-msgid "Trim/Add"
-msgstr "Trim/Add"
 
 
 msgid "Mirror"
@@ -34271,28 +34231,60 @@ msgid "Import"
 msgstr "Import"
 
 
+msgid "UV Mapping"
+msgstr "UV Mapping"
+
+
+msgid "Local View"
+msgstr "Local View"
+
+
+msgid "Viewpoint"
+msgstr "Viewpoint"
+
+
+msgid "Navigation"
+msgstr "Navigation"
+
+
+msgid "Align View"
+msgstr "Align View"
+
+
+msgid "Align View to Active"
+msgstr "Align View to Active"
+
+
 msgid "Deprecated"
 msgstr "Deprecated"
+
+
+msgid "View Regions"
+msgstr "View Regions"
+
+
+msgid "Select More/Less"
+msgstr "Select More/Less"
+
+
+msgid "Select Similar"
+msgstr "Select Similar"
+
+
+msgid "Select All by Trait"
+msgstr "Select All by Trait"
 
 
 msgid "UV"
 msgstr "UV"
 
 
-msgid "Assign Material"
-msgstr "Assign Material"
+msgid "Select Linked"
+msgstr "Select Linked"
 
 
-msgid "Hooks"
-msgstr "Hooks"
-
-
-msgid "Link/Transfer Data"
-msgstr "Link/Transfer Data"
-
-
-msgid "Keyframe Insert Pie"
-msgstr "Keyframe Insert Pie"
+msgid "Select Loops"
+msgstr "Select Loops"
 
 
 msgid "Animals"
@@ -34301,6 +34293,14 @@ msgstr "Animals"
 
 msgid "Basic"
 msgstr "Basic"
+
+
+msgid "Assign Material"
+msgstr "Assign Material"
+
+
+msgid "Keyframe Insert Pie"
+msgstr "Keyframe Insert Pie"
 
 
 msgid "Bone Collection Specials"
@@ -88021,6 +88021,26 @@ msgid "Panel containing UI elements"
 msgstr "Panel containing UI elements"
 
 
+msgid "Auto-Masking"
+msgstr "Auto-Masking"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Curves Sculpt Add Curve Options"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Curves Sculpt Parameter Falloff"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "Curves Grow/Shrink Scaling"
+
+
+msgid "Viewport Debug"
+msgstr "Viewport Debug"
+
+
 msgid "VR"
 msgstr "VR"
 
@@ -88143,26 +88163,6 @@ msgstr "Stereoscopy"
 
 msgid "Multi Frame"
 msgstr "Multi Frame"
-
-
-msgid "Auto-Masking"
-msgstr "Auto-Masking"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Curves Sculpt Add Curve Options"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Curves Sculpt Parameter Falloff"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "Curves Grow/Shrink Scaling"
-
-
-msgid "Viewport Debug"
-msgstr "Viewport Debug"
 
 
 msgid "Import Settings"

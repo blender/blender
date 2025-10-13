@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'5517941a60ac')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2025-10-13 14:36+0000\n"
+"POT-Creation-Date: 2025-10-13 16:12+0000\n"
 "PO-Revision-Date: 2025-10-13 12:08+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
@@ -29734,14 +29734,6 @@ msgid "Maintained by community developers"
 msgstr "Mantido por desenvolvedores da comunidade."
 
 
-msgid "Testing"
-msgstr "Testes"
-
-
-msgid "Newly contributed scripts (excluded from release builds)"
-msgstr "Scripts contribuídos recentemente (excluídos das versões de lançamento)"
-
-
 msgid "Addon Tags"
 msgstr "Etiquetas da Adição"
 
@@ -34785,12 +34777,44 @@ msgid "Editor menu containing buttons"
 msgstr "Menu de editor contendo botões"
 
 
-msgid "Convert"
-msgstr "Converter"
+msgid "Metaball"
+msgstr "Esfera-meta"
 
 
-msgid "Make Single User"
-msgstr "Tornar utilizador único"
+msgid "Light"
+msgstr "Leve"
+
+
+msgid "Light Probe"
+msgstr "Sonda de Luz"
+
+
+msgid "Add Image"
+msgstr "Adicionar Imagem"
+
+
+msgid "Relations"
+msgstr "Relações"
+
+
+msgid "Rigid Body"
+msgstr "Corpo rígido"
+
+
+msgid "Apply"
+msgstr "Aplicar"
+
+
+msgid "Track"
+msgstr "Rastrear"
+
+
+msgid "Quick Effects"
+msgstr "Efeitos instantâneos"
+
+
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
 
 
 msgid "Clean Up"
@@ -34801,16 +34825,68 @@ msgid "Asset"
 msgstr "Recurso"
 
 
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
+msgid "Make Single User"
+msgstr "Tornar utilizador único"
+
+
+msgid "Convert"
+msgstr "Converter"
+
+
+msgid "Link/Transfer Data"
+msgstr "Vincular/Transferir Dados"
+
+
+msgid "Hooks"
+msgstr "Ganchos"
+
+
+msgid "Vertex Group Locks"
+msgstr "Bloqueios de Grupos de Vértices"
+
+
+msgid "Trim/Add"
+msgstr "Aparar/Adicionar"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Definir Pivot de Escultura"
+
+
+msgid "Face Sets Init"
+msgstr "Inicialização de Conjuntos de Faces"
+
+
+msgid "Random Mask"
+msgstr "Máscara Aleatória"
 
 
 msgid "Layout"
 msgstr "Organizar"
 
 
-msgid "Apply"
-msgstr "Aplicar"
+msgid "Clear Transform"
+msgstr "Limpar transformações"
+
+
+msgid "In-Betweens"
+msgstr "Entre as continuidades"
+
+
+msgid "Propagate"
+msgstr "Propagar"
+
+
+msgid "Bone Collections"
+msgstr "Colecções de Ossos"
+
+
+msgid "Names"
+msgstr "Nomes"
+
+
+msgid "Adjust"
+msgstr "Ajustar"
 
 
 msgid "Toggle Bone Options"
@@ -34825,68 +34901,52 @@ msgid "Disable Bone Options"
 msgstr "Desativar as opções de ossos"
 
 
-msgid "Quick Effects"
-msgstr "Efeitos instantâneos"
+msgid "Keying"
+msgstr "Inserção de chaves"
 
 
 msgid "Mesh Select Mode"
 msgstr "Modo de selecção de malhas"
 
 
-msgid "Face Data"
-msgstr "Dados das faces"
-
-
-msgid "Adjust"
-msgstr "Ajustar"
-
-
-msgid "Select by Face Strength"
-msgstr "Seleccionar pela Força das Faces"
-
-
-msgid "Set Face Strength"
-msgstr "Definir Força das Faces"
-
-
-msgid "Keying"
-msgstr "Inserção de chaves"
-
-
 msgid "Tracking"
 msgstr "Rastreamento"
-
-
-msgid "Merge"
-msgstr "Fundir"
 
 
 msgid "Utilities"
 msgstr "Utilidades"
 
 
+msgid "Face Data"
+msgstr "Dados das faces"
+
+
 msgid "Math"
 msgstr "Matemática"
+
+
+msgid "Select by Face Strength"
+msgstr "Seleccionar pela Força das Faces"
 
 
 msgid "Creative"
 msgstr "Criativo"
 
 
-msgid "Track"
-msgstr "Rastrear"
+msgid "Set Face Strength"
+msgstr "Definir Força das Faces"
 
 
-msgid "Names"
-msgstr "Nomes"
+msgid "Merge"
+msgstr "Fundir"
+
+
+msgid "Render Preview"
+msgstr "Pré-Visualização da Render"
 
 
 msgid "Special Characters"
 msgstr "Caracteres especiais"
-
-
-msgid "Metaball"
-msgstr "Esfera-meta"
 
 
 msgid "Kerning"
@@ -34897,36 +34957,8 @@ msgid "Text"
 msgstr "Texto"
 
 
-msgid "Render Preview"
-msgstr "Pré-Visualização da Render"
-
-
-msgid "Bone Collections"
-msgstr "Colecções de Ossos"
-
-
 msgid "Bone Roll"
 msgstr "Rolagem do osso"
-
-
-msgid "Rigid Body"
-msgstr "Corpo rígido"
-
-
-msgid "Propagate"
-msgstr "Propagar"
-
-
-msgid "In-Betweens"
-msgstr "Entre as continuidades"
-
-
-msgid "Relations"
-msgstr "Relações"
-
-
-msgid "Add Image"
-msgstr "Adicionar Imagem"
 
 
 msgid "Pivot Point"
@@ -34937,44 +34969,24 @@ msgid "Snap"
 msgstr "Atrair"
 
 
-msgid "Light Probe"
-msgstr "Sonda de Luz"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
-
-
-msgid "Light"
-msgstr "Leve"
 
 
 msgid "Mask Edit"
 msgstr "Edição de Máscara"
 
 
-msgid "Select More/Less"
-msgstr "Seleccionar mais ou menos"
-
-
 msgid "Automasking"
 msgstr "Auto Máscara"
 
 
-msgid "Face Sets Edit"
-msgstr "Edições de Conjuntos de Faces"
-
-
-msgid "Vertex Group Locks"
-msgstr "Bloqueios de Grupos de Vértices"
-
-
-msgid "Clear Transform"
-msgstr "Limpar transformações"
-
-
 msgid "Read"
 msgstr "Ler"
+
+
+msgid "Face Sets Edit"
+msgstr "Edições de Conjuntos de Faces"
 
 
 msgid "Sample"
@@ -34989,72 +35001,12 @@ msgid "Primitives"
 msgstr "Primitivas"
 
 
-msgid "Select Loops"
-msgstr "Seleccionar Anéis"
-
-
-msgid "Select Linked"
-msgstr "Seleccionar vinculados(as)"
-
-
-msgid "Select All by Trait"
-msgstr "Seleccionar todos por características..."
-
-
-msgid "Face Sets Init"
-msgstr "Inicialização de Conjuntos de Faces"
-
-
-msgid "Select Similar"
-msgstr "Seleccionar por similaridades"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Definir Pivot de Escultura"
-
-
-msgid "Random Mask"
-msgstr "Máscara Aleatória"
-
-
-msgid "View Regions"
-msgstr "Regiões de Visualização"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o activo"
-
-
-msgid "Align View"
-msgstr "Alinhar visualização"
-
-
-msgid "Navigation"
-msgstr "Navegação"
-
-
-msgid "Viewpoint"
-msgstr "Ponto de Vista"
-
-
 msgid "Gizmo"
 msgstr "Apetrecho"
 
 
 msgid "Instances"
 msgstr "Instâncias"
-
-
-msgid "Local View"
-msgstr "Visão local"
-
-
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
-
-
-msgid "Trim/Add"
-msgstr "Aparar/Adicionar"
 
 
 msgid "Mirror"
@@ -35065,32 +35017,64 @@ msgid "Import"
 msgstr "Importar"
 
 
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
+
+
+msgid "Local View"
+msgstr "Visão local"
+
+
+msgid "Viewpoint"
+msgstr "Ponto de Vista"
+
+
+msgid "Navigation"
+msgstr "Navegação"
+
+
+msgid "Align View"
+msgstr "Alinhar visualização"
+
+
+msgid "Align View to Active"
+msgstr "Alinhar vista para o activo"
+
+
 msgid "Deprecated"
 msgstr "Decontinuado"
+
+
+msgid "View Regions"
+msgstr "Regiões de Visualização"
+
+
+msgid "Select More/Less"
+msgstr "Seleccionar mais ou menos"
 
 
 msgid "List"
 msgstr "Lista"
 
 
+msgid "Select Similar"
+msgstr "Seleccionar por similaridades"
+
+
+msgid "Select All by Trait"
+msgstr "Seleccionar todos por características..."
+
+
 msgid "UV"
 msgstr "UV"
 
 
-msgid "Assign Material"
-msgstr "Aplicar Material"
+msgid "Select Linked"
+msgstr "Seleccionar vinculados(as)"
 
 
-msgid "Hooks"
-msgstr "Ganchos"
-
-
-msgid "Link/Transfer Data"
-msgstr "Vincular/Transferir Dados"
-
-
-msgid "Keyframe Insert Pie"
-msgstr "Menu de Circular de Inserção de Fotogramas Chave"
+msgid "Select Loops"
+msgstr "Seleccionar Anéis"
 
 
 msgid "Animals"
@@ -35099,6 +35083,14 @@ msgstr "Animais"
 
 msgid "Basic"
 msgstr "Básico"
+
+
+msgid "Assign Material"
+msgstr "Aplicar Material"
+
+
+msgid "Keyframe Insert Pie"
+msgstr "Menu de Circular de Inserção de Fotogramas Chave"
 
 
 msgid "Bone Collection Specials"

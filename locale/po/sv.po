@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'5517941a60ac')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 14:36+0000\n"
+"POT-Creation-Date: 2025-10-13 16:12+0000\n"
 "PO-Revision-Date: 2025-09-29 00:59+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -9331,8 +9331,44 @@ msgid "Mask"
 msgstr "Mask"
 
 
-msgid "Convert"
-msgstr "Konvertera"
+msgid "Metaball"
+msgstr "Metaboll"
+
+
+msgid "Light"
+msgstr "Ljus"
+
+
+msgid "Light Probe"
+msgstr "Ljussond"
+
+
+msgid "Add Image"
+msgstr "Lägg till bild"
+
+
+msgid "Relations"
+msgstr "Relationer"
+
+
+msgid "Rigid Body"
+msgstr "Rigid kropp"
+
+
+msgid "Apply"
+msgstr "Applicera"
+
+
+msgid "Track"
+msgstr "Spår"
+
+
+msgid "Quick Effects"
+msgstr "Snabbeffekter"
+
+
+msgid "Show/Hide"
+msgstr "Visa/dölj"
 
 
 msgid "Clean Up"
@@ -9343,28 +9379,28 @@ msgid "Asset"
 msgstr "Tillgång"
 
 
-msgid "Show/Hide"
-msgstr "Visa/dölj"
+msgid "Convert"
+msgstr "Konvertera"
+
+
+msgid "Link/Transfer Data"
+msgstr "Länka/överför data"
 
 
 msgid "Layout"
 msgstr "Layout"
 
 
-msgid "Apply"
-msgstr "Applicera"
+msgid "Propagate"
+msgstr "Propagera"
 
 
-msgid "Quick Effects"
-msgstr "Snabbeffekter"
+msgid "Names"
+msgstr "Namn"
 
 
 msgid "Adjust"
 msgstr "Justera"
-
-
-msgid "Merge"
-msgstr "Sammanfoga"
 
 
 msgid "Utilities"
@@ -9375,40 +9411,16 @@ msgid "Math"
 msgstr "Matematik"
 
 
-msgid "Track"
-msgstr "Spår"
-
-
-msgid "Names"
-msgstr "Namn"
+msgid "Merge"
+msgstr "Sammanfoga"
 
 
 msgid "Special Characters"
 msgstr "Specialtecken"
 
 
-msgid "Metaball"
-msgstr "Metaboll"
-
-
 msgid "Text"
 msgstr "Text"
-
-
-msgid "Rigid Body"
-msgstr "Rigid kropp"
-
-
-msgid "Propagate"
-msgstr "Propagera"
-
-
-msgid "Relations"
-msgstr "Relationer"
-
-
-msgid "Add Image"
-msgstr "Lägg till bild"
 
 
 msgid "Pivot Point"
@@ -9417,18 +9429,6 @@ msgstr "Fast punkt"
 
 msgid "Snap"
 msgstr "Snäpp"
-
-
-msgid "Light Probe"
-msgstr "Ljussond"
-
-
-msgid "Light"
-msgstr "Ljus"
-
-
-msgid "Select More/Less"
-msgstr "Markera mera/mindre"
 
 
 msgid "Read"
@@ -9443,28 +9443,8 @@ msgid "Primitives"
 msgstr "Primitiver"
 
 
-msgid "Align View to Active"
-msgstr "Justera vy till aktiv"
-
-
-msgid "Align View"
-msgstr "Justera vy"
-
-
-msgid "Navigation"
-msgstr "Navigering"
-
-
-msgid "Viewpoint"
-msgstr "Visningspunkt"
-
-
 msgid "Instances"
 msgstr "Instanser"
-
-
-msgid "Local View"
-msgstr "Lokal vy"
 
 
 msgid "Mirror"
@@ -9475,24 +9455,44 @@ msgid "Import"
 msgstr "Importera"
 
 
+msgid "Local View"
+msgstr "Lokal vy"
+
+
+msgid "Viewpoint"
+msgstr "Visningspunkt"
+
+
+msgid "Navigation"
+msgstr "Navigering"
+
+
+msgid "Align View"
+msgstr "Justera vy"
+
+
+msgid "Align View to Active"
+msgstr "Justera vy till aktiv"
+
+
 msgid "Deprecated"
 msgstr "Föråldrad"
+
+
+msgid "Select More/Less"
+msgstr "Markera mera/mindre"
 
 
 msgid "UV"
 msgstr "UV"
 
 
-msgid "Assign Material"
-msgstr "Tilldela material"
-
-
-msgid "Link/Transfer Data"
-msgstr "Länka/överför data"
-
-
 msgid "Animals"
 msgstr "Djur"
+
+
+msgid "Assign Material"
+msgstr "Tilldela material"
 
 
 msgid "Catalog"

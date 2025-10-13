@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'5517941a60ac')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 14:36+0000\n"
+"POT-Creation-Date: 2025-10-13 16:12+0000\n"
 "PO-Revision-Date: 2025-07-23 15:06+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -1853,48 +1853,56 @@ msgid "Mask"
 msgstr "หน้ากาก"
 
 
-msgid "Layout"
-msgstr "เค้าโครง"
+msgid "Metaball"
+msgstr "เมตาบอล"
+
+
+msgid "Light"
+msgstr "แสง"
+
+
+msgid "Add Image"
+msgstr "เพิ่มภาพ"
 
 
 msgid "Apply"
 msgstr "นำไปใช้"
 
 
-msgid "Face Data"
-msgstr "ข้อมูลด้าน"
-
-
-msgid "Keying"
-msgstr "คีย์"
-
-
-msgid "Merge"
-msgstr "ผสาน"
-
-
-msgid "Math"
-msgstr "คณิตศาสตร์"
-
-
 msgid "Track"
 msgstr "แทร็ค"
+
+
+msgid "Hooks"
+msgstr "ตะขอ"
+
+
+msgid "Layout"
+msgstr "เค้าโครง"
 
 
 msgid "Names"
 msgstr "ชื่อ"
 
 
-msgid "Metaball"
-msgstr "เมตาบอล"
+msgid "Keying"
+msgstr "คีย์"
+
+
+msgid "Face Data"
+msgstr "ข้อมูลด้าน"
+
+
+msgid "Math"
+msgstr "คณิตศาสตร์"
+
+
+msgid "Merge"
+msgstr "ผสาน"
 
 
 msgid "Text"
 msgstr "ช้อความ"
-
-
-msgid "Add Image"
-msgstr "เพิ่มภาพ"
 
 
 msgid "Pivot Point"
@@ -1909,36 +1917,8 @@ msgid "Proportional Editing Falloff"
 msgstr "แก้ไข"
 
 
-msgid "Light"
-msgstr "แสง"
-
-
 msgid "Mask Edit"
 msgstr "การแก้ไขหน้ากาก"
-
-
-msgid "View Regions"
-msgstr "ขอบเขตมุมมอง"
-
-
-msgid "Align View to Active"
-msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
-
-
-msgid "Align View"
-msgstr "จัดมุมมอง"
-
-
-msgid "Navigation"
-msgstr "การนำทาง"
-
-
-msgid "Viewpoint"
-msgstr "จุดของมุมมอง"
-
-
-msgid "Local View"
-msgstr "มุมมองท้องถิ่น"
 
 
 msgid "Mirror"
@@ -1949,12 +1929,32 @@ msgid "Import"
 msgstr "นำเข้า"
 
 
+msgid "Local View"
+msgstr "มุมมองท้องถิ่น"
+
+
+msgid "Viewpoint"
+msgstr "จุดของมุมมอง"
+
+
+msgid "Navigation"
+msgstr "การนำทาง"
+
+
+msgid "Align View"
+msgstr "จัดมุมมอง"
+
+
+msgid "Align View to Active"
+msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
+
+
+msgid "View Regions"
+msgstr "ขอบเขตมุมมอง"
+
+
 msgid "UV"
 msgstr "UV"
-
-
-msgid "Hooks"
-msgstr "ตะขอ"
 
 
 msgid "Zoom"

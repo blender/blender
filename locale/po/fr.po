@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'5517941a60ac')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 14:36+0000\n"
+"POT-Creation-Date: 2025-10-13 16:12+0000\n"
 "PO-Revision-Date: 2025-10-12 19:59+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
@@ -29735,14 +29735,6 @@ msgid "Maintained by community developers"
 msgstr "Maintenus par les développeurs de la communauté"
 
 
-msgid "Testing"
-msgstr "En test"
-
-
-msgid "Newly contributed scripts (excluded from release builds)"
-msgstr "Scripts ajoutés récemment (exclus des builds release)"
-
-
 msgid "Addon Tags"
 msgstr "Étiquettes d’add-ons"
 
@@ -34786,12 +34778,44 @@ msgid "Editor menu containing buttons"
 msgstr "Menu d’éditeur contenant des boutons"
 
 
-msgid "Convert"
-msgstr "Convertir"
+msgid "Metaball"
+msgstr "Métaballe"
 
 
-msgid "Make Single User"
-msgstr "Rendre mono-utilisateur"
+msgid "Light"
+msgstr "Éclairage"
+
+
+msgid "Light Probe"
+msgstr "Sonde d’éclairage"
+
+
+msgid "Add Image"
+msgstr "Ajouter une image"
+
+
+msgid "Relations"
+msgstr "Relations"
+
+
+msgid "Rigid Body"
+msgstr "Corps rigide"
+
+
+msgid "Apply"
+msgstr "Appliquer"
+
+
+msgid "Track"
+msgstr "Suivi"
+
+
+msgid "Quick Effects"
+msgstr "Effets rapides"
+
+
+msgid "Show/Hide"
+msgstr "Afficher/cacher"
 
 
 msgid "Clean Up"
@@ -34802,16 +34826,68 @@ msgid "Asset"
 msgstr "Asset"
 
 
-msgid "Show/Hide"
-msgstr "Afficher/cacher"
+msgid "Make Single User"
+msgstr "Rendre mono-utilisateur"
+
+
+msgid "Convert"
+msgstr "Convertir"
+
+
+msgid "Link/Transfer Data"
+msgstr "Lier/transférer des données"
+
+
+msgid "Hooks"
+msgstr "Crochets"
+
+
+msgid "Vertex Group Locks"
+msgstr "Verrouillages des groupes de sommets"
+
+
+msgid "Trim/Add"
+msgstr "Découper/Ajouter"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Définir le pivot pour la sculpture"
+
+
+msgid "Face Sets Init"
+msgstr "Initialiser les ensembles de faces"
+
+
+msgid "Random Mask"
+msgstr "Masque aléatoire"
 
 
 msgid "Layout"
 msgstr "Disposition"
 
 
-msgid "Apply"
-msgstr "Appliquer"
+msgid "Clear Transform"
+msgstr "Réinitialiser la transformation"
+
+
+msgid "In-Betweens"
+msgstr "Intervalles"
+
+
+msgid "Propagate"
+msgstr "Propager"
+
+
+msgid "Bone Collections"
+msgstr "Collections d’os"
+
+
+msgid "Names"
+msgstr "Noms"
+
+
+msgid "Adjust"
+msgstr "Ajuster"
 
 
 msgid "Toggle Bone Options"
@@ -34826,68 +34902,52 @@ msgid "Disable Bone Options"
 msgstr "Désactiver des options d’os"
 
 
-msgid "Quick Effects"
-msgstr "Effets rapides"
+msgid "Keying"
+msgstr "Incrustation"
 
 
 msgid "Mesh Select Mode"
 msgstr "Mode de sélection du maillage"
 
 
-msgid "Face Data"
-msgstr "Données de face"
-
-
-msgid "Adjust"
-msgstr "Ajuster"
-
-
-msgid "Select by Face Strength"
-msgstr "Sélectionner par force de face"
-
-
-msgid "Set Face Strength"
-msgstr "Définir la force de face"
-
-
-msgid "Keying"
-msgstr "Incrustation"
-
-
 msgid "Tracking"
 msgstr "Suivi"
-
-
-msgid "Merge"
-msgstr "Fusionner"
 
 
 msgid "Utilities"
 msgstr "Utilitaires"
 
 
+msgid "Face Data"
+msgstr "Données de face"
+
+
 msgid "Math"
 msgstr "Maths"
+
+
+msgid "Select by Face Strength"
+msgstr "Sélectionner par force de face"
 
 
 msgid "Creative"
 msgstr "Créatif"
 
 
-msgid "Track"
-msgstr "Suivi"
+msgid "Set Face Strength"
+msgstr "Définir la force de face"
 
 
-msgid "Names"
-msgstr "Noms"
+msgid "Merge"
+msgstr "Fusionner"
+
+
+msgid "Render Preview"
+msgstr "Rendu de prévisualisation"
 
 
 msgid "Special Characters"
 msgstr "Caractères spéciaux"
-
-
-msgid "Metaball"
-msgstr "Métaballe"
 
 
 msgid "Kerning"
@@ -34898,36 +34958,8 @@ msgid "Text"
 msgstr "Texte"
 
 
-msgid "Render Preview"
-msgstr "Rendu de prévisualisation"
-
-
-msgid "Bone Collections"
-msgstr "Collections d’os"
-
-
 msgid "Bone Roll"
 msgstr "Roulis de l’os"
-
-
-msgid "Rigid Body"
-msgstr "Corps rigide"
-
-
-msgid "Propagate"
-msgstr "Propager"
-
-
-msgid "In-Betweens"
-msgstr "Intervalles"
-
-
-msgid "Relations"
-msgstr "Relations"
-
-
-msgid "Add Image"
-msgstr "Ajouter une image"
 
 
 msgid "Pivot Point"
@@ -34938,44 +34970,24 @@ msgid "Snap"
 msgstr "Aimanter"
 
 
-msgid "Light Probe"
-msgstr "Sonde d’éclairage"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Atténuation de l’édition proportionnelle"
-
-
-msgid "Light"
-msgstr "Éclairage"
 
 
 msgid "Mask Edit"
 msgstr "Édition du masque"
 
 
-msgid "Select More/Less"
-msgstr "Sélectionner plus ou moins"
-
-
 msgid "Automasking"
 msgstr "Masquage auto"
 
 
-msgid "Face Sets Edit"
-msgstr "Édition des ensembles de faces"
-
-
-msgid "Vertex Group Locks"
-msgstr "Verrouillages des groupes de sommets"
-
-
-msgid "Clear Transform"
-msgstr "Réinitialiser la transformation"
-
-
 msgid "Read"
 msgstr "Lecture"
+
+
+msgid "Face Sets Edit"
+msgstr "Édition des ensembles de faces"
 
 
 msgid "Sample"
@@ -34990,72 +35002,12 @@ msgid "Primitives"
 msgstr "Primitives"
 
 
-msgid "Select Loops"
-msgstr "Sélectionner les boucles"
-
-
-msgid "Select Linked"
-msgstr "Sélectionner liés"
-
-
-msgid "Select All by Trait"
-msgstr "Tout sélectionner par caractéristiques"
-
-
-msgid "Face Sets Init"
-msgstr "Initialiser les ensembles de faces"
-
-
-msgid "Select Similar"
-msgstr "Sélectionner similaires"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Définir le pivot pour la sculpture"
-
-
-msgid "Random Mask"
-msgstr "Masque aléatoire"
-
-
-msgid "View Regions"
-msgstr "Régions dans la vue"
-
-
-msgid "Align View to Active"
-msgstr "Aligner la vue sur l’actif"
-
-
-msgid "Align View"
-msgstr "Aligner la vue"
-
-
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "Viewpoint"
-msgstr "Point de vue"
-
-
 msgid "Gizmo"
 msgstr "Gizmo"
 
 
 msgid "Instances"
 msgstr "Instances"
-
-
-msgid "Local View"
-msgstr "Vue locale"
-
-
-msgid "UV Mapping"
-msgstr "Placage UV"
-
-
-msgid "Trim/Add"
-msgstr "Découper/Ajouter"
 
 
 msgid "Mirror"
@@ -35066,32 +35018,64 @@ msgid "Import"
 msgstr "Importer"
 
 
+msgid "UV Mapping"
+msgstr "Placage UV"
+
+
+msgid "Local View"
+msgstr "Vue locale"
+
+
+msgid "Viewpoint"
+msgstr "Point de vue"
+
+
+msgid "Navigation"
+msgstr "Navigation"
+
+
+msgid "Align View"
+msgstr "Aligner la vue"
+
+
+msgid "Align View to Active"
+msgstr "Aligner la vue sur l’actif"
+
+
 msgid "Deprecated"
 msgstr "Obsolète"
+
+
+msgid "View Regions"
+msgstr "Régions dans la vue"
+
+
+msgid "Select More/Less"
+msgstr "Sélectionner plus ou moins"
 
 
 msgid "List"
 msgstr "Liste"
 
 
+msgid "Select Similar"
+msgstr "Sélectionner similaires"
+
+
+msgid "Select All by Trait"
+msgstr "Tout sélectionner par caractéristiques"
+
+
 msgid "UV"
 msgstr "UV"
 
 
-msgid "Assign Material"
-msgstr "Assigner un matériau"
+msgid "Select Linked"
+msgstr "Sélectionner liés"
 
 
-msgid "Hooks"
-msgstr "Crochets"
-
-
-msgid "Link/Transfer Data"
-msgstr "Lier/transférer des données"
-
-
-msgid "Keyframe Insert Pie"
-msgstr "Menu circulaire d’insertion de clés"
+msgid "Select Loops"
+msgstr "Sélectionner les boucles"
 
 
 msgid "Animals"
@@ -35100,6 +35084,14 @@ msgstr "Animaux"
 
 msgid "Basic"
 msgstr "Basique"
+
+
+msgid "Assign Material"
+msgstr "Assigner un matériau"
+
+
+msgid "Keyframe Insert Pie"
+msgstr "Menu circulaire d’insertion de clés"
 
 
 msgid "Bone Collection Specials"
@@ -91306,6 +91298,26 @@ msgid "Panel containing UI elements"
 msgstr "Panneau contenant des éléments d’interface"
 
 
+msgid "Auto-Masking"
+msgstr "Masquage auto"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Sculpture courbes – options d’ajout de courbe"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Sculpture courbes – atténuation le long de la courbe"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "Courbes – échelle pour grandir/raccourcir"
+
+
+msgid "Viewport Debug"
+msgstr "Débugage vue 3D"
+
+
 msgid "VR"
 msgstr "VR"
 
@@ -91432,26 +91444,6 @@ msgstr "Stéréoscopie"
 
 msgid "Multi Frame"
 msgstr "Multi-frames"
-
-
-msgid "Auto-Masking"
-msgstr "Masquage auto"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Sculpture courbes – options d’ajout de courbe"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Sculpture courbes – atténuation le long de la courbe"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "Courbes – échelle pour grandir/raccourcir"
-
-
-msgid "Viewport Debug"
-msgstr "Débugage vue 3D"
 
 
 msgid "Import Settings"

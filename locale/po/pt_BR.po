@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'5517941a60ac')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-10-13 14:36+0000\n"
+"POT-Creation-Date: 2025-10-13 16:12+0000\n"
 "PO-Revision-Date: 2025-07-23 15:03+0000\n"
 "Last-Translator: Amy Lily <lillya.assist@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -21243,28 +21243,84 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Convert"
-msgstr "Converter"
+msgid "Metaball"
+msgstr "Meta-esfera"
 
 
-msgid "Make Single User"
-msgstr "Tornar usuário único"
+msgid "Light"
+msgstr "Luz"
 
 
-msgid "Clean Up"
-msgstr "Limpeza"
+msgid "Light Probe"
+msgstr "Sonda de Luz"
+
+
+msgid "Add Image"
+msgstr "Adicionar Imagem"
+
+
+msgid "Relations"
+msgstr "Relações"
+
+
+msgid "Rigid Body"
+msgstr "Corpo rígido"
+
+
+msgid "Apply"
+msgstr "Aplicar"
+
+
+msgid "Track"
+msgstr "Rastrear"
+
+
+msgid "Quick Effects"
+msgstr "Efeitos instantâneos"
 
 
 msgid "Show/Hide"
 msgstr "Mostrar ou ocultar"
 
 
+msgid "Clean Up"
+msgstr "Limpeza"
+
+
+msgid "Make Single User"
+msgstr "Tornar usuário único"
+
+
+msgid "Convert"
+msgstr "Converter"
+
+
+msgid "Hooks"
+msgstr "Ganchos"
+
+
+msgid "Random Mask"
+msgstr "Máscara Aleatória"
+
+
 msgid "Layout"
 msgstr "Organizar"
 
 
-msgid "Apply"
-msgstr "Aplicar"
+msgid "Clear Transform"
+msgstr "Limpar transformações"
+
+
+msgid "In-Betweens"
+msgstr "Entre as continuidades"
+
+
+msgid "Propagate"
+msgstr "Propagar"
+
+
+msgid "Names"
+msgstr "Nomes"
 
 
 msgid "Toggle Bone Options"
@@ -21279,48 +21335,32 @@ msgid "Disable Bone Options"
 msgstr "Desabilitar as opções de ossos"
 
 
-msgid "Quick Effects"
-msgstr "Efeitos instantâneos"
+msgid "Keying"
+msgstr "Inserção de chaves"
 
 
 msgid "Mesh Select Mode"
 msgstr "Modo de seleção de malhas"
 
 
-msgid "Face Data"
-msgstr "Dados das faces"
-
-
-msgid "Keying"
-msgstr "Inserção de chaves"
-
-
 msgid "Tracking"
 msgstr "Rastreamento"
 
 
-msgid "Merge"
-msgstr "Fundir"
+msgid "Face Data"
+msgstr "Dados das faces"
 
 
 msgid "Math"
 msgstr "Matemática"
 
 
-msgid "Track"
-msgstr "Rastrear"
-
-
-msgid "Names"
-msgstr "Nomes"
+msgid "Merge"
+msgstr "Fundir"
 
 
 msgid "Special Characters"
 msgstr "Caracteres especiais"
-
-
-msgid "Metaball"
-msgstr "Meta-esfera"
 
 
 msgid "Text"
@@ -21331,26 +21371,6 @@ msgid "Bone Roll"
 msgstr "Rolagem dos ossos"
 
 
-msgid "Rigid Body"
-msgstr "Corpo rígido"
-
-
-msgid "Propagate"
-msgstr "Propagar"
-
-
-msgid "In-Betweens"
-msgstr "Entre as continuidades"
-
-
-msgid "Relations"
-msgstr "Relações"
-
-
-msgid "Add Image"
-msgstr "Adicionar Imagem"
-
-
 msgid "Pivot Point"
 msgstr "Pontos de pivô"
 
@@ -21359,76 +21379,12 @@ msgid "Snap"
 msgstr "Atrair"
 
 
-msgid "Light Probe"
-msgstr "Sonda de Luz"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
 
 
-msgid "Light"
-msgstr "Luz"
-
-
-msgid "Select More/Less"
-msgstr "Selecionar mais ou menos"
-
-
-msgid "Clear Transform"
-msgstr "Limpar transformações"
-
-
-msgid "Select Loops"
-msgstr "Selecionar anéis"
-
-
-msgid "Select Linked"
-msgstr "Selecionar vinculados(as)"
-
-
-msgid "Select All by Trait"
-msgstr "Selecionar todos por características..."
-
-
-msgid "Select Similar"
-msgstr "Selecionar por similaridades"
-
-
-msgid "Random Mask"
-msgstr "Máscara Aleatória"
-
-
-msgid "View Regions"
-msgstr "Visualizar Regiões"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o ativo"
-
-
-msgid "Align View"
-msgstr "Alinhar visualização"
-
-
-msgid "Navigation"
-msgstr "Navegação"
-
-
-msgid "Viewpoint"
-msgstr "Ponto de visualização"
-
-
 msgid "Instances"
 msgstr "Instâncias"
-
-
-msgid "Local View"
-msgstr "Visão local"
-
-
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
 
 
 msgid "Mirror"
@@ -21439,12 +21395,56 @@ msgid "Import"
 msgstr "Importar"
 
 
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
+
+
+msgid "Local View"
+msgstr "Visão local"
+
+
+msgid "Viewpoint"
+msgstr "Ponto de visualização"
+
+
+msgid "Navigation"
+msgstr "Navegação"
+
+
+msgid "Align View"
+msgstr "Alinhar visualização"
+
+
+msgid "Align View to Active"
+msgstr "Alinhar vista para o ativo"
+
+
+msgid "View Regions"
+msgstr "Visualizar Regiões"
+
+
+msgid "Select More/Less"
+msgstr "Selecionar mais ou menos"
+
+
+msgid "Select Similar"
+msgstr "Selecionar por similaridades"
+
+
+msgid "Select All by Trait"
+msgstr "Selecionar todos por características..."
+
+
 msgid "UV"
 msgstr "UV"
 
 
-msgid "Hooks"
-msgstr "Ganchos"
+msgid "Select Linked"
+msgstr "Selecionar vinculados(as)"
+
+
+msgid "Select Loops"
+msgstr "Selecionar anéis"
 
 
 msgid "Basic"

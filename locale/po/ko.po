@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'5517941a60ac')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 14:36+0000\n"
+"POT-Creation-Date: 2025-10-13 16:12+0000\n"
 "PO-Revision-Date: 2025-07-23 15:30+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -23644,8 +23644,44 @@ msgid "Material slot name"
 msgstr "매테리얼 슬롯 이름"
 
 
-msgid "Make Single User"
-msgstr "싱글 유저를 만들기"
+msgid "Metaball"
+msgstr "메타볼"
+
+
+msgid "Light"
+msgstr "라이트"
+
+
+msgid "Light Probe"
+msgstr "라이트 프로브"
+
+
+msgid "Add Image"
+msgstr "이미지를 추가"
+
+
+msgid "Relations"
+msgstr "관계"
+
+
+msgid "Rigid Body"
+msgstr "리지드 바디"
+
+
+msgid "Apply"
+msgstr "적용"
+
+
+msgid "Track"
+msgstr "트랙"
+
+
+msgid "Quick Effects"
+msgstr "빠른 이펙트"
+
+
+msgid "Show/Hide"
+msgstr "표시/숨기기"
 
 
 msgid "Clean Up"
@@ -23656,16 +23692,36 @@ msgid "Asset"
 msgstr "에셋"
 
 
-msgid "Show/Hide"
-msgstr "표시/숨기기"
+msgid "Make Single User"
+msgstr "싱글 유저를 만들기"
+
+
+msgid "Hooks"
+msgstr "후크"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "스컬프트 설정 피벗"
 
 
 msgid "Layout"
 msgstr "레이아웃"
 
 
-msgid "Apply"
-msgstr "적용"
+msgid "Clear Transform"
+msgstr "변환을 지우기"
+
+
+msgid "In-Betweens"
+msgstr "사이에서"
+
+
+msgid "Propagate"
+msgstr "전파"
+
+
+msgid "Names"
+msgstr "이름"
 
 
 msgid "Toggle Bone Options"
@@ -23680,16 +23736,24 @@ msgid "Disable Bone Options"
 msgstr "본 옵션을 사용 중지"
 
 
-msgid "Quick Effects"
-msgstr "빠른 이펙트"
+msgid "Keying"
+msgstr "키잉"
 
 
 msgid "Mesh Select Mode"
 msgstr "메쉬 선택 모드"
 
 
+msgid "Tracking"
+msgstr "트래킹"
+
+
 msgid "Face Data"
 msgstr "페이스 데이터"
+
+
+msgid "Math"
+msgstr "수학"
 
 
 msgid "Select by Face Strength"
@@ -23700,36 +23764,12 @@ msgid "Set Face Strength"
 msgstr "페이스 강도를 설정"
 
 
-msgid "Keying"
-msgstr "키잉"
-
-
-msgid "Tracking"
-msgstr "트래킹"
-
-
 msgid "Merge"
 msgstr "병합"
 
 
-msgid "Math"
-msgstr "수학"
-
-
-msgid "Track"
-msgstr "트랙"
-
-
-msgid "Names"
-msgstr "이름"
-
-
 msgid "Special Characters"
 msgstr "특수 문자"
-
-
-msgid "Metaball"
-msgstr "메타볼"
 
 
 msgid "Kerning"
@@ -23744,26 +23784,6 @@ msgid "Bone Roll"
 msgstr "본 롤"
 
 
-msgid "Rigid Body"
-msgstr "리지드 바디"
-
-
-msgid "Propagate"
-msgstr "전파"
-
-
-msgid "In-Betweens"
-msgstr "사이에서"
-
-
-msgid "Relations"
-msgstr "관계"
-
-
-msgid "Add Image"
-msgstr "이미지를 추가"
-
-
 msgid "Pivot Point"
 msgstr "피벗 포인트"
 
@@ -23772,28 +23792,12 @@ msgid "Snap"
 msgstr "스냅"
 
 
-msgid "Light Probe"
-msgstr "라이트 프로브"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "비례 편집 감소"
 
 
-msgid "Light"
-msgstr "라이트"
-
-
 msgid "Mask Edit"
 msgstr "마스크 편집"
-
-
-msgid "Select More/Less"
-msgstr "선택 증가/감소"
-
-
-msgid "Clear Transform"
-msgstr "변환을 지우기"
 
 
 msgid "Sample"
@@ -23804,54 +23808,6 @@ msgid "Primitives"
 msgstr "프리미티브"
 
 
-msgid "Select Loops"
-msgstr "루프를 선택"
-
-
-msgid "Select Linked"
-msgstr "연결된 선택"
-
-
-msgid "Select All by Trait"
-msgstr "형질로 모두 선택"
-
-
-msgid "Select Similar"
-msgstr "유사한 선택"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "스컬프트 설정 피벗"
-
-
-msgid "View Regions"
-msgstr "뷰 지역"
-
-
-msgid "Align View to Active"
-msgstr "뷰를 활성에 정렬"
-
-
-msgid "Align View"
-msgstr "뷰를 정렬"
-
-
-msgid "Navigation"
-msgstr "네비게이션"
-
-
-msgid "Viewpoint"
-msgstr "뷰포트"
-
-
-msgid "Local View"
-msgstr "로컬 뷰"
-
-
-msgid "UV Mapping"
-msgstr "UV 맵핑"
-
-
 msgid "Mirror"
 msgstr "미러"
 
@@ -23860,20 +23816,64 @@ msgid "Import"
 msgstr "가져오기"
 
 
+msgid "UV Mapping"
+msgstr "UV 맵핑"
+
+
+msgid "Local View"
+msgstr "로컬 뷰"
+
+
+msgid "Viewpoint"
+msgstr "뷰포트"
+
+
+msgid "Navigation"
+msgstr "네비게이션"
+
+
+msgid "Align View"
+msgstr "뷰를 정렬"
+
+
+msgid "Align View to Active"
+msgstr "뷰를 활성에 정렬"
+
+
+msgid "View Regions"
+msgstr "뷰 지역"
+
+
+msgid "Select More/Less"
+msgstr "선택 증가/감소"
+
+
+msgid "Select Similar"
+msgstr "유사한 선택"
+
+
+msgid "Select All by Trait"
+msgstr "형질로 모두 선택"
+
+
 msgid "UV"
 msgstr "UV"
 
 
-msgid "Assign Material"
-msgstr "매테리얼을 할당"
+msgid "Select Linked"
+msgstr "연결된 선택"
 
 
-msgid "Hooks"
-msgstr "후크"
+msgid "Select Loops"
+msgstr "루프를 선택"
 
 
 msgid "Basic"
 msgstr "기본"
+
+
+msgid "Assign Material"
+msgstr "매테리얼을 할당"
 
 
 msgctxt "MovieClip"
