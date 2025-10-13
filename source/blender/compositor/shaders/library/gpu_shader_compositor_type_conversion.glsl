@@ -330,14 +330,44 @@ float float_from_vec3(float3 vector)
   return dot(vector, float3(1.0f)) / 3.0f;
 }
 
+float float_from_vec2(float2 vector)
+{
+  return dot(vector, float2(1.0f)) / 2.0f;
+}
+
+float2 vec2_from_vec4(float4 vector)
+{
+  return vector.xy;
+}
+
+float2 vec2_from_vec3(float3 vector)
+{
+  return vector.xy;
+}
+
+float2 vec2_from_float(float value)
+{
+  return float2(value);
+}
+
 float3 vec3_from_vec4(float4 vector)
 {
-  return vector.rgb;
+  return vector.xyz;
+}
+
+float3 vec3_from_vec2(float2 vector)
+{
+  return float3(vector, 0.0f);
 }
 
 float3 vec3_from_float(float value)
 {
   return float3(value);
+}
+
+float4 vec4_from_vec2(float2 vector)
+{
+  return float4(vector, 0.0f, 1.0f);
 }
 
 float4 vec4_from_vec3(float3 vector)

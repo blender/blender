@@ -531,7 +531,7 @@ void ShaderOperation::generate_code(void *thunk,
   shader_create_info.local_group_size(16, 16);
 
   /* Add implementation for implicit conversion operations inserted by the code generator. This
-   * file should include the functions [float|vec3|vec4]_from_[float|vec3|vec4]. */
+   * file should include the functions [float|vec2|vec3|vec4]_from_[float|vec2|vec3|vec4]. */
   shader_create_info.typedef_source("gpu_shader_compositor_type_conversion.glsl");
 
   /* The source shader is a compute shader with a main function that calls the dynamically
