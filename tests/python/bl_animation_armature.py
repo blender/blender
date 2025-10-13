@@ -7,8 +7,13 @@ blender -b --factory-startup --python tests/python/bl_animation_armature.py
 """
 
 import unittest
+from typing import TypeAlias
 
 import bpy
+from mathutils import Vector
+from bpy.types import EditBone, Object, Armature
+
+Vectorish: TypeAlias = Vector | tuple[float, float, float]
 
 
 class BoneCollectionTest(unittest.TestCase):
@@ -222,6 +227,183 @@ class BoneCollectionTest(unittest.TestCase):
         self.assertEqual({'agent': 327}, bcolls_all['child3']['dict'].to_dict())
 
 
+class ArmatureCreationTest(unittest.TestCase):
+    arm_ob: Object
+    arm: Armature
+
+    def setUp(self) -> None:
+        print("\033[92mloading empty homefile\033[0m")
+        bpy.ops.wm.read_homefile(use_empty=True, use_factory_startup=True)
+        self.arm_ob, self.arm = self.create_armature()
+
+    @staticmethod
+    def create_armature() -> tuple[Object, Armature]:
+        """Create an Armature without any bones."""
+        arm = bpy.data.armatures.new('Armature')
+        arm_ob = bpy.data.objects.new('ArmObject', arm)
+
+        # Remove any pre-existing bone.
+        while arm.bones:
+            arm.bones.remove(arm.bones[0])
+
+        bpy.context.scene.collection.objects.link(arm_ob)
+        bpy.context.view_layer.objects.active = arm_ob
+
+        return arm_ob, arm
+
+    def create_bone(self, name: str, parent: EditBone | None, head: Vectorish, tail: Vectorish) -> EditBone:
+        bone = self.arm.edit_bones.new(name)
+        bone.parent = parent
+        bone.head = head
+        bone.tail = tail
+        bone.use_connect = True
+        return bone
+
+    def test_tiny_bones(self) -> None:
+        """Tiny bones should be elongated."""
+
+        # 'bpy.context.active_object' does not exist when Blender is running in
+        # GUI mode. That's not the normal way to run this test, but very useful
+        # to be able to do for debugging purposes.
+        with bpy.context.temp_override(active_object=self.arm_ob):
+            bpy.ops.object.mode_set(mode='EDIT')
+
+        # Constants defined in `ED_armature_from_edit()`:
+        bone_length_threshold = 0.000001
+        adjusted_bone_length = 2 * bone_length_threshold
+
+        # A value for which the vector (under_threshold, 0, under_threshold)
+        # is still shorter than the bone length threshold.
+        under_threshold = 0.0000006
+
+        root = self.create_bone("root", None, (0, 0, 0), (0, 0, 1))
+
+        tinychild_1 = self.create_bone(
+            "tinychild_1",
+            root,
+            root.tail,
+            root.tail + Vector((0, under_threshold, 0)),
+        )
+        self.create_bone(
+            "tinychild_2",
+            root,
+            root.tail,
+            root.tail + Vector((under_threshold, 0, under_threshold)),
+        )
+        self.create_bone(
+            "zerochild_3",
+            root,
+            root.tail,
+            root.tail,
+        )
+
+        # Give a tiny child a grandchild that is also tiny, in a perpendicular direction.
+        self.create_bone(
+            "tinygrandchild_1_1",
+            tinychild_1,
+            tinychild_1.tail,
+            tinychild_1.tail + Vector((under_threshold, 0, 0)),
+        )
+
+        # Add a grandchild that is long enough.
+        grandchild_1_2 = self.create_bone(
+            "grandchild_1_2",
+            tinychild_1,
+            tinychild_1.tail,
+            tinychild_1.tail + Vector((1, 0, 0)),
+        )
+
+        # Add a great-grandchild, it should remain connected to its parent.
+        self.create_bone(
+            "great_grandchild_1_2_1",
+            grandchild_1_2,
+            grandchild_1_2.tail,
+            grandchild_1_2.tail + Vector((1, 0, 0)),
+        )
+
+        # Switch out and back into Armature Edit mode, to see how the bones survived the round-trip.
+        with bpy.context.temp_override(active_object=self.arm_ob):
+            bpy.ops.object.mode_set(mode='OBJECT')
+            bpy.ops.object.mode_set(mode='EDIT')
+
+        # Check that all bones still exist, and have the expected head/tail. This
+        # comparison is done again in Armature Edit mode, so that all the numbers
+        # mean the same thing as they meant when creating the bones.
+
+        actual_names = sorted(bone.name for bone in self.arm.edit_bones)
+        expect_names = sorted(["root", "tinychild_1", "tinychild_2", "zerochild_3", "tinygrandchild_1_1",
+                               "grandchild_1_2", "great_grandchild_1_2_1"])
+        self.assertEqual(expect_names, actual_names)
+
+        def check_bone(
+                name: str,
+                expect_head: Vectorish,
+                expect_tail: Vectorish,
+                *,
+                expect_connected: bool,
+                msg: str,
+                places=7,
+        ) -> None:
+            bone = self.arm.edit_bones[name]
+            # Convert to tuples for nicer printing in failure messages.
+            actual_head = bone.head.to_tuple()
+            actual_tail = bone.tail.to_tuple()
+
+            head_msg = "\n{}:\n  Expected head ({:.8f}, {:.8f}, {:.8f}),\n      Actual is ({:.8f}, {:.8f}, {:.8f}).\n  {}".format(
+                name, expect_head[0], expect_head[1], expect_head[2], actual_head[0], actual_head[1], actual_head[2], msg)
+            self.assertAlmostEqual(expect_head[0], actual_head[0], places=places, msg=head_msg)
+            self.assertAlmostEqual(expect_head[1], actual_head[1], places=places, msg=head_msg)
+            self.assertAlmostEqual(expect_head[2], actual_head[2], places=places, msg=head_msg)
+            # print("\n{}:\n  Head is ({:.8f}, {:.8f}, {:.8f})".format(
+            #     name, actual_head[0], actual_head[1], actual_head[2]))
+
+            tail_msg = "\n{}:\n  Expected tail ({:.8f}, {:.8f}, {:.8f}),\n      Actual is ({:.8f}, {:.8f}, {:.8f}).\n  {}".format(
+                name, expect_tail[0], expect_tail[1], expect_tail[2], actual_tail[0], actual_tail[1], actual_tail[2], msg)
+            self.assertAlmostEqual(expect_tail[0], actual_tail[0], places=places, msg=tail_msg)
+            self.assertAlmostEqual(expect_tail[1], actual_tail[1], places=places, msg=tail_msg)
+            self.assertAlmostEqual(expect_tail[2], actual_tail[2], places=places, msg=tail_msg)
+            # print("  Tail is ({:.8f}, {:.8f}, {:.8f})".format(
+            #     actual_tail[0], actual_tail[1], actual_tail[2]))
+
+            self.assertEqual(expect_connected, bone.use_connect, msg="{}: {}".format(bone.name, msg))
+
+        check_bone("root", (0, 0, 0), (0, 0, 1),
+                   expect_connected=True, msg="Should not have changed.")
+        check_bone("tinychild_1", (0, 0, 1), (0, adjusted_bone_length, 1),
+                   expect_connected=True, msg="Should have been elongated in the Y-direction")
+
+        adjust = (Vector((under_threshold, 0, under_threshold)).normalized() * adjusted_bone_length).x
+        check_bone("tinychild_2",
+                   (0, 0, 1),
+                   (adjust, 0, 1 + adjust),
+                   expect_connected=True,
+                   msg="Should have been elongated in the XZ-direction")
+
+        check_bone("zerochild_3",
+                   (0, 0, 1),
+                   (0, 0, 1 + adjusted_bone_length),
+                   expect_connected=True,
+                   msg="Should have been elongated in the Z-direction")
+
+        check_bone("tinygrandchild_1_1",
+                   (0, under_threshold, 1),
+                   (adjusted_bone_length, under_threshold, 1),
+                   expect_connected=False,
+                   msg="Should have been elongated in the X-direction and disconnected")
+
+        check_bone("grandchild_1_2",
+                   (0, under_threshold, 1),
+                   (1, under_threshold, 1),
+                   expect_connected=False,
+                   msg="Should been disconnected")
+
+        check_bone("great_grandchild_1_2_1",
+                   (1, under_threshold, 1),
+                   (2, under_threshold, 1),
+                   expect_connected=True,
+                   msg="Should been kept connected")
+
+
 def main():
     import sys
 
@@ -231,7 +413,7 @@ def main():
         # Avoid passing all of Blender's arguments to unittest.main()
         argv = [sys.argv[0]]
 
-    unittest.main(argv=argv)
+    unittest.main(argv=argv, exit=False)
 
 
 if __name__ == "__main__":
