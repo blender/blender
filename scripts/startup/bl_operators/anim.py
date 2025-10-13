@@ -400,7 +400,7 @@ class UpdateAnimatedTransformConstraint(Operator):
     )
 
     def execute(self, context):
-        import animsys_refactor
+        import _animsys_refactor as animsys_refactor
         from math import radians
         import io
 

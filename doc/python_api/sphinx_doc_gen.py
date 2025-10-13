@@ -57,7 +57,7 @@ except ImportError:
     print(__doc__)
     sys.exit()
 
-import rna_info  # Blender module.
+import _rna_info as rna_info  # Blender module.
 
 
 def rna_info_BuildRNAInfo_cache():

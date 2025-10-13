@@ -321,7 +321,7 @@ def load_scripts(*, reload_scripts=False, refresh_scripts=False, extensions=True
         # Without this, add-on register functions accessing key-map properties can crash, see: #111702.
         _bpy.context.window_manager.keyconfigs.update(keep_properties=True)
 
-    from bpy_restrict_state import RestrictBlend
+    from _bpy_restrict_state import RestrictBlend
 
     with RestrictBlend():
         for base_path in script_paths(use_user=use_user):
@@ -367,7 +367,7 @@ def _on_exit():
 
     # Call `unregister` function on internal startup module.
     # Must only be used as part of Blender 'exit' process.
-    from bpy_restrict_state import RestrictBlend
+    from _bpy_restrict_state import RestrictBlend
     with RestrictBlend():
         for mod_name in reversed(_registered_module_names):
             if (mod := _sys.modules.get(mod_name)) is None:
@@ -1231,7 +1231,7 @@ def _blender_default_map():
     # NOTE(@ideasman42): Avoid importing this as there is no need to keep the lookup table in memory.
     # As this runs when the user accesses the "Online Manual", the overhead loading the file is acceptable.
     # In my tests it's under 1/100th of a second loading from a `pyc`.
-    ref_mod = execfile(_os.path.join(_script_base_dir, "modules", "rna_manual_reference.py"))
+    ref_mod = execfile(_os.path.join(_script_base_dir, "modules", "_rna_manual_reference.py"))
     return (ref_mod.url_manual_prefix, ref_mod.url_manual_mapping)
 
 

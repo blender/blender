@@ -553,7 +553,7 @@ class TOPBAR_MT_window(Menu):
 
     def draw(self, context):
         import sys
-        from bl_ui_utils.layout import operator_context
+        from _bl_ui_utils.layout import operator_context
 
         layout = self.layout
 

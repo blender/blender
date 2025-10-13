@@ -332,7 +332,7 @@ def enable(module_name, *, default_set=False, persistent=False, refresh_handled=
     import os
     import sys
     import importlib
-    from bpy_restrict_state import RestrictBlend
+    from _bpy_restrict_state import RestrictBlend
 
     if handle_error is None:
         def handle_error(ex):

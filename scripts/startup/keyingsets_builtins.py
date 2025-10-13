@@ -15,7 +15,7 @@ are supported.
 """
 
 import bpy
-import keyingsets_utils
+import _keyingsets_utils as keyingsets_utils
 from bpy.types import KeyingSetInfo
 
 ###############################

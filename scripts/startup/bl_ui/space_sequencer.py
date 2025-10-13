@@ -1075,7 +1075,7 @@ class SEQUENCER_MT_strip(Menu):
     bl_label = "Strip"
 
     def draw(self, context):
-        from bl_ui_utils.layout import operator_context
+        from _bl_ui_utils.layout import operator_context
 
         layout = self.layout
         st = context.space_data

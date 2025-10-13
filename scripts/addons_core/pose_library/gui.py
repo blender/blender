@@ -15,7 +15,7 @@ from bpy.types import (
     UILayout,
     UIList,
 )
-from bl_ui_utils.layout import operator_context
+from _bl_ui_utils.layout import operator_context
 
 
 class VIEW3D_MT_pose_modify(Menu):
