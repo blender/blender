@@ -351,7 +351,7 @@ static bAction *poselib_blend_init_get_action(bContext *C, wmOperator *op)
     }
   }
   else {
-    /* If no explicit asset reference was passed, get asset from context.  */
+    /* If no explicit asset reference was passed, get asset from context. */
     asset = CTX_wm_asset(C);
     if (!asset) {
       BKE_report(op->reports, RPT_ERROR, "No asset in context");

@@ -33,6 +33,7 @@ set(SRC
   node_edit.cc
   node_geometry_attribute_search.cc
   node_geometry_layer_search.cc
+  node_geometry_volume_grid_search.cc
   node_gizmo.cc
   node_group.cc
   node_ops.cc
@@ -42,6 +43,7 @@ set(SRC
   node_socket_tooltip.cc
   node_sync_sockets.cc
   node_templates.cc
+  node_tree_interface_ui.cc
   node_view.cc
   space_node.cc
 

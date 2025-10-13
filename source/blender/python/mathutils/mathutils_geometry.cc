@@ -29,6 +29,7 @@
 #include "BLI_utildefines.h"
 
 #include "../generic/py_capi_utils.hh"
+#include "../generic/python_compat.hh" /* IWYU pragma: keep. */
 #include "../generic/python_utildefines.hh"
 
 /* ---------------------------------INTERSECTION FUNCTIONS-------------------- */
@@ -352,7 +353,7 @@ PyDoc_STRVAR(
     "   :rtype: :class:`mathutils.Vector`\n");
 static PyObject *M_Geometry_normal(PyObject * /*self*/, PyObject *args)
 {
-  float(*coords)[3];
+  float (*coords)[3];
   int coords_len;
   float n[3];
   PyObject *ret = nullptr;
@@ -820,30 +821,33 @@ PyDoc_STRVAR(
     M_Geometry_intersect_point_line_doc,
     ".. function:: intersect_point_line(pt, line_p1, line_p2, /)\n"
     "\n"
-    "   Takes a point and a line and returns a tuple with the closest point on the line and its "
+    "   Takes a point and a line and returns the closest point on the line and its "
     "distance from the first point of the line as a percentage of the length of the line.\n"
     "\n"
     "   :arg pt: Point\n"
     "   :type pt: :class:`mathutils.Vector`\n"
     "   :arg line_p1: First point of the line\n"
     "   :type line_p1: :class:`mathutils.Vector`\n"
-    "   :arg line_p1: Second point of the line\n"
-    "   :type line_p1: :class:`mathutils.Vector`\n"
+    "   :arg line_p2: Second point of the line\n"
+    "   :type line_p2: :class:`mathutils.Vector`\n"
     "   :rtype: tuple[:class:`mathutils.Vector`, float]\n");
-static PyObject *M_Geometry_intersect_point_line(PyObject * /*self*/, PyObject *args)
+static PyObject *M_Geometry_intersect_point_line(PyObject * /*self*/,
+                                                 PyObject *const *args,
+                                                 Py_ssize_t nargs)
 {
   const char *error_prefix = "intersect_point_line";
-  PyObject *py_pt, *py_line_a, *py_line_b;
   float pt[3], pt_out[3], line_a[3], line_b[3];
-  float lambda;
-  PyObject *ret;
   int pt_num = 2;
 
-  if (!PyArg_ParseTuple(args, "OOO:intersect_point_line", &py_pt, &py_line_a, &py_line_b)) {
+  if (!_PyArg_CheckPositional(error_prefix, nargs, 3, 3)) {
     return nullptr;
   }
 
-  /* accept 2d verts */
+  PyObject *py_pt = args[0];
+  PyObject *py_line_a = args[1];
+  PyObject *py_line_b = args[2];
+
+  /* Accept 2D verts. */
   if ((((pt_num = mathutils_array_parse(
              pt, 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_pt, error_prefix)) != -1) &&
        (mathutils_array_parse(
@@ -854,10 +858,62 @@ static PyObject *M_Geometry_intersect_point_line(PyObject * /*self*/, PyObject *
     return nullptr;
   }
 
-  /* do the calculation */
-  lambda = closest_to_line_v3(pt_out, pt, line_a, line_b);
+  /* Do the calculation. */
+  const float lambda = closest_to_line_v3(pt_out, pt, line_a, line_b);
 
-  ret = PyTuple_New(2);
+  PyObject *ret = PyTuple_New(2);
+  PyTuple_SET_ITEMS(
+      ret, Vector_CreatePyObject(pt_out, pt_num, nullptr), PyFloat_FromDouble(lambda));
+  return ret;
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    M_Geometry_intersect_point_line_segment_doc,
+    ".. function:: intersect_point_line_segment(pt, seg_p1, seg_p2, /)\n"
+    "\n"
+    "   Takes a point and a segment and returns the closest point on the segment "
+    "and the distance to the segment.\n"
+    "\n"
+    "   :arg pt: Point\n"
+    "   :type pt: :class:`mathutils.Vector`\n"
+    "   :arg seg_p1: First point of the segment\n"
+    "   :type seg_p1: :class:`mathutils.Vector`\n"
+    "   :arg seg_p2: Second point of the segment\n"
+    "   :type seg_p2: :class:`mathutils.Vector`\n"
+    "   :rtype: tuple[:class:`mathutils.Vector`, float]\n");
+static PyObject *M_Geometry_intersect_point_line_segment(PyObject * /*self*/,
+                                                         PyObject *const *args,
+                                                         Py_ssize_t nargs)
+{
+  const char *error_prefix = "intersect_point_line_segment";
+  float pt[3], pt_out[3], seg_a[3], seg_b[3];
+  int pt_num = 2;
+
+  if (!_PyArg_CheckPositional(error_prefix, nargs, 3, 3)) {
+    return nullptr;
+  }
+
+  PyObject *py_pt = args[0];
+  PyObject *py_seq_a = args[1];
+  PyObject *py_seg_b = args[2];
+
+  /* Accept 2D verts. */
+  if ((((pt_num = mathutils_array_parse(
+             pt, 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_pt, error_prefix)) != -1) &&
+       (mathutils_array_parse(
+            seg_a, 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_seq_a, error_prefix) != -1) &&
+       (mathutils_array_parse(
+            seg_b, 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_seg_b, error_prefix) != -1)) == 0)
+  {
+    return nullptr;
+  }
+
+  /* Do the calculation. */
+  closest_to_line_segment_v3(pt_out, pt, seg_a, seg_b);
+  const float lambda = len_v3v3(pt_out, pt);
+
+  PyObject *ret = PyTuple_New(2);
   PyTuple_SET_ITEMS(
       ret, Vector_CreatePyObject(pt_out, pt_num, nullptr), PyFloat_FromDouble(lambda));
   return ret;
@@ -1173,7 +1229,7 @@ PyDoc_STRVAR(
 static PyObject *M_Geometry_points_in_planes(PyObject * /*self*/, PyObject *args)
 {
   PyObject *py_planes;
-  float(*planes)[4];
+  float (*planes)[4];
   float eps_coplanar = 1e-4f;
   float eps_isect = 1e-6f;
   uint planes_len;
@@ -1522,7 +1578,7 @@ PyDoc_STRVAR(
     "   :rtype: float\n");
 static PyObject *M_Geometry_box_fit_2d(PyObject * /*self*/, PyObject *pointlist)
 {
-  float(*points)[2];
+  float (*points)[2];
   Py_ssize_t len;
 
   float angle = 0.0f;
@@ -1555,7 +1611,7 @@ PyDoc_STRVAR(
     "   :rtype: list[int]\n");
 static PyObject *M_Geometry_convex_hull_2d(PyObject * /*self*/, PyObject *pointlist)
 {
-  float(*points)[2];
+  float (*points)[2];
   Py_ssize_t len;
 
   PyObject *ret;
@@ -1663,8 +1719,8 @@ static PyObject *M_Geometry_delaunay_2d_cdt(PyObject * /*self*/, PyObject *args)
   int output_type;
   float epsilon;
   bool need_ids = true;
-  float(*in_coords)[2] = nullptr;
-  int(*in_edges)[2] = nullptr;
+  float (*in_coords)[2] = nullptr;
+  int (*in_edges)[2] = nullptr;
   Py_ssize_t vert_coords_len, edges_len;
   PyObject *out_vert_coords = nullptr;
   PyObject *out_edges = nullptr;
@@ -1774,8 +1830,12 @@ static PyMethodDef M_Geometry_methods[] = {
      M_Geometry_intersect_ray_tri_doc},
     {"intersect_point_line",
      (PyCFunction)M_Geometry_intersect_point_line,
-     METH_VARARGS,
+     METH_FASTCALL,
      M_Geometry_intersect_point_line_doc},
+    {"intersect_point_line_segment",
+     (PyCFunction)M_Geometry_intersect_point_line_segment,
+     METH_FASTCALL,
+     M_Geometry_intersect_point_line_segment_doc},
     {"intersect_point_tri",
      (PyCFunction)M_Geometry_intersect_point_tri,
      METH_VARARGS,

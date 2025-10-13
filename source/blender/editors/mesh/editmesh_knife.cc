@@ -4096,6 +4096,8 @@ static void knifetool_finish_single_post(KnifeTool_OpData * /*kcd*/, Object *ob)
 {
   BMEditMesh *em = BKE_editmesh_from_object(ob);
   EDBM_selectmode_flush(em);
+  EDBM_uvselect_clear(em);
+
   EDBMUpdate_Params params{};
   params.calc_looptris = true;
   params.calc_normals = true;
@@ -4715,7 +4717,7 @@ static bool edbm_mesh_knife_point_isect(LinkNode *polys, const float cent_ss[2])
   int isect = 0;
 
   while (p) {
-    const float(*mval_fl)[2] = static_cast<const float(*)[2]>(p->link);
+    const float (*mval_fl)[2] = static_cast<const float (*)[2]>(p->link);
     const int mval_tot = MEM_allocN_len(mval_fl) / sizeof(*mval_fl);
     isect += int(isect_point_poly_v2(cent_ss, mval_fl, mval_tot - 1));
     p = p->next;
@@ -4765,7 +4767,7 @@ void EDBM_mesh_knife(
     knife_recalc_ortho(kcd);
 
     while (p) {
-      const float(*mval_fl)[2] = static_cast<const float(*)[2]>(p->link);
+      const float (*mval_fl)[2] = static_cast<const float (*)[2]>(p->link);
       const int mval_tot = MEM_allocN_len(mval_fl) / sizeof(*mval_fl);
       int i;
 

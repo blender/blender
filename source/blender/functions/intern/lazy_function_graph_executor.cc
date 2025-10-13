@@ -435,7 +435,7 @@ class Executor {
         reinterpret_cast<NodeState **>(buffer + self_.init_buffer_info_.node_states_array_offset),
         nodes.size()};
 
-    threading::parallel_for(nodes.index_range(), 256, [&](const IndexRange range) {
+    threading::parallel_for(nodes.index_range(), 1024, [&](const IndexRange range) {
       for (const int i : range) {
         const Node &node = *nodes[i];
         char *memory = buffer + self_.init_buffer_info_.node_states_offsets[i];

@@ -523,12 +523,12 @@ void WM_gizmo_calc_matrix_final_params(const wmGizmo *gz,
                                        const WM_GizmoMatrixParams *params,
                                        float r_mat[4][4])
 {
-  const float(*const matrix_space)[4] = params->matrix_space ? params->matrix_space :
-                                                               gz->matrix_space;
-  const float(*const matrix_basis)[4] = params->matrix_basis ? params->matrix_basis :
-                                                               gz->matrix_basis;
-  const float(*const matrix_offset)[4] = params->matrix_offset ? params->matrix_offset :
-                                                                 gz->matrix_offset;
+  const float (*const matrix_space)[4] = params->matrix_space ? params->matrix_space :
+                                                                gz->matrix_space;
+  const float (*const matrix_basis)[4] = params->matrix_basis ? params->matrix_basis :
+                                                                gz->matrix_basis;
+  const float (*const matrix_offset)[4] = params->matrix_offset ? params->matrix_offset :
+                                                                  gz->matrix_offset;
   const float *scale_final = params->scale_final ? params->scale_final : &gz->scale_final;
 
   float final_matrix[4][4];

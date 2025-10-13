@@ -648,7 +648,7 @@ bool *BKE_object_defgroup_selected_get(Object *ob, int defbase_tot, int *r_dg_fl
          defgroup = defgroup->next, i++)
     {
       bPoseChannel *pchan = BKE_pose_channel_find_name(pose, defgroup->name);
-      if (pchan && (pchan->bone->flag & BONE_SELECTED)) {
+      if (pchan && (pchan->flag & POSE_SELECTED)) {
         dg_selection[i] = true;
         (*r_dg_flags_sel_tot) += 1;
       }

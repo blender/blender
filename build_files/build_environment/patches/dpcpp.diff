@@ -1,8 +1,8 @@
 diff --git a/libdevice/cmake/modules/SYCLLibdevice.cmake b/libdevice/cmake/modules/SYCLLibdevice.cmake
-index 9fa7e0b35..7e887e4bb 100644
+index 24401ce90..7b3831869 100644
 --- a/libdevice/cmake/modules/SYCLLibdevice.cmake
 +++ b/libdevice/cmake/modules/SYCLLibdevice.cmake
-@@ -68,7 +68,7 @@ if (WIN32)
+@@ -63,7 +63,7 @@ if (WIN32)
    list(APPEND compile_opts -D_ALLOW_ITERATOR_DEBUG_LEVEL_MISMATCH)
  endif()
 
@@ -12,7 +12,7 @@ index 9fa7e0b35..7e887e4bb 100644
  set(filetypes obj obj-new-offload spv bc)
 
 diff --git a/llvm/cmake/modules/HandleLLVMOptions.cmake b/llvm/cmake/modules/HandleLLVMOptions.cmake
-index 4d0790361..20291239e 100644
+index c7935f5c9..f7a8661d2 100644
 --- a/llvm/cmake/modules/HandleLLVMOptions.cmake
 +++ b/llvm/cmake/modules/HandleLLVMOptions.cmake
 @@ -591,6 +591,9 @@ if( MSVC )
@@ -46,143 +46,13 @@ index 808fc98c6..75becea99 100644
  FetchContent_MakeAvailable(ocl-icd)
  add_library(OpenCL-ICD ALIAS OpenCL)
 +set(FETCHCONTENT_FULLY_DISCONNECTED ON)
- 
+
  add_subdirectory(opencl-aot)
-diff --git a/sycl/CMakeLists.txt b/sycl/CMakeLists.txt
-index a29bfc631..e9d306208 100644
---- a/sycl/CMakeLists.txt
-+++ b/sycl/CMakeLists.txt
-@@ -215,7 +215,6 @@ install(FILES
-   COMPONENT sycl-headers)
- 
- include(AddBoostMp11Headers)
--include(FetchBoostUnorderedHeaders)
- 
- # This is workaround to detect changes (add or modify) in subtree which
- # are not detected by copy_directory command.
-diff --git a/sycl/cmake/modules/FetchBoostUnorderedHeaders.cmake b/sycl/cmake/modules/FetchBoostUnorderedHeaders.cmake
-index 5cabc6ccc..e69de29bb 100644
---- a/sycl/cmake/modules/FetchBoostUnorderedHeaders.cmake
-+++ b/sycl/cmake/modules/FetchBoostUnorderedHeaders.cmake
-@@ -1,101 +0,0 @@
--# Fetches the unordered boost module and its dependencies
--function(add_boost_module_headers)
--  cmake_parse_arguments(
--    BOOST_MODULE               # prefix
--    ""                         # options
--    "NAME;SRC_DIR;GIT_TAG;"    # one value keywords
--    ""                         # multi-value keywords
--    ${ARGN})                   # arguments
--
--  if (NOT DEFINED BOOST_MODULE_SRC_DIR)
--    set(BOOST_MODULE_GIT_REPO "https://github.com/boostorg/${BOOST_MODULE_NAME}.git")
--    message(STATUS "Source dir not set for boost module ${BOOST_MODULE_NAME}, downloading headers from ${BOOST_MODULE_GIT_REPO}")
--
--    set(BOOST_MODULE_FULL_NAME "boost_${BOOST_MODULE_NAME}")
--    FetchContent_Declare(${BOOST_MODULE_FULL_NAME}
--      GIT_REPOSITORY ${BOOST_MODULE_GIT_REPO}
--      GIT_TAG ${BOOST_MODULE_GIT_TAG}
--    )
--    FetchContent_GetProperties(${BOOST_MODULE_FULL_NAME})
--    FetchContent_MakeAvailable(${BOOST_MODULE_FULL_NAME})
--
--    set(BOOST_MODULE_SRC_DIR ${${BOOST_MODULE_FULL_NAME}_SOURCE_DIR})
--  else (NOT DEFINED BOOST_MODULE_SRC_DIR)
--    message(STATUS "Using boost/${BOOST_MODULE_NAME} headers from ${BOOST_MODULE_SRC_DIR}")
--  endif(NOT DEFINED BOOST_MODULE_SRC_DIR)
--
--  set(BOOST_UNORDERED_INCLUDE_DIRS ${BOOST_UNORDERED_INCLUDE_DIRS} "${BOOST_MODULE_SRC_DIR}/include" PARENT_SCOPE)
--endfunction(add_boost_module_headers)
--
--set(BOOST_UNORDERED_GIT_TAG 5e6b9291deb55567d41416af1e77c2516dc1250f)
--# Merge: 15cfef69 ccf9a76e
--# Author: joaquintides <joaquin.lopezmunoz@gmail.com>
--# Date:   Sat Mar 16 09:18:41 2024 +0100
--#
--#     Merge pull request #238 from boostorg/fix/gh-237
--add_boost_module_headers(NAME "unordered" SRC_DIR ${BOOST_UNORDERED_SOURCE_DIR} GIT_TAG ${BOOST_UNORDERED_GIT_TAG})
--
--set(BOOST_ASSERT_GIT_TAG 447e0b3a331930f8708ade0e42683d12de9dfbc3)
--# Author: Peter Dimov <pdimov@gmail.com>
--# Date:   Sat Feb 3 20:43:55 2024 +0200
--#
--#     Use __builtin_FUNCSIG() under MSVC 19.35+. Fixes #35.
--add_boost_module_headers(NAME "assert" SRC_DIR ${BOOST_ASSERT_SOURCE_DIR} GIT_TAG ${BOOST_ASSERT_GIT_TAG})
--
--set(BOOST_CONFIG_GIT_TAG 11385ec21012926e15a612e3bf9f9a71403c1e5b)
--# Merge: eef05e98 601598f8
--# Author: jzmaddock <john@johnmaddock.co.uk>
--# Date:   Sun Feb 4 09:46:22 2024 +0000
--#
--#     Merge branch 'develop'
--add_boost_module_headers(NAME "config" SRC_DIR ${BOOST_CONFIG_SOURCE_DIR} GIT_TAG ${BOOST_CONFIG_GIT_TAG})
--
--set(BOOST_CONTAINER_HASH_GIT_TAG 6d214eb776456bf17fbee20780a034a23438084f)
--# Author: Peter Dimov <pdimov@gmail.com>
--# Date:   Wed Mar 6 05:13:53 2024 +0200
--#
--#     Update .appveyor.yml
--add_boost_module_headers(NAME "container_hash" SRC_DIR ${BOOST_CONTAINER_HASH_SOURCE_DIR} GIT_TAG ${BOOST_CONTAINER_HASH_GIT_TAG})
--
--set(BOOST_CORE_GIT_TAG 083b41c17e34f1fc9b43ab796b40d0d8bece685c)
--# Merge: 8cc2fda a973490
--# Author: Andrey Semashev <Lastique@users.noreply.github.com>
--# Date:   Tue Mar 19 18:10:04 2024 +0300
--#
--#     Merge pull request #169 from k3DW/feature/168
--add_boost_module_headers(NAME "core" SRC_DIR ${BOOST_CORE_SOURCE_DIR} GIT_TAG ${BOOST_CORE_GIT_TAG})
--
--# Describe is a dependency of container_hash
--set(BOOST_DESCRIBE_GIT_TAG 50719b212349f3d1268285c586331584d3dbfeb5)
--# Author: Peter Dimov <pdimov@gmail.com>
--# Date:   Sat Mar 23 20:27:08 2024 +0200
--#
--#     Update .drone.jsonnet
--add_boost_module_headers(NAME "describe" SRC_DIR ${BOOST_DESCRIBE_SOURCE_DIR} GIT_TAG ${BOOST_DESCRIBE_GIT_TAG})
--
--# Reuse mp11 fetched earlier for DPC++ headers
--set(BOOST_UNORDERED_INCLUDE_DIRS ${BOOST_UNORDERED_INCLUDE_DIRS} "${BOOST_MP11_SOURCE_DIR}/include/")
--
--set(BOOST_PREDEF_GIT_TAG 0fdfb49c3a6789e50169a44e88a07cc889001106)
--# Merge: 392e4e7 614546d
--# Author: Rene Rivera <grafikrobot@gmail.com>
--# Date:   Tue Oct 31 20:24:41 2023 -0500
--#
--#     Merge branch 'develop'
--add_boost_module_headers(NAME "predef" SRC_DIR ${BOOST_PREDEF_SOURCE_DIR} GIT_TAG ${BOOST_PREDEF_GIT_TAG})
--
--# Static assert is a dependency of core
--set(BOOST_STATIC_ASSERT_GIT_TAG ba72d3340f3dc6e773868107f35902292f84b07e)
--# Merge: 392e4e7 614546d
--# Author: Rene Rivera <grafikrobot@gmail.com>
--# Date:   Tue Oct 31 20:24:41 2023 -0500
--#
--#     Merge branch 'develop'
--add_boost_module_headers(NAME "static_assert" SRC_DIR ${BOOST_STATIC_ASSERT_SOURCE_DIR} GIT_TAG ${BOOST_STATIC_ASSERT_GIT_TAG})
--
--set(BOOST_THROW_EXCEPTION_GIT_TAG 7c8ec2114bc1f9ab2a8afbd629b96fbdd5901294)
--# Author: Peter Dimov <pdimov@gmail.com>
--# Date:   Sat Jan 6 19:41:56 2024 +0200
--#
--#     Add -Wundef to test/Jamfile
--add_boost_module_headers(NAME "throw_exception" SRC_DIR ${BOOST_THROW_EXCEPTION_SOURCE_DIR} GIT_TAG ${BOOST_THROW_EXCEPTION_GIT_TAG})
 diff --git a/sycl/cmake/modules/FetchUnifiedRuntime.cmake b/sycl/cmake/modules/FetchUnifiedRuntime.cmake
-index e9d52c5b2..8b439ba00 100644
+index 04602f22e..7bd7259d1 100644
 --- a/sycl/cmake/modules/FetchUnifiedRuntime.cmake
 +++ b/sycl/cmake/modules/FetchUnifiedRuntime.cmake
-@@ -31,7 +31,10 @@ set(UR_BUILD_EXAMPLES OFF CACHE BOOL "Build example applications." FORCE)
- set(UR_BUILD_TESTS OFF CACHE BOOL "Build unit tests." FORCE)
- set(UR_BUILD_XPTI_LIBS OFF)
- set(UR_ENABLE_SYMBOLIZER ON CACHE BOOL "Enable symbolizer for sanitizer layer.")
--set(UR_ENABLE_TRACING ON)
-+# Blender: By default this option is override to ON
-+# but we don't need this option, because we build DPC++ without xpti
-+# so it is now would be overriding to OFF
-+set(UR_ENABLE_TRACING OFF)
-
- if("level_zero" IN_LIST SYCL_ENABLE_BACKENDS)
-   set(UR_BUILD_ADAPTER_L0 ON)
-@@ -124,11 +127,11 @@ if(SYCL_UR_USE_FETCH_CONTENT)
+@@ -89,10 +89,9 @@ if(IS_DIRECTORY "${UR_INTREE_SOURCE_DIR}")
    # to link statically on windows
    if(WIN32)
      set(UMF_BUILD_SHARED_LIBRARY OFF CACHE INTERNAL "Build UMF shared library")
@@ -190,15 +60,37 @@ index e9d52c5b2..8b439ba00 100644
 -  else()
 -    set(UMF_DISABLE_HWLOC ${SYCL_UMF_DISABLE_HWLOC} CACHE INTERNAL "Disable hwloc for UMF")
    endif()
- 
 +  set(UMF_LINK_HWLOC_STATICALLY OFF CACHE INTERNAL "static HWLOC")
 +  set(UMF_DISABLE_HWLOC ${SYCL_UMF_DISABLE_HWLOC} CACHE INTERNAL "Disable hwloc for UMF")
-+
+   add_subdirectory(${UNIFIED_RUNTIME_SOURCE_DIR} ${UR_INTREE_BINARY_DIR})
+ elseif(SYCL_UR_USE_FETCH_CONTENT)
+   include(FetchContent)
+@@ -148,10 +147,9 @@ elseif(SYCL_UR_USE_FETCH_CONTENT)
+   # to link statically on windows
+   if(WIN32)
+     set(UMF_BUILD_SHARED_LIBRARY OFF CACHE INTERNAL "Build UMF shared library")
+-    set(UMF_LINK_HWLOC_STATICALLY ON CACHE INTERNAL "static HWLOC")
+-  else()
+-    set(UMF_DISABLE_HWLOC ${SYCL_UMF_DISABLE_HWLOC} CACHE INTERNAL "Disable hwloc for UMF")
+   endif()
++  set(UMF_LINK_HWLOC_STATICALLY OFF CACHE INTERNAL "static HWLOC")
++  set(UMF_DISABLE_HWLOC ${SYCL_UMF_DISABLE_HWLOC} CACHE INTERNAL "Disable hwloc for UMF")
+
    fetch_adapter_source(level_zero
      ${UNIFIED_RUNTIME_REPO}
-     ${UNIFIED_RUNTIME_TAG}
+@@ -363,6 +361,10 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
+       -DUMF_LINK_HWLOC_STATICALLY:BOOL=${UMF_LINK_HWLOC_STATICALLY}
+       -DUMF_DISABLE_HWLOC:BOOL=${UMF_DISABLE_HWLOC}
+       -DSYCL_EMHASH_DIR:STRING=${SYCL_EMHASH_DIR}
++      -DXPTIFW_PARALLEL_HASHMAP_HEADERS:STRING=${XPTIFW_PARALLEL_HASHMAP_HEADERS}
++      -DPython3_ROOT_DIR:STRING=${Python3_ROOT_DIR}
++      -DPython3_EXECUTABLE:STRING=${Python3_EXECUTABLE}
++      -DPYTHON_EXECUTABLE:STRING=${PYTHON_EXECUTABLE}
+       # Enable d suffix in UMF
+       -DUMF_USE_DEBUG_POSTFIX:BOOL=ON
+   )
 diff --git a/sycl/source/detail/graph_impl.hpp b/sycl/source/detail/graph_impl.hpp
-index 2d714bcc9..907151dc5 100644
+index 6045cc9ed..6ae24aade 100644
 --- a/sycl/source/detail/graph_impl.hpp
 +++ b/sycl/source/detail/graph_impl.hpp
 @@ -29,6 +29,7 @@
@@ -210,87 +102,77 @@ index 2d714bcc9..907151dc5 100644
  namespace sycl {
  inline namespace _V1 {
 diff --git a/sycl/source/detail/kernel_bundle_impl.hpp b/sycl/source/detail/kernel_bundle_impl.hpp
-index e538318f8..43599b552 100644
+index eefea331d..9f08546be 100644
 --- a/sycl/source/detail/kernel_bundle_impl.hpp
 +++ b/sycl/source/detail/kernel_bundle_impl.hpp
-@@ -25,6 +25,7 @@
+@@ -23,6 +23,7 @@
  #include <cstdint>
  #include <cstring>
  #include <memory>
 +#include <sstream>
+ #include <unordered_set>
  #include <vector>
- 
- #include "split_string.hpp"
-diff --git a/sycl/source/detail/kernel_program_cache.hpp b/sycl/source/detail/kernel_program_cache.hpp
-index 968cb9b24..ee13dc8c6 100644
---- a/sycl/source/detail/kernel_program_cache.hpp
-+++ b/sycl/source/detail/kernel_program_cache.hpp
-@@ -20,6 +20,7 @@
- 
- #include <atomic>
- #include <condition_variable>
-+#include <map>
- #include <iomanip>
- #include <list>
- #include <mutex>
-@@ -27,9 +28,7 @@
- #include <set>
- #include <thread>
- #include <type_traits>
--
--#include <boost/unordered/unordered_flat_map.hpp>
--#include <boost/unordered_map.hpp>
-+#include <sstream>
 
- // For testing purposes
- class MockKernelProgramCache;
-@@ -177,8 +176,8 @@ public:
-   };
- 
-   struct ProgramCache {
--    ::boost::unordered_map<ProgramCacheKeyT, ProgramBuildResultPtr> Cache;
--    ::boost::unordered_multimap<CommonProgramKeyT, ProgramCacheKeyT> KeyMap;
-+    std::map<ProgramCacheKeyT, ProgramBuildResultPtr> Cache;
-+    std::multimap<CommonProgramKeyT, ProgramCacheKeyT> KeyMap;
-     // Mapping between a UR program and its size.
-     std::unordered_map<ur_program_handle_t, size_t> ProgramSizeMap;
- 
-@@ -214,10 +213,8 @@ public:
-   };
-   using KernelBuildResultPtr = std::shared_ptr<KernelBuildResult>;
- 
--  using KernelByNameT =
--      ::boost::unordered_map<std::string, KernelBuildResultPtr>;
--  using KernelCacheT =
--      ::boost::unordered_map<ur_program_handle_t, KernelByNameT>;
-+  using KernelByNameT = std::map<std::string, KernelBuildResultPtr>;
-+  using KernelCacheT = std::map<ur_program_handle_t, KernelByNameT>;
- 
-   using KernelFastCacheKeyT =
-       std::tuple<SerializedObj,      /* Serialized spec constants. */
-@@ -233,13 +230,7 @@ public:
-                                      kernel. */
-                  >;
+diff --git a/sycl/source/detail/unordered_multimap.hpp b/sycl/source/detail/unordered_multimap.hpp
+index 4d495ed06..e96d71870 100644
+--- a/sycl/source/detail/unordered_multimap.hpp
++++ b/sycl/source/detail/unordered_multimap.hpp
+@@ -7,7 +7,7 @@
+ //===--------------------------------------------------------------===//
+ #pragma once
+ #include <detail/hashers.hpp>
+-#include <emhash/hash_table8.hpp>
++#include <hash_table8.hpp>
 
--  // This container is used as a fast path for retrieving cached kernels.
--  // unordered_flat_map is used here to reduce lookup overhead.
--  // The slow path is used only once for each newly created kernel, so the
--  // higher overhead of insertion that comes with unordered_flat_map is more
--  // of an issue there. For that reason, those use regular unordered maps.
--  using KernelFastCacheT =
--      ::boost::unordered_flat_map<KernelFastCacheKeyT, KernelFastCacheValT>;
-+  using KernelFastCacheT = std::map<KernelFastCacheKeyT, KernelFastCacheValT>;
- 
-   // DS to hold data and functions related to Program cache eviction.
-   struct EvictionList {
+ #include <utility>
+ #include <vector>
 diff --git a/sycl/unittests/CMakeLists.txt b/sycl/unittests/CMakeLists.txt
-index 883142678..dedd9f83f 100644
+index b2b6761b9..f9db10a86 100644
 --- a/sycl/unittests/CMakeLists.txt
 +++ b/sycl/unittests/CMakeLists.txt
 @@ -1,6 +1,5 @@
  add_custom_target(SYCLUnitTests)
  set_target_properties(SYCLUnitTests PROPERTIES FOLDER "SYCL tests")
 -include_directories(${BOOST_UNORDERED_INCLUDE_DIRS})
- 
+
  foreach(flag_var
      CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+diff --git a/xptifw/include/xpti_string_table.hpp b/xptifw/include/xpti_string_table.hpp
+index c8678bdff..bd91468c9 100644
+--- a/xptifw/include/xpti_string_table.hpp
++++ b/xptifw/include/xpti_string_table.hpp
+@@ -6,7 +6,7 @@
+ #pragma once
+
+ #include "xpti/xpti_data_types.h"
+-#include <emhash/hash_table7.hpp>
++#include <hash_table7.hpp>
+
+ #include <atomic>
+ #include <shared_mutex>
+diff --git a/xptifw/src/CMakeLists.txt b/xptifw/src/CMakeLists.txt
+index de2274129..adeca1d1d 100644
+--- a/xptifw/src/CMakeLists.txt
++++ b/xptifw/src/CMakeLists.txt
+@@ -18,8 +18,6 @@ FetchContent_Declare(parallel-hashmap
+ FetchContent_GetProperties(parallel-hashmap)
+ FetchContent_MakeAvailable(parallel-hashmap)
+
+-set(XPTIFW_PARALLEL_HASHMAP_HEADERS "${parallel-hashmap_SOURCE_DIR}")
+-
+ file(GLOB SOURCES *.cpp)
+
+ function(add_xpti_library LIB_NAME)
+diff --git a/xptifw/src/xpti_trace_framework.cpp b/xptifw/src/xpti_trace_framework.cpp
+index 223fe20aa..d9c8d8e46 100644
+--- a/xptifw/src/xpti_trace_framework.cpp
++++ b/xptifw/src/xpti_trace_framework.cpp
+@@ -19,7 +19,7 @@
+ #include "xpti_int64_hash_table.hpp"
+ #include "xpti_object_table.hpp"
+ #include "xpti_string_table.hpp"
+-#include <emhash/hash_table7.hpp>
++#include <hash_table7.hpp>
+
+ #include <algorithm>
+ #include <array>

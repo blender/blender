@@ -238,7 +238,7 @@ int ED_mesh_uv_add(
     }
 
     BM_data_layer_add_named(em->bm, &em->bm->ldata, CD_PROP_FLOAT2, unique_name.c_str());
-    BM_uv_map_attr_select_and_pin_ensure(em->bm);
+    BM_uv_map_attr_pin_ensure_for_all_layers(em->bm);
     /* copy data from active UV */
     if (layernum_dst && do_init) {
       const int layernum_src = CustomData_get_active_layer(&em->bm->ldata, CD_PROP_FLOAT2);
@@ -295,24 +295,6 @@ static blender::VArray<bool> get_corner_boolean_attribute(const Mesh &mesh, cons
   return *attributes.lookup_or_default<bool>(name, blender::bke::AttrDomain::Corner, false);
 }
 
-blender::VArray<bool> ED_mesh_uv_map_vert_select_layer_get(const Mesh *mesh, const int uv_index)
-{
-  using namespace blender::bke;
-  char buffer[MAX_CUSTOMDATA_LAYER_NAME];
-  const char *uv_name = CustomData_get_layer_name(&mesh->corner_data, CD_PROP_FLOAT2, uv_index);
-  return get_corner_boolean_attribute(*mesh, BKE_uv_map_vert_select_name_get(uv_name, buffer));
-}
-blender::VArray<bool> ED_mesh_uv_map_edge_select_layer_get(const Mesh *mesh, const int uv_index)
-{
-  /* UV map edge selections are stored on face corners (loops) and not on edges
-   * because we need selections per face edge, even when the edge is split in UV space. */
-
-  using namespace blender::bke;
-  char buffer[MAX_CUSTOMDATA_LAYER_NAME];
-  const char *uv_name = CustomData_get_layer_name(&mesh->corner_data, CD_PROP_FLOAT2, uv_index);
-  return get_corner_boolean_attribute(*mesh, BKE_uv_map_edge_select_name_get(uv_name, buffer));
-}
-
 blender::VArray<bool> ED_mesh_uv_map_pin_layer_get(const Mesh *mesh, const int uv_index)
 {
   using namespace blender::bke;
@@ -329,22 +311,6 @@ static blender::bke::AttributeWriter<bool> ensure_corner_boolean_attribute(Mesh 
       name, blender::bke::AttrDomain::Corner, blender::bke::AttributeInitDefaultValue());
 }
 
-blender::bke::AttributeWriter<bool> ED_mesh_uv_map_vert_select_layer_ensure(Mesh *mesh,
-                                                                            const int uv_index)
-{
-  using namespace blender::bke;
-  char buffer[MAX_CUSTOMDATA_LAYER_NAME];
-  const char *uv_name = CustomData_get_layer_name(&mesh->corner_data, CD_PROP_FLOAT2, uv_index);
-  return ensure_corner_boolean_attribute(*mesh, BKE_uv_map_vert_select_name_get(uv_name, buffer));
-}
-blender::bke::AttributeWriter<bool> ED_mesh_uv_map_edge_select_layer_ensure(Mesh *mesh,
-                                                                            const int uv_index)
-{
-  using namespace blender::bke;
-  char buffer[MAX_CUSTOMDATA_LAYER_NAME];
-  const char *uv_name = CustomData_get_layer_name(&mesh->corner_data, CD_PROP_FLOAT2, uv_index);
-  return ensure_corner_boolean_attribute(*mesh, BKE_uv_map_edge_select_name_get(uv_name, buffer));
-}
 blender::bke::AttributeWriter<bool> ED_mesh_uv_map_pin_layer_ensure(Mesh *mesh, const int uv_index)
 {
   using namespace blender::bke;

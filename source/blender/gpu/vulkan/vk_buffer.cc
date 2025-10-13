@@ -81,7 +81,7 @@ bool VKBuffer::create(size_t size_in_bytes,
   vma_create_info.priority = priority;
   vma_create_info.requiredFlags = required_flags;
   vma_create_info.preferredFlags = preferred_flags;
-  vma_create_info.usage = VMA_MEMORY_USAGE_AUTO;
+  vma_create_info.usage = VMA_MEMORY_USAGE_UNKNOWN;
 
   if (export_memory) {
     create_info.pNext = &external_memory_create_info;

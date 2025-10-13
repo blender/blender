@@ -68,7 +68,7 @@ class GroupOutputOperation : public NodeOperation {
     float4 color = image.get_single_value<float4>();
 
     const Domain domain = this->compute_domain();
-    Result output = this->context().get_output();
+    Result output = this->context().get_output(domain);
     if (this->context().use_gpu()) {
       GPU_texture_clear(output, GPU_DATA_FLOAT, color);
     }
@@ -90,7 +90,7 @@ class GroupOutputOperation : public NodeOperation {
   void execute_copy_gpu(const Result &image)
   {
     const Domain domain = this->compute_domain();
-    Result output = this->context().get_output();
+    Result output = this->context().get_output(domain);
 
     gpu::Shader *shader = this->context().get_shader("compositor_write_output",
                                                      output.precision());
@@ -114,9 +114,11 @@ class GroupOutputOperation : public NodeOperation {
   void execute_copy_cpu(const Result &image)
   {
     const Domain domain = this->compute_domain();
-    Result output = this->context().get_output();
+    Result output = this->context().get_output(domain);
 
-    const Bounds<int2> bounds = this->context().get_compositing_region();
+    const Bounds<int2> bounds = this->context().use_context_bounds_for_input_output() ?
+                                    this->context().get_compositing_region() :
+                                    Bounds<int2>(int2(0, 0), domain.size);
     parallel_for(domain.size, [&](const int2 texel) {
       const int2 output_texel = texel + bounds.min;
       if (output_texel.x > bounds.max.x || output_texel.y > bounds.max.y) {
@@ -130,7 +132,10 @@ class GroupOutputOperation : public NodeOperation {
    * applied. */
   Domain compute_domain() override
   {
-    return Domain(this->context().get_compositing_region_size());
+    if (this->context().use_context_bounds_for_input_output()) {
+      return Domain(this->context().get_compositing_region_size());
+    }
+    return NodeOperation::compute_domain();
   }
 };
 

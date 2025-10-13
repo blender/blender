@@ -35,7 +35,7 @@ NODE_SHADER_MATERIALX_BEGIN
 {
   /* NOTE: Some outputs isn't supported by MaterialX. */
   NodeItem res = empty();
-  std::string name = socket_out_->name;
+  std::string name = socket_out_->identifier;
 
   if (name == "Location") {
     res = create_node("position", NodeItem::Type::Vector3, {{"space", val(std::string("world"))}});

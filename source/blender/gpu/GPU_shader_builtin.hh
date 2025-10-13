@@ -91,6 +91,9 @@ enum GPUBuiltinShader {
   /** Draw sequencer zebra pattern (overexposed regions). */
   GPU_SHADER_SEQUENCER_ZEBRA,
 
+  /** Draw xr raycast as a ruled spline surface. */
+  GPU_SHADER_XR_RAYCAST,
+
   /** Compute shaders to generate 2d index buffers (mainly for curve drawing). */
   GPU_SHADER_INDEXBUF_POINTS,
   GPU_SHADER_INDEXBUF_LINES,

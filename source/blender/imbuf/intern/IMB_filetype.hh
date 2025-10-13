@@ -58,11 +58,11 @@ struct ImFileType {
   int default_save_role;
 };
 
-/* Color space information provided by the file. */
+/** Color space information provided by the file. */
 struct ImFileColorSpace {
-  /* Color space from metadata. */
+  /** Color space from metadata. */
   char metadata_colorspace[IM_MAX_SPACE] = "";
-  /* Is image HDR with range potentially outside 0..1? */
+  /** Is image HDR with range potentially outside 0..1? */
   bool is_hdr_float = false;
 };
 

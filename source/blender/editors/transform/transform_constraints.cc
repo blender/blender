@@ -482,7 +482,7 @@ static void applyObjectConstraintVec(const TransInfo *t,
     copy_v3_v3(out, in);
     if (t->con.mode & CON_APPLY) {
       mul_m3_v3(t->spacemtx_inv, out);
-      const float(*axismtx)[3] = transform_object_axismtx_get(t, tc, td);
+      const float (*axismtx)[3] = transform_object_axismtx_get(t, tc, td);
       mul_m3_v3(axismtx, out);
       if (t->flag & T_EDIT) {
         mul_m3_v3(tc->mat3_unit, out);
@@ -529,7 +529,7 @@ static void applyObjectConstraintSize(const TransInfo *t,
     float tmat[3][3];
     float imat[3][3];
 
-    const float(*axismtx)[3] = transform_object_axismtx_get(t, tc, td);
+    const float (*axismtx)[3] = transform_object_axismtx_get(t, tc, td);
     invert_m3_m3(imat, axismtx);
 
     if (!(t->con.mode & CON_AXIS0)) {
@@ -606,7 +606,7 @@ static void applyObjectConstraintRot(const TransInfo *t,
 {
   if (t->con.mode & CON_APPLY) {
     float tmp_axismtx[3][3];
-    const float(*axismtx)[3];
+    const float (*axismtx)[3];
 
     /* On setup call, use first object. */
     if (td == nullptr) {
@@ -960,7 +960,7 @@ static void drawObjectConstraint(TransInfo *t)
     TransData *td = tc->data;
     for (int i = 0; i < tc->data_len; i++, td++) {
       float co[3];
-      const float(*axismtx)[3];
+      const float (*axismtx)[3];
 
       if (t->flag & T_PROP_EDIT) {
         /* We're sorted, so skip the rest. */

@@ -35,13 +35,13 @@ static const EnumPropertyItem limit_method_items[] = {
     {CMP_NODE_COLOR_SPILL_LIMIT_ALGORITHM_SINGLE,
      "SINGLE",
      0,
-     "Single",
-     "Limit by a single channel"},
+     N_("Single"),
+     N_("Limit by a single channel")},
     {CMP_NODE_COLOR_SPILL_LIMIT_ALGORITHM_AVERAGE,
      "AVERAGE",
      0,
-     "Average",
-     "Limit by the average of the other two channels"},
+     N_("Average"),
+     N_("Limit by the average of the other two channels")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -53,11 +53,16 @@ static void cmp_node_color_spill_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>("Image");
 
   b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_input<decl::Float>("Fac").default_value(1.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>("Factor", "Fac")
+      .default_value(1.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR);
   b.add_input<decl::Menu>("Spill Channel")
       .default_value(RGBChannel::G)
       .static_items(rgb_channel_items)
       .expanded()
+      .translation_context(BLT_I18NCONTEXT_COLOR)
       .optional_label();
   b.add_input<decl::Menu>("Limit Method")
       .default_value(CMP_NODE_COLOR_SPILL_LIMIT_ALGORITHM_SINGLE)
@@ -68,6 +73,7 @@ static void cmp_node_color_spill_declare(NodeDeclarationBuilder &b)
       .default_value(RGBChannel::R)
       .static_items(rgb_channel_items)
       .expanded()
+      .translation_context(BLT_I18NCONTEXT_COLOR)
       .optional_label()
       .usage_by_menu("Limit Method", CMP_NODE_COLOR_SPILL_LIMIT_ALGORITHM_SINGLE);
   b.add_input<decl::Float>("Limit Strength")

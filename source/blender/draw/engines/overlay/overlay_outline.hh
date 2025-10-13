@@ -210,8 +210,8 @@ class Outline : Overlay {
 
       for (FlatObjectRef flag_ob_ref : flat_objects_) {
         flag_ob_ref.if_flat_axis_orthogonal_to_view(
-            manager, view, [&](gpu::Batch *geom, ResourceHandleRange handle) {
-              pass.draw_expand(geom, GPU_PRIM_LINES, 1, 1, handle);
+            manager, view, [&](gpu::Batch *geom, ResourceIndex resource_index) {
+              pass.draw_expand(geom, GPU_PRIM_LINES, 1, 1, resource_index);
             });
       }
     }

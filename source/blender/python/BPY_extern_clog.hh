@@ -13,4 +13,3 @@
 /* bpy_interface.cc */
 
 extern struct CLG_LogRef *BPY_LOG_RNA;
-extern struct CLG_LogRef *BPY_LOG_CONTEXT;

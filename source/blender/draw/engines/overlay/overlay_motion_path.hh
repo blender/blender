@@ -114,7 +114,7 @@ class MotionPath : Overlay {
     const bool show_frame_number = (avs.path_viewflag & MOTIONPATH_VIEW_FNUMS);
     const bool show_lines = (mpath->flag & MOTIONPATH_FLAG_LINES);
     const bool custom_color = (mpath->flag & MOTIONPATH_FLAG_CUSTOM);
-    const bool selected = (pchan) ? (pchan->bone->flag & BONE_SELECTED) :
+    const bool selected = (pchan) ? (pchan->flag & POSE_SELECTED) :
                                     (ob->base_flag & BASE_SELECTED);
 
     const float3 color_pre = custom_color ? float3(mpath->color) : float3(-1.0f);

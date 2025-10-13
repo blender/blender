@@ -87,10 +87,10 @@ static void rna_PoseBone_bbone_segment_matrix(
   }
 
   if (rest) {
-    copy_m4_m4((float(*)[4])mat_ret, pchan->runtime.bbone_rest_mats[index].mat);
+    copy_m4_m4((float (*)[4])mat_ret, pchan->runtime.bbone_rest_mats[index].mat);
   }
   else {
-    copy_m4_m4((float(*)[4])mat_ret, pchan->runtime.bbone_pose_mats[index].mat);
+    copy_m4_m4((float (*)[4])mat_ret, pchan->runtime.bbone_pose_mats[index].mat);
   }
 }
 

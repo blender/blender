@@ -114,8 +114,8 @@ class Camera {
   bool camera_changed_ = false;
 
  public:
-  Camera(Instance &inst, CameraData &data) : inst_(inst), data_(data){};
-  ~Camera(){};
+  Camera(Instance &inst, CameraData &data) : inst_(inst), data_(data) {};
+  ~Camera() {};
 
   void init();
   void sync();

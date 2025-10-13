@@ -435,6 +435,7 @@ void blo_split_main(Main *bmain, const bool do_split_packed_ids)
   blender::Vector<Main *> lib_main_array;
 
   int i = 0;
+  int lib_index = 0;
   for (Library *lib = static_cast<Library *>(bmain->libraries.first); lib;
        lib = static_cast<Library *>(lib->id.next), i++)
   {
@@ -451,8 +452,9 @@ void blo_split_main(Main *bmain, const bool do_split_packed_ids)
     libmain->colorspace = lib->runtime->colorspace;
     bmain->split_mains->add_new(libmain);
     libmain->split_mains = bmain->split_mains;
-    lib->runtime->temp_index = i;
+    lib->runtime->temp_index = lib_index;
     lib_main_array.append(libmain);
+    lib_index++;
   }
 
   MainListsArray lbarray = BKE_main_lists_get(*bmain);
@@ -1823,7 +1825,7 @@ static const char *get_alloc_name(FileData *fd,
   keyT key{block_alloc_name + struct_name, bh->nr};
   if (!storage.contains(key)) {
     const std::string alloc_string = fmt::format(
-        fmt::runtime((is_id_data ? "{}{} (for ID type '{}')" : "{}{} (for block '{}')")),
+        fmt::runtime(is_id_data ? "{}{} (for ID type '{}')" : "{}{} (for block '{}')"),
         struct_name,
         bh->nr > 1 ? fmt::format("[{}]", bh->nr) : "",
         block_alloc_name);
@@ -2237,8 +2239,21 @@ static void direct_link_id_common(BlendDataReader *reader,
     id->session_uid = MAIN_ID_SESSION_UID_UNSET;
   }
 
-  if (ID_IS_PACKED(id)) {
-    BLI_assert(current_library->flag & LIBRARY_FLAG_IS_ARCHIVE);
+  if (id->flag & ID_FLAG_LINKED_AND_PACKED) {
+    if (!current_library) {
+      CLOG_ERROR(&LOG,
+                 "Data-block '%s' flagged as packed, but without a valid library, fixing by "
+                 "making fully local...",
+                 id->name);
+      id->flag &= ~ID_FLAG_LINKED_AND_PACKED;
+    }
+    else if ((current_library->flag & LIBRARY_FLAG_IS_ARCHIVE) == 0) {
+      CLOG_ERROR(&LOG,
+                 "Data-block '%s' flagged as packed, but using a regular library, fixing by "
+                 "making fully linked...",
+                 id->name);
+      id->flag &= ~ID_FLAG_LINKED_AND_PACKED;
+    }
   }
   id->lib = current_library;
   if (id->lib) {
@@ -2747,7 +2762,14 @@ static Main *blo_add_main_for_library(FileData *fd,
     if (is_packed_library) {
       BLI_assert(lib->flag & LIBRARY_FLAG_IS_ARCHIVE);
       BLI_assert(lib->archive_parent_library == reference_lib);
-      BLI_assert(reference_lib->runtime->archived_libraries.contains(lib));
+
+      /* If there is already an archive library in the new set of Mains, but not a 'libmain' for it
+       * yet, it is the first time that this archive library is effectively used to own a packed
+       * ID. Since regular libraries have their list of owned archive libs cleared when reused on
+       * undo, it means that this archive library should yet be listed in its regular owner one,
+       * and needs to be added there. See also #read_undo_move_libmain_data. */
+      BLI_assert(!reference_lib->runtime->archived_libraries.contains(lib));
+      reference_lib->runtime->archived_libraries.append(lib);
 
       BLI_assert(lib->runtime->filedata == nullptr);
       lib->runtime->filedata = fd;
@@ -2838,6 +2860,12 @@ static void read_undo_move_libmain_data(FileData *fd, Main *libmain, BHead *bhea
   BLI_remlink_safe(&old_main->libraries, curlib);
   new_main->split_mains->add_new(libmain);
   BLI_addtail(&new_main->libraries, curlib);
+
+  /* Remove all references to the archive libraries owned by this 'regular' library. The
+   * archive ones are only moved over into the new Main if some of their IDs are actually
+   * re-used. Otherwise they are deleted, so the 'regular' library cannot keep references to
+   * them at this point. See also #blo_add_main_for_library. */
+  curlib->runtime->archived_libraries = {};
 
   curlib->id.tag |= ID_TAG_UNDO_OLD_ID_REUSED_NOUNDO;
   BKE_main_idmap_insert_id(fd->new_idmap_uid, &curlib->id);
@@ -3511,6 +3539,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
   if (!main->is_read_invalid) {
     blo_do_versions_500(fd, lib, main);
   }
+  if (!main->is_read_invalid) {
+    blo_do_versions_510(fd, lib, main);
+  }
 
   /* WATCH IT!!!: pointers from libdata have not been converted yet here! */
   /* WATCH IT 2!: #UserDef struct init see #do_versions_userdef() above! */
@@ -3572,6 +3603,9 @@ static void do_versions_after_linking(FileData *fd, Main *main)
   }
   if (!main->is_read_invalid) {
     do_versions_after_linking_500(fd, main);
+  }
+  if (!main->is_read_invalid) {
+    do_versions_after_linking_510(fd, main);
   }
 
   main->is_locked_for_linking = false;
@@ -4738,7 +4772,7 @@ static void expand_doit_library(void *fdhandle,
       BLO_reportf_wrap(fd->reports,
                        RPT_ERROR,
                        RPT_("LIB: .blend file %s seems corrupted, no owner 'Library' data found "
-                            "for the linked data-block %s"),
+                            "for the linked data-block '%s'. Try saving the file again."),
                        mainvar->curlib->runtime->filepath_abs,
                        id_name ? id_name : "<InvalidIDName>");
       return;
@@ -4779,7 +4813,7 @@ static void expand_doit_library(void *fdhandle,
       BLO_reportf_wrap(fd->reports,
                        RPT_ERROR,
                        RPT_("LIB: .blend file %s seems corrupted, no owner 'Library' data found "
-                            "for the packed linked data-block %s"),
+                            "for the packed linked data-block %s. Try saving the file again."),
                        mainvar->curlib->runtime->filepath_abs,
                        id_name ? id_name : "<InvalidIDName>");
       return;

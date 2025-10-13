@@ -46,6 +46,9 @@ bool sh_node_poll_default(const blender::bke::bNodeType *ntype,
 void sh_node_type_base(blender::bke::bNodeType *ntype,
                        std::string idname,
                        std::optional<int16_t> legacy_type = std::nullopt);
+void sh_geo_node_type_base(blender::bke::bNodeType *ntype,
+                           std::string idname,
+                           std::optional<int16_t> legacy_type = std::nullopt);
 void common_node_type_base(blender::bke::bNodeType *ntype,
                            std::string idname,
                            std::optional<int16_t> legacy_type = std::nullopt);

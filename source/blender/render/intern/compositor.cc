@@ -170,7 +170,7 @@ class Context : public compositor::Context {
     return Bounds<int2>(int2(0), this->get_render_size());
   }
 
-  compositor::Result get_output() override
+  compositor::Result get_output(compositor::Domain /*domain*/) override
   {
     const int2 render_size = get_render_size();
     if (output_result_.is_allocated()) {

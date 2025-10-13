@@ -53,8 +53,8 @@ void MTLBackend::delete_resources()
   MEM_delete(compiler_);
 }
 
-void MTLBackend::samplers_update(){
-    /* Placeholder -- Handled in MTLContext. */
+void MTLBackend::samplers_update() {
+  /* Placeholder -- Handled in MTLContext. */
 };
 
 Context *MTLBackend::context_alloc(void *ghost_window, void *ghost_context)

@@ -665,7 +665,7 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
   Nurb *newnu;
   int totvert = BKE_keyblock_curve_element_count(&editnurb->nurbs);
 
-  float(*ofs)[3] = nullptr;
+  float (*ofs)[3] = nullptr;
   std::optional<blender::Array<bool>> dependent;
   const float *oldkey, *ofp;
   float *newkey;

@@ -44,7 +44,7 @@ NODE_SHADER_MATERIALX_BEGIN
 {
   NodeItem res = get_output_default("Normal", NodeItem::Type::Vector3);
 
-  if (STREQ(socket_out_->name, "Dot")) {
+  if (STREQ(socket_out_->identifier, "Dot")) {
     return res.dotproduct(get_input_value("Normal", NodeItem::Type::Vector3));
   }
 

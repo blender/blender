@@ -25,6 +25,8 @@
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.hh"
 
+#include "ED_node.hh"
+
 #include "node_intern.hh"
 
 namespace geo_log = blender::nodes::geo_eval_log;
@@ -226,6 +228,11 @@ class SocketTooltipBuilder {
     if (socket_decl && socket_decl->input_field_type == nodes::InputSocketFieldType::Implicit) {
       this->start_block(TooltipBlockType::Value);
       build_tooltip_value_implicit_default(socket_decl->default_input_type);
+      return;
+    }
+    if (socket_decl && socket_decl->structure_type == nodes::StructureType::Grid) {
+      this->start_block(TooltipBlockType::Value);
+      this->build_tooltip_value_and_type_oneline(TIP_("Empty Grid"), TIP_("Volume Grid"));
       return;
     }
     if (socket_.typeinfo->base_cpp_type == nullptr) {
@@ -638,7 +645,7 @@ class SocketTooltipBuilder {
         case bke::GeometryComponent::Type::Volume: {
           const geo_log::GeometryInfoLog::VolumeInfo &info = *geometry_log.volume_info;
           component_str = fmt::format(fmt::runtime(TIP_("Volume: {} grids")),
-                                      this->count_to_string(info.grids_num));
+                                      this->count_to_string(info.grids.size()));
           break;
         }
         case bke::GeometryComponent::Type::Curve: {

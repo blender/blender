@@ -44,7 +44,7 @@ class Interface0D {
   Interface0D() {}
 
   /** Destructor */
-  virtual ~Interface0D(){};
+  virtual ~Interface0D() {};
 
   /** Returns the string "Interface0D". */
   virtual string getExactTypeName() const

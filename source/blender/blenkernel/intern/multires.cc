@@ -489,11 +489,11 @@ static void multires_del_higher(MultiresModifierData *mmd, Object *ob, const int
           MDisps *mdisp = &mdisps[corner];
           const int totdisp = multires_grid_tot[lvl];
 
-          float(*disps)[3] = MEM_calloc_arrayN<float[3]>(totdisp, "multires disps");
+          float (*disps)[3] = MEM_calloc_arrayN<float[3]>(totdisp, "multires disps");
 
           if (mdisp->disps != nullptr) {
-            float(*ndisps)[3] = disps;
-            float(*hdisps)[3] = mdisp->disps;
+            float (*ndisps)[3] = disps;
+            float (*hdisps)[3] = mdisp->disps;
 
             multires_copy_grid(ndisps, hdisps, nsize, hsize);
             if (mdisp->hidden) {

@@ -28,4 +28,14 @@ void main()
   interp.P = drw_point_object_to_world(lP);
 
   gl_Position = reverse_z::transform(drw_point_world_to_homogenous(interp.P));
+
+#ifdef MAT_SHADOW
+  /* Volumes currently do not support shadow. But the shader validation pipeline still compiles the
+   * shadow variant of this shader. Avoid linking error on Intel Windows drivers. */
+#  ifdef SHADOW_UPDATE_ATOMIC_RASTER
+  shadow_iface.shadow_view_id = 0;
+#  endif
+  shadow_clip.position = float3(0);
+  shadow_clip.vector = float3(0);
+#endif
 }

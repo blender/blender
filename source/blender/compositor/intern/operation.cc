@@ -133,7 +133,7 @@ void Operation::add_and_evaluate_input_processor(StringRef identifier, SimpleOpe
   processor->evaluate();
 }
 
-void Operation::compute_preview(){};
+void Operation::compute_preview() {};
 
 Result &Operation::get_input(StringRef identifier) const
 {

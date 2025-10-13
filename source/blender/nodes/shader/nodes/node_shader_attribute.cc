@@ -17,7 +17,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Color>("Color");
   b.add_output<decl::Vector>("Vector");
-  b.add_output<decl::Float>("Fac");
+  b.add_output<decl::Float>("Factor", "Fac");
   b.add_output<decl::Float>("Alpha");
 }
 
@@ -91,7 +91,7 @@ NODE_SHADER_MATERIALX_BEGIN
 {
   /* TODO: some outputs expected be implemented within the next iteration
    * (see node-definition `<geompropvalue>`). */
-  return get_output_default(socket_out_->name, NodeItem::Type::Any);
+  return get_output_default(socket_out_->identifier, NodeItem::Type::Any);
 }
 #endif
 NODE_SHADER_MATERIALX_END

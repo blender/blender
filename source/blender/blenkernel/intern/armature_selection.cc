@@ -13,6 +13,7 @@
 #include "BLI_listbase.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_object_types.h"
 
 namespace blender::bke {
 
@@ -35,6 +36,7 @@ void find_selected_bones__visit_bone(const bArmature *armature,
     find_selected_bones__visit_bone(armature, callback, result, child_bone);
   }
 }
+
 }  // namespace
 
 SelectedBonesResult BKE_armature_find_selected_bones(const bArmature *armature,
@@ -55,6 +57,21 @@ BoneNameSet BKE_armature_find_selected_bone_names(const bArmature *armature)
   /* Iterate over the selected bones to fill the set of bone names. */
   auto callback = [&](Bone *bone) { selected_bone_names.add(bone->name); };
   BKE_armature_find_selected_bones(armature, callback);
+  return selected_bone_names;
+}
+
+BoneNameSet BKE_pose_channel_find_selected_names(const Object *object)
+{
+  if (!object->pose) {
+    return {};
+  }
+
+  BoneNameSet selected_bone_names;
+  LISTBASE_FOREACH (bPoseChannel *, pose_bone, &object->pose->chanbase) {
+    if (pose_bone->flag & POSE_SELECTED) {
+      selected_bone_names.add(pose_bone->name);
+    }
+  }
   return selected_bone_names;
 }
 

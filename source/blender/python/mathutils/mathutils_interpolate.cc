@@ -37,7 +37,7 @@ PyDoc_STRVAR(
 static PyObject *M_Interpolate_poly_3d_calc(PyObject * /*self*/, PyObject *args)
 {
   float fp[3];
-  float(*vecs)[3];
+  float (*vecs)[3];
   Py_ssize_t len;
 
   PyObject *point, *veclist, *ret;

@@ -85,69 +85,79 @@ struct ColorBalanceApplyOp {
   float lut[3][CB_TABLE_SIZE];
 
   /* Apply on a byte image via a table lookup. */
-  template<typename MaskT> void apply(uchar *image, const MaskT *mask, IndexRange size)
+  template<typename MaskSampler>
+  void apply(uchar *image, MaskSampler &mask, int image_x, IndexRange y_range)
   {
-    for ([[maybe_unused]] int64_t i : size) {
-      float4 input = load_pixel_premul(image);
+    image += y_range.first() * image_x * 4;
+    for (int64_t y : y_range) {
+      mask.begin_row(y);
+      for ([[maybe_unused]] int64_t x : IndexRange(image_x)) {
+        float4 input = load_pixel_premul(image);
 
-      float4 result;
-      int p0 = int(input.x * (CB_TABLE_SIZE - 1.0f) + 0.5f);
-      int p1 = int(input.y * (CB_TABLE_SIZE - 1.0f) + 0.5f);
-      int p2 = int(input.z * (CB_TABLE_SIZE - 1.0f) + 0.5f);
-      result.x = this->lut[0][p0];
-      result.y = this->lut[1][p1];
-      result.z = this->lut[2][p2];
-      result.w = input.w;
+        float4 result;
+        int p0 = int(input.x * (CB_TABLE_SIZE - 1.0f) + 0.5f);
+        int p1 = int(input.y * (CB_TABLE_SIZE - 1.0f) + 0.5f);
+        int p2 = int(input.z * (CB_TABLE_SIZE - 1.0f) + 0.5f);
+        result.x = this->lut[0][p0];
+        result.y = this->lut[1][p1];
+        result.z = this->lut[2][p2];
+        result.w = input.w;
 
-      apply_and_advance_mask(input, result, mask);
-      store_pixel_premul(result, image);
-      image += 4;
+        mask.apply_mask(input, result);
+        store_pixel_premul(result, image);
+        image += 4;
+      }
     }
   }
 
   /* Apply on a float image by doing full math. */
-  template<typename MaskT> void apply(float *image, const MaskT *mask, IndexRange size)
+  template<typename MaskSampler>
+  void apply(float *image, MaskSampler &mask, int image_x, IndexRange y_range)
   {
-    if (this->method == SEQ_COLOR_BALANCE_METHOD_LIFTGAMMAGAIN) {
-      /* Lift/Gamma/Gain */
-      for ([[maybe_unused]] int64_t i : size) {
-        float4 input = load_pixel_premul(image);
+    image += y_range.first() * image_x * 4;
+    for (int64_t y : y_range) {
+      mask.begin_row(y);
+      if (this->method == SEQ_COLOR_BALANCE_METHOD_LIFTGAMMAGAIN) {
+        /* Lift/Gamma/Gain */
+        for ([[maybe_unused]] int64_t x : IndexRange(image_x)) {
+          float4 input = load_pixel_premul(image);
 
-        float4 result;
-        result.x = color_balance_lgg(
-            input.x, this->lift.x, this->gain.x, this->gamma.x, this->multiplier);
-        result.y = color_balance_lgg(
-            input.y, this->lift.y, this->gain.y, this->gamma.y, this->multiplier);
-        result.z = color_balance_lgg(
-            input.z, this->lift.z, this->gain.z, this->gamma.z, this->multiplier);
-        result.w = input.w;
+          float4 result;
+          result.x = color_balance_lgg(
+              input.x, this->lift.x, this->gain.x, this->gamma.x, this->multiplier);
+          result.y = color_balance_lgg(
+              input.y, this->lift.y, this->gain.y, this->gamma.y, this->multiplier);
+          result.z = color_balance_lgg(
+              input.z, this->lift.z, this->gain.z, this->gamma.z, this->multiplier);
+          result.w = input.w;
 
-        apply_and_advance_mask(input, result, mask);
-        store_pixel_premul(result, image);
-        image += 4;
+          mask.apply_mask(input, result);
+          store_pixel_premul(result, image);
+          image += 4;
+        }
       }
-    }
-    else if (this->method == SEQ_COLOR_BALANCE_METHOD_SLOPEOFFSETPOWER) {
-      /* Slope/Offset/Power */
-      for ([[maybe_unused]] int64_t i : size) {
-        float4 input = load_pixel_premul(image);
+      else if (this->method == SEQ_COLOR_BALANCE_METHOD_SLOPEOFFSETPOWER) {
+        /* Slope/Offset/Power */
+        for ([[maybe_unused]] int64_t x : IndexRange(image_x)) {
+          float4 input = load_pixel_premul(image);
 
-        float4 result;
-        result.x = color_balance_sop(
-            input.x, this->slope.x, this->offset.x, this->power.x, this->multiplier);
-        result.y = color_balance_sop(
-            input.y, this->slope.y, this->offset.y, this->power.y, this->multiplier);
-        result.z = color_balance_sop(
-            input.z, this->slope.z, this->offset.z, this->power.z, this->multiplier);
-        result.w = input.w;
+          float4 result;
+          result.x = color_balance_sop(
+              input.x, this->slope.x, this->offset.x, this->power.x, this->multiplier);
+          result.y = color_balance_sop(
+              input.y, this->slope.y, this->offset.y, this->power.y, this->multiplier);
+          result.z = color_balance_sop(
+              input.z, this->slope.z, this->offset.z, this->power.z, this->multiplier);
+          result.w = input.w;
 
-        apply_and_advance_mask(input, result, mask);
-        store_pixel_premul(result, image);
-        image += 4;
+          mask.apply_mask(input, result);
+          store_pixel_premul(result, image);
+          image += 4;
+        }
       }
-    }
-    else {
-      BLI_assert_unreachable();
+      else {
+        BLI_assert_unreachable();
+      }
     }
   }
 
@@ -244,17 +254,13 @@ static void colorBalance_init_data(StripModifierData *smd)
   }
 }
 
-static void colorBalance_apply(const RenderData * /*render_data*/,
-                               const StripScreenQuad & /*quad*/,
-                               StripModifierData *smd,
-                               ImBuf *ibuf,
-                               ImBuf *mask)
+static void colorBalance_apply(ModifierApplyContext &context, StripModifierData *smd, ImBuf *mask)
 {
   const ColorBalanceModifierData *cbmd = (const ColorBalanceModifierData *)smd;
 
   ColorBalanceApplyOp op;
-  op.init(*cbmd, ibuf->byte_buffer.data != nullptr);
-  apply_modifier_op(op, ibuf, mask);
+  op.init(*cbmd, context.image->byte_buffer.data != nullptr);
+  apply_modifier_op(op, context.image, mask, context.transform);
 }
 
 static void colorBalance_panel_draw(const bContext *C, Panel *panel)
@@ -277,33 +283,36 @@ static void colorBalance_panel_draw(const bContext *C, Panel *panel)
     {
       uiLayout &split = flow.column(false).split(0.35f, false);
       uiLayout &col = split.column(true);
-      col.label("Lift", ICON_NONE);
+      col.label(IFACE_("Lift"), ICON_NONE);
       col.separator();
       col.separator();
       col.prop(&color_balance, "lift", UI_ITEM_NONE, "", ICON_NONE);
-      col.prop(&color_balance, "invert_lift", UI_ITEM_NONE, "Invert", ICON_ARROW_LEFTRIGHT);
+      col.prop(
+          &color_balance, "invert_lift", UI_ITEM_NONE, IFACE_("Invert"), ICON_ARROW_LEFTRIGHT);
       uiTemplateColorPicker(&split, &color_balance, "lift", true, false, false, true);
       col.separator();
     }
     {
       uiLayout &split = flow.column(false).split(0.35f, false);
       uiLayout &col = split.column(true);
-      col.label("Gamma", ICON_NONE);
+      col.label(IFACE_("Gamma"), ICON_NONE);
       col.separator();
       col.separator();
       col.prop(&color_balance, "gamma", UI_ITEM_NONE, "", ICON_NONE);
-      col.prop(&color_balance, "invert_gamma", UI_ITEM_NONE, "Invert", ICON_ARROW_LEFTRIGHT);
+      col.prop(
+          &color_balance, "invert_gamma", UI_ITEM_NONE, IFACE_("Invert"), ICON_ARROW_LEFTRIGHT);
       uiTemplateColorPicker(&split, &color_balance, "gamma", true, false, true, true);
       col.separator();
     }
     {
       uiLayout &split = flow.column(false).split(0.35f, false);
       uiLayout &col = split.column(true);
-      col.label("Gain", ICON_NONE);
+      col.label(IFACE_("Gain"), ICON_NONE);
       col.separator();
       col.separator();
       col.prop(&color_balance, "gain", UI_ITEM_NONE, "", ICON_NONE);
-      col.prop(&color_balance, "invert_gain", UI_ITEM_NONE, "Invert", ICON_ARROW_LEFTRIGHT);
+      col.prop(
+          &color_balance, "invert_gain", UI_ITEM_NONE, IFACE_("Invert"), ICON_ARROW_LEFTRIGHT);
       uiTemplateColorPicker(&split, &color_balance, "gain", true, false, true, true);
     }
   }
@@ -311,33 +320,36 @@ static void colorBalance_panel_draw(const bContext *C, Panel *panel)
     {
       uiLayout &split = flow.column(false).split(0.35f, false);
       uiLayout &col = split.column(true);
-      col.label("Offset", ICON_NONE);
+      col.label(IFACE_("Offset"), ICON_NONE);
       col.separator();
       col.separator();
       col.prop(&color_balance, "offset", UI_ITEM_NONE, "", ICON_NONE);
-      col.prop(&color_balance, "invert_offset", UI_ITEM_NONE, "Invert", ICON_ARROW_LEFTRIGHT);
+      col.prop(
+          &color_balance, "invert_offset", UI_ITEM_NONE, IFACE_("Invert"), ICON_ARROW_LEFTRIGHT);
       uiTemplateColorPicker(&split, &color_balance, "offset", true, false, false, true);
       col.separator();
     }
     {
       uiLayout &split = flow.column(false).split(0.35f, false);
       uiLayout &col = split.column(true);
-      col.label("Power", ICON_NONE);
+      col.label(IFACE_("Power"), ICON_NONE);
       col.separator();
       col.separator();
       col.prop(&color_balance, "power", UI_ITEM_NONE, "", ICON_NONE);
-      col.prop(&color_balance, "invert_power", UI_ITEM_NONE, "Invert", ICON_ARROW_LEFTRIGHT);
+      col.prop(
+          &color_balance, "invert_power", UI_ITEM_NONE, IFACE_("Invert"), ICON_ARROW_LEFTRIGHT);
       uiTemplateColorPicker(&split, &color_balance, "power", true, false, false, true);
       col.separator();
     }
     {
       uiLayout &split = flow.column(false).split(0.35f, false);
       uiLayout &col = split.column(true);
-      col.label("Slope", ICON_NONE);
+      col.label(IFACE_("Slope"), ICON_NONE);
       col.separator();
       col.separator();
       col.prop(&color_balance, "slope", UI_ITEM_NONE, "", ICON_NONE);
-      col.prop(&color_balance, "invert_slope", UI_ITEM_NONE, "Invert", ICON_ARROW_LEFTRIGHT);
+      col.prop(
+          &color_balance, "invert_slope", UI_ITEM_NONE, IFACE_("Invert"), ICON_ARROW_LEFTRIGHT);
       uiTemplateColorPicker(&split, &color_balance, "slope", true, false, false, true);
     }
   }

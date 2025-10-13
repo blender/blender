@@ -276,6 +276,21 @@ inline std::string get_socket_identifier(const typename Accessor::ItemT &item,
   }
 }
 
+inline std::optional<eNodeSocketDatatype> get_socket_item_type_to_add(
+    const eNodeSocketDatatype linked_type,
+    const FunctionRef<bool(eNodeSocketDatatype type)> is_supported)
+{
+  if (is_supported(linked_type)) {
+    return linked_type;
+  }
+  if (linked_type == SOCK_RGBA) {
+    if (is_supported(SOCK_VECTOR)) {
+      return SOCK_VECTOR;
+    }
+  }
+  return std::nullopt;
+}
+
 /**
  * Check if the link connects to the `extend_socket`. If yes, create a new item for the linked
  * socket, update the node and then change the link to point to the new socket.
@@ -304,8 +319,12 @@ template<typename Accessor>
 
   ItemT *item = nullptr;
   if constexpr (Accessor::has_name && Accessor::has_type) {
-    const eNodeSocketDatatype socket_type = eNodeSocketDatatype(src_socket->type);
-    if (!Accessor::supports_socket_type(socket_type, ntree.type)) {
+    const eNodeSocketDatatype src_socket_type = eNodeSocketDatatype(src_socket->type);
+    const std::optional<eNodeSocketDatatype> added_socket_type = get_socket_item_type_to_add(
+        src_socket_type, [&](const eNodeSocketDatatype type) {
+          return Accessor::supports_socket_type(type, ntree.type);
+        });
+    if (!added_socket_type) {
       return false;
     }
     std::string name = src_socket->name;
@@ -313,11 +332,11 @@ template<typename Accessor>
       name = Accessor::custom_initial_name(storage_node, name);
     }
     std::optional<int> dimensions = std::nullopt;
-    if (socket_type == SOCK_VECTOR) {
+    if (src_socket_type == SOCK_VECTOR && added_socket_type == SOCK_VECTOR) {
       dimensions = src_socket->default_value_typed<bNodeSocketValueVector>()->dimensions;
     }
     item = add_item_with_socket_type_and_name<Accessor>(
-        ntree, storage_node, socket_type, name.c_str(), dimensions);
+        ntree, storage_node, *added_socket_type, name.c_str(), dimensions);
   }
   else if constexpr (Accessor::has_name && !Accessor::has_type) {
     item = add_item_with_name<Accessor>(storage_node, src_socket->name);

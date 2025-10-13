@@ -259,7 +259,7 @@ void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
   BMFace **faces_grp = static_cast<BMFace **>(
       MEM_mallocN(sizeof(*faces_grp) * bm->totface, __func__));
 
-  int(*group_index)[2];
+  int (*group_index)[2];
   const int group_tot = BM_mesh_calc_face_groups(bm,
                                                  groups_array,
                                                  &group_index,

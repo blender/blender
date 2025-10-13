@@ -779,7 +779,7 @@ static std::optional<Bounds<float3>> lattice_add_to_selected_collect_targets_and
     const Object *object_eval = DEG_get_evaluated(depsgraph, base->object);
     if (object_eval && DEG_object_transform_is_evaluated(*object_eval)) {
       if (std::optional<Bounds<float3>> object_bounds = BKE_object_boundbox_get(object_eval)) {
-        const float(*object_to_world_matrix)[4] = object_eval->object_to_world().ptr();
+        const float (*object_to_world_matrix)[4] = object_eval->object_to_world().ptr();
         /* Generate all 8 corners of the bounding box. */
         std::array<float3, 8> corners = bounds::corners(*object_bounds);
         for (float3 &corner : corners) {
@@ -4249,6 +4249,18 @@ static wmOperatorStatus object_convert_exec(bContext *C, wmOperator *op)
   if (selected_editable_bases.is_empty()) {
     BKE_report(op->reports, RPT_INFO, "No editable objects to convert");
     return OPERATOR_CANCELLED;
+  }
+
+  /* Disallow conversion if any selected editable object is in Edit Mode.
+   * This could be supported in the future, but it's a rare corner case
+   * typically triggered only by Python scripts, see #147387. */
+  for (const PointerRNA &ptr : selected_editable_bases) {
+    const Object *ob = ((const Base *)ptr.data)->object;
+    if (ob->mode & OB_MODE_EDIT) {
+      BKE_report(
+          op->reports, RPT_ERROR, "Cannot convert selected objects while they are in edit mode");
+      return OPERATOR_CANCELLED;
+    }
   }
 
   /* don't forget multiple users! */

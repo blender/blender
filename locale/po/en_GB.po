@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'7089def6cbcb')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'ceca413bcbf8')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-29 09:33+0000\n"
+"POT-Creation-Date: 2025-10-06 08:44+0000\n"
 "PO-Revision-Date: 2025-07-23 14:59+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -105,14 +105,6 @@ msgstr "Animation Channels for Slots"
 
 msgid "For each action slot, a list of animation channels that are meant for that slot"
 msgstr "For each action slot, a list of animation channels that are meant for that slot"
-
-
-msgid "Action F-Curves"
-msgstr "Action F-Curves"
-
-
-msgid "Collection of action F-Curves. Note that this is a legacy API that is unaware of action slots, and will only consider the F-Curves for this action's first slot"
-msgstr "Collection of action F-Curves. Note that this is a legacy API that is unaware of action slots, and will only consider the F-Curves for this action's first slot"
 
 
 msgid "Action Group"
@@ -281,14 +273,6 @@ msgstr "Action group is expanded in graph editor"
 
 msgid "Pin in Graph Editor"
 msgstr "Pin in Graph Editor"
-
-
-msgid "Action Groups"
-msgstr "Action Groups"
-
-
-msgid "Collection of action groups"
-msgstr "Collection of action groups"
 
 
 msgid "Action Layer"
@@ -1614,10 +1598,6 @@ msgstr "Editor for node-based shading and compositing tools"
 
 msgid "Video Sequencer"
 msgstr "Video Sequencer"
-
-
-msgid "Video editing tools"
-msgstr "Video editing tools"
 
 
 msgid "Movie Clip Editor"
@@ -13922,6 +13902,10 @@ msgid "Which asset types to show/hide, when browsing an asset library"
 msgstr "Which asset types to show/hide, when browsing an asset library"
 
 
+msgid "Annotations"
+msgstr "Annotations"
+
+
 msgid "Show Armature data-blocks"
 msgstr "Show Armature data-blocks"
 
@@ -17010,6 +16994,10 @@ msgid "Use curve to define primitive stroke thickness"
 msgstr "Use curve to define primitive stroke thickness"
 
 
+msgid "Items"
+msgstr "Items"
+
+
 msgctxt "Operator"
 msgid "Gizmo"
 msgstr "Gizmo"
@@ -18095,10 +18083,6 @@ msgid "The combined frame range of all F-Curves within this action"
 msgstr "The combined frame range of all F-Curves within this action"
 
 
-msgid "Legacy API, for backward compatibility with code that does not handle slotted actions yet. This collection contains the F-Curves for the action's first slot"
-msgstr "Legacy API, for backward compatibility with code that does not handle slotted actions yet. This collection contains the F-Curves for the action's first slot"
-
-
 msgid "The end frame of the manually set intended playback range"
 msgstr "The end frame of the manually set intended playback range"
 
@@ -18113,23 +18097,6 @@ msgstr "The intended playback frame range of this action, using the manually set
 
 msgid "The start frame of the manually set intended playback range"
 msgstr "The start frame of the manually set intended playback range"
-
-
-msgid "Groups"
-msgstr "Groups"
-
-
-msgid "Legacy API, for backward compatibility with code that does not handle slotted actions yet. This collection contains the F-Curve groups for the action's first slot"
-msgstr "Legacy API, for backward compatibility with code that does not handle slotted actions yet. This collection contains the F-Curve groups for the action's first slot"
-
-
-msgctxt "ID"
-msgid "ID Root Type"
-msgstr "ID Root Type"
-
-
-msgid "Legacy API, for backward compatibility with code that does not handle slotted actions yet. Type of data-block that the action's first slot can be used on. Do not change unless you know what you are doing"
-msgstr "Legacy API, for backward compatibility with code that does not handle slotted actions yet. Type of data-block that the action's first slot can be used on. Do not change unless you know what you are doing"
 
 
 msgid "Is Layered Action"
@@ -27221,10 +27188,6 @@ msgid "Object to which matrices are made relative"
 msgstr "Object to which matrices are made relative"
 
 
-msgid "Annotations"
-msgstr "Annotations"
-
-
 msgid "Distance Model"
 msgstr "Distance Model"
 
@@ -30315,10 +30278,6 @@ msgid "Keymap is defined by the user"
 msgstr "Keymap is defined by the user"
 
 
-msgid "Items"
-msgstr "Items"
-
-
 msgid "Items in the keymap, linking an operator to an input event"
 msgstr "Items in the keymap, linking an operator to an input event"
 
@@ -32536,6 +32495,10 @@ msgid "Deformed Location"
 msgstr "Deformed Location"
 
 
+msgid "Groups"
+msgstr "Groups"
+
+
 msgid "Weights for the vertex groups this point is member of"
 msgstr "Weights for the vertex groups this point is member of"
 
@@ -34080,136 +34043,56 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
-msgid "Mask Edit"
-msgstr "Mask Edit"
-
-
-msgid "Automasking"
-msgstr "Automasking"
-
-
-msgid "Face Sets Edit"
-msgstr "Face Sets Edit"
-
-
-msgid "Vertex Group Locks"
-msgstr "Vertex Group Locks"
-
-
-msgid "Mirror"
-msgstr "Mirror"
-
-
-msgid "Snap"
-msgstr "Snap"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapping"
-
-
-msgid "Local View"
-msgstr "Local View"
-
-
-msgid "Viewpoint"
-msgstr "Viewpoint"
-
-
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "Align View"
-msgstr "Align View"
-
-
-msgid "Align View to Active"
-msgstr "Align View to Active"
-
-
-msgid "View Regions"
-msgstr "View Regions"
-
-
-msgid "Select More/Less"
-msgstr "Select More/Less"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proportional Editing Falloff"
-
-
-msgid "Select Similar"
-msgstr "Select Similar"
-
-
-msgid "Select All by Trait"
-msgstr "Select All by Trait"
-
-
-msgid "Select Linked"
-msgstr "Select Linked"
-
-
-msgid "Select Loops"
-msgstr "Select Loops"
-
-
-msgid "Assign Material"
-msgstr "Assign Material"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Light"
-msgstr "Light"
-
-
-msgid "Light Probe"
-msgstr "Light Probe"
-
-
-msgid "Adjust"
-msgstr "Adjust"
-
-
-msgid "Keying"
-msgstr "Keying"
-
-
-msgid "Tracking"
-msgstr "Tracking"
-
-
 msgid "Add Image"
 msgstr "Add Image"
+
+
+msgid "Read"
+msgstr "Read"
 
 
 msgid "Relations"
 msgstr "Relations"
 
 
-msgid "Utilities"
-msgstr "Utilities"
+msgid "Sample"
+msgstr "Sample"
+
+
+msgid "Write"
+msgstr "Write"
+
+
+msgid "Primitives"
+msgstr "Primitives"
 
 
 msgid "Rigid Body"
 msgstr "Rigid Body"
 
 
+msgid "Import"
+msgstr "Import"
+
+
 msgid "Apply"
 msgstr "Apply"
 
 
+msgid "Text"
+msgstr "Text"
+
+
 msgid "Track"
 msgstr "Track"
+
+
+msgid "Utilities"
+msgstr "Utilities"
+
+
+msgid "Deprecated"
+msgstr "Deprecated"
 
 
 msgid "Quick Effects"
@@ -34236,12 +34119,24 @@ msgid "Convert"
 msgstr "Convert"
 
 
+msgid "Math"
+msgstr "Maths"
+
+
 msgid "Link/Transfer Data"
 msgstr "Link/Transfer Data"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Hooks"
 msgstr "Hooks"
+
+
+msgid "Vertex Group Locks"
+msgstr "Vertex Group Locks"
 
 
 msgid "Trim/Add"
@@ -34296,20 +34191,8 @@ msgid "Mesh Select Mode"
 msgstr "Mesh Select Mode"
 
 
-msgid "Read"
-msgstr "Read"
-
-
 msgid "Face Data"
 msgstr "Face Data"
-
-
-msgid "Sample"
-msgstr "Sample"
-
-
-msgid "Write"
-msgstr "Write"
 
 
 msgid "Select by Face Strength"
@@ -34320,20 +34203,8 @@ msgid "Set Face Strength"
 msgstr "Set Face Strength"
 
 
-msgid "Primitives"
-msgstr "Primitives"
-
-
 msgid "Merge"
 msgstr "Merge"
-
-
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Instances"
 
 
 msgid "Special Characters"
@@ -34344,32 +34215,124 @@ msgid "Kerning"
 msgstr "Kerning"
 
 
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Import"
-msgstr "Import"
+msgid "Metaball"
+msgstr "Metaball"
 
 
 msgid "Bone Roll"
 msgstr "Bone Roll"
 
 
-msgid "Deprecated"
-msgstr "Deprecated"
-
-
-msgid "Math"
-msgstr "Maths"
-
-
-msgid "UV"
-msgstr "UV"
+msgid "Layout"
+msgstr "Layout"
 
 
 msgid "Pivot Point"
 msgstr "Pivot Point"
+
+
+msgid "Snap"
+msgstr "Snap"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proportional Editing Falloff"
+
+
+msgid "Mask Edit"
+msgstr "Mask Edit"
+
+
+msgid "Automasking"
+msgstr "Automasking"
+
+
+msgid "Adjust"
+msgstr "Adjust"
+
+
+msgid "Face Sets Edit"
+msgstr "Face Sets Edit"
+
+
+msgid "Keying"
+msgstr "Keying"
+
+
+msgid "Tracking"
+msgstr "Tracking"
+
+
+msgid "Mirror"
+msgstr "Mirror"
+
+
+msgid "UV Mapping"
+msgstr "UV Mapping"
+
+
+msgid "Local View"
+msgstr "Local View"
+
+
+msgid "Viewpoint"
+msgstr "Viewpoint"
+
+
+msgid "Navigation"
+msgstr "Navigation"
+
+
+msgid "Align View"
+msgstr "Align View"
+
+
+msgid "Align View to Active"
+msgstr "Align View to Active"
+
+
+msgid "View Regions"
+msgstr "View Regions"
+
+
+msgid "Select More/Less"
+msgstr "Select More/Less"
+
+
+msgid "Select Similar"
+msgstr "Select Similar"
+
+
+msgid "Select All by Trait"
+msgstr "Select All by Trait"
+
+
+msgid "Select Linked"
+msgstr "Select Linked"
+
+
+msgid "Select Loops"
+msgstr "Select Loops"
+
+
+msgid "Assign Material"
+msgstr "Assign Material"
+
+
+msgid "Light"
+msgstr "Light"
+
+
+msgid "Light Probe"
+msgstr "Light Probe"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Instances"
+msgstr "Instances"
 
 
 msgid "Keyframe Insert Pie"
@@ -47407,10 +47370,6 @@ msgid "No data, boolean mask of active voxels"
 msgstr "No data, boolean mask of active voxels"
 
 
-msgid "Float Vector"
-msgstr "Float Vector"
-
-
 msgid "3D float vector"
 msgstr "3D float vector"
 
@@ -52289,11 +52248,6 @@ msgstr "Save the current viewer node to an image file"
 
 
 msgctxt "Operator"
-msgid "Save This Image"
-msgstr "Save This Image"
-
-
-msgctxt "Operator"
 msgid "Select Parent or Children"
 msgstr "Select Parent or Children"
 
@@ -52623,11 +52577,6 @@ msgstr "Add or remove a Hair Dynamics Preset"
 msgctxt "Operator"
 msgid "Add Hair Dynamics Preset"
 msgstr "Add Hair Dynamics Preset"
-
-
-msgctxt "Operator"
-msgid "Convert Legacy Pose Library"
-msgstr "Convert Legacy Pose Library"
 
 
 msgctxt "Operator"
@@ -56407,35 +56356,6 @@ msgstr "Name for the new brush asset"
 
 
 msgctxt "Operator"
-msgid "Preset"
-msgstr "Preset"
-
-
-msgid "Set brush shape"
-msgstr "Set brush shape"
-
-
-msgctxt "Curve"
-msgid "Mode"
-msgstr "Mode"
-
-
-msgctxt "Curve"
-msgid "Max"
-msgstr "Max"
-
-
-msgctxt "Curve"
-msgid "Line"
-msgstr "Line"
-
-
-msgctxt "Curve"
-msgid "Round"
-msgstr "Round"
-
-
-msgctxt "Operator"
 msgid "Scale Sculpt/Paint Brush Size"
 msgstr "Scale Sculpt/Paint Brush Size"
 
@@ -56450,15 +56370,6 @@ msgstr "Scalar"
 
 msgid "Factor to scale brush size by"
 msgstr "Factor to scale brush size by"
-
-
-msgctxt "Operator"
-msgid "Curve Falloff Preset"
-msgstr "Curve Falloff Preset"
-
-
-msgid "Set Curve Falloff Preset"
-msgstr "Set Curve Falloff Preset"
 
 
 msgctxt "Operator"
@@ -69984,17 +69895,17 @@ msgid "Type of the item to create"
 msgstr "Type of the item to create"
 
 
-msgctxt "Operator"
-msgid "Join Nodes"
-msgstr "Join Nodes"
-
-
 msgid "Attach selected nodes to a new common frame"
 msgstr "Attach selected nodes to a new common frame"
 
 
 msgid "Open a predefined panel"
 msgstr "Open a predefined panel"
+
+
+msgctxt "Operator"
+msgid "Join Nodes"
+msgstr "Join Nodes"
 
 
 msgctxt "Operator"
@@ -71642,15 +71553,6 @@ msgstr "Use bake in original location (create when necessary)"
 
 msgid "Write bake to original location (overwrite existing file)"
 msgstr "Write bake to original location (overwrite existing file)"
-
-
-msgctxt "Operator"
-msgid "Copy Geometry Node Group"
-msgstr "Copy Geometry Node Group"
-
-
-msgid "Copy the active geometry node group and assign it to the active modifier"
-msgstr "Copy the active geometry node group and assign it to the active modifier"
 
 
 msgctxt "Operator"
@@ -76484,14 +76386,6 @@ msgid "Blend the given Pose Action to the rig"
 msgstr "Blend the given Pose Action to the rig"
 
 
-msgid "Create a pose asset for each pose marker in this legacy pose library data-block"
-msgstr "Create a pose asset for each pose marker in this legacy pose library data-block"
-
-
-msgid "Create a pose asset for each pose marker in the current action"
-msgstr "Create a pose asset for each pose marker in the current action"
-
-
 msgid "Create a new pose asset on the clipboard, to be pasted into an Asset Browser"
 msgstr "Create a new pose asset on the clipboard, to be pasted into an Asset Browser"
 
@@ -77511,6 +77405,26 @@ msgstr "Shutter Curve Preset"
 
 msgid "Set shutter curve"
 msgstr "Set shutter curve"
+
+
+msgctxt "Curve"
+msgid "Mode"
+msgstr "Mode"
+
+
+msgctxt "Curve"
+msgid "Max"
+msgstr "Max"
+
+
+msgctxt "Curve"
+msgid "Line"
+msgstr "Line"
+
+
+msgctxt "Curve"
+msgid "Round"
+msgstr "Round"
 
 
 msgctxt "Operator"
@@ -79955,11 +79869,6 @@ msgstr "Wipe"
 msgctxt "Sequence"
 msgid "Glow"
 msgstr "Glow"
-
-
-msgctxt "Sequence"
-msgid "Transform"
-msgstr "Transform"
 
 
 msgctxt "Sequence"
@@ -87310,6 +87219,58 @@ msgid "Move/turn relative to the VR viewer or controller"
 msgstr "Move/turn relative to the VR viewer or controller"
 
 
+msgid "Move along navigation forward axis"
+msgstr "Move along navigation forward axis"
+
+
+msgid "Move along navigation back axis"
+msgstr "Move along navigation back axis"
+
+
+msgid "Move along navigation left axis"
+msgstr "Move along navigation left axis"
+
+
+msgid "Move along navigation right axis"
+msgstr "Move along navigation right axis"
+
+
+msgid "Move along navigation up axis"
+msgstr "Move along navigation up axis"
+
+
+msgid "Move along navigation down axis"
+msgstr "Move along navigation down axis"
+
+
+msgid "Turn counter-clockwise around navigation up axis"
+msgstr "Turn counter-clockwise around navigation up axis"
+
+
+msgid "Turn clockwise around navigation up axis"
+msgstr "Turn clockwise around navigation up axis"
+
+
+msgid "Move along viewer's forward axis"
+msgstr "Move along viewer's forward axis"
+
+
+msgid "Move along viewer's back axis"
+msgstr "Move along viewer's back axis"
+
+
+msgid "Move along viewer's left axis"
+msgstr "Move along viewer's left axis"
+
+
+msgid "Move along viewer's right axis"
+msgstr "Move along viewer's right axis"
+
+
+msgid "Move along controller's forward axis"
+msgstr "Move along controller's forward axis"
+
+
 msgid "Lock Direction"
 msgstr "Lock Direction"
 
@@ -87340,17 +87301,9 @@ msgid "Forward"
 msgstr "Forward"
 
 
-msgid "Move along navigation forward axis"
-msgstr "Move along navigation forward axis"
-
-
 msgctxt "Navigation"
 msgid "Back"
 msgstr "Back"
-
-
-msgid "Move along navigation back axis"
-msgstr "Move along navigation back axis"
 
 
 msgctxt "Navigation"
@@ -87358,17 +87311,9 @@ msgid "Left"
 msgstr "Left"
 
 
-msgid "Move along navigation left axis"
-msgstr "Move along navigation left axis"
-
-
 msgctxt "Navigation"
 msgid "Right"
 msgstr "Right"
-
-
-msgid "Move along navigation right axis"
-msgstr "Move along navigation right axis"
 
 
 msgctxt "Navigation"
@@ -87376,17 +87321,9 @@ msgid "Up"
 msgstr "Up"
 
 
-msgid "Move along navigation up axis"
-msgstr "Move along navigation up axis"
-
-
 msgctxt "Navigation"
 msgid "Down"
 msgstr "Down"
-
-
-msgid "Move along navigation down axis"
-msgstr "Move along navigation down axis"
 
 
 msgctxt "Navigation"
@@ -87394,17 +87331,9 @@ msgid "Turn Left"
 msgstr "Turn Left"
 
 
-msgid "Turn counter-clockwise around navigation up axis"
-msgstr "Turn counter-clockwise around navigation up axis"
-
-
 msgctxt "Navigation"
 msgid "Turn Right"
 msgstr "Turn Right"
-
-
-msgid "Turn clockwise around navigation up axis"
-msgstr "Turn clockwise around navigation up axis"
 
 
 msgctxt "Navigation"
@@ -87412,17 +87341,9 @@ msgid "Viewer Forward"
 msgstr "Viewer Forward"
 
 
-msgid "Move along viewer's forward axis"
-msgstr "Move along viewer's forward axis"
-
-
 msgctxt "Navigation"
 msgid "Viewer Back"
 msgstr "Viewer Back"
-
-
-msgid "Move along viewer's back axis"
-msgstr "Move along viewer's back axis"
 
 
 msgctxt "Navigation"
@@ -87430,26 +87351,14 @@ msgid "Viewer Left"
 msgstr "Viewer Left"
 
 
-msgid "Move along viewer's left axis"
-msgstr "Move along viewer's left axis"
-
-
 msgctxt "Navigation"
 msgid "Viewer Right"
 msgstr "Viewer Right"
 
 
-msgid "Move along viewer's right axis"
-msgstr "Move along viewer's right axis"
-
-
 msgctxt "Navigation"
 msgid "Controller Forward"
 msgstr "Controller Forward"
-
-
-msgid "Move along controller's forward axis"
-msgstr "Move along controller's forward axis"
 
 
 msgid "Frame Based Speed"
@@ -87474,22 +87383,6 @@ msgstr "Speed Interpolation 1"
 
 msgid "Second cubic spline control point between min/max speeds"
 msgstr "Second cubic spline control point between min/max speeds"
-
-
-msgid "Maximum Speed"
-msgstr "Maximum Speed"
-
-
-msgid "Maximum move (turn) speed in meters (radians) per second or frame"
-msgstr "Maximum move (turn) speed in meters (radians) per second or frame"
-
-
-msgid "Minimum Speed"
-msgstr "Minimum Speed"
-
-
-msgid "Minimum move (turn) speed in meters (radians) per second or frame"
-msgstr "Minimum move (turn) speed in meters (radians) per second or frame"
 
 
 msgctxt "Operator"
@@ -87555,10 +87448,6 @@ msgid "Raycast axis in controller/viewer space"
 msgstr "Raycast axis in controller/viewer space"
 
 
-msgid "Raycast color"
-msgstr "Raycast color"
-
-
 msgid "Maximum raycast distance"
 msgstr "Maximum raycast distance"
 
@@ -87577,6 +87466,10 @@ msgstr "Interpolation factor between viewer and hit locations"
 
 msgid "Offset along hit normal to subtract from final location"
 msgstr "Offset along hit normal to subtract from final location"
+
+
+msgid "Sample Count"
+msgstr "Sample Count"
 
 
 msgid "Selectable Only"
@@ -88200,6 +88093,34 @@ msgid "Panel containing UI elements"
 msgstr "Panel containing UI elements"
 
 
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF Animations"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR Info"
+
+
+msgid "Global Transform"
+msgstr "Global Transform"
+
+
+msgid "Fix to Camera"
+msgstr "Fix to Camera"
+
+
+msgid "Mirror Options"
+msgstr "Mirror Options"
+
+
 msgid "Active Tool"
 msgstr "Active Tool"
 
@@ -88304,6 +88225,14 @@ msgid "Auto-Masking"
 msgstr "Auto-Masking"
 
 
+msgid "glTF Variants"
+msgstr "glTF Variants"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF Material Variants"
+
+
 msgid "Curves Sculpt Add Curve Options"
 msgstr "Curves Sculpt Add Curve Options"
 
@@ -88318,30 +88247,6 @@ msgstr "Curves Grow/Shrink Scaling"
 
 msgid "Viewport Debug"
 msgstr "Viewport Debug"
-
-
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR Info"
-
-
-msgid "glTF Variants"
-msgstr "glTF Variants"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF Material Variants"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF Animations"
 
 
 msgid "Import Settings"
@@ -88897,14 +88802,6 @@ msgid "Predefined node color"
 msgstr "Predefined node color"
 
 
-msgid "Group Sockets"
-msgstr "Group Sockets"
-
-
-msgid "Panel Toggle"
-msgstr "Panel Toggle"
-
-
 msgctxt "Operator"
 msgid "Links Cut"
 msgstr "Links Cut"
@@ -89225,11 +89122,6 @@ msgid "Cache Settings"
 msgstr "Cache Settings"
 
 
-msgctxt "Sequence"
-msgid "Box"
-msgstr "Box"
-
-
 msgid "Frame Overlay"
 msgstr "Frame Overlay"
 
@@ -89273,6 +89165,11 @@ msgstr "Blade"
 
 msgid "Physical light sources"
 msgstr "Physical light sources"
+
+
+msgctxt "Sequence"
+msgid "Box"
+msgstr "Box"
 
 
 msgid "Feature Weights"
@@ -89588,18 +89485,6 @@ msgstr "User Interface"
 
 msgid "Gradient Colors"
 msgstr "Gradient Colors"
-
-
-msgid "Global Transform"
-msgstr "Global Transform"
-
-
-msgid "Fix to Camera"
-msgstr "Fix to Camera"
-
-
-msgid "Mirror Options"
-msgstr "Mirror Options"
 
 
 msgid "Brush Presets"
@@ -91829,14 +91714,6 @@ msgstr "New Curves Tools"
 
 msgid "Enable additional features for the new curves data block"
 msgstr "Enable additional features for the new curves data block"
-
-
-msgid "New Volume Nodes"
-msgstr "New Volume Nodes"
-
-
-msgid "Enables visibility of the new Volume nodes in the UI"
-msgstr "Enables visibility of the new Volume nodes in the UI"
 
 
 msgid "Recompute ID Usercount On Save"
@@ -95673,10 +95550,6 @@ msgstr "Denoising Normal"
 
 msgid "Normal pass used by denoiser"
 msgstr "Normal pass used by denoiser"
-
-
-msgid "Sample Count"
-msgstr "Sample Count"
 
 
 msgid "Per-pixel number of samples"
@@ -101079,10 +100952,6 @@ msgid "Edit all keyframes in scene"
 msgstr "Edit all keyframes in scene"
 
 
-msgid "Timeline and playback controls"
-msgstr "Timeline and playback controls"
-
-
 msgid "Action Editor"
 msgstr "Action Editor"
 
@@ -101303,10 +101172,6 @@ msgid "Edit animation/keyframes displayed as 2D curves"
 msgstr "Edit animation/keyframes displayed as 2D curves"
 
 
-msgid "Edit drivers"
-msgstr "Edit drivers"
-
-
 msgid "Individual Centers"
 msgstr "Individual Centers"
 
@@ -101403,24 +101268,8 @@ msgid "Display Z-buffer associated with image (mapped from camera clip start to 
 msgstr "Display Z-buffer associated with image (mapped from camera clip start to end)"
 
 
-msgid "View the image"
-msgstr "View the image"
-
-
 msgid "UV Editor"
 msgstr "UV Editor"
-
-
-msgid "UV edit in mesh editmode"
-msgstr "UV edit in mesh editmode"
-
-
-msgid "2D image painting mode"
-msgstr "2D image painting mode"
-
-
-msgid "Mask editing"
-msgstr "Mask editing"
 
 
 msgid "Settings for display of overlays in the UV/Image editor"
@@ -102192,6 +102041,10 @@ msgstr "Never change tabs when clicking an icon in an outliner"
 
 msgid "Change tabs only when this editor shares a border with an outliner"
 msgstr "Change tabs only when this editor shares a border with an outliner"
+
+
+msgid "Strip Modifiers"
+msgstr "Strip Modifiers"
 
 
 msgid "Tab Search Results"
@@ -104072,66 +103925,6 @@ msgid "Word wrap width as factor, zero disables"
 msgstr "Word wrap width as factor, zero disables"
 
 
-msgid "Transform Strip"
-msgstr "Transform Strip"
-
-
-msgid "Sequence strip applying affine transformations to other strips"
-msgstr "Sequence strip applying affine transformations to other strips"
-
-
-msgid "Method to determine how missing pixels are created"
-msgstr "Method to determine how missing pixels are created"
-
-
-msgid "Bilinear interpolation"
-msgstr "Bilinear interpolation"
-
-
-msgid "Bicubic interpolation"
-msgstr "Bicubic interpolation"
-
-
-msgid "Degrees to rotate the input"
-msgstr "Degrees to rotate the input"
-
-
-msgid "Amount to scale the input in the X axis"
-msgstr "Amount to scale the input in the X axis"
-
-
-msgid "Amount to scale the input in the Y axis"
-msgstr "Amount to scale the input in the Y axis"
-
-
-msgid "Translate X"
-msgstr "Translate X"
-
-
-msgid "Amount to move the input on the X axis"
-msgstr "Amount to move the input on the X axis"
-
-
-msgid "Translate Y"
-msgstr "Translate Y"
-
-
-msgid "Amount to move the input on the Y axis"
-msgstr "Amount to move the input on the Y axis"
-
-
-msgid "Translation Unit"
-msgstr "Translation Unit"
-
-
-msgid "Unit of measure to translate the input"
-msgstr "Unit of measure to translate the input"
-
-
-msgid "Scale uniformly, preserving aspect ratio"
-msgstr "Scale uniformly, preserving aspect ratio"
-
-
 msgid "Wipe Strip"
 msgstr "Wipe Strip"
 
@@ -104683,10 +104476,6 @@ msgid "This color defines white in the strip"
 msgstr "This color defines white in the strip"
 
 
-msgid "Strip Modifiers"
-msgstr "Strip Modifiers"
-
-
 msgid "Collection of strip modifiers"
 msgstr "Collection of strip modifiers"
 
@@ -104787,8 +104576,16 @@ msgid "Averages source image samples that fall under destination pixel"
 msgstr "Averages source image samples that fall under destination pixel"
 
 
+msgid "Translate X"
+msgstr "Translate X"
+
+
 msgid "Move along X axis"
 msgstr "Move along X axis"
+
+
+msgid "Translate Y"
+msgstr "Translate Y"
 
 
 msgid "Move along Y axis"
@@ -107873,14 +107670,6 @@ msgid "Use the compact, single-row layout"
 msgstr "Use the compact, single-row layout"
 
 
-msgid "Grid Layout"
-msgstr "Grid Layout"
-
-
-msgid "Use the grid-based layout"
-msgstr "Use the grid-based layout"
-
-
 msgid "List Name"
 msgstr "List Name"
 
@@ -108210,15 +107999,6 @@ msgstr "Enable this light in solid shading mode"
 
 msgid "UV Sculpting"
 msgstr "UV Sculpting"
-
-
-msgctxt "Curve"
-msgid "Strength Curve Preset"
-msgstr "Strength Curve Preset"
-
-
-msgid "Strength Curve"
-msgstr "Strength Curve"
 
 
 msgid "Group of vertices, used for armature deform and other purposes"
@@ -109659,11 +109439,6 @@ msgstr "Integer 64-bit"
 msgctxt "Volume"
 msgid "Mask"
 msgstr "Mask"
-
-
-msgctxt "Volume"
-msgid "Float Vector"
-msgstr "Float Vector"
 
 
 msgctxt "Volume"
@@ -114858,10 +114633,6 @@ msgid "Ctrl"
 msgstr "Ctrl"
 
 
-msgid "Viewer image not found."
-msgstr "Viewer image not found."
-
-
 msgid "Current editor is not a node editor."
 msgstr "Current editor is not a node editor."
 
@@ -114884,6 +114655,10 @@ msgstr "No active node."
 
 msgid "Current node has no visible outputs."
 msgstr "Current node has no visible outputs."
+
+
+msgid "Viewer image not found."
+msgstr "Viewer image not found."
 
 
 msgid "At least one node must be selected."
@@ -114971,10 +114746,6 @@ msgid "Deselect those bones that are used in this pose"
 msgstr "Deselect those bones that are used in this pose"
 
 
-msgid "Converted %d poses to pose assets"
-msgstr "Converted %d poses to pose assets"
-
-
 msgid "No animation data found to create asset from"
 msgstr "No animation data found to create asset from"
 
@@ -115009,22 +114780,6 @@ msgstr "Selected asset %s could not be located inside the asset library"
 
 msgid "Selected asset %s is not an Action"
 msgstr "Selected asset %s is not an Action"
-
-
-msgid "Active object has no Action"
-msgstr "Active object has no Action"
-
-
-msgid "Action %r is not a legacy pose library"
-msgstr "Action %r is not a legacy pose library"
-
-
-msgid "Unable to convert to pose assets"
-msgstr "Unable to convert to pose assets"
-
-
-msgid "Active object has no pose library Action"
-msgstr "Active object has no pose library Action"
 
 
 msgid "Selected bones from %s"
@@ -118720,6 +118475,79 @@ msgid "Export to File"
 msgstr "Export to File"
 
 
+msgid "Alignment X"
+msgstr "Alignment X"
+
+
+msgctxt "Sound"
+msgid "Strip Volume"
+msgstr "Strip Volume"
+
+
+msgid "Position X"
+msgstr "Position X"
+
+
+msgid "Convert to Float"
+msgstr "Convert to Float"
+
+
+msgid "Default Fade"
+msgstr "Default Fade"
+
+
+msgid "2D Stabilized Clip"
+msgstr "2D Stabilized Clip"
+
+
+msgid "Undistorted Clip"
+msgstr "Undistorted Clip"
+
+
+msgid "Strip Offset Start"
+msgstr "Strip Offset Start"
+
+
+msgid "Hold Offset Start"
+msgstr "Hold Offset Start"
+
+
+msgid "Effect Fader"
+msgstr "Effect Fader"
+
+
+msgid "Original Frame Range"
+msgstr "Original Frame Range"
+
+
+msgid "Pan Angle"
+msgstr "Pan Angle"
+
+
+msgid "Unpack"
+msgstr "Unpack"
+
+
+msgid "Source Channel"
+msgstr "Source Channel"
+
+
+msgid "Original frame range: {:d}-{:d} ({:d})"
+msgstr "Original frame range: {:d}-{:d} ({:d})"
+
+
+msgid "Cut To"
+msgstr "Cut To"
+
+
+msgid "Two or more channels are needed below this strip"
+msgstr "Two or more channels are needed below this strip"
+
+
+msgid "Linear Modifiers"
+msgstr "Linear Modifiers"
+
+
 msgid "Second Basis"
 msgstr "Second Basis"
 
@@ -120124,10 +119952,6 @@ msgid "Exit Group"
 msgstr "Exit Group"
 
 
-msgid "Closed by Default"
-msgstr "Closed by Default"
-
-
 msgid "Slot {:d}"
 msgstr "Slot {:d}"
 
@@ -120409,23 +120233,6 @@ msgid "Slip Strip Contents"
 msgstr "Slip Strip Contents"
 
 
-msgid "Alignment X"
-msgstr "Alignment X"
-
-
-msgctxt "Sound"
-msgid "Strip Volume"
-msgstr "Strip Volume"
-
-
-msgid "Position X"
-msgstr "Position X"
-
-
-msgid "Convert to Float"
-msgstr "Convert to Float"
-
-
 msgid "Raw"
 msgstr "Raw"
 
@@ -120595,32 +120402,8 @@ msgid "Stretch To Fill"
 msgstr "Stretch To Fill"
 
 
-msgid "Default Fade"
-msgstr "Default Fade"
-
-
-msgid "2D Stabilized Clip"
-msgstr "2D Stabilized Clip"
-
-
-msgid "Undistorted Clip"
-msgstr "Undistorted Clip"
-
-
-msgid "Strip Offset Start"
-msgstr "Strip Offset Start"
-
-
-msgid "Hold Offset Start"
-msgstr "Hold Offset Start"
-
-
 msgid "Resolutions"
 msgstr "Resolutions"
-
-
-msgid "Linear Modifiers"
-msgstr "Linear Modifiers"
 
 
 msgid "Preview Zoom"
@@ -120662,44 +120445,12 @@ msgid "Toggle Meta"
 msgstr "Toggle Meta"
 
 
-msgid "Effect Fader"
-msgstr "Effect Fader"
-
-
-msgid "Original Frame Range"
-msgstr "Original Frame Range"
-
-
-msgid "Pan Angle"
-msgstr "Pan Angle"
-
-
 msgid "Custom Proxy"
 msgstr "Custom Proxy"
 
 
 msgid "Add Transition"
 msgstr "Add Transition"
-
-
-msgid "Unpack"
-msgstr "Unpack"
-
-
-msgid "Original frame range: {:d}-{:d} ({:d})"
-msgstr "Original frame range: {:d}-{:d} ({:d})"
-
-
-msgid "Source Channel"
-msgstr "Source Channel"
-
-
-msgid "Cut To"
-msgstr "Cut To"
-
-
-msgid "Two or more channels are needed below this strip"
-msgstr "Two or more channels are needed below this strip"
 
 
 msgid "Wrap Around"
@@ -124511,10 +124262,6 @@ msgid "GP_Layer"
 msgstr "GP_Layer"
 
 
-msgid "grease_pencils_v3"
-msgstr "grease_pencils_v3"
-
-
 msgid "Socket_2"
 msgstr "Socket_2"
 
@@ -127506,10 +127253,6 @@ msgid "Move to Last"
 msgstr "Move to Last"
 
 
-msgid "Use Clipping"
-msgstr "Use Clipping"
-
-
 msgid "Min X:"
 msgstr "Min X:"
 
@@ -127586,16 +127329,8 @@ msgid "Zoom out"
 msgstr "Zoom out"
 
 
-msgid "Clipping Options"
-msgstr "Clipping Options"
-
-
 msgid "Delete points"
 msgstr "Delete points"
-
-
-msgid "Reset Black/White point and curves"
-msgstr "Reset Black/White point and curves"
 
 
 msgctxt "Color"
@@ -132364,6 +132099,18 @@ msgid "Unsupported Menu Socket"
 msgstr "Unsupported Menu Socket"
 
 
+msgid "Closed by Default"
+msgstr "Closed by Default"
+
+
+msgid "Panel Toggle"
+msgstr "Panel Toggle"
+
+
+msgid "Group Sockets"
+msgstr "Group Sockets"
+
+
 msgid "More than one collection is selected"
 msgstr "More than one collection is selected"
 
@@ -132870,10 +132617,6 @@ msgstr "Add a wipe transition strip for two selected strips with video content"
 
 msgid "Add a glow effect strip for a single selected strip with video content"
 msgstr "Add a glow effect strip for a single selected strip with video content"
-
-
-msgid "Add a transform effect strip for a single selected strip with video content"
-msgstr "Add a transform effect strip for a single selected strip with video content"
 
 
 msgid "Add a color strip to the sequencer"
@@ -134930,22 +134673,6 @@ msgstr "F-Curve '%s[%d]' already exists in this channelbag"
 
 msgid "F-Curve not found"
 msgstr "F-Curve not found"
-
-
-msgid "Action group '%s' not found in action '%s'"
-msgstr "Action group '%s' not found in action '%s'"
-
-
-msgid "F-Curve '%s[%d]' already exists in action '%s'"
-msgstr "F-Curve '%s[%d]' already exists in action '%s'"
-
-
-msgid "F-Curve not found in action '%s'"
-msgstr "F-Curve not found in action '%s'"
-
-
-msgid "F-Curve's action group '%s' not found in action '%s'"
-msgstr "F-Curve's action group '%s' not found in action '%s'"
 
 
 msgid "Timeline marker '%s' not found in action '%s'"
@@ -137332,10 +137059,6 @@ msgid "Not a compositor node tree"
 msgstr "Not a compositor node tree"
 
 
-msgid "Fac"
-msgstr "Fac"
-
-
 msgid "Contrast Limit"
 msgstr "Contrast Limit"
 
@@ -137386,10 +137109,6 @@ msgstr "Specifies the size of the catadioptric iris, zero means no iris"
 
 msgid "Specifies the amount of color shifting. 1 means maximum shifting towards blue while -1 means maximum shifting toward red"
 msgstr "Specifies the amount of color shifting. 1 means maximum shifting towards blue while -1 means maximum shifting toward red"
-
-
-msgid "Bright"
-msgstr "Bright"
 
 
 msgid "Key Color"
@@ -137618,6 +137337,10 @@ msgstr "Modulates colors of streaks and ghosts for a spectral dispersion effect"
 
 msgid "Align the star diagonally"
 msgstr "Align the star diagonally"
+
+
+msgid "Fac"
+msgstr "Fac"
 
 
 msgid "ID value"
@@ -140012,10 +139735,6 @@ msgstr "Number of voxels in the Y axis"
 
 msgid "Number of voxels in the Z axis"
 msgstr "Number of voxels in the Z axis"
-
-
-msgid "Warnings ({})"
-msgstr "Warnings ({})"
 
 
 msgid "Bake Path"

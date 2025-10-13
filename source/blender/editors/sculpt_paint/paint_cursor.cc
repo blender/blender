@@ -1011,7 +1011,7 @@ static void paint_draw_curve_cursor(Brush *brush, ViewContext *vc)
                                       sizeof(float[2]));
       }
 
-      float(*v)[2] = (float(*)[2])data;
+      float (*v)[2] = (float (*)[2])data;
 
       immUniformColor4f(0.0f, 0.0f, 0.0f, 0.5f);
       GPU_line_width(3.0f);

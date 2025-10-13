@@ -42,16 +42,6 @@ ExternalProject_Add(external_icdloader
   INSTALL_COMMAND echo .
 )
 
-ExternalProject_Add(external_mp11
-  URL file://${PACKAGE_DIR}/${MP11_FILE}
-  URL_HASH ${MP11_HASH_TYPE}=${MP11_HASH}
-  DOWNLOAD_DIR ${DOWNLOAD_DIR}
-  PREFIX ${BUILD_DIR}/mp11
-  CONFIGURE_COMMAND echo .
-  BUILD_COMMAND echo .
-  INSTALL_COMMAND echo .
-)
-
 ExternalProject_Add(external_dpcpp_spirvheaders
   URL file://${PACKAGE_DIR}/${DPCPP_SPIRV_HEADERS_FILE}
   URL_HASH ${DPCPP_SPIRV_HEADERS_HASH_TYPE}=${DPCPP_SPIRV_HEADERS_HASH}

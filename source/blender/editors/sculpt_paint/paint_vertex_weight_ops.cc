@@ -595,10 +595,9 @@ static void gradientVert_update(WPGradient_userData *grad_data, int index)
     BLI_assert(grad_data->type == WPAINT_GRADIENT_TYPE_RADIAL);
     alpha = len_v2v2(grad_data->sco_start, vs->sco) * grad_data->sco_line_div;
   }
-  /* no need to clamp 'alpha' yet */
 
   /* adjust weight */
-  alpha = BKE_brush_curve_strength_clamped(grad_data->brush, alpha, 1.0f);
+  alpha = BKE_brush_curve_strength_clamped(grad_data->brush, std::max(0.0f, alpha), 1.0f);
 
   if (alpha != 0.0f) {
     MDeformVert *dv = &grad_data->dvert[index];

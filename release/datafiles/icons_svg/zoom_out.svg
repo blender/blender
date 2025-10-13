@@ -1,1 +1,30 @@
-<svg height="1600" viewBox="0 0 1600 1600" width="1600" xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"><sodipodi:namedview pagecolor="#303030" showgrid="true"><inkscape:grid id="grid5" units="px" spacingx="100" spacingy="100" color="#4772b3" opacity="0.2" visible="true" /></sodipodi:namedview><g fill="#fff"><g enable-background="new" transform="matrix(100 0 0 100 -19395 -57704.999)"><path d="m223.5 578c-3.57273 0-6.5 2.92727-6.5 6.5 0 1.60752.59683 3.08042 1.57422 4.21875l-2.42774 2.42773a.50005.50005 0 1 0 .70704.70704l2.42578-2.42579c1.13822.977 2.61355 1.57227 4.2207 1.57227 3.57273 0 6.5-2.92728 6.5-6.5 0-3.57273-2.92727-6.5-6.5-6.5zm0 1c3.02727 0 5.5 2.47272 5.5 5.5 0 3.02727-2.47273 5.5-5.5 5.5s-5.5-2.47273-5.5-5.5c0-3.02728 2.47273-5.5 5.5-5.5zm-3 5a.50005.50005 0 1 0 0 1h6a.50005.50005 0 1 0 0-1z" transform="translate(-21)"/><path d="m193.95 577.04999h16v16h-16z" opacity="0"/></g></g></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   height="1600"
+   viewBox="0 0 1600 1600"
+   width="1600"
+   version="1.1"
+   id="svg3"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs3" />
+  <g
+     fill="#ffffff"
+     id="g3"
+     transform="matrix(-1,0,0,1,1600,0)">
+    <g
+       enable-background="new"
+       transform="matrix(100,0,0,100,-19395,-57704.999)"
+       id="g2">
+      <path
+         d="m 223.5,578 c -3.57273,0 -6.5,2.92727 -6.5,6.5 0,1.60752 0.59683,3.08042 1.57422,4.21875 l -2.42774,2.42773 a 0.50005,0.50005 0 1 0 0.70704,0.70704 l 2.42578,-2.42579 c 1.13822,0.977 2.61355,1.57227 4.2207,1.57227 3.57273,0 6.5,-2.92728 6.5,-6.5 0,-3.57273 -2.92727,-6.5 -6.5,-6.5 z m 0,1 c 3.02727,0 5.5,2.47272 5.5,5.5 0,3.02727 -2.47273,5.5 -5.5,5.5 -3.02727,0 -5.5,-2.47273 -5.5,-5.5 0,-3.02728 2.47273,-5.5 5.5,-5.5 z m -3,5 a 0.50005,0.50005 0 1 0 0,1 h 6 a 0.50005,0.50005 0 1 0 0,-1 z"
+         transform="translate(-21)"
+         id="path1" />
+      <path
+         d="m 193.95,577.04999 h 16 v 16 h -16 z"
+         opacity="0"
+         id="path2" />
+    </g>
+  </g>
+</svg>

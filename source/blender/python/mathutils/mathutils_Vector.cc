@@ -1494,7 +1494,7 @@ static PyObject *Vector_rotate(VectorObject *self, PyObject *value)
     if (!Matrix_Parse2x2(value, &pymat)) {
       return nullptr;
     }
-    normalize_m2_m2(other_rmat, (const float(*)[2])pymat->matrix);
+    normalize_m2_m2(other_rmat, (const float (*)[2])pymat->matrix);
     /* Equivalent to a rotation along the Z axis. */
     mul_m2_v2(other_rmat, self->vec);
   }
@@ -2914,31 +2914,46 @@ static int Vector_swizzle_set(VectorObject *self, PyObject *value, void *closure
 
 #define VECTOR_SWIZZLE2_RW_DEF(attr, a, b) \
   { \
-    attr, (getter)Vector_swizzle_get, (setter)Vector_swizzle_set, Vector_swizzle_doc, \
-        SWIZZLE2(a, b), \
+      attr, \
+      (getter)Vector_swizzle_get, \
+      (setter)Vector_swizzle_set, \
+      Vector_swizzle_doc, \
+      SWIZZLE2(a, b), \
   }
 #define VECTOR_SWIZZLE2_RO_DEF(attr, a, b) \
   { \
-    attr, (getter)Vector_swizzle_get, (setter) nullptr, Vector_swizzle_doc, SWIZZLE2(a, b), \
+      attr, \
+      (getter)Vector_swizzle_get, \
+      (setter) nullptr, \
+      Vector_swizzle_doc, \
+      SWIZZLE2(a, b), \
   }
 #define VECTOR_SWIZZLE3_RW_DEF(attr, a, b, c) \
   { \
-    attr, (getter)Vector_swizzle_get, (setter)Vector_swizzle_set, Vector_swizzle_doc, \
-        SWIZZLE3(a, b, c), \
+      attr, \
+      (getter)Vector_swizzle_get, \
+      (setter)Vector_swizzle_set, \
+      Vector_swizzle_doc, \
+      SWIZZLE3(a, b, c), \
   }
 #define VECTOR_SWIZZLE3_RO_DEF(attr, a, b, c) \
   { \
-    attr, (getter)Vector_swizzle_get, (setter) nullptr, Vector_swizzle_doc, SWIZZLE3(a, b, c), \
+      attr, \
+      (getter)Vector_swizzle_get, \
+      (setter) nullptr, \
+      Vector_swizzle_doc, \
+      SWIZZLE3(a, b, c), \
   }
 #define VECTOR_SWIZZLE4_RW_DEF(attr, a, b, c, d) \
   { \
-    attr, (getter)Vector_swizzle_get, (setter)Vector_swizzle_set, Vector_swizzle_doc, \
-        SWIZZLE4(a, b, c, d), \
+      attr, \
+      (getter)Vector_swizzle_get, \
+      (setter)Vector_swizzle_set, \
+      Vector_swizzle_doc, \
+      SWIZZLE4(a, b, c, d), \
   }
 #define VECTOR_SWIZZLE4_RO_DEF(attr, a, b, c, d) \
-  { \
-    attr, (getter)Vector_swizzle_get, (setter) nullptr, Vector_swizzle_doc, SWIZZLE4(a, b, c, d) \
-  }
+  {attr, (getter)Vector_swizzle_get, (setter) nullptr, Vector_swizzle_doc, SWIZZLE4(a, b, c, d)}
 
 /** \} */
 

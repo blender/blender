@@ -139,7 +139,7 @@ static float matrix_determinant_internal(const MatrixObject *self)
                           MATRIX_ITEM(self, 2, 2));
   }
 
-  return determinant_m4((const float(*)[4])self->matrix);
+  return determinant_m4((const float (*)[4])self->matrix);
 }
 
 static void adjoint_matrix_n(float *mat_dst, const float *mat_src, const ushort dim)
@@ -147,15 +147,15 @@ static void adjoint_matrix_n(float *mat_dst, const float *mat_src, const ushort 
   /* calculate the classical adjoint */
   switch (dim) {
     case 2: {
-      adjoint_m2_m2((float(*)[2])mat_dst, (const float(*)[2])mat_src);
+      adjoint_m2_m2((float (*)[2])mat_dst, (const float (*)[2])mat_src);
       break;
     }
     case 3: {
-      adjoint_m3_m3((float(*)[3])mat_dst, (const float(*)[3])mat_src);
+      adjoint_m3_m3((float (*)[3])mat_dst, (const float (*)[3])mat_src);
       break;
     }
     case 4: {
-      adjoint_m4_m4((float(*)[4])mat_dst, (const float(*)[4])mat_src);
+      adjoint_m4_m4((float (*)[4])mat_dst, (const float (*)[4])mat_src);
       break;
     }
     default:
@@ -222,10 +222,10 @@ static void matrix_invert_safe_internal(const MatrixObject *self, float *r_mat)
 
     switch (self->col_num) {
       case 2: {
-        float(*mat)[2] = (float(*)[2])in_mat;
+        float (*mat)[2] = (float (*)[2])in_mat;
 
         if (in_mat != self->matrix) {
-          copy_m2_m2(mat, (const float(*)[2])self->matrix);
+          copy_m2_m2(mat, (const float (*)[2])self->matrix);
         }
         mat[0][0] += eps;
         mat[1][1] += eps;
@@ -237,10 +237,10 @@ static void matrix_invert_safe_internal(const MatrixObject *self, float *r_mat)
         break;
       }
       case 3: {
-        float(*mat)[3] = (float(*)[3])in_mat;
+        float (*mat)[3] = (float (*)[3])in_mat;
 
         if (in_mat != self->matrix) {
-          copy_m3_m3(mat, (const float(*)[3])self->matrix);
+          copy_m3_m3(mat, (const float (*)[3])self->matrix);
         }
         mat[0][0] += eps;
         mat[1][1] += eps;
@@ -253,10 +253,10 @@ static void matrix_invert_safe_internal(const MatrixObject *self, float *r_mat)
         break;
       }
       case 4: {
-        float(*mat)[4] = (float(*)[4])in_mat;
+        float (*mat)[4] = (float (*)[4])in_mat;
 
         if (in_mat != self->matrix) {
-          copy_m4_m4(mat, (const float(*)[4])self->matrix);
+          copy_m4_m4(mat, (const float (*)[4])self->matrix);
         }
         mat[0][0] += eps;
         mat[1][1] += eps;
@@ -757,14 +757,14 @@ static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
       return nullptr;
     }
 
-    axis_angle_to_mat3((float(*)[3])mat, tvec, angle);
+    axis_angle_to_mat3((float (*)[3])mat, tvec, angle);
   }
   else if (matSize == 2) {
-    angle_to_mat2((float(*)[2])mat, angle);
+    angle_to_mat2((float (*)[2])mat, angle);
   }
   else {
     /* valid axis checked above */
-    axis_angle_to_mat3_single((float(*)[3])mat, axis[0], angle);
+    axis_angle_to_mat3_single((float (*)[3])mat, axis[0], angle);
   }
 
   if (matSize == 4) {
@@ -1215,7 +1215,7 @@ static PyObject *C_Matrix_LocRotScale(PyObject *cls, PyObject *args)
     }
 
     if (mat_obj->col_num == 3 && mat_obj->row_num == 3) {
-      copy_m4_m3(mat, (const float(*)[3])mat_obj->matrix);
+      copy_m4_m3(mat, (const float (*)[3])mat_obj->matrix);
     }
     else {
       PyErr_SetString(PyExc_ValueError,
@@ -1280,10 +1280,10 @@ static PyObject *Matrix_to_quaternion(MatrixObject *self)
     return nullptr;
   }
   if (self->row_num == 3) {
-    mat3_to_quat(quat, (const float(*)[3])self->matrix);
+    mat3_to_quat(quat, (const float (*)[3])self->matrix);
   }
   else {
-    mat4_to_quat(quat, (const float(*)[4])self->matrix);
+    mat4_to_quat(quat, (const float (*)[4])self->matrix);
   }
   return Quaternion_CreatePyObject(quat, nullptr);
 }
@@ -1337,10 +1337,10 @@ static PyObject *Matrix_to_euler(MatrixObject *self, PyObject *args)
 
   /* Must be 3-4 cols, 3-4 rows, square matrix. */
   if (self->row_num == 3 && self->col_num == 3) {
-    copy_m3_m3(mat, (const float(*)[3])self->matrix);
+    copy_m3_m3(mat, (const float (*)[3])self->matrix);
   }
   else if (self->row_num == 4 && self->col_num == 4) {
-    copy_m3_m4(mat, (const float(*)[4])self->matrix);
+    copy_m3_m4(mat, (const float (*)[4])self->matrix);
   }
   else {
     PyErr_SetString(PyExc_ValueError,
@@ -1416,7 +1416,7 @@ static PyObject *Matrix_resize_4x4(MatrixObject *self)
     memcpy(mat[col], MATRIX_COL_PTR(self, col), self->row_num * sizeof(float));
   }
 
-  copy_m4_m4((float(*)[4])self->matrix, (const float(*)[4])mat);
+  copy_m4_m4((float (*)[4])self->matrix, (const float (*)[4])mat);
 
   self->col_num = 4;
   self->row_num = 4;
@@ -1903,7 +1903,7 @@ static PyObject *Matrix_rotate(MatrixObject *self, PyObject *value)
   matrix_as_3x3(self_rmat, self);
   mul_m3_m3m3(rmat, other_rmat, self_rmat);
 
-  copy_m3_m3((float(*)[3])(self->matrix), rmat);
+  copy_m3_m3((float (*)[3])(self->matrix), rmat);
 
   (void)BaseMath_WriteCallback(self);
   Py_RETURN_NONE;
@@ -1943,7 +1943,7 @@ static PyObject *Matrix_decompose(MatrixObject *self)
     return nullptr;
   }
 
-  mat4_to_loc_rot_size(loc, rot, size, (const float(*)[4])self->matrix);
+  mat4_to_loc_rot_size(loc, rot, size, (const float (*)[4])self->matrix);
   mat3_normalized_to_quat_fast(quat, rot);
 
   ret = PyTuple_New(3);
@@ -1997,16 +1997,16 @@ static PyObject *Matrix_lerp(MatrixObject *self, PyObject *args)
   /* TODO: different sized matrix. */
   if (self->col_num == 4 && self->row_num == 4) {
 #ifdef MATH_STANDALONE
-    blend_m4_m4m4((float(*)[4])mat, (float(*)[4])self->matrix, (float(*)[4])mat2->matrix, fac);
+    blend_m4_m4m4((float (*)[4])mat, (float (*)[4])self->matrix, (float (*)[4])mat2->matrix, fac);
 #else
-    interp_m4_m4m4((float(*)[4])mat, (float(*)[4])self->matrix, (float(*)[4])mat2->matrix, fac);
+    interp_m4_m4m4((float (*)[4])mat, (float (*)[4])self->matrix, (float (*)[4])mat2->matrix, fac);
 #endif
   }
   else if (self->col_num == 3 && self->row_num == 3) {
 #ifdef MATH_STANDALONE
-    blend_m3_m3m3((float(*)[3])mat, (float(*)[3])self->matrix, (float(*)[3])mat2->matrix, fac);
+    blend_m3_m3m3((float (*)[3])mat, (float (*)[3])self->matrix, (float (*)[3])mat2->matrix, fac);
 #else
-    interp_m3_m3m3((float(*)[3])mat, (float(*)[3])self->matrix, (float(*)[3])mat2->matrix, fac);
+    interp_m3_m3m3((float (*)[3])mat, (float (*)[3])self->matrix, (float (*)[3])mat2->matrix, fac);
 #endif
   }
   else {
@@ -2079,10 +2079,10 @@ static PyObject *Matrix_transpose(MatrixObject *self)
     MATRIX_ITEM(self, 0, 1) = t;
   }
   else if (self->col_num == 3) {
-    transpose_m3((float(*)[3])self->matrix);
+    transpose_m3((float (*)[3])self->matrix);
   }
   else {
-    transpose_m4((float(*)[4])self->matrix);
+    transpose_m4((float (*)[4])self->matrix);
   }
 
   (void)BaseMath_WriteCallback(self);
@@ -2131,10 +2131,10 @@ static PyObject *Matrix_normalize(MatrixObject *self)
   }
 
   if (self->col_num == 3) {
-    normalize_m3((float(*)[3])self->matrix);
+    normalize_m3((float (*)[3])self->matrix);
   }
   else if (self->col_num == 4) {
-    normalize_m4((float(*)[4])self->matrix);
+    normalize_m4((float (*)[4])self->matrix);
   }
   else {
     PyErr_SetString(PyExc_ValueError,
@@ -2200,13 +2200,13 @@ static void matrix_identity_internal(MatrixObject *self)
   BLI_assert((self->col_num == self->row_num) && (self->row_num <= 4));
 
   if (self->col_num == 2) {
-    unit_m2((float(*)[2])self->matrix);
+    unit_m2((float (*)[2])self->matrix);
   }
   else if (self->col_num == 3) {
-    unit_m3((float(*)[3])self->matrix);
+    unit_m3((float (*)[3])self->matrix);
   }
   else {
-    unit_m4((float(*)[4])self->matrix);
+    unit_m4((float (*)[4])self->matrix);
   }
 }
 
@@ -3219,7 +3219,7 @@ static int Matrix_translation_set(MatrixObject *self, PyObject *value, void * /*
     return -1;
   }
 
-  copy_v3_v3(((float(*)[4])self->matrix)[3], tvec);
+  copy_v3_v3(((float (*)[4])self->matrix)[3], tvec);
 
   (void)BaseMath_WriteCallback(self);
 
@@ -3304,10 +3304,10 @@ static PyObject *Matrix_is_negative_get(MatrixObject *self, void * /*closure*/)
 
   /* Must be 3-4 cols, 3-4 rows, square matrix. */
   if (self->row_num == 4 && self->col_num == 4) {
-    return PyBool_FromLong(is_negative_m4((const float(*)[4])self->matrix));
+    return PyBool_FromLong(is_negative_m4((const float (*)[4])self->matrix));
   }
   if (self->row_num == 3 && self->col_num == 3) {
-    return PyBool_FromLong(is_negative_m3((const float(*)[3])self->matrix));
+    return PyBool_FromLong(is_negative_m3((const float (*)[3])self->matrix));
   }
 
   PyErr_SetString(PyExc_AttributeError,
@@ -3330,10 +3330,10 @@ static PyObject *Matrix_is_orthogonal_get(MatrixObject *self, void * /*closure*/
 
   /* Must be 3-4 cols, 3-4 rows, square matrix. */
   if (self->row_num == 4 && self->col_num == 4) {
-    return PyBool_FromLong(is_orthonormal_m4((const float(*)[4])self->matrix));
+    return PyBool_FromLong(is_orthonormal_m4((const float (*)[4])self->matrix));
   }
   if (self->row_num == 3 && self->col_num == 3) {
-    return PyBool_FromLong(is_orthonormal_m3((const float(*)[3])self->matrix));
+    return PyBool_FromLong(is_orthonormal_m3((const float (*)[3])self->matrix));
   }
 
   PyErr_SetString(PyExc_AttributeError,
@@ -3357,10 +3357,10 @@ static PyObject *Matrix_is_orthogonal_axis_vectors_get(MatrixObject *self, void 
 
   /* Must be 3-4 cols, 3-4 rows, square matrix. */
   if (self->row_num == 4 && self->col_num == 4) {
-    return PyBool_FromLong(is_orthogonal_m4((const float(*)[4])self->matrix));
+    return PyBool_FromLong(is_orthogonal_m4((const float (*)[4])self->matrix));
   }
   if (self->row_num == 3 && self->col_num == 3) {
-    return PyBool_FromLong(is_orthogonal_m3((const float(*)[3])self->matrix));
+    return PyBool_FromLong(is_orthogonal_m3((const float (*)[3])self->matrix));
   }
 
   PyErr_SetString(PyExc_AttributeError,

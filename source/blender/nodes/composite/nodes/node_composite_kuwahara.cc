@@ -27,20 +27,29 @@
 namespace blender::nodes::node_composite_kuwahara_cc {
 
 static const EnumPropertyItem type_items[] = {
-    {CMP_NODE_KUWAHARA_CLASSIC, "CLASSIC", 0, "Classic", "Fast but less accurate variation"},
+    {CMP_NODE_KUWAHARA_CLASSIC,
+     "CLASSIC",
+     0,
+     N_("Classic"),
+     N_("Fast but less accurate variation")},
     {CMP_NODE_KUWAHARA_ANISOTROPIC,
      "ANISOTROPIC",
      0,
-     "Anisotropic",
-     "Accurate but slower variation"},
+     N_("Anisotropic"),
+     N_("Accurate but slower variation")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 static void cmp_node_kuwahara_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .hide_value()
       .structure_type(StructureType::Dynamic);
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic).align_with_previous();
+
   b.add_input<decl::Float>("Size")
       .default_value(6.0f)
       .min(0.0f)
@@ -81,8 +90,6 @@ static void cmp_node_kuwahara_declare(NodeDeclarationBuilder &b)
       .usage_by_single_menu(CMP_NODE_KUWAHARA_CLASSIC)
       .description(
           "Uses a more precise but slower method. Use if the output contains undesirable noise.");
-
-  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }
 
 static void node_composit_init_kuwahara(bNodeTree * /*ntree*/, bNode *node)

@@ -94,6 +94,14 @@ bool ED_scene_delete(bContext *C, Main *bmain, Scene *scene)
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
   WM_jobs_kill_all_from_owner(wm, scene);
 
+  /* Cancel animation playback. */
+  if (bScreen *screen = ED_screen_animation_playing(CTX_wm_manager(C))) {
+    ScreenAnimData *sad = static_cast<ScreenAnimData *>(screen->animtimer->customdata);
+    if (sad->scene == scene) {
+      ED_screen_animation_play(C, 0, 0);
+    }
+  }
+
   if (scene->id.prev) {
     scene_new = static_cast<Scene *>(scene->id.prev);
   }
@@ -368,13 +376,14 @@ static wmOperatorStatus new_sequencer_scene_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   wmWindow *win = CTX_wm_window(C);
-  Scene *scene_old = WM_window_get_active_scene(win);
+  WorkSpace *workspace = CTX_wm_workspace(C);
+  Scene *scene_old = workspace->sequencer_scene ? workspace->sequencer_scene :
+                                                  WM_window_get_active_scene(win);
   int type = RNA_enum_get(op->ptr, "type");
 
   Scene *new_scene = scene_add(bmain, scene_old, eSceneCopyMethod(type));
   blender::seq::editing_ensure(new_scene);
 
-  WorkSpace *workspace = CTX_wm_workspace(C);
   workspace->sequencer_scene = new_scene;
 
   WM_event_add_notifier(C, NC_WINDOW, nullptr);

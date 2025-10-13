@@ -87,7 +87,7 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
     mtlDevice = usable_devices[mtlDevId];
     metal_printf("Creating new Cycles Metal device: %s", info.description.c_str());
 
-    /* Ensure that back-compatability helpers for getting gpuAddress & gpuResourceID are set up. */
+    /* Ensure that back-compatibility helpers for getting gpuAddress & gpuResourceID are set up. */
     metal_gpu_address_helper_init(mtlDevice);
 
     /* Enable increased concurrent shader compiler limit.

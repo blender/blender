@@ -232,7 +232,7 @@ struct LayoutOverlap : public uiLayout {
 struct LayoutRadial : public uiLayout {
   LayoutRadial() : uiLayout(uiItemType::LayoutRadial, nullptr) {}
 
-  void estimate_impl() override{};
+  void estimate_impl() override {};
   void resolve_impl() override;
 };
 
@@ -3049,6 +3049,12 @@ void uiLayout::popover(const bContext *C,
   uiBut *but = ui_item_menu(
       layout, name, icon, ui_item_paneltype_func, pt, nullptr, TIP_(pt->description), true);
   but->type = ButType::Popover;
+
+  /* Override button size when there is no icon or label. */
+  if (layout->root()->type == blender::ui::LayoutType::VerticalBar && !icon && name.is_empty()) {
+    but->rect.xmax = but->rect.xmin + UI_UNIT_X;
+  }
+
   if (!ok) {
     but->flag |= UI_BUT_DISABLED;
   }
@@ -4897,7 +4903,7 @@ uiLayout &uiLayout::column_flow(int number, bool align)
   uiLayoutItemFlow *flow = MEM_new<uiLayoutItemFlow>(__func__);
   LayoutInternal::init_from_parent(flow, this, align);
 
-  flow->space_ = (flow->align()) ? 0 : root_->style->columnspace;
+  flow->space_ = flow->align() ? 0 : root_->style->columnspace;
   flow->number = number;
 
   blender::ui::block_layout_set_current(this->block(), flow);
@@ -4911,7 +4917,7 @@ uiLayout &uiLayout::grid_flow(
   uiLayoutItemGridFlow *flow = MEM_new<uiLayoutItemGridFlow>(__func__);
   LayoutInternal::init_from_parent(flow, this, align);
 
-  flow->space_ = (flow->align()) ? 0 : root_->style->columnspace;
+  flow->space_ = flow->align() ? 0 : root_->style->columnspace;
   flow->row_major = row_major;
   flow->columns_len = columns_len;
   flow->even_columns = even_columns;

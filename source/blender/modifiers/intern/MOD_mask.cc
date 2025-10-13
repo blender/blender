@@ -96,7 +96,7 @@ static void compute_vertex_mask__armature_mode(const MDeformVert *dvert,
 
   LISTBASE_FOREACH (bDeformGroup *, def, &mesh->vertex_group_names) {
     bPoseChannel *pchan = BKE_pose_channel_find_name(armature_ob->pose, def->name);
-    bool bone_for_group_exists = pchan && pchan->bone && (pchan->bone->flag & BONE_SELECTED);
+    bool bone_for_group_exists = pchan && pchan->bone && (pchan->flag & POSE_SELECTED);
     selected_bone_uses_group.append(bone_for_group_exists);
   }
   const int64_t total_size = selected_bone_uses_group.size();

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'7089def6cbcb')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'ceca413bcbf8')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-29 09:33+0000\n"
+"POT-Creation-Date: 2025-10-06 08:44+0000\n"
 "PO-Revision-Date: 2025-07-23 15:32+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -61,10 +61,6 @@ msgstr "AOV-kokoelam"
 
 msgid "F-Curves"
 msgstr "F-Käyrät"
-
-
-msgid "Action F-Curves"
-msgstr "Toiminta F-käyrät"
 
 
 msgid "Action Group"
@@ -233,14 +229,6 @@ msgstr "Toimintaryhmä on laajennettu graafieditorissa"
 
 msgid "Pin in Graph Editor"
 msgstr "Kiinnitä graafieditorissa"
-
-
-msgid "Action Groups"
-msgstr "Toimintaryhmät"
-
-
-msgid "Collection of action groups"
-msgstr "Toimintaryhmäkokoelma"
 
 
 msgid "Action Pose Markers"
@@ -820,10 +808,6 @@ msgstr "Noodieditori"
 
 msgid "Video Sequencer"
 msgstr "Videosekvensseri"
-
-
-msgid "Video editing tools"
-msgstr "Videoeditointityökalut"
 
 
 msgid "Movie Clip Editor"
@@ -7264,6 +7248,66 @@ msgid "Mask"
 msgstr "Maski"
 
 
+msgid "Add Image"
+msgstr "Lisää kuva"
+
+
+msgid "Read"
+msgstr "Lue"
+
+
+msgid "Write"
+msgstr "Kirjoita"
+
+
+msgid "Import"
+msgstr "Tuo"
+
+
+msgid "Text"
+msgstr "Teksti"
+
+
+msgid "Track"
+msgstr "Raide"
+
+
+msgid "Utilities"
+msgstr "Työkalut"
+
+
+msgid "Show/Hide"
+msgstr "Näytä/Piilota"
+
+
+msgid "Math"
+msgstr "Matematiikka"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Hooks"
+msgstr "Koukut"
+
+
+msgid "Random Mask"
+msgstr "Satunnainen maski"
+
+
+msgid "Names"
+msgstr "Nimet"
+
+
+msgid "Mesh Select Mode"
+msgstr "Muodon valintatila"
+
+
+msgid "Metaball"
+msgstr "Metapallo"
+
+
 msgid "UV Mapping"
 msgstr "UV-kartoittaminen"
 
@@ -7284,10 +7328,6 @@ msgid "Select Loops"
 msgstr "Valitse silmukat"
 
 
-msgid "Metaball"
-msgstr "Metapallo"
-
-
 msgid "Light"
 msgstr "Valo"
 
@@ -7296,64 +7336,8 @@ msgid "Light Probe"
 msgstr "Valoluotain"
 
 
-msgid "Add Image"
-msgstr "Lisää kuva"
-
-
-msgid "Utilities"
-msgstr "Työkalut"
-
-
-msgid "Track"
-msgstr "Raide"
-
-
-msgid "Show/Hide"
-msgstr "Näytä/Piilota"
-
-
-msgid "Hooks"
-msgstr "Koukut"
-
-
-msgid "Random Mask"
-msgstr "Satunnainen maski"
-
-
-msgid "Names"
-msgstr "Nimet"
-
-
-msgid "Mesh Select Mode"
-msgstr "Muodon valintatila"
-
-
-msgid "Read"
-msgstr "Lue"
-
-
-msgid "Write"
-msgstr "Kirjoita"
-
-
 msgid "Instances"
 msgstr "Instanssit"
-
-
-msgid "Text"
-msgstr "Teksti"
-
-
-msgid "Import"
-msgstr "Tuo"
-
-
-msgid "Math"
-msgstr "Matematiikka"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Basic"
@@ -10370,10 +10354,6 @@ msgid "Cursor Y-Value"
 msgstr "Kursorin Y-arvo"
 
 
-msgid "Edit drivers"
-msgstr "Muokkaa ajureitea"
-
-
 msgid "Individual Centers"
 msgstr "Yksittäiset keskukset"
 
@@ -10414,24 +10394,8 @@ msgid "Display image with RGB colors"
 msgstr "Näytä kuva RGB-kanavilla"
 
 
-msgid "View the image"
-msgstr "Katso kuvaa"
-
-
 msgid "UV Editor"
 msgstr "UV-editori"
-
-
-msgid "UV edit in mesh editmode"
-msgstr "UV-muokkaus muodon muokkaustilassa"
-
-
-msgid "2D image painting mode"
-msgstr "2D-kuvan maalaustila"
-
-
-msgid "Mask editing"
-msgstr "Maskin muokkaus"
 
 
 msgid "Pivot around the 3D cursor"
@@ -11699,11 +11663,6 @@ msgstr "Kokonaisluku"
 msgctxt "Volume"
 msgid "Mask"
 msgstr "Maski"
-
-
-msgctxt "Volume"
-msgid "Float Vector"
-msgstr "Liukulukuvektori"
 
 
 msgctxt "Volume"
@@ -15628,10 +15587,6 @@ msgid "Start Position"
 msgstr "Aloitussijainti"
 
 
-msgid "Fac"
-msgstr "Tekijä"
-
-
 msgid "Key Color"
 msgstr "Avainväri"
 
@@ -15678,6 +15633,10 @@ msgstr "Ulkomaski"
 
 msgid "Inner Mask"
 msgstr "Sisämarki"
+
+
+msgid "Fac"
+msgstr "Tekijä"
 
 
 msgid "Offset Y"
@@ -16364,10 +16323,6 @@ msgstr "Käyräinstanssit"
 
 msgid "Remainder"
 msgstr "Jakojäännös"
-
-
-msgid "Warnings ({})"
-msgstr "Varoitukset ({})"
 
 
 msgid "Bake Path"

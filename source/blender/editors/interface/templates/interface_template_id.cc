@@ -678,7 +678,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
       break;
     case UI_ID_RENAME:
       /* Only for the undo push. */
-      undo_push_label = "Rename Data-Block";
+      undo_push_label = CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Rename Data-Block");
       break;
     case UI_ID_BROWSE:
     case UI_ID_PIN:
@@ -698,10 +698,10 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
         id_us_clear_real(id);
         id_fake_user_clear(id);
         id->us = 0;
-        undo_push_label = "Delete Data-Block";
+        undo_push_label = CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Delete Data-Block");
       }
       else {
-        undo_push_label = "Unlink Data-Block";
+        undo_push_label = CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Unlink Data-Block");
       }
 
       break;
@@ -713,7 +713,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
         else {
           id_us_min(id);
         }
-        undo_push_label = "Fake User";
+        undo_push_label = CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Fake User");
       }
       else {
         return;
@@ -731,7 +731,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 
             /* Reassign to get proper updates/notifiers. */
             idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
-            undo_push_label = "Make Local";
+            undo_push_label = CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Make Local");
           }
         }
         if (undo_push_label != nullptr) {
@@ -752,7 +752,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
           idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
           RNA_property_pointer_set(&template_ui->ptr, template_ui->prop, idptr, nullptr);
           RNA_property_update(C, &template_ui->ptr, template_ui->prop);
-          undo_push_label = "Make Local";
+          undo_push_label = CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Make Local");
         }
       }
       break;
@@ -776,7 +776,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
           DEG_relations_tag_update(bmain);
         }
         BKE_main_ensure_invariants(*CTX_data_main(C));
-        undo_push_label = "Make Single User";
+        undo_push_label = CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Make Single User");
       }
       break;
 #if 0

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'7089def6cbcb')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'ceca413bcbf8')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-29 09:33+0000\n"
+"POT-Creation-Date: 2025-10-06 08:44+0000\n"
 "PO-Revision-Date: 2025-07-23 15:21+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Hausa <https://translate.blender.org/projects/blender-ui/ui/ha/>\n"
@@ -17,10 +17,6 @@ msgstr ""
 
 msgid "Name"
 msgstr "Suna"
-
-
-msgid "Action F-Curves"
-msgstr "Aikin F-Curves"
 
 
 msgid "Action Group"
@@ -101,14 +97,6 @@ msgstr "An zabi aikin kungiya"
 
 msgid "Expanded"
 msgstr "budadde"
-
-
-msgid "Action Groups"
-msgstr "Aikin kungiyoyi"
-
-
-msgid "Collection of action groups"
-msgstr "Karban aikin kungiyoyi"
 
 
 msgid "Action Pose Markers"

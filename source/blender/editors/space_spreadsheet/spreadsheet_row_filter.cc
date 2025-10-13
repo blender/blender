@@ -122,6 +122,32 @@ static IndexMask apply_row_filter(const SpreadsheetRowFilter &row_filter,
       }
     }
   }
+  else if (column_data.type().is<int64_t>()) {
+    const int64_t value = row_filter.value_int;
+    switch (row_filter.operation) {
+      case SPREADSHEET_ROW_FILTER_EQUAL: {
+        return apply_filter_operation(
+            column_data.typed<int64_t>(),
+            [&](const int64_t cell) { return cell == value; },
+            prev_mask,
+            memory);
+      }
+      case SPREADSHEET_ROW_FILTER_GREATER: {
+        return apply_filter_operation(
+            column_data.typed<int64_t>(),
+            [value](const int64_t cell) { return cell > value; },
+            prev_mask,
+            memory);
+      }
+      case SPREADSHEET_ROW_FILTER_LESS: {
+        return apply_filter_operation(
+            column_data.typed<int64_t>(),
+            [&](const int64_t cell) { return cell < value; },
+            prev_mask,
+            memory);
+      }
+    }
+  }
   else if (column_data.type().is<int2>()) {
     const int2 value = row_filter.value_int2;
     switch (row_filter.operation) {
@@ -143,6 +169,36 @@ static IndexMask apply_row_filter(const SpreadsheetRowFilter &row_filter,
         return apply_filter_operation(
             column_data.typed<int2>(),
             [&](const int2 cell) { return cell.x < value.x && cell.y < value.y; },
+            prev_mask,
+            memory);
+      }
+    }
+  }
+  else if (column_data.type().is<int3>()) {
+    const int3 value = row_filter.value_int3;
+    switch (row_filter.operation) {
+      case SPREADSHEET_ROW_FILTER_EQUAL: {
+        return apply_filter_operation(
+            column_data.typed<int3>(),
+            [&](const int3 cell) { return cell == value; },
+            prev_mask,
+            memory);
+      }
+      case SPREADSHEET_ROW_FILTER_GREATER: {
+        return apply_filter_operation(
+            column_data.typed<int3>(),
+            [&](const int3 cell) {
+              return cell.x > value.x && cell.y > value.y && cell.z > value.z;
+            },
+            prev_mask,
+            memory);
+      }
+      case SPREADSHEET_ROW_FILTER_LESS: {
+        return apply_filter_operation(
+            column_data.typed<int3>(),
+            [&](const int3 cell) {
+              return cell.x < value.x && cell.y < value.y && cell.z < value.z;
+            },
             prev_mask,
             memory);
       }

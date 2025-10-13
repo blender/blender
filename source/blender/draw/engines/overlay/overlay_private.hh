@@ -153,6 +153,8 @@ struct State {
   bool draw_background = false;
   /** True if the render engine outputs satisfactory depth information to the depth buffer. */
   bool is_render_depth_available = false;
+  /** Whether we should render a vignette over the scene. */
+  bool vignette_enabled = false;
   /** Should text draw in this mode? */
   bool show_text = false;
   bool hide_overlays = false;
@@ -566,7 +568,7 @@ class ShaderModule {
 
  private:
   ShaderModule(const SelectionType selection_type, const bool clipping_enabled)
-      : selection_type_(selection_type), clipping_enabled_(clipping_enabled){};
+      : selection_type_(selection_type), clipping_enabled_(clipping_enabled) {};
 
   StaticShader shader_clippable(const char *create_info_name);
   StaticShader shader_selectable(const char *create_info_name);
@@ -669,7 +671,7 @@ struct Resources : public select::SelectMap {
   const ShapeCache &shapes;
 
   Resources(const SelectionType selection_type_, const ShapeCache &shapes_)
-      : select::SelectMap(selection_type_), shapes(shapes_){};
+      : select::SelectMap(selection_type_), shapes(shapes_) {};
 
   ~Resources()
   {
@@ -1012,24 +1014,26 @@ struct FlatObjectRef {
     return -1;
   }
 
-  using Callback = FunctionRef<void(gpu::Batch *geom, ResourceHandleRange handle)>;
+  using Callback = FunctionRef<void(gpu::Batch *geom, ResourceIndex handle)>;
 
   /* Execute callback for every handles that is orthogonal to the view.
    * Note: Only works in orthogonal view. */
   void if_flat_axis_orthogonal_to_view(Manager &manager, const View &view, Callback callback) const
   {
-    const float4x4 &object_to_world =
-        manager.matrix_buf.current().get_or_resize(handle.resource_index()).model;
+    for (ResourceIndex resource_index : handle.index_range()) {
+      const float4x4 &object_to_world =
+          manager.matrix_buf.current().get_or_resize(resource_index.resource_index()).model;
 
-    float3 view_forward = view.forward();
-    float3 axis_not_flat_a = (flattened_axis_id == 0) ? object_to_world.y_axis() :
-                                                        object_to_world.x_axis();
-    float3 axis_not_flat_b = (flattened_axis_id == 1) ? object_to_world.z_axis() :
-                                                        object_to_world.y_axis();
-    float3 axis_flat = math::cross(axis_not_flat_a, axis_not_flat_b);
+      float3 view_forward = view.forward();
+      float3 axis_not_flat_a = (flattened_axis_id == 0) ? object_to_world.y_axis() :
+                                                          object_to_world.x_axis();
+      float3 axis_not_flat_b = (flattened_axis_id == 1) ? object_to_world.z_axis() :
+                                                          object_to_world.y_axis();
+      float3 axis_flat = math::cross(axis_not_flat_a, axis_not_flat_b);
 
-    if (math::abs(math::dot(view_forward, axis_flat)) < 1e-3f) {
-      callback(geom, handle);
+      if (math::abs(math::dot(view_forward, axis_flat)) < 1e-3f) {
+        callback(geom, resource_index);
+      }
     }
   }
 };
@@ -1042,7 +1046,7 @@ template<typename InstanceDataT> struct ShapeInstanceBuf : private select::Selec
   StorageVectorBuffer<InstanceDataT> data_buf;
 
   ShapeInstanceBuf(const SelectionType selection_type, const char *name = nullptr)
-      : select::SelectBuf(selection_type), data_buf(name){};
+      : select::SelectBuf(selection_type), data_buf(name) {};
 
   void clear()
   {
@@ -1089,7 +1093,7 @@ struct VertexPrimitiveBuf {
   int color_id = 0;
 
   VertexPrimitiveBuf(const SelectionType selection_type, const char *name = nullptr)
-      : select_buf(selection_type), data_buf(name){};
+      : select_buf(selection_type), data_buf(name) {};
 
   void append(const float3 &position, const float4 &color)
   {

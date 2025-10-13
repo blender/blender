@@ -103,7 +103,7 @@ void strip_unique_name_set(Scene *scene, ListBase *seqbasep, Strip *strip)
   while (sui.match) {
     sui.match = 0;
     seqbase_unique_name(seqbasep, &sui);
-    for_each_callback(seqbasep, seqbase_unique_name_recursive_fn, &sui);
+    foreach_strip(seqbasep, seqbase_unique_name_recursive_fn, &sui);
   }
 
   edit_strip_name_set(scene, strip, sui.name_dest);

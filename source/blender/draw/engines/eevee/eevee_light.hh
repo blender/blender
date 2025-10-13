@@ -175,7 +175,7 @@ class LightModule {
   PassSimple debug_draw_ps_ = {"LightCulling.Debug"};
 
  public:
-  LightModule(Instance &inst) : inst_(inst){};
+  LightModule(Instance &inst) : inst_(inst) {};
   ~LightModule();
 
   void begin_sync();

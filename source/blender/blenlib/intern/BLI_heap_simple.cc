@@ -22,7 +22,7 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
-#define HEAP_PARENT(i) (((i)-1) >> 1)
+#define HEAP_PARENT(i) (((i) - 1) >> 1)
 
 /* -------------------------------------------------------------------- */
 /** \name HeapSimple Internal Structs

@@ -155,6 +155,7 @@ static void compute_deep_hash_recursive(const Main &bmain,
   }
 
   XXH3_state_t *hash_state = XXH3_createState();
+  BLI_SCOPED_DEFER([&hash_state]() -> void { XXH3_freeState(hash_state); })
   XXH3_128bits_reset(hash_state);
   XXH3_128bits_update(hash_state, &*id_shallow_hash, sizeof(XXH128_hash_t));
 
@@ -208,7 +209,6 @@ static void compute_deep_hash_recursive(const Main &bmain,
   }
   IDHash new_deep_hash;
   const XXH128_hash_t new_deep_hash_xxh128 = XXH3_128bits_digest(hash_state);
-  XXH3_freeState(hash_state);
   static_assert(sizeof(IDHash) == sizeof(XXH128_hash_t));
   memcpy(new_deep_hash.data, &new_deep_hash_xxh128, sizeof(IDHash));
   r_hashes.add(&id, new_deep_hash);

@@ -91,6 +91,8 @@ bool edit_strip_swap(Scene *scene, Strip *strip_a, Strip *strip_b, const char **
   strip_time_effect_range_set(scene, strip_a);
   strip_time_effect_range_set(scene, strip_b);
 
+  strip_lookup_invalidate(editing_get(scene));
+
   return true;
 }
 

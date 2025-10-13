@@ -110,8 +110,8 @@ class MotionBlurModule {
   int3 dispatch_gather_size_ = int3(0);
 
  public:
-  MotionBlurModule(Instance &inst) : inst_(inst){};
-  ~MotionBlurModule(){};
+  MotionBlurModule(Instance &inst) : inst_(inst) {};
+  ~MotionBlurModule() {};
 
   void init();
 

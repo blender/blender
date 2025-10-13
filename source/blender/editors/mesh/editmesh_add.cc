@@ -74,6 +74,8 @@ static void make_prim_finish(bContext *C,
   /* Primitive has all verts selected, use vert select flush
    * to push this up to edges & faces. */
   EDBM_selectmode_flush_ex(em, SCE_SELECT_VERTEX);
+  /* TODO(@ideasman42): maintain UV sync for newly created data. */
+  EDBM_uvselect_clear(em);
 
   /* Only recalculate edit-mode tessellation if we are staying in edit-mode. */
   EDBMUpdate_Params params{};

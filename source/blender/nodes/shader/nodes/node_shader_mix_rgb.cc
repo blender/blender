@@ -22,7 +22,11 @@ namespace blender::nodes::node_shader_mix_rgb_cc {
 static void sh_node_mix_rgb_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>("Fac").default_value(0.5f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>("Factor", "Fac")
+      .default_value(0.5f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR);
   b.add_input<decl::Color>("Color1").default_value({0.5f, 0.5f, 0.5f, 1.0f});
   b.add_input<decl::Color>("Color2").default_value({0.5f, 0.5f, 0.5f, 1.0f});
   b.add_output<decl::Color>("Color");
@@ -137,7 +141,7 @@ class MixRGBFunction : public mf::MultiFunction {
     });
 
     if (clamp_) {
-      mask.foreach_index([&](const int64_t i) { clamp_v3(results[i], 0.0f, 1.0f); });
+      mask.foreach_index([&](const int64_t i) { clamp_v4(results[i], 0.0f, 1.0f); });
     }
   }
 };

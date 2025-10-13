@@ -64,11 +64,11 @@ template<typename T> struct EulerBase {
 
   EulerBase() = default;
 
-  EulerBase(const AngleT &x, const AngleT &y, const AngleT &z) : xyz_(x, y, z){};
+  EulerBase(const AngleT &x, const AngleT &y, const AngleT &z) : xyz_(x, y, z) {};
 
-  EulerBase(const VecBase<AngleT, 3> &vec) : xyz_(vec){};
+  EulerBase(const VecBase<AngleT, 3> &vec) : xyz_(vec) {};
 
-  EulerBase(const VecBase<T, 3> &vec) : xyz_(vec.x, vec.y, vec.z){};
+  EulerBase(const VecBase<T, 3> &vec) : xyz_(vec.x, vec.y, vec.z) {};
 
  public:
   /** Static functions. */
@@ -144,7 +144,7 @@ template<typename T> struct EulerXYZBase : public EulerBase<T> {
    */
   template<typename AngleU> EulerXYZBase(const VecBase<AngleU, 3> &vec) : EulerBase<T>(vec){};
 
-  EulerXYZBase(const AngleT &x, const AngleT &y, const AngleT &z) : EulerBase<T>(x, y, z){};
+  EulerXYZBase(const AngleT &x, const AngleT &y, const AngleT &z) : EulerBase<T>(x, y, z) {};
 
   /**
    * Create a rotation from an basis axis and an angle.
@@ -216,7 +216,7 @@ template<typename T> struct Euler3Base : public EulerBase<T> {
     Euler3Base &eul_;
 
    public:
-    explicit Swizzle(Euler3Base &eul) : eul_(eul){};
+    explicit Swizzle(Euler3Base &eul) : eul_(eul) {};
 
     Euler3Base &operator=(const VecBase<AngleT, 3> &angles)
     {
@@ -250,7 +250,7 @@ template<typename T> struct Euler3Base : public EulerBase<T> {
       : EulerBase<T>(angles_xyz), order_(order){};
 
   Euler3Base(const AngleT &x, const AngleT &y, const AngleT &z, EulerOrder order)
-      : EulerBase<T>(x, y, z), order_(order){};
+      : EulerBase<T>(x, y, z), order_(order) {};
 
   /**
    * Create a rotation around a single euler axis and an angle.
@@ -264,7 +264,7 @@ template<typename T> struct Euler3Base : public EulerBase<T> {
    * Defines rotation order but not the rotation values.
    * Used for conversion from other rotation types.
    */
-  Euler3Base(EulerOrder order) : order_(order){};
+  Euler3Base(EulerOrder order) : order_(order) {};
 
   /** Methods. */
 

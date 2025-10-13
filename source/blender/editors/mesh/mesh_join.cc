@@ -59,12 +59,8 @@ static VectorSet<std::string> join_vertex_groups(const Span<const Object *> obje
                                                  Mesh &dst_mesh)
 {
   VectorSet<std::string> vertex_group_names;
-  LISTBASE_FOREACH (const bDeformGroup *, dg, &dst_mesh.vertex_group_names) {
-    vertex_group_names.add_new(dg->name);
-  }
-
   bool any_vertex_group_data = false;
-  for (const int i : objects_to_join.index_range().drop_front(1)) {
+  for (const int i : objects_to_join.index_range()) {
     const Mesh &mesh = *static_cast<const Mesh *>(objects_to_join[i]->data);
     any_vertex_group_data |= CustomData_has_layer(&mesh.vert_data, CD_MDEFORMVERT);
     LISTBASE_FOREACH (const bDeformGroup *, dg, &mesh.vertex_group_names) {
@@ -81,9 +77,9 @@ static VectorSet<std::string> join_vertex_groups(const Span<const Object *> obje
   MDeformVert *dvert = (MDeformVert *)CustomData_add_layer(
       &dst_mesh.vert_data, CD_MDEFORMVERT, CD_CONSTRUCT, dst_mesh.verts_num);
 
-  for (const int i : objects_to_join.index_range().drop_front(1)) {
+  for (const int i : objects_to_join.index_range()) {
     const Mesh &src_mesh = *static_cast<const Mesh *>(objects_to_join[i]->data);
-    const Span<MDeformVert> src_dverts = src_mesh.deform_verts().take_front(vert_ranges[i].size());
+    const Span<MDeformVert> src_dverts = src_mesh.deform_verts();
     if (src_dverts.is_empty()) {
       continue;
     }
@@ -106,29 +102,120 @@ static VectorSet<std::string> join_vertex_groups(const Span<const Object *> obje
   return vertex_group_names;
 }
 
-static void join_positions_and_shape_keys(Main *bmain,
-                                          const Span<const Object *> objects_to_join,
-                                          const OffsetIndices<int> vert_ranges,
-                                          const float4x4 &world_to_dst_mesh,
-                                          Mesh &dst_mesh)
+static void join_positions(const Span<const Object *> objects_to_join,
+                           const OffsetIndices<int> vert_ranges,
+                           const float4x4 &world_to_dst_mesh,
+                           Mesh &dst_mesh)
 {
+  MutableSpan<float3> dst_positions = dst_mesh.vert_positions_for_write();
+  for (const int i : objects_to_join.index_range()) {
+    const Object &src_object = *objects_to_join[i];
+    const IndexRange dst_range = vert_ranges[i];
+    const Mesh &src_mesh = *static_cast<const Mesh *>(src_object.data);
+    const Span<float3> src_positions = src_mesh.vert_positions();
+    const float4x4 transform = world_to_dst_mesh * src_object.object_to_world();
+    math::transform_points(src_positions, transform, dst_positions.slice(dst_range));
+  }
+}
+
+static void join_normals(const Span<const Object *> objects_to_join,
+                         const OffsetIndices<int> vert_ranges,
+                         const OffsetIndices<int> face_ranges,
+                         const OffsetIndices<int> corner_ranges,
+                         const float4x4 &world_to_dst_mesh,
+                         Mesh &dst_mesh)
+{
+  bke::mesh::NormalJoinInfo normal_info;
+  for (const Object *object : objects_to_join) {
+    const Mesh &mesh = *static_cast<const Mesh *>(object->data);
+    normal_info.add_mesh(mesh);
+  }
+
+  bke::MutableAttributeAccessor dst_attributes = dst_mesh.attributes_for_write();
+  switch (normal_info.result_type) {
+    case bke::mesh::NormalJoinInfo::Output::None: {
+      break;
+    }
+    case bke::mesh::NormalJoinInfo::Output::CornerFan: {
+      bke::SpanAttributeWriter dst_attr = dst_attributes.lookup_or_add_for_write_only_span<short2>(
+          "custom_normal", bke::AttrDomain::Corner);
+      for (const int i : objects_to_join.index_range()) {
+        const Object &src_object = *objects_to_join[i];
+        const Mesh &src_mesh = *static_cast<const Mesh *>(src_object.data);
+        const bke::AttributeAccessor attributes = src_mesh.attributes();
+        const bke::GAttributeReader src = attributes.lookup("custom_normal");
+        if (!src) {
+          dst_attr.span.slice(corner_ranges[i]).fill(short2(0));
+          continue;
+        }
+        const bke::AttrType data_type = bke::cpp_type_to_attribute_type(src.varray.type());
+        if (!bke::mesh::is_corner_fan_normals({src.domain, data_type})) {
+          dst_attr.span.slice(corner_ranges[i]).fill(short2(0));
+          continue;
+        }
+        src.typed<short2>().varray.materialize(dst_attr.span.slice(corner_ranges[i]));
+      }
+      dst_attr.finish();
+      break;
+    }
+    case bke::mesh::NormalJoinInfo::Output::Free: {
+      bke::SpanAttributeWriter dst_attr = dst_attributes.lookup_or_add_for_write_only_span<float3>(
+          "custom_normal", *normal_info.result_domain);
+      for (const int i : objects_to_join.index_range()) {
+        const Object &src_object = *objects_to_join[i];
+        const Mesh &src_mesh = *static_cast<const Mesh *>(src_object.data);
+        switch (*normal_info.result_domain) {
+          case bke::AttrDomain::Point:
+            math::transform_normals(src_mesh.vert_normals(),
+                                    float3x3(world_to_dst_mesh),
+                                    dst_attr.span.slice(vert_ranges[i]));
+            break;
+          case bke::AttrDomain::Face:
+            math::transform_normals(src_mesh.face_normals(),
+                                    float3x3(world_to_dst_mesh),
+                                    dst_attr.span.slice(face_ranges[i]));
+            break;
+          case bke::AttrDomain::Corner:
+            math::transform_normals(src_mesh.corner_normals(),
+                                    float3x3(world_to_dst_mesh),
+                                    dst_attr.span.slice(corner_ranges[i]));
+            break;
+          default:
+            BLI_assert_unreachable();
+        }
+      }
+      dst_attr.finish();
+      break;
+    }
+  }
+}
+
+static void join_shape_keys(Main *bmain,
+                            const Span<const Object *> objects_to_join,
+                            const OffsetIndices<int> vert_ranges,
+                            const float4x4 &world_to_active_mesh,
+                            Mesh &active_mesh)
+{
+  const int dst_verts_num = vert_ranges.total_size();
   Vector<KeyBlock *> key_blocks;
   VectorSet<std::string> key_names;
-  if (Key *key = dst_mesh.key) {
+  if (Key *key = active_mesh.key) {
     LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
+      kb->data = MEM_reallocN(kb->data, sizeof(float3) * dst_verts_num);
+      kb->totelem = dst_verts_num;
       key_names.add_new(kb->name);
       key_blocks.append(kb);
     }
   }
 
   const auto ensure_dst_key = [&]() {
-    if (!dst_mesh.key) {
-      dst_mesh.key = BKE_key_add(bmain, &dst_mesh.id);
-      dst_mesh.key->type = KEY_RELATIVE;
+    if (!active_mesh.key) {
+      active_mesh.key = BKE_key_add(bmain, &active_mesh.id);
+      active_mesh.key->type = KEY_RELATIVE;
     }
   };
 
-  MutableSpan<float3> dst_positions = dst_mesh.vert_positions_for_write();
+  const Span<float3> active_mesh_positions = active_mesh.vert_positions();
 
   for (const int i : objects_to_join.index_range().drop_front(1)) {
     const Key *src_key = static_cast<const Mesh *>(objects_to_join[i]->data)->key;
@@ -138,15 +225,14 @@ static void join_positions_and_shape_keys(Main *bmain,
     ensure_dst_key();
     LISTBASE_FOREACH (const KeyBlock *, src_kb, &src_key->block) {
       if (key_names.add_as(src_kb->name)) {
-        KeyBlock *dst_kb = BKE_keyblock_add(dst_mesh.key, src_kb->name);
+        KeyBlock *dst_kb = BKE_keyblock_add(active_mesh.key, src_kb->name);
         BKE_keyblock_copy_settings(dst_kb, src_kb);
-        dst_kb->data = MEM_malloc_arrayN<float3>(dst_mesh.verts_num, __func__);
-        dst_kb->totelem = dst_mesh.verts_num;
+        dst_kb->data = MEM_malloc_arrayN<float3>(dst_verts_num, __func__);
+        dst_kb->totelem = dst_verts_num;
 
         /* Initialize the new shape key data with the base positions for the active object. */
         MutableSpan<float3> key_data(static_cast<float3 *>(dst_kb->data), dst_kb->totelem);
-        key_data.take_front(vert_ranges[0].size())
-            .copy_from(dst_positions.take_front(vert_ranges[0].size()));
+        key_data.take_front(vert_ranges[0].size()).copy_from(active_mesh_positions);
 
         /* Remap `KeyBlock::relative`. */
         if (const KeyBlock *src_kb_relative = static_cast<KeyBlock *>(
@@ -158,27 +244,28 @@ static void join_positions_and_shape_keys(Main *bmain,
     }
   }
 
+  Key *dst_key = active_mesh.key;
+  if (!dst_key) {
+    return;
+  }
+
   for (const int i : objects_to_join.index_range().drop_front(1)) {
     const Object &src_object = *objects_to_join[i];
     const IndexRange dst_range = vert_ranges[i];
     const Mesh &src_mesh = *static_cast<const Mesh *>(src_object.data);
-    const Span<float3> src_positions = src_mesh.vert_positions().take_front(dst_range.size());
-    const float4x4 transform = world_to_dst_mesh * src_object.object_to_world();
-    math::transform_points(src_positions, transform, dst_positions.slice(dst_range));
+    const Span<float3> src_positions = src_mesh.vert_positions();
+    const float4x4 transform = world_to_active_mesh * src_object.object_to_world();
 
-    if (Key *dst_key = dst_mesh.key) {
-      LISTBASE_FOREACH (KeyBlock *, kb, &dst_key->block) {
-        MutableSpan<float3> key_data(static_cast<float3 *>(kb->data), kb->totelem);
-        if (const KeyBlock *src_kb = src_mesh.key ?
-                                         BKE_keyblock_find_name(src_mesh.key, kb->name) :
-                                         nullptr)
-        {
-          const Span<float3> src_kb_data(static_cast<float3 *>(src_kb->data), dst_range.size());
-          math::transform_points(src_kb_data, transform, key_data.slice(dst_range));
-        }
-        else {
-          key_data.slice(dst_range).copy_from(dst_positions.slice(dst_range));
-        }
+    LISTBASE_FOREACH (KeyBlock *, kb, &dst_key->block) {
+      MutableSpan<float3> key_data(static_cast<float3 *>(kb->data), kb->totelem);
+      if (const KeyBlock *src_kb = src_mesh.key ? BKE_keyblock_find_name(src_mesh.key, kb->name) :
+                                                  nullptr)
+      {
+        const Span<float3> src_kb_data(static_cast<float3 *>(src_kb->data), dst_range.size());
+        math::transform_points(src_kb_data, transform, key_data.slice(dst_range));
+      }
+      else {
+        math::transform_points(src_positions, transform, key_data.slice(dst_range));
       }
     }
   }
@@ -197,6 +284,7 @@ static void join_generic_attributes(const Span<const Object *> objects_to_join,
                             ".corner_vert",
                             ".corner_edge",
                             "material_index",
+                            "custom_normal",
                             ".sculpt_face_set"};
 
   Array<std::string> names;
@@ -247,7 +335,7 @@ static void join_generic_attributes(const Span<const Object *> objects_to_join,
     const bke::AttrType data_type = kinds[attr_i].data_type;
 
     bke::GSpanAttributeWriter dst = dst_attributes.lookup_for_write_span(name);
-    for (const int i : objects_to_join.index_range().drop_front(1)) {
+    for (const int i : objects_to_join.index_range()) {
       const Mesh &src_mesh = *static_cast<const Mesh *>(objects_to_join[i]->data);
       const bke::AttributeAccessor src_attributes = src_mesh.attributes();
       const GVArray src = *src_attributes.lookup_or_default(name, domain, data_type);
@@ -268,7 +356,7 @@ static void join_generic_attributes(const Span<const Object *> objects_to_join,
         }
       }();
 
-      src.materialize(IndexRange(dst_range.size()), dst.span.slice(dst_range).data());
+      src.materialize(dst.span.slice(dst_range).data());
     }
     dst.finish();
   }
@@ -301,13 +389,13 @@ static VectorSet<Material *> join_materials(const Span<const Object *> objects_t
     return materials;
   }
 
-  bke::SpanAttributeWriter dst_material_indices = dst_attributes.lookup_or_add_for_write_span<int>(
+  bke::SpanAttributeWriter dst_attr = dst_attributes.lookup_or_add_for_write_only_span<int>(
       "material_index", bke::AttrDomain::Face);
-  if (!dst_material_indices) {
+  if (!dst_attr) {
     return {};
   }
 
-  for (const int i : objects_to_join.index_range().drop_front(1)) {
+  for (const int i : objects_to_join.index_range()) {
     const Object &src_object = *objects_to_join[i];
     const IndexRange dst_range = face_ranges[i];
     const Mesh &src_mesh = *static_cast<const Mesh *>(src_object.data);
@@ -319,14 +407,13 @@ static VectorSet<Material *> join_materials(const Span<const Object *> objects_t
       Material *first_material = src_mesh.totcol == 0 ?
                                      nullptr :
                                      BKE_object_material_get(&const_cast<Object &>(src_object), 1);
-      dst_material_indices.span.slice(dst_range).fill(materials.index_of(first_material));
+      dst_attr.span.slice(dst_range).fill(materials.index_of(first_material));
       continue;
     }
 
     if (src_mesh.totcol == 0) {
       /* These material indices are invalid, but copy them anyway to avoid destroying user data. */
-      material_indices.materialize(dst_range.index_range(),
-                                   dst_material_indices.span.slice(dst_range));
+      material_indices.materialize(dst_range.index_range(), dst_attr.span.slice(dst_range));
       continue;
     }
 
@@ -341,11 +428,11 @@ static VectorSet<Material *> join_materials(const Span<const Object *> objects_t
     const int max = src_mesh.totcol - 1;
     for (const int face : dst_range.index_range()) {
       const int src = std::clamp(material_indices[face], 0, max);
-      dst_material_indices.span[dst_range[face]] = index_map[src];
+      dst_attr.span[dst_range[face]] = index_map[src];
     }
   }
 
-  dst_material_indices.finish();
+  dst_attr.finish();
 
   return materials;
 }
@@ -357,18 +444,23 @@ static void join_face_sets(const Span<const Object *> objects_to_join,
                            const OffsetIndices<int> face_ranges,
                            Mesh &dst_mesh)
 {
-  bke::MutableAttributeAccessor dst_attributes = dst_mesh.attributes_for_write();
-  bke::SpanAttributeWriter dst_face_sets = dst_attributes.lookup_for_write_span<int>(
-      ".sculpt_face_set");
-  if (!dst_face_sets) {
-    return;
-  }
-  if (dst_face_sets.domain != bke::AttrDomain::Face) {
+  if (std::none_of(objects_to_join.begin(), objects_to_join.end(), [](const Object *object) {
+        const Mesh &mesh = *static_cast<const Mesh *>(object->data);
+        return mesh.attributes().contains(".sculpt_face_set");
+      }))
+  {
     return;
   }
 
-  int max_face_set = 1;
-  for (const int i : objects_to_join.index_range().drop_front(1)) {
+  bke::MutableAttributeAccessor dst_attributes = dst_mesh.attributes_for_write();
+  bke::SpanAttributeWriter dst_face_sets = dst_attributes.lookup_or_add_for_write_span<int>(
+      ".sculpt_face_set", bke::AttrDomain::Face);
+  if (!dst_face_sets) {
+    return;
+  }
+
+  int max_face_set = 0;
+  for (const int i : objects_to_join.index_range()) {
     const Object &src_object = *objects_to_join[i];
     const IndexRange dst_range = face_ranges[i];
     const Mesh &src_mesh = *static_cast<const Mesh *>(src_object.data);
@@ -463,10 +555,9 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
 
   /* Only join meshes if there are verts to join,
    * there aren't too many, and we only had one mesh selected. */
-  Mesh *dst_mesh = (Mesh *)active_object->data;
-  Key *key = dst_mesh->key;
+  Mesh *active_mesh = (Mesh *)active_object->data;
 
-  if (ELEM(vert_ranges.total_size(), 0, dst_mesh->verts_num)) {
+  if (ELEM(vert_ranges.total_size(), 0, active_mesh->verts_num)) {
     BKE_report(op->reports, RPT_WARNING, "No mesh data to join");
     return OPERATOR_CANCELLED;
   }
@@ -480,39 +571,23 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  CustomData_realloc(&dst_mesh->vert_data, dst_mesh->verts_num, vert_ranges.total_size());
-  CustomData_realloc(&dst_mesh->edge_data, dst_mesh->edges_num, edge_ranges.total_size());
-  CustomData_realloc(&dst_mesh->face_data, dst_mesh->faces_num, face_ranges.total_size());
-  CustomData_realloc(&dst_mesh->corner_data, dst_mesh->corners_num, corner_ranges.total_size());
-  if (face_ranges.total_size() != dst_mesh->faces_num) {
-    implicit_sharing::resize_trivial_array(&dst_mesh->face_offset_indices,
-                                           &dst_mesh->runtime->face_offsets_sharing_info,
-                                           dst_mesh->faces_num,
-                                           face_ranges.total_size() + 1);
-  }
-  dst_mesh->verts_num = vert_ranges.total_size();
-  dst_mesh->edges_num = edge_ranges.total_size();
-  dst_mesh->faces_num = face_ranges.total_size();
-  dst_mesh->corners_num = corner_ranges.total_size();
-  if (Key *key = dst_mesh->key) {
-    LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
-      kb->data = MEM_reallocN(kb->data, sizeof(float3) * dst_mesh->verts_num);
-      kb->totelem = dst_mesh->verts_num;
-    }
-  }
-
-  BKE_mesh_runtime_clear_geometry(dst_mesh);
+  Mesh *dst_mesh = BKE_mesh_new_nomain(vert_ranges.total_size(),
+                                       edge_ranges.total_size(),
+                                       face_ranges.total_size(),
+                                       corner_ranges.total_size());
 
   /* Inverse transform for all selected meshes in this object,
    * See #object_join_exec for detailed comment on why the safe version is used. */
   float4x4 world_to_active_object;
   invert_m4_m4_safe_ortho(world_to_active_object.ptr(), active_object->object_to_world().ptr());
 
-  join_positions_and_shape_keys(
-      bmain, objects_to_join, vert_ranges, world_to_active_object, *dst_mesh);
+  join_shape_keys(bmain, objects_to_join, vert_ranges, world_to_active_object, *active_mesh);
+  join_positions(objects_to_join, vert_ranges, world_to_active_object, *dst_mesh);
+  join_normals(
+      objects_to_join, vert_ranges, face_ranges, corner_ranges, world_to_active_object, *dst_mesh);
 
   MutableSpan<int2> dst_edges = dst_mesh->edges_for_write();
-  for (const int i : objects_to_join.index_range().drop_front(1)) {
+  for (const int i : objects_to_join.index_range()) {
     const Object &src_object = *objects_to_join[i];
     const IndexRange dst_range = edge_ranges[i];
     const Mesh &src_mesh = *static_cast<const Mesh *>(src_object.data);
@@ -523,7 +598,7 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
   }
 
   MutableSpan<int> dst_corner_verts = dst_mesh->corner_verts_for_write();
-  for (const int i : objects_to_join.index_range().drop_front(1)) {
+  for (const int i : objects_to_join.index_range()) {
     const Object &src_object = *objects_to_join[i];
     const IndexRange dst_range = corner_ranges[i];
     const Mesh &src_mesh = *static_cast<const Mesh *>(src_object.data);
@@ -534,7 +609,7 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
   }
 
   MutableSpan<int> dst_corner_edges = dst_mesh->corner_edges_for_write();
-  for (const int i : objects_to_join.index_range().drop_front(1)) {
+  for (const int i : objects_to_join.index_range()) {
     const Object &src_object = *objects_to_join[i];
     const IndexRange dst_range = corner_ranges[i];
     const Mesh &src_mesh = *static_cast<const Mesh *>(src_object.data);
@@ -545,7 +620,7 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
   }
 
   MutableSpan<int> dst_face_offsets = dst_mesh->face_offsets_for_write();
-  for (const int i : objects_to_join.index_range().drop_front(1)) {
+  for (const int i : objects_to_join.index_range()) {
     const Object &src_object = *objects_to_join[i];
     const IndexRange dst_range = face_ranges[i];
     const Mesh &src_mesh = *static_cast<const Mesh *>(src_object.data);
@@ -555,24 +630,6 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
     }
   }
   dst_face_offsets.last() = dst_mesh->corners_num;
-
-  for (const int i : objects_to_join.index_range().drop_front(1)) {
-    const Object &src_object = *objects_to_join[i];
-    const Mesh &src_mesh = *static_cast<const Mesh *>(src_object.data);
-    const Key *src_key = src_mesh.key;
-    if (!src_key) {
-      continue;
-    }
-  }
-
-  for (const int i : objects_to_join.index_range().drop_front(1)) {
-    Object &src_object = *objects_to_join[i];
-    multiresModifier_prepare_join(depsgraph, scene, &src_object, active_object);
-    if (MultiresModifierData *mmd = get_multires_modifier(scene, &src_object, true)) {
-      object::iter_other(
-          bmain, &src_object, true, object::multires_update_totlevels, &mmd->totlvl);
-    }
-  }
 
   join_face_sets(objects_to_join, face_ranges, *dst_mesh);
 
@@ -589,6 +646,50 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
                           corner_ranges,
                           *dst_mesh);
 
+  /* Copy multires data to the out-of-main mesh. */
+  if (get_multires_modifier(scene, active_object, true)) {
+    if (std::any_of(objects_to_join.begin(), objects_to_join.end(), [](const Object *object) {
+          const Mesh &src_mesh = *static_cast<const Mesh *>(object->data);
+          return CustomData_has_layer(&src_mesh.corner_data, CD_MDISPS);
+        }))
+    {
+      MDisps *dst = static_cast<MDisps *>(CustomData_add_layer(
+          &dst_mesh->corner_data, CD_MDISPS, CD_CONSTRUCT, dst_mesh->corners_num));
+      for (const int i : objects_to_join.index_range()) {
+        const Mesh &src_mesh = *static_cast<const Mesh *>(objects_to_join[i]->data);
+        if (const void *src = CustomData_get_layer(&src_mesh.corner_data, CD_MDISPS)) {
+          CustomData_copy_elements(
+              CD_MDISPS, src, &dst[corner_ranges[i].first()], src_mesh.corners_num);
+        }
+      }
+    }
+    if (std::any_of(objects_to_join.begin(), objects_to_join.end(), [](const Object *object) {
+          const Mesh &src_mesh = *static_cast<const Mesh *>(object->data);
+          return CustomData_has_layer(&src_mesh.corner_data, CD_GRID_PAINT_MASK);
+        }))
+    {
+      GridPaintMask *dst = static_cast<GridPaintMask *>(CustomData_add_layer(
+          &dst_mesh->corner_data, CD_GRID_PAINT_MASK, CD_CONSTRUCT, dst_mesh->corners_num));
+      for (const int i : objects_to_join.index_range()) {
+        const Mesh &src_mesh = *static_cast<const Mesh *>(objects_to_join[i]->data);
+        if (const void *src = CustomData_get_layer(&src_mesh.corner_data, CD_GRID_PAINT_MASK)) {
+          CustomData_copy_elements(
+              CD_GRID_PAINT_MASK, src, &dst[corner_ranges[i].first()], src_mesh.corners_num);
+        }
+      }
+    }
+  }
+  for (const int i : objects_to_join.index_range().drop_front(1)) {
+    Object &src_object = *objects_to_join[i];
+    multiresModifier_prepare_join(depsgraph, scene, &src_object, active_object);
+    if (MultiresModifierData *mmd = get_multires_modifier(scene, &src_object, true)) {
+      object::iter_other(
+          bmain, &src_object, true, object::multires_update_totlevels, &mmd->totlvl);
+    }
+  }
+
+  BKE_mesh_nomain_to_mesh(dst_mesh, active_mesh, active_object, false);
+
   for (Object *object : objects_to_join.as_span().drop_front(1)) {
     object::base_free_and_unlink(bmain, scene, object);
   }
@@ -600,13 +701,13 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
     }
   }
   for (const int a : IndexRange(active_object->totcol)) {
-    if (Material *ma = dst_mesh->mat[a]) {
+    if (Material *ma = active_mesh->mat[a]) {
       id_us_min(&ma->id);
     }
   }
   MEM_SAFE_FREE(active_object->mat);
   MEM_SAFE_FREE(active_object->matbits);
-  MEM_SAFE_FREE(dst_mesh->mat);
+  MEM_SAFE_FREE(active_mesh->mat);
 
   /* If the object had no slots, don't add an empty one. */
   if (active_object->totcol == 0 && materials.size() == 1 && materials[0] == nullptr) {
@@ -616,9 +717,9 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
   const int totcol = materials.size();
   if (totcol) {
     VectorData data = materials.extract_vector().release();
-    dst_mesh->mat = data.data;
+    active_mesh->mat = data.data;
     for (const int i : IndexRange(totcol)) {
-      if (Material *ma = dst_mesh->mat[i]) {
+      if (Material *ma = active_mesh->mat[i]) {
         id_us_plus((ID *)ma);
       }
     }
@@ -626,14 +727,16 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
     active_object->matbits = MEM_calloc_arrayN<char>(totcol, __func__);
   }
 
-  active_object->totcol = dst_mesh->totcol = totcol;
+  active_object->totcol = active_mesh->totcol = totcol;
 
   /* other mesh users */
-  BKE_objects_materials_sync_length_all(bmain, (ID *)dst_mesh);
+  BKE_objects_materials_sync_length_all(bmain, &active_mesh->id);
 
   /* ensure newly inserted keys are time sorted */
-  if (key && (key->type != KEY_RELATIVE)) {
-    BKE_key_sort(key);
+  if (Key *key = active_mesh->key) {
+    if (key->type != KEY_RELATIVE) {
+      BKE_key_sort(key);
+    }
   }
 
   /* Due to dependency cycle some other object might access old derived data. */

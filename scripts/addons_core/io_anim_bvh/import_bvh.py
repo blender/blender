@@ -7,6 +7,7 @@ from math import radians, ceil
 import bpy
 from bpy.app.translations import pgettext_tip as tip_
 from mathutils import Vector, Euler, Matrix
+from bpy_extras import anim_utils
 
 
 class BVH_Node:
@@ -525,6 +526,7 @@ def bvh_node_dict2armature(
     # imported Actions while keeping Slot auto-assignment, which means that
     # all Actions should use the same slot name.
     action_slot = action.slots.new(arm_ob.id_type, "Slot")
+    channelbag = anim_utils.action_ensure_channelbag_for_slot(action, action_slot)
 
     arm_ob_adt.action = action
     arm_ob_adt.action_slot = action_slot
@@ -587,7 +589,7 @@ def bvh_node_dict2armature(
 
             # For each location x, y, z.
             for axis_i in range(3):
-                curve = action.fcurves.new(data_path=data_path, index=axis_i, action_group=bvh_node.name)
+                curve = channelbag.fcurves.new(data_path=data_path, index=axis_i, group_name=bvh_node.name)
                 keyframe_points = curve.keyframe_points
                 keyframe_points.add(num_frame)
 
@@ -631,7 +633,7 @@ def bvh_node_dict2armature(
 
             # For each euler angle x, y, z (or quaternion w, x, y, z).
             for axis_i in range(len(rotate[0])):
-                curve = action.fcurves.new(data_path=data_path, index=axis_i, action_group=bvh_node.name)
+                curve = channelbag.fcurves.new(data_path=data_path, index=axis_i, group_name=bvh_node.name)
                 keyframe_points = curve.keyframe_points
                 keyframe_points.add(num_frame)
 
@@ -641,7 +643,7 @@ def bvh_node_dict2armature(
                         rotate[frame_i][axis_i],
                     )
 
-    for cu in action.fcurves:
+    for cu in channelbag.fcurves:
         if IMPORT_LOOP:
             pass  # 2.5 doenst have cyclic now?
 

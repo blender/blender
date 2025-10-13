@@ -1183,6 +1183,11 @@ static bool surfacedeformBind(Object *ob,
   uint tedges_num = target->edges_num;
   int adj_result;
 
+  if (target->faces_num == 0) {
+    BKE_modifier_set_error(ob, (ModifierData *)smd_eval, "Target has no faces");
+    return false;
+  }
+
   SDefAdjacencyArray *vert_edges = MEM_calloc_arrayN<SDefAdjacencyArray>(target_verts_num,
                                                                          "SDefVertEdgeMap");
   if (vert_edges == nullptr) {
@@ -1206,7 +1211,7 @@ static bool surfacedeformBind(Object *ob,
     return false;
   }
 
-  smd_orig->verts = MEM_malloc_arrayN<SDefVert>(size_t(verts_num), "SDefBindVerts");
+  smd_orig->verts = MEM_calloc_arrayN<SDefVert>(size_t(verts_num), "SDefBindVerts");
   if (smd_orig->verts == nullptr) {
     BKE_modifier_set_error(ob, (ModifierData *)smd_eval, "Out of memory");
     freeAdjacencyMap(vert_edges, adj_array, edge_polys);
@@ -1370,7 +1375,7 @@ static void deformVert(void *__restrict userdata,
     }
 
     normal_poly_v3(
-        norm, reinterpret_cast<const float(*)[3]>(coords_buffer.data()), sdbind->verts_num);
+        norm, reinterpret_cast<const float (*)[3]>(coords_buffer.data()), sdbind->verts_num);
     zero_v3(temp);
 
     switch (sdbind->mode) {
@@ -1394,7 +1399,7 @@ static void deformVert(void *__restrict userdata,
       case MOD_SDEF_MODE_CENTROID: {
         float cent[3];
         mid_v3_v3_array(
-            cent, reinterpret_cast<const float(*)[3]>(coords_buffer.data()), sdbind->verts_num);
+            cent, reinterpret_cast<const float (*)[3]>(coords_buffer.data()), sdbind->verts_num);
 
         madd_v3_v3fl(temp, data->targetCos[sdbind->vert_inds[0]], sdbind->vert_weights[0]);
         madd_v3_v3fl(temp, data->targetCos[sdbind->vert_inds[1]], sdbind->vert_weights[1]);
@@ -1565,7 +1570,7 @@ static void deform_verts(ModifierData *md,
 {
   surfacedeformModifier_do(md,
                            ctx,
-                           reinterpret_cast<float(*)[3]>(positions.data()),
+                           reinterpret_cast<float (*)[3]>(positions.data()),
                            positions.size(),
                            ctx->object,
                            mesh);

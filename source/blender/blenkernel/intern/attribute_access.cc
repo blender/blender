@@ -219,12 +219,6 @@ bool allow_procedural_attribute_access(StringRef attribute_name)
   if (attribute_name == ".reference_index") {
     return false;
   }
-  if (attribute_name.startswith("." UV_VERTSEL_NAME ".")) {
-    return false;
-  }
-  if (attribute_name.startswith("." UV_EDGESEL_NAME ".")) {
-    return false;
-  }
   if (attribute_name.startswith("." UV_PINNED_NAME ".")) {
     return false;
   }

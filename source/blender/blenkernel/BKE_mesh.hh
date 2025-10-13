@@ -20,7 +20,10 @@ namespace blender::bke {
 
 enum class AttrDomain : int8_t;
 enum class AttrType : int16_t;
+struct AttributeMetaData;
 struct AttributeAccessorFunctions;
+
+struct AttributeFilter;
 
 namespace mesh {
 /* -------------------------------------------------------------------- */
@@ -249,6 +252,23 @@ void edges_sharp_from_angle_set(OffsetIndices<int> faces,
                                 const float split_angle,
                                 MutableSpan<bool> sharp_edges);
 
+/** Return true if the type and domain represent the tangent-space custom normals storage. */
+bool is_corner_fan_normals(const AttributeMetaData &meta_data);
+
+/** Tracks the storage format for a resulting mesh based on a combination of input meshes. */
+class NormalJoinInfo {
+ public:
+  enum class Output : int8_t { None, CornerFan, Free };
+  Output result_type = Output::None;
+  std::optional<bke::AttrDomain> result_domain;
+
+  void add_no_custom_normals(bke::MeshNormalDomain domain);
+  void add_corner_fan_normals();
+  void add_domain(bke::AttrDomain domain);
+  void add_free_normals(bke::AttrDomain domain);
+  void add_mesh(const Mesh &mesh);
+};
+
 }  // namespace mesh
 
 /**
@@ -365,6 +385,11 @@ Mesh *mesh_new_no_attributes(int verts_num, int edges_num, int faces_num, int co
 
 /** Calculate edges from faces. */
 void mesh_calc_edges(Mesh &mesh, bool keep_existing_edges, bool select_new_edges);
+
+void mesh_calc_edges(Mesh &mesh,
+                     bool keep_existing_edges,
+                     bool select_new_edges,
+                     const AttributeFilter &attribute_filter);
 
 void mesh_translate(Mesh &mesh, const float3 &translation, bool do_shape_keys);
 

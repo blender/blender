@@ -444,6 +444,7 @@ void MultiFunctionProcedureOperation::populate_operation_result(DOutputSocket ou
 mf::Variable *MultiFunctionProcedureOperation::convert_variable(mf::Variable *variable,
                                                                 const mf::DataType expected_type)
 {
+  /* Conversion not needed. */
   const mf::DataType variable_type = variable->data_type();
   if (variable_type == expected_type) {
     return variable;
@@ -452,6 +453,16 @@ mf::Variable *MultiFunctionProcedureOperation::convert_variable(mf::Variable *va
   const bke::DataTypeConversions &conversion_table = bke::get_implicit_type_conversions();
   const mf::MultiFunction *function = conversion_table.get_conversion_multi_function(
       variable_type, expected_type);
+
+  /* Conversion is not possible, return a default variable instead. */
+  if (!function) {
+    const mf::MultiFunction &constant_function =
+        procedure_.construct_function<mf::CustomMF_GenericConstant>(
+            expected_type.single_type(), expected_type.single_type().default_value(), false);
+    mf::Variable *constant_variable = procedure_builder_.add_call<1>(constant_function)[0];
+    implicit_variables_.append(constant_variable);
+    return constant_variable;
+  }
 
   mf::Variable *converted_variable = procedure_builder_.add_call<1>(*function, {variable})[0];
   implicit_variables_.append(converted_variable);

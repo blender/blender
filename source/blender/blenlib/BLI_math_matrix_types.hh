@@ -525,7 +525,7 @@ struct MatView : NonCopyable, NonMovable {
 
   /** Allow wrapping C-style matrices using view. IMPORTANT: Alignment of src needs to match. */
   explicit MatView(const float (*src)[SrcNumRow])
-      : MatView(*reinterpret_cast<const SrcMatT *>(&src[0][0])){};
+      : MatView(*reinterpret_cast<const SrcMatT *>(&src[0][0])) {};
 
   /** Array access. */
 
@@ -720,11 +720,11 @@ struct MutableMatView
  public:
   MutableMatView() = delete;
 
-  MutableMatView(SrcMatT &src) : MatViewT(const_cast<const SrcMatT &>(src)){};
+  MutableMatView(SrcMatT &src) : MatViewT(const_cast<const SrcMatT &>(src)) {};
 
   /** Allow wrapping C-style matrices using view. IMPORTANT: Alignment of src needs to match. */
   explicit MutableMatView(float src[SrcNumCol][SrcNumRow])
-      : MutableMatView(*reinterpret_cast<SrcMatT *>(&src[0][0])){};
+      : MutableMatView(*reinterpret_cast<SrcMatT *>(&src[0][0])) {};
 
   /** Array access. */
 

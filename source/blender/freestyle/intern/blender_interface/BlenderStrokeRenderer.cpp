@@ -819,8 +819,8 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
           transp += 3;
         }
       }  // loop over strip vertices
-    }    // loop over strips
-  }      // loop over strokes
+    }  // loop over strips
+  }  // loop over strokes
 
   BKE_object_materials_sync_length(freestyle_bmain, object_mesh, (ID *)mesh);
 

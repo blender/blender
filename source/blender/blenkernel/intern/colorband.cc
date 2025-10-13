@@ -314,7 +314,7 @@ static float colorband_hue_interp(
   int mode = 0;
 
 #define HUE_INTERP(h_a, h_b) ((mfac * (h_a)) + (fac * (h_b)))
-#define HUE_MOD(h) (((h) < 1.0f) ? (h) : (h)-1.0f)
+#define HUE_MOD(h) (((h) < 1.0f) ? (h) : (h) - 1.0f)
 
   h1 = HUE_MOD(h1);
   h2 = HUE_MOD(h2);

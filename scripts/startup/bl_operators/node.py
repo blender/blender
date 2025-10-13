@@ -26,6 +26,7 @@ from bpy.app.translations import (
     pgettext_tip as tip_,
     pgettext_data as data_,
     pgettext_rpt as rpt_,
+    pgettext_n as n_,
 )
 
 
@@ -41,24 +42,6 @@ switch_nodes = {
     "GeometryNodeMenuSwitch",
     "GeometryNodeIndexSwitch",
 }
-
-
-# A context manager for temporarily un-parenting nodes from their frames.
-# This gets rid of issues with framed nodes using relative coordinates.
-class temporary_unframe:
-    def __init__(self, nodes):
-        self.parent_dict = {}
-        for node in nodes:
-            if node.parent is not None:
-                self.parent_dict[node] = node.parent
-            node.parent = None
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, _type, _value, _traceback):
-        for node, parent in self.parent_dict.items():
-            node.parent = parent
 
 
 def cast_value(source, target):
@@ -228,8 +211,10 @@ class NodeAddOperator(NodeOperator):
     def poll(cls, context):
         space = context.space_data
         # Needs active node editor and a tree to add nodes to.
-        return (space and (space.type == 'NODE_EDITOR') and
-                space.edit_tree and space.edit_tree.is_editable)
+        return (
+            space and (space.type == 'NODE_EDITOR') and
+            space.edit_tree and space.edit_tree.is_editable
+        )
 
     # Default invoke stores the mouse position to place the node correctly
     # and optionally invokes the transform operator.
@@ -492,16 +477,14 @@ class NODE_OT_swap_node(NodeSwapOperator, Operator):
 
             new_node = self.create_node(context, self.type)
             self.apply_node_settings(new_node)
-            self.transfer_node_properties(old_node, new_node)
 
             if self.visible_output:
                 for socket in new_node.outputs:
                     if socket.name != self.visible_output:
                         socket.hide = True
 
-            with temporary_unframe((old_node,)):
-                new_node.location = old_node.location
-                new_node.select = True
+            new_node.location_absolute = old_node.location_absolute
+            new_node.select = True
 
             zone_pair = self.get_zone_pair(tree, old_node)
 
@@ -509,10 +492,9 @@ class NODE_OT_swap_node(NodeSwapOperator, Operator):
                 input_node, output_node = zone_pair
 
                 if input_node.select and output_node.select:
-                    with temporary_unframe((input_node, output_node)):
-                        new_node.location = (input_node.location + output_node.location) / 2
-                        new_node.select = True
+                    new_node.location_absolute = (input_node.location_absolute + output_node.location_absolute) / 2
 
+                self.transfer_node_properties(old_node, new_node)
                 self.transfer_input_values(input_node, new_node)
 
                 self.transfer_links(tree, input_node, new_node, is_input=True)
@@ -521,6 +503,8 @@ class NODE_OT_swap_node(NodeSwapOperator, Operator):
                 for node in zone_pair:
                     nodes_to_delete.add(node)
             else:
+                self.transfer_node_properties(old_node, new_node)
+
                 if (old_node.bl_idname in switch_nodes) and (new_node.bl_idname in switch_nodes):
                     self.transfer_switch_data(old_node, new_node)
 
@@ -621,16 +605,16 @@ class ZoneOperator:
 
     _zone_tooltips = {
         "GeometryNodeSimulationInput": (
-            "Simulate the execution of nodes across a time span"
+            n_("Simulate the execution of nodes across a time span")
         ),
         "GeometryNodeRepeatInput": (
-            "Execute nodes with a dynamic number of repetitions"
+            n_("Execute nodes with a dynamic number of repetitions")
         ),
         "GeometryNodeForeachGeometryElementInput": (
-            "Perform operations separately for each geometry element (e.g. vertices, edges, etc.)"
+            n_("Perform operations separately for each geometry element (e.g. vertices, edges, etc.)")
         ),
         "NodeClosureInput": (
-            "Wrap nodes inside a closure that can be executed at a different part of the node-tree"
+            n_("Wrap nodes inside a closure that can be executed at a different part of the node-tree")
         ),
     }
 
@@ -770,9 +754,8 @@ class NODE_OT_swap_zone(ZoneOperator, NodeSwapOperator, Operator):
             if zone_pair is not None:
                 old_input_node, old_output_node = zone_pair
 
-                with temporary_unframe((old_input_node, old_output_node)):
-                    input_node.location = old_input_node.location
-                    output_node.location = old_output_node.location
+                input_node.location_absolute = old_input_node.location_absolute
+                output_node.location_absolute = old_output_node.location_absolute
 
                 self.transfer_node_properties(old_input_node, input_node)
                 self.transfer_node_properties(old_output_node, output_node)
@@ -789,12 +772,8 @@ class NODE_OT_swap_zone(ZoneOperator, NodeSwapOperator, Operator):
                 for node in zone_pair:
                     nodes_to_delete.add(node)
             else:
-                with temporary_unframe((old_node,)):
-                    input_node.location = old_node.location
-                    output_node.location = old_node.location
-
-                    input_node.location -= Vector(self.offset)
-                    output_node.location += Vector(self.offset)
+                input_node.location_absolute = (old_node.location_absolute - Vector(self.offset))
+                output_node.location_absolute = (old_node.location_absolute + Vector(self.offset))
 
                 self.transfer_node_properties(old_node, input_node)
                 self.transfer_node_properties(old_node, output_node)

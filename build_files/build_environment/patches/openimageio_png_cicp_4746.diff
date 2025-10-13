@@ -1,0 +1,105 @@
+diff --git a/src/include/OpenImageIO/imageio.h b/src/include/OpenImageIO/imageio.h
+index bb575880c..6a8e04cec 100644
+--- a/src/include/OpenImageIO/imageio.h
++++ b/src/include/OpenImageIO/imageio.h
+@@ -2016,6 +2016,9 @@ public:
+     ///        Does this format allow 0x0 sized images, i.e. an image file
+     ///        with metadata only and no pixels?
+     ///
++    ///  - `"cicp"` :
++    ///        Does this format support embedding CICP metadata?
++    ///
+     /// This list of queries may be extended in future releases. Since this
+     /// can be done simply by recognizing new query strings, and does not
+     /// require any new API entry points, addition of support for new
+@@ -3224,7 +3227,6 @@ OIIO_API void set_colorspace(ImageSpec& spec, string_view name);
+ /// @version 3.0
+ OIIO_API void set_colorspace_rec709_gamma(ImageSpec& spec, float gamma);
+ 
+-
+ /// Are the two named color spaces equivalent, based on the default color
+ /// config in effect?
+ ///
+diff --git a/src/png.imageio/png_pvt.h b/src/png.imageio/png_pvt.h
+index 85ac6ec74..450689a67 100644
+--- a/src/png.imageio/png_pvt.h
++++ b/src/png.imageio/png_pvt.h
+@@ -40,7 +40,7 @@ http://lists.openimageio.org/pipermail/oiio-dev-openimageio.org/2009-April/00065
+ OIIO_PLUGIN_NAMESPACE_BEGIN
+ 
+ #define ICC_PROFILE_ATTR "ICCProfile"
+-
++#define CICP_ATTR "CICP"
+ 
+ namespace PNG_pvt {
+ 
+@@ -326,6 +326,16 @@ read_info(png_structp& sp, png_infop& ip, int& bit_depth, int& color_type,
+ 
+     interlace_type = png_get_interlace_type(sp, ip);
+ 
++#ifdef PNG_cICP_SUPPORTED
++    {
++        png_byte pri = 0, trc = 0, mtx = 0, vfr = 0;
++        if (png_get_cICP(sp, ip, &pri, &trc, &mtx, &vfr)) {
++            int cicp[4] = { pri, trc, mtx, vfr };
++            spec.attribute(CICP_ATTR, TypeDesc(TypeDesc::INT, 4), cicp);
++        }
++    }
++#endif
++
+ #ifdef PNG_eXIf_SUPPORTED
+     // Recent version of PNG and libpng (>= 1.6.32, I think) have direct
+     // support for Exif chunks. Older versions don't support it, and I'm not
+@@ -698,6 +708,21 @@ write_info(png_structp& sp, png_infop& ip, int& color_type, ImageSpec& spec,
+                      (png_uint_32)(yres * scale), unittype);
+     }
+ 
++#ifdef PNG_cICP_SUPPORTED
++    const ParamValue* p = spec.find_attribute(CICP_ATTR,
++                                              TypeDesc(TypeDesc::INT, 4));
++    if (p) {
++        const int* int_vals = static_cast<const int*>(p->data());
++        png_byte vals[4];
++        for (int i = 0; i < 4; ++i)
++            vals[i] = static_cast<png_byte>(int_vals[i]);
++        if (setjmp(png_jmpbuf(sp)))  // NOLINT(cert-err52-cpp)
++            return "Could not set PNG cICP chunk";
++        // libpng will only write the chunk if the third byte is 0
++        png_set_cICP(sp, ip, vals[0], vals[1], (png_byte)0, vals[3]);
++    }
++#endif
++
+ #ifdef PNG_eXIf_SUPPORTED
+     std::vector<char> exifBlob;
+     encode_exif(spec, exifBlob, endian::big);
+diff --git a/src/png.imageio/pnginput.cpp b/src/png.imageio/pnginput.cpp
+index 4947b3b6a..085448e24 100644
+--- a/src/png.imageio/pnginput.cpp
++++ b/src/png.imageio/pnginput.cpp
+@@ -18,7 +18,11 @@ public:
+     const char* format_name(void) const override { return "png"; }
+     int supports(string_view feature) const override
+     {
+-        return (feature == "ioproxy" || feature == "exif");
++        return (feature == "ioproxy" || feature == "exif"
++#ifdef PNG_cICP_SUPPORTED
++                || feature == "cicp"
++#endif
++        );
+     }
+     bool valid_file(Filesystem::IOProxy* ioproxy) const override;
+     bool open(const std::string& name, ImageSpec& newspec) override;
+diff --git a/src/png.imageio/pngoutput.cpp b/src/png.imageio/pngoutput.cpp
+index 1b5c2c385..00e11947c 100644
+--- a/src/png.imageio/pngoutput.cpp
++++ b/src/png.imageio/pngoutput.cpp
+@@ -24,6 +24,9 @@ public:
+         return (feature == "alpha" || feature == "ioproxy"
+ #ifdef PNG_eXIf_SUPPORTED
+                 || feature == "exif"
++#endif
++#ifdef PNG_cICP_SUPPORTED
++                || feature == "cicp"
+ #endif
+         );
+     }

@@ -491,7 +491,7 @@ bool WM_xr_action_state_get(const wmXrData *xr,
           r_state->state_float = ((float *)action->states)[i];
           break;
         case XR_VECTOR2F_INPUT:
-          copy_v2_v2(r_state->state_vector2f, ((float(*)[2])action->states)[i]);
+          copy_v2_v2(r_state->state_vector2f, ((float (*)[2])action->states)[i]);
           break;
         case XR_POSE_INPUT: {
           const GHOST_XrPose *pose = &((GHOST_XrPose *)action->states)[i];

@@ -615,7 +615,7 @@ void immUniform4fv(const char *name, const float data[4])
 
 void immUniformArray4fv(const char *name, const float *data, int count)
 {
-  GPU_shader_uniform_4fv_array(imm->shader, name, count, (const float(*)[4])data);
+  GPU_shader_uniform_4fv_array(imm->shader, name, count, (const float (*)[4])data);
 }
 
 void immUniformMatrix4fv(const char *name, const float data[4][4])

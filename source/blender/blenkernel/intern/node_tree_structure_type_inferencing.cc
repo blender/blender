@@ -703,7 +703,11 @@ static void propagate_left_to_right(const bNodeTree &tree,
   }
 
   /* Outputs of these nodes have dynamic structure type but should start out as single values. */
-  for (const StringRefNull idname : {"GeometryNodeRepeatInput", "GeometryNodeRepeatOutput"}) {
+  for (const StringRefNull idname : {"GeometryNodeRepeatInput",
+                                     "GeometryNodeRepeatOutput",
+                                     "GeometryNodeSimulationInput",
+                                     "GeometryNodeSimulationOutput"})
+  {
     for (const bNode *node : tree.nodes_by_type(idname)) {
       for (const bNodeSocket *socket : node->output_sockets()) {
         structure_types[socket->index_in_tree()] = StructureType::Single;

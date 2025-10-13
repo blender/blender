@@ -203,26 +203,58 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  auto nearest_op = FieldOperation::from(
-      std::make_shared<SampleNearestSurfaceFunction>(geometry,
-                                                     params.extract_input<Field<int>>("Group ID")),
-      {params.extract_input<Field<float3>>("Sample Position"),
-       params.extract_input<Field<int>>("Sample Group ID")});
-  Field<int> triangle_indices(nearest_op, 0);
-  Field<float3> nearest_positions(nearest_op, 1);
-  Field<bool> is_valid(nearest_op, 2);
+  GField value = params.extract_input<GField>("Value");
+  Field<int> group_id_field = params.extract_input<Field<int>>("Group ID");
+  auto sample_position = params.extract_input<bke::SocketValueVariant>("Sample Position");
+  auto sample_group_id = params.extract_input<bke::SocketValueVariant>("Sample Group ID");
 
-  Field<float3> bary_weights = Field<float3>(FieldOperation::from(
-      std::make_shared<bke::mesh_surface_sample::BaryWeightFromPositionFn>(geometry),
-      {nearest_positions, triangle_indices}));
+  std::string error_message;
 
-  GField field = params.extract_input<GField>("Value");
-  auto sample_op = FieldOperation::from(
-      std::make_shared<bke::mesh_surface_sample::BaryWeightSampleFn>(geometry, std::move(field)),
-      {triangle_indices, bary_weights});
+  bke::SocketValueVariant triangle_index;
+  bke::SocketValueVariant nearest_positions;
+  bke::SocketValueVariant is_valid;
+  if (!execute_multi_function_on_value_variant(
+          std::make_shared<SampleNearestSurfaceFunction>(geometry, group_id_field),
+          {&sample_position, &sample_group_id},
+          {&triangle_index, &nearest_positions, &is_valid},
+          params.user_data(),
+          error_message))
+  {
+    params.set_default_remaining_outputs();
+    params.error_message_add(NodeWarningType::Error, std::move(error_message));
+    return;
+  }
 
-  params.set_output("Value", GField(sample_op));
-  params.set_output("Is Valid", is_valid);
+  bke::SocketValueVariant bary_weights;
+  bke::SocketValueVariant triangle_index_copy = triangle_index;
+  if (!execute_multi_function_on_value_variant(
+          std::make_shared<bke::mesh_surface_sample::BaryWeightFromPositionFn>(geometry),
+          {&nearest_positions, &triangle_index_copy},
+          {&bary_weights},
+          params.user_data(),
+          error_message))
+  {
+    params.set_default_remaining_outputs();
+    params.error_message_add(NodeWarningType::Error, std::move(error_message));
+    return;
+  }
+
+  bke::SocketValueVariant sample_value;
+  if (!execute_multi_function_on_value_variant(
+          std::make_shared<bke::mesh_surface_sample::BaryWeightSampleFn>(geometry,
+                                                                         std::move(value)),
+          {&triangle_index, &bary_weights},
+          {&sample_value},
+          params.user_data(),
+          error_message))
+  {
+    params.set_default_remaining_outputs();
+    params.error_message_add(NodeWarningType::Error, std::move(error_message));
+    return;
+  }
+
+  params.set_output("Value", std::move(sample_value));
+  params.set_output("Is Valid", std::move(is_valid));
 }
 
 static void node_rna(StructRNA *srna)

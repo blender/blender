@@ -12,6 +12,7 @@
 #include "BKE_texture.h"
 #include "BKE_volume.hh"
 #include "BKE_volume_grid.hh"
+#include "BKE_volume_grid_process.hh"
 #include "BKE_volume_openvdb.hh"
 
 #include "BLT_translation.hh"
@@ -235,7 +236,7 @@ struct DisplaceGridOp {
      * slowing down subsequent operations. */
     typename GridType::ValueType prune_tolerance{0};
     openvdb::tools::deactivate(*temp_grid, temp_grid->background(), prune_tolerance);
-    openvdb::tools::prune(temp_grid->tree());
+    blender::bke::volume_grid::prune_inactive(*temp_grid);
 
     /* Overwrite the old volume grid with the new grid. */
     grid.clear();
@@ -290,6 +291,7 @@ static void displace_volume(ModifierData *md, const ModifierEvalContext *ctx, Vo
 
     DisplaceGridOp displace_grid_op{grid, *vdmd, *ctx};
     BKE_volume_grid_type_operation(grid_type, displace_grid_op);
+    volume_grid->tag_tree_modified();
   }
 
 #else

@@ -98,6 +98,9 @@ class VIEW3D_PT_vr_session_view(Panel):
         col.prop(session_settings, "clip_start", text="Clip Start")
         col.prop(session_settings, "clip_end", text="End", text_ctxt=i18n_contexts.id_camera)
 
+        col = layout.column(align=True)
+        col.prop(session_settings, "fly_speed", text="Fly Speed")
+
 
 class VIEW3D_PT_vr_session_view_object_type_visibility(VIEW3D_PT_object_type_visibility):
     def draw(self, context):

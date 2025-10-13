@@ -285,7 +285,7 @@ static void rna_Object_mat_convert_space(Object *ob,
                                          int from,
                                          int to)
 {
-  copy_m4_m4((float(*)[4])mat_ret, (float(*)[4])mat);
+  copy_m4_m4((float (*)[4])mat_ret, (float (*)[4])mat);
 
   BLI_assert(!ELEM(from, CONSTRAINT_SPACE_OWNLOCAL));
   BLI_assert(!ELEM(to, CONSTRAINT_SPACE_OWNLOCAL));
@@ -331,7 +331,7 @@ static void rna_Object_mat_convert_space(Object *ob,
     return;
   }
 
-  BKE_constraint_mat_convertspace(ob, pchan, nullptr, (float(*)[4])mat_ret, from, to, false);
+  BKE_constraint_mat_convertspace(ob, pchan, nullptr, (float (*)[4])mat_ret, from, to, false);
 }
 
 static void rna_Object_calc_matrix_camera(Object *ob,
@@ -353,7 +353,7 @@ static void rna_Object_calc_matrix_camera(Object *ob,
   BKE_camera_params_compute_viewplane(&params, width, height, scalex, scaley);
   BKE_camera_params_compute_matrix(&params);
 
-  copy_m4_m4((float(*)[4])mat_ret, params.winmat);
+  copy_m4_m4((float (*)[4])mat_ret, params.winmat);
 }
 
 static void rna_Object_camera_fit_coords(Object *ob,
@@ -364,7 +364,7 @@ static void rna_Object_camera_fit_coords(Object *ob,
                                          float *scale_ret)
 {
   BKE_camera_view_frame_fit_to_coords(
-      depsgraph, (const float(*)[3])cos, cos_num / 3, ob, co_ret, scale_ret);
+      depsgraph, (const float (*)[3])cos, cos_num / 3, ob, co_ret, scale_ret);
 }
 
 static void rna_Object_crazyspace_eval(Object *object,

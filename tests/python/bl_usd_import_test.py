@@ -874,30 +874,31 @@ class USDImportTest(AbstractUSDTest):
                 8 + i), 1.0, 2, "Unexpected weight for Elbow deform vert")
 
         action = bpy.data.actions['Anim1']
+        channelbag = action.layers[0].strips[0].channelbags[0]
 
         # Verify the Elbow joint rotation animation.
         curve_path = 'pose.bones["Elbow"].rotation_quaternion'
 
         # Quat W
-        f = action.fcurves.find(curve_path, index=0)
+        f = channelbag.fcurves.find(curve_path, index=0)
         self.assertIsNotNone(f, "Couldn't find Elbow rotation quaternion W curve")
         self.assertAlmostEqual(f.evaluate(0), 1.0, 2, "Unexpected value for rotation quaternion W curve at frame 0")
         self.assertAlmostEqual(f.evaluate(10), 0.707, 2, "Unexpected value for rotation quaternion W curve at frame 10")
 
         # Quat X
-        f = action.fcurves.find(curve_path, index=1)
+        f = channelbag.fcurves.find(curve_path, index=1)
         self.assertIsNotNone(f, "Couldn't find Elbow rotation quaternion X curve")
         self.assertAlmostEqual(f.evaluate(0), 0.0, 2, "Unexpected value for rotation quaternion X curve at frame 0")
         self.assertAlmostEqual(f.evaluate(10), 0.707, 2, "Unexpected value for rotation quaternion X curve at frame 10")
 
         # Quat Y
-        f = action.fcurves.find(curve_path, index=2)
+        f = channelbag.fcurves.find(curve_path, index=2)
         self.assertIsNotNone(f, "Couldn't find Elbow rotation quaternion Y curve")
         self.assertAlmostEqual(f.evaluate(0), 0.0, 2, "Unexpected value for rotation quaternion Y curve at frame 0")
         self.assertAlmostEqual(f.evaluate(10), 0.0, 2, "Unexpected value for rotation quaternion Y curve at frame 10")
 
         # Quat Z
-        f = action.fcurves.find(curve_path, index=3)
+        f = channelbag.fcurves.find(curve_path, index=3)
         self.assertIsNotNone(f, "Couldn't find Elbow rotation quaternion Z curve")
         self.assertAlmostEqual(f.evaluate(0), 0.0, 2, "Unexpected value for rotation quaternion Z curve at frame 0")
         self.assertAlmostEqual(f.evaluate(10), 0.0, 2, "Unexpected value for rotation quaternion Z curve at frame 10")

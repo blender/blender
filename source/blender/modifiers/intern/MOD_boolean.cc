@@ -156,7 +156,7 @@ static Mesh *get_quick_mesh(
 }
 
 /* has no meaning for faces, do this so we can tell which face is which */
-#define BM_FACE_TAG BM_ELEM_DRAW
+#define BM_FACE_TAG BM_ELEM_SELECT_UV
 
 /**
  * Compare selected/unselected.

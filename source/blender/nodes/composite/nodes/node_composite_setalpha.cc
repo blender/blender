@@ -22,26 +22,29 @@ static const EnumPropertyItem type_items[] = {
     {CMP_NODE_SETALPHA_MODE_APPLY,
      "APPLY",
      0,
-     "Apply Mask",
-     "Multiply the input image's RGBA channels by the alpha input value"},
+     N_("Apply Mask"),
+     N_("Multiply the input image's RGBA channels by the alpha input value")},
     {CMP_NODE_SETALPHA_MODE_REPLACE_ALPHA,
      "REPLACE_ALPHA",
      0,
-     "Replace Alpha",
-     "Replace the input image's alpha channel by the alpha input value"},
+     N_("Replace Alpha"),
+     N_("Replace the input image's alpha channel by the alpha input value")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 static void cmp_node_setalpha_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.is_function_node();
-  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f}).hide_value();
+  b.add_output<decl::Color>("Image").align_with_previous();
+
   b.add_input<decl::Float>("Alpha").default_value(1.0f).min(0.0f).max(1.0f);
   b.add_input<decl::Menu>("Type")
       .default_value(CMP_NODE_SETALPHA_MODE_APPLY)
       .static_items(type_items)
       .optional_label();
-  b.add_output<decl::Color>("Image");
 }
 
 static void node_composit_init_setalpha(bNodeTree * /*ntree*/, bNode *node)

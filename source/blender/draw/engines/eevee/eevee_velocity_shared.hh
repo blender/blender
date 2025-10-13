@@ -29,7 +29,7 @@ struct VelocityObjectIndex {
   uint resource_id;
 
 #ifndef GPU_SHADER
-  VelocityObjectIndex() : ofs(-1, -1, -1), resource_id(-1){};
+  VelocityObjectIndex() : ofs(-1, -1, -1), resource_id(-1) {};
 #endif
 };
 BLI_STATIC_ASSERT_ALIGN(VelocityObjectIndex, 16)
@@ -48,7 +48,7 @@ struct VelocityGeometryIndex {
   int _pad0;
 
 #ifndef GPU_SHADER
-  VelocityGeometryIndex() : ofs(-1, -1, -1), do_deform(false), len(-1, -1, -1), _pad0(1){};
+  VelocityGeometryIndex() : ofs(-1, -1, -1), do_deform(false), len(-1, -1, -1), _pad0(1) {};
 #endif
 };
 BLI_STATIC_ASSERT_ALIGN(VelocityGeometryIndex, 16)

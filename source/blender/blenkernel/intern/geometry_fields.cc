@@ -805,6 +805,31 @@ static bool attribute_data_matches_varray(const GAttributeReader &attribute, con
   return varray_info.data == attribute_info.data;
 }
 
+static void initialize_new_data(MutableAttributeAccessor &attributes,
+                                const AttrDomain domain,
+                                const int domain_size,
+                                const StringRef name,
+                                const CPPType &type,
+                                const bke::AttrType data_type,
+                                void *buffer)
+{
+  /* NOTE: It's unnecessary to fill the values for elements that will be selected and also set
+   * during field evaluation. A future optimization could evaluate the selection separately and use
+   * its inverse here. */
+
+  if (attributes.is_builtin(name)) {
+    if (const GPointer value = attributes.get_builtin_default(name)) {
+      type.fill_construct_n(value.get(), buffer, domain_size);
+      return;
+    }
+  }
+  if (const GAttributeReader old_attribute = attributes.lookup(name, domain, data_type)) {
+    old_attribute.varray.materialize(buffer);
+    return;
+  }
+  type.fill_construct_n(type.default_value(), buffer, domain_size);
+}
+
 bool try_capture_fields_on_geometry(MutableAttributeAccessor attributes,
                                     const fn::FieldContext &field_context,
                                     const Span<StringRef> attribute_ids,
@@ -881,8 +906,7 @@ bool try_capture_fields_on_geometry(MutableAttributeAccessor attributes,
      * - The field does not depend on that attribute (we can't easily check for that yet). */
     void *buffer = MEM_mallocN_aligned(type.size * domain_size, type.alignment, __func__);
     if (!selection_is_full) {
-      const GAttributeReader old_attribute = attributes.lookup_or_default(id, domain, data_type);
-      old_attribute.varray.materialize(buffer);
+      initialize_new_data(attributes, domain, domain_size, id, type, data_type, buffer);
     }
 
     GMutableSpan dst(type, buffer, domain_size);

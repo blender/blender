@@ -129,7 +129,7 @@ static int deg_debug_node_color_index(const Node *node)
 #endif
 
 #ifdef COLOR_SCHEME_NODE_TYPE
-  const int(*pair)[2];
+  const int (*pair)[2];
   for (pair = deg_debug_node_type_color_map; (*pair)[0] >= 0; pair++) {
     if ((*pair)[0] == node->type) {
       return (*pair)[1];
@@ -179,7 +179,7 @@ static void deg_debug_graphviz_legend(DotExportContext &ctx)
 #endif
 
 #ifdef COLOR_SCHEME_NODE_TYPE
-  const int(*pair)[2];
+  const int (*pair)[2];
   for (pair = deg_debug_node_type_color_map; (*pair)[0] >= 0; pair++) {
     DepsNodeFactory *nti = type_get_factory((NodeType)(*pair)[0]);
     deg_debug_graphviz_legend_color(

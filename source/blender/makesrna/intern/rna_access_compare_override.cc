@@ -267,6 +267,13 @@ bool RNA_struct_equals(Main *bmain, PointerRNA *ptr_a, PointerRNA *ptr_b, eRNACo
     return false;
   }
 
+  if (RNA_pointer_is_null(ptr_a)) {
+    if (RNA_pointer_is_null(ptr_b)) {
+      return true;
+    }
+    return false;
+  }
+
   iterprop = RNA_struct_iterator_property(ptr_a->type);
 
   RNA_property_collection_begin(ptr_a, iterprop, &iter);

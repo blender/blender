@@ -650,7 +650,7 @@ static void store_grid_data(MultiresUnsubdivideContext *context,
   const int grid_size = CCG_grid_size(context->num_original_levels);
   const int face_grid_size = CCG_grid_size(context->num_original_levels + 1);
   const int face_grid_area = face_grid_size * face_grid_size;
-  float(*face_grid)[3] = MEM_calloc_arrayN<float[3]>(face_grid_area, "face_grid");
+  float (*face_grid)[3] = MEM_calloc_arrayN<float[3]>(face_grid_area, "face_grid");
 
   for (int i = 0; i < face.size(); i++) {
     const int loop_index = face[i];
@@ -1178,7 +1178,7 @@ static void multires_create_grids_in_unsubdivided_base_mesh(MultiresUnsubdivideC
 
   /* Allocate the MDISPS grids and copy the extracted data from context. */
   for (int i = 0; i < totloop; i++) {
-    float(*disps)[3] = MEM_calloc_arrayN<float[3]>(totdisp, __func__);
+    float (*disps)[3] = MEM_calloc_arrayN<float[3]>(totdisp, __func__);
 
     if (mdisps[i].disps) {
       MEM_freeN(mdisps[i].disps);

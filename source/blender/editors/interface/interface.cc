@@ -972,6 +972,7 @@ static void ui_but_update_old_active_from_new(uiBut *oldbut, uiBut *but)
   /* Move tooltip from new to old. */
   std::swap(oldbut->tip_func, but->tip_func);
   std::swap(oldbut->tip_arg, but->tip_arg);
+  std::swap(oldbut->tip_custom_func, but->tip_custom_func);
   std::swap(oldbut->tip_arg_free, but->tip_arg_free);
   std::swap(oldbut->tip_quick_func, but->tip_quick_func);
 
@@ -4582,7 +4583,8 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
     rows = totitems;
   }
 
-  const char *title = RNA_property_ui_name(but->rnaprop);
+  const char *title = RNA_property_ui_name(
+      but->rnaprop, RNA_pointer_is_null(&but->rnapoin) ? nullptr : &but->rnapoin);
 
   /* Is there a non-blank label before this button on the same row? */
   uiBut *but_prev = but->block->prev_but(but);

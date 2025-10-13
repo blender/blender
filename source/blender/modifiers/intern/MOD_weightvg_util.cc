@@ -133,7 +133,7 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
   /* If we want to mask vgroup weights from a texture. */
   if (texture != nullptr) {
     /* The texture coordinates. */
-    float(*tex_co)[3];
+    float (*tex_co)[3];
     /* See mapping note below... */
     MappingInfoModifierData t_map;
     const int verts_num = mesh->verts_num;

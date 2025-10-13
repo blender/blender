@@ -921,7 +921,7 @@ static BMFace *bev_create_ngon(BevelParams *bp,
     return nullptr;
   }
 
-  if ((facerep || (face_arr && face_arr[0]))) {
+  if (facerep || (face_arr && face_arr[0])) {
     BM_elem_attrs_copy(bm, facerep ? facerep : face_arr[0], f);
     if (do_interp) {
       int i = 0;
@@ -1211,7 +1211,7 @@ static void math_layer_info_init(BevelParams *bp, BMesh *bm)
 static BMFace *choose_rep_face(BevelParams *bp, BMFace **face, int nfaces)
 {
 #define VEC_VALUE_LEN 6
-  float(*value_vecs)[VEC_VALUE_LEN] = nullptr;
+  float (*value_vecs)[VEC_VALUE_LEN] = nullptr;
   int num_viable = 0;
 
   value_vecs = BLI_array_alloca(value_vecs, nfaces);
@@ -2083,7 +2083,7 @@ static void move_weld_profile_planes(BevVert *bv, BoundVert *bndv1, BoundVert *b
   float l2 = normalize_v3(no2);
   cross_v3_v3v3(no3, d2, bndv2->profile.proj_dir);
   float l3 = normalize_v3(no3);
-  if (l1 > BEVEL_EPSILON && (l2 > BEVEL_EPSILON || l3 > BEVEL_EPSILON)) {
+  if (l1 != 0.0f && (l2 != 0.0f || l3 != 0.0f)) {
     float dot1 = fabsf(dot_v3v3(no, no2));
     float dot2 = fabsf(dot_v3v3(no, no3));
     if (fabsf(dot1 - 1.0f) > BEVEL_EPSILON) {
@@ -4969,7 +4969,7 @@ static float projected_boundary_area(BevVert *bv, BMFace *f)
 {
   BMEdge *e1, *e2;
   VMesh *vm = bv->vmesh;
-  float(*proj_co)[2] = BLI_array_alloca(proj_co, vm->count);
+  float (*proj_co)[2] = BLI_array_alloca(proj_co, vm->count);
   float axis_mat[3][3];
   axis_dominant_v3_to_m3(axis_mat, f->no);
   get_incident_edges(f, bv->v, &e1, &e2);

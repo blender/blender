@@ -168,8 +168,11 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
 
         if km_items_data := get_transform_modal_map():
             def use_alt_navigate():
-                km_item = next((i for i in km_items_data["items"] if i[0] ==
-                                "PROPORTIONAL_SIZE" and i[1]["type"] == 'TRACKPADPAN'), None)
+                km_item = next(
+                    (i for i in km_items_data["items"] if i[0] ==
+                     "PROPORTIONAL_SIZE" and i[1]["type"] == 'TRACKPADPAN'),
+                    None,
+                )
                 if km_item:
                     return "alt" not in km_item[1] or km_item[1]["alt"] is False
 

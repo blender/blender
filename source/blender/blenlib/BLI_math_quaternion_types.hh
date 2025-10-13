@@ -40,19 +40,19 @@ template<typename T> struct QuaternionBase {
   QuaternionBase() = default;
 
   QuaternionBase(const T &new_w, const T &new_x, const T &new_y, const T &new_z)
-      : w(new_w), x(new_x), y(new_y), z(new_z){};
+      : w(new_w), x(new_x), y(new_y), z(new_z) {};
 
   /**
    * Creates a quaternion from an vector without reordering the components.
    * \note Component order must follow the scalar constructor (w, x, y, z).
    */
-  explicit QuaternionBase(const VecBase<T, 4> &vec) : QuaternionBase(UNPACK4(vec)){};
+  explicit QuaternionBase(const VecBase<T, 4> &vec) : QuaternionBase(UNPACK4(vec)) {};
 
   /**
    * Creates a quaternion from real (w) and imaginary parts (x, y, z).
    */
   QuaternionBase(const T &real, const VecBase<T, 3> &imaginary)
-      : QuaternionBase(real, UNPACK3(imaginary)){};
+      : QuaternionBase(real, UNPACK3(imaginary)) {};
 
   /** Static functions. */
 

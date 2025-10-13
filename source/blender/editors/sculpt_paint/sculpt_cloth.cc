@@ -1125,7 +1125,7 @@ static void cloth_brush_collision_cb(void *userdata,
   ClothBrushCollision *col = (ClothBrushCollision *)userdata;
   CollisionModifierData *col_data = col->col_data;
   const int3 vert_tri = col_data->vert_tris[index];
-  float(*positions)[3] = col_data->x;
+  float (*positions)[3] = col_data->x;
   float *tri[3], no[3], co[3];
 
   tri[0] = positions[vert_tri[0]];

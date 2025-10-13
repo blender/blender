@@ -343,7 +343,7 @@ bool CTX_data_dir(const char *member);
   { \
     blender::Vector<PointerRNA> ctx_data_list; \
     CTX_data_##member(C, &ctx_data_list); \
-    for (PointerRNA & ctx_link : ctx_data_list) { \
+    for (PointerRNA &ctx_link : ctx_data_list) { \
       Type instance = (Type)ctx_link.data;
 
 #define CTX_DATA_END \

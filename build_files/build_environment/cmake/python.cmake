@@ -30,11 +30,13 @@ if(WIN32)
   set(PYTHON_EXTERNALS_FOLDER ${BUILD_DIR}/python/src/external_python/externals)
   set(ZLIB_SOURCE_FOLDER ${BUILD_DIR}/zlib/src/external_zlib)
   set(SSL_SOURCE_FOLDER ${BUILD_DIR}/ssl/src/external_ssl)
+  set(SQLITE_SOURCE_FOLDER ${BUILD_DIR}/sqlite/src/external_sqlite)
   set(DOWNLOADS_EXTERNALS_FOLDER ${DOWNLOAD_DIR}/externals)
 
   cmake_to_dos_path(${PYTHON_EXTERNALS_FOLDER} PYTHON_EXTERNALS_FOLDER_DOS)
   cmake_to_dos_path(${ZLIB_SOURCE_FOLDER} ZLIB_SOURCE_FOLDER_DOS)
   cmake_to_dos_path(${SSL_SOURCE_FOLDER} SSL_SOURCE_FOLDER_DOS)
+  cmake_to_dos_path(${SQLITE_SOURCE_FOLDER} SQLITE_SOURCE_FOLDER_DOS)
   cmake_to_dos_path(${DOWNLOADS_EXTERNALS_FOLDER} DOWNLOADS_EXTERNALS_FOLDER_DOS)
 
   ExternalProject_Add(external_python
@@ -50,6 +52,7 @@ if(WIN32)
     PATCH_COMMAND mkdir ${PYTHON_EXTERNALS_FOLDER_DOS} &&
       mklink /J ${PYTHON_EXTERNALS_FOLDER_DOS}\\zlib-1.3.1 ${ZLIB_SOURCE_FOLDER_DOS} &&
       mklink /J ${PYTHON_EXTERNALS_FOLDER_DOS}\\openssl-3.0.15 ${SSL_SOURCE_FOLDER_DOS} &&
+      mklink /J ${PYTHON_EXTERNALS_FOLDER_DOS}\\sqlite-3.45.1.0 ${SQLITE_SOURCE_FOLDER_DOS} &&
       ${CMAKE_COMMAND} -E copy
         ${ZLIB_SOURCE_FOLDER}/../external_zlib-build/zconf.h
         ${PYTHON_EXTERNALS_FOLDER}/zlib-1.3.1/zconf.h &&
@@ -195,6 +198,7 @@ add_dependencies(
   external_python
   external_ssl
   external_zlib
+  external_sqlite
 )
 if(UNIX)
   add_dependencies(
@@ -202,7 +206,6 @@ if(UNIX)
     external_bzip2
     external_ffi
     external_lzma
-    external_sqlite
   )
 endif()
 

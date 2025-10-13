@@ -13,7 +13,7 @@ namespace blender::workbench {
 class TaaSamples {
   void init_samples(MutableSpan<float2> samples)
   {
-    BLI_jitter_init(reinterpret_cast<float(*)[2]>(samples.data()), samples.size());
+    BLI_jitter_init(reinterpret_cast<float (*)[2]>(samples.data()), samples.size());
 
     /* Find closest element to center */
     int closest_index = 0;

@@ -881,6 +881,11 @@ void ANIM_draw_cfra(const bContext *C, View2D *v2d, short flag);
  */
 void ANIM_draw_previewrange(const Scene *scene, View2D *v2d, int end_frame_width);
 
+/**
+ * Draw range of the current sequencer scene strip when using scene time syncing.
+ */
+void ANIM_draw_scene_strip_range(const bContext *C, View2D *v2d);
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

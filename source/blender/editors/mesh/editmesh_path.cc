@@ -261,6 +261,7 @@ static void mouse_mesh_shortest_path_vert(Scene * /*scene*/,
   }
 
   EDBM_selectmode_flush(em);
+  EDBM_uvselect_clear(em);
 
   if (op_params->track_active) {
     /* even if this is selected it may not be in the selection list */
@@ -470,6 +471,7 @@ static void mouse_mesh_shortest_path_edge(
   }
 
   EDBM_selectmode_flush(em);
+  EDBM_uvselect_clear(em);
 
   if (op_params->track_active) {
     /* even if this is selected it may not be in the selection list */
@@ -605,6 +607,7 @@ static void mouse_mesh_shortest_path_face(Scene * /*scene*/,
   }
 
   EDBM_selectmode_flush(em);
+  EDBM_uvselect_clear(em);
 
   if (op_params->track_active) {
     /* even if this is selected it may not be in the selection list */

@@ -403,7 +403,7 @@ void VKContext::swap_buffer_draw_handler(const GHOST_VulkanSwapChainData &swap_c
   VKFrameBuffer &framebuffer = *unwrap(active_fb);
   framebuffer.rendering_end(*this);
   VKTexture *color_attachment = unwrap(unwrap(framebuffer.color_tex(0)));
-  device.resources.add_image(swap_chain_data.image, 1, "SwapchainImage");
+  device.resources.add_image(swap_chain_data.image, false, "SwapchainImage");
 
   GPU_debug_group_begin("BackBuffer.Blit");
   if (use_shader) {
@@ -470,7 +470,8 @@ void VKContext::specialization_constants_set(
                                                     shader::SpecializationConstants{};
 }
 
-std::unique_ptr<VKStreamingBuffer> &VKContext::get_or_create_streaming_buffer(VKBuffer &buffer)
+std::unique_ptr<VKStreamingBuffer> &VKContext::get_or_create_streaming_buffer(
+    VKBuffer &buffer, VkDeviceSize min_offset_alignment)
 {
   for (std::unique_ptr<VKStreamingBuffer> &streaming_buffer : streaming_buffers_) {
     if (streaming_buffer->vk_buffer_dst() == buffer.vk_handle()) {
@@ -478,7 +479,7 @@ std::unique_ptr<VKStreamingBuffer> &VKContext::get_or_create_streaming_buffer(VK
     }
   }
 
-  streaming_buffers_.append(std::make_unique<VKStreamingBuffer>(buffer));
+  streaming_buffers_.append(std::make_unique<VKStreamingBuffer>(buffer, min_offset_alignment));
   return streaming_buffers_.last();
 }
 

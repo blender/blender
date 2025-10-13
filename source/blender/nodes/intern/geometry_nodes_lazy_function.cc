@@ -557,7 +557,7 @@ std::optional<SocketValueVariant> implicitly_convert_socket_value(
     SocketValueVariant output_variant;
     std::string error_message;
     if (!execute_multi_function_on_value_variant(
-            multi_fn, {}, {&input_variant}, {&output_variant}, nullptr, error_message))
+            multi_fn, {&input_variant}, {&output_variant}, nullptr, error_message))
     {
       return std::nullopt;
     }
@@ -588,7 +588,7 @@ class LazyFunctionForImplicitConversion : public LazyFunction {
     BLI_assert(to_value != nullptr);
     std::string error_message;
     if (!execute_multi_function_on_value_variant(
-            fn_, {}, {from_value}, {to_value}, nullptr, error_message))
+            fn_, {from_value}, {to_value}, nullptr, error_message))
     {
       std::destroy_at(to_value);
       construct_socket_default_value(dst_type_, to_value);
@@ -4162,11 +4162,12 @@ struct GeometryNodesLazyFunctionBuilder {
   }
 };
 
-const GeometryNodesLazyFunctionGraphInfo *ensure_geometry_nodes_lazy_function_graph(
-    const bNodeTree &btree)
+static std::unique_ptr<GeometryNodesLazyFunctionGraphInfo>
+ensure_geometry_nodes_lazy_function_graph_impl(const bNodeTree &btree)
 {
   btree.ensure_topology_cache();
   btree.ensure_interface_cache();
+
   if (btree.has_available_link_cycle()) {
     return nullptr;
   }
@@ -4203,23 +4204,20 @@ const GeometryNodesLazyFunctionGraphInfo *ensure_geometry_nodes_lazy_function_gr
     }
   }
 
-  std::unique_ptr<GeometryNodesLazyFunctionGraphInfo> &lf_graph_info_ptr =
-      btree.runtime->geometry_nodes_lazy_function_graph_info;
-
-  if (lf_graph_info_ptr) {
-    return lf_graph_info_ptr.get();
-  }
-  std::lock_guard lock{btree.runtime->geometry_nodes_lazy_function_graph_info_mutex};
-  if (lf_graph_info_ptr) {
-    return lf_graph_info_ptr.get();
-  }
-
   auto lf_graph_info = std::make_unique<GeometryNodesLazyFunctionGraphInfo>();
   GeometryNodesLazyFunctionBuilder builder{btree, *lf_graph_info};
   builder.build();
+  return lf_graph_info;
+}
 
-  lf_graph_info_ptr = std::move(lf_graph_info);
-  return lf_graph_info_ptr.get();
+const GeometryNodesLazyFunctionGraphInfo *ensure_geometry_nodes_lazy_function_graph(
+    const bNodeTree &btree)
+{
+  btree.runtime->geometry_nodes_lazy_function_graph_info_mutex.ensure([&]() {
+    btree.runtime->geometry_nodes_lazy_function_graph_info =
+        ensure_geometry_nodes_lazy_function_graph_impl(btree);
+  });
+  return btree.runtime->geometry_nodes_lazy_function_graph_info.get();
 }
 
 destruct_ptr<fn::LocalUserData> GeoNodesUserData::get_local(LinearAllocator<> &allocator)

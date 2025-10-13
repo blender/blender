@@ -115,7 +115,7 @@ typedef struct ImageTile {
 /** #ImageUser::flag */
 enum {
   IMA_ANIM_ALWAYS = 1 << 0,
-  // IMA_UNUSED_1 = 1 << 1,
+  IMA_SHOW_SEQUENCER_SCENE = 1 << 1,
   // IMA_UNUSED_2 = 1 << 2,
   IMA_NEED_FRAME_RECALC = 1 << 3,
   IMA_SHOW_STEREO = 1 << 4,

@@ -951,54 +951,6 @@ static PointerRNA bool_layer_ensure(PointerRNA *ptr,
   return RNA_pointer_create_discrete(&mesh->id, &RNA_BoolAttribute, bool_layer);
 }
 
-/* Collection accessors for vert_select. */
-static void rna_MeshUVLoopLayer_vert_select_begin(CollectionPropertyIterator *iter,
-                                                  PointerRNA *ptr)
-{
-  bool_layer_begin(iter, ptr, BKE_uv_map_vert_select_name_get);
-}
-
-static bool rna_MeshUVLoopLayer_vert_select_lookup_int(PointerRNA *ptr,
-                                                       int index,
-                                                       PointerRNA *r_ptr)
-{
-  return bool_layer_lookup_int(ptr, index, r_ptr, BKE_uv_map_vert_select_name_get);
-}
-
-static int rna_MeshUVLoopLayer_vert_select_length(PointerRNA *ptr)
-{
-  return bool_layer_length(ptr, BKE_uv_map_vert_select_name_get);
-}
-
-static PointerRNA rna_MeshUVLoopLayer_vert_select_ensure(PointerRNA ptr)
-{
-  return bool_layer_ensure(&ptr, BKE_uv_map_vert_select_name_get);
-}
-
-/* Collection accessors for edge_select. */
-static void rna_MeshUVLoopLayer_edge_select_begin(CollectionPropertyIterator *iter,
-                                                  PointerRNA *ptr)
-{
-  bool_layer_begin(iter, ptr, BKE_uv_map_edge_select_name_get);
-}
-
-static bool rna_MeshUVLoopLayer_edge_select_lookup_int(PointerRNA *ptr,
-                                                       int index,
-                                                       PointerRNA *r_ptr)
-{
-  return bool_layer_lookup_int(ptr, index, r_ptr, BKE_uv_map_edge_select_name_get);
-}
-
-static int rna_MeshUVLoopLayer_edge_select_length(PointerRNA *ptr)
-{
-  return bool_layer_length(ptr, BKE_uv_map_edge_select_name_get);
-}
-
-static PointerRNA rna_MeshUVLoopLayer_edge_selection_ensure(PointerRNA ptr)
-{
-  return bool_layer_ensure(&ptr, BKE_uv_map_edge_select_name_get);
-}
-
 /* Collection accessors for pin. */
 static void rna_MeshUVLoopLayer_pin_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
@@ -1722,56 +1674,6 @@ static bool get_uv_index_and_layer(const PointerRNA *ptr,
   return false;
 }
 
-static bool rna_MeshUVLoop_select_get(PointerRNA *ptr)
-{
-  const Mesh *mesh = rna_mesh(ptr);
-  int uv_map_index;
-  int loop_index;
-  blender::VArray<bool> select;
-  if (get_uv_index_and_layer(ptr, &uv_map_index, &loop_index)) {
-    select = ED_mesh_uv_map_vert_select_layer_get(mesh, uv_map_index);
-  }
-  return select ? select[loop_index] : false;
-}
-
-static void rna_MeshUVLoop_select_set(PointerRNA *ptr, const bool value)
-{
-  Mesh *mesh = rna_mesh(ptr);
-  int uv_map_index;
-  int loop_index;
-  if (get_uv_index_and_layer(ptr, &uv_map_index, &loop_index)) {
-    blender::bke::AttributeWriter<bool> select = ED_mesh_uv_map_vert_select_layer_ensure(
-        mesh, uv_map_index);
-    select.varray.set(loop_index, value);
-    select.finish();
-  }
-}
-
-static bool rna_MeshUVLoop_select_edge_get(PointerRNA *ptr)
-{
-  const Mesh *mesh = rna_mesh(ptr);
-  int uv_map_index;
-  int loop_index;
-  blender::VArray<bool> select_edge;
-  if (get_uv_index_and_layer(ptr, &uv_map_index, &loop_index)) {
-    select_edge = ED_mesh_uv_map_edge_select_layer_get(mesh, uv_map_index);
-  }
-  return select_edge ? select_edge[loop_index] : false;
-}
-
-static void rna_MeshUVLoop_select_edge_set(PointerRNA *ptr, const bool value)
-{
-  Mesh *mesh = rna_mesh(ptr);
-  int uv_map_index;
-  int loop_index;
-  if (get_uv_index_and_layer(ptr, &uv_map_index, &loop_index)) {
-    blender::bke::AttributeWriter<bool> select_edge = ED_mesh_uv_map_edge_select_layer_ensure(
-        mesh, uv_map_index);
-    select_edge.varray.set(loop_index, value);
-    select_edge.finish();
-  }
-}
-
 static bool rna_MeshUVLoop_pin_uv_get(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
@@ -2400,52 +2302,6 @@ static void rna_def_mloopuv(BlenderRNA *brna)
                                     nullptr,
                                     nullptr);
 
-  prop = RNA_def_property(srna, "vertex_selection", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_struct_type(prop, "BoolAttributeValue");
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_ui_text(
-      prop, "UV Vertex Selection", "Selection state of the face corner the UV editor");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
-  RNA_def_property_collection_funcs(prop,
-                                    "rna_MeshUVLoopLayer_vert_select_begin",
-                                    "rna_iterator_array_next",
-                                    "rna_iterator_array_end",
-                                    "rna_iterator_array_get",
-                                    "rna_MeshUVLoopLayer_vert_select_length",
-                                    "rna_MeshUVLoopLayer_vert_select_lookup_int",
-                                    nullptr,
-                                    nullptr);
-
-  func = RNA_def_function(
-      srna, "vertex_selection_ensure", "rna_MeshUVLoopLayer_vert_select_ensure");
-  RNA_def_function_flag(func, FUNC_SELF_AS_RNA);
-  parm = RNA_def_pointer(func, "layer", "BoolAttribute", "", "The boolean attribute");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_RNAPTR);
-  RNA_def_function_return(func, parm);
-
-  prop = RNA_def_property(srna, "edge_selection", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_struct_type(prop, "BoolAttributeValue");
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_ui_text(
-      prop, "UV Edge Selection", "Selection state of the edge in the UV editor");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
-  RNA_def_property_collection_funcs(prop,
-                                    "rna_MeshUVLoopLayer_edge_select_begin",
-                                    "rna_iterator_array_next",
-                                    "rna_iterator_array_end",
-                                    "rna_iterator_array_get",
-                                    "rna_MeshUVLoopLayer_edge_select_length",
-                                    "rna_MeshUVLoopLayer_edge_select_lookup_int",
-                                    nullptr,
-                                    nullptr);
-
-  func = RNA_def_function(
-      srna, "edge_selection_ensure", "rna_MeshUVLoopLayer_edge_selection_ensure");
-  RNA_def_function_flag(func, FUNC_SELF_AS_RNA);
-  parm = RNA_def_pointer(func, "layer", "BoolAttribute", "", "The boolean attribute");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_RNAPTR);
-  RNA_def_function_return(func, parm);
-
   prop = RNA_def_property(srna, "pin", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "BoolAttributeValue");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -2481,17 +2337,6 @@ static void rna_def_mloopuv(BlenderRNA *brna)
   RNA_def_property_boolean_funcs(prop, "rna_MeshUVLoop_pin_uv_get", "rna_MeshUVLoop_pin_uv_set");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "UV Pinned", "");
-
-  prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_funcs(prop, "rna_MeshUVLoop_select_get", "rna_MeshUVLoop_select_set");
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_ui_text(prop, "UV Select", "");
-
-  prop = RNA_def_property(srna, "select_edge", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_funcs(
-      prop, "rna_MeshUVLoop_select_edge_get", "rna_MeshUVLoop_select_edge_set");
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_ui_text(prop, "UV Edge Select", "");
 }
 
 static void rna_def_mloopcol(BlenderRNA *brna)

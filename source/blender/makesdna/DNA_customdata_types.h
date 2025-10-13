@@ -184,7 +184,8 @@ typedef enum eCustomDataType {
 using eCustomDataMask = uint64_t;
 #endif
 
-/* Bits for eCustomDataMask */
+/* Bits for #eCustomDataMask */
+
 #define CD_MASK_MDEFORMVERT (1 << CD_MDEFORMVERT)
 #define CD_MASK_MFACE (1 << CD_MFACE)
 #define CD_MASK_MTFACE (1 << CD_MTFACE)
@@ -222,17 +223,17 @@ using eCustomDataMask = uint64_t;
 /** Multi-resolution loop data. */
 #define CD_MASK_MULTIRES_GRIDS (CD_MASK_MDISPS | CD_GRID_PAINT_MASK)
 
-/* All data layers. */
+/** All data layers. */
 #define CD_MASK_ALL (~0LL)
 
-/* All generic attributes. */
+/** All generic attributes. */
 #define CD_MASK_PROP_ALL \
   (CD_MASK_PROP_FLOAT | CD_MASK_PROP_FLOAT2 | CD_MASK_PROP_FLOAT3 | CD_MASK_PROP_INT32 | \
    CD_MASK_PROP_COLOR | CD_MASK_PROP_STRING | CD_MASK_PROP_BYTE_COLOR | CD_MASK_PROP_BOOL | \
    CD_MASK_PROP_INT8 | CD_MASK_PROP_INT16_2D | CD_MASK_PROP_INT32_2D | CD_MASK_PROP_QUATERNION | \
    CD_MASK_PROP_FLOAT4X4)
 
-/* All color attributes */
+/** All color attributes */
 #define CD_MASK_COLOR_ALL (CD_MASK_PROP_COLOR | CD_MASK_PROP_BYTE_COLOR)
 
 typedef struct CustomData_MeshMasks {
@@ -245,14 +246,16 @@ typedef struct CustomData_MeshMasks {
 
 /** #CustomData.flag */
 enum {
-  /* Indicates layer should not be copied by CustomData_from_template or CustomData_copy_data */
+  /**
+   * Indicates layer should not be copied by #CustomData_from_template or #CustomData_copy_data.
+   */
   CD_FLAG_NOCOPY = (1 << 0),
   CD_FLAG_UNUSED = (1 << 1),
-  /* Indicates the layer is only temporary, also implies no copy */
+  /** Indicates the layer is only temporary, also implies no copy */
   CD_FLAG_TEMPORARY = ((1 << 2) | CD_FLAG_NOCOPY),
-  /* Indicates the layer is stored in an external file */
+  /** Indicates the layer is stored in an external file */
   CD_FLAG_EXTERNAL = (1 << 3),
-  /* Indicates external data is read into memory */
+  /** Indicates external data is read into memory */
   CD_FLAG_IN_MEMORY = (1 << 4),
 #ifdef DNA_DEPRECATED_ALLOW
   CD_FLAG_COLOR_ACTIVE = (1 << 5),
@@ -260,5 +263,5 @@ enum {
 #endif
 };
 
-/* Limits */
+/** Limits. */
 #define MAX_MTFACE 8

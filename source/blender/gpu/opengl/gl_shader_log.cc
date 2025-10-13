@@ -61,12 +61,15 @@ const char *GLLogParser::parse_line(const char *source_combined,
   if (log_item.cursor.row != -1) {
     /* Get to the wanted line. */
     size_t line_start_character = line_start_get(source_combined, log_item.cursor.row);
-    StringRef filename = filename_get(source_combined, line_start_character);
-    size_t line_number = source_line_get(source_combined, line_start_character);
-    log_item.cursor.file_name_and_error_line = std::string(filename) + ':' +
-                                               std::to_string(line_number);
-    if (log_item.cursor.column != -1) {
-      log_item.cursor.file_name_and_error_line += ':' + std::to_string(log_item.cursor.column + 1);
+    if (line_start_character != -1) {
+      StringRef filename = filename_get(source_combined, line_start_character);
+      size_t line_number = source_line_get(source_combined, line_start_character);
+      log_item.cursor.file_name_and_error_line = std::string(filename) + ':' +
+                                                 std::to_string(line_number);
+      if (log_item.cursor.column != -1) {
+        log_item.cursor.file_name_and_error_line += ':' +
+                                                    std::to_string(log_item.cursor.column + 1);
+      }
     }
   }
 

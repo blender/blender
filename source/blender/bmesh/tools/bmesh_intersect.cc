@@ -1512,7 +1512,7 @@ bool BM_mesh_intersect(BMesh *bm,
 
     /* group vars */
     int *groups_array;
-    int(*group_index)[2];
+    int (*group_index)[2];
     int group_tot;
     int i;
     BMFace **ftable;

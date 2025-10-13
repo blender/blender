@@ -46,7 +46,8 @@ namespace blender::nodes {
 
 bool check_tool_context_and_error(GeoNodeExecParams &params);
 void search_link_ops_for_tool_node(GatherLinkSearchOpParams &params);
-void search_link_ops_for_volume_grid_node(GatherLinkSearchOpParams &params);
+
+void node_geo_sdf_grid_error_not_levelset(GeoNodeExecParams &params);
 
 void get_closest_in_bvhtree(bke::BVHTreeFromMesh &tree_data,
                             const VArray<float3> &positions,

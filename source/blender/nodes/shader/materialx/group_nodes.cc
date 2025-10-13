@@ -109,7 +109,7 @@ NodeItem GroupOutputNodeParser::compute_full()
 
 std::string GroupOutputNodeParser::out_name(const bNodeSocket *out_socket)
 {
-  return MaterialX::createValidName(std::string("out_") + out_socket->name);
+  return MaterialX::createValidName(std::string("out_") + out_socket->identifier);
 }
 
 NodeItem GroupInputNodeParser::compute()
@@ -156,7 +156,7 @@ NodeItem GroupInputNodeParser::compute_full()
 
 std::string GroupInputNodeParser::in_name() const
 {
-  return MaterialX::createValidName(std::string("in_") + socket_out_->name);
+  return MaterialX::createValidName(std::string("in_") + socket_out_->identifier);
 }
 
 }  // namespace blender::nodes::materialx

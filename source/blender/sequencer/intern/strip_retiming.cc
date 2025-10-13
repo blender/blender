@@ -12,6 +12,7 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_sound_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
@@ -1047,6 +1048,30 @@ static RetimingRangeData strip_retiming_range_data_get(const Scene *scene, const
 
 void retiming_sound_animation_data_set(const Scene *scene, const Strip *strip)
 {
+
+  RetimingRangeData retiming_data = strip_retiming_range_data_get(scene, strip);
+
+  /* No need to apply the time-stretch effect if all the retiming range speeds are 1, as the
+   * effect itself is still expensive while the audio is playing and want to avoid having to use it
+   * whenever we can. */
+  bool correct_pitch = (strip->flag & SEQ_AUDIO_PITCH_CORRECTION) && strip->sound != nullptr &&
+                       std::any_of(retiming_data.ranges.begin(),
+                                   retiming_data.ranges.end(),
+                                   [](const RetimingRange &range) {
+                                     return range.type != TRANSITION && range.speed != 1.0;
+                                   });
+#if !defined(WITH_RUBBERBAND)
+  correct_pitch = false;
+#endif
+
+  void *sound_handle = strip->sound ? strip->sound->playback_handle : nullptr;
+  const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
+  if (correct_pitch) {
+    sound_handle = BKE_sound_add_time_stretch_effect(sound_handle, scene_fps);
+    BKE_sound_set_scene_sound_pitch_constant_range(
+        strip->scene_sound, 0, strip->start + strip->len, 1.0f);
+  }
+
   /* Content cut off by `anim_startofs` is as if it does not exist for sequencer. But Audaspace
    * seeking relies on having animation buffer initialized for whole sequence. */
   if (strip->anim_startofs > 0) {
@@ -1055,25 +1080,38 @@ void retiming_sound_animation_data_set(const Scene *scene, const Strip *strip)
         strip->scene_sound, strip_start - strip->anim_startofs, strip_start, 1.0f);
   }
 
-  const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
   const int sound_offset = time_get_rounded_sound_offset(strip, scene_fps);
 
-  RetimingRangeData retiming_data = strip_retiming_range_data_get(scene, strip);
   for (int i = 0; i < retiming_data.ranges.size(); i++) {
-    RetimingRange range = retiming_data.ranges[i];
+    const RetimingRange &range = retiming_data.ranges[i];
     if (range.type == TRANSITION) {
-
       const int range_length = range.end - range.start;
       for (int i = 0; i <= range_length; i++) {
         const int frame = range.start + i;
-        BKE_sound_set_scene_sound_pitch_at_frame(
-            strip->scene_sound, frame + sound_offset, range.speed_table[i], true);
+        if (correct_pitch) {
+          BKE_sound_set_scene_sound_time_stretch_at_frame(
+              sound_handle, frame - strip->start, 1.0 / range.speed_table[i], true);
+        }
+        else {
+          BKE_sound_set_scene_sound_pitch_at_frame(
+              strip->scene_sound, frame + sound_offset, range.speed_table[i], true);
+        }
       }
     }
     else {
-      BKE_sound_set_scene_sound_pitch_constant_range(
-          strip->scene_sound, range.start + sound_offset, range.end + sound_offset, range.speed);
+      if (correct_pitch) {
+        BKE_sound_set_scene_sound_time_stretch_constant_range(
+            sound_handle, range.start - strip->start, range.end - strip->start, 1.0 / range.speed);
+      }
+      else {
+        BKE_sound_set_scene_sound_pitch_constant_range(
+            strip->scene_sound, range.start + sound_offset, range.end + sound_offset, range.speed);
+      }
     }
+  }
+
+  if (correct_pitch) {
+    BKE_sound_update_sequence_handle(strip->scene_sound, sound_handle);
   }
 }
 

@@ -77,9 +77,12 @@
 static bool blo_is_builtin_template(const char *app_template)
 {
   /* For all builtin templates shipped with Blender. */
-  return (
-      !app_template ||
-      STR_ELEM(app_template, N_("2D_Animation"), N_("Sculpting"), N_("VFX"), N_("Video_Editing")));
+  return (!app_template || STR_ELEM(app_template,
+                                    N_("2D_Animation"),
+                                    N_("Storyboarding"),
+                                    N_("Sculpting"),
+                                    N_("VFX"),
+                                    N_("Video_Editing")));
 }
 
 static void blo_update_defaults_screen(bScreen *screen,
@@ -347,6 +350,31 @@ void BLO_update_defaults_workspace(WorkSpace *workspace, const char *app_templat
       }
     }
   }
+  /* For Video Editing template. */
+  if (STRPREFIX(workspace->id.name + 2, "Video Editing")) {
+    LISTBASE_FOREACH (WorkSpaceLayout *, layout, &workspace->layouts) {
+      bScreen *screen = layout->screen;
+      if (screen) {
+        LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+          LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+            if (sl->spacetype == SPACE_SEQ) {
+              if (((SpaceSeq *)sl)->view == SEQ_VIEW_PREVIEW) {
+                continue;
+              }
+              ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                     &sl->regionbase;
+              ARegion *sidebar = BKE_region_find_in_listbase_by_type(regionbase, RGN_TYPE_UI);
+              sidebar->flag |= RGN_FLAG_HIDDEN;
+            }
+            if (sl->spacetype == SPACE_PROPERTIES) {
+              SpaceProperties *properties = reinterpret_cast<SpaceProperties *>(sl);
+              properties->mainb = properties->mainbo = properties->mainbuser = BCONTEXT_STRIP;
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 static void blo_update_defaults_paint(Paint *paint)
@@ -379,6 +407,11 @@ static void blo_update_defaults_paint(Paint *paint)
   if (paint->unified_paint_settings.curve_rand_value == nullptr) {
     paint->unified_paint_settings.curve_rand_value = BKE_paint_default_curve();
   }
+}
+
+static void blo_update_defaults_windowmanager(wmWindowManager *wm)
+{
+  wm->xr.session_settings.fly_speed = 3.0f;
 }
 
 static void blo_update_defaults_scene(Main *bmain, Scene *scene)
@@ -424,6 +457,8 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   copy_v2_fl2(scene->safe_areas.title, 0.1f, 0.05f);
   copy_v2_fl2(scene->safe_areas.action, 0.035f, 0.035f);
 
+  ts->uv_flag |= UV_FLAG_SELECT_SYNC;
+
   /* Default Rotate Increment. */
   const float default_snap_angle_increment = DEG2RADF(5.0f);
   ts->snap_angle_increment_2d = default_snap_angle_increment;
@@ -467,7 +502,7 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
         {0.125, 0.50}, {0.375, 0.50}, {0.375, 0.75}, {0.125, 0.75}, {0.375, 0.50}, {0.625, 0.50},
         {0.625, 0.75}, {0.375, 0.75}, {0.375, 0.25}, {0.625, 0.25}, {0.625, 0.50}, {0.375, 0.50},
     };
-    float(*uv_map)[2] = static_cast<float(*)[2]>(
+    float (*uv_map)[2] = static_cast<float (*)[2]>(
         CustomData_get_layer_for_write(&mesh->corner_data, CD_PROP_FLOAT2, mesh->corners_num));
     memcpy(uv_map, uv_values, sizeof(float[2]) * mesh->corners_num);
   }
@@ -618,6 +653,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 
   /* Work-spaces. */
   LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
+    blo_update_defaults_windowmanager(wm);
+
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
         WorkSpaceLayout *layout = BKE_workspace_active_layout_for_workspace_get(

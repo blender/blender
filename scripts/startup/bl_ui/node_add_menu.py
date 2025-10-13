@@ -32,7 +32,8 @@ def add_node_type(layout, node_type, *, label=None, poll=None, search_weight=0.0
         label=label,
         poll=poll,
         search_weight=search_weight,
-        translate=translate)
+        translate=translate,
+    )
 
 
 def add_node_type_with_searchable_enum(context, layout, node_idname, property_name, search_weight=0.0):
@@ -45,9 +46,11 @@ def add_node_type_with_searchable_enum_socket(
         node_idname,
         socket_identifier,
         enum_names,
-        search_weight=0.0):
+        search_weight=0.0,
+):
     return AddNodeMenu.node_operator_with_searchable_enum_socket(
-        context, layout, node_idname, socket_identifier, enum_names, search_weight)
+        context, layout, node_idname, socket_identifier, enum_names, search_weight,
+    )
 
 
 def add_node_type_with_outputs(context, layout, node_type, subnames, *, label=None, search_weight=0.0):
@@ -57,7 +60,8 @@ def add_node_type_with_outputs(context, layout, node_type, subnames, *, label=No
         node_type,
         subnames,
         label=label,
-        search_weight=search_weight)
+        search_weight=search_weight,
+    )
 
 
 def add_color_mix_node(context, layout):
@@ -98,7 +102,10 @@ def add_foreach_geometry_element_zone(layout, label):
 
 def add_closure_zone(layout, label):
     props = layout.operator(
-        "node.add_closure_zone", text=label, text_ctxt=i18n_contexts.default)
+        "node.add_closure_zone",
+        text=label,
+        text_ctxt=i18n_contexts.default,
+    )
     props.use_transform = True
     return props
 
@@ -116,6 +123,10 @@ class NodeMenu(Menu):
     pathing_dict: dict[str, str]
 
     @classmethod
+    def poll(cls, context):
+        return context.space_data.type == 'NODE_EDITOR'
+
+    @classmethod
     def node_operator(cls, layout, node_type, *, label=None, poll=None, search_weight=0.0, translate=True):
         """The main operator defined for the node menu.
         \n(e.g. 'Add Node' for AddNodeMenu, or 'Swap Node' for SwapNodeMenu)."""
@@ -131,7 +142,8 @@ class NodeMenu(Menu):
                 text=label,
                 text_ctxt=translation_context,
                 translate=translate,
-                search_weight=search_weight)
+                search_weight=search_weight,
+            )
             props.type = node_type
 
             if hasattr(props, "use_transform"):
@@ -155,13 +167,12 @@ class NodeMenu(Menu):
                     layout,
                     node_idname,
                     label="{:s} \u25B8 {:s}".format(
-                        iface_(
-                            node_type.bl_rna.name),
-                        iface_(
-                            item.name,
-                            translation_context)),
+                        iface_(node_type.bl_rna.name),
+                        iface_(item.name, translation_context),
+                    ),
                     translate=False,
-                    search_weight=search_weight)
+                    search_weight=search_weight,
+                )
                 prop = props.settings.add()
                 prop.name = property_name
                 prop.value = repr(item.identifier)
@@ -194,7 +205,8 @@ class NodeMenu(Menu):
                     node_idname,
                     label="{:s} \u25B8 {:s}".format(iface_(node_type.bl_rna.name), iface_(enum_name)),
                     translate=False,
-                    search_weight=search_weight)
+                    search_weight=search_weight,
+                )
                 prop = props.settings.add()
                 prop.name = "inputs[\"{:s}\"].default_value".format(bpy.utils.escape_identifier(socket_identifier))
                 prop.value = repr(enum_name)
@@ -249,10 +261,10 @@ class NodeMenu(Menu):
                     "ShaderNodeMix",
                     label="{:s} \u25B8 {:s}".format(
                         label,
-                        iface_(
-                            item.name,
-                            translation_context)),
-                    translate=False)
+                        iface_(item.name, translation_context),
+                    ),
+                    translate=False,
+                )
                 prop = props.settings.add()
                 prop.name = "data_type"
                 prop.value = "'RGBA'"
@@ -270,8 +282,12 @@ class NodeMenu(Menu):
     @classmethod
     def new_empty_group(cls, layout):
         """Group Node with a newly created empty group as its assigned nodetree."""
-        props = layout.operator(cls.new_empty_group_operator_id, text="New Group", text_ctxt=i18n_contexts.default)
-
+        props = layout.operator(
+            cls.new_empty_group_operator_id,
+            text="New Group",
+            text_ctxt=i18n_contexts.default,
+            icon='ADD',
+        )
         if hasattr(props, "use_transform"):
             props.use_transform = cls.use_transform
 
@@ -284,13 +300,13 @@ class NodeMenu(Menu):
         node_tree = space_node.edit_tree
         all_node_groups = context.blend_data.node_groups
 
+        operators = []
+        operators.append(cls.new_empty_group(layout))
+
         if node_tree in all_node_groups.values():
             layout.separator()
             cls.node_operator(layout, "NodeGroupInput")
             cls.node_operator(layout, "NodeGroupOutput")
-
-        operators = []
-        operators.append(cls.new_empty_group(layout))
 
         if node_tree:
             from nodeitems_builtins import node_tree_group_type
@@ -307,7 +323,13 @@ class NodeMenu(Menu):
             if groups:
                 layout.separator()
                 for group in groups:
-                    props = cls.node_operator(layout, node_tree_group_type[group.bl_idname], label=group.name)
+                    search_weight = -1.0 if group.is_linked_packed else 0.0
+                    props = cls.node_operator(
+                        layout,
+                        node_tree_group_type[group.bl_idname],
+                        label=group.name,
+                        search_weight=search_weight,
+                    )
                     ops = props.settings.add()
                     ops.name = "node_tree"
                     ops.value = "bpy.data.node_groups[{!r}]".format(group.name)
@@ -338,7 +360,7 @@ class NodeMenu(Menu):
 
     @classmethod
     def simulation_zone(cls, layout, label):
-        props = layout.operator(cls.zone_operator_id, text=label)
+        props = layout.operator(cls.zone_operator_id, text=iface_(label), translate=False)
         props.input_node_type = "GeometryNodeSimulationInput"
         props.output_node_type = "GeometryNodeSimulationOutput"
         props.add_default_geometry_link = True
@@ -350,7 +372,7 @@ class NodeMenu(Menu):
 
     @classmethod
     def repeat_zone(cls, layout, label):
-        props = layout.operator(cls.zone_operator_id, text=label)
+        props = layout.operator(cls.zone_operator_id, text=iface_(label), translate=False)
         props.input_node_type = "GeometryNodeRepeatInput"
         props.output_node_type = "GeometryNodeRepeatOutput"
         props.add_default_geometry_link = True
@@ -362,7 +384,7 @@ class NodeMenu(Menu):
 
     @classmethod
     def for_each_element_zone(cls, layout, label):
-        props = layout.operator(cls.zone_operator_id, text=label)
+        props = layout.operator(cls.zone_operator_id, text=iface_(label), translate=False)
         props.input_node_type = "GeometryNodeForeachGeometryElementInput"
         props.output_node_type = "GeometryNodeForeachGeometryElementOutput"
         props.add_default_geometry_link = False
@@ -374,7 +396,7 @@ class NodeMenu(Menu):
 
     @classmethod
     def closure_zone(cls, layout, label):
-        props = layout.operator(cls.zone_operator_id, text=label)
+        props = layout.operator(cls.zone_operator_id, text=iface_(label), translate=False)
         props.input_node_type = "NodeClosureInput"
         props.output_node_type = "NodeClosureOutput"
         props.add_default_geometry_link = False

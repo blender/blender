@@ -23,12 +23,12 @@ namespace blender::nodes::node_composite_mask_cc {
 
 static const EnumPropertyItem size_source_items[] = {
     {0, "SCENE", 0, "Scene Size", ""},
-    {CMP_NODE_MASK_FLAG_SIZE_FIXED, "FIXED", 0, "Fixed", "Use pixel size for the buffer"},
+    {CMP_NODE_MASK_FLAG_SIZE_FIXED, "FIXED", 0, N_("Fixed"), N_("Use pixel size for the buffer")},
     {CMP_NODE_MASK_FLAG_SIZE_FIXED_SCENE,
      "FIXED_SCENE",
      0,
-     "Fixed/Scene",
-     "Pixel size scaled by scene percentage"},
+     N_("Fixed/Scene"),
+     N_("Pixel size scaled by scene percentage")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

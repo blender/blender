@@ -40,8 +40,8 @@ class AmbientOcclusion {
   PassSimple render_pass_ps_ = {"AO Render Pass"};
 
  public:
-  AmbientOcclusion(Instance &inst, AOData &data) : inst_(inst), data_(data){};
-  ~AmbientOcclusion(){};
+  AmbientOcclusion(Instance &inst, AOData &data) : inst_(inst), data_(data) {};
+  ~AmbientOcclusion() {};
 
   void init();
 

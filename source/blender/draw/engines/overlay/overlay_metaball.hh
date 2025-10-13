@@ -30,7 +30,7 @@ class Metaballs : Overlay {
   SphereOutlineInstanceBuf circle_buf_ = {selection_type_, "metaball_data_buf"};
 
  public:
-  Metaballs(const SelectionType selection_type) : selection_type_(selection_type){};
+  Metaballs(const SelectionType selection_type) : selection_type_(selection_type) {};
 
   void begin_sync(Resources & /*res*/, const State & /*state*/) final
   {

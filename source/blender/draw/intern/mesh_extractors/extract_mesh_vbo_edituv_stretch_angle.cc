@@ -89,7 +89,7 @@ static void extract_uv_stretch_angle_bm(const MeshRenderData &mr,
     do {
       const int l_index = BM_elem_index_get(l_iter);
 
-      const float(*luv)[2], (*luv_next)[2];
+      const float (*luv)[2], (*luv_next)[2];
       BMLoop *l_next = l_iter->next;
       if (l_iter == BM_FACE_FIRST_LOOP(face)) {
         /* First loop in face. */
@@ -248,18 +248,18 @@ gpu::VertBufPtr extract_edituv_stretch_angle_subdiv(const MeshRenderData &mr,
   const CustomData *cd_ldata = (mr.extract_type == MeshExtractType::Mesh) ? &mr.mesh->corner_data :
                                                                             &mr.bm->ldata;
 
-  uint32_t uv_layers = cache.cd_used.uv;
+  VectorSet<std::string> uv_layers = cache.cd_used.uv;
   /* HACK to fix #68857 */
   if (mr.extract_type == MeshExtractType::BMesh && cache.cd_used.edit_uv == 1) {
-    int layer = CustomData_get_active_layer(cd_ldata, CD_PROP_FLOAT2);
-    if (layer != -1 && !CustomData_layer_is_anonymous(cd_ldata, CD_PROP_FLOAT2, layer)) {
-      uv_layers |= (1 << layer);
+    if (const char *active_name = CustomData_get_active_layer_name(cd_ldata, CD_PROP_FLOAT2)) {
+      uv_layers.add_as(active_name);
     }
   }
 
   int uvs_offset = 0;
   for (int i = 0; i < MAX_MTFACE; i++) {
-    if (uv_layers & (1 << i)) {
+    const char *name = CustomData_get_layer_name(cd_ldata, CD_PROP_FLOAT2, i);
+    if (uv_layers.contains_as(name)) {
       if (i == CustomData_get_active_layer(cd_ldata, CD_PROP_FLOAT2)) {
         break;
       }

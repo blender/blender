@@ -27,8 +27,10 @@ def drivers_editor_footer(layout, context):
     layout.label(
         text=iface_("Driver: {:s} ({:s})").format(
             act_fcurve.id_data.name,
-            act_fcurve.data_path),
-        translate=False)
+            act_fcurve.data_path,
+        ),
+        translate=False,
+    )
 
     if act_driver.variables:
         layout.separator(type='LINE')

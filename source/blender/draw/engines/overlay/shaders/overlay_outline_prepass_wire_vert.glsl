@@ -91,10 +91,14 @@ void geometry_main(VertOut geom_in[4],
   float fac0 = dot(view_vec, n0);
   float fac3 = dot(view_vec, n3);
 
-  /* If both adjacent verts are facing the camera the same way,
-   * then it isn't an outline edge. */
-  if (sign(fac0) == sign(fac3)) {
-    return;
+  /* If one of the face is perpendicular to the view,
+   * consider it an outline edge. */
+  if (abs(fac0) > 1e-5f && abs(fac3) > 1e-5f) {
+    /* If both adjacent verts are facing the camera the same way,
+     * then it isn't an outline edge. */
+    if (sign(fac0) == sign(fac3)) {
+      return;
+    }
   }
 
   VertOut export_vert = (out_vertex_id == 0) ? geom_in[1] : geom_in[2];

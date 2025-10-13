@@ -30,10 +30,10 @@
 namespace blender::nodes::node_composite_dilate_cc {
 
 static const EnumPropertyItem type_items[] = {
-    {CMP_NODE_DILATE_ERODE_STEP, "STEP", 0, "Steps", ""},
-    {CMP_NODE_DILATE_ERODE_DISTANCE_THRESHOLD, "THRESHOLD", 0, "Threshold", ""},
-    {CMP_NODE_DILATE_ERODE_DISTANCE, "DISTANCE", 0, "Distance", ""},
-    {CMP_NODE_DILATE_ERODE_DISTANCE_FEATHER, "FEATHER", 0, "Feather", ""},
+    {CMP_NODE_DILATE_ERODE_STEP, "STEP", 0, N_("Steps"), ""},
+    {CMP_NODE_DILATE_ERODE_DISTANCE_THRESHOLD, "THRESHOLD", 0, N_("Threshold"), ""},
+    {CMP_NODE_DILATE_ERODE_DISTANCE, "DISTANCE", 0, N_("Distance"), ""},
+    {CMP_NODE_DILATE_ERODE_DISTANCE_FEATHER, "FEATHER", 0, N_("Feather"), ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

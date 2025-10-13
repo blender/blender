@@ -1861,7 +1861,7 @@ static void dynamic_paint_apply_surface_vpaint_blend_cb(void *__restrict userdat
       userdata);
 
   PaintPoint *pPoint = (PaintPoint *)data->surface->data->type_data;
-  float(*fcolor)[4] = data->fcolor;
+  float (*fcolor)[4] = data->fcolor;
 
   /* blend dry and wet layer */
   blendColors(
@@ -1879,7 +1879,7 @@ static void dynamic_paint_apply_surface_vpaint_cb(void *__restrict userdata,
 
   const DynamicPaintSurface *surface = data->surface;
   PaintPoint *pPoint = (PaintPoint *)surface->data->type_data;
-  float(*fcolor)[4] = data->fcolor;
+  float (*fcolor)[4] = data->fcolor;
 
   blender::MutableSpan<blender::ColorGeometry4b> mloopcol = data->mloopcol;
   blender::MutableSpan<blender::ColorGeometry4b> mloopcol_wet = data->mloopcol_wet;
@@ -1950,8 +1950,8 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
             const blender::Span<int> corner_verts = result->corner_verts();
 
             /* paint is stored on dry and wet layers, so mix final color first */
-            float(*fcolor)[4] = MEM_calloc_arrayN<float[4]>(sData->total_points,
-                                                            "Temp paint color");
+            float (*fcolor)[4] = MEM_calloc_arrayN<float[4]>(sData->total_points,
+                                                             "Temp paint color");
 
             DynamicPaintModifierApplyData data{};
             data.surface = surface;
@@ -2203,7 +2203,16 @@ Mesh *dynamicPaint_Modifier_do(
 /* Create a surface for uv image sequence format. */
 #define JITTER_SAMPLES \
   { \
-    0.0f, 0.0f, -0.2f, -0.4f, 0.2f, 0.4f, 0.4f, -0.2f, -0.4f, 0.3f, \
+      0.0f, \
+      0.0f, \
+      -0.2f, \
+      -0.4f, \
+      0.2f, \
+      0.4f, \
+      0.4f, \
+      -0.2f, \
+      -0.4f, \
+      0.3f, \
   }
 
 struct DynamicPaintCreateUVSurfaceData {
@@ -3768,11 +3777,11 @@ static void dynamic_paint_brush_velocity_compute_cb(void *__restrict userdata,
 
   Vec3f *brush_vel = data->brush_vel;
 
-  const float(*positions_p)[3] = data->positions_p;
-  const float(*positions_c)[3] = data->positions_c;
+  const float (*positions_p)[3] = data->positions_p;
+  const float (*positions_c)[3] = data->positions_c;
 
-  const float(*obmat)[4] = data->obmat;
-  float(*prev_obmat)[4] = data->prev_obmat;
+  const float (*obmat)[4] = data->obmat;
+  float (*prev_obmat)[4] = data->prev_obmat;
 
   const float timescale = data->timescale;
 
@@ -3831,7 +3840,7 @@ static void dynamicPaint_brushMeshCalculateVelocity(Depsgraph *depsgraph,
   }
   numOfVerts_p = mesh_p->verts_num;
 
-  float(*positions_p)[3] = reinterpret_cast<float(*)[3]>(
+  float (*positions_p)[3] = reinterpret_cast<float (*)[3]>(
       mesh_p->vert_positions_for_write().data());
   copy_m4_m4(prev_obmat, ob->object_to_world().ptr());
 
@@ -3854,7 +3863,7 @@ static void dynamicPaint_brushMeshCalculateVelocity(Depsgraph *depsgraph,
   mesh_c = runtime_data->brush_mesh;
 
   numOfVerts_c = mesh_c->verts_num;
-  float(*positions_c)[3] = reinterpret_cast<float(*)[3]>(
+  float (*positions_c)[3] = reinterpret_cast<float (*)[3]>(
       mesh_c->vert_positions_for_write().data());
 
   (*brushVel) = MEM_malloc_arrayN<Vec3f>(size_t(numOfVerts_c), "Dynamic Paint brush velocity");

@@ -402,7 +402,7 @@ bool ED_mask_feather_find_nearest(const bContext *C,
       // MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
 
       int i, tot_feather_point;
-      float(*feather_points)[2], (*fp)[2];
+      float (*feather_points)[2], (*fp)[2];
 
       if (mask_layer_orig->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
         continue;

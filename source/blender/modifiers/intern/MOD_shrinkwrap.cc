@@ -95,7 +95,7 @@ static void deform_verts(ModifierData *md,
                             mesh,
                             dvert,
                             defgrp_index,
-                            reinterpret_cast<float(*)[3]>(positions.data()),
+                            reinterpret_cast<float (*)[3]>(positions.data()),
                             positions.size());
 }
 

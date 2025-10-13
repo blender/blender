@@ -748,7 +748,7 @@ typedef enum eStripFlag {
   /* Access scene strips directly (like a meta-strip). */
   SEQ_SCENE_STRIPS = (1 << 30),
 
-  SEQ_UNUSED_31 = (1u << 31),
+  SEQ_AUDIO_PITCH_CORRECTION = (1u << 31)
 } eStripFlag;
 
 /** #StripProxy.storage */

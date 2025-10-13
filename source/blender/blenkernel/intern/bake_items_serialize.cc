@@ -205,7 +205,7 @@ BlobSlice MemoryBlobWriter::write_as_stream(const StringRef file_extension,
   const int64_t size = stream.stream->tellp();
   stream_by_name_.add_new(name, std::move(stream));
   total_written_size_ += size;
-  return {base_name_, IndexRange(size)};
+  return {name, IndexRange(size)};
 }
 
 BlobWriteSharing::~BlobWriteSharing()

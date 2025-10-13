@@ -96,3 +96,11 @@ if(LIBDIR AND
   unset_cache_variables("^TBB")
   unset_cache_variables("^USD")
 endif()
+
+# Detect update to 5.0 libs.
+if(UNIX AND LIBDIR AND
+   EXISTS ${LIBDIR}/haru/lib/libhpdf.a AND
+   HARU_LIBRARY MATCHES "libhpdfs.a$")
+  message(STATUS "Auto updating CMake configuration for Blender 5.0 libraries")
+  unset_cache_variables("^HARU")
+endif()

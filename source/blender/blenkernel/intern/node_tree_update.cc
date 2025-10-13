@@ -399,7 +399,7 @@ class NodeTreeMainUpdater {
       }
 
       if (result.output_changed) {
-        ntree->runtime->geometry_nodes_lazy_function_graph_info.reset();
+        ntree->runtime->geometry_nodes_lazy_function_graph_info_mutex.tag_dirty();
       }
 
       ID *owner_id = BKE_id_owner_get(&ntree->id);
@@ -2189,6 +2189,7 @@ void BKE_ntree_update_after_single_tree_change(Main &bmain,
 
 void BKE_ntree_update_without_main(bNodeTree &tree)
 {
+  BLI_assert(tree.id.tag & ID_TAG_NO_MAIN);
   if (is_updating) {
     return;
   }

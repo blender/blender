@@ -28,7 +28,7 @@ echo # - Visual Studio 2010 X64 redist (required for the yaml binary)
 echo # - Git 2.38.0
 echo # - CMake 3.31.7
 echo # - Cuda 12.8.0
-echo # - HIP 6.3.42560
+echo # - HIP 6.4.50101
 echo #
 echo # Additionally this will also create and populate the following folders :
 echo #
@@ -105,10 +105,15 @@ echo *********************************************************************
 mkdir c:\tools\cuda\12.8.0\
 start /wait c:\install\cuda_12.8.0_571.96_windows.exe
 
-echo Obtaining Hip SDK 6.3.42560-881c2d702
-curl https://gpuopen.com/download/hiprt/HIP_SDK_6.3.42560-881c2d702_update.zip  -o c:\install\HIP_SDK_6.3.42560-881c2d702_update.zip
-echo Installing Hip SDK 6.3.42560-881c2d702
-tar -zxvf c:\install\HIP_SDK_6.3.42560-881c2d702_update.zip -C c:\tools\
+echo Obtaining 7zr
+curl https://www.7-zip.org/a/7zr.exe -o c:\install\7zr.exe
+
+echo Obtaining Hip SDK 6.4.50101-9a6572ae7
+curl https://download.amd.com/developer/eula/rocm-hub/AMD-Software-PRO-Edition-25.Q3-Win10-Win11-For-HIP.exe -o c:\install\AMD-Software-PRO-Edition-25.Q3-Win10-Win11-For-HIP.exe
+c:\install\7zr.exe x C:\install\AMD-Software-PRO-Edition-25.Q3-Win10-Win11-For-HIP.exe -oC:\install\
+mkdir C:\tools\rocm
+echo Installing Hip SDK 6.4.50101-9a6572ae7
+msiexec /i C:\install\Packages\Apps\ROCmSDKPackages\SDKCore\ROCm_SDK_Core.msi INSTALLDIR="C:\tools\rocm"
 
 echo Cloning Blender repository
 mkdir c:\blendergit

@@ -16,9 +16,14 @@ namespace blender::nodes::node_composite_bokehblur_cc {
 
 static void cmp_node_bokehblur_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.add_input<decl::Color>("Image")
       .default_value({0.8f, 0.8f, 0.8f, 1.0f})
+      .hide_value()
       .structure_type(StructureType::Dynamic);
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic).align_with_previous();
+
   b.add_input<decl::Color>("Bokeh")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_realization_mode(CompositorInputRealizationMode::Transforms)
@@ -28,8 +33,6 @@ static void cmp_node_bokehblur_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>("Mask").default_value(1.0f).min(0.0f).max(1.0f).structure_type(
       StructureType::Dynamic);
   b.add_input<decl::Bool>("Extend Bounds").default_value(false);
-
-  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }
 
 using namespace blender::compositor;

@@ -18,9 +18,11 @@ namespace blender::nodes::node_composite_normalize_cc {
 
 static void cmp_node_normalize_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.add_input<decl::Float>("Value").default_value(1.0f).min(0.0f).max(1.0f).structure_type(
       StructureType::Dynamic);
-  b.add_output<decl::Float>("Value").structure_type(StructureType::Dynamic);
+  b.add_output<decl::Float>("Value").structure_type(StructureType::Dynamic).align_with_previous();
 }
 
 using namespace blender::compositor;

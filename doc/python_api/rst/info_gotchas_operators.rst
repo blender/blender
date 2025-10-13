@@ -48,6 +48,9 @@ you should be able to find the poll function with no knowledge of C.
       >>> bpy.ops.gpencil.draw()
       RuntimeError: Operator bpy.ops.gpencil.draw.poll() Failed to find Grease Pencil data to draw into
 
+   In some cases using :class:`bpy.types.Context.temp_override` to enable temporary logging or using the
+   ``context`` category when :ref:`logging <blender_manual:command-line-args-logging-options>` can help.
+
 
 The operator still doesn't work!
 ================================

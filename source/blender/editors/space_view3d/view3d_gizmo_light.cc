@@ -53,7 +53,7 @@ static void gizmo_spot_blend_prop_matrix_get(const wmGizmo * /*gz*/,
                                              void *value_p)
 {
   BLI_assert(gz_prop->type->array_length == 16);
-  float(*matrix)[4] = static_cast<float(*)[4]>(value_p);
+  float (*matrix)[4] = static_cast<float (*)[4]>(value_p);
 
   const bContext *C = static_cast<const bContext *>(gz_prop->custom_func.user_data);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -75,7 +75,7 @@ static void gizmo_spot_blend_prop_matrix_set(const wmGizmo * /*gz*/,
                                              wmGizmoProperty *gz_prop,
                                              const void *value_p)
 {
-  const float(*matrix)[4] = static_cast<const float(*)[4]>(value_p);
+  const float (*matrix)[4] = static_cast<const float (*)[4]>(value_p);
   BLI_assert(gz_prop->type->array_length == 16);
 
   const bContext *C = static_cast<const bContext *>(gz_prop->custom_func.user_data);
@@ -103,7 +103,7 @@ static void gizmo_light_radius_prop_matrix_get(const wmGizmo * /*gz*/,
                                                void *value_p)
 {
   BLI_assert(gz_prop->type->array_length == 16);
-  float(*matrix)[4] = static_cast<float(*)[4]>(value_p);
+  float (*matrix)[4] = static_cast<float (*)[4]>(value_p);
 
   const bContext *C = static_cast<const bContext *>(gz_prop->custom_func.user_data);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -119,7 +119,7 @@ static void gizmo_light_radius_prop_matrix_set(const wmGizmo * /*gz*/,
                                                wmGizmoProperty *gz_prop,
                                                const void *value_p)
 {
-  const float(*matrix)[4] = static_cast<const float(*)[4]>(value_p);
+  const float (*matrix)[4] = static_cast<const float (*)[4]>(value_p);
   BLI_assert(gz_prop->type->array_length == 16);
 
   const bContext *C = static_cast<const bContext *>(gz_prop->custom_func.user_data);
@@ -399,7 +399,7 @@ static void gizmo_area_light_prop_matrix_get(const wmGizmo * /*gz*/,
                                              void *value_p)
 {
   BLI_assert(gz_prop->type->array_length == 16);
-  float(*matrix)[4] = static_cast<float(*)[4]>(value_p);
+  float (*matrix)[4] = static_cast<float (*)[4]>(value_p);
   const Light *la = static_cast<const Light *>(gz_prop->custom_func.user_data);
 
   matrix[0][0] = la->area_size;
@@ -411,7 +411,7 @@ static void gizmo_area_light_prop_matrix_set(const wmGizmo * /*gz*/,
                                              wmGizmoProperty *gz_prop,
                                              const void *value_p)
 {
-  const float(*matrix)[4] = static_cast<const float(*)[4]>(value_p);
+  const float (*matrix)[4] = static_cast<const float (*)[4]>(value_p);
   BLI_assert(gz_prop->type->array_length == 16);
   Light *la = static_cast<Light *>(gz_prop->custom_func.user_data);
 

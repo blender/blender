@@ -23,16 +23,14 @@ https://github.com/PixarAnimationStudios/OpenUSD/pull/3603
  15 files changed, 305 insertions(+), 98 deletions(-)
  create mode 100644 cmake/modules/FindShaderC.cmake
  create mode 100644 cmake/modules/FindSpirvReflect.cmake
- delete mode 100644 pxr/imaging/hgiVulkan/spirv_reflect.cpp
- delete mode 100644 pxr/imaging/hgiVulkan/spirv_reflect.h
  delete mode 100644 pxr/imaging/hgiVulkan/vk_mem_alloc.cpp
  delete mode 100644 pxr/imaging/hgiVulkan/vk_mem_alloc.h
 
 diff --git a/cmake/defaults/Packages.cmake b/cmake/defaults/Packages.cmake
-index 4e9066ca3a..0a929fda3b 100644
+index 0112058e5..501a0e481 100644
 --- a/cmake/defaults/Packages.cmake
 +++ b/cmake/defaults/Packages.cmake
-@@ -187,38 +187,59 @@ if (PXR_BUILD_IMAGING)
+@@ -188,38 +188,56 @@ if (PXR_BUILD_IMAGING)
      endif()
      if (PXR_ENABLE_VULKAN_SUPPORT)
          message(STATUS "Enabling experimental feature Vulkan support")
@@ -44,27 +42,7 @@ index 4e9066ca3a..0a929fda3b 100644
 -            include_directories(BEFORE SYSTEM $ENV{VULKAN_SDK} $ENV{VULKAN_SDK}/include $ENV{VULKAN_SDK}/lib $ENV{VULKAN_SDK}/source)
 -            set(ENV{PATH} "$ENV{VULKAN_SDK}:$ENV{VULKAN_SDK}/include:$ENV{VULKAN_SDK}/lib:$ENV{VULKAN_SDK}/source:$ENV{PATH}")
 -            find_package(Vulkan REQUIRED)
-+
-+        if (DEFINED ENV{VULKAN_SDK})
-+            message(STATUS "Using Vulkan components from: \"$ENV{VULKAN_SDK}\"")
-+            # Not using usd_build.py: find from the Vulkan SDK
-+            find_package(Vulkan MODULE REQUIRED COMPONENTS shaderc_combined)
-+
-+            # The SDK uniquely places the "vk_mem_alloc.h" header inside a "vma"
-+            # subdirectory. This means we would need to use "#include <vma/vk_mem_alloc.h>"
-+            # only for the SDK build. Instead of forcing non-SDK users to create
-+            # this path, we'll add a another include directory for the SDK build.
-+            # That way "#include <vk_mem_alloc.h>" should work for everyone.
-+            target_include_directories(Vulkan::Vulkan INTERFACE
-+                "${Vulkan_INCLUDE_DIR}/vma")
-+
-             list(APPEND VULKAN_LIBS Vulkan::Vulkan)
-+            list(APPEND VULKAN_LIBS Vulkan::shaderc_combined)
-+        else()
-+            message(STATUS "Using locally built Vulkan components")
-+            # Using usd_build.py: find individual components
-+            find_package(VulkanHeaders CONFIG REQUIRED)
-+            list(APPEND VULKAN_LIBS Vulkan::Headers)
+-            list(APPEND VULKAN_LIBS Vulkan::Vulkan)
  
 -            # Find the extra vulkan libraries we need
 -            set(EXTRA_VULKAN_LIBS shaderc_combined)
@@ -75,7 +53,13 @@ index 4e9066ca3a..0a929fda3b 100644
 -                find_library("${EXTRA_LIBRARY}_PATH" NAMES "${EXTRA_LIBRARY}" PATHS $ENV{VULKAN_SDK}/lib)
 -                list(APPEND VULKAN_LIBS "${${EXTRA_LIBRARY}_PATH}")
 -            endforeach()
--
++        # We use BUILD_LOCAL_INTERFACE so that the Vulkan dependencies remain
++        # internal only. Except for the headers, which are publicly accessible
++        # from hgiVulkan.
++        if (DEFINED ENV{VULKAN_SDK})
++            message(STATUS "Using Vulkan components from: \"$ENV{VULKAN_SDK}\"")
++            set(PXR_USING_VULKAN_SDK ON) # for pxrConfig.cmake
+ 
 -            # Find the OS specific libs we need
 -            if (UNIX AND NOT APPLE)
 -                find_package(X11 REQUIRED)
@@ -83,36 +67,47 @@ index 4e9066ca3a..0a929fda3b 100644
 -            elseif (WIN32)
 -                # No extra libs required
 -            endif()
++            # Not using usd_build.py: find from the Vulkan SDK
++            find_package(Vulkan MODULE REQUIRED COMPONENTS shaderc_combined)
+ 
+-            add_definitions(-DPXR_VULKAN_SUPPORT_ENABLED)
++            list(APPEND VULKAN_LIBS Vulkan::Headers)
++            # The SDK uniquely places the "vk_mem_alloc.h" header inside a "vma"
++            # subdirectory. This means we would need to use "#include <vma/vk_mem_alloc.h>"
++            # only for the SDK build. Instead of forcing non-SDK users to create
++            # this path, we'll add a another include directory for the SDK build.
++            # That way "#include <vk_mem_alloc.h>" should work for everyone.
++            target_include_directories(Vulkan::Headers INTERFACE
++                "${Vulkan_INCLUDE_DIR}/vma")
++
++            list(APPEND VULKAN_LIBS $<BUILD_LOCAL_INTERFACE:Vulkan::Vulkan>)
++            list(APPEND VULKAN_LIBS $<BUILD_LOCAL_INTERFACE:Vulkan::shaderc_combined>)
+         else()
+-            message(FATAL_ERROR "VULKAN_SDK not valid")
++            message(STATUS "Using locally built Vulkan components")
++            set(PXR_USING_VULKAN_SDK OFF) # for pxrConfig.cmake
++
++            # Using usd_build.py: find individual components
++            find_package(VulkanHeaders CONFIG REQUIRED)
++            list(APPEND VULKAN_LIBS Vulkan::Headers)
++
 +            find_package(VulkanUtilityLibraries CONFIG REQUIRED)
 +            list(APPEND VULKAN_LIBS Vulkan::UtilityHeaders)
 +
 +            find_package(VulkanLoader CONFIG REQUIRED)
-+            list(APPEND VULKAN_LIBS Vulkan::Loader)
- 
--            add_definitions(-DPXR_VULKAN_SUPPORT_ENABLED)
++            list(APPEND VULKAN_LIBS $<BUILD_LOCAL_INTERFACE:Vulkan::Loader>)
++
 +            find_package(VulkanMemoryAllocator CONFIG REQUIRED)
 +            list(APPEND VULKAN_LIBS GPUOpen::VulkanMemoryAllocator)
 +
 +            find_package(ShaderC MODULE REQUIRED)
-+            list(APPEND VULKAN_LIBS shaderc_combined)
-+        endif()
-+
-+        # In either case we have custom logic for SPIRV-Reflect
-+        find_package(SpirvReflect MODULE REQUIRED)
-+        if(SpirvReflect_IS_SOURCE_DEP)
-+            # SPIRV-Reflect should not be installed nor exported
-+            list(APPEND VULKAN_LIBS $<BUILD_LOCAL_INTERFACE:spirv-reflect>)
-         else()
--            message(FATAL_ERROR "VULKAN_SDK not valid")
-+            list(APPEND VULKAN_LIBS spirv-reflect)
++            list(APPEND VULKAN_LIBS $<BUILD_LOCAL_INTERFACE:shaderc_combined>)
          endif()
 +
 +        # Find the OS specific libs we need
 +        if (UNIX AND NOT APPLE)
 +            find_package(X11 REQUIRED)
-+            list(APPEND VULKAN_LIBS ${X11_LIBRARIES})
-+        elseif (WIN32)
-+            # No extra libs required
++            list(APPEND VULKAN_LIBS $<BUILD_LOCAL_INTERFACE:X11::X11>)
 +        endif()
 +
 +        add_definitions(-DPXR_VULKAN_SUPPORT_ENABLED)
@@ -120,7 +115,7 @@ index 4e9066ca3a..0a929fda3b 100644
      # --Opensubdiv
      set(OPENSUBDIV_USE_GPU ${PXR_BUILD_GPU_SUPPORT})
 diff --git a/cmake/macros/Private.cmake b/cmake/macros/Private.cmake
-index 6fe1134c14..4629e5a03f 100644
+index 6fe1134c1..4629e5a03 100644
 --- a/cmake/macros/Private.cmake
 +++ b/cmake/macros/Private.cmake
 @@ -823,6 +823,12 @@ function(_pxr_target_link_libraries NAME)
@@ -138,7 +133,7 @@ index 6fe1134c14..4629e5a03f 100644
              endif()
 diff --git a/cmake/modules/FindShaderC.cmake b/cmake/modules/FindShaderC.cmake
 new file mode 100644
-index 0000000000..4dffb19bcc
+index 000000000..4dffb19bc
 --- /dev/null
 +++ b/cmake/modules/FindShaderC.cmake
 @@ -0,0 +1,41 @@
@@ -183,71 +178,11 @@ index 0000000000..4dffb19bcc
 +            IMPORTED_CONFIGURATIONS "${found_configurations}")
 +    endif()
 +endif()
-diff --git a/cmake/modules/FindSpirvReflect.cmake b/cmake/modules/FindSpirvReflect.cmake
-new file mode 100644
-index 0000000000..c563252b88
---- /dev/null
-+++ b/cmake/modules/FindSpirvReflect.cmake
-@@ -0,0 +1,54 @@
-+include(FindPackageHandleStandardArgs)
-+
-+set(vulkan_sdk_source_path_hints)
-+set(vulkan_sdk_lib_path_hints)
-+if (DEFINED ENV{VULKAN_SDK})
-+    list(APPEND vulkan_sdk_source_path_hints "$ENV{VULKAN_SDK}/source/SPIRV-Reflect")
-+    list(APPEND vulkan_sdk_source_path_hints "$ENV{VULKAN_SDK}/include/SPIRV-Reflect")
-+    list(APPEND vulkan_sdk_lib_path_hints "$ENV{VULKAN_SDK}/lib")
-+endif()
-+
-+find_path(spirv-reflect_INCLUDE_DIR "spirv_reflect.h"
-+    HINTS ${vulkan_sdk_source_path_hints})
-+find_library(spirv-reflect_LIBRARY "spirv-reflect-static"
-+    HINTS ${vulkan_sdk_lib_path_hints})
-+
-+# SPIRV-Reflect is distributed as a source and header file pair,
-+# but can also be built as a static library.
-+if (spirv-reflect_LIBRARY)
-+    find_package_handle_standard_args(SpirvReflect DEFAULT_MSG
-+        spirv-reflect_LIBRARY
-+        spirv-reflect_INCLUDE_DIR)
-+
-+    if (SpirvReflect_FOUND)
-+        add_library(spirv-reflect STATIC IMPORTED)
-+        set_target_properties(spirv-reflect PROPERTIES IMPORTED_LOCATION "${spirv-reflect_LIBRARY}")
-+        target_include_directories(spirv-reflect INTERFACE "${spirv-reflect_INCLUDE_DIR}")
-+        set(SpirvReflect_IS_SOURCE_DEP FALSE)
-+    endif()
-+else()
-+    find_file(spirv-reflect_SOURCE "spirv_reflect.c"
-+        HINTS ${vulkan_sdk_source_path_hints})
-+    find_package_handle_standard_args(SpirvReflect DEFAULT_MSG
-+        spirv-reflect_SOURCE
-+        spirv-reflect_INCLUDE_DIR)
-+
-+    if (SpirvReflect_FOUND)
-+        add_library(spirv-reflect STATIC)
-+        target_sources(spirv-reflect PRIVATE "${spirv-reflect_SOURCE}")
-+        target_include_directories(spirv-reflect PUBLIC "${spirv-reflect_INCLUDE_DIR}")
-+        set_target_properties(spirv-reflect PROPERTIES
-+            ARCHIVE_OUTPUT_DIRECTORY "third_party")
-+        set(SpirvReflect_IS_SOURCE_DEP TRUE)
-+    endif()
-+endif()
-+
-+if (SpirvReflect_FOUND AND NOT EXISTS "${spirv-reflect_INCLUDE_DIR}/include/spirv/unified1/spirv.h")
-+    # Most probably not from the Vulkan SDK, so use a "system path."
-+    # If installed from build_usd.py this will be found in the USD install path.
-+    if (SpirvReflect_IS_SOURCE_DEP)
-+        target_compile_definitions(spirv-reflect PUBLIC SPIRV_REFLECT_USE_SYSTEM_SPIRV_H)
-+    else()
-+        target_compile_definitions(spirv-reflect INTERFACE SPIRV_REFLECT_USE_SYSTEM_SPIRV_H)
-+    endif()
-+endif()
 diff --git a/pxr/imaging/hgiVulkan/CMakeLists.txt b/pxr/imaging/hgiVulkan/CMakeLists.txt
-index 00ad754480..dff4754366 100644
+index e98893d3f..772c3edb6 100644
 --- a/pxr/imaging/hgiVulkan/CMakeLists.txt
 +++ b/pxr/imaging/hgiVulkan/CMakeLists.txt
-@@ -40,15 +40,11 @@ pxr_library(hgiVulkan
+@@ -41,7 +41,6 @@ pxr_library(hgiVulkan
          shaderProgram
          shaderSection
          texture
@@ -255,16 +190,8 @@ index 00ad754480..dff4754366 100644
  
      PUBLIC_HEADERS
          api.h
-         vulkan.h
- 
--    PRIVATE_CLASSES
--        spirv_reflect
--
-     RESOURCE_FILES
-         plugInfo.json
- )
 diff --git a/pxr/imaging/hgiVulkan/device.cpp b/pxr/imaging/hgiVulkan/device.cpp
-index 4e5a9627ad..5c0b70ddcb 100644
+index a1c44143a..28fb8d91b 100644
 --- a/pxr/imaging/hgiVulkan/device.cpp
 +++ b/pxr/imaging/hgiVulkan/device.cpp
 @@ -11,10 +11,12 @@
@@ -281,7 +208,7 @@ index 4e5a9627ad..5c0b70ddcb 100644
  
  PXR_NAMESPACE_OPEN_SCOPE
  
-@@ -171,11 +173,9 @@ HgiVulkanDevice::HgiVulkanDevice(HgiVulkanInstance* instance)
+@@ -179,11 +181,9 @@ HgiVulkanDevice::HgiVulkanDevice(HgiVulkanInstance* instance)
  
      // Allow certain buffers/images to have dedicated memory allocations to
      // improve performance on some GPUs.
@@ -293,7 +220,7 @@ index 4e5a9627ad..5c0b70ddcb 100644
          extensions.push_back(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
          extensions.push_back(VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME);
      }
-@@ -335,9 +335,16 @@ HgiVulkanDevice::HgiVulkanDevice(HgiVulkanInstance* instance)
+@@ -400,9 +400,16 @@ HgiVulkanDevice::HgiVulkanDevice(HgiVulkanInstance* instance)
      allocatorInfo.instance = instance->GetVulkanInstance();
      allocatorInfo.physicalDevice = _vkPhysicalDevice;
      allocatorInfo.device = _vkDevice;
@@ -314,7 +241,7 @@ index 4e5a9627ad..5c0b70ddcb 100644
      if (supportsMemExtension) {
          allocatorInfo.flags |= VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
 diff --git a/pxr/imaging/hgiVulkan/diagnostic.cpp b/pxr/imaging/hgiVulkan/diagnostic.cpp
-index fb8d756d6d..455780e2c8 100644
+index fb8d756d6..455780e2c 100644
 --- a/pxr/imaging/hgiVulkan/diagnostic.cpp
 +++ b/pxr/imaging/hgiVulkan/diagnostic.cpp
 @@ -274,4 +274,4 @@ HgiVulkanResultString(VkResult result)
@@ -325,7 +252,7 @@ index fb8d756d6d..455780e2c8 100644
 \ No newline at end of file
 +PXR_NAMESPACE_CLOSE_SCOPE
 diff --git a/pxr/imaging/hgiVulkan/sampler.cpp b/pxr/imaging/hgiVulkan/sampler.cpp
-index e89235cd6f..01de3a85d0 100644
+index e89235cd6..01de3a85d 100644
 --- a/pxr/imaging/hgiVulkan/sampler.cpp
 +++ b/pxr/imaging/hgiVulkan/sampler.cpp
 @@ -12,7 +12,8 @@
@@ -345,64 +272,6 @@ index e89235cd6f..01de3a85d0 100644
 -PXR_NAMESPACE_CLOSE_SCOPE
 \ No newline at end of file
 +PXR_NAMESPACE_CLOSE_SCOPE
-diff --git a/pxr/imaging/hgiVulkan/shaderCompiler.cpp b/pxr/imaging/hgiVulkan/shaderCompiler.cpp
-index 333c2bf125..576b898a99 100644
---- a/pxr/imaging/hgiVulkan/shaderCompiler.cpp
-+++ b/pxr/imaging/hgiVulkan/shaderCompiler.cpp
-@@ -10,9 +10,9 @@
- #include "pxr/imaging/hgiVulkan/device.h"
- #include "pxr/imaging/hgiVulkan/diagnostic.h"
- #include "pxr/imaging/hgiVulkan/shaderCompiler.h"
--#include "pxr/imaging/hgiVulkan/spirv_reflect.h"
- 
- #include <shaderc/shaderc.hpp>
-+#include <spirv_reflect.h>
- 
- #include <unordered_map>
- 
-@@ -278,4 +278,4 @@ HgiVulkanMakeDescriptorSetLayouts(
-     return layouts;
- }
- 
--PXR_NAMESPACE_CLOSE_SCOPE
-\ No newline at end of file
-+PXR_NAMESPACE_CLOSE_SCOPE
-diff --git a/pxr/imaging/hgiVulkan/spirv_reflect.cpp b/pxr/imaging/hgiVulkan/spirv_reflect.cpp
-deleted file mode 100644
-index b2862df17d..0000000000
---- a/pxr/imaging/hgiVulkan/spirv_reflect.cpp
-+++ /dev/null
-@@ -1,9 +0,0 @@
--//
--// Copyright 2023 Pixar
--//
--// Licensed under the terms set forth in the LICENSE.txt file available at
--// https://openusd.org/license.
--//
--#include "pxr/imaging/hgiVulkan/spirv_reflect.h"
--
--#include <SPIRV-Reflect/spirv_reflect.c>
-diff --git a/pxr/imaging/hgiVulkan/spirv_reflect.h b/pxr/imaging/hgiVulkan/spirv_reflect.h
-deleted file mode 100644
-index b2779079a5..0000000000
---- a/pxr/imaging/hgiVulkan/spirv_reflect.h
-+++ /dev/null
-@@ -1,15 +0,0 @@
--//
--// Copyright 2023 Pixar
--//
--// Licensed under the terms set forth in the LICENSE.txt file available at
--// https://openusd.org/license.
--//
--#ifndef PXR_IMAGING_HGIVULKAN_SPIRV_REFLECT_H
--#define PXR_IMAGING_HGIVULKAN_SPIRV_REFLECT_H
--
--// This is an implementation of SPIRV-Reflect included
--// from the Vulkan SDK.
--
--#include <SPIRV-Reflect/spirv_reflect.h>
--
--#endif
 diff --git a/pxr/imaging/hgiVulkan/vk_mem_alloc.cpp b/pxr/imaging/hgiVulkan/vk_mem_alloc.cpp
 deleted file mode 100644
 index 8f47ddc85f..0000000000
@@ -441,12 +310,12 @@ index 48f5fceff2..0000000000
 -
 -#endif
 diff --git a/pxr/imaging/hgiVulkan/vulkan.h b/pxr/imaging/hgiVulkan/vulkan.h
-index 3ea215679f..7f28679328 100644
+index 2e8f59064..70b539211 100644
 --- a/pxr/imaging/hgiVulkan/vulkan.h
 +++ b/pxr/imaging/hgiVulkan/vulkan.h
-@@ -22,7 +22,11 @@
- 
- #include <vulkan/vulkan.h>
+@@ -35,7 +35,11 @@
+     #define VK_EXTERNAL_MEMORY_HANDLE_AUTO 0
+ #endif
  
 -#include "pxr/imaging/hgiVulkan/vk_mem_alloc.h"
 +#define VMA_STATIC_VULKAN_FUNCTIONS 1
@@ -457,97 +326,12 @@ index 3ea215679f..7f28679328 100644
  
  // Use the default allocator (nullptr)
  inline VkAllocationCallbacks*
-
-From b8db3a3ed8dea771fdfa3103562f4f33976efd16 Mon Sep 17 00:00:00 2001
-From: Aleksi Sapon <aleksi.sapon@autodesk.com>
-Date: Tue, 22 Apr 2025 14:43:10 -0400
-Subject: [PATCH 2/2] Add Vulkan dependencies to pxrConfig.cmake
-
----
- cmake/defaults/Packages.cmake | 29 +++++++++++++++--------------
- pxr/pxrConfig.cmake.in        | 26 ++++++++++++++++++++++++++
- 2 files changed, 41 insertions(+), 14 deletions(-)
-
-diff --git a/cmake/defaults/Packages.cmake b/cmake/defaults/Packages.cmake
-index 0a929fda3b..4d2658441e 100644
---- a/cmake/defaults/Packages.cmake
-+++ b/cmake/defaults/Packages.cmake
-@@ -188,23 +188,31 @@ if (PXR_BUILD_IMAGING)
-     if (PXR_ENABLE_VULKAN_SUPPORT)
-         message(STATUS "Enabling experimental feature Vulkan support")
- 
-+        # We use BUILD_LOCAL_INTERFACE so that the Vulkan dependencies remain
-+        # internal only. Except for the headers, which are publicly accessible
-+        # from hgiVulkan.
-         if (DEFINED ENV{VULKAN_SDK})
-             message(STATUS "Using Vulkan components from: \"$ENV{VULKAN_SDK}\"")
-+            set(PXR_USING_VULKAN_SDK ON) # for pxrConfig.cmake
-+
-             # Not using usd_build.py: find from the Vulkan SDK
-             find_package(Vulkan MODULE REQUIRED COMPONENTS shaderc_combined)
- 
-+            list(APPEND VULKAN_LIBS Vulkan::Headers)
-             # The SDK uniquely places the "vk_mem_alloc.h" header inside a "vma"
-             # subdirectory. This means we would need to use "#include <vma/vk_mem_alloc.h>"
-             # only for the SDK build. Instead of forcing non-SDK users to create
-             # this path, we'll add a another include directory for the SDK build.
-             # That way "#include <vk_mem_alloc.h>" should work for everyone.
--            target_include_directories(Vulkan::Vulkan INTERFACE
-+            target_include_directories(Vulkan::Headers INTERFACE
-                 "${Vulkan_INCLUDE_DIR}/vma")
- 
--            list(APPEND VULKAN_LIBS Vulkan::Vulkan)
--            list(APPEND VULKAN_LIBS Vulkan::shaderc_combined)
-+            list(APPEND VULKAN_LIBS $<BUILD_LOCAL_INTERFACE:Vulkan::Vulkan>)
-+            list(APPEND VULKAN_LIBS $<BUILD_LOCAL_INTERFACE:Vulkan::shaderc_combined>)
-         else()
-             message(STATUS "Using locally built Vulkan components")
-+            set(PXR_USING_VULKAN_SDK OFF) # for pxrConfig.cmake
-+
-             # Using usd_build.py: find individual components
-             find_package(VulkanHeaders CONFIG REQUIRED)
-             list(APPEND VULKAN_LIBS Vulkan::Headers)
-@@ -213,30 +221,23 @@ if (PXR_BUILD_IMAGING)
-             list(APPEND VULKAN_LIBS Vulkan::UtilityHeaders)
- 
-             find_package(VulkanLoader CONFIG REQUIRED)
--            list(APPEND VULKAN_LIBS Vulkan::Loader)
-+            list(APPEND VULKAN_LIBS $<BUILD_LOCAL_INTERFACE:Vulkan::Loader>)
- 
-             find_package(VulkanMemoryAllocator CONFIG REQUIRED)
-             list(APPEND VULKAN_LIBS GPUOpen::VulkanMemoryAllocator)
- 
-             find_package(ShaderC MODULE REQUIRED)
--            list(APPEND VULKAN_LIBS shaderc_combined)
-+            list(APPEND VULKAN_LIBS $<BUILD_LOCAL_INTERFACE:shaderc_combined>)
-         endif()
- 
-         # In either case we have custom logic for SPIRV-Reflect
-         find_package(SpirvReflect MODULE REQUIRED)
--        if(SpirvReflect_IS_SOURCE_DEP)
--            # SPIRV-Reflect should not be installed nor exported
--            list(APPEND VULKAN_LIBS $<BUILD_LOCAL_INTERFACE:spirv-reflect>)
--        else()
--            list(APPEND VULKAN_LIBS spirv-reflect)
--        endif()
-+        list(APPEND VULKAN_LIBS $<BUILD_LOCAL_INTERFACE:spirv-reflect>)
- 
-         # Find the OS specific libs we need
-         if (UNIX AND NOT APPLE)
-             find_package(X11 REQUIRED)
--            list(APPEND VULKAN_LIBS ${X11_LIBRARIES})
--        elseif (WIN32)
--            # No extra libs required
-+            list(APPEND VULKAN_LIBS $<BUILD_LOCAL_INTERFACE:X11::X11>)
-         endif()
- 
-         add_definitions(-DPXR_VULKAN_SUPPORT_ENABLED)
 diff --git a/pxr/pxrConfig.cmake.in b/pxr/pxrConfig.cmake.in
-index a7e566bac2..07bd1ad412 100644
+index ae8d02c5c..7c88bb5e9 100644
 --- a/pxr/pxrConfig.cmake.in
 +++ b/pxr/pxrConfig.cmake.in
-@@ -90,6 +90,32 @@ if(@Imath_FOUND@)
-     find_dependency(Imath)
+@@ -115,6 +115,32 @@ if(NOT "@PXR_WORK_IMPL_PACKAGE@" STREQUAL "")
+     find_dependency(@PXR_WORK_IMPL_PACKAGE@)
  endif()
  
 +if(@PXR_ENABLE_VULKAN_SUPPORT@)

@@ -167,13 +167,13 @@ static void rna_DepsgraphObjectInstance_matrix_world_get(PointerRNA *ptr, float 
   RNA_DepsgraphIterator *di = static_cast<RNA_DepsgraphIterator *>(ptr->data);
   DEGObjectIterData *deg_iter = (DEGObjectIterData *)di->iter.data;
   if (deg_iter->dupli_object_current != nullptr) {
-    copy_m4_m4((float(*)[4])mat, deg_iter->dupli_object_current->mat);
+    copy_m4_m4((float (*)[4])mat, deg_iter->dupli_object_current->mat);
   }
   else {
     /* We can return actual object's matrix here, no reason to return identity matrix
      * when this is not actually an instance... */
     Object *ob = (Object *)di->iter.current;
-    copy_m4_m4((float(*)[4])mat, ob->object_to_world().ptr());
+    copy_m4_m4((float (*)[4])mat, ob->object_to_world().ptr());
   }
 }
 
@@ -800,6 +800,7 @@ static void rna_def_depsgraph(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "ids", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "ID");
+  RNA_def_property_flag_hide_from_ui_workaround(prop);
   RNA_def_property_collection_funcs(prop,
                                     "rna_Depsgraph_ids_begin",
                                     "rna_Depsgraph_ids_next",
@@ -813,6 +814,7 @@ static void rna_def_depsgraph(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "Object");
+  RNA_def_property_flag_hide_from_ui_workaround(prop);
   RNA_def_property_collection_funcs(prop,
                                     "rna_Depsgraph_objects_begin",
                                     "rna_Depsgraph_objects_next",
@@ -826,6 +828,7 @@ static void rna_def_depsgraph(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "object_instances", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "DepsgraphObjectInstance");
+  RNA_def_property_flag_hide_from_ui_workaround(prop);
   RNA_def_property_collection_funcs(prop,
                                     "rna_Depsgraph_object_instances_begin",
                                     "rna_Depsgraph_object_instances_next",
@@ -843,6 +846,7 @@ static void rna_def_depsgraph(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "updates", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "DepsgraphUpdate");
+  RNA_def_property_flag_hide_from_ui_workaround(prop);
   RNA_def_property_collection_funcs(prop,
                                     "rna_Depsgraph_updates_begin",
                                     "rna_Depsgraph_ids_next",

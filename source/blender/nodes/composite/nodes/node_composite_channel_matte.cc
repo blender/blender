@@ -20,14 +20,22 @@
 namespace blender::nodes::node_composite_channel_matte_cc {
 
 static const EnumPropertyItem color_space_items[] = {
-    {CMP_NODE_CHANNEL_MATTE_CS_RGB, "RGB", 0, "RGB", "RGB (Red, Green, Blue) color space"},
-    {CMP_NODE_CHANNEL_MATTE_CS_HSV, "HSV", 0, "HSV", "HSV (Hue, Saturation, Value) color space"},
-    {CMP_NODE_CHANNEL_MATTE_CS_YUV, "YUV", 0, "YUV", "YUV (Y - luma, U V - chroma) color space"},
+    {CMP_NODE_CHANNEL_MATTE_CS_RGB, "RGB", 0, N_("RGB"), N_("RGB (Red, Green, Blue) color space")},
+    {CMP_NODE_CHANNEL_MATTE_CS_HSV,
+     "HSV",
+     0,
+     N_("HSV"),
+     N_("HSV (Hue, Saturation, Value) color space")},
+    {CMP_NODE_CHANNEL_MATTE_CS_YUV,
+     "YUV",
+     0,
+     N_("YUV"),
+     N_("YUV (Y - luma, U V - chroma) color space")},
     {CMP_NODE_CHANNEL_MATTE_CS_YCC,
      "YCC",
      0,
-     "YCbCr",
-     "YCbCr (Y - luma, Cb - blue-difference chroma, Cr - red-difference chroma) color space"},
+     N_("YCbCr"),
+     N_("YCbCr (Y - luma, Cb - blue-difference chroma, Cr - red-difference chroma) color space")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -99,8 +107,13 @@ static const EnumPropertyItem limit_method_items[] = {
 
 static void cmp_node_channel_matte_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.is_function_node();
-  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f}).hide_value();
+  b.add_output<decl::Color>("Image").align_with_previous();
+  b.add_output<decl::Float>("Matte");
+
   b.add_input<decl::Float>("Minimum")
       .default_value(0.0f)
       .subtype(PROP_FACTOR)
@@ -239,9 +252,6 @@ static void cmp_node_channel_matte_declare(NodeDeclarationBuilder &b)
                                             CMP_NODE_CHANNEL_MATTE_LIMIT_ALGORITHM_SINGLE) &&
                    params.menu_input_may_be("Color Space", CMP_NODE_CHANNEL_MATTE_CS_YCC);
           });
-
-  b.add_output<decl::Color>("Image");
-  b.add_output<decl::Float>("Matte");
 }
 
 static void node_composit_init_channel_matte(bNodeTree * /*ntree*/, bNode *node)

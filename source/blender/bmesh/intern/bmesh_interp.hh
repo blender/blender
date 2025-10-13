@@ -77,13 +77,9 @@ bool BM_data_layer_has_named(const BMesh *bm,
 void BM_data_layer_free(BMesh *bm, CustomData *data, int type);
 
 /** Ensure the dependent boolean layers exist for all face corner #CD_PROP_FLOAT2 layers. */
-void BM_uv_map_attr_select_and_pin_ensure(BMesh *bm);
+void BM_uv_map_attr_pin_ensure_for_all_layers(BMesh *bm);
 
-void BM_uv_map_attr_vert_select_ensure(BMesh *bm, blender::StringRef uv_map_name);
-void BM_uv_map_attr_edge_select_ensure(BMesh *bm, blender::StringRef uv_map_name);
-void BM_uv_map_attr_pin_ensure(BMesh *bm, blender::StringRef uv_map_name);
-
-bool BM_uv_map_attr_vert_select_exists(const BMesh *bm, blender::StringRef uv_map_name);
+void BM_uv_map_attr_pin_ensure_named(BMesh *bm, blender::StringRef uv_map_name);
 bool BM_uv_map_attr_pin_exists(const BMesh *bm, blender::StringRef uv_map_name);
 
 /**

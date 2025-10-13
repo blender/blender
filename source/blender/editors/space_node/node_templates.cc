@@ -836,8 +836,10 @@ static void ui_node_draw_node(
       }
       else if (const auto *layout_decl = dynamic_cast<const nodes::LayoutDeclaration *>(item_decl))
       {
-        PointerRNA nodeptr = RNA_pointer_create_discrete(&ntree.id, &RNA_Node, &node);
-        layout_decl->draw(&layout, &C, &nodeptr);
+        if (!layout_decl->is_default) {
+          PointerRNA nodeptr = RNA_pointer_create_discrete(&ntree.id, &RNA_Node, &node);
+          layout_decl->draw(&layout, &C, &nodeptr);
+        }
       }
     }
   }

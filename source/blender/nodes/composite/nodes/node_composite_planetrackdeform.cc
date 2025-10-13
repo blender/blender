@@ -44,8 +44,13 @@ NODE_STORAGE_FUNCS(NodePlaneTrackDeformData)
 static void cmp_node_planetrackdeform_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
+  b.allow_any_socket_order();
 
-  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
+  b.add_input<decl::Color>("Image")
+      .hide_value()
+      .compositor_realization_mode(CompositorInputRealizationMode::Transforms)
+      .structure_type(StructureType::Dynamic);
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic).align_with_previous();
   b.add_output<decl::Float>("Plane").structure_type(StructureType::Dynamic);
 
   b.add_layout([](uiLayout *layout, bContext *C, PointerRNA *ptr) {
@@ -77,9 +82,6 @@ static void cmp_node_planetrackdeform_declare(NodeDeclarationBuilder &b)
     }
   });
 
-  b.add_input<decl::Color>("Image")
-      .compositor_realization_mode(CompositorInputRealizationMode::Transforms)
-      .structure_type(StructureType::Dynamic);
   PanelDeclarationBuilder &motion_blur_panel = b.add_panel("Motion Blur").default_closed(true);
   motion_blur_panel.add_input<decl::Bool>("Motion Blur")
       .default_value(false)

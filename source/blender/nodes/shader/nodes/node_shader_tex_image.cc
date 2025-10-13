@@ -262,7 +262,7 @@ NODE_SHADER_MATERIALX_BEGIN
     }
   }
 
-  if (STREQ(socket_out_->name, "Alpha")) {
+  if (STREQ(socket_out_->identifier, "Alpha")) {
     res = res[3];
   }
   return res;

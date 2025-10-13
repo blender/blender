@@ -8,6 +8,7 @@ set(INC
   gizmo/intern
   ../compositor
   ../editors/include
+  ../gpu
   ../makesrna
   ../../../intern/memutil
 

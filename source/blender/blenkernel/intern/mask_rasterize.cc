@@ -328,7 +328,7 @@ static bool layer_bucket_isect_test(const MaskRasterLayer *layer,
                                     const float bucket_max_rad_squared)
 {
   uint *face = layer->face_array[face_index];
-  float(*cos)[3] = layer->face_coords;
+  float (*cos)[3] = layer->face_coords;
 
   const float xmin = layer->bounds.xmin + (bucket_size_x * float(bucket_x));
   const float ymin = layer->bounds.ymin + (bucket_size_y * float(bucket_y));
@@ -425,7 +425,7 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
     const float bucket_max_rad_squared = bucket_max_rad * bucket_max_rad;
 
     uint *face = &layer->face_array[0][0];
-    float(*cos)[3] = layer->face_coords;
+    float (*cos)[3] = layer->face_coords;
 
     const uint bucket_tot = layer->buckets_x * layer->buckets_y;
     LinkNode **bucketstore = MEM_calloc_arrayN<LinkNode *>(bucket_tot, __func__);
@@ -623,11 +623,11 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
       const bool is_cyclic = (spline->flag & MASK_SPLINE_CYCLIC) != 0;
       const bool is_fill = (spline->flag & MASK_SPLINE_NOFILL) == 0;
 
-      float(*diff_points)[2];
+      float (*diff_points)[2];
       uint tot_diff_point;
 
-      float(*diff_feather_points)[2];
-      float(*diff_feather_points_flip)[2];
+      float (*diff_feather_points)[2];
+      float (*diff_feather_points_flip)[2];
       uint tot_diff_feather_points;
 
       const uint resol_a = uint(BKE_mask_spline_resolution(spline, width, height) / 4);
@@ -899,8 +899,8 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
     }
 
     {
-      uint(*face_array)[4], *face;  /* access coords */
-      float(*face_coords)[3], *cos; /* xy, z 0-1 (1.0 == filled) */
+      uint(*face_array)[4], *face;   /* access coords */
+      float (*face_coords)[3], *cos; /* xy, z 0-1 (1.0 == filled) */
       uint sf_tri_tot;
       rctf bounds;
       uint face_index;
@@ -946,7 +946,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
         uint sf_vert_tot_isect = uint(BLI_listbase_count(&sf_ctx.fillvertbase));
         uint i = sf_vert_tot;
 
-        face_coords = static_cast<float(*)[3]>(
+        face_coords = static_cast<float (*)[3]>(
             MEM_reallocN(face_coords, sizeof(float[3]) * (sf_vert_tot + sf_vert_tot_isect)));
 
         cos = (&face_coords[sf_vert_tot][0]);
@@ -1332,7 +1332,7 @@ static float layer_bucket_depth_from_xy(MaskRasterLayer *layer, const float xy[2
 
   if (face_index) {
     uint(*face_array)[4] = layer->face_array;
-    float(*cos)[3] = layer->face_coords;
+    float (*cos)[3] = layer->face_coords;
     float best_dist = 1.0f;
     while (*face_index != TRI_TERMINATOR_ID) {
       const float test_dist = maskrasterize_layer_isect(

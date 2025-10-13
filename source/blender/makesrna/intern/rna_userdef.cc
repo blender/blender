@@ -1566,6 +1566,11 @@ static const EnumPropertyItem *rna_preference_asset_libray_import_method_itemf(
   return items;
 }
 
+int rna_preference_asset_libray_import_method_default(PointerRNA * /*ptr*/, PropertyRNA * /*prop*/)
+{
+  return U.experimental.no_data_block_packing ? ASSET_IMPORT_APPEND_REUSE : ASSET_IMPORT_PACK;
+}
+
 static void rna_experimental_no_data_block_packing_update(bContext *C, PointerRNA *ptr)
 {
   Main *bmain = CTX_data_main(C);
@@ -2202,7 +2207,7 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, nullptr, "icon_collection");
   RNA_def_property_array(prop, 4);
   RNA_def_property_ui_text(prop, "Collection", "");
-  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+  RNA_def_property_update(prop, 0, "rna_userdef_gpu_update");
 
   prop = RNA_def_property(srna, "icon_object", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_float_sdna(prop, nullptr, "icon_object");
@@ -2400,6 +2405,12 @@ static void rna_def_userdef_theme_common_anim(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, nullptr, "preview_range");
   RNA_def_property_array(prop, 4);
   RNA_def_property_ui_text(prop, "Preview Range", "Color of preview range overlay");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
+  prop = RNA_def_property(srna, "scene_strip_range", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_float_sdna(prop, nullptr, "scene_strip_range");
+  RNA_def_property_array(prop, 4);
+  RNA_def_property_ui_text(prop, "Scene Strip Range", "Color of scene strip range overlay");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   /* Channel properties */
@@ -4100,7 +4111,7 @@ static void rna_def_userdef_theme_collection_color(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, nullptr, "color");
   RNA_def_property_array(prop, 3);
   RNA_def_property_ui_text(prop, "Color", "Collection Color Tag");
-  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+  RNA_def_property_update(prop, 0, "rna_userdef_gpu_update");
 }
 
 static void rna_def_userdef_theme_strip_color(BlenderRNA *brna)
@@ -4779,6 +4790,43 @@ static void rna_def_userdef_walk_navigation(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Reverse Mouse", "Reverse the vertical movement of the mouse");
 }
 
+static void rna_def_userdef_xr_navigation(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "XrNavigation", nullptr);
+  RNA_def_struct_sdna(srna, "XrNavigation");
+  RNA_def_struct_ui_text(srna, "VR Navigation", "VR navigation settings");
+
+  prop = RNA_def_property(srna, "vignette_intensity", PROP_FLOAT, PROP_PERCENTAGE);
+  RNA_def_property_range(prop, 0, 100.0);
+  RNA_def_property_ui_range(prop, 0, 100.0, 1000, 0);
+  RNA_def_property_ui_text(
+      prop, "Vignette Intensity", "Intensity of vignette that appears when moving");
+
+  prop = RNA_def_property(srna, "turn_speed", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_range(prop, 0, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0, FLT_MAX, 1000, 0);
+  RNA_def_property_ui_text(prop, "Turn Speed", "Turn speed in degrees per second");
+
+  prop = RNA_def_property(srna, "turn_amount", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_range(prop, 0, DEG2RAD(360));
+  RNA_def_property_ui_range(prop, 0, DEG2RAD(360), 1000, 0);
+  RNA_def_property_ui_text(prop, "Turn Amount", "Amount in degrees per turn when using snap turn");
+
+  prop = RNA_def_property(srna, "snap_turn", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", USER_XR_NAV_SNAP_TURN);
+  RNA_def_property_ui_text(
+      prop,
+      "Snap Turn",
+      "Instantly rotates the camera by a fixed angle instead of smoothly turning");
+
+  prop = RNA_def_property(srna, "invert_rotation", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", USER_XR_NAV_INVERT_ROTATION);
+  RNA_def_property_ui_text(prop, "Invert Rotation", "Reverses the direction of rotation input");
+}
+
 static void rna_def_userdef_view(BlenderRNA *brna)
 {
   static const EnumPropertyItem timecode_styles[] = {
@@ -5057,6 +5105,11 @@ static void rna_def_userdef_view(BlenderRNA *brna)
       "Open on Mouse Over",
       "Open menu buttons and pull-downs automatically when the mouse is hovering");
 
+  prop = RNA_def_property(srna, "menu_close_leave", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", USER_MENU_CLOSE_LEAVE);
+  RNA_def_property_ui_text(
+      prop, "Close Menu on Leave", "Close menus when the mouse is moved out of the region.");
+
   prop = RNA_def_property(srna, "open_toplevel_delay", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, nullptr, "menuthreshold1");
   RNA_def_property_range(prop, 1, 40);
@@ -5312,6 +5365,8 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   /* Language. */
 
   prop = RNA_def_property(srna, "language", PROP_ENUM, PROP_NONE);
+  /* Set this flag so scripts can access language information at run-time via `enum_items`. */
+  RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
   RNA_def_property_enum_items(prop, rna_enum_language_default_items);
 #  ifdef WITH_INTERNATIONAL
   RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_lang_enum_properties_itemf");
@@ -5875,14 +5930,18 @@ static void rna_def_userdef_system(BlenderRNA *brna)
     {22050, "RATE_22050", 0, "22.05 kHz", "Set audio sampling rate to 22050 samples per second"},
     {32000, "RATE_32000", 0, "32 kHz", "Set audio sampling rate to 32000 samples per second"},
 #  endif
-    {44100, "RATE_44100", 0, "44.1 kHz", "Set audio sampling rate to 44100 samples per second"},
-    {48000, "RATE_48000", 0, "48 kHz", "Set audio sampling rate to 48000 samples per second"},
+      {44100, "RATE_44100", 0, "44.1 kHz", "Set audio sampling rate to 44100 samples per second"},
+      {48000, "RATE_48000", 0, "48 kHz", "Set audio sampling rate to 48000 samples per second"},
 #  if 0
     {88200, "RATE_88200", 0, "88.2 kHz", "Set audio sampling rate to 88200 samples per second"},
 #  endif
-    {96000, "RATE_96000", 0, "96 kHz", "Set audio sampling rate to 96000 samples per second"},
-    {192000, "RATE_192000", 0, "192 kHz", "Set audio sampling rate to 192000 samples per second"},
-    {0, nullptr, 0, nullptr, nullptr},
+      {96000, "RATE_96000", 0, "96 kHz", "Set audio sampling rate to 96000 samples per second"},
+      {192000,
+       "RATE_192000",
+       0,
+       "192 kHz",
+       "Set audio sampling rate to 192000 samples per second"},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   static const EnumPropertyItem audio_format_items[] = {
@@ -6518,6 +6577,12 @@ static void rna_def_userdef_input(BlenderRNA *brna)
                            "restarting Blender for changes to take effect)");
   RNA_def_property_update(prop, 0, "rna_userdef_input_devices");
 
+  prop = RNA_def_property(srna, "xr_navigation", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, nullptr, "xr_navigation");
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  RNA_def_property_struct_type(prop, "XrNavigation");
+  RNA_def_property_ui_text(prop, "XR Navigation", "Settings for navigation in XR");
+
 #  ifdef WITH_INPUT_NDOF
   /* 3D mouse settings */
   /* global options */
@@ -6739,6 +6804,7 @@ static void rna_def_userdef_filepaths_asset_library(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, rna_enum_preferences_asset_import_method_items);
   RNA_def_property_enum_funcs(
       prop, nullptr, nullptr, "rna_preference_asset_libray_import_method_itemf");
+  RNA_def_property_enum_default_func(prop, "rna_preference_asset_libray_import_method_default");
   RNA_def_property_ui_text(
       prop,
       "Default Import Method",
@@ -7395,10 +7461,6 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
       "Forces all linked data to be considered as directly linked. Workaround for current "
       "issues/limitations in BAT (Blender studio pipeline tool)");
 
-  prop = RNA_def_property(srna, "use_new_volume_nodes", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_ui_text(
-      prop, "New Volume Nodes", "Enables visibility of the new Volume nodes in the UI");
-
   prop = RNA_def_property(srna, "use_shader_node_previews", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_ui_text(
       prop, "Shader Node Previews", "Enables previews in the shader node editor");
@@ -7482,6 +7544,7 @@ void RNA_def_userdef(BlenderRNA *brna)
   rna_def_userdef_dothemes(brna);
   rna_def_userdef_solidlight(brna);
   rna_def_userdef_walk_navigation(brna);
+  rna_def_userdef_xr_navigation(brna);
 
   srna = RNA_def_struct(brna, "Preferences", nullptr);
   RNA_def_struct_sdna(srna, "UserDef");

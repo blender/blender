@@ -184,6 +184,8 @@ void wm_xr_runtime_data_free(wmXrRuntimeData **runtime)
     if ((*runtime)->area) {
       wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
       wmWindow *win = wm_xr_session_root_window_or_fallback_get(wm, (*runtime));
+
+      WM_event_remove_handlers_by_area(&win->handlers, (*runtime)->area);
       ED_area_offscreen_free(wm, win, (*runtime)->area);
       (*runtime)->area = nullptr;
     }

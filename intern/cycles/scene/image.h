@@ -109,7 +109,7 @@ class ImageLoader {
   virtual int get_tile_number() const;
 
   /* Free any memory used for loading metadata and pixels. */
-  virtual void cleanup(){};
+  virtual void cleanup() {};
 
   /* Compare avoid loading the same image multiple times. */
   virtual bool equals(const ImageLoader &other) const = 0;

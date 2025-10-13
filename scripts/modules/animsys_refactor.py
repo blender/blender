@@ -13,8 +13,8 @@ __all__ = (
 )
 
 import sys
-import bpy
 
+import bpy
 
 IS_TESTING = False
 
@@ -116,15 +116,15 @@ def id_iter():
                     yield id_data
 
 
-def anim_data_actions(anim_data):
+def anim_data_actions(anim_data) -> list[tuple[bpy.types.Action, bpy.types.ActionSlot]]:
     actions = []
-    actions.append(anim_data.action)
+    actions.append((anim_data.action, anim_data.action_slot))
     for track in anim_data.nla_tracks:
         for strip in track.strips:
-            actions.append(strip.action)
+            actions.append((strip.action, strip.action_slot))
 
-    # filter out None
-    return [act for act in actions if act]
+    # Filter out None actions/slots, because if either is None, there is no animation.
+    return [(act, slot) for (act, slot) in actions if act and slot]
 
 
 def find_path_new(id_data, data_path, rna_update_from_map, fcurve, log):
@@ -151,14 +151,16 @@ def update_data_paths(rna_update, log=sys.stdout):
                 and options is an opaque data.
                 class_name, fcurve and options may be None!
     """
+    from bpy_extras import anim_utils
 
     rna_update_from_map = {}
     for ren_class, ren_from, ren_to, options in rna_update:
         rna_update_from_map.setdefault(ren_from, []).append((ren_class, ren_to, options))
 
     for id_data in id_iter():
+        anim_data_ls: list[tuple[bpy.types.ID, bpy.types.AnimData | None]] = [
+            (id_data, getattr(id_data, "animation_data", None))]
         # check node-trees too
-        anim_data_ls = [(id_data, getattr(id_data, "animation_data", None))]
         node_tree = getattr(id_data, "node_tree", None)
         if node_tree:
             anim_data_ls.append((node_tree, node_tree.animation_data))
@@ -201,8 +203,11 @@ def update_data_paths(rna_update, log=sys.stdout):
                                         file=log,
                                     )
 
-            for action in anim_data_actions(anim_data):
-                for fcu in action.fcurves:
+            for action, action_slot in anim_data_actions(anim_data):
+                channelbag = anim_utils.action_get_channelbag_for_slot(action, action_slot)
+                if not channelbag:
+                    continue
+                for fcu in channelbag.fcurves:
                     data_path = fcu.data_path
                     data_path_new = find_path_new(anim_data_base, data_path, rna_update_from_map, fcu, log)
                     # print(data_path_new)

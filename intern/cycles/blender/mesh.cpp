@@ -620,7 +620,7 @@ static void create_mesh(Scene *scene,
   const bool need_default_tangent = (subdivision == false) && (blender_uv_names.empty()) &&
                                     (mesh->need_attribute(scene, ATTR_STD_UV_TANGENT));
   if (mesh->need_attribute(scene, ATTR_STD_GENERATED) || need_default_tangent) {
-    const float(*orco)[3] = static_cast<const float(*)[3]>(
+    const float (*orco)[3] = static_cast<const float (*)[3]>(
         CustomData_get_layer(&b_mesh.vert_data, CD_ORCO));
     Attribute *attr = attributes.add(ATTR_STD_GENERATED);
 

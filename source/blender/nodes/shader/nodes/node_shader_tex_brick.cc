@@ -73,7 +73,7 @@ static void sh_node_tex_brick_declare(NodeDeclarationBuilder &b)
       .no_muted_links()
       .description("Ratio of brick's row height relative to the texture scale");
   b.add_output<decl::Color>("Color");
-  b.add_output<decl::Float>("Fac");
+  b.add_output<decl::Float>("Factor", "Fac");
 }
 
 static void node_shader_buts_tex_brick(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

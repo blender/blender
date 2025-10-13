@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import bpy
-from bpy.types import Menu, Panel
+from bpy.types import Panel
 from bpy.app.translations import (
     pgettext_n as n_,
     contexts as i18n_contexts,
@@ -97,6 +97,12 @@ def playback_controls(layout, context):
     row.operator("screen.keyframe_jump", text="", icon='NEXT_KEYFRAME').next = True
     row.operator("screen.frame_jump", text="", icon='FF').end = True
 
+    # Time jump
+    row = layout.row(align=True)
+    row.operator("screen.time_jump", text="", icon='FRAME_PREV').backward = True
+    row.operator("screen.time_jump", text="", icon='FRAME_NEXT').backward = False
+    row.popover(panel="TIME_PT_jump", text="")
+
     if tool_settings:
         row = layout.row(align=True)
         row.prop(tool_settings, "use_snap_playhead", text="")
@@ -124,71 +130,6 @@ def playback_controls(layout, context):
         else:
             sub.prop(scene, "frame_preview_start", text="Start")
             sub.prop(scene, "frame_preview_end", text="End")
-
-
-class TIME_MT_editor_menus(Menu):
-    bl_idname = "TIME_MT_editor_menus"
-    bl_label = ""
-
-    def draw(self, context):
-        layout = self.layout
-        horizontal = (layout.direction == 'VERTICAL')
-        st = context.space_data
-        if horizontal:
-            row = layout.row()
-            sub = row.row(align=True)
-        else:
-            sub = layout
-
-        sub.menu("TIME_MT_view")
-        if st.show_markers:
-            sub.menu("TIME_MT_marker")
-
-
-class TIME_MT_marker(Menu):
-    bl_label = "Marker"
-
-    def draw(self, context):
-        layout = self.layout
-
-        marker_menu_generic(layout, context)
-
-
-class TIME_MT_view(Menu):
-    bl_label = "View"
-
-    def draw(self, context):
-        layout = self.layout
-
-        scene = context.scene
-        st = context.space_data
-
-        layout.prop(st, "show_region_hud")
-        layout.prop(st, "show_region_channels")
-        layout.separator()
-
-        # NOTE: "action" now, since timeline is in the dopesheet editor, instead of as own editor
-        layout.operator("action.view_all")
-        if context.scene.use_preview_range:
-            layout.operator("anim.scene_range_frame", text="Frame Preview Range")
-        else:
-            layout.operator("anim.scene_range_frame", text="Frame Scene Range")
-        layout.operator("action.view_frame")
-        layout.separator()
-
-        layout.prop(st, "show_markers")
-        layout.prop(st, "show_seconds")
-        layout.prop(st, "show_locked_time")
-        layout.separator()
-
-        layout.prop(scene, "show_keys_from_selected_only")
-        layout.prop(st.dopesheet, "show_only_errors")
-        layout.separator()
-
-        layout.menu("DOPESHEET_MT_cache")
-        layout.separator()
-
-        layout.menu("INFO_MT_area")
 
 
 def marker_menu_generic(layout, context):
@@ -354,15 +295,30 @@ class TIME_PT_auto_keyframing(TimelinePanelButtons, Panel):
             col.prop(tool_settings, "use_record_with_nla", text="Layered Recording")
 
 
+class TIME_PT_jump(TimelinePanelButtons, Panel):
+    bl_label = "Time Jump"
+    bl_options = {'HIDE_HEADER'}
+    bl_region_type = 'HEADER'
+    bl_ui_units_x = 10
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        scene = context.scene
+
+        layout.prop(scene, "time_jump_unit", expand=True, text="Jump Unit")
+        layout.prop(scene, "time_jump_delta", text="Delta")
+
+
 ###################################
 
 classes = (
-    TIME_MT_editor_menus,
-    TIME_MT_marker,
-    TIME_MT_view,
     TIME_PT_playback,
     TIME_PT_keyframing_settings,
     TIME_PT_auto_keyframing,
+    TIME_PT_jump,
     TIME_PT_playhead_snapping,
 )
 

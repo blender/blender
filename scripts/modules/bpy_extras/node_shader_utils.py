@@ -591,8 +591,10 @@ class ShaderImageTextureWrapper:
         owner_shader._textures[(node_dst, socket_dst)] = instance
         return instance
 
-    def __init__(self, owner_shader: ShaderWrapper, node_dst, socket_dst, grid_row_diff=0,
-                 use_alpha=False, colorspace_is_data=..., colorspace_name=...):
+    def __init__(
+            self, owner_shader: ShaderWrapper, node_dst, socket_dst, grid_row_diff=0,
+            use_alpha=False, colorspace_is_data=..., colorspace_name=...,
+    ):
         self.owner_shader = owner_shader
         self.is_readonly = owner_shader.is_readonly
         self.node_dst = node_dst
@@ -779,8 +781,10 @@ class ShaderImageTextureWrapper:
             # Find potential existing link into image's Vector input.
             socket_dst = self.node_image.inputs["Vector"]
             # If not already existing, we need to create texcoords -> mapping link (from UV).
-            socket_src = (socket_dst.links[0].from_socket if socket_dst.is_linked
-                          else self.owner_shader.node_texcoords.outputs['UV'])
+            socket_src = (
+                socket_dst.links[0].from_socket if socket_dst.is_linked
+                else self.owner_shader.node_texcoords.outputs['UV']
+            )
 
             tree = self.owner_shader.material.node_tree
             node_mapping = tree.nodes.new(type='ShaderNodeMapping')

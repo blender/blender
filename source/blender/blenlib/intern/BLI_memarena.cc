@@ -103,7 +103,7 @@ void BLI_memarena_free(MemArena *ma)
 }
 
 /** Pad num up by \a amt (must be power of two). */
-#define PADUP(num, amt) (((num) + ((amt)-1)) & ~((amt)-1))
+#define PADUP(num, amt) (((num) + ((amt) - 1)) & ~((amt) - 1))
 
 /** Align alloc'ed memory (needed if `align > 8`). */
 static void memarena_curbuf_align(MemArena *ma)

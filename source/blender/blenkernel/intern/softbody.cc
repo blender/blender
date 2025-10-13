@@ -298,7 +298,7 @@ static ccd_Mesh *ccd_mesh_make(Object *ob)
   hull = max_ff(ob->pd->pdef_sbift, ob->pd->pdef_sboft);
 
   /* Allocate and copy verts. */
-  pccd_M->vert_positions = static_cast<const float(*)[3]>(MEM_dupallocN(cmd->xnew));
+  pccd_M->vert_positions = static_cast<const float (*)[3]>(MEM_dupallocN(cmd->xnew));
   /* note that xnew coords are already in global space, */
   /* determine the ortho BB */
   for (i = 0; i < pccd_M->mvert_num; i++) {
@@ -387,7 +387,7 @@ static void ccd_mesh_update(Object *ob, ccd_Mesh *pccd_M)
   }
   pccd_M->vert_positions_prev = pccd_M->vert_positions;
   /* Allocate and copy verts. */
-  pccd_M->vert_positions = static_cast<const float(*)[3]>(MEM_dupallocN(cmd->xnew));
+  pccd_M->vert_positions = static_cast<const float (*)[3]>(MEM_dupallocN(cmd->xnew));
   /* note that xnew coords are already in global space, */
   /* determine the ortho BB */
   for (i = 0; i < pccd_M->mvert_num; i++) {
@@ -754,7 +754,7 @@ static void build_bps_springlist(Object *ob)
         add_bp_springlist(bp, sb->totspring - b);
       }
     } /* For springs. */
-  }   /* For bp. */
+  } /* For bp. */
 }
 
 static void calculate_collision_balls(Object *ob)
@@ -1064,8 +1064,8 @@ static int sb_detect_face_pointCached(const float face_v1[3],
     {
       /* only with deflecting set */
       if (ob->pd && ob->pd->deflect) {
-        const float(*vert_positions)[3] = nullptr;
-        const float(*vert_positions_prev)[3] = nullptr;
+        const float (*vert_positions)[3] = nullptr;
+        const float (*vert_positions_prev)[3] = nullptr;
         if (ccdm) {
           vert_positions = ccdm->vert_positions;
           a = ccdm->mvert_num;
@@ -1117,8 +1117,8 @@ static int sb_detect_face_pointCached(const float face_v1[3],
             }
             a--;
           } /* while (a) */
-        }   /* if (vert_positions) */
-      }     /* if (ob->pd && ob->pd->deflect) */
+        } /* if (vert_positions) */
+      } /* if (ob->pd && ob->pd->deflect) */
       BLI_ghashIterator_step(ihash);
     }
   } /* while () */
@@ -1157,8 +1157,8 @@ static int sb_detect_face_collisionCached(const float face_v1[3],
     {
       /* only with deflecting set */
       if (ob->pd && ob->pd->deflect) {
-        const float(*vert_positions)[3] = nullptr;
-        const float(*vert_positions_prev)[3] = nullptr;
+        const float (*vert_positions)[3] = nullptr;
+        const float (*vert_positions_prev)[3] = nullptr;
         const blender::int3 *vt = nullptr;
         const CCDF_MinMax *mima = nullptr;
 
@@ -1230,7 +1230,7 @@ static int sb_detect_face_collisionCached(const float face_v1[3],
           mima++;
           vt++;
         } /* while a */
-      }   /* if (ob->pd && ob->pd->deflect) */
+      } /* if (ob->pd && ob->pd->deflect) */
       BLI_ghashIterator_step(ihash);
     }
   } /* while () */
@@ -1338,8 +1338,8 @@ static int sb_detect_edge_collisionCached(const float edge_v1[3],
     {
       /* only with deflecting set */
       if (ob->pd && ob->pd->deflect) {
-        const float(*vert_positions)[3] = nullptr;
-        const float(*vert_positions_prev)[3] = nullptr;
+        const float (*vert_positions)[3] = nullptr;
+        const float (*vert_positions_prev)[3] = nullptr;
         const blender::int3 *vt = nullptr;
         const CCDF_MinMax *mima = nullptr;
 
@@ -1417,7 +1417,7 @@ static int sb_detect_edge_collisionCached(const float edge_v1[3],
           mima++;
           vt++;
         } /* while a */
-      }   /* if (ob->pd && ob->pd->deflect) */
+      } /* if (ob->pd && ob->pd->deflect) */
       BLI_ghashIterator_step(ihash);
     }
   } /* while () */
@@ -1640,8 +1640,8 @@ static int sb_detect_vertex_collisionCached(float opco[3],
     {
       /* only with deflecting set */
       if (ob->pd && ob->pd->deflect) {
-        const float(*vert_positions)[3] = nullptr;
-        const float(*vert_positions_prev)[3] = nullptr;
+        const float (*vert_positions)[3] = nullptr;
+        const float (*vert_positions_prev)[3] = nullptr;
         const blender::int3 *vt = nullptr;
         const CCDF_MinMax *mima = nullptr;
 
@@ -1761,7 +1761,7 @@ static int sb_detect_vertex_collisionCached(float opco[3],
           mima++;
           vt++;
         } /* while a */
-      }   /* if (ob->pd && ob->pd->deflect) */
+      } /* if (ob->pd && ob->pd->deflect) */
       BLI_ghashIterator_step(ihash);
     }
   } /* while () */
@@ -2160,11 +2160,11 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene,
             // sb_spring_force(Object *ob, int bpi, BodySpring *bs, float iks, float forcetime)
             sb_spring_force(ob, ilast - bb, bs, iks, forcetime);
           } /* loop springs. */
-        }   /* existing spring list. */
-      }     /* Any edges. */
+        } /* existing spring list. */
+      } /* Any edges. */
       /* ---springs */
-    }       /* Omit on snap. */
-  }         /* Loop all bp's. */
+    } /* Omit on snap. */
+  } /* Loop all bp's. */
   return 0; /* Done fine. */
 }
 
@@ -3240,8 +3240,8 @@ void SB_estimate_transform(Object *ob, float lloc[3], float lrot[3][3], float ls
   BodyPoint *bp;
   ReferenceVert *rp;
   SoftBody *sb = nullptr;
-  float(*opos)[3];
-  float(*rpos)[3];
+  float (*opos)[3];
+  float (*rpos)[3];
   float com[3], rcom[3];
   int a;
 

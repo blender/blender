@@ -2,9 +2,14 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+from __future__ import annotations
+import bpy
 from typing import Optional, List, Dict, Tuple, TYPE_CHECKING
-from bpy.types import Action, Mesh, Armature
+from bpy.types import Action, Mesh, Armature, ActionChannelbag
+from bpy.types import ActionSlot as BlenderActionSlot
+
 from bl_math import clamp
+from bpy_extras import anim_utils
 
 from .errors import MetarigError
 from .misc import MeshObject, IdPropSequence, verify_mesh_obj
@@ -27,6 +32,7 @@ class ActionSlotBase:
     """Abstract non-RNA base for the action list slots."""
 
     action: Optional[Action]
+    action_slot: Optional[BlenderActionSlot]
     enabled: bool
     symmetrical: bool
     subtarget: str
@@ -37,8 +43,8 @@ class ActionSlotBase:
     trans_min: float
     trans_max: float
     is_corrective: bool
-    trigger_action_a: Optional[Action]
-    trigger_action_b: Optional[Action]
+    trigger_a: Optional[ActionSlotBase]
+    trigger_b: Optional[ActionSlotBase]
 
     ############################################
     # Action Constraint Setup
@@ -48,7 +54,11 @@ class ActionSlotBase:
         """Return a list of bone names that have keyframes in the Action of this Slot."""
         keyed_bones = []
 
-        for fc in self.action.fcurves:
+        channelbag = anim_utils.action_get_channelbag_for_slot(self.action, self.action_slot)
+        if not channelbag:
+            return []
+
+        for fc in channelbag.fcurves:
             # Extracting bone name from fcurve data path
             if fc.data_path.startswith('pose.bones["'):
                 bone_name = fc.data_path[12:].split('"]')[0]
@@ -142,7 +152,7 @@ class GeneratedActionSlot(ActionSlotBase):
     def __init__(self, action, *, enabled=True, symmetrical=True, subtarget='',
                  transform_channel='LOCATION_X', target_space='LOCAL', frame_start=0,
                  frame_end=2, trans_min=-0.05, trans_max=0.05, is_corrective=False,
-                 trigger_action_a=None, trigger_action_b=None):
+                 trigger_a=None, trigger_b=None):
         self.action = action
         self.enabled = enabled
         self.symmetrical = symmetrical
@@ -154,8 +164,8 @@ class GeneratedActionSlot(ActionSlotBase):
         self.trans_min = trans_min
         self.trans_max = trans_max
         self.is_corrective = is_corrective
-        self.trigger_action_a = trigger_action_a
-        self.trigger_action_b = trigger_action_b
+        self.trigger_a = trigger_a
+        self.trigger_b = trigger_b
 
 
 class ActionLayer(RigComponent):
@@ -178,8 +188,8 @@ class ActionLayer(RigComponent):
         self.use_trigger = False
 
         if slot.is_corrective:
-            trigger_a = self.owner.action_map[slot.trigger_action_a.name]
-            trigger_b = self.owner.action_map[slot.trigger_action_b.name]
+            trigger_a = self.owner.action_map[slot.trigger_a.name]
+            trigger_b = self.owner.action_map[slot.trigger_b.name]
 
             self.trigger_a = trigger_a.get(side) or trigger_a.get(Side.MIDDLE)
             self.trigger_b = trigger_b.get(side) or trigger_b.get(Side.MIDDLE)
@@ -199,7 +209,7 @@ class ActionLayer(RigComponent):
         return self.slot.is_corrective or self.use_trigger
 
     def _get_name(self):
-        name = self.slot.action.name
+        name = self.slot.name
 
         if self.side == Side.LEFT:
             name += ".L"
@@ -233,7 +243,7 @@ class ActionLayer(RigComponent):
 
     def rig_bones(self):
         if self.slot.is_corrective and self.use_trigger:
-            raise MetarigError(f"Corrective action used as trigger: {self.slot.action.name}")
+            raise MetarigError(f"Corrective action used as trigger: {self.slot.name}")
 
         if self.use_property:
             self.rig_input_driver(self.owner.property_bone, quote_property(self.name))
@@ -257,6 +267,7 @@ class ActionLayer(RigComponent):
             insert_index=0,
             use_eval_time=True,
             action=self.slot.action,
+            action_slot=self.slot.action_slot,
             frame_start=self.slot.frame_start,
             frame_end=self.slot.frame_end,
             mix_mode='BEFORE_SPLIT',
@@ -295,7 +306,7 @@ class ActionLayer(RigComponent):
 
         if control_name not in self.obj.pose.bones:
             raise MetarigError(
-                f"Control bone '{control_name}' for action '{self.slot.action.name}' not found")
+                f"Control bone '{control_name}' for action '{self.slot.name}' not found")
 
         channel = self.slot.transform_channel\
             .replace("LOCATION", "LOC").replace("ROTATION", "ROT")
@@ -356,39 +367,38 @@ class ActionLayerBuilder(GeneratorPlugin, BoneUtilityMixin, MechanismUtilityMixi
             # Constraints will be added in reverse order because each one is added to the top
             # of the stack when created. However, Before Original reverses the effective
             # order of transformations again, restoring the original sequence.
-            for act_slot in self.sort_slots(action_slots):
+            for act_slot in self.sort_action_setups(action_slots):
                 self.spawn_slot_layers(act_slot)
 
     @staticmethod
-    def sort_slots(slots: List[ActionSlotBase]):
-        indices = {slot.action.name: i for i, slot in enumerate(slots)}
+    def sort_action_setups(action_setups: list[ActionSlotBase]):
+        indices = {action_setup.unique_id: i for i, action_setup in enumerate(action_setups)}
 
-        def action_key(action: Action):
-            return indices.get(action.name, -1) if action else -1
+        def action_key(action_setup: ActionSlotBase) -> int:
+            return indices.get(action_setup.unique_id, -1)
 
-        def slot_key(slot: ActionSlotBase):
-            # Ensure corrective actions are added after their triggers.
-            if slot.is_corrective:
-                return max(action_key(slot.action),
-                           action_key(slot.trigger_action_a) + 0.5,
-                           action_key(slot.trigger_action_b) + 0.5)
+        def action_setup_key(action_setup: ActionSlotBase) -> float:
+            # Ensure corrective actions are added AFTER their triggers.
+            if action_setup.is_corrective:
+                return max(
+                    action_key(action_setup),
+                    action_key(action_setup.trigger_a) + 0.5,
+                    action_key(action_setup.trigger_b) + 0.5,
+                )
             else:
-                return action_key(slot.action)
+                return action_key(action_setup)
 
-        return sorted(slots, key=slot_key)
+        return sorted(action_setups, key=action_setup_key)
 
     def spawn_slot_layers(self, act_slot):
-        name = act_slot.action.name
-
-        if name in self.action_map:
-            raise MetarigError(f"Action slot with duplicate action: {name}")
+        name = act_slot.name
 
         if act_slot.is_corrective:
-            if not act_slot.trigger_action_a or not act_slot.trigger_action_b:
+            if not act_slot.trigger_a or not act_slot.trigger_b:
                 raise MetarigError(f"Action slot has missing triggers: {name}")
 
-            trigger_a = self.action_map.get(act_slot.trigger_action_a.name)
-            trigger_b = self.action_map.get(act_slot.trigger_action_b.name)
+            trigger_a = self.action_map.get(act_slot.trigger_a.name)
+            trigger_b = self.action_map.get(act_slot.trigger_b.name)
 
             if not trigger_a or not trigger_b:
                 raise MetarigError(f"Action slot references missing trigger slot(s): {name}")
@@ -415,7 +425,30 @@ class ActionLayerBuilder(GeneratorPlugin, BoneUtilityMixin, MechanismUtilityMixi
     def rig_bones(self):
         if self.layers:
             self.child_meshes = [
-                verify_mesh_obj(child)
-                for child in self.generator.obj.children_recursive
-                if child.type == 'MESH'
+                verify_mesh_obj(child) for child in self.generator.obj.children_recursive if child.type == 'MESH'
             ]
+
+
+@bpy.app.handlers.persistent
+def versioning_5_0(_):
+    """This is a load_post handler, registered in the top-most level __init__.py."""
+    for obj in bpy.data.objects:
+        if obj.type != 'ARMATURE' or obj.library:
+            # We only care about armatures, which are local to this file.
+            continue
+        for action_setup in obj.data.rigify_action_slots:
+            if not action_setup.action:
+                continue
+            action_setup.action_slot = next(
+                (s for s in action_setup.action.slots if s.target_id_type in ('UNSPECIFIED', 'OBJECT')), None
+            )
+            sys_props = action_setup.bl_system_properties_get()
+            for prop_name in ('trigger_action_a', 'trigger_action_b'):
+                trigger_action = sys_props.get(prop_name, None)
+                if not trigger_action:
+                    continue
+                trigger_action_setup = next(
+                    (setup for setup in obj.data.rigify_action_slots if setup.action == trigger_action)
+                )
+                setattr(action_setup, prop_name.replace("_action", ""), trigger_action_setup)
+                del sys_props[prop_name]

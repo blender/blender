@@ -12,6 +12,8 @@
 
 #include <fmt/format.h>
 
+#include "CLG_log.h"
+
 #include "BLI_string.h"
 
 #include "BLT_translation.hh"
@@ -123,6 +125,8 @@ class Instance : public DrawEngine {
   LightProbeModule light_probes;
   VolumeModule volume;
 
+  static CLG_LogRef log;
+
   /** Input data. */
   Depsgraph *depsgraph;
   Manager *manager;
@@ -201,8 +205,8 @@ class Instance : public DrawEngine {
         planar_probes(*this),
         volume_probes(*this),
         light_probes(*this),
-        volume(*this, uniform_data.data.volumes){};
-  ~Instance(){};
+        volume(*this, uniform_data.data.volumes) {};
+  ~Instance() {};
 
   blender::StringRefNull name_get() final
   {

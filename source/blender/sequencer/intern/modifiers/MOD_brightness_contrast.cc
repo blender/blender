@@ -29,29 +29,31 @@ struct BrightContrastApplyOp {
   float mul;
   float add;
 
-  template<typename ImageT, typename MaskT>
-  void apply(ImageT *image, const MaskT *mask, IndexRange size)
+  template<typename ImageT, typename MaskSampler>
+  void apply(ImageT *image, MaskSampler &mask, int image_x, IndexRange y_range)
   {
-    for ([[maybe_unused]] int64_t i : size) {
-      /* NOTE: arguably incorrect usage of "raw" values, should be un-premultiplied.
-       * Not changing behavior for now, but would be good to fix someday. */
-      float4 input = load_pixel_raw(image);
+    image += y_range.first() * image_x * 4;
+    for (int64_t y : y_range) {
+      mask.begin_row(y);
+      for ([[maybe_unused]] int64_t x : IndexRange(image_x)) {
+        /* NOTE: arguably incorrect usage of "raw" values, should be un-premultiplied.
+         * Not changing behavior for now, but would be good to fix someday. */
+        float4 input = load_pixel_raw(image);
 
-      float4 result;
-      result = input * this->mul + this->add;
-      result.w = input.w;
+        float4 result;
+        result = input * this->mul + this->add;
+        result.w = input.w;
 
-      apply_and_advance_mask(input, result, mask);
-      store_pixel_raw(result, image);
-      image += 4;
+        mask.apply_mask(input, result);
+        store_pixel_raw(result, image);
+        image += 4;
+      }
     }
   }
 };
 
-static void brightcontrast_apply(const RenderData * /*render_data*/,
-                                 const StripScreenQuad & /*quad*/,
+static void brightcontrast_apply(ModifierApplyContext &context,
                                  StripModifierData *smd,
-                                 ImBuf *ibuf,
                                  ImBuf *mask)
 {
   const BrightContrastModifierData *bcmd = (BrightContrastModifierData *)smd;
@@ -76,7 +78,7 @@ static void brightcontrast_apply(const RenderData * /*render_data*/,
     op.add = op.mul * brightness + delta;
   }
 
-  apply_modifier_op(op, ibuf, mask);
+  apply_modifier_op(op, context.image, mask, context.transform);
 }
 
 static void brightcontrast_panel_draw(const bContext *C, Panel *panel)

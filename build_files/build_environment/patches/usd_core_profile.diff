@@ -1,8 +1,8 @@
 diff --git a/pxr/imaging/hdSt/indirectDrawBatch.cpp b/pxr/imaging/hdSt/indirectDrawBatch.cpp
-index cdf400222f..e780d7343b 100644
+index 2b88b2f0f..0b036ffa2 100644
 --- a/pxr/imaging/hdSt/indirectDrawBatch.cpp
 +++ b/pxr/imaging/hdSt/indirectDrawBatch.cpp
-@@ -111,11 +111,17 @@ HdSt_IndirectDrawBatch::HdSt_IndirectDrawBatch(
+@@ -94,11 +94,17 @@ HdSt_IndirectDrawBatch::HdSt_IndirectDrawBatch(
      , _instanceCountOffset(0)
      , _cullInstanceCountOffset(0)
      , _needsTextureResourceRebinding(false)
@@ -21,7 +21,7 @@ index cdf400222f..e780d7343b 100644
  
  /*virtual*/
  void
-@@ -1199,6 +1205,14 @@ HdSt_IndirectDrawBatch::_ExecuteDraw(
+@@ -1182,6 +1188,14 @@ HdSt_IndirectDrawBatch::_ExecuteDraw(
                                 state.instancePrimvarBars);
      }
  
@@ -36,7 +36,7 @@ index cdf400222f..e780d7343b 100644
      state.BindResourcesForDrawing(renderPassState, *capabilities);
  
      HdSt_GeometricShaderSharedPtr geometricShader = state.geometricShader;
-@@ -1455,6 +1469,15 @@ HdSt_IndirectDrawBatch::_ExecuteFrustumCull(
+@@ -1438,6 +1452,15 @@ HdSt_IndirectDrawBatch::_ExecuteFrustumCull(
              cullingProgram.GetGeometricShader());
  
      Hgi * hgi = resourceRegistry->GetHgi();
@@ -53,10 +53,10 @@ index cdf400222f..e780d7343b 100644
      HgiGraphicsPipelineSharedPtr const & pso =
          _GetCullPipeline(resourceRegistry,
 diff --git a/pxr/imaging/hdSt/indirectDrawBatch.h b/pxr/imaging/hdSt/indirectDrawBatch.h
-index 13da3917b0..84f013d310 100644
+index 2b4c9dafb..aad43302a 100644
 --- a/pxr/imaging/hdSt/indirectDrawBatch.h
 +++ b/pxr/imaging/hdSt/indirectDrawBatch.h
-@@ -201,6 +201,8 @@ class HdSt_IndirectDrawBatch : public HdSt_DrawBatch
+@@ -184,6 +184,8 @@ private:
      int _cullInstanceCountOffset;
  
      bool _needsTextureResourceRebinding;
@@ -66,10 +66,10 @@ index 13da3917b0..84f013d310 100644
  
  
 diff --git a/pxr/imaging/hdSt/renderPassState.cpp b/pxr/imaging/hdSt/renderPassState.cpp
-index 5c4d2fac07..908a49f310 100644
+index 76c44980d..730502a22 100644
 --- a/pxr/imaging/hdSt/renderPassState.cpp
 +++ b/pxr/imaging/hdSt/renderPassState.cpp
-@@ -760,7 +760,9 @@ HdStRenderPassState::Bind(HgiCapabilities const &hgiCapabilities)
+@@ -776,7 +776,9 @@ HdStRenderPassState::Bind(HgiCapabilities const &hgiCapabilities)
          // If not using GL_MULTISAMPLE, use GL_POINT_SMOOTH to render points as 
          // circles instead of square.
          // XXX Switch points rendering to emit quad with FS that draws circle.
@@ -80,22 +80,24 @@ index 5c4d2fac07..908a49f310 100644
      }
  }
  
-@@ -804,7 +806,9 @@ HdStRenderPassState::Unbind(HgiCapabilities const &hgiCapabilities)
+@@ -820,8 +822,10 @@ HdStRenderPassState::Unbind(HgiCapabilities const &hgiCapabilities)
      }
  
      glEnable(GL_MULTISAMPLE);
 -    glDisable(GL_POINT_SMOOTH);
+-    glDisable(GL_POINT_SPRITE);
 +    if (!hgiCapabilities.GetCoreProfile()) {
 +        glDisable(GL_POINT_SMOOTH);
++        glDisable(GL_POINT_SPRITE);
 +    }
  }
  
  void
 diff --git a/pxr/imaging/hgi/capabilities.h b/pxr/imaging/hgi/capabilities.h
-index ae2ecb4e5b..c86afcb387 100644
+index b53197566..605e4d7ca 100644
 --- a/pxr/imaging/hgi/capabilities.h
 +++ b/pxr/imaging/hgi/capabilities.h
-@@ -52,6 +52,11 @@ class HgiCapabilities
+@@ -35,6 +35,11 @@ public:
      HGI_API
      virtual int GetShaderVersion() const = 0;
  
@@ -108,10 +110,10 @@ index ae2ecb4e5b..c86afcb387 100644
      size_t GetMaxUniformBlockSize() const {
          return _maxUniformBlockSize;
 diff --git a/pxr/imaging/hgiGL/blitCmds.cpp b/pxr/imaging/hgiGL/blitCmds.cpp
-index ce62f41a51..20888a1109 100644
+index 46b2aa0fd..38e5fd4b1 100644
 --- a/pxr/imaging/hgiGL/blitCmds.cpp
 +++ b/pxr/imaging/hgiGL/blitCmds.cpp
-@@ -136,7 +136,7 @@ HgiGLBlitCmds::_Submit(Hgi* hgi, HgiSubmitWaitType wait)
+@@ -119,7 +119,7 @@ HgiGLBlitCmds::_Submit(Hgi* hgi, HgiSubmitWaitType wait)
      // Capture OpenGL state before executing the 'ops' and restore it when this
      // function ends. We do this defensively because parts of our pipeline may
      // not set and restore all relevant gl state.
@@ -121,10 +123,10 @@ index ce62f41a51..20888a1109 100644
      HgiGL* hgiGL = static_cast<HgiGL*>(hgi);
      HgiGLDevice* device = hgiGL->GetPrimaryDevice();
 diff --git a/pxr/imaging/hgiGL/capabilities.cpp b/pxr/imaging/hgiGL/capabilities.cpp
-index 920f9cdff4..9941bef7b2 100644
+index eaf70a477..dfd44f5fb 100644
 --- a/pxr/imaging/hgiGL/capabilities.cpp
 +++ b/pxr/imaging/hgiGL/capabilities.cpp
-@@ -57,6 +57,7 @@ static const int _DefaultMaxClipDistances             = 8;
+@@ -42,6 +42,7 @@ static const int _DefaultMaxClipDistances             = 8;
  HgiGLCapabilities::HgiGLCapabilities()
      : _glVersion(0)
      , _glslVersion(_DefaultGLSLVersion)
@@ -132,7 +134,7 @@ index 920f9cdff4..9941bef7b2 100644
  {
      _LoadCapabilities();
  }
-@@ -131,6 +132,11 @@ HgiGLCapabilities::_LoadCapabilities()
+@@ -117,6 +118,11 @@ HgiGLCapabilities::_LoadCapabilities()
                        &uniformBufferOffsetAlignment);
          _uniformBufferOffsetAlignment = uniformBufferOffsetAlignment;
      }
@@ -144,7 +146,7 @@ index 920f9cdff4..9941bef7b2 100644
      if (_glVersion >= 430) {
          GLint maxShaderStorageBlockSize = 0;
          glGetIntegerv(GL_MAX_SHADER_STORAGE_BLOCK_SIZE,
-@@ -259,4 +265,9 @@ HgiGLCapabilities::GetShaderVersion() const {
+@@ -250,4 +256,9 @@ HgiGLCapabilities::GetShaderVersion() const {
      return _glslVersion;
  }
  
@@ -155,10 +157,10 @@ index 920f9cdff4..9941bef7b2 100644
 +
  PXR_NAMESPACE_CLOSE_SCOPE
 diff --git a/pxr/imaging/hgiGL/capabilities.h b/pxr/imaging/hgiGL/capabilities.h
-index 3c8f026426..2f25b44936 100644
+index 2ba137e95..64821ad27 100644
 --- a/pxr/imaging/hgiGL/capabilities.h
 +++ b/pxr/imaging/hgiGL/capabilities.h
-@@ -52,6 +52,9 @@ class HgiGLCapabilities final : public HgiCapabilities
+@@ -35,6 +35,9 @@ public:
      HGIGL_API
      int GetShaderVersion() const override;
  
@@ -168,7 +170,7 @@ index 3c8f026426..2f25b44936 100644
  private:
      void _LoadCapabilities();
  
-@@ -60,6 +63,9 @@ class HgiGLCapabilities final : public HgiCapabilities
+@@ -43,6 +46,9 @@ private:
      
      // GLSL version 
      int _glslVersion; // 400, 410, ...
@@ -179,10 +181,10 @@ index 3c8f026426..2f25b44936 100644
  
  PXR_NAMESPACE_CLOSE_SCOPE
 diff --git a/pxr/imaging/hgiGL/graphicsCmds.cpp b/pxr/imaging/hgiGL/graphicsCmds.cpp
-index 5e174165d7..e59ae3502f 100644
+index c22f2d75e..f6b724bb5 100644
 --- a/pxr/imaging/hgiGL/graphicsCmds.cpp
 +++ b/pxr/imaging/hgiGL/graphicsCmds.cpp
-@@ -249,7 +249,7 @@ HgiGLGraphicsCmds::_Submit(Hgi* hgi, HgiSubmitWaitType wait)
+@@ -232,7 +232,7 @@ HgiGLGraphicsCmds::_Submit(Hgi* hgi, HgiSubmitWaitType wait)
      // Capture OpenGL state before executing the 'ops' and restore it when this
      // function ends. We do this defensively because parts of our pipeline may
      // not set and restore all relevant gl state.
@@ -192,10 +194,10 @@ index 5e174165d7..e59ae3502f 100644
      // Resolve multisample textures
      HgiGL* hgiGL = static_cast<HgiGL*>(hgi);
 diff --git a/pxr/imaging/hgiGL/graphicsPipeline.cpp b/pxr/imaging/hgiGL/graphicsPipeline.cpp
-index 6983dd11e9..a1c7af754e 100644
+index 9704c6e11..6d864f398 100644
 --- a/pxr/imaging/hgiGL/graphicsPipeline.cpp
 +++ b/pxr/imaging/hgiGL/graphicsPipeline.cpp
-@@ -42,7 +42,12 @@ HgiGLGraphicsPipeline::HgiGLGraphicsPipeline(
+@@ -25,7 +25,12 @@ HgiGLGraphicsPipeline::HgiGLGraphicsPipeline(
  {
  }
  
@@ -209,7 +211,7 @@ index 6983dd11e9..a1c7af754e 100644
  
  void
  HgiGLGraphicsPipeline::BindPipeline()
-@@ -50,6 +55,7 @@ HgiGLGraphicsPipeline::BindPipeline()
+@@ -33,6 +38,7 @@ HgiGLGraphicsPipeline::BindPipeline()
      if (_vao) {
          glBindVertexArray(0);
          glDeleteVertexArrays(1, &_vao);
@@ -217,7 +219,7 @@ index 6983dd11e9..a1c7af754e 100644
      }
  
      if (!_descriptor.vertexBuffers.empty()) {
-@@ -108,6 +114,8 @@ HgiGLGraphicsPipeline::BindPipeline()
+@@ -91,6 +97,8 @@ HgiGLGraphicsPipeline::BindPipeline()
          glBindVertexArray(_vao);
      }
  
@@ -226,7 +228,7 @@ index 6983dd11e9..a1c7af754e 100644
      //
      // Depth Stencil State
      //
-@@ -172,7 +180,9 @@ HgiGLGraphicsPipeline::BindPipeline()
+@@ -160,7 +168,9 @@ HgiGLGraphicsPipeline::BindPipeline()
          // If not using GL_MULTISAMPLE, use GL_POINT_SMOOTH to render points as 
          // circles instead of square.
          // XXX Switch points rendering to emit quad with FS that draws circle.
@@ -237,7 +239,7 @@ index 6983dd11e9..a1c7af754e 100644
      }
      if (_descriptor.multiSampleState.alphaToCoverageEnable) {
          glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
-@@ -207,7 +217,7 @@ HgiGLGraphicsPipeline::BindPipeline()
+@@ -195,7 +205,7 @@ HgiGLGraphicsPipeline::BindPipeline()
          glFrontFace(GL_CCW);
      }
  
@@ -247,10 +249,10 @@ index 6983dd11e9..a1c7af754e 100644
      }
  
 diff --git a/pxr/imaging/hgiGL/scopedStateHolder.cpp b/pxr/imaging/hgiGL/scopedStateHolder.cpp
-index 89cd0ac224..5c6575330b 100644
+index 28e31b12e..737a75dad 100644
 --- a/pxr/imaging/hgiGL/scopedStateHolder.cpp
 +++ b/pxr/imaging/hgiGL/scopedStateHolder.cpp
-@@ -26,6 +26,7 @@
+@@ -9,6 +9,7 @@
  #include "pxr/imaging/hgiGL/scopedStateHolder.h"
  #include "pxr/imaging/hgiGL/conversions.h"
  #include "pxr/imaging/hgiGL/diagnostic.h"
@@ -258,7 +260,7 @@ index 89cd0ac224..5c6575330b 100644
  
  #include "pxr/base/trace/trace.h"
  #include "pxr/base/tf/diagnostic.h"
-@@ -33,8 +34,10 @@
+@@ -16,8 +17,10 @@
  
  PXR_NAMESPACE_OPEN_SCOPE
  
@@ -271,7 +273,7 @@ index 89cd0ac224..5c6575330b 100644
      , _restoreVao(0)
      , _restoreDepthTest(false)
      , _restoreDepthWriteMask(false)
-@@ -115,7 +118,9 @@ HgiGL_ScopedStateHolder::HgiGL_ScopedStateHolder()
+@@ -101,7 +104,9 @@ HgiGL_ScopedStateHolder::HgiGL_ScopedStateHolder()
      glGetBooleanv(
          GL_SAMPLE_ALPHA_TO_ONE,
          (GLboolean*)&_restoreSampleAlphaToOne);
@@ -282,18 +284,20 @@ index 89cd0ac224..5c6575330b 100644
      glGetBooleanv(GL_CULL_FACE, (GLboolean*)&_cullFace);
      glGetIntegerv(GL_CULL_FACE_MODE, &_cullMode);
      glGetIntegerv(GL_FRONT_FACE, &_frontFace);
-@@ -139,7 +144,9 @@ HgiGL_ScopedStateHolder::HgiGL_ScopedStateHolder()
+@@ -125,8 +130,10 @@ HgiGL_ScopedStateHolder::HgiGL_ScopedStateHolder()
      }
  
      glGetBooleanv(GL_MULTISAMPLE, (GLboolean*)&_restoreMultiSample);
 -    glGetBooleanv(GL_POINT_SMOOTH, (GLboolean*)&_restorePointSmooth);
+-    glGetBooleanv(GL_POINT_SPRITE, (GLboolean*)&_restorePointSprite);
 +    if (!_coreProfile) {
 +        glGetBooleanv(GL_POINT_SMOOTH, (GLboolean*)&_restorePointSmooth);
++        glGetBooleanv(GL_POINT_SPRITE, (GLboolean*)&_restorePointSprite);
 +    }
  
-     HGIGL_POST_PENDING_GL_ERRORS();
-     #if defined(GL_KHR_debug)
-@@ -235,7 +242,9 @@ HgiGL_ScopedStateHolder::~HgiGL_ScopedStateHolder()
+     glGetIntegerv(GL_UNPACK_ALIGNMENT, &_restoreUnpackAlignment);
+     glGetIntegerv(GL_PACK_ALIGNMENT, &_restorePackAlignment);
+@@ -225,7 +232,9 @@ HgiGL_ScopedStateHolder::~HgiGL_ScopedStateHolder()
                 _restoreViewport[2], _restoreViewport[3]);
      glBindVertexArray(_restoreVao);
      glBindRenderbuffer(GL_RENDERBUFFER, _restoreRenderBuffer);
@@ -304,7 +308,7 @@ index 89cd0ac224..5c6575330b 100644
      if (_cullFace) {
          glEnable(GL_CULL_FACE);
      } else {
-@@ -285,10 +294,12 @@ HgiGL_ScopedStateHolder::~HgiGL_ScopedStateHolder()
+@@ -275,10 +284,12 @@ HgiGL_ScopedStateHolder::~HgiGL_ScopedStateHolder()
          glDisable(GL_MULTISAMPLE);
      }
  
@@ -320,12 +324,12 @@ index 89cd0ac224..5c6575330b 100644
 +        }
      }
  
-     static const GLuint samplers[8] = {0};
+     if (_restorePointSprite) {
 diff --git a/pxr/imaging/hgiGL/scopedStateHolder.h b/pxr/imaging/hgiGL/scopedStateHolder.h
-index d006480b9b..be6698e04c 100644
+index 4e76d5426..39de06111 100644
 --- a/pxr/imaging/hgiGL/scopedStateHolder.h
 +++ b/pxr/imaging/hgiGL/scopedStateHolder.h
-@@ -32,6 +32,7 @@
+@@ -15,6 +15,7 @@
  
  PXR_NAMESPACE_OPEN_SCOPE
  
@@ -333,7 +337,7 @@ index d006480b9b..be6698e04c 100644
  
  /// \class HgiGLScopedStateHolder
  ///
-@@ -50,7 +51,7 @@ class HgiGL_ScopedStateHolder final
+@@ -33,7 +34,7 @@ class HgiGL_ScopedStateHolder final
  {
  public:
      HGIGL_API
@@ -342,7 +346,7 @@ index d006480b9b..be6698e04c 100644
  
      HGIGL_API
      ~HgiGL_ScopedStateHolder();
-@@ -59,6 +60,8 @@ class HgiGL_ScopedStateHolder final
+@@ -42,6 +43,8 @@ private:
      HgiGL_ScopedStateHolder& operator=(const HgiGL_ScopedStateHolder&) = delete;
      HgiGL_ScopedStateHolder(const HgiGL_ScopedStateHolder&) = delete;
  
@@ -352,26 +356,26 @@ index d006480b9b..be6698e04c 100644
      int32_t _restoreVao;
  
 diff --git a/pxr/imaging/hgiInterop/opengl.cpp b/pxr/imaging/hgiInterop/opengl.cpp
-index 95736721f1..4f970ed608 100644
+index 36bc59bdf..672b9b044 100644
 --- a/pxr/imaging/hgiInterop/opengl.cpp
 +++ b/pxr/imaging/hgiInterop/opengl.cpp
-@@ -110,6 +110,7 @@ HgiInteropOpenGL::HgiInteropOpenGL()
+@@ -93,6 +93,7 @@ HgiInteropOpenGL::HgiInteropOpenGL()
      , _fsDepth(0)
      , _prgNoDepth(0)
      , _prgDepth(0)
 +    , _vao(0)
      , _vertexBuffer(0)
  {
-     _vs = _CompileShader(_vertexFullscreen, GL_VERTEX_SHADER);
-@@ -117,6 +118,7 @@ HgiInteropOpenGL::HgiInteropOpenGL()
-     _fsDepth = _CompileShader(_fragmentDepthFullscreen, GL_FRAGMENT_SHADER);
+     _vs = _CompileShader(_vertexFullscreen120, GL_VERTEX_SHADER);
+@@ -100,6 +101,7 @@ HgiInteropOpenGL::HgiInteropOpenGL()
+     _fsDepth = _CompileShader(_fragmentDepthFullscreen120, GL_FRAGMENT_SHADER);
      _prgNoDepth = _LinkProgram(_vs, _fsNoDepth);
      _prgDepth = _LinkProgram(_vs, _fsDepth);
 +    glCreateVertexArrays(1, &_vao);
      _vertexBuffer = _CreateVertexBuffer();
      TF_VERIFY(glGetError() == GL_NO_ERROR);
  }
-@@ -129,6 +131,7 @@ HgiInteropOpenGL::~HgiInteropOpenGL()
+@@ -112,6 +114,7 @@ HgiInteropOpenGL::~HgiInteropOpenGL()
      glDeleteProgram(_prgNoDepth);
      glDeleteProgram(_prgDepth);
      glDeleteBuffers(1, &_vertexBuffer);
@@ -379,7 +383,7 @@ index 95736721f1..4f970ed608 100644
      TF_VERIFY(glGetError() == GL_NO_ERROR);
  }
  
-@@ -202,10 +205,13 @@ HgiInteropOpenGL::CompositeToInterop(
+@@ -185,10 +188,13 @@ HgiInteropOpenGL::CompositeToInterop(
      }
  
      // Get the current array buffer binding state
@@ -393,7 +397,7 @@ index 95736721f1..4f970ed608 100644
      const GLint locPosition = glGetAttribLocation(prg, "position");
      glBindBuffer(GL_ARRAY_BUFFER, _vertexBuffer);
      glVertexAttribPointer(locPosition, 4, GL_FLOAT, GL_FALSE,
-@@ -271,6 +277,7 @@ HgiInteropOpenGL::CompositeToInterop(
+@@ -254,6 +260,7 @@ HgiInteropOpenGL::CompositeToInterop(
      glDisableVertexAttribArray(locPosition);
      glDisableVertexAttribArray(locUv);
      glBindBuffer(GL_ARRAY_BUFFER, restoreArrayBuffer);
@@ -402,10 +406,10 @@ index 95736721f1..4f970ed608 100644
      if (!blendEnabled) {
          glDisable(GL_BLEND);
 diff --git a/pxr/imaging/hgiInterop/opengl.h b/pxr/imaging/hgiInterop/opengl.h
-index 18840a92bd..27434ac36f 100644
+index b0dd64a71..5cd1bad95 100644
 --- a/pxr/imaging/hgiInterop/opengl.h
 +++ b/pxr/imaging/hgiInterop/opengl.h
-@@ -62,6 +62,7 @@ class HgiInteropOpenGL final
+@@ -45,6 +45,7 @@ private:
      uint32_t _fsDepth;
      uint32_t _prgNoDepth;
      uint32_t _prgDepth;

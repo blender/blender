@@ -30,13 +30,13 @@ static const EnumPropertyItem mode_items[] = {
     {GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_RANDOM,
      "DENSITY_RANDOM",
      0,
-     "Random",
-     "Distribute points randomly inside of the volume"},
+     N_("Random"),
+     N_("Distribute points randomly inside of the volume")},
     {GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_GRID,
      "DENSITY_GRID",
      0,
-     "Grid",
-     "Distribute the points in a grid pattern inside of the volume"},
+     N_("Grid"),
+     N_("Distribute the points in a grid pattern inside of the volume")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -87,19 +87,15 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 /* Implements the interface required by #openvdb::tools::NonUniformPointScatter. */
 class PositionsVDBWrapper {
  private:
-  float3 offset_fix_;
   Vector<float3> &vector_;
 
  public:
-  PositionsVDBWrapper(Vector<float3> &vector, const float3 offset_fix)
-      : offset_fix_(offset_fix), vector_(vector)
-  {
-  }
+  PositionsVDBWrapper(Vector<float3> &vector) : vector_(vector) {}
   PositionsVDBWrapper(const PositionsVDBWrapper &wrapper) = default;
 
   void add(const openvdb::Vec3R &pos)
   {
-    vector_.append(float3(float(pos[0]), float(pos[1]), float(pos[2])) + offset_fix_);
+    vector_.append(float3(float(pos[0]), float(pos[1]), float(pos[2])));
   }
 };
 
@@ -116,12 +112,8 @@ static void point_scatter_density_random(const openvdb::FloatGrid &grid,
                                          const int seed,
                                          Vector<float3> &r_positions)
 {
-  /* Offset points by half a voxel so that grid points are aligned with world grid points. */
-  const float3 offset_fix = {0.5f * float(grid.voxelSize().x()),
-                             0.5f * float(grid.voxelSize().y()),
-                             0.5f * float(grid.voxelSize().z())};
   /* Setup and call into OpenVDB's point scatter API. */
-  PositionsVDBWrapper vdb_position_wrapper = PositionsVDBWrapper(r_positions, offset_fix);
+  PositionsVDBWrapper vdb_position_wrapper = PositionsVDBWrapper(r_positions);
   RNGType random_generator(seed);
   NonUniformPointScatterVDB point_scatter(vdb_position_wrapper, density, random_generator);
   point_scatter(grid);
@@ -168,7 +160,7 @@ static void point_scatter_density_grid(const openvdb::FloatGrid &grid,
         for (double z = start.z(); z < box_max.z(); z += abs_spacing_z) {
           /* Transform with grid matrix and add point. */
           const openvdb::Vec3d idx_pos(x, y, z);
-          const openvdb::Vec3d local_pos = grid.indexToWorld(idx_pos + half_voxel);
+          const openvdb::Vec3d local_pos = grid.indexToWorld(idx_pos);
           r_positions.append({float(local_pos.x()), float(local_pos.y()), float(local_pos.z())});
         }
       }

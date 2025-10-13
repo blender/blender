@@ -30,8 +30,13 @@ namespace blender::nodes::node_composite_chroma_matte_cc {
 
 static void cmp_node_chroma_matte_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.is_function_node();
-  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f}).hide_value();
+  b.add_output<decl::Color>("Image").align_with_previous();
+  b.add_output<decl::Float>("Matte");
+
   b.add_input<decl::Color>("Key Color").default_value({1.0f, 1.0f, 1.0f, 1.0f});
   b.add_input<decl::Float>("Minimum")
       .default_value(DEG2RADF(10.0f))
@@ -53,9 +58,6 @@ static void cmp_node_chroma_matte_declare(NodeDeclarationBuilder &b)
       .description(
           "Controls the falloff between keyed and non-keyed values. 0 means completely sharp and "
           "1 means completely smooth");
-
-  b.add_output<decl::Color>("Image");
-  b.add_output<decl::Float>("Matte");
 }
 
 using namespace blender::compositor;

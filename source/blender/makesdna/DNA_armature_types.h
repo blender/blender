@@ -466,10 +466,8 @@ typedef enum eBone_Flag {
 #ifdef DNA_DEPRECATED_ALLOW
   /** set to prevent destruction of its unkeyframed pose (after transform) */
   BONE_UNKEYED = (1 << 13),
-#endif
   /** set to prevent hinge child bones from influencing the transform center */
   BONE_HINGE_CHILD_TRANSFORM = (1 << 14),
-#ifdef DNA_DEPRECATED_ALLOW
   /** No parent scale */
   BONE_NO_SCALE = (1 << 15),
 #endif
@@ -479,8 +477,10 @@ typedef enum eBone_Flag {
   BONE_NO_CYCLICOFFSET = (1 << 18),
   /** bone transforms are locked in EditMode */
   BONE_EDITMODE_LOCKED = (1 << 19),
+#ifdef DNA_DEPRECATED_ALLOW
   /** Indicates that a parent is also being transformed */
   BONE_TRANSFORM_CHILD = (1 << 20),
+#endif
   /** bone cannot be selected */
   BONE_UNSELECTABLE = (1 << 21),
   /** bone location is in armature space */

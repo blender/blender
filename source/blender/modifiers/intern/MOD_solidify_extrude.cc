@@ -174,7 +174,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   uint *edge_users = nullptr;
   int *edge_order = nullptr;
 
-  float(*vert_nors)[3] = nullptr;
+  float (*vert_nors)[3] = nullptr;
   blender::Span<blender::float3> face_normals;
 
   const bool need_face_normals = (smd->flag & MOD_SOLIDIFY_NORMAL_CALC) ||

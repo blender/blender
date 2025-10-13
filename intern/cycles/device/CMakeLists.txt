@@ -77,6 +77,8 @@ set(SRC_ONEAPI
   oneapi/device_impl.h
   oneapi/device.cpp
   oneapi/device.h
+  oneapi/graphics_interop.cpp
+  oneapi/graphics_interop.h
   oneapi/queue.cpp
   oneapi/queue.h
 )
@@ -195,6 +197,33 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   list(APPEND INC_SYS
     ${SYCL_INCLUDE_DIR}
   )
+
+  # Test for the presence of sycl::ext::oneapi::experimental::unmap_external_linear_memory (necessary for interop).
+  # https://github.com/intel/llvm/blob/sycl/sycl/doc/extensions/experimental/sycl_ext_oneapi_bindless_images.asciidoc
+  include(CheckCXXSourceCompiles)
+  set(CMAKE_REQUIRED_INCLUDES "${SYCL_INCLUDE_DIR}")
+  set(CMAKE_REQUIRED_LIBRARIES "${SYCL_LIBRARIES}")
+  check_cxx_source_compiles("
+      #include <sycl/ext/oneapi/bindless_images.hpp>
+      int main()
+      {
+          sycl::queue sycl_queue{sycl::gpu_selector_v};
+          sycl::ext::oneapi::experimental::unmap_external_linear_memory(nullptr, sycl_queue);
+      }
+  " SYCL_UNMAP_EXTERNAL_LINEAR_MEMORY_SUPPORTED)
+  if (SYCL_UNMAP_EXTERNAL_LINEAR_MEMORY_SUPPORTED)
+    foreach(FILE ${SRC_ONEAPI})
+      set_source_files_properties(
+          ${FILE} PROPERTIES COMPILE_DEFINITIONS "SYCL_LINEAR_MEMORY_INTEROP_AVAILABLE"
+      )
+    endforeach()
+  else()
+    message(WARNING
+      "The installed SYCL version does not support unmap_external_linear_memory. "
+      "Upgrade to oneAPI >= 2025.3 or DPC++ >= 6.2 to support Vulkan-oneAPI interoperability.")
+  endif()
+  unset(CMAKE_REQUIRED_INCLUDES)
+  unset(CMAKE_REQUIRED_LIBRARIES)
 endif()
 
 if(WITH_OPENIMAGEDENOISE)

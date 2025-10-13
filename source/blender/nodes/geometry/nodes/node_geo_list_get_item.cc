@@ -124,14 +124,15 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  auto fn_ptr = std::make_shared<SampleIndexFunction>(std::move(list));
-  const mf::MultiFunction &fn = *fn_ptr;
-
-  bke::SocketValueVariant output_value;
   std::string error_message;
-  const bool success = execute_multi_function_on_value_variant(
-      fn, std::move(fn_ptr), {&index}, {&output_value}, params.user_data(), error_message);
-  if (!success) {
+  bke::SocketValueVariant output_value;
+  if (!execute_multi_function_on_value_variant(
+          std::make_shared<SampleIndexFunction>(std::move(list)),
+          {&index},
+          {&output_value},
+          params.user_data(),
+          error_message))
+  {
     params.set_default_remaining_outputs();
     params.error_message_add(NodeWarningType::Error, std::move(error_message));
     return;

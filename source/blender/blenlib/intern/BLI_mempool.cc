@@ -130,7 +130,7 @@ struct BLI_mempool {
   ((BLI_freenode *)(CHECK_TYPE_INLINE(chunk, BLI_mempool_chunk *), (void *)((chunk) + 1)))
 
 #define NODE_STEP_NEXT(node) ((BLI_freenode *)((char *)(node) + esize))
-#define NODE_STEP_PREV(node) ((BLI_freenode *)((char *)(node)-esize))
+#define NODE_STEP_PREV(node) ((BLI_freenode *)((char *)(node) - esize))
 
 /** Extra bytes implicitly used for every chunk alloc. */
 #define CHUNK_OVERHEAD uint(MEM_SIZE_OVERHEAD + sizeof(BLI_mempool_chunk))

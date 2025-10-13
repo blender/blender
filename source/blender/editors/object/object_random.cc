@@ -18,6 +18,8 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
+#include "DEG_depsgraph_query.hh"
+
 #include "WM_api.hh"
 #include "WM_types.hh"
 
@@ -86,6 +88,7 @@ static wmOperatorStatus object_rand_verts_exec(bContext *C, wmOperator *op)
   const uint seed = RNA_int_get(op->ptr, "seed");
 
   bool changed_multi = false;
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C), eObjectMode(ob_mode));
   for (const int ob_index : objects.index_range()) {
@@ -104,7 +107,8 @@ static wmOperatorStatus object_rand_verts_exec(bContext *C, wmOperator *op)
         continue;
       }
 
-      ED_transverts_create_from_obedit(&tvs, ob_iter, mode);
+      const Object *ob_iter_eval = DEG_get_evaluated(depsgraph, ob_iter);
+      ED_transverts_create_from_obedit(&tvs, ob_iter_eval, mode);
       if (tvs.transverts_tot == 0) {
         continue;
       }

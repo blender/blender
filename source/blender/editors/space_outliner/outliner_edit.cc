@@ -817,6 +817,11 @@ static int outliner_id_copy_tag(SpaceOutliner *space_outliner,
 
     /* Add selected item and all of its dependencies to the copy buffer. */
     if (tselem->flag & TSE_SELECTED && ELEM(tselem->type, TSE_SOME_ID, TSE_LAYER_COLLECTION)) {
+      if (ID_IS_PACKED(tselem->id)) {
+        /* Direct link/append of packed IDs is not supported currently, so neither is their
+         * copy/pasting. */
+        continue;
+      }
       copybuffer.id_add(tselem->id,
                         PartialWriteContext::IDAddOptions{
                             (PartialWriteContext::IDAddOperations::SET_FAKE_USER |

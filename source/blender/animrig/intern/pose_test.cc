@@ -229,8 +229,8 @@ TEST_F(PoseTest, apply_action_blend_single_slot)
   bone_a->loc[0] = 0.0;
   bone_b->loc[1] = 0.0;
 
-  bone_a->bone->flag |= BONE_SELECTED;
-  bone_b->bone->flag &= ~BONE_SELECTED;
+  bone_a->flag |= POSE_SELECTED;
+  bone_b->flag &= ~POSE_SELECTED;
 
   /* This should only affect the selected bone. */
   blender::animrig::pose_apply_action_blend(
@@ -265,7 +265,7 @@ TEST_F(PoseTest, apply_action_multiple_objects)
       arm_a_bone_a, arm_a_bone_b, arm_b_bone_a, arm_b_bone_b};
 
   for (bPoseChannel *pose_bone : all_bones) {
-    pose_bone->bone->flag &= ~BONE_SELECTED;
+    pose_bone->flag &= ~POSE_SELECTED;
     pose_bone->loc[0] = 0.0;
     pose_bone->loc[1] = 0.0;
   }
@@ -285,7 +285,7 @@ TEST_F(PoseTest, apply_action_multiple_objects)
     pose_bone->loc[1] = 0.0;
   }
 
-  arm_a_bone_a->bone->flag |= BONE_SELECTED;
+  arm_a_bone_a->flag |= POSE_SELECTED;
 
   blender::animrig::pose_apply_action(
       {obj_armature_a, obj_armature_b}, *pose_action, &eval_context, 1.0);
@@ -301,8 +301,8 @@ TEST_F(PoseTest, apply_action_multiple_objects)
     pose_bone->loc[1] = 0.0;
   }
 
-  arm_a_bone_a->bone->flag |= BONE_SELECTED;
-  arm_b_bone_a->bone->flag |= BONE_SELECTED;
+  arm_a_bone_a->flag |= POSE_SELECTED;
+  arm_b_bone_a->flag |= POSE_SELECTED;
 
   blender::animrig::pose_apply_action(
       {obj_armature_a, obj_armature_b}, *pose_action, &eval_context, 1.0);
@@ -332,9 +332,9 @@ TEST_F(PoseTest, apply_action_multiple_objects)
     pose_bone->loc[1] = 0.0;
   }
 
-  arm_a_bone_a->bone->flag |= BONE_SELECTED;
-  arm_a_bone_b->bone->flag |= BONE_SELECTED;
-  arm_b_bone_a->bone->flag |= BONE_SELECTED;
+  arm_a_bone_a->flag |= POSE_SELECTED;
+  arm_a_bone_b->flag |= POSE_SELECTED;
+  arm_b_bone_a->flag |= POSE_SELECTED;
 
   blender::animrig::pose_apply_action(
       {obj_armature_a, obj_armature_b}, *pose_action, &eval_context, 1.0);
@@ -364,7 +364,7 @@ TEST_F(PoseTest, apply_action_multiple_objects_single_slot)
       arm_a_bone_a, arm_a_bone_b, arm_b_bone_a, arm_b_bone_b};
 
   for (bPoseChannel *pose_bone : all_bones) {
-    pose_bone->bone->flag &= ~BONE_SELECTED;
+    pose_bone->flag &= ~POSE_SELECTED;
     pose_bone->loc[0] = 0.0;
     pose_bone->loc[1] = 0.0;
   }

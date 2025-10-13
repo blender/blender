@@ -667,7 +667,7 @@ void AbstractHierarchyIterator::make_writers(const HierarchyContext *parent_cont
     if (!transform_writer) {
       /* Unable to export, so there is nothing to attach any children to; just abort this entire
        * branch of the export hierarchy. */
-      return;
+      continue;
     }
 
     const bool need_writers = context->is_point_proto || (!context->is_point_instance &&

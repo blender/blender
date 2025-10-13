@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021-2022 Intel Corporation
+/* SPDX-FileCopyrightText: 2021-2025 Intel Corporation
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
@@ -25,6 +25,8 @@
 
 #  include "kernel/device/oneapi/globals.h"
 #  include "kernel/device/oneapi/kernel.h"
+
+#  include "session/display_driver.h"
 
 #  if defined(WITH_EMBREE_GPU) && defined(EMBREE_SYCL_SUPPORT) && !defined(SYCL_LANGUAGE_VERSION)
 /* These declarations are missing from embree headers when compiling from a compiler that doesn't
@@ -945,11 +947,46 @@ unique_ptr<DeviceQueue> OneapiDevice::gpu_queue_create()
   return make_unique<OneapiDeviceQueue>(this);
 }
 
-bool OneapiDevice::should_use_graphics_interop(const GraphicsInteropDevice & /*interop_device*/,
-                                               const bool /*log*/)
+bool OneapiDevice::should_use_graphics_interop(const GraphicsInteropDevice &interop_device,
+                                               const bool log)
 {
-  /* NOTE(@nsirgien): oneAPI doesn't yet support direct writing into graphics API objects, so
-   * return false. */
+#  ifdef SYCL_LINEAR_MEMORY_INTEROP_AVAILABLE
+  if (interop_device.type != GraphicsInteropDevice::VULKAN) {
+    /* SYCL only supports interop with Vulkan and D3D. */
+    return false;
+  }
+
+  try {
+    const sycl::device &device = reinterpret_cast<sycl::queue *>(device_queue_)->get_device();
+    if (!device.has(sycl::aspect::ext_oneapi_external_memory_import)) {
+      return false;
+    }
+
+    /* This extension is in the namespace "sycl::ext::intel",
+     * but also available on non-Intel GPUs. */
+    sycl::detail::uuid_type uuid = device.get_info<sycl::ext::intel::info::device::uuid>();
+    const bool found = (uuid.size() == interop_device.uuid.size() &&
+                        memcmp(uuid.data(), interop_device.uuid.data(), uuid.size()) == 0);
+
+    if (log) {
+      if (found) {
+        LOG_INFO << "Graphics interop: found matching Vulkan device for oneAPI";
+      }
+      else {
+        LOG_INFO << "Graphics interop: no matching Vulkan device for oneAPI";
+      }
+
+      LOG_INFO << "Graphics Interop: oneAPI UUID " << string_hex(uuid.data(), uuid.size())
+               << ", Vulkan UUID "
+               << string_hex(interop_device.uuid.data(), interop_device.uuid.size());
+    }
+
+    return found;
+  }
+  catch (sycl::exception &e) {
+    LOG_ERROR << "Could not release external Vulkan memory: " << e.what();
+  }
+#  endif
   return false;
 }
 
@@ -1348,13 +1385,13 @@ void OneapiDevice::get_adjusted_global_and_local_sizes(SyclQueue *queue,
 
 /* Compute-runtime (ie. NEO) version is what gets returned by sycl/L0 on Windows
  * since Windows driver 101.3268. */
-static const int lowest_supported_driver_version_win = 1016554;
+static const int lowest_supported_driver_version_win = 1018132;
 #  ifdef _WIN32
-/* For Windows driver 101.6557, compute-runtime version is 31896.
+/* For Windows driver 101.8132, compute-runtime version is 34938.
  * This information is returned by `ocloc query OCL_DRIVER_VERSION`. */
-static const int lowest_supported_driver_version_neo = 31896;
+static const int lowest_supported_driver_version_neo = 34938;
 #  else
-static const int lowest_supported_driver_version_neo = 31740;
+static const int lowest_supported_driver_version_neo = 34666;
 #  endif
 
 int parse_driver_build_version(const sycl::device &device)
@@ -1494,6 +1531,52 @@ std::vector<sycl::device> available_sycl_devices(bool *multiple_dgpus_detected =
             }
           }
         }
+
+        /* NOTE(sirgienko) Due to some changes in the latest Intel Drivers, the currently used
+         * DPC++ compiler will duplicate devices on some platforms, which have a discrete Intel GPU
+         * together with 11th-14th Gen CPUs, with iGPU enabled. This will be fixed in upstream
+         * DPC++ 6.3, but for now, in order to not confuse our Blender end-users with several
+         * duplicated GPUs, we will avoid adding duplicates into the device list. */
+        /* The order of adding devices is not important, as both duplicated GPUs are fully
+         * functional and performant, so we can pick up the first one we find. */
+        if (!filter_out) {
+          for (const sycl::device &already_available_device : available_devices) {
+            std::array<sycl::device, 2> devices = {already_available_device, device};
+            std::vector<sycl::ext::intel::info::device::uuid::return_type> uuids;
+            for (int i = 0; i < 2; i++) {
+              /* As this is an Intel-specific enumeration issue - we are collecting Intel UUID
+               * expecting it to be supported on Intel GPUs. */
+              if (devices[i].has(sycl::aspect::ext_intel_device_info_uuid)) {
+                uuids.push_back(devices[i].get_info<sycl::ext::intel::info::device::uuid>());
+              }
+              else if (devices[i].get_platform().get_info<sycl::info::platform::vendor>() ==
+                       "Intel(R) Corporation")
+              {
+                /* Better to ensure that our expectation that all Intel devices support the UUID
+                 * extension is correct. If one day this is not true, then we will at least have a
+                 * warning message in the log. */
+                const std::string &device_name = devices[i].get_info<sycl::info::device::name>();
+                LOG_WARNING << "Despite expectation, Intel oneAPI device '" << device_name
+                            << "' is not supporting Intel SYCL UUID extension.";
+              }
+            }
+            if (uuids.size() == 2) {
+              if (uuids[0] == uuids[1]) {
+                const std::string &device_name = device.get_info<sycl::info::device::name>();
+                const std::string &platform_name =
+                    device.get_platform().get_info<sycl::info::platform::name>();
+                LOG_DEBUG
+                    << "Detecting that oneAPI device '" << device_name << "' of platform '"
+                    << platform_name
+                    << "' is identical (by UUID comparison) to an already added device in the "
+                       "list of available devices, so it will not be added again.";
+                filter_out = true;
+                break;
+              }
+            }
+          }
+        }
+
         if (!filter_out) {
           available_devices.push_back(device);
         }
@@ -1560,7 +1643,10 @@ void OneapiDevice::architecture_information(const SyclDevice *device,
     FILL_ARCH_INFO(intel_gpu_mtl_u, true)
     FILL_ARCH_INFO(intel_gpu_mtl_h, true)
     FILL_ARCH_INFO(intel_gpu_bmg_g21, true)
+    FILL_ARCH_INFO(intel_gpu_bmg_g31, true)
     FILL_ARCH_INFO(intel_gpu_lnl_m, true)
+    FILL_ARCH_INFO(intel_gpu_ptl_h, true)
+    FILL_ARCH_INFO(intel_gpu_ptl_u, true)
 
     default:
       name = "unknown";

@@ -114,7 +114,7 @@ LibOCIODisplay::LibOCIODisplay(const int index, const LibOCIOConfig &config) : c
     bool view_is_hdr = false;
     if (ocio_display_colorspace) {
       StringRefNull encoding = ocio_display_colorspace->getEncoding();
-      view_is_hdr = encoding == "hdr-video";
+      view_is_hdr = encoding == "hdr-video" || encoding == "edr-video";
       is_hdr_ |= view_is_hdr;
     }
 
@@ -155,7 +155,7 @@ LibOCIODisplay::LibOCIODisplay(const int index, const LibOCIOConfig &config) : c
       if (display_interop_id.startswith("srgb_")) {
         transfer_function = TransferFunction::sRGB;
       }
-      else if (display_interop_id.startswith("srgbx_")) {
+      else if (display_interop_id.startswith("srgbe_")) {
         transfer_function = TransferFunction::ExtendedsRGB;
       }
       else if (display_interop_id.startswith("pq_")) {

@@ -53,9 +53,12 @@ using ContextUpdateFunc = void (*)(bContext *C, PointerRNA *ptr);
 
 using EditableFunc = int (*)(const PointerRNA *ptr, const char **r_info);
 using ItemEditableFunc = int (*)(const PointerRNA *ptr, int index);
-using IDPropertiesFunc = IDProperty **(*)(PointerRNA *ptr);
-using StructRefineFunc = StructRNA *(*)(PointerRNA *ptr);
+using IDPropertiesFunc = IDProperty **(*)(PointerRNA * ptr);
+using StructRefineFunc = StructRNA *(*)(PointerRNA * ptr);
 using StructPathFunc = std::optional<std::string> (*)(const PointerRNA *ptr);
+using PropUINameFunc = const char *(*)(const PointerRNA *ptr,
+                                       const PropertyRNA *prop,
+                                       bool do_translate);
 
 using PropArrayLengthGetFunc = int (*)(const PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION]);
 using PropBooleanGetFunc = bool (*)(PointerRNA *ptr);
@@ -78,12 +81,12 @@ using PropStringLengthFunc = int (*)(PointerRNA *ptr);
 using PropStringSetFunc = void (*)(PointerRNA *ptr, const char *value);
 using PropEnumGetFunc = int (*)(PointerRNA *ptr);
 using PropEnumSetFunc = void (*)(PointerRNA *ptr, int value);
-using PropEnumItemFunc = const EnumPropertyItem *(*)(bContext *C,
+using PropEnumItemFunc = const EnumPropertyItem *(*)(bContext * C,
                                                      PointerRNA *ptr,
                                                      PropertyRNA *prop,
                                                      bool *r_free);
 using PropPointerGetFunc = PointerRNA (*)(PointerRNA *ptr);
-using PropPointerTypeFunc = StructRNA *(*)(PointerRNA *ptr);
+using PropPointerTypeFunc = StructRNA *(*)(PointerRNA * ptr);
 using PropPointerSetFunc = void (*)(PointerRNA *ptr, const PointerRNA value, ReportList *reports);
 using PropPointerPollFunc = bool (*)(PointerRNA *ptr, const PointerRNA value);
 using PropPointerPollFuncPy = bool (*)(PointerRNA *ptr,
@@ -421,6 +424,9 @@ struct PropertyRNA {
   EditableFunc editable;
   /** Callback for testing if array-item editable (if applicable). */
   ItemEditableFunc itemeditable;
+
+  /** Optional function to dynamically override the user-readable #name. */
+  PropUINameFunc ui_name_func;
 
   /** Override handling callbacks (diff is also used for comparison). */
   RNAPropOverrideDiff override_diff;

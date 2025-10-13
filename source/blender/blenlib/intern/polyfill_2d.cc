@@ -586,7 +586,7 @@ static void pf_triangulate(PolyFill *pf)
 static void pf_coord_sign_calc(const PolyFill *pf, PolyIndex *pi)
 {
   /* localize */
-  const float(*coords)[2] = pf->coords;
+  const float (*coords)[2] = pf->coords;
 
   pi->sign = span_tri_v2_sign(coords[pi->prev->index], coords[pi->index], coords[pi->next->index]);
 }
@@ -682,7 +682,7 @@ static bool pf_ear_tip_check(PolyFill *pf, PolyIndex *pi_ear_tip, const eSign si
 {
 #ifndef USE_KDTREE
   /* localize */
-  const float(*coords)[2] = pf->coords;
+  const float (*coords)[2] = pf->coords;
   PolyIndex *pi_curr;
 
   const float *v1, *v2, *v3;

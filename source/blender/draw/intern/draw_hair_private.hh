@@ -21,7 +21,7 @@ struct CurvesEvalCache;
 
 class CurveRefinePass : public PassSimple {
  public:
-  CurveRefinePass(const char *name) : PassSimple(name){};
+  CurveRefinePass(const char *name) : PassSimple(name) {};
 };
 
 using CurvesInfosBuf = UniformBuffer<CurvesInfos>;

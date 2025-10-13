@@ -36,14 +36,14 @@ namespace blender::bke {
 enum class AttrDomain : int8_t;
 }
 
-/* These names are used as prefixes for UV layer names to find the associated boolean
+/**
+ * These names are used as prefixes for UV layer names to find the associated boolean
  * layers. They should never be longer than 2 chars, as #MAX_CUSTOMDATA_LAYER_NAME
  * has 4 extra bytes above what can be used for the base layer name, and these
  * prefixes are placed between 2 '.'s at the start of the layer name.
  * For example The uv vert selection layer of a layer named `UVMap.001`
- * will be called `.vs.UVMap.001`. */
-#define UV_VERTSEL_NAME "vs"
-#define UV_EDGESEL_NAME "es"
+ * will be called `.pn.UVMap.001`.
+ */
 #define UV_PINNED_NAME "pn"
 
 /**
@@ -53,12 +53,13 @@ enum class AttrDomain : int8_t;
  */
 struct BMUVOffsets {
   int uv;
-  int select_vert;
-  int select_edge;
   int pin;
 };
 
-/* A data type large enough to hold 1 element from any custom-data layer type. */
+/** All values reference none layers. */
+#define BMUVOFFSETS_NONE {-1, -1}
+
+/** A data type large enough to hold 1 element from any custom-data layer type. */
 struct CDBlockBytes {
   unsigned char data[64];
 };
@@ -70,10 +71,10 @@ extern const CustomData_MeshMasks CD_MASK_DERIVEDMESH;
 extern const CustomData_MeshMasks CD_MASK_BMESH;
 extern const CustomData_MeshMasks CD_MASK_EVERYTHING;
 
-/* for ORIGINDEX layer type, indicates no original index for this element */
+/** For ORIGINDEX layer type, indicates no original index for this element. */
 #define ORIGINDEX_NONE -1
 
-/* initializes a CustomData object with the same layer setup as source and
+/* Initializes a CustomData object with the same layer setup as source and
  * memory space for totelem elements. mask must be an array of length
  * CD_NUMTYPES elements, that indicate if a layer can be copied. */
 
@@ -180,7 +181,9 @@ void CustomData_init_layout_from(const CustomData *source,
                                  eCDAllocType alloctype,
                                  int totelem);
 
-/* BMESH_TODO, not really a public function but `readfile.cc` needs it. */
+/**
+ * \note Ideally this would not be a public function but versioning needs it.
+ */
 void CustomData_update_typemap(CustomData *data);
 
 /**
@@ -343,8 +346,8 @@ void CustomData_copy_data_layer(const CustomData *source,
                                 int dst_index,
                                 int count);
 void CustomData_copy_elements(eCustomDataType type,
-                              void *src_data_ofs,
-                              void *dst_data_ofs,
+                              const void *src_data,
+                              void *dst_data,
                               int count);
 
 /**

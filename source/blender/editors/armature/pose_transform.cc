@@ -258,7 +258,7 @@ static void applyarmature_process_selected_recursive(bArmature *arm,
                                                    &old_bpt);
 
       /* Applied parent effects that have to be kept, if any. */
-      float(*new_parent_pose)[4] = pstate ? pstate->new_rest_mat : bone->parent->arm_mat;
+      float (*new_parent_pose)[4] = pstate ? pstate->new_rest_mat : bone->parent->arm_mat;
       BKE_bone_parent_transform_calc_from_matrices(bone->flag,
                                                    bone->inherit_scale_mode,
                                                    offs_bone,
@@ -380,7 +380,7 @@ static void applyarmature_reset_constraints(bPose *pose, const bool use_selected
 {
   LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
     BLI_assert(pchan->bone != nullptr);
-    if (use_selected && (pchan->bone->flag & BONE_SELECTED) == 0) {
+    if (use_selected && (pchan->flag & POSE_SELECTED) == 0) {
       continue;
     }
     applyarmature_reset_bone_constraints(pchan);
@@ -608,8 +608,9 @@ static void set_pose_keys(Object *ob)
 
   if (ob->pose) {
     LISTBASE_FOREACH (bPoseChannel *, chan, &ob->pose->chanbase) {
-      Bone *bone = chan->bone;
-      if ((bone) && (bone->flag & BONE_SELECTED) && ANIM_bone_in_visible_collection(arm, bone)) {
+      if ((chan->flag & POSE_SELECTED) && chan->bone &&
+          ANIM_bone_in_visible_collection(arm, chan->bone))
+      {
         chan->flag |= POSE_KEY;
       }
       else {
@@ -652,7 +653,7 @@ static bPoseChannel *pose_bone_do_paste(Object *ob,
   if (pchan == nullptr) {
     return nullptr;
   }
-  if (selOnly && (pchan->bone->flag & BONE_SELECTED) == 0) {
+  if (selOnly && (pchan->flag & POSE_SELECTED) == 0) {
     return nullptr;
   }
 
@@ -795,6 +796,12 @@ static wmOperatorStatus pose_copy_exec(bContext *C, wmOperator *op)
   /* Sanity checking. */
   if (ELEM(nullptr, ob, ob->pose)) {
     BKE_report(op->reports, RPT_ERROR, "No pose to copy");
+    return OPERATOR_CANCELLED;
+  }
+  if (ID_IS_PACKED(&ob->id)) {
+    /* Direct link/append of packed IDs is not supported currently, so neither is their
+     * copy/pasting. */
+    BKE_report(op->reports, RPT_ERROR, "Cannot copy/paste packed data");
     return OPERATOR_CANCELLED;
   }
   /* Sets chan->flag to POSE_KEY if bone selected. */

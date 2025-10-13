@@ -319,10 +319,6 @@ static void draw_keyframes(bAnimContext *ac,
   int action_flag = saction->flag;
   bDopeSheet *ads = &saction->ads;
 
-  if (saction->mode == SACTCONT_TIMELINE) {
-    action_flag &= ~(SACTION_SHOW_INTERPOLATION | SACTION_SHOW_EXTREMES);
-  }
-
   const float channel_step = ANIM_UI_get_channel_step();
   float ymax = ANIM_UI_get_first_channel_top(v2d);
 

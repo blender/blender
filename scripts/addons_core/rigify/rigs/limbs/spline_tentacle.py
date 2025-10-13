@@ -1161,20 +1161,28 @@ class RigifySplineTentacleToggleControlBase:
         obj.pose.bones[self.prop_bone][self.prop_name] = value
 
     def keyframe_increment(self, context, obj, delta):
-        action = find_action(obj)
+        assert isinstance(obj, bpy.types.Object), "Expected {} to be an object".format(obj)
+
+        action = obj.animation_data.action
+        action_slot = obj.animation_data.action_slot
+
+        assert action, "Expected {} to have an Action assigned".format(obj.name)
+        assert action_slot, "Expected {} to have an Action slot assigned".format(obj.name)
+
         bone = obj.pose.bones[self.prop_bone]
         prop_quoted = rna_idprop_quote_path(self.prop_name)
 
         # Find the F-Curve
         data_path = bone.path_from_id(prop_quoted)
-        fcurve = action.fcurves.find(data_path) or action.fcurves.new(data_path, action_group=self.prop_bone)
+        channelbag = anim_utils.action_ensure_channelbag_for_slot(action, action_slot)
+        fcurve = channelbag.fcurves.ensure(data_path, group_name=self.prop_bone)
 
         # Ensure the current value is keyed at the start of the animation
         keyflags = get_keying_flags(context)
         frame = context.scene.frame_current
 
         if len(fcurve.keyframe_points) == 0:
-            min_x = min(fcu.keyframe_points[0].co[0] for fcu in action.fcurves if len(fcu.keyframe_points) > 0)
+            min_x = min(fcu.keyframe_points[0].co[0] for fcu in channelbag.fcurves if len(fcu.keyframe_points) > 0)
             min_frame = nla_tweak_to_scene(obj.animation_data, min_x)
             if min_frame < frame:
                 bone.keyframe_insert(prop_quoted, frame=min_frame, options=keyflags)

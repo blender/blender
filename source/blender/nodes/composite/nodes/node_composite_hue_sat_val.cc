@@ -25,8 +25,12 @@ namespace blender::nodes::node_composite_hue_sat_val_cc {
 
 static void cmp_node_huesatval_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.is_function_node();
-  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f}).hide_value();
+  b.add_output<decl::Color>("Image").align_with_previous();
+
   b.add_input<decl::Float>("Hue").default_value(0.5f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
   b.add_input<decl::Float>("Saturation")
       .default_value(1.0f)
@@ -39,8 +43,11 @@ static void cmp_node_huesatval_declare(NodeDeclarationBuilder &b)
       .max(2.0f)
       .subtype(PROP_FACTOR)
       .translation_context(BLT_I18NCONTEXT_COLOR);
-  b.add_input<decl::Float>("Fac").default_value(1.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
-  b.add_output<decl::Color>("Image");
+  b.add_input<decl::Float>("Factor", "Fac")
+      .default_value(1.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR);
 }
 
 using namespace blender::compositor;

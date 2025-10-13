@@ -238,7 +238,6 @@ extern TransConvertTypeInfo TransConvertType_Pose;
 
 /**
  * Sets transform flags in the bones.
- * Returns total number of bones with #BONE_TRANSFORM.
  */
 void transform_convert_pose_transflags_update(Object *ob, int mode, short around);
 

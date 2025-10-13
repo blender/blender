@@ -34,14 +34,18 @@ using ColorSpace = blender::ocio::ColorSpace;
 using ColorManagedDisplay = blender::ocio::Display;
 
 enum ColorManagedDisplaySpace {
-  /* Convert to display space for drawing. This will included emulation of the
-   * chosen display for an extended sRGB buffer. */
+  /**
+   * Convert to display space for drawing. This will included emulation of the
+   * chosen display for an extended sRGB buffer.
+   */
   DISPLAY_SPACE_DRAW,
-  /* Convert to display space for file output. Note image and video have different
-   * conventions for HDR brightness, so there is a distinction. */
+  /**
+   * Convert to display space for file output. Note image and video have different
+   * conventions for HDR brightness, so there is a distinction.
+   */
   DISPLAY_SPACE_IMAGE_OUTPUT,
   DISPLAY_SPACE_VIDEO_OUTPUT,
-  /* Convert to display space for inspecting color values as text in the UI. */
+  /** Convert to display space for inspecting color values as text in the UI. */
   DISPLAY_SPACE_COLOR_INSPECTION,
 };
 
@@ -75,11 +79,15 @@ bool IMB_colormanagement_space_name_is_data(const char *name);
 bool IMB_colormanagement_space_name_is_scene_linear(const char *name);
 bool IMB_colormanagement_space_name_is_srgb(const char *name);
 
-/* Get binary ICC profile contents for a colorspace.
- * For describing the colorspace for standard dynamic range image files. */
+/**
+ * Get binary ICC profile contents for a color-space.
+ * For describing the color-space for standard dynamic range image files.
+ */
 blender::Vector<char> IMB_colormanagement_space_to_icc_profile(const ColorSpace *colorspace);
-/* Get CICP code for colorspace.
- * For describing the colorspace of videos and high dynamic range image files. */
+/**
+ * Get CICP code for color-space.
+ * For describing the color-space of videos and high dynamic range image files.
+ */
 bool IMB_colormanagement_space_to_cicp(const ColorSpace *colorspace,
                                        const ColorManagedFileOutput output,
                                        const bool rgb_matrix,
@@ -87,8 +95,10 @@ bool IMB_colormanagement_space_to_cicp(const ColorSpace *colorspace,
 const ColorSpace *IMB_colormanagement_space_from_cicp(const int cicp[4],
                                                       const ColorManagedFileOutput output);
 
-/* Get identifier for colorspaces that works with multiple OpenColorIO configurations,
- * as defined by the ASWF Color Interop Forum. */
+/**
+ * Get identifier for color-spaces that works with multiple OpenColorIO configurations,
+ * as defined by the ASWF Color Interop Forum.
+ */
 blender::StringRefNull IMB_colormanagement_space_get_interop_id(const ColorSpace *colorspace);
 const ColorSpace *IMB_colormanagement_space_from_interop_id(blender::StringRefNull interop_id);
 

@@ -2313,7 +2313,7 @@ bool isect_tri_tri_v3_ex(const float tri_a[3][3],
   double isect_dir[3];
   cross_v3_v3v3_db(isect_dir, plane_a, plane_b);
   for (int i = 0; i < 2; i++) {
-    const float(*tri)[3] = i == 0 ? tri_a : tri_b;
+    const float (*tri)[3] = i == 0 ? tri_a : tri_b;
     /* Rearrange the triangle so that the vertex that is alone on one side
      * of the plane is located at index 1. */
     int tri_i[3];

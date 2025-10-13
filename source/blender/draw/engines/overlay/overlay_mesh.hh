@@ -604,6 +604,8 @@ class MeshUVs : Overlay {
         const bool hide_faces = space_image->flag & SI_NO_DRAWFACES;
         select_face_ = !show_mesh_analysis_ && !hide_faces;
 
+        /* FIXME: Always showing verts in edge mode when `uv_select_sync_valid`.
+         * needs investigation. */
         if (tool_setting->uv_flag & UV_FLAG_SELECT_SYNC) {
           const char sel_mode_3d = tool_setting->selectmode;
           if (tool_setting->uv_sticky == UV_STICKY_VERT) {

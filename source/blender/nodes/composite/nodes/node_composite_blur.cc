@@ -30,22 +30,27 @@
 namespace blender::nodes::node_composite_blur_cc {
 
 static const EnumPropertyItem type_items[] = {
-    {R_FILTER_BOX, "FLAT", 0, "Flat", ""},
-    {R_FILTER_TENT, "TENT", 0, "Tent", ""},
-    {R_FILTER_QUAD, "QUAD", 0, "Quadratic", ""},
-    {R_FILTER_CUBIC, "CUBIC", 0, "Cubic", ""},
-    {R_FILTER_GAUSS, "GAUSS", 0, "Gaussian", ""},
-    {R_FILTER_FAST_GAUSS, "FAST_GAUSS", 0, "Fast Gaussian", ""},
-    {R_FILTER_CATROM, "CATROM", 0, "Catrom", ""},
-    {R_FILTER_MITCH, "MITCH", 0, "Mitch", ""},
+    {R_FILTER_BOX, "FLAT", 0, N_("Flat"), ""},
+    {R_FILTER_TENT, "TENT", 0, N_("Tent"), ""},
+    {R_FILTER_QUAD, "QUAD", 0, N_("Quadratic"), ""},
+    {R_FILTER_CUBIC, "CUBIC", 0, N_("Cubic"), ""},
+    {R_FILTER_GAUSS, "GAUSS", 0, N_("Gaussian"), ""},
+    {R_FILTER_FAST_GAUSS, "FAST_GAUSS", 0, N_("Fast Gaussian"), ""},
+    {R_FILTER_CATROM, "CATROM", 0, N_("Catrom"), ""},
+    {R_FILTER_MITCH, "MITCH", 0, N_("Mitch"), ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 static void cmp_node_blur_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .hide_value()
       .structure_type(StructureType::Dynamic);
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic).align_with_previous();
+
   b.add_input<decl::Vector>("Size")
       .dimensions(2)
       .default_value({0.0f, 0.0f})
@@ -61,8 +66,6 @@ static void cmp_node_blur_declare(NodeDeclarationBuilder &b)
       .description(
           "Use faster approximation by blurring along the horizontal and vertical directions "
           "independently");
-
-  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }
 
 static void node_composit_init_blur(bNodeTree * /*ntree*/, bNode *node)

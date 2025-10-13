@@ -92,7 +92,7 @@ float (*point_normals_array_create(const Curves *curves_id))[3]
   const int size = curves.points_num();
   float3 *data = MEM_malloc_arrayN<float3>(size, __func__);
   bke::curves_normals_point_domain_calc(curves, {data, size});
-  return reinterpret_cast<float(*)[3]>(data);
+  return reinterpret_cast<float (*)[3]>(data);
 }
 
 }  // namespace blender::ed::curves

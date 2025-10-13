@@ -1,0 +1,144 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index fcd396d..2d2740c 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,6 +1,6 @@
+ cmake_minimum_required(VERSION 3.12)
+
+-project(emhash_bench)
++project(emhash)
+
+ if(NOT CMAKE_BUILD_TYPE)
+   set(CMAKE_BUILD_TYPE Release)
+@@ -8,41 +8,89 @@ endif()
+
+ set(CMAKE_CXX_STANDARD 17)
+
++option(WITH_BENCHMARKS "Build benchmarks." ON)
++
+ message("------------ Options -------------")
+ message("  CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
+ message("  CMAKE_SYSTEM_NAME: ${CMAKE_SYSTEM_NAME}")
+ message("  CMAKE_SYSTEM_PROCESSOR: ${CMAKE_SYSTEM_PROCESSOR} ")
+ message("  CMAKE_CXX_COMPILER_ID: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+
+-include_directories(${PROJECT_SOURCE_DIR})
+-include_directories(${PROJECT_SOURCE_DIR}/thirdparty)
+-include_directories(${PROJECT_SOURCE_DIR}/bench)
+-
+-add_definitions(-DHAVE_BOOST=1 -DABSL_HAMP=1 -DEMH_PSL=16)# -DET=1)
+-find_package(Threads REQUIRED)
+-
+-if(WIN32)
+-    set(CMAKE_CXX_FLAGS "/WX- /MP")
+-    set(CMAKE_CXX_FLAGS_DEBUG "/W3 /Zi /Od /WX- ${CMAKE_CXX_FLAGS}")
+-    set(CMAKE_CXX_FLAGS_RELEASE "/Ob1 /Ot /Oi /Oy /GL /arch:AVX ${CMAKE_CXX_FLAGS}")
+-    add_compile_options(/Ob2 /DNDEBUG /O2 /Ot /Oi /Oy /GL /arch:AVX)
+-elseif(1)
+-	set(CMAKE_CXX_FLAGS_DEBUG "-g fno-strict-aliasing ${CMAKE_CXX_FLAGS}")
+-    set(CMAKE_CXX_FLAGS "-flto -march=native  ${CMAKE_CXX_FLAGS}")
++add_library(emhash INTERFACE)
++
++set(EMHASH_HEADERS
++    hash_set2.hpp
++    hash_set3.hpp
++    hash_set4.hpp
++    hash_set8.hpp
++    hash_table5.hpp
++    hash_table6.hpp
++    hash_table7.hpp
++    hash_table8.hpp
++)
++
++set_target_properties(emhash PROPERTIES PUBLIC_HEADER "${EMHASH_HEADERS}")
++
++target_include_directories(
++     emhash INTERFACE
++     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}}>
++     $<INSTALL_INTERFACE:include>
++)
++
++include(GNUInstallDirs)
++include(CMakePackageConfigHelpers)
++
++install(TARGETS emhash
++    EXPORT emhash-targets
++    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
++)
++
++install(EXPORT emhash-targets
++        FILE emhashTargets.cmake
++        NAMESPACE emhash::
++        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/emhash
++)
++
++configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/config.cmake.in
++    "${CMAKE_CURRENT_BINARY_DIR}/emhashConfig.cmake"
++    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/emhash
++)
++
++install(FILES
++    "${CMAKE_CURRENT_BINARY_DIR}/emhashConfig.cmake"
++    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/emhash
++)
++
++if(WITH_BENCHMARKS)
++    include_directories(${PROJECT_SOURCE_DIR})
++    include_directories(${PROJECT_SOURCE_DIR}/thirdparty)
++    include_directories(${PROJECT_SOURCE_DIR}/bench)
++    add_definitions(-DHAVE_BOOST=1 -DABSL_HAMP=1 -DEMH_PSL=16)# -DET=1)
++    find_package(Threads REQUIRED)
++    if(WIN32)
++        set(CMAKE_CXX_FLAGS "/WX- /MP")
++        set(CMAKE_CXX_FLAGS_DEBUG "/W3 /Zi /Od /WX- ${CMAKE_CXX_FLAGS}")
++        set(CMAKE_CXX_FLAGS_RELEASE "/Ob1 /Ot /Oi /Oy /GL /arch:AVX ${CMAKE_CXX_FLAGS}")
++        add_compile_options(/Ob2 /DNDEBUG /O2 /Ot /Oi /Oy /GL /arch:AVX)
++    elseif(1)
++      set(CMAKE_CXX_FLAGS_DEBUG "-g fno-strict-aliasing ${CMAKE_CXX_FLAGS}")
++        set(CMAKE_CXX_FLAGS "-flto=auto -march=native  ${CMAKE_CXX_FLAGS}")
++    endif()
++
++    add_executable(ebench ${PROJECT_SOURCE_DIR}/bench/ebench.cpp)
++    add_executable(sbench ${PROJECT_SOURCE_DIR}/bench/sbench.cpp)
++    add_executable(mbench ${PROJECT_SOURCE_DIR}/bench/martin_bench.cpp)
++    add_executable(bs ${PROJECT_SOURCE_DIR}/bench/bstring.cpp)
++    add_executable(bi ${PROJECT_SOURCE_DIR}/bench/buint64.cpp)
++    add_executable(fbench ${PROJECT_SOURCE_DIR}/bench/fbench.cpp)
++    add_executable(hbench ${PROJECT_SOURCE_DIR}/bench/hbench.cpp)
++    #add_executable(qbench ${PROJECT_SOURCE_DIR}/bench/qbench.cpp)
++    #add_executable(sibench ${PROJECT_SOURCE_DIR}/bench/simple_bench.cpp)
++
++    #target_link_libraries(ebench PRIVATE Threads::Threads)
++    #target_link_libraries(sbench PRIVATE Threads::Threads)
++    #target_link_libraries(mbench PRIVATE Threads::Threads)
++    #target_link_libraries(hbench PRIVATE Threads::Threads)
++    #target_link_libraries(fbench PRIVATE Threads::Threads)
+ endif()
+
+-add_executable(ebench ${PROJECT_SOURCE_DIR}/bench/ebench.cpp)
+-add_executable(sbench ${PROJECT_SOURCE_DIR}/bench/sbench.cpp)
+-add_executable(mbench ${PROJECT_SOURCE_DIR}/bench/martin_bench.cpp)
+-add_executable(bs ${PROJECT_SOURCE_DIR}/bench/bstring.cpp)
+-add_executable(bi ${PROJECT_SOURCE_DIR}/bench/buint64.cpp)
+-add_executable(fbench ${PROJECT_SOURCE_DIR}/bench/fbench.cpp)
+-add_executable(hbench ${PROJECT_SOURCE_DIR}/bench/hbench.cpp)
+-#add_executable(qbench ${PROJECT_SOURCE_DIR}/bench/qbench.cpp)
+-#add_executable(sibench ${PROJECT_SOURCE_DIR}/bench/simple_bench.cpp)
+-
+-#target_link_libraries(ebench PRIVATE Threads::Threads)
+-#target_link_libraries(sbench PRIVATE Threads::Threads)
+-#target_link_libraries(mbench PRIVATE Threads::Threads)
+-#target_link_libraries(hbench PRIVATE Threads::Threads)
+-#target_link_libraries(fbench PRIVATE Threads::Threads)
+diff --git a/config.cmake.in b/config.cmake.in
+new file mode 100644
+index 0000000..341806c
+--- /dev/null
++++ b/config.cmake.in
+@@ -0,0 +1,5 @@
++@PACKAGE_INIT@
++
++include("${CMAKE_CURRENT_LIST_DIR}/emhashTargets.cmake")
++
++check_required_components(emhash)
+\ No newline at end of file

@@ -8,6 +8,8 @@
  * \ingroup sequencer
  */
 
+#include "BLI_function_ref.hh"
+
 #include "DNA_sequence_types.h"
 
 struct ARegionType;
@@ -17,12 +19,11 @@ struct ImBuf;
 struct ListBase;
 struct Strip;
 struct StripModifierData;
+struct ID;
 
 namespace blender::seq {
 
-struct SeqRenderState;
-struct StripScreenQuad;
-struct RenderData;
+struct ModifierApplyContext;
 
 struct StripModifierTypeInfo {
   /**
@@ -52,13 +53,8 @@ struct StripModifierTypeInfo {
   /* copy data from one modifier to another */
   void (*copy_data)(StripModifierData *smd, StripModifierData *target);
 
-  /* Apply modifier on an image buffer.
-   * quad contains four corners of the (pre-transform) strip rectangle in pixel space. */
-  void (*apply)(const RenderData *render_data,
-                const StripScreenQuad &quad,
-                StripModifierData *smd,
-                ImBuf *ibuf,
-                ImBuf *mask);
+  /* Apply modifier on an image buffer. */
+  void (*apply)(ModifierApplyContext &context, StripModifierData *smd, ImBuf *mask);
 
   /** Register the panel types for the modifier's UI. */
   void (*panel_register)(ARegionType *region_type);
@@ -79,11 +75,6 @@ void modifier_clear(Strip *strip);
 void modifier_free(StripModifierData *smd);
 void modifier_unique_name(Strip *strip, StripModifierData *smd);
 StripModifierData *modifier_find_by_name(Strip *strip, const char *name);
-void modifier_apply_stack(const RenderData *context,
-                          SeqRenderState *state,
-                          const Strip *strip,
-                          ImBuf *ibuf,
-                          int timeline_frame);
 StripModifierData *modifier_copy(Strip &strip_dst, StripModifierData *mod_src);
 void modifier_list_copy(Strip *strip_new, Strip *strip);
 int sequence_supports_modifiers(Strip *strip);
@@ -99,5 +90,8 @@ void modifier_set_active(Strip *strip, StripModifierData *smd);
 
 static constexpr char STRIP_MODIFIER_TYPE_PANEL_PREFIX[] = "STRIPMOD_PT_";
 void modifier_type_panel_id(eStripModifierType type, char *r_idname);
+
+/* Iterate over all the modifiers and call the callback function for every referenced ID. */
+void foreach_strip_modifier_id(Strip *strip, const FunctionRef<void(ID *)> fn);
 
 }  // namespace blender::seq

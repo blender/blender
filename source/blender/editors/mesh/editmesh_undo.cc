@@ -149,8 +149,7 @@ struct UndoMesh {
   UndoMesh *local_next, *local_prev;
 
   Mesh *mesh;
-  int selectmode;
-  char uv_selectmode;
+  char selectmode;
 
   /**
    * The active shape key associated with this mesh.
@@ -853,7 +852,24 @@ static void *undomesh_from_editmesh(UndoMesh *um,
   }
 
   /* Uncomment for troubleshooting. */
-  // BM_mesh_is_valid(em->bm);
+  if (false) {
+    BM_mesh_is_valid(em->bm);
+
+    /* Ensure UV's are in a valid state. */
+    if (em->bm->uv_select_sync_valid) {
+      const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_PROP_FLOAT2);
+      bool check_flush = true;
+      /* This should check the sticky mode too (currently the scene isn't available). */
+      bool check_contiguous = (cd_loop_uv_offset != -1);
+      UVSelectValidateInfo info;
+      bool is_valid = BM_mesh_uvselect_is_valid(
+          em->bm, cd_loop_uv_offset, true, check_flush, check_contiguous, &info);
+      if (is_valid == false) {
+        fprintf(stderr, "ERROR: UV sync check failed!\n");
+      }
+      // BLI_assert(is_valid);
+    }
+  }
 
   CustomData_MeshMasks cd_mask_extra{};
   cd_mask_extra.vmask = CD_MASK_SHAPE_KEYINDEX;
@@ -1024,10 +1040,23 @@ struct MeshUndoStep_Elem {
   UndoMesh data;
 };
 
+/**
+ * Scene & tool-setting data.
+ * Used so edit-mesh selection settings follow the underlying mesh data.
+ */
+struct MeshUndoStep_SceneData {
+  char selectmode;
+  char uv_selectmode;
+  char uv_sticky;
+  char uv_flag;
+};
+
 struct MeshUndoStep {
   UndoStep step;
   /** See #ED_undo_object_editmode_validate_scene_from_windows code comment for details. */
   UndoRefID_Scene scene_ref;
+
+  MeshUndoStep_SceneData scene_data;
   MeshUndoStep_Elem *elems;
   uint elems_len;
 };
@@ -1058,6 +1087,14 @@ static bool mesh_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
   um_references = mesh_undostep_reference_elems_from_objects(objects.data(), objects.size());
 #endif
 
+  {
+    MeshUndoStep_SceneData &scene_data = us->scene_data;
+    scene_data.selectmode = ts->selectmode;
+    scene_data.uv_selectmode = ts->uv_selectmode;
+    scene_data.uv_sticky = ts->uv_sticky;
+    scene_data.uv_flag = ts->uv_flag;
+  }
+
   for (uint i = 0; i < objects.size(); i++) {
     Object *obedit = objects[i];
     MeshUndoStep_Elem *elem = &us->elems[i];
@@ -1074,7 +1111,6 @@ static bool mesh_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
 
     em->needs_flush_to_id = 1;
     us->step.data_size += elem->data.undo_size;
-    elem->data.uv_selectmode = ts->uv_selectmode;
 
 #ifdef USE_ARRAY_STORE
     /** As this is only data storage it is safe to set the session ID here. */
@@ -1137,8 +1173,20 @@ static void mesh_undosys_step_decode(
   /* Check after setting active (unless undoing into another scene). */
   BLI_assert(mesh_undosys_poll(C) || (scene != CTX_data_scene(C)));
 
-  scene->toolsettings->selectmode = us->elems[0].data.selectmode;
-  scene->toolsettings->uv_selectmode = us->elems[0].data.uv_selectmode;
+  {
+    /* Follow settings related to selection.
+     * While other flags could be included too: it's important the user doesn't
+     * undo into a state where the scene settings would show a different selection
+     * to the selection the user was previously editing. */
+    constexpr char uv_flag_undo = UV_FLAG_SELECT_SYNC | UV_FLAG_SELECT_ISLAND;
+
+    ToolSettings *ts = scene->toolsettings;
+    const MeshUndoStep_SceneData &scene_data = us->scene_data;
+    ts->selectmode = scene_data.selectmode;
+    ts->uv_selectmode = scene_data.uv_selectmode;
+    ts->uv_sticky = scene_data.uv_sticky;
+    ts->uv_flag = (ts->uv_flag & ~uv_flag_undo) | (scene_data.uv_flag & uv_flag_undo);
+  }
 
   bmain->is_memfile_undo_flush_needed = true;
 

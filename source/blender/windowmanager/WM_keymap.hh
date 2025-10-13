@@ -96,7 +96,7 @@ void WM_keymap_clear(wmKeyMap *keymap);
 wmKeyMapItem *WM_keymap_add_item(wmKeyMap *keymap,
                                  const char *idname,
                                  const KeyMapItem_Params *params);
-wmKeyMapItem *WM_keymap_add_item_copy(wmKeyMap *keymap, wmKeyMapItem *kmi_src);
+wmKeyMapItem *WM_keymap_add_item_copy(wmKeyMap *keymap, const wmKeyMapItem *kmi_src);
 
 void WM_keymap_remove_item(wmKeyMap *keymap, wmKeyMapItem *kmi);
 std::optional<std::string> WM_keymap_item_to_string(const wmKeyMapItem *kmi, bool compact);
@@ -126,7 +126,7 @@ bool WM_keymap_item_compare(const wmKeyMapItem *k1, const wmKeyMapItem *k2);
  */
 wmKeyMapItem *WM_keymap_item_find_match(wmKeyMap *km_base,
                                         wmKeyMap *km_match,
-                                        wmKeyMapItem *kmi_match,
+                                        const wmKeyMapItem *kmi_match,
                                         ReportList *reports);
 
 /* `wm_keymap_utils.cc`. */

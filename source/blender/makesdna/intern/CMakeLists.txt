@@ -101,9 +101,9 @@ endif()
 add_custom_command(
   OUTPUT
     ${CMAKE_CURRENT_BINARY_DIR}/dna.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/dna_struct_ids.cc
     ${CMAKE_CURRENT_BINARY_DIR}/dna_type_offsets.h
     ${CMAKE_CURRENT_BINARY_DIR}/dna_verify.cc
-    ${CMAKE_CURRENT_BINARY_DIR}/dna_struct_ids.cc
   COMMAND
     ${CMAKE_COMMAND} -E env ${PLATFORM_ENV_BUILD}
     "$<TARGET_FILE:makesdna>"

@@ -14,10 +14,15 @@ namespace blender::nodes::node_shader_gamma_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.is_function_node();
   b.add_input<decl::Color>("Color")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .hide_value()
       .description("Color input on which correction will be applied");
+  b.add_output<decl::Color>("Color").align_with_previous();
+
   b.add_input<decl::Float>("Gamma")
       .default_value(1.0f)
       .min(0.001f)
@@ -27,7 +32,6 @@ static void node_declare(NodeDeclarationBuilder &b)
           "Gamma correction value, applied as color^gamma.\n"
           "Gamma controls the relative intensity of the mid-tones compared to the full black and "
           "full white");
-  b.add_output<decl::Color>("Color");
 }
 
 static int node_shader_gpu_gamma(GPUMaterial *mat,

@@ -181,13 +181,13 @@ static void mesh_calc_eigen_matrix(const Span<float3> positions, float r_mat[4][
 
   /* NOTE: here we apply sample correction to covariance matrix, since we consider the vertices
    *       as a sample of the whole 'surface' population of our mesh. */
-  BLI_covariance_m3_v3n(reinterpret_cast<const float(*)[3]>(positions.data()),
+  BLI_covariance_m3_v3n(reinterpret_cast<const float (*)[3]>(positions.data()),
                         int(positions.size()),
                         true,
                         covmat,
                         center);
 
-  eigen_success = BLI_eigen_solve_selfadjoint_m3((const float(*)[3])covmat, eigen_val, eigen_vec);
+  eigen_success = BLI_eigen_solve_selfadjoint_m3((const float (*)[3])covmat, eigen_val, eigen_vec);
   BLI_assert(eigen_success);
   UNUSED_VARS_NDEBUG(eigen_success);
 
@@ -247,7 +247,7 @@ void BKE_mesh_remap_find_best_match_from_mesh(const Span<float3> vert_positions_
       {1.0f, 1.0f, -1.0f}, /* ->  1, -1,  1 */
       {0.0f, 0.0f, 0.0f},
   };
-  const float(*mirr)[3];
+  const float (*mirr)[3];
 
   float mat_src[4][4], mat_dst[4][4], best_mat_dst[4][4];
   float best_match = FLT_MAX, match;
@@ -355,7 +355,7 @@ static int mesh_remap_interp_face_data_get(const blender::IndexRange face,
                                            const bool do_weights,
                                            int *r_closest_index)
 {
-  float(*vco)[3];
+  float (*vco)[3];
   float ref_dist_sq = FLT_MAX;
   int *index;
   const int sources_num = int(face.size());
@@ -363,7 +363,7 @@ static int mesh_remap_interp_face_data_get(const blender::IndexRange face,
 
   if (size_t(sources_num) > *buff_size) {
     *buff_size = size_t(sources_num);
-    *vcos = static_cast<float(*)[3]>(MEM_reallocN(*vcos, sizeof(**vcos) * *buff_size));
+    *vcos = static_cast<float (*)[3]>(MEM_reallocN(*vcos, sizeof(**vcos) * *buff_size));
     *indices = static_cast<int *>(MEM_reallocN(*indices, sizeof(**indices) * *buff_size));
     if (do_weights) {
       *weights = static_cast<float *>(MEM_reallocN(*weights, sizeof(**weights) * *buff_size));
@@ -543,7 +543,7 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
       const blender::Span<int> tri_faces = me_src->corner_tri_faces();
 
       size_t tmp_buff_size = MREMAP_DEFAULT_BUFSIZE;
-      float(*vcos)[3] = MEM_malloc_arrayN<float[3]>(tmp_buff_size, __func__);
+      float (*vcos)[3] = MEM_malloc_arrayN<float[3]>(tmp_buff_size, __func__);
       int *indices = MEM_malloc_arrayN<int>(tmp_buff_size, __func__);
       float *weights = MEM_malloc_arrayN<float>(tmp_buff_size, __func__);
 
@@ -1074,14 +1074,14 @@ static void mesh_island_to_astar_graph(MeshIslandStore *islands,
 
   const int node_num = islands ? island_face_map->count : int(faces.size());
   uchar *face_status = MEM_calloc_arrayN<uchar>(size_t(node_num), __func__);
-  float(*face_centers)[3];
+  float (*face_centers)[3];
 
   int pidx_isld;
   int i;
 
   BLI_astar_graph_init(r_as_graph, node_num, nullptr);
   /* face_centers is owned by graph memarena. */
-  face_centers = static_cast<float(*)[3]>(
+  face_centers = static_cast<float (*)[3]>(
       BLI_memarena_calloc(r_as_graph->mem, sizeof(*face_centers) * size_t(node_num)));
 
   if (islands) {
@@ -1260,7 +1260,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
     blender::Span<int> tri_faces_src;
 
     size_t buff_size_interp = MREMAP_DEFAULT_BUFSIZE;
-    float(*vcos_interp)[3] = nullptr;
+    float (*vcos_interp)[3] = nullptr;
     int *indices_interp = nullptr;
     float *weights_interp = nullptr;
 
@@ -1479,7 +1479,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
 
             if (mesh_remap_bvhtree_query_nearest(tdata, &nearest, tmp_co, max_dist_sq, &hit_dist))
             {
-              float(*nor_dst)[3];
+              float (*nor_dst)[3];
               blender::Span<blender::float3> nors_src;
               float best_nor_dot = -2.0f;
               float best_sqdist_fallback = FLT_MAX;
@@ -2084,9 +2084,9 @@ void BKE_mesh_remap_calc_faces_from_mesh(const int mode,
       float *weights = MEM_malloc_arrayN<float>(numfaces_src, __func__);
 
       size_t tmp_face_size = MREMAP_DEFAULT_BUFSIZE;
-      float(*face_vcos_2d)[2] = MEM_malloc_arrayN<float[2]>(tmp_face_size, __func__);
+      float (*face_vcos_2d)[2] = MEM_malloc_arrayN<float[2]>(tmp_face_size, __func__);
       /* Tessellated 2D face, always (num_loops - 2) triangles. */
-      int(*tri_vidx_2d)[3] = MEM_malloc_arrayN<int[3]>(tmp_face_size - 2, __func__);
+      int (*tri_vidx_2d)[3] = MEM_malloc_arrayN<int[3]>(tmp_face_size - 2, __func__);
 
       for (const int64_t i : faces_dst.index_range()) {
         /* For each dst face, we sample some rays from it (2D grid in pnor space)
@@ -2123,9 +2123,9 @@ void BKE_mesh_remap_calc_faces_from_mesh(const int mode,
 
         if (UNLIKELY(size_t(face.size()) > tmp_face_size)) {
           tmp_face_size = size_t(face.size());
-          face_vcos_2d = static_cast<float(*)[2]>(
+          face_vcos_2d = static_cast<float (*)[2]>(
               MEM_reallocN(face_vcos_2d, sizeof(*face_vcos_2d) * tmp_face_size));
-          tri_vidx_2d = static_cast<int(*)[3]>(
+          tri_vidx_2d = static_cast<int (*)[3]>(
               MEM_reallocN(tri_vidx_2d, sizeof(*tri_vidx_2d) * (tmp_face_size - 2)));
         }
 

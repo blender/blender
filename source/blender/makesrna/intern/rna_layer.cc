@@ -706,6 +706,7 @@ void RNA_def_view_layer(BlenderRNA *brna)
   /* Dependency Graph */
   prop = RNA_def_property(srna, "depsgraph", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "Depsgraph");
+  RNA_def_property_flag_hide_from_ui_workaround(prop);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
   RNA_def_property_ui_text(prop, "Dependency Graph", "Dependencies in the scene data");
   RNA_def_property_pointer_funcs(prop, "rna_ViewLayer_depsgraph_get", nullptr, nullptr, nullptr);

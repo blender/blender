@@ -875,7 +875,7 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(const bNodeTree &btree,
     const eNodeSocketDatatype socket_type = typeinfo ? typeinfo->type : SOCK_CUSTOM;
     if (socket_type == SOCK_GEOMETRY && i == 0) {
       bke::SocketValueVariant &value = scope.construct<bke::SocketValueVariant>();
-      value.set(input_geometry);
+      value.set(std::move(input_geometry));
       param_inputs[function.inputs.main[0]] = &value;
       continue;
     }

@@ -1540,7 +1540,7 @@ PassMain::Sub *CapturePipeline::surface_material_add(::Material *blender_mat, GP
   GPUPass *gpupass = GPU_material_get_pass(gpumat);
   sub_pass.shader_set(GPU_pass_shader_get(gpupass));
   sub_pass.push_constant("is_double_sided",
-                         !(blender_mat->blend_flag & MA_BL_LIGHTPROBE_VOLUME_DOUBLE_SIDED));
+                         bool(blender_mat->blend_flag & MA_BL_LIGHTPROBE_VOLUME_DOUBLE_SIDED));
   return &sub_pass;
 }
 

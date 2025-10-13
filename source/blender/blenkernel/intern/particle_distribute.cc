@@ -370,9 +370,9 @@ static void init_mv_jit(float *jit, int num, int seed2, float amount)
   jit2 = MEM_malloc_arrayN<float>(3 + 2 * size_t(num), "initjit");
 
   for (i = 0; i < 4; i++) {
-    BLI_jitterate1((float(*)[2])jit, (float(*)[2])jit2, num, rad1);
-    BLI_jitterate1((float(*)[2])jit, (float(*)[2])jit2, num, rad1);
-    BLI_jitterate2((float(*)[2])jit, (float(*)[2])jit2, num, rad2);
+    BLI_jitterate1((float (*)[2])jit, (float (*)[2])jit2, num, rad1);
+    BLI_jitterate1((float (*)[2])jit, (float (*)[2])jit2, num, rad1);
+    BLI_jitterate2((float (*)[2])jit, (float (*)[2])jit2, num, rad2);
   }
   MEM_freeN(jit2);
   BLI_rng_free(rng);
@@ -617,8 +617,8 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
   tot = mesh->totface_legacy;
 
   psys_interpolate_face(mesh,
-                        reinterpret_cast<const float(*)[3]>(positions.data()),
-                        reinterpret_cast<const float(*)[3]>(mesh->vert_normals().data()),
+                        reinterpret_cast<const float (*)[3]>(positions.data()),
+                        reinterpret_cast<const float (*)[3]>(mesh->vert_normals().data()),
                         mface,
                         nullptr,
                         nullptr,
@@ -1020,7 +1020,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
 
     if (from == PART_FROM_VERT) {
       const blender::Span<blender::float3> positions = mesh->vert_positions();
-      const float(*orcodata)[3] = static_cast<const float(*)[3]>(
+      const float (*orcodata)[3] = static_cast<const float (*)[3]>(
           CustomData_get_layer(&mesh->vert_data, CD_ORCO));
       int totvert = mesh->verts_num;
 
@@ -1068,9 +1068,9 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
   /* Calculate weights from face areas */
   if ((part->flag & PART_EDISTR || children) && from != PART_FROM_VERT) {
     float totarea = 0.0f, co1[3], co2[3], co3[3], co4[3];
-    const float(*orcodata)[3];
+    const float (*orcodata)[3];
 
-    orcodata = static_cast<const float(*)[3]>(CustomData_get_layer(&mesh->vert_data, CD_ORCO));
+    orcodata = static_cast<const float (*)[3]>(CustomData_get_layer(&mesh->vert_data, CD_ORCO));
 
     MFace *mfaces = (MFace *)CustomData_get_layer_for_write(
         &mesh->fdata_legacy, CD_MFACE, mesh->totface_legacy);

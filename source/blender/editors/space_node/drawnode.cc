@@ -1020,8 +1020,7 @@ static bool socket_needs_attribute_search(bNode &node, bNodeSocket &socket)
   if (socket.in_out == SOCK_OUT) {
     return false;
   }
-  const int socket_index = BLI_findindex(&node.inputs, &socket);
-  return node_decl->inputs[socket_index]->is_attribute_name;
+  return socket.runtime->declaration->is_attribute_name;
 }
 
 static bool socket_needs_layer_search(const bNode &node, const bNodeSocket &socket)
@@ -1036,8 +1035,22 @@ static bool socket_needs_layer_search(const bNode &node, const bNodeSocket &sock
   if (socket.in_out == SOCK_OUT) {
     return false;
   }
-  const int socket_index = BLI_findindex(&node.inputs, &socket);
-  return node_decl->inputs[socket_index]->is_layer_name;
+  return socket.runtime->declaration->is_layer_name;
+}
+
+static bool socket_needs_volume_grid_search(const bNode &node, const bNodeSocket &socket)
+{
+  const nodes::NodeDeclaration *node_decl = node.declaration();
+  if (node_decl == nullptr) {
+    return false;
+  }
+  if (node_decl->skip_updating_sockets) {
+    return false;
+  }
+  if (socket.in_out == SOCK_OUT) {
+    return false;
+  }
+  return socket.runtime->declaration->is_volume_grid_name;
 }
 
 static void draw_gizmo_pin_icon(uiLayout *layout, PointerRNA *socket_ptr)
@@ -1202,6 +1215,16 @@ static void std_node_socket_draw(
           uiLayout *row = &layout->split(0.4f, false);
           row->label(label, ICON_NONE);
           node_geometry_add_layer_search_button(*C, *node, *ptr, *row);
+        }
+      }
+      else if (socket_needs_volume_grid_search(*node, *sock)) {
+        if (optional_label) {
+          node_geometry_add_volume_grid_search_button(*C, *node, *ptr, *layout, label);
+        }
+        else {
+          uiLayout *row = &layout->split(0.4f, false);
+          row->label(label, ICON_NONE);
+          node_geometry_add_volume_grid_search_button(*C, *node, *ptr, *row);
         }
       }
       else {
@@ -1720,7 +1743,7 @@ static void nodesocket_cache_flush()
         batch,
         "parameters",
         4,
-        reinterpret_cast<const float(*)[4]>(g_batch_nodesocket().params.data()));
+        reinterpret_cast<const float (*)[4]>(g_batch_nodesocket().params.data()));
     GPU_batch_draw(batch);
   }
   else {
@@ -1729,7 +1752,7 @@ static void nodesocket_cache_flush()
         batch,
         "parameters",
         MAX_SOCKET_PARAMETERS * MAX_SOCKET_INSTANCE,
-        reinterpret_cast<const float(*)[4]>(g_batch_nodesocket().params.data()));
+        reinterpret_cast<const float (*)[4]>(g_batch_nodesocket().params.data()));
     GPU_batch_draw_instance_range(batch, 0, g_batch_nodesocket().params.size());
   }
   g_batch_nodesocket().params.clear();
@@ -1765,7 +1788,7 @@ static void draw_node_socket_batch(const NodeSocketShaderParameters &socket_para
     gpu::Batch *batch = nodesocket_batch_init();
     GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_NODE_SOCKET);
     GPU_batch_uniform_4fv_array(
-        batch, "parameters", MAX_SOCKET_PARAMETERS, (const float(*)[4])(&socket_params));
+        batch, "parameters", MAX_SOCKET_PARAMETERS, (const float (*)[4])(&socket_params));
     GPU_batch_draw(batch);
   }
 }
@@ -2313,7 +2336,7 @@ void node_draw_link_dragged(const bContext &C,
   const std::array<float2, 4> points = node_link_bezier_points_dragged(snode, link);
 
   const NodeLinkDrawConfig draw_config = nodelink_get_draw_config(
-      C, v2d, snode, link, TH_ACTIVE, TH_ACTIVE, TH_WIRE, true);
+      C, v2d, snode, link, TH_WIRE_INNER, TH_WIRE_INNER, TH_WIRE, true);
   /* End marker outline. */
   node_draw_link_end_markers(link, draw_config, points, true);
   /* Link. */

@@ -920,7 +920,7 @@ static void stitch_propagate_uv_final_position(Scene *scene,
       if (final) {
         copy_v2_v2(luv, final_position[index].uv);
 
-        uvedit_uv_select_enable(scene, state->em->bm, l, offsets);
+        uvedit_uv_select_enable(scene, state->em->bm, l);
       }
       else {
         int face_preview_pos =
@@ -2081,7 +2081,7 @@ static StitchState *stitch_init(bContext *C,
 
       BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
         BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
-          if (uvedit_uv_select_test(scene, l, offsets)) {
+          if (uvedit_uv_select_test(scene, em->bm, l, offsets)) {
             UvElement *element = BM_uv_element_get(state->element_map, l);
             if (element) {
               stitch_select_uv(element, state, 1);
@@ -2103,7 +2103,7 @@ static StitchState *stitch_init(bContext *C,
         }
 
         BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-          if (uvedit_edge_select_test(scene, l, offsets)) {
+          if (uvedit_edge_select_test(scene, em->bm, l, offsets)) {
             UvEdge *edge = uv_edge_get(l, state);
             if (edge) {
               stitch_select_edge(edge, state, true);

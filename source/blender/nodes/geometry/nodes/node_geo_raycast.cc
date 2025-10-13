@@ -29,13 +29,13 @@ static EnumPropertyItem interpolation_items[] = {
     {GEO_NODE_RAYCAST_INTERPOLATED,
      "INTERPOLATED",
      0,
-     "Interpolated",
-     "Interpolate the attribute from the corners of the hit face"},
+     N_("Interpolated"),
+     N_("Interpolate the attribute from the corners of the hit face")},
     {GEO_NODE_RAYCAST_NEAREST,
      "NEAREST",
      0,
-     "Nearest",
-     "Use the attribute value of the closest mesh element"},
+     N_("Nearest"),
+     N_("Use the attribute value of the closest mesh element")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -244,48 +244,105 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  static auto normalize_fn = mf::build::SI1_SO<float3, float3>(
-      "Normalize",
-      [](const float3 &v) { return math::normalize(v); },
-      mf::build::exec_presets::AllSpanOrSingle());
-  auto direction_op = FieldOperation::from(normalize_fn,
-                                           {params.extract_input<Field<float3>>("Ray Direction")});
+  std::string error_message;
 
-  auto op = FieldOperation::from(std::make_unique<RaycastFunction>(target),
-                                 {params.extract_input<Field<float3>>("Source Position"),
-                                  Field<float3>(direction_op),
-                                  params.extract_input<Field<float>>("Ray Length")});
+  bke::SocketValueVariant normalized_direction;
+  {
+    auto ray_direction = params.extract_input<bke::SocketValueVariant>("Ray Direction");
 
-  Field<float3> hit_position(op, 1);
-  params.set_output("Is Hit", Field<bool>(op, 0));
+    static auto normalize_fn = mf::build::SI1_SO<float3, float3>(
+        "Normalize",
+        [](const float3 &v) { return math::normalize(v); },
+        mf::build::exec_presets::AllSpanOrSingle());
+
+    if (!execute_multi_function_on_value_variant(normalize_fn,
+                                                 {&ray_direction},
+                                                 {&normalized_direction},
+                                                 params.user_data(),
+                                                 error_message))
+    {
+      params.set_default_remaining_outputs();
+      params.error_message_add(NodeWarningType::Error, std::move(error_message));
+      return;
+    }
+  }
+
+  auto position = params.extract_input<bke::SocketValueVariant>("Source Position");
+  auto ray_length = params.extract_input<bke::SocketValueVariant>("Ray Length");
+
+  bke::SocketValueVariant is_hit;
+  bke::SocketValueVariant hit_position;
+  bke::SocketValueVariant hit_normal;
+  bke::SocketValueVariant hit_distance;
+  bke::SocketValueVariant triangle_index;
+  if (!execute_multi_function_on_value_variant(
+          std::make_unique<RaycastFunction>(target),
+          {&position, &normalized_direction, &ray_length},
+          {&is_hit, &hit_position, &hit_normal, &hit_distance, &triangle_index},
+          params.user_data(),
+          error_message))
+  {
+    params.set_default_remaining_outputs();
+    params.error_message_add(NodeWarningType::Error, std::move(error_message));
+    return;
+  }
+
+  params.set_output("Is Hit", std::move(is_hit));
   params.set_output("Hit Position", hit_position);
-  params.set_output("Hit Normal", Field<float3>(op, 2));
-  params.set_output("Hit Distance", Field<float>(op, 3));
+  params.set_output("Hit Normal", std::move(hit_normal));
+  params.set_output("Hit Distance", std::move(hit_distance));
 
   if (!params.output_is_required("Attribute")) {
     return;
   }
 
   GField field = params.extract_input<GField>("Attribute");
-  Field<int> triangle_index(op, 4);
-  Field<float3> bary_weights;
+  bke::SocketValueVariant bary_weights;
+  bke::SocketValueVariant triangle_index_copy = triangle_index;
   switch (mapping) {
     case GEO_NODE_RAYCAST_INTERPOLATED:
-      bary_weights = Field<float3>(FieldOperation::from(
-          std::make_shared<bke::mesh_surface_sample::BaryWeightFromPositionFn>(target),
-          {hit_position, triangle_index}));
+      if (!execute_multi_function_on_value_variant(
+              std::make_shared<bke::mesh_surface_sample::BaryWeightFromPositionFn>(target),
+              {&hit_position, &triangle_index_copy},
+              {&bary_weights},
+              params.user_data(),
+              error_message))
+      {
+        params.set_default_remaining_outputs();
+        params.error_message_add(NodeWarningType::Error, std::move(error_message));
+        return;
+      }
       break;
     case GEO_NODE_RAYCAST_NEAREST:
-      bary_weights = Field<float3>(FieldOperation::from(
-          std::make_shared<bke::mesh_surface_sample::CornerBaryWeightFromPositionFn>(target),
-          {hit_position, triangle_index}));
+      if (!execute_multi_function_on_value_variant(
+              std::make_shared<bke::mesh_surface_sample::CornerBaryWeightFromPositionFn>(target),
+              {&hit_position, &triangle_index_copy},
+              {&bary_weights},
+              params.user_data(),
+              error_message))
+      {
+        params.set_default_remaining_outputs();
+        params.error_message_add(NodeWarningType::Error, std::move(error_message));
+        return;
+      }
       break;
   }
-  auto sample_op = FieldOperation::from(
-      std::make_shared<bke::mesh_surface_sample::BaryWeightSampleFn>(std::move(target),
-                                                                     std::move(field)),
-      {triangle_index, bary_weights});
-  params.set_output("Attribute", GField(sample_op));
+
+  bke::SocketValueVariant sampled_atribute;
+  if (!execute_multi_function_on_value_variant(
+          std::make_shared<bke::mesh_surface_sample::BaryWeightSampleFn>(std::move(target),
+                                                                         std::move(field)),
+          {&triangle_index, &bary_weights},
+          {&sampled_atribute},
+          params.user_data(),
+          error_message))
+  {
+    params.set_default_remaining_outputs();
+    params.error_message_add(NodeWarningType::Error, std::move(error_message));
+    return;
+  }
+
+  params.set_output("Attribute", std::move(sampled_atribute));
 }
 
 static void node_rna(StructRNA *srna)

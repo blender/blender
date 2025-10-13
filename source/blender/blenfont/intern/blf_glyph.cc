@@ -830,7 +830,9 @@ static FT_UInt blf_glyph_index_from_charcode(FontBLF **font, const uint charcode
   }
 
 #ifndef NDEBUG
-  printf("Unicode character U+%04X not found in loaded fonts. \n", charcode);
+  /* Disable this print even in debug mode as it floods the console
+   * when browsing a file-system containing unknown characters. */
+  // printf("Unicode character U+%04X not found in loaded fonts. \n", charcode);
 #endif
 
   return 0;

@@ -18,6 +18,7 @@
 #  include "BKE_volume_enums.hh"
 #  include "BKE_volume_grid_type_traits.hh"
 
+#  include "BLI_cache_mutex.hh"
 #  include "BLI_implicit_sharing_ptr.hh"
 #  include "BLI_mutex.hh"
 #  include "BLI_string_ref.hh"
@@ -117,6 +118,18 @@ class VolumeGridData : public ImplicitSharingMixin {
    * An error produced while trying to lazily load the grid.
    */
   mutable std::string error_message_;
+
+  mutable CacheMutex active_voxels_mutex_;
+  mutable int64_t active_voxels_ = 0;
+  mutable CacheMutex active_leaf_voxels_mutex_;
+  mutable int64_t active_leaf_voxels_ = 0;
+  mutable CacheMutex active_tiles_mutex_;
+  mutable int64_t active_tiles_ = 0;
+  mutable CacheMutex size_in_bytes_mutex_;
+  mutable int64_t size_in_bytes_ = 0;
+  mutable CacheMutex active_bounds_mutex_;
+  mutable openvdb::CoordBBox active_bounds_;
+
   /**
    * A token that allows detecting whether some code is currently accessing the tree (not grid) or
    * not. If this variable is the only owner of the `shared_ptr`, no one else has access to the
@@ -237,6 +250,14 @@ class VolumeGridData : public ImplicitSharingMixin {
    * Tree if the tree can be loaded again after it has been unloaded.
    */
   bool is_reloadable() const;
+
+  void tag_tree_modified() const;
+
+  int64_t active_voxels() const;
+  int64_t active_leaf_voxels() const;
+  int64_t active_tiles() const;
+  int64_t size_in_bytes() const;
+  const openvdb::CoordBBox &active_bounds() const;
 
  private:
   /**
@@ -368,6 +389,10 @@ template<typename T> class VolumeGrid : public GVolumeGrid {
   void assert_correct_type() const;
 };
 
+/**
+ * Get the volume grid type based on the tree's type.
+ */
+VolumeGridType get_type(const openvdb::tree::TreeBase &tree);
 /**
  * Get the volume grid type based on the tree type in the grid.
  */
