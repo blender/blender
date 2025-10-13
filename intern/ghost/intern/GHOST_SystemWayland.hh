@@ -86,7 +86,7 @@ int gwl_window_scale_int_from(const GWL_WindowScaleParams &scale_params, int val
  * Return true when all required WAYLAND libraries are present,
  * Performs dynamic loading when `WITH_GHOST_WAYLAND_DYNLOAD` is in use.
  */
-bool ghost_wl_dynload_libraries_init();
+bool ghost_wl_dynload_libraries_init(bool use_window_frame);
 void ghost_wl_dynload_libraries_exit();
 #endif
 
@@ -279,6 +279,8 @@ class GHOST_SystemWayland : public GHOST_System {
                  int32_t h,
                  bool completed) const;
   void ime_end(const GHOST_WindowWayland *win) const;
+
+  bool use_window_frame_get();
 
   static const char *xdg_app_id_get();
 

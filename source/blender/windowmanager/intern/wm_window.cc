@@ -132,6 +132,7 @@ static struct WMInitStruct {
   GHOST_TWindowState windowstate = GHOST_WINDOW_STATE_DEFAULT;
   eWinOverrideFlag override_flag;
 
+  bool window_frame = true;
   bool window_focus = true;
   bool native_pixels = true;
 } wm_init_state;
@@ -2116,6 +2117,7 @@ void wm_ghost_init(bContext *C)
   consumer = GHOST_CreateEventConsumer(ghost_event_proc, C);
 
   GHOST_SetBacktraceHandler((GHOST_TBacktraceFn)BLI_system_backtrace);
+  GHOST_UseWindowFrame(wm_init_state.window_frame);
 
   g_system = GHOST_CreateSystem();
   GPU_backend_ghost_system_set(g_system);
@@ -2812,6 +2814,16 @@ void WM_init_state_maximized_set()
 {
   wm_init_state.windowstate = GHOST_kWindowStateMaximized;
   wm_init_state.override_flag |= WIN_OVERRIDE_WINSTATE;
+}
+
+bool WM_init_window_frame_get()
+{
+  return wm_init_state.window_frame;
+}
+
+void WM_init_window_frame_set(bool do_it)
+{
+  wm_init_state.window_frame = do_it;
 }
 
 void WM_init_window_focus_set(bool do_it)

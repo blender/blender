@@ -1862,6 +1862,7 @@ static std::optional<int> wm_main_playanim_intern(int argc, const char **argv, P
 
       /* Init GHOST and open window. */
       GHOST_SetBacktraceHandler((GHOST_TBacktraceFn)BLI_system_backtrace);
+      GHOST_UseWindowFrame(WM_init_window_frame_get());
 
       ps.ghost_data.system = GHOST_CreateSystem();
       if (UNLIKELY(ps.ghost_data.system == nullptr)) {

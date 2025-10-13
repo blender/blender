@@ -150,6 +150,9 @@ class GHOST_ISystem {
   static GHOST_TBacktraceFn getBacktraceFn();
   static void setBacktraceFn(GHOST_TBacktraceFn backtrace_fn);
 
+  static bool getUseWindowFrame();
+  static void setUseWindowFrame(bool use_window_frame);
+
  protected:
   /**
    * Constructor.
@@ -540,6 +543,15 @@ class GHOST_ISystem {
 
   /** Function to call that sets the back-trace. */
   static GHOST_TBacktraceFn backtrace_fn_;
+
+  /**
+   * When false, don't use window frame.
+   *
+   * \note This needs to be set before system initialization
+   * to avoid loading LIBDECOR libraries (which can crash).
+   * If LIBDECOR is removed, this could be set on window creation instead.
+   */
+  static bool use_window_frame_;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_ISystem")
 };
